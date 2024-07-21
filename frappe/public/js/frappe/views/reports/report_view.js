@@ -1573,12 +1573,14 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							},
 						];
 					}
-					extra_fields.push({
-						fieldtype: "Check",
-						fieldname: "translate_values",
-						label: __("Translate values"),
-						default: 1,
-					});
+					if (frappe.boot.lang !== "en") {
+						extra_fields.push({
+							fieldtype: "Check",
+							fieldname: "translate_values",
+							label: __("Translate values"),
+							default: 1,
+						});
+					}
 
 					const d = frappe.report_utils.get_export_dialog(
 						__(this.doctype),
