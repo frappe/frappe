@@ -357,7 +357,7 @@ def export_query():
 	title = form_params.pop("title", doctype)
 	csv_params = pop_csv_params(form_params)
 	add_totals_row = 1 if form_params.pop("add_totals_row", None) == "1" else None
-	translate_values = int(form_params.pop("translate_values", 0))
+	translate_values = 1 if form_params.pop("translate_values", None) == "1" else None
 
 	frappe.permissions.can_export(doctype, raise_exception=True)
 
@@ -464,7 +464,7 @@ def get_field_info(fields, doctype):
 				translatable = True
 			else:
 				name = fieldname
-				label = _(fieldname)
+				label = _(df.label) if df else _(fieldname)
 				fieldtype = "Data"
 				translatable = False
 
