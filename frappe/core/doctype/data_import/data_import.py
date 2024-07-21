@@ -296,7 +296,16 @@ def export_json(doctype, path, filters=None, or_filters=None, name=None, order_b
 			for v in doc.values():
 				if isinstance(v, list):
 					for child in v:
-						for key in (*del_keys, "docstatus", "doctype", "modified", "name"):
+						for key in (
+							*del_keys,
+							"docstatus",
+							"doctype",
+							"modified",
+							"name",
+							"parent",
+							"parentfield",
+							"parenttype",
+						):
 							if key in child:
 								del child[key]
 

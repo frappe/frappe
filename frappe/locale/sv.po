@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-07-07 09:33+0000\n"
-"PO-Revision-Date: 2024-07-11 16:55\n"
+"PO-Revision-Date: 2024-07-14 17:15\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -540,7 +540,7 @@ msgstr "<h4>E-post Svar Exempel</h4>\n\n"
 "- Kund: {{ customer }}\n"
 "- Belopp: {{ grand_total }}\n"
 "</pre>\n\n"
-"<h4>Hur man får fältnamn</h4>\n\n"
+"<h4>Hur hämtas fältnamn</h4>\n\n"
 "<p>Fältnamn som kan använda i e-post mall är fält i dokument som du skickar e-post meddelande från. Ta reda på fält namn för alla dokument via Inställningar &gt; Anpassa formulär vy och välja dokument typ (t.ex. Försäljning Faktura)</p>\n\n"
 "<h4>Mallar</h4>\n\n"
 "<p>Mallar kompileras med Jinja Templating Language. För att lära dig mer om Jinja, <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\">läs denna dokumentation.</a></p>\n"
@@ -1292,7 +1292,7 @@ msgstr "Lägg till Mall"
 #. Label of the add_total_row (Check) field in DocType 'Report'
 #: core/doctype/report/report.json
 msgid "Add Total Row"
-msgstr "Lägg till Totalt Rad"
+msgstr "Lägg till Totalt Antal Rader"
 
 #. Label of the add_unsubscribe_link (Check) field in DocType 'Email Queue'
 #: email/doctype/email_queue/email_queue.json
@@ -3154,7 +3154,7 @@ msgstr "Bakgrund Jobb"
 #. Report'
 #: desk/doctype/system_health_report/system_health_report.json
 msgid "Background Jobs Check"
-msgstr "Bakgrund Jobb Koll"
+msgstr "Bakgrund Jobb Status"
 
 #. Label of the background_jobs_queue (Autocomplete) field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
@@ -3407,7 +3407,7 @@ msgstr "Faktura Kontakt"
 #. Label of the binary_logging (Data) field in DocType 'System Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
 msgid "Binary Logging"
-msgstr "Fakturering Logg"
+msgstr "Binär Logg"
 
 #. Label of the bio (Small Text) field in DocType 'User'
 #. Label of the bio (Small Text) field in DocType 'About Us Team Member'
@@ -13879,7 +13879,7 @@ msgstr "Senaste Tilldelning Datum"
 #. Option for the 'Timespan' (Select) field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Last Quarter"
-msgstr "Sista Kvartal"
+msgstr "Förra Kvartal"
 
 #. Label of the last_reset_password_key_generated_on (Datetime) field in
 #. DocType 'User'
@@ -16120,7 +16120,7 @@ msgstr "Ny {0}: {1}"
 
 #: utils/change_log.py:373
 msgid "New {} releases for the following apps are available"
-msgstr "Nya {} utgåvor för följande appar finns tillgängliga"
+msgstr "Nya {} versioner för följande appar finns tillgängliga"
 
 #: core/doctype/user/user.py:753
 msgid "Newly created user {0} has no roles enabled."
@@ -17093,7 +17093,7 @@ msgstr "Antal dagar efter vilka dokument Webb Vy länk delad i e-post kommer att
 #. Label of the cache_keys (Int) field in DocType 'System Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
 msgid "Number of keys"
-msgstr "Antal nycklar"
+msgstr "Antal Nycklar"
 
 #. Label of the onsite_backups (Int) field in DocType 'System Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
@@ -17710,7 +17710,7 @@ msgstr "Utgående (SMTP) Inställningar"
 #. Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
 msgid "Outgoing Emails (Last 7 days)"
-msgstr "Utgående E-post (sista 7 dagar)"
+msgstr "Utgående E-post (Senaste 7 dagar)"
 
 #. Label of the smtp_server (Data) field in DocType 'Email Account'
 #. Label of the smtp_server (Data) field in DocType 'Email Domain'
@@ -18250,24 +18250,24 @@ msgstr "Pågående"
 #. Request'
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 msgid "Pending Approval"
-msgstr "Pågående Godkännande"
+msgstr "Godkännande Kö"
 
 #. Label of the pending_emails (Int) field in DocType 'System Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
 msgid "Pending Emails"
-msgstr "Pågående E-post"
+msgstr "E-post Kö"
 
 #. Label of the pending_jobs (Int) field in DocType 'System Health Report
 #. Queue'
 #: desk/doctype/system_health_report_queue/system_health_report_queue.json
 msgid "Pending Jobs"
-msgstr "Pågående Jobb"
+msgstr "Jobb Kö"
 
 #. Option for the 'Status' (Select) field in DocType 'Personal Data Deletion
 #. Request'
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 msgid "Pending Verification"
-msgstr "Pågående Verifiering"
+msgstr "Verifiering Kö"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -26340,16 +26340,16 @@ msgstr "Totalt"
 #. Report'
 #: desk/doctype/system_health_report/system_health_report.json
 msgid "Total Background Workers"
-msgstr "Totalt Bakgrund Tjänster"
+msgstr "Totalt Antal Bakgrund Tjänster"
 
 #. Label of the total_errors (Int) field in DocType 'System Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
 msgid "Total Errors (last 1 day)"
-msgstr "Totalt Fel (sista dagen)"
+msgstr "Totalt Antal Fel (Senaste dag)"
 
 #: public/js/frappe/ui/capture.js:259
 msgid "Total Images"
-msgstr "Totalt Bilder"
+msgstr "Totalt Antal Bilder"
 
 #. Label of the total_outgoing_emails (Int) field in DocType 'System Health
 #. Report'
@@ -26378,18 +26378,18 @@ msgstr "Totalt Användare"
 #. Label of the total_views (Int) field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
 msgid "Total Views"
-msgstr "Totalt Visningar"
+msgstr "Totalt Antal Visningar"
 
 #. Label of the total_working_time (Duration) field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
 msgid "Total Working Time"
-msgstr "Totalt Antal Arbetstimmar"
+msgstr "Totalt Antal Arbetade Timmar"
 
 #. Description of the 'Initial Sync Count' (Select) field in DocType 'Email
 #. Account'
 #: email/doctype/email_account/email_account.json
 msgid "Total number of emails to sync in initial sync process "
-msgstr "Totalt antal E-post meddelande som ska synkroniseras i första synkronisering behandling"
+msgstr "Totalt antal E-post meddelande som ska synkroniseras i första synkronisering "
 
 #: public/js/frappe/views/reports/report_view.js:1178
 msgid "Totals"
@@ -26397,7 +26397,7 @@ msgstr "Totals"
 
 #: public/js/frappe/views/reports/report_view.js:1153
 msgid "Totals Row"
-msgstr "Totalt Rad"
+msgstr "Totalt Antal Rader"
 
 #. Label of the trace_id (Data) field in DocType 'Error Log'
 #: core/doctype/error_log/error_log.json
