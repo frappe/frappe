@@ -376,14 +376,23 @@ def export_query():
 	if add_totals_row:
 		ret = append_totals_row(ret)
 
-	data = [[_("Sr"), *get_labels(db_query.fields, doctype)]]
+	fields_info = get_field_info(db_query.fields, doctype)
+
+	labels = [info["label"] for info in fields_info]
+	data = [[_("Sr"), *labels]]
+
 	if frappe.local.lang == "en":
 		data.extend([i + 1, *list(row)] for i, row in enumerate(ret))
 	else:
+		translatable_fields = [field["translatable"] for field in fields_info]
+		processed_data = []
 		for i, row in enumerate(ret):
-			data.append([i + 1] + list(map(_, row)))
-	
-	
+			processed_row = [i + 1] + [
+				_(value) if translatable_fields[idx] else value for idx, value in enumerate(row)
+			]
+			processed_data.append(processed_row)
+
+	data.extend(processed_data)
 	data = handle_duration_fieldtype_values(doctype, data, db_query.fields)
 
 	if file_format_type == "CSV":
@@ -423,9 +432,9 @@ def append_totals_row(data):
 	return data
 
 
-def get_labels(fields, doctype):
-	"""get column labels based on column names"""
-	labels = []
+def get_field_info(fields, doctype):
+	"""Get column names, labels, field types, and translatable properties based on column names."""
+	field_info = []
 	for key in fields:
 		try:
 			parenttype, fieldname = parse_field(key)
@@ -435,18 +444,38 @@ def get_labels(fields, doctype):
 		parenttype = parenttype or doctype
 
 		if parenttype == doctype and fieldname == "name":
+			name = fieldname
 			label = _("ID", context="Label of name column in report")
+			fieldtype = "Data"
+			translatable = True
 		else:
 			df = frappe.get_meta(parenttype).get_field(fieldname)
-			label = _(df.label if df else fieldname.title())
+			if df and df.fieldtype in ("Data", "Select", "Small Text", "Text Editor", "Text"):
+				name = df.name
+				label = df.label
+				fieldtype = df.fieldtype
+				translatable = df.translatable if hasattr(df, "translatable") else False
+			elif df and df.fieldtype == "Link" and frappe.get_meta(df.options).translated_doctype:
+				name = df.name
+				label = df.label
+				fieldtype = df.fieldtype
+				translatable = True
+			else:
+				name = fieldname
+				label = fieldname
+				fieldtype = "Data"
+				translatable = False
+
 			if parenttype != doctype:
 				# If the column is from a child table, append the child doctype.
 				# For example, "Item Code (Sales Invoice Item)".
 				label += f" ({ _(parenttype) })"
 
-		labels.append(label)
+		field_info.append(
+			{"name": name, "label": label, "fieldtype": fieldtype, "translatable": translatable}
+		)
 
-	return labels
+	return field_info
 
 
 def handle_duration_fieldtype_values(doctype, data, fields):
