@@ -18,10 +18,30 @@ class Language(Document):
 		from frappe.types import DF
 
 		based_on: DF.Link | None
+		date_format: DF.Literal[
+			"", "yyyy-mm-dd", "dd-mm-yyyy", "dd/mm/yyyy", "dd.mm.yyyy", "mm/dd/yyyy", "mm-dd-yyyy"
+		]
 		enabled: DF.Check
+		first_day_of_the_week: DF.Literal[
+			"", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+		]
 		flag: DF.Data | None
 		language_code: DF.Data
 		language_name: DF.Data
+		number_format: DF.Literal[
+			"",
+			"#,###.##",
+			"#.###,##",
+			"# ###.##",
+			"# ###,##",
+			"#'###.##",
+			"#, ###.##",
+			"#,##,###.##",
+			"#,###.###",
+			"#.###",
+			"#,###",
+		]
+		time_format: DF.Literal["", "HH:mm:ss", "HH:mm"]
 	# end: auto-generated types
 
 	def validate(self):
