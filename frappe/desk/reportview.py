@@ -450,7 +450,7 @@ def get_field_info(fields, doctype):
 			translatable = True
 		else:
 			df = frappe.get_meta(parenttype).get_field(fieldname)
-			if df and df.fieldtype in ("Data", "Select", "Small Text", "Text Editor", "Text"):
+			if df and df.fieldtype in ("Data", "Select", "Small Text", "Text"):
 				name = df.name
 				label = df.label
 				fieldtype = df.fieldtype
