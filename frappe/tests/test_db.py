@@ -572,6 +572,20 @@ class TestDB(FrappeTestCase):
 
 		frappe.db.rollback()
 
+	def test_get_list_return_value_data_type(self):
+		frappe.db.delete("Note")
+
+		frappe.get_doc(doctype="Note", title="note1", content="something").insert()
+		frappe.get_doc(doctype="Note", title="note2", content="someting else").insert()
+
+		note_docs = frappe.db.sql("select * from `tabNote`")
+
+		# should return both records
+		self.assertEqual(len(note_docs), 2)
+
+		# data-type should be list
+		self.assertIsInstance(note_docs, list)
+
 	@run_only_if(db_type_is.POSTGRES)
 	def test_modify_query(self):
 		from frappe.database.postgres.database import modify_query
