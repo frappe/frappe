@@ -357,6 +357,7 @@ def export_query():
 	title = form_params.pop("title", doctype)
 	csv_params = pop_csv_params(form_params)
 	add_totals_row = 1 if form_params.pop("add_totals_row", None) == "1" else None
+	translate_values = int(form_params.pop("translate_values", 0))
 
 	frappe.permissions.can_export(doctype, raise_exception=True)
 
@@ -380,10 +381,11 @@ def export_query():
 
 	labels = [info["label"] for info in fields_info]
 	data = [[_("Sr"), *labels]]
+	processed_data = []
 
-	if frappe.local.lang == "en":
+	if frappe.local.lang == "en" or not translate_values:
 		data.extend([i + 1, *list(row)] for i, row in enumerate(ret))
-	else:
+	elif translate_values:
 		translatable_fields = [field["translatable"] for field in fields_info]
 		processed_data = []
 		for i, row in enumerate(ret):
@@ -391,8 +393,8 @@ def export_query():
 				_(value) if translatable_fields[idx] else value for idx, value in enumerate(row)
 			]
 			processed_data.append(processed_row)
+			data.extend(processed_data)
 
-	data.extend(processed_data)
 	data = handle_duration_fieldtype_values(doctype, data, db_query.fields)
 
 	if file_format_type == "CSV":
