@@ -436,12 +436,17 @@ def append_totals_row(data):
 
 def get_field_info(fields, doctype):
 	"""Get column names, labels, field types, and translatable properties based on column names."""
+
 	field_info = []
 	for key in fields:
+		df = None
 		try:
 			parenttype, fieldname = parse_field(key)
 		except ValueError:
-			continue
+			# handles aggregate functions
+			parenttype = doctype
+			fieldname = key.split("(", 1)[0]
+			fieldname = fieldname[0].upper() + fieldname[1:]
 
 		parenttype = parenttype or doctype
 
