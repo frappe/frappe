@@ -166,7 +166,11 @@ frappe.ui.form.on("Email Account", {
 	},
 
 	show_oauth_authorization_message(frm) {
-		if (frm.doc.auth_method === "OAuth" && frm.doc.connected_app) {
+		if (
+			frm.doc.auth_method === "OAuth" &&
+			frm.doc.connected_app &&
+			!frm.doc.backend_app_flow
+		) {
 			frappe.call({
 				method: "frappe.integrations.doctype.connected_app.connected_app.has_token",
 				args: {
