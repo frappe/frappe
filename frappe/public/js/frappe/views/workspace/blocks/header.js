@@ -107,8 +107,8 @@ export default class Header extends Block {
 			let text = this._data.text || "";
 			const contains_html_tag = /<[a-z][\s\S]*>/i.test(text);
 			this._element.innerHTML = contains_html_tag
-				? text
-				: `<span class="h${this._settings.default_size}">${text}</span>`;
+				? __(text)
+				: `<span class="h${this._settings.default_size}">${__(text)}</span>`;
 		}
 
 		if (!this.readOnly && this.wrapper) {
