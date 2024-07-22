@@ -14,7 +14,28 @@ frappe._ = function (txt, replace, context = null) {
 	}
 
 	if (!translated_text) {
-		translated_text = frappe._messages[key] || txt;
+		translated_text = frappe._messages[key];
+		if (!translated_text) {
+			const isHTML = /<[a-z][\s\S]*>/i.test(txt);
+			if (isHTML) {
+				const parser = new DOMParser();
+				const doc = parser.parseFromString(txt, "text/html");
+				replaceTextNodes(doc.body);
+
+				function replaceTextNodes(node) {
+					if (node.nodeType === Node.TEXT_NODE) {
+						node.textContent = frappe._(node.textContent);
+					} else {
+						node.childNodes.forEach((child) => {
+							replaceTextNodes(child);
+						});
+					}
+				}
+				translated_text = doc.body.innerHTML;
+			} else {
+				translated_text = txt;
+			}
+		}
 	}
 
 	if (replace && typeof replace === "object") {
