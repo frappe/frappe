@@ -73,10 +73,71 @@ class Notification(Document):
 		"""load message"""
 		if self.is_standard:
 			self.message = self.get_template()
+		self.set_onload(
+			"preview_fields",
+			[
+				{"label": _("Meets Condition?"), "fieldtype": "Data", "method": "preview_meets_condition"},
+				{"label": _("Subject"), "fieldtype": "Data", "method": "preview_subject"},
+				{"label": _("Message"), "fieldtype": "Code", "method": "preview_message"},
+			],
+		)
 
 	def autoname(self):
 		if not self.name:
 			self.name = self.subject
+
+	# START: PreviewRenderer API
+
+	@frappe.whitelist()
+	def preview_meets_condition(self, preview_document):
+		if not self.condition:
+			return _("Yes")
+		try:
+			doc = frappe.get_cached_doc(self.document_type, preview_document)
+			context = get_context(doc)
+			if self.is_standard:
+				self.load_standard_properties(context)
+			return _("Yes") if frappe.safe_eval(self.condition, eval_locals=context) else _("No")
+		except Exception as e:
+			frappe.local.message_log = []
+			return _("Failed to evaluate conditions: {}").format(e)
+
+	@frappe.whitelist()
+	def preview_message(self, preview_document):
+		try:
+			doc = frappe.get_cached_doc(self.document_type, preview_document)
+			context = get_context(doc)
+			context.update({"alert": self, "comments": None})
+			if doc.get("_comments"):
+				context["comments"] = json.loads(doc.get("_comments"))
+			if self.is_standard:
+				self.load_standard_properties(context)
+			msg = frappe.render_template(self.message, context)
+			if self.channel == "SMS":
+				return frappe.utils.strip_html_tags(msg)
+			return msg
+		except Exception as e:
+			return _("Failed to render message: {}").format(e)
+
+	@frappe.whitelist()
+	def preview_subject(self, preview_document):
+		try:
+			doc = frappe.get_cached_doc(self.document_type, preview_document)
+			context = get_context(doc)
+			context.update({"alert": self, "comments": None})
+			if doc.get("_comments"):
+				context["comments"] = json.loads(doc.get("_comments"))
+			if self.is_standard:
+				self.load_standard_properties(context)
+			if not self.subject:
+				return _("No subject")
+			if "{" in self.subject:
+				return frappe.render_template(self.subject, context)
+			return self.subject
+		except Exception as e:
+			return _("Failed to render subject: {}").format(e)
+
+	# END: PreviewRenderer API
 
 	def validate(self):
 		if self.channel in ("Email", "Slack", "System Notification"):
