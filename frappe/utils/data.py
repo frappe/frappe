@@ -1458,7 +1458,12 @@ def money_in_words(
 			"Cent"
 		)
 
-	number_format = get_number_format()
+	currency_format_str = frappe.db.get_value("Currency", main_currency, "number_format", cache=True)
+	if currency_format_str:
+		number_format = NumberFormat.from_string(currency_format_str)
+	else:
+		number_format = get_number_format()
+
 	fraction_length = number_format.precision
 
 	n = f"%.{fraction_length}f" % number
