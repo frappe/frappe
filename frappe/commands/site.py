@@ -679,19 +679,12 @@ def migrate(context, skip_failing=False, skip_search_index=False):
 
 
 @click.command("migrate-to")
-@click.argument("frappe_provider")
 @pass_context
-def migrate_to(context, frappe_provider):
+def migrate_to(context):
 	"Migrates site to the specified provider"
 	from frappe.integrations.frappe_providers import migrate_to
 
-	for site in context.sites:
-		frappe.init(site=site)
-		frappe.connect()
-		migrate_to(site, frappe_provider)
-		frappe.destroy()
-	if not context.sites:
-		raise SiteNotSpecifiedError
+	migrate_to(context)
 
 
 @click.command("run-patch")
