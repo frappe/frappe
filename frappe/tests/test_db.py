@@ -584,7 +584,7 @@ class TestDB(FrappeTestCase):
 		self.assertEqual(len(note_docs), 2)
 
 		# data-type should be list
-		self.assertIsInstance(note_docs, list)
+		self.assertIsInstance(note_docs, tuple)
 
 	@run_only_if(db_type_is.POSTGRES)
 	def test_modify_query(self):
