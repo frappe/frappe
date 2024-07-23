@@ -1061,6 +1061,13 @@ class BaseDocument:
 						seconds=db_value.second,
 						microseconds=db_value.microsecond,
 					)
+				elif isinstance(self_value, datetime.time) and isinstance(db_value, datetime.timedelta):
+					self_value = datetime.timedelta(
+						hours=self_value.hour,
+						minutes=self_value.minute,
+						seconds=self_value.second,
+						microseconds=self_value.microsecond,
+					)
 				if self_value != db_value:
 					frappe.throw(
 						_("{0} Not allowed to change {1} after submission from {2} to {3}").format(
