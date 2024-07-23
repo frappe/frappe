@@ -24,14 +24,14 @@ frappe._ = function (txt, replace, context = null) {
 
 				function replaceTextNodes(node) {
 					if (node.nodeType === Node.TEXT_NODE) {
-						node.textContent = frappe._(node.textContent);
+						node.textContent = frappe._(node.textContent, replace, context);
 					} else {
 						node.childNodes.forEach((child) => {
 							replaceTextNodes(child);
 						});
 					}
 				}
-				translated_text = doc.body.innerHTML;
+				return doc.body.innerHTML;
 			} else {
 				translated_text = txt;
 			}
