@@ -1125,9 +1125,9 @@ class TestPostgresSchemaQueryIndependence(ExtFrappeTestCase):
 
 		if frappe.db.sql(
 			"""SELECT 1
-													FROM information_schema.schemata
-												WHERE schema_name = 'alt_schema'
-									 		limit 1 """
+					FROM information_schema.schemata
+					WHERE schema_name = 'alt_schema'
+					LIMIT 1 """
 		):
 			self.cleanup()
 
@@ -1258,19 +1258,19 @@ class TestPostgresSchemaQueryIndependence(ExtFrappeTestCase):
 		rows = frappe.db.sql(f'select * from "tab{self.test_table_name}"')
 		self.assertEqual(
 			rows,
-			[
+			(
 				(
 					"a",
 					"b",
-				)
-			],
+				),
+			),
 		)  # there should be a single row in the public table
 
 		# when schema is changed to alt_schema, the alt_schema tables should be addressed by search path
 		frappe.conf["db_schema"] = "alt_schema"
 		frappe.db.connect()
 		rows = frappe.db.sql(f'select * from "tab{self.test_table_name}"')
-		self.assertEqual(rows, [])  # there are no records in the alt_schema table
+		self.assertEqual(rows, ())  # there are no records in the alt_schema table
 
 		del frappe.conf["db_schema"]
 
