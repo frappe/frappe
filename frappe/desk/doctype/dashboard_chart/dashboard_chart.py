@@ -283,7 +283,9 @@ def get_group_by_chart_config(chart, filters) -> dict | None:
 		group_by_field
 	)  # get info about @group_by_field
 
-	if data and group_by_field_field and group_by_field_field.fieldtype == "Link":  # if @group_by_field is link
+	if (
+		data and group_by_field_field and group_by_field_field.fieldtype == "Link"
+	):  # if @group_by_field is link
 		title_field = frappe.get_meta(group_by_field_field.options)  # get title field
 		if title_field.title_field:  # if has title_field
 			for item in data:  # replace chart labels from name to title value
