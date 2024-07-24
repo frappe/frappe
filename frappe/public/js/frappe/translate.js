@@ -20,14 +20,14 @@ frappe._ = function (txt, replace, context = null) {
 			if (isHTML) {
 				const parser = new DOMParser();
 				const doc = parser.parseFromString(txt, "text/html");
-				replaceTextNodes(doc.body);
+				replaceTextNodes(doc.body, replace, context);
 
-				function replaceTextNodes(node) {
+				function replaceTextNodes(node, replace, context) {
 					if (node.nodeType === Node.TEXT_NODE) {
 						node.textContent = frappe._(node.textContent, replace, context);
 					} else {
 						node.childNodes.forEach((child) => {
-							replaceTextNodes(child);
+							replaceTextNodes(child, replace, context);
 						});
 					}
 				}
