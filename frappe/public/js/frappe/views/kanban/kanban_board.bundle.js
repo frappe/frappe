@@ -27,6 +27,7 @@ const ProjectStatusOptions = {
 };
 
 (function () {
+	let same_status_2days = "At least 2 days the jobcard is in the same status."
 	let quotations_draft = 0
 	let unread_conversations = []
 	getDraftQuotations()
@@ -834,7 +835,7 @@ const ProjectStatusOptions = {
 			};
 
 			self.$card = $(frappe.render_template("kanban_card", opts)).appendTo(wrapper);
-			if (card.border.message === "At least 2 days the jobcard is in the same status.") {
+			if (card.border.message === same_status_2days) {
 				self.$card.find(".kanban-card.content").css("border", "1px solid orange");
 			} else if (card.border.message) {
 				self.$card.find(".kanban-card.content").css("border", "1px solid red");
@@ -1055,7 +1056,6 @@ const ProjectStatusOptions = {
 	function hasconversationUnread(card) {
 		return unread_conversations.find((el) => el.from === card.custom_customers_phone_number)
 	}
-
 	function set_border_color(card) {
 		let message = false
 		const nowDate = new Date();
@@ -1079,7 +1079,7 @@ const ProjectStatusOptions = {
 			card.status !== 'Completed' &&
 			!isNaN(modifiedDate.getTime()) &&
 			dayDifference > 2) {
-			message = "At least 2 days the jobcard is in the same status.";
+			message = same_status_2days;
 		}
 		return { message }
 	}
