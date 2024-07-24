@@ -20,17 +20,7 @@ frappe._ = function (txt, replace, context = null) {
 			if (isHTML) {
 				const parser = new DOMParser();
 				const doc = parser.parseFromString(txt, "text/html");
-				replaceTextNodes(doc.body, replace, context);
-
-				function replaceTextNodes(node, replace, context) {
-					if (node.nodeType === Node.TEXT_NODE) {
-						node.textContent = frappe._(node.textContent, replace, context);
-					} else {
-						node.childNodes.forEach((child) => {
-							replaceTextNodes(child, replace, context);
-						});
-					}
-				}
+				translateTextNodes(doc.body, replace, context);
 				return doc.body.innerHTML;
 			} else {
 				translated_text = txt;
@@ -43,6 +33,16 @@ frappe._ = function (txt, replace, context = null) {
 	}
 	return translated_text;
 };
+
+function translateTextNodes(node, replace, context) {
+	if (node.nodeType === Node.TEXT_NODE) {
+		node.textContent = frappe._(node.textContent, replace, context);
+	} else {
+		node.childNodes.forEach((child) => {
+			translateTextNodes(child, replace, context);
+		});
+	}
+}
 
 window.__ = frappe._;
 
