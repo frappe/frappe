@@ -4,27 +4,27 @@ import { createStore } from "vuex";
 frappe.provide("frappe.views");
 
 const ProjectStatusOptions = {
-    InQueue: "In queue",
-    InParking: "In parking",
-    PreDiagnose: "Pre-diagnose",
-    Diagnosed: "Diagnosed",
-    Quoted: "Quoted",
-    QuoteApproved: "Quote approved",
-    InRepair: "In repair",
-    RepairReady: "Repair ready",
-    QualityCheckApproved: "Quality check approved",
-    FullyTestedAdapted: "Fully-tested/adapted",
-    InvoicePaid: "Invoice paid",
-    AwaitingPickup: "Awaiting pickup",
-    Completed: "Completed",
-    Cancelled: "Cancelled",
-    InPause: "In pause",
-    NoResponseFromCustomer: "No response from customer",
-    RequestCallback: "Request a callback",
-    RemoteDiagnose: "Remote diagnose",
-    SoftShowroom: "Soft. showroom",
-    SoftInternally: "Soft. internally"
-  };
+	InQueue: "In queue",
+	InParking: "In parking",
+	PreDiagnose: "Pre-diagnose",
+	Diagnosed: "Diagnosed",
+	Quoted: "Quoted",
+	QuoteApproved: "Quote approved",
+	InRepair: "In repair",
+	RepairReady: "Repair ready",
+	QualityCheckApproved: "Quality check approved",
+	FullyTestedAdapted: "Fully-tested/adapted",
+	InvoicePaid: "Invoice paid",
+	AwaitingPickup: "Awaiting pickup",
+	Completed: "Completed",
+	Cancelled: "Cancelled",
+	InPause: "In pause",
+	NoResponseFromCustomer: "No response from customer",
+	RequestCallback: "Request a callback",
+	RemoteDiagnose: "Remote diagnose",
+	SoftShowroom: "Soft. showroom",
+	SoftInternally: "Soft. internally"
+};
 
 (function () {
 	let quotations_draft = 0
@@ -45,7 +45,7 @@ const ProjectStatusOptions = {
 				filters_modified: false,
 				cur_list: {},
 				empty_state: true,
-				done_statuses: [ 'Completed', 'In pause', 'Cancelled', 'Quality check approved', 'No response from customer', 'Invoice paid', 'Awaiting pickup' ],
+				done_statuses: ['Completed', 'In pause', 'Cancelled', 'Quality check approved', 'No response from customer', 'Invoice paid', 'Awaiting pickup'],
 				kanban_columns: [],
 			},
 			mutations: {
@@ -80,11 +80,11 @@ const ProjectStatusOptions = {
 				update_cards: function (context, cards) {
 					var state = context.state;
 					var _cards = [].concat(
-							...cards
-								.map((card) => prepare_card(card, state)),
-							...state.cards
-						).uniqBy((el) => el.name)
-	
+						...cards
+							.map((card) => prepare_card(card, state)),
+						...state.cards
+					).uniqBy((el) => el.name)
+
 					context.commit("update_state", {
 						cards: _cards,
 					});
@@ -125,7 +125,7 @@ const ProjectStatusOptions = {
 								});
 							},
 							function (err) {
-								console.error(err); 
+								console.error(err);
 							}
 						);
 				},
@@ -134,7 +134,7 @@ const ProjectStatusOptions = {
 					var doc = frappe.model.get_new_doc(state.doctype);
 					var field = state.card_meta.title_field;
 					var quick_entry = state.card_meta.quick_entry;
-	
+
 					var doc_fields = {};
 					doc_fields[field.fieldname] = card_title;
 					doc_fields[state.board.field_name] = column_title;
@@ -142,9 +142,9 @@ const ProjectStatusOptions = {
 						if (f[2] !== "=") return;
 						doc_fields[f[1]] = f[3];
 					});
-	
+
 					$.extend(doc, doc_fields);
-	
+
 					// add the card directly
 					// for better ux
 					const card = prepare_card(doc, state);
@@ -153,7 +153,7 @@ const ProjectStatusOptions = {
 					// remember the name which we will override later
 					const old_name = doc.name;
 					context.commit("update_state", { cards });
-	
+
 					if (field && !quick_entry) {
 						return insert_doc(doc).then(function (r) {
 							// update the card in place with the updated doc
@@ -193,7 +193,7 @@ const ProjectStatusOptions = {
 					const _columns = context.state.columns.slice();
 					let args = {};
 					let method_name = "";
-	
+
 					if (card.new) {
 						method_name = "add_card";
 						args = {
@@ -212,7 +212,7 @@ const ProjectStatusOptions = {
 							new_index: card.new_index,
 						};
 					}
-					if(args.from_colname === args.to_colname) {
+					if (args.from_colname === args.to_colname) {
 						context.commit("update_state", {
 							cards: _cards,
 							columns: _columns,
@@ -251,7 +251,7 @@ const ProjectStatusOptions = {
 					// cache original order
 					const _cards = context.state.cards.slice();
 					const _columns = context.state.columns.slice();
-	
+
 					const order = {};
 					context.state.wrapper.find(".kanban-column[data-column-value]").each(function () {
 						var col_name = $(this).data().columnValue;
@@ -263,7 +263,7 @@ const ProjectStatusOptions = {
 								order[col_name].push(card_name);
 							});
 					});
-	
+
 					frappe
 						.call({
 							method: method_prefix + "update_order",
@@ -325,8 +325,8 @@ const ProjectStatusOptions = {
 							});
 						});
 				},
-				get_cards_count_by_column: function(context){
-					if(context.state.doctype === "Project"){
+				get_cards_count_by_column: function (context) {
+					if (context.state.doctype === "Project") {
 						const _cards = context.state.cards
 						let countByColumn = {};
 						_cards.forEach(card => {
@@ -338,11 +338,11 @@ const ProjectStatusOptions = {
 							}
 						});
 						return countByColumn;
-					}else return ''
+					} else return ''
 				}
 			},
 		});
-		
+
 	}
 
 	frappe.views.KanbanBoard = function (opts) {
@@ -364,11 +364,11 @@ const ProjectStatusOptions = {
 			}
 		};
 
-		self.update_cards = function(cards){
+		self.update_cards = function (cards) {
 			store.dispatch("update_cards", cards);
 		}
 
-		self.update_columns = function(){
+		self.update_columns = function () {
 			make_columns()
 		}
 
@@ -413,7 +413,7 @@ const ProjectStatusOptions = {
 			var columns = store.state.columns;
 			const counter_cards_by_columns = await store.dispatch('get_cards_count_by_column')
 			columns.filter(is_active_column).map(function (col) {
-				frappe.views.KanbanBoardColumn({...col, title: col.title}, self.$kanban_board, self.board_perms, counter_cards_by_columns);
+				frappe.views.KanbanBoardColumn({ ...col, title: col.title }, self.$kanban_board, self.board_perms, counter_cards_by_columns);
 			});
 		}
 
@@ -549,14 +549,14 @@ const ProjectStatusOptions = {
 			}, "");
 			var $dropdown = $(
 				"<div class='dropdown pull-right'>" +
-					"<a class='text-muted dropdown-toggle' data-toggle='dropdown'>" +
-					"<span class='dropdown-text'>" +
-					__("Archived Columns") +
-					"</span><i class='caret'></i></a>" +
-					"<ul class='dropdown-menu'>" +
-					options +
-					"</ul>" +
-					"</div>"
+				"<a class='text-muted dropdown-toggle' data-toggle='dropdown'>" +
+				"<span class='dropdown-text'>" +
+				__("Archived Columns") +
+				"</span><i class='caret'></i></a>" +
+				"<ul class='dropdown-menu'>" +
+				options +
+				"</ul>" +
+				"</div>"
 			);
 
 			list_row_right.html($dropdown);
@@ -604,13 +604,13 @@ const ProjectStatusOptions = {
 			get_and_set_columns_titles_with_counter()
 		}
 
-		function get_total_cards(){
+		function get_total_cards() {
 			return cards_by_columns[column.title] ?? 0
 		}
 
-		function get_and_set_columns_titles_with_counter(){
+		function get_and_set_columns_titles_with_counter() {
 			let _title = self.$kanban_column.find(".kanban-column-title")[0].outerText
-			_title = _title + " ("+get_total_cards()+")"
+			_title = _title + " (" + get_total_cards() + ")"
 			store.state.kanban_columns.push(_title)
 			self.$kanban_column.find(".kanban-column-title").html("<span class=\"indicator-pill gray\"></span><span class=\"kanban-title ellipsis\" title=\"" + _title + "\">" + _title + "</span>");
 		}
@@ -622,41 +622,41 @@ const ProjectStatusOptions = {
 					title: column.title,
 					doctype: store.state.doctype,
 					indicator: frappe.scrub(column.indicator, "-"),
-					column_title: "column_"+column.title.toLowerCase().replace(/[\s\-\/]+/g, '_')
+					column_title: "column_" + column.title.toLowerCase().replace(/[\s\-\/]+/g, '_')
 				})
 			).appendTo(wrapper);
 			self.$kanban_cards = self.$kanban_column.find(".kanban-cards");
-			if(store.state.done_statuses.includes(column.title)){
+			if (store.state.done_statuses.includes(column.title)) {
 				self.$kanban_cards.on('scroll', (event) => {
-					const {target: {scrollTop, clientHeight, scrollHeight, scrollLeft}} = event;
-					if(loading) return
+					const { target: { scrollTop, clientHeight, scrollHeight, scrollLeft } } = event;
+					if (loading) return
 					if (Math.abs(scrollTop) > Math.abs(scrollLeft)) {
-						if(scrollTop + clientHeight >= scrollHeight){
-						const start = store.state.cards.filter((el) => el.column === column.title).length
-						frappe.call({
-							method: 'frappe.desk.reportview.get',
-							args: {
-								"doctype": "Project",
-								"fields": ["*"],
-								"filters":[['status', '=', column.title]],
-								"start": start,
-								"page_length": 10,
-								"view": "List",
-								"group_by": "`tabProject`.`name`",
-								"with_comment_count": 1
-							}
-						}).then((res) => {
-							const data = frappe.utils.dict(res.message.keys, res.message.values)
-							const newTotal = Number(start) + Number(res.message.values.length)
-							store.dispatch("update_cards", data);
-							loading = false;
-							const kanbanTitle = self.$kanban_column.find(".kanban-title");
-							kanbanTitle.remove();
-							const newTitle = column.title + " (" + (newTotal) + ")";
-							const newKanbanTitle = $("<span class=\"kanban-title ellipsis\" title=\"" + newTitle + "\">" + newTitle + "</span>");
-							self.$kanban_column.find(".kanban-column-title").append(newKanbanTitle);
-						})
-						loading = true;
+						if (scrollTop + clientHeight >= scrollHeight) {
+							const start = store.state.cards.filter((el) => el.column === column.title).length
+							frappe.call({
+								method: 'frappe.desk.reportview.get',
+								args: {
+									"doctype": "Project",
+									"fields": ["*"],
+									"filters": [['status', '=', column.title]],
+									"start": start,
+									"page_length": 10,
+									"view": "List",
+									"group_by": "`tabProject`.`name`",
+									"with_comment_count": 1
+								}
+							}).then((res) => {
+								const data = frappe.utils.dict(res.message.keys, res.message.values)
+								const newTotal = Number(start) + Number(res.message.values.length)
+								store.dispatch("update_cards", data);
+								loading = false;
+								const kanbanTitle = self.$kanban_column.find(".kanban-title");
+								kanbanTitle.remove();
+								const newTitle = column.title + " (" + (newTotal) + ")";
+								const newKanbanTitle = $("<span class=\"kanban-title ellipsis\" title=\"" + newTitle + "\">" + newTitle + "</span>");
+								self.$kanban_column.find(".kanban-column-title").append(newKanbanTitle);
+							})
+							loading = true;
 						}
 					}
 				})
@@ -719,7 +719,7 @@ const ProjectStatusOptions = {
 					};
 					store.dispatch("update_order_for_single_card", args);
 				},
-				onAdd: function () {},
+				onAdd: function () { },
 				filter: '.kanban-title-area a'
 			});
 		}
@@ -812,7 +812,7 @@ const ProjectStatusOptions = {
 	};
 
 	frappe.views.KanbanBoardCard = function (card, wrapper) {
-	
+
 		var self = {};
 
 		function init() {
@@ -834,10 +834,11 @@ const ProjectStatusOptions = {
 			};
 
 			self.$card = $(frappe.render_template("kanban_card", opts)).appendTo(wrapper);
-			if(card.border.message){
+			if (card.border.message === "At least 2 days the jobcard is in the same status.") {
+				self.$card.find(".kanban-card.content").css("border", "1px solid orange");
+			} else if (card.border.message) {
 				self.$card.find(".kanban-card.content").css("border", "1px solid red");
-			}
-			if(card.conversation) {
+			} else if (card.conversation) {
 				self.$card.find(".kanban-card.content").css("border", "1px solid #FFA500");
 			}
 			if (!frappe.model.can_write(card.doctype)) {
@@ -849,16 +850,16 @@ const ProjectStatusOptions = {
 		function get_doc_content(card) {
 			let fields = [];
 			const render_fields = [...cur_list.board.fields]
-			if (card.column === ProjectStatusOptions.RequestCallback){
-				render_fields.push(...['customer','callback_date', 'callback_time'])
+			if (card.column === ProjectStatusOptions.RequestCallback) {
+				render_fields.push(...['customer', 'callback_date', 'callback_time'])
 			}
-			if (card.column === ProjectStatusOptions.RemoteDiagnose){
+			if (card.column === ProjectStatusOptions.RemoteDiagnose) {
 				render_fields.push(...['remote_diagnostic_date', 'remote_diagnostic_time'])
 			}
-			if(card.column == ProjectStatusOptions.InParking || card.column == ProjectStatusOptions.InQueue){
+			if (card.column == ProjectStatusOptions.InParking || card.column == ProjectStatusOptions.InQueue) {
 				render_fields.push(...['bring_car_date'])
 			}
-			
+
 			for (let field_name of render_fields) {
 				let field =
 					frappe.meta.docfield_map[card.doctype]?.[field_name] ||
@@ -871,9 +872,9 @@ const ProjectStatusOptions = {
 						<span>${value}</span>
 					</div>
 				`);
-			
+
 			}
-			if(card.border.message){
+			if (card.border.message) {
 				fields.push(`
 				<div class="text-muted text-truncate">
             		<span style="color: red; font-style: italic; font-size: xx-small"> ${card.border.message} </span>
@@ -908,7 +909,7 @@ const ProjectStatusOptions = {
 				${cur_list.get_like_html(card)}
 			`;
 
-			if (card.conversation){
+			if (card.conversation) {
 				html += '<i class="fa-brands fa-whatsapp" style="width: 15px; color: #FFA500"></i>'
 			}
 
@@ -955,50 +956,50 @@ const ProjectStatusOptions = {
 		#D1D1D1  -- gray
 		*/
 
-		function getPartsIcons(){
+		function getPartsIcons() {
 			let html = "";
-			if(card.doc.parts_status === "Waiting for parts"){
+			if (card.doc.parts_status === "Waiting for parts") {
 				html = '<svg xmlns="http://www.w3.org/2000/svg" height="14" width="15.75" viewBox="0 0 576 512"><path class="fa-secondary" opacity=".4" fill="#d14343" d="M552 64H159.2l52.4 256h293.2a24 24 0 0 0 23.4-18.7l47.3-208a24 24 0 0 0 -18.1-28.7A23.7 23.7 0 0 0 552 64z"/><path class="fa-primary" fill="#d14343" d="M218.1 352h268.4a24 24 0 0 1 23.4 29.3l-5.5 24.3a56 56 0 1 1 -63.6 10.4H231.2a56 56 0 1 1 -67.1-8.6L93.9 64H24A24 24 0 0 1 0 40V24A24 24 0 0 1 24 0h102.5A24 24 0 0 1 150 19.2z"/></svg>';
 			}
-			if(card.doc.parts_status === "Parts are ready for pickup"){
+			if (card.doc.parts_status === "Parts are ready for pickup") {
 				html = '<svg xmlns="http://www.w3.org/2000/svg" height="14" width="15.75" viewBox="0 0 576 512"><path class="fa-secondary" opacity=".4" fill="#33ad53" d="M552 64H159.2l52.4 256h293.2a24 24 0 0 0 23.4-18.7l47.3-208a24 24 0 0 0 -18.1-28.7A23.7 23.7 0 0 0 552 64z"/><path class="fa-primary" fill="#33ad53" d="M218.1 352h268.4a24 24 0 0 1 23.4 29.3l-5.5 24.3a56 56 0 1 1 -63.6 10.4H231.2a56 56 0 1 1 -67.1-8.6L93.9 64H24A24 24 0 0 1 0 40V24A24 24 0 0 1 24 0h102.5A24 24 0 0 1 150 19.2z"/></svg>';
 			}
-			if(card.doc.parts_status === "Parts have been picked up"  || !card.doc.parts_status){
+			if (card.doc.parts_status === "Parts have been picked up" || !card.doc.parts_status) {
 				html = '<svg xmlns="http://www.w3.org/2000/svg" height="14" width="15.75" viewBox="0 0 576 512"><path fill="#d1d1d1" d="M528.1 301.3l47.3-208C578.8 78.3 567.4 64 552 64H159.2l-9.2-44.8C147.8 8 137.9 0 126.5 0H24C10.7 0 0 10.7 0 24v16c0 13.3 10.7 24 24 24h69.9l70.2 343.4C147.3 417.1 136 435.2 136 456c0 30.9 25.1 56 56 56s56-25.1 56-56c0-15.7-6.4-29.8-16.8-40h209.6C430.4 426.2 424 440.3 424 456c0 30.9 25.1 56 56 56s56-25.1 56-56c0-22.2-12.9-41.3-31.6-50.4l5.5-24.3c3.4-15-8-29.3-23.4-29.3H218.1l-6.5-32h293.1c11.2 0 20.9-7.8 23.4-18.7z"/></svg>';
 			}
 			return html
 		}
 
-		function getQuotationIcon(){
+		function getQuotationIcon() {
 			const status = card.doc.payment_status
 			const opts = {
-				'Quotation Declined': {class: 'blink-red'}
+				'Quotation Declined': { class: 'blink-red' }
 			}
 			return `<i class="fa-light fa-file-invoice ${opts[status]?.class ?? ''}" title="${status}"></i>`;
 		}
 
-		function getSoftwareIcons(){
+		function getSoftwareIcons() {
 			let html = "";
-			if(card.doc.software_status === "Software request"){
+			if (card.doc.software_status === "Software request") {
 				html = '<svg xmlns="http://www.w3.org/2000/svg" height="14" width="14" viewBox="0 0 512 512"><path class="fa-secondary" opacity="1" fill="#d14343" d="M24 190v6H6a6 6 0 0 0 -6 6v12a6 6 0 0 0 6 6h18v6a6 6 0 0 0 6 6h42v-48H30a6 6 0 0 0 -6 6zm0-96v6H6a6 6 0 0 0 -6 6v12a6 6 0 0 0 6 6h18v6a6 6 0 0 0 6 6h42V88H30a6 6 0 0 0 -6 6zm482 6h-18v-6a6 6 0 0 0 -6-6h-42v48h42a6 6 0 0 0 6-6v-6h18a6 6 0 0 0 6-6v-12a6 6 0 0 0 -6-6zm0 192h-18v-6a6 6 0 0 0 -6-6h-42v48h42a6 6 0 0 0 6-6v-6h18a6 6 0 0 0 6-6v-12a6 6 0 0 0 -6-6zm0-96h-18v-6a6 6 0 0 0 -6-6h-42v48h42a6 6 0 0 0 6-6v-6h18a6 6 0 0 0 6-6v-12a6 6 0 0 0 -6-6zm0 192h-18v-6a6 6 0 0 0 -6-6h-42v48h42a6 6 0 0 0 6-6v-6h18a6 6 0 0 0 6-6v-12a6 6 0 0 0 -6-6zm-482-6v6H6a6 6 0 0 0 -6 6v12a6 6 0 0 0 6 6h18v6a6 6 0 0 0 6 6h42v-48H30a6 6 0 0 0 -6 6zm0-96v6H6a6 6 0 0 0 -6 6v12a6 6 0 0 0 6 6h18v6a6 6 0 0 0 6 6h42v-48H30a6 6 0 0 0 -6 6z"/><path class="fa-primary" fill="#d14343" d="M144 512a48 48 0 0 1 -48-48V48a48 48 0 0 1 48-48h224a48 48 0 0 1 48 48v416a48 48 0 0 1 -48 48z"/></svg>';
 			}
-			if(card.doc.software_status === "Software is ready for use"){
+			if (card.doc.software_status === "Software is ready for use") {
 				html = '<svg xmlns="http://www.w3.org/2000/svg" height="14" width="14" viewBox="0 0 512 512"><path class="fa-secondary" opacity="1" fill="#33ad53" d="M24 190v6H6a6 6 0 0 0 -6 6v12a6 6 0 0 0 6 6h18v6a6 6 0 0 0 6 6h42v-48H30a6 6 0 0 0 -6 6zm0-96v6H6a6 6 0 0 0 -6 6v12a6 6 0 0 0 6 6h18v6a6 6 0 0 0 6 6h42V88H30a6 6 0 0 0 -6 6zm482 6h-18v-6a6 6 0 0 0 -6-6h-42v48h42a6 6 0 0 0 6-6v-6h18a6 6 0 0 0 6-6v-12a6 6 0 0 0 -6-6zm0 192h-18v-6a6 6 0 0 0 -6-6h-42v48h42a6 6 0 0 0 6-6v-6h18a6 6 0 0 0 6-6v-12a6 6 0 0 0 -6-6zm0-96h-18v-6a6 6 0 0 0 -6-6h-42v48h42a6 6 0 0 0 6-6v-6h18a6 6 0 0 0 6-6v-12a6 6 0 0 0 -6-6zm0 192h-18v-6a6 6 0 0 0 -6-6h-42v48h42a6 6 0 0 0 6-6v-6h18a6 6 0 0 0 6-6v-12a6 6 0 0 0 -6-6zm-482-6v6H6a6 6 0 0 0 -6 6v12a6 6 0 0 0 6 6h18v6a6 6 0 0 0 6 6h42v-48H30a6 6 0 0 0 -6 6zm0-96v6H6a6 6 0 0 0 -6 6v12a6 6 0 0 0 6 6h18v6a6 6 0 0 0 6 6h42v-48H30a6 6 0 0 0 -6 6z"/><path class="fa-primary" fill="#33ad53" d="M144 512a48 48 0 0 1 -48-48V48a48 48 0 0 1 48-48h224a48 48 0 0 1 48 48v416a48 48 0 0 1 -48 48z"/></svg>';
 			}
-			if(card.doc.software_status === "Software has been attached" || !card.doc.software_status){
+			if (card.doc.software_status === "Software has been attached" || !card.doc.software_status) {
 				html = '<svg xmlns="http://www.w3.org/2000/svg" height="14" width="14" viewBox="0 0 512 512"><path class="fa-secondary" opacity="1" fill="#d1d1d1" d="M24 190v6H6a6 6 0 0 0 -6 6v12a6 6 0 0 0 6 6h18v6a6 6 0 0 0 6 6h42v-48H30a6 6 0 0 0 -6 6zm0-96v6H6a6 6 0 0 0 -6 6v12a6 6 0 0 0 6 6h18v6a6 6 0 0 0 6 6h42V88H30a6 6 0 0 0 -6 6zm482 6h-18v-6a6 6 0 0 0 -6-6h-42v48h42a6 6 0 0 0 6-6v-6h18a6 6 0 0 0 6-6v-12a6 6 0 0 0 -6-6zm0 192h-18v-6a6 6 0 0 0 -6-6h-42v48h42a6 6 0 0 0 6-6v-6h18a6 6 0 0 0 6-6v-12a6 6 0 0 0 -6-6zm0-96h-18v-6a6 6 0 0 0 -6-6h-42v48h42a6 6 0 0 0 6-6v-6h18a6 6 0 0 0 6-6v-12a6 6 0 0 0 -6-6zm0 192h-18v-6a6 6 0 0 0 -6-6h-42v48h42a6 6 0 0 0 6-6v-6h18a6 6 0 0 0 6-6v-12a6 6 0 0 0 -6-6zm-482-6v6H6a6 6 0 0 0 -6 6v12a6 6 0 0 0 6 6h18v6a6 6 0 0 0 6 6h42v-48H30a6 6 0 0 0 -6 6zm0-96v6H6a6 6 0 0 0 -6 6v12a6 6 0 0 0 6 6h18v6a6 6 0 0 0 6 6h42v-48H30a6 6 0 0 0 -6 6z"/><path class="fa-primary" fill="#d1d1d1" d="M144 512a48 48 0 0 1 -48-48V48a48 48 0 0 1 48-48h224a48 48 0 0 1 48 48v416a48 48 0 0 1 -48 48z"/></svg>';
 			}
 			return html
 		}
 
-		function getLoanCarIcons(){
+		function getLoanCarIcons() {
 			let html = "";
-			if(!card.doc.is_loan_car || card.doc.is_loan_car === "No" || card.doc.is_loan_car === "Car returned"){
+			if (!card.doc.is_loan_car || card.doc.is_loan_car === "No" || card.doc.is_loan_car === "Car returned") {
 				html = `<svg xmlns="http://www.w3.org/2000/svg" height="14" width="14" viewBox="0 0 512 512"><path class="fa-secondary" opacity="0.8" fill="#d1d1d1" d="M303.1 348.9l.1 .1-24 27a24 24 0 0 1 -17.9 8H224v40a24 24 0 0 1 -24 24h-40v40a24 24 0 0 1 -24 24H24a24 24 0 0 1 -24-24v-78a24 24 0 0 1 7-17l161.8-161.8-.1-.4a176.2 176.2 0 0 0 134.3 118.1z"/><path class="fa-primary" fill="#d1d1d1" d="M336 0a176 176 0 1 0 176 176A176 176 0 0 0 336 0zm48 176a48 48 0 1 1 48-48 48 48 0 0 1 -48 48z"/></svg>`;
 			}
-			else if(card.doc.is_loan_car === "Yes"){
+			else if (card.doc.is_loan_car === "Yes") {
 				html = `<svg xmlns="http://www.w3.org/2000/svg" height="14" width="14" viewBox="0 0 512 512"><path class="fa-secondary" opacity=".4" fill="#d14343" d="M303.1 348.9l.1 .1-24 27a24 24 0 0 1 -17.9 8H224v40a24 24 0 0 1 -24 24h-40v40a24 24 0 0 1 -24 24H24a24 24 0 0 1 -24-24v-78a24 24 0 0 1 7-17l161.8-161.8-.1-.4a176.2 176.2 0 0 0 134.3 118.1z"/><path class="fa-primary" fill="#d14343" d="M336 0a176 176 0 1 0 176 176A176 176 0 0 0 336 0zm48 176a48 48 0 1 1 48-48 48 48 0 0 1 -48 48z"/></svg>`;
-			}else if(card.doc.is_loan_car === "Loaned car"){
+			} else if (card.doc.is_loan_car === "Loaned car") {
 				html = `<svg xmlns="http://www.w3.org/2000/svg" height="14" width="14" viewBox="0 0 512 512"><path class="fa-secondary" opacity=".4" fill="#33ad53" d="M303.1 348.9l.1 .1-24 27a24 24 0 0 1 -17.9 8H224v40a24 24 0 0 1 -24 24h-40v40a24 24 0 0 1 -24 24H24a24 24 0 0 1 -24-24v-78a24 24 0 0 1 7-17l161.8-161.8-.1-.4a176.2 176.2 0 0 0 134.3 118.1z"/><path class="fa-primary" fill="#33ad53" d="M336 0a176 176 0 1 0 176 176A176 176 0 0 0 336 0zm48 176a48 48 0 1 1 48-48 48 48 0 0 1 -48 48z"/></svg>`;
 			}
 			return html
@@ -1057,19 +1058,30 @@ const ProjectStatusOptions = {
 
 	function set_border_color(card) {
 		let message = false
+		const nowDate = new Date();
+		const modifiedDate = new Date(card.status_modified);
+		const dayDifference = (nowDate - modifiedDate) / (1000 * 60 * 60 * 24);
 		const in_parking = card.status === 'In parking' && Number(card.queue_position) <= 5 && has_passed_two_days(card.parking_date);
 		const quotation = card.status === 'Quoted' && quotations_draft.find(quotation => quotation.parent == card.name)
 		let hass_passed_one_day_quotation = false
-		if(quotation){
+		if (quotation) {
 			hass_passed_one_day_quotation = has_passed_one_day(quotation.modified)
 		}
-		if(in_parking){
+		if (in_parking) {
 			message = "At least 2 days since moved to parking."
 		}
-		if(hass_passed_one_day_quotation){
+		if (hass_passed_one_day_quotation) {
 			message = "The quote was sent over a day ago."
 		}
-		return {message}
+		if (card.status_modified &&
+			card.status !== 'In queue' &&
+			card.status !== 'In parking' &&
+			card.status !== 'Completed' &&
+			!isNaN(modifiedDate.getTime()) &&
+			dayDifference > 2) {
+			message = "At least 2 days the jobcard is in the same status.";
+		}
+		return { message }
 	}
 
 	function has_passed_two_days(dateString) {
@@ -1080,36 +1092,36 @@ const ProjectStatusOptions = {
 		const difference = currentDate - providedDate;
 		const daysPassed = Math.floor(difference / (1000 * 60 * 60 * 24));
 		return daysPassed >= 2;
-	 }
+	}
 
 	function has_passed_one_day(modifiedString) {
-		if(!modifiedString) return false
+		if (!modifiedString) return false
 		const modifiedDate = new Date(modifiedString);
 		const currentDate = new Date();
 		const differenceInMs = currentDate - modifiedDate;
 		const millisecondsInADay = 24 * 60 * 60 * 1000;
 		const differenceInDays = differenceInMs / millisecondsInADay;
 		return differenceInDays >= 1;
-	  }
+	}
 
-	  async function getUnreadConversations() {
+	async function getUnreadConversations() {
 		unread_conversations = await frappe.db.get_list('Conversation', {
-			filters: {seen: 0},
+			filters: { seen: 0 },
 			fields: ["name", "from"],
 			ip: 1
 		})
 	}
 
 	async function getDraftQuotations() {
-		quotations_draft = await frappe.db.get_list("Project Quotation",{
+		quotations_draft = await frappe.db.get_list("Project Quotation", {
 			filters: { status: "Draft" },
-			fields: [ "name", "modified", "status", "parent"],
+			fields: ["name", "modified", "status", "parent"],
 			group_by: "parent",
 			order_by: "parent asc",
 			limit: 100,
-			ip:1 // ignore permissions
+			ip: 1 // ignore permissions
 		})
-	  }	  
+	}
 
 	function prepare_columns(columns) {
 		return columns.map(function (col) {
