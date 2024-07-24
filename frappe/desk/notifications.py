@@ -325,31 +325,53 @@ def get_internal_links(doc, link, link_doctype):
 
 
 def get_external_links(doctype, name, links):
-	filters = get_filters_for(doctype)
 	fieldname = links.get("non_standard_fieldnames", {}).get(doctype, links.get("fieldname"))
-	data = {"doctype": doctype}
+	filters = {fieldname: name}
 
-	if filters:
-		# get the fieldname for the current document
-		# we only need open documents related to the current document
-		filters[fieldname] = name
-		total = len(
-			frappe.get_all(
-				doctype, fields="name", filters=filters, limit=100, distinct=True, ignore_ifnull=True
-			)
-		)
-		data["open_count"] = total
-	else:
-		data["open_count"] = 0
+	# updating filters based on dynamic_links
+	if dynamic_link_filters := get_dynamic_link_filters(doctype, links, fieldname):
+		filters.update(dynamic_link_filters)
 
-	total = len(
+	total_count = get_doc_count(doctype, filters)
+
+	open_count = 0
+	if open_count_filters := get_filters_for(doctype):
+		filters.update(open_count_filters)
+		open_count = get_doc_count(doctype, filters)
+
+	return {"doctype": doctype, "count": total_count, "open_count": open_count}
+
+
+def get_doc_count(doctype, filters):
+	return len(
 		frappe.get_all(
-			doctype, fields="name", filters={fieldname: name}, limit=100, distinct=True, ignore_ifnull=True
+			doctype,
+			fields="name",
+			filters=filters,
+			limit=100,
+			distinct=True,
+			ignore_ifnull=True,
 		)
 	)
-	data["count"] = total
 
-	return data
+
+def get_dynamic_link_filters(doctype, links, fieldname):
+	"""
+	- Updating filters based on dynamic_links specified in the dashboard data.
+	- Eg: "dynamic_links": {"fieldname": ["dynamic_fieldvalue", "dynamic_fieldname"]},
+	"""
+	dynamic_link = links.get("dynamic_links", {}).get(fieldname)
+
+	if not dynamic_link:
+		return
+
+	doctype_value, doctype_fieldname = dynamic_link
+
+	meta = frappe.get_meta(doctype)
+	if not meta.has_field(doctype_fieldname):
+		return
+
+	return {doctype_fieldname: doctype_value}
 
 
 def notify_mentions(ref_doctype, ref_name, content):

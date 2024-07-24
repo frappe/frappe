@@ -229,8 +229,8 @@ def get_website_settings(context=None):
 	context.encoded_title = quote(encode(context.title or ""), "")
 
 	context.web_include_js = hooks.web_include_js or []
-
 	context.web_include_css = hooks.web_include_css or []
+	context.web_include_icons = hooks.web_include_icons or []
 
 	via_hooks = hooks.website_context or []
 	for key in via_hooks:

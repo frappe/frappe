@@ -27,7 +27,7 @@ branch_name="pot_${BASE_BRANCH}_${isodate}"
 git checkout -b "${branch_name}"
 
 echo "Commiting changes..."
-git add .
+git add frappe/locale/main.pot
 git commit -m "chore: update POT file"
 
 gh auth setup-git

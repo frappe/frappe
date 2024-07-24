@@ -221,11 +221,20 @@ class TestCommunication(FrappeTestCase):
 	def test_parse_email(self):
 		to = "Jon Doe <jon.doe@example.org>"
 		cc = """=?UTF-8?Q?Max_Mu=C3=9F?= <max.muss@examle.org>,
-	erp+Customer+that%20company@example.org"""
+	erp+Customer=Plus%2BCompany@example.org,
+	erp+Customer+Space%20Company@example.org,
+	erp+Customer+Space+Company+Plus+Encoded@example.org"""
 		bcc = ""
 
 		results = list(parse_email([to, cc, bcc]))
-		self.assertEqual([("Customer", "that company")], results)
+		self.assertEqual(
+			[
+				("Customer", "Plus+Company"),
+				("Customer", "Space Company"),
+				("Customer", "Space Company Plus Encoded"),
+			],
+			results,
+		)
 
 		results = list(parse_email([to, bcc]))
 		self.assertEqual(results, [])
@@ -380,7 +389,8 @@ class TestCommunicationEmailMixin(FrappeTestCase):
 		user = self.new_user(email="bcc+2@test.com", enabled=0)
 		comm = self.new_communication(bcc=bcc_list)
 		res = comm.get_mail_bcc_with_displayname()
-		self.assertCountEqual(res, bcc_list)
+		# Disabled users have thread_notify disabled, so they'll be removed from the list
+		self.assertCountEqual(res, bcc_list[:1])
 		user.delete()
 		comm.delete()
 
