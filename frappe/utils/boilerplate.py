@@ -611,11 +611,13 @@ app_license = "{app_license}"
 """
 
 gitignore_template = """.DS_Store
+.vscode/
 *.pyc
 *.egg-info
 *.swp
 tags
 node_modules
+dist/
 __pycache__"""
 
 github_workflow_template = """
