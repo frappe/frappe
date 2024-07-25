@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-07-21 09:33+0000\n"
-"PO-Revision-Date: 2024-07-23 01:05\n"
+"PO-Revision-Date: 2024-07-25 01:20\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -100,7 +100,7 @@ msgstr "'{0}' är otillåtet för typ {1} på rad {2}"
 
 #: public/js/frappe/data_import/data_exporter.js:302
 msgid "(Mandatory)"
-msgstr "(Erfodrad)"
+msgstr "(Erfordrad)"
 
 #: model/rename_doc.py:687
 msgid "** Failed: {0} to {1}: {2}"
@@ -629,7 +629,7 @@ msgstr "<p>För att interagera med ovanstående HTML måste du använda `root_el
 
 #: twofactor.py:446
 msgid "<p>Your OTP secret on {0} has been reset. If you did not perform this reset and did not request it, please contact your System Administrator immediately.</p>"
-msgstr "<p>Din OTP-hemlighet på {0} har återställts. Om du inte utförde denna återställning och inte begärde den, kontakta din systemadministratör omedelbart.</p>"
+msgstr "<p>Din OTP hemlighet på {0} är återställd. Om du inte begärde återställning kontakta din systemadministratör omedelbart.</p>"
 
 #. Description of the 'Cron Format' (Data) field in DocType 'Scheduled Job
 #. Type'
@@ -871,7 +871,7 @@ msgstr "API Metod"
 #: core/doctype/user/user.json email/doctype/email_account/email_account.json
 #: integrations/doctype/push_notification_settings/push_notification_settings.json
 msgid "API Secret"
-msgstr "API Hemlighet "
+msgstr "API Hemlighet"
 
 #. Option for the 'Default Sort Order' (Select) field in DocType 'DocType'
 #. Option for the 'Sort Order' (Select) field in DocType 'Customize Form'
@@ -1378,7 +1378,7 @@ msgstr "Lägg till {0} "
 #: public/js/frappe/list/list_view.js:264
 msgctxt "Primary action in list view"
 msgid "Add {0}"
-msgstr "Lägg till {0} "
+msgstr "Lägg till {0}"
 
 #. Description of the '&lt;head&gt; HTML' (Code) field in DocType 'Website
 #. Settings'
@@ -9066,7 +9066,7 @@ msgstr "Ange Värde"
 
 #: public/js/frappe/form/form_tour.js:60
 msgid "Enter a name for this {0}"
-msgstr "Ange ett namn för denna {0}"
+msgstr "Ange namn för denna {0}"
 
 #. Description of the 'User Defaults' (Table) field in DocType 'User'
 #: core/doctype/user/user.json
@@ -16752,7 +16752,7 @@ msgstr "Ej Länkad till någon post"
 #. Label of the not_nullable (Check) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgid "Not Nullable"
-msgstr "Ej Nullbar"
+msgstr "Ej Nollställbar"
 
 #: __init__.py:1024 app.py:357 desk/calendar.py:26 geo/utils.py:97
 #: public/js/frappe/web_form/webform_script.js:15
@@ -18183,7 +18183,7 @@ msgstr "Lösenord"
 
 #: core/doctype/user/user.py:1037
 msgid "Password Email Sent"
-msgstr "Lösenord E-post Skickad"
+msgstr "Lösenord skickat via E-post"
 
 #: core/doctype/user/user.py:412
 msgid "Password Reset"
@@ -18562,7 +18562,7 @@ msgstr "Vanlig Text"
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: contacts/doctype/address/address.json
 msgid "Plant"
-msgstr "Fastighet"
+msgstr "Anläggning"
 
 #: email/doctype/email_account/email_account.py:535
 msgid "Please Authorize OAuth for Email Account {0}"
