@@ -181,8 +181,8 @@ Property,خاصیت,
 Public,عمومی,
 Published,منتشر شده,
 Purchase Manager,مدیر خرید,
-Purchase Master Manager,خرید استاد مدیر,
-Purchase User,خرید کاربر,
+Purchase Master Manager,مدیر خرید ارشد,
+Purchase User,کاربر خرید,
 Query Options,گزینه های پرس و جو,
 Range,محدوده,
 Rating,رتبه,
@@ -491,7 +491,7 @@ Authorize URL,مجاز URL,
 Authorized,مجاز,
 Auto,خودکار,
 Auto Email Report,گزارش ایمیل خودکار,
-Auto Name,نام خودکار,
+Auto Name,شناسه‌گذاری خودکار,
 Auto Reply Message,پیام پاسخ خودکار,
 Auto assignment failed: {0},انتصاب خودکار انجام نشد: {0},
 Automatically Assign Documents to Users,اختصاص اسناد به صورت خودکار به کاربران,
@@ -510,7 +510,7 @@ Back to Desk,بازگشت به میز,
 Back to Login,برگشت به ورود,
 Background Color,رنگ پس زمینه,
 Background Email Queue,پس زمینه صف ایمیل,
-Background Jobs,جابز پس زمینه,
+Background Jobs,جاب‌های پس زمینه,
 Background Workers,کارگران پس زمینه,
 Backup,پشتیبان گیری,
 Backup Frequency,فرکانس پشتیبان گیری,
@@ -637,7 +637,7 @@ Chat Room User,کاربر چت اتاق,
 Chat Token,مکالمه چت,
 Chat Type,نوع چت,
 Chat messages and other notifications.,پیام های چت و دیگر نوتیفیکیشن‌ها.,
-Check,بررسی,
+Check,چک باکس,
 Check Request URL,بررسی URL درخواست,
 "Check columns to select, drag to set order.",بررسی ستون را انتخاب کنید، کشیدن به راه سفارش.,
 Check this if you are testing your payment using the Sandbox API,این چک کنید اگر شما در حال آزمایش پرداخت خود را با استفاده از API گودال ماسهبازی,
@@ -662,7 +662,7 @@ Click to Set Filters,برای تنظیم فیلترها کلیک کنید,
 Clicked,کلیک,
 Client Credentials,مدارک مشتری,
 Client Information,اطلاعات مشتری,
-Client Script,اسکریپت مشتری,
+Client Script,اسکریپت کلاینت,
 Client URLs,URL های مشتری,
 Client side script extensions in Javascript,پسوند اسکریپت سمت کلاینت در جاوا اسکریپت,
 Collapsible,پیش ساخته,
@@ -784,7 +784,7 @@ Daily Event Digest is sent for Calendar Events where reminders are set.,روزا
 Danger,خطر,
 Dark Color,رنگ تیره,
 Dashboard Chart,نمودار داشبورد,
-Dashboard Chart Link,پیوند نمودار نمودار داشبورد,
+Dashboard Chart Link,پیوند نمودار داشبورد,
 Dashboard Chart Source,منبع نمودار داشبورد,
 Dashboard Name,نام داشبورد,
 Dashboards,داشبورد,
@@ -947,7 +947,7 @@ Email Domain,دامنه ایمیل,
 Email Flag Queue,ایمیل صف پرچم,
 Email Footer Address,ایمیل پاورقی آدرس,
 Email Group,ایمیل گروه,
-Email Group List,ایمیل فهرست گروه,
+Email Group List,فهرست گروه ایمیل,
 Email Group Member,ایمیل گروه کاربران,
 Email Login ID,ایمیل ورود به ID,
 Email Queue,صف ایمیل,
@@ -1104,7 +1104,7 @@ First Transaction,اولین معامله,
 First data column must be blank.,ستون اول داده ها باید خالی باشد.,
 First set the name and save the record.,اول نام را تنظیم کرده و رکورد را ذخیره کنید.,
 Flag,پرچم,
-Float,شناور,
+Float,عدد اعشاری,
 Float Precision,دقت شناور,
 Fold,تاه,
 Fold can not be at the end of the form,ریختن (فولد) نمی تواند در پایان فرم است,
@@ -1318,7 +1318,7 @@ Insert Style,درج سبک,
 Insert new records,سوابق جدید را وارد کنید,
 Instructions Emailed,دستورالعمل ایمیل ارسال,
 Insufficient Permission for {0},مجوز ناکافی برای {0},
-Int,هوشمند,
+Int,عدد صحیح,
 Integration Request,درخواست پاسخ به ادغام,
 Integration Request Service,یکپارچه سازی خدمات درخواست پاسخ به,
 Integration Type,نوع ادغام,
@@ -1379,7 +1379,7 @@ Is Submittable,Submittable است,
 Is Table,جدول است,
 Is Calendar and Gantt,تقویم و گانت‌چارت است,
 Enables Calendar and Gantt views.,فعالسازی نماهای تقویم و گانت‌چارت,
-Is Your Company Address,آیا شرکت شما در نشانی,
+Is Your Company Address,آیا نشانی شرکت شماست,
 It is risky to delete this file: {0}. Please contact your System Manager.,این خطرناک است این فایل را حذف کنید: {0}. لطفا با مدیر سیستم تماس بگیرید.,
 Item cannot be added to its own descendants,مورد می تواند به بازماندگان خود را اضافه نمی شوند,
 JS,جی اس,
@@ -1462,31 +1462,31 @@ Linked,مرتبط,
 Linked With,مرتبط با,
 Linked with {0},مرتبط با {0},
 Links,لینک,
-List,فهرست,
+List,لیست,
 List Filter,لیست فیلتر,
 List View Setting,تنظیم نمایش لیستی,
 List a document type,لیست یک نوع سند,
 "List as [{""label"": _(""Jobs""), ""route"":""jobs""}]",لیست را به عنوان [{ &quot;برچسب&quot;: _ ( &quot;جابز&quot;)، &quot;مسیر&quot;: &quot;شغل&quot;}],
-List of backups available for download,فهرست پشتیبان گیری برای دانلود در دسترس,
-List of patches executed,فهرست تکه اعدام,
+List of backups available for download,فهرست بک‌آپ‌های در دسترس برای دانلود,
+List of patches executed,لیست بخش‌های اجرا شده,
 List of themes for Website.,فهرست تم برای وب سایت.,
 Load Balancing,تعادل بار,
 Loading,بارگیری,
 Local DocType,DocType محلی,
 Local Fieldname,Fieldname محلی,
 Local Primary Key,کلید اولیه محلی,
-Locals,مردم محلی,
-Log Details,ورود به سیستم,
-Log of Scheduler Errors,ورود از خطاها زمانبند,
+Locals,محلی‌ها,
+Log Details,جزئیات لاگ‌ها,
+Log of Scheduler Errors,لاگ خطاهای اسکجولر,
 Log of error during requests.,ورود به سیستم از خطا در هنگام درخواست.,
 Log of error on automated events (scheduler).,ورود به سیستم خطا در مورد رویداد های خودکار (زمانبندی).,
 Logged Out,از سیستم خارج,
 Logged in as Guest or Administrator,در عنوان مهمان و یا مدیر وارد,
 Login,ورود به سیستم,
 Login After,ورود بعد از,
-Login Before,ورود به قبل از,
-Login Id is required,کد ورود مورد نیاز است,
-Login Required,ورود مورد نیاز,
+Login Before,ورود قبل از,
+Login Id is required,شناسه ورود مورد نیاز است,
+Login Required,ورود مورد نیاز است,
 Login Verification Code from {},وارد کردن کد تأیید از {},
 Login and view in Browser,ورود و مشاهده در مرورگر,
 Login not allowed at this time,ورود در این زمان مجاز نیست,
@@ -1608,7 +1608,7 @@ New Value,ارزش جدید,
 New data will be inserted.,داده های جدید وارد می شوند,
 New updates are available,به روز رسانی های جدید در دسترس هستند,
 New value to be set,ارزش جدید به تنظیم شود,
-New {0},{0} جدید,
+New {0},جدید {0},
 New {} releases for the following apps are available,{} جدید برای برنامه های زیر در دسترس است,
 Newsletter Email Group,عضویت در خبرنامه ایمیل گروه,
 Newsletter Manager,مدیر خبرنامه,
@@ -1952,7 +1952,7 @@ Public Key,کلید عمومی,
 Publishable Key,کلید انتشار,
 Published On,منتشر شده در,
 Pull,کشیدن,
-Pull Failed,کشیدن ناکام شد,
+Pull Failed,کشیدن با شکست مواجه شد,
 Pull Insert,وارد کردن,
 Pull Update,به روز رسانی را بکش,
 Push,فشار دادن,
@@ -1967,9 +1967,9 @@ QR Code for Login Verification,کد QR برای تأیید ورود,
 QZ Tray Connection Active!,اتصال سینی QZ فعال است!,
 QZ Tray Failed: ,سینی QZ انجام نشد:,
 Quarter Day,روز پرداخت قسط,
-Query,پرس و جو,
-Query Report,گزارش پرس و جو,
-Query must be a SELECT,پرس و جو باید SELECT شود,
+Query,کوئری,
+Query Report,گزارش کوئری,
+Query must be a SELECT,کوئری باید انتخاب شود,
 Queue should be one of {0},صف باید یکی از شود {0},
 Queued for backup. It may take a few minutes to an hour.,در صف برای تهیه پشتیبان. ممکن است چند دقیقه تا یک ساعت طول می کشد.,
 Queued for backup. You will receive an email with the download link,برای تهیه پشتیبان به صورت صف شما یک ایمیل با لینک دانلود دریافت خواهید کرد,
@@ -2036,12 +2036,12 @@ Repeat this Event,تکرار این رویداد,
 "Repeats like ""abcabcabc"" are only slightly harder to guess than ""abc""",تکرار مانند &quot;abcabcabc&quot; فقط کمی سخت تر به حدس زدن از &quot;ABC&quot;,
 Reply,پاسخ,
 Reply All,پاسخ به همه,
-Report End Time,گزارش زمان پایان,
-Report Filters,گزارش فیلترها,
+Report End Time,زمان پایان گزارش,
+Report Filters,فیلترهای گزارش,
 Report Hide,گزارش مخفی,
-Report Manager,گزارش مدیر,
-Report Name,گزارش نام,
-Report Start Time,گزارش زمان شروع,
+Report Manager,مدیر گزارش,
+Report Name,نام گزارش,
+Report Start Time,زمان شروع گزارش,
 Report cannot be set for Single types,گزارش می تواند برای انواع تنها نمی تواند تنظیم شود,
 Report of all document shares,گزارش تمام سهام سند,
 Report updated successfully,گزارش با موفقیت به روز شد,
@@ -2998,9 +2998,9 @@ zoom-out,کوچک نمایی,
 {0} Calendar,{0} تقویم,
 {0} Chart,{0} نمودار,
 {0} Dashboard,داشبورد {0},
-{0} List,لیست {0}‌ها,
+{0} List,{0} فهرست,
 {0} Modules,{0} ماژول,
-{0} Report,گزارش {0}‌ها,
+{0} Report,{0} گزارش,
 {0} Settings not found,{0} تنظیمات یافت نشد,
 {0} Tree,{0} درخت,
 {0} added,{0} اضافه شد,
@@ -3445,7 +3445,7 @@ Number of Groups,تعداد گروه ها,
 OAuth Client ID,شناسه مشتری OAuth,
 OTP setup using OTP App was not completed. Please contact Administrator.,نصب OTP با استفاده از برنامه OTP تکمیل نشد. لطفا با سرپرست تماس بگیرید.,
 Only one {0} can be set as primary.,فقط یک {0} می تواند به عنوان اصلی تنظیم شود.,
-Open Awesomebar,عالی را باز کنید,
+Open Awesomebar,نوار جستجوی پیشرفته را باز کنید,
 Open Chat,گپ را باز کنید,
 Open Documents,اسناد را باز کنید,
 Open Help,راهنما را باز کنید,
@@ -3497,7 +3497,7 @@ SMS was not sent. Please contact Administrator.,پیامکی ارسال نشد. 
 Saved Successfully,با موفقیت ذخیره شد,
 Scheduled Job,شغل برنامه ریزی شده,
 Scheduled Job Log,ورود به سیستم برنامه ریزی شده,
-Scheduled Job Type,نوع کار زمان بندی شده,
+Scheduled Job Type,نوع جاب زمان برنامه ریزی شده,
 Scheduler Inactive,زمانبند غیرفعال,
 Scheduler is inactive. Cannot import data.,زمانبند غیرفعال است. وارد کردن داده امکان پذیر نیست.,
 Script Manager,مدیر اسکریپت,
@@ -3592,13 +3592,13 @@ Untitled Column,ستون بدون عنوان,
 Untranslated,بدون ترجمه,
 Upcoming Events,رویدادهای نزدیک,
 Update Existing Records,سوابق موجود را به روز کنید,
-Updated To A New Version 🎉,به نسخه جدید به روز شد,
-"Updating {0} of {1}, {2}",به روزرسانی {0} از {1 {، {2,
+Updated To A New Version 🎉,به نسخه جدید به روز شد 🎉,
+"Updating {0} of {1}, {2}",به روزرسانی {0} از {1}، {2},
 Upload file,آپلود فایل,
-Upload {0} files,پرونده ها {0 بارگذاری کنید,
-Uploaded To Google Drive,در Google Drive بارگذاری شد,
+Upload {0} files,بارگذاری {0} فایل,
+Uploaded To Google Drive,در گوگل درایو بارگذاری شد,
 Uploaded successfully,با موفقیت بارگذاری شد,
-Uploading {0} of {1},بارگیری {0} از {1,
+Uploading {0} of {1},بارگیری {0} از {1},
 Use SSL for Outgoing,از SSL برای خروجی استفاده کنید,
 Use Same Name,از همان نام استفاده کنید,
 Used For Google Maps Integration.,مورد استفاده برای ادغام نقشه های Google.,
@@ -4674,7 +4674,7 @@ Basic,پایه,
 Billing,صدور صورت حساب,
 Contact Details,اطلاعات تماس,
 Datetime,زمان قرار,
-Enable,قادر ساختن,
+Enable,فعالسازی,
 Event,واقعه,
 Full,پر شده,
 Insert,درج,
@@ -4939,6 +4939,8 @@ Frappe Light,حالت روز,
 Timeless Night,حالت شب,
 Custom Block Name,نام بلوک دلخواه,
 Forgot Password?,فراموشی رمز عبور؟,
+Login to Frappe,ورود به نرم افزار,
+Log in to access this page.,برای دسترسی به این صفحه، وارد شوید.,
 No New notifications,هیچ اعلان جدیدی وجود ندارد,
 Looks like you haven’t received any notifications.,به نظر می‌آید که هنوز هیچ اعلانی دریافت نکرده‌اید.,
 There are no upcoming events for you.,رویدادی برای شما در روزهای آتی وجود ندارد.,
@@ -4971,5 +4973,14 @@ Disable Comment Count,غیرفعال‌سازی تعداد نظرات,
 Connection Lost,اتصال به اینترنت از دست رفت,
 You changed the value of {0},شما تغییر دادید مقدار {0},
 from {0} to {1} ,از {0} به {1},
-To enable it follow the instructions in the following link: {0},To enable it follow the instructions in the following link: {0},
-Login to {0},ورود به {0},
+New Report,گزارش جدید,
+This document allows you to edit limited fields. For all kinds of workspace customization, use the Edit button located on the workspace page,این سند به شما اجازه می‌دهد تا فیلدهای محدودی را ویرایش کنید. برای انواع سفارشی‌سازی‌های فضای کاری، از دکمه ویرایش که در صفحه فضای کاری قرار دارد استفاده کنید.,
+Experimental,تجربی,
+Go to Workspace,رفتن به محیط کاری,
+Awesomebar,نوار جستجوی پیشرفته,
+Scripting,اسکریپت نویسی,
+System Logs,لاگ‌های سیستم,
+Module Settings,تنظیمات ماژول,
+Fetching exchange rates ...,در حال دریافت نرخ تبدیل ...,
+You submitted this document,شما این سند را ثبت کردید,
+Updating related fields...,به روزرسانی فیلدهای مرتبط...,
