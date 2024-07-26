@@ -718,6 +718,7 @@ const ProjectStatusOptions = {
 						old_index: e.oldIndex,
 						new_index: e.newIndex,
 					};
+					console.log('args', args)
 					store.dispatch("update_order_for_single_card", args);
 				},
 				onAdd: function () { },
@@ -850,22 +851,37 @@ const ProjectStatusOptions = {
 
 		function get_doc_content(card) {
 			let fields = [];
-			const render_fields = [...cur_list.board.fields]
+			const render_fields = [...cur_list.board.fields];
+			const icon_map = {
+				'ID': '<i class="fa-light fa-rectangle-history-circle-user" style="color: black;"></i>',
+				'Queue position': '<i class="fa-light fa-map-pin" style="color: black;"></i>',
+				'Customer': '<i class="fa-regular fa-user" style="color: black;"></i>',
+				'Appointment date': '<i class="fa-regular fa-calendar" style="color: black;"></i>',
+				'Bring Car Date': '<i class="fa-regular fa-automobile" style="color: black;"></i>',
+				'Parking Date': '<i class="fa-regular fa-car-building" style="color: black;"></i>',
+				'Model': '<i class="fa-regular fa-car" style="color: black;"></i>',
+				'VIN': '<i class="fa-regular fa-info" style="color: black;"></i>',
+				'Licence plate': '<i class="fa-regular fa-address-card" style="color: black;"></i>',
+				'Status': '<i class="fa-regular fa-wrench" style="color: black;"></i>',
+				'Created By': '<i class="fa-regular fa-user" style="color: black;"></i>',
+			};
+
 			if (card.column === ProjectStatusOptions.RequestCallback) {
-				render_fields.push(...['customer', 'callback_date', 'callback_time'])
+				render_fields.push(...['customer', 'callback_date', 'callback_time']);
 			}
 			if (card.column === ProjectStatusOptions.RemoteDiagnose) {
-				render_fields.push(...['remote_diagnostic_date', 'remote_diagnostic_time'])
+				render_fields.push(...['remote_diagnostic_date', 'remote_diagnostic_time']);
 			}
 			if (card.column == ProjectStatusOptions.InParking || card.column == ProjectStatusOptions.InQueue) {
-				render_fields.push(...['bring_car_date'])
+				render_fields.push(...['bring_car_date']);
 			}
-
 			for (let field_name of render_fields) {
 				let field =
 					frappe.meta.docfield_map[card.doctype]?.[field_name] ||
 					frappe.model.get_std_field(field_name);
-				let label = cur_list.board.show_labels ? `<span>${__(field.label)}: </span>` : "";
+				let icon = icon_map[field.label] || __(field.label);
+				let label = cur_list.board.show_labels ? `<span title="${__(field.label)}">${icon} </span>` : "";
+				console.log('label', label);
 				let value = frappe.format(card.doc[field_name], field);
 				fields.push(`
 					<div class="text-muted text-truncate">
@@ -873,17 +889,18 @@ const ProjectStatusOptions = {
 						<span>${value}</span>
 					</div>
 				`);
-
 			}
+
 			if (card.border.message) {
 				fields.push(`
-				<div class="text-muted text-truncate">
-            		<span style="color: red; font-style: italic; font-size: xx-small"> ${card.border.message} </span>
-        		</div>
-			`);
+					<div class="text-muted text-truncate">
+						<span style="color: red; font-style: italic; font-size: xx-small"> ${card.border.message} </span>
+					</div>
+				`);
 			}
 			return fields.join("");
 		}
+
 
 		function get_tags_html(card) {
 			return card.tags
@@ -891,6 +908,7 @@ const ProjectStatusOptions = {
 					${cur_list.get_tags_html(card.tags, 3, true)}
 				</div>`
 				: "";
+
 		}
 
 		function render_card_meta() {
@@ -1254,3 +1272,4 @@ const ProjectStatusOptions = {
 		});
 	}
 })();
+

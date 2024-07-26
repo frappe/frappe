@@ -10,7 +10,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			if (!user_settings.last_kanban_board) {
 				return new frappe.views.KanbanView({ doctype: doctype });
 			}
-
 			route.push(user_settings.last_kanban_board);
 			frappe.set_route(route);
 			return true;
@@ -30,7 +29,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				return frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
 			} else {
 				this.kanbans = kanbans;
-
 				return frappe.run_serially([
 					() => this.show_skeleton(),
 					() => this.fetch_meta(),
@@ -59,7 +57,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			let get_board_name = () => {
 				return this.kanbans.length && this.kanbans[0].name;
 			};
-
 			this.board_name = frappe.get_route()[3] || get_board_name() || null;
 			this.page_title = __(this.board_name);
 			this.card_meta = this.get_card_meta();
@@ -68,6 +65,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			return frappe.run_serially([
 				() => this.set_board_perms_and_push_menu_items(),
 				() => this.get_board(),
+
 			]);
 		});
 	}
@@ -164,14 +162,14 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			if (this.avoid_realtime_update()) {
 				return;
 			}
-			if(data.user != frappe.session.user){
-				console.log("list_update kanban: ",data)
+			if (data.user != frappe.session.user) {
+				console.log("list_update kanban: ", data)
 				frappe.call({
 					method: 'frappe.desk.reportview.get',
 					args: {
 						"doctype": data.doctype,
 						"fields": ["*"],
-						"filters":[['name', 'in', [data.name]]],
+						"filters": [['name', 'in', [data.name]]],
 						"start": 0,
 						"page_length": 10,
 						"view": "List",
@@ -198,13 +196,13 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			last_kanban_board: this.board_name,
 		});
 
-		const { auto_move_paused }  = await frappe.db.get_doc('Queue Settings')
+		const { auto_move_paused } = await frappe.db.get_doc('Queue Settings')
 		setTimeout(() => {
 			const exists = document.querySelector('div[id*="Kanban"] div.page-head.flex > div > div > div.flex.col.page-actions.justify-content-end #queue-freeze')
-			if (!exists){
+			if (!exists) {
 				const container = document.querySelector('div.no-list-sidebar div.page-head.flex > div > div > div.flex.col.page-actions.justify-content-end')
-				
-				
+
+
 				const custom_button_filter = document.createElement('button');
 				custom_button_filter.setAttribute('id', 'btn_collapse_filters_area');
 				custom_button_filter.classList.add('btn', 'btn-primary', 'btn-sm');
@@ -216,8 +214,8 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				custom_button_filter.innerText = 'Filters';
 				container.append(custom_button_filter)
 				// const addProjectButton = container.querySelector('.primary-action');
-            	// container.insertBefore(custom_button_filter, addProjectButton);
-				
+				// container.insertBefore(custom_button_filter, addProjectButton);
+
 				const input = document.createElement('input')
 				const label = document.createElement('label')
 				label.setAttribute('style', 'margin: 0')
@@ -230,35 +228,35 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				}
 				container.prepend(label);
 				input.addEventListener('change', (event) => {
-					frappe.db.set_value('Queue Settings', 'Queue Settings','auto_move_paused', auto_move_paused? 0 : 1)
-					.then(()=> {
-						const isChecked = event.target.checked;
-						if(isChecked){
-							frappe.warn('Status updated successfully', 'Would you like to send a WhatsApp message to notify the clients in the queue?',
-								async () => {
-										const {aws_url} = await frappe.db.get_doc('Queue Settings')
+					frappe.db.set_value('Queue Settings', 'Queue Settings', 'auto_move_paused', auto_move_paused ? 0 : 1)
+						.then(() => {
+							const isChecked = event.target.checked;
+							if (isChecked) {
+								frappe.warn('Status updated successfully', 'Would you like to send a WhatsApp message to notify the clients in the queue?',
+									async () => {
+										const { aws_url } = await frappe.db.get_doc('Queue Settings')
 										return frappe.call({
 											method: "frappe.desk.doctype.kanban_board.kanban_board.call_freeze_queue_position_message",
-											args: {aws_url: aws_url},
+											args: { aws_url: aws_url },
 											callback: (result) => {
-												console.log("message queue position freeze sent: ",result);
+												console.log("message queue position freeze sent: ", result);
 											},
 										});
-								},
-								'Yes',
-								true // Sets dialog as minimizable
-							)
-						}else{
-							frappe.msgprint(__('Status updated successfully'));
-						}
-					})
+									},
+									'Yes',
+									true // Sets dialog as minimizable
+								)
+							} else {
+								frappe.msgprint(__('Status updated successfully'));
+							}
+						})
 				})
 
 			}
 		}, 1500);
 	}
 
-	render_list() {}
+	render_list() { }
 
 	on_filter_change() {
 		if (!this.board_perms.write) return; // avoid misleading ux
@@ -312,7 +310,9 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		} else if (board_name === this.kanban.board_name) {
 			this.kanban.update(this.data);
 		}
+
 	}
+
 
 	get_card_meta() {
 		var meta = frappe.get_meta(this.doctype);
@@ -322,7 +322,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		frappe.route_options = route_options;
 		var title_field = null;
 		var quick_entry = false;
-
 		if (this.meta.title_field) {
 			title_field = frappe.meta.get_field(this.doctype, this.meta.title_field);
 		}
@@ -387,9 +386,8 @@ frappe.views.KanbanView.get_kanbans = function (doctype) {
 	return get_kanban_boards().then((kanban_boards) => {
 		if (kanban_boards) {
 			kanban_boards.forEach((board) => {
-				let route = `/app/${frappe.router.slug(board.reference_doctype)}/view/kanban/${
-					board.name
-				}`;
+				let route = `/app/${frappe.router.slug(board.reference_doctype)}/view/kanban/${board.name
+					}`;
 				kanbans.push({ name: board.name, route: route });
 			});
 		}
@@ -469,8 +467,8 @@ frappe.views.KanbanView.show_kanban_dialog = function (doctype) {
 					<div>
 						<p class="text-medium">
 						${__(
-							'No fields found that can be used as a Kanban Column. Use the Customize Form to add a Custom Field of type "Select".'
-						)}
+						'No fields found that can be used as a Kanban Column. Use the Customize Form to add a Custom Field of type "Select".'
+					)}
 						</p>
 					</div>
 				`,
