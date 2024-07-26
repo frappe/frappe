@@ -92,7 +92,7 @@ frappe.ui.form.Sidebar = class {
 						"{0} edited this {1}",
 						[
 							frappe.user.full_name(this.frm.doc.modified_by).bold(),
-							"<br>" + comment_when(this.frm.doc.modified),
+							" · " + comment_when(this.frm.doc.modified),
 						],
 						"For example, 'Jon Doe edited this 5 minutes ago'."
 					)
@@ -104,7 +104,7 @@ frappe.ui.form.Sidebar = class {
 						"{0} created this {1}",
 						[
 							frappe.user.full_name(this.frm.doc.owner).bold(),
-							"<br>" + comment_when(this.frm.doc.creation),
+							" · " + comment_when(this.frm.doc.creation),
 						],
 						"For example, 'Jon Doe created this 5 minutes ago'."
 					)
