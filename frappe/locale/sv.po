@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-07-21 09:33+0000\n"
-"PO-Revision-Date: 2024-07-25 01:20\n"
+"PO-Revision-Date: 2024-07-26 01:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -1131,7 +1131,7 @@ msgstr "Aktivitet Logg"
 #: public/js/frappe/views/reports/query_report.js:294
 #: public/js/frappe/widgets/widget_dialog.js:30
 msgid "Add"
-msgstr "Lägga till"
+msgstr "Lägg till"
 
 #: public/js/frappe/form/grid_row.js:431
 msgid "Add / Remove Columns"
