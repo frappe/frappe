@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-07-21 09:33+0000\n"
-"PO-Revision-Date: 2024-07-26 01:40\n"
+"PO-Revision-Date: 2024-07-27 02:03\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -46,7 +46,7 @@ msgstr "\"Team Medlemmar\" eller \"Ledning\""
 
 #: public/js/frappe/form/form.js:1089
 msgid "\"amended_from\" field must be present to do an amendment."
-msgstr "'amend_from' fält måste finnas att skapa ändring."
+msgstr "\"ändrad_från\" fält måste finnas att skapa ändring."
 
 #: utils/csvutils.py:243
 msgid "\"{0}\" is not a valid Google Sheets URL"
@@ -15865,18 +15865,18 @@ msgstr "Namngivning"
 msgid "Naming Options:\n"
 "<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>autoincrement</b> - Uses Databases' Auto Increment feature</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present)</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n"
 "<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>"
-msgstr "Namn Alternativ:\n"
-"<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>autoincrement</b> - Uses Databases' Auto Increment feature</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present)</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n"
-"<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>"
+msgstr "Namngivning Alternativ:\n"
+"<ol><li><b>field:[fältnamn]</b> - Efter Fält</li><li><b>autoincrement</b> - Använd Databas funktion för automatisk inkrementering</li><li><b>naming_series:</b> - Efter namngivning serie (fält naming_series måste finnas)</li><li><b>Prompt</b> - Fråga</li><li><b>[series]</b> - Serier med prefix (separerade med punkt); till exempel PRE.#####</li>\n"
+"<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Ersätt alla ord inom parentes (fältnamn, datum ord (DD, MM, YY), serier) med deras värde. Utanför hakparenteser kan alla tecken användas.</li></ol>"
 
 #. Description of the 'Auto Name' (Data) field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
 msgid "Naming Options:\n"
 "<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present)</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n"
 "<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>"
-msgstr "Namn Alternativ:\n"
-"<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present)</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n"
-"<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>"
+msgstr "Namngivning Alternativ:\n"
+"<ol><li>field<b>:[fältnamn]</b> - Efter Fält</li><li><b>naming_series</b>: - Efter Namngivning Serie (fält naming_series måste finnas)</li><li><b>Prompt</b> - Fråga</li><li><b>[series]</b> - Serier med prefix (åtskilda av en punkt); till exempel PRE.#####</li>\n"
+"<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Ersätt alla ord inom parentes (fältnamn, datum ord (DD, MM, YY), serier) med deras värde. Utanför hakparenteser kan alla tecken användas.</li></ol>"
 
 #. Label of the naming_rule (Select) field in DocType 'DocType'
 #. Label of the naming_rule (Select) field in DocType 'Customize Form'
