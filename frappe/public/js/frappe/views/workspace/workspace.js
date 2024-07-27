@@ -381,6 +381,16 @@ frappe.views.Workspace = class Workspace {
 		if (!this.body.find("#editorjs")[0]) {
 			this.$page = $(`
 				<div id="editorjs" class="desk-page page-main-content"></div>
+				<div class="workspace-footer">
+					<button data-label="New%20Workspace" class="btn btn-default ellipsis btn-new-workspace">
+						New
+					</button>
+					<button class="btn btn-secondary btn-default btn-sm mr-2 btn-edit-workspace" data-label="Edit">
+						<svg class="es-icon es-line  icon-xs" style="" aria-hidden="true">
+							<use class="" href="#es-line-edit"></use>
+						</svg> <span class="hidden-xs" data-label="Edit"> <span><span class="alt-underline">E</span>dit</span> </span>
+					</button>
+				</div>
 			`).appendTo(this.body);
 		}
 
@@ -455,6 +465,7 @@ frappe.views.Workspace = class Workspace {
 		}
 
 		this.clear_page_actions();
+<<<<<<< HEAD
 
 		this.page.set_secondary_action(
 			__("Edit"),
@@ -473,11 +484,39 @@ frappe.views.Workspace = class Workspace {
 			},
 			"es-line-edit"
 		);
+=======
+		if (current_page.is_editable) {
+			this.body
+				.find(".btn-edit-workspace")
+				.removeClass("hide")
+				.on("click", async () => {
+					if (!this.editor || !this.editor.readOnly) return;
+					this.is_read_only = false;
+					this.toggle_hidden_workspaces(true);
+					await this.editor.readOnly.toggle();
+					this.editor.isReady.then(() => {
+						this.body.addClass("edit-mode");
+						this.initialize_editorjs_undo();
+						this.setup_customization_buttons(current_page);
+						this.show_sidebar_actions();
+						this.make_blocks_sortable();
+					});
+				});
+		} else {
+			this.body.find(".btn-edit-workspace").addClass("hide");
+		}
+>>>>>>> 76da422081 (fix(minor): move Create Workspace button to footer)
 		// need to add option for icons in inner buttons as well
-		if (this.has_create_access)
-			this.page.add_inner_button(__("Create Workspace"), () => {
-				this.initialize_new_page(true);
-			});
+		if (this.has_create_access) {
+			this.body
+				.find(".btn-new-workspace")
+				.removeClass("hide")
+				.on("click", () => {
+					this.initialize_new_page(true);
+				});
+		} else {
+			this.body.find(".btn-new-workspace").addClass("hide");
+		}
 	}
 
 	initialize_editorjs_undo() {
