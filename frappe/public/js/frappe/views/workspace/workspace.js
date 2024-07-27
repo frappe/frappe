@@ -381,6 +381,16 @@ frappe.views.Workspace = class Workspace {
 		if (!this.body.find("#editorjs")[0]) {
 			this.$page = $(`
 				<div id="editorjs" class="desk-page page-main-content"></div>
+				<div class="workspace-footer">
+					<button data-label="New%20Workspace" class="btn btn-default ellipsis btn-new-workspace">
+						New
+					</button>
+					<button class="btn btn-secondary btn-default btn-sm mr-2 btn-edit-workspace" data-label="Edit">
+						<svg class="es-icon es-line  icon-xs" style="" aria-hidden="true">
+							<use class="" href="#es-line-edit"></use>
+						</svg> <span class="hidden-xs" data-label="Edit"> <span><span class="alt-underline">E</span>dit</span> </span>
+					</button>
+				</div>
 			`).appendTo(this.body);
 		}
 
@@ -456,9 +466,10 @@ frappe.views.Workspace = class Workspace {
 
 		this.clear_page_actions();
 		if (current_page.is_editable) {
-			this.page.set_secondary_action(
-				__("Edit"),
-				async () => {
+			this.body
+				.find(".btn-edit-workspace")
+				.removeClass("hide")
+				.on("click", async () => {
 					if (!this.editor || !this.editor.readOnly) return;
 					this.is_read_only = false;
 					this.toggle_hidden_workspaces(true);
@@ -470,15 +481,21 @@ frappe.views.Workspace = class Workspace {
 						this.show_sidebar_actions();
 						this.make_blocks_sortable();
 					});
-				},
-				"es-line-edit"
-			);
+				});
+		} else {
+			this.body.find(".btn-edit-workspace").addClass("hide");
 		}
 		// need to add option for icons in inner buttons as well
-		if (this.has_create_access)
-			this.page.add_inner_button(__("Create Workspace"), () => {
-				this.initialize_new_page(true);
-			});
+		if (this.has_create_access) {
+			this.body
+				.find(".btn-new-workspace")
+				.removeClass("hide")
+				.on("click", () => {
+					this.initialize_new_page(true);
+				});
+		} else {
+			this.body.find(".btn-new-workspace").addClass("hide");
+		}
 	}
 
 	initialize_editorjs_undo() {

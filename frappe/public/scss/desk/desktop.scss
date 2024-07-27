@@ -1015,6 +1015,12 @@ body {
 		padding: var(--padding-sm);
 	}
 
+	.workspace-footer {
+		height: 30px;
+		display: flex;
+		flex-direction: row-reverse;
+	}
+
 	.block-menu-item-icon svg {
 		width: 18px;
 		height: 18px;
