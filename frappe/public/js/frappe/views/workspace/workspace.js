@@ -388,7 +388,7 @@ frappe.views.Workspace = class Workspace {
 						</svg>
 						<span class="hidden-xs" data-label="Edit">New</span>
 					</button>
-					<button class="btn btn-secondary btn-default btn-sm mr-2 btn-edit-workspace" data-label="Edit">
+					<button class="btn btn-default btn-sm mr-2 btn-edit-workspace" data-label="Edit">
 						<svg class="es-icon es-line  icon-xs" style="" aria-hidden="true">
 							<use class="" href="#es-line-edit"></use>
 						</svg>

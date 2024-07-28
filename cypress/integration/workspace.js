@@ -18,7 +18,7 @@ context("Workspace 2.0", () => {
 		}).as("new_page");
 
 		cy.get(".codex-editor__redactor .ce-block");
-		cy.get('.workspace-footer button[data-label="New"]').click();
+		cy.get('.workspace-footer button[data-label="New"]:visible').click();
 		cy.fill_field("title", "Test Private Page", "Data");
 		cy.get_open_dialog().find(".modal-header").click();
 		cy.get_open_dialog().find(".btn-primary").click();
@@ -48,7 +48,7 @@ context("Workspace 2.0", () => {
 		}).as("new_page");
 
 		cy.get(".codex-editor__redactor .ce-block");
-		cy.get('.workspace-footer button[data-label="New"]').click();
+		cy.get('.workspace-footer button[data-label="New"]:visible').click();
 		cy.fill_field("title", "Test Child Page", "Data");
 		cy.fill_field("parent", "Test Private Page", "Select");
 		cy.get_open_dialog().find(".modal-header").click();
