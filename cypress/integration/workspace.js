@@ -18,7 +18,7 @@ context("Workspace 2.0", () => {
 		}).as("new_page");
 
 		cy.get(".codex-editor__redactor .ce-block");
-		cy.get('.custom-actions button[data-label="Create%20Workspace"]').click();
+		cy.get('.workspace-footer button[data-label="New"]').click();
 		cy.fill_field("title", "Test Private Page", "Data");
 		cy.get_open_dialog().find(".modal-header").click();
 		cy.get_open_dialog().find(".btn-primary").click();
@@ -48,7 +48,7 @@ context("Workspace 2.0", () => {
 		}).as("new_page");
 
 		cy.get(".codex-editor__redactor .ce-block");
-		cy.get('.custom-actions button[data-label="Create%20Workspace"]').click();
+		cy.get('.workspace-footer button[data-label="New"]').click();
 		cy.fill_field("title", "Test Child Page", "Data");
 		cy.fill_field("parent", "Test Private Page", "Select");
 		cy.get_open_dialog().find(".modal-header").click();
@@ -196,7 +196,7 @@ context("Workspace 2.0", () => {
 		}).as("hide_page");
 
 		cy.get(".codex-editor__redactor .ce-block");
-		cy.get(".standard-actions .btn-secondary[data-label=Edit]").click();
+		cy.get(".workspace-footer .btn-secondary[data-label=Edit]").click();
 
 		cy.get('.sidebar-item-container[item-name="Duplicate Page"]')
 			.find(".sidebar-item-control .setting-btn")
@@ -217,7 +217,7 @@ context("Workspace 2.0", () => {
 		}).as("unhide_page");
 
 		cy.get(".codex-editor__redactor .ce-block");
-		cy.get(".standard-actions .btn-secondary[data-label=Edit]").click();
+		cy.get(".workspace-footer .btn-secondary[data-label=Edit]").click();
 
 		cy.get('.sidebar-item-container[item-name="Duplicate Page"]')
 			.find('[title="Unhide Workspace"]')
@@ -237,7 +237,7 @@ context("Workspace 2.0", () => {
 		}).as("page_deleted");
 
 		cy.get(".codex-editor__redactor .ce-block");
-		cy.get(".standard-actions .btn-secondary[data-label=Edit]").click();
+		cy.get(".workspace-footer .btn-secondary[data-label=Edit]").click();
 
 		cy.get('.sidebar-item-container[item-name="Duplicate Page"]')
 			.find(".sidebar-item-control .setting-btn")

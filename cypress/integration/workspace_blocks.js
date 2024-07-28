@@ -18,7 +18,7 @@ context("Workspace Blocks", () => {
 
 		cy.visit("/app/website");
 		cy.get(".codex-editor__redactor .ce-block");
-		cy.get('.custom-actions button[data-label="Create%20Workspace"]').click();
+		cy.get('.workspace-footer button[data-label="New"]').click();
 		cy.fill_field("title", "Test Block Page", "Data");
 		cy.get_open_dialog().find(".modal-header").click();
 		cy.get_open_dialog().find(".btn-primary").click();

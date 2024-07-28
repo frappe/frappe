@@ -382,13 +382,19 @@ frappe.views.Workspace = class Workspace {
 			this.$page = $(`
 				<div id="editorjs" class="desk-page page-main-content"></div>
 				<div class="workspace-footer">
-					<button data-label="New%20Workspace" class="btn btn-default ellipsis btn-new-workspace">
-						New
+					<button data-label="New" class="btn btn-default ellipsis btn-new-workspace">
+						<svg class="es-icon es-line  icon-xs" style="" aria-hidden="true">
+							<use class="" href="#es-line-add"></use>
+						</svg>
+						<span class="hidden-xs" data-label="Edit">New</span>
 					</button>
 					<button class="btn btn-secondary btn-default btn-sm mr-2 btn-edit-workspace" data-label="Edit">
 						<svg class="es-icon es-line  icon-xs" style="" aria-hidden="true">
 							<use class="" href="#es-line-edit"></use>
-						</svg> <span class="hidden-xs" data-label="Edit"> <span><span class="alt-underline">E</span>dit</span> </span>
+						</svg>
+						<span class="hidden-xs" data-label="Edit">
+							<span><span class="alt-underline">E</span>dit</span>
+						</span>
 					</button>
 				</div>
 			`).appendTo(this.body);
