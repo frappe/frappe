@@ -18,7 +18,7 @@ context("Workspace Blocks", () => {
 
 		cy.visit("/app/website");
 		cy.get(".codex-editor__redactor .ce-block");
-		cy.get('.workspace-footer button[data-label="New"]').click();
+		cy.get('.workspace-footer button[data-label="New"]:visible').click();
 		cy.fill_field("title", "Test Block Page", "Data");
 		cy.get_open_dialog().find(".modal-header").click();
 		cy.get_open_dialog().find(".btn-primary").click();
@@ -159,7 +159,7 @@ context("Workspace Blocks", () => {
 		]);
 
 		cy.get(".codex-editor__redactor .ce-block");
-		cy.get(".standard-actions .btn-secondary[data-label=Edit]").click();
+		cy.get(".workspace-footer .btn[data-label=Edit]").click();
 
 		cy.get(".ce-block").first().click({ force: true }).type("{enter}");
 		cy.get(".block-list-container .block-list-item").contains("Number Card").click();
