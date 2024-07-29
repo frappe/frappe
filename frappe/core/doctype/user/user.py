@@ -353,6 +353,9 @@ class User(Document):
 		# 		frappe.throw(_("Sorry! Sharing with Website User is prohibited."))
 
 	def send_password_notification(self, new_password):
+		if self.flags.email_sent:
+			return
+
 		try:
 			if self.flags.in_insert:
 				if self.name not in STANDARD_USERS:
