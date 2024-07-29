@@ -71,7 +71,7 @@ context("Workspace Blocks", () => {
 		}).as("get_doctype");
 
 		cy.get(".codex-editor__redactor .ce-block");
-		cy.get(".standard-actions .btn[data-label=Edit]").click();
+		cy.get(".btn-edit-workspace").click();
 
 		// test quick list creation
 		cy.get(".ce-block").first().click({ force: true }).type("{enter}");
