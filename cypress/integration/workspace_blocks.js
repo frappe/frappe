@@ -174,7 +174,7 @@ context("Workspace Blocks", () => {
 		cy.get("@number_card").find(".widget-title").should("contain", "Test Number Card");
 
 		// edit number card
-		cy.get(".standard-actions .btn-secondary[data-label=Edit]").click();
+		cy.get(".btn-edit-workspace").click();
 		cy.get("@number_card").realHover().find(".widget-control .edit-button").click();
 		cy.get_field("label", "Data").invoke("val", "ToDo Count");
 		cy.click_modal_primary_button("Save");
