@@ -79,7 +79,7 @@ context("Workspace 2.0", () => {
 		}).as("page_duplicated");
 
 		cy.get(".codex-editor__redactor .ce-block");
-		cy.get(".standard-actions .btn[data-label=Edit]").click();
+		cy.get(".btn-edit-workspace").click();
 
 		cy.get('.sidebar-item-container[item-name="Test Private Page"]').as("sidebar-item");
 
