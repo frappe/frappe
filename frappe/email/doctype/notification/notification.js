@@ -164,6 +164,7 @@ frappe.ui.form.on("Notification", {
 				},
 			};
 		});
+		frm.preview_fields = frm.doc.__onload.preview_fields;
 	},
 	refresh: function (frm) {
 		frappe.notification.setup_fieldname_select(frm);
@@ -179,6 +180,17 @@ frappe.ui.form.on("Notification", {
 		});
 		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
 		frm.trigger("event");
+		if (frm.doc.document_type) {
+			frm.add_custom_button(__("Preview"), () => {
+				const args = {
+					doc: frm.doc,
+					doctype: frm.doc.document_type,
+					preview_fields: frm.preview_fields,
+				};
+				let dialog = new frappe.views.RenderPreviewer(args);
+				return dialog;
+			});
+		}
 	},
 	document_type: function (frm) {
 		frappe.notification.setup_fieldname_select(frm);
