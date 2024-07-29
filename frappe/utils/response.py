@@ -94,7 +94,7 @@ def as_csv():
 	response.mimetype = "text/csv"
 	filename = f"{frappe.response['doctype']}.csv"
 	filename = filename.encode("utf-8").decode("unicode-escape", "ignore")
-	response.headers.add("Content-Disposition", "attachment", filename=filename)
+	response.headers.add("Content-Disposition", "attachment", filename=quote(filename))
 	response.data = frappe.response["result"]
 	return response
 
@@ -104,7 +104,7 @@ def as_txt():
 	response.mimetype = "text"
 	filename = f"{frappe.response['doctype']}.txt"
 	filename = filename.encode("utf-8").decode("unicode-escape", "ignore")
-	response.headers.add("Content-Disposition", "attachment", filename=filename)
+	response.headers.add("Content-Disposition", "attachment", filename=quote(filename))
 	response.data = frappe.response["result"]
 	return response
 
@@ -120,7 +120,7 @@ def as_raw():
 	response.headers.add(
 		"Content-Disposition",
 		frappe.response.get("display_content_as", "attachment"),
-		filename=filename,
+		filename=quote(filename),
 	)
 	response.data = frappe.response["filecontent"]
 	return response
@@ -143,7 +143,7 @@ def as_pdf():
 	response = Response()
 	response.mimetype = "application/pdf"
 	filename = frappe.response["filename"].encode("utf-8").decode("unicode-escape", "ignore")
-	response.headers.add("Content-Disposition", None, filename=filename)
+	response.headers.add("Content-Disposition", None, filename=quote(filename))
 	response.data = frappe.response["filecontent"]
 	return response
 
@@ -153,7 +153,7 @@ def as_binary():
 	response.mimetype = "application/octet-stream"
 	filename = frappe.response["filename"]
 	filename = filename.encode("utf-8").decode("unicode-escape", "ignore")
-	response.headers.add("Content-Disposition", None, filename=filename)
+	response.headers.add("Content-Disposition", None, filename=quote(filename))
 	response.data = frappe.response["filecontent"]
 	return response
 
@@ -302,7 +302,7 @@ def send_private_file(path: str) -> Response:
 	blacklist = [".svg", ".html", ".htm", ".xml"]
 
 	if extension.lower() in blacklist:
-		response.headers.add("Content-Disposition", "attachment", filename=filename)
+		response.headers.add("Content-Disposition", "attachment", filename=quote(filename))
 
 	response.mimetype = mimetypes.guess_type(filename)[0] or "application/octet-stream"
 
