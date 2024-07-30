@@ -45,8 +45,16 @@
 .layout-side-section.print-preview-sidebar {
 	padding-right: var(--padding-md);
 
+	.checkbox label {
+		align-items: unset;
+	}
+
+	.input-area {
+		margin-top: 0.2rem;
+	}
+
 	.label-area {
-		white-space: nowrap;
+		white-space: unset;
 	}
 }
 
