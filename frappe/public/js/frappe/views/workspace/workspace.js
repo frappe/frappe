@@ -497,7 +497,6 @@ frappe.views.Workspace = class Workspace {
 		}
 
 		this.clear_page_actions();
-
 		if (current_page.is_editable) {
 			this.body.find(".btn-edit-workspace").removeClass("hide");
 		} else {
