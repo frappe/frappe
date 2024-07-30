@@ -948,7 +948,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				<span class="modified">${modified}</span>
 				${comment_count || ""}
 				${comment_count ? '<span class="mx-2">·</span>' : ""}
-				<span class="list-row-like hidden-xs style="margin-bottom: 1px;">
+				<span class="list-row-like hidden-xs" style="margin-bottom: 1px;">
 					${this.get_like_html(doc)}
 				</span>
 			</div>
