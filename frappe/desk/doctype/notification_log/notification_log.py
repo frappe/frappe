@@ -93,6 +93,7 @@ def enqueue_create_notification(users: list[str] | str, doc: dict):
 		doc=doc,
 		users=users,
 		now=frappe.flags.in_test,
+		enqueue_after_commit=not frappe.flags.in_test,
 	)
 
 
