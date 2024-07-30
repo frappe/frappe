@@ -515,7 +515,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 				// feedback
 				frappe.msgprint({
-					message: __("{} Complete", [action.label]),
+					message: __("{} Complete", [__(action.label)]),
 					alert: true,
 				});
 			});
