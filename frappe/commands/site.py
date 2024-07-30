@@ -679,12 +679,11 @@ def migrate(context, skip_failing=False, skip_search_index=False):
 
 
 @click.command("migrate-to")
-@pass_context
-def migrate_to(context):
+def migrate_to():
 	"Migrates site to the specified provider"
 	from frappe.integrations.frappe_providers import migrate_to
 
-	migrate_to(context)
+	migrate_to()
 
 
 @click.command("run-patch")
