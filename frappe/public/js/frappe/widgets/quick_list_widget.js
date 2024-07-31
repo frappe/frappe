@@ -151,10 +151,15 @@ export default class QuickListWidget extends Widget {
 			</div>
 		`);
 
-		if (indicator) {
+		if (indicator[2] != "status,=,undefined") {
 			$(`
 				<div class="status indicator-pill ${indicator[1]} ellipsis">
 					${__(indicator[0])}
+				</div>
+			`).appendTo($quick_list_item);
+		} else {
+			$(`
+				<div class="status indicator-pill ellipsis hidden">
 				</div>
 			`).appendTo($quick_list_item);
 		}
