@@ -119,7 +119,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 	toggle_result_area() {
 		if (this.data.length == 0) {
-			frappe.msgprint(__('No results found'));
+			frappe.msgprint(__("No results found"));
 		} else {
 			this.$result.toggle(this.data.length > 0);
 		}
