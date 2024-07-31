@@ -118,7 +118,11 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	}
 
 	toggle_result_area() {
-		this.$result.toggle(this.data.length > 0);
+		if (this.data.length == 0) {
+			frappe.msgprint(__('No results found'));
+		} else {
+			this.$result.toggle(this.data.length > 0);
+		}
 	}
 
 	get_board() {
