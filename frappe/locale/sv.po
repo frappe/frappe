@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-07-21 09:33+0000\n"
-"PO-Revision-Date: 2024-07-27 02:03\n"
+"POT-Creation-Date: 2024-07-30 18:02+0000\n"
+"PO-Revision-Date: 2024-07-31 03:18\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -167,6 +167,10 @@ msgstr "1 minut sedan"
 #: public/js/frappe/utils/pretty_date.js:66 tests/test_utils.py:680
 msgid "1 month ago"
 msgstr "1 månad sedan"
+
+#: public/js/print_format_builder/PrintFormat.vue:3
+msgid "1 of 2"
+msgstr "1 av 2"
 
 #: public/js/frappe/data_import/data_exporter.js:227
 msgid "1 record will be exported"
@@ -1125,7 +1129,7 @@ msgstr "Aktivitet Logg"
 #: public/js/frappe/form/grid_row.js:471
 #: public/js/frappe/form/sidebar/assign_to.js:100
 #: public/js/frappe/form/templates/set_sharing.html:68
-#: public/js/frappe/list/bulk_operations.js:407
+#: public/js/frappe/list/bulk_operations.js:437
 #: public/js/frappe/views/dashboard/dashboard_view.js:440
 #: public/js/frappe/views/reports/query_report.js:266
 #: public/js/frappe/views/reports/query_report.js:294
@@ -1187,6 +1191,7 @@ msgstr "Lägg till Underval"
 #: public/js/frappe/views/reports/query_report.js:1684
 #: public/js/frappe/views/reports/report_view.js:324
 #: public/js/frappe/views/reports/report_view.js:349
+#: public/js/print_format_builder/Field.vue:112
 msgid "Add Column"
 msgstr "Lägg till Kolumn"
 
@@ -1277,7 +1282,7 @@ msgstr "Lägg till Utrymme Längst Upp"
 msgid "Add Subscribers"
 msgstr "Lägg till Prenumeranter"
 
-#: public/js/frappe/list/bulk_operations.js:395
+#: public/js/frappe/list/bulk_operations.js:425
 msgid "Add Tags"
 msgstr "Lägg till Taggar"
 
@@ -1327,6 +1332,7 @@ msgid "Add a comment"
 msgstr "Lägg till Kommentar"
 
 #: printing/page/print_format_builder/print_format_builder_layout.html:28
+#: public/js/form_builder/components/Tabs.vue:192
 msgid "Add a new section"
 msgstr "Lägg till ny sektion"
 
@@ -1350,9 +1356,41 @@ msgstr "Lägg till Rad Under denna Rad"
 msgid "Add a {0} Chart"
 msgstr "Lägg till {0} Diagram"
 
+#: public/js/form_builder/components/Section.vue:271
+#: public/js/print_format_builder/PrintFormatSection.vue:115
+msgid "Add column"
+msgstr "Lägg till kolumn"
+
+#: public/js/form_builder/components/AddFieldButton.vue:9
+#: public/js/form_builder/components/AddFieldButton.vue:48
+msgid "Add field"
+msgstr "Lägg till fält"
+
+#: public/js/form_builder/components/Sidebar.vue:49
+#: public/js/form_builder/components/Tabs.vue:153
+msgid "Add new tab"
+msgstr "Lägg till ny flik"
+
+#: public/js/print_format_builder/PrintFormatSection.vue:125
+msgid "Add page break"
+msgstr "Lägg till sidbrytning"
+
 #: custom/doctype/client_script/client_script.js:16
 msgid "Add script for Child Table"
 msgstr "Lägg till Skript för Undertabell"
+
+#: public/js/print_format_builder/PrintFormatSection.vue:111
+msgid "Add section above"
+msgstr "Lägg till avsnitt ovan"
+
+#: public/js/form_builder/components/Section.vue:265
+msgid "Add section below"
+msgstr "Lägg till sektion nedan"
+
+#: public/js/form_builder/components/Sidebar.vue:52
+#: public/js/form_builder/components/Tabs.vue:157
+msgid "Add tab"
+msgstr "Lägg till flik"
 
 #: public/js/frappe/utils/dashboard_utils.js:263
 #: public/js/frappe/views/reports/query_report.js:252
@@ -1591,7 +1629,7 @@ msgstr "Aggregerad fält erfodras för att skapa nummerkort"
 msgid "Aggregate Function Based On"
 msgstr "Aggregerad Funktion baserad på"
 
-#: desk/doctype/dashboard_chart/dashboard_chart.py:399
+#: desk/doctype/dashboard_chart/dashboard_chart.py:409
 msgid "Aggregate Function field is required to create a dashboard chart"
 msgstr "Aggregerad Funktion fält erfodras att skapa Översikt Panel Diagram"
 
@@ -2220,7 +2258,7 @@ msgstr "Lägg E-post meddelande till Skickad Mapp"
 msgid "Append To"
 msgstr "E-post Till"
 
-#: email/doctype/email_account/email_account.py:195
+#: email/doctype/email_account/email_account.py:196
 msgid "Append To can be one of {0}"
 msgstr "E-post Till kan vara en av {0}"
 
@@ -2260,6 +2298,10 @@ msgstr "Applikation Version"
 #: custom/doctype/property_setter/property_setter.json
 msgid "Applied On"
 msgstr "Tillämpad På"
+
+#: public/js/form_builder/components/Field.vue:103
+msgid "Apply"
+msgstr "Tillämpa"
 
 #: public/js/frappe/list/list_view.js:1942
 msgctxt "Button in list view actions menu"
@@ -2363,13 +2405,28 @@ msgstr "Är du säker på att du vill ta bort tilldelningar?"
 msgid "Are you sure you want to delete all rows?"
 msgstr "Är du säker på att du vill radera alla rader?"
 
-#: public/js/frappe/views/workspace/workspace.js:899
+#: public/js/frappe/views/workspace/workspace.js:928
 msgid "Are you sure you want to delete page {0}?"
 msgstr "Är du säker på att du vill ta bort sidan {0}?"
 
 #: public/js/frappe/form/sidebar/attachments.js:135
 msgid "Are you sure you want to delete the attachment?"
 msgstr "Är du säker på att du vill radera bifogad fil?"
+
+#: public/js/form_builder/components/Section.vue:197
+msgctxt "Confirmation dialog message"
+msgid "Are you sure you want to delete the column? All the fields in the column will be moved to the previous column."
+msgstr "Är du säker på att du vill ta bort kolumn? Alla fält i kolumn kommer att flyttas till föregående kolumn."
+
+#: public/js/form_builder/components/Section.vue:126
+msgctxt "Confirmation dialog message"
+msgid "Are you sure you want to delete the section? All the columns along with fields in the section will be moved to the previous section."
+msgstr "Är du säker på att du vill ta bort avsnitt? Alla kolumner och fält i avsnitt kommer att flyttas till föregående avsnitt."
+
+#: public/js/form_builder/components/Tabs.vue:65
+msgctxt "Confirmation dialog message"
+msgid "Are you sure you want to delete the tab? All the sections along with fields in the tab will be moved to the previous tab."
+msgstr "Är du säker på att du vill ta bort flik? Alla avsnitt och fält i flik flyttas till föregående flik."
 
 #: public/js/frappe/web_form/web_form.js:185
 msgid "Are you sure you want to discard the changes?"
@@ -2608,6 +2665,7 @@ msgstr "Minst ett fält av Överordnad Dokument Typ erfodras"
 #: core/doctype/docfield/docfield.json
 #: custom/doctype/custom_field/custom_field.json
 #: custom/doctype/customize_form_field/customize_form_field.json
+#: public/js/form_builder/components/controls/AttachControl.vue:15
 #: public/js/frappe/form/controls/attach.js:5
 #: website/doctype/web_form_field/web_form_field.json
 msgid "Attach"
@@ -2639,6 +2697,10 @@ msgstr "Bifoga Paket"
 #: email/doctype/notification/notification.json
 msgid "Attach Print"
 msgstr "Bifoga Utskrift"
+
+#: public/js/frappe/file_uploader/WebLink.vue:10
+msgid "Attach a web link"
+msgstr "Bifoga webblänk"
 
 #: website/doctype/website_slideshow/website_slideshow.js:8
 msgid "Attach files / urls and add in table."
@@ -2743,6 +2805,11 @@ msgstr "Granskning Spår"
 msgid "Auth URL Data"
 msgstr "Auth URL Data"
 
+#. Label of the backend_app_flow (Check) field in DocType 'Email Account'
+#: email/doctype/email_account/email_account.json
+msgid "Authenticate as Service Principal"
+msgstr "Autentisera som Tjänst Huvudansvarig"
+
 #. Label of the authentication_column (Section Break) field in DocType 'Email
 #. Account'
 #. Label of the authentication_credential_section (Section Break) field in
@@ -2766,7 +2833,7 @@ msgstr "Autentiseringsfel: Ogiltig API Nyckel eller Hemlighet"
 msgid "Authentication Error: Reauthorize OAuth for Email Account {0}."
 msgstr "Autentiseringsfel: Återauktorisera OAuth för E-post Konto {0}."
 
-#: email/doctype/email_account/email_account.py:328
+#: email/doctype/email_account/email_account.py:329
 msgid "Authentication failed while receiving emails from Email Account: {0}."
 msgstr "Autentisering misslyckades när E-post meddelande  togs emot från E-post Konto: {0}."
 
@@ -2980,11 +3047,11 @@ msgstr "Automatiskt Meddelande"
 msgid "Automatic"
 msgstr "Automatisk"
 
-#: email/doctype/email_account/email_account.py:766
+#: email/doctype/email_account/email_account.py:767
 msgid "Automatic Linking can be activated only for one Email Account."
 msgstr "Automatisk länkning kan endast aktiveras för ett E-post konto."
 
-#: email/doctype/email_account/email_account.py:760
+#: email/doctype/email_account/email_account.py:761
 msgid "Automatic Linking can be activated only if Incoming is enabled."
 msgstr "Automatisk länkning kan endast aktiveras om Inkommande E-post är aktiverad."
 
@@ -3124,6 +3191,7 @@ msgstr "B9"
 msgid "BCC"
 msgstr "Hemlig Kopia Till"
 
+#: public/js/frappe/file_uploader/ImageCropper.vue:31
 #: public/js/frappe/widgets/onboarding_widget.js:181
 msgid "Back"
 msgstr "Tillbaka"
@@ -3177,6 +3245,10 @@ msgstr "Bakgrund Jobb Status"
 #: integrations/doctype/webhook/webhook.json
 msgid "Background Jobs Queue"
 msgstr "Bakgrund Jobb Kö"
+
+#: public/js/frappe/list/bulk_operations.js:87
+msgid "Background Print (required for >25 documents)"
+msgstr "Bakgrundsutskrift (erfordras för >25 dokument)"
 
 #. Label of the background_workers (Section Break) field in DocType 'System
 #. Settings'
@@ -3567,6 +3639,7 @@ msgstr "Både användarnamn och lösenord erfodras"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
+#: public/js/print_format_builder/PrintFormatControls.vue:154
 msgid "Bottom"
 msgstr "Botten"
 
@@ -3574,11 +3647,13 @@ msgstr "Botten"
 #. Option for the 'Page Number' (Select) field in DocType 'Print Format'
 #: desk/doctype/form_tour_step/form_tour_step.json
 #: printing/doctype/print_format/print_format.json
+#: public/js/print_format_builder/PrintFormatControls.vue:248
 msgid "Bottom Center"
 msgstr "Botten Center"
 
 #. Option for the 'Page Number' (Select) field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
+#: public/js/print_format_builder/PrintFormatControls.vue:247
 msgid "Bottom Left"
 msgstr "Botten Vänster"
 
@@ -3586,6 +3661,7 @@ msgstr "Botten Vänster"
 #. Option for the 'Page Number' (Select) field in DocType 'Print Format'
 #: desk/doctype/form_tour_step/form_tour_step.json
 #: printing/doctype/print_format/print_format.json
+#: public/js/print_format_builder/PrintFormatControls.vue:249
 msgid "Bottom Right"
 msgstr "Botten Höger"
 
@@ -3697,7 +3773,7 @@ msgstr "Mass Åtgärder"
 msgid "Bulk Delete"
 msgstr "Mass Radera"
 
-#: public/js/frappe/list/bulk_operations.js:291
+#: public/js/frappe/list/bulk_operations.js:321
 msgid "Bulk Edit"
 msgstr "Mass Redigera"
 
@@ -3713,7 +3789,7 @@ msgstr "Mass Åtgärd Fel"
 msgid "Bulk Operation Successful"
 msgstr "Mass Åtgärd Klar"
 
-#: public/js/frappe/list/bulk_operations.js:122
+#: public/js/frappe/list/bulk_operations.js:131
 msgid "Bulk PDF Export"
 msgstr "Mass PDF Export"
 
@@ -3951,6 +4027,7 @@ msgstr "Återuppringning Meddelande"
 msgid "Callback Title"
 msgstr "Återuppringning Titel"
 
+#: public/js/frappe/file_uploader/FileUploader.vue:150
 #: public/js/frappe/ui/capture.js:334
 msgid "Camera"
 msgstr "Kamera"
@@ -3958,7 +4035,7 @@ msgstr "Kamera"
 #. Label of the campaign (Link) field in DocType 'Newsletter'
 #. Label of the campaign (Data) field in DocType 'Web Page View'
 #: email/doctype/newsletter/newsletter.json
-#: public/js/frappe/utils/utils.js:1723
+#: public/js/frappe/utils/utils.js:1724
 #: website/doctype/web_page_view/web_page_view.json
 #: website/report/website_analytics/website_analytics.js:39
 msgid "Campaign"
@@ -4109,7 +4186,7 @@ msgstr "Kan inte att annullera innan godkännade under övergång från <b>{0} T
 msgid "Cannot cancel before submitting. See Transition {0}"
 msgstr "Kan inte annullera före godkännande.Se Övergång {0}"
 
-#: public/js/frappe/list/bulk_operations.js:264
+#: public/js/frappe/list/bulk_operations.js:294
 msgid "Cannot cancel {0}."
 msgstr "Kan inte annullera {0}."
 
@@ -4137,7 +4214,7 @@ msgstr "Kan inte ändra till/från automatisk ökning av automatisk name i Anpas
 msgid "Cannot create a {0} against a child document: {1}"
 msgstr "Kan inte skapa {0} mot underordnad dokument: {1}"
 
-#: desk/doctype/workspace/workspace.py:250
+#: desk/doctype/workspace/workspace.py:254
 msgid "Cannot create private workspace of other users"
 msgstr "Kan inte skapa privat arbetsyta för andra användare"
 
@@ -4149,11 +4226,11 @@ msgstr "Kan inte radera Hem och Bilaga mappar"
 msgid "Cannot delete or cancel because {0} {1} is linked with {2} {3} {4}"
 msgstr "Kan inte ta bort eller annullera eftersom {0} {1} är länkat till {2} {3} {4}"
 
-#: desk/doctype/workspace/workspace.py:415
+#: desk/doctype/workspace/workspace.py:419
 msgid "Cannot delete private workspace of other users"
 msgstr "Kan inte ta bort privat arbetsyta för andra användare"
 
-#: desk/doctype/workspace/workspace.py:408
+#: desk/doctype/workspace/workspace.py:412
 msgid "Cannot delete public workspace without Workspace Manager role"
 msgstr "Kan inte ta bort publik arbetsyta utan Arbetsyta Ansvarig Roll"
 
@@ -4169,6 +4246,13 @@ msgstr "Kan inte ta bort standard dokument tillstånd."
 msgid "Cannot delete standard field <strong>{0}</strong>. You can hide it instead."
 msgstr "Kan inte ta bort standard fält <strong>{0}</strong>. Dölj det istället"
 
+#: public/js/form_builder/components/Field.vue:38
+#: public/js/form_builder/components/Section.vue:117
+#: public/js/form_builder/components/Section.vue:190
+#: public/js/form_builder/components/Tabs.vue:56
+msgid "Cannot delete standard field. You can hide it if you want"
+msgstr "Kan inte ta bort standard fält. Dölj det istället"
+
 #: custom/doctype/customize_form/customize_form.js:347
 msgid "Cannot delete standard link. You can hide it if you want"
 msgstr "Kan inte radera standard länk. Dölj det istället"
@@ -4177,7 +4261,7 @@ msgstr "Kan inte radera standard länk. Dölj det istället"
 msgid "Cannot delete system generated field <strong>{0}</strong>. You can hide it instead."
 msgstr "Kan inte ta bort system skapad fält <strong>{0}</strong>. Dölj det istället."
 
-#: public/js/frappe/list/bulk_operations.js:185
+#: public/js/frappe/list/bulk_operations.js:215
 msgid "Cannot delete {0}"
 msgstr "Kan inte radera {0}"
 
@@ -4189,11 +4273,11 @@ msgstr "Kan inte radera {0} eftersom det har underordnade noder"
 msgid "Cannot edit Standard Dashboards"
 msgstr "Kan inte redigera standard översikt panel"
 
-#: email/doctype/notification/notification.py:122
+#: email/doctype/notification/notification.py:183
 msgid "Cannot edit Standard Notification. To edit, please disable this and duplicate it"
 msgstr "Kan inte redigera standard avisering. Kopiera och skapa ny"
 
-#: desk/doctype/dashboard_chart/dashboard_chart.py:377
+#: desk/doctype/dashboard_chart/dashboard_chart.py:387
 msgid "Cannot edit Standard charts"
 msgstr "Kan inte redigera standard diagram"
 
@@ -4258,7 +4342,7 @@ msgstr "Kan inte ta bort ID fält"
 msgid "Cannot set 'Report' permission if 'Only If Creator' permission is set"
 msgstr "Kan inte ange \"Rapport\" behörighet om behörighet \"Endast om Ägare\" är angiven"
 
-#: email/doctype/notification/notification.py:139
+#: email/doctype/notification/notification.py:200
 msgid "Cannot set Notification with event {0} on Document Type {1}"
 msgstr "Kan inte ange Avisering med händelse {0} på Dokument Typ {1}"
 
@@ -4266,16 +4350,16 @@ msgstr "Kan inte ange Avisering med händelse {0} på Dokument Typ {1}"
 msgid "Cannot share {0} with submit permission as the doctype {1} is not submittable"
 msgstr "kan inte dela {0} med godkänn behörighet eftersom doctype {1} inte går att godkänna"
 
-#: public/js/frappe/list/bulk_operations.js:261
+#: public/js/frappe/list/bulk_operations.js:291
 msgid "Cannot submit {0}."
 msgstr "Kan inte godkänna {0}."
 
-#: desk/doctype/workspace/workspace.py:349
+#: desk/doctype/workspace/workspace.py:353
 msgid "Cannot update private workspace of other users"
 msgstr "Kan inte uppdatera privat arbetsyta för andra användare "
 
 #: desk/doctype/bulk_update/bulk_update.js:26
-#: public/js/frappe/list/bulk_operations.js:336
+#: public/js/frappe/list/bulk_operations.js:366
 msgid "Cannot update {0}"
 msgstr "Kan inte uppdatera {0}"
 
@@ -4287,7 +4371,7 @@ msgstr "Kan inte använda underfråga i ordna efter"
 msgid "Cannot use {0} in order/group by"
 msgstr "Kan inte använda {0} i ordna/gruppera efter"
 
-#: public/js/frappe/list/bulk_operations.js:267
+#: public/js/frappe/list/bulk_operations.js:297
 msgid "Cannot {0} {1}."
 msgstr "Kan inte {0} {1}."
 
@@ -4374,10 +4458,19 @@ msgctxt "Coins"
 msgid "Change"
 msgstr "Växel"
 
+#: public/js/print_format_builder/LetterHeadEditor.vue:38
+msgid "Change Image"
+msgstr "Ändra Bild"
+
 #. Label of the label (Data) field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
 msgid "Change Label (via Custom Translation)"
 msgstr "Ändra Titel (via Anpassad Översättning)"
+
+#: public/js/print_format_builder/LetterHeadEditor.vue:45
+#: public/js/print_format_builder/LetterHeadEditor.vue:141
+msgid "Change Letter Head"
+msgstr "Ändra Brevhuvud"
 
 #. Label of the change_password (Section Break) field in DocType 'User'
 #: core/doctype/user/user.json
@@ -4566,14 +4659,16 @@ msgstr "Underordnade Tabeller visas som rutnät i andra DocTyper"
 msgid "Choose Existing Card or create New Card"
 msgstr "Välj Befintligt Kort eller skapa Ny Kort"
 
-#: public/js/frappe/views/workspace/workspace.js:1399
+#: public/js/frappe/views/workspace/workspace.js:1428
 msgid "Choose a block or continue typing"
 msgstr "Välj avsnitt eller fortsätt skriva"
 
+#: public/js/form_builder/components/controls/DataControl.vue:18
 #: public/js/frappe/form/controls/color.js:5
 msgid "Choose a color"
 msgstr "Välj Färg"
 
+#: public/js/form_builder/components/controls/DataControl.vue:21
 #: public/js/frappe/form/controls/icon.js:5
 msgid "Choose an icon"
 msgstr "Välj Ikon"
@@ -4661,6 +4756,10 @@ msgstr "Klicka här att verifiera"
 msgid "Click on <b>Authorize Google Drive Access</b> to authorize Google Drive Access."
 msgstr "Klicka på <b>Auktorisera Google Drive Access för</b> att auktorisera Google Drive Access."
 
+#: public/js/frappe/file_uploader/FileUploader.vue:499
+msgid "Click on a file to select it."
+msgstr "Klicka på fil för att välja det."
+
 #: templates/emails/login_with_email_link.html:19
 msgid "Click on the button to log in to {0}"
 msgstr "Klicka på länk nedan för att logga in på {0}"
@@ -4680,6 +4779,10 @@ msgstr "Klicka på länk nedan att ladda ner data"
 #: templates/emails/delete_data_confirmation.html:4
 msgid "Click on the link below to verify your request"
 msgstr "Klicka på länk nedan att verifiera begäran"
+
+#: public/js/frappe/file_uploader/FileUploader.vue:200
+msgid "Click on the lock icon to toggle public/private"
+msgstr "Klicka på lås ikon för att växla mellan publik/privat"
 
 #: integrations/doctype/google_calendar/google_calendar.py:102
 #: integrations/doctype/google_contacts/google_contacts.py:41
@@ -4795,6 +4898,10 @@ msgstr "Stäng"
 #: automation/doctype/assignment_rule/assignment_rule.json
 msgid "Close Condition"
 msgstr "Stängning Villkor"
+
+#: public/js/form_builder/components/FieldProperties.vue:79
+msgid "Close properties"
+msgstr "Stäng egenskaper"
 
 #. Option for the 'Status' (Select) field in DocType 'Activity Log'
 #. Option for the 'Status' (Select) field in DocType 'Communication'
@@ -4916,6 +5023,8 @@ msgstr "Färg"
 #. Label of the column (Data) field in DocType 'Recorder Suggested Index'
 #: core/doctype/recorder_suggested_index/recorder_suggested_index.json
 #: printing/page/print_format_builder/print_format_builder_column_selector.html:7
+#: public/js/form_builder/components/Section.vue:270
+#: public/js/print_format_builder/ConfigureColumns.vue:8
 msgid "Column"
 msgstr "Kolumn"
 
@@ -5245,6 +5354,10 @@ msgstr "Konfigurera Kolumner"
 msgid "Configure Recorder"
 msgstr "Konfigurera Inspelare"
 
+#: public/js/print_format_builder/Field.vue:103
+msgid "Configure columns for {0}"
+msgstr "Konfigurera kolumner för {0}"
+
 #. Description of the 'Amended Documents' (Section Break) field in DocType
 #. 'Document Naming Settings'
 #: core/doctype/document_naming_settings/document_naming_settings.json
@@ -5441,7 +5554,7 @@ msgstr "Innehåller {0} säkerhetskorrigeringar"
 #: core/doctype/comment/comment.json desk/doctype/note/note.json
 #: desk/doctype/workspace/workspace.json
 #: email/doctype/newsletter/newsletter.json
-#: public/js/frappe/utils/utils.js:1738
+#: public/js/frappe/utils/utils.js:1739
 #: website/doctype/blog_post/blog_post.json
 #: website/doctype/help_article/help_article.json
 #: website/doctype/web_page/web_page.json
@@ -5654,7 +5767,7 @@ msgstr "Cr"
 #: public/js/frappe/views/file/file_view.js:112
 #: public/js/frappe/views/interaction.js:18
 #: public/js/frappe/views/reports/query_report.js:1188
-#: public/js/frappe/views/workspace/workspace.js:1231
+#: public/js/frappe/views/workspace/workspace.js:1260
 #: workflow/page/workflow_builder/workflow_builder.js:46
 msgid "Create"
 msgstr "Skapa"
@@ -5678,6 +5791,10 @@ msgstr "Skapa Kort"
 msgid "Create Chart"
 msgstr "Skapa Diagram"
 
+#: public/js/form_builder/components/controls/TableControl.vue:62
+msgid "Create Child Doctype"
+msgstr "Skapa underordnad Dokumenttyp"
+
 #. Label of the create_contact (Check) field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
 msgid "Create Contacts from Incoming Emails"
@@ -5688,7 +5805,7 @@ msgstr "Skapa Kontakter från Inkommande E-post"
 msgid "Create Custom Fields"
 msgstr "Skapa Anpassade Fält"
 
-#: public/js/frappe/views/workspace/workspace.js:939
+#: public/js/frappe/views/workspace/workspace.js:968
 msgid "Create Duplicate"
 msgstr "Skapa Kopia"
 
@@ -5696,6 +5813,11 @@ msgstr "Skapa Kopia"
 #: desk/doctype/onboarding_step/onboarding_step.json
 msgid "Create Entry"
 msgstr "Skapa Post"
+
+#: public/js/print_format_builder/LetterHeadEditor.vue:59
+#: public/js/print_format_builder/LetterHeadEditor.vue:195
+msgid "Create Letter Head"
+msgstr "Skapa Brevhuvud"
 
 #. Label of the create_log (Check) field in DocType 'Scheduled Job Type'
 #: core/doctype/scheduled_job_type/scheduled_job_type.json
@@ -5724,10 +5846,6 @@ msgstr "Skapa Ny Anslags Tavla"
 #: core/doctype/user/user.js:256
 msgid "Create User Email"
 msgstr "Skapa E-post Konto"
-
-#: public/js/frappe/views/workspace/workspace.js:479
-msgid "Create Workspace"
-msgstr "Skapa Arbetsyta"
 
 #: printing/page/print_format_builder/print_format_builder_start.html:16
 msgid "Create a New Format"
@@ -5846,6 +5964,10 @@ msgstr "Cron Format"
 #: core/doctype/scheduled_job_type/scheduled_job_type.py:58
 msgid "Cron format is required for job types with Cron frequency."
 msgstr "Cron format erfodras för jobbtyper med Cron frekvens."
+
+#: public/js/frappe/file_uploader/ImageCropper.vue:34
+msgid "Crop"
+msgstr "Beskär"
 
 #: public/js/frappe/form/grid_row_form.js:42
 msgid "Ctrl + Down"
@@ -6059,6 +6181,7 @@ msgstr "Anpassad Grupp Sökning om ifylld måste innehålla användarens platsh�
 
 #: printing/page/print_format_builder/print_format_builder.js:190
 #: printing/page/print_format_builder/print_format_builder.js:720
+#: public/js/print_format_builder/PrintFormatControls.vue:192
 msgid "Custom HTML"
 msgstr "Anpassad HTML"
 
@@ -6157,7 +6280,7 @@ msgstr "Anpassning"
 msgid "Customization onboarding is all done!"
 msgstr "Anpassning Introduktion  är klar!"
 
-#: public/js/frappe/views/workspace/workspace.js:525
+#: public/js/frappe/views/workspace/workspace.js:554
 msgid "Customizations Discarded"
 msgstr "Anpassningar Bortkastade"
 
@@ -6661,7 +6784,7 @@ msgstr "Standard Inkorg"
 
 #. Label of the default_incoming (Check) field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
-#: email/doctype/email_account/email_account.py:217
+#: email/doctype/email_account/email_account.py:218
 msgid "Default Incoming"
 msgstr "Standard Inkommande"
 
@@ -6681,7 +6804,7 @@ msgstr "Standard Nummer Serie"
 
 #. Label of the default_outgoing (Check) field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
-#: email/doctype/email_account/email_account.py:225
+#: email/doctype/email_account/email_account.py:226
 msgid "Default Outgoing"
 msgstr "Standard Utgående"
 
@@ -6796,7 +6919,7 @@ msgstr "Standard Värde"
 msgid "Defaults"
 msgstr "Standard"
 
-#: email/doctype/email_account/email_account.py:236
+#: email/doctype/email_account/email_account.py:237
 msgid "Defaults Updated"
 msgstr "Standard Inställningar Uppdaterade"
 
@@ -6826,7 +6949,7 @@ msgstr "Försenad"
 #: public/js/frappe/form/grid.js:63 public/js/frappe/form/toolbar.js:434
 #: public/js/frappe/views/reports/report_view.js:1654
 #: public/js/frappe/views/treeview.js:308
-#: public/js/frappe/views/workspace/workspace.js:837
+#: public/js/frappe/views/workspace/workspace.js:866
 #: templates/discussions/reply_card.html:35
 #: templates/discussions/reply_section.html:29
 msgid "Delete"
@@ -6845,6 +6968,11 @@ msgstr "Ta Bort Konto"
 msgid "Delete All"
 msgstr "Ta Bort Alla"
 
+#: public/js/form_builder/components/Section.vue:196
+msgctxt "Title of confirmation dialog"
+msgid "Delete Column"
+msgstr "Ta bort Kolumn"
+
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.js:10
 msgid "Delete Data"
 msgstr "Ta Bort Data"
@@ -6853,7 +6981,17 @@ msgstr "Ta Bort Data"
 msgid "Delete Kanban Board"
 msgstr "Ta Bort Anslag Tavla"
 
-#: public/js/frappe/views/workspace/workspace.js:838
+#: public/js/form_builder/components/Section.vue:125
+msgctxt "Title of confirmation dialog"
+msgid "Delete Section"
+msgstr "Ta bort Avsnitt"
+
+#: public/js/form_builder/components/Tabs.vue:64
+msgctxt "Title of confirmation dialog"
+msgid "Delete Tab"
+msgstr "Ta bort Flik"
+
+#: public/js/frappe/views/workspace/workspace.js:867
 msgid "Delete Workspace"
 msgstr "Ta Bort Arbetsyta"
 
@@ -6861,9 +6999,39 @@ msgstr "Ta Bort Arbetsyta"
 msgid "Delete and Generate New"
 msgstr "Ta bort och Skapa Ny"
 
+#: public/js/form_builder/components/Section.vue:203
+msgctxt "Button text"
+msgid "Delete column"
+msgstr "Ta bort kolumn"
+
 #: public/js/frappe/form/footer/form_timeline.js:721
 msgid "Delete comment?"
 msgstr "Ta Bort Kommentar?"
+
+#: public/js/form_builder/components/Section.vue:205
+msgctxt "Button text"
+msgid "Delete entire column with fields"
+msgstr "Ta bort kolumn med fält"
+
+#: public/js/form_builder/components/Section.vue:134
+msgctxt "Button text"
+msgid "Delete entire section with fields"
+msgstr "Ta bort sektion med fält"
+
+#: public/js/form_builder/components/Tabs.vue:73
+msgctxt "Button text"
+msgid "Delete entire tab with fields"
+msgstr "Ta bort flik med fält"
+
+#: public/js/form_builder/components/Section.vue:132
+msgctxt "Button text"
+msgid "Delete section"
+msgstr "Ta bort sektion"
+
+#: public/js/form_builder/components/Tabs.vue:71
+msgctxt "Button text"
+msgid "Delete tab"
+msgstr "Ta bort flik"
 
 #: email/doctype/email_unsubscribe/email_unsubscribe.py:29
 msgid "Delete this record to allow sending to this email address"
@@ -6921,7 +7089,7 @@ msgstr "Alla Dokument Borttagna"
 msgid "Deleting {0}"
 msgstr "Tar Bort {0}"
 
-#: public/js/frappe/list/bulk_operations.js:172
+#: public/js/frappe/list/bulk_operations.js:202
 msgid "Deleting {0} records..."
 msgstr "Tar Bort {0} post(er)..."
 
@@ -7112,6 +7280,7 @@ msgstr "Skrivbord Ikon finns redan"
 #: custom/doctype/customize_form/customize_form.json
 #: desk/doctype/event/event.json
 #: desk/page/user_profile/user_profile_sidebar.html:45
+#: public/js/form_builder/components/Tabs.vue:92
 #: public/js/form_builder/store.js:259 public/js/form_builder/utils.js:38
 #: public/js/frappe/form/layout.js:137 public/js/frappe/views/treeview.js:271
 msgid "Details"
@@ -7261,14 +7430,14 @@ msgstr "Inaktivera Registrering"
 msgid "Disabled"
 msgstr "Inaktiverad"
 
-#: email/doctype/email_account/email_account.js:261
+#: email/doctype/email_account/email_account.js:265
 msgid "Disabled Auto Reply"
 msgstr "Inaktiverad Autosvar"
 
 #: public/js/frappe/form/toolbar.js:316
 #: public/js/frappe/views/communication.js:30
 #: public/js/frappe/views/dashboard/dashboard_view.js:70
-#: public/js/frappe/views/workspace/workspace.js:516
+#: public/js/frappe/views/workspace/workspace.js:545
 #: public/js/frappe/web_form/web_form.js:187
 msgid "Discard"
 msgstr "Avvisa"
@@ -7332,6 +7501,10 @@ msgstr "Visning Beror På"
 #: core/doctype/docfield/docfield.json
 msgid "Display Depends On (JS)"
 msgstr "Visning beror på (JS)"
+
+#: public/js/print_format_builder/PrintFormatControls.vue:210
+msgid "Divider"
+msgstr "Avdelare"
 
 #. Label of the do_not_create_new_user (Check) field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
@@ -7564,7 +7737,7 @@ msgstr "Doctype namn är begränsad till {0} tecken ({1})"
 msgid "Doctype required"
 msgstr "DocType Erfodras"
 
-#: public/js/frappe/views/workspace/workspace.js:1317
+#: public/js/frappe/views/workspace/workspace.js:1346
 msgid "Doctype with same route already exist. Please choose different title."
 msgstr "Doctype med samma sökväg finns redan. Välj annan titel."
 
@@ -7578,6 +7751,7 @@ msgstr "Doctype med samma sökväg finns redan. Välj annan titel."
 #: core/doctype/audit_trail/audit_trail.json core/doctype/doctype/doctype.json
 #: core/doctype/permission_inspector/permission_inspector.json
 #: desk/doctype/notification_subscribed_document/notification_subscribed_document.json
+#: public/js/frappe/views/render_preview.js:42
 msgid "Document"
 msgstr "Dokument"
 
@@ -7856,7 +8030,7 @@ msgstr "Dokument namn ändrad från {0} till {1}"
 msgid "Document renaming from {0} to {1} has been queued"
 msgstr "Dokument namn byte från {0} till {1} är i kö"
 
-#: desk/doctype/dashboard_chart/dashboard_chart.py:386
+#: desk/doctype/dashboard_chart/dashboard_chart.py:396
 msgid "Document type is required to create a dashboard chart"
 msgstr "Dokument Typ erfodras för att skapa Översikt Panel Diagram"
 
@@ -7961,6 +8135,8 @@ msgstr "Har du inget konto?"
 
 #: public/js/frappe/form/form_tour.js:16 public/js/frappe/ui/messages.js:231
 #: public/js/onboarding_tours/onboarding_tours.js:17
+#: public/js/print_format_builder/HTMLEditor.vue:5
+#: public/js/print_format_builder/LetterHeadEditor.vue:52
 msgid "Done"
 msgstr "Klart"
 
@@ -7968,6 +8144,10 @@ msgstr "Klart"
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Donut"
 msgstr "Ring"
+
+#: public/js/form_builder/components/EditableInput.vue:43
+msgid "Double click to edit label"
+msgstr "Dubbelklicka för att redigera etikett"
 
 #: core/doctype/file/file.js:5
 #: email/doctype/auto_email_report/auto_email_report.js:8
@@ -7997,7 +8177,7 @@ msgstr "Ladda ner Fil Säkerhetskopia"
 msgid "Download Link"
 msgstr "Nedladdning Länk"
 
-#: public/js/frappe/list/bulk_operations.js:125
+#: public/js/frappe/list/bulk_operations.js:134
 msgid "Download PDF"
 msgstr "Ladda ner PDF"
 
@@ -8032,14 +8212,34 @@ msgstr "Utkast"
 #: public/js/frappe/views/workspace/blocks/header.js:46
 #: public/js/frappe/views/workspace/blocks/paragraph.js:136
 #: public/js/frappe/views/workspace/blocks/spacer.js:44
-#: public/js/frappe/views/workspace/workspace.js:579
+#: public/js/frappe/views/workspace/workspace.js:608
 #: public/js/frappe/widgets/base_widget.js:33
 msgid "Drag"
 msgstr "Drag"
 
+#: public/js/form_builder/components/Tabs.vue:189
+msgid "Drag & Drop a section here from another tab"
+msgstr "Dra och släpp sektion här från annan flik"
+
+#: public/js/frappe/file_uploader/FileUploader.vue:14
+msgid "Drag and drop files here or upload from"
+msgstr "Dra och släpp filer här eller ladda upp från"
+
+#: public/js/print_format_builder/ConfigureColumns.vue:76
+msgid "Drag columns to set order. Column width is set in percentage. The total width should not be more than 100. Columns marked in red will be removed."
+msgstr "Dra kolumner för att ange ordning. Kolumnbredd anges i procent. Totalt bredd ska inte vara mer än 100. Kolumner markerade med rött kommer att tas bort."
+
 #: printing/page/print_format_builder/print_format_builder_layout.html:3
 msgid "Drag elements from the sidebar to add. Drag them back to trash."
 msgstr "Dra element från sidofält för att lägga till. Dra tillbaka dem till papperskorg."
+
+#: public/js/workflow_builder/WorkflowBuilder.vue:296
+msgid "Drag to add state"
+msgstr "Dra för att lägga till tillstånd"
+
+#: public/js/frappe/file_uploader/FileUploader.vue:172
+msgid "Drop files here"
+msgstr "Släpp filer här"
 
 #. Label of the dropbox_access_token (Password) field in DocType 'Dropbox
 #. Settings'
@@ -8086,8 +8286,8 @@ msgstr "Förfallodatum Baserad På"
 
 #: public/js/frappe/form/grid_row_form.js:42
 #: public/js/frappe/form/toolbar.js:388
-#: public/js/frappe/views/workspace/workspace.js:822
-#: public/js/frappe/views/workspace/workspace.js:989
+#: public/js/frappe/views/workspace/workspace.js:851
+#: public/js/frappe/views/workspace/workspace.js:1018
 msgid "Duplicate"
 msgstr "Kopiera"
 
@@ -8103,8 +8303,8 @@ msgstr "Kopiera Filter Namn"
 msgid "Duplicate Name"
 msgstr "Kopiera Namn"
 
-#: public/js/frappe/views/workspace/workspace.js:561
-#: public/js/frappe/views/workspace/workspace.js:823
+#: public/js/frappe/views/workspace/workspace.js:590
+#: public/js/frappe/views/workspace/workspace.js:852
 msgid "Duplicate Workspace"
 msgstr "Kopiera Arbetsyta"
 
@@ -8112,7 +8312,11 @@ msgstr "Kopiera Arbetsyta"
 msgid "Duplicate current row"
 msgstr "Kopiera Aktuell Rad"
 
-#: public/js/frappe/views/workspace/workspace.js:1004
+#: public/js/form_builder/components/Field.vue:245
+msgid "Duplicate field"
+msgstr "Kopiera fält"
+
+#: public/js/frappe/views/workspace/workspace.js:1033
 msgid "Duplicate of {0} named as {1} is created successfully"
 msgstr "Kopia av {0} med namn {1} är skapad"
 
@@ -8205,8 +8409,7 @@ msgstr "Varje dokument skapad i System kan ha unikt ID genererad för det, med d
 #: public/js/frappe/form/toolbar.js:681
 #: public/js/frappe/views/reports/query_report.js:815
 #: public/js/frappe/views/reports/query_report.js:1634
-#: public/js/frappe/views/workspace/workspace.js:460
-#: public/js/frappe/views/workspace/workspace.js:816
+#: public/js/frappe/views/workspace/workspace.js:845
 #: public/js/frappe/widgets/base_widget.js:64
 #: public/js/frappe/widgets/chart_widget.js:299
 #: public/js/frappe/widgets/number_card_widget.js:331
@@ -8261,6 +8464,10 @@ msgstr "Redigera Befintlig"
 msgid "Edit Filters"
 msgstr "Redigera Filter"
 
+#: public/js/print_format_builder/PrintFormat.vue:29
+msgid "Edit Footer"
+msgstr "Redigera Sidfot"
+
 #: printing/doctype/print_format/print_format.js:28
 msgid "Edit Format"
 msgstr "Redigera Format"
@@ -8270,13 +8477,26 @@ msgid "Edit Full Form"
 msgstr "Redigera i Full Formulär"
 
 #: printing/page/print_format_builder/print_format_builder_field.html:26
+#: public/js/print_format_builder/Field.vue:83
 msgid "Edit HTML"
 msgstr "Redigera HTML"
+
+#: public/js/print_format_builder/PrintFormat.vue:9
+msgid "Edit Header"
+msgstr "Redigera Rubrik"
 
 #: printing/page/print_format_builder/print_format_builder.js:602
 #: printing/page/print_format_builder/print_format_builder_layout.html:8
 msgid "Edit Heading"
 msgstr "Redigera Huvud Rubrik"
+
+#: public/js/print_format_builder/LetterHeadEditor.vue:52
+msgid "Edit Letter Head"
+msgstr "Redigera Sidhuvud"
+
+#: public/js/print_format_builder/PrintFormat.vue:35
+msgid "Edit Letter Head Footer"
+msgstr "Redigera Brevhuvud Sidfot"
 
 #: public/js/frappe/widgets/widget_dialog.js:42
 msgid "Edit Links"
@@ -8327,13 +8547,17 @@ msgstr "Redigera Genvägar"
 msgid "Edit Values"
 msgstr "Redigera Värden"
 
-#: public/js/frappe/views/workspace/workspace.js:817
+#: public/js/frappe/views/workspace/workspace.js:846
 msgid "Edit Workspace"
 msgstr "Redigera Arbetsyta"
 
 #: desk/doctype/note/note.js:11
 msgid "Edit mode"
 msgstr "Redigering Läge"
+
+#: public/js/form_builder/components/Field.vue:254
+msgid "Edit the {0} Doctype"
+msgstr "Redigera {0} Doctype"
 
 #: printing/page/print_format_builder/print_format_builder.js:713
 msgid "Edit to add content"
@@ -8442,7 +8666,7 @@ msgctxt "Email Account"
 msgid "Email Account"
 msgstr "E-post Konto"
 
-#: email/doctype/email_account/email_account.py:332
+#: email/doctype/email_account/email_account.py:333
 msgid "Email Account Disabled."
 msgstr "E-post Konto Inaktiverad"
 
@@ -8686,6 +8910,10 @@ msgstr "E-post skickas med nästa möjliga arbetsflöde åtgärd"
 msgid "Embed code copied"
 msgstr "Bädda in kopierad kod"
 
+#: public/js/form_builder/components/Section.vue:285
+msgid "Empty column"
+msgstr "Tom kolumn"
+
 #. Label of the enable (Check) field in DocType 'Google Calendar'
 #. Label of the enable (Check) field in DocType 'Google Contacts'
 #. Label of the enable (Check) field in DocType 'Google Drive'
@@ -8747,7 +8975,7 @@ msgstr "Aktivera Google Indexering"
 
 #. Label of the enable_incoming (Check) field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
-#: email/doctype/email_account/email_account.py:218
+#: email/doctype/email_account/email_account.py:219
 msgid "Enable Incoming"
 msgstr "Aktivera Inkommande"
 
@@ -8760,7 +8988,7 @@ msgstr "Aktivera Introduktion"
 #. Label of the enable_outgoing (Check) field in DocType 'Email Account'
 #: core/doctype/user_email/user_email.json
 #: email/doctype/email_account/email_account.json
-#: email/doctype/email_account/email_account.py:226
+#: email/doctype/email_account/email_account.py:227
 msgid "Enable Outgoing"
 msgstr "Aktivera Utgående"
 
@@ -8901,7 +9129,7 @@ msgstr "Aktiverad"
 msgid "Enabled Scheduler"
 msgstr "Aktiverad Schemaläggare"
 
-#: email/doctype/email_account/email_account.py:987
+#: email/doctype/email_account/email_account.py:995
 msgid "Enabled email inbox for user {0}"
 msgstr "E-post Konto Aktiverad för {0}"
 
@@ -8914,7 +9142,7 @@ msgstr "E-post Konto Aktiverad för {0}"
 msgid "Enables Calendar and Gantt views."
 msgstr "Aktiverar Kalender och Gantt Vyer."
 
-#: email/doctype/email_account/email_account.js:256
+#: email/doctype/email_account/email_account.js:260
 msgid "Enabling auto reply on an incoming email account will send automated replies to all the synchronized emails. Do you wish to continue?"
 msgstr "Om automatiskt svar aktiveras på inkommande E-post Konto, skickas automatiska svar på alla synkroniserade E-post meddelanden. Vill du fortsätta?"
 
@@ -9186,9 +9414,9 @@ msgstr "Fel i Klient Skript."
 msgid "Error in Header/Footer Script"
 msgstr "Fel i Sidhuvud/Sidfot Skript"
 
-#: email/doctype/notification/notification.py:443
-#: email/doctype/notification/notification.py:559
-#: email/doctype/notification/notification.py:565
+#: email/doctype/notification/notification.py:504
+#: email/doctype/notification/notification.py:620
+#: email/doctype/notification/notification.py:626
 msgid "Error in Notification"
 msgstr "Fel i Avisering"
 
@@ -9196,11 +9424,11 @@ msgstr "Fel i Avisering"
 msgid "Error in print format on line {0}: {1}"
 msgstr "Fel i Utskrift Format på rad {0}: {1}"
 
-#: email/doctype/email_account/email_account.py:664
+#: email/doctype/email_account/email_account.py:665
 msgid "Error while connecting to email account {0}"
 msgstr "Fel vid anslutning till E-post Konto {0}"
 
-#: email/doctype/notification/notification.py:556
+#: email/doctype/notification/notification.py:617
 msgid "Error while evaluating Notification {0}. Please fix your template."
 msgstr "Fel vid test av Avisering {0}. Fixa Mall."
 
@@ -9636,6 +9864,7 @@ msgstr "Misslyckades att ta bort {0} dokument: {1}"
 msgid "Failed to enable scheduler: {0}"
 msgstr "Misslyckades att aktivera schemaläggare: {0}"
 
+#: email/doctype/notification/notification.py:103
 #: integrations/doctype/webhook/webhook.py:139
 msgid "Failed to evaluate conditions: {}"
 msgstr "Misslyckades att utvärdera villkor: {}"
@@ -9667,6 +9896,14 @@ msgstr "Misslyckadesc att importera virtuell doctype {}, finns kontroll fil?"
 #: utils/image.py:73
 msgid "Failed to optimize image: {0}"
 msgstr "Misslyckades att optimera bild: {0}"
+
+#: email/doctype/notification/notification.py:120
+msgid "Failed to render message: {}"
+msgstr "Misslyckades med att rendera meddelande: {}"
+
+#: email/doctype/notification/notification.py:138
+msgid "Failed to render subject: {}"
+msgstr "Misslyckades med att rendera ämne: {}"
 
 #: email/doctype/email_queue/email_queue.py:294
 msgid "Failed to send email with subject:"
@@ -9732,6 +9969,8 @@ msgstr "Återkoppling Begäran"
 #: core/doctype/docfield/docfield.json
 #: custom/doctype/custom_field/custom_field.json
 #: custom/doctype/customize_form_field/customize_form_field.json
+#: public/js/form_builder/components/controls/FetchFromControl.vue:29
+#: public/js/form_builder/components/controls/FetchFromControl.vue:34
 msgid "Fetch From"
 msgstr "Hämta Från"
 
@@ -9770,7 +10009,7 @@ msgstr "Hämtar standard Global Sökning dokument."
 #: desk/doctype/number_card/number_card.json
 #: desk/doctype/onboarding_step/onboarding_step.json
 #: desk/page/leaderboard/leaderboard.js:131
-#: public/js/frappe/list/bulk_operations.js:297
+#: public/js/frappe/list/bulk_operations.js:327
 #: public/js/frappe/list/list_view_permission_restrictions.html:3
 #: public/js/frappe/views/reports/query_report.js:236
 #: public/js/frappe/views/reports/query_report.js:1723
@@ -9807,6 +10046,15 @@ msgstr "Fält Saknas"
 msgid "Field Name"
 msgstr "Fält Namn"
 
+#: public/js/print_format_builder/PrintFormatSection.vue:141
+msgid "Field Orientation (Left-Right)"
+msgstr "Fält Orientering (Vänster-Höger)"
+
+#: public/js/print_format_builder/PrintFormatSection.vue:148
+msgid "Field Orientation (Top-Down)"
+msgstr "Fältorientering (Upp-Ner)"
+
+#: public/js/print_format_builder/PrintFormatControls.vue:233
 #: public/js/print_format_builder/utils.js:69
 msgid "Field Template"
 msgstr "Fält Mall"
@@ -9852,7 +10100,7 @@ msgstr "Fält {0} hänvisar till icke-existerande doctype {1}."
 msgid "Field {0} not found."
 msgstr "Fält {0} hittades inte."
 
-#: email/doctype/notification/notification.py:348
+#: email/doctype/notification/notification.py:409
 msgid "Field {0} on document {1} is neither a Mobile number field nor a Customer or User link"
 msgstr "Fält {0} på dokument {1} är varken mobil nummer fält, Kund eller Användarlänk"
 
@@ -9930,6 +10178,7 @@ msgstr "Fält Namn {0} är begränsad"
 #: desk/doctype/list_view_settings/list_view_settings.json
 #: public/js/frappe/list/list_settings.js:132
 #: public/js/frappe/views/kanban/kanban_settings.js:111
+#: public/js/print_format_builder/PrintFormatControls.vue:83
 #: website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 #: website/doctype/web_template/web_template.json
 msgid "Fields"
@@ -9987,6 +10236,10 @@ msgstr "Fil"
 msgctxt "File"
 msgid "File"
 msgstr "Fil"
+
+#: public/js/frappe/file_uploader/FileUploader.vue:459
+msgid "File \"{0}\" was skipped because of invalid file type"
+msgstr "Fil \"{0}\" hoppades över på grund av ogiltig filtyp"
 
 #: core/doctype/file/utils.py:128
 msgid "File '{0}' not found"
@@ -10085,7 +10338,7 @@ msgstr "Filer"
 #: desk/doctype/number_card/number_card.js:205
 #: desk/doctype/number_card/number_card.js:336
 #: email/doctype/auto_email_report/auto_email_report.js:90
-#: public/js/frappe/list/base_list.js:890
+#: public/js/frappe/list/base_list.js:887
 #: public/js/frappe/ui/filters/filter_list.js:134
 #: website/doctype/web_form/web_form.js:197
 msgid "Filter"
@@ -10265,6 +10518,10 @@ msgstr "Första Data Kolumn måste vara tom."
 msgid "First set the name and save the record."
 msgstr "Ange Namn och spara Post."
 
+#: public/js/workflow_builder/WorkflowBuilder.vue:304
+msgid "Fit"
+msgstr "Anpassa"
+
 #. Label of the flag (Data) field in DocType 'Language'
 #: core/doctype/language/language.json
 msgid "Flag"
@@ -10382,6 +10639,7 @@ msgstr "Typsnitt Egenskaper"
 #. Label of the font_size (Data) field in DocType 'Website Theme'
 #: printing/doctype/print_format/print_format.json
 #: printing/doctype/print_settings/print_settings.json
+#: public/js/print_format_builder/PrintFormatControls.vue:45
 #: website/doctype/website_theme/website_theme.json
 msgid "Font Size"
 msgstr "Typsnitt Storlek"
@@ -10718,7 +10976,7 @@ msgstr "Frappe Light"
 msgid "Frappe Mail"
 msgstr "Frappe Mail"
 
-#: email/doctype/email_account/email_account.py:538
+#: email/doctype/email_account/email_account.py:539
 msgid "Frappe Mail OAuth Error"
 msgstr "Frappe Mail OAuth fel"
 
@@ -10736,6 +10994,11 @@ msgstr "Frappe Support"
 #: website/doctype/web_page/web_page.js:92
 msgid "Frappe page builder using components"
 msgstr "Frappe Redigerare som använder komponenter"
+
+#: public/js/frappe/file_uploader/ImageCropper.vue:112
+msgctxt "Image Cropper"
+msgid "Free"
+msgstr "Gratis"
 
 #. Label of the frequency (Select) field in DocType 'Auto Repeat'
 #. Label of the frequency (Select) field in DocType 'Scheduled Job Type'
@@ -10913,12 +11176,12 @@ msgstr "Skapa Nycklar"
 msgid "Generate New Report"
 msgstr "Skapa Ny Rapport"
 
-#: public/js/frappe/ui/toolbar/awesome_bar.js:368
+#: public/js/frappe/ui/toolbar/awesome_bar.js:391
 msgid "Generate Random Password"
 msgstr "Skapa Slumpmässig Lösenord"
 
 #: public/js/frappe/ui/toolbar/toolbar.js:172
-#: public/js/frappe/utils/utils.js:1772
+#: public/js/frappe/utils/utils.js:1773
 msgid "Generate Tracking URL"
 msgstr "Skapa Spårning URL"
 
@@ -10931,7 +11194,7 @@ msgstr "Skapa Spårning URL"
 msgid "Geolocation"
 msgstr "Geolocation"
 
-#: email/doctype/notification/notification.js:193
+#: email/doctype/notification/notification.js:205
 msgid "Get Alerts for Today"
 msgstr "Hämta Dagens Alerts"
 
@@ -11201,6 +11464,7 @@ msgstr "Google Kontakter ID"
 #. Label of the google_drive_section (Section Break) field in DocType 'Google
 #. Drive'
 #: integrations/doctype/google_drive/google_drive.json
+#: public/js/frappe/file_uploader/FileUploader.vue:164
 msgid "Google Drive"
 msgstr "Google Drive"
 
@@ -11241,6 +11505,7 @@ msgstr "Google Drive Väljare Aktiverad"
 #. Label of the font (Data) field in DocType 'Print Format'
 #. Label of the google_font (Data) field in DocType 'Website Theme'
 #: printing/doctype/print_format/print_format.json
+#: public/js/print_format_builder/PrintFormatControls.vue:28
 #: website/doctype/website_theme/website_theme.json
 msgid "Google Font"
 msgstr "Google Typsnitt"
@@ -11303,6 +11568,10 @@ msgstr "grå"
 msgid "Green"
 msgstr "Grön"
 
+#: public/js/form_builder/components/controls/TableControl.vue:53
+msgid "Grid Empty State"
+msgstr "Tomt Rutnät Tillstånd"
+
 #: public/js/frappe/ui/keyboard.js:126
 msgid "Grid Shortcuts"
 msgstr "Rutnät Genvägar"
@@ -11332,7 +11601,7 @@ msgstr "Gruppera Efter Baserat På"
 msgid "Group By Type"
 msgstr "Gruppera Efter Typ"
 
-#: desk/doctype/dashboard_chart/dashboard_chart.py:397
+#: desk/doctype/dashboard_chart/dashboard_chart.py:407
 msgid "Group By field is required to create a dashboard chart"
 msgstr "Gruppera Efter Fält erfodras för att skapa Översikt Panel"
 
@@ -11394,6 +11663,7 @@ msgstr "HH: mm: ss"
 #: printing/doctype/letter_head/letter_head.json
 #: printing/doctype/print_format/print_format.json
 #: printing/doctype/print_format/print_format.py:91
+#: public/js/print_format_builder/Field.vue:86
 #: website/doctype/blog_post/blog_post.json
 #: website/doctype/web_form_field/web_form_field.json
 #: website/doctype/web_page/web_page.js:92
@@ -11618,7 +11888,7 @@ msgstr "Helvetica"
 msgid "Helvetica Neue"
 msgstr "Helvetica Neue"
 
-#: public/js/frappe/utils/utils.js:1769
+#: public/js/frappe/utils/utils.js:1770
 msgid "Here's your tracking URL"
 msgstr "Här är din spårning URL"
 
@@ -11656,9 +11926,10 @@ msgstr "Dolda fält"
 
 #. Option for the 'Page Number' (Select) field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
-#: public/js/frappe/views/workspace/workspace.js:828
+#: public/js/frappe/views/workspace/workspace.js:857
 #: public/js/frappe/widgets/base_widget.js:46
 #: public/js/frappe/widgets/base_widget.js:178
+#: public/js/print_format_builder/PrintFormatControls.vue:243
 #: templates/includes/login/login.js:82
 msgid "Hide"
 msgstr "Dölj"
@@ -11764,7 +12035,7 @@ msgstr "Dölj Taggar"
 msgid "Hide Weekends"
 msgstr "Dölj Helger"
 
-#: public/js/frappe/views/workspace/workspace.js:829
+#: public/js/frappe/views/workspace/workspace.js:858
 msgid "Hide Workspace"
 msgstr "Dölj Arbetsyta"
 
@@ -11809,6 +12080,7 @@ msgid "Hint: Include symbols, numbers and capital letters in the password"
 msgstr "Tips: Inkludera symboler, siffror och stora bokstäver i lösenord"
 
 #. Label of the home_tab (Tab Break) field in DocType 'Website Settings'
+#: public/js/frappe/file_uploader/FileBrowser.vue:38
 #: public/js/frappe/views/file/file_view.js:67
 #: public/js/frappe/views/file/file_view.js:88
 #: public/js/frappe/views/pageview.js:153 templates/doc.html:19
@@ -11891,6 +12163,10 @@ msgctxt "Label of name column in report"
 msgid "ID"
 msgstr "ID"
 
+#: public/js/print_format_builder/PrintFormatControls.vue:199
+msgid "ID (name)"
+msgstr "ID (namn)"
+
 #. Description of the 'Field Name' (Data) field in DocType 'Property Setter'
 #: custom/doctype/property_setter/property_setter.json
 msgid "ID (name) of the entity whose property is to be set"
@@ -11941,9 +12217,9 @@ msgstr "IP Adress"
 #: desk/doctype/workspace_link/workspace_link.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: integrations/doctype/social_login_key/social_login_key.json
-#: public/js/frappe/views/workspace/workspace.js:646
-#: public/js/frappe/views/workspace/workspace.js:974
-#: public/js/frappe/views/workspace/workspace.js:1219
+#: public/js/frappe/views/workspace/workspace.js:675
+#: public/js/frappe/views/workspace/workspace.js:1003
+#: public/js/frappe/views/workspace/workspace.js:1248
 #: workflow/doctype/workflow_state/workflow_state.json
 msgid "Icon"
 msgstr "Ikon"
@@ -12680,9 +12956,9 @@ msgstr "Indikator"
 msgid "Indicator Color"
 msgstr "Indikator Färg"
 
-#: public/js/frappe/views/workspace/workspace.js:653
-#: public/js/frappe/views/workspace/workspace.js:981
-#: public/js/frappe/views/workspace/workspace.js:1225
+#: public/js/frappe/views/workspace/workspace.js:682
+#: public/js/frappe/views/workspace/workspace.js:1010
+#: public/js/frappe/views/workspace/workspace.js:1254
 msgid "Indicator color"
 msgstr "Indikator Färg"
 
@@ -13014,7 +13290,7 @@ msgstr "Ogiltig Utdata Format"
 msgid "Invalid Override"
 msgstr "Ogiltig Åsidosättning"
 
-#: integrations/doctype/connected_app/connected_app.py:167
+#: integrations/doctype/connected_app/connected_app.py:191
 msgid "Invalid Parameters."
 msgstr "Ogiltiga Parametrar"
 
@@ -13044,8 +13320,10 @@ msgstr "Ogiltigt Tabell Fältnamn"
 msgid "Invalid Transition"
 msgstr "Ogiltig Övergång"
 
-#: core/doctype/file/file.py:218 public/js/frappe/widgets/widget_dialog.js:604
-#: utils/csvutils.py:223 utils/csvutils.py:244
+#: core/doctype/file/file.py:218
+#: public/js/frappe/file_uploader/FileUploader.vue:511
+#: public/js/frappe/widgets/widget_dialog.js:604 utils/csvutils.py:223
+#: utils/csvutils.py:244
 msgid "Invalid URL"
 msgstr "Ogiltig URL"
 
@@ -13094,7 +13372,7 @@ msgid "Invalid filter: {0}"
 msgstr "Ogiltig Filter: {0}"
 
 #: desk/doctype/dashboard/dashboard.py:67
-#: desk/doctype/dashboard_chart/dashboard_chart.py:413
+#: desk/doctype/dashboard_chart/dashboard_chart.py:423
 msgid "Invalid json added in the custom options: {0}"
 msgstr "Ogiltig JSON har lagts till i anpassade alternativ: {0}"
 
@@ -13118,7 +13396,7 @@ msgstr "Ogiltigt omdirigering regex på rad #{}: {}"
 msgid "Invalid request arguments"
 msgstr "Ogiltiga begäran argument"
 
-#: integrations/doctype/connected_app/connected_app.py:173
+#: integrations/doctype/connected_app/connected_app.py:197
 msgid "Invalid state."
 msgstr "Ogiltigt tillstånd."
 
@@ -13795,12 +14073,14 @@ msgstr "LDAP Inställningar felaktiga. validering svar var: {0}"
 #: desk/doctype/workspace_quick_list/workspace_quick_list.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: printing/page/print_format_builder/print_format_builder.js:474
+#: public/js/form_builder/components/Field.vue:208
 #: public/js/frappe/widgets/widget_dialog.js:187
 #: public/js/frappe/widgets/widget_dialog.js:255
 #: public/js/frappe/widgets/widget_dialog.js:304
 #: public/js/frappe/widgets/widget_dialog.js:421
 #: public/js/frappe/widgets/widget_dialog.js:645
 #: public/js/frappe/widgets/widget_dialog.js:678
+#: public/js/print_format_builder/Field.vue:18
 #: templates/form_grid/fields.html:37
 #: website/doctype/top_bar_item/top_bar_item.json
 #: website/doctype/web_template_field/web_template_field.json
@@ -14029,7 +14309,7 @@ msgid "Leave blank to repeat always"
 msgstr "Lämna tom för ingen slut datum"
 
 #: core/doctype/communication/mixins.py:207
-#: email/doctype/email_account/email_account.py:714
+#: email/doctype/email_account/email_account.py:715
 msgid "Leave this conversation"
 msgstr "Lämna denna konversation"
 
@@ -14048,6 +14328,7 @@ msgid "Left"
 msgstr "Vänster"
 
 #: printing/page/print_format_builder/print_format_builder.js:483
+#: public/js/print_format_builder/PrintFormatControls.vue:155
 msgctxt "alignment"
 msgid "Left"
 msgstr "Vänster"
@@ -14132,7 +14413,8 @@ msgstr "Letter"
 #: printing/doctype/letter_head/letter_head.json
 #: printing/page/print/print.js:127 public/js/frappe/form/print_utils.js:18
 #: public/js/frappe/form/templates/print_layout.html:16
-#: public/js/frappe/list/bulk_operations.js:51
+#: public/js/frappe/list/bulk_operations.js:52
+#: public/js/print_format_builder/LetterHeadEditor.vue:144
 msgid "Letter Head"
 msgstr "Sidhuvud"
 
@@ -14149,6 +14431,7 @@ msgstr "Sidhuvud Bild"
 
 #. Label of the letter_head_name (Data) field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
+#: public/js/print_format_builder/LetterHeadEditor.vue:198
 msgid "Letter Head Name"
 msgstr "Sidhuvud Namn"
 
@@ -14186,6 +14469,10 @@ msgstr "Nivå 0 är för behörigheter på dokument nivå, högre nivåer för b
 #: social/doctype/review_level/review_level.json
 msgid "Level Name"
 msgstr "Nivå Namn"
+
+#: public/js/frappe/file_uploader/FileUploader.vue:94
+msgid "Library"
+msgstr "Bibliotek"
 
 #. Label of the license (Markdown Editor) field in DocType 'Package'
 #: core/doctype/package/package.json www/attribution.html:36
@@ -14289,6 +14576,7 @@ msgstr "Linje"
 #: desk/doctype/desktop_icon/desktop_icon.json
 #: desk/doctype/notification_log/notification_log.json
 #: desk/doctype/workspace_link/workspace_link.json
+#: public/js/frappe/file_uploader/FileUploader.vue:128
 #: website/doctype/web_form_field/web_form_field.json
 #: website/doctype/web_template_field/web_template_field.json
 msgid "Link"
@@ -14530,10 +14818,14 @@ msgctxt "Form timeline"
 msgid "Load More Communications"
 msgstr "Ladda Mer Korenspondens"
 
+#: public/js/frappe/file_uploader/TreeNode.vue:45
+msgid "Load more"
+msgstr "Läs in mer"
+
 #: core/page/permission_manager/permission_manager.js:165
 #: public/js/frappe/form/controls/multicheck.js:13
 #: public/js/frappe/form/linked_with.js:13
-#: public/js/frappe/list/base_list.js:498
+#: public/js/frappe/list/base_list.js:495
 #: public/js/frappe/list/list_view.js:332 public/js/frappe/ui/listing.html:16
 #: public/js/frappe/views/reports/query_report.js:1017
 msgid "Loading"
@@ -14555,6 +14847,7 @@ msgstr "Laddar Användare Profil"
 msgid "Loading versions..."
 msgstr "Laddar versioner..."
 
+#: public/js/frappe/file_uploader/TreeNode.vue:45
 #: public/js/frappe/form/sidebar/share.js:51
 #: public/js/frappe/list/list_sidebar.js:218
 #: public/js/frappe/list/list_sidebar_group_by.js:125
@@ -14645,7 +14938,7 @@ msgstr "Logga in Före"
 msgid "Login Failed please try again"
 msgstr "Inloggning Misslyckades, försök igen"
 
-#: email/doctype/email_account/email_account.py:140
+#: email/doctype/email_account/email_account.py:141
 msgid "Login Id is required"
 msgstr "Inloggning Erfodras"
 
@@ -15132,7 +15425,7 @@ msgstr "Innebörd av Godkänn, Annullera, Ändra"
 #. Option for the 'Priority' (Select) field in DocType 'ToDo'
 #. Label of the medium (Data) field in DocType 'Web Page View'
 #: desk/doctype/todo/todo.json public/js/frappe/form/sidebar/assign_to.js:220
-#: public/js/frappe/utils/utils.js:1731
+#: public/js/frappe/utils/utils.js:1732
 #: website/doctype/web_page_view/web_page_view.json
 #: website/report/website_analytics/website_analytics.js:40
 msgid "Medium"
@@ -15145,6 +15438,7 @@ msgid "Meeting"
 msgstr "Möte"
 
 #. Label of the meets_condition (Data) field in DocType 'Webhook'
+#: email/doctype/notification/notification.py:79
 #: integrations/doctype/webhook/webhook.json
 msgid "Meets Condition?"
 msgstr "Uppfyller Villkor?"
@@ -15208,6 +15502,7 @@ msgstr "Sammanslafning är endast möjlig mellan grupp till grupp eller underord
 #: email/doctype/email_queue/email_queue.json
 #: email/doctype/newsletter/newsletter.json
 #: email/doctype/notification/notification.json
+#: email/doctype/notification/notification.py:81
 #: public/js/frappe/ui/messages.js:175
 #: public/js/frappe/views/communication.js:114
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
@@ -15256,7 +15551,7 @@ msgstr "Meddelande Typ"
 msgid "Message clipped"
 msgstr "Meddelande Urlippt"
 
-#: email/doctype/email_account/email_account.py:333
+#: email/doctype/email_account/email_account.py:334
 msgid "Message from server: {0}"
 msgstr "Meddelande från Server: {0}"
 
@@ -15699,6 +15994,10 @@ msgstr "Flytta till"
 msgid "Move To Trash"
 msgstr "Flytta till Papperskorg"
 
+#: public/js/form_builder/components/Section.vue:295
+msgid "Move current and all subsequent sections to a new tab"
+msgstr "Flytta aktuellt och alla efterföljande sektioner till ny flik"
+
 #: public/js/frappe/form/form.js:176
 msgid "Move cursor to above row"
 msgstr "Flytta Markören till Rad Ovan"
@@ -15714,6 +16013,14 @@ msgstr "Flytta Markören till Nästa Kolumn"
 #: public/js/frappe/form/form.js:188
 msgid "Move cursor to previous column"
 msgstr "Flytta Markören till Föregående Kolumn"
+
+#: public/js/form_builder/components/Section.vue:294
+msgid "Move sections to new tab"
+msgstr "Flytta sektioner till ny flik"
+
+#: public/js/form_builder/components/Field.vue:237
+msgid "Move the current field and the following fields to a new column"
+msgstr "Flytta aktuell fält och följande fält till ny kolumn"
 
 #: public/js/frappe/form/grid_row.js:165
 msgid "Move to Row Number"
@@ -15777,6 +16084,10 @@ msgstr "Dämpa Ljud"
 #: www/me.html:4 www/me.html:8 www/update_password.py:10
 msgid "My Account"
 msgstr "Mitt Konto"
+
+#: public/js/frappe/file_uploader/FileUploader.vue:57
+msgid "My Device"
+msgstr "Min Enhet"
 
 #. Label of a standard navbar item
 #. Type: Route
@@ -15956,11 +16267,11 @@ msgstr "Navigera till huvud innehåll"
 msgid "Navigation Settings"
 msgstr "Navigation Inställningar"
 
-#: desk/doctype/workspace/workspace.py:301
+#: desk/doctype/workspace/workspace.py:305
 msgid "Need Workspace Manager role to edit private workspace of other users"
 msgstr "Arbetsyta Ansvarig roll erfodras för att redigera andra användares privat arbetsyta"
 
-#: desk/doctype/workspace/workspace.py:345
+#: desk/doctype/workspace/workspace.py:349
 msgid "Need Workspace Manager role to hide/unhide public workspaces"
 msgstr "Arbetsyta Ansvarig roll erfodras  för att dölja/visa publika arbetsytor"
 
@@ -16120,7 +16431,7 @@ msgstr "Ny Värde"
 msgid "New Workflow Name"
 msgstr "Ny Arbetsflöde Namn"
 
-#: public/js/frappe/views/workspace/workspace.js:1186
+#: public/js/frappe/views/workspace/workspace.js:1215
 msgid "New Workspace"
 msgstr "Ny Arbetsyta"
 
@@ -16309,6 +16620,7 @@ msgstr "Nästa på Klick"
 #. Settings'
 #. Option for the 'Standard' (Select) field in DocType 'Print Format'
 #: core/doctype/page/page.json core/doctype/report/report.json
+#: email/doctype/notification/notification.py:100
 #: integrations/doctype/ldap_settings/ldap_settings.json
 #: integrations/doctype/webhook/webhook.py:140
 #: printing/doctype/print_format/print_format.json
@@ -16345,6 +16657,7 @@ msgstr "Ingen Kopia"
 
 #: core/doctype/data_export/exporter.py:162
 #: email/doctype/auto_email_report/auto_email_report.py:288
+#: public/js/form_builder/components/controls/TableControl.vue:64
 #: public/js/frappe/data_import/import_preview.js:142
 #: public/js/frappe/form/grid.js:63
 #: public/js/frappe/form/multi_select_dialog.js:225
@@ -16399,13 +16712,20 @@ msgstr "Inga Poster Hittade"
 msgid "No LDAP User found for email: {0}"
 msgstr "Ingen LDAP Användare hittades för E-post: {0}"
 
+#: public/js/form_builder/components/EditableInput.vue:11
+#: public/js/form_builder/components/EditableInput.vue:14
+#: public/js/form_builder/components/Field.vue:209
+#: public/js/form_builder/components/controls/FetchFromControl.vue:55
+#: public/js/print_format_builder/Field.vue:24
+#: public/js/workflow_builder/components/ActionNode.vue:53
+#: public/js/workflow_builder/components/StateNode.vue:47
 #: public/js/workflow_builder/store.js:51
 msgid "No Label"
 msgstr "Ingen Etikett"
 
 #: printing/page/print/print.js:700 printing/page/print/print.js:782
-#: public/js/frappe/list/bulk_operations.js:90
-#: public/js/frappe/list/bulk_operations.js:140 utils/weasyprint.py:52
+#: public/js/frappe/list/bulk_operations.js:98
+#: public/js/frappe/list/bulk_operations.js:170 utils/weasyprint.py:52
 msgid "No Letterhead"
 msgstr "Ingen Sidhuvud"
 
@@ -16485,7 +16805,7 @@ msgstr "Inga aktiviteter att visa"
 msgid "No address added yet."
 msgstr "Ingen adress upplagd än"
 
-#: email/doctype/notification/notification.js:203
+#: email/doctype/notification/notification.js:215
 msgid "No alerts for today"
 msgstr "Inga varningar för idag"
 
@@ -16505,7 +16825,7 @@ msgstr "Inga Ändringar"
 msgid "No changes made because old and new name are the same."
 msgstr "Inga ändringar har gjorts eftersom gamla och nya namn är samma."
 
-#: public/js/frappe/views/workspace/workspace.js:1491
+#: public/js/frappe/views/workspace/workspace.js:1520
 msgid "No changes made on the page"
 msgstr "Inga ändringar har gjorts på sidan"
 
@@ -16644,6 +16964,10 @@ msgstr "Inga taggade poster"
 #: public/js/frappe/data_import/data_exporter.js:225
 msgid "No records will be exported"
 msgstr "Inga poster kommer att exporteras"
+
+#: email/doctype/notification/notification.py:133
+msgid "No subject"
+msgstr "Inget Ämne"
 
 #: www/printview.py:442
 msgid "No template found at path: {0}"
@@ -16826,7 +17150,7 @@ msgstr "Inte Aktiv"
 msgid "Not allowed for {0}: {1}"
 msgstr "Ej tillåtet för {0}: {1}"
 
-#: email/doctype/notification/notification.py:440
+#: email/doctype/notification/notification.py:501
 msgid "Not allowed to attach {0} document, please enable Allow Print For {0} in Print Settings"
 msgstr "Ej Tillåtet att bifoga {0} dokument, aktivera \"Tillåt Utskrift\" för {0} i Utskrift Inställningar"
 
@@ -17008,15 +17332,15 @@ msgstr "Avisering Prenumererad Dokument"
 msgid "Notification sent to"
 msgstr "Avisering skickad till"
 
-#: email/doctype/notification/notification.py:345
+#: email/doctype/notification/notification.py:406
 msgid "Notification: customer {0} has no Mobile number set"
 msgstr "Meddelande: kund {0} har inget mobil nummer angivet"
 
-#: email/doctype/notification/notification.py:331
+#: email/doctype/notification/notification.py:392
 msgid "Notification: document {0} has no {1} number set (field: {2})"
 msgstr "Meddelande: dokument {0} har inget {1} nummer angivet (fält: {2})"
 
-#: email/doctype/notification/notification.py:340
+#: email/doctype/notification/notification.py:401
 msgid "Notification: user {0} has no Mobile number set"
 msgstr "Meddelande: användare {0} har inget mobil nummer angivet"
 
@@ -17224,7 +17548,7 @@ msgstr "OAuth Inställningar"
 msgid "OAuth Scope"
 msgstr "OAuth omfattning"
 
-#: email/doctype/email_account/email_account.js:211
+#: email/doctype/email_account/email_account.js:215
 msgid "OAuth has been enabled but not authorised. Please use \"Authorise API Access\" button to do the same."
 msgstr "OAuth är aktiverad men inte auktoriserad. Använd \"Auktorisera API Tillgång\" knapp för att göra detta."
 
@@ -17236,6 +17560,10 @@ msgstr "OK"
 #: core/doctype/recorder/recorder.json
 msgid "OPTIONS"
 msgstr "ALTERNATIV"
+
+#: public/js/form_builder/components/Tabs.vue:190
+msgid "OR"
+msgstr "ELLER"
 
 #. Option for the 'Two Factor Authentication method' (Select) field in DocType
 #. 'System Settings'
@@ -17416,7 +17744,7 @@ msgstr "En Gång Lösenord (OTP) Registrering Kod från {}"
 msgid "One of"
 msgstr "En av"
 
-#: public/js/frappe/views/workspace/workspace.js:1326
+#: public/js/frappe/views/workspace/workspace.js:1355
 msgid "One of the child page with name {0} already exist in {1} Section. Please update the name of the child page first before moving"
 msgstr "En av de underordnade sidorna med namnet {0} finns redan i sektion {1}. Uppdatera namnet på den underordnade sidan först innan du flyttar"
 
@@ -17458,7 +17786,7 @@ msgstr "Skicka endast poster som uppdaterades under senaste X timmarna"
 msgid "Only Workspace Manager can edit public workspaces"
 msgstr "Endast Workspace Manager kan redigera offentliga arbetsytor"
 
-#: public/js/frappe/views/workspace/workspace.js:550
+#: public/js/frappe/views/workspace/workspace.js:579
 msgid "Only Workspace Manager can sort or edit this page"
 msgstr "Endast Workspace Manager kan sortera eller redigera den här sidan"
 
@@ -17588,6 +17916,10 @@ msgstr "Öppna dialogruta med erfodrade fält för att snabbt skapa ny post"
 msgid "Open a module or tool"
 msgstr "Öppna modul eller verktyg"
 
+#: public/js/print_format_builder/Preview.vue:17
+msgid "Open in a new tab"
+msgstr "Öppna i ny flik"
+
 #: public/js/frappe/list/list_view.js:1251
 msgctxt "Description of a list view shortcut"
 msgid "Open list item"
@@ -17640,6 +17972,7 @@ msgstr "Operatören måste vara en av {0}"
 
 #: core/doctype/file/file.js:24
 #: core/report/database_storage_usage_by_tables/database_storage_usage_by_tables.js:8
+#: public/js/frappe/file_uploader/FilePreview.vue:27
 msgid "Optimize"
 msgstr "Optimera"
 
@@ -17954,6 +18287,7 @@ msgid "Page"
 msgstr "Sida"
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
+#: public/js/print_format_builder/PrintFormatSection.vue:63
 #: website/doctype/web_form_field/web_form_field.json
 msgid "Page Break"
 msgstr "Sid Brytning"
@@ -17974,9 +18308,13 @@ msgstr "Sida Mallar"
 msgid "Page HTML"
 msgstr "Sida HTML"
 
-#: public/js/frappe/list/bulk_operations.js:72
+#: public/js/frappe/list/bulk_operations.js:73
 msgid "Page Height (in mm)"
 msgstr "Sida Höjd (i mm)"
+
+#: public/js/print_format_builder/PrintFormatControls.vue:5
+msgid "Page Margins"
+msgstr "Sid Marginaler"
 
 #. Label of the page_name (Data) field in DocType 'Page'
 #: core/doctype/page/page.json
@@ -17985,6 +18323,7 @@ msgstr "Sida Namn"
 
 #. Label of the page_number (Select) field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
+#: public/js/print_format_builder/PrintFormatControls.vue:63
 msgid "Page Number"
 msgstr "Sida Nummer"
 
@@ -17993,7 +18332,7 @@ msgstr "Sida Nummer"
 msgid "Page Route"
 msgstr "Sida Sökväg"
 
-#: public/js/frappe/views/workspace/workspace.js:1513
+#: public/js/frappe/views/workspace/workspace.js:1542
 msgid "Page Saved Successfully"
 msgstr "Sida Sparad"
 
@@ -18007,7 +18346,7 @@ msgstr "Utskrift Inställningar"
 msgid "Page Shortcuts"
 msgstr "Sida Genvägar"
 
-#: public/js/frappe/list/bulk_operations.js:65
+#: public/js/frappe/list/bulk_operations.js:66
 msgid "Page Size"
 msgstr "Sida Storlek"
 
@@ -18016,7 +18355,7 @@ msgstr "Sida Storlek"
 msgid "Page Title"
 msgstr "Sida Titel"
 
-#: public/js/frappe/list/bulk_operations.js:79
+#: public/js/frappe/list/bulk_operations.js:80
 msgid "Page Width (in mm)"
 msgstr "Sida Bredd (i mm)"
 
@@ -18025,7 +18364,7 @@ msgid "Page has expired!"
 msgstr "Sida är förfallen!"
 
 #: printing/doctype/print_settings/print_settings.py:70
-#: public/js/frappe/list/bulk_operations.js:98
+#: public/js/frappe/list/bulk_operations.js:106
 msgid "Page height and width cannot be zero"
 msgstr "Sida höjd och bredd får inte vara noll"
 
@@ -18038,7 +18377,7 @@ msgstr "Sida hittades inte"
 msgid "Page to show on the website\n"
 msgstr "Sida som ska visas på webbplats\n"
 
-#: public/js/frappe/views/workspace/workspace.js:1313
+#: public/js/frappe/views/workspace/workspace.js:1342
 msgid "Page with title {0} already exist."
 msgstr "Sida med titel {0} finns redan."
 
@@ -18055,9 +18394,9 @@ msgid "Parameter"
 msgstr "Parameter"
 
 #: public/js/frappe/model/model.js:142
-#: public/js/frappe/views/workspace/workspace.js:620
-#: public/js/frappe/views/workspace/workspace.js:948
-#: public/js/frappe/views/workspace/workspace.js:1195
+#: public/js/frappe/views/workspace/workspace.js:649
+#: public/js/frappe/views/workspace/workspace.js:977
+#: public/js/frappe/views/workspace/workspace.js:1224
 msgid "Parent"
 msgstr "Överordnad"
 
@@ -18115,7 +18454,7 @@ msgstr "Överordnad Sida"
 msgid "Parent Table"
 msgstr "Överordnad Tabell"
 
-#: desk/doctype/dashboard_chart/dashboard_chart.py:393
+#: desk/doctype/dashboard_chart/dashboard_chart.py:403
 msgid "Parent document type is required to create a dashboard chart"
 msgstr "Överordnad Dokument Typ erfodras för att skapa ett Översikt Panel Diagram"
 
@@ -18207,7 +18546,7 @@ msgstr "Lösenord ändrad."
 msgid "Password for Base DN"
 msgstr "Lösenord för Base DN"
 
-#: email/doctype/email_account/email_account.py:182
+#: email/doctype/email_account/email_account.py:183
 msgid "Password is required or select Awaiting Password"
 msgstr "Lösenord erfodras eller välj Väntar på Lösenord"
 
@@ -18564,7 +18903,7 @@ msgstr "Vanlig Text"
 msgid "Plant"
 msgstr "Anläggning"
 
-#: email/doctype/email_account/email_account.py:535
+#: email/doctype/email_account/email_account.py:536
 msgid "Please Authorize OAuth for Email Account {0}"
 msgstr "Auktorisera OAuth för E-post Konto {0}"
 
@@ -18691,7 +19030,8 @@ msgstr "Aktivera minst en social inloggning nyckel eller LDAP eller Logga in med
 #: desk/doctype/notification_log/notification_log.js:45
 #: email/doctype/auto_email_report/auto_email_report.js:17
 #: printing/page/print/print.js:635 printing/page/print/print.js:665
-#: public/js/frappe/utils/utils.js:1426
+#: public/js/frappe/list/bulk_operations.js:161
+#: public/js/frappe/utils/utils.js:1427
 msgid "Please enable pop-ups"
 msgstr "Aktivera PopUp"
 
@@ -18832,6 +19172,10 @@ msgstr "Välj X och Y fält"
 msgid "Please select a country code for field {1}."
 msgstr "Välj landskod för fält {1}."
 
+#: public/js/frappe/file_uploader/FileUploader.vue:487
+msgid "Please select a file first."
+msgstr "Välj fil först."
+
 #: utils/file_manager.py:50
 msgid "Please select a file or url"
 msgstr "Välj fil eller URL"
@@ -18910,7 +19254,7 @@ msgstr "Konfigurera SMS före du anger den som Autentisering Sätt via SMS Inst�
 msgid "Please setup a message first"
 msgstr "Försäljning Order Meddelande"
 
-#: email/doctype/email_account/email_account.py:423
+#: email/doctype/email_account/email_account.py:424
 msgid "Please setup default Email Account from Settings > Email Account"
 msgstr "Ange Standard E-Post Konto från Inställningar > E-post Konto"
 
@@ -18926,11 +19270,11 @@ msgstr "Specificera"
 msgid "Please specify a valid parent DocType for {0}"
 msgstr "Ange giltig överordnad DocType för {0}"
 
-#: email/doctype/notification/notification.py:88
+#: email/doctype/notification/notification.py:149
 msgid "Please specify which date field must be checked"
 msgstr "Ange Datum Fält som måste kontrolleras"
 
-#: email/doctype/notification/notification.py:91
+#: email/doctype/notification/notification.py:152
 msgid "Please specify which value field must be checked"
 msgstr "Ange Värde Fält som måste kontrolleras"
 
@@ -19156,6 +19500,7 @@ msgstr "Tryck på Enter att Spara"
 #: desk/doctype/custom_html_block/custom_html_block.json
 #: email/doctype/newsletter/newsletter.js:14
 #: email/doctype/newsletter/newsletter.js:42
+#: email/doctype/notification/notification.js:184
 #: integrations/doctype/webhook/webhook.json
 #: printing/doctype/print_style/print_style.json
 #: public/js/frappe/form/controls/markdown_editor.js:17
@@ -19190,6 +19535,14 @@ msgstr "Förhandsgransknig Läge"
 #: core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Preview of generated names"
 msgstr "Förhandsgranskning av genererade namn"
+
+#: public/js/frappe/views/render_preview.js:19
+msgid "Preview on"
+msgstr "Förhandsgranskning på"
+
+#: public/js/print_format_builder/Preview.vue:103
+msgid "Preview type"
+msgstr "Förhandsgranskning typ"
 
 #: email/doctype/email_group/email_group.js:90
 msgid "Preview:"
@@ -19265,7 +19618,7 @@ msgstr "Primär nyckel för doctype {0} kan inte ändras eftersom det finns befi
 #: printing/page/print/print.js:65 public/js/frappe/form/success_action.js:81
 #: public/js/frappe/form/templates/print_layout.html:46
 #: public/js/frappe/form/toolbar.js:332 public/js/frappe/form/toolbar.js:344
-#: public/js/frappe/list/bulk_operations.js:87
+#: public/js/frappe/list/bulk_operations.js:95
 #: public/js/frappe/views/reports/query_report.js:1640
 #: public/js/frappe/views/reports/report_view.js:1460
 #: public/js/frappe/views/treeview.js:469 www/printview.html:18
@@ -19277,7 +19630,7 @@ msgctxt "Button in list view actions menu"
 msgid "Print"
 msgstr "Utskrift"
 
-#: public/js/frappe/list/bulk_operations.js:47
+#: public/js/frappe/list/bulk_operations.js:48
 msgid "Print Documents"
 msgstr "Skriv ut Dokument"
 
@@ -19289,7 +19642,7 @@ msgstr "Skriv ut Dokument"
 #: email/doctype/notification/notification.json
 #: printing/doctype/print_format/print_format.json
 #: printing/page/print/print.js:94 printing/page/print/print.js:819
-#: public/js/frappe/list/bulk_operations.js:58
+#: public/js/frappe/list/bulk_operations.js:59
 #: website/doctype/web_form/web_form.json
 msgid "Print Format"
 msgstr "Utskrift Format"
@@ -19505,6 +19858,7 @@ msgstr "Prioritet"
 #: desk/doctype/custom_html_block/custom_html_block.json
 #: desk/doctype/event/event.json desk/doctype/kanban_board/kanban_board.json
 #: desk/doctype/note/note_list.js:8
+#: public/js/frappe/file_uploader/FilePreview.vue:34
 msgid "Private"
 msgstr "Privat"
 
@@ -19607,9 +19961,9 @@ msgstr "Leverantör Namn"
 #: desk/doctype/event/event.json desk/doctype/note/note.json
 #: desk/doctype/note/note_list.js:6 desk/doctype/workspace/workspace.json
 #: public/js/frappe/views/interaction.js:78
-#: public/js/frappe/views/workspace/workspace.js:627
-#: public/js/frappe/views/workspace/workspace.js:955
-#: public/js/frappe/views/workspace/workspace.js:1201
+#: public/js/frappe/views/workspace/workspace.js:656
+#: public/js/frappe/views/workspace/workspace.js:984
+#: public/js/frappe/views/workspace/workspace.js:1230
 msgid "Public"
 msgstr "Publik"
 
@@ -20015,7 +20369,7 @@ msgstr "Direkt Utskrift Inställningar "
 msgid "Re-Run in Console"
 msgstr "Kör igen i Konsol"
 
-#: email/doctype/email_account/email_account.py:720
+#: email/doctype/email_account/email_account.py:721
 msgid "Re:"
 msgstr "Sv:"
 
@@ -20336,6 +20690,7 @@ msgstr "Referens Dokument Namn"
 #. Label of the reference_doctype (Link) field in DocType 'Discussion Topic'
 #: core/doctype/communication/communication.js:143
 #: core/report/transaction_log_report/transaction_log_report.py:88
+#: public/js/frappe/views/render_preview.js:34
 #: website/doctype/discussion_topic/discussion_topic.json
 msgid "Reference Doctype"
 msgstr "Referens DocType"
@@ -20490,6 +20845,7 @@ msgstr "Referens"
 #: public/js/frappe/views/treeview.js:475
 #: public/js/frappe/widgets/chart_widget.js:291
 #: public/js/frappe/widgets/number_card_widget.js:324
+#: public/js/print_format_builder/Preview.vue:24
 msgid "Refresh"
 msgstr "Uppdatera"
 
@@ -20650,9 +21006,36 @@ msgstr "Ta Bort Sektion"
 msgid "Remove all customizations?"
 msgstr "Ta Bort alla anpassningar?"
 
+#: public/js/form_builder/components/Section.vue:286
+msgid "Remove all fields in the column"
+msgstr "Ta bort alla fält i kolumn"
+
+#: public/js/form_builder/components/Section.vue:278
 #: public/js/frappe/utils/datatable.js:9
+#: public/js/print_format_builder/PrintFormatSection.vue:120
 msgid "Remove column"
 msgstr "Ta Bort Kolumn"
+
+#: public/js/form_builder/components/Field.vue:260
+msgid "Remove field"
+msgstr "Ta bort fält"
+
+#: public/js/form_builder/components/Section.vue:279
+msgid "Remove last column"
+msgstr "Ta bort sista kolumn"
+
+#: public/js/print_format_builder/PrintFormatSection.vue:130
+msgid "Remove page break"
+msgstr "Ta bort sidbrytning"
+
+#: public/js/form_builder/components/Section.vue:266
+#: public/js/print_format_builder/PrintFormatSection.vue:135
+msgid "Remove section"
+msgstr "Ta bort sektion"
+
+#: public/js/form_builder/components/Tabs.vue:140
+msgid "Remove tab"
+msgstr "Ta bort flik"
 
 #: core/doctype/file/file.py:156
 msgid "Removed {0}"
@@ -20677,6 +21060,10 @@ msgstr "Ändra Namn {0}"
 #: core/doctype/doctype/doctype.py:691
 msgid "Renamed files and replaced code in controllers, please check!"
 msgstr "Ändrade namn på filer och ändrade kod i kontroller, kontrollera!"
+
+#: public/js/print_format_builder/PrintFormatSection.vue:17
+msgid "Render labels to the left and values to the right in this section"
+msgstr "Rendera etikett till vänster och värde till höger i detta sektion"
 
 #: core/doctype/communication/communication.js:43 desk/doctype/todo/todo.js:36
 msgid "Reopen"
@@ -20860,6 +21247,11 @@ msgstr "Rapport Namn"
 #: desk/doctype/number_card/number_card.py:66
 msgid "Report Name, Report Field and Fucntion are required to create a number card"
 msgstr "Rapport Namn, Rapport Fält och Funktion erfodras för att skapa nummerkort"
+
+#. Label of the report_ref_doctype (Link) field in DocType 'Workspace Link'
+#: desk/doctype/workspace_link/workspace_link.json
+msgid "Report Ref DocType"
+msgstr "Rapport Ref DokTyp"
 
 #. Label of the report_reference_doctype (Data) field in DocType 'Onboarding
 #. Step'
@@ -21118,6 +21510,10 @@ msgstr "Återställning Lösenord Mall"
 msgid "Reset Permissions for {0}?"
 msgstr "Återställ Behörigheter för {0}?"
 
+#: public/js/form_builder/components/Field.vue:114
+msgid "Reset To Default"
+msgstr "Återställ Till Standard"
+
 #: public/js/frappe/utils/datatable.js:8
 msgid "Reset sorting"
 msgstr "Återställ Sortering"
@@ -21215,8 +21611,8 @@ msgctxt "Title of message showing restrictions in list view"
 msgid "Restrictions"
 msgstr "Begränsningar"
 
-#: public/js/frappe/ui/toolbar/awesome_bar.js:356
-#: public/js/frappe/ui/toolbar/awesome_bar.js:371
+#: public/js/frappe/ui/toolbar/awesome_bar.js:379
+#: public/js/frappe/ui/toolbar/awesome_bar.js:394
 msgid "Result"
 msgstr "Resultat"
 
@@ -21324,6 +21720,7 @@ msgid "Right"
 msgstr "Höger"
 
 #: printing/page/print_format_builder/print_format_builder.js:484
+#: public/js/print_format_builder/PrintFormatControls.vue:156
 msgctxt "alignment"
 msgid "Right"
 msgstr "Höger"
@@ -21749,7 +22146,7 @@ msgstr "SMS skickad till följande nummer: {0}"
 msgid "SMS was not sent. Please contact Administrator."
 msgstr "SMS inte skickad. Kontakta Administratör."
 
-#: email/doctype/email_account/email_account.py:205
+#: email/doctype/email_account/email_account.py:206
 msgid "SMTP Server is required"
 msgstr "SMTP Server erfodras"
 
@@ -21859,7 +22256,7 @@ msgstr "Lördag"
 #: public/js/frappe/views/kanban/kanban_view.js:343
 #: public/js/frappe/views/reports/query_report.js:1802
 #: public/js/frappe/views/reports/report_view.js:1640
-#: public/js/frappe/views/workspace/workspace.js:501
+#: public/js/frappe/views/workspace/workspace.js:530
 #: public/js/frappe/widgets/base_widget.js:142
 #: public/js/frappe/widgets/quick_list_widget.js:119
 #: public/js/print_format_builder/print_format_builder.bundle.js:15
@@ -21914,7 +22311,7 @@ msgstr "Sparad"
 
 #: public/js/frappe/list/list_settings.js:40
 #: public/js/frappe/views/kanban/kanban_settings.js:47
-#: public/js/frappe/views/workspace/workspace.js:513
+#: public/js/frappe/views/workspace/workspace.js:542
 msgid "Saving"
 msgstr "Sparar"
 
@@ -22164,13 +22561,29 @@ msgstr "Sök i Hjälp"
 msgid "Search Priorities"
 msgstr "Sökprioriteringar"
 
+#: public/js/frappe/file_uploader/FileBrowser.vue:132
+msgid "Search Results"
+msgstr "Sök Resultat"
+
 #: www/search.py:14
 msgid "Search Results for"
 msgstr "Sökresultat för"
 
+#: public/js/frappe/file_uploader/FileBrowser.vue:13
+msgid "Search by filename or extension"
+msgstr "Sök efter fil namn eller fil tillägg"
+
 #: core/doctype/doctype/doctype.py:1436
 msgid "Search field {0} is not valid"
 msgstr "Sökfält {0} är inte giltigt"
+
+#: public/js/print_format_builder/PrintFormatControls.vue:87
+msgid "Search fields"
+msgstr "Sökfält"
+
+#: public/js/form_builder/components/AddFieldButton.vue:19
+msgid "Search fieldtypes..."
+msgstr "Sök fälttyper..."
 
 #: public/js/frappe/ui/toolbar/search.js:50
 #: public/js/frappe/ui/toolbar/search.js:69
@@ -22190,6 +22603,10 @@ msgstr "Sök i DocType"
 msgid "Search or type a command ({0})"
 msgstr "Sök eller skriv kommando ({0})"
 
+#: public/js/form_builder/components/SearchBox.vue:8
+msgid "Search properties..."
+msgstr "Sök egenskaper..."
+
 #: templates/includes/search_box.html:8
 msgid "Search results for"
 msgstr "Sök Resultat för"
@@ -22205,6 +22622,7 @@ msgid "Searching ..."
 msgstr "Söker..."
 
 #. Option for the 'Type' (Select) field in DocType 'Web Template'
+#: public/js/form_builder/components/Section.vue:263
 #: website/doctype/web_template/web_template.json
 msgid "Section"
 msgstr "Sektion"
@@ -22230,6 +22648,16 @@ msgstr "Sektion Huvud Rubrik"
 #: website/doctype/web_page_block/web_page_block.json
 msgid "Section ID"
 msgstr "Sektion"
+
+#: public/js/form_builder/components/Section.vue:28
+#: public/js/print_format_builder/PrintFormatSection.vue:8
+msgid "Section Title"
+msgstr "Sektion Namn"
+
+#: public/js/form_builder/components/Section.vue:217
+#: public/js/form_builder/components/Section.vue:240
+msgid "Section must have at least one column"
+msgstr "Sektion måste ha minst en kolumn"
 
 #. Label of the sb3 (Section Break) field in DocType 'User'
 #: core/doctype/user/user.json
@@ -22349,6 +22777,7 @@ msgid "Select Date Range"
 msgstr "Datum Intervall"
 
 #. Label of the doc_type (Link) field in DocType 'Web Form'
+#: public/js/form_builder/components/controls/FetchFromControl.vue:28
 #: public/js/frappe/doctype/index.js:171 website/doctype/web_form/web_form.json
 msgid "Select DocType"
 msgstr "Välj DocType"
@@ -22376,6 +22805,7 @@ msgstr "Välj DocType eller Roll att starta."
 msgid "Select Document Types to set which User Permissions are used to limit access."
 msgstr "Välj Dokument Typer för att ange vilka användarbehörigheter som används för att begränsa åtkomst."
 
+#: public/js/form_builder/components/controls/FetchFromControl.vue:33
 #: public/js/frappe/doctype/index.js:200 public/js/frappe/form/toolbar.js:771
 msgid "Select Field"
 msgstr "Välj Fält"
@@ -22498,6 +22928,10 @@ msgstr "Välj dokument för att kontrollera om det uppfyller villkoren."
 msgid "Select a document to preview request data"
 msgstr "Välj dokument för att förhandsgranska begäran om data"
 
+#: public/js/form_builder/components/Sidebar.vue:56
+msgid "Select a field to edit its properties."
+msgstr "Välj fält för att redigera dess egenskaper."
+
 #: public/js/frappe/views/treeview.js:337
 msgid "Select a group node first."
 msgstr "Välj Grupp nod."
@@ -22524,7 +22958,7 @@ msgstr "Välj befintligt format att redigera eller starta ny format."
 msgid "Select an image of approx width 150px with a transparent background for best results."
 msgstr "Välj Bild med bredd på ca 150px med transparent bakgrund för bästa resultat."
 
-#: public/js/frappe/list/bulk_operations.js:35
+#: public/js/frappe/list/bulk_operations.js:36
 msgid "Select atleast 1 record for printing"
 msgstr "Välj minst en post för utskrift"
 
@@ -22547,11 +22981,11 @@ msgstr "Välj flera List Artiklar"
 msgid "Select or drag across time slots to create a new event."
 msgstr "Välj eller dra över tider för att skapa ny händelse."
 
-#: public/js/frappe/list/bulk_operations.js:209
+#: public/js/frappe/list/bulk_operations.js:239
 msgid "Select records for assignment"
 msgstr "Välj poster för tilldelning"
 
-#: public/js/frappe/list/bulk_operations.js:230
+#: public/js/frappe/list/bulk_operations.js:260
 msgid "Select records for removing assignment"
 msgstr "Välj poster för att ta bort tilldelning"
 
@@ -22568,6 +23002,7 @@ msgstr "Välj två versioner för att se skillnader."
 #: public/js/frappe/form/multi_select_dialog.js:81
 #: public/js/frappe/form/multi_select_dialog.js:281
 #: public/js/frappe/list/list_view_select.js:153
+#: public/js/print_format_builder/Preview.vue:90
 msgid "Select {0}"
 msgstr "Välj {0}"
 
@@ -23015,6 +23450,7 @@ msgstr "Ange Dynamisk Filter"
 
 #: desk/doctype/dashboard_chart/dashboard_chart.js:381
 #: desk/doctype/number_card/number_card.js:280
+#: public/js/form_builder/components/Field.vue:80
 #: website/doctype/web_form/web_form.js:269
 msgid "Set Filters"
 msgstr "Ange Filter"
@@ -23210,7 +23646,7 @@ msgstr "Konfigurerar System"
 #: integrations/workspace/integrations/integrations.json
 #: public/js/frappe/form/templates/print_layout.html:25
 #: public/js/frappe/ui/toolbar/toolbar.js:289
-#: public/js/frappe/views/workspace/workspace.js:529
+#: public/js/frappe/views/workspace/workspace.js:558
 #: website/doctype/web_form/web_form.json
 #: website/doctype/web_page/web_page.json
 msgid "Settings"
@@ -23981,7 +24417,7 @@ msgstr "Sortering Fält {0} måste vara giltig fält namn"
 
 #. Label of the source (Data) field in DocType 'Web Page View'
 #. Label of the source (Small Text) field in DocType 'Website Route Redirect'
-#: public/js/frappe/ui/toolbar/about.js:8 public/js/frappe/utils/utils.js:1715
+#: public/js/frappe/ui/toolbar/about.js:8 public/js/frappe/utils/utils.js:1716
 #: website/doctype/web_page_view/web_page_view.json
 #: website/doctype/website_route_redirect/website_route_redirect.json
 #: website/report/website_analytics/website_analytics.js:38
@@ -24000,6 +24436,7 @@ msgid "Source Text"
 msgstr "Käll Text"
 
 #: public/js/frappe/views/workspace/blocks/spacer.js:23
+#: public/js/print_format_builder/PrintFormatControls.vue:204
 msgid "Spacer"
 msgstr "Mellanrum"
 
@@ -24030,6 +24467,11 @@ msgstr "Splash Bild"
 #: templates/print_formats/standard_macros.html:44
 msgid "Sr"
 msgstr "Rad"
+
+#: public/js/print_format_builder/Field.vue:143
+#: public/js/print_format_builder/Field.vue:164
+msgid "Sr No."
+msgstr "Serie Nummer."
 
 #. Label of the stack_html (HTML) field in DocType 'Recorder Query'
 #: core/doctype/recorder/recorder.js:82
@@ -24199,6 +24641,10 @@ msgstr "Startar"
 #: workflow/doctype/workflow_transition/workflow_transition.json
 msgid "State"
 msgstr "Län"
+
+#: public/js/workflow_builder/components/Properties.vue:24
+msgid "State Properties"
+msgstr "Tillstånd Egenskaper"
 
 #. Label of the state (Data) field in DocType 'Address'
 #: contacts/doctype/address/address.json
@@ -24426,6 +24872,7 @@ msgstr "Underdomän"
 #: email/doctype/email_template/email_template.json
 #: email/doctype/newsletter/newsletter.json
 #: email/doctype/notification/notification.json
+#: email/doctype/notification/notification.py:80
 #: public/js/frappe/views/communication.js:107
 #: public/js/frappe/views/inbox/inbox_view.js:63
 msgid "Subject"
@@ -25032,6 +25479,10 @@ msgstr "T"
 msgid "Tab Break"
 msgstr "Flik Brytning"
 
+#: public/js/form_builder/components/Tabs.vue:135
+msgid "Tab Label"
+msgstr "Flik Etikett"
+
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of the table (Data) field in DocType 'Recorder Suggested Index'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -25108,7 +25559,7 @@ msgid "Tag Link"
 msgstr "Tagg Länk"
 
 #: model/meta.py:52 public/js/frappe/form/templates/form_sidebar.html:100
-#: public/js/frappe/list/bulk_operations.js:400
+#: public/js/frappe/list/bulk_operations.js:430
 #: public/js/frappe/list/list_sidebar.html:50
 #: public/js/frappe/list/list_sidebar.js:228 public/js/frappe/model/meta.js:204
 #: public/js/frappe/model/model.js:133
@@ -25303,7 +25754,7 @@ msgid "The Client ID obtained from the Google Cloud Console under <a href=\"http
 "</a>"
 msgstr "Klient ID som erhållits från Google Cloud Console under <a href=\"https://console.cloud.google.com/apis/credentials\">\"API och tjänster\" &gt; \"Inloggningsuppgifter\"</a>"
 
-#: email/doctype/notification/notification.py:131
+#: email/doctype/notification/notification.py:192
 msgid "The Condition '{0}' is invalid"
 msgstr "Villkor '{0}' är ogiltig"
 
@@ -25994,7 +26445,7 @@ msgstr "Tid i Frågor"
 msgid "Time in seconds to retain QR code image on server. Min:<strong>240</strong>"
 msgstr "Tid i sekunder att behålla QR Kod Bild på server. Min: <strong>240</strong>"
 
-#: desk/doctype/dashboard_chart/dashboard_chart.py:402
+#: desk/doctype/dashboard_chart/dashboard_chart.py:412
 msgid "Time series based on is required to create a dashboard chart"
 msgstr "Tid Nummer Serier baserade på erfodras för att skapa Översikt Panel"
 
@@ -26108,9 +26559,9 @@ msgstr "Tid Stämpel"
 #: desk/doctype/system_health_report_errors/system_health_report_errors.json
 #: desk/doctype/workspace/workspace.json
 #: email/doctype/email_group/email_group.json
-#: public/js/frappe/views/workspace/workspace.js:613
-#: public/js/frappe/views/workspace/workspace.js:942
-#: public/js/frappe/views/workspace/workspace.js:1189
+#: public/js/frappe/views/workspace/workspace.js:642
+#: public/js/frappe/views/workspace/workspace.js:971
+#: public/js/frappe/views/workspace/workspace.js:1218
 #: website/doctype/blog_category/blog_category.json
 #: website/doctype/blog_post/blog_post.json
 #: website/doctype/blog_settings/blog_settings.json
@@ -26374,6 +26825,7 @@ msgstr "Verktyg"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
+#: public/js/print_format_builder/PrintFormatControls.vue:153
 msgid "Top"
 msgstr "Topp"
 
@@ -26391,6 +26843,7 @@ msgstr "Toppfält Poster"
 #. Option for the 'Page Number' (Select) field in DocType 'Print Format'
 #: desk/doctype/form_tour_step/form_tour_step.json
 #: printing/doctype/print_format/print_format.json
+#: public/js/print_format_builder/PrintFormatControls.vue:245
 msgid "Top Center"
 msgstr "Topp Center"
 
@@ -26401,6 +26854,7 @@ msgstr "Topp Fel"
 
 #. Option for the 'Page Number' (Select) field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
+#: public/js/print_format_builder/PrintFormatControls.vue:244
 msgid "Top Left"
 msgstr "Topp Vänster"
 
@@ -26416,6 +26870,7 @@ msgstr "Topp Recensent"
 #. Option for the 'Page Number' (Select) field in DocType 'Print Format'
 #: desk/doctype/form_tour_step/form_tour_step.json
 #: printing/doctype/print_format/print_format.json
+#: public/js/print_format_builder/PrintFormatControls.vue:246
 msgid "Top Right"
 msgstr "Topp Höger"
 
@@ -26488,6 +26943,10 @@ msgstr "Totalt Antal Arbetade Timmar"
 msgid "Total number of emails to sync in initial sync process "
 msgstr "Totalt antal E-post meddelande som ska synkroniseras i första synkronisering "
 
+#: public/js/print_format_builder/ConfigureColumns.vue:12
+msgid "Total:"
+msgstr "Totalt:"
+
 #: public/js/frappe/views/reports/report_view.js:1178
 msgid "Totals"
 msgstr "Totals"
@@ -26555,7 +27014,7 @@ msgstr "Spåra om E-post är öppnad av mottagare.\n"
 msgid "Track milestones for any document"
 msgstr "Spåra milstolpar för alla dokument"
 
-#: public/js/frappe/utils/utils.js:1766
+#: public/js/frappe/utils/utils.js:1767
 msgid "Tracking URL generated and copied to clipboard"
 msgstr "Spårning URL skapad och kopierad till urklipp"
 
@@ -26574,6 +27033,10 @@ msgstr "Transaktion Logg"
 #: core/report/transaction_log_report/transaction_log_report.json
 msgid "Transaction Log Report"
 msgstr "Transaktion Logg Rapport"
+
+#: public/js/workflow_builder/components/Properties.vue:19
+msgid "Transition Properties"
+msgstr "Övergång Egenskaper"
 
 #. Label of the transition_rules (Section Break) field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
@@ -26920,7 +27383,7 @@ msgstr "Ohanterad E-post"
 msgid "Unhandled Emails"
 msgstr "Ohanterad E-post "
 
-#: public/js/frappe/views/workspace/workspace.js:570
+#: public/js/frappe/views/workspace/workspace.js:599
 msgid "Unhide Workspace"
 msgstr "Visa Arbetsyta"
 
@@ -27042,7 +27505,7 @@ msgstr "Uppkommande Händelser för Idag"
 #: printing/page/print_format_builder/print_format_builder.js:670
 #: printing/page/print_format_builder/print_format_builder.js:757
 #: public/js/frappe/form/grid_row.js:404
-#: public/js/frappe/views/workspace/workspace.js:661
+#: public/js/frappe/views/workspace/workspace.js:690
 msgid "Update"
 msgstr "Uppdatera"
 
@@ -27052,7 +27515,7 @@ msgstr "Uppdatera"
 msgid "Update Amendment Naming"
 msgstr "Uppdatera Ändring Namn"
 
-#: public/js/frappe/views/workspace/workspace.js:610
+#: public/js/frappe/views/workspace/workspace.js:639
 msgid "Update Details"
 msgstr "Uppdatera Detaljer"
 
@@ -27108,7 +27571,7 @@ msgstr "Uppdatera Värde"
 msgid "Update from Frappe Cloud"
 msgstr "Uppdatera från Frappe Cloud"
 
-#: public/js/frappe/list/bulk_operations.js:345
+#: public/js/frappe/list/bulk_operations.js:375
 msgid "Update {0} records"
 msgstr "Uppdatera {0} poster"
 
@@ -27129,7 +27592,7 @@ msgstr "Uppdaterad"
 msgid "Updated To A New Version 🎉"
 msgstr "Uppdaterad till ny Version 🎉"
 
-#: public/js/frappe/list/bulk_operations.js:342
+#: public/js/frappe/list/bulk_operations.js:372
 msgid "Updated successfully"
 msgstr "Uppdaterad"
 
@@ -27181,6 +27644,18 @@ msgstr "Uppdaterar {0} av {1}, {2}"
 #: public/js/frappe/form/templates/form_sidebar.html:13
 msgid "Upload"
 msgstr "Ladda upp"
+
+#: public/js/print_format_builder/LetterHeadEditor.vue:93
+msgid "Upload Image"
+msgstr "Ladda upp Bild"
+
+#: public/js/frappe/file_uploader/FileUploader.vue:193
+msgid "Upload file"
+msgstr "Ladda upp fil"
+
+#: public/js/frappe/file_uploader/FileUploader.vue:196
+msgid "Upload {0} files"
+msgstr "Ladda upp {0} filer"
 
 #. Label of the uploaded_to_dropbox (Check) field in DocType 'File'
 #: core/doctype/file/file.json
@@ -27648,7 +28123,7 @@ msgstr "Användare {0} har inte tillgång till detta dokument"
 msgid "User {0} does not have doctype access via role permission for document {1}"
 msgstr "Användare {0} har inte tillgång till DocType via roll tillstånd för dokument {1}"
 
-#: desk/doctype/workspace/workspace.py:253
+#: desk/doctype/workspace/workspace.py:257
 msgid "User {0} does not have the permission to create a Workspace."
 msgstr "Användare {0} har inte behörighet att skapa Arbetsyta."
 
@@ -27793,8 +28268,8 @@ msgstr "Giltighet"
 #: email/doctype/auto_email_report/auto_email_report.js:92
 #: integrations/doctype/query_parameters/query_parameters.json
 #: integrations/doctype/webhook_header/webhook_header.json
-#: public/js/frappe/list/bulk_operations.js:306
-#: public/js/frappe/list/bulk_operations.js:368
+#: public/js/frappe/list/bulk_operations.js:336
+#: public/js/frappe/list/bulk_operations.js:398
 #: public/js/frappe/list/list_view_permission_restrictions.html:4
 #: website/doctype/web_form/web_form.js:197
 #: website/doctype/website_meta_tag/website_meta_tag.json
@@ -27893,7 +28368,7 @@ msgid "Verdana"
 msgstr "Verdana"
 
 #: twofactor.py:352
-msgid "Verfication Code"
+msgid "Verification Code"
 msgstr "Verifiering Kod"
 
 #: templates/emails/delete_data_confirmation.html:10
@@ -28187,7 +28662,7 @@ msgstr "Webbsida"
 msgid "Web Page Block"
 msgstr "Webbsida Avsnitt"
 
-#: public/js/frappe/utils/utils.js:1707
+#: public/js/frappe/utils/utils.js:1708
 msgid "Web Page URL"
 msgstr "Webbsida URL"
 
@@ -28580,6 +29055,7 @@ msgstr "Vilken Vy av tillhörande DocType ska denna genväg ta dig till?"
 #: custom/doctype/customize_form_field/customize_form_field.json
 #: desk/doctype/dashboard_chart_link/dashboard_chart_link.json
 #: printing/page/print_format_builder/print_format_builder_column_selector.html:8
+#: public/js/print_format_builder/ConfigureColumns.vue:11
 msgid "Width"
 msgstr "Bredd"
 
@@ -28706,6 +29182,10 @@ msgstr "Arbetsflöde Generator skapar arbetsflöden visuellt. Dra och släpp Til
 msgid "Workflow Data"
 msgstr "Arbetsflöde Data"
 
+#: public/js/workflow_builder/components/Properties.vue:42
+msgid "Workflow Details"
+msgstr "Arbetsflöde Detaljer"
+
 #. Name of a DocType
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Workflow Document State"
@@ -28813,19 +29293,19 @@ msgstr "Arbetsyta Snabb Lista"
 msgid "Workspace Shortcut"
 msgstr "Arbetsyta Genväg"
 
-#: desk/doctype/workspace/workspace.py:285
+#: desk/doctype/workspace/workspace.py:289
 msgid "Workspace not found"
 msgstr "Arbetsyta inte hittad"
 
-#: public/js/frappe/views/workspace/workspace.js:1279
+#: public/js/frappe/views/workspace/workspace.js:1308
 msgid "Workspace {0} Created Successfully"
 msgstr "Arbetsyta {0} Skapad"
 
-#: public/js/frappe/views/workspace/workspace.js:908
+#: public/js/frappe/views/workspace/workspace.js:937
 msgid "Workspace {0} Deleted Successfully"
 msgstr "Arbetsyta {0} Borttagen"
 
-#: public/js/frappe/views/workspace/workspace.js:686
+#: public/js/frappe/views/workspace/workspace.js:715
 msgid "Workspace {0} Edited Successfully"
 msgstr "Arbetsyta {0} Redigerad"
 
@@ -28928,6 +29408,8 @@ msgstr "Gul"
 #. Settings'
 #. Option for the 'Standard' (Select) field in DocType 'Print Format'
 #: core/doctype/page/page.json core/doctype/report/report.json
+#: email/doctype/notification/notification.py:94
+#: email/doctype/notification/notification.py:100
 #: integrations/doctype/ldap_settings/ldap_settings.json
 #: integrations/doctype/webhook/webhook.py:130
 #: integrations/doctype/webhook/webhook.py:140
@@ -29031,7 +29513,7 @@ msgstr "Du följer nu detta dokument och kommer att få dagliga uppdateringar vi
 msgid "You are only allowed to update order, do not remove or add apps."
 msgstr "Du får bara uppdatera ordning, inte ta bort eller lägga till appar."
 
-#: email/doctype/email_account/email_account.js:245
+#: email/doctype/email_account/email_account.js:249
 msgid "You are selecting Sync Option as ALL, It will resync all read as well as unread message from server. This may also cause the duplication of Communication (emails)."
 msgstr "Du väljer Synkronisering Alternativ som ALLA. Det kommer att synkronisera alla lästa såväl som olästa meddelanden från server. Detta kan också orsaka kopior av korrespondens (e-post)."
 
@@ -29088,7 +29570,7 @@ msgstr "Du kan mannuellt ta bort begränsning om du bedömmer att det är ett s�
 msgid "You can only insert images in Markdown fields"
 msgstr "Du kan endast infoga bilder Markdown fält"
 
-#: public/js/frappe/list/bulk_operations.js:41
+#: public/js/frappe/list/bulk_operations.js:42
 msgid "You can only print upto {0} documents at a time"
 msgstr "Du kan bara skriva ut upp till {0} dokument åt gången"
 
@@ -29138,7 +29620,7 @@ msgctxt "Form timeline"
 msgid "You cancelled this document {1}"
 msgstr "Du annullerade detta dokument {1}"
 
-#: desk/doctype/dashboard_chart/dashboard_chart.py:406
+#: desk/doctype/dashboard_chart/dashboard_chart.py:416
 msgid "You cannot create a dashboard chart from single DocTypes"
 msgstr "Du kan inte skapa Översikt Panel Diagram från Enskilda DocTypes"
 
@@ -29245,7 +29727,7 @@ msgstr "Du är utloggad nu."
 msgid "You have hit the row size limit on database table: {0}"
 msgstr "Du har nått gräns för radstorlek i databas tabell: {0}"
 
-#: public/js/frappe/list/bulk_operations.js:382
+#: public/js/frappe/list/bulk_operations.js:412
 msgid "You have not entered a value. The field will be set to empty."
 msgstr "Du har inte anget någon värde. Fält kommer att vara tom."
 
@@ -29342,7 +29824,7 @@ msgstr "Du måste installera pycups för att använda denna funktion!"
 msgid "You need to select indexes you want to add first."
 msgstr "Du måste välja index du vill lägga till först."
 
-#: email/doctype/email_account/email_account.py:153
+#: email/doctype/email_account/email_account.py:154
 msgid "You need to set one IMAP folder for {0}"
 msgstr "Du måste ange en IMAP mapp för {0}"
 
@@ -29363,7 +29845,7 @@ msgstr "Du tog bort bilaga {0}"
 msgid "You seem good to go!"
 msgstr "Du verkar vara klar!"
 
-#: public/js/frappe/list/bulk_operations.js:30
+#: public/js/frappe/list/bulk_operations.js:31
 msgid "You selected Draft or Cancelled documents"
 msgstr "Du har valt Utkast eller Annullerade Dokument"
 
@@ -29401,7 +29883,7 @@ msgstr "Språk"
 msgid "Your Name"
 msgstr "Ditt Namn"
 
-#: public/js/frappe/list/bulk_operations.js:123
+#: public/js/frappe/list/bulk_operations.js:132
 msgid "Your PDF is ready for download"
 msgstr "PDF är redo för nedladdning"
 
@@ -30148,7 +30630,7 @@ msgstr "via Data Import"
 msgid "via Google Meet"
 msgstr "via Google Meet"
 
-#: email/doctype/notification/notification.py:220
+#: email/doctype/notification/notification.py:281
 msgid "via Notification"
 msgstr "via Avisering"
 
@@ -30229,8 +30711,8 @@ msgstr "{0} ({1}) (1 rad erfodras)"
 msgid "{0} ({1}) - {2}%"
 msgstr "{0} ({1}) - {2}%"
 
-#: public/js/frappe/ui/toolbar/awesome_bar.js:348
-#: public/js/frappe/ui/toolbar/awesome_bar.js:351
+#: public/js/frappe/ui/toolbar/awesome_bar.js:371
+#: public/js/frappe/ui/toolbar/awesome_bar.js:374
 msgid "{0} = {1}"
 msgstr "{0} = {1}"
 
@@ -30602,7 +31084,7 @@ msgstr "{0} är mindre än {1}"
 msgid "{0} is like {1}"
 msgstr "{0} är som {1}"
 
-#: email/doctype/email_account/email_account.py:186
+#: email/doctype/email_account/email_account.py:187
 msgid "{0} is mandatory"
 msgstr "{0} är erfodrad"
 
@@ -30682,7 +31164,7 @@ msgstr "{0} är nu standard utskrift format för {1} DocType"
 msgid "{0} is one of {1}"
 msgstr "{0} är en av {1}"
 
-#: email/doctype/email_account/email_account.py:293 model/naming.py:217
+#: email/doctype/email_account/email_account.py:294 model/naming.py:217
 #: printing/doctype/print_format/print_format.py:91 utils/csvutils.py:153
 msgid "{0} is required"
 msgstr "{0} erfodras"
@@ -31053,7 +31535,7 @@ msgstr "{0}: fältnamn kan inte anges för reserverad sökord {1}"
 
 #: contacts/doctype/address/address.js:35
 #: contacts/doctype/contact/contact.js:88
-#: public/js/frappe/views/workspace/workspace.js:170
+#: public/js/frappe/views/workspace/workspace.js:211
 msgid "{0}: {1}"
 msgstr "{0}: {1}"
 
@@ -31127,8 +31609,8 @@ msgstr "{} stöder inte automatisk logg rensning."
 msgid "{} field cannot be empty."
 msgstr "{} fält kan inte vara tom."
 
-#: email/doctype/email_account/email_account.py:216
-#: email/doctype/email_account/email_account.py:224
+#: email/doctype/email_account/email_account.py:217
+#: email/doctype/email_account/email_account.py:225
 msgid "{} has been disabled. It can only be enabled if {} is checked."
 msgstr "{} är inaktiverad. Den kan bara aktiveras om {} är markerad."
 
@@ -31147,4 +31629,9 @@ msgstr "{} hittades inte i Sökväg! Detta erfodras för att återställa databa
 #: utils/backups.py:454
 msgid "{} not found in PATH! This is required to take a backup."
 msgstr "{} hittades inte i Sökväg! Detta erfodras för att ta säkerhetskopia."
+
+#: public/js/frappe/file_uploader/FileBrowser.vue:5
+#: public/js/frappe/file_uploader/WebLink.vue:4
+msgid "← Back to upload files"
+msgstr "← Tillbaka till ladda upp filer"
 
