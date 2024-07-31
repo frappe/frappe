@@ -18,12 +18,14 @@ class FormTimeline extends BaseTimeline {
 	}
 
 	setup_timeline_actions() {
-		this.add_action_button(
-			__("New Email"),
-			() => this.compose_mail(),
-			"mail",
-			"btn-secondary-dark"
-		);
+		if (frappe.model.can_email(null, this.frm)) {
+			this.add_action_button(
+				__("New Email"),
+				() => this.compose_mail(),
+				"es-line-add",
+				"btn-secondary"
+			);
+		}
 		this.setup_new_event_button();
 	}
 
