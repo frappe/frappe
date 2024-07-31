@@ -407,8 +407,8 @@ Always use Account's Email Address as Sender,همیشه به عنوان فرست
 Always use Account's Name as Sender's Name,همیشه از نام حساب به عنوان نام فرستنده استفاده کنید,
 Amend,اصلاح کردن,
 Amending,اصلاح,
-Amount Based On Field,مقدار بر اساس درست,
-Amount Field,مقدار درست,
+Amount Based On Field,مقدار بر اساس فیلد,
+Amount Field,فیلد مقدار,
 Amount must be greater than 0.,مقدار باید بزرگتر از 0 باشد.,
 An error occured during the payment process. Please contact us.,خطایی در روند پرداخت رخ داد. لطفا با ما تماس بگیرید.,
 An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [favicon-generator.org],یک فایل آیکون با .ICO فرمت. باید 16 × 16 پیکسل. تولید شده با استفاده از یک ژنراتور فاویکون. [favicon-generator.org],
@@ -593,7 +593,7 @@ Cannot delete or cancel because {0} {1} is linked with {2} {3} {4},نمی توا
 Cannot delete standard field. You can hide it if you want,می تواند درست استاندارد را حذف کنید. شما می توانید آن را پنهان اگر شما می خواهید,
 Cannot delete {0},نمی توان {0} را حذف کرد,
 Cannot delete {0} as it has child nodes,نمی توانید حذف کنید {0} که آن را تا گره فرزند,
-"Cannot edit Standard Notification. To edit, please disable this and duplicate it",می توانید اعلان استاندارد را ویرایش کنید برای ویرایش، لطفا این را غیر فعال کنید و آن را کپی کنید,
+"Cannot edit Standard Notification. To edit, please disable this and duplicate it",می توانید نوتیفیکیشن استاندارد را ویرایش کنید برای ویرایش، لطفا این را غیر فعال کنید و آن را کپی کنید,
 Cannot edit a standard report. Please duplicate and create a new report,می توانید یک گزارش استاندارد را ویرایش کنید. لطفا کپی و ایجاد یک گزارش جدید,
 Cannot edit cancelled document,می توانید سند را لغو ویرایش کنید,
 Cannot edit standard fields,می تواند فیلدهای استاندارد را ویرایش کنید,
@@ -752,7 +752,7 @@ Current Mapping Start,شروع نقشه فعلی,
 Current Mapping Type,نوع نقشه فعلی,
 Currently Viewing,در حال مشاهده,
 Currently updating {0},در حال حاضر به روز رسانی {0},
-Custom,رسم,
+Custom,سفارشی,
 Custom Base URL,URL اصلی سفارشی,
 Custom CSS,CSS سفارشی,
 Custom DocPerm,DocPerm سفارشی,
@@ -886,7 +886,7 @@ DocType on which this Workflow is applicable.,DocType که این گردش کا�
 Doctype required,Doctype مورد نیاز است,
 Document,سند,
 Document Follow,دنبال کردن سند,
-Document Follow Notification,اعلان را دنبال کنید,
+Document Follow Notification,نوتیفیکیشن دنبال کردن سند,
 Document Queued,سند صف,
 Document Restored,سند ترمیم,
 Document Share Report,سند اشتراک گزارش,
@@ -1009,10 +1009,10 @@ Error Message,پیغام خطا,
 Error Report,گزارش خطا,
 Error Snapshot,خطا عکس فوری,
 Error in Custom Script,اشکال در سفارشی اسکریپت,
-Error in Notification,خطا در اعلان,
-Error in Notification: {},خطا در اعلان: {},
+Error in Notification,خطا در نوتیفیکیشن,
+Error in Notification: {},خطا در نوتیفیکیشن: {},
 Error while connecting to email account {0},خطا هنگام اتصال به حساب ایمیل {0},
-Error while evaluating Notification {0}. Please fix your template.,خطا هنگام ارزیابی اعلان {0}. لطفا قالب خود را اصلاح کنید,
+Error while evaluating Notification {0}. Please fix your template.,خطا هنگام ارزیابی نوتیفیکیشن {0}. لطفا قالب خود را اصلاح کنید,
 Error: Document has been modified after you have opened it,خطا: سند اصلاح شده است بعد از شما آن را باز کرد,
 Error: Value missing for {0}: {1},خطا: ارزش از دست رفته برای {0}: {1},
 Errors in Background Events,خطا در زمینه رویدادها,
@@ -1234,7 +1234,7 @@ Icon will appear on the button,نماد بر روی دکمه ظاهر خواهد
 Identity Details,جزئیات هویت,
 Idx,IDX,
 "If Apply Strict User Permission is checked and User Permission is defined for a DocType for a User, then all the documents where value of the link is blank, will not be shown to that User",اگر درخواست اکید اجازه کاربر چک می شود و اجازه کاربر برای یک DOCTYPE برای یک کاربر تعریف شده است، پس از آن همه اسناد که در آن ارزش از لینک خالی است، خواهد شد که کاربر نمایش داده نمی شود,
-If Checked workflow status will not override status in list view,اگر وضعیت گردش کار بررسی خواهد شد وضعیت در نمای لیست باطل نیست,
+If Checked workflow status will not override status in list view,اگر تیک خورده باشد، وضعیت جریان کاری، وضعیت در نمای لیست را نادیده نمی‌گیرد.,
 If Owner,اگر مالک,
 "If a Role does not have access at Level 0, then higher levels are meaningless.",اگر یک نقش دسترسی در سطح 0 را نداشته باشند، سپس سطوح بالاتر بی معنی است.,
 "If checked, all other workflows become inactive.",در صورت انتخاب، تمام گردش های دیگر غیر فعال می شوند.,
@@ -1308,11 +1308,11 @@ Info,اطلاعات,
 Info:,اطلاعات:,
 Initial Sync Count,تعداد همگام سازی اولیه,
 InnoDB,سازی InnoDB,
-Insert Above,درج بالاتر,
+Insert Above,افزودن ردیف بالایی,
 Insert After,درج پس از,
 Insert After cannot be set as {0},قرار دادن به عنوان پس می توانید تنظیم شود {0},
 "Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist",قرار دادن بعد از میدان &#39;{0}&#39; ذکر شده در سفارشی درست &#39;{1}&#39;، با برچسب &#39;{2}، وجود ندارد,
-Insert Below,قرار دادن در زیر,
+Insert Below,افزودن ردیف پایینی,
 Insert Column Before {0},درج ستون قبل از {0},
 Insert Style,درج سبک,
 Insert new records,سوابق جدید را وارد کنید,
@@ -1584,7 +1584,7 @@ Name of the new Print Format,نام فرمت چاپ جدید,
 Name of {0} cannot be {1},نام {0} نمی تواند {1},
 Names and surnames by themselves are easy to guess.,نام و نام خانوادگی خود به خود به راحتی حدس زده.,
 Naming,نامگذاری,
-"Naming Options:\n<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>","گزینه های نامگذاری: <ol style=""""><li style=""""> <b>فیلد: [نام فیلد]</b> - توسط فیلد </li><li style=""""> <b>naming_series:</b> - با نام سری (فیلد به نام naming_series باید حضور داشته باشد </li><li style=""""> <b>اعلان</b> - کاربر سریع برای یک نام </li><li style=""""> <b>[سری]</b> - سری توسط پیشوند (با یک نقطه جداگانه)؛ برای مثال PRE. ##### </li><li style=""""> <b>فرمت: EXAMPLE- {MM} بیشترwords {fieldname1} - {fieldname2} - {#####}</b> - همه کلمات با نام <b>مستعار (نامهای فیلدی</b> ، کلمات تاریخی (DD، MM، YY، سری) را با ارزش خود جایگزین کنید. بیس بال، هر شخصیت می تواند مورد استفاده قرار گیرد. </li></ol>",
+"Naming Options:\n<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>","گزینه های نامگذاری: <ol style=""""><li style=""""> <b>فیلد: [نام فیلد]</b> - توسط فیلد </li><li style=""""> <b>naming_series:</b> - با نام سری (فیلد به نام naming_series باید حضور داشته باشد </li><li style=""""> <b>نوتیفیکیشن</b> - کاربر سریع برای یک نام </li><li style=""""> <b>[سری]</b> - سری توسط پیشوند (با یک نقطه جداگانه)؛ برای مثال PRE. ##### </li><li style=""""> <b>فرمت: EXAMPLE- {MM} بیشترwords {fieldname1} - {fieldname2} - {#####}</b> - همه کلمات با نام <b>مستعار (نامهای فیلدی</b> ، کلمات تاریخی (DD، MM، YY، سری) را با ارزش خود جایگزین کنید. بیس بال، هر شخصیت می تواند مورد استفاده قرار گیرد. </li></ol>",
 Naming Series mandatory,شناسه‌گذاری سری اجباری,
 Nested set error. Please contact the Administrator.,خطا مجموعه ای تو در تو. لطفا با مدیر تماس بگیرید.,
 New Activity,فعالیت جدید,
@@ -2205,7 +2205,7 @@ Send Email Print Attachments as PDF (Recommended),ارسال پیوست های �
 Send Email for Successful Backup,ارسال ایمیل برای پشتیبان گیری موفق,
 Send Me A Copy of Outgoing Emails,ارسال یک کپی از ایمیل های خروجی,
 Send Notification to,ارسال هشدار به,
-Send Notifications To,ارسال اعلانها به,
+Send Notifications To,ارسال نوتیفیکیشنها به,
 Send Print as PDF,ارسال چاپ به عنوان PDF,
 Send Read Receipt,ارسال رسید خواندن,
 Send Unsubscribe Link,ارسال پیوند لغو اشتراک,
@@ -2259,7 +2259,7 @@ Settings for OAuth Provider,تنظیمات برای ارائه OAuth تأیید,
 Settings for the About Us Page,تنظیمات برای درباره ما صفحه,
 Setup Auto Email,راه اندازی ایمیل خودکار,
 Setup Complete,راه اندازی کامل,
-Setup Notifications based on various criteria.,اعلان های راه اندازی بر اساس معیارهای مختلف,
+Setup Notifications based on various criteria.,نوتیفیکیشن های راه اندازی بر اساس معیارهای مختلف,
 Setup Reports to be emailed at regular intervals,گزارش راه اندازی در فواصل منظم ایمیل فرستاده شود,
 "Setup of top navigation bar, footer and logo.",راه اندازی ناوبری بار بالا، بالا و پایین صفحه و آرم.,
 Share,اشتراک گذاری,
@@ -2312,7 +2312,7 @@ Single Types have only one record no tables associated. Values are stored in tab
 Skip Authorization,پرش مجوز,
 Skip rows with errors,ردیف ها را با اشتباه پر کن,
 Skype,اسکایپ,
-Slack,لاغر,
+Slack,اسلک,
 Slack Channel,کانال اسلک,
 Slack Webhook Error,خطای Slack Webhook,
 Slack Webhook URL,نشانی اینترنتی Slacl Webhook,
@@ -2387,7 +2387,7 @@ Submit {0} documents?,ارسال اسناد {0}؟,
 Submitting {0},ارسال {0},
 Submitted Document cannot be converted back to draft. Transition row {0},سند فرستاده ممکن نیست تبدیل به پیش نویس است. ردیف گذار {0},
 Submitting,ارسال,
-Subscription Notification,اعلان اشتراک,
+Subscription Notification,نوتیفیکیشن اشتراک,
 Subsidiary,فرعی,
 Success Action,اقدام موفقیت آمیز,
 Success Message,پیغام موفقیت,
@@ -2670,7 +2670,7 @@ Valid email and name required,ایمیل معتبر و نام مورد نیاز,
 Value Based On,بر اساس ارزش,
 Value Change,تغییر ارزش,
 Value Changed,مقدار تغییر,
-Value To Be Set,ارزش به تنظیم شود,
+Value To Be Set,مقداری که باید تنظیم شود,
 Value cannot be changed for {0},ارزش می تواند برای عوض نمی شوند {0},
 Value for a check field can be either 0 or 1,ارزش یک میدان چک می تواند یا 0 یا 1,
 Value for {0} cannot be a list,ارزش {0} می تواند یک لیست نیست,
@@ -3123,11 +3123,11 @@ Workflow Action is not created for optional states,Actionflow Action برای ح
 1 record will be exported,1 رکورد صادر می شود,
 1 week ago,1 هفته قبل,
 5 Records,5 رکورد,
-A recurring {0} {1} has been created for you via Auto Repeat {2}.,تکرار {0} {1} از طریق تکرار خودکار {2 for برای شما ایجاد شده است.,
+A recurring {0} {1} has been created for you via Auto Repeat {2}.,یک {0} {1} تکراری برای شما از طریق تکرار خودکار {2} ایجاد شده است.,
 API,API,
 API Method,روش API,
-About {0} minute remaining,حدود 0} دقیقه باقی مانده است,
-About {0} minutes remaining,حدود 0} دقیقه باقی مانده است,
+About {0} minute remaining,حدود {0} دقیقه باقی مانده است,
+About {0} minutes remaining,حدود {0} دقیقه باقی مانده است,
 About {0} seconds remaining,حدود {0} ثانیه باقی مانده است,
 Access Log,ورود به سیستم,
 Access not allowed from this IP Address,دسترسی از این آدرس IP مجاز نیست,
@@ -3161,8 +3161,8 @@ Approval Required,تأیید لازم است,
 Approved,تایید,
 Are you sure you want to delete all rows?,آیا مطمئن هستید که می خواهید همه ردیف ها را حذف کنید؟,
 Are you sure you want to delete this post?,آیا مطمئن هستید که می خواهید این پست را حذف کنید؟,
-Are you sure you want to merge {0} with {1}?,آیا مطمئن هستید که می خواهید {0} را با 1 {mer ادغام کنید؟,
-Assignment Day {0} has been repeated.,روز اختصاص 0} تکرار شده است.,
+Are you sure you want to merge {0} with {1}?,آیا مطمئن هستید که می‌خواهید {0} را با {1} ادغام کنید؟,
+Assignment Day {0} has been repeated.,روز تعیین وظیفه {0} تکرار شده است.,
 Assignment Days,روزهای اختصاص,
 Assignment Rule Day,روز قانون تعیین تکلیف,
 Assignments,تکالیف,
@@ -3173,7 +3173,7 @@ Authorize Google Drive Access,دسترسی Google Drive را مجاز کنید,
 Auto Repeat Document Creation Failed,تکرار خودکار ایجاد سند انجام نشد,
 Auto Repeat Document Creation Failure,عدم موفقیت در ایجاد سند تکرار خودکار,
 Auto Repeat created for this document,تکرار خودکار ایجاد شده برای این سند,
-Auto Repeat failed for {0},تکرار خودکار برای {0 انجام نشد,
+Auto Repeat failed for {0},تکرار خودکار برای {0} انجام نشد,
 Automatic Linking can be activated only for one Email Account.,پیوند خودکار می تواند فقط برای یک حساب ایمیل فعال شود.,
 Automatic Linking can be activated only if Incoming is enabled.,پیوند خودکار فقط در صورت فعال بودن ورودی می تواند فعال شود.,
 Automatically generates recurring documents.,اسناد تکرار به صورت خودکار تولید می کند.,
@@ -3193,17 +3193,17 @@ Cancelling documents,لغو اسناد,
 Cannot match column {0} with any field,ستون {0} با هیچ فیلدی مطابقت ندارد,
 Change,تغییر,
 Change User,تغییر کاربر,
-Check the Error Log for more information: {0},برای اطلاعات بیشتر ورود به سیستم خطا را بررسی کنید: {0,
+Check the Error Log for more information: {0},برای اطلاعات بیشتر، گزارش خطا را بررسی کنید: {0},
 Clear Cache and Reload,پاک کردن حافظه پنهان و بارگیری مجدد,
 Clear Filters,پاک کردن فیلترها,
 Click on <b>Authorize Google Drive Access</b> to authorize Google Drive Access.,برای <b>تأیید دسترسی Google Drive دسترسی ،</b> روی <b>تأیید دسترسی Google Drive</b> کلیک کنید.,
 Click on a file to select it.,برای انتخاب روی یک پرونده کلیک کنید.,
 Click on the link below to approve the request,برای تأیید درخواست ، روی پیوند زیر کلیک کنید,
 Click on the lock icon to toggle public/private,برای جابجایی عمومی / خصوصی روی نماد قفل کلیک کنید,
-Click on {0} to generate Refresh Token.,برای تولید Refresh Token روی {0 کلیک کنید.,
+Click on {0} to generate Refresh Token.,برای ایجاد توکن بازنشانی، روی {0} کلیک کنید.,
 Close Condition,شرایط نزدیک,
 Columns / Fields,ستون ها / فیلدها,
-"Configure notifications for mentions, assignments, energy points and more.",پیکربندی اعلان ها برای موارد ذکر شده ، تکالیف ، نقاط انرژی و موارد دیگر.,
+"Configure notifications for mentions, assignments, energy points and more.",پیکربندی نوتیفیکیشن ها برای موارد ذکر شده ، تکالیف ، نقاط انرژی و موارد دیگر.,
 Contact Email,تماس با ایمیل,
 Contact Numbers,شماره تماس,
 Contact Phone,تماس با تلفن,
@@ -3237,7 +3237,7 @@ Document Title,عنوان اسناد,
 Document Type Field Mapping,نقشه نوع فیلد سند,
 Document Type Mapping,نگاشت نوع نقشه,
 Document Type {0} has been repeated.,نوع سند {0} تکرار شده است.,
-Document renamed from {0} to {1},سند از {0} به 1 {تغییر نام داد,
+Document renamed from {0} to {1},سند از {0} به {1} تغییر نام یافت.,
 Document type is required to create a dashboard chart,برای ایجاد نمودار داشبورد نوع سند لازم است,
 Documentation Link,پیوند مستندات,
 Don't Import,وارد نکنید,
@@ -3249,13 +3249,13 @@ Drop files here,فایل‌ها را اینجا رها کنید,
 Dynamic Template,الگوی پویا,
 ERPNext Role,نقش ERPNext,
 Email / Notifications,ایمیل / نوتیفیکیشن‌ها,
-Email Account setup please enter your password for: {0},راه اندازی حساب ایمیل لطفا رمز ورود خود را وارد کنید برای: {0,
+Email Account setup please enter your password for: {0},تنظیم حساب ایمیل، لطفاً رمز عبور خود را برای: {0} وارد کنید.,
 Email Address whose Google Contacts are to be synced.,آدرس ایمیلی که مخاطبین Google آنها باید همگام شوند.,
-"Email ID must be unique, Email Account already exists for {0}",شناسه ایمیل باید منحصر به فرد باشد ، حساب ایمیل قبلاً {0 already وجود دارد,
+"Email ID must be unique, Email Account already exists for {0}","شناسه ایمیل باید یکتا باشد، حساب ایمیل برای {0} از قبل وجود دارد.",
 Email IDs,ایمیل شناسه,
 Enable Allow Auto Repeat for the doctype {0} in Customize Form,فعال‌سازی گزینه 'اجازه تکرار خودکار' برای داک تایپ {0} در سفارشی‌سازی فرم,
 Enable Automatic Linking in Documents,پیوند خودکار را در اسناد فعال کنید,
-Enable Email Notifications,اعلان های ایمیل را فعال کنید,
+Enable Email Notifications,نوتیفیکیشن های ایمیل را فعال کنید,
 Enable Google API in Google Settings.,Google API را در تنظیمات Google فعال کنید.,
 Enable Security,امنیت را فعال کنید,
 Energy Point,نقطه انرژی,
@@ -3292,7 +3292,7 @@ Finished,تمام شده,
 First,اولین,
 For Document Event,برای رویداد اسناد,
 "For more information, <a class=""text-muted"" href=""https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document"">click here</a>.","برای اطلاعات بیشتر ، <a class=""text-muted"" href=""https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document"">اینجا را کلیک کنید</a>",
-"For more information, {0}.",برای اطلاعات بیشتر ، {0.,
+"For more information, {0}.","برای اطلاعات بیشتر، {0}.",
 "For performance, only the first 100 rows were processed.",برای عملکرد ، فقط 100 ردیف اول پردازش شدند.,
 Form URL-Encoded,فرم رمزگذاری شده URL,
 Frequently Visited Links,پیوندهای مکرر بازدید شده,
@@ -3308,23 +3308,23 @@ Go to previous record,به رکورد قبلی بروید,
 Google API Settings.,تنظیمات API Google.,
 Google Calendar,تقویم Google,
 "Google Calendar - Could not create Calendar for {0}, error code {1}.",تقویم Google - تقویم برای {0} ، کد خطا {1} ایجاد نشد.,
-"Google Calendar - Could not delete Event {0} from Google Calendar, error code {1}.",تقویم Google - رویداد {0 از Google Calendar ، کد خطا {1 delete حذف نشد.,
-"Google Calendar - Could not fetch event from Google Calendar, error code {0}.",تقویم Google - نمی توان رویدادی را از تقویم Google ، کد خطا {0 fet دریافت کرد.,
+"Google Calendar - Could not delete Event {0} from Google Calendar, error code {1}.","تقویم گوگل - نتوانستیم رویداد {0} را از تقویم گوگل حذف کنیم، کد خطا {1}.",
+"Google Calendar - Could not fetch event from Google Calendar, error code {0}.","تقویم گوگل - نتوانستیم رویداد را از تقویم گوگل دریافت کنیم، کد خطا {0}.",
 "Google Calendar - Could not insert contact in Google Contacts {0}, error code {1}.",تقویم Google - نمی توانید مخاطب را در مخاطبین Google {0} ، کد خطا 1 insert وارد کنید.,
 "Google Calendar - Could not insert event in Google Calendar {0}, error code {1}.",تقویم Google - نمی توان رویدادی را در تقویم Google {0} ، کد خطا 1 insert وارد کرد.,
-"Google Calendar - Could not update Event {0} in Google Calendar, error code {1}.",تقویم Google - رویداد {0 در تقویم Google ، کد خطا {1 ould به روز نشد.,
+"Google Calendar - Could not update Event {0} in Google Calendar, error code {1}.","تقویم گوگل - نتوانستیم رویداد {0} را در تقویم گوگل به‌روزرسانی کنیم، کد خطا {1}.",
 Google Calendar Event ID,شناسه رویداد تقویم Google,
 Google Calendar Integration.,ادغام تقویم Google.,
 Google Calendar has been configured.,تقویم Google پیکربندی شده است.,
 Google Contacts,مخاطبین Google,
-"Google Contacts - Could not sync contacts from Google Contacts {0}, error code {1}.",مخاطبین Google - نمی توانید مخاطبین را از مخاطبین Google {0 error ، کد خطای 1 sy همگام سازی کنید.,
-"Google Contacts - Could not update contact in Google Contacts {0}, error code {1}.",مخاطبین Google - تماس با ما در تماس های Google {0} ، کد خطا {1 ould امکان به روزرسانی وجود ندارد.,
+"Google Contacts - Could not sync contacts from Google Contacts {0}, error code {1}.","مخاطبین گوگل - نتوانستیم مخاطبین را از مخاطبین گوگل {0} همگام‌سازی کنیم، کد خطا {1}.",
+"Google Contacts - Could not update contact in Google Contacts {0}, error code {1}.","مخاطبین گوگل - نتوانستیم مخاطب را در مخاطبین گوگل {0} به‌روزرسانی کنیم، کد خطا {1}.",
 Google Contacts Id,شناسه مخاطبین Google,
 Google Contacts Integration is disabled.,ادغام مخاطبین Google غیرفعال است.,
 Google Contacts Integration.,ادغام مخاطبین Google.,
 Google Contacts has been configured.,مخاطبین Google پیکربندی شده است.,
 Google Drive,درایو گوگل,
-Google Drive - Could not create folder in Google Drive - Error Code {0},Google Drive - پوشه ای در Google Drive ایجاد نشد - کد خطا {0,
+Google Drive - Could not create folder in Google Drive - Error Code {0},"درایو گوگل - نتوانستیم پوشه‌ای در درایو گوگل ایجاد کنیم - کد خطا {0}",
 Google Drive - Could not find folder in Google Drive - Error Code {0},Google Drive - پوشه در Google Drive یافت نشد - کد خطا {0},
 Google Drive Backup Successful.,پشتیبان گیری از Google Drive با موفقیت انجام شد.,
 Google Drive Backup.,پشتیبان گیری از Google Drive.,
@@ -3354,13 +3354,13 @@ Import Type,نوع درون‌ریزی,
 Import Warnings,هشدارهای درون‌ریزی,
 "Import template should be of type .csv, .xlsx or .xls",الگوی درون‌ریزی باید از نوع ccv ، xxx یا xx باشد,
 Import template should contain a Header and atleast one row.,الگوی درون‌ریزی باید حاوی یک هدر و حداقل یک ردیف باشد.,
-Importing {0} of {1},درون‌ریزی {0} از 1 {,
-"Importing {0} of {1}, {2}",درون‌ریزی {0} از 1 {} ، {2,
+Importing {0} of {1},درون‌ریزی {0} از {1},
+"Importing {0} of {1}, {2}","درون‌ریزی {0} از {1} ، {2}",
 Include indentation,تورفتگی را درج کنید,
 Incoming Change,تغییر ورودی,
 Invalid Filter Value,مقدار فیلتر نامعتبر است,
 Invalid URL,URL نامعتبر است,
-Invalid field name: {0},نام فیلد نامعتبر: {0,
+Invalid field name: {0},نام فیلد نامعتبر: {0},
 Invalid file URL. Please contact System Administrator.,URL پرونده نامعتبر است. لطفا با مدیر سیستم تماس بگیرید.,
 Invalid include path,مسیر نامعتبر است,
 Invalid username or password,نام کاربری یا گذرواژه نامعتبر است,
@@ -3414,20 +3414,20 @@ Naming Series,سری‌های شناسه‌گذاری,
 Navigate Home,حرکت به صفحه اصلی,
 Navigate list down,لیست را به پایین بروید,
 Navigate list up,پیمایش لیست کنید,
-New Notification,اعلان جدید,
-New {0}: {1},{0 New جدید: {1,
+New Notification,نوتیفیکیشن جدید,
+New {0}: {1},{0} جدید: {1},
 Newsletter should have atleast one recipient,خبرنامه باید یک گیرنده داشته باشد,
 No Events Today,هیچ رویدادی امروز,
 No Google Calendar Event to sync.,هیچ رویدادی در تقویم Google برای همگام سازی وجود ندارد.,
 No More Activity,هیچ فعالیتی بیشتر,
-No Name Specified for {0},هیچ اسمی برای {0 ified مشخص نشده است,
-No Upcoming Events,هیچ رویدادی در آینده,
+No Name Specified for {0},هیچ نامی برای {0} مشخص نشده است,
+No Upcoming Events,هیچ رویدادی در آینده وجود ندارد,
 No activity,بدون فعالیت,
 No conditions provided,هیچ شرطی ارائه نشده است,
 No contacts linked to document,هیچ تماسی با سند مرتبط نیست,
 No data to export,داده ای برای برون‌ریزی وجود ندارد,
-No documents found tagged with {0},هیچ سندی با برچسب 0 {یافت نشد,
-No failed logs,هیچ سیاهههای مربوط به شکست خورده,
+No documents found tagged with {0},هیچ سندی با برچسب {0} یافت نشد,
+No failed logs,هیچ لاگی مربوط به شکست وجود ندارد,
 No filters found,هیچ فیلتر یافت نشد,
 No more items to display,موارد دیگری برای نمایش وجود ندارد,
 No more posts,پست دیگری وجود ندارد,
@@ -3438,16 +3438,16 @@ No records will be exported,هیچ سابقه ای برون‌ریزی نمی ش
 No results found for {0} in Global Search,در جستجوی کلی هیچ نتیجه ای برای {0} یافت نشد,
 No user found,هیچ کاربری یافت نشد,
 Notification Log,ورود به سیستم اطلاع رسانی,
-Notification Settings,تنظیمات اعلان,
-Notification Subscribed Document,اعلان سند مشترک,
-Notifications Disabled,اعلان ها غیرفعال شدند,
+Notification Settings,تنظیمات نوتیفیکیشن,
+Notification Subscribed Document,نوتیفیکیشن سند مشترک,
+Notifications Disabled,نوتیفیکیشن ها غیرفعال شدند,
 Number of Groups,تعداد گروه ها,
 OAuth Client ID,شناسه مشتری OAuth,
 OTP setup using OTP App was not completed. Please contact Administrator.,نصب OTP با استفاده از برنامه OTP تکمیل نشد. لطفا با سرپرست تماس بگیرید.,
 Only one {0} can be set as primary.,فقط یک {0} می تواند به عنوان اصلی تنظیم شود.,
 Open Awesomebar,نوار جستجوی پیشرفته را باز کنید,
 Open Chat,گپ را باز کنید,
-Open Documents,اسناد را باز کنید,
+Open Documents,باز کردن اسناد,
 Open Help,راهنما را باز کنید,
 Open Settings,تنظیمات را باز کنید,
 Open list item,باز کردن مورد لیست,
@@ -3459,20 +3459,20 @@ Pin Globally,پین در سطح جهان,
 Places,اماکن,
 Please check the filter values set for Dashboard Chart: {},لطفا مقادیر فیلتر تعیین شده برای نمودار داشبورد را بررسی کنید: {},
 Please enable pop-ups in your browser,لطفاً پنجره های بازشو را در مرورگر خود فعال کنید,
-Please find attached {0}: {1},لطفا پیوست {0} پیدا کنید: {1,
+Please find attached {0}: {1},لطفا پیوست {0} را پیدا کنید: {1},
 Please select applicable Doctypes,لطفا Doctypes قابل اجرا را انتخاب کنید,
 Portrait,پرتره,
 Press Alt Key to trigger additional shortcuts in Menu and Sidebar,کلید کلید Alt را فشار دهید تا میانبرهای اضافی در منو و نوار کناری ایجاد شود,
 Print Settings...,چاپ تنظیمات ...,
 Producer Document Name,نام سند سازنده,
 Producer URL,URL تولید کننده,
-Property Depends On,بستگی به املاک دارد,
-Pull from Google Calendar,از تقویم Google بکشید,
-Pull from Google Contacts,از مخاطبین Google بکشید,
-Pulled from Google Calendar,از تقویم Google بیرون کشیده شد,
-Pulled from Google Contacts,از مخاطبین Google کشیده شد,
-Push to Google Calendar,به تقویم Google فشار دهید,
-Push to Google Contacts,به مخاطبین Google فشار دهید,
+Property Depends On,ویژگی وابسته به,
+Pull from Google Calendar,از تقویم گوگل بکشید,
+Pull from Google Contacts,از مخاطبین گوگل بکشید,
+Pulled from Google Calendar,از تقویم گوگل بیرون کشیده شد,
+Pulled from Google Contacts,از مخاطبین گوگل کشیده شد,
+Push to Google Calendar,به تقویم گوگل وارد کنید,
+Push to Google Contacts,به مخاطبین گوگل وارد کنید,
 Queue / Worker,صف / کارگر,
 RAW Information Log,گزارش اطلاعات خام,
 Raw Printing Settings...,تنظیمات چاپ خام ...,
@@ -3516,7 +3516,7 @@ Select Mandatory,انتخاب اجباری,
 Select atleast 2 actions,اقدامات حداکثر 2 را انتخاب کنید,
 Select list item,مورد لیست را انتخاب کنید,
 Select multiple list items,موارد چند لیست را انتخاب کنید,
-Send an email to {0} to link it here,برای پیوند دادن به اینجا ، ایمیل خود را به {0 ارسال کنید,
+Send an email to {0} to link it here,برای پیوند دادن به اینجا ، ایمیل خود را به {0} ارسال کنید,
 Server Action,اقدام سرور,
 Server Script,اسکریپت سرور,
 Session Default,صفحه پیش فرض,
@@ -3531,30 +3531,30 @@ Show Keyboard Shortcuts,میانبرهای صفحه کلید را نمایش د�
 Show More Activity,فعالیت بیشتر نشان دهید,
 Show Traceback,نمایش ردگیری,
 Show Warnings,نمایش هشدارها,
-Showing only first {0} rows out of {1},نمایش فقط first 0 first ردیف های اول از {1,
+Showing only first {0} rows out of {1},نمایش فقط {0} ردیف اول از {1},
 "Simple Python Expression, Example: Status in (""Invalid"")",بیان ساده پایتون ، مثال: وضعیت در (&quot;نامعتبر&quot;),
 Skipping Untitled Column,پرش از ستون بدون عنوان,
 Skipping column {0},پرش ستون {0},
 Social Home,خانه اجتماعی,
 Some columns might get cut off when printing to PDF. Try to keep number of columns under 10.,ممکن است برخی از ستون ها هنگام چاپ به PDF قطع شوند. سعی کنید تعداد ستون ها را زیر 10 نگه دارید.,
-Something went wrong during the token generation. Click on {0} to generate a new one.,در طول تولید نشانه ها مشکلی پیش آمد. برای تولید یک محصول جدید روی {0 کلیک کنید.,
+Something went wrong during the token generation. Click on {0} to generate a new one.,در حین تولید توکن مشکلی پیش آمده است. روی {0} کلیک کنید تا توکن جدیدی تولید شود.,
 Submit After Import,ثبت پس از درون‌ریزی,
 Submitting...,در حال ارسال ...,
 Success! You are good to go 👍,موفقیت! شما خوب هستید که بروید,
 Successful Transactions,معاملات موفق,
 Successfully Submitted!,با موفقیت ارسال شد,
-Successfully imported {0} record.,رکورد موفقیت آمیز {0 را وارد کنید.,
+Successfully imported {0} record.,رکورد {0} با موفقیت وارد شد.,
 Successfully imported {0} records.,سوابق {0} با موفقیت وارد شد.,
-Successfully updated {0} record.,رکورد موفقیت آمیز {0 به روز شد.,
-Successfully updated {0} records.,سوابق با موفقیت 0 {به روز شد.,
-Sync Calendar,تقویم همگام سازی,
+Successfully updated {0} record.,رکورد {0} با موفقیت به‌روزرسانی شد.,
+Successfully updated {0} records.,رکوردهای {0} با موفقیت به‌روزرسانی شدند.,
+Sync Calendar,همگام‌سازی تقویم,
 Sync Contacts,همگام سازی مخاطبین,
 Sync with Google Calendar,همگام سازی با تقویم Google,
 Sync with Google Contacts,همگام سازی با مخاطبین Google,
 Synced,همگام سازی,
 Syncing,همگام سازی,
-Syncing {0} of {1},همگام سازی {0} از {1,
-Tag Link,پیوند برچسب,
+Syncing {0} of {1},همگام سازی {0} از {1},
+Tag Link,برچسب پیوند,
 Take Backup,از نسخه پشتیبان تهیه کنید,
 Template Error,خطای الگو,
 Template Options,گزینه های الگو,
@@ -3565,20 +3565,20 @@ The mapping configuration between two doctypes.,پیکربندی نقشه برد
 The site which is consuming your events.,سایتی که رویدادهای شما را مصرف می کند.,
 The site you want to subscribe to for consuming events.,سایتی که می خواهید برای مصرف رویدادها در آن مشترک شوید.,
 The webhook will be triggered if this expression is true,اگر این عبارت صحیح باشد ، webhook فعال خواهد شد,
-The {0} is already on auto repeat {1},{0 در حال تکرار خودکار {1 است,
+The {0} is already on auto repeat {1},{0} در حال حاضر به‌طور خودکار تکرار می‌شود {1},
 There are some linked records which needs to be created before we can import your file. Do you want to create the following missing records automatically?,برخی از پرونده های مرتبط وجود دارد که باید قبل از وارد کردن پرونده شما ایجاد شوند. آیا می خواهید سوابق گمشده زیر را بطور خودکار ایجاد کنید؟,
-There should be atleast one row for the following tables: {0},برای جداول زیر باید یک ردیف حداقل وجود داشته باشد: {0,
-There should be atleast one row for {0} table,برای یک جدول 0 {باید حداقل یک ردیف وجود داشته باشد,
+There should be atleast one row for the following tables: {0},برای جداول زیر باید یک ردیف حداقل وجود داشته باشد: {0},
+There should be atleast one row for {0} table,برای جدول {0} باید حداقل یک ردیف وجود داشته باشد,
 This action is only allowed for {},این اقدام فقط برای {} مجاز است,
 This cannot be undone,این قابل بازگشت نیست,
 Time Format,قالب زمان,
 Time series based on is required to create a dashboard chart,برای ایجاد نمودار داشبورد سری زمانی مبتنی بر آن لازم است,
-Time {0} must be in format: {1},زمان {0} باید در قالب باشد: {1,
-"To configure Auto Repeat, enable ""Allow Auto Repeat"" from {0}.",برای پیکربندی تکرار خودکار ، &quot;اجازه تکرار خودکار&quot; را از {0 enable فعال کنید.,
-To enable it follow the instructions in the following link: {0},برای فعال کردن این دستورالعمل را در لینک زیر دنبال کنید: {0},
-"To use Google Calendar, enable {0}.",برای استفاده از Google Calendar ، {0 enable را فعال کنید.,
-"To use Google Contacts, enable {0}.",برای استفاده از مخاطبین Google ، {0 enable را فعال کنید.,
-"To use Google Drive, enable {0}.",برای استفاده از Google Drive ، {0 enable را فعال کنید.,
+Time {0} must be in format: {1},زمان {0} باید در این قالب باشد: {1},
+"To configure Auto Repeat, enable ""Allow Auto Repeat"" from {0}.","برای پیکربندی تکرار خودکار، گزینه ""اجازه تکرار خودکار"" را از {0} فعال کنید.",
+To enable it follow the instructions in the following link: {0},برای فعال‌سازی آن، دستورالعمل‌های موجود در لینک زیر را دنبال کنید: {0},
+"To use Google Calendar, enable {0}.",برای استفاده از تقویم گوگل، گزینه {0} را فعال کنید.,
+"To use Google Contacts, enable {0}.",برای استفاده از مخاطبین گوگل، گزینه {0} را فعال کنید.,
+"To use Google Drive, enable {0}.",برای استفاده از درایو گوگل، گزینه {0} را فعال کنید.,
 Today's Events,رویدادهای امروز,
 Toggle Public/Private,تغییر حالت عمومی / خصوصی,
 Tracks milestones on the lifecycle of a document if it undergoes multiple stages.,اگر مراحل مختلفی را پشت سر بگذارد ، نقاط عطف چرخه عمر یک سند را ردیابی می کند.,
@@ -3593,12 +3593,12 @@ Untranslated,بدون ترجمه,
 Upcoming Events,رویدادهای نزدیک,
 Update Existing Records,سوابق موجود را به روز کنید,
 Updated To A New Version 🎉,به نسخه جدید به روز شد 🎉,
-"Updating {0} of {1}, {2}",به روزرسانی {0} از {1}، {2},
+"Updating {0} of {1}, {2}","به روزرسانی {0} از {1}، {2}",
 Upload file,آپلود فایل,
 Upload {0} files,بارگذاری {0} فایل,
 Uploaded To Google Drive,در گوگل درایو بارگذاری شد,
 Uploaded successfully,با موفقیت بارگذاری شد,
-Uploading {0} of {1},بارگیری {0} از {1},
+Uploading {0} of {1},بارگذاری {0} از {1},
 Use SSL for Outgoing,از SSL برای خروجی استفاده کنید,
 Use Same Name,از همان نام استفاده کنید,
 Used For Google Maps Integration.,مورد استفاده برای ادغام نقشه های Google.,
@@ -3608,8 +3608,8 @@ User Settings,تنظیمات کاربر,
 User does not exist,کاربر وجود ندارد,
 User {0} has requested for data deletion,کاربر {0} برای حذف داده ها درخواست کرده است,
 Users assigned to the reference document will get points.,کاربران اختصاص یافته به سند مرجع امتیاز دریافت می کنند.,
-Value must be one of {0},ارزش باید یکی از {0 باشد,
-Value {0} missing for {1},ارزش {0} برای 1 {از دست رفته,
+Value must be one of {0},مقدار باید یکی از {0} باشد,
+Value {0} missing for {1},مقدار {0} برای {1} از بین رفته,
 Verification,تایید,
 Verification Code,کد تایید,
 Verification code email not sent. Please contact Administrator.,ایمیل تأیید صحت ارسال نشده است. لطفا با سرپرست تماس بگیرید.,
@@ -3625,7 +3625,7 @@ Weekly Long,طولانی هفتگی,
 "When enabled this will allow guests to upload files to your application, You can enable this if you wish to collect files from user without having them to log in, for example in job applications web form.",با فعال کردن این امکان میهمان ها می توانند فایل ها را در برنامه شما بارگذاری کنند ، اگر می خواهید پرونده هایی را از کاربر جمع کنید بدون اینکه آنها مجبور به ورود به سیستم باشند ، این کار را فعال کنید ، به عنوان مثال در فرم برنامه های کاربردی شغلی.,
 Will run scheduled jobs only once a day for inactive sites. Default 4 days if set to 0.,مشاغل برنامه ریزی شده را فقط یک بار در روز برای سایتهای غیرفعال انجام می دهد. 4 روز پیش فرض در صورت تنظیم 0.,
 Workflow Status,وضعیت گردش کار,
-You are not allowed to export {} doctype,شما مجاز به برون‌ریزی ty} doctype نیستید,
+You are not allowed to export {} doctype,شما مجاز به برون‌ریزی داک‌تایپ {} نیستید,
 You can try changing the filters of your report.,می توانید فیلترهای گزارش خود را تغییر دهید.,
 You do not have permissions to cancel all linked documents.,شما اجازه لغو کلیه اسناد مرتبط را ندارید.,
 You need to create these first: ,ابتدا باید این موارد را ایجاد کنید:,
@@ -3635,12 +3635,12 @@ Your Target,هدف شما,
 "browse,",مرور کردن،,
 cancelled this document {0},این سند را ed 0 cancel لغو کرد,
 changed value of {0} {1},مقدار تغییر یافته از {0} به {1},
-changed values for {0} {1},مقادیر تغییر یافته برای {0 {1,
+changed values for {0} {1},مقادیر تغییر یافته برای {0} {1},
 choose an,را انتخاب کنید,
 empty,خالی,
 of,از,
 or attach a,یا پیوست کنید,
-submitted this document {0},ارسال این سند {0,
+submitted this document {0},این سند {0} را ثبت کرده‌اید.,
 "tag name..., e.g. #tag",نام برچسب ... ، به عنوان مثال #tag,
 uploaded file,پرونده بارگذاری شده,
 via Data Import,از طریق وارد کردن داده,
@@ -3649,18 +3649,18 @@ via Data Import,از طریق وارد کردن داده,
 {0} are mandatory fields,{0} فیلدهای اجباری هستند,
 {0} are required,{0} لازم است,
 {0} assigned a new task {1} {2} to you,{0} یک کار جدید {1} {2} به شما اختصاص داده است,
-{0} gained {1} point for {2} {3},{0} به دست آورد {1} امتیاز برای 2} 3},
-{0} gained {1} points for {2} {3},{0} به دست آورد for 1} امتیاز برای 2 {{3},
+{0} gained {1} point for {2} {3},{0} {1} امتیاز برای {2} {3} کسب کرد.,
+{0} gained {1} points for {2} {3},{0} {1} امتیاز برای {2} {3} کسب کرد.,
 {0} has no versions tracked.,{0} هیچ نسخه پیگیری نشده است.,
-{0} is not a valid report format. Report format should one of the following {1},{0} یک قالب گزارش معتبر نیست. قالب گزارش باید یکی از موارد زیر {1 باشد,
+{0} is not a valid report format. Report format should one of the following {1},{0} یک فرمت گزارش معتبر نیست. فرمت گزارش باید یکی از موارد زیر باشد: {1},
 {0} mentioned you in a comment in {1} {2},{0} شما را در نظری در {1} {2} ذکر کرده است,
-{0} of {1} ({2} rows with children),{0} از 1 {} (2 {ردیف با کودکان),
+{0} of {1} ({2} rows with children),{0} از {1} ({2} ردیف با زیرمجموعه‌ها),
 {0} records will be exported,سوابق {0} صادر خواهد شد,
-{0} shared a document {1} {2} with you,{0 a یک سند {1} {2} را با شما به اشتراک گذاشت,
-{0} should not be same as {1},{0} نباید برابر با {1 باشد,
+{0} shared a document {1} {2} with you,{0} سند {1} {2} را با شما به اشتراک گذاشت.,
+{0} should not be same as {1},{0} نباید برابر با {1} باشد,
 {0} translations pending,{0} ترجمه در انتظار,
 {0} {1} is linked with the following submitted documents: {2},{0} {1} با اسناد ارائه شده زیر مرتبط است: {2},
-"{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings",{0}: پیوست سند تکراری جدید انجام نشد. برای فعال کردن پیوست سند در ایمیل اعلان تکرار خودکار ، Print 1} را در تنظیمات چاپ فعال کنید,
+"{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings","{0}: نتوانستیم سند تکراری جدید را پیوست کنیم. برای فعال‌سازی پیوست سند در ایمیل اطلاع‌رسانی تکرار خودکار، گزینه {1} را در تنظیمات چاپ فعال کنید.",
 {0}: Fieldname cannot be one of {1},{0}: نام فیلد نمی تواند یکی از {1} باشد,
 {} Complete,{} کامل,
 ← Back to upload files,← بازگشت به بارگذاری پرونده ها,
@@ -4372,7 +4372,7 @@ Twilio Number,شماره Twilio,
 "To use WhatsApp for Business, initialize <a href=""#Form/Twilio Settings"">Twilio Settings</a>.","برای استفاده از WhatsApp برای تجارت ، <a href=""#Form/Twilio Settings"">تنظیمات Twilio را</a> اولیه <a href=""#Form/Twilio Settings"">کنید</a> .",
 "To use Slack Channel, add a <a href=""#List/Slack%20Webhook%20URL/List"">Slack Webhook URL</a>.","برای استفاده از Slack Channel ، یک <a href=""#List/Slack%20Webhook%20URL/List"">URL Slack Webhook</a> اضافه <a href=""#List/Slack%20Webhook%20URL/List"">کنید</a> .",
 Send System Notification,نوتیفیکیشن سیستم ارسال کن,
-"If enabled, the notification will show up in the notifications dropdown on the top right corner of the navigation bar.",در صورت فعال بودن ، اعلان در منوی کشویی اعلان ها در گوشه سمت راست بالای نوار پیمایش نشان داده می شود.,
+"If enabled, the notification will show up in the notifications dropdown on the top right corner of the navigation bar.",در صورت فعال بودن ، نوتیفیکیشن در منوی کشویی نوتیفیکیشن ها در گوشه سمت راست بالای نوار پیمایش نشان داده می شود.,
 Send To All Assignees,ارسال به همه مأموران,
 Receiver By Document Field,گیرنده توسط قسمت سند,
 Receiver By Role,گیرنده با نقش,
@@ -4623,7 +4623,7 @@ Based on Field,بر اساس فیلد,
 Assign to the user set in this field,در این قسمت به مجموعه کاربری اختصاص دهید,
 Log Setting User,ورود به سیستم کاربر,
 Log Settings,تنظیمات ورود به سیستم,
-Error Log Notification,اعلان ورود خطا,
+Error Log Notification,نوتیفیکیشن ورود خطا,
 Users To Notify,کاربران برای اطلاع رسانی,
 Log Cleanup,پاکسازی ورود به سیستم,
 Clear Error log After,ورود به سیستم خطا را پاک کنید,
@@ -4635,7 +4635,7 @@ Incorrect email or password. Please check your login credentials.,کلمه عب�
 Incorrect Configuration,پیکربندی نادرست است,
 You are not allowed to delete Standard Report,شما مجاز به حذف استاندارد گزارش نیستید,
 You have unseen {0},شما {0} را ندیده اید,
-Log cleanup and notification configuration,پیکربندی پاکسازی و اعلان ورود به سیستم,
+Log cleanup and notification configuration,پیکربندی پاکسازی و نوتیفیکیشن ورود به سیستم,
 State/Province,استان / استان,
 Document Actions,اقدامات سند,
 Document Links,پیوندهای سند,
@@ -4834,8 +4834,8 @@ Monthly Rank,رتبه ماهیانه,
 Loading user profile...,بارگذاری پروفایل کاربر...,
 {} Available,{} در دسترس,
 {} Pending,{} در انتظار,
-{}  To Receive,{} برای دریافت,
-{}  To Deliver,{} برای تحویل,
+{}  To Receive,{} در انتظار دریافت,
+{}  To Deliver,{} در انتظار تحویل,
 {} Open,{} باز,
 {} Assigned,{} تفویض شده,
 Copy to Clipboard,کپی در کلیپ بورد,
@@ -4941,11 +4941,11 @@ Custom Block Name,نام بلوک دلخواه,
 Forgot Password?,فراموشی رمز عبور؟,
 Login to Frappe,ورود به نرم افزار,
 Log in to access this page.,برای دسترسی به این صفحه، وارد شوید.,
-No New notifications,هیچ اعلان جدیدی وجود ندارد,
-Looks like you haven’t received any notifications.,به نظر می‌آید که هنوز هیچ اعلانی دریافت نکرده‌اید.,
+No New notifications,هیچ نوتیفیکیشن جدیدی وجود ندارد,
+Looks like you haven’t received any notifications.,به نظر می‌آید که هنوز هیچ نوتیفیکیشنی دریافت نکرده‌اید.,
 There are no upcoming events for you.,رویدادی برای شما در روزهای آتی وجود ندارد.,
 Event Reminders,یادآوری‌های رویداد,
-System Notifications,اعلان‌های سامانه,
+System Notifications,نوتیفیکیشن‌های سامانه,
 Get notified when an email is received on any of the documents assigned to you.,هنگامی که ایمیلی بر روی هر یک از اسناد تفویض شده به شما، دریافت می‌شود شما مطلع شوید.,
 Email Threads on Assigned Document,موضوعات ایمیل درباره اسناد اختصاص داده شده,
 First Day of the Week,اولین روز هفته,
@@ -4984,3 +4984,8 @@ Module Settings,تنظیمات ماژول,
 Fetching exchange rates ...,در حال دریافت نرخ تبدیل ...,
 You submitted this document,شما این سند را ثبت کردید,
 Updating related fields...,به روزرسانی فیلدهای مرتبط...,
+Disable Signups on site. New users will have to be manually registered by system managers.,غیرفعال کردن ثبت‌نام‌ها در سایت. کاربران جدید باید به صورت دستی توسط مدیران سیستم ثبت‌نام شوند.,
+App Logo,لوگوی اپلیکیشن,
+Login Page,صفحه ورود,
+Splash Image,تصویر اسپلش (هنگام بارگذاری),
+Go to Notification Settings List,برو به لیست تنظیمات نوتیفیکیشن	
