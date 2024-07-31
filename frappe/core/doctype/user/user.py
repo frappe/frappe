@@ -276,7 +276,11 @@ class User(Document):
 							user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions
 						)
 
-					if not self.flags.no_welcome_mail and cint(self.send_welcome_email):
+					if (
+						not self.flags.no_welcome_mail
+						and cint(self.send_welcome_email)
+						and not self.flags.email_sent
+					):
 						self.send_welcome_mail_to_user()
 						self.flags.email_sent = 1
 						if frappe.session.user != "Guest":
