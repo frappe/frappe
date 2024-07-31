@@ -641,7 +641,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 				if (this.layout?.set_value) {
 					this.layout.set_value(target_field, field_value);
-				} else {
+				} else if (this.frm) {
 					frappe.model.set_value(
 						this.df.parent,
 						this.docname,
