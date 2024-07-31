@@ -189,7 +189,7 @@ frappe.ui.GroupBy = class {
 
 	apply_settings(settings) {
 		let get_fieldname = (name) => name.split(".")[1].replace(/`/g, "");
-		let get_doctype = (name) => name.split(".")[0].replace(/`/g, "").replace("tab", "");
+		let get_doctype = (name) => name.split(".")[0].replace(/`/g, "").replace(/^tab/, "");
 
 		if (!settings.group_by.startsWith("`tab")) {
 			settings.group_by = "`tab" + this.doctype + "`.`" + settings.group_by + "`";
