@@ -104,7 +104,7 @@ export default class Header extends Block {
 		this._data = this.normalizeData(data);
 
 		if (data.text !== undefined) {
-			let text = this._data.text || "";
+			let text = __(this._data.text) || "";
 			const contains_html_tag = /<[a-z][\s\S]*>/i.test(text);
 			this._element.innerHTML = contains_html_tag
 				? text
