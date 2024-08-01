@@ -271,6 +271,12 @@ def get_context(context):
 			if recipient.condition:
 				if not frappe.safe_eval(recipient.condition, None, context):
 					continue
+
+			if recipient.user_group:
+				user_group = frappe.get_list("User Group Member", {'parent':recipient.user_group}, 'user')
+				for member in user_group:
+					recipients.append(member.user)
+
 			if recipient.receiver_by_document_field:
 				fields = recipient.receiver_by_document_field.split(",")
 				# fields from child table
