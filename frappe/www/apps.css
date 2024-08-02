@@ -1,0 +1,79 @@
+.container {
+	max-width: 1000px;
+	padding: 0 1.25rem;
+}
+
+.apps-navbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	height: 3rem;
+	border-bottom: 1px solid var(--border-color);
+}
+
+.apps-wrapper {
+	margin-top: 2.5rem;
+}
+
+.apps-container {
+	margin-top: 2rem;
+	margin-bottom: 2rem;
+	display: grid;
+	grid-template-columns: repeat(6, 60px);
+	row-gap: 50px;
+	justify-content: space-between;
+}
+
+.apps-title {
+	margin: 0;
+	font-size: var(--font-size-xl);
+}
+
+.app-icon {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-decoration: none;
+}
+
+.app-logo {
+	width: 60px;
+	height: 60px;
+	object-fit: cover;
+	transition: transform 0.2s;
+	border-radius: 13px;
+}
+
+.app-icon:hover {
+	text-decoration: none;
+}
+
+.app-icon:hover .app-logo {
+	transform: scale(1.05);
+}
+
+.app-title {
+	margin-top: 0.5rem;
+	font-size: 0.875rem;
+	font-weight: 400;
+	white-space: nowrap;
+	letter-spacing: 0.05em;
+	color: var(--gray-900);
+}
+
+@media (max-width: 900px) {
+	.apps-container {
+		grid-template-columns: repeat(6, 60px);
+	}
+}
+
+@media (max-width: 575px) {
+	.apps-container {
+		grid-template-columns: repeat(4, 60px);
+	}
+
+	.app-title {
+		font-size: 0.75rem;
+	}
+}
