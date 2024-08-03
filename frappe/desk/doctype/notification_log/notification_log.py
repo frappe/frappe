@@ -28,7 +28,12 @@ class NotificationLog(Document):
 		link: DF.Data | None
 		read: DF.Check
 		subject: DF.Text | None
+<<<<<<< HEAD
 		type: DF.Literal["Mention", "Energy Point", "Assignment", "Share", "Alert"]
+=======
+		type: DF.Literal["", "Mention", "Energy Point", "Assignment", "Share", "Alert"]
+	# end: auto-generated types
+>>>>>>> 20224011b8 (fix: default notification)
 
 	# end: auto-generated types
 	def after_insert(self):
