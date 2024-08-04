@@ -30,7 +30,7 @@ class EnergyPointLog(Document):
 		points: DF.Int
 		reason: DF.Text | None
 		reference_doctype: DF.Link | None
-		reference_name: DF.Data | None
+		reference_name: DF.DynamicLink | None
 		revert_of: DF.Link | None
 		reverted: DF.Check
 		rule: DF.Link | None

@@ -57,7 +57,7 @@ class EmailQueue(Document):
 		priority: DF.Int
 		recipients: DF.Table[EmailQueueRecipient]
 		reference_doctype: DF.Link | None
-		reference_name: DF.Data | None
+		reference_name: DF.DynamicLink | None
 		retry: DF.Int
 		send_after: DF.Datetime | None
 		sender: DF.Data | None

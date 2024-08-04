@@ -15,7 +15,7 @@ class Milestone(Document):
 		from frappe.types import DF
 
 		milestone_tracker: DF.Link | None
-		reference_name: DF.Data
+		reference_name: DF.DynamicLink
 		reference_type: DF.Link
 		track_field: DF.Data
 		value: DF.Data

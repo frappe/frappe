@@ -20,7 +20,7 @@ class NotificationLog(Document):
 		from frappe.types import DF
 
 		attached_file: DF.Code | None
-		document_name: DF.Data | None
+		document_name: DF.DynamicLink | None
 		document_type: DF.Link | None
 		email_content: DF.TextEditor | None
 		for_user: DF.Link | None

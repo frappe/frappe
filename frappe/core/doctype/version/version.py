@@ -18,7 +18,7 @@ class Version(Document):
 		from frappe.types import DF
 
 		data: DF.Code | None
-		docname: DF.Data
+		docname: DF.DynamicLink
 		ref_doctype: DF.Link
 	# end: auto-generated types
 

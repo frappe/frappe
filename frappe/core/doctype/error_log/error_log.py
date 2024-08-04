@@ -19,7 +19,7 @@ class ErrorLog(Document):
 		error: DF.Code | None
 		method: DF.Data | None
 		reference_doctype: DF.Link | None
-		reference_name: DF.Data | None
+		reference_name: DF.DynamicLink | None
 		seen: DF.Check
 		trace_id: DF.Data | None
 	# end: auto-generated types

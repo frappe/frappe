@@ -45,7 +45,7 @@ class File(Document):
 
 		attached_to_doctype: DF.Link | None
 		attached_to_field: DF.Data | None
-		attached_to_name: DF.Data | None
+		attached_to_name: DF.DynamicLink | None
 		content_hash: DF.Data | None
 		file_name: DF.Data | None
 		file_size: DF.Int
