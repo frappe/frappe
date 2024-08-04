@@ -936,18 +936,18 @@ Object.assign(frappe.utils, {
 		let route = route_str.split("/");
 
 		if (route[2] === "Report" || route[0] === "query-report") {
-			return __("{0} Report", [route[3] || route[1]]);
+			return __("{0} Report", [__(route[3]) || __(route[1])]);
 		}
 		if (route[0] === "List") {
-			return __("{0} List", [route[1]]);
+			return __("{0} List", [__(route[1])]);
 		}
 		if (route[0] === "modules") {
-			return __("{0} Modules", [route[1]]);
+			return __("{0} Modules", [__(route[1])]);
 		}
 		if (route[0] === "dashboard") {
-			return __("{0} Dashboard", [route[1]]);
+			return __("{0} Dashboard", [__(route[1])]);
 		}
-		return __(frappe.utils.to_title_case(route[0], true));
+		return __(frappe.utils.to_title_case(__(route[0]), true));
 	},
 	report_column_total: function (values, column, type) {
 		if (column.column.disable_total) {
