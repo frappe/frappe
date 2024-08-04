@@ -13,6 +13,7 @@ import frappe.modules.patch_handler
 import frappe.translate
 from frappe.cache_manager import clear_global_cache
 from frappe.core.doctype.language.language import sync_languages
+from frappe.core.doctype.navbar_settings.navbar_settings import sync_standard_items
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 from frappe.database.schema import add_column
 from frappe.deferred_insert import save_to_db as flush_deferred_inserts
@@ -141,6 +142,7 @@ class SiteMigration:
 
 		print("Syncing fixtures...")
 		sync_fixtures()
+		sync_standard_items()
 
 		print("Syncing dashboards...")
 		sync_dashboards()
