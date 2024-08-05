@@ -121,6 +121,18 @@ def clear_expired_sessions():
 		delete_session(sid, reason="Session Expired")
 
 
+def get_default_path():
+	installed_apps = frappe.get_installed_apps()
+	if len(installed_apps) == 2:
+		_installed_apps = [app for app in installed_apps if app != "frappe"]
+		installed_app = _installed_apps[0]
+		if installed_app:
+			hooks = frappe.get_hooks(app_name=installed_app)
+			if hooks.get("app_icon_route"):
+				return hooks.get("app_icon_route")[0]
+	return "/apps"
+
+
 def get():
 	"""get session boot info"""
 	from frappe.boot import get_bootinfo, get_unseen_notes
@@ -166,6 +178,7 @@ def get():
 	bootinfo["disable_async"] = frappe.conf.disable_async
 
 	bootinfo["setup_complete"] = cint(frappe.get_system_settings("setup_complete"))
+	bootinfo["default_path"] = get_default_path()
 
 	bootinfo["desk_theme"] = frappe.db.get_value("User", frappe.session.user, "desk_theme") or "Light"
 	bootinfo["user"]["impersonated_by"] = frappe.session.data.get("impersonated_by")

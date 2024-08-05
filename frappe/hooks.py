@@ -490,7 +490,7 @@ standard_navbar_items = [
 		"is_standard": 1,
 	},
 	{
-		"item_label": "App Launcher",
+		"item_label": "Apps",
 		"item_type": "Route",
 		"route": "/apps",
 		"is_standard": 1,
