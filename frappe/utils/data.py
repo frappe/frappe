@@ -2286,7 +2286,6 @@ def sha_hash(algo: str, input: str | bytes) -> str:
 				"sha3_384", "sha3_512", "sha512")
 	if algo not in valid_algos:
 		return ""
-
 	return getattr(hashlib, algo)(input).hexdigest()
 
 
