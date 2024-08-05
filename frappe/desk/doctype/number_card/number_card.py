@@ -109,6 +109,8 @@ def get_permission_query_conditions(user=None):
 
 
 def has_permission(doc, ptype, user):
+	if doc.type == "Custom":
+		return
 	roles = frappe.get_roles(user)
 	if "System Manager" in roles:
 		return True
