@@ -99,15 +99,13 @@ frappe.views.Workspace = class Workspace {
 				<svg class="es-icon es-line icon-xs" style="" aria-hidden="true">
 					<use class="" href="#es-line-add"></use>
 				</svg>
-				<span class="hidden-xs" data-label="Edit">New</span>
+				<span class="hidden-xs" data-label="New">${__("New")}</span>
 			</button>
 			<button class="btn btn-default btn-sm mr-2 btn-edit-workspace" data-label="Edit">
 				<svg class="es-icon es-line  icon-xs" style="" aria-hidden="true">
 					<use class="" href="#es-line-edit"></use>
 				</svg>
-				<span class="hidden-xs" data-label="Edit">
-					<span><span class="alt-underline">E</span>dit</span>
-				</span>
+				<span class="hidden-xs" data-label="Edit">${__("Edit")}</span>
 			</button>
 		</div>
 	`).appendTo(this.body);
