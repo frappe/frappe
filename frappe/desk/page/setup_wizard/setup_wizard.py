@@ -187,7 +187,7 @@ def update_system_settings(args):  # nosemgrep
 		}
 	)
 	system_settings.save()
-	if args.get("allow_recording_first_session"):
+	if args.get("enable_telemetry"):
 		frappe.db.set_default("session_recording_start", now())
 
 
