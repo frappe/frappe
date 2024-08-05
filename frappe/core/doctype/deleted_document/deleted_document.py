@@ -11,7 +11,26 @@ from frappe.model.workflow import get_workflow_name
 
 
 class DeletedDocument(Document):
+<<<<<<< HEAD
 	pass
+=======
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		data: DF.Code | None
+		deleted_doctype: DF.Data | None
+		deleted_name: DF.Data | None
+		new_name: DF.ReadOnly | None
+		restored: DF.Check
+	# end: auto-generated types
+
+	no_feed_on_delete = True
+>>>>>>> 05bf4bb5a4 (chore(deleted_document): don't create feed entry on deletion)
 
 	@staticmethod
 	def clear_old_logs(days=180):
