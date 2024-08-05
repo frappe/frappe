@@ -73,6 +73,7 @@ from frappe.utils.data import (
 	sha256_hash,
 	to_timedelta,
 	validate_python_code,
+	sha_hash,
 )
 from frappe.utils.dateutils import get_dates_from_timegrain
 from frappe.utils.diff import _get_value_from_version, get_version_diff, version_query
@@ -1349,3 +1350,23 @@ class TestCrypto(FrappeTestCase):
 			sha256_hash(b"The quick brown fox jumps over the lazy dog"),
 			"d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592",
 		)
+		self.assertEqual(sha_hash("sha1", b""), "da39a3ee5e6b4b0d3255bfef95601890afd80709")
+		self.assertEqual(sha_hash("sha1", ""), "da39a3ee5e6b4b0d3255bfef95601890afd80709")
+		self.assertEqual(sha_hash("sha224", b""), "d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f")
+		self.assertEqual(sha_hash("sha224", ""), "d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f")
+		self.assertEqual(sha_hash("sha256", b""), "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
+		self.assertEqual(sha_hash("sha256", ""), "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
+		self.assertEqual(sha_hash("sha384", b""), "38b060a751ac96384cd9327eb1b1e36a21fdb71114be07434c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b")
+		self.assertEqual(sha_hash("sha384", ""), "38b060a751ac96384cd9327eb1b1e36a21fdb71114be07434c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b")
+		self.assertEqual(sha_hash("sha3_224", b""), "6b4e03423667dbb73b6e15454f0eb1abd4597f9a1b078e3f5b5a6bc7")
+		self.assertEqual(sha_hash("sha3_224", ""), "6b4e03423667dbb73b6e15454f0eb1abd4597f9a1b078e3f5b5a6bc7")
+		self.assertEqual(sha_hash("sha3_256", b""), "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a")
+		self.assertEqual(sha_hash("sha3_256", ""), "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a")
+		self.assertEqual(sha_hash("sha3_384", b""), "0c63a75b845e4f7d01107d852e4c2485c51a50aaaa94fc61995e71bbee983a2ac3713831264adb47fb6bd1e058d5f004")
+		self.assertEqual(sha_hash("sha3_384", ""), "0c63a75b845e4f7d01107d852e4c2485c51a50aaaa94fc61995e71bbee983a2ac3713831264adb47fb6bd1e058d5f004")
+		self.assertEqual(sha_hash("sha3_512", b""), "a69f73cca23a9ac5c8b567dc185a756e97c982164fe25859e0d1dcc1475c80a615b2123af1f5f94c11e3e9402c3ac558f500199d95b6d3e301758586281dcd26")
+		self.assertEqual(sha_hash("sha3_512", ""), "a69f73cca23a9ac5c8b567dc185a756e97c982164fe25859e0d1dcc1475c80a615b2123af1f5f94c11e3e9402c3ac558f500199d95b6d3e301758586281dcd26")
+		self.assertEqual(sha_hash("sha512", b""), "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e")
+		self.assertEqual(sha_hash("sha512", ""), "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e")
+		self.assertEqual(sha_hash("UNSUPPORTED", b""), "")
+		self.assertEqual(sha_hash("UNSUPPORTED", ""), "")
