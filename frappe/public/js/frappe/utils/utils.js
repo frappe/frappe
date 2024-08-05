@@ -1213,9 +1213,7 @@ Object.assign(frappe.utils, {
 	},
 
 	flag(country_code) {
-		return `<img
-		src="https://flagcdn.com/${country_code}.svg"
-		width="20" height="15">`;
+		return `<img loading="lazy" src="https://flagcdn.com/${country_code}.svg" width="20" height="15">`;
 	},
 
 	make_chart(wrapper, custom_options = {}) {
