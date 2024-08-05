@@ -2291,12 +2291,12 @@ def sha_hash(algo: str, input: str | bytes) -> str:
 	"""Return hash of the string using sha algorithm. Returns empty string if unsupported algorithm"""
 	if isinstance(input, str):
 		input = input.encode()
-	valid_algos = ("sha1", "sha224", "sha256", 
+	valid_algos = ("sha1", "sha224", "sha256",
 				"sha384", "sha3_224", "sha3_256",
 				"sha3_384", "sha3_512", "sha512")
 	if algo not in valid_algos:
 		return ""
-	
+
 	return getattr(hashlib, algo)(input).hexdigest()
 
 
