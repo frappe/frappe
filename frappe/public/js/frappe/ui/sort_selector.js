@@ -103,15 +103,13 @@ frappe.ui.SortSelector = class SortSelector {
 
 		var { meta_sort_field, meta_sort_order } = this.get_meta_sort_field();
 
-		if (!this.args.sort_by) {
-			if (meta_sort_field) {
-				this.args.sort_by = meta_sort_field;
-				this.args.sort_order = meta_sort_order;
-			} else {
-				// default
-				this.args.sort_by = "creation";
-				this.args.sort_order = "desc";
-			}
+		if (meta_sort_field) {
+			this.args.sort_by = meta_sort_field;
+			this.args.sort_order = meta_sort_order;
+		} else {
+			// default
+			this.args.sort_by = "creation";
+			this.args.sort_order = "desc";
 		}
 
 		if (!this.args.sort_by_label) {
@@ -175,11 +173,11 @@ frappe.ui.SortSelector = class SortSelector {
 			};
 		}
 
-		if (meta.sort_field && meta.sort_field.includes(",")) {
+		if (meta.sort_field) {
 			var parts = meta.sort_field.split(",")[0].split(" ");
 			return {
 				meta_sort_field: parts[0],
-				meta_sort_order: parts[1],
+				meta_sort_order: meta.sort_order ? meta.sort_order.toLowerCase() : "",
 			};
 		} else {
 			return {
