@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-04 09:33+0000\n"
-"PO-Revision-Date: 2024-08-05 07:51\n"
+"PO-Revision-Date: 2024-08-06 08:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -2252,7 +2252,7 @@ msgstr "E-post Till kan vara en av {0}"
 #. Description of the 'Append To' (Link) field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
 msgid "Append as communication against this DocType (must have fields: \"Sender\" and \"Subject\"). These fields can be defined in the email settings section of the appended doctype."
-msgstr "Lägg till som korrespondens mot denna DocType (måste ha fält: \"Avsändare\" och \"Ämne\"). Dessa fält kan definieras i sektion e-postinställningar i den bifogade doctype."
+msgstr "Lägg till som e-post mot denna DocType (måste ha fält: \"Avsändare\" och \"Ämne\"). Dessa fält kan definieras i sektion e-pos tinställningar i bifogad doctype."
 
 #: core/doctype/user_permission/user_permission_list.js:105
 msgid "Applicable Document Types"
@@ -2437,7 +2437,7 @@ msgstr "Är du säker på att du vill återaktivera schemaläggare?"
 
 #: core/doctype/communication/communication.js:163
 msgid "Are you sure you want to relink this communication to {0}?"
-msgstr "Är du säker att du vill länka om korrespondens till {0}?"
+msgstr "Är du säker att du vill länka om e-post till {0}?"
 
 #: core/doctype/rq_job/rq_job_list.js:10
 msgid "Are you sure you want to remove all failed jobs?"
@@ -5091,7 +5091,7 @@ msgstr "Kommentarer"
 #. Description of the 'Timeline Field' (Data) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgid "Comments and Communications will be associated with this linked document"
-msgstr "Kommentarer och Korrespondens kommer att kopplas till detta länkade dokument"
+msgstr "Kommentarer och E-post kommer att kopplas till detta länkade dokument"
 
 #: templates/includes/comments/comments.py:38
 msgid "Comments cannot have links or email addresses"
@@ -5131,7 +5131,7 @@ msgstr "Korrespondens"
 #. Name of a DocType
 #: core/doctype/communication_link/communication_link.json
 msgid "Communication Link"
-msgstr "Korrespondens Länk"
+msgstr "E-post Länk"
 
 #. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
@@ -5141,7 +5141,7 @@ msgstr "Korrespondens Logg"
 #. Label of the communication_type (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgid "Communication Type"
-msgstr "Korrespondens Typ"
+msgstr "E-post Typ"
 
 #: desk/page/leaderboard/leaderboard.js:112
 msgid "Company"
@@ -13686,7 +13686,7 @@ msgstr "Håll koll på alla uppdatering flöde"
 #. Description of a DocType
 #: core/doctype/communication/communication.json
 msgid "Keeps track of all communications"
-msgstr "Håll koll på all korrespondens "
+msgstr "Övervaka all E-post"
 
 #. Label of the defkey (Data) field in DocType 'DefaultValue'
 #. Label of the key (Data) field in DocType 'Document Share Key'
@@ -17672,7 +17672,7 @@ msgstr "Öppna Awesomebar"
 
 #: public/js/frappe/form/templates/timeline_message_box.html:67
 msgid "Open Communication"
-msgstr "Öppna Korrespondens"
+msgstr "Öppna E-post"
 
 #: templates/emails/new_notification.html:10
 msgid "Open Document"
@@ -18906,7 +18906,7 @@ msgstr "Logga in för att lämna kommentar."
 
 #: core/doctype/communication/communication.py:210
 msgid "Please make sure the Reference Communication Docs are not circularly linked."
-msgstr "Se till att referens korrespondens dokument inte är cirkulärt länkade."
+msgstr "Kontrollera att Referens Dokument för E-post inte är cirkulärt länkade."
 
 #: model/document.py:835
 msgid "Please refresh to get the latest document."
@@ -19901,7 +19901,7 @@ msgstr "QZ Aktivitet Fält Misslyckades:"
 #: email/doctype/auto_email_report/auto_email_report.json
 #: public/js/frappe/utils/common.js:401
 msgid "Quarterly"
-msgstr "Kvartal"
+msgstr "Varje Kvartal"
 
 #. Label of the query (Data) field in DocType 'Recorder Query'
 #. Label of the query (Code) field in DocType 'Report'
@@ -20691,7 +20691,7 @@ msgstr "Länka om"
 
 #: core/doctype/communication/communication.js:138
 msgid "Relink Communication"
-msgstr "Länka om Korrespondens"
+msgstr "Länka om E-post"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
@@ -28698,7 +28698,7 @@ msgstr "Om aktiverad kan gäst Användare ladda upp filer.Aktivera detta för at
 #. 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgid "When sending document using email, store the PDF on Communication. Warning: This can increase your storage usage."
-msgstr "När dokument skickas med e-post, lagra PDF i korrespondens. Varning: Detta kan öka din lagringsanvändning."
+msgstr "När dokument skickas med e-post, lagra det som PDF. Varning: Detta kan öka din lagringsanvändning."
 
 #. Description of the 'Force Web Capture Mode for Uploads' (Check) field in
 #. DocType 'System Settings'
