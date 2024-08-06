@@ -160,7 +160,7 @@ def get_info_via_oauth(
 
 	if not (info.get("email_verified") or info.get("email")):
 		frappe.throw(_("Email not verified with {0}").format(provider.title()))
-
+	frappe.log_error(title="sso", message=str(info))
 	return info
 
 
