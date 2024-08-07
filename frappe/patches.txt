@@ -237,5 +237,5 @@ frappe.patches.v15_0.migrate_session_data
 frappe.custom.doctype.property_setter.patches.remove_invalid_fetch_from_expressions
 frappe.patches.v16_0.switch_default_sort_order
 frappe.integrations.doctype.oauth_client.patches.set_default_allowed_role_in_oauth_client
-execute:frappe.db.set_single_value("Website Settings", "workspace_setup_completed", 1)
+execute:frappe.db.set_single_value("Workspace Settings", "workspace_setup_completed", 1)
 
