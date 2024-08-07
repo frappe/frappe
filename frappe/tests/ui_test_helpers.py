@@ -449,7 +449,7 @@ def create_test_user(username=None):
 
 	user.save()
 
-	frappe.db.set_single_value("Website Settings", "workspace_setup_completed", 1)
+	frappe.db.set_single_value("Workspace Settings", "workspace_setup_completed", 1)
 
 
 @whitelist_for_tests
