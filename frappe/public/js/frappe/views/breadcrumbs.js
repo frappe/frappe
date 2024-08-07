@@ -189,7 +189,6 @@ frappe.breadcrumbs = {
 		let docname = frappe.get_route().slice(2).join("/");
 		let docname_title;
 		if (docname.startsWith("new-" + doctype.toLowerCase().replace(/ /g, "-"))) {
-			// using docname instead of doctype to include No like Doctype Name + 1, 2, 3
 			docname_title = __("New {0}", [__(doctype)]);
 		} else {
 			docname_title = __(docname);
