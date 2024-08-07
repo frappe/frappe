@@ -25,12 +25,8 @@ class DeletedDocument(Document):
 		new_name: DF.ReadOnly | None
 		restored: DF.Check
 	# end: auto-generated types
-<<<<<<< HEAD
-	pass
-=======
 
 	no_feed_on_delete = True
->>>>>>> 05bf4bb5a4 (chore(deleted_document): don't create feed entry on deletion)
 
 	@staticmethod
 	def clear_old_logs(days=180):
