@@ -11,7 +11,7 @@ from frappe.model.workflow import get_workflow_name
 
 
 class DeletedDocument(Document):
-	pass
+	no_feed_on_delete = True
 
 	@staticmethod
 	def clear_old_logs(days=180):
