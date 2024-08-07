@@ -94,7 +94,8 @@
    "default": "0",
    "fieldname": "is_standard",
    "fieldtype": "Check",
-   "label": "Is Standard"
+   "label": "Is Standard",
+   "no_copy": 1
   },
   {
    "default": "0",
@@ -393,7 +394,7 @@
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2023-10-10 12:51:18.341792",
+ "modified": "2024-07-27 20:32:06.331745",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
