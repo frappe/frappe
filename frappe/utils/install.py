@@ -190,6 +190,8 @@ def complete_setup_wizard():
 		}
 	)
 
+	frappe.db.set_single_value("Website Settings", "workspace_setup_completed", 1)
+
 
 def add_standard_navbar_items():
 	navbar_settings = frappe.get_single("Navbar Settings")
