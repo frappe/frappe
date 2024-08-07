@@ -178,11 +178,6 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 
 			if (data) {
 				me.dialog.working = true;
-<<<<<<< HEAD
-				me.dialog.set_message(__("Saving..."));
-				me.insert().then(() => {
-					me.dialog.clear_message();
-=======
 				me.script_manager.trigger("validate").then(() => {
 					me.insert().then(() => {
 						let messagetxt = __("{1} saved", [__(me.doctype), this.doc.name.bold()]);
@@ -192,7 +187,6 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 							frappe.show_alert({ message: messagetxt, indicator: "green" }, 3);
 						}, 500);
 					});
->>>>>>> 774d86f642 (feat: Workspace Settings - allow enabling and disabling of workspaces during setup)
 				});
 			}
 		});
@@ -274,8 +268,6 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 		});
 	}
 
-<<<<<<< HEAD
-=======
 	process_after_insert(r) {
 		// delete the old doc
 		frappe.model.clear_doc(this.dialog.doc.doctype, this.dialog.doc.name);
@@ -306,7 +298,6 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 		});
 	}
 
->>>>>>> 774d86f642 (feat: Workspace Settings - allow enabling and disabling of workspaces during setup)
 	open_form_if_not_list() {
 		if (this.meta.issingle) return;
 		let route = frappe.get_route();

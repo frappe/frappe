@@ -750,11 +750,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
-<<<<<<< HEAD
- "modified": "2023-12-01 18:37:16.799471",
-=======
  "modified": "2024-08-02 14:48:12.911702",
->>>>>>> 774d86f642 (feat: Workspace Settings - allow enabling and disabling of workspaces during setup)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

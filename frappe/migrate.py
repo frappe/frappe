@@ -139,12 +139,9 @@ class SiteMigration:
 		"""
 		sync_jobs()
 		sync_fixtures()
-<<<<<<< HEAD
-=======
 		sync_standard_items()
 
 		print("Syncing dashboards...")
->>>>>>> 774d86f642 (feat: Workspace Settings - allow enabling and disabling of workspaces during setup)
 		sync_dashboards()
 		sync_customizations()
 		sync_languages()

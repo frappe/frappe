@@ -21,30 +21,6 @@ class NavbarSettings(Document):
 		help_dropdown: DF.Table[NavbarItem]
 		settings_dropdown: DF.Table[NavbarItem]
 
-<<<<<<< HEAD
-	# end: auto-generated types
-	def validate(self):
-		self.validate_standard_navbar_items()
-
-	def validate_standard_navbar_items(self):
-		doc_before_save = self.get_doc_before_save()
-
-		if not doc_before_save:
-			return
-
-		before_save_items = [
-			item
-			for item in doc_before_save.help_dropdown + doc_before_save.settings_dropdown
-			if item.is_standard
-		]
-
-		after_save_items = [item for item in self.help_dropdown + self.settings_dropdown if item.is_standard]
-
-		if not frappe.flags.in_patch and (len(before_save_items) > len(after_save_items)):
-			frappe.throw(_("Please hide the standard navbar items instead of deleting them"))
-
-=======
->>>>>>> 057d32a02d (fix(test): complete workspace setup before running UI tests)
 
 def get_app_logo():
 	app_logo = frappe.db.get_single_value("Navbar Settings", "app_logo", cache=True)
