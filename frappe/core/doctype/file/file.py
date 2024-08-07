@@ -407,7 +407,7 @@ class File(Document):
 		elif not self.file_name and self.file_url:
 			self.file_name = self.file_url.split("/")[-1]
 		else:
-			self.file_name = re.sub(r"/", "", self.file_name)
+			self.file_name = re.sub(r"[/\\%?#]", "", self.file_name)
 
 	def generate_content_hash(self):
 		if self.content_hash or not self.file_url or self.is_remote_file:
