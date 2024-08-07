@@ -65,20 +65,20 @@ def sync_standard_items():
 def sync_table(key, hook):
 	navbar_settings = NavbarSettings("Navbar Settings")
 	existing_items = {d.item_label: d for d in navbar_settings.get(key)}
-	all_items = {}
+	new_standard_items = {}
 
 	# add new items
 	count = 0  # matain count because list may come from seperate apps
 	for item in frappe.get_hooks(hook):
 		if item.get("item_label") not in existing_items:
 			navbar_settings.append(key, item, count)
-		all_items[item.get("item_label")] = True
+		new_standard_items[item.get("item_label")] = True
 		count += 1
 
 	# remove unused items
 	items = navbar_settings.get(key)
-	for item in navbar_settings.get(key):
-		if item.is_standard and (item.item_label not in all_items):
+	for item in items:
+		if item.is_standard and (item.item_label not in new_standard_items):
 			items.remove(item)
 
 	navbar_settings.save()
