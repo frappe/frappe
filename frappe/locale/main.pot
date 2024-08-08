@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Frappe Framework VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-07-30 18:02+0000\n"
-"PO-Revision-Date: 2024-07-30 18:02+0000\n"
+"POT-Creation-Date: 2024-08-04 09:33+0000\n"
+"PO-Revision-Date: 2024-08-04 09:33+0000\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -749,13 +749,9 @@ msgid "About Us"
 msgstr ""
 
 #. Name of a DocType
-#: website/doctype/about_us_settings/about_us_settings.json
-msgid "About Us Settings"
-msgstr ""
-
 #. Label of a Link in the Website Workspace
+#: website/doctype/about_us_settings/about_us_settings.json
 #: website/workspace/website/website.json
-msgctxt "About Us Settings"
 msgid "About Us Settings"
 msgstr ""
 
@@ -788,13 +784,8 @@ msgid "Access Key Secret"
 msgstr ""
 
 #. Name of a DocType
-#: core/doctype/access_log/access_log.json
-msgid "Access Log"
-msgstr ""
-
 #. Label of a Link in the Users Workspace
-#: core/workspace/users/users.json
-msgctxt "Access Log"
+#: core/doctype/access_log/access_log.json core/workspace/users/users.json
 msgid "Access Log"
 msgstr ""
 
@@ -967,14 +958,10 @@ msgid "Activity"
 msgstr ""
 
 #. Name of a DocType
-#: core/doctype/activity_log/activity_log.json
-msgid "Activity Log"
-msgstr ""
-
 #. Label of a Link in the Build Workspace
 #. Label of a Link in the Users Workspace
-#: core/workspace/build/build.json core/workspace/users/users.json
-msgctxt "Activity Log"
+#: core/doctype/activity_log/activity_log.json core/workspace/build/build.json
+#: core/workspace/users/users.json
 msgid "Activity Log"
 msgstr ""
 
@@ -1107,7 +1094,7 @@ msgstr ""
 msgid "Add Review"
 msgstr ""
 
-#: core/doctype/user/user.py:772
+#: core/doctype/user/user.py:776
 msgid "Add Roles"
 msgstr ""
 
@@ -1394,11 +1381,11 @@ msgstr ""
 msgid "Administrator"
 msgstr ""
 
-#: core/doctype/user/user.py:1176
+#: core/doctype/user/user.py:1180
 msgid "Administrator Logged In"
 msgstr ""
 
-#: core/doctype/user/user.py:1170
+#: core/doctype/user/user.py:1174
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr ""
 
@@ -1876,7 +1863,7 @@ msgstr ""
 msgid "Allowing DocType, DocType. Be careful!"
 msgstr ""
 
-#: core/doctype/user/user.py:979
+#: core/doctype/user/user.py:983
 msgid "Already Registered"
 msgstr ""
 
@@ -2259,7 +2246,7 @@ msgstr ""
 msgid "Are you sure you want to delete all rows?"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:928
+#: public/js/frappe/views/workspace/workspace.js:926
 msgid "Are you sure you want to delete page {0}?"
 msgstr ""
 
@@ -2448,16 +2435,11 @@ msgid "Assignment Days"
 msgstr ""
 
 #. Name of a DocType
-#. Label of the assignment_rule (Link) field in DocType 'ToDo'
-#: automation/doctype/assignment_rule/assignment_rule.json
-#: desk/doctype/todo/todo.json
-msgid "Assignment Rule"
-msgstr ""
-
 #. Label of a Link in the Tools Workspace
 #. Label of a shortcut in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "Assignment Rule"
+#. Label of the assignment_rule (Link) field in DocType 'ToDo'
+#: automation/doctype/assignment_rule/assignment_rule.json
+#: automation/workspace/tools/tools.json desk/doctype/todo/todo.json
 msgid "Assignment Rule"
 msgstr ""
 
@@ -2679,14 +2661,6 @@ msgstr ""
 msgid "Authentication Apps you can use are: "
 msgstr ""
 
-#: email/frappemail.py:89
-msgid "Authentication Error: Invalid API Key or Secret"
-msgstr ""
-
-#: email/frappemail.py:85
-msgid "Authentication Error: Reauthorize OAuth for Email Account {0}."
-msgstr ""
-
 #: email/doctype/email_account/email_account.py:329
 msgid "Authentication failed while receiving emails from Email Account: {0}."
 msgstr ""
@@ -2776,14 +2750,10 @@ msgstr ""
 msgid "Auto"
 msgstr ""
 
-#. Name of a DocType
-#: email/doctype/auto_email_report/auto_email_report.json
-msgid "Auto Email Report"
-msgstr ""
-
 #. Label of a Link in the Tools Workspace
+#. Name of a DocType
 #: automation/workspace/tools/tools.json
-msgctxt "Auto Email Report"
+#: email/doctype/auto_email_report/auto_email_report.json
 msgid "Auto Email Report"
 msgstr ""
 
@@ -2795,14 +2765,9 @@ msgid "Auto Name"
 msgstr ""
 
 #. Name of a DocType
-#: automation/doctype/auto_repeat/auto_repeat.json
-#: public/js/frappe/utils/common.js:442
-msgid "Auto Repeat"
-msgstr ""
-
 #. Label of a Link in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "Auto Repeat"
+#: automation/doctype/auto_repeat/auto_repeat.json
+#: automation/workspace/tools/tools.json public/js/frappe/utils/common.js:442
 msgid "Auto Repeat"
 msgstr ""
 
@@ -3076,16 +3041,12 @@ msgstr ""
 msgid "Background Image"
 msgstr ""
 
+#. Label of a Link in the Build Workspace
 #. Label of the background_jobs_section (Section Break) field in DocType
 #. 'System Health Report'
+#: core/workspace/build/build.json
 #: desk/doctype/system_health_report/system_health_report.json
 #: public/js/frappe/ui/toolbar/toolbar.js:178
-msgid "Background Jobs"
-msgstr ""
-
-#. Label of a Link in the Build Workspace
-#: core/workspace/build/build.json
-msgctxt "RQ Job"
 msgid "Background Jobs"
 msgstr ""
 
@@ -3397,14 +3358,10 @@ msgstr ""
 
 #. Name of a DocType
 #. Label of the blog_category (Link) field in DocType 'Blog Post'
+#. Label of a Link in the Website Workspace
 #: website/doctype/blog_category/blog_category.json
 #: website/doctype/blog_post/blog_post.json
-msgid "Blog Category"
-msgstr ""
-
-#. Label of a Link in the Website Workspace
 #: website/workspace/website/website.json
-msgctxt "Blog Category"
 msgid "Blog Category"
 msgstr ""
 
@@ -3419,14 +3376,10 @@ msgid "Blog Introduction"
 msgstr ""
 
 #. Name of a DocType
-#: website/doctype/blog_post/blog_post.json
-msgid "Blog Post"
-msgstr ""
-
 #. Label of a Link in the Website Workspace
 #. Label of a shortcut in the Website Workspace
+#: website/doctype/blog_post/blog_post.json
 #: website/workspace/website/website.json
-msgctxt "Blog Post"
 msgid "Blog Post"
 msgstr ""
 
@@ -3443,17 +3396,12 @@ msgstr ""
 #. Name of a role
 #. Label of the blogger (Link) field in DocType 'Blog Post'
 #. Name of a DocType
+#. Label of a Link in the Website Workspace
+#. Label of a shortcut in the Website Workspace
 #: website/doctype/blog_category/blog_category.json
 #: website/doctype/blog_post/blog_post.json
 #: website/doctype/blog_settings/blog_settings.json
-#: website/doctype/blogger/blogger.json
-msgid "Blogger"
-msgstr ""
-
-#. Label of a Link in the Website Workspace
-#. Label of a shortcut in the Website Workspace
-#: website/workspace/website/website.json
-msgctxt "Blogger"
+#: website/doctype/blogger/blogger.json website/workspace/website/website.json
 msgid "Blogger"
 msgstr ""
 
@@ -3647,14 +3595,10 @@ msgstr ""
 msgid "Bulk PDF Export"
 msgstr ""
 
-#. Name of a DocType
-#: desk/doctype/bulk_update/bulk_update.json
-msgid "Bulk Update"
-msgstr ""
-
 #. Label of a Link in the Tools Workspace
+#. Name of a DocType
 #: automation/workspace/tools/tools.json
-msgctxt "Bulk Update"
+#: desk/doctype/bulk_update/bulk_update.json
 msgid "Bulk Update"
 msgstr ""
 
@@ -3826,16 +3770,11 @@ msgstr ""
 msgid "Calculate"
 msgstr ""
 
+#. Label of a Link in the Tools Workspace
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
 #. Option for the 'DocType View' (Select) field in DocType 'Workspace Shortcut'
-#: desk/doctype/form_tour/form_tour.json
+#: automation/workspace/tools/tools.json desk/doctype/form_tour/form_tour.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
-msgid "Calendar"
-msgstr ""
-
-#. Label of a Link in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "Event"
 msgid "Calendar"
 msgstr ""
 
@@ -4514,7 +4453,7 @@ msgstr ""
 msgid "Choose Existing Card or create New Card"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1428
+#: public/js/frappe/views/workspace/workspace.js:1426
 msgid "Choose a block or continue typing"
 msgstr ""
 
@@ -4712,20 +4651,16 @@ msgstr ""
 msgid "Client Information"
 msgstr ""
 
+#. Label of a Link in the Build Workspace
+#. Label of a shortcut in the Build Workspace
 #. Name of a DocType
 #. Label of the client_script (Code) field in DocType 'DocType Layout'
 #. Label of the client_script (Code) field in DocType 'Web Form'
+#: core/workspace/build/build.json
 #: custom/doctype/client_script/client_script.json
 #: custom/doctype/doctype_layout/doctype_layout.json
 #: website/doctype/web_form/web_form.json
 #: website/doctype/web_page/web_page.js:103
-msgid "Client Script"
-msgstr ""
-
-#. Label of a Link in the Build Workspace
-#. Label of a shortcut in the Build Workspace
-#: core/workspace/build/build.json
-msgctxt "Client Script"
 msgid "Client Script"
 msgstr ""
 
@@ -5055,7 +4990,6 @@ msgstr ""
 
 #. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
-msgctxt "Communication"
 msgid "Communication Logs"
 msgstr ""
 
@@ -5108,7 +5042,7 @@ msgstr ""
 msgid "Complete By"
 msgstr ""
 
-#: core/doctype/user/user.py:432 templates/emails/new_user.html:10
+#: core/doctype/user/user.py:436 templates/emails/new_user.html:10
 msgid "Complete Registration"
 msgstr ""
 
@@ -5373,13 +5307,9 @@ msgid "Contact Us"
 msgstr ""
 
 #. Name of a DocType
-#: website/doctype/contact_us_settings/contact_us_settings.json
-msgid "Contact Us Settings"
-msgstr ""
-
 #. Label of a Link in the Website Workspace
+#: website/doctype/contact_us_settings/contact_us_settings.json
 #: website/workspace/website/website.json
-msgctxt "Contact Us Settings"
 msgid "Contact Us Settings"
 msgstr ""
 
@@ -5623,7 +5553,7 @@ msgstr ""
 #: public/js/frappe/views/file/file_view.js:112
 #: public/js/frappe/views/interaction.js:18
 #: public/js/frappe/views/reports/query_report.js:1188
-#: public/js/frappe/views/workspace/workspace.js:1260
+#: public/js/frappe/views/workspace/workspace.js:1258
 #: workflow/page/workflow_builder/workflow_builder.js:46
 msgid "Create"
 msgstr ""
@@ -5661,7 +5591,7 @@ msgstr ""
 msgid "Create Custom Fields"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:968
+#: public/js/frappe/views/workspace/workspace.js:966
 msgid "Create Duplicate"
 msgstr ""
 
@@ -5986,14 +5916,10 @@ msgstr ""
 msgid "Custom Documents"
 msgstr ""
 
-#. Name of a DocType
-#: custom/doctype/custom_field/custom_field.json
-msgid "Custom Field"
-msgstr ""
-
 #. Label of a Link in the Build Workspace
+#. Name of a DocType
 #: core/workspace/build/build.json
-msgctxt "Custom Field"
+#: custom/doctype/custom_field/custom_field.json
 msgid "Custom Field"
 msgstr ""
 
@@ -6104,7 +6030,6 @@ msgstr ""
 
 #. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
-msgctxt "Translation"
 msgid "Custom Translation"
 msgstr ""
 
@@ -6136,7 +6061,7 @@ msgstr ""
 msgid "Customization onboarding is all done!"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:554
+#: public/js/frappe/views/workspace/workspace.js:552
 msgid "Customizations Discarded"
 msgstr ""
 
@@ -6168,18 +6093,13 @@ msgstr ""
 msgid "Customize Dashboard"
 msgstr ""
 
-#. Name of a DocType
-#: automation/doctype/auto_repeat/auto_repeat.js:33
-#: core/doctype/doctype/doctype.js:65
-#: custom/doctype/customize_form/customize_form.json
-#: public/js/frappe/views/kanban/kanban_view.js:343
-msgid "Customize Form"
-msgstr ""
-
 #. Label of a Link in the Build Workspace
 #. Label of a shortcut in the Build Workspace
-#: core/workspace/build/build.json
-msgctxt "Customize Form"
+#. Name of a DocType
+#: automation/doctype/auto_repeat/auto_repeat.js:33
+#: core/doctype/doctype/doctype.js:65 core/workspace/build/build.json
+#: custom/doctype/customize_form/customize_form.json
+#: public/js/frappe/views/kanban/kanban_view.js:343
 msgid "Customize Form"
 msgstr ""
 
@@ -6302,32 +6222,24 @@ msgid "Dark Theme"
 msgstr ""
 
 #. Label of the dashboard (Check) field in DocType 'Role'
+#. Label of a Link in the Build Workspace
 #. Name of a DocType
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
 #. Option for the 'Type' (Select) field in DocType 'Workspace Shortcut'
 #. Option for the 'DocType View' (Select) field in DocType 'Workspace Shortcut'
 #: core/doctype/role/role.json core/page/dashboard_view/dashboard_view.js:10
-#: desk/doctype/dashboard/dashboard.json desk/doctype/form_tour/form_tour.json
+#: core/workspace/build/build.json desk/doctype/dashboard/dashboard.json
+#: desk/doctype/form_tour/form_tour.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: public/js/frappe/ui/toolbar/search_utils.js:562
 msgid "Dashboard"
 msgstr ""
 
 #. Label of a Link in the Build Workspace
-#: core/workspace/build/build.json
-msgctxt "Dashboard"
-msgid "Dashboard"
-msgstr ""
-
 #. Name of a DocType
+#: core/workspace/build/build.json
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 #: desk/doctype/dashboard_chart_source/dashboard_chart_source.js:8
-msgid "Dashboard Chart"
-msgstr ""
-
-#. Label of a Link in the Build Workspace
-#: core/workspace/build/build.json
-msgctxt "Dashboard Chart"
 msgid "Dashboard Chart"
 msgstr ""
 
@@ -6805,7 +6717,7 @@ msgstr ""
 #: public/js/frappe/form/grid.js:63 public/js/frappe/form/toolbar.js:434
 #: public/js/frappe/views/reports/report_view.js:1654
 #: public/js/frappe/views/treeview.js:308
-#: public/js/frappe/views/workspace/workspace.js:866
+#: public/js/frappe/views/workspace/workspace.js:864
 #: templates/discussions/reply_card.html:35
 #: templates/discussions/reply_section.html:29
 msgid "Delete"
@@ -6847,7 +6759,7 @@ msgctxt "Title of confirmation dialog"
 msgid "Delete Tab"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:867
+#: public/js/frappe/views/workspace/workspace.js:865
 msgid "Delete Workspace"
 msgstr ""
 
@@ -6928,7 +6840,6 @@ msgstr ""
 
 #. Label of a Link in the Tools Workspace
 #: automation/workspace/tools/tools.json
-msgctxt "Deleted Document"
 msgid "Deleted Documents"
 msgstr ""
 
@@ -7293,7 +7204,7 @@ msgstr ""
 #: public/js/frappe/form/toolbar.js:316
 #: public/js/frappe/views/communication.js:30
 #: public/js/frappe/views/dashboard/dashboard_view.js:70
-#: public/js/frappe/views/workspace/workspace.js:545
+#: public/js/frappe/views/workspace/workspace.js:543
 #: public/js/frappe/web_form/web_form.js:187
 msgid "Discard"
 msgstr ""
@@ -7436,6 +7347,8 @@ msgstr ""
 #. Group in Module Def's connections
 #. Label of the ref_doctype (Link) field in DocType 'Permission Inspector'
 #. Label of the ref_doctype (Link) field in DocType 'Version'
+#. Label of a Link in the Build Workspace
+#. Label of a shortcut in the Build Workspace
 #. Label of the dt (Link) field in DocType 'Client Script'
 #. Label of the dt (Link) field in DocType 'Custom Field'
 #. Option for the 'Applied On' (Select) field in DocType 'Property Setter'
@@ -7452,6 +7365,7 @@ msgstr ""
 #: core/doctype/permission_inspector/permission_inspector.json
 #: core/doctype/version/version.json
 #: core/report/permitted_documents_for_user/permitted_documents_for_user.js:15
+#: core/workspace/build/build.json
 #: custom/doctype/client_script/client_script.json
 #: custom/doctype/custom_field/custom_field.json
 #: custom/doctype/property_setter/property_setter.json
@@ -7462,13 +7376,6 @@ msgstr ""
 #: printing/doctype/print_format/print_format.json
 #: public/js/frappe/widgets/widget_dialog.js:164
 #: website/doctype/website_slideshow/website_slideshow.js:18
-msgid "DocType"
-msgstr ""
-
-#. Label of a Link in the Build Workspace
-#. Label of a shortcut in the Build Workspace
-#: core/workspace/build/build.json
-msgctxt "DocType"
 msgid "DocType"
 msgstr ""
 
@@ -7591,7 +7498,7 @@ msgstr ""
 msgid "Doctype required"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1346
+#: public/js/frappe/views/workspace/workspace.js:1344
 msgid "Doctype with same route already exist. Please choose different title."
 msgstr ""
 
@@ -8066,7 +7973,7 @@ msgstr ""
 #: public/js/frappe/views/workspace/blocks/header.js:46
 #: public/js/frappe/views/workspace/blocks/paragraph.js:136
 #: public/js/frappe/views/workspace/blocks/spacer.js:44
-#: public/js/frappe/views/workspace/workspace.js:608
+#: public/js/frappe/views/workspace/workspace.js:606
 #: public/js/frappe/widgets/base_widget.js:33
 msgid "Drag"
 msgstr ""
@@ -8108,13 +8015,9 @@ msgid "Dropbox Refresh Token"
 msgstr ""
 
 #. Name of a DocType
-#: integrations/doctype/dropbox_settings/dropbox_settings.json
-msgid "Dropbox Settings"
-msgstr ""
-
 #. Label of a Link in the Integrations Workspace
+#: integrations/doctype/dropbox_settings/dropbox_settings.json
 #: integrations/workspace/integrations/integrations.json
-msgctxt "Dropbox Settings"
 msgid "Dropbox Settings"
 msgstr ""
 
@@ -8140,8 +8043,8 @@ msgstr ""
 
 #: public/js/frappe/form/grid_row_form.js:42
 #: public/js/frappe/form/toolbar.js:388
-#: public/js/frappe/views/workspace/workspace.js:851
-#: public/js/frappe/views/workspace/workspace.js:1018
+#: public/js/frappe/views/workspace/workspace.js:849
+#: public/js/frappe/views/workspace/workspace.js:1016
 msgid "Duplicate"
 msgstr ""
 
@@ -8157,8 +8060,8 @@ msgstr ""
 msgid "Duplicate Name"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:590
-#: public/js/frappe/views/workspace/workspace.js:852
+#: public/js/frappe/views/workspace/workspace.js:588
+#: public/js/frappe/views/workspace/workspace.js:850
 msgid "Duplicate Workspace"
 msgstr ""
 
@@ -8170,7 +8073,7 @@ msgstr ""
 msgid "Duplicate field"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1033
+#: public/js/frappe/views/workspace/workspace.js:1031
 msgid "Duplicate of {0} named as {1} is created successfully"
 msgstr ""
 
@@ -8263,7 +8166,8 @@ msgstr ""
 #: public/js/frappe/form/toolbar.js:681
 #: public/js/frappe/views/reports/query_report.js:815
 #: public/js/frappe/views/reports/query_report.js:1634
-#: public/js/frappe/views/workspace/workspace.js:845
+#: public/js/frappe/views/workspace/workspace.js:95
+#: public/js/frappe/views/workspace/workspace.js:843
 #: public/js/frappe/widgets/base_widget.js:64
 #: public/js/frappe/widgets/chart_widget.js:299
 #: public/js/frappe/widgets/number_card_widget.js:331
@@ -8401,7 +8305,7 @@ msgstr ""
 msgid "Edit Values"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:846
+#: public/js/frappe/views/workspace/workspace.js:844
 msgid "Edit Workspace"
 msgstr ""
 
@@ -8498,12 +8402,14 @@ msgstr ""
 msgid "Email"
 msgstr ""
 
+#. Label of a Link in the Tools Workspace
 #. Label of the email_account (Link) field in DocType 'Communication'
 #. Label of the email_account (Link) field in DocType 'User Email'
 #. Name of a DocType
 #. Label of the email_account (Data) field in DocType 'Email Flag Queue'
 #. Label of the email_account (Link) field in DocType 'Email Queue'
 #. Label of the email_account (Link) field in DocType 'Unhandled Email'
+#: automation/workspace/tools/tools.json
 #: core/doctype/communication/communication.js:199
 #: core/doctype/communication/communication.json
 #: core/doctype/user_email/user_email.json
@@ -8511,12 +8417,6 @@ msgstr ""
 #: email/doctype/email_flag_queue/email_flag_queue.json
 #: email/doctype/email_queue/email_queue.json
 #: email/doctype/unhandled_email/unhandled_email.json
-msgid "Email Account"
-msgstr ""
-
-#. Label of a Link in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "Email Account"
 msgid "Email Account"
 msgstr ""
 
@@ -8529,7 +8429,7 @@ msgstr ""
 msgid "Email Account Name"
 msgstr ""
 
-#: core/doctype/user/user.py:705
+#: core/doctype/user/user.py:709
 msgid "Email Account added multiple times"
 msgstr ""
 
@@ -8558,14 +8458,10 @@ msgstr ""
 msgid "Email Addresses"
 msgstr ""
 
-#. Name of a DocType
-#: email/doctype/email_domain/email_domain.json
-msgid "Email Domain"
-msgstr ""
-
 #. Label of a Link in the Tools Workspace
+#. Name of a DocType
 #: automation/workspace/tools/tools.json
-msgctxt "Email Domain"
+#: email/doctype/email_domain/email_domain.json
 msgid "Email Domain"
 msgstr ""
 
@@ -8580,18 +8476,14 @@ msgstr ""
 msgid "Email Footer Address"
 msgstr ""
 
+#. Label of a Link in the Tools Workspace
 #. Name of a DocType
 #. Label of the email_group (Link) field in DocType 'Email Group Member'
 #. Label of the email_group (Link) field in DocType 'Newsletter Email Group'
+#: automation/workspace/tools/tools.json
 #: email/doctype/email_group/email_group.json
 #: email/doctype/email_group_member/email_group_member.json
 #: email/doctype/newsletter_email_group/newsletter_email_group.json
-msgid "Email Group"
-msgstr ""
-
-#. Label of a Link in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "Email Group"
 msgid "Email Group"
 msgstr ""
 
@@ -8699,17 +8591,13 @@ msgstr ""
 msgid "Email Sync Option"
 msgstr ""
 
+#. Label of a Link in the Tools Workspace
 #. Label of the email_template (Link) field in DocType 'Communication'
 #. Name of a DocType
+#: automation/workspace/tools/tools.json
 #: core/doctype/communication/communication.json
 #: email/doctype/email_template/email_template.json
 #: public/js/frappe/views/communication.js:95
-msgid "Email Template"
-msgstr ""
-
-#. Label of a Link in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "Email Template"
 msgid "Email Template"
 msgstr ""
 
@@ -9231,7 +9119,6 @@ msgstr ""
 
 #. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
-msgctxt "Error Log"
 msgid "Error Logs"
 msgstr ""
 
@@ -9537,13 +9424,9 @@ msgstr ""
 msgid "Export Customizations"
 msgstr ""
 
-#: public/js/frappe/data_import/data_exporter.js:14
-msgid "Export Data"
-msgstr ""
-
 #. Label of a Link in the Tools Workspace
 #: automation/workspace/tools/tools.json
-msgctxt "Data Export"
+#: public/js/frappe/data_import/data_exporter.js:14
 msgid "Export Data"
 msgstr ""
 
@@ -9760,7 +9643,7 @@ msgstr ""
 msgid "Failed to render subject: {}"
 msgstr ""
 
-#: email/doctype/email_queue/email_queue.py:294
+#: email/doctype/email_queue/email_queue.py:301
 msgid "Failed to send email with subject:"
 msgstr ""
 
@@ -10080,15 +9963,11 @@ msgstr ""
 msgid "Fieldtype cannot be changed from {0} to {1} in row {2}"
 msgstr ""
 
+#. Label of a shortcut in the Tools Workspace
 #. Name of a DocType
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
-#: core/doctype/file/file.json desk/doctype/form_tour/form_tour.json
-msgid "File"
-msgstr ""
-
-#. Label of a shortcut in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "File"
+#: automation/workspace/tools/tools.json core/doctype/file/file.json
+#: desk/doctype/form_tour/form_tour.json
 msgid "File"
 msgstr ""
 
@@ -10176,14 +10055,10 @@ msgstr ""
 msgid "File {0} does not exist"
 msgstr ""
 
-#. Label of the files_tab (Tab Break) field in DocType 'System Settings'
-#: core/doctype/system_settings/system_settings.json
-msgid "Files"
-msgstr ""
-
 #. Label of a Link in the Tools Workspace
+#. Label of the files_tab (Tab Break) field in DocType 'System Settings'
 #: automation/workspace/tools/tools.json
-msgctxt "File"
+#: core/doctype/system_settings/system_settings.json
 msgid "Files"
 msgstr ""
 
@@ -10828,7 +10703,7 @@ msgid "Frappe Light"
 msgstr ""
 
 #. Option for the 'Service' (Select) field in DocType 'Email Account'
-#: email/doctype/email_account/email_account.json email/frappemail.py:91
+#: email/doctype/email_account/email_account.json
 msgid "Frappe Mail"
 msgstr ""
 
@@ -11233,14 +11108,10 @@ msgstr ""
 #. Label of the google_calendar (Link) field in DocType 'Event'
 #. Name of a DocType
 #. Label of the sb_00 (Section Break) field in DocType 'Google Calendar'
+#. Label of a Link in the Integrations Workspace
 #: desk/doctype/event/event.json
 #: integrations/doctype/google_calendar/google_calendar.json
-msgid "Google Calendar"
-msgstr ""
-
-#. Label of a Link in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
-msgctxt "Google Calendar"
 msgid "Google Calendar"
 msgstr ""
 
@@ -11292,14 +11163,10 @@ msgstr ""
 #. Label of the google_contacts (Link) field in DocType 'Contact'
 #. Name of a DocType
 #. Label of the sb_00 (Section Break) field in DocType 'Google Contacts'
+#. Label of a Link in the Integrations Workspace
 #: contacts/doctype/contact/contact.json
 #: integrations/doctype/google_contacts/google_contacts.json
-msgid "Google Contacts"
-msgstr ""
-
-#. Label of a Link in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
-msgctxt "Google Contacts"
 msgid "Google Contacts"
 msgstr ""
 
@@ -11319,14 +11186,10 @@ msgstr ""
 #. Name of a DocType
 #. Label of the google_drive_section (Section Break) field in DocType 'Google
 #. Drive'
-#: integrations/doctype/google_drive/google_drive.json
-#: public/js/frappe/file_uploader/FileUploader.vue:164
-msgid "Google Drive"
-msgstr ""
-
 #. Label of a Link in the Integrations Workspace
+#: integrations/doctype/google_drive/google_drive.json
 #: integrations/workspace/integrations/integrations.json
-msgctxt "Google Drive"
+#: public/js/frappe/file_uploader/FileUploader.vue:164
 msgid "Google Drive"
 msgstr ""
 
@@ -11377,13 +11240,9 @@ msgid "Google Services"
 msgstr ""
 
 #. Name of a DocType
-#: integrations/doctype/google_settings/google_settings.json
-msgid "Google Settings"
-msgstr ""
-
 #. Label of a Link in the Integrations Workspace
+#: integrations/doctype/google_settings/google_settings.json
 #: integrations/workspace/integrations/integrations.json
-msgctxt "Google Settings"
 msgid "Google Settings"
 msgstr ""
 
@@ -11683,13 +11542,9 @@ msgid "Help"
 msgstr ""
 
 #. Name of a DocType
-#: website/doctype/help_article/help_article.json
-msgid "Help Article"
-msgstr ""
-
 #. Label of a Link in the Website Workspace
+#: website/doctype/help_article/help_article.json
 #: website/workspace/website/website.json
-msgctxt "Help Article"
 msgid "Help Article"
 msgstr ""
 
@@ -11699,13 +11554,9 @@ msgid "Help Articles"
 msgstr ""
 
 #. Name of a DocType
-#: website/doctype/help_category/help_category.json
-msgid "Help Category"
-msgstr ""
-
 #. Label of a Link in the Website Workspace
+#: website/doctype/help_category/help_category.json
 #: website/workspace/website/website.json
-msgctxt "Help Category"
 msgid "Help Category"
 msgstr ""
 
@@ -11782,7 +11633,7 @@ msgstr ""
 
 #. Option for the 'Page Number' (Select) field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
-#: public/js/frappe/views/workspace/workspace.js:857
+#: public/js/frappe/views/workspace/workspace.js:855
 #: public/js/frappe/widgets/base_widget.js:46
 #: public/js/frappe/widgets/base_widget.js:178
 #: public/js/print_format_builder/PrintFormatControls.vue:243
@@ -11891,7 +11742,7 @@ msgstr ""
 msgid "Hide Weekends"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:858
+#: public/js/frappe/views/workspace/workspace.js:856
 msgid "Hide Workspace"
 msgstr ""
 
@@ -12073,9 +11924,9 @@ msgstr ""
 #: desk/doctype/workspace_link/workspace_link.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: integrations/doctype/social_login_key/social_login_key.json
-#: public/js/frappe/views/workspace/workspace.js:675
-#: public/js/frappe/views/workspace/workspace.js:1003
-#: public/js/frappe/views/workspace/workspace.js:1248
+#: public/js/frappe/views/workspace/workspace.js:673
+#: public/js/frappe/views/workspace/workspace.js:1001
+#: public/js/frappe/views/workspace/workspace.js:1246
 #: workflow/doctype/workflow_state/workflow_state.json
 msgid "Icon"
 msgstr ""
@@ -12432,7 +12283,7 @@ msgstr ""
 msgid "Impersonate as {0}"
 msgstr ""
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:233
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:246
 msgid "Impersonated by {0}"
 msgstr ""
 
@@ -12465,7 +12316,6 @@ msgstr ""
 #. Label of a Link in the Tools Workspace
 #. Label of a shortcut in the Tools Workspace
 #: automation/workspace/tools/tools.json
-msgctxt "Data Import"
 msgid "Import Data"
 msgstr ""
 
@@ -12812,9 +12662,9 @@ msgstr ""
 msgid "Indicator Color"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:682
-#: public/js/frappe/views/workspace/workspace.js:1010
-#: public/js/frappe/views/workspace/workspace.js:1254
+#: public/js/frappe/views/workspace/workspace.js:680
+#: public/js/frappe/views/workspace/workspace.js:1008
+#: public/js/frappe/views/workspace/workspace.js:1252
 msgid "Indicator color"
 msgstr ""
 
@@ -13150,7 +13000,7 @@ msgstr ""
 msgid "Invalid Parameters."
 msgstr ""
 
-#: core/doctype/user/user.py:1191 www/update-password.html:121
+#: core/doctype/user/user.py:1195 www/update-password.html:121
 #: www/update-password.html:142 www/update-password.html:144
 #: www/update-password.html:245
 msgid "Invalid Password"
@@ -13850,13 +13700,9 @@ msgid "LDAP Server Url"
 msgstr ""
 
 #. Name of a DocType
-#: integrations/doctype/ldap_settings/ldap_settings.json
-msgid "LDAP Settings"
-msgstr ""
-
 #. Label of a Link in the Integrations Workspace
+#: integrations/doctype/ldap_settings/ldap_settings.json
 #: integrations/workspace/integrations/integrations.json
-msgctxt "LDAP Settings"
 msgid "LDAP Settings"
 msgstr ""
 
@@ -15507,13 +15353,9 @@ msgid "Middle Name"
 msgstr ""
 
 #. Name of a DocType
-#: automation/doctype/milestone/milestone.json
-msgid "Milestone"
-msgstr ""
-
 #. Label of a Link in the Tools Workspace
+#: automation/doctype/milestone/milestone.json
 #: automation/workspace/tools/tools.json
-msgctxt "Milestone"
 msgid "Milestone"
 msgstr ""
 
@@ -15658,13 +15500,8 @@ msgid "Module (for export)"
 msgstr ""
 
 #. Name of a DocType
-#: core/doctype/module_def/module_def.json
-msgid "Module Def"
-msgstr ""
-
 #. Label of a Link in the Build Workspace
-#: core/workspace/build/build.json
-msgctxt "Module Def"
+#: core/doctype/module_def/module_def.json core/workspace/build/build.json
 msgid "Module Def"
 msgstr ""
 
@@ -15680,26 +15517,18 @@ msgstr ""
 msgid "Module Name"
 msgstr ""
 
-#. Name of a DocType
-#: desk/doctype/module_onboarding/module_onboarding.json
-msgid "Module Onboarding"
-msgstr ""
-
 #. Label of a Link in the Build Workspace
+#. Name of a DocType
 #: core/workspace/build/build.json
-msgctxt "Module Onboarding"
+#: desk/doctype/module_onboarding/module_onboarding.json
 msgid "Module Onboarding"
 msgstr ""
 
 #. Name of a DocType
 #. Label of the module_profile (Link) field in DocType 'User'
-#: core/doctype/module_profile/module_profile.json core/doctype/user/user.json
-msgid "Module Profile"
-msgstr ""
-
 #. Label of a Link in the Users Workspace
+#: core/doctype/module_profile/module_profile.json core/doctype/user/user.json
 #: core/workspace/users/users.json
-msgctxt "Module Profile"
 msgid "Module Profile"
 msgstr ""
 
@@ -16075,13 +15904,9 @@ msgid "Navbar Item"
 msgstr ""
 
 #. Name of a DocType
-#: core/doctype/navbar_settings/navbar_settings.json
-msgid "Navbar Settings"
-msgstr ""
-
 #. Label of a Link in the Build Workspace
+#: core/doctype/navbar_settings/navbar_settings.json
 #: core/workspace/build/build.json
-msgctxt "Navbar Settings"
 msgid "Navbar Settings"
 msgstr ""
 
@@ -16153,6 +15978,7 @@ msgstr ""
 #: email/doctype/notification/notification.json
 #: public/js/frappe/form/success_action.js:77
 #: public/js/frappe/views/treeview.js:450
+#: public/js/frappe/views/workspace/workspace.js:95
 #: social/doctype/energy_point_rule/energy_point_rule.json
 #: website/doctype/web_form/templates/web_list.html:15 www/list.html:19
 msgid "New"
@@ -16286,7 +16112,7 @@ msgstr ""
 msgid "New Workflow Name"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1215
+#: public/js/frappe/views/workspace/workspace.js:1213
 msgid "New Workspace"
 msgstr ""
 
@@ -16344,20 +16170,15 @@ msgstr ""
 msgid "New {} releases for the following apps are available"
 msgstr ""
 
-#: core/doctype/user/user.py:768
+#: core/doctype/user/user.py:772
 msgid "Newly created user {0} has no roles enabled."
 msgstr ""
 
 #. Label of a Card Break in the Tools Workspace
+#. Label of a Link in the Tools Workspace
 #. Name of a DocType
 #: automation/workspace/tools/tools.json
 #: email/doctype/newsletter/newsletter.json
-msgid "Newsletter"
-msgstr ""
-
-#. Label of a Link in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "Newsletter"
 msgid "Newsletter"
 msgstr ""
 
@@ -16632,7 +16453,7 @@ msgstr ""
 msgid "No Results found"
 msgstr ""
 
-#: core/doctype/user/user.py:769
+#: core/doctype/user/user.py:773
 msgid "No Roles Specified"
 msgstr ""
 
@@ -16680,7 +16501,7 @@ msgstr ""
 msgid "No changes made because old and new name are the same."
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1520
+#: public/js/frappe/views/workspace/workspace.js:1518
 msgid "No changes made on the page"
 msgstr ""
 
@@ -16886,7 +16707,7 @@ msgstr ""
 msgid "Normalized Query"
 msgstr ""
 
-#: core/doctype/user/user.py:974 templates/includes/login/login.js:257
+#: core/doctype/user/user.py:978 templates/includes/login/login.js:257
 #: utils/oauth.py:265
 msgid "Not Allowed"
 msgstr ""
@@ -17050,15 +16871,10 @@ msgstr ""
 msgid "Not permitted to view {0}"
 msgstr ""
 
+#. Label of a Link in the Tools Workspace
 #. Name of a DocType
 #: automation/doctype/auto_repeat/auto_repeat.py:396
-#: desk/doctype/note/note.json
-msgid "Note"
-msgstr ""
-
-#. Label of a Link in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "Note"
+#: automation/workspace/tools/tools.json desk/doctype/note/note.json
 msgid "Note"
 msgstr ""
 
@@ -17137,22 +16953,18 @@ msgid "Nothing to update"
 msgstr ""
 
 #. Label of the notification (Section Break) field in DocType 'Auto Repeat'
+#. Label of a Link in the Tools Workspace
 #. Option for the 'Communication Type' (Select) field in DocType
 #. 'Communication'
 #. Name of a DocType
 #. Label of the notification_section (Section Break) field in DocType 'S3
 #. Backup Settings'
 #: automation/doctype/auto_repeat/auto_repeat.json
+#: automation/workspace/tools/tools.json
 #: core/doctype/communication/communication.json
 #: core/doctype/communication/mixins.py:142
 #: email/doctype/notification/notification.json
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.json
-msgid "Notification"
-msgstr ""
-
-#. Label of a Link in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "Notification"
 msgid "Notification"
 msgstr ""
 
@@ -17166,15 +16978,11 @@ msgstr ""
 msgid "Notification Recipient"
 msgstr ""
 
+#. Label of a Link in the Tools Workspace
 #. Name of a DocType
+#: automation/workspace/tools/tools.json
 #: desk/doctype/notification_settings/notification_settings.json
 #: public/js/frappe/ui/notifications/notifications.js:37
-msgid "Notification Settings"
-msgstr ""
-
-#. Label of a Link in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "Notification Settings"
 msgid "Notification Settings"
 msgstr ""
 
@@ -17363,13 +17171,9 @@ msgid "OAuth Bearer Token"
 msgstr ""
 
 #. Name of a DocType
-#: integrations/doctype/oauth_client/oauth_client.json
-msgid "OAuth Client"
-msgstr ""
-
 #. Label of a Link in the Integrations Workspace
+#: integrations/doctype/oauth_client/oauth_client.json
 #: integrations/workspace/integrations/integrations.json
-msgctxt "OAuth Client"
 msgid "OAuth Client"
 msgstr ""
 
@@ -17388,13 +17192,9 @@ msgid "OAuth Error"
 msgstr ""
 
 #. Name of a DocType
-#: integrations/doctype/oauth_provider_settings/oauth_provider_settings.json
-msgid "OAuth Provider Settings"
-msgstr ""
-
 #. Label of a Link in the Integrations Workspace
+#: integrations/doctype/oauth_provider_settings/oauth_provider_settings.json
 #: integrations/workspace/integrations/integrations.json
-msgctxt "OAuth Provider Settings"
 msgid "OAuth Provider Settings"
 msgstr ""
 
@@ -17599,7 +17399,7 @@ msgstr ""
 msgid "One of"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1355
+#: public/js/frappe/views/workspace/workspace.js:1353
 msgid "One of the child page with name {0} already exist in {1} Section. Please update the name of the child page first before moving"
 msgstr ""
 
@@ -17641,7 +17441,7 @@ msgstr ""
 msgid "Only Workspace Manager can edit public workspaces"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:579
+#: public/js/frappe/views/workspace/workspace.js:577
 msgid "Only Workspace Manager can sort or edit this page"
 msgstr ""
 
@@ -18082,25 +17882,17 @@ msgstr ""
 #. Label of the package (Link) field in DocType 'Module Def'
 #. Name of a DocType
 #. Label of the package (Link) field in DocType 'Package Release'
-#: core/doctype/module_def/module_def.json core/doctype/package/package.json
-#: core/doctype/package_release/package_release.json www/attribution.html:34
-msgid "Package"
-msgstr ""
-
 #. Label of a Link in the Build Workspace
-#: core/workspace/build/build.json
-msgctxt "Package"
+#: core/doctype/module_def/module_def.json core/doctype/package/package.json
+#: core/doctype/package_release/package_release.json
+#: core/workspace/build/build.json www/attribution.html:34
 msgid "Package"
 msgstr ""
 
 #. Name of a DocType
-#: core/doctype/package_import/package_import.json
-msgid "Package Import"
-msgstr ""
-
 #. Label of a Link in the Build Workspace
+#: core/doctype/package_import/package_import.json
 #: core/workspace/build/build.json
-msgctxt "Package Import"
 msgid "Package Import"
 msgstr ""
 
@@ -18187,7 +17979,7 @@ msgstr ""
 msgid "Page Route"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1542
+#: public/js/frappe/views/workspace/workspace.js:1540
 msgid "Page Saved Successfully"
 msgstr ""
 
@@ -18232,7 +18024,7 @@ msgstr ""
 msgid "Page to show on the website\n"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1342
+#: public/js/frappe/views/workspace/workspace.js:1340
 msgid "Page with title {0} already exist."
 msgstr ""
 
@@ -18249,9 +18041,9 @@ msgid "Parameter"
 msgstr ""
 
 #: public/js/frappe/model/model.js:142
-#: public/js/frappe/views/workspace/workspace.js:649
-#: public/js/frappe/views/workspace/workspace.js:977
-#: public/js/frappe/views/workspace/workspace.js:1224
+#: public/js/frappe/views/workspace/workspace.js:647
+#: public/js/frappe/views/workspace/workspace.js:975
+#: public/js/frappe/views/workspace/workspace.js:1222
 msgid "Parent"
 msgstr ""
 
@@ -18375,11 +18167,11 @@ msgstr ""
 msgid "Password"
 msgstr ""
 
-#: core/doctype/user/user.py:1037
+#: core/doctype/user/user.py:1041
 msgid "Password Email Sent"
 msgstr ""
 
-#: core/doctype/user/user.py:412
+#: core/doctype/user/user.py:416
 msgid "Password Reset"
 msgstr ""
 
@@ -18413,7 +18205,7 @@ msgstr ""
 msgid "Password not found for {0} {1} {2}"
 msgstr ""
 
-#: core/doctype/user/user.py:1036
+#: core/doctype/user/user.py:1040
 msgid "Password reset instructions have been sent to {}'s email"
 msgstr ""
 
@@ -18425,7 +18217,7 @@ msgstr ""
 msgid "Password size exceeded the maximum allowed size"
 msgstr ""
 
-#: core/doctype/user/user.py:832
+#: core/doctype/user/user.py:836
 msgid "Password size exceeded the maximum allowed size."
 msgstr ""
 
@@ -18790,7 +18582,7 @@ msgstr ""
 msgid "Please add a valid comment."
 msgstr ""
 
-#: core/doctype/user/user.py:1019
+#: core/doctype/user/user.py:1023
 msgid "Please ask your administrator to verify your sign-up"
 msgstr ""
 
@@ -18822,7 +18614,7 @@ msgstr ""
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr ""
 
-#: core/doctype/user/user.py:1017
+#: core/doctype/user/user.py:1021
 msgid "Please check your email for verification"
 msgstr ""
 
@@ -19113,7 +18905,7 @@ msgstr ""
 msgid "Please setup default Email Account from Settings > Email Account"
 msgstr ""
 
-#: core/doctype/user/user.py:377
+#: core/doctype/user/user.py:381
 msgid "Please setup default outgoing Email Account from Settings > Email Account"
 msgstr ""
 
@@ -19216,13 +19008,9 @@ msgid "Portal Menu Item"
 msgstr ""
 
 #. Name of a DocType
-#: website/doctype/portal_settings/portal_settings.json
-msgid "Portal Settings"
-msgstr ""
-
 #. Label of a Link in the Website Workspace
+#: website/doctype/portal_settings/portal_settings.json
 #: website/workspace/website/website.json
-msgctxt "Portal Settings"
 msgid "Portal Settings"
 msgstr ""
 
@@ -19490,21 +19278,16 @@ msgid "Print Documents"
 msgstr ""
 
 #. Label of the print_format (Link) field in DocType 'Auto Repeat'
+#. Label of a Link in the Build Workspace
 #. Label of the print_format (Link) field in DocType 'Notification'
 #. Name of a DocType
 #. Label of the print_format (Link) field in DocType 'Web Form'
 #: automation/doctype/auto_repeat/auto_repeat.json
-#: email/doctype/notification/notification.json
+#: core/workspace/build/build.json email/doctype/notification/notification.json
 #: printing/doctype/print_format/print_format.json
 #: printing/page/print/print.js:94 printing/page/print/print.js:819
 #: public/js/frappe/list/bulk_operations.js:59
 #: website/doctype/web_form/web_form.json
-msgid "Print Format"
-msgstr ""
-
-#. Label of a Link in the Build Workspace
-#: core/workspace/build/build.json
-msgctxt "Print Format"
 msgid "Print Format"
 msgstr ""
 
@@ -19558,15 +19341,11 @@ msgstr ""
 msgid "Print Formats allow you can define looks for documents when printed or converted to PDF. You can also create a custom Print Format using drag-and-drop tools."
 msgstr ""
 
+#. Label of a Link in the Tools Workspace
 #. Name of a DocType
 #. Label of the print_heading (Data) field in DocType 'Print Heading'
-#: printing/doctype/print_heading/print_heading.json
-msgid "Print Heading"
-msgstr ""
-
-#. Label of a Link in the Tools Workspace
 #: automation/workspace/tools/tools.json
-msgctxt "Print Heading"
+#: printing/doctype/print_heading/print_heading.json
 msgid "Print Heading"
 msgstr ""
 
@@ -19603,19 +19382,15 @@ msgstr ""
 msgid "Print Server"
 msgstr ""
 
+#. Label of a Link in the Tools Workspace
 #. Label of the column_break_25 (Section Break) field in DocType 'Notification'
 #. Name of a DocType
+#: automation/workspace/tools/tools.json
 #: email/doctype/notification/notification.json
 #: printing/doctype/print_settings/print_settings.json
 #: printing/doctype/print_style/print_style.js:6
 #: printing/page/print/print.js:160 public/js/frappe/form/print_utils.js:69
 #: public/js/frappe/form/templates/print_layout.html:35
-msgid "Print Settings"
-msgstr ""
-
-#. Label of a Link in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "Print Settings"
 msgid "Print Settings"
 msgstr ""
 
@@ -19741,7 +19516,7 @@ msgstr ""
 msgid "Processing"
 msgstr ""
 
-#: email/doctype/email_queue/email_queue.py:447
+#: email/doctype/email_queue/email_queue.py:454
 msgid "Processing..."
 msgstr ""
 
@@ -19816,9 +19591,9 @@ msgstr ""
 #: desk/doctype/event/event.json desk/doctype/note/note.json
 #: desk/doctype/note/note_list.js:6 desk/doctype/workspace/workspace.json
 #: public/js/frappe/views/interaction.js:78
-#: public/js/frappe/views/workspace/workspace.js:656
-#: public/js/frappe/views/workspace/workspace.js:984
-#: public/js/frappe/views/workspace/workspace.js:1230
+#: public/js/frappe/views/workspace/workspace.js:654
+#: public/js/frappe/views/workspace/workspace.js:982
+#: public/js/frappe/views/workspace/workspace.js:1228
 msgid "Public"
 msgstr ""
 
@@ -19927,13 +19702,9 @@ msgid "Purple"
 msgstr ""
 
 #. Name of a DocType
-#: integrations/doctype/push_notification_settings/push_notification_settings.json
-msgid "Push Notification Settings"
-msgstr ""
-
 #. Label of a Link in the Integrations Workspace
+#: integrations/doctype/push_notification_settings/push_notification_settings.json
 #: integrations/workspace/integrations/integrations.json
-msgctxt "Push Notification Settings"
 msgid "Push Notification Settings"
 msgstr ""
 
@@ -20736,7 +20507,7 @@ msgstr ""
 msgid "Refreshing..."
 msgstr ""
 
-#: core/doctype/user/user.py:981
+#: core/doctype/user/user.py:985
 msgid "Registered but disabled"
 msgstr ""
 
@@ -21001,6 +20772,8 @@ msgstr ""
 #. Page and Report'
 #. Label of the report (Link) field in DocType 'Role Permission for Page and
 #. Report'
+#. Label of a Link in the Build Workspace
+#. Label of a shortcut in the Build Workspace
 #. Option for the 'Chart Type' (Select) field in DocType 'Dashboard Chart'
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
 #. Option for the 'Type' (Select) field in DocType 'Number Card'
@@ -21013,6 +20786,7 @@ msgstr ""
 #: core/doctype/custom_role/custom_role.json core/doctype/docperm/docperm.json
 #: core/doctype/report/report.json
 #: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
+#: core/workspace/build/build.json
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 #: desk/doctype/form_tour/form_tour.json
 #: desk/doctype/number_card/number_card.json
@@ -21021,13 +20795,6 @@ msgstr ""
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: email/doctype/auto_email_report/auto_email_report.json
 #: public/js/frappe/request.js:610
-msgid "Report"
-msgstr ""
-
-#. Label of a Link in the Build Workspace
-#. Label of a shortcut in the Build Workspace
-#: core/workspace/build/build.json
-msgctxt "Report"
 msgid "Report"
 msgstr ""
 
@@ -21601,6 +21368,8 @@ msgstr ""
 #. Label of the role (Link) field in DocType 'Has Role'
 #. Name of a DocType
 #. Label of the role (Link) field in DocType 'User Type'
+#. Label of a Link in the Users Workspace
+#. Label of a shortcut in the Users Workspace
 #. Label of the role (Link) field in DocType 'Onboarding Permission'
 #. Label of the role (Link) field in DocType 'ToDo'
 #. Label of the role (Link) field in DocType 'OAuth Client Role'
@@ -21614,19 +21383,13 @@ msgstr ""
 #: core/doctype/user_type/user_type.py:109
 #: core/page/permission_manager/permission_manager.js:212
 #: core/page/permission_manager/permission_manager.js:450
+#: core/workspace/users/users.json
 #: desk/doctype/onboarding_permission/onboarding_permission.json
 #: desk/doctype/todo/todo.json
 #: integrations/doctype/oauth_client_role/oauth_client_role.json
 #: social/doctype/review_level/review_level.json
 #: website/doctype/portal_menu_item/portal_menu_item.json
 #: workflow/doctype/workflow_action_permitted_role/workflow_action_permitted_role.json
-msgid "Role"
-msgstr ""
-
-#. Label of a Link in the Users Workspace
-#. Label of a shortcut in the Users Workspace
-#: core/workspace/users/users.json
-msgctxt "Role"
 msgid "Role"
 msgstr ""
 
@@ -21645,13 +21408,9 @@ msgid "Role Name"
 msgstr ""
 
 #. Name of a DocType
-#: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
-msgid "Role Permission for Page and Report"
-msgstr ""
-
 #. Label of a Link in the Users Workspace
+#: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
 #: core/workspace/users/users.json
-msgctxt "Role Permission for Page and Report"
 msgid "Role Permission for Page and Report"
 msgstr ""
 
@@ -21676,14 +21435,10 @@ msgstr ""
 #. Name of a DocType
 #. Label of the role_profile_name (Link) field in DocType 'User'
 #. Label of the role_profile (Link) field in DocType 'User Role Profile'
+#. Label of a Link in the Users Workspace
 #: core/doctype/role_profile/role_profile.json core/doctype/user/user.json
 #: core/doctype/user_role_profile/user_role_profile.json
-msgid "Role Profile"
-msgstr ""
-
-#. Label of a Link in the Users Workspace
 #: core/workspace/users/users.json
-msgctxt "Role Profile"
 msgid "Role Profile"
 msgstr ""
 
@@ -21937,13 +21692,9 @@ msgid "Run scheduled jobs only if checked"
 msgstr ""
 
 #. Name of a DocType
-#: integrations/doctype/s3_backup_settings/s3_backup_settings.json
-msgid "S3 Backup Settings"
-msgstr ""
-
 #. Label of a Link in the Integrations Workspace
+#: integrations/doctype/s3_backup_settings/s3_backup_settings.json
 #: integrations/workspace/integrations/integrations.json
-msgctxt "S3 Backup Settings"
 msgid "S3 Backup Settings"
 msgstr ""
 
@@ -21983,13 +21734,9 @@ msgid "SMS Parameter"
 msgstr ""
 
 #. Name of a DocType
-#: core/doctype/sms_settings/sms_settings.json
-msgid "SMS Settings"
-msgstr ""
-
 #. Label of a Link in the Integrations Workspace
+#: core/doctype/sms_settings/sms_settings.json
 #: integrations/workspace/integrations/integrations.json
-msgctxt "SMS Settings"
 msgid "SMS Settings"
 msgstr ""
 
@@ -22111,7 +21858,7 @@ msgstr ""
 #: public/js/frappe/views/kanban/kanban_view.js:343
 #: public/js/frappe/views/reports/query_report.js:1802
 #: public/js/frappe/views/reports/report_view.js:1640
-#: public/js/frappe/views/workspace/workspace.js:530
+#: public/js/frappe/views/workspace/workspace.js:528
 #: public/js/frappe/widgets/base_widget.js:142
 #: public/js/frappe/widgets/quick_list_widget.js:119
 #: public/js/print_format_builder/print_format_builder.bundle.js:15
@@ -22166,7 +21913,7 @@ msgstr ""
 
 #: public/js/frappe/list/list_settings.js:40
 #: public/js/frappe/views/kanban/kanban_settings.js:47
-#: public/js/frappe/views/workspace/workspace.js:542
+#: public/js/frappe/views/workspace/workspace.js:540
 msgid "Saving"
 msgstr ""
 
@@ -22237,22 +21984,17 @@ msgid "Scheduled Job Log"
 msgstr ""
 
 #. Name of a DocType
+#. Label of a Link in the Build Workspace
 #. Label of the scheduled_job_type (Link) field in DocType 'System Health
 #. Report Failing Jobs'
 #: core/doctype/scheduled_job_type/scheduled_job_type.json
+#: core/workspace/build/build.json
 #: desk/doctype/system_health_report_failing_jobs/system_health_report_failing_jobs.json
 msgid "Scheduled Job Type"
 msgstr ""
 
 #. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
-msgctxt "Scheduled Job Type"
-msgid "Scheduled Job Type"
-msgstr ""
-
-#. Label of a Link in the Build Workspace
-#: core/workspace/build/build.json
-msgctxt "Scheduled Job Log"
 msgid "Scheduled Jobs Logs"
 msgstr ""
 
@@ -23202,15 +22944,11 @@ msgstr ""
 
 #. Label of the server_script (Link) field in DocType 'Scheduled Job Type'
 #. Name of a DocType
-#: core/doctype/scheduled_job_type/scheduled_job_type.json
-#: core/doctype/server_script/server_script.json
-msgid "Server Script"
-msgstr ""
-
 #. Label of a Link in the Build Workspace
 #. Label of a shortcut in the Build Workspace
+#: core/doctype/scheduled_job_type/scheduled_job_type.json
+#: core/doctype/server_script/server_script.json
 #: core/workspace/build/build.json
-msgctxt "Server Script"
 msgid "Server Script"
 msgstr ""
 
@@ -23480,7 +23218,7 @@ msgstr ""
 #: integrations/workspace/integrations/integrations.json
 #: public/js/frappe/form/templates/print_layout.html:25
 #: public/js/frappe/ui/toolbar/toolbar.js:289
-#: public/js/frappe/views/workspace/workspace.js:558
+#: public/js/frappe/views/workspace/workspace.js:556
 #: website/doctype/web_form/web_form.json
 #: website/doctype/web_page/web_page.json
 msgid "Settings"
@@ -23886,6 +23624,11 @@ msgstr ""
 msgid "Show more details"
 msgstr ""
 
+#. Label of the show_on_timeline (Check) field in DocType 'DocField'
+#: core/doctype/docfield/docfield.json
+msgid "Show on Timeline"
+msgstr ""
+
 #. Description of the 'Stats Time Interval' (Select) field in DocType 'Number
 #. Card'
 #: desk/doctype/number_card/number_card.json
@@ -23936,7 +23679,7 @@ msgstr ""
 msgid "Sign Up and Confirmation"
 msgstr ""
 
-#: core/doctype/user/user.py:974
+#: core/doctype/user/user.py:978
 msgid "Sign Up is disabled"
 msgstr ""
 
@@ -24080,13 +23823,9 @@ msgid "Slack Webhook Error"
 msgstr ""
 
 #. Name of a DocType
-#: integrations/doctype/slack_webhook_url/slack_webhook_url.json
-msgid "Slack Webhook URL"
-msgstr ""
-
 #. Label of a Link in the Integrations Workspace
+#: integrations/doctype/slack_webhook_url/slack_webhook_url.json
 #: integrations/workspace/integrations/integrations.json
-msgctxt "Slack Webhook URL"
 msgid "Slack Webhook URL"
 msgstr ""
 
@@ -24152,13 +23891,9 @@ msgid "Social Link Type"
 msgstr ""
 
 #. Name of a DocType
-#: integrations/doctype/social_login_key/social_login_key.json
-msgid "Social Login Key"
-msgstr ""
-
 #. Label of a Link in the Integrations Workspace
+#: integrations/doctype/social_login_key/social_login_key.json
 #: integrations/workspace/integrations/integrations.json
-msgctxt "Social Login Key"
 msgid "Social Login Key"
 msgstr ""
 
@@ -24958,7 +24693,7 @@ msgstr ""
 msgid "Suggested Indexes"
 msgstr ""
 
-#: core/doctype/user/user.py:689
+#: core/doctype/user/user.py:693
 msgid "Suggested Username: {0}"
 msgstr ""
 
@@ -25283,13 +25018,9 @@ msgid "System Page"
 msgstr ""
 
 #. Name of a DocType
-#: core/doctype/system_settings/system_settings.json
-msgid "System Settings"
-msgstr ""
-
 #. Label of a shortcut in the Build Workspace
+#: core/doctype/system_settings/system_settings.json
 #: core/workspace/build/build.json
-msgctxt "System Settings"
 msgid "System Settings"
 msgstr ""
 
@@ -25485,7 +25216,7 @@ msgstr ""
 msgid "Templates"
 msgstr ""
 
-#: core/doctype/user/user.py:985
+#: core/doctype/user/user.py:989
 msgid "Temporarily Disabled"
 msgstr ""
 
@@ -25745,11 +25476,11 @@ msgid ""
 "</a>"
 msgstr ""
 
-#: core/doctype/user/user.py:945
+#: core/doctype/user/user.py:949
 msgid "The reset password link has been expired"
 msgstr ""
 
-#: core/doctype/user/user.py:947
+#: core/doctype/user/user.py:951
 msgid "The reset password link has either been used before or is invalid"
 msgstr ""
 
@@ -26181,7 +25912,7 @@ msgstr ""
 msgid "This will terminate the job immediately and might be dangerous, are you sure? "
 msgstr ""
 
-#: core/doctype/user/user.py:1205
+#: core/doctype/user/user.py:1209
 msgid "Throttled"
 msgstr ""
 
@@ -26395,9 +26126,9 @@ msgstr ""
 #: desk/doctype/system_health_report_errors/system_health_report_errors.json
 #: desk/doctype/workspace/workspace.json
 #: email/doctype/email_group/email_group.json
-#: public/js/frappe/views/workspace/workspace.js:642
-#: public/js/frappe/views/workspace/workspace.js:971
-#: public/js/frappe/views/workspace/workspace.js:1218
+#: public/js/frappe/views/workspace/workspace.js:640
+#: public/js/frappe/views/workspace/workspace.js:969
+#: public/js/frappe/views/workspace/workspace.js:1216
 #: website/doctype/blog_category/blog_category.json
 #: website/doctype/blog_post/blog_post.json
 #: website/doctype/blog_settings/blog_settings.json
@@ -26451,13 +26182,8 @@ msgstr ""
 msgid "To Date Field"
 msgstr ""
 
-#: desk/doctype/todo/todo_list.js:6
-msgid "To Do"
-msgstr ""
-
 #. Label of a Link in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "ToDo"
+#: automation/workspace/tools/tools.json desk/doctype/todo/todo_list.js:6
 msgid "To Do"
 msgstr ""
 
@@ -26568,15 +26294,11 @@ msgstr ""
 msgid "To version"
 msgstr ""
 
+#. Label of a shortcut in the Tools Workspace
 #. Name of a DocType
 #. Name of a report
-#: desk/doctype/todo/todo.json desk/report/todo/todo.json
-msgid "ToDo"
-msgstr ""
-
-#. Label of a shortcut in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "ToDo"
+#: automation/workspace/tools/tools.json desk/doctype/todo/todo.json
+#: desk/report/todo/todo.json
 msgid "ToDo"
 msgstr ""
 
@@ -26651,7 +26373,7 @@ msgstr ""
 msgid "Too many changes to database in single action."
 msgstr ""
 
-#: core/doctype/user/user.py:986
+#: core/doctype/user/user.py:990
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr ""
 
@@ -27220,7 +26942,7 @@ msgstr ""
 msgid "Unhandled Emails"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:599
+#: public/js/frappe/views/workspace/workspace.js:597
 msgid "Unhide Workspace"
 msgstr ""
 
@@ -27342,7 +27064,7 @@ msgstr ""
 #: printing/page/print_format_builder/print_format_builder.js:670
 #: printing/page/print_format_builder/print_format_builder.js:757
 #: public/js/frappe/form/grid_row.js:404
-#: public/js/frappe/views/workspace/workspace.js:690
+#: public/js/frappe/views/workspace/workspace.js:688
 msgid "Update"
 msgstr ""
 
@@ -27352,7 +27074,7 @@ msgstr ""
 msgid "Update Amendment Naming"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:639
+#: public/js/frappe/views/workspace/workspace.js:637
 msgid "Update Details"
 msgstr ""
 
@@ -27447,7 +27169,7 @@ msgctxt "Freeze message while updating a document"
 msgid "Updating"
 msgstr ""
 
-#: email/doctype/email_queue/email_queue.py:446
+#: email/doctype/email_queue/email_queue.py:453
 msgid "Updating Email Queue Statuses. The emails will be picked up in the next scheduled run."
 msgstr ""
 
@@ -27620,6 +27342,8 @@ msgstr ""
 #. Name of a DocType
 #. Label of the user (Link) field in DocType 'User Group Member'
 #. Label of the user (Link) field in DocType 'User Permission'
+#. Label of a Link in the Users Workspace
+#. Label of a shortcut in the Users Workspace
 #. Label of the user (Link) field in DocType 'Dashboard Settings'
 #. Label of the user (Link) field in DocType 'Note Seen By'
 #. Label of the user (Link) field in DocType 'Notification Settings'
@@ -27646,6 +27370,7 @@ msgstr ""
 #: core/doctype/user_group_member/user_group_member.json
 #: core/doctype/user_permission/user_permission.json
 #: core/report/permitted_documents_for_user/permitted_documents_for_user.js:8
+#: core/workspace/users/users.json
 #: desk/doctype/dashboard_settings/dashboard_settings.json
 #: desk/doctype/note_seen_by/note_seen_by.json
 #: desk/doctype/notification_settings/notification_settings.json
@@ -27664,13 +27389,6 @@ msgstr ""
 #: website/doctype/blogger/blogger.json
 #: website/doctype/personal_data_download_request/personal_data_download_request.json
 #: workflow/doctype/workflow_action/workflow_action.json
-msgid "User"
-msgstr ""
-
-#. Label of a Link in the Users Workspace
-#. Label of a shortcut in the Users Workspace
-#: core/workspace/users/users.json
-msgctxt "User"
 msgid "User"
 msgstr ""
 
@@ -27811,7 +27529,9 @@ msgstr ""
 msgid "User Permission"
 msgstr ""
 
+#. Label of a Link in the Users Workspace
 #: core/page/permission_manager/permission_manager_help.html:30
+#: core/workspace/users/users.json
 #: public/js/frappe/views/reports/query_report.js:1789
 #: public/js/frappe/views/reports/report_view.js:1666
 msgid "User Permissions"
@@ -27819,12 +27539,6 @@ msgstr ""
 
 #: public/js/frappe/list/list_view.js:1738
 msgctxt "Button in list view menu"
-msgid "User Permissions"
-msgstr ""
-
-#. Label of a Link in the Users Workspace
-#: core/workspace/users/users.json
-msgctxt "User Permission"
 msgid "User Permissions"
 msgstr ""
 
@@ -27872,14 +27586,9 @@ msgstr ""
 
 #. Label of the user_type (Link) field in DocType 'User'
 #. Name of a DocType
-#: core/doctype/user/user.json core/doctype/user_type/user_type.json
-#: core/doctype/user_type/user_type.py:82
-msgid "User Type"
-msgstr ""
-
 #. Label of a shortcut in the Users Workspace
-#: core/workspace/users/users.json
-msgctxt "User Type"
+#: core/doctype/user/user.json core/doctype/user_type/user_type.json
+#: core/doctype/user_type/user_type.py:82 core/workspace/users/users.json
 msgid "User Type"
 msgstr ""
 
@@ -27940,7 +27649,7 @@ msgstr ""
 msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
 msgstr ""
 
-#: core/doctype/user/user.py:491
+#: core/doctype/user/user.py:495
 msgid "User {0} cannot be deleted"
 msgstr ""
 
@@ -27948,7 +27657,7 @@ msgstr ""
 msgid "User {0} cannot be disabled"
 msgstr ""
 
-#: core/doctype/user/user.py:571
+#: core/doctype/user/user.py:575
 msgid "User {0} cannot be renamed"
 msgstr ""
 
@@ -27969,7 +27678,7 @@ msgstr ""
 msgid "User {0} has requested for data deletion"
 msgstr ""
 
-#: core/doctype/user/user.py:1334
+#: core/doctype/user/user.py:1338
 msgid "User {0} impersonated as {1}"
 msgstr ""
 
@@ -27997,7 +27706,7 @@ msgstr ""
 msgid "Username"
 msgstr ""
 
-#: core/doctype/user/user.py:656
+#: core/doctype/user/user.py:660
 msgid "Username {0} already exists"
 msgstr ""
 
@@ -28456,14 +28165,10 @@ msgid "Weak"
 msgstr ""
 
 #. Name of a DocType
-#: website/doctype/web_form/web_form.json
-msgid "Web Form"
-msgstr ""
-
 #. Label of a Link in the Website Workspace
 #. Label of a shortcut in the Website Workspace
+#: website/doctype/web_form/web_form.json
 #: website/workspace/website/website.json
-msgctxt "Web Form"
 msgid "Web Form"
 msgstr ""
 
@@ -28483,14 +28188,10 @@ msgid "Web Form List Column"
 msgstr ""
 
 #. Name of a DocType
-#: website/doctype/web_page/web_page.json
-msgid "Web Page"
-msgstr ""
-
 #. Label of a Link in the Website Workspace
 #. Label of a shortcut in the Website Workspace
+#: website/doctype/web_page/web_page.json
 #: website/workspace/website/website.json
-msgctxt "Web Page"
 msgid "Web Page"
 msgstr ""
 
@@ -28541,14 +28242,10 @@ msgstr ""
 
 #. Name of a DocType
 #. Label of the webhook (Link) field in DocType 'Webhook Request Log'
+#. Label of a Link in the Integrations Workspace
 #: integrations/doctype/webhook/webhook.json
 #: integrations/doctype/webhook_request_log/webhook_request_log.json
-msgid "Webhook"
-msgstr ""
-
-#. Label of a Link in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
-msgctxt "Webhook"
 msgid "Webhook"
 msgstr ""
 
@@ -28639,13 +28336,9 @@ msgid "Website Meta Tag"
 msgstr ""
 
 #. Name of a DocType
-#: website/doctype/website_route_meta/website_route_meta.json
-msgid "Website Route Meta"
-msgstr ""
-
 #. Label of a Link in the Website Workspace
+#: website/doctype/website_route_meta/website_route_meta.json
 #: website/workspace/website/website.json
-msgctxt "Website Route Meta"
 msgid "Website Route Meta"
 msgstr ""
 
@@ -28655,13 +28348,9 @@ msgid "Website Route Redirect"
 msgstr ""
 
 #. Name of a DocType
-#: website/doctype/website_script/website_script.json
-msgid "Website Script"
-msgstr ""
-
 #. Label of a Link in the Website Workspace
+#: website/doctype/website_script/website_script.json
 #: website/workspace/website/website.json
-msgctxt "Website Script"
 msgid "Website Script"
 msgstr ""
 
@@ -28675,29 +28364,21 @@ msgid "Website Search Field must be a valid fieldname"
 msgstr ""
 
 #. Name of a DocType
-#: website/doctype/website_settings/website_settings.json
-msgid "Website Settings"
-msgstr ""
-
 #. Label of a Link in the Website Workspace
 #. Label of a shortcut in the Website Workspace
+#: website/doctype/website_settings/website_settings.json
 #: website/workspace/website/website.json
-msgctxt "Website Settings"
 msgid "Website Settings"
 msgstr ""
 
 #. Label of the website_sidebar (Link) field in DocType 'Web Form'
 #. Label of the website_sidebar (Link) field in DocType 'Web Page'
 #. Name of a DocType
+#. Label of a Link in the Website Workspace
 #: website/doctype/web_form/web_form.json
 #: website/doctype/web_page/web_page.json
 #: website/doctype/website_sidebar/website_sidebar.json
-msgid "Website Sidebar"
-msgstr ""
-
-#. Label of a Link in the Website Workspace
 #: website/workspace/website/website.json
-msgctxt "Website Sidebar"
 msgid "Website Sidebar"
 msgstr ""
 
@@ -28707,13 +28388,9 @@ msgid "Website Sidebar Item"
 msgstr ""
 
 #. Name of a DocType
-#: website/doctype/website_slideshow/website_slideshow.json
-msgid "Website Slideshow"
-msgstr ""
-
 #. Label of a Link in the Website Workspace
+#: website/doctype/website_slideshow/website_slideshow.json
 #: website/workspace/website/website.json
-msgctxt "Website Slideshow"
 msgid "Website Slideshow"
 msgstr ""
 
@@ -28724,14 +28401,10 @@ msgstr ""
 
 #. Label of the website_theme (Link) field in DocType 'Website Settings'
 #. Name of a DocType
+#. Label of a Link in the Website Workspace
 #: website/doctype/website_settings/website_settings.json
 #: website/doctype/website_theme/website_theme.json
-msgid "Website Theme"
-msgstr ""
-
-#. Label of a Link in the Website Workspace
 #: website/workspace/website/website.json
-msgctxt "Website Theme"
 msgid "Website Theme"
 msgstr ""
 
@@ -28840,11 +28513,11 @@ msgstr ""
 msgid "Welcome Workspace"
 msgstr ""
 
-#: core/doctype/user/user.py:369
+#: core/doctype/user/user.py:373
 msgid "Welcome email sent"
 msgstr ""
 
-#: core/doctype/user/user.py:430
+#: core/doctype/user/user.py:434
 msgid "Welcome to {0}"
 msgstr ""
 
@@ -28952,17 +28625,13 @@ msgstr ""
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #. Group in DocType's connections
+#. Label of a Link in the Build Workspace
 #. Name of a DocType
 #: core/doctype/comment/comment.json
 #: core/doctype/communication/communication.json
-#: core/doctype/doctype/doctype.json public/js/workflow_builder/store.js:129
+#: core/doctype/doctype/doctype.json core/workspace/build/build.json
+#: public/js/workflow_builder/store.js:129
 #: workflow/doctype/workflow/workflow.json
-msgid "Workflow"
-msgstr ""
-
-#. Label of a Link in the Build Workspace
-#: core/workspace/build/build.json
-msgctxt "Workflow"
 msgid "Workflow"
 msgstr ""
 
@@ -29077,16 +28746,12 @@ msgid "Workflows allow you to define custom rules for the approval process of a 
 msgstr ""
 
 #. Label of the workspace_section (Section Break) field in DocType 'User'
+#. Label of a Link in the Build Workspace
 #. Name of a DocType
-#: core/doctype/user/user.json desk/doctype/workspace/workspace.json
+#: core/doctype/user/user.json core/workspace/build/build.json
+#: desk/doctype/workspace/workspace.json
 #: public/js/frappe/ui/toolbar/search_utils.js:557
 #: public/js/frappe/views/workspace/workspace.js:10
-msgid "Workspace"
-msgstr ""
-
-#. Label of a Link in the Build Workspace
-#: core/workspace/build/build.json
-msgctxt "Workspace"
 msgid "Workspace"
 msgstr ""
 
@@ -29134,15 +28799,15 @@ msgstr ""
 msgid "Workspace not found"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1308
+#: public/js/frappe/views/workspace/workspace.js:1306
 msgid "Workspace {0} Created Successfully"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:937
+#: public/js/frappe/views/workspace/workspace.js:935
 msgid "Workspace {0} Deleted Successfully"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:715
+#: public/js/frappe/views/workspace/workspace.js:713
 msgid "Workspace {0} Edited Successfully"
 msgstr ""
 
@@ -29469,19 +29134,19 @@ msgstr ""
 msgid "You cannot unset 'Read Only' for field {0}"
 msgstr ""
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:121
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:125
 msgid "You changed the value of {0}"
 msgstr ""
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:110
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:114
 msgid "You changed the value of {0} {1}"
 msgstr ""
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:183
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:191
 msgid "You changed the values for {0}"
 msgstr ""
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:172
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:180
 msgid "You changed the values for {0} {1}"
 msgstr ""
 
@@ -29828,7 +29493,7 @@ msgstr ""
 msgid "`job_id` paramater is required for deduplication."
 msgstr ""
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:219
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:232
 msgid "added rows for {0}"
 msgstr ""
 
@@ -30308,7 +29973,7 @@ msgstr ""
 msgid "red"
 msgstr ""
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:221
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:234
 msgid "removed rows for {0}"
 msgstr ""
 
@@ -30730,19 +30395,19 @@ msgstr ""
 msgid "{0} cannot be hidden and mandatory without any default value"
 msgstr ""
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:124
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:128
 msgid "{0} changed the value of {1}"
 msgstr ""
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:115
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:119
 msgid "{0} changed the value of {1} {2}"
 msgstr ""
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:186
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:194
 msgid "{0} changed the values for {1}"
 msgstr ""
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:177
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:185
 msgid "{0} changed the values for {1} {2}"
 msgstr ""
 
@@ -30815,11 +30480,11 @@ msgstr ""
 msgid "{0} format could not be determined from the values in this column. Defaulting to {1}."
 msgstr ""
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:97
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:101
 msgid "{0} from {1} to {2}"
 msgstr ""
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:157
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:165
 msgid "{0} from {1} to {2} in row #{3}"
 msgstr ""
 
@@ -31018,7 +30683,7 @@ msgstr ""
 msgid "{0} items selected"
 msgstr ""
 
-#: core/doctype/user/user.py:1343
+#: core/doctype/user/user.py:1347
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr ""
 
@@ -31372,7 +31037,7 @@ msgstr ""
 
 #: contacts/doctype/address/address.js:35
 #: contacts/doctype/contact/contact.js:88
-#: public/js/frappe/views/workspace/workspace.js:211
+#: public/js/frappe/views/workspace/workspace.js:209
 msgid "{0}: {1}"
 msgstr ""
 
@@ -31410,7 +31075,6 @@ msgstr ""
 
 #. Count format of shortcut in the Website Workspace
 #: website/workspace/website/website.json
-msgctxt "Blogger"
 msgid "{} Active"
 msgstr ""
 
@@ -31428,13 +31092,6 @@ msgstr ""
 
 #. Count format of shortcut in the Website Workspace
 #: website/workspace/website/website.json
-msgctxt "Blog Post"
-msgid "{} Published"
-msgstr ""
-
-#. Count format of shortcut in the Website Workspace
-#: website/workspace/website/website.json
-msgctxt "Web Page"
 msgid "{} Published"
 msgstr ""
 
