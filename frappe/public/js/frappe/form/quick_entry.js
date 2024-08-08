@@ -72,8 +72,6 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 				df.fieldtype !== "Tab Break"
 			);
 		});
-
-		this.mandatory = this.docfields; // backward compatibility
 	}
 
 	check_quick_entry_doc() {
@@ -138,6 +136,12 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 
 	render_dialog() {
 		var me = this;
+
+		if (this.mandatory) {
+			// overridden in several places in erpnext
+			this.docfields = this.mandatory;
+		}
+
 		this.fields = this.docfields;
 		this.title = this.get_title();
 
