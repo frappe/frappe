@@ -74,6 +74,8 @@
   "user_emails",
   "workspace_section",
   "default_workspace",
+  "app_section",
+  "default_app",
   "sb2",
   "defaults",
   "sb3",
@@ -736,6 +738,19 @@
    "fieldtype": "Select",
    "label": "Code Editor Type",
    "options": "vscode\nvim\nemacs"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "app_section",
+   "fieldtype": "Section Break",
+   "label": "App"
+  },
+  {
+   "description": "Redirect to the selected app after login",
+   "fieldname": "default_app",
+   "fieldtype": "Select",
+   "label": "Default App",
+   "options": ""
   }
  ],
  "icon": "fa fa-user",
@@ -798,7 +813,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2024-07-15 18:40:18.842915",
+ "modified": "2024-08-08 19:09:17.399748",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
