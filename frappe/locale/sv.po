@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-04 09:33+0000\n"
-"PO-Revision-Date: 2024-08-06 08:13\n"
+"PO-Revision-Date: 2024-08-08 08:19\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -5595,11 +5595,11 @@ msgstr "Copyright"
 
 #: custom/doctype/customize_form/customize_form.py:119
 msgid "Core DocTypes cannot be customized."
-msgstr "Kärn DocType kan inte anpassas."
+msgstr "System DocType kan inte anpassas."
 
 #: desk/doctype/global_search_settings/global_search_settings.py:36
 msgid "Core Modules {0} cannot be searched in Global Search."
-msgstr "Kärn Moduler {0} kan inte sökas i Global Sök."
+msgstr "System Moduler {0} kan inte sökas i Global Sök."
 
 #: printing/page/print/print.js:617
 msgid "Correct version :"
@@ -6082,7 +6082,7 @@ msgstr "Anpassade Fält kan bara läggas till i Standard DocTypes."
 
 #: custom/doctype/custom_field/custom_field.py:257
 msgid "Custom Fields cannot be added to core DocTypes."
-msgstr "Anpassade Fält kan inte läggas till i Kärn DocTypes."
+msgstr "Anpassade Fält kan inte läggas till i System DocTypes."
 
 #. Label of the custom_footer_section (Section Break) field in DocType 'Website
 #. Settings'
