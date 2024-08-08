@@ -25,13 +25,15 @@ frappe.ui.form.make_quick_entry = (doctype, after_insert, init_callback, doc, fo
 	return frappe.quick_entry.setup();
 };
 
-frappe.ui.form.QuickEntryForm = class QuickEntryForm {
+frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 	constructor(doctype, after_insert, init_callback, doc, force) {
+		super({ auto_make: false });
 		this.doctype = doctype;
 		this.after_insert = after_insert;
 		this.init_callback = init_callback;
 		this.doc = doc;
 		this.force = force ? force : false;
+		this.dialog = this; // for backward compatibility
 	}
 
 	setup() {
@@ -70,6 +72,8 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 				df.fieldtype !== "Tab Break"
 			);
 		});
+
+		this.mandatory = this.docfields; // backward compatibility
 	}
 
 	check_quick_entry_doc() {
@@ -134,27 +138,24 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 
 	render_dialog() {
 		var me = this;
+		this.fields = this.docfields;
+		this.title = this.get_title();
 
-		this.dialog = new frappe.ui.Dialog({
-			title: this.get_title(),
-			fields: this.docfields,
-			doc: this.doc,
-		});
-
+		super.make();
 		this.register_primary_action();
 		this.render_edit_in_full_page_link();
 		this.setup_cmd_enter_for_save();
 
-		this.dialog.onhide = () => (frappe.quick_entry = null);
-		this.dialog.show();
+		this.onhide = () => (frappe.quick_entry = null);
+		this.show();
 
-		this.dialog.refresh_dependency();
+		this.refresh_dependency();
 		this.set_defaults();
 
 		this.script_manager.trigger("refresh");
 
 		if (this.init_callback) {
-			this.init_callback(this.dialog);
+			this.init_callback(this);
 		}
 	}
 
@@ -170,7 +171,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 
 	register_primary_action() {
 		var me = this;
-		this.dialog.set_primary_action(__("Save"), function () {
+		this.set_primary_action(__("Save"), function () {
 			if (me.dialog.working) {
 				return;
 			}
@@ -247,14 +248,14 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 
 	process_after_insert(r) {
 		// delete the old doc
-		frappe.model.clear_doc(this.dialog.doc.doctype, this.dialog.doc.name);
-		this.dialog.doc = r.message;
+		frappe.model.clear_doc(this.doc.doctype, this.doc.name);
+		this.doc = r.message;
 		if (this.script_manager.has_handler("after_save")) {
 			return this.script_manager.trigger("after_save");
 		} else if (frappe._from_link) {
-			frappe.ui.form.update_calling_link(this.dialog.doc);
+			frappe.ui.form.update_calling_link(this.doc);
 		} else if (this.after_insert) {
-			this.after_insert(this.dialog.doc);
+			this.after_insert(this.doc);
 		} else {
 			this.open_form_if_not_list();
 		}
@@ -263,7 +264,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 	setup_cmd_enter_for_save() {
 		var me = this;
 		// ctrl+enter to save
-		this.dialog.wrapper.keydown(function (e) {
+		this.wrapper.keydown(function (e) {
 			if ((e.ctrlKey || e.metaKey) && e.which == 13) {
 				if (!frappe.request.ajax_count) {
 					// not already working -- double entry
@@ -278,7 +279,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 	open_form_if_not_list() {
 		if (this.meta.issingle) return;
 		let route = frappe.get_route();
-		let doc = this.dialog.doc;
+		let doc = this.doc;
 		if (route && !(route[0] === "List" && route[1] === doc.doctype)) {
 			frappe.run_serially([() => frappe.set_route("Form", doc.doctype, doc.name)]);
 		}
@@ -286,17 +287,17 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 
 	update_doc() {
 		var me = this;
-		var data = this.dialog.get_values(true);
+		var data = this.get_values(true);
 		$.each(data, function (key, value) {
 			if (!is_null(value)) {
 				me.dialog.doc[key] = value;
 			}
 		});
-		return this.dialog.doc;
+		return this.doc;
 	}
 
 	open_doc(set_hooks) {
-		this.dialog.hide();
+		this.hide();
 		this.update_doc();
 		if (set_hooks && this.after_insert) {
 			frappe.route_options = frappe.route_options || {};
@@ -309,13 +310,13 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 
 	render_edit_in_full_page_link() {
 		if (this.force || this.hide_full_form_button) return;
-		this.dialog.add_custom_action(__("Edit Full Form"), () => this.open_doc(true));
+		this.add_custom_action(__("Edit Full Form"), () => this.open_doc(true));
 	}
 
 	set_defaults() {
 		var me = this;
 		// set defaults
-		$.each(this.dialog.fields_dict, function (fieldname, field) {
+		$.each(this.fields_dict, function (fieldname, field) {
 			field.doctype = me.doc.doctype;
 			field.docname = me.doc.name;
 
