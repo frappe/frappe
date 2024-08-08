@@ -3,9 +3,16 @@
 
 import frappe
 from frappe import _
+from frappe.website.utils import get_home_page
 
 
 def get_context():
+	if frappe.session.user == "Guest":
+		frappe.throw(_("You need to be logged in to access this page"), frappe.PermissionError)
+
+	if frappe.session.data.user_type == "Website User":
+		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
+
 	_apps = frappe.get_installed_apps()
 	app_shortcuts = [
 		{
