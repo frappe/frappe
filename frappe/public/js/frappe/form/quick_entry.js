@@ -34,6 +34,18 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 		this.force = force ? force : false;
 	}
 
+	get mandatory() {
+		// Backwards compatibility
+		console.warn("QuickEntryForm: .mandatory is deprecated, use .docfields instead");
+		return this.docfields;
+	}
+
+	set mandatory(value) {
+		// Backwards compatibility
+		console.warn("QuickEntryForm: .mandatory is deprecated, use .docfields instead");
+		this.docfields = value;
+	}
+
 	setup() {
 		return new Promise((resolve) => {
 			frappe.model.with_doctype(this.doctype, () => {
