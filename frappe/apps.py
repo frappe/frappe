@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import re
+
 import frappe
 
 
@@ -26,6 +28,15 @@ def get_route(app_name):
 	return "/apps"
 
 
+def is_desk_apps(apps):
+	for app in apps:
+		route = frappe.get_hooks(app_name=app).get("app_icon_route")
+		pattern = r"^/app(/.*)?$"
+		if route and not re.match(pattern, route[0]):
+			return False
+	return True
+
+
 def get_default_path():
 	system_default_app = frappe.get_system_settings("default_app")
 	user_default_app = frappe.db.get_value("User", frappe.session.user, "default_app")
@@ -35,9 +46,11 @@ def get_default_path():
 		return get_route(user_default_app)
 
 	apps = get_apps()
-	if len(apps) == 2:
-		_apps = [app for app in apps if app != "frappe"]
+	_apps = [app for app in apps if app != "frappe"]
+	if len(_apps) == 1:
 		first_app = _apps[0]
 		if first_app:
 			return get_route(first_app)
+	elif is_desk_apps(_apps):
+		return "/app"
 	return "/apps"
