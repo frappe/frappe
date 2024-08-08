@@ -11,8 +11,9 @@ import frappe.database
 import frappe.utils
 import frappe.utils.user
 from frappe import _
+from frappe.apps import get_default_path
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
-from frappe.sessions import Session, clear_sessions, delete_session, get_default_path, get_expiry_in_seconds
+from frappe.sessions import Session, clear_sessions, delete_session, get_expiry_in_seconds
 from frappe.translate import get_language
 from frappe.twofactor import (
 	authenticate_for_2factor,

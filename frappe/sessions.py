@@ -17,6 +17,7 @@ import frappe.model.meta
 import frappe.translate
 import frappe.utils
 from frappe import _
+from frappe.apps import get_default_path
 from frappe.cache_manager import clear_user_cache
 from frappe.query_builder import Order
 from frappe.utils import cint, cstr, get_assets_json
@@ -119,18 +120,6 @@ def clear_expired_sessions():
 	"""This function is meant to be called from scheduler"""
 	for sid in get_expired_sessions():
 		delete_session(sid, reason="Session Expired")
-
-
-def get_default_path():
-	installed_apps = frappe.get_installed_apps()
-	if len(installed_apps) == 2:
-		_installed_apps = [app for app in installed_apps if app != "frappe"]
-		installed_app = _installed_apps[0]
-		if installed_app:
-			hooks = frappe.get_hooks(app_name=installed_app)
-			if hooks.get("app_icon_route"):
-				return hooks.get("app_icon_route")[0]
-	return "/apps"
 
 
 def get():

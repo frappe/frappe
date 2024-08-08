@@ -110,6 +110,10 @@ frappe.ui.form.on("User", {
 	refresh: function (frm) {
 		let doc = frm.doc;
 
+		frappe.xcall("frappe.apps.get_apps").then((r) => {
+			frm.set_df_property("default_app", "options", [" ", ...r]);
+		});
+
 		if (frm.is_new()) {
 			frm.set_value("time_zone", frappe.sys_defaults.time_zone);
 		}

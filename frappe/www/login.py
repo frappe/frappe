@@ -7,9 +7,9 @@ from urllib.parse import urlparse
 import frappe
 import frappe.utils
 from frappe import _
+from frappe.apps import get_default_path
 from frappe.auth import LoginManager
 from frappe.rate_limiter import rate_limit
-from frappe.sessions import get_default_path
 from frappe.utils import cint, get_url
 from frappe.utils.data import escape_html
 from frappe.utils.html_utils import get_icon_html
