@@ -613,13 +613,13 @@ class User(Document):
 		self.append_roles(*roles)
 		self.save()
 
-	def remove_roles(self, *roles):
+	def remove_roles(self, *roles, ignore_permissions=None):
 		existing_roles = {d.role: d for d in self.get("roles")}
 		for role in roles:
 			if role in existing_roles:
 				self.get("roles").remove(existing_roles[role])
 
-		self.save()
+		self.save(ignore_permissions=ignore_permissions)
 
 	def remove_all_roles_for_guest(self):
 		if self.name == "Guest":
