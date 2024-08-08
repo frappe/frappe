@@ -17,6 +17,10 @@ frappe.ui.form.on("System Settings", {
 			},
 		});
 
+		frappe.xcall("frappe.apps.get_apps").then((r) => {
+			frm.set_df_property("default_app", "options", [" ", ...r]);
+		});
+
 		frm.trigger("set_rounding_method_options");
 	},
 	enable_password_policy: function (frm) {

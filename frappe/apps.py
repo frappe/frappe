@@ -27,9 +27,12 @@ def get_route(app_name):
 
 
 def get_default_path():
-	default_app = frappe.db.get_value("User", frappe.session.user, "default_app")
-	if default_app:
-		return get_route(default_app)
+	system_default_app = frappe.get_system_settings("default_app")
+	user_default_app = frappe.db.get_value("User", frappe.session.user, "default_app")
+	if system_default_app and not user_default_app:
+		return get_route(system_default_app)
+	elif user_default_app:
+		return get_route(user_default_app)
 
 	apps = get_apps()
 	if len(apps) == 2:
