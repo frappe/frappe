@@ -134,13 +134,20 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 		this.script_manager.setup();
 	}
 
+	get mandatory() {
+		// Backwards compatibility
+		console.warn("QuickEntryForm: .mandatory is deprecated, use .docfields instead");
+		return this.docfields;
+	}
+
+	set mandatory(value) {
+		// Backwards compatibility
+		console.warn("QuickEntryForm: .mandatory is deprecated, use .docfields instead");
+		this.docfields = value;
+	}
+
 	render_dialog() {
 		var me = this;
-
-		if (this.mandatory) {
-			// overridden in several places in erpnext
-			this.docfields = this.mandatory;
-		}
 
 		this.fields = this.docfields;
 		this.title = this.get_title();
