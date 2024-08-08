@@ -112,6 +112,9 @@ freezegun = "~=1.2.2"
 [tool.ruff]
 line-length = 110
 target-version = "py310"
+exclude = [
+    "**/doctype/*/boilerplate/*.py" # boilerplate are template strings, not valid python
+]
 
 [tool.ruff.lint]
 select = [
