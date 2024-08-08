@@ -36,6 +36,7 @@ class SystemSettings(Document):
 		date_format: DF.Literal[
 			"yyyy-mm-dd", "dd-mm-yyyy", "dd/mm/yyyy", "dd.mm.yyyy", "mm/dd/yyyy", "mm-dd-yyyy"
 		]
+		default_app: DF.Literal[None]
 		deny_multiple_sessions: DF.Check
 		disable_change_log_notification: DF.Check
 		disable_document_sharing: DF.Check
@@ -82,7 +83,6 @@ class SystemSettings(Document):
 		]
 		otp_issuer_name: DF.Data | None
 		password_reset_limit: DF.Int
-		rate_limit_email_link_login: DF.Int
 		reset_password_link_expiry_duration: DF.Duration | None
 		reset_password_template: DF.Link | None
 		rounding_method: DF.Literal["Banker's Rounding (legacy)", "Banker's Rounding", "Commercial Rounding"]
