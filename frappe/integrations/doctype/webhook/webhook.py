@@ -56,15 +56,6 @@ class Webhook(Document):
 		webhook_secret: DF.Password | None
 	# end: auto-generated types
 
-	def onload(self):
-		self.set_onload(
-			"preview_fields",
-			[
-				{"label": _("Meets Condition?"), "fieldtype": "Data", "method": "preview_meets_condition"},
-				{"label": _("Request Body"), "fieldtype": "Code", "method": "preview_request_body"},
-			],
-		)
-
 	def validate(self):
 		self.validate_docevent()
 		self.validate_condition()

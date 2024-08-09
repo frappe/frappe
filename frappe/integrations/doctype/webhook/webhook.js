@@ -79,9 +79,6 @@ frappe.webhook = {
 };
 
 frappe.ui.form.on("Webhook", {
-	onload: (frm) => {
-		frm.preview_fields = frm.doc.__onload.preview_fields;
-	},
 	refresh: (frm) => {
 		frappe.webhook.set_fieldname_select(frm);
 		frm.set_query(
@@ -94,7 +91,18 @@ frappe.ui.form.on("Webhook", {
 				const args = {
 					doc: frm.doc,
 					doctype: frm.doc.webhook_doctype,
-					preview_fields: frm.preview_fields,
+					preview_fields: [
+						{
+							label: __("Meets Condition?"),
+							fieldtype: "Data",
+							method: "preview_meets_condition",
+						},
+						{
+							label: __("Request Body"),
+							fieldtype: "Code",
+							method: "preview_request_body",
+						},
+					],
 				};
 				let dialog = new frappe.views.RenderPreviewer(args);
 				return dialog;
