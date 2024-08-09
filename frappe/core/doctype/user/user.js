@@ -111,7 +111,8 @@ frappe.ui.form.on("User", {
 		let doc = frm.doc;
 
 		frappe.xcall("frappe.apps.get_apps").then((r) => {
-			frm.set_df_property("default_app", "options", [" ", ...r]);
+			let apps = r?.map((r) => r.name) || [];
+			frm.set_df_property("default_app", "options", [" ", ...apps]);
 		});
 
 		if (frm.is_new()) {
