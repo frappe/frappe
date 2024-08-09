@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-04 09:33+0000\n"
-"PO-Revision-Date: 2024-08-08 08:19\n"
+"PO-Revision-Date: 2024-08-09 08:59\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -21271,7 +21271,7 @@ msgstr "Återställ Lösenord Länk Utgångstid"
 #. Settings'
 #: core/doctype/system_settings/system_settings.json
 msgid "Reset Password Template"
-msgstr "Återställning Lösenord Mall"
+msgstr "Lösenord Återställning Mall"
 
 #: core/page/permission_manager/permission_manager.js:109
 msgid "Reset Permissions for {0}?"
