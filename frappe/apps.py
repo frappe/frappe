@@ -4,20 +4,36 @@
 import re
 
 import frappe
+from frappe import _
 
 
 @frappe.whitelist()
 def get_apps():
 	apps = frappe.get_installed_apps()
-	app_list = []
+	app_list = [
+		{
+			"name": "frappe",
+			"icon_url": "/assets/frappe/images/frappe-framework-logo.svg",
+			"title": _("Admin"),
+			"route": "/app",
+		}
+	]
 	for app in apps:
 		if app == "frappe":
-			app_list.append(app)
-		else:
-			app_icon_url = frappe.get_hooks("app_icon_url", app_name=app)
-			app_icon_route = frappe.get_hooks("app_icon_route", app_name=app)
-			if app_icon_url and app_icon_route:
-				app_list.append(app)
+			continue
+		app_icon_url = frappe.get_hooks("app_icon_url", app_name=app)
+		app_icon_route = frappe.get_hooks("app_icon_route", app_name=app)
+		if app_icon_url and app_icon_route:
+			app_title = frappe.get_hooks("app_title", app_name=app)
+			icon_title = frappe.get_hooks("app_icon_title", app_name=app)
+			app_list.append(
+				{
+					"name": app,
+					"icon_url": app_icon_url[0],
+					"title": _(icon_title[0] if icon_title else app_title[0] if app_title else app),
+					"route": app_icon_route[0],
+				}
+			)
 	return app_list
 
 
@@ -30,9 +46,10 @@ def get_route(app_name):
 
 def is_desk_apps(apps):
 	for app in apps:
-		route = frappe.get_hooks(app_name=app).get("app_icon_route")
+		# check if route is /app or /app/* and not /app1 or /app1/*
 		pattern = r"^/app(/.*)?$"
-		if route and not re.match(pattern, route[0]):
+		route = app.get("route")
+		if route and not re.match(pattern, route):
 			return False
 	return True
 
@@ -46,11 +63,9 @@ def get_default_path():
 		return get_route(user_default_app)
 
 	apps = get_apps()
-	_apps = [app for app in apps if app != "frappe"]
+	_apps = [app for app in apps if app.get("name") != "frappe"]
 	if len(_apps) == 1:
-		first_app = _apps[0]
-		if first_app:
-			return get_route(first_app)
+		return _apps[0].get("route") or "/apps"
 	elif is_desk_apps(_apps):
 		return "/app"
 	return "/apps"

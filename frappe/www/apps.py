@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _
-from frappe.website.utils import get_home_page
+from frappe.apps import get_apps
 
 
 def get_context():
@@ -13,27 +13,4 @@ def get_context():
 	if frappe.session.data.user_type == "Website User":
 		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
-	_apps = frappe.get_installed_apps()
-	app_shortcuts = [
-		{
-			"name": "frappe",
-			"icon_url": "/assets/frappe/images/frappe-framework-logo.svg",
-			"title": _("Admin"),
-			"route": "/app",
-		}
-	]
-	for app in _apps:
-		app_icon_url = frappe.get_hooks("app_icon_url", app_name=app)
-		app_icon_route = frappe.get_hooks("app_icon_route", app_name=app)
-		if app_icon_url and app_icon_route:
-			app_title = frappe.get_hooks("app_title", app_name=app)
-			icon_title = frappe.get_hooks("app_icon_title", app_name=app)
-			app_shortcuts.append(
-				{
-					"name": app,
-					"icon_url": app_icon_url[0],
-					"title": _(icon_title[0] if icon_title else app_title[0] if app_title else app),
-					"route": app_icon_route[0],
-				}
-			)
-	return {"apps": app_shortcuts}
+	return {"apps": get_apps()}
