@@ -220,10 +220,13 @@ app_license = "mit"
 # 	"studio.auth.validate"
 # ]
 
+website_route_rules = [
+	{"from_route": "/studio/<path:app_path>", "to_route": "studio"},
+]
+
 # Automatically update python controller files with type annotations for this app.
 # export_python_type_annotations = True
 
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
-

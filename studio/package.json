@@ -1,0 +1,28 @@
+{
+	"name": "frappe-ui-frontend",
+	"private": true,
+	"version": "0.0.0",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build --base=/assets/studio/frontend/ && yarn copy-html-entry",
+		"copy-html-entry": "cp ../studio/public/frontend/index.html ../studio/www/studio.html",
+		"serve": "vite preview"
+	},
+	"dependencies": {
+		"feather-icons": "^4.28.0",
+		"frappe-ui": "^0.1.65",
+		"vue": "^3.4.12",
+		"vue-router": "^4.2.2"
+	},
+	"devDependencies": {
+		"@vitejs/plugin-vue": "^4.2.3",
+		"autoprefixer": "^10.4.2",
+		"eslint": "^8.39.0",
+		"eslint-plugin-vue": "^9.11.0",
+		"postcss": "^8.4.5",
+		"prettier": "^2.8.8",
+		"prettier-plugin-tailwindcss": "^0.1.8",
+		"tailwindcss": "^3.4.3",
+		"vite": "^4.4.9"
+	}
+}
