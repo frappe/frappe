@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-04 09:33+0000\n"
-"PO-Revision-Date: 2024-08-09 08:59\n"
+"PO-Revision-Date: 2024-08-11 09:49\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -18093,7 +18093,7 @@ msgstr "Webb Redigerare"
 #. Label of the page_blocks (Table) field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgid "Page Building Blocks"
-msgstr "Sida Mallar"
+msgstr "Websida Mallar"
 
 #. Label of the page_html (Section Break) field in DocType 'Page'
 #: core/doctype/page/page.json
@@ -29554,7 +29554,7 @@ msgstr "PDF är redo för nedladdning"
 
 #: patches/v14_0/update_workspace2.py:34
 msgid "Your Shortcuts"
-msgstr "Dina Genvägar"
+msgstr "Genvägar"
 
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:141
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:147
