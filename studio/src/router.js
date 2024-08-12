@@ -6,6 +6,11 @@ const routes = [
 		name: "Home",
 		component: () => import("@/pages/Home.vue"),
 	},
+	{
+		path: "/page",
+		name: "StudioPage",
+		component: () => import("@/pages/StudioPage.vue"),
+	},
 ]
 
 let router = createRouter({
