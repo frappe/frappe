@@ -144,7 +144,7 @@ class Database:
 	def _transform_query(self, query: Query, values: QueryValues) -> tuple:
 		return query, values
 
-	def _transform_result(self, result: list[tuple]) -> list[tuple]:
+	def _transform_result(self, result: list[tuple] | tuple[tuple]) -> tuple[tuple]:
 		return result
 
 	def _clean_up(self):

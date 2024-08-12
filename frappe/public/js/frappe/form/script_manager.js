@@ -245,6 +245,7 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 
 		this.trigger("setup");
 	}
+
 	log_error(caller, e) {
 		frappe.show_alert({ message: __("Error in Client Script."), indicator: "error" });
 		console.group && console.group();

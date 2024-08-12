@@ -239,8 +239,7 @@
    "options": "Has Role",
    "permlevel": 1,
    "print_hide": 1,
-   "read_only": 1,
-   "show_on_timeline": 1
+   "read_only": 1
   },
   {
    "collapsible": 1,
@@ -431,8 +430,7 @@
    "hidden": 1,
    "label": "Block Modules",
    "options": "Block Module",
-   "permlevel": 1,
-   "show_on_timeline": 1
+   "permlevel": 1
   },
   {
    "fieldname": "home_settings",
@@ -813,7 +811,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2024-08-08 19:09:17.399748",
+ "modified": "2024-08-12 15:23:38.996646",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

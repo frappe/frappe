@@ -790,7 +790,9 @@ $.extend(frappe.model, {
 		}
 		for (var i = 0, j = fieldnames.length; i < j; i++) {
 			var fieldname = fieldnames[i];
-			doc[fieldname] = flt(doc[fieldname], precision(fieldname, doc));
+			if (doc[fieldname]) {
+				doc[fieldname] = flt(doc[fieldname], precision(fieldname, doc));
+			}
 		}
 	},
 
