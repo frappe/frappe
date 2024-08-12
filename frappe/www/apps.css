@@ -41,6 +41,17 @@
 	align-items: center;
 	justify-content: center;
 	text-decoration: none;
+	position: relative;
+}
+
+.app-icon:hover .set-default {
+	display: block !important;
+}
+
+.set-default {
+	position: absolute;
+	top: -20px;
+	right: -20px;
 }
 
 .app-logo {

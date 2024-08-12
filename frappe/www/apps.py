@@ -13,4 +13,13 @@ def get_context():
 	if frappe.session.data.user_type == "Website User":
 		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
-	return {"apps": get_apps()}
+	system_default_app = frappe.get_system_settings("default_app")
+	user_default_app = frappe.db.get_value("User", frappe.session.user, "default_app")
+	default_app = user_default_app if user_default_app else system_default_app
+
+	all_apps = get_apps()
+
+	for app in all_apps:
+		app["is_default"] = True if app.get("name") == default_app else False
+
+	return {"apps": all_apps}
