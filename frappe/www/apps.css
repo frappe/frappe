@@ -22,14 +22,10 @@
 	border: 1px solid var(--border-color);
 }
 
-.title {
-	font-size: var(--font-size-xl);
-	font-weight: 600;
-}
-
 .apps {
 	gap: 30px;
 	display: grid;
+	justify-items: center;
 }
 
 .app-icon {
