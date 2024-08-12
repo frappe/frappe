@@ -163,7 +163,7 @@ def enqueue(
 
 	def enqueue_call():
 		return q.enqueue_call(
-			execute_job,
+			"frappe.utils.background_jobs.execute_job",
 			on_success=Callback(func=on_success) if on_success else None,
 			on_failure=Callback(func=on_failure) if on_failure else None,
 			timeout=timeout,

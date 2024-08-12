@@ -260,12 +260,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	set_primary_action() {
 		if (this.can_create && !frappe.boot.read_only) {
 			const doctype_name = __(frappe.router.doctype_layout) || __(this.doctype);
-
-			// Better style would be __("Add {0}", [doctype_name], "Primary action in list view")
-			// Keeping it like this to not disrupt existing translations
-			const label = `${__("Add", null, "Primary action in list view")} ${doctype_name}`;
 			this.page.set_primary_action(
-				label,
+				__("Add {0}", [doctype_name], "Primary action in list view"),
 				() => {
 					if (this.settings.primary_action) {
 						this.settings.primary_action();
@@ -548,7 +544,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	toggle_result_area() {
 		super.toggle_result_area();
-		this.toggle_actions_menu_button(this.$result.find(".list-row-check:checked").length > 0);
+		this.toggle_actions_menu_button(
+			this.$result.find(".list-row-checkbox:checked").length > 0
+		);
 	}
 
 	toggle_actions_menu_button(toggle) {
@@ -788,9 +786,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		const format = () => {
-			if (df.fieldtype === "Code") {
-				return value;
-			} else if (df.fieldtype === "Percent") {
+			if (df.fieldtype === "Percent") {
 				return `<div class="progress" style="margin: 0px;">
 						<div class="progress-bar progress-bar-success" role="progressbar"
 							aria-valuenow="${value}"
@@ -842,11 +838,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					data-filter="${fieldname},=,${value}">
 					${_value}
 				</a>`;
-			} else if (
-				["Text Editor", "Text", "Small Text", "HTML Editor", "Markdown Editor"].includes(
-					df.fieldtype
-				)
-			) {
+			} else if (frappe.model.html_fieldtypes.includes(df.fieldtype)) {
 				html = `<span class="ellipsis">
 					${_value}
 				</span>`;

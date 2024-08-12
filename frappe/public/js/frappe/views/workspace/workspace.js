@@ -59,6 +59,7 @@ frappe.views.Workspace = class Workspace {
 		`).appendTo(this.wrapper.find(".layout-side-section"));
 		this.sidebar = list_sidebar.find(".desk-sidebar");
 		this.body = this.wrapper.find(".layout-main-section");
+		this.prepare_new_and_edit();
 	}
 
 	async setup_pages(reload) {
@@ -69,6 +70,9 @@ frappe.views.Workspace = class Workspace {
 		this.all_pages = this.sidebar_pages.pages;
 		this.has_access = this.sidebar_pages.has_access;
 		this.has_create_access = this.sidebar_pages.has_create_access;
+		if (!this.sidebar_pages.workspace_setup_completed) {
+			frappe.quick_edit("Workspace Settings");
+		}
 
 		this.all_pages.forEach((page) => {
 			page.is_editable = !page.public || this.has_access;
@@ -79,15 +83,56 @@ frappe.views.Workspace = class Workspace {
 
 		if (this.all_pages) {
 			frappe.workspaces = {};
+			frappe.workspace_list = [];
 			for (let page of this.all_pages) {
 				frappe.workspaces[frappe.router.slug(page.name)] = {
 					title: page.title,
 					public: page.public,
 				};
+
+				frappe.workspace_list.push(page);
 			}
 			this.make_sidebar();
 			reload && this.show();
 		}
+	}
+
+	prepare_new_and_edit() {
+		this.$page = $(`
+		<div class="editor-js-container"></div>
+		<div class="workspace-footer">
+			<button data-label="New" class="btn btn-default ellipsis btn-new-workspace">
+				<svg class="es-icon es-line icon-xs" style="" aria-hidden="true">
+					<use class="" href="#es-line-add"></use>
+				</svg>
+				<span class="hidden-xs" data-label="New">${__("New")}</span>
+			</button>
+			<button class="btn btn-default btn-sm mr-2 btn-edit-workspace" data-label="Edit">
+				<svg class="es-icon es-line  icon-xs" style="" aria-hidden="true">
+					<use class="" href="#es-line-edit"></use>
+				</svg>
+				<span class="hidden-xs" data-label="Edit">${__("Edit")}</span>
+			</button>
+		</div>
+	`).appendTo(this.body);
+
+		this.body.find(".btn-new-workspace").on("click", () => {
+			this.initialize_new_page(true);
+		});
+
+		this.body.find(".btn-edit-workspace").on("click", async () => {
+			if (!this.editor || !this.editor.readOnly) return;
+			this.is_read_only = false;
+			this.toggle_hidden_workspaces(true);
+			await this.editor.readOnly.toggle();
+			this.editor.isReady.then(() => {
+				this.body.addClass("edit-mode");
+				this.initialize_editorjs_undo();
+				this.setup_customization_buttons(this._page);
+				this.show_sidebar_actions();
+				this.make_blocks_sortable();
+			});
+		});
 	}
 
 	get_pages() {
@@ -201,7 +246,12 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	prepare_sidebar(items, child_container, item_container) {
-		items.forEach((item) => this.append_item(item, child_container));
+		for (let item of items) {
+			// visibility not explicitly set to 0
+			if (item.visibility !== 0) {
+				this.append_item(item, child_container);
+			}
+		}
 		child_container.appendTo(item_container);
 	}
 
@@ -379,9 +429,9 @@ frappe.views.Workspace = class Workspace {
 
 	async show_page(page) {
 		if (!this.body.find("#editorjs")[0]) {
-			this.$page = $(`
+			$(`
 				<div id="editorjs" class="desk-page page-main-content"></div>
-			`).appendTo(this.body);
+			`).appendTo(this.body.find(".editor-js-container"));
 		}
 
 		if (this.all_pages.length) {
@@ -390,6 +440,7 @@ frappe.views.Workspace = class Workspace {
 			let pages =
 				page.public && this.public_pages.length ? this.public_pages : this.private_pages;
 			let current_page = pages.filter((p) => p.title == page.name)[0];
+			this._page = current_page;
 			this.content = current_page && JSON.parse(current_page.content);
 
 			this.content && this.add_custom_cards_in_content();
@@ -456,29 +507,16 @@ frappe.views.Workspace = class Workspace {
 
 		this.clear_page_actions();
 		if (current_page.is_editable) {
-			this.page.set_secondary_action(
-				__("Edit"),
-				async () => {
-					if (!this.editor || !this.editor.readOnly) return;
-					this.is_read_only = false;
-					this.toggle_hidden_workspaces(true);
-					await this.editor.readOnly.toggle();
-					this.editor.isReady.then(() => {
-						this.body.addClass("edit-mode");
-						this.initialize_editorjs_undo();
-						this.setup_customization_buttons(current_page);
-						this.show_sidebar_actions();
-						this.make_blocks_sortable();
-					});
-				},
-				"es-line-edit"
-			);
+			this.body.find(".btn-edit-workspace").removeClass("hide");
+		} else {
+			this.body.find(".btn-edit-workspace").addClass("hide");
 		}
 		// need to add option for icons in inner buttons as well
-		if (this.has_create_access)
-			this.page.add_inner_button(__("Create Workspace"), () => {
-				this.initialize_new_page(true);
-			});
+		if (this.has_create_access) {
+			this.body.find(".btn-new-workspace").removeClass("hide");
+		} else {
+			this.body.find(".btn-new-workspace").addClass("hide");
+		}
 	}
 
 	initialize_editorjs_undo() {

@@ -33,7 +33,7 @@ frappe.ui.RealtimeChart = class RealtimeChart extends frappe.Chart {
 			} else {
 				this.currentSize++;
 			}
-			this.addDataPoint(label, data);
+			this.addDataPoint(__(label), data);
 		};
 	}
 };

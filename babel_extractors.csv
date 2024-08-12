@@ -7,5 +7,6 @@ hooks.py,frappe.gettext.extractors.navbar.extract
 **.py,frappe.gettext.extractors.python.extract
 **.js,frappe.gettext.extractors.javascript.extract
 **.html,frappe.gettext.extractors.html_template.extract
+**.vue,frappe.gettext.extractors.html_template.extract
 **/custom/*.json,frappe.gettext.extractors.customization.extract
 **/fixtures/custom_field.json,frappe.gettext.extractors.custom_field.extract
