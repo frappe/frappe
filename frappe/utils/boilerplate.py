@@ -392,13 +392,15 @@ app_license = "{app_license}"
 # required_apps = []
 
 # Each item in the list will be shown an app in the apps page
-# include_as_app = [{
-#  "name": "{app_name}",
-#  "logo": "/assets/{app_name}/logo.png",
-#  "title": "{app_title}",
-#  "route": "/{app_name}",
-#  "has_permission": "{app_name}.api.permission.has_app_permission"
-# }]
+# include_as_app = [
+# 	{{
+# 		"name": "{app_name}",
+# 		"logo": "/assets/{app_name}/logo.png",
+# 		"title": "{app_title}",
+# 		"route": "/{app_name}",
+# 		"has_permission": "{app_name}.api.permission.has_app_permission"
+# 	}}
+# ]
 
 # Includes in <head>
 # ------------------
