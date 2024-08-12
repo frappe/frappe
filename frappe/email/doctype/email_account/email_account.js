@@ -175,11 +175,17 @@ frappe.ui.form.on("Email Account", {
 			delete locals["User"][frappe.route_flags.linked_user];
 		}
 
-		if (frappe.boot.developer_mode && !frm.is_dirty() && frm.doc.enable_incoming) {
+		if (!frm.is_dirty() && frm.doc.enable_incoming) {
 			frm.add_custom_button(__("Pull Emails"), () => {
+				frappe.dom.freeze(__("Pulling emails..."));
 				frm.call({
 					method: "pull_emails",
 					args: { email_account: frm.doc.name },
+				}).then((r) => {
+					frappe.dom.unfreeze();
+					if (!(r._server_messages && r._server_messages.length)) {
+						frappe.show_alert({ message: __("Emails Pulled"), indicator: "green" });
+					}
 				});
 			});
 		}
