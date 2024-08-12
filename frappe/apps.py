@@ -68,5 +68,7 @@ def get_default_path():
 
 @frappe.whitelist()
 def set_app_as_default(app_name):
-	frappe.db.set_value("User", frappe.session.user, "default_app", app_name)
-	return True
+	if frappe.db.get_value("User", frappe.session.user, "default_app") == app_name:
+		frappe.db.set_value("User", frappe.session.user, "default_app", "")
+	else:
+		frappe.db.set_value("User", frappe.session.user, "default_app", app_name)
