@@ -332,6 +332,20 @@ app_email = "{app_email}"
 app_license = "{app_license}"
 # required_apps = []
 
+<<<<<<< HEAD
+=======
+# Each item in the list will be shown as an app in the apps page
+# add_to_apps_screen = [
+# 	{{
+# 		"name": "{app_name}",
+# 		"logo": "/assets/{app_name}/logo.png",
+# 		"title": "{app_title}",
+# 		"route": "/{app_name}",
+# 		"has_permission": "{app_name}.api.permission.has_app_permission"
+# 	}}
+# ]
+
+>>>>>>> 4df61ed72c (chore: added framework espresso logo)
 # Includes in <head>
 # ------------------
 
