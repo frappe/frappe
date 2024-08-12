@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-04 09:33+0000\n"
-"PO-Revision-Date: 2024-08-10 09:04\n"
+"PO-Revision-Date: 2024-08-12 11:01\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -1630,7 +1630,7 @@ msgstr "به مهمانان اجازه دهید فایل‌ها را آپلود 
 #: core/doctype/doctype/doctype.json
 #: custom/doctype/customize_form/customize_form.json
 msgid "Allow Import (via Data Import Tool)"
-msgstr "اجازه واردات (از طریق ابزار واردات داده)"
+msgstr "اجازه درون‌بُرد (از طریق ابزار درون‌بُرد داده)"
 
 #. Label of the allow_incomplete (Check) field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
@@ -3558,7 +3558,7 @@ msgstr "عملیات انبوه با موفقیت انجام شد"
 
 #: public/js/frappe/list/bulk_operations.js:131
 msgid "Bulk PDF Export"
-msgstr "صادرات PDF انبوه"
+msgstr "برون‌بُرد PDF انبوه"
 
 #. Label of a Link in the Tools Workspace
 #. Name of a DocType
@@ -6280,23 +6280,23 @@ msgstr "داده ها بریده شد"
 #. Name of a DocType
 #: core/doctype/data_export/data_export.json
 msgid "Data Export"
-msgstr "صادرات داده"
+msgstr "برون‌بُرد داده ها"
 
 #. Name of a DocType
 #. Label of the data_import (Link) field in DocType 'Data Import Log'
 #: core/doctype/data_import/data_import.json
 #: core/doctype/data_import_log/data_import_log.json
 msgid "Data Import"
-msgstr "واردات داده"
+msgstr "درون‌بُرد داده"
 
 #. Name of a DocType
 #: core/doctype/data_import_log/data_import_log.json
 msgid "Data Import Log"
-msgstr "لاگ واردات داده"
+msgstr "لاگ درون‌بُرد داده"
 
 #: core/doctype/data_export/exporter.py:174
 msgid "Data Import Template"
-msgstr "الگوی واردات داده"
+msgstr "الگوی درون‌بُرد داده"
 
 #: custom/doctype/customize_form/customize_form.py:611
 msgid "Data Too Long"
@@ -7688,7 +7688,7 @@ msgstr "نوع و عملکرد سند برای ایجاد کارت شماره م
 
 #: permissions.py:147
 msgid "Document Type is not importable"
-msgstr "نوع سند قابل واردات نیست"
+msgstr "نوع سند قابل درون‌بُرد نیست"
 
 #: permissions.py:143
 msgid "Document Type is not submittable"
@@ -7826,7 +7826,7 @@ msgstr "برچسب های HTML مانند &lt;script&gt; یا فقط کاراک�
 
 #: public/js/frappe/data_import/import_preview.js:268
 msgid "Don't Import"
-msgstr "واردات نکنید"
+msgstr "درون‌بُرد نکنید"
 
 #. Label of the override_status (Check) field in DocType 'Workflow'
 #. Label of the avoid_status_override (Check) field in DocType 'Workflow
@@ -9361,30 +9361,30 @@ msgstr "زمان انقضای صفحه تصویر کد QR"
 #: public/js/frappe/views/reports/query_report.js:1669
 #: public/js/frappe/views/reports/report_view.js:1550
 msgid "Export"
-msgstr "صادرات"
+msgstr "برون‌بُرد"
 
 #: public/js/frappe/list/list_view.js:2088
 msgctxt "Button in list view actions menu"
 msgid "Export"
-msgstr "صادرات"
+msgstr "برون‌بُرد"
 
 #: public/js/frappe/data_import/data_exporter.js:245
 msgid "Export 1 record"
-msgstr "صادرات 1 رکورد"
+msgstr "برون‌بُرد 1 رکورد"
 
 #: custom/doctype/customize_form/customize_form.js:262
 msgid "Export Custom Permissions"
-msgstr "صادرات مجوزهای سفارشی"
+msgstr "برون‌بُرد مجوزهای سفارشی"
 
 #: custom/doctype/customize_form/customize_form.js:242
 msgid "Export Customizations"
-msgstr "صادرات سفارشی"
+msgstr "برون‌بُرد سفارشی سازی ها"
 
 #. Label of a Link in the Tools Workspace
 #: automation/workspace/tools/tools.json
 #: public/js/frappe/data_import/data_exporter.js:14
 msgid "Export Data"
-msgstr "صادرات داده ها"
+msgstr "برون‌بُرد داده ها"
 
 #: core/doctype/data_import/data_import.js:86
 #: public/js/frappe/data_import/import_preview.js:195
@@ -9394,20 +9394,20 @@ msgstr "صادر کردن ردیف های خطا"
 #. Label of the export_from (Data) field in DocType 'Access Log'
 #: core/doctype/access_log/access_log.json
 msgid "Export From"
-msgstr "صادرات از"
+msgstr "برون‌بُرد از"
 
 #: core/doctype/data_import/data_import.js:518
 msgid "Export Import Log"
-msgstr "لاگ واردات صادرات"
+msgstr "لاگ درون‌بُرد برون‌بُرد"
 
 #: public/js/frappe/views/reports/report_utils.js:235
 msgctxt "Export report"
 msgid "Export Report: {0}"
-msgstr "گزارش صادرات: {0}"
+msgstr "گزارش برون‌بُرد: {0}"
 
 #: public/js/frappe/data_import/data_exporter.js:26
 msgid "Export Type"
-msgstr "نوع صادرات"
+msgstr "نوع برون‌بُرد"
 
 #: public/js/frappe/views/reports/report_view.js:1561
 msgid "Export all matching rows?"
@@ -9419,23 +9419,23 @@ msgstr ""
 
 #: public/js/frappe/views/file/file_view.js:154
 msgid "Export as zip"
-msgstr "صادرات به صورت zip"
+msgstr "برون‌بُرد به صورت zip"
 
 #: public/js/frappe/utils/tools.js:11
 msgid "Export not allowed. You need {0} role to export."
-msgstr "صادرات مجاز نیست برای صادرات به نقش {0} نیاز دارید."
+msgstr "برون‌بُرد مجاز نیست برای برون‌بُرد به نقش {0} نیاز دارید."
 
 #. Description of the 'Export without main header' (Check) field in DocType
 #. 'Data Export'
 #: core/doctype/data_export/data_export.json
 msgid "Export the data without any header notes and column descriptions"
-msgstr "داده ها را بدون هیچ یادداشت سرصفحه و شرح ستون صادر کنید"
+msgstr "داده ها را بدون هیچ یادداشت سرصفحه و شرح ستون برون‌بُرد کنید"
 
 #. Label of the export_without_main_header (Check) field in DocType 'Data
 #. Export'
 #: core/doctype/data_export/data_export.json
 msgid "Export without main header"
-msgstr "صادرات بدون سربرگ اصلی"
+msgstr "برون‌بُرد بدون سربرگ اصلی"
 
 #: public/js/frappe/data_import/data_exporter.js:247
 msgid "Export {0} records"
@@ -9585,7 +9585,7 @@ msgstr "روش {0} با {1} دریافت نشد"
 
 #: model/virtual_doctype.py:63
 msgid "Failed to import virtual doctype {}, is controller file present?"
-msgstr "وارد کردن doctype مجازی {} انجام نشد، آیا فایل کنترل کننده وجود دارد؟"
+msgstr "درون‌بُرد doctype مجازی {} انجام نشد، آیا فایل کنترل کننده وجود دارد؟"
 
 #: utils/image.py:73
 msgid "Failed to optimize image: {0}"
@@ -12261,68 +12261,68 @@ msgstr "ضمنی"
 #: core/doctype/docperm/docperm.json core/doctype/recorder/recorder_list.js:16
 #: email/doctype/email_group/email_group.js:31
 msgid "Import"
-msgstr "وارد کردن"
+msgstr "درون‌بُرد"
 
 #: public/js/frappe/list/list_view.js:1727
 msgctxt "Button in list view menu"
 msgid "Import"
-msgstr "وارد کردن"
+msgstr "درون‌بُرد"
 
 #. Label of a Link in the Tools Workspace
 #. Label of a shortcut in the Tools Workspace
 #: automation/workspace/tools/tools.json
 msgid "Import Data"
-msgstr "وارد کردن داده‌ها"
+msgstr "درون‌بُرد داده‌ها"
 
 #: email/doctype/email_group/email_group.js:14
 msgid "Import Email From"
-msgstr "وارد کردن ایمیل از"
+msgstr "درون‌بُرد ایمیل از"
 
 #. Label of the import_file (Attach) field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
 msgid "Import File"
-msgstr "وارد کردن فایل"
+msgstr "درون‌بُرد فایل"
 
 #. Label of the import_warnings_section (Section Break) field in DocType 'Data
 #. Import'
 #: core/doctype/data_import/data_import.json
 msgid "Import File Errors and Warnings"
-msgstr "خطاها و هشدارهای واردات فایل"
+msgstr "خطاها و هشدارهای درون‌بُرد فایل"
 
 #. Label of the import_log_section (Section Break) field in DocType 'Data
 #. Import'
 #: core/doctype/data_import/data_import.json
 msgid "Import Log"
-msgstr "لاگ واردات"
+msgstr "لاگ درون‌بُرد"
 
 #. Label of the import_log_preview (HTML) field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
 msgid "Import Log Preview"
-msgstr "پیش نمایش لاگ واردات"
+msgstr "پیش نمایش لاگ درون‌بُرد"
 
 #. Label of the import_preview (HTML) field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
 msgid "Import Preview"
-msgstr "پیش نمایش واردات"
+msgstr "پیش نمایش درون‌بُرد"
 
 #: core/doctype/data_import/data_import.js:41
 msgid "Import Progress"
-msgstr "پیشرفت واردات"
+msgstr "پیشرفت درون‌بُرد"
 
 #: email/doctype/email_group/email_group.js:8
 #: email/doctype/email_group/email_group.js:30
 msgid "Import Subscribers"
-msgstr "وارد کردن مشترکین"
+msgstr "درون‌بُرد مشترکین"
 
 #. Label of the import_type (Select) field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
 msgid "Import Type"
-msgstr "نوع واردات"
+msgstr "نوع درون‌بُرد"
 
 #. Label of the import_warnings (HTML) field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
 msgid "Import Warnings"
-msgstr "هشدارهای واردات"
+msgstr "هشدارهای درون‌بُرد"
 
 #: public/js/frappe/views/file/file_view.js:117
 msgid "Import Zip"
@@ -12331,31 +12331,31 @@ msgstr "زیپ را وارد کنید"
 #. Label of the google_sheets_url (Data) field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
 msgid "Import from Google Sheets"
-msgstr "وارد کردن از Google Sheets"
+msgstr "درون‌بُرد از Google Sheets"
 
 #: core/doctype/data_import/importer.py:605
 msgid "Import template should be of type .csv, .xlsx or .xls"
-msgstr "الگوی واردات باید از نوع csv.، xlsx. یا xls. باشد"
+msgstr "الگوی درون‌بُرد باید از نوع csv.، xlsx. یا xls. باشد"
 
 #: core/doctype/data_import/importer.py:475
 msgid "Import template should contain a Header and atleast one row."
-msgstr "الگوی وارد کردن باید حاوی سرصفحه و حداقل یک ردیف باشد."
+msgstr "الگوی درون‌بُرد باید حاوی سرصفحه و حداقل یک ردیف باشد."
 
 #: core/doctype/data_import/data_import.js:165
 msgid "Import timed out, please re-try."
-msgstr "زمان واردات تمام شد، لطفاً دوباره امتحان کنید."
+msgstr "زمان درون‌بُرد تمام شد، لطفاً دوباره امتحان کنید."
 
 #: core/doctype/data_import/data_import.py:67
 msgid "Importing {0} is not allowed."
-msgstr "وارد کردن {0} مجاز نیست."
+msgstr "درون‌بُرد {0} مجاز نیست."
 
 #: integrations/doctype/google_contacts/google_contacts.js:19
 msgid "Importing {0} of {1}"
-msgstr "در حال وارد کردن {0} از {1}"
+msgstr "در حال درون‌بُرد {0} از {1}"
 
 #: core/doctype/data_import/data_import.js:35
 msgid "Importing {0} of {1}, {2}"
-msgstr "در حال وارد کردن {0} از {1}، {2}"
+msgstr "در حال درون‌بُرد {0} از {1}، {2}"
 
 #: public/js/frappe/ui/filters/filter.js:20
 msgid "In"
@@ -13047,7 +13047,7 @@ msgstr "سری نام‌گذاری نامعتبر {}: نقطه (.) وجود ند
 
 #: core/doctype/data_import/importer.py:446
 msgid "Invalid or corrupted content for import"
-msgstr "محتوای نامعتبر یا خراب برای وارد کردن"
+msgstr "محتوای نامعتبر یا خراب برای درون‌بُرد"
 
 #: website/doctype/website_settings/website_settings.py:139
 msgid "Invalid redirect regex in row #{}: {}"
@@ -13063,7 +13063,7 @@ msgstr "حالت نامعتبر"
 
 #: core/doctype/data_import/importer.py:423
 msgid "Invalid template file for import"
-msgstr "فایل الگو برای وارد کردن نامعتبر است"
+msgstr "فایل الگو برای درون‌بُرد نامعتبر است"
 
 #: integrations/doctype/ldap_settings/ldap_settings.py:164
 #: integrations/doctype/ldap_settings/ldap_settings.py:335
@@ -14494,7 +14494,7 @@ msgstr "در حال بارگیری فیلترها..."
 
 #: core/doctype/data_import/data_import.js:257
 msgid "Loading import file..."
-msgstr "در حال بارگیری فایل واردات..."
+msgstr "در حال بارگیری فایل درون‌بُرد..."
 
 #: desk/page/user_profile/user_profile_controller.js:20
 msgid "Loading user profile"
@@ -15451,7 +15451,7 @@ msgstr "ماژول"
 #: custom/doctype/property_setter/property_setter.json
 #: website/doctype/web_page/web_page.json
 msgid "Module (for export)"
-msgstr "ماژول (برای صادرات)"
+msgstr "ماژول (برای برون‌بُرد)"
 
 #. Name of a DocType
 #. Label of a Link in the Build Workspace
@@ -15497,7 +15497,7 @@ msgstr "بازنشانی پیشرفت ورود ماژول"
 
 #: custom/doctype/customize_form/customize_form.js:250
 msgid "Module to Export"
-msgstr "ماژول برای صادرات"
+msgstr "ماژول برای برون‌بُرد"
 
 #: modules/utils.py:272
 msgid "Module {} not found"
@@ -16483,7 +16483,7 @@ msgstr "هیچ مخاطبی به سند پیوند داده نشده است"
 
 #: desk/query_report.py:338
 msgid "No data to export"
-msgstr "داده ای برای صادرات وجود ندارد"
+msgstr "داده ای برای برون‌بُرد نیست"
 
 #: contacts/doctype/address/address.py:246
 msgid "No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template."
@@ -17846,7 +17846,7 @@ msgstr "بسته"
 #: core/doctype/package_import/package_import.json
 #: core/workspace/build/build.json
 msgid "Package Import"
-msgstr "واردات بسته"
+msgstr "درون‌بُرد بسته"
 
 #. Label of the package_name (Data) field in DocType 'Package'
 #: core/doctype/package/package.json
@@ -18394,7 +18394,7 @@ msgstr "مجوزها به طور خودکار برای گزارش‌ها و جس
 
 #: core/page/permission_manager/permission_manager_help.html:5
 msgid "Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions."
-msgstr "مجوزها روی نقش‌ها و انواع اسناد (به نام DocTypes) با تنظیم حقوقی مانند خواندن، نوشتن، ایجاد، حذف، ارسال، لغو، اصلاح، گزارش، واردات، صادرات، چاپ، ایمیل و تنظیم مجوزهای کاربر تنظیم می‌شوند."
+msgstr "مجوزها روی نقش‌ها و انواع اسناد (به نام DocTypes) با تنظیم حقوقی مانند خواندن، نوشتن، ایجاد، حذف، ارسال، لغو، اصلاح، گزارش، درون‌بُرد، برون‌بُرد، چاپ، ایمیل و تنظیم مجوزهای کاربر تنظیم می‌شوند."
 
 #: core/page/permission_manager/permission_manager_help.html:26
 msgid "Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles."
@@ -24099,7 +24099,7 @@ msgstr "فیلد تاریخ شروع"
 
 #: core/doctype/data_import/data_import.js:110
 msgid "Start Import"
-msgstr "شروع واردات"
+msgstr "شروع درون‌بُرد"
 
 #: core/doctype/recorder/recorder_list.js:201
 msgid "Start Recording"
@@ -24463,7 +24463,7 @@ msgstr "ارسال"
 #. Label of the submit_after_import (Check) field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
 msgid "Submit After Import"
-msgstr "ارسال پس از واردات"
+msgstr "ارسال پس از درون‌بُرد"
 
 #. Label of the button_label (Data) field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
@@ -24611,11 +24611,11 @@ msgstr "با موفقیت به روز شد"
 
 #: core/doctype/data_import/data_import.js:423
 msgid "Successfully imported {0}"
-msgstr "{0} با موفقیت وارد شد"
+msgstr "{0} با موفقیت درون‌بُرد شد"
 
 #: core/doctype/data_import/data_import.js:144
 msgid "Successfully imported {0} out of {1} records."
-msgstr "{0} رکورد از {1} رکورد با موفقیت وارد شد."
+msgstr "{0} رکورد از {1} رکورد با موفقیت درون‌بُرد شد."
 
 #: desk/doctype/form_tour/form_tour.py:87
 msgid "Successfully reset onboarding status for all users."
@@ -25528,7 +25528,7 @@ msgstr "خطایی در الگوی آدرس شما وجود دارد {0}"
 
 #: core/doctype/data_export/exporter.py:162
 msgid "There is no data to be exported"
-msgstr "هیچ داده ای برای صادرات وجود ندارد"
+msgstr "هیچ داده ای برای برون‌بُرد نیست"
 
 #: public/js/frappe/ui/notifications/notifications.js:485
 msgid "There is nothing new to show you right now."
@@ -28909,7 +28909,7 @@ msgstr "شما مجاز به ویرایش گزارش نیستید."
 
 #: permissions.py:603
 msgid "You are not allowed to export {} doctype"
-msgstr "شما مجاز به صادرات {} doctype نیستید"
+msgstr "شما مجاز به برون‌بُرد {} doctype نیستید"
 
 #: public/js/frappe/views/treeview.js:427
 msgid "You are not allowed to print this report"
@@ -30057,7 +30057,7 @@ msgstr "از طریق قانون واگذاری"
 #: core/doctype/data_import/importer.py:267
 #: core/doctype/data_import/importer.py:288
 msgid "via Data Import"
-msgstr "از طریق واردات داده"
+msgstr "از طریق درون‌بُرد داده"
 
 #. Description of the 'Add Video Conferencing' (Check) field in DocType 'Event'
 #: desk/doctype/event/event.json
@@ -30905,7 +30905,7 @@ msgstr "{0}: ارسال، لغو، اصلاح بدون نوشتن امکان‌�
 
 #: core/doctype/doctype/doctype.py:1793
 msgid "{0}: Cannot set import as {1} is not importable"
-msgstr "{0}: نمی توان وارد کردن را به عنوان {1} تنظیم کرد، قابل وارد کردن نیست"
+msgstr "{0}: نمی توان درون‌بُرد را به عنوان {1} تنظیم کرد، قابل درون‌بُرد نیست"
 
 #: automation/doctype/auto_repeat/auto_repeat.py:394
 msgid "{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings"
