@@ -19,7 +19,6 @@ const {
 	assets_path,
 	apps_path,
 	sites_path,
-	get_app_path,
 	get_public_path,
 	log,
 	log_warn,
@@ -82,11 +81,9 @@ const RUN_BUILD_COMMAND = !WATCH_MODE && Boolean(argv["run-build-command"]);
 const TOTAL_BUILD_TIME = `${chalk.black.bgGreen(" DONE ")} Total Build Time`;
 const NODE_PATHS = [].concat(
 	// node_modules of apps directly importable
-	app_list
-		.map((app) => path.resolve(get_app_path(app), "../node_modules"))
-		.filter(fs.existsSync),
+	app_list.map((app) => path.resolve(apps_path, app, "node_modules")).filter(fs.existsSync),
 	// import js file of any app if you provide the full path
-	app_list.map((app) => path.resolve(get_app_path(app), "..")).filter(fs.existsSync)
+	app_list.map((app) => path.resolve(apps_path, app)).filter(fs.existsSync)
 );
 
 execute().catch((e) => {
@@ -441,7 +438,7 @@ function run_build_command_for_apps(apps) {
 	for (let app of apps) {
 		if (app === "frappe") continue;
 
-		let root_app_path = path.resolve(get_app_path(app), "..");
+		let root_app_path = path.resolve(apps_path, app);
 		let package_json = path.resolve(root_app_path, "package.json");
 		if (fs.existsSync(package_json)) {
 			let { scripts } = require(package_json);

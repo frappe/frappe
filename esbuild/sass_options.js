@@ -1,7 +1,7 @@
 let path = require("path");
-let { get_app_path, app_list } = require("./utils");
+let { apps_path, app_list } = require("./utils");
 
-let app_paths = app_list.map(get_app_path).map((app_path) => path.resolve(app_path, ".."));
+let app_paths = app_list.map((app) => path.resolve(apps_path, app));
 let node_modules_path = app_paths.map((app_path) => path.resolve(app_path, "node_modules"));
 
 module.exports = {
