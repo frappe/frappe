@@ -64,3 +64,9 @@ def get_default_path():
 	elif is_desk_apps(_apps):
 		return "/app"
 	return "/apps"
+
+
+@frappe.whitelist()
+def set_app_as_default(app_name):
+	frappe.db.set_value("User", frappe.session.user, "default_app", app_name)
+	return True

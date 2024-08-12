@@ -14,6 +14,15 @@ endblock -%} {%- block footer -%} {%- endblock -%} {% block content %}
 			<a href="{{ app.route }}" class="app-icon">
 				<img class="app-logo" src="{{ app.logo }}" />
 				<div class="app-title">{{ app.title }}</div>
+				<div
+					app-name="{{ app.name }}"
+					class="set-default btn btn-xs {{ '' if app.is_default else 'hidden'}}"
+					title="set app as default"
+				>
+					<svg class="icon icon-sm">
+						<use href="#icon-solid-success"></use>
+					</svg>
+				</div>
 			</a>
 			{% endfor %}
 		</div>
@@ -38,4 +47,20 @@ endblock -%} {%- block footer -%} {%- endblock -%} {% block content %}
 		</a>
 	</div>
 </div>
+{% endblock %}
+
+{% block script %}
+<script>
+	$('.set-default').on('click', function(e) {
+		e.preventDefault();
+		var appName = $(this).attr('app-name');
+		frappe.call({
+			method: 'frappe.apps.set_app_as_default',
+			args: { app_name: appName },
+			callback: function() {
+				location.reload();
+			}
+		});
+	});
+</script>
 {% endblock %}
