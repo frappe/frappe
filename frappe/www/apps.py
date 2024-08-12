@@ -19,6 +19,10 @@ def get_context():
 
 	all_apps = get_apps()
 
+	if len(all_apps) == 0:
+		frappe.local.flags.redirect_location = "/app"
+		raise frappe.Redirect
+
 	for app in all_apps:
 		app["is_default"] = True if app.get("name") == default_app else False
 
