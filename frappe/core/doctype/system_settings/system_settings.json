@@ -80,6 +80,8 @@
   "strip_exif_metadata_from_uploaded_images",
   "column_break_uqma",
   "allowed_file_extensions",
+  "app_tab",
+  "default_app",
   "updates_tab",
   "system_updates_section",
   "disable_system_update_notification",
@@ -659,6 +661,17 @@
    "label": "Store Attached PDF Document"
   },
   {
+   "fieldname": "app_tab",
+   "fieldtype": "Tab Break",
+   "label": "App"
+  },
+  {
+   "description": "Redirect to the selected app after login",
+   "fieldname": "default_app",
+   "fieldtype": "Select",
+   "label": "Default App"
+  },
+  {
    "depends_on": "login_with_email_link",
    "description": "You can set a high value here if multiple users will be logging in from the same network.",
    "fieldname": "rate_limit_email_link_login",
@@ -669,7 +682,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2024-08-12 17:02:41.877345",
+ "modified": "2024-08-12 17:02:41.877346",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
