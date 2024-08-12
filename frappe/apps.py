@@ -14,7 +14,7 @@ def get_apps():
 	for app in apps:
 		if app == "frappe":
 			continue
-		app_details = frappe.get_hooks("include_as_app", app_name=app)
+		app_details = frappe.get_hooks("add_to_apps_screen", app_name=app)
 		if not len(app_details):
 			continue
 		for app_detail in app_details:

@@ -337,7 +337,7 @@ app_license = "{app_license}"
 # required_apps = []
 
 # Each item in the list will be shown an app in the apps page
-# include_as_app = [
+# add_to_apps_screen = [
 # 	{{
 # 		"name": "{app_name}",
 # 		"logo": "/assets/{app_name}/logo.png",
