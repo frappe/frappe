@@ -10,28 +10,23 @@ from frappe import _
 @frappe.whitelist()
 def get_apps():
 	apps = frappe.get_installed_apps()
-	app_list = [
-		{
-			"name": "frappe",
-			"icon_url": "/assets/frappe/images/frappe-framework-logo.svg",
-			"title": _("Admin"),
-			"route": "/app",
-		}
-	]
+	app_list = []
 	for app in apps:
 		if app == "frappe":
 			continue
-		app_icon_url = frappe.get_hooks("app_icon_url", app_name=app)
-		app_icon_route = frappe.get_hooks("app_icon_route", app_name=app)
-		if app_icon_url and app_icon_route:
-			app_title = frappe.get_hooks("app_title", app_name=app)
-			icon_title = frappe.get_hooks("app_icon_title", app_name=app)
+		app_details = frappe.get_hooks("include_as_app", app_name=app)
+		if not len(app_details):
+			continue
+		for app_detail in app_details:
+			has_permission_path = app_detail.get("has_permission")
+			if has_permission_path and not frappe.get_attr(has_permission_path)():
+				continue
 			app_list.append(
 				{
 					"name": app,
-					"icon_url": app_icon_url[0],
-					"title": _(icon_title[0] if icon_title else app_title[0] if app_title else app),
-					"route": app_icon_route[0],
+					"logo": app_detail.get("logo"),
+					"title": _(app_detail.get("title")),
+					"route": app_detail.get("route"),
 				}
 			)
 	return app_list
