@@ -174,7 +174,6 @@ def delete_doc(
 			if not frappe.flags.in_patch:
 				try:
 					doc.notify_update()
-					insert_feed(doc)
 				except ImportError:
 					pass
 
@@ -436,28 +435,6 @@ def clear_references(
 
 def clear_timeline_references(link_doctype, link_name):
 	frappe.db.delete("Communication Link", {"link_doctype": link_doctype, "link_name": link_name})
-
-
-def insert_feed(doc):
-	if (
-		frappe.flags.in_install
-		or frappe.flags.in_uninstall
-		or frappe.flags.in_import
-		or getattr(doc, "no_feed_on_delete", False)
-	):
-		return
-
-	from frappe.utils import get_fullname
-
-	frappe.get_doc(
-		{
-			"doctype": "Comment",
-			"comment_type": "Deleted",
-			"reference_doctype": doc.doctype,
-			"subject": f"{_(doc.doctype)} {doc.name}",
-			"full_name": get_fullname(doc.owner),
-		}
-	).insert(ignore_permissions=True)
 
 
 def delete_controllers(doctype, module):
