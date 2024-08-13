@@ -51,8 +51,10 @@ class Comment(Document):
 		reference_owner: DF.Data | None
 		seen: DF.Check
 		subject: DF.Text | None
-
 	# end: auto-generated types
+
+	no_feed_on_delete = True
+
 	def after_insert(self):
 		notify_mentions(self.reference_doctype, self.reference_name, self.content)
 		self.notify_change("add")
