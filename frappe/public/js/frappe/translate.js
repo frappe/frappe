@@ -8,7 +8,7 @@ frappe._ = function (txt, replace, context = null) {
 
 	let translated_text = "";
 
-	let key = txt; // txt.replace(/\n/g, "");
+	let key = txt.replace(/\n/g, "\\n"); // txt.replace(/\n/g, "");
 	if (context) {
 		translated_text = frappe._messages[`${key}:${context}`];
 	}

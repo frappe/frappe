@@ -142,7 +142,7 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 							1000)
 				) {
 					this.last_element_clicked = new Date().getTime();
-					this.handle_modal_steps(this.driver.currentStep, title, ondemand_description);
+					this.handle_modal_steps(this.driver.currentStep, __(title), ondemand_description);
 					return;
 				}
 
@@ -186,7 +186,7 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 				$(popover).one("hide.bs.popover", (e) => {
 					this.driver_steps.splice(this.driver.currentStep, 1);
 					this.driver_steps[this.driver.currentStep - 1].showButtons = true;
-					new_step.popover.description = description;
+					new_step.popover.description = __(description);
 					this.update_driver_steps();
 					this.driver.movePrevious();
 					this.driver.overlay.refresh();
@@ -212,8 +212,8 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 			element,
 			name,
 			popover: {
-				title,
-				description,
+				title: __(title),
+				description: __(description),
 				position: frappe.router.slug(fixed_position || "Bottom"),
 			},
 			onNext: on_next,

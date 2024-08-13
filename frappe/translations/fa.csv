@@ -4989,3 +4989,8 @@ App Logo,لوگوی اپلیکیشن,
 Login Page,صفحه ورود,
 Splash Image,تصویر اسپلش (هنگام بارگذاری),
 Go to Notification Settings List,برو به لیست تنظیمات نوتیفیکیشن	
+"This is Users Workspace. You'll find all shortcuts for user, roles and permission management here.",مدیریت کاربران از این بخش انجام می‌شود. تمامی میانبرهای مربوط به کاربران، نقش‌ها و دسترسی‌ها را در اینجا خواهید یافت.,
+Workspace,فضای کاری,
+"This is a shortcut to User DocType. \n<br>\n\nLet's Click on the User shortcut to explore all users in System.",این یک میانبر به لیست کاربران است.<br>با کلیک روی آن می‌توانید همه کاربران سیستم را ببینید.,
+Users Shortcut,میانبر کاربران,
+"This is Awesomebar, it helps you to navigate anywhere in the system, find documents, reports, settings, create new records and many more things.",این، نوار جستجوی پیشرفته است. با استفاده از آن می‌توانید به جاهای مختلف سیستم بروید، مستندات و گزارشات را بیابید، موارد جدید ایجاد کنید و...,
