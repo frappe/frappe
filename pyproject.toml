@@ -141,6 +141,7 @@ ignore = [
     "F722", # syntax error in forward type annotation
     "W191", # indentation contains tabs
     "RUF001", # string contains ambiguous unicode character
+    "UP032", # Use f-string instead of `format` call
 ]
 typing-modules = ["frappe.types.DF"]
 
