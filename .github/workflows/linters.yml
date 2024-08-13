@@ -69,7 +69,7 @@ jobs:
 
       - name: Run Semgrep rules
         run: |
-          pip install semgrep==0.97.0
+          pip install semgrep
           semgrep ci --config ./frappe-semgrep-rules/rules --config r/python.lang.correctness
 
   deps-vulnerable-check:
