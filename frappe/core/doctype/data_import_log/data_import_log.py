@@ -22,10 +22,7 @@ class DataImportLog(Document):
 		row_indexes: DF.Code | None
 		success: DF.Check
 	# end: auto-generated types
-<<<<<<< HEAD
-=======
 
 	no_feed_on_delete = True
 
->>>>>>> e50bd64142 (fix: don't create a comment when deleting a Data Import Log)
 	pass
