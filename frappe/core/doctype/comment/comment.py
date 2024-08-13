@@ -12,52 +12,8 @@ from frappe.website.utils import clear_cache
 
 
 class Comment(Document):
-<<<<<<< HEAD
-=======
-	# begin: auto-generated types
-	# This code is auto-generated. Do not modify anything in this block.
-
-	from typing import TYPE_CHECKING
-
-	if TYPE_CHECKING:
-		from frappe.types import DF
-
-		comment_by: DF.Data | None
-		comment_email: DF.Data | None
-		comment_type: DF.Literal[
-			"Comment",
-			"Like",
-			"Info",
-			"Label",
-			"Workflow",
-			"Created",
-			"Submitted",
-			"Cancelled",
-			"Updated",
-			"Deleted",
-			"Assigned",
-			"Assignment Completed",
-			"Attachment",
-			"Attachment Removed",
-			"Shared",
-			"Unshared",
-			"Bot",
-			"Relinked",
-			"Edit",
-		]
-		content: DF.HTMLEditor | None
-		ip_address: DF.Data | None
-		published: DF.Check
-		reference_doctype: DF.Link | None
-		reference_name: DF.DynamicLink | None
-		reference_owner: DF.Data | None
-		seen: DF.Check
-		subject: DF.Text | None
-	# end: auto-generated types
-
 	no_feed_on_delete = True
 
->>>>>>> f4cd51a3f4 (fix: don't create another comment when deleting a comment)
 	def after_insert(self):
 		notify_mentions(self.reference_doctype, self.reference_name, self.content)
 		self.notify_change("add")
