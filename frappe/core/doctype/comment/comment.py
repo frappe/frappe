@@ -52,7 +52,12 @@ class Comment(Document):
 		seen: DF.Check
 		subject: DF.Text | None
 
+<<<<<<< HEAD
 	# end: auto-generated types
+=======
+	no_feed_on_delete = True
+
+>>>>>>> f4cd51a3f4 (fix: don't create another comment when deleting a comment)
 	def after_insert(self):
 		notify_mentions(self.reference_doctype, self.reference_name, self.content)
 		self.notify_change("add")
