@@ -661,13 +661,13 @@
    "label": "Store Attached PDF Document"
   },
   {
-<<<<<<< HEAD
    "depends_on": "login_with_email_link",
    "description": "You can set a high value here if multiple users will be logging in from the same network.",
    "fieldname": "rate_limit_email_link_login",
    "fieldtype": "Int",
    "label": "Rate limit for email link login"
-=======
+  },
+  {
    "fieldname": "app_tab",
    "fieldtype": "Tab Break",
    "label": "App"
@@ -677,17 +677,12 @@
    "fieldname": "default_app",
    "fieldtype": "Select",
    "label": "Default App"
->>>>>>> 50325727df (feat: added default app selector in system settings)
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2024-03-22 15:43:48.347441",
-=======
  "modified": "2024-08-08 20:10:55.939839",
->>>>>>> 50325727df (feat: added default app selector in system settings)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
