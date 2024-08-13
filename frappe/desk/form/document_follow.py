@@ -60,7 +60,7 @@ def follow_document(doctype, doc_name, user):
 		doc = frappe.new_doc("Document Follow")
 		doc.update({"ref_doctype": doctype, "ref_docname": doc_name, "user": user})
 		doc.save()
-		frappe.toast(_("Following document {}".format(doc_name)))
+		frappe.toast(_("Following document {0}".format(doc_name)))
 		return doc
 
 	return False
@@ -76,7 +76,7 @@ def unfollow_document(doctype, doc_name, user):
 	)
 	if doc:
 		frappe.delete_doc("Document Follow", doc[0].name)
-		frappe.toast(_("Un-following document {}".format(doc_name)))
+		frappe.toast(_("Un-following document {0}".format(doc_name)))
 		return False
 	return False
 
