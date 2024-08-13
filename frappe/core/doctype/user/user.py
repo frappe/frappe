@@ -60,11 +60,7 @@ class User(Document):
 		birth_date: DF.Date | None
 		block_modules: DF.Table[BlockModule]
 		bypass_restrict_ip_check_if_2fa_enabled: DF.Check
-<<<<<<< HEAD
-=======
-		code_editor_type: DF.Literal["vscode", "vim", "emacs"]
 		default_app: DF.Literal[None]
->>>>>>> 50325727df (feat: added default app selector in system settings)
 		default_workspace: DF.Link | None
 		defaults: DF.Table[DefaultValue]
 		desk_theme: DF.Literal["Light", "Dark", "Automatic"]
