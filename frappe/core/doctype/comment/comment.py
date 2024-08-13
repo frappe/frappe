@@ -32,7 +32,6 @@ class Comment(Document):
 			"Submitted",
 			"Cancelled",
 			"Updated",
-			"Deleted",
 			"Assigned",
 			"Assignment Completed",
 			"Attachment",

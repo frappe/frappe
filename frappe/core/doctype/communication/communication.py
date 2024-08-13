@@ -55,7 +55,6 @@ class Communication(Document, CommunicationEmailMixin):
 			"Submitted",
 			"Cancelled",
 			"Updated",
-			"Deleted",
 			"Assigned",
 			"Assignment Completed",
 			"Attachment",

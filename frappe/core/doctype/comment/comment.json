@@ -25,7 +25,7 @@
    "fieldname": "comment_type",
    "fieldtype": "Select",
    "label": "Comment Type",
-   "options": "Comment\nLike\nInfo\nLabel\nWorkflow\nCreated\nSubmitted\nCancelled\nUpdated\nDeleted\nAssigned\nAssignment Completed\nAttachment\nAttachment Removed\nShared\nUnshared\nBot\nRelinked\nEdit",
+   "options": "Comment\nLike\nInfo\nLabel\nWorkflow\nCreated\nSubmitted\nCancelled\nUpdated\nAssigned\nAssignment Completed\nAttachment\nAttachment Removed\nShared\nUnshared\nBot\nRelinked\nEdit",
    "reqd": 1
   },
   {
@@ -99,7 +99,7 @@
   }
  ],
  "links": [],
- "modified": "2024-03-23 16:01:30.075730",
+ "modified": "2024-08-13 03:13:41.721030",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Comment",
