@@ -29,8 +29,6 @@ class DocShare(Document):
 		write: DF.Check
 	# end: auto-generated types
 
-	no_feed_on_delete = True
-
 	def validate(self):
 		self.validate_user()
 		self.check_share_permission()

@@ -62,8 +62,6 @@ class File(Document):
 		uploaded_to_google_drive: DF.Check
 	# end: auto-generated types
 
-	no_feed_on_delete = True
-
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		# if content is set, file_url will be generated
