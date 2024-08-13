@@ -730,21 +730,11 @@ export default class GridRow {
 	}
 
 	set_dependant_property(df) {
-		if (
-			!df.reqd &&
-			df.mandatory_depends_on &&
-			this.evaluate_depends_on_value(df.mandatory_depends_on)
-		) {
-			df.reqd = 1;
-		}
+		if (df.mandatory_depends_on)
+			df.reqd = this.evaluate_depends_on_value(df.mandatory_depends_on);
 
-		if (
-			!df.read_only &&
-			df.read_only_depends_on &&
-			this.evaluate_depends_on_value(df.read_only_depends_on)
-		) {
-			df.read_only = 1;
-		}
+		if (df.read_only_depends_on)
+			df.read_only = this.evaluate_depends_on_value(df.read_only_depends_on);
 	}
 
 	evaluate_depends_on_value(expression) {
@@ -1453,6 +1443,19 @@ export default class GridRow {
 		if (this.grid_form) {
 			this.grid_form.refresh_field(fieldname);
 		}
+
+		// refresh dependent fields
+		this.grid.visible_columns.forEach((col) => {
+			let df = col[0];
+			// check if the visible field is dependent on the changed value
+			if (
+				df.mandatory_depends_on?.includes(fieldname) ||
+				df.read_only_depends_on?.includes(fieldname)
+			) {
+				this.set_dependant_property(df);
+				this.refresh_field(df.fieldname);
+			}
+		});
 	}
 	get_field(fieldname) {
 		let field = this.on_grid_fields_dict[fieldname];
