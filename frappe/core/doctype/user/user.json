@@ -389,7 +389,7 @@
   },
   {
    "fieldname": "email_signature",
-   "fieldtype": "Small Text",
+   "fieldtype": "Text Editor",
    "label": "Email Signature",
    "no_copy": 1
   },
@@ -671,6 +671,49 @@
    "fieldtype": "Small Text",
    "hidden": 1,
    "label": "Onboarding Status"
+<<<<<<< HEAD
+=======
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "role_profiles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Role Profiles",
+   "options": "User Role Profile",
+   "permlevel": 1
+  },
+  {
+   "description": "If left empty, the default workspace will be the last visited workspace",
+   "fieldname": "default_workspace",
+   "fieldtype": "Link",
+   "label": "Default Workspace",
+   "options": "Workspace"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "workspace_section",
+   "fieldtype": "Section Break",
+   "label": "Workspace"
+  },
+  {
+   "default": "vscode",
+   "fieldname": "code_editor_type",
+   "fieldtype": "Select",
+   "label": "Code Editor Type",
+   "options": "vscode\nvim\nemacs"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "app_section",
+   "fieldtype": "Section Break",
+   "label": "App"
+  },
+  {
+   "description": "Redirect to the selected app after login",
+   "fieldname": "default_app",
+   "fieldtype": "Select",
+   "label": "Default App"
+>>>>>>> 391e6d1e3b (fix(UserSignature): changed field type to TextEditor)
   }
  ],
  "icon": "fa fa-user",
@@ -733,7 +776,11 @@
    "link_fieldname": "user"
   }
  ],
+<<<<<<< HEAD
  "modified": "2024-02-11 13:16:29.574666",
+=======
+ "modified": "2024-08-13 14:48:15.168516",
+>>>>>>> 391e6d1e3b (fix(UserSignature): changed field type to TextEditor)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
