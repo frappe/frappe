@@ -662,7 +662,6 @@
    "label": "Store Attached PDF Document"
   },
   {
-<<<<<<< HEAD
    "fieldname": "app_tab",
    "fieldtype": "Tab Break",
    "label": "App"
@@ -679,23 +678,12 @@
    "fieldname": "rate_limit_email_link_login",
    "fieldtype": "Int",
    "label": "Rate limit for email link login"
-=======
-   "default": "Left",
-   "fieldname": "sidebar_position",
-   "fieldtype": "Select",
-   "label": "Sidebar Position",
-   "options": "Left\nRight"
->>>>>>> 770a6df82a (fix(styles): cleaner sidebars for list and form)
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
-<<<<<<< HEAD
  "modified": "2024-08-12 17:02:41.877346",
-=======
- "modified": "2024-08-09 11:55:19.592343",
->>>>>>> 770a6df82a (fix(styles): cleaner sidebars for list and form)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
