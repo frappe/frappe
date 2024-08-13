@@ -121,8 +121,6 @@ class Communication(Document, CommunicationEmailMixin):
 	# end: auto-generated types
 
 	"""Communication represents an external communication like Email."""
-
-	no_feed_on_delete = True
 	DOCTYPE = "Communication"
 
 	def onload(self):
