@@ -12,6 +12,8 @@ from frappe.website.utils import clear_cache
 
 
 class Comment(Document):
+	no_feed_on_delete = True
+
 	def after_insert(self):
 		notify_mentions(self.reference_doctype, self.reference_name, self.content)
 		self.notify_change("add")

@@ -6,4 +6,4 @@ from frappe.model.document import Document
 
 
 class DataImportLog(Document):
-	pass
+	no_feed_on_delete = True
