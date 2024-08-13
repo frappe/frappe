@@ -11,9 +11,13 @@
 				<Tooltip placement="right" :text="tab.label" :hover-delay="0.1">
 					<div
 						class="flex items-center justify-center cursor-pointer gap-2 truncate rounded px-3 py-1 transition duration-300 ease-in-out"
-						:class="{ 'bg-gray-100': activeTab === tab.label }"
+						:class="
+							activeTab === tab.label
+								? 'bg-gray-100 text-gray-700'
+								: 'text-gray-500 hover:text-gray-700'
+						"
 					>
-						<FeatherIcon :name="tab.icon" class="h-6 w-6 text-gray-600" />
+						<FeatherIcon :name="tab.icon" class="h-6 w-6" />
 					</div>
 				</Tooltip>
 			</div>
@@ -24,6 +28,8 @@
 			<div class="text-base font-semibold text-gray-800 p-3 border-b-[1px] border-gray-200">
 				{{ activeTab }}
 			</div>
+
+			<ComponentPanel v-if="activeTab === 'Add Component'" class="my-3 mx-2" />
 		</div>
 	</div>
 </template>
@@ -31,6 +37,8 @@
 <script setup>
 import { ref } from "vue"
 import { Tooltip, FeatherIcon } from "frappe-ui"
+
+import ComponentPanel from "@/components/ComponentPanel.vue"
 
 const activeTab = ref("Add Component")
 const sidebarMenu = [

@@ -1,0 +1,113 @@
+// import {
+// 	Alert,
+// 	Autocomplete,
+// 	Avatar,
+// 	Badge,
+// 	Breadcrumbs,
+// 	Button,
+// 	Card,
+// 	Checkbox,
+// 	DatePicker,
+// 	DateTimePicker,
+// 	DateRangePicker,
+// 	Dialog,
+// 	Divider,
+// 	Dropdown,
+// 	ErrorMessage,
+// 	FeatherIcon,
+// 	FileUploader,
+// 	FormControl,
+// 	GreenCheckIcon,
+// 	Input,
+// 	Link,
+// 	ListItem,
+// 	ListView,
+// 	LoadingIndicator,
+// 	LoadingText,
+// 	Progress,
+// 	Popover,
+// 	Select,
+// 	Spinner,
+// 	Switch,
+// 	TabButtons,
+// 	Tabs,
+// 	TextInput,
+// 	Textarea,
+// 	TextEditor,
+// 	Toast,
+// 	Tooltip,
+// 	CommandPalette,
+// 	CommandPaletteItem,
+// 	Calendar,
+// } from "frappe-ui"
+
+import { reactive } from "vue"
+import * as FrappeUIComponents from "frappe-ui"
+
+export const components = reactive([
+	{
+		name: "Alert",
+		component: FrappeUIComponents.Alert,
+		icon: "CircleAlert",
+	},
+	{
+		name: "Autocomplete",
+		component: FrappeUIComponents.Autocomplete,
+		icon: "TextSearch",
+	},
+	{
+		name: "Avatar",
+		component: FrappeUIComponents.Avatar,
+		icon: "User",
+	},
+	{
+		name: "Badge",
+		component: FrappeUIComponents.Badge,
+		icon: "BadgeCheck",
+	},
+	{
+		name: "Button",
+		component: FrappeUIComponents.Button,
+		icon: "RectangleHorizontal",
+	},
+	{
+		name: "Card",
+		component: FrappeUIComponents.Card,
+		icon: "IdCard",
+	},
+	{
+		name: "Checkbox",
+		component: FrappeUIComponents.Checkbox,
+		icon: "CircleCheck",
+	},
+	{
+		name: "Date",
+		component: FrappeUIComponents.DatePicker,
+		icon: "CalendarCheck",
+	},
+	{
+		name: "Date Range",
+		component: FrappeUIComponents.DateRangePicker,
+		icon: "CalendarSearch",
+	},
+	{
+		name: "Date Time",
+		component: FrappeUIComponents.DateTimePicker,
+		icon: "CalendarClock",
+	},
+	{
+		name: "Dialog",
+		component: FrappeUIComponents.Dialog,
+		icon: "AppWindowMac",
+	},
+	{
+		name: "Divider",
+		component: FrappeUIComponents.Divider,
+		icon: "Minus",
+	},
+	{
+		name: "Dropdown",
+		component: FrappeUIComponents.Dropdown,
+		icon: "ChevronDown",
+	},
+])
