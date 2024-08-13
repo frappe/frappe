@@ -396,7 +396,7 @@
   },
   {
    "fieldname": "email_signature",
-   "fieldtype": "Small Text",
+   "fieldtype": "Text Editor",
    "label": "Email Signature",
    "no_copy": 1
   },
@@ -717,6 +717,28 @@
    "fieldname": "workspace_section",
    "fieldtype": "Section Break",
    "label": "Workspace"
+<<<<<<< HEAD
+=======
+  },
+  {
+   "default": "vscode",
+   "fieldname": "code_editor_type",
+   "fieldtype": "Select",
+   "label": "Code Editor Type",
+   "options": "vscode\nvim\nemacs"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "app_section",
+   "fieldtype": "Section Break",
+   "label": "App"
+  },
+  {
+   "description": "Redirect to the selected app after login",
+   "fieldname": "default_app",
+   "fieldtype": "Select",
+   "label": "Default App"
+>>>>>>> 391e6d1e3b (fix(UserSignature): changed field type to TextEditor)
   }
  ],
  "icon": "fa fa-user",
@@ -779,7 +801,11 @@
    "link_fieldname": "user"
   }
  ],
+<<<<<<< HEAD
  "modified": "2024-03-20 17:15:19.200383",
+=======
+ "modified": "2024-08-13 14:48:15.168516",
+>>>>>>> 391e6d1e3b (fix(UserSignature): changed field type to TextEditor)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
