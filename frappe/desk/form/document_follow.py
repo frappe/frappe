@@ -12,7 +12,7 @@ from frappe.utils import get_url_to_form
 @frappe.whitelist()
 def update_follow(doctype: str, doc_name: str, following: bool):
 	if following:
-		return follow_document(doctype, doc_name, frappe.session.user)
+		return follow_document(doctype, doc_name, frappe.session.user) and True or False
 	else:
 		return unfollow_document(doctype, doc_name, frappe.session.user)
 
@@ -61,7 +61,7 @@ def follow_document(doctype, doc_name, user):
 		doc.update({"ref_doctype": doctype, "ref_docname": doc_name, "user": user})
 		doc.save()
 		frappe.toast(_("Following document {}".format(doc_name)))
-		return True
+		return doc
 
 	return False
 
