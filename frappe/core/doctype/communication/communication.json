@@ -166,7 +166,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Comment Type",
-   "options": "\nComment\nLike\nInfo\nLabel\nWorkflow\nCreated\nSubmitted\nCancelled\nUpdated\nDeleted\nAssigned\nAssignment Completed\nAttachment\nAttachment Removed\nShared\nUnshared\nRelinked",
+   "options": "\nComment\nLike\nInfo\nLabel\nWorkflow\nCreated\nSubmitted\nCancelled\nUpdated\nAssigned\nAssignment Completed\nAttachment\nAttachment Removed\nShared\nUnshared\nRelinked",
    "read_only": 1
   },
   {
@@ -402,7 +402,7 @@
  "idx": 1,
  "links": [],
  "make_attachments_public": 1,
- "modified": "2024-03-23 16:01:30.219380",
+ "modified": "2024-08-13 03:14:12.497528",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Communication",
