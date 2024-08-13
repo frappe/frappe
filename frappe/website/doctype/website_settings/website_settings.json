@@ -389,7 +389,7 @@
    "label": "Navbar Template"
   },
   {
-   "default": "Frappe",
+   "default": "چارچوب",
    "fieldname": "app_name",
    "fieldtype": "Data",
    "label": "App Name"
