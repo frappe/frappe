@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 import frappe
 import frappe.utils
 from frappe import _
+from frappe.apps import get_default_path
 from frappe.utils.password import get_decrypted_password
 
 if TYPE_CHECKING:
@@ -311,7 +312,7 @@ def redirect_post_login(desk_user: bool, redirect_to: str | None = None, provide
 	frappe.local.response["type"] = "redirect"
 
 	if not redirect_to:
-		desk_uri = "/app/workspace" if provider == "facebook" else "/app"
+		desk_uri = "/app/workspace" if provider == "facebook" else get_default_path()
 		redirect_to = frappe.utils.get_url(desk_uri if desk_user else "/me")
 
 	frappe.local.response["location"] = redirect_to

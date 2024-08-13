@@ -73,14 +73,6 @@ class Notification(Document):
 		"""load message"""
 		if self.is_standard:
 			self.message = self.get_template()
-		self.set_onload(
-			"preview_fields",
-			[
-				{"label": _("Meets Condition?"), "fieldtype": "Data", "method": "preview_meets_condition"},
-				{"label": _("Subject"), "fieldtype": "Data", "method": "preview_subject"},
-				{"label": _("Message"), "fieldtype": "Code", "method": "preview_message"},
-			],
-		)
 
 	def autoname(self):
 		if not self.name:

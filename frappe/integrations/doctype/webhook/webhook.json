@@ -30,13 +30,7 @@
   "webhook_headers",
   "sb_webhook_data",
   "webhook_data",
-  "webhook_json",
-  "preview_tab",
-  "preview_document",
-  "column_break_26",
-  "meets_condition",
-  "section_break_28",
-  "preview_request_body"
+  "webhook_json"
  ],
  "fields": [
   {
@@ -170,37 +164,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "preview_tab",
-   "fieldtype": "Tab Break",
-   "label": "Preview"
-  },
-  {
-   "fieldname": "preview_document",
-   "fieldtype": "Dynamic Link",
-   "label": "Select Document",
-   "options": "webhook_doctype"
-  },
-  {
-   "fieldname": "preview_request_body",
-   "fieldtype": "Code",
-   "is_virtual": 1,
-   "label": "Request Body"
-  },
-  {
-   "fieldname": "meets_condition",
-   "fieldtype": "Data",
-   "is_virtual": 1,
-   "label": "Meets Condition?"
-  },
-  {
-   "fieldname": "column_break_26",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "section_break_28",
-   "fieldtype": "Section Break"
-  },
-  {
    "default": "0",
    "description": "On checking this option, URL will be treated like a jinja template string",
    "fieldname": "is_dynamic_url",
@@ -226,7 +189,7 @@
    "link_fieldname": "webhook"
   }
  ],
- "modified": "2024-03-23 16:04:03.108172",
+ "modified": "2024-07-22 09:23:32.642172",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",

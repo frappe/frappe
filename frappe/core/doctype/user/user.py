@@ -63,13 +63,14 @@ class User(Document):
 		block_modules: DF.Table[BlockModule]
 		bypass_restrict_ip_check_if_2fa_enabled: DF.Check
 		code_editor_type: DF.Literal["vscode", "vim", "emacs"]
+		default_app: DF.Literal[None]
 		default_workspace: DF.Link | None
 		defaults: DF.Table[DefaultValue]
 		desk_theme: DF.Literal["Light", "Dark", "Automatic"]
 		document_follow_frequency: DF.Literal["Hourly", "Daily", "Weekly"]
 		document_follow_notify: DF.Check
 		email: DF.Data
-		email_signature: DF.SmallText | None
+		email_signature: DF.TextEditor | None
 		enabled: DF.Check
 		first_name: DF.Data
 		follow_assigned_documents: DF.Check

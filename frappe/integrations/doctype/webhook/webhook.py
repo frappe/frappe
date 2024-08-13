@@ -36,9 +36,6 @@ class Webhook(Document):
 		enable_security: DF.Check
 		enabled: DF.Check
 		is_dynamic_url: DF.Check
-		meets_condition: DF.Data | None
-		preview_document: DF.DynamicLink | None
-		preview_request_body: DF.Code | None
 		request_method: DF.Literal["POST", "PUT", "DELETE"]
 		request_structure: DF.Literal["", "Form URL-Encoded", "JSON"]
 		request_url: DF.SmallText
@@ -119,35 +116,24 @@ class Webhook(Document):
 				frappe.throw(_("Invalid Webhook Secret"))
 
 	@frappe.whitelist()
-	def generate_preview(self):
-		# This function doesn't need to do anything specific as virtual fields
-		# get evaluated automatically.
-		pass
-
-	@property
-	def meets_condition(self):
+	def preview_meets_condition(self, preview_document):
 		if not self.condition:
 			return _("Yes")
-
-		if not (self.preview_document and self.webhook_doctype):
-			return _("Select a document to check if it meets conditions.")
-
 		try:
-			doc = frappe.get_cached_doc(self.webhook_doctype, self.preview_document)
+			doc = frappe.get_cached_doc(self.webhook_doctype, preview_document)
 			met_condition = frappe.safe_eval(self.condition, eval_locals=get_context(doc))
 		except Exception as e:
+			frappe.local.message_log = []
 			return _("Failed to evaluate conditions: {}").format(e)
 		return _("Yes") if met_condition else _("No")
 
-	@property
-	def preview_request_body(self):
-		if not (self.preview_document and self.webhook_doctype):
-			return _("Select a document to preview request data")
-
+	@frappe.whitelist()
+	def preview_request_body(self, preview_document):
 		try:
-			doc = frappe.get_cached_doc(self.webhook_doctype, self.preview_document)
+			doc = frappe.get_cached_doc(self.webhook_doctype, preview_document)
 			return frappe.as_json(get_webhook_data(doc, self))
 		except Exception as e:
+			frappe.local.message_log = []
 			return _("Failed to compute request body: {}").format(e)
 
 

@@ -74,6 +74,8 @@
   "user_emails",
   "workspace_section",
   "default_workspace",
+  "app_section",
+  "default_app",
   "sb2",
   "defaults",
   "sb3",
@@ -237,8 +239,7 @@
    "options": "Has Role",
    "permlevel": 1,
    "print_hide": 1,
-   "read_only": 1,
-   "show_on_timeline": 1
+   "read_only": 1
   },
   {
    "collapsible": 1,
@@ -399,7 +400,7 @@
   },
   {
    "fieldname": "email_signature",
-   "fieldtype": "Small Text",
+   "fieldtype": "Text Editor",
    "label": "Email Signature",
    "no_copy": 1
   },
@@ -429,8 +430,7 @@
    "hidden": 1,
    "label": "Block Modules",
    "options": "Block Module",
-   "permlevel": 1,
-   "show_on_timeline": 1
+   "permlevel": 1
   },
   {
    "fieldname": "home_settings",
@@ -736,6 +736,18 @@
    "fieldtype": "Select",
    "label": "Code Editor Type",
    "options": "vscode\nvim\nemacs"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "app_section",
+   "fieldtype": "Section Break",
+   "label": "App"
+  },
+  {
+   "description": "Redirect to the selected app after login",
+   "fieldname": "default_app",
+   "fieldtype": "Select",
+   "label": "Default App"
   }
  ],
  "icon": "fa fa-user",
@@ -798,7 +810,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2024-07-15 18:40:18.842915",
+ "modified": "2024-08-13 14:48:15.168516",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

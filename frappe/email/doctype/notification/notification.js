@@ -164,7 +164,6 @@ frappe.ui.form.on("Notification", {
 				},
 			};
 		});
-		frm.preview_fields = frm.doc.__onload.preview_fields;
 	},
 	refresh: function (frm) {
 		frappe.notification.setup_fieldname_select(frm);
@@ -185,7 +184,15 @@ frappe.ui.form.on("Notification", {
 				const args = {
 					doc: frm.doc,
 					doctype: frm.doc.document_type,
-					preview_fields: frm.preview_fields,
+					preview_fields: [
+						{
+							label: __("Meets Condition?"),
+							fieldtype: "Data",
+							method: "preview_meets_condition",
+						},
+						{ label: __("Subject"), fieldtype: "Data", method: "preview_subject" },
+						{ label: __("Message"), fieldtype: "Code", method: "preview_message" },
+					],
 				};
 				let dialog = new frappe.views.RenderPreviewer(args);
 				return dialog;
