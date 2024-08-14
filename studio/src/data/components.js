@@ -1,113 +1,80 @@
-// import {
-// 	Alert,
-// 	Autocomplete,
-// 	Avatar,
-// 	Badge,
-// 	Breadcrumbs,
-// 	Button,
-// 	Card,
-// 	Checkbox,
-// 	DatePicker,
-// 	DateTimePicker,
-// 	DateRangePicker,
-// 	Dialog,
-// 	Divider,
-// 	Dropdown,
-// 	ErrorMessage,
-// 	FeatherIcon,
-// 	FileUploader,
-// 	FormControl,
-// 	GreenCheckIcon,
-// 	Input,
-// 	Link,
-// 	ListItem,
-// 	ListView,
-// 	LoadingIndicator,
-// 	LoadingText,
-// 	Progress,
-// 	Popover,
-// 	Select,
-// 	Spinner,
-// 	Switch,
-// 	TabButtons,
-// 	Tabs,
-// 	TextInput,
-// 	Textarea,
-// 	TextEditor,
-// 	Toast,
-// 	Tooltip,
-// 	CommandPalette,
-// 	CommandPaletteItem,
-// 	Calendar,
-// } from "frappe-ui"
-
-import { reactive } from "vue"
-import * as FrappeUIComponents from "frappe-ui"
-
-export const components = reactive([
-	{
+export const COMPONENTS = {
+	Alert: {
 		name: "Alert",
-		component: FrappeUIComponents.Alert,
+		title: "Alert",
 		icon: "CircleAlert",
 	},
-	{
+	Autocomplete: {
 		name: "Autocomplete",
-		component: FrappeUIComponents.Autocomplete,
+		title: "Autocomplete",
 		icon: "TextSearch",
 	},
-	{
+	Avatar: {
 		name: "Avatar",
-		component: FrappeUIComponents.Avatar,
+		title: "Avatar",
 		icon: "User",
 	},
-	{
+	Badge: {
 		name: "Badge",
-		component: FrappeUIComponents.Badge,
+		title: "Badge",
 		icon: "BadgeCheck",
 	},
-	{
+	Button: {
 		name: "Button",
-		component: FrappeUIComponents.Button,
+		title: "Button",
 		icon: "RectangleHorizontal",
+		initialState: {
+			label: "Button",
+		},
 	},
-	{
+	Card: {
 		name: "Card",
-		component: FrappeUIComponents.Card,
+		title: "Card",
 		icon: "IdCard",
 	},
-	{
+	Checkbox: {
 		name: "Checkbox",
-		component: FrappeUIComponents.Checkbox,
+		title: "Checkbox",
 		icon: "CircleCheck",
 	},
-	{
-		name: "Date",
-		component: FrappeUIComponents.DatePicker,
+	DatePicker: {
+		name: "DatePicker",
+		title: "Date",
 		icon: "CalendarCheck",
 	},
-	{
-		name: "Date Range",
-		component: FrappeUIComponents.DateRangePicker,
-		icon: "CalendarSearch",
-	},
-	{
-		name: "Date Time",
-		component: FrappeUIComponents.DateTimePicker,
+	DateTimePicker: {
+		name: "DateTimePicker",
+		title: "Date Time",
 		icon: "CalendarClock",
 	},
-	{
+	DateRangePicker: {
+		name: "DateRangePicker",
+		title: "Date Range",
+		icon: "CalendarSearch",
+	},
+	Dialog: {
 		name: "Dialog",
-		component: FrappeUIComponents.Dialog,
+		title: "Dialog",
 		icon: "AppWindowMac",
 	},
-	{
+	Divider: {
 		name: "Divider",
-		component: FrappeUIComponents.Divider,
+		title: "Divider",
 		icon: "Minus",
 	},
-	{
+	Dropdown: {
 		name: "Dropdown",
-		component: FrappeUIComponents.Dropdown,
+		title: "Dropdown",
 		icon: "ChevronDown",
 	},
-])
+}
+
+function get(name) {
+	return COMPONENTS[name]
+}
+
+export default {
+	...COMPONENTS,
+	list: Object.values(COMPONENTS),
+	get,
+}

@@ -14,14 +14,24 @@
 				:style="{
 					background: canvasProps.background,
 				}"
-			></div>
+			>
+				<StudioComponent
+					class="h-full min-h-[inherit]"
+					v-if="rootComponent"
+					:componentName="rootComponent"
+				/>
+			</div>
 		</div>
 	</div>
 </template>
 
 <script setup>
 import { ref, reactive } from "vue"
+import { useDropZone } from "@vueuse/core"
+import StudioComponent from "@/components/StudioComponent.vue"
 
+const canvasContainer = ref(null)
+const canvas = ref(null)
 const overlay = ref(null)
 const canvasProps = reactive({
 	overlayElement: null,
@@ -32,5 +42,13 @@ const canvasProps = reactive({
 	settingCanvas: true,
 	scaling: false,
 	panning: false,
+})
+
+const rootComponent = ref(null)
+
+const { isOverDropZone } = useDropZone(canvasContainer, {
+	onDrop: (_files, ev) => {
+		rootComponent.value = ev.dataTransfer.getData("componentName")
+	},
 })
 </script>
