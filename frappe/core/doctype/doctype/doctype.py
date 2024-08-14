@@ -1095,6 +1095,9 @@ def validate_series(dt, autoname=None, name=None):
 
 
 def validate_empty_name(dt, autoname):
+	if dt.doctype == "Customize Form":
+		return
+
 	if not autoname and not (dt.issingle or dt.istable):
 		frappe.msgprint(_("Warning: Naming is not set"), indicator="yellow")
 
