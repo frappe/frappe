@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-04 09:33+0000\n"
-"PO-Revision-Date: 2024-08-10 09:04\n"
+"PO-Revision-Date: 2024-08-14 11:12\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -171,7 +171,7 @@ msgstr "Hace 1 mes"
 
 #: public/js/print_format_builder/PrintFormat.vue:3
 msgid "1 of 2"
-msgstr ""
+msgstr "1 de 2"
 
 #: public/js/frappe/data_import/data_exporter.js:227
 msgid "1 record will be exported"
@@ -792,7 +792,7 @@ msgstr "Cuenta"
 #. DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgid "Account Deletion Settings"
-msgstr ""
+msgstr "Configuración de Eliminación de Cuentas"
 
 #. Name of a role
 #: automation/doctype/auto_repeat/auto_repeat.json
@@ -1177,17 +1177,17 @@ msgstr "Agregar un gráfico {0}"
 #: public/js/form_builder/components/Section.vue:271
 #: public/js/print_format_builder/PrintFormatSection.vue:115
 msgid "Add column"
-msgstr ""
+msgstr "Agregar columna"
 
 #: public/js/form_builder/components/AddFieldButton.vue:9
 #: public/js/form_builder/components/AddFieldButton.vue:48
 msgid "Add field"
-msgstr ""
+msgstr "Agregar campo"
 
 #: public/js/form_builder/components/Sidebar.vue:49
 #: public/js/form_builder/components/Tabs.vue:153
 msgid "Add new tab"
-msgstr ""
+msgstr "Agregar nueva pestaña"
 
 #: public/js/print_format_builder/PrintFormatSection.vue:125
 msgid "Add page break"
@@ -1208,7 +1208,7 @@ msgstr ""
 #: public/js/form_builder/components/Sidebar.vue:52
 #: public/js/form_builder/components/Tabs.vue:157
 msgid "Add tab"
-msgstr ""
+msgstr "Agregar pestaña"
 
 #: public/js/frappe/utils/dashboard_utils.js:263
 #: public/js/frappe/views/reports/query_report.js:252
@@ -2234,12 +2234,12 @@ msgstr "¿Está seguro que desea eliminar el adjunto?"
 #: public/js/form_builder/components/Section.vue:197
 msgctxt "Confirmation dialog message"
 msgid "Are you sure you want to delete the column? All the fields in the column will be moved to the previous column."
-msgstr ""
+msgstr "¿Está seguro de que desea eliminar la columna? Todos los campos de la columna se moverán a la columna anterior."
 
 #: public/js/form_builder/components/Section.vue:126
 msgctxt "Confirmation dialog message"
 msgid "Are you sure you want to delete the section? All the columns along with fields in the section will be moved to the previous section."
-msgstr ""
+msgstr "¿Está seguro de que desea eliminar la sección? Todas las columnas y los campos de la sección se moverán a la sección anterior."
 
 #: public/js/form_builder/components/Tabs.vue:65
 msgctxt "Confirmation dialog message"
@@ -2307,7 +2307,7 @@ msgstr "Arial"
 
 #: core/page/permission_manager/permission_manager_help.html:11
 msgid "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User."
-msgstr ""
+msgstr "Como práctica recomendada, no asigne el mismo conjunto de reglas de permisos a diferentes roles. En su lugar, establezca varias funciones para el mismo usuario."
 
 #: desk/form/assign_to.py:104
 msgid "As document sharing is disabled, please give them the required permissions before assigning."
@@ -2333,7 +2333,7 @@ msgstr "Asignar a"
 
 #: public/js/frappe/form/sidebar/assign_to.js:180
 msgid "Assign To User Group"
-msgstr ""
+msgstr "Asignar a Grupo de Usuarios"
 
 #. Label of the assign_to_users_section (Section Break) field in DocType
 #. 'Assignment Rule'
@@ -2469,7 +2469,7 @@ msgstr ""
 
 #: core/doctype/data_export/data_export.js:44
 msgid "At least one field of Parent Document Type is mandatory"
-msgstr ""
+msgstr "Al menos un campo de Tipo de Documento Principal es obligatorio"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -2611,7 +2611,7 @@ msgstr ""
 #. Name of a DocType
 #: core/doctype/audit_trail/audit_trail.json
 msgid "Audit Trail"
-msgstr ""
+msgstr "Registro de auditoría"
 
 #. Label of the auth_url_data (Code) field in DocType 'Social Login Key'
 #: integrations/doctype/social_login_key/social_login_key.json
@@ -3031,7 +3031,7 @@ msgstr "Trabajos en Segundo Plano"
 #. Report'
 #: desk/doctype/system_health_report/system_health_report.json
 msgid "Background Jobs Check"
-msgstr ""
+msgstr "Verificación de trabajos en segundo plano"
 
 #. Label of the background_jobs_queue (Autocomplete) field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
@@ -3040,7 +3040,7 @@ msgstr "Cola de Trabajos en segundo plano"
 
 #: public/js/frappe/list/bulk_operations.js:87
 msgid "Background Print (required for >25 documents)"
-msgstr ""
+msgstr "Impresión en segundo plano (requerida para >25 documentos)"
 
 #. Label of the background_workers (Section Break) field in DocType 'System
 #. Settings'
@@ -3467,7 +3467,7 @@ msgstr "Imagen de marca"
 #. Label of the brand_logo (Attach Image) field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
 msgid "Brand Logo"
-msgstr ""
+msgstr "Logo de la marca"
 
 #. Description of the 'Brand HTML' (Code) field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -4139,7 +4139,7 @@ msgstr "No se puede utilizar sub-query en order by"
 
 #: model/db_query.py:1140
 msgid "Cannot use {0} in order/group by"
-msgstr ""
+msgstr "No se puede utilizar {0} en ordenar/agrupar por"
 
 #: public/js/frappe/list/bulk_operations.js:297
 msgid "Cannot {0} {1}."
@@ -4666,7 +4666,7 @@ msgstr "Condición cerrada"
 
 #: public/js/form_builder/components/FieldProperties.vue:79
 msgid "Close properties"
-msgstr ""
+msgstr "Cerrar propiedades"
 
 #. Option for the 'Status' (Select) field in DocType 'Activity Log'
 #. Option for the 'Status' (Select) field in DocType 'Communication'
@@ -5120,7 +5120,7 @@ msgstr "Configurar grabadora"
 
 #: public/js/print_format_builder/Field.vue:103
 msgid "Configure columns for {0}"
-msgstr ""
+msgstr "Configurar columnas para {0}"
 
 #. Description of the 'Amended Documents' (Section Break) field in DocType
 #. 'Document Naming Settings'
@@ -5902,7 +5902,7 @@ msgstr "El campo personalizado {0} lo crea el administrador y solo se puede elim
 #. Subtitle of the Module Onboarding 'Customization'
 #: custom/module_onboarding/customization/customization.json
 msgid "Custom Field, Custom Doctype, Naming Series, Role Permission, Workflow, Print Formats, Reports"
-msgstr ""
+msgstr "Campo personalizado, Doctype personalizado, Serie de nombres, Permiso de rol, Flujo de trabajo, Formatos de impresión, Informes"
 
 #: custom/doctype/custom_field/custom_field.py:260
 msgid "Custom Fields can only be added to a standard DocType."
@@ -6742,7 +6742,7 @@ msgstr "Eliminar y Generar Nuevo"
 #: public/js/form_builder/components/Section.vue:203
 msgctxt "Button text"
 msgid "Delete column"
-msgstr ""
+msgstr "Eliminar columna"
 
 #: public/js/frappe/form/footer/form_timeline.js:721
 msgid "Delete comment?"
@@ -6751,12 +6751,12 @@ msgstr "¿Eliminar comentario?"
 #: public/js/form_builder/components/Section.vue:205
 msgctxt "Button text"
 msgid "Delete entire column with fields"
-msgstr ""
+msgstr "Eliminar toda la columna con campos"
 
 #: public/js/form_builder/components/Section.vue:134
 msgctxt "Button text"
 msgid "Delete entire section with fields"
-msgstr ""
+msgstr "Eliminar toda la sección con campos"
 
 #: public/js/form_builder/components/Tabs.vue:73
 msgctxt "Button text"
@@ -6766,7 +6766,7 @@ msgstr ""
 #: public/js/form_builder/components/Section.vue:132
 msgctxt "Button text"
 msgid "Delete section"
-msgstr ""
+msgstr "Eliminar sección"
 
 #: public/js/form_builder/components/Tabs.vue:71
 msgctxt "Button text"
@@ -7243,7 +7243,7 @@ msgstr "La visualización depende de (JS)"
 
 #: public/js/print_format_builder/PrintFormatControls.vue:210
 msgid "Divider"
-msgstr ""
+msgstr "Divisor"
 
 #. Label of the do_not_create_new_user (Check) field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
@@ -7879,7 +7879,7 @@ msgstr "Dona"
 
 #: public/js/form_builder/components/EditableInput.vue:43
 msgid "Double click to edit label"
-msgstr ""
+msgstr "Doble clic para editar etiqueta"
 
 #: core/doctype/file/file.js:5
 #: email/doctype/auto_email_report/auto_email_report.js:8
@@ -7959,7 +7959,7 @@ msgstr ""
 
 #: public/js/print_format_builder/ConfigureColumns.vue:76
 msgid "Drag columns to set order. Column width is set in percentage. The total width should not be more than 100. Columns marked in red will be removed."
-msgstr ""
+msgstr "Arrastre las columnas para establecer el orden. El ancho de las columnas se establece en porcentaje. El ancho total no debe ser mayor que 100. Las columnas marcadas en rojo se eliminarán."
 
 #: printing/page/print_format_builder/print_format_builder_layout.html:3
 msgid "Drag elements from the sidebar to add. Drag them back to trash."
@@ -8195,7 +8195,7 @@ msgstr "Editar filtros"
 
 #: public/js/print_format_builder/PrintFormat.vue:29
 msgid "Edit Footer"
-msgstr ""
+msgstr "Editar pie de página"
 
 #: printing/doctype/print_format/print_format.js:28
 msgid "Edit Format"
@@ -8212,7 +8212,7 @@ msgstr "Editar HTML"
 
 #: public/js/print_format_builder/PrintFormat.vue:9
 msgid "Edit Header"
-msgstr ""
+msgstr "Editar encabezado"
 
 #: printing/page/print_format_builder/print_format_builder.js:602
 #: printing/page/print_format_builder/print_format_builder_layout.html:8
@@ -8221,7 +8221,7 @@ msgstr "Editar encabezado"
 
 #: public/js/print_format_builder/LetterHeadEditor.vue:52
 msgid "Edit Letter Head"
-msgstr ""
+msgstr "Editar membrete"
 
 #: public/js/print_format_builder/PrintFormat.vue:35
 msgid "Edit Letter Head Footer"
@@ -8666,7 +8666,7 @@ msgstr "Habilitar Comentarios"
 #. Label of the enable_email_notification (Check) field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
 msgid "Enable Email Notification"
-msgstr ""
+msgstr "Habilitar notificaciones por correo electrónico"
 
 #. Label of the enable_email_notifications (Check) field in DocType
 #. 'Notification Settings'
