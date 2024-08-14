@@ -6,8 +6,29 @@ from frappe.model.document import Document
 
 
 class ListViewSettings(Document):
+<<<<<<< HEAD
 	def on_update(self):
 		frappe.clear_document_cache(self.doctype, self.name)
+=======
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		disable_auto_refresh: DF.Check
+		disable_comment_count: DF.Check
+		disable_count: DF.Check
+		disable_sidebar_stats: DF.Check
+		enable_edit: DF.Literal["", "Yes", "No"]
+		fields: DF.Code | None
+		total_fields: DF.Literal["", "4", "5", "6", "7", "8", "9", "10"]
+	# end: auto-generated types
+
+	pass
+>>>>>>> 0b9df2b994 (feat: enable or disable bulk edit from list view settings doctype)
 
 
 @frappe.whitelist()
