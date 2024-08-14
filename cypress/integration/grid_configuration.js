@@ -4,7 +4,7 @@ context("Grid Configuration", () => {
 		cy.visit("/app/doctype/User");
 	});
 	it("Set user wise grid settings", () => {
-		cy.findByRole("tab", { name: "Settings" }).click();
+		cy.findByRole("tab", { name: "Fields" }).click();
 		cy.get('.form-section[data-fieldname="fields_section"]').click();
 		cy.wait(100);
 		cy.get('.frappe-control[data-fieldname="fields"]').as("table");

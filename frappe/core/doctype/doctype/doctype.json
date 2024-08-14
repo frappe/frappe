@@ -75,6 +75,9 @@
   "sender_field",
   "sender_name_field",
   "subject_field",
+  "fields_tab",
+  "fields_section",
+  "fields",
   "actions_section",
   "actions",
   "links_section",
@@ -91,8 +94,6 @@
   "advanced",
   "engine",
   "migration_hash",
-  "fields_section",
-  "fields",
   "connections_tab"
  ],
  "fields": [
@@ -642,7 +643,6 @@
    "label": "Form Builder"
   },
   {
-   "collapsible": 1,
    "fieldname": "fields_section",
    "fieldtype": "Section Break",
    "label": "Fields"
@@ -667,6 +667,11 @@
   {
    "fieldname": "column_break_nexu",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fields_tab",
+   "fieldtype": "Tab Break",
+   "label": "Fields"
   }
  ],
  "icon": "fa fa-bolt",
@@ -749,7 +754,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2024-08-14 16:02:34.181551",
+ "modified": "2024-08-14 17:04:47.278892",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
