@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-04 09:33+0000\n"
-"PO-Revision-Date: 2024-08-10 09:04\n"
+"PO-Revision-Date: 2024-08-14 11:11\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -142,7 +142,7 @@ msgstr "1 Google Takvim Etkinliği senkronize edildi."
 
 #: public/js/frappe/views/reports/query_report.js:883
 msgid "1 Report"
-msgstr ""
+msgstr "1 Rapor"
 
 #: website/doctype/blog_post/blog_post.py:374
 msgid "1 comment"
@@ -3966,7 +3966,7 @@ msgstr "{0} İptal Ediliyor"
 
 #: core/doctype/prepared_report/prepared_report.py:254
 msgid "Cannot Download Report due to insufficient permissions"
-msgstr ""
+msgstr "Yetersiz izinler nedeniyle Rapor İndirilemiyor"
 
 #: client.py:461
 msgid "Cannot Fetch Values"
@@ -4146,7 +4146,7 @@ msgstr "ID Alanı Kaldırılamaz"
 
 #: core/page/permission_manager/permission_manager.py:132
 msgid "Cannot set 'Report' permission if 'Only If Creator' permission is set"
-msgstr ""
+msgstr "'Yalnızca Oluşturucu' izni ayarlanmışsa 'Rapor' izni ayarlanamaz"
 
 #: email/doctype/notification/notification.py:200
 msgid "Cannot set Notification with event {0} on Document Type {1}"
@@ -6897,7 +6897,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/report_utils.js:296
 msgid "Delimiter must be a single character"
-msgstr ""
+msgstr "Ayırıcı tek bir karakter olmalıdır"
 
 #. Label of the delivery_status (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
@@ -7653,7 +7653,7 @@ msgstr "Belge Paylaşım Anahtarının Süresi (Gün)"
 #: core/report/document_share_report/document_share_report.json
 #: core/workspace/users/users.json
 msgid "Document Share Report"
-msgstr ""
+msgstr "Belge Paylaşım Raporu"
 
 #. Label of the document_states_section (Section Break) field in DocType
 #. 'DocType'
@@ -8200,7 +8200,7 @@ msgstr "Düzenle"
 
 #: templates/emails/auto_email_report.html:63
 msgid "Edit Auto Email Report Settings"
-msgstr ""
+msgstr "Otomatik E-posta Raporu Ayarlarını Düzenle"
 
 #: public/js/frappe/widgets/widget_dialog.js:38
 msgid "Edit Chart"
@@ -8779,7 +8779,7 @@ msgstr "Stil Olmadan Yazdır"
 
 #: core/doctype/report/report.js:36
 msgid "Enable Report"
-msgstr ""
+msgstr "Raporu Etkinleştir"
 
 #. Label of the enable_scheduler (Check) field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -9249,7 +9249,8 @@ msgstr ""
 #: custom/onboarding_step/custom_field/custom_field.json
 msgid "Every form in ERPNext has a standard set of fields. If you need to capture some information, but there is no standard Field available for it, you can insert Custom Field for it.\n\n"
 "Once custom fields are added, you can use them for reports and analytics charts as well.\n"
-msgstr ""
+msgstr "ERPNext'teki her formun standart bir alan kümesi vardır. Bazı bilgileri yakalamanız gerekiyorsa ancak bunun için standart bir Alan yoksa, bunun için Özel Alan ekleyebilirsiniz.\n\n"
+"Özel alanlar eklendiğinde, bunları raporlar ve analiz grafikleri için de kullanabilirsiniz.\n"
 
 #. Label of the everyone (Check) field in DocType 'DocShare'
 #: core/doctype/docshare/docshare.json
@@ -10099,7 +10100,7 @@ msgstr ""
 #. Label of the filter_meta (Text) field in DocType 'Auto Email Report'
 #: email/doctype/auto_email_report/auto_email_report.json
 msgid "Filter Meta"
-msgstr ""
+msgstr "Veri Filtresi"
 
 #. Label of the filter_name (Data) field in DocType 'List Filter'
 #: desk/doctype/list_filter/list_filter.json
@@ -12783,11 +12784,11 @@ msgstr ""
 
 #: desk/reportview.py:340
 msgid "Insufficient Permissions for deleting Report"
-msgstr ""
+msgstr "Raporu silmek için mevcut izinler yetersiz"
 
 #: desk/reportview.py:311
 msgid "Insufficient Permissions for editing Report"
-msgstr ""
+msgstr "Raporu düzenlemek için mevcut izinler yetersiz"
 
 #: core/doctype/doctype/doctype.py:446
 msgid "Insufficient attachment limit"
@@ -13414,7 +13415,7 @@ msgstr ""
 #: custom/doctype/custom_field/custom_field.json
 #: integrations/doctype/webhook/webhook.json
 msgid "JSON"
-msgstr ""
+msgstr "JSON"
 
 #. Label of the webhook_json (Code) field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
@@ -13433,7 +13434,7 @@ msgstr ""
 #. Description of the 'Javascript' (Code) field in DocType 'Report'
 #: core/doctype/report/report.json
 msgid "JavaScript Format: frappe.query_reports['REPORTNAME'] = {}"
-msgstr ""
+msgstr "JavaScript Formatı: frappe.query_reports['REPORTNAME'] = {}"
 
 #. Label of the javascript (Code) field in DocType 'Report'
 #. Label of the javascript_section (Section Break) field in DocType 'Custom
@@ -13445,7 +13446,7 @@ msgstr ""
 #: website/doctype/web_page/web_page.json
 #: website/doctype/website_script/website_script.json
 msgid "Javascript"
-msgstr ""
+msgstr "Javascript"
 
 #: www/login.html:71
 msgid "Javascript is disabled on your browser"
@@ -13461,7 +13462,7 @@ msgstr ""
 #: core/doctype/prepared_report/prepared_report.json
 #: core/doctype/rq_job/rq_job.json
 msgid "Job ID"
-msgstr ""
+msgstr "İş Kimliği"
 
 #. Label of the job_id (Link) field in DocType 'Submission Queue'
 #: core/doctype/submission_queue/submission_queue.json
@@ -15759,7 +15760,7 @@ msgstr "Resim Eki Formatında Olmalıdır"
 
 #: desk/query_report.py:203
 msgid "Must have report permission to access this report."
-msgstr ""
+msgstr "Bu rapora erişmek için rapor iznine sahip olmanız gerekir."
 
 #: core/doctype/report/report.py:145
 msgid "Must specify a Query to run"
@@ -16768,7 +16769,7 @@ msgstr "İzin yok"
 
 #: desk/query_report.py:513
 msgid "Not Permitted to read {0}"
-msgstr ""
+msgstr "{0} için Okuma izni yok"
 
 #: website/doctype/blog_post/blog_post_list.js:7
 #: website/doctype/web_form/web_form_list.js:7
@@ -16950,7 +16951,7 @@ msgstr ""
 #: website/doctype/blog_post/templates/blog_post_list.html:41
 #: website/doctype/help_article/templates/help_article_list.html:21
 msgid "Nothing to show"
-msgstr ""
+msgstr "Gösterilecek bir şey yok"
 
 #: core/doctype/user_permission/user_permission_list.js:129
 msgid "Nothing to update"
@@ -17480,11 +17481,11 @@ msgstr ""
 
 #: desk/reportview.py:337
 msgid "Only reports of type Report Builder can be deleted"
-msgstr ""
+msgstr "Yalnızca Rapor Oluşturucu türündeki raporlar silinebilir"
 
 #: desk/reportview.py:308
 msgid "Only reports of type Report Builder can be edited"
-msgstr ""
+msgstr "Yalnızca Rapor Oluşturucu türündeki raporlar düzenlenebilir"
 
 #: custom/doctype/customize_form/customize_form.py:125
 msgid "Only standard DocTypes are allowed to be customized from Customize Form."
@@ -17500,7 +17501,7 @@ msgstr ""
 
 #: email/doctype/auto_email_report/auto_email_report.py:106
 msgid "Only {0} emailed reports are allowed per user."
-msgstr ""
+msgstr "Kullanıcı başına yalnızca {0} adresine e-posta ile gönderilen raporlara izin verilir."
 
 #: templates/includes/login/login.js:291
 msgid "Oops! Something went wrong."
@@ -17822,7 +17823,7 @@ msgstr ""
 #: public/js/frappe/form/templates/print_layout.html:44
 #: public/js/frappe/views/reports/query_report.js:1654
 msgid "PDF"
-msgstr ""
+msgstr "PDF"
 
 #: utils/print_format.py:146 utils/print_format.py:190
 msgid "PDF Generation in Progress"
@@ -18442,11 +18443,11 @@ msgstr ""
 
 #: core/page/permission_manager/permission_manager_help.html:10
 msgid "Permissions are automatically applied to Standard Reports and searches."
-msgstr ""
+msgstr "İzinler Standart Raporlara ve aramalara otomatik olarak uygulanır."
 
 #: core/page/permission_manager/permission_manager_help.html:5
 msgid "Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions."
-msgstr ""
+msgstr "İzinler, Okuma, Yazma, Oluşturma, Silme, Gönder, İptal, Değiştirme, Rapor Etme, İçe Aktarma, Gönderme, Yazdırma, E-posta ve Kullanıcı İzinlerini Ayarlama gibi hakları belirleyerek Roller ve DocType'lar üzerinde ayarlanır."
 
 #: core/page/permission_manager/permission_manager_help.html:26
 msgid "Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles."
@@ -18458,7 +18459,7 @@ msgstr ""
 
 #: core/page/permission_manager/permission_manager_help.html:6
 msgid "Permissions get applied on Users based on what Roles they are assigned."
-msgstr ""
+msgstr "İzinler, Kullanıcılara atanan Rollere göre uygulanır."
 
 #. Name of a report
 #. Label of a Link in the Users Workspace
@@ -18572,7 +18573,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/query_report.js:308
 msgid "Please Set Chart"
-msgstr ""
+msgstr "Lütfen Tabloyu Ayarlayın"
 
 #: core/doctype/sms_settings/sms_settings.py:84
 msgid "Please Update SMS Settings"
@@ -18793,7 +18794,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/report_view.js:1623
 msgid "Please save the report first"
-msgstr ""
+msgstr "Lütfen önce raporu kaydedin."
 
 #: website/doctype/web_template/web_template.js:22
 msgid "Please save to edit the template."
@@ -18883,7 +18884,7 @@ msgstr "Lütfen filtreleri ayarların"
 
 #: email/doctype/auto_email_report/auto_email_report.py:251
 msgid "Please set filters value in Report Filter table."
-msgstr ""
+msgstr "Lütfen Rapor Filtresi tablosunda filtre değerini ayarlayın."
 
 #: model/naming.py:565
 msgid "Please set the document name"
@@ -19118,11 +19119,11 @@ msgstr "Hazır Rapor Kullanıcısı"
 
 #: desk/query_report.py:301
 msgid "Prepared report render failed"
-msgstr ""
+msgstr "Hazırlanan rapor işleme başarısız oldu"
 
 #: public/js/frappe/views/reports/query_report.js:471
 msgid "Preparing Report"
-msgstr ""
+msgstr "Rapor Hazırlama"
 
 #: public/js/frappe/views/communication.js:419
 msgid "Prepend the template to the email message"
@@ -19791,7 +19792,7 @@ msgstr ""
 #: core/doctype/report/report.json
 #: public/js/frappe/views/reports/query_report.js:17
 msgid "Query Report"
-msgstr ""
+msgstr "Sorgu Raporu"
 
 #: core/doctype/recorder/recorder.py:196
 msgid "Query analysis complete. Check suggested indexes."
@@ -20808,17 +20809,17 @@ msgstr "Rapor"
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: public/js/frappe/list/list_view_select.js:66
 msgid "Report Builder"
-msgstr ""
+msgstr "Rapor Oluşturucu"
 
 #. Name of a DocType
 #: core/doctype/report_column/report_column.json
 msgid "Report Column"
-msgstr ""
+msgstr "Rapor Sütunu"
 
 #. Label of the report_description (Data) field in DocType 'Onboarding Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
 msgid "Report Description"
-msgstr ""
+msgstr "Rapor Açıklaması"
 
 #: core/doctype/report/report.py:145
 msgid "Report Document Error"
@@ -20827,7 +20828,7 @@ msgstr "Doküman Hatasını Bildir"
 #. Name of a DocType
 #: core/doctype/report_filter/report_filter.json
 msgid "Report Filter"
-msgstr ""
+msgstr "Rapor Filtresi"
 
 #. Label of the report_filters (Section Break) field in DocType 'Auto Email
 #. Report'
@@ -20848,13 +20849,13 @@ msgstr "Raporu Gizle"
 #. 'Access Log'
 #: core/doctype/access_log/access_log.json
 msgid "Report Information"
-msgstr ""
+msgstr "Rapor Bilgisi"
 
 #. Name of a role
 #: core/doctype/report/report.json
 #: email/doctype/auto_email_report/auto_email_report.json
 msgid "Report Manager"
-msgstr ""
+msgstr "Rapor Yöneticisi"
 
 #. Label of the report_name (Data) field in DocType 'Access Log'
 #. Label of the report_name (Data) field in DocType 'Prepared Report'
@@ -20868,22 +20869,22 @@ msgstr ""
 #: desk/doctype/number_card/number_card.json
 #: public/js/frappe/views/reports/query_report.js:1810
 msgid "Report Name"
-msgstr ""
+msgstr "Rapor İsmi"
 
 #: desk/doctype/number_card/number_card.py:66
 msgid "Report Name, Report Field and Fucntion are required to create a number card"
-msgstr ""
+msgstr "Numara kartı oluşturmak için Rapor Adı, Rapor Alanı ve Fonksiyon gereklidir"
 
 #. Label of the report_ref_doctype (Link) field in DocType 'Workspace Link'
 #: desk/doctype/workspace_link/workspace_link.json
 msgid "Report Ref DocType"
-msgstr ""
+msgstr "Rapor Referans DocType"
 
 #. Label of the report_reference_doctype (Data) field in DocType 'Onboarding
 #. Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
 msgid "Report Reference Doctype"
-msgstr ""
+msgstr "Rapor Referans Doctype"
 
 #. Label of the report_type (Select) field in DocType 'Report'
 #. Label of the report_type (Data) field in DocType 'Onboarding Step'
@@ -20900,7 +20901,7 @@ msgstr "Rapor Görünümü"
 
 #: core/doctype/doctype/doctype.py:1780
 msgid "Report cannot be set for Single types"
-msgstr ""
+msgstr "Rapor Tek türler için ayarlanamaz"
 
 #: desk/doctype/dashboard_chart/dashboard_chart.js:208
 #: desk/doctype/number_card/number_card.js:191
@@ -20910,23 +20911,23 @@ msgstr "Raporda veri yok, lütfen filtreleri veya Rapor Adını değiştirin"
 #: desk/doctype/dashboard_chart/dashboard_chart.js:196
 #: desk/doctype/number_card/number_card.js:186
 msgid "Report has no numeric fields, please change the Report Name"
-msgstr ""
+msgstr "Raporda sayısal alan yok, lütfen Rapor Adını değiştirin"
 
 #: public/js/frappe/views/reports/query_report.js:941
 msgid "Report initiated, click to view status"
-msgstr ""
+msgstr "Rapor başlatıldı, durumu görüntülemek için tıklayın"
 
 #: email/doctype/auto_email_report/auto_email_report.py:108
 msgid "Report limit reached"
-msgstr ""
+msgstr "Rapor sınırına ulaşıldı"
 
 #: core/doctype/prepared_report/prepared_report.py:212
 msgid "Report timed out."
-msgstr ""
+msgstr "Rapor zaman aşımına uğradı."
 
 #: desk/query_report.py:568
 msgid "Report updated successfully"
-msgstr ""
+msgstr "Rapor başarıyla güncellendi"
 
 #: public/js/frappe/views/reports/report_view.js:1280
 msgid "Report was not saved (there were errors)"
@@ -20934,7 +20935,7 @@ msgstr "Rapor Kaydedilemedi (hatalar içeriyor)"
 
 #: public/js/frappe/views/reports/query_report.js:1848
 msgid "Report with more than 10 columns looks better in Landscape mode."
-msgstr ""
+msgstr "10'dan fazla sütun içeren rapor Yatay modda daha iyi görünür."
 
 #: public/js/frappe/ui/toolbar/search_utils.js:251
 #: public/js/frappe/ui/toolbar/search_utils.js:252
@@ -20947,11 +20948,11 @@ msgstr "{0} Raporu silindi"
 
 #: desk/query_report.py:53
 msgid "Report {0} is disabled"
-msgstr ""
+msgstr "{0} Raporu devre dışı bırakıldı"
 
 #: desk/reportview.py:321
 msgid "Report {0} saved"
-msgstr ""
+msgstr "{0} Raporu kaydedildi"
 
 #: public/js/frappe/views/reports/report_view.js:20
 msgid "Report:"
@@ -20970,7 +20971,7 @@ msgstr "Raporlar &amp; Kayıtlar"
 
 #: public/js/frappe/views/reports/query_report.js:857
 msgid "Reports already in Queue"
-msgstr ""
+msgstr "Raporlar zaten Kuyrukta"
 
 #. Description of a DocType
 #: core/doctype/user/user.json
@@ -21893,7 +21894,7 @@ msgstr "Filtreyi Kaydet"
 
 #: public/js/frappe/views/reports/query_report.js:1805
 msgid "Save Report"
-msgstr ""
+msgstr "Raporu Kaydet"
 
 #: public/js/frappe/views/kanban/kanban_view.js:94
 msgid "Save filters"
@@ -22271,7 +22272,7 @@ msgstr "Tüm Aktiviteleri Göster"
 
 #: public/js/frappe/views/reports/query_report.js:790
 msgid "See all past reports."
-msgstr ""
+msgstr "Tüm geçmiş raporları görün."
 
 #: public/js/frappe/form/form.js:1234
 #: website/doctype/contact_us_settings/contact_us_settings.js:4
@@ -22488,7 +22489,7 @@ msgstr "Düzenlemek için Baskı Formatını Seçin"
 #. Label of the report_name (Link) field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
 msgid "Select Report"
-msgstr ""
+msgstr "Rapor Seçin"
 
 #: printing/page/print_format_builder/print_format_builder.js:623
 msgid "Select Table Columns for {0}"
@@ -22812,7 +22813,7 @@ msgstr "Abonelikten çıkma mesajını e-posta ile gönder"
 #: email/doctype/newsletter/newsletter.json
 #: email/doctype/notification/notification.json
 msgid "Sender"
-msgstr "Gönderici"
+msgstr "Gönderen"
 
 #. Label of the sender_email (Data) field in DocType 'Newsletter'
 #. Label of the sender_email (Data) field in DocType 'Notification'
@@ -23105,7 +23106,7 @@ msgstr "Miktarı Ayarla"
 #. Page and Report'
 #: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
 msgid "Set Role For"
-msgstr ""
+msgstr "Rol Belirle"
 
 #: core/doctype/user/user.js:126
 #: core/page/permission_manager/permission_manager.js:65
@@ -23195,7 +23196,14 @@ msgid "Set the path to a whitelisted function that will return the data for the 
 "\t\"route_options\": {\"from_date\": \"2023-05-23\"},\n"
 "\t\"route\": [\"query-report\", \"Permitted Documents For User\"]\n"
 "}</code></pre>"
-msgstr ""
+msgstr "Veri kartı için verileri formatta döndürecek beyaz listedeki bir fonksiyonun yolunu ayarlayın:\n\n"
+"<pre class=\"small text-muted\"><code>\n"
+"{\n"
+"\t\"value\": değer,\n"
+"\t\"fieldtype\": \"Currency\",\n"
+"\t\"route_options\": {\"from_date\": \"2023-05-23\"},\n"
+"\t\"route\": [\"query-report\", \"Permitted Documents For User\"]\n"
+"}</code></pre>"
 
 #: contacts/doctype/address_template/address_template.py:33
 msgid "Setting this Address Template as default as there is no other default"
@@ -23367,7 +23375,7 @@ msgstr "Kısa Yollar"
 #: public/js/frappe/widgets/base_widget.js:178
 #: templates/includes/login/login.js:85 www/login.html:30
 msgid "Show"
-msgstr ""
+msgstr "Göster"
 
 #. Label of the show_cta_in_blog (Check) field in DocType 'Blog Settings'
 #: website/doctype/blog_settings/blog_settings.json
@@ -23514,7 +23522,7 @@ msgstr "İlgili Hataları Göster"
 #: core/doctype/prepared_report/prepared_report.js:43
 #: core/doctype/report/report.js:13
 msgid "Show Report"
-msgstr ""
+msgstr "Raporu Göster"
 
 #: public/js/frappe/list/list_filter.js:15
 #: public/js/frappe/list/list_filter.js:87
@@ -24090,11 +24098,11 @@ msgstr ""
 
 #: desk/reportview.py:334
 msgid "Standard Reports cannot be deleted"
-msgstr ""
+msgstr "Standart Raporlar silinemez"
 
 #: desk/reportview.py:305
 msgid "Standard Reports cannot be edited"
-msgstr ""
+msgstr "Standart Raporlar düzenlenemez"
 
 #. Label of the standard_menu_items (Section Break) field in DocType 'Portal
 #. Settings'
@@ -24654,16 +24662,16 @@ msgstr ""
 
 #: social/doctype/energy_point_settings/energy_point_settings.js:41
 msgid "Successfully Done"
-msgstr ""
+msgstr "Başarıyla Tamamlandı"
 
 #: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js:100
 #: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js:113
 msgid "Successfully Updated"
-msgstr ""
+msgstr " Başarıyla Güncellendi"
 
 #: core/doctype/data_import/data_import.js:423
 msgid "Successfully imported {0}"
-msgstr ""
+msgstr "{0} Başarıyla içe aktarıldı"
 
 #: core/doctype/data_import/data_import.js:144
 msgid "Successfully imported {0} out of {1} records."
@@ -24675,7 +24683,7 @@ msgstr ""
 
 #: public/js/frappe/views/translation_manager.js:22
 msgid "Successfully updated translations"
-msgstr ""
+msgstr "Çeviriler başarıyla güncellendi"
 
 #: core/doctype/data_import/data_import.js:431
 msgid "Successfully updated {0}"
@@ -24683,7 +24691,7 @@ msgstr "{0} Başarıyla Güncellendi"
 
 #: core/doctype/data_import/data_import.js:149
 msgid "Successfully updated {0} out of {1} records."
-msgstr ""
+msgstr "{1} kayıttan {0} tanesi başarıyla güncellendi."
 
 #: core/doctype/recorder/recorder.js:15
 msgid "Suggest Optimizations"
@@ -25842,11 +25850,11 @@ msgstr ""
 
 #: public/js/frappe/views/reports/query_report.js:965
 msgid "This report contains {0} rows and is too big to display in browser, you can {1} this report instead."
-msgstr ""
+msgstr "Bu rapor {0} satırları içerir ve tarayıcıda görüntülenemeyecek kadar büyüktür, bunun yerine bu raporu {1} adresinde bulabilirsiniz."
 
 #: templates/emails/auto_email_report.html:57
 msgid "This report was generated on {0}"
-msgstr ""
+msgstr "Bu rapor {0} adresinde oluşturuldu"
 
 #: public/js/frappe/views/reports/query_report.js:788
 msgid "This report was generated {0}."
@@ -25886,7 +25894,7 @@ msgstr ""
 #. Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
 msgid "This will be shown to the user in a dialog after routing to the report"
-msgstr ""
+msgstr "Rapora yönlendirildikten sonra kullanıcıya bir iletişim kutusunda gösterilecektir"
 
 #: www/third_party_apps.html:21
 msgid "This will log out {0} from all other devices"
@@ -26206,7 +26214,7 @@ msgstr ""
 
 #: email/doctype/auto_email_report/auto_email_report.py:107
 msgid "To allow more reports update limit in System Settings."
-msgstr ""
+msgstr "Daha fazla rapora izin vermek için Sistem Ayarları'ndaki güncelleme sınırını ayarlayın."
 
 #. Label of the section_break_10 (Section Break) field in DocType
 #. 'Communication'
@@ -26238,7 +26246,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/query_report.js:789
 msgid "To get the updated report, click on {0}."
-msgstr ""
+msgstr "Güncellenmiş raporu almak için {0} adresine tıklayın."
 
 #: www/me.html:51
 msgid "To manage your authorized third party apps"
@@ -26578,7 +26586,7 @@ msgstr ""
 #. Name of a report
 #: core/report/transaction_log_report/transaction_log_report.json
 msgid "Transaction Log Report"
-msgstr ""
+msgstr "İşlem Günlüğü Raporu"
 
 #: public/js/workflow_builder/components/Properties.vue:19
 msgid "Transition Properties"
@@ -27390,12 +27398,12 @@ msgstr ""
 #. Name of a DocType
 #: core/doctype/report/user_activity_report.json
 msgid "User Activity Report"
-msgstr ""
+msgstr "Kullanıcı Etkinlik Raporu"
 
 #. Name of a DocType
 #: core/doctype/report/user_activity_report_without_sort.json
 msgid "User Activity Report Without Sort"
-msgstr ""
+msgstr "Sıralama Olmadan Kullanıcı Etkinlik Raporu"
 
 #. Label of the user_agent (Data) field in DocType 'Web Page View'
 #: website/doctype/web_page_view/web_page_view.json
@@ -27999,7 +28007,7 @@ msgstr ""
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
 msgid "View Report"
-msgstr ""
+msgstr "Raporu Göster"
 
 #. Label of the view_settings (Section Break) field in DocType 'DocType'
 #. Label of the view_settings_section (Section Break) field in DocType
@@ -28030,7 +28038,7 @@ msgstr "Dosyayı Göster"
 
 #: templates/emails/auto_email_report.html:60
 msgid "View report in your browser"
-msgstr ""
+msgstr "Raporu tarayıcınızda görüntüleyin"
 
 #: templates/emails/print_link.html:2
 msgid "View this in your browser"
@@ -28951,7 +28959,7 @@ msgstr ""
 
 #: core/doctype/report/report.py:94
 msgid "You are not allowed to delete Standard Report"
-msgstr ""
+msgstr "Standart Raporu silmenize izin verilmiyor"
 
 #: website/doctype/website_theme/website_theme.py:73
 msgid "You are not allowed to delete a standard Website Theme"
@@ -28959,7 +28967,7 @@ msgstr ""
 
 #: core/doctype/report/report.py:377
 msgid "You are not allowed to edit the report."
-msgstr ""
+msgstr "Raporu düzenlemenize izin verilmiyor."
 
 #: permissions.py:603
 msgid "You are not allowed to export {} doctype"
@@ -28967,7 +28975,7 @@ msgstr ""
 
 #: public/js/frappe/views/treeview.js:427
 msgid "You are not allowed to print this report"
-msgstr ""
+msgstr "Bu raporu yazdırmanıza izin verilmiyor"
 
 #: public/js/frappe/views/communication.js:772
 msgid "You are not allowed to send emails related to this document"
@@ -29088,7 +29096,7 @@ msgstr ""
 
 #: public/js/frappe/form/link_selector.js:30
 msgid "You can use wildcard %"
-msgstr ""
+msgstr "Filtrede % karakteriyle arama yapabilirsiniz"
 
 #: custom/doctype/customize_form/customize_form.py:386
 msgid "You can't set 'Options' for field {0}"
@@ -29177,7 +29185,7 @@ msgstr ""
 
 #: desk/query_report.py:42
 msgid "You don't have access to Report: {0}"
-msgstr ""
+msgstr "Rapora erişiminiz yok: {0}"
 
 #: website/doctype/web_form/web_form.py:663
 msgid "You don't have permission to access the {0} DocType."
@@ -29209,7 +29217,7 @@ msgstr ""
 
 #: handler.py:123
 msgid "You have been successfully logged out"
-msgstr ""
+msgstr "Başarıyla çıkış yaptınız"
 
 #: custom/doctype/customize_form/customize_form.py:241
 msgid "You have hit the row size limit on database table: {0}"
@@ -29410,7 +29418,7 @@ msgstr ""
 
 #: public/js/frappe/web_form/web_form.js:428
 msgid "Your form has been successfully updated"
-msgstr ""
+msgstr "Formunuz başarıyla güncellendi"
 
 #: templates/emails/new_user.html:6
 msgid "Your login id is"
@@ -29418,7 +29426,7 @@ msgstr ""
 
 #: www/update-password.html:165
 msgid "Your new password has been set successfully."
-msgstr ""
+msgstr "Yeni şifreniz başarıyla ayarlandı."
 
 #: www/update-password.html:145
 msgid "Your old password is incorrect."
@@ -29971,7 +29979,7 @@ msgstr "Önceki değer {0}, {1} olacak şekilde yeniden adlandırıldı."
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "report"
-msgstr ""
+msgstr "rapor"
 
 #. Label of the response (HTML) field in DocType 'Custom Role'
 #: core/doctype/custom_role/custom_role.json
@@ -30412,7 +30420,7 @@ msgstr ""
 
 #: public/js/frappe/views/interaction.js:261
 msgid "{0} created successfully"
-msgstr ""
+msgstr "{0} başarıyla oluşturuldu"
 
 #: public/js/frappe/form/footer/form_timeline.js:141
 #: public/js/frappe/form/sidebar/form_sidebar.js:107
@@ -30500,7 +30508,7 @@ msgstr ""
 
 #: email/doctype/newsletter/newsletter.py:380
 msgid "{0} has been successfully added to the Email Group."
-msgstr ""
+msgstr "{0} başarıyla E-posta Grubuna eklendi."
 
 #: email/queue.py:123
 msgid "{0} has left the conversation in {1} {2}"
@@ -30622,7 +30630,7 @@ msgstr ""
 
 #: email/doctype/auto_email_report/auto_email_report.py:115
 msgid "{0} is not a valid report format. Report format should one of the following {1}"
-msgstr ""
+msgstr "{0} geçerli bir rapor biçimi değil. Rapor biçimi aşağıdakilerden biri olmalıdır {1}"
 
 #: core/doctype/file/file.py:484
 msgid "{0} is not a zip file"
