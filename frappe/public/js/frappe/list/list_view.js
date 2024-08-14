@@ -1796,10 +1796,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		};
 
 		const is_bulk_editable = (doctype) => {
-			if (frappe.listview_settings[doctype] && frappe.listview_settings[doctype].enable_edit!=undefined){
-				return frappe.listview_settings[doctype].enable_edit; 
+			if (
+					frappe.listview_settings[doctype] &&
+					frappe.listview_settings[doctype].enable_edit!=undefined
+			) {
+					return frappe.listview_settings[doctype].enable_edit;
 			}
-			return !frappe.model.has_workflow(doctype)
+			return !frappe.model.has_workflow(doctype);
 		};
 
 		// utility
