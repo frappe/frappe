@@ -2,6 +2,8 @@
 	border: 1px solid var(--table-border-color);
 	border-radius: var(--border-radius-md);
 	color: var(--text-color);
+	min-height: 150px;
+	background-color: var(--navbar-bg);
 }
 
 .form-grid.error {
@@ -107,6 +109,13 @@
 	img {
 		margin-bottom: var(--margin-sm);
 	}
+}
+
+.grid-empty {
+	height: 110px;
+	background-color: var(--navbar-bg);
+	display: flex;
+	vertical-align: middle;
 }
 
 .grid-static-col,

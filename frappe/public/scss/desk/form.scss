@@ -70,7 +70,7 @@
 		@extend .row;
 		margin: 0;
 		&:first-child {
-			margin-top: var(--margin-sm);
+			margin-top: 1rem;
 		}
 	}
 }
@@ -406,6 +406,18 @@
 	}
 	&:last-child.frappe-control[data-fieldtype="Table"] {
 		margin-bottom: 0.5rem;
+	}
+}
+
+// for 1, 2 column layouts, implement horizontal, else vertical
+.col-sm-12 .horizontal,
+.col-sm-6 .horizontal {
+	display: flex;
+	justify-content: space-between;
+	vertical-align: middle;
+
+	.control-input-wrapper {
+		width: 50%;
 	}
 }
 

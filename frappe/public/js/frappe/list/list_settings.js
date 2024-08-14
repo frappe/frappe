@@ -137,7 +137,7 @@ export default class ListSettings {
 				<div class="control-input-wrapper">
 				${fields}
 				</div>
-				<p class="help-box small text-muted">
+				<p class="help-box small text-extra-muted">
 					<a class="add-new-fields text-muted">
 						${__("+ Add / Remove Fields")}
 					</a>
