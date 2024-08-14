@@ -1895,6 +1895,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return frappe.perm.has_perm(doctype, 0, "submit");
 		};
 
+		const is_bulk_editable = (doctype) => {
+			if (frappe.listview_settings[doctype] && frappe.listview_settings[doctype].enable_edit!=undefined){
+				return frappe.listview_settings[doctype].enable_edit; 
+			}
+			return !frappe.model.has_workflow(doctype)
+		};
+
 		// utility
 		const bulk_assignment = () => {
 			return {
@@ -2094,7 +2101,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		};
 
 		// bulk edit
-		if (has_editable_fields(doctype) && !frappe.model.has_workflow(doctype)) {
+		if (has_editable_fields(doctype) && is_bulk_editable(doctype)) {
 			actions_menu_items.push(bulk_edit());
 		}
 
