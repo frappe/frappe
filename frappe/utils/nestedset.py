@@ -309,8 +309,8 @@ class NestedSet(Document):
 		# set old_parent for children
 		frappe.db.set_value(
 			self.doctype,
-			{"old_parent": newdn},
 			{parent_field: newdn},
+			{"old_parent": newdn},
 			update_modified=False,
 			for_update=False,
 		)
