@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-04 09:33+0000\n"
-"PO-Revision-Date: 2024-08-12 11:01\n"
+"PO-Revision-Date: 2024-08-14 11:12\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -17525,7 +17525,7 @@ msgstr "یک ماژول یا ابزار را باز کنید"
 
 #: public/js/print_format_builder/Preview.vue:17
 msgid "Open in a new tab"
-msgstr ""
+msgstr "باز کردن در یک تب جدید"
 
 #: public/js/frappe/list/list_view.js:1251
 msgctxt "Description of a list view shortcut"
@@ -19263,7 +19263,7 @@ msgstr "فرمت ساز چاپ (جدید)"
 #. Format'
 #: printing/doctype/print_format/print_format.json
 msgid "Print Format Builder Beta"
-msgstr "بتای سازنده فرمت چاپ"
+msgstr "فرمت ساز چاپ بتا"
 
 #: utils/pdf.py:57
 msgid "Print Format Error"
@@ -28600,7 +28600,7 @@ msgstr "عملکرد گردش کار برای حالت های اختیاری ا�
 #: workflow/doctype/workflow/workflow.js:25
 #: workflow/page/workflow_builder/workflow_builder.js:4
 msgid "Workflow Builder"
-msgstr "ساز گردش کار"
+msgstr "گردش کار ساز"
 
 #. Label of the workflow_builder_id (Data) field in DocType 'Workflow Document
 #. State'
@@ -28609,7 +28609,7 @@ msgstr "ساز گردش کار"
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
 #: workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Workflow Builder ID"
-msgstr "شناسه ساز گردش کار"
+msgstr "شناسه گردش کار ساز"
 
 #: workflow/doctype/workflow/workflow.js:11
 msgid "Workflow Builder allows you to create workflows visually. You can drag and drop states and link them to create transitions. Also you can update thieir properties from the sidebar."
