@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"YpGCeLfign\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Your Shortcuts</b></span>\",\"col\":12}},{\"id\":\"b7abeqw4NZ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"User\",\"col\":3}},{\"id\":\"eghSJPhZRC\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Role\",\"col\":3}},{\"id\":\"uAzl_lT_C0\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Permission Manager\",\"col\":3}},{\"id\":\"EpBz2lplSt\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"User Profile\",\"col\":3}},{\"id\":\"vHWhzaFoAH\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"User Type\",\"col\":3}},{\"id\":\"oFB4l28FMU\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"yJNNylguxk\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports &amp; Masters</b></span>\",\"col\":12}},{\"id\":\"NMpIkExl3i\",\"type\":\"card\",\"data\":{\"card_name\":\"Users\",\"col\":4}},{\"id\":\"VepG3durKm\",\"type\":\"card\",\"data\":{\"card_name\":\"Logs\",\"col\":4}},{\"id\":\"S9FeWt7xXE\",\"type\":\"card\",\"data\":{\"card_name\":\"Permissions\",\"col\":4}}]",
+ "content": "[{\"id\":\"YpGCeLfign\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Your Shortcuts</b></span>\",\"col\":12}},{\"id\":\"b7abeqw4NZ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"User\",\"col\":3}},{\"id\":\"eghSJPhZRC\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Role\",\"col\":3}},{\"id\":\"uAzl_lT_C0\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Permission Manager\",\"col\":3}},{\"id\":\"oFB4l28FMU\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"yJNNylguxk\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports &amp; Masters</b></span>\",\"col\":12}},{\"id\":\"NMpIkExl3i\",\"type\":\"card\",\"data\":{\"card_name\":\"Users\",\"col\":4}},{\"id\":\"VepG3durKm\",\"type\":\"card\",\"data\":{\"card_name\":\"Logs\",\"col\":4}},{\"id\":\"S9FeWt7xXE\",\"type\":\"card\",\"data\":{\"card_name\":\"Permissions\",\"col\":4}}]",
  "creation": "2020-03-02 15:12:16.754449",
  "custom_blocks": [],
  "docstatus": 0,
@@ -159,7 +159,7 @@
    "type": "Link"
   }
  ],
- "modified": "2024-08-03 13:14:36.129599",
+ "modified": "2024-08-15 10:36:58.405352",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Users",
@@ -186,17 +186,6 @@
    "label": "Permission Manager",
    "link_to": "permission-manager",
    "type": "Page"
-  },
-  {
-   "label": "User Profile",
-   "link_to": "user-profile",
-   "type": "Page"
-  },
-  {
-   "doc_view": "",
-   "label": "User Type",
-   "link_to": "User Type",
-   "type": "DocType"
   }
  ],
  "title": "Users"

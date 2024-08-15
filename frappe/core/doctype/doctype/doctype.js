@@ -68,7 +68,7 @@ frappe.ui.form.on("DocType", {
 			frm.set_read_only();
 			frm.dashboard.clear_comment();
 			frm.dashboard.add_comment(
-				__("DocTypes can not be modified, please use {0} instead", [customize_form_link]),
+				__("DocTypes cannot be modified, please use {0} instead", [customize_form_link]),
 				"blue",
 				true
 			);

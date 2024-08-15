@@ -16,6 +16,10 @@ body {
 		cursor: pointer;
 		margin-bottom: var(--margin-xs) !important;
 
+		.section-title {
+			margin-left: 4px;
+		}
+
 		span {
 			pointer-events: none;
 		}
@@ -266,6 +270,8 @@ body {
 			display: flex;
 			justify-content: center;
 			align-items: center;
+			border-radius: 7px;
+			background-color: var(--navbar-bg);
 		}
 
 		.report-summary {
@@ -347,7 +353,9 @@ body {
 	}
 
 	&.onboarding-widget-box {
-		margin-bottom: var(--margin-2xl);
+		margin: 0 -15px;
+		padding: 0 15px;
+		padding-bottom: 30px;
 		background-color: var(--bg-color);
 		border-bottom: 1px solid var(--border-color);
 		border-radius: 0;
@@ -421,7 +429,9 @@ body {
 				.onboarding-step-body {
 					color: var(--text-muted);
 
-					p {
+					p,
+					li {
+						line-height: 1.6;
 						@include get_textstyle("base", "regular");
 					}
 				}
@@ -550,23 +560,24 @@ body {
 
 	&.shortcut-widget-box {
 		cursor: pointer;
-		align-items: flex-start;
-		padding: 2px 7px;
+		padding: 10px;
+		border: 1px solid var(--border-color);
 
 		&:hover {
 			--icon-stroke: var(--invert-neutral);
-			.widget-title {
-				color: var(--invert-neutral) !important;
+			.widget-label .widget-title {
+				color: var(--invert-neutral);
 			}
+			border-color: var(--invert-neutral);
 		}
 
-		.widget-title {
-			cursor: pointer !important;
-			@include get_textstyle("base", "medium");
+		.widget-label .widget-title {
+			cursor: pointer;
+			font-size: var(--text-lg);
 		}
 
 		.indicator-pill {
-			font-weight: 500;
+			font-size: var(--text-xs);
 			@extend .ellipsis;
 		}
 
@@ -584,6 +595,7 @@ body {
 		}
 
 		padding: 10px;
+		border: 1px solid var(--border-color);
 
 		.link-item {
 			display: flex;
@@ -633,8 +645,8 @@ body {
 		}
 
 		.widget-head .widget-label .widget-title {
-			@include get_textstyle("lg", "semibold");
-			color: var(--text-color) !important;
+			font-size: var(--text-base);
+			font-weight: var(--weight-bold);
 		}
 
 		@include media-breakpoint-down(md) {
@@ -986,6 +998,7 @@ body {
 
 			.layout-main-section {
 				border: 1px solid var(--border-color);
+				border-top: 0px;
 				padding: var(--padding-md);
 				margin-bottom: var(--margin-sm);
 
@@ -1015,7 +1028,6 @@ body {
 	.layout-main-section {
 		background-color: var(--fg-color);
 		box-shadow: none;
-		border-radius: var(--border-radius-lg);
 		padding: var(--padding-sm);
 	}
 
@@ -1059,6 +1071,7 @@ body {
 
 			svg {
 				margin-right: 0;
+				margin-top: -3px;
 			}
 
 			.dropdown-list {
@@ -1196,7 +1209,7 @@ body {
 				}
 
 				.ce-header b {
-					font-weight: 600 !important;
+					font-weight: var(--weight-regular) !important;
 				}
 
 				.new-block-button {
@@ -1317,7 +1330,8 @@ body {
 						flex: 1;
 
 						.h4 {
-							@include get_textstyle("xl", "semibold");
+							font-size: var(--text-lg);
+							color: var(--text-light);
 						}
 
 						.h5 {
@@ -1381,6 +1395,9 @@ body {
 
 						&.ce-paragraph {
 							display: block;
+							padding: 0px 7px;
+							// paragraphs should not get much focus
+							color: var(--text-light);
 						}
 
 						&.paragraph {

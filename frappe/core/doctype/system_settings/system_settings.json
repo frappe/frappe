@@ -84,6 +84,7 @@
   "default_app",
   "updates_tab",
   "system_updates_section",
+  "sidebar_position",
   "disable_system_update_notification",
   "disable_change_log_notification",
   "backups_tab",
@@ -611,7 +612,7 @@
   {
    "fieldname": "updates_tab",
    "fieldtype": "Tab Break",
-   "label": "Updates"
+   "label": "Display"
   },
   {
    "fieldname": "backups_tab",
