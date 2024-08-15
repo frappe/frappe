@@ -75,9 +75,14 @@ body[data-route^="Module"] .main-menu {
 			justify-content: space-between;
 			flex-wrap: wrap;
 			padding-bottom: var(--padding-sm);
+			color: var(--text-light);
 
 			.icon-btn {
 				height: unset;
+			}
+
+			a {
+				color: var(--text-light);
 			}
 		}
 	}

@@ -744,7 +744,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						${right}
 					</div>
 				</div>
-				<div class="list-row-border"></div>
 			</div>
 		`;
 	}

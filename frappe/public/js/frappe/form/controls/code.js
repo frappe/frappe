@@ -65,7 +65,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 		} else {
 			this.expanded = false;
 			this.$expand_button = $(
-				`<button class="btn btn-xs btn-default">${this.get_button_label()}</button>`
+				`<button class="btn btn-xs btn-default mt-2">${this.get_button_label()}</button>`
 			)
 				.click(() => {
 					this.expanded = !this.expanded;
