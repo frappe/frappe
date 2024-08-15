@@ -1838,12 +1838,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const is_bulk_editable = (doctype) => {
 			if (
 					this.list_view_settings &&
-					this.list_view_settings.enable_edit &&
-					this.list_view_settings.enable_edit!=''
+					this.list_view_settings.disable_edit!=undefined
 			) {
-					return this.list_view_settings.enable_edit=='Yes'?true:false;
+					return !this.list_view_settings.disable_edit;
 			}
-			return !frappe.model.has_workflow(doctype);
+			return !frappe.model.has_workflow(doctype)
 		};
 
 		// utility

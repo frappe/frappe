@@ -17,8 +17,8 @@ class ListViewSettings(Document):
 		disable_auto_refresh: DF.Check
 		disable_comment_count: DF.Check
 		disable_count: DF.Check
+		disable_edit: DF.Check
 		disable_sidebar_stats: DF.Check
-		enable_edit: DF.Literal["", "Yes", "No"]
 		fields: DF.Code | None
 		total_fields: DF.Literal["", "4", "5", "6", "7", "8", "9", "10"]
 	# end: auto-generated types
