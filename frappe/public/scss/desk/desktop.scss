@@ -270,6 +270,8 @@ body {
 			display: flex;
 			justify-content: center;
 			align-items: center;
+			border-radius: 7px;
+			background-color: var(--navbar-bg);
 		}
 
 		.report-summary {
@@ -558,23 +560,24 @@ body {
 
 	&.shortcut-widget-box {
 		cursor: pointer;
-		align-items: flex-start;
-		padding: 2px 7px;
+		padding: 10px;
+		border: 1px solid var(--border-color);
 
 		&:hover {
 			--icon-stroke: var(--invert-neutral);
-			.widget-title {
-				color: var(--invert-neutral) !important;
+			.widget-label .widget-title {
+				color: var(--invert-neutral);
 			}
+			border-color: var(--invert-neutral);
 		}
 
-		.widget-title {
-			cursor: pointer !important;
-			@include get_textstyle("base", "medium");
+		.widget-label .widget-title {
+			cursor: pointer;
+			font-size: var(--text-lg);
 		}
 
 		.indicator-pill {
-			font-weight: 500;
+			font-size: var(--text-xs);
 			@extend .ellipsis;
 		}
 
@@ -592,6 +595,7 @@ body {
 		}
 
 		padding: 10px;
+		border: 1px solid var(--border-color);
 
 		.link-item {
 			display: flex;
@@ -641,8 +645,8 @@ body {
 		}
 
 		.widget-head .widget-label .widget-title {
-			@include get_textstyle("lg", "semibold");
-			color: var(--text-color) !important;
+			font-size: var(--text-base);
+			font-weight: var(--weight-bold);
 		}
 
 		@include media-breakpoint-down(md) {
@@ -1205,7 +1209,7 @@ body {
 				}
 
 				.ce-header b {
-					font-weight: 600 !important;
+					font-weight: var(--weight-regular) !important;
 				}
 
 				.new-block-button {
@@ -1326,7 +1330,8 @@ body {
 						flex: 1;
 
 						.h4 {
-							@include get_textstyle("xl", "semibold");
+							font-size: var(--text-lg);
+							color: var(--text-light);
 						}
 
 						.h5 {
@@ -1390,6 +1395,9 @@ body {
 
 						&.ce-paragraph {
 							display: block;
+							padding: 0px 7px;
+							// paragraphs should not get much focus
+							color: var(--text-light);
 						}
 
 						&.paragraph {
