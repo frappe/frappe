@@ -10,7 +10,7 @@
      "disable_comment_count",
      "disable_sidebar_stats",
      "disable_auto_refresh",
-     "enable_edit",
+     "disable_edit",
      "total_fields",
      "fields_html",
      "fields"
@@ -59,14 +59,14 @@
       "label": "Disable Comment Count"
      },
      {
-      "fieldname": "enable_edit",
-      "fieldtype": "Select",
-      "label": "Enable Edit",
-      "options": "\nYes\nNo"
+      "default": "0",
+      "fieldname": "disable_edit",
+      "fieldtype": "Check",
+      "label": "Disable Edit"
      }
     ],
     "links": [],
-    "modified": "2024-08-14 21:11:08.307688",
+    "modified": "2024-08-15 14:23:18.226666",
     "modified_by": "Administrator",
     "module": "Desk",
     "name": "List View Settings",
