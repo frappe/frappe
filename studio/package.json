@@ -9,6 +9,7 @@
 		"serve": "vite preview"
 	},
 	"dependencies": {
+		"@vueuse/components": "^10.11.1",
 		"@vueuse/core": "^10.11.1",
 		"feather-icons": "^4.28.0",
 		"frappe-ui": "^0.1.66",
