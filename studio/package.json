@@ -13,6 +13,7 @@
 		"feather-icons": "^4.28.0",
 		"frappe-ui": "^0.1.66",
 		"lucide-vue-next": "^0.427.0",
+		"pinia": "^2.2.1",
 		"vue": "^3.4.12",
 		"vue-router": "^4.2.2"
 	},
