@@ -77,7 +77,12 @@ frappe.ui.form.Sidebar = class {
 	}
 
 	refresh_creation_modified() {
-		let avatar_group = frappe.avatar_group([this.frm.doc.owner, this.frm.doc.modified_by], 5, {
+		let user_list = [this.frm.doc.owner, this.frm.doc.modified_by];
+		if (this.frm.doc.owner === this.frm.doc.modified_by) {
+			user_list = [this.frm.doc.owner];
+		}
+
+		let avatar_group = frappe.avatar_group(user_list, 5, {
 			align: "left",
 			overlap: true,
 		});
@@ -102,17 +107,27 @@ frappe.ui.form.Sidebar = class {
 			" · " +
 			comment_when(this.frm.doc.modified);
 
-		avatar_group.find(".avatar:first-child").popover({
-			trigger: "hover",
-			html: true,
-			content: creation_message,
-		});
+		if (user_list.length === 1) {
+			// same user created and edited
 
-		avatar_group.find(".avatar:last-child").popover({
-			trigger: "hover",
-			html: true,
-			content: modified_message,
-		});
+			avatar_group.find(".avatar").popover({
+				trigger: "hover",
+				html: true,
+				content: creation_message + "<br>" + modified_message,
+			});
+		} else {
+			avatar_group.find(".avatar:first-child").popover({
+				trigger: "hover",
+				html: true,
+				content: creation_message,
+			});
+
+			avatar_group.find(".avatar:last-child").popover({
+				trigger: "hover",
+				html: true,
+				content: modified_message,
+			});
+		}
 	}
 
 	show_auto_repeat_status() {

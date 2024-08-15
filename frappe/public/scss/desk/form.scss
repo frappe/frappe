@@ -409,15 +409,18 @@
 	}
 }
 
-// for 1, 2 column layouts, implement horizontal, else vertical
-.col-sm-12 .horizontal,
-.col-sm-6 .horizontal {
-	display: flex;
-	justify-content: space-between;
-	vertical-align: middle;
+// above mobile
+@media (min-width: map-get($grid-breakpoints, "md")) {
+	// for 1, 2 column layouts, implement horizontal, else vertical
+	.col-sm-12 .horizontal,
+	.col-sm-6 .horizontal {
+		display: flex;
+		justify-content: space-between;
+		vertical-align: middle;
 
-	.control-input-wrapper {
-		width: 50%;
+		.control-input-wrapper {
+			width: 50%;
+		}
 	}
 }
 
