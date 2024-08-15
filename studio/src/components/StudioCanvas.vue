@@ -18,7 +18,8 @@
 				<StudioComponent
 					class="h-full min-h-[inherit]"
 					v-if="rootComponent"
-					:componentName="rootComponent"
+					:componentName="rootComponent.componentName"
+					:componentId="rootComponent.componentId"
 				/>
 			</div>
 		</div>
@@ -29,6 +30,15 @@
 import { ref, reactive } from "vue"
 import { useDropZone } from "@vueuse/core"
 import StudioComponent from "@/components/StudioComponent.vue"
+
+import { getComponentCopy } from "@/utils/helpers"
+
+const props = defineProps({
+	componentTree: {
+		type: Object,
+		required: true,
+	},
+})
 
 const canvasContainer = ref(null)
 const canvas = ref(null)
@@ -44,7 +54,7 @@ const canvasProps = reactive({
 	panning: false,
 })
 
-const rootComponent = ref(null)
+const rootComponent = ref(getComponentCopy(props.componentTree))
 
 const { isOverDropZone } = useDropZone(canvasContainer, {
 	onDrop: (_files, ev) => {

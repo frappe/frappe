@@ -1,5 +1,10 @@
 <template>
-	<component :is="componentName" v-bind="componentData.initialState"> </component>
+	<component
+		:is="componentName"
+		v-bind="componentData.initialState"
+		:data-component-id="componentId"
+	>
+	</component>
 </template>
 
 <script setup>
@@ -11,7 +16,14 @@ const props = defineProps({
 		type: String,
 		required: true,
 	},
+	componentId: {
+		type: String,
+		required: true,
+	},
 })
 
-const componentData = computed(() => components.get(props.componentName))
+const componentData = computed(() => {
+	if (props.componentName === "div") return { initialState: {} }
+	return components.get(props.componentName)
+})
 </script>

@@ -67,6 +67,11 @@ export const COMPONENTS = {
 		title: "Dropdown",
 		icon: "ChevronDown",
 	},
+	ListView: {
+		name: "ListView",
+		title: "List View",
+		icon: "ListCheck",
+	},
 }
 
 function get(name) {
