@@ -80,6 +80,8 @@
   "strip_exif_metadata_from_uploaded_images",
   "column_break_uqma",
   "allowed_file_extensions",
+  "app_tab",
+  "default_app",
   "updates_tab",
   "system_updates_section",
   "disable_system_update_notification",
@@ -664,12 +666,23 @@
    "fieldname": "rate_limit_email_link_login",
    "fieldtype": "Int",
    "label": "Rate limit for email link login"
+  },
+  {
+   "fieldname": "app_tab",
+   "fieldtype": "Tab Break",
+   "label": "App"
+  },
+  {
+   "description": "Redirect to the selected app after login",
+   "fieldname": "default_app",
+   "fieldtype": "Select",
+   "label": "Default App"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2024-03-22 15:43:48.347441",
+ "modified": "2024-08-08 20:10:55.939839",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

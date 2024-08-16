@@ -72,6 +72,8 @@
   "user_emails",
   "workspace_section",
   "default_workspace",
+  "app_section",
+  "default_app",
   "sb2",
   "defaults",
   "sb3",
@@ -717,6 +719,19 @@
    "fieldname": "workspace_section",
    "fieldtype": "Section Break",
    "label": "Workspace"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "app_section",
+   "fieldtype": "Section Break",
+   "label": "App"
+  },
+  {
+   "description": "Redirect to the selected app after login",
+   "fieldname": "default_app",
+   "fieldtype": "Select",
+   "label": "Default App",
+   "options": ""
   }
  ],
  "icon": "fa fa-user",
@@ -779,7 +794,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2024-03-20 17:15:19.200383",
+ "modified": "2024-08-08 19:09:17.399748",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
