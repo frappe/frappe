@@ -3,6 +3,7 @@ import { defineStore } from "pinia"
 import { createDocumentResource } from "frappe-ui"
 
 import { getBlockCopy } from "@/utils/helpers"
+import components from "@/data/components"
 
 const useStore = defineStore("store", () => {
 	const pageBlocks = ref([])
@@ -27,6 +28,16 @@ const useStore = defineStore("store", () => {
 		return reactive({
 			componentName: "div",
 			componentId: "root",
+			children: [],
+		})
+	}
+
+	function getComponentBlock(componentName) {
+		const component = components.get(componentName)
+		return reactive({
+			componentName: component.name,
+			componentId: `${component.name}-${Math.random().toString(36).substring(2, 9)}`,
+			children: [],
 		})
 	}
 
@@ -35,6 +46,7 @@ const useStore = defineStore("store", () => {
 		setPage,
 		fetchPage,
 		getRootBlock,
+		getComponentBlock,
 	}
 })
 

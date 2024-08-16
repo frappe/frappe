@@ -20,6 +20,7 @@
 					v-if="rootComponent"
 					:componentName="rootComponent.componentName"
 					:componentId="rootComponent.componentId"
+					:children="rootComponent.children"
 				/>
 			</div>
 		</div>
@@ -31,6 +32,7 @@ import { ref, reactive } from "vue"
 import { useDropZone } from "@vueuse/core"
 import StudioComponent from "@/components/StudioComponent.vue"
 
+import useStore from "@/store"
 import { getComponentCopy } from "@/utils/helpers"
 
 const props = defineProps({
@@ -39,6 +41,7 @@ const props = defineProps({
 		required: true,
 	},
 })
+const store = useStore()
 
 const canvasContainer = ref(null)
 const canvas = ref(null)
@@ -58,7 +61,13 @@ const rootComponent = ref(getComponentCopy(props.componentTree))
 
 const { isOverDropZone } = useDropZone(canvasContainer, {
 	onDrop: (_files, ev) => {
-		rootComponent.value = ev.dataTransfer.getData("componentName")
+		let parentComponent = rootComponent.value
+
+		const componentName = ev.dataTransfer?.getData("componentName")
+		if (componentName) {
+			const newComponent = store.getComponentBlock(componentName)
+			parentComponent.children.push(newComponent)
+		}
 	},
 })
 </script>

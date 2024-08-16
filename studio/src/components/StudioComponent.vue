@@ -4,6 +4,13 @@
 		v-bind="componentData.initialState"
 		:data-component-id="componentId"
 	>
+		<StudioComponent
+			v-for="child in children"
+			:key="child.componentId"
+			:componentName="child.componentName"
+			:componentId="child.componentId"
+			:children="child.children"
+		/>
 	</component>
 </template>
 
@@ -19,6 +26,11 @@ const props = defineProps({
 	componentId: {
 		type: String,
 		required: true,
+	},
+	children: {
+		type: Array,
+		default: () => [],
+		required: false,
 	},
 })
 
