@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-17 14:32+0553\n"
-"PO-Revision-Date: 2024-06-28 10:20\n"
+"PO-Revision-Date: 2024-08-16 16:34\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -2730,7 +2730,7 @@ msgstr "Ar"
 
 #: public/js/frappe/views/kanban/kanban_column.html:14
 msgid "Archive"
-msgstr ""
+msgstr "Archivieren"
 
 #. Option for the 'Status' (Select) field in DocType 'Kanban Board Column'
 #: desk/doctype/kanban_board_column/kanban_board_column.json
@@ -3724,7 +3724,7 @@ msgstr "Hintergrundprozesse"
 #: integrations/doctype/webhook/webhook.json
 msgctxt "Webhook"
 msgid "Background Jobs Queue"
-msgstr ""
+msgstr "Warteschlange für Hintergrundaufträge"
 
 #. Label of a Section Break field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -8390,7 +8390,7 @@ msgstr "Standardansicht"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Default Workspace"
-msgstr ""
+msgstr "Standardarbeitsbereich"
 
 #: core/doctype/doctype/doctype.py:1337
 msgid "Default for 'Check' type of field {0} must be either '0' or '1'"
@@ -9184,7 +9184,10 @@ msgid "DocStatus of the following states have changed:<br><strong>{0}</strong><b
 "\t\t\t\tDo you want to update the docstatus of existing documents in those states?<br>\n"
 "\t\t\t\tThis does not undo any effect bought in by the document's existing docstatus.\n"
 "\t\t\t\t"
-msgstr ""
+msgstr "Der DocStatus der folgenden Zustände hat sich geändert:<br><strong>{0}</strong><br>\n"
+"\t\t\t\tMöchten Sie den DocStatus vorhandener Dokumente in diesen Zuständen aktualisieren?<br>\n"
+"\t\t\t\tDadurch werden keine Auswirkungen des vorhandenen DocStatus des Dokuments rückgängig gemacht.\n"
+"\t\t\t\t"
 
 #. Name of a DocType
 #: core/doctype/data_export/exporter.py:26 core/doctype/doctype/doctype.json
@@ -11012,7 +11015,7 @@ msgstr "Aktivieren Sie den Druckserver"
 #: integrations/doctype/push_notification_settings/push_notification_settings.json
 msgctxt "Push Notification Settings"
 msgid "Enable Push Notification Relay"
-msgstr ""
+msgstr "Push-Benachrichtigungs-Relay aktivieren"
 
 #. Label of a Check field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
@@ -11777,7 +11780,7 @@ msgstr "Ausführungszeit: {0} Sek"
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "Executive"
-msgstr ""
+msgstr "Exekutive"
 
 #: public/js/frappe/widgets/base_widget.js:157
 msgid "Expand"
@@ -15337,7 +15340,7 @@ msgstr "Wenn aktiviert, werden die Benutzer jedes Mal benachrichtigt, wenn sie s
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "If left empty, the default workspace will be the last visited workspace"
-msgstr ""
+msgstr "Bleibt das Feld leer, ist der Standardarbeitsbereich der zuletzt besuchte Arbeitsbereich"
 
 #. Description of the 'Port' (Data) field in DocType 'Email Domain'
 #: email/doctype/email_domain/email_domain.json
@@ -17601,7 +17604,7 @@ msgstr "Zielseite"
 
 #: public/js/frappe/form/print_utils.js:28
 msgid "Landscape"
-msgstr "Landschaft"
+msgstr "Querformat"
 
 #. Name of a DocType
 #: core/doctype/language/language.json printing/page/print/print.js:104
@@ -18428,7 +18431,7 @@ msgstr "Listenfilter"
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "List Setting Message"
-msgstr ""
+msgstr "Listeneinstellungsnachricht"
 
 #: public/js/frappe/list/list_view.js:1749
 msgctxt "Button in list view menu"
@@ -21858,7 +21861,7 @@ msgstr "Am {0}, schrieb {1}:"
 #: desk/doctype/workspace_link/workspace_link.json
 msgctxt "Workspace Link"
 msgid "Onboard"
-msgstr ""
+msgstr "Für Onboarding hervorheben"
 
 #. Name of a DocType
 #: desk/doctype/onboarding_permission/onboarding_permission.json
@@ -23821,7 +23824,7 @@ msgstr "Portaleinstellungen"
 
 #: public/js/frappe/form/print_utils.js:29
 msgid "Portrait"
-msgstr "Porträt"
+msgstr "Hochformat"
 
 #. Label of a Select field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -23857,7 +23860,7 @@ msgstr "Postleitzahl"
 #: desk/doctype/changelog_feed/changelog_feed.json
 msgctxt "Changelog Feed"
 msgid "Posting Timestamp"
-msgstr ""
+msgstr "Zeitstempel der Buchung"
 
 #. Group in Blog Category's connections
 #: website/doctype/blog_category/blog_category.json
@@ -25939,7 +25942,7 @@ msgstr "Relay-Server-URL fehlt"
 #: integrations/doctype/push_notification_settings/push_notification_settings.json
 msgctxt "Push Notification Settings"
 msgid "Relay Settings"
-msgstr ""
+msgstr "Relay-Einstellungen"
 
 #. Group in Package's connections
 #: core/doctype/package/package.json
@@ -27315,7 +27318,7 @@ msgstr "Routenumleitungen"
 #: core/doctype/role/role.json
 msgctxt "Role"
 msgid "Route: Example \"/app\""
-msgstr ""
+msgstr "Route: Beispiel \"/app\""
 
 #: model/base_document.py:723 model/base_document.py:764 model/document.py:610
 msgid "Row"
@@ -30792,7 +30795,7 @@ msgstr "Angehalten"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Store Attached PDF Document"
-msgstr ""
+msgstr "Angehängtes PDF-Dokument speichern"
 
 #. Description of the 'Last Known Versions' (Text) field in DocType 'User'
 #: core/doctype/user/user.json
@@ -32297,7 +32300,7 @@ msgstr "Hier gibt es nichts"
 #: core/doctype/navbar_settings/navbar_settings.json
 msgctxt "Navbar Settings"
 msgid "These announcements will appear inside a dismissible alert below the Navbar."
-msgstr ""
+msgstr "Diese Ankündigungen werden in einem abweisbaren Hinweis unterhalb der Navigationsleiste angezeigt."
 
 #. Description of the 'LDAP Custom Settings' (Section Break) field in DocType
 #. 'LDAP Settings'
@@ -33100,7 +33103,7 @@ msgstr "An und CC"
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "To begin the date range at the start of the chosen period. For example, if 'Year' is selected as the period, the report will start from January 1st of the current year."
-msgstr ""
+msgstr "Um den Datumsbereich mit dem Beginn des gewählten Zeitraums zu beginnen. Wenn Sie z. B. 'Jahr' als Zeitraum wählen, beginnt der Bericht am 1. Januar des laufenden Jahres."
 
 #: automation/doctype/auto_repeat/auto_repeat.js:35
 msgid "To configure Auto Repeat, enable \"Allow Auto Repeat\" from {0}."
@@ -35816,7 +35819,7 @@ msgstr "Webseiten-Thema-Bild"
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Website Theme image link"
-msgstr ""
+msgstr "Bild Link zum Website Theme"
 
 #. Option for the 'Day' (Select) field in DocType 'Assignment Rule Day'
 #: automation/doctype/assignment_rule_day/assignment_rule_day.json
@@ -36003,7 +36006,7 @@ msgstr "Wenn diese Option aktiviert ist, können Gäste Dateien in Ihre Bewerbun
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "When sending document using email, store the PDF on Communication. Warning: This can increase your storage usage."
-msgstr ""
+msgstr "Wenn Sie ein Dokument per E-Mail versenden, wird die PDF-Datei an die Kommunikation angehängt. Dies kann den Speicherbedarf erhöhen."
 
 #. Description of the 'Force Web Capture Mode for Uploads' (Check) field in
 #. DocType 'System Settings'
