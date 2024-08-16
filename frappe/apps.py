@@ -33,10 +33,9 @@ def get_apps():
 
 
 def get_route(app_name):
-	hooks = frappe.get_hooks(app_name=app_name)
-	if hooks.get("app_icon_route"):
-		return hooks.get("app_icon_route")[0]
-	return "/apps"
+	apps = frappe.get_hooks("add_to_apps_screen", app_name=app_name)
+	app = next((app for app in apps if app.get("name") == app_name), None)
+	return app.get("route") if app and app.get("route") else "/apps"
 
 
 def is_desk_apps(apps):
