@@ -33,8 +33,8 @@ def get_apps():
 
 
 def get_route(app_name):
-	links = frappe.get_hooks("add_to_apps_screen", app_name=app_name)
-	app = next((link for link in links if link.get("name") == app_name), None)
+	apps = frappe.get_hooks("add_to_apps_screen", app_name=app_name)
+	app = next((app for app in apps if app.get("name") == app_name), None)
 	return app.get("route") if app and app.get("route") else "/apps"
 
 
