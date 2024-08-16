@@ -351,6 +351,9 @@ $.extend(frappe, {
 	add_switch_to_desk: function () {
 		$(".switch-to-desk").removeClass("hidden");
 	},
+	add_apps: function () {
+		$(".apps").removeClass("hidden");
+	},
 	add_link_to_headings: function () {
 		$(".doc-content .from-markdown")
 			.find("h2, h3, h4, h5, h6")
@@ -610,6 +613,7 @@ $(document).ready(function () {
 	// switch to app link
 	if (frappe.get_cookie("system_user") === "yes" && logged_in) {
 		frappe.add_switch_to_desk();
+		frappe.add_apps();
 	}
 
 	frappe.render_user();

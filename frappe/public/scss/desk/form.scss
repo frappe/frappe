@@ -23,8 +23,8 @@
 }
 
 .std-form-layout > .form-layout > .form-page {
-	border-radius: var(--border-radius-md);
 	border: 1px solid var(--border-color);
+	border-top: 0px;
 	box-shadow: none;
 	background-color: var(--card-bg);
 }
@@ -70,7 +70,7 @@
 		@extend .row;
 		margin: 0;
 		&:first-child {
-			margin-top: var(--margin-sm);
+			margin-top: 1rem;
 		}
 	}
 }
@@ -145,7 +145,22 @@
 	margin-top: var(--margin-lg);
 	padding: 0;
 	.comment-input-header {
-		@extend .head-title;
+		display: flex;
+		justify-content: space-between;
+
+		.comment-title {
+			@extend .head-title;
+		}
+		.comment-count {
+			margin-left: 5px;
+			color: var(--text-light);
+		}
+
+		.form-stat-likes {
+			display: flex;
+			vertical-align: middle;
+		}
+
 		margin-bottom: var(--margin-sm);
 	}
 	.comment-input-container {
@@ -305,10 +320,8 @@
 
 .form-message {
 	position: relative;
-	border-radius: var(--border-radius);
 	padding: 8px 10px;
 	font-size: var(--text-md, 13px);
-	margin-bottom: var(--margin-md);
 
 	&.blue {
 		@include form-message-background("blue");
@@ -393,6 +406,21 @@
 	}
 	&:last-child.frappe-control[data-fieldtype="Table"] {
 		margin-bottom: 0.5rem;
+	}
+}
+
+// above mobile
+@media (min-width: map-get($grid-breakpoints, "md")) {
+	// for 1, 2 column layouts, implement horizontal, else vertical
+	.col-sm-12 .horizontal,
+	.col-sm-6 .horizontal {
+		display: flex;
+		justify-content: space-between;
+		vertical-align: middle;
+
+		.control-input-wrapper {
+			width: 50%;
+		}
 	}
 }
 

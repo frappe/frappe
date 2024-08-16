@@ -56,9 +56,16 @@ export default class ListFilter {
 
 	refresh() {
 		this.get_list_filters().then(() => {
-			this.filters.length
-				? this.$saved_filters_preview.show()
-				: this.$saved_filters_preview.hide();
+			if (this.filters.length) {
+				// expand collapsible sections
+				this.wrapper.hasClass("hide") && this.section_title.trigger("click");
+				this.$saved_filters_preview.show();
+			} else {
+				// hide collapsible sections
+				!this.wrapper.hasClass("hide") && this.section_title.trigger("click");
+				this.$saved_filters_preview.hide();
+			}
+
 			const html = this.filters.map((filter) => this.filter_template(filter));
 			this.wrapper.find(".filter-pill").remove();
 			this.$saved_filters.append(html);

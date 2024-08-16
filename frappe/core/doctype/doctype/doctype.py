@@ -1091,6 +1091,16 @@ def validate_series(dt, autoname=None, name=None):
 		if used_in:
 			frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
 
+	validate_empty_name(dt, autoname)
+
+
+def validate_empty_name(dt, autoname):
+	if dt.doctype == "Customize Form":
+		return
+
+	if not autoname and not (dt.issingle or dt.istable):
+		frappe.msgprint(_("Warning: Naming is not set"), indicator="yellow")
+
 
 def validate_autoincrement_autoname(dt: Union[DocType, "CustomizeForm"]) -> bool:
 	"""Checks if can doctype can change to/from autoincrement autoname"""

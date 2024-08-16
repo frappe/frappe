@@ -165,7 +165,7 @@ frappe.breadcrumbs = {
 
 	set_list_breadcrumb(breadcrumbs) {
 		const doctype = breadcrumbs.doctype;
-		const doctype_meta = frappe.get_doc("DocType", doctype);
+		const doctype_meta = frappe.get_meta(doctype);
 		if (
 			(doctype === "User" && !frappe.user.has_role("System Manager")) ||
 			doctype_meta?.issingle
@@ -187,16 +187,14 @@ frappe.breadcrumbs = {
 	set_form_breadcrumb(breadcrumbs, view) {
 		const doctype = breadcrumbs.doctype;
 		let docname = frappe.get_route().slice(2).join("/");
-		let docname_title = docname;
+		let docname_title;
 		if (docname.startsWith("new-" + doctype.toLowerCase().replace(/ /g, "-"))) {
-			// using docname instead of doctype to include No like Doctype Name + 1, 2, 3
-			docname_title = docname_title
-				.slice(0, -10)
-				.replace(/-/g, " ")
-				.replace(/\b\w/g, (l) => l.toUpperCase());
+			docname_title = __("New {0}", [__(doctype)]);
+		} else {
+			docname_title = __(docname);
 		}
-		let form_route = `/app/${frappe.router.slug(doctype)}/${docname_title}`;
-		this.append_breadcrumb_element(form_route, __(docname_title));
+		let form_route = `/app/${frappe.router.slug(doctype)}/${encodeURIComponent(docname)}`;
+		this.append_breadcrumb_element(form_route, docname_title);
 
 		if (view === "form") {
 			let last_crumb = this.$breadcrumbs.find("li").last();

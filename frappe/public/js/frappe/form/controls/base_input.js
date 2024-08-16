@@ -7,6 +7,11 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 
 		// set description
 		this.set_max_width();
+
+		// set initial value if set
+		if (this.df.initial_value) {
+			this.set_value(this.df.initial_value);
+		}
 	}
 	make_wrapper() {
 		if (this.only_input) {
@@ -22,11 +27,15 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 					<div class="control-input-wrapper">
 						<div class="control-input"></div>
 						<div class="control-value like-disabled-input" style="display: none;"></div>
-						<p class="help-box small text-muted"></p>
+						<div class="help-box small text-extra-muted hide"></div>
 					</div>
 				</div>
 			</div>`
 			).appendTo(this.parent);
+
+			if (this.constructor.horizontal) {
+				this.$wrapper.find(".form-group").addClass("horizontal");
+			}
 		}
 	}
 	toggle_label(show) {
@@ -194,6 +203,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		}
 		if (this.df.description) {
 			this.$wrapper.find(".help-box").html(__(this.df.description));
+			this.toggle_description(true);
 		} else {
 			this.set_empty_description();
 		}
@@ -201,9 +211,11 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 	}
 	set_new_description(description) {
 		this.$wrapper.find(".help-box").html(description);
+		this.toggle_description(true);
 	}
 	set_empty_description() {
 		this.$wrapper.find(".help-box").html("");
+		this.toggle_description(false);
 	}
 	set_mandatory(value) {
 		// do not set has-error class on form load

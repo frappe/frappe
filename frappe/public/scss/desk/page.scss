@@ -93,6 +93,8 @@
 	@include card($padding: 0px);
 	box-shadow: none;
 	border: 1px solid var(--border-color);
+	border-top: 0px;
+	border-radius: 0px;
 }
 
 .page-head {
@@ -100,7 +102,7 @@
 	position: sticky;
 	top: var(--navbar-height);
 	background: var(--bg-color);
-	margin-bottom: 5px;
+	border-bottom: 1px solid var(--border-color);
 	transition: 0.5s top;
 	.page-head-content {
 		height: var(--page-head-height);

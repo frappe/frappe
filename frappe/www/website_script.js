@@ -23,7 +23,7 @@ ga('send', 'pageview');
 			let query_params = frappe.utils.get_query_params();
 
 			// Get visitor ID based on browser uniqueness
-			import('https://openfpcdn.io/fingerprintjs/v3')
+			import('/assets/frappe/js/lib/fingerprintjs.js')
 				.then(fingerprint_js => fingerprint_js.load())
 				.then(fp => fp.get())
 				.then(result => {

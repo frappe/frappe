@@ -116,8 +116,8 @@
 		<div class="shares"></div>
 	</li>
 </ul>
-<ul class="list-unstyled sidebar-menu followed-by-section">
-	<li class="sidebar-label followed-by-label hidden">
+<ul class="list-unstyled sidebar-menu followed-by-section hidden">
+	<li class="sidebar-label followed-by-label">
 		<svg class="icon icon-sm">
 			<use href="#icon-link-url" class="like-icon"></use>
 		</svg>
@@ -136,35 +136,11 @@
 <ul class="list-unstyled sidebar-menu">
 	<a><li class="auto-repeat-status"><li></a>
 </ul>
-<ul class="list-unstyled sidebar-menu form-sidebar-stats">
-	<li class="flex">
-		<div class="form-stats d-flex">
-			<span class="form-stats-likes">
-				<span class="liked-by like-action d-flex align-items-center">
-					<svg class="es-icon icon-sm">
-						<use href="#es-solid-heart" class="like-icon"></use>
-					</svg>
-					<span class="like-count ml-2"></span>
-				</span>
-			</span>
-			<span class="mx-2">·</span>
-			<a class="comments d-flex align-items-center">
-				<svg class="es-icon icon-sm">
-					<use href="#es-line-chat-alt" class="comment-icon"></use>
-				</svg>
-				<span class="comments-count ml-2"></span>
-			</a>
-		</div>
-		<a class="form-follow text-sm">
-			Follow
-		</a>
-	</li>
-</ul>
-<hr>
 <ul class="list-unstyled sidebar-menu text-muted">
 	<li class="pageview-count"></li>
-	<li class="modified-by"></li>
-	<li class="created-by"></li>
+	<hr>
+	<li class="created-modified-section">
+	</li>
 </ul>
 {% if(frappe.get_form_sidebar_extension) { %}
 	{{ frappe.get_form_sidebar_extension() }}

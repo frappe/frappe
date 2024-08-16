@@ -2731,18 +2731,6 @@
   ],
   "isd": "+216"
  },
- "Turkey": {
-  "code": "tr",
-  "currency": "TRY",
-  "currency_fraction": "Kuru\u015f",
-  "currency_fraction_units": 100,
-  "currency_symbol": "\u20ba",
-  "number_format": "#.###,##",
-  "timezones": [
-   "Europe/Istanbul"
-  ],
-  "isd": "+90"
- },
  "Turkmenistan": {
   "code": "tm",
   "currency": "TMM",
@@ -2774,6 +2762,18 @@
    "Pacific/Funafuti"
   ],
   "isd": "+688"
+ },
+  "T\u00fcrkiye": {
+  "code": "tr",
+  "currency": "TRY",
+  "currency_fraction": "Kuru\u015f",
+  "currency_fraction_units": 100,
+  "currency_symbol": "\u20ba",
+  "number_format": "#.###,##",
+  "timezones": [
+   "Europe/Istanbul"
+  ],
+  "isd": "+90"
  },
  "Uganda": {
   "code": "ug",

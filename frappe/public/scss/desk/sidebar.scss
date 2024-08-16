@@ -113,11 +113,6 @@ body[data-route^="Module"] .main-menu {
 		li:first-child {
 			@include flex(flex, space-between, center, null);
 
-			.form-follow {
-				text-transform: uppercase;
-				font-size: var(--text-xs, 11px);
-			}
-
 			use.comment-icon {
 				fill: var(--gray-500);
 			}
@@ -125,13 +120,13 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	.sidebar-image-section {
-		width: min(100%, 170px);
+		width: min(100%, 200px);
 		cursor: pointer;
 		border-radius: var(--border-radius-lg);
 
 		.sidebar-image {
 			height: auto;
-			max-height: 170px;
+			max-height: 200px;
 			object-fit: cover;
 		}
 
@@ -182,7 +177,14 @@ body[data-route^="Module"] .main-menu {
 
 .layout-side-section {
 	@include get_textstyle("sm", "regular");
-	padding-right: 30px;
+	// padding-right: 30px;
+	padding-top: 15px;
+	padding-right: 5px;
+
+	&.right {
+		padding-left: 5px;
+		padding-right: 15px;
+	}
 
 	&.hide-sidebar {
 		display: none;
@@ -205,9 +207,16 @@ body[data-route^="Module"] .main-menu {
 		font-size: var(--text-xs);
 		font-weight: var(--weight-regular);
 		margin-bottom: var(--margin-sm);
+		text-transform: uppercase;
 		display: flex;
 		align-items: center;
 		color: var(--text-muted);
+		cursor: pointer;
+
+		.es-icon {
+			margin-right: 4px;
+		}
+
 		.icon {
 			margin: 0;
 			margin-right: var(--margin-xs);
@@ -301,6 +310,10 @@ body[data-route^="Module"] .main-menu {
 .list-sidebar {
 	.sidebar-section {
 		margin-bottom: 30px;
+
+		a {
+			font-size: var(--text-xs);
+		}
 	}
 
 	.list-link {

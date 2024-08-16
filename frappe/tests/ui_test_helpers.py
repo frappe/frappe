@@ -130,6 +130,7 @@ def create_doctype(name, fields):
 			"doctype": "DocType",
 			"module": "Core",
 			"custom": 1,
+			"autoname": "autoincrement",
 			"fields": fields,
 			"permissions": [{"role": "System Manager", "read": 1}],
 			"name": name,
@@ -448,6 +449,8 @@ def create_test_user(username=None):
 		user.append("roles", {"role": role})
 
 	user.save()
+
+	frappe.db.set_single_value("Workspace Settings", "workspace_setup_completed", 1)
 
 
 @whitelist_for_tests

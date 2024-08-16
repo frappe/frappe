@@ -630,11 +630,7 @@ def extract_messages_from_javascript_code(code: str) -> list[tuple[int, str, str
 	messages = []
 	from frappe.gettext.extractors.javascript import extract_javascript
 
-	for message in extract_javascript(
-		code,
-		keywords=["__"],
-		options={},
-	):
+	for message in extract_javascript(code):
 		lineno, _func, args = message
 
 		if not args or not args[0]:

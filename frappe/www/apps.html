@@ -1,0 +1,74 @@
+---
+base_template: "templates/base.html"
+no_cache: 1
+---
+
+{%- block navbar -%} {% from "frappe/templates/includes/avatar_macro.html" import avatar %} {%-
+endblock -%} {%- block footer -%} {%- endblock -%} {% block content %}
+<div class="container">
+	<div class="apps-container">
+		<div class="title">{{ _('Select an app to continue') }}</div>
+		{% set appsCount = apps|length if apps|length <= 6 else 6 %}
+		<div class="apps" style="grid-template-columns: repeat({{ appsCount }}, 1fr);">
+			{% for app in apps %}
+			<a href="{{ app.route }}" class="app-icon">
+				<img class="app-logo" src="{{ app.logo }}" />
+				<div class="app-title">{{ app.title }}</div>
+				<div
+					app-name="{{ app.name }}"
+					class="set-default btn btn-sm {{ '' if app.is_default else 'hidden'}}"
+					title="Set as default"
+				>
+					<svg class="icon icon-md">
+						<use href="#icon-solid-success"></use>
+					</svg>
+				</div>
+			</a>
+			{% endfor %}
+		</div>
+		<button class="logout-btn btn btn-default">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="16"
+				height="16"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="1.5"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				class="lucide lucide-log-out"
+			>
+				<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+				<polyline points="16 17 21 12 16 7" />
+				<line x1="21" x2="9" y1="12" y2="12" />
+			</svg>
+			<span> {{ _('Logout') }} </span>
+		</button>
+	</div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+	$('.set-default').on('click', function(e) {
+		e.preventDefault();
+		var appName = $(this).attr('app-name');
+		frappe.call({
+			method: 'frappe.apps.set_app_as_default',
+			args: { app_name: appName },
+			callback: function() {
+				location.reload();
+			}
+		});
+	});
+	$('.logout-btn').on('click', function() {
+		frappe.call({
+			method: 'logout',
+			callback: function() {
+				window.location.href = '/login';
+			}
+		});
+	});
+</script>
+{% endblock %}

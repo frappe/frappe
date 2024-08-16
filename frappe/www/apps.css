@@ -1,0 +1,126 @@
+.container {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+	max-width: 100vw;
+	padding: 0;
+	margin: 0;
+	background: var(--bg-light-gray);
+}
+
+.apps-container {
+	display: flex;
+	flex-direction: column;
+	gap: 40px;
+	align-items: center;
+	justify-content: center;
+	background: var(--fg-color);
+	padding: 45px 80px;
+	border-radius: var(--border-radius-md);
+	border: 1px solid var(--border-color);
+}
+
+.apps {
+	gap: 30px;
+	display: grid;
+	justify-items: center;
+}
+
+.app-icon {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	height: fit-content;
+	width: fit-content;
+	align-items: center;
+	justify-content: center;
+	text-decoration: none;
+	position: relative;
+}
+
+.app-icon:hover .set-default {
+	display: block !important;
+}
+
+.set-default {
+	position: absolute;
+	top: -20px;
+	right: -20px;
+}
+
+.app-logo {
+	width: 60px;
+	height: 60px;
+	object-fit: cover;
+	transition: transform 0.2s;
+	border-radius: 13px;
+}
+
+.app-icon:hover {
+	text-decoration: none;
+}
+
+.app-icon:hover .app-logo {
+	transform: scale(1.05);
+}
+
+.app-title {
+	color: var(--gray-900, #171717);
+	font-size: var(--font-size-md);
+	height: fit-content;
+	letter-spacing: 0.24px;
+	line-height: 115%;
+	min-width: 30px;
+	width: fit-content;
+	text-decoration: none;
+}
+
+.logout-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 5px;
+	border-radius: var(--border-radius-md);
+	background-color: #fff !important;
+}
+
+.logout-btn:hover {
+	background-color: var(--bg-light-gray) !important;
+}
+
+.logout-btn a {
+	text-decoration: none;
+}
+
+@media (max-width: 900px) {
+	.apps {
+		grid-template-columns: repeat(4, 1fr) !important;
+	}
+}
+
+@media (max-width: 575px) {
+	.apps-container {
+		background: var(--fg-color);
+		gap: 30px;
+		padding: var(--padding-lg);
+		border: none;
+	}
+
+	.container {
+		background: var(--fg-color);
+	}
+
+	.title {
+		font-size: var(--font-size-md);
+	}
+
+	.apps {
+		grid-template-columns: repeat(3, 1fr) !important;
+	}
+
+	.app-title {
+		font-size: var(--font-size-sm);
+	}
+}

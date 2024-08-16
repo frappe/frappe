@@ -4,7 +4,7 @@ from io import BufferedReader
 def extract(fileobj: BufferedReader, keywords: str, comment_tags: tuple, options: dict):
 	code = fileobj.read().decode("utf-8")
 
-	for lineno, funcname, messages in extract_javascript(code, "__", options):
+	for lineno, funcname, messages in extract_javascript(code, options=options):
 		if not messages or not messages[0]:
 			continue
 
@@ -22,7 +22,7 @@ def extract(fileobj: BufferedReader, keywords: str, comment_tags: tuple, options
 		yield lineno, funcname, messages, []
 
 
-def extract_javascript(code, keywords=("__",), options=None, lineno=1):
+def extract_javascript(code, keywords=None, options=None, lineno=1):
 	"""Extract messages from JavaScript source code.
 
 	This is a modified version of babel's JS parser. Reused under BSD license.
@@ -40,6 +40,7 @@ def extract_javascript(code, keywords=("__",), options=None, lineno=1):
 
 	:param code: code as string
 	:param keywords: a list of keywords (i.e. function names) that should be recognized as translation functions
+	    Defaults to ("__",)
 	:param options: a dictionary of additional options (optional)
 	    Supported options are:
 	        * `template_string` -- set to false to disable ES6 template string support.
@@ -48,6 +49,9 @@ def extract_javascript(code, keywords=("__",), options=None, lineno=1):
 
 	if options is None:
 		options = {}
+
+	if keywords is None:
+		keywords = ("__",)
 
 	funcname = message_lineno = None
 	messages = []

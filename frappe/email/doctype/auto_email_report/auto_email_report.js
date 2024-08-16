@@ -71,6 +71,9 @@ frappe.ui.form.on("Auto Email Report", {
 		}
 	},
 	show_filters: async function (frm) {
+		if (!frm.doc.report) {
+			return;
+		}
 		var wrapper = $(frm.get_field("filters_display").wrapper);
 		wrapper.empty();
 		let reference_report = frappe.query_reports[frm.doc.report];
