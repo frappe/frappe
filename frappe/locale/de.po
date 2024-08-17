@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-04 09:33+0000\n"
-"PO-Revision-Date: 2024-08-10 09:04\n"
+"PO-Revision-Date: 2024-08-17 12:31\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -1201,7 +1201,7 @@ msgstr "Container hinzufügen"
 #. Label of the set_meta_tags (Button) field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgid "Add Custom Tags"
-msgstr "Benutzerdefinierte Tags hinzufügen"
+msgstr "Benutzerdefinierte Schlagworte hinzufügen"
 
 #: public/js/frappe/widgets/widget_dialog.js:192
 #: public/js/frappe/widgets/widget_dialog.js:722
@@ -1274,12 +1274,12 @@ msgstr "Abonnenten hinzufügen"
 
 #: public/js/frappe/list/bulk_operations.js:425
 msgid "Add Tags"
-msgstr "Tags hinzufügen"
+msgstr "Schlagworte hinzufügen"
 
 #: public/js/frappe/list/list_view.js:1957
 msgctxt "Button in list view actions menu"
 msgid "Add Tags"
-msgstr "Tags hinzufügen"
+msgstr "Schlagworte hinzufügen"
 
 #: public/js/frappe/views/communication.js:418
 msgid "Add Template"
@@ -8945,7 +8945,7 @@ msgstr "Aktivieren Sie Social Sharing"
 
 #: website/doctype/website_settings/website_settings.js:139
 msgid "Enable Tracking Page Views"
-msgstr "Tracking-Seitenaufrufe aktivieren"
+msgstr "Protokollierung von Seitenaufrufen aktivieren"
 
 #. Label of the enable_two_factor_auth (Check) field in DocType 'System
 #. Settings'
@@ -12154,12 +12154,12 @@ msgstr "Falls diese Option aktiviert ist, können sich alle Benutzer von jeder I
 #. Description of the 'Track Changes' (Check) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgid "If enabled, changes to the document are tracked and shown in timeline"
-msgstr "Wenn diese Option aktiviert ist, werden Änderungen am Dokument nachverfolgt und in der Zeitleiste angezeigt"
+msgstr "Falls aktiviert, werden Änderungen am Dokument nachverfolgt und in der Zeitleiste angezeigt"
 
 #. Description of the 'Track Views' (Check) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgid "If enabled, document views are tracked, this can happen multiple times"
-msgstr "Wenn diese Option aktiviert ist, werden Dokumentansichten nachverfolgt. Dies kann mehrmals vorkommen"
+msgstr "Falls aktiviert, wird jede Ansicht eines Dokuments protokolliert"
 
 #. Description of the 'Track Seen' (Check) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -13307,7 +13307,7 @@ msgstr "Ist Ordner für Anhänge"
 #: core/doctype/doctype/doctype.json
 #: custom/doctype/customize_form/customize_form.json
 msgid "Is Calendar and Gantt"
-msgstr "ist Kalender und Gantt"
+msgstr "Hat Kalender und Gantt"
 
 #. Label of the istable (Check) field in DocType 'DocType'
 #. Label of the is_child_table (Check) field in DocType 'DocType Link'
@@ -16182,7 +16182,7 @@ msgstr "Neues E-Mail-Konto"
 
 #: public/js/frappe/form/footer/form_timeline.js:47
 msgid "New Event"
-msgstr "Neues Event"
+msgstr "Neues Ereignis"
 
 #: public/js/frappe/views/file/file_view.js:94
 msgid "New Folder"
@@ -24549,7 +24549,7 @@ msgstr "Gerade Reihen von Tasten sind leicht zu erraten"
 #. DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgid "Strip EXIF tags from uploaded images"
-msgstr "EXIF-Tags von hochgeladenen Bildern entfernen"
+msgstr "Exif-Daten von hochgeladenen Bildern entfernen"
 
 #: public/js/frappe/form/controls/password.js:90
 msgid "Strong"
@@ -26703,7 +26703,7 @@ msgstr "Zurück verfolgen"
 #: core/doctype/doctype/doctype.json
 #: custom/doctype/customize_form/customize_form.json
 msgid "Track Changes"
-msgstr "Änderungen verfolgen"
+msgstr "Änderungen protokollieren"
 
 #. Label of the track_email_status (Check) field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -26730,7 +26730,7 @@ msgstr "Schritte verfolgen"
 #: core/doctype/doctype/doctype.json
 #: custom/doctype/customize_form/customize_form.json
 msgid "Track Views"
-msgstr "Ansichten verfolgen"
+msgstr "Ansichten protokollieren"
 
 #. Description of the 'Track Email Status' (Check) field in DocType 'Email
 #. Account'
@@ -26834,7 +26834,7 @@ msgstr "Baumansicht"
 #. Description of the 'Is Tree' (Check) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgid "Tree structures are implemented using Nested Set"
-msgstr "Baumstrukturen werden mit Nested Set implementiert"
+msgstr "Baumstrukturen werden mittels Nested Set implementiert"
 
 #: public/js/frappe/views/treeview.js:20
 msgid "Tree view is not available for {0}"
@@ -27756,7 +27756,7 @@ msgstr "Benutzer Social Login"
 #. Label of the _user_tags (Data) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgid "User Tags"
-msgstr "Schlagworte zum Benutzer"
+msgstr "Benutzer-Schlagworte"
 
 #. Label of the user_type (Link) field in DocType 'User'
 #. Name of a DocType
