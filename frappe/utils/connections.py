@@ -6,8 +6,21 @@ from frappe import get_conf
 REDIS_KEYS = ("redis_cache", "redis_queue", "redis_socketio")
 
 
+<<<<<<< HEAD
 def is_open(ip, port, timeout=10):
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+=======
+def is_open(scheme, hostname, port, path, timeout=10):
+	if scheme in ["redis", "rediss", "postgres", "mariadb"]:
+		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		conn = (hostname, int(port))
+	elif scheme == "unix":
+		s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+		conn = path
+	else:
+		raise UrlSchemeNotSupported(scheme)
+
+>>>>>>> f2422ad219 (fix: allow `rediss` connection scheme)
 	s.settimeout(timeout)
 	try:
 		s.connect((ip, int(port)))
