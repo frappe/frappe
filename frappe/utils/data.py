@@ -878,6 +878,55 @@ def get_weekday(datetime: DateTimeLikeObject | None = None) -> str:
 	return weekdays[datetime.weekday()]
 
 
+def get_months() -> dict[int, str]:
+	"""Return a list of weekday names.
+	Return value:
+	    months_dict = {
+	        1: "January",
+	        2: "February",
+	        3: "March",
+	        4: "April",
+	        5: "May",
+	        6: "June",
+	        7: "July",
+	        8: "August",
+	        9: "September",
+	        10: "October",
+	        11: "November",
+	        12: "December",
+	    }
+	"""
+	return {
+		1: "January",
+		2: "February",
+		3: "March",
+		4: "April",
+		5: "May",
+		6: "June",
+		7: "July",
+		8: "August",
+		9: "September",
+		10: "October",
+		11: "November",
+		12: "December",
+	}
+
+
+def get_month(datetime: DateTimeLikeObject | None = None) -> str:
+	"""Return the month name (e.g. 'January') for the given datetime like object (datetime.date, datetime.datetime, string).
+
+	If `datetime` argument is not provided, the current month name is returned.
+	"""
+	if not datetime:
+		datetime = now_datetime()
+
+	if isinstance(datetime, str):
+		datetime = get_datetime(datetime)
+
+	months = get_months()
+	return months[datetime.month]
+
+
 def get_timespan_date_range(
 	timespan: TimespanOptions,
 ) -> tuple[datetime.datetime, datetime.datetime] | None:
