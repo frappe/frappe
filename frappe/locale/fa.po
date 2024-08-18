@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-04 09:33+0000\n"
-"PO-Revision-Date: 2024-08-14 11:12\n"
+"PO-Revision-Date: 2024-08-18 12:41\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -28455,7 +28455,7 @@ msgstr "به {0} خوش آمدید"
 
 #: public/js/frappe/ui/notifications/notifications.js:62
 msgid "What's New"
-msgstr "چه خبر"
+msgstr "تازه ها"
 
 #. Description of the 'Allow Guests to Upload Files' (Check) field in DocType
 #. 'System Settings'
