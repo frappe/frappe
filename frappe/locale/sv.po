@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-04 09:33+0000\n"
-"PO-Revision-Date: 2024-08-11 09:49\n"
+"PO-Revision-Date: 2024-08-18 12:41\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -2673,7 +2673,7 @@ msgstr "Bifoga Bild"
 #. Label of the attach_package (Attach) field in DocType 'Package Import'
 #: core/doctype/package_import/package_import.json
 msgid "Attach Package"
-msgstr "Bifoga Paket"
+msgstr "Lägg till App"
 
 #. Label of the attach_print (Check) field in DocType 'Notification'
 #: email/doctype/notification/notification.json
@@ -5126,7 +5126,7 @@ msgstr "Vanliga förnamn och efternamn är lätta att gissa."
 #: email/doctype/email_queue/email_queue.json tests/test_translate.py:35
 #: tests/test_translate.py:103
 msgid "Communication"
-msgstr "Korrespondens"
+msgstr "E-post"
 
 #. Name of a DocType
 #: core/doctype/communication_link/communication_link.json
@@ -5136,7 +5136,7 @@ msgstr "E-post Länk"
 #. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
 msgid "Communication Logs"
-msgstr "Korrespondens Logg"
+msgstr "E-post Logg"
 
 #. Label of the communication_type (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
@@ -18032,29 +18032,29 @@ msgstr "PUT"
 #: core/doctype/package_release/package_release.json
 #: core/workspace/build/build.json www/attribution.html:34
 msgid "Package"
-msgstr "Paket"
+msgstr "App"
 
 #. Name of a DocType
 #. Label of a Link in the Build Workspace
 #: core/doctype/package_import/package_import.json
 #: core/workspace/build/build.json
 msgid "Package Import"
-msgstr "Paket Import"
+msgstr "App Import"
 
 #. Label of the package_name (Data) field in DocType 'Package'
 #: core/doctype/package/package.json
 msgid "Package Name"
-msgstr "Paket Namn"
+msgstr "App Namn"
 
 #. Name of a DocType
 #: core/doctype/package_release/package_release.json
 msgid "Package Release"
-msgstr "Paket Utgivning"
+msgstr "App Utgåva"
 
 #. Label of a Card Break in the Build Workspace
 #: core/workspace/build/build.json
 msgid "Packages"
-msgstr "Paket"
+msgstr "Appar"
 
 #. Description of a Card Break in the Build Workspace
 #: core/workspace/build/build.json
@@ -18745,7 +18745,7 @@ msgstr "Bifoga bild för att ange HTML för Sidhuvud."
 
 #: core/doctype/package_import/package_import.py:39
 msgid "Please attach the package"
-msgstr "Bifoga Paket"
+msgstr "Lägg till App"
 
 #: integrations/doctype/connected_app/connected_app.js:19
 msgid "Please check OpenID Configuration URL"
