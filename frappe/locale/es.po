@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-04 09:33+0000\n"
-"PO-Revision-Date: 2024-08-14 11:12\n"
+"PO-Revision-Date: 2024-08-19 07:31\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -26,7 +26,7 @@ msgstr " a tu navegador"
 #. Condition'
 #: core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "!="
-msgstr "!="
+msgstr ""
 
 #. Description of the 'Org History Heading' (Data) field in DocType 'About Us
 #. Settings'
@@ -233,13 +233,13 @@ msgstr "; no permitido en condición"
 #. Condition'
 #: core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "<"
-msgstr "<"
+msgstr ""
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
 #. Condition'
 #: core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "<="
-msgstr "<="
+msgstr ""
 
 #: public/js/frappe/widgets/widget_dialog.js:603
 msgid "<b>{0}</b> is not a valid URL"
@@ -22021,7 +22021,7 @@ msgstr "Programador: Inactivo"
 #. Label of the scope (Data) field in DocType 'OAuth Scope'
 #: integrations/doctype/oauth_scope/oauth_scope.json
 msgid "Scope"
-msgstr ""
+msgstr "Alcance"
 
 #. Label of the sb_scope_section (Section Break) field in DocType 'Connected
 #. App'
@@ -29948,7 +29948,7 @@ msgstr "renombrado de {0} a {1}"
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "report"
-msgstr "reporte"
+msgstr "informe"
 
 #. Label of the response (HTML) field in DocType 'Custom Role'
 #: core/doctype/custom_role/custom_role.json
