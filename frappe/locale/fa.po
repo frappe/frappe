@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-04 09:33+0000\n"
-"PO-Revision-Date: 2024-08-18 12:41\n"
+"PO-Revision-Date: 2024-08-19 07:31\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -26,7 +26,7 @@ msgstr " به مرورگر شما"
 #. Condition'
 #: core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "!="
-msgstr "!="
+msgstr ""
 
 #. Description of the 'Org History Heading' (Data) field in DocType 'About Us
 #. Settings'
@@ -233,13 +233,13 @@ msgstr "; در شرایط مجاز نیست"
 #. Condition'
 #: core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "<"
-msgstr "<"
+msgstr ""
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
 #. Condition'
 #: core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "<="
-msgstr "<="
+msgstr ""
 
 #: public/js/frappe/widgets/widget_dialog.js:603
 msgid "<b>{0}</b> is not a valid URL"
@@ -1946,13 +1946,13 @@ msgstr "اجداد از"
 #. Settings'
 #: core/doctype/navbar_settings/navbar_settings.json
 msgid "Announcement Widget"
-msgstr ""
+msgstr "ویجت اعلامیه"
 
 #. Label of the announcements_section (Section Break) field in DocType 'Navbar
 #. Settings'
 #: core/doctype/navbar_settings/navbar_settings.json
 msgid "Announcements"
-msgstr ""
+msgstr "اطلاعیه ها"
 
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #: core/doctype/scheduled_job_type/scheduled_job_type.json
@@ -2392,7 +2392,7 @@ msgstr "وظیفه"
 #: core/doctype/comment/comment.json
 #: core/doctype/communication/communication.json
 msgid "Assignment Completed"
-msgstr ""
+msgstr "تخصیص انجام شد"
 
 #. Label of the sb (Section Break) field in DocType 'Assignment Rule'
 #. Label of the assignment_days (Table) field in DocType 'Assignment Rule'
@@ -9248,7 +9248,7 @@ msgstr "مثال: با تنظیم این ساعت روی 24:00، اگر کارب
 #. Rule'
 #: automation/doctype/assignment_rule/assignment_rule.json
 msgid "Example: {{ subject }}"
-msgstr "مثال: {{ موضوع }}"
+msgstr "مثال: {{ subject }}"
 
 #. Option for the 'File Type' (Select) field in DocType 'Data Export'
 #: core/doctype/data_export/data_export.json
@@ -10496,7 +10496,7 @@ msgstr "برای راهنمایی به <a href=\"https://frappeframework.com/doc
 #. DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
 msgid "For more information, <a class=\"text-muted\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document\">click here</a>."
-msgstr "برای اطلاعات بیشتر، <a class=\"text-muted\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document\">اینجا را کلیک کنید< /a>."
+msgstr "برای اطلاعات بیشتر، <a class=\"text-muted\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document\">اینجا را کلیک کنید</a>."
 
 #: integrations/doctype/google_settings/google_settings.js:7
 msgid "For more information, {0}."
@@ -11301,12 +11301,12 @@ msgstr "سر"
 #. Option for the 'Time Format' (Select) field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgid "HH:mm"
-msgstr "H:mm"
+msgstr "HH:mm"
 
 #. Option for the 'Time Format' (Select) field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgid "HH:mm:ss"
-msgstr "H:mm:ss"
+msgstr "HH:mm:ss"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -11439,7 +11439,7 @@ msgstr "مجموعه HTML سرصفحه از پیوست {0}"
 #. Label of the header_script (Code) field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
 msgid "Header Script"
-msgstr ""
+msgstr "اسکریپت سرصفحه"
 
 #. Label of the sb2 (Section Break) field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
@@ -11705,7 +11705,7 @@ msgstr "محیط کار را مخفی کنید"
 #. Permission'
 #: core/doctype/user_permission/user_permission.json
 msgid "Hide descendant records of <b>For Value</b>."
-msgstr ""
+msgstr "سوابق نسل <b>برای ارزش</b> را پنهان کنید."
 
 #: public/js/frappe/form/layout.js:270
 msgid "Hide details"
@@ -14278,7 +14278,7 @@ msgstr "لینک منقضی شده است"
 #. Settings'
 #: core/doctype/system_settings/system_settings.json
 msgid "Link Field Results Limit"
-msgstr ""
+msgstr "محدودیت نتایج فیلد پیوند"
 
 #. Label of the link_fieldname (Data) field in DocType 'DocType Link'
 #: core/doctype/doctype_link/doctype_link.json
@@ -15065,7 +15065,8 @@ msgstr "حداکثر محدودیت پیوست {0} رسیده است."
 #: social/doctype/energy_point_rule/energy_point_rule.json
 msgid "Maximum points allowed after multiplying points with the multiplier value\n"
 "(Note: For no limit leave this field empty or set 0)"
-msgstr ""
+msgstr "حداکثر امتیاز مجاز پس از ضرب امتیاز با مقدار ضریب\n"
+"(توجه: بدون محدودیت این قسمت را خالی بگذارید یا 0 را تنظیم کنید)"
 
 #: model/rename_doc.py:673
 msgid "Maximum {0} rows allowed"
@@ -18024,7 +18025,7 @@ msgstr "انتخابگر عنصر والد"
 #. Label of the parent_fieldname (Select) field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
 msgid "Parent Field"
-msgstr ""
+msgstr "فیلد والد"
 
 #. Label of the nsm_parent_field (Data) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json core/doctype/doctype/doctype.py:916
@@ -19318,7 +19319,7 @@ msgstr "چاپ پنهان"
 #: custom/doctype/custom_field/custom_field.json
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgid "Print Hide If No Value"
-msgstr ""
+msgstr "اگر مقدار نداشت در پرینت نمایش داده نشود"
 
 #: public/js/frappe/views/communication.js:156
 msgid "Print Language"
@@ -20478,7 +20479,7 @@ msgstr "URL سرور رله وجود ندارد"
 #. Notification Settings'
 #: integrations/doctype/push_notification_settings/push_notification_settings.json
 msgid "Relay Settings"
-msgstr ""
+msgstr "تنظیمات رله"
 
 #. Group in Package's connections
 #: core/doctype/package/package.json
@@ -21518,7 +21519,7 @@ msgstr "تغییر مسیرها"
 #. Description of the 'Home Page' (Data) field in DocType 'Role'
 #: core/doctype/role/role.json
 msgid "Route: Example \"/app\""
-msgstr ""
+msgstr "مسیر: مثال \"/app\""
 
 #: model/base_document.py:739 model/base_document.py:780 model/document.py:626
 msgid "Row"
@@ -23423,7 +23424,7 @@ msgstr "نمایش فعالیت بیشتر"
 #. Label of the show_failed_logs (Check) field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
 msgid "Show Only Failed Logs"
-msgstr ""
+msgstr "نمایش فقط گزارش های ناموفق"
 
 #. Label of the show_percentage_stats (Check) field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
@@ -24125,7 +24126,7 @@ msgstr "فرمت جدید را شروع کنید"
 #. Option for the 'SSL/TLS Mode' (Select) field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgid "StartTLS"
-msgstr ""
+msgstr "StartTLS"
 
 #. Option for the 'Status' (Select) field in DocType 'Prepared Report'
 #: core/doctype/prepared_report/prepared_report.json
@@ -26166,7 +26167,7 @@ msgstr "به و CC"
 #. Email Report'
 #: email/doctype/auto_email_report/auto_email_report.json
 msgid "To begin the date range at the start of the chosen period. For example, if 'Year' is selected as the period, the report will start from January 1st of the current year."
-msgstr ""
+msgstr "برای شروع محدوده تاریخ در شروع دوره انتخابی. به عنوان مثال، اگر \"سال\" به عنوان دوره انتخاب شود، گزارش از اول ژانویه سال جاری شروع می شود."
 
 #: automation/doctype/auto_repeat/auto_repeat.js:35
 msgid "To configure Auto Repeat, enable \"Allow Auto Repeat\" from {0}."
@@ -26435,7 +26436,7 @@ msgstr "کل زمان کار"
 #. Account'
 #: email/doctype/email_account/email_account.json
 msgid "Total number of emails to sync in initial sync process "
-msgstr ""
+msgstr "تعداد کل ایمیل هایی که در فرآیند همگام سازی اولیه باید همگام شوند "
 
 #: public/js/print_format_builder/ConfigureColumns.vue:12
 msgid "Total:"
@@ -26499,7 +26500,9 @@ msgstr "نماهای آهنگ"
 msgid "Track if your email has been opened by the recipient.\n"
 "<br>\n"
 "Note: If you're sending to multiple recipients, even if 1 recipient reads the email, it'll be considered \"Opened\""
-msgstr ""
+msgstr "پیگیری کنید که آیا ایمیل شما توسط گیرنده باز شده است.\n"
+"<br>\n"
+"توجه: اگر برای چندین گیرنده ارسال می کنید، حتی اگر 1 گیرنده ایمیل را بخواند، \"باز شده\" در نظر گرفته می شود"
 
 #. Description of a DocType
 #: automation/doctype/milestone_tracker/milestone_tracker.json
@@ -27175,7 +27178,7 @@ msgstr "در حال آپلود در Google Drive"
 #: desk/doctype/onboarding_step/onboarding_step.json
 #, python-format
 msgid "Use % for any non empty value."
-msgstr ""
+msgstr "از % برای هر مقدار غیر خالی استفاده کنید."
 
 #. Label of the ascii_encode_password (Check) field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -27186,7 +27189,7 @@ msgstr "از رمزگذاری ASCII برای رمز عبور استفاده کن
 #. Report'
 #: email/doctype/auto_email_report/auto_email_report.json
 msgid "Use First Day of Period"
-msgstr ""
+msgstr "از اولین روز دوره استفاده کنید"
 
 #. Label of the use_html (Check) field in DocType 'Email Template'
 #: email/doctype/email_template/email_template.json
@@ -28467,7 +28470,7 @@ msgstr "وقتی فعال باشد، به مهمانان اجازه می‌ده�
 #. 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgid "When sending document using email, store the PDF on Communication. Warning: This can increase your storage usage."
-msgstr ""
+msgstr "هنگام ارسال سند با استفاده از ایمیل، PDF را در Communication ذخیره کنید. هشدار: این می تواند میزان استفاده از فضای ذخیره سازی شما را افزایش دهد."
 
 #. Description of the 'Force Web Capture Mode for Uploads' (Check) field in
 #. DocType 'System Settings'
@@ -29438,7 +29441,7 @@ msgstr "after_insert"
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "amend"
-msgstr ""
+msgstr "اصلاح"
 
 #: public/js/frappe/utils/utils.js:396 utils/data.py:1500
 msgid "and"
@@ -29475,7 +29478,7 @@ msgstr "تقویم"
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "cancel"
-msgstr ""
+msgstr "لغو"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
@@ -29494,7 +29497,7 @@ msgstr "نظر داد"
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "create"
-msgstr ""
+msgstr "ایجاد كردن"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
@@ -29545,7 +29548,7 @@ msgstr "به تعویق افتاد"
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "delete"
-msgstr ""
+msgstr "حذف"
 
 #: public/js/frappe/ui/sort_selector.html:5
 #: public/js/frappe/ui/sort_selector.js:48
@@ -29617,7 +29620,7 @@ msgstr "خالی"
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "export"
-msgstr ""
+msgstr "برون‌بُرد"
 
 #. Option for the 'Social Link Type' (Select) field in DocType 'Social Link
 #. Settings'
