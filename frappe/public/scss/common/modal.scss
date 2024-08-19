@@ -213,6 +213,7 @@ body.modal-open[style^="padding-right"] {
 
 .msgprint {
 	word-wrap: break-word;
+	padding: var(--padding-sm) 0;
 
 	pre {
 		text-align: left;

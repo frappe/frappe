@@ -3,7 +3,7 @@
 	border-radius: var(--border-radius-md);
 	color: var(--text-color);
 	min-height: 150px;
-	background-color: var(--navbar-bg);
+	background-color: var(--subtle-accent);
 }
 
 .form-grid.error {
@@ -116,7 +116,7 @@
 
 .grid-empty {
 	height: 110px;
-	background-color: var(--navbar-bg);
+	background-color: var(--subtle-accent);
 	display: flex;
 	vertical-align: middle;
 }
@@ -203,7 +203,7 @@
 }
 
 .grid-body {
-	background-color: var(--navbar-bg);
+	background-color: var(--subtle-accent);
 	border-bottom-left-radius: var(--border-radius);
 	border-bottom-right-radius: var(--border-radius);
 	margin-bottom: -1px; // double bottom border

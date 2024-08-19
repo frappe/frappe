@@ -178,10 +178,6 @@ class QuickListDialog extends WidgetDialog {
 				},
 			},
 			{
-				fieldtype: "Column Break",
-				fieldname: "column_break_4",
-			},
-			{
 				fieldtype: "Data",
 				fieldname: "label",
 				label: __("Label"),
@@ -309,10 +305,6 @@ class CardDialog extends WidgetDialog {
 						label: "Icon",
 					},
 					{
-						fieldname: "column_break_7",
-						fieldtype: "Column Break",
-					},
-					{
 						fieldname: "dependencies",
 						fieldtype: "Data",
 						label: __("Dependencies"),
@@ -399,6 +391,7 @@ class ShortcutDialog extends WidgetDialog {
 				label: __("Type"),
 				reqd: 1,
 				options: "DocType\nReport\nPage\nDashboard\nURL",
+				initial_value: "DocType",
 				onchange: () => {
 					if (this.dialog.get_value("type") == "DocType") {
 						this.dialog.fields_dict.link_to.get_query = () => {
@@ -414,15 +407,6 @@ class ShortcutDialog extends WidgetDialog {
 						this.dialog.fields_dict.link_to.get_query = null;
 					}
 				},
-			},
-			{
-				fieldtype: "Data",
-				fieldname: "label",
-				label: __("Label"),
-			},
-			{
-				fieldtype: "Column Break",
-				fieldname: "column_break_4",
 			},
 			{
 				fieldtype: "Dynamic Link",
@@ -462,6 +446,11 @@ class ShortcutDialog extends WidgetDialog {
 				},
 				depends_on: (s) => s.type != "URL",
 				mandatory_depends_on: (s) => s.type != "URL",
+			},
+			{
+				fieldtype: "Data",
+				fieldname: "label",
+				label: __("Label"),
 			},
 			{
 				fieldtype: "Data",
@@ -556,10 +545,6 @@ class ShortcutDialog extends WidgetDialog {
 						.find(".color-box")
 						.get(0).style.backgroundColor = `var(--text-on-${color})`;
 				},
-			},
-			{
-				fieldtype: "Column Break",
-				fieldname: "column_break_3",
 			},
 			{
 				fieldtype: "Data",
@@ -696,10 +681,6 @@ class NumberCardDialog extends WidgetDialog {
 				label: __("Color"),
 				fieldname: "color",
 				fieldtype: "Color",
-			},
-			{
-				fieldtype: "Column Break",
-				fieldname: "cb_1",
 			},
 			{
 				label: __("Function"),

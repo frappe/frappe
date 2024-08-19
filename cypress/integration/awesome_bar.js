@@ -34,7 +34,7 @@ context("Awesome Bar", () => {
 		cy.wait(150); // Wait a bit before hitting enter.
 		cy.get("@awesome_bar").type("{enter}");
 		cy.get(".title-text").should("contain", "To Do");
-		cy.wait(200); // Wait a bit longer before checking the filter.
+		cy.wait(400); // Wait a bit longer before checking the filter.
 		cy.get('[data-original-title="ID"] > input').should("have.value", "%test%");
 
 		// filter preserved, now finds something else

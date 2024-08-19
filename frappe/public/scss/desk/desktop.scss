@@ -271,7 +271,7 @@ body {
 			justify-content: center;
 			align-items: center;
 			border-radius: 7px;
-			background-color: var(--navbar-bg);
+			background-color: var(--subtle-accent);
 		}
 
 		.report-summary {
@@ -999,7 +999,7 @@ body {
 			.layout-main-section {
 				border: 1px solid var(--border-color);
 				border-top: 0px;
-				padding: var(--padding-md);
+				padding: var(--padding-sm) var(--padding-md);
 				margin-bottom: var(--margin-sm);
 
 				&.edit-mode {
@@ -1035,6 +1035,7 @@ body {
 		height: 30px;
 		display: flex;
 		flex-direction: row-reverse;
+		margin-bottom: var(--margin-xs);
 	}
 
 	.block-menu-item-icon svg {
@@ -1186,7 +1187,7 @@ body {
 	}
 
 	.codex-editor {
-		min-height: 630px;
+		min-height: calc(100vh - var(--navbar-height) - var(--page-head-height));
 
 		.codex-editor__redactor {
 			display: flex;
@@ -1366,6 +1367,8 @@ body {
 
 							.widget-head {
 								justify-content: space-between;
+								height: 100%;
+								padding: 0 10px;
 							}
 
 							&:hover {
@@ -1377,6 +1380,7 @@ body {
 								align-items: inherit;
 								color: var(--text-muted);
 								border: 1px dashed var(--gray-400);
+								margin: 0px;
 								cursor: pointer;
 
 								.widget-control > * {
@@ -1390,7 +1394,10 @@ body {
 						}
 
 						&.spacer {
-							height: 18px !important;
+							border-bottom: 1px solid var(--border-color);
+							margin: 0px -15px;
+							height: 0px;
+							padding: 0px;
 						}
 
 						&.ce-paragraph {
