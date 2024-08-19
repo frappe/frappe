@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-04 09:33+0000\n"
-"PO-Revision-Date: 2024-08-10 09:04\n"
+"PO-Revision-Date: 2024-08-19 07:31\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -26,7 +26,7 @@ msgstr "à votre navigateur"
 #. Condition'
 #: core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "!="
-msgstr "!="
+msgstr ""
 
 #. Description of the 'Org History Heading' (Data) field in DocType 'About Us
 #. Settings'
@@ -248,7 +248,7 @@ msgstr ""
 #. Content of the 'Help' (HTML) field in DocType 'Property Setter'
 #: custom/doctype/property_setter/property_setter.json
 msgid "<div class=\"alert\">Please don't update it as it can mess up your form. Use the Customize Form View and Custom Fields to set properties!</div>"
-msgstr ""
+msgstr "<div class=\"alert\">Veuillez ne pas le mettre à jour car cela pourrait gâcher votre formulaire. Utilisez la vue Personnaliser Le Formulaire et les Champs Personnalisés pour définir les propriétés !</div>"
 
 #. Content of the 'Help HTML' (HTML) field in DocType 'Document Naming
 #. Settings'
@@ -512,7 +512,18 @@ msgid "<h4>Default Template</h4>\n"
 "{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}\n"
 "{% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}\n"
 "</code></pre>"
-msgstr ""
+msgstr "<h4>Modèle par défaut</h4>\n"
+"<p>Utilisez le <a href=\"http://jinja.pocoo.org/docs/templates/\">modèle Jinja</a> et tous les champs de l'adresse (y compris les champs personnalisés, le cas échéant) seront disponibles.</p>\n"
+"<pre><code>{{ address_line1 }}&lt;br&gt;\n"
+"{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}\n"
+"{{ city }}&lt;br&gt;\n"
+"{% if state %}{{ state }}&lt;br&gt;{% endif -%}\n"
+"{% if pincode %} PIN :  {{ pincode }}&lt;br&gt;{% endif -%}\n"
+"{{ country }}&lt;br&gt;\n"
+"{% if phone %}Phone : {{ phone }}&lt;br&gt;{% endif -%}\n"
+"{% if fax %}Fax : {{ fax }}&lt;br&gt;{% endif -%}\n"
+"{% if email_id %}Email : {{ email_id }}&lt;br&gt;{% endif -%}\n"
+"</code></pre>"
 
 #. Content of the 'Email Reply Help' (HTML) field in DocType 'Email Template'
 #: email/doctype/email_template/email_template.json
@@ -532,7 +543,7 @@ msgstr ""
 #. Content of the 'html_5' (HTML) field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
 msgid "<h5 class=\"text-muted uppercase\">Or</h5>"
-msgstr ""
+msgstr "<h5 class=\"text-muted uppercase\">Ou</h5>"
 
 #. Content of the 'Message Examples' (HTML) field in DocType 'Notification'
 #: email/doctype/notification/notification.json
@@ -703,7 +714,7 @@ msgstr "Un mot unique est facile à deviner."
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgid "A0"
-msgstr ""
+msgstr "A0"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
@@ -723,7 +734,7 @@ msgstr ""
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgid "A4"
-msgstr ""
+msgstr "A4"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
@@ -1081,7 +1092,7 @@ msgstr "Ajouter une pièce jointe"
 #. Label of the add_background_image (Check) field in DocType 'Web Page Block'
 #: website/doctype/web_page_block/web_page_block.json
 msgid "Add Background Image"
-msgstr ""
+msgstr "Ajouter une image de fond"
 
 #. Title of an Onboarding Step
 #: website/onboarding_step/add_blog_category/add_blog_category.json
@@ -1091,12 +1102,12 @@ msgstr ""
 #. Label of the add_border_at_bottom (Check) field in DocType 'Web Page Block'
 #: website/doctype/web_page_block/web_page_block.json
 msgid "Add Border at Bottom"
-msgstr ""
+msgstr "Ajouter une bordure en bas"
 
 #. Label of the add_border_at_top (Check) field in DocType 'Web Page Block'
 #: website/doctype/web_page_block/web_page_block.json
 msgid "Add Border at Top"
-msgstr ""
+msgstr "Ajouter une bordure en haut"
 
 #: desk/doctype/number_card/number_card.js:36
 msgid "Add Card to Dashboard"
@@ -1171,7 +1182,7 @@ msgstr "Ajouter des participants"
 #. Label of the add_query_parameters (Check) field in DocType 'Email Group'
 #: email/doctype/email_group/email_group.json
 msgid "Add Query Parameters"
-msgstr ""
+msgstr "Ajouter des paramètres de requête"
 
 #: public/js/frappe/form/sidebar/review.js:45
 msgid "Add Review"
@@ -1194,12 +1205,12 @@ msgstr "Ajouter une Signature"
 #. Label of the add_bottom_padding (Check) field in DocType 'Web Page Block'
 #: website/doctype/web_page_block/web_page_block.json
 msgid "Add Space at Bottom"
-msgstr ""
+msgstr "Ajouter une bordure en bas"
 
 #. Label of the add_top_padding (Check) field in DocType 'Web Page Block'
 #: website/doctype/web_page_block/web_page_block.json
 msgid "Add Space at Top"
-msgstr ""
+msgstr "Ajouter de l'espace en haut"
 
 #: email/doctype/email_group/email_group.js:38
 #: email/doctype/email_group/email_group.js:59
@@ -1734,7 +1745,7 @@ msgstr "Autoriser les Invités à Voir"
 #. Label of the allow_guest_to_comment (Check) field in DocType 'Blog Settings'
 #: website/doctype/blog_settings/blog_settings.json
 msgid "Allow Guest to comment"
-msgstr ""
+msgstr "Autoriser les invités à commenter"
 
 #. Label of the allow_guests_to_upload_files (Check) field in DocType 'System
 #. Settings'
@@ -2266,7 +2277,7 @@ msgstr "Appliquer à tous les types de documents"
 #. Label of the apply_user_permission_on (Link) field in DocType 'User Type'
 #: core/doctype/user_type/user_type.json
 msgid "Apply User Permission On"
-msgstr ""
+msgstr "Appliquer l'autorisation de l'utilisateur sur"
 
 #. Description of the 'If user is the owner' (Check) field in DocType 'Custom
 #. DocPerm'
@@ -2409,7 +2420,7 @@ msgstr ""
 #. Option for the 'Font' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgid "Arial"
-msgstr ""
+msgstr "Arial"
 
 #: core/page/permission_manager/permission_manager_help.html:11
 msgid "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User."
@@ -2907,17 +2918,17 @@ msgstr ""
 #. Label of the follow_liked_documents (Check) field in DocType 'User'
 #: core/doctype/user/user.json
 msgid "Auto follow documents that you Like"
-msgstr ""
+msgstr "Suivre automatiquement les documents que vous aimez"
 
 #. Label of the follow_commented_documents (Check) field in DocType 'User'
 #: core/doctype/user/user.json
 msgid "Auto follow documents that you comment on"
-msgstr ""
+msgstr "Suivre automatiquement les documents que vous commentez"
 
 #. Label of the follow_created_documents (Check) field in DocType 'User'
 #: core/doctype/user/user.json
 msgid "Auto follow documents that you create"
-msgstr ""
+msgstr "Suivi automatique des documents que vous créez"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -2926,7 +2937,7 @@ msgstr ""
 #: custom/doctype/custom_field/custom_field.json
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgid "Autocomplete"
-msgstr ""
+msgstr "Auto-complétion"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -2942,7 +2953,7 @@ msgstr ""
 #. 'Communication'
 #: core/doctype/communication/communication.json
 msgid "Automated Message"
-msgstr ""
+msgstr "Message automatique"
 
 #. Option for the 'Desk Theme' (Select) field in DocType 'User'
 #: core/doctype/user/user.json public/js/frappe/ui/theme_switcher.js:69
@@ -2965,7 +2976,7 @@ msgstr ""
 #. Label of the auto_account_deletion (Int) field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgid "Automatically delete account within (hours)"
-msgstr ""
+msgstr "Supprimer automatiquement le compte dans (heures)"
 
 #. Label of a Card Break in the Tools Workspace
 #: automation/workspace/tools/tools.json
@@ -21241,7 +21252,7 @@ msgstr "Réponse"
 #. Label of the response_html (Code) field in DocType 'Email Template'
 #: email/doctype/email_template/email_template.json
 msgid "Response "
-msgstr ""
+msgstr "Réponse "
 
 #. Label of the response_type (Select) field in DocType 'OAuth Client'
 #: integrations/doctype/oauth_client/oauth_client.json
@@ -27802,7 +27813,7 @@ msgstr "Utilization"
 #. Label of the utilization_percent (Percent) field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
 msgid "Utilization %"
-msgstr ""
+msgstr "Utilization %"
 
 #. Option for the 'Validity' (Select) field in DocType 'OAuth Authorization
 #. Code'
@@ -29597,12 +29608,12 @@ msgstr "calendrier"
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "cancel"
-msgstr ""
+msgstr "annuler"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgid "canceled"
-msgstr ""
+msgstr "annulé"
 
 #: templates/includes/list/filters.html:19
 msgid "clear"
@@ -29616,7 +29627,7 @@ msgstr ""
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "create"
-msgstr ""
+msgstr "créer"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
@@ -29656,7 +29667,7 @@ msgstr "jj/mm/aaaa"
 #. Option for the 'Queue Type(s)' (Select) field in DocType 'RQ Worker'
 #: core/doctype/rq_job/rq_job.json core/doctype/rq_worker/rq_worker.json
 msgid "default"
-msgstr ""
+msgstr "par Défaut"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
@@ -29667,7 +29678,7 @@ msgstr ""
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "delete"
-msgstr ""
+msgstr "supprimer"
 
 #: public/js/frappe/ui/sort_selector.html:5
 #: public/js/frappe/ui/sort_selector.js:48
@@ -29739,7 +29750,7 @@ msgstr "vide"
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "export"
-msgstr ""
+msgstr "exporter"
 
 #. Option for the 'Social Link Type' (Select) field in DocType 'Social Link
 #. Settings'
@@ -29750,7 +29761,7 @@ msgstr "Facebook"
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgid "failed"
-msgstr ""
+msgstr "échoué"
 
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
@@ -29761,7 +29772,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgid "finished"
-msgstr ""
+msgstr "fini"
 
 #: public/js/frappe/utils/energy_point_utils.js:61
 msgid "gained by {0} via automatic rule {1}"
@@ -29804,7 +29815,7 @@ msgstr "icône"
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "import"
-msgstr ""
+msgstr "importer"
 
 #. Description of the 'Read Time' (Int) field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
@@ -30014,13 +30025,13 @@ msgstr "rapport-requête"
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgid "queued"
-msgstr ""
+msgstr "dans la file d'attente"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "read"
-msgstr ""
+msgstr "lire"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
@@ -30039,7 +30050,7 @@ msgstr "renommé de {0} à {1}"
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "report"
-msgstr ""
+msgstr "rapport"
 
 #. Label of the response (HTML) field in DocType 'Custom Role'
 #: core/doctype/custom_role/custom_role.json
@@ -30064,13 +30075,13 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgid "scheduled"
-msgstr ""
+msgstr "prévu"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "select"
-msgstr ""
+msgstr "sélectionner"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
@@ -30103,7 +30114,7 @@ msgstr "depuis hier"
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgid "started"
-msgstr ""
+msgstr "commencé"
 
 #: desk/page/setup_wizard/setup_wizard.js:194
 msgid "starting the setup..."
@@ -30131,7 +30142,7 @@ msgstr ""
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "submit"
-msgstr ""
+msgstr "valider"
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:173
 msgid "tag name..., e.g. #tag"
@@ -30226,7 +30237,7 @@ msgstr ""
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "write"
-msgstr ""
+msgstr "écrire"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
