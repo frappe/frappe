@@ -340,6 +340,8 @@ def attach_files_to_document(doc: "Document", event) -> None:
 			},
 		)
 
+		is_private = cint(value.startswith("/private"))
+
 		if unattached_file:
 			frappe.db.set_value(
 				"File",
@@ -348,7 +350,7 @@ def attach_files_to_document(doc: "Document", event) -> None:
 					"attached_to_name": doc.name,
 					"attached_to_doctype": doc.doctype,
 					"attached_to_field": df.fieldname,
-					"is_private": cint(value.startswith("/private")),
+					"is_private": is_private,
 				},
 			)
 			continue
@@ -360,6 +362,7 @@ def attach_files_to_document(doc: "Document", event) -> None:
 			attached_to_doctype=doc.doctype,
 			attached_to_field=df.fieldname,
 			folder="Home/Attachments",
+			is_private=is_private,
 		)
 		try:
 			file.insert(ignore_permissions=True)
