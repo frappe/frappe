@@ -400,7 +400,7 @@
   },
   {
    "fieldname": "email_signature",
-   "fieldtype": "Small Text",
+   "fieldtype": "Text Editor",
    "label": "Email Signature",
    "no_copy": 1
   },
@@ -747,8 +747,7 @@
    "description": "Redirect to the selected app after login",
    "fieldname": "default_app",
    "fieldtype": "Select",
-   "label": "Default App",
-   "options": ""
+   "label": "Default App"
   }
  ],
  "icon": "fa fa-user",
@@ -811,7 +810,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2024-08-12 15:23:38.996646",
+ "modified": "2024-08-13 14:48:15.168516",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

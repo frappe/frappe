@@ -83,12 +83,12 @@ class SystemSettings(Document):
 		]
 		otp_issuer_name: DF.Data | None
 		password_reset_limit: DF.Int
-		rate_limit_email_link_login: DF.Int
 		reset_password_link_expiry_duration: DF.Duration | None
 		reset_password_template: DF.Link | None
 		rounding_method: DF.Literal["Banker's Rounding (legacy)", "Banker's Rounding", "Commercial Rounding"]
 		session_expiry: DF.Data | None
 		setup_complete: DF.Check
+		sidebar_position: DF.Literal["Left", "Right"]
 		store_attached_pdf_document: DF.Check
 		strip_exif_metadata_from_uploaded_images: DF.Check
 		time_format: DF.Literal["HH:mm:ss", "HH:mm"]

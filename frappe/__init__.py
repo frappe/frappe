@@ -652,6 +652,10 @@ def msgprint(
 	_raise_exception()
 
 
+def toast(message: str, indicator: Literal["blue", "green", "orange", "red", "yellow"] | None = None):
+	frappe.msgprint(message, indicator=indicator, alert=True)
+
+
 def clear_messages():
 	local.message_log = []
 

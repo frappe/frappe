@@ -7,7 +7,7 @@ no_cache: 1
 endblock -%} {%- block footer -%} {%- endblock -%} {% block content %}
 <div class="container">
 	<div class="apps-container">
-		<div class="title">{{ _('Select the app to continue') }}</div>
+		<div class="title">{{ _('Select an app to continue') }}</div>
 		{% set appsCount = apps|length if apps|length <= 6 else 6 %}
 		<div class="apps" style="grid-template-columns: repeat({{ appsCount }}, 1fr);">
 			{% for app in apps %}
@@ -16,17 +16,17 @@ endblock -%} {%- block footer -%} {%- endblock -%} {% block content %}
 				<div class="app-title">{{ app.title }}</div>
 				<div
 					app-name="{{ app.name }}"
-					class="set-default btn btn-xs {{ '' if app.is_default else 'hidden'}}"
-					title="set app as default"
+					class="set-default btn btn-sm {{ '' if app.is_default else 'hidden'}}"
+					title="Set as default"
 				>
-					<svg class="icon icon-sm">
+					<svg class="icon icon-md">
 						<use href="#icon-solid-success"></use>
 					</svg>
 				</div>
 			</a>
 			{% endfor %}
 		</div>
-		<a href="/api/method/web_logout" class="logout-btn btn btn-default">
+		<button class="logout-btn btn btn-default">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				width="16"
@@ -44,7 +44,7 @@ endblock -%} {%- block footer -%} {%- endblock -%} {% block content %}
 				<line x1="21" x2="9" y1="12" y2="12" />
 			</svg>
 			<span> {{ _('Logout') }} </span>
-		</a>
+		</button>
 	</div>
 </div>
 {% endblock %}
@@ -59,6 +59,14 @@ endblock -%} {%- block footer -%} {%- endblock -%} {% block content %}
 			args: { app_name: appName },
 			callback: function() {
 				location.reload();
+			}
+		});
+	});
+	$('.logout-btn').on('click', function() {
+		frappe.call({
+			method: 'logout',
+			callback: function() {
+				window.location.href = '/login';
 			}
 		});
 	});

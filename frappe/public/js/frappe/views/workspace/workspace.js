@@ -54,7 +54,11 @@ frappe.views.Workspace = class Workspace {
 	prepare_container() {
 		let list_sidebar = $(`
 			<div class="list-sidebar overlay-sidebar hidden-xs hidden-sm">
-				<div class="desk-sidebar list-unstyled sidebar-menu"></div>
+				<div class="desk-sidebar list-unstyled sidebar-menu">
+				</div>
+				<div class="mb-4">
+					<a class="edit-sidebar-link text-extra-muted">Edit sidebar</a>
+				</div>
 			</div>
 		`).appendTo(this.wrapper.find(".layout-side-section"));
 		this.sidebar = list_sidebar.find(".desk-sidebar");
@@ -95,6 +99,10 @@ frappe.views.Workspace = class Workspace {
 			this.make_sidebar();
 			reload && this.show();
 		}
+
+		this.wrapper.find(".layout-side-section .edit-sidebar-link").on("click", () => {
+			frappe.quick_edit("Workspace Settings");
+		});
 	}
 
 	prepare_new_and_edit() {
