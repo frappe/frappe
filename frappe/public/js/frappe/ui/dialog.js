@@ -13,10 +13,8 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.display = false;
 		this.is_dialog = true;
 
-		$.extend(this, { animate: true, size: null, auto_make: true }, opts);
-		if (this.auto_make) {
-			this.make();
-		}
+		$.extend(this, { animate: true, size: null }, opts);
+		this.make();
 	}
 
 	make() {
@@ -317,8 +315,6 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 
 		action && action_button.click(action);
 	}
-
-	add_custom_button() {}
 };
 
 frappe.ui.hide_open_dialog = () => {
