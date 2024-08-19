@@ -160,20 +160,6 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		return this.$wrapper.find(".modal-header .btn-modal-minimize");
 	}
 
-	set_alert(text, alert_class = "info") {
-		this.clear_alert();
-		this.$alert = $(`<div class="alert alert-${alert_class}">${text}</div>`).prependTo(
-			this.body
-		);
-		this.$message.text(text);
-	}
-
-	clear_alert() {
-		if (this.$alert) {
-			this.$alert.remove();
-		}
-	}
-
 	set_message(text) {
 		this.$message.removeClass("hide");
 		this.$body.addClass("hide");
