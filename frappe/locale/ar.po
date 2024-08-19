@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-04 09:33+0000\n"
-"PO-Revision-Date: 2024-08-10 09:04\n"
+"PO-Revision-Date: 2024-08-19 07:31\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Arabic\n"
 "MIME-Version: 1.0\n"
@@ -615,7 +615,7 @@ msgstr ""
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgid "A4"
-msgstr ""
+msgstr "A4"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
@@ -650,7 +650,7 @@ msgstr "جميع"
 #. Option for the 'Script Type' (Select) field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
 msgid "API"
-msgstr ""
+msgstr "واجهة برمجة التطبيقات"
 
 #. Label of the api_access (Section Break) field in DocType 'User'
 #. Label of the api_access_section (Section Break) field in DocType 'S3 Backup
@@ -21130,7 +21130,7 @@ msgstr "الإستجابة"
 #. Label of the response_html (Code) field in DocType 'Email Template'
 #: email/doctype/email_template/email_template.json
 msgid "Response "
-msgstr ""
+msgstr "الإستجابة "
 
 #. Label of the response_type (Select) field in DocType 'OAuth Client'
 #: integrations/doctype/oauth_client/oauth_client.json
@@ -23614,7 +23614,7 @@ msgstr ""
 #. Label of the form_sidebar (Check) field in DocType 'Role'
 #: core/doctype/role/role.json
 msgid "Sidebar"
-msgstr ""
+msgstr "الشريط الجانبي"
 
 #. Label of the sidebar_items (Table) field in DocType 'Website Sidebar'
 #: website/doctype/website_sidebar/website_sidebar.json
@@ -29447,7 +29447,7 @@ msgstr "أدخل_بعد"
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "amend"
-msgstr ""
+msgstr "تعديل"
 
 #: public/js/frappe/utils/utils.js:396 utils/data.py:1500
 msgid "and"
@@ -29489,7 +29489,7 @@ msgstr "إلغاء"
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgid "canceled"
-msgstr ""
+msgstr "ألغيت"
 
 #: templates/includes/list/filters.html:19
 msgid "clear"
@@ -29543,7 +29543,7 @@ msgstr "اليوم / الشهر / السنة"
 #. Option for the 'Queue Type(s)' (Select) field in DocType 'RQ Worker'
 #: core/doctype/rq_job/rq_job.json core/doctype/rq_worker/rq_worker.json
 msgid "default"
-msgstr ""
+msgstr "الافتراضي"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
@@ -29637,7 +29637,7 @@ msgstr "موقع التواصل الاجتماعي الفيسبوك"
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgid "failed"
-msgstr ""
+msgstr "باءت بالفشل"
 
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
@@ -29648,7 +29648,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgid "finished"
-msgstr ""
+msgstr "تم الانتهاء من"
 
 #: public/js/frappe/utils/energy_point_utils.js:61
 msgid "gained by {0} via automatic rule {1}"
@@ -29901,13 +29901,13 @@ msgstr "استعلام تقرير"
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgid "queued"
-msgstr ""
+msgstr "قائمة الانتظار"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "read"
-msgstr ""
+msgstr "قرأ"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
@@ -29926,7 +29926,7 @@ msgstr "إعادة تسمية من {0} إلى {1}"
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "report"
-msgstr ""
+msgstr "أبلغ عن"
 
 #. Label of the response (HTML) field in DocType 'Custom Role'
 #: core/doctype/custom_role/custom_role.json
@@ -29951,13 +29951,13 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgid "scheduled"
-msgstr ""
+msgstr "من المقرر"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "select"
-msgstr ""
+msgstr "حدد"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
@@ -29990,7 +29990,7 @@ msgstr "منذ البارحة"
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgid "started"
-msgstr ""
+msgstr "بدأت"
 
 #: desk/page/setup_wizard/setup_wizard.js:194
 msgid "starting the setup..."
@@ -30018,7 +30018,7 @@ msgstr ""
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "submit"
-msgstr ""
+msgstr "تسجيل"
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:173
 msgid "tag name..., e.g. #tag"
@@ -30113,7 +30113,7 @@ msgstr ""
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "write"
-msgstr ""
+msgstr "الكتابة"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
