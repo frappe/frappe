@@ -23,6 +23,4 @@ class DataImportLog(Document):
 		success: DF.Check
 	# end: auto-generated types
 
-	no_feed_on_delete = True
-
 	pass
