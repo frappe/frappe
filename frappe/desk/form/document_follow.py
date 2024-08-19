@@ -48,7 +48,12 @@ def follow_document(doctype, doc_name, user):
 		return
 
 	if not frappe.db.get_value("User", user, "document_follow_notify", ignore=True, cache=True):
+<<<<<<< HEAD
 		return
+=======
+		frappe.toast(_("Document follow is not enabled for this user."))
+		return False
+>>>>>>> 6c5a099c1e (fix: translatable strings (#27443))
 
 	if not is_document_followed(doctype, doc_name, user):
 		doc = frappe.new_doc("Document Follow")
