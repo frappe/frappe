@@ -1099,7 +1099,13 @@ def validate_empty_name(dt, autoname):
 		return
 
 	if not autoname and not (dt.issingle or dt.istable):
-		frappe.msgprint(_("Warning: Naming is not set"), indicator="yellow")
+		try:
+			controller = get_controller(dt.name)
+		except ImportError:
+			controller = None
+
+		if not controller or (not hasattr(controller, "autoname")):
+			frappe.toast(_("Warning: Naming is not set"), indicator="yellow")
 
 
 def validate_autoincrement_autoname(dt: Union[DocType, "CustomizeForm"]) -> bool:

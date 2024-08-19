@@ -191,29 +191,41 @@
 
 .form-links {
 	color: var(--text-color);
+
 	.form-link-title {
-		margin-top: var(--margin-md);
+		margin-top: var(--margin-sm);
 		margin-bottom: var(--margin-sm);
 		font-weight: var(--weight-medium);
 	}
-	.form-documents:first-of-type .row:first-child {
-		.form-link-title {
-			margin-top: 0;
-		}
+
+	.section-body {
+		padding-bottom: 0;
 	}
+
 	.document-link {
 		margin-bottom: var(--margin-sm);
+		border: 1px solid var(--border-color);
+		border-radius: var(--border-radius);
+		background-color: var(--neutral);
+
 		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		max-width: 250px;
+		padding: 4px;
+
+		&:hover {
+			border-color: var(--invert-neutral);
+		}
+
 		.document-link-badge,
 		.report-link-badge {
 			@include get_textstyle("sm", "regular");
 			padding: var(--padding-xs) var(--padding-sm);
-			border-radius: var(--border-radius);
-			background-color: var(--control-bg);
 			.count {
 				font-size: var(--text-xs);
 				font-weight: var(--weight-regular);
-				background-color: var(--neutral-white);
+				background-color: var(--subtle-fg);
 				border-radius: var(--border-radius-full);
 				color: var(--gray-700);
 				padding: 0 var(--padding-xs);
@@ -240,6 +252,11 @@
 		}
 		.btn-new {
 			box-shadow: none;
+			min-width: 24px;
+			width: 24px;
+			height: 24px;
+			padding: 0px;
+			margin-right: 4px;
 		}
 	}
 }

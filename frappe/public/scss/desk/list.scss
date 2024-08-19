@@ -61,8 +61,7 @@
 .list-row-container {
 	display: flex;
 	flex-direction: column;
-	outline: none;
-	padding: 0 var(--padding-xs);
+	border-bottom: 1px solid $border-color;
 
 	&:focus {
 		.list-row {
@@ -70,13 +69,8 @@
 		}
 	}
 
-	.list-row-border {
-		border-bottom: 1px solid $border-color;
-		margin: 0 10px;
-	}
-
-	&:last-child .list-row-border {
-		display: none;
+	&:last-child {
+		border-bottom: none;
 	}
 }
 
@@ -87,7 +81,6 @@
 	transition: color 0.2s;
 	-webkit-transition: color 0.2s;
 	@include get_textstyle("base", "regular");
-	border-radius: var(--border-radius-md);
 
 	&:hover:not(.list-row-head) {
 		background-color: var(--highlight-color);
@@ -171,9 +164,7 @@
 	@extend .list-row;
 	cursor: default;
 	background-color: var(--subtle-fg);
-	height: 30px;
-	margin: 0.5rem 0;
-	border-radius: var(--border-radius-md);
+	height: 36px;
 
 	.list-subject {
 		font-weight: normal;
@@ -329,7 +320,7 @@ input.list-header-checkbox {
 
 	&--head {
 		background-color: var(--highlight-color);
-		border-bottom: 1px solid $border-color;
+		// border-bottom: 1px solid $border-color;
 		cursor: auto;
 	}
 
