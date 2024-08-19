@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-04 09:33+0000\n"
-"PO-Revision-Date: 2024-08-18 12:41\n"
+"PO-Revision-Date: 2024-08-19 07:31\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -2908,7 +2908,7 @@ msgstr "Automatiskt E-post Rapport"
 #: core/doctype/doctype/doctype.json
 #: custom/doctype/customize_form/customize_form.json
 msgid "Auto Name"
-msgstr "Automatisk Namnge "
+msgstr "Automatiskt"
 
 #. Name of a DocType
 #. Label of a Link in the Tools Workspace
@@ -5515,7 +5515,7 @@ msgstr "Innehåll Hash"
 #: website/doctype/blog_post/blog_post.json
 #: website/doctype/web_page/web_page.json
 msgid "Content Type"
-msgstr "Typ av Innehåll"
+msgstr "Innehåll Typ"
 
 #: desk/doctype/workspace/workspace.py:81
 msgid "Content data shoud be a list"
@@ -11943,7 +11943,7 @@ msgstr "Tips: Inkludera symboler, siffror och stora bokstäver i lösenord"
 #: website/web_template/primary_navbar/primary_navbar.html:9 www/contact.py:22
 #: www/error.html:30 www/login.html:150 www/message.html:34
 msgid "Home"
-msgstr "Hem"
+msgstr "Start"
 
 #. Label of the home_page (Data) field in DocType 'Role'
 #. Label of the home_page (Data) field in DocType 'Website Settings'
@@ -15039,7 +15039,7 @@ msgstr "Erfodras"
 #: custom/doctype/customize_form_field/customize_form_field.json
 #: website/doctype/web_form_field/web_form_field.json
 msgid "Mandatory Depends On"
-msgstr "Erfodrad Beroende Av"
+msgstr "Erfordrad Beroende Av"
 
 #. Label of the mandatory_depends_on (Code) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
@@ -18480,7 +18480,7 @@ msgstr "Procent"
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Percentage"
-msgstr "Procent"
+msgstr "Procentuell"
 
 #. Label of the dynamic_date_period (Select) field in DocType 'Auto Email
 #. Report'
@@ -18617,7 +18617,7 @@ msgstr "Tillåtna Roller"
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: contacts/doctype/address/address.json
 msgid "Personal"
-msgstr "Personligt"
+msgstr "Personal"
 
 #. Name of a DocType
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
@@ -29776,7 +29776,7 @@ msgstr "uppskjuten"
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "delete"
-msgstr "ta bort"
+msgstr "ta Bort"
 
 #: public/js/frappe/ui/sort_selector.html:5
 #: public/js/frappe/ui/sort_selector.js:48
@@ -29848,7 +29848,7 @@ msgstr "tom"
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "export"
-msgstr "export"
+msgstr "exportera"
 
 #. Option for the 'Social Link Type' (Select) field in DocType 'Social Link
 #. Settings'
@@ -30148,7 +30148,7 @@ msgstr "ändrade namn från {0} till {1}"
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "report"
-msgstr "rapport"
+msgstr "rapport "
 
 #. Label of the response (HTML) field in DocType 'Custom Role'
 #: core/doctype/custom_role/custom_role.json
