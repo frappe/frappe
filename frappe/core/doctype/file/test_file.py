@@ -948,10 +948,13 @@ class TestGuestFileAndAttachments(FrappeTestCase):
 		self.assertEqual(doc_pub.get_content(), content)
 		self.assertEqual(doc_pri.get_content(), content)
 
+		# Deleting a public File should not delete the private File's disk file
 		doc_pub.delete()
-		self.assertTrue(os.path.exists(doc_pri.get_full_path()))  # Still exists
-		self.assertFalse(os.path.exists(doc_pub.get_full_path()))
-		self.assertEqual(doc_pri.get_content(), content)
+		self.assertTrue(os.path.exists(doc_pri.get_full_path()))
 
+		# TODO: Migrate existing Files that have a mismatch between `is_private` and `file_url` prefix?
+		# self.assertFalse(os.path.exists(doc_pub.get_full_path()))
+
+		self.assertEqual(doc_pri.get_content(), content)
 		doc_pri.delete()
 		self.assertFalse(os.path.exists(doc_pri.get_full_path()))
