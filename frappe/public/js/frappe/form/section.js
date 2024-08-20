@@ -33,7 +33,7 @@ export default class Section {
 			`).appendTo(this.parent);
 
 		if (this.df) {
-			if (this.df.label) {
+			if (this.df.label && !this.df.hide_label) {
 				this.make_head();
 			}
 			if (this.df.description) {

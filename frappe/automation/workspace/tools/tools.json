@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"-P-RG1wVHg\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Your Shortcuts</b></span>\",\"col\":12}},{\"id\":\"sR-UFcO7II\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Import Data\",\"col\":3}},{\"id\":\"IkcVmgWb3z\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ToDo\",\"col\":3}},{\"id\":\"6wir-jZFRE\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"File\",\"col\":3}},{\"id\":\"45a1jzQkTm\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Assignment Rule\",\"col\":3}},{\"id\":\"LdZrgvxxo7\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"yNSSTIaDWZ\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Documents</b></span>\",\"col\":12}},{\"id\":\"0yceBIfhHM\",\"type\":\"card\",\"data\":{\"card_name\":\"Data\",\"col\":4}},{\"id\":\"42WbBA9rpj\",\"type\":\"card\",\"data\":{\"card_name\":\"Tools\",\"col\":4}},{\"id\":\"wE9n7TIrAc\",\"type\":\"card\",\"data\":{\"card_name\":\"Alerts and Notifications\",\"col\":4}},{\"id\":\"7_U7_xCOos\",\"type\":\"card\",\"data\":{\"card_name\":\"Email\",\"col\":4}},{\"id\":\"3imoh2oqsJ\",\"type\":\"card\",\"data\":{\"card_name\":\"Printing\",\"col\":4}},{\"id\":\"SlYKJZj5r3\",\"type\":\"card\",\"data\":{\"card_name\":\"Automation\",\"col\":4}},{\"id\":\"O7jrc2YQTN\",\"type\":\"card\",\"data\":{\"card_name\":\"Newsletter\",\"col\":4}}]",
+ "content": "[{\"id\":\"sR-UFcO7II\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Import Data\",\"col\":3}},{\"id\":\"IkcVmgWb3z\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ToDo\",\"col\":3}},{\"id\":\"6wir-jZFRE\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"File\",\"col\":3}},{\"id\":\"45a1jzQkTm\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Assignment Rule\",\"col\":3}},{\"id\":\"EgtURZsoiF\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"0yceBIfhHM\",\"type\":\"card\",\"data\":{\"card_name\":\"Data\",\"col\":4}},{\"id\":\"42WbBA9rpj\",\"type\":\"card\",\"data\":{\"card_name\":\"Tools\",\"col\":4}},{\"id\":\"wE9n7TIrAc\",\"type\":\"card\",\"data\":{\"card_name\":\"Alerts and Notifications\",\"col\":4}},{\"id\":\"7_U7_xCOos\",\"type\":\"card\",\"data\":{\"card_name\":\"Email\",\"col\":4}},{\"id\":\"3imoh2oqsJ\",\"type\":\"card\",\"data\":{\"card_name\":\"Printing\",\"col\":4}},{\"id\":\"SlYKJZj5r3\",\"type\":\"card\",\"data\":{\"card_name\":\"Automation\",\"col\":4}},{\"id\":\"O7jrc2YQTN\",\"type\":\"card\",\"data\":{\"card_name\":\"Newsletter\",\"col\":4}}]",
  "creation": "2020-03-02 14:53:24.980279",
  "custom_blocks": [],
  "docstatus": 0,
@@ -322,7 +322,7 @@
    "type": "Link"
   }
  ],
- "modified": "2024-08-15 11:46:01.870733",
+ "modified": "2024-08-19 11:47:58.874953",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Tools",

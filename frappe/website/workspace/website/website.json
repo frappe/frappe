@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"iWHUHWIG78\",\"type\":\"paragraph\",\"data\":{\"text\":\"Website module helps you build a basic content pages, forms and blogs\",\"col\":12}},{\"id\":\"yq1JKyNTFg\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Web Page\",\"col\":3}},{\"id\":\"5GuZo0uP_K\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Web Form\",\"col\":3}},{\"id\":\"292vrD2W3o\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Blog Post\",\"col\":3}},{\"id\":\"xAkA6ItB7O\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"_OewoABc91\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Website components</b></span>\",\"col\":12}},{\"id\":\"k8RquSngSk\",\"type\":\"card\",\"data\":{\"card_name\":\"Blog\",\"col\":4}},{\"id\":\"qEHBG-BEBI\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Site\",\"col\":4}},{\"id\":\"oUox7d-8lQ\",\"type\":\"card\",\"data\":{\"card_name\":\"Knowledge Base\",\"col\":4}},{\"id\":\"96xAe0QVaV\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"_9z6jRXZ2r\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Settings</b></span>\",\"col\":12}},{\"id\":\"ZvrzvEoYtc\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}}]",
+ "content": "[{\"id\":\"yq1JKyNTFg\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Web Page\",\"col\":3}},{\"id\":\"5GuZo0uP_K\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Web Form\",\"col\":3}},{\"id\":\"292vrD2W3o\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Blog Post\",\"col\":3}},{\"id\":\"xAkA6ItB7O\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"k8RquSngSk\",\"type\":\"card\",\"data\":{\"card_name\":\"Blog\",\"col\":4}},{\"id\":\"qEHBG-BEBI\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Site\",\"col\":4}},{\"id\":\"oUox7d-8lQ\",\"type\":\"card\",\"data\":{\"card_name\":\"Knowledge Base\",\"col\":4}},{\"id\":\"96xAe0QVaV\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ZvrzvEoYtc\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}}]",
  "creation": "2020-03-02 14:13:51.089373",
  "custom_blocks": [],
  "docstatus": 0,
@@ -257,7 +257,7 @@
    "type": "Link"
   }
  ],
- "modified": "2024-08-15 11:24:29.340521",
+ "modified": "2024-08-16 12:32:27.859393",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",
