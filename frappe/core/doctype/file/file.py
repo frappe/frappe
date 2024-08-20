@@ -89,6 +89,7 @@ class File(Document):
 
 	def before_insert(self):
 		self.set_folder_name()
+		self.set_is_private()
 		self.set_file_name()
 		self.validate_attachment_limit()
 		self.set_file_type()
@@ -104,12 +105,11 @@ class File(Document):
 			self.flags.new_file = True
 			frappe.db.after_rollback.add(self.on_rollback)
 
+		self.validate_duplicate_entry()  # Hash is generated in save_file
+
 	def after_insert(self):
 		if not self.is_folder:
 			self.create_attachment_record()
-		self.set_is_private()
-		self.set_file_name()
-		self.validate_duplicate_entry()
 
 	def validate(self):
 		if self.is_folder:
