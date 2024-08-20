@@ -1,7 +1,7 @@
 <template>
-	<div class="flex flex-row shadow-lg z-5 overflow-auto">
+	<div class="z-5 flex flex-row overflow-auto shadow-lg">
 		<!-- Primary Menu -->
-		<div class="relative flex flex-col space-y-2 bg-white w-12 p-2 h-full border-r border-gray-200">
+		<div class="relative flex h-full w-12 flex-col space-y-2 border-r border-gray-200 bg-white p-2">
 			<div
 				class="flex items-center"
 				v-for="tab in sidebarMenu"
@@ -10,11 +10,9 @@
 			>
 				<Tooltip placement="right" :text="tab.label" :hover-delay="0.1">
 					<div
-						class="flex items-center justify-center cursor-pointer gap-2 truncate rounded px-3 py-1 transition duration-300 ease-in-out"
+						class="flex cursor-pointer items-center justify-center gap-2 truncate rounded px-3 py-1 transition duration-300 ease-in-out"
 						:class="
-							activeTab === tab.label
-								? 'bg-gray-100 text-gray-700'
-								: 'text-gray-500 hover:text-gray-700'
+							activeTab === tab.label ? 'bg-gray-100 text-gray-700' : 'text-gray-500 hover:text-gray-700'
 						"
 					>
 						<FeatherIcon :name="tab.icon" class="h-6 w-6" />
@@ -25,11 +23,11 @@
 
 		<!-- Secondary Menu -->
 		<div :style="{ width: `${280 - 48}px` }">
-			<div class="text-base font-semibold text-gray-800 p-3 border-b-[1px] border-gray-200">
+			<div class="border-b-[1px] border-gray-200 p-3 text-base font-semibold text-gray-800">
 				{{ activeTab }}
 			</div>
 
-			<ComponentPanel v-if="activeTab === 'Add Component'" class="my-3 mx-2" />
+			<ComponentPanel v-if="activeTab === 'Add Component'" class="mx-2 my-3" />
 		</div>
 	</div>
 </template>

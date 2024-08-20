@@ -1,9 +1,5 @@
 <template>
-	<component
-		:is="componentName"
-		v-bind="componentData.initialState"
-		:data-component-id="componentId"
-	>
+	<component :is="componentName" v-bind="componentData.initialState" :data-component-id="componentId">
 		<StudioComponent
 			v-for="child in children"
 			:key="child.componentId"

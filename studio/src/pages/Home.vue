@@ -1,8 +1,6 @@
 <template>
 	<div class="h-screen flex-col overflow-hidden bg-white">
-		<div
-			class="toolbar sticky top-0 z-10 flex h-14 items-center justify-center bg-white p-2 shadow-sm"
-		>
+		<div class="toolbar sticky top-0 z-10 flex h-14 items-center justify-center bg-white p-2 shadow-sm">
 			<div class="absolute left-3 flex items-center">
 				<router-link class="flex items-center gap-2" :to="{ name: 'Home' }">
 					<h1 class="text-md mt-[2px] font-semibold leading-5 text-gray-800">Studio</h1>
@@ -10,16 +8,16 @@
 			</div>
 		</div>
 
-		<div class="flex flex-col items-center h-full px-20 py-10">
-			<div class="flex flex-row justify-between w-full">
+		<div class="flex h-full flex-col items-center px-20 py-10">
+			<div class="flex w-full flex-row justify-between">
 				<div class="text-lg font-semibold text-gray-800">All Pages</div>
 				<router-link :to="{ name: 'StudioPage', params: { pageID: 'new' } }">
 					<Button variant="solid" icon-left="plus">New Page</Button>
 				</router-link>
 			</div>
-			<div class="grid grid-cols-5 items-start w-full mt-5">
+			<div class="mt-5 grid w-full grid-cols-5 items-start">
 				<router-link
-					class="flex flex-col justify-center gap-1 border-2 p-5 rounded-lg"
+					class="flex flex-col justify-center gap-1 rounded-lg border-2 p-5"
 					v-for="page in studioPages.data"
 					:to="{ name: 'StudioPage', params: { pageID: page.name } }"
 					:key="page.name"

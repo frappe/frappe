@@ -4,7 +4,7 @@
 		<div class="flex flex-col">
 			<StudioLeftPanel class="absolute bottom-0 left-0 top-[var(--toolbar-height)] bg-white" />
 			<StudioCanvas
-				class="canvas-container absolute bottom-0 top-[var(--toolbar-height)] flex justify-center overflow-hidden bg-gray-200 p-10 left-[280px] right-[275px]"
+				class="canvas-container absolute bottom-0 left-[280px] right-[275px] top-[var(--toolbar-height)] flex justify-center overflow-hidden bg-gray-200 p-10"
 				v-if="store.pageBlocks[0]"
 				:componentTree="store.pageBlocks[0]"
 			/>

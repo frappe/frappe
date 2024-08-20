@@ -10,7 +10,7 @@
 			}"
 		>
 			<div
-				class="canvas relative flex h-full rounded-md bg-white shadow-2xl min-h-[1000px] w-[1400px]"
+				class="canvas relative flex h-full min-h-[1000px] w-[1400px] rounded-md bg-white shadow-2xl"
 				:style="{
 					background: canvasProps.background,
 				}"

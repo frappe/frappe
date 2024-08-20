@@ -10,17 +10,17 @@
 			@input="(e) => (componentFilter = e.target.value)"
 		/>
 
-		<div class="grid grid-cols-3 gap-y-4 gap-x-2 items-center">
+		<div class="grid grid-cols-3 items-center gap-x-2 gap-y-4">
 			<div v-for="component in componentList" :key="component.name">
 				<div class="flex flex-col items-center justify-center gap-2 text-gray-700">
 					<div
-						class="flex flex-col bg-gray-50 border-gray-300 border-[1px] p-4 items-center justify-center cursor-grab gap-2 truncate rounded transition duration-300 ease-in-out"
+						class="flex cursor-grab flex-col items-center justify-center gap-2 truncate rounded border-[1px] border-gray-300 bg-gray-50 p-4 transition duration-300 ease-in-out"
 						draggable="true"
 						@dragstart="(ev) => setComponentData(ev, component)"
 					>
 						<LucideIcon :name="component.icon" class="h-6 w-6" />
 					</div>
-					<span class="text-xs truncate">{{ component.title }}</span>
+					<span class="truncate text-xs">{{ component.title }}</span>
 				</div>
 			</div>
 		</div>
@@ -39,7 +39,7 @@ const componentFilter = ref("")
 const componentList = computed(() => {
 	if (componentFilter.value) {
 		return components.list.filter((component) =>
-			component.name?.toLowerCase().includes(componentFilter.value.toLowerCase())
+			component.name?.toLowerCase().includes(componentFilter.value.toLowerCase()),
 		)
 	} else {
 		return components.list
