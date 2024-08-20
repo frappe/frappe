@@ -1256,7 +1256,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				// backend. Translating it again would cause unexpected behaviour.
 				name: column.label,
 				width: parseInt(column.width) || null,
-				editable: false,
+				editable: column.editable ?? false,
 				compareValue: compareFn,
 				format: (value, row, column, data, filter) => {
 					if (this.report_settings.formatter) {
