@@ -8,6 +8,13 @@ from frappe.desk.doctype.global_search_settings.global_search_settings import (
 from frappe.utils.dashboard import sync_dashboards
 
 
+def _(x, *args, **kwargs):
+	"""Redefine the translation function to return the string as is.
+	We want to create english records but still mark the strings as translatable.
+	The respective DocTypes have 'Translate Link Fields' enabled."""
+	return x
+
+
 def install():
 	update_genders()
 	update_salutations()
@@ -19,13 +26,13 @@ def install():
 
 def update_genders():
 	default_genders = [
-		"Male",
-		"Female",
-		"Other",
-		"Transgender",
-		"Genderqueer",
-		"Non-Conforming",
-		"Prefer not to say",
+		_("Male"),
+		_("Female"),
+		_("Other"),
+		_("Transgender"),
+		_("Genderqueer"),
+		_("Non-Conforming"),
+		_("Prefer not to say"),
 	]
 	records = [{"doctype": "Gender", "gender": d} for d in default_genders]
 	for record in records:
@@ -33,7 +40,17 @@ def update_genders():
 
 
 def update_salutations():
-	default_salutations = ["Mr", "Ms", "Mx", "Dr", "Mrs", "Madam", "Miss", "Master", "Prof"]
+	default_salutations = [
+		_("Mr"),
+		_("Ms"),
+		_("Mx"),
+		_("Dr"),
+		_("Mrs"),
+		_("Madam"),
+		_("Miss"),
+		_("Master"),
+		_("Prof"),
+	]
 	records = [{"doctype": "Salutation", "salutation": d} for d in default_salutations]
 	for record in records:
 		doc = frappe.new_doc(record.get("doctype"))
