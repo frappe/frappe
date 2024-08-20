@@ -22,6 +22,7 @@ import StudioCanvas from "@/components/StudioCanvas.vue"
 
 import useStore from "@/store"
 import { studioPages } from "@/data/studioPages"
+import { getRootBlock } from "@/utils/helpers"
 
 const route = useRoute()
 const router = useRouter()
@@ -34,7 +35,7 @@ onActivated(async () => {
 		await studioPages.insert
 			.submit({
 				page_title: "My Page",
-				blocks: [store.getRootBlock()],
+				blocks: [getRootBlock()],
 			})
 			.then((data) => {
 				router.push({ name: "StudioPage", params: { pageID: data.name }, force: true })

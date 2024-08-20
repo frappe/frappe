@@ -15,13 +15,7 @@
 					background: canvasProps.background,
 				}"
 			>
-				<StudioComponent
-					class="h-full min-h-[inherit]"
-					v-if="rootComponent"
-					:componentName="rootComponent.componentName"
-					:componentId="rootComponent.componentId"
-					:children="rootComponent.children"
-				/>
+				<StudioComponent class="h-full min-h-[inherit]" v-if="rootComponent" :block="rootComponent" />
 			</div>
 		</div>
 	</div>
@@ -33,7 +27,7 @@ import { useDropZone } from "@vueuse/core"
 import StudioComponent from "@/components/StudioComponent.vue"
 
 import useStore from "@/store"
-import { getComponentCopy } from "@/utils/helpers"
+import { getBlockCopy, getComponentBlock } from "@/utils/helpers"
 
 const props = defineProps({
 	componentTree: {
@@ -57,7 +51,7 @@ const canvasProps = reactive({
 	panning: false,
 })
 
-const rootComponent = ref(getComponentCopy(props.componentTree))
+const rootComponent = ref(getBlockCopy(props.componentTree))
 
 const { isOverDropZone } = useDropZone(canvasContainer, {
 	onDrop: (_files, ev) => {
@@ -65,8 +59,8 @@ const { isOverDropZone } = useDropZone(canvasContainer, {
 
 		const componentName = ev.dataTransfer?.getData("componentName")
 		if (componentName) {
-			const newComponent = store.getComponentBlock(componentName)
-			parentComponent.children.push(newComponent)
+			const newBlock = getComponentBlock(componentName)
+			parentComponent.addChild(newBlock)
 		}
 	},
 })

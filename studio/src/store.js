@@ -2,8 +2,7 @@ import { ref, reactive } from "vue"
 import { defineStore } from "pinia"
 import { createDocumentResource } from "frappe-ui"
 
-import { getBlockCopy } from "@/utils/helpers"
-import components from "@/data/components"
+import { getBlockInstance, getRootBlock } from "@/utils/helpers"
 
 const useStore = defineStore("store", () => {
 	const pageBlocks = ref([])
@@ -11,7 +10,14 @@ const useStore = defineStore("store", () => {
 
 	async function setPage(pageName) {
 		const page = await fetchPage(pageName)
-		pageBlocks.value = [getBlockCopy(page.blocks)]
+		console.log(page.blocks)
+
+		const blocks = JSON.parse(page.blocks || "[]")
+		if (blocks.length === 0) {
+			pageBlocks.value = [getRootBlock()]
+		} else {
+			pageBlocks.value = [getBlockInstance(blocks[0])]
+		}
 		selectedPage.value = page.name
 	}
 
@@ -24,29 +30,10 @@ const useStore = defineStore("store", () => {
 		return pageResource.doc
 	}
 
-	function getRootBlock() {
-		return reactive({
-			componentName: "div",
-			componentId: "root",
-			children: [],
-		})
-	}
-
-	function getComponentBlock(componentName) {
-		const component = components.get(componentName)
-		return reactive({
-			componentName: component.name,
-			componentId: `${component.name}-${Math.random().toString(36).substring(2, 9)}`,
-			children: [],
-		})
-	}
-
 	return {
 		pageBlocks,
 		setPage,
 		fetchPage,
-		getRootBlock,
-		getComponentBlock,
 	}
 })
 
