@@ -79,6 +79,25 @@ def create_po_file(context, locale: str, app: str | None = None):
 	new_po(locale, app)
 
 
+@click.command("update-csv-from-po")
+@click.argument("app", nargs=1)
+@click.argument("locale", nargs=1)
+def update_csv_from_po(app: str, locale: str) -> None:
+	"""Add missing translations from PO file to CSV file.
+
+	How to:
+	(1) add a [locale].po file in the app's `locale` directory (this can be downloaded from the new translation platform or copied from another branch), then
+	(2) run this command.
+
+	This will add all translations to the CSV file, that are in the PO file but were missing in the CSV file.
+
+	This command is intended for backporting translations from the new translation system to the old one.
+	"""
+	from frappe.gettext.translate import update_csv_from_po
+
+	update_csv_from_po(app, locale)
+
+
 def connect_to_site(site):
 	from frappe import connect
 
@@ -94,4 +113,5 @@ commands = [
 	csv_to_po,
 	update_po_files,
 	create_po_file,
+	update_csv_from_po,
 ]

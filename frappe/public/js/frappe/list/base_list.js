@@ -186,26 +186,33 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_view_menu() {
-		// TODO: add all icons
-		const icon_map = {
-			Image: "image-view",
-			List: "list",
-			Report: "small-file",
-			Calendar: "calendar",
-			Gantt: "gantt",
-			Kanban: "kanban",
-			Dashboard: "dashboard",
-			Map: "map",
-		};
-
 		if (frappe.boot.desk_settings.view_switcher && !this.meta.force_re_route_to_default_view) {
-			/* @preserve
-			for translation, don't remove
-			__("List View") __("Report View") __("Dashboard View") __("Gantt View"),
-			__("Kanban View") __("Calendar View") __("Image View") __("Inbox View"),
-			__("Tree View") __("Map View") */
+			const icon_map = {
+				Image: "image-view",
+				List: "list",
+				Report: "small-file",
+				Calendar: "calendar",
+				Gantt: "gantt",
+				Kanban: "kanban",
+				Dashboard: "dashboard",
+				Map: "map",
+			};
+
+			const label_map = {
+				List: __("List View"),
+				Report: __("Report View"),
+				Dashboard: __("Dashboard View"),
+				Gantt: __("Gantt View"),
+				Kanban: __("Kanban View"),
+				Calendar: __("Calendar View"),
+				Image: __("Image View"),
+				Inbox: __("Inbox View"),
+				Tree: __("Tree View"),
+				Map: __("Map View"),
+			};
+
 			this.views_menu = this.page.add_custom_button_group(
-				__("{0} View", [this.view_name]),
+				label_map[this.view_name] || label_map["List"],
 				icon_map[this.view_name] || "list"
 			);
 			this.views_list = new frappe.views.ListViewSelect({
@@ -215,6 +222,7 @@ frappe.views.BaseList = class BaseList {
 				list_view: this,
 				sidebar: this.list_sidebar,
 				icon_map: icon_map,
+				label_map: label_map,
 			});
 		}
 	}
