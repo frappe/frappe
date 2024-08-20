@@ -57,7 +57,7 @@ def authorize_access(g_contact, reauthorize=False, code=None):
 	contact = frappe.get_doc("Google Contacts", g_contact)
 	contact.check_permission("write")
 
-	oauth_code = code or contact.get_password("authorization_code")
+	oauth_code = code or contact.get_password("authorization_code", raise_exception=False)
 	oauth_obj = GoogleOAuth("contacts")
 
 	if not oauth_code or reauthorize:
