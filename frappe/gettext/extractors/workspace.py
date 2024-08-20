@@ -62,3 +62,14 @@ def extract(fileobj, *args, **kwargs):
 		)
 		for shortcut in data.get("shortcuts", [])
 	)
+
+	content = json.loads(data.get("content", "[]"))
+	for item in content:
+		item_type = item.get("type")
+		if item_type in ("header", "paragraph"):
+			yield (
+				None,
+				"_",
+				item.get("data", {}).get("text"),
+				[f"{item_type.title()} text in the {workspace_name} Workspace"],
+			)
