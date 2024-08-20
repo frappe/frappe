@@ -1,7 +1,5 @@
-import tailwindConfig from "frappe-ui/src/utils/tailwind.config"
-
 module.exports = {
-	presets: [tailwindConfig],
+	presets: [require("frappe-ui/src/utils/tailwind.config")],
 	content: [
 		"./index.html",
 		"./src/**/*.{vue,js,ts,jsx,tsx}",
