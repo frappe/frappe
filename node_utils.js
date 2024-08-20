@@ -1,7 +1,12 @@
 const fs = require("fs");
 const path = require("path");
 const redis = require("@redis/client");
-const bench_path = path.resolve(__dirname, "..", "..");
+let bench_path;
+if (process.env.FRAPPE_BENCH_ROOT) {
+	bench_path = process.env.FRAPPE_BENCH_ROOT;
+} else {
+	bench_path = path.resolve(__dirname, "..", "..");
+}
 
 const dns = require("dns");
 
