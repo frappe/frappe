@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import base64
+import calendar
 import datetime
 import hashlib
 import json
@@ -16,7 +17,6 @@ from typing import Any, Literal, Optional, TypeVar
 from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlparse, urlunparse
 
 import pytz
-import calendar 
 from click import secho
 from dateutil import parser
 from dateutil.parser import ParserError
