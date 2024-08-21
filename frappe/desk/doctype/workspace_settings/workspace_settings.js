@@ -8,38 +8,38 @@ frappe.ui.form.on("Workspace Settings", {
 
 		// build fields from workspaces
 		let options = frappe.boot.allowed_workspaces
-			.filter(w => w.public)
-			.map(w => {
+		.filter((w) => w.public)
+		.map((w) => {
 				return {
 					label: w.title,
 					value: w.name,
-					checked: workspace_visibilty[w.name] !== 0
+					checked: workspace_visibilty[w.name] !== 0,
 				};
 			});
 
 		// Define MultiCheck field for workspace visibility
 		frm.docfields = [
 			{
-				fieldtype: 'MultiCheck',
-				fieldname: 'workspace_visibility',
+				fieldtype: "MultiCheck",
+				fieldname: "workspace_visibility",
 				options: options,
 				select_all: true,
 				columns: 2,
-				sort_options: false
-			}
+				sort_options: false,
+			},
 		];
 
 		frappe.temp = frm;
 	},
 	validate(frm) {
-		let selected_workspaces = frm.get_field('workspace_visibility').get_value() || [];
+		let selected_workspaces = frm.get_field("workspace_visibility").get_value() || [];
 		let visibility = {};
 
-		selected_workspaces.forEach(workspace => {
+		selected_workspaces.forEach((workspace) => {
 			visibility[workspace] = 1;
 		});
 
-		frappe.boot.allowed_workspaces.forEach(workspace => {
+		frappe.boot.allowed_workspaces.forEach((workspace) => {
 			if (!visibility[workspace.name] && workspace.public) {
 				visibility[workspace.name] = 0;
 			}
