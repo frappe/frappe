@@ -731,6 +731,7 @@ def get_weekday(datetime: datetime.datetime | None = None) -> str:
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 def get_timespan_date_range(timespan: str) -> tuple[datetime.datetime, datetime.datetime]:
 	today = nowdate()
 	date_range_map = {
@@ -817,6 +818,8 @@ def get_months() -> dict[int, str]:
 	}
 
 
+=======
+>>>>>>> ace2122e92 (chore: removed extra functiion)
 def get_month(datetime: DateTimeLikeObject | None = None) -> str:
 	"""Return the month name (e.g. 'January') for the given datetime like object (datetime.date, datetime.datetime, string).
 
