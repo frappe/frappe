@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import base64
+import calendar
 import datetime
 import hashlib
 import json
@@ -18,8 +19,11 @@ from urllib.parse import quote, urljoin
 <<<<<<< HEAD
 =======
 import pytz
+<<<<<<< HEAD
 import calendar 
 >>>>>>> 5b73b8c20a (chore: added calendar module)
+=======
+>>>>>>> 22042ae00b (chore: pre-commit)
 from click import secho
 from dateutil import parser
 from dateutil.parser import ParserError
