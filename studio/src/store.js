@@ -5,12 +5,18 @@ import { createDocumentResource } from "frappe-ui"
 import { getBlockInstance, getRootBlock } from "@/utils/helpers"
 
 const useStore = defineStore("store", () => {
+	const studioLayout = reactive({
+		leftPanelWidth: 280,
+		rightPanelWidth: 275,
+		showLeftPanel: true,
+		showRightPanel: true,
+	})
+
 	const pageBlocks = ref([])
 	const selectedPage = ref(null)
 
 	async function setPage(pageName) {
 		const page = await fetchPage(pageName)
-		console.log(page.blocks)
 
 		const blocks = JSON.parse(page.blocks || "[]")
 		if (blocks.length === 0) {
@@ -31,6 +37,7 @@ const useStore = defineStore("store", () => {
 	}
 
 	return {
+		studioLayout,
 		pageBlocks,
 		setPage,
 		fetchPage,

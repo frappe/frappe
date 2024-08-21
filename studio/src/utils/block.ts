@@ -40,7 +40,6 @@ class Block implements BlockOptions {
 		index = clamp(index, 0, this.children.length)
 
 		this.children.splice(index, 0, child)
-
 		return child
 	}
 

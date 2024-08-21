@@ -17,6 +17,8 @@ function getBlockTemplate(
 					flexDirection: "column",
 					flexShrink: 0,
 					alignItems: "center",
+					width: "inherit",
+					overflowX: "hidden",
 				}
 			};
 
