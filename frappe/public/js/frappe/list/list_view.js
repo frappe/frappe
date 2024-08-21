@@ -1835,11 +1835,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return frappe.perm.has_perm(doctype, 0, "submit");
 		};
 
-		const is_bulk_editable = (doctype) => {
-			if (this.list_view_settings && this.list_view_settings.disable_edit != undefined) {
-				return !this.list_view_settings.disable_edit;
+		const is_bulk_edit_allowed = (doctype) => {
+			// Check settings if there is a workflow defined, otherwise directly allow
+			if (frappe.model.has_workflow(doctype)) {
+				return !!this.list_view_settings?.allow_edit;
 			}
-			return !frappe.model.has_workflow(doctype);
+			return true;
 		};
 
 		// utility
@@ -2041,7 +2042,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		};
 
 		// bulk edit
-		if (has_editable_fields(doctype) && is_bulk_editable(doctype)) {
+		if (has_editable_fields(doctype) && is_bulk_edit_allowed(doctype)) {
 			actions_menu_items.push(bulk_edit());
 		}
 

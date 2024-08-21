@@ -1,5 +1,8 @@
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 2c3916f898 (refactor: change logic slightly, reformat JSON)
  "actions": [],
  "autoname": "Prompt",
  "creation": "2019-10-23 15:00:48.392374",
@@ -11,6 +14,10 @@
   "disable_comment_count",
   "disable_sidebar_stats",
   "disable_auto_refresh",
+<<<<<<< HEAD
+=======
+  "allow_edit",
+>>>>>>> 2c3916f898 (refactor: change logic slightly, reformat JSON)
   "total_fields",
   "fields_html",
   "fields"
@@ -57,10 +64,24 @@
    "fieldname": "disable_comment_count",
    "fieldtype": "Check",
    "label": "Disable Comment Count"
+<<<<<<< HEAD
   }
  ],
  "links": [],
  "modified": "2023-02-14 14:46:43.764229",
+=======
+  },
+  {
+   "default": "0",
+   "description": "Allow editing even if the doctype has a workflow set up.\n\nDoes nothing if a workflow isn't set up.",
+   "fieldname": "allow_edit",
+   "fieldtype": "Check",
+   "label": "Allow Bulk Editing"
+  }
+ ],
+ "links": [],
+ "modified": "2024-08-21 18:17:24.889783",
+>>>>>>> 2c3916f898 (refactor: change logic slightly, reformat JSON)
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List View Settings",
@@ -79,6 +100,7 @@
   }
  ],
  "read_only": 1,
+<<<<<<< HEAD
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
@@ -177,3 +199,10 @@
     "track_changes": 1
    }
 >>>>>>> 0b9df2b994 (feat: enable or disable bulk edit from list view settings doctype)
+=======
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
+>>>>>>> 2c3916f898 (refactor: change logic slightly, reformat JSON)
