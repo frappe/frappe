@@ -15,6 +15,11 @@ from enum import Enum
 from typing import Any, Literal, Optional, TypeVar, Union
 from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlparse, urlunparse
 
+<<<<<<< HEAD
+=======
+import pytz
+import calendar 
+>>>>>>> 5b73b8c20a (chore: added calendar module)
 from click import secho
 from dateutil import parser
 from dateutil.parser import ParserError
@@ -764,8 +769,7 @@ def get_month(datetime: DateTimeLikeObject | None = None) -> str:
 	if isinstance(datetime, str):
 		datetime = get_datetime(datetime)
 
-	months = get_months()
-	return months[datetime.month]
+	return calendar.month_name[datetime.month]
 
 
 def get_timespan_date_range(
