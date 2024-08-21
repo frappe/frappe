@@ -16,6 +16,7 @@ from typing import Any, Literal, Optional, TypeVar
 from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlparse, urlunparse
 
 import pytz
+import calendar 
 from click import secho
 from dateutil import parser
 from dateutil.parser import ParserError
@@ -889,8 +890,7 @@ def get_month(datetime: DateTimeLikeObject | None = None) -> str:
 	if isinstance(datetime, str):
 		datetime = get_datetime(datetime)
 
-	months = get_months()
-	return months[datetime.month]
+	return calendar.month_name[datetime.month]
 
 
 def get_timespan_date_range(
