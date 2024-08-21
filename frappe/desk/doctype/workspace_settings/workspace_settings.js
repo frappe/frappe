@@ -8,8 +8,8 @@ frappe.ui.form.on("Workspace Settings", {
 
 		// build fields from workspaces
 		let options = frappe.boot.allowed_workspaces
-		.filter((w) => w.public)
-		.map((w) => {
+			.filter((w) => w.public)
+			.map((w) => {
 				return {
 					label: w.title,
 					value: w.name,
