@@ -920,3 +920,41 @@ class TestGuestFileAndAttachments(FrappeTestCase):
 		).insert(ignore_permissions=True)
 
 		self.assertFalse(file.is_downloadable())
+
+	def test_private_remains_private_even_if_same_hash(self):
+		file_name = "test" + frappe.generate_hash()
+		content = file_name.encode()
+
+		doc_pub: "File" = frappe.new_doc("File")  # type: ignore
+		doc_pub.file_url = f"/files/{file_name}.txt"
+		doc_pub.content = content
+		doc_pub.save()
+
+		doc_pri: "File" = frappe.new_doc("File")  # type: ignore
+		doc_pri.file_url = f"/private/files/{file_name}.txt"
+		doc_pri.is_private = False
+		doc_pri.content = content
+		doc_pri.save()
+
+		doc_pub.reload()
+		doc_pri.reload()
+
+		self.assertEqual(doc_pub.is_private, 0)
+		self.assertEqual(doc_pri.is_private, 1)
+
+		self.assertEqual(doc_pub.file_url, f"/files/{file_name}.txt")
+		self.assertEqual(doc_pri.file_url, f"/private/files/{file_name}.txt")
+
+		self.assertEqual(doc_pub.get_content(), content)
+		self.assertEqual(doc_pri.get_content(), content)
+
+		# Deleting a public File should not delete the private File's disk file
+		doc_pub.delete()
+		self.assertTrue(os.path.exists(doc_pri.get_full_path()))
+
+		# TODO: Migrate existing Files that have a mismatch between `is_private` and `file_url` prefix?
+		# self.assertFalse(os.path.exists(doc_pub.get_full_path()))
+
+		self.assertEqual(doc_pri.get_content(), content)
+		doc_pri.delete()
+		self.assertFalse(os.path.exists(doc_pri.get_full_path()))
