@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-07-30 18:03+0000\n"
-"PO-Revision-Date: 2024-08-20 07:29\n"
+"PO-Revision-Date: 2024-08-21 08:22\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -4112,7 +4112,7 @@ msgstr ""
 
 #: desk/doctype/workspace/workspace.py:250
 msgid "Cannot create private workspace of other users"
-msgstr ""
+msgstr "Diğer kullanıcılar adına özel çalışma alanı oluşturulamıyor"
 
 #: core/doctype/file/file.py:150
 msgid "Cannot delete Home and Attachments folders"
@@ -4252,7 +4252,7 @@ msgstr "{0} gönderilemiyor."
 
 #: desk/doctype/workspace/workspace.py:350
 msgid "Cannot update private workspace of other users"
-msgstr ""
+msgstr "Diğer kullanıcılar adına özel çalışma alanı oluşturulamıyor"
 
 #: desk/doctype/bulk_update/bulk_update.js:26
 #: public/js/frappe/list/bulk_operations.js:345
@@ -7525,7 +7525,7 @@ msgstr ""
 
 #: public/js/frappe/views/workspace/workspace.js:1347
 msgid "Doctype with same route already exist. Please choose different title."
-msgstr ""
+msgstr "Aynı rotaya DocType türü zaten mevcut. Lütfen farklı bir başlık seçin."
 
 #. Label of a Data field in DocType 'Milestone'
 #. Label of a Dynamic Link field in DocType 'Audit Trail'
@@ -9789,7 +9789,7 @@ msgstr ""
 
 #: public/js/frappe/form/form.js:1678
 msgid "Field {0} not found."
-msgstr ""
+msgstr "{0} alanı bulunamadı."
 
 #. Label of a Data field in DocType 'Report Column'
 #. Label of a Data field in DocType 'Report Filter'
@@ -15185,13 +15185,13 @@ msgstr "İkinci Adı"
 #. Name of a DocType
 #: automation/doctype/milestone/milestone.json
 msgid "Milestone"
-msgstr ""
+msgstr "Kilometre Taşı"
 
 #. Label of a Link in the Tools Workspace
 #: automation/workspace/tools/tools.json
 msgctxt "Milestone"
 msgid "Milestone"
-msgstr ""
+msgstr "Kilometre Taşı"
 
 #. Label of a Link field in DocType 'Milestone'
 #. Name of a DocType
@@ -15330,7 +15330,7 @@ msgstr "Modül"
 #: custom/doctype/property_setter/property_setter.json
 #: website/doctype/web_page/web_page.json
 msgid "Module (for export)"
-msgstr "Modül (Dışarı Aktarım İçin)"
+msgstr "Modül"
 
 #. Name of a DocType
 #. Linked DocType in Package's connections
@@ -16451,7 +16451,7 @@ msgstr "Hiçbir kayıt dışa aktarılmayacak"
 
 #: www/printview.py:425
 msgid "No template found at path: {0}"
-msgstr ""
+msgstr "{0} yolunda şablon bulunamadı"
 
 #: public/js/frappe/form/controls/multiselect_list.js:226
 msgid "No values to show"
@@ -17114,7 +17114,7 @@ msgstr "Beklemede"
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
 msgid "On Payment Authorization"
-msgstr ""
+msgstr "Ödeme Onayında"
 
 #. Description of the 'Is Dynamic URL?' (Check) field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
@@ -17973,7 +17973,7 @@ msgstr "E-posta Hesabında Şifre Eksik"
 
 #: utils/password.py:42
 msgid "Password not found for {0} {1} {2}"
-msgstr ""
+msgstr "{0} {1} {2} için şifre bulunamadı"
 
 #: core/doctype/user/user.py:1050
 msgid "Password reset instructions have been sent to your email"
@@ -18021,7 +18021,7 @@ msgstr ""
 
 #: modules/patch_handler.py:136
 msgid "Patch type {} not found in patches.txt"
-msgstr ""
+msgstr "Patches.txt dosyasında {} yama türü bulunamadı"
 
 #. Label of a Small Text field in DocType 'Package Release'
 #. Label of a Data field in DocType 'Recorder'
@@ -19048,7 +19048,7 @@ msgstr "Yazdırma Formatı Oluşturucu"
 #. Label of a Link in the Tools Workspace
 #: automation/workspace/tools/tools.json
 msgid "Print Format Builder (New)"
-msgstr ""
+msgstr "Yazdırma Formatı Oluşturucu (Yeni)"
 
 #. Label of a Check field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
@@ -20316,7 +20316,7 @@ msgstr "hatırlama"
 
 #: automation/doctype/reminder/reminder.py:39
 msgid "Reminder cannot be created in past."
-msgstr ""
+msgstr "Geçmiş bir tarih için hatırlatıcı oluşturulamaz."
 
 #: public/js/frappe/form/reminders.js:96
 msgid "Reminder set at {0}"
@@ -20346,7 +20346,7 @@ msgstr "Tüm özelleştirmeler kaldırılsın mı?"
 
 #: public/js/form_builder/components/Section.vue:286
 msgid "Remove all fields in the column"
-msgstr ""
+msgstr "Sütundaki tüm alanları kaldır"
 
 #: public/js/form_builder/components/Section.vue:278
 #: public/js/frappe/utils/datatable.js:9
@@ -20360,7 +20360,7 @@ msgstr "Alan Kaldır"
 
 #: public/js/form_builder/components/Section.vue:279
 msgid "Remove last column"
-msgstr ""
+msgstr "Son sütunu kaldır"
 
 #: public/js/print_format_builder/PrintFormatSection.vue:130
 msgid "Remove page break"
@@ -20369,11 +20369,11 @@ msgstr ""
 #: public/js/form_builder/components/Section.vue:266
 #: public/js/print_format_builder/PrintFormatSection.vue:135
 msgid "Remove section"
-msgstr ""
+msgstr "Bölümü Kaldır"
 
 #: public/js/form_builder/components/Tabs.vue:140
 msgid "Remove tab"
-msgstr ""
+msgstr "Sekmeyi Kaldır"
 
 #: core/doctype/file/file.py:154
 msgid "Removed {0}"
@@ -21052,7 +21052,7 @@ msgstr ""
 #. Label of a Code field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgid "Robots.txt"
-msgstr ""
+msgstr "Robots.txt"
 
 #. Label of a Link field in DocType 'Custom DocPerm'
 #. Label of a Table field in DocType 'Custom Role'
@@ -21091,7 +21091,7 @@ msgstr "Rol"
 
 #: core/doctype/role/role.js:8
 msgid "Role 'All' will be given to all system + website users."
-msgstr ""
+msgstr "'Tümü' rolü tüm sistem + web sitesi kullanıcılarına verilecektir."
 
 #: core/doctype/role/role.js:13
 msgid "Role 'Desk User' will be given to all system users."
@@ -22822,7 +22822,7 @@ msgstr ""
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgid "Set only once"
-msgstr ""
+msgstr "Sadece bir kez ayarla"
 
 #. Description of the 'Filters Configuration' (Code) field in DocType 'Number
 #. Card'
@@ -22845,7 +22845,24 @@ msgid "Set the filters here. For example:\n"
 "\treqd: 1\n"
 "}]\n"
 "</code></pre>"
-msgstr ""
+msgstr "Filtreleri buradan ayarlayın. Örneğin:\n"
+"<pre class=\"small text-muted\"><code>\n"
+"[{\n"
+"\talan adı: \"şirket\",\n"
+"\tetiket: __(\"Şirket\"),\n"
+"\talan türü: \"Bağlantı\",\n"
+"\tseçenekler: \"Şirket\",\n"
+"\tvarsayılan: frappe.defaults.get_user_default(\"Şirket\"),\n"
+"\tgerekli: 1\n"
+"},\n"
+"{\n"
+"\talan adı: \"hesap\",\n"
+"\tetiket: __(\"Hesap\"),\n"
+"\talan türü: \"Bağlantı\",\n"
+"\tseçenekler: \"Hesap\",\n"
+"\tgerekli: 1\n"
+"}]\n"
+"</code></pre>"
 
 #. Description of the 'Method' (Data) field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
@@ -23265,7 +23282,7 @@ msgstr "Giriş Sayfasında Altbilgiyi Göster"
 #. Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
 msgid "Show full form instead of a quick entry modal"
-msgstr ""
+msgstr "Hızlı giriş modu yerine tam formu göster"
 
 #. Label of a Select field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -23275,12 +23292,12 @@ msgstr "Modül Bölümünde Göster"
 #. Label of a Check field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgid "Show in filter"
-msgstr ""
+msgstr "Filtrede göster"
 
 #. Label of a Check field in DocType 'Slack Webhook URL'
 #: integrations/doctype/slack_webhook_url/slack_webhook_url.json
 msgid "Show link to document"
-msgstr ""
+msgstr "Belge bağlantısını göster"
 
 #: public/js/frappe/form/layout.js:255 public/js/frappe/form/layout.js:273
 msgid "Show more details"
@@ -23459,7 +23476,7 @@ msgstr ""
 #. Label of a Data field in DocType 'Contact Us Settings'
 #: website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Skype"
-msgstr ""
+msgstr "Skype"
 
 #. Option for the 'Channel' (Select) field in DocType 'Notification'
 #: email/doctype/notification/notification.json
@@ -23668,7 +23685,7 @@ msgstr "Boşluk"
 #. Option for the 'Email Status' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgid "Spam"
-msgstr ""
+msgstr "Gereksiz"
 
 #. Option for the 'Service' (Select) field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -24279,7 +24296,7 @@ msgstr ""
 
 #: www/update-password.html:79
 msgid "Success! You are good to go 👍"
-msgstr ""
+msgstr "Başarılı! Hazırsınız 👍"
 
 #. Label of a Int field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
@@ -24288,7 +24305,7 @@ msgstr "Başarılı İş Sayısı"
 
 #: model/workflow.py:299
 msgid "Successful Transactions"
-msgstr ""
+msgstr "Başarılı İşlem"
 
 #: model/rename_doc.py:682
 msgid "Successful: {0} to {1}"
@@ -24321,7 +24338,7 @@ msgstr "{0} Başarıyla Güncellendi"
 
 #: core/doctype/data_import/data_import.js:149
 msgid "Successfully {0} 1 record."
-msgstr ""
+msgstr "Başarıyla {0} 1 kayıt."
 
 #: core/doctype/data_import/data_import.js:156
 msgid "Successfully {0} {1} record out of {2}. Click on Export Errored Rows, fix the errors and import again."
@@ -24456,7 +24473,7 @@ msgstr ""
 
 #: utils/data.py:2154
 msgid "Syntax Error"
-msgstr ""
+msgstr "Sözdizimi Hatası"
 
 #. Option for the 'Show in Module Section' (Select) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -24466,7 +24483,7 @@ msgstr "Sistem"
 #. Name of a DocType
 #: desk/doctype/system_console/system_console.json
 msgid "System Console"
-msgstr ""
+msgstr "Sistem Konsolu"
 
 #: custom/doctype/custom_field/custom_field.py:358
 msgid "System Generated Fields can not be renamed"
@@ -24658,7 +24675,7 @@ msgstr "Sistem Bildirimleri"
 #. Label of a Check field in DocType 'Page'
 #: core/doctype/page/page.json
 msgid "System Page"
-msgstr ""
+msgstr "Sistem Sayfası"
 
 #. Name of a DocType
 #: core/doctype/system_settings/system_settings.json
@@ -24675,7 +24692,7 @@ msgstr "Sistem Ayarları"
 #. 'Module Onboarding'
 #: desk/doctype/module_onboarding/module_onboarding.json
 msgid "System managers are allowed by default"
-msgstr ""
+msgstr "Sistem yöneticilerine varsayılan olarak izin verilir"
 
 #: public/js/frappe/utils/number_systems.js:5
 msgctxt "Number system"
@@ -24714,7 +24731,7 @@ msgstr "Tablo"
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Template Field'
 #: website/doctype/web_template_field/web_template_field.json
 msgid "Table Break"
-msgstr ""
+msgstr "Sekme Sonu"
 
 #: core/doctype/version/version_view.html:72
 msgid "Table Field"
@@ -24727,12 +24744,12 @@ msgstr "Tablo Alan Adı"
 
 #: core/doctype/doctype/doctype.py:1165
 msgid "Table Fieldname Missing"
-msgstr ""
+msgstr "Tablo Alan Adı Eksik"
 
 #. Label of a HTML field in DocType 'Version'
 #: core/doctype/version/version.json
 msgid "Table HTML"
-msgstr ""
+msgstr "HTML Tablosu"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -24741,7 +24758,7 @@ msgstr ""
 #: custom/doctype/custom_field/custom_field.json
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgid "Table MultiSelect"
-msgstr ""
+msgstr "Tablo Çoklu Seçim"
 
 #: custom/doctype/customize_form/customize_form.js:229
 msgid "Table Trimmed"
@@ -26322,7 +26339,7 @@ msgstr ""
 
 #: public/js/frappe/widgets/onboarding_widget.js:323
 msgid "Try Again"
-msgstr ""
+msgstr "Tekrar Deneyin"
 
 #. Label of a Data field in DocType 'Document Naming Settings'
 #: core/doctype/document_naming_settings/document_naming_settings.json
@@ -26418,7 +26435,7 @@ msgstr ""
 
 #: templates/discussions/discussions.js:341
 msgid "Type your reply here..."
-msgstr ""
+msgstr "Cevabınızı buraya yazın..."
 
 #: core/doctype/data_export/exporter.py:143
 msgid "Type:"
@@ -26541,7 +26558,7 @@ msgstr "Beklenmeyen Sunucu Hatası"
 
 #: public/js/frappe/form/toolbar.js:94
 msgid "Unchanged"
-msgstr ""
+msgstr "Değişmedi"
 
 #: public/js/frappe/form/toolbar.js:451
 msgid "Undo"
@@ -26597,11 +26614,11 @@ msgstr "Bilinmeyen Kullanıcı"
 
 #: utils/csvutils.py:52
 msgid "Unknown file encoding. Tried utf-8, windows-1250, windows-1252."
-msgstr ""
+msgstr "Bilinmeyen dosya kodlaması. Utf-8, windows-1250, windows-1252 denendi."
 
 #: core/doctype/submission_queue/submission_queue.js:7
 msgid "Unlock Reference Document"
-msgstr ""
+msgstr "Referans Belgesinin Kilidini Aç"
 
 #: website/doctype/blog_post/blog_post.js:36
 #: website/doctype/web_form/web_form.js:86
@@ -27056,7 +27073,7 @@ msgstr ""
 #. Label of a Table field in DocType 'User'
 #: core/doctype/user/user.json
 msgid "User Defaults"
-msgstr ""
+msgstr "Kullanıcı Varsayılanları"
 
 #. Label of a Tab Break field in DocType 'User'
 #: core/doctype/user/user.json
@@ -27066,11 +27083,11 @@ msgstr "Kullanıcı Detayları"
 #. Name of a DocType
 #: core/doctype/user_document_type/user_document_type.json
 msgid "User Document Type"
-msgstr ""
+msgstr "Kullanıcı Belge Türü"
 
 #: core/doctype/user_type/user_type.py:97
 msgid "User Document Types Limit Exceeded"
-msgstr ""
+msgstr "Kullanıcı Belge Türleri Sınırı Aşıldı"
 
 #. Name of a DocType
 #: core/doctype/user_email/user_email.json
@@ -27090,17 +27107,17 @@ msgstr "Kullanıcı Alanı"
 #. Name of a DocType
 #: core/doctype/user_group/user_group.json
 msgid "User Group"
-msgstr ""
+msgstr "Kullanıcı Grubu"
 
 #. Name of a DocType
 #: core/doctype/user_group_member/user_group_member.json
 msgid "User Group Member"
-msgstr ""
+msgstr "Kullanıcı Grubu Üyesi"
 
 #. Label of a Table MultiSelect field in DocType 'User Group'
 #: core/doctype/user_group/user_group.json
 msgid "User Group Members"
-msgstr ""
+msgstr "Kullanıcı Grubu Üyeleri"
 
 #. Label of a Data field in DocType 'User Social Login'
 #: core/doctype/user_social_login/user_social_login.json
@@ -27110,7 +27127,7 @@ msgstr "Kullanıcı ID"
 #. Label of a Data field in DocType 'Social Login Key'
 #: integrations/doctype/social_login_key/social_login_key.json
 msgid "User ID Property"
-msgstr ""
+msgstr "Kullanıcı Kimliği Özelliği"
 
 #. Description of a DocType
 #: website/doctype/blogger/blogger.json
@@ -27125,11 +27142,11 @@ msgstr "Kullanıcı ID"
 #. Label of a Select field in DocType 'User Type'
 #: core/doctype/user_type/user_type.json
 msgid "User Id Field"
-msgstr ""
+msgstr "Kullanıcı Kimliği Alanı"
 
 #: core/doctype/user_type/user_type.py:287
 msgid "User Id Field is mandatory in the user type {0}"
-msgstr ""
+msgstr "Kullanıcı Kimliği Alanı {0} kullanıcı türünde zorunludur"
 
 #. Label of a Attach Image field in DocType 'User'
 #: core/doctype/user/user.json
@@ -27175,7 +27192,7 @@ msgstr "Kullanıcı İzinleri, kullanıcıları belirli kayıtlarla sınırlamak
 
 #: core/doctype/user_permission/user_permission_list.js:124
 msgid "User Permissions created sucessfully"
-msgstr ""
+msgstr "Kullanıcı İzinleri başarıyla oluşturuldu"
 
 #. Label of a shortcut in the Users Workspace
 #: core/workspace/users/users.json
@@ -27248,7 +27265,7 @@ msgstr "Kullanıcı bulunamadı."
 
 #: core/doctype/user_type/user_type.py:82
 msgid "User does not have permission to create the new {0}"
-msgstr ""
+msgstr "Kullanıcının yeni {0} oluşturmak için izni yok"
 
 #: core/doctype/docshare/docshare.py:55
 msgid "User is mandatory for Share"
@@ -27297,7 +27314,7 @@ msgstr ""
 
 #: desk/doctype/workspace/workspace.py:253
 msgid "User {0} does not have the permission to create a Workspace."
-msgstr ""
+msgstr "Kullanıcı {0} bir Çalışma Alanı oluşturma iznine sahip değil."
 
 #: templates/emails/data_deletion_approval.html:1
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:108
@@ -27522,7 +27539,7 @@ msgstr ""
 
 #: twofactor.py:353
 msgid "Verfication Code"
-msgstr ""
+msgstr "Doğrulama Kodu"
 
 #: templates/emails/delete_data_confirmation.html:10
 msgid "Verification Link"
@@ -28159,7 +28176,7 @@ msgstr "Hoş Geldiniz Bağlantısı"
 #. Name of a Workspace
 #: core/workspace/welcome_workspace/welcome_workspace.json desk/desktop.py:470
 msgid "Welcome Workspace"
-msgstr ""
+msgstr "Çalışma Alanına Hoşgeldiniz"
 
 #: core/doctype/user/user.py:360
 msgid "Welcome email sent"
@@ -28992,7 +29009,7 @@ msgstr ""
 #: public/js/frappe/form/footer/form_timeline.js:418
 msgctxt "Form timeline"
 msgid "You removed attachment {0}"
-msgstr ""
+msgstr "Dosya Ekini kaldırdınız {0}"
 
 #: public/js/frappe/widgets/onboarding_widget.js:525
 msgid "You seem good to go!"
@@ -29034,11 +29051,11 @@ msgstr "Dil"
 
 #: templates/includes/comments/comments.html:21
 msgid "Your Name"
-msgstr ""
+msgstr "Adınız"
 
 #: public/js/frappe/list/bulk_operations.js:132
 msgid "Your PDF is ready for download"
-msgstr ""
+msgstr "PDF'niz indirilmeye hazır"
 
 #: patches/v14_0/update_workspace2.py:34
 msgid "Your Shortcuts"
@@ -29047,7 +29064,7 @@ msgstr "Kısayollar"
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:141
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:147
 msgid "Your account has been deleted"
-msgstr ""
+msgstr "Hesabınız silindi"
 
 #: auth.py:487
 msgid "Your account has been locked and will resume after {0} seconds"
@@ -29059,11 +29076,11 @@ msgstr ""
 
 #: core/doctype/file/file.js:66
 msgid "Your browser does not support the audio element."
-msgstr ""
+msgstr "Tarayıcınız ses öğesini desteklemiyor."
 
 #: core/doctype/file/file.js:48
 msgid "Your browser does not support the video element."
-msgstr ""
+msgstr "Tarayıcınız video öğesini desteklemiyor."
 
 #: templates/pages/integrations/gcalendar-success.html:11
 msgid "Your connection request to Google Calendar was successfully accepted"
@@ -30636,7 +30653,7 @@ msgstr ""
 #: public/js/frappe/form/footer/form_timeline.js:126
 #: public/js/frappe/form/sidebar/form_sidebar.js:86
 msgid "{0} Web page views"
-msgstr ""
+msgstr "{0} Web sayfası görüntülemeleri"
 
 #: public/js/frappe/ui/toolbar/search_utils.js:91
 #: public/js/frappe/ui/toolbar/search_utils.js:92
@@ -30802,7 +30819,7 @@ msgstr "{0} gün önce"
 #: website/doctype/website_settings/website_settings.py:96
 #: website/doctype/website_settings/website_settings.py:116
 msgid "{0} does not exist in row {1}"
-msgstr ""
+msgstr "{0} {1} satırında mevcut değil"
 
 #: database/mariadb/schema.py:120 database/postgres/schema.py:154
 msgid "{0} field cannot be set as unique in {1}, as there are non-unique existing values"
@@ -30887,16 +30904,16 @@ msgstr "{0} 'Alıcılar' bölümünde geçersiz bir e-posta adresi var"
 
 #: public/js/frappe/views/reports/report_view.js:1392
 msgid "{0} is between {1} and {2}"
-msgstr ""
+msgstr "{0} {1} ile {2} arasındadır"
 
 #: public/js/frappe/form/sidebar/form_sidebar_users.js:41
 #: public/js/frappe/form/sidebar/form_sidebar_users.js:69
 msgid "{0} is currently {1}"
-msgstr ""
+msgstr "{0} şu anda {1}"
 
 #: public/js/frappe/views/reports/report_view.js:1361
 msgid "{0} is equal to {1}"
-msgstr ""
+msgstr "{0} ile {1} eşittir"
 
 #: public/js/frappe/views/reports/report_view.js:1381
 msgid "{0} is greater than or equal to {1}"
@@ -30972,11 +30989,11 @@ msgstr "{0} geçerli bir rapor biçimi değil. Rapor biçimi aşağıdakilerden 
 
 #: core/doctype/file/file.py:482
 msgid "{0} is not a zip file"
-msgstr ""
+msgstr "{0} bir zip dosyası değil"
 
 #: public/js/frappe/views/reports/report_view.js:1366
 msgid "{0} is not equal to {1}"
-msgstr ""
+msgstr "{0} ile {1} eşit değildir"
 
 #: public/js/frappe/views/reports/report_view.js:1413
 msgid "{0} is not like {1}"
@@ -31211,7 +31228,7 @@ msgstr ""
 
 #: public/js/frappe/form/footer/form_timeline.js:183
 msgid "{0} viewed this"
-msgstr ""
+msgstr "{0} görüntüledi"
 
 #: public/js/frappe/utils/pretty_date.js:35
 msgid "{0} w"
@@ -31223,7 +31240,7 @@ msgstr "{0} hafta önce"
 
 #: public/js/frappe/utils/pretty_date.js:39
 msgid "{0} y"
-msgstr ""
+msgstr "{0} y"
 
 #: public/js/frappe/utils/pretty_date.js:72
 msgid "{0} years ago"
@@ -31267,7 +31284,7 @@ msgstr "{0} {1}: Gönderilen kayıt silinemez. Önce {2} İptal {3} işlemini ge
 
 #: model/base_document.py:1005
 msgid "{0}, Row {1}"
-msgstr ""
+msgstr "{0}, Satır {1}"
 
 #: model/base_document.py:1010
 msgid "{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}"
