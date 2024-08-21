@@ -1,5 +1,8 @@
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 2c3916f898 (refactor: change logic slightly, reformat JSON)
  "actions": [],
  "autoname": "Prompt",
  "creation": "2019-10-23 15:00:48.392374",
@@ -8,8 +11,15 @@
  "engine": "InnoDB",
  "field_order": [
   "disable_count",
+<<<<<<< HEAD
   "disable_sidebar_stats",
   "disable_auto_refresh",
+=======
+  "disable_comment_count",
+  "disable_sidebar_stats",
+  "disable_auto_refresh",
+  "allow_edit",
+>>>>>>> 2c3916f898 (refactor: change logic slightly, reformat JSON)
   "total_fields",
   "fields_html",
   "fields"
@@ -50,6 +60,7 @@
    "hidden": 1,
    "label": "Fields",
    "read_only": 1
+<<<<<<< HEAD
   }
  ],
  "links": [],
@@ -57,6 +68,29 @@
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List View Settings",
+=======
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_comment_count",
+   "fieldtype": "Check",
+   "label": "Disable Comment Count"
+  },
+  {
+   "default": "0",
+   "description": "Allow editing even if the doctype has a workflow set up.\n\nDoes nothing if a workflow isn't set up.",
+   "fieldname": "allow_edit",
+   "fieldtype": "Check",
+   "label": "Allow Bulk Editing"
+  }
+ ],
+ "links": [],
+ "modified": "2024-08-21 18:17:24.889783",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "List View Settings",
+ "naming_rule": "Set by user",
+>>>>>>> 2c3916f898 (refactor: change logic slightly, reformat JSON)
  "owner": "Administrator",
  "permissions": [
   {
@@ -71,6 +105,7 @@
   }
  ],
  "read_only": 1,
+<<<<<<< HEAD
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1
@@ -168,3 +203,10 @@
     "track_changes": 1
    }
 >>>>>>> 0b9df2b994 (feat: enable or disable bulk edit from list view settings doctype)
+=======
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
+>>>>>>> 2c3916f898 (refactor: change logic slightly, reformat JSON)
