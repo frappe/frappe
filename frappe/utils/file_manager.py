@@ -155,15 +155,11 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 
 	file_size = check_max_file_size(content)
 	content_hash = get_content_hash(content)
-	content_type = mimetypes.guess_type(fname)[0]
 	fname = get_file_name(fname, content_hash[-6:])
-	file_data = get_file_data_from_hash(content_hash, is_private=is_private)
-	if not file_data:
-		call_hook_method("before_write_file", file_size=file_size)
-
-		write_file_method = get_hook_method("write_file", fallback=save_file_on_filesystem)
-		file_data = write_file_method(fname, content, content_type=content_type, is_private=is_private)
-		file_data = copy(file_data)
+	file_data = get_file_data_from_hash(content_hash, is_private=is_private) or {
+		"file_name": fname,
+		"file_url": f"/private/files/{fname}" if is_private else f"/files/{fname}",
+	}
 
 	file_data.update(
 		{
@@ -175,6 +171,7 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 			"file_size": file_size,
 			"content_hash": content_hash,
 			"is_private": is_private,
+			"content": content,
 		}
 	)
 
