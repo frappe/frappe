@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-18 09:32+0000\n"
-"PO-Revision-Date: 2024-08-20 07:30\n"
+"PO-Revision-Date: 2024-08-21 08:22\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -4168,7 +4168,7 @@ msgstr ""
 
 #: desk/doctype/workspace/workspace.py:254
 msgid "Cannot create private workspace of other users"
-msgstr ""
+msgstr "Diğer kullanıcılar adına özel çalışma alanı oluşturulamıyor"
 
 #: core/doctype/file/file.py:152
 msgid "Cannot delete Home and Attachments folders"
@@ -4308,7 +4308,7 @@ msgstr "{0} gönderilemiyor."
 
 #: desk/doctype/workspace/workspace.py:353
 msgid "Cannot update private workspace of other users"
-msgstr ""
+msgstr "Diğer kullanıcılar adına özel çalışma alanı oluşturulamıyor"
 
 #: desk/doctype/bulk_update/bulk_update.js:26
 #: public/js/frappe/list/bulk_operations.js:366
@@ -5540,7 +5540,7 @@ msgstr "İçerik Türü"
 
 #: desk/doctype/workspace/workspace.py:81
 msgid "Content data shoud be a list"
-msgstr ""
+msgstr "İçerik verileri bir liste olmalıdır"
 
 #: website/doctype/web_page/web_page.js:91
 msgid "Content type for building the page"
@@ -7669,7 +7669,7 @@ msgstr ""
 
 #: public/js/frappe/views/workspace/workspace.js:1363
 msgid "Doctype with same route already exist. Please choose different title."
-msgstr ""
+msgstr "Aynı rotaya DocType türü zaten mevcut. Lütfen farklı bir başlık seçin."
 
 #. Label of the reference_name (Data) field in DocType 'Milestone'
 #. Label of the document (Dynamic Link) field in DocType 'Audit Trail'
@@ -10018,7 +10018,7 @@ msgstr ""
 
 #: public/js/frappe/form/form.js:1766
 msgid "Field {0} not found."
-msgstr ""
+msgstr "{0} alanı bulunamadı."
 
 #: email/doctype/notification/notification.py:401
 msgid "Field {0} on document {1} is neither a Mobile number field nor a Customer or User link"
@@ -14479,13 +14479,13 @@ msgstr "Bağlantı Kartları"
 #. Label of the link_count (Int) field in DocType 'Workspace Link'
 #: desk/doctype/workspace_link/workspace_link.json
 msgid "Link Count"
-msgstr ""
+msgstr "Bağlantı Sayısı"
 
 #. Label of the link_details_section (Section Break) field in DocType
 #. 'Workspace Link'
 #: desk/doctype/workspace_link/workspace_link.json
 msgid "Link Details"
-msgstr ""
+msgstr "Bağlantı Ayrıntıları"
 
 #. Label of the link_doctype (Link) field in DocType 'Activity Log'
 #. Label of the link_doctype (Link) field in DocType 'Communication Link'
@@ -15063,7 +15063,7 @@ msgstr "Uygulamaları Yönet"
 #. Description of a Card Break in the Tools Workspace
 #: automation/workspace/tools/tools.json
 msgid "Manage your data"
-msgstr ""
+msgstr "Verilerinizi yönetin"
 
 #. Label of the reqd (Check) field in DocType 'DocField'
 #. Label of the mandatory (Check) field in DocType 'Report Filter'
@@ -15550,7 +15550,7 @@ msgstr "İkinci Adı"
 #: automation/doctype/milestone/milestone.json
 #: automation/workspace/tools/tools.json
 msgid "Milestone"
-msgstr ""
+msgstr "Kilometre Taşı"
 
 #. Label of the milestone_tracker (Link) field in DocType 'Milestone'
 #. Name of a DocType
@@ -15690,7 +15690,7 @@ msgstr "Modül"
 #: custom/doctype/property_setter/property_setter.json
 #: website/doctype/web_page/web_page.json
 msgid "Module (for export)"
-msgstr "Modül (Dışarı Aktarım İçin)"
+msgstr "Modül"
 
 #. Name of a DocType
 #. Label of a Link in the Build Workspace
@@ -16820,7 +16820,7 @@ msgstr "Konu yok"
 
 #: www/printview.py:442
 msgid "No template found at path: {0}"
-msgstr ""
+msgstr "{0} yolunda şablon bulunamadı"
 
 #: public/js/frappe/form/controls/multiselect_list.js:246
 msgid "No values to show"
@@ -17481,7 +17481,7 @@ msgstr "Beklemede"
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
 msgid "On Payment Authorization"
-msgstr ""
+msgstr "Ödeme Onayında"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
@@ -17506,7 +17506,7 @@ msgstr ""
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
 msgid "On Payment Paid"
-msgstr ""
+msgstr "Ödeme Yapıldığında"
 
 #. Description of the 'Is Dynamic URL?' (Check) field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
@@ -18376,7 +18376,7 @@ msgstr "E-posta Hesabında Şifre Eksik"
 
 #: utils/password.py:41
 msgid "Password not found for {0} {1} {2}"
-msgstr ""
+msgstr "{0} {1} {2} için şifre bulunamadı"
 
 #: core/doctype/user/user.py:1041
 msgid "Password reset instructions have been sent to {}'s email"
@@ -18424,7 +18424,7 @@ msgstr ""
 
 #: modules/patch_handler.py:136
 msgid "Patch type {} not found in patches.txt"
-msgstr ""
+msgstr "Patches.txt dosyasında {} yama türü bulunamadı"
 
 #. Label of the path (Small Text) field in DocType 'Package Release'
 #. Label of the path (Data) field in DocType 'Recorder'
@@ -19468,7 +19468,7 @@ msgstr "Yazdırma Formatı Oluşturucu"
 #. Label of a Link in the Tools Workspace
 #: automation/workspace/tools/tools.json
 msgid "Print Format Builder (New)"
-msgstr ""
+msgstr "Yazdırma Formatı Oluşturucu (Yeni)"
 
 #. Label of the print_format_builder_beta (Check) field in DocType 'Print
 #. Format'
@@ -22687,7 +22687,7 @@ msgstr "Çalışma Alanını Seçin"
 #. 'Workspace Settings'
 #: desk/doctype/workspace_settings/workspace_settings.json
 msgid "Select Workspaces"
-msgstr ""
+msgstr "Çalışma Alanı Seçin"
 
 #: website/doctype/website_settings/website_settings.js:23
 msgid "Select a Brand Image first."
@@ -22746,7 +22746,7 @@ msgstr "Liste Öğesini Seç"
 
 #: desk/doctype/workspace_settings/workspace_settings.js:42
 msgid "Select modules you want to see in the sidebar"
-msgstr ""
+msgstr "Kenar çubuğunda görmek istediğiniz modülleri seçin"
 
 #: public/js/frappe/list/list_view.js:1217
 #: public/js/frappe/list/list_view.js:1233
@@ -23336,7 +23336,7 @@ msgstr ""
 #. Label of the set_only_once (Check) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgid "Set only once"
-msgstr ""
+msgstr "Sadece bir kez ayarla"
 
 #. Description of the 'Filters Configuration' (Code) field in DocType 'Number
 #. Card'
@@ -23808,7 +23808,7 @@ msgstr "Giriş Sayfasında Altbilgiyi Göster"
 #. Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
 msgid "Show full form instead of a quick entry modal"
-msgstr ""
+msgstr "Hızlı giriş modu yerine tam formu göster"
 
 #. Label of the document_type (Select) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -25273,7 +25273,7 @@ msgstr "Tablo"
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Template Field'
 #: website/doctype/web_template_field/web_template_field.json
 msgid "Table Break"
-msgstr ""
+msgstr "Sekme Sonu"
 
 #: core/doctype/version/version_view.html:72
 msgid "Table Field"
@@ -25291,7 +25291,7 @@ msgstr ""
 #. Label of the table_html (HTML) field in DocType 'Version'
 #: core/doctype/version/version.json
 msgid "Table HTML"
-msgstr ""
+msgstr "HTML Tablosu"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -25300,7 +25300,7 @@ msgstr ""
 #: custom/doctype/custom_field/custom_field.json
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgid "Table MultiSelect"
-msgstr ""
+msgstr "Tablo Çoklu Seçim"
 
 #: custom/doctype/customize_form/customize_form.js:229
 msgid "Table Trimmed"
@@ -27637,7 +27637,7 @@ msgstr ""
 #. Label of the defaults (Table) field in DocType 'User'
 #: core/doctype/user/user.json
 msgid "User Defaults"
-msgstr ""
+msgstr "Kullanıcı Varsayılanları"
 
 #. Label of the user_details_tab (Tab Break) field in DocType 'User'
 #: core/doctype/user/user.json
@@ -27682,7 +27682,7 @@ msgstr ""
 #. Group'
 #: core/doctype/user_group/user_group.json
 msgid "User Group Members"
-msgstr ""
+msgstr "Kullanıcı Grubu Üyeleri"
 
 #. Label of the userid (Data) field in DocType 'User Social Login'
 #: core/doctype/user_social_login/user_social_login.json
@@ -27692,7 +27692,7 @@ msgstr "Kullanıcı ID"
 #. Label of the user_id_property (Data) field in DocType 'Social Login Key'
 #: integrations/doctype/social_login_key/social_login_key.json
 msgid "User ID Property"
-msgstr ""
+msgstr "Kullanıcı Kimliği Özelliği"
 
 #. Description of a DocType
 #: website/doctype/blogger/blogger.json
@@ -27707,7 +27707,7 @@ msgstr "Kullanıcı ID"
 #. Label of the user_id_field (Select) field in DocType 'User Type'
 #: core/doctype/user_type/user_type.json
 msgid "User Id Field"
-msgstr ""
+msgstr "Kullanıcı Kimliği Alanı"
 
 #: core/doctype/user_type/user_type.py:284
 msgid "User Id Field is mandatory in the user type {0}"
@@ -27871,7 +27871,7 @@ msgstr ""
 
 #: desk/doctype/workspace/workspace.py:257
 msgid "User {0} does not have the permission to create a Workspace."
-msgstr ""
+msgstr "Kullanıcı {0} bir Çalışma Alanı oluşturma iznine sahip değil."
 
 #: templates/emails/data_deletion_approval.html:1
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:108
@@ -28722,7 +28722,7 @@ msgstr "Hoş Geldiniz Bağlantısı"
 #. Name of a Workspace
 #: core/workspace/welcome_workspace/welcome_workspace.json desk/desktop.py:482
 msgid "Welcome Workspace"
-msgstr ""
+msgstr "Çalışma Alanına Hoşgeldiniz"
 
 #: core/doctype/user/user.py:374
 msgid "Welcome email sent"
@@ -29006,13 +29006,13 @@ msgstr "Çalışma Alanı Listesi"
 #. Name of a DocType
 #: desk/doctype/workspace_settings/workspace_settings.json hooks.py
 msgid "Workspace Settings"
-msgstr ""
+msgstr "Çalışma Alanı Ayarları"
 
 #. Label of the workspace_setup_completed (Check) field in DocType 'Workspace
 #. Settings'
 #: desk/doctype/workspace_settings/workspace_settings.json
 msgid "Workspace Setup Completed"
-msgstr ""
+msgstr "Çalışma Alanı Kurulumu Tamamlandı"
 
 #. Name of a DocType
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
@@ -29023,7 +29023,7 @@ msgstr "Çalışma Alanı Kısayolu"
 #. Settings'
 #: desk/doctype/workspace_settings/workspace_settings.json
 msgid "Workspace Visibility"
-msgstr ""
+msgstr "Çalışma Alanı Görünürlüğü"
 
 #: desk/doctype/workspace/workspace.py:289
 msgid "Workspace not found"
