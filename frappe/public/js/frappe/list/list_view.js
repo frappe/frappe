@@ -1090,14 +1090,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_subject_text(doc, title) {
 		const subject_field = this.columns[0].df;
-		let value = title || doc[subject_field.fieldname];
+		let value = title || doc[subject_field.fieldname] || doc.name;
+
+		if (this.meta.translated_doctype) {
+			value = __(value);
+		}
+
 		if (this.settings.formatters && this.settings.formatters[subject_field.fieldname]) {
 			let formatter = this.settings.formatters[subject_field.fieldname];
 			value = formatter(value, subject_field, doc);
-		}
-
-		if (!value) {
-			value = doc.name;
 		}
 
 		if (frappe.model.html_fieldtypes.includes(subject_field.fieldtype)) {
