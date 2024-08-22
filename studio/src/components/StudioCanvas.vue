@@ -140,9 +140,17 @@ const visibleBreakpoints = computed(() => {
 
 const rootComponent = ref(getBlockCopy(props.componentTree))
 
+// handle dropping components
 const { isOverDropZone } = useDropZone(canvasContainer, {
 	onDrop: (_files, ev) => {
+		let element = document.elementFromPoint(ev.x, ev.y)
 		let parentComponent = rootComponent.value
+
+		if (element) {
+			if (element.dataset.componentId) {
+				parentComponent = findBlock(element.dataset.componentId) || parentComponent
+			}
+		}
 
 		const componentName = ev.dataTransfer?.getData("componentName")
 		if (componentName) {
@@ -151,6 +159,23 @@ const { isOverDropZone } = useDropZone(canvasContainer, {
 		}
 	},
 })
+
+const findBlock = (componentId, blocks = null) => {
+	if (!blocks) {
+		blocks = [getRootBlock()]
+	}
+
+	for (const block of blocks) {
+		if (block.componentId === componentId) return block
+
+		if (block.children) {
+			const found = findBlock(componentId, block.children)
+			if (found) return found
+		}
+	}
+}
+
+const getRootBlock = () => rootComponent.value
 
 const containerBound = reactive(useElementBounding(canvasContainer))
 const canvasBound = reactive(useElementBounding(canvas))
