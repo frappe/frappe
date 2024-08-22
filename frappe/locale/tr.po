@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-07-30 18:03+0000\n"
-"PO-Revision-Date: 2024-08-21 08:22\n"
+"PO-Revision-Date: 2024-08-22 09:03\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -4039,7 +4039,7 @@ msgstr "İptal edildi"
 
 #: core/doctype/deleted_document/deleted_document.py:51
 msgid "Cancelled Document restored as Draft"
-msgstr ""
+msgstr "İptal Edilen Belge Taslak Olarak Geri Yüklendi"
 
 #: public/js/frappe/form/save.js:13
 msgctxt "Freeze message while cancelling a document"
@@ -4060,7 +4060,7 @@ msgstr "Yetersiz izinler nedeniyle Rapor İndirilemiyor"
 
 #: client.py:461
 msgid "Cannot Fetch Values"
-msgstr ""
+msgstr "Değerler Getirilemiyor"
 
 #: core/page/permission_manager/permission_manager.py:155
 msgid "Cannot Remove"
@@ -4072,11 +4072,11 @@ msgstr "Belge Gönderildikten Sonra Güncelleme Yapılamaz"
 
 #: core/doctype/file/file.py:573
 msgid "Cannot access file path {0}"
-msgstr ""
+msgstr "Dosya yoluna erişilemiyor {0}"
 
 #: public/js/workflow_builder/utils.js:183
 msgid "Cannot cancel before submitting while transitioning from <b>{0} State</b> to <b>{1} State</b>"
-msgstr ""
+msgstr "<b>{0} Durumundan</b> <b>{1} </b> <b> Durumuna</b> geçerken kaydetmeden önce iptal edilemez"
 
 #: workflow/doctype/workflow/workflow.py:110
 msgid "Cannot cancel before submitting. See Transition {0}"
@@ -4911,7 +4911,7 @@ msgstr "Sütun"
 
 #: desk/doctype/kanban_board/kanban_board.py:84
 msgid "Column <b>{0}</b> already exist."
-msgstr ""
+msgstr "Sütun <b>{0}</b> zaten mevcut."
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -5016,7 +5016,7 @@ msgstr "Yorum Türü"
 
 #: desk/form/utils.py:58
 msgid "Comment can only be edited by the owner"
-msgstr ""
+msgstr "Yorum yalnızca sahibi tarafından düzenlenebilir"
 
 #. Label of a Int field in DocType 'Blog Settings'
 #: website/doctype/blog_settings/blog_settings.json
@@ -5264,7 +5264,7 @@ msgstr "Onayla"
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:92
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:100
 msgid "Confirm Deletion of Account"
-msgstr ""
+msgstr "Hesabın Silinmesini Onayla"
 
 #: core/doctype/user/user.js:184
 msgid "Confirm New Password"
@@ -6184,12 +6184,12 @@ msgstr "Formu Özelleştir"
 
 #: custom/doctype/customize_form/customize_form.js:100
 msgid "Customize Form - {0}"
-msgstr ""
+msgstr "Formu Özelleştir - {0}"
 
 #. Name of a DocType
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgid "Customize Form Field"
-msgstr ""
+msgstr "Form Alanını Özelleştir"
 
 #. Title of an Onboarding Step
 #: custom/onboarding_step/print_format/print_format.json
@@ -6203,7 +6203,7 @@ msgstr "Standart doküman tipleri için özellikleri, isimlendirmeyi, alanları 
 
 #: public/js/frappe/views/file/file_view.js:144
 msgid "Cut"
-msgstr ""
+msgstr "Kes"
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #. Option for the 'Indicator' (Select) field in DocType 'Kanban Board Column'
@@ -7639,7 +7639,7 @@ msgstr ""
 #: public/js/frappe/widgets/onboarding_widget.js:420
 #: public/js/frappe/widgets/onboarding_widget.js:439
 msgid "Document Saved"
-msgstr ""
+msgstr "Belge Kaydedildi"
 
 #. Label of a Check field in DocType 'Notification Settings'
 #: desk/doctype/notification_settings/notification_settings.json
@@ -7778,7 +7778,7 @@ msgstr ""
 
 #: public/js/frappe/list/list_view.js:1073
 msgid "Document has been cancelled"
-msgstr ""
+msgstr "Belge iptal edildi"
 
 #: public/js/frappe/list/list_view.js:1072
 msgid "Document has been submitted"
@@ -7786,11 +7786,11 @@ msgstr "Belge Gönderildi"
 
 #: public/js/frappe/list/list_view.js:1071
 msgid "Document is in draft state"
-msgstr ""
+msgstr "Belge taslak durumundadır"
 
 #: public/js/frappe/form/workflow.js:45
 msgid "Document is only editable by users with role"
-msgstr ""
+msgstr "Belge yalnızca role sahip kullanıcılar tarafından düzenlenebilir"
 
 #: core/doctype/communication/communication.js:182
 msgid "Document not Relinked"
@@ -9533,7 +9533,7 @@ msgstr "Başarısız Girişler (Son 30 gün)"
 
 #: model/workflow.py:298
 msgid "Failed Transactions"
-msgstr ""
+msgstr "Başarısız İşlemler"
 
 #: utils/synchronization.py:46
 msgid "Failed to aquire lock: {}. Lock may be held by another process."
@@ -9973,15 +9973,15 @@ msgstr "Dosya Adresi"
 
 #: desk/page/backups/backups.py:104
 msgid "File backup is ready"
-msgstr ""
+msgstr "Dosya yedeklemesi hazır"
 
 #: core/doctype/file/file.py:576
 msgid "File name cannot have {0}"
-msgstr ""
+msgstr "Dosya adı {0} olamaz"
 
 #: utils/csvutils.py:26
 msgid "File not attached"
-msgstr ""
+msgstr "Dosya eklenmedi"
 
 #: core/doctype/file/file.py:681 public/js/frappe/request.js:197
 #: utils/file_manager.py:222
@@ -10641,7 +10641,7 @@ msgstr "Açık Tema"
 #. Type: Action
 #: hooks.py
 msgid "Frappe Support"
-msgstr ""
+msgstr "Frappe Desteği"
 
 #: website/doctype/web_page/web_page.js:92
 msgid "Frappe page builder using components"
@@ -10825,7 +10825,7 @@ msgstr "Yeni Rapor Oluştur"
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:357
 msgid "Generate Random Password"
-msgstr ""
+msgstr "Rastgele Şifre Oluştur"
 
 #: public/js/frappe/ui/toolbar/toolbar.js:162
 #: public/js/frappe/utils/utils.js:1771
@@ -11533,7 +11533,7 @@ msgstr ""
 
 #: www/qrcode.html:9
 msgid "Hi {0}"
-msgstr ""
+msgstr "Merhaba {0}"
 
 #. Label of a Check field in DocType 'DocField'
 #. Label of a Check field in DocType 'DocType Action'
@@ -11685,7 +11685,7 @@ msgstr ""
 
 #: public/js/frappe/form/layout.js:268
 msgid "Hide details"
-msgstr ""
+msgstr "Detayları gizle"
 
 #. Label of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -16385,15 +16385,15 @@ msgstr "Hiçbir filtre seçilmedi"
 
 #: desk/form/utils.py:101
 msgid "No further records"
-msgstr ""
+msgstr "Daha fazla kayıt yok"
 
 #: templates/includes/search_template.html:49
 msgid "No matching records. Search something new"
-msgstr ""
+msgstr "Eşleşen kayıt yok. Yeni bir kelime ile aramayı deneyin"
 
 #: public/js/frappe/web_form/web_form_list.js:161
 msgid "No more items to display"
-msgstr ""
+msgstr "Görüntülenecek başka bir öğe yok"
 
 #: utils/password_strength.py:35
 msgid "No need for symbols, digits, or uppercase letters."
@@ -16631,7 +16631,7 @@ msgstr "{0} belgesinin eklenmesine izin verilmiyor, lütfen Yazdırma Ayarları'
 
 #: core/doctype/doctype/doctype.py:336
 msgid "Not allowed to create custom Virtual DocType."
-msgstr ""
+msgstr "Özel Sanal DocType oluşturulmasına izin verilmiyor."
 
 #: www/printview.py:125
 msgid "Not allowed to print cancelled documents"
@@ -16655,7 +16655,7 @@ msgstr "Geliştirici modunda değil"
 
 #: core/doctype/doctype/doctype.py:331
 msgid "Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."
-msgstr ""
+msgstr "Geliştirici Modunda değil! site_config.json dosyasına ayarlayın veya 'Özel' DocType yapın."
 
 #: api/v1.py:88 api/v1.py:93
 #: core/doctype/system_settings/system_settings.py:209 handler.py:109
@@ -16753,7 +16753,7 @@ msgstr "Gösterilecek bir şey yok"
 
 #: core/doctype/user_permission/user_permission_list.js:129
 msgid "Nothing to update"
-msgstr ""
+msgstr "Güncellenecek bir şey yok"
 
 #. Label of a Section Break field in DocType 'Auto Repeat'
 #. Option for the 'Communication Type' (Select) field in DocType
@@ -18880,7 +18880,7 @@ msgstr "Menü ve Kenar Çubuğunda ek kısayolları tetiklemek için Alt Tuşuna
 
 #: public/js/frappe/list/list_filter.js:134
 msgid "Press Enter to save"
-msgstr ""
+msgstr "Kaydetmek için Enter tuşuna basın."
 
 #. Label of a Section Break field in DocType 'Data Import'
 #. Label of a Section Break field in DocType 'File'
@@ -22227,7 +22227,7 @@ msgstr ""
 
 #: public/js/form_builder/components/Sidebar.vue:56
 msgid "Select a field to edit its properties."
-msgstr ""
+msgstr "Özelliklerini düzenlemek için bir alan seçin."
 
 #: public/js/frappe/views/treeview.js:324
 msgid "Select a group node first."
