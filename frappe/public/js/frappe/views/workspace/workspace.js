@@ -32,7 +32,7 @@ frappe.views.Workspace = class Workspace {
 		};
 		this.sidebar_categories = [
 			{ id: "Personal", label: __("Personal", null, "Workspace Category") },
-			{ id: "General", label: __("General", null, "Workspace Category") },
+			{ id: "Public", label: __("Public", null, "Workspace Category") },
 		];
 		this.indicator_colors = [
 			"green",
@@ -196,7 +196,7 @@ frappe.views.Workspace = class Workspace {
 			let root_pages = this.public_pages.filter(
 				(page) => page.parent_page == "" || page.parent_page == null
 			);
-			if (category.id != "General") {
+			if (category.id != "Public") {
 				root_pages = this.private_pages.filter(
 					(page) => page.parent_page == "" || page.parent_page == null
 				);
