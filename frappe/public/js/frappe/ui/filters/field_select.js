@@ -94,7 +94,7 @@ frappe.ui.FieldSelect = class FieldSelect {
 		});
 
 		// add parenttype column
-		var doctype_obj = locals["DocType"][me.doctype];
+		var doctype_obj = frappe.get_meta(me.doctype);
 		if (doctype_obj && cint(doctype_obj.istable)) {
 			std_filters = std_filters.concat([
 				{

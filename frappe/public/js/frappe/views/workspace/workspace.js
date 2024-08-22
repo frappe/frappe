@@ -57,7 +57,11 @@ frappe.views.Workspace = class Workspace {
 	prepare_container() {
 		let list_sidebar = $(`
 			<div class="list-sidebar overlay-sidebar hidden-xs hidden-sm">
-				<div class="desk-sidebar list-unstyled sidebar-menu"></div>
+				<div class="desk-sidebar list-unstyled sidebar-menu">
+				</div>
+				<div class="mb-4">
+					<a class="edit-sidebar-link text-extra-muted">Edit sidebar</a>
+				</div>
 			</div>
 		`).appendTo(this.wrapper.find(".layout-side-section"));
 		this.sidebar = list_sidebar.find(".desk-sidebar");
@@ -73,6 +77,9 @@ frappe.views.Workspace = class Workspace {
 		this.all_pages = this.sidebar_pages.pages;
 		this.has_access = this.sidebar_pages.has_access;
 		this.has_create_access = this.sidebar_pages.has_create_access;
+		if (!this.sidebar_pages.workspace_setup_completed) {
+			frappe.quick_edit("Workspace Settings");
+		}
 
 		this.all_pages.forEach((page) => {
 			page.is_editable = !page.public || this.has_access;
@@ -83,15 +90,22 @@ frappe.views.Workspace = class Workspace {
 
 		if (this.all_pages) {
 			frappe.workspaces = {};
+			frappe.workspace_list = [];
 			for (let page of this.all_pages) {
 				frappe.workspaces[frappe.router.slug(page.name)] = {
 					title: page.title,
 					public: page.public,
 				};
+
+				frappe.workspace_list.push(page);
 			}
 			this.make_sidebar();
 			reload && this.show();
 		}
+
+		this.wrapper.find(".layout-side-section .edit-sidebar-link").on("click", () => {
+			frappe.quick_edit("Workspace Settings");
+		});
 	}
 
 	prepare_new_and_edit() {
@@ -243,7 +257,12 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	prepare_sidebar(items, child_container, item_container) {
-		items.forEach((item) => this.append_item(item, child_container));
+		for (let item of items) {
+			// visibility not explicitly set to 0
+			if (item.visibility !== 0) {
+				this.append_item(item, child_container);
+			}
+		}
 		child_container.appendTo(item_container);
 	}
 

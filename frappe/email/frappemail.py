@@ -105,7 +105,7 @@ class FrappeMail:
 
 		endpoint = "/api/method/mail.api.inbound.pull_raw"
 		if last_synced_at:
-			last_synced_at = convert_to_utc(last_synced_at)
+			last_synced_at = add_or_update_tzinfo(last_synced_at)
 
 		data = {"mailbox": self.mailbox, "limit": limit, "last_synced_at": last_synced_at}
 		headers = {"X-Site": frappe.utils.get_url()}
@@ -115,13 +115,15 @@ class FrappeMail:
 		return {"latest_messages": response["mails"], "last_synced_at": last_synced_at}
 
 
-def convert_to_utc(date_time: datetime | str, from_timezone: str | None = None) -> str:
-	"""Converts datetime to UTC timezone."""
+def add_or_update_tzinfo(date_time: datetime | str, timezone: str | None = None) -> str:
+	"""Adds or updates timezone to the datetime."""
 
-	dt = (
-		pytz.timezone(from_timezone or get_system_timezone())
-		.localize(get_datetime(date_time))
-		.astimezone(pytz.utc)
-	)
+	date_time = get_datetime(date_time)
+	target_tz = pytz.timezone(timezone or get_system_timezone())
 
-	return get_datetime_str(dt)
+	if date_time.tzinfo is None:
+		date_time = target_tz.localize(date_time)
+	else:
+		date_time = date_time.astimezone(target_tz)
+
+	return str(date_time)

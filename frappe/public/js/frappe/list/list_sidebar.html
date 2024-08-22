@@ -38,7 +38,17 @@
 		<div class="list-group-by">
 		</div>
 
-		<div class="list-tags">
+	</div>
+
+	<div class="sidebar-section tags-section">
+		<li class="sidebar-label">
+			<svg class="es-icon es-line icon-xs" aria-hidden="true">
+				<use class="" href="#es-line-right-chevron"></use>
+			</svg>
+			<span>{{ __("Tags") }}</span>
+		</li>
+
+		<div class="list-tags hide">
 			<li class="list-stats list-link">
 				<a
 					class="btn btn-default btn-sm list-sidebar-button"
@@ -62,15 +72,20 @@
 					</div>
 				</ul>
 			</li>
-			<li class="sidebar-action show-tags">
-				<a class="list-tag-preview">{{ __("Show Tags") }}</a>
+			<li class="sidebar-label">
+				<li class="sidebar-action show-tags">
+					<a class="list-tag-preview">{{ __("Show Tags") }}</a>
+				</li>
 			</li>
 		</div>
 	</div>
 
 	<div class="sidebar-section save-filter-section">
 		<li class="sidebar-label">
-			{{ __("Save Filter") }}
+			<svg class="es-icon es-line icon-xs" aria-hidden="true">
+				<use class="" href="#es-line-right-chevron"></use>
+			</svg>
+			<span>{{ __("Saved Filters") }}</span>
 		</li>
-		<li class="list-filters list-link"></li>
+		<li class="list-filters list-link hide"></li>
 </ul>

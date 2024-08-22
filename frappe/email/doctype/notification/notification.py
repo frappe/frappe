@@ -73,14 +73,6 @@ class Notification(Document):
 		"""load message"""
 		if self.is_standard:
 			self.message = self.get_template()
-		self.set_onload(
-			"preview_fields",
-			[
-				{"label": _("Meets Condition?"), "fieldtype": "Data", "method": "preview_meets_condition"},
-				{"label": _("Subject"), "fieldtype": "Data", "method": "preview_subject"},
-				{"label": _("Message"), "fieldtype": "Code", "method": "preview_message"},
-			],
-		)
 
 	def autoname(self):
 		if not self.name:
@@ -620,8 +612,8 @@ def evaluate_alert(doc: Document, alert, event):
 		frappe.throw(message, title=_("Error in Notification"))
 	except Exception as e:
 		title = str(e)
-		frappe.log_error(title=title)
-
+		message = frappe.get_traceback(with_context=True)
+		frappe.log_error(title=title, message=message)
 		msg = f"<details><summary>{title}</summary>{message}</details>"
 		frappe.throw(msg, title=_("Error in Notification"))
 

@@ -8,6 +8,9 @@ frappe.provide("frappe.meta.doctypes");
 frappe.provide("frappe.meta.precision_map");
 
 frappe.get_meta = function (doctype) {
+	if (doctype === "DocType" && frappe.meta.__doctype_meta) {
+		return frappe.meta.__doctype_meta;
+	}
 	return locals["DocType"] ? locals["DocType"][doctype] : null;
 };
 
@@ -17,8 +20,8 @@ $.extend(frappe.meta, {
 			frappe.meta.add_field(df);
 		});
 
-		if (doc.__print_formats) frappe.model.sync(doc.__print_formats);
-		if (doc.__workflow_docs) frappe.model.sync(doc.__workflow_docs);
+		if (doc.__print_formats?.length) frappe.model.sync(doc.__print_formats);
+		if (doc.__workflow_docs?.length) frappe.model.sync(doc.__workflow_docs);
 	},
 
 	// build docfield_map and docfield_list
@@ -185,7 +188,7 @@ $.extend(frappe.meta, {
 	},
 
 	get_parentfield: function (parent_dt, child_dt) {
-		var df = (frappe.get_doc("DocType", parent_dt).fields || []).filter(
+		var df = (frappe.get_meta(parent_dt).fields || []).filter(
 			(df) => frappe.model.table_fields.includes(df.fieldtype) && df.options === child_dt
 		);
 		if (!df.length) throw "parentfield not found for " + parent_dt + ", " + child_dt;

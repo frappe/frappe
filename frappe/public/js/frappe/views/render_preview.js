@@ -16,7 +16,7 @@ frappe.views.RenderPreviewer = class RenderPreviewer {
 		fields.push(...me.body_fields);
 
 		me.dialog = new frappe.ui.Dialog({
-			title: __("Preview on") + " " + __(me.doctype),
+			title: __("Preview on {0}", [__(me.doctype)]),
 			no_submit_on_enter: true,
 			fields: fields,
 			minimizable: true,

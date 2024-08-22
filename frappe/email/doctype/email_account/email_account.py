@@ -916,7 +916,13 @@ def pull_emails(email_account: str) -> None:
 	"""Pull emails from given email account."""
 	frappe.has_permission("Email Account", "read", throw=True)
 
-	pull_from_email_account(email_account)
+	job_name = f"pull_from_email_account|{email_account}"
+	queued_jobs = get_jobs(site=frappe.local.site, key="job_name")[frappe.local.site]
+
+	if job_name not in queued_jobs:
+		pull_from_email_account(email_account)
+	else:
+		frappe.msgprint(_("Emails are already being pulled from this account."))
 
 
 def pull_from_email_account(email_account):

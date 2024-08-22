@@ -225,6 +225,9 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		)
 		return db_size[0].get("database_size")
 
+	def _transform_result(self, result: list[tuple] | tuple[tuple]) -> tuple[tuple]:
+		return tuple(result) if isinstance(result, list) else result
+
 	# pylint: disable=W0221
 	def sql(self, query, values=EmptyQueryValues, *args, **kwargs):
 		return super().sql(modify_query(query), modify_values(values), *args, **kwargs)
