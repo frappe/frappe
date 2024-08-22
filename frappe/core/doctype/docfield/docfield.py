@@ -111,6 +111,7 @@ class DocField(Document):
 		search_index: DF.Check
 		set_only_once: DF.Check
 		show_dashboard: DF.Check
+		show_on_timeline: DF.Check
 		sort_options: DF.Check
 		translatable: DF.Check
 		unique: DF.Check
