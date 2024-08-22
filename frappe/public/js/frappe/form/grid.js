@@ -783,7 +783,7 @@ export default class Grid {
 	}
 
 	set_value(fieldname, value, doc) {
-		if (this.display_status !== "None" && doc?.name && this.grid_rows_by_docname[doc.name]) {
+		if (this.display_status !== "None" && doc?.name && this?.grid_rows_by_docname[doc.name]) {
 			this.grid_rows_by_docname[doc.name].refresh_field(fieldname, value);
 		}
 	}
