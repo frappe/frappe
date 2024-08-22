@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-18 09:32+0000\n"
-"PO-Revision-Date: 2024-08-21 08:22\n"
+"PO-Revision-Date: 2024-08-22 09:03\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -2375,7 +2375,7 @@ msgstr "Onay Gerekli"
 #. Type: Route
 #: hooks.py templates/includes/navbar/navbar_login.html:18
 msgid "Apps"
-msgstr ""
+msgstr "Uygulamalar"
 
 #: public/js/frappe/utils/number_systems.js:41
 msgctxt "Number system"
@@ -4095,7 +4095,7 @@ msgstr "İptal edildi"
 
 #: core/doctype/deleted_document/deleted_document.py:52
 msgid "Cancelled Document restored as Draft"
-msgstr ""
+msgstr "İptal Edilen Belge Taslak Olarak Geri Yüklendi"
 
 #: public/js/frappe/form/save.js:13
 msgctxt "Freeze message while cancelling a document"
@@ -4116,7 +4116,7 @@ msgstr "Yetersiz izinler nedeniyle Rapor İndirilemiyor"
 
 #: client.py:461
 msgid "Cannot Fetch Values"
-msgstr ""
+msgstr "Değerler Getirilemiyor"
 
 #: core/page/permission_manager/permission_manager.py:155
 msgid "Cannot Remove"
@@ -4128,11 +4128,11 @@ msgstr "Belge Gönderildikten Sonra Güncelleme Yapılamaz"
 
 #: core/doctype/file/file.py:581
 msgid "Cannot access file path {0}"
-msgstr ""
+msgstr "Dosya yoluna erişilemiyor {0}"
 
 #: public/js/workflow_builder/utils.js:183
 msgid "Cannot cancel before submitting while transitioning from <b>{0} State</b> to <b>{1} State</b>"
-msgstr ""
+msgstr "<b>{0} Durumundan</b> <b>{1} </b> <b> Durumuna</b> geçerken kaydetmeden önce iptal edilemez"
 
 #: workflow/doctype/workflow/workflow.py:110
 msgid "Cannot cancel before submitting. See Transition {0}"
@@ -4978,15 +4978,15 @@ msgstr "Sütun"
 
 #: core/doctype/report/boilerplate/controller.py:28
 msgid "Column 1"
-msgstr ""
+msgstr "Sütun 1"
 
 #: core/doctype/report/boilerplate/controller.py:33
 msgid "Column 2"
-msgstr ""
+msgstr "Sütun 2"
 
 #: desk/doctype/kanban_board/kanban_board.py:84
 msgid "Column <b>{0}</b> already exist."
-msgstr ""
+msgstr "Sütun <b>{0}</b> zaten mevcut."
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -4999,7 +4999,7 @@ msgstr ""
 #: website/doctype/web_form_field/web_form_field.json
 #: website/doctype/web_template_field/web_template_field.json
 msgid "Column Break"
-msgstr ""
+msgstr "Sütun Sonu"
 
 #: core/doctype/data_export/exporter.py:140
 msgid "Column Labels:"
@@ -5091,17 +5091,17 @@ msgstr "Yorum Türü"
 
 #: desk/form/utils.py:58
 msgid "Comment can only be edited by the owner"
-msgstr ""
+msgstr "Yorum yalnızca sahibi tarafından düzenlenebilir"
 
 #. Label of the comment_limit (Int) field in DocType 'Blog Settings'
 #: website/doctype/blog_settings/blog_settings.json
 msgid "Comment limit"
-msgstr ""
+msgstr "Yorum Sayısı Limiti"
 
 #. Description of the 'Comment limit' (Int) field in DocType 'Blog Settings'
 #: website/doctype/blog_settings/blog_settings.json
 msgid "Comment limit per hour"
-msgstr ""
+msgstr "Saatlik yorum limiti"
 
 #: model/meta.py:54 public/js/frappe/form/controls/comment.js:9
 #: public/js/frappe/model/meta.js:209 public/js/frappe/model/model.js:135
@@ -5206,7 +5206,7 @@ msgstr "Tamamla"
 
 #: public/js/frappe/form/sidebar/assign_to.js:202
 msgid "Complete By"
-msgstr ""
+msgstr "Tamamlayan"
 
 #: core/doctype/user/user.py:437 templates/emails/new_user.html:10
 msgid "Complete Registration"
@@ -5276,7 +5276,7 @@ msgstr "Koşul"
 #. Label of the condition_description (HTML) field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
 msgid "Condition Description"
-msgstr ""
+msgstr "Koşul Açıklaması"
 
 #. Label of the condition_json (JSON) field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
@@ -5341,7 +5341,7 @@ msgstr "Onayla"
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:92
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:100
 msgid "Confirm Deletion of Account"
-msgstr ""
+msgstr "Hesabın Silinmesini Onayla"
 
 #: core/doctype/user/user.js:182
 msgid "Confirm New Password"
@@ -5349,7 +5349,7 @@ msgstr "Yeni Şifreyi Onayla"
 
 #: www/update-password.html:24
 msgid "Confirm Password"
-msgstr ""
+msgstr "Şifreyi Onayla"
 
 #: templates/emails/data_deletion_approval.html:6
 #: templates/emails/delete_data_confirmation.html:7
@@ -6266,12 +6266,12 @@ msgstr "Formu Özelleştir"
 
 #: custom/doctype/customize_form/customize_form.js:100
 msgid "Customize Form - {0}"
-msgstr ""
+msgstr "Formu Özelleştir - {0}"
 
 #. Name of a DocType
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgid "Customize Form Field"
-msgstr ""
+msgstr "Form Alanını Özelleştir"
 
 #. Title of an Onboarding Step
 #: custom/onboarding_step/print_format/print_format.json
@@ -6285,7 +6285,7 @@ msgstr "Standart doküman tipleri için özellikleri, isimlendirmeyi, alanları 
 
 #: public/js/frappe/views/file/file_view.js:144
 msgid "Cut"
-msgstr ""
+msgstr "Kes"
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #. Option for the 'Indicator' (Select) field in DocType 'Kanban Board Column'
@@ -7601,16 +7601,16 @@ msgstr "DocType Görünümü"
 
 #: core/doctype/doctype/doctype.py:649
 msgid "DocType can not be merged"
-msgstr ""
+msgstr "DocType birleştirilemiyor"
 
 #: core/doctype/doctype/doctype.py:643
 msgid "DocType can only be renamed by Administrator"
-msgstr ""
+msgstr "DocType yalnızca Yönetici tarafından yeniden adlandırılabilir"
 
 #. Description of a DocType
 #: core/doctype/doctype/doctype.json
 msgid "DocType is a Table / Form in the application."
-msgstr ""
+msgstr "DocType uygulamadaki bir Tablo veya Formdur."
 
 #: integrations/doctype/webhook/webhook.py:79
 msgid "DocType must be Submittable for the selected Doc Event"
@@ -7792,7 +7792,7 @@ msgstr ""
 #: public/js/frappe/widgets/onboarding_widget.js:415
 #: public/js/frappe/widgets/onboarding_widget.js:434
 msgid "Document Saved"
-msgstr ""
+msgstr "Belge Kaydedildi"
 
 #. Label of the enable_email_share (Check) field in DocType 'Notification
 #. Settings'
@@ -7941,7 +7941,7 @@ msgstr ""
 
 #: public/js/frappe/list/list_view.js:1118
 msgid "Document has been cancelled"
-msgstr ""
+msgstr "Belge iptal edildi"
 
 #: public/js/frappe/list/list_view.js:1117
 msgid "Document has been submitted"
@@ -7949,11 +7949,11 @@ msgstr "Belge Gönderildi"
 
 #: public/js/frappe/list/list_view.js:1116
 msgid "Document is in draft state"
-msgstr ""
+msgstr "Belge taslak durumundadır"
 
 #: public/js/frappe/form/workflow.js:45
 msgid "Document is only editable by users with role"
-msgstr ""
+msgstr "Belge yalnızca role sahip kullanıcılar tarafından düzenlenebilir"
 
 #: core/doctype/communication/communication.js:182
 msgid "Document not Relinked"
@@ -9000,7 +9000,7 @@ msgstr ""
 
 #: website/doctype/web_template/web_template.py:33
 msgid "Enable developer mode to create a standard Web Template"
-msgstr ""
+msgstr "Standart bir Yazdırma Şablonu oluşturmak için geliştirici modunu etkinleştirin"
 
 #. Description of the 'Enable Email Notification' (Check) field in DocType
 #. 'Blog Post'
@@ -9645,7 +9645,7 @@ msgstr ""
 
 #: public/js/frappe/views/file/file_view.js:154
 msgid "Export as zip"
-msgstr ""
+msgstr "Zip olarak dışa aktar"
 
 #: public/js/frappe/utils/tools.js:11
 msgid "Export not allowed. You need {0} role to export."
@@ -9665,7 +9665,7 @@ msgstr "Ana başlık olmadan dışa aktar"
 
 #: public/js/frappe/data_import/data_exporter.js:247
 msgid "Export {0} records"
-msgstr ""
+msgstr "{0} kayıtlarını dışa aktar"
 
 #: custom/doctype/customize_form/customize_form.js:263
 msgid "Exported permissions will be force-synced on every migrate overriding any other customization."
@@ -9706,7 +9706,7 @@ msgstr ""
 #. Login Key'
 #: integrations/doctype/social_login_key/social_login_key.json
 msgid "Facebook"
-msgstr ""
+msgstr "Facebook"
 
 #. Option for the 'SocketIO Ping Check' (Select) field in DocType 'System
 #. Health Report'
@@ -9748,7 +9748,7 @@ msgstr "Başarısız Girişler (Son 30 gün)"
 
 #: model/workflow.py:298
 msgid "Failed Transactions"
-msgstr ""
+msgstr "Başarısız İşlemler"
 
 #: utils/synchronization.py:46
 msgid "Failed to aquire lock: {}. Lock may be held by another process."
@@ -9909,7 +9909,7 @@ msgstr ""
 #: custom/doctype/custom_field/custom_field.json
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgid "Fetch on Save if Empty"
-msgstr ""
+msgstr "Boşsa Kaydederken Getir"
 
 #: desk/doctype/global_search_settings/global_search_settings.py:61
 msgid "Fetching default Global Search documents."
@@ -9988,7 +9988,7 @@ msgstr "Kontrol Edilecek Alan"
 #: custom/doctype/custom_field/custom_field.json
 #: templates/form_grid/fields.html:40
 msgid "Field Type"
-msgstr ""
+msgstr "Alan Türü"
 
 #: desk/reportview.py:182
 msgid "Field not permitted in query"
@@ -10211,32 +10211,32 @@ msgstr "Dosya Adresi"
 
 #: desk/page/backups/backups.py:104
 msgid "File backup is ready"
-msgstr ""
+msgstr "Dosya yedeklemesi hazır"
 
 #: core/doctype/file/file.py:584
 msgid "File name cannot have {0}"
-msgstr ""
+msgstr "Dosya adı {0} olamaz"
 
 #: utils/csvutils.py:28
 msgid "File not attached"
-msgstr ""
+msgstr "Dosya eklenmedi"
 
 #: core/doctype/file/file.py:689 public/js/frappe/request.js:197
 #: utils/file_manager.py:221
 msgid "File size exceeded the maximum allowed size of {0} MB"
-msgstr ""
+msgstr "Dosya boyutu izin verilen maksimum boyutu aştı {0} MB"
 
 #: public/js/frappe/request.js:195
 msgid "File too big"
-msgstr ""
+msgstr "Dosya boyutu çok büyük"
 
 #: core/doctype/file/file.py:373
 msgid "File type of {0} is not allowed"
-msgstr ""
+msgstr "{0} dosya türüne izin verilmiyor"
 
 #: core/doctype/file/file.py:361 core/doctype/file/file.py:421
 msgid "File {0} does not exist"
-msgstr ""
+msgstr "{0} dosyası mevcut değil"
 
 #. Label of a Link in the Tools Workspace
 #. Label of the files_tab (Tab Break) field in DocType 'System Settings'
@@ -10365,7 +10365,7 @@ msgstr "Filtreler {0} için Uygulandı"
 
 #: public/js/frappe/views/kanban/kanban_view.js:189
 msgid "Filters saved"
-msgstr ""
+msgstr "Filtreler kaydedildi"
 
 #. Description of the 'Script' (Code) field in DocType 'Report'
 #: core/doctype/report/report.json
@@ -10907,7 +10907,7 @@ msgstr ""
 #. Type: Action
 #: hooks.py
 msgid "Frappe Support"
-msgstr ""
+msgstr "Frappe Desteği"
 
 #: website/doctype/web_page/web_page.js:92
 msgid "Frappe page builder using components"
@@ -11065,7 +11065,7 @@ msgstr ""
 
 #: public/js/frappe/list/base_list.js:206
 msgid "Gantt View"
-msgstr ""
+msgstr "Gantt Görünümü"
 
 #. Label of the gender (Link) field in DocType 'Contact'
 #. Name of a DocType
@@ -11096,7 +11096,7 @@ msgstr "Yeni Rapor Oluştur"
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:391
 msgid "Generate Random Password"
-msgstr ""
+msgstr "Rastgele Şifre Oluştur"
 
 #: public/js/frappe/ui/toolbar/toolbar.js:172
 #: public/js/frappe/utils/utils.js:1771
@@ -11153,7 +11153,7 @@ msgstr "Yeni isimlendirme serisinin önizlemesini buradan görebilirsiniz."
 
 #: public/js/frappe/list/list_sidebar.js:295
 msgid "Get more insights with"
-msgstr ""
+msgstr "Daha fazla grafik edinin"
 
 #. Description of the 'Email Threads on Assigned Document' (Check) field in
 #. DocType 'Notification Settings'
@@ -11175,7 +11175,7 @@ msgstr ""
 #. Login Key'
 #: integrations/doctype/social_login_key/social_login_key.json
 msgid "GitHub"
-msgstr ""
+msgstr "GitHub"
 
 #: website/doctype/web_page/web_page.js:92
 msgid "Github flavoured markdown syntax"
@@ -11788,7 +11788,7 @@ msgstr ""
 
 #: www/qrcode.html:9
 msgid "Hi {0}"
-msgstr ""
+msgstr "Merhaba {0}"
 
 #. Label of the hidden (Check) field in DocType 'DocField'
 #. Label of the hidden (Check) field in DocType 'DocType Action'
@@ -11941,7 +11941,7 @@ msgstr ""
 
 #: public/js/frappe/form/layout.js:270
 msgid "Hide details"
-msgstr ""
+msgstr "Detayları gizle"
 
 #. Label of the hide_footer_in_auto_email_reports (Check) field in DocType
 #. 'System Settings'
@@ -13823,23 +13823,23 @@ msgstr ""
 #. Label of the ldap_groups (Table) field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Group Mappings"
-msgstr ""
+msgstr "LDAP Grup Eşlemeleri"
 
 #. Label of the ldap_group_member_attribute (Data) field in DocType 'LDAP
 #. Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Group Member attribute"
-msgstr ""
+msgstr "LDAP Grup Üyesi niteliği"
 
 #. Label of the ldap_last_name_field (Data) field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Last Name Field"
-msgstr ""
+msgstr "LDAP Soyadı Alanı"
 
 #. Label of the ldap_middle_name_field (Data) field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Middle Name Field"
-msgstr ""
+msgstr "LDAP İkinci Adı Alanı"
 
 #. Label of the ldap_mobile_field (Data) field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
@@ -16736,15 +16736,15 @@ msgstr "Hiçbir filtre seçilmedi"
 
 #: desk/form/utils.py:101
 msgid "No further records"
-msgstr ""
+msgstr "Daha fazla kayıt yok"
 
 #: templates/includes/search_template.html:49
 msgid "No matching records. Search something new"
-msgstr ""
+msgstr "Eşleşen kayıt yok. Yeni bir kelime ile aramayı deneyin"
 
 #: public/js/frappe/web_form/web_form_list.js:161
 msgid "No more items to display"
-msgstr ""
+msgstr "Görüntülenecek başka bir öğe yok"
 
 #: utils/password_strength.py:45
 msgid "No need for symbols, digits, or uppercase letters."
@@ -17005,7 +17005,7 @@ msgstr "{0} belgesinin eklenmesine izin verilmiyor, lütfen Yazdırma Ayarları'
 
 #: core/doctype/doctype/doctype.py:336
 msgid "Not allowed to create custom Virtual DocType."
-msgstr ""
+msgstr "Özel Sanal DocType oluşturulmasına izin verilmiyor."
 
 #: www/printview.py:140
 msgid "Not allowed to print cancelled documents"
@@ -17029,7 +17029,7 @@ msgstr "Geliştirici modunda değil"
 
 #: core/doctype/doctype/doctype.py:331
 msgid "Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."
-msgstr ""
+msgstr "Geliştirici Modunda değil! site_config.json dosyasına ayarlayın veya 'Özel' DocType yapın."
 
 #: api/v1.py:88 api/v1.py:93
 #: core/doctype/system_settings/system_settings.py:210 handler.py:109
@@ -17123,7 +17123,7 @@ msgstr "Gösterilecek bir şey yok"
 
 #: core/doctype/user_permission/user_permission_list.js:129
 msgid "Nothing to update"
-msgstr ""
+msgstr "Güncellenecek bir şey yok"
 
 #. Label of the notification (Section Break) field in DocType 'Auto Repeat'
 #. Label of a Link in the Tools Workspace
@@ -19298,7 +19298,7 @@ msgstr "Menü ve Kenar Çubuğunda ek kısayolları tetiklemek için Alt Tuşuna
 
 #: public/js/frappe/list/list_filter.js:141
 msgid "Press Enter to save"
-msgstr ""
+msgstr "Kaydetmek için Enter tuşuna basın."
 
 #. Label of the section_import_preview (Section Break) field in DocType 'Data
 #. Import'
@@ -22699,7 +22699,7 @@ msgstr "Yeni bir format oluşturmak için bir DocType seçin"
 
 #: public/js/form_builder/components/Sidebar.vue:56
 msgid "Select a field to edit its properties."
-msgstr ""
+msgstr "Özelliklerini düzenlemek için bir alan seçin."
 
 #: public/js/frappe/views/treeview.js:337
 msgid "Select a group node first."
@@ -23173,7 +23173,7 @@ msgstr "Oturum Varsayılanları"
 
 #: public/js/frappe/ui/toolbar/toolbar.js:316
 msgid "Session Defaults Saved"
-msgstr ""
+msgstr "Oturum Varsayılanları Kaydedildi"
 
 #: app.py:348
 msgid "Session Expired"
@@ -31294,7 +31294,7 @@ msgstr ""
 
 #: public/js/frappe/form/quick_entry.js:195
 msgid "{1} saved"
-msgstr ""
+msgstr "{1} kaydedildi"
 
 #: public/js/frappe/utils/datatable.js:12
 msgid "{count} cell copied"
