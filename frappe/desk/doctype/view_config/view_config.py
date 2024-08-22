@@ -64,21 +64,39 @@ def get_config(doctype: str, config_name=None, is_default=True) -> dict:
 		get_default_config(doctype) if is_default else frappe.get_doc("View Config", config_name).as_dict()
 	)
 
+	meta = frappe.get_meta(doctype)
+
 	config_dict.update(
 		{
 			"columns": frappe.parse_json(config_dict.get("columns")),
-			"filters": frappe.parse_json(config_dict.get("filters")),
-			"fields": get_doctype_fields(doctype),
+			"filters": get_filters(config_dict.get("filters") or [], meta),
+			"fields": get_doctype_fields(meta),
 			"views": get_views_for_doctype(doctype),
-			"title_field": get_title_field(doctype),
+			"title_field": get_title_field(meta),
+			"sort": [config_dict.get("sort_field"), config_dict.get("sort_order")],
 		}
 	)
 
 	return config_dict
 
 
-def get_doctype_fields(doctype: str) -> list[dict]:
-	meta = frappe.get_meta(doctype)
+def get_filters(filters: list[list], meta: dict) -> list[dict]:
+	filter_dicts = []
+	for filter in filters:
+		field = meta.get_field(filter[0])
+		filter_dicts.append(
+			{
+				"fieldname": filter[0],
+				"fieldtype": field.fieldtype,
+				"operator": filter[1],
+				"value": filter[2],
+				"options": field.options.split("\n") if field.options else [],
+			}
+		)
+	return filter_dicts
+
+
+def get_doctype_fields(meta: dict) -> list[dict]:
 	not_allowed_in_list_view = get_fields_not_allowed_in_list_view(meta)
 	doctype_fields = []
 	for field in meta.fields + frappe.model.std_fields:
@@ -88,7 +106,7 @@ def get_doctype_fields(doctype: str) -> list[dict]:
 		doctype_fields.append(
 			{
 				"label": field.get("label"),
-				"value": field.get("fieldname"),
+				"key": field.get("fieldname"),
 				"type": field.get("fieldtype"),
 				"options": options.split("\n"),
 			}
@@ -125,7 +143,7 @@ def update_config(config: dict, doctype=None, config_name=None, filters=None) ->
 		doc = frappe.get_doc("View Config", config_name)
 	else:
 		doc = frappe.new_doc("View Config")
-		doc.label = "List View"
+		doc.label = f"{doctype} List View"
 		doc.document_type = doctype
 		doc.custom = 0
 	if filters:
@@ -155,6 +173,8 @@ def get_list(doctype: str, cols: list[dict], filters: list[list], limit: int, or
 	list_rows = frappe.get_list(
 		doctype, fields=fields, filters=filters, limit=limit, start=0, order_by=order_by
 	)
+	if not list_rows:
+		return []
 	return get_list_rows(cols, list_rows)
 
 
@@ -168,8 +188,9 @@ def get_list_rows(cols: list[dict], list_rows: list[dict]) -> list[dict]:
 	return list_rows
 
 
-def get_title_field(doctype: str) -> tuple[str, str]:
-	meta = frappe.get_meta(doctype)
+def get_title_field(meta: dict) -> tuple[str, str]:
+	if isinstance(meta, str):
+		meta = frappe.get_meta(meta)
 	return [meta.title_field, meta.image_field or ""]
 
 

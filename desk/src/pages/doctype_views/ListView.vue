@@ -1,11 +1,11 @@
 <template>
 	<div class="mx-5 my-4 flex h-[41rem] flex-col gap-4">
-		<div v-if="configSettings.data" class="overflow-x-none flex w-full justify-between gap-2">
+		<div class="overflow-x-none flex w-full justify-between gap-2">
 			<ViewSwitcher :queryFilters="queryFilters" />
-			<ListControls v-if="listConfig.fields" :options="listControlOptions" />
+			<ListControls :options="listControlOptions" />
 		</div>
 		<ListView
-			v-if="listResource.data?.length"
+			v-if="listConfig && listResource.data?.length"
 			:rows="listResource.data"
 			rowKey="name"
 			:columns="listConfig.columns"
@@ -16,7 +16,7 @@
 					:item="item"
 					:row="row"
 					:column="column"
-					:titleField="listConfig.title_field"
+					:titleField="listConfig?.title_field"
 				/>
 			</template>
 		</ListView>
@@ -39,7 +39,7 @@
 	/>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch, provide } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { watchDebounced } from "@vueuse/core"
@@ -64,8 +64,22 @@ import {
 	configUpdated,
 } from "@/stores/view"
 
+import { fetchListFnKey, renderListFnKey } from "@/types/injectionKeys"
+import { useRouteParamsAsStrings } from "@/composables/router"
+import { FieldTypes } from "@/types/controls"
+import {
+	RouteQuery,
+	ListFilterOperator,
+	ListFilter,
+	ListQueryFilter,
+	ListResource,
+	isValidFilterOperator,
+} from "@/types/list"
+
 const route = useRoute()
 const router = useRouter()
+const routeParams = useRouteParamsAsStrings()
+
 const pageLength = ref(20)
 const rowCount = ref(20)
 const totalCount = ref(0)
@@ -86,52 +100,45 @@ const listOptions = {
 // Display list based on default or saved view
 
 const renderList = async () => {
-	configName.value = route.query.view
+	configName.value = (route.query.view || "") as string
 	await loadConfig()
 	await addSavedFilters()
 	await createConfigObj()
-	await fetchList()
+	await fetchList(true)
 }
 
 const loadConfig = async () => {
-	isDefaultConfig.value = configName.value == null
+	isDefaultConfig.value = configName.value == ""
 	await configSettings.fetch()
 }
 
 const addSavedFilters = async () => {
 	if (isDefaultConfig.value) return
-	let query_params = { view: configName.value }
-	let savedFilters = configSettings.data.filters.map((f) => {
-		return {
-			fieldname: f[0],
-			operator: f[1],
-			value: f[2],
-		}
-	})
-	Object.assign(query_params, getFilterQuery(savedFilters))
-	await router.replace({ query: query_params })
+	let queryParams: RouteQuery = { view: configName.value }
+	let savedFilters = configSettings.data.filters
+	Object.assign(queryParams, getFilterQuery(savedFilters))
+	await router.replace({ query: queryParams })
 }
 
 const createConfigObj = async () => {
 	listConfig.value = {
 		...configSettings.data,
 		filters: currentFilters.value,
-		sort: [configSettings.data.sort_field, configSettings.data.sort_order],
 	}
 	oldConfig.value = cloneObject(listConfig.value)
 }
 
-const fetchList = async (updateCount = true) => {
-	if (updateCount) await updateTotalCount()
+const fetchList = async (updateCount = false) => {
+	updateCount && (await updateTotalCount())
 	await listResource.fetch()
 }
 
-const listResource = createResource({
+const listResource: ListResource = createResource({
 	url: "frappe.desk.doctype.view_config.view_config.get_list",
 	makeParams() {
 		return {
 			doctype: doctype.value,
-			cols: listConfig.value.columns,
+			cols: listConfig.value?.columns,
 			filters: queryFilters.value,
 			limit: rowCount.value,
 			order_by: querySort.value,
@@ -141,48 +148,63 @@ const listResource = createResource({
 
 // Maintain current sort and filtering
 
-const currentSort = computed(() => [listConfig.value.sort[0], listConfig.value.sort[1]])
+const currentSort = computed(() =>
+	listConfig.value ? [listConfig.value.sort[0], listConfig.value.sort[1]] : []
+)
 
 const querySort = computed(() => `${currentSort.value.join(" ")}`)
 
-const getFieldType = (fieldname) => {
-	return configSettings.data?.fields.find((f) => f.value === fieldname).type || ""
+const getFieldType = (fieldname: string): FieldTypes | "" => {
+	return configSettings.data?.fields.find((f) => f.key === fieldname)?.type || ""
 }
 
-const getSelectOptions = (fieldname) => {
-	return configSettings.data?.fields.find((f) => f.value === fieldname).options || []
+const getSelectOptions = (fieldname: string): string[] => {
+	return configSettings.data?.fields.find((f) => f.key === fieldname)?.options || []
 }
 
-const getParsedFilter = (key, filter) => {
-	let f = JSON.parse(filter)
+const getParsedFilter = (key: string, filter: string): ListFilter | undefined => {
+	let f: string | string[] = JSON.parse(filter)
+	let fieldtype = getFieldType(key)
+	if (!fieldtype) return
+	if (Array.isArray(f) && !isValidFilterOperator(f[0])) return
 	return {
 		fieldname: key,
-		fieldtype: getFieldType(key),
-		operator: Array.isArray(f) ? f[0] : "=",
+		fieldtype: fieldtype,
+		operator: Array.isArray(f) ? (f[0] as ListFilterOperator) : "=",
 		value: Array.isArray(f) ? f[1] : f,
 		options: getSelectOptions(key),
 	}
 }
 
 const currentFilters = computed(() => {
-	let filters = []
-	if (route.query) {
-		for (let key in route.query) {
+	let filters: ListFilter[] = []
+	let query = route.query as RouteQuery
+	if (query) {
+		for (let key in query) {
 			if (key == "view") continue
+			let value = query[key]
 
-			if (Array.isArray(route.query[key])) {
-				route.query[key].forEach((v) => {
-					filters.push(getParsedFilter(key, v))
+			if (typeof value == "string") {
+				let parsedFilter = getParsedFilter(key, value)
+				if (parsedFilter) filters.push(parsedFilter)
+			} else {
+				value.forEach((v) => {
+					let parsedFilter = getParsedFilter(key, v)
+					if (parsedFilter) filters.push(parsedFilter)
 				})
-			} else filters.push(getParsedFilter(key, route.query[key]))
+			}
 		}
 	}
 	return filters
 })
 
-const queryFilters = computed(
-	() => currentFilters.value.map((f) => [f.fieldname, f.operator, f.value]) || []
-)
+const queryFilters = computed<ListQueryFilter[]>(() => {
+	if (!currentFilters.value) return []
+	return currentFilters.value.map((f) => {
+		let val = f.operator === "between" ? f.value.split(",") : f.value
+		return [f.fieldname, f.operator, val]
+	})
+})
 
 // Footer actions
 const updateTotalCount = async () => {
@@ -194,13 +216,13 @@ const updateTotalCount = async () => {
 
 const handleLoadMore = async () => {
 	rowCount.value += pageLength.value
-	await fetchList()
+	await fetchList(true)
 }
 
 watch(
-	() => (route.params.doctype, route.query.view),
+	() => (routeParams.doctype, route.query.view),
 	async () => {
-		doctype.value = doctypesBySlug[route.params.doctype]?.name
+		doctype.value = doctypesBySlug[routeParams.doctype]?.name
 		await renderList()
 	},
 	{ immediate: true }
@@ -210,14 +232,14 @@ watch(
 	() => pageLength.value,
 	async () => {
 		rowCount.value = pageLength.value
-		await fetchList()
+		await fetchList(true)
 	}
 )
 
 watchDebounced(
-	() => [JSON.stringify(listConfig.value.columns), JSON.stringify(listConfig.value.sort)],
+	() => [JSON.stringify(listConfig.value?.columns), JSON.stringify(listConfig.value?.sort)],
 	async () => {
-		if (!listConfig.value.columns || !listConfig.value.sort) return
+		if (!listConfig.value || !oldConfig.value) return
 
 		if (isDefaultConfig.value && configUpdated.value) {
 			let res = await call("frappe.desk.doctype.view_config.view_config.update_config", {
@@ -233,6 +255,6 @@ watchDebounced(
 	{ debounce: 1000, maxWait: 1000 }
 )
 
-provide("fetchList", fetchList)
-provide("renderList", renderList)
+provide(fetchListFnKey, fetchList)
+provide(renderListFnKey, renderList)
 </script>

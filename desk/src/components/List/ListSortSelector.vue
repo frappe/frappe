@@ -27,20 +27,21 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, defineModel, inject } from "vue"
+
 import { Dropdown, Tooltip } from "frappe-ui"
 
-const props = defineProps({
-	allSortableFields: {
-		type: Array,
-		default: [],
-	},
-})
+import { fetchListFnKey } from "@/types/injectionKeys"
+import { ListColumn, ListSort } from "@/types/list"
 
-const fetchList = inject("fetchList")
+const fetchList = inject(fetchListFnKey, async () => {})
 
-const sort = defineModel()
+const props = defineProps<{
+	allSortableFields: ListColumn[]
+}>()
+
+const sort = defineModel<ListSort>({ required: true })
 
 const sortField = computed(() => {
 	const field = props.allSortableFields.find((field) => field.key === sort.value[0])
@@ -51,16 +52,16 @@ const sortOptions = computed(() => {
 	return props.allSortableFields.map((field) => {
 		return {
 			label: field.label,
-			onClick: () => {
+			onClick: async () => {
 				sort.value[0] = field.key
-				fetchList()
+				await fetchList()
 			},
 		}
 	})
 })
 
-const toggleSortOrder = () => {
+const toggleSortOrder = async () => {
 	sort.value[1] = sort.value[1] == "ASC" ? "DESC" : "ASC"
-	fetchList()
+	await fetchList()
 }
 </script>

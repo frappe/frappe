@@ -1,7 +1,7 @@
 <template>
-	<Dropdown :options="viewSwitcherOptions">
+	<Dropdown v-if="configSettings.data" :options="viewSwitcherOptions">
 		<template #default="{ open }">
-			<Button :label="configSettings.data.label">
+			<Button :label="isDefaultConfig ? 'List View' : configSettings.data.label">
 				<template #prefix>
 					<FeatherIcon :name="configSettings.data.icon || 'list'" class="h-3.5 text-gray-600" />
 				</template>
@@ -35,7 +35,7 @@
 							:message="
 								createConfigResource.error?.exc_type === 'DuplicateEntryError'
 									? `A view with the name <b>${createConfigResource.params.doc.label}</b> already exists.`
-									: createConfigResource.error?.messages
+									: createConfigResource.error?.messages[0]
 							"
 						/>
 						<Button variant="solid" label="Save" @click="createConfigResource.submit()">
@@ -79,12 +79,13 @@
 	</Dialog>
 </template>
 
-<script setup>
-import { useRoute, useRouter } from "vue-router"
+<script setup lang="ts">
 import { ref, computed } from "vue"
-import { call, createResource, Dropdown, Dialog, ErrorMessage } from "frappe-ui"
-import { cloneObject } from "@/utils"
+import { useRouter } from "vue-router"
 
+import { call, createResource, Dropdown, Dialog, ErrorMessage } from "frappe-ui"
+
+import { cloneObject } from "@/utils"
 import {
 	configName,
 	configSettings,
@@ -95,57 +96,81 @@ import {
 	doctypeSavedViews,
 } from "@/stores/view"
 
-const props = defineProps({
-	queryFilters: {
-		type: Object,
-		required: true,
-	},
-})
+import { Resource } from "@/types/frappeUI"
+import { useRouteParamsAsStrings } from "@/composables/router"
+import { RouteQuery, ListQueryFilter } from "@/types/list"
+
+type ViewSwitcherItem = {
+	label: string
+	icon: string
+	onClick: () => void
+}
+
+type ViewSwitcherOption = {
+	group: string
+	items: ViewSwitcherItem[]
+	hideLabel?: boolean
+}
+
+type createConfigParams = {
+	params: {
+		doc: Record<string, string | boolean>
+	}
+	error: {
+		exc_type: string
+		messages: string[]
+	}
+}
+
+const props = defineProps<{
+	queryFilters: ListQueryFilter[]
+}>()
 
 const showDialog = ref(false)
 const dialogAction = ref("")
 const newViewName = ref("")
 
-const route = useRoute()
+const routeParams = useRouteParamsAsStrings()
 const router = useRouter()
 
-const createConfigResource = createResource({
+const createConfigResource: Resource & createConfigParams = createResource({
 	url: "frappe.client.insert",
 	method: "POST",
 	makeParams: () => {
 		return {
 			doc: {
 				doctype: "View Config",
-				document_type: route.params.doctype,
+				document_type: routeParams.doctype,
 				label: newViewName.value,
-				columns: JSON.stringify(listConfig.value.columns),
+				columns: JSON.stringify(listConfig.value?.columns),
 				filters: JSON.stringify(props.queryFilters),
-				sort_field: listConfig.value.sort[0],
-				sort_order: listConfig.value.sort[1],
-				custom: 1,
+				sort_field: listConfig.value?.sort[0],
+				sort_order: listConfig.value?.sort[1],
+				custom: true,
 			},
 		}
 	},
-	onSuccess: async (doc) => {
+	onSuccess: async (doc: object) => {
 		showDialog.value = false
 		newViewName.value = ""
-		await router.replace({ query: { view: doc.name } })
+		if ("name" in doc && typeof doc.name === "string")
+			await router.replace({ query: { view: doc.name } })
 	},
 })
 
 const deleteView = async () => {
 	showDialog.value = false
 	await call("frappe.client.delete", { doctype: "View Config", name: configName.value })
-	await router.replace({ query: {} })
+	redirectToView()
 }
 
 const renameView = async () => {
 	showDialog.value = false
-	const viewSlug = await call("frappe.desk.doctype.view_config.view_config.rename_config", {
+	const viewSlug: string = await call("frappe.desk.doctype.view_config.view_config.rename_config", {
 		config_name: configName.value,
 		new_name: configSettings.data.label,
 	})
-	router.replace({ query: { view: viewSlug } })
+	redirectToView(viewSlug)
 }
 
 const updateView = async () => {
@@ -154,12 +179,20 @@ const updateView = async () => {
 		config: listConfig.value,
 		filters: props.queryFilters,
 	}).then(() => {
+		if (!listConfig.value) return
 		oldConfig.value = cloneObject(listConfig.value)
 	})
 }
 
+const redirectToView = async (viewName?: string) => {
+	let queryParams: RouteQuery = {}
+	// Redirect to default view if viewName is not provided
+	if (viewName) queryParams.view = viewName
+	await router.replace({ query: queryParams })
+}
+
 const getActions = () => {
-	let actions = []
+	let actions: ViewSwitcherItem[] = []
 	if (isDefaultConfig.value) {
 		configUpdated.value &&
 			actions.push({
@@ -200,46 +233,46 @@ const getActions = () => {
 	return actions
 }
 
-const getDefaultViews = () => {
+const getDefaultViews = (): ViewSwitcherItem[] => {
 	return [
 		{
 			label: "List View",
 			icon: "list",
-			onClick: async () => {
-				await router.replace({ query: {} })
-			},
+			onClick: () => redirectToView(),
 		},
 		{
 			label: "Report View",
 			icon: "table",
+			onClick: () => {},
 		},
 		{
 			label: "Kanban View",
 			icon: "grid",
+			onClick: () => {},
 		},
 		{
 			label: "Dashboard View",
 			icon: "pie-chart",
+			onClick: () => {},
 		},
 	]
 }
 
-const getSavedViews = () => {
+const getSavedViews = (): ViewSwitcherItem[] => {
+	if (!doctypeSavedViews.value) return []
 	return doctypeSavedViews.value
 		.filter((view) => view.name != configName.value)
 		.map((view) => {
 			return {
 				label: view.label,
 				icon: view.icon || "list",
-				onClick: async () => {
-					await router.replace({ query: { view: view.name } })
-				},
+				onClick: () => redirectToView(view.name),
 			}
 		})
 }
 
 const viewSwitcherOptions = computed(() => {
-	const options = []
+	const options: ViewSwitcherOption[] = []
 
 	const actions = getActions()
 	if (actions.length) {
@@ -264,13 +297,14 @@ const viewSwitcherOptions = computed(() => {
 		if (savedViews.length > 5) {
 			options.push({
 				group: "More Views",
-				hideLabel: true,
 				items: [
 					{
 						label: "More Views",
+						icon: "arrow-up-right",
 						onClick: () => {},
 					},
 				],
+				hideLabel: true,
 			})
 		}
 	}

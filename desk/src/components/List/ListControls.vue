@@ -1,5 +1,5 @@
 <template>
-	<div class="flex gap-2">
+	<div v-if="listConfig?.fields" class="flex gap-2">
 		<ListFilters
 			v-if="options.showFilters"
 			v-model="listConfig.filters"
@@ -18,17 +18,18 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import ListColumnSettings from "@/components/List/ListColumnSettings.vue"
 import ListFilters from "@/components/List/ListFilters.vue"
 import ListSortSelector from "@/components/List/ListSortSelector.vue"
 
 import { listConfig } from "@/stores/view"
 
-const props = defineProps({
+defineProps<{
 	options: {
-		type: Object,
-		default: {},
-	},
-})
+		showColumnSettings: boolean
+		showFilters: boolean
+		showSortSelector: boolean
+	}
+}>()
 </script>

@@ -26,8 +26,8 @@
 						<Autocomplete
 							:body-classes="'w-60'"
 							:model-value="fieldname"
-							:options="allFilterableFields"
-							@update:model-value="(val) => updateField(val, i)"
+							:options="filterableFields"
+							@update:model-value="(val: FilterFieldOption) => updateField(val, i)"
 						/>
 					</div>
 					<div class="w-28">
@@ -35,7 +35,7 @@
 							type="select"
 							:model-value="operator"
 							:options="getOperators(fieldtype)"
-							@update:model-value="(val) => updateOperator(val, i)"
+							@update:model-value="(val: ListFilterOperator) => updateOperator(val, i)"
 						/>
 					</div>
 					<div class="w-40">
@@ -44,7 +44,7 @@
 							:operator="operator"
 							v-model="filters[i].value"
 							:options="options"
-							@update:model-value="(val) => updateValue(val, operator, i)"
+							@update:model-value="(val: string) => updateValue(val, i)"
 						/>
 					</div>
 					<button icon="x" @click="removeFilter(i)">
@@ -58,8 +58,8 @@
 				<div class="flex items-center justify-between gap-2">
 					<Autocomplete
 						:body-classes="'w-[29rem] '"
-						:options="allFilterableFields"
-						@update:model-value="(field) => addFilter(field)"
+						:options="filterableFields"
+						@update:model-value="(field: FilterFieldOption) => addFilter(field)"
 					>
 						<template #target="{ togglePopover }">
 							<Button
@@ -88,13 +88,13 @@
 	</NestedPopover>
 </template>
 
-<script setup>
-import ListFilterValue from "@/components/List/ListFilterValue.vue"
-import NestedPopover from "frappe-ui/src/components/ListFilter/NestedPopover.vue"
+<script setup lang="ts">
+import { computed, inject } from "vue"
+import { useRouter } from "vue-router"
 
-import { Autocomplete } from "frappe-ui"
-import { inject } from "vue"
-import { useRoute, useRouter } from "vue-router"
+import { Autocomplete, NestedPopover } from "frappe-ui"
+import ListFilterValue from "@/components/List/ListFilterValue.vue"
+
 import {
 	linkTypes,
 	numberTypes,
@@ -102,35 +102,50 @@ import {
 	dateTypes,
 	filterOperators,
 } from "@/data/constants/filters"
+import { configName, isDefaultConfig } from "@/stores/view"
 import { getFilterQuery } from "@/utils/list"
 
-const fetchList = inject("fetchList")
+import { fetchListFnKey } from "@/types/injectionKeys"
+import { FieldTypes } from "@/types/controls"
+import {
+	RouteQuery,
+	ListField,
+	ListFilterOperator,
+	ListFilter,
+	FilterOperatorOption,
+} from "@/types/list"
 
-const props = defineProps({
-	allFilterableFields: {
-		type: Array,
-		default: [],
-	},
+type FilterFieldOption = ListField & { value: string }
+
+const fetchList = inject(fetchListFnKey) as (updateCount: boolean) => Promise<void>
+
+const props = defineProps<{
+	allFilterableFields: ListField[]
+}>()
+
+const filters = defineModel<ListFilter[]>({ required: true })
+
+const filterableFields = computed<FilterFieldOption[]>(() => {
+	return props.allFilterableFields.map((field) => {
+		return {
+			...field,
+			value: field.key,
+		}
+	})
 })
 
-const filters = defineModel()
-
-const getOperators = (fieldtype) => {
-	if (stringTypes.includes(fieldtype)) {
-		return filterOperators["string"]
-	} else if (numberTypes.includes(fieldtype)) {
-		return filterOperators["number"]
-	} else if (linkTypes.includes(fieldtype)) {
-		return filterOperators["link"]
-	} else if (dateTypes.includes(fieldtype)) {
-		return filterOperators["date"]
-	} else if (["Select", "Check", "Duration"].includes(fieldtype)) {
-		return filterOperators[fieldtype.toLowerCase()]
-	}
-	return []
+const getOperatorKey = (fieldtype: FieldTypes): string => {
+	if (stringTypes.includes(fieldtype)) return "string"
+	else if (numberTypes.includes(fieldtype)) return "number"
+	else if (linkTypes.includes(fieldtype)) return "link"
+	else if (dateTypes.includes(fieldtype)) return "date"
+	else return fieldtype.toLowerCase()
 }
 
-const addFilter = (field) => {
+const getOperators = (fieldtype: FieldTypes): FilterOperatorOption[] =>
+	filterOperators[getOperatorKey(fieldtype)] || []
+
+const addFilter = (field: FilterFieldOption) => {
 	filters.value.push({
 		fieldname: field.value,
 		fieldtype: field.type,
@@ -140,51 +155,49 @@ const addFilter = (field) => {
 	})
 }
 
-const removeFilter = (index) => {
+const removeFilter = (index: number) => {
 	filters.value.splice(index, 1)
 	updateFiltersInQuery()
 }
 
-const clearFilters = (close) => {
+const clearFilters = (close: () => void) => {
 	filters.value.splice(0, filters.value.length)
 	updateFiltersInQuery()
-	close
+	close()
 }
 
-const updateField = (field, index) => {
+const updateField = (field: FilterFieldOption, index: number) => {
 	const newOperators = getOperators(field.type)
-	// If the current operator is available for the new field, keep it
-	const operator = newOperators.find((o) => o.value === filters.value[index].operator)
+	// if the current operator is available for the new field, keep it
+	let operator = newOperators.find((o) => o.value === filters.value[index].operator)
+	// else set the first operator available for the new field
+	if (!operator) operator = newOperators[0]
 	filters.value[index] = {
 		fieldname: field.value,
 		fieldtype: field.type,
 		options: field.options || [],
-		operator: operator.value || newOperators[0].value,
+		operator: operator.value,
 		value: "",
 	}
 }
 
-const updateOperator = (operator, index) => {
+const updateOperator = (operator: ListFilterOperator, index: number) => {
 	filters.value[index] = { ...filters.value[index], operator: operator, value: "" }
 }
 
-const updateValue = (value, operator, index) => {
+const updateValue = (value: string, index: number) => {
 	let filter = filters.value[index]
-	let val = value.target ? value.target.value : value
-	if (operator === "between") {
-		val = val.split(",").map((v) => v.trim())
-	}
-	filter.value = val
+	filter.value = value
 	updateFiltersInQuery()
 }
 
-const route = useRoute()
 const router = useRouter()
 
 const updateFiltersInQuery = async () => {
-	let q = { view: route.query.view }
-	Object.assign(q, getFilterQuery(filters.value))
-	await router.replace({ query: q })
-	fetchList(true)
+	let queryParams: RouteQuery = {}
+	if (!isDefaultConfig.value) queryParams.view = configName.value
+	Object.assign(queryParams, getFilterQuery(filters.value))
+	await router.replace({ query: queryParams })
+	await fetchList(true)
 }
 </script>

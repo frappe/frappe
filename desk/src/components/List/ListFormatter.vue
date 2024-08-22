@@ -10,7 +10,7 @@
 		<span class="text-base">{{ item }}</span>
 	</div>
 	<div
-		v-else-if="['modified', 'creation'].includes(column.key)"
+		v-else-if="['modified', 'creation'].includes(column.key) && dayjs"
 		class="text-sm font-semibold text-gray-500"
 	>
 		{{ dayjs().to(dayjs(item)) }}
@@ -23,7 +23,13 @@
 			size="md"
 			:label="item ? 'Enabled' : 'Disabled'"
 		></Badge>
-		<Badge v-else :variant="'outline'" :theme="guessColour(item)" size="md" :label="item"></Badge>
+		<Badge
+			v-else
+			:variant="'outline'"
+			:theme="guessColour(item as string)"
+			size="md"
+			:label="item"
+		></Badge>
 	</template>
 	<Badge
 		v-else-if="column.key == 'disabled'"
@@ -52,29 +58,20 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { inject } from "vue"
-import { guessColour } from "@/utils/list"
 import { Badge, Checkbox, Avatar } from "frappe-ui"
 
-const props = defineProps({
-	row: {
-		type: Object,
-		required: true,
-	},
-	column: {
-		type: Object,
-		required: true,
-	},
-	item: {
-		type: [String, Number, Boolean],
-		required: true,
-	},
-	titleField: {
-		type: Array,
-		required: false,
-	},
-})
+import { guessColour } from "@/utils/list"
 
-const dayjs = inject("$dayjs")
+import { ListColumn, ListRow } from "@/types/list"
+
+defineProps<{
+	row: ListRow
+	column: ListColumn
+	item: string | number | boolean
+	titleField: [string, string]
+}>()
+
+const dayjs = inject<any>("$dayjs")
 </script>

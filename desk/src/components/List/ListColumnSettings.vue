@@ -36,7 +36,7 @@
 						<Autocomplete
 							:body-classes="'w-56'"
 							:options="fields"
-							@update:modelValue="(e) => addColumn(e)"
+							@update:modelValue="(field: ListField) => addColumn(field)"
 						>
 							<template #target="{ togglePopover }">
 								<Button
@@ -74,7 +74,7 @@
 							type="text"
 							size="md"
 							:label="'Label'"
-							v-model="column.label"
+							v-model="activeColumn.label"
 							class="w-full"
 						/>
 						<FormControl
@@ -82,7 +82,7 @@
 							size="md"
 							:label="'Width'"
 							class="w-full"
-							v-model="column.width"
+							v-model="activeColumn.width"
 							placeholder="10rem"
 							:description="'Width can be in number, pixel or rem (eg. 3, 30px, 10rem)'"
 							:debounce="500"
@@ -94,13 +94,13 @@
 							variant="subtle"
 							:label="'Cancel'"
 							class="w-full flex-1"
-							@click="cancelUpdate(column.key)"
+							@click="cancelUpdate(activeColumn.key)"
 						/>
 						<Button
 							variant="solid"
 							:label="'Update'"
 							class="w-full flex-1"
-							@click="updateColumn(column)"
+							@click="updateColumn(activeColumn)"
 						/>
 					</div>
 				</div>
@@ -109,38 +109,37 @@
 	</NestedPopover>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, ref, watch, inject } from "vue"
-import { Autocomplete, call } from "frappe-ui"
 import Draggable from "vuedraggable"
 
-import { isDefaultConfig, isDefaultOverriden, configName } from "@/stores/view"
-import NestedPopover from "frappe-ui/src/components/ListFilter/NestedPopover.vue"
-
+import { Autocomplete, NestedPopover, call } from "frappe-ui"
 import IconReset from "@/components/Icons/IconReset.vue"
+
+import { isDefaultConfig, isDefaultOverriden, configName } from "@/stores/view"
 import { cloneObject } from "@/utils"
 
-const props = defineProps({
-	allColumns: {
-		type: Array,
-		default: [],
-	},
-})
+import { fetchListFnKey, renderListFnKey } from "@/types/injectionKeys"
+import { ListField, ListColumn } from "@/types/list"
 
-const fetchList = inject("fetchList")
-const renderList = inject("renderList")
+const fetchList = inject(fetchListFnKey, async () => {})
+const renderList = inject(renderListFnKey, async () => {})
+
+const props = defineProps<{
+	allColumns: ListField[]
+}>()
+
+const columns = defineModel<ListColumn[]>({ required: true })
+const oldColumns = ref<ListColumn[]>()
 
 const fields = computed(() => {
 	let allFields = props.allColumns
 	if (!allFields) return []
 
 	return allFields.filter((field) => {
-		return !columns.value.find((column) => column.key === field.value)
+		return !columns.value.find((column) => column.key === field.key)
 	})
 })
-
-const columns = defineModel()
-const oldColumns = ref({})
 
 watch(
 	columns.value,
@@ -151,52 +150,52 @@ watch(
 	{ once: true, immediate: true }
 )
 
-const resetToDefault = async (close) => {
+const resetToDefault = async (close: () => void) => {
 	await call("frappe.desk.doctype.view_config.view_config.reset_default_config", {
 		config_name: configName.value,
 	})
-	renderList()
+	await renderList()
 	close()
 }
 
-function addColumn(c) {
-	let _column = {
-		label: c.label,
-		type: c.type,
-		key: c.value,
+const addColumn = async (field: ListField): Promise<void> => {
+	let _column: ListColumn = {
+		...field,
 		width: "10rem",
-		options: c.options,
 	}
 	columns.value.push(_column)
-	fetchList()
+	await fetchList()
 }
 
-function removeColumn(c) {
-	columns.value = columns.value.filter((column) => column.key !== c.key)
+function removeColumn(col: ListColumn) {
+	columns.value = columns.value.filter((column) => column.key !== col.key)
 }
 
 const edit = ref(false)
-const column = ref({
-	label: "",
+const activeColumn = ref<ListColumn>({
 	key: "",
+	label: "",
+	type: "Data",
+	options: [],
 	width: "10rem",
 })
-const editColumn = (c) => {
+
+const editColumn = (col: ListColumn) => {
 	edit.value = true
-	column.value = { ...c }
+	activeColumn.value = { ...col }
 }
 
-const updateColumn = (c) => {
+const updateColumn = (col: ListColumn) => {
 	edit.value = false
-	let index = columns.value.findIndex((column) => column.key === c.key)
-	columns.value[index].label = c.label
-	columns.value[index].width = c.width
+	let index = columns.value.findIndex((column) => column.key === col.key)
+	columns.value[index].label = col.label
+	columns.value[index].width = col.width
 }
 
-const cancelUpdate = (key) => {
+const cancelUpdate = (key: string) => {
 	edit.value = false
 	let index = columns.value.findIndex((column) => column.key === key)
-	column.value.label = columns.value[index].label
-	column.value.width = columns.value[index].width
+	activeColumn.value.label = columns.value[index].label
+	activeColumn.value.width = columns.value[index].width
 }
 </script>
