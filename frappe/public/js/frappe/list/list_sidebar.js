@@ -174,6 +174,7 @@ frappe.views.ListSidebar = class ListSidebar {
 		let sections = [
 			["tags-section", "list-tags"],
 			["save-filter-section", "list-filters"],
+			["filter-section", "list-group-by"],
 		];
 
 		for (let s of sections) {
@@ -237,11 +238,11 @@ frappe.views.ListSidebar = class ListSidebar {
 	}
 
 	set_loading_state(dropdown) {
-		dropdown.html(`<li>
+		dropdown.html(`<div>
 			<div class="empty-state">
 				${__("Loading...")}
 			</div>
-		</li>`);
+		</div>`);
 	}
 
 	render_stat(stats) {

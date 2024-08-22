@@ -6,7 +6,6 @@
 }
 /*! This comment will be included even in compressed mode. */
 #navbar-breadcrumbs {
-	margin-left: var(--margin-md);
 	@include get_textstyle("base", "regular");
 	a {
 		margin-right: 10px;

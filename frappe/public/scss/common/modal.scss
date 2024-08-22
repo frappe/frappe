@@ -48,6 +48,10 @@ body.modal-open[style^="padding-right"] {
 			max-width: calc(100% - 80px);
 		}
 
+		.btn-modal-close {
+			padding: 4px 0;
+		}
+
 		.modal-actions {
 			.btn-modal-minimize {
 				padding-right: 0;

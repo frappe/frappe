@@ -341,32 +341,6 @@ def update_page(name, title, icon, indicator_color, parent, public):
 	return {"name": title, "public": public, "label": new_name}
 
 
-def hide_unhide_page(page_name: str, is_hidden: bool):
-	page = frappe.get_doc("Workspace", page_name)
-
-	if page.get("public") and not is_workspace_manager():
-		frappe.throw(
-			_("Need Workspace Manager role to hide/unhide public workspaces"), frappe.PermissionError
-		)
-
-	if not page.get("public") and page.get("for_user") != frappe.session.user and not is_workspace_manager():
-		frappe.throw(_("Cannot update private workspace of other users"), frappe.PermissionError)
-
-	page.is_hidden = int(is_hidden)
-	page.save(ignore_permissions=True)
-	return True
-
-
-@frappe.whitelist()
-def hide_page(page_name: str):
-	return hide_unhide_page(page_name, 1)
-
-
-@frappe.whitelist()
-def unhide_page(page_name: str):
-	return hide_unhide_page(page_name, 0)
-
-
 @frappe.whitelist()
 def duplicate_page(page_name, new_page):
 	if not loads(new_page):
@@ -424,40 +398,6 @@ def delete_page(page):
 		frappe.get_doc("Workspace", page.get("name")).delete(ignore_permissions=True)
 
 	return {"name": page.get("name"), "public": page.get("public"), "title": page.get("title")}
-
-
-@frappe.whitelist()
-def sort_pages(sb_public_items, sb_private_items):
-	if not loads(sb_public_items) and not loads(sb_private_items):
-		return
-
-	sb_public_items = loads(sb_public_items)
-	sb_private_items = loads(sb_private_items)
-
-	workspace_public_pages = get_page_list(["name", "title"], {"public": 1})
-	workspace_private_pages = get_page_list(["name", "title"], {"for_user": frappe.session.user})
-
-	if sb_private_items:
-		return sort_page(workspace_private_pages, sb_private_items)
-
-	if sb_public_items and is_workspace_manager():
-		return sort_page(workspace_public_pages, sb_public_items)
-
-	return False
-
-
-def sort_page(workspace_pages, pages):
-	for seq, d in enumerate(pages):
-		for page in workspace_pages:
-			if page.title == d.get("title"):
-				doc = frappe.get_doc("Workspace", page.name)
-				doc.sequence_id = seq + 1
-				doc.parent_page = d.get("parent_page") or ""
-				doc.flags.ignore_links = True
-				doc.save(ignore_permissions=True)
-				break
-
-	return True
 
 
 def last_sequence_id(doc):

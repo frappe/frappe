@@ -52,7 +52,7 @@
 
 .frappe-control[data-fieldtype="Icon"] {
 	input {
-		padding-left: 40px;
+		padding-left: 30px;
 	}
 	.selected-icon {
 		cursor: pointer;
@@ -72,6 +72,13 @@
 			top: 20%;
 			cursor: default;
 		}
+	}
+}
+
+.horizontal {
+	.selected-icon {
+		top: 4px !important;
+		left: calc(50% + 5px) !important;
 	}
 }
 

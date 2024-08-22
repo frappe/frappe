@@ -19,6 +19,8 @@ $disabled-input-height: 22px;
 	--margin-xl: 30px;
 	--margin-2xl: 40px;
 
+	--page-max-width: 900px;
+
 	--modal-shadow: var(--shadow-md);
 	--card-shadow: var(--shadow-sm);
 	--btn-shadow: var(--shadow-xs);
@@ -79,7 +81,7 @@ $disabled-input-height: 22px;
 	--fg-color: white;
 	--subtle-accent: var(--gray-50);
 	--subtle-fg: var(--gray-100);
-	--navbar-bg: var(--subtle-accent);
+	--navbar-bg: var(--neutral);
 	--fg-hover-color: var(--gray-100);
 	--card-bg: var(--fg-color);
 	--disabled-text-color: var(--gray-600);
