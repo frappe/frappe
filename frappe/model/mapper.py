@@ -88,7 +88,7 @@ def get_mapped_doc(
 		if not source_doc.has_permission("read"):
 			source_doc.raise_no_permission_to("read")
 
-	ret_doc.run_method("before_mapping", source_doc, table_maps)
+	target_doc.run_method("before_mapping", source_doc, table_maps)
 
 	map_doc(source_doc, target_doc, table_maps[source_doc.doctype])
 
