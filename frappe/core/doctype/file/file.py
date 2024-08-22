@@ -59,6 +59,7 @@ class File(Document):
 
 	def before_insert(self):
 		self.set_folder_name()
+		self.set_is_private()
 		self.set_file_name()
 		self.validate_attachment_limit()
 		self.set_file_type()
@@ -73,12 +74,11 @@ class File(Document):
 			self.flags.new_file = True
 			frappe.local.rollback_observers.append(self)
 
+		self.validate_duplicate_entry()  # Hash is generated in save_file
+
 	def after_insert(self):
 		if not self.is_folder:
 			self.create_attachment_record()
-		self.set_is_private()
-		self.set_file_name()
-		self.validate_duplicate_entry()
 
 	def validate(self):
 		if self.is_folder:
@@ -410,7 +410,12 @@ class File(Document):
 		"""If file not attached to any other record, delete it"""
 		on_disk_file_not_shared = self.content_hash and not frappe.get_all(
 			"File",
-			filters={"content_hash": self.content_hash, "name": ["!=", self.name]},
+			filters={
+				"content_hash": self.content_hash,
+				"name": ["!=", self.name],
+				# NOTE: Some old Files might share file_urls while not sharing the is_private value
+				# "is_private": self.is_private,
+			},
 			limit=1,
 		)
 		if on_disk_file_not_shared:
