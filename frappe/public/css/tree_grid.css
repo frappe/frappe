@@ -1,0 +1,15 @@
+.cell-title {
+	font-weight: bold;
+}
+
+.cell-effort-driven {
+	text-align: center;
+}
+
+.toggle {
+	height: 9px;
+	width: 9px;
+	display: inline-block;
+	visibility: visible;
+}
+

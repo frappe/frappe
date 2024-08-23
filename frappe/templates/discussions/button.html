@@ -1,0 +1,6 @@
+{% if frappe.session.user != "Guest" and
+(condition is not defined or (condition is defined and condition )) %}
+<span class="btn btn-sm btn-secondary reply">
+	{{ _(cta_title) }}
+</span>
+{% endif %}

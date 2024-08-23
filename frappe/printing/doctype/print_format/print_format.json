@@ -1,0 +1,290 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "Prompt",
+ "creation": "2013-01-23 19:54:43",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "doc_type",
+  "module",
+  "default_print_language",
+  "column_break_3",
+  "standard",
+  "custom_format",
+  "disabled",
+  "section_break_6",
+  "print_format_type",
+  "raw_printing",
+  "html",
+  "raw_commands",
+  "section_break_9",
+  "margin_top",
+  "margin_bottom",
+  "margin_left",
+  "margin_right",
+  "align_labels_right",
+  "show_section_headings",
+  "line_breaks",
+  "absolute_value",
+  "column_break_11",
+  "font_size",
+  "font",
+  "page_number",
+  "css_section",
+  "css",
+  "custom_html_help",
+  "section_break_13",
+  "print_format_help",
+  "format_data",
+  "print_format_builder",
+  "print_format_builder_beta"
+ ],
+ "fields": [
+  {
+   "fieldname": "doc_type",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "DocType",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "options": "Module Def"
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "No",
+   "fieldname": "standard",
+   "fieldtype": "Select",
+   "in_filter": 1,
+   "label": "Standard",
+   "no_copy": 1,
+   "oldfieldname": "standard",
+   "oldfieldtype": "Select",
+   "options": "No\nYes",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "custom_format",
+   "fieldtype": "Check",
+   "label": "Custom Format"
+  },
+  {
+   "depends_on": "custom_format",
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "Jinja",
+   "depends_on": "custom_format",
+   "fieldname": "print_format_type",
+   "fieldtype": "Select",
+   "label": "Print Format Type",
+   "options": "Jinja\nJS"
+  },
+  {
+   "default": "0",
+   "fieldname": "raw_printing",
+   "fieldtype": "Check",
+   "label": "Raw Printing"
+  },
+  {
+   "depends_on": "eval:!doc.raw_printing",
+   "fieldname": "html",
+   "fieldtype": "Code",
+   "label": "HTML",
+   "oldfieldname": "html",
+   "oldfieldtype": "Text Editor",
+   "options": "Jinja"
+  },
+  {
+   "depends_on": "raw_printing",
+   "description": "Any string-based printer languages can be used. Writing raw commands requires knowledge of the printer's native language provided by the printer manufacturer. Please refer to the developer manual provided by the printer manufacturer on how to write their native commands. These commands are rendered on the server side using the Jinja Templating Language.",
+   "fieldname": "raw_commands",
+   "fieldtype": "Code",
+   "label": "Raw Commands",
+   "options": "Jinja"
+  },
+  {
+   "depends_on": "eval:!doc.custom_format",
+   "fieldname": "section_break_9",
+   "fieldtype": "Section Break",
+   "label": "Style Settings"
+  },
+  {
+   "default": "0",
+   "fieldname": "align_labels_right",
+   "fieldtype": "Check",
+   "label": "Align Labels to the Right"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_section_headings",
+   "fieldtype": "Check",
+   "label": "Show Section Headings"
+  },
+  {
+   "default": "0",
+   "fieldname": "line_breaks",
+   "fieldtype": "Check",
+   "label": "Show Line Breaks after Sections"
+  },
+  {
+   "fieldname": "column_break_11",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "default_print_language",
+   "fieldtype": "Link",
+   "label": "Default Print Language",
+   "options": "Language"
+  },
+  {
+   "depends_on": "eval:!doc.custom_format",
+   "fieldname": "font",
+   "fieldtype": "Data",
+   "label": "Google Font"
+  },
+  {
+   "depends_on": "eval:!doc.raw_printing",
+   "fieldname": "css_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "css",
+   "fieldtype": "Code",
+   "label": "Custom CSS",
+   "options": "CSS"
+  },
+  {
+   "fieldname": "custom_html_help",
+   "fieldtype": "HTML",
+   "label": "Custom HTML Help",
+   "options": "<h3>Custom CSS Help</h3>\n\n<p>Notes:</p>\n\n<ol>\n<li>All field groups (label + value) are set attributes <code>data-fieldtype</code> and <code>data-fieldname</code></li>\n<li>All values are given class <code>value</code></li>\n<li>All Section Breaks are given class <code>section-break</code></li>\n<li>All Column Breaks are given class <code>column-break</code></li>\n</ol>\n\n<h4>Examples</h4>\n\n<p>1. Left align integers</p>\n\n<pre><code>[data-fieldtype=\"Int\"] .value { text-align: left; }</code></pre>\n\n<p>1. Add border to sections except the last section</p>\n\n<pre><code>.section-break { padding: 30px 0px; border-bottom: 1px solid #eee; }\n.section-break:last-child { padding-bottom: 0px; border-bottom: 0px;  }</code></pre>\n"
+  },
+  {
+   "depends_on": "custom_format",
+   "fieldname": "section_break_13",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "custom_format",
+   "fieldname": "print_format_help",
+   "fieldtype": "HTML",
+   "label": "Print Format Help",
+   "options": "<h3>Print Format Help</h3>\n<hr>\n<h4>Introduction</h4>\n<p>Print Formats are rendered on the server side using the Jinja Templating Language. All forms have access to the <code>doc</code> object which contains information about the document that is being formatted. You can also access common utilities via the <code>frappe</code> module.</p>\n<p>For styling, the Boostrap CSS framework is provided and you can enjoy the full range of classes.</p>\n<hr>\n<h4>References</h4>\n<ol>\n\t<li><a href=\"http://jinja.pocoo.org/docs/templates/\" target=\"_blank\">Jinja Templating Language</a></li>\n\t<li><a href=\"http://getbootstrap.com\" target=\"_blank\">Bootstrap CSS Framework</a></li>\n</ol>\n<hr>\n<h4>Example</h4>\n<pre><code>&lt;h3&gt;{{ doc.select_print_heading or \"Invoice\" }}&lt;/h3&gt;\n&lt;div class=\"row\"&gt;\n\t&lt;div class=\"col-md-3 text-right\"&gt;Customer Name&lt;/div&gt;\n\t&lt;div class=\"col-md-9\"&gt;{{ doc.customer_name }}&lt;/div&gt;\n&lt;/div&gt;\n&lt;div class=\"row\"&gt;\n\t&lt;div class=\"col-md-3 text-right\"&gt;Date&lt;/div&gt;\n\t&lt;div class=\"col-md-9\"&gt;{{ doc.get_formatted(\"invoice_date\") }}&lt;/div&gt;\n&lt;/div&gt;\n&lt;table class=\"table table-bordered\"&gt;\n\t&lt;tbody&gt;\n\t\t&lt;tr&gt;\n\t\t\t&lt;th&gt;Sr&lt;/th&gt;\n\t\t\t&lt;th&gt;Item Name&lt;/th&gt;\n\t\t\t&lt;th&gt;Description&lt;/th&gt;\n\t\t\t&lt;th class=\"text-right\"&gt;Qty&lt;/th&gt;\n\t\t\t&lt;th class=\"text-right\"&gt;Rate&lt;/th&gt;\n\t\t\t&lt;th class=\"text-right\"&gt;Amount&lt;/th&gt;\n\t\t&lt;/tr&gt;\n\t\t{%- for row in doc.items -%}\n\t\t&lt;tr&gt;\n\t\t\t&lt;td style=\"width: 3%;\"&gt;{{ row.idx }}&lt;/td&gt;\n\t\t\t&lt;td style=\"width: 20%;\"&gt;\n\t\t\t\t{{ row.item_name }}\n\t\t\t\t{% if row.item_code != row.item_name -%}\n\t\t\t\t&lt;br&gt;Item Code: {{ row.item_code}}\n\t\t\t\t{%- endif %}\n\t\t\t&lt;/td&gt;\n\t\t\t&lt;td style=\"width: 37%;\"&gt;\n\t\t\t\t&lt;div style=\"border: 0px;\"&gt;{{ row.description }}&lt;/div&gt;&lt;/td&gt;\n\t\t\t&lt;td style=\"width: 10%; text-align: right;\"&gt;{{ row.qty }} {{ row.uom or row.stock_uom }}&lt;/td&gt;\n\t\t\t&lt;td style=\"width: 15%; text-align: right;\"&gt;{{\n\t\t\t\trow.get_formatted(\"rate\", doc) }}&lt;/td&gt;\n\t\t\t&lt;td style=\"width: 15%; text-align: right;\"&gt;{{\n\t\t\t\trow.get_formatted(\"amount\", doc) }}&lt;/td&gt;\n\t\t&lt;/tr&gt;\n\t\t{%- endfor -%}\n\t&lt;/tbody&gt;\n&lt;/table&gt;</code></pre>\n<hr>\n<h4>Common Functions</h4>\n<table class=\"table table-bordered\">\n\t<tbody>\n\t\t<tr>\n\t\t\t<td style=\"width: 30%;\"><code>doc.get_formatted(\"[fieldname]\", [parent_doc])</code></td>\n\t\t\t<td>Get document value formatted as Date, Currency, etc. Pass parent <code>doc</code> for currency type fields.</td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td style=\"width: 30%;\"><code>frappe.db.get_value(\"[doctype]\", \"[name]\", \"fieldname\")</code></td>\n\t\t\t<td>Get value from another document.</td>\n\t\t</tr>\n\t</tbody>\n</table>\n"
+  },
+  {
+   "fieldname": "format_data",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Format Data"
+  },
+  {
+   "default": "0",
+   "fieldname": "print_format_builder",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Print Format Builder"
+  },
+  {
+   "default": "0",
+   "depends_on": "doc_type",
+   "description": "If checked, negative numeric values of Currency, Quantity or Count would be shown as positive",
+   "fieldname": "absolute_value",
+   "fieldtype": "Check",
+   "label": "Show Absolute Values"
+  },
+  {
+   "default": "0",
+   "fieldname": "print_format_builder_beta",
+   "fieldtype": "Check",
+   "label": "Print Format Builder Beta"
+  },
+  {
+   "default": "15",
+   "fieldname": "margin_top",
+   "fieldtype": "Float",
+   "label": "Margin Top"
+  },
+  {
+   "default": "15",
+   "fieldname": "margin_bottom",
+   "fieldtype": "Float",
+   "label": "Margin Bottom"
+  },
+  {
+   "default": "15",
+   "fieldname": "margin_left",
+   "fieldtype": "Float",
+   "label": "Margin Left"
+  },
+  {
+   "default": "15",
+   "fieldname": "margin_right",
+   "fieldtype": "Float",
+   "label": "Margin Right"
+  },
+  {
+   "default": "14",
+   "fieldname": "font_size",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Font Size"
+  },
+  {
+   "default": "Hide",
+   "fieldname": "page_number",
+   "fieldtype": "Select",
+   "label": "Page Number",
+   "options": "Hide\nTop Left\nTop Center\nTop Right\nBottom Left\nBottom Center\nBottom Right"
+  }
+ ],
+ "icon": "fa fa-print",
+ "idx": 1,
+ "links": [],
+ "modified": "2024-03-23 16:03:34.964767",
+ "modified_by": "Administrator",
+ "module": "Printing",
+ "name": "Print Format",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "role": "Desk User",
+   "select": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

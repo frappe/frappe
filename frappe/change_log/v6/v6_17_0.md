@@ -1,0 +1,4 @@
+- Ability to **Like** a document, comment or communication
+	- See notifications about likes that you received
+	- View it on Activity feed
+	- *Stars* have been converted to Likes

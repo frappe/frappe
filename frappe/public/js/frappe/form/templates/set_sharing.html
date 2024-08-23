@@ -1,0 +1,71 @@
+<div>
+	<div class="row">
+		<div class="col-xs-4"><h6>{%= __("User") %}</h6></div>
+		<div class="col-xs-2 flex justify-center align-center"><h6>{%= __("Can Read") %}</h6></div>
+		<div class="col-xs-2 flex justify-center align-center"><h6>{%= __("Can Write") %}</h6></div>
+		<div class="col-xs-2 flex justify-center align-center"><h6>{%= __("Can Submit") %}</h6></div>
+		<div class="col-xs-2 flex justify-center align-center"><h6>{%= __("Can Share") %}</h6></div>
+	</div>
+
+	<div class="row shared-user" data-everyone=1>
+		<div class="col-xs-4 share-all"><b>{{ __("Everyone") }}</b></div>
+		<div class="col-xs-2 flex justify-center align-center"><input type="checkbox" name="read"
+			{% if(cint(everyone.read)) { %}checked{% } %} class="edit-share"></div>
+		<div class="col-xs-2 flex justify-center align-center"><input type="checkbox" name="write"
+			class="edit-share"
+			{% if(cint(everyone.write)) { %}checked{% } %}
+			{% if (!frm.perm[0].write){ %} disabled="disabled"{% } %}>
+		</div>
+		<div class="col-xs-2 flex justify-center align-center"><input type="checkbox" name="submit"
+			class="edit-share"
+			{% if(cint(everyone.submit)) { %}checked{% } %}
+			{% if (!frm.perm[0].submit){ %} disabled="disabled"{% } %}>
+		</div>
+		<div class="col-xs-2 flex justify-center align-center"><input type="checkbox" name="share"
+			{% if(cint(everyone.share)) { %}checked{% } %} class="edit-share"></div>
+	</div>
+
+	{% for (var i=0, l=shared.length; i < l; i++) {
+		var s = shared[i]; %}
+		{% if(s && !s.everyone) { %}
+		<div class="row shared-user" data-user="{%= s.user %}" data-name="{%= s.name %}">
+			<div class="col-xs-4">{%= s.user %}</div>
+			<div class="col-xs-2 flex justify-center align-center"><input type="checkbox" name="read"
+				{% if(cint(s.read)) { %}checked{% } %} class="edit-share"></div>
+			<div class="col-xs-2 flex justify-center align-center"><input type="checkbox" name="write"
+				{% if(cint(s.write)) { %}checked{% } %} class="edit-share"{% if (!frm.perm[0].write){ %} disabled="disabled"{% } %}></div>
+			<div class="col-xs-2 flex justify-center align-center"><input type="checkbox" name="submit"
+				{% if(cint(s.submit)) { %}checked{% } %} class="edit-share"{% if (!frm.perm[0].submit){ %} disabled="disabled"{% } %}></div>
+			<div class="col-xs-2 flex justify-center align-center"><input type="checkbox" name="share"
+				{% if(cint(s.share)) { %}checked{% } %} class="edit-share"></div>
+		</div>
+		{% } %}
+	{% } %}
+
+	{% if(frappe.model.can_share(null, frm)) { %}
+	<hr>
+
+	<div class="row">
+		<div class="col-xs-4"><h6>{%= __("Share this document with") %}</h6></div>
+		<div class="col-xs-2 flex justify-center align-center"><h6>{%= __("Can Read") %}</h6></div>
+		<div class="col-xs-2 flex justify-center align-center"><h6>{%= __("Can Write") %}</h6></div>
+		<div class="col-xs-2 flex justify-center align-center"><h6>{%= __("Can Submit") %}</h6></div>
+		<div class="col-xs-2 flex justify-center align-center"><h6>{%= __("Can Share") %}</h6></div>
+	</div>
+
+	<div class="row">
+		<div class="col-xs-4 input-wrapper-add-share"></div>
+		<div class="col-xs-2 flex justify-center align-flex-start mt-2"><input type="checkbox" class="add-share-read" name="read"></div>
+		<div class="col-xs-2 flex justify-center align-flex-start mt-2"><input type="checkbox" class="add-share-write" name="write"
+			{% if (!frm.perm[0].write){ %} disabled="disabled"{% } %}>
+		</div>
+		<div class="col-xs-2 flex justify-center align-flex-start mt-2"><input type="checkbox" class="add-share-submit" name="submit"
+			{% if (!frm.perm[0].submit){ %} disabled="disabled"{% } %}>
+		</div>
+		<div class="col-xs-2 flex justify-center align-flex-start mt-2"><input type="checkbox" class="add-share-share" name="share"></div>
+	</div>
+	<div>
+		<button class="btn btn-primary btn-sm btn-add-share mt-3">{{ __("Add") }}</button>
+	</div>
+	{% endif %}
+</div>

@@ -1,0 +1,29 @@
+// Data Import
+.map-columns .form-section {
+	padding: 0 7px 7px;
+	border-top: none;
+
+	.clearfix {
+		display: none;
+	}
+}
+
+.map-columns .form-section:first-child {
+	padding-top: 7px;
+}
+
+.table-preview {
+	margin-top: 12px;
+
+	.datatable .dt-scrollable .dt-row:last-child .dt-cell {
+		border-bottom: 1px solid var(--border-color);
+	}
+
+	.dt-row:last-child:not(.dt-row-filter) {
+		border-bottom: none;
+	}
+
+	.datatable .dt-header .dt-row-header {
+		background-color: unset;
+	}
+}

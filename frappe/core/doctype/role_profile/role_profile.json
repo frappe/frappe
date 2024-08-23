@@ -1,0 +1,82 @@
+{
+ "actions": [],
+ "autoname": "role_profile",
+ "creation": "2017-08-31 04:16:38.764465",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "role_profile",
+  "roles_html",
+  "roles"
+ ],
+ "fields": [
+  {
+   "fieldname": "role_profile",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Role Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "roles_html",
+   "fieldtype": "HTML",
+   "label": "Roles HTML",
+   "read_only": 1
+  },
+  {
+   "fieldname": "roles",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Roles Assigned",
+   "options": "Has Role",
+   "permlevel": 1,
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "links": [
+  {
+   "link_doctype": "User",
+   "link_fieldname": "role_profile",
+   "table_fieldname": "role_profiles"
+  }
+ ],
+ "modified": "2024-03-23 16:03:37.104710",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Role Profile",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "permlevel": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "role_profile",
+ "track_changes": 1
+}

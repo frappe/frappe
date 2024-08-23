@@ -1,0 +1,129 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:workflow_name",
+ "creation": "2012-12-28 10:49:55",
+ "description": "Defines workflow states and rules for a document.",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "engine": "InnoDB",
+ "field_order": [
+  "workflow_name",
+  "document_type",
+  "is_active",
+  "override_status",
+  "send_email_alert",
+  "states_head",
+  "states",
+  "transition_rules",
+  "transitions",
+  "workflow_state_field",
+  "workflow_data"
+ ],
+ "fields": [
+  {
+   "fieldname": "workflow_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Workflow Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "description": "DocType on which this Workflow is applicable.",
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Document Type",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "description": "If checked, all other workflows become inactive.",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Is Active"
+  },
+  {
+   "default": "0",
+   "description": "If Checked workflow status will not override status in list view",
+   "fieldname": "override_status",
+   "fieldtype": "Check",
+   "label": "Don't Override Status"
+  },
+  {
+   "default": "0",
+   "description": "Emails will be sent with next possible workflow actions",
+   "fieldname": "send_email_alert",
+   "fieldtype": "Check",
+   "label": "Send Email Alert"
+  },
+  {
+   "description": "Different \"States\" this document can exist in. Like \"Open\", \"Pending Approval\" etc.",
+   "fieldname": "states_head",
+   "fieldtype": "Section Break",
+   "label": "States"
+  },
+  {
+   "description": "All possible Workflow States and roles of the workflow. Docstatus Options: 0 is \"Saved\", 1 is \"Submitted\" and 2 is \"Cancelled\"",
+   "fieldname": "states",
+   "fieldtype": "Table",
+   "label": "Document States",
+   "options": "Workflow Document State"
+  },
+  {
+   "description": "Rules for how states are transitions, like next state and which role is allowed to change state etc.",
+   "fieldname": "transition_rules",
+   "fieldtype": "Section Break",
+   "label": "Transition Rules"
+  },
+  {
+   "description": "Rules defining transition of state in the workflow.",
+   "fieldname": "transitions",
+   "fieldtype": "Table",
+   "label": "Transitions",
+   "options": "Workflow Transition"
+  },
+  {
+   "default": "workflow_state",
+   "description": "Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)",
+   "fieldname": "workflow_state_field",
+   "fieldtype": "Data",
+   "label": "Workflow State Field",
+   "reqd": 1
+  },
+  {
+   "fieldname": "workflow_data",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Workflow Data"
+  }
+ ],
+ "icon": "fa fa-random",
+ "idx": 1,
+ "links": [],
+ "modified": "2024-03-23 16:04:04.849665",
+ "modified_by": "Administrator",
+ "module": "Workflow",
+ "name": "Workflow",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "show_name_in_global_search": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

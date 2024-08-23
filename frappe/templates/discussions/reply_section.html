@@ -1,0 +1,54 @@
+{% if topic %}
+
+{% set replies = frappe.get_all("Discussion Reply", {"topic": topic.name},
+	["reply", "owner", "creation", "name"], order_by="creation")%}
+
+{% endif %}
+
+<div class=" {% if not single_thread %} collapse {% endif %} discussion-on-page" data-parent="#discussion-group"
+	{% if topic %} id="t{{ topic.name }}" data-topic="{{ topic.name }}" {% endif %}>
+
+	{% if not single_thread %}
+	<div class="reply-section-header">
+		<div class="back-button">
+			<svg class="icon icon-sm mr-0">
+				<use class="" href="#icon-left"></use>
+			</svg>
+		</div>
+
+		{% if topic and topic.title %}
+		<div class="discussion-heading p-0">
+			{{ topic.title }}
+		</div>
+		{% endif %}
+	</div>
+	{% endif %}
+
+	{% for reply in replies %}
+	{% set index = loop.index %}
+	{% include "frappe/templates/discussions/reply_card.html" %}
+	{% endfor %}
+
+	{% if frappe.session.user == "Guest" or (condition is defined and not condition) %}
+	<div class="empty-state">
+		<div>
+		  <img class="icon icon-xl" src="/assets/frappe/icons/timeless/message.svg">
+		</div>
+		<div class="empty-state-text">
+		  <div class="empty-state-heading">{{ _("Want to discuss?") }}</div>
+		  <div class="course-meta">{{ _("Post it here, our mentors will help you out.") }}</div>
+		</div>
+		<div>
+			{% if frappe.session.user == "Guest" %}
+			<div class="btn btn-default btn-md login-from-discussion"> {{ _("Login") }} </div>
+			{% elif condition is defined and not condition %}
+			<div class="btn btn-default btn-md login-from-discussion" data-redirect="{{ redirect_to }}">
+				{{ button_name }}
+			</div>
+			{% endif %}
+		</div>
+	</div>
+	{% else %}
+	{% include "frappe/templates/discussions/comment_box.html" %}
+	{% endif %}
+</div>

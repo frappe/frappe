@@ -1,0 +1,36 @@
+
+{%- set split_parts = (split or '6 columns - 6 columns').replace('columns', '').split(' - ') -%}
+{%- set left_col = 'col-sm-' + split_parts[0].strip() -%}
+{%- set right_col = 'col-sm-' + split_parts[1].strip() -%}
+{%- set align_content = 'align-' + (vertical_align or 'Top').lower() -%}
+
+<div class="split-section-with-image row">
+	{%- if not image_on_right -%}
+	<div class="col-12 {{ left_col }}">
+		{{ frappe.render_template('templates/includes/image_with_blur.html', {
+			"src": image,
+			"alt": title,
+			"class": "split-section-image"
+		}) }}
+	</div>
+	{%- endif -%}
+	<div class="split-section-content col-12 {{ left_col if image_on_right else right_col }} {{ align_content }}">
+		<h2 class="mt-0">{{ title }}</h2>
+		{%- if content -%}
+		<p>{{ content }}</p>
+		{%- endif -%}
+
+		{%- if link_label and link_url -%}
+		<a href="{{ link_url }}">{{ link_label }}</a>
+		{%- endif -%}
+	</div>
+	{%- if image_on_right -%}
+	<div class="col-12 {{ right_col }}">
+		{{ frappe.render_template('templates/includes/image_with_blur.html', {
+			"src": image,
+			"alt": title,
+			"class": "split-section-image"
+		}) }}
+	</div>
+	{%- endif -%}
+</div>

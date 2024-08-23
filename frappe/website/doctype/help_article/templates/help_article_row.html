@@ -1,0 +1,15 @@
+<div class="portal-row row">
+	<div class="col-sm-7">
+		<a class="no-underline" href="/{{ doc.route }}">
+			{{ doc.title }}
+		</a>
+	</div>
+	<div class="col-sm-2">
+		<span class="help-category-label indicator {{ get_level_class(doc.level) }}">
+			{{ doc.level }}
+		</span>
+	</div>
+	<div class="col-sm-3 text-right small">
+			{{ frappe.format_date(doc.creation) }}
+	</div>
+</div>

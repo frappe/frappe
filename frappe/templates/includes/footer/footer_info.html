@@ -1,0 +1,23 @@
+<div class="footer-info">
+	<div class="row">
+		<div class="footer-col-left col-sm-6 col-12">
+			{% if copyright %}
+			&copy; {{ copyright }}
+			{% endif %}
+			{% if footer_address %}
+			{% if copyright %}<br>{% endif %}
+			{{ footer_address }}
+			{% endif %}
+		</div>
+		{# powered #}
+		<div class="footer-col-right col-sm-6 col-12 footer-powered">
+			{% block powered %}
+			{%- if footer_powered -%}
+				{{ footer_powered }}
+			{%- else -%}
+				{% include "templates/includes/footer/footer_powered.html" %}
+			{%- endif -%}
+			{% endblock %}
+		</div>
+	</div>
+</div>

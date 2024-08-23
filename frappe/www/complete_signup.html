@@ -1,0 +1,24 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div class="text-center login-content container page-card">
+	<form role="form form-signin" method="POST"
+        action="/api/method/frappe.templates.pages.login.login_oauth_user">
+		<h3 class="form-signin-heading mb-4">{{ _("One Last Step") }}</h3>
+        <input type="hidden" name="key" value="{{ frappe.form_dict.key }}">
+		<div class="form-group">
+			<input type="email" name="email_id"
+				class="form-control" placeholder="{{ _('Email Address') }}" required autofocus>
+		</div>
+		<div class="form-group">
+			<input name="first_name"
+				class="form-control" placeholder="{{ _('First Name') }}" required>
+		</div>
+		<div class="form-group">
+			<input name="last_name"
+				class="form-control" placeholder="{{ _('Last Name') }}">
+		</div>
+		<button class="btn btn-primary mt-2 btn-sm btn-complete-signup w-100" type="submit">{{ _("Complete") }}</button>
+	</form>
+</div>
+{% endblock %}

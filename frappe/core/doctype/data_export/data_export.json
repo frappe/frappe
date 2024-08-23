@@ -1,0 +1,84 @@
+{
+ "actions": [],
+ "creation": "2018-03-07 10:09:49.794764",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "reference_doctype",
+  "export_without_main_header",
+  "column_break_2",
+  "file_type",
+  "section_break",
+  "filter_list",
+  "fields_multicheck"
+ ],
+ "fields": [
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Select Doctype",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "CSV",
+   "fieldname": "file_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "File Type",
+   "options": "Excel\nCSV",
+   "reqd": 1
+  },
+  {
+   "depends_on": "reference_doctype",
+   "fieldname": "section_break",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "filter_list",
+   "fieldtype": "HTML",
+   "label": "Filter List"
+  },
+  {
+   "fieldname": "fields_multicheck",
+   "fieldtype": "HTML",
+   "label": "Fields Multicheck"
+  },
+  {
+   "default": "0",
+   "description": "Export the data without any header notes and column descriptions",
+   "fieldname": "export_without_main_header",
+   "fieldtype": "Check",
+   "label": "Export without main header"
+  }
+ ],
+ "hide_toolbar": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-03-23 16:02:16.856404",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Data Export",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,0 +1,14 @@
+{
+ "creation": "2020-10-22 00:00:08.161999",
+ "css": ".print-format {\n    font-size: 13px;\n    background: white;\n}\n\n.print-heading {\n    border-bottom: 1px solid #f4f5f6;\n    padding-bottom: 5px;\n    margin-bottom: 10px;\n}\n\n.print-heading h2 {\n    font-size: 24px;\n}\n\n.print-heading h2 div {\n    font-weight: 600;\n}\n\n.print-heading small {\n    font-size: 13px !important;\n    font-weight: normal;\n    line-height: 2.5;\n    color: #4c5a67;\n}\n\n.print-format .letter-head {\n    margin-bottom: 30px;\n}\n\n.print-format label {\n    font-weight: normal;\n    font-size: 13px;\n    color: #4C5A67;\n    margin-bottom: 0;\n}\n\n.print-format .data-field {\n    margin-top: 0;\n    margin-bottom: 0;\n}\n\n.print-format .value {\n    color: #192734;\n    line-height: 1.8;\n}\n\n.print-format .section-break:not(:last-child) {\n    margin-bottom: 0;\n}\n\n.print-format .row:not(.section-break) {\n    line-height: 1.6;\n    margin-top: 15px !important;\n}\n\n.print-format .important .value {\n    font-size: 13px;\n    font-weight: 600;\n}\n\n.print-format th {\n    color: #74808b;\n    font-weight: normal;\n    border-bottom-width: 1px !important;\n}\n\n.print-format .table-bordered td, .print-format .table-bordered th {\n    border: 1px solid #f4f5f6;\n}\n\n.print-format .table-bordered {\n    border: 1px solid #f4f5f6;\n}\n\n.print-format td, .print-format th {\n    padding: 10px !important;\n}\n\n.print-format .primary.compact-item {\n    font-weight: normal;\n}\n\n.print-format table td .value {\n    font-size: 12px;\n    line-height: 1.8;\n}\n",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Print Style",
+ "idx": 0,
+ "modified": "2020-12-14 17:56:37.421390",
+ "modified_by": "Administrator",
+ "name": "Redesign",
+ "owner": "Administrator",
+ "print_style_name": "Redesign",
+ "standard": 1
+}

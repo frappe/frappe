@@ -1,0 +1,43 @@
+<div class="group-by-box">
+	<div class="visible-xs flex justify-flex-end">
+		<span class="remove-group-by">
+			{{ __("Remove") }}
+		</span>
+	</div>
+	<div class="list_groupby row">
+		<div class="col-sm-8 form-group">
+			<select class="group-by form-control input-xs">
+				<option value="" disabled selected>{{ __("Select Group By...") }}</option>
+				{% for (var parent_doctype in group_by_conditions) { %}
+					{% for (var val of group_by_conditions[parent_doctype]) { %}
+						<option
+							data-doctype="{{parent_doctype}}"
+							value="{{val.fieldname}}"
+						>
+							{{ __(val.label || val.fieldname, null, val.parent ) }}
+						</option>
+					{% } %}
+				{% } %}
+			</select>
+		</div>
+		<div class="col-sm-3 form-group">
+			<select class="aggregate-function form-control input-xs">
+				{% for condition in aggregate_function_conditions %}
+				<option value="{{condition.name}}">{{ __(condition.label) }}</option>
+				{% endfor %}
+			</select>
+		</div>
+		<div class="col-sm-4 col-xs-12" style="display: none">
+			<select class="aggregate-on form-control input-xs">
+				<option value="" disabled selected>{{ __("Select Field...") }}</option>
+			</select>
+		</div>
+		<div class="groupby-actions pull-left col-sm-1 hidden-xs">
+			<span class="remove-group-by">
+				<svg class="icon icon-sm">
+					<use href="#icon-close"></use>
+				</svg>
+			</span>
+		</div>
+	</div>
+</div>

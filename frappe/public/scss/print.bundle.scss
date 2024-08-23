@@ -1,0 +1,53 @@
+@import "./desk/variables";
+@import "frappe/public/css/bootstrap.css";
+@import "./common/quill";
+
+@import "~bootstrap/scss/utilities/spacing";
+@import "./desk/css_variables";
+@import "./element/checkbox";
+
+// !! PDF Barcode hack !!
+// Workaround for rendering barcodes prior to https://github.com/frappe/frappe/pull/15307
+@media print {
+	svg[data-barcode-value] > rect {
+		fill: white !important;
+	}
+	svg[data-barcode-value] > g {
+		fill: black !important;
+	}
+	.print-hide {
+		display: none !important;
+	}
+	.overflow-wrap-anywhere {
+		* {
+			word-break: break-all;
+		}
+	}
+}
+
+.action-banner {
+	display: flex;
+	justify-content: flex-end;
+	padding-right: 20px;
+	font-size: var(--text-md);
+}
+
+.invalid-state {
+	display: grid;
+	place-content: center;
+	height: 100vh;
+	img {
+		margin: auto;
+	}
+}
+
+.overflow-wrap-anywhere {
+	* {
+		overflow-wrap: anywhere;
+	}
+}
+
+/* prevent newline and right alignment of number fields in printed report filters */
+.filter-row div {
+	display: inline-block;
+}

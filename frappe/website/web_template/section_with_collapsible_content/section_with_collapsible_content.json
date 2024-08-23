@@ -1,0 +1,54 @@
+{
+ "creation": "2020-08-07 16:27:38.265089",
+ "docstatus": 0,
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "subtitle",
+   "fieldtype": "Data",
+   "label": "Subtitle",
+   "reqd": 0
+  },
+  {
+   "default": "Left",
+   "fieldname": "align",
+   "fieldtype": "Select",
+   "label": "Align",
+   "options": "Left\nCenter",
+   "reqd": 0
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table Break",
+   "label": "Items",
+   "reqd": 0
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Markdown Editor",
+   "label": "Content",
+   "reqd": 0
+  }
+ ],
+ "idx": 0,
+ "modified": "2020-10-26 17:40:20.365936",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Section with Collapsible Content",
+ "owner": "Administrator",
+ "standard": 1,
+ "template": "",
+ "type": "Section"
+}

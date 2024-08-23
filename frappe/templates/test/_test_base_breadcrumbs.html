@@ -1,0 +1,20 @@
+<!-- base template for testing -->
+<html>
+<head>
+	{%- block style %}
+		{% if colocated_css -%}
+			<style>{{ colocated_css }}</style>
+		{%- endif %}
+	{%- endblock -%}
+</head>
+<body>
+	{% include "templates/includes/breadcrumbs.html" %}
+	<h1>This is for testing</h1>
+	{% block content %}{% endblock %}
+	{%- block script %}
+		{% if colocated_js -%}
+			<script>{{ colocated_js }}</script>
+		{%- endif %}
+	{%- endblock %}
+</body>
+</html>

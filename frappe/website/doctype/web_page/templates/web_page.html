@@ -1,0 +1,62 @@
+{% extends "templates/web.html" %}
+
+{%- block header -%} {{ header or "" }} {%- endblock -%}
+
+{% block meta_block %}
+	{% include "templates/includes/meta_block.html" %}
+{% endblock %}
+
+{% block hero %}{{ hero or "" }}{% endblock %}
+
+{% block breadcrumbs %}
+    {% if not no_breadcrumbs %}
+    {% include "templates/includes/breadcrumbs.html" %}
+    {% endif %}
+{% endblock %}
+
+{% block page_content %}
+{%- if content_type == 'Page Builder' -%}
+	{{ page_builder_html }}
+{%- else -%}
+<div class="webpage-content">
+	{% include "templates/includes/slideshow.html" %}
+	<article class="web-page-content" id="{{ name }}" {% if text_align -%}style="text-align: {{ text_align }}"{%- endif %}>
+	{{ main_section or "" }}
+	</article>
+	{% if enable_comments -%}
+	<hr class="my-5">
+	<h5>Discuss</h5>
+	{% include 'templates/includes/comments/comments.html' %}
+	{%- endif %}
+</div>
+{%- endif -%}
+{% endblock %}
+
+{% block style %}
+{%- if style -%}
+<style>{{ style }}</style>
+{%- endif -%}
+
+{%- for web_template, styles in (page_builder_styles or {}).items() -%}
+{%- if styles -%}
+{%- for style in styles -%}
+<style data-web-template="{{ web_template }}">{{ style }}</style>
+{%- endfor -%}
+{%- endif -%}
+{%- endfor -%}
+
+{% endblock %}
+
+{% block script %}
+	{%- if script -%}
+	<script>{{ script }}</script>
+	{%- endif -%}
+
+	{%- for web_template, scripts in (page_builder_scripts or {}).items() -%}
+	{%- if scripts -%}
+	{%- for script in scripts -%}
+	<script data-web-template="{{ web_template }}">{{ script }}</script>
+	{%- endfor -%}
+	{%- endif -%}
+	{%- endfor -%}
+{% endblock %}

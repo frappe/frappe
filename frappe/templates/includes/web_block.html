@@ -1,0 +1,32 @@
+{%- set classes = resolve_class([
+	{
+		'section-padding-top': web_block.add_top_padding,
+		'section-padding-bottom': web_block.add_bottom_padding,
+		'bg-light': web_block.add_shade,
+		'border-top': web_block.add_border_at_top,
+		'border-bottom': web_block.add_border_at_bottom,
+	},
+	web_block.css_class
+]) -%}
+
+{%- if web_template_type == 'Section' -%}
+{%- if not web_block.hide_block -%}
+<section class="section {{ classes }}"
+	{% if web_block.section_id %} id="{{ web_block.section_id }}" {% endif %}
+	data-section-idx="{{ web_block.idx | e }}"
+	data-section-template="{{ web_block.web_template | e }}"
+	{% if web_block.add_background_image -%}
+		style="background: url({{ web_block.background_image}}) no-repeat center center; background-size: cover;"
+	{%- endif %}>
+	{%- if web_block.add_container -%}
+	<div class="container">
+	{%- endif -%}
+		{{ web_template_html }}
+	{%- if web_block.add_container -%}
+	</div>
+	{%- endif -%}
+</section>
+{%- endif -%}
+{%- else -%}
+{{ web_template_html }}
+{%- endif -%}

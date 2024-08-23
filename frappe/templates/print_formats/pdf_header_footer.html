@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang={{ lang }} dir={{ layout_direction }}>
+	<head>
+		<meta charset="utf-8">
+
+		{% if html_id=="footer-html" %}
+
+			{# link tag does not work in footer in wkhtmltopdf,
+				so this is a workaround to include bootstrap and still have auto footer height working #}
+			<style>
+			{{ css }}
+			</style>
+
+		{% else %}
+
+			{% for tag in head -%}
+				{{ tag | string }}
+			{%- endfor %}
+
+		{% endif %}
+
+		<style>
+			body {
+				margin: 0 !important;
+				border: 0 !important;
+				padding: 15mm 0 5mm !important;
+			}
+
+			.letter-head,
+			.letter-head-footer {
+				margin-top: -15mm !important;
+			}
+
+			/* Dont show explicit links for <a> tags */
+			@media print {
+				a[href]:after {
+					content: none;
+				}
+			}
+		</style>
+
+		<!-- from: http://wkhtmltopdf.org/usage/wkhtmltopdf.txt -->
+		<script>
+			function subst() {
+				var vars = {};
+				var x = window.location.search.substring(1).split('&');
+				for (var i in x) {
+					var z = x[i].split('=',2);
+					vars[z[0]] = unescape(z[1]);
+				}
+				var x = ['frompage','topage','page','webpage','section','subsection','subsubsection'];
+				for (var i in x) {
+					var y = document.getElementsByClassName(x[i]);
+					for (var j=0; j<y.length; ++j) {
+						y[j].textContent = vars[x[i]];
+					}
+				}
+			}
+		</script>
+
+		{% for tag in styles -%}
+			{{ tag | string }}
+		{%- endfor %}
+
+	</head>
+	<body onload="subst()">
+		<div class="print-format">
+			<div class="wrapper">
+				{% for tag in content -%}
+					{{ tag | string }}
+				{%- endfor %}
+			</div>
+		</div>
+	</body>
+</html>

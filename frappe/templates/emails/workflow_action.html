@@ -1,0 +1,11 @@
+<p>{{ message }}</p>
+<div>
+	<p style="margin: 10px 0">
+		{% for action in actions %}
+		<a class="btn {% if action.is_primary %} btn-primary {% endif %}" style="margin-right: 10px" href="{{ action.action_link }}">{{_(action.action_name)}}</a>
+		{% endfor %}
+	</p>
+	<div class="text-muted text-small" style="padding-top: 20px;">
+		{{ _("The contents of this email are strictly confidential. Please do not forward this email to anyone.") }}
+	</div>
+</div>

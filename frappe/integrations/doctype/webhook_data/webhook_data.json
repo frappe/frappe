@@ -1,0 +1,43 @@
+{
+ "actions": [],
+ "creation": "2017-09-14 12:08:50.302810",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "fieldname",
+  "cb_doc_data",
+  "key"
+ ],
+ "fields": [
+  {
+   "fieldname": "fieldname",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Fieldname",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cb_doc_data",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "key",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Key",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2024-03-23 16:04:03.331064",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Webhook Data",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

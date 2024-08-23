@@ -1,0 +1,34 @@
+<div class="row" style="max-height: 30px;">
+	<div class="col-xs-12">
+		<div class="ellipsis">
+			{{%= list.get_avatar_and_id(doc) %}}
+
+			<!-- sample text -->
+			<span style="margin-right: 8px;" class="filterable"
+					data-filter="text,=,{{%= doc.text %}}">
+					{{%= doc.text %}}</span>
+
+			<!-- sample icon -->
+			{{% if(doc.check) {{ %}}
+			<span style="margin-right: 8px;"
+				title="{{%= __("Title") %}}" class="filterable"
+				data-filter="check,=,Yes">
+				<i class="fa fa-icon text-muted"></i>
+			</span>
+			{{% }} %}}
+
+			<!-- sample label -->
+			<span class="label
+				label-{{%= frappe.utils.guess_style(doc.status) %}} filterable"
+				title="{{%= __("Title") %}}"
+				data-filter="status,=,{{%= doc.status %}}">
+				{{%= doc.status %}}
+			</span>
+		</div>
+	</div>
+	<!-- sample graph -->
+	<div class="col-xs-1 text-right">
+		{{% var completed = doc.completed, title = __("Completed") %}}
+		{{% include "templates/form_grid/includes/progress.html" %}}
+	</div>
+</div>

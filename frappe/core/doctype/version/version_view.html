@@ -1,0 +1,95 @@
+<div class="version-info">
+{% if data.comment %}
+<h4>{{ __("Comment") + " (" + data.comment_type }})</h4>
+<p>{{ data.comment }}</p>
+{% endif %}
+
+{% if data.changed && data.changed.length %}
+<h4>{{ __("Values Changed") }}</h4>
+<table class="table table-bordered">
+	<thead>
+		<tr>
+			<td style="width: 33%">{{ __("Property") }}</td>
+			<td style="width: 33%">{{ __("Original Value") }}</td>
+			<td style="width: 33%">{{ __("New Value") }}</td>
+		</tr>
+	</thead>
+	<tbody>
+		{% for item in data.changed %}
+		<tr>
+			<td>{{ frappe.meta.get_label(doc.ref_doctype, item[0]) }}</td>
+			<td class="diff-remove">{{ frappe.utils.escape_html(item[1]) }}</td>
+			<td class="diff-add">{{ frappe.utils.escape_html(item[2]) }}</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+{% endif %}
+
+{% var _keys = ["added", "removed"]; %}
+{% for key in _keys %}
+	{% if data[key] && data[key].length %}
+	{% var title = key==="added" ? __("Rows Added") : __("Rows Removed"); %}
+	<h3>{{ title }}</h3>
+	<table class="table table-bordered">
+		<thead>
+			<tr>
+				<td style="width: 33%">{{ __("Property") }}</td>
+				<td style="width: 67%">{{ title }}</td>
+			</tr>
+		</thead>
+		<tbody>
+			{% var values = data[key]; %}
+			{% for item in values %}
+			<tr>
+				<td>{{ frappe.meta.get_label(doc.ref_doctype, item[0]) }}</td>
+				<td class="{{ key==="added" ? "diff-add" : "diff-remove" }}">
+					{% var item_keys = Object.keys(item[1]).sort(); %}
+					<table class="table table-bordered">
+						<tbody>
+							{% for row_key in item_keys %}
+							<tr>
+								<td class="small">{{ row_key }}</td>
+								<td class="small">{{ frappe.utils.escape_html(item[1][row_key]) }}</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+	{% endif %}
+{% endfor %}
+
+{% if data.row_changed && data.row_changed.length %}
+<h4>{{ __("Row Values Changed") }}</h4>
+<table class="table table-bordered">
+	<thead>
+		<tr>
+			<td style="width: 25%">{{ __("Table Field") }}</td>
+			<td style="width: 9%">{{ __("Row #") }}</td>
+			<td style="width: 22%">{{ __("Property") }}</td>
+			<td style="width: 22%">{{ __("Original Value") }}</td>
+			<td style="width: 22%">{{ __("New Value") }}</td>
+		</tr>
+	</thead>
+	<tbody>
+		{% var values = data.row_changed; %}
+		{% for table_info in values %}
+			{% var _changed = table_info[3]; %}
+			{% for item in _changed %}
+			<tr>
+				<td>{{ frappe.meta.get_label(doc.ref_doctype, table_info[0]) }}</td>
+				<td>{{ table_info[1] }}</td>
+				<td>{{ item[0] }}</td>
+				<td class="diff-remove">{{ frappe.utils.escape_html(item[1]) }}</td>
+				<td class="diff-add">{{ frappe.utils.escape_html(item[2]) }}</td>
+			</tr>
+			{% endfor %}
+		{% endfor %}
+	</tbody>
+{% endif %}
+</div>

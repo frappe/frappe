@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="">
+		<meta name="author" content="">
+		<title>{{ title }}</title>
+		<link href="{{ base_url }}/assets/frappe/css/bootstrap.css" rel="stylesheet">
+		<link type="text/css" rel="stylesheet"
+			href="{{ base_url }}/assets/frappe/css/fonts/fontawesome/font-awesome.min.css">
+		<link rel="stylesheet" type="text/css" href="{{ base_url }}/assets/frappe/css/tree.css">
+		<link rel="stylesheet" type="text/css" href="{{ base_url }}{{ print_format_css_path }}">
+		<style>
+			{{ print_css }}
+		</style>
+		<style>
+			.tree.opened::before,
+			.tree-node.opened::before,
+			.tree:last-child::after,
+			.tree-node:last-child::after {
+				z-index: 1;
+				border-left: 1px solid #d1d8dd;
+				background: none;
+			}
+			.tree a,
+			.tree-link {
+				text-decoration: none;
+				cursor: default;
+			}
+			.tree.opened > .tree-children > .tree-node > .tree-link::before,
+			.tree-node.opened > .tree-children > .tree-node > .tree-link::before {
+				border-top: 1px solid #d1d8dd;
+				z-index: 1;
+				background: none;
+			}
+			i.fa.fa-fw.fa-folder {
+				z-index: 2;
+				position: relative;
+			}
+			.tree:last-child::after, .tree-node:last-child::after {
+				display: none;
+			}
+			.tree-node-toolbar {
+				display: none;
+			}
+			i.octicon.octicon-primitive-dot.text-extra-muted {
+				width: 7px;
+				height: 7px;
+				border-radius: 50%;
+				background: #d1d8dd;
+				display: inline-block;
+				position: relative;
+				z-index: 2;
+			}
+
+			@media (max-width: 767px) {
+				ul.tree-children {
+					padding-left: 20px;
+				}
+			}
+		</style>
+  	</head>
+	<body>
+		<svg id="frappe-symbols" aria-hidden="true" style="position: absolute; width: 0; height: 0; overflow: hidden;" class="d-block" xmlns="http://www.w3.org/2000/svg">
+			<symbol viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" id="icon-primitive-dot">
+				<path d="M9.5 6a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z"></path>
+			</symbol>
+
+			<symbol viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" id="icon-folder-open">
+				<path d="M8.024 6.5H3a.5.5 0 0 0-.5.5v8a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V9.5A.5.5 0 0 0 17 9h-6.783a.5.5 0 0 1-.417-.224L8.441 6.724a.5.5 0 0 0-.417-.224z" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"></path>
+				<path d="M3.88 4.5v-1a.5.5 0 0 1 .5-.5h11.24a.5.5 0 0 1 .5.5V7" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+			</symbol>
+
+			<symbol viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" id="icon-folder-normal">
+				<path d="M2.5 4v10a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V6.5a1 1 0 0 0-1-1h-6.283a.5.5 0 0 1-.417-.224L8.441 3.224A.5.5 0 0 0 8.024 3H3.5a1 1 0 0 0-1 1z" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"></path>
+			</symbol>
+		</svg>
+		<div class="print-format-gutter">
+			{% if print_settings.repeat_header_footer %}
+				<div id="footer-html" class="visible-pdf">
+					{% if print_settings.letter_head && print_settings.letter_head.footer %}
+						<div class="letter-head-footer">
+							{{ print_settings.letter_head.footer }}
+						</div>
+					{% endif %}
+					<p class="text-center small page-number visible-pdf">
+						{{ __("Page {0} of {1}", [`<span class="page"></span>`, `<span class="topage"></span>`]) }}
+					</p>
+				</div>
+			{% endif %}
+
+			<div class="print-format {% if landscape %} landscape {% endif %}">
+				{% if print_settings.letter_head %}
+				<div {% if print_settings.repeat_header_footer %} id="header-html" class="hidden-pdf" {% endif %}>
+					<div class="letter-head">{{ print_settings.letter_head.header }}</div>
+				</div>
+					{% endif %}
+					<div class="tree opened">
+						{{ tree }}
+					</div>
+			</div>
+		</div>
+	</body>
+</html>

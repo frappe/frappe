@@ -1,0 +1,229 @@
+.fc-theme-standard {
+	padding: 20px;
+	color: var(--text-light) !important;
+}
+
+.fc-theme-standard a {
+	color: var(--text-light);
+}
+
+.fc-toolbar {
+	padding-bottom: 15px;
+	margin-bottom: 0px !important;
+}
+
+.fc-toolbar-chunk div {
+	display: flex;
+}
+
+.fc-view-container {
+	margin-left: -1px;
+	margin-right: -1px;
+}
+
+.fc-head-container {
+	border: none !important;
+}
+
+th.fc-col-header-cell {
+	color: var(--gray-500);
+	font-weight: 600;
+}
+
+.fc-theme-standard td,
+.fc-theme-standard hr,
+.fc-theme-standard thead,
+.fc-theme-standard tbody,
+.fc-theme-standard .fc-row,
+.fc-theme-standard .fc-popover {
+	border-color: var(--gray-300) !important;
+}
+
+.fc-theme-standard td.fc-day-sun {
+	background: var(--highlight-color);
+}
+
+.fc-theme-standard .fc-day-today {
+	background-color: var(--fg-color) !important;
+
+	.fc-daygrid-day-number {
+		background-color: var(--gray-700);
+		border-radius: 50%;
+		color: $white;
+		height: 22px;
+		width: 22px;
+		line-height: 22px;
+		display: flex;
+		justify-content: center;
+		text-align: center;
+		padding: 0;
+	}
+}
+
+.fc-event {
+	background-color: rgb(237, 246, 253);
+	border: none !important;
+}
+
+.fc-event-main .fc-event-time {
+	display: none;
+}
+
+.fc-time-grid-event {
+	border: none !important;
+}
+
+.fc-day-top {
+	padding: 5px 10px 0 0 !important;
+}
+
+.fc-daygrid-day-top {
+	margin: 5px 0 0 10px;
+	flex-direction: row !important;
+	.fc-daygrid-day-number {
+		float: left !important;
+	}
+}
+
+th.fc-col-header-cell {
+	padding: 10px 12px 10px 0 !important;
+	text-transform: uppercase;
+	font-size: 12px;
+}
+
+.fc-daygrid-dot-event {
+	padding: 3px;
+	display: flex;
+	flex-direction: column-reverse;
+	align-items: normal;
+	color: rgb(0, 112, 204) !important;
+
+	.fc-event-time {
+		font-weight: normal;
+		margin-top: 2px;
+	}
+
+	.fc-event-title {
+		font-weight: 600;
+	}
+
+	.fc-daygrid-event-dot {
+		display: none;
+	}
+}
+
+.fc-toolbar-title {
+	font-size: $font-size-lg !important;
+	font-weight: 500;
+	line-height: 28px;
+	height: 28px;
+}
+
+.fc button {
+	height: 28px !important;
+	font-size: var(--text-md) !important;
+	outline: none !important;
+	text-transform: capitalize;
+}
+
+.fc-right button {
+	min-width: 64px;
+}
+
+.fc-left button {
+	width: 80px;
+}
+
+.fc-button-active {
+	box-shadow: none !important;
+	background: var(--gray-500) !important;
+	color: var(--fg-color) !important;
+	z-index: 0 !important;
+}
+
+//override default and fc-button styles
+.fc-dayGridMonth-button,
+.fc-dayGridWeek-button,
+.fc-dayGridDay-button {
+	border: none !important;
+	border-radius: 0;
+	background-color: var(--control-bg);
+	color: var(--text-color);
+}
+
+.fc-dayGridMonth-button {
+	border-top-left-radius: var(--border-radius) !important;
+	border-bottom-left-radius: var(--border-radius) !important;
+}
+.fc-dayGridDay-button {
+	border-top-right-radius: var(--border-radius) !important;
+	border-bottom-right-radius: var(--border-radius) !important;
+}
+
+.fc-prev-button {
+	margin-right: 10px !important;
+}
+.fc-next-button {
+	margin-left: 10px;
+}
+.fc-today-button {
+	margin-right: 10px;
+	border-radius: var(--border-radius) !important;
+}
+
+.fc-daygrid-event {
+	border: none !important;
+	margin: 5px 4px 0 !important;
+	padding: 1px 5px !important;
+}
+
+.fc-time-grid .fc-slats .fc-minor td {
+	border-top-style: none !important;
+}
+
+.fc-highlight {
+	background: var(--blue-100) !important;
+}
+
+.fc-left {
+	.fc-prev-button,
+	.fc-next-button {
+		width: 28px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background: var(--gray-100);
+		box-shadow: none;
+		border: none;
+
+		use {
+			stroke-width: 0.9;
+		}
+	}
+}
+
+.fc-time-grid .fc-slats td {
+	height: 2.5em !important;
+}
+
+.fc-day-grid {
+	border-bottom: 1px solid var(--gray-300);
+}
+
+.fc-divider {
+	display: none;
+}
+
+.fc .fc-axis {
+	color: var(--gray-600) !important;
+	text-align: center;
+	width: 60px !important;
+}
+
+.fc-now-indicator {
+	border-color: var(--primary) !important;
+}
+
+.fc-now-indicator-arrow {
+	display: none !important;
+}

@@ -1,0 +1,365 @@
+{
+ "actions": [],
+ "allow_guest_to_view": 1,
+ "allow_import": 1,
+ "creation": "2013-03-28 10:35:30",
+ "description": "Page to show on the website\n",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_title",
+  "title",
+  "route",
+  "dynamic_route",
+  "cb1",
+  "published",
+  "module",
+  "sb1",
+  "content_type",
+  "slideshow",
+  "dynamic_template",
+  "main_section",
+  "main_section_md",
+  "main_section_html",
+  "page_blocks",
+  "scripting_tab",
+  "context_section",
+  "context_script",
+  "custom_javascript",
+  "javascript",
+  "custom_css",
+  "insert_style",
+  "text_align",
+  "css",
+  "full_width",
+  "show_title",
+  "settings",
+  "publishing_dates_section",
+  "start_date",
+  "column_break_30",
+  "end_date",
+  "metatags_section",
+  "meta_title",
+  "meta_description",
+  "meta_image",
+  "set_meta_tags",
+  "section_break_17",
+  "show_sidebar",
+  "idx",
+  "website_sidebar",
+  "column_break_20",
+  "enable_comments",
+  "sb2",
+  "header",
+  "breadcrumbs"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_title",
+   "fieldtype": "Tab Break",
+   "label": "Content"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "label": "Title",
+   "no_copy": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "route",
+   "fieldtype": "Data",
+   "ignore_xss_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Route",
+   "unique": 1
+  },
+  {
+   "depends_on": "eval:doc.content_type=='Slideshow'",
+   "fieldname": "slideshow",
+   "fieldtype": "Link",
+   "label": "Slideshow",
+   "options": "Website Slideshow"
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break",
+   "width": "50%"
+  },
+  {
+   "default": "1",
+   "fieldname": "published",
+   "fieldtype": "Check",
+   "in_standard_filter": 1,
+   "label": "Published"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_title",
+   "fieldtype": "Check",
+   "label": "Show Title"
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Datetime",
+   "label": "Start Date"
+  },
+  {
+   "fieldname": "end_date",
+   "fieldtype": "Datetime",
+   "label": "End Date"
+  },
+  {
+   "fieldname": "sb1",
+   "fieldtype": "Section Break",
+   "label": "Content"
+  },
+  {
+   "default": "Page Builder",
+   "fieldname": "content_type",
+   "fieldtype": "Select",
+   "label": "Content Type",
+   "options": "Rich Text\nMarkdown\nHTML\nPage Builder\nSlideshow"
+  },
+  {
+   "depends_on": "eval:doc.content_type==='Rich Text'",
+   "fieldname": "main_section",
+   "fieldtype": "Text Editor",
+   "ignore_xss_filter": 1,
+   "in_global_search": 1,
+   "label": "Main Section"
+  },
+  {
+   "depends_on": "eval:doc.content_type==='Markdown'",
+   "fieldname": "main_section_md",
+   "fieldtype": "Markdown Editor",
+   "ignore_xss_filter": 1,
+   "label": "Main Section (Markdown)"
+  },
+  {
+   "depends_on": "eval:doc.content_type==='HTML'",
+   "fieldname": "main_section_html",
+   "fieldtype": "HTML Editor",
+   "ignore_xss_filter": 1,
+   "label": "Main Section (HTML)"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "javascript",
+   "fieldname": "custom_javascript",
+   "fieldtype": "Section Break",
+   "label": "Script"
+  },
+  {
+   "fieldname": "javascript",
+   "fieldtype": "Code",
+   "label": "Javascript",
+   "options": "Javascript"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "insert_style",
+   "fieldname": "custom_css",
+   "fieldtype": "Tab Break",
+   "label": "Style"
+  },
+  {
+   "default": "0",
+   "fieldname": "insert_style",
+   "fieldtype": "Check",
+   "label": "Insert Style"
+  },
+  {
+   "fieldname": "text_align",
+   "fieldtype": "Select",
+   "label": "Text Align",
+   "options": "Left\nCenter\nRight"
+  },
+  {
+   "depends_on": "insert_style",
+   "fieldname": "css",
+   "fieldtype": "Code",
+   "label": "CSS",
+   "options": "CSS"
+  },
+  {
+   "fieldname": "settings",
+   "fieldtype": "Tab Break",
+   "label": "Settings"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_17",
+   "fieldtype": "Section Break",
+   "label": "Sidebar and Comments"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_sidebar",
+   "fieldtype": "Check",
+   "label": "Show Sidebar"
+  },
+  {
+   "fieldname": "website_sidebar",
+   "fieldtype": "Link",
+   "label": "Website Sidebar",
+   "options": "Website Sidebar"
+  },
+  {
+   "fieldname": "column_break_20",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_comments",
+   "fieldtype": "Check",
+   "label": "Enable Comments"
+  },
+  {
+   "description": "0 is highest",
+   "fieldname": "idx",
+   "fieldtype": "Int",
+   "label": "Priority"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:!doc.__islocal",
+   "fieldname": "sb2",
+   "fieldtype": "Section Break",
+   "label": "Header and Breadcrumbs"
+  },
+  {
+   "description": "HTML for header section. Optional",
+   "fieldname": "header",
+   "fieldtype": "HTML Editor",
+   "label": "Header"
+  },
+  {
+   "description": "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]",
+   "fieldname": "breadcrumbs",
+   "fieldtype": "Code",
+   "label": "Breadcrumbs",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "set_meta_tags",
+   "fieldtype": "Button",
+   "label": "Add Custom Tags"
+  },
+  {
+   "default": "0",
+   "fieldname": "dynamic_template",
+   "fieldtype": "Check",
+   "label": "Dynamic Template"
+  },
+  {
+   "depends_on": "eval:doc.content_type=='Page Builder'",
+   "fieldname": "page_blocks",
+   "fieldtype": "Table",
+   "label": "Page Building Blocks",
+   "options": "Web Page Block"
+  },
+  {
+   "default": "1",
+   "fieldname": "full_width",
+   "fieldtype": "Check",
+   "label": "Full Width"
+  },
+  {
+   "fieldname": "metatags_section",
+   "fieldtype": "Section Break",
+   "label": "Meta Tags"
+  },
+  {
+   "fieldname": "meta_title",
+   "fieldtype": "Data",
+   "label": "Title"
+  },
+  {
+   "fieldname": "meta_description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "meta_image",
+   "fieldtype": "Attach Image",
+   "label": "Image"
+  },
+  {
+   "default": "0",
+   "description": "Map route parameters into form variables. Example <code>/project/&lt;name&gt;</code>",
+   "fieldname": "dynamic_route",
+   "fieldtype": "Check",
+   "label": "Dynamic Route"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "context_script",
+   "fieldname": "context_section",
+   "fieldtype": "Section Break",
+   "label": "Context"
+  },
+  {
+   "description": "<p>Set context before rendering a template. Example:</p><p>\n</p><div><pre><code>\ncontext.project = frappe.get_doc(\"Project\", frappe.form_dict.name)\n</code></pre></div>",
+   "fieldname": "context_script",
+   "fieldtype": "Code",
+   "label": "Context Script",
+   "options": "Python"
+  },
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module (for export)",
+   "options": "Module Def"
+  },
+  {
+   "fieldname": "scripting_tab",
+   "fieldtype": "Tab Break",
+   "label": "Scripting",
+   "show_dashboard": 1
+  },
+  {
+   "fieldname": "publishing_dates_section",
+   "fieldtype": "Section Break",
+   "label": "Publishing Dates"
+  },
+  {
+   "fieldname": "column_break_30",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "has_web_view": 1,
+ "icon": "fa fa-file-alt",
+ "idx": 1,
+ "index_web_pages_for_search": 1,
+ "is_published_field": "published",
+ "links": [],
+ "make_attachments_public": 1,
+ "modified": "2024-04-12 10:30:49.022735",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Web Page",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "import": 1,
+   "read": 1,
+   "role": "Website Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "search_fields": "title",
+ "show_name_in_global_search": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}

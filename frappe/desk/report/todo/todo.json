@@ -1,0 +1,23 @@
+{
+ "add_total_row": 0, 
+ "apply_user_permissions": 1, 
+ "creation": "2013-02-25 14:26:30", 
+ "disabled": 0, 
+ "docstatus": 0, 
+ "doctype": "Report", 
+ "idx": 3, 
+ "is_standard": "Yes", 
+ "modified": "2017-06-21 18:18:50.748793", 
+ "modified_by": "Administrator", 
+ "module": "Desk", 
+ "name": "ToDo", 
+ "owner": "Administrator", 
+ "ref_doctype": "ToDo", 
+ "report_name": "ToDo", 
+ "report_type": "Script Report", 
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ]
+}

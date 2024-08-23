@@ -1,0 +1,183 @@
+Return-path: <test_sender@example.com>
+Envelope-to: test_receiver@example.com
+Delivery-date: Wed, 27 Jan 2016 16:24:20 +0800
+Received: from 23-59-23-10.perm.iinet.net.au ([23.59.23.10]:62191 helo=DESKTOP7C66I2M)
+	by webcloud85.au.syrahost.com with esmtp (Exim 4.86)
+	(envelope-from <test_sender@example.com>)
+	id 1aOLOj-002xFL-CP
+	for test_receiver@example.com; Wed, 27 Jan 2016 16:24:20 +0800
+From: <test_sender@example.com>
+To: <test_receiver@example.com>
+References: <COMM-02154@site1.local>
+In-Reply-To: <COMM-02154@site1.local>
+Subject: RE: Sales Invoice: SINV-12276
+Date: Wed, 27 Jan 2016 16:24:09 +0800
+Message-ID: <000001d158dc$1b8363a0$528a2ae0$@example.com>
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0001_01D1591F.29A7DC20"
+X-Mailer: Microsoft Outlook 14.0
+Thread-Index: AQJZfZxrgcB9KnMqoZ+S4Qq9hcoSeZ3+vGiQ
+Content-Language: en-au
+
+This is a multipart message in MIME format.
+
+------=_NextPart_000_0001_01D1591F.29A7DC20
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_001_0002_01D1591F.29A7DC20"
+
+
+------=_NextPart_001_0002_01D1591F.29A7DC20
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Test purely for testing with the debugger has email attached
+
+=20
+
+From: Notification [mailto:test_receiver@example.com]=20
+Sent: Wednesday, 27 January 2016 9:30 AM
+To: test_receiver@example.com
+Subject: Sales Invoice: SINV-12276
+
+=20
+
+test no 6 sent from bench to outlook to be replied to with messaging
+
+
+
+
+------=_NextPart_001_0002_01D1591F.29A7DC20
+Content-Type: text/html;
+	charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns:v=3D"urn:schemas-microsoft-com:vml" =
+xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
+xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" =
+xmlns=3D"http://www.w3.org/TR/REC-html40"><head><meta =
+http-equiv=3DContent-Type content=3D"text/html; charset=3Dutf-8"><meta =
+name=3DGenerator content=3D"Microsoft Word 14 (filtered =
+medium)"><title>hi there</title><style><!--
+/* Font Definitions */
+@font-face
+	{font-family:Helvetica;
+	panose-1:2 11 6 4 2 2 2 2 2 4;}
+@font-face
+	{font-family:"Cambria Math";
+	panose-1:0 0 0 0 0 0 0 0 0 0;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+@font-face
+	{font-family:Tahoma;
+	panose-1:2 11 6 4 3 5 4 4 2 4;}
+/* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0cm;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman","serif";}
+a:link, span.MsoHyperlink
+	{mso-style-priority:99;
+	color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{mso-style-priority:99;
+	color:purple;
+	text-decoration:underline;}
+p
+	{mso-style-priority:99;
+	mso-margin-top-alt:auto;
+	margin-right:0cm;
+	mso-margin-bottom-alt:auto;
+	margin-left:0cm;
+	font-size:12.0pt;
+	font-family:"Times New Roman","serif";}
+span.EmailStyle18
+	{mso-style-type:personal-reply;
+	font-family:"Calibri","sans-serif";
+	color:#1F497D;}
+.MsoChpDefault
+	{mso-style-type:export-only;
+	font-size:10.0pt;}
+@page WordSection1
+	{size:612.0pt 792.0pt;
+	margin:72.0pt 72.0pt 72.0pt 72.0pt;}
+div.WordSection1
+	{page:WordSection1;}
+--></style><!--[if gte mso 9]><xml>
+<o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
+</xml><![endif]--><!--[if gte mso 9]><xml>
+<o:shapelayout v:ext=3D"edit">
+<o:idmap v:ext=3D"edit" data=3D"1" />
+</o:shapelayout></xml><![endif]--></head><body lang=3DEN-AU link=3Dblue =
+vlink=3Dpurple><div class=3DWordSection1><p class=3DMsoNormal><span =
+style=3D'font-size:11.0pt;font-family:"Calibri","sans-serif";color:#1F497=
+D'>Test purely for testing with the debugger has email =
+attached<o:p></o:p></span></p><p class=3DMsoNormal><a =
+name=3D"_MailEndCompose"><span =
+style=3D'font-size:11.0pt;font-family:"Calibri","sans-serif";color:#1F497=
+D'><o:p>&nbsp;</o:p></span></a></p><div><div =
+style=3D'border:none;border-top:solid #B5C4DF 1.0pt;padding:3.0pt 0cm =
+0cm 0cm'><p class=3DMsoNormal><b><span lang=3DEN-US =
+style=3D'font-size:10.0pt;font-family:"Tahoma","sans-serif"'>From:</span>=
+</b><span lang=3DEN-US =
+style=3D'font-size:10.0pt;font-family:"Tahoma","sans-serif"'> =
+Notification [mailto:test_receiver@example.com] <br><b>Sent:</b> Wednesday, 27 =
+January 2016 9:30 AM<br><b>To:</b> =
+test_receiver@example.com<br><b>Subject:</b> Sales Invoice: =
+SINV-12276<o:p></o:p></span></p></div></div><p =
+class=3DMsoNormal><o:p>&nbsp;</o:p></p><div><p><span =
+style=3D'font-size:10.5pt;font-family:"Helvetica","sans-serif";color:#364=
+14C'>test no 3 sent from bench to outlook to be replied to with =
+messaging<o:p></o:p></span></p><p><span =
+style=3D'font-size:10.5pt;font-family:"Helvetica","sans-serif";color:#364=
+14C'>fizz buzz <o:p></o:p></span></p></div><div =
+style=3D'border:none;border-top:solid #D1D8DD 1.0pt;padding:0cm 0cm 0cm =
+0cm;margin-top:22.5pt;margin-bottom:11.25pt'><div =
+style=3D'margin-top:11.25pt;margin-bottom:11.25pt'><p class=3DMsoNormal =
+align=3Dcenter style=3D'text-align:center'><span =
+style=3D'font-size:8.5pt;font-family:"Helvetica","sans-serif";color:#8D99=
+A6'>This email was sent to <a =
+href=3D"mailto:test_receiver@example.com">test_receiver@example.=
+com</a> and copied to SuperUser <o:p></o:p></span></p><p =
+align=3Dcenter =
+style=3D'mso-margin-top-alt:11.25pt;margin-right:0cm;margin-bottom:11.25p=
+t;margin-left:0cm;text-align:center'><span =
+style=3D'font-size:8.5pt;font-family:"Helvetica","sans-serif";color:#8D99=
+A6'><span =
+style=3D'color:#8D99A6'>Leave this conversation =
+</span></a><o:p></o:p></span></p></div><div =
+style=3D'margin-top:11.25pt;margin-bottom:11.25pt'><p class=3DMsoNormal =
+align=3Dcenter style=3D'text-align:center'><span =
+style=3D'font-size:8.5pt;font-family:"Helvetica","sans-serif";color:#8D99=
+A6'>hi<o:p></o:p></span></p></div></div></div></body></html>
+------=_NextPart_001_0002_01D1591F.29A7DC20--
+
+------=_NextPart_000_0001_01D1591F.29A7DC20
+Content-Type: message/rfc822
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment
+
+Received: from 203-59-223-10.perm.iinet.net.au ([23.59.23.10]:49772 helo=DESKTOP7C66I2M)
+	by webcloud85.au.syrahost.com with esmtpsa (TLSv1.2:DHE-RSA-AES256-GCM-SHA384:256)
+	(Exim 4.86)
+	(envelope-from <test_sender@example.com>)
+	id 1aOEtO-003tI4-Kv
+	for test_receiver@example.com; Wed, 27 Jan 2016 09:27:30 +0800
+Return-Path: <test_sender@example.com>
+From: "Microsoft Outlook" <test_sender@example.com>
+To: <test_receiver@example.com>
+Subject: Microsoft Outlook Test Message
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+X-Mailer: Microsoft Outlook 14.0
+Thread-Index: AdFYoeN8x8wUI/+QSoCJkp33NKPVmw==
+
+This is an e-mail message sent automatically by Microsoft Outlook while =
+testing the settings for your account.

@@ -1,0 +1,72 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "creation": "2014-10-30 14:23:30.958074",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "category_name",
+  "category_description",
+  "published",
+  "help_articles",
+  "route"
+ ],
+ "fields": [
+  {
+   "fieldname": "category_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Category Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "category_description",
+   "fieldtype": "Text",
+   "in_list_view": 1,
+   "label": "Category Description"
+  },
+  {
+   "default": "0",
+   "fieldname": "published",
+   "fieldtype": "Check",
+   "label": "Published"
+  },
+  {
+   "fieldname": "help_articles",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Help Articles",
+   "read_only": 1
+  },
+  {
+   "fieldname": "route",
+   "fieldtype": "Data",
+   "label": "Route"
+  }
+ ],
+ "icon": "icon-list",
+ "links": [],
+ "modified": "2024-03-23 16:03:27.650255",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Help Category",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Website Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

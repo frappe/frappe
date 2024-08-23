@@ -1,0 +1,135 @@
+{% include "templates/print_format/print_format_font.css" %}
+
+{% macro render_margin_text(position, content) %}
+@{{ position.replace('_', '-') }} {
+	content: {{ content }}
+}
+{% endmacro %}
+
+@page {
+	size: {{ print_settings.pdf_page_size or 'A4' }} portrait;
+	margin-top: {{ print_format.margin_top | int }}mm;
+	margin-bottom: {{ print_format.margin_bottom | int }}mm;
+	margin-left: {{ print_format.margin_left | int }}mm;
+	margin-right: {{ print_format.margin_right | int }}mm;
+	padding-top: {{ (header_height or 0) + 8 }}px;
+	padding-bottom: {{ (footer_height or 0) + 8 }}px;
+
+	/* page number */
+	{% set page_number_position = print_format.page_number.lower().replace(' ', '_') %}
+	{% if page_number_position in ['top_left', 'top_center', 'top_right', 'bottom_left', 'bottom_center', 'bottom_right'] %}
+	{{ render_margin_text(page_number_position, _('{0} of {1}').format('counter(page) "', '" counter(pages)')) }}
+	{% endif %}
+}
+
+html, body {
+	font-size: {{ print_format.font_size }}px;
+}
+
+body {
+	min-width: {{ body_width | int }}mm !important;
+	max-width: {{ body_width | int }}mm !important;
+}
+
+/* CSS rules to fix bootstrap column rendering in PDF
+   https://github.com/Kozea/WeasyPrint/issues/697#issuecomment-542338732
+*/
+@media print {
+	.col, *[class^="col-"] {
+		max-width: none !important;
+	}
+}
+
+@media screen {
+	html {
+		background-color: var(--gray-200);
+	}
+	body {
+		background-color: white;
+		box-shadow: var(--shadow-md);
+		margin: 2rem auto;
+		min-height: 297mm;
+		height: min-content;
+		min-width: {{ body_width | int }}mm !important;
+		max-width: {{ body_width | int }}mm !important;
+		padding-top: {{ print_format.margin_top | int }}mm;
+		padding-right: {{ print_format.margin_right | int }}mm;
+		padding-left: {{ print_format.margin_left | int }}mm;
+		padding-bottom: {{ print_format.margin_bottom | int }}mm;
+	}
+
+	.child-table {
+		overflow-x: auto;
+	}
+}
+
+.section:not(:first-child) {
+	margin-top: 1rem;
+}
+
+.section-label {
+	font-size: 1.2rem;
+	font-weight: 600;
+}
+
+.field + .field {
+	margin-top: 0.5rem;
+}
+
+.field .label {
+	font-weight: bold;
+}
+
+.field.left-right {
+	display: flex;
+}
+
+.field.left-right .label {
+	width: 50%;
+}
+
+.field.left-right .value {
+	width: 50%;
+}
+
+.child-table [data-fieldtype="Currency"] {
+	text-align: right;
+}
+
+.table-row {
+	page-break-inside: avoid;
+}
+
+.page-break {
+	page-break-after: always;
+}
+
+.document-header {
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+	border-bottom-color: var(--gray-300);
+}
+
+.field[data-fieldtype="Rating"] .rating-star {
+	width: 1.5rem;
+}
+
+.field[data-fieldtype="Long Text"] .value, .field[data-fieldtype="Text"] .value {
+	white-space: pre-line;
+}
+
+.field[data-fieldtype="Color"] .value {
+	display: flex;
+	align-items: center;
+}
+
+.field[data-fieldtype="Color"] .color-square {
+	width: 1rem;
+	height: 1rem;
+	margin-right: 0.3rem;
+	border-radius: var(--border-radius);
+}
+
+.field[data-fieldtype="Check"] #icon-tick {
+	width: 1rem;
+}

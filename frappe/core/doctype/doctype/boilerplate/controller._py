@@ -1,0 +1,9 @@
+# Copyright (c) {year}, {app_publisher} and contributors
+# For license information, please see license.txt
+
+# import frappe
+{base_class_import}
+
+
+class {classname}({base_class}):
+	{custom_controller}

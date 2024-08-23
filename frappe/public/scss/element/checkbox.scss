@@ -1,0 +1,124 @@
+// TODO: change icon to Espresso
+$check-icon: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1 4.00001L2.66667 5.80001L7 1.20001' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+
+input[type="checkbox"] {
+	position: relative;
+	width: var(--checkbox-size) !important;
+	height: var(--checkbox-size);
+	margin-right: var(--checkbox-right-margin) !important;
+	background-repeat: no-repeat;
+	background-position: center;
+	border: 1px solid var(--gray-500);
+	box-sizing: border-box;
+	border-radius: 4px;
+
+	// Reset browser behavior
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+
+	-webkit-print-color-adjust: exact;
+	color-adjust: exact;
+
+	.grid-static-col & {
+		margin-right: 0 !important;
+	}
+
+	&:checked {
+		background-color: var(--primary);
+		background-image: $check-icon, var(--checkbox-gradient);
+		background-size: 57%, 100%;
+		box-shadow: none;
+		border: none;
+	}
+
+	&:focus {
+		outline: none; // Prevent browser behavior
+		box-shadow: var(--checkbox-focus-shadow);
+	}
+
+	&.disabled-deselected,
+	&:disabled {
+		background-color: var(--disabled-control-bg);
+		box-shadow: inset 0px 1px 7px rgba(0, 0, 0, 0.1);
+		border: 0.5px solid var(--dark-border-color);
+		pointer-events: none;
+	}
+
+	&.disabled-selected,
+	&:disabled:checked {
+		background-color: var(--gray-600);
+		background-image: $check-icon;
+		background-size: 57%;
+		box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.1);
+		border: none;
+		pointer-events: none;
+	}
+}
+
+/* The switch - the box around the slider */
+.switch {
+	position: relative;
+	display: inline-block;
+	width: 26px;
+	height: 16px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+/* The slider */
+.slider {
+	position: absolute;
+	cursor: pointer;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: var(--switch-bg);
+	-webkit-transition: 0.4s;
+	transition: 0.4s;
+}
+
+.slider:before {
+	position: absolute;
+	content: "";
+	height: 12px;
+	width: 12px;
+	left: 2px;
+	bottom: 2px;
+	background-color: var(--neutral);
+	-webkit-transition: 0.4s;
+	transition: 0.4s;
+}
+
+input:checked + .slider {
+	background-color: var(--invert-neutral);
+}
+
+input:focus + .slider {
+	box-shadow: var(--focus-default);
+}
+
+input:checked + .slider:before {
+	-webkit-transform: translateX(10px);
+	-ms-transform: translateX(10px);
+	transform: translateX(10px);
+}
+
+/* Rounded sliders */
+.slider.round {
+	border-radius: 34px;
+}
+
+label.switch {
+	margin-bottom: 0;
+}
+
+.slider.round:before {
+	border-radius: 50%;
+}

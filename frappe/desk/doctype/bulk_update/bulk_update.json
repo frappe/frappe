@@ -1,0 +1,77 @@
+{
+ "actions": [],
+ "creation": "2016-07-15 05:51:29.224123",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "document_type",
+  "field",
+  "update_value",
+  "condition",
+  "limit"
+ ],
+ "fields": [
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document Type",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "field",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Field",
+   "reqd": 1
+  },
+  {
+   "fieldname": "update_value",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Update Value",
+   "reqd": 1
+  },
+  {
+   "bold": 1,
+   "description": "SQL Conditions. Example: status=\"Open\"",
+   "fieldname": "condition",
+   "fieldtype": "Small Text",
+   "label": "Condition"
+  },
+  {
+   "bold": 1,
+   "default": "500",
+   "description": "Max 500 records at a time",
+   "fieldname": "limit",
+   "fieldtype": "Int",
+   "label": "Limit"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-03-23 16:01:29.575802",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Bulk Update",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

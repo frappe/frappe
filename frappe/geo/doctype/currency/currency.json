@@ -1,0 +1,126 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "field:currency_name",
+ "creation": "2013-01-28 10:06:02",
+ "description": "Currency list stores the currency value, its symbol and fraction unit",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "engine": "InnoDB",
+ "field_order": [
+  "currency_name",
+  "enabled",
+  "fraction",
+  "fraction_units",
+  "smallest_currency_fraction_value",
+  "symbol",
+  "symbol_on_right",
+  "number_format"
+ ],
+ "fields": [
+  {
+   "fieldname": "currency_name",
+   "fieldtype": "Data",
+   "label": "Currency Name",
+   "oldfieldname": "currency_name",
+   "oldfieldtype": "Data",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled"
+  },
+  {
+   "description": "Sub-currency. For e.g. \"Cent\"",
+   "fieldname": "fraction",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Fraction"
+  },
+  {
+   "description": "1 Currency = [?] Fraction\nFor e.g. 1 USD = 100 Cent",
+   "fieldname": "fraction_units",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Fraction Units"
+  },
+  {
+   "description": "Smallest circulating fraction unit (coin). For e.g. 1 cent for USD and it should be entered as 0.01",
+   "fieldname": "smallest_currency_fraction_value",
+   "fieldtype": "Currency",
+   "label": "Smallest Currency Fraction Value",
+   "non_negative": 1
+  },
+  {
+   "description": "A symbol for this currency. For e.g. $",
+   "fieldname": "symbol",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Symbol"
+  },
+  {
+   "description": "How should this currency be formatted? If not set, will use system defaults",
+   "fieldname": "number_format",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Number Format",
+   "options": "\n#,###.##\n#.###,##\n# ###.##\n# ###,##\n#'###.##\n#, ###.##\n#,##,###.##\n#,###.###\n#.###\n#,###"
+  },
+  {
+   "default": "0",
+   "fieldname": "symbol_on_right",
+   "fieldtype": "Check",
+   "label": "Show Currency Symbol on Right Side"
+  }
+ ],
+ "icon": "fa fa-bitcoin",
+ "idx": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-03-23 16:01:31.809369",
+ "modified_by": "Administrator",
+ "module": "Geo",
+ "name": "Currency",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Accounts Manager"
+  },
+  {
+   "read": 1,
+   "role": "Accounts User"
+  },
+  {
+   "read": 1,
+   "role": "Sales User"
+  },
+  {
+   "read": 1,
+   "role": "Purchase User"
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

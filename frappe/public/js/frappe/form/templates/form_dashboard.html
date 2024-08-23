@@ -1,0 +1,20 @@
+<div class="form-dashboard-wrapper">
+	<div class="progress-area hidden form-dashboard-section">
+	</div>
+	<div class="form-heatmap hidden form-dashboard-section">
+		<div class="section-head">{{ __("Overview") }}</div>
+		<div id="heatmap-{{ frappe.model.scrub(frm.doctype) }}" class="heatmap"></div>
+		<div class="text-muted small heatmap-message hidden"></div>
+	</div>
+	<div class="form-graph form-dashboard-section hidden">
+		<div class="section-head">{{ __("Graph") }}</div>
+	</div>
+	<div class="form-stats form-dashboard-section hidden">
+		<div class="section-head">{{ __("Stats") }}</div>
+		<div class="row"></div>
+	</div>
+	<div class="form-links form-dashboard-section hidden">
+		<div class="section-head">{{ __("Documents") }}</div>
+		<div class="transactions"></div>
+	</div>
+</div>

@@ -1,0 +1,81 @@
+{
+ "actions": [],
+ "creation": "2019-04-17 09:39:15.647817",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "reference_type",
+  "reference_name",
+  "track_field",
+  "value",
+  "milestone_tracker"
+ ],
+ "fields": [
+  {
+   "fieldname": "reference_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document Type",
+   "options": "DocType",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Document",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "track_field",
+   "fieldtype": "Data",
+   "label": "Track Field",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "value",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Value",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "milestone_tracker",
+   "fieldtype": "Link",
+   "label": "Milestone Tracker",
+   "options": "Milestone Tracker"
+  }
+ ],
+ "in_create": 1,
+ "links": [],
+ "modified": "2024-03-23 16:03:29.694506",
+ "modified_by": "Administrator",
+ "module": "Automation",
+ "name": "Milestone",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "reference_type",
+ "track_changes": 1
+}

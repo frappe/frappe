@@ -1,0 +1,36 @@
+<p class="text-muted text-medium">{{ __("Check columns to select, drag to set order.") }}
+	{{ __("Widths can be set in px or %.") }}</p>
+<p class="help-message alert alert-warning">
+	{{ __("Some columns might get cut off when printing to PDF. Try to keep number of columns under 10.") }}
+</p>
+<div class="row">
+	<div class="col-sm-6"><p class="bold">{{ __("Column") }}</p></div>
+	<div class="col-sm-6 text-right"><p class="bold">{{ __("Width") }}</p></div>
+</div>
+<div class="column-selector-list">
+	{% for (i=0; i < fields.length; i++) { var f = fields[i]; %}
+		{% var selected = in_list(column_names, f.fieldname) %}
+		<div class="row column-selector-row">
+			<div class="col-sm-6 flex align-center">
+				<div class="drag-handle flex align-center">
+					<svg class="icon icon-xs"><use href="#icon-drag"></use></svg>
+				</div>
+				<div class="checkbox">
+					<label>
+						<span class="input-area">
+							<input type="checkbox" data-fieldname="{{ f.fieldname }}" {{ selected ? "checked" : "" }}>
+						</span>
+						<span class="label-area">{{ __(f.label) }}</span>
+					</label>
+				</div>
+			</div>
+			<div class="col-sm-6 text-right">
+				<input class="form-control column-width input-xs text-right"
+					value="{{ (widths[f.fieldname] || "") }}"
+					data-fieldname="{{ f.fieldname }}"
+					style="width: 100px; display: inline"
+					{{ selected ? "" : "disabled" }}>
+			</div>
+		</div>
+	{% } %}
+</div>

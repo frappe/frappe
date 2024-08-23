@@ -1,0 +1,95 @@
+{% extends "templates/web.html" %}
+
+{% block title %} {{ _("Third Party Apps") }} {% endblock %}
+
+{% block page_sidebar %}
+{% include "templates/includes/web_sidebar.html" %}
+{% endblock %}
+
+{% block style %}
+{% endblock %}
+
+{% block page_content %}
+<h3 class="my-account-header">{{ _("Third Party Apps") }}</h3>
+<div class="third-party-wrapper">
+{% if app %}
+<h4>{{ app.app_name }}</h4>
+<div class="web-list-item">
+	<div class="row">
+		<div class="col-xs-12">
+			<div class="well">
+				<div class="text-muted">{{ _("This will log out {0} from all other devices").format(app.app_name) }}</div>
+				<div class="padding"></div>
+				<div class="text-right">
+					<button class="btn btn-default" onclick="location.href = '/third_party_apps';">Cancel</button>
+					<button class="btn btn-danger btn-delete-app" data-client_id="{{ app.client_id }}">Revoke</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% elif apps|length > 0 %}
+<h4>{{ _("Active Sessions") }}</h4>
+	{% for app in apps %}
+	<div class="web-list-item">
+		<div class="row">
+			<div class="col-xs-6">
+				{{ app.app_name }}
+			</div>
+			<div class="col-xs-4 text-right text-muted">
+				<small class="text-right">
+					{{ _("logged in") }}&nbsp;{{ frappe.utils.pretty_date(app.creation) }}
+				</small>
+			</div>
+			<div class="col-xs-2 text-right small text-muted">
+				<a class="btn btn-sm btn-link" href="/third_party_apps?app={{ app.name }}">{{ _("Revoke") }}</a>
+			</div>
+		</div>
+	</div>
+	{% endfor %}
+{% else %}
+<div class="empty-apps-state">
+	<img src="/assets/frappe/images/ui-states/empty-app-state.svg"/>
+	<div class="font-weight-bold mt-4">
+		{{ _("No Active Sessions")}}
+	</div>
+	<div class="text-muted mt-2">
+		{{ _("Looks like you haven’t added any third party apps.")}}
+	</div>
+</div>
+{% endif %}
+</div>
+<script>
+{% include "templates/includes/integrations/third_party_apps.js" %}
+</script>
+<style>
+body {
+	background-color: var(--bg-color);
+}
+
+.my-account-header, .third-party-wrapper {
+	max-width: 800px;
+	margin: auto;
+}
+
+.my-account-header {
+	margin-top: 3rem;
+	margin-bottom: 1rem;
+}
+
+.third-party-wrapper {
+	background-color: var(--fg-color);
+	border-radius: var(--border-radius-md);
+	border: 1px solid var(--border-color);
+	padding: var(--padding-md);
+}
+
+.empty-apps-state {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+
+</style>
+{% endblock %}

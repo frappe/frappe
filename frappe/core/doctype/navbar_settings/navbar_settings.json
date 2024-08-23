@@ -1,0 +1,81 @@
+{
+ "actions": [],
+ "creation": "2020-08-01 23:41:12.577160",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "logo_section",
+  "app_logo",
+  "section_break_2",
+  "settings_dropdown",
+  "help_dropdown",
+  "announcements_section",
+  "announcement_widget"
+ ],
+ "fields": [
+  {
+   "fieldname": "app_logo",
+   "fieldtype": "Attach Image",
+   "label": "Application Logo"
+  },
+  {
+   "fieldname": "settings_dropdown",
+   "fieldtype": "Table",
+   "label": "Settings Dropdown",
+   "options": "Navbar Item"
+  },
+  {
+   "fieldname": "help_dropdown",
+   "fieldtype": "Table",
+   "label": "Help Dropdown",
+   "options": "Navbar Item"
+  },
+  {
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break",
+   "label": "Dropdowns"
+  },
+  {
+   "fieldname": "logo_section",
+   "fieldtype": "Section Break",
+   "label": "Application Logo"
+  },
+  {
+   "fieldname": "announcements_section",
+   "fieldtype": "Section Break",
+   "label": "Announcements"
+  },
+  {
+   "description": "These announcements will appear inside a dismissible alert below the Navbar.",
+   "fieldname": "announcement_widget",
+   "fieldtype": "Text Editor",
+   "label": "Announcement Widget",
+   "max_height": "10em"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-05-01 14:09:54.587137",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Navbar Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

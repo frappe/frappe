@@ -1,0 +1,60 @@
+{
+ "actions": [],
+ "creation": "2016-04-14 09:41:45.892975",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "engine": "InnoDB",
+ "field_order": [
+  "email_account",
+  "uid",
+  "reason",
+  "message_id",
+  "raw"
+ ],
+ "fields": [
+  {
+   "fieldname": "email_account",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Email Account",
+   "options": "Email Account"
+  },
+  {
+   "fieldname": "uid",
+   "fieldtype": "Data",
+   "label": "UID"
+  },
+  {
+   "fieldname": "reason",
+   "fieldtype": "Long Text",
+   "in_list_view": 1,
+   "label": "Reason"
+  },
+  {
+   "fieldname": "message_id",
+   "fieldtype": "Code",
+   "label": "Message-id"
+  },
+  {
+   "fieldname": "raw",
+   "fieldtype": "Code",
+   "label": "Raw Email"
+  }
+ ],
+ "in_create": 1,
+ "links": [],
+ "modified": "2024-03-23 16:03:59.723830",
+ "modified_by": "Administrator",
+ "module": "Email",
+ "name": "Unhandled Email",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "read": 1,
+   "role": "System Manager"
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

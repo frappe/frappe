@@ -1,0 +1,178 @@
+{
+ "actions": [],
+ "autoname": "Prompt",
+ "creation": "2019-09-30 11:56:57.943241",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "script_type",
+  "reference_doctype",
+  "event_frequency",
+  "cron_format",
+  "doctype_event",
+  "api_method",
+  "allow_guest",
+  "column_break_3",
+  "module",
+  "disabled",
+  "section_break_8",
+  "script",
+  "rate_limiting_section",
+  "enable_rate_limit",
+  "rate_limit_count",
+  "rate_limit_seconds",
+  "help_section",
+  "help_html"
+ ],
+ "fields": [
+  {
+   "fieldname": "script_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Script Type",
+   "options": "DocType Event\nScheduler Event\nPermission Query\nAPI",
+   "reqd": 1
+  },
+  {
+   "fieldname": "script",
+   "fieldtype": "Code",
+   "label": "Script",
+   "options": "Python",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:['DocType Event', 'Permission Query'].includes(doc.script_type)",
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Reference Document Type",
+   "options": "DocType",
+   "search_index": 1
+  },
+  {
+   "depends_on": "eval:doc.script_type==='DocType Event'",
+   "fieldname": "doctype_event",
+   "fieldtype": "Select",
+   "label": "DocType Event",
+   "options": "Before Insert\nBefore Validate\nBefore Save\nAfter Insert\nAfter Save\nBefore Rename\nAfter Rename\nBefore Submit\nAfter Submit\nBefore Cancel\nAfter Cancel\nBefore Discard\nAfter Discard\nBefore Delete\nAfter Delete\nBefore Save (Submitted Document)\nAfter Save (Submitted Document)\nBefore Print\nOn Payment Authorization\nOn Payment Paid\nOn Payment Failed\nOn Payment Charge Processed\nOn Payment Mandate Charge Processed\nOn Payment Mandate Acquisition Processed"
+  },
+  {
+   "depends_on": "eval:doc.script_type==='API'",
+   "fieldname": "api_method",
+   "fieldtype": "Data",
+   "label": "API Method"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.script_type==='API'",
+   "fieldname": "allow_guest",
+   "fieldtype": "Check",
+   "label": "Allow Guest"
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_8",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "help_section",
+   "fieldtype": "Section Break",
+   "label": "Help"
+  },
+  {
+   "fieldname": "help_html",
+   "fieldtype": "HTML"
+  },
+  {
+   "depends_on": "eval:doc.script_type == \"Scheduler Event\"",
+   "fieldname": "event_frequency",
+   "fieldtype": "Select",
+   "label": "Event Frequency",
+   "mandatory_depends_on": "eval:doc.script_type == \"Scheduler Event\"",
+   "options": "All\nHourly\nDaily\nWeekly\nMonthly\nYearly\nHourly Long\nDaily Long\nWeekly Long\nMonthly Long\nCron"
+  },
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module (for export)",
+   "options": "Module Def",
+   "search_index": 1
+  },
+  {
+   "depends_on": "eval:doc.script_type==='API'",
+   "fieldname": "rate_limiting_section",
+   "fieldtype": "Section Break",
+   "label": "Rate Limiting"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_rate_limit",
+   "fieldtype": "Check",
+   "label": "Enable Rate Limit"
+  },
+  {
+   "default": "5",
+   "depends_on": "enable_rate_limit",
+   "fieldname": "rate_limit_count",
+   "fieldtype": "Int",
+   "label": "Request Limit"
+  },
+  {
+   "default": "86400",
+   "depends_on": "enable_rate_limit",
+   "fieldname": "rate_limit_seconds",
+   "fieldtype": "Int",
+   "label": "Time Window (Seconds)"
+  },
+  {
+   "depends_on": "eval:doc.event_frequency==='Cron'",
+   "description": "<pre>*  *  *  *  *\n\u252c  \u252c  \u252c  \u252c  \u252c\n\u2502  \u2502  \u2502  \u2502  \u2502\n\u2502  \u2502  \u2502  \u2502  \u2514 day of week (0 - 6) (0 is Sunday)\n\u2502  \u2502  \u2502  \u2514\u2500\u2500\u2500\u2500\u2500 month (1 - 12)\n\u2502  \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 day of month (1 - 31)\n\u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 hour (0 - 23)\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 minute (0 - 59)\n\n---\n\n* - Any value\n/ - Step values\n</pre>\n",
+   "fieldname": "cron_format",
+   "fieldtype": "Data",
+   "label": "Cron Format"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "link_doctype": "Scheduled Job Type",
+   "link_fieldname": "server_script"
+  }
+ ],
+ "modified": "2024-05-08 03:21:54.169380",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Server Script",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Script Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

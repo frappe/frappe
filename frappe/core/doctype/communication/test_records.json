@@ -1,0 +1,10 @@
+[
+	{
+		"doctype": "Communication",
+		"name": "_Test Communication 1",
+		"subject": "Test Subject",
+		"sent_or_received": "Received",
+		"parenttype": "User",
+		"parent": "Administrator"
+	}
+]

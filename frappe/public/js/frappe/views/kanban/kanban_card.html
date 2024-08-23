@@ -1,0 +1,24 @@
+<div class="kanban-card-wrapper {{ disable_click }}" data-name="{{encodeURIComponent(name)}}">
+	<div class="kanban-card content">
+		{% if(image_url) { %}
+		<div class="kanban-image">
+			<img  src="{{image_url}}" alt="{{title}}">
+		</div>
+		{% } %}
+		<div class="kanban-card-body">
+			<div class="kanban-title-area">
+				<a href="{{ form_link }}">
+					<div class="kanban-card-title ellipsis" title="{{title}}">
+						{{ title }}
+					</div>
+				</a>
+				<br>
+				<div class="kanban-card-doc text-muted">
+					{{ doc_content }}
+				</div>
+			</div>
+			<div class="kanban-card-meta">
+			</div>
+		</div>
+	</div>
+</div>

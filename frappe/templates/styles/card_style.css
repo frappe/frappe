@@ -1,0 +1,92 @@
+.hero-and-content {
+	background-color: var(--bg-color);
+}
+
+.page-card {
+	max-width: 360px;
+	padding: 15px;
+	margin: 70px auto;
+	border-radius: var(--border-radius-md);
+	background-color: var(--fg-color);
+	border: 1px solid var(--border-color);
+}
+
+.for-reset-password {
+	margin: 80px 0;
+}
+
+.for-reset-password .page-card {
+	border: 0;
+	max-width: 450px;
+	margin: auto;
+	border-radius: var(--border-radius-md);
+	padding: 40px 60px;
+}
+
+@media (max-width: 425px) {
+	.for-reset-password .page-card {
+		box-shadow: none;
+		background: none;
+		padding: 0px;
+	}
+}
+
+.page-card .page-card-head {
+	padding: 10px 15px;
+	margin: -15px;
+	margin-bottom: 15px;
+	border-bottom: 1px solid var(--border-color);
+}
+
+.for-reset-password .page-card .page-card-head {
+	border-bottom: 0;
+}
+
+.page-card-head h4 {
+	font-size: var(--text-xl);
+	font-weight: var(--weight-semibold);
+	letter-spacing: 0.01em;
+}
+
+#reset-password .form-group {
+	margin-bottom: 10px;
+	font-size: var(--font-size-sm);
+}
+
+.page-card .page-card-head .indicator {
+	color: #36414c;
+	font-size: 14px;
+}
+
+.sign-up-message {
+	margin-top: 20px;
+	font-size: 13px;
+	color: var(--text-color);
+}
+
+.page-card .page-card-head .indicator::before {
+	margin: 0 6px 0.5px 0px;
+}
+
+button#update {
+	font-size: var(--font-size-sm);
+}
+
+.page-card .btn {
+	margin-top: 30px;
+}
+
+.page-card p:empty {
+	display: none;
+}
+
+.page-card p {
+	font-size: 14px;
+}
+
+.ellipsis {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 100%;
+	vertical-align: middle;
+}

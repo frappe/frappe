@@ -1,0 +1,43 @@
+{
+ "actions": [],
+ "creation": "2016-09-03 11:42:42.575525",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "skip_authorization"
+ ],
+ "fields": [
+  {
+   "fieldname": "skip_authorization",
+   "fieldtype": "Select",
+   "label": "Skip Authorization",
+   "options": "Force\nAuto"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-03-23 16:03:32.808772",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "OAuth Provider Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

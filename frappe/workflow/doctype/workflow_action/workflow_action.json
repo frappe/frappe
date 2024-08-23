@@ -1,0 +1,99 @@
+{
+ "actions": [],
+ "creation": "2024-02-12 12:38:32.408271",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "status",
+  "reference_name",
+  "reference_doctype",
+  "workflow_state",
+  "column_break_5",
+  "completed_by_role",
+  "completed_by",
+  "permitted_roles",
+  "user"
+ ],
+ "fields": [
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Open\nCompleted"
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Reference Name",
+   "options": "reference_doctype"
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Reference Document Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "User",
+   "options": "User",
+   "search_index": 1
+  },
+  {
+   "fieldname": "workflow_state",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Workflow State"
+  },
+  {
+   "depends_on": "eval: doc.completed_by",
+   "fieldname": "completed_by",
+   "fieldtype": "Link",
+   "label": "Completed By User",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: doc.completed_by_role",
+   "fieldname": "completed_by_role",
+   "fieldtype": "Link",
+   "label": "Completed By Role",
+   "options": "Role",
+   "read_only": 1
+  },
+  {
+   "fieldname": "permitted_roles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Permitted Roles",
+   "options": "Workflow Action Permitted Role",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2024-03-23 16:04:04.989036",
+ "modified_by": "Administrator",
+ "module": "Workflow",
+ "name": "Workflow Action",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "read": 1,
+   "role": "Desk User"
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "reference_name",
+ "track_changes": 1
+}

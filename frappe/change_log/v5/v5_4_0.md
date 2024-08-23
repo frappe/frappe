@@ -1,0 +1,1 @@
+- Moved Backup Manager and Social Login Keys to the new **Integrations** module

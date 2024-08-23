@@ -1,0 +1,63 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:country",
+ "creation": "2014-06-05 02:22:36.029850",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "engine": "InnoDB",
+ "field_order": [
+  "country",
+  "is_default",
+  "template"
+ ],
+ "fields": [
+  {
+   "fieldname": "country",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Country",
+   "options": "Country",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "0",
+   "description": "This format is used if country specific format is not found",
+   "fieldname": "is_default",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Default"
+  },
+  {
+   "description": "<h4>Default Template</h4>\n<p>Uses <a href=\"http://jinja.pocoo.org/docs/templates/\">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>\n<pre><code>{{ address_line1 }}&lt;br&gt;\n{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}\n{{ city }}&lt;br&gt;\n{% if state %}{{ state }}&lt;br&gt;{% endif -%}\n{% if pincode %} PIN:  {{ pincode }}&lt;br&gt;{% endif -%}\n{{ country }}&lt;br&gt;\n{% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%}\n{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}\n{% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}\n</code></pre>",
+   "fieldname": "template",
+   "fieldtype": "Code",
+   "label": "Template"
+  }
+ ],
+ "icon": "fa fa-map-marker",
+ "links": [],
+ "modified": "2024-03-23 16:01:27.242795",
+ "modified_by": "Administrator",
+ "module": "Contacts",
+ "name": "Address Template",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,0 +1,18 @@
+{% from "frappe/templates/includes/avatar_macro.html" import avatar %}
+
+<div class="my-5 comment-row media">
+	<div class="comment-avatar">
+		{{  avatar(user_id=(frappe.utils.strip_html(comment.comment_email or comment.sender)), size='avatar-medium') }}
+	</div>
+	<div class="comment-content">
+		<div class="mb-2 head">
+			<span class="mr-2 title font-weight-bold">
+				{{ frappe.utils.strip_html(comment.sender_full_name or comment.comment_by) | e }}
+			</span>
+			<span class="time small text-muted">
+				{{ frappe.utils.pretty_date(comment.creation) }}
+			</span>
+		</div>
+		<div id="{{ comment.name }}" class="content">{{ frappe.utils.strip_html(comment.content) | markdown }}</div>
+	</div>
+</div>

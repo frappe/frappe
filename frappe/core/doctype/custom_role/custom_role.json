@@ -1,0 +1,76 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "autoname": "hash",
+ "creation": "2017-02-13 14:53:36.240122",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "page",
+  "report",
+  "permission_rules",
+  "roles",
+  "response",
+  "ref_doctype"
+ ],
+ "fields": [
+  {
+   "fieldname": "page",
+   "fieldtype": "Link",
+   "label": "Page",
+   "options": "Page"
+  },
+  {
+   "fieldname": "report",
+   "fieldtype": "Link",
+   "label": "Report",
+   "options": "Report"
+  },
+  {
+   "fieldname": "permission_rules",
+   "fieldtype": "Section Break",
+   "label": "Permission Rules"
+  },
+  {
+   "fieldname": "roles",
+   "fieldtype": "Table",
+   "label": "Role",
+   "options": "Has Role"
+  },
+  {
+   "fieldname": "response",
+   "fieldtype": "HTML",
+   "label": "response"
+  },
+  {
+   "fieldname": "ref_doctype",
+   "fieldtype": "Data",
+   "label": "Reference Document Type"
+  }
+ ],
+ "links": [],
+ "modified": "2024-03-23 16:02:15.554679",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Custom Role",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "read_only": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

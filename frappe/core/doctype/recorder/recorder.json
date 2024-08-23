@@ -1,0 +1,157 @@
+{
+ "actions": [],
+ "creation": "2023-08-01 12:06:49.630877",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "path",
+  "number_of_queries",
+  "time_in_queries",
+  "method",
+  "column_break_qo53",
+  "cmd",
+  "time",
+  "duration",
+  "event_type",
+  "section_break_1skt",
+  "request_headers",
+  "section_break_sgro",
+  "form_dict",
+  "section_break_9jhm",
+  "suggested_indexes",
+  "sql_queries",
+  "section_break_optn",
+  "profile"
+ ],
+ "fields": [
+  {
+   "fieldname": "path",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Path"
+  },
+  {
+   "depends_on": "eval:doc.event_type==\"HTTP Request\"",
+   "fieldname": "cmd",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "CMD"
+  },
+  {
+   "fieldname": "duration",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Duration"
+  },
+  {
+   "fieldname": "time",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Time"
+  },
+  {
+   "fieldname": "number_of_queries",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Number of Queries"
+  },
+  {
+   "fieldname": "time_in_queries",
+   "fieldtype": "Float",
+   "label": "Time in Queries"
+  },
+  {
+   "fieldname": "column_break_qo53",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_1skt",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.event_type==\"HTTP Request\"",
+   "fieldname": "request_headers",
+   "fieldtype": "Code",
+   "label": "Request Headers"
+  },
+  {
+   "fieldname": "section_break_sgro",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.event_type==\"HTTP Request\"",
+   "fieldname": "form_dict",
+   "fieldtype": "Code",
+   "label": "Form Dict"
+  },
+  {
+   "depends_on": "eval:doc.event_type==\"HTTP Request\"",
+   "fieldname": "method",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Method",
+   "options": "GET\nPOST\nPUT\nDELETE\nPATCH\nHEAD\nOPTIONS"
+  },
+  {
+   "fieldname": "sql_queries",
+   "fieldtype": "Table",
+   "label": "SQL Queries",
+   "options": "Recorder Query"
+  },
+  {
+   "fieldname": "section_break_9jhm",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "event_type",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Event Type"
+  },
+  {
+   "fieldname": "section_break_optn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "profile",
+   "fieldtype": "Code",
+   "label": "cProfile Output",
+   "read_only": 1
+  },
+  {
+   "description": "Disclaimer: These indexes are suggested based on data and queries performed during this recording. These suggestions may or may not help.",
+   "fieldname": "suggested_indexes",
+   "fieldtype": "Table",
+   "label": "Suggested Indexes",
+   "options": "Recorder Suggested Index"
+  }
+ ],
+ "hide_toolbar": 1,
+ "in_create": 1,
+ "index_web_pages_for_search": 1,
+ "is_virtual": 1,
+ "links": [],
+ "modified": "2024-05-14 15:16:55.626656",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Recorder",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "share": 1
+  }
+ ],
+ "sort_field": "duration",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "path"
+}

@@ -1,0 +1,21 @@
+{
+ "creation": "2020-09-09 15:03:39.553047",
+ "docstatus": 0,
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "website_slideshow",
+   "fieldtype": "Link",
+   "label": "Website Slideshow",
+   "options": "Website Slideshow",
+   "reqd": 0
+  }
+ ],
+ "idx": 0,
+ "modified": "2020-09-09 15:04:24.008644",
+ "modified_by": "Administrator",
+ "name": "Slideshow",
+ "owner": "Administrator",
+ "standard": 1,
+ "type": "Section"
+}

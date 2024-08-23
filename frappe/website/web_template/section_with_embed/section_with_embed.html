@@ -1,0 +1,10 @@
+<div class="section-with-embed">
+	<h2 class="section-title">{{ _(title) }}</h2>
+	{%- if subtitle -%}
+	<p class="section-description">{{ _(subtitle) }}</p>
+	{%- endif -%}
+
+	<div class="embed-container from-markdown">
+		{{ frappe.utils.md_to_html(_(embed_html)) }}
+	</div>
+</div>

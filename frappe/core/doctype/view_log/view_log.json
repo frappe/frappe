@@ -1,0 +1,56 @@
+{
+ "actions": [],
+ "creation": "2018-05-27 02:20:11.193944",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "viewed_by",
+  "reference_doctype",
+  "reference_name"
+ ],
+ "fields": [
+  {
+   "fieldname": "viewed_by",
+   "fieldtype": "Data",
+   "label": "Viewed By",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Reference Document Type",
+   "options": "DocType",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Reference name",
+   "options": "reference_doctype",
+   "search_index": 1,
+   "set_only_once": 1
+  }
+ ],
+ "links": [],
+ "modified": "2024-03-23 16:04:01.764239",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "View Log",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

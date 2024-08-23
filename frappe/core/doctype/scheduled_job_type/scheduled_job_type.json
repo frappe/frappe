@@ -1,0 +1,131 @@
+{
+ "actions": [
+  {
+   "action": "frappe.core.doctype.scheduled_job_type.scheduled_job_type.execute_event",
+   "action_type": "Server Action",
+   "label": "Execute"
+  }
+ ],
+ "creation": "2024-02-23 10:41:33.059393",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "stopped",
+  "method",
+  "server_script",
+  "frequency",
+  "cron_format",
+  "create_log",
+  "status_section",
+  "last_execution",
+  "column_break_9",
+  "next_execution"
+ ],
+ "fields": [
+  {
+   "fieldname": "method",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Method",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "stopped",
+   "fieldtype": "Check",
+   "label": "Stopped"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:[\"All\", \"Cron\"].includes(doc.frequency)",
+   "fieldname": "create_log",
+   "fieldtype": "Check",
+   "label": "Create Log"
+  },
+  {
+   "fieldname": "last_execution",
+   "fieldtype": "Datetime",
+   "label": "Last Execution",
+   "read_only": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "depends_on": "eval:doc.frequency==='Cron'",
+   "description": "<pre>*  *  *  *  *\n\u252c  \u252c  \u252c  \u252c  \u252c\n\u2502  \u2502  \u2502  \u2502  \u2502\n\u2502  \u2502  \u2502  \u2502  \u2514 day of week (0 - 6) (0 is Sunday)\n\u2502  \u2502  \u2502  \u2514\u2500\u2500\u2500\u2500\u2500 month (1 - 12)\n\u2502  \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 day of month (1 - 31)\n\u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 hour (0 - 23)\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 minute (0 - 59)\n\n---\n\n* - Any value\n/ - Step values\n</pre>\n",
+   "fieldname": "cron_format",
+   "fieldtype": "Data",
+   "label": "Cron Format",
+   "not_nullable": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "frequency",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Frequency",
+   "options": "All\nHourly\nHourly Long\nDaily\nDaily Long\nWeekly\nWeekly Long\nMonthly\nMonthly Long\nCron\nYearly\nAnnual",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "server_script",
+   "fieldtype": "Link",
+   "label": "Server Script",
+   "options": "Server Script",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "next_execution",
+   "fieldtype": "Datetime",
+   "is_virtual": 1,
+   "label": "Next Execution",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status_section",
+   "fieldtype": "Section Break",
+   "label": "Status"
+  },
+  {
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "in_create": 1,
+ "links": [
+  {
+   "link_doctype": "Scheduled Job Log",
+   "link_fieldname": "scheduled_job_type"
+  }
+ ],
+ "modified": "2024-03-30 11:39:49.693632",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Scheduled Job Type",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "show_title_field_in_link": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "method",
+ "track_changes": 1
+}

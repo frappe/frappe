@@ -1,0 +1,44 @@
+{% if not error %}
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <div class="panel-title h3">{{ _(client_id) }}</div>
+    <p class="panel-subtitle">{{ _("wants to access the following details from your account") }}</p>
+  </div>
+  <div class="panel-body">
+      <ul>
+      {% for dtl in details %}
+        <li>{{ dtl.title() }}</li>
+      {% endfor %}
+      </ul>
+    <div class="action-buttons d-flex">
+      <button id="deny" class="btn btn-sm btn-light btn-block mr-3">{{ _("Deny") }}</button>
+      <button id="allow" class="btn btn-sm btn-primary btn-block">{{ _("Allow") }}</button>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  frappe.ready(function() {
+    $('#allow').on('click', function(event) {
+      window.location.replace("{{ success_url | string }}");
+    });
+    $('#deny').on('click', function(event) {
+      window.location.replace("{{ failure_url | string }}");
+    });
+  });
+</script>
+{% else %}
+<div class="panel panel-danger">
+  <div class="panel-heading">
+    <h3 class="panel-title">{{ _("Authorization error for {}.").format(client_id) }}</h3>
+  </div>
+  <div class="panel-body">
+    <p>{{ _("An unexpected error occurred while authorizing {}.").format(client_id) }}</p>
+    <h4>{{ error }}</h4>
+    <ul class="list-inline">
+      <li>
+        <button class="btn btn-sm btn-light">{{ _("OK") }}</button>
+      </li>
+    </ul>
+  </div>
+</div>
+{% endif %}

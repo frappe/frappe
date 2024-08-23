@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html data-theme-mode="{{ desk_theme.lower() }}" data-theme="{{ desk_theme.lower() }}" dir={{ layout_direction }} lang="{{ lang }}">
+	<head>
+		<meta charset="UTF-8">
+		<!-- Chrome, Firefox OS and Opera -->
+		<meta name="theme-color" content="#0089FF">
+		<!-- Windows Phone -->
+		<meta name="msapplication-navbutton-color" content="#0089FF">
+		<!-- iOS Safari -->
+		<meta name="apple-mobile-web-app-status-bar-style" content="#0089FF">
+		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+		<meta content="utf-8" http-equiv="encoding">
+		<meta name="author" content="">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0,
+			maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="white">
+		<meta name="mobile-web-app-capable" content="yes">
+		<title>{{ app_name }}</title>
+		<link rel="shortcut icon"
+			href="{{ favicon or "/assets/frappe/images/frappe-favicon.svg" }}" type="image/x-icon">
+		<link rel="icon"
+			href="{{ favicon or "/assets/frappe/images/frappe-favicon.svg" }}" type="image/x-icon">
+		{% for include in app_include_css -%}
+		{{ include_style(include) }}
+		{%- endfor -%}
+
+		{% if lang == "eo" %}
+		<script type="text/javascript">
+			var _jipt = [];
+			_jipt.push(['project', 'frappe']);
+		</script>
+		<script type="text/javascript" src="https://cdn.crowdin.com/jipt/jipt.js"></script>
+		{% endif %}
+	</head>
+	<body>
+		{% include "templates/includes/splash_screen.html" %}
+		<div class="main-section">
+			<header></header>
+			<div id="body"></div>
+			<footer></footer>
+		</div>
+		<div id="all-symbols" style="display:none"></div>
+		<div id="build-events-overlay"></div>
+
+		<script type="text/javascript">
+			window._version_number = "{{ build_version }}";
+			// browser support
+			window.app = true;
+			window.dev_server = {{ dev_server }};
+
+			if (!window.frappe) window.frappe = {};
+
+			frappe.boot = JSON.parse({{ boot }});
+			frappe._messages = frappe.boot["__messages"];
+			frappe.csrf_token = "{{ csrf_token }}";
+
+
+		</script>
+
+		{%- for path in app_include_icons -%}
+		{{ include_icons(path) }}
+		{%- endfor -%}
+
+	{% for include in app_include_js %}
+	{{ include_script(include) }}
+	{% endfor %}
+
+	{% include "templates/includes/app_analytics/google_analytics.html" %}
+
+		{% for sound in (sounds or []) %}
+		<audio preload="auto" id="sound-{{ sound.name }}" volume={{ sound.volume or 1 }}>
+			<source src="{{ sound.src }}"></source>
+		</audio>
+		{% endfor %}
+	</body>
+</html>

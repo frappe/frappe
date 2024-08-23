@@ -1,0 +1,84 @@
+{
+ "actions": [],
+ "autoname": "field:ref_doctype",
+ "creation": "2018-04-15 18:07:35.316870",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "ref_doctype",
+  "first_success_message",
+  "message",
+  "next_actions_html",
+  "next_actions",
+  "action_timeout"
+ ],
+ "fields": [
+  {
+   "fieldname": "ref_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Reference Document Type",
+   "options": "DocType",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "Congratulations on first creations",
+   "fieldname": "first_success_message",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "First Success Message",
+   "reqd": 1
+  },
+  {
+   "default": "Successfully created",
+   "fieldname": "message",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Message",
+   "reqd": 1
+  },
+  {
+   "fieldname": "next_actions_html",
+   "fieldtype": "HTML",
+   "label": "Next Actions HTML"
+  },
+  {
+   "fieldname": "next_actions",
+   "fieldtype": "Data",
+   "hidden": 1
+  },
+  {
+   "default": "7",
+   "fieldname": "action_timeout",
+   "fieldtype": "Int",
+   "label": "Action Timeout (Seconds)"
+  }
+ ],
+ "hide_toolbar": 1,
+ "links": [],
+ "modified": "2024-03-23 16:03:39.228220",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Success Action",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

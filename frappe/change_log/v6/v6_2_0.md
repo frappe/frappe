@@ -1,0 +1,3 @@
+- **Permissions:** 
+	- If User Permissions are missing for a DocType, don't show non-matching records.
+	- If **Ignore User Permissions If Missing** is checked in System Settings, show records even if User Permissions are not defined.

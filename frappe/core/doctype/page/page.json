@@ -1,0 +1,135 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:page_name",
+ "creation": "2012-12-20 17:16:49",
+ "doctype": "DocType",
+ "document_type": "System",
+ "engine": "InnoDB",
+ "field_order": [
+  "system_page",
+  "page_html",
+  "page_name",
+  "title",
+  "icon",
+  "column_break0",
+  "module",
+  "restrict_to_domain",
+  "standard",
+  "section_break0",
+  "roles"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "system_page",
+   "fieldtype": "Check",
+   "label": "System Page"
+  },
+  {
+   "fieldname": "page_html",
+   "fieldtype": "Section Break",
+   "label": "Page HTML",
+   "oldfieldtype": "Section Break"
+  },
+  {
+   "fieldname": "page_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Page Name",
+   "oldfieldname": "page_name",
+   "oldfieldtype": "Data",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "icon",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "icon"
+  },
+  {
+   "fieldname": "column_break0",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Module",
+   "oldfieldname": "module",
+   "oldfieldtype": "Select",
+   "options": "Module Def",
+   "reqd": 1
+  },
+  {
+   "fieldname": "restrict_to_domain",
+   "fieldtype": "Link",
+   "label": "Restrict To Domain",
+   "options": "Domain"
+  },
+  {
+   "fieldname": "standard",
+   "fieldtype": "Select",
+   "label": "Standard",
+   "oldfieldname": "standard",
+   "oldfieldtype": "Select",
+   "options": "Yes\nNo",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "section_break0",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.standard == 'Yes'",
+   "fieldname": "roles",
+   "fieldtype": "Table",
+   "label": "Roles",
+   "oldfieldname": "roles",
+   "oldfieldtype": "Table",
+   "options": "Has Role"
+  }
+ ],
+ "icon": "fa fa-file",
+ "idx": 1,
+ "links": [],
+ "modified": "2024-03-23 16:03:33.657255",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Page",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Administrator",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

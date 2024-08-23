@@ -1,0 +1,25 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+
+{% include "templates/includes/search_template.html" %}
+
+<script>
+frappe.ready(function() {
+	$('.btn-more').on('click', function() {
+		frappe.call({
+			method: 'frappe.www.search.get_search_results',
+			args: {
+				text: '{{ query }}',
+				start: $('.search-result-item').length,
+				as_html: 1
+			},
+			callback: function(r) {
+				$(r.message.results).appendTo('.search-result');
+				$('.btn-more').toggleClass('hidden', !!!r.message.has_more);
+			}
+		});
+	});
+});
+</script>
+{% endblock %}

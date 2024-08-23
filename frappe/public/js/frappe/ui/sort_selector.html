@@ -1,0 +1,25 @@
+<div class="sort-selector">
+	<div class="btn-group">
+		<button class="btn btn-default btn-sm btn-order"
+			data-value="{{ sort_order }}"
+			title="{{ sort_order==="desc" ? __("descending") : __("ascending") }}">
+			<span class="sort-order">
+				<svg class="icon icon-sm">
+					<use href="#icon-{{ sort_order==="desc" ? "sort-descending" : "sort-ascending" }}"></use>
+				</svg>
+			</span>
+		</button>
+		<button type="button" class="btn btn-default btn-sm sort-selector-button" data-toggle="dropdown">
+			<span class="dropdown-text">{{ __(sort_by_label) }}</span>
+			<ul class="dropdown-menu dropdown-menu-right">
+				{% for value in options %}
+				<li>
+					<a class="dropdown-item option" data-value="{{ value.fieldname }}">
+						{{ __(value.label) }}
+					</a>
+				</li>
+				{% endfor %}
+			</ul>
+		</button>
+	</div>
+</div>

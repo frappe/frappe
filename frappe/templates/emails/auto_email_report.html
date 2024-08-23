@@ -1,0 +1,67 @@
+{% macro get_alignment(col) %}
+{%- if col.fieldtype in ('Int', 'Float', 'Currency', 'Check') %} class="text-right" {% endif -%}
+{% endmacro %}
+{% if columns %}
+	{% set max_width = '100%' if columns|length > 3 else '600px' %}
+{% else %}
+	{% set max_width = '600px' %}
+{% endif %}
+<table class="report-title" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: {{ max_width }}">
+	<tr>
+		<td>
+			<b>{{ title }}</b>
+		</td>
+	</tr>
+	{% if description %}
+	<tr>
+		<td>{{ description }}</td>
+	</tr>
+	{% endif %}
+</table>
+{% if data %}
+<table class="table table-bordered text-medium" cellpadding="0" cellspacing="0" border="0" style="max-width: {{ max_width }}">
+	<thead>
+		<tr>
+			{% for col in columns %}
+			<th {{- get_alignment(col) }}>
+				{{- _(col.label) -}}
+			</th>
+			{% endfor %}
+		</tr>
+	</thead>
+	<tbody>
+		{% for row in data %}
+		<tr>
+			{% for col in columns %}
+				{% if row[col.fieldname] == 'Total' %}
+					<td {{- get_alignment(col) }}>
+						{{- row[col.fieldname] -}}
+					</td>
+				{% else %}
+					<td {{- get_alignment(col) }}>
+						{{- frappe.format(row[col.fieldname], col, row) -}}
+					</td>
+				{% endif %}
+			{% endfor %}
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+{% endif %}
+
+{% if not frappe.db.get_value("System Settings", "System Settings", "hide_footer_in_auto_email_reports")|int %}
+<table class="more-info" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: {{ max_width }}">
+	<tr>
+		<td>
+			<p>
+				{{ _("This report was generated on {0}").format(date_time) }}
+			</p>
+			<p>
+				{{ _("View report in your browser") }}:
+				<a href= {{report_url}} target="_blank">{{report_name}}</a>
+			</p>
+			<p>{{ _("Edit Auto Email Report Settings") }}: {{edit_report_settings}}</p>
+		</td>
+	</tr>
+</table>
+{% endif %}

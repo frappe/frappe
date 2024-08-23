@@ -1,0 +1,76 @@
+{% extends base_template_path %}
+{% block hero %}{% endblock %}
+
+{% block content %}
+
+{% macro main_content() %}
+<div class="page-content-wrapper">
+	<!-- breadcrumbs -->
+	<div class="page-breadcrumbs">
+		{% block breadcrumbs %}
+			{% include 'templates/includes/breadcrumbs.html' %}
+		{% endblock %}
+	</div>
+
+	{% block page_container %}
+	<main class="{% if not full_width %}container my-4{% endif %}">
+		<div class="page-header-wrapper">
+			<div class="page-header">
+				{% block header %}{% endblock %}
+			</div>
+
+			{% if self.header_actions() %}
+			<div class="page-header-actions-block">
+				{% block header_actions %}{% endblock %}
+			</div>
+			{% endif %}
+		</div>
+
+		<div class="page_content">
+			{%- block page_content -%}{%- endblock -%}
+		</div>
+
+		<div class="page-footer">
+			{%- block page_footer -%}{%- endblock -%}
+		</div>
+	</main>
+	{% endblock %}
+</div>
+{% endmacro %}
+
+{% macro container_attributes() -%}
+id="page-{{ name or route | e }}" data-path="{{ pathname | e }}"
+{%- if page_or_generator=="Generator" %}source-type="Generator" data-doctype="{{ doctype }}"{%- endif %}
+{%- if source_content_type %}source-content-type="{{ source_content_type }}"{%- endif %}
+{%- endmacro %}
+
+{% macro sidebar() %}
+<div class="sidebar-column col-sm-{{ columns }}">
+	{% block page_sidebar %}
+	{% include "templates/includes/web_sidebar.html" %}
+	{% endblock %}
+</div>
+{% endmacro %}
+
+{% if show_sidebar %}
+<div class="container">
+	<div class="row" {{ container_attributes() }}>
+		{%- set columns = sidebar_columns or 2 -%}
+		{%- if not sidebar_right -%}
+		{{ sidebar() }}
+		{%- endif -%}
+		<div class="main-column col-sm-{{ 12 - columns }}">
+			{{ main_content() }}
+		</div>
+		{%- if sidebar_right -%}
+		{{ sidebar() }}
+		{%- endif -%}
+	</div>
+</div>
+{% else %}
+<div {{ container_attributes() }}>
+	{{ main_content() }}
+</div>
+{% endif %}
+
+{% endblock %}

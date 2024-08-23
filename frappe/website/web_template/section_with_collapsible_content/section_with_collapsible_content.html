@@ -1,0 +1,42 @@
+<div class="section-with-collapsible-content {{ 'align-center' if align == 'Center' else '' }}">
+	<h2 class="section-title">{{ _(title) }}</h2>
+	{%- if subtitle -%}
+	<p class="section-description">{{ _(subtitle) }}</p>
+	{%- endif -%}
+
+	<div class="collapsible-items">
+		{%- for item in items -%}
+		<div class="collapsible-item">
+			{%- set collapse_id = 'id-' + frappe.utils.generate_hash(length=12) -%}
+			<a class="collapsible-title" data-toggle="collapse" href="#{{ collapse_id }}" role="button"
+				aria-expanded="false" aria-controls="{{ collapse_id }}">
+				<div class="collapsible-item-title">{{ _(item.title) }}</div>
+				<svg class="collapsible-icon" width="24" height="24" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+					<path class="vertical" d="M8 4V12" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10"
+						stroke-linecap="round"
+						stroke-linejoin="round" />
+					<path class="horizontal" d="M4 8H12" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10"
+						stroke-linecap="round"
+						stroke-linejoin="round" />
+				</svg>
+			</a>
+			<div class="collapse collapsible-content from-markdown" id="{{ collapse_id }}">
+				<div>
+					{{ frappe.utils.md_to_html(_(item.content)) }}
+				</div>
+			</div>
+		</div>
+		{%- endfor -%}
+	</div>
+</div>
+
+<script>
+	$(() => {
+		$('.collapsible-content').on('hide.bs.collapse', function () {
+			$(this).prev('.collapsible-title').find('.collapsible-icon').removeClass('is-opened');
+		})
+		$('.collapsible-content').on('show.bs.collapse', function () {
+			$(this).prev('.collapsible-title').find('.collapsible-icon').addClass('is-opened');
+		})
+	})
+</script>

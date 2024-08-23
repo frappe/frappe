@@ -1,0 +1,205 @@
+// colors
+$color_list: gray, blue, green, red, orange, amber, yellow, cyan, teal, violet, pink, purple,
+	white-overlay, black-overlay;
+
+$gray-50: #f8f8f8;
+$gray-100: #f3f3f3;
+$gray-200: #ededed;
+$gray-300: #e2e2e2;
+$gray-400: #c7c7c7;
+$gray-500: #999999;
+$gray-600: #7c7c7c;
+$gray-700: #525252;
+$gray-800: #383838;
+$gray-900: #171717;
+
+$primary: $gray-900;
+$primary-light: lighten($primary, 80%) !default;
+
+$danger: #e03636;
+$light-yellow: #fef4e2;
+
+:root {
+	--neutral-white: #ffffff;
+	--neutral-black: #000000;
+	--neutral: var(--neutral-white);
+	--invert-neutral: var(--neutral-black);
+
+	--gray-50: #f8f8f8;
+	--gray-100: #f3f3f3;
+	--gray-200: #ededed;
+	--gray-300: #e2e2e2;
+	--gray-400: #c7c7c7;
+	--gray-500: #999999;
+	--gray-600: #7c7c7c;
+	--gray-700: #525252;
+	--gray-800: #383838;
+	--gray-900: #171717;
+
+	--blue-50: #f7fbfd;
+	--blue-100: #edf6fd;
+	--blue-200: #e3f1fd;
+	--blue-300: #c9e7fc;
+	--blue-400: #70b6f0;
+	--blue-500: #0289f7;
+	--blue-600: #007be0;
+	--blue-700: #0070cc;
+	--blue-800: #005ca3;
+	--blue-900: #004880;
+
+	--green-50: #f3fcf5;
+	--green-100: #e4f5e9;
+	--green-200: #daf0e1;
+	--green-300: #cae5d4;
+	--green-400: #b6dec5;
+	--green-500: #59ba8b;
+	--green-600: #30a66d;
+	--green-700: #278f5e;
+	--green-800: #16794c;
+	--green-900: #173b2c;
+
+	--red-50: #fff7f7;
+	--red-100: #fff0f0;
+	--red-200: #fcd7d7;
+	--red-300: #f9c6c6;
+	--red-400: #eb9091;
+	--red-500: #e03636;
+	--red-600: #cc2929;
+	--red-700: #b52a2a;
+	--red-800: #941f1f;
+	--red-900: #6b1515;
+
+	--orange-50: #fff9f5;
+	--orange-100: #fff1e7;
+	--orange-200: #fce6d5;
+	--orange-300: #f7d6bd;
+	--orange-400: #f0b58b;
+	--orange-500: #e86c13;
+	--orange-600: #d45a08;
+	--orange-700: #bd3e0c;
+	--orange-800: #9e3513;
+	--orange-900: #6b2711;
+
+	--amber-50: #fdfaed;
+	--amber-100: #fcf3cf;
+	--amber-200: #f7e28d;
+	--amber-300: #f5d261;
+	--amber-400: #f2be3a;
+	--amber-500: #e79913;
+	--amber-600: #db7706;
+	--amber-700: #b35309;
+	--amber-800: #91400d;
+	--amber-900: #763813;
+
+	--yellow-50: #fffcef;
+	--yellow-100: #fff7d3;
+	--yellow-200: #f7e9a8;
+	--yellow-300: #f5e171;
+	--yellow-400: #f2d14b;
+	--yellow-500: #edba13;
+	--yellow-600: #d1930d;
+	--yellow-700: #ab6e05;
+	--yellow-800: #8c5600;
+	--yellow-900: #733f12;
+
+	--cyan-50: #f5fbfc;
+	--cyan-100: #e0f8ff;
+	--cyan-200: #b3ecfc;
+	--cyan-300: #94e6ff;
+	--cyan-400: #6bd3f2;
+	--cyan-500: #34bae3;
+	--cyan-600: #32a4c7;
+	--cyan-700: #267a94;
+	--cyan-800: #125c73;
+	--cyan-900: #164759;
+
+	--teal-50: #f0fdfa;
+	--teal-100: #e6f7f4;
+	--teal-200: #bae8e1;
+	--teal-300: #97ded4;
+	--teal-400: #73d1c4;
+	--teal-500: #36baad;
+	--teal-600: #0b9e92;
+	--teal-700: #0f736b;
+	--teal-800: #115c57;
+	--teal-900: #114541;
+
+	--violet-50: #fbfaff;
+	--violet-100: #f5f2ff;
+	--violet-200: #e5e1fa;
+	--violet-300: #dad2f7;
+	--violet-400: #bdb1f0;
+	--violet-500: #6846e3;
+	--violet-600: #5f46c7;
+	--violet-700: #4f3da1;
+	--violet-800: #392980;
+	--violet-900: #251959;
+
+	--pink-50: #fff7fc;
+	--pink-100: #feeef8;
+	--pink-200: #f8e2f0;
+	--pink-300: #f2d4e6;
+	--pink-400: #e9c4da;
+	--pink-500: #e34aa6;
+	--pink-600: #cf3a96;
+	--pink-700: #9c2671;
+	--pink-800: #801458;
+	--pink-900: #570f3e;
+
+	--purple-50: #fdfaff;
+	--purple-100: #f9f0ff;
+	--purple-200: #f1e5fa;
+	--purple-300: #e9d6f5;
+	--purple-400: #d6c1e6;
+	--purple-500: #9c45e3;
+	--purple-600: #8642c2;
+	--purple-700: #6e399d;
+	--purple-800: #5c2f83;
+	--purple-900: #401863;
+
+	// overlays
+	--white-overlay-50: rgba(255, 255, 255, 0.09);
+	--white-overlay-100: rgba(255, 255, 255, 0.18);
+	--white-overlay-200: rgba(255, 255, 255, 0.27);
+	--white-overlay-300: rgba(255, 255, 255, 0.36);
+	--white-overlay-400: rgba(255, 255, 255, 0.45);
+	--white-overlay-500: rgba(255, 255, 255, 0.54);
+	--white-overlay-600: rgba(255, 255, 255, 0.63);
+	--white-overlay-700: rgba(255, 255, 255, 0.72);
+	--white-overlay-800: rgba(255, 255, 255, 0.81);
+	--white-overlay-900: rgba(255, 255, 255, 0.9);
+
+	--black-overlay-50: rgba(0, 0, 0, 0.09);
+	--black-overlay-100: rgba(0, 0, 0, 0.18);
+	--black-overlay-200: rgba(0, 0, 0, 0.27);
+	--black-overlay-300: rgba(0, 0, 0, 0.36);
+	--black-overlay-400: rgba(0, 0, 0, 0.45);
+	--black-overlay-500: rgba(0, 0, 0, 0.54);
+	--black-overlay-600: rgba(0, 0, 0, 0.63);
+	--black-overlay-700: rgba(0, 0, 0, 0.72);
+	--black-overlay-800: rgba(0, 0, 0, 0.81);
+	--black-overlay-900: rgba(0, 0, 0, 0.9);
+
+	// gradients
+	--linear-black: linear-gradient(
+		to bottom,
+		rgba(46, 46, 46, 0.18) 0%,
+		rgba(36, 36, 36, 0.14) 100%
+	);
+	--linear-blue: linear-gradient(
+		to bottom,
+		rgba(17, 142, 245, 0.067) 0%,
+		rgba(7, 127, 247, 0.029) 100%
+	);
+	--angular-white: conic-gradient(rgba(255, 255, 255, 1) 72.38%, rgba(255, 255, 255, 1) 99.87%);
+	--angular-black: conic-gradient(rgba(56, 56, 56, 0.22) 72.38%, rgba(56, 56, 56, 0.22) 99.87%);
+	--angular-green: conic-gradient(
+		rgba(23, 117, 75, 0.092) 72.38%,
+		rgba(23, 117, 75, 0.092) 99.87%
+	);
+	--angular-red: conic-gradient(
+		rgba(205, 41, 41, 0.804) 72.38%,
+		rgba(205, 41, 41, 0.804) 99.87%
+	);
+	--angular-blue: conic-gradient(rgba(0, 110, 219, 0) 72.38%, rgba(0, 110, 219, 0) 99.87%);
+}

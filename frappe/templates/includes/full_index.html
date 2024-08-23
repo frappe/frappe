@@ -1,0 +1,11 @@
+{% macro make_item_list(route, children_map) %}
+    <ol>
+    {% for item in children_map[route] %}
+        <li>
+            <a href="{{ url_prefix }}{{ item.route }}">{{ item.title }}</a>
+        </li>
+    {% endfor %}
+    </ol>
+{% endmacro %}
+
+{{ make_item_list(route, full_index) }}

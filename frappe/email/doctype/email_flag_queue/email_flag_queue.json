@@ -1,0 +1,68 @@
+{
+ "actions": [],
+ "allow_copy": 1,
+ "creation": "2016-04-20 15:29:39.785172",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "is_completed",
+  "communication",
+  "action",
+  "email_account",
+  "uid"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "is_completed",
+   "fieldtype": "Check",
+   "label": "Is Completed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "communication",
+   "fieldtype": "Data",
+   "label": "Communication"
+  },
+  {
+   "fieldname": "action",
+   "fieldtype": "Select",
+   "label": "Action",
+   "options": "Read\nUnread"
+  },
+  {
+   "fieldname": "email_account",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Email Account"
+  },
+  {
+   "fieldname": "uid",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "UID"
+  }
+ ],
+ "in_create": 1,
+ "links": [],
+ "modified": "2024-03-23 16:03:24.005944",
+ "modified_by": "Administrator",
+ "module": "Email",
+ "name": "Email Flag Queue",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,0 +1,13 @@
+{% macro square_image_with_fallback(src=None, size='small', alt=None, class="") %}
+{% if src %}
+<img class="rounded-lg website-image-{{ size }} mr-2" src="{{ src }}">
+{% else %}
+<div class="no-image bg-light {{ class }} " {% if size %}style="width: {{size}}; height: {{size}};"{% endif %}></div>
+{% endif %}
+{% endmacro %}
+
+{%- macro inspect(var, render=True) -%}
+{%- if render -%}
+<pre>{{ var | pprint | e }}</pre>
+{%- endif -%}
+{%- endmacro %}

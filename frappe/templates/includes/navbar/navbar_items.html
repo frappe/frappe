@@ -1,0 +1,108 @@
+{% macro render_item(item, submenu=False, parent=False) %}
+{% if item.child_items %}
+
+{% if parent %}
+
+{%- set dropdown_id = 'id-' + frappe.utils.generate_hash(length=12) -%}
+<li class="nav-item dropdown {% if submenu %} dropdown-submenu {% endif %}">
+	<a class="nav-link dropdown-toggle" href="#" id="{{ dropdown_id }}" role="button"
+		data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		{{ _(item.label) }}
+	</a>
+  	<ul class="dropdown-menu" aria-labelledby="{{ dropdown_id }}">
+		{% for child in item.child_items %}
+			{{ render_item(child, True) }}
+	  {% endfor %}
+	</ul>
+</li>
+{% else %}
+{%- set dropdown_id = 'id-' + frappe.utils.generate_hash(length=12) -%}
+<li class="dropdown {% if submenu %} dropdown-submenu {% endif %}">
+	<a class="dropdown-item dropdown-toggle" href="#" id="{{ dropdown_id }}" role="button"
+		data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		{{ _(item.label) }}
+	</a>
+	<ul class="dropdown-menu" aria-labelledby="{{ dropdown_id }}">
+		{% for child in item.child_items %}
+			{{ render_item(child, True) }}
+	{% endfor %}
+	</ul>
+</li>
+{% endif %}
+
+{% else %}
+
+{% set url = item.url or '' %}
+{% set url = url if url.startswith('#') else url | abs_url %}
+
+{% if parent %}
+<li class="nav-item">
+	<a class="nav-link" href="{{ url }}"
+		{% if item.open_in_new_tab %} target="_blank" {% endif %}>
+		{{ _(item.label) }}
+	</a>
+</li>
+{% else %}
+<a class="dropdown-item" href="{{ url }}"
+	{% if item.open_in_new_tab %} target="_blank" {% endif %}>
+	{{ _(item.label) }}
+</a>
+{% endif %}
+
+{% endif %}
+{% endmacro %}
+
+{% if top_bar_items -%}
+<ul class="mr-auto navbar-nav">
+	{%- for item in top_bar_items -%}
+		{% if not item.parent_label and not item.right -%}
+			{{ render_item(item, parent=True) }}
+		{%- endif -%}
+	{%- endfor %}
+</ul>
+{%- endif %}
+<ul class="ml-auto navbar-nav">
+	{% include "templates/includes/navbar/navbar_search.html" %}
+	{%- for item in top_bar_items -%}
+		{% if not item.parent_label and item.right -%}
+			{{ render_item(item, parent=True) }}
+		{%- endif -%}
+	{%- endfor %}
+	{% if not only_static %}
+		{% block navbar_right_extension %}{% endblock %}
+	{% endif %}
+
+	{% if show_sidebar and sidebar_items %}
+	<div class="d-block d-lg-none">
+		<hr>
+		{% for item in sidebar_items -%}
+		<li class="nav-item">
+			{% if item.type != 'input' %}
+				<a href="{{ item.route }}" class="nav-link {{ 'text-dark' if pathname==item.route else 'text-muted'}}"
+					{% if item.target %}target="{{ item.target }}"{% endif %}>
+					{{ _(item.title or item.label) }}
+				</a>
+			{% endif %}
+		</li>
+		{%- endfor %}
+		<hr>
+	</div>
+	{% endif %}
+
+	{% if read_only_mode %}
+		<div
+			class="indicator-pill yellow no-indicator-dot align-self-center"
+			title="{{ _("This site is in read only mode, full functionality will be restored soon.") }}"
+		>
+			{{ _("Read Only Mode") }}
+		</div>
+	{% endif %}
+
+	{% include "templates/includes/navbar/navbar_login.html" %}
+
+</ul>
+{%- if call_to_action -%}
+<a class="btn btn-primary navbar-cta" href="{{ call_to_action_url | abs_url }}">
+	{{ call_to_action }}
+</a>
+{%- endif -%}

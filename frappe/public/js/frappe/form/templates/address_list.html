@@ -1,0 +1,44 @@
+<div class="clearfix"></div>
+{% for (const addr of addr_list) { %}
+	<div class="address-box">
+		<a
+			href="{%= frappe.utils.get_form_link('Address', addr.name) %}"
+			class="btn btn-xs btn-default edit-btn"
+			title="{%= __('Edit') %}"
+		>
+			<svg class="icon icon-xs">
+				<use href="#icon-edit"></use>
+			</svg>
+		</a>
+		<p class="h6 flex flex-wrap">
+			<span>{%= addr.address_title %}</span>
+			{% if (addr.address_type !== "Other") { %}
+				&nbsp;&#183;&nbsp;
+				<span class="text-muted">{%= __(addr.address_type) %}</span>
+			{% } %}
+			{% if (addr.is_primary_address) { %}
+				&nbsp;&#183;&nbsp;
+				<span class="text-muted">{%= __("Primary Address") %}</span>
+			{% } %}
+			{% if (addr.is_shipping_address) { %}
+				&nbsp;&#183;&nbsp;
+				<span class="text-muted">{%= __("Shipping Address") %}</span>
+			{% } %}
+			{% if (addr.disabled) { %}
+				&nbsp;&#183;&nbsp;
+				<span class="text-muted">{%= __("Disabled") %}</span>
+			{% } %}
+		</p>
+		<p>{%= addr.display %}</p>
+	</div>
+{% } %}
+
+{% if (!addr_list.length) { %}
+	<p class="text-muted small">{%= __("No address added yet.") %}</p>
+{% } %}
+
+<p>
+	<button class="btn btn-xs btn-default btn-address">
+		{{ __("New Address") }}
+	</button>
+</p>

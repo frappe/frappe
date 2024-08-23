@@ -1,0 +1,15 @@
+{
+ "creation": "2017-08-17 02:00:12.502887", 
+ "css": "/*\n\tcommon style for whole page\n\tThis should include:\n\t+ page size related settings\n\t+ font family settings\n\t+ line spacing settings\n*/\n.print-format div,\n.print-format span,\n.print-format td,\n.print-format h1,\n.print-format h2,\n.print-format h3,\n.print-format h4 {\n\tfont-family: Georgia, serif;\n}\n\n/* classic format: for-test */", 
+ "disabled": 0, 
+ "docstatus": 0, 
+ "doctype": "Print Style", 
+ "idx": 1, 
+ "modified": "2017-08-18 00:43:48.675833", 
+ "modified_by": "Administrator", 
+ "name": "Classic", 
+ "owner": "Administrator", 
+ "preview": "/assets/frappe/images/help/print-style-classic.png", 
+ "print_style_name": "Classic", 
+ "standard": 1
+}

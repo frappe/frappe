@@ -1,0 +1,61 @@
+{% from "frappe/templates/includes/avatar_macro.html" import avatar %}
+<div class="reply-card" data-reply="{{ reply.name }}">
+	{% set member = frappe.db.get_value("User", reply.owner, ["name", "full_name", "username"], as_dict=True) %}
+
+	<div class="reply-header">
+		{{ avatar(reply.owner) }}
+		<a class="button-links topic-author ml-3"
+			{% if get_profile_url %} href="{{ get_profile_url(member.username) }}" {% endif %}>
+			{{ member.full_name }}
+		</a>
+		<div class="ml-2 frappe-timestamp" data-timestamp="{{ reply.creation }}">
+			{{ frappe.utils.pretty_date(reply.creation) }}
+		</div>
+		<div class="reply-actions hide">
+			<div class="submit-discussion mr-2"> {{ _("Post") }} </div>
+			<div class="dismiss-reply"> {{ _("Dismiss") }} </div>
+		</div>
+	</div>
+
+	<div class="reply-body">
+		{% if frappe.session.user == reply.owner %}
+		<div class="dropdown ml-auto">
+			<svg class="icon icon-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				<use href="#icon-dot-horizontal"></use>
+			</svg>
+			<ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+				<li>
+					<a class="dropdown-item small" data-action="edit">
+						{{ _("Edit") }}
+					</a>
+				</li>
+				{% if index != 1 %}
+				<li>
+					<a class="dropdown-item small" data-action="delete">
+						{{ _("Delete") }}
+					</a>
+				</li>
+				{% endif %}
+			</ul>
+		</div>
+		{% endif %}
+	</div>
+
+	<div class="reply-body">
+		<div class="reply-text">{{ reply.reply }}</div>
+	</div>
+
+	<div class="reply-edit-card hide">
+		<div class="form-group">
+			<div class="control-input-wrapper">
+				<div class="control-input">
+					<div class="discussions-comment"></div>
+					<div class="comment-content hide">
+						{{ reply.reply }}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+

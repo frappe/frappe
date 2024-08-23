@@ -1,0 +1,162 @@
+@import "../element/checkbox";
+@import "../element/radio";
+
+html,
+body {
+	height: 100%;
+	font-family: var(--font-stack);
+	font-variation-settings: "opsz" 24;
+}
+
+/* checkbox */
+.checkbox {
+	label {
+		display: inline-flex;
+		align-items: center;
+		margin-bottom: 0;
+	}
+	--checkbox-right-margin: 8px;
+
+	.label-area {
+		@include get_textstyle("sm", "medium");
+		color: var(--text-color);
+	}
+
+	.input-area,
+	.disp-area {
+		display: flex;
+	}
+}
+
+.frappe-card {
+	@include card();
+	box-shadow: none;
+	border: 1px solid var(--gray-300);
+}
+
+.frappe-control[data-fieldtype="Select"].frappe-control[data-fieldname="color"] {
+	.color-select {
+		padding-left: 40px;
+	}
+
+	.color-box {
+		position: absolute;
+		top: calc(50% - 11px);
+		left: 8px;
+		width: 22px;
+		height: 22px;
+		border-radius: 5px;
+		z-index: 1;
+	}
+}
+
+.frappe-control[data-fieldtype="Select"] .control-input,
+.frappe-control[data-fieldtype="Select"].form-group {
+	position: relative;
+
+	select {
+		/* for Firefox */
+		-moz-appearance: none;
+		/* for Chrome */
+		-webkit-appearance: none;
+	}
+
+	.select-icon {
+		padding-left: inherit;
+		padding-right: inherit;
+		position: absolute;
+		pointer-events: none;
+		top: 3px;
+		right: 12px;
+
+		&.xs {
+			top: 3px;
+			right: 10px;
+		}
+
+		.icon {
+			use {
+				stroke: var(--text-muted);
+			}
+		}
+	}
+
+	.placeholder {
+		padding-left: inherit;
+		padding-right: inherit;
+		position: absolute;
+		pointer-events: none;
+		top: 3px;
+		left: 12px;
+		max-width: 80%;
+
+		&.xs {
+			top: 3px;
+		}
+	}
+}
+
+.no-border {
+	border: none !important;
+}
+
+.whitespace-nowrap {
+	white-space: nowrap;
+}
+
+.app-change-log-body {
+	h1 {
+		font-size: var(--text-2xl);
+	}
+}
+
+.new-version-log {
+	.new-version-links {
+		padding: var(--padding-xs) 0px;
+	}
+
+	&:not(:last-child) {
+		margin-bottom: 1em;
+	}
+}
+
+.centered {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	-webkit-transform: translate(-50%, -50%);
+}
+
+.hide {
+	display: none !important;
+}
+
+.btn-link {
+	box-shadow: none !important;
+	outline: none;
+	.icon,
+	&:hover {
+		text-decoration: none !important;
+	}
+}
+
+.hidden {
+	@extend .d-none;
+}
+
+.margin {
+	margin: var(--margin-sm);
+}
+.margin-top {
+	margin-top: var(--margin-sm);
+}
+.margin-bottom {
+	margin-bottom: var(--margin-sm);
+}
+.margin-left {
+	margin-left: var(--margin-sm);
+}
+.margin-right {
+	margin-right: var(--margin-sm);
+}

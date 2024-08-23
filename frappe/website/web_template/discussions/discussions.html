@@ -1,0 +1,6 @@
+{% set doctype = "Web Page" %}
+{% set empty_state_title = _("No {0}").format(title) %}
+{% set empty_state_subtitle = _("There are no {0} for this {1}, why don't you start one!").format(title | lower , doctype | lower) %}
+
+{% include "frappe/templates/discussions/discussions_section.html" %}
+

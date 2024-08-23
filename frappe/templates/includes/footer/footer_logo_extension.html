@@ -1,0 +1,16 @@
+<div class="footer-logo-extension">
+	<div class="row">
+		<div class="text-left col-md-6">
+			{%- if footer_logo -%}
+			<div>
+				<img src="{{ footer_logo }}" alt="Footer Logo" class="footer-logo">
+			</div>
+			{%- endif -%}
+		</div>
+		<div class="text-right col-md-6">
+			{% block extension %}
+			{% include "templates/includes/footer/footer_extension.html" %}
+			{% endblock %}
+		</div>
+	</div>
+</div>

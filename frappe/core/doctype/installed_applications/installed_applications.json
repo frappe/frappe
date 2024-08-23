@@ -1,0 +1,43 @@
+{
+ "actions": [],
+ "creation": "2020-05-11 17:45:41.587750",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "installed_applications"
+ ],
+ "fields": [
+  {
+   "fieldname": "installed_applications",
+   "fieldtype": "Table",
+   "label": "Installed Applications",
+   "options": "Installed Application",
+   "read_only": 1
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-03-23 16:03:27.992755",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Installed Applications",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

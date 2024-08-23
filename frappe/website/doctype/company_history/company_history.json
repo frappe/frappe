@@ -1,0 +1,39 @@
+{
+ "actions": [],
+ "creation": "2013-02-22 01:28:08",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "year",
+  "highlight"
+ ],
+ "fields": [
+  {
+   "fieldname": "year",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Year"
+  },
+  {
+   "fieldname": "highlight",
+   "fieldtype": "Text",
+   "in_list_view": 1,
+   "label": "Highlight",
+   "print_width": "300px",
+   "width": "300px"
+  }
+ ],
+ "idx": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-03-23 16:01:30.539017",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Company History",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

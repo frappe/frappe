@@ -1,0 +1,16 @@
+
+{% if (!stats.length) { %}
+<li class="stat-no-records text-muted">{{ __("No records tagged.") }}</li>
+{% } else {
+	for (var i=0, l=stats.length; i < l; i++) {
+		var stat_label = stats[i][0];
+		var stat_count = stats[i][1];
+%}
+<li>
+	<a class="stat-link dropdown-item" data-label="{{ stat_label %}" data-field="_user_tags" href="#" onclick="return false;">
+		<span class="stat-label">{{ __(stat_label) }}</span>
+		<span>{{ stat_count }}</span>
+	</a>
+</li>
+	{% }
+} %}

@@ -1,0 +1,90 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2023-02-22 11:23:58.183276",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "user",
+  "remind_at",
+  "description",
+  "reminder_doctype",
+  "reminder_docname",
+  "notified"
+ ],
+ "fields": [
+  {
+   "default": "__user",
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "User",
+   "options": "User",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "reminder_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document Type",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reminder_docname",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Document Name",
+   "options": "reminder_doctype",
+   "read_only": 1
+  },
+  {
+   "default": "now",
+   "fieldname": "remind_at",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Remind At",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "notified",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "notified"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-03-23 16:03:36.224060",
+ "modified_by": "Administrator",
+ "module": "Automation",
+ "name": "Reminder",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "Desk User",
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "description"
+}

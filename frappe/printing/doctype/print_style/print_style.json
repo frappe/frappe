@@ -1,0 +1,75 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:print_style_name",
+ "creation": "2017-08-17 01:25:56.910716",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "print_style_name",
+  "disabled",
+  "standard",
+  "css",
+  "preview"
+ ],
+ "fields": [
+  {
+   "fieldname": "print_style_name",
+   "fieldtype": "Data",
+   "label": "Print Style Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Disabled"
+  },
+  {
+   "default": "0",
+   "fieldname": "standard",
+   "fieldtype": "Check",
+   "label": "Standard"
+  },
+  {
+   "fieldname": "css",
+   "fieldtype": "Code",
+   "label": "CSS",
+   "reqd": 1
+  },
+  {
+   "fieldname": "preview",
+   "fieldtype": "Attach Image",
+   "hidden": 1,
+   "label": "Preview"
+  }
+ ],
+ "image_field": "preview",
+ "links": [],
+ "modified": "2024-03-23 16:03:35.511731",
+ "modified_by": "Administrator",
+ "module": "Printing",
+ "name": "Print Style",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

@@ -1,0 +1,64 @@
+<!-- title -->
+{% if title %}
+<h2>{{ __(title) }}</h2>
+<hr>
+{% endif %}
+{% if subtitle %}
+{{ subtitle }}
+<hr>
+{% endif %}
+<table class="table table-bordered">
+	<!-- heading -->
+	<thead>
+		<tr>
+		<th> # </th>
+		{% for col in columns %}
+			{% if col.name && col._id !== "_check" %}
+			<th
+				{% if col.minWidth %}
+					style="min-width: {{ col.minWidth }}px"
+				{% endif %}
+				{% if col.docfield && frappe.model.is_numeric_field(col.docfield) %}
+					class="text-right"
+				{% endif %}
+			>
+				{{ __(col.name) }}</th>
+			{% endif %}
+		{% endfor %}
+		</tr>
+	</thead>
+	<!-- body -->
+	<tbody>
+		{% for row in data %}
+			<tr style="height: 30px">
+			<td {% if row.bold == 1 %} style="font-weight: bold" {% endif %}>
+				<span> {{ row._index + 1 }} </span>
+			</td>
+			{% for col in columns %}
+				{% if col.name && col._id !== "_check" %}
+					{% var value = col.fieldname ? row[col.fieldname] : row[col.id] %}
+					{% var longest_word = cstr(value).split(' ').reduce((longest, word) => word.length > longest.length ? word : longest, ''); %}
+					<td {% if row.bold == 1 %} style="font-weight: bold" {% endif %} {% if longest_word.length > 45 %} class="overflow-wrap-anywhere" {% endif %}>
+						<span {% if col._index == 0 %} style="padding-left: {%= cint(row.indent) * 2 %}em" {% endif %}>
+							{% format_data = row.is_total_row && ["Currency", "Float"].includes(col.fieldtype) ? data[0] : row %}
+							{% if (row.is_total_row && col._index == 0) { %}
+								{{ __("Total") }}
+							{% } else { %}
+								{{
+									col.formatter
+										? col.formatter(row._index, col._index, value, col, format_data, true)
+										: col.format
+											? col.format(value, row, col, format_data)
+											: col.docfield
+												? frappe.format(value, col.docfield)
+												: value
+								}}
+							{% } %}
+						</span>
+					</td>
+				{% endif %}
+			{% endfor %}
+			</tr>
+		{% endfor %}
+	</tbody>
+</table>
