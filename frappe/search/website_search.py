@@ -46,7 +46,7 @@ class WebsiteSearch(FullTextSearch):
 
 		print()
 
-		return self.get_items_to_index()
+		return self._items_to_index
 
 	def get_document_to_index(self, route: str) -> frappe._dict | None:
 		"""Render a page and parse it using `BeautifulSoup`.
