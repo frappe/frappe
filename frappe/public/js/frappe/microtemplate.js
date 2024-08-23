@@ -8,8 +8,8 @@ frappe.template.compile = function (str, name) {
 	var key = name || str;
 
 	if (!frappe.template.compiled[key]) {
-		if (str.indexOf("'") !== -1) {
-			str.replace(/'/g, "\\'");
+		if (str.indexOf("`") !== -1) {
+			str.replace(/`/g, "\\`");
 			//console.warn("Warning: Single quotes (') may not work in templates");
 		}
 
@@ -67,21 +67,21 @@ frappe.template.compile = function (str, name) {
 		var fn_str =
 			"var _p=[],print=function(){_p.push.apply(_p,arguments)};" +
 			// Introduce the data as local variables using with(){}
-			"with(obj){\n_p.push('" +
+			"with(obj){\n_p.push(`" +
 			// Convert the template into pure JavaScript
 			str
 				.replace(/[\r\t\n]/g, " ")
 				.split("{%")
 				.join("\t")
-				.replace(/((^|%})[^\t]*)'/g, "$1\r")
-				.replace(/\t=(.*?)%}/g, "',$1,'")
+				.replace(/((^|%})[^\t]*)`/g, "$1\r")
+				.replace(/\t=(.*?)%}/g, "`,$1,`")
 				.split("\t")
-				.join("');\n")
+				.join("`);\n")
 				.split("%}")
-				.join("\n_p.push('")
+				.join("\n_p.push(`")
 				.split("\r")
-				.join("\\'") +
-			"');}return _p.join('');";
+				.join("`\\'`") +
+			"`);}return _p.join('');";
 
 		frappe.template.debug[name] = fn_str;
 		try {
