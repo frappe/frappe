@@ -514,7 +514,7 @@ kbd {
 
 // freeze backdrop text
 #freeze {
-	z-index: 1055;
+	z-index: 2000;
 	bottom: 0;
 	opacity: 0;
 	background-color: var(--bg-color);

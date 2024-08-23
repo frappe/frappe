@@ -57,10 +57,39 @@ body[data-route^="Module"] .main-menu {
 	flex-direction: column;
 	height: fit-content;
 	width: fit-content;
+
+	.body-sidebar-placeholder {
+		display: none;
+		width: 53px;
+		height: 100vh;
+	}
+
+	&:hover {
+		.body-sidebar {
+			// make it an overlay on hover
+			position: absolute;
+			width: 200px;
+
+			.sidebar-item-label {
+				display: flex;
+			}
+			.sidebar-item-control {
+				display: block;
+			}
+			.edit-sidebar-link {
+				display: block;
+			}
+		}
+
+		// show placeholder so that main section remains static
+		.body-sidebar-placeholder {
+			display: flex;
+		}
+	}
 }
 
 .body-sidebar {
-	min-width: 50px;
+	width: 53px;
 	background: var(--subtle-accent);
 	border: 1px solid var(--border-color);
 
@@ -75,7 +104,7 @@ body[data-route^="Module"] .main-menu {
 	overflow-x: hidden;
 	overflow-y: auto;
 	padding: 15px;
-	z-index: 100;
+	z-index: 1030;
 	position: static;
 	font-size: var(--text-base);
 	transition: transform 200ms ease-in-out;
@@ -140,20 +169,6 @@ body[data-route^="Module"] .main-menu {
 
 	.edit-sidebar-link {
 		display: none;
-	}
-
-	&:hover {
-		width: 200px;
-
-		.sidebar-item-label {
-			display: flex;
-		}
-		.sidebar-item-control {
-			display: block;
-		}
-		.edit-sidebar-link {
-			display: block;
-		}
 	}
 
 	.sidebar-item-container {
@@ -386,7 +401,7 @@ body[data-route^="Module"] .main-menu {
 			top: 0;
 			left: 0;
 			transform: translateX(-110%);
-			z-index: 9999;
+			z-index: 1100;
 			box-shadow: var(--shadow-base);
 			height: 100%;
 			width: 40%;
@@ -417,7 +432,7 @@ body[data-route^="Module"] .main-menu {
 		right: 0;
 		opacity: 0.3;
 		background: #000;
-		z-index: 9998;
+		z-index: 1100;
 		height: 100%;
 		width: 100%;
 	}

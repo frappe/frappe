@@ -4,7 +4,7 @@
 	position: absolute;
 	bottom: 100%;
 	left: 0;
-	z-index: 9999;
+	z-index: 1050;
 	padding: 2px 6px;
 	border-radius: var(--border-radius-sm);
 	background-color: var(--bg-dark-gray);
@@ -29,9 +29,6 @@
 
 .form-section,
 .form-dashboard-section {
-	max-width: var(--page-max-width);
-	margin: auto;
-
 	.form-section-description {
 		margin-bottom: 10px;
 		@include get_textstyle("base", "regular");
@@ -44,8 +41,6 @@
 		color: var(--text-color);
 		width: 100%;
 		padding: var(--padding-sm) var(--padding-md);
-		margin: 0;
-		margin-bottom: var(--margin-sm);
 		cursor: default;
 
 		.collapse-indicator {
@@ -65,13 +60,21 @@
 	}
 
 	.section-body {
+		padding-top: var(--padding-sm);
 		width: 100%;
-		@extend .row;
-		margin: 0;
+		display: flex;
+		flex-wrap: wrap;
+
 		&:first-child {
 			margin-top: 1rem;
 		}
 	}
+}
+
+.section-head,
+.section-body {
+	max-width: var(--page-max-width);
+	margin: auto !important;
 }
 
 .form-column {
@@ -98,10 +101,6 @@
 .form-dashboard-section {
 	border-bottom: 1px solid var(--border-color);
 	padding: var(--padding-md) 0;
-}
-
-.row.form-section.card-section.visible-section:last-child {
-	border-bottom: none;
 }
 
 .form-section.card-section.hide-border {
@@ -441,6 +440,11 @@
 		.control-input-wrapper {
 			width: 62%; // golden ratio
 		}
+
+		.control-label {
+			margin-top: 3px;
+			margin-bottom: 3px;
+		}
 	}
 }
 
@@ -492,7 +496,6 @@
 	}
 }
 .form-tab-content {
-	margin-top: var(--margin-md);
 	scroll-margin-top: calc(var(--navbar-height) + 52px);
 }
 .form-tabs-sticky-up {

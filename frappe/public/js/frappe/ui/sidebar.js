@@ -3,6 +3,12 @@ frappe.provide("frappe.ui");
 frappe.ui.Sidebar = class Sidebar {
 	constructor() {
 		this.items = {};
+
+		if (!frappe.boot.setup_complete) {
+			// no sidebar if setup is not complete
+			return;
+		}
+
 		this.make_dom();
 		this.sidebar_items = {
 			public: {},
@@ -29,6 +35,7 @@ frappe.ui.Sidebar = class Sidebar {
 	make_dom() {
 		this.wrapper = $(`
 			<div class="body-sidebar-container">
+				<div class="body-sidebar-placeholder"></div>
 				<div class="body-sidebar hidden-xs hidden-sm">
 					<a href="/app">
 						<img
@@ -58,9 +65,6 @@ frappe.ui.Sidebar = class Sidebar {
 		this.all_pages = this.sidebar_pages.pages;
 		this.has_access = this.sidebar_pages.has_access;
 		this.has_create_access = this.sidebar_pages.has_create_access;
-		if (!this.sidebar_pages.workspace_setup_completed) {
-			frappe.quick_edit("Workspace Settings");
-		}
 
 		this.all_pages.forEach((page) => {
 			page.is_editable = !page.public || this.has_access;

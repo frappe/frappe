@@ -947,6 +947,11 @@ body {
 		}
 	}
 
+	.page-head .container {
+		max-width: var(--page-max-width);
+		margin: auto;
+	}
+
 	.layout-main-section-wrapper {
 		margin-top: -5px;
 		padding-top: 5px;
