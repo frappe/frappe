@@ -129,6 +129,12 @@ def get_mapped_doc(
 						table_map = {"doctype": target_child_doctype}
 
 			if table_map:
+				target_child_doctype = table_map["doctype"]
+				target_parentfield = target_doc.get_parentfield_of_doctype(target_child_doctype)
+
+				if table_map.get("reset_value"):
+					setattr(target_doc, target_parentfield, [])
+
 				for source_d in source_doc.get(df.fieldname):
 					if "condition" in table_map:
 						if not table_map["condition"](source_d):
@@ -142,9 +148,6 @@ def get_mapped_doc(
 						and source_d.name not in frappe.flags.selected_children[df.fieldname]
 					):
 						continue
-
-					target_child_doctype = table_map["doctype"]
-					target_parentfield = target_doc.get_parentfield_of_doctype(target_child_doctype)
 
 					# does row exist for a parentfield?
 					if target_parentfield not in row_exists_for_parentfield:
