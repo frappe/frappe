@@ -330,7 +330,22 @@ app_publisher = "{app_publisher}"
 app_description = "{app_description}"
 app_email = "{app_email}"
 app_license = "{app_license}"
+
+# Apps
+# ------------------
+
 # required_apps = []
+
+# Each item in the list will be shown as an app in the apps page
+# add_to_apps_screen = [
+# 	{{
+# 		"name": "{app_name}",
+# 		"logo": "/assets/{app_name}/logo.png",
+# 		"title": "{app_title}",
+# 		"route": "/{app_name}",
+# 		"has_permission": "{app_name}.api.permission.has_app_permission"
+# 	}}
+# ]
 
 # Includes in <head>
 # ------------------
