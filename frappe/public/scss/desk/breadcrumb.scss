@@ -16,6 +16,11 @@
 		}
 	}
 
+	li:first-child a:before {
+		// no angle before first item
+		content: none;
+	}
+
 	li.disabled {
 		a {
 			color: var(--gray-600);
