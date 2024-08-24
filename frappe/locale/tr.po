@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-18 09:32+0000\n"
-"PO-Revision-Date: 2024-08-23 09:52\n"
+"PO-Revision-Date: 2024-08-24 10:08\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -8775,7 +8775,7 @@ msgstr "E-posta Senkronizasyon Seçeneği"
 #: email/doctype/email_template/email_template.json
 #: public/js/frappe/views/communication.js:95
 msgid "Email Template"
-msgstr "E-posta şablonu"
+msgstr "E-Posta Şablonu"
 
 #. Label of the enable_email_threads_on_assigned_document (Check) field in
 #. DocType 'Notification Settings'
@@ -22644,7 +22644,7 @@ msgstr ""
 #. Label of the page_name (Link) field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
 msgid "Select Page"
-msgstr ""
+msgstr "Sayfa Seç"
 
 #: printing/page/print_format_builder_beta/print_format_builder_beta.js:68
 #: public/js/frappe/views/communication.js:148
@@ -23291,7 +23291,7 @@ msgstr "Kullanıcı İzinlerini Ayarla"
 #. Label of the value (Small Text) field in DocType 'Property Setter'
 #: custom/doctype/property_setter/property_setter.json
 msgid "Set Value"
-msgstr ""
+msgstr "Değer Ayarla"
 
 #: public/js/frappe/file_uploader/file_uploader.bundle.js:72
 #: public/js/frappe/file_uploader/file_uploader.bundle.js:124
@@ -23629,7 +23629,7 @@ msgstr ""
 #. Label of the show_form_tour (Check) field in DocType 'Onboarding Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
 msgid "Show Form Tour"
-msgstr ""
+msgstr "Form Turunu Göster"
 
 #. Label of the allow_error_traceback (Check) field in DocType 'System
 #. Settings'
@@ -23779,7 +23779,7 @@ msgstr "Hafta Sonlarını Göster"
 #. Settings'
 #: website/doctype/website_settings/website_settings.json
 msgid "Show account deletion link in My Account page"
-msgstr ""
+msgstr "Hesabım sayfasında hesap silme bağlantısını göster"
 
 #: core/doctype/version/version.js:6
 msgid "Show all Versions"
@@ -23896,7 +23896,7 @@ msgstr "Yeni Kayıt"
 #. Label of the sign_ups (Select) field in DocType 'Social Login Key'
 #: integrations/doctype/social_login_key/social_login_key.json
 msgid "Sign ups"
-msgstr ""
+msgstr "Kayıtlar"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -23925,19 +23925,19 @@ msgstr "Bu web sitesi için kayıtlar devre dışı bırakıldı."
 #. Rule'
 #: automation/doctype/assignment_rule/assignment_rule.json
 msgid "Simple Python Expression, Example: Status in (\"Closed\", \"Cancelled\")"
-msgstr ""
+msgstr "Basit Python İfadesi, Örnek: Status in (\"Closed\", \"Cancelled\")"
 
 #. Description of the 'Close Condition' (Code) field in DocType 'Assignment
 #. Rule'
 #: automation/doctype/assignment_rule/assignment_rule.json
 msgid "Simple Python Expression, Example: Status in (\"Invalid\")"
-msgstr ""
+msgstr "Basit Python İfadesi, Örnek: Status in (\"Closed\", \"Cancelled\")"
 
 #. Description of the 'Assign Condition' (Code) field in DocType 'Assignment
 #. Rule'
 #: automation/doctype/assignment_rule/assignment_rule.json
 msgid "Simple Python Expression, Example: status == 'Open' and type == 'Bug'"
-msgstr ""
+msgstr "Basit Python İfadesi, Örnek: status == 'Open' ve type == 'Bug'"
 
 #. Label of the simultaneous_sessions (Int) field in DocType 'User'
 #: core/doctype/user/user.json
@@ -24513,7 +24513,7 @@ msgstr ""
 #: website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 #: workflow/doctype/workflow_action/workflow_action.json
 msgid "Status"
-msgstr "Durumu"
+msgstr "Durum"
 
 #: www/update-password.html:161
 msgid "Status Updated"
@@ -26018,7 +26018,7 @@ msgstr "Bu otomatik olarak oluşturulmuş bir cevaptır"
 #. Post'
 #: website/doctype/blog_post/blog_post.json
 msgid "This is an example Google SERP Preview."
-msgstr ""
+msgstr "Bu bir Google SERP Önizlemesi örneğidir."
 
 #: utils/password_strength.py:164
 msgid "This is similar to a commonly used password."
@@ -26637,7 +26637,7 @@ msgstr "En İyi Yorumcu"
 #: printing/doctype/print_format/print_format.json
 #: public/js/print_format_builder/PrintFormatControls.vue:246
 msgid "Top Right"
-msgstr ""
+msgstr "Sağ Üst"
 
 #: templates/emails/energy_points_summary.html:33
 msgid "Top {0}"
