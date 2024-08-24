@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-07-30 18:03+0000\n"
-"PO-Revision-Date: 2024-08-20 07:29\n"
+"POT-Creation-Date: 2024-08-23 17:00+0000\n"
+"PO-Revision-Date: 2024-08-24 10:08\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -122,7 +122,7 @@ msgstr "0 - Nacrt; 1 - Podneseno; 2 - Otkazano"
 msgid "0 is highest"
 msgstr "0 je najviše"
 
-#: public/js/frappe/form/grid_row.js:808
+#: public/js/frappe/form/grid_row.js:807
 msgid "1 = True & 0 = False"
 msgstr "1 = Tačno i 0 = Netačno"
 
@@ -697,6 +697,46 @@ msgstr "<pre><code>doc.grand_total &gt; 0</code></pre>\n\n"
 "</ul>\n"
 "<p>Primjer: </p><pre><code>doc.creation &gt; frappe.utils.add_to_date(frappe.utils.now_datetime(), days=-5, as_string=True, as_datetime=True) </code></pre><p></p>"
 
+#. Header text in the Welcome Workspace Workspace
+#: core/workspace/welcome_workspace/welcome_workspace.json
+msgid "<span class=\"h2\">Hi,</span>"
+msgstr ""
+
+#. Header text in the Tools Workspace
+#: automation/workspace/tools/tools.json
+msgid "<span class=\"h4\"><b>Documents</b></span>"
+msgstr ""
+
+#. Header text in the Website Workspace
+#: website/workspace/website/website.json
+msgid "<span class=\"h4\"><b>Reports & Masters</b></span>"
+msgstr ""
+
+#. Header text in the Users Workspace
+#. Header text in the Integrations Workspace
+#: core/workspace/users/users.json
+#: integrations/workspace/integrations/integrations.json
+msgid "<span class=\"h4\"><b>Reports &amp; Masters</b></span>"
+msgstr ""
+
+#. Header text in the Tools Workspace
+#. Header text in the Users Workspace
+#. Header text in the Website Workspace
+#: automation/workspace/tools/tools.json core/workspace/users/users.json
+#: website/workspace/website/website.json
+msgid "<span class=\"h4\"><b>Your Shortcuts</b></span>"
+msgstr ""
+
+#. Header text in the Build Workspace
+#: core/workspace/build/build.json
+msgid "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Components to build your app</b></span>"
+msgstr ""
+
+#. Header text in the Build Workspace
+#: core/workspace/build/build.json
+msgid "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Get started</b><br></span>"
+msgstr ""
+
 #: custom/doctype/custom_field/custom_field.js:39
 msgid "<strong>Warning:</strong> This field is system generated and may be overwritten by a future update. Modify it using {0} instead."
 msgstr "<strong>Upozorenje:</strong> Ovo polje generiše sistem i može biti prebrisano budućim ažuriranjem. Umjesto toga promijenite ga pomoću {0}."
@@ -894,13 +934,9 @@ msgid "About Us"
 msgstr "O nama"
 
 #. Name of a DocType
-#: website/doctype/about_us_settings/about_us_settings.json
-msgid "About Us Settings"
-msgstr "O nama Postavke"
-
 #. Label of a Link in the Website Workspace
+#: website/doctype/about_us_settings/about_us_settings.json
 #: website/workspace/website/website.json
-msgctxt "About Us Settings"
 msgid "About Us Settings"
 msgstr "O nama Postavke"
 
@@ -933,13 +969,9 @@ msgstr "Tajna pristupnog ključa"
 
 #. Name of a DocType
 #. Linked DocType in User's connections
-#: core/doctype/access_log/access_log.json core/doctype/user/user.json
-msgid "Access Log"
-msgstr "Dnevnik pristupa"
-
 #. Label of a Link in the Users Workspace
+#: core/doctype/access_log/access_log.json core/doctype/user/user.json
 #: core/workspace/users/users.json
-msgctxt "Access Log"
 msgid "Access Log"
 msgstr "Dnevnik pristupa"
 
@@ -955,7 +987,7 @@ msgstr "Pristupni token"
 msgid "Access Token URL"
 msgstr "URL pristupnog tokena"
 
-#: auth.py:466
+#: auth.py:467
 msgid "Access not allowed from this IP Address"
 msgstr "Pristup nije dozvoljen sa ove IP adrese"
 
@@ -1012,7 +1044,7 @@ msgstr "Akcija / Ruta"
 msgid "Action Complete"
 msgstr "Akcija završena"
 
-#: model/document.py:1677
+#: model/document.py:1679
 msgid "Action Failed"
 msgstr "Akcija nije uspjela"
 
@@ -1103,26 +1135,22 @@ msgstr "Aktivne sesije"
 
 #. Group in User's connections
 #: core/doctype/user/user.json public/js/frappe/form/dashboard.js:22
-#: public/js/frappe/form/footer/form_timeline.js:58
+#: public/js/frappe/form/footer/form_timeline.js:60
 msgid "Activity"
 msgstr "Aktivnost"
 
 #. Name of a DocType
 #. Linked DocType in User's connections
-#: core/doctype/activity_log/activity_log.json core/doctype/user/user.json
-msgid "Activity Log"
-msgstr "Dnevnik aktivnosti"
-
 #. Label of a Link in the Build Workspace
 #. Label of a Link in the Users Workspace
+#: core/doctype/activity_log/activity_log.json core/doctype/user/user.json
 #: core/workspace/build/build.json core/workspace/users/users.json
-msgctxt "Activity Log"
 msgid "Activity Log"
 msgstr "Dnevnik aktivnosti"
 
-#: core/page/permission_manager/permission_manager.js:476
+#: core/page/permission_manager/permission_manager.js:475
 #: email/doctype/email_group/email_group.js:60
-#: public/js/frappe/form/grid_row.js:471
+#: public/js/frappe/form/grid_row.js:470
 #: public/js/frappe/form/sidebar/assign_to.js:100
 #: public/js/frappe/form/templates/set_sharing.html:68
 #: public/js/frappe/list/bulk_operations.js:416
@@ -1138,7 +1166,7 @@ msgctxt "Primary action in list view"
 msgid "Add"
 msgstr "Dodaj"
 
-#: public/js/frappe/form/grid_row.js:431
+#: public/js/frappe/form/grid_row.js:430
 msgid "Add / Remove Columns"
 msgstr "Dodaj / Ukloni kolone"
 
@@ -1146,7 +1174,7 @@ msgstr "Dodaj / Ukloni kolone"
 msgid "Add / Update"
 msgstr "Dodaj/Ažuriraj"
 
-#: core/page/permission_manager/permission_manager.js:436
+#: core/page/permission_manager/permission_manager.js:435
 msgid "Add A New Rule"
 msgstr "Dodaj novo pravilo"
 
@@ -1233,7 +1261,7 @@ msgstr "Dodaj indekse"
 msgid "Add Multiple"
 msgstr "Dodaj višestruko"
 
-#: core/page/permission_manager/permission_manager.js:439
+#: core/page/permission_manager/permission_manager.js:438
 msgid "Add New Permission Rule"
 msgstr "Dodaj novo pravilo dozvola"
 
@@ -1250,7 +1278,7 @@ msgstr "Dodaj parametre upita"
 msgid "Add Review"
 msgstr "Dodaj recenziju"
 
-#: core/doctype/user/user.py:784
+#: core/doctype/user/user.py:789
 msgid "Add Roles"
 msgstr "Dodaj uloge"
 
@@ -1402,7 +1430,7 @@ msgstr "Dodaj u listu obaveza"
 msgid "Add to table"
 msgstr "Add to tabelu"
 
-#: public/js/frappe/form/footer/form_timeline.js:97
+#: public/js/frappe/form/footer/form_timeline.js:99
 msgid "Add to this activity by mailing to {0}"
 msgstr "Dodajte ovoj aktivnosti slanjem pošte na adresu {0}"
 
@@ -1420,7 +1448,7 @@ msgstr "Dodan HTML u &lt;head&gt; dio web stranice, koji se prvenstveno koristi 
 msgid "Added default log doctypes: {}"
 msgstr "Dodani zadani doctypes dnevnika: {}"
 
-#: core/doctype/file/file.py:717
+#: core/doctype/file/file.py:722
 msgid "Added {0}"
 msgstr "Dodano {0}"
 
@@ -1429,14 +1457,16 @@ msgstr "Dodano {0}"
 msgid "Added {0} ({1})"
 msgstr "Dodano {0} ({1})"
 
-#: core/doctype/user/user.py:270
+#: core/doctype/user/user.py:271
 msgid "Adding System Manager to this User as there must be atleast one System Manager"
 msgstr "Dodavanje upravitelja sistema ovom korisniku jer mora postojati barem jedan upravitelj sistema"
 
 #. Label of a Section Break field in DocType 'Custom DocPerm'
 #. Label of a Section Break field in DocType 'DocPerm'
+#. Label of a Section Break field in DocType 'User Document Type'
 #: core/doctype/custom_docperm/custom_docperm.json
 #: core/doctype/docperm/docperm.json
+#: core/doctype/user_document_type/user_document_type.json
 msgid "Additional Permissions"
 msgstr "Dodatne dozvole"
 
@@ -1531,11 +1561,11 @@ msgstr "Administracija"
 msgid "Administrator"
 msgstr "Administrator"
 
-#: core/doctype/user/user.py:1189
+#: core/doctype/user/user.py:1194
 msgid "Administrator Logged In"
 msgstr "Administrator je prijavljen"
 
-#: core/doctype/user/user.py:1183
+#: core/doctype/user/user.py:1188
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr "Administrator je pristupio {0} {1} putem IP adrese {2}."
 
@@ -1929,10 +1959,6 @@ msgstr "Dozvoli samo jednu sesiju po korisniku"
 msgid "Allow page break inside tables"
 msgstr "Dozvoli prijelom stranice unutar tabela"
 
-#: desk/page/setup_wizard/setup_wizard.js:420
-msgid "Allow recording my first session to improve user experience"
-msgstr "Dozvoli snimanje moje prve sesije radi poboljšanja korisničkog iskustva"
-
 #. Description of the 'Allow Incomplete Forms' (Check) field in DocType 'Web
 #. Form'
 #: website/doctype/web_form/web_form.json
@@ -1988,7 +2014,7 @@ msgstr "Dozvoljene uloge"
 msgid "Allowing DocType, DocType. Be careful!"
 msgstr "Dopuštanje DocType, DocType. Budite pazljivi!"
 
-#: core/doctype/user/user.py:993
+#: core/doctype/user/user.py:998
 msgid "Already Registered"
 msgstr "Već registrovan"
 
@@ -2137,9 +2163,12 @@ msgstr "Mogu se koristiti bilo koji jezici štampača zasnovani na stringovima. 
 msgid "Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type."
 msgstr "Osim upravitelja sistema, uloge s pravom Postavi korisničke dozvole mogu postaviti dozvole za druge korisnike za tu vrstu dokumenta."
 
+#. Label of a Tab Break field in DocType 'System Settings'
+#. Label of a Section Break field in DocType 'User'
 #. Label of a Data field in DocType 'Desktop Icon'
 #. Label of a Data field in DocType 'Website Theme Ignore App'
-#: desk/doctype/desktop_icon/desktop_icon.json
+#: core/doctype/system_settings/system_settings.json
+#: core/doctype/user/user.json desk/doctype/desktop_icon/desktop_icon.json
 #: website/doctype/website_theme_ignore_app/website_theme_ignore_app.json
 msgid "App"
 msgstr "Aplikacija"
@@ -2332,6 +2361,12 @@ msgstr "Uvažavanje"
 msgid "Approval Required"
 msgstr "Potrebno je odobrenje"
 
+#. Label of a standard navbar item
+#. Type: Route
+#: hooks.py templates/includes/navbar/navbar_login.html:18
+msgid "Apps"
+msgstr ""
+
 #: public/js/frappe/utils/number_systems.js:41
 msgctxt "Number system"
 msgid "Ar"
@@ -2354,7 +2389,7 @@ msgstr "Arhivirane kolone"
 msgid "Are you sure you want to delete all rows?"
 msgstr "Jeste li sigurni da želite izbrisati sve redove?"
 
-#: public/js/frappe/views/workspace/workspace.js:929
+#: public/js/frappe/views/workspace/workspace.js:930
 msgid "Are you sure you want to delete page {0}?"
 msgstr "Jeste li sigurni da želite izbrisati stranicu {0}?"
 
@@ -2542,17 +2577,13 @@ msgid "Assignment Days"
 msgstr "Dana dodijeljeno"
 
 #. Name of a DocType
+#. Label of a Link in the Tools Workspace
+#. Label of a shortcut in the Tools Workspace
 #. Linked DocType in DocType's connections
 #. Label of a Link field in DocType 'ToDo'
 #: automation/doctype/assignment_rule/assignment_rule.json
-#: core/doctype/doctype/doctype.json desk/doctype/todo/todo.json
-msgid "Assignment Rule"
-msgstr "Pravilo dodjele"
-
-#. Label of a Link in the Tools Workspace
-#. Label of a shortcut in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "Assignment Rule"
+#: automation/workspace/tools/tools.json core/doctype/doctype/doctype.json
+#: desk/doctype/todo/todo.json
 msgid "Assignment Rule"
 msgstr "Pravilo dodjele"
 
@@ -2593,7 +2624,7 @@ msgstr "Dodjela {0} je uklonjena od strane {1}"
 msgid "Assignments"
 msgstr "Dodjele"
 
-#: public/js/frappe/form/grid_row.js:651
+#: public/js/frappe/form/grid_row.js:650
 msgid "At least one column is required to show in the grid."
 msgstr "Najmanje jedna kolona je potrebna da se prikaže u mreži."
 
@@ -2835,14 +2866,10 @@ msgstr "Autoriziran"
 msgid "Auto"
 msgstr "Automatski"
 
-#. Name of a DocType
-#: email/doctype/auto_email_report/auto_email_report.json
-msgid "Auto Email Report"
-msgstr "Automatski izvještaj e-poštom"
-
 #. Label of a Link in the Tools Workspace
+#. Name of a DocType
 #: automation/workspace/tools/tools.json
-msgctxt "Auto Email Report"
+#: email/doctype/auto_email_report/auto_email_report.json
 msgid "Auto Email Report"
 msgstr "Automatski izvještaj e-poštom"
 
@@ -2854,15 +2881,11 @@ msgid "Auto Name"
 msgstr "Automatski naziv"
 
 #. Name of a DocType
+#. Label of a Link in the Tools Workspace
 #. Linked DocType in DocType's connections
 #: automation/doctype/auto_repeat/auto_repeat.json
-#: core/doctype/doctype/doctype.json public/js/frappe/utils/common.js:442
-msgid "Auto Repeat"
-msgstr "Automatsko ponavljanje"
-
-#. Label of a Link in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "Auto Repeat"
+#: automation/workspace/tools/tools.json core/doctype/doctype/doctype.json
+#: public/js/frappe/utils/common.js:442
 msgid "Auto Repeat"
 msgstr "Automatsko ponavljanje"
 
@@ -3133,15 +3156,11 @@ msgstr "Boja pozadine"
 msgid "Background Image"
 msgstr "Pozadinska slika"
 
+#. Label of a Link in the Build Workspace
 #. Label of a Section Break field in DocType 'System Health Report'
+#: core/workspace/build/build.json
 #: desk/doctype/system_health_report/system_health_report.json
 #: public/js/frappe/ui/toolbar/toolbar.js:168
-msgid "Background Jobs"
-msgstr "Poslovi u pozadini"
-
-#. Label of a Link in the Build Workspace
-#: core/workspace/build/build.json
-msgctxt "RQ Job"
 msgid "Background Jobs"
 msgstr "Poslovi u pozadini"
 
@@ -3443,14 +3462,10 @@ msgstr "Blog"
 
 #. Name of a DocType
 #. Label of a Link field in DocType 'Blog Post'
+#. Label of a Link in the Website Workspace
 #: website/doctype/blog_category/blog_category.json
 #: website/doctype/blog_post/blog_post.json
-msgid "Blog Category"
-msgstr "Kategorija bloga"
-
-#. Label of a Link in the Website Workspace
 #: website/workspace/website/website.json
-msgctxt "Blog Category"
 msgid "Blog Category"
 msgstr "Kategorija bloga"
 
@@ -3467,16 +3482,11 @@ msgstr "Blog predstavljanje"
 #. Linked DocType in Blog Category's connections
 #. Name of a DocType
 #. Linked DocType in Blogger's connections
-#: website/doctype/blog_category/blog_category.json
-#: website/doctype/blog_post/blog_post.json
-#: website/doctype/blogger/blogger.json
-msgid "Blog Post"
-msgstr "Blog post"
-
 #. Label of a Link in the Website Workspace
 #. Label of a shortcut in the Website Workspace
-#: website/workspace/website/website.json
-msgctxt "Blog Post"
+#: website/doctype/blog_category/blog_category.json
+#: website/doctype/blog_post/blog_post.json
+#: website/doctype/blogger/blogger.json website/workspace/website/website.json
 msgid "Blog Post"
 msgstr "Blog post"
 
@@ -3494,17 +3504,12 @@ msgstr "Naslov bloga"
 #. Name of a role
 #. Label of a Link field in DocType 'Blog Post'
 #. Name of a DocType
+#. Label of a Link in the Website Workspace
+#. Label of a shortcut in the Website Workspace
 #: core/doctype/user/user.json website/doctype/blog_category/blog_category.json
 #: website/doctype/blog_post/blog_post.json
 #: website/doctype/blog_settings/blog_settings.json
-#: website/doctype/blogger/blogger.json
-msgid "Blogger"
-msgstr "Bloger"
-
-#. Label of a Link in the Website Workspace
-#. Label of a shortcut in the Website Workspace
-#: website/workspace/website/website.json
-msgctxt "Blogger"
+#: website/doctype/blogger/blogger.json website/workspace/website/website.json
 msgid "Blogger"
 msgstr "Bloger"
 
@@ -3696,14 +3701,10 @@ msgstr "Grupna operacija uspješna"
 msgid "Bulk PDF Export"
 msgstr "Masovni izvoz u PDF"
 
-#. Name of a DocType
-#: desk/doctype/bulk_update/bulk_update.json
-msgid "Bulk Update"
-msgstr "Grupno ažuriranje"
-
 #. Label of a Link in the Tools Workspace
+#. Name of a DocType
 #: automation/workspace/tools/tools.json
-msgctxt "Bulk Update"
+#: desk/doctype/bulk_update/bulk_update.json
 msgid "Bulk Update"
 msgstr "Grupno ažuriranje"
 
@@ -3862,7 +3863,7 @@ msgstr "CTA URL"
 msgid "Cache"
 msgstr "Keš"
 
-#: sessions.py:32
+#: sessions.py:33
 msgid "Cache Cleared"
 msgstr "Cache obrisan"
 
@@ -3870,16 +3871,11 @@ msgstr "Cache obrisan"
 msgid "Calculate"
 msgstr "Izračunaj"
 
+#. Label of a Link in the Tools Workspace
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
 #. Option for the 'DocType View' (Select) field in DocType 'Workspace Shortcut'
-#: desk/doctype/form_tour/form_tour.json
+#: automation/workspace/tools/tools.json desk/doctype/form_tour/form_tour.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
-msgid "Calendar"
-msgstr "Kalendar"
-
-#. Label of a Link in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "Event"
 msgid "Calendar"
 msgstr "Kalendar"
 
@@ -3892,6 +3888,7 @@ msgstr "Naziv kalendara"
 #. Name of a DocType
 #: core/doctype/doctype/doctype.json
 #: desk/doctype/calendar_view/calendar_view.json
+#: public/js/frappe/list/base_list.js:207
 msgid "Calendar View"
 msgstr "Prikaz kalendara"
 
@@ -4038,7 +4035,7 @@ msgstr "Otkazati {0} dokumenta?"
 msgid "Cancelled"
 msgstr "Otkazano"
 
-#: core/doctype/deleted_document/deleted_document.py:51
+#: core/doctype/deleted_document/deleted_document.py:52
 msgid "Cancelled Document restored as Draft"
 msgstr "Poništeni dokument vraćen kao Nacrt"
 
@@ -4071,7 +4068,7 @@ msgstr "Nije moguće ukloniti"
 msgid "Cannot Update After Submit"
 msgstr "Nije moguće ažurirati nakon podnošenja"
 
-#: core/doctype/file/file.py:573
+#: core/doctype/file/file.py:578
 msgid "Cannot access file path {0}"
 msgstr "Nije moguće pristupiti putanji datoteke {0}"
 
@@ -4207,7 +4204,7 @@ msgstr "Nije moguće omogućiti {0} za tip dokumenta koji se ne može podnijeti"
 msgid "Cannot find file {} on disk"
 msgstr "Nije moguće pronaći datoteku {} na disku"
 
-#: core/doctype/file/file.py:519
+#: core/doctype/file/file.py:524
 msgid "Cannot get file contents of a Folder"
 msgstr "Nije moguće dobiti sadržaj fascikle"
 
@@ -4219,7 +4216,7 @@ msgstr "Nije moguće imati više štampača mapiranih u jedan format štampanja.
 msgid "Cannot link cancelled document: {0}"
 msgstr "Nije moguće povezati otkazani dokument: {0}"
 
-#: model/mapper.py:166
+#: model/mapper.py:168
 msgid "Cannot map because following condition fails:"
 msgstr "Nije moguće mapirati jer sljedeći uslov nije ispunjen:"
 
@@ -4227,7 +4224,7 @@ msgstr "Nije moguće mapirati jer sljedeći uslov nije ispunjen:"
 msgid "Cannot match column {0} with any field"
 msgstr "Nije moguće uskladiti kolonu {0} ni sa jednim poljem"
 
-#: public/js/frappe/form/grid_row.js:172
+#: public/js/frappe/form/grid_row.js:171
 msgid "Cannot move row"
 msgstr "Nije moguće pomjeriti red"
 
@@ -4400,7 +4397,7 @@ msgstr "Dnevnik promjena"
 msgid "Changing any setting will reflect on all the email accounts associated with this domain."
 msgstr "Promjena bilo koje postavke odrazit će se na sve račune e-pošte povezane s ovom domenom."
 
-#: core/doctype/system_settings/system_settings.js:62
+#: core/doctype/system_settings/system_settings.js:67
 msgid "Changing rounding method on site with data can result in unexpected behaviour."
 msgstr "Promjena metode zaokruživanja na mjestu sa podacima može rezultirati neočekivanim ponašanjem."
 
@@ -4555,7 +4552,7 @@ msgstr "Podređene tabele su prikazane kao mreža u drugim DocTypes"
 msgid "Choose Existing Card or create New Card"
 msgstr "Odaberite postojeću karticu ili kreirajte novu karticu"
 
-#: public/js/frappe/views/workspace/workspace.js:1429
+#: public/js/frappe/views/workspace/workspace.js:1430
 msgid "Choose a block or continue typing"
 msgstr "Odaberite blok ili nastavite tipkati"
 
@@ -4684,7 +4681,7 @@ msgstr "Kliknite na {0} za generiranje tokena osvježavanja."
 
 #: desk/doctype/dashboard_chart/dashboard_chart.js:315
 #: desk/doctype/number_card/number_card.js:215
-#: email/doctype/auto_email_report/auto_email_report.js:96
+#: email/doctype/auto_email_report/auto_email_report.js:99
 #: website/doctype/web_form/web_form.js:236
 msgid "Click table to edit"
 msgstr "Kliknite na tabelu za uređivanje"
@@ -4747,21 +4744,17 @@ msgstr "Informacije o klijentu"
 
 #. Linked DocType in DocType's connections
 #. Linked DocType in Module Def's connections
+#. Label of a Link in the Build Workspace
+#. Label of a shortcut in the Build Workspace
 #. Name of a DocType
 #. Label of a Code field in DocType 'DocType Layout'
 #. Label of a Code field in DocType 'Web Form'
 #: core/doctype/doctype/doctype.json core/doctype/module_def/module_def.json
+#: core/workspace/build/build.json
 #: custom/doctype/client_script/client_script.json
 #: custom/doctype/doctype_layout/doctype_layout.json
 #: website/doctype/web_form/web_form.json
 #: website/doctype/web_page/web_page.js:103
-msgid "Client Script"
-msgstr "Skripta klijenta"
-
-#. Label of a Link in the Build Workspace
-#. Label of a shortcut in the Build Workspace
-#: core/workspace/build/build.json
-msgctxt "Client Script"
 msgid "Client Script"
 msgstr "Skripta klijenta"
 
@@ -4833,7 +4826,7 @@ msgid "Code challenge method"
 msgstr "Metoda izazova koda"
 
 #: public/js/frappe/form/form_tour.js:270
-#: public/js/frappe/widgets/base_widget.js:157
+#: public/js/frappe/widgets/base_widget.js:159
 msgid "Collapse"
 msgstr "Sklopi"
 
@@ -4941,11 +4934,11 @@ msgstr "Naziv kolone"
 msgid "Column Name cannot be empty"
 msgstr "Naziv kolone ne može biti prazan"
 
-#: public/js/frappe/form/grid_row.js:431
+#: public/js/frappe/form/grid_row.js:430
 msgid "Column Width"
 msgstr "Širina kolone"
 
-#: public/js/frappe/form/grid_row.js:615
+#: public/js/frappe/form/grid_row.js:614
 msgid "Column width cannot be zero."
 msgstr "Širina kolone ne može biti nula."
 
@@ -5083,7 +5076,6 @@ msgstr "Komunikacijski link"
 
 #. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
-msgctxt "Communication"
 msgid "Communication Logs"
 msgstr "Komunikacijski zapisnici"
 
@@ -5135,7 +5127,7 @@ msgstr "Završeno"
 msgid "Complete By"
 msgstr "Dovršiti od"
 
-#: core/doctype/user/user.py:437 templates/emails/new_user.html:10
+#: core/doctype/user/user.py:442 templates/emails/new_user.html:10
 msgid "Complete Registration"
 msgstr "Završi registraciju"
 
@@ -5225,7 +5217,7 @@ msgstr "Konfiguracija"
 msgid "Configure Chart"
 msgstr "Konfiguriši grafikon"
 
-#: public/js/frappe/form/grid_row.js:383
+#: public/js/frappe/form/grid_row.js:382
 msgid "Configure Columns"
 msgstr "Konfiguriši kolone"
 
@@ -5252,7 +5244,7 @@ msgstr "Konfigurišite kako će se izmijenjeni dokumenti imenovati.<br>\n\n"
 msgid "Configure various aspects of how document naming works like naming series, current counter."
 msgstr "Konfigurišite različite aspekte načina na koji funkcionira imenovanje dokumenta kao što je imenovanje serije, trenutni brojač."
 
-#: core/doctype/user/user.js:390 public/js/frappe/dom.js:331
+#: core/doctype/user/user.js:395 public/js/frappe/dom.js:331
 #: www/update-password.html:30
 msgid "Confirm"
 msgstr "Potvrdi"
@@ -5267,7 +5259,7 @@ msgstr "Potvrdi"
 msgid "Confirm Deletion of Account"
 msgstr "Potvrdi brisanje računa"
 
-#: core/doctype/user/user.js:184
+#: core/doctype/user/user.js:189
 msgid "Confirm New Password"
 msgstr "Potvrdi novu lozinku"
 
@@ -5396,13 +5388,9 @@ msgid "Contact Us"
 msgstr "Kontaktirajte nas"
 
 #. Name of a DocType
-#: website/doctype/contact_us_settings/contact_us_settings.json
-msgid "Contact Us Settings"
-msgstr "Kontaktirajte nas Postavke"
-
 #. Label of a Link in the Website Workspace
+#: website/doctype/contact_us_settings/contact_us_settings.json
 #: website/workspace/website/website.json
-msgctxt "Contact Us Settings"
 msgid "Contact Us Settings"
 msgstr "Kontaktirajte nas Postavke"
 
@@ -5639,7 +5627,7 @@ msgstr "Cr"
 #: public/js/frappe/views/file/file_view.js:112
 #: public/js/frappe/views/interaction.js:18
 #: public/js/frappe/views/reports/query_report.js:1187
-#: public/js/frappe/views/workspace/workspace.js:1261
+#: public/js/frappe/views/workspace/workspace.js:1262
 #: workflow/page/workflow_builder/workflow_builder.js:46
 msgid "Create"
 msgstr "Kreiraj"
@@ -5673,7 +5661,7 @@ msgstr "Kreirajte kontakte iz dolazne e-pošte"
 msgid "Create Custom Fields"
 msgstr "Kreiraj prilagođena polja"
 
-#: public/js/frappe/views/workspace/workspace.js:969
+#: public/js/frappe/views/workspace/workspace.js:970
 msgid "Create Duplicate"
 msgstr "Kreiraj duplikat"
 
@@ -5711,7 +5699,7 @@ msgstr "Kreirajte novi DocType"
 msgid "Create New Kanban Board"
 msgstr "Kreiraj novu Kanban ploču"
 
-#: core/doctype/user/user.js:262
+#: core/doctype/user/user.js:267
 msgid "Create User Email"
 msgstr "Kreiraj korisničku e-poštu"
 
@@ -5989,15 +5977,11 @@ msgstr "Prilagođeni dokumenti"
 
 #. Linked DocType in DocType's connections
 #. Linked DocType in Module Def's connections
+#. Label of a Link in the Build Workspace
 #. Name of a DocType
 #: core/doctype/doctype/doctype.json core/doctype/module_def/module_def.json
-#: custom/doctype/custom_field/custom_field.json
-msgid "Custom Field"
-msgstr "Prilagođeno polje"
-
-#. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
-msgctxt "Custom Field"
+#: custom/doctype/custom_field/custom_field.json
 msgid "Custom Field"
 msgstr "Prilagođeno polje"
 
@@ -6105,7 +6089,6 @@ msgstr "Prilagođeni meni bočne trake"
 
 #. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
-msgctxt "Translation"
 msgid "Custom Translation"
 msgstr "Prilagođeni prijevod"
 
@@ -6137,7 +6120,7 @@ msgstr "Prilagodjavanje"
 msgid "Customization onboarding is all done!"
 msgstr "Prilagodba uključenja je završena!"
 
-#: public/js/frappe/views/workspace/workspace.js:555
+#: public/js/frappe/views/workspace/workspace.js:556
 msgid "Customizations Discarded"
 msgstr "Prilagodbe su odbačene"
 
@@ -6169,17 +6152,13 @@ msgstr "Prilagodi podređenu tabelu"
 msgid "Customize Dashboard"
 msgstr "Prilagodi nadzornu ploču"
 
-#. Name of a DocType
-#: automation/doctype/auto_repeat/auto_repeat.js:33
-#: custom/doctype/customize_form/customize_form.json
-#: public/js/frappe/views/kanban/kanban_view.js:343
-msgid "Customize Form"
-msgstr "Prilagodi obrazac"
-
 #. Label of a Link in the Build Workspace
 #. Label of a shortcut in the Build Workspace
+#. Name of a DocType
+#: automation/doctype/auto_repeat/auto_repeat.js:33
 #: core/workspace/build/build.json
-msgctxt "Customize Form"
+#: custom/doctype/customize_form/customize_form.json
+#: public/js/frappe/views/kanban/kanban_view.js:343
 msgid "Customize Form"
 msgstr "Prilagodi obrazac"
 
@@ -6302,31 +6281,23 @@ msgid "Dark Theme"
 msgstr "Tamna tema"
 
 #. Label of a Check field in DocType 'Role'
+#. Label of a Link in the Build Workspace
 #. Name of a DocType
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
 #. Option for the 'Type' (Select) field in DocType 'Workspace Shortcut'
 #. Option for the 'DocType View' (Select) field in DocType 'Workspace Shortcut'
 #: core/doctype/role/role.json core/page/dashboard_view/dashboard_view.js:10
-#: desk/doctype/dashboard/dashboard.json desk/doctype/form_tour/form_tour.json
+#: core/workspace/build/build.json desk/doctype/dashboard/dashboard.json
+#: desk/doctype/form_tour/form_tour.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: public/js/frappe/ui/toolbar/search_utils.js:562
 msgid "Dashboard"
 msgstr "Nadzorna ploča"
 
 #. Label of a Link in the Build Workspace
-#: core/workspace/build/build.json
-msgctxt "Dashboard"
-msgid "Dashboard"
-msgstr "Nadzorna ploča"
-
 #. Name of a DocType
-#: desk/doctype/dashboard_chart/dashboard_chart.json
-msgid "Dashboard Chart"
-msgstr "Grafikon nadzorne ploče"
-
-#. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
-msgctxt "Dashboard Chart"
+#: desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Dashboard Chart"
 msgstr "Grafikon nadzorne ploče"
 
@@ -6361,6 +6332,10 @@ msgstr "Naziv nadzorne ploče"
 #: desk/doctype/dashboard_settings/dashboard_settings.json
 msgid "Dashboard Settings"
 msgstr "Postavke nadzorne ploče"
+
+#: public/js/frappe/list/base_list.js:204
+msgid "Dashboard View"
+msgstr ""
 
 #. Label of a Tab Break field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
@@ -6606,6 +6581,13 @@ msgstr "Zadani šablon adrese ne može se izbrisati"
 msgid "Default Amendment Naming"
 msgstr "Zadano imenovanje dopuna"
 
+#. Label of a Select field in DocType 'System Settings'
+#. Label of a Select field in DocType 'User'
+#: core/doctype/system_settings/system_settings.json
+#: core/doctype/user/user.json
+msgid "Default App"
+msgstr ""
+
 #. Label of a Link field in DocType 'DocType'
 #. Label of a Link field in DocType 'Customize Form'
 #: core/doctype/doctype/doctype.json
@@ -6780,11 +6762,11 @@ msgstr "Odgođeno"
 #: core/doctype/docperm/docperm.json
 #: core/doctype/user_document_type/user_document_type.json
 #: core/doctype/user_permission/user_permission_list.js:189
-#: public/js/frappe/form/footer/form_timeline.js:613
+#: public/js/frappe/form/footer/form_timeline.js:615
 #: public/js/frappe/form/grid.js:63 public/js/frappe/form/toolbar.js:424
 #: public/js/frappe/views/reports/report_view.js:1654
 #: public/js/frappe/views/treeview.js:295
-#: public/js/frappe/views/workspace/workspace.js:867
+#: public/js/frappe/views/workspace/workspace.js:868
 #: templates/discussions/reply_card.html:35
 #: templates/discussions/reply_section.html:29
 msgid "Delete"
@@ -6826,7 +6808,7 @@ msgctxt "Title of confirmation dialog"
 msgid "Delete Tab"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:868
+#: public/js/frappe/views/workspace/workspace.js:869
 msgid "Delete Workspace"
 msgstr "Izbriši radni prostor"
 
@@ -6839,7 +6821,7 @@ msgctxt "Button text"
 msgid "Delete column"
 msgstr ""
 
-#: public/js/frappe/form/footer/form_timeline.js:719
+#: public/js/frappe/form/footer/form_timeline.js:721
 msgid "Delete comment?"
 msgstr "Izbrisati komentar?"
 
@@ -6907,7 +6889,6 @@ msgstr "Izbrisan dokument"
 
 #. Label of a Link in the Tools Workspace
 #: automation/workspace/tools/tools.json
-msgctxt "Deleted Document"
 msgid "Deleted Documents"
 msgstr "Izbrisani dokumenti"
 
@@ -7099,11 +7080,11 @@ msgstr "Ikona na radnoj površini već postoji"
 msgid "Details"
 msgstr "Detalji"
 
-#: core/page/permission_manager/permission_manager.js:488
+#: core/page/permission_manager/permission_manager.js:487
 msgid "Did not add"
 msgstr "Nije dodano"
 
-#: core/page/permission_manager/permission_manager.js:382
+#: core/page/permission_manager/permission_manager.js:381
 msgid "Did not remove"
 msgstr "Nije uklonjeno"
 
@@ -7235,7 +7216,7 @@ msgstr "Automatski odgovor je onemogućen"
 
 #: public/js/frappe/views/communication.js:30
 #: public/js/frappe/views/dashboard/dashboard_view.js:70
-#: public/js/frappe/views/workspace/workspace.js:546
+#: public/js/frappe/views/workspace/workspace.js:547
 #: public/js/frappe/web_form/web_form.js:187
 msgid "Discard"
 msgstr "Odbaci"
@@ -7264,7 +7245,7 @@ msgstr "Odgovor na diskusiju"
 msgid "Discussion Topic"
 msgstr "Tema za diskusiju"
 
-#: public/js/frappe/form/footer/form_timeline.js:623
+#: public/js/frappe/form/footer/form_timeline.js:625
 #: templates/discussions/reply_card.html:16
 #: templates/discussions/reply_section.html:29
 msgid "Dismiss"
@@ -7315,7 +7296,7 @@ msgstr "Nemoj uređivati zaglavlja koja su unaprijed postavljena u šablonu"
 msgid "Do not have permission to access bucket {0}."
 msgstr "Nemate dozvolu za pristup spremiku {0}."
 
-#: core/doctype/system_settings/system_settings.js:66
+#: core/doctype/system_settings/system_settings.js:71
 msgid "Do you still want to proceed?"
 msgstr "Želite li i dalje nastaviti?"
 
@@ -7372,6 +7353,8 @@ msgstr "DocStatus sljedećih stanja je promijenjen:<br><strong>{0}</strong><br>\
 #. Linked DocType in Module Def's connections
 #. Label of a Link field in DocType 'Permission Inspector'
 #. Label of a Link field in DocType 'Version'
+#. Label of a Link in the Build Workspace
+#. Label of a shortcut in the Build Workspace
 #. Label of a Link field in DocType 'Client Script'
 #. Label of a Link field in DocType 'Custom Field'
 #. Option for the 'Applied On' (Select) field in DocType 'Property Setter'
@@ -7388,6 +7371,7 @@ msgstr "DocStatus sljedećih stanja je promijenjen:<br><strong>{0}</strong><br>\
 #: core/doctype/permission_inspector/permission_inspector.json
 #: core/doctype/version/version.json
 #: core/report/permitted_documents_for_user/permitted_documents_for_user.js:15
+#: core/workspace/build/build.json
 #: custom/doctype/client_script/client_script.json
 #: custom/doctype/custom_field/custom_field.json
 #: custom/doctype/property_setter/property_setter.json
@@ -7398,13 +7382,6 @@ msgstr "DocStatus sljedećih stanja je promijenjen:<br><strong>{0}</strong><br>\
 #: printing/doctype/print_format/print_format.json
 #: public/js/frappe/widgets/widget_dialog.js:131
 #: website/doctype/website_slideshow/website_slideshow.js:18
-msgid "DocType"
-msgstr "DocType"
-
-#. Label of a Link in the Build Workspace
-#. Label of a shortcut in the Build Workspace
-#: core/workspace/build/build.json
-msgctxt "DocType"
 msgid "DocType"
 msgstr "DocType"
 
@@ -7527,7 +7504,7 @@ msgstr "Doctype naziv je ograničen na {0} znakova ({1})"
 msgid "Doctype required"
 msgstr "Potreban DocType"
 
-#: public/js/frappe/views/workspace/workspace.js:1347
+#: public/js/frappe/views/workspace/workspace.js:1348
 msgid "Doctype with same route already exist. Please choose different title."
 msgstr "Doctype sa istom rutom već postoji. Molimo odaberite drugi naslov."
 
@@ -7626,7 +7603,7 @@ msgstr "Uslov pravila imenovanja dokumenta"
 msgid "Document Naming Settings"
 msgstr "Postavke imenovanja dokumenata"
 
-#: model/document.py:1539
+#: model/document.py:1541
 msgid "Document Queued"
 msgstr "Dokument u redu čekanja"
 
@@ -7634,7 +7611,7 @@ msgstr "Dokument u redu čekanja"
 msgid "Document Restoration Summary"
 msgstr "Sažetak vraćanja dokumenata"
 
-#: core/doctype/deleted_document/deleted_document.py:67
+#: core/doctype/deleted_document/deleted_document.py:68
 msgid "Document Restored"
 msgstr "Dokument vraćen"
 
@@ -7724,7 +7701,7 @@ msgstr "Naslov dokumenta"
 #: core/doctype/user_select_document_type/user_select_document_type.json
 #: core/page/permission_manager/permission_manager.js:49
 #: core/page/permission_manager/permission_manager.js:211
-#: core/page/permission_manager/permission_manager.js:443
+#: core/page/permission_manager/permission_manager.js:442
 #: custom/doctype/doctype_layout/doctype_layout.json
 #: desk/doctype/bulk_update/bulk_update.json
 #: desk/doctype/dashboard_chart/dashboard_chart.json
@@ -7776,7 +7753,7 @@ msgstr "Vrste dokumenata (samo odabir dopuštenja)"
 msgid "Document Types and Permissions"
 msgstr "Vrste dokumenata i dozvole"
 
-#: core/doctype/submission_queue/submission_queue.py:163 model/document.py:1746
+#: core/doctype/submission_queue/submission_queue.py:163 model/document.py:1748
 msgid "Document Unlocked"
 msgstr "Dokument otključan"
 
@@ -7812,7 +7789,7 @@ msgstr "Preimenovanje dokumenta iz {0} u {1} je stavljeno u red čekanja"
 msgid "Document type is required to create a dashboard chart"
 msgstr "Vrsta dokumenta je potrebna za kreiranje grafikona na nadzornoj ploči"
 
-#: core/doctype/deleted_document/deleted_document.py:44
+#: core/doctype/deleted_document/deleted_document.py:45
 msgid "Document {0} Already Restored"
 msgstr "Dokument {0} je već obnovljen"
 
@@ -7973,6 +7950,10 @@ msgstr "Preuzmite skicu"
 msgid "Download Your Data"
 msgstr "Preuzmite svoje podatke"
 
+#: desk/page/setup_wizard/install_fixtures.py:47
+msgid "Dr"
+msgstr ""
+
 #: public/js/frappe/model/indicator.js:73
 #: public/js/frappe/ui/filters/filter.js:498
 msgid "Draft"
@@ -7981,7 +7962,7 @@ msgstr "Nacrt"
 #: public/js/frappe/views/workspace/blocks/header.js:46
 #: public/js/frappe/views/workspace/blocks/paragraph.js:136
 #: public/js/frappe/views/workspace/blocks/spacer.js:44
-#: public/js/frappe/views/workspace/workspace.js:609
+#: public/js/frappe/views/workspace/workspace.js:610
 #: public/js/frappe/widgets/base_widget.js:33
 msgid "Drag"
 msgstr "Prevuci"
@@ -8021,13 +8002,9 @@ msgid "Dropbox Refresh Token"
 msgstr "Token za osvježavanje Dropboxa"
 
 #. Name of a DocType
-#: integrations/doctype/dropbox_settings/dropbox_settings.json
-msgid "Dropbox Settings"
-msgstr "Dropbox postavke"
-
 #. Label of a Link in the Integrations Workspace
+#: integrations/doctype/dropbox_settings/dropbox_settings.json
 #: integrations/workspace/integrations/integrations.json
-msgctxt "Dropbox Settings"
 msgid "Dropbox Settings"
 msgstr "Dropbox postavke"
 
@@ -8052,8 +8029,8 @@ msgstr "Krajnji rok na osnovu"
 
 #: public/js/frappe/form/grid_row_form.js:42
 #: public/js/frappe/form/toolbar.js:378
-#: public/js/frappe/views/workspace/workspace.js:852
-#: public/js/frappe/views/workspace/workspace.js:1019
+#: public/js/frappe/views/workspace/workspace.js:853
+#: public/js/frappe/views/workspace/workspace.js:1020
 msgid "Duplicate"
 msgstr "Duplikat"
 
@@ -8069,8 +8046,8 @@ msgstr "Duplicirani naziv filtra"
 msgid "Duplicate Name"
 msgstr "Duplicirano ime"
 
-#: public/js/frappe/views/workspace/workspace.js:591
-#: public/js/frappe/views/workspace/workspace.js:853
+#: public/js/frappe/views/workspace/workspace.js:592
+#: public/js/frappe/views/workspace/workspace.js:854
 msgid "Duplicate Workspace"
 msgstr "Duplicirani radni prostor"
 
@@ -8082,7 +8059,7 @@ msgstr "Duplikat trenutnog reda"
 msgid "Duplicate field"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1034
+#: public/js/frappe/views/workspace/workspace.js:1035
 msgid "Duplicate of {0} named as {1} is created successfully"
 msgstr "Duplikat {0} pod nazivom {1} je uspješno kreiran"
 
@@ -8165,14 +8142,15 @@ msgstr "Svaki dokument kreiran u ERPNext-u može imati jedinstveni ID generisan 
 #: printing/page/print_format_builder_beta/print_format_builder_beta.js:46
 #: printing/page/print_format_builder_beta/print_format_builder_beta.js:85
 #: public/js/frappe/form/controls/markdown_editor.js:31
-#: public/js/frappe/form/footer/form_timeline.js:652
-#: public/js/frappe/form/footer/form_timeline.js:661
+#: public/js/frappe/form/footer/form_timeline.js:654
+#: public/js/frappe/form/footer/form_timeline.js:663
 #: public/js/frappe/form/templates/address_list.html:7
 #: public/js/frappe/form/templates/contact_list.html:7
 #: public/js/frappe/form/toolbar.js:660
 #: public/js/frappe/views/reports/query_report.js:814
 #: public/js/frappe/views/reports/query_report.js:1631
-#: public/js/frappe/views/workspace/workspace.js:846
+#: public/js/frappe/views/workspace/workspace.js:98
+#: public/js/frappe/views/workspace/workspace.js:847
 #: public/js/frappe/widgets/base_widget.js:64
 #: public/js/frappe/widgets/chart_widget.js:298
 #: public/js/frappe/widgets/number_card_widget.js:331
@@ -8188,7 +8166,7 @@ msgctxt "Button in list view actions menu"
 msgid "Edit"
 msgstr "Uredi"
 
-#: public/js/frappe/form/grid_row.js:338
+#: public/js/frappe/form/grid_row.js:337
 msgctxt "Edit grid row"
 msgid "Edit"
 msgstr "Uredi"
@@ -8279,7 +8257,7 @@ msgstr "Uredi odgovor"
 msgid "Edit Values"
 msgstr "Uredi vrijednosti"
 
-#: public/js/frappe/views/workspace/workspace.js:847
+#: public/js/frappe/views/workspace/workspace.js:848
 msgid "Edit Workspace"
 msgstr "Uredi radni prostor"
 
@@ -8344,6 +8322,7 @@ msgstr "Birač elemenata"
 #. Label of a Tab Break field in DocType 'System Settings'
 #. Label of a Data field in DocType 'User'
 #. Label of a Section Break field in DocType 'User'
+#. Label of a Check field in DocType 'User Document Type'
 #. Label of a Data field in DocType 'Event Participants'
 #. Label of a Data field in DocType 'Email Group Member'
 #. Label of a Data field in DocType 'Email Unsubscribe'
@@ -8356,6 +8335,7 @@ msgstr "Birač elemenata"
 #: core/doctype/success_action/success_action.js:57
 #: core/doctype/system_settings/system_settings.json
 #: core/doctype/user/user.json
+#: core/doctype/user_document_type/user_document_type.json
 #: desk/doctype/event_participants/event_participants.json
 #: email/doctype/email_group_member/email_group_member.json
 #: email/doctype/email_unsubscribe/email_unsubscribe.json
@@ -8365,10 +8345,11 @@ msgstr "Birač elemenata"
 #: public/js/frappe/form/toolbar.js:342
 #: templates/includes/comments/comments.html:25 templates/signup.html:9
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
-#: www/login.html:7 www/login.py:97
+#: www/login.html:7 www/login.py:98
 msgid "Email"
 msgstr "E-pošta"
 
+#. Label of a Link in the Tools Workspace
 #. Label of a Link field in DocType 'Communication'
 #. Label of a Link field in DocType 'User Email'
 #. Name of a DocType
@@ -8376,6 +8357,7 @@ msgstr "E-pošta"
 #. Label of a Data field in DocType 'Email Flag Queue'
 #. Label of a Link field in DocType 'Email Queue'
 #. Label of a Link field in DocType 'Unhandled Email'
+#: automation/workspace/tools/tools.json
 #: core/doctype/communication/communication.js:199
 #: core/doctype/communication/communication.json
 #: core/doctype/user_email/user_email.json
@@ -8384,12 +8366,6 @@ msgstr "E-pošta"
 #: email/doctype/email_flag_queue/email_flag_queue.json
 #: email/doctype/email_queue/email_queue.json
 #: email/doctype/unhandled_email/unhandled_email.json
-msgid "Email Account"
-msgstr "Račun e-pošte"
-
-#. Label of a Link in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "Email Account"
 msgid "Email Account"
 msgstr "Račun e-pošte"
 
@@ -8402,7 +8378,7 @@ msgstr "Račun e-pošte je onemogućen."
 msgid "Email Account Name"
 msgstr "Ime računa e-pošte"
 
-#: core/doctype/user/user.py:713
+#: core/doctype/user/user.py:718
 msgid "Email Account added multiple times"
 msgstr "Račun e-pošte je dodan više puta"
 
@@ -8415,7 +8391,7 @@ msgstr "Račun e-pošte nije postavljen. Molimo kreirajte novi račun e-pošte i
 #. Label of a Data field in DocType 'Email Account'
 #. Label of a Data field in DocType 'Google Contacts'
 #: contacts/doctype/address/address.json contacts/doctype/contact/contact.json
-#: desk/page/setup_wizard/setup_wizard.js:470
+#: desk/page/setup_wizard/setup_wizard.js:463
 #: email/doctype/email_account/email_account.json
 #: integrations/doctype/google_contacts/google_contacts.json
 #: www/complete_signup.html:11 www/login.html:164 www/login.html:196
@@ -8434,14 +8410,10 @@ msgstr "Adresa e-pošte čiji se Google kontakti trebaju sinhronizirati."
 msgid "Email Addresses"
 msgstr "Adrese e-pošte"
 
-#. Name of a DocType
-#: email/doctype/email_domain/email_domain.json
-msgid "Email Domain"
-msgstr "Domena e-pošte"
-
 #. Label of a Link in the Tools Workspace
+#. Name of a DocType
 #: automation/workspace/tools/tools.json
-msgctxt "Email Domain"
+#: email/doctype/email_domain/email_domain.json
 msgid "Email Domain"
 msgstr "Domena e-pošte"
 
@@ -8455,18 +8427,14 @@ msgstr "Zastavica reda čekanja e-pošte"
 msgid "Email Footer Address"
 msgstr "Adresa u podnožju e-pošte"
 
+#. Label of a Link in the Tools Workspace
 #. Name of a DocType
 #. Label of a Link field in DocType 'Email Group Member'
 #. Label of a Link field in DocType 'Newsletter Email Group'
+#: automation/workspace/tools/tools.json
 #: email/doctype/email_group/email_group.json
 #: email/doctype/email_group_member/email_group_member.json
 #: email/doctype/newsletter_email_group/newsletter_email_group.json
-msgid "Email Group"
-msgstr "Grupa e-pošte"
-
-#. Label of a Link in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "Email Group"
 msgid "Email Group"
 msgstr "Grupa e-pošte"
 
@@ -8573,17 +8541,13 @@ msgstr "Status e-pošte"
 msgid "Email Sync Option"
 msgstr "Opcija sinhronizacije e-pošte"
 
+#. Label of a Link in the Tools Workspace
 #. Label of a Link field in DocType 'Communication'
 #. Name of a DocType
+#: automation/workspace/tools/tools.json
 #: core/doctype/communication/communication.json
 #: email/doctype/email_template/email_template.json
 #: public/js/frappe/views/communication.js:95
-msgid "Email Template"
-msgstr "Šablon e-pošte"
-
-#. Label of a Link in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "Email Template"
 msgid "Email Template"
 msgstr "Šablon e-pošte"
 
@@ -8614,9 +8578,13 @@ msgstr "E-pošta je premještena u smeće"
 msgid "Email not sent to {0} (unsubscribed / disabled)"
 msgstr "E-pošta nije poslana na {0} (odjavljena / onemogućena)"
 
-#: utils/oauth.py:158
+#: utils/oauth.py:159
 msgid "Email not verified with {0}"
 msgstr "E-pošta nije potvrđena sa {0}"
+
+#: email/doctype/email_queue/email_queue.js:18
+msgid "Email queue is currently suspended. Resume to automatically send emails."
+msgstr ""
 
 #. Label of a Section Break field in DocType 'System Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
@@ -9095,7 +9063,6 @@ msgstr "Dnevnik grešaka"
 
 #. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
-msgctxt "Error Log"
 msgid "Error Logs"
 msgstr "Dnevnici grešaka"
 
@@ -9310,7 +9277,7 @@ msgstr "Vrijeme izvršenja: {0} sek"
 msgid "Executive"
 msgstr "Izvršni"
 
-#: public/js/frappe/widgets/base_widget.js:157
+#: public/js/frappe/widgets/base_widget.js:159
 msgid "Expand"
 msgstr "Proširi"
 
@@ -9395,13 +9362,9 @@ msgstr "Izvoz prilagođenih dozvola"
 msgid "Export Customizations"
 msgstr "Izvoz prilagodbi"
 
-#: public/js/frappe/data_import/data_exporter.js:14
-msgid "Export Data"
-msgstr "Izvezi podatke"
-
 #. Label of a Link in the Tools Workspace
 #: automation/workspace/tools/tools.json
-msgctxt "Data Export"
+#: public/js/frappe/data_import/data_exporter.js:14
 msgid "Export Data"
 msgstr "Izvezi podatke"
 
@@ -9561,7 +9524,7 @@ msgstr "Nije uspjelo izračunavanje tijela zahtjeva: {}"
 msgid "Failed to connect to server"
 msgstr "Neuspjelo povezivanje na server"
 
-#: auth.py:669
+#: auth.py:670
 msgid "Failed to decode token, please provide a valid base64-encoded token."
 msgstr "Dekodiranje tokena nije uspjelo, navedite važeći token kodiran sa base64."
 
@@ -9659,6 +9622,10 @@ msgstr "Povratne informacije"
 #: core/doctype/communication/communication.json
 msgid "Feedback Request"
 msgstr "Zahtjev za povratne informacije"
+
+#: desk/page/setup_wizard/install_fixtures.py:30
+msgid "Female"
+msgstr ""
 
 #. Label of a Small Text field in DocType 'DocField'
 #. Label of a Small Text field in DocType 'Custom Field'
@@ -9810,7 +9777,7 @@ msgstr "Polje {0} nije pronađeno."
 #: custom/doctype/doctype_layout_field/doctype_layout_field.json
 #: desk/doctype/form_tour_step/form_tour_step.json
 #: integrations/doctype/webhook_data/webhook_data.json
-#: public/js/frappe/form/grid_row.js:431
+#: public/js/frappe/form/grid_row.js:430
 #: website/doctype/web_template_field/web_template_field.json
 msgid "Fieldname"
 msgstr "Naziv polja"
@@ -9911,15 +9878,11 @@ msgstr "Tip polja se ne može promijeniti iz {0} u {1}"
 msgid "Fieldtype cannot be changed from {0} to {1} in row {2}"
 msgstr "Tip polja se ne može promijeniti iz {0} u {1} u redu {2}"
 
+#. Label of a shortcut in the Tools Workspace
 #. Name of a DocType
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
-#: core/doctype/file/file.json desk/doctype/form_tour/form_tour.json
-msgid "File"
-msgstr "Datoteka"
-
-#. Label of a shortcut in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "File"
+#: automation/workspace/tools/tools.json core/doctype/file/file.json
+#: desk/doctype/form_tour/form_tour.json
 msgid "File"
 msgstr "Datoteka"
 
@@ -9980,7 +9943,7 @@ msgstr "URL datoteke"
 msgid "File backup is ready"
 msgstr "Sigurnosna kopija datoteke je spremna"
 
-#: core/doctype/file/file.py:576
+#: core/doctype/file/file.py:581
 msgid "File name cannot have {0}"
 msgstr "Ime datoteke ne može imati {0}"
 
@@ -9988,7 +9951,7 @@ msgstr "Ime datoteke ne može imati {0}"
 msgid "File not attached"
 msgstr "Datoteka nije priložena"
 
-#: core/doctype/file/file.py:681 public/js/frappe/request.js:197
+#: core/doctype/file/file.py:686 public/js/frappe/request.js:197
 #: utils/file_manager.py:222
 msgid "File size exceeded the maximum allowed size of {0} MB"
 msgstr "Veličina datoteke je premašila maksimalnu dozvoljenu veličinu od {0} MB"
@@ -10005,14 +9968,10 @@ msgstr "Tip datoteke {0} nije dozvoljen"
 msgid "File {0} does not exist"
 msgstr "Datoteka {0} ne postoji"
 
-#. Label of a Tab Break field in DocType 'System Settings'
-#: core/doctype/system_settings/system_settings.json
-msgid "Files"
-msgstr "Datoteke"
-
 #. Label of a Link in the Tools Workspace
+#. Label of a Tab Break field in DocType 'System Settings'
 #: automation/workspace/tools/tools.json
-msgctxt "File"
+#: core/doctype/system_settings/system_settings.json
 msgid "Files"
 msgstr "Datoteke"
 
@@ -10021,8 +9980,8 @@ msgstr "Datoteke"
 #: desk/doctype/dashboard_chart/dashboard_chart.js:439
 #: desk/doctype/number_card/number_card.js:205
 #: desk/doctype/number_card/number_card.js:336
-#: email/doctype/auto_email_report/auto_email_report.js:90
-#: public/js/frappe/list/base_list.js:868
+#: email/doctype/auto_email_report/auto_email_report.js:93
+#: public/js/frappe/list/base_list.js:876
 #: public/js/frappe/ui/filters/filter_list.js:134
 #: website/doctype/web_form/web_form.js:197
 msgid "Filter"
@@ -10625,7 +10584,7 @@ msgstr "Jedinice dijela"
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
 #: integrations/doctype/social_login_key/social_login_key.json
-#: www/login.html:61 www/login.html:142 www/login.py:48 www/login.py:137
+#: www/login.html:61 www/login.html:142 www/login.py:49 www/login.py:138
 msgid "Frappe"
 msgstr "Frappe"
 
@@ -10735,7 +10694,7 @@ msgstr "Potpuno"
 #. Label of a Data field in DocType 'Blogger'
 #: contacts/doctype/contact/contact.json
 #: core/doctype/activity_log/activity_log.json core/doctype/user/user.json
-#: desk/page/setup_wizard/setup_wizard.js:464 templates/signup.html:4
+#: desk/page/setup_wizard/setup_wizard.js:457 templates/signup.html:4
 #: website/doctype/about_us_team_member/about_us_team_member.json
 #: website/doctype/blogger/blogger.json
 msgid "Full Name"
@@ -10800,6 +10759,10 @@ msgstr "GNU General Public License"
 msgid "Gantt"
 msgstr "Gantogram"
 
+#: public/js/frappe/list/base_list.js:205
+msgid "Gantt View"
+msgstr ""
+
 #. Label of a Link field in DocType 'Contact'
 #. Name of a DocType
 #. Label of a Data field in DocType 'Gender'
@@ -10808,6 +10771,10 @@ msgstr "Gantogram"
 #: core/doctype/user/user.json
 msgid "Gender"
 msgstr "Spol"
+
+#: desk/page/setup_wizard/install_fixtures.py:33
+msgid "Genderqueer"
+msgstr ""
 
 #: www/contact.html:29
 msgid "General"
@@ -11027,14 +10994,10 @@ msgstr "Google Analytics anonymise IP"
 #. Label of a Link field in DocType 'Event'
 #. Name of a DocType
 #. Label of a Section Break field in DocType 'Google Calendar'
+#. Label of a Link in the Integrations Workspace
 #: desk/doctype/event/event.json
 #: integrations/doctype/google_calendar/google_calendar.json
-msgid "Google Calendar"
-msgstr "Google kalendar"
-
-#. Label of a Link in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
-msgctxt "Google Calendar"
 msgid "Google Calendar"
 msgstr "Google kalendar"
 
@@ -11086,14 +11049,10 @@ msgstr "Google kalendar je konfigurisan."
 #. Label of a Link field in DocType 'Contact'
 #. Name of a DocType
 #. Label of a Section Break field in DocType 'Google Contacts'
+#. Label of a Link in the Integrations Workspace
 #: contacts/doctype/contact/contact.json
 #: integrations/doctype/google_contacts/google_contacts.json
-msgid "Google Contacts"
-msgstr "Google kontakti"
-
-#. Label of a Link in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
-msgctxt "Google Contacts"
 msgid "Google Contacts"
 msgstr "Google kontakti"
 
@@ -11112,14 +11071,10 @@ msgstr "Id Google kontakata"
 
 #. Name of a DocType
 #. Label of a Section Break field in DocType 'Google Drive'
-#: integrations/doctype/google_drive/google_drive.json
-#: public/js/frappe/file_uploader/FileUploader.vue:164
-msgid "Google Drive"
-msgstr "Google disk"
-
 #. Label of a Link in the Integrations Workspace
+#: integrations/doctype/google_drive/google_drive.json
 #: integrations/workspace/integrations/integrations.json
-msgctxt "Google Drive"
+#: public/js/frappe/file_uploader/FileUploader.vue:164
 msgid "Google Drive"
 msgstr "Google disk"
 
@@ -11168,13 +11123,9 @@ msgid "Google Services"
 msgstr "Google usluge"
 
 #. Name of a DocType
-#: integrations/doctype/google_settings/google_settings.json
-msgid "Google Settings"
-msgstr "Google postavke"
-
 #. Label of a Link in the Integrations Workspace
+#: integrations/doctype/google_settings/google_settings.json
 #: integrations/workspace/integrations/integrations.json
-msgctxt "Google Settings"
 msgid "Google Settings"
 msgstr "Google postavke"
 
@@ -11470,13 +11421,9 @@ msgid "Help"
 msgstr "Pomoć"
 
 #. Name of a DocType
-#: website/doctype/help_article/help_article.json
-msgid "Help Article"
-msgstr "Članak pomoći"
-
 #. Label of a Link in the Website Workspace
+#: website/doctype/help_article/help_article.json
 #: website/workspace/website/website.json
-msgctxt "Help Article"
 msgid "Help Article"
 msgstr "Članak pomoći"
 
@@ -11486,13 +11433,9 @@ msgid "Help Articles"
 msgstr "Članci pomoći"
 
 #. Name of a DocType
-#: website/doctype/help_category/help_category.json
-msgid "Help Category"
-msgstr "Kategorija pomoći"
-
 #. Label of a Link in the Website Workspace
+#: website/doctype/help_category/help_category.json
 #: website/workspace/website/website.json
-msgctxt "Help Category"
 msgid "Help Category"
 msgstr "Kategorija pomoći"
 
@@ -11568,9 +11511,9 @@ msgstr "Skrivena polja"
 
 #. Option for the 'Page Number' (Select) field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
-#: public/js/frappe/views/workspace/workspace.js:858
+#: public/js/frappe/views/workspace/workspace.js:859
 #: public/js/frappe/widgets/base_widget.js:46
-#: public/js/frappe/widgets/base_widget.js:176
+#: public/js/frappe/widgets/base_widget.js:178
 #: public/js/print_format_builder/PrintFormatControls.vue:243
 #: templates/includes/login/login.js:83
 msgid "Hide"
@@ -11677,7 +11620,7 @@ msgstr "Sakrij oznake"
 msgid "Hide Weekends"
 msgstr "Sakrij vikende"
 
-#: public/js/frappe/views/workspace/workspace.js:859
+#: public/js/frappe/views/workspace/workspace.js:860
 msgid "Hide Workspace"
 msgstr "Sakrij radni prostor"
 
@@ -11787,6 +11730,11 @@ msgstr "Ograničenje po satu za generisanje veza za resetovanje lozinke"
 msgid "How should this currency be formatted? If not set, will use system defaults"
 msgstr "Kako treba formatirati ovu valutu? Ako nije postavljeno, koristit će se zadane postavke sistema"
 
+#. Paragraph text in the Welcome Workspace Workspace
+#: core/workspace/welcome_workspace/welcome_workspace.json
+msgid "I guess you don't have access to any workspace yet, but you can create one just for yourself. Click on the <b>Create Workspace</b> button to create one.<br>"
+msgstr ""
+
 #: core/doctype/data_import/importer.py:1127
 #: core/doctype/data_import/importer.py:1133
 #: core/doctype/data_import/importer.py:1198
@@ -11858,9 +11806,9 @@ msgstr "IP adresa"
 #: desk/doctype/workspace_link/workspace_link.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: integrations/doctype/social_login_key/social_login_key.json
-#: public/js/frappe/views/workspace/workspace.js:676
-#: public/js/frappe/views/workspace/workspace.js:1004
-#: public/js/frappe/views/workspace/workspace.js:1249
+#: public/js/frappe/views/workspace/workspace.js:677
+#: public/js/frappe/views/workspace/workspace.js:1005
+#: public/js/frappe/views/workspace/workspace.js:1250
 #: workflow/doctype/workflow_state/workflow_state.json
 msgid "Icon"
 msgstr "Ikona"
@@ -12162,6 +12110,10 @@ msgstr "Visina slike"
 msgid "Image Link"
 msgstr "Veza slike"
 
+#: public/js/frappe/list/base_list.js:208
+msgid "Image View"
+msgstr ""
+
 #. Label of a Float field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
 msgid "Image Width"
@@ -12192,15 +12144,15 @@ msgid "Images"
 msgstr "Slike"
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
-#: core/doctype/activity_log/activity_log.json core/doctype/user/user.js:362
+#: core/doctype/activity_log/activity_log.json core/doctype/user/user.js:367
 msgid "Impersonate"
 msgstr "Oponašati"
 
-#: core/doctype/user/user.js:389
+#: core/doctype/user/user.js:394
 msgid "Impersonate as {0}"
 msgstr "Oponašati {0}"
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:233
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:246
 msgid "Impersonated by {0}"
 msgstr "Oponašan od strane {0}"
 
@@ -12233,7 +12185,6 @@ msgstr "Uvoz"
 #. Label of a Link in the Tools Workspace
 #. Label of a shortcut in the Tools Workspace
 #: automation/workspace/tools/tools.json
-msgctxt "Data Import"
 msgid "Import Data"
 msgstr "Uvoz podataka"
 
@@ -12432,6 +12383,10 @@ msgstr "Pristigla pošta"
 msgid "Inbox User"
 msgstr "Korisnik pristigle pošte"
 
+#: public/js/frappe/list/base_list.js:209
+msgid "Inbox View"
+msgstr ""
+
 #. Label of a Check field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
 msgid "Include Name Field"
@@ -12493,7 +12448,7 @@ msgstr "Račun dolazne e-pošte nije ispravan"
 msgid "Incomplete Virtual Doctype Implementation"
 msgstr "Nepotpuna implementacija virtualnog tipa dokumenta"
 
-#: auth.py:232
+#: auth.py:233
 msgid "Incomplete login details"
 msgstr "Nepotpuni podaci za prijavu"
 
@@ -12513,13 +12468,13 @@ msgstr "Netačan korisnik ili lozinka"
 msgid "Incorrect Verification code"
 msgstr "Netačan verifikacioni kod"
 
-#: model/document.py:1354
-msgid "Incorrect value in row {0}: {1} must be {2} {3}"
-msgstr "Netačna vrijednost u redu {0}: {1} mora biti {2} {3}"
+#: model/document.py:1347
+msgid "Incorrect value in row {0}:"
+msgstr ""
 
-#: model/document.py:1358
-msgid "Incorrect value: {0} must be {1} {2}"
-msgstr "Netačna vrijednost: {0} mora biti {1} {2}"
+#: model/document.py:1349
+msgid "Incorrect value:"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #. Label of a Int field in DocType 'Recorder Query'
@@ -12561,9 +12516,9 @@ msgstr "Indikator"
 msgid "Indicator Color"
 msgstr "Boja indikatora"
 
-#: public/js/frappe/views/workspace/workspace.js:683
-#: public/js/frappe/views/workspace/workspace.js:1011
-#: public/js/frappe/views/workspace/workspace.js:1255
+#: public/js/frappe/views/workspace/workspace.js:684
+#: public/js/frappe/views/workspace/workspace.js:1012
+#: public/js/frappe/views/workspace/workspace.js:1256
 msgid "Indicator color"
 msgstr "Boja indikatora"
 
@@ -12791,7 +12746,7 @@ msgstr "Introspekcija URI"
 msgid "Invalid"
 msgstr "Nevažeći"
 
-#: public/js/form_builder/utils.js:221 public/js/frappe/form/grid_row.js:770
+#: public/js/form_builder/utils.js:221 public/js/frappe/form/grid_row.js:769
 #: public/js/frappe/form/layout.js:785
 msgid "Invalid \"depends_on\" expression"
 msgstr "Nevažeći izraz \"depends_on\""
@@ -12856,7 +12811,7 @@ msgstr "Nevažeća početna stranica"
 msgid "Invalid Link"
 msgstr "Nevažeća veza"
 
-#: www/login.py:116
+#: www/login.py:117
 msgid "Invalid Login Token"
 msgstr "Nevažeći token za prijavu"
 
@@ -12892,7 +12847,7 @@ msgstr "Nevažeći izlazni format"
 msgid "Invalid Parameters."
 msgstr "Nevažeći parametri."
 
-#: core/doctype/user/user.py:1204 www/update-password.html:121
+#: core/doctype/user/user.py:1209 www/update-password.html:121
 #: www/update-password.html:142 www/update-password.html:144
 #: www/update-password.html:245
 msgid "Invalid Password"
@@ -12902,7 +12857,7 @@ msgstr "Nevažeća lozinka"
 msgid "Invalid Phone Number"
 msgstr "Nevažeći broj telefona"
 
-#: auth.py:93 utils/oauth.py:179 utils/oauth.py:186 www/login.py:116
+#: auth.py:94 utils/oauth.py:180 utils/oauth.py:187 www/login.py:117
 msgid "Invalid Request"
 msgstr "Nevažeći zahtjev"
 
@@ -13420,6 +13375,10 @@ msgctxt "Button in kanban view menu"
 msgid "Kanban Settings"
 msgstr "Kanban postavke"
 
+#: public/js/frappe/list/base_list.js:206
+msgid "Kanban View"
+msgstr ""
+
 #. Description of a DocType
 #: core/doctype/activity_log/activity_log.json
 msgid "Keep track of all update feeds"
@@ -13578,13 +13537,9 @@ msgid "LDAP Server Url"
 msgstr "Url LDAP servera"
 
 #. Name of a DocType
-#: integrations/doctype/ldap_settings/ldap_settings.json
-msgid "LDAP Settings"
-msgstr "LDAP postavke"
-
 #. Label of a Link in the Integrations Workspace
+#: integrations/doctype/ldap_settings/ldap_settings.json
 #: integrations/workspace/integrations/integrations.json
-msgctxt "LDAP Settings"
 msgid "LDAP Settings"
 msgstr "LDAP postavke"
 
@@ -13965,7 +13920,7 @@ msgstr "Postavimo Vašu web stranicu."
 msgid "Let's avoid repeated words and characters"
 msgstr "Izbjegnimo ponavljane riječi i znakove"
 
-#: desk/page/setup_wizard/setup_wizard.js:459
+#: desk/page/setup_wizard/setup_wizard.js:452
 msgid "Let's set up your account"
 msgstr "Postavimo vaš račun"
 
@@ -14033,7 +13988,7 @@ msgstr "Zaglavlje pisma u HTML-u"
 msgid "Level"
 msgstr "Nivo"
 
-#: core/page/permission_manager/permission_manager.js:461
+#: core/page/permission_manager/permission_manager.js:460
 msgid "Level 0 is for document level permissions, higher levels for field level permissions."
 msgstr "Nivo 0 je za dozvole na nivou dokumenta, viši nivoi za dozvole na nivou polja."
 
@@ -14335,6 +14290,10 @@ msgctxt "Button in list view menu"
 msgid "List Settings"
 msgstr "Postavke liste"
 
+#: public/js/frappe/list/base_list.js:202
+msgid "List View"
+msgstr ""
+
 #. Name of a DocType
 #: desk/doctype/list_view_settings/list_view_settings.json
 msgid "List View Settings"
@@ -14365,12 +14324,12 @@ msgstr "Liste"
 msgid "Load Balancing"
 msgstr "Load Balancing"
 
-#: public/js/frappe/list/base_list.js:377
+#: public/js/frappe/list/base_list.js:385
 #: website/doctype/blog_post/templates/blog_post_list.html:50
 msgid "Load More"
 msgstr "Učitaj još"
 
-#: public/js/frappe/form/footer/form_timeline.js:214
+#: public/js/frappe/form/footer/form_timeline.js:216
 msgctxt "Form timeline"
 msgid "Load More Communications"
 msgstr "Učitaj još komunikacija"
@@ -14382,7 +14341,7 @@ msgstr ""
 #: core/page/permission_manager/permission_manager.js:165
 #: public/js/frappe/form/controls/multicheck.js:13
 #: public/js/frappe/form/linked_with.js:13
-#: public/js/frappe/list/base_list.js:476
+#: public/js/frappe/list/base_list.js:484
 #: public/js/frappe/list/list_view.js:334 public/js/frappe/ui/listing.html:16
 #: public/js/frappe/views/reports/query_report.js:1016
 msgid "Loading"
@@ -14476,7 +14435,7 @@ msgstr "Odjavljen"
 #: templates/discussions/discussions_section.html:60
 #: templates/discussions/reply_section.html:44
 #: templates/includes/navbar/dropdown_login.html:15
-#: templates/includes/navbar/navbar_login.html:24
+#: templates/includes/navbar/navbar_login.html:25
 #: website/page_renderers/not_permitted_page.py:22 www/login.html:42
 msgid "Login"
 msgstr "Prijava"
@@ -14514,17 +14473,13 @@ msgstr "Stranica za prijavu"
 msgid "Login Required"
 msgstr "Prijava je obavezna"
 
-#: www/login.py:140
+#: www/login.py:141
 msgid "Login To {0}"
 msgstr "Prijavite se na {0}"
 
 #: twofactor.py:261
 msgid "Login Verification Code from {}"
 msgstr "Kod za potvrdu prijave od {}"
-
-#: www/login.html:97
-msgid "Login With {0}"
-msgstr "Prijavite se sa {0}"
 
 #: templates/emails/new_message.html:4
 msgid "Login and view in Browser"
@@ -14538,7 +14493,7 @@ msgstr "Prijava je potrebna da biste vidjeli pregled liste web obrasca. Omogući
 msgid "Login link sent to your email"
 msgstr "Link za prijavu poslan je na vašu e-poštu"
 
-#: auth.py:318 auth.py:321
+#: auth.py:319 auth.py:322
 msgid "Login not allowed at this time"
 msgstr "Prijava trenutno nije dozvoljena"
 
@@ -14576,16 +14531,20 @@ msgstr "Prijavite se putem email veze"
 msgid "Login with email link expiry (in minutes)"
 msgstr "Prijavite se sa istekom veze e-pošte (u minutama)"
 
-#: auth.py:129
+#: auth.py:130
 msgid "Login with username and password is not allowed."
 msgstr "Prijava sa korisničkim imenom i lozinkom nije dozvoljena."
 
+#: www/login.html:97
+msgid "Login with {0}"
+msgstr ""
+
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
-#: core/doctype/activity_log/activity_log.json
+#: core/doctype/activity_log/activity_log.json www/apps.html:46
 msgid "Logout"
 msgstr "Odjava"
 
-#: core/doctype/user/user.js:190
+#: core/doctype/user/user.js:195
 msgid "Logout All Sessions"
 msgstr "Odjava sa svih sesija"
 
@@ -14655,6 +14614,10 @@ msgstr "M"
 msgid "MIT License"
 msgstr "MIT licenca"
 
+#: desk/page/setup_wizard/install_fixtures.py:49
+msgid "Madam"
+msgstr ""
+
 #. Label of a Text Editor field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgid "Main Section"
@@ -14714,6 +14677,10 @@ msgstr "Napravi {0}"
 #: website/doctype/web_page/web_page.js:77
 msgid "Makes the page public"
 msgstr "Stranicu čini javnom"
+
+#: desk/page/setup_wizard/install_fixtures.py:29
+msgid "Male"
+msgstr ""
 
 #: www/me.html:50
 msgid "Manage third party apps"
@@ -14788,6 +14755,10 @@ msgstr "Mapa"
 #: public/js/frappe/data_import/import_preview.js:302
 msgid "Map Columns"
 msgstr "Kolone mape"
+
+#: public/js/frappe/list/base_list.js:211
+msgid "Map View"
+msgstr ""
 
 #: public/js/frappe/data_import/import_preview.js:290
 msgid "Map columns from {0} to fields in {1}"
@@ -14877,6 +14848,10 @@ msgstr "Označeno kao neželjena pošta"
 #: website/doctype/marketing_campaign/marketing_campaign.json
 msgid "Marketing Campaign"
 msgstr "Marketinška kampanja"
+
+#: desk/page/setup_wizard/install_fixtures.py:51
+msgid "Master"
+msgstr ""
 
 #. Description of the 'Limit' (Int) field in DocType 'Bulk Update'
 #: desk/doctype/bulk_update/bulk_update.json
@@ -15188,13 +15163,9 @@ msgid "Middle Name"
 msgstr "Srednje ime"
 
 #. Name of a DocType
-#: automation/doctype/milestone/milestone.json
-msgid "Milestone"
-msgstr "Prekretnica"
-
 #. Label of a Link in the Tools Workspace
+#: automation/doctype/milestone/milestone.json
 #: automation/workspace/tools/tools.json
-msgctxt "Milestone"
 msgid "Milestone"
 msgstr "Prekretnica"
 
@@ -15228,6 +15199,10 @@ msgstr "Manji"
 msgid "Misconfigured"
 msgstr "Pogrešno konfigurisano"
 
+#: desk/page/setup_wizard/install_fixtures.py:50
+msgid "Miss"
+msgstr ""
+
 #: desk/form/meta.py:213
 msgid "Missing DocType"
 msgstr "Nedostaje DocType"
@@ -15259,7 +15234,7 @@ msgstr "Nedostaje vrijednost"
 msgid "Missing Values Required"
 msgstr "Nedostajuće vrijednosti su obavezne"
 
-#: www/login.py:100
+#: www/login.py:101
 msgid "Mobile"
 msgstr "Mobilni"
 
@@ -15339,13 +15314,9 @@ msgstr "Modul (za izvoz)"
 
 #. Name of a DocType
 #. Linked DocType in Package's connections
-#: core/doctype/module_def/module_def.json core/doctype/package/package.json
-msgid "Module Def"
-msgstr "Modul Def"
-
 #. Label of a Link in the Build Workspace
+#: core/doctype/module_def/module_def.json core/doctype/package/package.json
 #: core/workspace/build/build.json
-msgctxt "Module Def"
 msgid "Module Def"
 msgstr "Modul Def"
 
@@ -15361,26 +15332,18 @@ msgstr "Modul HTML"
 msgid "Module Name"
 msgstr "Naziv modula"
 
-#. Name of a DocType
-#: desk/doctype/module_onboarding/module_onboarding.json
-msgid "Module Onboarding"
-msgstr "Modul Uključenje"
-
 #. Label of a Link in the Build Workspace
+#. Name of a DocType
 #: core/workspace/build/build.json
-msgctxt "Module Onboarding"
+#: desk/doctype/module_onboarding/module_onboarding.json
 msgid "Module Onboarding"
 msgstr "Modul Uključenje"
 
 #. Name of a DocType
 #. Label of a Link field in DocType 'User'
-#: core/doctype/module_profile/module_profile.json core/doctype/user/user.json
-msgid "Module Profile"
-msgstr "Profil modula"
-
 #. Label of a Link in the Users Workspace
+#: core/doctype/module_profile/module_profile.json core/doctype/user/user.json
 #: core/workspace/users/users.json
-msgctxt "Module Profile"
 msgid "Module Profile"
 msgstr "Profil modula"
 
@@ -15523,7 +15486,7 @@ msgstr "Najvjerovatnije je vaša lozinka predugačka."
 msgid "Move"
 msgstr "Premjesti"
 
-#: public/js/frappe/form/grid_row.js:190
+#: public/js/frappe/form/grid_row.js:189
 msgid "Move To"
 msgstr "Premjesti u"
 
@@ -15559,7 +15522,7 @@ msgstr ""
 msgid "Move the current field and the following fields to a new column"
 msgstr ""
 
-#: public/js/frappe/form/grid_row.js:165
+#: public/js/frappe/form/grid_row.js:164
 msgid "Move to Row Number"
 msgstr "Pomaknite se na red broj"
 
@@ -15573,6 +15536,18 @@ msgstr "Prijeđite na sljedeći korak kada kliknete unutar označenog područja.
 #: desk/doctype/form_tour_step/form_tour_step.json
 msgid "Mozilla doesn't support :has() so you can pass parent selector here as workaround"
 msgstr "Mozilla ne podržava :has() tako da ovdje možete proslijediti nadređeni birač kao zaobilazno rješenje"
+
+#: desk/page/setup_wizard/install_fixtures.py:44
+msgid "Mr"
+msgstr ""
+
+#: desk/page/setup_wizard/install_fixtures.py:48
+msgid "Mrs"
+msgstr ""
+
+#: desk/page/setup_wizard/install_fixtures.py:45
+msgid "Ms"
+msgstr ""
 
 #: utils/nestedset.py:335
 msgid "Multiple root nodes not allowed."
@@ -15614,6 +15589,10 @@ msgstr "Mora se navesti upit za pokretanje"
 #: core/doctype/user/user.json
 msgid "Mute Sounds"
 msgstr "Utišaj zvukove"
+
+#: desk/page/setup_wizard/install_fixtures.py:46
+msgid "Mx"
+msgstr ""
 
 #: templates/includes/web_sidebar.html:41
 #: website/doctype/web_form/web_form.py:399
@@ -15754,13 +15733,9 @@ msgid "Navbar Item"
 msgstr "Stavka navigacijske trake"
 
 #. Name of a DocType
-#: core/doctype/navbar_settings/navbar_settings.json
-msgid "Navbar Settings"
-msgstr "Postavke navigacijske trake"
-
 #. Label of a Link in the Build Workspace
+#: core/doctype/navbar_settings/navbar_settings.json
 #: core/workspace/build/build.json
-msgctxt "Navbar Settings"
 msgid "Navbar Settings"
 msgstr "Postavke navigacijske trake"
 
@@ -15829,6 +15804,7 @@ msgstr "Postavke mrežnog štampača"
 #: email/doctype/notification/notification.json
 #: public/js/frappe/form/success_action.js:77
 #: public/js/frappe/views/treeview.js:437
+#: public/js/frappe/views/workspace/workspace.js:98
 #: social/doctype/energy_point_rule/energy_point_rule.json
 #: website/doctype/web_form/templates/web_list.html:15 www/list.html:19
 msgid "New"
@@ -15863,7 +15839,7 @@ msgstr "Novi obrazac za dokument"
 msgid "New Document Shared {0}"
 msgstr "Novi dokument dijeljen {0}"
 
-#: public/js/frappe/form/footer/form_timeline.js:26
+#: public/js/frappe/form/footer/form_timeline.js:27
 #: public/js/frappe/views/communication.js:23
 msgid "New Email"
 msgstr "Nova e-pošta"
@@ -15873,7 +15849,7 @@ msgstr "Nova e-pošta"
 msgid "New Email Account"
 msgstr "Novi nalog e-pošte"
 
-#: public/js/frappe/form/footer/form_timeline.js:45
+#: public/js/frappe/form/footer/form_timeline.js:47
 msgid "New Event"
 msgstr ""
 
@@ -15907,7 +15883,7 @@ msgstr "Novi bilten"
 msgid "New Notification"
 msgstr "Novo obavještenje"
 
-#: core/doctype/user/user.js:178 www/update-password.html:19
+#: core/doctype/user/user.js:183 www/update-password.html:19
 msgid "New Password"
 msgstr "Nova šifra"
 
@@ -15934,7 +15910,7 @@ msgstr "Nova vrijednost"
 msgid "New Workflow Name"
 msgstr "Novi naziv radnog toka"
 
-#: public/js/frappe/views/workspace/workspace.js:1216
+#: public/js/frappe/views/workspace/workspace.js:1217
 msgid "New Workspace"
 msgstr "Novi radni prostor"
 
@@ -15965,6 +15941,7 @@ msgstr "Nova vrijednost koju treba postaviti"
 #: public/js/frappe/ui/toolbar/search_utils.js:168
 #: public/js/frappe/ui/toolbar/search_utils.js:217
 #: public/js/frappe/ui/toolbar/search_utils.js:218
+#: public/js/frappe/views/breadcrumbs.js:192
 #: public/js/frappe/views/treeview.js:332
 #: website/doctype/web_form/web_form.py:308
 msgid "New {0}"
@@ -15990,20 +15967,15 @@ msgstr "Novi {0}: {1}"
 msgid "New {} releases for the following apps are available"
 msgstr "Dostupna su nova {} izdanja za sljedeće aplikacije"
 
-#: core/doctype/user/user.py:780
+#: core/doctype/user/user.py:785
 msgid "Newly created user {0} has no roles enabled."
 msgstr "Novokreirani korisnik {0} nema omogućene uloge."
 
 #. Label of a Card Break in the Tools Workspace
+#. Label of a Link in the Tools Workspace
 #. Name of a DocType
 #: automation/workspace/tools/tools.json
 #: email/doctype/newsletter/newsletter.json
-msgid "Newsletter"
-msgstr "Bilten"
-
-#. Label of a Link in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "Newsletter"
 msgid "Newsletter"
 msgstr "Bilten"
 
@@ -16276,7 +16248,7 @@ msgstr "Nema rezultata"
 msgid "No Results found"
 msgstr "Nema rezultata"
 
-#: core/doctype/user/user.py:781
+#: core/doctype/user/user.py:786
 msgid "No Roles Specified"
 msgstr "Nisu navedene uloge"
 
@@ -16324,7 +16296,7 @@ msgstr "Nema promjena u dokumentu"
 msgid "No changes made because old and new name are the same."
 msgstr "Nema promjena jer su stari i novi naziv isti."
 
-#: public/js/frappe/views/workspace/workspace.js:1521
+#: public/js/frappe/views/workspace/workspace.js:1522
 msgid "No changes made on the page"
 msgstr "Nema promjena na stranici"
 
@@ -16482,7 +16454,7 @@ msgstr "Nije pronađeno {0} sa odgovarajućim filterima. Obrišite filtere da vi
 msgid "No {0} mail"
 msgstr "Nema {0} pošte"
 
-#: public/js/form_builder/utils.js:117 public/js/frappe/form/grid_row.js:253
+#: public/js/form_builder/utils.js:117 public/js/frappe/form/grid_row.js:252
 msgctxt "Title of the 'row number' column"
 msgid "No."
 msgstr "Br."
@@ -16495,6 +16467,10 @@ msgstr "Br."
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgid "Non Negative"
 msgstr "Nije negativno"
+
+#: desk/page/setup_wizard/install_fixtures.py:34
+msgid "Non-Conforming"
+msgstr ""
 
 #. Option for the 'Backup Frequency' (Select) field in DocType 'S3 Backup
 #. Settings'
@@ -16516,8 +16492,8 @@ msgstr "Normalizovane kopije"
 msgid "Normalized Query"
 msgstr "Normalizirani upit"
 
-#: core/doctype/user/user.py:988 templates/includes/login/login.js:258
-#: utils/oauth.py:265
+#: core/doctype/user/user.py:993 templates/includes/login/login.js:258
+#: utils/oauth.py:266
 msgid "Not Allowed"
 msgstr "Nije dozvoljeno"
 
@@ -16561,7 +16537,7 @@ msgstr "Nije povezano ni sa jednim zapisom"
 #: __init__.py:982 app.py:357 desk/calendar.py:26 desk/treeview.py:19
 #: geo/utils.py:97 public/js/frappe/web_form/webform_script.js:15
 #: website/doctype/web_form/web_form.py:601
-#: website/page_renderers/not_permitted_page.py:20 www/login.py:181
+#: website/page_renderers/not_permitted_page.py:20 www/login.py:182
 #: www/qrcode.py:22 www/qrcode.py:25 www/qrcode.py:37
 msgid "Not Permitted"
 msgstr "Nije dozvoljeno"
@@ -16610,7 +16586,7 @@ msgstr "Nije postavljeno"
 msgid "Not a valid Comma Separated Value (CSV File)"
 msgstr "Nije važeća vrijednost odvojena zarezima (CSV datoteka)"
 
-#: core/doctype/user/user.py:197
+#: core/doctype/user/user.py:198
 msgid "Not a valid User Image."
 msgstr "Nije važeća korisnička slika."
 
@@ -16663,7 +16639,7 @@ msgid "Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."
 msgstr "Nije u načinu rada za programere! Postavite u site_config.json ili napravite 'Custom' DocType."
 
 #: api/v1.py:88 api/v1.py:93
-#: core/doctype/system_settings/system_settings.py:209 handler.py:109
+#: core/doctype/system_settings/system_settings.py:210 handler.py:109
 #: public/js/frappe/request.js:157 public/js/frappe/request.js:167
 #: public/js/frappe/request.js:172
 #: public/js/frappe/views/kanban/kanban_board.bundle.js:67
@@ -16675,15 +16651,10 @@ msgstr "Nije dozvoljeno"
 msgid "Not permitted to view {0}"
 msgstr "Nema dopuštenja za pregled {0}"
 
+#. Label of a Link in the Tools Workspace
 #. Name of a DocType
 #: automation/doctype/auto_repeat/auto_repeat.py:396
-#: desk/doctype/note/note.json
-msgid "Note"
-msgstr "Napomena"
-
-#. Label of a Link in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "Note"
+#: automation/workspace/tools/tools.json desk/doctype/note/note.json
 msgid "Note"
 msgstr "Napomena"
 
@@ -16725,7 +16696,7 @@ msgstr "Napomena: Za najbolje rezultate, slike moraju biti iste veličine, a ši
 msgid "Note: Multiple sessions will be allowed in case of mobile device"
 msgstr "Napomena: Višestruke sesije će biti dozvoljene u slučaju mobilnog uređaja"
 
-#: core/doctype/user/user.js:377
+#: core/doctype/user/user.js:382
 msgid "Note: This will be shared with user."
 msgstr "Napomena: Ovo će biti podijeljeno s korisnikom."
 
@@ -16749,7 +16720,7 @@ msgstr "Ništa nije ostalo za ponoviti"
 msgid "Nothing left to undo"
 msgstr "Ništa nije ostalo za poništiti"
 
-#: public/js/frappe/list/base_list.js:361
+#: public/js/frappe/list/base_list.js:369
 #: public/js/frappe/views/reports/query_report.js:105
 #: templates/includes/list/list.html:7
 #: website/doctype/blog_post/templates/blog_post_list.html:41
@@ -16761,6 +16732,7 @@ msgid "Nothing to update"
 msgstr "Ništa za ažuriranje"
 
 #. Label of a Section Break field in DocType 'Auto Repeat'
+#. Label of a Link in the Tools Workspace
 #. Option for the 'Communication Type' (Select) field in DocType
 #. 'Communication'
 #. Linked DocType in DocType's connections
@@ -16768,17 +16740,12 @@ msgstr "Ništa za ažuriranje"
 #. Name of a DocType
 #. Label of a Section Break field in DocType 'S3 Backup Settings'
 #: automation/doctype/auto_repeat/auto_repeat.json
+#: automation/workspace/tools/tools.json
 #: core/doctype/communication/communication.json
 #: core/doctype/communication/mixins.py:142 core/doctype/doctype/doctype.json
 #: core/doctype/module_def/module_def.json
 #: email/doctype/notification/notification.json
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.json
-msgid "Notification"
-msgstr "Obavijest"
-
-#. Label of a Link in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "Notification"
 msgid "Notification"
 msgstr "Obavijest"
 
@@ -16792,15 +16759,11 @@ msgstr "Dnevnik obavijesti"
 msgid "Notification Recipient"
 msgstr "Primalac obavijesti"
 
+#. Label of a Link in the Tools Workspace
 #. Name of a DocType
+#: automation/workspace/tools/tools.json
 #: desk/doctype/notification_settings/notification_settings.json
 #: public/js/frappe/ui/notifications/notifications.js:37
-msgid "Notification Settings"
-msgstr "Postavke obavijesti"
-
-#. Label of a Link in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "Notification Settings"
 msgid "Notification Settings"
 msgstr "Postavke obavijesti"
 
@@ -16928,7 +16891,7 @@ msgstr "Broj upita"
 msgid "Number of attachment fields are more than {}, limit updated to {}."
 msgstr "Broj polja priloga je veći od {}, ograničenje je ažurirano na {}."
 
-#: core/doctype/system_settings/system_settings.py:162
+#: core/doctype/system_settings/system_settings.py:163
 msgid "Number of backups must be greater than zero."
 msgstr "Broj sigurnosnih kopija mora biti veći od nule."
 
@@ -16976,13 +16939,9 @@ msgid "OAuth Bearer Token"
 msgstr "OAuth token nosioca"
 
 #. Name of a DocType
-#: integrations/doctype/oauth_client/oauth_client.json
-msgid "OAuth Client"
-msgstr "OAuth klijent"
-
 #. Label of a Link in the Integrations Workspace
+#: integrations/doctype/oauth_client/oauth_client.json
 #: integrations/workspace/integrations/integrations.json
-msgctxt "OAuth Client"
 msgid "OAuth Client"
 msgstr "OAuth klijent"
 
@@ -17001,13 +16960,9 @@ msgid "OAuth Error"
 msgstr "OAuth greška"
 
 #. Name of a DocType
-#: integrations/doctype/oauth_provider_settings/oauth_provider_settings.json
-msgid "OAuth Provider Settings"
-msgstr "Postavke davatelja OAuth"
-
 #. Label of a Link in the Integrations Workspace
+#: integrations/doctype/oauth_provider_settings/oauth_provider_settings.json
 #: integrations/workspace/integrations/integrations.json
-msgctxt "OAuth Provider Settings"
 msgid "OAuth Provider Settings"
 msgstr "Postavke davatelja OAuth"
 
@@ -17187,7 +17142,7 @@ msgstr "Jednokratna lozinka (OTP) registracijski kod od {}"
 msgid "One of"
 msgstr "Jedan od"
 
-#: public/js/frappe/views/workspace/workspace.js:1356
+#: public/js/frappe/views/workspace/workspace.js:1357
 msgid "One of the child page with name {0} already exist in {1} Section. Please update the name of the child page first before moving"
 msgstr "Jedna od podređenih stranica sa imenom {0} već postoji u {1} sekciji. Molimo prvo ažurirajte naziv podređene stranice prije premještanja"
 
@@ -17229,7 +17184,7 @@ msgstr "Pošaljite samo zapise ažurirane u posljednjih X sati"
 msgid "Only Workspace Manager can edit public workspaces"
 msgstr "Samo upravitelj radnog prostorar može uređivati javne radne prostore"
 
-#: public/js/frappe/views/workspace/workspace.js:580
+#: public/js/frappe/views/workspace/workspace.js:581
 msgid "Only Workspace Manager can sort or edit this page"
 msgstr "Samo upravitelj radnog prostora može sortirati ili uređivati ovu stranicu"
 
@@ -17525,6 +17480,7 @@ msgstr "Originalna vrijednost"
 #: contacts/doctype/address/address.json
 #: core/doctype/communication/communication.json
 #: core/doctype/doctype/doctype.json desk/doctype/event/event.json
+#: desk/page/setup_wizard/install_fixtures.py:31
 msgid "Other"
 msgstr ""
 
@@ -17651,25 +17607,17 @@ msgstr "PUT"
 #. Label of a Link field in DocType 'Module Def'
 #. Name of a DocType
 #. Label of a Link field in DocType 'Package Release'
+#. Label of a Link in the Build Workspace
 #: core/doctype/module_def/module_def.json core/doctype/package/package.json
 #: core/doctype/package_release/package_release.json
-msgid "Package"
-msgstr "Paket"
-
-#. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
-msgctxt "Package"
 msgid "Package"
 msgstr "Paket"
 
 #. Name of a DocType
-#: core/doctype/package_import/package_import.json
-msgid "Package Import"
-msgstr "Uvoz paketa"
-
 #. Label of a Link in the Build Workspace
+#: core/doctype/package_import/package_import.json
 #: core/workspace/build/build.json
-msgctxt "Package Import"
 msgid "Package Import"
 msgstr "Uvoz paketa"
 
@@ -17757,7 +17705,7 @@ msgstr "Broj stranice"
 msgid "Page Route"
 msgstr "Ruta stranice"
 
-#: public/js/frappe/views/workspace/workspace.js:1543
+#: public/js/frappe/views/workspace/workspace.js:1544
 msgid "Page Saved Successfully"
 msgstr "Stranica je uspješno spremljena"
 
@@ -17801,7 +17749,7 @@ msgstr "Stranica nije pronađena"
 msgid "Page to show on the website\n"
 msgstr "Stranica za prikaz na web stranici\n"
 
-#: public/js/frappe/views/workspace/workspace.js:1343
+#: public/js/frappe/views/workspace/workspace.js:1344
 msgid "Page with title {0} already exist."
 msgstr "Stranica sa naslovom {0} već postoji."
 
@@ -17818,9 +17766,9 @@ msgid "Parameter"
 msgstr "Parametar"
 
 #: public/js/frappe/model/model.js:142
-#: public/js/frappe/views/workspace/workspace.js:650
-#: public/js/frappe/views/workspace/workspace.js:978
-#: public/js/frappe/views/workspace/workspace.js:1225
+#: public/js/frappe/views/workspace/workspace.js:651
+#: public/js/frappe/views/workspace/workspace.js:979
+#: public/js/frappe/views/workspace/workspace.js:1226
 msgid "Parent"
 msgstr "Nadređeni"
 
@@ -17933,20 +17881,20 @@ msgstr "Pasivno"
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: core/doctype/docfield/docfield.json
 #: core/doctype/system_settings/system_settings.json
-#: core/doctype/user/user.js:165 core/doctype/user/user.js:212
-#: core/doctype/user/user.js:232 custom/doctype/custom_field/custom_field.json
+#: core/doctype/user/user.js:170 core/doctype/user/user.js:217
+#: core/doctype/user/user.js:237 custom/doctype/custom_field/custom_field.json
 #: custom/doctype/customize_form_field/customize_form_field.json
-#: desk/page/setup_wizard/setup_wizard.js:474
+#: desk/page/setup_wizard/setup_wizard.js:467
 #: email/doctype/email_account/email_account.json
 #: website/doctype/web_form_field/web_form_field.json www/login.html:21
 msgid "Password"
 msgstr "Lozinka"
 
-#: core/doctype/user/user.py:1051
+#: core/doctype/user/user.py:1056
 msgid "Password Email Sent"
 msgstr "E-pošta s lozinkom poslana"
 
-#: core/doctype/user/user.py:417
+#: core/doctype/user/user.py:422
 msgid "Password Reset"
 msgstr "Poništavanje lozinke"
 
@@ -17955,7 +17903,7 @@ msgstr "Poništavanje lozinke"
 msgid "Password Reset Link Generation Limit"
 msgstr "Ograničenje generisanja veze za poništavanje lozinke"
 
-#: public/js/frappe/form/grid_row.js:812
+#: public/js/frappe/form/grid_row.js:811
 msgid "Password cannot be filtered"
 msgstr "Lozinka se ne može filtrirati"
 
@@ -17980,7 +17928,7 @@ msgstr "Nedostaje lozinka na nalogu e-pošte"
 msgid "Password not found for {0} {1} {2}"
 msgstr "Lozinka nije pronađena za {0} {1} {2}"
 
-#: core/doctype/user/user.py:1050
+#: core/doctype/user/user.py:1055
 msgid "Password reset instructions have been sent to your email"
 msgstr "Uputstva za ponovno postavljanje lozinke su poslana na vašu e-poštu"
 
@@ -17988,11 +17936,11 @@ msgstr "Uputstva za ponovno postavljanje lozinke su poslana na vašu e-poštu"
 msgid "Password set"
 msgstr "Lozinka postavljena"
 
-#: auth.py:235
+#: auth.py:236
 msgid "Password size exceeded the maximum allowed size"
 msgstr "Veličina lozinke je premašila maksimalno dozvoljenu veličinu"
 
-#: core/doctype/user/user.py:844
+#: core/doctype/user/user.py:849
 msgid "Password size exceeded the maximum allowed size."
 msgstr "Veličina lozinke je premašila maksimalno dozvoljenu veličinu."
 
@@ -18000,7 +17948,7 @@ msgstr "Veličina lozinke je premašila maksimalno dozvoljenu veličinu."
 msgid "Passwords do not match"
 msgstr "Lozinke se ne podudaraju"
 
-#: core/doctype/user/user.js:198
+#: core/doctype/user/user.js:203
 msgid "Passwords do not match!"
 msgstr "Lozinke se ne podudaraju!"
 
@@ -18149,7 +18097,7 @@ msgid "Permission Inspector"
 msgstr "Inspektor dozvola"
 
 #. Label of a Int field in DocType 'Custom Field'
-#: core/page/permission_manager/permission_manager.js:457
+#: core/page/permission_manager/permission_manager.js:456
 #: custom/doctype/custom_field/custom_field.json
 msgid "Permission Level"
 msgstr "Nivo dozvole"
@@ -18190,7 +18138,7 @@ msgstr "Vrsta dozvole"
 #: core/doctype/docfield/docfield.json core/doctype/docperm/docperm.json
 #: core/doctype/doctype/doctype.json
 #: core/doctype/system_settings/system_settings.json
-#: core/doctype/user/user.js:140 core/doctype/user/user.js:149
+#: core/doctype/user/user.js:145 core/doctype/user/user.js:154
 #: core/page/permission_manager/permission_manager.js:214
 #: core/workspace/users/users.json
 #: custom/doctype/customize_form_field/customize_form_field.json
@@ -18235,6 +18183,11 @@ msgstr "Dozvoljene uloge"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: contacts/doctype/address/address.json
+msgid "Personal"
+msgstr "Lična"
+
+#: public/js/frappe/views/workspace/workspace.js:34
+msgctxt "Workspace Category"
 msgid "Personal"
 msgstr "Lična"
 
@@ -18342,7 +18295,7 @@ msgstr "Dodajte predmet svojoj e-pošti"
 msgid "Please add a valid comment."
 msgstr "Molimo dodajte ispravan komentar."
 
-#: core/doctype/user/user.py:1033
+#: core/doctype/user/user.py:1038
 msgid "Please ask your administrator to verify your sign-up"
 msgstr "Zamolite svog administratora da potvrdi vašu registraciju"
 
@@ -18374,7 +18327,7 @@ msgstr "Provjerite vrijednosti filtera postavljene za grafikon nadzorne ploče: 
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr "Provjerite vrijednost \"Dohvati iz\" postavljenu za polje {0}"
 
-#: core/doctype/user/user.py:1031
+#: core/doctype/user/user.py:1036
 msgid "Please check your email for verification"
 msgstr "Molimo provjerite svoju e-poštu za potvrdu"
 
@@ -18426,7 +18379,7 @@ msgstr "Molimo nemojte mijenjati naslove šablona."
 msgid "Please duplicate this to make changes"
 msgstr "Molimo duplirajte ovo da izvršite promjene"
 
-#: core/doctype/system_settings/system_settings.py:155
+#: core/doctype/system_settings/system_settings.py:156
 msgid "Please enable atleast one Social Login Key or LDAP or Login With Email Link before disabling username/password based login."
 msgstr "Omogućite barem jedan ključ za prijavu na društvenim mrežama ili LDAP ili se prijavite putem veze e-pošte prije nego što onemogućite prijavu zasnovanu na korisničkom imenu/lozinki."
 
@@ -18446,7 +18399,7 @@ msgstr "Omogućite iskačuće prozore u vašem pretraživaču"
 msgid "Please enable {} before continuing."
 msgstr "Omogućite {} prije nego nastavite."
 
-#: utils/oauth.py:186
+#: utils/oauth.py:187
 msgid "Please ensure that your profile has an email address"
 msgstr "Uvjerite se da vaš profil ima adresu e-pošte"
 
@@ -18563,7 +18516,7 @@ msgstr "Molimo prvo odaberite DocType"
 msgid "Please select Entity Type first"
 msgstr "Prvo odaberite vrstu entiteta"
 
-#: core/doctype/system_settings/system_settings.py:105
+#: core/doctype/system_settings/system_settings.py:106
 msgid "Please select Minimum Password Score"
 msgstr "Molimo odaberite Minimalni rezultat lozinke"
 
@@ -18649,7 +18602,7 @@ msgstr "Molimo prvo postavite sljedeće dokumente na ovoj kontrolnoj ploči kao 
 msgid "Please set the series to be used."
 msgstr "Molimo postavite seriju koja će se koristiti."
 
-#: core/doctype/system_settings/system_settings.py:118
+#: core/doctype/system_settings/system_settings.py:119
 msgid "Please setup SMS before setting it as an authentication method, via SMS Settings"
 msgstr "Podesite SMS prije nego što ga postavite kao metodu provjere autentičnosti, putem SMS postavki"
 
@@ -18661,11 +18614,11 @@ msgstr "Molimo prvo postavite poruku"
 msgid "Please setup default Email Account from Settings > Email Account"
 msgstr "Podesite podrazumijevani nalog e-pošte iz Podešavanja > Nalog e-pošte"
 
-#: core/doctype/user/user.py:368
+#: core/doctype/user/user.py:373
 msgid "Please setup default outgoing Email Account from Settings > Email Account"
 msgstr "Podesite podrazumijevani odlazni nalog e-pošte iz Podešavanja > Nalog e-pošte"
 
-#: public/js/frappe/model/model.js:800
+#: public/js/frappe/model/model.js:802
 msgid "Please specify"
 msgstr "Molimo navedite"
 
@@ -18760,13 +18713,9 @@ msgid "Portal Menu Item"
 msgstr "Stavka menija portala"
 
 #. Name of a DocType
-#: website/doctype/portal_settings/portal_settings.json
-msgid "Portal Settings"
-msgstr "Postavke portala"
-
 #. Label of a Link in the Website Workspace
+#: website/doctype/portal_settings/portal_settings.json
 #: website/workspace/website/website.json
-msgctxt "Portal Settings"
 msgid "Portal Settings"
 msgstr "Postavke portala"
 
@@ -18837,6 +18786,10 @@ msgstr "Preciznost bi trebala biti između 1 i 6"
 #: utils/password_strength.py:183
 msgid "Predictable substitutions like '@' instead of 'a' don't help very much."
 msgstr "Predvidljive zamjene poput '@' umjesto 'a' ne pomažu mnogo."
+
+#: desk/page/setup_wizard/install_fixtures.py:35
+msgid "Prefer not to say"
+msgstr ""
 
 #. Label of a Check field in DocType 'Address'
 #: contacts/doctype/address/address.json
@@ -18995,9 +18948,11 @@ msgstr "Primarni telefon"
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'
+#. Label of a Check field in DocType 'User Document Type'
 #: core/doctype/custom_docperm/custom_docperm.json
 #: core/doctype/docperm/docperm.json
 #: core/doctype/success_action/success_action.js:56
+#: core/doctype/user_document_type/user_document_type.json
 #: printing/page/print/print.js:65 public/js/frappe/form/success_action.js:81
 #: public/js/frappe/form/templates/print_layout.html:46
 #: public/js/frappe/form/toolbar.js:322 public/js/frappe/form/toolbar.js:334
@@ -19020,22 +18975,17 @@ msgstr "Štampaj dokumente"
 #. Label of a Link field in DocType 'Auto Repeat'
 #. Linked DocType in DocType's connections
 #. Linked DocType in Module Def's connections
+#. Label of a Link in the Build Workspace
 #. Label of a Link field in DocType 'Notification'
 #. Name of a DocType
 #. Label of a Link field in DocType 'Web Form'
 #: automation/doctype/auto_repeat/auto_repeat.json
 #: core/doctype/doctype/doctype.json core/doctype/module_def/module_def.json
-#: email/doctype/notification/notification.json
+#: core/workspace/build/build.json email/doctype/notification/notification.json
 #: printing/doctype/print_format/print_format.json
 #: printing/page/print/print.js:94 printing/page/print/print.js:819
 #: public/js/frappe/list/bulk_operations.js:59
 #: website/doctype/web_form/web_form.json
-msgid "Print Format"
-msgstr "Format za štampanje"
-
-#. Label of a Link in the Build Workspace
-#: core/workspace/build/build.json
-msgctxt "Print Format"
 msgid "Print Format"
 msgstr "Format za štampanje"
 
@@ -19088,15 +19038,11 @@ msgstr "Format štampanja {0} je onemogućen"
 msgid "Print Formats allow you can define looks for documents when printed or converted to PDF. You can also create a custom Print Format using drag-and-drop tools."
 msgstr "Formati za štampanje vam omogućavaju da definišete izgled dokumenata kada se štampaju ili konvertuju u PDF. Takođe možete kreirati prilagođeni format za štampanje pomoću alata za prevlačenje i ispuštanje."
 
+#. Label of a Link in the Tools Workspace
 #. Name of a DocType
 #. Label of a Data field in DocType 'Print Heading'
-#: printing/doctype/print_heading/print_heading.json
-msgid "Print Heading"
-msgstr "Štampanje naslova"
-
-#. Label of a Link in the Tools Workspace
 #: automation/workspace/tools/tools.json
-msgctxt "Print Heading"
+#: printing/doctype/print_heading/print_heading.json
 msgid "Print Heading"
 msgstr "Štampanje naslova"
 
@@ -19131,19 +19077,15 @@ msgstr "Štampanje poslano na štampač!"
 msgid "Print Server"
 msgstr "Print server"
 
+#. Label of a Link in the Tools Workspace
 #. Label of a Section Break field in DocType 'Notification'
 #. Name of a DocType
+#: automation/workspace/tools/tools.json
 #: email/doctype/notification/notification.json
 #: printing/doctype/print_settings/print_settings.json
 #: printing/doctype/print_style/print_style.js:6
 #: printing/page/print/print.js:160 public/js/frappe/form/print_utils.js:69
 #: public/js/frappe/form/templates/print_layout.html:35
-msgid "Print Settings"
-msgstr "Postavke štampanja"
-
-#. Label of a Link in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "Print Settings"
 msgid "Print Settings"
 msgstr "Postavke štampanja"
 
@@ -19270,6 +19212,10 @@ msgstr "Obrada"
 msgid "Processing..."
 msgstr "Obrada..."
 
+#: desk/page/setup_wizard/install_fixtures.py:52
+msgid "Prof"
+msgstr ""
+
 #. Group in User's connections
 #: core/doctype/user/user.json
 msgid "Profile"
@@ -19341,9 +19287,14 @@ msgstr "Naziv davatelja usluga"
 #: desk/doctype/event/event.json desk/doctype/note/note.json
 #: desk/doctype/note/note_list.js:6 desk/doctype/workspace/workspace.json
 #: public/js/frappe/views/interaction.js:78
-#: public/js/frappe/views/workspace/workspace.js:657
-#: public/js/frappe/views/workspace/workspace.js:985
-#: public/js/frappe/views/workspace/workspace.js:1231
+#: public/js/frappe/views/workspace/workspace.js:658
+#: public/js/frappe/views/workspace/workspace.js:986
+#: public/js/frappe/views/workspace/workspace.js:1232
+msgid "Public"
+msgstr "Javno"
+
+#: public/js/frappe/views/workspace/workspace.js:35
+msgctxt "Workspace Category"
 msgid "Public"
 msgstr "Javno"
 
@@ -19443,13 +19394,9 @@ msgid "Purple"
 msgstr "Ljubičasta"
 
 #. Name of a DocType
-#: integrations/doctype/push_notification_settings/push_notification_settings.json
-msgid "Push Notification Settings"
-msgstr "Postavke push obavještenja"
-
 #. Label of a Link in the Integrations Workspace
+#: integrations/doctype/push_notification_settings/push_notification_settings.json
 #: integrations/workspace/integrations/integrations.json
-msgctxt "Push Notification Settings"
 msgid "Push Notification Settings"
 msgstr "Postavke push obavještenja"
 
@@ -19740,7 +19687,7 @@ msgid "Re:"
 msgstr "Re:"
 
 #: core/doctype/communication/communication.js:268
-#: public/js/frappe/form/footer/form_timeline.js:587
+#: public/js/frappe/form/footer/form_timeline.js:589
 #: public/js/frappe/views/communication.js:355
 msgid "Re: {0}"
 msgstr "Re: {0}"
@@ -19967,6 +19914,13 @@ msgstr "Preusmjeravanje URI-ja"
 msgid "Redirect URL"
 msgstr ""
 
+#. Description of the 'Default App' (Select) field in DocType 'System Settings'
+#. Description of the 'Default App' (Select) field in DocType 'User'
+#: core/doctype/system_settings/system_settings.json
+#: core/doctype/user/user.json
+msgid "Redirect to the selected app after login"
+msgstr ""
+
 #. Description of the 'Welcome URL' (Data) field in DocType 'Email Group'
 #: email/doctype/email_group/email_group.json
 msgid "Redirect to this URL after successful confirmation."
@@ -19977,7 +19931,7 @@ msgstr "Preusmjerite na ovaj URL nakon uspješne potvrde."
 msgid "Redirects"
 msgstr "Preusmjeravanja"
 
-#: sessions.py:144
+#: sessions.py:145
 msgid "Redis cache server not running. Please contact Administrator / Tech support"
 msgstr "Redis keš server ne radi. Molimo kontaktirajte administratora/tehničku podršku"
 
@@ -20223,12 +20177,12 @@ msgctxt "Document count in list view"
 msgid "Refreshing"
 msgstr "Osvježavanje"
 
-#: core/doctype/system_settings/system_settings.js:52
-#: core/doctype/user/user.js:356 desk/page/setup_wizard/setup_wizard.js:204
+#: core/doctype/system_settings/system_settings.js:57
+#: core/doctype/user/user.js:361 desk/page/setup_wizard/setup_wizard.js:204
 msgid "Refreshing..."
 msgstr "Osvježavanje..."
 
-#: core/doctype/user/user.py:995
+#: core/doctype/user/user.py:1000
 msgid "Registered but disabled"
 msgstr "Registrovan, ali onemogućen"
 
@@ -20285,7 +20239,7 @@ msgstr "Ponovo učitaj"
 msgid "Reload File"
 msgstr "Ponovo učitaj datoteku"
 
-#: public/js/frappe/list/base_list.js:241
+#: public/js/frappe/list/base_list.js:249
 msgid "Reload List"
 msgstr "Ponovno učitaj listu"
 
@@ -20472,7 +20426,7 @@ msgstr ""
 
 #. Label of a Text Editor field in DocType 'Discussion Reply'
 #: core/doctype/communication/communication.js:57
-#: public/js/frappe/form/footer/form_timeline.js:550
+#: public/js/frappe/form/footer/form_timeline.js:552
 #: website/doctype/discussion_reply/discussion_reply.json
 msgid "Reply"
 msgstr "Odgovor"
@@ -20489,6 +20443,8 @@ msgstr "Odgovori svima"
 #. Option for the 'Set Role For' (Select) field in DocType 'Role Permission for
 #. Page and Report'
 #. Label of a Link field in DocType 'Role Permission for Page and Report'
+#. Label of a Link in the Build Workspace
+#. Label of a shortcut in the Build Workspace
 #. Option for the 'Chart Type' (Select) field in DocType 'Dashboard Chart'
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
 #. Option for the 'Type' (Select) field in DocType 'Number Card'
@@ -20500,6 +20456,7 @@ msgstr "Odgovori svima"
 #: core/doctype/custom_role/custom_role.json core/doctype/docperm/docperm.json
 #: core/doctype/doctype/doctype.json core/doctype/report/report.json
 #: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
+#: core/workspace/build/build.json
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 #: desk/doctype/form_tour/form_tour.json
 #: desk/doctype/number_card/number_card.json
@@ -20508,13 +20465,6 @@ msgstr "Odgovori svima"
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: email/doctype/auto_email_report/auto_email_report.json
 #: public/js/frappe/request.js:610
-msgid "Report"
-msgstr ""
-
-#. Label of a Link in the Build Workspace
-#. Label of a shortcut in the Build Workspace
-#: core/workspace/build/build.json
-msgctxt "Report"
 msgid "Report"
 msgstr ""
 
@@ -20600,6 +20550,10 @@ msgstr "Referentni tip dokumenta izvještaja"
 #: desk/doctype/onboarding_step/onboarding_step.json
 #: email/doctype/auto_email_report/auto_email_report.json
 msgid "Report Type"
+msgstr ""
+
+#: public/js/frappe/list/base_list.js:203
+msgid "Report View"
 msgstr ""
 
 #: core/doctype/doctype/doctype.py:1771
@@ -20794,7 +20748,7 @@ msgstr "Resetujte prilagođavanja nadzorne ploče"
 msgid "Reset Fields"
 msgstr "Resetuj polja"
 
-#: core/doctype/user/user.js:172 core/doctype/user/user.js:175
+#: core/doctype/user/user.js:177 core/doctype/user/user.js:180
 msgid "Reset LDAP Password"
 msgstr "Resetuj LDAP lozinku"
 
@@ -20802,11 +20756,11 @@ msgstr "Resetuj LDAP lozinku"
 msgid "Reset Layout"
 msgstr "Resetuj izgled"
 
-#: core/doctype/user/user.js:223
+#: core/doctype/user/user.js:228
 msgid "Reset OTP Secret"
 msgstr "Resetuj OTP tajnu"
 
-#: core/doctype/user/user.js:156 www/login.html:179 www/me.html:35
+#: core/doctype/user/user.js:161 www/login.html:179 www/me.html:35
 #: www/me.html:44 www/update-password.html:3 www/update-password.html:9
 msgid "Reset Password"
 msgstr "Resetuj Lozinku"
@@ -20842,7 +20796,7 @@ msgstr "Resetuj sortiranje"
 msgid "Reset the password for your account"
 msgstr "Resetuj lozinku za svoj nalog"
 
-#: public/js/frappe/form/grid_row.js:411
+#: public/js/frappe/form/grid_row.js:410
 msgid "Reset to default"
 msgstr "Vrati na zadano"
 
@@ -20882,7 +20836,7 @@ msgstr "Ostatak dana"
 msgid "Restore"
 msgstr "Vrati"
 
-#: core/page/permission_manager/permission_manager.js:503
+#: core/page/permission_manager/permission_manager.js:502
 msgid "Restore Original Permissions"
 msgstr "Vratite originalne dozvole"
 
@@ -20895,7 +20849,7 @@ msgstr "Vratiti na zadane postavke?"
 msgid "Restored"
 msgstr "Vraćeno"
 
-#: core/doctype/deleted_document/deleted_document.py:73
+#: core/doctype/deleted_document/deleted_document.py:74
 msgid "Restoring Deleted Document"
 msgstr "Vraćanje izbrisanog dokumenta"
 
@@ -21065,6 +21019,8 @@ msgstr "Robots.txt"
 #. Label of a Link field in DocType 'Has Role'
 #. Name of a DocType
 #. Label of a Link field in DocType 'User Type'
+#. Label of a Link in the Users Workspace
+#. Label of a shortcut in the Users Workspace
 #. Label of a Link field in DocType 'Onboarding Permission'
 #. Label of a Link field in DocType 'ToDo'
 #. Label of a Link field in DocType 'OAuth Client Role'
@@ -21077,20 +21033,14 @@ msgstr "Robots.txt"
 #: core/doctype/user_type/user_type.json
 #: core/doctype/user_type/user_type.py:109
 #: core/page/permission_manager/permission_manager.js:212
-#: core/page/permission_manager/permission_manager.js:450
+#: core/page/permission_manager/permission_manager.js:449
+#: core/workspace/users/users.json
 #: desk/doctype/onboarding_permission/onboarding_permission.json
 #: desk/doctype/todo/todo.json
 #: integrations/doctype/oauth_client_role/oauth_client_role.json
 #: social/doctype/review_level/review_level.json
 #: website/doctype/portal_menu_item/portal_menu_item.json
 #: workflow/doctype/workflow_action_permitted_role/workflow_action_permitted_role.json
-msgid "Role"
-msgstr "Uloga"
-
-#. Label of a Link in the Users Workspace
-#. Label of a shortcut in the Users Workspace
-#: core/workspace/users/users.json
-msgctxt "Role"
 msgid "Role"
 msgstr "Uloga"
 
@@ -21109,13 +21059,9 @@ msgid "Role Name"
 msgstr "Naziv uloge"
 
 #. Name of a DocType
-#: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
-msgid "Role Permission for Page and Report"
-msgstr "Dozvola ulozi za stranicu i izvještaj"
-
 #. Label of a Link in the Users Workspace
+#: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
 #: core/workspace/users/users.json
-msgctxt "Role Permission for Page and Report"
 msgid "Role Permission for Page and Report"
 msgstr "Dozvola ulozi za stranicu i izvještaj"
 
@@ -21138,13 +21084,9 @@ msgstr "Upravitelj dozvola za uloge"
 
 #. Name of a DocType
 #. Label of a Link field in DocType 'User'
-#: core/doctype/role_profile/role_profile.json core/doctype/user/user.json
-msgid "Role Profile"
-msgstr "Profil uloge"
-
 #. Label of a Link in the Users Workspace
+#: core/doctype/role_profile/role_profile.json core/doctype/user/user.json
 #: core/workspace/users/users.json
-msgctxt "Role Profile"
 msgid "Role Profile"
 msgstr "Profil uloge"
 
@@ -21155,7 +21097,7 @@ msgstr "Profil uloge"
 msgid "Role and Level"
 msgstr "Uloga i nivo"
 
-#: core/doctype/user/user.py:313
+#: core/doctype/user/user.py:314
 msgid "Role has been set as per the user type {0}"
 msgstr "Uloga je postavljena prema vrsti korisnika {0}"
 
@@ -21387,13 +21329,9 @@ msgid "Run scheduled jobs only if checked"
 msgstr "Pokreni planirane poslove samo ako je označeno"
 
 #. Name of a DocType
-#: integrations/doctype/s3_backup_settings/s3_backup_settings.json
-msgid "S3 Backup Settings"
-msgstr "S3 Backup Settings"
-
 #. Label of a Link in the Integrations Workspace
+#: integrations/doctype/s3_backup_settings/s3_backup_settings.json
 #: integrations/workspace/integrations/integrations.json
-msgctxt "S3 Backup Settings"
 msgid "S3 Backup Settings"
 msgstr "S3 Backup Settings"
 
@@ -21427,13 +21365,9 @@ msgid "SMS Parameter"
 msgstr "SMS parametar"
 
 #. Name of a DocType
-#: core/doctype/sms_settings/sms_settings.json
-msgid "SMS Settings"
-msgstr ""
-
 #. Label of a Link in the Integrations Workspace
+#: core/doctype/sms_settings/sms_settings.json
 #: integrations/workspace/integrations/integrations.json
-msgctxt "SMS Settings"
 msgid "SMS Settings"
 msgstr ""
 
@@ -21549,7 +21483,7 @@ msgstr ""
 #: email/doctype/notification/notification.json
 #: printing/page/print/print.js:856
 #: printing/page/print_format_builder/print_format_builder.js:160
-#: public/js/frappe/form/footer/form_timeline.js:661
+#: public/js/frappe/form/footer/form_timeline.js:663
 #: public/js/frappe/form/quick_entry.js:161
 #: public/js/frappe/list/list_settings.js:36
 #: public/js/frappe/list/list_settings.js:244
@@ -21561,15 +21495,15 @@ msgstr ""
 #: public/js/frappe/views/kanban/kanban_view.js:343
 #: public/js/frappe/views/reports/query_report.js:1799
 #: public/js/frappe/views/reports/report_view.js:1640
-#: public/js/frappe/views/workspace/workspace.js:531
-#: public/js/frappe/widgets/base_widget.js:140
+#: public/js/frappe/views/workspace/workspace.js:532
+#: public/js/frappe/widgets/base_widget.js:142
 #: public/js/frappe/widgets/quick_list_widget.js:119
 #: public/js/print_format_builder/print_format_builder.bundle.js:15
 #: public/js/workflow_builder/workflow_builder.bundle.js:33
 msgid "Save"
 msgstr ""
 
-#: core/doctype/user/user.js:327
+#: core/doctype/user/user.js:332
 msgid "Save API Secret: {0}"
 msgstr "Sačuvaj tajnu API-ja: {0}"
 
@@ -21616,7 +21550,7 @@ msgstr "Spremljeno"
 
 #: public/js/frappe/list/list_settings.js:40
 #: public/js/frappe/views/kanban/kanban_settings.js:47
-#: public/js/frappe/views/workspace/workspace.js:543
+#: public/js/frappe/views/workspace/workspace.js:544
 msgid "Saving"
 msgstr "Spremanje"
 
@@ -21690,22 +21624,17 @@ msgstr "Dnevnik planiranih poslova"
 
 #. Name of a DocType
 #. Linked DocType in Server Script's connections
+#. Label of a Link in the Build Workspace
 #. Label of a Link field in DocType 'System Health Report Failing Jobs'
 #: core/doctype/scheduled_job_type/scheduled_job_type.json
 #: core/doctype/server_script/server_script.json
+#: core/workspace/build/build.json
 #: desk/doctype/system_health_report_failing_jobs/system_health_report_failing_jobs.json
 msgid "Scheduled Job Type"
 msgstr "Tip planiranog posla"
 
 #. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
-msgctxt "Scheduled Job Type"
-msgid "Scheduled Job Type"
-msgstr "Tip planiranog posla"
-
-#. Label of a Link in the Build Workspace
-#: core/workspace/build/build.json
-msgctxt "Scheduled Job Log"
 msgid "Scheduled Jobs Logs"
 msgstr "Dnevnici zakazanih poslova"
 
@@ -21746,7 +21675,7 @@ msgstr "Planer neaktivan"
 msgid "Scheduler Status"
 msgstr "Status planera"
 
-#: utils/scheduler.py:193
+#: utils/scheduler.py:196
 msgid "Scheduler can not be re-enabled when maintenance mode is active."
 msgstr "Planer se ne može ponovno omogućiti kada je aktivan način rada za održavanje."
 
@@ -22118,7 +22047,7 @@ msgstr "Odaberi polje"
 msgid "Select Field..."
 msgstr "Odaberi polje..."
 
-#: public/js/frappe/form/grid_row.js:461
+#: public/js/frappe/form/grid_row.js:460
 #: public/js/frappe/list/list_settings.js:233
 #: public/js/frappe/views/kanban/kanban_settings.js:181
 msgid "Select Fields"
@@ -22249,6 +22178,10 @@ msgstr "Odaberite važeće polje Predmet za kreiranje dokumenata iz e-pošte"
 #: public/js/frappe/form/form_tour.js:315
 msgid "Select an Image"
 msgstr "Odaberite sliku"
+
+#: www/apps.html:10
+msgid "Select an app to continue"
+msgstr ""
 
 #: printing/page/print_format_builder/print_format_builder_start.html:2
 msgid "Select an existing format to edit or start a new format."
@@ -22628,16 +22561,12 @@ msgstr "IP servera"
 #. Linked DocType in Module Def's connections
 #. Label of a Link field in DocType 'Scheduled Job Type'
 #. Name of a DocType
+#. Label of a Link in the Build Workspace
+#. Label of a shortcut in the Build Workspace
 #: core/doctype/doctype/doctype.json core/doctype/module_def/module_def.json
 #: core/doctype/scheduled_job_type/scheduled_job_type.json
 #: core/doctype/server_script/server_script.json
-msgid "Server Script"
-msgstr "Serverska skripta"
-
-#. Label of a Link in the Build Workspace
-#. Label of a shortcut in the Build Workspace
 #: core/workspace/build/build.json
-msgctxt "Server Script"
 msgid "Server Script"
 msgstr "Serverska skripta"
 
@@ -22691,7 +22620,7 @@ msgstr "Sesija je istekla"
 msgid "Session Expiry (idle timeout)"
 msgstr "Istek sesije (vremensko ograničenje mirovanja)"
 
-#: core/doctype/system_settings/system_settings.py:112
+#: core/doctype/system_settings/system_settings.py:113
 msgid "Session Expiry must be in format {0}"
 msgstr "Istek sesije mora biti u formatu {0}"
 
@@ -22778,7 +22707,7 @@ msgstr ""
 msgid "Set Role For"
 msgstr "Postavi ulogu za"
 
-#: core/doctype/user/user.js:133
+#: core/doctype/user/user.js:138
 #: core/page/permission_manager/permission_manager.js:65
 msgid "Set User Permissions"
 msgstr "Postavi korisničke dozvole"
@@ -22910,7 +22839,7 @@ msgstr "Postavljanje vašeg sistema"
 #: integrations/workspace/integrations/integrations.json
 #: public/js/frappe/form/templates/print_layout.html:25
 #: public/js/frappe/ui/toolbar/toolbar.js:279
-#: public/js/frappe/views/workspace/workspace.js:559
+#: public/js/frappe/views/workspace/workspace.js:560
 #: website/doctype/web_form/web_form.json
 #: website/doctype/web_page/web_page.json
 msgid "Settings"
@@ -22990,9 +22919,11 @@ msgstr "Postavljanje serije za transakcije"
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'
 #. Label of a Check field in DocType 'DocShare'
+#. Label of a Check field in DocType 'User Document Type'
 #. Option for the 'Type' (Select) field in DocType 'Notification Log'
 #: core/doctype/custom_docperm/custom_docperm.json
 #: core/doctype/docperm/docperm.json core/doctype/docshare/docshare.json
+#: core/doctype/user_document_type/user_document_type.json
 #: desk/doctype/notification_log/notification_log.json
 #: public/js/frappe/form/templates/form_sidebar.html:110
 msgid "Share"
@@ -23052,7 +22983,7 @@ msgid "Shortcuts"
 msgstr "Prečice"
 
 #: public/js/frappe/widgets/base_widget.js:46
-#: public/js/frappe/widgets/base_widget.js:176
+#: public/js/frappe/widgets/base_widget.js:178
 #: templates/includes/login/login.js:86 www/login.html:30
 msgid "Show"
 msgstr "Prikaži"
@@ -23265,7 +23196,7 @@ msgstr "Prikaži vezu za brisanje računa na stranici Moj račun"
 msgid "Show all Versions"
 msgstr "Prikaži sve verzije"
 
-#: public/js/frappe/form/footer/form_timeline.js:67
+#: public/js/frappe/form/footer/form_timeline.js:69
 msgid "Show all activity"
 msgstr "Prikaži sve aktivnosti"
 
@@ -23307,6 +23238,11 @@ msgstr "Prikaži vezu do dokumenta"
 #: public/js/frappe/form/layout.js:255 public/js/frappe/form/layout.js:273
 msgid "Show more details"
 msgstr "Prikaži više detalja"
+
+#. Label of a Check field in DocType 'DocField'
+#: core/doctype/docfield/docfield.json
+msgid "Show on Timeline"
+msgstr ""
 
 #. Description of the 'Stats Time Interval' (Select) field in DocType 'Number
 #. Card'
@@ -23356,7 +23292,7 @@ msgstr "Bočna traka i komentari"
 msgid "Sign Up and Confirmation"
 msgstr "Prijava i potvrda"
 
-#: core/doctype/user/user.py:988
+#: core/doctype/user/user.py:993
 msgid "Sign Up is disabled"
 msgstr "Prijava je onemogućena"
 
@@ -23498,13 +23434,9 @@ msgid "Slack Webhook Error"
 msgstr "Slack Webhook greška"
 
 #. Name of a DocType
-#: integrations/doctype/slack_webhook_url/slack_webhook_url.json
-msgid "Slack Webhook URL"
-msgstr "Slack Webhook URL"
-
 #. Label of a Link in the Integrations Workspace
+#: integrations/doctype/slack_webhook_url/slack_webhook_url.json
 #: integrations/workspace/integrations/integrations.json
-msgctxt "Slack Webhook URL"
 msgid "Slack Webhook URL"
 msgstr "Slack Webhook URL"
 
@@ -23568,13 +23500,9 @@ msgid "Social Link Type"
 msgstr "Vrsta društvene veze"
 
 #. Name of a DocType
-#: integrations/doctype/social_login_key/social_login_key.json
-msgid "Social Login Key"
-msgstr "Ključ za prijavu na društvenim mrežama"
-
 #. Label of a Link in the Integrations Workspace
+#: integrations/doctype/social_login_key/social_login_key.json
 #: integrations/workspace/integrations/integrations.json
-msgctxt "Social Login Key"
 msgid "Social Login Key"
 msgstr "Ključ za prijavu na društvenim mrežama"
 
@@ -24366,7 +24294,7 @@ msgstr "Predloži optimizacije"
 msgid "Suggested Indexes"
 msgstr "Predloženi indeksi"
 
-#: core/doctype/user/user.py:697
+#: core/doctype/user/user.py:702
 msgid "Suggested Username: {0}"
 msgstr "Predloženo korisničko ime: {0}"
 
@@ -24683,13 +24611,9 @@ msgid "System Page"
 msgstr "Stranica sistema"
 
 #. Name of a DocType
-#: core/doctype/system_settings/system_settings.json
-msgid "System Settings"
-msgstr ""
-
 #. Label of a shortcut in the Build Workspace
+#: core/doctype/system_settings/system_settings.json
 #: core/workspace/build/build.json
-msgctxt "System Settings"
 msgid "System Settings"
 msgstr ""
 
@@ -24773,7 +24697,7 @@ msgstr "Tabela podrezana"
 msgid "Table updated"
 msgstr "Tabela ažurirana"
 
-#: model/document.py:1368
+#: model/document.py:1370
 msgid "Table {0} cannot be empty"
 msgstr "Tabela {0} ne može biti prazna"
 
@@ -24881,7 +24805,7 @@ msgstr ""
 msgid "Templates"
 msgstr "Šabloni"
 
-#: core/doctype/user/user.py:999
+#: core/doctype/user/user.py:1004
 msgid "Temporarily Disabled"
 msgstr "Privremeno onemogućeno"
 
@@ -25094,7 +25018,7 @@ msgstr "Ograničenje nije postavljeno za tip korisnika {0} u konfiguracijskoj da
 msgid "The link will expire in {0} minutes"
 msgstr "Veza će isteći za {0} minuta"
 
-#: www/login.py:182
+#: www/login.py:183
 msgid "The link you trying to login is invalid or expired."
 msgstr "Veza na koju se pokušavate prijaviti je nevažeća ili je istekla."
 
@@ -25142,11 +25066,11 @@ msgstr "Broj projekta dobijen od Google Cloud Console pod <a href=\"https://cons
 "\"IAM &amp; Admin\" &gt; \"Postavke\"\n"
 "</a>"
 
-#: core/doctype/user/user.py:959
+#: core/doctype/user/user.py:964
 msgid "The reset password link has been expired"
 msgstr "Veza za poništavanje lozinke je istekla"
 
-#: core/doctype/user/user.py:961
+#: core/doctype/user/user.py:966
 msgid "The reset password link has either been used before or is invalid"
 msgstr "Veza za poništavanje lozinke je ili ranije korištena ili je nevažeća"
 
@@ -25166,7 +25090,7 @@ msgstr "Sistem se ažurira. Osvježite ponovo nakon nekoliko trenutaka."
 msgid "The system provides many pre-defined roles. You can add new roles to set finer permissions."
 msgstr "Sistem pruža mnogo unapred definisanih uloga. Možete dodati nove uloge za postavljanje finijih dozvola."
 
-#: public/js/frappe/form/grid_row.js:637
+#: public/js/frappe/form/grid_row.js:636
 msgid "The total column width cannot be more than 10."
 msgstr "Ukupna širina kolone ne može biti veća od 10."
 
@@ -25252,7 +25176,7 @@ msgstr "Nema podataka za izvoz"
 msgid "There is nothing new to show you right now."
 msgstr "Trenutno nemamo ništa novo za pokazati."
 
-#: core/doctype/file/file.py:570 utils/file_manager.py:375
+#: core/doctype/file/file.py:575 utils/file_manager.py:375
 msgid "There is some problem with the file url: {0}"
 msgstr "Postoji neki problem sa url datoteke: {0}"
 
@@ -25264,7 +25188,7 @@ msgstr "Postoji {0} s istim filtrima već u redu čekanja:"
 msgid "There must be atleast one permission rule."
 msgstr "Mora postojati barem jedno pravilo dozvole."
 
-#: core/doctype/user/user.py:498
+#: core/doctype/user/user.py:503
 msgid "There should remain at least one System Manager"
 msgstr "Trebao bi ostati najmanje jedan upravitelj sistema"
 
@@ -25396,7 +25320,7 @@ msgstr "Ovaj dokument ima nespremljene promjene koje se možda neće pojaviti u 
 msgid "This document is already amended, you cannot ammend it again"
 msgstr "Ovaj dokument je već izmijenjen, ne možete ga ponovo mijenjati"
 
-#: model/document.py:1536
+#: model/document.py:1538
 msgid "This document is currently locked and queued for execution. Please try again after some time."
 msgstr "Ovaj dokument je trenutno zaključan i na čekanju za izvršenje. Molimo pokušajte ponovo nakon nekog vremena."
 
@@ -25577,7 +25501,7 @@ msgstr "Ovo će poništiti ovaj obilazak i prikazati ga svim korisnicima. Jeste 
 msgid "This will terminate the job immediately and might be dangerous, are you sure? "
 msgstr "Ovo će odmah prekinuti posao i može biti opasno, jeste li sigurni? "
 
-#: core/doctype/user/user.py:1218
+#: core/doctype/user/user.py:1223
 msgid "Throttled"
 msgstr "Prigušeno"
 
@@ -25788,9 +25712,9 @@ msgstr "Vremenska oznaka"
 #: desk/doctype/system_health_report_errors/system_health_report_errors.json
 #: desk/doctype/workspace/workspace.json
 #: email/doctype/email_group/email_group.json
-#: public/js/frappe/views/workspace/workspace.js:643
-#: public/js/frappe/views/workspace/workspace.js:972
-#: public/js/frappe/views/workspace/workspace.js:1219
+#: public/js/frappe/views/workspace/workspace.js:644
+#: public/js/frappe/views/workspace/workspace.js:973
+#: public/js/frappe/views/workspace/workspace.js:1220
 #: website/doctype/blog_category/blog_category.json
 #: website/doctype/blog_post/blog_post.json
 #: website/doctype/blog_settings/blog_settings.json
@@ -25844,13 +25768,8 @@ msgstr ""
 msgid "To Date Field"
 msgstr "Polje do datuma"
 
-#: desk/doctype/todo/todo_list.js:6
-msgid "To Do"
-msgstr "Uraditi"
-
 #. Label of a Link in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "ToDo"
+#: automation/workspace/tools/tools.json desk/doctype/todo/todo_list.js:6
 msgid "To Do"
 msgstr "Uraditi"
 
@@ -25929,7 +25848,7 @@ msgstr "Za upravljanje vašim ovlaštenim aplikacijama trećih strana"
 msgid "To print output use <code>print(text)</code>"
 msgstr "Za štampanje izlaza koristite <code>print(text)</code>"
 
-#: core/doctype/user_type/user_type.py:295
+#: core/doctype/user_type/user_type.py:292
 msgid "To set the role {0} in the user {1}, kindly set the {2} field as {3} in one of the {4} record."
 msgstr "Za postavljanje uloge {0} u korisniku {1}, postavite polje {2} kao {3} u jednom od {4} zapisa."
 
@@ -25960,17 +25879,12 @@ msgstr "Da biste koristili Slack kanal, dodajte <a href=\"#List/Slack%20Webhook%
 msgid "To version"
 msgstr "Do verzije"
 
+#. Label of a shortcut in the Tools Workspace
 #. Linked DocType in User's connections
 #. Name of a DocType
 #. Name of a report
-#: core/doctype/user/user.json desk/doctype/todo/todo.json
-#: desk/report/todo/todo.json
-msgid "ToDo"
-msgstr "Uraditi"
-
-#. Label of a shortcut in the Tools Workspace
-#: automation/workspace/tools/tools.json
-msgctxt "ToDo"
+#: automation/workspace/tools/tools.json core/doctype/user/user.json
+#: desk/doctype/todo/todo.json desk/report/todo/todo.json
 msgid "ToDo"
 msgstr "Uraditi"
 
@@ -25992,6 +25906,10 @@ msgstr "Prebaci punu širinu"
 #: public/js/frappe/views/file/file_view.js:33
 msgid "Toggle Grid View"
 msgstr "Uključi prikaz mreže"
+
+#: public/js/frappe/views/workspace/workspace.js:212
+msgid "Toggle Section: {0}"
+msgstr ""
 
 #: public/js/frappe/ui/page.js:193 public/js/frappe/ui/page.js:195
 #: public/js/frappe/views/reports/report_view.js:1498
@@ -26033,7 +25951,7 @@ msgstr "Vrsta tokena"
 msgid "Token URI"
 msgstr "Token URI"
 
-#: utils/oauth.py:179
+#: utils/oauth.py:180
 msgid "Token is missing"
 msgstr "Token nedostaje"
 
@@ -26049,7 +25967,7 @@ msgstr "Previše zahtjeva"
 msgid "Too many changes to database in single action."
 msgstr "Previše promjena u bazi podataka u jednoj akciji."
 
-#: core/doctype/user/user.py:1000
+#: core/doctype/user/user.py:1005
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr "Nedavno se prijavilo previše korisnika, pa je registracija onemogućena. Pokušajte ponovo za sat vremena"
 
@@ -26266,6 +26184,10 @@ msgstr "Dnevnik transakcija"
 msgid "Transaction Log Report"
 msgstr "Izvještaj dnevnika transakcija"
 
+#: desk/page/setup_wizard/install_fixtures.py:32
+msgid "Transgender"
+msgstr ""
+
 #: public/js/workflow_builder/components/Properties.vue:19
 msgid "Transition Properties"
 msgstr ""
@@ -26325,6 +26247,10 @@ msgstr "Otpad"
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgid "Tree"
 msgstr "Stablo"
+
+#: public/js/frappe/list/base_list.js:210
+msgid "Tree View"
+msgstr ""
 
 #. Description of the 'Is Tree' (Check) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -26604,7 +26530,7 @@ msgstr "Neobrađena e-pošta"
 msgid "Unhandled Emails"
 msgstr "Neobrađena e-pošta"
 
-#: public/js/frappe/views/workspace/workspace.js:600
+#: public/js/frappe/views/workspace/workspace.js:601
 msgid "Unhide Workspace"
 msgstr "Otkrij radni prostor"
 
@@ -26629,7 +26555,7 @@ msgstr "Nepoznata kolona: {0}"
 msgid "Unknown Rounding Method: {}"
 msgstr "Nepoznata metoda zaokruživanja: {}"
 
-#: auth.py:295
+#: auth.py:296
 msgid "Unknown User"
 msgstr "Nepoznati korisnik"
 
@@ -26724,8 +26650,8 @@ msgstr "Nadolazeći događaji za danas"
 #: printing/page/print_format_builder/print_format_builder.js:501
 #: printing/page/print_format_builder/print_format_builder.js:670
 #: printing/page/print_format_builder/print_format_builder.js:757
-#: public/js/frappe/form/grid_row.js:404
-#: public/js/frappe/views/workspace/workspace.js:691
+#: public/js/frappe/form/grid_row.js:403
+#: public/js/frappe/views/workspace/workspace.js:692
 msgid "Update"
 msgstr ""
 
@@ -26734,7 +26660,7 @@ msgstr ""
 msgid "Update Amendment Naming"
 msgstr "Ažuriraj naziv dopune"
 
-#: public/js/frappe/views/workspace/workspace.js:640
+#: public/js/frappe/views/workspace/workspace.js:641
 msgid "Update Details"
 msgstr "Ažuriranje pojedinosti"
 
@@ -26998,6 +26924,8 @@ msgstr "Koristi se OAuth"
 #. Name of a DocType
 #. Label of a Link field in DocType 'User Group Member'
 #. Label of a Link field in DocType 'User Permission'
+#. Label of a Link in the Users Workspace
+#. Label of a shortcut in the Users Workspace
 #. Label of a Link field in DocType 'Dashboard Settings'
 #. Label of a Link field in DocType 'Note Seen By'
 #. Label of a Link field in DocType 'Notification Settings'
@@ -27025,6 +26953,7 @@ msgstr "Koristi se OAuth"
 #: core/doctype/user_group_member/user_group_member.json
 #: core/doctype/user_permission/user_permission.json
 #: core/report/permitted_documents_for_user/permitted_documents_for_user.js:8
+#: core/workspace/users/users.json
 #: desk/doctype/dashboard_settings/dashboard_settings.json
 #: desk/doctype/note_seen_by/note_seen_by.json
 #: desk/doctype/notification_settings/notification_settings.json
@@ -27043,13 +26972,6 @@ msgstr "Koristi se OAuth"
 #: website/doctype/blogger/blogger.json
 #: website/doctype/personal_data_download_request/personal_data_download_request.json
 #: workflow/doctype/workflow_action/workflow_action.json
-msgid "User"
-msgstr ""
-
-#. Label of a Link in the Users Workspace
-#. Label of a shortcut in the Users Workspace
-#: core/workspace/users/users.json
-msgctxt "User"
 msgid "User"
 msgstr ""
 
@@ -27165,7 +27087,7 @@ msgstr "Korisnički Id"
 msgid "User Id Field"
 msgstr "Polje Id-a korisnika"
 
-#: core/doctype/user_type/user_type.py:287
+#: core/doctype/user_type/user_type.py:284
 msgid "User Id Field is mandatory in the user type {0}"
 msgstr "Polje Id-a korisnika obavezno je u vrsti korisnika {0}"
 
@@ -27190,7 +27112,9 @@ msgstr "Korisničko ime"
 msgid "User Permission"
 msgstr "Korisnička dozvola"
 
+#. Label of a Link in the Users Workspace
 #: core/page/permission_manager/permission_manager_help.html:30
+#: core/workspace/users/users.json
 #: public/js/frappe/views/reports/query_report.js:1786
 #: public/js/frappe/views/reports/report_view.js:1666
 msgid "User Permissions"
@@ -27198,12 +27122,6 @@ msgstr "Korisničke dozvole"
 
 #: public/js/frappe/list/list_view.js:1676
 msgctxt "Button in list view menu"
-msgid "User Permissions"
-msgstr "Korisničke dozvole"
-
-#. Label of a Link in the Users Workspace
-#: core/workspace/users/users.json
-msgctxt "User Permission"
 msgid "User Permissions"
 msgstr "Korisničke dozvole"
 
@@ -27246,14 +27164,9 @@ msgstr "Korisničke oznake"
 
 #. Label of a Link field in DocType 'User'
 #. Name of a DocType
-#: core/doctype/user/user.json core/doctype/user_type/user_type.json
-#: core/doctype/user_type/user_type.py:82
-msgid "User Type"
-msgstr "Tip korisnika"
-
 #. Label of a shortcut in the Users Workspace
-#: core/workspace/users/users.json
-msgctxt "User Type"
+#: core/doctype/user/user.json core/doctype/user_type/user_type.json
+#: core/doctype/user_type/user_type.py:82 core/workspace/users/users.json
 msgid "User Type"
 msgstr "Tip korisnika"
 
@@ -27305,7 +27218,7 @@ msgstr "Korisniku nije dozvoljeno brisanje {0}: {1}"
 msgid "User permission already exists"
 msgstr "Korisnička dozvola već postoji"
 
-#: www/login.py:155
+#: www/login.py:156
 msgid "User with email address {0} does not exist"
 msgstr "Korisnik sa adresom e-pošte {0} ne postoji"
 
@@ -27313,15 +27226,15 @@ msgstr "Korisnik sa adresom e-pošte {0} ne postoji"
 msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
 msgstr "Korisnik sa e-poštom: {0} ne postoji u sistemu. Zamolite 'Sistem administratorar' da kreira korisnika za vas."
 
-#: core/doctype/user/user.py:503
+#: core/doctype/user/user.py:508
 msgid "User {0} cannot be deleted"
 msgstr "Korisnik {0} se ne može izbrisati"
 
-#: core/doctype/user/user.py:242
+#: core/doctype/user/user.py:243
 msgid "User {0} cannot be disabled"
 msgstr "Korisnik {0} se ne može onemogućiti"
 
-#: core/doctype/user/user.py:585
+#: core/doctype/user/user.py:590
 msgid "User {0} cannot be renamed"
 msgstr "Korisnik {0} se ne može preimenovati"
 
@@ -27342,15 +27255,15 @@ msgstr ""
 msgid "User {0} has requested for data deletion"
 msgstr "Korisnik {0} je zatražio brisanje podataka"
 
-#: core/doctype/user/user.py:1352
+#: core/doctype/user/user.py:1357
 msgid "User {0} impersonated as {1}"
 msgstr "Korisnik {0} predstavljen kao {1}"
 
-#: utils/oauth.py:265
+#: utils/oauth.py:266
 msgid "User {0} is disabled"
 msgstr ""
 
-#: sessions.py:222
+#: sessions.py:224
 msgid "User {0} is disabled. Please contact your System Manager."
 msgstr "Korisnik {0} je onemogućen. Molimo kontaktirajte svog upravitelja sistema."
 
@@ -27366,11 +27279,11 @@ msgstr "URL informacija o korisniku"
 #. Label of a Data field in DocType 'User'
 #. Label of a Data field in DocType 'User Social Login'
 #: core/doctype/user/user.json
-#: core/doctype/user_social_login/user_social_login.json www/login.py:103
+#: core/doctype/user_social_login/user_social_login.json www/login.py:104
 msgid "Username"
 msgstr "Korisničko ime"
 
-#: core/doctype/user/user.py:664
+#: core/doctype/user/user.py:669
 msgid "Username {0} already exists"
 msgstr "Korisničko ime {0} već postoji"
 
@@ -27390,7 +27303,7 @@ msgstr ""
 msgid "Users assigned to the reference document will get points."
 msgstr "Korisnici dodijeljeni referentnom dokumentu će dobiti bodove."
 
-#: core/page/permission_manager/permission_manager.js:349
+#: core/page/permission_manager/permission_manager.js:348
 msgid "Users with role {0}:"
 msgstr "Korisnici sa ulogom {0}:"
 
@@ -27456,7 +27369,7 @@ msgstr ""
 #: desk/doctype/dashboard_chart/dashboard_chart.js:439
 #: desk/doctype/number_card/number_card.js:205
 #: desk/doctype/number_card/number_card.js:336
-#: email/doctype/auto_email_report/auto_email_report.js:92
+#: email/doctype/auto_email_report/auto_email_report.js:95
 #: integrations/doctype/query_parameters/query_parameters.json
 #: integrations/doctype/webhook_header/webhook_header.json
 #: public/js/frappe/list/bulk_operations.js:315
@@ -27637,7 +27550,7 @@ msgstr "Pogledaj listu"
 msgid "View Log"
 msgstr "Pogledaj dnevnik"
 
-#: core/doctype/user/user.js:144
+#: core/doctype/user/user.js:149
 #: core/doctype/user_permission/user_permission.js:24
 msgid "View Permitted Documents"
 msgstr "Pogledaj dozvoljene dokumente"
@@ -27807,15 +27720,11 @@ msgstr "Slab"
 #. Linked DocType in DocType's connections
 #. Linked DocType in Module Def's connections
 #. Name of a DocType
-#: core/doctype/doctype/doctype.json core/doctype/module_def/module_def.json
-#: website/doctype/web_form/web_form.json
-msgid "Web Form"
-msgstr "Web obrazac"
-
 #. Label of a Link in the Website Workspace
 #. Label of a shortcut in the Website Workspace
+#: core/doctype/doctype/doctype.json core/doctype/module_def/module_def.json
+#: website/doctype/web_form/web_form.json
 #: website/workspace/website/website.json
-msgctxt "Web Form"
 msgid "Web Form"
 msgstr "Web obrazac"
 
@@ -27836,15 +27745,11 @@ msgstr "Kolona liste web obrazaca"
 
 #. Linked DocType in Module Def's connections
 #. Name of a DocType
-#: core/doctype/module_def/module_def.json
-#: website/doctype/web_page/web_page.json
-msgid "Web Page"
-msgstr "Web stranica"
-
 #. Label of a Link in the Website Workspace
 #. Label of a shortcut in the Website Workspace
+#: core/doctype/module_def/module_def.json
+#: website/doctype/web_page/web_page.json
 #: website/workspace/website/website.json
-msgctxt "Web Page"
 msgid "Web Page"
 msgstr "Web stranica"
 
@@ -27898,14 +27803,10 @@ msgstr "Web prikaz"
 #. Linked DocType in DocType's connections
 #. Name of a DocType
 #. Label of a Link field in DocType 'Webhook Request Log'
+#. Label of a Link in the Integrations Workspace
 #: core/doctype/doctype/doctype.json integrations/doctype/webhook/webhook.json
 #: integrations/doctype/webhook_request_log/webhook_request_log.json
-msgid "Webhook"
-msgstr "Webhook"
-
-#. Label of a Link in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
-msgctxt "Webhook"
 msgid "Webhook"
 msgstr "Webhook"
 
@@ -27998,13 +27899,9 @@ msgid "Website Meta Tag"
 msgstr "Meta oznaka web stranice"
 
 #. Name of a DocType
-#: website/doctype/website_route_meta/website_route_meta.json
-msgid "Website Route Meta"
-msgstr "Meta rute web stranice"
-
 #. Label of a Link in the Website Workspace
+#: website/doctype/website_route_meta/website_route_meta.json
 #: website/workspace/website/website.json
-msgctxt "Website Route Meta"
 msgid "Website Route Meta"
 msgstr "Meta rute web stranice"
 
@@ -28014,13 +27911,9 @@ msgid "Website Route Redirect"
 msgstr "Preusmjeravanje rute web stranice"
 
 #. Name of a DocType
-#: website/doctype/website_script/website_script.json
-msgid "Website Script"
-msgstr ""
-
 #. Label of a Link in the Website Workspace
+#: website/doctype/website_script/website_script.json
 #: website/workspace/website/website.json
-msgctxt "Website Script"
 msgid "Website Script"
 msgstr ""
 
@@ -28034,29 +27927,21 @@ msgid "Website Search Field must be a valid fieldname"
 msgstr "Polje za pretragu web stranice mora biti važeće ime polja"
 
 #. Name of a DocType
-#: website/doctype/website_settings/website_settings.json
-msgid "Website Settings"
-msgstr ""
-
 #. Label of a Link in the Website Workspace
 #. Label of a shortcut in the Website Workspace
+#: website/doctype/website_settings/website_settings.json
 #: website/workspace/website/website.json
-msgctxt "Website Settings"
 msgid "Website Settings"
 msgstr ""
 
 #. Label of a Link field in DocType 'Web Form'
 #. Label of a Link field in DocType 'Web Page'
 #. Name of a DocType
+#. Label of a Link in the Website Workspace
 #: website/doctype/web_form/web_form.json
 #: website/doctype/web_page/web_page.json
 #: website/doctype/website_sidebar/website_sidebar.json
-msgid "Website Sidebar"
-msgstr "Bočna traka web stranice"
-
-#. Label of a Link in the Website Workspace
 #: website/workspace/website/website.json
-msgctxt "Website Sidebar"
 msgid "Website Sidebar"
 msgstr "Bočna traka web stranice"
 
@@ -28066,13 +27951,9 @@ msgid "Website Sidebar Item"
 msgstr "Stavka bočne trake web stranice"
 
 #. Name of a DocType
-#: website/doctype/website_slideshow/website_slideshow.json
-msgid "Website Slideshow"
-msgstr "Prikaz slajdova na web stranici"
-
 #. Label of a Link in the Website Workspace
+#: website/doctype/website_slideshow/website_slideshow.json
 #: website/workspace/website/website.json
-msgctxt "Website Slideshow"
 msgid "Website Slideshow"
 msgstr "Prikaz slajdova na web stranici"
 
@@ -28084,15 +27965,11 @@ msgstr "Stavka prikaza slajdova web stranice"
 #. Linked DocType in Module Def's connections
 #. Label of a Link field in DocType 'Website Settings'
 #. Name of a DocType
+#. Label of a Link in the Website Workspace
 #: core/doctype/module_def/module_def.json
 #: website/doctype/website_settings/website_settings.json
 #: website/doctype/website_theme/website_theme.json
-msgid "Website Theme"
-msgstr ""
-
-#. Label of a Link in the Website Workspace
 #: website/workspace/website/website.json
-msgctxt "Website Theme"
 msgid "Website Theme"
 msgstr ""
 
@@ -28199,11 +28076,11 @@ msgstr "URL dobrodošlice"
 msgid "Welcome Workspace"
 msgstr "Dobrodošli radni prostor"
 
-#: core/doctype/user/user.py:360
+#: core/doctype/user/user.py:365
 msgid "Welcome email sent"
 msgstr ""
 
-#: core/doctype/user/user.py:435
+#: core/doctype/user/user.py:440
 msgid "Welcome to {0}"
 msgstr ""
 
@@ -28275,7 +28152,7 @@ msgstr "Dodat će \"%\" prije i poslije upita"
 msgid "Will be used in url (usually first name)."
 msgstr "Koristit će se u url-u (obično ime)."
 
-#: desk/page/setup_wizard/setup_wizard.js:470
+#: desk/page/setup_wizard/setup_wizard.js:463
 msgid "Will be your login ID"
 msgstr "Bit će vaš ID za prijavu"
 
@@ -28311,17 +28188,13 @@ msgstr "Naziv radnika"
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #. Group in DocType's connections
 #. Linked DocType in DocType's connections
+#. Label of a Link in the Build Workspace
 #. Name of a DocType
 #: core/doctype/comment/comment.json
 #: core/doctype/communication/communication.json
-#: core/doctype/doctype/doctype.json public/js/workflow_builder/store.js:129
+#: core/doctype/doctype/doctype.json core/workspace/build/build.json
+#: public/js/workflow_builder/store.js:129
 #: workflow/doctype/workflow/workflow.json
-msgid "Workflow"
-msgstr ""
-
-#. Label of a Link in the Build Workspace
-#: core/workspace/build/build.json
-msgctxt "Workflow"
 msgid "Workflow"
 msgstr ""
 
@@ -28434,17 +28307,12 @@ msgstr "Radni tokovi vam omogućavaju da definišete prilagođena pravila za pro
 
 #. Linked DocType in Module Def's connections
 #. Label of a Section Break field in DocType 'User'
+#. Label of a Link in the Build Workspace
 #. Name of a DocType
 #: core/doctype/module_def/module_def.json core/doctype/user/user.json
-#: desk/doctype/workspace/workspace.json
+#: core/workspace/build/build.json desk/doctype/workspace/workspace.json
 #: public/js/frappe/ui/toolbar/search_utils.js:557
 #: public/js/frappe/views/workspace/workspace.js:10
-msgid "Workspace"
-msgstr "Radni prostor"
-
-#. Label of a Link in the Build Workspace
-#: core/workspace/build/build.json
-msgctxt "Workspace"
 msgid "Workspace"
 msgstr "Radni prostor"
 
@@ -28492,15 +28360,15 @@ msgstr "Prečica radnog prostora"
 msgid "Workspace not found"
 msgstr "Radni prostor nije pronađen"
 
-#: public/js/frappe/views/workspace/workspace.js:1309
+#: public/js/frappe/views/workspace/workspace.js:1310
 msgid "Workspace {0} Created Successfully"
 msgstr "Radni prostor {0} je uspješno kreiran"
 
-#: public/js/frappe/views/workspace/workspace.js:938
+#: public/js/frappe/views/workspace/workspace.js:939
 msgid "Workspace {0} Deleted Successfully"
 msgstr "Radni prostor {0} je uspješno izbrisan"
 
-#: public/js/frappe/views/workspace/workspace.js:716
+#: public/js/frappe/views/workspace/workspace.js:717
 msgid "Workspace {0} Edited Successfully"
 msgstr "Radni prostor {0} je uspješno uređen"
 
@@ -28626,7 +28494,7 @@ msgctxt "Name of the current user. For example: You edited this 5 hours ago."
 msgid "You"
 msgstr "Vi"
 
-#: public/js/frappe/form/footer/form_timeline.js:462
+#: public/js/frappe/form/footer/form_timeline.js:464
 msgid "You Liked"
 msgstr "Svidjelo vam se"
 
@@ -28686,7 +28554,7 @@ msgstr "Niste povezani na Internet. Pokušajte ponovo nakon nekog vremena."
 msgid "You are not permitted to access this page without login."
 msgstr "Nije vam dozvoljen pristup ovoj stranici bez prijave."
 
-#: www/app.py:23
+#: www/app.py:23 www/apps.py:14
 msgid "You are not permitted to access this page."
 msgstr "Nije vam dozvoljen pristup ovoj stranici."
 
@@ -28706,7 +28574,7 @@ msgstr "Dozvoljeno vam je samo ažurirati redoslijed, nemojte uklanjati ili doda
 msgid "You are selecting Sync Option as ALL, It will resync all read as well as unread message from server. This may also cause the duplication of Communication (emails)."
 msgstr "Birate opciju sinhronizacije kao SVE, ona će ponovo sinhronizovati sve pročitane i nepročitane poruke sa servera. Ovo također može uzrokovati dupliciranje komunikacije (e-pošta)."
 
-#: public/js/frappe/form/footer/form_timeline.js:413
+#: public/js/frappe/form/footer/form_timeline.js:415
 msgctxt "Form timeline"
 msgid "You attached {0}"
 msgstr "Priložili ste {0}"
@@ -28747,7 +28615,7 @@ msgstr "Možete nastaviti s uključenjem nakon što istražite ovu stranicu"
 msgid "You can disable this {0} instead of deleting it."
 msgstr ""
 
-#: core/doctype/file/file.py:683
+#: core/doctype/file/file.py:688
 msgid "You can increase the limit from System Settings."
 msgstr "Ograničenje možete povećati u Sistemske postavke."
 
@@ -28827,28 +28695,28 @@ msgstr "Ne možete sebi dati bodove za recenzije"
 msgid "You cannot unset 'Read Only' for field {0}"
 msgstr "Ne možete poništiti 'Samo za čitanje' za polje {0}"
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:121
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:125
 msgid "You changed the value of {0}"
 msgstr "Promijenili ste vrijednost {0}"
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:110
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:114
 msgid "You changed the value of {0} {1}"
 msgstr "Promijenili ste vrijednost {0} {1}"
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:183
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:191
 msgid "You changed the values for {0}"
 msgstr "Promijenili ste vrijednosti za {0}"
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:172
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:180
 msgid "You changed the values for {0} {1}"
 msgstr "Promijenili ste vrijednosti za {0} {1}"
 
-#: public/js/frappe/form/footer/form_timeline.js:442
+#: public/js/frappe/form/footer/form_timeline.js:444
 msgctxt "Form timeline"
 msgid "You changed {0} to {1}"
 msgstr "Promijenili ste {0} u {1}"
 
-#: public/js/frappe/form/footer/form_timeline.js:138
+#: public/js/frappe/form/footer/form_timeline.js:140
 #: public/js/frappe/form/sidebar/form_sidebar.js:106
 msgid "You created this"
 msgstr "Vi ste kreirali ovo"
@@ -28958,7 +28826,7 @@ msgstr ""
 msgid "You hit the rate limit because of too many requests. Please try after sometime."
 msgstr "Dosegli ste ograničenje zbog previše zahtjeva. Molimo pokušajte nakon nekog vremena."
 
-#: public/js/frappe/form/footer/form_timeline.js:149
+#: public/js/frappe/form/footer/form_timeline.js:151
 #: public/js/frappe/form/sidebar/form_sidebar.js:95
 msgid "You last edited this"
 msgstr "Zadnji put ste uređivali ovo"
@@ -28987,7 +28855,7 @@ msgstr "Morate biti u modu programera da biste uredili standardni web obrazac"
 msgid "You need to be logged in and have System Manager Role to be able to access backups."
 msgstr "Morate biti prijavljeni i imati ulogu upravitelja sistema da biste mogli pristupiti sigurnosnim kopijama."
 
-#: www/me.py:13 www/third_party_apps.py:10
+#: www/apps.py:11 www/me.py:13 www/third_party_apps.py:10
 msgid "You need to be logged in to access this page"
 msgstr "Morate biti prijavljeni da biste pristupili ovoj stranici"
 
@@ -29027,7 +28895,7 @@ msgstr "Za preimenovanje vam je potrebna dozvola za pisanje"
 msgid "You need {0} permission to fetch values from {1} {2}"
 msgstr "Trebate {0} dozvolu da dohvatite vrijednosti iz {1} {2}"
 
-#: public/js/frappe/form/footer/form_timeline.js:418
+#: public/js/frappe/form/footer/form_timeline.js:420
 msgctxt "Form timeline"
 msgid "You removed attachment {0}"
 msgstr "Uklonili ste prilog {0}"
@@ -29054,7 +28922,7 @@ msgstr "Podnijeli ste ovaj dokument {0}"
 msgid "You unfollowed this document"
 msgstr "Prestali ste pratiti ovaj dokument"
 
-#: public/js/frappe/form/footer/form_timeline.js:182
+#: public/js/frappe/form/footer/form_timeline.js:184
 msgid "You viewed this"
 msgstr "Gledali ste ovo"
 
@@ -29087,7 +28955,7 @@ msgstr "Vaše prečice"
 msgid "Your account has been deleted"
 msgstr "Vaš račun je izbrisan"
 
-#: auth.py:487
+#: auth.py:488
 msgid "Your account has been locked and will resume after {0} seconds"
 msgstr "Vaš račun je zaključan i nastavit će se nakon {0} sekundi"
 
@@ -29182,7 +29050,7 @@ msgstr "`as_iterator` radi samo sa `as_list=True` ili `as_dict=True`"
 msgid "`job_id` paramater is required for deduplication."
 msgstr "Paramater `job_id` je potreban za deduplikaciju."
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:219
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:232
 msgid "added rows for {0}"
 msgstr "dodao redove za {0}"
 
@@ -29270,10 +29138,6 @@ msgstr "zabrana-krug"
 #: workflow/doctype/workflow_state/workflow_state.json
 msgid "barcode"
 msgstr "barkod"
-
-#: model/document.py:1339
-msgid "beginning with"
-msgstr "počevši od"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -29933,10 +29797,6 @@ msgstr "nema neuspjelih pokušaja"
 msgid "nonce"
 msgstr "jednokratno"
 
-#: model/document.py:1338
-msgid "none of"
-msgstr "nijedan od"
-
 #. Label of a Check field in DocType 'Reminder'
 #: automation/doctype/reminder/reminder.json
 msgid "notified"
@@ -30005,15 +29865,11 @@ msgstr "na_ažuriranju"
 msgid "on_update_after_submit"
 msgstr "na_ažuriranju_nakon_podnošenja"
 
-#: model/document.py:1337
-msgid "one of"
-msgstr "jedan od"
-
 #: utils/data.py:1357
 msgid "only."
 msgstr "samo."
 
-#: public/js/frappe/utils/utils.js:407 www/login.html:87 www/login.py:105
+#: public/js/frappe/utils/utils.js:407 www/login.html:87 www/login.py:106
 msgid "or"
 msgstr ""
 
@@ -30152,7 +30008,7 @@ msgstr "ukloni-krug"
 msgid "remove-sign"
 msgstr "ukloni-znak"
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:221
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:234
 msgid "removed rows for {0}"
 msgstr "uklonjeni redovi za {0}"
 
@@ -30196,7 +30052,7 @@ msgstr "resize-vertikalno"
 msgid "response"
 msgstr "odgovor"
 
-#: core/doctype/deleted_document/deleted_document.py:60
+#: core/doctype/deleted_document/deleted_document.py:61
 msgid "restored {0} as {1}"
 msgstr "vraćeno {0} kao {1}"
 
@@ -30600,7 +30456,7 @@ msgstr "{0} Grafikon"
 msgid "{0} Dashboard"
 msgstr "{0} Nadzorna ploča"
 
-#: public/js/frappe/form/grid_row.js:458
+#: public/js/frappe/form/grid_row.js:457
 #: public/js/frappe/list/list_settings.js:224
 #: public/js/frappe/views/kanban/kanban_settings.js:178
 msgid "{0} Fields"
@@ -30614,7 +30470,7 @@ msgstr "{0} Događaji Google kalendara su sinhronizovani."
 msgid "{0} Google Contacts synced."
 msgstr "{0} Google kontakti su sinhronizovani."
 
-#: public/js/frappe/form/footer/form_timeline.js:463
+#: public/js/frappe/form/footer/form_timeline.js:465
 msgid "{0} Liked"
 msgstr "{0} Se svidjelo"
 
@@ -30667,11 +30523,7 @@ msgstr "{0} Postavke"
 msgid "{0} Tree"
 msgstr "{0} Stablo"
 
-#: public/js/frappe/list/base_list.js:208
-msgid "{0} View"
-msgstr "{0} Pogledaj"
-
-#: public/js/frappe/form/footer/form_timeline.js:126
+#: public/js/frappe/form/footer/form_timeline.js:128
 #: public/js/frappe/form/sidebar/form_sidebar.js:86
 msgid "{0} Web page views"
 msgstr "{0} Pregledi web stranica"
@@ -30743,12 +30595,12 @@ msgstr "{0} vam je dodijelio novi zadatak {1} {2}"
 msgid "{0} assigned {1}: {2}"
 msgstr "{0} dodijeljen {1}: {2}"
 
-#: public/js/frappe/form/footer/form_timeline.js:414
+#: public/js/frappe/form/footer/form_timeline.js:416
 msgctxt "Form timeline"
 msgid "{0} attached {1}"
 msgstr "{0} priloženo {1}"
 
-#: core/doctype/system_settings/system_settings.py:142
+#: core/doctype/system_settings/system_settings.py:143
 msgid "{0} can not be more than {1}"
 msgstr "{0} ne može biti više od {1}"
 
@@ -30765,23 +30617,23 @@ msgstr "{0} je otkazao ovaj dokument {1}"
 msgid "{0} cannot be hidden and mandatory without any default value"
 msgstr "{0} ne može biti skriven i obavezan bez ikakve zadane vrijednosti"
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:124
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:128
 msgid "{0} changed the value of {1}"
 msgstr "{0} promijenio vrijednost {1}"
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:115
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:119
 msgid "{0} changed the value of {1} {2}"
 msgstr "{0} promijenio vrijednost {1} {2}"
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:186
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:194
 msgid "{0} changed the values for {1}"
 msgstr "{0} promijenio je vrijednosti za {1}"
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:177
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:185
 msgid "{0} changed the values for {1} {2}"
 msgstr "{0} promijenio vrijednosti za {1} {2}"
 
-#: public/js/frappe/form/footer/form_timeline.js:443
+#: public/js/frappe/form/footer/form_timeline.js:445
 msgctxt "Form timeline"
 msgid "{0} changed {1} to {2}"
 msgstr "{0} promijenjeno {1} u {2}"
@@ -30798,7 +30650,7 @@ msgstr ""
 msgid "{0} created successfully"
 msgstr "{0} je uspješno kreiran"
 
-#: public/js/frappe/form/footer/form_timeline.js:139
+#: public/js/frappe/form/footer/form_timeline.js:141
 #: public/js/frappe/form/sidebar/form_sidebar.js:107
 msgid "{0} created this"
 msgstr "{0} je kreirao ovo"
@@ -30850,11 +30702,11 @@ msgstr "Polje {0} ne može se postaviti kao jedinstveno u {1}, budući da postoj
 msgid "{0} format could not be determined from the values in this column. Defaulting to {1}."
 msgstr "{0} format nije mogao biti određen iz vrijednosti u ovoj koloni. Zadano na {1}."
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:97
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:101
 msgid "{0} from {1} to {2}"
 msgstr "{0} od {1} do {2}"
 
-#: public/js/frappe/form/footer/version_timeline_content_builder.js:157
+#: public/js/frappe/form/footer/version_timeline_content_builder.js:165
 msgid "{0} from {1} to {2} in row #{3}"
 msgstr "{0} od {1} do {2} u redu #{3}"
 
@@ -30911,7 +30763,7 @@ msgstr "{0} u redu {1} ne može imati i URL i podređene stavke"
 msgid "{0} is a mandatory field"
 msgstr "{0} je obavezno polje"
 
-#: core/doctype/file/file.py:502
+#: core/doctype/file/file.py:507
 msgid "{0} is a not a valid zip file"
 msgstr "{0} nije važeća zip datoteka"
 
@@ -31008,7 +30860,7 @@ msgstr "{0} nije važeće nadređeno polje za {1}"
 msgid "{0} is not a valid report format. Report format should one of the following {1}"
 msgstr "{0} nije važeći format izvještaja. Format izvještaja bi trebao biti jedan od sljedećih {1}"
 
-#: core/doctype/file/file.py:482
+#: core/doctype/file/file.py:487
 msgid "{0} is not a zip file"
 msgstr "{0} nije zip datoteka"
 
@@ -31053,11 +30905,11 @@ msgstr "{0} je unutar {1}"
 msgid "{0} items selected"
 msgstr "{0} stavke odabrane"
 
-#: core/doctype/user/user.py:1361
+#: core/doctype/user/user.py:1366
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr "{0} samo se predstavljao kao ti. Naveli su ovaj razlog: {1}"
 
-#: public/js/frappe/form/footer/form_timeline.js:150
+#: public/js/frappe/form/footer/form_timeline.js:152
 #: public/js/frappe/form/sidebar/form_sidebar.js:96
 msgid "{0} last edited this"
 msgstr "{0} je zadnji put uredio ovo"
@@ -31086,11 +30938,23 @@ msgstr "prije {0} minuta"
 msgid "{0} months ago"
 msgstr "prije {0} mjeseci"
 
-#: model/document.py:1593
+#: model/document.py:1595
 msgid "{0} must be after {1}"
 msgstr "{0} mora biti iza {1}"
 
-#: utils/csvutils.py:136
+#: model/document.py:1356
+msgid "{0} must be beginning with '{1}'"
+msgstr ""
+
+#: model/document.py:1358
+msgid "{0} must be equal to '{1}'"
+msgstr ""
+
+#: model/document.py:1354
+msgid "{0} must be none of {1}"
+msgstr ""
+
+#: model/document.py:1352 utils/csvutils.py:136
 msgid "{0} must be one of {1}"
 msgstr "{0} mora biti jedan od {1}"
 
@@ -31101,6 +30965,10 @@ msgstr "{0} se mora prvo postaviti"
 #: model/base_document.py:640
 msgid "{0} must be unique"
 msgstr "{0} mora biti jedinstven"
+
+#: model/document.py:1360
+msgid "{0} must be {1} {2}"
+msgstr ""
 
 #: core/doctype/language/language.py:43
 msgid "{0} must begin and end with a letter and can only contain letters,\n"
@@ -31156,7 +31024,7 @@ msgstr "{0} zapisi su izbrisani"
 msgid "{0} records will be exported"
 msgstr "{0} zapisi će biti izvezeni"
 
-#: public/js/frappe/form/footer/form_timeline.js:419
+#: public/js/frappe/form/footer/form_timeline.js:421
 msgctxt "Form timeline"
 msgid "{0} removed attachment {1}"
 msgstr "{0} uklonio prilog {1}"
@@ -31248,7 +31116,7 @@ msgstr "{0} ažurirano"
 msgid "{0} values selected"
 msgstr "{0} vrijednosti odabrane"
 
-#: public/js/frappe/form/footer/form_timeline.js:183
+#: public/js/frappe/form/footer/form_timeline.js:185
 msgid "{0} viewed this"
 msgstr "{0} je pogledao ovo"
 
@@ -31402,7 +31270,6 @@ msgstr "{0}: naziv polja ne može se postaviti na rezerviranu ključnu riječ {1
 
 #: contacts/doctype/address/address.js:35
 #: contacts/doctype/contact/contact.js:88
-#: public/js/frappe/views/workspace/workspace.js:211
 msgid "{0}: {1}"
 msgstr "{0}: {1}"
 
@@ -31440,7 +31307,6 @@ msgstr "{{{0}}} nije važeći obrazac naziva polja. Trebalo bi da bude {{field_n
 
 #. Count format of shortcut in the Website Workspace
 #: website/workspace/website/website.json
-msgctxt "Blogger"
 msgid "{} Active"
 msgstr "{} Aktivan"
 
@@ -31458,13 +31324,6 @@ msgstr "{} Možda nevažeći python kod. <br>{}"
 
 #. Count format of shortcut in the Website Workspace
 #: website/workspace/website/website.json
-msgctxt "Blog Post"
-msgid "{} Published"
-msgstr "{} Objavljeno"
-
-#. Count format of shortcut in the Website Workspace
-#: website/workspace/website/website.json
-msgctxt "Web Page"
 msgid "{} Published"
 msgstr "{} Objavljeno"
 
