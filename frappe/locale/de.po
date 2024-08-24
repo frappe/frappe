@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-18 09:32+0000\n"
-"PO-Revision-Date: 2024-08-20 07:29\n"
+"PO-Revision-Date: 2024-08-24 10:08\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -17743,7 +17743,7 @@ msgstr "Öffnen Sie die URL in einem neuen Tab"
 #. Description of the 'Quick Entry' (Check) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgid "Open a dialog with mandatory fields to create a new record quickly. There must be at least one mandatory field to show in dialog."
-msgstr ""
+msgstr "Öffnen Sie ein Dialogfeld mit Pflichtfeldern, um schnell einen neuen Datensatz zu erstellen. Es muss mindestens ein Pflichtfeld vorhanden sein, um im Dialog angezeigt zu werden."
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:176
 msgid "Open a module or tool"
@@ -18906,7 +18906,7 @@ msgstr "Bitte geben Sie eine gültige E-Mail-Adresse ein."
 
 #: templates/includes/contact.js:15
 msgid "Please enter both your email and message so that we can get back to you. Thanks!"
-msgstr ""
+msgstr "Bitte geben Sie sowohl Ihre E-Mail-Adresse als auch Ihre Nachricht an, damit wir uns bei Ihnen melden können. Vielen Dank!"
 
 #: www/update-password.html:232
 msgid "Please enter the password"
@@ -20819,7 +20819,7 @@ msgstr "Alle Anpassungen entfernen?"
 
 #: public/js/form_builder/components/Section.vue:286
 msgid "Remove all fields in the column"
-msgstr ""
+msgstr "Alle Felder der Spalte entfernen"
 
 #: public/js/form_builder/components/Section.vue:278
 #: public/js/frappe/utils/datatable.js:9
@@ -26819,7 +26819,7 @@ msgstr "Transaktionsprotokollbericht"
 
 #: public/js/workflow_builder/components/Properties.vue:19
 msgid "Transition Properties"
-msgstr ""
+msgstr "Übergangseigenschaften"
 
 #. Label of the transition_rules (Section Break) field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
