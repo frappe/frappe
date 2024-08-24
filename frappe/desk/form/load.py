@@ -175,7 +175,7 @@ def add_comments(doc, docinfo, user=None):
 	def get_attachment_content(file_doc, is_deleted):
 		icon = ' <i class="fa fa-lock text-warning"></i>' if file_doc.is_private else ""
 		file_url = (
-			quote(frappe.safe_encode(file_doc.file_url), safe="/:")
+			quote_plus(frappe.safe_encode(file_doc.file_url), safe="/:")
 			if file_doc.file_url
 			else file_doc.file_name
 		)
