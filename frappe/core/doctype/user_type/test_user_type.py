@@ -31,6 +31,18 @@ class TestUserType(FrappeTestCase):
 		for entry in link_fields:
 			self.assertTrue(entry.options in select_doctypes)
 
+	def test_print_share_email_default(self):
+		"""Test if print, share & email values default to 1. (for backward compatibility)"""
+		# create user type with read, write permissions
+		create_user_type("Test User Type")
+
+		# check if print, share & email values are set to 1
+		perm = frappe.get_all("Custom DocPerm", filters={"role": "_Test User Type"}, fields=["*"])[0]
+
+		self.assertTrue(perm.print == 1)
+		self.assertTrue(perm.share == 1)
+		self.assertTrue(perm.email == 1)
+
 	def tearDown(self):
 		frappe.db.rollback()
 

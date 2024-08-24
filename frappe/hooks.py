@@ -33,8 +33,8 @@ app_include_css = [
 	"report.bundle.css",
 ]
 app_include_icons = [
-	"frappe/icons/timeless/icons.svg",
-	"frappe/icons/espresso/icons.svg",
+	"/assets/frappe/icons/timeless/icons.svg",
+	"/assets/frappe/icons/espresso/icons.svg",
 ]
 
 doctype_js = {
@@ -43,8 +43,11 @@ doctype_js = {
 }
 
 web_include_js = ["website_script.js"]
-
 web_include_css = []
+web_include_icons = [
+	"/assets/frappe/icons/timeless/icons.svg",
+	"/assets/frappe/icons/espresso/icons.svg",
+]
 
 email_css = ["email.bundle.css"]
 
@@ -457,15 +460,15 @@ export_python_type_annotations = True
 
 standard_navbar_items = [
 	{
-		"item_label": "My Profile",
-		"item_type": "Route",
-		"route": "/app/user-profile",
+		"item_label": "User Settings",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.route_to_user()",
 		"is_standard": 1,
 	},
 	{
-		"item_label": "My Settings",
+		"item_label": "Workspace Settings",
 		"item_type": "Action",
-		"action": "frappe.ui.toolbar.route_to_user()",
+		"action": "frappe.quick_edit('Workspace Settings')",
 		"is_standard": 1,
 	},
 	{
@@ -484,6 +487,12 @@ standard_navbar_items = [
 		"item_label": "View Website",
 		"item_type": "Action",
 		"action": "frappe.ui.toolbar.view_website()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Apps",
+		"item_type": "Route",
+		"route": "/apps",
 		"is_standard": 1,
 	},
 	{

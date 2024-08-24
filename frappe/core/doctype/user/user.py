@@ -63,13 +63,14 @@ class User(Document):
 		block_modules: DF.Table[BlockModule]
 		bypass_restrict_ip_check_if_2fa_enabled: DF.Check
 		code_editor_type: DF.Literal["vscode", "vim", "emacs"]
+		default_app: DF.Literal[None]
 		default_workspace: DF.Link | None
 		defaults: DF.Table[DefaultValue]
 		desk_theme: DF.Literal["Light", "Dark", "Automatic"]
 		document_follow_frequency: DF.Literal["Hourly", "Daily", "Weekly"]
 		document_follow_notify: DF.Check
 		email: DF.Data
-		email_signature: DF.SmallText | None
+		email_signature: DF.TextEditor | None
 		enabled: DF.Check
 		first_name: DF.Data
 		follow_assigned_documents: DF.Check
@@ -182,6 +183,12 @@ class User(Document):
 		if (self.name not in ["Administrator", "Guest"]) and (not self.get_social_login_userid("frappe")):
 			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
 
+	def disable_email_fields_if_user_disabled(self):
+		if not self.enabled:
+			self.thread_notify = 0
+			self.send_me_a_copy = 0
+			self.allowed_in_mentions = 0
+
 	@frappe.whitelist()
 	def populate_role_profile_roles(self):
 		if not self.role_profiles:
@@ -284,6 +291,7 @@ class User(Document):
 
 		# toggle notifications based on the user's status
 		toggle_notifications(self.name, enable=cint(self.enabled), ignore_permissions=True)
+		self.disable_email_fields_if_user_disabled()
 
 	def email_new_password(self, new_password=None):
 		if new_password and not self.flags.in_insert:
@@ -355,7 +363,11 @@ class User(Document):
 							user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions
 						)
 
-					if not self.flags.no_welcome_mail and cint(self.send_welcome_email):
+					if (
+						not self.flags.no_welcome_mail
+						and cint(self.send_welcome_email)
+						and not self.flags.email_sent
+					):
 						self.send_welcome_mail_to_user()
 						self.flags.email_sent = 1
 						if frappe.session.user != "Guest":

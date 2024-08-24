@@ -23,6 +23,7 @@ frappe.views.ListSidebar = class ListSidebar {
 
 		this.setup_list_filter();
 		this.setup_list_group_by();
+		this.setup_collapsible();
 
 		// do not remove
 		// used to trigger custom scripts
@@ -164,7 +165,28 @@ frappe.views.ListSidebar = class ListSidebar {
 			wrapper: this.page.sidebar.find(".list-filters"),
 			doctype: this.doctype,
 			list_view: this.list_view,
+			section_title: this.page.sidebar.find(".save-filter-section .sidebar-label"),
 		});
+	}
+
+	setup_collapsible() {
+		// tags and save filter sections should be collapsible
+		let sections = [
+			["tags-section", "list-tags"],
+			["save-filter-section", "list-filters"],
+		];
+
+		for (let s of sections) {
+			this.page.sidebar.find(`.${s[0]} .sidebar-label`).on("click", () => {
+				let list_tags = this.page.sidebar.find("." + s[1]);
+				let icon = "#es-line-down";
+				list_tags.toggleClass("hide");
+				if (list_tags.hasClass("hide")) {
+					icon = "#es-line-right-chevron";
+				}
+				this.page.sidebar.find(`.${s[0]} .es-line use`).attr("href", icon);
+			});
+		}
 	}
 
 	setup_kanban_boards() {

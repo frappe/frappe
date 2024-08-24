@@ -26,6 +26,7 @@ dependencies = [
     "PyYAML~=6.0.1",
     "RestrictedPython~=7.0",
     "WeasyPrint==59.0",
+    "pydyf==0.10.0",
     "Werkzeug~=3.0.1",
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.12.2",
@@ -111,6 +112,9 @@ freezegun = "~=1.2.2"
 [tool.ruff]
 line-length = 110
 target-version = "py310"
+exclude = [
+    "**/doctype/*/boilerplate/*.py" # boilerplate are template strings, not valid python
+]
 
 [tool.ruff.lint]
 select = [
@@ -137,6 +141,8 @@ ignore = [
     "F722", # syntax error in forward type annotation
     "W191", # indentation contains tabs
     "RUF001", # string contains ambiguous unicode character
+    "UP032", # Use f-string instead of `format` call (translations)
+    "UP030", # Use implicit references for positional format fields (translations)
 ]
 typing-modules = ["frappe.types.DF"]
 

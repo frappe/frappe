@@ -171,11 +171,18 @@ class EmailQueue(Document):
 					method(self, self.sender, recipient.recipient, message)
 				elif not frappe.flags.in_test or frappe.flags.testing_email:
 					if ctx.email_account_doc.service == "Frappe Mail":
-						ctx.frappe_mail_client.send_raw(
-							sender=self.sender,
-							recipients=recipient.recipient,
-							message=message.decode("utf-8"),
-						)
+						if self.reference_doctype == "Newsletter":
+							ctx.frappe_mail_client.send_newsletter(
+								sender=self.sender,
+								recipients=recipient.recipient,
+								message=message.decode("utf-8"),
+							)
+						else:
+							ctx.frappe_mail_client.send_raw(
+								sender=self.sender,
+								recipients=recipient.recipient,
+								message=message.decode("utf-8"),
+							)
 					else:
 						ctx.smtp_server.session.sendmail(
 							from_addr=self.sender,
@@ -780,7 +787,8 @@ class QueueBuilder:
 			with suppress(Exception):
 				q.send(smtp_server_instance=smtp_server_instance, frappe_mail_client=frappe_mail_client)
 
-		smtp_server_instance.quit()
+		if smtp_server_instance:
+			smtp_server_instance.quit()
 
 	def as_dict(self, include_recipients=True):
 		email_account = self.get_outgoing_email_account()

@@ -12,7 +12,7 @@ from frappe.utils import get_url_to_form
 @frappe.whitelist()
 def update_follow(doctype: str, doc_name: str, following: bool):
 	if following:
-		return follow_document(doctype, doc_name, frappe.session.user)
+		return follow_document(doctype, doc_name, frappe.session.user) and True or False
 	else:
 		return unfollow_document(doctype, doc_name, frappe.session.user)
 
@@ -42,19 +42,28 @@ def follow_document(doctype, doc_name, user):
 		)
 		or doctype in log_types
 	):
-		return
+		return False
 
-	if (not frappe.get_meta(doctype).track_changes) or user == "Administrator":
-		return
+	if not frappe.get_meta(doctype).track_changes:
+		frappe.toast(_("Can't follow since changes are not tracked."))
+		return False
+
+	if user == "Administrator":
+		frappe.toast(_("Administrator can't follow"))
+		return False
 
 	if not frappe.db.get_value("User", user, "document_follow_notify", ignore=True, cache=True):
-		return
+		frappe.toast(_("Document follow is not enabled for this user."))
+		return False
 
 	if not is_document_followed(doctype, doc_name, user):
 		doc = frappe.new_doc("Document Follow")
 		doc.update({"ref_doctype": doctype, "ref_docname": doc_name, "user": user})
 		doc.save()
+		frappe.toast(_("Following document {0}").format(doc_name))
 		return doc
+
+	return False
 
 
 @frappe.whitelist()
@@ -67,8 +76,9 @@ def unfollow_document(doctype, doc_name, user):
 	)
 	if doc:
 		frappe.delete_doc("Document Follow", doc[0].name)
-		return 1
-	return 0
+		frappe.toast(_("Un-following document {0}").format(doc_name))
+		return False
+	return False
 
 
 def get_message(doc_name, doctype, frequency, user):

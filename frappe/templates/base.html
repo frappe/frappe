@@ -44,6 +44,7 @@
 
 	<script>
 		window.frappe = {};
+		window._version_number = "{{ build_version }}";
 		frappe.ready_events = [];
 		frappe.ready = function(fn) {
 			frappe.ready_events.push(fn);
@@ -54,8 +55,6 @@
 	</script>
 </head>
 <body frappe-session-status="{{ 'logged-in' if frappe.session.user != 'Guest' else 'logged-out'}}" data-path="{{ path | e }}" {%- if template and template.endswith('.md') %} frappe-content-type="markdown" {%- endif %} class="{{ body_class or ''}}">
-	{% include "public/icons/timeless/icons.svg" %}
-	{% include "public/icons/espresso/icons.svg" %}
 	{%- block banner -%}
 		{% include "templates/includes/banner_extension.html" ignore missing %}
 
@@ -87,6 +86,11 @@
 			add_bottom_padding=0
 		) }}
 	{%- endblock -%}
+
+	<div id="all-symbols" style="display:none"></div>
+	{%- for path in web_include_icons -%}
+	{{ include_icons(path) }}
+	{%- endfor -%}
 
 	{% block base_scripts %}
 	<!-- js should be loaded in body! -->
