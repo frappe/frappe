@@ -261,12 +261,14 @@ def get_attachments(dt, dn, user=None):
 		if not has_permission(file_doc, "read", user=user):
 			continue
 		visible_attachments.append(
-			{
-				"name": file_doc.name,
-				"file_name": file_doc.file_name,
-				"file_url": file_doc.file_url,
-				"is_private": file_doc.is_private,
-			}
+			frappe._dict(
+				{
+					"name": file_doc.name,
+					"file_name": file_doc.file_name,
+					"file_url": file_doc.file_url,
+					"is_private": file_doc.is_private,
+				}
+			)
 		)
 	return visible_attachments
 
