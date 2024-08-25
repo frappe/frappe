@@ -78,10 +78,13 @@ class PhonePicker {
 			this.phone_wrapper.find(".phone-wrapper").removeClass("hidden");
 		} else {
 			if (!isd.includes(value) && !country.toLowerCase().includes(value.toLowerCase())) {
-				this.phone_wrapper.find(`.phone-wrapper[id='${country.toLowerCase()}']`).addClass("hidden")
-			}
-			else {
-				this.phone_wrapper.find(`.phone-wrapper[id='${country.toLowerCase()}']`).removeClass("hidden")
+				this.phone_wrapper
+					.find(`.phone-wrapper[id='${country.toLowerCase()}']`)
+					.addClass("hidden");
+			} else {
+				this.phone_wrapper
+					.find(`.phone-wrapper[id='${country.toLowerCase()}']`)
+					.removeClass("hidden");
 			}
 		}
 	}
