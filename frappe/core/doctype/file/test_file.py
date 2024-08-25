@@ -828,6 +828,7 @@ class TestAttachmentPermissions(FrappeTestCase):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
 		frappe.delete_doc("DocType", cls.test_doctype_open)
+		frappe.delete_doc("DocType", cls.test_doctype_closed)
 
 	def setUp(self):
 		doc = frappe.new_doc(
