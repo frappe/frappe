@@ -8,11 +8,11 @@
  "for_user": "",
  "hide_custom": 0,
  "icon": "image-view",
- "idx": 1,
+ "idx": 0,
  "is_hidden": 0,
  "label": "Welcome Workspace",
  "links": [],
- "modified": "2023-07-28 20:15:32.222029",
+ "modified": "2024-08-26 20:15:25.749363",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Welcome Workspace",
@@ -21,7 +21,11 @@
  "parent_page": "",
  "public": 1,
  "quick_lists": [],
- "roles": [],
+ "roles": [
+  {
+   "role": "Frappe User"
+  }
+ ],
  "sequence_id": 22.0,
  "shortcuts": [],
  "title": "Welcome Workspace"

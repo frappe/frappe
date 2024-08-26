@@ -199,26 +199,26 @@
    "type": "Link"
   },
   {
-    "hidden": 0,
-    "is_query_report": 0,
-    "label": "Push Notifications",
-    "link_count": 1,
-    "link_type": "DocType",
-    "onboard": 0,
-    "type": "Card Break"
-   },
-   {
-    "hidden": 0,
-    "is_query_report": 0,
-    "label": "Push Notification Settings",
-    "link_count": 0,
-    "link_to": "Push Notification Settings",
-    "link_type": "DocType",
-    "onboard": 0,
-    "type": "Link"
-   }
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Push Notifications",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Push Notification Settings",
+   "link_count": 0,
+   "link_to": "Push Notification Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
  ],
- "modified": "2024-02-28 10:47:38.188832",
+ "modified": "2024-08-26 12:31:06.471912",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Integrations",
@@ -228,7 +228,11 @@
  "public": 1,
  "quick_lists": [],
  "restrict_to_domain": "",
- "roles": [],
+ "roles": [
+  {
+   "role": "Frappe User"
+  }
+ ],
  "sequence_id": 20.0,
  "shortcuts": [],
  "title": "Integrations"

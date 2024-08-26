@@ -234,7 +234,7 @@
    "type": "Link"
   }
  ],
- "modified": "2023-05-24 14:47:23.879036",
+ "modified": "2024-08-26 20:17:18.013725",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",
@@ -244,7 +244,11 @@
  "public": 1,
  "quick_lists": [],
  "restrict_to_domain": "",
- "roles": [],
+ "roles": [
+  {
+   "role": "Frappe User"
+  }
+ ],
  "sequence_id": 14.0,
  "shortcuts": [
   {

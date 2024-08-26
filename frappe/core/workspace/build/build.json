@@ -323,7 +323,7 @@
    "type": "Link"
   }
  ],
- "modified": "2024-01-24 12:27:44.769958",
+ "modified": "2024-08-26 20:14:53.887139",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Build",
@@ -333,7 +333,11 @@
  "public": 1,
  "quick_lists": [],
  "restrict_to_domain": "",
- "roles": [],
+ "roles": [
+  {
+   "role": "Frappe User"
+  }
+ ],
  "sequence_id": 27.0,
  "shortcuts": [
   {
