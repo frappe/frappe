@@ -58,8 +58,9 @@ def get_count() -> int:
 		count = frappe.call(controller.get_count, args=args, **args)
 	else:
 		args.distinct = sbool(args.distinct)
+		distinct = get_distinct(args.distinct)
 		args.limit = cint(args.limit)
-		fieldname = f"`tab{args.doctype}`.name"
+		fieldname = f"{distinct}`tab{args.doctype}`.name"
 		args.order_by = None
 
 		if args.limit:
@@ -75,6 +76,12 @@ def get_count() -> int:
 
 def execute(doctype, *args, **kwargs):
 	return DatabaseQuery(doctype).execute(*args, **kwargs)
+
+
+def get_distinct(distinct) -> str:
+	if distinct and frappe.conf.db_type == "mariadb":
+		return "distinct "
+	return ""
 
 
 def get_form_params():
