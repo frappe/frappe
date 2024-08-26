@@ -36,13 +36,20 @@ frappe.ui.Sidebar = class Sidebar {
 		this.wrapper = $(`
 			<div class="body-sidebar-container">
 				<div class="body-sidebar-placeholder"></div>
-				<div class="body-sidebar hidden-xs hidden-sm">
+				<div class="body-sidebar">
 					<a href="/app">
-						<img
-							class="app-logo"
-							src="${frappe.boot.app_logo_url}"
-							alt="${__("App Logo")}"
-						>
+						<div class="standard-sidebar-item">
+							<div class="sidebar-item-icon">
+								<img
+									class="app-logo"
+									src="${frappe.boot.app_logo_url}"
+									alt="${__("App Logo")}"
+								>
+							</div>
+							<div class="sidebar-item-label" style="margin-left: 5px; margin-top: 1px">
+								${__(frappe.boot.sysdefaults.app_name)}
+							</div>
+						</div>
 					</a>
 					<div class="sidebar-items">
 					</div>

@@ -299,6 +299,9 @@ Object.assign(frappe.utils, {
 			);
 		return content.html();
 	},
+	scroll_page_to_top() {
+		$(".main-section").scrollTop(0);
+	},
 	scroll_to: function (
 		element,
 		animate = true,

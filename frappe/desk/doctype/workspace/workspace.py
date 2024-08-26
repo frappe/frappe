@@ -6,7 +6,7 @@ from json import loads
 
 import frappe
 from frappe import _
-from frappe.desk.desktop import save_new_widget
+from frappe.desk.desktop import get_workspace_sidebar_items, save_new_widget
 from frappe.desk.utils import validate_route_conflict
 from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
@@ -261,7 +261,7 @@ def new_page(new_page):
 
 	doc = frappe.new_doc("Workspace")
 	doc.title = page.get("title")
-	doc.icon = page.get("icon")
+	doc.icon = page.get("icon") or "dashboard"
 	doc.indicator_color = page.get("indicator_color")
 	doc.content = page.get("content")
 	doc.parent_page = page.get("parent_page")
@@ -271,7 +271,7 @@ def new_page(new_page):
 	doc.sequence_id = last_sequence_id(doc) + 1
 	doc.save(ignore_permissions=True)
 
-	return doc
+	return get_workspace_sidebar_items()
 
 
 @frappe.whitelist()
@@ -339,65 +339,6 @@ def update_page(name, title, icon, indicator_color, parent, public):
 					rename_doc("Workspace", child.name, new_child_name, force=True, ignore_permissions=True)
 
 	return {"name": title, "public": public, "label": new_name}
-
-
-@frappe.whitelist()
-def duplicate_page(page_name, new_page):
-	if not loads(new_page):
-		return
-
-	new_page = loads(new_page)
-
-	if new_page.get("is_public") and not is_workspace_manager():
-		return
-
-	old_doc = frappe.get_doc("Workspace", page_name)
-	doc = frappe.copy_doc(old_doc)
-	doc.title = new_page.get("title")
-	doc.icon = new_page.get("icon")
-	doc.indicator_color = new_page.get("indicator_color")
-	doc.parent_page = new_page.get("parent") or ""
-	doc.public = new_page.get("is_public")
-	doc.for_user = ""
-	doc.label = doc.title
-	doc.module = ""
-	if not doc.public:
-		doc.for_user = doc.for_user or frappe.session.user
-		doc.label = f"{doc.title}-{doc.for_user}"
-	doc.name = doc.label
-	if old_doc.public == doc.public:
-		doc.sequence_id += 0.1
-	else:
-		doc.sequence_id = last_sequence_id(doc) + 1
-	doc.insert(ignore_permissions=True)
-
-	return doc
-
-
-@frappe.whitelist()
-def delete_page(page):
-	if not loads(page):
-		return
-
-	page = loads(page)
-
-	if page.get("public") and not is_workspace_manager():
-		frappe.throw(
-			_("Cannot delete public workspace without Workspace Manager role"),
-			frappe.PermissionError,
-		)
-	elif not page.get("public") and not is_workspace_manager():
-		workspace_owner = frappe.get_value("Workspace", page.get("name"), "for_user")
-		if workspace_owner != frappe.session.user:
-			frappe.throw(
-				_("Cannot delete private workspace of other users"),
-				frappe.PermissionError,
-			)
-
-	if frappe.db.exists("Workspace", page.get("name")):
-		frappe.get_doc("Workspace", page.get("name")).delete(ignore_permissions=True)
-
-	return {"name": page.get("name"), "public": page.get("public"), "title": page.get("title")}
 
 
 def last_sequence_id(doc):

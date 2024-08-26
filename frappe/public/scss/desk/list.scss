@@ -235,7 +235,7 @@ $level-margin-right: 8px;
 .layout-main-list {
 	.list-paging-area,
 	.footnote-area {
-		padding: var(--padding-md);
+		padding: var(--padding-sm) var(--padding-md);
 	}
 }
 

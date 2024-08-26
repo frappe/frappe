@@ -455,7 +455,7 @@
 .form-footer {
 	max-width: var(--page-max-width);
 	margin: auto;
-	padding-left: 15px;
+	padding: 0 15px;
 
 	h5 {
 		margin: 15px 0px;
@@ -465,7 +465,8 @@
 	.scroll-to-top {
 		position: absolute;
 		height: 28px;
-		right: 0;
+		right: 15px;
+		bottom: 15px;
 	}
 }
 

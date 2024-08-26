@@ -144,6 +144,7 @@
 
 	input {
 		margin-right: 0 !important;
+		margin-bottom: -3px;
 	}
 
 	&.search {
@@ -292,7 +293,8 @@
 	}
 
 	.grid-static-col[data-fieldtype="Check"] .static-area {
-		padding-top: 2px;
+		padding-top: 4px;
+		margin-bottom: -4px;
 	}
 
 	.grid-static-col[data-fieldtype="Rating"] .field-area {
@@ -362,7 +364,7 @@
 	}
 
 	.frappe-control {
-		margin-bottom: 0px;
+		margin-bottom: 0px !important;
 		position: relative;
 	}
 

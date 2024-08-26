@@ -36,7 +36,7 @@
 		display: inline-flex;
 		align-items: center;
 		.title-text {
-			@include get_textstyle("2xl", "bold");
+			@include get_textstyle("2xl", "semibold");
 			cursor: pointer;
 			margin-bottom: 0px;
 			margin-right: var(--margin-sm);
@@ -115,10 +115,6 @@
 		height: var(--page-head-height);
 		padding: 8px 0px;
 	}
-
-	h3 {
-		font-weight: var(--weight-semibold);
-	}
 }
 
 .page-form {
@@ -188,7 +184,11 @@
 		.result,
 		.no-result,
 		.freeze {
-			min-height: #{"calc(100vh - 224px)"};
+			min-height: "200px";
+		}
+
+		.result {
+			overflow: scroll;
 		}
 	}
 

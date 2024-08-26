@@ -623,8 +623,6 @@ body {
 		}
 
 		@include media-breakpoint-down(md) {
-			padding: 1px 8px;
-
 			.link-item {
 				&:first-child {
 					margin-top: 5px;
@@ -931,7 +929,6 @@ body {
 
 			.layout-main-section {
 				border: 0px;
-				padding: var(--padding-sm) var(--padding-md);
 
 				&.edit-mode {
 					background-color: var(--subtle-fg) !important;
@@ -960,7 +957,7 @@ body {
 	.layout-main-section {
 		background-color: var(--fg-color);
 		box-shadow: none;
-		padding: var(--padding-sm);
+		padding: var(--padding-sm) var(--padding-md);
 	}
 
 	.workspace-footer {
@@ -992,8 +989,8 @@ body {
 			display: flex;
 			flex-wrap: wrap;
 			flex-direction: row;
-			margin: 0px -7px;
 			padding-bottom: 20px !important;
+			margin: 0 -4px;
 
 			.ce-block {
 				width: 100%;
@@ -1096,10 +1093,6 @@ body {
 					max-width: 100%;
 					height: 100%;
 					padding: 7px;
-
-					@include media-breakpoint-down(md) {
-						padding: 7px 3px;
-					}
 
 					& > div {
 						height: 100%;

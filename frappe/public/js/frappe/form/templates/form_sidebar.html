@@ -19,11 +19,11 @@
 	</div>
 </div>
 {% if frm.meta.beta %}
-<div class="sidebar-menu">
+<div class="sidebar-section">
 	<p><label class="indicator-pill yellow" title="{{ __("This feature is brand new and still experimental") }}">{{ __("Experimental") }}</label></p>
-	<p><a class="small text-muted" href="https://github.com/frappe/{{ frappe.boot.module_app[frappe.scrub(frm.meta.module)] }}/issues/new"
+	<div><a class="small text-muted" href="https://github.com/frappe/{{ frappe.boot.module_app[frappe.scrub(frm.meta.module)] }}/issues/new"
 			target="_blank">
-		{{ __("Click here to post bugs and suggestions") }}</a></p>
+		{{ __("Report bug") }}</a></div>
 
 </div>
 {% endif %}
