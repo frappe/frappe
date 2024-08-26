@@ -2163,6 +2163,18 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		this.script_manager.trigger("on_tab_change");
+
+		// When switching tabs, we should tell fields to update their display if needed (e.g. Geolocation and Signature fields).
+		// This is done using the already existing on_section_collapse optional method.
+		let in_tab = false;
+		for (const df of this.layout.fields) {
+			const field = this.get_field(df.fieldname);
+			if (df?.fieldtype == "Tab Break") {
+				in_tab = df === tab?.df;
+			} else if (typeof field?.on_section_collapse == "function") {
+				field.on_section_collapse(!in_tab); // hide = !in_tab
+			}
+		}
 	}
 
 	get_active_tab() {
