@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-18 09:32+0000\n"
-"PO-Revision-Date: 2024-08-25 10:26\n"
+"PO-Revision-Date: 2024-08-26 10:23\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -27196,7 +27196,7 @@ msgstr ""
 
 #: public/js/frappe/file_uploader/FileUploader.vue:193
 msgid "Upload file"
-msgstr ""
+msgstr "آپلود فایل"
 
 #: public/js/frappe/file_uploader/FileUploader.vue:196
 msgid "Upload {0} files"
