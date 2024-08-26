@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-18 09:32+0000\n"
-"PO-Revision-Date: 2024-08-22 09:03\n"
+"PO-Revision-Date: 2024-08-26 10:23\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -29268,7 +29268,7 @@ msgstr "Du kan lägga till dynamiska egenskaper från dokumentet med Jinja mall.
 
 #: printing/doctype/letter_head/letter_head.js:32
 msgid "You can also access wkhtmltopdf variables (valid only in PDF print):"
-msgstr "Du kan också komma åt wkhtmltopdf variabler (giltiga endast i PDF utskrift):"
+msgstr "Använd wkhtmltopdf variabler (giltiga endast i PDF utskrift):"
 
 #: templates/emails/new_user.html:22
 msgid "You can also copy-paste following link in your browser"
