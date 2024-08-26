@@ -6,7 +6,7 @@
 }
 /*! This comment will be included even in compressed mode. */
 #navbar-breadcrumbs {
-	@include get_textstyle("base", "regular");
+	@include get_textstyle("sm", "regular");
 	a {
 		margin-right: 10px;
 		&:before {

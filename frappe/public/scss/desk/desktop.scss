@@ -573,7 +573,7 @@ body {
 		.link-item {
 			display: flex;
 			text-decoration: none;
-			@include get_textstyle("base", "regular");
+			@include get_textstyle("sm", "regular");
 			color: var(--text-color);
 			padding: 4px;
 			margin-left: -4px;

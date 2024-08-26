@@ -10,7 +10,6 @@ context("Awesome Bar", () => {
 	});
 
 	beforeEach(() => {
-		cy.get(".navbar .navbar-home").click();
 		cy.findByPlaceholderText("Search or type a command (Ctrl + G)").as("awesome_bar");
 		cy.get("@awesome_bar").type("{selectall}");
 	});

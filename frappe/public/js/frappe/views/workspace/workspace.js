@@ -393,7 +393,9 @@ frappe.views.Workspace = class Workspace {
 							let message = __("Workspace {0} Edited Successfully", [
 								old_item.title.bold(),
 							]);
-							frappe.show_alert({ message: message, indicator: "green" });
+							if (!window.Cypress) {
+								frappe.show_alert({ message: message, indicator: "green" });
+							}
 						}
 					},
 				});
@@ -526,10 +528,12 @@ frappe.views.Workspace = class Workspace {
 									let message = __("Workspace {0} created", [
 										new_page.title.bold(),
 									]);
-									frappe.show_alert({
-										message: message,
-										indicator: "green",
-									});
+									if (!window.Cypress) {
+										frappe.show_alert({
+											message: message,
+											indicator: "green",
+										});
+									}
 
 									frappe.boot.sidebar_pages = r.message;
 									this.sidebar.setup_pages();
@@ -670,6 +674,7 @@ frappe.views.Workspace = class Workspace {
 						if (res.message) {
 							me.discard = true;
 							me.reload();
+							if (window.Cypress) return;
 							frappe.show_alert({
 								message: __("Saved"),
 								indicator: "green",
