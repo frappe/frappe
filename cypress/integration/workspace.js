@@ -20,6 +20,8 @@ context("Workspace 2.0", () => {
 		cy.get(".codex-editor__redactor .ce-block");
 		cy.get(".btn-new-workspace").click();
 		cy.fill_field("title", "Test Private Page", "Data");
+		cy.wait(300);
+
 		cy.get_open_dialog().find(".modal-header").click();
 		cy.get_open_dialog().find(".btn-primary").click();
 
@@ -29,7 +31,7 @@ context("Workspace 2.0", () => {
 			"item-public",
 			"0"
 		);
-
+		cy.wait(300);
 		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
 		cy.wait(300);
 		cy.get('.sidebar-item-container[item-name="Test Private Page"]').should(
@@ -52,6 +54,7 @@ context("Workspace 2.0", () => {
 		cy.fill_field("title", "Test Child Page", "Data");
 		cy.fill_field("parent", "Test Private Page", "Select");
 		cy.get_open_dialog().find(".modal-header").click();
+		cy.wait(300);
 		cy.get_open_dialog().find(".btn-primary").click();
 
 		// check if sidebar item is added in pubic section
@@ -60,7 +63,7 @@ context("Workspace 2.0", () => {
 			"item-public",
 			"0"
 		);
-
+		cy.wait(300);
 		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
 		cy.wait(300);
 		cy.get('.sidebar-item-container[item-name="Test Child Page"]').should(
@@ -112,7 +115,7 @@ context("Workspace 2.0", () => {
 		cy.get(".ce-block:last").should("have.class", "col-xs-11");
 		cy.get(".ce-block:last .dropdown-item").contains("Expand").click();
 		cy.get(".ce-block:last").should("have.class", "col-xs-12");
-
+		cy.wait(300);
 		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
 	});
 });
