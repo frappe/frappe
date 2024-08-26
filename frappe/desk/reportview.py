@@ -58,9 +58,8 @@ def get_count() -> int:
 		count = frappe.call(controller.get_count, args=args, **args)
 	else:
 		args.distinct = sbool(args.distinct)
-		distinct = "distinct " if args.distinct else ""
 		args.limit = cint(args.limit)
-		fieldname = f"{distinct}`tab{args.doctype}`.name"
+		fieldname = f"`tab{args.doctype}`.name"
 		args.order_by = None
 
 		if args.limit:
