@@ -1,4 +1,4 @@
-import { ref, reactive } from "vue"
+import { ref, reactive, computed } from "vue"
 import { defineStore } from "pinia"
 import { createDocumentResource } from "frappe-ui"
 
@@ -11,7 +11,22 @@ const useStore = defineStore("store", () => {
 		showLeftPanel: true,
 		showRightPanel: true,
 	})
+	const activeBreakpoint = ref("desktop")
 
+	// block hover & selection
+	const hoveredBlock = ref(null)
+	const hoveredBreakpoint = ref(null)
+	const selectedBlockIds = ref([])
+
+	function selectBlock(block, e, multiSelect = false) {
+		if (multiSelect) {
+			selectedBlockIds.value.push(block.componentId)
+		} else {
+			selectedBlockIds.value.splice(0, selectedBlockIds.value.length, block.componentId)
+		}
+	}
+
+	// studio pages
 	const pageBlocks = ref([])
 	const selectedPage = ref(null)
 
@@ -38,7 +53,13 @@ const useStore = defineStore("store", () => {
 
 	return {
 		studioLayout,
+		activeBreakpoint,
+		hoveredBlock,
+		hoveredBreakpoint,
+		selectedBlockIds,
+		selectBlock,
 		pageBlocks,
+		selectedPage,
 		setPage,
 		fetchPage,
 	}

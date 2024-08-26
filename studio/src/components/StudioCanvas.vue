@@ -57,6 +57,7 @@
 					class="h-full min-h-[inherit]"
 					v-if="showBlocks && rootComponent"
 					:block="rootComponent"
+					:breakpoint="breakpoint.device"
 				/>
 			</div>
 		</div>
@@ -74,7 +75,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick } from "vue"
+import { ref, reactive, computed, onMounted, nextTick, provide } from "vue"
 import { useDropZone, useElementBounding } from "@vueuse/core"
 import StudioComponent from "@/components/StudioComponent.vue"
 import FitScreenIcon from "@/components/Icons/FitScreenIcon.vue"
@@ -133,6 +134,7 @@ const canvasProps = reactive({
 		},
 	],
 })
+provide("canvasProps", canvasProps)
 
 const visibleBreakpoints = computed(() => {
 	return canvasProps.breakpoints.filter((breakpoint) => breakpoint.visible || breakpoint.device === "desktop")
@@ -177,6 +179,9 @@ const findBlock = (componentId, blocks = null) => {
 
 const getRootBlock = () => rootComponent.value
 
+// block selection
+
+// canvas positioning
 const containerBound = reactive(useElementBounding(canvasContainer))
 const canvasBound = reactive(useElementBounding(canvas))
 
@@ -209,10 +214,16 @@ const setScaleAndTranslate = async () => {
 }
 
 onMounted(() => {
+	canvasProps.overlayElement = overlay.value
 	setScaleAndTranslate()
 	const canvasContainerEl = canvasContainer.value
 	const canvasEl = canvas.value
 	setPanAndZoom(canvasProps, canvasEl, canvasContainerEl)
 	showBlocks.value = true
+})
+
+defineExpose({
+	canvasProps,
+	findBlock,
 })
 </script>

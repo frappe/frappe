@@ -1,7 +1,8 @@
 import { BlockOptions, BlockStyleMap } from "@/types"
 import { clamp } from "@vueuse/core"
-import { reactive } from 'vue'
+import { reactive, CSSProperties } from 'vue'
 
+export type styleProperty = keyof CSSProperties;
 class Block implements BlockOptions {
 	componentId: string
 	componentName: string
@@ -45,6 +46,14 @@ class Block implements BlockOptions {
 
 	getStyles(): BlockStyleMap {
 		return { ...this.baseStyles }
+	}
+
+	getStyle(style: styleProperty) {
+		return this.baseStyles[style]
+	}
+
+	isRoot() {
+		return this.componentId === "root";
 	}
 }
 

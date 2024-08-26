@@ -22,9 +22,16 @@ function getBlockCopy(block: BlockOptions | Block): Block {
 	return getBlockInstance(b)
 }
 
+function numberToPx(number: number, round: boolean = true): string {
+	/* appends 'px' to number with optional rounding */
+	number = round ? Math.round(number) : number;
+	return `${number}px`;
+}
+
 export {
 	getBlockInstance,
 	getComponentBlock,
 	getRootBlock,
-	getBlockCopy
+	getBlockCopy,
+	numberToPx,
 }
