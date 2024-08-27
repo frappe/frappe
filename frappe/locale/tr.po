@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-23 17:00+0000\n"
-"PO-Revision-Date: 2024-08-24 10:08\n"
+"PO-Revision-Date: 2024-08-27 10:47\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -30931,7 +30931,7 @@ msgstr ""
 
 #: model/document.py:1354
 msgid "{0} must be none of {1}"
-msgstr ""
+msgstr "{0} hiçbiri {1} olmamalıdır"
 
 #: model/document.py:1352 utils/csvutils.py:136
 msgid "{0} must be one of {1}"
