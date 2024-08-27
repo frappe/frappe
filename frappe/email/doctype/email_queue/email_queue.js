@@ -13,6 +13,13 @@ frappe.ui.form.on("Email Queue", {
 					btn: button,
 					callback: function () {
 						frm.reload_doc();
+						if (cint(frappe.sys_defaults.suspend_email_queue)) {
+							frappe.show_alert(
+								__(
+									"Email queue is currently suspended. Resume to automatically send emails."
+								)
+							);
+						}
 					},
 				});
 			});
