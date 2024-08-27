@@ -69,7 +69,9 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 		}
 
 		if (should_refresh) {
-			this.datepicker.selectDate(frappe.datetime.moment_to_date_obj(moment(value, time_format)));
+			this.datepicker.selectDate(
+				frappe.datetime.moment_to_date_obj(moment(value, time_format))
+			);
 		}
 	}
 	set_datepicker() {
@@ -105,7 +107,7 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 			if (value == "Invalid date") {
 				value = "";
 			}
-			return this.eval_expression(value, 'time');
+			return this.eval_expression(value, "time");
 		}
 	}
 	format_for_input(value) {

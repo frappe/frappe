@@ -151,18 +151,18 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 
 		let system_fmt;
 		switch (type) {
-			case 'date':
-				system_fmt = 'YYYY-MM-DD';
+			case "date":
+				system_fmt = "YYYY-MM-DD";
 				value = frappe.datetime.user_to_str(value, false);
 				break;
-			
-			case 'time':
-				system_fmt = 'HH:mm:ss';
+
+			case "time":
+				system_fmt = "HH:mm:ss";
 				value = frappe.datetime.user_to_str(value, true);
 				break;
-			
-			case 'datetime':
-				system_fmt = 'YYYY-MM-DD HH:mm:ss';
+
+			case "datetime":
+				system_fmt = "YYYY-MM-DD HH:mm:ss";
 				value = frappe.datetime.user_to_str(value, false);
 				break;
 		}
@@ -178,26 +178,26 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			let unit = component.match(/[a-zA-Z]+/)[0];
 			let period;
 
-			if (operator === '-') {
+			if (operator === "-") {
 				number = -number;
 			}
 
-			if (['datetime', 'date'].includes(type)) {
-				if (unit.toLowerCase() === 'd') {
+			if (["datetime", "date"].includes(type)) {
+				if (unit.toLowerCase() === "d") {
 					period = "days";
-				} else if (unit === 'M') {
+				} else if (unit === "M") {
 					period = "months";
-				} else if (unit.toLowerCase() === 'y') {
+				} else if (unit.toLowerCase() === "y") {
 					period = "years";
 				}
 			}
 
-			if (['datetime', 'time'].includes(type)) {
-				if (unit.toLowerCase() === 'h') {
+			if (["datetime", "time"].includes(type)) {
+				if (unit.toLowerCase() === "h") {
 					period = "hours";
-				} else if (unit === 'm') {
+				} else if (unit === "m") {
 					period = "minutes";
-				} else if (unit.toLowerCase() === 's') {
+				} else if (unit.toLowerCase() === "s") {
 					period = "seconds";
 				}
 			}
@@ -211,7 +211,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			value = moment(value, system_fmt).add(time_to_add).format(system_fmt);
 		}
 
-		return value
+		return value;
 	}
 
 	parse(value) {
@@ -219,7 +219,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			if (value == "Invalid date") {
 				return "";
 			}
-			return this.eval_expression(value, 'date');
+			return this.eval_expression(value, "date");
 		}
 	}
 	format_for_input(value) {
