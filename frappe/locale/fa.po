@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-18 09:32+0000\n"
-"PO-Revision-Date: 2024-08-26 10:23\n"
+"PO-Revision-Date: 2024-08-27 10:47\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -26,7 +26,7 @@ msgstr " به مرورگر شما"
 #. Condition'
 #: core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "!="
-msgstr ""
+msgstr "!="
 
 #. Description of the 'Org History Heading' (Data) field in DocType 'About Us
 #. Settings'
@@ -171,7 +171,7 @@ msgstr "1 ماه پیش"
 
 #: public/js/print_format_builder/PrintFormat.vue:3
 msgid "1 of 2"
-msgstr ""
+msgstr "1 از 2"
 
 #: public/js/frappe/data_import/data_exporter.js:227
 msgid "1 record will be exported"
@@ -233,13 +233,13 @@ msgstr "; در شرایط مجاز نیست"
 #. Condition'
 #: core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "<"
-msgstr ""
+msgstr "<"
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
 #. Condition'
 #: core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "<="
-msgstr ""
+msgstr "<="
 
 #: public/js/frappe/widgets/widget_dialog.js:603
 msgid "<b>{0}</b> is not a valid URL"
@@ -1165,17 +1165,17 @@ msgstr "یک نمودار {0} اضافه کنید"
 #: public/js/form_builder/components/Section.vue:271
 #: public/js/print_format_builder/PrintFormatSection.vue:115
 msgid "Add column"
-msgstr ""
+msgstr "افزودن ستون"
 
 #: public/js/form_builder/components/AddFieldButton.vue:9
 #: public/js/form_builder/components/AddFieldButton.vue:48
 msgid "Add field"
-msgstr ""
+msgstr "افزودن فیلد"
 
 #: public/js/form_builder/components/Sidebar.vue:49
 #: public/js/form_builder/components/Tabs.vue:153
 msgid "Add new tab"
-msgstr ""
+msgstr "افزودن تب جدید"
 
 #: public/js/print_format_builder/PrintFormatSection.vue:125
 msgid "Add page break"
@@ -1196,7 +1196,7 @@ msgstr ""
 #: public/js/form_builder/components/Sidebar.vue:52
 #: public/js/form_builder/components/Tabs.vue:157
 msgid "Add tab"
-msgstr ""
+msgstr "افزودن تب"
 
 #: public/js/frappe/utils/dashboard_utils.js:263
 #: public/js/frappe/views/reports/query_report.js:252
@@ -2192,7 +2192,7 @@ msgstr "تایید لازم است"
 #. Type: Route
 #: hooks.py templates/includes/navbar/navbar_login.html:18
 msgid "Apps"
-msgstr ""
+msgstr "برنامه ها"
 
 #: public/js/frappe/utils/number_systems.js:41
 msgctxt "Number system"
@@ -4229,7 +4229,7 @@ msgstr "تغییر دادن"
 
 #: public/js/print_format_builder/LetterHeadEditor.vue:38
 msgid "Change Image"
-msgstr ""
+msgstr "تغییر تصویر"
 
 #. Label of the label (Data) field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
@@ -6721,7 +6721,7 @@ msgstr "حذف همه"
 #: public/js/form_builder/components/Section.vue:196
 msgctxt "Title of confirmation dialog"
 msgid "Delete Column"
-msgstr ""
+msgstr "حذف ستون"
 
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.js:10
 msgid "Delete Data"
@@ -6752,7 +6752,7 @@ msgstr "حذف و ایجاد جدید"
 #: public/js/form_builder/components/Section.vue:203
 msgctxt "Button text"
 msgid "Delete column"
-msgstr ""
+msgstr "حذف ستون"
 
 #: public/js/frappe/form/footer/form_timeline.js:721
 msgid "Delete comment?"
@@ -6781,7 +6781,7 @@ msgstr ""
 #: public/js/form_builder/components/Tabs.vue:71
 msgctxt "Button text"
 msgid "Delete tab"
-msgstr ""
+msgstr "حذف تب"
 
 #: email/doctype/email_unsubscribe/email_unsubscribe.py:29
 msgid "Delete this record to allow sending to this email address"
@@ -7255,7 +7255,7 @@ msgstr "نمایش بستگی به (JS) دارد"
 
 #: public/js/print_format_builder/PrintFormatControls.vue:210
 msgid "Divider"
-msgstr ""
+msgstr "جدا کننده"
 
 #. Label of the do_not_create_new_user (Check) field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
@@ -8231,7 +8231,7 @@ msgstr "ویرایش HTML"
 
 #: public/js/print_format_builder/PrintFormat.vue:9
 msgid "Edit Header"
-msgstr ""
+msgstr "ویرایش سربرگ"
 
 #: printing/page/print_format_builder/print_format_builder.js:602
 #: printing/page/print_format_builder/print_format_builder_layout.html:8
@@ -13531,7 +13531,7 @@ msgstr "تنظیمات کانبان"
 
 #: public/js/frappe/list/base_list.js:207
 msgid "Kanban View"
-msgstr ""
+msgstr "نمای کانبان"
 
 #. Description of a DocType
 #: core/doctype/activity_log/activity_log.json
@@ -13838,7 +13838,7 @@ msgstr "نام زبان"
 #. Report'
 #: desk/doctype/system_health_report/system_health_report.json
 msgid "Last 10 active users"
-msgstr ""
+msgstr "آخرین 10 کاربر فعال"
 
 #. Label of the last_active (Datetime) field in DocType 'User'
 #: core/doctype/user/user.json
@@ -14173,7 +14173,7 @@ msgstr "نام سطح"
 
 #: public/js/frappe/file_uploader/FileUploader.vue:94
 msgid "Library"
-msgstr ""
+msgstr "کتابخانه"
 
 #. Label of the license (Markdown Editor) field in DocType 'Package'
 #: core/doctype/package/package.json www/attribution.html:36
