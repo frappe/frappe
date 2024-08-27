@@ -7,7 +7,7 @@
  "doctype": "Workspace",
  "for_user": "",
  "hide_custom": 0,
- "icon": "tool",
+ "icon": "organization",
  "idx": 1,
  "is_hidden": 0,
  "label": "Build",
@@ -301,7 +301,7 @@
    "type": "Link"
   }
  ],
- "modified": "2024-08-16 12:31:51.279839",
+ "modified": "2024-08-26 15:14:40.193261",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Build",
@@ -312,7 +312,7 @@
  "quick_lists": [],
  "restrict_to_domain": "",
  "roles": [],
- "sequence_id": 27.0,
+ "sequence_id": 2.0,
  "shortcuts": [
   {
    "color": "Grey",

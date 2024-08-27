@@ -37,6 +37,7 @@ frappe.Application = class Application {
 		this.load_bootinfo();
 		this.load_user_permissions();
 		this.make_nav_bar();
+		this.make_sidebar();
 		this.set_favicon();
 		this.set_fullwidth_if_enabled();
 		this.add_browser_class();
@@ -46,6 +47,51 @@ frappe.Application = class Application {
 
 		frappe.ui.keys.setup();
 
+		this.setup_theme();
+
+		// page container
+		this.make_page_container();
+		this.setup_tours();
+		this.set_route();
+
+		// trigger app startup
+		$(document).trigger("startup");
+		$(document).trigger("app_ready");
+
+		this.show_notices();
+		this.show_notes();
+
+		if (frappe.ui.startup_setup_dialog && !frappe.boot.setup_complete) {
+			frappe.ui.startup_setup_dialog.pre_show();
+			frappe.ui.startup_setup_dialog.show();
+		}
+
+		// listen to build errors
+		this.setup_build_events();
+
+		if (frappe.sys_defaults.email_user_password) {
+			var email_list = frappe.sys_defaults.email_user_password.split(",");
+			for (var u in email_list) {
+				if (email_list[u] === frappe.user.name) {
+					this.set_password(email_list[u]);
+				}
+			}
+		}
+
+		// REDESIGN-TODO: Fix preview popovers
+		this.link_preview = new frappe.ui.LinkPreview();
+
+		frappe.broadcast.emit("boot", {
+			csrf_token: frappe.csrf_token,
+			user: frappe.session.user,
+		});
+	}
+
+	make_sidebar() {
+		this.sidebar = new frappe.ui.Sidebar({});
+	}
+
+	setup_theme() {
 		frappe.ui.keys.add_shortcut({
 			shortcut: "shift+ctrl+g",
 			description: __("Switch Theme"),
@@ -71,9 +117,9 @@ frappe.Application = class Application {
 		});
 
 		frappe.ui.set_theme();
+	}
 
-		// page container
-		this.make_page_container();
+	setup_tours() {
 		if (
 			!window.Cypress &&
 			frappe.boot.onboarding_tours &&
@@ -90,13 +136,9 @@ frappe.Application = class Application {
 				});
 			}
 		}
-		this.set_route();
+	}
 
-		// trigger app startup
-		$(document).trigger("startup");
-
-		$(document).trigger("app_ready");
-
+	show_notices() {
 		if (frappe.boot.messages) {
 			frappe.msgprint(frappe.boot.messages);
 		}
@@ -116,13 +158,6 @@ frappe.Application = class Application {
 			console.log(`%c${console_security_message}`, "font-size: large");
 		}
 
-		this.show_notes();
-
-		if (frappe.ui.startup_setup_dialog && !frappe.boot.setup_complete) {
-			frappe.ui.startup_setup_dialog.pre_show();
-			frappe.ui.startup_setup_dialog.show();
-		}
-
 		frappe.realtime.on("version-update", function () {
 			var dialog = frappe.msgprint({
 				message: __(
@@ -135,26 +170,6 @@ frappe.Application = class Application {
 				location.reload(true);
 			});
 			dialog.get_close_btn().toggle(false);
-		});
-
-		// listen to build errors
-		this.setup_build_events();
-
-		if (frappe.sys_defaults.email_user_password) {
-			var email_list = frappe.sys_defaults.email_user_password.split(",");
-			for (var u in email_list) {
-				if (email_list[u] === frappe.user.name) {
-					this.set_password(email_list[u]);
-				}
-			}
-		}
-
-		// REDESIGN-TODO: Fix preview popovers
-		this.link_preview = new frappe.ui.LinkPreview();
-
-		frappe.broadcast.emit("boot", {
-			csrf_token: frappe.csrf_token,
-			user: frappe.session.user,
 		});
 	}
 
@@ -275,6 +290,8 @@ frappe.Application = class Application {
 	setup_workspaces() {
 		frappe.modules = {};
 		frappe.workspaces = {};
+		frappe.boot.allowed_workspaces = frappe.boot.sidebar_pages.pages;
+
 		for (let page of frappe.boot.allowed_workspaces || []) {
 			frappe.modules[page.module] = page;
 			frappe.workspaces[frappe.router.slug(page.name)] = page;

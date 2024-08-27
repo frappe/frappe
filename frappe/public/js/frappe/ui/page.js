@@ -48,7 +48,7 @@ frappe.ui.Page = class Page {
 
 	setup_scroll_handler() {
 		let last_scroll = 0;
-		$(window).scroll(
+		$(".main-section").scroll(
 			frappe.utils.throttle(() => {
 				$(".page-head").toggleClass("drop-shadow", !!document.documentElement.scrollTop);
 				let current_scroll = document.documentElement.scrollTop;
@@ -87,8 +87,8 @@ frappe.ui.Page = class Page {
 			// nesting under col-sm-12 for consistency
 			this.add_view(
 				"main",
-				'<div class="row layout-main">\
-					<div class="col-md-12 layout-main-section-wrapper">\
+				'<div class="layout-main">\
+					<div class="layout-main-section-wrapper">\
 						<div class="layout-main-section"></div>\
 						<div class="layout-footer hide"></div>\
 					</div>\
@@ -98,9 +98,9 @@ frappe.ui.Page = class Page {
 			this.add_view(
 				"main",
 				`
-				<div class="row layout-main">
-					<div class="col-lg-2 layout-side-section"></div>
-					<div class="col layout-main-section-wrapper">
+				<div class="layout-main">
+					<div class="layout-side-section"></div>
+					<div class="layout-main-section-wrapper">
 						<div class="layout-main-section"></div>
 						<div class="layout-footer hide"></div>
 					</div>
@@ -155,8 +155,6 @@ frappe.ui.Page = class Page {
 		if (this.make_page) {
 			this.make_page();
 		}
-
-		this.card_layout && this.main.addClass("frappe-card");
 
 		// keyboard shortcuts
 		let menu_btn = this.menu_btn_group.find("button");

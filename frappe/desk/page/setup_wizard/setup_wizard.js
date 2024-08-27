@@ -397,7 +397,6 @@ frappe.setup.slides_settings = [
 				fieldtype: "Select",
 				reqd: 1,
 			},
-			{ fieldtype: "Column Break" },
 			{
 				fieldname: "currency",
 				label: __("Currency"),
