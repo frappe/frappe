@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-18 09:32+0000\n"
-"PO-Revision-Date: 2024-08-24 10:08\n"
+"PO-Revision-Date: 2024-08-27 10:47\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -30097,7 +30097,7 @@ msgstr ""
 
 #: model/document.py:1378
 msgid "none of"
-msgstr ""
+msgstr "hiçbiri"
 
 #. Label of the notified (Check) field in DocType 'Reminder'
 #: automation/doctype/reminder/reminder.json
