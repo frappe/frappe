@@ -161,6 +161,10 @@ body {
 			align-items: center;
 			padding: 3px 0px 3px 11px;
 			flex: 1;
+
+			&:hover {
+				text-decoration: none !important;
+			}
 		}
 	}
 

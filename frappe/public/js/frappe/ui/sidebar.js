@@ -37,7 +37,7 @@ frappe.ui.Sidebar = class Sidebar {
 			<div class="body-sidebar-container">
 				<div class="body-sidebar-placeholder"></div>
 				<div class="body-sidebar">
-					<a href="/app">
+					<a href="/app" style="text-decoration: none">
 						<div class="standard-sidebar-item">
 							<div class="sidebar-item-icon">
 								<img

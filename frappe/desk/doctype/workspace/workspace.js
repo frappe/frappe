@@ -23,7 +23,7 @@ frappe.ui.form.on("Workspace", {
 		let message = __("Please click Edit on the Workspace for best results");
 
 		if (
-			frm.doc.for_user !== frappe.session.user ||
+			(frm.doc.for_user && frm.doc.for_user !== frappe.session.user) ||
 			(frm.doc.public && !frappe.user.has_role("Workspace Manager"))
 		) {
 			frm.trigger("disable_form");

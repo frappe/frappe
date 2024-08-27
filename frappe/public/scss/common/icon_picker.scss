@@ -73,12 +73,16 @@
 			cursor: default;
 		}
 	}
-}
-
-.horizontal {
-	.selected-icon {
-		top: 4px !important;
-		left: calc(38% + 5px) !important;
+	.horizontal {
+		.selected-icon {
+			top: 4px;
+			left: calc(38% + 5px);
+		}
+		.like-disabled-input {
+			.selected-icon {
+				left: 8px;
+			}
+		}
 	}
 }
 

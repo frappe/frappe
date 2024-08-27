@@ -71,6 +71,7 @@ frappe.ui.form.Sidebar = class {
 			frappe.utils.get_page_view_count(route).then((res) => {
 				this.sidebar
 					.find(".pageview-count")
+					.removeClass("hidden")
 					.html(__("{0} Web page views", [String(res.message).bold()]));
 			});
 		}

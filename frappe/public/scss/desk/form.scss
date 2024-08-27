@@ -229,7 +229,7 @@
 				font-weight: var(--weight-regular);
 				background-color: var(--subtle-fg);
 				border-radius: var(--border-radius-full);
-				color: var(--gray-700);
+				color: var(--text-color);
 				padding: 0 var(--padding-xs);
 				margin-right: var(--margin-xs);
 			}
@@ -241,10 +241,10 @@
 		.open-notification {
 			display: inline-flex;
 			align-items: center;
-			background-color: var(--gray-100);
+			background-color: var(--subtle-bg);
 			font-size: var(--text-xs);
 			padding: 0 var(--padding-sm);
-			color: var(--gray-700);
+			color: var(--text-color);
 			border-radius: var(--border-radius);
 			cursor: pointer;
 		}
