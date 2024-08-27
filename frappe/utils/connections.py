@@ -8,7 +8,7 @@ REDIS_KEYS = ("redis_cache", "redis_queue")
 
 
 def is_open(scheme, hostname, port, timeout=10):
-	if scheme in ["redis", "postgres", "mariadb"]:
+	if scheme in ["redis", "rediss", "postgres", "mariadb"]:
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		conn = (hostname, int(port))
 	else:
