@@ -223,7 +223,7 @@ class Meta(Document):
 				self._valid_columns = self.default_fields + [
 					df.fieldname
 					for df in self.get("fields")
-					if not df.is_virtual and df.fieldtype in data_fieldtypes
+					if not df.get("is_virtual") and df.fieldtype in data_fieldtypes
 				]
 				if self.istable:
 					self._valid_columns += list(child_table_fields)
