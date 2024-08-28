@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-18 09:32+0000\n"
-"PO-Revision-Date: 2024-08-26 10:23\n"
+"PO-Revision-Date: 2024-08-28 10:42\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -26527,7 +26527,7 @@ msgstr "Växla Diagram"
 #. Type: Action
 #: hooks.py
 msgid "Toggle Full Width"
-msgstr "Växla Full Bredd"
+msgstr "Ändra till/från Full Bredd"
 
 #: public/js/frappe/views/file/file_view.js:33
 msgid "Toggle Grid View"
@@ -26541,13 +26541,13 @@ msgstr "Växla Sidofält"
 #: public/js/frappe/list/list_view.js:1780
 msgctxt "Button in list view menu"
 msgid "Toggle Sidebar"
-msgstr "Växla Sidofält"
+msgstr "Visa/dölj Sidofält"
 
 #. Label of a standard navbar item
 #. Type: Action
 #: hooks.py
 msgid "Toggle Theme"
-msgstr "Växla Tema"
+msgstr "Ändra Tema"
 
 #. Option for the 'Response Type' (Select) field in DocType 'OAuth Client'
 #: integrations/doctype/oauth_client/oauth_client.json
@@ -27941,7 +27941,7 @@ msgstr "Användare med roll {0}:"
 
 #: public/js/frappe/ui/theme_switcher.js:70
 msgid "Uses system's theme to switch between light and dark mode"
-msgstr "Använder System Tema för att växla mellan Ljust och Mörkt Läge"
+msgstr "Använder System Tema för att ändra mellan Ljust och Mörkt Läge"
 
 #: public/js/frappe/desk.js:113
 msgid "Using this console may allow attackers to impersonate you and steal your information. Do not enter or paste code that you do not understand."
