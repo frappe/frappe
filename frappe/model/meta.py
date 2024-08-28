@@ -230,6 +230,19 @@ class Meta(Document):
 
 		return self._valid_columns
 
+	def get_valid_fields(self) -> list[str]:
+		if not hasattr(self, "_valid_fields"):
+			if frappe.flags.in_install and self.name in self.special_doctypes:
+				self._valid_fields = get_table_columns(self.name)
+			else:
+				self._valid_fields = self.default_fields + [
+					df.fieldname for df in self.get("fields") if df.fieldtype in data_fieldtypes
+				]
+				if self.istable:
+					self._valid_fields += list(child_table_fields)
+
+		return self._valid_fields
+
 	def get_table_field_doctype(self, fieldname):
 		return TABLE_DOCTYPES_FOR_DOCTYPE.get(fieldname)
 
