@@ -137,13 +137,10 @@ class UserType(Document):
 			user.set("block_modules", block_modules)
 
 	def add_role_permissions_for_user_doctypes(self):
-		perms = ["read", "write", "create", "submit", "cancel", "amend", "delete"]
+		perms = ["read", "write", "create", "submit", "cancel", "amend", "delete", "print", "email", "share"]
 		for row in self.user_doctypes:
 			docperm = add_role_permissions(row.document_type, self.role)
-
 			values = {perm: row.get(perm, default=0) for perm in perms}
-			for perm in ["print", "email", "share"]:
-				values[perm] = 1
 
 			frappe.db.set_value("Custom DocPerm", docperm, values)
 

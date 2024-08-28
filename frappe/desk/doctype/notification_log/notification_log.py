@@ -28,7 +28,7 @@ class NotificationLog(Document):
 		link: DF.Data | None
 		read: DF.Check
 		subject: DF.Text | None
-		type: DF.Literal["Mention", "Energy Point", "Assignment", "Share", "Alert"]
+		type: DF.Literal["", "Mention", "Energy Point", "Assignment", "Share", "Alert"]
 	# end: auto-generated types
 
 	def after_insert(self):
@@ -93,6 +93,7 @@ def enqueue_create_notification(users: list[str] | str, doc: dict):
 		doc=doc,
 		users=users,
 		now=frappe.flags.in_test,
+		enqueue_after_commit=not frappe.flags.in_test,
 	)
 
 

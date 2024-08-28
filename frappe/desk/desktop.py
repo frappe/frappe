@@ -3,7 +3,7 @@
 # Author - Shivam Mishra <shivam@frappe.io>
 
 from functools import wraps
-from json import dumps, loads
+from json import JSONDecodeError, dumps, loads
 
 import frappe
 from frappe import DoesNotExistError, ValidationError, _, _dict
@@ -450,6 +450,14 @@ def get_workspace_sidebar_items():
 	pages = []
 	private_pages = []
 
+	# get additional settings from Work Settings
+	try:
+		workspace_visibilty = loads(
+			frappe.db.get_single_value("Workspace Settings", "workspace_visibility_json") or "{}"
+		)
+	except JSONDecodeError:
+		workspace_visibilty = {}
+
 	# Filter Page based on Permission
 	for page in all_pages:
 		try:
@@ -460,6 +468,10 @@ def get_workspace_sidebar_items():
 				elif page.for_user == frappe.session.user:
 					private_pages.append(page)
 				page["label"] = _(page.get("name"))
+
+			if page["name"] in workspace_visibilty:
+				page["visibility"] = workspace_visibilty[page["name"]]
+
 		except frappe.PermissionError:
 			pass
 	if private_pages:
@@ -470,6 +482,9 @@ def get_workspace_sidebar_items():
 		pages[0]["label"] = _("Welcome Workspace")
 
 	return {
+		"workspace_setup_completed": frappe.db.get_single_value(
+			"Workspace Settings", "workspace_setup_completed"
+		),
 		"pages": pages,
 		"has_access": has_access,
 		"has_create_access": frappe.has_permission(doctype="Workspace", ptype="create"),

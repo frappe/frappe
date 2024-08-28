@@ -21,7 +21,7 @@
 			href="{{ favicon or "/assets/frappe/images/frappe-favicon.svg" }}" type="image/x-icon">
 		<link rel="icon"
 			href="{{ favicon or "/assets/frappe/images/frappe-favicon.svg" }}" type="image/x-icon">
-		{% for include in include_css -%}
+		{% for include in app_include_css -%}
 		{{ include_style(include) }}
 		{%- endfor -%}
 
@@ -56,17 +56,13 @@
 			frappe.csrf_token = "{{ csrf_token }}";
 
 
-			{%- for path in include_icons -%}
-			fetch(`/assets/{{ path }}?v=${window._version_number}`, { credentials: "same-origin" })
-				.then((r) => r.text())
-				.then((svg) => {
-					let svg_container = document.getElementById("all-symbols");
-					svg_container.insertAdjacentHTML("beforeend", svg);
-				});
-			{%- endfor -%}
 		</script>
 
-	{% for include in include_js %}
+		{%- for path in app_include_icons -%}
+		{{ include_icons(path) }}
+		{%- endfor -%}
+
+	{% for include in app_include_js %}
 	{{ include_script(include) }}
 	{% endfor %}
 

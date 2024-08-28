@@ -45,6 +45,15 @@ EMAIL_MATCH_PATTERN = re.compile(
 UNSET = object()
 
 
+if sys.version_info < (3, 11):
+
+	def exception():
+		_exc_type, exc_value, _exc_traceback = sys.exc_info()
+		return exc_value
+
+	sys.exception = exception
+
+
 def get_fullname(user=None):
 	"""get the full name (first name + last name) of the user from User"""
 	if not user:

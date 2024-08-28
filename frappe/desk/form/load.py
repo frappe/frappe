@@ -3,7 +3,7 @@
 
 import json
 import typing
-from urllib.parse import quote
+from urllib.parse import quote_plus
 
 import frappe
 import frappe.defaults
@@ -38,7 +38,7 @@ def getdoc(doctype, name, user=None):
 
 	if not doc.has_permission("read"):
 		frappe.flags.error_message = _("Insufficient Permission for {0}").format(
-			frappe.bold(doctype + " " + name)
+			frappe.bold(_(doctype) + " " + name)
 		)
 		raise frappe.PermissionError(("read", doctype, name))
 
@@ -384,7 +384,7 @@ def get_document_email(doctype, name):
 		return None
 
 	email = email.split("@")
-	return f"{email[0]}+{quote(doctype)}={quote(cstr(name))}@{email[1]}"
+	return f"{email[0]}+{quote_plus(doctype)}={quote_plus(cstr(name))}@{email[1]}"
 
 
 def get_automatic_email_link():

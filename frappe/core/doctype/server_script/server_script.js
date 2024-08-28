@@ -65,6 +65,40 @@ if doc.allocated_to:
 </code>
 </pre>
 
+<h5>Payment processing</h5>
+<p>Payment processing events have a special state. See the <a href="https://github.com/frappe/payments/blob/develop/payments/controllers/payment_controller.py">PaymentController in Frappe Payments</a> for details.</p>
+<pre>
+	<code>
+# retreive payment session state
+ps = doc.flags.payment_session
+
+if ps.is_success:
+	if ps.changed: # could be an idempotent run
+		doc.set_as_paid()
+	# custom process return values
+	doc.flags.payment_session.result = {
+		"message": "Thank you for your payment",
+		"action": {"href": "https://shop.example.com", "label": "Return to shop"},
+	}
+if ps.is_pre_authorized:
+	if ps.changed: # could be an idempotent run
+		...
+if ps.is_processing:
+	if ps.changed: # could be an idempotent run
+		...
+if ps.is_declined:
+	if ps.changed: # could be an idempotent run
+		...
+</code>
+</pre>
+<p>The <i>On Payment Failed</i> (<code>on_payment_failed</code>) event only transports the error message which the controller implementation had extracted from the transaction.</p>
+<pre>
+	<code>
+msg = doc.flags.payment_failure_message
+doc.my_failure_message_field = msg
+</code>
+</pre>
+
 <hr>
 
 <h4>API Call</h4>

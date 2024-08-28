@@ -138,7 +138,7 @@ def get_preview_from_template(data_import, import_file=None, google_sheets_url=N
 
 
 @frappe.whitelist()
-def form_start_import(data_import):
+def form_start_import(data_import: str):
 	return frappe.get_doc("Data Import", data_import).start_import()
 
 
@@ -296,7 +296,16 @@ def export_json(doctype, path, filters=None, or_filters=None, name=None, order_b
 			for v in doc.values():
 				if isinstance(v, list):
 					for child in v:
-						for key in (*del_keys, "docstatus", "doctype", "modified", "name"):
+						for key in (
+							*del_keys,
+							"docstatus",
+							"doctype",
+							"modified",
+							"name",
+							"parent",
+							"parentfield",
+							"parenttype",
+						):
 							if key in child:
 								del child[key]
 

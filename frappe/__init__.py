@@ -442,6 +442,12 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	# Set the user as database name if not set in config
 	config["db_user"] = os.environ.get("FRAPPE_DB_USER") or config.get("db_user") or config.get("db_name")
 
+	# vice versa for dbname if not defined
+	config["db_name"] = os.environ.get("FRAPPE_DB_NAME") or config.get("db_name") or config["db_user"]
+
+	# read password
+	config["db_password"] = os.environ.get("FRAPPE_DB_PASSWORD") or config.get("db_password")
+
 	# Allow externally extending the config with hooks
 	if extra_config := config.get("extra_config"):
 		if isinstance(extra_config, str):
@@ -644,6 +650,10 @@ def msgprint(
 	else:
 		message_log.append(out)
 	_raise_exception()
+
+
+def toast(message: str, indicator: Literal["blue", "green", "orange", "red", "yellow"] | None = None):
+	frappe.msgprint(message, indicator=indicator, alert=True)
 
 
 def clear_messages():
@@ -933,7 +943,7 @@ def is_whitelisted(method):
 		summary = _("You are not permitted to access this resource.")
 		detail = _("Function {0} is not whitelisted.").format(bold(f"{method.__module__}.{method.__name__}"))
 		msg = f"<details><summary>{summary}</summary>{detail}</details>"
-		throw(msg, PermissionError, title="Method Not Allowed")
+		throw(msg, PermissionError, title=_("Method Not Allowed"))
 
 	if is_guest and method not in xss_safe_methods:
 		# strictly sanitize form_dict
