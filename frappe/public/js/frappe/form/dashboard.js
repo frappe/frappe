@@ -52,9 +52,9 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 		this.links_area = this.make_section({
 			label: __("Connections"),
+			hide_label: true,
 			css_class: "form-links",
 			hidden: 1,
-			collapsible: 1,
 			is_dashboard_section: 1,
 			body_html: this.transactions_area,
 		});

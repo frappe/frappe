@@ -130,6 +130,7 @@ def create_doctype(name, fields):
 			"doctype": "DocType",
 			"module": "Core",
 			"custom": 1,
+			"autoname": "autoincrement",
 			"fields": fields,
 			"permissions": [{"role": "System Manager", "read": 1}],
 			"name": name,
