@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-23 17:00+0000\n"
-"PO-Revision-Date: 2024-08-27 10:47\n"
+"PO-Revision-Date: 2024-08-28 10:42\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -2789,7 +2789,7 @@ msgstr "Kimlik Doğrulama"
 
 #: www/qrcode.html:19
 msgid "Authentication Apps you can use are: "
-msgstr ""
+msgstr "Kullanabileceğiniz Kimlik Doğrulama Uygulamaları şunlardır: "
 
 #: email/doctype/email_account/email_account.py:310
 msgid "Authentication failed while receiving emails from Email Account: {0}."
@@ -20961,7 +20961,7 @@ msgstr ""
 
 #: www/third_party_apps.html:45
 msgid "Revoke"
-msgstr ""
+msgstr "İptal Et"
 
 #. Option for the 'Status' (Select) field in DocType 'OAuth Bearer Token'
 #: integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
@@ -22176,7 +22176,7 @@ msgstr "Bir Resim Seçin"
 
 #: www/apps.html:10
 msgid "Select an app to continue"
-msgstr ""
+msgstr "Devam etmek için bir uygulama seçin"
 
 #: printing/page/print_format_builder/print_format_builder_start.html:2
 msgid "Select an existing format to edit or start a new format."
