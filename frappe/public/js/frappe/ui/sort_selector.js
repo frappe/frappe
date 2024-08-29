@@ -103,17 +103,6 @@ frappe.ui.SortSelector = class SortSelector {
 
 		var { meta_sort_field, meta_sort_order } = this.get_meta_sort_field();
 
-<<<<<<< HEAD
-		if (!this.args.sort_by) {
-			if (meta_sort_field) {
-				this.args.sort_by = meta_sort_field;
-				this.args.sort_order = meta_sort_order;
-			} else {
-				// default
-				this.args.sort_by = "modified";
-				this.args.sort_order = "desc";
-			}
-=======
 		if (meta_sort_field) {
 			this.args.sort_by = meta_sort_field;
 			this.args.sort_order = meta_sort_order;
@@ -121,7 +110,6 @@ frappe.ui.SortSelector = class SortSelector {
 			// default
 			this.args.sort_by = "creation";
 			this.args.sort_order = "desc";
->>>>>>> 279c365916 (fix: field sorting in listview (#27187))
 		}
 
 		if (!this.args.sort_by_label) {
