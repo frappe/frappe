@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-18 09:32+0000\n"
-"PO-Revision-Date: 2024-08-28 10:42\n"
+"PO-Revision-Date: 2024-08-29 10:45\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -1128,7 +1128,7 @@ msgstr "Yeni"
 
 #: public/js/frappe/form/grid_row.js:430
 msgid "Add / Remove Columns"
-msgstr "Stünları Ekle / Çıkar"
+msgstr "Sütun Ekle / Kaldır"
 
 #: core/doctype/user_permission/user_permission_list.js:4
 msgid "Add / Update"
@@ -4003,7 +4003,7 @@ msgstr "Okuma"
 #: public/js/frappe/form/templates/set_sharing.html:7
 #: public/js/frappe/form/templates/set_sharing.html:53
 msgid "Can Share"
-msgstr "Paylaşma"
+msgstr "Paylaşabilir"
 
 #: public/js/frappe/form/templates/set_sharing.html:6
 #: public/js/frappe/form/templates/set_sharing.html:52
@@ -23520,7 +23520,7 @@ msgstr "Dökümanı Şu Kişiyle Paylaş"
 
 #: public/js/frappe/form/sidebar/share.js:45
 msgid "Share {0} with"
-msgstr "{0} ile Paylaş"
+msgstr "{0} Paylaş"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
