@@ -1333,12 +1333,6 @@ class Document(BaseDocument):
 	def validate_value(self, fieldname, condition, val2, doc=None, raise_exception=None):
 		"""Check that value of fieldname should be 'condition' val2
 		else throw Exception."""
-		error_condition_map = {
-			"in": _("one of"),
-			"not in": _("none of"),
-			"^": _("beginning with"),
-		}
-
 		if not doc:
 			doc = self
 
@@ -1349,13 +1343,21 @@ class Document(BaseDocument):
 
 		if not compare(val1, condition, val2):
 			label = doc.meta.get_label(fieldname)
-			condition_str = error_condition_map.get(condition, condition)
 			if doc.get("parentfield"):
-				msg = _("Incorrect value in row {0}: {1} must be {2} {3}").format(
-					doc.idx, label, condition_str, val2
-				)
+				msg = _("Incorrect value in row {0}:").format(doc.idx)
 			else:
-				msg = _("Incorrect value: {0} must be {1} {2}").format(label, condition_str, val2)
+				msg = _("Incorrect value:")
+
+			if condition == "in":
+				msg += _("{0} must be one of {1}").format(label, val2)
+			elif condition == "not in":
+				msg += _("{0} must be none of {1}").format(label, val2)
+			elif condition == "^":
+				msg += _("{0} must be beginning with '{1}'").format(label, val2)
+			elif condition == "=":
+				msg += _("{0} must be equal to '{1}'").format(label, val2)
+			else:
+				msg += _("{0} must be {1} {2}").format(label, condition, val2)
 
 			# raise passed exception or True
 			msgprint(msg, raise_exception=raise_exception or True)
