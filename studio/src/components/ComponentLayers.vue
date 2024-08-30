@@ -2,7 +2,7 @@
 	<div>
 		<Draggable
 			class="component-tree"
-			:model-value="blocks"
+			:list="blocks"
 			item-key="componentId"
 			:group="{ name: 'component-tree' }"
 		>
