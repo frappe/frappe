@@ -267,7 +267,7 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 			if len(item) >= 3 and item[2] == label:
 				# remove redundant title ("label") value
 				del item[2]
-			results.append({"value": item[0], "label": label, "description": to_string(item[1:])})
+			results.append({"value": item[0], "label": label or item[0], "description": to_string(item[1:])})
 	else:
 		results.extend({"value": item[0], "description": to_string(item[1:])} for item in res)
 
