@@ -12,7 +12,7 @@
 		<StudioComponent v-for="child in block?.children" :key="child.componentId" :block="child" />
 	</component>
 
-	<teleport to="#overlay" v-if="canvas.canvasProps?.overlayElement">
+	<teleport to="#overlay" v-if="store.canvas?.canvasProps?.overlayElement">
 		<ComponentEditor
 			v-if="loadEditor"
 			ref="editor"
@@ -50,7 +50,6 @@ defineOptions({
 const isComponentReady = ref(false)
 const attrs = useAttrs()
 const store = useStore()
-const canvas = inject("canvas")
 
 const componentData = computed(() => {
 	if (props.block.componentName === "div") return { initialState: {} }
@@ -82,8 +81,8 @@ const loadEditor = computed(() => {
 		props.block.getStyle("display") !== "none" &&
 		((isSelected.value && props.breakpoint === store.activeBreakpoint) ||
 			(isHovered.value && store.hoveredBreakpoint === props.breakpoint)) &&
-		!canvas.canvasProps?.scaling &&
-		!canvas.canvasProps?.panning
+		!store.canvas.canvasProps?.scaling &&
+		!store.canvas.canvasProps?.panning
 	)
 })
 
@@ -104,7 +103,7 @@ const handleClick = (e: MouseEvent) => {
 	const targetElement = e.target as HTMLElement
 	const componentId = targetElement.closest("[data-component-id]")?.getAttribute("data-component-id")
 	if (componentId) {
-		const block = canvas.findBlock(componentId)
+		const block = store.canvas.findBlock(componentId)
 		store.selectBlock(block, e)
 	} else {
 		store.selectBlock(props.block, e)

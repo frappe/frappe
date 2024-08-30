@@ -9,7 +9,7 @@
 </template>
 
 <script setup>
-import { inject, ref, computed, onMounted } from "vue"
+import { ref, computed, onMounted } from "vue"
 import Block from "@/utils/block"
 
 import useStore from "@/store"
@@ -34,7 +34,6 @@ const props = defineProps({
 	},
 })
 
-const canvas = inject("canvas")
 const store = useStore()
 const editor = ref(null)
 const updateTracker = ref(() => {})
@@ -56,6 +55,6 @@ const getStyleClasses = computed(() => {
 })
 
 onMounted(() => {
-	updateTracker.value = trackTarget(props.target, editor.value, canvas.canvasProps)
+	updateTracker.value = trackTarget(props.target, editor.value, store.canvas.canvasProps)
 })
 </script>

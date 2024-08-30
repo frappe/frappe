@@ -75,7 +75,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick, provide } from "vue"
+import { ref, reactive, computed, onMounted, nextTick } from "vue"
 import { useDropZone, useElementBounding } from "@vueuse/core"
 import StudioComponent from "@/components/StudioComponent.vue"
 import FitScreenIcon from "@/components/Icons/FitScreenIcon.vue"
@@ -221,11 +221,9 @@ onMounted(() => {
 	showBlocks.value = true
 })
 
-provide(
-	"canvas",
-	reactive({
-		canvasProps,
-		findBlock,
-	}),
-)
+defineExpose({
+	canvasProps,
+	findBlock,
+	getRootBlock,
+})
 </script>

@@ -5,6 +5,7 @@ import { createDocumentResource } from "frappe-ui"
 import { getBlockInstance, getRootBlock } from "@/utils/helpers"
 
 const useStore = defineStore("store", () => {
+	const canvas = ref(null)
 	const studioLayout = reactive({
 		leftPanelWidth: 280,
 		rightPanelWidth: 275,
@@ -52,6 +53,7 @@ const useStore = defineStore("store", () => {
 	}
 
 	return {
+		canvas,
 		studioLayout,
 		activeBreakpoint,
 		hoveredBlock,
