@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-23 17:00+0000\n"
-"PO-Revision-Date: 2024-08-24 10:08\n"
+"PO-Revision-Date: 2024-08-30 11:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -13410,7 +13410,7 @@ msgstr "Schlüssel"
 #. Type: Action
 #: hooks.py public/js/frappe/ui/keyboard.js:129
 msgid "Keyboard Shortcuts"
-msgstr "Tastatürkürzel"
+msgstr "Tastaturkürzel"
 
 #: public/js/frappe/utils/number_systems.js:37
 msgctxt "Number system"
@@ -14138,7 +14138,7 @@ msgstr "Verknüpfter DocType"
 #. Label of a Link field in DocType 'Dynamic Link'
 #: core/doctype/dynamic_link/dynamic_link.json
 msgid "Link Document Type"
-msgstr "Dokumenttyp verknüpfen"
+msgstr "Verknüpfter Dokumenttyp"
 
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:402
 #: workflow/doctype/workflow_action/workflow_action.py:197
@@ -14173,14 +14173,14 @@ msgstr "Link-Filter"
 #: core/doctype/communication_link/communication_link.json
 #: core/doctype/dynamic_link/dynamic_link.json
 msgid "Link Name"
-msgstr "Linkname"
+msgstr "Verknüpftes Dokument"
 
 #. Label of a Read Only field in DocType 'Communication Link'
 #. Label of a Read Only field in DocType 'Dynamic Link'
 #: core/doctype/communication_link/communication_link.json
 #: core/doctype/dynamic_link/dynamic_link.json
 msgid "Link Title"
-msgstr "Link-Titel"
+msgstr "Bezeichnung des Dokuments"
 
 #. Label of a Dynamic Link field in DocType 'Workspace Link'
 #. Label of a Dynamic Link field in DocType 'Workspace Shortcut'
