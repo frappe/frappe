@@ -29,7 +29,7 @@ context("Workspace Blocks", () => {
 			"item-public",
 			"0"
 		);
-
+		cy.wait(300);
 		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
 		cy.wait(300);
 		cy.get('.sidebar-item-container[item-name="Test Block Page"]').should(

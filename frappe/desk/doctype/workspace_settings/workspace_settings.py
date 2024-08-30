@@ -1,7 +1,9 @@
 # Copyright (c) 2024, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-# import frappe
+import json
+
+import frappe
 from frappe.model.document import Document
 
 
@@ -19,3 +21,12 @@ class WorkspaceSettings(Document):
 	# end: auto-generated types
 
 	pass
+
+	def validate(self):
+		cnt = 1
+		for page_name in json.loads(self.workspace_sequence):
+			frappe.db.set_value("Workspace", page_name, "sequence_id", cnt)
+			cnt += 1
+
+	def on_update(self):
+		frappe.clear_cache()

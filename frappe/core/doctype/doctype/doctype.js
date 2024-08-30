@@ -77,10 +77,6 @@ frappe.ui.form.on("DocType", {
 			let msg = __(
 				"This site is running in developer mode. Any change made here will be updated in code."
 			);
-			msg += "<br>";
-			msg += __("If you just want to customize for your site, use {0} instead.", [
-				customize_form_link,
-			]);
 			frm.dashboard.add_comment(msg, "yellow", true);
 		}
 
