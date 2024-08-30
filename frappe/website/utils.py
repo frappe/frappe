@@ -10,11 +10,8 @@ import yaml
 from werkzeug.wrappers import Response
 
 import frappe
-<<<<<<< HEAD
 from frappe import _
-=======
 from frappe.apps import get_apps, get_default_path, is_desk_apps
->>>>>>> 9133f2a9c5 (fix: added apps data in boot)
 from frappe.model.document import Document
 from frappe.utils import (
 	cint,
