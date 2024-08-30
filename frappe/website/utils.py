@@ -167,9 +167,9 @@ def get_boot_data():
 	return {
 		"lang": frappe.local.lang or "en",
 		"apps_data": {
-			"apps": get_apps(),
+			"apps": get_apps() or [],
 			"is_desk_apps": 1 if bool(is_desk_apps(get_apps())) else 0,
-			"default_path": get_default_path(),
+			"default_path": get_default_path() or "",
 		},
 		"sysdefaults": {
 			"float_precision": cint(frappe.get_system_settings("float_precision")) or 3,
