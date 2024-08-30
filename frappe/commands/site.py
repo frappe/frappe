@@ -866,6 +866,7 @@ def backup(
 @pass_context
 def remove_from_installed_apps(context, app):
 	"Remove app from site's installed-apps list"
+	ensure_app_not_frappe(app)
 	from frappe.installer import remove_from_installed_apps
 
 	for site in context.sites:
@@ -894,6 +895,7 @@ def remove_from_installed_apps(context, app):
 @pass_context
 def uninstall(context, app, dry_run, yes, no_backup, force):
 	"Remove app and linked modules from site"
+	ensure_app_not_frappe(app)
 	from frappe.installer import remove_app
 
 	for site in context.sites:
@@ -1448,6 +1450,48 @@ def add_new_user(
 		update_password(user=user.name, pwd=password)
 
 
+<<<<<<< HEAD
+=======
+def ensure_app_not_frappe(app: str) -> None:
+	"""
+	Ensure that the app name passed is not 'frappe'
+
+	:param app: Name of the app
+	:return: Nothing
+	"""
+	if app == "frappe":
+		click.secho("You cannot remove or uninstall the app `frappe`", fg="red")
+		sys.exit(1)
+
+
+@click.command("bypass-patch")
+@click.argument("patch_name")
+@click.option("--yes", "-y", is_flag=True, default=False, help="Pass --yes to skip confirmation")
+@pass_context
+def bypass_patch(context, patch_name: str, yes: bool):
+	"""Bypass a patch permanently instead of migrating using the --skip-failing flag."""
+	from frappe.modules.patch_handler import update_patch_log
+
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+	if not yes:
+		click.confirm(
+			f"This will bypass the patch {patch_name!r} forever and register it as successful.\nAre you sure you want to continue?",
+			abort=True,
+		)
+
+	for site in context.sites:
+		frappe.init(site=site)
+		frappe.connect()
+		try:
+			update_patch_log(patch_name)
+			frappe.db.commit()
+		finally:
+			frappe.destroy()
+
+
+>>>>>>> 30f5669489 (fix: don't allow uninstalling frappe...)
 commands = [
 	add_system_manager,
 	add_user_for_sites,
