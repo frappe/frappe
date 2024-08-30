@@ -881,7 +881,7 @@ def update_password(
 	frappe.db.set_value("User", user, "reset_password_key", "")
 
 	if user_doc.user_type == "System User":
-		return get_default_path()
+		return get_default_path() or "/app"
 	else:
 		return redirect_url or get_default_path() or get_home_page()
 
