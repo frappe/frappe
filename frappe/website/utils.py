@@ -10,7 +10,11 @@ import yaml
 from werkzeug.wrappers import Response
 
 import frappe
+<<<<<<< HEAD
 from frappe import _
+=======
+from frappe.apps import get_apps, get_default_path, is_desk_apps
+>>>>>>> 9133f2a9c5 (fix: added apps data in boot)
 from frappe.model.document import Document
 from frappe.utils import (
 	cint,
@@ -167,6 +171,11 @@ def get_home_page_via_hooks():
 def get_boot_data():
 	return {
 		"lang": frappe.local.lang or "en",
+		"apps_data": {
+			"apps": get_apps(),
+			"is_desk_apps": 1 if bool(is_desk_apps(get_apps())) else 0,
+			"default_path": get_default_path(),
+		},
 		"sysdefaults": {
 			"float_precision": cint(frappe.get_system_settings("float_precision")) or 3,
 			"date_format": frappe.get_system_settings("date_format") or "yyyy-mm-dd",
