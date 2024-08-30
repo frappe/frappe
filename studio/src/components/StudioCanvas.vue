@@ -134,7 +134,6 @@ const canvasProps = reactive({
 		},
 	],
 })
-provide("canvasProps", canvasProps)
 
 const visibleBreakpoints = computed(() => {
 	return canvasProps.breakpoints.filter((breakpoint) => breakpoint.visible || breakpoint.device === "desktop")
@@ -222,8 +221,11 @@ onMounted(() => {
 	showBlocks.value = true
 })
 
-defineExpose({
-	canvasProps,
-	findBlock,
-})
+provide(
+	"canvas",
+	reactive({
+		canvasProps,
+		findBlock,
+	}),
+)
 </script>

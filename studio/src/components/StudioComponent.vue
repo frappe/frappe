@@ -9,13 +9,13 @@
 		@click="handleClick"
 		ref="componentRef"
 	>
-		<StudioComponent v-for="child in block.children" :key="child.componentId" :block="child" />
+		<StudioComponent v-for="child in block?.children" :key="child.componentId" :block="child" />
 	</component>
 
-	<teleport to="#overlay" v-if="canvasProps?.overlayElement">
+	<teleport to="#overlay" v-if="canvas.canvasProps?.overlayElement">
 		<ComponentEditor
-			ref="editor"
 			v-if="loadEditor"
+			ref="editor"
 			:block="block"
 			:breakpoint="breakpoint"
 			:isSelected="isSelected"
@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, inject, useAttrs } from "vue"
+import { computed, ref, watch, inject, useAttrs, onMounted } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
 
@@ -47,9 +47,10 @@ defineOptions({
 	inheritAttrs: false,
 })
 
+const isComponentReady = ref(false)
 const attrs = useAttrs()
 const store = useStore()
-const canvasProps = inject("canvasProps")
+const canvas = inject("canvas")
 
 const componentData = computed(() => {
 	if (props.block.componentName === "div") return { initialState: {} }
@@ -77,21 +78,22 @@ const isSelected = computed(() => store.selectedBlockIds?.includes(props.block.c
 const loadEditor = computed(() => {
 	return (
 		target.value &&
+		isComponentReady.value &&
 		props.block.getStyle("display") !== "none" &&
 		((isSelected.value && props.breakpoint === store.activeBreakpoint) ||
 			(isHovered.value && store.hoveredBreakpoint === props.breakpoint)) &&
-		!canvasProps?.scaling &&
-		!canvasProps?.panning
+		!canvas.canvasProps?.scaling &&
+		!canvas.canvasProps?.panning
 	)
 })
 
-const handleMouseOver = (e) => {
+const handleMouseOver = (e: MouseEvent) => {
 	store.hoveredBlock = props.block.componentId
 	store.hoveredBreakpoint = props.breakpoint
 	e.stopPropagation()
 }
 
-const handleMouseLeave = (e) => {
+const handleMouseLeave = (e: MouseEvent) => {
 	if (store.hoveredBlock === props.block.componentId) {
 		store.hoveredBlock = null
 		e.stopPropagation()
@@ -99,7 +101,14 @@ const handleMouseLeave = (e) => {
 }
 
 const handleClick = (e: MouseEvent) => {
-	store.selectBlock(props.block, e)
+	const targetElement = e.target as HTMLElement
+	const componentId = targetElement.closest("[data-component-id]")?.getAttribute("data-component-id")
+	if (componentId) {
+		const block = canvas.findBlock(componentId)
+		store.selectBlock(block, e)
+	} else {
+		store.selectBlock(props.block, e)
+	}
 	e.stopPropagation()
 	e.preventDefault()
 }
@@ -114,4 +123,12 @@ watch(
 		}
 	},
 )
+
+onMounted(() => {
+	// set data-component-id on mount since some frappeui components have inheritAttrs: false
+	if (componentRef.value) {
+		componentRef.value?.$el?.setAttribute("data-component-id", props.block.componentId)
+		isComponentReady.value = true
+	}
+})
 </script>

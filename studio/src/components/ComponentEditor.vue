@@ -34,7 +34,7 @@ const props = defineProps({
 	},
 })
 
-const canvasProps = inject("canvasProps")
+const canvas = inject("canvas")
 const store = useStore()
 const editor = ref(null)
 const updateTracker = ref(() => {})
@@ -56,6 +56,6 @@ const getStyleClasses = computed(() => {
 })
 
 onMounted(() => {
-	updateTracker.value = trackTarget(props.target, editor.value, canvasProps)
+	updateTracker.value = trackTarget(props.target, editor.value, canvas.canvasProps)
 })
 </script>
