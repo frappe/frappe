@@ -27,18 +27,29 @@
 				{{ activeTab }}
 			</div>
 
-			<ComponentPanel v-if="activeTab === 'Add Component'" class="mx-2 my-3" />
+			<ComponentPanel v-show="activeTab === 'Add Component'" class="mx-2 my-3" />
+			<div v-show="activeTab === 'Layers'" class="p-4 pt-3">
+				<ComponentLayers
+					v-if="store.canvas"
+					class="no-scrollbar overflow-auto"
+					ref="pageLayers"
+					:blocks="[store.canvas?.getRootBlock() as Block]"
+				/>
+			</div>
 		</div>
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue"
 import { Tooltip, FeatherIcon } from "frappe-ui"
 
 import ComponentPanel from "@/components/ComponentPanel.vue"
+import ComponentLayers from "./ComponentLayers.vue"
 
-const activeTab = ref("Add Component")
+import Block from "@/utils/block"
+import useStore from "@/store"
+
 const sidebarMenu = [
 	{
 		label: "Add Component",
@@ -57,7 +68,9 @@ const sidebarMenu = [
 		icon: "code",
 	},
 ]
+const store = useStore()
 
+const activeTab = ref("Add Component")
 const setActiveTab = (tab) => {
 	activeTab.value = tab
 }

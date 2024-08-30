@@ -28,10 +28,18 @@ function numberToPx(number: number, round: boolean = true): string {
 	return `${number}px`;
 }
 
+function kebabToCamelCase(str: string) {
+	// convert border-color to borderColor
+	return str.replace(/-([a-z])/g, function (g) {
+		return g[1].toUpperCase();
+	});
+}
+
 export {
 	getBlockInstance,
 	getComponentBlock,
 	getRootBlock,
 	getBlockCopy,
 	numberToPx,
+	kebabToCamelCase,
 }

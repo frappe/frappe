@@ -10,6 +10,7 @@ function getBlockTemplate(
 			return {
 				componentId: "root",
 				componentName: "div",
+				originalElement: "body",
 				children: [],
 				baseStyles: {
 					display: "flex",
@@ -25,6 +26,7 @@ function getBlockTemplate(
 		case "fallback-component":
 			return {
 				componentName: "p",
+				originalElement: "__raw_html__",
 				innerHTML: `<div style="color: red;background: #f4f4f4;display:flex;flex-direction:column;position:static;top:auto;left:auto;width: 600px;height: 275px;align-items:center;font-size: 30px;justify-content:center"><p>Component missing</p></div>`,
 				baseStyles: {
 					height: "fit-content",
