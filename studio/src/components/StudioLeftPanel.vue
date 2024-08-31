@@ -41,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref, watch } from "vue"
 import { Tooltip, FeatherIcon } from "frappe-ui"
 
 import ComponentPanel from "@/components/ComponentPanel.vue"
@@ -74,4 +74,36 @@ const activeTab = ref("Add Component")
 const setActiveTab = (tab) => {
 	activeTab.value = tab
 }
+
+// moved out of ComponentLayers for performance
+// TODO: Find a better way to do this
+watch(
+	() => store.hoveredBlock,
+	() => {
+		document.querySelectorAll(`[data-component-layer-id].hovered-block`).forEach((el) => {
+			el.classList.remove("hovered-block")
+		})
+		if (store.hoveredBlock) {
+			document
+				.querySelector(`[data-component-layer-id="${store.hoveredBlock}"]`)
+				?.classList.add("hovered-block")
+		}
+	},
+)
+
+watch(
+	() => store.selectedBlocks,
+	() => {
+		document.querySelectorAll(`[data-component-layer-id].block-selected`).forEach((el) => {
+			el.classList.remove("block-selected")
+		})
+		if (store.selectedBlocks.length) {
+			store.selectedBlocks.forEach((block: Block) => {
+				document
+					.querySelector(`[data-component-layer-id="${block.componentId}"]`)
+					?.classList.add("block-selected")
+			})
+		}
+	},
+)
 </script>

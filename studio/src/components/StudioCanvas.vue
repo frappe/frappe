@@ -178,8 +178,6 @@ const findBlock = (componentId, blocks = null) => {
 
 const getRootBlock = () => rootComponent.value
 
-// block selection
-
 // canvas positioning
 const containerBound = reactive(useElementBounding(canvasContainer))
 const canvasBound = reactive(useElementBounding(canvas))
@@ -227,3 +225,12 @@ defineExpose({
 	getRootBlock,
 })
 </script>
+
+<style>
+.hovered-block {
+	@apply border-blue-300 text-gray-700 dark:border-blue-900 dark:text-gray-500;
+}
+.block-selected {
+	@apply border-blue-400 text-gray-900 dark:border-blue-700 dark:text-gray-200;
+}
+</style>

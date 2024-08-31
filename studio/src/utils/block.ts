@@ -64,6 +64,10 @@ class Block implements BlockOptions {
 		return this.componentId === "root";
 	}
 
+	getParentBlock(): Block | null {
+		return this.parentBlock || null;
+	}
+
 	getIcon() {
 		if (this.isRoot()) return "Hash"
 		return components.get(this.componentName)?.icon

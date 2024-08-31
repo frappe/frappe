@@ -5,6 +5,7 @@
 			:list="blocks"
 			item-key="componentId"
 			:group="{ name: 'component-tree' }"
+			:disabled="blocks.length && blocks[0].isRoot()"
 		>
 			<template #item="{ element }">
 				<div
@@ -65,7 +66,7 @@
 </template>
 
 <script setup lang="ts">
-import { PropType, ref } from "vue"
+import { PropType, ref, watch } from "vue"
 import { FeatherIcon } from "frappe-ui"
 import Draggable from "vuedraggable"
 
@@ -123,4 +124,20 @@ const toggleExpanded = (block: Block) => {
 const canShowChildLayer = (block: Block) => {
 	return isExpanded(block) && block.hasChildren()
 }
+
+watch(
+	() => store.selectedBlocks && store.selectedBlocks.length,
+	() => {
+		store.selectedBlocks.forEach((block: Block) => {
+			if (block) {
+				let parentBlock = block.getParentBlock()
+				// open all parent blocks
+				while (parentBlock && !parentBlock.isRoot()) {
+					expandedLayers.value.add(parentBlock?.componentId)
+					parentBlock = parentBlock.getParentBlock()
+				}
+			}
+		})
+	},
+)
 </script>

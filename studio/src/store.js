@@ -18,6 +18,9 @@ const useStore = defineStore("store", () => {
 	const hoveredBlock = ref(null)
 	const hoveredBreakpoint = ref(null)
 	const selectedBlockIds = ref([])
+	const selectedBlocks = computed(() => {
+		return selectedBlockIds.value.map((id) => canvas.value.findBlock(id)).filter((b) => b)
+	})
 
 	function selectBlock(block, e, multiSelect = false) {
 		if (multiSelect) {
@@ -59,6 +62,7 @@ const useStore = defineStore("store", () => {
 		hoveredBlock,
 		hoveredBreakpoint,
 		selectedBlockIds,
+		selectedBlocks,
 		selectBlock,
 		pageBlocks,
 		selectedPage,
