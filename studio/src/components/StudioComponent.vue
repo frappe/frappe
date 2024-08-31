@@ -13,19 +13,20 @@
 	</component>
 
 	<teleport to="#overlay" v-if="store.canvas?.canvasProps?.overlayElement">
+		<!-- prettier-ignore -->
 		<ComponentEditor
 			v-if="loadEditor"
 			ref="editor"
 			:block="block"
 			:breakpoint="breakpoint"
 			:isSelected="isSelected"
-			:target="target as HTMLElement"
+			:target="(target as HTMLElement)"
 		/>
 	</teleport>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, inject, useAttrs, onMounted } from "vue"
+import { computed, ref, watch, useAttrs, onMounted } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
 
@@ -121,6 +122,18 @@ watch(
 			isHovered.value = false
 		}
 	},
+)
+
+watch(
+	() => props.block.baseStyles,
+	() => {
+		if (!componentRef.value) return
+		const styles = props.block.getStyles()
+		for (const key in styles) {
+			componentRef.value?.$el?.style.setProperty(key, styles[key])
+		}
+	},
+	{ deep: true },
 )
 
 onMounted(() => {
