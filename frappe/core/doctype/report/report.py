@@ -45,6 +45,11 @@ class Report(Document):
 		report_script: DF.Code | None
 		report_type: DF.Literal["Report Builder", "Query Report", "Script Report", "Custom Report"]
 		roles: DF.Table[HasRole]
+<<<<<<< HEAD
+=======
+		timeout: DF.Int
+	# end: auto-generated types
+>>>>>>> 85b96ba162 (feat: Custom timeouts for prepared report)
 
 	# end: auto-generated types
 	def validate(self):
