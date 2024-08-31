@@ -51,29 +51,20 @@ def export_customizations(module, doctype, sync_on_migrate=0, with_permissions=0
 		raise Exception("Not developer mode")
 
 	custom = {
-<<<<<<< HEAD
 		"custom_fields": [],
 		"property_setters": [],
 		"custom_perms": [],
 		"links": [],
-=======
-		"custom_fields": frappe.get_all("Custom Field", fields="*", filters={"dt": doctype}, order_by="name"),
-		"property_setters": frappe.get_all(
-			"Property Setter", fields="*", filters={"doc_type": doctype}, order_by="name"
-		),
-		"custom_perms": [],
-		"links": frappe.get_all("DocType Link", fields="*", filters={"parent": doctype}, order_by="name"),
->>>>>>> 806d13dbb9 (fix!: sort exported customizations by name for better diffs (#26927))
 		"doctype": doctype,
 		"sync_on_migrate": sync_on_migrate,
 	}
 
 	def add(_doctype):
-		custom["custom_fields"] += frappe.get_all("Custom Field", fields="*", filters={"dt": _doctype})
+		custom["custom_fields"] += frappe.get_all("Custom Field", fields="*", filters={"dt": _doctype}, order_by="name")
 		custom["property_setters"] += frappe.get_all(
-			"Property Setter", fields="*", filters={"doc_type": _doctype}
+			"Property Setter", fields="*", filters={"doc_type": _doctype}, order_by="name"
 		)
-		custom["links"] += frappe.get_all("DocType Link", fields="*", filters={"parent": _doctype})
+		custom["links"] += frappe.get_all("DocType Link", fields="*", filters={"parent": _doctype}, order_by="name")
 
 	add(doctype)
 
