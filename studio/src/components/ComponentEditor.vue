@@ -1,17 +1,23 @@
 <template>
-	<div
-		class="editor pointer-events-none fixed z-[18] box-content select-none ring-2 ring-inset"
-		ref="editor"
-		:selected="isBlockSelected"
-		:data-component-id="block.componentId"
-		:class="getStyleClasses"
-	></div>
+	<ComponentContextMenu :block="block" :editable="false" v-slot="{ onContextMenu }">
+		<div
+			class="editor pointer-events-none fixed z-[18] box-content select-none ring-2 ring-inset"
+			ref="editor"
+			:selected="isBlockSelected"
+			:data-component-id="block.componentId"
+			:class="getStyleClasses"
+			@contextmenu="onContextMenu"
+			@click.stop="handleClick"
+		></div>
+	</ComponentContextMenu>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from "vue"
-import Block from "@/utils/block"
 
+import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
+
+import Block from "@/utils/block"
 import useStore from "@/store"
 import trackTarget from "@/utils/trackTarget"
 
@@ -54,7 +60,31 @@ const getStyleClasses = computed(() => {
 	return classes
 })
 
+const preventCLick = ref(false)
+const handleClick = (ev) => {
+	if (props.editable) return
+	if (preventCLick.value) {
+		preventCLick.value = false
+		return
+	}
+	const editorWrapper = editor.value
+	editorWrapper.classList.add("pointer-events-none")
+	let element = document.elementFromPoint(ev.x, ev.y)
+	if (element.classList.contains("editor")) {
+		element.classList.remove("pointer-events-auto")
+		element.classList.add("pointer-events-none")
+		element = document.elementFromPoint(ev.x, ev.y)
+	}
+	if (element.classList.contains("__studio_component__")) {
+		element.dispatchEvent(new MouseEvent("click", ev))
+	}
+}
+
 onMounted(() => {
 	updateTracker.value = trackTarget(props.target, editor.value, store.canvas.canvasProps)
+})
+
+defineExpose({
+	element: editor,
 })
 </script>

@@ -139,7 +139,7 @@ const visibleBreakpoints = computed(() => {
 	return canvasProps.breakpoints.filter((breakpoint) => breakpoint.visible || breakpoint.device === "desktop")
 })
 
-const rootComponent = ref(getBlockCopy(props.componentTree))
+const rootComponent = ref(getBlockCopy(props.componentTree, true))
 
 // handle dropping components
 const { isOverDropZone } = useDropZone(canvasContainer, {

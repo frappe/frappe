@@ -1,10 +1,19 @@
-import { reactive } from "vue"
+import { reactive, toRaw } from "vue"
 import Block from "./block"
 import getBlockTemplate from "./blockTemplate"
 
-function getBlockInstance(options: Partial<BlockOptions>): Block {
+function getBlockInstance(options: BlockOptions, retainId = true): Block {
 	if (typeof options === "string") {
 		options = JSON.parse(options)
+	}
+	if (!retainId) {
+		const deleteComponentId = (block: BlockOptions) => {
+			delete block.componentId
+			for (let child of block.children || []) {
+				deleteComponentId(child)
+			}
+		}
+		deleteComponentId(options)
 	}
 	return reactive(new Block(options))
 }
@@ -17,9 +26,18 @@ function getRootBlock(): Block {
 	return getBlockInstance(getBlockTemplate("body"))
 }
 
-function getBlockCopy(block: BlockOptions | Block): Block {
-	const b = JSON.parse(JSON.stringify(block))
-	return getBlockInstance(b)
+function getBlockCopy(block: BlockOptions | Block, retainId = false): Block {
+	// remove parent block reference as JSON doesn't accept circular references
+	const blockString = JSON.stringify(getBlockCopyWithoutParent(block))
+	const b = JSON.parse(blockString)
+	return getBlockInstance(b, retainId)
+}
+
+function getBlockCopyWithoutParent(block: BlockOptions | Block): BlockOptions {
+	const blockCopy = { ...toRaw(block) }
+	blockCopy.children = blockCopy.children?.map((child) => getBlockCopyWithoutParent(child))
+	delete blockCopy.parentBlock
+	return blockCopy
 }
 
 function numberToPx(number: number, round: boolean = true): string {
@@ -40,6 +58,7 @@ export {
 	getComponentBlock,
 	getRootBlock,
 	getBlockCopy,
+	getBlockCopyWithoutParent,
 	numberToPx,
 	kebabToCamelCase,
 }

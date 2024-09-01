@@ -19,7 +19,12 @@ const useStore = defineStore("store", () => {
 	const hoveredBreakpoint = ref(null)
 	const selectedBlockIds = ref([])
 	const selectedBlocks = computed(() => {
-		return selectedBlockIds.value.map((id) => canvas.value.findBlock(id)).filter((b) => b)
+		return (
+			selectedBlockIds.value
+				.map((id) => canvas.value.findBlock(id))
+				// filter out missing blocks/null values
+				.filter((b) => b)
+		)
 	})
 
 	function selectBlock(block, e, multiSelect = false) {

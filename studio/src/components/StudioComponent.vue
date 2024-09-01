@@ -4,9 +4,11 @@
 		v-bind="{ ...componentData.initialState, ...attrs }"
 		:data-component-id="block.componentId"
 		:style="styles"
+		:class="classes"
 		@mouseover="handleMouseOver"
 		@mouseleave="handleMouseLeave"
 		@click="handleClick"
+		@contextmenu="triggerContextMenu($event)"
 		ref="componentRef"
 	>
 		<StudioComponent v-for="child in block?.children" :key="child.componentId" :block="child" />
@@ -26,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, useAttrs, onMounted } from "vue"
+import { computed, ref, watch, useAttrs, onMounted, nextTick } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
 
@@ -49,8 +51,11 @@ defineOptions({
 })
 
 const isComponentReady = ref(false)
+const editor = ref(null)
 const attrs = useAttrs()
 const store = useStore()
+
+const classes = ["__studio_component__", "outline-none", "select-none"]
 
 const componentData = computed(() => {
 	if (props.block.componentName === "div") return { initialState: {} }
@@ -100,17 +105,35 @@ const handleMouseLeave = (e: MouseEvent) => {
 	}
 }
 
-const handleClick = (e: MouseEvent) => {
+const getClickedComponent = (e: MouseEvent) => {
 	const targetElement = e.target as HTMLElement
 	const componentId = targetElement.closest("[data-component-id]")?.getAttribute("data-component-id")
 	if (componentId) {
-		const block = store.canvas.findBlock(componentId)
+		return store.canvas.findBlock(componentId)
+	}
+}
+
+const handleClick = (e: MouseEvent) => {
+	const block = getClickedComponent(e)
+	if (block) {
 		store.selectBlock(block, e)
 	} else {
 		store.selectBlock(props.block, e)
 	}
 	e.stopPropagation()
 	e.preventDefault()
+}
+
+const triggerContextMenu = (e: MouseEvent) => {
+	e.stopPropagation()
+	e.preventDefault()
+
+	const block = getClickedComponent(e) || props.block
+	store.selectBlock(block, e)
+
+	nextTick(() => {
+		editor.value?.element.dispatchEvent(new MouseEvent("contextmenu", e))
+	})
 }
 
 watch(
@@ -128,6 +151,7 @@ watch(
 	() => props.block.baseStyles,
 	() => {
 		if (!componentRef.value) return
+		// update styles when baseStyles change for frappeui components with inheritAttrs: false
 		const styles = props.block.getStyles()
 		for (const key in styles) {
 			componentRef.value?.$el?.style.setProperty(key, styles[key])

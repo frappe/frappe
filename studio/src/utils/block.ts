@@ -1,10 +1,10 @@
 import { BlockOptions, BlockStyleMap } from "@/types"
 import { clamp } from "@vueuse/core"
-import { reactive, CSSProperties } from 'vue'
+import { reactive, CSSProperties, nextTick } from 'vue'
 
 import useStore from "@/store";
 import components from "@/data/components";
-import { kebabToCamelCase } from "./helpers";
+import { getBlockCopy, kebabToCamelCase, numberToPx } from "./helpers";
 
 export type styleProperty = keyof CSSProperties | `__${string}`;
 class Block implements BlockOptions {
@@ -56,12 +56,28 @@ class Block implements BlockOptions {
 		return child
 	}
 
+	removeChild(child: Block) {
+		const index = this.getChildIndex(child)
+		if (index > -1) {
+			this.children.splice(index, 1)
+		}
+	}
+
+	getChildIndex(child: Block) {
+		return this.children.findIndex((block) => block.componentId === child.componentId);
+	}
+
+	addChildAfter(child: BlockOptions, siblingBlock: Block) {
+		const siblingIndex = this.getChildIndex(siblingBlock)
+		return this.addChild(child, siblingIndex + 1)
+	}
+
 	hasChildren() {
 		return this.children.length > 0
 	}
 
 	isRoot() {
-		return this.componentId === "root";
+		return this.componentId === "root" || this.originalElement === "body";
 	}
 
 	getParentBlock(): Block | null {
@@ -115,6 +131,35 @@ class Block implements BlockOptions {
 
 	isVisible() {
 		return this.getStyle("display") !== "none"
+	}
+
+	// context menu
+	duplicateBlock() {
+		if (this.isRoot()) return
+
+		const store = useStore()
+		const blockCopy = getBlockCopy(this)
+		const parentBlock = this.getParentBlock()
+
+		if (blockCopy.getStyle("position") === "absolute") {
+			// shift the block a bit
+			const left = numberToPx(blockCopy.getStyle("left"));
+			const top = numberToPx(blockCopy.getStyle("top"));
+			blockCopy.setStyle("left", `${left + 20}px`);
+			blockCopy.setStyle("top", `${top + 20}px`);
+		}
+
+		let child = null as Block | null;
+		if (parentBlock) {
+			child = parentBlock.addChildAfter(blockCopy, this);
+		} else {
+			child = store.canvas?.getRootBlock().addChild(blockCopy) as Block;
+		}
+		nextTick(() => {
+			if (child) {
+				store.selectBlock(child);
+			}
+		});
 	}
 }
 
