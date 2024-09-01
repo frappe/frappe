@@ -6,6 +6,7 @@
 				class="absolute bottom-0 left-0 top-[var(--toolbar-height)] z-20 overflow-auto bg-white"
 			/>
 			<StudioCanvas
+				ref="canvas"
 				class="canvas-container absolute bottom-0 top-[var(--toolbar-height)] flex justify-center overflow-hidden bg-gray-200 p-10"
 				v-if="store.pageBlocks[0]"
 				:componentTree="store.pageBlocks[0]"
@@ -22,7 +23,7 @@
 </template>
 
 <script setup>
-import { onActivated } from "vue"
+import { onActivated, watchEffect, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
 import StudioToolbar from "@/components/StudioToolbar.vue"
@@ -36,6 +37,13 @@ import { getRootBlock } from "@/utils/helpers"
 const route = useRoute()
 const router = useRouter()
 const store = useStore()
+
+const canvas = ref(null)
+watchEffect(() => {
+	if (canvas.value) {
+		store.canvas = canvas.value
+	}
+})
 
 onActivated(async () => {
 	if (route.params.pageID === store.selectedPage) return

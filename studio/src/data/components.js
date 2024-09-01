@@ -34,6 +34,10 @@ export const COMPONENTS = {
 		name: "Card",
 		title: "Card",
 		icon: "IdCard",
+		initialState: {
+			title: "John Doe",
+			subtitle: "Engineering Lead",
+		},
 	},
 	Checkbox: {
 		name: "Checkbox",

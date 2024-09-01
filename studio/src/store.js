@@ -1,17 +1,47 @@
-import { ref, reactive } from "vue"
+import { ref, reactive, computed } from "vue"
 import { defineStore } from "pinia"
 import { createDocumentResource } from "frappe-ui"
 
 import { getBlockInstance, getRootBlock } from "@/utils/helpers"
 
 const useStore = defineStore("store", () => {
+	const canvas = ref(null)
 	const studioLayout = reactive({
 		leftPanelWidth: 280,
 		rightPanelWidth: 275,
 		showLeftPanel: true,
 		showRightPanel: true,
 	})
+	const activeBreakpoint = ref("desktop")
+	const guides = reactive({
+		showX: false,
+		showY: false,
+		x: 0,
+		y: 0,
+	})
 
+	// block hover & selection
+	const hoveredBlock = ref(null)
+	const hoveredBreakpoint = ref(null)
+	const selectedBlockIds = ref([])
+	const selectedBlocks = computed(() => {
+		return (
+			selectedBlockIds.value
+				.map((id) => canvas.value.findBlock(id))
+				// filter out missing blocks/null values
+				.filter((b) => b)
+		)
+	})
+
+	function selectBlock(block, e, multiSelect = false) {
+		if (multiSelect) {
+			selectedBlockIds.value.push(block.componentId)
+		} else {
+			selectedBlockIds.value.splice(0, selectedBlockIds.value.length, block.componentId)
+		}
+	}
+
+	// studio pages
 	const pageBlocks = ref([])
 	const selectedPage = ref(null)
 
@@ -37,8 +67,17 @@ const useStore = defineStore("store", () => {
 	}
 
 	return {
+		canvas,
 		studioLayout,
+		activeBreakpoint,
+		guides,
+		hoveredBlock,
+		hoveredBreakpoint,
+		selectedBlockIds,
+		selectedBlocks,
+		selectBlock,
 		pageBlocks,
+		selectedPage,
 		setPage,
 		fetchPage,
 	}

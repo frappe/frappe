@@ -19,7 +19,8 @@
 		"pinia": "^2.2.1",
 		"vite": "^4.4.9",
 		"vue": "^3.4.12",
-		"vue-router": "^4.2.2"
+		"vue-router": "^4.2.2",
+		"vuedraggable": "^4.1.0"
 	},
 	"devDependencies": {
 		"eslint": "^8.39.0",
