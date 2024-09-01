@@ -1,3 +1,4 @@
+<!-- Extracted from Builder -->
 <template>
 	<span
 		class="resize-dimensions absolute bottom-[-40px] right-[-40px] flex h-8 w-20 items-center justify-center whitespace-nowrap rounded-full bg-gray-600 p-2 text-sm text-white opacity-80"
@@ -32,10 +33,8 @@
 
 <script setup lang="ts">
 import { pxToNumber } from "@/utils/helpers"
-import { clamp } from "@vueuse/core"
-import { computed, onMounted, ref, watch } from "vue"
+import { computed, onMounted, ref, watch, inject } from "vue"
 import Block from "@/utils/block"
-import useStore from "@/store"
 import guidesTracker from "@/utils/guidesTracker"
 
 const props = defineProps({
@@ -49,11 +48,11 @@ const props = defineProps({
 	},
 })
 
-const store = useStore()
+const canvasProps = inject("canvasProps") as CanvasProps
 
 let guides = null as unknown as ReturnType<typeof guidesTracker>
 onMounted(() => {
-	guides = guidesTracker(props.target as HTMLElement, store.canvas?.canvasProps)
+	guides = guidesTracker(props.target as HTMLElement, canvasProps)
 })
 
 const resizing = ref(false)
@@ -95,7 +94,7 @@ const handleRightResize = (ev: MouseEvent) => {
 	resizing.value = true
 	guides.showX()
 	const mousemove = (mouseMoveEvent: MouseEvent) => {
-		const movement = (mouseMoveEvent.clientX - startX) / store.canvas.canvasProps.scale
+		const movement = (mouseMoveEvent.clientX - startX) / canvasProps.scale
 		setWidth(movement, startWidth, blockStartWidth)
 		if (mouseMoveEvent.shiftKey) {
 			setHeight(movement, startHeight, blockStartHeight)
@@ -131,7 +130,7 @@ const handleBottomResize = (ev: MouseEvent) => {
 	guides.showY()
 
 	const mousemove = (mouseMoveEvent: MouseEvent) => {
-		const movement = (mouseMoveEvent.clientY - startY) / store.canvas.canvasProps.scale
+		const movement = (mouseMoveEvent.clientY - startY) / canvasProps.scale
 		setHeight(movement, startHeight, blockStartHeight)
 		if (mouseMoveEvent.shiftKey) {
 			setWidth(movement, startWidth, blockStartWidth)
@@ -167,8 +166,8 @@ const handleBottomCornerResize = (ev: MouseEvent) => {
 	resizing.value = true
 
 	const mousemove = (mouseMoveEvent: MouseEvent) => {
-		const movementX = (mouseMoveEvent.clientX - startX) / store.canvas.canvasProps.scale
-		const movementY = (mouseMoveEvent.clientY - startY) / store.canvas.canvasProps.scale
+		const movementX = (mouseMoveEvent.clientX - startX) / canvasProps.scale
+		const movementY = (mouseMoveEvent.clientY - startY) / canvasProps.scale
 		setWidth(movementX, startWidth, blockStartWidth)
 		setHeight(mouseMoveEvent.shiftKey ? movementX : movementY, startHeight, blockStartHeight)
 		mouseMoveEvent.preventDefault()

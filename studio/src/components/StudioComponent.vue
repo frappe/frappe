@@ -14,7 +14,7 @@
 		<StudioComponent v-for="child in block?.children" :key="child.componentId" :block="child" />
 	</component>
 
-	<teleport to="#overlay" v-if="store.canvas?.canvasProps?.overlayElement">
+	<teleport to="#overlay" v-if="canvasProps?.overlayElement">
 		<!-- prettier-ignore -->
 		<ComponentEditor
 			v-if="loadEditor"
@@ -28,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, useAttrs, onMounted, nextTick } from "vue"
+import { computed, ref, watch, useAttrs, onMounted, nextTick, inject } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
 
@@ -54,8 +54,9 @@ const isComponentReady = ref(false)
 const editor = ref(null)
 const attrs = useAttrs()
 const store = useStore()
-
 const classes = ["__studio_component__", "outline-none", "select-none"]
+
+const canvasProps = inject("canvasProps") as CanvasProps
 
 const componentData = computed(() => {
 	if (props.block.componentName === "div") return { initialState: {} }
@@ -87,8 +88,8 @@ const loadEditor = computed(() => {
 		props.block.getStyle("display") !== "none" &&
 		((isSelected.value && props.breakpoint === store.activeBreakpoint) ||
 			(isHovered.value && store.hoveredBreakpoint === props.breakpoint)) &&
-		!store.canvas.canvasProps?.scaling &&
-		!store.canvas.canvasProps?.panning
+		!canvasProps?.scaling &&
+		!canvasProps?.panning
 	)
 })
 

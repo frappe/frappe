@@ -75,7 +75,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick } from "vue"
+import { ref, reactive, computed, onMounted, nextTick, provide } from "vue"
 import { useDropZone, useElementBounding } from "@vueuse/core"
 import StudioComponent from "@/components/StudioComponent.vue"
 import FitScreenIcon from "@/components/Icons/FitScreenIcon.vue"
@@ -134,6 +134,7 @@ const canvasProps = reactive({
 		},
 	],
 })
+provide("canvasProps", canvasProps)
 
 const visibleBreakpoints = computed(() => {
 	return canvasProps.breakpoints.filter((breakpoint) => breakpoint.visible || breakpoint.device === "desktop")

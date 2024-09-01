@@ -1,3 +1,4 @@
+<!-- Extracted from Builder -->
 <template>
 	<Menu
 		class="dark:bg-zinc-900 fixed z-50 h-fit w-fit min-w-[120px] rounded-lg bg-white p-1 shadow-xl"

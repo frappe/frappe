@@ -9,6 +9,23 @@
 			@contextmenu="onContextMenu"
 			@click.stop="handleClick"
 		>
+			<PaddingHandler
+				:data-block-id="block.blockId"
+				v-if="showMarginPaddingHandlers"
+				:target-block="block"
+				:target="target"
+				:on-update="updateTracker"
+				:disable-handlers="false"
+				:breakpoint="breakpoint"
+			/>
+			<MarginHandler
+				v-if="showMarginPaddingHandlers"
+				:target-block="block"
+				:target="target"
+				:on-update="updateTracker"
+				:disable-handlers="false"
+				:breakpoint="breakpoint"
+			/>
 			<BoxResizer v-if="showResizer" :targetBlock="block" @resizing="resizing = $event" :target="target" />
 		</div>
 	</ComponentContextMenu>
@@ -19,6 +36,8 @@ import { ref, computed, onMounted } from "vue"
 
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import BoxResizer from "@/components/BoxResizer.vue"
+import PaddingHandler from "@/components/PaddingHandler.vue"
+import MarginHandler from "@/components/MarginHandler.vue"
 
 import Block from "@/utils/block"
 import useStore from "@/store"
@@ -45,7 +64,12 @@ const props = defineProps({
 
 const store = useStore()
 const editor = ref(null)
+const resizing = ref(false)
 const updateTracker = ref(() => {})
+
+const showMarginPaddingHandlers = computed(() => {
+	return isBlockSelected.value && !props.block.isRoot() && !resizing.value
+})
 
 const showResizer = computed(() => {
 	return !props.block.isRoot() && isBlockSelected.value
