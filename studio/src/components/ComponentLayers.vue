@@ -139,18 +139,20 @@ const updateParent = (event) => {
 }
 
 watch(
-	() => store.selectedBlocks && store.selectedBlocks.length,
+	() => store.selectedBlocks,
 	() => {
-		store.selectedBlocks.forEach((block: Block) => {
-			if (block) {
-				let parentBlock = block.getParentBlock()
-				// open all parent blocks
-				while (parentBlock && !parentBlock.isRoot()) {
-					expandedLayers.value.add(parentBlock?.componentId)
-					parentBlock = parentBlock.getParentBlock()
+		if (store.selectedBlocks.length) {
+			store.selectedBlocks.forEach((block: Block) => {
+				if (block) {
+					let parentBlock = block.getParentBlock()
+					// open all parent blocks
+					while (parentBlock && !parentBlock.isRoot()) {
+						expandedLayers.value.add(parentBlock?.componentId)
+						parentBlock = parentBlock.getParentBlock()
+					}
 				}
-			}
-		})
+			})
+		}
 	},
 )
 </script>
