@@ -8,7 +8,9 @@
 			:class="getStyleClasses"
 			@contextmenu="onContextMenu"
 			@click.stop="handleClick"
-		></div>
+		>
+			<BoxResizer v-if="showResizer" :targetBlock="block" @resizing="resizing = $event" :target="target" />
+		</div>
 	</ComponentContextMenu>
 </template>
 
@@ -16,6 +18,7 @@
 import { ref, computed, onMounted } from "vue"
 
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
+import BoxResizer from "@/components/BoxResizer.vue"
 
 import Block from "@/utils/block"
 import useStore from "@/store"
@@ -43,6 +46,10 @@ const props = defineProps({
 const store = useStore()
 const editor = ref(null)
 const updateTracker = ref(() => {})
+
+const showResizer = computed(() => {
+	return !props.block.isRoot() && isBlockSelected.value
+})
 
 const isBlockSelected = computed(() => {
 	return props.isSelected && props.breakpoint === store.activeBreakpoint

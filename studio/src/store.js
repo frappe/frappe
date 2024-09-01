@@ -13,6 +13,12 @@ const useStore = defineStore("store", () => {
 		showRightPanel: true,
 	})
 	const activeBreakpoint = ref("desktop")
+	const guides = reactive({
+		showX: false,
+		showY: false,
+		x: 0,
+		y: 0,
+	})
 
 	// block hover & selection
 	const hoveredBlock = ref(null)
@@ -64,6 +70,7 @@ const useStore = defineStore("store", () => {
 		canvas,
 		studioLayout,
 		activeBreakpoint,
+		guides,
 		hoveredBlock,
 		hoveredBreakpoint,
 		selectedBlockIds,

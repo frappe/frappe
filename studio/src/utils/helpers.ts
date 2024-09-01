@@ -46,6 +46,15 @@ function numberToPx(number: number, round: boolean = true): string {
 	return `${number}px`;
 }
 
+function pxToNumber(px: string | number | null | undefined): number {
+	if (!px) return 0
+	if (typeof px === "number") return px
+
+	const number = Number(px.replace("px", ""))
+	if (isNaN(number)) return 0
+	return number
+}
+
 function kebabToCamelCase(str: string) {
 	// convert border-color to borderColor
 	return str.replace(/-([a-z])/g, function (g) {
@@ -60,5 +69,6 @@ export {
 	getBlockCopy,
 	getBlockCopyWithoutParent,
 	numberToPx,
+	pxToNumber,
 	kebabToCamelCase,
 }
