@@ -5,6 +5,7 @@
 			:list="blocks"
 			item-key="componentId"
 			:group="{ name: 'component-tree' }"
+			@add="updateParent"
 			:disabled="blocks.length && blocks[0].isRoot()"
 		>
 			<template #item="{ element }">
@@ -40,7 +41,7 @@
 									@dblclick="element.editable = true"
 									@keydown.enter.stop.prevent="element.editable = false"
 									@blur="setBlockName($event, element)"
-									>
+								>
 									{{ element.getBlockDescription() }}
 								</span>
 
@@ -55,7 +56,7 @@
 									v-if="element.isRoot()"
 									class="dark:text-zinc-500 ml-auto mr-2 text-sm capitalize text-gray-500"
 								>
-								{{ store.activeBreakpoint }}
+									{{ store.activeBreakpoint }}
 								</span>
 							</span>
 							<div v-show="canShowChildLayer(element)">
@@ -128,6 +129,13 @@ const toggleExpanded = (block: Block) => {
 
 const canShowChildLayer = (block: Block) => {
 	return isExpanded(block) && block.hasChildren()
+}
+
+const updateParent = (event) => {
+	// update parent block reference when a block is moved inside it
+	event.item.__draggable_context.element.parentBlock = store.canvas?.findBlock(
+		event.to.closest("[data-component-layer-id]").dataset.componentLayerId,
+	)
 }
 
 watch(
