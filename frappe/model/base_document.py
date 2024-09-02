@@ -937,6 +937,9 @@ class BaseDocument:
 		# data_field options defined in frappe.model.data_field_options
 		for data_field in self.meta.get_data_fields():
 			data = self.get(data_field.fieldname)
+			if not data:
+				continue
+
 			data_field_options = data_field.get("options")
 			old_fieldtype = data_field.get("oldfieldtype")
 
@@ -957,8 +960,6 @@ class BaseDocument:
 				validate_phone_number(data, throw=True)
 
 			if data_field_options == "URL":
-				if not data:
-					continue
 				validate_url(data, throw=True)
 
 	def _validate_constants(self):
