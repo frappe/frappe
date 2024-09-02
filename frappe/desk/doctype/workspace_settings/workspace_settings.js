@@ -18,6 +18,9 @@ frappe.ui.form.on("Workspace Settings", {
 				frm.docfields.push({
 					fieldtype: "Check",
 					fieldname: page.name,
+					hidden: !frappe.boot.app_data_map[frappe.current_app].workspaces.includes(
+						page.title
+					),
 					label: page.title + (page.parent_page ? ` (${page.parent_page})` : ""),
 					initial_value: workspace_visibilty[page.name] !== 0, // not set is also visible
 				});
@@ -38,7 +41,7 @@ frappe.ui.form.on("Workspace Settings", {
 	},
 	after_save(frm) {
 		// reload page to show latest sidebar
-		window.location.reload();
+		frappe.app.sidebar.reload();
 	},
 	refresh(frm) {
 		let get_page = (e) => frm.workspace_map[e.fieldobj.df.fieldname];

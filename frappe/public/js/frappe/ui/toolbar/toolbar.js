@@ -43,9 +43,6 @@ frappe.ui.toolbar.Toolbar = class {
 				search_modal.find("#modal-search").focus();
 			}, 300);
 		});
-		$(".navbar-toggle-full-width").click(() => {
-			frappe.ui.toolbar.toggle_full_width();
-		});
 	}
 
 	setup_read_only_mode() {

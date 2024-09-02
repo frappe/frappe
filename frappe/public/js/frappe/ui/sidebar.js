@@ -33,29 +33,46 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	make_dom() {
+		this.set_default_app();
 		this.wrapper = $(`
 			<div class="body-sidebar-container">
 				<div class="body-sidebar-placeholder"></div>
-				<div class="body-sidebar">
-					<a href="/app" style="text-decoration: none">
-						<div class="standard-sidebar-item">
-							<div class="sidebar-item-icon">
-								<img
-									class="app-logo"
-									src="${frappe.boot.app_logo_url}"
-									alt="${__("App Logo")}"
-								>
+					<div class="body-sidebar">
+						<a class="app-switcher-dropdown"
+								style="text-decoration: none; width: 100%; position: relative;">
+
+							<div class="standard-sidebar-item">
+								<div class="d-flex">
+									<div class="sidebar-item-icon">
+										<img
+											class="app-logo"
+											src="${frappe.boot.app_data[0].app_logo_url}"
+											alt="${__("App Logo")}"
+										>
+									</div>
+									<div class="sidebar-item-label" style="margin-left: 5px; margin-top: 1px">
+										${__(frappe.boot.app_data[0].app_title)}
+									</div>
+								</div>
+								<div class="sidebar-item-control">
+									<button class="btn-reset drop-icon show-in-edit-mode">
+										<svg class="es-icon es-line  icon-sm" style="" aria-hidden="true">
+											<use class="" href="#es-line-down"></use>
+										</svg>
+									</button>
+								</div>
 							</div>
-							<div class="sidebar-item-label" style="margin-left: 5px; margin-top: 1px">
-								${__(frappe.boot.sysdefaults.app_name)}
-							</div>
+						</a>
+
+						<div class="app-switcher-menu hidden" role="menu">
 						</div>
-					</a>
-					<div class="sidebar-items">
+						<div class="sidebar-items">
+						</div>
+						<div class="mb-4">
+							<a class="edit-sidebar-link text-extra-muted">Edit sidebar</a>
+						</div>
 					</div>
-					<div class="mb-4">
-						<a class="edit-sidebar-link text-extra-muted">Edit sidebar</a>
-					</div>
+
 				</div>
 			</div>
 		`).prependTo("body");
@@ -64,6 +81,70 @@ frappe.ui.Sidebar = class Sidebar {
 
 		this.wrapper.find(".body-sidebar .edit-sidebar-link").on("click", () => {
 			frappe.quick_edit("Workspace Settings");
+		});
+
+		this.setup_app_switcher();
+	}
+
+	set_default_app() {
+		// sort apps based on # of workspaces
+		frappe.boot.app_data.sort((a, b) => (a.workspaces.length < b.workspaces.length ? 1 : -1));
+		frappe.current_app = frappe.boot.app_data[0].app_name;
+	}
+
+	setup_app_switcher() {
+		let app_switcher_menu = $(".app-switcher-menu");
+
+		$(".app-switcher-dropdown").on("click", () => {
+			app_switcher_menu.toggleClass("hidden");
+		});
+
+		// hover out of the sidebar
+		this.wrapper.find(".body-sidebar").on("mouseleave", () => {
+			app_switcher_menu.addClass("hidden");
+
+			// hide any expanded menus as they leave a blank space in the sidebar
+			this.wrapper.find(".drop-icon[data-state='opened'").click();
+		});
+
+		frappe.boot.app_data_map = {};
+		for (var app of frappe.boot.app_data) {
+			frappe.boot.app_data_map[app.app_name] = app;
+			if (app.workspaces?.length) {
+				$(`<div class="app-item" data-app-name="${app.app_name}"
+						data-app-home="${app.app_home}">
+					<a>
+						<div class="sidebar-item-icon">
+							<img
+								style="margin-right: var(--margin-sm);"
+								class="app-logo"
+								src="${app.app_logo_url}"
+								alt="${__("App Logo")}"
+							>
+						</div>
+						<span>${app.app_title}</span>
+					</a>
+				</div>`).appendTo(app_switcher_menu);
+			}
+		}
+
+		app_switcher_menu.find(".app-item").on("click", (e) => {
+			let item = $(e.delegateTarget);
+			frappe.current_app = item.attr("data-app-name");
+			frappe.set_route(item.attr("data-app-home"));
+
+			this.wrapper
+				.find(".app-switcher-dropdown .sidebar-item-icon img")
+				.attr("src", frappe.boot.app_data_map[frappe.current_app].app_logo_url);
+			this.wrapper
+				.find(".app-switcher-dropdown .sidebar-item-label")
+				.html(frappe.boot.app_data_map[frappe.current_app].app_title);
+
+			// hide menu
+			app_switcher_menu.toggleClass("hidden");
+
+			// re-render the sidebar
+			this.make_sidebar();
 		});
 	}
 
@@ -97,10 +178,12 @@ frappe.ui.Sidebar = class Sidebar {
 			this.wrapper.find(".standard-sidebar-section").remove();
 		}
 
+		let app_workspaces = frappe.boot.app_data_map[frappe.current_app || "frappe"].workspaces;
+
 		let parent_pages = this.all_pages.filter((p) => !p.parent_page).uniqBy((p) => p.title);
 		parent_pages = [
-			...parent_pages.filter((p) => !p.public),
-			...parent_pages.filter((p) => p.public),
+			...parent_pages.filter((p) => !p.public && app_workspaces.includes(p.title)),
+			...parent_pages.filter((p) => p.public && app_workspaces.includes(p.title)),
 		];
 
 		this.build_sidebar_section("All", parent_pages);
@@ -238,12 +321,22 @@ frappe.ui.Sidebar = class Sidebar {
 			$drop_icon.removeClass("hidden");
 		}
 		$drop_icon.on("click", () => {
-			let icon =
-				$drop_icon.find("use").attr("href") === "#es-line-down"
-					? "#es-line-up"
-					: "#es-line-down";
-			$drop_icon.find("use").attr("href", icon);
+			let opened = $drop_icon.find("use").attr("href") === "#es-line-down";
+
+			if (!opened) {
+				$drop_icon.attr("data-state", "closed").find("use").attr("href", "#es-line-down");
+			} else {
+				$drop_icon.attr("data-state", "opened").find("use").attr("href", "#es-line-up");
+			}
+			``;
 			$child_item_section.toggleClass("hidden");
+		});
+	}
+
+	reload() {
+		return frappe.workspace.get_pages().then((r) => {
+			frappe.boot.sidebar_pages = r;
+			this.setup_pages();
 		});
 	}
 };

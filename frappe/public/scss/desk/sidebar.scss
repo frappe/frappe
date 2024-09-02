@@ -192,6 +192,27 @@ body {
 	}
 }
 
+.app-switcher-menu {
+	position: absolute;
+	top: 40px;
+	padding: var(--padding-xs);
+	box-shadow: var(--shadow-base);
+	background-color: var(--neutral);
+	min-width: 180px;
+	z-index: 1;
+	border-radius: var(--border-radius-tiny);
+}
+
+.app-item {
+	padding: var(--padding-xs);
+
+	a {
+		text-decoration: none;
+		display: flex;
+		vertical-align: middle;
+	}
+}
+
 // form sidebar
 .form-sidebar {
 	.sidebar-section {
