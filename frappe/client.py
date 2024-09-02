@@ -415,7 +415,7 @@ def is_document_amended(doctype, docname):
 	return False
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def validate_link(doctype: str, docname: str, fields=None):
 	if not isinstance(doctype, str):
 		frappe.throw(_("DocType must be a string"))
