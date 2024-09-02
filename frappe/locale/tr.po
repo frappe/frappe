@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-08-18 09:32+0000\n"
-"PO-Revision-Date: 2024-08-29 10:45\n"
+"PO-Revision-Date: 2024-09-02 17:43\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -7446,7 +7446,7 @@ msgstr "Ayırıcı"
 #. Label of the do_not_create_new_user (Check) field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Do Not Create New User "
-msgstr ""
+msgstr "Yeni Kullanıcı Oluşturmayın "
 
 #. Description of the 'Do Not Create New User ' (Check) field in DocType 'LDAP
 #. Settings'
@@ -8491,16 +8491,16 @@ msgstr "Düzenleme Modu"
 
 #: public/js/form_builder/components/Field.vue:254
 msgid "Edit the {0} Doctype"
-msgstr ""
+msgstr "{0} DocType'ı Düzenle"
 
 #: printing/page/print_format_builder/print_format_builder.js:713
 msgid "Edit to add content"
-msgstr ""
+msgstr "İçerik eklemek için düzenle"
 
 #: public/js/frappe/web_form/web_form.js:446
 msgctxt "Button in web form"
 msgid "Edit your response"
-msgstr ""
+msgstr "Yanıtınızı düzenleyin"
 
 #: workflow/doctype/workflow/workflow.js:18
 msgid "Edit your workflow visually using the Workflow Builder."
@@ -8817,11 +8817,11 @@ msgstr "E-postalar"
 
 #: email/doctype/email_account/email_account.js:187
 msgid "Emails Pulled"
-msgstr ""
+msgstr "E-postalar Çekildi"
 
 #: email/doctype/email_account/email_account.py:925
 msgid "Emails are already being pulled from this account."
-msgstr ""
+msgstr "E-postalar zaten bu hesaptan çekiliyor."
 
 #: email/queue.py:137
 msgid "Emails are muted"
@@ -8834,11 +8834,11 @@ msgstr "E-postalar bir sonraki olası iş akışı eylemleriyle birlikte gönder
 
 #: website/doctype/web_form/web_form.js:34
 msgid "Embed code copied"
-msgstr ""
+msgstr "Gömülü kod kopyalandı"
 
 #: public/js/form_builder/components/Section.vue:285
 msgid "Empty column"
-msgstr ""
+msgstr "Boş sütun"
 
 #. Label of the enable (Check) field in DocType 'Google Calendar'
 #. Label of the enable (Check) field in DocType 'Google Contacts'
@@ -8853,7 +8853,7 @@ msgstr "Etkinleştir"
 
 #: automation/doctype/auto_repeat/auto_repeat.py:117
 msgid "Enable Allow Auto Repeat for the doctype {0} in Customize Form"
-msgstr ""
+msgstr "Formu Özelleştir'de {0} doctype için Otomatik Tekrara İzin Ver'i etkinleştirin"
 
 #. Label of the enable_auto_reply (Check) field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -8891,7 +8891,7 @@ msgstr "E-posta Bildirimlerini Aç"
 #: integrations/doctype/google_contacts/google_contacts.py:36
 #: website/doctype/website_settings/website_settings.py:129
 msgid "Enable Google API in Google Settings."
-msgstr ""
+msgstr "Google Ayarları’nda Google API’yi etkinleştirin."
 
 #. Label of the enable_google_indexing (Check) field in DocType 'Website
 #. Settings'
@@ -8958,7 +8958,7 @@ msgstr "Raporu Etkinleştir"
 #. Label of the enable_scheduler (Check) field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgid "Enable Scheduled Jobs"
-msgstr ""
+msgstr "Zamanlanmış İşleri Etkinleştir"
 
 #: core/doctype/rq_job/rq_job_list.js:23
 msgid "Enable Scheduler"
@@ -8992,11 +8992,11 @@ msgstr "2 Adımlı Doğrulamayı Aç"
 #. Title of an Onboarding Step
 #: website/onboarding_step/enable_website_tracking/enable_website_tracking.json
 msgid "Enable Website Tracking"
-msgstr ""
+msgstr "Web Sitesi İzlemeyi Etkinleştir"
 
 #: printing/doctype/print_format_field_template/print_format_field_template.py:28
 msgid "Enable developer mode to create a standard Print Template"
-msgstr ""
+msgstr "Standart bir Yazdırma Şablonu oluşturmak için geliştirici modunu etkinleştirin"
 
 #: website/doctype/web_template/web_template.py:33
 msgid "Enable developer mode to create a standard Web Template"
@@ -9479,7 +9479,7 @@ msgstr ""
 #. Option for the 'File Type' (Select) field in DocType 'Data Export'
 #: core/doctype/data_export/data_export.json
 msgid "Excel"
-msgstr ""
+msgstr "Excel"
 
 #: public/js/frappe/form/controls/password.js:91
 msgid "Excellent"
@@ -9492,7 +9492,7 @@ msgstr "Mükemmel"
 #: core/doctype/rq_job/rq_job.json
 #: core/doctype/submission_queue/submission_queue.json
 msgid "Exception"
-msgstr ""
+msgstr "İstisna"
 
 #. Label of the execute_section (Section Break) field in DocType 'System
 #. Console'
@@ -9641,7 +9641,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/report_view.js:1571
 msgid "Export all {0} rows?"
-msgstr ""
+msgstr "Tüm {0} satırları dışarı aktarılacak?"
 
 #: public/js/frappe/views/file/file_view.js:154
 msgid "Export as zip"
@@ -9861,7 +9861,7 @@ msgstr ""
 #. Label of the fax (Data) field in DocType 'Address'
 #: contacts/doctype/address/address.json
 msgid "Fax"
-msgstr "Fax"
+msgstr "Faks"
 
 #. Label of the featured (Check) field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
@@ -9913,7 +9913,7 @@ msgstr "Boşsa Kaydederken Getir"
 
 #: desk/doctype/global_search_settings/global_search_settings.py:61
 msgid "Fetching default Global Search documents."
-msgstr ""
+msgstr "Varsayılan Global Arama belgeleri getiriliyor."
 
 #. Label of the field (Select) field in DocType 'Assignment Rule'
 #. Label of the field (Select) field in DocType 'Document Naming Rule
@@ -9940,15 +9940,15 @@ msgstr "Alan"
 
 #: core/doctype/doctype/doctype.py:418
 msgid "Field \"route\" is mandatory for Web Views"
-msgstr ""
+msgstr "\"Rota\" alanı Web Görünümleri için zorunludur"
 
 #: core/doctype/doctype/doctype.py:1505
 msgid "Field \"title\" is mandatory if \"Website Search Field\" is set."
-msgstr ""
+msgstr "\"Web Sitesi Arama Alanı\" ayarlanmışsa \"başlık\" alanı zorunludur."
 
 #: desk/doctype/bulk_update/bulk_update.js:17
 msgid "Field \"value\" is mandatory. Please specify value to be updated"
-msgstr ""
+msgstr "\"Değer\" alanı zorunludur. Lütfen güncellenecek değeri belirtin"
 
 #. Label of the description (Text) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -9957,7 +9957,7 @@ msgstr "Alan Açıklaması"
 
 #: core/doctype/doctype/doctype.py:1060
 msgid "Field Missing"
-msgstr ""
+msgstr "Alan Eksik"
 
 #. Label of the field_name (Data) field in DocType 'Property Setter'
 #. Label of the field_name (Select) field in DocType 'Kanban Board'
@@ -9977,7 +9977,7 @@ msgstr ""
 #: public/js/print_format_builder/PrintFormatControls.vue:233
 #: public/js/print_format_builder/utils.js:69
 msgid "Field Template"
-msgstr ""
+msgstr "Alan Şablonu"
 
 #. Label of the field_to_check (Select) field in DocType 'Energy Point Rule'
 #: social/doctype/energy_point_rule/energy_point_rule.json
@@ -10484,7 +10484,7 @@ msgstr ""
 #. Label of the folder (Link) field in DocType 'File'
 #: core/doctype/file/file.json
 msgid "Folder"
-msgstr ""
+msgstr "Klasör"
 
 #. Label of the folder_name (Data) field in DocType 'IMAP Folder'
 #: email/doctype/imap_folder/imap_folder.json
@@ -10493,11 +10493,11 @@ msgstr "Klasör Adı"
 
 #: public/js/frappe/views/file/file_view.js:100
 msgid "Folder name should not include '/' (slash)"
-msgstr ""
+msgstr "Klasör adı '/' (eğik çizgi) içermemelidir"
 
 #: core/doctype/file/file.py:467
 msgid "Folder {0} is not empty"
-msgstr ""
+msgstr "{0} klasörü boş değil"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
@@ -10511,7 +10511,7 @@ msgstr "Takip Et"
 
 #: public/js/frappe/form/templates/form_sidebar.html:124
 msgid "Followed by"
-msgstr ""
+msgstr "Takip Eden"
 
 #: email/doctype/auto_email_report/auto_email_report.py:130
 msgid "Following Report Filters have missing values:"
@@ -10853,7 +10853,7 @@ msgstr "Biçim"
 #. Label of the format_data (Code) field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
 msgid "Format Data"
-msgstr ""
+msgstr "Veriyi Biçimlendir"
 
 #: core/doctype/communication/communication.js:70
 msgid "Forward"
@@ -11775,12 +11775,12 @@ msgstr "Faydalı"
 #. Option for the 'Font' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgid "Helvetica"
-msgstr ""
+msgstr "Helvetica"
 
 #. Option for the 'Font' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgid "Helvetica Neue"
-msgstr ""
+msgstr "Helvetica Neue"
 
 #: public/js/frappe/utils/utils.js:1768
 msgid "Here's your tracking URL"
@@ -11816,7 +11816,7 @@ msgstr "Gizli"
 #. Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
 msgid "Hidden Fields"
-msgstr ""
+msgstr "Gizli Alanlar"
 
 #. Option for the 'Page Number' (Select) field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
@@ -14152,7 +14152,7 @@ msgstr "Son sekronizasyon {0}"
 
 #: custom/doctype/customize_form/customize_form.js:194
 msgid "Layout Reset"
-msgstr ""
+msgstr "Düzeni Sıfırla"
 
 #: custom/doctype/customize_form/customize_form.js:186
 msgid "Layout will be reset to standard layout, are you sure you want to do this?"
@@ -14176,11 +14176,11 @@ msgstr "Web Sayfaları Hakkında daha fazla bilgi"
 #. Label of an action in the Onboarding Step 'Create Custom Fields'
 #: custom/onboarding_step/custom_field/custom_field.json
 msgid "Learn how to add Custom Fields"
-msgstr ""
+msgstr "Özel Alanların nasıl ekleneceğini öğrenin"
 
 #: website/web_template/section_with_features/section_with_features.html:26
 msgid "Learn more"
-msgstr ""
+msgstr "Daha fazla bilgi alın"
 
 #. Label of an action in the Onboarding Step 'Generate Custom Reports'
 #: custom/onboarding_step/report_builder/report_builder.json
@@ -14190,7 +14190,7 @@ msgstr "Rapor Oluşturucuları hakkında daha fazla bilgi edinin"
 #. Label of an action in the Onboarding Step 'Custom Document Types'
 #: custom/onboarding_step/custom_doctype/custom_doctype.json
 msgid "Learn more about creating new DocTypes"
-msgstr ""
+msgstr "Yeni DocType'lar oluşturma hakkında daha fazla bilgi edinin"
 
 #. Description of the 'Repeat Till' (Date) field in DocType 'Event'
 #: desk/doctype/event/event.json
@@ -14684,7 +14684,7 @@ msgstr ""
 
 #: public/js/frappe/ui/toolbar/search_utils.js:542
 msgid "Lists"
-msgstr ""
+msgstr "Listeler"
 
 #. Option for the 'Rule' (Select) field in DocType 'Assignment Rule'
 #: automation/doctype/assignment_rule/assignment_rule.json
@@ -14994,17 +14994,17 @@ msgstr "MIT lisansı"
 #. Label of the main_section (Text Editor) field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgid "Main Section"
-msgstr ""
+msgstr "Ana Bölüm"
 
 #. Label of the main_section_html (HTML Editor) field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgid "Main Section (HTML)"
-msgstr ""
+msgstr "Ana Bölüm (HTML)"
 
 #. Label of the main_section_md (Markdown Editor) field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgid "Main Section (Markdown)"
-msgstr ""
+msgstr "Ana Bölüm (Markdown)"
 
 #. Name of a role
 #: contacts/doctype/contact/contact.json
@@ -15182,16 +15182,16 @@ msgstr "Hepsini Okundu İşaretle"
 #: core/doctype/communication/communication.js:78
 #: core/doctype/communication/communication_list.js:19
 msgid "Mark as Read"
-msgstr ""
+msgstr "Okundu olarak İşaretle"
 
 #: core/doctype/communication/communication.js:95
 msgid "Mark as Spam"
-msgstr ""
+msgstr "İstenmeyen olarak İşaretle"
 
 #: core/doctype/communication/communication.js:78
 #: core/doctype/communication/communication_list.js:22
 msgid "Mark as Unread"
-msgstr ""
+msgstr "Okunmadı Olarak İşaretle"
 
 #. Option for the 'Content Type' (Select) field in DocType 'Newsletter'
 #. Option for the 'Message Type' (Select) field in DocType 'Notification'
@@ -17738,7 +17738,7 @@ msgstr "URL'yi Yeni Sekmede Aç"
 #. Description of the 'Quick Entry' (Check) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgid "Open a dialog with mandatory fields to create a new record quickly. There must be at least one mandatory field to show in dialog."
-msgstr ""
+msgstr "Hızlı bir şekilde yeni bir kayıt oluşturmak için zorunlu alanlara sahip bir iletişim kutusu açın. İletişim kutusunda gösterilecek en az bir zorunlu alan olmalıdır."
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:176
 msgid "Open a module or tool"
@@ -18801,11 +18801,11 @@ msgstr "Nasıl devam edeceğinize ilişkin talimatlar için lütfen kayıtlı e-
 
 #: core/doctype/data_import/data_import.js:158
 msgid "Please click on 'Export Errored Rows', fix the errors and import again."
-msgstr ""
+msgstr "Lütfen 'Hatalı Satırları Dışa Aktar' seçeneğine tıklayın, hataları düzeltin ve tekrar içe aktarın."
 
 #: twofactor.py:286
 msgid "Please click on the following link and follow the instructions on the page. {0}"
-msgstr ""
+msgstr "Lütfen aşağıdaki bağlantıya tıklayın ve sayfadaki talimatları izleyin. {0}"
 
 #: templates/emails/password_reset.html:2
 msgid "Please click on the following link to set your new password"
@@ -18837,7 +18837,7 @@ msgstr ""
 
 #: core/doctype/data_export/exporter.py:184
 msgid "Please do not change the template headings."
-msgstr ""
+msgstr "Lütfen şablon başlıklarını değiştirmeyin."
 
 #: printing/doctype/print_format/print_format.js:18
 msgid "Please duplicate this to make changes"
@@ -18857,7 +18857,7 @@ msgstr "Pop-up etkinleştirin"
 
 #: public/js/frappe/microtemplate.js:162 public/js/frappe/microtemplate.js:177
 msgid "Please enable pop-ups in your browser"
-msgstr ""
+msgstr "Lütfen tarayıcınızda açılır pencereleri etkinleştirin"
 
 #: integrations/google_oauth.py:53
 msgid "Please enable {} before continuing."
@@ -19995,7 +19995,7 @@ msgstr ""
 #. Label of the queue (Data) field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
 msgid "Queue(s)"
-msgstr ""
+msgstr "Kuyruk"
 
 #. Option for the 'Status' (Select) field in DocType 'Prepared Report'
 #. Option for the 'Status' (Select) field in DocType 'Submission Queue'
@@ -20227,12 +20227,12 @@ msgstr ""
 #: public/js/frappe/ui/toolbar/navbar.html:16
 #: templates/includes/navbar/navbar_items.html:97
 msgid "Read Only Mode"
-msgstr ""
+msgstr "Salt Okunur Modu"
 
 #. Label of the read_time (Int) field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
 msgid "Read Time"
-msgstr ""
+msgstr "Okuma Süresi"
 
 #. Label of the read_by_recipient (Check) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
@@ -21910,7 +21910,7 @@ msgstr "SMS Kayıtları"
 #. Name of a DocType
 #: core/doctype/sms_parameter/sms_parameter.json
 msgid "SMS Parameter"
-msgstr ""
+msgstr "SMS Parametresi"
 
 #. Name of a DocType
 #. Label of a Link in the Integrations Workspace
@@ -21921,11 +21921,11 @@ msgstr "SMS Ayarları"
 
 #: core/doctype/sms_settings/sms_settings.py:110
 msgid "SMS sent to following numbers: {0}"
-msgstr ""
+msgstr "Aşağıdaki numaralara SMS gönderildi: {0}"
 
 #: templates/includes/login/login.js:369
 msgid "SMS was not sent. Please contact Administrator."
-msgstr ""
+msgstr "SMS gönderilemedi. Lütfen Yönetici ile iletişime geçin."
 
 #: email/doctype/email_account/email_account.py:206
 msgid "SMTP Server is required"
@@ -22635,11 +22635,11 @@ msgstr ""
 
 #: custom/doctype/customize_form/customize_form.js:280
 msgid "Select Module"
-msgstr ""
+msgstr "Modül Seç"
 
 #: printing/page/print/print.js:175 printing/page/print/print.js:582
 msgid "Select Network Printer"
-msgstr ""
+msgstr "Ağ Yazıcısını Seçin"
 
 #. Label of the page_name (Link) field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
@@ -22955,7 +22955,7 @@ msgstr "Sorularınızı bu e-posta adresine gönderin"
 
 #: templates/includes/login/login.js:72 www/login.html:210
 msgid "Send login link"
-msgstr ""
+msgstr "Giriş bağlantısını gönder"
 
 #: public/js/frappe/views/communication.js:132
 msgid "Send me a copy"
@@ -23134,7 +23134,7 @@ msgstr "Sunucu Komut Dosyası"
 
 #: utils/safe_exec.py:89
 msgid "Server Scripts are disabled. Please enable server scripts from bench configuration."
-msgstr ""
+msgstr "Sunucu Komut Dosyaları devre dışı. Lütfen bench yapılandırmasından sunucu komut dosyalarını etkinleştirin."
 
 #: core/doctype/server_script/server_script.js:36
 msgid "Server Scripts feature is not available on this site."
@@ -23142,7 +23142,7 @@ msgstr "Bu sitede Sunucu Scriptleri özelliği bulunmamaktadır."
 
 #: public/js/frappe/request.js:243 public/js/frappe/request.js:251
 msgid "Server was too busy to process this request. Please try again."
-msgstr ""
+msgstr "Sunucu bu isteği işleyemeyecek kadar meşguldü. Lütfen tekrar deneyin."
 
 #. Label of the service (Select) field in DocType 'Email Account'
 #. Label of the integration_request_service (Data) field in DocType
@@ -24332,7 +24332,7 @@ msgstr "Sıralamalar"
 
 #: core/doctype/server_script/server_script_list.js:20
 msgid "Star us on GitHub"
-msgstr ""
+msgstr "Github'da bize yıldız verin"
 
 #: core/doctype/recorder/recorder_list.js:87 printing/page/print/print.js:296
 #: printing/page/print/print.js:343
@@ -24359,7 +24359,7 @@ msgstr "İçe Aktarmayı Başlat"
 
 #: core/doctype/recorder/recorder_list.js:201
 msgid "Start Recording"
-msgstr ""
+msgstr "Kaydı Başlat"
 
 #. Label of the birth_date (Datetime) field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
@@ -24526,18 +24526,18 @@ msgstr "Durum: {0}"
 #. Label of the step (Link) field in DocType 'Onboarding Step Map'
 #: desk/doctype/onboarding_step_map/onboarding_step_map.json
 msgid "Step"
-msgstr ""
+msgstr "Adım"
 
 #. Label of the steps (Table) field in DocType 'Form Tour'
 #. Label of the steps (Table) field in DocType 'Module Onboarding'
 #: desk/doctype/form_tour/form_tour.json
 #: desk/doctype/module_onboarding/module_onboarding.json
 msgid "Steps"
-msgstr ""
+msgstr "Adımlar"
 
 #: www/qrcode.html:11
 msgid "Steps to verify your login"
-msgstr ""
+msgstr "Giriş bilgilerinizi doğrulama adımları"
 
 #: core/doctype/recorder/recorder_list.js:87
 msgid "Stop"
@@ -24605,7 +24605,7 @@ msgstr "Stil Ayarları"
 #. Description of the 'Style' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgid "Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange"
-msgstr ""
+msgstr "Stil, düğme rengini temsil eder: Başarı - Yeşil, Tehlike - Kırmızı, Ters - Siyah, Birincil - Koyu Mavi, Bilgi - Açık Mavi, Uyarı - Turuncu"
 
 #. Label of the stylesheet_section (Tab Break) field in DocType 'Website Theme'
 #: website/doctype/website_theme/website_theme.json
@@ -25020,7 +25020,7 @@ msgstr "Sistem"
 #. Name of a DocType
 #: desk/doctype/system_console/system_console.json
 msgid "System Console"
-msgstr ""
+msgstr "Sistem Konsolu"
 
 #: custom/doctype/custom_field/custom_field.py:358
 msgid "System Generated Fields can not be renamed"
@@ -25546,7 +25546,7 @@ msgstr ""
 
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:363
 msgid "The User record for this request has been auto-deleted due to inactivity by system admins."
-msgstr ""
+msgstr "Bu talebe ait Kullanıcı kaydı, sistem yöneticileri tarafından işlem yapılmadığı için otomatik olarak silinmiştir."
 
 #: public/js/frappe/desk.js:128
 msgid "The application has been updated to a new version, please refresh this page"
@@ -25556,7 +25556,7 @@ msgstr "Uygulama yeni bir versiyona yükseltildi, lütfen sayfayı yenileyin."
 #. Settings'
 #: core/doctype/system_settings/system_settings.json
 msgid "The application name will be used in the Login page."
-msgstr ""
+msgstr "Uygulama adı Oturum Açma sayfasında kullanılacaktır."
 
 #: public/js/frappe/views/interaction.js:324
 msgid "The attachments could not be correctly linked to the new document"
@@ -25644,11 +25644,11 @@ msgstr "Giriş yapmaya çalıştığınız bağlantı geçersiz veya süresi dol
 
 #: website/doctype/web_page/web_page.js:125
 msgid "The meta description is an HTML attribute that provides a brief summary of a web page. Search engines such as Google often display the meta description in search results, which can influence click-through rates."
-msgstr ""
+msgstr "Meta açıklaması, bir web sayfasının kısa bir özetini sağlayan bir HTML niteliğidir. Google gibi arama motorları, tıklama oranlarını etkileyebilecek meta açıklamasını genellikle arama sonuçlarında görüntüler."
 
 #: website/doctype/web_page/web_page.js:132
 msgid "The meta image is unique image representing the content of the page. Images for this Card should be at least 280px in width, and at least 150px in height."
-msgstr ""
+msgstr "Meta görseli, sayfanın içeriğini temsil eden benzersiz bir görseldir. Bu Kart için görseller en az 280 piksel genişliğinde ve en az 150 piksel yüksekliğinde olmalıdır."
 
 #. Description of the 'Calendar Name' (Data) field in DocType 'Google Calendar'
 #: integrations/doctype/google_calendar/google_calendar.json
@@ -25671,26 +25671,28 @@ msgstr "Girmeye çalıştığınız sayfa mevcut değil veya silinmiş."
 
 #: www/update-password.html:86
 msgid "The password of your account has expired."
-msgstr ""
+msgstr "Şifrenizin süresi doldu."
 
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:394
 msgid "The process for deletion of {0} data associated with {1} has been initiated."
-msgstr ""
+msgstr "{1} ile ilişkili {0} verilerinin silinmesi işlemi başlatıldı."
 
 #. Description of the 'App ID' (Data) field in DocType 'Google Settings'
 #: integrations/doctype/google_settings/google_settings.json
 msgid "The project number obtained from Google Cloud Console under <a href=\"https://console.cloud.google.com/iam-admin/settings\">\n"
 "\"IAM &amp; Admin\" &gt; \"Settings\"\n"
 "</a>"
-msgstr ""
+msgstr "Google Cloud Console'dan <a href=\"https://console.cloud.google.com/iam-admin/settings\">\n"
+"\"IAM &amp; Admin\" &gt; \"Settings\"\n"
+"</a>altında elde edilen proje numarası"
 
 #: core/doctype/user/user.py:950
 msgid "The reset password link has been expired"
-msgstr ""
+msgstr "Şifre sıfırlama bağlantısının süresi doldu"
 
 #: core/doctype/user/user.py:952
 msgid "The reset password link has either been used before or is invalid"
-msgstr ""
+msgstr "Şifre sıfırlama bağlantısı daha önce kullanılmış veya geçersiz"
 
 #: app.py:367 public/js/frappe/request.js:147
 msgid "The resource you are looking for is not available"
@@ -25698,7 +25700,7 @@ msgstr "Aradığınız kaynak mevcut değil"
 
 #: core/doctype/user_type/user_type.py:113
 msgid "The role {0} should be a custom role."
-msgstr ""
+msgstr "{0} rolü özel bir rol olmalıdır."
 
 #: core/doctype/audit_trail/audit_trail.py:46
 msgid "The selected document {0} is not a {1}."
@@ -25710,7 +25712,7 @@ msgstr "Sistem güncelleniyor. Lütfen birkaç dakika sonra tekrar yenileyin."
 
 #: core/page/permission_manager/permission_manager_help.html:9
 msgid "The system provides many pre-defined roles. You can add new roles to set finer permissions."
-msgstr ""
+msgstr "Sistem önceden tanımlanmış birçok rol sağlar. Daha ince izinler ayarlamak için yeni roller ekleyebilirsiniz."
 
 #: public/js/frappe/form/grid_row.js:636
 msgid "The total column width cannot be more than 10."
@@ -25818,15 +25820,15 @@ msgstr "Bu sayfayı oluştururken bir hata oluştu."
 
 #: public/js/frappe/views/kanban/kanban_view.js:183
 msgid "There was an error saving filters"
-msgstr ""
+msgstr "Filtreleri kaydederken bir hata oluştu"
 
 #: public/js/frappe/form/sidebar/attachments.js:201
 msgid "There were errors"
-msgstr ""
+msgstr "Hatalar oluştu"
 
 #: public/js/frappe/views/interaction.js:276
 msgid "There were errors while creating the document. Please try again."
-msgstr ""
+msgstr "Belge oluşturulurken hatalar oluştu. Lütfen tekrar deneyin."
 
 #: public/js/frappe/views/communication.js:828
 msgid "There were errors while sending email. Please try again."
@@ -26466,7 +26468,7 @@ msgstr "Üçüncü parti uygulamaları buradan yönetebilirsiniz."
 #. Description of the 'Console' (Code) field in DocType 'System Console'
 #: desk/doctype/system_console/system_console.json
 msgid "To print output use <code>print(text)</code>"
-msgstr ""
+msgstr "Çıktıyı yazdırmak için <code>print(text)</code> kullanın"
 
 #: core/doctype/user_type/user_type.py:292
 msgid "To set the role {0} in the user {1}, kindly set the {2} field as {3} in one of the {4} record."
@@ -26572,15 +26574,15 @@ msgstr "Çok Fazla Seçim Yapıldı"
 
 #: rate_limiter.py:88
 msgid "Too Many Requests"
-msgstr ""
+msgstr "Çok Fazla İstek"
 
 #: database/database.py:439
 msgid "Too many changes to database in single action."
-msgstr ""
+msgstr "Tek bir işlemde veritabanında çok fazla değişiklik yapıldı."
 
 #: core/doctype/user/user.py:991
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
-msgstr ""
+msgstr "Son zamanlarda çok fazla kullanıcı kaydoldu, bu yüzden kayıt devre dışı bırakıldı. Lütfen bir saat sonra tekrar deneyin"
 
 #. Name of a Workspace
 #. Label of a Card Break in the Tools Workspace
@@ -26994,7 +26996,7 @@ msgstr ""
 
 #: templates/discussions/discussions.js:341
 msgid "Type your reply here..."
-msgstr ""
+msgstr "Cevabınızı buraya yazın..."
 
 #: core/doctype/data_export/exporter.py:143
 msgid "Type:"
@@ -28086,23 +28088,23 @@ msgstr ""
 #. Label of the value_to_validate (Data) field in DocType 'Onboarding Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
 msgid "Value to Validate"
-msgstr ""
+msgstr "Doğrulanacak Değer"
 
 #: model/base_document.py:1045
 msgid "Value too big"
-msgstr ""
+msgstr "Değer çok büyük"
 
 #: core/doctype/data_import/importer.py:720
 msgid "Value {0} missing for {1}"
-msgstr ""
+msgstr "{1} için {0} değeri eksik"
 
 #: core/doctype/data_import/importer.py:751 utils/data.py:854
 msgid "Value {0} must be in the valid duration format: d h m s"
-msgstr ""
+msgstr "Değer {0} geçerli süre biçiminde olmalıdır: d h m s"
 
 #: core/doctype/data_import/importer.py:738
 msgid "Value {0} must in {1} format"
-msgstr ""
+msgstr "{0} değeri {1} biçiminde olmalıdır"
 
 #: core/doctype/version/version_view.html:8
 msgid "Values Changed"
@@ -28111,7 +28113,7 @@ msgstr "Değerler Değişti"
 #. Option for the 'Font' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgid "Verdana"
-msgstr ""
+msgstr "Verdana"
 
 #: templates/includes/login/login.js:333
 msgid "Verification"
@@ -29191,7 +29193,7 @@ msgstr ""
 
 #: public/js/frappe/views/kanban/kanban_board.bundle.js:68
 msgid "You are not allowed to create columns"
-msgstr ""
+msgstr "Sütun oluşturmanıza izin verilmiyor"
 
 #: core/doctype/report/report.py:94
 msgid "You are not allowed to delete Standard Report"
@@ -29199,7 +29201,7 @@ msgstr "Standart Raporu silmenize izin verilmiyor"
 
 #: website/doctype/website_theme/website_theme.py:73
 msgid "You are not allowed to delete a standard Website Theme"
-msgstr ""
+msgstr "Standart bir Web Sitesi Temasını silmenize izin verilmiyor"
 
 #: core/doctype/report/report.py:377
 msgid "You are not allowed to edit the report."
@@ -29326,7 +29328,7 @@ msgstr ""
 #. 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgid "You can set a high value here if multiple users will be logging in from the same network."
-msgstr ""
+msgstr "Aynı ağdan birden fazla kullanıcı giriş yapacaksa buraya yüksek bir değer ayarlayabilirsiniz."
 
 #: desk/query_report.py:339
 msgid "You can try changing the filters of your report."
@@ -29351,7 +29353,7 @@ msgstr ""
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:74
 msgctxt "Form timeline"
 msgid "You cancelled this document"
-msgstr ""
+msgstr "{0} bu belge iptal edildi"
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:61
 msgctxt "Form timeline"
@@ -29389,7 +29391,7 @@ msgstr ""
 #: public/js/frappe/form/footer/form_timeline.js:444
 msgctxt "Form timeline"
 msgid "You changed {0} to {1}"
-msgstr ""
+msgstr "{0} değerini {1} olarak değiştirdiniz"
 
 #: public/js/frappe/form/footer/form_timeline.js:140
 #: public/js/frappe/form/sidebar/form_sidebar.js:95
@@ -29398,32 +29400,32 @@ msgstr "Oluşturdunuz"
 
 #: client.py:430
 msgid "You do not have Read or Select Permissions for {}"
-msgstr ""
+msgstr "{} için Okuma veya Seçme İzniniz yok"
 
 #: public/js/frappe/request.js:174
 msgid "You do not have enough permissions to access this resource. Please contact your manager to get access."
-msgstr ""
+msgstr "Bu kaynağa erişmek için yeterli izniniz yok. Erişim için lütfen yöneticinizle iletişime geçin."
 
 #: app.py:358
 msgid "You do not have enough permissions to complete the action"
-msgstr ""
+msgstr "İşlemi tamamlamak için yeterli izniniz yok"
 
 #: public/js/frappe/form/sidebar/review.js:91
 msgid "You do not have enough points"
-msgstr ""
+msgstr "Yeterli puanınız yok"
 
 #: public/js/frappe/form/sidebar/review.js:31
 #: social/doctype/energy_point_log/energy_point_log.py:294
 msgid "You do not have enough review points"
-msgstr ""
+msgstr "Yeterli inceleme puanınız yok"
 
 #: www/printview.py:376
 msgid "You do not have permission to view this document"
-msgstr ""
+msgstr "Bu dosyaya erişmek için gerekli izinlere sahip değilsiniz"
 
 #: public/js/frappe/form/form.js:960
 msgid "You do not have permissions to cancel all linked documents."
-msgstr ""
+msgstr "Bağlantılı tüm belgeleri iptal etme yetkiniz yok."
 
 #: desk/query_report.py:42
 msgid "You don't have access to Report: {0}"
@@ -29463,7 +29465,7 @@ msgstr "Başarıyla çıkış yaptınız"
 
 #: custom/doctype/customize_form/customize_form.py:241
 msgid "You have hit the row size limit on database table: {0}"
-msgstr ""
+msgstr "Veritabanı tablosunda satır boyutu sınırına ulaştınız: {0}"
 
 #: public/js/frappe/list/bulk_operations.js:412
 msgid "You have not entered a value. The field will be set to empty."
@@ -29540,15 +29542,15 @@ msgstr "Bu sayfaya erişmek için giriş yapmanız gerekmektedir"
 
 #: website/doctype/web_form/web_form.py:159
 msgid "You need to be logged in to access this {0}."
-msgstr ""
+msgstr "{0} adresine erişmek için giriş yapmış olmanız gerekiyor."
 
 #: public/js/frappe/widgets/links_widget.js:63
 msgid "You need to create these first: "
-msgstr ""
+msgstr "Öncelikle şunları oluşturmanız gerekiyor: "
 
 #: www/login.html:73
 msgid "You need to enable JavaScript for your app to work."
-msgstr ""
+msgstr "Uygulamanızın çalışması için JavaScript'i etkinleştirmeniz gerekiyor."
 
 #: core/doctype/docshare/docshare.py:62
 msgid "You need to have \"Share\" permission"
@@ -29611,7 +29613,7 @@ msgstr ""
 
 #: public/js/frappe/desk.js:528
 msgid "You've logged in as another user from another tab. Refresh this page to continue using system."
-msgstr ""
+msgstr "Başka bir sekmeden başka bir kullanıcı olarak oturum açtınız. Sistemi kullanmaya devam etmek için bu sayfayı yenileyin."
 
 #: desk/page/setup_wizard/setup_wizard.js:385
 msgid "Your Country"
@@ -29636,7 +29638,7 @@ msgstr "Kısayollar"
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:141
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:147
 msgid "Your account has been deleted"
-msgstr ""
+msgstr "Hesabınız silindi"
 
 #: auth.py:488
 msgid "Your account has been locked and will resume after {0} seconds"
@@ -30239,7 +30241,7 @@ msgstr ""
 #: public/js/frappe/utils/utils.js:1126
 msgctxt "Seconds (Field: Duration)"
 msgid "s"
-msgstr ""
+msgstr "s"
 
 #. Option for the 'Code challenge method' (Select) field in DocType 'OAuth
 #. Authorization Code'
@@ -30804,7 +30806,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/report_view.js:1360
 msgid "{0} is equal to {1}"
-msgstr ""
+msgstr "{0} ile {1} eşittir"
 
 #: public/js/frappe/views/reports/report_view.js:1380
 msgid "{0} is greater than or equal to {1}"
@@ -31326,7 +31328,7 @@ msgstr ""
 
 #: utils/data.py:2429
 msgid "{} Possibly invalid python code. <br>{}"
-msgstr ""
+msgstr "{} Muhtemelen geçersiz python kodu. <br>{}"
 
 #. Count format of shortcut in the Website Workspace
 #: website/workspace/website/website.json
@@ -31335,11 +31337,11 @@ msgstr "{} Yayınlandı"
 
 #: core/doctype/log_settings/log_settings.py:55
 msgid "{} does not support automated log clearing."
-msgstr ""
+msgstr "{} otomatik günlük temizlemeyi desteklemiyor."
 
 #: core/doctype/audit_trail/audit_trail.py:41
 msgid "{} field cannot be empty."
-msgstr ""
+msgstr "{} alanı boş olamaz."
 
 #: email/doctype/email_account/email_account.py:217
 #: email/doctype/email_account/email_account.py:225
@@ -31348,7 +31350,7 @@ msgstr "{} devre dışı bırakılmıştır. Yalnızca {} işaretliyse etkinleş
 
 #: utils/data.py:124
 msgid "{} is not a valid date string."
-msgstr ""
+msgstr "{} geçerli bir tarih dizesi değil."
 
 #: commands/utils.py:539
 msgid "{} not found in PATH! This is required to access the console."
