@@ -7,33 +7,6 @@ body {
 	}
 }
 
-.desk-sidebar {
-	@extend .standard-sidebar;
-
-	.standard-sidebar-label {
-		font-size: var(--text-xs);
-		text-transform: uppercase;
-		cursor: pointer;
-		margin-bottom: var(--margin-xs) !important;
-
-		.section-title {
-			margin-left: 4px;
-		}
-
-		span {
-			pointer-events: none;
-		}
-	}
-
-	.standard-sidebar-section {
-		margin-bottom: var(--margin-xl);
-
-		&:last-of-type {
-			margin-bottom: var(--margin-sm);
-		}
-	}
-}
-
 .widget-group {
 	@include get_textstyle("base", "regular");
 	margin-bottom: var(--margin-2xl);
@@ -465,7 +438,7 @@ body {
 					}
 
 					span {
-						color: var(--gray-700);
+						color: var(--text-color);
 					}
 				}
 
@@ -600,7 +573,7 @@ body {
 		.link-item {
 			display: flex;
 			text-decoration: none;
-			@include get_textstyle("base", "regular");
+			@include get_textstyle("sm", "regular");
 			color: var(--text-color);
 			padding: 4px;
 			margin-left: -4px;
@@ -650,8 +623,6 @@ body {
 		}
 
 		@include media-breakpoint-down(md) {
-			padding: 1px 8px;
-
 			.link-item {
 				&:first-child {
 					margin-top: 5px;
@@ -930,6 +901,7 @@ body {
 }
 
 .workspace-skeleton {
+	width: 100%;
 	transition: ease;
 	.widget-group-title {
 		height: 15px;
@@ -948,59 +920,15 @@ body {
 	}
 }
 
-.workspace-sidebar-skeleton {
-	transition: ease;
-	.sidebar-box {
-		height: 40px;
-		margin-bottom: 10px;
-		margin-left: 10px;
-		background-color: var(--skeleton-bg);
-
-		&.child {
-			margin-left: 30px;
-		}
-
-		&.section {
-			height: 25px;
-			margin-left: 0px;
-		}
-	}
-}
-
 [data-page-route="Workspaces"] {
 	@media (min-width: map-get($grid-breakpoints, "lg")) {
 		.layout-main {
 			height: calc(100vh - var(--navbar-height) - var(--page-head-height) - 5px);
-			.layout-side-section,
-			.layout-main-section-wrapper {
-				height: 100%;
-				overflow-y: auto;
-				scrollbar-color: var(--gray-200) transparent;
-				[data-theme="dark"] & {
-					scrollbar-color: var(--gray-800) transparent;
-				}
-
-				&::-webkit-scrollbar-track {
-					background: transparent;
-				}
-
-				&::-webkit-scrollbar-thumb {
-					background: var(--gray-200);
-					[data-theme="dark"] & {
-						background: var(--gray-800);
-					}
-				}
-			}
-
-			.layout-side-section {
-				padding-right: 15px;
-			}
+			max-width: var(--page-max-width);
+			margin: auto;
 
 			.layout-main-section {
-				border: 1px solid var(--border-color);
-				border-top: 0px;
-				padding: var(--padding-sm) var(--padding-md);
-				margin-bottom: var(--margin-sm);
+				border: 0px;
 
 				&.edit-mode {
 					background-color: var(--subtle-fg) !important;
@@ -1013,11 +941,12 @@ body {
 					}
 				}
 			}
-
-			.desk-sidebar {
-				margin-bottom: var(--margin-2xl);
-			}
 		}
+	}
+
+	.page-head .container {
+		max-width: var(--page-max-width);
+		margin: auto;
 	}
 
 	.layout-main-section-wrapper {
@@ -1028,7 +957,7 @@ body {
 	.layout-main-section {
 		background-color: var(--fg-color);
 		box-shadow: none;
-		padding: var(--padding-sm);
+		padding: var(--padding-sm) var(--padding-md);
 	}
 
 	.workspace-footer {
@@ -1044,139 +973,6 @@ body {
 		margin-right: 5px;
 	}
 
-	.standard-sidebar-item {
-		justify-content: space-between;
-		padding: 0px;
-
-		.sidebar-item-control {
-			> * {
-				align-self: center;
-				margin-left: 3px;
-				box-shadow: none;
-			}
-
-			.drag-handle {
-				cursor: all-scroll;
-				cursor: grabbing;
-				display: none;
-			}
-
-			.setting-btn,
-			.duplicate-page {
-				display: none;
-			}
-
-			.drop-icon {
-				padding: 0px 12px 0px 2px;
-			}
-
-			svg {
-				margin-right: 0;
-				margin-top: -3px;
-			}
-
-			.dropdown-list {
-				top: 42px;
-			}
-		}
-
-		.sidebar-item-label {
-			flex: 1;
-		}
-
-		.item-anchor {
-			display: flex;
-			overflow: hidden;
-			padding: 3px 0px 3px 8px;
-			flex: 1;
-		}
-	}
-
-	.sidebar-item-container {
-		position: relative;
-		margin-left: -10px;
-
-		&[item-is-hidden="1"] {
-			display: none;
-			opacity: 0.4;
-
-			&:hover {
-				opacity: 1;
-			}
-		}
-
-		.sidebar-item-container {
-			margin-left: 10px;
-
-			.standard-sidebar-item {
-				justify-content: start;
-			}
-		}
-
-		.indicator {
-			margin-left: 5px;
-		}
-	}
-
-	.desk-sidebar {
-		&.show-hidden-workspaces {
-			.unhide-workspace-btn {
-				display: none;
-			}
-
-			.standard-sidebar-section {
-				display: block;
-
-				.sidebar-item-container {
-					&[item-is-hidden="1"] {
-						display: block;
-					}
-					&[item-is-hidden="0"] {
-						.drop-icon {
-							display: inline-block;
-						}
-					}
-				}
-			}
-
-			.show-in-edit-mode {
-				display: block !important;
-
-				&.drop-icon {
-					display: inline-block !important;
-				}
-			}
-		}
-
-		.standard-sidebar-section.show-control {
-			.desk-sidebar-item.standard-sidebar-item {
-				&:hover,
-				&.selected {
-					.drag-handle {
-						display: inline-block;
-						background-color: var(--bg-color);
-					}
-
-					.setting-btn,
-					.duplicate-page,
-					.unhide-workspace-btn {
-						display: inline-block;
-						margin-right: 8px;
-					}
-
-					.drop-icon {
-						padding: 10px 8px 10px 2px;
-						margin-left: -8px;
-					}
-				}
-
-				.block-click {
-					pointer-events: none;
-				}
-			}
-		}
-	}
-
 	// widgets
 	.widget.number-widget-box {
 		border: 1px solid var(--border-color);
@@ -1187,14 +983,14 @@ body {
 	}
 
 	.codex-editor {
-		min-height: calc(100vh - var(--navbar-height) - var(--page-head-height));
+		min-height: calc(100vh - 165px);
 
 		.codex-editor__redactor {
 			display: flex;
 			flex-wrap: wrap;
 			flex-direction: row;
-			margin: 0px -7px;
 			padding-bottom: 20px !important;
+			margin: 0 -4px;
 
 			.ce-block {
 				width: 100%;
@@ -1216,7 +1012,7 @@ body {
 				.new-block-button {
 					position: absolute;
 					top: 14px;
-					left: -22px;
+					left: -5px;
 					cursor: pointer;
 					visibility: hidden;
 					opacity: 0;
@@ -1298,10 +1094,6 @@ body {
 					height: 100%;
 					padding: 7px;
 
-					@include media-breakpoint-down(md) {
-						padding: 7px 3px;
-					}
-
 					& > div {
 						height: 100%;
 					}
@@ -1326,7 +1118,6 @@ body {
 					}
 
 					.ce-header {
-						padding-left: 7px !important;
 						margin-bottom: 0 !important;
 						flex: 1;
 
@@ -1394,7 +1185,6 @@ body {
 						}
 
 						&.spacer {
-							border-bottom: 1px solid var(--border-color);
 							margin: 0px -15px;
 							height: 0px;
 							padding: 0px;

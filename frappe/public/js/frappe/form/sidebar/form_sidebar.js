@@ -71,6 +71,7 @@ frappe.ui.form.Sidebar = class {
 			frappe.utils.get_page_view_count(route).then((res) => {
 				this.sidebar
 					.find(".pageview-count")
+					.removeClass("hidden")
 					.html(__("{0} Web page views", [String(res.message).bold()]));
 			});
 		}
@@ -145,6 +146,7 @@ frappe.ui.form.Sidebar = class {
 				callback: function (res) {
 					me.sidebar
 						.find(".auto-repeat-status")
+						.removeClass("hidden")
 						.html(__("Repeats {0}", [__(res.message.frequency)]));
 					me.sidebar.find(".auto-repeat-status").on("click", function () {
 						frappe.set_route("Form", "Auto Repeat", me.frm.doc.auto_repeat);
@@ -198,7 +200,9 @@ frappe.ui.form.Sidebar = class {
 		return $("<a>")
 			.html(label)
 			.appendTo(
-				$('<li class="user-action-row">').appendTo(this.user_actions.removeClass("hidden"))
+				$('<div class="user-action-row"></div>').appendTo(
+					this.user_actions.removeClass("hidden")
+				)
 			)
 			.on("click", click);
 	}

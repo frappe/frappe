@@ -194,3 +194,5 @@ cypress/videos
 
 # JetBrains IDEs
 .idea/
+# Helix Editor
+.helix/
