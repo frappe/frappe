@@ -48,6 +48,10 @@ body.modal-open[style^="padding-right"] {
 			max-width: calc(100% - 80px);
 		}
 
+		.btn-modal-close {
+			padding: 4px 0;
+		}
+
 		.modal-actions {
 			.btn-modal-minimize {
 				padding-right: 0;
@@ -234,11 +238,14 @@ body.modal-open[style^="padding-right"] {
 			&[data-fieldname="sender"] {
 				margin-right: 10px;
 			}
+
 			flex: 1;
+			.control-input-wrapper {
+				width: 60%;
+			}
 		}
 		.frappe-control:last-child {
 			margin-left: 10px;
-			margin-bottom: -24px;
 			button {
 				// same as form-control input
 				height: calc(1.5em + 0.7rem);
@@ -257,10 +264,14 @@ body.modal-open[style^="padding-right"] {
 				margin-right: 10px;
 			}
 			flex: 1;
+
+			.control-input-wrapper {
+				width: 53%.6;
+			}
 		}
 
 		.frappe-control:last-child {
-			margin-bottom: -8px;
+			margin-top: -14px;
 		}
 	}
 }

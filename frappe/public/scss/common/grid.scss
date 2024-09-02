@@ -21,6 +21,8 @@
 
 	.grid-row {
 		background-color: var(--subtle-fg);
+		border-top-left-radius: var(--border-radius-md);
+		border-top-right-radius: var(--border-radius-md);
 	}
 
 	&.with-filter {
@@ -123,7 +125,7 @@
 
 .grid-static-col,
 .row-index {
-	height: 38px;
+	// height: 38px;
 	max-height: 200px;
 
 	&.search {
@@ -137,11 +139,12 @@
 }
 
 .row-check {
-	height: 38px;
+	// height: 38px;
 	text-align: center;
 
 	input {
 		margin-right: 0 !important;
+		margin-bottom: -3px;
 	}
 
 	&.search {
@@ -150,7 +153,7 @@
 }
 
 .grid-row-check {
-	margin-top: 2px;
+	margin-top: 3px;
 
 	&::after {
 		// Extend the checkbox's clickable area
@@ -290,7 +293,8 @@
 	}
 
 	.grid-static-col[data-fieldtype="Check"] .static-area {
-		padding-top: 2px;
+		padding-top: 4px;
+		margin-bottom: -4px;
 	}
 
 	.grid-static-col[data-fieldtype="Rating"] .field-area {
@@ -360,7 +364,7 @@
 	}
 
 	.frappe-control {
-		margin-bottom: 0px;
+		margin-bottom: 0px !important;
 		position: relative;
 	}
 
