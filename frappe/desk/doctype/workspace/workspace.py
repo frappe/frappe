@@ -30,6 +30,7 @@ class Workspace(Document):
 		from frappe.desk.doctype.workspace_shortcut.workspace_shortcut import WorkspaceShortcut
 		from frappe.types import DF
 
+		app: DF.Data | None
 		charts: DF.Table[WorkspaceChart]
 		content: DF.LongText | None
 		custom_blocks: DF.Table[WorkspaceCustomBlock]
@@ -268,6 +269,7 @@ def new_page(new_page):
 	doc.label = page.get("label")
 	doc.for_user = page.get("for_user")
 	doc.public = page.get("public")
+	doc.app = page.get("app")
 	doc.sequence_id = last_sequence_id(doc) + 1
 	doc.save(ignore_permissions=True)
 

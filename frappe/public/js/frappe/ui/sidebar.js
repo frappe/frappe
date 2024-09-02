@@ -182,7 +182,11 @@ frappe.ui.Sidebar = class Sidebar {
 
 		let parent_pages = this.all_pages.filter((p) => !p.parent_page).uniqBy((p) => p.title);
 		parent_pages = [
-			...parent_pages.filter((p) => !p.public && app_workspaces.includes(p.title)),
+			...parent_pages.filter(
+				(p) =>
+					!p.public &&
+					(app_workspaces.includes(p.title) || p.app === frappe.current_app || !p.app)
+			),
 			...parent_pages.filter((p) => p.public && app_workspaces.includes(p.title)),
 		];
 
@@ -220,11 +224,17 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	prepare_sidebar(items, child_container, item_container) {
+		let last_item = null;
 		for (let item of items) {
+			if (item.public && last_item && !last_item.public) {
+				$(`<div class="divider"></div>`).appendTo(child_container);
+			}
+
 			// visibility not explicitly set to 0
 			if (item.visibility !== 0) {
 				this.append_item(item, child_container);
 			}
+			last_item = item;
 		}
 		child_container.appendTo(item_container);
 	}

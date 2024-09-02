@@ -506,6 +506,7 @@ frappe.views.Workspace = class Workspace {
 					parent_page: values.parent || "",
 					is_editable: true,
 					selected: true,
+					app: frappe.current_app,
 				};
 
 				this.editor

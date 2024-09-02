@@ -104,7 +104,7 @@ body {
 	z-index: 1030;
 	position: static;
 	font-size: var(--text-base);
-	transition: transform 200ms ease-in-out;
+	// transition: width 200ms;
 
 	.app-logo {
 		width: 21px;
@@ -112,6 +112,11 @@ body {
 
 	.sidebar-items {
 		width: 100%;
+	}
+
+	.divider {
+		margin: var(--margin-md) 0;
+		border-top: 1px solid var(--border-color);
 	}
 
 	.standard-sidebar-section {
@@ -192,6 +197,12 @@ body {
 	}
 }
 
+.app-switcher-dropdown {
+	.sidebar-item-control {
+		margin-top: -2px;
+	}
+}
+
 .app-switcher-menu {
 	position: absolute;
 	top: 40px;
@@ -205,6 +216,11 @@ body {
 
 .app-item {
 	padding: var(--padding-xs);
+	border-radius: var(--border-radius-tiny);
+
+	&:hover {
+		background-color: var(--subtle-accent);
+	}
 
 	a {
 		text-decoration: none;
