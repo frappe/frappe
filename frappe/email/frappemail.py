@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import Any
 from urllib.parse import urljoin
 
 import pytz
@@ -8,9 +8,6 @@ import frappe
 from frappe import _
 from frappe.frappeclient import FrappeClient, FrappeOAuth2Client
 from frappe.utils import convert_utc_to_system_timezone, get_datetime, get_datetime_str, get_system_timezone
-
-if TYPE_CHECKING:
-	from requests import Response
 
 
 class FrappeMail:
@@ -29,6 +26,9 @@ class FrappeMail:
 		self.api_key = api_key
 		self.api_secret = api_secret
 		self.access_token = access_token
+		self.client = self.get_client(
+			self.site, self.mailbox, self.api_key, self.api_secret, self.access_token
+		)
 
 	@staticmethod
 	def get_client(
@@ -65,76 +65,65 @@ class FrappeMail:
 		headers: dict[str, str] | None = None,
 		timeout: int | tuple[int, int] = (60, 120),
 		raise_exception: bool = True,
-	) -> "Response":
-		"""Makes a HTTP request to the Frappe Mail API."""
+	) -> Any | None:
+		"""Makes a request to the Frappe Mail API."""
 
-		url = urljoin(self.site, endpoint)
-		client = self.get_client(self.site, self.mailbox, self.api_key, self.api_secret, self.access_token)
+		url = urljoin(self.client.url, endpoint)
 
 		headers = headers or {}
-		headers.update(client.headers)
+		headers.update(self.client.headers)
 
-		response = client.session.request(
+		response = self.client.session.request(
 			method=method, url=url, params=params, data=data, json=json, headers=headers, timeout=timeout
 		)
 
-		if not response.ok and raise_exception:
-			error_msg = response.text
-			if response.status_code == 401:
-				if self.access_token:
-					error_msg = _("Authentication Error: Reauthorize OAuth for Email Account {0}.").format(
-						frappe.bold(self.mailbox)
-					)
-				else:
-					error_msg = _("Authentication Error: Invalid API Key or Secret")
-
-			frappe.throw(title=_("Frappe Mail"), msg=error_msg)
-
-		return response
+		return self.client.post_process(response)
 
 	def validate(self, for_outbound: bool = False, for_inbound: bool = False) -> None:
 		"""Validates the mailbox for inbound and outbound emails."""
 
-		endpoint = "auth/validate"
+		endpoint = "/api/method/mail.api.auth.validate"
 		data = {"mailbox": self.mailbox, "for_outbound": for_outbound, "for_inbound": for_inbound}
-		response = self.request("POST", endpoint=endpoint, data=data, raise_exception=False)
+		self.request("POST", endpoint=endpoint, data=data)
 
-		if not response.ok:
-			if error_msg := response.json().get("exception"):
-				if error_msg == "frappe.exceptions.AuthenticationError":
-					error_msg += ": Invalid API Key or Secret"
-
-				frappe.throw(title="Frappe Mail", msg=error_msg)
-
-	def send_raw(self, sender: str, recipients: str, message: str) -> None:
+	def send_raw(self, sender: str, recipients: str | list, message: str) -> None:
 		"""Sends an email using the Frappe Mail API."""
 
-		endpoint = "outbound/send-raw"
-		json_data = {"from": sender, "to": recipients, "raw_message": message}
-		self.request("POST", endpoint=endpoint, json=json_data)
+		endpoint = "/api/method/mail.api.outbound.send_raw"
+		data = {"from_": sender, "to": recipients, "raw_message": message}
+		self.request("POST", endpoint=endpoint, data=data)
+
+	def send_newsletter(self, sender: str, recipients: str | list, message: str) -> None:
+		"""Sends an newsletter using the Frappe Mail API."""
+
+		endpoint = "/api/method/mail.api.outbound.send_newsletter"
+		data = {"from_": sender, "to": recipients, "raw_message": message}
+		self.request("POST", endpoint=endpoint, json=data)
 
 	def pull_raw(self, limit: int = 50, last_synced_at: str | None = None) -> dict[str, list[str] | str]:
 		"""Pulls emails from the mailbox using the Frappe Mail API."""
 
-		endpoint = "inbound/pull-raw"
+		endpoint = "/api/method/mail.api.inbound.pull_raw"
 		if last_synced_at:
-			last_synced_at = convert_to_utc(last_synced_at)
+			last_synced_at = add_or_update_tzinfo(last_synced_at)
 
 		data = {"mailbox": self.mailbox, "limit": limit, "last_synced_at": last_synced_at}
 		headers = {"X-Site": frappe.utils.get_url()}
-		response = self.request("GET", endpoint=endpoint, data=data, headers=headers).json()["message"]
+		response = self.request("GET", endpoint=endpoint, data=data, headers=headers)
 		last_synced_at = convert_utc_to_system_timezone(get_datetime(response["last_synced_at"]))
 
 		return {"latest_messages": response["mails"], "last_synced_at": last_synced_at}
 
 
-def convert_to_utc(date_time: datetime | str, from_timezone: str | None = None) -> str:
-	"""Converts datetime to UTC timezone."""
+def add_or_update_tzinfo(date_time: datetime | str, timezone: str | None = None) -> str:
+	"""Adds or updates timezone to the datetime."""
 
-	dt = (
-		pytz.timezone(from_timezone or get_system_timezone())
-		.localize(get_datetime(date_time))
-		.astimezone(pytz.utc)
-	)
+	date_time = get_datetime(date_time)
+	target_tz = pytz.timezone(timezone or get_system_timezone())
 
-	return get_datetime_str(dt)
+	if date_time.tzinfo is None:
+		date_time = target_tz.localize(date_time)
+	else:
+		date_time = date_time.astimezone(target_tz)
+
+	return str(date_time)

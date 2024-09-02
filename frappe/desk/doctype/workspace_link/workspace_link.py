@@ -28,6 +28,7 @@ class WorkspaceLink(Document):
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
+		report_ref_doctype: DF.Link | None
 		type: DF.Literal["Link", "Card Break"]
 	# end: auto-generated types
 

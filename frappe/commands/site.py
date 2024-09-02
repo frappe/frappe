@@ -675,12 +675,11 @@ def migrate(context, skip_failing=False, skip_search_index=False):
 
 
 @click.command("migrate-to")
-@pass_context
-def migrate_to(context):
+def migrate_to():
 	"Migrates site to the specified provider"
 	from frappe.integrations.frappe_providers import migrate_to
 
-	migrate_to(context)
+	migrate_to()
 
 
 @click.command("run-patch")
@@ -881,6 +880,7 @@ def backup(
 @pass_context
 def remove_from_installed_apps(context, app):
 	"Remove app from site's installed-apps list"
+	ensure_app_not_frappe(app)
 	from frappe.installer import remove_from_installed_apps
 
 	for site in context.sites:
@@ -909,6 +909,7 @@ def remove_from_installed_apps(context, app):
 @pass_context
 def uninstall(context, app, dry_run, yes, no_backup, force):
 	"Remove app and linked modules from site"
+	ensure_app_not_frappe(app)
 	from frappe.installer import remove_app
 	from frappe.utils.synchronization import filelock
 
@@ -1492,6 +1493,18 @@ def add_new_user(
 		from frappe.utils.password import update_password
 
 		update_password(user=user.name, pwd=password)
+
+
+def ensure_app_not_frappe(app: str) -> None:
+	"""
+	Ensure that the app name passed is not 'frappe'
+
+	:param app: Name of the app
+	:return: Nothing
+	"""
+	if app == "frappe":
+		click.secho("You cannot remove or uninstall the app `frappe`", fg="red")
+		sys.exit(1)
 
 
 @click.command("bypass-patch")

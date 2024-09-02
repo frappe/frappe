@@ -8,6 +8,7 @@
  *
  * @param {string} opts.parent [HTMLElement] Parent element
  * @param {boolean} opts.single_column Whether to include sidebar
+ * @param {string} [opts.sidebar_position] Position of sidebar (default None, "Left" or "Right")
  * @param {string} [opts.title] Page title
  * @param {Object} [opts.make_page]
  *
@@ -47,7 +48,7 @@ frappe.ui.Page = class Page {
 
 	setup_scroll_handler() {
 		let last_scroll = 0;
-		$(window).scroll(
+		$(".main-section").scroll(
 			frappe.utils.throttle(() => {
 				$(".page-head").toggleClass("drop-shadow", !!document.documentElement.scrollTop);
 				let current_scroll = document.documentElement.scrollTop;
@@ -86,8 +87,8 @@ frappe.ui.Page = class Page {
 			// nesting under col-sm-12 for consistency
 			this.add_view(
 				"main",
-				'<div class="row layout-main">\
-					<div class="col-md-12 layout-main-section-wrapper">\
+				'<div class="layout-main">\
+					<div class="layout-main-section-wrapper">\
 						<div class="layout-main-section"></div>\
 						<div class="layout-footer hide"></div>\
 					</div>\
@@ -97,15 +98,22 @@ frappe.ui.Page = class Page {
 			this.add_view(
 				"main",
 				`
-				<div class="row layout-main">
-					<div class="col-lg-2 layout-side-section"></div>
-					<div class="col layout-main-section-wrapper">
+				<div class="layout-main">
+					<div class="layout-side-section"></div>
+					<div class="layout-main-section-wrapper">
 						<div class="layout-main-section"></div>
 						<div class="layout-footer hide"></div>
 					</div>
 				</div>
 			`
 			);
+
+			if (this.sidebar_position === "Right") {
+				this.wrapper
+					.find(".layout-main-section-wrapper")
+					.insertBefore(this.wrapper.find(".layout-side-section"));
+				this.wrapper.find(".layout-side-section").addClass("right");
+			}
 		}
 
 		this.setup_page();
@@ -147,8 +155,6 @@ frappe.ui.Page = class Page {
 		if (this.make_page) {
 			this.make_page();
 		}
-
-		this.card_layout && this.main.addClass("frappe-card");
 
 		// keyboard shortcuts
 		let menu_btn = this.menu_btn_group.find("button");
@@ -509,7 +515,7 @@ frappe.ui.Page = class Page {
 		if (standard) {
 			$li.appendTo(parent);
 		} else {
-			this.divider = parent.find(".dropdown-divider");
+			this.divider = parent.find(".dropdown-divider.user-action");
 			if (!this.divider.length) {
 				this.divider = $('<li class="dropdown-divider user-action"></li>').prependTo(
 					parent
@@ -647,6 +653,7 @@ frappe.ui.Page = class Page {
 			let response = action();
 			me.btn_disable_enable(btn, response);
 		};
+
 		// Add actions as menu item in Mobile View
 		let menu_item_label = group ? `${group} > ${label}` : label;
 		let menu_item = this.add_menu_item(menu_item_label, _action, false, false, false);

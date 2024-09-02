@@ -45,6 +45,7 @@ class Report(Document):
 		report_script: DF.Code | None
 		report_type: DF.Literal["Report Builder", "Query Report", "Script Report", "Custom Report"]
 		roles: DF.Table[HasRole]
+		timeout: DF.Int
 	# end: auto-generated types
 
 	def validate(self):
@@ -165,7 +166,7 @@ class Report(Document):
 
 		# automatically set as prepared
 		execution_time = (datetime.datetime.now() - start_time).total_seconds()
-		if execution_time > threshold and not self.prepared_report:
+		if execution_time > threshold and not self.prepared_report and not frappe.conf.developer_mode:
 			frappe.enqueue(enable_prepared_report, report=self.name)
 
 		frappe.cache.hset("report_execution_time", self.name, execution_time)

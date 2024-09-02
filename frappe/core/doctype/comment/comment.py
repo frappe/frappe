@@ -53,6 +53,8 @@ class Comment(Document):
 		subject: DF.Text | None
 	# end: auto-generated types
 
+	no_feed_on_delete = True
+
 	def after_insert(self):
 		notify_mentions(self.reference_doctype, self.reference_name, self.content)
 		self.notify_change("add")
@@ -60,7 +62,7 @@ class Comment(Document):
 	def validate(self):
 		if not self.comment_email:
 			self.comment_email = frappe.session.user
-		self.content = frappe.utils.sanitize_html(self.content)
+		self.content = frappe.utils.sanitize_html(self.content, always_sanitize=True)
 
 	def on_update(self):
 		update_comment_in_doc(self)
