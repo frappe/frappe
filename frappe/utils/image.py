@@ -53,13 +53,7 @@ def optimize_image(content, content_type, max_width=1920, max_height=1080, optim
 
 	try:
 		image = Image.open(io.BytesIO(content))
-<<<<<<< HEAD
-=======
 		exif = image.getexif()
-		width, height = image.size
-		max_height = max(min(max_height, height * 0.8), 200)
-		max_width = max(min(max_width, width * 0.8), 200)
->>>>>>> 71eb3704bd (fix: preserve exif data in optimized image (#27341))
 		image_format = content_type.split("/")[1]
 		size = max_width, max_height
 		image.thumbnail(size, Image.Resampling.LANCZOS)
