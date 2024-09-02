@@ -44,7 +44,7 @@ def clear_sessions(user=None, keep_current=False, force=False):
 	if force:
 		reason = "Force Logged out by the user"
 
-	for sid in get_sessions_to_clear(user, keep_current):
+	for sid in get_sessions_to_clear(user, keep_current, force):
 		delete_session(sid, reason=reason)
 
 
