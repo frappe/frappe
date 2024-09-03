@@ -223,6 +223,7 @@ class SendMailContext:
 		return self
 
 	def __exit__(self, exc_type, exc_val, exc_tb):
+<<<<<<< HEAD
 		exceptions = [
 			smtplib.SMTPServerDisconnected,
 			smtplib.SMTPAuthenticationError,
@@ -242,6 +243,10 @@ class SendMailContext:
 			}
 		elif exc_type:
 			update_fields = {"error": trace}
+=======
+		if exc_type:
+			update_fields = {"error": frappe.get_traceback()}
+>>>>>>> cea1713575 (fix(EmailQueue): Log more error onto email queue)
 			if self.queue_doc.retry < get_email_retry_limit():
 				update_fields.update(
 					{
