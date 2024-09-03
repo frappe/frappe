@@ -427,6 +427,9 @@ frappe.ui.form.PrintView = class {
 			params.append("letterhead", letterhead);
 		}
 		iframe.prop("src", `/printpreview?${params.toString()}`);
+		setTimeout(() => {
+			iframe.css("height", "calc(100vh - var(--page-head-height) - var(--navbar-height))");
+		}, 500);
 	}
 
 	setup_print_format_dom(out, $print_format) {

@@ -17,6 +17,7 @@
   "add_total_row",
   "disabled",
   "prepared_report",
+  "timeout",
   "filters_section",
   "filters",
   "columns_section",
@@ -181,12 +182,19 @@
    "fieldname": "client_code_section",
    "fieldtype": "Section Break",
    "label": "Client Code"
+  },
+  {
+   "depends_on": "prepared_report",
+   "description": "Specify a custom timeout, default timeout is 1500 seconds",
+   "fieldname": "timeout",
+   "fieldtype": "Int",
+   "label": "Timeout (In Seconds)"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-04-07 18:18:11.782178",
+ "modified": "2024-08-31 20:34:10.018811",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",
