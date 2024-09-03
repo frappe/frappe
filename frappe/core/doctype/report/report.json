@@ -194,11 +194,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2023-04-07 18:18:11.782178",
-=======
  "modified": "2024-08-31 20:34:10.018811",
->>>>>>> 85b96ba162 (feat: Custom timeouts for prepared report)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",
