@@ -225,6 +225,41 @@ def get_context(context):
 
 		return docs
 
+	def queue_send(self, doc, enqueue_after_commit=True):
+		"""
+		Enqueue the process to build recipients and send notifications.
+
+		This method is particularly useful for sending notifications, especially 'Custom'-type,
+		without the additional overhead associated with `Document.queue_action`.
+
+		Args:
+		              doc (Document): The document object for which the notification is being sent.
+		              enqueue_after_commit (bool, optional): If True, the task will be enqueued after
+		                the current transaction is committed. Defaults to True.
+
+		Note:
+		              This method is the recommended way to send 'Custom'-type notifications.
+
+		Example:
+		              To queue a notification from a server script:
+
+		              ```python
+		              notification = frappe.get_doc("Notification", "My Notification", ignore_permissions=True)
+		              notification.queue_send(customer)
+		              ```
+
+		              This example queues the "My Notification" to be sent for the specified customer document.
+		"""
+		from frappe.utils.background_jobs import enqueue
+
+		return enqueue(
+			"frappe.email.doctype.notification.notification.evaluate_alert",
+			doc=doc,
+			alert=self,
+			now=frappe.flags.in_test,
+			enqueue_after_commit=enqueue_after_commit,
+		)
+
 	def send(self, doc):
 		"""Build recipients and send Notification"""
 
@@ -573,7 +608,7 @@ def trigger_notifications(doc, method=None):
 				frappe.db.commit()
 
 
-def evaluate_alert(doc: Document, alert, event):
+def evaluate_alert(doc: Document, alert, event=None):
 	from jinja2 import TemplateError
 
 	try:
