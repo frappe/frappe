@@ -111,41 +111,69 @@ frappe.ui.Sidebar = class Sidebar {
 		for (var app of frappe.boot.app_data) {
 			frappe.boot.app_data_map[app.app_name] = app;
 			if (app.workspaces?.length) {
-				$(`<div class="app-item" data-app-name="${app.app_name}"
-						data-app-home="${app.app_home}">
-					<a>
-						<div class="sidebar-item-icon">
-							<img
-								style="margin-right: var(--margin-sm);"
-								class="app-logo"
-								src="${app.app_logo_url}"
-								alt="${__("App Logo")}"
-							>
-						</div>
-						<span>${app.app_title}</span>
-					</a>
-				</div>`).appendTo(app_switcher_menu);
+				this.add_app_item(app, app_switcher_menu);
 			}
 		}
+		this.add_website_select(app_switcher_menu);
+		this.setup_select_app(app_switcher_menu);
+	}
 
+	add_app_item(app, app_switcher_menu) {
+		$(`<div class="app-item" data-app-name="${app.app_name}"
+			data-app-home="${app.app_home}">
+			<a>
+				<div class="sidebar-item-icon">
+					<img
+						style="margin-right: var(--margin-sm);"
+						class="app-logo"
+						src="${app.app_logo_url}"
+						alt="${__("App Logo")}"
+					>
+				</div>
+				<span>${app.app_title}</span>
+			</a>
+		</div>`).appendTo(app_switcher_menu);
+	}
+
+	setup_select_app(app_switcher_menu) {
 		app_switcher_menu.find(".app-item").on("click", (e) => {
 			let item = $(e.delegateTarget);
+			let route = item.attr("data-app-home");
 			frappe.current_app = item.attr("data-app-name");
-			frappe.set_route(item.attr("data-app-home"));
 
-			this.wrapper
-				.find(".app-switcher-dropdown .sidebar-item-icon img")
-				.attr("src", frappe.boot.app_data_map[frappe.current_app].app_logo_url);
-			this.wrapper
-				.find(".app-switcher-dropdown .sidebar-item-label")
-				.html(frappe.boot.app_data_map[frappe.current_app].app_title);
+			if (route.startsWith("/app")) {
+				frappe.set_route(item.attr("data-app-home"));
 
-			// hide menu
-			app_switcher_menu.toggleClass("hidden");
+				this.wrapper
+					.find(".app-switcher-dropdown .sidebar-item-icon img")
+					.attr("src", frappe.boot.app_data_map[frappe.current_app].app_logo_url);
+				this.wrapper
+					.find(".app-switcher-dropdown .sidebar-item-label")
+					.html(frappe.boot.app_data_map[frappe.current_app].app_title);
 
-			// re-render the sidebar
-			this.make_sidebar();
+				// hide menu
+				app_switcher_menu.toggleClass("hidden");
+
+				// re-render the sidebar
+				this.make_sidebar();
+			} else {
+				// new page
+				window.open(route);
+			}
 		});
+	}
+
+	add_website_select(app_switcher_menu) {
+		$(`<div class="divider"></div>`).appendTo(app_switcher_menu);
+		this.add_app_item(
+			{
+				app_name: "website",
+				app_title: __("Website"),
+				app_home: "/",
+				app_logo_url: "/assets/frappe/images/web.svg",
+			},
+			app_switcher_menu
+		);
 	}
 
 	setup_pages() {

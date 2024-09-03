@@ -115,7 +115,7 @@ body {
 	}
 
 	.divider {
-		margin: var(--margin-md) 0;
+		margin: var(--margin-xs) 0;
 		border-top: 1px solid var(--border-color);
 	}
 
@@ -225,7 +225,7 @@ body {
 	a {
 		text-decoration: none;
 		display: flex;
-		vertical-align: middle;
+		align-items: center;
 	}
 }
 
