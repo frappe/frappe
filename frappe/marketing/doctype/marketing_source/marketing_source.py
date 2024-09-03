@@ -1,11 +1,11 @@
-# Copyright (c) 2023, Frappe Technologies and contributors
+# Copyright (c) 2024, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-# import frappe
+import frappe
 from frappe.model.document import Document
 
 
-class MarketingCampaign(Document):
+class MarketingSource(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -14,7 +14,10 @@ class MarketingCampaign(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		campaign_description: DF.SmallText | None
+		description: DF.SmallText | None
+		slug: DF.Data | None
 	# end: auto-generated types
 
-	pass
+	def before_save(self):
+		if self.slug:
+			self.slug = frappe.utils.slug(self.slug)
