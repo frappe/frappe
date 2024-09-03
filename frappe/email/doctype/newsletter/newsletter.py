@@ -22,9 +22,7 @@ class Newsletter(WebsiteGenerator):
 
 	if TYPE_CHECKING:
 		from frappe.email.doctype.newsletter_attachment.newsletter_attachment import NewsletterAttachment
-		from frappe.email.doctype.newsletter_email_group.newsletter_email_group import (
-			NewsletterEmailGroup,
-		)
+		from frappe.email.doctype.newsletter_email_group.newsletter_email_group import NewsletterEmailGroup
 		from frappe.types import DF
 
 		attachments: DF.Table[NewsletterAttachment]
