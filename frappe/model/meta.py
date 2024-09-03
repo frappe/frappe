@@ -232,7 +232,7 @@ class Meta(Document):
 
 	def get_valid_fields(self) -> list[str]:
 		if not hasattr(self, "_valid_fields"):
-			if frappe.flags.in_install and self.name in self.special_doctypes:
+			if (frappe.flags.in_install or frappe.flags.in_migrate) and self.name in self.special_doctypes:
 				self._valid_fields = get_table_columns(self.name)
 			else:
 				self._valid_fields = self.default_fields + [
