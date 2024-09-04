@@ -195,7 +195,7 @@ context("Web Form", () => {
 		cy.url().should("include", "/note/list");
 		cy.get(".web-list-table tbody tr:last").click();
 
-		cy.get(".web-form-actions a").contains("Edit Response").click();
+		cy.get(".web-form-actions a").contains("Edit").click();
 		cy.url().should("include", "/edit");
 
 		// Editable Field
@@ -249,7 +249,7 @@ context("Web Form", () => {
 	it("Navigate and Submit a WebForm", () => {
 		cy.visit("/update-profile");
 
-		cy.get(".web-form-actions a").contains("Edit Response").click();
+		cy.get(".web-form-actions a").contains("Edit").click();
 
 		cy.fill_field("middle_name", "_Test User");
 
@@ -261,7 +261,7 @@ context("Web Form", () => {
 		cy.call("frappe.tests.ui_test_helpers.update_webform_to_multistep").then(() => {
 			cy.visit("/update-profile-duplicate");
 
-			cy.get(".web-form-actions a").contains("Edit Response").click();
+			cy.get(".web-form-actions a").contains("Edit").click();
 
 			cy.fill_field("middle_name", "_Test User");
 

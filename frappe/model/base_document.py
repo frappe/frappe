@@ -364,7 +364,7 @@ class BaseDocument:
 		d = _dict()
 		field_values = self.__dict__
 
-		for fieldname in self.meta.get_valid_columns():
+		for fieldname in self.meta.get_valid_fields():
 			value = field_values.get(fieldname)
 
 			# if no need for sanitization and value is None, continue
