@@ -53,6 +53,7 @@ def main(
 	case=None,
 	skip_test_records=False,
 	skip_before_tests=False,
+	pdb_on_exceptions=False,
 ):
 	global unittest_runner
 
@@ -78,6 +79,7 @@ def main(
 	try:
 		frappe.flags.print_messages = verbose
 		frappe.flags.in_test = True
+		frappe.flags.pdb_on_exceptions = pdb_on_exceptions
 
 		# workaround! since there is no separate test db
 		frappe.clear_cache()
@@ -289,6 +291,11 @@ def _run_unittest(
 					final_test_suite.addTest(test_case)
 		else:
 			final_test_suite.addTest(test_suite)
+
+		if frappe.flags.pdb_on_exceptions:
+			for test_case in iterate_suite(final_test_suite):
+				if hasattr(test_case, "_apply_debug_decorator"):
+					test_case._apply_debug_decorator(frappe.flags.pdb_on_exceptions)
 
 	if junit_xml_output:
 		runner = unittest_runner(verbosity=1 + cint(verbose), failfast=failfast)

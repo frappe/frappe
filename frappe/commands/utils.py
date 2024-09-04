@@ -752,6 +752,7 @@ def transform_database(context, table, engine, row_format, failfast):
 )
 @click.option("--test", multiple=True, help="Specific test")
 @click.option("--module", help="Run tests in a module")
+@click.option("--pdb", is_flag=True, default=False, help="Open pdb on AssertionError")
 @click.option("--profile", is_flag=True, default=False)
 @click.option("--coverage", is_flag=True, default=False)
 @click.option("--skip-test-records", is_flag=True, default=False, help="Don't create test records")
@@ -776,8 +777,13 @@ def run_tests(
 	skip_before_tests=False,
 	failfast=False,
 	case=None,
+	pdb=False,
 ):
 	"""Run python unit-tests"""
+
+	pdb_on_exceptions = None
+	if pdb:
+		pdb_on_exceptions = (AssertionError,)
 
 	with CodeCoverage(coverage, app):
 		import frappe
@@ -810,6 +816,7 @@ def run_tests(
 			case=case,
 			skip_test_records=skip_test_records,
 			skip_before_tests=skip_before_tests,
+			pdb_on_exceptions=pdb_on_exceptions,
 		)
 
 		if len(ret.failures) == 0 and len(ret.errors) == 0:
