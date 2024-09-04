@@ -169,7 +169,11 @@ def callback(code=None, state=None):
 	token_cache = frappe.get_doc("Token Cache", connected_app.name + "-" + frappe.session.user)
 
 	if state != token_cache.state:
+<<<<<<< HEAD
 		frappe.throw(_("Invalid token state! Check if the token has been created by the OAuth user."))
+=======
+		frappe.throw(_("Invalid state! Check if token is created by the oath user."))
+>>>>>>> 4ad55b98c2 (fix: Enhance the error message of the connected app authorization.)
 
 	oauth_session = connected_app.get_oauth2_session(init=True)
 	query_params = connected_app.get_query_params()
