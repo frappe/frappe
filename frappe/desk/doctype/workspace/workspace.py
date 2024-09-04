@@ -55,7 +55,7 @@ class Workspace(Document):
 		links: DF.Table[WorkspaceLink]
 		module: DF.Link | None
 		number_cards: DF.Table[WorkspaceNumberCard]
-		parent_page: DF.Data | None
+		parent_page: DF.Link | None
 		public: DF.Check
 		quick_lists: DF.Table[WorkspaceQuickList]
 		restrict_to_domain: DF.Link | None

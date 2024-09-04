@@ -146,6 +146,12 @@ frappe.breadcrumbs = {
 			}
 		}
 
+		// choose from __workspaces
+		const doctype_meta = frappe.get_meta(breadcrumbs.doctype);
+		if (doctype_meta.__workspaces?.length) {
+			breadcrumbs.workspace = doctype_meta.__workspaces[0];
+		}
+
 		if (breadcrumbs.module) {
 			if (this.module_map[breadcrumbs.module]) {
 				breadcrumbs.module = this.module_map[breadcrumbs.module];

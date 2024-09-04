@@ -700,6 +700,10 @@ def throw(
 	)
 
 
+def throw_permission_error():
+	throw(_("Not permitted"), PermissionError)
+
+
 def create_folder(path, with_init=False):
 	"""Create a folder in the given path and add an `__init__.py` file (optional).
 

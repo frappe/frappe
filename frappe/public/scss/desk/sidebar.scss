@@ -91,20 +91,30 @@ body {
 	border: 1px solid var(--border-color);
 
 	display: flex;
-	align-items: flex-start;
 	flex-direction: column;
-	flex-wrap: nowrap;
-
-	gap: 2px;
+	justify-content: space-between;
 	height: 100vh;
-	justify-content: flex-start;
-	overflow-x: hidden;
-	overflow-y: auto;
-	padding: 15px;
 	z-index: 1030;
-	position: static;
-	font-size: var(--text-base);
-	// transition: width 200ms;
+
+	.body-sidebar-top {
+		display: flex;
+		align-items: flex-start;
+		flex-direction: column;
+		flex-wrap: nowrap;
+
+		gap: 2px;
+		justify-content: flex-start;
+		overflow-x: hidden;
+		overflow-y: auto;
+		padding: 15px;
+		position: static;
+		font-size: var(--text-base);
+		// transition: width 200ms;
+	}
+
+	.body-sidebar-bottom {
+		padding: 15px;
+	}
 
 	.app-logo {
 		width: 21px;
@@ -205,11 +215,12 @@ body {
 
 .app-switcher-menu {
 	position: absolute;
-	top: 40px;
+	top: 44px;
+	left: 7px;
+	width: 183px; /* 200 - 7px */
 	padding: var(--padding-xs);
 	box-shadow: var(--shadow-base);
 	background-color: var(--neutral);
-	min-width: 180px;
 	z-index: 1;
 	border-radius: var(--border-radius-tiny);
 }
@@ -375,8 +386,8 @@ body {
 	}
 
 	.sidebar-label {
-		font-size: var(--text-md);
 		font-weight: var(--weight-medium);
+		color: var(--heading-color);
 		display: flex;
 		align-items: center;
 		cursor: pointer;

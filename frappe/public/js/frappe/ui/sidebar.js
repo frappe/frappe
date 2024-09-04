@@ -9,6 +9,11 @@ frappe.ui.Sidebar = class Sidebar {
 			return;
 		}
 
+		this.sidebar_pages = frappe.boot.sidebar_pages;
+		this.all_pages = this.sidebar_pages.pages;
+		this.has_access = this.sidebar_pages.has_access;
+		this.has_create_access = this.sidebar_pages.has_create_access;
+
 		this.make_dom();
 		this.sidebar_items = {
 			public: {},
@@ -34,54 +39,23 @@ frappe.ui.Sidebar = class Sidebar {
 
 	make_dom() {
 		this.set_default_app();
-		this.wrapper = $(`
-			<div class="body-sidebar-container">
-				<div class="body-sidebar-placeholder"></div>
-					<div class="body-sidebar">
-						<a class="app-switcher-dropdown"
-								style="text-decoration: none; width: 100%; position: relative;">
-
-							<div class="standard-sidebar-item">
-								<div class="d-flex">
-									<div class="sidebar-item-icon">
-										<img
-											class="app-logo"
-											src="${frappe.boot.app_data[0].app_logo_url}"
-											alt="${__("App Logo")}"
-										>
-									</div>
-									<div class="sidebar-item-label" style="margin-left: 5px; margin-top: 1px">
-										${__(frappe.boot.app_data[0].app_title)}
-									</div>
-								</div>
-								<div class="sidebar-item-control">
-									<button class="btn-reset drop-icon show-in-edit-mode">
-										<svg class="es-icon es-line  icon-sm" style="" aria-hidden="true">
-											<use class="" href="#es-line-down"></use>
-										</svg>
-									</button>
-								</div>
-							</div>
-						</a>
-
-						<div class="app-switcher-menu hidden" role="menu">
-						</div>
-						<div class="sidebar-items">
-						</div>
-						<div class="mb-4">
-							<a class="edit-sidebar-link text-extra-muted">Edit sidebar</a>
-						</div>
-					</div>
-
-				</div>
-			</div>
-		`).prependTo("body");
+		this.wrapper = $(
+			frappe.render_template("sidebar", {
+				app_logo_url: frappe.boot.app_data[0].app_logo_url,
+				app_title: __(frappe.boot.app_data[0].app_title),
+			})
+		).prependTo("body");
 
 		this.$sidebar = this.wrapper.find(".sidebar-items");
 
-		this.wrapper.find(".body-sidebar .edit-sidebar-link").on("click", () => {
-			frappe.quick_edit("Workspace Settings");
-		});
+		if (this.has_access) {
+			this.wrapper
+				.find(".body-sidebar .edit-sidebar-link")
+				.removeClass("hidden")
+				.on("click", () => {
+					frappe.quick_edit("Workspace Settings");
+				});
+		}
 
 		this.setup_app_switcher();
 	}
@@ -139,28 +113,31 @@ frappe.ui.Sidebar = class Sidebar {
 		app_switcher_menu.find(".app-item").on("click", (e) => {
 			let item = $(e.delegateTarget);
 			let route = item.attr("data-app-home");
-			frappe.current_app = item.attr("data-app-name");
+			app_switcher_menu.toggleClass("hidden");
 
 			if (route.startsWith("/app")) {
-				frappe.set_route(item.attr("data-app-home"));
-
-				this.wrapper
-					.find(".app-switcher-dropdown .sidebar-item-icon img")
-					.attr("src", frappe.boot.app_data_map[frappe.current_app].app_logo_url);
-				this.wrapper
-					.find(".app-switcher-dropdown .sidebar-item-label")
-					.html(frappe.boot.app_data_map[frappe.current_app].app_title);
-
-				// hide menu
-				app_switcher_menu.toggleClass("hidden");
-
-				// re-render the sidebar
-				this.make_sidebar();
+				frappe.set_route(route);
+				this.set_current_app(item.attr("data-app-name"));
 			} else {
 				// new page
 				window.open(route);
 			}
 		});
+	}
+
+	set_current_app(app) {
+		if (frappe.current_app === app) return;
+		frappe.current_app = app;
+
+		this.wrapper
+			.find(".app-switcher-dropdown .sidebar-item-icon img")
+			.attr("src", frappe.boot.app_data_map[frappe.current_app].app_logo_url);
+		this.wrapper
+			.find(".app-switcher-dropdown .sidebar-item-label")
+			.html(frappe.boot.app_data_map[frappe.current_app].app_title);
+
+		// re-render the sidebar
+		this.make_sidebar();
 	}
 
 	add_website_select(app_switcher_menu) {
@@ -177,13 +154,11 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	setup_pages() {
-		this.sidebar_pages = frappe.boot.sidebar_pages;
-		this.all_pages = this.sidebar_pages.pages;
-		this.has_access = this.sidebar_pages.has_access;
-		this.has_create_access = this.sidebar_pages.has_create_access;
-
 		this.all_pages.forEach((page) => {
 			page.is_editable = !page.public || this.has_access;
+			if (typeof page.content == "string") {
+				page.content = JSON.parse(page.content);
+			}
 		});
 
 		if (this.all_pages) {
@@ -224,6 +199,8 @@ frappe.ui.Sidebar = class Sidebar {
 		this.wrapper.find(".selected").length &&
 			!frappe.dom.is_element_in_viewport(this.wrapper.find(".selected")) &&
 			this.wrapper.find(".selected")[0].scrollIntoView();
+
+		this.setup_sorting();
 	}
 
 	build_sidebar_section(title, root_pages) {
@@ -369,6 +346,42 @@ frappe.ui.Sidebar = class Sidebar {
 			``;
 			$child_item_section.toggleClass("hidden");
 		});
+	}
+
+	setup_sorting() {
+		if (!this.has_access) return;
+
+		for (let container of this.$sidebar.find(".nested-container")) {
+			Sortable.create(container, {
+				group: "sidebar-items",
+				fitler: ".divider",
+				onEnd: () => {
+					let sidebar_items = [];
+					for (let container of this.$sidebar.find(".nested-container")) {
+						for (let item of $(container).children()) {
+							let parent = "";
+							if ($(item).parent().hasClass("sidebar-child-item")) {
+								parent = $(item)
+									.parent()
+									.closest(".sidebar-item-container")
+									.attr("item-name");
+							}
+
+							sidebar_items.push({
+								name: item.getAttribute("item-name"),
+								parent: parent,
+							});
+						}
+					}
+					frappe.xcall(
+						"frappe.desk.doctype.workspace_settings.workspace_settings.set_sequence",
+						{
+							sidebar_items: sidebar_items,
+						}
+					);
+				},
+			});
+		}
 	}
 
 	reload() {
