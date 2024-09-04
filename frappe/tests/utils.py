@@ -67,9 +67,31 @@ def debug_on(*exceptions):
 			try:
 				return f(*args, **kwargs)
 			except exceptions as e:
-				info = sys.exc_info()
-				traceback.print_exception(*info)
-				pdb.post_mortem(info[2])
+				exc_type, exc_value, exc_traceback = sys.exc_info()
+
+				traceback.print_exception(exc_type, exc_value, exc_traceback)
+
+				# Find the most relevant traceback frame
+				apps_path = frappe.get_app_path("frappe", "..", "..")
+
+				tb = exc_traceback.tb_next
+				target_frame = None
+
+				while tb:
+					if tb.tb_frame.f_code.co_filename.startswith(apps_path):
+						target_frame = tb
+						break
+					tb = tb.tb_next
+
+				if target_frame:
+					print(f"Starting debugger in: {target_frame.tb_frame.f_code.co_filename}:{tb.tb_lineno}")
+					p = pdb.Pdb()
+					p.reset()
+					p.interaction(target_frame.tb_frame, None)
+				else:
+					print("Could not find a suitable traceback frame, using the last frame.")
+					pdb.post_mortem(exc_traceback)
+
 				raise e
 
 		return wrapper
