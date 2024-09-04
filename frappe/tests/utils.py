@@ -105,7 +105,24 @@ class FrappeTestCase(unittest.TestCase):
 		cls.addClassCleanup(_restore_thread_locals, copy.deepcopy(frappe.local.flags))
 		cls.addClassCleanup(_rollback_db)
 
+		cls._apply_debug_decorator()
+
 		return super().setUpClass()
+
+	@classmethod
+	def _apply_debug_decorator(cls):
+		import sys
+
+		pdb_flag = next((arg for arg in sys.argv if arg.startswith('--pdb')), None)
+		if pdb_flag:
+			exceptions = (AssertionError,)
+			if pdb_flag.startswith('--pdb-on='):
+				exception_names = pdb_flag.split('=')[1].split(',')
+				exceptions = tuple(getattr(__builtins__, name.strip()) for name in exception_names)
+			
+			for attr in dir(cls):
+				if attr.startswith('test_'):
+					setattr(cls, attr, debug_on(*exceptions)(getattr(cls, attr)))
 
 	def assertSequenceSubset(self, larger: Sequence, smaller: Sequence, msg=None):
 		"""Assert that `expected` is a subset of `actual`."""
