@@ -48,6 +48,7 @@ frappe.Application = class Application {
 		frappe.ui.keys.setup();
 
 		this.setup_theme();
+		this.set_command_center();
 
 		// page container
 		this.make_page_container();
@@ -201,6 +202,21 @@ frappe.Application = class Application {
 						me.email_password_prompt(email_account, user, i);
 					}
 				}
+			},
+		});
+	}
+
+	set_command_center() {
+		frappe.ui.keys.add_shortcut({
+			shortcut: "ctrl+k",
+			description: __("Open Command Center"),
+			action: () => {
+				// create and open dialog using dialog api
+				if (frappe.command_center) {
+					frappe.command_center.dialog.show();
+					return;
+				}
+				frappe.command_center = new frappe.ui.CommandCenter();
 			},
 		});
 	}

@@ -52,6 +52,8 @@ def get_bootinfo():
 
 	bootinfo.modules = {}
 	bootinfo.module_list = []
+	command_center_settings = frappe.get_single("Command Center Settings")
+	bootinfo.command_center_shortcuts = command_center_settings.shortcuts or []
 	load_desktop_data(bootinfo)
 	bootinfo.letter_heads = get_letter_heads()
 	bootinfo.active_domains = frappe.get_active_domains()
