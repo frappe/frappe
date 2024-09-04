@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-02 18:21+0000\n"
-"PO-Revision-Date: 2024-09-03 18:01\n"
+"PO-Revision-Date: 2024-09-04 18:07\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -700,24 +700,24 @@ msgstr "<pre><code>doc.grand_total &gt; 0</code></pre>\n\n"
 #. Header text in the Welcome Workspace Workspace
 #: core/workspace/welcome_workspace/welcome_workspace.json
 msgid "<span class=\"h2\">Hi,</span>"
-msgstr ""
+msgstr "<span class=\"h2\">Hallo,</span>"
 
 #. Header text in the Tools Workspace
 #: automation/workspace/tools/tools.json
 msgid "<span class=\"h4\"><b>Documents</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>Dokumente</b></span>"
 
 #. Header text in the Website Workspace
 #: website/workspace/website/website.json
 msgid "<span class=\"h4\"><b>Reports & Masters</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>Berichte & Stammdaten</b></span>"
 
 #. Header text in the Users Workspace
 #. Header text in the Integrations Workspace
 #: core/workspace/users/users.json
 #: integrations/workspace/integrations/integrations.json
 msgid "<span class=\"h4\"><b>Reports &amp; Masters</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>Berichte &amp; Stammdaten</b></span>"
 
 #. Header text in the Tools Workspace
 #. Header text in the Users Workspace
@@ -725,17 +725,17 @@ msgstr ""
 #: automation/workspace/tools/tools.json core/workspace/users/users.json
 #: website/workspace/website/website.json
 msgid "<span class=\"h4\"><b>Your Shortcuts</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>Ihre Verknüpfungen</b></span>"
 
 #. Header text in the Build Workspace
 #: core/workspace/build/build.json
 msgid "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Components to build your app</b></span>"
-msgstr ""
+msgstr "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Komponenten zum Erstellen Ihrer App</b></span>"
 
 #. Header text in the Build Workspace
 #: core/workspace/build/build.json
 msgid "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Get started</b><br></span>"
-msgstr ""
+msgstr "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Erste Schritte</b><br></span>"
 
 #: custom/doctype/custom_field/custom_field.js:39
 msgid "<strong>Warning:</strong> This field is system generated and may be overwritten by a future update. Modify it using {0} instead."
@@ -8586,7 +8586,7 @@ msgstr "E-Mail nicht mit {0} bestätigt"
 
 #: email/doctype/email_queue/email_queue.js:18
 msgid "Email queue is currently suspended. Resume to automatically send emails."
-msgstr ""
+msgstr "Die E-Mail-Warteschlange ist derzeit unterbrochen. Fortsetzen, um automatisch E-Mails zu versenden."
 
 #. Label of a Section Break field in DocType 'System Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
@@ -9627,7 +9627,7 @@ msgstr "Feedback-Anfrage"
 
 #: desk/page/setup_wizard/install_fixtures.py:30
 msgid "Female"
-msgstr ""
+msgstr "Weiblich"
 
 #. Label of a Small Text field in DocType 'DocField'
 #. Label of a Small Text field in DocType 'Custom Field'
@@ -10777,7 +10777,7 @@ msgstr "Geschlecht"
 
 #: desk/page/setup_wizard/install_fixtures.py:33
 msgid "Genderqueer"
-msgstr ""
+msgstr "Genderqueer"
 
 #: www/contact.html:29
 msgid "General"
@@ -11736,7 +11736,7 @@ msgstr "Wie soll diese Währung formatiert werden? Wenn nichts festgelegt ist, w
 #. Paragraph text in the Welcome Workspace Workspace
 #: core/workspace/welcome_workspace/welcome_workspace.json
 msgid "I guess you don't have access to any workspace yet, but you can create one just for yourself. Click on the <b>Create Workspace</b> button to create one.<br>"
-msgstr ""
+msgstr "Vermutlich haben Sie noch keinen Zugang zu einem Arbeitsbereich, aber Sie können einen für sich selbst erstellen. Klicken Sie dafür auf die Schaltfläche <b>Arbeitsbereich erstellen</b>.<br>"
 
 #: core/doctype/data_import/importer.py:1127
 #: core/doctype/data_import/importer.py:1133
@@ -12473,11 +12473,11 @@ msgstr "Falscher Bestätigungscode"
 
 #: model/document.py:1347
 msgid "Incorrect value in row {0}:"
-msgstr ""
+msgstr "Falscher Wert in Zeile {0}:"
 
 #: model/document.py:1349
 msgid "Incorrect value:"
-msgstr ""
+msgstr "Falscher Wert:"
 
 #. Label of a Check field in DocType 'DocField'
 #. Label of a Int field in DocType 'Recorder Query'
@@ -14619,7 +14619,7 @@ msgstr "MIT-Lizenz"
 
 #: desk/page/setup_wizard/install_fixtures.py:49
 msgid "Madam"
-msgstr ""
+msgstr "Frau"
 
 #. Label of a Text Editor field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
@@ -14683,7 +14683,7 @@ msgstr "Macht die Seite öffentlich"
 
 #: desk/page/setup_wizard/install_fixtures.py:29
 msgid "Male"
-msgstr ""
+msgstr "Männlich"
 
 #: www/me.html:50
 msgid "Manage third party apps"
