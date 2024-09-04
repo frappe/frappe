@@ -30,33 +30,33 @@ def debug_on(*exceptions):
 	it defaults to catching AssertionError.
 
 	Args:
-		*exceptions: Variable length argument list of exception classes to catch.
-			If none provided, defaults to (AssertionError,).
+	        *exceptions: Variable length argument list of exception classes to catch.
+	                If none provided, defaults to (AssertionError,).
 
 	Returns:
-		function: A decorator function.
+	        function: A decorator function.
 
 	Usage:
-		1. Basic usage (catches AssertionError):
-			@debug_on()
-			def test_assertion_error():
-				assert False, "This will start the debugger"
+	        1. Basic usage (catches AssertionError):
+	                @debug_on()
+	                def test_assertion_error():
+	                        assert False, "This will start the debugger"
 
-		2. Catching specific exceptions:
-			@debug_on(ValueError, TypeError)
-			def test_specific_exceptions():
-				raise ValueError("This will start the debugger")
+	        2. Catching specific exceptions:
+	                @debug_on(ValueError, TypeError)
+	                def test_specific_exceptions():
+	                        raise ValueError("This will start the debugger")
 
-		3. Using on a method in a test class:
-			class TestMyFunctionality(unittest.TestCase):
-				@debug_on(ZeroDivisionError)
-				def test_division_by_zero(self):
-					result = 1 / 0
+	        3. Using on a method in a test class:
+	                class TestMyFunctionality(unittest.TestCase):
+	                        @debug_on(ZeroDivisionError)
+	                        def test_division_by_zero(self):
+	                                result = 1 / 0
 
 	Note:
-		When an exception is caught, this decorator will print the exception traceback
-		and then start the post-mortem debugger, allowing you to inspect the state of
-		the program at the point where the exception was raised.
+	        When an exception is caught, this decorator will print the exception traceback
+	        and then start the post-mortem debugger, allowing you to inspect the state of
+	        the program at the point where the exception was raised.
 	"""
 	if not exceptions:
 		exceptions = (AssertionError,)
