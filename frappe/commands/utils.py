@@ -1170,6 +1170,29 @@ def rebuild_global_search(context, static_pages=False):
 		raise SiteNotSpecifiedError
 
 
+@click.command("list-sites")
+@click.option("--json", "output_json", is_flag=True, help="Output in JSON format")
+@pass_context
+def list_sites(context, output_json=False):
+	"List all the sites in current bench"
+	site_dir = os.getcwd()
+	sites = [
+		site
+		for site in os.listdir(site_dir)
+		if os.path.isdir(os.path.join(site_dir, site))
+		and not site.startswith(".")
+		and os.path.exists(os.path.join(site_dir, site, "site_config.json"))
+	]
+	if output_json:
+		click.echo(json.dumps(sites))
+	elif sites:
+		click.echo("Available sites:")
+		for site in sites:
+			click.echo(f"  {site}")
+	else:
+		click.echo("No sites found")
+
+
 commands = [
 	build,
 	clear_cache,
@@ -1203,4 +1226,5 @@ commands = [
 	add_to_email_queue,
 	rebuild_global_search,
 	run_parallel_tests,
+	list_sites,
 ]
