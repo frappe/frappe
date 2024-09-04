@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-01 09:33+0000\n"
-"PO-Revision-Date: 2024-09-03 18:01\n"
+"PO-Revision-Date: 2024-09-04 18:07\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -700,12 +700,12 @@ msgstr "<pre><code>doc.grand_total &gt; 0</code></pre>\n\n"
 #. Header text in the Welcome Workspace Workspace
 #: core/workspace/welcome_workspace/welcome_workspace.json
 msgid "<span class=\"h2\">Hi,</span>"
-msgstr ""
+msgstr "<span class=\"h2\">Hallo,</span>"
 
 #. Header text in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
 msgid "<span class=\"h4\"><b>Reports &amp; Masters</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>Berichte &amp; Stammdaten</b></span>"
 
 #: custom/doctype/custom_field/custom_field.js:39
 msgid "<strong>Warning:</strong> This field is system generated and may be overwritten by a future update. Modify it using {0} instead."
@@ -7864,7 +7864,7 @@ msgstr "Dokument entsperrt"
 
 #: desk/form/document_follow.py:56
 msgid "Document follow is not enabled for this user."
-msgstr ""
+msgstr "Folgen von Dokumenten ist für diesen Benutzer nicht aktiviert."
 
 #: public/js/frappe/list/list_view.js:1115
 msgid "Document has been cancelled"
@@ -8720,7 +8720,7 @@ msgstr "E-Mail nicht mit {0} bestätigt"
 
 #: email/doctype/email_queue/email_queue.js:18
 msgid "Email queue is currently suspended. Resume to automatically send emails."
-msgstr ""
+msgstr "Die E-Mail-Warteschlange ist derzeit unterbrochen. Fortsetzen, um automatisch E-Mails zu versenden."
 
 #. Label of the section_break_udjs (Section Break) field in DocType 'System
 #. Health Report'
@@ -9424,7 +9424,7 @@ msgstr "Exekutive"
 #. Label of the existing_role (Link) field in DocType 'Role Replication'
 #: core/doctype/role_replication/role_replication.json
 msgid "Existing Role"
-msgstr ""
+msgstr "Bestehende Rolle"
 
 #: public/js/frappe/widgets/base_widget.js:159
 msgid "Expand"
@@ -9792,7 +9792,7 @@ msgstr "Feedback-Anfrage"
 
 #: desk/page/setup_wizard/install_fixtures.py:30
 msgid "Female"
-msgstr ""
+msgstr "Weiblich"
 
 #. Label of the fetch_from (Small Text) field in DocType 'DocField'
 #. Label of the fetch_from (Small Text) field in DocType 'Custom Field'
@@ -10989,7 +10989,7 @@ msgstr "Geschlecht"
 
 #: desk/page/setup_wizard/install_fixtures.py:33
 msgid "Genderqueer"
-msgstr ""
+msgstr "Genderqueer"
 
 #: www/contact.html:29
 msgid "General"
@@ -11947,7 +11947,7 @@ msgstr "Wie soll diese Währung formatiert werden? Wenn nichts festgelegt ist, w
 #. Paragraph text in the Welcome Workspace Workspace
 #: core/workspace/welcome_workspace/welcome_workspace.json
 msgid "I guess you don't have access to any workspace yet, but you can create one just for yourself. Click on the <b>Create Workspace</b> button to create one.<br>"
-msgstr ""
+msgstr "Vermutlich haben Sie noch keinen Zugang zu einem Arbeitsbereich, aber Sie können einen für sich selbst erstellen. Klicken Sie dafür auf die Schaltfläche <b>Arbeitsbereich erstellen</b>.<br>"
 
 #: core/doctype/data_import/importer.py:1133
 #: core/doctype/data_import/importer.py:1139
@@ -12696,11 +12696,11 @@ msgstr "Falscher Bestätigungscode"
 
 #: model/document.py:1387
 msgid "Incorrect value in row {0}:"
-msgstr ""
+msgstr "Falscher Wert in Zeile {0}:"
 
 #: model/document.py:1389
 msgid "Incorrect value:"
-msgstr ""
+msgstr "Falscher Wert:"
 
 #. Label of the search_index (Check) field in DocType 'DocField'
 #. Label of the index (Int) field in DocType 'Recorder Query'
@@ -12775,7 +12775,7 @@ msgstr "InnoDB"
 #. Description of the 'New Role' (Data) field in DocType 'Role Replication'
 #: core/doctype/role_replication/role_replication.json
 msgid "Input existing role name if you would like to extend it with access of another role."
-msgstr ""
+msgstr "Geben Sie den Namen der bestehenden Rolle ein, wenn Sie diese um die Berechtigungen einer anderen Rolle erweitern möchten."
 
 #: core/doctype/data_import/data_import_list.js:35
 msgid "Insert"
@@ -14859,7 +14859,7 @@ msgstr "MIT-Lizenz"
 
 #: desk/page/setup_wizard/install_fixtures.py:49
 msgid "Madam"
-msgstr ""
+msgstr "Frau"
 
 #. Label of the main_section (Text Editor) field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
@@ -14924,7 +14924,7 @@ msgstr "Macht die Seite öffentlich"
 
 #: desk/page/setup_wizard/install_fixtures.py:29
 msgid "Male"
-msgstr ""
+msgstr "Männlich"
 
 #: www/me.html:50
 msgid "Manage third party apps"
@@ -15464,7 +15464,7 @@ msgstr "Falsch konfiguriert"
 
 #: desk/page/setup_wizard/install_fixtures.py:50
 msgid "Miss"
-msgstr ""
+msgstr "Frau"
 
 #: desk/form/meta.py:213
 msgid "Missing DocType"
@@ -15797,15 +15797,15 @@ msgstr "Mozilla unterstützt :has() nicht, daher können Sie hier den übergeord
 
 #: desk/page/setup_wizard/install_fixtures.py:44
 msgid "Mr"
-msgstr ""
+msgstr "Herr"
 
 #: desk/page/setup_wizard/install_fixtures.py:48
 msgid "Mrs"
-msgstr ""
+msgstr "Frau"
 
 #: desk/page/setup_wizard/install_fixtures.py:45
 msgid "Ms"
-msgstr ""
+msgstr "Fr."
 
 #: utils/nestedset.py:331
 msgid "Multiple root nodes not allowed."
@@ -16162,7 +16162,7 @@ msgstr "Neuer Berichtsname"
 #. Label of the new_role (Data) field in DocType 'Role Replication'
 #: core/doctype/role_replication/role_replication.json
 msgid "New Role"
-msgstr ""
+msgstr "Neue Rolle"
 
 #: public/js/frappe/widgets/widget_dialog.js:60
 msgid "New Shortcut"
@@ -16564,7 +16564,7 @@ msgstr "Keine Änderungen im Dokument"
 
 #: public/js/frappe/views/workspace/workspace.js:657
 msgid "No changes made"
-msgstr ""
+msgstr "Keine Änderungen vorgenommen"
 
 #: model/rename_doc.py:364
 msgid "No changes made because old and new name are the same."
@@ -16758,7 +16758,7 @@ msgstr "Nicht negativ"
 
 #: desk/page/setup_wizard/install_fixtures.py:34
 msgid "Non-Conforming"
-msgstr ""
+msgstr "Nicht konform"
 
 #. Option for the 'Backup Frequency' (Select) field in DocType 'S3 Backup
 #. Settings'
@@ -18686,7 +18686,7 @@ msgstr "Bitte überprüfen Sie Ihren Posteingang auf weitere Instruktionen.\\nLa
 
 #: desk/doctype/workspace/workspace.js:23
 msgid "Please click Edit on the Workspace for best results"
-msgstr ""
+msgstr "Für optimale Ergebnisse klicken Sie bitte im Arbeitsbereich auf „Bearbeiten“"
 
 #: core/doctype/data_import/data_import.js:158
 msgid "Please click on 'Export Errored Rows', fix the errors and import again."
@@ -19136,7 +19136,7 @@ msgstr "Vorhersehbare Substitutionen wie &#39;@&#39; anstelle von &#39;a&#39; he
 
 #: desk/page/setup_wizard/install_fixtures.py:35
 msgid "Prefer not to say"
-msgstr ""
+msgstr "Möchte ich nicht angeben"
 
 #. Label of the is_primary_address (Check) field in DocType 'Address'
 #: contacts/doctype/address/address.json
@@ -19567,7 +19567,7 @@ msgstr "Wird bearbeitet..."
 
 #: desk/page/setup_wizard/install_fixtures.py:52
 msgid "Prof"
-msgstr ""
+msgstr "Prof."
 
 #. Group in User's connections
 #: core/doctype/user/user.json
@@ -20814,15 +20814,15 @@ msgstr "Wiederholt {0}"
 #: core/doctype/role_replication/role_replication.js:7
 #: core/doctype/role_replication/role_replication.js:14
 msgid "Replicate"
-msgstr ""
+msgstr "Replizieren"
 
 #: core/doctype/role_replication/role_replication.js:8
 msgid "Replicating..."
-msgstr ""
+msgstr "Replizieren..."
 
 #: core/doctype/role_replication/role_replication.js:13
 msgid "Replication completed."
-msgstr ""
+msgstr "Replikation abgeschlossen."
 
 #. Option for the 'Status' (Select) field in DocType 'Contact'
 #. Option for the 'Status' (Select) field in DocType 'Communication'
@@ -20973,7 +20973,7 @@ msgstr "Berichtsansicht"
 
 #: public/js/frappe/form/templates/form_sidebar.html:26
 msgid "Report bug"
-msgstr ""
+msgstr "Fehler melden"
 
 #: core/doctype/doctype/doctype.py:1794
 msgid "Report cannot be set for Single types"
@@ -21530,7 +21530,7 @@ msgstr "Rollenprofile"
 #. Name of a DocType
 #: core/doctype/role_replication/role_replication.json
 msgid "Role Replication"
-msgstr ""
+msgstr "Rollenreplikation"
 
 #. Label of the role_and_level (Section Break) field in DocType 'Custom
 #. DocPerm'
@@ -22688,7 +22688,7 @@ msgstr "{0} auswählen"
 
 #: desk/doctype/workspace_settings/workspace_settings.js:46
 msgid "Select, sort modules you want to see in the sidebar"
-msgstr ""
+msgstr "Wählen und sortieren Sie die Module, die Sie in der Seitenleiste sehen möchten"
 
 #: model/workflow.py:117
 msgid "Self approval is not allowed"
@@ -26707,7 +26707,7 @@ msgstr "Transaktionsprotokollbericht"
 
 #: desk/page/setup_wizard/install_fixtures.py:32
 msgid "Transgender"
-msgstr ""
+msgstr "Transgender"
 
 #: public/js/workflow_builder/components/Properties.vue:19
 msgid "Transition Properties"
@@ -28935,7 +28935,7 @@ msgstr "Arbeitsbereich {0} erfolgreich bearbeitet"
 
 #: public/js/frappe/views/workspace/workspace.js:529
 msgid "Workspace {0} created"
-msgstr ""
+msgstr "Arbeitsbereich {0} erstellt"
 
 #. Option for the 'View' (Select) field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
@@ -30845,15 +30845,15 @@ msgstr "{0} muss nach {1} liegen"
 
 #: model/document.py:1396
 msgid "{0} must be beginning with '{1}'"
-msgstr ""
+msgstr "{0} muss mit '{1}' beginnen"
 
 #: model/document.py:1398
 msgid "{0} must be equal to '{1}'"
-msgstr ""
+msgstr "{0} muss gleich '{1}' sein"
 
 #: model/document.py:1394
 msgid "{0} must be none of {1}"
-msgstr ""
+msgstr "{0} darf nichts von {1} sein"
 
 #: model/document.py:1392 utils/csvutils.py:158
 msgid "{0} must be one of {1}"
@@ -30869,7 +30869,7 @@ msgstr "{0} muss einmalig sein"
 
 #: model/document.py:1400
 msgid "{0} must be {1} {2}"
-msgstr ""
+msgstr "{0} muss {1} {2} sein"
 
 #: core/doctype/language/language.py:42
 msgid "{0} must begin and end with a letter and can only contain letters,\n"
