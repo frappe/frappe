@@ -60,16 +60,22 @@ def export_customizations(module, doctype, sync_on_migrate=0, with_permissions=0
 	}
 
 	def add(_doctype):
-		custom["custom_fields"] += frappe.get_all("Custom Field", fields="*", filters={"dt": _doctype})
-		custom["property_setters"] += frappe.get_all(
-			"Property Setter", fields="*", filters={"doc_type": _doctype}
+		custom["custom_fields"] += frappe.get_all(
+			"Custom Field", fields="*", filters={"dt": _doctype}, order_by="name"
 		)
-		custom["links"] += frappe.get_all("DocType Link", fields="*", filters={"parent": _doctype})
+		custom["property_setters"] += frappe.get_all(
+			"Property Setter", fields="*", filters={"doc_type": _doctype}, order_by="name"
+		)
+		custom["links"] += frappe.get_all(
+			"DocType Link", fields="*", filters={"parent": _doctype}, order_by="name"
+		)
 
 	add(doctype)
 
 	if with_permissions:
-		custom["custom_perms"] = frappe.get_all("Custom DocPerm", fields="*", filters={"parent": doctype})
+		custom["custom_perms"] = frappe.get_all(
+			"Custom DocPerm", fields="*", filters={"parent": doctype}, order_by="name"
+		)
 
 	# also update the custom fields and property setters for all child tables
 	for d in frappe.get_meta(doctype).get_table_fields():
