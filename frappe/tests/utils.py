@@ -22,6 +22,42 @@ datetime_like_types = (datetime.datetime, datetime.date, datetime.time, datetime
 
 
 def debug_on(*exceptions):
+	"""
+	A decorator to automatically start the debugger when specified exceptions occur.
+
+	This decorator allows you to automatically invoke the debugger (pdb) when certain
+	exceptions are raised in the decorated function. If no exceptions are specified,
+	it defaults to catching AssertionError.
+
+	Args:
+		*exceptions: Variable length argument list of exception classes to catch.
+			If none provided, defaults to (AssertionError,).
+
+	Returns:
+		function: A decorator function.
+
+	Usage:
+		1. Basic usage (catches AssertionError):
+			@debug_on()
+			def test_assertion_error():
+				assert False, "This will start the debugger"
+
+		2. Catching specific exceptions:
+			@debug_on(ValueError, TypeError)
+			def test_specific_exceptions():
+				raise ValueError("This will start the debugger")
+
+		3. Using on a method in a test class:
+			class TestMyFunctionality(unittest.TestCase):
+				@debug_on(ZeroDivisionError)
+				def test_division_by_zero(self):
+					result = 1 / 0
+
+	Note:
+		When an exception is caught, this decorator will print the exception traceback
+		and then start the post-mortem debugger, allowing you to inspect the state of
+		the program at the point where the exception was raised.
+	"""
 	if not exceptions:
 		exceptions = (AssertionError,)
 
