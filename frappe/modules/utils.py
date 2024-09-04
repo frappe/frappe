@@ -60,11 +60,15 @@ def export_customizations(module, doctype, sync_on_migrate=0, with_permissions=0
 	}
 
 	def add(_doctype):
-		custom["custom_fields"] += frappe.get_all("Custom Field", fields="*", filters={"dt": _doctype}, order_by="name")
+		custom["custom_fields"] += frappe.get_all(
+			"Custom Field", fields="*", filters={"dt": _doctype}, order_by="name"
+		)
 		custom["property_setters"] += frappe.get_all(
 			"Property Setter", fields="*", filters={"doc_type": _doctype}, order_by="name"
 		)
-		custom["links"] += frappe.get_all("DocType Link", fields="*", filters={"parent": _doctype}, order_by="name")
+		custom["links"] += frappe.get_all(
+			"DocType Link", fields="*", filters={"parent": _doctype}, order_by="name"
+		)
 
 	add(doctype)
 
