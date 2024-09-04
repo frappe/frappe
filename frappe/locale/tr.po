@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-02 18:21+0000\n"
-"PO-Revision-Date: 2024-09-03 18:01\n"
+"PO-Revision-Date: 2024-09-04 18:07\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -3944,7 +3944,7 @@ msgstr ""
 #: public/js/frappe/form/templates/set_sharing.html:4
 #: public/js/frappe/form/templates/set_sharing.html:50
 msgid "Can Read"
-msgstr "Okuma"
+msgstr "Okuyabilir"
 
 #: public/js/frappe/form/templates/set_sharing.html:7
 #: public/js/frappe/form/templates/set_sharing.html:53
@@ -4994,7 +4994,7 @@ msgstr "Yorum Yap"
 #. Label of a Data field in DocType 'Comment'
 #: core/doctype/comment/comment.json
 msgid "Comment By"
-msgstr ""
+msgstr "Yorum Yazan"
 
 #. Label of a Data field in DocType 'Comment'
 #: core/doctype/comment/comment.json
@@ -6094,7 +6094,7 @@ msgstr "Özel Çeviri"
 
 #: custom/doctype/custom_field/custom_field.py:373
 msgid "Custom field renamed to {0} successfully."
-msgstr ""
+msgstr "Özel alan başarıyla {0} olarak yeniden adlandırıldı."
 
 #. Label of a Check field in DocType 'DocType'
 #. Label of a Check field in DocType 'Website Theme'
@@ -6130,7 +6130,7 @@ msgstr "Özelleştirmeler Sıfırlandı"
 
 #: modules/utils.py:96
 msgid "Customizations for <b>{0}</b> exported to:<br>{1}"
-msgstr ""
+msgstr "<b>{0}</b> için özelleştirmeler şuraya aktarıldı:<br>{1}"
 
 #: printing/page/print/print.js:171
 #: public/js/frappe/form/templates/print_layout.html:39
@@ -7086,7 +7086,7 @@ msgstr ""
 
 #: core/page/permission_manager/permission_manager.js:381
 msgid "Did not remove"
-msgstr ""
+msgstr "Kaldırılmadı"
 
 #: public/js/frappe/utils/diffview.js:57
 msgid "Diff"
@@ -7716,7 +7716,7 @@ msgstr "Belge Türü"
 
 #: desk/doctype/number_card/number_card.py:56
 msgid "Document Type and Function are required to create a number card"
-msgstr ""
+msgstr "Veri Kartı oluşturmak için Belge Türü ve Fonksiyon gereklidir"
 
 #: permissions.py:142
 msgid "Document Type is not importable"
@@ -7752,7 +7752,7 @@ msgstr ""
 
 #: core/doctype/submission_queue/submission_queue.py:163 model/document.py:1748
 msgid "Document Unlocked"
-msgstr ""
+msgstr "Belge Kilidi Açıldı"
 
 #: public/js/frappe/list/list_view.js:1073
 msgid "Document has been cancelled"
@@ -10143,7 +10143,7 @@ msgstr ""
 
 #: core/report/transaction_log_report/transaction_log_report.py:49
 msgid "First Transaction"
-msgstr ""
+msgstr "İlk İşlem"
 
 #: core/doctype/data_export/exporter.py:185
 msgid "First data column must be blank."
@@ -12711,7 +12711,7 @@ msgstr "Giriş Videosu URL'si"
 #. 'About Us Settings'
 #: website/doctype/about_us_settings/about_us_settings.json
 msgid "Introduce your company to the website visitor."
-msgstr ""
+msgstr "Şirketinizin web sitenizi ziyaretçilerinize tanıtın."
 
 #. Label of a Section Break field in DocType 'Contact Us Settings'
 #. Label of a Text Editor field in DocType 'Contact Us Settings'
@@ -13685,7 +13685,7 @@ msgstr "Son Yedekleme Tarihi"
 #. Label of a Datetime field in DocType 'Scheduled Job Type'
 #: core/doctype/scheduled_job_type/scheduled_job_type.json
 msgid "Last Execution"
-msgstr ""
+msgstr "Son Çalıştırma"
 
 #. Label of a Datetime field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
@@ -13972,7 +13972,7 @@ msgstr "Antetli Kağıt hem devre dışı hem de varsayılan olamaz"
 #. Head'
 #: printing/doctype/letter_head/letter_head.json
 msgid "Letter Head in HTML"
-msgstr ""
+msgstr "Antetli Kağıt HTML"
 
 #. Label of a Int field in DocType 'Custom DocPerm'
 #. Label of a Int field in DocType 'DocPerm'
@@ -14228,7 +14228,7 @@ msgstr "Bağlı Belgeler"
 
 #: public/js/frappe/form/linked_with.js:23
 msgid "Linked With"
-msgstr ""
+msgstr "Bağlantılar"
 
 #. Label of a Table field in DocType 'Address'
 #. Label of a Table field in DocType 'Contact'
@@ -14618,17 +14618,17 @@ msgstr ""
 #. Label of a Text Editor field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgid "Main Section"
-msgstr ""
+msgstr "Ana Bölüm"
 
 #. Label of a HTML Editor field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgid "Main Section (HTML)"
-msgstr ""
+msgstr "Ana Bölüm (HTML)"
 
 #. Label of a Markdown Editor field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgid "Main Section (Markdown)"
-msgstr ""
+msgstr "Ana Bölüm (Markdown)"
 
 #. Name of a role
 #: contacts/doctype/contact/contact.json
@@ -14834,7 +14834,7 @@ msgstr "Markdown"
 #: custom/doctype/customize_form_field/customize_form_field.json
 #: website/doctype/web_template_field/web_template_field.json
 msgid "Markdown Editor"
-msgstr ""
+msgstr "Markdown Editörü"
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
@@ -14844,7 +14844,7 @@ msgstr ""
 #. Name of a DocType
 #: website/doctype/marketing_campaign/marketing_campaign.json
 msgid "Marketing Campaign"
-msgstr ""
+msgstr "Pazarlama Kampanyası"
 
 #: desk/page/setup_wizard/install_fixtures.py:51
 msgid "Master"
@@ -14894,7 +14894,7 @@ msgstr "Kullanıcı başına maksimum otomatik e-posta raporu"
 
 #: core/doctype/doctype/doctype.py:1304
 msgid "Max width for type Currency is 100px in row {0}"
-msgstr ""
+msgstr "Para Birimi türü için maksimum genişlik {0} satırında 100 pikseldir"
 
 #. Option for the 'Function' (Select) field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
@@ -16302,7 +16302,7 @@ msgstr "Senkronizasyonda değişiklik yok"
 
 #: core/doctype/data_import/importer.py:294
 msgid "No changes to update"
-msgstr ""
+msgstr "Güncellenecek değişiklik yok"
 
 #: website/doctype/blog_post/blog_post.py:372
 msgid "No comments yet"
@@ -16370,7 +16370,7 @@ msgstr "Görüntülenecek başka bir öğe yok"
 
 #: utils/password_strength.py:35
 msgid "No need for symbols, digits, or uppercase letters."
-msgstr ""
+msgstr "Sembollere, rakamlara veya büyük harflere gerek yok."
 
 #: integrations/doctype/google_contacts/google_contacts.py:197
 msgid "No new Google Contacts synced."
@@ -16528,7 +16528,7 @@ msgstr "Benzer Değil"
 
 #: public/js/frappe/form/linked_with.js:45
 msgid "Not Linked to any record"
-msgstr "Herhangi bir kayda bağlı değil"
+msgstr "Herhangi bir kayıtla bağlantılı değil"
 
 #: __init__.py:989 app.py:357 desk/calendar.py:26 desk/treeview.py:19
 #: geo/utils.py:97 public/js/frappe/web_form/webform_script.js:15
@@ -17030,7 +17030,7 @@ msgstr ""
 
 #: core/doctype/server_script/server_script.js:33
 msgid "Official Documentation"
-msgstr ""
+msgstr "Resmi Dokümantasyon"
 
 #. Label of a Int field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -19142,7 +19142,7 @@ msgstr ""
 
 #: printing/page/print/print.js:800
 msgid "Printer Settings"
-msgstr ""
+msgstr "Yazıcı Ayarları"
 
 #: printing/page/print/print.js:548
 msgid "Printer mapping not set."
@@ -19702,7 +19702,7 @@ msgstr "Ynt: {0}"
 #: desk/doctype/notification_log/notification_log.json
 #: email/doctype/email_flag_queue/email_flag_queue.json
 msgid "Read"
-msgstr "Okuma"
+msgstr "Okudu"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of a Check field in DocType 'DocField'
@@ -22618,7 +22618,7 @@ msgstr "Oturum Sonlanma Süresi"
 
 #: core/doctype/system_settings/system_settings.py:113
 msgid "Session Expiry must be in format {0}"
-msgstr ""
+msgstr "Oturum Süresi {0} formatında olmalıdır"
 
 #: public/js/frappe/ui/filters/filter.js:567
 msgctxt "Field value is set"
@@ -22819,7 +22819,7 @@ msgstr "Başka bir varsayılan olmadığı için bu Adres Şablonunun varsayıla
 
 #: desk/doctype/global_search_settings/global_search_settings.py:86
 msgid "Setting up Global Search documents."
-msgstr ""
+msgstr "Global Arama belgelerinin ayarlanması."
 
 #: desk/page/setup_wizard/setup_wizard.js:273
 msgid "Setting up your system"
@@ -23488,7 +23488,7 @@ msgstr ""
 #. Name of a DocType
 #: website/doctype/social_link_settings/social_link_settings.json
 msgid "Social Link Settings"
-msgstr ""
+msgstr "Sosyal Bağlantı Ayarları"
 
 #. Label of a Select field in DocType 'Social Link Settings'
 #: website/doctype/social_link_settings/social_link_settings.json
@@ -23704,7 +23704,7 @@ msgstr ""
 
 #: website/doctype/web_page/web_page.js:92
 msgid "Standard rich text editor with controls"
-msgstr ""
+msgstr "Kontrollere sahip standart zengin metin editörü"
 
 #: core/doctype/role/role.py:65
 msgid "Standard roles cannot be disabled"
@@ -24047,7 +24047,7 @@ msgstr "Konu"
 
 #: core/doctype/doctype/doctype.py:1897
 msgid "Subject Field type should be Data, Text, Long Text, Small Text, Text Editor"
-msgstr ""
+msgstr "Konu Alanı türü Veri, Metin, Uzun Metin, Küçük Metin, Metin Düzenleyici olmalıdır"
 
 #. Name of a DocType
 #: core/doctype/submission_queue/submission_queue.json
@@ -25357,7 +25357,7 @@ msgstr "Ülkeye özgü format bulunamazsa bu format kullanılır"
 #. Slideshow'
 #: website/doctype/website_slideshow/website_slideshow.json
 msgid "This goes above the slideshow."
-msgstr ""
+msgstr "Bu slayt gösterisinin üstüne gelir."
 
 #: public/js/frappe/views/reports/query_report.js:2009
 msgid "This is a background report. Please set the appropriate filters and then generate a new one."
