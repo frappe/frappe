@@ -60,7 +60,7 @@
 	}
 
 	.section-body {
-		padding-top: var(--padding-sm);
+		padding-top: var(--padding-md);
 		width: 100%;
 		display: flex;
 		flex-wrap: wrap;
@@ -104,7 +104,7 @@
 .form-section.card-section,
 .form-dashboard-section {
 	border-bottom: 1px solid var(--border-color);
-	padding: var(--padding-md) 0;
+	padding: var(--padding-sm);
 }
 
 .form-section.card-section.hide-border {
@@ -112,6 +112,7 @@
 }
 
 .form-dashboard-section {
+	padding: var(--padding-md) 0;
 	.section-body:first-child {
 		margin-top: 0;
 	}
