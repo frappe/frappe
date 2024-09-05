@@ -230,7 +230,7 @@ class SendMailContext:
 			smtplib.SMTPHeloError,
 			JobTimeoutException,
 		]
-		trace = "".join(traceback.format_tb(exc_tb)) if exc_tb else None
+		trace = frappe.get_traceback()
 
 		if not self.retain_smtp_session:
 			self.smtp_server.quit()
