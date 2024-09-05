@@ -2,6 +2,7 @@
 	.dashboard-view {
 		min-height: calc(100vh - 284px);
 		padding: var(--padding-lg) 0;
+		margin: auto var(--margin-md);
 
 		.grid-col-2 {
 			column-gap: 20px;

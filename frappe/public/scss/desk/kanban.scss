@@ -17,6 +17,7 @@
 	display: flex;
 	gap: 0.5em;
 	overflow-y: hidden;
+	margin: var(--margin-sm);
 
 	-ms-overflow-style: none; /* IE and Edge */
 	scrollbar-width: none; /* Firefox */
