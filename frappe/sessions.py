@@ -17,6 +17,7 @@ import frappe.model.meta
 import frappe.translate
 import frappe.utils
 from frappe import _
+from frappe.apps import get_apps, get_default_path, is_desk_apps
 from frappe.cache_manager import clear_user_cache
 from frappe.query_builder import Order
 from frappe.utils import cint, cstr, get_assets_json
@@ -168,6 +169,11 @@ def get():
 	bootinfo["disable_async"] = frappe.conf.disable_async
 
 	bootinfo["setup_complete"] = cint(frappe.get_system_settings("setup_complete"))
+	bootinfo["apps_data"] = {
+		"apps": get_apps() or [],
+		"is_desk_apps": 1 if bool(is_desk_apps(get_apps())) else 0,
+		"default_path": get_default_path() or "",
+	}
 
 	bootinfo["desk_theme"] = frappe.db.get_value("User", frappe.session.user, "desk_theme") or "Light"
 	bootinfo["user"]["impersonated_by"] = frappe.session.data.get("impersonated_by")
