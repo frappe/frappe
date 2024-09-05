@@ -71,6 +71,7 @@ class EmailAccount(Document):
 		auth_method: DF.Literal["Basic", "OAuth"]
 		auto_reply_message: DF.TextEditor | None
 		awaiting_password: DF.Check
+		backend_app_flow: DF.Check
 		brand_logo: DF.AttachImage | None
 		connected_app: DF.Link | None
 		connected_user: DF.Link | None
@@ -780,7 +781,12 @@ class EmailAccount(Document):
 	def get_oauth_token(self):
 		if self.auth_method == "OAuth":
 			connected_app = frappe.get_doc("Connected App", self.connected_app)
-			return connected_app.get_active_token(self.connected_user)
+			if self.backend_app_flow:
+				token = connected_app.get_backend_app_token()
+			else:
+				token = connected_app.get_active_token(self.connected_user)
+
+			return token
 
 
 @frappe.whitelist()
@@ -879,8 +885,10 @@ def pull(now=False):
 	)
 
 	for email_account in email_accounts:
-		if email_account.auth_method == "OAuth" and not has_token(
-			email_account.connected_app, email_account.connected_user
+		if (
+			email_account.auth_method == "OAuth"
+			and not email_account.backend_app_flow
+			and not has_token(email_account.connected_app, email_account.connected_user)
 		):
 			# don't try to pull from accounts which dont have access token (for Oauth)
 			continue
@@ -908,7 +916,13 @@ def pull_emails(email_account: str) -> None:
 	"""Pull emails from given email account."""
 	frappe.has_permission("Email Account", "read", throw=True)
 
-	pull_from_email_account(email_account)
+	job_name = f"pull_from_email_account|{email_account}"
+	queued_jobs = get_jobs(site=frappe.local.site, key="job_name")[frappe.local.site]
+
+	if job_name not in queued_jobs:
+		pull_from_email_account(email_account)
+	else:
+		frappe.msgprint(_("Emails are already being pulled from this account."))
 
 
 def pull_from_email_account(email_account):

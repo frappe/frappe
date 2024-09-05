@@ -179,6 +179,25 @@ frappe.ui.form.on("Notification", {
 		});
 		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
 		frm.trigger("event");
+		if (frm.doc.document_type) {
+			frm.add_custom_button(__("Preview"), () => {
+				const args = {
+					doc: frm.doc,
+					doctype: frm.doc.document_type,
+					preview_fields: [
+						{
+							label: __("Meets Condition?"),
+							fieldtype: "Data",
+							method: "preview_meets_condition",
+						},
+						{ label: __("Subject"), fieldtype: "Data", method: "preview_subject" },
+						{ label: __("Message"), fieldtype: "Code", method: "preview_message" },
+					],
+				};
+				let dialog = new frappe.views.RenderPreviewer(args);
+				return dialog;
+			});
+		}
 	},
 	document_type: function (frm) {
 		frappe.notification.setup_fieldname_select(frm);

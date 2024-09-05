@@ -89,6 +89,7 @@
 }
 
 .report-view {
+	width: calc(100% - 220px);
 	.result {
 		.dt-row:last-child:not(.dt-row-filter) {
 			.dt-cell {

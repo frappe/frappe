@@ -77,8 +77,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Module",
-   "options": "Module Def",
-   "read_only": 1
+   "options": "Module Def"
   },
   {
    "fieldname": "column_break_3",
@@ -101,8 +100,7 @@
   {
    "fieldname": "for_user",
    "fieldtype": "Data",
-   "label": "For User",
-   "read_only": 1
+   "label": "For User"
   },
   {
    "default": "0",
@@ -114,8 +112,7 @@
   {
    "fieldname": "icon",
    "fieldtype": "Icon",
-   "label": "Icon",
-   "read_only": 1
+   "label": "Icon"
   },
   {
    "fieldname": "links",
@@ -137,7 +134,6 @@
    "fieldname": "title",
    "fieldtype": "Data",
    "label": "Title",
-   "read_only": 1,
    "reqd": 1
   },
   {
@@ -156,8 +152,7 @@
   {
    "fieldname": "sequence_id",
    "fieldtype": "Float",
-   "label": "Sequence Id",
-   "read_only": 1
+   "label": "Sequence Id"
   },
   {
    "fieldname": "roles",
@@ -219,7 +214,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2024-05-30 17:30:36.791171",
+ "modified": "2024-08-26 17:16:05.820503",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",

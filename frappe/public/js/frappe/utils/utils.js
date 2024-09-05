@@ -299,6 +299,9 @@ Object.assign(frappe.utils, {
 			);
 		return content.html();
 	},
+	scroll_page_to_top() {
+		$(".main-section").scrollTop(0);
+	},
 	scroll_to: function (
 		element,
 		animate = true,
@@ -918,18 +921,18 @@ Object.assign(frappe.utils, {
 		let route = route_str.split("/");
 
 		if (route[2] === "Report" || route[0] === "query-report") {
-			return __("{0} Report", [route[3] || route[1]]);
+			return __("{0} Report", [__(route[3]) || __(route[1])]);
 		}
 		if (route[0] === "List") {
-			return __("{0} List", [route[1]]);
+			return __("{0} List", [__(route[1])]);
 		}
 		if (route[0] === "modules") {
-			return __("{0} Modules", [route[1]]);
+			return __("{0} Modules", [__(route[1])]);
 		}
 		if (route[0] === "dashboard") {
-			return __("{0} Dashboard", [route[1]]);
+			return __("{0} Dashboard", [__(route[1])]);
 		}
-		return __(frappe.utils.to_title_case(route[0], true));
+		return __(frappe.utils.to_title_case(__(route[0]), true));
 	},
 	report_column_total: function (values, column, type) {
 		if (column.column.disable_total) {
@@ -1213,9 +1216,7 @@ Object.assign(frappe.utils, {
 	},
 
 	flag(country_code) {
-		return `<img
-		src="https://flagcdn.com/${country_code}.svg"
-		width="20" height="15">`;
+		return `<img loading="lazy" src="https://flagcdn.com/${country_code}.svg" width="20" height="15">`;
 	},
 
 	make_chart(wrapper, custom_options = {}) {
@@ -1299,10 +1300,11 @@ Object.assign(frappe.utils, {
 			} else if (type === "report") {
 				if (item.is_query_report) {
 					route = "query-report/" + item.name;
-				} else if (!item.doctype) {
-					route = "report/" + item.name;
+				} else if (!item.is_query_report && item.report_ref_doctype) {
+					route =
+						frappe.router.slug(item.report_ref_doctype) + "/view/report/" + item.name;
 				} else {
-					route = frappe.router.slug(item.doctype) + "/view/report/" + item.name;
+					route = "/report/" + item.name;
 				}
 			} else if (type === "page") {
 				route = item.name;
@@ -1771,5 +1773,23 @@ Object.assign(frappe.utils, {
 			},
 			__("Generate Tracking URL")
 		);
+	},
+
+	/**
+	 * Checks if a value is empty.
+	 *
+	 * Returns false for: "hello", 0, 1, 3.1415, {"a": 1}, [1, 2, 3]
+	 * Returns true for: "", null, undefined, {}, []
+	 *
+	 * @param {*} value - The value to check.
+	 * @returns {boolean} - Returns `true` if the value is empty, `false` otherwise.
+	 */
+	is_empty(value) {
+		if (!value && value !== 0) return true;
+
+		if (typeof value === "object")
+			return (Array.isArray(value) ? value : Object.keys(value)).length === 0;
+
+		return false;
 	},
 });

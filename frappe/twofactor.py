@@ -349,7 +349,7 @@ def send_token_via_email(user, token, otp_secret, otp_issuer, subject=None, mess
 		recipients=user_email,
 		subject=subject or get_email_subject_for_2fa(template_args),
 		message=message or get_email_body_for_2fa(template_args),
-		header=[_("Verfication Code"), "blue"],
+		header=[_("Verification Code"), "blue"],
 		delayed=False,
 		retry=3,
 	)
