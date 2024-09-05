@@ -324,7 +324,7 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 
 	if txt:
 		conditions.append(
-			'(t1.content like {0} or t1.title like {0}")'.format(frappe.db.escape("%" + txt + "%"))
+			'(t1.content like {0} or t1.title like {0})'.format(frappe.db.escape("%" + txt + "%"))
 		)
 
 	if conditions:
