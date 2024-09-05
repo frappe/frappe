@@ -736,18 +736,13 @@ class BaseDocument:
 
 		def get_msg(df):
 			if df.fieldtype in table_fields:
-				return "{}: {}: {}".format(
-					_("Error"), _("Data missing in table"), _(df.label, context=df.parent)
-				)
+				return _("Error: Data missing in table {0}").format(_(df.label, context=df.parent))
 
 			# check if parentfield exists (only applicable for child table doctype)
 			elif self.get("parentfield"):
-				return "{}: {} {} #{}: {}: {}".format(
-					_("Error"),
+				return _("Error: {0} Row #{1}: Value missing for {2}").format(
 					frappe.bold(_(self.doctype)),
-					_("Row"),
 					self.idx,
-					_("Value missing for"),
 					_(df.label, context=df.parent),
 				)
 
