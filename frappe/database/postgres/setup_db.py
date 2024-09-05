@@ -5,8 +5,7 @@ from frappe.database.db_manager import DbManager
 from frappe.utils import cint
 
 def setup_database(force, source_sql=None, verbose=False):
-	# root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
-	root_conn = get_root_connection()
+	root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
 	root_conn.commit()
 	root_conn.sql("end")
 	root_conn.sql(f'DROP DATABASE IF EXISTS "{frappe.conf.db_name}"')
