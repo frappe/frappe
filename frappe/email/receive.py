@@ -316,6 +316,7 @@ class EmailServer:
 		)
 
 	def make_error_msg(self, uid, msg_num):
+		partial_mail = None
 		traceback = frappe.get_traceback(with_context=True)
 		with suppress(Exception):
 			# retrieve headers
