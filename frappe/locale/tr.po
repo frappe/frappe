@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-02 18:21+0000\n"
-"PO-Revision-Date: 2024-09-04 18:07\n"
+"PO-Revision-Date: 2024-09-05 18:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -2082,7 +2082,7 @@ msgstr "Değiştirilen Belgeler"
 #: core/doctype/transaction_log/transaction_log.json
 #: website/doctype/personal_data_download_request/personal_data_download_request.json
 msgid "Amended From"
-msgstr "İtibaren değiştirilmiş"
+msgstr "Değiştirildi"
 
 #: public/js/frappe/form/save.js:12
 msgctxt "Freeze message while amending a document"
@@ -30892,7 +30892,7 @@ msgstr ""
 #: public/js/frappe/form/footer/form_timeline.js:152
 #: public/js/frappe/form/sidebar/form_sidebar.js:96
 msgid "{0} last edited this"
-msgstr "{0} düzenlendi."
+msgstr "{0} düzenledi."
 
 #: core/doctype/activity_log/feed.py:13
 msgid "{0} logged in"
