@@ -223,9 +223,9 @@ watch(
 
 <style lang="scss">
 #command-center-search {
-	padding: var(--padding-lg);
+	padding: var(--padding-md);
 	border-bottom: 1px solid var(--border-color);
-	margin: var(--margin-md) auto;
+	margin-bottom: var(--margin-md);
 }
 .command-center-menu {
 	display: flex;
@@ -238,9 +238,9 @@ watch(
 	align-items: center;
 	padding: var(--padding-lg);
 	cursor: pointer;
-	margin: 5px auto;
 	transition: background-color 0.3s;
-	background-color: var(--subtle-accent);
+	background-color: transparent;
+	border: 1px solid var(--border-color);
 }
 .command-center-menu-icon {
 	margin-right: 10px;
