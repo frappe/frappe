@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-01 09:33+0000\n"
-"PO-Revision-Date: 2024-09-03 18:01\n"
+"PO-Revision-Date: 2024-09-05 18:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -9615,7 +9615,7 @@ msgstr "Solicitud de retroalimentación"
 
 #: desk/page/setup_wizard/install_fixtures.py:30
 msgid "Female"
-msgstr ""
+msgstr "Femenino"
 
 #. Label of the fetch_from (Small Text) field in DocType 'DocField'
 #. Label of the fetch_from (Small Text) field in DocType 'Custom Field'
@@ -10811,7 +10811,7 @@ msgstr "Género"
 
 #: desk/page/setup_wizard/install_fixtures.py:33
 msgid "Genderqueer"
-msgstr ""
+msgstr "Género Queer"
 
 #: www/contact.html:29
 msgid "General"
@@ -15285,7 +15285,7 @@ msgstr "Mal configurado"
 
 #: desk/page/setup_wizard/install_fixtures.py:50
 msgid "Miss"
-msgstr ""
+msgstr "Srta."
 
 #: desk/form/meta.py:213
 msgid "Missing DocType"
@@ -15618,15 +15618,15 @@ msgstr ""
 
 #: desk/page/setup_wizard/install_fixtures.py:44
 msgid "Mr"
-msgstr ""
+msgstr "Sr."
 
 #: desk/page/setup_wizard/install_fixtures.py:48
 msgid "Mrs"
-msgstr ""
+msgstr "Sra."
 
 #: desk/page/setup_wizard/install_fixtures.py:45
 msgid "Ms"
-msgstr ""
+msgstr "Sra."
 
 #: utils/nestedset.py:331
 msgid "Multiple root nodes not allowed."
@@ -16577,7 +16577,7 @@ msgstr "No negativo"
 
 #: desk/page/setup_wizard/install_fixtures.py:34
 msgid "Non-Conforming"
-msgstr ""
+msgstr "No Conforme"
 
 #. Option for the 'Backup Frequency' (Select) field in DocType 'S3 Backup
 #. Settings'
@@ -18955,7 +18955,7 @@ msgstr "Sustituciones predecibles como \"@\" en lugar de \"a\" no ayudan mucho."
 
 #: desk/page/setup_wizard/install_fixtures.py:35
 msgid "Prefer not to say"
-msgstr ""
+msgstr "Prefiero no decirlo"
 
 #. Label of the is_primary_address (Check) field in DocType 'Address'
 #: contacts/doctype/address/address.json
@@ -19386,7 +19386,7 @@ msgstr "Procesando..."
 
 #: desk/page/setup_wizard/install_fixtures.py:52
 msgid "Prof"
-msgstr ""
+msgstr "Prof"
 
 #. Group in User's connections
 #: core/doctype/user/user.json
@@ -26500,7 +26500,7 @@ msgstr "Informe de Registro de Transacciones"
 
 #: desk/page/setup_wizard/install_fixtures.py:32
 msgid "Transgender"
-msgstr ""
+msgstr "Transgénero"
 
 #: public/js/workflow_builder/components/Properties.vue:19
 msgid "Transition Properties"
