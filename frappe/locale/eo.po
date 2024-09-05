@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-08-23 17:00+0000\n"
-"PO-Revision-Date: 2024-08-24 10:08\n"
+"POT-Creation-Date: 2024-09-02 18:21+0000\n"
+"PO-Revision-Date: 2024-09-03 18:01\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Esperanto\n"
 "MIME-Version: 1.0\n"
@@ -122,7 +122,7 @@ msgstr "crwdns143588:0crwdne143588:0"
 msgid "0 is highest"
 msgstr "crwdns143590:0crwdne143590:0"
 
-#: public/js/frappe/form/grid_row.js:807
+#: public/js/frappe/form/grid_row.js:797
 msgid "1 = True & 0 = False"
 msgstr "crwdns112806:0crwdne112806:0"
 
@@ -1096,7 +1096,7 @@ msgstr "crwdns143722:0crwdne143722:0"
 msgid "Add Review"
 msgstr "crwdns113128:0crwdne113128:0"
 
-#: core/doctype/user/user.py:789
+#: core/doctype/user/user.py:790
 msgid "Add Roles"
 msgstr "crwdns113130:0crwdne113130:0"
 
@@ -1275,7 +1275,7 @@ msgstr "crwdns113194:0{0}crwdne113194:0"
 msgid "Added {0} ({1})"
 msgstr "crwdns113196:0{0}crwdnd113196:0{1}crwdne113196:0"
 
-#: core/doctype/user/user.py:271
+#: core/doctype/user/user.py:272
 msgid "Adding System Manager to this User as there must be atleast one System Manager"
 msgstr "crwdns113198:0crwdne113198:0"
 
@@ -1379,11 +1379,11 @@ msgstr "crwdns113240:0crwdne113240:0"
 msgid "Administrator"
 msgstr "crwdns113242:0crwdne113242:0"
 
-#: core/doctype/user/user.py:1194
+#: core/doctype/user/user.py:1195
 msgid "Administrator Logged In"
 msgstr "crwdns113244:0crwdne113244:0"
 
-#: core/doctype/user/user.py:1188
+#: core/doctype/user/user.py:1189
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr "crwdns113246:0{0}crwdnd113246:0{1}crwdnd113246:0{2}crwdne113246:0"
 
@@ -1832,11 +1832,11 @@ msgstr "crwdns143882:0crwdne143882:0"
 msgid "Allowing DocType, DocType. Be careful!"
 msgstr "crwdns113446:0crwdne113446:0"
 
-#: core/doctype/user/user.py:998
+#: core/doctype/user/user.py:999
 msgid "Already Registered"
 msgstr "crwdns113448:0crwdne113448:0"
 
-#: desk/form/assign_to.py:134
+#: desk/form/assign_to.py:136
 msgid "Already in the following Users ToDo list:{0}"
 msgstr "crwdns113450:0{0}crwdne113450:0"
 
@@ -2042,7 +2042,7 @@ msgstr "crwdns143928:0crwdne143928:0"
 msgid "App not found for module: {0}"
 msgstr "crwdns113546:0{0}crwdne113546:0"
 
-#: __init__.py:1754
+#: __init__.py:1761
 msgid "App {0} is not installed"
 msgstr "crwdns113548:0{0}crwdne113548:0"
 
@@ -2182,6 +2182,7 @@ msgstr "crwdns113606:0crwdne113606:0"
 #. Label of a standard navbar item
 #. Type: Route
 #: hooks.py templates/includes/navbar/navbar_login.html:18
+#: website/js/website.js:617
 msgid "Apps"
 msgstr "crwdns148374:0crwdne148374:0"
 
@@ -2293,7 +2294,7 @@ msgstr "crwdns143976:0crwdne143976:0"
 msgid "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User."
 msgstr "crwdns113650:0crwdne113650:0"
 
-#: desk/form/assign_to.py:104
+#: desk/form/assign_to.py:106
 msgid "As document sharing is disabled, please give them the required permissions before assigning."
 msgstr "crwdns113652:0crwdne113652:0"
 
@@ -2428,7 +2429,7 @@ msgstr "crwdns143994:0crwdne143994:0"
 msgid "Assignment Update on {0}"
 msgstr "crwdns113714:0{0}crwdne113714:0"
 
-#: desk/form/assign_to.py:75
+#: desk/form/assign_to.py:61
 msgid "Assignment for {0} {1}"
 msgstr "crwdns113716:0{0}crwdnd113716:0{1}crwdne113716:0"
 
@@ -2569,11 +2570,11 @@ msgstr "crwdns144018:0crwdne144018:0"
 msgid "Attachments"
 msgstr "crwdns113786:0crwdne113786:0"
 
-#: public/js/frappe/form/print_utils.js:89
+#: public/js/frappe/form/print_utils.js:91
 msgid "Attempting Connection to QZ Tray..."
 msgstr "crwdns113792:0crwdne113792:0"
 
-#: public/js/frappe/form/print_utils.js:105
+#: public/js/frappe/form/print_utils.js:107
 msgid "Attempting to launch QZ Tray..."
 msgstr "crwdns113794:0crwdne113794:0"
 
@@ -3681,7 +3682,7 @@ msgstr "crwdns144276:0crwdne144276:0"
 msgid "Cache"
 msgstr "crwdns144278:0crwdne144278:0"
 
-#: sessions.py:33
+#: sessions.py:32
 msgid "Cache Cleared"
 msgstr "crwdns114298:0crwdne114298:0"
 
@@ -4026,7 +4027,7 @@ msgstr "crwdns114466:0crwdne114466:0"
 msgid "Cannot get file contents of a Folder"
 msgstr "crwdns114468:0crwdne114468:0"
 
-#: printing/page/print/print.js:842
+#: printing/page/print/print.js:845
 msgid "Cannot have multiple printers mapped to a single print format."
 msgstr "crwdns114470:0crwdne114470:0"
 
@@ -4944,7 +4945,7 @@ msgstr "crwdns114924:0crwdne114924:0"
 msgid "Complete By"
 msgstr "crwdns114928:0crwdne114928:0"
 
-#: core/doctype/user/user.py:442 templates/emails/new_user.html:10
+#: core/doctype/user/user.py:443 templates/emails/new_user.html:10
 msgid "Complete Registration"
 msgstr "crwdns114930:0crwdne114930:0"
 
@@ -5123,8 +5124,8 @@ msgstr "crwdns115012:0crwdne115012:0"
 msgid "Connected User"
 msgstr "crwdns144454:0crwdne144454:0"
 
-#: public/js/frappe/form/print_utils.js:95
-#: public/js/frappe/form/print_utils.js:119
+#: public/js/frappe/form/print_utils.js:97
+#: public/js/frappe/form/print_utils.js:121
 msgid "Connected to QZ Tray!"
 msgstr "crwdns115020:0crwdne115020:0"
 
@@ -5348,7 +5349,7 @@ msgstr "crwdns115122:0crwdne115122:0"
 msgid "Core Modules {0} cannot be searched in Global Search."
 msgstr "crwdns115124:0{0}crwdne115124:0"
 
-#: printing/page/print/print.js:617
+#: printing/page/print/print.js:620
 msgid "Correct version :"
 msgstr "crwdns144496:0crwdne144496:0"
 
@@ -8190,7 +8191,7 @@ msgstr "crwdns116510:0crwdne116510:0"
 msgid "Email Account Name"
 msgstr "crwdns144858:0crwdne144858:0"
 
-#: core/doctype/user/user.py:718
+#: core/doctype/user/user.py:719
 msgid "Email Account added multiple times"
 msgstr "crwdns116514:0crwdne116514:0"
 
@@ -8882,7 +8883,7 @@ msgstr "crwdns148390:0crwdne148390:0"
 msgid "Error Message"
 msgstr "crwdns144978:0crwdne144978:0"
 
-#: public/js/frappe/form/print_utils.js:126
+#: public/js/frappe/form/print_utils.js:128
 msgid "Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Click here to Download and install QZ Tray</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Click here to learn more about Raw Printing</a>."
 msgstr "crwdns116858:0crwdne116858:0"
 
@@ -9374,7 +9375,7 @@ msgstr "crwdns117074:0{0}crwdnd117074:0{1}crwdne117074:0"
 msgid "Failed to import virtual doctype {}, is controller file present?"
 msgstr "crwdns117076:0crwdne117076:0"
 
-#: utils/image.py:74
+#: utils/image.py:76
 msgid "Failed to optimize image: {0}"
 msgstr "crwdns117078:0{0}crwdne117078:0"
 
@@ -9561,7 +9562,7 @@ msgstr "crwdns145088:0crwdne145088:0"
 msgid "Field type cannot be changed for {0}"
 msgstr "crwdns117164:0{0}crwdne117164:0"
 
-#: database/database.py:848
+#: database/database.py:841
 msgid "Field {0} does not exist on {1}"
 msgstr "crwdns117166:0{0}crwdnd117166:0{1}crwdne117166:0"
 
@@ -10531,7 +10532,7 @@ msgstr "crwdns117668:0crwdne117668:0"
 msgid "Function Based On"
 msgstr "crwdns117672:0crwdne117672:0"
 
-#: __init__.py:898
+#: __init__.py:905
 msgid "Function {0} is not whitelisted."
 msgstr "crwdns117674:0{0}crwdne117674:0"
 
@@ -12141,7 +12142,7 @@ msgstr "crwdns145532:0crwdne145532:0"
 msgid "In Progress"
 msgstr "crwdns118458:0crwdne118458:0"
 
-#: database/database.py:250
+#: database/database.py:243
 msgid "In Read Only Mode"
 msgstr "crwdns118460:0crwdne118460:0"
 
@@ -12556,7 +12557,7 @@ msgstr "crwdns145596:0crwdne145596:0"
 msgid "Invalid"
 msgstr "crwdns145598:0crwdne145598:0"
 
-#: public/js/form_builder/utils.js:221 public/js/frappe/form/grid_row.js:769
+#: public/js/form_builder/utils.js:221 public/js/frappe/form/grid_row.js:759
 #: public/js/frappe/form/layout.js:785
 msgid "Invalid \"depends_on\" expression"
 msgstr "crwdns118656:0crwdne118656:0"
@@ -12657,7 +12658,7 @@ msgstr "crwdns118700:0crwdne118700:0"
 msgid "Invalid Parameters."
 msgstr "crwdns118702:0crwdne118702:0"
 
-#: core/doctype/user/user.py:1209 www/update-password.html:121
+#: core/doctype/user/user.py:1210 www/update-password.html:121
 #: www/update-password.html:142 www/update-password.html:144
 #: www/update-password.html:245
 msgid "Invalid Password"
@@ -12781,7 +12782,7 @@ msgctxt "Error message in web form"
 msgid "Invalid values for fields:"
 msgstr "crwdns118760:0crwdne118760:0"
 
-#: printing/page/print/print.js:611
+#: printing/page/print/print.js:614
 msgid "Invalid wkhtmltopdf version"
 msgstr "crwdns145602:0crwdne145602:0"
 
@@ -13454,7 +13455,7 @@ msgstr "crwdns119102:0crwdne119102:0"
 msgid "Landing Page"
 msgstr "crwdns145748:0crwdne145748:0"
 
-#: public/js/frappe/form/print_utils.js:28
+#: public/js/frappe/form/print_utils.js:30
 msgid "Landscape"
 msgstr "crwdns119106:0crwdne119106:0"
 
@@ -13750,7 +13751,7 @@ msgstr "crwdns145804:0crwdne145804:0"
 #. Name of a DocType
 #: core/doctype/report/report.json
 #: printing/doctype/letter_head/letter_head.json
-#: printing/page/print/print.js:127 public/js/frappe/form/print_utils.js:18
+#: printing/page/print/print.js:127 public/js/frappe/form/print_utils.js:20
 #: public/js/frappe/form/templates/print_layout.html:16
 #: public/js/frappe/list/bulk_operations.js:52
 #: public/js/print_format_builder/LetterHeadEditor.vue:144
@@ -14350,7 +14351,7 @@ msgid "Login with {0}"
 msgstr "crwdns148414:0{0}crwdne148414:0"
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
-#: core/doctype/activity_log/activity_log.json www/apps.html:46
+#: core/doctype/activity_log/activity_log.json www/apps.html:59
 msgid "Logout"
 msgstr "crwdns145914:0crwdne145914:0"
 
@@ -14832,7 +14833,7 @@ msgstr "crwdns119726:0crwdne119726:0"
 msgid "Message"
 msgstr "crwdns119728:0crwdne119728:0"
 
-#: __init__.py:582 public/js/frappe/ui/messages.js:267
+#: __init__.py:589 public/js/frappe/ui/messages.js:267
 msgctxt "Default title of the message dialog"
 msgid "Message"
 msgstr "crwdns119738:0crwdne119738:0"
@@ -14952,7 +14953,7 @@ msgstr "crwdns119804:0crwdne119804:0"
 msgid "Method"
 msgstr "crwdns146022:0crwdne146022:0"
 
-#: __init__.py:900
+#: __init__.py:907
 msgid "Method Not Allowed"
 msgstr "crwdns146024:0crwdne146024:0"
 
@@ -15028,7 +15029,7 @@ msgstr "crwdns119846:0crwdne119846:0"
 msgid "Missing Filters Required"
 msgstr "crwdns119848:0crwdne119848:0"
 
-#: desk/form/assign_to.py:107
+#: desk/form/assign_to.py:109
 msgid "Missing Permission"
 msgstr "crwdns119850:0crwdne119850:0"
 
@@ -15280,7 +15281,7 @@ msgstr "crwdns120004:0{0}crwdne120004:0"
 msgid "More content for the bottom of the page."
 msgstr "crwdns146058:0crwdne146058:0"
 
-#: public/js/frappe/ui/sort_selector.js:193
+#: public/js/frappe/ui/sort_selector.js:191
 msgid "Most Used"
 msgstr "crwdns120008:0crwdne120008:0"
 
@@ -15772,7 +15773,7 @@ msgstr "crwdns120210:0{0}crwdnd120210:0{1}crwdne120210:0"
 msgid "New {} releases for the following apps are available"
 msgstr "crwdns120212:0crwdne120212:0"
 
-#: core/doctype/user/user.py:785
+#: core/doctype/user/user.py:786
 msgid "Newly created user {0} has no roles enabled."
 msgstr "crwdns120214:0{0}crwdne120214:0"
 
@@ -15822,7 +15823,7 @@ msgstr "crwdns120232:0crwdne120232:0"
 #: public/js/frappe/web_form/web_form.js:91
 #: public/js/onboarding_tours/onboarding_tours.js:15
 #: public/js/onboarding_tours/onboarding_tours.js:240
-#: templates/includes/slideshow.html:38 website/utils.py:247
+#: templates/includes/slideshow.html:38 website/utils.py:253
 #: website/web_template/slideshow/slideshow.html:44
 msgid "Next"
 msgstr "crwdns120234:0crwdne120234:0"
@@ -15999,7 +16000,7 @@ msgstr "crwdns120308:0{0}crwdne120308:0"
 msgid "No Label"
 msgstr "crwdns120310:0crwdne120310:0"
 
-#: printing/page/print/print.js:700 printing/page/print/print.js:782
+#: printing/page/print/print.js:703 printing/page/print/print.js:785
 #: public/js/frappe/list/bulk_operations.js:98
 #: public/js/frappe/list/bulk_operations.js:170 utils/weasyprint.py:52
 msgid "No Letterhead"
@@ -16033,11 +16034,11 @@ msgstr "crwdns120324:0crwdne120324:0"
 msgid "No Preview"
 msgstr "crwdns120326:0crwdne120326:0"
 
-#: printing/page/print/print.js:704
+#: printing/page/print/print.js:707
 msgid "No Preview Available"
 msgstr "crwdns120328:0crwdne120328:0"
 
-#: printing/page/print/print.js:860
+#: printing/page/print/print.js:863
 msgid "No Printer is Available."
 msgstr "crwdns120330:0crwdne120330:0"
 
@@ -16053,7 +16054,7 @@ msgstr "crwdns120334:0crwdne120334:0"
 msgid "No Results found"
 msgstr "crwdns120336:0crwdne120336:0"
 
-#: core/doctype/user/user.py:786
+#: core/doctype/user/user.py:787
 msgid "No Roles Specified"
 msgstr "crwdns120338:0crwdne120338:0"
 
@@ -16198,7 +16199,7 @@ msgstr "crwdns120402:0crwdne120402:0"
 msgid "No of Rows (Max 500)"
 msgstr "crwdns146136:0crwdne146136:0"
 
-#: __init__.py:1089 client.py:109 client.py:151
+#: __init__.py:1096 client.py:109 client.py:151
 msgid "No permission for {0}"
 msgstr "crwdns120406:0{0}crwdne120406:0"
 
@@ -16297,7 +16298,7 @@ msgstr "crwdns146142:0crwdne146142:0"
 msgid "Normalized Query"
 msgstr "crwdns146144:0crwdne146144:0"
 
-#: core/doctype/user/user.py:993 templates/includes/login/login.js:258
+#: core/doctype/user/user.py:994 templates/includes/login/login.js:258
 #: utils/oauth.py:266
 msgid "Not Allowed"
 msgstr "crwdns120452:0crwdne120452:0"
@@ -16339,7 +16340,7 @@ msgstr "crwdns120468:0crwdne120468:0"
 msgid "Not Linked to any record"
 msgstr "crwdns120470:0crwdne120470:0"
 
-#: __init__.py:982 app.py:357 desk/calendar.py:26 desk/treeview.py:19
+#: __init__.py:989 app.py:357 desk/calendar.py:26 desk/treeview.py:19
 #: geo/utils.py:97 public/js/frappe/web_form/webform_script.js:15
 #: website/doctype/web_form/web_form.py:601
 #: website/page_renderers/not_permitted_page.py:20 www/login.py:182
@@ -16391,7 +16392,7 @@ msgstr "crwdns120490:0crwdne120490:0"
 msgid "Not a valid Comma Separated Value (CSV File)"
 msgstr "crwdns120492:0crwdne120492:0"
 
-#: core/doctype/user/user.py:198
+#: core/doctype/user/user.py:199
 msgid "Not a valid User Image."
 msgstr "crwdns120494:0crwdne120494:0"
 
@@ -17030,7 +17031,7 @@ msgstr "crwdns120768:0crwdne120768:0"
 msgid "Only standard DocTypes are allowed to be customized from Customize Form."
 msgstr "crwdns120770:0crwdne120770:0"
 
-#: desk/form/assign_to.py:181
+#: desk/form/assign_to.py:183
 msgid "Only the assignee can complete this to-do."
 msgstr "crwdns120772:0crwdne120772:0"
 
@@ -17269,7 +17270,7 @@ msgstr "crwdns146270:0crwdne146270:0"
 msgid "Org History Heading"
 msgstr "crwdns146272:0crwdne146272:0"
 
-#: public/js/frappe/form/print_utils.js:26
+#: public/js/frappe/form/print_utils.js:28
 msgid "Orientation"
 msgstr "crwdns120888:0crwdne120888:0"
 
@@ -17382,11 +17383,11 @@ msgstr "crwdns120936:0crwdne120936:0"
 msgid "PDF generation failed because of broken image links"
 msgstr "crwdns120938:0crwdne120938:0"
 
-#: printing/page/print/print.js:613
+#: printing/page/print/print.js:616
 msgid "PDF generation may not work as expected."
 msgstr "crwdns146298:0crwdne146298:0"
 
-#: printing/page/print/print.js:531
+#: printing/page/print/print.js:534
 msgid "PDF printing via \"Raw Print\" is not supported."
 msgstr "crwdns120940:0crwdne120940:0"
 
@@ -17695,11 +17696,11 @@ msgstr "crwdns146350:0crwdne146350:0"
 msgid "Password"
 msgstr "crwdns121076:0crwdne121076:0"
 
-#: core/doctype/user/user.py:1056
+#: core/doctype/user/user.py:1057
 msgid "Password Email Sent"
 msgstr "crwdns121090:0crwdne121090:0"
 
-#: core/doctype/user/user.py:422
+#: core/doctype/user/user.py:423
 msgid "Password Reset"
 msgstr "crwdns121092:0crwdne121092:0"
 
@@ -17708,7 +17709,7 @@ msgstr "crwdns121092:0crwdne121092:0"
 msgid "Password Reset Link Generation Limit"
 msgstr "crwdns146352:0crwdne146352:0"
 
-#: public/js/frappe/form/grid_row.js:811
+#: public/js/frappe/form/grid_row.js:801
 msgid "Password cannot be filtered"
 msgstr "crwdns121096:0crwdne121096:0"
 
@@ -17733,7 +17734,7 @@ msgstr "crwdns121104:0crwdne121104:0"
 msgid "Password not found for {0} {1} {2}"
 msgstr "crwdns121106:0{0}crwdnd121106:0{1}crwdnd121106:0{2}crwdne121106:0"
 
-#: core/doctype/user/user.py:1055
+#: core/doctype/user/user.py:1056
 msgid "Password reset instructions have been sent to your email"
 msgstr "crwdns121108:0crwdne121108:0"
 
@@ -17745,7 +17746,7 @@ msgstr "crwdns121110:0crwdne121110:0"
 msgid "Password size exceeded the maximum allowed size"
 msgstr "crwdns121112:0crwdne121112:0"
 
-#: core/doctype/user/user.py:849
+#: core/doctype/user/user.py:850
 msgid "Password size exceeded the maximum allowed size."
 msgstr "crwdns121114:0crwdne121114:0"
 
@@ -18039,7 +18040,7 @@ msgstr "crwdns146398:0crwdne146398:0"
 msgid "Phone Number {0} set in field {1} is not valid."
 msgstr "crwdns121262:0{0}crwdnd121262:0{1}crwdne121262:0"
 
-#: public/js/frappe/form/print_utils.js:38
+#: public/js/frappe/form/print_utils.js:40
 #: public/js/frappe/views/reports/report_view.js:1503
 #: public/js/frappe/views/reports/report_view.js:1506
 msgid "Pick Columns"
@@ -18100,7 +18101,7 @@ msgstr "crwdns121288:0crwdne121288:0"
 msgid "Please add a valid comment."
 msgstr "crwdns121290:0crwdne121290:0"
 
-#: core/doctype/user/user.py:1038
+#: core/doctype/user/user.py:1039
 msgid "Please ask your administrator to verify your sign-up"
 msgstr "crwdns121292:0crwdne121292:0"
 
@@ -18132,7 +18133,7 @@ msgstr "crwdns121304:0crwdne121304:0"
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr "crwdns121306:0{0}crwdne121306:0"
 
-#: core/doctype/user/user.py:1036
+#: core/doctype/user/user.py:1037
 msgid "Please check your email for verification"
 msgstr "crwdns121308:0crwdne121308:0"
 
@@ -18160,7 +18161,7 @@ msgstr "crwdns121318:0crwdne121318:0"
 msgid "Please confirm your action to {0} this document."
 msgstr "crwdns121320:0{0}crwdne121320:0"
 
-#: printing/page/print/print.js:615
+#: printing/page/print/print.js:618
 msgid "Please contact your system manager to install correct version."
 msgstr "crwdns146410:0crwdne146410:0"
 
@@ -18190,7 +18191,7 @@ msgstr "crwdns121332:0crwdne121332:0"
 
 #: desk/doctype/notification_log/notification_log.js:45
 #: email/doctype/auto_email_report/auto_email_report.js:17
-#: printing/page/print/print.js:635 printing/page/print/print.js:665
+#: printing/page/print/print.js:638 printing/page/print/print.js:668
 #: public/js/frappe/list/bulk_operations.js:161
 #: public/js/frappe/utils/utils.js:1437
 msgid "Please enable pop-ups"
@@ -18281,7 +18282,7 @@ msgstr "crwdns121374:0crwdne121374:0"
 msgid "Please refresh to get the latest document."
 msgstr "crwdns121376:0crwdne121376:0"
 
-#: printing/page/print/print.js:532
+#: printing/page/print/print.js:535
 msgid "Please remove the printer mapping in Printer Settings and try again."
 msgstr "crwdns121378:0crwdne121378:0"
 
@@ -18383,7 +18384,7 @@ msgstr "crwdns121422:0crwdne121422:0"
 msgid "Please set Email Address"
 msgstr "crwdns121424:0crwdne121424:0"
 
-#: printing/page/print/print.js:546
+#: printing/page/print/print.js:549
 msgid "Please set a printer mapping for this print format in the Printer Settings"
 msgstr "crwdns121426:0crwdne121426:0"
 
@@ -18419,11 +18420,11 @@ msgstr "crwdns121440:0crwdne121440:0"
 msgid "Please setup default Email Account from Settings > Email Account"
 msgstr "crwdns121442:0crwdne121442:0"
 
-#: core/doctype/user/user.py:373
+#: core/doctype/user/user.py:374
 msgid "Please setup default outgoing Email Account from Settings > Email Account"
 msgstr "crwdns121444:0crwdne121444:0"
 
-#: public/js/frappe/model/model.js:802
+#: public/js/frappe/model/model.js:803
 msgid "Please specify"
 msgstr "crwdns121446:0crwdne121446:0"
 
@@ -18524,7 +18525,7 @@ msgstr "crwdns121488:0crwdne121488:0"
 msgid "Portal Settings"
 msgstr "crwdns121490:0crwdne121490:0"
 
-#: public/js/frappe/form/print_utils.js:29
+#: public/js/frappe/form/print_utils.js:31
 msgid "Portrait"
 msgstr "crwdns121494:0crwdne121494:0"
 
@@ -18788,7 +18789,7 @@ msgstr "crwdns121608:0crwdne121608:0"
 #: core/doctype/doctype/doctype.json core/doctype/module_def/module_def.json
 #: core/workspace/build/build.json email/doctype/notification/notification.json
 #: printing/doctype/print_format/print_format.json
-#: printing/page/print/print.js:94 printing/page/print/print.js:819
+#: printing/page/print/print.js:94 printing/page/print/print.js:822
 #: public/js/frappe/list/bulk_operations.js:59
 #: website/doctype/web_form/web_form.json
 msgid "Print Format"
@@ -18873,7 +18874,7 @@ msgstr "crwdns146470:0crwdne146470:0"
 msgid "Print Language"
 msgstr "crwdns121660:0crwdne121660:0"
 
-#: public/js/frappe/form/print_utils.js:195
+#: public/js/frappe/form/print_utils.js:197
 msgid "Print Sent to the printer!"
 msgstr "crwdns121662:0crwdne121662:0"
 
@@ -18889,7 +18890,7 @@ msgstr "crwdns146472:0crwdne146472:0"
 #: email/doctype/notification/notification.json
 #: printing/doctype/print_settings/print_settings.json
 #: printing/doctype/print_style/print_style.js:6
-#: printing/page/print/print.js:160 public/js/frappe/form/print_utils.js:69
+#: printing/page/print/print.js:160 public/js/frappe/form/print_utils.js:71
 #: public/js/frappe/form/templates/print_layout.html:35
 msgid "Print Settings"
 msgstr "crwdns121666:0crwdne121666:0"
@@ -18936,11 +18937,11 @@ msgstr "crwdns121688:0crwdne121688:0"
 msgid "Print with letterhead"
 msgstr "crwdns146482:0crwdne146482:0"
 
-#: printing/page/print/print.js:828
+#: printing/page/print/print.js:831
 msgid "Printer"
 msgstr "crwdns121692:0crwdne121692:0"
 
-#: printing/page/print/print.js:805
+#: printing/page/print/print.js:808
 msgid "Printer Mapping"
 msgstr "crwdns121694:0crwdne121694:0"
 
@@ -18949,11 +18950,11 @@ msgstr "crwdns121694:0crwdne121694:0"
 msgid "Printer Name"
 msgstr "crwdns146484:0crwdne146484:0"
 
-#: printing/page/print/print.js:797
+#: printing/page/print/print.js:800
 msgid "Printer Settings"
 msgstr "crwdns121698:0crwdne121698:0"
 
-#: printing/page/print/print.js:545
+#: printing/page/print/print.js:548
 msgid "Printer mapping not set."
 msgstr "crwdns121700:0crwdne121700:0"
 
@@ -19237,7 +19238,7 @@ msgstr "crwdns121838:0crwdne121838:0"
 msgid "QR Code for Login Verification"
 msgstr "crwdns121840:0crwdne121840:0"
 
-#: public/js/frappe/form/print_utils.js:204
+#: public/js/frappe/form/print_utils.js:206
 msgid "QZ Tray Failed: "
 msgstr "crwdns121842:0crwdne121842:0"
 
@@ -19736,7 +19737,7 @@ msgstr "crwdns146618:0crwdne146618:0"
 msgid "Redirects"
 msgstr "crwdns146620:0crwdne146620:0"
 
-#: sessions.py:145
+#: sessions.py:146
 msgid "Redis cache server not running. Please contact Administrator / Tech support"
 msgstr "crwdns122080:0crwdne122080:0"
 
@@ -19987,7 +19988,7 @@ msgstr "crwdns122244:0crwdne122244:0"
 msgid "Refreshing..."
 msgstr "crwdns122246:0crwdne122246:0"
 
-#: core/doctype/user/user.py:1000
+#: core/doctype/user/user.py:1001
 msgid "Registered but disabled"
 msgstr "crwdns122248:0crwdne122248:0"
 
@@ -20902,7 +20903,7 @@ msgstr "crwdns122688:0crwdne122688:0"
 msgid "Role and Level"
 msgstr "crwdns146774:0crwdne146774:0"
 
-#: core/doctype/user/user.py:314
+#: core/doctype/user/user.py:315
 msgid "Role has been set as per the user type {0}"
 msgstr "crwdns122698:0{0}crwdne122698:0"
 
@@ -21286,7 +21287,7 @@ msgstr "crwdns146840:0crwdne146840:0"
 #: core/doctype/data_import/data_import.js:113
 #: desk/page/user_profile/user_profile_controller.js:319
 #: email/doctype/notification/notification.json
-#: printing/page/print/print.js:856
+#: printing/page/print/print.js:859
 #: printing/page/print_format_builder/print_format_builder.js:160
 #: public/js/frappe/form/footer/form_timeline.js:663
 #: public/js/frappe/form/quick_entry.js:161
@@ -21762,7 +21763,7 @@ msgstr "crwdns146902:0crwdne146902:0"
 #: core/doctype/report_filter/report_filter.json
 #: custom/doctype/custom_field/custom_field.json
 #: custom/doctype/customize_form_field/customize_form_field.json
-#: printing/page/print/print.js:599
+#: printing/page/print/print.js:602
 #: website/doctype/web_form_field/web_form_field.json
 #: website/doctype/web_template_field/web_template_field.json
 msgid "Select"
@@ -21790,7 +21791,7 @@ msgid "Select Column"
 msgstr "crwdns123132:0crwdne123132:0"
 
 #: printing/page/print_format_builder/print_format_builder_field.html:41
-#: public/js/frappe/form/print_utils.js:43
+#: public/js/frappe/form/print_utils.js:45
 msgid "Select Columns"
 msgstr "crwdns123134:0crwdne123134:0"
 
@@ -21903,7 +21904,7 @@ msgstr "crwdns123184:0crwdne123184:0"
 msgid "Select Module"
 msgstr "crwdns123186:0crwdne123186:0"
 
-#: printing/page/print/print.js:175 printing/page/print/print.js:582
+#: printing/page/print/print.js:175 printing/page/print/print.js:585
 msgid "Select Network Printer"
 msgstr "crwdns123188:0crwdne123188:0"
 
@@ -22729,7 +22730,7 @@ msgstr "crwdns123560:0{0}crwdne123560:0"
 msgid "Shared"
 msgstr "crwdns147038:0crwdne147038:0"
 
-#: desk/form/assign_to.py:129
+#: desk/form/assign_to.py:131
 msgid "Shared with the following Users with Read access:{0}"
 msgstr "crwdns123566:0{0}crwdne123566:0"
 
@@ -23073,7 +23074,7 @@ msgstr "crwdns147110:0crwdne147110:0"
 msgid "Sign Up and Confirmation"
 msgstr "crwdns147112:0crwdne147112:0"
 
-#: core/doctype/user/user.py:993
+#: core/doctype/user/user.py:994
 msgid "Sign Up is disabled"
 msgstr "crwdns123720:0crwdne123720:0"
 
@@ -23141,7 +23142,7 @@ msgstr "crwdns123748:0crwdne123748:0"
 msgid "Single Types have only one record no tables associated. Values are stored in tabSingles"
 msgstr "crwdns123750:0crwdne123750:0"
 
-#: database/database.py:247
+#: database/database.py:240
 msgid "Site is running in read only mode for maintenance or site update, this action can not be performed right now. Please try again later."
 msgstr "crwdns123754:0crwdne123754:0"
 
@@ -24075,7 +24076,7 @@ msgstr "crwdns147258:0crwdne147258:0"
 msgid "Suggested Indexes"
 msgstr "crwdns147260:0crwdne147260:0"
 
-#: core/doctype/user/user.py:702
+#: core/doctype/user/user.py:703
 msgid "Suggested Username: {0}"
 msgstr "crwdns124228:0{0}crwdne124228:0"
 
@@ -24586,7 +24587,7 @@ msgstr "crwdns147322:0crwdne147322:0"
 msgid "Templates"
 msgstr "crwdns124398:0crwdne124398:0"
 
-#: core/doctype/user/user.py:1004
+#: core/doctype/user/user.py:1005
 msgid "Temporarily Disabled"
 msgstr "crwdns124400:0crwdne124400:0"
 
@@ -24724,7 +24725,7 @@ msgid "The browser API key obtained from the Google Cloud Console under <a href=
 "</a>"
 msgstr "crwdns147340:0crwdne147340:0"
 
-#: database/database.py:435
+#: database/database.py:428
 msgid "The changes have been reverted."
 msgstr "crwdns124466:0crwdne124466:0"
 
@@ -24839,11 +24840,11 @@ msgid "The project number obtained from Google Cloud Console under <a href=\"htt
 "</a>"
 msgstr "crwdns147352:0crwdne147352:0"
 
-#: core/doctype/user/user.py:964
+#: core/doctype/user/user.py:965
 msgid "The reset password link has been expired"
 msgstr "crwdns124518:0crwdne124518:0"
 
-#: core/doctype/user/user.py:966
+#: core/doctype/user/user.py:967
 msgid "The reset password link has either been used before or is invalid"
 msgstr "crwdns124520:0crwdne124520:0"
 
@@ -24961,7 +24962,7 @@ msgstr "crwdns124572:0{0}crwdne124572:0"
 msgid "There must be atleast one permission rule."
 msgstr "crwdns124574:0crwdne124574:0"
 
-#: core/doctype/user/user.py:503
+#: core/doctype/user/user.py:504
 msgid "There should remain at least one System Manager"
 msgstr "crwdns124576:0crwdne124576:0"
 
@@ -25039,7 +25040,7 @@ msgstr "crwdns124608:0crwdne124608:0"
 msgid "This action is irreversible. Do you wish to continue?"
 msgstr "crwdns124610:0crwdne124610:0"
 
-#: __init__.py:978
+#: __init__.py:985
 msgid "This action is only allowed for {}"
 msgstr "crwdns124612:0crwdne124612:0"
 
@@ -25270,7 +25271,7 @@ msgstr "crwdns124712:0crwdne124712:0"
 msgid "This will terminate the job immediately and might be dangerous, are you sure? "
 msgstr "crwdns124714:0crwdne124714:0"
 
-#: core/doctype/user/user.py:1223
+#: core/doctype/user/user.py:1224
 msgid "Throttled"
 msgstr "crwdns124716:0crwdne124716:0"
 
@@ -25726,11 +25727,11 @@ msgstr "crwdns124956:0crwdne124956:0"
 msgid "Too Many Requests"
 msgstr "crwdns124958:0crwdne124958:0"
 
-#: database/database.py:434
+#: database/database.py:427
 msgid "Too many changes to database in single action."
 msgstr "crwdns124960:0crwdne124960:0"
 
-#: core/doctype/user/user.py:1005
+#: core/doctype/user/user.py:1006
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr "crwdns124962:0crwdne124962:0"
 
@@ -26986,15 +26987,15 @@ msgstr "crwdns125556:0{0}crwdne125556:0"
 msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
 msgstr "crwdns125558:0{0}crwdne125558:0"
 
-#: core/doctype/user/user.py:508
+#: core/doctype/user/user.py:509
 msgid "User {0} cannot be deleted"
 msgstr "crwdns125560:0{0}crwdne125560:0"
 
-#: core/doctype/user/user.py:243
+#: core/doctype/user/user.py:244
 msgid "User {0} cannot be disabled"
 msgstr "crwdns125562:0{0}crwdne125562:0"
 
-#: core/doctype/user/user.py:590
+#: core/doctype/user/user.py:591
 msgid "User {0} cannot be renamed"
 msgstr "crwdns125564:0{0}crwdne125564:0"
 
@@ -27015,7 +27016,7 @@ msgstr "crwdns147674:0{0}crwdne147674:0"
 msgid "User {0} has requested for data deletion"
 msgstr "crwdns125570:0{0}crwdne125570:0"
 
-#: core/doctype/user/user.py:1357
+#: core/doctype/user/user.py:1358
 msgid "User {0} impersonated as {1}"
 msgstr "crwdns125572:0{0}crwdnd125572:0{1}crwdne125572:0"
 
@@ -27027,7 +27028,7 @@ msgstr "crwdns125574:0{0}crwdne125574:0"
 msgid "User {0} is disabled. Please contact your System Manager."
 msgstr "crwdns147676:0{0}crwdne147676:0"
 
-#: desk/form/assign_to.py:101
+#: desk/form/assign_to.py:103
 msgid "User {0} is not permitted to access this document."
 msgstr "crwdns125576:0{0}crwdne125576:0"
 
@@ -27043,7 +27044,7 @@ msgstr "crwdns147678:0crwdne147678:0"
 msgid "Username"
 msgstr "crwdns125580:0crwdne125580:0"
 
-#: core/doctype/user/user.py:669
+#: core/doctype/user/user.py:670
 msgid "Username {0} already exists"
 msgstr "crwdns125586:0{0}crwdne125586:0"
 
@@ -27836,11 +27837,11 @@ msgstr "crwdns147772:0crwdne147772:0"
 msgid "Welcome Workspace"
 msgstr "crwdns125966:0crwdne125966:0"
 
-#: core/doctype/user/user.py:365
+#: core/doctype/user/user.py:366
 msgid "Welcome email sent"
 msgstr "crwdns125968:0crwdne125968:0"
 
-#: core/doctype/user/user.py:440
+#: core/doctype/user/user.py:441
 msgid "Welcome to {0}"
 msgstr "crwdns125970:0{0}crwdne125970:0"
 
@@ -27926,7 +27927,7 @@ msgstr "crwdns126008:0crwdne126008:0"
 msgid "Will run scheduled jobs only once a day for inactive sites. Default 4 days if set to 0."
 msgstr "crwdns147786:0crwdne147786:0"
 
-#: public/js/frappe/form/print_utils.js:13
+#: public/js/frappe/form/print_utils.js:15
 msgid "With Letter head"
 msgstr "crwdns126012:0crwdne126012:0"
 
@@ -28314,11 +28315,11 @@ msgstr "crwdns126200:0crwdne126200:0"
 msgid "You are not permitted to access this page without login."
 msgstr "crwdns126202:0crwdne126202:0"
 
-#: www/app.py:23 www/apps.py:14
+#: www/app.py:23
 msgid "You are not permitted to access this page."
 msgstr "crwdns126204:0crwdne126204:0"
 
-#: __init__.py:897
+#: __init__.py:904
 msgid "You are not permitted to access this resource."
 msgstr "crwdns126206:0crwdne126206:0"
 
@@ -28615,7 +28616,7 @@ msgstr "crwdns126346:0crwdne126346:0"
 msgid "You need to be logged in and have System Manager Role to be able to access backups."
 msgstr "crwdns126348:0crwdne126348:0"
 
-#: www/apps.py:11 www/me.py:13 www/third_party_apps.py:10
+#: www/me.py:13 www/third_party_apps.py:10
 msgid "You need to be logged in to access this page"
 msgstr "crwdns126350:0crwdne126350:0"
 
@@ -28719,7 +28720,7 @@ msgstr "crwdns126392:0crwdne126392:0"
 msgid "Your account has been locked and will resume after {0} seconds"
 msgstr "crwdns126394:0{0}crwdne126394:0"
 
-#: desk/form/assign_to.py:262
+#: desk/form/assign_to.py:264
 msgid "Your assignment on {0} {1} has been removed by {2}"
 msgstr "crwdns126396:0{0}crwdnd126396:0{1}crwdnd126396:0{2}crwdne126396:0"
 
@@ -28802,7 +28803,7 @@ msgstr "crwdns147838:0crwdne147838:0"
 msgid "_report"
 msgstr "crwdns147840:0crwdne147840:0"
 
-#: database/database.py:324
+#: database/database.py:317
 msgid "`as_iterator` only works with `as_list=True` or `as_dict=True`"
 msgstr "crwdns126434:0crwdne126434:0"
 
@@ -30131,7 +30132,7 @@ msgstr "crwdns148256:0crwdne148256:0"
 msgid "when clicked on element it will focus popover if present."
 msgstr "crwdns148258:0crwdne148258:0"
 
-#: printing/page/print/print.js:619
+#: printing/page/print/print.js:622
 msgid "wkhtmltopdf 0.12.x (with patched qt)."
 msgstr "crwdns148260:0crwdne148260:0"
 
@@ -30347,7 +30348,7 @@ msgstr "crwdns127084:0{0}crwdnd127084:0{1}crwdne127084:0"
 msgid "{0} are required"
 msgstr "crwdns127086:0{0}crwdne127086:0"
 
-#: desk/form/assign_to.py:269
+#: desk/form/assign_to.py:271
 msgid "{0} assigned a new task {1} {2} to you"
 msgstr "crwdns127088:0{0}crwdnd127088:0{1}crwdnd127088:0{2}crwdne127088:0"
 
@@ -30502,7 +30503,7 @@ msgstr "crwdns127156:0{0}crwdne127156:0"
 msgid "{0} has left the conversation in {1} {2}"
 msgstr "crwdns127158:0{0}crwdnd127158:0{1}crwdnd127158:0{2}crwdne127158:0"
 
-#: __init__.py:2450
+#: __init__.py:2457
 msgid "{0} has no versions tracked."
 msgstr "crwdns127160:0{0}crwdne127160:0"
 
@@ -30665,7 +30666,7 @@ msgstr "crwdns127236:0{0}crwdnd127236:0{1}crwdne127236:0"
 msgid "{0} items selected"
 msgstr "crwdns127238:0{0}crwdne127238:0"
 
-#: core/doctype/user/user.py:1366
+#: core/doctype/user/user.py:1367
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr "crwdns127240:0{0}crwdnd127240:0{1}crwdne127240:0"
 

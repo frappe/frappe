@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-08-23 17:00+0000\n"
-"PO-Revision-Date: 2024-08-24 10:08\n"
+"POT-Creation-Date: 2024-09-02 18:21+0000\n"
+"PO-Revision-Date: 2024-09-03 18:01\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -122,7 +122,7 @@ msgstr "0 - Nacrt; 1 - Podneseno; 2 - Otkazano"
 msgid "0 is highest"
 msgstr "0 je najviše"
 
-#: public/js/frappe/form/grid_row.js:807
+#: public/js/frappe/form/grid_row.js:797
 msgid "1 = True & 0 = False"
 msgstr "1 = Tačno i 0 = Netačno"
 
@@ -1278,7 +1278,7 @@ msgstr "Dodaj parametre upita"
 msgid "Add Review"
 msgstr "Dodaj recenziju"
 
-#: core/doctype/user/user.py:789
+#: core/doctype/user/user.py:790
 msgid "Add Roles"
 msgstr "Dodaj uloge"
 
@@ -1457,7 +1457,7 @@ msgstr "Dodano {0}"
 msgid "Added {0} ({1})"
 msgstr "Dodano {0} ({1})"
 
-#: core/doctype/user/user.py:271
+#: core/doctype/user/user.py:272
 msgid "Adding System Manager to this User as there must be atleast one System Manager"
 msgstr "Dodavanje upravitelja sistema ovom korisniku jer mora postojati barem jedan upravitelj sistema"
 
@@ -1561,11 +1561,11 @@ msgstr "Administracija"
 msgid "Administrator"
 msgstr "Administrator"
 
-#: core/doctype/user/user.py:1194
+#: core/doctype/user/user.py:1195
 msgid "Administrator Logged In"
 msgstr "Administrator je prijavljen"
 
-#: core/doctype/user/user.py:1188
+#: core/doctype/user/user.py:1189
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr "Administrator je pristupio {0} {1} putem IP adrese {2}."
 
@@ -2014,11 +2014,11 @@ msgstr "Dozvoljene uloge"
 msgid "Allowing DocType, DocType. Be careful!"
 msgstr "Dopuštanje DocType, DocType. Budite pazljivi!"
 
-#: core/doctype/user/user.py:998
+#: core/doctype/user/user.py:999
 msgid "Already Registered"
 msgstr "Već registrovan"
 
-#: desk/form/assign_to.py:134
+#: desk/form/assign_to.py:136
 msgid "Already in the following Users ToDo list:{0}"
 msgstr "Već na sljedećoj listi obaveza korisnika:{0}"
 
@@ -2224,7 +2224,7 @@ msgstr "Tajni ključ aplikacije"
 msgid "App not found for module: {0}"
 msgstr "Aplikacija nije pronađena za modul: {0}"
 
-#: __init__.py:1754
+#: __init__.py:1761
 msgid "App {0} is not installed"
 msgstr "Aplikacija {0} nije instalirana"
 
@@ -2364,6 +2364,7 @@ msgstr "Potrebno je odobrenje"
 #. Label of a standard navbar item
 #. Type: Route
 #: hooks.py templates/includes/navbar/navbar_login.html:18
+#: website/js/website.js:617
 msgid "Apps"
 msgstr ""
 
@@ -2475,7 +2476,7 @@ msgstr "Arial"
 msgid "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User."
 msgstr "Kao najbolja praksa, nemojte dodijeliti isti skup pravila dozvola različitim ulogama. Umjesto toga, postavite više uloga za istog korisnika."
 
-#: desk/form/assign_to.py:104
+#: desk/form/assign_to.py:106
 msgid "As document sharing is disabled, please give them the required permissions before assigning."
 msgstr "Budući da je dijeljenje dokumenata onemogućeno, dajte im potrebna dopuštenja prije dodjele."
 
@@ -2610,7 +2611,7 @@ msgstr "Pravila dodjele"
 msgid "Assignment Update on {0}"
 msgstr "Ažuriranje dodjele {0}"
 
-#: desk/form/assign_to.py:75
+#: desk/form/assign_to.py:61
 msgid "Assignment for {0} {1}"
 msgstr "Dodjela za {0} {1}"
 
@@ -2751,11 +2752,11 @@ msgstr "Prilog uklonjen"
 msgid "Attachments"
 msgstr "Prilozi"
 
-#: public/js/frappe/form/print_utils.js:89
+#: public/js/frappe/form/print_utils.js:91
 msgid "Attempting Connection to QZ Tray..."
 msgstr "Pokušaj povezivanja na QZ Tray..."
 
-#: public/js/frappe/form/print_utils.js:105
+#: public/js/frappe/form/print_utils.js:107
 msgid "Attempting to launch QZ Tray..."
 msgstr "Pokušaj pokretanja QZ Tray..."
 
@@ -3863,7 +3864,7 @@ msgstr "CTA URL"
 msgid "Cache"
 msgstr "Keš"
 
-#: sessions.py:33
+#: sessions.py:32
 msgid "Cache Cleared"
 msgstr "Cache obrisan"
 
@@ -4208,7 +4209,7 @@ msgstr "Nije moguće pronaći datoteku {} na disku"
 msgid "Cannot get file contents of a Folder"
 msgstr "Nije moguće dobiti sadržaj fascikle"
 
-#: printing/page/print/print.js:842
+#: printing/page/print/print.js:845
 msgid "Cannot have multiple printers mapped to a single print format."
 msgstr "Nije moguće imati više štampača mapiranih u jedan format štampanja."
 
@@ -5127,7 +5128,7 @@ msgstr "Završeno"
 msgid "Complete By"
 msgstr "Dovršiti od"
 
-#: core/doctype/user/user.py:442 templates/emails/new_user.html:10
+#: core/doctype/user/user.py:443 templates/emails/new_user.html:10
 msgid "Complete Registration"
 msgstr "Završi registraciju"
 
@@ -5308,8 +5309,8 @@ msgstr "Povezana aplikacija"
 msgid "Connected User"
 msgstr "Povezani korisnik"
 
-#: public/js/frappe/form/print_utils.js:95
-#: public/js/frappe/form/print_utils.js:119
+#: public/js/frappe/form/print_utils.js:97
+#: public/js/frappe/form/print_utils.js:121
 msgid "Connected to QZ Tray!"
 msgstr "Povezano na QZ Tray!"
 
@@ -5533,7 +5534,7 @@ msgstr "Osnovni DocTypes se ne mogu prilagoditi."
 msgid "Core Modules {0} cannot be searched in Global Search."
 msgstr "Osnovni moduli {0} se ne mogu pretraživati u globalnoj pretrazi."
 
-#: printing/page/print/print.js:617
+#: printing/page/print/print.js:620
 msgid "Correct version :"
 msgstr "Ispravna verzija:"
 
@@ -8378,7 +8379,7 @@ msgstr "Račun e-pošte je onemogućen."
 msgid "Email Account Name"
 msgstr "Ime računa e-pošte"
 
-#: core/doctype/user/user.py:718
+#: core/doctype/user/user.py:719
 msgid "Email Account added multiple times"
 msgstr "Račun e-pošte je dodan više puta"
 
@@ -9071,7 +9072,7 @@ msgstr "Dnevnici grešaka"
 msgid "Error Message"
 msgstr "Poruka o grešci"
 
-#: public/js/frappe/form/print_utils.js:126
+#: public/js/frappe/form/print_utils.js:128
 msgid "Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Click here to Download and install QZ Tray</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Click here to learn more about Raw Printing</a>."
 msgstr "Greška pri povezivanju sa QZ Tray aplikacijom...<br><br> Morate imati instaliranu i pokrenutu aplikaciju QZ Tray da biste koristili funkciju Raw Print.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Kliknite ovdje da preuzmete i instalirate QZ Tray</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Kliknite ovdje da saznate više o sirovom štampanju</a>."
 
@@ -9564,7 +9565,7 @@ msgstr "Nije uspjelo preuzimanje metode {0} sa {1}"
 msgid "Failed to import virtual doctype {}, is controller file present?"
 msgstr "Uvoz virtuelnog tipa dokumenta {} nije uspio, je li prisutna datoteka kontrolera?"
 
-#: utils/image.py:74
+#: utils/image.py:76
 msgid "Failed to optimize image: {0}"
 msgstr "Optimizacija slike nije uspjela: {0}"
 
@@ -9751,7 +9752,7 @@ msgstr "Polje za praćenje"
 msgid "Field type cannot be changed for {0}"
 msgstr "Tip polja se ne može promijeniti za {0}"
 
-#: database/database.py:848
+#: database/database.py:841
 msgid "Field {0} does not exist on {1}"
 msgstr "Polje {0} ne postoji na {1}"
 
@@ -10721,7 +10722,7 @@ msgstr "Funkcija"
 msgid "Function Based On"
 msgstr "Funkcija zasnovana na"
 
-#: __init__.py:898
+#: __init__.py:905
 msgid "Function {0} is not whitelisted."
 msgstr "Funkcija {0} nije na bijeloj listi."
 
@@ -12331,7 +12332,7 @@ msgstr "U pregledu"
 msgid "In Progress"
 msgstr "U toku"
 
-#: database/database.py:250
+#: database/database.py:243
 msgid "In Read Only Mode"
 msgstr "U načinu samo za čitanje"
 
@@ -12746,7 +12747,7 @@ msgstr "Introspekcija URI"
 msgid "Invalid"
 msgstr "Nevažeći"
 
-#: public/js/form_builder/utils.js:221 public/js/frappe/form/grid_row.js:769
+#: public/js/form_builder/utils.js:221 public/js/frappe/form/grid_row.js:759
 #: public/js/frappe/form/layout.js:785
 msgid "Invalid \"depends_on\" expression"
 msgstr "Nevažeći izraz \"depends_on\""
@@ -12847,7 +12848,7 @@ msgstr "Nevažeći izlazni format"
 msgid "Invalid Parameters."
 msgstr "Nevažeći parametri."
 
-#: core/doctype/user/user.py:1209 www/update-password.html:121
+#: core/doctype/user/user.py:1210 www/update-password.html:121
 #: www/update-password.html:142 www/update-password.html:144
 #: www/update-password.html:245
 msgid "Invalid Password"
@@ -12971,7 +12972,7 @@ msgctxt "Error message in web form"
 msgid "Invalid values for fields:"
 msgstr "Nevažeće vrijednosti za polja:"
 
-#: printing/page/print/print.js:611
+#: printing/page/print/print.js:614
 msgid "Invalid wkhtmltopdf version"
 msgstr "Nevažeća verzija wkhtmltopdf"
 
@@ -13644,7 +13645,7 @@ msgstr "Oznaka je obavezna"
 msgid "Landing Page"
 msgstr "Dolazna stranica"
 
-#: public/js/frappe/form/print_utils.js:28
+#: public/js/frappe/form/print_utils.js:30
 msgid "Landscape"
 msgstr "Pejzaž"
 
@@ -13940,7 +13941,7 @@ msgstr "Pismo"
 #. Name of a DocType
 #: core/doctype/report/report.json
 #: printing/doctype/letter_head/letter_head.json
-#: printing/page/print/print.js:127 public/js/frappe/form/print_utils.js:18
+#: printing/page/print/print.js:127 public/js/frappe/form/print_utils.js:20
 #: public/js/frappe/form/templates/print_layout.html:16
 #: public/js/frappe/list/bulk_operations.js:52
 #: public/js/print_format_builder/LetterHeadEditor.vue:144
@@ -14540,7 +14541,7 @@ msgid "Login with {0}"
 msgstr ""
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
-#: core/doctype/activity_log/activity_log.json www/apps.html:46
+#: core/doctype/activity_log/activity_log.json www/apps.html:59
 msgid "Logout"
 msgstr "Odjava"
 
@@ -15023,7 +15024,7 @@ msgstr "Spajanje je moguće samo između grupe-grupe ili lista čvora-lista čvo
 msgid "Message"
 msgstr "Poruka"
 
-#: __init__.py:582 public/js/frappe/ui/messages.js:267
+#: __init__.py:589 public/js/frappe/ui/messages.js:267
 msgctxt "Default title of the message dialog"
 msgid "Message"
 msgstr "Poruka"
@@ -15143,7 +15144,7 @@ msgstr "Meta naslov za SEO"
 msgid "Method"
 msgstr "Metod"
 
-#: __init__.py:900
+#: __init__.py:907
 msgid "Method Not Allowed"
 msgstr ""
 
@@ -15219,7 +15220,7 @@ msgstr "Nedostajuća polja"
 msgid "Missing Filters Required"
 msgstr "Potrebni nedostajući filteri"
 
-#: desk/form/assign_to.py:107
+#: desk/form/assign_to.py:109
 msgid "Missing Permission"
 msgstr "Nedostaje dozvola"
 
@@ -15471,7 +15472,7 @@ msgstr "Više članaka o {0}"
 msgid "More content for the bottom of the page."
 msgstr "Više sadržaja na dnu stranice."
 
-#: public/js/frappe/ui/sort_selector.js:193
+#: public/js/frappe/ui/sort_selector.js:191
 msgid "Most Used"
 msgstr "Najviše korišten"
 
@@ -15967,7 +15968,7 @@ msgstr "Novi {0}: {1}"
 msgid "New {} releases for the following apps are available"
 msgstr "Dostupna su nova {} izdanja za sljedeće aplikacije"
 
-#: core/doctype/user/user.py:785
+#: core/doctype/user/user.py:786
 msgid "Newly created user {0} has no roles enabled."
 msgstr "Novokreirani korisnik {0} nema omogućene uloge."
 
@@ -16017,7 +16018,7 @@ msgstr "Bilteni"
 #: public/js/frappe/web_form/web_form.js:91
 #: public/js/onboarding_tours/onboarding_tours.js:15
 #: public/js/onboarding_tours/onboarding_tours.js:240
-#: templates/includes/slideshow.html:38 website/utils.py:247
+#: templates/includes/slideshow.html:38 website/utils.py:253
 #: website/web_template/slideshow/slideshow.html:44
 msgid "Next"
 msgstr "Sljedeći"
@@ -16194,7 +16195,7 @@ msgstr "Nije pronađen LDAP korisnik za e-poštu: {0}"
 msgid "No Label"
 msgstr "Nema oznake"
 
-#: printing/page/print/print.js:700 printing/page/print/print.js:782
+#: printing/page/print/print.js:703 printing/page/print/print.js:785
 #: public/js/frappe/list/bulk_operations.js:98
 #: public/js/frappe/list/bulk_operations.js:170 utils/weasyprint.py:52
 msgid "No Letterhead"
@@ -16228,11 +16229,11 @@ msgstr "Nema dopuštenih grafikona na ovoj nadzornoj ploči"
 msgid "No Preview"
 msgstr "Nema pregleda"
 
-#: printing/page/print/print.js:704
+#: printing/page/print/print.js:707
 msgid "No Preview Available"
 msgstr "Pregled nije dostupan"
 
-#: printing/page/print/print.js:860
+#: printing/page/print/print.js:863
 msgid "No Printer is Available."
 msgstr "Nijedan štampač nije dostupan."
 
@@ -16248,7 +16249,7 @@ msgstr "Nema rezultata"
 msgid "No Results found"
 msgstr "Nema rezultata"
 
-#: core/doctype/user/user.py:786
+#: core/doctype/user/user.py:787
 msgid "No Roles Specified"
 msgstr "Nisu navedene uloge"
 
@@ -16393,7 +16394,7 @@ msgstr "Broj kolona"
 msgid "No of Rows (Max 500)"
 msgstr "Broj redova (Max. 500)"
 
-#: __init__.py:1089 client.py:109 client.py:151
+#: __init__.py:1096 client.py:109 client.py:151
 msgid "No permission for {0}"
 msgstr "Nema dozvole za {0}"
 
@@ -16492,7 +16493,7 @@ msgstr "Normalizovane kopije"
 msgid "Normalized Query"
 msgstr "Normalizirani upit"
 
-#: core/doctype/user/user.py:993 templates/includes/login/login.js:258
+#: core/doctype/user/user.py:994 templates/includes/login/login.js:258
 #: utils/oauth.py:266
 msgid "Not Allowed"
 msgstr "Nije dozvoljeno"
@@ -16534,7 +16535,7 @@ msgstr "Nije kao"
 msgid "Not Linked to any record"
 msgstr "Nije povezano ni sa jednim zapisom"
 
-#: __init__.py:982 app.py:357 desk/calendar.py:26 desk/treeview.py:19
+#: __init__.py:989 app.py:357 desk/calendar.py:26 desk/treeview.py:19
 #: geo/utils.py:97 public/js/frappe/web_form/webform_script.js:15
 #: website/doctype/web_form/web_form.py:601
 #: website/page_renderers/not_permitted_page.py:20 www/login.py:182
@@ -16586,7 +16587,7 @@ msgstr "Nije postavljeno"
 msgid "Not a valid Comma Separated Value (CSV File)"
 msgstr "Nije važeća vrijednost odvojena zarezima (CSV datoteka)"
 
-#: core/doctype/user/user.py:198
+#: core/doctype/user/user.py:199
 msgid "Not a valid User Image."
 msgstr "Nije važeća korisnička slika."
 
@@ -17225,7 +17226,7 @@ msgstr "Mogu se uređivati samo izvještaji tipa Izrađivač izvještaja"
 msgid "Only standard DocTypes are allowed to be customized from Customize Form."
 msgstr "Dozvoljeno je prilagođavanje samo standardnih tipova dokumenata iz obrasca za prilagođavanje."
 
-#: desk/form/assign_to.py:181
+#: desk/form/assign_to.py:183
 msgid "Only the assignee can complete this to-do."
 msgstr "Samo primalac može izvršiti ovu obavezu."
 
@@ -17464,7 +17465,7 @@ msgstr "Povijest organizacije"
 msgid "Org History Heading"
 msgstr "Naslov povijesti organizacije"
 
-#: public/js/frappe/form/print_utils.js:26
+#: public/js/frappe/form/print_utils.js:28
 msgid "Orientation"
 msgstr ""
 
@@ -17577,11 +17578,11 @@ msgstr "Generisanje PDF-a nije uspjelo"
 msgid "PDF generation failed because of broken image links"
 msgstr "Generisanje PDF-a nije uspjelo zbog neispravnih veza slika"
 
-#: printing/page/print/print.js:613
+#: printing/page/print/print.js:616
 msgid "PDF generation may not work as expected."
 msgstr "Generisanje PDF-a možda neće raditi kako se očekuje."
 
-#: printing/page/print/print.js:531
+#: printing/page/print/print.js:534
 msgid "PDF printing via \"Raw Print\" is not supported."
 msgstr "PDF štampa putem \"Raw Print\" nije podržana."
 
@@ -17890,11 +17891,11 @@ msgstr "Pasivno"
 msgid "Password"
 msgstr "Lozinka"
 
-#: core/doctype/user/user.py:1056
+#: core/doctype/user/user.py:1057
 msgid "Password Email Sent"
 msgstr "E-pošta s lozinkom poslana"
 
-#: core/doctype/user/user.py:422
+#: core/doctype/user/user.py:423
 msgid "Password Reset"
 msgstr "Poništavanje lozinke"
 
@@ -17903,7 +17904,7 @@ msgstr "Poništavanje lozinke"
 msgid "Password Reset Link Generation Limit"
 msgstr "Ograničenje generisanja veze za poništavanje lozinke"
 
-#: public/js/frappe/form/grid_row.js:811
+#: public/js/frappe/form/grid_row.js:801
 msgid "Password cannot be filtered"
 msgstr "Lozinka se ne može filtrirati"
 
@@ -17928,7 +17929,7 @@ msgstr "Nedostaje lozinka na nalogu e-pošte"
 msgid "Password not found for {0} {1} {2}"
 msgstr "Lozinka nije pronađena za {0} {1} {2}"
 
-#: core/doctype/user/user.py:1055
+#: core/doctype/user/user.py:1056
 msgid "Password reset instructions have been sent to your email"
 msgstr "Uputstva za ponovno postavljanje lozinke su poslana na vašu e-poštu"
 
@@ -17940,7 +17941,7 @@ msgstr "Lozinka postavljena"
 msgid "Password size exceeded the maximum allowed size"
 msgstr "Veličina lozinke je premašila maksimalno dozvoljenu veličinu"
 
-#: core/doctype/user/user.py:849
+#: core/doctype/user/user.py:850
 msgid "Password size exceeded the maximum allowed size."
 msgstr "Veličina lozinke je premašila maksimalno dozvoljenu veličinu."
 
@@ -18234,7 +18235,7 @@ msgstr "Broj telefona"
 msgid "Phone Number {0} set in field {1} is not valid."
 msgstr "Telefonski broj {0} postavljen u polje {1} nije važeći."
 
-#: public/js/frappe/form/print_utils.js:38
+#: public/js/frappe/form/print_utils.js:40
 #: public/js/frappe/views/reports/report_view.js:1503
 #: public/js/frappe/views/reports/report_view.js:1506
 msgid "Pick Columns"
@@ -18295,7 +18296,7 @@ msgstr "Dodajte predmet svojoj e-pošti"
 msgid "Please add a valid comment."
 msgstr "Molimo dodajte ispravan komentar."
 
-#: core/doctype/user/user.py:1038
+#: core/doctype/user/user.py:1039
 msgid "Please ask your administrator to verify your sign-up"
 msgstr "Zamolite svog administratora da potvrdi vašu registraciju"
 
@@ -18327,7 +18328,7 @@ msgstr "Provjerite vrijednosti filtera postavljene za grafikon nadzorne ploče: 
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr "Provjerite vrijednost \"Dohvati iz\" postavljenu za polje {0}"
 
-#: core/doctype/user/user.py:1036
+#: core/doctype/user/user.py:1037
 msgid "Please check your email for verification"
 msgstr "Molimo provjerite svoju e-poštu za potvrdu"
 
@@ -18355,7 +18356,7 @@ msgstr "Molimo zatvorite ovaj prozor"
 msgid "Please confirm your action to {0} this document."
 msgstr "Molimo potvrdite svoju akciju {0} ovog dokumenta."
 
-#: printing/page/print/print.js:615
+#: printing/page/print/print.js:618
 msgid "Please contact your system manager to install correct version."
 msgstr "Molimo kontaktirajte svog sistem menadžera da instalira ispravnu verziju."
 
@@ -18385,7 +18386,7 @@ msgstr "Omogućite barem jedan ključ za prijavu na društvenim mrežama ili LDA
 
 #: desk/doctype/notification_log/notification_log.js:45
 #: email/doctype/auto_email_report/auto_email_report.js:17
-#: printing/page/print/print.js:635 printing/page/print/print.js:665
+#: printing/page/print/print.js:638 printing/page/print/print.js:668
 #: public/js/frappe/list/bulk_operations.js:161
 #: public/js/frappe/utils/utils.js:1437
 msgid "Please enable pop-ups"
@@ -18476,7 +18477,7 @@ msgstr "Uvjerite se da Referentni komunikacijski dokumenti nisu kružno povezani
 msgid "Please refresh to get the latest document."
 msgstr "Osvježite da dobijete najnoviji dokument."
 
-#: printing/page/print/print.js:532
+#: printing/page/print/print.js:535
 msgid "Please remove the printer mapping in Printer Settings and try again."
 msgstr "Uklonite mapiranje štampača u postavkama štampača i pokušajte ponovo."
 
@@ -18578,7 +18579,7 @@ msgstr "Postavite pristupne ključeve Dropbox-a u konfiguraciji stranice ili tip
 msgid "Please set Email Address"
 msgstr "Molimo postavite adresu e-pošte"
 
-#: printing/page/print/print.js:546
+#: printing/page/print/print.js:549
 msgid "Please set a printer mapping for this print format in the Printer Settings"
 msgstr "Podesite mapiranje štampača za ovaj format štampanja u postavkama štampača"
 
@@ -18614,11 +18615,11 @@ msgstr "Molimo prvo postavite poruku"
 msgid "Please setup default Email Account from Settings > Email Account"
 msgstr "Podesite podrazumijevani nalog e-pošte iz Podešavanja > Nalog e-pošte"
 
-#: core/doctype/user/user.py:373
+#: core/doctype/user/user.py:374
 msgid "Please setup default outgoing Email Account from Settings > Email Account"
 msgstr "Podesite podrazumijevani odlazni nalog e-pošte iz Podešavanja > Nalog e-pošte"
 
-#: public/js/frappe/model/model.js:802
+#: public/js/frappe/model/model.js:803
 msgid "Please specify"
 msgstr "Molimo navedite"
 
@@ -18719,7 +18720,7 @@ msgstr "Stavka menija portala"
 msgid "Portal Settings"
 msgstr "Postavke portala"
 
-#: public/js/frappe/form/print_utils.js:29
+#: public/js/frappe/form/print_utils.js:31
 msgid "Portrait"
 msgstr "Portret"
 
@@ -18983,7 +18984,7 @@ msgstr "Štampaj dokumente"
 #: core/doctype/doctype/doctype.json core/doctype/module_def/module_def.json
 #: core/workspace/build/build.json email/doctype/notification/notification.json
 #: printing/doctype/print_format/print_format.json
-#: printing/page/print/print.js:94 printing/page/print/print.js:819
+#: printing/page/print/print.js:94 printing/page/print/print.js:822
 #: public/js/frappe/list/bulk_operations.js:59
 #: website/doctype/web_form/web_form.json
 msgid "Print Format"
@@ -19068,7 +19069,7 @@ msgstr "Sakrij štampanje ako nema vrijednosti"
 msgid "Print Language"
 msgstr ""
 
-#: public/js/frappe/form/print_utils.js:195
+#: public/js/frappe/form/print_utils.js:197
 msgid "Print Sent to the printer!"
 msgstr "Štampanje poslano na štampač!"
 
@@ -19084,7 +19085,7 @@ msgstr "Print server"
 #: email/doctype/notification/notification.json
 #: printing/doctype/print_settings/print_settings.json
 #: printing/doctype/print_style/print_style.js:6
-#: printing/page/print/print.js:160 public/js/frappe/form/print_utils.js:69
+#: printing/page/print/print.js:160 public/js/frappe/form/print_utils.js:71
 #: public/js/frappe/form/templates/print_layout.html:35
 msgid "Print Settings"
 msgstr "Postavke štampanja"
@@ -19131,11 +19132,11 @@ msgstr "Štampaj dokument"
 msgid "Print with letterhead"
 msgstr "Štampaj sa memorandumom"
 
-#: printing/page/print/print.js:828
+#: printing/page/print/print.js:831
 msgid "Printer"
 msgstr "Štampač"
 
-#: printing/page/print/print.js:805
+#: printing/page/print/print.js:808
 msgid "Printer Mapping"
 msgstr "Mapiranje štampača"
 
@@ -19144,11 +19145,11 @@ msgstr "Mapiranje štampača"
 msgid "Printer Name"
 msgstr "Naziv štampača"
 
-#: printing/page/print/print.js:797
+#: printing/page/print/print.js:800
 msgid "Printer Settings"
 msgstr "Postavke štampača"
 
-#: printing/page/print/print.js:545
+#: printing/page/print/print.js:548
 msgid "Printer mapping not set."
 msgstr "Mapiranje štampača nije postavljeno."
 
@@ -19432,7 +19433,7 @@ msgstr "QR kod"
 msgid "QR Code for Login Verification"
 msgstr "QR kod za provjeru prijave"
 
-#: public/js/frappe/form/print_utils.js:204
+#: public/js/frappe/form/print_utils.js:206
 msgid "QZ Tray Failed: "
 msgstr "QZ Tray neuspješan: "
 
@@ -19931,7 +19932,7 @@ msgstr "Preusmjerite na ovaj URL nakon uspješne potvrde."
 msgid "Redirects"
 msgstr "Preusmjeravanja"
 
-#: sessions.py:145
+#: sessions.py:146
 msgid "Redis cache server not running. Please contact Administrator / Tech support"
 msgstr "Redis keš server ne radi. Molimo kontaktirajte administratora/tehničku podršku"
 
@@ -20182,7 +20183,7 @@ msgstr "Osvježavanje"
 msgid "Refreshing..."
 msgstr "Osvježavanje..."
 
-#: core/doctype/user/user.py:1000
+#: core/doctype/user/user.py:1001
 msgid "Registered but disabled"
 msgstr "Registrovan, ali onemogućen"
 
@@ -21097,7 +21098,7 @@ msgstr "Profil uloge"
 msgid "Role and Level"
 msgstr "Uloga i nivo"
 
-#: core/doctype/user/user.py:314
+#: core/doctype/user/user.py:315
 msgid "Role has been set as per the user type {0}"
 msgstr "Uloga je postavljena prema vrsti korisnika {0}"
 
@@ -21481,7 +21482,7 @@ msgstr ""
 #: core/doctype/data_import/data_import.js:113
 #: desk/page/user_profile/user_profile_controller.js:319
 #: email/doctype/notification/notification.json
-#: printing/page/print/print.js:856
+#: printing/page/print/print.js:859
 #: printing/page/print_format_builder/print_format_builder.js:160
 #: public/js/frappe/form/footer/form_timeline.js:663
 #: public/js/frappe/form/quick_entry.js:161
@@ -21957,7 +21958,7 @@ msgstr "Viđeno prema tabeli"
 #: core/doctype/report_filter/report_filter.json
 #: custom/doctype/custom_field/custom_field.json
 #: custom/doctype/customize_form_field/customize_form_field.json
-#: printing/page/print/print.js:599
+#: printing/page/print/print.js:602
 #: website/doctype/web_form_field/web_form_field.json
 #: website/doctype/web_template_field/web_template_field.json
 msgid "Select"
@@ -21985,7 +21986,7 @@ msgid "Select Column"
 msgstr "Odaberi kolonu"
 
 #: printing/page/print_format_builder/print_format_builder_field.html:41
-#: public/js/frappe/form/print_utils.js:43
+#: public/js/frappe/form/print_utils.js:45
 msgid "Select Columns"
 msgstr "Odaberi kolone"
 
@@ -22098,7 +22099,7 @@ msgstr "Odaberi obavezno"
 msgid "Select Module"
 msgstr "Odaberi modul"
 
-#: printing/page/print/print.js:175 printing/page/print/print.js:582
+#: printing/page/print/print.js:175 printing/page/print/print.js:585
 msgid "Select Network Printer"
 msgstr "Odaberi mrežni štampač"
 
@@ -22948,7 +22949,7 @@ msgstr "Podijeli {0} sa"
 msgid "Shared"
 msgstr "Podijeljeno"
 
-#: desk/form/assign_to.py:129
+#: desk/form/assign_to.py:131
 msgid "Shared with the following Users with Read access:{0}"
 msgstr "Dijeli se sa sljedećim korisnicima s pristupom za čitanje:{0}"
 
@@ -23292,7 +23293,7 @@ msgstr "Bočna traka i komentari"
 msgid "Sign Up and Confirmation"
 msgstr "Prijava i potvrda"
 
-#: core/doctype/user/user.py:993
+#: core/doctype/user/user.py:994
 msgid "Sign Up is disabled"
 msgstr "Prijava je onemogućena"
 
@@ -23360,7 +23361,7 @@ msgstr "Pojedinačni tipovi dokumenata se ne mogu prilagoditi."
 msgid "Single Types have only one record no tables associated. Values are stored in tabSingles"
 msgstr "Pojedinačni tipovi imaju samo jedan zapis bez pridruženih tablica. Vrijednosti se pohranjuju u tabSingles"
 
-#: database/database.py:247
+#: database/database.py:240
 msgid "Site is running in read only mode for maintenance or site update, this action can not be performed right now. Please try again later."
 msgstr "Stranica radi u načinu samo za čitanje radi održavanja ili ažuriranja stranice, ova radnja se trenutno ne može izvršiti. Molimo pokušajte ponovo kasnije."
 
@@ -24294,7 +24295,7 @@ msgstr "Predloži optimizacije"
 msgid "Suggested Indexes"
 msgstr "Predloženi indeksi"
 
-#: core/doctype/user/user.py:702
+#: core/doctype/user/user.py:703
 msgid "Suggested Username: {0}"
 msgstr "Predloženo korisničko ime: {0}"
 
@@ -24805,7 +24806,7 @@ msgstr ""
 msgid "Templates"
 msgstr "Šabloni"
 
-#: core/doctype/user/user.py:1004
+#: core/doctype/user/user.py:1005
 msgid "Temporarily Disabled"
 msgstr "Privremeno onemogućeno"
 
@@ -24949,7 +24950,7 @@ msgstr "API ključ preglednika dobijen sa Google Cloud Console pod <a href=\"htt
 "\"API-ji &amp; Usluge\" &gt; \"Akreditivi\"\n"
 "</a>"
 
-#: database/database.py:435
+#: database/database.py:428
 msgid "The changes have been reverted."
 msgstr "Promjene su vraćene."
 
@@ -25066,11 +25067,11 @@ msgstr "Broj projekta dobijen od Google Cloud Console pod <a href=\"https://cons
 "\"IAM &amp; Admin\" &gt; \"Postavke\"\n"
 "</a>"
 
-#: core/doctype/user/user.py:964
+#: core/doctype/user/user.py:965
 msgid "The reset password link has been expired"
 msgstr "Veza za poništavanje lozinke je istekla"
 
-#: core/doctype/user/user.py:966
+#: core/doctype/user/user.py:967
 msgid "The reset password link has either been used before or is invalid"
 msgstr "Veza za poništavanje lozinke je ili ranije korištena ili je nevažeća"
 
@@ -25188,7 +25189,7 @@ msgstr "Postoji {0} s istim filtrima već u redu čekanja:"
 msgid "There must be atleast one permission rule."
 msgstr "Mora postojati barem jedno pravilo dozvole."
 
-#: core/doctype/user/user.py:503
+#: core/doctype/user/user.py:504
 msgid "There should remain at least one System Manager"
 msgstr "Trebao bi ostati najmanje jedan upravitelj sistema"
 
@@ -25266,7 +25267,7 @@ msgstr "Ova Kanban ploča će biti privatna"
 msgid "This action is irreversible. Do you wish to continue?"
 msgstr "Ova akcija je nepovratna. Da li želite da nastavite?"
 
-#: __init__.py:978
+#: __init__.py:985
 msgid "This action is only allowed for {}"
 msgstr "Ova radnja je dozvoljena samo za {}"
 
@@ -25501,7 +25502,7 @@ msgstr "Ovo će poništiti ovaj obilazak i prikazati ga svim korisnicima. Jeste 
 msgid "This will terminate the job immediately and might be dangerous, are you sure? "
 msgstr "Ovo će odmah prekinuti posao i može biti opasno, jeste li sigurni? "
 
-#: core/doctype/user/user.py:1223
+#: core/doctype/user/user.py:1224
 msgid "Throttled"
 msgstr "Prigušeno"
 
@@ -25963,11 +25964,11 @@ msgstr "Previše dokumenata"
 msgid "Too Many Requests"
 msgstr "Previše zahtjeva"
 
-#: database/database.py:434
+#: database/database.py:427
 msgid "Too many changes to database in single action."
 msgstr "Previše promjena u bazi podataka u jednoj akciji."
 
-#: core/doctype/user/user.py:1005
+#: core/doctype/user/user.py:1006
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr "Nedavno se prijavilo previše korisnika, pa je registracija onemogućena. Pokušajte ponovo za sat vremena"
 
@@ -27226,15 +27227,15 @@ msgstr "Korisnik sa adresom e-pošte {0} ne postoji"
 msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
 msgstr "Korisnik sa e-poštom: {0} ne postoji u sistemu. Zamolite 'Sistem administratorar' da kreira korisnika za vas."
 
-#: core/doctype/user/user.py:508
+#: core/doctype/user/user.py:509
 msgid "User {0} cannot be deleted"
 msgstr "Korisnik {0} se ne može izbrisati"
 
-#: core/doctype/user/user.py:243
+#: core/doctype/user/user.py:244
 msgid "User {0} cannot be disabled"
 msgstr "Korisnik {0} se ne može onemogućiti"
 
-#: core/doctype/user/user.py:590
+#: core/doctype/user/user.py:591
 msgid "User {0} cannot be renamed"
 msgstr "Korisnik {0} se ne može preimenovati"
 
@@ -27255,7 +27256,7 @@ msgstr ""
 msgid "User {0} has requested for data deletion"
 msgstr "Korisnik {0} je zatražio brisanje podataka"
 
-#: core/doctype/user/user.py:1357
+#: core/doctype/user/user.py:1358
 msgid "User {0} impersonated as {1}"
 msgstr "Korisnik {0} predstavljen kao {1}"
 
@@ -27267,7 +27268,7 @@ msgstr ""
 msgid "User {0} is disabled. Please contact your System Manager."
 msgstr "Korisnik {0} je onemogućen. Molimo kontaktirajte svog upravitelja sistema."
 
-#: desk/form/assign_to.py:101
+#: desk/form/assign_to.py:103
 msgid "User {0} is not permitted to access this document."
 msgstr "Korisniku {0} nije dozvoljen pristup ovom dokumentu."
 
@@ -27283,7 +27284,7 @@ msgstr "URL informacija o korisniku"
 msgid "Username"
 msgstr "Korisničko ime"
 
-#: core/doctype/user/user.py:669
+#: core/doctype/user/user.py:670
 msgid "Username {0} already exists"
 msgstr "Korisničko ime {0} već postoji"
 
@@ -28076,11 +28077,11 @@ msgstr "URL dobrodošlice"
 msgid "Welcome Workspace"
 msgstr "Dobrodošli radni prostor"
 
-#: core/doctype/user/user.py:365
+#: core/doctype/user/user.py:366
 msgid "Welcome email sent"
 msgstr ""
 
-#: core/doctype/user/user.py:440
+#: core/doctype/user/user.py:441
 msgid "Welcome to {0}"
 msgstr ""
 
@@ -28166,7 +28167,7 @@ msgstr "Prikazat će se samo ako su naslovi odjeljaka omogućeni"
 msgid "Will run scheduled jobs only once a day for inactive sites. Default 4 days if set to 0."
 msgstr "Izvršit će zakazane poslove samo jednom dnevno za neaktivna mjesta. Zadano 4 dana ako je postavljeno na 0."
 
-#: public/js/frappe/form/print_utils.js:13
+#: public/js/frappe/form/print_utils.js:15
 msgid "With Letter head"
 msgstr "Sa zaglavljem pisma"
 
@@ -28554,11 +28555,11 @@ msgstr "Niste povezani na Internet. Pokušajte ponovo nakon nekog vremena."
 msgid "You are not permitted to access this page without login."
 msgstr "Nije vam dozvoljen pristup ovoj stranici bez prijave."
 
-#: www/app.py:23 www/apps.py:14
+#: www/app.py:23
 msgid "You are not permitted to access this page."
 msgstr "Nije vam dozvoljen pristup ovoj stranici."
 
-#: __init__.py:897
+#: __init__.py:904
 msgid "You are not permitted to access this resource."
 msgstr "Nije vam dozvoljen pristup ovom resursu."
 
@@ -28855,7 +28856,7 @@ msgstr "Morate biti u modu programera da biste uredili standardni web obrazac"
 msgid "You need to be logged in and have System Manager Role to be able to access backups."
 msgstr "Morate biti prijavljeni i imati ulogu upravitelja sistema da biste mogli pristupiti sigurnosnim kopijama."
 
-#: www/apps.py:11 www/me.py:13 www/third_party_apps.py:10
+#: www/me.py:13 www/third_party_apps.py:10
 msgid "You need to be logged in to access this page"
 msgstr "Morate biti prijavljeni da biste pristupili ovoj stranici"
 
@@ -28959,7 +28960,7 @@ msgstr "Vaš račun je izbrisan"
 msgid "Your account has been locked and will resume after {0} seconds"
 msgstr "Vaš račun je zaključan i nastavit će se nakon {0} sekundi"
 
-#: desk/form/assign_to.py:262
+#: desk/form/assign_to.py:264
 msgid "Your assignment on {0} {1} has been removed by {2}"
 msgstr "Vaš zadatak na {0} {1} je uklonio {2}"
 
@@ -29042,7 +29043,7 @@ msgstr "_doctype"
 msgid "_report"
 msgstr "_report"
 
-#: database/database.py:324
+#: database/database.py:317
 msgid "`as_iterator` only works with `as_list=True` or `as_dict=True`"
 msgstr "`as_iterator` radi samo sa `as_list=True` ili `as_dict=True`"
 
@@ -30371,7 +30372,7 @@ msgstr "znak upozorenja"
 msgid "when clicked on element it will focus popover if present."
 msgstr "kada se klikne na element, on će fokusirati skočni prozor ako postoji."
 
-#: printing/page/print/print.js:619
+#: printing/page/print/print.js:622
 msgid "wkhtmltopdf 0.12.x (with patched qt)."
 msgstr "wkhtmltopdf 0.12.x (sa zakrpljenim qt-om)."
 
@@ -30587,7 +30588,7 @@ msgstr "{0} su trenutno {1}"
 msgid "{0} are required"
 msgstr "{0} su obavezni"
 
-#: desk/form/assign_to.py:269
+#: desk/form/assign_to.py:271
 msgid "{0} assigned a new task {1} {2} to you"
 msgstr "{0} vam je dodijelio novi zadatak {1} {2}"
 
@@ -30742,7 +30743,7 @@ msgstr "{0} je uspješno dodan u grupu e-pošte."
 msgid "{0} has left the conversation in {1} {2}"
 msgstr "{0} je napustio razgovor u {1} {2}"
 
-#: __init__.py:2450
+#: __init__.py:2457
 msgid "{0} has no versions tracked."
 msgstr "{0} nema praćenih verzija."
 
@@ -30905,7 +30906,7 @@ msgstr "{0} je unutar {1}"
 msgid "{0} items selected"
 msgstr "{0} stavke odabrane"
 
-#: core/doctype/user/user.py:1366
+#: core/doctype/user/user.py:1367
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr "{0} samo se predstavljao kao ti. Naveli su ovaj razlog: {1}"
 
