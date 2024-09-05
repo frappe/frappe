@@ -32,7 +32,7 @@ frappe.setup = {
 
 frappe.pages["setup-wizard"].on_page_load = function (wrapper) {
 	if (frappe.boot.setup_complete) {
-		window.location.href = frappe.boot.default_path || "/app";
+		window.location.href = frappe.boot.apps_data.default_path || "/app";
 	}
 	let requires = frappe.boot.setup_wizard_requires || [];
 	frappe.require(requires, function () {
@@ -207,7 +207,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		}
 		setTimeout(function () {
 			// Reload
-			window.location.href = frappe.boot.default_path || "/app";
+			window.location.href = frappe.boot.apps_data.default_path || "/app";
 		}, 2000);
 	}
 

@@ -752,6 +752,7 @@ def transform_database(context, table, engine, row_format, failfast):
 )
 @click.option("--test", multiple=True, help="Specific test")
 @click.option("--module", help="Run tests in a module")
+@click.option("--pdb", is_flag=True, default=False, help="Open pdb on AssertionError")
 @click.option("--profile", is_flag=True, default=False)
 @click.option("--coverage", is_flag=True, default=False)
 @click.option("--skip-test-records", is_flag=True, default=False, help="Don't create test records")
@@ -776,8 +777,13 @@ def run_tests(
 	skip_before_tests=False,
 	failfast=False,
 	case=None,
+	pdb=False,
 ):
 	"""Run python unit-tests"""
+
+	pdb_on_exceptions = None
+	if pdb:
+		pdb_on_exceptions = (AssertionError,)
 
 	with CodeCoverage(coverage, app):
 		import frappe
@@ -810,6 +816,7 @@ def run_tests(
 			case=case,
 			skip_test_records=skip_test_records,
 			skip_before_tests=skip_before_tests,
+			pdb_on_exceptions=pdb_on_exceptions,
 		)
 
 		if len(ret.failures) == 0 and len(ret.errors) == 0:
@@ -1170,6 +1177,29 @@ def rebuild_global_search(context, static_pages=False):
 		raise SiteNotSpecifiedError
 
 
+@click.command("list-sites")
+@click.option("--json", "output_json", is_flag=True, help="Output in JSON format")
+@pass_context
+def list_sites(context, output_json=False):
+	"List all the sites in current bench"
+	site_dir = os.getcwd()
+	sites = [
+		site
+		for site in os.listdir(site_dir)
+		if os.path.isdir(os.path.join(site_dir, site))
+		and not site.startswith(".")
+		and os.path.exists(os.path.join(site_dir, site, "site_config.json"))
+	]
+	if output_json:
+		click.echo(json.dumps(sites))
+	elif sites:
+		click.echo("Available sites:")
+		for site in sites:
+			click.echo(f"  {site}")
+	else:
+		click.echo("No sites found")
+
+
 commands = [
 	build,
 	clear_cache,
@@ -1203,4 +1233,5 @@ commands = [
 	add_to_email_queue,
 	rebuild_global_search,
 	run_parallel_tests,
+	list_sites,
 ]
