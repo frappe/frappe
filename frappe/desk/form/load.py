@@ -421,7 +421,7 @@ def get_title_values_for_link_and_dynamic_link_fields(doc, link_fields=None):
 		link_fields = meta.get_link_fields() + meta.get_dynamic_link_fields()
 
 	for field in link_fields:
-		if not (doc_fieldvalue := getattr(doc, field.fieldname)):
+		if not (doc_fieldvalue := getattr(doc, field.fieldname, None)):
 			continue
 
 		doctype = field.options if field.fieldtype == "Link" else doc.get(field.options)
