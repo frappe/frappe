@@ -3,6 +3,7 @@
 
 import base64
 import datetime
+import jdatetime
 import json
 import math
 import operator
@@ -386,43 +387,59 @@ def get_first_day(dt, d_years=0, d_months=0, as_str: Literal[True] = False) -> s
 
 # TODO: first arg
 def get_first_day(
-	dt, d_years: int = 0, d_months: int = 0, as_str: bool = False
+	dt, d_years: int = 0, d_months: int = 0, as_str: bool = False, use_custom_calendar: bool = False
 ) -> str | datetime.date:
 	"""
 	Returns the first day of the month for the date specified by date object
 	Also adds `d_years` and `d_months` if specified
 	"""
 	dt = getdate(dt)
+	if use_custom_calendar and frappe.defaults.get_defaults().calendar_type == 'jalali':
+		dt = jdatetime.date.fromgregorian(date=dt)
 
 	# d_years, d_months are "deltas" to apply to dt
 	overflow_years, month = divmod(dt.month + d_months - 1, 12)
 	year = dt.year + d_years + overflow_years
 
+	if isinstance(dt, jdatetime.date):
+		first_day = jdatetime.date(year, month + 1, 1).togregorian()
+	else:
+		first_day = datetime.date(year, month + 1, 1)
 	return (
-		datetime.date(year, month + 1, 1).strftime(DATE_FORMAT)
+		first_day.strftime(DATE_FORMAT)
 		if as_str
-		else datetime.date(year, month + 1, 1)
+		else first_day
 	)
 
+def get_datetime_object():
+	if frappe.defaults.get_defaults().calendar_type == 'jalali':
+		return jdatetime.datetime
+	else:
+		return datetime
 
 @typing.overload
-def get_quarter_start(dt, as_str: Literal[False] = False) -> datetime.date:
+def get_quarter_start(dt, as_str: Literal[False] = False, use_custom_calendar: bool = False) -> datetime.date:
 	...
 
 
 @typing.overload
-def get_quarter_start(dt, as_str: Literal[True] = False) -> str:
+def get_quarter_start(dt, as_str: Literal[True] = False, use_custom_calendar: bool = False) -> str:
 	...
 
 
-def get_quarter_start(dt, as_str: bool = False) -> str | datetime.date:
+def get_quarter_start(dt, as_str: bool = False, use_custom_calendar: bool = False) -> str | datetime.date:
 	date = getdate(dt)
+	if use_custom_calendar and frappe.defaults.get_defaults().calendar_type == 'jalali':
+		date = jdatetime.date.fromgregorian(date=date)
 	quarter = (date.month - 1) // 3 + 1
-	first_date_of_quarter = datetime.date(date.year, ((quarter - 1) * 3) + 1, 1)
+	if isinstance(dt, jdatetime.date):
+		first_date_of_quarter = jdatetime.date(date.year, ((quarter - 1) * 3) + 1, 1).togregorian()
+	else:
+		first_date_of_quarter = datetime.date(date.year, ((quarter - 1) * 3) + 1, 1)
 	return first_date_of_quarter.strftime(DATE_FORMAT) if as_str else first_date_of_quarter
 
 
-def get_first_day_of_week(dt, as_str=False):
+def get_first_day_of_week(dt, as_str=False, use_custom_calendar: bool = False):
 	dt = getdate(dt)
 	date = dt - datetime.timedelta(days=get_week_start_offset_days(dt))
 	return date.strftime(DATE_FORMAT) if as_str else date
