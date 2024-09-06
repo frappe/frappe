@@ -293,6 +293,7 @@ frappe.ui.Sidebar = class Sidebar {
 				class="sidebar-item-container ${item.is_editable ? "is-draggable" : ""}"
 				item-parent="${item.parent_page}"
 				item-name="${item.name}"
+				item-title="${item.title}"
 				item-public="${item.public || 0}"
 				item-is-hidden="${item.is_hidden || 0}"
 			>
