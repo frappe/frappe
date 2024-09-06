@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-01 09:33+0000\n"
-"PO-Revision-Date: 2024-09-04 18:07\n"
+"PO-Revision-Date: 2024-09-06 18:59\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -1891,7 +1891,7 @@ msgstr "Yeniden Adlandırmaya İzin Ver"
 #: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
 #: desk/doctype/module_onboarding/module_onboarding.json
 msgid "Allow Roles"
-msgstr "Rollere İzin Ver"
+msgstr "İzin Verilen Roller"
 
 #. Label of the allow_self_approval (Check) field in DocType 'Workflow
 #. Transition'
@@ -2084,7 +2084,7 @@ msgstr "Değiştirilen Belgeler"
 #: core/doctype/transaction_log/transaction_log.json
 #: website/doctype/personal_data_download_request/personal_data_download_request.json
 msgid "Amended From"
-msgstr "İtibaren değiştirilmiş"
+msgstr "Değiştirildi"
 
 #: public/js/frappe/form/save.js:12
 msgctxt "Freeze message while amending a document"
@@ -3090,7 +3090,7 @@ msgstr "Şifre Bekleniyor"
 
 #: public/js/frappe/widgets/onboarding_widget.js:195
 msgid "Awesome Work"
-msgstr ""
+msgstr "Mükemmel"
 
 #: public/js/frappe/widgets/onboarding_widget.js:353
 msgid "Awesome, now try making an entry yourself"
@@ -3167,7 +3167,7 @@ msgstr ""
 #: public/js/frappe/file_uploader/ImageCropper.vue:31
 #: public/js/frappe/widgets/onboarding_widget.js:181
 msgid "Back"
-msgstr ""
+msgstr "Geri"
 
 #: templates/pages/integrations/gcalendar-success.html:13
 msgid "Back to Desk"
@@ -5348,7 +5348,7 @@ msgstr "Onaylandı"
 
 #: public/js/frappe/widgets/onboarding_widget.js:525
 msgid "Congratulations on completing the module setup. If you want to learn more you can refer to the documentation <a target=\"_blank\" href=\"{0}\">here</a>."
-msgstr ""
+msgstr "Modül kurulumunu tamamladığınız için tebrikler. Daha fazla bilgi edinmek istiyorsanız <a target=\"_blank\" href=\"{0}\">buradaki</a>belgelere başvurabilirsiniz."
 
 #: integrations/doctype/connected_app/connected_app.js:25
 msgid "Connect to {}"
@@ -7073,7 +7073,7 @@ msgstr "Listeleme sayfası için açıklama, düz metin olarak, sadece birkaç s
 #. 'Onboarding Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
 msgid "Description to inform the user about any action that is going to be performed"
-msgstr ""
+msgstr "Gerçekleştirilecek herhangi bir eylem hakkında kullanıcıyı bilgilendirmek için açıklama"
 
 #. Label of the designation (Data) field in DocType 'Contact'
 #: contacts/doctype/contact/contact.json
@@ -9540,7 +9540,7 @@ msgstr "Dışa Aktarma Türü"
 
 #: public/js/frappe/views/reports/report_view.js:1561
 msgid "Export all matching rows?"
-msgstr ""
+msgstr "Eşleşen tüm satırlar dışarı aktarılsın mı?"
 
 #: public/js/frappe/views/reports/report_view.js:1571
 msgid "Export all {0} rows?"
@@ -10957,12 +10957,12 @@ msgstr "Gmail"
 #. Option for the 'License Type' (Select) field in DocType 'Package'
 #: core/doctype/package/package.json
 msgid "GNU Affero General Public License"
-msgstr ""
+msgstr "GNU Affero Genel Kamu Lisansı"
 
 #. Option for the 'License Type' (Select) field in DocType 'Package'
 #: core/doctype/package/package.json
 msgid "GNU General Public License"
-msgstr ""
+msgstr "GNU Genel Kamu Lisansı"
 
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
@@ -11486,17 +11486,17 @@ msgstr "HTML"
 #: custom/doctype/custom_field/custom_field.json
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgid "HTML Editor"
-msgstr ""
+msgstr "HTML Düzenleyici"
 
 #. Label of the page (HTML Editor) field in DocType 'Access Log'
 #: core/doctype/access_log/access_log.json
 msgid "HTML Page"
-msgstr ""
+msgstr "HTML Sayfası"
 
 #. Description of the 'Header' (HTML Editor) field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgid "HTML for header section. Optional"
-msgstr ""
+msgstr "Başlık bölümü için HTML. İsteğe bağlı"
 
 #: website/doctype/web_page/web_page.js:92
 msgid "HTML with jinja support"
@@ -12625,7 +12625,7 @@ msgstr "Filtreleri dahil et"
 
 #: public/js/frappe/views/reports/query_report.js:1499
 msgid "Include indentation"
-msgstr ""
+msgstr "Girintiyi dahil et"
 
 #: public/js/frappe/form/controls/password.js:107
 msgid "Include symbols, numbers and capital letters in the password"
@@ -14851,7 +14851,7 @@ msgstr ""
 #. Option for the 'License Type' (Select) field in DocType 'Package'
 #: core/doctype/package/package.json
 msgid "MIT License"
-msgstr "MIT lisansı"
+msgstr "MIT Lisansı"
 
 #: desk/page/setup_wizard/install_fixtures.py:49
 msgid "Madam"
@@ -14885,7 +14885,7 @@ msgstr "Bakımcı Kullanıcı"
 #. Label of the major (Int) field in DocType 'Package Release'
 #: core/doctype/package_release/package_release.json
 msgid "Major"
-msgstr ""
+msgstr "Ana Sürüm"
 
 #. Label of the show_name_in_global_search (Check) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -15447,7 +15447,7 @@ msgstr "Minimum Şifre Puanı"
 #. Label of the minor (Int) field in DocType 'Package Release'
 #: core/doctype/package_release/package_release.json
 msgid "Minor"
-msgstr ""
+msgstr "Ara Sürüm"
 
 #: integrations/doctype/ldap_settings/ldap_settings.py:102
 #: integrations/doctype/ldap_settings/ldap_settings.py:107
@@ -15570,7 +15570,7 @@ msgstr "Modül"
 #. Label of a shortcut in the Build Workspace
 #: core/doctype/module_def/module_def.json core/workspace/build/build.json
 msgid "Module Def"
-msgstr "Modül Tanımı"
+msgstr "Modül"
 
 #. Label of the module_html (HTML) field in DocType 'Module Profile'
 #: core/doctype/module_profile/module_profile.json
@@ -18681,7 +18681,7 @@ msgstr "Nasıl devam edeceğinize ilişkin talimatlar için lütfen kayıtlı e-
 
 #: desk/doctype/workspace/workspace.js:23
 msgid "Please click Edit on the Workspace for best results"
-msgstr ""
+msgstr "En iyi sonuçlar için lütfen Çalışma Alanında Düzenle ile özelleştirin"
 
 #: core/doctype/data_import/data_import.js:158
 msgid "Please click on 'Export Errored Rows', fix the errors and import again."
@@ -19550,7 +19550,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/query_report.js:860
 msgid "Proceed Anyway"
-msgstr ""
+msgstr "Yine de Devam Et"
 
 #: public/js/frappe/form/controls/table.js:104
 msgid "Processing"
@@ -20591,7 +20591,7 @@ msgstr ""
 #. Group in Package's connections
 #: core/doctype/package/package.json
 msgid "Release"
-msgstr ""
+msgstr "Sürüm"
 
 #. Label of the release_notes (Markdown Editor) field in DocType 'Package
 #. Release'
@@ -22667,7 +22667,7 @@ msgstr ""
 #. Description of the 'Insert After' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgid "Select the label after which you want to insert new field."
-msgstr ""
+msgstr "Sonrasına yeni alan eklemek istediğiniz etiketi seçin."
 
 #: public/js/frappe/utils/diffview.js:102
 msgid "Select two versions to view the diff."
@@ -24684,7 +24684,7 @@ msgstr ""
 #: desk/doctype/module_onboarding/module_onboarding.json
 #: website/doctype/blog_settings/blog_settings.json
 msgid "Subtitle"
-msgstr "Alt yazı"
+msgstr "Alt Başlık"
 
 #. Option for the 'Status' (Select) field in DocType 'Activity Log'
 #. Option for the 'Status' (Select) field in DocType 'Data Import'
@@ -25672,7 +25672,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/query_report.js:893
 msgid "There are {0} with the same filters already in the queue:"
-msgstr ""
+msgstr "Aynı filtrelere sahip {0} zaten kuyrukta mevcut:"
 
 #: website/doctype/web_form/web_form.js:81
 #: website/doctype/web_form/web_form.js:317
@@ -25701,7 +25701,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/query_report.js:890
 msgid "There is {0} with the same filters already in the queue:"
-msgstr ""
+msgstr "Aynı filtrelere sahip {0} kuyrukta zaten mevcut:"
 
 #: core/page/permission_manager/permission_manager.py:155
 msgid "There must be atleast one permission rule."
@@ -26730,7 +26730,7 @@ msgstr ""
 #. Label of the translated_text (Code) field in DocType 'Translation'
 #: core/doctype/translation/translation.json
 msgid "Translated Text"
-msgstr "Çevirilen"
+msgstr "Çeviri"
 
 #. Name of a DocType
 #: core/doctype/translation/translation.json
@@ -26790,7 +26790,7 @@ msgstr ""
 
 #: public/js/frappe/widgets/onboarding_widget.js:318
 msgid "Try Again"
-msgstr ""
+msgstr "Tekrar Deneyin"
 
 #. Label of the try_naming_series (Data) field in DocType 'Document Naming
 #. Settings'
@@ -30674,19 +30674,19 @@ msgstr "{0} ile {1} eşittir"
 
 #: public/js/frappe/views/reports/report_view.js:1380
 msgid "{0} is greater than or equal to {1}"
-msgstr ""
+msgstr "{0} değeri {1} değerinden büyük veya eşittir"
 
 #: public/js/frappe/views/reports/report_view.js:1370
 msgid "{0} is greater than {1}"
-msgstr ""
+msgstr "{0} değeri {1} değerinden büyüktür"
 
 #: public/js/frappe/views/reports/report_view.js:1385
 msgid "{0} is less than or equal to {1}"
-msgstr ""
+msgstr "{0} değeri {1} değerinden küçük veya eşittir"
 
 #: public/js/frappe/views/reports/report_view.js:1375
 msgid "{0} is less than {1}"
-msgstr ""
+msgstr "{0} değeri {1} değerinden küçüktür"
 
 #: public/js/frappe/views/reports/report_view.js:1410
 msgid "{0} is like {1}"
@@ -30804,7 +30804,7 @@ msgstr "{0} giriş yaptı"
 
 #: core/doctype/activity_log/feed.py:19
 msgid "{0} logged out: {1}"
-msgstr ""
+msgstr "{0} çıkış yaptı: {1}"
 
 #: public/js/frappe/utils/pretty_date.js:27
 msgid "{0} m"
