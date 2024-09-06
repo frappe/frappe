@@ -148,7 +148,7 @@ frappe.breadcrumbs = {
 
 		// choose from __workspaces
 		const doctype_meta = frappe.get_meta(breadcrumbs.doctype);
-		if (doctype_meta.__workspaces?.length) {
+		if (doctype_meta?.__workspaces?.length) {
 			breadcrumbs.workspace = doctype_meta.__workspaces[0];
 		}
 

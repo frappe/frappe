@@ -28,6 +28,20 @@ frappe.ui.toolbar.Toolbar = class {
 	make() {
 		this.bind_events();
 		$(document).trigger("toolbar_setup");
+		$(".navbar-brand .app-logo").on("click", () => {
+			$(".body-sidebar-container")
+				.toggleClass("expanded")
+				.find(".edit-sidebar-link")
+				.addClass("hidden");
+
+			// show close link
+			$(".body-sidebar-container")
+				.find(".close-sidebar-link")
+				.removeClass("hidden")
+				.on("click", () => {
+					$(".body-sidebar-container").removeClass("expanded");
+				});
+		});
 	}
 
 	bind_events() {

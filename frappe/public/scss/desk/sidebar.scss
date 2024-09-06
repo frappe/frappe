@@ -60,29 +60,6 @@ body {
 		width: 53px;
 		height: 100vh;
 	}
-
-	&:hover {
-		.body-sidebar {
-			// make it an overlay on hover
-			position: absolute;
-			width: 200px;
-
-			.sidebar-item-label {
-				display: flex;
-			}
-			.sidebar-item-control {
-				display: block;
-			}
-			.edit-sidebar-link {
-				display: block;
-			}
-		}
-
-		// show placeholder so that main section remains static
-		.body-sidebar-placeholder {
-			display: flex;
-		}
-	}
 }
 
 .body-sidebar {
@@ -104,8 +81,7 @@ body {
 
 		gap: 2px;
 		justify-content: flex-start;
-		overflow-x: hidden;
-		overflow-y: auto;
+		overflow: hidden;
 		padding: 15px;
 		position: static;
 		font-size: var(--text-base);
@@ -204,6 +180,60 @@ body {
 		.indicator {
 			margin-left: 5px;
 		}
+	}
+}
+
+@mixin body-sidebar-expanded {
+	.body-sidebar {
+		// make it an overlay on hover
+		position: absolute;
+		width: 200px;
+
+		.body-sidebar-top {
+			overflow-y: auto;
+		}
+		.sidebar-item-label {
+			display: flex;
+		}
+		.sidebar-item-control {
+			display: block;
+		}
+		.edit-sidebar-link {
+			display: block;
+		}
+	}
+
+	// show placeholder so that main section remains static
+	.body-sidebar-placeholder {
+		display: flex;
+	}
+}
+
+.body-sidebar-container.expanded {
+	@include body-sidebar-expanded();
+}
+
+@include media-breakpoint-down(sm) {
+	// body sidebar hidded in mobile view
+	.body-sidebar-container {
+		.body-sidebar {
+			width: 0px;
+			overflow: hidden;
+		}
+	}
+
+	// expands when navbar-brand is clicked
+	.body-sidebar-container.expanded {
+		.body-sidebar {
+			width: 200px;
+		}
+	}
+}
+
+@include media-breakpoint-up(sm) {
+	// for bigger screens, expand / collapse on hover
+	.body-sidebar-container:hover {
+		@include body-sidebar-expanded();
 	}
 }
 

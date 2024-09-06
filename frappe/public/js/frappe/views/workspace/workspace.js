@@ -56,11 +56,16 @@ frappe.views.Workspace = class Workspace {
 
 	prepare_container() {
 		this.body = this.wrapper.find(".layout-main-section");
+		this.wrapper.find(".page-head").addClass("hidden");
 		this.prepare_new_and_edit();
 	}
 
 	prepare_new_and_edit() {
 		this.$page = $(`
+		<div class="workspace-header" style="display: flex; gap: 7px; margin-top: var(--margin-sm);">
+			<div class="workspace-icon"></div>
+			<h4 class="workspace-title"></h4>
+		</div>
 		<div class="editor-js-container"></div>
 		<div class="workspace-footer">
 			<button data-label="New" class="btn btn-default ellipsis btn-new-workspace">
@@ -105,6 +110,7 @@ frappe.views.Workspace = class Workspace {
 		}
 
 		let page = this.get_page_to_show();
+		if (this._page?.name === page.name) return; // already shown
 
 		if (!frappe.router.current_route[0]) {
 			frappe.route_flags.replace_route = true;
@@ -112,7 +118,7 @@ frappe.views.Workspace = class Workspace {
 			return;
 		}
 
-		this.page.set_title(__(page.name));
+		// this.page.set_title(__(page.title));
 		this.show_page(page);
 	}
 
@@ -211,9 +217,18 @@ frappe.views.Workspace = class Workspace {
 
 			this.prepare_editorjs();
 			$(".item-anchor").removeClass("disable-click");
+			$(".body-sidebar-container").removeClass("expanded");
 
 			this.remove_page_skeleton();
 			frappe.app.sidebar.set_current_app(app);
+			this.wrapper.find(".workspace-title").html(__(this._page.title));
+			this.wrapper
+				.find(".workspace-icon")
+				.html(frappe.utils.icon(this._page.icon || "folder-normal", "md"));
+			console.log(this.page_data);
+
+			localStorage.current_page = current_page.name;
+			localStorage.is_current_page_public = current_page.public ? "true" : "false";
 		}
 	}
 
@@ -240,7 +255,7 @@ frappe.views.Workspace = class Workspace {
 				this.editor.configuration.tools.chart.config.page_data = this.page_data;
 				this.editor.configuration.tools.shortcut.config.page_data = this.page_data;
 				this.editor.configuration.tools.card.config.page_data = this.page_data;
-				this.editor.configuration.tools.onboarding.config.page_data = this.page_data;
+				// this.editor.configuration.tools.onboarding.config.page_data = this.page_data;
 				this.editor.configuration.tools.quick_list.config.page_data = this.page_data;
 				this.editor.configuration.tools.number_card.config.page_data = this.page_data;
 				this.editor.configuration.tools.custom_block.config.page_data = this.page_data;
@@ -700,6 +715,7 @@ frappe.views.Workspace = class Workspace {
 
 	reload() {
 		delete this.pages[this._page.name];
+		this._page = null;
 		return this.get_pages().then((r) => {
 			frappe.boot.sidebar_pages = r;
 			this.sidebar.setup_pages();

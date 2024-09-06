@@ -126,15 +126,17 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	set_current_app(app) {
-		if (frappe.current_app === app) return;
-		frappe.current_app = app;
+		let app_data = frappe.boot.app_data_map[app];
 
 		this.wrapper
 			.find(".app-switcher-dropdown .sidebar-item-icon img")
-			.attr("src", frappe.boot.app_data_map[frappe.current_app].app_logo_url);
-		this.wrapper
-			.find(".app-switcher-dropdown .sidebar-item-label")
-			.html(frappe.boot.app_data_map[frappe.current_app].app_title);
+			.attr("src", app_data.app_logo_url);
+		this.wrapper.find(".app-switcher-dropdown .sidebar-item-label").html(app_data.app_title);
+
+		$(".navbar-brand .app-logo").attr("src", app_data.app_logo_url);
+
+		if (frappe.current_app === app) return;
+		frappe.current_app = app;
 
 		// re-render the sidebar
 		this.make_sidebar();

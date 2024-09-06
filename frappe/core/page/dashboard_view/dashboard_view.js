@@ -20,7 +20,7 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 class Dashboard {
 	constructor(wrapper) {
 		this.wrapper = $(wrapper);
-		$(`<div class="dashboard" style="overflow: visible">
+		$(`<div class="dashboard" style="overflow: visible; margin: var(--margin-sm);">
 			<div class="dashboard-graph"></div>
 		</div>`).appendTo(this.wrapper.find(".page-content").empty());
 		this.container = this.wrapper.find(".dashboard-graph");
