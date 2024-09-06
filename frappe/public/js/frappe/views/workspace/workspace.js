@@ -348,104 +348,6 @@ frappe.views.Workspace = class Workspace {
 		}
 	}
 
-	edit_page(item) {
-		var me = this;
-		let old_item = item;
-		let parent_pages = this.sidebar.all_pages;
-		let idx = parent_pages.findIndex((x) => x == item.name);
-		if (idx !== -1) parent_pages.splice(idx, 1);
-		const d = new frappe.ui.Dialog({
-			title: __("Update Details"),
-			fields: [
-				{
-					label: __("Title"),
-					fieldtype: "Data",
-					fieldname: "title",
-					reqd: 1,
-					default: item.title,
-				},
-				{
-					label: __("Parent"),
-					fieldtype: "Select",
-					fieldname: "parent",
-					options: parent_pages,
-					default: item.parent_page,
-				},
-				{
-					label: __("Public"),
-					fieldtype: "Check",
-					fieldname: "is_public",
-					depends_on: `eval:${this.has_access}`,
-					default: item.public,
-					onchange: function () {
-						d.set_df_property(
-							"parent",
-							"options",
-							this.get_value() ? me.public_parent_pages : me.private_parent_pages
-						);
-						d.set_df_property("icon", "hidden", this.get_value() ? 0 : 1);
-						d.set_df_property("indicator_color", "hidden", this.get_value() ? 1 : 0);
-					},
-				},
-				{
-					label: __("Icon"),
-					fieldtype: "Icon",
-					fieldname: "icon",
-					default: item.public && item.icon,
-					hidden: !item.public,
-				},
-				{
-					label: __("Indicator color"),
-					fieldtype: "Select",
-					fieldname: "indicator_color",
-					options: this.indicator_colors,
-					default: !item.public && item.indicator_color,
-					hidden: item.public,
-				},
-			],
-			primary_action_label: __("Update"),
-			primary_action: (values) => {
-				values.title = strip_html(values.title);
-				frappe.call({
-					method: "frappe.desk.doctype.workspace.workspace.update_page",
-					args: {
-						name: old_item.name,
-						title: values.title,
-						icon: values.icon || "",
-						indicator_color: values.indicator_color || "",
-						parent: values.parent || "",
-						public: values.is_public || 0,
-					},
-					callback: function (res) {
-						if (res.message) {
-							let message = __("Workspace {0} Edited Successfully", [
-								old_item.title.bold(),
-							]);
-							if (!window.Cypress) {
-								frappe.show_alert({ message: message, indicator: "green" });
-							}
-						}
-					},
-				});
-
-				if (this.make_page_selected) {
-					if (values.is_public) {
-						frappe.set_route(frappe.router.slug(values.name));
-					} else {
-						frappe.set_route(
-							"private/" + frappe.router.slug(values.name.split("-").at(-1))
-						);
-					}
-
-					this.make_page_selected = false;
-				}
-
-				this.sidebar.make_sidebar();
-			},
-		});
-		d.show();
-	}
-
 	make_blocks_sortable() {
 		let me = this;
 		this.page_sortable = Sortable.create(
@@ -737,13 +639,19 @@ frappe.views.Workspace = class Workspace {
 	get_parent_pages(page) {
 		this.public_parent_pages = [
 			"",
-			...this.sidebar.all_pages.filter((p) => p.public && !p.parent_page).map((p) => p.name),
+			...this.sidebar.all_pages
+				.filter((p) => p.public && !p.parent_page)
+				.map((p) => {
+					return { label: p.title, value: p.name };
+				}),
 		];
 		this.private_parent_pages = [
 			"",
 			...this.sidebar.all_pages
 				.filter((p) => !p.public && !p.parent_page)
-				.map((p) => p.name),
+				.map((p) => {
+					return { label: p.title, value: p.name };
+				}),
 		];
 
 		if (page) {
