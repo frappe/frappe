@@ -56,7 +56,15 @@ class SocialLoginKey(Document):
 		redirect_url: DF.Data | None
 		sign_ups: DF.Literal["", "Allow", "Deny"]
 		social_login_provider: DF.Literal[
-			"Custom", "Facebook", "Frappe", "GitHub", "Google", "Office 365", "Salesforce", "fairlogin"
+			"Custom",
+			"Facebook",
+			"Frappe",
+			"GitHub",
+			"Google",
+			"Office 365",
+			"Salesforce",
+			"fairlogin",
+			"Keycloak",
 		]
 		user_id_property: DF.Data | None
 	# end: auto-generated types
@@ -80,6 +88,8 @@ class SocialLoginKey(Document):
 			frappe.throw(
 				_("Please enter Client Secret before social login is enabled"), exc=ClientSecretNotSetError
 			)
+		if self.social_login_provider == "Keycloak":
+			self.api_endpoint = self.base_url + "/protocol/openid-connect/userinfo"
 
 	def set_icon(self):
 		icon_map = {
@@ -203,6 +213,20 @@ class SocialLoginKey(Document):
 			"api_endpoint_args": None,
 			"authorize_url": "https://id.fairkom.net/auth/realms/fairlogin/protocol/openid-connect/auth",
 			"access_token_url": "https://id.fairkom.net/auth/realms/fairlogin/protocol/openid-connect/token",
+			"auth_url_data": json.dumps({"response_type": "code", "scope": "openid"}),
+		}
+
+		providers["Keycloak"] = {
+			"provider_name": "Keycloak",
+			"enable_social_login": 1,
+			"base_url": "realms/master",
+			"custom_base_url": 1,
+			"redirect_url": "/api/method/frappe.integrations.oauth2_logins.login_via_keycloak/keycloak",
+			"api_endpoint": "realms/masterl/protocol/openid-connect/userinfo",
+			"api_endpoint_args": None,
+			"authorize_url": "/protocol/openid-connect/auth",
+			"access_token_url": "/protocol/openid-connect/token",
+			"user_id_property": "preferred_username",
 			"auth_url_data": json.dumps({"response_type": "code", "scope": "openid"}),
 		}
 
