@@ -173,7 +173,7 @@ frappe.ui.Sidebar = class Sidebar {
 			frappe.workspace_list = [];
 			for (let page of this.all_pages) {
 				frappe.workspaces[frappe.router.slug(page.name)] = {
-					title: page.title,
+					name: page.name,
 					public: page.public,
 				};
 
@@ -190,14 +190,14 @@ frappe.ui.Sidebar = class Sidebar {
 
 		let app_workspaces = frappe.boot.app_data_map[frappe.current_app || "frappe"].workspaces;
 
-		let parent_pages = this.all_pages.filter((p) => !p.parent_page).uniqBy((p) => p.title);
+		let parent_pages = this.all_pages.filter((p) => !p.parent_page).uniqBy((p) => p.name);
 		parent_pages = [
 			...parent_pages.filter(
 				(p) =>
 					!p.public &&
-					(app_workspaces.includes(p.title) || p.app === frappe.current_app || !p.app)
+					(app_workspaces.includes(p.name) || p.app === frappe.current_app || !p.app)
 			),
-			...parent_pages.filter((p) => p.public && app_workspaces.includes(p.title)),
+			...parent_pages.filter((p) => p.public && app_workspaces.includes(p.name)),
 		];
 
 		this.build_sidebar_section("All", parent_pages);
@@ -257,13 +257,15 @@ frappe.ui.Sidebar = class Sidebar {
 		item.selected = is_current_page;
 
 		if (is_current_page) {
-			this.current_page = { name: item.title, public: item.public };
+			this.current_page = { name: item.name, public: item.public };
 		}
 
 		let $item_container = this.sidebar_item_container(item);
 		let sidebar_control = $item_container.find(".sidebar-item-control");
 
-		let child_items = this.all_pages.filter((page) => page.parent_page == item.title);
+		let child_items = this.all_pages.filter(
+			(page) => page.parent_page == item.name || page.parent_page == item.title
+		);
 		if (child_items.length > 0) {
 			let child_container = $item_container.find(".sidebar-child-item");
 			child_container.addClass("hidden");
@@ -271,7 +273,7 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 
 		$item_container.appendTo(container);
-		this.sidebar_items[item.public ? "public" : "private"][item.title] = $item_container;
+		this.sidebar_items[item.public ? "public" : "private"][item.name] = $item_container;
 
 		if ($item_container.parent().hasClass("hidden") && is_current_page) {
 			$item_container.parent().toggleClass("hidden");
@@ -338,7 +340,9 @@ frappe.ui.Sidebar = class Sidebar {
 
 		if (
 			this.all_pages.some(
-				(e) => e.parent_page == item.title && (e.is_hidden == 0 || !this.is_read_only)
+				(e) =>
+					(e.parent_page == item.title || e.parent_page == item.name) &&
+					(e.is_hidden == 0 || !this.is_read_only)
 			)
 		) {
 			$drop_icon.removeClass("hidden");
