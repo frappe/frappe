@@ -1,0 +1,41 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-09-04 12:59:59.312126",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "shortcuts"
+ ],
+ "fields": [
+  {
+   "fieldname": "shortcuts",
+   "fieldtype": "Table",
+   "label": "Shortcuts",
+   "options": "Command Center Shortcuts"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-09-04 13:06:42.160253",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Command Center Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
