@@ -104,3 +104,5 @@ import "./frappe/ui/chart.js";
 import "./frappe/ui/datatable.js";
 import "./frappe/ui/driver.js";
 import "./frappe/scanner";
+
+import "./frappe/ui/address_autocomplete/autocomplete_dialog.js";

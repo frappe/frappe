@@ -111,6 +111,9 @@ def get_bootinfo():
 	bootinfo.subscription_conf = add_subscription_conf()
 	bootinfo.marketplace_apps = get_marketplace_apps()
 	bootinfo.changelog_feed = get_changelog_feed_items()
+	bootinfo.enable_address_autocompletion = frappe.db.get_single_value(
+		"Geolocation Settings", "enable_address_autocompletion"
+	)
 
 	if sentry_dsn := get_sentry_dsn():
 		bootinfo.sentry_dsn = sentry_dsn
