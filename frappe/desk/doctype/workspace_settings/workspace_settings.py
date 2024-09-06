@@ -22,11 +22,20 @@ class WorkspaceSettings(Document):
 
 	pass
 
-	def validate(self):
-		cnt = 1
-		for page_name in json.loads(self.workspace_sequence):
-			frappe.db.set_value("Workspace", page_name, "sequence_id", cnt)
-			cnt += 1
-
 	def on_update(self):
 		frappe.clear_cache()
+
+
+@frappe.whitelist()
+def set_sequence(sidebar_items):
+	if not WorkspaceSettings("Workspace Settings").has_permission():
+		frappe.throw_permission_error()
+
+	cnt = 1
+	for item in json.loads(sidebar_items):
+		frappe.db.set_value("Workspace", item.get("name"), "sequence_id", cnt)
+		frappe.db.set_value("Workspace", item.get("name"), "parent_page", item.get("parent") or "")
+		cnt += 1
+
+	frappe.clear_cache()
+	frappe.toast(frappe._("Updated"))

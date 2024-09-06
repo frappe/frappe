@@ -921,16 +921,19 @@ Object.assign(frappe.utils, {
 		let route = route_str.split("/");
 
 		if (route[2] === "Report" || route[0] === "query-report") {
-			return __("{0} Report", [__(route[3]) || __(route[1])]);
+			return (__(route[3]) || __(route[1])).bold() + " " + __("Report");
 		}
 		if (route[0] === "List") {
-			return __("{0} List", [__(route[1])]);
+			return __(route[1]).bold() + " " + __("List");
 		}
 		if (route[0] === "modules") {
-			return __("{0} Modules", [__(route[1])]);
+			return __(route[1]).bold() + " " + __("Module");
+		}
+		if (route[0] === "Workspaces") {
+			return __(route[1]).bold() + " " + __("Workspace");
 		}
 		if (route[0] === "dashboard") {
-			return __("{0} Dashboard", [__(route[1])]);
+			return __(route[1]).bold() + " " + __("Dashboard");
 		}
 		return __(frappe.utils.to_title_case(__(route[0]), true));
 	},

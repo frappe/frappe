@@ -86,6 +86,7 @@ frappe.views.TreeView = class TreeView {
 		var me = this;
 		if (!this.opts || !this.opts.do_not_make_page) {
 			this.parent = frappe.container.add_page(this.page_name);
+			$(this.parent).addClass("treeview");
 			frappe.ui.make_app_page({ parent: this.parent, single_column: true });
 			this.page = this.parent.page;
 			frappe.container.change_to(this.page_name);

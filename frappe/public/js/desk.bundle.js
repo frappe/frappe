@@ -9,6 +9,7 @@ import "./frappe/dom.js";
 import "./frappe/ui/messages.js";
 import "./frappe/ui/keyboard.js";
 import "./frappe/ui/colors.js";
+import "./frappe/ui/sidebar.html";
 import "./frappe/ui/sidebar.js";
 import "./frappe/ui/link_preview.js";
 

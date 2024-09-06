@@ -36,7 +36,7 @@
 		display: inline-flex;
 		align-items: center;
 		.title-text {
-			@include get_textstyle("2xl", "semibold");
+			@include get_textstyle("xl", "semibold");
 			cursor: pointer;
 			margin-bottom: 0px;
 			margin-right: var(--margin-sm);
@@ -188,7 +188,7 @@
 		}
 
 		.result {
-			overflow: scroll;
+			overflow: auto;
 		}
 	}
 
