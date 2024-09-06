@@ -277,24 +277,15 @@ def new_page(new_page):
 
 
 @frappe.whitelist()
-def save_page(title, public, new_widgets, blocks):
+def save_page(name, public, new_widgets, blocks):
 	public = frappe.parse_json(public)
 
-	filters = {"public": public, "label": title}
-
-	if not public:
-		filters = {"for_user": frappe.session.user, "label": title + "-" + frappe.session.user}
-	pages = frappe.get_all("Workspace", filters=filters)
-	if pages:
-		doc = frappe.get_doc("Workspace", pages[0])
-	else:
-		frappe.throw(_("Workspace not found"), frappe.DoesNotExistError)
-
+	doc = frappe.get_doc("Workspace", name)
 	doc.content = blocks
 
-	save_new_widget(doc, title, blocks, new_widgets)
+	save_new_widget(doc, name, blocks, new_widgets)
 
-	return {"name": title, "public": public, "label": doc.label}
+	return {"name": name, "public": public, "label": doc.label}
 
 
 @frappe.whitelist()

@@ -56,7 +56,6 @@ frappe.views.Workspace = class Workspace {
 
 	prepare_container() {
 		this.body = this.wrapper.find(".layout-main-section");
-		this.wrapper.find(".page-head").addClass("hidden");
 		this.prepare_new_and_edit();
 	}
 
@@ -118,7 +117,7 @@ frappe.views.Workspace = class Workspace {
 			return;
 		}
 
-		// this.page.set_title(__(page.title));
+		this.page.set_title(__(page.name));
 		this.show_page(page);
 	}
 
@@ -180,6 +179,7 @@ frappe.views.Workspace = class Workspace {
 		const route = frappe.get_route();
 		const page = (route[1] == "private" ? route[2] : route[1]) || default_page.name;
 		const is_public = route[1] ? route[1] != "private" : default_page.public;
+
 		return { name: page, public: is_public };
 	}
 
@@ -225,7 +225,6 @@ frappe.views.Workspace = class Workspace {
 			this.wrapper
 				.find(".workspace-icon")
 				.html(frappe.utils.icon(this._page.icon || "folder-normal", "md"));
-			console.log(this.page_data);
 
 			localStorage.current_page = current_page.name;
 			localStorage.is_current_page_public = current_page.public ? "true" : "false";
@@ -298,12 +297,22 @@ frappe.views.Workspace = class Workspace {
 		this.page.clear_primary_action();
 		this.page.clear_secondary_action();
 		this.page.clear_inner_toolbar();
+
+		// switch headers
+		if (!this.body.hasClass("edit-mode")) {
+			this.wrapper.find(".page-head").addClass("hidden");
+			this.wrapper.find(".workspace-header").removeClass("hidden");
+		}
 	}
 
 	setup_customization_buttons(page) {
 		this.body.addClass("edit-mode");
 		this.initialize_editorjs_undo();
 		this.clear_page_actions();
+
+		// switch headers
+		this.wrapper.find(".page-head").removeClass("hidden");
+		this.wrapper.find(".workspace-header").addClass("hidden");
 
 		page.is_editable &&
 			this.page.set_primary_action(
@@ -648,7 +657,7 @@ frappe.views.Workspace = class Workspace {
 
 	save_page(page) {
 		let me = this;
-		this.current_page = { name: page.title, public: page.public };
+		this.current_page = { name: page.name, public: page.public };
 
 		return this.editor
 			.save()
@@ -688,7 +697,7 @@ frappe.views.Workspace = class Workspace {
 				frappe.call({
 					method: "frappe.desk.doctype.workspace.workspace.save_page",
 					args: {
-						title: page.title,
+						name: page.name,
 						public: page.public || 0,
 						new_widgets: new_widgets,
 						blocks: JSON.stringify(blocks),

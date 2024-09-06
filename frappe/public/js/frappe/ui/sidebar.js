@@ -9,11 +9,7 @@ frappe.ui.Sidebar = class Sidebar {
 			return;
 		}
 
-		this.sidebar_pages = frappe.boot.sidebar_pages;
-		this.all_pages = this.sidebar_pages.pages;
-		this.has_access = this.sidebar_pages.has_access;
-		this.has_create_access = this.sidebar_pages.has_create_access;
-
+		this.set_all_pages();
 		this.make_dom();
 		this.sidebar_items = {
 			public: {},
@@ -58,6 +54,13 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 
 		this.setup_app_switcher();
+	}
+
+	set_all_pages() {
+		this.sidebar_pages = frappe.boot.sidebar_pages;
+		this.all_pages = this.sidebar_pages.pages;
+		this.has_access = this.sidebar_pages.has_access;
+		this.has_create_access = this.sidebar_pages.has_create_access;
 	}
 
 	set_default_app() {
@@ -156,6 +159,8 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	setup_pages() {
+		this.set_all_pages();
+
 		this.all_pages.forEach((page) => {
 			page.is_editable = !page.public || this.has_access;
 			if (typeof page.content == "string") {
@@ -287,7 +292,7 @@ frappe.ui.Sidebar = class Sidebar {
 			<div
 				class="sidebar-item-container ${item.is_editable ? "is-draggable" : ""}"
 				item-parent="${item.parent_page}"
-				item-name="${item.title}"
+				item-name="${item.name}"
 				item-public="${item.public || 0}"
 				item-is-hidden="${item.is_hidden || 0}"
 			>
@@ -295,8 +300,8 @@ frappe.ui.Sidebar = class Sidebar {
 					<a
 						href="/app/${
 							item.public
-								? frappe.router.slug(item.title)
-								: "private/" + frappe.router.slug(item.title)
+								? frappe.router.slug(item.name)
+								: "private/" + frappe.router.slug(item.name.split("-")[0])
 						}"
 						class="item-anchor ${item.is_editable ? "" : "block-click"}" title="${__(item.title)}"
 					>
