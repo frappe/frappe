@@ -9,6 +9,8 @@ import frappe.utils.scheduler
 from frappe.desk.form import assign_to
 from frappe.tests.utils import FrappeTestCase
 
+from .notification import trigger_notifications
+
 test_dependencies = ["User", "Notification"]
 
 
@@ -176,6 +178,92 @@ class TestNotification(FrappeTestCase):
 				{"reference_doctype": "Event", "reference_name": event.name, "status": "Not Sent"},
 			)
 		)
+
+	def test_minutes_positive_offset(self):
+		from frappe.utils import add_to_date, now_datetime
+
+		event = frappe.new_doc("Event")
+		event.subject = "Test Minutes Positive Offset Event"
+		event.event_type = "Private"
+		event.starts_on = add_to_date(now_datetime(), minutes=14)
+		event.insert()
+
+		# Create a test notification
+		notification = {
+			"name": "Test Minutes Positive Offset",
+			"subject": "Test Minutes Positive Offset",
+			"document_type": "Event",
+			"event": "Minutes Before",
+			"datetime_changed": "starts_on",
+			"minutes_offset": 15,
+			"message": "Test message",
+			"channel": "System Notification",
+			"recipients": [{"receiver_by_document_field": "owner"}],
+		}
+
+		with get_test_notification(notification) as n:
+			frappe.db.delete("Notification Log", {"subject": n.subject})
+			# Run the offset alerts
+			trigger_notifications(None, "offset")
+
+			# Check if the notification was triggered
+			self.assertEqual(1, frappe.db.count("Notification Log", {"subject": n.subject}))
+
+	def test_minutes_negative_offset(self):
+		from frappe.utils import add_to_date, now_datetime
+
+		event = frappe.new_doc("Event")
+		event.subject = "Test Minutes Negative Offset Event"
+		event.event_type = "Private"
+		event.starts_on = add_to_date(now_datetime(), minutes=-16)
+		event.insert()
+
+		# Create a test notification
+		notification = {
+			"name": "Test Minutes Negative Offset",
+			"subject": "Test Minutes Negative Offset",
+			"document_type": "Event",
+			"event": "Minutes After",
+			"datetime_changed": "starts_on",
+			"minutes_offset": 15,
+			"message": "Test message",
+			"channel": "System Notification",
+			"recipients": [{"receiver_by_document_field": "owner"}],
+		}
+
+		with get_test_notification(notification) as n:
+			frappe.db.delete("Notification Log", {"subject": n.subject})
+			# Run the offset alerts
+			trigger_notifications(None, "offset")
+
+			# Check if the notification was triggered
+			self.assertEqual(1, frappe.db.count("Notification Log", {"subject": n.subject}))
+
+	def test_minutes_offset_validation(self):
+		notification = frappe.new_doc("Notification")
+		notification.name = "Test Minutes Offset Validation"
+		notification.subject = "Test Minutes Offset Validation"
+		notification.document_type = "Event"
+		notification.event = "Minutes Before"
+		notification.datetime_changed = "starts_on"
+		notification.message = "Test message"
+
+		# Test negative value
+		notification.minutes_offset = -5
+		self.assertRaises(frappe.ValidationError, notification.insert)
+
+		# Test zero value
+		notification.minutes_offset = 0
+		self.assertRaises(frappe.ValidationError, notification.insert)
+
+		# Test value less than 10
+		notification.minutes_offset = 5
+		self.assertRaises(frappe.ValidationError, notification.insert)
+
+		# Test valid value
+		notification.minutes_offset = 15
+		notification.insert()
+		notification.delete()
 
 	def test_alert_disabled_on_wrong_field(self):
 		frappe.set_user("Administrator")
