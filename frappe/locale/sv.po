@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-01 09:33+0000\n"
-"PO-Revision-Date: 2024-09-03 18:01\n"
+"PO-Revision-Date: 2024-09-07 19:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -11066,7 +11066,7 @@ msgstr "Hämta fler insikter med"
 #. DocType 'Notification Settings'
 #: desk/doctype/notification_settings/notification_settings.json
 msgid "Get notified when an email is received on any of the documents assigned to you."
-msgstr "Få avisering när e-post meddelande tas emot om någo av dokument som tilldelats dig."
+msgstr "Avisera när e-post meddelande tas emot om någon av dokument som tilldelats dig."
 
 #. Description of the 'User Image' (Attach Image) field in DocType 'User'
 #: core/doctype/user/user.json
@@ -11905,15 +11905,15 @@ msgstr "Webbplats Inställningar"
 #: core/doctype/file/test_file.py:321 core/doctype/file/test_file.py:323
 #: core/doctype/file/test_file.py:387
 msgid "Home/Test Folder 1"
-msgstr "Hem/Test Mapp 1"
+msgstr "Start/Test Mapp 1"
 
 #: core/doctype/file/test_file.py:376
 msgid "Home/Test Folder 1/Test Folder 3"
-msgstr "Hem/Testa Mapp 1 / Test Mapp 3"
+msgstr "Start/Testa Mapp 1 / Test Mapp 3"
 
 #: core/doctype/file/test_file.py:332
 msgid "Home/Test Folder 2"
-msgstr "Hem/Test Mapp 2"
+msgstr "Start/Test Mapp 2"
 
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #. Option for the 'Event Frequency' (Select) field in DocType 'Server Script'
@@ -13303,7 +13303,7 @@ msgstr "Är Dold"
 #. Label of the is_home_folder (Check) field in DocType 'File'
 #: core/doctype/file/file.json
 msgid "Is Home Folder"
-msgstr "Är Hem Mapp"
+msgstr "Är Start Mapp"
 
 #. Label of the reqd (Check) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -15990,7 +15990,7 @@ msgstr "Toppfält Mall Värden"
 
 #: public/js/frappe/ui/keyboard.js:214
 msgid "Navigate Home"
-msgstr "Navigera Hem"
+msgstr "Till Start"
 
 #: public/js/frappe/list/list_view.js:1195
 msgctxt "Description of a list view shortcut"
@@ -20169,12 +20169,12 @@ msgstr "Uppdatering av Träd Vy stöds inte för {}"
 #. Description of the 'Anonymous' (Check) field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
 msgid "Receive anonymous response"
-msgstr "Ta emot anonym respons"
+msgstr "Få anonymt svar"
 
 #. Option for the 'Sent or Received' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgid "Received"
-msgstr "Mottaget"
+msgstr "Mottagen"
 
 #: integrations/doctype/token_cache/token_cache.py:50
 msgid "Received an invalid token type."
