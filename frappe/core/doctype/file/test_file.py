@@ -827,8 +827,12 @@ class TestAttachmentPermissions(FrappeTestCase):
 	def tearDownClass(cls) -> None:
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
+		# create doctype indirectly commits; delete them, drop the tables and commit as rollback is called again later
+		frappe.db.sql(f"DROP TABLE `tab{cls.test_doctype_open}`")
+		frappe.db.sql(f"DROP TABLE `tab{cls.test_doctype_closed}`")
 		frappe.delete_doc("DocType", cls.test_doctype_open)
 		frappe.delete_doc("DocType", cls.test_doctype_closed)
+		frappe.db.commit()
 
 	def setUp(self):
 		doc = frappe.new_doc(
