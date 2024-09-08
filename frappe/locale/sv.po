@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-02 18:21+0000\n"
-"PO-Revision-Date: 2024-09-03 18:01\n"
+"PO-Revision-Date: 2024-09-08 19:39\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -5314,7 +5314,7 @@ msgstr "Ansluten till QZ Aktivitet Fält!"
 
 #: public/js/frappe/request.js:34
 msgid "Connection Lost"
-msgstr "Anslutning Förlorad"
+msgstr "Anslutning Bruten"
 
 #: templates/pages/integrations/gcalendar-success.html:3
 msgid "Connection Success"
@@ -5322,7 +5322,7 @@ msgstr "Anslutning Klar"
 
 #: public/js/frappe/dom.js:432
 msgid "Connection lost. Some features might not work."
-msgstr "Anslutning Förlorad. Vissa funktioner kan sluta fungera."
+msgstr "Anslutning Bruten. Vissa funktioner kan sluta fungera."
 
 #. Label of a Tab Break field in DocType 'DocType'
 #. Label of a Tab Break field in DocType 'Module Def'
@@ -7530,11 +7530,11 @@ msgstr "Dokument Åtgärder"
 #: core/doctype/user/user.json
 #: email/doctype/document_follow/document_follow.json
 msgid "Document Follow"
-msgstr "Dokument Följ"
+msgstr "Följ Dokument"
 
 #: desk/form/document_follow.py:84
 msgid "Document Follow Notification"
-msgstr "Dokument Följ Avisering"
+msgstr "Följ Dokument Avisering"
 
 #. Label of a Data field in DocType 'Notification Log'
 #: desk/doctype/notification_log/notification_log.json
@@ -10040,7 +10040,7 @@ msgstr "Filtrerade Poster"
 #: website/doctype/blog_post/blog_post.py:262
 #: website/doctype/help_article/help_article.py:92 www/list.py:44
 msgid "Filtered by \"{0}\""
-msgstr "Filtrerad Efter '{0}'"
+msgstr "Filtrerad efter \"{0}\""
 
 #. Label of a Code field in DocType 'Access Log'
 #. Label of a Section Break field in DocType 'Prepared Report'
@@ -11304,7 +11304,7 @@ msgstr "Halvår"
 #: automation/doctype/auto_repeat/auto_repeat.json
 #: public/js/frappe/utils/common.js:402
 msgid "Half-yearly"
-msgstr "Halvår"
+msgstr "Varje Halvår"
 
 #. Label of a Int field in DocType 'System Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
@@ -11676,7 +11676,7 @@ msgstr "Tips: Inkludera symboler, siffror och stora bokstäver i lösenord"
 #: website/web_template/primary_navbar/primary_navbar.html:9 www/contact.py:22
 #: www/error.html:30 www/login.html:150 www/message.html:34
 msgid "Home"
-msgstr "Hem"
+msgstr "Start"
 
 #. Label of a Data field in DocType 'Role'
 #. Label of a Data field in DocType 'Website Settings'
@@ -11693,15 +11693,15 @@ msgstr "Webbplats Inställningar"
 #: core/doctype/file/test_file.py:303 core/doctype/file/test_file.py:305
 #: core/doctype/file/test_file.py:369
 msgid "Home/Test Folder 1"
-msgstr "Hem/Test Mapp 1"
+msgstr "Start/Test Mapp 1"
 
 #: core/doctype/file/test_file.py:358
 msgid "Home/Test Folder 1/Test Folder 3"
-msgstr "Hem/Testa Mapp 1 / Test Mapp 3"
+msgstr "Start/Testa Mapp 1 / Test Mapp 3"
 
 #: core/doctype/file/test_file.py:314
 msgid "Home/Test Folder 2"
-msgstr "Hem/Test Mapp 2"
+msgstr "Start/Test Mapp 2"
 
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #. Option for the 'Event Frequency' (Select) field in DocType 'Server Script'
@@ -15750,7 +15750,7 @@ msgstr "Toppfält Mall Värden"
 
 #: public/js/frappe/ui/keyboard.js:214
 msgid "Navigate Home"
-msgstr "Navigera Hem"
+msgstr "Till Start"
 
 #: public/js/frappe/list/list_view.js:1153
 msgctxt "Description of a list view shortcut"
