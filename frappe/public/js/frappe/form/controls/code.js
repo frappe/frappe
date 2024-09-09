@@ -1,3 +1,8 @@
+// Define a global queue for ace autocomplete setup
+if (!frappe.ace_autocomplete_queue) {
+	frappe.ace_autocomplete_queue = Promise.resolve();
+}
+
 frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlText {
 	make_input() {
 		if (this.editor) return;
@@ -164,16 +169,25 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 				);
 			}
 		};
+		this.setup_ace_autocomplete = async () => {
+			return new Promise((resolve) => {
+				ace.config.loadModule("ace/ext/language_tools", (langTools) => {
+					this.editor.setOptions({
+						enableBasicAutocompletion: true,
+						enableLiveAutocompletion: true,
+					});
 
-		ace.config.loadModule("ace/ext/language_tools", (langTools) => {
-			this.editor.setOptions({
-				enableBasicAutocompletion: true,
-				enableLiveAutocompletion: true,
-			});
+					langTools.addCompleter({
+						getCompletions: customGetCompletions || getCompletions,
+					});
 
-			langTools.addCompleter({
-				getCompletions: customGetCompletions || getCompletions,
+					resolve();
+				});
 			});
+		};
+		// Add this setup to the global queue
+		frappe.ace_autocomplete_queue = frappe.ace_autocomplete_queue.then(async () => {
+			await this.setup_ace_autocomplete();
 		});
 		this._autocompletion_setup = true;
 	}
