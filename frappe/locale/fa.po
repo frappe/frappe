@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-08 09:32+0000\n"
-"PO-Revision-Date: 2024-09-08 19:39\n"
+"PO-Revision-Date: 2024-09-09 19:38\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -517,7 +517,7 @@ msgstr ""
 #. Header text in the Welcome Workspace Workspace
 #: core/workspace/welcome_workspace/welcome_workspace.json
 msgid "<span class=\"h2\">Hi,</span>"
-msgstr ""
+msgstr "<span class=\"h2\">سلام،</span>"
 
 #. Header text in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
@@ -4775,11 +4775,11 @@ msgstr "ستون"
 
 #: core/doctype/report/boilerplate/controller.py:28
 msgid "Column 1"
-msgstr ""
+msgstr "ستون 1"
 
 #: core/doctype/report/boilerplate/controller.py:33
 msgid "Column 2"
-msgstr ""
+msgstr "ستون 2"
 
 #: desk/doctype/kanban_board/kanban_board.py:84
 msgid "Column <b>{0}</b> already exist."
@@ -5524,7 +5524,7 @@ msgstr "ایجاد و ادامه"
 
 #: public/js/frappe/ui/address_autocomplete/autocomplete_dialog.js:49
 msgid "Create Address"
-msgstr ""
+msgstr "ایجاد آدرس"
 
 #: public/js/frappe/views/reports/query_report.js:187
 #: public/js/frappe/views/reports/query_report.js:232
@@ -6466,7 +6466,7 @@ msgstr "نام گذاری اصلاحیه پیش فرض"
 #: core/doctype/system_settings/system_settings.json
 #: core/doctype/user/user.json
 msgid "Default App"
-msgstr ""
+msgstr "برنامه پیش فرض"
 
 #. Label of the default_email_template (Link) field in DocType 'DocType'
 #. Label of the default_email_template (Link) field in DocType 'Customize Form'
@@ -6718,7 +6718,7 @@ msgstr ""
 #: public/js/form_builder/components/Section.vue:132
 msgctxt "Button text"
 msgid "Delete section"
-msgstr ""
+msgstr "حذف بخش"
 
 #: public/js/form_builder/components/Tabs.vue:71
 msgctxt "Button text"
@@ -8111,7 +8111,7 @@ msgstr "ویرایش"
 
 #: public/js/frappe/ui/address_autocomplete/autocomplete_dialog.js:66
 msgid "Edit Address in Form"
-msgstr ""
+msgstr "ویرایش آدرس در فرم"
 
 #: templates/emails/auto_email_report.html:63
 msgid "Edit Auto Email Report Settings"
@@ -8599,7 +8599,7 @@ msgstr "فعال کردن"
 #. 'Geolocation Settings'
 #: integrations/doctype/geolocation_settings/geolocation_settings.json
 msgid "Enable Address Autocompletion"
-msgstr ""
+msgstr "فعال کردن تکمیل خودکار آدرس"
 
 #: automation/doctype/auto_repeat/auto_repeat.py:117
 msgid "Enable Allow Auto Repeat for the doctype {0} in Customize Form"
@@ -9260,7 +9260,7 @@ msgstr "اجرایی"
 #. Label of the existing_role (Link) field in DocType 'Role Replication'
 #: core/doctype/role_replication/role_replication.json
 msgid "Existing Role"
-msgstr ""
+msgstr "نقش موجود"
 
 #: public/js/frappe/widgets/base_widget.js:159
 msgid "Expand"
@@ -11819,7 +11819,7 @@ msgstr "شناسه"
 
 #: public/js/print_format_builder/PrintFormatControls.vue:199
 msgid "ID (name)"
-msgstr ""
+msgstr "شناسه (نام)"
 
 #. Description of the 'Field Name' (Data) field in DocType 'Property Setter'
 #: custom/doctype/property_setter/property_setter.json
@@ -12547,11 +12547,11 @@ msgstr "کد تأیید نادرست"
 
 #: model/document.py:1387
 msgid "Incorrect value in row {0}:"
-msgstr ""
+msgstr "مقدار نادرست در ردیف {0}:"
 
 #: model/document.py:1389
 msgid "Incorrect value:"
-msgstr ""
+msgstr "مقدار نادرست:"
 
 #. Label of the search_index (Check) field in DocType 'DocField'
 #. Label of the index (Int) field in DocType 'Recorder Query'
@@ -14421,7 +14421,7 @@ msgstr "بارگیری ارتباطات بیشتر"
 
 #: public/js/frappe/file_uploader/TreeNode.vue:45
 msgid "Load more"
-msgstr ""
+msgstr "بارگذاری بیشتر"
 
 #: core/page/permission_manager/permission_manager.js:165
 #: public/js/frappe/form/controls/multicheck.js:13
@@ -14602,7 +14602,7 @@ msgstr "ورود به {0}"
 
 #: templates/includes/login/login.js:319
 msgid "Login token required"
-msgstr ""
+msgstr "توکن ورود لازم است"
 
 #: www/login.html:106 www/login.html:190
 msgid "Login with Email Link"
@@ -14630,7 +14630,7 @@ msgstr "ورود با نام کاربری و رمز عبور مجاز نمی ب�
 
 #: www/login.html:97
 msgid "Login with {0}"
-msgstr ""
+msgstr "ورود با {0}"
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
 #: core/doctype/activity_log/activity_log.json www/apps.html:59
@@ -14788,7 +14788,7 @@ msgstr "برنامه های خود را مدیریت کنید"
 #. Description of a Card Break in the Tools Workspace
 #: automation/workspace/tools/tools.json
 msgid "Manage your data"
-msgstr ""
+msgstr "داده های خود را مدیریت کنید"
 
 #. Label of the reqd (Check) field in DocType 'DocField'
 #. Label of the mandatory (Check) field in DocType 'Report Filter'
@@ -16013,7 +16013,7 @@ msgstr "نام گزارش جدید"
 #. Label of the new_role (Data) field in DocType 'Role Replication'
 #: core/doctype/role_replication/role_replication.json
 msgid "New Role"
-msgstr ""
+msgstr "نقش جدید"
 
 #: public/js/frappe/widgets/widget_dialog.js:60
 msgid "New Shortcut"
@@ -16559,7 +16559,7 @@ msgstr "هیچ رکوردی صادر نخواهد شد"
 
 #: public/js/frappe/form/grid.js:63
 msgid "No rows"
-msgstr ""
+msgstr "بدون ردیف"
 
 #: email/doctype/notification/notification.py:125
 msgid "No subject"
@@ -16614,7 +16614,7 @@ msgstr "غیر منفی"
 
 #: desk/page/setup_wizard/install_fixtures.py:34
 msgid "Non-Conforming"
-msgstr ""
+msgstr "ناسازگار"
 
 #. Option for the 'Backup Frequency' (Select) field in DocType 'S3 Backup
 #. Settings'
@@ -18992,7 +18992,7 @@ msgstr "جایگزین های قابل پیش بینی مانند '@' به جا�
 
 #: desk/page/setup_wizard/install_fixtures.py:35
 msgid "Prefer not to say"
-msgstr ""
+msgstr "ترجیح می‌دهم نگویم"
 
 #. Label of the is_primary_address (Check) field in DocType 'Address'
 #: contacts/doctype/address/address.json
@@ -19423,7 +19423,7 @@ msgstr "در حال پردازش..."
 
 #: desk/page/setup_wizard/install_fixtures.py:52
 msgid "Prof"
-msgstr ""
+msgstr "پروفسور"
 
 #. Group in User's connections
 #: core/doctype/user/user.json
@@ -21852,7 +21852,7 @@ msgstr "ذخیره"
 
 #: public/js/frappe/list/list_sidebar.html:88
 msgid "Saved Filters"
-msgstr ""
+msgstr "فیلترهای ذخیره شده"
 
 #: public/js/frappe/list/list_settings.js:40
 #: public/js/frappe/views/kanban/kanban_settings.js:47
@@ -22120,7 +22120,7 @@ msgstr "فیلد جستجوی {0} معتبر نیست"
 
 #: public/js/print_format_builder/PrintFormatControls.vue:87
 msgid "Search fields"
-msgstr ""
+msgstr "فیلدهای جستجو"
 
 #: public/js/form_builder/components/AddFieldButton.vue:19
 msgid "Search fieldtypes..."
@@ -23960,7 +23960,7 @@ msgstr "نویسه‌های ویژه به جز «-»، «#»، «.»، «/»، �
 #. Description of the 'Timeout (In Seconds)' (Int) field in DocType 'Report'
 #: core/doctype/report/report.json
 msgid "Specify a custom timeout, default timeout is 1500 seconds"
-msgstr ""
+msgstr "مهلت زمانی سفارشی را مشخص کنید، تایم اوت پیش فرض 1500 ثانیه است"
 
 #. Label of the splash_image (Attach Image) field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -25241,7 +25241,7 @@ msgstr "از علاقه شما به اشتراک در به روز رسانی ه�
 
 #: templates/includes/contact.js:36
 msgid "Thank you for your message"
-msgstr ""
+msgstr "ممنون از پیام شما"
 
 #: templates/emails/new_user.html:16
 msgid "Thanks"
@@ -26012,7 +26012,7 @@ msgstr "تایم اوت"
 #. Label of the timeout (Int) field in DocType 'Report'
 #: core/doctype/report/report.json
 msgid "Timeout (In Seconds)"
-msgstr ""
+msgstr "مهلت زمانی (به ثانیه)"
 
 #. Label of the timeseries (Check) field in DocType 'Dashboard Chart Source'
 #: desk/doctype/dashboard_chart_source/dashboard_chart_source.json
@@ -26597,7 +26597,7 @@ msgstr "درخت"
 
 #: public/js/frappe/list/base_list.js:211
 msgid "Tree View"
-msgstr ""
+msgstr "نمای درخت"
 
 #. Description of the 'Is Tree' (Check) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -27376,7 +27376,7 @@ msgstr "مشخصات کاربر"
 #. Name of a report
 #: core/report/user_doctype_permissions/user_doctype_permissions.json
 msgid "User Doctype Permissions"
-msgstr ""
+msgstr "مجوزهای Doctype کاربر"
 
 #. Name of a DocType
 #: core/doctype/user_document_type/user_document_type.json
@@ -27922,7 +27922,7 @@ msgstr "مشاهده نظر"
 
 #: core/doctype/user/user.js:151
 msgid "View Doctype Permissions"
-msgstr ""
+msgstr "مشاهده مجوزهای Doctype"
 
 #: public/js/frappe/ui/notifications/notifications.js:220
 msgid "View Full Log"
@@ -28066,7 +28066,7 @@ msgstr "هشدار: از دست دادن اطلاعات قریب الوقوع! �
 
 #: core/doctype/doctype/doctype.py:1108
 msgid "Warning: Naming is not set"
-msgstr ""
+msgstr "هشدار: نامگذاری تنظیم نشده است"
 
 #: public/js/frappe/model/meta.js:182
 msgid "Warning: Unable to find {0} in any table related to {1}"
@@ -28637,7 +28637,7 @@ msgstr "داده های گردش کار"
 
 #: public/js/workflow_builder/components/Properties.vue:42
 msgid "Workflow Details"
-msgstr ""
+msgstr "جزئیات گردش کار"
 
 #. Name of a DocType
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
@@ -30064,7 +30064,7 @@ msgstr "مقادیر جدا شده با کاما"
 #. Label of the version_table (HTML) field in DocType 'Audit Trail'
 #: core/doctype/audit_trail/audit_trail.json
 msgid "version_table"
-msgstr "نسخه_جدول"
+msgstr "version_table"
 
 #: automation/doctype/assignment_rule/assignment_rule.py:380
 msgid "via Assignment Rule"
@@ -30663,15 +30663,15 @@ msgstr "{0} باید بعد از {1} باشد"
 
 #: model/document.py:1396
 msgid "{0} must be beginning with '{1}'"
-msgstr ""
+msgstr "{0} باید با '{1}' شروع شود"
 
 #: model/document.py:1398
 msgid "{0} must be equal to '{1}'"
-msgstr ""
+msgstr "{0} باید برابر با '{1}' باشد"
 
 #: model/document.py:1394
 msgid "{0} must be none of {1}"
-msgstr ""
+msgstr "{0} نباید هیچ یک از {1} باشد"
 
 #: model/document.py:1392 utils/csvutils.py:158
 msgid "{0} must be one of {1}"
@@ -30687,7 +30687,7 @@ msgstr "{0} باید منحصر به فرد باشد"
 
 #: model/document.py:1400
 msgid "{0} must be {1} {2}"
-msgstr ""
+msgstr "{0} باید {1} {2} باشد"
 
 #: core/doctype/language/language.py:42
 msgid "{0} must begin and end with a letter and can only contain letters,\n"
@@ -31011,7 +31011,7 @@ msgstr "{0}: نوع فیلد {1} برای {2} قابل نمایه سازی نی�
 
 #: public/js/frappe/form/quick_entry.js:195
 msgid "{1} saved"
-msgstr ""
+msgstr "{1} ذخیره شد"
 
 #: public/js/frappe/utils/datatable.js:12
 msgid "{count} cell copied"
