@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-08 09:32+0000\n"
-"PO-Revision-Date: 2024-09-08 19:39\n"
+"PO-Revision-Date: 2024-09-09 19:38\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -5586,7 +5586,7 @@ msgstr "Kopiera fel till urklipp"
 
 #: public/js/frappe/form/toolbar.js:481
 msgid "Copy to Clipboard"
-msgstr "Kopiera till urklipp"
+msgstr "Kopiera till Urklipp"
 
 #. Label of the copyright (Data) field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
