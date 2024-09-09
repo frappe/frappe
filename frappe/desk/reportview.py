@@ -465,7 +465,7 @@ def get_field_info(fields, doctype):
 				name = df.name
 				label = _(df.label)
 				fieldtype = df.fieldtype
-				translatable = df.translatable if hasattr(df, "translatable") else False
+				translatable = getattr(df, "translatable", False)
 			elif df and df.fieldtype == "Link" and frappe.get_meta(df.options).translated_doctype:
 				name = df.name
 				label = _(df.label)
