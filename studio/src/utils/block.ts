@@ -4,12 +4,13 @@ import { reactive, CSSProperties, nextTick } from 'vue'
 
 import useStore from "@/store";
 import components from "@/data/components";
-import { getBlockCopy, kebabToCamelCase, numberToPx } from "./helpers";
+import { copy, getBlockCopy, kebabToCamelCase, numberToPx } from "./helpers";
 
 export type styleProperty = keyof CSSProperties | `__${string}`;
 class Block implements BlockOptions {
 	componentId: string
 	componentName: string
+	componentProps: Record<string, any>
 	blockName: string
 	originalElement?: string | undefined
 	children: BlockOptions[]
@@ -31,6 +32,13 @@ class Block implements BlockOptions {
 			this.componentId = this.generateComponentId()
 		} else {
 			this.componentId = options.componentId
+		}
+
+		// get component props
+		if (!options.componentProps) {
+			this.componentProps = copy(components.get(options.componentName)?.initialState)
+		} else {
+			this.componentProps = options.componentProps
 		}
 
 		// set up hierarchy
@@ -160,6 +168,11 @@ class Block implements BlockOptions {
 				store.selectBlock(child);
 			}
 		});
+	}
+
+	// component props
+	setProp(propName: string, value: any) {
+		this.componentProps[propName] = value
 	}
 }
 

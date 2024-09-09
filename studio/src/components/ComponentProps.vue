@@ -5,7 +5,8 @@
 				<InlineInput
 					:label="propName"
 					:type="config.inputType"
-					:modelValue="typeof config.default === 'function' ? config.default() : config.default"
+					:modelValue="config.modelValue"
+					@update:modelValue="(val) => updateComponentProp(propName, val)"
 				/>
 			</div>
 		</div>
@@ -28,6 +29,21 @@ const props = defineProps({
 
 const componentProps = computed(() => {
 	if (!props.block || props.block.isRoot()) return []
-	return getComponentProps(props.block.componentName)
+	const propConfig = getComponentProps(props.block.componentName) || []
+
+	Object.entries(propConfig).forEach(([propName, config]) => {
+		if (props.block.componentProps[propName] === undefined) {
+			const defaultValue = typeof config.default === "function" ? config.default() : config.default
+			config.modelValue = defaultValue
+		} else {
+			config.modelValue = props.block.componentProps[propName]
+		}
+	})
+
+	return propConfig
 })
+
+const updateComponentProp = (propName, newValue) => {
+	props.block.setProp(propName, newValue)
+}
 </script>

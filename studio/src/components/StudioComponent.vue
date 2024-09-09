@@ -1,7 +1,7 @@
 <template>
 	<component
 		:is="block.componentName"
-		v-bind="{ ...componentData.initialState, ...attrs }"
+		v-bind="componentProps"
 		:data-component-id="block.componentId"
 		:style="styles"
 		:class="classes"
@@ -32,7 +32,6 @@ import { computed, ref, watch, useAttrs, onMounted, nextTick, inject } from "vue
 import type { ComponentPublicInstance } from "vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
 
-import components from "@/data/components"
 import Block from "@/utils/block"
 import useStore from "@/store"
 
@@ -52,19 +51,21 @@ defineOptions({
 
 const isComponentReady = ref(false)
 const editor = ref(null)
-const attrs = useAttrs()
 const store = useStore()
 const classes = ["__studio_component__", "outline-none", "select-none"]
 
 const canvasProps = inject("canvasProps") as CanvasProps
 
-const componentData = computed(() => {
-	if (props.block.componentName === "div") return { initialState: {} }
-	return components.get(props.block.componentName)
-})
-
 const styles = computed(() => {
 	return props.block.getStyles()
+})
+
+const attrs = useAttrs()
+const componentProps = computed(() => {
+	return {
+		...props.block.componentProps,
+		...attrs,
+	}
 })
 
 const componentRef = ref<ComponentPublicInstance | HTMLElement | SVGElement | null>(null)

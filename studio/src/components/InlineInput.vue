@@ -1,7 +1,7 @@
 <template>
 	<div
 		class="flex [&>div>input]:!bg-red-600 [&>div>input]:pr-6"
-		:class="type === 'code'? 'flex-col' : 'flex-row  items-center justify-between'"
+		:class="type === 'code' ? 'flex-col' : 'flex-row items-center justify-between'"
 	>
 		<InputLabel
 			:class="{
@@ -39,6 +39,7 @@
 			:modelValue="modelValue"
 			:type="typeof modelValue == 'function' ? 'JavaScript' : 'JSON'"
 			:label="label"
+			@update:modelValue="(e) => emit('update:modelValue', e)"
 		/>
 		<Input
 			v-else
