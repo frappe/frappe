@@ -165,7 +165,7 @@ frappe.router = {
 
 		if (frappe.workspaces[route[0]]) {
 			// public workspace
-			route = ["Workspaces", frappe.workspaces[route[0]].title];
+			route = ["Workspaces", frappe.workspaces[route[0]].name];
 		} else if (route[0] == "private") {
 			// private workspace
 			let private_workspace = route[1] && `${route[1]}-${frappe.user.name.toLowerCase()}`;
@@ -173,7 +173,7 @@ frappe.router = {
 				frappe.msgprint(__("Workspace <b>{0}</b> does not exist", [route[1]]));
 				return ["Workspaces"];
 			}
-			route = ["Workspaces", "private", frappe.workspaces[private_workspace].title];
+			route = ["Workspaces", "private", frappe.workspaces[private_workspace].name];
 		} else if (this.routes[route[0]]) {
 			// route
 			route = await this.set_doctype_route(route);
@@ -473,9 +473,7 @@ frappe.router = {
 
 		if (workspace) {
 			return (
-				"/app/" +
-				(workspace.public ? "" : "private/") +
-				frappe.router.slug(workspace.title)
+				"/app/" + (workspace.public ? "" : "private/") + frappe.router.slug(workspace.name)
 			);
 		}
 

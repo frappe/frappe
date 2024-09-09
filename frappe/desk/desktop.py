@@ -443,6 +443,7 @@ def get_workspace_sidebar_items():
 		"icon",
 		"indicator_color",
 		"is_hidden",
+		"app",
 	]
 	all_pages = frappe.get_all(
 		"Workspace", fields=fields, filters=filters, order_by=order_by, ignore_permissions=True

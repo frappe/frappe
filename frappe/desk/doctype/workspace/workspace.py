@@ -30,6 +30,7 @@ class Workspace(Document):
 		from frappe.desk.doctype.workspace_shortcut.workspace_shortcut import WorkspaceShortcut
 		from frappe.types import DF
 
+		app: DF.Data | None
 		charts: DF.Table[WorkspaceChart]
 		content: DF.LongText | None
 		custom_blocks: DF.Table[WorkspaceCustomBlock]
@@ -54,7 +55,7 @@ class Workspace(Document):
 		links: DF.Table[WorkspaceLink]
 		module: DF.Link | None
 		number_cards: DF.Table[WorkspaceNumberCard]
-		parent_page: DF.Data | None
+		parent_page: DF.Link | None
 		public: DF.Check
 		quick_lists: DF.Table[WorkspaceQuickList]
 		restrict_to_domain: DF.Link | None
@@ -268,6 +269,7 @@ def new_page(new_page):
 	doc.label = page.get("label")
 	doc.for_user = page.get("for_user")
 	doc.public = page.get("public")
+	doc.app = page.get("app")
 	doc.sequence_id = last_sequence_id(doc) + 1
 	doc.save(ignore_permissions=True)
 
@@ -275,24 +277,15 @@ def new_page(new_page):
 
 
 @frappe.whitelist()
-def save_page(title, public, new_widgets, blocks):
+def save_page(name, public, new_widgets, blocks):
 	public = frappe.parse_json(public)
 
-	filters = {"public": public, "label": title}
-
-	if not public:
-		filters = {"for_user": frappe.session.user, "label": title + "-" + frappe.session.user}
-	pages = frappe.get_all("Workspace", filters=filters)
-	if pages:
-		doc = frappe.get_doc("Workspace", pages[0])
-	else:
-		frappe.throw(_("Workspace not found"), frappe.DoesNotExistError)
-
+	doc = frappe.get_doc("Workspace", name)
 	doc.content = blocks
 
-	save_new_widget(doc, title, blocks, new_widgets)
+	save_new_widget(doc, name, blocks, new_widgets)
 
-	return {"name": title, "public": public, "label": doc.label}
+	return {"name": name, "public": public, "label": doc.label}
 
 
 @frappe.whitelist()

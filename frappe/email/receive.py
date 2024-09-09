@@ -10,6 +10,7 @@ import poplib
 import re
 import ssl
 from contextlib import suppress
+from email.errors import HeaderParseError
 from email.header import decode_header
 
 import _socket
@@ -315,6 +316,7 @@ class EmailServer:
 		)
 
 	def make_error_msg(self, uid, msg_num):
+		partial_mail = None
 		traceback = frappe.get_traceback(with_context=True)
 		with suppress(Exception):
 			# retrieve headers
@@ -440,11 +442,19 @@ class Email:
 		self.from_real_name = parse_addr(_from_email)[0] if "@" in _from_email else _from_email
 
 	@staticmethod
-	def decode_email(email):
+	def decode_email(email: bytes | str | None) -> str | None:
 		if not email:
 			return
+		email = frappe.as_unicode(email).replace('"', " ").replace("'", " ")
+		try:
+			parts = decode_header(email)
+		except HeaderParseError:
+			# Fallback: grab just the email addresses
+			emails = re.findall(r"(<.*?>)", email)
+			return ", ".join(emails)
+
 		decoded = ""
-		for part, encoding in decode_header(frappe.as_unicode(email).replace('"', " ").replace("'", " ")):
+		for part, encoding in parts:
 			if encoding:
 				decoded += part.decode(encoding, "replace")
 			else:
