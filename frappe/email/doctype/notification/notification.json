@@ -190,7 +190,7 @@
   {
    "fieldname": "html_7",
    "fieldtype": "HTML",
-   "options": "<p><strong>Condition Examples:</strong></p>\n<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n</pre>\n"
+   "options": "<p><strong>Condition Examples:</strong></p>\n<pre>(\n<br>  doc.status==\"Open\"<br>  and doc.due_date==nowdate()<br>  and doc.total &gt; 40000\n<br>)</pre>\n"
   },
   {
    "collapsible": 1,
@@ -292,7 +292,7 @@
  "icon": "fa fa-envelope",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-08 06:13:11.572926",
+ "modified": "2024-09-09 11:16:45.838935",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

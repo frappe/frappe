@@ -739,15 +739,14 @@ def get_autocompletion_items(document_type):
 
 	# Create items list
 	items = {
-		"filters": ([] + [{"value": d[0], "score": d[1], "meta": "filter"} for d in jinja_filter_keys]),
-		"variables": ([] + [{"value": d[0], "score": d[1], "meta": "doc"} for d in context_keys_for_doc]),
-		"functions": (
-			[]
-			+ [
-				{"caption": d[0], "snippet": d[0] + "($0)", "score": d[1], "meta": "functions"}
-				for d in jinja_global_keys
-			]
-			+ [
+		"filters": [{"value": d[0], "score": d[1], "meta": "filter"} for d in jinja_filter_keys],
+		"variables": [{"value": d[0], "score": d[1], "meta": "doc"} for d in context_keys_for_doc],
+		"jinja-functions": [
+			{"caption": d[0], "snippet": d[0] + "($0)", "score": d[1], "meta": "functions"}
+			for d in jinja_global_keys
+		],
+		"context-functions": (
+			[
 				{"caption": d[0], "snippet": d[0] + "($0)", "score": d[1], "meta": "frappe"}
 				for d in context_keys_for_frappe
 			]

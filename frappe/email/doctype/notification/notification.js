@@ -208,18 +208,47 @@ frappe.ui.form.on("Notification", {
 			.then(function (r) {
 				if (r.message) {
 					frm.set_df_property(
-						"message",
+						"message", // unfortunately, this scoping is a no-op on the global Editor instance
 						"autocompletions",
 						({ editor, session, pos, prefix }) => {
+							// we therefore query the curent session
+							if (session.$modeId !== "ace/mode/jinja") {
+								return [];
+							}
 							var token = session.getTokenAt(pos.row, pos.column);
 							if (token.type === "variable.meta.scope.jinja") {
-								return [...r.message["variables"], ...r.message["functions"]];
+								return [
+									...r.message["variables"],
+									...r.message["jinja-functions"],
+									...r.message["context-functions"],
+								];
 							}
 							if (token.type === "support.function.other.jinja.filter") {
 								return r.message["filters"];
 							}
 							if (token.type === "meta.scope.jinja.tag") {
-								return r.message["functions"];
+								return [
+									...r.message["jinja-functions"],
+									...r.message["context-functions"],
+								];
+							}
+							return [];
+						}
+					);
+					frm.set_df_property(
+						"condition", // unfortunately, this scoping is a no-op on the global Editor instance
+						"autocompletions",
+						({ editor, session, pos, prefix }) => {
+							// we therefore query the curent session
+							if (session.$modeId !== "ace/mode/python") {
+								return [];
+							}
+							var token = session.getTokenAt(pos.row, pos.column);
+							if (token.type === "identifier") {
+								return [
+									...r.message["variables"],
+									...r.message["context-functions"],
+								];
 							}
 							return [];
 						}
