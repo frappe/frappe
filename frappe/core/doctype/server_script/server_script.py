@@ -222,42 +222,41 @@ class ServerScript(Document):
 
 		e.g., ["frappe.utils.cint", "frappe.get_all", ...]
 		"""
-
-		def get_keys(obj):
-			out = []
-			for key in obj:
-				if key.startswith("_"):
-					continue
-				value = obj[key]
-				if isinstance(value, NamespaceDict | dict) and value:
-					if key == "form_dict":
-						out.append(["form_dict", 7])
-						continue
-					for subkey, score in get_keys(value):
-						fullkey = f"{key}.{subkey}"
-						out.append([fullkey, score])
-				else:
-					if isinstance(value, type) and issubclass(value, Exception):
-						score = 0
-					elif isinstance(value, ModuleType):
-						score = 10
-					elif isinstance(value, FunctionType | MethodType):
-						score = 9
-					elif isinstance(value, type):
-						score = 8
-					elif isinstance(value, dict):
-						score = 7
-					else:
-						score = 6
-					out.append([key, score])
-			return out
-
 		items = frappe.cache.get_value("server_script_autocompletion_items")
 		if not items:
-			items = get_keys(get_safe_globals())
+			items = get_keys_for_autocomplete(get_safe_globals())
 			items = [{"value": d[0], "score": d[1]} for d in items]
 			frappe.cache.set_value("server_script_autocompletion_items", items)
 		return items
+
+
+def get_keys_for_autocomplete(obj, score_offset=0):
+	out = []
+	for key, value in obj.items():
+		if key.startswith("_"):
+			continue
+		if isinstance(value, NamespaceDict | dict) and value:
+			if key == "form_dict":
+				out.append(["form_dict", score_offset + 7])
+				continue
+			for subkey, score in get_keys_for_autocomplete(value, score_offset):
+				fullkey = f"{key}.{subkey}"
+				out.append([fullkey, score])
+		else:
+			if isinstance(value, type) and issubclass(value, Exception):
+				score = score_offset + 0
+			elif isinstance(value, ModuleType):
+				score = score_offset + 10
+			elif isinstance(value, FunctionType | MethodType):
+				score = score_offset + 9
+			elif isinstance(value, type):
+				score = score_offset + 8
+			elif isinstance(value, dict):
+				score = score_offset + 7
+			else:
+				score = score_offset + 6
+			out.append([key, score])
+	return out
 
 
 def execute_api_server_script(script: ServerScript, *args, **kwargs):

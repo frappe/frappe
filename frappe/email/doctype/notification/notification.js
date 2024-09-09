@@ -198,6 +198,34 @@ frappe.ui.form.on("Notification", {
 				return dialog;
 			});
 		}
+		frappe
+			.call({
+				method: "frappe.email.doctype.notification.notification.get_autocompletion_items",
+				args: {
+					document_type: frm.doc.document_type,
+				},
+			})
+			.then(function (r) {
+				if (r.message) {
+					frm.set_df_property(
+						"message",
+						"autocompletions",
+						({ editor, session, pos, prefix }) => {
+							var token = session.getTokenAt(pos.row, pos.column);
+							if (token.type === "variable.meta.scope.jinja") {
+								return [...r.message["variables"], ...r.message["functions"]];
+							}
+							if (token.type === "support.function.other.jinja.filter") {
+								return r.message["filters"];
+							}
+							if (token.type === "meta.scope.jinja.tag") {
+								return r.message["functions"];
+							}
+							return [];
+						}
+					);
+				}
+			});
 	},
 	document_type: function (frm) {
 		frappe.notification.setup_fieldname_select(frm);

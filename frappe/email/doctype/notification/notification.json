@@ -180,7 +180,8 @@
    "fieldtype": "Code",
    "ignore_xss_filter": 1,
    "in_list_view": 1,
-   "label": "Condition"
+   "label": "Condition",
+   "options": "Python"
   },
   {
    "fieldname": "column_break_6",
@@ -291,7 +292,7 @@
  "icon": "fa fa-envelope",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-07-04 05:53:40.595130",
+ "modified": "2024-09-08 06:13:11.572926",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

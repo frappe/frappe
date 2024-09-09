@@ -144,12 +144,21 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 						if (typeof a === "string") {
 							a = { value: a };
 						}
+						if (a.value) {
+							return {
+								name: "frappe",
+								value: a.value,
+								score: a.score,
+								meta: a.meta,
+								caption: a.caption,
+							};
+						}
 						return {
 							name: "frappe",
-							value: a.value,
 							score: a.score,
 							meta: a.meta,
 							caption: a.caption,
+							snippet: a.snippet,
 						};
 					})
 				);
@@ -198,7 +207,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 			JSON: "ace/mode/json",
 			Golang: "ace/mode/golang",
 			Go: "ace/mode/golang",
-			Jinja: "ace/mode/django",
+			Jinja: "ace/mode/jinja",
 			SQL: "ace/mode/sql",
 		};
 		const language = this.df.options;
