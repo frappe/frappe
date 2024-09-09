@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-02 18:21+0000\n"
-"PO-Revision-Date: 2024-09-03 18:01\n"
+"PO-Revision-Date: 2024-09-09 19:38\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -517,7 +517,7 @@ msgstr ""
 #. Header text in the Welcome Workspace Workspace
 #: core/workspace/welcome_workspace/welcome_workspace.json
 msgid "<span class=\"h2\">Hi,</span>"
-msgstr ""
+msgstr "<span class=\"h2\">سلام،</span>"
 
 #. Header text in the Tools Workspace
 #: automation/workspace/tools/tools.json
@@ -542,7 +542,7 @@ msgstr ""
 #: automation/workspace/tools/tools.json core/workspace/users/users.json
 #: website/workspace/website/website.json
 msgid "<span class=\"h4\"><b>Your Shortcuts</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>میانبرهای شما</b></span>"
 
 #. Header text in the Build Workspace
 #: core/workspace/build/build.json
@@ -6658,7 +6658,7 @@ msgstr ""
 #: public/js/form_builder/components/Section.vue:132
 msgctxt "Button text"
 msgid "Delete section"
-msgstr ""
+msgstr "حذف بخش"
 
 #: public/js/form_builder/components/Tabs.vue:71
 msgctxt "Button text"
@@ -10571,7 +10571,7 @@ msgstr "گانت"
 
 #: public/js/frappe/list/base_list.js:205
 msgid "Gantt View"
-msgstr ""
+msgstr "نمای گانت"
 
 #. Label of a Link field in DocType 'Contact'
 #. Name of a DocType
@@ -11565,7 +11565,7 @@ msgstr "شناسه"
 
 #: public/js/print_format_builder/PrintFormatControls.vue:199
 msgid "ID (name)"
-msgstr ""
+msgstr "شناسه (نام)"
 
 #. Description of the 'Field Name' (Data) field in DocType 'Property Setter'
 #: custom/doctype/property_setter/property_setter.json
@@ -12280,11 +12280,11 @@ msgstr "کد تأیید نادرست"
 
 #: model/document.py:1347
 msgid "Incorrect value in row {0}:"
-msgstr ""
+msgstr "مقدار نادرست در ردیف {0}:"
 
 #: model/document.py:1349
 msgid "Incorrect value:"
-msgstr ""
+msgstr "مقدار نادرست:"
 
 #. Label of a Check field in DocType 'DocField'
 #. Label of a Int field in DocType 'Recorder Query'
@@ -14102,7 +14102,7 @@ msgstr "تنظیمات لیست"
 
 #: public/js/frappe/list/base_list.js:202
 msgid "List View"
-msgstr ""
+msgstr "نمای لیست"
 
 #. Name of a DocType
 #: desk/doctype/list_view_settings/list_view_settings.json
@@ -15413,7 +15413,7 @@ msgstr "حساب من"
 
 #: public/js/frappe/file_uploader/FileUploader.vue:57
 msgid "My Device"
-msgstr ""
+msgstr "دستگاه من"
 
 #. Label of a standard navbar item
 #. Type: Route
@@ -16276,7 +16276,7 @@ msgstr "غیر منفی"
 
 #: desk/page/setup_wizard/install_fixtures.py:34
 msgid "Non-Conforming"
-msgstr ""
+msgstr "ناسازگار"
 
 #. Option for the 'Backup Frequency' (Select) field in DocType 'S3 Backup
 #. Settings'
@@ -18595,7 +18595,7 @@ msgstr "جایگزین های قابل پیش بینی مانند '@' به جا�
 
 #: desk/page/setup_wizard/install_fixtures.py:35
 msgid "Prefer not to say"
-msgstr ""
+msgstr "ترجیح می‌دهم نگویم"
 
 #. Label of a Check field in DocType 'Address'
 #: contacts/doctype/address/address.json
@@ -19020,7 +19020,7 @@ msgstr "در حال پردازش..."
 
 #: desk/page/setup_wizard/install_fixtures.py:52
 msgid "Prof"
-msgstr ""
+msgstr "پروفسور"
 
 #. Group in User's connections
 #: core/doctype/user/user.json
@@ -19725,7 +19725,7 @@ msgstr "تغییر مسیر URL"
 #: core/doctype/system_settings/system_settings.json
 #: core/doctype/user/user.json
 msgid "Redirect to the selected app after login"
-msgstr ""
+msgstr "تغییر مسیر به برنامه انتخاب شده پس از ورود"
 
 #. Description of the 'Welcome URL' (Data) field in DocType 'Email Group'
 #: email/doctype/email_group/email_group.json
@@ -21617,7 +21617,7 @@ msgstr "فیلد جستجوی {0} معتبر نیست"
 
 #: public/js/print_format_builder/PrintFormatControls.vue:87
 msgid "Search fields"
-msgstr ""
+msgstr "فیلدهای جستجو"
 
 #: public/js/form_builder/components/AddFieldButton.vue:19
 msgid "Search fieldtypes..."
@@ -21987,7 +21987,7 @@ msgstr "یک تصویر را انتخاب کنید"
 
 #: www/apps.html:10
 msgid "Select an app to continue"
-msgstr ""
+msgstr "یک برنامه را برای ادامه انتخاب کنید"
 
 #: printing/page/print_format_builder/print_format_builder_start.html:2
 msgid "Select an existing format to edit or start a new format."
@@ -26015,7 +26015,7 @@ msgstr "درخت"
 
 #: public/js/frappe/list/base_list.js:210
 msgid "Tree View"
-msgstr ""
+msgstr "نمای درخت"
 
 #. Description of the 'Is Tree' (Check) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -27029,7 +27029,7 @@ msgstr "کاربر {0} غیرفعال است"
 
 #: sessions.py:224
 msgid "User {0} is disabled. Please contact your System Manager."
-msgstr ""
+msgstr "کاربر {0} غیرفعال است. لطفا با مدیر سیستم خود تماس بگیرید."
 
 #: desk/form/assign_to.py:103
 msgid "User {0} is not permitted to access this document."
@@ -28014,7 +28014,7 @@ msgstr "داده های گردش کار"
 
 #: public/js/workflow_builder/components/Properties.vue:42
 msgid "Workflow Details"
-msgstr ""
+msgstr "جزئیات گردش کار"
 
 #. Name of a DocType
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
@@ -28377,7 +28377,7 @@ msgstr "پس از کاوش در این صفحه می‌توانید به نصب 
 
 #: model/delete_doc.py:136
 msgid "You can disable this {0} instead of deleting it."
-msgstr ""
+msgstr "می توانید به جای حذف این {0} آن را غیرفعال کنید."
 
 #: core/doctype/file/file.py:688
 msgid "You can increase the limit from System Settings."
@@ -30077,7 +30077,7 @@ msgstr "مقادیر جدا شده با کاما"
 #. Label of a HTML field in DocType 'Audit Trail'
 #: core/doctype/audit_trail/audit_trail.json
 msgid "version_table"
-msgstr "نسخه_جدول"
+msgstr "version_table"
 
 #: automation/doctype/assignment_rule/assignment_rule.py:380
 msgid "via Assignment Rule"
@@ -30708,15 +30708,15 @@ msgstr "{0} باید بعد از {1} باشد"
 
 #: model/document.py:1356
 msgid "{0} must be beginning with '{1}'"
-msgstr ""
+msgstr "{0} باید با '{1}' شروع شود"
 
 #: model/document.py:1358
 msgid "{0} must be equal to '{1}'"
-msgstr ""
+msgstr "{0} باید برابر با '{1}' باشد"
 
 #: model/document.py:1354
 msgid "{0} must be none of {1}"
-msgstr ""
+msgstr "{0} نباید هیچ یک از {1} باشد"
 
 #: model/document.py:1352 utils/csvutils.py:136
 msgid "{0} must be one of {1}"
@@ -30732,7 +30732,7 @@ msgstr "{0} باید منحصر به فرد باشد"
 
 #: model/document.py:1360
 msgid "{0} must be {1} {2}"
-msgstr ""
+msgstr "{0} باید {1} {2} باشد"
 
 #: core/doctype/language/language.py:43
 msgid "{0} must begin and end with a letter and can only contain letters,\n"
