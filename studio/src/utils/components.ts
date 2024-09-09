@@ -36,7 +36,7 @@ function getPropInputType(propType: string) {
 			return "checkbox"
 		case "Array":
 		case "Object":
-			return "textarea"
+			return "code"
 		default:
 			return "text"
 	}

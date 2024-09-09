@@ -1,5 +1,8 @@
 <template>
-	<div class="flex items-center justify-between [&>div>input]:!bg-red-600 [&>div>input]:pr-6">
+	<div
+		class="flex [&>div>input]:!bg-red-600 [&>div>input]:pr-6"
+		:class="type === 'code'? 'flex-col' : 'flex-row  items-center justify-between'"
+	>
 		<InputLabel
 			:class="{
 				'cursor-ns-resize': enableSlider,
@@ -23,13 +26,19 @@
 			</Popover>
 		</InputLabel>
 		<Autocomplete
-			v-if="type == 'autocomplete'"
+			v-if="type === 'autocomplete'"
 			placeholder="unset"
 			:modelValue="modelValue"
 			:options="inputOptions"
 			@update:modelValue="handleChange"
 			:showInputAsOption="showInputAsOption"
 			class="[&>div>select]:dark:border-zinc-700 [&>div>select]:dark:bg-zinc-800 [&>div>select]:dark:text-zinc-200 [&>div>select]:dark:focus:bg-zinc-700 w-full [&>div>select]:text-sm [&>div>select]:text-gray-800"
+		/>
+		<CodeEditor
+			v-else-if="type === 'code'"
+			:modelValue="modelValue"
+			:type="typeof modelValue == 'function' ? 'JavaScript' : 'JSON'"
+			:label="label"
 		/>
 		<Input
 			v-else
@@ -48,11 +57,12 @@ import { isNumber } from "@tiptap/vue-3"
 import { Popover, Autocomplete } from "frappe-ui"
 import { PropType, computed } from "vue"
 import Input from "@/components/Input.vue"
+import CodeEditor from "@/components/CodeEditor.vue"
 import InputLabel from "@/components/InputLabel.vue"
 
 const props = defineProps({
 	modelValue: {
-		type: [String, Number, Boolean],
+		type: [String, Number, Boolean, Object, Array],
 		default: null,
 	},
 	label: {

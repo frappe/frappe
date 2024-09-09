@@ -2,7 +2,11 @@
 	<div class="flex select-none flex-col pb-16">
 		<div class="flex flex-col gap-3">
 			<div v-if="componentProps" v-for="(config, propName) in componentProps" :key="propName">
-				<InlineInput :label="propName" :type="config.inputType" :modelValue="config.default" />
+				<InlineInput
+					:label="propName"
+					:type="config.inputType"
+					:modelValue="typeof config.default === 'function' ? config.default() : config.default"
+				/>
 			</div>
 		</div>
 	</div>
