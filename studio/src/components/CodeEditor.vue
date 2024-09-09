@@ -15,6 +15,7 @@
 </template>
 
 <script setup lang="ts">
+import { areObjectsEqual } from "@/utils/helpers"
 import { useDark } from "@vueuse/core"
 import ace from "ace-builds"
 import "ace-builds/src-min-noconflict/ext-searchbox"
@@ -105,8 +106,11 @@ const setupEditor = () => {
 			let value = aceEditor?.getValue() || ""
 			if (props.type === "JSON") {
 				value = JSON.parse(value)
+				if (areObjectsEqual(value, props.modelValue)) return
+			} else if (value === props.modelValue) {
+				return
 			}
-			if (value === props.modelValue) return
+
 			if (!props.showSaveButton && !props.readonly) {
 				emit("update:modelValue", value)
 			}
