@@ -417,10 +417,9 @@ accepts@~1.3.4:
     mime-types "~2.1.34"
     negotiator "0.6.3"
 
-ace-builds@^1.4.8:
-  version "1.31.2"
-  resolved "https://registry.yarnpkg.com/ace-builds/-/ace-builds-1.31.2.tgz#bd5d0ee4243b9ae4358563889cb5663f4893b3e7"
-  integrity sha512-IeZI9ytPA6mB+goPxPkUPW4vXBoLuaBl5czu2tjtKrMi7mdRgyIUA/8e5JlrI1mqKoMeWHoUujzMTWkyutTdBw==
+ace-builds@^1.36.2, "ace-builds@github:ajaxorg/ace-builds#refs/pull/265/head":
+  version "1.36.2"
+  resolved "https://codeload.github.com/ajaxorg/ace-builds/tar.gz/cceb11e378c0c25bb81dfe2c48e2fd37f4cabc03"
 
 acorn@^7.1.1:
   version "7.4.1"

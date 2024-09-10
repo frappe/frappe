@@ -16,7 +16,7 @@ frappe.ui.form.on("Server Script", {
 			});
 		}
 
-		frm.call("get_autocompletion_items")
+		frm.call("get_autocompletion_items", { document_type: frm.doc.reference_doctype })
 			.then((r) => r.message)
 			.then((items) => {
 				frm.set_df_property("script", "autocompletions", items);

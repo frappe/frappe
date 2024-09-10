@@ -651,8 +651,10 @@ def evaluate_alert(doc: Document, alert, event=None):
 		frappe.throw(msg, title=_("Error in Notification"))
 
 
+Frappe = namedtuple("frappe", ["utils"])
+
+
 def get_context(doc):
-	Frappe = namedtuple("frappe", ["utils"])
 	return {
 		"doc": doc,
 		"nowdate": nowdate,
@@ -695,3 +697,61 @@ def _parse_receiver_by_document_field(s):
 	else:
 		data_field, child_field = fragments[0], None
 	return data_field, child_field
+
+
+@frappe.whitelist()
+def get_autocompletion_items(document_type):
+	"""Generates a list of autocompletion items for Jinja filters and Frappe functions.
+
+	Args:
+	        document_type (str): The document type for which to generate autocompletion items.
+
+	Returns:
+	        list: Returns list of autocompletion items.
+	"""
+	from frappe.core.doctype.server_script.server_script import get_keys_for_autocomplete
+	from frappe.utils.jinja import get_jenv
+
+	# Get Jinja environment
+	jenv = get_jenv()
+
+	# Get Jinja filters
+	jinja_filter_keys = get_keys_for_autocomplete(jenv.filters)
+
+	# Get Jinja globals
+	jinja_globals = jenv.globals
+	jinja_globals.pop("frappe")  # overriden by notification context
+	jinja_global_keys = get_keys_for_autocomplete(jinja_globals, score_offset=10)
+
+	# Create a fake document for the completion context
+	fake_doc = frappe.new_doc(document_type)
+	context = get_context(fake_doc)
+
+	_doc_fields = context.pop("doc").meta.get_valid_columns()
+	context_keys_for_doc = get_keys_for_autocomplete(
+		dict(doc={df: None for df in _doc_fields}), score_offset=20
+	)
+	_frappe = context.pop("frappe", Frappe("frappe"))._asdict()
+	context_keys_for_frappe = get_keys_for_autocomplete(dict(frappe=_frappe), score_offset=20)
+	context_keys_residual = get_keys_for_autocomplete(context, score_offset=10)
+
+	# Create items list
+	items = {
+		"filters": [{"value": d[0], "score": d[1], "meta": "filter"} for d in jinja_filter_keys],
+		"variables": [{"value": d[0], "score": d[1], "meta": "doc"} for d in context_keys_for_doc],
+		"jinja-functions": [
+			{"caption": d[0], "snippet": d[0] + "($0)", "score": d[1], "meta": "functions"}
+			for d in jinja_global_keys
+		],
+		"context-functions": (
+			[
+				{"caption": d[0], "snippet": d[0] + "($0)", "score": d[1], "meta": "frappe"}
+				for d in context_keys_for_frappe
+			]
+			+ [
+				{"caption": d[0], "snippet": d[0] + "($0)", "score": d[1], "meta": "frappe"}
+				for d in context_keys_residual
+			]
+		),
+	}
+	return items

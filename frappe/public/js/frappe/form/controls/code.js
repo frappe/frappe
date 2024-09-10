@@ -1,3 +1,8 @@
+// Define a global queue for ace autocomplete setup
+if (!frappe.ace_autocomplete_queue) {
+	frappe.ace_autocomplete_queue = Promise.resolve();
+}
+
 frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlText {
 	make_input() {
 		if (this.editor) return;
@@ -144,27 +149,45 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 						if (typeof a === "string") {
 							a = { value: a };
 						}
+						if (a.value) {
+							return {
+								name: "frappe",
+								value: a.value,
+								score: a.score,
+								meta: a.meta,
+								caption: a.caption,
+							};
+						}
 						return {
 							name: "frappe",
-							value: a.value,
 							score: a.score,
 							meta: a.meta,
 							caption: a.caption,
+							snippet: a.snippet,
 						};
 					})
 				);
 			}
 		};
+		this.setup_ace_autocomplete = async () => {
+			return new Promise((resolve) => {
+				ace.config.loadModule("ace/ext/language_tools", (langTools) => {
+					this.editor.setOptions({
+						enableBasicAutocompletion: true,
+						enableLiveAutocompletion: true,
+					});
 
-		ace.config.loadModule("ace/ext/language_tools", (langTools) => {
-			this.editor.setOptions({
-				enableBasicAutocompletion: true,
-				enableLiveAutocompletion: true,
-			});
+					langTools.addCompleter({
+						getCompletions: customGetCompletions || getCompletions,
+					});
 
-			langTools.addCompleter({
-				getCompletions: customGetCompletions || getCompletions,
+					resolve();
+				});
 			});
+		};
+		// Add this setup to the global queue
+		frappe.ace_autocomplete_queue = frappe.ace_autocomplete_queue.then(async () => {
+			await this.setup_ace_autocomplete();
 		});
 		this._autocompletion_setup = true;
 	}
@@ -198,7 +221,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 			JSON: "ace/mode/json",
 			Golang: "ace/mode/golang",
 			Go: "ace/mode/golang",
-			Jinja: "ace/mode/django",
+			Jinja: "ace/mode/jinja",
 			SQL: "ace/mode/sql",
 		};
 		const language = this.df.options;
