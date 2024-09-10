@@ -78,7 +78,10 @@ class Workspace(Document):
 			if not isinstance(loads(self.content), list):
 				raise
 		except Exception:
-			frappe.throw(_("Content data shoud be a list"))
+
+		for d in self.get("links"):
+			if d.link_type == "Report" and d.is_query_report != 1:
+				d.report_ref_doctype = frappe.get_value("Report", d.link_to, "ref_doctype")
 
 	def clear_cache(self):
 		super().clear_cache()
