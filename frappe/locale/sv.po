@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-08-23 17:00+0000\n"
-"PO-Revision-Date: 2024-09-01 17:29\n"
+"POT-Creation-Date: 2024-09-02 18:21+0000\n"
+"PO-Revision-Date: 2024-09-03 18:01\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -122,7 +122,7 @@ msgstr "0 - Utkast; 1 - Godkänd; 2 - Annullerad"
 msgid "0 is highest"
 msgstr "0 är högsta värde"
 
-#: public/js/frappe/form/grid_row.js:807
+#: public/js/frappe/form/grid_row.js:797
 msgid "1 = True & 0 = False"
 msgstr "1 = Sant & 0 = Falskt"
 
@@ -1275,7 +1275,7 @@ msgstr "Lägg till Fråge Parametrar"
 msgid "Add Review"
 msgstr "Lägg till Recension"
 
-#: core/doctype/user/user.py:789
+#: core/doctype/user/user.py:790
 msgid "Add Roles"
 msgstr "Lägg till Roller"
 
@@ -1454,7 +1454,7 @@ msgstr "la till {0} "
 msgid "Added {0} ({1})"
 msgstr "Tillagd {0} ({1})"
 
-#: core/doctype/user/user.py:271
+#: core/doctype/user/user.py:272
 msgid "Adding System Manager to this User as there must be atleast one System Manager"
 msgstr "Lägger till System Ansvarig till denna användare eftersom det måste finnas minst en System Ansvarig"
 
@@ -1558,11 +1558,11 @@ msgstr "Administration"
 msgid "Administrator"
 msgstr "Administratör"
 
-#: core/doctype/user/user.py:1194
+#: core/doctype/user/user.py:1195
 msgid "Administrator Logged In"
 msgstr "Administratör Inloggad"
 
-#: core/doctype/user/user.py:1188
+#: core/doctype/user/user.py:1189
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr "Administratör loggade in {0} {1} via IP Adress {2}."
 
@@ -2011,11 +2011,11 @@ msgstr "Tillåtna Roller"
 msgid "Allowing DocType, DocType. Be careful!"
 msgstr "Tillåter DocType, DocType. Var försiktig!"
 
-#: core/doctype/user/user.py:998
+#: core/doctype/user/user.py:999
 msgid "Already Registered"
 msgstr "Redan Registrerad"
 
-#: desk/form/assign_to.py:134
+#: desk/form/assign_to.py:136
 msgid "Already in the following Users ToDo list:{0}"
 msgstr "Redan i följande Användare Att-Göra lista: {0}"
 
@@ -2221,7 +2221,7 @@ msgstr "Hemliget"
 msgid "App not found for module: {0}"
 msgstr "App hittades inte för modul: {0}"
 
-#: __init__.py:1754
+#: __init__.py:1761
 msgid "App {0} is not installed"
 msgstr "App {0} är inte installerad"
 
@@ -2361,6 +2361,7 @@ msgstr "Godkännande Erfodras"
 #. Label of a standard navbar item
 #. Type: Route
 #: hooks.py templates/includes/navbar/navbar_login.html:18
+#: website/js/website.js:617
 msgid "Apps"
 msgstr "Appar"
 
@@ -2472,7 +2473,7 @@ msgstr "Arial"
 msgid "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User."
 msgstr "Som bästa praxis, tilldela inte samma behörighetsregler till olika roller. Istället tilldela flera roller till samma användare."
 
-#: desk/form/assign_to.py:104
+#: desk/form/assign_to.py:106
 msgid "As document sharing is disabled, please give them the required permissions before assigning."
 msgstr "Eftersom dokumentdelning är inaktiverat, skapa nödvändiga behörigheter innan tilldelning."
 
@@ -2607,7 +2608,7 @@ msgstr "Tilldelning Regler"
 msgid "Assignment Update on {0}"
 msgstr "Tilldelning Uppdatering {0}"
 
-#: desk/form/assign_to.py:75
+#: desk/form/assign_to.py:61
 msgid "Assignment for {0} {1}"
 msgstr "Tilldelning för {0} {1}"
 
@@ -2748,11 +2749,11 @@ msgstr "Bilaga Borttagen"
 msgid "Attachments"
 msgstr "Bilagor"
 
-#: public/js/frappe/form/print_utils.js:89
+#: public/js/frappe/form/print_utils.js:91
 msgid "Attempting Connection to QZ Tray..."
 msgstr "Försöker ansluta till QZ Aktivitet Fält..."
 
-#: public/js/frappe/form/print_utils.js:105
+#: public/js/frappe/form/print_utils.js:107
 msgid "Attempting to launch QZ Tray..."
 msgstr "Försöker starta QZ Aktivitet Fält..."
 
@@ -3861,7 +3862,7 @@ msgstr "Funktion Knapp URL"
 msgid "Cache"
 msgstr "Cache"
 
-#: sessions.py:33
+#: sessions.py:32
 msgid "Cache Cleared"
 msgstr "Cache Raderad"
 
@@ -4206,7 +4207,7 @@ msgstr "Kan inte hitta fil {} på disk"
 msgid "Cannot get file contents of a Folder"
 msgstr "Kan inte hämta fil innehåll från mapp"
 
-#: printing/page/print/print.js:842
+#: printing/page/print/print.js:845
 msgid "Cannot have multiple printers mapped to a single print format."
 msgstr "Kan inte mappa flera skrivare till enskild utskrift format."
 
@@ -5125,7 +5126,7 @@ msgstr "Klar"
 msgid "Complete By"
 msgstr "Klar Senast"
 
-#: core/doctype/user/user.py:442 templates/emails/new_user.html:10
+#: core/doctype/user/user.py:443 templates/emails/new_user.html:10
 msgid "Complete Registration"
 msgstr "Slutför Registrering"
 
@@ -5306,8 +5307,8 @@ msgstr "Ansluten App"
 msgid "Connected User"
 msgstr "Ansluten Användare"
 
-#: public/js/frappe/form/print_utils.js:95
-#: public/js/frappe/form/print_utils.js:119
+#: public/js/frappe/form/print_utils.js:97
+#: public/js/frappe/form/print_utils.js:121
 msgid "Connected to QZ Tray!"
 msgstr "Ansluten till QZ Aktivitet Fält!"
 
@@ -5531,7 +5532,7 @@ msgstr "System DocType kan inte anpassas."
 msgid "Core Modules {0} cannot be searched in Global Search."
 msgstr "System Moduler {0} kan inte sökas i Global Sök."
 
-#: printing/page/print/print.js:617
+#: printing/page/print/print.js:620
 msgid "Correct version :"
 msgstr "Rätt version : "
 
@@ -8376,7 +8377,7 @@ msgstr "E-post Konto Inaktiverad"
 msgid "Email Account Name"
 msgstr "E-post Konto Namn"
 
-#: core/doctype/user/user.py:718
+#: core/doctype/user/user.py:719
 msgid "Email Account added multiple times"
 msgstr "E-post Konto lagt till flera gånger"
 
@@ -9069,7 +9070,7 @@ msgstr "Fel Logg"
 msgid "Error Message"
 msgstr "Fel Meddelande"
 
-#: public/js/frappe/form/print_utils.js:126
+#: public/js/frappe/form/print_utils.js:128
 msgid "Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Click here to Download and install QZ Tray</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Click here to learn more about Raw Printing</a>."
 msgstr "Fel vid anslutning till QZ Aktivitet Fält... <br><br> Du måste ha QZ Aktivitet Fält App installerad och igång för att kunna använda Direkt Utskrift funktion. <br><br> <a href=\"https://qz.io/download/\" target=\"_blank\">Klicka här för att ladda ner och installera QZ App</a> . <br> <a href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\" target=\"_blank\">Klicka här för att lära dig mer om Direkt Utskrift</a>."
 
@@ -9562,7 +9563,7 @@ msgstr "Misslyckades att hämta sätt {0} med {1}"
 msgid "Failed to import virtual doctype {}, is controller file present?"
 msgstr "Misslyckadesc att importera virtuell doctype {}, finns kontroll fil?"
 
-#: utils/image.py:74
+#: utils/image.py:76
 msgid "Failed to optimize image: {0}"
 msgstr "Misslyckades att optimera bild: {0}"
 
@@ -9749,7 +9750,7 @@ msgstr "Fält att Spåra"
 msgid "Field type cannot be changed for {0}"
 msgstr "Fält Typ kan inte ändras för {0}"
 
-#: database/database.py:848
+#: database/database.py:841
 msgid "Field {0} does not exist on {1}"
 msgstr "Fält {0} finns inte på {1}"
 
@@ -10719,7 +10720,7 @@ msgstr "Funktion"
 msgid "Function Based On"
 msgstr "Funktion Baserad på"
 
-#: __init__.py:898
+#: __init__.py:905
 msgid "Function {0} is not whitelisted."
 msgstr "Funktion {0} är inte vitlistad."
 
@@ -12329,7 +12330,7 @@ msgstr "I Förhandsvisning"
 msgid "In Progress"
 msgstr "Pågående"
 
-#: database/database.py:250
+#: database/database.py:243
 msgid "In Read Only Mode"
 msgstr "I Skrivskyddat Läge"
 
@@ -12744,7 +12745,7 @@ msgstr "Introspektion URI"
 msgid "Invalid"
 msgstr "Ogiltig"
 
-#: public/js/form_builder/utils.js:221 public/js/frappe/form/grid_row.js:769
+#: public/js/form_builder/utils.js:221 public/js/frappe/form/grid_row.js:759
 #: public/js/frappe/form/layout.js:785
 msgid "Invalid \"depends_on\" expression"
 msgstr "Ogiltig 'depends_on' uttryck"
@@ -12845,7 +12846,7 @@ msgstr "Ogiltig Utdata Format"
 msgid "Invalid Parameters."
 msgstr "Ogiltiga Parametrar"
 
-#: core/doctype/user/user.py:1209 www/update-password.html:121
+#: core/doctype/user/user.py:1210 www/update-password.html:121
 #: www/update-password.html:142 www/update-password.html:144
 #: www/update-password.html:245
 msgid "Invalid Password"
@@ -12969,7 +12970,7 @@ msgctxt "Error message in web form"
 msgid "Invalid values for fields:"
 msgstr "Ogiltiga värden för fält:"
 
-#: printing/page/print/print.js:611
+#: printing/page/print/print.js:614
 msgid "Invalid wkhtmltopdf version"
 msgstr "Ogiltig wkhtmltopdf version"
 
@@ -13642,7 +13643,7 @@ msgstr "Etikett erfodras"
 msgid "Landing Page"
 msgstr "Webbplats"
 
-#: public/js/frappe/form/print_utils.js:28
+#: public/js/frappe/form/print_utils.js:30
 msgid "Landscape"
 msgstr "Landskap"
 
@@ -13938,7 +13939,7 @@ msgstr "Letter"
 #. Name of a DocType
 #: core/doctype/report/report.json
 #: printing/doctype/letter_head/letter_head.json
-#: printing/page/print/print.js:127 public/js/frappe/form/print_utils.js:18
+#: printing/page/print/print.js:127 public/js/frappe/form/print_utils.js:20
 #: public/js/frappe/form/templates/print_layout.html:16
 #: public/js/frappe/list/bulk_operations.js:52
 #: public/js/print_format_builder/LetterHeadEditor.vue:144
@@ -14538,7 +14539,7 @@ msgid "Login with {0}"
 msgstr "Logga in med {0}"
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
-#: core/doctype/activity_log/activity_log.json www/apps.html:46
+#: core/doctype/activity_log/activity_log.json www/apps.html:59
 msgid "Logout"
 msgstr "Logga Ut"
 
@@ -15020,7 +15021,7 @@ msgstr "Sammanslafning är endast möjlig mellan grupp till grupp eller underord
 msgid "Message"
 msgstr "Meddelande"
 
-#: __init__.py:582 public/js/frappe/ui/messages.js:267
+#: __init__.py:589 public/js/frappe/ui/messages.js:267
 msgctxt "Default title of the message dialog"
 msgid "Message"
 msgstr "Meddelande"
@@ -15140,7 +15141,7 @@ msgstr "Meta Titel för SEO"
 msgid "Method"
 msgstr "Sätt"
 
-#: __init__.py:900
+#: __init__.py:907
 msgid "Method Not Allowed"
 msgstr "Metod ej Tillåten"
 
@@ -15216,7 +15217,7 @@ msgstr "Fält Värden saknas"
 msgid "Missing Filters Required"
 msgstr "Saknade Filter Erfodras"
 
-#: desk/form/assign_to.py:107
+#: desk/form/assign_to.py:109
 msgid "Missing Permission"
 msgstr "Tillstånd Saknas"
 
@@ -15468,7 +15469,7 @@ msgstr "Fler Artiklar om {0}"
 msgid "More content for the bottom of the page."
 msgstr "Mer innehåll för sidfot."
 
-#: public/js/frappe/ui/sort_selector.js:193
+#: public/js/frappe/ui/sort_selector.js:191
 msgid "Most Used"
 msgstr "Mest Använd"
 
@@ -15964,7 +15965,7 @@ msgstr "Ny {0}: {1}"
 msgid "New {} releases for the following apps are available"
 msgstr "Nya {} versioner för följande appar finns tillgängliga"
 
-#: core/doctype/user/user.py:785
+#: core/doctype/user/user.py:786
 msgid "Newly created user {0} has no roles enabled."
 msgstr "Nyskapad användare {0} har inga roller aktiverade."
 
@@ -16014,7 +16015,7 @@ msgstr "Nyhetsbrev"
 #: public/js/frappe/web_form/web_form.js:91
 #: public/js/onboarding_tours/onboarding_tours.js:15
 #: public/js/onboarding_tours/onboarding_tours.js:240
-#: templates/includes/slideshow.html:38 website/utils.py:247
+#: templates/includes/slideshow.html:38 website/utils.py:253
 #: website/web_template/slideshow/slideshow.html:44
 msgid "Next"
 msgstr "Nästa"
@@ -16191,7 +16192,7 @@ msgstr "Ingen LDAP Användare hittades för E-post: {0}"
 msgid "No Label"
 msgstr "Ingen Etikett"
 
-#: printing/page/print/print.js:700 printing/page/print/print.js:782
+#: printing/page/print/print.js:703 printing/page/print/print.js:785
 #: public/js/frappe/list/bulk_operations.js:98
 #: public/js/frappe/list/bulk_operations.js:170 utils/weasyprint.py:52
 msgid "No Letterhead"
@@ -16225,11 +16226,11 @@ msgstr "Inga tillåtna Diagram på denna Översikt Panel"
 msgid "No Preview"
 msgstr "Ingen Förhandsgranskning"
 
-#: printing/page/print/print.js:704
+#: printing/page/print/print.js:707
 msgid "No Preview Available"
 msgstr "Ingen Förhandsgranskning Tillgänglig."
 
-#: printing/page/print/print.js:860
+#: printing/page/print/print.js:863
 msgid "No Printer is Available."
 msgstr "Ingen Skrivare är Tillgänglig."
 
@@ -16245,7 +16246,7 @@ msgstr "Inga Träffar"
 msgid "No Results found"
 msgstr "Inga Träffar"
 
-#: core/doctype/user/user.py:786
+#: core/doctype/user/user.py:787
 msgid "No Roles Specified"
 msgstr "Inga Roller Specificerade"
 
@@ -16390,7 +16391,7 @@ msgstr "Antal Kolumner"
 msgid "No of Rows (Max 500)"
 msgstr "Antal Rader (Max 500)"
 
-#: __init__.py:1089 client.py:109 client.py:151
+#: __init__.py:1096 client.py:109 client.py:151
 msgid "No permission for {0}"
 msgstr "Ingen Behörighet för {0}"
 
@@ -16489,7 +16490,7 @@ msgstr "Normaliserade Kopior"
 msgid "Normalized Query"
 msgstr "Normaliserad Fråga"
 
-#: core/doctype/user/user.py:993 templates/includes/login/login.js:258
+#: core/doctype/user/user.py:994 templates/includes/login/login.js:258
 #: utils/oauth.py:266
 msgid "Not Allowed"
 msgstr "Ej Tillåtet"
@@ -16531,7 +16532,7 @@ msgstr "Inte Som"
 msgid "Not Linked to any record"
 msgstr "Ej Länkad till någon post"
 
-#: __init__.py:982 app.py:357 desk/calendar.py:26 desk/treeview.py:19
+#: __init__.py:989 app.py:357 desk/calendar.py:26 desk/treeview.py:19
 #: geo/utils.py:97 public/js/frappe/web_form/webform_script.js:15
 #: website/doctype/web_form/web_form.py:601
 #: website/page_renderers/not_permitted_page.py:20 www/login.py:182
@@ -16583,7 +16584,7 @@ msgstr "Ej Angiven"
 msgid "Not a valid Comma Separated Value (CSV File)"
 msgstr "Ej giltig Komma Separerad Värde (CSV Fil)"
 
-#: core/doctype/user/user.py:198
+#: core/doctype/user/user.py:199
 msgid "Not a valid User Image."
 msgstr "Ej giltig Användare Bild."
 
@@ -17222,7 +17223,7 @@ msgstr "Endast rapporter av typ Report Generator kan redigeras"
 msgid "Only standard DocTypes are allowed to be customized from Customize Form."
 msgstr "Endast standard DocTypes får anpassas från Anpasning Formulär."
 
-#: desk/form/assign_to.py:181
+#: desk/form/assign_to.py:183
 msgid "Only the assignee can complete this to-do."
 msgstr "Endast den som tilldelats kan slutföra denna Att Göra."
 
@@ -17461,7 +17462,7 @@ msgstr "Bolag Historik"
 msgid "Org History Heading"
 msgstr "Bolag Historik Huvud Rubrik"
 
-#: public/js/frappe/form/print_utils.js:26
+#: public/js/frappe/form/print_utils.js:28
 msgid "Orientation"
 msgstr "Orientering"
 
@@ -17574,11 +17575,11 @@ msgstr "PDF skapande misslyckades"
 msgid "PDF generation failed because of broken image links"
 msgstr "PDF skapande misslyckades på grund av fel bildlänkar"
 
-#: printing/page/print/print.js:613
+#: printing/page/print/print.js:616
 msgid "PDF generation may not work as expected."
 msgstr "PDF skapande kanske inte fungerar som förväntat."
 
-#: printing/page/print/print.js:531
+#: printing/page/print/print.js:534
 msgid "PDF printing via \"Raw Print\" is not supported."
 msgstr "PDF utskrift via \"Direkt Utskrift\" stöds inte."
 
@@ -17887,11 +17888,11 @@ msgstr "Passiv"
 msgid "Password"
 msgstr "Lösenord"
 
-#: core/doctype/user/user.py:1056
+#: core/doctype/user/user.py:1057
 msgid "Password Email Sent"
 msgstr "Lösenord skickat via E-post"
 
-#: core/doctype/user/user.py:422
+#: core/doctype/user/user.py:423
 msgid "Password Reset"
 msgstr "Lösenord Återställning"
 
@@ -17900,7 +17901,7 @@ msgstr "Lösenord Återställning"
 msgid "Password Reset Link Generation Limit"
 msgstr "Maximum Antal Lösenord Återställning Länkar per timme"
 
-#: public/js/frappe/form/grid_row.js:811
+#: public/js/frappe/form/grid_row.js:801
 msgid "Password cannot be filtered"
 msgstr "Lösenord kan inte filtreras"
 
@@ -17925,7 +17926,7 @@ msgstr "Lösenord saknas i E-post Konto"
 msgid "Password not found for {0} {1} {2}"
 msgstr "Lösenord hittades inte för {0} {1} {2}"
 
-#: core/doctype/user/user.py:1055
+#: core/doctype/user/user.py:1056
 msgid "Password reset instructions have been sent to your email"
 msgstr "Lösenord Återställning instruktioner har skickats till din E-post"
 
@@ -17937,7 +17938,7 @@ msgstr "Lösenord angiven"
 msgid "Password size exceeded the maximum allowed size"
 msgstr "Lösenord längd överskred maximum tillåten längd."
 
-#: core/doctype/user/user.py:849
+#: core/doctype/user/user.py:850
 msgid "Password size exceeded the maximum allowed size."
 msgstr "Lösenord längd överskred maximum tillåten längd."
 
@@ -18231,7 +18232,7 @@ msgstr "Telefon Nummer."
 msgid "Phone Number {0} set in field {1} is not valid."
 msgstr "Telefon Nummer {0} som anges i fält {1} är inte giltig."
 
-#: public/js/frappe/form/print_utils.js:38
+#: public/js/frappe/form/print_utils.js:40
 #: public/js/frappe/views/reports/report_view.js:1503
 #: public/js/frappe/views/reports/report_view.js:1506
 msgid "Pick Columns"
@@ -18292,7 +18293,7 @@ msgstr "Lägg till ämne i E-post"
 msgid "Please add a valid comment."
 msgstr "Lägg till giltig kommentar."
 
-#: core/doctype/user/user.py:1038
+#: core/doctype/user/user.py:1039
 msgid "Please ask your administrator to verify your sign-up"
 msgstr "Be Administratör att verifiera din registrering"
 
@@ -18324,7 +18325,7 @@ msgstr "Kontrollera filter värden angivna för Översikt Panel Diagram: {}"
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr "Kontrollera värde för uppsättning 'Hämta från' för fält {0}"
 
-#: core/doctype/user/user.py:1036
+#: core/doctype/user/user.py:1037
 msgid "Please check your email for verification"
 msgstr "Kontrollera din E-post för verifiering"
 
@@ -18352,7 +18353,7 @@ msgstr "Stäng detta fönster"
 msgid "Please confirm your action to {0} this document."
 msgstr "Bekräfta åtgärd till {0} detta dokument."
 
-#: printing/page/print/print.js:615
+#: printing/page/print/print.js:618
 msgid "Please contact your system manager to install correct version."
 msgstr "Kontakta System Ansvarig för att installera rätt version."
 
@@ -18382,7 +18383,7 @@ msgstr "Aktivera minst en social inloggning nyckel eller LDAP eller Logga in med
 
 #: desk/doctype/notification_log/notification_log.js:45
 #: email/doctype/auto_email_report/auto_email_report.js:17
-#: printing/page/print/print.js:635 printing/page/print/print.js:665
+#: printing/page/print/print.js:638 printing/page/print/print.js:668
 #: public/js/frappe/list/bulk_operations.js:161
 #: public/js/frappe/utils/utils.js:1437
 msgid "Please enable pop-ups"
@@ -18473,7 +18474,7 @@ msgstr "Kontrollera att Referens Dokument för E-post inte är cirkulärt länka
 msgid "Please refresh to get the latest document."
 msgstr "Uppdatera för att se senaste dokument."
 
-#: printing/page/print/print.js:532
+#: printing/page/print/print.js:535
 msgid "Please remove the printer mapping in Printer Settings and try again."
 msgstr "Ta bort skrivare mappning i Skrivare Inställningar och försök igen."
 
@@ -18575,7 +18576,7 @@ msgstr "Ange Dropbox Åtkomst Nycklar i Inställningar eller DocType"
 msgid "Please set Email Address"
 msgstr "Ange E-post"
 
-#: printing/page/print/print.js:546
+#: printing/page/print/print.js:549
 msgid "Please set a printer mapping for this print format in the Printer Settings"
 msgstr "Ange skrivare mappning för detta utskrift format i Utskrift Inställningar"
 
@@ -18611,11 +18612,11 @@ msgstr "Försäljning Order Meddelande"
 msgid "Please setup default Email Account from Settings > Email Account"
 msgstr "Ange Standard E-Post Konto från Inställningar > E-post Konto"
 
-#: core/doctype/user/user.py:373
+#: core/doctype/user/user.py:374
 msgid "Please setup default outgoing Email Account from Settings > Email Account"
 msgstr "Ange Standard E-post Konto från Inställningar > E-post > E-post Konto"
 
-#: public/js/frappe/model/model.js:802
+#: public/js/frappe/model/model.js:803
 msgid "Please specify"
 msgstr "Specificera"
 
@@ -18716,7 +18717,7 @@ msgstr "Portal Meny Post"
 msgid "Portal Settings"
 msgstr "Portal Inställningar"
 
-#: public/js/frappe/form/print_utils.js:29
+#: public/js/frappe/form/print_utils.js:31
 msgid "Portrait"
 msgstr "Porträtt"
 
@@ -18980,7 +18981,7 @@ msgstr "Skriv ut Dokument"
 #: core/doctype/doctype/doctype.json core/doctype/module_def/module_def.json
 #: core/workspace/build/build.json email/doctype/notification/notification.json
 #: printing/doctype/print_format/print_format.json
-#: printing/page/print/print.js:94 printing/page/print/print.js:819
+#: printing/page/print/print.js:94 printing/page/print/print.js:822
 #: public/js/frappe/list/bulk_operations.js:59
 #: website/doctype/web_form/web_form.json
 msgid "Print Format"
@@ -19065,7 +19066,7 @@ msgstr "Dölj Utskrift om Ingen Värde"
 msgid "Print Language"
 msgstr "Utskrift Språk"
 
-#: public/js/frappe/form/print_utils.js:195
+#: public/js/frappe/form/print_utils.js:197
 msgid "Print Sent to the printer!"
 msgstr "Utskrift Skickad till skrivare!"
 
@@ -19081,7 +19082,7 @@ msgstr "Skrivar Server"
 #: email/doctype/notification/notification.json
 #: printing/doctype/print_settings/print_settings.json
 #: printing/doctype/print_style/print_style.js:6
-#: printing/page/print/print.js:160 public/js/frappe/form/print_utils.js:69
+#: printing/page/print/print.js:160 public/js/frappe/form/print_utils.js:71
 #: public/js/frappe/form/templates/print_layout.html:35
 msgid "Print Settings"
 msgstr "Utskrift Inställningar"
@@ -19128,11 +19129,11 @@ msgstr "Dokument Utskrift"
 msgid "Print with letterhead"
 msgstr "Utskrift med Sidhuvud"
 
-#: printing/page/print/print.js:828
+#: printing/page/print/print.js:831
 msgid "Printer"
 msgstr "Skrivare"
 
-#: printing/page/print/print.js:805
+#: printing/page/print/print.js:808
 msgid "Printer Mapping"
 msgstr "Skrivare Mappning"
 
@@ -19141,11 +19142,11 @@ msgstr "Skrivare Mappning"
 msgid "Printer Name"
 msgstr "Skrivare Namn"
 
-#: printing/page/print/print.js:797
+#: printing/page/print/print.js:800
 msgid "Printer Settings"
 msgstr "Skrivare Inställningar"
 
-#: printing/page/print/print.js:545
+#: printing/page/print/print.js:548
 msgid "Printer mapping not set."
 msgstr "Skrivare Mappning inte angiven"
 
@@ -19429,7 +19430,7 @@ msgstr "QR Kod"
 msgid "QR Code for Login Verification"
 msgstr "QR kod för Inloggning Verifiering"
 
-#: public/js/frappe/form/print_utils.js:204
+#: public/js/frappe/form/print_utils.js:206
 msgid "QZ Tray Failed: "
 msgstr "QZ Aktivitet Fält Misslyckades:"
 
@@ -19928,7 +19929,7 @@ msgstr "Omdirigera till denna URL efter framgångsrik bekräftelse."
 msgid "Redirects"
 msgstr "Omdirigeringar"
 
-#: sessions.py:145
+#: sessions.py:146
 msgid "Redis cache server not running. Please contact Administrator / Tech support"
 msgstr "Redis server är inte igång . Kontakta Administratör / Teknisk support"
 
@@ -20179,7 +20180,7 @@ msgstr "Uppdaterar"
 msgid "Refreshing..."
 msgstr "Uppdaterar..."
 
-#: core/doctype/user/user.py:1000
+#: core/doctype/user/user.py:1001
 msgid "Registered but disabled"
 msgstr "Registrerad men inaktiverad"
 
@@ -21094,7 +21095,7 @@ msgstr "Roll Profil"
 msgid "Role and Level"
 msgstr "Roll och Nivå"
 
-#: core/doctype/user/user.py:314
+#: core/doctype/user/user.py:315
 msgid "Role has been set as per the user type {0}"
 msgstr "Rollen angiven enligt användare typ {0}"
 
@@ -21478,7 +21479,7 @@ msgstr "Lördag"
 #: core/doctype/data_import/data_import.js:113
 #: desk/page/user_profile/user_profile_controller.js:319
 #: email/doctype/notification/notification.json
-#: printing/page/print/print.js:856
+#: printing/page/print/print.js:859
 #: printing/page/print_format_builder/print_format_builder.js:160
 #: public/js/frappe/form/footer/form_timeline.js:663
 #: public/js/frappe/form/quick_entry.js:161
@@ -21954,7 +21955,7 @@ msgstr "Visning Tabell"
 #: core/doctype/report_filter/report_filter.json
 #: custom/doctype/custom_field/custom_field.json
 #: custom/doctype/customize_form_field/customize_form_field.json
-#: printing/page/print/print.js:599
+#: printing/page/print/print.js:602
 #: website/doctype/web_form_field/web_form_field.json
 #: website/doctype/web_template_field/web_template_field.json
 msgid "Select"
@@ -21982,7 +21983,7 @@ msgid "Select Column"
 msgstr "Välj Kolumn"
 
 #: printing/page/print_format_builder/print_format_builder_field.html:41
-#: public/js/frappe/form/print_utils.js:43
+#: public/js/frappe/form/print_utils.js:45
 msgid "Select Columns"
 msgstr "Välj Kolumner"
 
@@ -22095,7 +22096,7 @@ msgstr "Välj Erfordrad"
 msgid "Select Module"
 msgstr "Välj Modul"
 
-#: printing/page/print/print.js:175 printing/page/print/print.js:582
+#: printing/page/print/print.js:175 printing/page/print/print.js:585
 msgid "Select Network Printer"
 msgstr "Välj Nätverksskrivare"
 
@@ -22945,7 +22946,7 @@ msgstr "Dela {0} med"
 msgid "Shared"
 msgstr "Delad"
 
-#: desk/form/assign_to.py:129
+#: desk/form/assign_to.py:131
 msgid "Shared with the following Users with Read access:{0}"
 msgstr "Delas med följande Användare med läsbehörighet: {0}"
 
@@ -23289,7 +23290,7 @@ msgstr "Sidofält och Kommentarer"
 msgid "Sign Up and Confirmation"
 msgstr "Registrering och Bekräftelse"
 
-#: core/doctype/user/user.py:993
+#: core/doctype/user/user.py:994
 msgid "Sign Up is disabled"
 msgstr "Registrering är inaktiverad"
 
@@ -23357,7 +23358,7 @@ msgstr "Enskild DocTypes kan inte anpassas."
 msgid "Single Types have only one record no tables associated. Values are stored in tabSingles"
 msgstr "Enskilda Typer har endast en post inga tabeller associerade. Värden lagras i tabSingles"
 
-#: database/database.py:247
+#: database/database.py:240
 msgid "Site is running in read only mode for maintenance or site update, this action can not be performed right now. Please try again later."
 msgstr "Webbplats körs i skrivskyddat läge för underhåll eller uppdatering, denna åtgärd kan inte utföras just nu. Vänligen försök igen senare."
 
@@ -24291,7 +24292,7 @@ msgstr "Föreslå Optimeringar"
 msgid "Suggested Indexes"
 msgstr "Föreslagen Indexering"
 
-#: core/doctype/user/user.py:702
+#: core/doctype/user/user.py:703
 msgid "Suggested Username: {0}"
 msgstr "Föreslagen Användarnamn: {0}"
 
@@ -24802,7 +24803,7 @@ msgstr "Mall Varningar"
 msgid "Templates"
 msgstr "Mallar"
 
-#: core/doctype/user/user.py:1004
+#: core/doctype/user/user.py:1005
 msgid "Temporarily Disabled"
 msgstr "Tillfälligt Inaktiverad"
 
@@ -24942,7 +24943,7 @@ msgid "The browser API key obtained from the Google Cloud Console under <a href=
 "</a>"
 msgstr "Webbläsarens API Nyckel som erhålls från Google Cloud Console under <a href=\"https://console.cloud.google.com/apis/credentials\">\"API och tjänster\" &gt; \"Inloggning Uppgifter\"</a>"
 
-#: database/database.py:435
+#: database/database.py:428
 msgid "The changes have been reverted."
 msgstr "Ändringarna är återställda."
 
@@ -25059,11 +25060,11 @@ msgstr "Projekt Nummer erhålln från Google Cloud Console under <a href=\"https
 "\"IAM &amp; Admin\" &gt; \"Inställningar\"\n"
 "</a>"
 
-#: core/doctype/user/user.py:964
+#: core/doctype/user/user.py:965
 msgid "The reset password link has been expired"
 msgstr "Länk för återställning av lösenord har upphört att gälla"
 
-#: core/doctype/user/user.py:966
+#: core/doctype/user/user.py:967
 msgid "The reset password link has either been used before or is invalid"
 msgstr "Länk för återställning av lösenord har antingen använts tidigare eller är ogiltig"
 
@@ -25181,7 +25182,7 @@ msgstr "Det finns {0} med samma filter som redan finns i kö:"
 msgid "There must be atleast one permission rule."
 msgstr "Det måste finnas minst en behörighet regel."
 
-#: core/doctype/user/user.py:503
+#: core/doctype/user/user.py:504
 msgid "There should remain at least one System Manager"
 msgstr "Det ska finnas minst en System Ansvarig kvar"
 
@@ -25259,7 +25260,7 @@ msgstr "Detta Anslag Tavla kommer att vara privat"
 msgid "This action is irreversible. Do you wish to continue?"
 msgstr "Denna åtgärd är oåterkallelig. Vill du fortsätta?"
 
-#: __init__.py:978
+#: __init__.py:985
 msgid "This action is only allowed for {}"
 msgstr "Åtgärd är endast tillåten för {}"
 
@@ -25493,7 +25494,7 @@ msgstr "Detta återställer Formulär Tur och visar den för alla användare. Ä
 msgid "This will terminate the job immediately and might be dangerous, are you sure? "
 msgstr "Detta avslutar jobb omedelbart och kan vara farligt, är du säker?"
 
-#: core/doctype/user/user.py:1223
+#: core/doctype/user/user.py:1224
 msgid "Throttled"
 msgstr "Strypt"
 
@@ -25953,11 +25954,11 @@ msgstr "För Många Dokument"
 msgid "Too Many Requests"
 msgstr "För Många Begäran"
 
-#: database/database.py:434
+#: database/database.py:427
 msgid "Too many changes to database in single action."
 msgstr "För många ändringar i databas i en enda åtgärd."
 
-#: core/doctype/user/user.py:1005
+#: core/doctype/user/user.py:1006
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr "Alltför många Användare registrerade sig nyligen, så registrering är inaktiverad. Försök igen om en timme"
 
@@ -27216,15 +27217,15 @@ msgstr "Användare med E-post {0} finns inte"
 msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
 msgstr "Användare med E-post: {0} finns inte. Be 'System Administratör' om hjälp."
 
-#: core/doctype/user/user.py:508
+#: core/doctype/user/user.py:509
 msgid "User {0} cannot be deleted"
 msgstr "Användare {0} kan inte raderas"
 
-#: core/doctype/user/user.py:243
+#: core/doctype/user/user.py:244
 msgid "User {0} cannot be disabled"
 msgstr "Användare {0} kan inte inaktiveras"
 
-#: core/doctype/user/user.py:590
+#: core/doctype/user/user.py:591
 msgid "User {0} cannot be renamed"
 msgstr "Användare {0} kan inte byta namn"
 
@@ -27245,7 +27246,7 @@ msgstr "Användare {0} har inte behörighet att skapa Arbetsyta."
 msgid "User {0} has requested for data deletion"
 msgstr "Användare {0} begärde radering av data"
 
-#: core/doctype/user/user.py:1357
+#: core/doctype/user/user.py:1358
 msgid "User {0} impersonated as {1}"
 msgstr "Användare {0} efterliknade som {1}"
 
@@ -27257,7 +27258,7 @@ msgstr "Användare {0} är inaktiverad"
 msgid "User {0} is disabled. Please contact your System Manager."
 msgstr "Användare {0} är inaktiverad. Kontakta System Ansvarig."
 
-#: desk/form/assign_to.py:101
+#: desk/form/assign_to.py:103
 msgid "User {0} is not permitted to access this document."
 msgstr "Användare {0} har inte tillgång till detta dokument."
 
@@ -27273,7 +27274,7 @@ msgstr "Användare Info URI"
 msgid "Username"
 msgstr "Användare Namn"
 
-#: core/doctype/user/user.py:669
+#: core/doctype/user/user.py:670
 msgid "Username {0} already exists"
 msgstr "Användare Namn {0} finns redan"
 
@@ -28066,11 +28067,11 @@ msgstr "Välkommen URL"
 msgid "Welcome Workspace"
 msgstr "Välkommen Arbetsyta"
 
-#: core/doctype/user/user.py:365
+#: core/doctype/user/user.py:366
 msgid "Welcome email sent"
 msgstr "Välkomst E-post skickad"
 
-#: core/doctype/user/user.py:440
+#: core/doctype/user/user.py:441
 msgid "Welcome to {0}"
 msgstr "Välkommen till {0}"
 
@@ -28156,7 +28157,7 @@ msgstr "Kommer visas bara om sektion rubriker är aktiverade"
 msgid "Will run scheduled jobs only once a day for inactive sites. Default 4 days if set to 0."
 msgstr "Schemalagda jobb körs endast 1 gång/dag för inaktiva webbplatser. Standard är 4 dagar om den är angiven som 0."
 
-#: public/js/frappe/form/print_utils.js:13
+#: public/js/frappe/form/print_utils.js:15
 msgid "With Letter head"
 msgstr "Med Sidhuvud"
 
@@ -28544,11 +28545,11 @@ msgstr "Du är inte ansluten till nätverk. Försök igen senare."
 msgid "You are not permitted to access this page without login."
 msgstr "Du har inte behörighet att komma åt denna sida utan inloggning."
 
-#: www/app.py:23 www/apps.py:14
+#: www/app.py:23
 msgid "You are not permitted to access this page."
 msgstr "Du har inte behörighet att komma åt den här sidan."
 
-#: __init__.py:897
+#: __init__.py:904
 msgid "You are not permitted to access this resource."
 msgstr "Du har inte behörighet att komma åt denna resurs."
 
@@ -28845,7 +28846,7 @@ msgstr "Du måste vara i Utvecklarläge att redigera Standard Webb Formulär"
 msgid "You need to be logged in and have System Manager Role to be able to access backups."
 msgstr "Du måste vara inloggad och ha System Ansvarig roll för att kunna ha tillgång till säkerhetskopior."
 
-#: www/apps.py:11 www/me.py:13 www/third_party_apps.py:10
+#: www/me.py:13 www/third_party_apps.py:10
 msgid "You need to be logged in to access this page"
 msgstr "Du måste vara inloggad för att ha tillgång till den här sida"
 
@@ -28949,7 +28950,7 @@ msgstr "Ditt konto är raderad"
 msgid "Your account has been locked and will resume after {0} seconds"
 msgstr "Ditt konto är låst och kommer att låsas upp efter {0} sekunder"
 
-#: desk/form/assign_to.py:262
+#: desk/form/assign_to.py:264
 msgid "Your assignment on {0} {1} has been removed by {2}"
 msgstr "Din tilldelning {0} {1} togs bort av {2}"
 
@@ -29032,7 +29033,7 @@ msgstr "_doctype"
 msgid "_report"
 msgstr "_rapport"
 
-#: database/database.py:324
+#: database/database.py:317
 msgid "`as_iterator` only works with `as_list=True` or `as_dict=True`"
 msgstr "\"as_iterator\" fungerar bara med \"as_list=True\" eller \"as_dict=True\""
 
@@ -30361,7 +30362,7 @@ msgstr "varning-tecken"
 msgid "when clicked on element it will focus popover if present."
 msgstr "när du klickar på element fokuserar det popover om det finns."
 
-#: printing/page/print/print.js:619
+#: printing/page/print/print.js:622
 msgid "wkhtmltopdf 0.12.x (with patched qt)."
 msgstr "wkhtmltopdf 0.12.x (med patchad qt)."
 
@@ -30577,7 +30578,7 @@ msgstr "{0} är för närvarande {1}"
 msgid "{0} are required"
 msgstr "{0} erfodras"
 
-#: desk/form/assign_to.py:269
+#: desk/form/assign_to.py:271
 msgid "{0} assigned a new task {1} {2} to you"
 msgstr "{0} tilldelade dig ny uppgift {1} {2}"
 
@@ -30732,7 +30733,7 @@ msgstr "{0} är lagd till E-post Grupp."
 msgid "{0} has left the conversation in {1} {2}"
 msgstr "{0} har lämnat konversation i {1} {2}"
 
-#: __init__.py:2450
+#: __init__.py:2457
 msgid "{0} has no versions tracked."
 msgstr "{0} har inga spårade versioner."
 
@@ -30895,7 +30896,7 @@ msgstr "{0} är inom {1}"
 msgid "{0} items selected"
 msgstr "{0} artiklar valda"
 
-#: core/doctype/user/user.py:1366
+#: core/doctype/user/user.py:1367
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr "{0} efterliknade som du. De gav detta skäl: {1}"
 

@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-08-23 17:00+0000\n"
-"PO-Revision-Date: 2024-08-24 10:08\n"
+"POT-Creation-Date: 2024-09-02 18:21+0000\n"
+"PO-Revision-Date: 2024-09-03 18:01\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Arabic\n"
 "MIME-Version: 1.0\n"
@@ -122,7 +122,7 @@ msgstr "0 - مسودّة؛ 1 - تأكيد؛ 2 - إلغاء"
 msgid "0 is highest"
 msgstr "0 أعلى قيمة"
 
-#: public/js/frappe/form/grid_row.js:807
+#: public/js/frappe/form/grid_row.js:797
 msgid "1 = True & 0 = False"
 msgstr ""
 
@@ -1104,7 +1104,7 @@ msgstr ""
 msgid "Add Review"
 msgstr "إضافة مراجعة"
 
-#: core/doctype/user/user.py:789
+#: core/doctype/user/user.py:790
 msgid "Add Roles"
 msgstr ""
 
@@ -1283,7 +1283,7 @@ msgstr "تمت الإضافة {0}"
 msgid "Added {0} ({1})"
 msgstr "وأضاف {0} ({1})"
 
-#: core/doctype/user/user.py:271
+#: core/doctype/user/user.py:272
 msgid "Adding System Manager to this User as there must be atleast one System Manager"
 msgstr "لابد من إضافة صلاحية مدير النظام لهذا المستخدم حيث لابد أن يكون هناك على الأقل مستخدم له هذه الصلاحية"
 
@@ -1387,11 +1387,11 @@ msgstr "الادارة"
 msgid "Administrator"
 msgstr "مدير"
 
-#: core/doctype/user/user.py:1194
+#: core/doctype/user/user.py:1195
 msgid "Administrator Logged In"
 msgstr "تسجيل دخول مسؤول النظام"
 
-#: core/doctype/user/user.py:1188
+#: core/doctype/user/user.py:1189
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr ".{2} المسؤول ولج  {0} بتاريخ {1} عبر العنوان"
 
@@ -1840,11 +1840,11 @@ msgstr ""
 msgid "Allowing DocType, DocType. Be careful!"
 msgstr "السماح DOCTYPE ، DOCTYPE . كن حذرا!"
 
-#: core/doctype/user/user.py:998
+#: core/doctype/user/user.py:999
 msgid "Already Registered"
 msgstr "مسجل بالفعل"
 
-#: desk/form/assign_to.py:134
+#: desk/form/assign_to.py:136
 msgid "Already in the following Users ToDo list:{0}"
 msgstr "بالفعل في قائمة &quot;المهام للمستخدمين&quot; التالية: {0}"
 
@@ -2050,7 +2050,7 @@ msgstr "المفتاح السري للتطبيق"
 msgid "App not found for module: {0}"
 msgstr ""
 
-#: __init__.py:1754
+#: __init__.py:1761
 msgid "App {0} is not installed"
 msgstr "لم يتم تثبيت التطبيق {0}"
 
@@ -2190,6 +2190,7 @@ msgstr "الموافقة مطلوبة"
 #. Label of a standard navbar item
 #. Type: Route
 #: hooks.py templates/includes/navbar/navbar_login.html:18
+#: website/js/website.js:617
 msgid "Apps"
 msgstr ""
 
@@ -2301,7 +2302,7 @@ msgstr ""
 msgid "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User."
 msgstr ""
 
-#: desk/form/assign_to.py:104
+#: desk/form/assign_to.py:106
 msgid "As document sharing is disabled, please give them the required permissions before assigning."
 msgstr ""
 
@@ -2436,7 +2437,7 @@ msgstr "قواعد الاحالة"
 msgid "Assignment Update on {0}"
 msgstr "تحديث الواجب بتاريخ {0}"
 
-#: desk/form/assign_to.py:75
+#: desk/form/assign_to.py:61
 msgid "Assignment for {0} {1}"
 msgstr "تعيين لـ {0} {1}"
 
@@ -2577,11 +2578,11 @@ msgstr "تم حذف المرفق"
 msgid "Attachments"
 msgstr "المرفقات"
 
-#: public/js/frappe/form/print_utils.js:89
+#: public/js/frappe/form/print_utils.js:91
 msgid "Attempting Connection to QZ Tray..."
 msgstr "محاولة الاتصال بـ QZ Tray ..."
 
-#: public/js/frappe/form/print_utils.js:105
+#: public/js/frappe/form/print_utils.js:107
 msgid "Attempting to launch QZ Tray..."
 msgstr "محاولة إطلاق QZ Tray ..."
 
@@ -3689,7 +3690,7 @@ msgstr ""
 msgid "Cache"
 msgstr ""
 
-#: sessions.py:33
+#: sessions.py:32
 msgid "Cache Cleared"
 msgstr "تحديث الصفحة"
 
@@ -4034,7 +4035,7 @@ msgstr ""
 msgid "Cannot get file contents of a Folder"
 msgstr ""
 
-#: printing/page/print/print.js:842
+#: printing/page/print/print.js:845
 msgid "Cannot have multiple printers mapped to a single print format."
 msgstr "لا يمكن تعيين طابعات متعددة على تنسيق طباعة واحد."
 
@@ -4952,7 +4953,7 @@ msgstr "أكمال"
 msgid "Complete By"
 msgstr "الكامل من جانب"
 
-#: core/doctype/user/user.py:442 templates/emails/new_user.html:10
+#: core/doctype/user/user.py:443 templates/emails/new_user.html:10
 msgid "Complete Registration"
 msgstr "أكمال التسجيل"
 
@@ -5131,8 +5132,8 @@ msgstr ""
 msgid "Connected User"
 msgstr ""
 
-#: public/js/frappe/form/print_utils.js:95
-#: public/js/frappe/form/print_utils.js:119
+#: public/js/frappe/form/print_utils.js:97
+#: public/js/frappe/form/print_utils.js:121
 msgid "Connected to QZ Tray!"
 msgstr "متصلا علبة QZ!"
 
@@ -5356,7 +5357,7 @@ msgstr "لا يمكن تخصيص DocTypes الأساسية."
 msgid "Core Modules {0} cannot be searched in Global Search."
 msgstr "لا يمكن البحث عن الوحدات الأساسية {0} في البحث العالمي."
 
-#: printing/page/print/print.js:617
+#: printing/page/print/print.js:620
 msgid "Correct version :"
 msgstr ""
 
@@ -8198,7 +8199,7 @@ msgstr ""
 msgid "Email Account Name"
 msgstr "البريد الإلكتروني اسم الحساب"
 
-#: core/doctype/user/user.py:718
+#: core/doctype/user/user.py:719
 msgid "Email Account added multiple times"
 msgstr "تمت إضافة حساب البريد الإلكتروني عدة مرات"
 
@@ -8890,7 +8891,7 @@ msgstr ""
 msgid "Error Message"
 msgstr "رسالة خطأ"
 
-#: public/js/frappe/form/print_utils.js:126
+#: public/js/frappe/form/print_utils.js:128
 msgid "Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Click here to Download and install QZ Tray</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Click here to learn more about Raw Printing</a>."
 msgstr "خطأ في الاتصال بـ QZ Tray Application ... <br><br> تحتاج إلى تثبيت تطبيق QZ Tray وتشغيله لاستخدام ميزة Raw Print. <br><br> <a href=\"https://qz.io/download/\" target=\"_blank\">انقر هنا لتنزيل وتثبيت QZ Tray</a> . <br> <a href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\" target=\"_blank\">انقر هنا لمعرفة المزيد عن الطباعة الخام</a> ."
 
@@ -9382,7 +9383,7 @@ msgstr ""
 msgid "Failed to import virtual doctype {}, is controller file present?"
 msgstr ""
 
-#: utils/image.py:74
+#: utils/image.py:76
 msgid "Failed to optimize image: {0}"
 msgstr ""
 
@@ -9569,7 +9570,7 @@ msgstr "حقل لتعقب"
 msgid "Field type cannot be changed for {0}"
 msgstr "لا يمكن تغيير نوع الحقل ل {0}"
 
-#: database/database.py:848
+#: database/database.py:841
 msgid "Field {0} does not exist on {1}"
 msgstr ""
 
@@ -10539,7 +10540,7 @@ msgstr "وظيفة"
 msgid "Function Based On"
 msgstr "وظيفة على أساس"
 
-#: __init__.py:898
+#: __init__.py:905
 msgid "Function {0} is not whitelisted."
 msgstr ""
 
@@ -12149,7 +12150,7 @@ msgstr "في المعاينة"
 msgid "In Progress"
 msgstr "في تَقَدم"
 
-#: database/database.py:250
+#: database/database.py:243
 msgid "In Read Only Mode"
 msgstr ""
 
@@ -12564,7 +12565,7 @@ msgstr ""
 msgid "Invalid"
 msgstr "غير صالحة"
 
-#: public/js/form_builder/utils.js:221 public/js/frappe/form/grid_row.js:769
+#: public/js/form_builder/utils.js:221 public/js/frappe/form/grid_row.js:759
 #: public/js/frappe/form/layout.js:785
 msgid "Invalid \"depends_on\" expression"
 msgstr "تعبير &quot;under_on&quot; غير صالح"
@@ -12665,7 +12666,7 @@ msgstr "تنسيق الإخراج غير صالح"
 msgid "Invalid Parameters."
 msgstr ""
 
-#: core/doctype/user/user.py:1209 www/update-password.html:121
+#: core/doctype/user/user.py:1210 www/update-password.html:121
 #: www/update-password.html:142 www/update-password.html:144
 #: www/update-password.html:245
 msgid "Invalid Password"
@@ -12789,7 +12790,7 @@ msgctxt "Error message in web form"
 msgid "Invalid values for fields:"
 msgstr ""
 
-#: printing/page/print/print.js:611
+#: printing/page/print/print.js:614
 msgid "Invalid wkhtmltopdf version"
 msgstr ""
 
@@ -13462,7 +13463,7 @@ msgstr "التسمية إلزامية"
 msgid "Landing Page"
 msgstr "الصفحة المقصودة"
 
-#: public/js/frappe/form/print_utils.js:28
+#: public/js/frappe/form/print_utils.js:30
 msgid "Landscape"
 msgstr "المناظر الطبيعيه"
 
@@ -13758,7 +13759,7 @@ msgstr "رسالة"
 #. Name of a DocType
 #: core/doctype/report/report.json
 #: printing/doctype/letter_head/letter_head.json
-#: printing/page/print/print.js:127 public/js/frappe/form/print_utils.js:18
+#: printing/page/print/print.js:127 public/js/frappe/form/print_utils.js:20
 #: public/js/frappe/form/templates/print_layout.html:16
 #: public/js/frappe/list/bulk_operations.js:52
 #: public/js/print_format_builder/LetterHeadEditor.vue:144
@@ -14358,7 +14359,7 @@ msgid "Login with {0}"
 msgstr ""
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
-#: core/doctype/activity_log/activity_log.json www/apps.html:46
+#: core/doctype/activity_log/activity_log.json www/apps.html:59
 msgid "Logout"
 msgstr "خروج"
 
@@ -14840,7 +14841,7 @@ msgstr "الدمج مسموح فقط بين مجموعة ومجموعة أو ف�
 msgid "Message"
 msgstr "رسالة"
 
-#: __init__.py:582 public/js/frappe/ui/messages.js:267
+#: __init__.py:589 public/js/frappe/ui/messages.js:267
 msgctxt "Default title of the message dialog"
 msgid "Message"
 msgstr "رسالة"
@@ -14960,7 +14961,7 @@ msgstr "عنوان Meta لـ SEO"
 msgid "Method"
 msgstr "طريقة"
 
-#: __init__.py:900
+#: __init__.py:907
 msgid "Method Not Allowed"
 msgstr ""
 
@@ -15036,7 +15037,7 @@ msgstr "حقول مفقودة"
 msgid "Missing Filters Required"
 msgstr ""
 
-#: desk/form/assign_to.py:107
+#: desk/form/assign_to.py:109
 msgid "Missing Permission"
 msgstr ""
 
@@ -15288,7 +15289,7 @@ msgstr "المزيد من المقالات حول {0}"
 msgid "More content for the bottom of the page."
 msgstr "المزيد من المحتوى لأسفل الصفحة."
 
-#: public/js/frappe/ui/sort_selector.js:193
+#: public/js/frappe/ui/sort_selector.js:191
 msgid "Most Used"
 msgstr "الأكثر استخداما"
 
@@ -15780,7 +15781,7 @@ msgstr "جديد {0}: {1}"
 msgid "New {} releases for the following apps are available"
 msgstr "تتوفر {} إصدارات جديدة للتطبيقات التالية"
 
-#: core/doctype/user/user.py:785
+#: core/doctype/user/user.py:786
 msgid "Newly created user {0} has no roles enabled."
 msgstr ""
 
@@ -15830,7 +15831,7 @@ msgstr "النشرات الإخبارية"
 #: public/js/frappe/web_form/web_form.js:91
 #: public/js/onboarding_tours/onboarding_tours.js:15
 #: public/js/onboarding_tours/onboarding_tours.js:240
-#: templates/includes/slideshow.html:38 website/utils.py:247
+#: templates/includes/slideshow.html:38 website/utils.py:253
 #: website/web_template/slideshow/slideshow.html:44
 msgid "Next"
 msgstr "التالي"
@@ -16007,7 +16008,7 @@ msgstr "لم يتم العثور على مستخدم LDAP للبريد الإل�
 msgid "No Label"
 msgstr ""
 
-#: printing/page/print/print.js:700 printing/page/print/print.js:782
+#: printing/page/print/print.js:703 printing/page/print/print.js:785
 #: public/js/frappe/list/bulk_operations.js:98
 #: public/js/frappe/list/bulk_operations.js:170 utils/weasyprint.py:52
 msgid "No Letterhead"
@@ -16041,11 +16042,11 @@ msgstr "لا توجد مخططات مسموح بها في لوحة المعلو�
 msgid "No Preview"
 msgstr ""
 
-#: printing/page/print/print.js:704
+#: printing/page/print/print.js:707
 msgid "No Preview Available"
 msgstr ""
 
-#: printing/page/print/print.js:860
+#: printing/page/print/print.js:863
 msgid "No Printer is Available."
 msgstr "لا يوجد طابعة متاحة."
 
@@ -16061,7 +16062,7 @@ msgstr "لا يوجد نتائج"
 msgid "No Results found"
 msgstr ""
 
-#: core/doctype/user/user.py:786
+#: core/doctype/user/user.py:787
 msgid "No Roles Specified"
 msgstr ""
 
@@ -16206,7 +16207,7 @@ msgstr "عدد الأعمدة"
 msgid "No of Rows (Max 500)"
 msgstr "عدد الصفوف (بحد أقصى 500)"
 
-#: __init__.py:1089 client.py:109 client.py:151
+#: __init__.py:1096 client.py:109 client.py:151
 msgid "No permission for {0}"
 msgstr "لا يوجد صلاحية لـ {0}<br>No permission for {0}"
 
@@ -16305,7 +16306,7 @@ msgstr ""
 msgid "Normalized Query"
 msgstr ""
 
-#: core/doctype/user/user.py:993 templates/includes/login/login.js:258
+#: core/doctype/user/user.py:994 templates/includes/login/login.js:258
 #: utils/oauth.py:266
 msgid "Not Allowed"
 msgstr "غير مسموح"
@@ -16347,7 +16348,7 @@ msgstr "لا تعجبني"
 msgid "Not Linked to any record"
 msgstr "غير مرتبط بأي سجل"
 
-#: __init__.py:982 app.py:357 desk/calendar.py:26 desk/treeview.py:19
+#: __init__.py:989 app.py:357 desk/calendar.py:26 desk/treeview.py:19
 #: geo/utils.py:97 public/js/frappe/web_form/webform_script.js:15
 #: website/doctype/web_form/web_form.py:601
 #: website/page_renderers/not_permitted_page.py:20 www/login.py:182
@@ -16399,7 +16400,7 @@ msgstr "غير محدد"
 msgid "Not a valid Comma Separated Value (CSV File)"
 msgstr "ليس صالحا القيمة المفصولة بفواصل ( CSV ملف)"
 
-#: core/doctype/user/user.py:198
+#: core/doctype/user/user.py:199
 msgid "Not a valid User Image."
 msgstr "ليست صورة مستخدم صالحة."
 
@@ -17038,7 +17039,7 @@ msgstr ""
 msgid "Only standard DocTypes are allowed to be customized from Customize Form."
 msgstr "يُسمح بتخصيص أنواع DocTypes القياسية فقط من تخصيص النموذج."
 
-#: desk/form/assign_to.py:181
+#: desk/form/assign_to.py:183
 msgid "Only the assignee can complete this to-do."
 msgstr ""
 
@@ -17277,7 +17278,7 @@ msgstr "تاريخ المنظمة"
 msgid "Org History Heading"
 msgstr "عنوان تاريخ المنظمة"
 
-#: public/js/frappe/form/print_utils.js:26
+#: public/js/frappe/form/print_utils.js:28
 msgid "Orientation"
 msgstr "توجيه"
 
@@ -17390,11 +17391,11 @@ msgstr "فشل توليد قوات الدفاع الشعبي"
 msgid "PDF generation failed because of broken image links"
 msgstr "فشل الجيل PDF بسبب الروابط صورة مكسورة"
 
-#: printing/page/print/print.js:613
+#: printing/page/print/print.js:616
 msgid "PDF generation may not work as expected."
 msgstr ""
 
-#: printing/page/print/print.js:531
+#: printing/page/print/print.js:534
 msgid "PDF printing via \"Raw Print\" is not supported."
 msgstr ""
 
@@ -17703,11 +17704,11 @@ msgstr "غير فعال"
 msgid "Password"
 msgstr "كلمة السر"
 
-#: core/doctype/user/user.py:1056
+#: core/doctype/user/user.py:1057
 msgid "Password Email Sent"
 msgstr ""
 
-#: core/doctype/user/user.py:422
+#: core/doctype/user/user.py:423
 msgid "Password Reset"
 msgstr "إعادة تعيين كلمة المرور"
 
@@ -17716,7 +17717,7 @@ msgstr "إعادة تعيين كلمة المرور"
 msgid "Password Reset Link Generation Limit"
 msgstr "حد إنشاء ارتباط إعادة تعيين كلمة المرور"
 
-#: public/js/frappe/form/grid_row.js:811
+#: public/js/frappe/form/grid_row.js:801
 msgid "Password cannot be filtered"
 msgstr ""
 
@@ -17741,7 +17742,7 @@ msgstr ""
 msgid "Password not found for {0} {1} {2}"
 msgstr ""
 
-#: core/doctype/user/user.py:1055
+#: core/doctype/user/user.py:1056
 msgid "Password reset instructions have been sent to your email"
 msgstr "تم إرسال إرشادات إعادة تعيين كلمة السر إلى بريدك الإلكتروني"
 
@@ -17753,7 +17754,7 @@ msgstr ""
 msgid "Password size exceeded the maximum allowed size"
 msgstr ""
 
-#: core/doctype/user/user.py:849
+#: core/doctype/user/user.py:850
 msgid "Password size exceeded the maximum allowed size."
 msgstr ""
 
@@ -18047,7 +18048,7 @@ msgstr "رقم الهاتف"
 msgid "Phone Number {0} set in field {1} is not valid."
 msgstr ""
 
-#: public/js/frappe/form/print_utils.js:38
+#: public/js/frappe/form/print_utils.js:40
 #: public/js/frappe/views/reports/report_view.js:1503
 #: public/js/frappe/views/reports/report_view.js:1506
 msgid "Pick Columns"
@@ -18108,7 +18109,7 @@ msgstr "الرجاء إضافة موضوع إلى بريدك الإلكترون�
 msgid "Please add a valid comment."
 msgstr "الرجاء إضافة تعليق صالح."
 
-#: core/doctype/user/user.py:1038
+#: core/doctype/user/user.py:1039
 msgid "Please ask your administrator to verify your sign-up"
 msgstr "الرجاء اطلب من المشرف التأكد من تسجيلك"
 
@@ -18140,7 +18141,7 @@ msgstr "يرجى التحقق من قيم المرشح المحددة لمخطط
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr "يرجى التحقق من قيمة مجموعة &quot;الجلب من&quot; للحقل {0}"
 
-#: core/doctype/user/user.py:1036
+#: core/doctype/user/user.py:1037
 msgid "Please check your email for verification"
 msgstr "يرجى التحقق من بريدك الالكتروني للتحقق"
 
@@ -18168,7 +18169,7 @@ msgstr "الرجاء إغلاق هذه النافذة"
 msgid "Please confirm your action to {0} this document."
 msgstr "يرجى تأكيد الإجراء الخاص بك إلى {0} هذا المستند."
 
-#: printing/page/print/print.js:615
+#: printing/page/print/print.js:618
 msgid "Please contact your system manager to install correct version."
 msgstr ""
 
@@ -18198,7 +18199,7 @@ msgstr ""
 
 #: desk/doctype/notification_log/notification_log.js:45
 #: email/doctype/auto_email_report/auto_email_report.js:17
-#: printing/page/print/print.js:635 printing/page/print/print.js:665
+#: printing/page/print/print.js:638 printing/page/print/print.js:668
 #: public/js/frappe/list/bulk_operations.js:161
 #: public/js/frappe/utils/utils.js:1437
 msgid "Please enable pop-ups"
@@ -18289,7 +18290,7 @@ msgstr "يرجى التأكد من أن وثائق الاتصال المرجعي
 msgid "Please refresh to get the latest document."
 msgstr "يرجى تحديث للحصول على أحدث وثيقة."
 
-#: printing/page/print/print.js:532
+#: printing/page/print/print.js:535
 msgid "Please remove the printer mapping in Printer Settings and try again."
 msgstr ""
 
@@ -18391,7 +18392,7 @@ msgstr ""
 msgid "Please set Email Address"
 msgstr "يرجى وضع عنوان البريد الإلكتروني"
 
-#: printing/page/print/print.js:546
+#: printing/page/print/print.js:549
 msgid "Please set a printer mapping for this print format in the Printer Settings"
 msgstr "يرجى تعيين تعيين طابعة لتنسيق الطباعة هذا في &quot;إعدادات الطابعة&quot;"
 
@@ -18427,11 +18428,11 @@ msgstr "يرجى إعداد رسالة أولاً"
 msgid "Please setup default Email Account from Settings > Email Account"
 msgstr ""
 
-#: core/doctype/user/user.py:373
+#: core/doctype/user/user.py:374
 msgid "Please setup default outgoing Email Account from Settings > Email Account"
 msgstr ""
 
-#: public/js/frappe/model/model.js:802
+#: public/js/frappe/model/model.js:803
 msgid "Please specify"
 msgstr "رجاء حدد"
 
@@ -18532,7 +18533,7 @@ msgstr "بوابة عنصر القائمة"
 msgid "Portal Settings"
 msgstr "إعدادات البوابة"
 
-#: public/js/frappe/form/print_utils.js:29
+#: public/js/frappe/form/print_utils.js:31
 msgid "Portrait"
 msgstr "صورة"
 
@@ -18796,7 +18797,7 @@ msgstr "طباعة الوثائق"
 #: core/doctype/doctype/doctype.json core/doctype/module_def/module_def.json
 #: core/workspace/build/build.json email/doctype/notification/notification.json
 #: printing/doctype/print_format/print_format.json
-#: printing/page/print/print.js:94 printing/page/print/print.js:819
+#: printing/page/print/print.js:94 printing/page/print/print.js:822
 #: public/js/frappe/list/bulk_operations.js:59
 #: website/doctype/web_form/web_form.json
 msgid "Print Format"
@@ -18881,7 +18882,7 @@ msgstr "طباعة إخفاء إذا لا قيمة"
 msgid "Print Language"
 msgstr "لغة الطباعة"
 
-#: public/js/frappe/form/print_utils.js:195
+#: public/js/frappe/form/print_utils.js:197
 msgid "Print Sent to the printer!"
 msgstr "طباعة المرسلة إلى الطابعة!"
 
@@ -18897,7 +18898,7 @@ msgstr "ملقم الطباعة"
 #: email/doctype/notification/notification.json
 #: printing/doctype/print_settings/print_settings.json
 #: printing/doctype/print_style/print_style.js:6
-#: printing/page/print/print.js:160 public/js/frappe/form/print_utils.js:69
+#: printing/page/print/print.js:160 public/js/frappe/form/print_utils.js:71
 #: public/js/frappe/form/templates/print_layout.html:35
 msgid "Print Settings"
 msgstr "إعدادات الطباعة"
@@ -18944,11 +18945,11 @@ msgstr ""
 msgid "Print with letterhead"
 msgstr "طباعة مع ترويسة"
 
-#: printing/page/print/print.js:828
+#: printing/page/print/print.js:831
 msgid "Printer"
 msgstr "طابعة"
 
-#: printing/page/print/print.js:805
+#: printing/page/print/print.js:808
 msgid "Printer Mapping"
 msgstr "تعيين الطابعة"
 
@@ -18957,11 +18958,11 @@ msgstr "تعيين الطابعة"
 msgid "Printer Name"
 msgstr "اسم الطابعة"
 
-#: printing/page/print/print.js:797
+#: printing/page/print/print.js:800
 msgid "Printer Settings"
 msgstr "إعدادات الطابعة"
 
-#: printing/page/print/print.js:545
+#: printing/page/print/print.js:548
 msgid "Printer mapping not set."
 msgstr ""
 
@@ -19245,7 +19246,7 @@ msgstr "رمز الاستجابة السريعة"
 msgid "QR Code for Login Verification"
 msgstr "رمز الاستجابة السريعة لتسجيل الدخول"
 
-#: public/js/frappe/form/print_utils.js:204
+#: public/js/frappe/form/print_utils.js:206
 msgid "QZ Tray Failed: "
 msgstr "فشل علبة QZ:"
 
@@ -19744,7 +19745,7 @@ msgstr ""
 msgid "Redirects"
 msgstr ""
 
-#: sessions.py:145
+#: sessions.py:146
 msgid "Redis cache server not running. Please contact Administrator / Tech support"
 msgstr "مخبأ خادم رديس يست قيد التشغيل. الرجاء الاتصال بمسؤول / الدعم الفني"
 
@@ -19995,7 +19996,7 @@ msgstr ""
 msgid "Refreshing..."
 msgstr "يحديث ..."
 
-#: core/doctype/user/user.py:1000
+#: core/doctype/user/user.py:1001
 msgid "Registered but disabled"
 msgstr "سجل لكن المعوقين"
 
@@ -20910,7 +20911,7 @@ msgstr "الملف الشخصي"
 msgid "Role and Level"
 msgstr "مستوى الصلاحية"
 
-#: core/doctype/user/user.py:314
+#: core/doctype/user/user.py:315
 msgid "Role has been set as per the user type {0}"
 msgstr ""
 
@@ -21294,7 +21295,7 @@ msgstr "السبت"
 #: core/doctype/data_import/data_import.js:113
 #: desk/page/user_profile/user_profile_controller.js:319
 #: email/doctype/notification/notification.json
-#: printing/page/print/print.js:856
+#: printing/page/print/print.js:859
 #: printing/page/print_format_builder/print_format_builder.js:160
 #: public/js/frappe/form/footer/form_timeline.js:663
 #: public/js/frappe/form/quick_entry.js:161
@@ -21770,7 +21771,7 @@ msgstr "ينظر من خلال الجدول"
 #: core/doctype/report_filter/report_filter.json
 #: custom/doctype/custom_field/custom_field.json
 #: custom/doctype/customize_form_field/customize_form_field.json
-#: printing/page/print/print.js:599
+#: printing/page/print/print.js:602
 #: website/doctype/web_form_field/web_form_field.json
 #: website/doctype/web_template_field/web_template_field.json
 msgid "Select"
@@ -21798,7 +21799,7 @@ msgid "Select Column"
 msgstr "حدد العمود"
 
 #: printing/page/print_format_builder/print_format_builder_field.html:41
-#: public/js/frappe/form/print_utils.js:43
+#: public/js/frappe/form/print_utils.js:45
 msgid "Select Columns"
 msgstr "تحديد الأعمدة"
 
@@ -21911,7 +21912,7 @@ msgstr "حدد إلزامية"
 msgid "Select Module"
 msgstr "اختر وحدة"
 
-#: printing/page/print/print.js:175 printing/page/print/print.js:582
+#: printing/page/print/print.js:175 printing/page/print/print.js:585
 msgid "Select Network Printer"
 msgstr ""
 
@@ -22737,7 +22738,7 @@ msgstr "مشاركة {0} مع"
 msgid "Shared"
 msgstr "مشتركة"
 
-#: desk/form/assign_to.py:129
+#: desk/form/assign_to.py:131
 msgid "Shared with the following Users with Read access:{0}"
 msgstr "مشترك مع المستخدمين التاليين الذين لهم حق الوصول للقراءة: {0}"
 
@@ -23081,7 +23082,7 @@ msgstr "الشريط الجانبي وتعليقات"
 msgid "Sign Up and Confirmation"
 msgstr ""
 
-#: core/doctype/user/user.py:993
+#: core/doctype/user/user.py:994
 msgid "Sign Up is disabled"
 msgstr "تم تعطيل الاشتراك"
 
@@ -23149,7 +23150,7 @@ msgstr "لا يمكن تخصيص DocTypes مفردة."
 msgid "Single Types have only one record no tables associated. Values are stored in tabSingles"
 msgstr "أنواع واحد يكون سجل واحد فقط لا الجداول المرتبطة . يتم تخزين القيم في tabSingles"
 
-#: database/database.py:247
+#: database/database.py:240
 msgid "Site is running in read only mode for maintenance or site update, this action can not be performed right now. Please try again later."
 msgstr ""
 
@@ -24083,7 +24084,7 @@ msgstr ""
 msgid "Suggested Indexes"
 msgstr ""
 
-#: core/doctype/user/user.py:702
+#: core/doctype/user/user.py:703
 msgid "Suggested Username: {0}"
 msgstr "اسم المستخدم اقترح: {0}"
 
@@ -24594,7 +24595,7 @@ msgstr "تحذيرات القالب"
 msgid "Templates"
 msgstr ""
 
-#: core/doctype/user/user.py:1004
+#: core/doctype/user/user.py:1005
 msgid "Temporarily Disabled"
 msgstr "موقوف مؤقتا"
 
@@ -24732,7 +24733,7 @@ msgid "The browser API key obtained from the Google Cloud Console under <a href=
 "</a>"
 msgstr ""
 
-#: database/database.py:435
+#: database/database.py:428
 msgid "The changes have been reverted."
 msgstr ""
 
@@ -24847,11 +24848,11 @@ msgid "The project number obtained from Google Cloud Console under <a href=\"htt
 "</a>"
 msgstr ""
 
-#: core/doctype/user/user.py:964
+#: core/doctype/user/user.py:965
 msgid "The reset password link has been expired"
 msgstr ""
 
-#: core/doctype/user/user.py:966
+#: core/doctype/user/user.py:967
 msgid "The reset password link has either been used before or is invalid"
 msgstr ""
 
@@ -24969,7 +24970,7 @@ msgstr ""
 msgid "There must be atleast one permission rule."
 msgstr "يجب أن يكون هناك على الأقل قاعدة إذن واحد."
 
-#: core/doctype/user/user.py:503
+#: core/doctype/user/user.py:504
 msgid "There should remain at least one System Manager"
 msgstr "يجب أن يظل هناك مدير نظام واحد على الأقل"
 
@@ -25047,7 +25048,7 @@ msgstr "وهذا المجلس كانبان يكون القطاع الخاص"
 msgid "This action is irreversible. Do you wish to continue?"
 msgstr ""
 
-#: __init__.py:978
+#: __init__.py:985
 msgid "This action is only allowed for {}"
 msgstr "هذا الإجراء مسموح به فقط لـ {}"
 
@@ -25278,7 +25279,7 @@ msgstr ""
 msgid "This will terminate the job immediately and might be dangerous, are you sure? "
 msgstr ""
 
-#: core/doctype/user/user.py:1223
+#: core/doctype/user/user.py:1224
 msgid "Throttled"
 msgstr "مخنوق"
 
@@ -25734,11 +25735,11 @@ msgstr ""
 msgid "Too Many Requests"
 msgstr "طلبات كثيرة جدا"
 
-#: database/database.py:434
+#: database/database.py:427
 msgid "Too many changes to database in single action."
 msgstr ""
 
-#: core/doctype/user/user.py:1005
+#: core/doctype/user/user.py:1006
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr "وقعت الكثير من المستخدمين في الآونة الأخيرة، وذلك هو تعطيل التسجيل. يرجى المحاولة مرة أخرى في ساعة"
 
@@ -26994,15 +26995,15 @@ msgstr ""
 msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
 msgstr ""
 
-#: core/doctype/user/user.py:508
+#: core/doctype/user/user.py:509
 msgid "User {0} cannot be deleted"
 msgstr "المستخدم {0} لا يمكن حذف"
 
-#: core/doctype/user/user.py:243
+#: core/doctype/user/user.py:244
 msgid "User {0} cannot be disabled"
 msgstr "المستخدم {0} لا يمكن تعطيل"
 
-#: core/doctype/user/user.py:590
+#: core/doctype/user/user.py:591
 msgid "User {0} cannot be renamed"
 msgstr "المستخدم {0} لا يمكن إعادة تسمية"
 
@@ -27023,7 +27024,7 @@ msgstr ""
 msgid "User {0} has requested for data deletion"
 msgstr "طلب المستخدم {0} حذف البيانات"
 
-#: core/doctype/user/user.py:1357
+#: core/doctype/user/user.py:1358
 msgid "User {0} impersonated as {1}"
 msgstr ""
 
@@ -27035,7 +27036,7 @@ msgstr "المستخدم {0} تم تعطيل"
 msgid "User {0} is disabled. Please contact your System Manager."
 msgstr ""
 
-#: desk/form/assign_to.py:101
+#: desk/form/assign_to.py:103
 msgid "User {0} is not permitted to access this document."
 msgstr ""
 
@@ -27051,7 +27052,7 @@ msgstr ""
 msgid "Username"
 msgstr "اسم االمستخدم"
 
-#: core/doctype/user/user.py:669
+#: core/doctype/user/user.py:670
 msgid "Username {0} already exists"
 msgstr "اسم المستخدم {0} موجود بالفعل"
 
@@ -27844,11 +27845,11 @@ msgstr ""
 msgid "Welcome Workspace"
 msgstr ""
 
-#: core/doctype/user/user.py:365
+#: core/doctype/user/user.py:366
 msgid "Welcome email sent"
 msgstr "رسالة الترحيب تم أرسالها"
 
-#: core/doctype/user/user.py:440
+#: core/doctype/user/user.py:441
 msgid "Welcome to {0}"
 msgstr "أهلا وسهلا بك إلى {0}"
 
@@ -27934,7 +27935,7 @@ msgstr "سيتم عرض فقط إذا تم تمكين عناوين المقطع"
 msgid "Will run scheduled jobs only once a day for inactive sites. Default 4 days if set to 0."
 msgstr "سيتم تشغيل المهام المجدولة مرة واحدة فقط يوميًا للمواقع غير النشطة. الافتراضي 4 أيام إذا تم تعيينه على 0."
 
-#: public/js/frappe/form/print_utils.js:13
+#: public/js/frappe/form/print_utils.js:15
 msgid "With Letter head"
 msgstr "مع رئيس رسالة"
 
@@ -28322,11 +28323,11 @@ msgstr "أنت غير متصل بالإنترنت. أعد المحاولة بع�
 msgid "You are not permitted to access this page without login."
 msgstr ""
 
-#: www/app.py:23 www/apps.py:14
+#: www/app.py:23
 msgid "You are not permitted to access this page."
 msgstr "لا يسمح لك بالوصول إلى هذه الصفحة."
 
-#: __init__.py:897
+#: __init__.py:904
 msgid "You are not permitted to access this resource."
 msgstr ""
 
@@ -28623,7 +28624,7 @@ msgstr "عليك أن تكون في وضع المطور لتعديل نموذج 
 msgid "You need to be logged in and have System Manager Role to be able to access backups."
 msgstr "يتوجب عليك تسجيل الدخول بصلاحية مدير النظام حتي تتمكن من الوصول الى النسخ الأحتياطية."
 
-#: www/apps.py:11 www/me.py:13 www/third_party_apps.py:10
+#: www/me.py:13 www/third_party_apps.py:10
 msgid "You need to be logged in to access this page"
 msgstr "تحتاج إلى تسجيل الدخول للوصول إلى هذه الصفحة"
 
@@ -28727,7 +28728,7 @@ msgstr ""
 msgid "Your account has been locked and will resume after {0} seconds"
 msgstr "تم قفل حسابك وسيتم استئنافه بعد {0} ثانية"
 
-#: desk/form/assign_to.py:262
+#: desk/form/assign_to.py:264
 msgid "Your assignment on {0} {1} has been removed by {2}"
 msgstr "تمت إزالة واجبك في {0} {1} بواسطة {2}"
 
@@ -28810,7 +28811,7 @@ msgstr ""
 msgid "_report"
 msgstr "_تقرير"
 
-#: database/database.py:324
+#: database/database.py:317
 msgid "`as_iterator` only works with `as_list=True` or `as_dict=True`"
 msgstr ""
 
@@ -30139,7 +30140,7 @@ msgstr "علامة إنذار"
 msgid "when clicked on element it will focus popover if present."
 msgstr ""
 
-#: printing/page/print/print.js:619
+#: printing/page/print/print.js:622
 msgid "wkhtmltopdf 0.12.x (with patched qt)."
 msgstr ""
 
@@ -30355,7 +30356,7 @@ msgstr "{0} حاليًا {1}"
 msgid "{0} are required"
 msgstr "{0} مطلوبة"
 
-#: desk/form/assign_to.py:269
+#: desk/form/assign_to.py:271
 msgid "{0} assigned a new task {1} {2} to you"
 msgstr "{0} خصص مهمة جديدة {1} {2} لك"
 
@@ -30510,7 +30511,7 @@ msgstr "{0}  تم بنجاح الإضافة إلى مجموعة البريد ا�
 msgid "{0} has left the conversation in {1} {2}"
 msgstr "{0} تركت محادثة في {1} {2}"
 
-#: __init__.py:2450
+#: __init__.py:2457
 msgid "{0} has no versions tracked."
 msgstr "{0} لا يحتوي على إصدارات متعقبة."
 
@@ -30673,7 +30674,7 @@ msgstr ""
 msgid "{0} items selected"
 msgstr "{0} العناصر المحددة"
 
-#: core/doctype/user/user.py:1366
+#: core/doctype/user/user.py:1367
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr ""
 

@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-08-23 17:00+0000\n"
-"PO-Revision-Date: 2024-09-02 17:43\n"
+"POT-Creation-Date: 2024-09-02 18:21+0000\n"
+"PO-Revision-Date: 2024-09-04 18:07\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -122,7 +122,7 @@ msgstr "0 - Taslak; 1 - Gönderildi; 2 -İptal Edildi"
 msgid "0 is highest"
 msgstr "0 en yüksek seviyedir"
 
-#: public/js/frappe/form/grid_row.js:807
+#: public/js/frappe/form/grid_row.js:797
 msgid "1 = True & 0 = False"
 msgstr "1 = Doğru & 0 = Yanlış"
 
@@ -699,24 +699,24 @@ msgstr "<pre><code>doc.grand_total &gt; 0</code></pre>\n\n"
 #. Header text in the Welcome Workspace Workspace
 #: core/workspace/welcome_workspace/welcome_workspace.json
 msgid "<span class=\"h2\">Hi,</span>"
-msgstr ""
+msgstr "<span class=\"h2\">Merhaba,</span>"
 
 #. Header text in the Tools Workspace
 #: automation/workspace/tools/tools.json
 msgid "<span class=\"h4\"><b>Documents</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>Belgeler</b></span>"
 
 #. Header text in the Website Workspace
 #: website/workspace/website/website.json
 msgid "<span class=\"h4\"><b>Reports & Masters</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>Raporlar & Kayıtlar</b></span>"
 
 #. Header text in the Users Workspace
 #. Header text in the Integrations Workspace
 #: core/workspace/users/users.json
 #: integrations/workspace/integrations/integrations.json
 msgid "<span class=\"h4\"><b>Reports &amp; Masters</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>Raporlar &amp; Kayıtlar</b></span>"
 
 #. Header text in the Tools Workspace
 #. Header text in the Users Workspace
@@ -724,17 +724,17 @@ msgstr ""
 #: automation/workspace/tools/tools.json core/workspace/users/users.json
 #: website/workspace/website/website.json
 msgid "<span class=\"h4\"><b>Your Shortcuts</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>Kısayollarınız</b></span>"
 
 #. Header text in the Build Workspace
 #: core/workspace/build/build.json
 msgid "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Components to build your app</b></span>"
-msgstr ""
+msgstr "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Uygulamanızı Oluşturmak için Bileşenler</b></span>"
 
 #. Header text in the Build Workspace
 #: core/workspace/build/build.json
 msgid "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Get started</b><br></span>"
-msgstr ""
+msgstr "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Başlarken</b><br></span>"
 
 #: custom/doctype/custom_field/custom_field.js:39
 msgid "<strong>Warning:</strong> This field is system generated and may be overwritten by a future update. Modify it using {0} instead."
@@ -1277,7 +1277,7 @@ msgstr "Sorgu Parametreleri Ekle"
 msgid "Add Review"
 msgstr "Yorum Ekle"
 
-#: core/doctype/user/user.py:789
+#: core/doctype/user/user.py:790
 msgid "Add Roles"
 msgstr "Rol Ekle"
 
@@ -1456,7 +1456,7 @@ msgstr "{0} Eklendi"
 msgid "Added {0} ({1})"
 msgstr "Eklenen {0} ({1})"
 
-#: core/doctype/user/user.py:271
+#: core/doctype/user/user.py:272
 msgid "Adding System Manager to this User as there must be atleast one System Manager"
 msgstr ""
 
@@ -1560,11 +1560,11 @@ msgstr "Yönetim"
 msgid "Administrator"
 msgstr "Yönetici"
 
-#: core/doctype/user/user.py:1194
+#: core/doctype/user/user.py:1195
 msgid "Administrator Logged In"
 msgstr "Yönetici Giriş Yaptı"
 
-#: core/doctype/user/user.py:1188
+#: core/doctype/user/user.py:1189
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr "Yönetici, IP Adresi {2} üzerinden {1} yoluyla {0} adresine erişim sağladı."
 
@@ -2013,11 +2013,11 @@ msgstr "İzin Verilen Roller"
 msgid "Allowing DocType, DocType. Be careful!"
 msgstr ""
 
-#: core/doctype/user/user.py:998
+#: core/doctype/user/user.py:999
 msgid "Already Registered"
 msgstr ""
 
-#: desk/form/assign_to.py:134
+#: desk/form/assign_to.py:136
 msgid "Already in the following Users ToDo list:{0}"
 msgstr ""
 
@@ -2223,7 +2223,7 @@ msgstr "Uygulama Gizli Anahtarı"
 msgid "App not found for module: {0}"
 msgstr "Modül için uygulama bulunamadı: {0}"
 
-#: __init__.py:1754
+#: __init__.py:1761
 msgid "App {0} is not installed"
 msgstr "{0} Uygulaması yüklü değil"
 
@@ -2363,6 +2363,7 @@ msgstr "Onay Gerekli"
 #. Label of a standard navbar item
 #. Type: Route
 #: hooks.py templates/includes/navbar/navbar_login.html:18
+#: website/js/website.js:617
 msgid "Apps"
 msgstr "Uygulamalar"
 
@@ -2474,7 +2475,7 @@ msgstr "Arial"
 msgid "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User."
 msgstr "En iyi uygulama olarak, aynı izin kurallarını farklı Rollere atamayın. Bunun yerine, aynı Kullanıcıya birden fazla Rol atayın."
 
-#: desk/form/assign_to.py:104
+#: desk/form/assign_to.py:106
 msgid "As document sharing is disabled, please give them the required permissions before assigning."
 msgstr "Doküman paylaşımı devre dışı olduğundan lütfen atamadan önce onlara gerekli izinleri verin."
 
@@ -2609,7 +2610,7 @@ msgstr "Atama Kuralları"
 msgid "Assignment Update on {0}"
 msgstr ""
 
-#: desk/form/assign_to.py:75
+#: desk/form/assign_to.py:61
 msgid "Assignment for {0} {1}"
 msgstr ""
 
@@ -2750,11 +2751,11 @@ msgstr ""
 msgid "Attachments"
 msgstr "Belge Ekleri"
 
-#: public/js/frappe/form/print_utils.js:89
+#: public/js/frappe/form/print_utils.js:91
 msgid "Attempting Connection to QZ Tray..."
 msgstr ""
 
-#: public/js/frappe/form/print_utils.js:105
+#: public/js/frappe/form/print_utils.js:107
 msgid "Attempting to launch QZ Tray..."
 msgstr ""
 
@@ -3862,7 +3863,7 @@ msgstr ""
 msgid "Cache"
 msgstr "Önbellek"
 
-#: sessions.py:33
+#: sessions.py:32
 msgid "Cache Cleared"
 msgstr "Önbellek Temizlendi"
 
@@ -3943,7 +3944,7 @@ msgstr ""
 #: public/js/frappe/form/templates/set_sharing.html:4
 #: public/js/frappe/form/templates/set_sharing.html:50
 msgid "Can Read"
-msgstr "Okuma"
+msgstr "Okuyabilir"
 
 #: public/js/frappe/form/templates/set_sharing.html:7
 #: public/js/frappe/form/templates/set_sharing.html:53
@@ -4207,7 +4208,7 @@ msgstr ""
 msgid "Cannot get file contents of a Folder"
 msgstr ""
 
-#: printing/page/print/print.js:842
+#: printing/page/print/print.js:845
 msgid "Cannot have multiple printers mapped to a single print format."
 msgstr ""
 
@@ -4993,7 +4994,7 @@ msgstr "Yorum Yap"
 #. Label of a Data field in DocType 'Comment'
 #: core/doctype/comment/comment.json
 msgid "Comment By"
-msgstr ""
+msgstr "Yorum Yazan"
 
 #. Label of a Data field in DocType 'Comment'
 #: core/doctype/comment/comment.json
@@ -5126,7 +5127,7 @@ msgstr "Tamamla"
 msgid "Complete By"
 msgstr "Tamamlayan"
 
-#: core/doctype/user/user.py:442 templates/emails/new_user.html:10
+#: core/doctype/user/user.py:443 templates/emails/new_user.html:10
 msgid "Complete Registration"
 msgstr "Kaydı Tamamla"
 
@@ -5307,8 +5308,8 @@ msgstr "Bağlı Uyulamalar"
 msgid "Connected User"
 msgstr "Bağlı Kullanıcılar"
 
-#: public/js/frappe/form/print_utils.js:95
-#: public/js/frappe/form/print_utils.js:119
+#: public/js/frappe/form/print_utils.js:97
+#: public/js/frappe/form/print_utils.js:121
 msgid "Connected to QZ Tray!"
 msgstr ""
 
@@ -5532,7 +5533,7 @@ msgstr "Çekirdek Doctype'lar düzenlenemez."
 msgid "Core Modules {0} cannot be searched in Global Search."
 msgstr "Çekirdek Modüller {0} Genel Aramada aranamaz."
 
-#: printing/page/print/print.js:617
+#: printing/page/print/print.js:620
 msgid "Correct version :"
 msgstr ""
 
@@ -6093,7 +6094,7 @@ msgstr "Özel Çeviri"
 
 #: custom/doctype/custom_field/custom_field.py:373
 msgid "Custom field renamed to {0} successfully."
-msgstr ""
+msgstr "Özel alan başarıyla {0} olarak yeniden adlandırıldı."
 
 #. Label of a Check field in DocType 'DocType'
 #. Label of a Check field in DocType 'Website Theme'
@@ -6129,7 +6130,7 @@ msgstr "Özelleştirmeler Sıfırlandı"
 
 #: modules/utils.py:96
 msgid "Customizations for <b>{0}</b> exported to:<br>{1}"
-msgstr ""
+msgstr "<b>{0}</b> için özelleştirmeler şuraya aktarıldı:<br>{1}"
 
 #: printing/page/print/print.js:171
 #: public/js/frappe/form/templates/print_layout.html:39
@@ -7060,11 +7061,11 @@ msgstr ""
 #. Name of a DocType
 #: desk/doctype/desktop_icon/desktop_icon.json
 msgid "Desktop Icon"
-msgstr ""
+msgstr "Masaüstü Simgesi"
 
 #: desk/doctype/desktop_icon/desktop_icon.py:225
 msgid "Desktop Icon already exists"
-msgstr ""
+msgstr "Masaüstü Simgesi zaten mevcut"
 
 #. Label of a Code field in DocType 'Scheduled Job Log'
 #. Label of a Tab Break field in DocType 'Customize Form'
@@ -7085,7 +7086,7 @@ msgstr ""
 
 #: core/page/permission_manager/permission_manager.js:381
 msgid "Did not remove"
-msgstr ""
+msgstr "Kaldırılmadı"
 
 #: public/js/frappe/utils/diffview.js:57
 msgid "Diff"
@@ -7451,7 +7452,7 @@ msgstr "DocType, seçilen Doc Event için Gönderilebilir olmalıdır"
 
 #: client.py:421
 msgid "DocType must be a string"
-msgstr ""
+msgstr "DocType bir dize olmalıdır"
 
 #: public/js/form_builder/store.js:154
 msgid "DocType must have atleast one field"
@@ -7715,7 +7716,7 @@ msgstr "Belge Türü"
 
 #: desk/doctype/number_card/number_card.py:56
 msgid "Document Type and Function are required to create a number card"
-msgstr ""
+msgstr "Veri Kartı oluşturmak için Belge Türü ve Fonksiyon gereklidir"
 
 #: permissions.py:142
 msgid "Document Type is not importable"
@@ -7751,7 +7752,7 @@ msgstr ""
 
 #: core/doctype/submission_queue/submission_queue.py:163 model/document.py:1748
 msgid "Document Unlocked"
-msgstr ""
+msgstr "Belge Kilidi Açıldı"
 
 #: public/js/frappe/list/list_view.js:1073
 msgid "Document has been cancelled"
@@ -7853,7 +7854,7 @@ msgstr ""
 #. Field'
 #: custom/doctype/custom_field/custom_field.json
 msgid "Don't HTML Encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field"
-msgstr ""
+msgstr " HTML etiketlerini &lt;script&gt; gibi veya sadece &lt; ve &gt; gibi karakterleri kodlamayın, çünkü bunlar bu alanda kasıtlı olarak kullanılabilir"
 
 #: public/js/frappe/data_import/import_preview.js:268
 msgid "Don't Import"
@@ -7877,7 +7878,7 @@ msgstr "E-Posta Gönderme"
 #: core/doctype/docfield/docfield.json
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgid "Don't encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field"
-msgstr ""
+msgstr " HTML etiketlerini &lt;script&gt; gibi veya sadece &lt; ve &gt; gibi karakterleri kodlamayın, çünkü bunlar bu alanda kasıtlı olarak kullanılabilir"
 
 #: www/login.html:119 www/login.html:135 www/update-password.html:34
 msgid "Don't have an account?"
@@ -7965,7 +7966,7 @@ msgstr "Sürükle"
 
 #: public/js/form_builder/components/Tabs.vue:189
 msgid "Drag & Drop a section here from another tab"
-msgstr ""
+msgstr "Başka bir sekmeden buraya bir bölümü sürükleyip bırakın"
 
 #: public/js/frappe/file_uploader/FileUploader.vue:14
 msgid "Drag and drop files here or upload from"
@@ -7973,19 +7974,19 @@ msgstr "Dosyaları buraya sürükleyip bırakın veya şuradan yükleyin"
 
 #: public/js/print_format_builder/ConfigureColumns.vue:76
 msgid "Drag columns to set order. Column width is set in percentage. The total width should not be more than 100. Columns marked in red will be removed."
-msgstr ""
+msgstr "Sırayı ayarlamak için sütunları sürükleyin. Sütun genişliği yüzde olarak ayarlanır. Toplam genişlik 100'den fazla olmamalıdır. Kırmızıyla işaretlenen sütunlar kaldırılacaktır."
 
 #: printing/page/print_format_builder/print_format_builder_layout.html:3
 msgid "Drag elements from the sidebar to add. Drag them back to trash."
-msgstr ""
+msgstr "Eklemek istediğiniz öğeleri kenar çubuğundan sürükleyin. Onları çöp kutusuna geri sürükleyin."
 
 #: public/js/workflow_builder/WorkflowBuilder.vue:296
 msgid "Drag to add state"
-msgstr ""
+msgstr "Durum eklemek için sürükleyin"
 
 #: public/js/frappe/file_uploader/FileUploader.vue:172
 msgid "Drop files here"
-msgstr ""
+msgstr "Dosyaları buraya sürükleyin"
 
 #. Label of a Password field in DocType 'Dropbox Settings'
 #: integrations/doctype/dropbox_settings/dropbox_settings.json
@@ -8006,7 +8007,7 @@ msgstr "Dropbox Ayarları"
 
 #: integrations/doctype/dropbox_settings/dropbox_settings.py:347
 msgid "Dropbox Setup"
-msgstr ""
+msgstr "Dropbox Kurulumu"
 
 #. Label of a Section Break field in DocType 'Navbar Settings'
 #: core/doctype/navbar_settings/navbar_settings.json
@@ -8374,7 +8375,7 @@ msgstr "E-posta Hesabı Devre Dışı Bırakıldı."
 msgid "Email Account Name"
 msgstr "E-posta Hesap Adı"
 
-#: core/doctype/user/user.py:718
+#: core/doctype/user/user.py:719
 msgid "Email Account added multiple times"
 msgstr "E-posta Hesabı birden fazla kez eklendi"
 
@@ -9066,7 +9067,7 @@ msgstr "Hata Günlükleri"
 msgid "Error Message"
 msgstr "Hata Mesajı"
 
-#: public/js/frappe/form/print_utils.js:126
+#: public/js/frappe/form/print_utils.js:128
 msgid "Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Click here to Download and install QZ Tray</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Click here to learn more about Raw Printing</a>."
 msgstr ""
 
@@ -9559,7 +9560,7 @@ msgstr ""
 msgid "Failed to import virtual doctype {}, is controller file present?"
 msgstr "Sanal belge türü {} içe aktarılamadı, denetleyici dosyası mevcut mu?"
 
-#: utils/image.py:74
+#: utils/image.py:76
 msgid "Failed to optimize image: {0}"
 msgstr ""
 
@@ -9603,7 +9604,7 @@ msgstr "Faks"
 #: website/doctype/blog_post/blog_post.json
 #: website/doctype/blog_post/templates/blog_post_row.html:19
 msgid "Featured"
-msgstr ""
+msgstr "Öne Çıkan"
 
 #. Option for the 'Communication Type' (Select) field in DocType
 #. 'Communication'
@@ -9635,7 +9636,7 @@ msgstr "Şuradan Getir"
 
 #: website/doctype/website_slideshow/website_slideshow.js:15
 msgid "Fetch Images"
-msgstr ""
+msgstr "Resimleri Getir"
 
 #: website/doctype/website_slideshow/website_slideshow.js:13
 msgid "Fetch attached images from document"
@@ -9746,7 +9747,7 @@ msgstr "Takip Edilecek Alan"
 msgid "Field type cannot be changed for {0}"
 msgstr ""
 
-#: database/database.py:848
+#: database/database.py:841
 msgid "Field {0} does not exist on {1}"
 msgstr ""
 
@@ -10142,11 +10143,11 @@ msgstr ""
 
 #: core/report/transaction_log_report/transaction_log_report.py:49
 msgid "First Transaction"
-msgstr ""
+msgstr "İlk İşlem"
 
 #: core/doctype/data_export/exporter.py:185
 msgid "First data column must be blank."
-msgstr ""
+msgstr "İlk veri sütunu boş olmalıdır."
 
 #: website/doctype/website_slideshow/website_slideshow.js:7
 msgid "First set the name and save the record."
@@ -10391,8 +10392,8 @@ msgstr "Örnek: {} Aktif"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgid "For Links, enter the DocType as range.\n"
 "For Select, enter list of Options, each on a new line."
-msgstr "For Select, enter list of Options, each on a new line.\n"
-"Seçim için, her bir satıra bir seçenek olacak şekilde listeyi girin."
+msgstr "Bağlantılar için DocType'ı aralık olarak girin.\n"
+"Seçim için, her biri yeni bir satırda olmak üzere Seçenekler listesini girin."
 
 #. Label of a Link field in DocType 'List Filter'
 #. Label of a Link field in DocType 'Notification Log'
@@ -10717,7 +10718,7 @@ msgstr "Fonksiyon"
 msgid "Function Based On"
 msgstr ""
 
-#: __init__.py:898
+#: __init__.py:905
 msgid "Function {0} is not whitelisted."
 msgstr "{0} fonksiyonu beyaz listeye eklenmemiş."
 
@@ -11558,7 +11559,7 @@ msgstr "Özel DocType ve Raporları Gizle"
 #: custom/doctype/custom_field/custom_field.json
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgid "Hide Days"
-msgstr ""
+msgstr "Günleri Gizle"
 
 #. Label of a Check field in DocType 'User Permission'
 #: core/doctype/user_permission/user_permission.json
@@ -12327,7 +12328,7 @@ msgstr "Önizleme"
 msgid "In Progress"
 msgstr "Devam ediyor"
 
-#: database/database.py:250
+#: database/database.py:243
 msgid "In Read Only Mode"
 msgstr "Salt Okunur Modunda"
 
@@ -12710,7 +12711,7 @@ msgstr "Giriş Videosu URL'si"
 #. 'About Us Settings'
 #: website/doctype/about_us_settings/about_us_settings.json
 msgid "Introduce your company to the website visitor."
-msgstr ""
+msgstr "Şirketinizin web sitenizi ziyaretçilerinize tanıtın."
 
 #. Label of a Section Break field in DocType 'Contact Us Settings'
 #. Label of a Text Editor field in DocType 'Contact Us Settings'
@@ -12742,7 +12743,7 @@ msgstr ""
 msgid "Invalid"
 msgstr "Geçersiz"
 
-#: public/js/form_builder/utils.js:221 public/js/frappe/form/grid_row.js:769
+#: public/js/form_builder/utils.js:221 public/js/frappe/form/grid_row.js:759
 #: public/js/frappe/form/layout.js:785
 msgid "Invalid \"depends_on\" expression"
 msgstr "Geçersiz \"depends_on\" ifadesi"
@@ -12843,7 +12844,7 @@ msgstr "Geçersiz Çıktı Formatı"
 msgid "Invalid Parameters."
 msgstr "Geçersiz Parametreler."
 
-#: core/doctype/user/user.py:1209 www/update-password.html:121
+#: core/doctype/user/user.py:1210 www/update-password.html:121
 #: www/update-password.html:142 www/update-password.html:144
 #: www/update-password.html:245
 msgid "Invalid Password"
@@ -12967,7 +12968,7 @@ msgctxt "Error message in web form"
 msgid "Invalid values for fields:"
 msgstr ""
 
-#: printing/page/print/print.js:611
+#: printing/page/print/print.js:614
 msgid "Invalid wkhtmltopdf version"
 msgstr ""
 
@@ -13640,7 +13641,7 @@ msgstr "Etiket zorunludur"
 msgid "Landing Page"
 msgstr "Giriş Sayfası"
 
-#: public/js/frappe/form/print_utils.js:28
+#: public/js/frappe/form/print_utils.js:30
 msgid "Landscape"
 msgstr "Landscape"
 
@@ -13684,7 +13685,7 @@ msgstr "Son Yedekleme Tarihi"
 #. Label of a Datetime field in DocType 'Scheduled Job Type'
 #: core/doctype/scheduled_job_type/scheduled_job_type.json
 msgid "Last Execution"
-msgstr ""
+msgstr "Son Çalıştırma"
 
 #. Label of a Datetime field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
@@ -13936,7 +13937,7 @@ msgstr ""
 #. Name of a DocType
 #: core/doctype/report/report.json
 #: printing/doctype/letter_head/letter_head.json
-#: printing/page/print/print.js:127 public/js/frappe/form/print_utils.js:18
+#: printing/page/print/print.js:127 public/js/frappe/form/print_utils.js:20
 #: public/js/frappe/form/templates/print_layout.html:16
 #: public/js/frappe/list/bulk_operations.js:52
 #: public/js/print_format_builder/LetterHeadEditor.vue:144
@@ -13971,7 +13972,7 @@ msgstr "Antetli Kağıt hem devre dışı hem de varsayılan olamaz"
 #. Head'
 #: printing/doctype/letter_head/letter_head.json
 msgid "Letter Head in HTML"
-msgstr ""
+msgstr "Antetli Kağıt HTML"
 
 #. Label of a Int field in DocType 'Custom DocPerm'
 #. Label of a Int field in DocType 'DocPerm'
@@ -14227,7 +14228,7 @@ msgstr "Bağlı Belgeler"
 
 #: public/js/frappe/form/linked_with.js:23
 msgid "Linked With"
-msgstr ""
+msgstr "Bağlantılar"
 
 #. Label of a Table field in DocType 'Address'
 #. Label of a Table field in DocType 'Contact'
@@ -14536,7 +14537,7 @@ msgid "Login with {0}"
 msgstr "{0} ile Giriş Yapın"
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
-#: core/doctype/activity_log/activity_log.json www/apps.html:46
+#: core/doctype/activity_log/activity_log.json www/apps.html:59
 msgid "Logout"
 msgstr "Çıkış"
 
@@ -14617,17 +14618,17 @@ msgstr ""
 #. Label of a Text Editor field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgid "Main Section"
-msgstr ""
+msgstr "Ana Bölüm"
 
 #. Label of a HTML Editor field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgid "Main Section (HTML)"
-msgstr ""
+msgstr "Ana Bölüm (HTML)"
 
 #. Label of a Markdown Editor field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgid "Main Section (Markdown)"
-msgstr ""
+msgstr "Ana Bölüm (Markdown)"
 
 #. Name of a role
 #: contacts/doctype/contact/contact.json
@@ -14833,7 +14834,7 @@ msgstr "Markdown"
 #: custom/doctype/customize_form_field/customize_form_field.json
 #: website/doctype/web_template_field/web_template_field.json
 msgid "Markdown Editor"
-msgstr ""
+msgstr "Markdown Editörü"
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
@@ -14843,7 +14844,7 @@ msgstr ""
 #. Name of a DocType
 #: website/doctype/marketing_campaign/marketing_campaign.json
 msgid "Marketing Campaign"
-msgstr ""
+msgstr "Pazarlama Kampanyası"
 
 #: desk/page/setup_wizard/install_fixtures.py:51
 msgid "Master"
@@ -14857,7 +14858,7 @@ msgstr "Tek seferde en fazla 500 kayıt."
 #. Label of a Int field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
 msgid "Max Attachment Size (in MB)"
-msgstr ""
+msgstr "Maksimum Dosya Boyutu (MB)"
 
 #. Label of a Int field in DocType 'DocType'
 #. Label of a Int field in DocType 'Customize Form'
@@ -14874,7 +14875,7 @@ msgstr "Maksimum Dosya Boyutu (MB)"
 #. Label of a Data field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgid "Max Height"
-msgstr ""
+msgstr "Maksimum Yükseklik"
 
 #. Label of a Int field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
@@ -14893,7 +14894,7 @@ msgstr "Kullanıcı başına maksimum otomatik e-posta raporu"
 
 #: core/doctype/doctype/doctype.py:1304
 msgid "Max width for type Currency is 100px in row {0}"
-msgstr ""
+msgstr "Para Birimi türü için maksimum genişlik {0} satırında 100 pikseldir"
 
 #. Option for the 'Function' (Select) field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
@@ -15018,7 +15019,7 @@ msgstr ""
 msgid "Message"
 msgstr "Mesaj"
 
-#: __init__.py:582 public/js/frappe/ui/messages.js:267
+#: __init__.py:589 public/js/frappe/ui/messages.js:267
 msgctxt "Default title of the message dialog"
 msgid "Message"
 msgstr "Mesaj"
@@ -15093,7 +15094,7 @@ msgstr ""
 #: website/doctype/web_form/web_form.json
 #: website/doctype/web_page/web_page.js:124
 msgid "Meta Description"
-msgstr ""
+msgstr "Meta Açıklaması"
 
 #. Label of a Attach Image field in DocType 'Blog Post'
 #. Label of a Attach Image field in DocType 'Web Form'
@@ -15138,7 +15139,7 @@ msgstr "SEO için meta başlık"
 msgid "Method"
 msgstr "Yöntem"
 
-#: __init__.py:900
+#: __init__.py:907
 msgid "Method Not Allowed"
 msgstr ""
 
@@ -15214,7 +15215,7 @@ msgstr "Eksik Alanlar"
 msgid "Missing Filters Required"
 msgstr "Eksik Filtreler Gerekli"
 
-#: desk/form/assign_to.py:107
+#: desk/form/assign_to.py:109
 msgid "Missing Permission"
 msgstr "Eksik İzin"
 
@@ -15466,7 +15467,7 @@ msgstr "{0} hakkında daha fazla makale"
 msgid "More content for the bottom of the page."
 msgstr "Sayfanın alt kısmı için daha fazla içerik."
 
-#: public/js/frappe/ui/sort_selector.js:193
+#: public/js/frappe/ui/sort_selector.js:191
 msgid "Most Used"
 msgstr "En Çok Kullanılan"
 
@@ -15962,7 +15963,7 @@ msgstr "Yeni {0}: {1}"
 msgid "New {} releases for the following apps are available"
 msgstr "Aşağıdaki uygulamalar için yeni {} sürümler kullanıma sunuldu"
 
-#: core/doctype/user/user.py:785
+#: core/doctype/user/user.py:786
 msgid "Newly created user {0} has no roles enabled."
 msgstr "{0} kullanıcısı için rol belirlenmedi."
 
@@ -16012,7 +16013,7 @@ msgstr "Bültenler"
 #: public/js/frappe/web_form/web_form.js:91
 #: public/js/onboarding_tours/onboarding_tours.js:15
 #: public/js/onboarding_tours/onboarding_tours.js:240
-#: templates/includes/slideshow.html:38 website/utils.py:247
+#: templates/includes/slideshow.html:38 website/utils.py:253
 #: website/web_template/slideshow/slideshow.html:44
 msgid "Next"
 msgstr "Sonraki"
@@ -16189,7 +16190,7 @@ msgstr "E-posta için LDAP Kullanıcısı bulunamadı: {0}"
 msgid "No Label"
 msgstr "Etiket Yok"
 
-#: printing/page/print/print.js:700 printing/page/print/print.js:782
+#: printing/page/print/print.js:703 printing/page/print/print.js:785
 #: public/js/frappe/list/bulk_operations.js:98
 #: public/js/frappe/list/bulk_operations.js:170 utils/weasyprint.py:52
 msgid "No Letterhead"
@@ -16223,11 +16224,11 @@ msgstr "Bu Gösterge Tablosunda İzin Verilen Grafik Yok"
 msgid "No Preview"
 msgstr "Önizleme Yok"
 
-#: printing/page/print/print.js:704
+#: printing/page/print/print.js:707
 msgid "No Preview Available"
 msgstr "Önizleme Mevcut Değil"
 
-#: printing/page/print/print.js:860
+#: printing/page/print/print.js:863
 msgid "No Printer is Available."
 msgstr "Uygun Yazıcı Bulunamadı."
 
@@ -16243,7 +16244,7 @@ msgstr "Sonuç Yok"
 msgid "No Results found"
 msgstr "Uygun Sonuç Bulunamadı"
 
-#: core/doctype/user/user.py:786
+#: core/doctype/user/user.py:787
 msgid "No Roles Specified"
 msgstr "Rol Belirlenmedi"
 
@@ -16301,7 +16302,7 @@ msgstr "Senkronizasyonda değişiklik yok"
 
 #: core/doctype/data_import/importer.py:294
 msgid "No changes to update"
-msgstr ""
+msgstr "Güncellenecek değişiklik yok"
 
 #: website/doctype/blog_post/blog_post.py:372
 msgid "No comments yet"
@@ -16369,7 +16370,7 @@ msgstr "Görüntülenecek başka bir öğe yok"
 
 #: utils/password_strength.py:35
 msgid "No need for symbols, digits, or uppercase letters."
-msgstr ""
+msgstr "Sembollere, rakamlara veya büyük harflere gerek yok."
 
 #: integrations/doctype/google_contacts/google_contacts.py:197
 msgid "No new Google Contacts synced."
@@ -16388,7 +16389,7 @@ msgstr "Sütun Sayısı"
 msgid "No of Rows (Max 500)"
 msgstr "Satır Sayısı (Maksimum 500)"
 
-#: __init__.py:1089 client.py:109 client.py:151
+#: __init__.py:1096 client.py:109 client.py:151
 msgid "No permission for {0}"
 msgstr "{0} İçin Yetki Yok"
 
@@ -16487,7 +16488,7 @@ msgstr ""
 msgid "Normalized Query"
 msgstr ""
 
-#: core/doctype/user/user.py:993 templates/includes/login/login.js:258
+#: core/doctype/user/user.py:994 templates/includes/login/login.js:258
 #: utils/oauth.py:266
 msgid "Not Allowed"
 msgstr "İzin verilmedi"
@@ -16527,9 +16528,9 @@ msgstr "Benzer Değil"
 
 #: public/js/frappe/form/linked_with.js:45
 msgid "Not Linked to any record"
-msgstr "Herhangi bir kayda bağlı değil"
+msgstr "Herhangi bir kayıtla bağlantılı değil"
 
-#: __init__.py:982 app.py:357 desk/calendar.py:26 desk/treeview.py:19
+#: __init__.py:989 app.py:357 desk/calendar.py:26 desk/treeview.py:19
 #: geo/utils.py:97 public/js/frappe/web_form/webform_script.js:15
 #: website/doctype/web_form/web_form.py:601
 #: website/page_renderers/not_permitted_page.py:20 www/login.py:182
@@ -16581,7 +16582,7 @@ msgstr "Yok"
 msgid "Not a valid Comma Separated Value (CSV File)"
 msgstr ""
 
-#: core/doctype/user/user.py:198
+#: core/doctype/user/user.py:199
 msgid "Not a valid User Image."
 msgstr ""
 
@@ -16591,7 +16592,7 @@ msgstr "Geçerli bir İş Akışı Eylemi değil"
 
 #: templates/includes/login/login.js:256
 msgid "Not a valid user"
-msgstr ""
+msgstr "Geçerli bir kullanıcı değil"
 
 #: workflow/doctype/workflow/workflow_list.js:7
 msgid "Not active"
@@ -16683,7 +16684,7 @@ msgstr ""
 #. Slideshow'
 #: website/doctype/website_slideshow/website_slideshow.json
 msgid "Note: For best results,  images must be of the same size and width must be greater than height."
-msgstr ""
+msgstr "Not: En iyi sonuçlar için görsellerin aynı boyutta olması ve genişliğin yükseklikten büyük olması gerekir."
 
 #. Description of the 'Allow only one session per user' (Check) field in
 #. DocType 'System Settings'
@@ -16780,7 +16781,7 @@ msgstr "Bildirimler"
 
 #: public/js/frappe/ui/notifications/notifications.js:299
 msgid "Notifications Disabled"
-msgstr ""
+msgstr "Bildirimler Devre Dışı"
 
 #. Description of the 'Default Outgoing' (Check) field in DocType 'Email
 #. Account'
@@ -16837,7 +16838,7 @@ msgstr "Veri Kartı"
 #. Name of a DocType
 #: desk/doctype/number_card_link/number_card_link.json
 msgid "Number Card Link"
-msgstr ""
+msgstr "Veri Kartı Bağlantısı"
 
 #. Label of a Link field in DocType 'Workspace Number Card'
 #: desk/doctype/workspace_number_card/workspace_number_card.json
@@ -16870,7 +16871,7 @@ msgstr "Yedekleme Sayısı"
 
 #: integrations/doctype/dropbox_settings/dropbox_settings.py:54
 msgid "Number of DB backups cannot be less than 1"
-msgstr ""
+msgstr "Veritabanı yedeklemelerinin sayısı 1'den az olamaz"
 
 #. Label of a Int field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
@@ -16893,7 +16894,7 @@ msgstr ""
 #. Description of the 'Columns' (Int) field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgid "Number of columns for a field in a Grid (Total Columns in a grid should be less than 11)"
-msgstr ""
+msgstr "Liste Görünümü veya Tablodaki bir alan için sütun sayısı. (Toplam Sütun sayısı en fazla 10 olabilir.)"
 
 #. Description of the 'Columns' (Int) field in DocType 'DocField'
 #. Description of the 'Columns' (Int) field in DocType 'Custom Field'
@@ -17029,7 +17030,7 @@ msgstr ""
 
 #: core/doctype/server_script/server_script.js:33
 msgid "Official Documentation"
-msgstr ""
+msgstr "Resmi Dokümantasyon"
 
 #. Label of a Int field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -17220,7 +17221,7 @@ msgstr "Yalnızca Rapor Oluşturucu türündeki raporlar düzenlenebilir"
 msgid "Only standard DocTypes are allowed to be customized from Customize Form."
 msgstr "Formu Özelleştir'den yalnızca standart DocType'ların özelleştirilmesine izin verilir."
 
-#: desk/form/assign_to.py:181
+#: desk/form/assign_to.py:183
 msgid "Only the assignee can complete this to-do."
 msgstr "Bu yapılacak işi yalnızca atanan kişi tamamlayabilir."
 
@@ -17459,7 +17460,7 @@ msgstr ""
 msgid "Org History Heading"
 msgstr ""
 
-#: public/js/frappe/form/print_utils.js:26
+#: public/js/frappe/form/print_utils.js:28
 msgid "Orientation"
 msgstr "Oryantasyon"
 
@@ -17572,11 +17573,11 @@ msgstr ""
 msgid "PDF generation failed because of broken image links"
 msgstr ""
 
-#: printing/page/print/print.js:613
+#: printing/page/print/print.js:616
 msgid "PDF generation may not work as expected."
 msgstr ""
 
-#: printing/page/print/print.js:531
+#: printing/page/print/print.js:534
 msgid "PDF printing via \"Raw Print\" is not supported."
 msgstr ""
 
@@ -17885,11 +17886,11 @@ msgstr "Pasif"
 msgid "Password"
 msgstr "Şifre"
 
-#: core/doctype/user/user.py:1056
+#: core/doctype/user/user.py:1057
 msgid "Password Email Sent"
 msgstr "Şifre E-postası Gönderildi"
 
-#: core/doctype/user/user.py:422
+#: core/doctype/user/user.py:423
 msgid "Password Reset"
 msgstr "Şifre Sıfırlama"
 
@@ -17898,7 +17899,7 @@ msgstr "Şifre Sıfırlama"
 msgid "Password Reset Link Generation Limit"
 msgstr "Şifre Resetleme için Bağlantı Oluşturma Limiti"
 
-#: public/js/frappe/form/grid_row.js:811
+#: public/js/frappe/form/grid_row.js:801
 msgid "Password cannot be filtered"
 msgstr "Şifre filtrelenemiyor"
 
@@ -17923,7 +17924,7 @@ msgstr "E-posta Hesabında Şifre Eksik"
 msgid "Password not found for {0} {1} {2}"
 msgstr "{0} {1} {2} için şifre bulunamadı"
 
-#: core/doctype/user/user.py:1055
+#: core/doctype/user/user.py:1056
 msgid "Password reset instructions have been sent to your email"
 msgstr "Şifre sıfırlama talimatları e-postanıza gönderildi"
 
@@ -17933,11 +17934,11 @@ msgstr ""
 
 #: auth.py:236
 msgid "Password size exceeded the maximum allowed size"
-msgstr ""
+msgstr "Şifre boyutu izin verilen maksimum boyutu aştı"
 
-#: core/doctype/user/user.py:849
+#: core/doctype/user/user.py:850
 msgid "Password size exceeded the maximum allowed size."
-msgstr ""
+msgstr "Şifre boyutu izin verilen maksimum boyutu aştı."
 
 #: www/update-password.html:78
 msgid "Passwords do not match"
@@ -18229,7 +18230,7 @@ msgstr "Telefon"
 msgid "Phone Number {0} set in field {1} is not valid."
 msgstr "{1} alanına girilen Telefon Numarası {0} geçerli değil."
 
-#: public/js/frappe/form/print_utils.js:38
+#: public/js/frappe/form/print_utils.js:40
 #: public/js/frappe/views/reports/report_view.js:1503
 #: public/js/frappe/views/reports/report_view.js:1506
 msgid "Pick Columns"
@@ -18290,7 +18291,7 @@ msgstr "Lütfen e-postanıza bir konu ekleyin"
 msgid "Please add a valid comment."
 msgstr "Lütfen geçerli bir yorum ekleyin."
 
-#: core/doctype/user/user.py:1038
+#: core/doctype/user/user.py:1039
 msgid "Please ask your administrator to verify your sign-up"
 msgstr "Lütfen yöneticinizden kayıt işleminizin doğrulamasını isteyin"
 
@@ -18322,7 +18323,7 @@ msgstr "Lütfen Gösterge Tablosu Grafiği için ayarlanan filtre değerlerini k
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr ""
 
-#: core/doctype/user/user.py:1036
+#: core/doctype/user/user.py:1037
 msgid "Please check your email for verification"
 msgstr "Doğrulama için lütfen e-postanızı kontrol edin"
 
@@ -18350,7 +18351,7 @@ msgstr "Lütfen bu pencereyi kapatın"
 msgid "Please confirm your action to {0} this document."
 msgstr ""
 
-#: printing/page/print/print.js:615
+#: printing/page/print/print.js:618
 msgid "Please contact your system manager to install correct version."
 msgstr ""
 
@@ -18380,7 +18381,7 @@ msgstr "Kullanıcı adı/şifre tabanlı girişi devre dışı bırakmadan önce
 
 #: desk/doctype/notification_log/notification_log.js:45
 #: email/doctype/auto_email_report/auto_email_report.js:17
-#: printing/page/print/print.js:635 printing/page/print/print.js:665
+#: printing/page/print/print.js:638 printing/page/print/print.js:668
 #: public/js/frappe/list/bulk_operations.js:161
 #: public/js/frappe/utils/utils.js:1437
 msgid "Please enable pop-ups"
@@ -18471,7 +18472,7 @@ msgstr "Lütfen Referans İletişim Belgelerinin döngüsel olarak bağlantılı
 msgid "Please refresh to get the latest document."
 msgstr "En son versiyonu almak için lütfen sayfayı yenileyin."
 
-#: printing/page/print/print.js:532
+#: printing/page/print/print.js:535
 msgid "Please remove the printer mapping in Printer Settings and try again."
 msgstr "Lütfen Yazıcı Ayarları'ndan yazıcı eşlemesini kaldırın ve tekrar deneyin."
 
@@ -18573,7 +18574,7 @@ msgstr ""
 msgid "Please set Email Address"
 msgstr "Lütfen E-posta Adresini Ayarlayın"
 
-#: printing/page/print/print.js:546
+#: printing/page/print/print.js:549
 msgid "Please set a printer mapping for this print format in the Printer Settings"
 msgstr ""
 
@@ -18609,11 +18610,11 @@ msgstr ""
 msgid "Please setup default Email Account from Settings > Email Account"
 msgstr "Lütfen Ayarlar > E-posta Hesabı bölümünden varsayılan E-posta Hesabını ayarlayın"
 
-#: core/doctype/user/user.py:373
+#: core/doctype/user/user.py:374
 msgid "Please setup default outgoing Email Account from Settings > Email Account"
 msgstr "Lütfen Ayarlar > E-posta Hesabı bölümünden varsayılan giden E-posta Hesabını ayarlayın"
 
-#: public/js/frappe/model/model.js:802
+#: public/js/frappe/model/model.js:803
 msgid "Please specify"
 msgstr "Lütfen belirtiniz"
 
@@ -18714,7 +18715,7 @@ msgstr "Portal Menü Öğesi"
 msgid "Portal Settings"
 msgstr "Portal Ayarları"
 
-#: public/js/frappe/form/print_utils.js:29
+#: public/js/frappe/form/print_utils.js:31
 msgid "Portrait"
 msgstr "Portrait"
 
@@ -18978,7 +18979,7 @@ msgstr ""
 #: core/doctype/doctype/doctype.json core/doctype/module_def/module_def.json
 #: core/workspace/build/build.json email/doctype/notification/notification.json
 #: printing/doctype/print_format/print_format.json
-#: printing/page/print/print.js:94 printing/page/print/print.js:819
+#: printing/page/print/print.js:94 printing/page/print/print.js:822
 #: public/js/frappe/list/bulk_operations.js:59
 #: website/doctype/web_form/web_form.json
 msgid "Print Format"
@@ -19063,7 +19064,7 @@ msgstr "Değer Yoksa Yazdırmayı Gizle"
 msgid "Print Language"
 msgstr "Yazdırma Dili"
 
-#: public/js/frappe/form/print_utils.js:195
+#: public/js/frappe/form/print_utils.js:197
 msgid "Print Sent to the printer!"
 msgstr ""
 
@@ -19079,7 +19080,7 @@ msgstr "Yazdırma Sunucusu"
 #: email/doctype/notification/notification.json
 #: printing/doctype/print_settings/print_settings.json
 #: printing/doctype/print_style/print_style.js:6
-#: printing/page/print/print.js:160 public/js/frappe/form/print_utils.js:69
+#: printing/page/print/print.js:160 public/js/frappe/form/print_utils.js:71
 #: public/js/frappe/form/templates/print_layout.html:35
 msgid "Print Settings"
 msgstr "Yazdırma Ayarları"
@@ -19126,11 +19127,11 @@ msgstr "Belgeyi Yazdır"
 msgid "Print with letterhead"
 msgstr "Antetli Kağıda Yazdır"
 
-#: printing/page/print/print.js:828
+#: printing/page/print/print.js:831
 msgid "Printer"
 msgstr "Yazıcı"
 
-#: printing/page/print/print.js:805
+#: printing/page/print/print.js:808
 msgid "Printer Mapping"
 msgstr ""
 
@@ -19139,11 +19140,11 @@ msgstr ""
 msgid "Printer Name"
 msgstr ""
 
-#: printing/page/print/print.js:797
+#: printing/page/print/print.js:800
 msgid "Printer Settings"
-msgstr ""
+msgstr "Yazıcı Ayarları"
 
-#: printing/page/print/print.js:545
+#: printing/page/print/print.js:548
 msgid "Printer mapping not set."
 msgstr ""
 
@@ -19427,7 +19428,7 @@ msgstr "QR Kodu"
 msgid "QR Code for Login Verification"
 msgstr "Giriş Doğrulaması için QR Kodu"
 
-#: public/js/frappe/form/print_utils.js:204
+#: public/js/frappe/form/print_utils.js:206
 msgid "QZ Tray Failed: "
 msgstr ""
 
@@ -19701,7 +19702,7 @@ msgstr "Ynt: {0}"
 #: desk/doctype/notification_log/notification_log.json
 #: email/doctype/email_flag_queue/email_flag_queue.json
 msgid "Read"
-msgstr "Okuma"
+msgstr "Okudu"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of a Check field in DocType 'DocField'
@@ -19926,7 +19927,7 @@ msgstr "Başarılı onaylamadan sonra bu bağlantıya yönlendirin."
 msgid "Redirects"
 msgstr ""
 
-#: sessions.py:145
+#: sessions.py:146
 msgid "Redis cache server not running. Please contact Administrator / Tech support"
 msgstr ""
 
@@ -20177,7 +20178,7 @@ msgstr "Yenileniyor"
 msgid "Refreshing..."
 msgstr "Yenileniyor..."
 
-#: core/doctype/user/user.py:1000
+#: core/doctype/user/user.py:1001
 msgid "Registered but disabled"
 msgstr "Kayıtlı ancak devre dışı"
 
@@ -20343,7 +20344,7 @@ msgstr "Yeniden Adlandır"
 #: custom/doctype/custom_field/custom_field.js:116
 #: custom/doctype/custom_field/custom_field.js:136
 msgid "Rename Fieldname"
-msgstr ""
+msgstr "Alanı Yeniden Adlandır"
 
 #: public/js/frappe/model/model.js:739
 msgid "Rename {0}"
@@ -20351,7 +20352,7 @@ msgstr "Yeniden Adlandır"
 
 #: core/doctype/doctype/doctype.py:684
 msgid "Renamed files and replaced code in controllers, please check!"
-msgstr ""
+msgstr "Dosyalar yeniden adlandırıldı ve kod değiştirildi, lütfen kontrol edin!"
 
 #: public/js/print_format_builder/PrintFormatSection.vue:17
 msgid "Render labels to the left and values to the right in this section"
@@ -20627,16 +20628,16 @@ msgstr "Raporlar zaten Kuyrukta"
 #. Description of a DocType
 #: core/doctype/user/user.json
 msgid "Represents a User in the system."
-msgstr ""
+msgstr "Sistemdeki bir Kullanıcıyı temsil eder."
 
 #. Description of a DocType
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Represents the states allowed in one document and role assigned to change the state."
-msgstr ""
+msgstr "Bir belgede izin verilen durumları ve durumu değiştirmek için atanan rolü temsil eder."
 
 #: www/me.html:66
 msgid "Request Account Deletion"
-msgstr ""
+msgstr "Hesap Silme Talebi"
 
 #. Label of a Code field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
@@ -20745,7 +20746,7 @@ msgstr "Alanları Sıfırla"
 
 #: core/doctype/user/user.js:177 core/doctype/user/user.js:180
 msgid "Reset LDAP Password"
-msgstr ""
+msgstr "LDAP Parolasını Sıfırla"
 
 #: custom/doctype/customize_form/customize_form.js:128
 msgid "Reset Layout"
@@ -20846,7 +20847,7 @@ msgstr ""
 
 #: core/doctype/deleted_document/deleted_document.py:74
 msgid "Restoring Deleted Document"
-msgstr ""
+msgstr "Silinen Belge Geri Yükleniyor"
 
 #. Label of a Small Text field in DocType 'User'
 #: core/doctype/user/user.json
@@ -20901,7 +20902,7 @@ msgstr "Tekrar Gönder"
 
 #: www/qrcode.html:15
 msgid "Return to the Verification screen and enter the code displayed by your authentication app"
-msgstr ""
+msgstr "Doğrulama ekranına dönün ve kimlik doğrulama uygulamanız tarafından görüntülenen kodu girin"
 
 #. Label of a Check field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
@@ -20985,13 +20986,13 @@ msgstr "Zengin Metin"
 #: printing/doctype/letter_head/letter_head.json
 #: website/doctype/web_page/web_page.json
 msgid "Right"
-msgstr ""
+msgstr "Sağ"
 
 #: printing/page/print_format_builder/print_format_builder.js:484
 #: public/js/print_format_builder/PrintFormatControls.vue:156
 msgctxt "alignment"
 msgid "Right"
-msgstr ""
+msgstr "Sağ"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -21092,7 +21093,7 @@ msgstr "Rol Profili"
 msgid "Role and Level"
 msgstr "Rol ve Seviye"
 
-#: core/doctype/user/user.py:314
+#: core/doctype/user/user.py:315
 msgid "Role has been set as per the user type {0}"
 msgstr "Rol, kullanıcı türüne göre ayarlandı {0}"
 
@@ -21213,7 +21214,7 @@ msgstr "Satır #"
 
 #: core/doctype/doctype/doctype.py:1793 core/doctype/doctype/doctype.py:1803
 msgid "Row # {0}: Non administrator user can not set the role {1} to the custom doctype"
-msgstr ""
+msgstr "Satır # {0}: Yönetici olmayan kullanıcı {1} rolünü özel doctype'a ayarlayamaz"
 
 #: model/base_document.py:882
 msgid "Row #{0}:"
@@ -21476,7 +21477,7 @@ msgstr "Cumartesi"
 #: core/doctype/data_import/data_import.js:113
 #: desk/page/user_profile/user_profile_controller.js:319
 #: email/doctype/notification/notification.json
-#: printing/page/print/print.js:856
+#: printing/page/print/print.js:859
 #: printing/page/print_format_builder/print_format_builder.js:160
 #: public/js/frappe/form/footer/form_timeline.js:663
 #: public/js/frappe/form/quick_entry.js:161
@@ -21952,7 +21953,7 @@ msgstr "Görüntüleyenler Tablosu"
 #: core/doctype/report_filter/report_filter.json
 #: custom/doctype/custom_field/custom_field.json
 #: custom/doctype/customize_form_field/customize_form_field.json
-#: printing/page/print/print.js:599
+#: printing/page/print/print.js:602
 #: website/doctype/web_form_field/web_form_field.json
 #: website/doctype/web_template_field/web_template_field.json
 msgid "Select"
@@ -21980,7 +21981,7 @@ msgid "Select Column"
 msgstr "Sütun Seç"
 
 #: printing/page/print_format_builder/print_format_builder_field.html:41
-#: public/js/frappe/form/print_utils.js:43
+#: public/js/frappe/form/print_utils.js:45
 msgid "Select Columns"
 msgstr "Sütunları Seç"
 
@@ -22093,7 +22094,7 @@ msgstr "Zorunlu Seçin"
 msgid "Select Module"
 msgstr "Modül Seçin"
 
-#: printing/page/print/print.js:175 printing/page/print/print.js:582
+#: printing/page/print/print.js:175 printing/page/print/print.js:585
 msgid "Select Network Printer"
 msgstr "Ağ Yazıcısını Seçin"
 
@@ -22617,7 +22618,7 @@ msgstr "Oturum Sonlanma Süresi"
 
 #: core/doctype/system_settings/system_settings.py:113
 msgid "Session Expiry must be in format {0}"
-msgstr ""
+msgstr "Oturum Süresi {0} formatında olmalıdır"
 
 #: public/js/frappe/ui/filters/filter.js:567
 msgctxt "Field value is set"
@@ -22751,7 +22752,7 @@ msgstr ""
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgid "Set only once"
-msgstr "Sadece bir kez ayarla"
+msgstr "Sadece Bir Kez Ayarla"
 
 #. Description of the 'Filters Configuration' (Code) field in DocType 'Number
 #. Card'
@@ -22818,7 +22819,7 @@ msgstr "Başka bir varsayılan olmadığı için bu Adres Şablonunun varsayıla
 
 #: desk/doctype/global_search_settings/global_search_settings.py:86
 msgid "Setting up Global Search documents."
-msgstr ""
+msgstr "Global Arama belgelerinin ayarlanması."
 
 #: desk/page/setup_wizard/setup_wizard.js:273
 msgid "Setting up your system"
@@ -22943,7 +22944,7 @@ msgstr "{0} Paylaş"
 msgid "Shared"
 msgstr "Paylaşıldı"
 
-#: desk/form/assign_to.py:129
+#: desk/form/assign_to.py:131
 msgid "Shared with the following Users with Read access:{0}"
 msgstr "Okuma Erişimi Şu Kullanıcılarla Paylaşıldı: {0}"
 
@@ -23287,7 +23288,7 @@ msgstr "Kenar Çubuğu ve Yorumlar"
 msgid "Sign Up and Confirmation"
 msgstr "Kayıt ve Doğrulama"
 
-#: core/doctype/user/user.py:993
+#: core/doctype/user/user.py:994
 msgid "Sign Up is disabled"
 msgstr "Kaydolma devre dışı bırakıldı"
 
@@ -23355,7 +23356,7 @@ msgstr "Tek Sayfa DocType'lar özelleştirilemez."
 msgid "Single Types have only one record no tables associated. Values are stored in tabSingles"
 msgstr "Tek DocType Sayfaları ilişkili tabloları olmayan yalnızca tek kayıt alanı olan belgelerdir. Değerler tabSingles içinde saklanır."
 
-#: database/database.py:247
+#: database/database.py:240
 msgid "Site is running in read only mode for maintenance or site update, this action can not be performed right now. Please try again later."
 msgstr "Site bakım veya site güncellemesi için salt okunur modda çalışıyor, bu işlem şu anda gerçekleştirilemiyor. Lütfen daha sonra tekrar deneyin."
 
@@ -23487,7 +23488,7 @@ msgstr ""
 #. Name of a DocType
 #: website/doctype/social_link_settings/social_link_settings.json
 msgid "Social Link Settings"
-msgstr ""
+msgstr "Sosyal Bağlantı Ayarları"
 
 #. Label of a Select field in DocType 'Social Link Settings'
 #: website/doctype/social_link_settings/social_link_settings.json
@@ -23703,7 +23704,7 @@ msgstr ""
 
 #: website/doctype/web_page/web_page.js:92
 msgid "Standard rich text editor with controls"
-msgstr ""
+msgstr "Kontrollere sahip standart zengin metin editörü"
 
 #: core/doctype/role/role.py:65
 msgid "Standard roles cannot be disabled"
@@ -24046,7 +24047,7 @@ msgstr "Konu"
 
 #: core/doctype/doctype/doctype.py:1897
 msgid "Subject Field type should be Data, Text, Long Text, Small Text, Text Editor"
-msgstr ""
+msgstr "Konu Alanı türü Veri, Metin, Uzun Metin, Küçük Metin, Metin Düzenleyici olmalıdır"
 
 #. Name of a DocType
 #: core/doctype/submission_queue/submission_queue.json
@@ -24289,7 +24290,7 @@ msgstr ""
 msgid "Suggested Indexes"
 msgstr ""
 
-#: core/doctype/user/user.py:702
+#: core/doctype/user/user.py:703
 msgid "Suggested Username: {0}"
 msgstr ""
 
@@ -24800,7 +24801,7 @@ msgstr "Şablon Uyarıları"
 msgid "Templates"
 msgstr "Şablonlar"
 
-#: core/doctype/user/user.py:1004
+#: core/doctype/user/user.py:1005
 msgid "Temporarily Disabled"
 msgstr "Geçici Olarak Devre Dışı"
 
@@ -24940,7 +24941,7 @@ msgid "The browser API key obtained from the Google Cloud Console under <a href=
 "</a>"
 msgstr ""
 
-#: database/database.py:435
+#: database/database.py:428
 msgid "The changes have been reverted."
 msgstr "Değişiklikler geri alındı."
 
@@ -25055,11 +25056,11 @@ msgid "The project number obtained from Google Cloud Console under <a href=\"htt
 "</a>"
 msgstr ""
 
-#: core/doctype/user/user.py:964
+#: core/doctype/user/user.py:965
 msgid "The reset password link has been expired"
 msgstr "Şifre sıfırlama bağlantısının süresi doldu"
 
-#: core/doctype/user/user.py:966
+#: core/doctype/user/user.py:967
 msgid "The reset password link has either been used before or is invalid"
 msgstr "Şifre sıfırlama bağlantısı daha önce kullanılmış veya geçersiz"
 
@@ -25177,7 +25178,7 @@ msgstr "Aynı filtrelere sahip {0} kuyrukta zaten mevcut:"
 msgid "There must be atleast one permission rule."
 msgstr "En az bir izin kuralı olmalıdır."
 
-#: core/doctype/user/user.py:503
+#: core/doctype/user/user.py:504
 msgid "There should remain at least one System Manager"
 msgstr "En az bir Sistem Yöneticisi olmalıdır"
 
@@ -25255,7 +25256,7 @@ msgstr "Bu Kanban Panosu özel olacak"
 msgid "This action is irreversible. Do you wish to continue?"
 msgstr "Bu eylem geri döndürülemez. Devam etmek istiyor musunuz?"
 
-#: __init__.py:978
+#: __init__.py:985
 msgid "This action is only allowed for {}"
 msgstr "Bu eylem yalnızca {} için izin veriliyor"
 
@@ -25356,7 +25357,7 @@ msgstr "Ülkeye özgü format bulunamazsa bu format kullanılır"
 #. Slideshow'
 #: website/doctype/website_slideshow/website_slideshow.json
 msgid "This goes above the slideshow."
-msgstr ""
+msgstr "Bu slayt gösterisinin üstüne gelir."
 
 #: public/js/frappe/views/reports/query_report.js:2009
 msgid "This is a background report. Please set the appropriate filters and then generate a new one."
@@ -25486,7 +25487,7 @@ msgstr ""
 msgid "This will terminate the job immediately and might be dangerous, are you sure? "
 msgstr "Bu işi hemen sonlandırmak tehlikeli olabilir, emin misiniz? "
 
-#: core/doctype/user/user.py:1223
+#: core/doctype/user/user.py:1224
 msgid "Throttled"
 msgstr ""
 
@@ -25943,11 +25944,11 @@ msgstr "Çok Fazla Seçim Yapıldı"
 msgid "Too Many Requests"
 msgstr "Çok Fazla İstek"
 
-#: database/database.py:434
+#: database/database.py:427
 msgid "Too many changes to database in single action."
 msgstr "Tek bir işlemde veritabanında çok fazla değişiklik yapıldı."
 
-#: core/doctype/user/user.py:1005
+#: core/doctype/user/user.py:1006
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr "Son zamanlarda çok fazla kullanıcı kaydoldu, bu yüzden kayıt devre dışı bırakıldı. Lütfen bir saat sonra tekrar deneyin"
 
@@ -27205,15 +27206,15 @@ msgstr "{0} e-posta adresine sahip kullanıcı mevcut değil"
 msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
 msgstr "E-posta adresi: {0} olan kullanıcı sistemde mevcut değil. Lütfen 'Sistem Yöneticisi'nden kullanıcıyı sizin için oluşturmasını isteyin."
 
-#: core/doctype/user/user.py:508
+#: core/doctype/user/user.py:509
 msgid "User {0} cannot be deleted"
 msgstr "Kullanıcı {0} silinemez"
 
-#: core/doctype/user/user.py:243
+#: core/doctype/user/user.py:244
 msgid "User {0} cannot be disabled"
 msgstr "Kullanıcı {0} devre dışı bırakılamaz"
 
-#: core/doctype/user/user.py:590
+#: core/doctype/user/user.py:591
 msgid "User {0} cannot be renamed"
 msgstr "Kullanıcı {0} yeniden adlandırılamaz"
 
@@ -27234,7 +27235,7 @@ msgstr "Kullanıcı {0} bir Çalışma Alanı oluşturma iznine sahip değil."
 msgid "User {0} has requested for data deletion"
 msgstr "{0} isimli Kullanıcı veri silme talebinde bulundu"
 
-#: core/doctype/user/user.py:1357
+#: core/doctype/user/user.py:1358
 msgid "User {0} impersonated as {1}"
 msgstr ""
 
@@ -27246,7 +27247,7 @@ msgstr "Kullanıcı {0} devre dışı"
 msgid "User {0} is disabled. Please contact your System Manager."
 msgstr "{0} isimli Kullanıcı devre dışı. Lütfen Sistem Yöneticinizle iletişime geçin."
 
-#: desk/form/assign_to.py:101
+#: desk/form/assign_to.py:103
 msgid "User {0} is not permitted to access this document."
 msgstr "{0} isimli kullanıcının bu belgeye erişim yetkisi yok."
 
@@ -27262,7 +27263,7 @@ msgstr ""
 msgid "Username"
 msgstr "Kullanıcı Adı"
 
-#: core/doctype/user/user.py:669
+#: core/doctype/user/user.py:670
 msgid "Username {0} already exists"
 msgstr ""
 
@@ -28055,11 +28056,11 @@ msgstr "Hoş Geldiniz Bağlantısı"
 msgid "Welcome Workspace"
 msgstr "Çalışma Alanına Hoşgeldiniz"
 
-#: core/doctype/user/user.py:365
+#: core/doctype/user/user.py:366
 msgid "Welcome email sent"
 msgstr "Hoşgeldiniz e-posta gönderimi yapılır"
 
-#: core/doctype/user/user.py:440
+#: core/doctype/user/user.py:441
 msgid "Welcome to {0}"
 msgstr "Hoşgeldiniz {0}"
 
@@ -28145,7 +28146,7 @@ msgstr ""
 msgid "Will run scheduled jobs only once a day for inactive sites. Default 4 days if set to 0."
 msgstr "Etkin olmayan siteler için planlanmış işleri günde yalnızca bir kez çalıştıracak. 0 olarak ayarlanırsa varsayılan 4 gün."
 
-#: public/js/frappe/form/print_utils.js:13
+#: public/js/frappe/form/print_utils.js:15
 msgid "With Letter head"
 msgstr "Antetli Kağıt ile"
 
@@ -28533,11 +28534,11 @@ msgstr "İnternete bağlı değilsiniz. Bir süre sonra tekrar deneyin."
 msgid "You are not permitted to access this page without login."
 msgstr "Giriş yapmadan bu sayfaya erişmenize izin verilmiyor."
 
-#: www/app.py:23 www/apps.py:14
+#: www/app.py:23
 msgid "You are not permitted to access this page."
 msgstr "Bu sayfaya erişim yetkiniz bulunmamaktadır."
 
-#: __init__.py:897
+#: __init__.py:904
 msgid "You are not permitted to access this resource."
 msgstr "Bu kaynağa erişim izniniz bulunmamaktadır."
 
@@ -28834,7 +28835,7 @@ msgstr "Standart Web Formlarını düzenlemeniz için geliştirici modunda olman
 msgid "You need to be logged in and have System Manager Role to be able to access backups."
 msgstr "Yedeklemelere erişmek için oturum açmanız ve Sistem Yöneticisi yetkilerine sahip olmanız gerekir."
 
-#: www/apps.py:11 www/me.py:13 www/third_party_apps.py:10
+#: www/me.py:13 www/third_party_apps.py:10
 msgid "You need to be logged in to access this page"
 msgstr "Bu sayfaya erişmek için giriş yapmanız gerekmektedir"
 
@@ -28938,7 +28939,7 @@ msgstr "Hesabınız silindi"
 msgid "Your account has been locked and will resume after {0} seconds"
 msgstr "Hesabınız kilitlendi ve {0} saniye sonra yeniden erişilebilir olacak"
 
-#: desk/form/assign_to.py:262
+#: desk/form/assign_to.py:264
 msgid "Your assignment on {0} {1} has been removed by {2}"
 msgstr ""
 
@@ -29021,7 +29022,7 @@ msgstr ""
 msgid "_report"
 msgstr ""
 
-#: database/database.py:324
+#: database/database.py:317
 msgid "`as_iterator` only works with `as_list=True` or `as_dict=True`"
 msgstr "`as_iterator` yalnızca `as_list=True` veya `as_dict=True` ile çalışır"
 
@@ -30350,7 +30351,7 @@ msgstr ""
 msgid "when clicked on element it will focus popover if present."
 msgstr ""
 
-#: printing/page/print/print.js:619
+#: printing/page/print/print.js:622
 msgid "wkhtmltopdf 0.12.x (with patched qt)."
 msgstr ""
 
@@ -30566,7 +30567,7 @@ msgstr ""
 msgid "{0} are required"
 msgstr "{0} gereklidir"
 
-#: desk/form/assign_to.py:269
+#: desk/form/assign_to.py:271
 msgid "{0} assigned a new task {1} {2} to you"
 msgstr "{0} size yeni bir görev atadı {1} {2}"
 
@@ -30721,7 +30722,7 @@ msgstr "{0} başarıyla E-posta Grubuna eklendi."
 msgid "{0} has left the conversation in {1} {2}"
 msgstr "{0} hesabı {1} {2} ile ilgili aboneliği sonlandırıldı."
 
-#: __init__.py:2450
+#: __init__.py:2457
 msgid "{0} has no versions tracked."
 msgstr "{0} için takip edilen sürüm yok."
 
@@ -30884,7 +30885,7 @@ msgstr ""
 msgid "{0} items selected"
 msgstr "{0} Kayıt Seçildi"
 
-#: core/doctype/user/user.py:1366
+#: core/doctype/user/user.py:1367
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr ""
 
@@ -31176,7 +31177,7 @@ msgstr ""
 
 #: core/doctype/doctype/doctype.py:1764
 msgid "{0}: Cannot set Import without Create"
-msgstr ""
+msgstr "{0}: Oluşturmadan İçe Aktarma ayarlanamıyor"
 
 #: core/doctype/doctype/doctype.py:1760
 msgid "{0}: Cannot set Submit, Cancel, Amend without Write"

@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-08-23 17:00+0000\n"
-"PO-Revision-Date: 2024-08-24 10:08\n"
+"POT-Creation-Date: 2024-09-02 18:21+0000\n"
+"PO-Revision-Date: 2024-09-03 18:01\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -122,7 +122,7 @@ msgstr "0 - Borrador; 1 - Enviado; 2 - Cancelado"
 msgid "0 is highest"
 msgstr "0 es más alto"
 
-#: public/js/frappe/form/grid_row.js:807
+#: public/js/frappe/form/grid_row.js:797
 msgid "1 = True & 0 = False"
 msgstr "1 = Verdadero y 0 = Falso"
 
@@ -1106,7 +1106,7 @@ msgstr "Agregar parámetros de consulta"
 msgid "Add Review"
 msgstr "Agregar una opinión"
 
-#: core/doctype/user/user.py:789
+#: core/doctype/user/user.py:790
 msgid "Add Roles"
 msgstr "Añadir Roles"
 
@@ -1285,7 +1285,7 @@ msgstr "Añadido {0}"
 msgid "Added {0} ({1})"
 msgstr "Añadido: {0} ({1})"
 
-#: core/doctype/user/user.py:271
+#: core/doctype/user/user.py:272
 msgid "Adding System Manager to this User as there must be atleast one System Manager"
 msgstr "Agregando como administrador del sistema a este usuario, ya que debe haber al menos uno"
 
@@ -1389,11 +1389,11 @@ msgstr "Administración"
 msgid "Administrator"
 msgstr "Administrador"
 
-#: core/doctype/user/user.py:1194
+#: core/doctype/user/user.py:1195
 msgid "Administrator Logged In"
 msgstr "Administrador logeado"
 
-#: core/doctype/user/user.py:1188
+#: core/doctype/user/user.py:1189
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr "Acceso de Administrador {0} en {1} a través de la dirección IP {2}."
 
@@ -1842,11 +1842,11 @@ msgstr "Roles permitidos"
 msgid "Allowing DocType, DocType. Be careful!"
 msgstr "Precaución, autorizando 'DocType'"
 
-#: core/doctype/user/user.py:998
+#: core/doctype/user/user.py:999
 msgid "Already Registered"
 msgstr "Ya está Registrado"
 
-#: desk/form/assign_to.py:134
+#: desk/form/assign_to.py:136
 msgid "Already in the following Users ToDo list:{0}"
 msgstr "Ya en la siguiente lista de tareas pendientes de los usuarios: {0}"
 
@@ -2052,7 +2052,7 @@ msgstr "Clave Secreta de Aplicación"
 msgid "App not found for module: {0}"
 msgstr "App no encontrada para el módulo: {0}"
 
-#: __init__.py:1754
+#: __init__.py:1761
 msgid "App {0} is not installed"
 msgstr "Aplicación {0} no está instalada"
 
@@ -2192,6 +2192,7 @@ msgstr "Aprobación requerida"
 #. Label of a standard navbar item
 #. Type: Route
 #: hooks.py templates/includes/navbar/navbar_login.html:18
+#: website/js/website.js:617
 msgid "Apps"
 msgstr ""
 
@@ -2303,7 +2304,7 @@ msgstr "Arial"
 msgid "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User."
 msgstr "Como práctica recomendada, no asigne el mismo conjunto de reglas de permisos a diferentes roles. En su lugar, establezca varias funciones para el mismo usuario."
 
-#: desk/form/assign_to.py:104
+#: desk/form/assign_to.py:106
 msgid "As document sharing is disabled, please give them the required permissions before assigning."
 msgstr ""
 
@@ -2438,7 +2439,7 @@ msgstr "Reglas de asignación"
 msgid "Assignment Update on {0}"
 msgstr "Actualización de la asignación en {0}"
 
-#: desk/form/assign_to.py:75
+#: desk/form/assign_to.py:61
 msgid "Assignment for {0} {1}"
 msgstr "Asignación para {0} {1}"
 
@@ -2579,11 +2580,11 @@ msgstr "Adjunto Eliminado"
 msgid "Attachments"
 msgstr "Adjuntos"
 
-#: public/js/frappe/form/print_utils.js:89
+#: public/js/frappe/form/print_utils.js:91
 msgid "Attempting Connection to QZ Tray..."
 msgstr "Intentando conectarse a la bandeja QZ..."
 
-#: public/js/frappe/form/print_utils.js:105
+#: public/js/frappe/form/print_utils.js:107
 msgid "Attempting to launch QZ Tray..."
 msgstr "Intentando iniciar QZ Tray..."
 
@@ -3692,7 +3693,7 @@ msgstr "URL de CTA"
 msgid "Cache"
 msgstr "Caché"
 
-#: sessions.py:33
+#: sessions.py:32
 msgid "Cache Cleared"
 msgstr "Memoria caché borrada"
 
@@ -4037,7 +4038,7 @@ msgstr "No se puede encontrar el archivo {} en el disco"
 msgid "Cannot get file contents of a Folder"
 msgstr ""
 
-#: printing/page/print/print.js:842
+#: printing/page/print/print.js:845
 msgid "Cannot have multiple printers mapped to a single print format."
 msgstr "No se pueden asignar varias impresoras a un único formato de impresión."
 
@@ -4955,7 +4956,7 @@ msgstr "Completar"
 msgid "Complete By"
 msgstr "Completado por"
 
-#: core/doctype/user/user.py:442 templates/emails/new_user.html:10
+#: core/doctype/user/user.py:443 templates/emails/new_user.html:10
 msgid "Complete Registration"
 msgstr "Registro completo"
 
@@ -5134,8 +5135,8 @@ msgstr "Aplicación conectada"
 msgid "Connected User"
 msgstr "Usuario conectado"
 
-#: public/js/frappe/form/print_utils.js:95
-#: public/js/frappe/form/print_utils.js:119
+#: public/js/frappe/form/print_utils.js:97
+#: public/js/frappe/form/print_utils.js:121
 msgid "Connected to QZ Tray!"
 msgstr "Conectado a la bandeja QZ!"
 
@@ -5359,7 +5360,7 @@ msgstr "Core DocTypes no se puede personalizar."
 msgid "Core Modules {0} cannot be searched in Global Search."
 msgstr "Los módulos principales {0} no se pueden buscar en la búsqueda global."
 
-#: printing/page/print/print.js:617
+#: printing/page/print/print.js:620
 msgid "Correct version :"
 msgstr "Versión correcta:"
 
@@ -8201,7 +8202,7 @@ msgstr "Cuenta de correo desactivada."
 msgid "Email Account Name"
 msgstr "Cuenta de correo electrónico"
 
-#: core/doctype/user/user.py:718
+#: core/doctype/user/user.py:719
 msgid "Email Account added multiple times"
 msgstr "Cuenta de correo electrónico añadida varias veces"
 
@@ -8894,7 +8895,7 @@ msgstr "Registros de errores"
 msgid "Error Message"
 msgstr "Mensaje de error"
 
-#: public/js/frappe/form/print_utils.js:126
+#: public/js/frappe/form/print_utils.js:128
 msgid "Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Click here to Download and install QZ Tray</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Click here to learn more about Raw Printing</a>."
 msgstr "Error al conectarse a la aplicación QZ Tray...<br><br> Debe tener la aplicación QZ Tray instalada y en ejecución, para usar la función de Impresión sin formato.<br><br> <a href=\"https://qz.io/download/\" target=\"_blank\">Haga clic aquí para descargar e instalar la bandeja QZ</a>. <br> <a href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\" target=\"_blank\">Haga clic aquí para obtener más información sobre la impresión sin procesar</a>."
 
@@ -9386,7 +9387,7 @@ msgstr "Fallo al obtener el método {0} con {1}"
 msgid "Failed to import virtual doctype {}, is controller file present?"
 msgstr "Fallo al importar doctype virtual {}, ¿está presente el archivo controlador?"
 
-#: utils/image.py:74
+#: utils/image.py:76
 msgid "Failed to optimize image: {0}"
 msgstr "Fallo en la optimización de la imagen: {0}"
 
@@ -9573,7 +9574,7 @@ msgstr "Campo a seguir"
 msgid "Field type cannot be changed for {0}"
 msgstr "El Tipo de Campo no se puede cambiar para {0}"
 
-#: database/database.py:848
+#: database/database.py:841
 msgid "Field {0} does not exist on {1}"
 msgstr "El campo {0} no existe en {1}"
 
@@ -10543,7 +10544,7 @@ msgstr "Función"
 msgid "Function Based On"
 msgstr "Función basada en"
 
-#: __init__.py:898
+#: __init__.py:905
 msgid "Function {0} is not whitelisted."
 msgstr "La función {0} no está en la lista blanca."
 
@@ -12153,7 +12154,7 @@ msgstr "En vista previa"
 msgid "In Progress"
 msgstr "En Progreso"
 
-#: database/database.py:250
+#: database/database.py:243
 msgid "In Read Only Mode"
 msgstr "En modo de solo lectura"
 
@@ -12568,7 +12569,7 @@ msgstr ""
 msgid "Invalid"
 msgstr "Inválido"
 
-#: public/js/form_builder/utils.js:221 public/js/frappe/form/grid_row.js:769
+#: public/js/form_builder/utils.js:221 public/js/frappe/form/grid_row.js:759
 #: public/js/frappe/form/layout.js:785
 msgid "Invalid \"depends_on\" expression"
 msgstr "Expresión \"depende_on\" no válida"
@@ -12669,7 +12670,7 @@ msgstr "Formato de salida no válido"
 msgid "Invalid Parameters."
 msgstr "Parámetros Inválidos."
 
-#: core/doctype/user/user.py:1209 www/update-password.html:121
+#: core/doctype/user/user.py:1210 www/update-password.html:121
 #: www/update-password.html:142 www/update-password.html:144
 #: www/update-password.html:245
 msgid "Invalid Password"
@@ -12793,7 +12794,7 @@ msgctxt "Error message in web form"
 msgid "Invalid values for fields:"
 msgstr "Valores inválidos para los campos:"
 
-#: printing/page/print/print.js:611
+#: printing/page/print/print.js:614
 msgid "Invalid wkhtmltopdf version"
 msgstr "Versión wkhtmltopdf no válida"
 
@@ -13466,7 +13467,7 @@ msgstr "La etiqueta es obligatoria"
 msgid "Landing Page"
 msgstr "Pagina de inicio"
 
-#: public/js/frappe/form/print_utils.js:28
+#: public/js/frappe/form/print_utils.js:30
 msgid "Landscape"
 msgstr "Paisaje"
 
@@ -13762,7 +13763,7 @@ msgstr "Carta"
 #. Name of a DocType
 #: core/doctype/report/report.json
 #: printing/doctype/letter_head/letter_head.json
-#: printing/page/print/print.js:127 public/js/frappe/form/print_utils.js:18
+#: printing/page/print/print.js:127 public/js/frappe/form/print_utils.js:20
 #: public/js/frappe/form/templates/print_layout.html:16
 #: public/js/frappe/list/bulk_operations.js:52
 #: public/js/print_format_builder/LetterHeadEditor.vue:144
@@ -14362,7 +14363,7 @@ msgid "Login with {0}"
 msgstr ""
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
-#: core/doctype/activity_log/activity_log.json www/apps.html:46
+#: core/doctype/activity_log/activity_log.json www/apps.html:59
 msgid "Logout"
 msgstr "Salir"
 
@@ -14844,7 +14845,7 @@ msgstr "La fusión sólo es posible de Grupo -a- Grupo o de Nodo -a- Nodo en la 
 msgid "Message"
 msgstr "Mensaje"
 
-#: __init__.py:582 public/js/frappe/ui/messages.js:267
+#: __init__.py:589 public/js/frappe/ui/messages.js:267
 msgctxt "Default title of the message dialog"
 msgid "Message"
 msgstr "Mensaje"
@@ -14964,7 +14965,7 @@ msgstr "Meta título para SEO"
 msgid "Method"
 msgstr "Método"
 
-#: __init__.py:900
+#: __init__.py:907
 msgid "Method Not Allowed"
 msgstr "Método no permitido"
 
@@ -15040,7 +15041,7 @@ msgstr "Campos Faltantes"
 msgid "Missing Filters Required"
 msgstr "Faltan filtros requeridos"
 
-#: desk/form/assign_to.py:107
+#: desk/form/assign_to.py:109
 msgid "Missing Permission"
 msgstr ""
 
@@ -15292,7 +15293,7 @@ msgstr "Más artículos sobre {0}"
 msgid "More content for the bottom of the page."
 msgstr "Más contenido de la parte inferior de la página."
 
-#: public/js/frappe/ui/sort_selector.js:193
+#: public/js/frappe/ui/sort_selector.js:191
 msgid "Most Used"
 msgstr "Más usado"
 
@@ -15784,7 +15785,7 @@ msgstr "Nuevo {0}: {1}"
 msgid "New {} releases for the following apps are available"
 msgstr "Las nuevas {} versiones para las siguientes aplicaciones están disponibles"
 
-#: core/doctype/user/user.py:785
+#: core/doctype/user/user.py:786
 msgid "Newly created user {0} has no roles enabled."
 msgstr "El usuario recién creado {0} no tiene ningún rol habilitado."
 
@@ -15834,7 +15835,7 @@ msgstr "Boletines"
 #: public/js/frappe/web_form/web_form.js:91
 #: public/js/onboarding_tours/onboarding_tours.js:15
 #: public/js/onboarding_tours/onboarding_tours.js:240
-#: templates/includes/slideshow.html:38 website/utils.py:247
+#: templates/includes/slideshow.html:38 website/utils.py:253
 #: website/web_template/slideshow/slideshow.html:44
 msgid "Next"
 msgstr "Siguiente"
@@ -16011,7 +16012,7 @@ msgstr "No se encontró ningún usuario LDAP para el correo electrónico: {0}"
 msgid "No Label"
 msgstr "Sin Etiqueta"
 
-#: printing/page/print/print.js:700 printing/page/print/print.js:782
+#: printing/page/print/print.js:703 printing/page/print/print.js:785
 #: public/js/frappe/list/bulk_operations.js:98
 #: public/js/frappe/list/bulk_operations.js:170 utils/weasyprint.py:52
 msgid "No Letterhead"
@@ -16045,11 +16046,11 @@ msgstr "No hay gráficos permitidos en este Tablero"
 msgid "No Preview"
 msgstr "Sin vista previa"
 
-#: printing/page/print/print.js:704
+#: printing/page/print/print.js:707
 msgid "No Preview Available"
 msgstr "Vista previa no disponible"
 
-#: printing/page/print/print.js:860
+#: printing/page/print/print.js:863
 msgid "No Printer is Available."
 msgstr "No hay impresora disponible."
 
@@ -16065,7 +16066,7 @@ msgstr "No hay resultados"
 msgid "No Results found"
 msgstr "No se encontraron resultados"
 
-#: core/doctype/user/user.py:786
+#: core/doctype/user/user.py:787
 msgid "No Roles Specified"
 msgstr "No hay Roles especificados"
 
@@ -16210,7 +16211,7 @@ msgstr "No. de Columnas"
 msgid "No of Rows (Max 500)"
 msgstr "No se de filas (máx 500)"
 
-#: __init__.py:1089 client.py:109 client.py:151
+#: __init__.py:1096 client.py:109 client.py:151
 msgid "No permission for {0}"
 msgstr "Sin permiso para {0}"
 
@@ -16309,7 +16310,7 @@ msgstr ""
 msgid "Normalized Query"
 msgstr "Consulta normalizada"
 
-#: core/doctype/user/user.py:993 templates/includes/login/login.js:258
+#: core/doctype/user/user.py:994 templates/includes/login/login.js:258
 #: utils/oauth.py:266
 msgid "Not Allowed"
 msgstr "No permitido"
@@ -16351,7 +16352,7 @@ msgstr "Diferente a"
 msgid "Not Linked to any record"
 msgstr "No está vinculado a ningún registro"
 
-#: __init__.py:982 app.py:357 desk/calendar.py:26 desk/treeview.py:19
+#: __init__.py:989 app.py:357 desk/calendar.py:26 desk/treeview.py:19
 #: geo/utils.py:97 public/js/frappe/web_form/webform_script.js:15
 #: website/doctype/web_form/web_form.py:601
 #: website/page_renderers/not_permitted_page.py:20 www/login.py:182
@@ -16403,7 +16404,7 @@ msgstr "No especificado"
 msgid "Not a valid Comma Separated Value (CSV File)"
 msgstr "No es un archivo separado por comas válido (archivo CSV)"
 
-#: core/doctype/user/user.py:198
+#: core/doctype/user/user.py:199
 msgid "Not a valid User Image."
 msgstr "No es una Imagen de Usuario Válida."
 
@@ -17042,7 +17043,7 @@ msgstr "Solo se pueden editar informes del tipo Generador de Informes"
 msgid "Only standard DocTypes are allowed to be customized from Customize Form."
 msgstr "Solo los DocTypes estándar pueden personalizarse desde el formulario Personalizar."
 
-#: desk/form/assign_to.py:181
+#: desk/form/assign_to.py:183
 msgid "Only the assignee can complete this to-do."
 msgstr ""
 
@@ -17281,7 +17282,7 @@ msgstr "Historia de la organización"
 msgid "Org History Heading"
 msgstr "Encabezado de la historia de la organización"
 
-#: public/js/frappe/form/print_utils.js:26
+#: public/js/frappe/form/print_utils.js:28
 msgid "Orientation"
 msgstr "Orientación"
 
@@ -17394,11 +17395,11 @@ msgstr "La generación de PDF falló"
 msgid "PDF generation failed because of broken image links"
 msgstr "Error en la generación del archivo PDF debido a problema con los enlaces de las imágenes"
 
-#: printing/page/print/print.js:613
+#: printing/page/print/print.js:616
 msgid "PDF generation may not work as expected."
 msgstr "Es posible que la generación de PDF no funcione como se esperaba."
 
-#: printing/page/print/print.js:531
+#: printing/page/print/print.js:534
 msgid "PDF printing via \"Raw Print\" is not supported."
 msgstr "La impresión en PDF a través de \"Impresión sin formato\" no está soportada."
 
@@ -17707,11 +17708,11 @@ msgstr "Pasivo"
 msgid "Password"
 msgstr "Contraseña"
 
-#: core/doctype/user/user.py:1056
+#: core/doctype/user/user.py:1057
 msgid "Password Email Sent"
 msgstr "Correo de Contraseña enviado"
 
-#: core/doctype/user/user.py:422
+#: core/doctype/user/user.py:423
 msgid "Password Reset"
 msgstr "Restablecer contraseña"
 
@@ -17720,7 +17721,7 @@ msgstr "Restablecer contraseña"
 msgid "Password Reset Link Generation Limit"
 msgstr "Límite de generación de enlaces de restablecimiento de contraseña"
 
-#: public/js/frappe/form/grid_row.js:811
+#: public/js/frappe/form/grid_row.js:801
 msgid "Password cannot be filtered"
 msgstr ""
 
@@ -17745,7 +17746,7 @@ msgstr "Falta contraseña en la cuenta de correo"
 msgid "Password not found for {0} {1} {2}"
 msgstr "Contraseña no encontrada para {0} {1} {2}"
 
-#: core/doctype/user/user.py:1055
+#: core/doctype/user/user.py:1056
 msgid "Password reset instructions have been sent to your email"
 msgstr "Las instrucciones para el restablecimiento de la contraseña han sido enviadas a su correo electrónico"
 
@@ -17757,7 +17758,7 @@ msgstr "Contraseña establecida"
 msgid "Password size exceeded the maximum allowed size"
 msgstr "El tamaño de la contraseña excedió el tamaño máximo permitido"
 
-#: core/doctype/user/user.py:849
+#: core/doctype/user/user.py:850
 msgid "Password size exceeded the maximum allowed size."
 msgstr "El tamaño de la contraseña superó el tamaño máximo permitido."
 
@@ -18051,7 +18052,7 @@ msgstr "No. de teléfono"
 msgid "Phone Number {0} set in field {1} is not valid."
 msgstr "Número de teléfono {0} establecido en el campo {1} no es válido."
 
-#: public/js/frappe/form/print_utils.js:38
+#: public/js/frappe/form/print_utils.js:40
 #: public/js/frappe/views/reports/report_view.js:1503
 #: public/js/frappe/views/reports/report_view.js:1506
 msgid "Pick Columns"
@@ -18112,7 +18113,7 @@ msgstr "Por favor agregue un asunto a su correo electrónico"
 msgid "Please add a valid comment."
 msgstr "Agregue un comentario válido."
 
-#: core/doctype/user/user.py:1038
+#: core/doctype/user/user.py:1039
 msgid "Please ask your administrator to verify your sign-up"
 msgstr "Por favor, consulte a su administrador para verificar su registro"
 
@@ -18144,7 +18145,7 @@ msgstr "Compruebe los valores de filtro establecidos para el gráfico del tabler
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr "Por favor, compruebe el valor de \"Obtener desde\" establecido para el campo {0}"
 
-#: core/doctype/user/user.py:1036
+#: core/doctype/user/user.py:1037
 msgid "Please check your email for verification"
 msgstr "Por favor, consultar su correo electrónico para la verificación"
 
@@ -18172,7 +18173,7 @@ msgstr "Por favor, cierre esta ventana"
 msgid "Please confirm your action to {0} this document."
 msgstr "Confirma tu acción a {0} este documento."
 
-#: printing/page/print/print.js:615
+#: printing/page/print/print.js:618
 msgid "Please contact your system manager to install correct version."
 msgstr ""
 
@@ -18202,7 +18203,7 @@ msgstr ""
 
 #: desk/doctype/notification_log/notification_log.js:45
 #: email/doctype/auto_email_report/auto_email_report.js:17
-#: printing/page/print/print.js:635 printing/page/print/print.js:665
+#: printing/page/print/print.js:638 printing/page/print/print.js:668
 #: public/js/frappe/list/bulk_operations.js:161
 #: public/js/frappe/utils/utils.js:1437
 msgid "Please enable pop-ups"
@@ -18293,7 +18294,7 @@ msgstr "Asegúrese de que los documentos de comunicación de referencia no esté
 msgid "Please refresh to get the latest document."
 msgstr "Por favor, actualice para obtener el último documento."
 
-#: printing/page/print/print.js:532
+#: printing/page/print/print.js:535
 msgid "Please remove the printer mapping in Printer Settings and try again."
 msgstr ""
 
@@ -18395,7 +18396,7 @@ msgstr ""
 msgid "Please set Email Address"
 msgstr "Por favor, establece Dirección de correo electrónico"
 
-#: printing/page/print/print.js:546
+#: printing/page/print/print.js:549
 msgid "Please set a printer mapping for this print format in the Printer Settings"
 msgstr "Configure una asignación de impresora para este formato de impresión en la Configuración de la impresora"
 
@@ -18431,11 +18432,11 @@ msgstr "Configura un mensaje primero"
 msgid "Please setup default Email Account from Settings > Email Account"
 msgstr "Por favor, configure la cuenta de correo predeterminada desde Ajustes > Cuenta de Correo"
 
-#: core/doctype/user/user.py:373
+#: core/doctype/user/user.py:374
 msgid "Please setup default outgoing Email Account from Settings > Email Account"
 msgstr "Por favor, configure la cuenta de correo saliente por defecto desde Ajustes > Cuenta de Correo"
 
-#: public/js/frappe/model/model.js:802
+#: public/js/frappe/model/model.js:803
 msgid "Please specify"
 msgstr "Por favor, especifique"
 
@@ -18536,7 +18537,7 @@ msgstr "Elemento del Menú del Portal"
 msgid "Portal Settings"
 msgstr "Configuración del portal"
 
-#: public/js/frappe/form/print_utils.js:29
+#: public/js/frappe/form/print_utils.js:31
 msgid "Portrait"
 msgstr "Retrato"
 
@@ -18800,7 +18801,7 @@ msgstr "Imprimir Documentos"
 #: core/doctype/doctype/doctype.json core/doctype/module_def/module_def.json
 #: core/workspace/build/build.json email/doctype/notification/notification.json
 #: printing/doctype/print_format/print_format.json
-#: printing/page/print/print.js:94 printing/page/print/print.js:819
+#: printing/page/print/print.js:94 printing/page/print/print.js:822
 #: public/js/frappe/list/bulk_operations.js:59
 #: website/doctype/web_form/web_form.json
 msgid "Print Format"
@@ -18885,7 +18886,7 @@ msgstr "Impresión Oculta si no hay Valor"
 msgid "Print Language"
 msgstr "Lenguaje de impresión"
 
-#: public/js/frappe/form/print_utils.js:195
+#: public/js/frappe/form/print_utils.js:197
 msgid "Print Sent to the printer!"
 msgstr "¡La impresión ha sido enviada a la impresora!"
 
@@ -18901,7 +18902,7 @@ msgstr "Servidor de Impresión"
 #: email/doctype/notification/notification.json
 #: printing/doctype/print_settings/print_settings.json
 #: printing/doctype/print_style/print_style.js:6
-#: printing/page/print/print.js:160 public/js/frappe/form/print_utils.js:69
+#: printing/page/print/print.js:160 public/js/frappe/form/print_utils.js:71
 #: public/js/frappe/form/templates/print_layout.html:35
 msgid "Print Settings"
 msgstr "Ajustes de Impresión"
@@ -18948,11 +18949,11 @@ msgstr "Imprimir Documento"
 msgid "Print with letterhead"
 msgstr "Imprimir con membrete"
 
-#: printing/page/print/print.js:828
+#: printing/page/print/print.js:831
 msgid "Printer"
 msgstr "Impresora"
 
-#: printing/page/print/print.js:805
+#: printing/page/print/print.js:808
 msgid "Printer Mapping"
 msgstr "Mapeo de impresora"
 
@@ -18961,11 +18962,11 @@ msgstr "Mapeo de impresora"
 msgid "Printer Name"
 msgstr "Nombre de la Impresora"
 
-#: printing/page/print/print.js:797
+#: printing/page/print/print.js:800
 msgid "Printer Settings"
 msgstr "Configuración de la impresora"
 
-#: printing/page/print/print.js:545
+#: printing/page/print/print.js:548
 msgid "Printer mapping not set."
 msgstr "El mapeo de impresora no está establecido."
 
@@ -19249,7 +19250,7 @@ msgstr "Código QR"
 msgid "QR Code for Login Verification"
 msgstr "Código QR para la verificación de inicio de Sesión"
 
-#: public/js/frappe/form/print_utils.js:204
+#: public/js/frappe/form/print_utils.js:206
 msgid "QZ Tray Failed: "
 msgstr "Bandeja QZ fallida: "
 
@@ -19748,7 +19749,7 @@ msgstr "Redirigir a esta URL tras una confirmación satisfactoria."
 msgid "Redirects"
 msgstr "Redirección"
 
-#: sessions.py:145
+#: sessions.py:146
 msgid "Redis cache server not running. Please contact Administrator / Tech support"
 msgstr "El servidor de caché Redis no esta funcionando. Por favor, póngase en contacto con el administrador / soporte técnico"
 
@@ -19999,7 +20000,7 @@ msgstr "Refrescando"
 msgid "Refreshing..."
 msgstr "Refrescando..."
 
-#: core/doctype/user/user.py:1000
+#: core/doctype/user/user.py:1001
 msgid "Registered but disabled"
 msgstr "Registrado pero discapacitados"
 
@@ -20914,7 +20915,7 @@ msgstr "Perfil de Rol"
 msgid "Role and Level"
 msgstr "Rol y nivel"
 
-#: core/doctype/user/user.py:314
+#: core/doctype/user/user.py:315
 msgid "Role has been set as per the user type {0}"
 msgstr ""
 
@@ -21298,7 +21299,7 @@ msgstr "Sábado"
 #: core/doctype/data_import/data_import.js:113
 #: desk/page/user_profile/user_profile_controller.js:319
 #: email/doctype/notification/notification.json
-#: printing/page/print/print.js:856
+#: printing/page/print/print.js:859
 #: printing/page/print_format_builder/print_format_builder.js:160
 #: public/js/frappe/form/footer/form_timeline.js:663
 #: public/js/frappe/form/quick_entry.js:161
@@ -21774,7 +21775,7 @@ msgstr "Visto por la tabla"
 #: core/doctype/report_filter/report_filter.json
 #: custom/doctype/custom_field/custom_field.json
 #: custom/doctype/customize_form_field/customize_form_field.json
-#: printing/page/print/print.js:599
+#: printing/page/print/print.js:602
 #: website/doctype/web_form_field/web_form_field.json
 #: website/doctype/web_template_field/web_template_field.json
 msgid "Select"
@@ -21802,7 +21803,7 @@ msgid "Select Column"
 msgstr "Seleccionar Columna"
 
 #: printing/page/print_format_builder/print_format_builder_field.html:41
-#: public/js/frappe/form/print_utils.js:43
+#: public/js/frappe/form/print_utils.js:45
 msgid "Select Columns"
 msgstr "Seleccione columnas"
 
@@ -21915,7 +21916,7 @@ msgstr "Selección Obligatoria"
 msgid "Select Module"
 msgstr "Seleccione Módulo"
 
-#: printing/page/print/print.js:175 printing/page/print/print.js:582
+#: printing/page/print/print.js:175 printing/page/print/print.js:585
 msgid "Select Network Printer"
 msgstr "Seleccione Impresora de red"
 
@@ -22758,7 +22759,7 @@ msgstr "Compartir {0} con"
 msgid "Shared"
 msgstr "Compartido"
 
-#: desk/form/assign_to.py:129
+#: desk/form/assign_to.py:131
 msgid "Shared with the following Users with Read access:{0}"
 msgstr "Compartido con los siguientes usuarios con acceso de lectura: {0}"
 
@@ -23102,7 +23103,7 @@ msgstr "Barra lateral y Comentarios"
 msgid "Sign Up and Confirmation"
 msgstr ""
 
-#: core/doctype/user/user.py:993
+#: core/doctype/user/user.py:994
 msgid "Sign Up is disabled"
 msgstr "El registro está desactivado"
 
@@ -23170,7 +23171,7 @@ msgstr "Los DocTypes individuales no se pueden personalizar."
 msgid "Single Types have only one record no tables associated. Values are stored in tabSingles"
 msgstr "Los campos únicos, solo tienen un registro y no tienen tablas asociadas, los valores serán guardados en una columna aislada."
 
-#: database/database.py:247
+#: database/database.py:240
 msgid "Site is running in read only mode for maintenance or site update, this action can not be performed right now. Please try again later."
 msgstr ""
 
@@ -24104,7 +24105,7 @@ msgstr ""
 msgid "Suggested Indexes"
 msgstr ""
 
-#: core/doctype/user/user.py:702
+#: core/doctype/user/user.py:703
 msgid "Suggested Username: {0}"
 msgstr "Nombre de usuario sugerido: {0}"
 
@@ -24615,7 +24616,7 @@ msgstr "Advertencias de plantilla"
 msgid "Templates"
 msgstr "Plantillas"
 
-#: core/doctype/user/user.py:1004
+#: core/doctype/user/user.py:1005
 msgid "Temporarily Disabled"
 msgstr "Desactivado temporalmente"
 
@@ -24753,7 +24754,7 @@ msgid "The browser API key obtained from the Google Cloud Console under <a href=
 "</a>"
 msgstr ""
 
-#: database/database.py:435
+#: database/database.py:428
 msgid "The changes have been reverted."
 msgstr "Los cambios han sido revertidos."
 
@@ -24868,11 +24869,11 @@ msgid "The project number obtained from Google Cloud Console under <a href=\"htt
 "</a>"
 msgstr ""
 
-#: core/doctype/user/user.py:964
+#: core/doctype/user/user.py:965
 msgid "The reset password link has been expired"
 msgstr ""
 
-#: core/doctype/user/user.py:966
+#: core/doctype/user/user.py:967
 msgid "The reset password link has either been used before or is invalid"
 msgstr ""
 
@@ -24990,7 +24991,7 @@ msgstr "Ya hay {0} con los mismos filtros en la cola:"
 msgid "There must be atleast one permission rule."
 msgstr "Debe haber al menos una regla de permiso."
 
-#: core/doctype/user/user.py:503
+#: core/doctype/user/user.py:504
 msgid "There should remain at least one System Manager"
 msgstr "Debe haber al menos un administrador del sistema"
 
@@ -25068,7 +25069,7 @@ msgstr "Este tablero Kanban será privado"
 msgid "This action is irreversible. Do you wish to continue?"
 msgstr ""
 
-#: __init__.py:978
+#: __init__.py:985
 msgid "This action is only allowed for {}"
 msgstr "Esta acción solo está permitida para {}"
 
@@ -25299,7 +25300,7 @@ msgstr ""
 msgid "This will terminate the job immediately and might be dangerous, are you sure? "
 msgstr "Esto terminará el trabajo inmediatamente y podría ser peligroso, ¿está seguro? "
 
-#: core/doctype/user/user.py:1223
+#: core/doctype/user/user.py:1224
 msgid "Throttled"
 msgstr ""
 
@@ -25756,11 +25757,11 @@ msgstr "Demasiados Documentos"
 msgid "Too Many Requests"
 msgstr "Demasiadas solicitudes"
 
-#: database/database.py:434
+#: database/database.py:427
 msgid "Too many changes to database in single action."
 msgstr ""
 
-#: core/doctype/user/user.py:1005
+#: core/doctype/user/user.py:1006
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr "Hay demasiados usuarios se inscribieron recientemente, por lo que el registro está desactivado. Por favor, intente volver en una hora"
 
@@ -27016,15 +27017,15 @@ msgstr "No existe un usuario con dirección de correo electrónico {0}"
 msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
 msgstr "Usuario con correo electrónico: {0} no existe en el sistema. Solicite al 'Administrador del sistema' que cree el usuario por usted."
 
-#: core/doctype/user/user.py:508
+#: core/doctype/user/user.py:509
 msgid "User {0} cannot be deleted"
 msgstr "El usuario {0} no se puede eliminar"
 
-#: core/doctype/user/user.py:243
+#: core/doctype/user/user.py:244
 msgid "User {0} cannot be disabled"
 msgstr "El usuario {0} no se puede deshabilitar"
 
-#: core/doctype/user/user.py:590
+#: core/doctype/user/user.py:591
 msgid "User {0} cannot be renamed"
 msgstr "El usuario {0} no puede ser renombrado"
 
@@ -27045,7 +27046,7 @@ msgstr ""
 msgid "User {0} has requested for data deletion"
 msgstr "El usuario {0} ha solicitado la eliminación de datos"
 
-#: core/doctype/user/user.py:1357
+#: core/doctype/user/user.py:1358
 msgid "User {0} impersonated as {1}"
 msgstr "Usuario {0} suplantado como {1}"
 
@@ -27057,7 +27058,7 @@ msgstr "El usuario {0} está deshabilitado"
 msgid "User {0} is disabled. Please contact your System Manager."
 msgstr ""
 
-#: desk/form/assign_to.py:101
+#: desk/form/assign_to.py:103
 msgid "User {0} is not permitted to access this document."
 msgstr "Usuario {0} no está autorizado a acceder a este documento."
 
@@ -27073,7 +27074,7 @@ msgstr "URI de Información de Usuario"
 msgid "Username"
 msgstr "Nombre de usuario"
 
-#: core/doctype/user/user.py:669
+#: core/doctype/user/user.py:670
 msgid "Username {0} already exists"
 msgstr "Nombre de usuario {0} ya existe"
 
@@ -27866,11 +27867,11 @@ msgstr "URL de bienvenida"
 msgid "Welcome Workspace"
 msgstr "Área de Trabajo de Bienvenida"
 
-#: core/doctype/user/user.py:365
+#: core/doctype/user/user.py:366
 msgid "Welcome email sent"
 msgstr "Correo electrónico de bienvenida enviado"
 
-#: core/doctype/user/user.py:440
+#: core/doctype/user/user.py:441
 msgid "Welcome to {0}"
 msgstr "Bienvenido a {0}"
 
@@ -27956,7 +27957,7 @@ msgstr "sólo se mostrará si se habilitan los títulos de sección"
 msgid "Will run scheduled jobs only once a day for inactive sites. Default 4 days if set to 0."
 msgstr "Ejecutará trabajos programados solo una vez al día para sitios inactivos. Predeterminado 4 días si se establece en 0."
 
-#: public/js/frappe/form/print_utils.js:13
+#: public/js/frappe/form/print_utils.js:15
 msgid "With Letter head"
 msgstr "Con Membrete"
 
@@ -28344,11 +28345,11 @@ msgstr "No estás conectado a Internet. Vuelve a intentar después de algún tie
 msgid "You are not permitted to access this page without login."
 msgstr "No está autorizado a acceder a esta página sin iniciar sesión."
 
-#: www/app.py:23 www/apps.py:14
+#: www/app.py:23
 msgid "You are not permitted to access this page."
 msgstr "Usted no está autorizado a acceder a esta página."
 
-#: __init__.py:897
+#: __init__.py:904
 msgid "You are not permitted to access this resource."
 msgstr "No está autorizado a acceder a este recurso."
 
@@ -28645,7 +28646,7 @@ msgstr "Usted necesita estar en el modo de programador para editar un formulario
 msgid "You need to be logged in and have System Manager Role to be able to access backups."
 msgstr "Debe haber iniciado sesión y tener la función de administrador del sistema, para poder tener acceso a las copias de seguridad."
 
-#: www/apps.py:11 www/me.py:13 www/third_party_apps.py:10
+#: www/me.py:13 www/third_party_apps.py:10
 msgid "You need to be logged in to access this page"
 msgstr "Tiene que estar registrado para acceder a esta página"
 
@@ -28749,7 +28750,7 @@ msgstr "Su cuenta ha sido eliminada"
 msgid "Your account has been locked and will resume after {0} seconds"
 msgstr "Su cuenta ha sido bloqueada y se reanudará después de {0} segundos"
 
-#: desk/form/assign_to.py:262
+#: desk/form/assign_to.py:264
 msgid "Your assignment on {0} {1} has been removed by {2}"
 msgstr "Tu tarea de {0} {1} ha sido eliminada por {2}"
 
@@ -28832,7 +28833,7 @@ msgstr "_doctype"
 msgid "_report"
 msgstr "_informe"
 
-#: database/database.py:324
+#: database/database.py:317
 msgid "`as_iterator` only works with `as_list=True` or `as_dict=True`"
 msgstr ""
 
@@ -30161,7 +30162,7 @@ msgstr "Icono de advertencia"
 msgid "when clicked on element it will focus popover if present."
 msgstr ""
 
-#: printing/page/print/print.js:619
+#: printing/page/print/print.js:622
 msgid "wkhtmltopdf 0.12.x (with patched qt)."
 msgstr "wkhtmltopdf 0.12.x (con qt parcheado)."
 
@@ -30377,7 +30378,7 @@ msgstr "{0} son actualmente {1}"
 msgid "{0} are required"
 msgstr "{0} son obligatorios"
 
-#: desk/form/assign_to.py:269
+#: desk/form/assign_to.py:271
 msgid "{0} assigned a new task {1} {2} to you"
 msgstr "{0} te asignó una nueva tarea {1} {2}"
 
@@ -30532,7 +30533,7 @@ msgstr "{0} ha sido añadido al grupo de correo electrónico."
 msgid "{0} has left the conversation in {1} {2}"
 msgstr "{0} ha dejado la conversación en {1} {2}"
 
-#: __init__.py:2450
+#: __init__.py:2457
 msgid "{0} has no versions tracked."
 msgstr "{0} no tiene versiones rastreadas."
 
@@ -30695,7 +30696,7 @@ msgstr "{0} está dentro de {1}"
 msgid "{0} items selected"
 msgstr "{0} elementos seleccionados"
 
-#: core/doctype/user/user.py:1366
+#: core/doctype/user/user.py:1367
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr "{0} se hizo pasar por usted. Dieron esta razón: {1}"
 
