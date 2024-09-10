@@ -39,7 +39,7 @@
     "air-datepicker": "git+https://github.com/frappe/air-datepicker",
     "autoprefixer": "10",
     "awesomplete": "^1.1.5",
-    "bootstrap": "4.6.2",
+    "bootstrap": "5.0.0",
     "chalk": "^2.3.2",
     "cliui": "^7.0.4",
     "cookie": "^0.4.0",
