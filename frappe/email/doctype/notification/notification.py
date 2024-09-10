@@ -87,8 +87,6 @@ class Notification(Document):
 		try:
 			doc = frappe.get_cached_doc(self.document_type, preview_document)
 			context = get_context(doc)
-			if self.is_standard:
-				self.load_standard_properties(context)
 			return _("Yes") if frappe.safe_eval(self.condition, eval_locals=context) else _("No")
 		except Exception as e:
 			frappe.local.message_log = []
