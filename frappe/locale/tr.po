@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-08 09:32+0000\n"
-"PO-Revision-Date: 2024-09-08 19:39\n"
+"PO-Revision-Date: 2024-09-10 19:54\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -50,7 +50,7 @@ msgstr "Değişiklik yapmak için \"amended_from\" alanı mevcut olmalıdır."
 
 #: utils/csvutils.py:243
 msgid "\"{0}\" is not a valid Google Sheets URL"
-msgstr "\"{0}\" geçerli bir Google Sheets adresi değildir"
+msgstr "\"{0}\" geçerli bir Google E-Tablolar bağlantısı değil"
 
 #: public/js/frappe/ui/toolbar/tag_utils.js:21
 #: public/js/frappe/ui/toolbar/tag_utils.js:22
@@ -2532,7 +2532,7 @@ msgstr "Sırayla tek tek atayın"
 
 #: public/js/frappe/form/sidebar/assign_to.js:173
 msgid "Assign to me"
-msgstr ""
+msgstr "Bana Ata"
 
 #: automation/doctype/assignment_rule/assignment_rule.js:53
 msgid "Assign to the one who has the least assignments"
@@ -11377,11 +11377,11 @@ msgstr "Google Ayarları"
 
 #: utils/csvutils.py:223
 msgid "Google Sheets URL is invalid or not publicly accessible."
-msgstr "Google E-Tablolar URL'si geçersiz veya herkes tarafından erişilebilir değil."
+msgstr "Google E-Tablolar bağlantısı geçersiz veya herkes tarafından erişilebilir değil."
 
 #: utils/csvutils.py:228
 msgid "Google Sheets URL must end with \"gid={number}\". Copy and paste the URL from the browser address bar and try again."
-msgstr "Google E-Tablolar URL'si \"gid={number}\" ile bitmelidir. URL'yi tarayıcı adres çubuğundan kopyalayıp yapıştırın ve tekrar deneyin."
+msgstr "Google E-Tablolar bağlantısı \"gid={number}\" ile bitmelidir. Bağlantıyı tarayıcı adres çubuğundan kopyalayıp yapıştırın ve tekrar deneyin."
 
 #. Label of the google_preview (HTML) field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
@@ -11433,7 +11433,7 @@ msgstr "Grup"
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 #: website/report/website_analytics/website_analytics.js:32
 msgid "Group By"
-msgstr "Gruplama Ölçütü"
+msgstr "Grup"
 
 #. Label of the group_by_based_on (Select) field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
@@ -15857,7 +15857,7 @@ msgstr "Çarpan Alanı"
 #. Import'
 #: core/doctype/data_import/data_import.json
 msgid "Must be a publicly accessible Google Sheets URL"
-msgstr "Herkese açık bir Google E-Tablolar URL'si olmalıdır"
+msgstr "Herkese açık bir Google E-Tablolar Bağlantısı olmalıdır"
 
 #. Description of the 'LDAP Search String' (Data) field in DocType 'LDAP
 #. Settings'
@@ -17335,7 +17335,7 @@ msgstr ""
 
 #: public/js/form_builder/components/Tabs.vue:190
 msgid "OR"
-msgstr "YADA"
+msgstr "Veya"
 
 #. Option for the 'Two Factor Authentication method' (Select) field in DocType
 #. 'System Settings'
@@ -20571,7 +20571,7 @@ msgstr "Referans: {0} {1}"
 #: website/doctype/web_page_view/web_page_view.json
 #: website/report/website_analytics/website_analytics.js:37
 msgid "Referrer"
-msgstr ""
+msgstr "Referans Olan"
 
 #: printing/page/print/print.js:73 public/js/frappe/desk.js:169
 #: public/js/frappe/desk.js:550 public/js/frappe/form/form.js:1201
