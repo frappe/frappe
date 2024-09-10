@@ -1,6 +1,6 @@
 <template>
 	<div v-if="shouldRender" style="display: flex; width: 100%">
-		<div style="padding: var(--padding-md); padding-left: var(--padding-xl)">
+		<div style="padding: var(--padding-md)">
 			<PrintFormatControls />
 		</div>
 		<div class="print-format-container">
