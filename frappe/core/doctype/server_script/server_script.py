@@ -216,7 +216,7 @@ class ServerScript(Document):
 			return locals["conditions"]
 
 	@frappe.whitelist()
-	def get_autocompletion_items(self):
+	def get_autocompletion_items(self, document_type=None):
 		"""Generate a list of autocompletion strings from the context dict
 		that is used while executing a Server Script.
 
@@ -227,6 +227,16 @@ class ServerScript(Document):
 			items = get_keys_for_autocomplete(get_safe_globals())
 			items = [{"value": d[0], "score": d[1]} for d in items]
 			frappe.cache.set_value("server_script_autocompletion_items", items)
+
+		if document_type:
+			# Create a fake document for the completion context
+			fake_doc = frappe.new_doc(document_type)
+			_doc_fields = fake_doc.meta.get_valid_columns()
+			context_keys_for_doc = get_keys_for_autocomplete(
+				dict(doc={df: None for df in _doc_fields}), score_offset=20
+			)
+			items.extend([{"value": d[0], "score": d[1], "meta": "doc"} for d in context_keys_for_doc])
+
 		return items
 
 
