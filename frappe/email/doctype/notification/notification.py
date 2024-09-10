@@ -4,6 +4,7 @@
 import json
 import os
 from collections import namedtuple
+from functools import partial
 
 import frappe
 from frappe import _
@@ -254,23 +255,26 @@ def get_context(context):
 		docs = []
 
 		offset_in_minutes = self.minutes_offset
-		if self.event == "Minutes After":
-			offset_in_minutes = -offset_in_minutes
 
 		now = now_datetime()  # reference now
+		last = (
+			# one ficticious scheduler tick earlier if frist run
+			add_to_date(now, minutes=-5) if not self.datetime_last_run else self.datetime_last_run
+		)
 
-		if not self.datetime_last_run:
-			self.datetime_last_run = add_to_date(now, minutes=-5)  # one ficticious scheduler tick earlier
+		if self.event == "Minutes After":
+			offset = partial(add_to_date, minutes=-offset_in_minutes)
+		else:
+			offset = partial(add_to_date, minutes=offset_in_minutes)
 
-		reference_datetime_start = add_to_date(self.datetime_last_run, minutes=offset_in_minutes)
-		reference_datetime_end = add_to_date(now, minutes=offset_in_minutes)
+		(lower, upper) = map(offset, [last, now])
 
 		doc_list = frappe.get_all(
 			self.document_type,
 			fields="name",
 			filters=[
-				{self.datetime_changed: (">=", reference_datetime_start)},
-				{self.datetime_changed: ("<=", reference_datetime_end)},
+				{self.datetime_changed: (">", lower)},
+				{self.datetime_changed: ("<=", upper)},
 			],
 		)
 
