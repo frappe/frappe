@@ -37,7 +37,7 @@
 		<CodeEditor
 			v-else-if="type === 'code'"
 			:modelValue="modelValue"
-			:type="typeof modelValue == 'function' ? 'JavaScript' : 'JSON'"
+			:type="typeof modelValue === 'function' ? 'JavaScript' : 'JSON'"
 			:label="label"
 			@update:modelValue="(e) => emit('update:modelValue', e)"
 		/>

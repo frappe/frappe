@@ -84,8 +84,10 @@ export const COMPONENTS = {
 					label: "Name",
 					key: "name",
 					width: 3,
-					getLabel: ({ row }) => row.name,
-					prefix: ({ row }) => {
+					getLabel: function ({ row }) {
+						return row.name
+					},
+					prefix: function ({ row }) {
 						return h(frappeUI.Avatar, {
 							shape: "circle",
 							image: row.user_image,
@@ -126,11 +128,6 @@ export const COMPONENTS = {
 				},
 			],
 			rowKey: "id",
-			options: {
-				selectable: true,
-				showTooltip: true,
-				resizeColumn: true,
-			},
 		},
 	},
 }

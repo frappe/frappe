@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import { areObjectsEqual } from "@/utils/helpers"
+import { areObjectsEqual, jsonToJs, jsToJson } from "@/utils/helpers"
 import { useDark } from "@vueuse/core"
 import ace from "ace-builds"
 import "ace-builds/src-min-noconflict/ext-searchbox"
@@ -50,7 +50,7 @@ const props = defineProps({
 	},
 	autofocus: {
 		type: Boolean,
-		default: true,
+		default: false,
 	},
 	showSaveButton: {
 		type: Boolean,
@@ -104,8 +104,8 @@ const setupEditor = () => {
 	aceEditor.on("blur", () => {
 		try {
 			let value = aceEditor?.getValue() || ""
-			if (props.type === "JSON") {
-				value = JSON.parse(value)
+			if (props.type === "JSON" || typeof props.modelValue === "object") {
+				value = jsonToJs(value)
 				if (areObjectsEqual(value, props.modelValue)) return
 			} else if (value === props.modelValue) {
 				return
@@ -124,7 +124,7 @@ const getModelValue = () => {
 	let value = props.modelValue || ""
 	try {
 		if (props.type === "JSON" || typeof value === "object") {
-			value = JSON.stringify(value, null, 2)
+			value = jsToJson(value)
 		}
 	} catch (e) {
 		// do nothing

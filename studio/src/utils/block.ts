@@ -4,7 +4,7 @@ import { reactive, CSSProperties, nextTick } from 'vue'
 
 import useStore from "@/store";
 import components from "@/data/components";
-import { copy, getBlockCopy, kebabToCamelCase, numberToPx } from "./helpers";
+import { copyObject, getBlockCopy, kebabToCamelCase, numberToPx } from "./helpers";
 
 export type styleProperty = keyof CSSProperties | `__${string}`;
 class Block implements BlockOptions {
@@ -36,7 +36,7 @@ class Block implements BlockOptions {
 
 		// get component props
 		if (!options.componentProps) {
-			this.componentProps = copy(components.get(options.componentName)?.initialState)
+			this.componentProps = copyObject(components.get(options.componentName)?.initialState)
 		} else {
 			this.componentProps = options.componentProps
 		}
