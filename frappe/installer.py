@@ -664,7 +664,7 @@ def extract_sql_from_archive(sql_file_path):
 
 	sql_file_path = get_bench_relative_path(sql_file_path)
 	# Extract the gzip file if user has passed *.sql.gz file instead of *.sql file
-	if sql_file_path.endswith("sql.gz"):
+	if sql_file_path.endswith(".gz"):
 		decompressed_file_name = extract_sql_gzip(sql_file_path)
 	else:
 		decompressed_file_name = sql_file_path
