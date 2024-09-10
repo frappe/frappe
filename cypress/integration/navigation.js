@@ -24,7 +24,7 @@ context("Navigation", () => {
 		cy.get("@reload").get(".page-card .btn-primary").contains("Login").click();
 		cy.location("pathname").should("eq", "/login");
 		cy.login();
-		cy.visit("/app");
+		cy.reload().as("reload");
 		cy.location("pathname").should("eq", "/app/todo");
 	});
 });
