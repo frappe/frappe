@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-02 18:21+0000\n"
-"PO-Revision-Date: 2024-09-06 18:59\n"
+"PO-Revision-Date: 2024-09-10 19:54\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -50,7 +50,7 @@ msgstr "Değişiklik yapmak için \"amended_from\" alanı mevcut olmalıdır."
 
 #: utils/csvutils.py:221
 msgid "\"{0}\" is not a valid Google Sheets URL"
-msgstr "\"{0}\" geçerli bir Google Sheets adresi değildir"
+msgstr "\"{0}\" geçerli bir Google E-Tablolar bağlantısı değil"
 
 #: public/js/frappe/ui/toolbar/tag_utils.js:22
 #: public/js/frappe/ui/toolbar/tag_utils.js:23
@@ -2516,7 +2516,7 @@ msgstr "Sırayla tek tek atayın"
 
 #: public/js/frappe/form/sidebar/assign_to.js:173
 msgid "Assign to me"
-msgstr ""
+msgstr "Bana Ata"
 
 #: automation/doctype/assignment_rule/assignment_rule.js:53
 msgid "Assign to the one who has the least assignments"
@@ -16982,7 +16982,7 @@ msgstr ""
 
 #: public/js/form_builder/components/Tabs.vue:190
 msgid "OR"
-msgstr "YADA"
+msgstr "Veya"
 
 #. Option for the 'Two Factor Authentication method' (Select) field in DocType
 #. 'System Settings'
