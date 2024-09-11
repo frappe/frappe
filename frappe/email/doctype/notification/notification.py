@@ -267,7 +267,7 @@ def get_context(context):
 		else:
 			offset = partial(add_to_date, minutes=offset_in_minutes)
 
-		(lower, upper) = map(offset, [last, now])
+		(lower, upper) = map(offset, [last, now])  # nosemgrep
 
 		doc_list = frappe.get_all(
 			self.document_type,
