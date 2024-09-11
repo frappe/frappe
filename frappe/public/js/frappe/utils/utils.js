@@ -1718,8 +1718,9 @@ Object.assign(frappe.utils, {
 				{
 					fieldname: "source",
 					label: __("Source"),
-					fieldtype: "Data",
+					fieldtype: "Link",
 					reqd: 1,
+					options: "UTM Source",
 					description: "The referrer (e.g. google, newsletter)",
 					default: localStorage.getItem("tracker_url:source"),
 				},
@@ -1728,13 +1729,14 @@ Object.assign(frappe.utils, {
 					label: __("Campaign"),
 					fieldtype: "Link",
 					ignore_link_validation: 1,
-					options: "Marketing Campaign",
+					options: "UTM Campaign",
 					default: localStorage.getItem("tracker_url:campaign"),
 				},
 				{
 					fieldname: "medium",
 					label: __("Medium"),
-					fieldtype: "Data",
+					fieldtype: "Link",
+					options: "UTM Medium",
 					description: "Marketing medium (e.g. cpc, banner, email)",
 					default: localStorage.getItem("tracker_url:medium"),
 				},
@@ -1746,21 +1748,32 @@ Object.assign(frappe.utils, {
 					default: localStorage.getItem("tracker_url:content"),
 				},
 			],
-			function (data) {
+			async function (data) {
 				let url = data.url;
 				localStorage.setItem("tracker_url:url", data.url);
 
-				url += "?utm_source=" + encodeURIComponent(data.source);
+				const { message } = await frappe.db.get_value("UTM Source", data.source, "slug");
+				url += "?utm_source=" + encodeURIComponent(message.slug || data.source);
 				localStorage.setItem("tracker_url:source", data.source);
 				if (data.campaign) {
-					url += "&utm_campaign=" + encodeURIComponent(data.campaign);
+					const { message } = await frappe.db.get_value(
+						"UTM Campaign",
+						data.campaign,
+						"slug"
+					);
+					url += "&utm_campaign=" + encodeURIComponent(message.slug || data.campaign);
 					localStorage.setItem("tracker_url:campaign", data.campaign);
 				}
 				if (data.medium) {
-					url += "&utm_medium=" + encodeURIComponent(data.medium);
+					const { message } = await frappe.db.get_value(
+						"UTM Medium",
+						data.medium,
+						"slug"
+					);
+					url += "&utm_medium=" + encodeURIComponent(message.slug || data.medium);
 					localStorage.setItem("tracker_url:medium", data.medium);
 				}
-				if (data.medium) {
+				if (data.content) {
 					url += "&utm_content=" + encodeURIComponent(data.content);
 					localStorage.setItem("tracker_url:content", data.content);
 				}
