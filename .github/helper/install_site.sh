@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-cd ~ || exit
+cd ~/frappe-bench || exit
 
 echo "::group::Create Test Site"
 mkdir ~/frappe-bench/sites/test_site
