@@ -115,6 +115,7 @@ class FrappeTestCase(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
 		cls.TEST_SITE = getattr(frappe.local, "site", None) or cls.TEST_SITE
+		frappe.init(cls.TEST_SITE)
 		cls.ADMIN_PASSWORD = frappe.get_conf(cls.TEST_SITE).admin_password
 		cls._primary_connection = frappe.local.db
 		cls._secondary_connection = None

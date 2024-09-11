@@ -792,7 +792,8 @@ def run_tests(
 		tests = test
 		site = get_site(context)
 
-		allow_tests = frappe.get_conf(site).allow_tests
+		frappe.init(site)
+		allow_tests = frappe.get_conf().allow_tests
 
 		if not (allow_tests or os.environ.get("CI")):
 			click.secho("Testing is disabled for the site!", bold=True)
@@ -897,7 +898,7 @@ def run_ui_tests(
 	frappe.init(site)
 	app_base_path = frappe.get_app_source_path(app)
 	site_url = frappe.utils.get_site_url(site)
-	admin_password = frappe.get_conf(site).admin_password
+	admin_password = frappe.get_conf().admin_password
 
 	# override baseUrl using env variable
 	site_env = f"CYPRESS_baseUrl={site_url}"
