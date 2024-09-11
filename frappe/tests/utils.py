@@ -163,7 +163,7 @@ class FrappeTestCase(unittest.TestCase):
 			)
 		elif isinstance(expected, bool | int):
 			self.assertEqual(expected, cint(actual), msg=msg)
-		elif isinstance(expected, datetime_like_types):
+		elif isinstance(expected, datetime_like_types) or isinstance(actual, datetime_like_types):
 			self.assertEqual(str(expected), str(actual), msg=msg)
 		else:
 			self.assertEqual(expected, actual, msg=msg)
