@@ -523,6 +523,7 @@ def cache_html(func):
 				html = page_cache[frappe.local.lang]
 			if html:
 				frappe.local.response.from_cache = True
+				frappe.local.response.can_cache = True
 				return html
 		html = func(*args, **kwargs)
 		context = args[0].context
@@ -530,6 +531,7 @@ def cache_html(func):
 			page_cache = frappe.cache.hget("website_page", args[0].path) or {}
 			page_cache[frappe.local.lang] = html
 			frappe.cache.hset("website_page", args[0].path, page_cache)
+			frappe.local.response.can_cache = True
 
 		return html
 
