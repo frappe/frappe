@@ -2,7 +2,14 @@ import { ref, reactive, computed } from "vue"
 import { defineStore } from "pinia"
 import { createDocumentResource } from "frappe-ui"
 
-import { getBlockInstance, getRootBlock } from "@/utils/helpers"
+import {
+	getBlockInstance,
+	getRootBlock,
+	jsToJson,
+	getBlockCopyWithoutParent,
+	jsonToJs,
+} from "@/utils/helpers"
+import { studioPages } from "@/data/studioPages"
 
 const useStore = defineStore("store", () => {
 	const canvas = ref(null)
@@ -44,11 +51,13 @@ const useStore = defineStore("store", () => {
 	// studio pages
 	const pageBlocks = ref([])
 	const selectedPage = ref(null)
+	const savingPage = ref(false)
+	const settingPage = ref(false)
 
 	async function setPage(pageName) {
 		const page = await fetchPage(pageName)
 
-		const blocks = JSON.parse(page.blocks || "[]")
+		const blocks = jsonToJs(page.blocks || "[]")
 		if (blocks.length === 0) {
 			pageBlocks.value = [getRootBlock()]
 		} else {
@@ -66,6 +75,19 @@ const useStore = defineStore("store", () => {
 		return pageResource.doc
 	}
 
+	function savePage() {
+		pageBlocks.value = [canvas.value.getRootBlock()]
+		const pageData = jsToJson(pageBlocks.value.map((block) => getBlockCopyWithoutParent(block)))
+
+		const args = {
+			name: selectedPage.value,
+			blocks: pageData,
+		}
+		return studioPages.setValue.submit(args).finally(() => {
+			savingPage.value = false
+		})
+	}
+
 	return {
 		canvas,
 		studioLayout,
@@ -78,8 +100,11 @@ const useStore = defineStore("store", () => {
 		selectBlock,
 		pageBlocks,
 		selectedPage,
+		settingPage,
+		savingPage,
 		setPage,
 		fetchPage,
+		savePage,
 	}
 })
 

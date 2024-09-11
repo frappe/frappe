@@ -28,8 +28,9 @@
 </template>
 
 <script setup>
-import { onActivated, watchEffect, ref } from "vue"
+import { onActivated, watchEffect, watch, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
+import { useDebounceFn } from "@vueuse/core"
 
 import StudioToolbar from "@/components/StudioToolbar.vue"
 import StudioLeftPanel from "@/components/StudioLeftPanel.vue"
@@ -50,6 +51,18 @@ watchEffect(() => {
 		store.canvas = canvas.value
 	}
 })
+
+const debouncedPageSave = useDebounceFn(store.savePage, 300)
+watch(
+	() => canvas.value?.rootComponent,
+	() => {
+		if (store.selectedPage && !canvas.value?.canvasProps?.settingCanvas) {
+			store.savingPage = true
+			debouncedPageSave()
+		}
+	},
+	{ deep: true },
+)
 
 onActivated(async () => {
 	if (route.params.pageID === store.selectedPage) return

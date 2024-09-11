@@ -5,7 +5,7 @@ import * as frappeUI from "frappe-ui"
 
 function getBlockInstance(options: BlockOptions, retainId = true): Block {
 	if (typeof options === "string") {
-		options = JSON.parse(options)
+		options = jsonToJs(options)
 	}
 	if (!retainId) {
 		const deleteComponentId = (block: BlockOptions) => {
@@ -28,9 +28,8 @@ function getRootBlock(): Block {
 }
 
 function getBlockCopy(block: BlockOptions | Block, retainId = false): Block {
-	// remove parent block reference as JSON doesn"t accept circular references
-	const blockString = JSON.stringify(getBlockCopyWithoutParent(block))
-	const b = JSON.parse(blockString)
+	// remove parent block reference as JSON doesn't accept circular references
+	const b = copyObject(getBlockCopyWithoutParent(block))
 	return getBlockInstance(b, retainId)
 }
 
