@@ -144,6 +144,9 @@ class FrappeTestCase(unittest.TestCase):
 		if isinstance(expected, BaseDocument):
 			expected = expected.as_dict()
 
+		if isinstance(actual, BaseDocument):
+			actual = actual.as_dict()
+
 		for field, value in expected.items():
 			if isinstance(value, list):
 				actual_child_docs = actual.get(field)
