@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-02 18:21+0000\n"
-"PO-Revision-Date: 2024-09-10 19:54\n"
+"PO-Revision-Date: 2024-09-11 20:16\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -1254,7 +1254,7 @@ msgstr "Grup Ekle"
 
 #: core/doctype/recorder/recorder.js:30
 msgid "Add Indexes"
-msgstr ""
+msgstr "Dizinleri Ekle"
 
 #: public/js/frappe/form/grid.js:63
 msgid "Add Multiple"
@@ -2015,11 +2015,11 @@ msgstr ""
 
 #: core/doctype/user/user.py:999
 msgid "Already Registered"
-msgstr ""
+msgstr "Zaten kayıltı"
 
 #: desk/form/assign_to.py:136
 msgid "Already in the following Users ToDo list:{0}"
-msgstr ""
+msgstr "Zaten şu Kullanıcıların Yapılacaklar listesinde:{0}"
 
 #: public/js/frappe/views/reports/report_view.js:836
 msgid "Also adding the dependent currency field {0}"
@@ -2345,7 +2345,7 @@ msgstr ""
 
 #: model/workflow.py:258
 msgid "Applying: {0}"
-msgstr ""
+msgstr "Uygulanıyor: {0}"
 
 #: public/js/frappe/form/sidebar/review.js:62
 msgid "Appreciate"
@@ -2678,7 +2678,7 @@ msgstr ""
 
 #: public/js/frappe/file_uploader/WebLink.vue:10
 msgid "Attach a web link"
-msgstr ""
+msgstr "Bir web bağlantısı ekleyin"
 
 #: website/doctype/website_slideshow/website_slideshow.js:8
 msgid "Attach files / urls and add in table."
@@ -2904,11 +2904,11 @@ msgstr "Otomatik Tekrar Belge Oluşturma Başarısız"
 
 #: automation/doctype/auto_repeat/auto_repeat.js:115
 msgid "Auto Repeat Schedule"
-msgstr ""
+msgstr "Otomatik Tekrar Programı"
 
 #: public/js/frappe/utils/common.js:434
 msgid "Auto Repeat created for this document"
-msgstr ""
+msgstr "Bu belge için Otomatik Tekrar oluşturuldu"
 
 #: automation/doctype/auto_repeat/auto_repeat.py:440
 msgid "Auto Repeat failed for {0}"
@@ -3253,7 +3253,7 @@ msgstr "Yedeklemeler (MB)"
 
 #: core/doctype/scheduled_job_type/scheduled_job_type.py:66
 msgid "Bad Cron Expression"
-msgstr ""
+msgstr "Hatalı Cron İfadesi"
 
 #. Option for the 'Rounding Method' (Select) field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -3882,7 +3882,7 @@ msgstr "Takvim"
 #. Label of a Data field in DocType 'Google Calendar'
 #: integrations/doctype/google_calendar/google_calendar.json
 msgid "Calendar Name"
-msgstr ""
+msgstr "Takvim Adı"
 
 #. Linked DocType in DocType's connections
 #. Name of a DocType
@@ -4320,7 +4320,7 @@ msgstr "Kategori Adı"
 
 #: utils/data.py:1319
 msgid "Cent"
-msgstr ""
+msgstr "Kuruş"
 
 #. Option for the 'Align' (Select) field in DocType 'Letter Head'
 #. Option for the 'Text Align' (Select) field in DocType 'Web Page'
@@ -4331,7 +4331,7 @@ msgstr "Ortala"
 
 #: core/page/permission_manager/permission_manager_help.html:16
 msgid "Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit."
-msgstr ""
+msgstr "Fatura gibi bazı belgeler son haline getirildikten sonra değiştirilmemelidir. Bu tür belgeler için son durum Gönderilmiş olarak adlandırılır. Hangi rollerin Gönderme yapabileceğini kısıtlayabilirsiniz."
 
 #: core/report/transaction_log_report/transaction_log_report.py:82
 msgid "Chain Integrity"
@@ -4373,7 +4373,7 @@ msgstr "Şifreyi Değiştir"
 
 #: public/js/print_format_builder/print_format_builder.bundle.js:27
 msgid "Change Print Format"
-msgstr ""
+msgstr "Yazdırma Biçimini Değiştir"
 
 #: desk/page/user_profile/user_profile_controller.js:51
 #: desk/page/user_profile/user_profile_controller.js:59
@@ -4928,11 +4928,11 @@ msgstr ""
 #: core/doctype/data_export/exporter.py:25
 #: desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Column Name"
-msgstr ""
+msgstr "Sütun Adı"
 
 #: desk/doctype/kanban_board/kanban_board.py:45
 msgid "Column Name cannot be empty"
-msgstr ""
+msgstr "Sütun Adı boş olamaz"
 
 #: public/js/frappe/form/grid_row.js:430
 msgid "Column Width"
@@ -4940,7 +4940,7 @@ msgstr "Sütun Genişliği"
 
 #: public/js/frappe/form/grid_row.js:614
 msgid "Column width cannot be zero."
-msgstr ""
+msgstr "Sütun genişliği sıfır olamaz."
 
 #: core/doctype/data_import/data_import.js:385
 msgid "Column {0}"
@@ -7402,19 +7402,19 @@ msgstr "DocType Olayı"
 #. Name of a DocType
 #: custom/doctype/doctype_layout/doctype_layout.json
 msgid "DocType Layout"
-msgstr ""
+msgstr "DocType Düzeni"
 
 #. Name of a DocType
 #: custom/doctype/doctype_layout_field/doctype_layout_field.json
 msgid "DocType Layout Field"
-msgstr ""
+msgstr "DocType Düzeni Alanı"
 
 #. Name of a DocType
 #. Option for the 'Applied On' (Select) field in DocType 'Property Setter'
 #: core/doctype/doctype_link/doctype_link.json
 #: custom/doctype/property_setter/property_setter.json
 msgid "DocType Link"
-msgstr ""
+msgstr "DocType Bağlantısı"
 
 #: core/doctype/doctype/doctype_list.js:10
 msgid "DocType Name"
@@ -7460,7 +7460,7 @@ msgstr "DocType en az bir alana sahip olmalıdır"
 
 #: core/doctype/log_settings/log_settings.py:58
 msgid "DocType not supported by Log Settings."
-msgstr ""
+msgstr "DocType Günlük Ayarları tarafından desteklenmiyor."
 
 #. Description of the 'Document Type' (Link) field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
@@ -7532,7 +7532,7 @@ msgstr "Belge Takibi"
 
 #: desk/form/document_follow.py:84
 msgid "Document Follow Notification"
-msgstr ""
+msgstr "Belge Takip Bildirimi"
 
 #. Label of a Data field in DocType 'Notification Log'
 #: desk/doctype/notification_log/notification_log.json
@@ -7583,7 +7583,7 @@ msgstr "Belge adı"
 
 #: client.py:424
 msgid "Document Name must be a string"
-msgstr ""
+msgstr "Belge Adı bir dize olmalıdır"
 
 #. Name of a DocType
 #: core/doctype/document_naming_rule/document_naming_rule.json
@@ -7610,7 +7610,7 @@ msgstr "Belge Geri Yükleme Özeti"
 
 #: core/doctype/deleted_document/deleted_document.py:68
 msgid "Document Restored"
-msgstr ""
+msgstr "Belge Geri Yüklendi"
 
 #: public/js/frappe/widgets/onboarding_widget.js:359
 #: public/js/frappe/widgets/onboarding_widget.js:401
@@ -7627,7 +7627,7 @@ msgstr "Döküman Paylaşımı"
 #. Name of a DocType
 #: core/doctype/document_share_key/document_share_key.json
 msgid "Document Share Key"
-msgstr ""
+msgstr "Belge Paylaşım Anahtarı"
 
 #. Label of a Int field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -7772,7 +7772,7 @@ msgstr "Belge yalnızca role sahip kullanıcılar tarafından düzenlenebilir"
 
 #: core/doctype/communication/communication.js:182
 msgid "Document not Relinked"
-msgstr ""
+msgstr "Belge Yeniden Bağlantılandırılmadı"
 
 #: model/rename_doc.py:226 public/js/frappe/form/toolbar.js:146
 msgid "Document renamed from {0} to {1}"
@@ -7898,7 +7898,7 @@ msgstr "Donut"
 
 #: public/js/form_builder/components/EditableInput.vue:43
 msgid "Double click to edit label"
-msgstr ""
+msgstr "Etiketi düzenlemek için çift tıklayın"
 
 #: core/doctype/file/file.js:5
 #: email/doctype/auto_email_report/auto_email_report.js:8
@@ -9731,7 +9731,7 @@ msgstr "Alan Türü"
 
 #: desk/reportview.py:182
 msgid "Field not permitted in query"
-msgstr "Alana sorguda izin verilmiyor"
+msgstr "Sorgu sırasında alan yetkilendirilmesinde hata oluştu"
 
 #. Description of the 'Workflow State Field' (Data) field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
@@ -10587,7 +10587,7 @@ msgstr "ERP"
 
 #: public/js/frappe/ui/toolbar/about.js:4
 msgid "Frappe Framework"
-msgstr ""
+msgstr "Frappe Framework"
 
 #: public/js/frappe/list/list_sidebar.js:275
 msgid "Frappe Insights"
@@ -11286,7 +11286,7 @@ msgstr "Başlık bölümü için HTML. İsteğe bağlı"
 
 #: website/doctype/web_page/web_page.js:92
 msgid "HTML with jinja support"
-msgstr ""
+msgstr "Jinja destekli HTML"
 
 #. Option for the 'Width' (Select) field in DocType 'Dashboard Chart Link'
 #: desk/doctype/dashboard_chart_link/dashboard_chart_link.json
@@ -12299,7 +12299,7 @@ msgstr "Genel Arama"
 
 #: core/doctype/doctype/doctype.js:96
 msgid "In Grid View"
-msgstr ""
+msgstr "Izgara Görünümünde"
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
@@ -13467,7 +13467,7 @@ msgstr ""
 #. Name of a DocType
 #: integrations/doctype/ldap_group_mapping/ldap_group_mapping.json
 msgid "LDAP Group Mapping"
-msgstr ""
+msgstr "LDAP Grup Eşlemesi"
 
 #. Label of a Section Break field in DocType 'LDAP Settings'
 #. Label of a Table field in DocType 'LDAP Settings'
@@ -13497,7 +13497,7 @@ msgstr ""
 
 #: integrations/doctype/ldap_settings/ldap_settings.py:162
 msgid "LDAP Not Installed"
-msgstr ""
+msgstr "LDAP Yüklü Değil"
 
 #. Label of a Data field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
@@ -13511,7 +13511,7 @@ msgstr ""
 
 #: integrations/doctype/ldap_settings/ldap_settings.py:129
 msgid "LDAP Search String must be enclosed in '()' and needs to contian the user placeholder {0}, eg sAMAccountName={0}"
-msgstr ""
+msgstr "LDAP Arama Dizesi '()' içine alınmalı ve kullanıcı yer tutucusunu içermelidir {0}, örneğin sAMAccountName={0}"
 
 #. Label of a Section Break field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
@@ -13553,7 +13553,7 @@ msgstr ""
 #: integrations/doctype/ldap_settings/ldap_settings.py:308
 #: integrations/doctype/ldap_settings/ldap_settings.py:425
 msgid "LDAP is not enabled."
-msgstr ""
+msgstr "LDAP etkinleştirilmedi."
 
 #. Label of a Data field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
@@ -14521,7 +14521,7 @@ msgstr "LDAP ile giriş yapın"
 #. Label of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgid "Login with email link"
-msgstr "E-posta Bağlantısı ile Giriş"
+msgstr "E-posta ile Giriş"
 
 #. Label of a Int field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -16600,7 +16600,7 @@ msgstr "Aktif değil"
 
 #: permissions.py:354
 msgid "Not allowed for {0}: {1}"
-msgstr ""
+msgstr "{0} için izin verilmiyor: {1}"
 
 #: email/doctype/notification/notification.py:393
 msgid "Not allowed to attach {0} document, please enable Allow Print For {0} in Print Settings"
@@ -16612,11 +16612,11 @@ msgstr "Özel Sanal DocType oluşturulmasına izin verilmiyor."
 
 #: www/printview.py:125
 msgid "Not allowed to print cancelled documents"
-msgstr ""
+msgstr "İptal edilen belgeleri yazdırmasına izin verilmiyor"
 
 #: www/printview.py:122
 msgid "Not allowed to print draft documents"
-msgstr ""
+msgstr "Taslak belgelerin yazdırılmasına izin verilmiyor"
 
 #: permissions.py:206
 msgid "Not allowed via controller permission check"
@@ -16927,7 +16927,7 @@ msgstr "OAuth"
 #. Name of a DocType
 #: integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
 msgid "OAuth Authorization Code"
-msgstr ""
+msgstr "OAuth Yetkilendirme Kodu"
 
 #. Name of a DocType
 #: integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
@@ -16949,7 +16949,7 @@ msgstr ""
 #. Name of a DocType
 #: integrations/doctype/oauth_client_role/oauth_client_role.json
 msgid "OAuth Client Role"
-msgstr ""
+msgstr "OAuth İstemci Rolü"
 
 #: email/oauth.py:30
 msgid "OAuth Error"
@@ -16965,7 +16965,7 @@ msgstr "OAuth Sağlayıcı Ayarları"
 #. Name of a DocType
 #: integrations/doctype/oauth_scope/oauth_scope.json
 msgid "OAuth Scope"
-msgstr ""
+msgstr "OAuth Kapsamı"
 
 #: email/doctype/email_account/email_account.js:178
 msgid "OAuth has been enabled but not authorised. Please use \"Authorise API Access\" button to do the same."
@@ -16973,7 +16973,7 @@ msgstr "OAuth etkinleştirildi ancak yetkilendirilmedi. Aynı işlemi yapmak iç
 
 #: templates/includes/oauth_confirmation.html:39
 msgid "OK"
-msgstr ""
+msgstr "TAMAM"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: core/doctype/recorder/recorder.json
@@ -17567,11 +17567,11 @@ msgstr "PDF Ayarları"
 
 #: utils/print_format.py:280
 msgid "PDF generation failed"
-msgstr ""
+msgstr "PDF oluşturma başarısız oldu"
 
 #: utils/pdf.py:98
 msgid "PDF generation failed because of broken image links"
-msgstr ""
+msgstr "Bozuk resim bağlantıları nedeniyle PDF oluşturma başarısız oldu"
 
 #: printing/page/print/print.js:616
 msgid "PDF generation may not work as expected."
@@ -17930,7 +17930,7 @@ msgstr "Şifre sıfırlama talimatları e-postanıza gönderildi"
 
 #: www/update-password.html:164
 msgid "Password set"
-msgstr ""
+msgstr "Şifre ayarlandı"
 
 #: auth.py:236
 msgid "Password size exceeded the maximum allowed size"
@@ -22161,7 +22161,7 @@ msgstr "Özelliklerini düzenlemek için bir alan seçin."
 
 #: public/js/frappe/views/treeview.js:324
 msgid "Select a group node first."
-msgstr ""
+msgstr "Önce bir grup seçin."
 
 #: core/doctype/doctype/doctype.py:1904
 msgid "Select a valid Sender Field for creating documents from Email"
@@ -24728,11 +24728,11 @@ msgstr ""
 #: integrations/doctype/dropbox_settings/dropbox_settings.js:39
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.js:12
 msgid "Take Backup Now"
-msgstr ""
+msgstr "Şimdi Yedek Alın"
 
 #: public/js/frappe/ui/capture.js:212
 msgid "Take Photo"
-msgstr ""
+msgstr "Fotoğraf Çek"
 
 #. Label of a Data field in DocType 'Portal Menu Item'
 #. Label of a Small Text field in DocType 'Website Route Redirect'
@@ -24749,7 +24749,7 @@ msgstr "Görev"
 #. Label of a Table field in DocType 'About Us Settings'
 #: website/doctype/about_us_settings/about_us_settings.json www/about.html:45
 msgid "Team Members"
-msgstr ""
+msgstr "Ekip Üyeleri"
 
 #. Label of a Data field in DocType 'About Us Settings'
 #: website/doctype/about_us_settings/about_us_settings.json
@@ -26231,7 +26231,7 @@ msgstr "Ağaç Görünümü"
 
 #: public/js/frappe/list/base_list.js:210
 msgid "Tree View"
-msgstr ""
+msgstr "Ağaç Görünümü"
 
 #. Description of the 'Is Tree' (Check) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -26240,7 +26240,7 @@ msgstr "Ağaç yapıları iç içe küme şeklinde yapılandırılır."
 
 #: public/js/frappe/views/treeview.js:20
 msgid "Tree view is not available for {0}"
-msgstr ""
+msgstr "Ağaç görünümü {0} için mevcut değil"
 
 #. Label of a Data field in DocType 'Notification'
 #: email/doctype/notification/notification.json
@@ -28037,7 +28037,7 @@ msgstr "Haftalık Uzun"
 
 #: desk/page/setup_wizard/setup_wizard.js:372
 msgid "Welcome"
-msgstr ""
+msgstr "Hoşgeldiniz"
 
 #. Label of a Link field in DocType 'System Settings'
 #. Label of a Link field in DocType 'Email Group'
@@ -28625,7 +28625,7 @@ msgstr ""
 
 #: website/doctype/web_page/web_page.js:92
 msgid "You can select one from the following,"
-msgstr ""
+msgstr "Aşağıdakilerden birini seçebilirsiniz,"
 
 #. Description of the 'Rate limit for email link login' (Int) field in DocType
 #. 'System Settings'
@@ -28639,7 +28639,7 @@ msgstr "Raporunuzun filtrelerini değiştirmeyi deneyebilirsiniz."
 
 #: core/page/permission_manager/permission_manager_help.html:27
 msgid "You can use Customize Form to set levels on fields."
-msgstr ""
+msgstr "Alanların yetki seviyelerini ayarlamak için Formu Özelleştir'i kullanabilirsiniz."
 
 #: public/js/frappe/form/link_selector.js:30
 msgid "You can use wildcard %"
@@ -30400,25 +30400,25 @@ msgstr ""
 
 #: public/js/frappe/ui/toolbar/search_utils.js:198
 msgid "{0} ${type}"
-msgstr ""
+msgstr "{0} ${type}"
 
 #: public/js/frappe/data_import/data_exporter.js:80
 #: public/js/frappe/views/gantt/gantt_view.js:54
 msgid "{0} ({1})"
-msgstr ""
+msgstr "{0} ({1})"
 
 #: public/js/frappe/data_import/data_exporter.js:77
 msgid "{0} ({1}) (1 row mandatory)"
-msgstr ""
+msgstr "{0} ({1}) (1 satır zorunlu)"
 
 #: public/js/frappe/views/gantt/gantt_view.js:53
 msgid "{0} ({1}) - {2}%"
-msgstr ""
+msgstr "{0} ({1}) - {2}%"
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:337
 #: public/js/frappe/ui/toolbar/awesome_bar.js:340
 msgid "{0} = {1}"
-msgstr ""
+msgstr "{0} = {1}"
 
 #: public/js/frappe/views/calendar/calendar.js:30
 msgid "{0} Calendar"
@@ -30620,7 +30620,7 @@ msgstr ""
 
 #: website/doctype/blog_post/blog_post.py:376
 msgid "{0} comments"
-msgstr ""
+msgstr "{0} yorum"
 
 #: core/doctype/doctype/doctype.py:1567
 msgid "{0} contains an invalid Fetch From expression, Fetch From can't be self-referential."
@@ -30786,7 +30786,7 @@ msgstr "{0} değeri {1} değerinden küçüktür"
 
 #: public/js/frappe/views/reports/report_view.js:1411
 msgid "{0} is like {1}"
-msgstr ""
+msgstr "{0} {1} gibi"
 
 #: email/doctype/email_account/email_account.py:174
 msgid "{0} is mandatory"
@@ -31258,7 +31258,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/query_report.js:1205
 msgid "{0}: {1} vs {2}"
-msgstr ""
+msgstr "{0}: {1} ile {2}"
 
 #: core/doctype/doctype/doctype.py:1396
 msgid "{0}:Fieldtype {1} for {2} cannot be indexed"
