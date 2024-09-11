@@ -50,7 +50,7 @@ from .utils.jinja import (
 )
 from .utils.lazy_loader import lazy_import
 
-__version__ = "15.40.4"
+__version__ = "15.40.5"
 __title__ = "Frappe Framework"
 
 controllers = {}
