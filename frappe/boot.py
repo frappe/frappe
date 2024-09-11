@@ -159,9 +159,10 @@ def load_desktop_data(bootinfo):
 		bootinfo.app_data.append(
 			dict(
 				app_name=app_name,
-				app_title=frappe.get_hooks("app_title", app_name=app_name),
+				app_title=frappe.get_hooks("app_title", app_name=app_name) or app_name,
 				app_home=frappe.get_hooks("app_home", app_name=app_name),
-				app_logo_url=frappe.get_hooks("app_logo_url", app_name=app_name),
+				app_logo_url=frappe.get_hooks("app_logo_url", app_name=app_name)
+				or frappe.get_hooks("app_logo_url", app_name="frappe"),
 				modules=[m.name for m in frappe.get_all("Module Def", dict(app_name=app_name))],
 				workspaces=[
 					r[0]
