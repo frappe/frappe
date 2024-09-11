@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import subprocess
 import sys
 import typing
@@ -10,6 +11,7 @@ import frappe
 from frappe import _
 from frappe.commands import get_site, pass_context
 from frappe.coverage import CodeCoverage
+from frappe.database.pg_tmp import PgTmp
 from frappe.exceptions import SiteNotSpecifiedError
 from frappe.utils import cint, update_progress_bar
 
@@ -761,6 +763,7 @@ def transform_database(context, table, engine, row_format, failfast):
 @click.option(
 	"--failfast", is_flag=True, default=False, help="Stop the test run on the first error or failure"
 )
+@click.option("--ephemeral-db", is_flag=True, default=False, help="Use ephemeral database (pg_tmp) for tests")
 @pass_context
 def run_tests(
 	context,
@@ -778,8 +781,37 @@ def run_tests(
 	failfast=False,
 	case=None,
 	pdb=False,
+	ephemeral_db=False,
 ):
 	"""Run python unit-tests"""
+
+	if context.force:
+
+		def get_original_command(remove=None):
+			original_args = sys.argv[1:]
+			command = "bench"
+			if remove and remove in original_args:
+				original_args.remove(remove)
+			if original_args:
+				command += " " + " ".join(original_args)
+
+			return command
+
+		click.secho("We improved handling of side-effects of test runs!", bold=True)
+		click.secho("The '--force' option has been removed. For isolated database testing,")
+		click.secho("install the 'pg_tmp' tool and use the '--ephemeral-db' flag:")
+		command = get_original_command(remove="--force")
+		click.secho(f"{command} --ephemeral-db", fg="green")
+		return
+
+	if ephemeral_db and shutil.which("pg_tmp") is None:
+		click.secho("Please install pg_tmp for isolated database testing!", bold=True)
+		click.secho("The easiest way is using the nix package manager:")
+		click.secho("Into your profile: ", nl=False)
+		click.secho("nix profile install nixpkgs#ephemeralpg", fg="green")
+		click.secho("Into an ephemeral shell: ", nl=False)
+		click.secho("nix shell nixpkgs#ephemeralpg", fg="green")
+		return
 
 	pdb_on_exceptions = None
 	if pdb:
@@ -800,24 +832,55 @@ def run_tests(
 			click.secho(f"bench --site {site} set-config allow_tests true", fg="green")
 			return
 
-		ret = frappe.test_runner.main(
-			site,
-			app,
-			module,
-			doctype,
-			module_def,
-			context.verbose,
-			tests=tests,
-			force=context.force,
-			profile=profile,
-			junit_xml_output=junit_xml_output,
-			doctype_list_path=doctype_list_path,
-			failfast=failfast,
-			case=case,
-			skip_test_records=skip_test_records,
-			skip_before_tests=skip_before_tests,
-			pdb_on_exceptions=pdb_on_exceptions,
-		)
+		def _run_tests():
+			return frappe.test_runner.main(
+				site,
+				app,
+				module,
+				doctype,
+				module_def,
+				context.verbose,
+				tests=tests,
+				profile=profile,
+				junit_xml_output=junit_xml_output,
+				doctype_list_path=doctype_list_path,
+				failfast=failfast,
+				case=case,
+				skip_test_records=skip_test_records,
+				skip_before_tests=skip_before_tests,
+				pdb_on_exceptions=pdb_on_exceptions,
+			)
+
+		if ephemeral_db:
+			frappe.init(site=site)
+			with PgTmp(frappe.local.site_path + "/tmp-db") as pg_tmp:
+				frappe.conf.db_socket = pg_tmp.get_socket_dir()
+				frappe.conf.db_type = "postgres"
+				frappe.conf.db_host = None
+				frappe.conf.db_port = None
+				frappe.conf.db_name = site
+
+				click.secho("Ephimeral Environment", bold=True)
+				click.secho(f"PG Directory: {frappe.conf.db_socket}")
+				# click.secho(f"Site Directory: {temp_site_path}")
+				from frappe.installer import install_db, make_site_dirs
+				from frappe.utils import CallbackManager
+
+				install_db(
+					db_type=frappe.conf.db_type,
+					db_socket=frappe.conf.db_socket,
+					site_config=dict(
+						db_name=frappe.conf.db_name,
+						db_type=frappe.conf.db_type,
+						db_socket=frappe.conf.db_socket,
+						allow_tests=True,
+					),
+					admin_password="admin",
+				)
+
+				ret = _run_tests()
+		else:
+			ret = _run_tests()
 
 		if len(ret.failures) == 0 and len(ret.errors) == 0:
 			ret = 0

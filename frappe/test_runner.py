@@ -45,7 +45,6 @@ def main(
 	module_def=None,
 	verbose=False,
 	tests=(),
-	force=False,
 	profile=False,
 	junit_xml_output=None,
 	doctype_list_path=None,
@@ -95,7 +94,7 @@ def main(
 
 		if doctype:
 			ret = run_tests_for_doctype(
-				doctype, verbose, tests, force, profile, failfast=failfast, junit_xml_output=junit_xml_output
+				doctype, verbose, tests, profile, failfast=failfast, junit_xml_output=junit_xml_output
 			)
 		elif module_def:
 			doctypes = []
@@ -115,7 +114,7 @@ def main(
 					doctypes.append(doctype)
 
 			ret = run_tests_for_doctype(
-				doctypes, verbose, tests, force, profile, failfast=failfast, junit_xml_output=junit_xml_output
+				doctypes, verbose, tests, profile, failfast=failfast, junit_xml_output=junit_xml_output
 			)
 		elif module:
 			ret = run_tests_for_module(
@@ -211,7 +210,6 @@ def run_tests_for_doctype(
 	doctypes,
 	verbose=False,
 	tests=(),
-	force=False,
 	profile=False,
 	failfast=False,
 	junit_xml_output=False,
@@ -227,10 +225,7 @@ def run_tests_for_doctype(
 			sys.exit(1)
 
 		test_module = get_module_name(doctype, module, "test_")
-		if force:
-			for name in frappe.db.sql_list("select name from `tab%s`" % doctype):
-				frappe.delete_doc(doctype, name, force=True)
-		make_test_records(doctype, verbose=verbose, force=force, commit=True)
+		make_test_records(doctype, verbose=verbose, commit=True)
 		modules.append(importlib.import_module(test_module))
 
 	return _run_unittest(
@@ -361,7 +356,7 @@ def _add_test(app, path, filename, verbose, test_suite=None):
 	test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
 
 
-def make_test_records(doctype, verbose=0, force=False, commit=False):
+def make_test_records(doctype, verbose=0, commit=False):
 	if frappe.flags.skip_test_records:
 		return
 
@@ -371,8 +366,8 @@ def make_test_records(doctype, verbose=0, force=False, commit=False):
 
 		if options not in frappe.local.test_objects:
 			frappe.local.test_objects[options] = []
-			make_test_records(options, verbose, force, commit=commit)
-			make_test_records_for_doctype(options, verbose, force, commit=commit)
+			make_test_records(options, verbose, commit=commit)
+			make_test_records_for_doctype(options, verbose, commit=commit)
 
 
 def get_modules(doctype):
@@ -412,10 +407,7 @@ def get_dependencies(doctype):
 	return options_list
 
 
-def make_test_records_for_doctype(doctype, verbose=0, force=False, commit=False):
-	if not force and doctype in get_test_record_log():
-		return
-
+def make_test_records_for_doctype(doctype, verbose=0, commit=False):
 	module, test_module = get_modules(doctype)
 
 	if verbose:
@@ -427,18 +419,18 @@ def make_test_records_for_doctype(doctype, verbose=0, force=False, commit=False)
 	elif hasattr(test_module, "test_records"):
 		if doctype in frappe.local.test_objects:
 			frappe.local.test_objects[doctype] += make_test_objects(
-				doctype, test_module.test_records, verbose, force, commit=commit
+				doctype, test_module.test_records, verbose, commit=commit
 			)
 		else:
 			frappe.local.test_objects[doctype] = make_test_objects(
-				doctype, test_module.test_records, verbose, force, commit=commit
+				doctype, test_module.test_records, verbose, commit=commit
 			)
 
 	else:
 		test_records = frappe.get_test_records(doctype)
 		if test_records:
 			frappe.local.test_objects[doctype] += make_test_objects(
-				doctype, test_records, verbose, force, commit=commit
+				doctype, test_records, verbose, commit=commit
 			)
 
 		elif verbose:
@@ -447,7 +439,7 @@ def make_test_records_for_doctype(doctype, verbose=0, force=False, commit=False)
 	add_to_test_record_log(doctype)
 
 
-def make_test_objects(doctype, test_records=None, verbose=None, reset=False, commit=False):
+def make_test_objects(doctype, test_records=None, verbose=None, commit=False):
 	"""Make test objects from given list of `test_records` or from `test_records.json`"""
 	records = []
 
@@ -459,8 +451,7 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False, com
 		test_records = frappe.get_test_records(doctype)
 
 	for doc in test_records:
-		if not reset:
-			frappe.db.savepoint("creating_test_record")
+		frappe.db.savepoint("creating_test_record")
 
 		if not doc.get("doctype"):
 			doc["doctype"] = doctype
@@ -476,7 +467,7 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False, com
 		else:
 			d.set_new_name()
 
-		if frappe.db.exists(d.doctype, d.name) and not reset:
+		if frappe.db.exists(d.doctype, d.name):
 			frappe.db.rollback(save_point="creating_test_record")
 			# do not create test records, if already exists
 			continue
