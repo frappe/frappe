@@ -667,8 +667,15 @@ def update_parent_document_on_communication(doc):
 	if status_field:
 		options = (status_field.options or "").splitlines()
 
-		# if status has a "Replied" option, then update the status for received communication
-		if ("Replied" in options) and doc.sent_or_received == "Received":
+		# if status has a "Open" option and status is "Replied", then update the status for received communication
+		if (
+			("Open" in options)
+			and parent.status == "Replied"
+			and doc.sent_or_received == "Received"
+			or (
+				parent.doctype == "Issue" and ("Open" in options) and doc.sent_or_received == "Received"
+			)  # For 'Issue', current status is not considered.
+		):
 			parent.db_set("status", "Open")
 			parent.run_method("handle_hold_time", "Replied")
 			apply_assignment_rule(parent)

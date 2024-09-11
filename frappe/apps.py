@@ -33,10 +33,9 @@ def get_apps():
 
 
 def get_route(app_name):
-	hooks = frappe.get_hooks(app_name=app_name)
-	if hooks.get("app_icon_route"):
-		return hooks.get("app_icon_route")[0]
-	return "/apps"
+	apps = frappe.get_hooks("add_to_apps_screen", app_name=app_name)
+	app = next((app for app in apps if app.get("name") == app_name), None)
+	return app.get("route") if app and app.get("route") else "/apps"
 
 
 def is_desk_apps(apps):
@@ -50,6 +49,12 @@ def is_desk_apps(apps):
 
 
 def get_default_path():
+	apps = get_apps()
+	_apps = [app for app in apps if app.get("name") != "frappe"]
+
+	if len(_apps) == 0:
+		return None
+
 	system_default_app = frappe.get_system_settings("default_app")
 	user_default_app = frappe.db.get_value("User", frappe.session.user, "default_app")
 	if system_default_app and not user_default_app:
@@ -57,8 +62,6 @@ def get_default_path():
 	elif user_default_app:
 		return get_route(user_default_app)
 
-	apps = get_apps()
-	_apps = [app for app in apps if app.get("name") != "frappe"]
 	if len(_apps) == 1:
 		return _apps[0].get("route") or "/apps"
 	elif is_desk_apps(_apps):

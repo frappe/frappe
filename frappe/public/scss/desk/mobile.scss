@@ -116,7 +116,7 @@ body {
 
 	.sidebar .user-menu {
 		padding: 9px 14px;
-		background-color: var(--navbar-bg);
+		background-color: var(--subtle-accent);
 
 		position: absolute;
 		left: 0;
@@ -127,29 +127,6 @@ body {
 	.sidebar .user-menu img {
 		margin-top: -1px;
 	}
-
-	// body[data-route=""],
-	// body[data-route="desktop"] {
-	// 	.navbar .navbar-home {
-	// 		// display: none !important;
-	// 		&:before {
-	// 			display: none;
-	// 		}
-	// 		img {
-	// 			margin-top: 0;
-	// 		}
-	// 	}
-
-	// 	.toggle-sidebar {
-	// 		display: none !important;
-	// 	}
-	// }
-
-	// body[data-sidebar="0"] {
-	// 	.toggle-sidebar {
-	// 		display: none !important;
-	// 	}
-	// }
 }
 
 @media (max-width: 767px) {
@@ -196,6 +173,10 @@ body {
 	.layout-main-section {
 		border-left-color: transparent !important;
 		border-right-color: transparent !important;
+	}
+
+	.layout-side-section {
+		max-width: 0px;
 	}
 
 	// listviews
@@ -261,48 +242,6 @@ body {
 			right: 10px;
 			left: -10px;
 			width: 100%;
-		}
-	}
-
-	#page-chat {
-		.layout-side-section {
-			position: relative;
-			left: 0px;
-			border-right: 1px solid var(--border-color);
-			padding-left: 0px;
-			float: left;
-
-			// hack! to prevent overlap of borders
-			width: 76px;
-		}
-
-		.layout-main-section-wrapper {
-			position: absolute;
-			left: 75px;
-			right: 0px;
-			border-left: 1px solid var(--border-color);
-			float: left;
-		}
-
-		.module-sidebar-item {
-			margin: 0px;
-
-			.chat-sidebar-link {
-				padding: var(--padding-md);
-			}
-		}
-
-		.timeline-head {
-			padding: 15px 15px 7px;
-		}
-
-		.list-row {
-			padding: 7px 0px;
-		}
-
-		.message-row-right {
-			margin-top: var(--margin-sm);
-			text-align: left;
 		}
 	}
 

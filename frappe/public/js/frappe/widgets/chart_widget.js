@@ -47,16 +47,16 @@ export default class ChartWidget extends Widget {
 		}
 
 		this.loading = $(
-			`<div class="chart-loading-state text-muted" style="height: ${this.height}px;">${__(
-				"Loading..."
-			)}</div>`
+			`<div class="chart-loading-state text-extra-muted" style="height: ${
+				this.height
+			}px;">${__("Loading...")}</div>`
 		);
 		this.loading.appendTo(this.body);
 
 		this.empty = $(
-			`<div class="chart-loading-state text-muted" style="height: ${this.height}px;">${__(
-				"No Data"
-			)}</div>`
+			`<div class="chart-loading-state text-extra-muted" style="height: ${
+				this.height
+			}px;">${__("No Data")}</div>`
 		);
 		this.empty.hide().appendTo(this.body);
 

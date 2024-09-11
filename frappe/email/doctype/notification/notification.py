@@ -87,8 +87,6 @@ class Notification(Document):
 		try:
 			doc = frappe.get_cached_doc(self.document_type, preview_document)
 			context = get_context(doc)
-			if self.is_standard:
-				self.load_standard_properties(context)
 			return _("Yes") if frappe.safe_eval(self.condition, eval_locals=context) else _("No")
 		except Exception as e:
 			frappe.local.message_log = []
@@ -224,6 +222,41 @@ def get_context(context):
 			docs.append(doc)
 
 		return docs
+
+	def queue_send(self, doc, enqueue_after_commit=True):
+		"""
+		Enqueue the process to build recipients and send notifications.
+
+		This method is particularly useful for sending notifications, especially 'Custom'-type,
+		without the additional overhead associated with `Document.queue_action`.
+
+		Args:
+		              doc (Document): The document object for which the notification is being sent.
+		              enqueue_after_commit (bool, optional): If True, the task will be enqueued after
+		                the current transaction is committed. Defaults to True.
+
+		Note:
+		              This method is the recommended way to send 'Custom'-type notifications.
+
+		Example:
+		              To queue a notification from a server script:
+
+		              ```python
+		              notification = frappe.get_doc("Notification", "My Notification", ignore_permissions=True)
+		              notification.queue_send(customer)
+		              ```
+
+		              This example queues the "My Notification" to be sent for the specified customer document.
+		"""
+		from frappe.utils.background_jobs import enqueue
+
+		return enqueue(
+			"frappe.email.doctype.notification.notification.evaluate_alert",
+			doc=doc,
+			alert=self,
+			now=frappe.flags.in_test,
+			enqueue_after_commit=enqueue_after_commit,
+		)
 
 	def send(self, doc):
 		"""Build recipients and send Notification"""
@@ -573,7 +606,7 @@ def trigger_notifications(doc, method=None):
 				frappe.db.commit()
 
 
-def evaluate_alert(doc: Document, alert, event):
+def evaluate_alert(doc: Document, alert, event=None):
 	from jinja2 import TemplateError
 
 	try:
@@ -612,8 +645,8 @@ def evaluate_alert(doc: Document, alert, event):
 		frappe.throw(message, title=_("Error in Notification"))
 	except Exception as e:
 		title = str(e)
-		frappe.log_error(title=title)
-
+		message = frappe.get_traceback(with_context=True)
+		frappe.log_error(title=title, message=message)
 		msg = f"<details><summary>{title}</summary>{message}</details>"
 		frappe.throw(msg, title=_("Error in Notification"))
 

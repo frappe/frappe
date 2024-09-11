@@ -1091,6 +1091,22 @@ def validate_series(dt, autoname=None, name=None):
 		if used_in:
 			frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
 
+	validate_empty_name(dt, autoname)
+
+
+def validate_empty_name(dt, autoname):
+	if dt.doctype == "Customize Form":
+		return
+
+	if not autoname and not (dt.issingle or dt.istable):
+		try:
+			controller = get_controller(dt.name)
+		except ImportError:
+			controller = None
+
+		if not controller or (not hasattr(controller, "autoname")):
+			frappe.toast(_("Warning: Naming is not set"), indicator="yellow")
+
 
 def validate_autoincrement_autoname(dt: Union[DocType, "CustomizeForm"]) -> bool:
 	"""Checks if can doctype can change to/from autoincrement autoname"""
@@ -1640,8 +1656,6 @@ def validate_fields(meta: Meta):
 			d.permlevel = 0
 		if d.fieldtype not in table_fields:
 			d.allow_bulk_edit = 0
-		if not d.fieldname:
-			d.fieldname = d.fieldname.lower().strip("?")
 
 		check_illegal_characters(d.fieldname)
 		check_invalid_fieldnames(meta.get("name"), d.fieldname)

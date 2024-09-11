@@ -611,7 +611,7 @@
   {
    "fieldname": "updates_tab",
    "fieldtype": "Tab Break",
-   "label": "Updates"
+   "label": "Display"
   },
   {
    "fieldname": "backups_tab",
@@ -682,7 +682,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2024-08-12 17:02:41.877346",
+ "modified": "2024-08-20 13:50:49.711427",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

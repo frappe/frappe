@@ -1,8 +1,8 @@
 <template>
-	<div class="layout-side-section">
+	<div style="width: 220px">
 		<div class="form-sidebar">
 			<div class="sidebar-menu">
-				<div class="sidebar-label">{{ __("Page Margins") }}</div>
+				<h5>{{ __("Page Margins") }}</h5>
 				<div class="margin-controls">
 					<div class="form-group" v-for="df in margins" :key="df.fieldname">
 						<div class="clearfix">
@@ -25,7 +25,7 @@
 				</div>
 			</div>
 			<div class="sidebar-menu">
-				<div class="sidebar-label">{{ __("Google Font") }}</div>
+				<div class="control-label">{{ __("Google Font") }}</div>
 				<div class="form-group">
 					<div class="control-input-wrapper">
 						<div class="control-input">
@@ -42,7 +42,7 @@
 				</div>
 			</div>
 			<div class="sidebar-menu">
-				<div class="sidebar-label">{{ __("Font Size") }}</div>
+				<div class="control-label">{{ __("Font Size") }}</div>
 				<div class="form-group">
 					<div class="control-input-wrapper">
 						<div class="control-input">
@@ -60,7 +60,7 @@
 				</div>
 			</div>
 			<div class="sidebar-menu">
-				<div class="sidebar-label">{{ __("Page Number") }}</div>
+				<div class="control-label">{{ __("Page Number") }}</div>
 				<div class="form-group">
 					<div class="control-input-wrapper">
 						<div class="control-input">
@@ -80,7 +80,7 @@
 				</div>
 			</div>
 			<div class="sidebar-menu">
-				<div class="sidebar-label">{{ __("Fields") }}</div>
+				<div class="control-label">{{ __("Fields") }}</div>
 				<input
 					class="mb-2 form-control form-control-sm"
 					type="text"
@@ -283,7 +283,8 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .fields-container {
-	max-height: calc(100vh - 34rem);
+	margin-top: var(--margin-md);
+	max-height: calc(100vh - 31rem);
 	overflow-y: auto;
 }
 
@@ -302,6 +303,10 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 
 .field:not(:first-child) {
 	margin-top: 0.5rem;
+}
+
+.sidebar-menu {
+	margin-bottom: var(--margin-md);
 }
 
 .sidebar-menu:last-child {

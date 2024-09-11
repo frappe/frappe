@@ -197,12 +197,10 @@ export default class QuickListWidget extends Widget {
 			if (this.has_status_field) {
 				fields.push("status");
 				fields.push("docstatus");
-
-				// add workflow state field if workflow exist & is active
-				let workflow_fieldname = frappe.workflow.get_state_fieldname(this.document_type);
-				workflow_fieldname && fields.push(workflow_fieldname);
 			}
-
+			// add workflow state field if workflow exist & is active
+			let workflow_fieldname = frappe.workflow.get_state_fieldname(this.document_type);
+			workflow_fieldname && fields.push(workflow_fieldname);
 			fields.push("modified");
 
 			let quick_list_filter = frappe.utils.process_filter_expression(this.quick_list_filter);

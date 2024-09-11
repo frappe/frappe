@@ -34,7 +34,7 @@ dependencies = [
     "bleach[css]~=6.0.0",
     "chardet~=5.1.0",
     "croniter~=2.0.1",
-    "cryptography~=42.0.0",
+    "cryptography~=43.0.1",
     "cssutils~=2.9.0",
     "email-reply-parser~=0.5.12",
     "gunicorn~=22.0.0",
@@ -53,7 +53,7 @@ dependencies = [
     "premailer~=3.10.0",
     "psutil~=5.9.5",
     "psycopg2-binary~=2.9.1",
-    "pyOpenSSL~=24.0.0",
+    "pyOpenSSL~=24.2.1",
     "pydantic~=2.7.0",
     "pyotp~=2.8.0",
     "python-dateutil~=2.8.2",
@@ -88,6 +88,7 @@ dependencies = [
     "google-auth~=1.29.0",
     "posthog~=3.0.1",
     "vobject~=0.9.7",
+    "pycountry~=24.6.1",
 ]
 
 [project.urls]
@@ -141,6 +142,8 @@ ignore = [
     "F722", # syntax error in forward type annotation
     "W191", # indentation contains tabs
     "RUF001", # string contains ambiguous unicode character
+    "UP032", # Use f-string instead of `format` call (translations)
+    "UP030", # Use implicit references for positional format fields (translations)
 ]
 typing-modules = ["frappe.types.DF"]
 
