@@ -128,13 +128,13 @@ def apply_workflow(doc, action):
 
 	new_docstatus = cint(next_state.doc_status)
 	if doc.docstatus.is_draft() and new_docstatus == DocStatus.draft():
-		doc.save()
+		doc.save(ignore_permissions=True)
 	elif doc.docstatus.is_draft() and new_docstatus == DocStatus.submitted():
-		doc.submit()
+		doc.submit(ignore_permissions=True)
 	elif doc.docstatus.is_submitted() and new_docstatus == DocStatus.submitted():
-		doc.save()
+		doc.save(ignore_permissions=True)
 	elif doc.docstatus.is_submitted() and new_docstatus == DocStatus.cancelled():
-		doc.cancel()
+		doc.cancel(ignore_permissions=True)
 	else:
 		frappe.throw(_("Illegal Document Status for {0}").format(next_state.state))
 
