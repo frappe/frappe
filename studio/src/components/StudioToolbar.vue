@@ -7,9 +7,26 @@
 		</div>
 
 		<div class="absolute right-3 flex items-center">
-			<Button size="sm" variant="solid">Publish</Button>
+			<Button
+				size="sm"
+				variant="solid"
+				@click="
+					() => {
+						publishing = true
+						store.publishPage().finally(() => (publishing = false))
+					}
+				"
+			>
+				Publish
+			</Button>
 		</div>
 	</div>
 </template>
 
-<script setup></script>
+<script setup lang="ts">
+import { ref } from "vue"
+import useStore from "@/store"
+
+const store = useStore()
+const publishing = ref(false)
+</script>

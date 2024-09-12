@@ -49,6 +49,7 @@ const useStore = defineStore("store", () => {
 	}
 
 	// studio pages
+	const activePage = ref(null)
 	const pageBlocks = ref([])
 	const selectedPage = ref(null)
 	const savingPage = ref(false)
@@ -56,8 +57,9 @@ const useStore = defineStore("store", () => {
 
 	async function setPage(pageName) {
 		const page = await fetchPage(pageName)
+		activePage.value = page
 
-		const blocks = jsonToJs(page.blocks || "[]")
+		const blocks = jsonToJs(page.draft_blocks || page.blocks || "[]")
 		if (blocks.length === 0) {
 			pageBlocks.value = [getRootBlock()]
 		} else {
@@ -81,11 +83,28 @@ const useStore = defineStore("store", () => {
 
 		const args = {
 			name: selectedPage.value,
-			blocks: pageData,
+			draft_blocks: pageData,
 		}
 		return studioPages.setValue.submit(args).finally(() => {
 			savingPage.value = false
 		})
+	}
+
+	async function publishPage() {
+		return studioPages.runDocMethod
+			.submit({
+				name: selectedPage.value,
+				method: "publish",
+			})
+			.then(async () => {
+				activePage.value = await fetchPage(selectedPage.value)
+				openPageInBrowser(activePage.value)
+			})
+	}
+
+	function openPageInBrowser(page) {
+		let route = page.route
+		window.open(`/${route}`, "studio-preview")
 	}
 
 	return {
@@ -105,6 +124,8 @@ const useStore = defineStore("store", () => {
 		setPage,
 		fetchPage,
 		savePage,
+		publishPage,
+		openPageInBrowser,
 	}
 })
 

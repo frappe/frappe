@@ -20,9 +20,7 @@
 			/>
 			<StudioRightPanel
 				class="no-scrollbar dark:bg-zinc-900 absolute bottom-0 right-0 top-[var(--toolbar-height)] z-20 overflow-auto border-l-[1px] bg-white shadow-lg dark:border-gray-800"
-			>
-				></StudioRightPanel
-			>
+			/>
 		</div>
 	</div>
 </template>
@@ -71,7 +69,7 @@ onActivated(async () => {
 		await studioPages.insert
 			.submit({
 				page_title: "My Page",
-				blocks: [getRootBlock()],
+				draft_blocks: [getRootBlock()],
 			})
 			.then((data) => {
 				router.push({ name: "StudioPage", params: { pageID: data.name }, force: true })
