@@ -351,7 +351,7 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 	else:
 		fixtures = frappe.get_hooks("fixtures", app_name=app_name) or []
 		for fixture in fixtures:
-			if isinstance(fixture, str) and fixture == "Worflow":
+			if isinstance(fixture, str) and fixture == "Workflow":
 				workflows = frappe.get_all("Workflow")
 				break
 			elif isinstance(fixture, dict) and fixture.get("dt", fixture.get("doctype")) == "Workflow":

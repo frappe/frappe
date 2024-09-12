@@ -127,8 +127,8 @@ frappe.ui.form.on("Workflow", {
 			</p>
 			<p>
 				${__(
-					"There are documents which have workflow states that do not exist in this Workflow. It is recommended that you add these states to the Workflow and change their states before removing these states."
-				)}
+			"There are documents which have workflow states that do not exist in this Workflow. It is recommended that you add these states to the Workflow and change their states before removing these states."
+		)}
 			</p>`;
 		const message_html = warning_html + frm.state_table_html;
 		let proceed_action = () => {
@@ -137,7 +137,7 @@ frappe.ui.form.on("Workflow", {
 		};
 
 		frappe.warn(
-			__("Worflow States Don't Exist"),
+			__("Workflow States Don't Exist"),
 			message_html,
 			proceed_action,
 			__("Save Anyway")
