@@ -300,7 +300,7 @@
   {
    "default": "0",
    "depends_on": "eval:doc.document_type && (doc.event==\"Minutes After\" || doc.event==\"Minutes Before\")",
-   "description": "Send <b>earliest</b> this amount of minutes before or after the reference datetime: actual sending can be delayed by up to 5 minutes due to the trigger cadence of the scheduler.",
+   "description": "Send <b>at the earliest</b> this number of minutes before or after the reference datetime. The actual sending may be delayed by up to 5 minutes due to the scheduler's trigger cadence.",
    "fieldname": "minutes_offset",
    "fieldtype": "Int",
    "label": "Minutes Offset"
@@ -316,7 +316,7 @@
  "icon": "fa fa-envelope",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-07 15:14:34.869941",
+ "modified": "2024-09-12 10:28:35.077180",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",
