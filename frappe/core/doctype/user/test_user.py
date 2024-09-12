@@ -433,8 +433,8 @@ class TestUser(FrappeTestCase):
 		self.assertEqual(reset_password(user="random"), "not found")
 
 	def test_user_onload_modules(self):
-		from frappe.config import get_modules_from_all_apps
 		from frappe.desk.form.load import getdoc
+		from frappe.utils.modules import get_modules_from_all_apps
 
 		frappe.response.docs = []
 		getdoc("User", "Administrator")
