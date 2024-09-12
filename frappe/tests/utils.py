@@ -68,29 +68,20 @@ def debug_on(*exceptions):
 				return f(*args, **kwargs)
 			except exceptions as e:
 				exc_type, exc_value, exc_traceback = sys.exc_info()
+				# Pretty print the exception
+				print("\n\033[91m" + "=" * 60 + "\033[0m")  # Red line
+				print("\033[93m" + str(exc_type.__name__) + ": " + str(exc_value) + "\033[0m")
+				print("\033[91m" + "=" * 60 + "\033[0m")  # Red line
 
-				traceback.print_exception(exc_type, exc_value, exc_traceback)
+				# Print the formatted traceback
+				traceback_lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+				for line in traceback_lines:
+					print("\033[96m" + line.rstrip() + "\033[0m")  # Cyan color
 
-				# Find the most relevant traceback frame
-				apps_path = frappe.get_app_path("frappe", "..", "..")
-
-				tb = exc_traceback.tb_next
-				target_frame = None
-
-				while tb:
-					if tb.tb_frame.f_code.co_filename.startswith(apps_path):
-						target_frame = tb
-						break
-					tb = tb.tb_next
-
-				if target_frame:
-					print(f"Starting debugger in: {target_frame.tb_frame.f_code.co_filename}:{tb.tb_lineno}")
-					p = pdb.Pdb()
-					p.reset()
-					p.interaction(target_frame.tb_frame, None)
-				else:
-					print("Could not find a suitable traceback frame, using the last frame.")
-					pdb.post_mortem(exc_traceback)
+				print("\033[91m" + "=" * 60 + "\033[0m")  # Red line
+				print("\033[92mEntering post-mortem debugging\033[0m")
+				print("\033[91m" + "=" * 60 + "\033[0m")  # Red line
+				pdb.post_mortem()
 
 				raise e
 
