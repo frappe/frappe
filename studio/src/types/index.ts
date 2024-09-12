@@ -39,3 +39,11 @@ interface ContextMenuOption {
 	action: CallableFunction
 	condition?: () => boolean
 }
+
+interface ComponentProps {
+	[key: string]: {
+		type: string,
+		default: string,
+		inputType: string
+	}
+}

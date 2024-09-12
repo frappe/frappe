@@ -18,6 +18,11 @@
 					right: `${store.studioLayout.showRightPanel ? store.studioLayout.rightPanelWidth : 0}px`,
 				}"
 			/>
+			<StudioRightPanel
+				class="no-scrollbar dark:bg-zinc-900 absolute bottom-0 right-0 top-[var(--toolbar-height)] z-20 overflow-auto border-l-[1px] bg-white shadow-lg dark:border-gray-800"
+			>
+				></StudioRightPanel
+			>
 		</div>
 	</div>
 </template>
@@ -28,6 +33,7 @@ import { useRoute, useRouter } from "vue-router"
 
 import StudioToolbar from "@/components/StudioToolbar.vue"
 import StudioLeftPanel from "@/components/StudioLeftPanel.vue"
+import StudioRightPanel from "@/components/StudioRightPanel.vue"
 import StudioCanvas from "@/components/StudioCanvas.vue"
 
 import useStore from "@/store"

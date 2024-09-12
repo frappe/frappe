@@ -1,5 +1,5 @@
 import { h } from "vue"
-import { Avatar } from "frappe-ui"
+import * as frappeUI from "frappe-ui"
 
 export const COMPONENTS = {
 	Alert: {
@@ -84,9 +84,11 @@ export const COMPONENTS = {
 					label: "Name",
 					key: "name",
 					width: 3,
-					getLabel: ({ row }) => row.name,
-					prefix: ({ row }) => {
-						return h(Avatar, {
+					getLabel: function ({ row }) {
+						return row.name
+					},
+					prefix: function ({ row }) {
+						return h(frappeUI.Avatar, {
 							shape: "circle",
 							image: row.user_image,
 							size: "sm",
@@ -126,11 +128,6 @@ export const COMPONENTS = {
 				},
 			],
 			rowKey: "id",
-			options: {
-				selectable: true,
-				showTooltip: true,
-				resizeColumn: true,
-			},
 		},
 	},
 }
@@ -139,8 +136,13 @@ function get(name) {
 	return COMPONENTS[name]
 }
 
+function getProps(name) {
+	return frappeUI[name]?.props
+}
+
 export default {
 	...COMPONENTS,
 	list: Object.values(COMPONENTS),
 	get,
+	getProps,
 }

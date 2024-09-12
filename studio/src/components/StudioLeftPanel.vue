@@ -15,7 +15,7 @@
 							activeTab === tab.label ? 'bg-gray-100 text-gray-700' : 'text-gray-500 hover:text-gray-700'
 						"
 					>
-						<FeatherIcon :name="tab.icon" class="h-6 w-6" />
+						<FeatherIcon :name="tab.icon" class="h-5 w-5" />
 					</div>
 				</Tooltip>
 			</div>
