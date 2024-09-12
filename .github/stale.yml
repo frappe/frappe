@@ -18,6 +18,9 @@ exemptProjects: false
 # Set to true to ignore issues in a milestone (defaults to false)
 exemptMilestones: true
 
+# Skip the stale action for draft PRs
+exemptDraftPr: true
+
 # Label to use when marking as stale
 staleLabel: inactive
 
