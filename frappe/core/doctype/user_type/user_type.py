@@ -3,10 +3,10 @@
 
 import frappe
 from frappe import _
-from frappe.config import get_modules_from_app
 from frappe.model.document import Document
 from frappe.permissions import add_permission, add_user_permission
 from frappe.utils import get_link_to_form
+from frappe.utils.modules import get_modules_from_app
 
 
 class UserType(Document):

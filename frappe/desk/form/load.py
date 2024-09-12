@@ -421,7 +421,7 @@ def get_title_values_for_link_and_dynamic_link_fields(doc, link_fields=None):
 		link_fields = meta.get_link_fields() + meta.get_dynamic_link_fields()
 
 	for field in link_fields:
-		if not doc.get(field.fieldname):
+		if not (doc_fieldvalue := getattr(doc, field.fieldname, None)):
 			continue
 
 		doctype = field.options if field.fieldtype == "Link" else doc.get(field.options)
@@ -430,10 +430,8 @@ def get_title_values_for_link_and_dynamic_link_fields(doc, link_fields=None):
 		if not meta or not meta.title_field or not meta.show_title_field_in_link:
 			continue
 
-		link_title = frappe.db.get_value(
-			doctype, doc.get(field.fieldname), meta.title_field, cache=True, order_by=None
-		)
-		link_titles.update({doctype + "::" + doc.get(field.fieldname): link_title})
+		link_title = frappe.db.get_value(doctype, doc_fieldvalue, meta.title_field, cache=True, order_by=None)
+		link_titles.update({doctype + "::" + doc_fieldvalue: link_title or doc_fieldvalue})
 
 	return link_titles
 

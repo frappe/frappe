@@ -111,6 +111,9 @@ def get_bootinfo():
 	bootinfo.subscription_conf = add_subscription_conf()
 	bootinfo.marketplace_apps = get_marketplace_apps()
 	bootinfo.changelog_feed = get_changelog_feed_items()
+	bootinfo.enable_address_autocompletion = frappe.db.get_single_value(
+		"Geolocation Settings", "enable_address_autocompletion"
+	)
 
 	if sentry_dsn := get_sentry_dsn():
 		bootinfo.sentry_dsn = sentry_dsn
@@ -144,8 +147,37 @@ def load_desktop_data(bootinfo):
 	from frappe.desk.desktop import get_workspace_sidebar_items
 
 	bootinfo.sidebar_pages = get_workspace_sidebar_items()
+	allowed_pages = [d.name for d in bootinfo.sidebar_pages.get("pages")]
 	bootinfo.module_wise_workspaces = get_controller("Workspace").get_module_wise_workspaces()
 	bootinfo.dashboards = frappe.get_all("Dashboard")
+	bootinfo.app_data = []
+
+	Workspace = frappe.qb.DocType("Workspace")
+	Module = frappe.qb.DocType("Module Def")
+
+	for app_name in frappe.get_installed_apps():
+		bootinfo.app_data.append(
+			dict(
+				app_name=app_name,
+				app_title=frappe.get_hooks("app_title", app_name=app_name) or app_name,
+				app_home=frappe.get_hooks("app_home", app_name=app_name),
+				app_logo_url=frappe.get_hooks("app_logo_url", app_name=app_name)
+				or frappe.get_hooks("app_logo_url", app_name="frappe"),
+				modules=[m.name for m in frappe.get_all("Module Def", dict(app_name=app_name))],
+				workspaces=[
+					r[0]
+					for r in (
+						frappe.qb.from_(Workspace)
+						.inner_join(Module)
+						.on(Workspace.module == Module.name)
+						.select(Workspace.name)
+						.where(Module.app_name == app_name)
+						.run()
+					)
+					if r[0] in allowed_pages
+				],
+			)
+		)
 
 
 def get_allowed_pages(cache=False):

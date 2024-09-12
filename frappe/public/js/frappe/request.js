@@ -267,7 +267,7 @@ frappe.request.call = function (opts) {
 			},
 			opts.headers
 		),
-		cache: true,
+		cache: window.dev_server ? false : true,
 	};
 
 	if (opts.args && opts.args.doctype) {

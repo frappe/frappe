@@ -17,7 +17,7 @@
 	{% block header_buttons %}
 	{% if allow_edit and in_view_mode %}
 		<!-- edit button -->
-		<a href="/{{ route }}/{{ doc_name }}/edit" class="edit-button btn btn-default btn-sm">{{ _("Edit Response", context="Button in web form") }}</a>
+		<a href="/{{ route }}/{{ doc_name }}/edit" class="edit-button btn btn-default btn-sm">{{ _("Edit", context="Button in web form") }}</a>
 	{% endif %}
 
 	{% if allow_print and in_view_mode %}

@@ -1,8 +1,8 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.config import get_modules_from_all_apps_for_user
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils.modules import get_modules_from_all_apps_for_user
 
 
 class TestConfig(FrappeTestCase):

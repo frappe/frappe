@@ -14,6 +14,7 @@
   "for_user",
   "parent_page",
   "module",
+  "app",
   "column_break_3",
   "icon",
   "indicator_color",
@@ -138,9 +139,9 @@
   },
   {
    "fieldname": "parent_page",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Parent Page",
-   "read_only": 1
+   "options": "Workspace"
   },
   {
    "default": "[]",
@@ -210,11 +211,16 @@
    "fieldtype": "Select",
    "label": "Indicator Color",
    "options": "green\ncyan\nblue\norange\nyellow\ngray\ngrey\nred\npink\ndarkgrey\npurple\nlight-blue"
+  },
+  {
+   "fieldname": "app",
+   "fieldtype": "Data",
+   "label": "App"
   }
  ],
  "in_create": 1,
  "links": [],
- "modified": "2024-08-26 17:16:05.820503",
+ "modified": "2024-09-04 22:24:24.780174",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",

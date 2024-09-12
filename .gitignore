@@ -196,3 +196,5 @@ cypress/videos
 .idea/
 # Helix Editor
 .helix/
+# Aider AI Chat
+.aider*
