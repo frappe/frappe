@@ -198,6 +198,10 @@ doc_events = {
 
 scheduler_events = {
 	"cron": {
+		# 5 minutes
+		"0/5 * * * *": [
+			"frappe.email.doctype.notification.notification.trigger_offset_alerts",
+		],
 		# 15 minutes
 		"0/15 * * * *": [
 			"frappe.oauth.delete_oauth2_data",
