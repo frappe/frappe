@@ -57,7 +57,7 @@ def main(
 ):
 	global unittest_runner
 
-	frappe.init(site=site)
+	frappe.init(site)
 	if not frappe.db:
 		frappe.connect()
 

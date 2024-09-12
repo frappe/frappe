@@ -124,7 +124,7 @@ def clear_cache(context):
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
+			frappe.init(site)
 			frappe.connect()
 			frappe.clear_cache()
 			clear_website_cache()
@@ -142,7 +142,7 @@ def clear_website_cache(context):
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
+			frappe.init(site)
 			frappe.connect()
 			clear_website_cache()
 		finally:
@@ -160,7 +160,7 @@ def destroy_all_sessions(context, reason=None):
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
+			frappe.init(site)
 			frappe.connect()
 			frappe.sessions.clear_all_sessions(reason)
 			frappe.db.commit()
@@ -229,7 +229,7 @@ def reset_perms(context):
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
+			frappe.init(site)
 			frappe.connect()
 			for d in frappe.db.sql_list(
 				"""select name from `tabDocType`
@@ -254,7 +254,7 @@ def execute(context, method, args=None, kwargs=None, profile=False):
 	for site in context.sites:
 		ret = ""
 		try:
-			frappe.init(site=site)
+			frappe.init(site)
 			frappe.connect()
 
 			if args:
@@ -332,7 +332,7 @@ def export_doc(context, doctype, docname):
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
+			frappe.init(site)
 			frappe.connect()
 			frappe.modules.export_doc(doctype, docname)
 		finally:
@@ -352,7 +352,7 @@ def export_json(context, doctype, path, name=None):
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
+			frappe.init(site)
 			frappe.connect()
 			export_json(doctype, path, name=name)
 		finally:
@@ -371,7 +371,7 @@ def export_csv(context, doctype, path):
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
+			frappe.init(site)
 			frappe.connect()
 			export_csv(doctype, path)
 		finally:
@@ -389,7 +389,7 @@ def export_fixtures(context, app=None):
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
+			frappe.init(site)
 			frappe.connect()
 			export_fixtures(app=app)
 		finally:
@@ -413,7 +413,7 @@ def import_doc(context, path, force=False):
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
+			frappe.init(site)
 			frappe.connect()
 			import_doc(path)
 		finally:
@@ -450,7 +450,7 @@ def data_import(context, file_path, doctype, import_type=None, submit_after_impo
 
 	site = get_site(context)
 
-	frappe.init(site=site)
+	frappe.init(site)
 	frappe.connect()
 	import_file(doctype, file_path, import_type, submit_after_import, console=True)
 	frappe.destroy()
@@ -470,7 +470,7 @@ def bulk_rename(context, doctype, path):
 	with open(path) as csvfile:
 		rows = read_csv_content(csvfile.read())
 
-	frappe.init(site=site)
+	frappe.init(site)
 	frappe.connect()
 
 	bulk_rename(doctype, rows, via_console=True)
@@ -486,7 +486,7 @@ def database(context, extra_args):
 	Enter into the Database console for given site.
 	"""
 	site = get_site(context)
-	frappe.init(site=site)
+	frappe.init(site)
 	_enter_console(extra_args=extra_args)
 
 
@@ -498,7 +498,7 @@ def mariadb(context, extra_args):
 	Enter into mariadb console for a given site.
 	"""
 	site = get_site(context)
-	frappe.init(site=site)
+	frappe.init(site)
 	frappe.conf.db_type = "mariadb"
 	_enter_console(extra_args=extra_args)
 
@@ -511,7 +511,7 @@ def postgres(context, extra_args):
 	Enter into postgres console for a given site.
 	"""
 	site = get_site(context)
-	frappe.init(site=site)
+	frappe.init(site)
 	frappe.conf.db_type = "postgres"
 	_enter_console(extra_args=extra_args)
 
@@ -555,7 +555,7 @@ def jupyter(context):
 		subprocess.check_output([sys.executable, "-m", "pip", "install", "jupyter"])
 
 	site = get_site(context)
-	frappe.init(site=site)
+	frappe.init(site)
 
 	jupyter_notebooks_path = os.path.abspath(frappe.get_site_path("jupyter_notebooks"))
 	sites_path = os.path.abspath(frappe.get_site_path(".."))
@@ -572,7 +572,7 @@ Starting Jupyter notebook
 Run the following in your first cell to connect notebook to frappe
 ```
 import frappe
-frappe.init(site='{site}', sites_path='{sites_path}')
+frappe.init('{site}', sites_path='{sites_path}')
 frappe.connect()
 frappe.local.lang = frappe.db.get_default('lang')
 frappe.db.connect()
@@ -613,7 +613,7 @@ def store_logs(terminal: "InteractiveShellEmbed") -> None:
 def console(context, autoreload=False):
 	"Start ipython console for a site"
 	site = get_site(context)
-	frappe.init(site=site)
+	frappe.init(site)
 	frappe.connect()
 	frappe.local.lang = frappe.db.get_default("lang")
 
@@ -682,7 +682,7 @@ def transform_database(context, table, engine, row_format, failfast):
 	check_table = []
 	add_line = False
 	skipped = 0
-	frappe.init(site=site)
+	frappe.init(site)
 
 	if frappe.conf.db_type != "mariadb":
 		click.secho("This command only has support for MariaDB databases at this point", fg="yellow")
@@ -1014,7 +1014,7 @@ def request(context, args=None, path=None):
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
+			frappe.init(site)
 			frappe.connect()
 			if args:
 				if "?" in args:
@@ -1085,7 +1085,7 @@ def set_config(context, key, value, global_=False, parse=False):
 		if not context.sites:
 			raise SiteNotSpecifiedError
 		for site in context.sites:
-			frappe.init(site=site)
+			frappe.init(site)
 			update_site_config(key, value, validate=False)
 			frappe.destroy()
 

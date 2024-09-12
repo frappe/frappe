@@ -88,7 +88,7 @@ def new_site(
 	"Create a new site"
 	from frappe.installer import _new_site
 
-	frappe.init(site=site, new_site=True)
+	frappe.init(site, new_site=True)
 
 	mariadb_user_host_login_scope = None
 
@@ -182,7 +182,7 @@ def restore(
 	from frappe.utils.synchronization import filelock
 
 	site = get_site(context)
-	frappe.init(site=site)
+	frappe.init(site)
 
 	with filelock("site_restore", timeout=1):
 		_restore(
@@ -374,7 +374,7 @@ def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 
 	site = get_site(context)
 	verbose = context.verbose or verbose
-	frappe.init(site=site)
+	frappe.init(site)
 	frappe.connect()
 	err, out = frappe.utils.execute_in_shell(f"file {sql_file_path}", check_exit_code=True)
 	if err:
@@ -446,7 +446,7 @@ def _reinstall(
 	if not yes:
 		click.confirm("This will wipe your database. Are you sure you want to reinstall?", abort=True)
 	try:
-		frappe.init(site=site)
+		frappe.init(site)
 		frappe.connect()
 		frappe.clear_cache()
 		installed = frappe.get_installed_apps()
@@ -458,7 +458,7 @@ def _reinstall(
 			frappe.db.close()
 		frappe.destroy()
 
-	frappe.init(site=site)
+	frappe.init(site)
 
 	_new_site(
 		frappe.conf.db_name,
@@ -487,7 +487,7 @@ def install_app(context, apps, force=False):
 		raise SiteNotSpecifiedError
 
 	for site in context.sites:
-		frappe.init(site=site)
+		frappe.init(site)
 		frappe.connect()
 
 		with filelock("install_app", timeout=1):
@@ -528,7 +528,7 @@ def list_apps(context, format):
 		return template.format(app.app_name, app.app_version, app.git_branch)
 
 	for site in context.sites:
-		frappe.init(site=site)
+		frappe.init(site)
 		frappe.connect()
 		site_title = click.style(f"{site}", fg="green") if len(context.sites) > 1 else ""
 		installed_apps_info = []
@@ -566,7 +566,7 @@ def add_db_index(context, doctype, column):
 
 	columns = column  # correct naming
 	for site in context.sites:
-		frappe.init(site=site)
+		frappe.init(site)
 		frappe.connect()
 		try:
 			frappe.db.add_index(doctype, columns)
@@ -599,7 +599,7 @@ def add_system_manager(context, email, first_name, last_name, send_welcome_email
 	import frappe.utils.user
 
 	for site in context.sites:
-		frappe.init(site=site)
+		frappe.init(site)
 		frappe.connect()
 		try:
 			frappe.utils.user.add_system_manager(email, first_name, last_name, send_welcome_email, password)
@@ -626,7 +626,7 @@ def add_user_for_sites(
 	import frappe.utils.user
 
 	for site in context.sites:
-		frappe.init(site=site)
+		frappe.init(site)
 		frappe.connect()
 		try:
 			add_new_user(email, first_name, last_name, user_type, send_welcome_email, password, add_role)
@@ -691,7 +691,7 @@ def run_patch(context, module, force):
 	import frappe.modules.patch_handler
 
 	for site in context.sites:
-		frappe.init(site=site)
+		frappe.init(site)
 		try:
 			frappe.connect()
 			frappe.modules.patch_handler.run_single(module, force=force or context.force)
@@ -710,7 +710,7 @@ def reload_doc(context, module, doctype, docname):
 	"Reload schema for a DocType"
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
+			frappe.init(site)
 			frappe.connect()
 			frappe.reload_doc(module, doctype, docname, force=context.force)
 			frappe.db.commit()
@@ -727,7 +727,7 @@ def reload_doctype(context, doctype):
 	"Reload schema for a DocType"
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
+			frappe.init(site)
 			frappe.connect()
 			frappe.reload_doctype(doctype, force=context.force)
 			frappe.db.commit()
@@ -823,7 +823,7 @@ def backup(
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
+			frappe.init(site)
 			frappe.connect()
 			rollback_callback = CallbackManager()
 			odb = scheduled_backup(
@@ -885,7 +885,7 @@ def remove_from_installed_apps(context, app):
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
+			frappe.init(site)
 			frappe.connect()
 			remove_from_installed_apps(app)
 		finally:
@@ -915,7 +915,7 @@ def uninstall(context, app, dry_run, yes, no_backup, force):
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
+			frappe.init(site)
 			frappe.connect()
 			with filelock("uninstall_app"):
 				remove_app(app_name=app, dry_run=dry_run, yes=yes, no_backup=no_backup, force=force)
@@ -965,7 +965,7 @@ def _drop_site(
 	from frappe.database import drop_user_and_database
 	from frappe.utils.backups import scheduled_backup
 
-	frappe.init(site=site)
+	frappe.init(site)
 	frappe.connect()
 
 	try:
@@ -1058,7 +1058,7 @@ def set_user_password(site, user, password, logout_all_sessions=False):
 	from frappe.utils.password import update_password
 
 	try:
-		frappe.init(site=site)
+		frappe.init(site)
 
 		while not password:
 			password = getpass.getpass(f"{user}'s password for {site}: ")
@@ -1112,7 +1112,7 @@ def publish_realtime(context, event, message, room, user, doctype, docname, afte
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
+			frappe.init(site)
 			frappe.connect()
 			publish_realtime(
 				event,
@@ -1147,7 +1147,7 @@ def browse(context, site, user=None):
 		click.echo(f"\nSite named {click.style(site, bold=True)} doesn't exist\n", err=True)
 		sys.exit(1)
 
-	frappe.init(site=site)
+	frappe.init(site)
 	frappe.connect()
 
 	sid = ""
@@ -1180,7 +1180,7 @@ def start_recording(context):
 	import frappe.recorder
 
 	for site in context.sites:
-		frappe.init(site=site)
+		frappe.init(site)
 		frappe.set_user("Administrator")
 		frappe.recorder.start()
 	if not context.sites:
@@ -1194,7 +1194,7 @@ def stop_recording(context):
 	import frappe.recorder
 
 	for site in context.sites:
-		frappe.init(site=site)
+		frappe.init(site)
 		frappe.set_user("Administrator")
 		frappe.recorder.stop()
 	if not context.sites:
@@ -1215,7 +1215,7 @@ def start_ngrok(context, bind_tls, use_default_authtoken):
 	from pyngrok import ngrok
 
 	site = get_site(context)
-	frappe.init(site=site)
+	frappe.init(site)
 
 	ngrok_authtoken = frappe.conf.ngrok_authtoken
 	if not use_default_authtoken:
@@ -1257,7 +1257,7 @@ def build_search_index(context):
 		raise SiteNotSpecifiedError
 
 	print(f"Building search index for {site}")
-	frappe.init(site=site)
+	frappe.init(site)
 	frappe.connect()
 	try:
 		build_index_for_all_routes()
@@ -1289,7 +1289,7 @@ def clear_log_table(context, doctype, days, no_backup):
 		raise frappe.ValidationError(f"Unsupported logging DocType: {doctype}")
 
 	for site in context.sites:
-		frappe.init(site=site)
+		frappe.init(site)
 		frappe.connect()
 
 		if not no_backup:
@@ -1333,7 +1333,7 @@ def trim_database(context, dry_run, format, no_backup, yes=False):
 	ALL_DATA = {}
 
 	for site in context.sites:
-		frappe.init(site=site)
+		frappe.init(site)
 		frappe.connect()
 
 		TABLES_TO_DROP = []
@@ -1435,7 +1435,7 @@ def trim_tables(context, dry_run, format, no_backup):
 	from frappe.utils.backups import scheduled_backup
 
 	for site in context.sites:
-		frappe.init(site=site)
+		frappe.init(site)
 		frappe.connect()
 
 		if not (no_backup or dry_run):
@@ -1525,7 +1525,7 @@ def bypass_patch(context, patch_name: str, yes: bool):
 		)
 
 	for site in context.sites:
-		frappe.init(site=site)
+		frappe.init(site)
 		frappe.connect()
 		try:
 			update_patch_log(patch_name)

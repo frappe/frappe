@@ -17,7 +17,7 @@ def trigger_scheduler_event(context, event):
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
+			frappe.init(site)
 			frappe.connect()
 			try:
 				frappe.get_doc("Scheduled Job Type", {"method": event}).execute()
@@ -41,7 +41,7 @@ def enable_scheduler(context):
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
+			frappe.init(site)
 			frappe.connect()
 			frappe.utils.scheduler.enable_scheduler()
 			frappe.db.commit()
@@ -60,7 +60,7 @@ def disable_scheduler(context):
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
+			frappe.init(site)
 			frappe.connect()
 			frappe.utils.scheduler.disable_scheduler()
 			frappe.db.commit()
@@ -119,7 +119,7 @@ def set_maintenance_mode(context, state, site=None):
 		site = get_site(context)
 
 	try:
-		frappe.init(site=site)
+		frappe.init(site)
 		update_site_config("maintenance_mode", 1 if (state == "on") else 0)
 
 	finally:
@@ -238,7 +238,7 @@ def ready_for_migration(context, site=None):
 		site = get_site(context)
 
 	try:
-		frappe.init(site=site)
+		frappe.init(site)
 		pending_jobs = any_job_pending(site=site)
 
 		if pending_jobs:

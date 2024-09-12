@@ -13,7 +13,7 @@ def build_message_files(context):
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
+			frappe.init(site)
 			frappe.connect()
 			frappe.translate.rebuild_all_translation_files()
 		finally:
@@ -54,7 +54,7 @@ def get_untranslated(context, lang, untranslated_file, app="_ALL_APPS", all=None
 
 	site = get_site(context)
 	try:
-		frappe.init(site=site)
+		frappe.init(site)
 		frappe.connect()
 		frappe.translate.get_untranslated(lang, untranslated_file, get_all=all, app=app)
 	finally:
@@ -73,7 +73,7 @@ def update_translations(context, lang, untranslated_file, translated_file, app="
 
 	site = get_site(context)
 	try:
-		frappe.init(site=site)
+		frappe.init(site)
 		frappe.connect()
 		frappe.translate.update_translations(lang, untranslated_file, translated_file, app=app)
 	finally:
@@ -90,7 +90,7 @@ def import_translations(context, lang, path):
 
 	site = get_site(context)
 	try:
-		frappe.init(site=site)
+		frappe.init(site)
 		frappe.connect()
 		frappe.translate.import_translations(lang, path)
 	finally:
@@ -107,7 +107,7 @@ def migrate_translations(context, source_app, target_app):
 
 	site = get_site(context)
 	try:
-		frappe.init(site=site)
+		frappe.init(site)
 		frappe.connect()
 		frappe.translate.migrate_translations(source_app, target_app)
 	finally:
