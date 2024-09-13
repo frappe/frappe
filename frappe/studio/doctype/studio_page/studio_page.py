@@ -22,9 +22,7 @@ class StudioPage(Document):
 		if not self.page_title:
 			self.page_title = "My Page"
 		if not self.route:
-			self.route = (
-				f"apps/{camel_case_to_kebab_case(self.page_title, True)}-{frappe.generate_hash(length=4)}"
-			)
+			self.route = f"studio-app/{camel_case_to_kebab_case(self.page_title, True)}-{frappe.generate_hash(length=4)}"
 
 	@frappe.whitelist()
 	def publish(self, **kwargs):
@@ -43,3 +41,11 @@ def camel_case_to_kebab_case(text, remove_spaces=False):
 	if remove_spaces:
 		text = text.replace(" ", "")
 	return text
+
+
+@frappe.whitelist()
+def find_page_with_route(route: str) -> str | None:
+	try:
+		return frappe.db.get_value("Studio Page", dict(route=route, published=1), "name", cache=True)
+	except frappe.DoesNotExistError:
+		pass

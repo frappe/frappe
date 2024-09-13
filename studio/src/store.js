@@ -1,6 +1,6 @@
 import { ref, reactive, computed } from "vue"
 import { defineStore } from "pinia"
-import { createDocumentResource } from "frappe-ui"
+import { createResource, createDocumentResource } from "frappe-ui"
 
 import {
 	getBlockInstance,
@@ -77,6 +77,17 @@ const useStore = defineStore("store", () => {
 		return pageResource.doc
 	}
 
+	async function findPageWithRoute(route) {
+		let pageName = createResource({
+			url: "studio.studio.doctype.studio_page.studio_page.find_page_with_route",
+			method: "GET",
+			params: { route: `studio-app/${route}` },
+		})
+		await pageName.fetch()
+		pageName = pageName.data
+		return fetchPage(pageName)
+	}
+
 	function savePage() {
 		pageBlocks.value = [canvas.value.getRootBlock()]
 		const pageData = jsToJson(pageBlocks.value.map((block) => getBlockCopyWithoutParent(block)))
@@ -122,6 +133,7 @@ const useStore = defineStore("store", () => {
 		settingPage,
 		savingPage,
 		setPage,
+		findPageWithRoute,
 		fetchPage,
 		savePage,
 		publishPage,

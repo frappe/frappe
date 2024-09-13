@@ -136,6 +136,10 @@ function get(name) {
 	return COMPONENTS[name]
 }
 
+function getComponent(name) {
+	return frappeUI[name]
+}
+
 function getProps(name) {
 	return frappeUI[name]?.props
 }
@@ -144,5 +148,6 @@ export default {
 	...COMPONENTS,
 	list: Object.values(COMPONENTS),
 	get,
+	getComponent,
 	getProps,
 }
