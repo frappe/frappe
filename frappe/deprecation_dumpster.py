@@ -137,7 +137,8 @@ def old_init(site, sites_path, new_site, force) -> None:
 	from frappe.bench import Bench
 
 	implied_bench_path = Path(sites_path).resolve().parent
-	bench = Bench(implied_bench_path, site_name=site)
+	bench = Bench(implied_bench_path)
+	bench.scope(site)
 
 	return _init(bench, force)
 
