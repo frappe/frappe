@@ -20,13 +20,13 @@ click.disable_unicode_literals_warning = True
 def pass_context(f):
 	@wraps(f)
 	def _func(ctx, *args, **kwargs):
-		profile = ctx.obj["profile"]
+		profile = ctx.obj.profile
 		if profile:
 			pr = cProfile.Profile()
 			pr.enable()
 
 		try:
-			ret = f(frappe._dict(ctx.obj), *args, **kwargs)
+			ret = f(ctx.obj, *args, **kwargs)
 		except (
 			frappe.exceptions.SiteNotSpecifiedError,
 			frappe.exceptions.IncorrectSitePath,
