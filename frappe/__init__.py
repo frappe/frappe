@@ -520,7 +520,7 @@ def get_conf(site: str | None = None) -> dict[str, Any]:
 class init_site:
 	def __init__(self, site=None):
 		"""If site is None, initialize it for empty site ('') to load common_site_config.json"""
-		self.site = site or ""
+		self.site = site
 
 	def __enter__(self):
 		init(self.site)
