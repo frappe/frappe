@@ -10,11 +10,12 @@ frappe.request.ajax_count = 0;
 frappe.request.waiting_for_ajax = [];
 frappe.request.logs = {};
 
-frappe.xcall = function (method, params) {
+frappe.xcall = function (method, params, type) {
 	return new Promise((resolve, reject) => {
 		frappe.call({
 			method: method,
 			args: params,
+			type: type || "POST",
 			callback: (r) => {
 				resolve(r.message);
 			},
