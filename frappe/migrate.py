@@ -192,7 +192,7 @@ class SiteMigration:
 		from frappe.utils.synchronization import filelock
 
 		if site:
-			frappe.init(site=site)
+			frappe.init(site)
 			frappe.connect()
 
 		if not self.required_services_running():

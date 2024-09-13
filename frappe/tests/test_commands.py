@@ -95,7 +95,7 @@ def maintain_locals():
 	finally:
 		post_site = getattr(frappe.local, "site", None)
 		if not post_site or post_site != pre_site:
-			frappe.init(site=pre_site)
+			frappe.init(pre_site)
 			frappe.local.db = pre_db
 			frappe.local.flags.update(pre_flags)
 

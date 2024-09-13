@@ -30,7 +30,7 @@ class ParallelTestRunner:
 		self.run_tests()
 
 	def setup_test_site(self):
-		frappe.init(site=self.site)
+		frappe.init(self.site)
 		if not frappe.db:
 			frappe.connect()
 
