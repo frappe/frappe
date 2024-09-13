@@ -3,7 +3,7 @@ import sys
 import click
 
 import frappe
-from frappe.commands import get_site, pass_context
+from frappe.commands import pass_context
 from frappe.exceptions import SiteNotSpecifiedError
 from frappe.utils.bench_helper import CliCtxObj
 
@@ -16,7 +16,7 @@ def trigger_scheduler_event(context: CliCtxObj, event):
 
 	exit_code = 0
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
@@ -28,7 +28,7 @@ def trigger_scheduler_event(context: CliCtxObj, event):
 		finally:
 			frappe.destroy()
 
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
 	sys.exit(exit_code)
@@ -40,7 +40,7 @@ def enable_scheduler(context: CliCtxObj):
 	"Enable scheduler"
 	import frappe.utils.scheduler
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
@@ -49,7 +49,7 @@ def enable_scheduler(context: CliCtxObj):
 			print("Enabled for", site)
 		finally:
 			frappe.destroy()
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
 
@@ -59,7 +59,7 @@ def disable_scheduler(context: CliCtxObj):
 	"Disable scheduler"
 	import frappe.utils.scheduler
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
@@ -68,7 +68,7 @@ def disable_scheduler(context: CliCtxObj):
 			print("Disabled for", site)
 		finally:
 			frappe.destroy()
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
 
@@ -83,7 +83,7 @@ def scheduler(context: CliCtxObj, state: str, format: str, verbose: bool = False
 	import frappe
 	from frappe.utils.scheduler import is_scheduler_inactive, toggle_scheduler
 
-	site = site or get_site(context)
+	site = site or context.bench.sites.site
 
 	output = {
 		"text": "Scheduler is {status} for site {site}",
@@ -117,7 +117,7 @@ def set_maintenance_mode(context: CliCtxObj, state, site=None):
 	from frappe.installer import update_site_config
 
 	if not site:
-		site = get_site(context)
+		site = context.bench.sites.site
 
 	try:
 		frappe.init(site)
@@ -135,7 +135,7 @@ def doctor(context: CliCtxObj, site=None):
 	from frappe.utils.doctor import doctor as _doctor
 
 	if not site:
-		site = get_site(context, raise_err=False)
+		site = context.bench.sites.site
 	return _doctor(site=site)
 
 
@@ -147,7 +147,7 @@ def show_pending_jobs(context: CliCtxObj, site=None):
 	from frappe.utils.doctor import pending_jobs as _pending_jobs
 
 	if not site:
-		site = get_site(context)
+		site = context.bench.sites.site
 
 	with frappe.init_site(site):
 		pending_jobs = _pending_jobs(site=site)
@@ -236,7 +236,7 @@ def ready_for_migration(context: CliCtxObj, site=None):
 	from frappe.utils.doctor import any_job_pending
 
 	if not site:
-		site = get_site(context)
+		site = context.bench.sites.site
 
 	try:
 		frappe.init(site)

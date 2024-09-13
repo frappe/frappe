@@ -201,6 +201,7 @@ def set_user_lang(user: str, user_language: str | None = None) -> None:
 
 
 # local-globals
+site = local("site")
 
 db = local("db")
 qb = local("qb")
@@ -224,6 +225,7 @@ lang = local("lang")
 if TYPE_CHECKING:  # pragma: no cover
 	from werkzeug.wrappers import Request
 
+	from frappe.bench import Sites
 	from frappe.database.mariadb.database import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
 	from frappe.email.doctype.email_queue.email_queue import EmailQueue
@@ -243,6 +245,7 @@ if TYPE_CHECKING:  # pragma: no cover
 	user: str
 	flags: _dict
 	lang: str
+	site: Sites.Site
 
 
 # end: static analysis hack
@@ -293,8 +296,6 @@ def _init(bench: Bench, force: bool = False) -> None:
 	except (frappe.BenchSiteNotLoadedError, frappe.BenchNotScopedError):
 		bench.sites.config.get("developer_mode") and print("\n", bench.sites)
 		raise
-	local.sites_path = bench.sites.path
-	local.site_path = bench.sites.site.path
 	local.all_apps = None
 
 	local.request_ip = None

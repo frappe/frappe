@@ -9,7 +9,7 @@ import click
 
 # imports - module imports
 import frappe
-from frappe.commands import get_site, pass_context
+from frappe.commands import pass_context
 from frappe.exceptions import SiteNotSpecifiedError
 from frappe.utils import CallbackManager
 from frappe.utils.bench_helper import CliCtxObj
@@ -182,7 +182,7 @@ def restore(
 
 	from frappe.utils.synchronization import filelock
 
-	site = get_site(context)
+	site = context.bench.sites.site
 	frappe.init(site)
 
 	with filelock("site_restore", timeout=1):
@@ -373,7 +373,7 @@ def partial_restore(context: CliCtxObj, sql_file_path, verbose, encryption_key=N
 		print("Invalid path", sql_file_path)
 		sys.exit(1)
 
-	site = get_site(context)
+	site = context.bench.sites.site
 	verbose = context.verbose or verbose
 	frappe.init(site)
 	frappe.connect()
@@ -432,7 +432,7 @@ def reinstall(
 	context: CliCtxObj, admin_password=None, db_root_username=None, db_root_password=None, yes=False
 ):
 	"Reinstall site ie. wipe all data and start over"
-	site = get_site(context)
+	site = context.bench.sites.site
 	_reinstall(site, admin_password, db_root_username, db_root_password, yes, verbose=context.verbose)
 
 
@@ -486,10 +486,10 @@ def install_app(context: CliCtxObj, apps, force=False):
 
 	exit_code = 0
 
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		frappe.init(site)
 		frappe.connect()
 
@@ -530,10 +530,10 @@ def list_apps(context: CliCtxObj, format):
 		template = f"{{0:{name_len}}} {{1:{ver_len}}} {{2}}"
 		return template.format(app.app_name, app.app_version, app.git_branch)
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		frappe.init(site)
 		frappe.connect()
-		site_title = click.style(f"{site}", fg="green") if len(context.sites) > 1 else ""
+		site_title = click.style(f"{site}", fg="green") if len(context.bench.sites) > 1 else ""
 		installed_apps_info = []
 
 		apps = frappe.get_single("Installed Applications").installed_applications
@@ -568,7 +568,7 @@ def add_db_index(context: CliCtxObj, doctype, column):
 	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 
 	columns = column  # correct naming
-	for site in context.sites:
+	for site in context.bench.sites:
 		frappe.init(site)
 		frappe.connect()
 		try:
@@ -586,7 +586,7 @@ def add_db_index(context: CliCtxObj, doctype, column):
 		finally:
 			frappe.destroy()
 
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
 
@@ -601,7 +601,7 @@ def add_system_manager(context: CliCtxObj, email, first_name, last_name, send_we
 	"Add a new system manager to a site"
 	import frappe.utils.user
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		frappe.init(site)
 		frappe.connect()
 		try:
@@ -609,7 +609,7 @@ def add_system_manager(context: CliCtxObj, email, first_name, last_name, send_we
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
 
@@ -628,7 +628,7 @@ def add_user_for_sites(
 	"Add user to a site"
 	import frappe.utils.user
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		frappe.init(site)
 		frappe.connect()
 		try:
@@ -636,7 +636,7 @@ def add_user_for_sites(
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
 
@@ -645,7 +645,7 @@ def add_user_for_sites(
 @pass_context
 def disable_user(context: CliCtxObj, email):
 	"""Disable a user account on site."""
-	site = get_site(context)
+	site = context.bench.sites.site
 	with frappe.init_site(site):
 		frappe.connect()
 		user = frappe.get_doc("User", email)
@@ -664,7 +664,7 @@ def migrate(context: CliCtxObj, skip_failing=False, skip_search_index=False):
 
 	from frappe.migrate import SiteMigration
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		click.secho(f"Migrating {site}", fg="green")
 		try:
 			SiteMigration(
@@ -673,7 +673,7 @@ def migrate(context: CliCtxObj, skip_failing=False, skip_search_index=False):
 			).run(site=site)
 		finally:
 			print()
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
 
@@ -693,14 +693,14 @@ def run_patch(context: CliCtxObj, module, force):
 	"Run a particular patch"
 	import frappe.modules.patch_handler
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		frappe.init(site)
 		try:
 			frappe.connect()
 			frappe.modules.patch_handler.run_single(module, force=force or context.force)
 		finally:
 			frappe.destroy()
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
 
@@ -711,7 +711,7 @@ def run_patch(context: CliCtxObj, module, force):
 @pass_context
 def reload_doc(context: CliCtxObj, module, doctype, docname):
 	"Reload schema for a DocType"
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
@@ -719,7 +719,7 @@ def reload_doc(context: CliCtxObj, module, doctype, docname):
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
 
@@ -728,7 +728,7 @@ def reload_doc(context: CliCtxObj, module, doctype, docname):
 @pass_context
 def reload_doctype(context: CliCtxObj, doctype):
 	"Reload schema for a DocType"
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
@@ -736,7 +736,7 @@ def reload_doctype(context: CliCtxObj, doctype):
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
 
@@ -744,9 +744,9 @@ def reload_doctype(context: CliCtxObj, doctype):
 @pass_context
 def add_to_hosts(context: CliCtxObj):
 	"Add site to hosts"
-	for site in context.sites:
+	for site in context.bench.sites:
 		frappe.commands.popen(f"echo 127.0.0.1\t{site} | sudo tee -a /etc/hosts")
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
 
@@ -824,7 +824,7 @@ def backup(
 	exit_code = 0
 	rollback_callback = None
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
@@ -872,7 +872,7 @@ def backup(
 		)
 		frappe.destroy()
 
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
 	sys.exit(exit_code)
@@ -886,14 +886,14 @@ def remove_from_installed_apps(context: CliCtxObj, app):
 	ensure_app_not_frappe(app)
 	from frappe.installer import remove_from_installed_apps
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
 			remove_from_installed_apps(app)
 		finally:
 			frappe.destroy()
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
 
@@ -916,7 +916,7 @@ def uninstall(context: CliCtxObj, app, dry_run, yes, no_backup, force):
 	from frappe.installer import remove_app
 	from frappe.utils.synchronization import filelock
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
@@ -924,7 +924,7 @@ def uninstall(context: CliCtxObj, app, dry_run, yes, no_backup, force):
 				remove_app(app_name=app, dry_run=dry_run, yes=yes, no_backup=no_backup, force=force)
 		finally:
 			frappe.destroy()
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
 
@@ -1035,10 +1035,10 @@ def move(dest_dir, site):
 @pass_context
 def set_password(context: CliCtxObj, user, password=None, logout_all_sessions=False):
 	"Set password for a user on a site"
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		set_user_password(site, user, password, logout_all_sessions)
 
 
@@ -1048,10 +1048,10 @@ def set_password(context: CliCtxObj, user, password=None, logout_all_sessions=Fa
 @pass_context
 def set_admin_password(context: CliCtxObj, admin_password=None, logout_all_sessions=False):
 	"Set Administrator password for a site"
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		set_user_password(site, "Administrator", admin_password, logout_all_sessions)
 
 
@@ -1085,7 +1085,7 @@ def set_last_active_for_user(context: CliCtxObj, user=None):
 	from frappe.core.doctype.user.user import get_system_users
 	from frappe.utils import now_datetime
 
-	site = get_site(context)
+	site = context.bench.sites.site
 
 	with frappe.init_site(site):
 		frappe.connect()
@@ -1113,7 +1113,7 @@ def publish_realtime(context: CliCtxObj, event, message, room, user, doctype, do
 	"Publish realtime event from bench"
 	from frappe import publish_realtime
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
@@ -1129,7 +1129,7 @@ def publish_realtime(context: CliCtxObj, event, message, room, user, doctype, do
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
 
@@ -1141,7 +1141,7 @@ def browse(context: CliCtxObj, site, user=None):
 	"""Opens the site on web browser"""
 	from frappe.auth import CookieManager, LoginManager
 
-	site = get_site(context, raise_err=False) or site
+	site = frappe.init(site) if site else context.bench.sites.site
 
 	if not site:
 		raise SiteNotSpecifiedError
@@ -1182,11 +1182,11 @@ def start_recording(context: CliCtxObj):
 	"""Start Frappe Recorder."""
 	import frappe.recorder
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		frappe.init(site)
 		frappe.set_user("Administrator")
 		frappe.recorder.start()
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
 
@@ -1196,11 +1196,11 @@ def stop_recording(context: CliCtxObj):
 	"""Stop Frappe Recorder."""
 	import frappe.recorder
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		frappe.init(site)
 		frappe.set_user("Administrator")
 		frappe.recorder.stop()
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
 
@@ -1217,7 +1217,7 @@ def start_ngrok(context: CliCtxObj, bind_tls, use_default_authtoken):
 	"""Start a ngrok tunnel to your local development server."""
 	from pyngrok import ngrok
 
-	site = get_site(context)
+	site = context.bench.sites.site
 	frappe.init(site)
 
 	ngrok_authtoken = frappe.conf.ngrok_authtoken
@@ -1255,7 +1255,7 @@ def build_search_index(context):
 	"""Rebuild search index used by global search."""
 	from frappe.search.website_search import build_index_for_all_routes
 
-	site = get_site(context)
+	site = context.bench.sites.site
 	if not site:
 		raise SiteNotSpecifiedError
 
@@ -1285,13 +1285,13 @@ def clear_log_table(context: CliCtxObj, doctype, days, no_backup):
 	from frappe.core.doctype.log_settings.log_settings import clear_log_table as clear_logs
 	from frappe.utils.backups import scheduled_backup
 
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
 	if doctype not in LOG_DOCTYPES:
 		raise frappe.ValidationError(f"Unsupported logging DocType: {doctype}")
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		frappe.init(site)
 		frappe.connect()
 
@@ -1328,14 +1328,14 @@ def clear_log_table(context: CliCtxObj, doctype, days, no_backup):
 @pass_context
 def trim_database(context: CliCtxObj, dry_run, format, no_backup, yes=False):
 	"""Remove database tables for deleted DocTypes."""
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
 	from frappe.utils.backups import scheduled_backup
 
 	ALL_DATA = {}
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		frappe.init(site)
 		frappe.connect()
 
@@ -1431,13 +1431,13 @@ def get_standard_tables():
 @pass_context
 def trim_tables(context: CliCtxObj, dry_run, format, no_backup):
 	"""Remove columns from tables where fields are deleted from doctypes."""
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
 	from frappe.model.meta import trim_tables
 	from frappe.utils.backups import scheduled_backup
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		frappe.init(site)
 		frappe.connect()
 
@@ -1518,7 +1518,7 @@ def bypass_patch(context: CliCtxObj, patch_name: str, yes: bool):
 	"""Bypass a patch permanently instead of migrating using the --skip-failing flag."""
 	from frappe.modules.patch_handler import update_patch_log
 
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
 	if not yes:
@@ -1527,7 +1527,7 @@ def bypass_patch(context: CliCtxObj, patch_name: str, yes: bool):
 			abort=True,
 		)
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		frappe.init(site)
 		frappe.connect()
 		try:
