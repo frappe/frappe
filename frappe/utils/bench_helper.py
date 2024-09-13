@@ -58,7 +58,7 @@ def FrappeClickWrapper(cls, handler):
 # for type hints
 @dataclass
 class CliCtxObj:
-	sites: list[str]
+	bench: frappe.bench.Bench
 	force: bool
 	profile: bool
 	verbose: bool
@@ -132,23 +132,20 @@ def get_app_group(app: str) -> click.Group:
 @click.option("--verbose", is_flag=True, default=False, help="Verbose")
 @click.option("--force", is_flag=True, default=False, help="Force")
 @click.pass_context
-def app_group(ctx, site=False, force=False, verbose=False, profile=False):
-	ctx.obj = CliCtxObj(sites=get_sites(site), force=force, verbose=verbose, profile=profile)
+def app_group(ctx, site=None, force=False, verbose=False, profile=False):
+	if site == "all":
+		site = frappe.bench.Sites.ALL_SITES
+	# applys default heuristic if site is None
+	bench = frappe.bench.Bench()
+	bench.scope(site)
+	_warn_deprecated_currentsite()
+	ctx.obj = CliCtxObj(bench=bench, force=force, verbose=verbose, profile=profile)
 	if ctx.info_name == "frappe":
 		ctx.info_name = ""
 
 
-def get_sites(site_arg: str) -> list[str]:
-	if site_arg == "all":
-		return frappe.utils.get_sites()
-	elif site_arg:
-		return [site_arg]
-	elif os.environ.get("FRAPPE_SITE"):
-		return [os.environ.get("FRAPPE_SITE")]
-	elif default_site := frappe.get_conf().default_site:
-		return [default_site]
-	# This is not supported, just added here for warning.
-	elif (site := frappe.read_file("currentsite.txt")) and site.strip():
+def _warn_deprecated_currentsite():
+	if (site := frappe.read_file("currentsite.txt")) and site.strip():
 		click.secho(
 			dedent(
 				f"""
@@ -157,8 +154,6 @@ def get_sites(site_arg: str) -> list[str]:
 			),
 			fg="red",
 		)
-
-	return []
 
 
 def get_app_commands(app: str) -> dict:
