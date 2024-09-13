@@ -5,6 +5,7 @@ import os
 import sys
 import traceback
 import warnings
+from dataclasses import dataclass
 from textwrap import dedent
 
 import click
@@ -52,6 +53,15 @@ def FrappeClickWrapper(cls, handler):
 				sys.exit(1)
 
 	return Cls
+
+
+# for type hints
+@dataclass
+class CliCtxObj:
+	sites: list[str]
+	force: bool
+	profile: bool
+	verbose: bool
 
 
 def handle_exception(cmd, info_name, exc):
@@ -123,7 +133,7 @@ def get_app_group(app: str) -> click.Group:
 @click.option("--force", is_flag=True, default=False, help="Force")
 @click.pass_context
 def app_group(ctx, site=False, force=False, verbose=False, profile=False):
-	ctx.obj = {"sites": get_sites(site), "force": force, "verbose": verbose, "profile": profile}
+	ctx.obj = CliCtxObj(sites=get_sites(site), force=force, verbose=verbose, profile=profile)
 	if ctx.info_name == "frappe":
 		ctx.info_name = ""
 

@@ -12,6 +12,7 @@ from frappe.commands import get_site, pass_context
 from frappe.coverage import CodeCoverage
 from frappe.exceptions import SiteNotSpecifiedError
 from frappe.utils import cint, update_progress_bar
+from frappe.utils.bench_helper import CliCtxObj
 
 EXTRA_ARGS_CTX = {"ignore_unknown_options": True, "allow_extra_args": True}
 
@@ -117,7 +118,7 @@ def watch(apps=None):
 
 @click.command("clear-cache")
 @pass_context
-def clear_cache(context):
+def clear_cache(context: CliCtxObj):
 	"Clear cache, doctype cache and defaults"
 	import frappe.sessions
 	from frappe.website.utils import clear_website_cache
@@ -136,7 +137,7 @@ def clear_cache(context):
 
 @click.command("clear-website-cache")
 @pass_context
-def clear_website_cache(context):
+def clear_website_cache(context: CliCtxObj):
 	"Clear website cache"
 	from frappe.website.utils import clear_website_cache
 
@@ -154,7 +155,7 @@ def clear_website_cache(context):
 @click.command("destroy-all-sessions")
 @click.option("--reason")
 @pass_context
-def destroy_all_sessions(context, reason=None):
+def destroy_all_sessions(context: CliCtxObj, reason=None):
 	"Clear sessions of all users (logs them out)"
 	import frappe.sessions
 
@@ -173,7 +174,7 @@ def destroy_all_sessions(context, reason=None):
 @click.command("show-config")
 @click.option("--format", "-f", type=click.Choice(["text", "json"]), default="text")
 @pass_context
-def show_config(context, format):
+def show_config(context: CliCtxObj, format):
 	"Print configuration file to STDOUT in speified format"
 
 	if not context.sites:
@@ -223,7 +224,7 @@ def show_config(context, format):
 
 @click.command("reset-perms")
 @pass_context
-def reset_perms(context):
+def reset_perms(context: CliCtxObj):
 	"Reset permissions for all doctypes"
 	from frappe.permissions import reset_perms
 
@@ -249,7 +250,7 @@ def reset_perms(context):
 @click.option("--kwargs")
 @click.option("--profile", is_flag=True, default=False)
 @pass_context
-def execute(context, method, args=None, kwargs=None, profile=False):
+def execute(context: CliCtxObj, method, args=None, kwargs=None, profile=False):
 	"Execute a function"
 	for site in context.sites:
 		ret = ""
@@ -312,7 +313,7 @@ def execute(context, method, args=None, kwargs=None, profile=False):
 @click.command("add-to-email-queue")
 @click.argument("email-path")
 @pass_context
-def add_to_email_queue(context, email_path):
+def add_to_email_queue(context: CliCtxObj, email_path):
 	"Add an email to the Email Queue"
 	site = get_site(context)
 
@@ -331,7 +332,7 @@ def add_to_email_queue(context, email_path):
 @click.argument("doctype")
 @click.argument("docname")
 @pass_context
-def export_doc(context, doctype, docname):
+def export_doc(context: CliCtxObj, doctype, docname):
 	"Export a single document to csv"
 	import frappe.modules
 
@@ -351,7 +352,7 @@ def export_doc(context, doctype, docname):
 @click.argument("path")
 @click.option("--name", help="Export only one document")
 @pass_context
-def export_json(context, doctype, path, name=None):
+def export_json(context: CliCtxObj, doctype, path, name=None):
 	"Export doclist as json to the given path, use '-' as name for Singles."
 	from frappe.core.doctype.data_import.data_import import export_json
 
@@ -370,7 +371,7 @@ def export_json(context, doctype, path, name=None):
 @click.argument("doctype")
 @click.argument("path")
 @pass_context
-def export_csv(context, doctype, path):
+def export_csv(context: CliCtxObj, doctype, path):
 	"Export data import template with data for DocType"
 	from frappe.core.doctype.data_import.data_import import export_csv
 
@@ -388,7 +389,7 @@ def export_csv(context, doctype, path):
 @click.command("export-fixtures")
 @click.option("--app", default=None, help="Export fixtures of a specific app")
 @pass_context
-def export_fixtures(context, app=None):
+def export_fixtures(context: CliCtxObj, app=None):
 	"Export fixtures"
 	from frappe.utils.fixtures import export_fixtures
 
@@ -406,7 +407,7 @@ def export_fixtures(context, app=None):
 @click.command("import-doc")
 @click.argument("path")
 @pass_context
-def import_doc(context, path, force=False):
+def import_doc(context: CliCtxObj, path, force=False):
 	"Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported"
 	from frappe.core.doctype.data_import.data_import import import_doc
 
@@ -449,7 +450,9 @@ def import_doc(context, path, force=False):
 @click.option("--submit-after-import", default=False, is_flag=True, help="Submit document after importing it")
 @click.option("--mute-emails", default=True, is_flag=True, help="Mute emails during import")
 @pass_context
-def data_import(context, file_path, doctype, import_type=None, submit_after_import=False, mute_emails=True):
+def data_import(
+	context: CliCtxObj, file_path, doctype, import_type=None, submit_after_import=False, mute_emails=True
+):
 	"Import documents in bulk from CSV or XLSX using data import"
 	from frappe.core.doctype.data_import.data_import import import_file
 
@@ -465,7 +468,7 @@ def data_import(context, file_path, doctype, import_type=None, submit_after_impo
 @click.argument("doctype")
 @click.argument("path")
 @pass_context
-def bulk_rename(context, doctype, path):
+def bulk_rename(context: CliCtxObj, doctype, path):
 	"Rename multiple records via CSV file"
 	from frappe.model.rename_doc import bulk_rename
 	from frappe.utils.csvutils import read_csv_content
@@ -486,7 +489,7 @@ def bulk_rename(context, doctype, path):
 @click.command("db-console", context_settings=EXTRA_ARGS_CTX)
 @click.argument("extra_args", nargs=-1)
 @pass_context
-def database(context, extra_args):
+def database(context: CliCtxObj, extra_args):
 	"""
 	Enter into the Database console for given site.
 	"""
@@ -498,7 +501,7 @@ def database(context, extra_args):
 @click.command("mariadb", context_settings=EXTRA_ARGS_CTX)
 @click.argument("extra_args", nargs=-1)
 @pass_context
-def mariadb(context, extra_args):
+def mariadb(context: CliCtxObj, extra_args):
 	"""
 	Enter into mariadb console for a given site.
 	"""
@@ -511,7 +514,7 @@ def mariadb(context, extra_args):
 @click.command("postgres", context_settings=EXTRA_ARGS_CTX)
 @click.argument("extra_args", nargs=-1)
 @pass_context
-def postgres(context, extra_args):
+def postgres(context: CliCtxObj, extra_args):
 	"""
 	Enter into postgres console for a given site.
 	"""
@@ -549,7 +552,7 @@ def _enter_console(extra_args=None):
 
 @click.command("jupyter")
 @pass_context
-def jupyter(context):
+def jupyter(context: CliCtxObj):
 	"""Start an interactive jupyter notebook"""
 	installed_packages = (
 		r.split("==", 1)[0]
@@ -615,7 +618,7 @@ def store_logs(terminal: "InteractiveShellEmbed") -> None:
 @click.command("console")
 @click.option("--autoreload", is_flag=True, help="Reload changes to code automatically")
 @pass_context
-def console(context, autoreload=False):
+def console(context: CliCtxObj, autoreload=False):
 	"Start ipython console for a site"
 	site = get_site(context)
 	frappe.init(site)
@@ -681,7 +684,7 @@ def console(context, autoreload=False):
 )
 @click.option("--failfast", is_flag=True, default=False, help="Exit on first failure occurred")
 @pass_context
-def transform_database(context, table, engine, row_format, failfast):
+def transform_database(context: CliCtxObj, table, engine, row_format, failfast):
 	"Transform site database through given parameters"
 	site = get_site(context)
 	check_table = []
@@ -768,7 +771,7 @@ def transform_database(context, table, engine, row_format, failfast):
 )
 @pass_context
 def run_tests(
-	context,
+	context: CliCtxObj,
 	app=None,
 	module=None,
 	doctype=None,
@@ -846,7 +849,7 @@ def run_tests(
 @click.option("--dry-run", is_flag=True, default=False, help="Dont actually run tests")
 @pass_context
 def run_parallel_tests(
-	context,
+	context: CliCtxObj,
 	app,
 	build_number,
 	total_builds,
@@ -889,7 +892,7 @@ def run_parallel_tests(
 @click.option("--ci-build-id")
 @pass_context
 def run_ui_tests(
-	context,
+	context: CliCtxObj,
 	app,
 	headless=False,
 	parallel=True,
@@ -975,7 +978,7 @@ def run_ui_tests(
 @click.option("--with-coverage", is_flag=True, default=False)
 @pass_context
 def serve(
-	context,
+	context: CliCtxObj,
 	port=None,
 	profile=False,
 	proxy=False,
@@ -1012,7 +1015,7 @@ def serve(
 @click.option("--args", help="arguments like `?cmd=test&key=value` or `/api/request/method?..`")
 @click.option("--path", help="path to request JSON")
 @pass_context
-def request(context, args=None, path=None):
+def request(context: CliCtxObj, args=None, path=None):
 	"Run a request as an admin"
 	import frappe.api
 	import frappe.handler
@@ -1073,7 +1076,7 @@ def create_patch():
 @click.option("-g", "--global", "global_", is_flag=True, default=False, help="Set value in bench config")
 @click.option("-p", "--parse", is_flag=True, default=False, help="Evaluate as Python Object")
 @pass_context
-def set_config(context, key, value, global_=False, parse=False):
+def set_config(context: CliCtxObj, key, value, global_=False, parse=False):
 	"Insert/Update a value in site_config.json"
 	from frappe.installer import update_site_config
 
@@ -1149,7 +1152,7 @@ def get_version(output):
 @click.command("rebuild-global-search")
 @click.option("--static-pages", is_flag=True, default=False, help="Rebuild global search for static pages")
 @pass_context
-def rebuild_global_search(context, static_pages=False):
+def rebuild_global_search(context: CliCtxObj, static_pages=False):
 	"""Setup help table in the current site (called after migrate)"""
 	from frappe.utils.global_search import (
 		add_route_to_global_search,
@@ -1186,7 +1189,7 @@ def rebuild_global_search(context, static_pages=False):
 @click.command("list-sites")
 @click.option("--json", "output_json", is_flag=True, help="Output in JSON format")
 @pass_context
-def list_sites(context, output_json=False):
+def list_sites(context: CliCtxObj, output_json=False):
 	"List all the sites in current bench"
 	site_dir = os.getcwd()
 	sites = [
