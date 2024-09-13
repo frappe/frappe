@@ -12,14 +12,14 @@ def build_message_files(context: CliCtxObj):
 	"Build message files for translation"
 	import frappe.translate
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
 			frappe.translate.rebuild_all_translation_files()
 		finally:
 			frappe.destroy()
-	if not context.sites:
+	if not context.bench.sites:
 		raise SiteNotSpecifiedError
 
 
@@ -31,7 +31,7 @@ def new_language(context: CliCtxObj, lang_code, app):
 	"""Create lang-code.csv for given app"""
 	import frappe.translate
 
-	if not context.sites:
+	if not context.bench.sites:
 		raise Exception("--site is required")
 
 	# init site
@@ -53,7 +53,7 @@ def get_untranslated(context: CliCtxObj, lang, untranslated_file, app="_ALL_APPS
 	"Get untranslated strings for language"
 	import frappe.translate
 
-	site = get_site(context)
+	site = context.bench.sites.site
 	try:
 		frappe.init(site)
 		frappe.connect()
@@ -72,7 +72,7 @@ def update_translations(context: CliCtxObj, lang, untranslated_file, translated_
 	"Update translated strings"
 	import frappe.translate
 
-	site = get_site(context)
+	site = context.bench.sites.site
 	try:
 		frappe.init(site)
 		frappe.connect()
@@ -89,7 +89,7 @@ def import_translations(context: CliCtxObj, lang, path):
 	"Update translated strings"
 	import frappe.translate
 
-	site = get_site(context)
+	site = context.bench.sites.site
 	try:
 		frappe.init(site)
 		frappe.connect()
@@ -106,7 +106,7 @@ def migrate_translations(context: CliCtxObj, source_app, target_app):
 	"Migrate target-app-specific translations from source-app to target-app"
 	import frappe.translate
 
-	site = get_site(context)
+	site = context.bench.sites.site
 	try:
 		frappe.init(site)
 		frappe.connect()
