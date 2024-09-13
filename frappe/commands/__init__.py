@@ -33,9 +33,6 @@ def pass_context(f):
 			frappe.exceptions.CommandFailedError,
 		) as e:
 			raise click.UsageError(e, ctx) from e
-		except (frappe.exceptions.BenchSiteNotLoadedError, frappe.exceptions.BenchNotScopedError):
-			ctx.obj.bench.sites.config.get("developer_mode") and print("\n", ctx.obj.bench.sites)
-			raise
 
 		if profile:
 			pr.disable()

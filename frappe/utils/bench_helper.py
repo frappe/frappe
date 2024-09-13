@@ -137,7 +137,14 @@ def app_group(ctx, site=None, force=False, verbose=False, profile=False):
 		site = frappe.bench.Sites.ALL_SITES
 	# applys default heuristic if site is None
 	bench = frappe.bench.Bench()
-	bench.scope(site)
+	try:
+		bench.scope(site)
+	except frappe.exceptions.BenchSiteNotLoadedError:
+		if bench.sites.config.get("developer_mode"):
+			bench.scope(frappe.bench.Sites.ALL_SITES)
+			print("\n", bench.sites, "\n")
+		raise click.ClickException(f"Site '{site}' does not exist")
+
 	_warn_deprecated_currentsite()
 	ctx.obj = CliCtxObj(bench=bench, force=force, verbose=verbose, profile=profile)
 	if ctx.info_name == "frappe":
