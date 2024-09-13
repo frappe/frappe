@@ -3,6 +3,7 @@ import os
 import shutil
 import sys
 import traceback
+from pathlib import Path
 
 # imports - third party imports
 import click
@@ -982,7 +983,7 @@ def drop_site(
 
 
 def _drop_site(
-	site,
+	site: Sites.Site,
 	db_root_username=None,
 	db_root_password=None,
 	archived_sites_path=None,
@@ -1021,35 +1022,29 @@ def _drop_site(
 
 	drop_user_and_database(frappe.conf.db_name, frappe.conf.db_user)
 
-	archived_sites_path = archived_sites_path or os.path.join(
-		frappe.utils.get_bench_path(), "archived", "sites"
-	)
-	archived_sites_path = os.path.realpath(archived_sites_path)
+	archived_sites_path = archived_sites_path or site.bench.path.joinpath("archived", "sites").resolve()
 
 	click.secho(f"Moving site to archive under {archived_sites_path}", fg="green")
 	os.makedirs(archived_sites_path, exist_ok=True)
 	move(archived_sites_path, site)
 
 
-def move(dest_dir, site):
-	if not os.path.isdir(dest_dir):
+def move(dest_dir: Path, site: Sites.Site):
+	if not dest_dir.is_dir():
 		raise Exception("destination is not a directory or does not exist")
 
 	frappe.init(site)
-	old_path = frappe.utils.get_site_path()
-	new_path = os.path.join(dest_dir, site)
+	old_path = site.path
+	new_path = dest_dir.joinpath(str(site))
 
 	# check if site dump of same name already exists
-	site_dump_exists = True
 	count = 0
-	while site_dump_exists:
-		final_new_path = new_path + str(count or "")
-		site_dump_exists = os.path.exists(final_new_path)
+	while (new_path := Path(str(new_path) + str(count or ""))) and new_path.exists():
 		count += 1
 
-	shutil.move(old_path, final_new_path)
+	shutil.move(old_path, new_path)
 	frappe.destroy()
-	return final_new_path
+	return new_path
 
 
 @click.command("set-password")
