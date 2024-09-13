@@ -10,6 +10,7 @@ be used to build database driven apps.
 
 Read the documentation: https://frappeframework.com/docs
 """
+
 import copy
 import faulthandler
 import functools
@@ -324,19 +325,23 @@ def connect(site: str | None = None, db_name: str | None = None, set_admin_as_us
 	from frappe.database import get_db
 
 	if site:
-		from frappe.utils.deprecations import deprecation_warning
+		from frappe.deprecation_dumpster import deprecation_warning
 
 		deprecation_warning(
+			"unknown",
+			"v17",
 			"Calling frappe.connect with the site argument is deprecated and will be removed in next major version. "
-			"Instead, explicitly invoke frappe.init(site) prior to calling frappe.connect(), if initializing the site is necessary."
+			"Instead, explicitly invoke frappe.init(site) prior to calling frappe.connect(), if initializing the site is necessary.",
 		)
 		init(site)
 	if db_name:
-		from frappe.utils.deprecations import deprecation_warning
+		from frappe.deprecation_dumpster import deprecation_warning
 
 		deprecation_warning(
+			"unknown",
+			"v17",
 			"Calling frappe.connect with the db_name argument is deprecated and will be removed in next major version. "
-			"Instead, explicitly invoke frappe.init(site) with the right config prior to calling frappe.connect(), if necessary."
+			"Instead, explicitly invoke frappe.init(site) with the right config prior to calling frappe.connect(), if necessary.",
 		)
 
 	assert db_name or local.conf.db_user, "site must be fully initialized, db_user missing"
@@ -1207,9 +1212,11 @@ def generate_hash(txt: str | None = None, length: int = 56) -> str:
 	import secrets
 
 	if txt:
-		from frappe.utils.deprecations import deprecation_warning
+		from frappe.deprecation_dumpster import deprecation_warning
 
-		deprecation_warning("The `txt` parameter is deprecated and will be removed in a future release.")
+		deprecation_warning(
+			"unknown", "v17", "The `txt` parameter is deprecated and will be removed in a future release."
+		)
 
 	return secrets.token_hex(math.ceil(length / 2))[:length]
 

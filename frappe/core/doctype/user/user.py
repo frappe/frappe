@@ -32,7 +32,6 @@ from frappe.utils import (
 	today,
 )
 from frappe.utils.data import sha256_hash
-from frappe.utils.deprecations import deprecated, deprecation_warning
 from frappe.utils.password import check_password, get_password_reset_limit
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
@@ -227,9 +226,7 @@ class User(Document):
 		self.roles = [r for r in self.roles if r.role in new_roles]
 		self.append_roles(*new_roles)
 
-	@deprecated
-	def validate_roles(self):
-		self.populate_role_profile_roles()
+	from frappe.deprecation_dumpster import validate_roles
 
 	def move_role_profile_name_to_role_profiles(self):
 		"""This handles old role_profile_name field if programatically set.
@@ -243,8 +240,12 @@ class User(Document):
 			self.role_profile_name = None
 			return
 
+		from frappe.deprecation_dumpster import deprecation_warning
+
 		deprecation_warning(
-			"The field `role_profile_name` is deprecated and will be removed in v16, use `role_profiles` child table instead."
+			"unknown",
+			"v16",
+			"The field `role_profile_name` is deprecated and will be removed in v16, use `role_profiles` child table instead.",
 		)
 		self.append("role_profiles", {"role_profile": self.role_profile_name})
 		self.role_profile_name = None
@@ -908,12 +909,15 @@ def update_password(
 
 @frappe.whitelist(allow_guest=True)
 def test_password_strength(new_password: str, key=None, old_password=None, user_data: tuple | None = None):
-	from frappe.utils.deprecations import deprecation_warning
 	from frappe.utils.password_strength import test_password_strength as _test_password_strength
 
 	if key is not None or old_password is not None:
+		from frappe.deprecation_dumpster import deprecation_warning
+
 		deprecation_warning(
-			"Arguments `key` and `old_password` are deprecated in function `test_password_strength`."
+			"unknown",
+			"v17",
+			"Arguments `key` and `old_password` are deprecated in function `test_password_strength`.",
 		)
 
 	enable_password_policy = frappe.get_system_settings("enable_password_policy")

@@ -149,3 +149,140 @@ def make_esc(esc_chars):
 	Function generator for Escaping special characters
 	"""
 	return lambda s: "".join("\\" + c if c in esc_chars else c for c in s)
+
+
+@deprecated(
+	"frappe.db.is_column_missing",
+	"unknown",
+	"v17",
+	"Renamed to frappe.db.is_missing_column.",
+)
+def is_column_missing(e):
+	import frappe
+
+	return frappe.db.is_missing_column(e)
+
+
+@deprecated(
+	"frappe.desk.doctype.bulk_update.bulk_update",
+	"unknown",
+	"v17",
+	"Unknown.",
+)
+def show_progress(docnames, message, i, description):
+	import frappe
+
+	n = len(docnames)
+	frappe.publish_progress(float(i) * 100 / n, title=message, description=description)
+
+
+@deprecated(
+	"frappe.client.get_js",
+	"unknown",
+	"v17",
+	"Unknown.",
+)
+def get_js(items):
+	"""Load JS code files.  Will also append translations
+	and extend `frappe._messages`
+
+	:param items: JSON list of paths of the js files to be loaded."""
+	import json
+
+	import frappe
+	from frappe import _
+
+	items = json.loads(items)
+	out = []
+	for src in items:
+		src = src.strip("/").split("/")
+
+		if ".." in src or src[0] != "assets":
+			frappe.throw(_("Invalid file path: {0}").format("/".join(src)))
+
+		contentpath = os.path.join(frappe.local.sites_path, *src)
+		with open(contentpath) as srcfile:
+			code = frappe.utils.cstr(srcfile.read())
+
+		out.append(code)
+
+	return out
+
+
+@deprecated(
+	"frappe.utils.print_format.read_multi_pdf",
+	"unknown",
+	"v17",
+	"Unknown.",
+)
+def read_multi_pdf(output) -> bytes:
+	from io import BytesIO
+
+	with BytesIO() as merged_pdf:
+		output.write(merged_pdf)
+		return merged_pdf.getvalue()
+
+
+@deprecated("frappe.gzip_compress", "unknown", "v17", "Use py3 methods directly (this was compat for py2).")
+def gzip_compress(data, compresslevel=9):
+	"""Compress data in one shot and return the compressed string.
+	Optional argument is the compression level, in range of 0-9.
+	"""
+	import io
+	from gzip import GzipFile
+
+	buf = io.BytesIO()
+	with GzipFile(fileobj=buf, mode="wb", compresslevel=compresslevel) as f:
+		f.write(data)
+	return buf.getvalue()
+
+
+@deprecated("frappe.gzip_decompress", "unknown", "v17", "Use py3 methods directly (this was compat for py2).")
+def gzip_decompress(data):
+	"""Decompress a gzip compressed string in one shot.
+	Return the decompressed string.
+	"""
+	import io
+	from gzip import GzipFile
+
+	with GzipFile(fileobj=io.BytesIO(data)) as f:
+		return f.read()
+
+
+@deprecated(
+	"frappe.email.doctype.email_queue.email_queue.send_mail",
+	"unknown",
+	"v17",
+	"Unknown.",
+)
+def send_mail(email_queue_name, smtp_server_instance=None):
+	"""This is equivalent to EmailQueue.send.
+
+	This provides a way to make sending mail as a background job.
+	"""
+	from frappe.email.doctype.email_queue.email_queue import EmailQueue
+
+	record = EmailQueue.find(email_queue_name)
+	record.send(smtp_server_instance=smtp_server_instance)
+
+
+@deprecated(
+	"frappe.geo.country_info.get_translated_dict",
+	"unknown",
+	"v17",
+	"Use frappe.geo.country_info.get_translated_countries, instead.",
+)
+def get_translated_dict():
+	from frappe.geo.country_info import get_translated_countries
+
+	return get_translated_countries()
+
+
+@deprecated(
+	"User.validate_roles",
+	"unknown",
+	"v17",
+	"Use User.populate_role_profile_roles, instead.",
+)
+def validate_roles(self):
+	self.populate_role_profile_roles()
