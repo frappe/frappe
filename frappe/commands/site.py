@@ -101,7 +101,8 @@ def new_site(
 
 	context.bench.sites.add_site(site)
 
-	frappe.init(context.bench.sites.site)
+	site = context.bench.scope(site)
+	frappe.init(site)
 
 	mariadb_user_host_login_scope = None
 
@@ -742,21 +743,15 @@ def add_to_hosts(context: CliCtxObj):
 
 @click.command("use")
 @click.argument("site")
-def _use(site, sites_path="."):
+@pass_context
+def _use(context: CliCtxObj, site):
 	"Set a default site"
-	use(site, sites_path=sites_path)
+	use(context.bench.scope(site))
 
 
-def use(site: str, sites_path: str = "."):
-	from frappe.installer import update_site_config
-
-	if os.path.exists(os.path.join(sites_path, site)):
-		sites_path = os.getcwd()
-		conifg = os.path.join(sites_path, "common_site_config.json")
-		update_site_config("default_site", site, validate=False, site_config_path=conifg)
-		print(f"Current Site set to {site}")
-	else:
-		print(f"Site {site} does not exist")
+def use(site: Sites.Site):
+	site.bench.sites.update_config({"default_site": str(site)})
+	print(f"Current Site set to {site}")
 
 
 @click.command("backup")
