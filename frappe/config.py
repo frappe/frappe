@@ -27,6 +27,7 @@ class ConfigHandler:
 	def __init__(self, config_path: str):
 		self.config_path = config_path
 		self._config = None
+		self.__config = None
 		self._config_stale = True
 		signal.signal(signal.SIGHUP, self._handle_sighup)
 
@@ -38,10 +39,10 @@ class ConfigHandler:
 		if self._config is None or self._config_stale:
 			if os.path.exists(self.config_path):
 				with open(self.config_path) as f:
-					self._config = json.load(f)
+					self.__config = json.load(f)
 			else:
-				self._config = {}
-			self._config = dict(self.default_config, **self._config)
+				self.__config = {}
+			self._config = dict(self.default_config, **self.__config)
 			self._update_from_env()
 			self._apply_extra_config()
 			self._apply_dynamic_defaults()
@@ -49,9 +50,11 @@ class ConfigHandler:
 		return self._config
 
 	def update_config(self, updates: dict[str, Any]):
-		self.config.update(updates)
+		self.__config.update(updates)
 		with open(self.config_path, "w") as f:
-			json.dump(self.config, f, indent=4)
+			from frappe.utils.response import json_handler
+
+			json.dump(self.__config, f, indent=4, default=json_handler)
 		self._config_stale = True
 
 	def _update_from_env(self):

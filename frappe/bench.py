@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 from typing import Any, Final
 
 from frappe.config import ConfigHandler
@@ -24,11 +25,11 @@ class Serializable:
 
 
 class Benched(PathLike, Serializable):
-	def __init__(self, path: str | None = None, parent_path: str | None = None):
-		self.path = (
+	def __init__(self, path: str | None = None, parent_path: Path | None = None):
+		path = (
 			path
 			or os.environ.get(f"FRAPPE_{self.__class__.__name__.upper()}_PATH")
-			or (os.path.join(parent_path, self.__class__.__name__.lower()) if parent_path else None)
+			or (parent_path.joinpath(self.__class__.__name__.lower()) if parent_path else None)
 			# only for Bench class ...
 			or (
 				# TODO: legacy, remove
@@ -36,24 +37,27 @@ class Benched(PathLike, Serializable):
 			)
 			or (
 				# TODO: unsave relative reference, remove
-				os.path.realpath(
-					os.path.join(os.path.dirname(__file__), "..", "..", "..")
-					if isinstance(self, Bench)
-					else None
-				)
+				Path(__file__).resolve().parents[3]  # bench folder in standard layout
+				if isinstance(self, Bench)
+				else None
 			)
-			or (os.path.expanduser("~/frappe-bench") if isinstance(self, Bench) else None)
+			or (Path("~/frappe-bench").expanduser() if isinstance(self, Bench) else None)
 		)
-		if self.path is None:
+
+		if path is None:
 			raise ValueError(f"Unable to determine path for {self.__class__.__name__}")
+
+		self.path = Path(path)
 
 
 class Frapped:
+	python_path: Path
+
 	def __bool__(self):
 		return self._is_frapped()
 
 	def _is_frapped(self):
-		return os.path.isdir(self.python_path) and os.path.exists(os.path.join(self.python_path, ".frappe"))
+		return self.python_path.is_dir() and self.python_path.joinpath(".frappe").exists()
 
 
 class Apps(Benched):
@@ -64,15 +68,15 @@ class Apps(Benched):
 	def __str__(self):
 		return (
 			repr(self)
-			+ ("\n * Apps Path: " + self.path)
-			+ ("\n * Loaded Apps:\n\t" + ("\n\t".join([app for app in self.apps]) or "n/a"))
+			+ ("\n * Apps Path: " + str(self.path))
+			+ ("\n * Loaded Apps:\n\t" + ("\n\t".join([str(app) for app in self.apps]) or "n/a"))
 		)
 
 	class App(Frapped, PathLike, Serializable):
 		def __init__(self, name: str, path: str):
 			self.name = name
-			self.path = path
-			self.python_path = os.path.join(self.path, self.name)
+			self.path = Path(path)
+			self.python_path = self.path.joinpath(self.name)
 			self._modules = None
 
 		def __str__(self):
@@ -81,15 +85,15 @@ class Apps(Benched):
 		class Module(Frapped, PathLike, Serializable):
 			def __init__(self, name: str, path: str):
 				self.name = name
-				self.path = path
-				self.python_path = path
+				self.path = Path(path)
+				self.python_path = self.path
 
 		@property
 		def modules(self) -> dict[str, Module]:
 			if self._modules is None:
 				self._modules = {
 					d: module
-					for d in os.listdir(self.python_path)
+					for d in self.python_path.iterdir()
 					if (module := self.Module(d, self.python_path)) and module
 				}
 			return self._modules
@@ -97,36 +101,44 @@ class Apps(Benched):
 		def __iter__(self):
 			return iter(self.modules.values())
 
+		def __len__(self):
+			return len(self.modules)
+
 		def __getitem__(self, key):
 			return self.modules[key]
 
 	@property
 	def apps(self) -> dict[str, App]:
 		if self._apps is None:
-			self._apps = {d: app for d in os.listdir(self.path) if (app := self.App(d, self.path)) and app}
+			self._apps = {
+				d: app for d in self.path.iterdir() if d.is_dir() and (app := self.App(d, self.path)) and app
+			}
 		return self._apps
 
 	def __iter__(self):
 		return iter(self.apps.values())
+
+		def __len__(self):
+			return len(self.apps)
 
 	def __getitem__(self, key):
 		return self.apps[key]
 
 
 class Logs(Benched):
-	def __init__(self, path: str | None = None, parent_path: str | None = None):
+	def __init__(self, path: str | None = None, parent_path: Path | None = None):
 		super().__init__(path, parent_path)
 
 	def get_log_file(self, log_type: str):
-		return os.path.join(self.path, f"{log_type}.log")
+		return self.path.joinpath(f"{log_type}.log")
 
 
 class Run(Benched):
-	def __init__(self, path: str | None = None, parent_path: str | None = None):
+	def __init__(self, path: str | None = None, parent_path: Path | None = None):
 		super().__init__(
 			path
 			# config is the legacy naming of this folder; a misnomer
-			or (os.path.join(parent_path, "config") if parent_path else None),
+			or (parent_path.joinpath("config") if parent_path else None),
 			parent_path,
 		)
 
@@ -134,29 +146,30 @@ class Run(Benched):
 class Sites(Benched, ConfigHandler):
 	ALL_SITES: Final = "__all-sites__"
 
-	def __init__(self, path: str | None = None, parent_path: str | None = None, site_name: str | None = None):
+	def __init__(self, path: str | None = None, parent_path: Path | None = None, bench: "Bench" = None):
 		Benched.__init__(self, path, parent_path)
-		ConfigHandler.__init__(self, os.path.join(self.path, "common_site_config.json"))
-		self._sites = None
+		ConfigHandler.__init__(self, self.path.joinpath("common_site_config.json"))
+		self.__sites = None
+		self.bench = bench
 		# security: self.site_name attribute scopes access
-		self.site_name = (
-			site_name or os.environ.get("FRAPPE_SITE") or self.common_site_config.get("default_site")
-		)
+		self.site_name = os.environ.get("FRAPPE_SITE") or self.config.get("default_site")
 		self._iterator = None
 
 	def __str__(self):
 		return (
 			repr(self)
+			+ ("\n * Sites Path: " + str(self.path))
 			+ ("\n * Scoped Site: " + (self.site_name or "n/a"))
-			+ ("\n * Loaded Sites:\n\t" + ("\n\t".join([site for site in self.sites]) or "n/a"))
+			+ ("\n * Loaded Sites:\n\t" + ("\n\t".join([str(site) for site in self]) or "n/a"))
 		)
 
 	class Site(ConfigHandler, PathLike, Serializable):
-		def __init__(self, name: str, path: str, sites: "super.Sites"):
+		def __init__(self, name: str, path: str, bench: "super.Bench"):
 			self.name = name
-			self.path = path
-			self.sites = sites
-			ConfigHandler.__init__(self, os.path.join(self.path, "site_config.json"))
+			self.path = Path(path)
+			self.bench: "Bench" = bench
+			self._combined_config = None
+			ConfigHandler.__init__(self, self.path.joinpath("site_config.json"))
 
 		def __str__(self):
 			return self.name
@@ -165,49 +178,48 @@ class Sites(Benched, ConfigHandler):
 			return str(self.path)
 
 		def __json__(self):
-			return {
-				**{
-					k: v
-					for k, v in self.__dict__.items()
-					if k
-					not in (
-						# prevent circular deps
-						"sites",
-						# non-indicative of any remote process; misunderstanding
-						"_config_stale",
-					)
-				},
-				**{"config": self.get_merged_config()},
-			}
+			excluded = (
+				"bench",  # prevent circular deps
+				"_ConfigHandler__config",  # holds file contents
+				"_config_stale",  # never stale after accessored
+			)
+			naming = {"_combined_config": "config"}
+			return {naming.get(k, k): v for k, v in self.__dict__.items() if k not in excluded}
 
-		def get_merged_config(self) -> dict[str, Any]:
-			return self.sites.get_site_config(self.name)
+		@property
+		def config(self) -> dict[str, Any]:
+			if self._combined_config is None or self._config_stale:
+				site_config = super().config.copy()
+				config = self.bench.sites.config.copy()
+				config.update(site_config)
+				self._combined_config = config
+			return self._combined_config
 
 	def add_site(self, site_name: str):
-		site_path = os.path.join(self.path, site_name)
+		site_path = self.path.joinpath(site_name)
 		os.makedirs(site_path, exist_ok=True)
-		self.sites[site_name] = self.Site(site_name, site_path)
+		for dir_path in [
+			site_path.joinpath("public", "files"),
+			site_path.joinpath("private", "backups"),
+			site_path.joinpath("private", "files"),
+			site_path.joinpath("locks"),
+			site_path.joinpath("logs"),
+		]:
+			os.makedirs(dir_path, exist_ok=True)
+		self.__sites[site_name] = self.Site(site_name, site_path)
 
 	def remove_site(self, site_name: str):
-		if site_name in self.sites:
-			del self.sites[site_name]
-			# site_path = os.path.join(self.path, site_name)
+		if site_name in self.__sites:
+			del self.__sites[site_name]
+			# site_path = self.path.joinpath(site_name)
 			# Note: This doesn't actually delete the site directory, just removes it from the sites dict
 			# Actual deletion should be handled separately with proper safeguards
 
-	@property
-	def common_site_config(self) -> dict[str, Any]:
-		return self.config
-
-	def update_common_site_config(self, updates: dict[str, Any]):
-		self.update_config(updates)
-
-	def get_site_config(self, site_name: str) -> dict[str, Any]:
-		site = self[site_name]
-
-		combined_config = self.common_site_config.copy()
-		combined_config.update(site.config)
-		return combined_config
+	def scope(self, site_name: str | None = None) -> Site:
+		if site_name is None:
+			return self.site
+		self.site_name = site_name
+		return self.site
 
 	@property
 	def site(self) -> Site:
@@ -217,56 +229,55 @@ class Sites(Benched, ConfigHandler):
 		return self[self.site_name]
 
 	@property
-	def sites(self) -> dict[str, Site]:
-		if self._sites is None:
-			self._sites = {}
+	def _sites(self) -> dict[str, Site]:
+		if self.__sites is None:
+			self.__sites = {}
 
-			def _process(site_name, site_path):
-				if os.path.isdir(site_path) and os.path.exists(os.path.join(site_path, "site_config.json")):
-					self._sites[site_name] = self.Site(site_name, site_path, self)
+			def _process(path: Path):
+				if path.is_dir() and path.joinpath("site_config.json").exists():
+					self.__sites[path.name] = self.Site(path.name, path, self.bench)
 
 			# security: self.site_name attribute scopes access
 			if self.site_name and self.site_name != self.ALL_SITES:
-				site_path = os.path.join(self.path, self.site_name)
-				_process(self.site_name, site_path)
+				_process(self.path.joinpath(self.site_name))
 			elif self.site_name == self.ALL_SITES:
-				for site_name in os.listdir(self.path):
-					site_path = os.path.join(self.path, site_name)
-					_process(site_name, site_path)
-		return self._sites
+				for site_path in self.path.iterdir():
+					_process(site_path)
+		return self.__sites
 
 	def __iter__(self):
 		# security: self.site_name attribute scopes access
 		if self.site_name == self.ALL_SITES:
-			return iter(self.sites.values())
+			return iter(self._sites.values())
 		elif self.site_name:
 			return iter([self[self.site_name]])
 		raise BenchNotScopedError("Sites was not scoped, yet.")
 
-	def __next__(self):
-		if self._iterator is None:
-			self._iterator = self.__iter__()
-			return self._iterator
-		try:
-			return next(self._iterator)
-		except StopIteration:
-			self._iterator = None
-			raise
+	def __len__(self):
+		return len(self.__sites)
 
 	def __getitem__(self, key):
 		try:
-			return self.sites[key]
+			return self._sites[key]
 		except KeyError:
 			raise BenchSiteNotLoadedError(f"Site '{key}' was not loaded")
 
 
 class Bench(Benched):
-	def __init__(self, path: str | None = None, site_name: str | None = None):
+	def __init__(self, path: str | None = None):
 		super().__init__(path)
 		self.apps = Apps(parent_path=self.path)
 		self.logs = Logs(parent_path=self.path)
 		self.run = Run(parent_path=self.path)
-		self.sites = Sites(parent_path=self.path, site_name=site_name)
+		self.sites = Sites(parent_path=self.path, bench=self)
 
-	def set_site(self, site_name: str):
-		self.sites.set_site(site_name)
+	def scope(self, site_name: str):
+		return self.sites.scope(site_name)
+
+	def __str__(self):
+		return (
+			repr(self)
+			+ ("\n * Bench Path: " + str(self.path))
+			+ ("\n\n" + str(self.apps))
+			+ ("\n\n" + str(self.sites))
+		)
