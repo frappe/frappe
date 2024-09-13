@@ -118,8 +118,8 @@ class Apps(Benched):
 	def __iter__(self):
 		return iter(self.apps.values())
 
-		def __len__(self):
-			return len(self.apps)
+	def __len__(self):
+		return len(self.apps)
 
 	def __getitem__(self, key):
 		return self.apps[key]
@@ -218,8 +218,12 @@ class Sites(Benched, ConfigHandler):
 	def scope(self, site_name: str | None = None) -> Site:
 		if site_name is None:
 			return self.site
+
+		self.__sites = None
 		self.site_name = site_name
-		return self.site
+
+		if self.site_name != self.ALL_SITES:
+			return self.site
 
 	@property
 	def site(self) -> Site:
@@ -254,7 +258,7 @@ class Sites(Benched, ConfigHandler):
 		raise BenchNotScopedError("Sites was not scoped, yet.")
 
 	def __len__(self):
-		return len(self.__sites)
+		return len(self._sites)
 
 	def __getitem__(self, key):
 		try:
