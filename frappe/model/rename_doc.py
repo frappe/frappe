@@ -170,6 +170,7 @@ def rename_doc(
 			force=force,
 			ignore_permissions=ignore_permissions,
 			ignore_if_exists=ignore_if_exists,
+			old_doc=old_doc,
 		)
 
 	if not merge:
@@ -348,6 +349,7 @@ def validate_rename(
 	ignore_permissions: bool = False,
 	ignore_if_exists: bool = False,
 	save_point=False,
+	old_doc: Document | None = None,
 ) -> str:
 	# using for update so that it gets locked and someone else cannot edit it while this rename is going on!
 	if save_point:
@@ -373,7 +375,11 @@ def validate_rename(
 	if not merge and exists and not ignore_if_exists:
 		frappe.throw(_("Another {0} with name {1} exists, select another name").format(doctype, new))
 
-	if not (ignore_permissions or frappe.permissions.has_permission(doctype, "write", raise_exception=False)):
+	kwargs = {"doctype": doctype, "ptype": "write", "raise_exception": False}
+	if old_doc:
+		kwargs |= {"doc": old_doc}
+
+	if not (ignore_permissions or frappe.permissions.has_permission(**kwargs)):
 		frappe.throw(_("You need write permission to rename"))
 
 	if not (force or ignore_permissions) and not meta.allow_rename:
