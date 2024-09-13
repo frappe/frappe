@@ -121,6 +121,27 @@ def deprecation_warning(marked: str, graduation: str, msg: str):
 
 
 ### Party starts here
+
+
+@deprecated(
+	"frappe.init (old calling signature)",
+	"2024-09-13",
+	"v17",
+	"Use the new calling signature: frappe.init(bench: frappe.bench.Bench, force: bool = False) 🎉🗑️",
+	stacklevel=3,  # get past functools.dispatch
+)
+def old_init(site, sites_path, new_site, force) -> None:
+	from pathlib import Path
+
+	from frappe import _init
+	from frappe.bench import Bench
+
+	implied_bench_path = Path(sites_path).resolve().parent
+	bench = Bench(implied_bench_path, site_name=site)
+
+	return _init(bench, force)
+
+
 def _old_deprecated(func):
 	return deprecated(
 		"frappe.deprecations.deprecated",

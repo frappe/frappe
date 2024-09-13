@@ -25,6 +25,7 @@ import sys
 import traceback
 import warnings
 from collections.abc import Callable
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, overload
 
 import click
@@ -39,6 +40,8 @@ from frappe.query_builder import (
 )
 from frappe.utils.caching import request_cache
 from frappe.utils.data import cint, cstr, sbool
+
+from .bench import Sites
 
 # Local application imports
 from .exceptions import *
@@ -198,6 +201,7 @@ def set_user_lang(user: str, user_language: str | None = None) -> None:
 
 
 # local-globals
+site = local("site")
 
 db = local("db")
 qb = local("qb")
@@ -221,6 +225,7 @@ lang = local("lang")
 if TYPE_CHECKING:  # pragma: no cover
 	from werkzeug.wrappers import Request
 
+	from frappe.bench import Sites
 	from frappe.database.mariadb.database import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
 	from frappe.email.doctype.email_queue.email_queue import EmailQueue
@@ -240,13 +245,27 @@ if TYPE_CHECKING:  # pragma: no cover
 	user: str
 	flags: _dict
 	lang: str
+	site: Sites.Site
 
 
 # end: static analysis hack
+@functools.singledispatch
+def init(*args, **kwargs) -> None:
+	raise NotImplementedError(
+		f"Unsupported type of first argument to frappe.init(): {type(args[0])}; pass a {Sites.Site}"
+	)
 
 
-def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) -> None:
-	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
+@init.register
+def old_init(site: str, sites_path: str = ".", new_site: bool = False, force=False) -> None:
+	from frappe.deprecation_dumpster import old_init
+
+	return old_init(site, sites_path, new_site, force)
+
+
+@init.register
+def _init(site: Sites.Site, force: bool = False) -> None:
+	"""Initialize frappe for the current bench. Reset thread locals `frappe.local`"""
 	if getattr(local, "initialised", None) and not force:
 		return
 
@@ -265,7 +284,6 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 			"ignore_links": False,
 			"mute_emails": False,
 			"has_dataurl": False,
-			"new_site": new_site,
 			"read_only": False,
 		}
 	)
@@ -273,15 +291,13 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.test_objects = {}
 
 	local.site = site
-	local.sites_path = sites_path
-	local.site_path = os.path.join(sites_path, site)
 	local.all_apps = None
 
 	local.request_ip = None
 	local.response = _dict({"docs": []})
 	local.task_id = None
 
-	local.conf = _dict(get_site_config())
+	local.conf = _dict(site.config)
 	local.lang = local.conf.lang or "en"
 
 	local.module_app = None
