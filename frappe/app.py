@@ -27,7 +27,6 @@ from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, val
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils import CallbackManager, cint, get_site_name
 from frappe.utils.data import escape_html
-from frappe.utils.deprecations import deprecation_warning
 from frappe.utils.error import log_error_snapshot
 from frappe.website.serve import get_response
 
@@ -105,8 +104,12 @@ def application(request: Request):
 			response = Response()
 
 		elif frappe.form_dict.cmd:
+			from frappe.deprecation_dumpster import deprecation_warning
+
 			deprecation_warning(
-				f"{frappe.form_dict.cmd}: Sending `cmd` for RPC calls is deprecated, call REST API instead `/api/method/cmd`"
+				"unknown",
+				"v17",
+				f"{frappe.form_dict.cmd}: Sending `cmd` for RPC calls is deprecated, call REST API instead `/api/method/cmd`",
 			)
 			frappe.handler.handle()
 			response = frappe.utils.response.build_response("json")
