@@ -3,11 +3,13 @@ import os
 import subprocess
 import sys
 import typing
+from shutil import which
 
 import click
 
 import frappe
 from frappe import _
+from frappe.bench import Sites
 from frappe.commands import pass_context
 from frappe.coverage import CodeCoverage
 from frappe.utils import cint, update_progress_bar
@@ -174,7 +176,6 @@ def show_config(context: CliCtxObj, format):
 	"Print configuration file to STDOUT in speified format"
 
 	sites_config = {}
-	sites_path = os.getcwd()
 
 	from frappe.utils.commands import render_table
 
@@ -191,23 +192,21 @@ def show_config(context: CliCtxObj, format):
 
 		return site_config
 
-	for site in context.bench.sites:
-		frappe.init(site)
+	for idx, site in enumerate(context.bench.sites):
+		frappe.init(site, force=True)
 
 		if len(context.bench.sites) != 1 and format == "text":
-			if context.bench.sites.index(site) != 0:
+			if idx != 0:
 				click.echo()
 			click.secho(f"Site {site}", fg="yellow")
 
-		configuration = frappe.get_site_config(sites_path=sites_path, site_path=site)
-
 		if format == "text":
-			data = transform_config(configuration)
+			data = transform_config(site.config)
 			data.insert(0, ["Config", "Value"])
 			render_table(data)
 
 		if format == "json":
-			sites_config[site] = configuration
+			sites_config[str(site)] = site.config
 
 		frappe.destroy()
 
@@ -477,9 +476,10 @@ def mariadb(context: CliCtxObj, extra_args):
 	"""
 	Enter into mariadb console for a given site.
 	"""
-	frappe.init(context.bench.sites.site)
+	site = context.bench.sites.site
+	frappe.init(site)
 	frappe.conf.db_type = "mariadb"
-	_enter_console(extra_args=extra_args)
+	_enter_console(site, extra_args=extra_args)
 
 
 @click.command("postgres", context_settings=EXTRA_ARGS_CTX)
@@ -489,19 +489,20 @@ def postgres(context: CliCtxObj, extra_args):
 	"""
 	Enter into postgres console for a given site.
 	"""
-	frappe.init(context.bench.sites.site)
+	site = context.bench.sites.site
+	frappe.init(site)
 	frappe.conf.db_type = "postgres"
-	_enter_console(extra_args=extra_args)
+	_enter_console(site, extra_args=extra_args)
 
 
-def _enter_console(extra_args=None):
+def _enter_console(site: Sites.Site, extra_args=None):
 	from frappe.database import get_command
 	from frappe.utils import get_site_path
 
 	if frappe.conf.db_type == "mariadb":
-		os.environ["MYSQL_HISTFILE"] = os.path.abspath(get_site_path("logs", "mariadb_console.log"))
+		os.environ["MYSQL_HISTFILE"] = site.bench.logs.get_log_file("mariadb_console.log")
 	else:
-		os.environ["PSQL_HISTORY"] = os.path.abspath(get_site_path("logs", "postgresql_console.log"))
+		os.environ["PSQL_HISTORY"] = site.bench.logs.get_log_file("postgresql_console.log")
 
 	bin, args, bin_name = get_command(
 		socket=frappe.conf.db_socket,
@@ -532,16 +533,18 @@ def jupyter(context: CliCtxObj):
 	if "jupyter" not in installed_packages:
 		subprocess.check_output([sys.executable, "-m", "pip", "install", "jupyter"])
 
-	frappe.init(context.bench.sites.site)
+	site = context.bench.sites.site
 
-	jupyter_notebooks_path = os.path.abspath(frappe.site.path.joinpath("jupyter_notebooks"))
+	frappe.init(site)
+
+	jupyter_notebooks_path = frappe.site.path.joinpath("jupyter_notebooks").resolve()
 
 	try:
 		os.stat(jupyter_notebooks_path)
 	except OSError:
 		print(f"Creating folder to keep jupyter notebooks at {jupyter_notebooks_path}")
 		os.mkdir(jupyter_notebooks_path)
-	bin_path = os.path.abspath("../env/bin")
+	jupyter = which("jupyter")
 	print(
 		f"""
 Starting Jupyter notebook
@@ -556,9 +559,9 @@ frappe.db.connect()
 	"""
 	)
 	os.execv(
-		f"{bin_path}/jupyter",
+		jupyter,
 		[
-			f"{bin_path}/jupyter",
+			jupyter,
 			"notebook",
 			jupyter_notebooks_path,
 		],
@@ -1048,14 +1051,10 @@ def set_config(context: CliCtxObj, key, value, global_=False, parse=False):
 		value = ast.literal_eval(value)
 
 	if global_:
-		sites_path = os.getcwd()
-		common_site_config_path = os.path.join(sites_path, "common_site_config.json")
-		update_site_config(key, value, validate=False, site_config_path=common_site_config_path)
+		context.bench.sites.update_config({key: value})
 	else:
 		for site in context.bench.sites:
-			frappe.init(site)
-			update_site_config(key, value, validate=False)
-			frappe.destroy()
+			site.update_config({key, value})
 
 
 @click.command("version")
@@ -1150,19 +1149,13 @@ def rebuild_global_search(context: CliCtxObj, static_pages=False):
 @pass_context
 def list_sites(context: CliCtxObj, output_json=False):
 	"List all the sites in current bench"
-	site_dir = os.getcwd()
-	sites = [
-		site
-		for site in os.listdir(site_dir)
-		if os.path.isdir(os.path.join(site_dir, site))
-		and not site.startswith(".")
-		and os.path.exists(os.path.join(site_dir, site, "site_config.json"))
-	]
+	bench = context.bench
+	bench.scope(frappe.bench.Sites.ALL_SITES)
 	if output_json:
-		click.echo(json.dumps(sites))
-	elif sites:
+		click.echo(frappe.as_json(bench.sites))
+	elif len(bench.sites):
 		click.echo("Available sites:")
-		for site in sites:
+		for site in bench.sites:
 			click.echo(f"  {site}")
 	else:
 		click.echo("No sites found")
