@@ -53,15 +53,6 @@ def pass_context(f):
 	return click.pass_context(_func)
 
 
-def get_site(context, raise_err=True):
-	try:
-		return context.sites[0]
-	except (IndexError, TypeError):
-		if raise_err:
-			raise frappe.SiteNotSpecifiedError
-		return None
-
-
 def popen(command, *args, **kwargs):
 	output = kwargs.get("output", True)
 	cwd = kwargs.get("cwd")

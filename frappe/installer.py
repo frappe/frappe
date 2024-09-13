@@ -744,7 +744,7 @@ def _guess_mariadb_version() -> tuple[int] | None:
 		return tuple(int(v) for v in version.split("."))
 
 
-def extract_files(site_name, file_path):
+def extract_files(site, file_path):
 	import shutil
 	import subprocess
 
@@ -753,7 +753,7 @@ def extract_files(site_name, file_path):
 	file_path = get_bench_relative_path(file_path)
 
 	# Need to do frappe.init to maintain the site locals
-	frappe.init(site_name)
+	frappe.init(site)
 	abs_site_path = os.path.abspath(frappe.get_site_path())
 
 	# Copy the files to the parent directory and extract

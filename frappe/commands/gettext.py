@@ -1,7 +1,6 @@
 import click
 
 from frappe.commands import pass_context
-from frappe.exceptions import SiteNotSpecifiedError
 from frappe.utils.bench_helper import CliCtxObj
 
 
@@ -12,7 +11,10 @@ def generate_pot_file(context: CliCtxObj, app: str | None = None):
 	from frappe.gettext.translate import generate_pot
 
 	if not app:
-		connect_to_site(context.sites[0] if context.sites else None)
+		import frappe
+
+		frappe.init(context.bench.sites.site)
+		frappe.connect()
 
 	generate_pot(app)
 
@@ -31,7 +33,10 @@ def compile_translations(context: CliCtxObj, app: str | None = None, locale: str
 	from frappe.gettext.translate import compile_translations as _compile_translations
 
 	if not app:
-		connect_to_site(context.sites[0] if context.sites else None)
+		import frappe
+
+		frappe.init(context.bench.sites.site)
+		frappe.connect()
 
 	_compile_translations(app, locale, force=force)
 
@@ -44,7 +49,10 @@ def csv_to_po(context: CliCtxObj, app: str | None = None, locale: str | None = N
 	from frappe.gettext.translate import migrate
 
 	if not app:
-		connect_to_site(context.sites[0] if context.sites else None)
+		import frappe
+
+		frappe.init(context.bench.sites.site)
+		frappe.connect()
 
 	migrate(app, locale)
 
@@ -61,7 +69,10 @@ def update_po_files(context: CliCtxObj, app: str | None = None, locale: str | No
 	from frappe.gettext.translate import update_po
 
 	if not app:
-		connect_to_site(context.sites[0] if context.sites else None)
+		import frappe
+
+		frappe.init(context.bench.sites.site)
+		frappe.connect()
 
 	update_po(app, locale=locale)
 
@@ -75,18 +86,12 @@ def create_po_file(context: CliCtxObj, locale: str, app: str | None = None):
 	from frappe.gettext.translate import new_po
 
 	if not app:
-		connect_to_site(context.sites[0] if context.sites else None)
+		import frappe
+
+		frappe.init(context.bench.sites.site)
+		frappe.connect()
 
 	new_po(locale, app)
-
-
-def connect_to_site(site):
-	from frappe import connect
-
-	if not site:
-		raise SiteNotSpecifiedError
-
-	connect(site=site)
 
 
 commands = [

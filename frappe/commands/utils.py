@@ -8,9 +8,8 @@ import click
 
 import frappe
 from frappe import _
-from frappe.commands import get_site, pass_context
+from frappe.commands import pass_context
 from frappe.coverage import CodeCoverage
-from frappe.exceptions import SiteNotSpecifiedError
 from frappe.utils import cint, update_progress_bar
 from frappe.utils.bench_helper import CliCtxObj
 
@@ -48,7 +47,9 @@ if typing.TYPE_CHECKING:
 	envvar="USING_CACHED",
 	help="Skips build and uses cached build artifacts (cache is set by Bench). Ignored if developer_mode enabled.",
 )
+@pass_context
 def build(
+	context: CliCtxObj,
 	app=None,
 	apps=None,
 	hard_link=False,
@@ -63,7 +64,7 @@ def build(
 	from frappe.gettext.translate import compile_translations
 	from frappe.utils.synchronization import filelock
 
-	frappe.init("")
+	frappe.init(context.bench.sites.site)
 
 	if not apps and app:
 		apps = app
@@ -108,11 +109,12 @@ def build(
 
 @click.command("watch")
 @click.option("--apps", help="Watch assets for specific apps")
-def watch(apps=None):
+@pass_context
+def watch(context: CliCtxObj, apps=None):
 	"Watch and compile JS and CSS files as and when they change"
 	from frappe.build import watch
 
-	frappe.init("")
+	frappe.init(context.bench.sites.site)
 	watch(apps)
 
 
@@ -123,7 +125,7 @@ def clear_cache(context: CliCtxObj):
 	import frappe.sessions
 	from frappe.website.utils import clear_website_cache
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
@@ -131,8 +133,6 @@ def clear_cache(context: CliCtxObj):
 			clear_website_cache()
 		finally:
 			frappe.destroy()
-	if not context.sites:
-		raise SiteNotSpecifiedError
 
 
 @click.command("clear-website-cache")
@@ -141,15 +141,13 @@ def clear_website_cache(context: CliCtxObj):
 	"Clear website cache"
 	from frappe.website.utils import clear_website_cache
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
 			clear_website_cache()
 		finally:
 			frappe.destroy()
-	if not context.sites:
-		raise SiteNotSpecifiedError
 
 
 @click.command("destroy-all-sessions")
@@ -159,7 +157,7 @@ def destroy_all_sessions(context: CliCtxObj, reason=None):
 	"Clear sessions of all users (logs them out)"
 	import frappe.sessions
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
@@ -167,8 +165,6 @@ def destroy_all_sessions(context: CliCtxObj, reason=None):
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
-	if not context.sites:
-		raise SiteNotSpecifiedError
 
 
 @click.command("show-config")
@@ -176,9 +172,6 @@ def destroy_all_sessions(context: CliCtxObj, reason=None):
 @pass_context
 def show_config(context: CliCtxObj, format):
 	"Print configuration file to STDOUT in speified format"
-
-	if not context.sites:
-		raise SiteNotSpecifiedError
 
 	sites_config = {}
 	sites_path = os.getcwd()
@@ -198,11 +191,11 @@ def show_config(context: CliCtxObj, format):
 
 		return site_config
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		frappe.init(site)
 
-		if len(context.sites) != 1 and format == "text":
-			if context.sites.index(site) != 0:
+		if len(context.bench.sites) != 1 and format == "text":
+			if context.bench.sites.index(site) != 0:
 				click.echo()
 			click.secho(f"Site {site}", fg="yellow")
 
@@ -228,7 +221,7 @@ def reset_perms(context: CliCtxObj):
 	"Reset permissions for all doctypes"
 	from frappe.permissions import reset_perms
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
@@ -240,8 +233,6 @@ def reset_perms(context: CliCtxObj):
 				reset_perms(d)
 		finally:
 			frappe.destroy()
-	if not context.sites:
-		raise SiteNotSpecifiedError
 
 
 @click.command("execute")
@@ -252,7 +243,7 @@ def reset_perms(context: CliCtxObj):
 @pass_context
 def execute(context: CliCtxObj, method, args=None, kwargs=None, profile=False):
 	"Execute a function"
-	for site in context.sites:
+	for site in context.bench.sites:
 		ret = ""
 		try:
 			frappe.init(site)
@@ -306,26 +297,22 @@ def execute(context: CliCtxObj, method, args=None, kwargs=None, profile=False):
 
 			print(json.dumps(ret, default=json_handler).strip('"'))
 
-	if not context.sites:
-		raise SiteNotSpecifiedError
-
 
 @click.command("add-to-email-queue")
 @click.argument("email-path")
 @pass_context
 def add_to_email_queue(context: CliCtxObj, email_path):
 	"Add an email to the Email Queue"
-	site = get_site(context)
-
 	if os.path.isdir(email_path):
-		with frappe.init_site(site):
-			frappe.connect()
-			for email in os.listdir(email_path):
-				with open(os.path.join(email_path, email)) as email_data:
-					kwargs = json.load(email_data)
-					kwargs["delayed"] = True
-					frappe.sendmail(**kwargs)
-					frappe.db.commit()
+		frappe.init(context.bench.sites.site)
+		frappe.connect()
+		for email in os.listdir(email_path):
+			with open(os.path.join(email_path, email)) as email_data:
+				kwargs = json.load(email_data)
+				kwargs["delayed"] = True
+				frappe.sendmail(**kwargs)
+				frappe.db.commit()
+		frappe.destroy()
 
 
 @click.command("export-doc")
@@ -336,15 +323,13 @@ def export_doc(context: CliCtxObj, doctype, docname):
 	"Export a single document to csv"
 	import frappe.modules
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
 			frappe.modules.export_doc(doctype, docname)
 		finally:
 			frappe.destroy()
-	if not context.sites:
-		raise SiteNotSpecifiedError
 
 
 @click.command("export-json")
@@ -356,15 +341,13 @@ def export_json(context: CliCtxObj, doctype, path, name=None):
 	"Export doclist as json to the given path, use '-' as name for Singles."
 	from frappe.core.doctype.data_import.data_import import export_json
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
 			export_json(doctype, path, name=name)
 		finally:
 			frappe.destroy()
-	if not context.sites:
-		raise SiteNotSpecifiedError
 
 
 @click.command("export-csv")
@@ -375,15 +358,13 @@ def export_csv(context: CliCtxObj, doctype, path):
 	"Export data import template with data for DocType"
 	from frappe.core.doctype.data_import.data_import import export_csv
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
 			export_csv(doctype, path)
 		finally:
 			frappe.destroy()
-	if not context.sites:
-		raise SiteNotSpecifiedError
 
 
 @click.command("export-fixtures")
@@ -393,15 +374,13 @@ def export_fixtures(context: CliCtxObj, app=None):
 	"Export fixtures"
 	from frappe.utils.fixtures import export_fixtures
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
 			export_fixtures(app=app)
 		finally:
 			frappe.destroy()
-	if not context.sites:
-		raise SiteNotSpecifiedError
 
 
 @click.command("import-doc")
@@ -417,15 +396,13 @@ def import_doc(context: CliCtxObj, path, force=False):
 		print(f"Invalid path {path}")
 		sys.exit(1)
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
 			import_doc(path)
 		finally:
 			frappe.destroy()
-	if not context.sites:
-		raise SiteNotSpecifiedError
 
 
 @click.command("data-import")
@@ -456,9 +433,7 @@ def data_import(
 	"Import documents in bulk from CSV or XLSX using data import"
 	from frappe.core.doctype.data_import.data_import import import_file
 
-	site = get_site(context)
-
-	frappe.init(site)
+	frappe.init(context.bench.sites.site)
 	frappe.connect()
 	import_file(doctype, file_path, import_type, submit_after_import, console=True)
 	frappe.destroy()
@@ -473,12 +448,10 @@ def bulk_rename(context: CliCtxObj, doctype, path):
 	from frappe.model.rename_doc import bulk_rename
 	from frappe.utils.csvutils import read_csv_content
 
-	site = get_site(context)
-
 	with open(path) as csvfile:
 		rows = read_csv_content(csvfile.read())
 
-	frappe.init(site)
+	frappe.init(context.bench.sites.site)
 	frappe.connect()
 
 	bulk_rename(doctype, rows, via_console=True)
@@ -493,8 +466,7 @@ def database(context: CliCtxObj, extra_args):
 	"""
 	Enter into the Database console for given site.
 	"""
-	site = get_site(context)
-	frappe.init(site)
+	frappe.init(context.bench.sites.site)
 	_enter_console(extra_args=extra_args)
 
 
@@ -505,8 +477,7 @@ def mariadb(context: CliCtxObj, extra_args):
 	"""
 	Enter into mariadb console for a given site.
 	"""
-	site = get_site(context)
-	frappe.init(site)
+	frappe.init(context.bench.sites.site)
 	frappe.conf.db_type = "mariadb"
 	_enter_console(extra_args=extra_args)
 
@@ -518,8 +489,7 @@ def postgres(context: CliCtxObj, extra_args):
 	"""
 	Enter into postgres console for a given site.
 	"""
-	site = get_site(context)
-	frappe.init(site)
+	frappe.init(context.bench.sites.site)
 	frappe.conf.db_type = "postgres"
 	_enter_console(extra_args=extra_args)
 
@@ -562,11 +532,9 @@ def jupyter(context: CliCtxObj):
 	if "jupyter" not in installed_packages:
 		subprocess.check_output([sys.executable, "-m", "pip", "install", "jupyter"])
 
-	site = get_site(context)
-	frappe.init(site)
+	frappe.init(context.bench.sites.site)
 
-	jupyter_notebooks_path = os.path.abspath(frappe.get_site_path("jupyter_notebooks"))
-	sites_path = os.path.abspath(frappe.get_site_path(".."))
+	jupyter_notebooks_path = os.path.abspath(frappe.site.path.joinpath("jupyter_notebooks"))
 
 	try:
 		os.stat(jupyter_notebooks_path)
@@ -580,7 +548,7 @@ Starting Jupyter notebook
 Run the following in your first cell to connect notebook to frappe
 ```
 import frappe
-frappe.init('{site}', sites_path='{sites_path}')
+frappe.init('{frappe.site}', sites_path='{frappe.site.path}')
 frappe.connect()
 frappe.local.lang = frappe.db.get_default('lang')
 frappe.db.connect()
@@ -620,8 +588,7 @@ def store_logs(terminal: "InteractiveShellEmbed") -> None:
 @pass_context
 def console(context: CliCtxObj, autoreload=False):
 	"Start ipython console for a site"
-	site = get_site(context)
-	frappe.init(site)
+	frappe.init(context.bench.sites.site)
 	frappe.connect()
 	frappe.local.lang = frappe.db.get_default("lang")
 
@@ -686,11 +653,10 @@ def console(context: CliCtxObj, autoreload=False):
 @pass_context
 def transform_database(context: CliCtxObj, table, engine, row_format, failfast):
 	"Transform site database through given parameters"
-	site = get_site(context)
 	check_table = []
 	add_line = False
 	skipped = 0
-	frappe.init(site)
+	frappe.init(context.bench.sites.site)
 
 	if frappe.conf.db_type != "mariadb":
 		click.secho("This command only has support for MariaDB databases at this point", fg="yellow")
@@ -776,10 +742,10 @@ def serve(
 	"Start development web server"
 	import frappe.app
 
-	if not context.sites:
+	try:
+		site = context.bench.sites.site
+	except frappe.BenchNotScopedError:
 		site = None
-	else:
-		site = context.sites[0]
 	with CodeCoverage(with_coverage, "frappe"):
 		if with_coverage:
 			# unable to track coverage with threading enabled
@@ -805,7 +771,7 @@ def request(context: CliCtxObj, args=None, path=None):
 	import frappe.api
 	import frappe.handler
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
@@ -830,8 +796,6 @@ def request(context: CliCtxObj, args=None, path=None):
 			print(frappe.response)
 		finally:
 			frappe.destroy()
-	if not context.sites:
-		raise SiteNotSpecifiedError
 
 
 @click.command("make-app")
@@ -875,9 +839,7 @@ def set_config(context: CliCtxObj, key, value, global_=False, parse=False):
 		common_site_config_path = os.path.join(sites_path, "common_site_config.json")
 		update_site_config(key, value, validate=False, site_config_path=common_site_config_path)
 	else:
-		if not context.sites:
-			raise SiteNotSpecifiedError
-		for site in context.sites:
+		for site in context.bench.sites:
 			frappe.init(site)
 			update_site_config(key, value, validate=False)
 			frappe.destroy()
@@ -892,7 +854,8 @@ def set_config(context: CliCtxObj, key, value, global_=False, parse=False):
 	help="Output format",
 	default="legacy",
 )
-def get_version(output):
+@pass_context
+def get_version(context: CliCtxObj, output):
 	"""Show the versions of all the installed apps."""
 	from git import Repo
 	from git.exc import InvalidGitRepositoryError
@@ -900,7 +863,7 @@ def get_version(output):
 	from frappe.utils.change_log import get_app_branch
 	from frappe.utils.commands import render_table
 
-	frappe.init("")
+	frappe.init(context.bench.sites.site)
 	data = []
 
 	for app in sorted(frappe.get_all_apps()):
@@ -947,7 +910,7 @@ def rebuild_global_search(context: CliCtxObj, static_pages=False):
 		sync_global_search,
 	)
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
@@ -967,8 +930,6 @@ def rebuild_global_search(context: CliCtxObj, static_pages=False):
 
 		finally:
 			frappe.destroy()
-	if not context.sites:
-		raise SiteNotSpecifiedError
 
 
 @click.command("list-sites")
