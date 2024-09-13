@@ -54,7 +54,7 @@ class ConfigHandler:
 		with open(self.config_path, "w") as f:
 			from frappe.utils.response import json_handler
 
-			json.dump(self.__config, f, indent=4, default=json_handler)
+			json.dump(self.__config, f, indent=2, default=json_handler)
 		self._config_stale = True
 
 	def _update_from_env(self):
