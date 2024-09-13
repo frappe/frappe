@@ -14,7 +14,7 @@ from frappe.desk.reportview import clean_params, parse_json
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, scrub
 from frappe.monitor import add_data_to_monitor
-from frappe.permissions import get_role_permissions
+from frappe.permissions import get_role_permissions, has_permission
 from frappe.utils import cint, cstr, flt, format_duration, get_html_format, sbool
 
 
@@ -195,6 +195,7 @@ def run(
 	parent_field=None,
 	are_default_filters=True,
 ):
+	validate_filters_permissions(report_name, filters, user)
 	report = get_report_doc(report_name)
 	if not user:
 		user = frappe.session.user
@@ -780,3 +781,20 @@ def get_user_match_filters(doctypes, user):
 			match_filters[dt] = filter_list
 
 	return match_filters
+
+def validate_filters_permissions(report_name, filters=None, user=None):
+    if isinstance(filters, str):
+        filters = json.loads(filters)
+
+    if filters:
+        report = frappe.get_doc("Report", report_name)
+        for fieldname, value in filters.items():
+            for field in report.filters:
+                if field.fieldname == fieldname and field.fieldtype == "Link":
+                    linked_doctype = field.options
+                    if not has_permission(
+                        doctype=linked_doctype, doc=value, user=user
+                    ):
+                        frappe.throw(
+                            _("You do not have permission to access {0}: {1}.").format(linked_doctype, value)
+                        )
