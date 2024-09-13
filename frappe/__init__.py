@@ -25,6 +25,7 @@ import sys
 import traceback
 import warnings
 from collections.abc import Callable
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, overload
 
 import click
@@ -39,6 +40,8 @@ from frappe.query_builder import (
 )
 from frappe.utils.caching import request_cache
 from frappe.utils.data import cint, cstr, sbool
+
+from .bench import Bench, Sites
 
 # Local application imports
 from .exceptions import *
@@ -243,10 +246,23 @@ if TYPE_CHECKING:  # pragma: no cover
 
 
 # end: static analysis hack
+@functools.singledispatch
+def init(*args, **kwargs) -> None:
+	raise NotImplementedError(
+		f"Unsupported type of first argument to frappe.init(): {type(args[0])}; pass a {Bench}"
+	)
 
 
-def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) -> None:
-	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
+@init.register
+def old_init(site: str | Sites.Site, sites_path: str = ".", new_site: bool = False, force=False) -> None:
+	from frappe.deprecation_dumpster import old_init
+
+	return old_init(site, sites_path, new_site, force)
+
+
+@init.register
+def _init(bench: Bench, force: bool = False) -> None:
+	"""Initialize frappe for the current bench. Reset thread locals `frappe.local`"""
 	if getattr(local, "initialised", None) and not force:
 		return
 
@@ -265,23 +281,27 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 			"ignore_links": False,
 			"mute_emails": False,
 			"has_dataurl": False,
-			"new_site": new_site,
 			"read_only": False,
 		}
 	)
 	local.locked_documents = []
 	local.test_objects = {}
 
-	local.site = site
-	local.sites_path = sites_path
-	local.site_path = os.path.join(sites_path, site)
+	local.bench = bench
+	try:
+		local.site = bench.sites.site
+	except (frappe.BenchSiteNotLoadedError, frappe.BenchNotScopedError):
+		bench.sites.config.get("developer_mode") and print("\n", bench.sites)
+		raise
+	local.sites_path = bench.sites.path
+	local.site_path = bench.sites.site.path
 	local.all_apps = None
 
 	local.request_ip = None
 	local.response = _dict({"docs": []})
 	local.task_id = None
 
-	local.conf = _dict(get_site_config())
+	local.conf = _dict(bench.sites.site.get_merged_config())
 	local.lang = local.conf.lang or "en"
 
 	local.module_app = None
