@@ -222,6 +222,7 @@ app_license = "mit"
 
 website_route_rules = [
 	{"from_route": "/studio/<path:app_path>", "to_route": "studio"},
+	{"from_route": "/studio-app/<path:app_path>", "to_route": "studio-app"},
 ]
 
 # Automatically update python controller files with type annotations for this app.

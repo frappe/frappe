@@ -21,7 +21,7 @@
 			:modelValue="data"
 		></FormControl>
 		<div
-			class="dark:text-zinc-300 absolute right-[1px] top-[3px] cursor-pointer p-1 text-gray-700"
+			class="absolute bottom-[3px] right-[1px] cursor-pointer p-1 text-gray-600"
 			@click="clearValue"
 			v-if="!['select', 'checkbox'].includes(type) && !hideClearButton"
 			v-show="data"

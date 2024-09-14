@@ -2,21 +2,26 @@ import "./index.css"
 
 import { createApp } from "vue"
 import { createPinia } from "pinia"
-import router from "./router"
+import studio_router from "@/router/studio_router"
+import app_router from "@/router/app_router"
 import App from "./App.vue"
 
 import { setConfig, frappeRequest, resourcesPlugin } from "frappe-ui"
 import { registerGlobalComponents } from "./globals"
 
-const app = createApp(App)
+const studio = createApp(App)
 const pinia = createPinia()
 
 setConfig("resourceFetcher", frappeRequest)
 
-app.use(router)
-app.use(resourcesPlugin)
-app.use(pinia)
+// For the main app builder
+studio.use(studio_router)
+studio.use(resourcesPlugin)
+studio.use(pinia)
+registerGlobalComponents(studio)
+studio.mount("#studio")
 
-registerGlobalComponents(app)
-
+// For rendering apps built by studio
+const app = createApp(App)
+app.use(app_router)
 app.mount("#app")

@@ -9,9 +9,11 @@
   "page_name",
   "page_title",
   "column_break_zpqw",
+  "published",
   "route",
   "section_break_qtyt",
-  "blocks"
+  "blocks",
+  "draft_blocks"
  ],
  "fields": [
   {
@@ -42,11 +44,22 @@
    "fieldname": "blocks",
    "fieldtype": "JSON",
    "label": "Blocks"
+  },
+  {
+   "default": "0",
+   "fieldname": "published",
+   "fieldtype": "Check",
+   "label": "Published"
+  },
+  {
+   "fieldname": "draft_blocks",
+   "fieldtype": "JSON",
+   "label": "Draft Blocks"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-08-15 19:33:45.913735",
+ "modified": "2024-09-12 18:53:20.336467",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page",

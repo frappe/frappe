@@ -1,8 +1,15 @@
 import { ref, reactive, computed } from "vue"
 import { defineStore } from "pinia"
-import { createDocumentResource } from "frappe-ui"
+import { createResource, createDocumentResource } from "frappe-ui"
 
-import { getBlockInstance, getRootBlock } from "@/utils/helpers"
+import {
+	getBlockInstance,
+	getRootBlock,
+	jsToJson,
+	getBlockCopyWithoutParent,
+	jsonToJs,
+} from "@/utils/helpers"
+import { studioPages } from "@/data/studioPages"
 
 const useStore = defineStore("store", () => {
 	const canvas = ref(null)
@@ -42,13 +49,17 @@ const useStore = defineStore("store", () => {
 	}
 
 	// studio pages
+	const activePage = ref(null)
 	const pageBlocks = ref([])
 	const selectedPage = ref(null)
+	const savingPage = ref(false)
+	const settingPage = ref(false)
 
 	async function setPage(pageName) {
 		const page = await fetchPage(pageName)
+		activePage.value = page
 
-		const blocks = JSON.parse(page.blocks || "[]")
+		const blocks = jsonToJs(page.draft_blocks || page.blocks || "[]")
 		if (blocks.length === 0) {
 			pageBlocks.value = [getRootBlock()]
 		} else {
@@ -66,6 +77,63 @@ const useStore = defineStore("store", () => {
 		return pageResource.doc
 	}
 
+	async function findPageWithRoute(route) {
+		let pageName = createResource({
+			url: "studio.studio.doctype.studio_page.studio_page.find_page_with_route",
+			method: "GET",
+			params: { route: `studio-app/${route}` },
+		})
+		await pageName.fetch()
+		pageName = pageName.data
+		return fetchPage(pageName)
+	}
+
+	function savePage() {
+		pageBlocks.value = [canvas.value.getRootBlock()]
+		const pageData = jsToJson(pageBlocks.value.map((block) => getBlockCopyWithoutParent(block)))
+
+		const args = {
+			name: selectedPage.value,
+			draft_blocks: pageData,
+		}
+		return studioPages.setValue.submit(args).finally(() => {
+			savingPage.value = false
+		})
+	}
+
+	function updateActivePage(key, value) {
+		if (!activePage.value) {
+			return
+		}
+		return studioPages.setValue.submit(
+			{ name: activePage.value.name, [key]: value },
+			{
+				onSuccess() {
+					if (activePage.value) {
+						activePage.value[key] = value
+					}
+				},
+			},
+		)
+	}
+
+	async function publishPage() {
+		return studioPages.runDocMethod
+			.submit({
+				name: selectedPage.value,
+				method: "publish",
+			})
+			.then(async () => {
+				activePage.value = await fetchPage(selectedPage.value)
+				openPageInBrowser(activePage.value)
+			})
+	}
+
+	function openPageInBrowser(page) {
+		let route = page.route
+		window.open(`/${route}`, "studio-preview")
+	}
+
 	return {
 		canvas,
 		studioLayout,
@@ -78,8 +146,16 @@ const useStore = defineStore("store", () => {
 		selectBlock,
 		pageBlocks,
 		selectedPage,
+		settingPage,
+		savingPage,
+		activePage,
 		setPage,
+		findPageWithRoute,
 		fetchPage,
+		savePage,
+		updateActivePage,
+		publishPage,
+		openPageInBrowser,
 	}
 })
 

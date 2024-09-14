@@ -221,6 +221,7 @@ onMounted(() => {
 })
 
 defineExpose({
+	rootComponent,
 	canvasProps,
 	findBlock,
 	getRootBlock,

@@ -20,16 +20,16 @@
 			/>
 			<StudioRightPanel
 				class="no-scrollbar dark:bg-zinc-900 absolute bottom-0 right-0 top-[var(--toolbar-height)] z-20 overflow-auto border-l-[1px] bg-white shadow-lg dark:border-gray-800"
-			>
-				></StudioRightPanel
-			>
+			/>
 		</div>
 	</div>
 </template>
 
 <script setup>
-import { onActivated, watchEffect, ref } from "vue"
+import { onActivated, watchEffect, watch, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
+import { useDebounceFn } from "@vueuse/core"
+import { usePageMeta } from "frappe-ui"
 
 import StudioToolbar from "@/components/StudioToolbar.vue"
 import StudioLeftPanel from "@/components/StudioLeftPanel.vue"
@@ -51,6 +51,18 @@ watchEffect(() => {
 	}
 })
 
+const debouncedPageSave = useDebounceFn(store.savePage, 300)
+watch(
+	() => canvas.value?.rootComponent,
+	() => {
+		if (store.selectedPage && !canvas.value?.canvasProps?.settingCanvas) {
+			store.savingPage = true
+			debouncedPageSave()
+		}
+	},
+	{ deep: true },
+)
+
 onActivated(async () => {
 	if (route.params.pageID === store.selectedPage) return
 
@@ -58,7 +70,7 @@ onActivated(async () => {
 		await studioPages.insert
 			.submit({
 				page_title: "My Page",
-				blocks: [getRootBlock()],
+				draft_blocks: [getRootBlock()],
 			})
 			.then((data) => {
 				router.push({ name: "StudioPage", params: { pageID: data.name }, force: true })
@@ -66,6 +78,12 @@ onActivated(async () => {
 			})
 	} else {
 		await store.setPage(route.params.pageID)
+	}
+})
+
+usePageMeta(() => {
+	return {
+		title: `${store.activePage?.page_title} | Frappe Studio`,
 	}
 })
 </script>
