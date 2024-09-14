@@ -9,8 +9,3 @@ templates/**.js,frappe.gettext.extractors.html_template.extract
 **.js,frappe.gettext.extractors.javascript.extract
 **.html,frappe.gettext.extractors.html_template.extract
 **.vue,frappe.gettext.extractors.html_template.extract
-<<<<<<< HEAD
-=======
-**/custom/*.json,frappe.gettext.extractors.customization.extract
-**/fixtures/custom_field.json,frappe.gettext.extractors.custom_field.extract
->>>>>>> 35fb0e2687 (fix(translate): Fix extraction in JS files (#27401))
