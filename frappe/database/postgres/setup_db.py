@@ -2,17 +2,26 @@ import os
 
 import frappe
 from frappe.database.db_manager import DbManager
+from frappe.utils import cint
 
 
 def setup_database(force, source_sql=None, verbose=False):
 	root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
 	root_conn.commit()
 	root_conn.sql("end")
-	root_conn.sql(f"DROP DATABASE IF EXISTS `{frappe.conf.db_name}`")
-	root_conn.sql(f"DROP USER IF EXISTS {frappe.conf.db_name}")
-	root_conn.sql(f"CREATE DATABASE `{frappe.conf.db_name}`")
-	root_conn.sql(f"CREATE user {frappe.conf.db_name} password '{frappe.conf.db_password}'")
-	root_conn.sql(f"GRANT ALL PRIVILEGES ON DATABASE `{frappe.conf.db_name}` TO {frappe.conf.db_name}")
+	root_conn.sql(f'DROP DATABASE IF EXISTS "{frappe.conf.db_name}"')
+
+	# If user exists, just update password
+	if root_conn.sql(f"SELECT 1 FROM pg_roles WHERE rolname='{frappe.conf.db_name}'"):
+		root_conn.sql(f"ALTER USER \"{frappe.conf.db_name}\" WITH PASSWORD '{frappe.conf.db_password}'")
+	else:
+		root_conn.sql(f"CREATE USER \"{frappe.conf.db_name}\" WITH PASSWORD '{frappe.conf.db_password}'")
+	root_conn.sql(f'CREATE DATABASE "{frappe.conf.db_name}"')
+	root_conn.sql(f'GRANT ALL PRIVILEGES ON DATABASE "{frappe.conf.db_name}" TO "{frappe.conf.db_name}"')
+	if psql_version := root_conn.sql("SHOW server_version_num", as_dict=True):
+		semver_version_num = psql_version[0].get("server_version_num") or "140000"
+		if cint(semver_version_num) > 150000:
+			root_conn.sql(f'ALTER DATABASE "{frappe.conf.db_name}" OWNER TO "{frappe.conf.db_name}"')
 	root_conn.close()
 
 	bootstrap_database(frappe.conf.db_name, verbose, source_sql=source_sql)
@@ -72,6 +81,7 @@ def get_root_connection(root_login=None, root_password=None):
 			port=frappe.conf.db_port,
 			user=root_login,
 			password=root_password,
+			cur_db_name=root_login,
 		)
 
 	return frappe.local.flags.root_connection

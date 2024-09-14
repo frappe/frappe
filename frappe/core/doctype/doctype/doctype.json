@@ -10,11 +10,6 @@
  "field_order": [
   "form_builder_tab",
   "form_builder",
-  "permissions_tab",
-  "permissions",
-  "restrict_to_domain",
-  "read_only",
-  "in_create",
   "settings_tab",
   "sb0",
   "module",
@@ -75,6 +70,11 @@
   "sender_field",
   "sender_name_field",
   "subject_field",
+  "sb2",
+  "permissions",
+  "restrict_to_domain",
+  "read_only",
+  "in_create",
   "actions_section",
   "actions",
   "links_section",
@@ -152,8 +152,8 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.istable",
-   "description": "Open a dialog with mandatory fields to create a new record quickly. There must be at least one mandatory field to show in dialog.",
+   "depends_on": "eval:!doc.istable && !doc.issingle",
+   "description": "Open a dialog with mandatory fields to create a new record quickly",
    "fieldname": "quick_entry",
    "fieldtype": "Check",
    "label": "Quick Entry"
@@ -382,6 +382,12 @@
    "label": "Make \"name\" searchable in Global Search"
   },
   {
+   "depends_on": "eval:!doc.istable",
+   "fieldname": "sb2",
+   "fieldtype": "Section Break",
+   "label": "Permission Rules"
+  },
+  {
    "fieldname": "permissions",
    "fieldtype": "Table",
    "label": "Permissions",
@@ -412,7 +418,6 @@
    "oldfieldtype": "Check"
   },
   {
-   "collapsible": 1,
    "depends_on": "eval:doc.custom===0 && !doc.istable",
    "fieldname": "web_view",
    "fieldtype": "Section Break",
@@ -663,11 +668,6 @@
    "fieldname": "sender_name_field",
    "fieldtype": "Data",
    "label": "Sender Name Field"
-  },
-  {
-   "fieldname": "permissions_tab",
-   "fieldtype": "Tab Break",
-   "label": "Permissions"
   }
  ],
  "icon": "fa fa-bolt",
@@ -750,7 +750,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2024-08-02 14:48:12.911702",
+ "modified": "2023-12-01 18:37:16.799471",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

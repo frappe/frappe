@@ -30,7 +30,10 @@ frappe.views.Workspace = class Workspace {
 			public: {},
 			private: {},
 		};
-		this.sidebar_categories = ["My Workspaces", "Public"];
+		this.sidebar_categories = [
+			{ id: "Personal", label: __("Personal", null, "Workspace Category") },
+			{ id: "Public", label: __("Public", null, "Workspace Category") },
+		];
 		this.indicator_colors = [
 			"green",
 			"cyan",
@@ -70,9 +73,6 @@ frappe.views.Workspace = class Workspace {
 		this.all_pages = this.sidebar_pages.pages;
 		this.has_access = this.sidebar_pages.has_access;
 		this.has_create_access = this.sidebar_pages.has_create_access;
-		if (!this.sidebar_pages.workspace_setup_completed) {
-			frappe.quick_edit("Workspace Settings");
-		}
 
 		this.all_pages.forEach((page) => {
 			page.is_editable = !page.public || this.has_access;
@@ -83,14 +83,11 @@ frappe.views.Workspace = class Workspace {
 
 		if (this.all_pages) {
 			frappe.workspaces = {};
-			frappe.workspace_list = [];
 			for (let page of this.all_pages) {
 				frappe.workspaces[frappe.router.slug(page.name)] = {
 					title: page.title,
 					public: page.public,
 				};
-
-				frappe.workspace_list.push(page);
 			}
 			this.make_sidebar();
 			reload && this.show();
@@ -185,7 +182,7 @@ frappe.views.Workspace = class Workspace {
 			let root_pages = this.public_pages.filter(
 				(page) => page.parent_page == "" || page.parent_page == null
 			);
-			if (category != "Public") {
+			if (category.id != "Public") {
 				root_pages = this.private_pages.filter(
 					(page) => page.parent_page == "" || page.parent_page == null
 				);
@@ -202,17 +199,17 @@ frappe.views.Workspace = class Workspace {
 		this.remove_sidebar_skeleton();
 	}
 
-	build_sidebar_section(title, root_pages) {
+	build_sidebar_section(category, root_pages) {
 		let sidebar_section = $(
-			`<div class="standard-sidebar-section nested-container" data-title="${title}"></div>`
+			`<div class="standard-sidebar-section nested-container" data-title="${category.id}"></div>`
 		);
 
 		let $title = $(`<button class="btn-reset standard-sidebar-label">
 			<span>${frappe.utils.icon("es-line-down", "xs")}</span>
-			<span class="section-title">${__(title)}<span>
+			<span class="section-title">${category.label}<span>
 		</div>`).appendTo(sidebar_section);
 		$title.attr({
-			"aria-label": __("{0}: {1}", [__("Toggle Section"), __(title)]),
+			"aria-label": __("Toggle Section: {0}", [category.label]),
 			"aria-expanded": "true",
 		});
 		this.prepare_sidebar(root_pages, sidebar_section, this.sidebar);
@@ -246,12 +243,7 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	prepare_sidebar(items, child_container, item_container) {
-		for (let item of items) {
-			// visibility not explicitly set to 0
-			if (item.visibility !== 0) {
-				this.append_item(item, child_container);
-			}
-		}
+		items.forEach((item) => this.append_item(item, child_container));
 		child_container.appendTo(item_container);
 	}
 

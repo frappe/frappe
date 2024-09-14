@@ -71,11 +71,12 @@ class PreparedReport(Document):
 			job.stop_job() if self.status == "Started" else job.delete()
 
 	def after_insert(self):
+		timeout = frappe.get_value("Report", self.report_name, "timeout")
 		enqueue(
 			generate_report,
 			queue="long",
 			prepared_report=self.name,
-			timeout=REPORT_TIMEOUT,
+			timeout=timeout or REPORT_TIMEOUT,
 			enqueue_after_commit=True,
 		)
 

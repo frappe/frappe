@@ -7,11 +7,6 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 
 		// set description
 		this.set_max_width();
-
-		// set initial value if set
-		if (this.df.initial_value) {
-			this.set_value(this.df.initial_value);
-		}
 	}
 	make_wrapper() {
 		if (this.only_input) {

@@ -4,6 +4,7 @@
 import datetime
 from contextlib import suppress
 
+import pytz
 from rq import Worker
 
 import frappe
@@ -105,5 +106,7 @@ def serialize_worker(worker: Worker) -> frappe._dict:
 
 def compute_utilization(worker: Worker) -> float:
 	with suppress(Exception):
-		total_time = (datetime.datetime.utcnow() - worker.birth_date).total_seconds()
+		total_time = (
+			datetime.datetime.now(pytz.UTC) - worker.birth_date.replace(tzinfo=pytz.UTC)
+		).total_seconds()
 		return worker.total_working_time / total_time * 100

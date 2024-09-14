@@ -322,7 +322,7 @@ def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 	site = get_site(context)
 	verbose = context.verbose or verbose
 	frappe.init(site=site)
-	frappe.connect(site=site)
+	frappe.connect()
 	err, out = frappe.utils.execute_in_shell(f"file {sql_file_path}", check_exit_code=True)
 	if err:
 		click.secho("Failed to detect type of backup file", fg="red")
@@ -515,7 +515,8 @@ def add_db_index(context, doctype, column):
 
 	columns = column  # correct naming
 	for site in context.sites:
-		frappe.connect(site=site)
+		frappe.init(site=site)
+		frappe.connect()
 		try:
 			frappe.db.add_index(doctype, columns)
 			if len(columns) == 1:
@@ -547,7 +548,8 @@ def add_system_manager(context, email, first_name, last_name, send_welcome_email
 	import frappe.utils.user
 
 	for site in context.sites:
-		frappe.connect(site=site)
+		frappe.init(site=site)
+		frappe.connect()
 		try:
 			frappe.utils.user.add_system_manager(email, first_name, last_name, send_welcome_email, password)
 			frappe.db.commit()
@@ -573,7 +575,8 @@ def add_user_for_sites(
 	import frappe.utils.user
 
 	for site in context.sites:
-		frappe.connect(site=site)
+		frappe.init(site=site)
+		frappe.connect()
 		try:
 			add_new_user(email, first_name, last_name, user_type, send_welcome_email, password, add_role)
 			frappe.db.commit()
@@ -826,6 +829,7 @@ def backup(
 @pass_context
 def remove_from_installed_apps(context, app):
 	"Remove app from site's installed-apps list"
+	ensure_app_not_frappe(app)
 	from frappe.installer import remove_from_installed_apps
 
 	for site in context.sites:
@@ -854,6 +858,7 @@ def remove_from_installed_apps(context, app):
 @pass_context
 def uninstall(context, app, dry_run, yes, no_backup, force):
 	"Remove app and linked modules from site"
+	ensure_app_not_frappe(app)
 	from frappe.installer import remove_app
 	from frappe.utils.synchronization import filelock
 
@@ -1430,6 +1435,18 @@ def add_new_user(
 		from frappe.utils.password import update_password
 
 		update_password(user=user.name, pwd=password)
+
+
+def ensure_app_not_frappe(app: str) -> None:
+	"""
+	Ensure that the app name passed is not 'frappe'
+
+	:param app: Name of the app
+	:return: Nothing
+	"""
+	if app == "frappe":
+		click.secho("You cannot remove or uninstall the app `frappe`", fg="red")
+		sys.exit(1)
 
 
 commands = [
