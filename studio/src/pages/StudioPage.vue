@@ -29,6 +29,7 @@
 import { onActivated, watchEffect, watch, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useDebounceFn } from "@vueuse/core"
+import { usePageMeta } from "frappe-ui"
 
 import StudioToolbar from "@/components/StudioToolbar.vue"
 import StudioLeftPanel from "@/components/StudioLeftPanel.vue"
@@ -77,6 +78,12 @@ onActivated(async () => {
 			})
 	} else {
 		await store.setPage(route.params.pageID)
+	}
+})
+
+usePageMeta(() => {
+	return {
+		title: `${store.activePage?.page_title} | Frappe Studio`,
 	}
 })
 </script>

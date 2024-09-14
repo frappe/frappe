@@ -132,6 +132,7 @@ const useStore = defineStore("store", () => {
 		selectedPage,
 		settingPage,
 		savingPage,
+		activePage,
 		setPage,
 		findPageWithRoute,
 		fetchPage,
