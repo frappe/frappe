@@ -101,6 +101,22 @@ const useStore = defineStore("store", () => {
 		})
 	}
 
+	function updateActivePage(key, value) {
+		if (!activePage.value) {
+			return
+		}
+		return studioPages.setValue.submit(
+			{ name: activePage.value.name, [key]: value },
+			{
+				onSuccess() {
+					if (activePage.value) {
+						activePage.value[key] = value
+					}
+				},
+			},
+		)
+	}
+
 	async function publishPage() {
 		return studioPages.runDocMethod
 			.submit({
@@ -137,6 +153,7 @@ const useStore = defineStore("store", () => {
 		findPageWithRoute,
 		fetchPage,
 		savePage,
+		updateActivePage,
 		publishPage,
 		openPageInBrowser,
 	}

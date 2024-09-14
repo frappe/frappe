@@ -45,7 +45,7 @@ import { ref, watch } from "vue"
 import { Tooltip, FeatherIcon } from "frappe-ui"
 
 import ComponentPanel from "@/components/ComponentPanel.vue"
-import ComponentLayers from "./ComponentLayers.vue"
+import ComponentLayers from "@/components/ComponentLayers.vue"
 
 import Block from "@/utils/block"
 import useStore from "@/store"
