@@ -944,7 +944,7 @@ def get_file_size(path, format=False):
 
 def get_build_version():
 	try:
-		return str(os.path.getmtime(os.path.join(frappe.local.sites_path, "assets/assets.json")))
+		return str(os.path.getmtime(frappe.site.bench.sites.path.joinpath("assets", "assets.json")))
 	except OSError:
 		# .build can sometimes not exist
 		# this is not a major problem so send fallback

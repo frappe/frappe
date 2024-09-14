@@ -497,7 +497,6 @@ def postgres(context: CliCtxObj, extra_args):
 
 def _enter_console(site: Sites.Site, extra_args=None):
 	from frappe.database import get_command
-	from frappe.utils import get_site_path
 
 	if frappe.conf.db_type == "mariadb":
 		os.environ["MYSQL_HISTFILE"] = site.bench.logs.get_log_file("mariadb_console.log")

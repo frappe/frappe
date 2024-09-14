@@ -540,7 +540,7 @@ def get_messages_from_include_files(app_name=None):
 
 	for js_path in include_js:
 		file_path = bundled_asset(js_path)
-		relative_path = os.path.join(frappe.local.sites_path, file_path.lstrip("/"))
+		relative_path = frappe.site.bench.sites.path.joinpath(file_path.lstrip("/"))
 		messages_from_file = get_messages_from_file(relative_path)
 		messages.extend(messages_from_file)
 
