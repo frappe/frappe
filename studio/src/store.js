@@ -14,7 +14,7 @@ import { studioPages } from "@/data/studioPages"
 const useStore = defineStore("store", () => {
 	const canvas = ref(null)
 	const studioLayout = reactive({
-		leftPanelWidth: 280,
+		leftPanelWidth: 300,
 		rightPanelWidth: 275,
 		showLeftPanel: true,
 		showRightPanel: true,

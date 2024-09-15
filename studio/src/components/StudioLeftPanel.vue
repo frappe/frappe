@@ -22,7 +22,7 @@
 		</div>
 
 		<!-- Secondary Menu -->
-		<div :style="{ width: `${280 - 48}px` }">
+		<div :style="{ width: `${store.studioLayout.leftPanelWidth - 48}px` }">
 			<div class="border-b-[1px] border-gray-200 p-3 text-base font-semibold text-gray-800">
 				{{ activeTab }}
 			</div>
