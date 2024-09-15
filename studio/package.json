@@ -15,7 +15,7 @@
 		"ace-builds": "^1.36.2",
 		"autoprefixer": "^10.4.2",
 		"feather-icons": "^4.28.0",
-		"frappe-ui": "^0.1.66",
+		"frappe-ui": "^0.1.69",
 		"lucide-vue-next": "^0.427.0",
 		"pinia": "^2.2.1",
 		"vite": "^4.4.9",
