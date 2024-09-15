@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-02 18:21+0000\n"
-"PO-Revision-Date: 2024-09-09 19:38\n"
+"PO-Revision-Date: 2024-09-15 20:52\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -21163,7 +21163,7 @@ msgstr "پیامک"
 #. Label of a Small Text field in DocType 'SMS Settings'
 #: core/doctype/sms_settings/sms_settings.json
 msgid "SMS Gateway URL"
-msgstr "آدرس دروازه پیامک"
+msgstr "آدرس درگاه پیامک"
 
 #. Name of a DocType
 #: core/doctype/sms_parameter/sms_parameter.json
