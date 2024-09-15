@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-02 18:21+0000\n"
-"PO-Revision-Date: 2024-09-08 19:39\n"
+"PO-Revision-Date: 2024-09-15 20:52\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -16328,7 +16328,7 @@ msgstr "Ingen data att exportera"
 
 #: contacts/doctype/address/address.py:246
 msgid "No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template."
-msgstr "Ingen Standard Adress Mall hittades. Skapa ny från Inställningar > Utskrift och Varumärke > Address Mall."
+msgstr "Ingen Standard Adress Mall hittades. Skapa ny från Inställningar > Utskrift och Märke > Adress Mall."
 
 #: public/js/frappe/ui/toolbar/search.js:71
 msgid "No documents found tagged with {0}"
@@ -22143,7 +22143,7 @@ msgstr "Välj Arbetsyta"
 
 #: website/doctype/website_settings/website_settings.js:23
 msgid "Select a Brand Image first."
-msgstr "Välj Varumärke Bild."
+msgstr "Välj Märke Bild."
 
 #: printing/page/print_format_builder/print_format_builder.js:108
 msgid "Select a DocType to make a new format"
