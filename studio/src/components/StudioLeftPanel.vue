@@ -1,7 +1,7 @@
 <template>
 	<div class="z-5 flex flex-row overflow-auto shadow-lg">
 		<!-- Primary Menu -->
-		<div class="relative flex h-full w-12 flex-col space-y-2 border-r border-gray-200 bg-white p-2">
+		<div class="relative flex h-full w-12 flex-col space-y-2 border-r border-gray-200 bg-white p-3">
 			<div
 				class="flex items-center"
 				v-for="tab in sidebarMenu"
@@ -22,7 +22,10 @@
 		</div>
 
 		<!-- Secondary Menu -->
-		<div :style="{ width: `${store.studioLayout.leftPanelWidth - 48}px` }">
+		<div
+			:style="{ width: `${store.studioLayout.leftPanelWidth - 48}px` }"
+			class="overflow-auto pb-5 hide-scrollbar"
+		>
 			<div class="border-b-[1px] border-gray-200 p-3 text-base font-semibold text-gray-800">
 				{{ activeTab }}
 			</div>

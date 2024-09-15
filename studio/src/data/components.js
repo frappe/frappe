@@ -181,6 +181,15 @@ export const COMPONENTS = {
 			message: "Transaction failed due to insufficient balance",
 		},
 	},
+	FeatherIcon: {
+		name: "FeatherIcon",
+		title: "FeatherIcon",
+		icon: "Feather",
+		initialState: {
+			name: "activity",
+			class: "h-6 w-6",
+		},
+	},
 	FileUploader: {
 		name: "FileUploader",
 		title: "File Uploader",
@@ -199,15 +208,6 @@ export const COMPONENTS = {
 			label: "Name",
 			placeholder: "John Doe",
 			autocomplete: "off",
-		},
-	},
-	FeatherIcon: {
-		name: "FeatherIcon",
-		title: "FeatherIcon",
-		icon: "Feather",
-		initialState: {
-			name: "activity",
-			class: "h-6 w-6",
 		},
 	},
 	ListView: {
