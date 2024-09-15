@@ -36,6 +36,7 @@ import {
 	TextEditor,
 	Toast,
 	Tooltip,
+	Tree,
 	CommandPalette,
 	CommandPaletteItem,
 	Calendar,
@@ -79,6 +80,7 @@ export function registerGlobalComponents(app) {
 	app.component("TextEditor", TextEditor)
 	app.component("Toast", Toast)
 	app.component("Tooltip", Tooltip)
+	app.component("Tree", Tree)
 	app.component("CommandPalette", CommandPalette)
 	app.component("CommandPaletteItem", CommandPaletteItem)
 	app.component("Calendar", Calendar)

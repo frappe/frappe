@@ -201,6 +201,15 @@ export const COMPONENTS = {
 			autocomplete: "off",
 		},
 	},
+	FeatherIcon: {
+		name: "FeatherIcon",
+		title: "FeatherIcon",
+		icon: "Feather",
+		initialState: {
+			name: "activity",
+			class: "h-6 w-6",
+		},
+	},
 	ListView: {
 		name: "ListView",
 		title: "List View",
@@ -350,6 +359,14 @@ export const COMPONENTS = {
 		icon: "ALargeSmall",
 		initialState: {
 			placeholder: "Enter your name",
+		},
+	},
+	TextEditor: {
+		name: "TextEditor",
+		title: "Text Editor",
+		icon: "Edit",
+		initialState: {
+			content: "Type something...",
 		},
 	},
 	Tooltip: {
