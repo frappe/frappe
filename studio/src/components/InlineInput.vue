@@ -32,7 +32,7 @@
 			:options="inputOptions"
 			@update:modelValue="handleChange"
 			:showInputAsOption="showInputAsOption"
-			class="[&>div>select]:dark:border-zinc-700 [&>div>select]:dark:bg-zinc-800 [&>div>select]:dark:text-zinc-200 [&>div>select]:dark:focus:bg-zinc-700 w-full [&>div>select]:text-sm [&>div>select]:text-gray-800"
+			class="w-full"
 		/>
 		<CodeEditor
 			v-else-if="type === 'code'"
@@ -55,10 +55,11 @@
 
 <script setup lang="ts">
 import { isNumber } from "@tiptap/vue-3"
-import { Popover, Autocomplete } from "frappe-ui"
+import { Popover } from "frappe-ui"
 import { PropType, computed } from "vue"
 import Input from "@/components/Input.vue"
 import CodeEditor from "@/components/CodeEditor.vue"
+import Autocomplete from "@/components/Autocomplete.vue"
 import InputLabel from "@/components/InputLabel.vue"
 
 const props = defineProps({

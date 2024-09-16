@@ -134,17 +134,23 @@ const useStore = defineStore("store", () => {
 		window.open(`/${route}`, "studio-preview")
 	}
 
+	// styles
+	const stylePropertyFilter = ref(null)
+
 	return {
+		// layout
 		canvas,
 		studioLayout,
 		activeBreakpoint,
 		guides,
+		// block hover & selection
 		hoveredBlock,
 		hoveredBreakpoint,
 		selectedBlockIds,
 		selectedBlocks,
 		selectBlock,
 		pageBlocks,
+		// studio pages
 		selectedPage,
 		settingPage,
 		savingPage,
@@ -156,6 +162,8 @@ const useStore = defineStore("store", () => {
 		updateActivePage,
 		publishPage,
 		openPageInBrowser,
+		// styles
+		stylePropertyFilter,
 	}
 })
 
