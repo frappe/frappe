@@ -119,6 +119,20 @@ function jsonToJs(json: string): any {
 	return JSON.parse(json, reviver)
 }
 
+const mapToObject = (map: Map<any, any>) => Object.fromEntries(map.entries());
+
+function replaceMapKey(map: Map<any, any>, oldKey: string, newKey: string) {
+	const newMap = new Map();
+	map.forEach((value, key) => {
+		if (key === oldKey) {
+			newMap.set(newKey, value);
+		} else {
+			newMap.set(key, value);
+		}
+	});
+	return newMap;
+}
+
 export {
 	getBlockInstance,
 	getComponentBlock,
@@ -132,4 +146,6 @@ export {
 	areObjectsEqual,
 	jsToJson,
 	jsonToJs,
+	mapToObject,
+	replaceMapKey,
 }
