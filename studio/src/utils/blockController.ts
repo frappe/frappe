@@ -49,6 +49,38 @@ const blockController = {
 			block.setStyle(style, value);
 		});
 	},
+	getPadding: () => {
+		let padding = "__initial__" as StyleValue;
+		blockController.getSelectedBlocks().forEach((block) => {
+			if (padding === "__initial__") {
+				padding = block.getPadding();
+			} else if (padding !== block.getPadding()) {
+				padding = "Mixed";
+			}
+		});
+		return padding;
+	},
+	setPadding: (value: string) => {
+		blockController.getSelectedBlocks().forEach((block) => {
+			block.setPadding(value);
+		});
+	},
+	getMargin: () => {
+		let margin = "__initial__" as StyleValue;
+		blockController.getSelectedBlocks().forEach((block) => {
+			if (margin === "__initial__") {
+				margin = block.getMargin();
+			} else if (margin !== block.getMargin()) {
+				margin = "Mixed";
+			}
+		});
+		return margin;
+	},
+	setMargin: (value: string) => {
+		blockController.getSelectedBlocks().forEach((block) => {
+			block.setMargin(value);
+		});
+	},
 }
 
 export default blockController

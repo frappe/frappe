@@ -43,7 +43,10 @@ import useStore from "@/store"
 import blockController from "@/utils/blockController"
 import { Ref, computed, ref } from "vue"
 import BlockFlexLayoutHandler from "@/components/BlockFlexLayoutHandler.vue"
+import BlockPositionHandler from "@/components/BlockPositionHandler.vue"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
+import DimensionInput from "@/components/DimensionInput.vue"
+import InlineInput from "@/components/InlineInput.vue"
 
 const props = defineProps({
 	block: {
@@ -155,11 +158,150 @@ const layoutSectionProperties = [
 	},
 ]
 
+const dimensionSectionProperties = [
+	{
+		component: DimensionInput,
+		searchKeyWords: "Width",
+		getProps: () => {
+			return {
+				label: "Width",
+				property: "width",
+			}
+		},
+	},
+	{
+		component: DimensionInput,
+		searchKeyWords: "Min, Width, MinWidth, Min Width",
+		getProps: () => {
+			return {
+				label: "Min Width",
+				property: "minWidth",
+			}
+		},
+	},
+	{
+		component: DimensionInput,
+		searchKeyWords: "Max, Width, MaxWidth, Max Width",
+		getProps: () => {
+			return {
+				label: "Max Width",
+				property: "maxWidth",
+			}
+		},
+	},
+	{
+		component: "hr",
+		getProps: () => {
+			return {
+				class: "dark:border-zinc-700",
+			}
+		},
+		searchKeyWords: "",
+	},
+	{
+		component: DimensionInput,
+		searchKeyWords: "Height",
+		getProps: () => {
+			return {
+				label: "Height",
+				property: "height",
+			}
+		},
+	},
+	{
+		component: DimensionInput,
+		searchKeyWords: "Min, Height, MinHeight, Min Height",
+		getProps: () => {
+			return {
+				label: "Min Height",
+				property: "minHeight",
+			}
+		},
+	},
+	{
+		component: DimensionInput,
+		searchKeyWords: "Max, Height, MaxHeight, Max Height",
+		getProps: () => {
+			return {
+				label: "Max Height",
+				property: "maxHeight",
+			}
+		},
+	},
+]
+
+const positionSectionProperties = [
+	{
+		component: BlockPositionHandler,
+		searchKeyWords:
+			"Position, Top, Right, Bottom, Left, PositionTop, Position Top, PositionRight, Position Right, PositionBottom, Position Bottom, PositionLeft, Position Left, Free, Fixed, Absolute, Relative, Sticky",
+		getProps: () => {},
+	},
+]
+
+const spacingSectionProperties = [
+	{
+		component: InlineInput,
+		searchKeyWords: "Margin, Top, MarginTop, Margin Top",
+		getProps: () => {
+			return {
+				label: "Margin",
+				modelValue: blockController.getMargin(),
+			}
+		},
+		events: {
+			"update:modelValue": (val: string) => blockController.setMargin(val),
+		},
+		condition: () => !blockController.isRoot(),
+	},
+	{
+		component: InlineInput,
+		searchKeyWords: "Padding, Top, PaddingTop, Padding Top",
+		getProps: () => {
+			return {
+				label: "Padding",
+				modelValue: blockController.getPadding(),
+			}
+		},
+		events: {
+			"update:modelValue": (val: string) => blockController.setPadding(val),
+		},
+	},
+]
+
 const sections = [
 	{
 		name: "Layout",
 		properties: layoutSectionProperties,
 		condition: () => !blockController.multipleBlocksSelected(),
+	},
+	{
+		name: "Dimension",
+		properties: dimensionSectionProperties,
+	},
+	{
+		name: "Position",
+		properties: positionSectionProperties,
+		condition: () => !blockController.multipleBlocksSelected(),
+		collapsed: computed(() => {
+			return (
+				!blockController.getStyle("top") &&
+				!blockController.getStyle("right") &&
+				!blockController.getStyle("bottom") &&
+				!blockController.getStyle("left")
+			)
+		}),
+	},
+	{
+		name: "Spacing",
+		properties: spacingSectionProperties,
+		collapsed: computed(
+			() =>
+				!blockController.getStyle("marginTop") &&
+				!blockController.getStyle("paddingTop") &&
+				!blockController.getStyle("marginBottom") &&
+				!blockController.getStyle("paddingBottom"),
+		),
 	},
 ] as PropertySection[]
 </script>
