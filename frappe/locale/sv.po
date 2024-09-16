@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-08 09:32+0000\n"
-"PO-Revision-Date: 2024-09-15 20:52\n"
+"PO-Revision-Date: 2024-09-16 20:58\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -26476,7 +26476,7 @@ msgstr "Växla Diagram"
 #. Type: Action
 #: hooks.py
 msgid "Toggle Full Width"
-msgstr "Ändra till/från Full Bredd"
+msgstr "Ändra Full Bredd"
 
 #: public/js/frappe/views/file/file_view.js:33
 msgid "Toggle Grid View"
