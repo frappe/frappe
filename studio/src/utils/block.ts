@@ -141,6 +141,10 @@ class Block implements BlockOptions {
 		return this.getStyle("display") !== "none"
 	}
 
+	isFlex() {
+		return this.getStyle("display") === "flex";
+	}
+
 	// context menu
 	duplicateBlock() {
 		if (this.isRoot()) return
