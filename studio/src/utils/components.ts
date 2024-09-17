@@ -2,6 +2,7 @@ import components from "@/data/components"
 
 function getComponentProps(componentName: string) {
 	const props = components.getProps(componentName)
+	if (!props) return {}
 	const propsConfig: ComponentProps = {}
 
 	if (Array.isArray(props)) {
@@ -23,7 +24,6 @@ function getComponentProps(componentName: string) {
 		})
 	}
 	return propsConfig
-
 }
 
 function getPropInputType(propType: string) {

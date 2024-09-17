@@ -429,14 +429,27 @@ export const COMPONENTS = {
 			},
 		},
 	},
+	Container: {
+		name: "Container",
+		title: "Container",
+		icon: "AppWindow",
+	},
 }
 
 function get(name) {
 	return COMPONENTS[name]
 }
 
+function isFrappeUIComponent(name) {
+	return name in frappeUI
+}
+
 function getComponent(name) {
-	return frappeUI[name]
+	if (isFrappeUIComponent(name)) {
+		return frappeUI[name]
+	} else {
+		return name
+	}
 }
 
 function getProps(name) {
@@ -449,4 +462,5 @@ export default {
 	get,
 	getComponent,
 	getProps,
+	isFrappeUIComponent,
 }

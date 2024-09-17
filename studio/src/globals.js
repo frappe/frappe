@@ -42,6 +42,8 @@ import {
 	Calendar,
 } from "frappe-ui"
 
+import Container from "@/components/AppLayout/Container.vue"
+
 export function registerGlobalComponents(app) {
 	app.component("Alert", Alert)
 	app.component("Autocomplete", Autocomplete)
@@ -84,4 +86,7 @@ export function registerGlobalComponents(app) {
 	app.component("CommandPalette", CommandPalette)
 	app.component("CommandPaletteItem", CommandPaletteItem)
 	app.component("Calendar", Calendar)
+
+	// studio components
+	app.component("Container", Container)
 }
