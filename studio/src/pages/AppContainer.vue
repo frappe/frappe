@@ -18,8 +18,9 @@ const rootBlock = ref(null)
 
 watch(
 	() => route.params?.pageRoute,
-	async () => {
-		const pageRoute = route.params?.pageRoute
+	async (pageRoute, _) => {
+		if (pageRoute === "studio") return
+
 		if (pageRoute) {
 			page.value = await store.findPageWithRoute(pageRoute)
 			const blocks = jsonToJs(page.value.blocks)
