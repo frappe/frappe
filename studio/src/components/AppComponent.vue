@@ -1,6 +1,6 @@
 <template>
 	<component
-		:is="components.getComponent(block.componentName) || block.componentName"
+		:is="components.getComponent(block.componentName)"
 		v-bind="componentProps"
 		:data-component-id="block.componentId"
 		:style="styles"

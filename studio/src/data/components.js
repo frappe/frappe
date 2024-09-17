@@ -1,7 +1,5 @@
-import { h } from "vue"
+import { defineAsyncComponent, h } from "vue"
 import * as frappeUI from "frappe-ui"
-
-import Container from "@/components/AppLayout/Container.vue"
 
 export const COMPONENTS = {
 	Alert: {
@@ -447,10 +445,14 @@ function isFrappeUIComponent(name) {
 }
 
 function getComponent(name) {
-	if (isFrappeUIComponent(name)) {
+	// TODO: A better way to load components for rendering the actual app without compromising the performance
+	if (name === "div") {
+		// root element
+		return name
+	} else if (isFrappeUIComponent(name)) {
 		return frappeUI[name]
 	} else {
-		return Container
+		return defineAsyncComponent(() => import(`@/components/AppLayout/${name}.vue`))
 	}
 }
 
