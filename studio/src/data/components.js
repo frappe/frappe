@@ -1,6 +1,8 @@
 import { h } from "vue"
 import * as frappeUI from "frappe-ui"
 
+import Container from "@/components/AppLayout/Container.vue"
+
 export const COMPONENTS = {
 	Alert: {
 		name: "Alert",
@@ -448,7 +450,7 @@ function getComponent(name) {
 	if (isFrappeUIComponent(name)) {
 		return frappeUI[name]
 	} else {
-		return name
+		return Container
 	}
 }
 
