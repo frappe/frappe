@@ -134,7 +134,7 @@ def two_factor_is_enabled_for_(user):
 def get_otpsecret_for_(user):
 	"""Set OTP Secret for user even if not set."""
 	if otp_secret := get_default(user + "_otpsecret"):
-		return decrypt(otp_secret)
+		return decrypt(otp_secret, key=f"{user}.otpsecret")
 
 	otp_secret = b32encode(os.urandom(10)).decode("utf-8")
 	set_default(user + "_otpsecret", encrypt(otp_secret))

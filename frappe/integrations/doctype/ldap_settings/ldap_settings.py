@@ -378,6 +378,13 @@ def login():
 	frappe.form_dict.pop("pwd", None)
 	frappe.local.login_manager.post_login()
 
+	try:
+		from frappe.core.doctype.activity_log.activity_log import add_authentication_log
+
+		add_authentication_log(_("{0} logged in").format(user.full_name), user.name)
+	except ImportError:
+		pass
+
 	# because of a GET request!
 	frappe.db.commit()
 
