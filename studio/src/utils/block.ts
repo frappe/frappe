@@ -304,6 +304,13 @@ class Block implements BlockOptions {
 		});
 	}
 
+	selectBlock() {
+		const store = useStore();
+		nextTick(() => {
+			store.selectBlock(this, null);
+		});
+	}
+
 	// component props
 	setProp(propName: string, value: any) {
 		this.componentProps[propName] = value
