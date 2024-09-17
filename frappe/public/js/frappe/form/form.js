@@ -1833,7 +1833,7 @@ frappe.ui.form.Form = class FrappeForm {
 				if (get_text) {
 					label = get_text(doc);
 				} else if (frappe.form.link_formatters[df.options]) {
-					label = frappe.form.link_formatters[df.options](value, doc);
+					label = frappe.form.link_formatters[df.options](value, doc, df);
 				} else {
 					label = value;
 				}

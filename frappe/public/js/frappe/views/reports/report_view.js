@@ -1553,7 +1553,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					const args = this.get_args();
 					const selected_items = this.get_checked_items(true);
 
-					let extra_fields = null;
+					let extra_fields = [];
 					if (this.list_view_settings.disable_count) {
 						extra_fields = [
 							{
@@ -1573,6 +1573,14 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							},
 						];
 					}
+					if (frappe.boot.lang !== "en") {
+						extra_fields.push({
+							fieldtype: "Check",
+							fieldname: "translate_values",
+							label: __("Translate values"),
+							default: 1,
+						});
+					}
 
 					const d = frappe.report_utils.get_export_dialog(
 						__(this.doctype),
@@ -1581,6 +1589,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							args.cmd = "frappe.desk.reportview.export_query";
 							args.file_format_type = data.file_format;
 							args.title = this.report_name || this.doctype;
+							args.translate_values = data.translate_values;
 
 							if (data.file_format == "CSV") {
 								args.csv_delimiter = data.csv_delimiter;
