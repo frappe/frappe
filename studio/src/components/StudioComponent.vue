@@ -69,14 +69,7 @@ const componentProps = computed(() => {
 })
 
 const componentRef = ref<ComponentPublicInstance | HTMLElement | SVGElement | null>(null)
-const target = computed(() => {
-	if (!componentRef.value) return null
-	if (componentRef.value instanceof HTMLElement || componentRef.value instanceof SVGAElement) {
-		return componentRef.value
-	} else {
-		return componentRef.value?.$el
-	}
-})
+const target = computed(() => getComponentRoot())
 
 // block hovering and selection
 const isHovered = ref(false)
@@ -138,6 +131,29 @@ const triggerContextMenu = (e: MouseEvent) => {
 	})
 }
 
+const isTextNode = (el: Element) => {
+	return el.nodeType === Node.TEXT_NODE
+}
+
+function getComponentRoot() {
+	if (!componentRef.value) return null
+	if (componentRef.value instanceof HTMLElement || componentRef.value instanceof SVGElement) {
+		return componentRef.value
+	} else {
+		if (isTextNode(componentRef.value.$el)) {
+			// access exposed ref
+			const rootRef = componentRef.value.rootRef
+			if (typeof rootRef === "function") {
+				// options API exposes ref as a function
+				return rootRef().$el
+			} else {
+				return rootRef.$el
+			}
+		}
+		return componentRef.value?.$el
+	}
+}
+
 watch(
 	() => store.hoveredBlock,
 	(newValue, oldValue) => {
@@ -164,8 +180,9 @@ watch(
 
 onMounted(() => {
 	// set data-component-id on mount since some frappeui components have inheritAttrs: false
-	if (componentRef.value) {
-		componentRef.value?.$el?.setAttribute("data-component-id", props.block.componentId)
+	const componentRoot = getComponentRoot()
+	if (componentRoot) {
+		componentRoot.setAttribute("data-component-id", props.block.componentId)
 		isComponentReady.value = true
 	}
 })
