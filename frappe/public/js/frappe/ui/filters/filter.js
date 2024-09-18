@@ -289,7 +289,7 @@ frappe.ui.Filter = class {
 	make_field(df, old_fieldtype) {
 		let old_text = this.field ? this.field.get_value() : null;
 		this.hide_invalid_conditions(df.fieldtype, df.original_type);
-		this.set_special_condition_lables(df.original_type);
+		this.set_special_condition_labels(df.original_type);
 		this.toggle_nested_set_conditions(df);
 		let field_area = this.filter_edit_area.find(".filter-field").empty().get(0);
 		df.input_class = "input-xs";
@@ -414,7 +414,7 @@ frappe.ui.Filter = class {
 		}
 	}
 
-	set_special_condition_lables(original_type) {
+	set_special_condition_labels(original_type) {
 		let special_conditions = this.special_condition_labels[original_type] || {};
 		for (let condition of this.conditions) {
 			let special_label = special_conditions[condition[0]];
