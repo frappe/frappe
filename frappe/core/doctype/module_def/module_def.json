@@ -8,6 +8,7 @@
  "field_order": [
   "connections_tab",
   "details_tab",
+  "section_break_dnma",
   "module_name",
   "app_name",
   "restrict_to_domain",
@@ -68,6 +69,10 @@
   {
    "fieldname": "column_break_giia",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_dnma",
+   "fieldtype": "Section Break"
   }
  ],
  "icon": "fa fa-sitemap",
@@ -134,7 +139,7 @@
    "link_fieldname": "module"
   }
  ],
- "modified": "2024-08-16 09:46:04.858359",
+ "modified": "2024-09-18 12:39:19.512528",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Module Def",

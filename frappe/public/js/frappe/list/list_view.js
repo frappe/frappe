@@ -688,7 +688,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			<span class="list-count"></span>
 			<span class="level-item list-liked-by-me hidden-xs">
 				<span title="${__("Liked by me")}">
-					${frappe.utils.icon("es-solid-heart", "sm", "like-icon")}
+					<svg class="icon icon-sm like-icon">
+						<use href="#icon-heart"></use>
+					</svg>
 				</span>
 			</span>
 		`;
@@ -2235,7 +2237,7 @@ class ElementFactory {
 	create_like_element(doctype) {
 		const like = document.createElement("span");
 		like.classList.add("like-action");
-		like.innerHTML = frappe.utils.icon("es-solid-heart", "sm", "like-icon");
+		like.innerHTML = `<svg class="icon icon-sm like-icon"><use href="#icon-heart"></use></svg>`;
 		like.dataset.doctype = doctype;
 
 		return like;

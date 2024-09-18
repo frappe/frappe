@@ -1,82 +1,146 @@
 {% from "frappe/templates/includes/avatar_macro.html" import avatar %}
 {% extends "templates/web.html" %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
 {% block title %}
 {{ _("My Account") }}
 {% endblock %}
 {% block page_content %}
-<div class="my-account-container">
-<h3 class="my-account-header">{{_("My Account") }}</h3>
-<div class="row account-info d-flex flex-column">
-	<div class="col d-flex justify-content-between align-items-center">
+<style>
+	body {
+		background-color: var(--subtle-fg);
+		font-size: var(--text-base);
+	}
+
+	.me-container {
+		max-width: 540px;
+		margin: 3rem auto;
+		padding: var(--padding-2xl);
+		border-radius: var(--border-radius-lg);
+		background-color: var(--bg-color);
+		/* border: 1px solid var(--border-color); */
+		box-shadow: var(--shadow-lg);
+	}
+
+	.me-items {
+		border: 1px solid var(--border-color);
+		border-radius: var(--border-radius);
+	}
+
+	.me-section {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 10px;
+		border-bottom: 1px solid var(--border-color);
+	}
+
+	.me-section.head {
+		padding: 0;
+		padding-bottom: var(--padding-lg);
+		margin-top: -10px;
+		border-bottom: none;
+	}
+
+	.me-section:last-child {
+		border-bottom: none;
+	}
+
+	.icon-md {
+		margin-top: -3px;
+	}
+
+	.icon {
+		stroke: var(--text-light);
+	}
+
+	.me-section a {
+		text-decoration: none;
+	}
+
+	.item-link-text {
+		padding-left: var(--padding-sm);
+		color: var(--text-light);
+	}
+
+	.title {
+		font-weight: var(--weight-semibold);
+		font-size: var(--text-lg);
+		color: var(--text-color);
+	}
+
+	.me-logout {
+		margin: var(--margin-md) auto;
+		text-align: center;
+	}
+
+	.me-logout a {
+		color: var(--text-light);
+	}
+
+</style>
+
+<div class="me-container">
+	<div class="me-section head">
+		<div class="title">{{_("Settings")}}</div>
 		<div>
 			<span class="my-account-avatar">
 				{{avatar(current_user.name)}}
 			</span>
-			<span class="my-account-name ml-4">
+			<span class="my-account-name ml-2">
 				{{current_user.full_name }}
 			</span>
 		</div>
-		<div>
+	</div>
+	<div class="me-items">
+		<div class="me-section">
 			<span class="my-account-item-link">
 				<a href="/update-profile/{{ user }}">
 					<svg class="edit-profile-icon icon icon-md">
-						<use href="#icon-edit">
-						</use>
+						<use href="#icon-edit"></use>
 					</svg>
-					<span class="item-link-text pl-2">
+					<span class="item-link-text">
 						{{_("Edit Profile") }}
 					</span>
 				</a>
 			</span>
 		</div>
+
+		<div class="me-section">
+			<span class="my-account-item-link">
+				<a href="/update-password">
+					<svg class="right-icon icon icon-md"><use href="#icon-lock"></use></svg>
+					<span class="item-link-text">{{_("Reset Password") }}</span>
+				</a>
+			</span>
+		</div>
+		<div class="me-section">
+			<span class="my-account-item-link">
+				<a href="/third_party_apps">
+					<svg class="right-icon icon icon-md"><use href="#icon-web"></use></svg>
+					<span class="item-link-text">{{_("Manage 3rd party apps") }}</span>
+				</a>
+			</span>
+		</div>
+		<!-- {% if frappe.db.get_single_value("Website Settings", "show_account_deletion_link") %} -->
+		<div class="d-flex justify-content-between align-items-center">
+			<span class="my-account-item-link">
+				<a href="/request-for-account-deletion?new=1">
+					<svg class="right-icon es-icon icon-md"><use href="#icon-delete"></use></svg>
+					<span class="item-link-text">{{_("Delete Account") }}</span>
+				</a>
+			</span>
+		</div>
+		<!-- {% endif %} -->
 	</div>
-	<div class="col d-flex justify-content-between align-items-center">
-		<span>
-			<div class="my-account-item">{{_("Reset Password") }}</div>
-			<div class="my-account-item-desc">{{_("Reset the password for your account") }}</div>
-		</span>
-		<span class="my-account-item-link">
-			<a href="/update-password">
-				<svg class="right-icon icon icon-md">
-					<use href="#icon-right">
-					</use>
-				</svg>
-				<span class="item-link-text">{{_("Reset Password") }}</span>
-			</a>
-		</span>
-	</div>
-	<div class="col d-flex justify-content-between align-items-center">
-		<span>
-			<div class="my-account-item">{{_("Manage third party apps") }}</div>
-			<div class="my-account-item-desc">{{_("To manage your authorized third party apps") }}</div>
-		</span>
-		<span class="my-account-item-link">
-			<a href="/third_party_apps">
-				<svg class="right-icon icon icon-md">
-					<use href="#icon-right">
-					</use>
-				</svg>
-				<span class="item-link-text">{{_("Manage your apps") }}</span>
-			</a>
-		</span>
-	</div>
-	{% if frappe.db.get_single_value("Website Settings", "show_account_deletion_link") %}
-	<div class="col d-flex justify-content-between align-items-center">
-		<span>
-			<div class="my-account-item">{{_("Request Account Deletion") }}</div>
-			<div class="my-account-item-desc">{{_("Send a request to delete your account") }}</div>
-		</span>
-		<span class="my-account-item-link">
-			<a href="/request-for-account-deletion?new=1">
-				<svg class="right-icon icon icon-md">
-					<use href="#icon-right">
-					</use>
-				</svg>
-				<span class="item-link-text">{{_("Delete Account") }}</span>
-			</a>
-		</span>
-	</div>
-	{% endif %}
 </div>
+
+<div class="me-logout">
+	<a href="/logout">
+		<svg class="right-icon icon icon-md"><use href="#icon-logout"></use></svg>
+		{{ _("Logout") }}
+	</a>
 </div>
 {% endblock %}

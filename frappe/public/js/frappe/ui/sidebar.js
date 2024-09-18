@@ -97,7 +97,7 @@ frappe.ui.Sidebar = class Sidebar {
 
 	add_app_item(app, app_switcher_menu) {
 		$(`<div class="app-item" data-app-name="${app.app_name}"
-			data-app-home="${app.app_home}">
+			data-app-route="${app.app_route}">
 			<a>
 				<div class="sidebar-item-icon">
 					<img
@@ -115,7 +115,7 @@ frappe.ui.Sidebar = class Sidebar {
 	setup_select_app(app_switcher_menu) {
 		app_switcher_menu.find(".app-item").on("click", (e) => {
 			let item = $(e.delegateTarget);
-			let route = item.attr("data-app-home");
+			let route = item.attr("data-app-route");
 			app_switcher_menu.toggleClass("hidden");
 
 			if (route.startsWith("/app")) {
