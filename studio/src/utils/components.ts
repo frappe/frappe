@@ -16,14 +16,27 @@ function getComponentProps(componentName: string) {
 		return propsConfig
 	} else {
 		Object.entries(props).forEach(([propName, config]) => {
+			const propType = getPropType(config.type)
 			propsConfig[propName] = {
-				type: config.type?.name,
+				type: propType,
 				default: config.default,
-				inputType: getPropInputType(config.type?.name),
+				inputType: getPropInputType(propType),
 			}
 		})
 	}
 	return propsConfig
+}
+
+function getPropType(propType: object) {
+	if (Array.isArray(propType)) {
+		const proptypes = propType.map(type => type.name)
+		const hasNonPrimitiveType = proptypes.find(type => ["Array", "Object", "Function"].includes(type))
+		if (hasNonPrimitiveType) {
+			return "Object"
+		}
+		return "String"
+	}
+	return propType?.name
 }
 
 function getPropInputType(propType: string) {
