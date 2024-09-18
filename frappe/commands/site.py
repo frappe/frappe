@@ -543,6 +543,44 @@ def add_db_index(context, doctype, column):
 		raise SiteNotSpecifiedError
 
 
+@click.command("describe-database-table")
+@click.option("--doctype", help="DocType to describe")
+@click.option(
+	"--column",
+	multiple=True,
+	help="Explicitly fetch accurate cardinality from table data. This can be quite slow on large tables.",
+)
+@pass_context
+def describe_database_table(context, doctype, column):
+	"""Describes various statistics about the table.
+	This is useful to build integration like
+	This includes:
+	1. Schema
+	2. Indexes
+	3. stats - total count of records
+	4. if column is specified then extra stats are generated for column:
+	        Distinct values count in column
+	"""
+	if doctype is None:
+		raise click.UsageError("--doctype <doctype> is required")
+	import json
+
+	from frappe.core.doctype.recorder.recorder import _fetch_table_stats
+
+	for site in context.sites:
+		frappe.init(site=site)
+		frappe.connect()
+		try:
+			data = _fetch_table_stats(doctype, column)
+			# NOTE: Do not print anything else in this to avoid clobbering the output.
+			print(json.dumps(data, indent=2))
+		finally:
+			frappe.destroy()
+
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+
 @click.command("add-system-manager")
 @click.argument("email")
 @click.option("--first-name")
@@ -613,7 +651,6 @@ def disable_user(context, email):
 @pass_context
 def migrate(context, skip_failing=False, skip_search_index=False):
 	"Run patches, sync schema and rebuild files/translations"
-	from traceback_with_variables import activate_by_import
 
 	from frappe.migrate import SiteMigration
 
@@ -1460,6 +1497,7 @@ commands = [
 	add_system_manager,
 	add_user_for_sites,
 	add_db_index,
+	describe_database_table,
 	backup,
 	drop_site,
 	install_app,
