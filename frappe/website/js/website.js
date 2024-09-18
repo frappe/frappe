@@ -423,11 +423,9 @@ frappe.setup_search = function (target, search_scope) {
 	if (typeof target === "string") {
 		target = $(target);
 	}
-
-	let tr_placeholder=__("Search the docs (Press / to focus)");
 	
 	let $search_input = $(`<div class="dropdown" id="dropdownMenuSearch">
-			<input type="search" class="form-control" placeholder="${tr_placeholder}" />
+			<input type="search" class="form-control" placeholder="${ __("Search the docs (Press / to focus)") }" />
 			<div class="overflow-hidden shadow dropdown-menu w-100" aria-labelledby="dropdownMenuSearch">
 			</div>
 			<div class="search-icon">
