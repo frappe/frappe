@@ -90,8 +90,8 @@ def count(doctype: str) -> int:
 
 def create_doc(doctype: str):
 	data = frappe.form_dict
-	data.pop("doctype", None)
-	return frappe.new_doc(doctype, **data).insert()
+	data.update(doctype=doctype)
+	return frappe.client.insert(data)
 
 
 def update_doc(doctype: str, name: str):
