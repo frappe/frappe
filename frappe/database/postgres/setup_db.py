@@ -5,7 +5,7 @@ from frappe.database.db_manager import DbManager
 from frappe.utils import cint
 
 
-def setup_database(force, source_sql=None, verbose=False):
+def setup_database():
 	root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
 	root_conn.commit()
 	root_conn.sql("end")
@@ -23,9 +23,6 @@ def setup_database(force, source_sql=None, verbose=False):
 		if cint(semver_version_num) > 150000:
 			root_conn.sql(f'ALTER DATABASE "{frappe.conf.db_name}" OWNER TO "{frappe.conf.db_name}"')
 	root_conn.close()
-
-	bootstrap_database(frappe.conf.db_name, verbose, source_sql=source_sql)
-	frappe.connect()
 
 
 def bootstrap_database(db_name, verbose, source_sql=None):
