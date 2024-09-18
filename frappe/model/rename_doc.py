@@ -128,6 +128,7 @@ def rename_doc(
 	rebuild_search: bool = True,
 	doc: Document | None = None,
 	validate: bool = True,
+	background_rename: bool = False,
 ) -> str:
 	"""Rename a doc(dt, old) to doc(dt, new) and update all linked fields of type "Link".
 
@@ -142,7 +143,42 @@ def rename_doc(
 	show_alert: Display alert if document is renamed successfully.
 	rebuild_search: Rebuild linked doctype search after renaming.
 	validate: Validate before renaming. If False, it is assumed that the caller has already validated.
+	background_rename: Rename the document in the background. Required for doctypes like user which can otherwise timeout.
 	"""
+	kwargs = {
+		"doctype": doctype,
+		"old": old,
+		"new": new,
+		"force": force,
+		"merge": merge,
+		"ignore_permissions": ignore_permissions,
+		"ignore_if_exists": ignore_if_exists,
+		"show_alert": show_alert,
+		"rebuild_search": rebuild_search,
+		"doc": doc,
+		"validate": validate,
+	}
+
+	if background_rename:
+		job = frappe.enqueue(_rename_doc, **kwargs)
+		return job.id
+
+	return _rename_doc(**kwargs)
+
+
+def _rename_doc(
+	doctype: str | None = None,
+	old: str | None = None,
+	new: str | None = None,
+	force: bool = False,
+	merge: bool = False,
+	ignore_permissions: bool = False,
+	ignore_if_exists: bool = False,
+	show_alert: bool = True,
+	rebuild_search: bool = True,
+	doc: Document | None = None,
+	validate: bool = True,
+):
 	old_usage_style = doctype and old and new
 	new_usage_style = doc and new
 

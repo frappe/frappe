@@ -751,6 +751,11 @@ $.extend(frappe.model, {
 					default: docname,
 				},
 				{ label: merge_label, fieldtype: "Check", fieldname: "merge" },
+				{
+					fieldtype: "Check",
+					label: __("Rename in the background (use this if you're facing timeouts)"),
+					fieldname: "background_rename",
+				},
 			],
 		});
 
@@ -758,31 +763,55 @@ $.extend(frappe.model, {
 			d.hide();
 			var args = d.get_values();
 			if (!args) return;
-			return frappe.call({
-				method: "frappe.rename_doc",
-				freeze: true,
-				freeze_message: "Updating related fields...",
-				args: {
-					doctype: doctype,
-					old: docname,
-					new: args.new_name,
-					merge: args.merge,
-				},
-				btn: d.get_primary_btn(),
-				callback: function (r, rt) {
-					if (!r.exc) {
-						$(document).trigger("rename", [
-							doctype,
-							docname,
-							r.message || args.new_name,
-						]);
-						if (locals[doctype] && locals[doctype][docname])
-							delete locals[doctype][docname];
-						d.hide();
-						if (callback) callback(r.message);
-					}
-				},
-			});
+			if (args.background_rename) {
+				return frappe.call({
+					method: "frappe.rename_doc",
+					args: {
+						doctype: doctype,
+						old: docname,
+						new: args.new_name,
+						merge: args.merge,
+						background_rename: true,
+					},
+					callback: function (r) {
+						if (!r.exc) {
+							d.hide();
+							// TODO: navigate away to list view?
+							frappe.msgprint(
+								__(
+									"Rename queued. Please don't run any operations on this record until the rename is complete."
+								)
+							);
+						}
+					},
+				});
+			} else {
+				return frappe.call({
+					method: "frappe.rename_doc",
+					freeze: true,
+					freeze_message: "Updating related fields...",
+					args: {
+						doctype: doctype,
+						old: docname,
+						new: args.new_name,
+						merge: args.merge,
+					},
+					btn: d.get_primary_btn(),
+					callback: function (r, rt) {
+						if (!r.exc) {
+							$(document).trigger("rename", [
+								doctype,
+								docname,
+								r.message || args.new_name,
+							]);
+							if (locals[doctype] && locals[doctype][docname])
+								delete locals[doctype][docname];
+							d.hide();
+							if (callback) callback(r.message);
+						}
+					},
+				});
+			}
 		});
 		d.show();
 	},

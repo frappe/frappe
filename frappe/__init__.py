@@ -1504,9 +1504,11 @@ def rename_doc(
 	ignore_if_exists: bool = False,
 	show_alert: bool = True,
 	rebuild_search: bool = True,
+	background_rename: bool = False,
 ) -> str:
 	"""
 	Renames a doc(dt, old) to doc(dt, new) and updates all linked fields of type "Link"
+
 
 	Calls `frappe.model.rename_doc.rename_doc`
 	"""
@@ -1522,6 +1524,7 @@ def rename_doc(
 		ignore_if_exists=ignore_if_exists,
 		show_alert=show_alert,
 		rebuild_search=rebuild_search,
+		background_rename=background_rename,
 	)
 
 
