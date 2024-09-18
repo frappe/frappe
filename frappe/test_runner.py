@@ -503,6 +503,7 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False, com
 			):
 				revert_naming(d)
 			else:
+				verbose and print("Error in making test record for", d.doctype, d.name)
 				raise
 
 		records.append(d.name)
