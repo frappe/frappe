@@ -40,8 +40,7 @@ def validate_with_regex(name, label):
 	if not pattern.match(name):
 		frappe.throw(
 			_(
-				"""{0} must begin and end with a letter and can only contain letters,
-				hyphen or underscore."""
+				"""{0} must begin and end with a letter and can only contain letters, hyphen or underscore."""
 			).format(label)
 		)
 
