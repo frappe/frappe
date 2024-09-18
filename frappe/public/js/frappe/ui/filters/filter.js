@@ -22,8 +22,8 @@ frappe.ui.Filter = class {
 			["is", __("Is")],
 			[">", __("Greater Than")],
 			["<", __("Less Than")],
-			[">=", __("Greater Than Or Equals")],
-			["<=", __("Less Than Or Equals")],
+			[">=", __("Greater Than Or Equal To")],
+			["<=", __("Less Than Or Equal To")],
 			["Between", __("Between")],
 			["Timespan", __("Timespan")],
 		];
