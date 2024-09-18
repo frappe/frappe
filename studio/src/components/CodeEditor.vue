@@ -27,6 +27,7 @@ const isDark = useDark()
 const props = defineProps({
 	modelValue: {
 		type: [Object, String, Array],
+		default: null,
 	},
 	type: {
 		type: String as PropType<"JSON" | "HTML" | "Python" | "JavaScript" | "CSS">,
