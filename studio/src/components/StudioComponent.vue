@@ -167,7 +167,7 @@ function getComponentRoot() {
 				// options API exposes ref as a function
 				return rootRef().$el
 			} else {
-				return rootRef.$el
+				return rootRef
 			}
 		}
 		return componentRef.value?.$el
