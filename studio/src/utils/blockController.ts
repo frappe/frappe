@@ -28,6 +28,9 @@ const blockController = {
 	isFlex() {
 		return blockController.isAnyBlockSelected() && blockController.getFirstSelectedBlock().isFlex();
 	},
+	isGrid() {
+		return blockController.isAnyBlockSelected() && blockController.getFirstSelectedBlock().isGrid();
+	},
 	setClasses: (classes: string[]) => {
 		const block = store.selectedBlocks[0];
 		if (!block) return;

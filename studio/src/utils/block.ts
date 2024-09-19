@@ -146,7 +146,11 @@ class Block implements BlockOptions {
 	}
 
 	isFlex() {
-		return this.getStyle("display") === "flex";
+		return this.getStyle("display") === "flex"
+	}
+
+	isGrid() {
+		return this.getStyle("display") === "grid"
 	}
 
 	getPadding() {

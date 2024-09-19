@@ -43,6 +43,7 @@ import useStore from "@/store"
 import blockController from "@/utils/blockController"
 import { Ref, computed, ref } from "vue"
 import BlockFlexLayoutHandler from "@/components/BlockFlexLayoutHandler.vue"
+import BlockGridLayoutHandler from "@/components/BlockGridLayoutHandler.vue"
 import BlockPositionHandler from "@/components/BlockPositionHandler.vue"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
 import DimensionInput from "@/components/DimensionInput.vue"
@@ -149,6 +150,12 @@ const layoutSectionProperties = [
 				}
 			},
 		},
+	},
+	{
+		component: BlockGridLayoutHandler,
+		getProps: () => {},
+		searchKeyWords:
+			"Layout, Grid, GridTemplate, Grid Template, GridGap, Grid Gap, GridRow, Grid Row, GridColumn, Grid Column",
 	},
 	{
 		component: BlockFlexLayoutHandler,
