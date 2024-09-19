@@ -43,6 +43,7 @@ import {
 } from "frappe-ui"
 
 import Container from "@/components/AppLayout/Container.vue"
+import Header from "@/components/AppLayout/Header.vue"
 
 export function registerGlobalComponents(app) {
 	app.component("Alert", Alert)
@@ -89,4 +90,5 @@ export function registerGlobalComponents(app) {
 
 	// studio components
 	app.component("Container", Container)
+	app.component("Header", Header)
 }

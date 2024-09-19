@@ -1,5 +1,6 @@
 import { defineAsyncComponent, h } from "vue"
 import * as frappeUI from "frappe-ui"
+import Header from "@/components/AppLayout/Header.vue"
 
 export const COMPONENTS = {
 	Alert: {
@@ -508,6 +509,19 @@ export const COMPONENTS = {
 		title: "Container",
 		icon: "AppWindow",
 	},
+	Header: {
+		name: "Header",
+		title: "Header",
+		icon: "Frame",
+		props: Header.props,
+		initialState: {
+			title: "Frappe",
+			menuItems: [
+				{ label: "Home", url: "#" },
+				{ label: "Settings", url: "#" },
+			],
+		},
+	},
 }
 
 function get(name) {
@@ -531,7 +545,11 @@ function getComponent(name) {
 }
 
 function getProps(name) {
-	return frappeUI[name]?.props
+	if (name in frappeUI) {
+		return frappeUI[name]?.props
+	} else {
+		return COMPONENTS[name]?.props
+	}
 }
 
 export default {
