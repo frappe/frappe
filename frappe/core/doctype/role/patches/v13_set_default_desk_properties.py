@@ -1,6 +1,6 @@
 import frappe
 
-from ..role import desk_properties
+from ...user.user import desk_properties
 
 
 def execute():
