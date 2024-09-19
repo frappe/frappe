@@ -1,5 +1,6 @@
 <template>
 	<component
+		v-if="block.canHaveChildren()"
 		:is="block.componentName"
 		v-bind="componentProps"
 		:data-component-id="block.componentId"
@@ -13,6 +14,21 @@
 	>
 		<StudioComponent v-for="child in block?.children" :key="child.componentId" :block="child" />
 	</component>
+
+	<!-- Rendering separately to avoid empty slots being passed as default slots to components like Dropdown -->
+	<component
+		v-else
+		:is="block.componentName"
+		v-bind="componentProps"
+		:data-component-id="block.componentId"
+		:style="styles"
+		:class="classes"
+		@mouseover="handleMouseOver"
+		@mouseleave="handleMouseLeave"
+		@click="handleClick"
+		@contextmenu="triggerContextMenu($event)"
+		ref="componentRef"
+	/>
 
 	<teleport to="#overlay" v-if="canvasProps?.overlayElement">
 		<!-- prettier-ignore -->

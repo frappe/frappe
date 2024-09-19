@@ -84,6 +84,10 @@ class Block implements BlockOptions {
 		return this.children.length > 0
 	}
 
+	canHaveChildren() {
+		return !["Dropdown", "FileUploader"].includes(this.componentName)
+	}
+
 	isRoot() {
 		return this.componentId === "root" || this.originalElement === "body";
 	}

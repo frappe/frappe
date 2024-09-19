@@ -244,6 +244,7 @@ export const COMPONENTS = {
 					icon: () => h(frappeUI.FeatherIcon, { name: "trash" }),
 				},
 			],
+			button: { label: "Actions" },
 		},
 	},
 	ErrorMessage: {
