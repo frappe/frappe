@@ -151,12 +151,16 @@ const isTextNode = (el: Element) => {
 	return el.nodeType === Node.TEXT_NODE
 }
 
+const isCommentNode = (el: Element) => {
+	return el.nodeType === Node.COMMENT_NODE
+}
+
 function getComponentRoot() {
 	if (!componentRef.value) return null
 	if (componentRef.value instanceof HTMLElement || componentRef.value instanceof SVGElement) {
 		return componentRef.value
 	} else {
-		if (isTextNode(componentRef.value.$el)) {
+		if (isTextNode(componentRef.value.$el) || isCommentNode(componentRef.value.$el)) {
 			// access exposed ref
 			const rootRef = componentRef.value.rootRef
 			if (typeof rootRef === "function") {
