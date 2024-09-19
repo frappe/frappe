@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-08 09:32+0000\n"
-"PO-Revision-Date: 2024-09-18 21:31\n"
+"PO-Revision-Date: 2024-09-19 21:51\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -3359,7 +3359,7 @@ msgstr ""
 #: integrations/doctype/geolocation_settings/geolocation_settings.json
 #: integrations/doctype/social_login_key/social_login_key.json
 msgid "Base URL"
-msgstr "Temel URL"
+msgstr ""
 
 #. Label of the based_on (Link) field in DocType 'Language'
 #: core/doctype/language/language.json printing/page/print/print.js:273
@@ -4757,7 +4757,7 @@ msgstr "Tıklandı"
 #: integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
 #: integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 msgid "Client"
-msgstr "Client"
+msgstr ""
 
 #. Label of the client_code_section (Section Break) field in DocType 'Report'
 #: core/doctype/report/report.json
@@ -6022,7 +6022,7 @@ msgstr "Özel Konfigürasyon"
 #. Label of the custom_delimiters (Check) field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
 msgid "Custom Delimiters"
-msgstr ""
+msgstr "Özel Ayırıcılar"
 
 #. Name of a DocType
 #: core/doctype/custom_docperm/custom_docperm.json
@@ -6988,7 +6988,7 @@ msgstr "Bu belgenin silinmesine yalnızca geliştirici modunda izin verilir."
 #. Label of the delimiter_options (Data) field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
 msgid "Delimiter Options"
-msgstr ""
+msgstr "Ayırıcı Seçenekleri"
 
 #: utils/csvutils.py:73
 msgid "Delimiter detection failed. Try to enable custom delimiters and adjust the delimiter options as per your data."
@@ -9441,7 +9441,7 @@ msgstr "Oluşturma Süresi: {0} sn"
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgid "Executive"
-msgstr "Yönetici"
+msgstr "E"
 
 #. Label of the existing_role (Link) field in DocType 'Role Replication'
 #: core/doctype/role_replication/role_replication.json
@@ -10944,7 +10944,7 @@ msgstr "Tam Sayfa"
 #. Label of the full_width (Check) field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgid "Full Width"
-msgstr ""
+msgstr "Tam Genişlik"
 
 #. Label of the function (Select) field in DocType 'Number Card'
 #. Label of the report_function (Select) field in DocType 'Number Card'
@@ -13718,7 +13718,7 @@ msgstr ""
 #. Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Auth"
-msgstr ""
+msgstr "LDAP Kimlik Doğrulaması"
 
 #. Label of the ldap_custom_settings_section (Section Break) field in DocType
 #. 'LDAP Settings'
@@ -15019,7 +15019,7 @@ msgstr "Zorunlu alan: {0}"
 
 #: public/js/frappe/form/save.js:120
 msgid "Mandatory fields required in table {0}, Row {1}"
-msgstr "{0} Tablosundaki alanlar zorunlu , Satır {1}"
+msgstr "Satır#{1} - {0} tablosundaki alanlar zorunlu"
 
 #: public/js/frappe/form/save.js:125
 msgid "Mandatory fields required in {0}"
@@ -15206,7 +15206,7 @@ msgstr "Maksimum Alan Sayısı"
 #. Label of the max_points (Int) field in DocType 'Energy Point Rule'
 #: social/doctype/energy_point_rule/energy_point_rule.json
 msgid "Maximum Points"
-msgstr ""
+msgstr "Maksimum Puan"
 
 #: public/js/frappe/form/sidebar/attachments.js:38
 msgid "Maximum attachment limit of {0} has been reached."
@@ -15453,7 +15453,7 @@ msgstr ""
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
 msgid "Mid Center"
-msgstr ""
+msgstr "Orta Merkez"
 
 #. Label of the middle_name (Data) field in DocType 'Contact'
 #. Label of the middle_name (Data) field in DocType 'User'
@@ -15501,7 +15501,7 @@ msgstr ""
 
 #: desk/page/setup_wizard/install_fixtures.py:50
 msgid "Miss"
-msgstr ""
+msgstr "Bayan"
 
 #: desk/form/meta.py:215
 msgid "Missing DocType"
@@ -17713,7 +17713,7 @@ msgstr "{0} Sayfasına Git"
 #. Label of the openid_configuration (Data) field in DocType 'Connected App'
 #: integrations/doctype/connected_app/connected_app.json
 msgid "OpenID Configuration"
-msgstr ""
+msgstr "OpenID Yapılandırması"
 
 #. Option for the 'Directory Server' (Select) field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
@@ -17937,7 +17937,7 @@ msgstr ""
 #. Label of the pdf_page_height (Float) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgid "PDF Page Height (in mm)"
-msgstr ""
+msgstr "PDF Sayfa Yüksekliği (mm)"
 
 #. Label of the pdf_page_size (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
@@ -17947,7 +17947,7 @@ msgstr "Sayfa Boyutu"
 #. Label of the pdf_page_width (Float) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgid "PDF Page Width (in mm)"
-msgstr ""
+msgstr "PDF Sayfa Genişliği (mm)"
 
 #. Label of the pdf_settings (Section Break) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
@@ -19139,7 +19139,7 @@ msgstr ""
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: contacts/doctype/address/address.json
 msgid "Postal"
-msgstr ""
+msgstr "Posta"
 
 #. Label of the pincode (Data) field in DocType 'Address'
 #: contacts/doctype/address/address.json
@@ -19538,7 +19538,7 @@ msgstr ""
 #. Settings'
 #: printing/doctype/network_printer_settings/network_printer_settings.json
 msgid "Printer Name"
-msgstr ""
+msgstr "Yazıcı Adı"
 
 #: printing/page/print/print.js:800
 msgid "Printer Settings"
@@ -25402,7 +25402,7 @@ msgstr "Yazı"
 #. Label of the text_align (Select) field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgid "Text Align"
-msgstr ""
+msgstr "Metin Hizala"
 
 #. Label of the text_color (Link) field in DocType 'Website Theme'
 #: website/doctype/website_theme/website_theme.json
@@ -28752,7 +28752,7 @@ msgstr ""
 #. Filter'
 #: core/doctype/report_filter/report_filter.json
 msgid "Will add \"%\" before and after the query"
-msgstr ""
+msgstr "Sorgudan önce ve sonra \"%\" eklenecek"
 
 #. Description of the 'Short Name' (Data) field in DocType 'Blogger'
 #: website/doctype/blogger/blogger.json
