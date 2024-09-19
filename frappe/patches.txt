@@ -236,4 +236,9 @@ frappe.patches.v15_0.sanitize_workspace_titles
 frappe.custom.doctype.property_setter.patches.remove_invalid_fetch_from_expressions
 frappe.integrations.doctype.oauth_client.patches.set_default_allowed_role_in_oauth_client
 frappe.patches.v16_0.add_app_launcher_in_navbar_settings
+<<<<<<< HEAD
 frappe.patches.v15_0.remove_workspace_settings_navbar_items
+=======
+frappe.desk.doctype.workspace.patches.update_app
+frappe.patches.v16_0.move_role_desk_settings_to_user
+>>>>>>> c4b7401882 (chore: add in a patch to migrate desk settings from role to user [untested])
