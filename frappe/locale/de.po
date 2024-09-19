@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-08 09:32+0000\n"
-"PO-Revision-Date: 2024-09-08 19:39\n"
+"PO-Revision-Date: 2024-09-19 21:51\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -1212,7 +1212,7 @@ msgstr "Filter hinzufügen"
 #. Label of the add_shade (Check) field in DocType 'Web Page Block'
 #: website/doctype/web_page_block/web_page_block.json
 msgid "Add Gray Background"
-msgstr "Fügen Sie grauen Hintergrund hinzu"
+msgstr "Grauen Hintergrund hinzufügen"
 
 #: public/js/frappe/ui/group_by/group_by.js:230
 #: public/js/frappe/ui/group_by/group_by.js:418
@@ -5711,7 +5711,7 @@ msgstr "Erstellen & Fortfahren"
 
 #: public/js/frappe/ui/address_autocomplete/autocomplete_dialog.js:49
 msgid "Create Address"
-msgstr ""
+msgstr "Adresse erstellen"
 
 #: public/js/frappe/views/reports/query_report.js:187
 #: public/js/frappe/views/reports/query_report.js:232
@@ -8300,7 +8300,7 @@ msgstr "Bearbeiten"
 
 #: public/js/frappe/ui/address_autocomplete/autocomplete_dialog.js:66
 msgid "Edit Address in Form"
-msgstr ""
+msgstr "Adresse im Formular bearbeiten"
 
 #: templates/emails/auto_email_report.html:63
 msgid "Edit Auto Email Report Settings"
@@ -8788,7 +8788,7 @@ msgstr "ermöglichen"
 #. 'Geolocation Settings'
 #: integrations/doctype/geolocation_settings/geolocation_settings.json
 msgid "Enable Address Autocompletion"
-msgstr ""
+msgstr "Automatische Adressvervollständigung aktivieren"
 
 #: automation/doctype/auto_repeat/auto_repeat.py:117
 msgid "Enable Allow Auto Repeat for the doctype {0} in Customize Form"
@@ -11042,7 +11042,7 @@ msgstr "Tracking-URL generieren"
 #. Option for the 'Provider' (Select) field in DocType 'Geolocation Settings'
 #: integrations/doctype/geolocation_settings/geolocation_settings.json
 msgid "Geoapify"
-msgstr ""
+msgstr "Geoapify"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -11056,7 +11056,7 @@ msgstr "Geolokalisierung"
 #. Name of a DocType
 #: integrations/doctype/geolocation_settings/geolocation_settings.json
 msgid "Geolocation Settings"
-msgstr ""
+msgstr "Geolokalisierungseinstellungen"
 
 #: email/doctype/notification/notification.js:212
 msgid "Get Alerts for Today"
@@ -11479,7 +11479,7 @@ msgstr "HEAD"
 #. Option for the 'Provider' (Select) field in DocType 'Geolocation Settings'
 #: integrations/doctype/geolocation_settings/geolocation_settings.json
 msgid "HERE"
-msgstr ""
+msgstr "HERE"
 
 #. Option for the 'Time Format' (Select) field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -13230,7 +13230,7 @@ msgstr "Ungültige Vorlagendatei für den Import"
 
 #: integrations/doctype/connected_app/connected_app.py:197
 msgid "Invalid token state! Check if the token has been created by the OAuth user."
-msgstr ""
+msgstr "Ungültiger Tokenstatus! Überprüfen Sie, ob das Token vom OAuth-Benutzer erstellt wurde."
 
 #: integrations/doctype/ldap_settings/ldap_settings.py:164
 #: integrations/doctype/ldap_settings/ldap_settings.py:335
@@ -15892,7 +15892,7 @@ msgstr "Tonausgabe still schalten"
 
 #: desk/page/setup_wizard/install_fixtures.py:46
 msgid "Mx"
-msgstr ""
+msgstr "Divers"
 
 #: templates/includes/web_sidebar.html:41
 #: website/doctype/web_form/web_form.py:400
@@ -16794,7 +16794,7 @@ msgstr "Nr."
 #. Option for the 'Provider' (Select) field in DocType 'Geolocation Settings'
 #: integrations/doctype/geolocation_settings/geolocation_settings.json
 msgid "Nomatim"
-msgstr ""
+msgstr "Nomatim"
 
 #. Label of the non_negative (Check) field in DocType 'DocField'
 #. Label of the non_negative (Check) field in DocType 'Custom Field'
@@ -19285,7 +19285,7 @@ msgstr "Vorschau der generierten Namen"
 
 #: public/js/frappe/views/render_preview.js:19
 msgid "Preview on {0}"
-msgstr ""
+msgstr "Vorschau auf {0}"
 
 #: public/js/print_format_builder/Preview.vue:103
 msgid "Preview type"
@@ -23188,7 +23188,7 @@ msgstr "Setze Filter für {0}"
 
 #: public/js/frappe/views/reports/query_report.js:1965
 msgid "Set Level"
-msgstr ""
+msgstr "Ebenen einstellen"
 
 #: core/doctype/user_type/user_type.py:91
 msgid "Set Limit"
@@ -24177,7 +24177,7 @@ msgstr "Sonderzeichen außer &quot;-&quot;, &quot;#&quot;, &quot;.&quot;, &quot;
 #. Description of the 'Timeout (In Seconds)' (Int) field in DocType 'Report'
 #: core/doctype/report/report.json
 msgid "Specify a custom timeout, default timeout is 1500 seconds"
-msgstr ""
+msgstr "Geben Sie eine benutzerdefinierte Zeitüberschreitung an, die Standardzeitüberschreitung beträgt 1500 Sekunden"
 
 #. Label of the splash_image (Attach Image) field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -24468,7 +24468,7 @@ msgstr "Status aktualisiert"
 
 #: email/doctype/email_queue/email_queue.js:36
 msgid "Status Updated. The email will be picked up in the next scheduled run."
-msgstr ""
+msgstr "Status aktualisiert. Die E-Mail wird beim nächsten geplanten Lauf verarbeitet."
 
 #: www/message.html:40
 msgid "Status: {0}"
@@ -25941,7 +25941,7 @@ msgstr "Dieses Format wird verwendet, wenn ein länderspezifisches Format nicht 
 
 #: integrations/doctype/geolocation_settings/geolocation_settings.py:52
 msgid "This geolocation provider is not supported yet."
-msgstr ""
+msgstr "Dieser Geolokalisierungsanbieter wird noch nicht unterstützt."
 
 #. Description of the 'Header' (HTML Editor) field in DocType 'Website
 #. Slideshow'
@@ -26241,7 +26241,7 @@ msgstr "Zeitüberschreitung"
 #. Label of the timeout (Int) field in DocType 'Report'
 #: core/doctype/report/report.json
 msgid "Timeout (In Seconds)"
-msgstr ""
+msgstr "Zeitüberschreitung (in Sekunden)"
 
 #. Label of the timeseries (Check) field in DocType 'Dashboard Chart Source'
 #: desk/doctype/dashboard_chart_source/dashboard_chart_source.json
@@ -27612,7 +27612,7 @@ msgstr "Benutzerdetails"
 #. Name of a report
 #: core/report/user_doctype_permissions/user_doctype_permissions.json
 msgid "User Doctype Permissions"
-msgstr ""
+msgstr "Benutzer-DocType-Berechtigungen"
 
 #. Name of a DocType
 #: core/doctype/user_document_type/user_document_type.json
@@ -28158,7 +28158,7 @@ msgstr "Kommentar anzeigen"
 
 #: core/doctype/user/user.js:151
 msgid "View Doctype Permissions"
-msgstr ""
+msgstr "DocType-Berechtigungen anzeigen"
 
 #: public/js/frappe/ui/notifications/notifications.js:220
 msgid "View Full Log"
