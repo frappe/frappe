@@ -79,7 +79,7 @@ class DbManager:
 			command.extend(["cat", source, "|"])
 
 		# Newer versions of MariaDB add in a line that'll break on older versions, so remove it
-		command.extend(["sed", r"'/\/\*!999999\\- enable the sandbox mode \*\//d'", "|"])
+		command.extend(["sed", r"'/\/\*M\{0,1\}!999999\\- enable the sandbox mode \*\//d'", "|"])
 
 		# Generate the restore command
 		bin, args, bin_name = get_command(
