@@ -15,7 +15,7 @@
 					<Button variant="solid" icon-left="plus">New Page</Button>
 				</router-link>
 			</div>
-			<div class="mt-5 grid w-full grid-cols-5 items-start">
+			<div class="mt-5 grid w-full grid-cols-5 items-start gap-5">
 				<router-link
 					class="flex flex-col justify-center gap-1 rounded-lg border-2 p-5"
 					v-for="page in studioPages.data"

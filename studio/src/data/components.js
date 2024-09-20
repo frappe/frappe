@@ -1,6 +1,7 @@
 import { defineAsyncComponent, h } from "vue"
 import * as frappeUI from "frappe-ui"
 import Header from "@/components/AppLayout/Header.vue"
+import Sidebar from "@/components/AppLayout/Sidebar.vue"
 
 export const COMPONENTS = {
 	Alert: {
@@ -504,10 +505,16 @@ export const COMPONENTS = {
 			},
 		},
 	},
+	// Studio Components
 	Container: {
 		name: "Container",
 		title: "Container",
 		icon: "AppWindow",
+	},
+	FitContainer: {
+		name: "FitContainer",
+		title: "Fit Container",
+		icon: "Maximize",
 	},
 	Header: {
 		name: "Header",
@@ -519,6 +526,19 @@ export const COMPONENTS = {
 			menuItems: [
 				{ label: "Home", url: "#" },
 				{ label: "Settings", url: "#" },
+			],
+		},
+	},
+	Sidebar: {
+		name: "Sidebar",
+		title: "Sidebar",
+		icon: "Sidebar",
+		props: Sidebar.props,
+		initialState: {
+			items: [
+				{ label: "Home", featherIcon: "home" },
+				{ label: "Notifications", featherIcon: "bell" },
+				{ label: "Settings", featherIcon: "settings" },
 			],
 		},
 	},

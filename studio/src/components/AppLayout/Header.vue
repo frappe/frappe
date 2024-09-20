@@ -12,7 +12,7 @@
 					<h1 v-if="title" class="text-md font-semibold leading-5 text-gray-800">{{ title }}</h1>
 				</div>
 
-				<div class="ml-auto flex flex-row items-center gap-2" v-if="menuItems.length > 0">
+				<div class="ml-auto flex flex-row items-center gap-2" v-if="!hideMenu">
 					<template v-for="item in menuItems" :key="item.label">
 						<div class="flex cursor-pointer items-center gap-2" @click="item.action">
 							<span class="text-gray-800">{{ item.label }}</span>
@@ -43,6 +43,10 @@ defineProps({
 	menuItems: {
 		type: Array,
 		default: () => [],
+	},
+	hideMenu: {
+		type: Boolean,
+		default: false,
 	},
 })
 </script>

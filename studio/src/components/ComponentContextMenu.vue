@@ -63,7 +63,7 @@ const contextMenuOptions: ContextMenuOption[] = [
 	{
 		label: "Wrap In Container",
 		action: () => {
-			const newBlockObj = getComponentBlock("Container")
+			const newBlockObj = getComponentBlock("FitContainer")
 			const parentBlock = props.block.getParentBlock()
 			if (!parentBlock) return
 
