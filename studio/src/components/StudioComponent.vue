@@ -50,6 +50,7 @@ import ComponentEditor from "@/components/ComponentEditor.vue"
 
 import Block from "@/utils/block"
 import useStore from "@/store"
+import { getComponentRoot } from "@/utils/helpers"
 
 const props = defineProps({
 	block: {
@@ -85,7 +86,7 @@ const componentProps = computed(() => {
 })
 
 const componentRef = ref<ComponentPublicInstance | HTMLElement | SVGElement | null>(null)
-const target = computed(() => getComponentRoot())
+const target = computed(() => getComponentRoot(componentRef))
 
 // block hovering and selection
 const isHovered = ref(false)
@@ -147,33 +148,6 @@ const triggerContextMenu = (e: MouseEvent) => {
 	})
 }
 
-const isTextNode = (el: Element) => {
-	return el.nodeType === Node.TEXT_NODE
-}
-
-const isCommentNode = (el: Element) => {
-	return el.nodeType === Node.COMMENT_NODE
-}
-
-function getComponentRoot() {
-	if (!componentRef.value) return null
-	if (componentRef.value instanceof HTMLElement || componentRef.value instanceof SVGElement) {
-		return componentRef.value
-	} else {
-		if (isTextNode(componentRef.value.$el) || isCommentNode(componentRef.value.$el)) {
-			// access exposed ref
-			const rootRef = componentRef.value.rootRef
-			if (typeof rootRef === "function") {
-				// options API exposes ref as a function
-				return rootRef().$el
-			} else {
-				return rootRef
-			}
-		}
-		return componentRef.value?.$el
-	}
-}
-
 watch(
 	() => store.hoveredBlock,
 	(newValue, oldValue) => {
@@ -200,7 +174,7 @@ watch(
 
 onMounted(() => {
 	// set data-component-id on mount since some frappeui components have inheritAttrs: false
-	const componentRoot = getComponentRoot()
+	const componentRoot = getComponentRoot(componentRef)
 	if (componentRoot) {
 		componentRoot.setAttribute("data-component-id", props.block.componentId)
 		isComponentReady.value = true
