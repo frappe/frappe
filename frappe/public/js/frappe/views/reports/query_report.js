@@ -1029,7 +1029,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					frappe.format(d, {
 						fieldtype: options.fieldtype,
 						options: options.options,
-					}),
+					}, options.options, options),
 			};
 		}
 		options.axisOptions = {
