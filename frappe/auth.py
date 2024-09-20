@@ -87,6 +87,7 @@ class HTTPRequest:
 				(frappe.get_request_header("X-Frappe-CSRF-Token") or frappe.form_dict.pop("csrf_token", None))
 				== saved_token
 			)
+			or self.is_allowed_referrer()
 		):
 			return
 
@@ -95,6 +96,21 @@ class HTTPRequest:
 
 	def set_lang(self):
 		frappe.local.lang = get_language()
+
+	def is_allowed_referrer(self):
+		referrer = frappe.get_request_header("Referer")
+		origin = frappe.get_request_header("Origin")
+
+		# Get the list of allowed referrers from cache or configuration
+		allowed_referrers = frappe.cache.get_value(
+			"allowed_referrers",
+			generator=lambda: frappe.conf.get("allowed_referrers", []),
+		)
+
+		# Check if the referrer or origin is in the allowed list
+		return (referrer and any(referrer.startswith(allowed) for allowed in allowed_referrers)) or (
+			origin and any(origin == allowed for allowed in allowed_referrers)
+		)
 
 
 class LoginManager:
