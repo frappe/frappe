@@ -118,8 +118,10 @@ def generate_pot(target_app: str | None = None):
 	:param target_app: If specified, limit to `app`
 	"""
 
+	is_gitignored = get_is_gitignored_function_for_app(target_app)
+
 	def directory_filter(dirpath: str | os.PathLike[str]) -> bool:
-		if "public/dist" in dirpath:
+		if is_gitignored(str(dirpath)):
 			return False
 
 		subdir = os.path.basename(dirpath)
@@ -150,6 +152,27 @@ def generate_pot(target_app: str | None = None):
 
 		pot_path = write_catalog(app, catalog)
 		print(f"POT file created at {pot_path}")
+
+
+def get_is_gitignored_function_for_app(app: str | None):
+	"""
+	Used to check if a directory is gitignored or not.
+	Can NOT be used to check if a file is gitignored or not.
+	"""
+	import git
+
+	if not app:
+		return lambda d: "public/dist" in d
+
+	repo = git.Repo(frappe.get_app_source_path(app), search_parent_directories=True)
+
+	def _check_gitignore(d: str):
+		d = d.rstrip("/")
+		if repo.ignored([d]):  # type: ignore
+			return True
+		return False
+
+	return _check_gitignore
 
 
 def new_po(locale, target_app: str | None = None):
