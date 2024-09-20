@@ -194,6 +194,8 @@
 					v-for="(file, i) in files"
 					:key="file.name"
 					:file="file"
+					:allow_toggle_private="allow_toggle_private"
+					:allow_toggle_optimize="allow_toggle_optimize"
 					@remove="remove_file(file)"
 					@toggle_private="file.private = !file.private"
 					@toggle_optimize="file.optimize = !file.optimize"
@@ -209,9 +211,6 @@
 						{{ __("Upload {0} files", [files.length]) }}
 					</span>
 				</button>
-				<div class="text-muted text-medium">
-					{{ __("Click on the lock icon to toggle public/private") }}
-				</div>
 			</div>
 		</div>
 		<ImageCropper
@@ -336,10 +335,94 @@ export default {
 			this.restrictions.max_number_of_files = frappe.get_meta(this.doctype)?.max_attachments;
 		}
 	},
+<<<<<<< HEAD
 	watch: {
 		files(newvalue, oldvalue) {
 			if (!this.allow_multiple && newvalue.length > 1) {
 				this.files = [newvalue[newvalue.length - 1]];
+=======
+	doctype: {
+		default: null,
+	},
+	docname: {
+		default: null,
+	},
+	fieldname: {
+		default: null,
+	},
+	folder: {
+		default: "Home",
+	},
+	method: {
+		default: null,
+	},
+	on_success: {
+		default: null,
+	},
+	make_attachments_public: {
+		default: null,
+	},
+	restrictions: {
+		default: () => ({
+			max_file_size: null, // 2048 -> 2KB
+			max_number_of_files: null,
+			allowed_file_types: [], // ['image/*', 'video/*', '.jpg', '.gif', '.pdf'],
+			crop_image_aspect_ratio: null, // 1, 16 / 9, 4 / 3, NaN (free)
+		}),
+	},
+	attach_doc_image: {
+		default: false,
+	},
+	upload_notes: {
+		default: null, // "Images or video, upto 2MB"
+	},
+	allow_web_link: {
+		default: true,
+	},
+	allow_take_photo: {
+		default: true,
+	},
+	allow_toggle_private: {
+		default: true,
+	},
+	allow_toggle_optimize: {
+		default: true,
+	},
+});
+
+// variables
+let files = ref([]);
+let file_input = ref(null);
+let file_browser = ref(null);
+let web_link = ref(null);
+let is_dragging = ref(false);
+let currently_uploading = ref(-1);
+let show_file_browser = ref(false);
+let show_web_link = ref(false);
+let show_image_cropper = ref(false);
+let crop_image_with_index = ref(-1);
+let trigger_upload = ref(false);
+let close_dialog = ref(false);
+let hide_dialog_footer = ref(false);
+let allow_take_photo = ref(false);
+let google_drive_settings = ref({
+	enabled: false,
+});
+let wrapper_ready = ref(false);
+
+// created
+if (props.allow_take_photo) {
+	allow_take_photo.value = window.navigator.mediaDevices;
+}
+
+if (frappe.user_id !== "Guest") {
+	frappe.call({
+		// method only available after login
+		method: "frappe.integrations.doctype.google_settings.google_settings.get_file_picker_settings",
+		callback: (resp) => {
+			if (!resp.exc) {
+				google_drive_settings.value = resp.message;
+>>>>>>> d6136b0df1 (feat: add more config options)
 			}
 		},
 	},
