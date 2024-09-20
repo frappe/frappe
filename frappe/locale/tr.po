@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-02 18:21+0000\n"
-"PO-Revision-Date: 2024-09-19 21:51\n"
+"PO-Revision-Date: 2024-09-20 22:37\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -2423,7 +2423,7 @@ msgstr "Yeni bir rapor oluşturmak istediğinizden emin misiniz?"
 
 #: public/js/frappe/form/toolbar.js:111
 msgid "Are you sure you want to merge {0} with {1}?"
-msgstr ""
+msgstr "{0} ile {1} öğesini birleştirmek istediğinizden emin misiniz?"
 
 #: public/js/frappe/views/kanban/kanban_view.js:105
 msgid "Are you sure you want to proceed?"
@@ -2977,7 +2977,7 @@ msgstr "Komut dosyaları ve arka plan işleri kullanarak süreçleri otomatikle�
 #. 'Communication'
 #: core/doctype/communication/communication.json
 msgid "Automated Message"
-msgstr ""
+msgstr "Otomatik Mesaj"
 
 #. Option for the 'Desk Theme' (Select) field in DocType 'User'
 #: core/doctype/user/user.json public/js/frappe/ui/theme_switcher.js:69
@@ -3032,15 +3032,15 @@ msgstr ""
 
 #: utils/password_strength.py:118
 msgid "Avoid recent years."
-msgstr ""
+msgstr "Yakın yıllardan kaçının."
 
 #: utils/password_strength.py:111
 msgid "Avoid sequences like abc or 6543 as they are easy to guess"
-msgstr ""
+msgstr "Tahmin etmesi kolay olduğu için abc veya 6543 gibi dizilerden kaçının"
 
 #: utils/password_strength.py:118
 msgid "Avoid years that are associated with you."
-msgstr ""
+msgstr "Sizinle ilişkili olan yılları tercih etmeyin."
 
 #. Label of a Check field in DocType 'User Email'
 #: core/doctype/user_email/user_email.json
@@ -5224,11 +5224,11 @@ msgstr "Sütunları Yapılandır"
 
 #: core/doctype/recorder/recorder_list.js:200
 msgid "Configure Recorder"
-msgstr ""
+msgstr "Kaydediciyi Yapılandır"
 
 #: public/js/print_format_builder/Field.vue:103
 msgid "Configure columns for {0}"
-msgstr ""
+msgstr "{0} için sütunları yapılandırın"
 
 #. Description of the 'Amended Documents' (Section Break) field in DocType
 #. 'Document Naming Settings'
@@ -6119,7 +6119,7 @@ msgstr "Özelleştirme"
 #. Success message of the Module Onboarding 'Customization'
 #: custom/module_onboarding/customization/customization.json
 msgid "Customization onboarding is all done!"
-msgstr ""
+msgstr "Özelleştirme tanıtımı tamamlandı!"
 
 #: public/js/frappe/views/workspace/workspace.js:556
 msgid "Customizations Discarded"
@@ -7291,7 +7291,7 @@ msgstr "E-postası olan kullanıcı sistemde mevcut değilse yeni kullanıcı ol
 
 #: public/js/frappe/form/grid.js:1160
 msgid "Do not edit headers which are preset in the template"
-msgstr ""
+msgstr "Şablonda önceden ayarlanmış başlıkları düzenlemeyin"
 
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.py:65
 msgid "Do not have permission to access bucket {0}."
@@ -7299,7 +7299,7 @@ msgstr ""
 
 #: core/doctype/system_settings/system_settings.js:71
 msgid "Do you still want to proceed?"
-msgstr ""
+msgstr "Hala devam etmek istiyor musunuz?"
 
 #: public/js/frappe/form/form.js:935
 msgid "Do you want to cancel all linked documents?"
@@ -9594,7 +9594,7 @@ msgstr "Başarısızlık Oranı"
 #. Label of a Attach field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgid "FavIcon"
-msgstr ""
+msgstr "Favicon"
 
 #. Label of a Data field in DocType 'Address'
 #: contacts/doctype/address/address.json
@@ -9785,11 +9785,11 @@ msgstr ""
 
 #: core/doctype/doctype/doctype.py:1052
 msgid "Fieldname called {0} must exist to enable autonaming"
-msgstr ""
+msgstr "Otomatik adlandırmayı etkinleştirmek için {0} adlı bir alan bulunmalıdır"
 
 #: database/schema.py:122 database/schema.py:316
 msgid "Fieldname is limited to 64 characters ({0})"
-msgstr ""
+msgstr "Alan ismi 64 karakterle sınırılıdır ({0})"
 
 #: custom/doctype/custom_field/custom_field.py:195
 msgid "Fieldname not set for Custom Field"
@@ -9813,7 +9813,7 @@ msgstr ""
 
 #: core/doctype/doctype/doctype.py:490 public/js/form_builder/utils.js:302
 msgid "Fieldname {0} is restricted"
-msgstr ""
+msgstr "Alan ismi {0} kısıtlanmıştır"
 
 #. Label of a Table field in DocType 'DocType'
 #. Label of a Section Break field in DocType 'DocType'
@@ -10877,7 +10877,7 @@ msgstr "GitHub"
 
 #: website/doctype/web_page/web_page.js:92
 msgid "Github flavoured markdown syntax"
-msgstr ""
+msgstr "Github markdown sözdizimi"
 
 #: social/doctype/energy_point_settings/energy_point_settings.js:7
 #: social/doctype/energy_point_settings/energy_point_settings.js:14
@@ -11217,7 +11217,7 @@ msgstr "Özel DocType'larınızı modüller altında gruplandırın"
 
 #: public/js/frappe/ui/group_by/group_by.js:416
 msgid "Grouped by <span style='font-weight:600;'>{0}</b>"
-msgstr ""
+msgstr "<span style='font-weight:600;'>{0}</b> ile gruplandırılmış"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: core/doctype/recorder/recorder.json
@@ -11227,12 +11227,12 @@ msgstr ""
 #. Option for the 'Time Format' (Select) field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgid "HH:mm"
-msgstr ""
+msgstr "HH:mm"
 
 #. Option for the 'Time Format' (Select) field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgid "HH:mm:ss"
-msgstr ""
+msgstr "HH:mm:ss"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -11313,7 +11313,7 @@ msgstr "İşlenen E-postalar"
 #. Label of a Check field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgid "Has  Attachment"
-msgstr ""
+msgstr "Dosya Eki Var"
 
 #. Name of a DocType
 #: core/doctype/has_domain/has_domain.json
@@ -11323,7 +11323,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
 msgid "Has Next Condition"
-msgstr ""
+msgstr "Sonraki Koşulu Var"
 
 #. Name of a DocType
 #: core/doctype/has_role/has_role.json
@@ -11700,7 +11700,7 @@ msgstr "Ana Sayfa/Test Klasörü 1/Test Klasörü 3"
 
 #: core/doctype/file/test_file.py:314
 msgid "Home/Test Folder 2"
-msgstr ""
+msgstr "Ana Sayfa/Test Klasörü 2"
 
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #. Option for the 'Event Frequency' (Select) field in DocType 'Server Script'
@@ -12472,7 +12472,7 @@ msgstr ""
 
 #: model/document.py:1349
 msgid "Incorrect value:"
-msgstr ""
+msgstr "Geçersiz değer: "
 
 #. Label of a Check field in DocType 'DocField'
 #. Label of a Int field in DocType 'Recorder Query'
@@ -13522,7 +13522,7 @@ msgstr ""
 #. Label of a Section Break field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Security"
-msgstr ""
+msgstr "LDAP Güvenliği"
 
 #. Label of a Section Break field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
@@ -13863,12 +13863,12 @@ msgstr "Ayrıldı"
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
 msgid "Left Bottom"
-msgstr ""
+msgstr "Sol Alt"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
 msgid "Left Center"
-msgstr ""
+msgstr "Sol Orta"
 
 #: email/doctype/email_unsubscribe/email_unsubscribe.py:58
 msgid "Left this conversation"
@@ -13894,7 +13894,7 @@ msgstr "Geçirilen veri dizisinin uzunluğu, izin verilen maksimum etiket noktal
 
 #: database/schema.py:129
 msgid "Length of {0} should be between 1 and 1000"
-msgstr ""
+msgstr "{0} uzunluğu 1 ile 1000 arasında olmalıdır"
 
 #: public/js/frappe/widgets/chart_widget.js:674
 msgid "Less"
@@ -14024,7 +14024,7 @@ msgstr "Açık Mavi"
 #. Label of a Link field in DocType 'Website Theme'
 #: website/doctype/website_theme/website_theme.json
 msgid "Light Color"
-msgstr ""
+msgstr "Açık Renk"
 
 #: public/js/frappe/ui/theme_switcher.js:60
 msgid "Light Theme"
@@ -17036,12 +17036,12 @@ msgstr "Resmi Dokümantasyon"
 #. Label of a Int field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
 msgid "Offset X"
-msgstr ""
+msgstr "X Ekseni"
 
 #. Label of a Int field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
 msgid "Offset Y"
-msgstr ""
+msgstr "Y Ekseni"
 
 #: www/update-password.html:15
 msgid "Old Password"
@@ -17100,7 +17100,7 @@ msgstr ""
 #. Label of a Small Text field in DocType 'User'
 #: core/doctype/user/user.json
 msgid "Onboarding Status"
-msgstr ""
+msgstr "Tanıtım Durumu"
 
 #. Linked DocType in DocType's connections
 #. Name of a DocType
@@ -18111,7 +18111,7 @@ msgstr "İzin Yöneticisi"
 #. Option for the 'Script Type' (Select) field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
 msgid "Permission Query"
-msgstr ""
+msgstr "İzin Sorgusu"
 
 #. Label of a Section Break field in DocType 'Custom Role'
 #. Label of a Section Break field in DocType 'DocType'
@@ -18122,7 +18122,7 @@ msgstr "İzin Kuralları"
 #. Label of a Select field in DocType 'Permission Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "Permission Type"
-msgstr ""
+msgstr "İzin Türü"
 
 #. Label of a Section Break field in DocType 'Custom DocPerm'
 #. Label of a Section Break field in DocType 'DocField'
@@ -18160,7 +18160,7 @@ msgstr "Daha yüksek seviyelerdeki izinler Alan Seviyesi izinleridir. Tüm Alanl
 
 #: core/page/permission_manager/permission_manager_help.html:24
 msgid "Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document."
-msgstr ""
+msgstr "0. düzeydeki izinler Belge Düzeyi izinleridir, yani belgeye erişim için birincil izinlerdir."
 
 #: core/page/permission_manager/permission_manager_help.html:6
 msgid "Permissions get applied on Users based on what Roles they are assigned."
@@ -18176,7 +18176,7 @@ msgstr "Kullanıcılar için Yasaklı Dökümanlar"
 #. Label of a Table MultiSelect field in DocType 'Workflow Action'
 #: workflow/doctype/workflow_action/workflow_action.json
 msgid "Permitted Roles"
-msgstr ""
+msgstr "İzin Verilen Roller"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: contacts/doctype/address/address.json
@@ -18750,12 +18750,12 @@ msgstr "Posta Kodu"
 #. Label of a Datetime field in DocType 'Changelog Feed'
 #: desk/doctype/changelog_feed/changelog_feed.json
 msgid "Posting Timestamp"
-msgstr ""
+msgstr "Kayıt Zamanı"
 
 #. Group in Blog Category's connections
 #: website/doctype/blog_category/blog_category.json
 msgid "Posts"
-msgstr ""
+msgstr "Mesajlar"
 
 #: website/doctype/blog_post/blog_post.py:258
 msgid "Posts by {0}"
@@ -18941,7 +18941,7 @@ msgstr ""
 
 #: public/js/frappe/form/templates/contact_list.html:35
 msgid "Primary Phone"
-msgstr ""
+msgstr "Birincil Telefon"
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'
@@ -18967,7 +18967,7 @@ msgstr "Yazdır"
 
 #: public/js/frappe/list/bulk_operations.js:48
 msgid "Print Documents"
-msgstr ""
+msgstr "Belgeleri Yazdır"
 
 #. Label of a Link field in DocType 'Auto Repeat'
 #. Linked DocType in DocType's connections
@@ -19760,7 +19760,7 @@ msgstr "Okuma Modu"
 
 #: utils/safe_exec.py:90
 msgid "Read the documentation to know more"
-msgstr ""
+msgstr "Daha fazlasını öğrenmek için belgeleri okuyun"
 
 #. Label of a Markdown Editor field in DocType 'Package'
 #: core/doctype/package/package.json
@@ -22650,7 +22650,7 @@ msgstr "Dinamik Filtreleri Ayarla"
 #: public/js/form_builder/components/Field.vue:80
 #: website/doctype/web_form/web_form.js:269
 msgid "Set Filters"
-msgstr "Filtreleri Ayarların"
+msgstr "Filtreleri Ayarlayın"
 
 #: public/js/frappe/widgets/chart_widget.js:395
 #: public/js/frappe/widgets/quick_list_widget.js:104
@@ -23643,7 +23643,7 @@ msgstr "Sr"
 #: public/js/print_format_builder/Field.vue:143
 #: public/js/print_format_builder/Field.vue:164
 msgid "Sr No."
-msgstr ""
+msgstr "Sıra"
 
 #. Label of a HTML field in DocType 'Recorder Query'
 #: core/doctype/recorder/recorder.js:82
@@ -26433,11 +26433,11 @@ msgstr "Dökümatasyon yardımıcı için URL bağlantısı."
 
 #: core/doctype/file/file.py:215
 msgid "URL must start with http:// or https://"
-msgstr ""
+msgstr "URL http:// veya https:// ile başlamalıdır"
 
 #: website/doctype/web_page/web_page.js:84
 msgid "URL of the page"
-msgstr ""
+msgstr "Sayfanın URL'si"
 
 #. Description of the 'URL' (Data) field in DocType 'Website Slideshow Item'
 #: website/doctype/website_slideshow_item/website_slideshow_item.json
@@ -30304,7 +30304,7 @@ msgstr ""
 #: core/doctype/data_import/importer.py:267
 #: core/doctype/data_import/importer.py:288
 msgid "via Data Import"
-msgstr ""
+msgstr "Veri İçe Aktarma ile"
 
 #. Description of the 'Add Video Conferencing' (Check) field in DocType 'Event'
 #: desk/doctype/event/event.json
@@ -30618,7 +30618,7 @@ msgstr ""
 #: public/js/frappe/form/footer/form_timeline.js:445
 msgctxt "Form timeline"
 msgid "{0} changed {1} to {2}"
-msgstr ""
+msgstr "{0} {1} değerini {2} olarak değiştirdi"
 
 #: website/doctype/blog_post/blog_post.py:376
 msgid "{0} comments"
