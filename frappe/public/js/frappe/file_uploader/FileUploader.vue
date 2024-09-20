@@ -181,6 +181,8 @@
 					v-for="(file, i) in files"
 					:key="file.name"
 					:file="file"
+					:allow_toggle_private="allow_toggle_private"
+					:allow_toggle_optimize="allow_toggle_optimize"
 					@remove="remove_file(file)"
 					@toggle_private="file.private = !file.private"
 					@toggle_optimize="file.optimize = !file.optimize"
@@ -196,9 +198,6 @@
 						{{ __("Upload {0} files", [files.length]) }}
 					</span>
 				</button>
-				<div class="text-muted text-medium">
-					{{ __("Click on the lock icon to toggle public/private") }}
-				</div>
 			</div>
 		</div>
 		<ImageCropper
@@ -274,6 +273,18 @@ const props = defineProps({
 	upload_notes: {
 		default: null, // "Images or video, upto 2MB"
 	},
+	allow_web_link: {
+		default: true,
+	},
+	allow_take_photo: {
+		default: true,
+	},
+	allow_toggle_private: {
+		default: true,
+	},
+	allow_toggle_optimize: {
+		default: true,
+	},
 });
 
 // variables
@@ -291,14 +302,16 @@ let trigger_upload = ref(false);
 let close_dialog = ref(false);
 let hide_dialog_footer = ref(false);
 let allow_take_photo = ref(false);
-let allow_web_link = ref(true);
 let google_drive_settings = ref({
 	enabled: false,
 });
 let wrapper_ready = ref(false);
 
 // created
-allow_take_photo.value = window.navigator.mediaDevices;
+if (props.allow_take_photo) {
+	allow_take_photo.value = window.navigator.mediaDevices;
+}
+
 if (frappe.user_id !== "Guest") {
 	frappe.call({
 		// method only available after login
