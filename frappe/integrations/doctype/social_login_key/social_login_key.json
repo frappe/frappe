@@ -176,11 +176,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2023-10-14 12:22:23.601130",
-=======
  "modified": "2024-09-06 15:22:46.342392",
->>>>>>> 42b01570ae (feat(auth): added keycloak as a social login provider)
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Social Login Key",
