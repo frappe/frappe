@@ -406,7 +406,7 @@ class TestUser(FrappeTestCase):
 
 		# test redirect URL for website users
 		frappe.set_user("test2@example.com")
-		self.assertEqual(update_password(new_password, old_password=old_password), "/")
+		self.assertEqual(update_password(new_password, old_password=old_password), "me")
 		# reset password
 		update_password(old_password, old_password=new_password)
 
@@ -418,7 +418,7 @@ class TestUser(FrappeTestCase):
 			test_user.reload()
 			link = sendmail.call_args_list[0].kwargs["args"]["link"]
 			key = parse_qs(urlparse(link).query)["key"][0]
-			self.assertEqual(update_password(new_password, key=key), "/")
+			self.assertEqual(update_password(new_password, key=key), "me")
 			update_password(old_password, old_password=new_password)
 			self.assertEqual(
 				frappe.message_log[0].get("message"),
@@ -433,8 +433,8 @@ class TestUser(FrappeTestCase):
 		self.assertEqual(reset_password(user="random"), "not found")
 
 	def test_user_onload_modules(self):
-		from frappe.config import get_modules_from_all_apps
 		from frappe.desk.form.load import getdoc
+		from frappe.utils.modules import get_modules_from_all_apps
 
 		frappe.response.docs = []
 		getdoc("User", "Administrator")

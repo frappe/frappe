@@ -317,6 +317,10 @@ class BaseDocument:
 		if doc.get("parentfield"):
 			self.get(doc.parentfield).remove(doc)
 
+			# re-number idx
+			for i, _d in enumerate(self.get(doc.parentfield)):
+				_d.idx = i + 1
+
 	def _init_child(self, value, key):
 		if not isinstance(value, BaseDocument):
 			if not (doctype := self.get_table_field_doctype(key)):
@@ -364,7 +368,7 @@ class BaseDocument:
 		d = _dict()
 		field_values = self.__dict__
 
-		for fieldname in self.meta.get_valid_columns():
+		for fieldname in self.meta.get_valid_fields():
 			value = field_values.get(fieldname)
 
 			# if no need for sanitization and value is None, continue
@@ -921,13 +925,25 @@ class BaseDocument:
 				)
 
 	def _validate_data_fields(self):
-		# data_field options defined in frappe.model.data_field_options
+		from frappe.utils import (
+			split_emails,
+			validate_email_address,
+			validate_name,
+			validate_phone_number,
+			validate_phone_number_with_country_code,
+			validate_url,
+		)
+
 		for phone_field in self.meta.get_phone_fields():
 			phone = self.get(phone_field.fieldname)
-			frappe.utils.validate_phone_number_with_country_code(phone, phone_field.fieldname)
+			validate_phone_number_with_country_code(phone, phone_field.fieldname)
 
+		# data_field options defined in frappe.model.data_field_options
 		for data_field in self.meta.get_data_fields():
 			data = self.get(data_field.fieldname)
+			if not data:
+				continue
+
 			data_field_options = data_field.get("options")
 			old_fieldtype = data_field.get("oldfieldtype")
 
@@ -937,20 +953,18 @@ class BaseDocument:
 			if data_field_options == "Email":
 				if (self.owner in frappe.STANDARD_USERS) and (data in frappe.STANDARD_USERS):
 					continue
-				for email_address in frappe.utils.split_emails(data):
-					frappe.utils.validate_email_address(email_address, throw=True)
+
+				for email_address in split_emails(data):
+					validate_email_address(email_address, throw=True)
 
 			if data_field_options == "Name":
-				frappe.utils.validate_name(data, throw=True)
+				validate_name(data, throw=True)
 
 			if data_field_options == "Phone":
-				frappe.utils.validate_phone_number(data, throw=True)
+				validate_phone_number(data, throw=True)
 
 			if data_field_options == "URL":
-				if not data:
-					continue
-
-				frappe.utils.validate_url(data, throw=True)
+				validate_url(data, throw=True)
 
 	def _validate_constants(self):
 		if frappe.flags.in_import or self.is_new() or self.flags.ignore_validate_constants:

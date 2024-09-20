@@ -3,12 +3,13 @@ import os
 from . import __version__ as app_version
 
 app_name = "frappe"
-app_title = "Frappe Framework"
+app_title = "Framework"
 app_publisher = "Frappe Technologies"
 app_description = "Full stack web framework with Python, Javascript, MariaDB, Redis, Node"
 app_license = "MIT"
 app_logo_url = "/assets/frappe/images/frappe-framework-logo.svg"
 develop_version = "15.x.x-develop"
+app_home = "/app/build"
 
 app_email = "developers@frappe.io"
 
@@ -197,6 +198,10 @@ doc_events = {
 
 scheduler_events = {
 	"cron": {
+		# 5 minutes
+		"0/5 * * * *": [
+			"frappe.email.doctype.notification.notification.trigger_offset_alerts",
+		],
 		# 15 minutes
 		"0/15 * * * *": [
 			"frappe.oauth.delete_oauth2_data",

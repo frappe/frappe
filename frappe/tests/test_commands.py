@@ -95,7 +95,7 @@ def maintain_locals():
 	finally:
 		post_site = getattr(frappe.local, "site", None)
 		if not post_site or post_site != pre_site:
-			frappe.init(site=pre_site)
+			frappe.init(pre_site)
 			frappe.local.db = pre_db
 			frappe.local.flags.update(pre_flags)
 
@@ -224,18 +224,23 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 		self.assertIsInstance(float(self.stdout), float)
 
-		# test 2: execute a command expecting an errored output as local won't exist
+		# test 2: execute a command accessing a normal attribute
 		self.execute("bench --site {site} execute frappe.local.site")
+		self.assertEqual(self.returncode, 0)
+		self.assertIsNotNone(self.stderr)
+
+		# test 3: execute a command expecting an errored output as lacol won't exist
+		self.execute("bench --site {site} execute frappe.lacol.site")
 		self.assertEqual(self.returncode, 1)
 		self.assertIsNotNone(self.stderr)
 
-		# test 3: execute a command with kwargs
-		# Note:
-		# terminal command has been escaped to avoid .format string replacement
-		# The returned value has quotes which have been trimmed for the test
-		self.execute("""bench --site {site} execute frappe.bold --kwargs '{{"text": "DocType"}}'""")
+		# test 4: execute a command with kwargs
+		self.execute(
+			"bench --site {site} execute frappe.bold --kwargs '{put_here}'",
+			{"put_here": '{"text": "DocType"}'},  # avoid escaping errors
+		)
 		self.assertEqual(self.returncode, 0)
-		self.assertEqual(self.stdout[1:-1], frappe.bold(text="DocType"))
+		self.assertEqual(self.stdout, frappe.bold(text="DocType"))
 
 	@run_only_if(db_type_is.MARIADB)
 	def test_restore(self):

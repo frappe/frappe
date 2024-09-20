@@ -53,10 +53,11 @@ def main(
 	case=None,
 	skip_test_records=False,
 	skip_before_tests=False,
+	pdb_on_exceptions=False,
 ):
 	global unittest_runner
 
-	frappe.init(site=site)
+	frappe.init(site)
 	if not frappe.db:
 		frappe.connect()
 
@@ -78,6 +79,7 @@ def main(
 	try:
 		frappe.flags.print_messages = verbose
 		frappe.flags.in_test = True
+		frappe.flags.pdb_on_exceptions = pdb_on_exceptions
 
 		# workaround! since there is no separate test db
 		frappe.clear_cache()
@@ -266,23 +268,34 @@ def _run_unittest(
 ):
 	frappe.db.begin()
 
-	test_suite = unittest.TestSuite()
+	final_test_suite = unittest.TestSuite()
 
 	if not isinstance(modules, list | tuple):
 		modules = [modules]
 
+	def iterate_suite(suite):
+		for test in suite:
+			if isinstance(test, unittest.TestSuite):
+				yield from iterate_suite(test)
+			elif isinstance(test, unittest.TestCase):
+				yield test
+
 	for module in modules:
 		if case:
-			module_test_cases = unittest.TestLoader().loadTestsFromTestCase(getattr(module, case))
+			test_suite = unittest.TestLoader().loadTestsFromTestCase(getattr(module, case))
 		else:
-			module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
+			test_suite = unittest.TestLoader().loadTestsFromModule(module)
 		if tests:
-			for each in module_test_cases:
-				for test_case in each.__dict__["_tests"]:
-					if test_case.__dict__["_testMethodName"] in tests:
-						test_suite.addTest(test_case)
+			for test_case in iterate_suite(test_suite):
+				if test_case._testMethodName in tests:
+					final_test_suite.addTest(test_case)
 		else:
-			test_suite.addTest(module_test_cases)
+			final_test_suite.addTest(test_suite)
+
+		if frappe.flags.pdb_on_exceptions:
+			for test_case in iterate_suite(final_test_suite):
+				if hasattr(test_case, "_apply_debug_decorator"):
+					test_case._apply_debug_decorator(frappe.flags.pdb_on_exceptions)
 
 	if junit_xml_output:
 		runner = unittest_runner(verbosity=1 + cint(verbose), failfast=failfast)
@@ -300,7 +313,7 @@ def _run_unittest(
 
 	frappe.flags.tests_verbose = verbose
 
-	out = runner.run(test_suite)
+	out = runner.run(final_test_suite)
 
 	if profile:
 		pr.disable()
@@ -490,6 +503,7 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False, com
 			):
 				revert_naming(d)
 			else:
+				verbose and print("Error in making test record for", d.doctype, d.name)
 				raise
 
 		records.append(d.name)

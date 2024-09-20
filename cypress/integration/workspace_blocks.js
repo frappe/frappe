@@ -24,15 +24,15 @@ context("Workspace Blocks", () => {
 		cy.get_open_dialog().find(".btn-primary").click();
 
 		// check if sidebar item is added in private section
-		cy.get('.sidebar-item-container[item-name="Test Block Page"]').should(
+		cy.get('.sidebar-item-container[item-title="Test Block Page"]').should(
 			"have.attr",
 			"item-public",
 			"0"
 		);
-
+		cy.wait(300);
 		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
 		cy.wait(300);
-		cy.get('.sidebar-item-container[item-name="Test Block Page"]').should(
+		cy.get('.sidebar-item-container[item-title="Test Block Page"]').should(
 			"have.attr",
 			"item-public",
 			"0"

@@ -97,7 +97,7 @@ frappe.search.utils = {
 						break;
 				}
 			} else if (match[0]) {
-				out.label = match[0].bold();
+				out.label = frappe.utils.escape_html(match[0]).bold();
 				out.value = match[0];
 			} else {
 				console.log("Illegal match", match);

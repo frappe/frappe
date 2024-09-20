@@ -101,7 +101,7 @@ def enqueue_events_for_site(site: str) -> None:
 
 	try:
 		_proctitle(f"scheduling events for {site}")
-		frappe.init(site=site)
+		frappe.init(site)
 		frappe.connect()
 		if is_scheduler_inactive():
 			return

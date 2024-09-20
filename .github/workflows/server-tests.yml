@@ -129,7 +129,26 @@ jobs:
       - name: Install Dependencies
         run: |
           bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
-          bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
+        env:
+          BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
+          AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
+          FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          TYPE: server
+          DB: ${{ matrix.db }}
+
+      - name: Init Bench
+        run: |
+          bash ${GITHUB_WORKSPACE}/.github/helper/install_bench.sh
+        env:
+          BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
+          AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
+          FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          TYPE: server
+          DB: ${{ matrix.db }}
+
+      - name: Init Test Site
+        run: |
+          bash ${GITHUB_WORKSPACE}/.github/helper/install_site.sh
         env:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
           AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
@@ -198,7 +217,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.8
 
       - name: Upload coverage data
         uses: codecov/codecov-action@v4

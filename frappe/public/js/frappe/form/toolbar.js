@@ -293,6 +293,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		this.add_audit_trail();
 		this.add_jump_to_field();
 		this.add_show_links();
+		this.add_copy_to_clipboard();
 		this.add_remind_me();
 		this.add_follow();
 		this.add_undo_redo();
@@ -472,6 +473,17 @@ frappe.ui.form.Toolbar = class Toolbar {
 				true
 			);
 		}
+	}
+
+	add_copy_to_clipboard() {
+		// copy doc to clipboard
+		this.page.add_menu_item(
+			__("Copy to Clipboard"),
+			function () {
+				frappe.utils.copy_to_clipboard(JSON.stringify(this.frm.doc));
+			},
+			true
+		);
 	}
 
 	add_undo_redo() {

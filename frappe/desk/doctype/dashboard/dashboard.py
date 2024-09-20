@@ -5,10 +5,10 @@ import json
 
 import frappe
 from frappe import _
-from frappe.config import get_modules_from_all_apps_for_user
 from frappe.model.document import Document
 from frappe.modules.export_file import export_to_files
 from frappe.query_builder import DocType
+from frappe.utils.modules import get_modules_from_all_apps_for_user
 
 
 class Dashboard(Document):
