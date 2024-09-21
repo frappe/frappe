@@ -268,6 +268,18 @@ class User(Document):
 		if self.time_zone:
 			frappe.defaults.set_default("time_zone", self.time_zone, self.name)
 
+		if self.has_value_changed("language"):
+			locale_keys = ("date_format", "time_format", "number_format", "first_day_of_the_week")
+			if self.language:
+				language = frappe.get_doc("Language", self.language)
+				for key in locale_keys:
+					value = language.get(key)
+					if value:
+						frappe.defaults.set_default(key, value, self.name)
+			else:
+				for key in locale_keys:
+					frappe.defaults.clear_default(key, parent=self.name)
+
 		if self.has_value_changed("enabled"):
 			frappe.cache.delete_key("users_for_mentions")
 			frappe.cache.delete_key("enabled_users")

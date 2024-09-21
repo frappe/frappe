@@ -164,6 +164,8 @@ def get_home_page_via_hooks():
 
 
 def get_boot_data():
+	from frappe.locale import get_date_format, get_first_day_of_the_week, get_number_format, get_time_format
+
 	return {
 		"lang": frappe.local.lang or "en",
 		"apps_data": {
@@ -173,10 +175,10 @@ def get_boot_data():
 		},
 		"sysdefaults": {
 			"float_precision": cint(frappe.get_system_settings("float_precision")) or 3,
-			"date_format": frappe.get_system_settings("date_format") or "yyyy-mm-dd",
-			"time_format": frappe.get_system_settings("time_format") or "HH:mm:ss",
-			"first_day_of_the_week": frappe.get_system_settings("first_day_of_the_week") or "Sunday",
-			"number_format": frappe.get_system_settings("number_format") or "#,###.##",
+			"date_format": get_date_format(),
+			"time_format": get_time_format(),
+			"first_day_of_the_week": get_first_day_of_the_week(),
+			"number_format": get_number_format().string,
 		},
 		"time_zone": {
 			"system": get_system_timezone(),

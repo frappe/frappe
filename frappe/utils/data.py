@@ -24,6 +24,9 @@ from dateutil.relativedelta import relativedelta
 
 import frappe
 from frappe.desk.utils import slug
+from frappe.locale import get_date_format, get_first_day_of_the_week, get_number_format, get_time_format
+from frappe.utils.deprecations import deprecated
+from frappe.utils.number_format import NUMBER_FORMAT_MAP, NumberFormat
 
 DateTimeLikeObject = str | datetime.date | datetime.datetime
 NumericType = int | float
@@ -83,10 +86,6 @@ class Weekday(Enum):
 	Thursday = 4
 	Friday = 5
 	Saturday = 6
-
-
-def get_first_day_of_the_week() -> str:
-	return frappe.get_system_settings("first_day_of_the_week") or "Sunday"
 
 
 def get_start_of_week_index() -> int:
@@ -677,9 +676,9 @@ def get_time_str(timedelta_obj: datetime.timedelta | str) -> str:
 def get_user_date_format() -> str:
 	"""Get the current user date format. The result will be cached."""
 	if getattr(frappe.local, "user_date_format", None) is None:
-		frappe.local.user_date_format = frappe.db.get_default("date_format")
+		frappe.local.user_date_format = get_date_format()
 
-	return frappe.local.user_date_format or "yyyy-mm-dd"
+	return frappe.local.user_date_format
 
 
 get_user_format = get_user_date_format  # for backwards compatibility
@@ -688,9 +687,9 @@ get_user_format = get_user_date_format  # for backwards compatibility
 def get_user_time_format() -> str:
 	"""Get the current user time format. The result will be cached."""
 	if getattr(frappe.local, "user_time_format", None) is None:
-		frappe.local.user_time_format = frappe.db.get_default("time_format")
+		frappe.local.user_time_format = get_time_format()
 
-	return frappe.local.user_time_format or "HH:mm:ss"
+	return frappe.local.user_time_format
 
 
 def format_date(string_date=None, format_string: str | None = None, parse_day_first: bool = False) -> str:
@@ -1347,14 +1346,13 @@ def fmt_money(
 	format: str | None = None,
 ) -> str:
 	"""Convert to string with commas for thousands, millions etc."""
-	number_format = format or frappe.db.get_default("number_format") or "#,###.##"
+	number_format = NumberFormat.from_string(format) if format else get_number_format()
+
 	if precision is None:
 		precision = cint(frappe.db.get_default("currency_precision")) or None
 
-	decimal_str, comma_str, number_format_precision = get_number_format_info(number_format)
-
 	if precision is None:
-		precision = number_format_precision
+		precision = number_format.precision
 
 	# 40,000 -> 40,000.00
 	# 40,000.00000 -> 40,000.00
@@ -1366,7 +1364,7 @@ def fmt_money(
 	if amount is None:
 		amount = 0
 
-	if decimal_str:
+	if number_format.decimal_separator:
 		decimals_after = str(round(amount % 1, precision))
 		parts = decimals_after.split(".")
 		parts = parts[1] if len(parts) > 1 else parts[0]
@@ -1377,7 +1375,7 @@ def fmt_money(
 					fraction = frappe.db.get_value("Currency", currency, "fraction_units", cache=True) or 100
 					precision = len(cstr(fraction)) - 1
 				else:
-					precision = number_format_precision
+					precision = number_format.precision
 			elif len(decimals) < precision:
 				precision = len(decimals)
 
@@ -1399,7 +1397,7 @@ def fmt_money(
 		parts.append(amount[-3:])
 		amount = amount[:-3]
 
-		val = number_format == "#,##,###.##" and 2 or 3
+		val = 2 if number_format.string == "#,##,###.##" else 3
 
 		while len(amount) > val:
 			parts.append(amount[-val:])
@@ -1409,7 +1407,9 @@ def fmt_money(
 
 	parts.reverse()
 
-	amount = comma_str.join(parts) + ((precision and decimal_str) and (decimal_str + decimals) or "")
+	amount = number_format.thousands_separator.join(parts) + (
+		(precision and number_format.decimal_separator) and (number_format.decimal_separator + decimals) or ""
+	)
 	if amount != "0":
 		amount = minus + amount
 
@@ -1425,29 +1425,21 @@ def fmt_money(
 	return amount
 
 
-number_format_info = {
-	"#,###.##": (".", ",", 2),
-	"#.###,##": (",", ".", 2),
-	"# ###.##": (".", " ", 2),
-	"# ###,##": (",", " ", 2),
-	"#'###.##": (".", "'", 2),
-	"#, ###.##": (".", ", ", 2),
-	"#,##,###.##": (".", ",", 2),
-	"#,###.###": (".", ",", 3),
-	"#.###": ("", ".", 0),
-	"#,###": ("", ",", 0),
-	"#.########": (".", "", 8),
-}
+# keep for backwards compatibility
+number_format_info = NUMBER_FORMAT_MAP
 
 
+@deprecated
 def get_number_format_info(format: str) -> tuple[str, str, int]:
-	"""Return the decimal separator, thousands separator and precision for the given number `format` string.
+	"""DEPRECATED: use `NumberFormat.from_string()` from `frappe.utils.number_format` instead.
 
-	e.g. get_number_format_info('1,00,000.50') -> ('.', ',', 2)
+	Return the decimal separator, thousands separator and precision for the given number `format` string.
+
+	e.g. get_number_format_info('#,##,###.##') -> ('.', ',', 2)
 
 	Will return ('.', ',', 2) for format strings which can't be guessed.
 	"""
-	return number_format_info.get(format) or (".", ",", 2)
+	return NUMBER_FORMAT_MAP.get(format) or (".", ",", 2)
 
 
 #
@@ -1481,13 +1473,13 @@ def money_in_words(
 			"Cent"
 		)
 
-	number_format = (
-		frappe.db.get_value("Currency", main_currency, "number_format", cache=True)
-		or frappe.db.get_default("number_format")
-		or "#,###.##"
-	)
+	currency_format_str = frappe.db.get_value("Currency", main_currency, "number_format", cache=True)
+	if currency_format_str:
+		number_format = NumberFormat.from_string(currency_format_str)
+	else:
+		number_format = get_number_format()
 
-	fraction_length = get_number_format_info(number_format)[2]
+	fraction_length = number_format.precision
 
 	n = f"%.{fraction_length}f" % number
 
@@ -1499,7 +1491,7 @@ def money_in_words(
 		fraction += zeros
 
 	in_million = True
-	if number_format == "#,##,###.##":
+	if number_format.string == "#,##,###.##":
 		in_million = False
 
 	# 0.00
