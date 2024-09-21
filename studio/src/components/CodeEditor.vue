@@ -116,7 +116,7 @@ const setupEditor = () => {
 				emit("update:modelValue", value)
 			}
 		} catch (e) {
-			// do nothing
+			console.error("Error while parsing JSON for editor", e)
 		}
 	})
 }

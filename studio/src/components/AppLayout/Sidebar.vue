@@ -1,7 +1,20 @@
 <template>
 	<div class="flex h-full min-h-screen w-60 grow flex-col overflow-auto bg-gray-50 px-2 pt-2">
-		<nav class="mt-4 flex flex-col space-y-1">
-			<div class="w-full" v-for="item in items" :key="item.label">
+		<button class="mb-1 flex w-56 items-center gap-2 rounded p-2 hover:bg-gray-200">
+			<div class="rounded-sm">
+				<div v-if="logoSVG" class="flex items-center gap-2">
+					<span v-html="logoSVG" />
+				</div>
+				<AppLogo v-else class="h-6 w-6" />
+			</div>
+
+			<span class="truncate text-xl font-bold text-gray-800">
+				{{ title }}
+			</span>
+		</button>
+
+		<nav class="mt-2 flex flex-col space-y-1">
+			<div class="w-full" v-for="item in menuItems" :key="item.label">
 				<component
 					:is="item.route_to ? 'router-link' : 'div'"
 					:to="item.route_to"
@@ -19,10 +32,18 @@
 </template>
 
 <script setup>
+import AppLogo from "../Icons/AppLogo.vue"
+
 defineProps({
-	items: {
+	title: {
+		type: String,
+	},
+	logoSVG: {
+		type: String,
+	},
+	menuItems: {
 		type: Array,
-		required: true,
+		default: () => [],
 	},
 })
 </script>
