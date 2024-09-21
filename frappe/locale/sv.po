@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-08 09:32+0000\n"
-"PO-Revision-Date: 2024-09-16 20:58\n"
+"PO-Revision-Date: 2024-09-21 22:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -12204,7 +12204,7 @@ msgstr "Om ej standard port (t.ex. POP3: 995/110, IMAP: 993/143)"
 #. Settings'
 #: core/doctype/system_settings/system_settings.json
 msgid "If not set, the currency precision will depend on number format"
-msgstr "Om inaktiverad, kommer valuta precision att bero på nummer format"
+msgstr "Om inte angiven, kommer valuta precision att bero på nummer format"
 
 #. Description of the 'Roles' (Table) field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
@@ -14989,7 +14989,7 @@ msgstr "Hantera data"
 #: website/doctype/web_form_field/web_form_field.json
 #: website/doctype/web_template_field/web_template_field.json
 msgid "Mandatory"
-msgstr "Erfodras"
+msgstr "Erfordras"
 
 #. Label of the mandatory_depends_on (Code) field in DocType 'Custom Field'
 #. Label of the mandatory_depends_on (Code) field in DocType 'Customize Form
