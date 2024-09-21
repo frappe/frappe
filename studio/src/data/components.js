@@ -535,6 +535,7 @@ export const COMPONENTS = {
 		icon: "Sidebar",
 		props: Sidebar.props,
 		initialState: {
+			title: "Frappe",
 			menuItems: [
 				{ label: "Home", featherIcon: "home" },
 				{ label: "Notifications", featherIcon: "bell" },

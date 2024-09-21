@@ -1,14 +1,17 @@
 <template>
 	<div class="flex flex-col gap-5">
 		<!-- Component Filter -->
-		<TextInput
-			type="text"
-			size="sm"
-			variant="outline"
-			placeholder="Search component"
-			v-model="componentFilter"
-			@input="(e) => (componentFilter = e.target.value)"
-		/>
+		<div class="sticky top-[41px] z-50 mt-[-15px] flex w-full bg-white py-3">
+			<TextInput
+				type="text"
+				size="sm"
+				class="w-full"
+				variant="outline"
+				placeholder="Search component"
+				v-model="componentFilter"
+				@input="(e) => (componentFilter = e.target.value)"
+			/>
+		</div>
 
 		<div class="grid grid-cols-3 items-center gap-x-2 gap-y-4">
 			<div v-for="component in componentList" :key="component.name">

@@ -1,5 +1,5 @@
 <template>
-	<div class="flex h-full min-h-screen w-60 grow flex-col overflow-auto bg-gray-50 px-2 pt-2">
+	<div class="relative flex h-full min-h-screen w-60 flex-col bg-gray-50 px-2 pt-2">
 		<button class="mb-1 flex w-56 items-center gap-2 rounded p-2 hover:bg-gray-200">
 			<div class="rounded-sm">
 				<div v-if="logoSVG" class="flex items-center gap-2">

@@ -26,7 +26,9 @@
 			:style="{ width: `${store.studioLayout.leftPanelWidth - 48}px` }"
 			class="overflow-auto pb-5 hide-scrollbar"
 		>
-			<div class="border-b-[1px] border-gray-200 p-3 text-base font-semibold text-gray-800">
+			<div
+				class="sticky top-0 z-[12] border-b-[1px] border-gray-200 bg-white p-3 text-base font-semibold text-gray-800"
+			>
 				{{ activeTab }}
 			</div>
 
