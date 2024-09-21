@@ -163,6 +163,38 @@ const layoutSectionProperties = [
 		searchKeyWords:
 			"Layout, Flex, Flexbox, Flex Box, FlexBox, Justify, Space Between, Flex Grow, Flex Shrink, Flex Basis, Align Items, Align Content, Align Self, Flex Direction, Flex Wrap, Flex Flow, Flex Grow, Flex Shrink, Flex Basis, Gap",
 	},
+	{
+		component: InlineInput,
+		getProps: () => {
+			return {
+				label: "Overflow X",
+				type: "select",
+				options: ["auto", "visible", "hidden", "scroll"],
+				modelValue: blockController.getStyle("overflowX") || blockController.getStyle("overflow"),
+			}
+		},
+		searchKeyWords:
+			"Overflow, X, OverflowX, Overflow X, Auto, Visible, Hide, Scroll, horizontal scroll, horizontalScroll",
+		events: {
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("overflowX", val),
+		},
+	},
+	{
+		component: InlineInput,
+		getProps: () => {
+			return {
+				label: "Overflow Y",
+				type: "select",
+				options: ["auto", "visible", "hidden", "scroll"],
+				modelValue: blockController.getStyle("overflowY") || blockController.getStyle("overflow"),
+			}
+		},
+		searchKeyWords:
+			"Overflow, Y, OverflowY, Overflow Y, Auto, Visible, Hide, Scroll, vertical scroll, verticalScroll",
+		events: {
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("overflowY", val),
+		},
+	},
 ]
 
 const dimensionSectionProperties = [
