@@ -27,6 +27,7 @@ const isDark = useDark()
 const props = defineProps({
 	modelValue: {
 		type: [Object, String, Array],
+		default: null,
 	},
 	type: {
 		type: String as PropType<"JSON" | "HTML" | "Python" | "JavaScript" | "CSS">,
@@ -115,7 +116,7 @@ const setupEditor = () => {
 				emit("update:modelValue", value)
 			}
 		} catch (e) {
-			// do nothing
+			console.error("Error while parsing JSON for editor", e)
 		}
 	})
 }

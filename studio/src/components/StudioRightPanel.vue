@@ -23,6 +23,7 @@
 			</div>
 
 			<ComponentProps v-show="activeTab === 'Props'" class="p-4" :block="store.selectedBlocks[0]" />
+			<ComponentStyles v-show="activeTab === 'Styles'" class="p-4" :block="store.selectedBlocks[0]" />
 		</div>
 	</div>
 </template>
@@ -32,6 +33,7 @@ import { ref } from "vue"
 import useStore from "@/store"
 
 import ComponentProps from "@/components/ComponentProps.vue"
+import ComponentStyles from "@/components/ComponentStyles.vue"
 
 const store = useStore()
 

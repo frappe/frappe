@@ -1,4 +1,4 @@
-import { reactive, toRaw, h } from "vue"
+import { reactive, toRaw, h, Ref } from "vue"
 import Block from "./block"
 import getBlockTemplate from "./blockTemplate"
 import * as frappeUI from "frappe-ui"
@@ -38,6 +38,33 @@ function getBlockCopyWithoutParent(block: BlockOptions | Block): BlockOptions {
 	blockCopy.children = blockCopy.children?.map((child) => getBlockCopyWithoutParent(child))
 	delete blockCopy.parentBlock
 	return blockCopy
+}
+
+const isTextNode = (el: Element) => {
+	return el.nodeType === Node.TEXT_NODE
+}
+
+const isCommentNode = (el: Element) => {
+	return el.nodeType === Node.COMMENT_NODE
+}
+
+function getComponentRoot(componentRef: Ref) {
+	if (!componentRef.value) return null
+	if (componentRef.value instanceof HTMLElement || componentRef.value instanceof SVGElement) {
+		return componentRef.value
+	} else {
+		if (isTextNode(componentRef.value.$el) || isCommentNode(componentRef.value.$el)) {
+			// access exposed ref
+			const rootRef = componentRef.value.rootRef
+			if (typeof rootRef === "function") {
+				// options API exposes ref as a function
+				return rootRef().$el
+			} else {
+				return rootRef
+			}
+		}
+		return componentRef.value?.$el
+	}
 }
 
 function numberToPx(number: number, round: boolean = true): string {
@@ -119,12 +146,27 @@ function jsonToJs(json: string): any {
 	return JSON.parse(json, reviver)
 }
 
+const mapToObject = (map: Map<any, any>) => Object.fromEntries(map.entries());
+
+function replaceMapKey(map: Map<any, any>, oldKey: string, newKey: string) {
+	const newMap = new Map();
+	map.forEach((value, key) => {
+		if (key === oldKey) {
+			newMap.set(newKey, value);
+		} else {
+			newMap.set(key, value);
+		}
+	});
+	return newMap;
+}
+
 export {
 	getBlockInstance,
 	getComponentBlock,
 	getRootBlock,
 	getBlockCopy,
 	getBlockCopyWithoutParent,
+	getComponentRoot,
 	numberToPx,
 	pxToNumber,
 	kebabToCamelCase,
@@ -132,4 +174,6 @@ export {
 	areObjectsEqual,
 	jsToJson,
 	jsonToJs,
+	mapToObject,
+	replaceMapKey,
 }

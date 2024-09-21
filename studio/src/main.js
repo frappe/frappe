@@ -6,7 +6,7 @@ import studio_router from "@/router/studio_router"
 import app_router from "@/router/app_router"
 import App from "./App.vue"
 
-import { setConfig, frappeRequest, resourcesPlugin } from "frappe-ui"
+import { setConfig, frappeRequest, resourcesPlugin, FeatherIcon } from "frappe-ui"
 import { registerGlobalComponents } from "./globals"
 
 const studio = createApp(App)
@@ -24,4 +24,5 @@ studio.mount("#studio")
 // For rendering apps built by studio
 const app = createApp(App)
 app.use(app_router)
+app.component("FeatherIcon", FeatherIcon)
 app.mount("#app")

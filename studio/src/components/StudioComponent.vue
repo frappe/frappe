@@ -1,5 +1,6 @@
 <template>
 	<component
+		v-if="block.canHaveChildren()"
 		:is="block.componentName"
 		v-bind="componentProps"
 		:data-component-id="block.componentId"
@@ -13,6 +14,21 @@
 	>
 		<StudioComponent v-for="child in block?.children" :key="child.componentId" :block="child" />
 	</component>
+
+	<!-- Rendering separately to avoid empty slots being passed as default slots to components like Dropdown -->
+	<component
+		v-else
+		:is="block.componentName"
+		v-bind="componentProps"
+		:data-component-id="block.componentId"
+		:style="styles"
+		:class="classes"
+		@mouseover="handleMouseOver"
+		@mouseleave="handleMouseLeave"
+		@click="handleClick"
+		@contextmenu="triggerContextMenu($event)"
+		ref="componentRef"
+	/>
 
 	<teleport to="#overlay" v-if="canvasProps?.overlayElement">
 		<!-- prettier-ignore -->
@@ -34,6 +50,7 @@ import ComponentEditor from "@/components/ComponentEditor.vue"
 
 import Block from "@/utils/block"
 import useStore from "@/store"
+import { getComponentRoot } from "@/utils/helpers"
 
 const props = defineProps({
 	block: {
@@ -69,14 +86,7 @@ const componentProps = computed(() => {
 })
 
 const componentRef = ref<ComponentPublicInstance | HTMLElement | SVGElement | null>(null)
-const target = computed(() => {
-	if (!componentRef.value) return null
-	if (componentRef.value instanceof HTMLElement || componentRef.value instanceof SVGAElement) {
-		return componentRef.value
-	} else {
-		return componentRef.value?.$el
-	}
-})
+const target = computed(() => getComponentRoot(componentRef))
 
 // block hovering and selection
 const isHovered = ref(false)
@@ -164,8 +174,9 @@ watch(
 
 onMounted(() => {
 	// set data-component-id on mount since some frappeui components have inheritAttrs: false
-	if (componentRef.value) {
-		componentRef.value?.$el?.setAttribute("data-component-id", props.block.componentId)
+	const componentRoot = getComponentRoot(componentRef)
+	if (componentRoot) {
+		componentRoot.setAttribute("data-component-id", props.block.componentId)
 		isComponentReady.value = true
 	}
 })

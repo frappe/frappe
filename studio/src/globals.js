@@ -36,10 +36,16 @@ import {
 	TextEditor,
 	Toast,
 	Tooltip,
+	Tree,
 	CommandPalette,
 	CommandPaletteItem,
 	Calendar,
 } from "frappe-ui"
+
+import Container from "@/components/AppLayout/Container.vue"
+import FitContainer from "@/components/AppLayout/FitContainer.vue"
+import Header from "@/components/AppLayout/Header.vue"
+import Sidebar from "@/components/AppLayout/Sidebar.vue"
 
 export function registerGlobalComponents(app) {
 	app.component("Alert", Alert)
@@ -79,7 +85,14 @@ export function registerGlobalComponents(app) {
 	app.component("TextEditor", TextEditor)
 	app.component("Toast", Toast)
 	app.component("Tooltip", Tooltip)
+	app.component("Tree", Tree)
 	app.component("CommandPalette", CommandPalette)
 	app.component("CommandPaletteItem", CommandPaletteItem)
 	app.component("Calendar", Calendar)
+
+	// studio components
+	app.component("Container", Container)
+	app.component("FitContainer", FitContainer)
+	app.component("Header", Header)
+	app.component("Sidebar", Sidebar)
 }

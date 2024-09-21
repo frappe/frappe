@@ -30,6 +30,7 @@ const props = defineProps({
 const componentProps = computed(() => {
 	if (!props.block || props.block.isRoot()) return []
 	const propConfig = getComponentProps(props.block.componentName) || []
+	if (!propConfig) return []
 
 	Object.entries(propConfig).forEach(([propName, config]) => {
 		if (props.block.componentProps[propName] === undefined) {

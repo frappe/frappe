@@ -90,8 +90,6 @@ usePageMeta(() => {
 
 <style>
 .studio {
-	--left-panel-width: 17rem;
-	--right-panel-width: 20rem;
 	--toolbar-height: 3.5rem;
 }
 </style>
