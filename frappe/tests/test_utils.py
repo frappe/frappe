@@ -221,35 +221,39 @@ class TestFilters(FrappeTestCase):
 
 class TestMoney(FrappeTestCase):
 	def test_money_in_words(self):
-		nums_bhd = [
-			(5000, "BHD Five Thousand only."),
-			(5000.0, "BHD Five Thousand only."),
-			(0.1, "One Hundred Fils only."),
-			(0, "BHD Zero only."),
-			("Fail", ""),
-		]
+		test_cases = {
+			"BHD": [
+				(5000, "BHD Five Thousand only."),
+				(5000.0, "BHD Five Thousand only."),
+				(0.1, "One Hundred Fils only."),
+				(0, "BHD Zero only."),
+				("Fail", ""),
+			],
+			"NGN": [
+				(5000, "NGN Five Thousand only."),
+				(5000.0, "NGN Five Thousand only."),
+				(0.1, "Ten Kobo only."),
+				(0, "NGN Zero only."),
+				("Fail", ""),
+			],
+			"MRO": [
+				(5000, "MRO Five Thousand only."),
+				(5000.0, "MRO Five Thousand only."),
+				(1.4, "MRO One and Two Khoums only."),
+				(0.2, "One Khoums only."),
+				(0, "MRO Zero only."),
+				("Fail", ""),
+			],
+		}
 
-		nums_ngn = [
-			(5000, "NGN Five Thousand only."),
-			(5000.0, "NGN Five Thousand only."),
-			(0.1, "Ten Kobo only."),
-			(0, "NGN Zero only."),
-			("Fail", ""),
-		]
-
-		for num in nums_bhd:
-			self.assertEqual(
-				money_in_words(num[0], "BHD"),
-				num[1],
-				"{} is not the same as {}".format(money_in_words(num[0], "BHD"), num[1]),
-			)
-
-		for num in nums_ngn:
-			self.assertEqual(
-				money_in_words(num[0], "NGN"),
-				num[1],
-				"{} is not the same as {}".format(money_in_words(num[0], "NGN"), num[1]),
-			)
+		for currency, cases in test_cases.items():
+			for money, expected_words in cases:
+				words = money_in_words(money, currency)
+				self.assertEqual(
+					words,
+					expected_words,
+					f"{words} is not the same as {expected_words}",
+				)
 
 
 class TestDataManipulation(FrappeTestCase):
