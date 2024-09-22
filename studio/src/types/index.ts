@@ -71,3 +71,17 @@ interface StudioPage {
 	/**	Title : Data	*/
 	page_title?: string
 }
+
+// controls
+type SelectOption = { value: string, label: string }
+
+// data
+type ResourceType = "Resource" | "List Resource" | "Document Resource"
+interface ResourceOptions {
+	type?: ResourceType
+	url?: string
+	doctype?: string
+	fields?: string[]
+	filters?: Record<string, any>
+	[key: string]: any
+}

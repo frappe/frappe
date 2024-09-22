@@ -160,6 +160,11 @@ function replaceMapKey(map: Map<any, any>, oldKey: string, newKey: string) {
 	return newMap;
 }
 
+// data
+function getAutocompleteValues(data: any[]) {
+	return (data || []).map((d) => d["value"])
+}
+
 export {
 	getBlockInstance,
 	getComponentBlock,
@@ -176,4 +181,6 @@ export {
 	jsonToJs,
 	mapToObject,
 	replaceMapKey,
+	// data
+	getAutocompleteValues,
 }

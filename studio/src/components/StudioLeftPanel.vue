@@ -41,6 +41,8 @@
 					:blocks="[store.canvas?.getRootBlock() as Block]"
 				/>
 			</div>
+
+			<DataPanel v-show="activeTab === 'Data'" class="mx-2 my-3" />
 		</div>
 	</div>
 </template>
@@ -54,6 +56,7 @@ import ComponentLayers from "@/components/ComponentLayers.vue"
 
 import Block from "@/utils/block"
 import useStore from "@/store"
+import DataPanel from "./DataPanel.vue"
 
 const sidebarMenu = [
 	{

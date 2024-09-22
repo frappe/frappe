@@ -1,6 +1,6 @@
 import { ref, reactive, computed } from "vue"
 import { defineStore } from "pinia"
-import { createResource, createDocumentResource } from "frappe-ui"
+import { createResource, createListResource, createDocumentResource } from "frappe-ui"
 
 import {
 	getBlockInstance,
@@ -8,6 +8,7 @@ import {
 	jsToJson,
 	getBlockCopyWithoutParent,
 	jsonToJs,
+	getAutocompleteValues,
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
 
@@ -137,6 +138,38 @@ const useStore = defineStore("store", () => {
 	// styles
 	const stylePropertyFilter = ref(null)
 
+	// data
+	const resources = reactive([])
+	function addResource(resourceConfig) {
+		const resource = getNewResource(resourceConfig)
+		resource.resourceName = resourceConfig.resourceName
+		resources.push(resource)
+	}
+
+	function getNewResource(resource) {
+		const fields = getAutocompleteValues(resource.fields)
+		switch (resource.resourceType) {
+			case "Document Resource":
+				return createDocumentResource({
+					doctype: resource.doctype,
+					name: resource.name,
+					auto: true,
+				})
+			case "List Resource":
+				return createListResource({
+					doctype: resource.doctype,
+					fields: fields.length ? fields : "*",
+					auto: true,
+				})
+			case "API Resource":
+				return createResource({
+					url: resource.url,
+					method: resource.method,
+					auto: true,
+				})
+		}
+	}
+
 	return {
 		// layout
 		canvas,
@@ -164,6 +197,9 @@ const useStore = defineStore("store", () => {
 		openPageInBrowser,
 		// styles
 		stylePropertyFilter,
+		// data
+		resources,
+		addResource,
 	}
 })
 
