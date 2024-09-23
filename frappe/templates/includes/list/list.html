@@ -3,7 +3,9 @@
 {% endif %}
 {% if not result -%}
 	<div class="empty-apps-state">
-		<img class="empty-list-icon" src="/assets/frappe/images/ui-states/list-empty-state.svg"/>
+		<svg class="icon icon-xl" style="stroke: var(--text-light);">
+			<use href="#icon-small-file"></use>
+		</svg>
 		<div class="mt-4">{{ no_result_message or _("Nothing to show") }}</div>
 	</div>
 {% else %}

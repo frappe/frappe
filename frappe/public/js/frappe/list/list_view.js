@@ -474,9 +474,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					[__(this.doctype)],
 					"Create a new document from list view"
 			  );
-		let empty_state_image =
-			this.settings.empty_state_image ||
-			"/assets/frappe/images/ui-states/list-empty-state.svg";
 
 		const new_button = this.can_create
 			? `<p><button class="btn btn-default btn-sm btn-new-doc hidden-xs">
@@ -487,8 +484,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			: "";
 
 		return `<div class="msg-box no-border">
-			<div>
-				<img src="${empty_state_image}" alt="Generic Empty State" class="null-state">
+			<div class="mb-4">
+			  	<svg class="icon icon-xl" style="stroke: var(--text-light);">
+					<use href="#icon-small-file"></use>
+				</svg>
 			</div>
 			<p>${no_result_message}</p>
 			${new_button}

@@ -260,13 +260,16 @@ class FormMeta(Meta):
 		self.set("__dashboard", self.get_dashboard_data())
 
 	def load_workspaces(self):
-		# find workspaces from shortcut
 		Shortcut = frappe.qb.DocType("Workspace Shortcut")
+		Workspace = frappe.qb.DocType("Workspace")
 		shortcut = (
 			frappe.qb.from_(Shortcut)
 			.select(Shortcut.parent)
+			.inner_join(Workspace)
+			.on(Workspace.name == Shortcut.parent)
 			.where(Shortcut.link_to == self.name)
 			.where(Shortcut.type == "DocType")
+			.where(Workspace.public == 1)
 			.run()
 		)
 		if shortcut:
@@ -276,8 +279,11 @@ class FormMeta(Meta):
 			link = (
 				frappe.qb.from_(Link)
 				.select(Link.parent)
+				.inner_join(Workspace)
+				.on(Workspace.name == Link.parent)
 				.where(Link.link_type == "DocType")
 				.where(Link.link_to == self.name)
+				.where(Workspace.public == 1)
 				.run()
 			)
 

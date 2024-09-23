@@ -374,6 +374,10 @@ Tip: use lucide.svg in /icons for all downloaded icons
 		<path stroke-linejoin="round" stroke-linecap="round" stroke-miterlimit="10"  d="M19.272 10.364h4.364v4.364"></path>
 	</symbol>
 
+	<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="icon-notebook-text">
+		<path d="M2 6h4" />  <path d="M2 10h4" />  <path d="M2 14h4" />  <path d="M2 18h4" />  <rect width="16" height="20" x="4" y="2" rx="2" />  <path d="M9.5 8h5" />  <path d="M9.5 12H16" />  <path d="M9.5 16H14" />
+	</symbol>
+
 	<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" id="icon-crop">
 		<path d="M14.88,11.63H4.33V1.12m7.34,10.51v3.25M6,4.37h5.64V10M1.13,4.37h3.2" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
