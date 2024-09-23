@@ -748,6 +748,7 @@
    "label": "Default App"
   },
   {
+   "collapsible": 1,
    "fieldname": "navigation_settings_section",
    "fieldtype": "Section Break",
    "label": "Navigation Settings"
@@ -765,6 +766,7 @@
    "label": "Notifications"
   },
   {
+   "collapsible": 1,
    "fieldname": "list_settings_section",
    "fieldtype": "Section Break",
    "label": "List Settings"
@@ -788,6 +790,7 @@
    "label": "View Switcher"
   },
   {
+   "collapsible": 1,
    "fieldname": "form_settings_section",
    "fieldtype": "Section Break",
    "label": "Form Settings"
@@ -873,10 +876,14 @@
   }
  ],
 <<<<<<< HEAD
+<<<<<<< HEAD
  "modified": "2024-08-08 19:09:17.399748",
 =======
  "modified": "2024-09-19 17:06:42.161178",
 >>>>>>> 895ca9a30b (refactor: make desk settings user specific)
+=======
+ "modified": "2024-09-27 11:41:13.336662",
+>>>>>>> fe48e775fb (chore: make the sections collapsible)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
