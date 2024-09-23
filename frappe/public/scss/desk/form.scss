@@ -30,9 +30,11 @@
 .form-section,
 .form-dashboard-section {
 	.form-section-description {
+		max-width: var(--page-max-width);
+		margin: auto;
 		margin-bottom: 10px;
 		@include get_textstyle("base", "regular");
-		color: var(--heading-color);
+		color: var(--text-light);
 	}
 
 	.section-head {
@@ -89,7 +91,7 @@
 	.form-column-description {
 		margin-bottom: 10px;
 		font-size: var(--text-xs);
-		color: var(--text-muted);
+		color: var(--text-light);
 		padding-left: 0;
 	}
 
