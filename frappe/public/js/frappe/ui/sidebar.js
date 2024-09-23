@@ -170,12 +170,13 @@ frappe.ui.Sidebar = class Sidebar {
 		if (this.all_pages) {
 			frappe.workspaces = {};
 			frappe.workspace_list = [];
+			frappe.workspace_map = {};
 			for (let page of this.all_pages) {
 				frappe.workspaces[frappe.router.slug(page.name)] = {
 					name: page.name,
 					public: page.public,
 				};
-
+				frappe.workspace_map[page.name] = page;
 				frappe.workspace_list.push(page);
 			}
 			this.make_sidebar();
