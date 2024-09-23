@@ -29,7 +29,7 @@ class ModuleDef(Document):
 	def validate(self):
 		from frappe.modules.utils import get_module_app
 
-		if not self.app_name:
+		if not self.app_name and not self.custom:
 			self.app_name = get_module_app(self.name)
 
 	def on_update(self):
