@@ -32,7 +32,25 @@ const props = defineProps({
 const store = useStore()
 const showAddResourceDialog = ref(false)
 
+const attachResource = async (resource) => {
+	studioPageResources.insert
+		.submit({
+			studio_resource: resource.name,
+			parent: props.page?.name,
+			parenttype: "Studio Page",
+			parentfield: "resources",
+		})
+		.then(async () => {
+			await store.setPageResources(props.page)
+			showAddResourceDialog.value = false
+		})
+}
+
 const addResource = (resource) => {
+	if (resource.source === "Existing Resource") {
+		attachResource(resource)
+		return
+	}
 	const fields = getAutocompleteValues(resource.fields)
 
 	studioResources.insert
@@ -47,17 +65,7 @@ const addResource = (resource) => {
 		})
 		.then((res) => {
 			studioPageResources.filters = { parent: props.page?.name }
-			studioPageResources.insert
-				.submit({
-					studio_resource: res.name,
-					parent: props.page?.name,
-					parenttype: "Studio Page",
-					parentfield: "resources",
-				})
-				.then(async () => {
-					await store.setPageResources(props.page)
-					showAddResourceDialog.value = false
-				})
+			attachResource(res)
 		})
 }
 </script>

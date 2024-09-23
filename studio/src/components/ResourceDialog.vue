@@ -17,40 +17,56 @@
 	>
 		<template #body-content>
 			<div class="flex flex-col gap-3">
-				<FormControl label="Resource Name" v-model="newResource.name" autocomplete="off" />
 				<FormControl
-					label="Resource Type"
+					label="New or Existing"
 					type="select"
-					:options="['List Resource', 'Document Resource', 'API Resource']"
+					:options="['New Resource', 'Existing Resource']"
 					autocomplete="off"
-					v-model="newResource.resource_type"
+					v-model="newResource.source"
 				/>
-				<template v-if="newResource.resource_type === 'API Resource'">
-					<FormControl label="URL" v-model="newResource.url" />
-					<FormControl
-						label="Method"
-						type="select"
-						:options="['GET', 'POST', 'PUT', 'DELETE']"
-						v-model="newResource.method"
-					/>
-				</template>
+				<Link
+					v-if="newResource.source === 'Existing Resource'"
+					doctype="Studio Resource"
+					label="Resource"
+					v-model="newResource.name"
+				/>
+
 				<template v-else>
-					<Link doctype="DocType" label="Document Type" v-model="newResource.document_type" />
-					<Link
-						v-if="newResource.resource_type === 'Document Resource' && newResource.document_type"
-						:doctype="newResource.document_type"
-						label="Document Name"
-						v-model="newResource.document_name"
-					/>
+					<FormControl label="Resource Name" v-model="newResource.name" autocomplete="off" />
 					<FormControl
-						v-if="newResource.resource_type === 'List Resource' && newResource.document_type"
-						type="autocomplete"
-						label="Fields"
-						:placeholder="`Select fields from ${newResource.document_type}`"
-						v-model="newResource.fields"
-						:options="doctypeFields"
-						:multiple="true"
+						label="Resource Type"
+						type="select"
+						:options="['List Resource', 'Document Resource', 'API Resource']"
+						autocomplete="off"
+						v-model="newResource.resource_type"
 					/>
+					<template v-if="newResource.resource_type === 'API Resource'">
+						<FormControl label="URL" v-model="newResource.url" />
+						<FormControl
+							label="Method"
+							type="select"
+							:options="['GET', 'POST', 'PUT', 'DELETE']"
+							v-model="newResource.method"
+						/>
+					</template>
+					<template v-else>
+						<Link doctype="DocType" label="Document Type" v-model="newResource.document_type" />
+						<Link
+							v-if="newResource.resource_type === 'Document Resource' && newResource.document_type"
+							:doctype="newResource.document_type"
+							label="Document Name"
+							v-model="newResource.document_name"
+						/>
+						<FormControl
+							v-if="newResource.resource_type === 'List Resource' && newResource.document_type"
+							type="autocomplete"
+							label="Fields"
+							:placeholder="`Select fields from ${newResource.document_type}`"
+							v-model="newResource.fields"
+							:options="doctypeFields"
+							:multiple="true"
+						/>
+					</template>
 				</template>
 			</div>
 		</template>
@@ -61,11 +77,15 @@
 import { ref, watch } from "vue"
 import { createResource } from "frappe-ui"
 import Link from "@/components/Link.vue"
+import FormControl from "frappe-ui/src/components/FormControl.vue"
 
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 const emit = defineEmits(["addResource"])
 
 const newResource = ref({
+	// source
+	source: "New Resource",
+	// config
 	name: "",
 	resource_type: "",
 	url: "",
