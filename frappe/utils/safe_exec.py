@@ -665,6 +665,7 @@ VALID_UTILS = (
 	"get_user_info_for_avatar",
 	"get_abbr",
 	"get_month",
+	"sha_hash",
 )
 
 
