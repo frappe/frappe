@@ -199,9 +199,12 @@ class User(Document):
 		self.validate_user_image()
 		self.set_time_zone()
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 		self.set_desk_properties()
 >>>>>>> 895ca9a30b (refactor: make desk settings user specific)
+=======
+>>>>>>> fe48e775fb (chore: make the sections collapsible)
 
 		if self.language == "Loading...":
 			self.language = None
@@ -806,11 +809,6 @@ class User(Document):
 				"args": ["Form", self.doctype, self.name],
 			},
 		)
-
-	def set_desk_properties(self):
-		if self.user_type == "Website User":
-			for key in desk_properties:
-				self.set(key, 0)
 
 
 @frappe.whitelist()
