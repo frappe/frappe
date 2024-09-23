@@ -259,10 +259,17 @@ def load_doctype_module(doctype, module=None, prefix="", suffix=""):
 	try:
 		if key not in doctype_python_modules:
 			doctype_python_modules[key] = frappe.get_module(module_name)
+<<<<<<< HEAD
 	except ImportError as e:
 		msg = f"Module import failed for {doctype}, the DocType you're trying to open might be deleted."
 		msg += f"<br> Error: {e}"
 		raise ImportError(msg) from e
+=======
+		except ImportError as e:
+			msg = f"Module import failed for {doctype}, the DocType you're trying to open might be deleted."
+			msg += f"\nError: {e}"
+			raise ImportError(msg) from e
+>>>>>>> 6c210dc9d1 (fix: Replace "<br>" with "\n" (#27854))
 
 	return doctype_python_modules[key]
 
