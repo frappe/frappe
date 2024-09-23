@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-09-08 09:32+0000\n"
-"PO-Revision-Date: 2024-09-08 19:39\n"
+"POT-Creation-Date: 2024-09-15 09:33+0000\n"
+"PO-Revision-Date: 2024-09-23 23:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Esperanto\n"
 "MIME-Version: 1.0\n"
@@ -102,7 +102,7 @@ msgstr "crwdns90534:0{0}crwdnd90534:0{1}crwdnd90534:0{2}crwdne90534:0"
 msgid "(Mandatory)"
 msgstr "crwdns110776:0crwdne110776:0"
 
-#: model/rename_doc.py:687
+#: model/rename_doc.py:693
 msgid "** Failed: {0} to {1}: {2}"
 msgstr "crwdns90536:0{0}crwdnd90536:0{1}crwdnd90536:0{2}crwdne90536:0"
 
@@ -148,7 +148,7 @@ msgstr "crwdns110780:0crwdne110780:0"
 msgid "1 comment"
 msgstr "crwdns90550:0crwdne90550:0"
 
-#: tests/test_utils.py:676
+#: tests/test_utils.py:679
 msgid "1 day ago"
 msgstr "crwdns90552:0crwdne90552:0"
 
@@ -156,15 +156,15 @@ msgstr "crwdns90552:0crwdne90552:0"
 msgid "1 hour"
 msgstr "crwdns90554:0crwdne90554:0"
 
-#: public/js/frappe/utils/pretty_date.js:52 tests/test_utils.py:674
+#: public/js/frappe/utils/pretty_date.js:52 tests/test_utils.py:677
 msgid "1 hour ago"
 msgstr "crwdns90556:0crwdne90556:0"
 
-#: public/js/frappe/utils/pretty_date.js:48 tests/test_utils.py:672
+#: public/js/frappe/utils/pretty_date.js:48 tests/test_utils.py:675
 msgid "1 minute ago"
 msgstr "crwdns90558:0crwdne90558:0"
 
-#: public/js/frappe/utils/pretty_date.js:66 tests/test_utils.py:680
+#: public/js/frappe/utils/pretty_date.js:66 tests/test_utils.py:683
 msgid "1 month ago"
 msgstr "crwdns90560:0crwdne90560:0"
 
@@ -176,35 +176,35 @@ msgstr "crwdns142972:0crwdne142972:0"
 msgid "1 record will be exported"
 msgstr "crwdns90562:0crwdne90562:0"
 
-#: tests/test_utils.py:671
+#: tests/test_utils.py:674
 msgid "1 second ago"
 msgstr "crwdns90564:0crwdne90564:0"
 
-#: public/js/frappe/utils/pretty_date.js:62 tests/test_utils.py:678
+#: public/js/frappe/utils/pretty_date.js:62 tests/test_utils.py:681
 msgid "1 week ago"
 msgstr "crwdns90566:0crwdne90566:0"
 
-#: public/js/frappe/utils/pretty_date.js:70 tests/test_utils.py:682
+#: public/js/frappe/utils/pretty_date.js:70 tests/test_utils.py:685
 msgid "1 year ago"
 msgstr "crwdns90568:0crwdne90568:0"
 
-#: tests/test_utils.py:675
+#: tests/test_utils.py:678
 msgid "2 hours ago"
 msgstr "crwdns90570:0crwdne90570:0"
 
-#: tests/test_utils.py:681
+#: tests/test_utils.py:684
 msgid "2 months ago"
 msgstr "crwdns90572:0crwdne90572:0"
 
-#: tests/test_utils.py:679
+#: tests/test_utils.py:682
 msgid "2 weeks ago"
 msgstr "crwdns90574:0crwdne90574:0"
 
-#: tests/test_utils.py:683
+#: tests/test_utils.py:686
 msgid "2 years ago"
 msgstr "crwdns90576:0crwdne90576:0"
 
-#: tests/test_utils.py:673
+#: tests/test_utils.py:676
 msgid "3 minutes ago"
 msgstr "crwdns90578:0crwdne90578:0"
 
@@ -220,7 +220,7 @@ msgstr "crwdns90582:0crwdne90582:0"
 msgid "5 Records"
 msgstr "crwdns90584:0crwdne90584:0"
 
-#: tests/test_utils.py:677
+#: tests/test_utils.py:680
 msgid "5 days ago"
 msgstr "crwdns90586:0crwdne90586:0"
 
@@ -775,7 +775,7 @@ msgstr "crwdns128008:0crwdne128008:0"
 msgid "Access Token URL"
 msgstr "crwdns128010:0crwdne128010:0"
 
-#: auth.py:467
+#: auth.py:471
 msgid "Access not allowed from this IP Address"
 msgstr "crwdns90738:0crwdne90738:0"
 
@@ -1501,7 +1501,7 @@ msgstr "crwdns91000:0crwdne91000:0"
 #. Label of the all_day (Check) field in DocType 'Calendar View'
 #. Label of the all_day (Check) field in DocType 'Event'
 #: desk/doctype/calendar_view/calendar_view.json desk/doctype/event/event.json
-#: public/js/frappe/ui/notifications/notifications.js:401
+#: public/js/frappe/ui/notifications/notifications.js:406
 msgid "All Day"
 msgstr "crwdns91006:0crwdne91006:0"
 
@@ -1972,11 +1972,11 @@ msgstr "crwdns128220:0crwdne128220:0"
 msgid "Anonymous"
 msgstr "crwdns128222:0crwdne128222:0"
 
-#: public/js/frappe/request.js:186
+#: public/js/frappe/request.js:187
 msgid "Another transaction is blocking this one. Please try again in a few seconds."
 msgstr "crwdns91208:0crwdne91208:0"
 
-#: model/rename_doc.py:374
+#: model/rename_doc.py:376
 msgid "Another {0} with name {1} exists, select another name"
 msgstr "crwdns91210:0{0}crwdnd91210:0{1}crwdne91210:0"
 
@@ -2189,7 +2189,7 @@ msgstr "crwdns91296:0crwdne91296:0"
 msgid "Appreciation"
 msgstr "crwdns128270:0crwdne128270:0"
 
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:111
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:115
 msgid "Approval Required"
 msgstr "crwdns91300:0crwdne91300:0"
 
@@ -3554,11 +3554,11 @@ msgstr "crwdns91882:0crwdne91882:0"
 msgid "Bulk Edit {0}"
 msgstr "crwdns91884:0{0}crwdne91884:0"
 
-#: desk/reportview.py:525
+#: desk/reportview.py:567
 msgid "Bulk Operation Failed"
 msgstr "crwdns127594:0crwdne127594:0"
 
-#: desk/reportview.py:529
+#: desk/reportview.py:571
 msgid "Bulk Operation Successful"
 msgstr "crwdns127596:0crwdne127596:0"
 
@@ -3799,15 +3799,15 @@ msgstr "crwdns91992:0crwdne91992:0"
 #. Label of the campaign (Link) field in DocType 'Newsletter'
 #. Label of the campaign (Data) field in DocType 'Web Page View'
 #: email/doctype/newsletter/newsletter.json
-#: public/js/frappe/utils/utils.js:1728
+#: public/js/frappe/utils/utils.js:1729
 #: website/doctype/web_page_view/web_page_view.json
 #: website/report/website_analytics/website_analytics.js:39
 msgid "Campaign"
 msgstr "crwdns91994:0crwdne91994:0"
 
-#. Label of the campaign_description (Small Text) field in DocType 'Marketing
+#. Label of the campaign_description (Small Text) field in DocType 'UTM
 #. Campaign'
-#: website/doctype/marketing_campaign/marketing_campaign.json
+#: website/doctype/utm_campaign/utm_campaign.json
 msgid "Campaign Description (Optional)"
 msgstr "crwdns128582:0crwdne128582:0"
 
@@ -3849,7 +3849,7 @@ msgstr "crwdns128584:0crwdne128584:0"
 msgid "Can't follow since changes are not tracked."
 msgstr "crwdns148288:0crwdne148288:0"
 
-#: model/rename_doc.py:361
+#: model/rename_doc.py:363
 msgid "Can't rename {0} to {1} because {0} doesn't exist."
 msgstr "crwdns92008:0{0}crwdnd92008:0{1}crwdnd92008:0{0}crwdne92008:0"
 
@@ -4033,7 +4033,7 @@ msgstr "crwdns92104:0{0}crwdne92104:0"
 msgid "Cannot edit Standard Dashboards"
 msgstr "crwdns92106:0crwdne92106:0"
 
-#: email/doctype/notification/notification.py:175
+#: email/doctype/notification/notification.py:189
 msgid "Cannot edit Standard Notification. To edit, please disable this and duplicate it"
 msgstr "crwdns92108:0crwdne92108:0"
 
@@ -4102,7 +4102,7 @@ msgstr "crwdns92136:0crwdne92136:0"
 msgid "Cannot set 'Report' permission if 'Only If Creator' permission is set"
 msgstr "crwdns110830:0crwdne110830:0"
 
-#: email/doctype/notification/notification.py:192
+#: email/doctype/notification/notification.py:206
 msgid "Cannot set Notification with event {0} on Document Type {1}"
 msgstr "crwdns142876:0{0}crwdnd142876:0{1}crwdne142876:0"
 
@@ -4414,7 +4414,7 @@ msgstr "crwdns92276:0crwdne92276:0"
 msgid "Choose Existing Card or create New Card"
 msgstr "crwdns92280:0crwdne92280:0"
 
-#: public/js/frappe/views/workspace/workspace.js:501
+#: public/js/frappe/views/workspace/workspace.js:506
 msgid "Choose a block or continue typing"
 msgstr "crwdns92282:0crwdne92282:0"
 
@@ -4499,7 +4499,7 @@ msgstr "crwdns110838:0crwdne110838:0"
 msgid "Click here"
 msgstr "crwdns92312:0crwdne92312:0"
 
-#: email/doctype/newsletter/newsletter.py:335
+#: email/doctype/newsletter/newsletter.py:333
 msgid "Click here to verify"
 msgstr "crwdns92314:0crwdne92314:0"
 
@@ -5134,8 +5134,8 @@ msgctxt "Title of confirmation dialog"
 msgid "Confirm"
 msgstr "crwdns92614:0crwdne92614:0"
 
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:92
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:100
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:93
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:101
 msgid "Confirm Deletion of Account"
 msgstr "crwdns92616:0crwdne92616:0"
 
@@ -5152,7 +5152,7 @@ msgstr "crwdns92620:0crwdne92620:0"
 msgid "Confirm Request"
 msgstr "crwdns92622:0crwdne92622:0"
 
-#: email/doctype/newsletter/newsletter.py:330
+#: email/doctype/newsletter/newsletter.py:328
 msgid "Confirm Your Email"
 msgstr "crwdns92624:0crwdne92624:0"
 
@@ -5162,8 +5162,8 @@ msgstr "crwdns92624:0crwdne92624:0"
 msgid "Confirmation Email Template"
 msgstr "crwdns128724:0crwdne128724:0"
 
-#: email/doctype/newsletter/newsletter.py:379
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:393
+#: email/doctype/newsletter/newsletter.py:377
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:397
 msgid "Confirmed"
 msgstr "crwdns92628:0crwdne92628:0"
 
@@ -5194,7 +5194,7 @@ msgstr "crwdns128726:0crwdne128726:0"
 msgid "Connected to QZ Tray!"
 msgstr "crwdns92642:0crwdne92642:0"
 
-#: public/js/frappe/request.js:34
+#: public/js/frappe/request.js:35
 msgid "Connection Lost"
 msgstr "crwdns92644:0crwdne92644:0"
 
@@ -5301,7 +5301,7 @@ msgstr "crwdns127604:0{0}crwdne127604:0"
 #: core/doctype/comment/comment.json desk/doctype/note/note.json
 #: desk/doctype/workspace/workspace.json
 #: email/doctype/newsletter/newsletter.json
-#: public/js/frappe/utils/utils.js:1743
+#: public/js/frappe/utils/utils.js:1745
 #: website/doctype/blog_post/blog_post.json
 #: website/doctype/help_article/help_article.json
 #: website/doctype/web_page/web_page.json
@@ -5397,7 +5397,7 @@ msgstr "crwdns111494:0crwdne111494:0"
 msgid "Copy Link"
 msgstr "crwdns110864:0crwdne110864:0"
 
-#: public/js/frappe/request.js:615
+#: public/js/frappe/request.js:616
 msgid "Copy error to clipboard"
 msgstr "crwdns92732:0crwdne92732:0"
 
@@ -5514,7 +5514,7 @@ msgstr "crwdns92780:0crwdne92780:0"
 #: public/js/frappe/views/file/file_view.js:112
 #: public/js/frappe/views/interaction.js:18
 #: public/js/frappe/views/reports/query_report.js:1188
-#: public/js/frappe/views/workspace/workspace.js:417
+#: public/js/frappe/views/workspace/workspace.js:422
 #: workflow/page/workflow_builder/workflow_builder.js:46
 msgid "Create"
 msgstr "crwdns92782:0crwdne92782:0"
@@ -5656,7 +5656,7 @@ msgid "Created Custom Field {0} in {1}"
 msgstr "crwdns92844:0{0}crwdnd92844:0{1}crwdne92844:0"
 
 #: desk/doctype/dashboard_chart/dashboard_chart.js:241
-#: email/doctype/notification/notification.js:33 model/meta.py:46
+#: email/doctype/notification/notification.js:31 model/meta.py:46
 #: public/js/frappe/model/meta.js:201 public/js/frappe/model/model.js:125
 #: public/js/frappe/views/dashboard/dashboard_view.js:478
 msgid "Created On"
@@ -5989,7 +5989,7 @@ msgstr "crwdns92994:0crwdne92994:0"
 msgid "Customization"
 msgstr "crwdns93000:0crwdne93000:0"
 
-#: public/js/frappe/views/workspace/workspace.js:341
+#: public/js/frappe/views/workspace/workspace.js:346
 msgid "Customizations Discarded"
 msgstr "crwdns93010:0crwdne93010:0"
 
@@ -6402,7 +6402,7 @@ msgstr "crwdns128864:0crwdne128864:0"
 msgid "Days Before or After"
 msgstr "crwdns128866:0crwdne128866:0"
 
-#: public/js/frappe/request.js:249
+#: public/js/frappe/request.js:250
 msgid "Deadlock Occurred"
 msgstr "crwdns93234:0crwdne93234:0"
 
@@ -6645,7 +6645,7 @@ msgstr "crwdns128908:0crwdne128908:0"
 #: core/doctype/user_permission/user_permission_list.js:189
 #: public/js/frappe/form/footer/form_timeline.js:615
 #: public/js/frappe/form/grid.js:63 public/js/frappe/form/toolbar.js:438
-#: public/js/frappe/views/reports/report_view.js:1654
+#: public/js/frappe/views/reports/report_view.js:1663
 #: public/js/frappe/views/treeview.js:309
 #: templates/discussions/reply_card.html:35
 #: templates/discussions/reply_section.html:29
@@ -6773,11 +6773,11 @@ msgstr "crwdns143306:0crwdne143306:0"
 msgid "Deleted Name"
 msgstr "crwdns128914:0crwdne128914:0"
 
-#: desk/reportview.py:529
+#: desk/reportview.py:571
 msgid "Deleted all documents successfully"
 msgstr "crwdns127624:0crwdne127624:0"
 
-#: desk/reportview.py:507
+#: desk/reportview.py:549
 msgid "Deleting {0}"
 msgstr "crwdns93378:0{0}crwdne93378:0"
 
@@ -6871,6 +6871,8 @@ msgstr "crwdns93406:0crwdne93406:0"
 #. Label of the description (HTML Editor) field in DocType 'Workspace Link'
 #. Label of the description (Small Text) field in DocType 'Print Heading'
 #. Label of the description (Small Text) field in DocType 'Blog Category'
+#. Label of the description (Small Text) field in DocType 'UTM Medium'
+#. Label of the description (Small Text) field in DocType 'UTM Source'
 #. Label of the description (Text) field in DocType 'Web Form Field'
 #. Label of the meta_description (Small Text) field in DocType 'Web Page'
 #. Label of the description (Text) field in DocType 'Website Slideshow Item'
@@ -6887,6 +6889,8 @@ msgstr "crwdns93406:0crwdne93406:0"
 #: public/js/frappe/form/reminders.js:44
 #: public/js/frappe/widgets/widget_dialog.js:256
 #: website/doctype/blog_category/blog_category.json
+#: website/doctype/utm_medium/utm_medium.json
+#: website/doctype/utm_source/utm_source.json
 #: website/doctype/web_form_field/web_form_field.json
 #: website/doctype/web_page/web_page.json
 #: website/doctype/website_slideshow_item/website_slideshow_item.json
@@ -6950,7 +6954,9 @@ msgstr "crwdns128936:0crwdne128936:0"
 #: printing/doctype/network_printer_settings/network_printer_settings.json
 #: printing/doctype/print_format/print_format.json
 #: social/doctype/energy_point_log/energy_point_log.json
-#: website/doctype/marketing_campaign/marketing_campaign.json
+#: website/doctype/utm_campaign/utm_campaign.json
+#: website/doctype/utm_medium/utm_medium.json
+#: website/doctype/utm_source/utm_source.json
 #: workflow/doctype/workflow_action/workflow_action.json
 #: workflow/doctype/workflow_state/workflow_state.json
 msgid "Desk User"
@@ -7131,7 +7137,7 @@ msgstr "crwdns93536:0crwdne93536:0"
 #: public/js/frappe/form/toolbar.js:312
 #: public/js/frappe/views/communication.js:30
 #: public/js/frappe/views/dashboard/dashboard_view.js:70
-#: public/js/frappe/views/workspace/workspace.js:334
+#: public/js/frappe/views/workspace/workspace.js:339
 #: public/js/frappe/web_form/web_form.js:187
 msgid "Discard"
 msgstr "crwdns93538:0crwdne93538:0"
@@ -7714,7 +7720,7 @@ msgstr "crwdns110888:0crwdne110888:0"
 msgid "Document not Relinked"
 msgstr "crwdns93820:0crwdne93820:0"
 
-#: model/rename_doc.py:226 public/js/frappe/form/toolbar.js:147
+#: model/rename_doc.py:227 public/js/frappe/form/toolbar.js:147
 msgid "Document renamed from {0} to {1}"
 msgstr "crwdns93822:0{0}crwdnd93822:0{1}crwdne93822:0"
 
@@ -9084,9 +9090,9 @@ msgstr "crwdns94422:0crwdne94422:0"
 msgid "Error in Header/Footer Script"
 msgstr "crwdns110924:0crwdne110924:0"
 
-#: email/doctype/notification/notification.py:531
-#: email/doctype/notification/notification.py:647
-#: email/doctype/notification/notification.py:653
+#: email/doctype/notification/notification.py:594
+#: email/doctype/notification/notification.py:727
+#: email/doctype/notification/notification.py:733
 msgid "Error in Notification"
 msgstr "crwdns94424:0crwdne94424:0"
 
@@ -9098,7 +9104,7 @@ msgstr "crwdns94426:0{0}crwdnd94426:0{1}crwdne94426:0"
 msgid "Error while connecting to email account {0}"
 msgstr "crwdns94428:0{0}crwdne94428:0"
 
-#: email/doctype/notification/notification.py:644
+#: email/doctype/notification/notification.py:724
 msgid "Error while evaluating Notification {0}. Please fix your template."
 msgstr "crwdns94430:0{0}crwdne94430:0"
 
@@ -9516,11 +9522,11 @@ msgstr "crwdns94600:0crwdne94600:0"
 msgid "Failed to connect to server"
 msgstr "crwdns94602:0crwdne94602:0"
 
-#: auth.py:670
+#: auth.py:674
 msgid "Failed to decode token, please provide a valid base64-encoded token."
 msgstr "crwdns94604:0crwdne94604:0"
 
-#: desk/reportview.py:523
+#: desk/reportview.py:565
 msgid "Failed to delete {0} documents: {1}"
 msgstr "crwdns127646:0{0}crwdnd127646:0{1}crwdne127646:0"
 
@@ -9528,7 +9534,7 @@ msgstr "crwdns127646:0{0}crwdnd127646:0{1}crwdne127646:0"
 msgid "Failed to enable scheduler: {0}"
 msgstr "crwdns94606:0{0}crwdne94606:0"
 
-#: email/doctype/notification/notification.py:95
+#: email/doctype/notification/notification.py:99
 #: integrations/doctype/webhook/webhook.py:127
 msgid "Failed to evaluate conditions: {}"
 msgstr "crwdns94608:0crwdne94608:0"
@@ -9561,11 +9567,11 @@ msgstr "crwdns94620:0crwdne94620:0"
 msgid "Failed to optimize image: {0}"
 msgstr "crwdns94622:0{0}crwdne94622:0"
 
-#: email/doctype/notification/notification.py:112
+#: email/doctype/notification/notification.py:116
 msgid "Failed to render message: {}"
 msgstr "crwdns143068:0crwdne143068:0"
 
-#: email/doctype/notification/notification.py:130
+#: email/doctype/notification/notification.py:134
 msgid "Failed to render subject: {}"
 msgstr "crwdns143070:0crwdne143070:0"
 
@@ -9768,7 +9774,7 @@ msgstr "crwdns94706:0{0}crwdnd94706:0{1}crwdne94706:0"
 msgid "Field {0} not found."
 msgstr "crwdns94708:0{0}crwdne94708:0"
 
-#: email/doctype/notification/notification.py:436
+#: email/doctype/notification/notification.py:499
 msgid "Field {0} on document {1} is neither a Mobile number field nor a Customer or User link"
 msgstr "crwdns142910:0{0}crwdnd142910:0{1}crwdne142910:0"
 
@@ -9969,12 +9975,12 @@ msgstr "crwdns94812:0{0}crwdne94812:0"
 msgid "File not attached"
 msgstr "crwdns94814:0crwdne94814:0"
 
-#: core/doctype/file/file.py:694 public/js/frappe/request.js:197
+#: core/doctype/file/file.py:694 public/js/frappe/request.js:198
 #: utils/file_manager.py:221
 msgid "File size exceeded the maximum allowed size of {0} MB"
 msgstr "crwdns94816:0{0}crwdne94816:0"
 
-#: public/js/frappe/request.js:195
+#: public/js/frappe/request.js:196
 msgid "File too big"
 msgstr "crwdns94818:0crwdne94818:0"
 
@@ -10845,7 +10851,7 @@ msgid "Generate Random Password"
 msgstr "crwdns95226:0crwdne95226:0"
 
 #: public/js/frappe/ui/toolbar/toolbar.js:183
-#: public/js/frappe/utils/utils.js:1777
+#: public/js/frappe/utils/utils.js:1790
 msgid "Generate Tracking URL"
 msgstr "crwdns95228:0crwdne95228:0"
 
@@ -10868,7 +10874,7 @@ msgstr "crwdns129450:0crwdne129450:0"
 msgid "Geolocation Settings"
 msgstr "crwdns148734:0crwdne148734:0"
 
-#: email/doctype/notification/notification.js:212
+#: email/doctype/notification/notification.js:219
 msgid "Get Alerts for Today"
 msgstr "crwdns95236:0crwdne95236:0"
 
@@ -11543,7 +11549,7 @@ msgstr "crwdns129552:0crwdne129552:0"
 msgid "Helvetica Neue"
 msgstr "crwdns129554:0crwdne129554:0"
 
-#: public/js/frappe/utils/utils.js:1774
+#: public/js/frappe/utils/utils.js:1787
 msgid "Here's your tracking URL"
 msgstr "crwdns95544:0crwdne95544:0"
 
@@ -11813,7 +11819,7 @@ msgstr "crwdns148656:0crwdne148656:0"
 msgid "ID"
 msgstr "crwdns95674:0crwdne95674:0"
 
-#: desk/reportview.py:436 public/js/frappe/views/reports/report_view.js:917
+#: desk/reportview.py:459 public/js/frappe/views/reports/report_view.js:917
 msgctxt "Label of name column in report"
 msgid "ID"
 msgstr "crwdns95676:0crwdne95676:0"
@@ -11872,7 +11878,7 @@ msgstr "crwdns129610:0crwdne129610:0"
 #: desk/doctype/workspace_link/workspace_link.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: integrations/doctype/social_login_key/social_login_key.json
-#: public/js/frappe/views/workspace/workspace.js:406
+#: public/js/frappe/views/workspace/workspace.js:411
 #: workflow/doctype/workflow_state/workflow_state.json
 msgid "Icon"
 msgstr "crwdns95694:0crwdne95694:0"
@@ -12526,7 +12532,7 @@ msgstr "crwdns95994:0crwdne95994:0"
 msgid "Incomplete Virtual Doctype Implementation"
 msgstr "crwdns95996:0crwdne95996:0"
 
-#: auth.py:235
+#: auth.py:237
 msgid "Incomplete login details"
 msgstr "crwdns95998:0crwdne95998:0"
 
@@ -12596,7 +12602,7 @@ msgstr "crwdns129750:0crwdne129750:0"
 msgid "Indicator Color"
 msgstr "crwdns129752:0crwdne129752:0"
 
-#: public/js/frappe/views/workspace/workspace.js:411
+#: public/js/frappe/views/workspace/workspace.js:416
 msgid "Indicator color"
 msgstr "crwdns96030:0crwdne96030:0"
 
@@ -12776,7 +12782,7 @@ msgstr "crwdns110978:0crwdne110978:0"
 msgid "Intermediate"
 msgstr "crwdns129772:0crwdne129772:0"
 
-#: public/js/frappe/request.js:232
+#: public/js/frappe/request.js:233
 msgid "Internal Server Error"
 msgstr "crwdns96112:0crwdne96112:0"
 
@@ -13030,7 +13036,7 @@ msgstr "crwdns96222:0crwdne96222:0"
 msgid "Invalid redirect regex in row #{}: {}"
 msgstr "crwdns96224:0crwdne96224:0"
 
-#: app.py:309
+#: app.py:333
 msgid "Invalid request arguments"
 msgstr "crwdns96226:0crwdne96226:0"
 
@@ -13810,7 +13816,7 @@ msgstr "crwdns129948:0crwdne129948:0"
 msgid "Last Login"
 msgstr "crwdns129950:0crwdne129950:0"
 
-#: email/doctype/notification/notification.js:34
+#: email/doctype/notification/notification.js:32
 msgid "Last Modified Date"
 msgstr "crwdns110984:0crwdne110984:0"
 
@@ -13852,6 +13858,11 @@ msgstr "crwdns129958:0crwdne129958:0"
 #: core/doctype/user/user.json
 msgid "Last Reset Password Key Generated On"
 msgstr "crwdns129960:0crwdne129960:0"
+
+#. Label of the datetime_last_run (Datetime) field in DocType 'Notification'
+#: email/doctype/notification/notification.json
+msgid "Last Run"
+msgstr "crwdns148928:0crwdne148928:0"
 
 #. Label of the last_sync_on (Datetime) field in DocType 'Google Contacts'
 #: integrations/doctype/google_contacts/google_contacts.json
@@ -14218,7 +14229,7 @@ msgstr "crwdns130026:0crwdne130026:0"
 msgid "Link Document Type"
 msgstr "crwdns130028:0crwdne130028:0"
 
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:402
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:406
 #: workflow/doctype/workflow_action/workflow_action.py:197
 msgid "Link Expired"
 msgstr "crwdns96800:0crwdne96800:0"
@@ -14581,7 +14592,7 @@ msgstr "crwdns96950:0{0}crwdne96950:0"
 msgid "Login link sent to your email"
 msgstr "crwdns110998:0crwdne110998:0"
 
-#: auth.py:319 auth.py:322
+#: auth.py:321 auth.py:324
 msgid "Login not allowed at this time"
 msgstr "crwdns96952:0crwdne96952:0"
 
@@ -14947,10 +14958,12 @@ msgstr "crwdns130138:0crwdne130138:0"
 msgid "Marked As Spam"
 msgstr "crwdns130140:0crwdne130140:0"
 
-#. Name of a DocType
-#: website/doctype/marketing_campaign/marketing_campaign.json
-msgid "Marketing Campaign"
-msgstr "crwdns97112:0crwdne97112:0"
+#. Name of a role
+#: website/doctype/utm_campaign/utm_campaign.json
+#: website/doctype/utm_medium/utm_medium.json
+#: website/doctype/utm_source/utm_source.json
+msgid "Marketing Manager"
+msgstr "crwdns148930:0crwdne148930:0"
 
 #: desk/page/setup_wizard/install_fixtures.py:51
 msgid "Master"
@@ -15033,7 +15046,7 @@ msgid "Maximum points allowed after multiplying points with the multiplier value
 "(Note: For no limit leave this field empty or set 0)"
 msgstr "crwdns130164:0crwdne130164:0"
 
-#: model/rename_doc.py:673
+#: model/rename_doc.py:679
 msgid "Maximum {0} rows allowed"
 msgstr "crwdns97146:0{0}crwdne97146:0"
 
@@ -15048,7 +15061,7 @@ msgstr "crwdns111006:0crwdne111006:0"
 #. Option for the 'Priority' (Select) field in DocType 'ToDo'
 #. Label of the medium (Data) field in DocType 'Web Page View'
 #: desk/doctype/todo/todo.json public/js/frappe/form/sidebar/assign_to.js:220
-#: public/js/frappe/utils/utils.js:1736
+#: public/js/frappe/utils/utils.js:1737
 #: website/doctype/web_page_view/web_page_view.json
 #: website/report/website_analytics/website_analytics.js:40
 msgid "Medium"
@@ -15060,7 +15073,7 @@ msgstr "crwdns97150:0crwdne97150:0"
 msgid "Meeting"
 msgstr "crwdns130166:0crwdne130166:0"
 
-#: email/doctype/notification/notification.js:189
+#: email/doctype/notification/notification.js:196
 #: integrations/doctype/webhook/webhook.js:96
 msgid "Meets Condition?"
 msgstr "crwdns130168:0crwdne130168:0"
@@ -15123,7 +15136,7 @@ msgstr "crwdns97172:0crwdne97172:0"
 #: email/doctype/auto_email_report/auto_email_report.json
 #: email/doctype/email_queue/email_queue.json
 #: email/doctype/newsletter/newsletter.json
-#: email/doctype/notification/notification.js:194
+#: email/doctype/notification/notification.js:201
 #: email/doctype/notification/notification.json
 #: public/js/frappe/ui/messages.js:175
 #: public/js/frappe/views/communication.js:114
@@ -15304,6 +15317,21 @@ msgstr "crwdns130208:0crwdne130208:0"
 #: core/doctype/package_release/package_release.json
 msgid "Minor"
 msgstr "crwdns130210:0crwdne130210:0"
+
+#. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
+#: email/doctype/notification/notification.json
+msgid "Minutes After"
+msgstr "crwdns148932:0crwdne148932:0"
+
+#. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
+#: email/doctype/notification/notification.json
+msgid "Minutes Before"
+msgstr "crwdns148934:0crwdne148934:0"
+
+#. Label of the minutes_offset (Int) field in DocType 'Notification'
+#: email/doctype/notification/notification.json
+msgid "Minutes Offset"
+msgstr "crwdns148936:0crwdne148936:0"
 
 #: integrations/doctype/ldap_settings/ldap_settings.py:102
 #: integrations/doctype/ldap_settings/ldap_settings.py:107
@@ -16033,7 +16061,7 @@ msgstr "crwdns111030:0crwdne111030:0"
 msgid "New Workflow Name"
 msgstr "crwdns97628:0crwdne97628:0"
 
-#: public/js/frappe/views/workspace/workspace.js:373
+#: public/js/frappe/views/workspace/workspace.js:378
 msgid "New Workspace"
 msgstr "crwdns97630:0crwdne97630:0"
 
@@ -16117,23 +16145,23 @@ msgstr "crwdns97660:0crwdne97660:0"
 #: email/doctype/email_group/email_group.json
 #: email/doctype/email_group_member/email_group_member.json
 #: email/doctype/newsletter/newsletter.json
-#: website/doctype/marketing_campaign/marketing_campaign.json
+#: website/doctype/utm_campaign/utm_campaign.json
 msgid "Newsletter Manager"
 msgstr "crwdns97662:0crwdne97662:0"
 
-#: email/doctype/newsletter/newsletter.py:130
+#: email/doctype/newsletter/newsletter.py:128
 msgid "Newsletter has already been sent"
 msgstr "crwdns97664:0crwdne97664:0"
 
-#: email/doctype/newsletter/newsletter.py:149
+#: email/doctype/newsletter/newsletter.py:147
 msgid "Newsletter must be published to send webview link in email"
 msgstr "crwdns97666:0crwdne97666:0"
 
-#: email/doctype/newsletter/newsletter.py:137
+#: email/doctype/newsletter/newsletter.py:135
 msgid "Newsletter should have atleast one recipient"
 msgstr "crwdns97668:0crwdne97668:0"
 
-#: email/doctype/newsletter/newsletter.py:390
+#: email/doctype/newsletter/newsletter.py:388
 msgid "Newsletters"
 msgstr "crwdns97670:0crwdne97670:0"
 
@@ -16213,7 +16241,7 @@ msgstr "crwdns130294:0crwdne130294:0"
 #. Settings'
 #. Option for the 'Standard' (Select) field in DocType 'Print Format'
 #: core/doctype/page/page.json core/doctype/report/report.json
-#: email/doctype/notification/notification.py:92
+#: email/doctype/notification/notification.py:96
 #: integrations/doctype/ldap_settings/ldap_settings.json
 #: integrations/doctype/webhook/webhook.py:128
 #: printing/doctype/print_format/print_format.json
@@ -16381,11 +16409,11 @@ msgstr "crwdns97756:0crwdne97756:0"
 msgid "No Suggestions"
 msgstr "crwdns127876:0crwdne127876:0"
 
-#: desk/reportview.py:595
+#: desk/reportview.py:637
 msgid "No Tags"
 msgstr "crwdns97758:0crwdne97758:0"
 
-#: public/js/frappe/ui/notifications/notifications.js:435
+#: public/js/frappe/ui/notifications/notifications.js:440
 msgid "No Upcoming Events"
 msgstr "crwdns111054:0crwdne111054:0"
 
@@ -16397,7 +16425,7 @@ msgstr "crwdns111056:0crwdne111056:0"
 msgid "No address added yet."
 msgstr "crwdns111058:0crwdne111058:0"
 
-#: email/doctype/notification/notification.js:222
+#: email/doctype/notification/notification.js:229
 msgid "No alerts for today"
 msgstr "crwdns97760:0crwdne97760:0"
 
@@ -16413,11 +16441,11 @@ msgstr "crwdns97762:0crwdne97762:0"
 msgid "No changes in document"
 msgstr "crwdns97764:0crwdne97764:0"
 
-#: public/js/frappe/views/workspace/workspace.js:592
+#: public/js/frappe/views/workspace/workspace.js:597
 msgid "No changes made"
 msgstr "crwdns148682:0crwdne148682:0"
 
-#: model/rename_doc.py:364
+#: model/rename_doc.py:366
 msgid "No changes made because old and new name are the same."
 msgstr "crwdns97766:0crwdne97766:0"
 
@@ -16561,11 +16589,11 @@ msgstr "crwdns97820:0crwdne97820:0"
 msgid "No rows"
 msgstr "crwdns148314:0crwdne148314:0"
 
-#: email/doctype/notification/notification.py:125
+#: email/doctype/notification/notification.py:129
 msgid "No subject"
 msgstr "crwdns143098:0crwdne143098:0"
 
-#: www/printview.py:442
+#: www/printview.py:441
 msgid "No template found at path: {0}"
 msgstr "crwdns97822:0{0}crwdne97822:0"
 
@@ -16657,7 +16685,7 @@ msgstr "crwdns97850:0crwdne97850:0"
 msgid "Not Equals"
 msgstr "crwdns97852:0crwdne97852:0"
 
-#: app.py:366 www/404.html:3
+#: app.py:390 www/404.html:3
 msgid "Not Found"
 msgstr "crwdns97854:0crwdne97854:0"
 
@@ -16683,7 +16711,7 @@ msgstr "crwdns97862:0crwdne97862:0"
 msgid "Not Nullable"
 msgstr "crwdns130314:0crwdne130314:0"
 
-#: __init__.py:1032 app.py:357 desk/calendar.py:26 geo/utils.py:97
+#: __init__.py:1032 app.py:381 desk/calendar.py:26 geo/utils.py:97
 #: public/js/frappe/web_form/webform_script.js:15
 #: website/doctype/web_form/web_form.py:602
 #: website/page_renderers/not_permitted_page.py:20 www/login.py:182
@@ -16755,7 +16783,7 @@ msgstr "crwdns97892:0crwdne97892:0"
 msgid "Not allowed for {0}: {1}"
 msgstr "crwdns97894:0{0}crwdnd97894:0{1}crwdne97894:0"
 
-#: email/doctype/notification/notification.py:528
+#: email/doctype/notification/notification.py:591
 msgid "Not allowed to attach {0} document, please enable Allow Print For {0} in Print Settings"
 msgstr "crwdns97896:0{0}crwdnd97896:0{0}crwdne97896:0"
 
@@ -16763,11 +16791,11 @@ msgstr "crwdns97896:0{0}crwdnd97896:0{0}crwdne97896:0"
 msgid "Not allowed to create custom Virtual DocType."
 msgstr "crwdns97898:0crwdne97898:0"
 
-#: www/printview.py:140
+#: www/printview.py:139
 msgid "Not allowed to print cancelled documents"
 msgstr "crwdns97900:0crwdne97900:0"
 
-#: www/printview.py:137
+#: www/printview.py:136
 msgid "Not allowed to print draft documents"
 msgstr "crwdns97902:0crwdne97902:0"
 
@@ -16775,7 +16803,7 @@ msgstr "crwdns97902:0crwdne97902:0"
 msgid "Not allowed via controller permission check"
 msgstr "crwdns97904:0crwdne97904:0"
 
-#: public/js/frappe/request.js:145 website/js/website.js:94
+#: public/js/frappe/request.js:146 website/js/website.js:94
 msgid "Not found"
 msgstr "crwdns97906:0crwdne97906:0"
 
@@ -16789,8 +16817,8 @@ msgstr "crwdns97910:0crwdne97910:0"
 
 #: __init__.py:704 api/v1.py:88 api/v1.py:93
 #: core/doctype/system_settings/system_settings.py:210
-#: public/js/frappe/request.js:157 public/js/frappe/request.js:167
-#: public/js/frappe/request.js:172
+#: public/js/frappe/request.js:158 public/js/frappe/request.js:168
+#: public/js/frappe/request.js:173
 #: public/js/frappe/views/kanban/kanban_board.bundle.js:67
 #: website/doctype/web_form/web_form.py:615 website/js/website.js:97
 msgid "Not permitted"
@@ -16857,7 +16885,7 @@ msgstr "crwdns97936:0{0}crwdne97936:0"
 msgid "Notes:"
 msgstr "crwdns97938:0crwdne97938:0"
 
-#: public/js/frappe/ui/notifications/notifications.js:485
+#: public/js/frappe/ui/notifications/notifications.js:490
 msgid "Nothing New"
 msgstr "crwdns112738:0crwdne112738:0"
 
@@ -16924,15 +16952,15 @@ msgstr "crwdns97970:0crwdne97970:0"
 msgid "Notification sent to"
 msgstr "crwdns111084:0crwdne111084:0"
 
-#: email/doctype/notification/notification.py:433
+#: email/doctype/notification/notification.py:496
 msgid "Notification: customer {0} has no Mobile number set"
 msgstr "crwdns142914:0{0}crwdne142914:0"
 
-#: email/doctype/notification/notification.py:419
+#: email/doctype/notification/notification.py:482
 msgid "Notification: document {0} has no {1} number set (field: {2})"
 msgstr "crwdns142916:0{0}crwdnd142916:0{1}crwdnd142916:0{2}crwdne142916:0"
 
-#: email/doctype/notification/notification.py:428
+#: email/doctype/notification/notification.py:491
 msgid "Notification: user {0} has no Mobile number set"
 msgstr "crwdns142918:0{0}crwdne142918:0"
 
@@ -17194,7 +17222,7 @@ msgstr "crwdns130374:0crwdne130374:0"
 msgid "Office 365"
 msgstr "crwdns130376:0crwdne130376:0"
 
-#: core/doctype/server_script/server_script.js:33
+#: core/doctype/server_script/server_script.js:34
 msgid "Official Documentation"
 msgstr "crwdns111090:0crwdne111090:0"
 
@@ -17956,7 +17984,7 @@ msgid "Parameter"
 msgstr "crwdns130494:0crwdne130494:0"
 
 #: public/js/frappe/model/model.js:142
-#: public/js/frappe/views/workspace/workspace.js:382
+#: public/js/frappe/views/workspace/workspace.js:387
 msgid "Parent"
 msgstr "crwdns98386:0crwdne98386:0"
 
@@ -18126,7 +18154,7 @@ msgstr "crwdns142862:0crwdne142862:0"
 msgid "Password set"
 msgstr "crwdns98468:0crwdne98468:0"
 
-#: auth.py:238
+#: auth.py:240
 msgid "Password size exceeded the maximum allowed size"
 msgstr "crwdns98470:0crwdne98470:0"
 
@@ -18142,7 +18170,7 @@ msgstr "crwdns98474:0crwdne98474:0"
 msgid "Passwords do not match!"
 msgstr "crwdns98476:0crwdne98476:0"
 
-#: email/doctype/newsletter/newsletter.py:156
+#: email/doctype/newsletter/newsletter.py:154
 msgid "Past dates are not allowed for Scheduling."
 msgstr "crwdns98478:0crwdne98478:0"
 
@@ -18693,7 +18721,7 @@ msgstr "crwdns98724:0crwdne98724:0"
 msgid "Please save before attaching."
 msgstr "crwdns98726:0crwdne98726:0"
 
-#: email/doctype/newsletter/newsletter.py:133
+#: email/doctype/newsletter/newsletter.py:131
 msgid "Please save the Newsletter before sending"
 msgstr "crwdns98728:0crwdne98728:0"
 
@@ -18705,7 +18733,7 @@ msgstr "crwdns98730:0crwdne98730:0"
 msgid "Please save the document before removing assignment"
 msgstr "crwdns98732:0crwdne98732:0"
 
-#: public/js/frappe/views/reports/report_view.js:1623
+#: public/js/frappe/views/reports/report_view.js:1632
 msgid "Please save the report first"
 msgstr "crwdns98734:0crwdne98734:0"
 
@@ -18745,7 +18773,7 @@ msgstr "crwdns143106:0crwdne143106:0"
 msgid "Please select a file or url"
 msgstr "crwdns98748:0crwdne98748:0"
 
-#: model/rename_doc.py:668
+#: model/rename_doc.py:674
 msgid "Please select a valid csv file with data"
 msgstr "crwdns98750:0crwdne98750:0"
 
@@ -18835,15 +18863,27 @@ msgstr "crwdns98790:0crwdne98790:0"
 msgid "Please specify a valid parent DocType for {0}"
 msgstr "crwdns98792:0{0}crwdne98792:0"
 
-#: email/doctype/notification/notification.py:141
+#: email/doctype/notification/notification.py:154
+msgid "Please specify at least 10 minutes due to the trigger cadence of the scheduler"
+msgstr "crwdns148938:0crwdne148938:0"
+
+#: email/doctype/notification/notification.py:151
+msgid "Please specify the minutes offset"
+msgstr "crwdns148940:0crwdne148940:0"
+
+#: email/doctype/notification/notification.py:145
 msgid "Please specify which date field must be checked"
 msgstr "crwdns98794:0crwdne98794:0"
 
-#: email/doctype/notification/notification.py:144
+#: email/doctype/notification/notification.py:149
+msgid "Please specify which datetime field must be checked"
+msgstr "crwdns148942:0crwdne148942:0"
+
+#: email/doctype/notification/notification.py:158
 msgid "Please specify which value field must be checked"
 msgstr "crwdns98796:0crwdne98796:0"
 
-#: public/js/frappe/request.js:184
+#: public/js/frappe/request.js:185
 #: public/js/frappe/views/translation_manager.js:102
 msgid "Please try again"
 msgstr "crwdns98798:0crwdne98798:0"
@@ -18856,7 +18896,7 @@ msgstr "crwdns98800:0crwdne98800:0"
 msgid "Please use a valid LDAP search filter"
 msgstr "crwdns98802:0crwdne98802:0"
 
-#: email/doctype/newsletter/newsletter.py:333
+#: email/doctype/newsletter/newsletter.py:331
 msgid "Please verify your Email Address"
 msgstr "crwdns98804:0crwdne98804:0"
 
@@ -19054,7 +19094,7 @@ msgstr "crwdns98886:0crwdne98886:0"
 #: desk/doctype/custom_html_block/custom_html_block.json
 #: email/doctype/newsletter/newsletter.js:14
 #: email/doctype/newsletter/newsletter.js:42
-#: email/doctype/notification/notification.js:183
+#: email/doctype/notification/notification.js:190
 #: integrations/doctype/webhook/webhook.js:90
 #: printing/doctype/print_style/print_style.json
 #: public/js/frappe/form/controls/markdown_editor.js:17
@@ -19238,7 +19278,7 @@ msgstr "crwdns130624:0crwdne130624:0"
 msgid "Print Format Type"
 msgstr "crwdns130626:0crwdne130626:0"
 
-#: www/printview.py:424
+#: www/printview.py:423
 msgid "Print Format {0} is disabled"
 msgstr "crwdns98964:0{0}crwdne98964:0"
 
@@ -19498,7 +19538,7 @@ msgstr "crwdns130660:0crwdne130660:0"
 #: desk/doctype/event/event.json desk/doctype/note/note.json
 #: desk/doctype/note/note_list.js:6 desk/doctype/workspace/workspace.json
 #: public/js/frappe/views/interaction.js:78
-#: public/js/frappe/views/workspace/workspace.js:388
+#: public/js/frappe/views/workspace/workspace.js:393
 msgid "Public"
 msgstr "crwdns99086:0crwdne99086:0"
 
@@ -20211,6 +20251,11 @@ msgstr "crwdns99394:0crwdne99394:0"
 msgid "Reference Date"
 msgstr "crwdns130776:0crwdne130776:0"
 
+#. Label of the datetime_changed (Select) field in DocType 'Notification'
+#: email/doctype/notification/notification.json
+msgid "Reference Datetime"
+msgstr "crwdns148944:0crwdne148944:0"
+
 #. Label of the reference_name (Data) field in DocType 'Email Queue'
 #: email/doctype/email_queue/email_queue.json
 msgid "Reference DocName"
@@ -20728,7 +20773,7 @@ msgstr "crwdns99642:0crwdne99642:0"
 #: desk/doctype/workspace_link/workspace_link.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: email/doctype/auto_email_report/auto_email_report.json
-#: public/js/frappe/request.js:610 public/js/frappe/utils/utils.js:924
+#: public/js/frappe/request.js:611 public/js/frappe/utils/utils.js:924
 msgid "Report"
 msgstr "crwdns99644:0crwdne99644:0"
 
@@ -20962,12 +21007,12 @@ msgstr "crwdns130852:0crwdne130852:0"
 msgid "Request Structure"
 msgstr "crwdns130854:0crwdne130854:0"
 
-#: public/js/frappe/request.js:228
+#: public/js/frappe/request.js:229
 msgid "Request Timed Out"
 msgstr "crwdns99774:0crwdne99774:0"
 
 #. Label of the timeout (Int) field in DocType 'Webhook'
-#: integrations/doctype/webhook/webhook.json public/js/frappe/request.js:241
+#: integrations/doctype/webhook/webhook.json public/js/frappe/request.js:242
 msgid "Request Timeout"
 msgstr "crwdns99776:0crwdne99776:0"
 
@@ -21113,7 +21158,7 @@ msgstr "crwdns130874:0crwdne130874:0"
 msgid "Response Type"
 msgstr "crwdns130876:0crwdne130876:0"
 
-#: public/js/frappe/ui/notifications/notifications.js:407
+#: public/js/frappe/ui/notifications/notifications.js:412
 msgid "Rest of the day"
 msgstr "crwdns99840:0crwdne99840:0"
 
@@ -21799,8 +21844,8 @@ msgstr "crwdns130978:0crwdne130978:0"
 #: public/js/frappe/views/kanban/kanban_settings.js:189
 #: public/js/frappe/views/kanban/kanban_view.js:345
 #: public/js/frappe/views/reports/query_report.js:1803
-#: public/js/frappe/views/reports/report_view.js:1640
-#: public/js/frappe/views/workspace/workspace.js:319
+#: public/js/frappe/views/reports/report_view.js:1649
+#: public/js/frappe/views/workspace/workspace.js:324
 #: public/js/frappe/widgets/base_widget.js:142
 #: public/js/frappe/widgets/quick_list_widget.js:119
 #: public/js/print_format_builder/print_format_builder.bundle.js:15
@@ -21817,7 +21862,7 @@ msgid "Save Anyway"
 msgstr "crwdns100176:0crwdne100176:0"
 
 #: public/js/frappe/views/reports/report_view.js:1311
-#: public/js/frappe/views/reports/report_view.js:1647
+#: public/js/frappe/views/reports/report_view.js:1656
 msgid "Save As"
 msgstr "crwdns100178:0crwdne100178:0"
 
@@ -21846,7 +21891,7 @@ msgstr "crwdns100188:0crwdne100188:0"
 #: printing/page/print_format_builder/print_format_builder.js:845
 #: public/js/frappe/form/toolbar.js:262
 #: public/js/frappe/views/kanban/kanban_board.bundle.js:916
-#: public/js/frappe/views/workspace/workspace.js:614
+#: public/js/frappe/views/workspace/workspace.js:619
 msgid "Saved"
 msgstr "crwdns100190:0crwdne100190:0"
 
@@ -21856,7 +21901,7 @@ msgstr "crwdns148326:0crwdne148326:0"
 
 #: public/js/frappe/list/list_settings.js:40
 #: public/js/frappe/views/kanban/kanban_settings.js:47
-#: public/js/frappe/views/workspace/workspace.js:331
+#: public/js/frappe/views/workspace/workspace.js:336
 msgid "Saving"
 msgstr "crwdns100192:0crwdne100192:0"
 
@@ -22555,6 +22600,11 @@ msgstr "crwdns100492:0crwdne100492:0"
 msgid "Send"
 msgstr "crwdns100494:0crwdne100494:0"
 
+#. Description of the 'Minutes Offset' (Int) field in DocType 'Notification'
+#: email/doctype/notification/notification.json
+msgid "Send <b>at the earliest</b> this number of minutes before or after the reference datetime. The actual sending may be delayed by up to 5 minutes due to the scheduler's trigger cadence."
+msgstr "crwdns148946:0crwdne148946:0"
+
 #. Label of the send_after (Datetime) field in DocType 'Communication'
 #. Label of the send_after (Datetime) field in DocType 'Email Queue'
 #: core/doctype/communication/communication.json
@@ -22691,6 +22741,12 @@ msgstr "crwdns100550:0crwdne100550:0"
 #: email/doctype/notification/notification.json
 msgid "Send alert if date matches this field's value"
 msgstr "crwdns131086:0crwdne131086:0"
+
+#. Description of the 'Reference Datetime' (Select) field in DocType
+#. 'Notification'
+#: email/doctype/notification/notification.json
+msgid "Send alert if datetime matches this field's value"
+msgstr "crwdns148948:0crwdne148948:0"
 
 #. Description of the 'Value Changed' (Select) field in DocType 'Notification'
 #: email/doctype/notification/notification.json
@@ -22874,7 +22930,7 @@ msgstr "crwdns100642:0{0}crwdnd100642:0{1}crwdne100642:0"
 msgid "Server Action"
 msgstr "crwdns131128:0crwdne131128:0"
 
-#: public/js/frappe/request.js:606
+#: public/js/frappe/request.js:607
 msgid "Server Error"
 msgstr "crwdns100646:0crwdne100646:0"
 
@@ -22896,11 +22952,11 @@ msgstr "crwdns100650:0crwdne100650:0"
 msgid "Server Scripts are disabled. Please enable server scripts from bench configuration."
 msgstr "crwdns100660:0crwdne100660:0"
 
-#: core/doctype/server_script/server_script.js:36
+#: core/doctype/server_script/server_script.js:37
 msgid "Server Scripts feature is not available on this site."
 msgstr "crwdns100662:0crwdne100662:0"
 
-#: public/js/frappe/request.js:243 public/js/frappe/request.js:251
+#: public/js/frappe/request.js:244 public/js/frappe/request.js:252
 msgid "Server was too busy to process this request. Please try again."
 msgstr "crwdns100664:0crwdne100664:0"
 
@@ -22935,7 +22991,7 @@ msgstr "crwdns100674:0crwdne100674:0"
 msgid "Session Defaults Saved"
 msgstr "crwdns100678:0crwdne100678:0"
 
-#: app.py:348
+#: app.py:372
 msgid "Session Expired"
 msgstr "crwdns100680:0crwdne100680:0"
 
@@ -23160,7 +23216,7 @@ msgstr "crwdns100754:0crwdne100754:0"
 #: integrations/workspace/integrations/integrations.json
 #: public/js/frappe/form/templates/print_layout.html:25
 #: public/js/frappe/ui/toolbar/toolbar.js:300
-#: public/js/frappe/views/workspace/workspace.js:345
+#: public/js/frappe/views/workspace/workspace.js:350
 #: website/doctype/web_form/web_form.json
 #: website/doctype/web_page/web_page.json
 #: website/workspace/website/website.json
@@ -23206,7 +23262,7 @@ msgid "Setup > User Permissions"
 msgstr "crwdns111218:0crwdne111218:0"
 
 #: public/js/frappe/views/reports/query_report.js:1676
-#: public/js/frappe/views/reports/report_view.js:1618
+#: public/js/frappe/views/reports/report_view.js:1627
 msgid "Setup Auto Email"
 msgstr "crwdns100774:0crwdne100774:0"
 
@@ -23780,6 +23836,15 @@ msgstr "crwdns131268:0crwdne131268:0"
 msgid "Slideshow like display for the website"
 msgstr "crwdns111544:0crwdne111544:0"
 
+#. Label of the slug (Data) field in DocType 'UTM Campaign'
+#. Label of the slug (Data) field in DocType 'UTM Medium'
+#. Label of the slug (Data) field in DocType 'UTM Source'
+#: website/doctype/utm_campaign/utm_campaign.json
+#: website/doctype/utm_medium/utm_medium.json
+#: website/doctype/utm_source/utm_source.json
+msgid "Slug"
+msgstr "crwdns148950:0crwdne148950:0"
+
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
@@ -23967,7 +24032,7 @@ msgstr "crwdns148742:0crwdne148742:0"
 msgid "Splash Image"
 msgstr "crwdns131300:0crwdne131300:0"
 
-#: desk/reportview.py:383 public/js/frappe/web_form/web_form_list.js:175
+#: desk/reportview.py:387 public/js/frappe/web_form/web_form_list.js:175
 #: templates/print_formats/standard_macros.html:44
 msgid "Sr"
 msgstr "crwdns101088:0crwdne101088:0"
@@ -24379,7 +24444,7 @@ msgstr "crwdns131356:0crwdne131356:0"
 #: desk/doctype/notification_log/notification_log.json
 #: email/doctype/email_template/email_template.json
 #: email/doctype/newsletter/newsletter.json
-#: email/doctype/notification/notification.js:193
+#: email/doctype/notification/notification.js:200
 #: email/doctype/notification/notification.json
 #: public/js/frappe/views/communication.js:107
 #: public/js/frappe/views/inbox/inbox_view.js:63
@@ -24586,7 +24651,7 @@ msgstr "crwdns131378:0crwdne131378:0"
 msgid "Successful Transactions"
 msgstr "crwdns101396:0crwdne101396:0"
 
-#: model/rename_doc.py:682
+#: model/rename_doc.py:688
 msgid "Successful: {0} to {1}"
 msgstr "crwdns101398:0{0}crwdnd101398:0{1}crwdne101398:0"
 
@@ -24927,9 +24992,11 @@ msgstr "crwdns101486:0crwdne101486:0"
 #: social/doctype/energy_point_settings/energy_point_settings.json
 #: website/doctype/discussion_reply/discussion_reply.json
 #: website/doctype/discussion_topic/discussion_topic.json
-#: website/doctype/marketing_campaign/marketing_campaign.json
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 #: website/doctype/personal_data_download_request/personal_data_download_request.json
+#: website/doctype/utm_campaign/utm_campaign.json
+#: website/doctype/utm_medium/utm_medium.json
+#: website/doctype/utm_source/utm_source.json
 #: website/doctype/web_page_view/web_page_view.json
 #: website/doctype/web_template/web_template.json
 #: website/doctype/website_route_meta/website_route_meta.json
@@ -25166,7 +25233,7 @@ msgstr "crwdns101588:0crwdne101588:0"
 msgid "Test Job ID"
 msgstr "crwdns131430:0crwdne131430:0"
 
-#: email/doctype/newsletter/newsletter.py:94
+#: email/doctype/newsletter/newsletter.py:92
 msgid "Test email sent to {0}"
 msgstr "crwdns101590:0{0}crwdne101590:0"
 
@@ -25235,7 +25302,7 @@ msgstr "crwdns101622:0crwdne101622:0"
 msgid "Thank you for your feedback!"
 msgstr "crwdns101624:0crwdne101624:0"
 
-#: email/doctype/newsletter/newsletter.py:332
+#: email/doctype/newsletter/newsletter.py:330
 msgid "Thank you for your interest in subscribing to our updates"
 msgstr "crwdns101626:0crwdne101626:0"
 
@@ -25262,7 +25329,7 @@ msgid "The Client ID obtained from the Google Cloud Console under <a href=\"http
 "</a>"
 msgstr "crwdns131442:0crwdne131442:0"
 
-#: email/doctype/notification/notification.py:184
+#: email/doctype/notification/notification.py:198
 msgid "The Condition '{0}' is invalid"
 msgstr "crwdns101636:0{0}crwdne101636:0"
 
@@ -25274,7 +25341,7 @@ msgstr "crwdns101638:0crwdne101638:0"
 msgid "The Push Relay Server URL key (`push_relay_server_url`) is missing in your site config"
 msgstr "crwdns111438:0crwdne111438:0"
 
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:363
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:367
 msgid "The User record for this request has been auto-deleted due to inactivity by system admins."
 msgstr "crwdns101640:0crwdne101640:0"
 
@@ -25403,7 +25470,7 @@ msgstr "crwdns101688:0crwdne101688:0"
 msgid "The password of your account has expired."
 msgstr "crwdns101690:0crwdne101690:0"
 
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:394
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:398
 msgid "The process for deletion of {0} data associated with {1} has been initiated."
 msgstr "crwdns101692:0{0}crwdnd101692:0{1}crwdne101692:0"
 
@@ -25422,7 +25489,7 @@ msgstr "crwdns101696:0crwdne101696:0"
 msgid "The reset password link has either been used before or is invalid"
 msgstr "crwdns101698:0crwdne101698:0"
 
-#: app.py:367 public/js/frappe/request.js:147
+#: app.py:391 public/js/frappe/request.js:148
 msgid "The resource you are looking for is not available"
 msgstr "crwdns101700:0crwdne101700:0"
 
@@ -25434,7 +25501,7 @@ msgstr "crwdns101702:0{0}crwdne101702:0"
 msgid "The selected document {0} is not a {1}."
 msgstr "crwdns101704:0{0}crwdnd101704:0{1}crwdne101704:0"
 
-#: utils/response.py:317
+#: utils/response.py:324
 msgid "The system is being updated. Please refresh again after a few moments."
 msgstr "crwdns101706:0crwdne101706:0"
 
@@ -25497,7 +25564,7 @@ msgstr "crwdns131466:0crwdne131466:0"
 msgid "There are documents which have workflow states that do not exist in this Workflow. It is recommended that you add these states to the Workflow and change their states before removing these states."
 msgstr "crwdns111274:0crwdne111274:0"
 
-#: public/js/frappe/ui/notifications/notifications.js:435
+#: public/js/frappe/ui/notifications/notifications.js:440
 msgid "There are no upcoming events for you."
 msgstr "crwdns111276:0crwdne111276:0"
 
@@ -25526,7 +25593,7 @@ msgstr "crwdns101736:0{0}crwdne101736:0"
 msgid "There is no data to be exported"
 msgstr "crwdns101738:0crwdne101738:0"
 
-#: public/js/frappe/ui/notifications/notifications.js:485
+#: public/js/frappe/ui/notifications/notifications.js:490
 msgid "There is nothing new to show you right now."
 msgstr "crwdns112744:0crwdne112744:0"
 
@@ -25760,7 +25827,7 @@ msgstr "crwdns101826:0crwdne101826:0"
 msgid "This is the number of the last created transaction with this prefix"
 msgstr "crwdns131488:0crwdne131488:0"
 
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:403
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:407
 msgid "This link has already been activated for verification."
 msgstr "crwdns101830:0crwdne101830:0"
 
@@ -25796,7 +25863,7 @@ msgstr "crwdns101842:0{0}crwdne101842:0"
 msgid "This report was generated {0}."
 msgstr "crwdns101844:0{0}crwdne101844:0"
 
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:118
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:122
 msgid "This request has not yet been approved by the user."
 msgstr "crwdns101846:0crwdne101846:0"
 
@@ -25956,7 +26023,7 @@ msgstr "crwdns131516:0crwdne131516:0"
 msgid "Time series based on is required to create a dashboard chart"
 msgstr "crwdns101928:0crwdne101928:0"
 
-#: public/js/frappe/form/controls/time.js:107
+#: public/js/frappe/form/controls/time.js:124
 msgid "Time {0} must be in format: {1}"
 msgstr "crwdns101930:0{0}crwdnd101930:0{1}crwdne101930:0"
 
@@ -26071,7 +26138,7 @@ msgstr "crwdns101958:0crwdne101958:0"
 #: desk/doctype/system_health_report_errors/system_health_report_errors.json
 #: desk/doctype/workspace/workspace.json
 #: email/doctype/email_group/email_group.json
-#: public/js/frappe/views/workspace/workspace.js:376
+#: public/js/frappe/views/workspace/workspace.js:381
 #: website/doctype/blog_category/blog_category.json
 #: website/doctype/blog_post/blog_post.json
 #: website/doctype/blog_settings/blog_settings.json
@@ -26179,7 +26246,7 @@ msgstr "crwdns102044:0{0}crwdne102044:0"
 msgid "To enable it follow the instructions in the following link: {0}"
 msgstr "crwdns102046:0{0}crwdne102046:0"
 
-#: core/doctype/server_script/server_script.js:37
+#: core/doctype/server_script/server_script.js:38
 msgid "To enable server scripts, read the {0}."
 msgstr "crwdns111288:0{0}crwdne111288:0"
 
@@ -26509,7 +26576,12 @@ msgstr "crwdns131610:0crwdne131610:0"
 msgid "Track milestones for any document"
 msgstr "crwdns111548:0crwdne111548:0"
 
-#: public/js/frappe/utils/utils.js:1771
+#. Label of a Card Break in the Website Workspace
+#: website/workspace/website/website.json
+msgid "Tracking"
+msgstr "crwdns148952:0crwdne148952:0"
+
+#: public/js/frappe/utils/utils.js:1784
 msgid "Tracking URL generated and copied to clipboard"
 msgstr "crwdns102180:0crwdne102180:0"
 
@@ -26562,6 +26634,10 @@ msgstr "crwdns131618:0crwdne131618:0"
 #: custom/doctype/customize_form/customize_form.json
 msgid "Translate Link Fields"
 msgstr "crwdns131620:0crwdne131620:0"
+
+#: public/js/frappe/views/reports/report_view.js:1579
+msgid "Translate values"
+msgstr "crwdns148954:0crwdne148954:0"
 
 #: public/js/frappe/views/translation_manager.js:11
 msgid "Translate {0}"
@@ -26808,6 +26884,27 @@ msgstr "crwdns102324:0crwdne102324:0"
 msgid "URL to go to on clicking the slideshow image"
 msgstr "crwdns131658:0crwdne131658:0"
 
+#. Name of a DocType
+#. Label of a Link in the Website Workspace
+#: website/doctype/utm_campaign/utm_campaign.json
+#: website/workspace/website/website.json
+msgid "UTM Campaign"
+msgstr "crwdns148956:0crwdne148956:0"
+
+#. Name of a DocType
+#. Label of a Link in the Website Workspace
+#: website/doctype/utm_medium/utm_medium.json
+#: website/workspace/website/website.json
+msgid "UTM Medium"
+msgstr "crwdns148958:0crwdne148958:0"
+
+#. Name of a DocType
+#. Label of a Link in the Website Workspace
+#: website/doctype/utm_source/utm_source.json
+#: website/workspace/website/website.json
+msgid "UTM Source"
+msgstr "crwdns148960:0crwdne148960:0"
+
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgid "UUID"
@@ -26906,7 +27003,7 @@ msgstr "crwdns102366:0{0}crwdne102366:0"
 msgid "Unknown Rounding Method: {}"
 msgstr "crwdns102368:0crwdne102368:0"
 
-#: auth.py:296
+#: auth.py:298
 msgid "Unknown User"
 msgstr "crwdns102370:0crwdne102370:0"
 
@@ -27090,7 +27187,7 @@ msgstr "crwdns102450:0crwdne102450:0"
 msgid "Updated successfully"
 msgstr "crwdns102452:0crwdne102452:0"
 
-#: utils/response.py:316
+#: utils/response.py:323
 msgid "Updating"
 msgstr "crwdns102456:0crwdne102456:0"
 
@@ -27469,7 +27566,7 @@ msgstr "crwdns102624:0crwdne102624:0"
 #: core/page/permission_manager/permission_manager_help.html:30
 #: core/workspace/users/users.json
 #: public/js/frappe/views/reports/query_report.js:1790
-#: public/js/frappe/views/reports/report_view.js:1666
+#: public/js/frappe/views/reports/report_view.js:1675
 msgid "User Permissions"
 msgstr "crwdns102628:0crwdne102628:0"
 
@@ -27606,7 +27703,7 @@ msgid "User {0} does not have the permission to create a Workspace."
 msgstr "crwdns127898:0{0}crwdne127898:0"
 
 #: templates/emails/data_deletion_approval.html:1
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:108
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:112
 msgid "User {0} has requested for data deletion"
 msgstr "crwdns102686:0{0}crwdne102686:0"
 
@@ -27927,7 +28024,7 @@ msgid "View Full Log"
 msgstr "crwdns111324:0crwdne111324:0"
 
 #: public/js/frappe/views/treeview.js:464
-#: public/js/frappe/widgets/quick_list_widget.js:247
+#: public/js/frappe/widgets/quick_list_widget.js:245
 msgid "View List"
 msgstr "crwdns102808:0crwdne102808:0"
 
@@ -28247,14 +28344,16 @@ msgstr "crwdns131842:0crwdne131842:0"
 #. Group in Module Def's connections
 #. Name of a Workspace
 #: core/doctype/module_def/module_def.json
-#: email/doctype/newsletter/newsletter.py:453
+#: email/doctype/newsletter/newsletter.py:451
 #: public/js/frappe/ui/sidebar.js:153 public/js/frappe/ui/toolbar/about.js:8
 #: website/workspace/website/website.json
 msgid "Website"
 msgstr "crwdns102952:0crwdne102952:0"
 
 #. Name of a report
+#. Label of a Link in the Website Workspace
 #: website/report/website_analytics/website_analytics.json
+#: website/workspace/website/website.json
 msgid "Website Analytics"
 msgstr "crwdns102956:0crwdne102956:0"
 
@@ -28756,7 +28855,7 @@ msgstr "crwdns103176:0crwdne103176:0"
 msgid "Workspace Visibility"
 msgstr "crwdns148352:0crwdne148352:0"
 
-#: public/js/frappe/views/workspace/workspace.js:464
+#: public/js/frappe/views/workspace/workspace.js:469
 msgid "Workspace {0} created"
 msgstr "crwdns148712:0{0}crwdne148712:0"
 
@@ -28859,8 +28958,8 @@ msgstr "crwdns131908:0crwdne131908:0"
 #. Settings'
 #. Option for the 'Standard' (Select) field in DocType 'Print Format'
 #: core/doctype/page/page.json core/doctype/report/report.json
-#: email/doctype/notification/notification.py:86
 #: email/doctype/notification/notification.py:92
+#: email/doctype/notification/notification.py:96
 #: integrations/doctype/ldap_settings/ldap_settings.json
 #: integrations/doctype/webhook/webhook.py:121
 #: integrations/doctype/webhook/webhook.py:128
@@ -28940,7 +29039,7 @@ msgstr "crwdns103274:0crwdne103274:0"
 msgid "You are not allowed to update this Web Form Document"
 msgstr "crwdns103276:0crwdne103276:0"
 
-#: public/js/frappe/request.js:35
+#: public/js/frappe/request.js:36
 msgid "You are not connected to Internet. Retry after sometime."
 msgstr "crwdns103278:0crwdne103278:0"
 
@@ -29119,11 +29218,11 @@ msgstr "crwdns103346:0crwdne103346:0"
 msgid "You do not have Read or Select Permissions for {}"
 msgstr "crwdns103348:0crwdne103348:0"
 
-#: public/js/frappe/request.js:174
+#: public/js/frappe/request.js:175
 msgid "You do not have enough permissions to access this resource. Please contact your manager to get access."
 msgstr "crwdns103350:0crwdne103350:0"
 
-#: app.py:358
+#: app.py:382
 msgid "You do not have enough permissions to complete the action"
 msgstr "crwdns103352:0crwdne103352:0"
 
@@ -29136,7 +29235,7 @@ msgstr "crwdns103354:0crwdne103354:0"
 msgid "You do not have enough review points"
 msgstr "crwdns103356:0crwdne103356:0"
 
-#: www/printview.py:376
+#: www/printview.py:375
 msgid "You do not have permission to view this document"
 msgstr "crwdns103358:0crwdne103358:0"
 
@@ -29152,7 +29251,7 @@ msgstr "crwdns103362:0{0}crwdne103362:0"
 msgid "You don't have permission to access the {0} DocType."
 msgstr "crwdns103364:0{0}crwdne103364:0"
 
-#: utils/response.py:270 utils/response.py:274
+#: utils/response.py:277 utils/response.py:281
 msgid "You don't have permission to access this file"
 msgstr "crwdns103366:0crwdne103366:0"
 
@@ -29249,7 +29348,7 @@ msgstr "crwdns112716:0crwdne112716:0"
 msgid "You need to be in developer mode to edit a Standard Web Form"
 msgstr "crwdns103406:0crwdne103406:0"
 
-#: utils/response.py:259
+#: utils/response.py:266
 msgid "You need to be logged in and have System Manager Role to be able to access backups."
 msgstr "crwdns103408:0crwdne103408:0"
 
@@ -29285,7 +29384,7 @@ msgstr "crwdns127892:0crwdne127892:0"
 msgid "You need to set one IMAP folder for {0}"
 msgstr "crwdns103420:0{0}crwdne103420:0"
 
-#: model/rename_doc.py:377
+#: model/rename_doc.py:383
 msgid "You need write permission to rename"
 msgstr "crwdns103422:0crwdne103422:0"
 
@@ -29352,12 +29451,12 @@ msgstr "crwdns111482:0crwdne111482:0"
 msgid "Your Shortcuts"
 msgstr "crwdns103446:0crwdne103446:0"
 
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:141
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:147
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:145
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:151
 msgid "Your account has been deleted"
 msgstr "crwdns103448:0crwdne103448:0"
 
-#: auth.py:488
+#: auth.py:492
 msgid "Your account has been locked and will resume after {0} seconds"
 msgstr "crwdns103450:0{0}crwdne103450:0"
 
@@ -29407,7 +29506,7 @@ msgstr "crwdns131910:0crwdne131910:0"
 msgid "Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail."
 msgstr "crwdns103468:0crwdne103468:0"
 
-#: app.py:349
+#: app.py:373
 msgid "Your session has expired, please login again to continue."
 msgstr "crwdns103470:0crwdne103470:0"
 
@@ -29762,7 +29861,7 @@ msgctxt "Minutes (Field: Duration)"
 msgid "m"
 msgstr "crwdns103758:0crwdne103758:0"
 
-#: model/rename_doc.py:212
+#: model/rename_doc.py:213
 msgid "merged {0} into {1}"
 msgstr "crwdns103764:0{0}crwdnd103764:0{1}crwdne103764:0"
 
@@ -29922,7 +30021,7 @@ msgstr "crwdns132038:0crwdne132038:0"
 msgid "removed rows for {0}"
 msgstr "crwdns103880:0{0}crwdne103880:0"
 
-#: model/rename_doc.py:214
+#: model/rename_doc.py:215
 msgid "renamed from {0} to {1}"
 msgstr "crwdns103882:0{0}crwdnd103882:0{1}crwdne103882:0"
 
@@ -30078,7 +30177,7 @@ msgstr "crwdns104008:0crwdne104008:0"
 msgid "via Google Meet"
 msgstr "crwdns132068:0crwdne132068:0"
 
-#: email/doctype/notification/notification.py:308
+#: email/doctype/notification/notification.py:371
 msgid "via Notification"
 msgstr "crwdns104012:0crwdne104012:0"
 
@@ -30451,7 +30550,7 @@ msgstr "crwdns104184:0{0}crwdne104184:0"
 msgid "{0} has already assigned default value for {1}."
 msgstr "crwdns104186:0{0}crwdnd104186:0{1}crwdne104186:0"
 
-#: email/doctype/newsletter/newsletter.py:380
+#: email/doctype/newsletter/newsletter.py:378
 msgid "{0} has been successfully added to the Email Group."
 msgstr "crwdns104188:0{0}crwdne104188:0"
 
@@ -30459,7 +30558,7 @@ msgstr "crwdns104188:0{0}crwdne104188:0"
 msgid "{0} has left the conversation in {1} {2}"
 msgstr "crwdns104190:0{0}crwdnd104190:0{1}crwdnd104190:0{2}crwdne104190:0"
 
-#: __init__.py:2507
+#: __init__.py:2510
 msgid "{0} has no versions tracked."
 msgstr "crwdns104192:0{0}crwdne104192:0"
 
@@ -30533,7 +30632,7 @@ msgstr "crwdns104224:0{0}crwdne104224:0"
 msgid "{0} is not a field of doctype {1}"
 msgstr "crwdns104226:0{0}crwdnd104226:0{1}crwdne104226:0"
 
-#: www/printview.py:359
+#: www/printview.py:358
 msgid "{0} is not a raw printing format."
 msgstr "crwdns104228:0{0}crwdne104228:0"
 
@@ -30696,7 +30795,7 @@ msgstr "crwdns104292:0{0}crwdne104292:0"
 msgid "{0} not a valid State"
 msgstr "crwdns104294:0{0}crwdne104294:0"
 
-#: model/rename_doc.py:380
+#: model/rename_doc.py:386
 msgid "{0} not allowed to be renamed"
 msgstr "crwdns104296:0{0}crwdne104296:0"
 
@@ -30877,7 +30976,7 @@ msgstr "crwdns104374:0{0}crwdnd104374:0{1}crwdnd104374:0{2}crwdnd104374:0{3}crwd
 msgid "{0} {1} cannot be a leaf node as it has children"
 msgstr "crwdns104376:0{0}crwdnd104376:0{1}crwdne104376:0"
 
-#: model/rename_doc.py:371
+#: model/rename_doc.py:373
 msgid "{0} {1} does not exist, select a new target to merge"
 msgstr "crwdns104378:0{0}crwdnd104378:0{1}crwdne104378:0"
 
@@ -31064,7 +31163,7 @@ msgstr "crwdns104460:0crwdne104460:0"
 msgid "{} is not a valid date string."
 msgstr "crwdns104462:0crwdne104462:0"
 
-#: commands/utils.py:539
+#: commands/utils.py:547
 msgid "{} not found in PATH! This is required to access the console."
 msgstr "crwdns104464:0crwdne104464:0"
 
