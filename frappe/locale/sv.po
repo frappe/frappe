@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-09-08 09:32+0000\n"
-"PO-Revision-Date: 2024-09-21 22:35\n"
+"POT-Creation-Date: 2024-09-15 09:33+0000\n"
+"PO-Revision-Date: 2024-09-23 23:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -102,7 +102,7 @@ msgstr "'{0}' är otillåtet för typ {1} på rad {2}"
 msgid "(Mandatory)"
 msgstr "(Erfordrad)"
 
-#: model/rename_doc.py:687
+#: model/rename_doc.py:693
 msgid "** Failed: {0} to {1}: {2}"
 msgstr "** Misslyckades: {0} till {1}: {2}"
 
@@ -148,7 +148,7 @@ msgstr "1 Rapport"
 msgid "1 comment"
 msgstr "1 kommentar"
 
-#: tests/test_utils.py:676
+#: tests/test_utils.py:679
 msgid "1 day ago"
 msgstr "1 dag sedan"
 
@@ -156,15 +156,15 @@ msgstr "1 dag sedan"
 msgid "1 hour"
 msgstr "1 timme"
 
-#: public/js/frappe/utils/pretty_date.js:52 tests/test_utils.py:674
+#: public/js/frappe/utils/pretty_date.js:52 tests/test_utils.py:677
 msgid "1 hour ago"
 msgstr "1 timme sedan"
 
-#: public/js/frappe/utils/pretty_date.js:48 tests/test_utils.py:672
+#: public/js/frappe/utils/pretty_date.js:48 tests/test_utils.py:675
 msgid "1 minute ago"
 msgstr "1 minut sedan"
 
-#: public/js/frappe/utils/pretty_date.js:66 tests/test_utils.py:680
+#: public/js/frappe/utils/pretty_date.js:66 tests/test_utils.py:683
 msgid "1 month ago"
 msgstr "1 månad sedan"
 
@@ -176,35 +176,35 @@ msgstr "1 av 2"
 msgid "1 record will be exported"
 msgstr "1 post exporteras"
 
-#: tests/test_utils.py:671
+#: tests/test_utils.py:674
 msgid "1 second ago"
 msgstr "1 sekund sedan"
 
-#: public/js/frappe/utils/pretty_date.js:62 tests/test_utils.py:678
+#: public/js/frappe/utils/pretty_date.js:62 tests/test_utils.py:681
 msgid "1 week ago"
 msgstr "1 vecka sedan"
 
-#: public/js/frappe/utils/pretty_date.js:70 tests/test_utils.py:682
+#: public/js/frappe/utils/pretty_date.js:70 tests/test_utils.py:685
 msgid "1 year ago"
 msgstr "1 år sedan"
 
-#: tests/test_utils.py:675
+#: tests/test_utils.py:678
 msgid "2 hours ago"
 msgstr "2 timmar sedan"
 
-#: tests/test_utils.py:681
+#: tests/test_utils.py:684
 msgid "2 months ago"
 msgstr "2 månader sedan"
 
-#: tests/test_utils.py:679
+#: tests/test_utils.py:682
 msgid "2 weeks ago"
 msgstr "2 veckor sedan"
 
-#: tests/test_utils.py:683
+#: tests/test_utils.py:686
 msgid "2 years ago"
 msgstr "2 år sedan"
 
-#: tests/test_utils.py:673
+#: tests/test_utils.py:676
 msgid "3 minutes ago"
 msgstr "3 minuter sedan"
 
@@ -220,7 +220,7 @@ msgstr "4 timmar"
 msgid "5 Records"
 msgstr "5 Poster"
 
-#: tests/test_utils.py:677
+#: tests/test_utils.py:680
 msgid "5 days ago"
 msgstr "5 dagar sedan"
 
@@ -954,7 +954,7 @@ msgstr "Åtkomst Token"
 msgid "Access Token URL"
 msgstr "Åtkomst Token URL"
 
-#: auth.py:467
+#: auth.py:471
 msgid "Access not allowed from this IP Address"
 msgstr "Åtkomst är ej tillåtet från denna IP Adress"
 
@@ -1680,7 +1680,7 @@ msgstr "Alla"
 #. Label of the all_day (Check) field in DocType 'Calendar View'
 #. Label of the all_day (Check) field in DocType 'Event'
 #: desk/doctype/calendar_view/calendar_view.json desk/doctype/event/event.json
-#: public/js/frappe/ui/notifications/notifications.js:401
+#: public/js/frappe/ui/notifications/notifications.js:406
 msgid "All Day"
 msgstr "Hela Dagen"
 
@@ -2151,11 +2151,11 @@ msgstr "Anonymisering Matris"
 msgid "Anonymous"
 msgstr "Anonym"
 
-#: public/js/frappe/request.js:186
+#: public/js/frappe/request.js:187
 msgid "Another transaction is blocking this one. Please try again in a few seconds."
 msgstr "Annan transaktion spärrar detta. Försök igen om några sekunder."
 
-#: model/rename_doc.py:374
+#: model/rename_doc.py:376
 msgid "Another {0} with name {1} exists, select another name"
 msgstr "Annan {0} med namn {1} existerar, välj ett annat namn"
 
@@ -2368,7 +2368,7 @@ msgstr "Uppskatta"
 msgid "Appreciation"
 msgstr "Uppskattning"
 
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:111
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:115
 msgid "Approval Required"
 msgstr "Godkännande Erfodras"
 
@@ -3734,11 +3734,11 @@ msgstr "Mass Redigera"
 msgid "Bulk Edit {0}"
 msgstr "Mass Redigera {0}"
 
-#: desk/reportview.py:525
+#: desk/reportview.py:567
 msgid "Bulk Operation Failed"
 msgstr "Mass Åtgärd Fel"
 
-#: desk/reportview.py:529
+#: desk/reportview.py:571
 msgid "Bulk Operation Successful"
 msgstr "Mass Åtgärd Klar"
 
@@ -3979,15 +3979,15 @@ msgstr "Kamera"
 #. Label of the campaign (Link) field in DocType 'Newsletter'
 #. Label of the campaign (Data) field in DocType 'Web Page View'
 #: email/doctype/newsletter/newsletter.json
-#: public/js/frappe/utils/utils.js:1728
+#: public/js/frappe/utils/utils.js:1729
 #: website/doctype/web_page_view/web_page_view.json
 #: website/report/website_analytics/website_analytics.js:39
 msgid "Campaign"
 msgstr "Kampanj"
 
-#. Label of the campaign_description (Small Text) field in DocType 'Marketing
+#. Label of the campaign_description (Small Text) field in DocType 'UTM
 #. Campaign'
-#: website/doctype/marketing_campaign/marketing_campaign.json
+#: website/doctype/utm_campaign/utm_campaign.json
 msgid "Campaign Description (Optional)"
 msgstr "Kampanj Beskrivning (Valfri)"
 
@@ -4029,7 +4029,7 @@ msgstr "Kan bara lista de Dokument Typer som har länkats till användarDokument
 msgid "Can't follow since changes are not tracked."
 msgstr "Kan inte följa eftersom ändringar inte spåras."
 
-#: model/rename_doc.py:361
+#: model/rename_doc.py:363
 msgid "Can't rename {0} to {1} because {0} doesn't exist."
 msgstr "Kan inte byta namn på {0} till {1} eftersom {0} inte finns."
 
@@ -4213,7 +4213,7 @@ msgstr "Kan inte radera {0} eftersom det har underordnade noder"
 msgid "Cannot edit Standard Dashboards"
 msgstr "Kan inte redigera standard översikt panel"
 
-#: email/doctype/notification/notification.py:175
+#: email/doctype/notification/notification.py:189
 msgid "Cannot edit Standard Notification. To edit, please disable this and duplicate it"
 msgstr "Kan inte redigera standard avisering. Kopiera och skapa ny"
 
@@ -4282,7 +4282,7 @@ msgstr "Kan inte ta bort ID fält"
 msgid "Cannot set 'Report' permission if 'Only If Creator' permission is set"
 msgstr "Kan inte ange \"Rapport\" behörighet om behörighet \"Endast om Ägare\" är angiven"
 
-#: email/doctype/notification/notification.py:192
+#: email/doctype/notification/notification.py:206
 msgid "Cannot set Notification with event {0} on Document Type {1}"
 msgstr "Kan inte ange Avisering med händelse {0} på Dokument Typ {1}"
 
@@ -4595,7 +4595,7 @@ msgstr "Underordnade Tabeller visas som rutnät i andra DocTyper"
 msgid "Choose Existing Card or create New Card"
 msgstr "Välj Befintligt Kort eller skapa Ny Kort"
 
-#: public/js/frappe/views/workspace/workspace.js:501
+#: public/js/frappe/views/workspace/workspace.js:506
 msgid "Choose a block or continue typing"
 msgstr "Välj avsnitt eller fortsätt skriva"
 
@@ -4680,7 +4680,7 @@ msgstr "Klicka på Anpassa för att lägga till din första widget"
 msgid "Click here"
 msgstr "Klicka här"
 
-#: email/doctype/newsletter/newsletter.py:335
+#: email/doctype/newsletter/newsletter.py:333
 msgid "Click here to verify"
 msgstr "Klicka här att verifiera"
 
@@ -5317,8 +5317,8 @@ msgctxt "Title of confirmation dialog"
 msgid "Confirm"
 msgstr "Bekräfta"
 
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:92
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:100
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:93
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:101
 msgid "Confirm Deletion of Account"
 msgstr "Bekräfta Borttagning av Konto"
 
@@ -5335,7 +5335,7 @@ msgstr "Bekräfta Lösenord"
 msgid "Confirm Request"
 msgstr "Bekräfta Begäran"
 
-#: email/doctype/newsletter/newsletter.py:330
+#: email/doctype/newsletter/newsletter.py:328
 msgid "Confirm Your Email"
 msgstr "Bekräfta E-post"
 
@@ -5345,8 +5345,8 @@ msgstr "Bekräfta E-post"
 msgid "Confirmation Email Template"
 msgstr "Bekräftelse E-post Mall"
 
-#: email/doctype/newsletter/newsletter.py:379
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:393
+#: email/doctype/newsletter/newsletter.py:377
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:397
 msgid "Confirmed"
 msgstr "Bekräftad"
 
@@ -5377,7 +5377,7 @@ msgstr "Ansluten Användare"
 msgid "Connected to QZ Tray!"
 msgstr "Ansluten till QZ Aktivitet Fält!"
 
-#: public/js/frappe/request.js:34
+#: public/js/frappe/request.js:35
 msgid "Connection Lost"
 msgstr "Anslutning Bruten"
 
@@ -5484,7 +5484,7 @@ msgstr "Innehåller {0} säkerhetskorrigeringar"
 #: core/doctype/comment/comment.json desk/doctype/note/note.json
 #: desk/doctype/workspace/workspace.json
 #: email/doctype/newsletter/newsletter.json
-#: public/js/frappe/utils/utils.js:1743
+#: public/js/frappe/utils/utils.js:1745
 #: website/doctype/blog_post/blog_post.json
 #: website/doctype/help_article/help_article.json
 #: website/doctype/web_page/web_page.json
@@ -5580,7 +5580,7 @@ msgstr "Kopiera bädda in kod"
 msgid "Copy Link"
 msgstr "Kopiera Länk"
 
-#: public/js/frappe/request.js:615
+#: public/js/frappe/request.js:616
 msgid "Copy error to clipboard"
 msgstr "Kopiera fel till urklipp"
 
@@ -5697,7 +5697,7 @@ msgstr "Cr"
 #: public/js/frappe/views/file/file_view.js:112
 #: public/js/frappe/views/interaction.js:18
 #: public/js/frappe/views/reports/query_report.js:1188
-#: public/js/frappe/views/workspace/workspace.js:417
+#: public/js/frappe/views/workspace/workspace.js:422
 #: workflow/page/workflow_builder/workflow_builder.js:46
 msgid "Create"
 msgstr "Skapa"
@@ -5839,7 +5839,7 @@ msgid "Created Custom Field {0} in {1}"
 msgstr "Skapade Anpassad Fält {0} i {1}"
 
 #: desk/doctype/dashboard_chart/dashboard_chart.js:241
-#: email/doctype/notification/notification.js:33 model/meta.py:46
+#: email/doctype/notification/notification.js:31 model/meta.py:46
 #: public/js/frappe/model/meta.js:201 public/js/frappe/model/model.js:125
 #: public/js/frappe/views/dashboard/dashboard_view.js:478
 msgid "Created On"
@@ -6172,7 +6172,7 @@ msgstr "Anpassad?"
 msgid "Customization"
 msgstr "Anpassning"
 
-#: public/js/frappe/views/workspace/workspace.js:341
+#: public/js/frappe/views/workspace/workspace.js:346
 msgid "Customizations Discarded"
 msgstr "Anpassningar Bortkastade"
 
@@ -6585,7 +6585,7 @@ msgstr "Dagar Före"
 msgid "Days Before or After"
 msgstr "Dagar Före eller Efter"
 
-#: public/js/frappe/request.js:249
+#: public/js/frappe/request.js:250
 msgid "Deadlock Occurred"
 msgstr "Dödläge Inträffade"
 
@@ -6828,7 +6828,7 @@ msgstr "Försenad"
 #: core/doctype/user_permission/user_permission_list.js:189
 #: public/js/frappe/form/footer/form_timeline.js:615
 #: public/js/frappe/form/grid.js:63 public/js/frappe/form/toolbar.js:438
-#: public/js/frappe/views/reports/report_view.js:1654
+#: public/js/frappe/views/reports/report_view.js:1663
 #: public/js/frappe/views/treeview.js:309
 #: templates/discussions/reply_card.html:35
 #: templates/discussions/reply_section.html:29
@@ -6956,11 +6956,11 @@ msgstr "Papperskorg"
 msgid "Deleted Name"
 msgstr "Borttaget Namn"
 
-#: desk/reportview.py:529
+#: desk/reportview.py:571
 msgid "Deleted all documents successfully"
 msgstr "Alla Dokument Borttagna"
 
-#: desk/reportview.py:507
+#: desk/reportview.py:549
 msgid "Deleting {0}"
 msgstr "Tar Bort {0}"
 
@@ -7054,6 +7054,8 @@ msgstr "Underordnad Av (inklusive)"
 #. Label of the description (HTML Editor) field in DocType 'Workspace Link'
 #. Label of the description (Small Text) field in DocType 'Print Heading'
 #. Label of the description (Small Text) field in DocType 'Blog Category'
+#. Label of the description (Small Text) field in DocType 'UTM Medium'
+#. Label of the description (Small Text) field in DocType 'UTM Source'
 #. Label of the description (Text) field in DocType 'Web Form Field'
 #. Label of the meta_description (Small Text) field in DocType 'Web Page'
 #. Label of the description (Text) field in DocType 'Website Slideshow Item'
@@ -7070,6 +7072,8 @@ msgstr "Underordnad Av (inklusive)"
 #: public/js/frappe/form/reminders.js:44
 #: public/js/frappe/widgets/widget_dialog.js:256
 #: website/doctype/blog_category/blog_category.json
+#: website/doctype/utm_medium/utm_medium.json
+#: website/doctype/utm_source/utm_source.json
 #: website/doctype/web_form_field/web_form_field.json
 #: website/doctype/web_page/web_page.json
 #: website/doctype/website_slideshow_item/website_slideshow_item.json
@@ -7133,7 +7137,9 @@ msgstr "Skrivbord Tema"
 #: printing/doctype/network_printer_settings/network_printer_settings.json
 #: printing/doctype/print_format/print_format.json
 #: social/doctype/energy_point_log/energy_point_log.json
-#: website/doctype/marketing_campaign/marketing_campaign.json
+#: website/doctype/utm_campaign/utm_campaign.json
+#: website/doctype/utm_medium/utm_medium.json
+#: website/doctype/utm_source/utm_source.json
 #: workflow/doctype/workflow_action/workflow_action.json
 #: workflow/doctype/workflow_state/workflow_state.json
 msgid "Desk User"
@@ -7314,7 +7320,7 @@ msgstr "Inaktiverad Autosvar"
 #: public/js/frappe/form/toolbar.js:312
 #: public/js/frappe/views/communication.js:30
 #: public/js/frappe/views/dashboard/dashboard_view.js:70
-#: public/js/frappe/views/workspace/workspace.js:334
+#: public/js/frappe/views/workspace/workspace.js:339
 #: public/js/frappe/web_form/web_form.js:187
 msgid "Discard"
 msgstr "Avvisa"
@@ -7900,7 +7906,7 @@ msgstr "Dokument kan endast redigeras av användare med roll"
 msgid "Document not Relinked"
 msgstr "Dokumentet är inte länkad om"
 
-#: model/rename_doc.py:226 public/js/frappe/form/toolbar.js:147
+#: model/rename_doc.py:227 public/js/frappe/form/toolbar.js:147
 msgid "Document renamed from {0} to {1}"
 msgstr "Dokument namn ändrad från {0} till {1}"
 
@@ -9271,9 +9277,9 @@ msgstr "Fel i Klient Skript."
 msgid "Error in Header/Footer Script"
 msgstr "Fel i Sidhuvud/Sidfot Skript"
 
-#: email/doctype/notification/notification.py:531
-#: email/doctype/notification/notification.py:647
-#: email/doctype/notification/notification.py:653
+#: email/doctype/notification/notification.py:594
+#: email/doctype/notification/notification.py:727
+#: email/doctype/notification/notification.py:733
 msgid "Error in Notification"
 msgstr "Fel i Avisering"
 
@@ -9285,7 +9291,7 @@ msgstr "Fel i Utskrift Format på rad {0}: {1}"
 msgid "Error while connecting to email account {0}"
 msgstr "Fel vid anslutning till E-post Konto {0}"
 
-#: email/doctype/notification/notification.py:644
+#: email/doctype/notification/notification.py:724
 msgid "Error while evaluating Notification {0}. Please fix your template."
 msgstr "Fel vid test av Avisering {0}. Fixa Mall."
 
@@ -9703,11 +9709,11 @@ msgstr "Misslyckades att beräkna text för begäran: {}"
 msgid "Failed to connect to server"
 msgstr "Misslyckades att ansluta till server"
 
-#: auth.py:670
+#: auth.py:674
 msgid "Failed to decode token, please provide a valid base64-encoded token."
 msgstr "Misslyckades med att avkoda token. Ange giltig base64 kodad token."
 
-#: desk/reportview.py:523
+#: desk/reportview.py:565
 msgid "Failed to delete {0} documents: {1}"
 msgstr "Misslyckades att ta bort {0} dokument: {1}"
 
@@ -9715,7 +9721,7 @@ msgstr "Misslyckades att ta bort {0} dokument: {1}"
 msgid "Failed to enable scheduler: {0}"
 msgstr "Misslyckades att aktivera schemaläggare: {0}"
 
-#: email/doctype/notification/notification.py:95
+#: email/doctype/notification/notification.py:99
 #: integrations/doctype/webhook/webhook.py:127
 msgid "Failed to evaluate conditions: {}"
 msgstr "Misslyckades att utvärdera villkor: {}"
@@ -9748,11 +9754,11 @@ msgstr "Misslyckadesc att importera virtuell doctype {}, finns kontroll fil?"
 msgid "Failed to optimize image: {0}"
 msgstr "Misslyckades att optimera bild: {0}"
 
-#: email/doctype/notification/notification.py:112
+#: email/doctype/notification/notification.py:116
 msgid "Failed to render message: {}"
 msgstr "Misslyckades med att rendera meddelande: {}"
 
-#: email/doctype/notification/notification.py:130
+#: email/doctype/notification/notification.py:134
 msgid "Failed to render subject: {}"
 msgstr "Misslyckades med att rendera ämne: {}"
 
@@ -9955,7 +9961,7 @@ msgstr "Fält {0} hänvisar till icke-existerande doctype {1}."
 msgid "Field {0} not found."
 msgstr "Fält {0} hittades inte."
 
-#: email/doctype/notification/notification.py:436
+#: email/doctype/notification/notification.py:499
 msgid "Field {0} on document {1} is neither a Mobile number field nor a Customer or User link"
 msgstr "Fält {0} på dokument {1} är varken mobil nummer fält, Kund eller Användarlänk"
 
@@ -10156,12 +10162,12 @@ msgstr "Fil Namn får inte innehålla {0}"
 msgid "File not attached"
 msgstr "Fil inte bifogad"
 
-#: core/doctype/file/file.py:694 public/js/frappe/request.js:197
+#: core/doctype/file/file.py:694 public/js/frappe/request.js:198
 #: utils/file_manager.py:221
 msgid "File size exceeded the maximum allowed size of {0} MB"
 msgstr "Fil storlek överskred högsta tillåtna storlek på {0} MB"
 
-#: public/js/frappe/request.js:195
+#: public/js/frappe/request.js:196
 msgid "File too big"
 msgstr "Fil för stor"
 
@@ -11032,7 +11038,7 @@ msgid "Generate Random Password"
 msgstr "Skapa Slumpmässig Lösenord"
 
 #: public/js/frappe/ui/toolbar/toolbar.js:183
-#: public/js/frappe/utils/utils.js:1777
+#: public/js/frappe/utils/utils.js:1790
 msgid "Generate Tracking URL"
 msgstr "Skapa Spårning URL"
 
@@ -11055,7 +11061,7 @@ msgstr "Geolocation"
 msgid "Geolocation Settings"
 msgstr "Geolokalisering Inställningar"
 
-#: email/doctype/notification/notification.js:212
+#: email/doctype/notification/notification.js:219
 msgid "Get Alerts for Today"
 msgstr "Hämta Dagens Alerts"
 
@@ -11730,7 +11736,7 @@ msgstr "Helvetica"
 msgid "Helvetica Neue"
 msgstr "Helvetica Neue"
 
-#: public/js/frappe/utils/utils.js:1774
+#: public/js/frappe/utils/utils.js:1787
 msgid "Here's your tracking URL"
 msgstr "Här är din spårning URL"
 
@@ -12000,7 +12006,7 @@ msgstr "Antar att du inte har tillgång till någon arbetsyta ännu, men du kan 
 msgid "ID"
 msgstr "ID"
 
-#: desk/reportview.py:436 public/js/frappe/views/reports/report_view.js:917
+#: desk/reportview.py:459 public/js/frappe/views/reports/report_view.js:917
 msgctxt "Label of name column in report"
 msgid "ID"
 msgstr "ID"
@@ -12059,7 +12065,7 @@ msgstr "IP Adress"
 #: desk/doctype/workspace_link/workspace_link.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: integrations/doctype/social_login_key/social_login_key.json
-#: public/js/frappe/views/workspace/workspace.js:406
+#: public/js/frappe/views/workspace/workspace.js:411
 #: workflow/doctype/workflow_state/workflow_state.json
 msgid "Icon"
 msgstr "Ikon"
@@ -12713,7 +12719,7 @@ msgstr "Inkommande E-post Konto är inte korrekt"
 msgid "Incomplete Virtual Doctype Implementation"
 msgstr "Ofullständig Virtuell DocType Implementering"
 
-#: auth.py:235
+#: auth.py:237
 msgid "Incomplete login details"
 msgstr "Ofullständiga inloggning detaljer"
 
@@ -12783,7 +12789,7 @@ msgstr "Indikator"
 msgid "Indicator Color"
 msgstr "Indikator Färg"
 
-#: public/js/frappe/views/workspace/workspace.js:411
+#: public/js/frappe/views/workspace/workspace.js:416
 msgid "Indicator color"
 msgstr "Indikator Färg"
 
@@ -12963,7 +12969,7 @@ msgstr "Intresse"
 msgid "Intermediate"
 msgstr "Mellanhand"
 
-#: public/js/frappe/request.js:232
+#: public/js/frappe/request.js:233
 msgid "Internal Server Error"
 msgstr "Intern Server Fel"
 
@@ -13217,7 +13223,7 @@ msgstr "Ogiltig eller skadat innehåll för import"
 msgid "Invalid redirect regex in row #{}: {}"
 msgstr "Ogiltigt omdirigering regex på rad #{}: {}"
 
-#: app.py:309
+#: app.py:333
 msgid "Invalid request arguments"
 msgstr "Ogiltiga begäran argument"
 
@@ -13997,7 +14003,7 @@ msgstr "Senaste Kända Versioner"
 msgid "Last Login"
 msgstr "Senaste Inloggning"
 
-#: email/doctype/notification/notification.js:34
+#: email/doctype/notification/notification.js:32
 msgid "Last Modified Date"
 msgstr "Senast Ändrad Datum"
 
@@ -14039,6 +14045,11 @@ msgstr "Förra Kvartal"
 #: core/doctype/user/user.json
 msgid "Last Reset Password Key Generated On"
 msgstr "Senast Återställning Lösenord Nyckel Skapades"
+
+#. Label of the datetime_last_run (Datetime) field in DocType 'Notification'
+#: email/doctype/notification/notification.json
+msgid "Last Run"
+msgstr "Sista Körning"
 
 #. Label of the last_sync_on (Datetime) field in DocType 'Google Contacts'
 #: integrations/doctype/google_contacts/google_contacts.json
@@ -14405,7 +14416,7 @@ msgstr "Länk DocType"
 msgid "Link Document Type"
 msgstr "Länk DocType"
 
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:402
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:406
 #: workflow/doctype/workflow_action/workflow_action.py:197
 msgid "Link Expired"
 msgstr "Länk Förfallen"
@@ -14768,7 +14779,7 @@ msgstr "Inloggning erfodras för att se webbformulär lista. Aktivera {0} för a
 msgid "Login link sent to your email"
 msgstr "Inloggning länk skickad till din e-post"
 
-#: auth.py:319 auth.py:322
+#: auth.py:321 auth.py:324
 msgid "Login not allowed at this time"
 msgstr "Inloggning inte tillåtet vid denna tid"
 
@@ -15134,10 +15145,12 @@ msgstr "Markdown Redigerare"
 msgid "Marked As Spam"
 msgstr "Markerad som Skräp"
 
-#. Name of a DocType
-#: website/doctype/marketing_campaign/marketing_campaign.json
-msgid "Marketing Campaign"
-msgstr "Marknadsföring Kampanj"
+#. Name of a role
+#: website/doctype/utm_campaign/utm_campaign.json
+#: website/doctype/utm_medium/utm_medium.json
+#: website/doctype/utm_source/utm_source.json
+msgid "Marketing Manager"
+msgstr "Marknadsföring Ansvarig"
 
 #: desk/page/setup_wizard/install_fixtures.py:51
 msgid "Master"
@@ -15220,7 +15233,7 @@ msgid "Maximum points allowed after multiplying points with the multiplier value
 "(Note: For no limit leave this field empty or set 0)"
 msgstr "Maximum Poäng tillåtna efter multiplicering av poäng med multiplikator värde (Obs: För ingen gräns lämna detta fält tomt eller ange 0)"
 
-#: model/rename_doc.py:673
+#: model/rename_doc.py:679
 msgid "Maximum {0} rows allowed"
 msgstr "Maximum {0} rader tillåtna"
 
@@ -15235,7 +15248,7 @@ msgstr "Innebörd av Godkänn, Annullera, Ändra"
 #. Option for the 'Priority' (Select) field in DocType 'ToDo'
 #. Label of the medium (Data) field in DocType 'Web Page View'
 #: desk/doctype/todo/todo.json public/js/frappe/form/sidebar/assign_to.js:220
-#: public/js/frappe/utils/utils.js:1736
+#: public/js/frappe/utils/utils.js:1737
 #: website/doctype/web_page_view/web_page_view.json
 #: website/report/website_analytics/website_analytics.js:40
 msgid "Medium"
@@ -15247,7 +15260,7 @@ msgstr "Medium"
 msgid "Meeting"
 msgstr "Möte"
 
-#: email/doctype/notification/notification.js:189
+#: email/doctype/notification/notification.js:196
 #: integrations/doctype/webhook/webhook.js:96
 msgid "Meets Condition?"
 msgstr "Uppfyller Villkor?"
@@ -15310,7 +15323,7 @@ msgstr "Sammanslafning är endast möjlig mellan grupp till grupp eller underord
 #: email/doctype/auto_email_report/auto_email_report.json
 #: email/doctype/email_queue/email_queue.json
 #: email/doctype/newsletter/newsletter.json
-#: email/doctype/notification/notification.js:194
+#: email/doctype/notification/notification.js:201
 #: email/doctype/notification/notification.json
 #: public/js/frappe/ui/messages.js:175
 #: public/js/frappe/views/communication.js:114
@@ -15491,6 +15504,21 @@ msgstr "Minimum Lösenord Krav"
 #: core/doctype/package_release/package_release.json
 msgid "Minor"
 msgstr "Minor"
+
+#. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
+#: email/doctype/notification/notification.json
+msgid "Minutes After"
+msgstr "Minuter Efter"
+
+#. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
+#: email/doctype/notification/notification.json
+msgid "Minutes Before"
+msgstr "Minuter Före"
+
+#. Label of the minutes_offset (Int) field in DocType 'Notification'
+#: email/doctype/notification/notification.json
+msgid "Minutes Offset"
+msgstr "Minutförskjutning"
 
 #: integrations/doctype/ldap_settings/ldap_settings.py:102
 #: integrations/doctype/ldap_settings/ldap_settings.py:107
@@ -16222,7 +16250,7 @@ msgstr "Ny Värde"
 msgid "New Workflow Name"
 msgstr "Ny Arbetsflöde Namn"
 
-#: public/js/frappe/views/workspace/workspace.js:373
+#: public/js/frappe/views/workspace/workspace.js:378
 msgid "New Workspace"
 msgstr "Ny Arbetsyta"
 
@@ -16306,23 +16334,23 @@ msgstr "Nyhetsbrev E-post Grupp"
 #: email/doctype/email_group/email_group.json
 #: email/doctype/email_group_member/email_group_member.json
 #: email/doctype/newsletter/newsletter.json
-#: website/doctype/marketing_campaign/marketing_campaign.json
+#: website/doctype/utm_campaign/utm_campaign.json
 msgid "Newsletter Manager"
 msgstr "Nyhetsbrev Ansvarig"
 
-#: email/doctype/newsletter/newsletter.py:130
+#: email/doctype/newsletter/newsletter.py:128
 msgid "Newsletter has already been sent"
 msgstr "Nyhetsbrev redan skickad"
 
-#: email/doctype/newsletter/newsletter.py:149
+#: email/doctype/newsletter/newsletter.py:147
 msgid "Newsletter must be published to send webview link in email"
 msgstr "Nyhetsbrev måste publiceras för att skicka webbvylänk i E-post"
 
-#: email/doctype/newsletter/newsletter.py:137
+#: email/doctype/newsletter/newsletter.py:135
 msgid "Newsletter should have atleast one recipient"
 msgstr "Nyhetsbrev ska ha minst en mottagare"
 
-#: email/doctype/newsletter/newsletter.py:390
+#: email/doctype/newsletter/newsletter.py:388
 msgid "Newsletters"
 msgstr "Nyhetsbrev"
 
@@ -16402,7 +16430,7 @@ msgstr "Nästa på Klick"
 #. Settings'
 #. Option for the 'Standard' (Select) field in DocType 'Print Format'
 #: core/doctype/page/page.json core/doctype/report/report.json
-#: email/doctype/notification/notification.py:92
+#: email/doctype/notification/notification.py:96
 #: integrations/doctype/ldap_settings/ldap_settings.json
 #: integrations/doctype/webhook/webhook.py:128
 #: printing/doctype/print_format/print_format.json
@@ -16570,11 +16598,11 @@ msgstr "Ingen Välj Fält Hittad"
 msgid "No Suggestions"
 msgstr "Inga Förslag"
 
-#: desk/reportview.py:595
+#: desk/reportview.py:637
 msgid "No Tags"
 msgstr "Inga Taggar"
 
-#: public/js/frappe/ui/notifications/notifications.js:435
+#: public/js/frappe/ui/notifications/notifications.js:440
 msgid "No Upcoming Events"
 msgstr "Inga Kommande Händelser"
 
@@ -16586,7 +16614,7 @@ msgstr "Inga aktiviteter att visa"
 msgid "No address added yet."
 msgstr "Ingen adress upplagd än"
 
-#: email/doctype/notification/notification.js:222
+#: email/doctype/notification/notification.js:229
 msgid "No alerts for today"
 msgstr "Inga varningar för idag"
 
@@ -16602,11 +16630,11 @@ msgstr "Inga brutna länkar hittades i e-post"
 msgid "No changes in document"
 msgstr "Inga Ändringar"
 
-#: public/js/frappe/views/workspace/workspace.js:592
+#: public/js/frappe/views/workspace/workspace.js:597
 msgid "No changes made"
 msgstr "Inga ändringar gjorda"
 
-#: model/rename_doc.py:364
+#: model/rename_doc.py:366
 msgid "No changes made because old and new name are the same."
 msgstr "Inga ändringar har gjorts eftersom gamla och nya namn är samma."
 
@@ -16750,11 +16778,11 @@ msgstr "Inga poster kommer att exporteras"
 msgid "No rows"
 msgstr "Inga rader"
 
-#: email/doctype/notification/notification.py:125
+#: email/doctype/notification/notification.py:129
 msgid "No subject"
 msgstr "Inget Ämne"
 
-#: www/printview.py:442
+#: www/printview.py:441
 msgid "No template found at path: {0}"
 msgstr "Ingen mall finns på sökväg: {0}"
 
@@ -16846,7 +16874,7 @@ msgstr "Ej Underordnad Av"
 msgid "Not Equals"
 msgstr "Inte Lika"
 
-#: app.py:366 www/404.html:3
+#: app.py:390 www/404.html:3
 msgid "Not Found"
 msgstr "Hittades Inte"
 
@@ -16872,7 +16900,7 @@ msgstr "Ej Länkad till någon post"
 msgid "Not Nullable"
 msgstr "Ej Nollställbar"
 
-#: __init__.py:1032 app.py:357 desk/calendar.py:26 geo/utils.py:97
+#: __init__.py:1032 app.py:381 desk/calendar.py:26 geo/utils.py:97
 #: public/js/frappe/web_form/webform_script.js:15
 #: website/doctype/web_form/web_form.py:602
 #: website/page_renderers/not_permitted_page.py:20 www/login.py:182
@@ -16944,7 +16972,7 @@ msgstr "Inte Aktiv"
 msgid "Not allowed for {0}: {1}"
 msgstr "Ej tillåtet för {0}: {1}"
 
-#: email/doctype/notification/notification.py:528
+#: email/doctype/notification/notification.py:591
 msgid "Not allowed to attach {0} document, please enable Allow Print For {0} in Print Settings"
 msgstr "Ej Tillåtet att bifoga {0} dokument, aktivera \"Tillåt Utskrift\" för {0} i Utskrift Inställningar"
 
@@ -16952,11 +16980,11 @@ msgstr "Ej Tillåtet att bifoga {0} dokument, aktivera \"Tillåt Utskrift\" för
 msgid "Not allowed to create custom Virtual DocType."
 msgstr "Ej Tillåtet att skapa anpassad Virtuell DocType."
 
-#: www/printview.py:140
+#: www/printview.py:139
 msgid "Not allowed to print cancelled documents"
 msgstr "Ej Tillåtet att skriva ut annullerade dokument"
 
-#: www/printview.py:137
+#: www/printview.py:136
 msgid "Not allowed to print draft documents"
 msgstr "Ej Tillåtet att skriva ut utkast av dokument"
 
@@ -16964,7 +16992,7 @@ msgstr "Ej Tillåtet att skriva ut utkast av dokument"
 msgid "Not allowed via controller permission check"
 msgstr "Ej Tillåtet via kontroll behörighet koll"
 
-#: public/js/frappe/request.js:145 website/js/website.js:94
+#: public/js/frappe/request.js:146 website/js/website.js:94
 msgid "Not found"
 msgstr "Ej Hittad"
 
@@ -16978,8 +17006,8 @@ msgstr "Ej i Utvecklar Läge! Ändra site_config.json eller skapa 'Anpassad' Doc
 
 #: __init__.py:704 api/v1.py:88 api/v1.py:93
 #: core/doctype/system_settings/system_settings.py:210
-#: public/js/frappe/request.js:157 public/js/frappe/request.js:167
-#: public/js/frappe/request.js:172
+#: public/js/frappe/request.js:158 public/js/frappe/request.js:168
+#: public/js/frappe/request.js:173
 #: public/js/frappe/views/kanban/kanban_board.bundle.js:67
 #: website/doctype/web_form/web_form.py:615 website/js/website.js:97
 msgid "Not permitted"
@@ -17046,7 +17074,7 @@ msgstr "Obs Din begäran om borttagning av kontot kommer att uppfyllas inom {0} 
 msgid "Notes:"
 msgstr "Anteckningar:"
 
-#: public/js/frappe/ui/notifications/notifications.js:485
+#: public/js/frappe/ui/notifications/notifications.js:490
 msgid "Nothing New"
 msgstr "Inget nytt"
 
@@ -17113,15 +17141,15 @@ msgstr "Avisering Prenumererad Dokument"
 msgid "Notification sent to"
 msgstr "Avisering skickad till"
 
-#: email/doctype/notification/notification.py:433
+#: email/doctype/notification/notification.py:496
 msgid "Notification: customer {0} has no Mobile number set"
 msgstr "Meddelande: kund {0} har inget mobil nummer angivet"
 
-#: email/doctype/notification/notification.py:419
+#: email/doctype/notification/notification.py:482
 msgid "Notification: document {0} has no {1} number set (field: {2})"
 msgstr "Meddelande: dokument {0} har inget {1} nummer angivet (fält: {2})"
 
-#: email/doctype/notification/notification.py:428
+#: email/doctype/notification/notification.py:491
 msgid "Notification: user {0} has no Mobile number set"
 msgstr "Meddelande: användare {0} har inget mobil nummer angivet"
 
@@ -17383,7 +17411,7 @@ msgstr "Kontor"
 msgid "Office 365"
 msgstr "Office 365"
 
-#: core/doctype/server_script/server_script.js:33
+#: core/doctype/server_script/server_script.js:34
 msgid "Official Documentation"
 msgstr "Officiell Dokumentation"
 
@@ -18145,7 +18173,7 @@ msgid "Parameter"
 msgstr "Parameter"
 
 #: public/js/frappe/model/model.js:142
-#: public/js/frappe/views/workspace/workspace.js:382
+#: public/js/frappe/views/workspace/workspace.js:387
 msgid "Parent"
 msgstr "Överordnad"
 
@@ -18315,7 +18343,7 @@ msgstr "Instruktioner för återställning av lösenord är skickade till {}'s e
 msgid "Password set"
 msgstr "Lösenord angiven"
 
-#: auth.py:238
+#: auth.py:240
 msgid "Password size exceeded the maximum allowed size"
 msgstr "Lösenord längd överskred maximum tillåten längd."
 
@@ -18331,7 +18359,7 @@ msgstr "Lösenord stämmer inte"
 msgid "Passwords do not match!"
 msgstr "Lösenord stämmer inte!"
 
-#: email/doctype/newsletter/newsletter.py:156
+#: email/doctype/newsletter/newsletter.py:154
 msgid "Past dates are not allowed for Scheduling."
 msgstr "Tidigare datum är inte tillåtna för Schemaläggning."
 
@@ -18882,7 +18910,7 @@ msgstr "Ta bort skrivare mappning i Skrivare Inställningar och försök igen."
 msgid "Please save before attaching."
 msgstr "Spara före bifoga."
 
-#: email/doctype/newsletter/newsletter.py:133
+#: email/doctype/newsletter/newsletter.py:131
 msgid "Please save the Newsletter before sending"
 msgstr "Spara Nyhetsbrev före skicka"
 
@@ -18894,7 +18922,7 @@ msgstr "Spara dokument före tilldelning"
 msgid "Please save the document before removing assignment"
 msgstr "Spara dokument före radering av tilldelning"
 
-#: public/js/frappe/views/reports/report_view.js:1623
+#: public/js/frappe/views/reports/report_view.js:1632
 msgid "Please save the report first"
 msgstr "Spara Rapport"
 
@@ -18934,7 +18962,7 @@ msgstr "Välj fil först."
 msgid "Please select a file or url"
 msgstr "Välj fil eller URL"
 
-#: model/rename_doc.py:668
+#: model/rename_doc.py:674
 msgid "Please select a valid csv file with data"
 msgstr "Välj giltig CSV fil med data"
 
@@ -19024,15 +19052,27 @@ msgstr "Specificera"
 msgid "Please specify a valid parent DocType for {0}"
 msgstr "Ange giltig överordnad DocType för {0}"
 
-#: email/doctype/notification/notification.py:141
+#: email/doctype/notification/notification.py:154
+msgid "Please specify at least 10 minutes due to the trigger cadence of the scheduler"
+msgstr "Ange minst 10 minuter på grund av utlösande stegfrekvens av schemaläggare"
+
+#: email/doctype/notification/notification.py:151
+msgid "Please specify the minutes offset"
+msgstr "Ange minutförskjutning"
+
+#: email/doctype/notification/notification.py:145
 msgid "Please specify which date field must be checked"
 msgstr "Ange Datum Fält som måste kontrolleras"
 
-#: email/doctype/notification/notification.py:144
+#: email/doctype/notification/notification.py:149
+msgid "Please specify which datetime field must be checked"
+msgstr "Ange vilket datum och tid fält som måste bli vald"
+
+#: email/doctype/notification/notification.py:158
 msgid "Please specify which value field must be checked"
 msgstr "Ange Värde Fält som måste kontrolleras"
 
-#: public/js/frappe/request.js:184
+#: public/js/frappe/request.js:185
 #: public/js/frappe/views/translation_manager.js:102
 msgid "Please try again"
 msgstr "Försök igen"
@@ -19045,7 +19085,7 @@ msgstr "Uppdatera {} innan du fortsätter."
 msgid "Please use a valid LDAP search filter"
 msgstr "Använd giltig LDAP Sökfilter"
 
-#: email/doctype/newsletter/newsletter.py:333
+#: email/doctype/newsletter/newsletter.py:331
 msgid "Please verify your Email Address"
 msgstr "Kontrollera din E-post"
 
@@ -19243,7 +19283,7 @@ msgstr "Tryck på Enter att Spara"
 #: desk/doctype/custom_html_block/custom_html_block.json
 #: email/doctype/newsletter/newsletter.js:14
 #: email/doctype/newsletter/newsletter.js:42
-#: email/doctype/notification/notification.js:183
+#: email/doctype/notification/notification.js:190
 #: integrations/doctype/webhook/webhook.js:90
 #: printing/doctype/print_style/print_style.json
 #: public/js/frappe/form/controls/markdown_editor.js:17
@@ -19427,7 +19467,7 @@ msgstr "Utskrift Format Hjälp"
 msgid "Print Format Type"
 msgstr "Utskrift Format Typ"
 
-#: www/printview.py:424
+#: www/printview.py:423
 msgid "Print Format {0} is disabled"
 msgstr "Utskrift Format {0} är inaktiverad"
 
@@ -19687,7 +19727,7 @@ msgstr "Leverantör Namn"
 #: desk/doctype/event/event.json desk/doctype/note/note.json
 #: desk/doctype/note/note_list.js:6 desk/doctype/workspace/workspace.json
 #: public/js/frappe/views/interaction.js:78
-#: public/js/frappe/views/workspace/workspace.js:388
+#: public/js/frappe/views/workspace/workspace.js:393
 msgid "Public"
 msgstr "Publik"
 
@@ -20400,6 +20440,11 @@ msgstr "Referens"
 msgid "Reference Date"
 msgstr "Referens Datum"
 
+#. Label of the datetime_changed (Select) field in DocType 'Notification'
+#: email/doctype/notification/notification.json
+msgid "Reference Datetime"
+msgstr "Referens Datum och Tid"
+
 #. Label of the reference_name (Data) field in DocType 'Email Queue'
 #: email/doctype/email_queue/email_queue.json
 msgid "Reference DocName"
@@ -20917,7 +20962,7 @@ msgstr "Svara Alla"
 #: desk/doctype/workspace_link/workspace_link.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: email/doctype/auto_email_report/auto_email_report.json
-#: public/js/frappe/request.js:610 public/js/frappe/utils/utils.js:924
+#: public/js/frappe/request.js:611 public/js/frappe/utils/utils.js:924
 msgid "Report"
 msgstr "Rapport"
 
@@ -21151,12 +21196,12 @@ msgstr "Begäran Sätt"
 msgid "Request Structure"
 msgstr "Begäran Struktur"
 
-#: public/js/frappe/request.js:228
+#: public/js/frappe/request.js:229
 msgid "Request Timed Out"
 msgstr "Begäran tog för lång tid"
 
 #. Label of the timeout (Int) field in DocType 'Webhook'
-#: integrations/doctype/webhook/webhook.json public/js/frappe/request.js:241
+#: integrations/doctype/webhook/webhook.json public/js/frappe/request.js:242
 msgid "Request Timeout"
 msgstr "Begäran förfaller om"
 
@@ -21302,7 +21347,7 @@ msgstr "Svar"
 msgid "Response Type"
 msgstr "Svar Typ"
 
-#: public/js/frappe/ui/notifications/notifications.js:407
+#: public/js/frappe/ui/notifications/notifications.js:412
 msgid "Rest of the day"
 msgstr "Resten av dagen"
 
@@ -21988,8 +22033,8 @@ msgstr "Lördag"
 #: public/js/frappe/views/kanban/kanban_settings.js:189
 #: public/js/frappe/views/kanban/kanban_view.js:345
 #: public/js/frappe/views/reports/query_report.js:1803
-#: public/js/frappe/views/reports/report_view.js:1640
-#: public/js/frappe/views/workspace/workspace.js:319
+#: public/js/frappe/views/reports/report_view.js:1649
+#: public/js/frappe/views/workspace/workspace.js:324
 #: public/js/frappe/widgets/base_widget.js:142
 #: public/js/frappe/widgets/quick_list_widget.js:119
 #: public/js/print_format_builder/print_format_builder.bundle.js:15
@@ -22006,7 +22051,7 @@ msgid "Save Anyway"
 msgstr "Spara Ändå"
 
 #: public/js/frappe/views/reports/report_view.js:1311
-#: public/js/frappe/views/reports/report_view.js:1647
+#: public/js/frappe/views/reports/report_view.js:1656
 msgid "Save As"
 msgstr "Spara Som"
 
@@ -22035,7 +22080,7 @@ msgstr "Spara Dokument    ==>"
 #: printing/page/print_format_builder/print_format_builder.js:845
 #: public/js/frappe/form/toolbar.js:262
 #: public/js/frappe/views/kanban/kanban_board.bundle.js:916
-#: public/js/frappe/views/workspace/workspace.js:614
+#: public/js/frappe/views/workspace/workspace.js:619
 msgid "Saved"
 msgstr "Sparad"
 
@@ -22045,7 +22090,7 @@ msgstr "Sparade Filter"
 
 #: public/js/frappe/list/list_settings.js:40
 #: public/js/frappe/views/kanban/kanban_settings.js:47
-#: public/js/frappe/views/workspace/workspace.js:331
+#: public/js/frappe/views/workspace/workspace.js:336
 msgid "Saving"
 msgstr "Sparar"
 
@@ -22744,6 +22789,11 @@ msgstr "Ej Tillåtet att godkänna själv "
 msgid "Send"
 msgstr "Skicka"
 
+#. Description of the 'Minutes Offset' (Int) field in DocType 'Notification'
+#: email/doctype/notification/notification.json
+msgid "Send <b>at the earliest</b> this number of minutes before or after the reference datetime. The actual sending may be delayed by up to 5 minutes due to the scheduler's trigger cadence."
+msgstr "Skicka <b>tidigast</b> detta antal minuter före eller efter referensdatum. Den faktiska sändningen kan fördröjas med upp till 5 minuter på grund av schemaläggarens stegfrekvens."
+
 #. Label of the send_after (Datetime) field in DocType 'Communication'
 #. Label of the send_after (Datetime) field in DocType 'Email Queue'
 #: core/doctype/communication/communication.json
@@ -22880,6 +22930,12 @@ msgstr "Skicka igen"
 #: email/doctype/notification/notification.json
 msgid "Send alert if date matches this field's value"
 msgstr "Skicka avisering om datum stämmer med detta fält värde"
+
+#. Description of the 'Reference Datetime' (Select) field in DocType
+#. 'Notification'
+#: email/doctype/notification/notification.json
+msgid "Send alert if datetime matches this field's value"
+msgstr "Skicka varning om datum och tid stämmer med detta fält värde"
 
 #. Description of the 'Value Changed' (Select) field in DocType 'Notification'
 #: email/doctype/notification/notification.json
@@ -23063,7 +23119,7 @@ msgstr "Nummer Serie {0} används redan i {1}"
 msgid "Server Action"
 msgstr "Server Åtgärd"
 
-#: public/js/frappe/request.js:606
+#: public/js/frappe/request.js:607
 msgid "Server Error"
 msgstr "Server Fel"
 
@@ -23085,11 +23141,11 @@ msgstr "Server Skript"
 msgid "Server Scripts are disabled. Please enable server scripts from bench configuration."
 msgstr "Server Skript är inaktiverad. Aktivera Server Skript från bench."
 
-#: core/doctype/server_script/server_script.js:36
+#: core/doctype/server_script/server_script.js:37
 msgid "Server Scripts feature is not available on this site."
 msgstr "Server Skript funktion är inte tillgänglig på denna webbplats."
 
-#: public/js/frappe/request.js:243 public/js/frappe/request.js:251
+#: public/js/frappe/request.js:244 public/js/frappe/request.js:252
 msgid "Server was too busy to process this request. Please try again."
 msgstr "Servern var för upptagen för att behandla denna begäran. Var god försök igen."
 
@@ -23124,7 +23180,7 @@ msgstr "Session Inställningar"
 msgid "Session Defaults Saved"
 msgstr "Session Inställningar Sparade"
 
-#: app.py:348
+#: app.py:372
 msgid "Session Expired"
 msgstr "Session Förföll"
 
@@ -23373,7 +23429,7 @@ msgstr "Konfigurerar System"
 #: integrations/workspace/integrations/integrations.json
 #: public/js/frappe/form/templates/print_layout.html:25
 #: public/js/frappe/ui/toolbar/toolbar.js:300
-#: public/js/frappe/views/workspace/workspace.js:345
+#: public/js/frappe/views/workspace/workspace.js:350
 #: website/doctype/web_form/web_form.json
 #: website/doctype/web_page/web_page.json
 #: website/workspace/website/website.json
@@ -23419,7 +23475,7 @@ msgid "Setup > User Permissions"
 msgstr "Inställningar > Användar Behörigheter"
 
 #: public/js/frappe/views/reports/query_report.js:1676
-#: public/js/frappe/views/reports/report_view.js:1618
+#: public/js/frappe/views/reports/report_view.js:1627
 msgid "Setup Auto Email"
 msgstr "Automatisk E-post Rapport"
 
@@ -23993,6 +24049,15 @@ msgstr "Bildspel Namn"
 msgid "Slideshow like display for the website"
 msgstr "Bildspel som visning för Webbplats"
 
+#. Label of the slug (Data) field in DocType 'UTM Campaign'
+#. Label of the slug (Data) field in DocType 'UTM Medium'
+#. Label of the slug (Data) field in DocType 'UTM Source'
+#: website/doctype/utm_campaign/utm_campaign.json
+#: website/doctype/utm_medium/utm_medium.json
+#: website/doctype/utm_source/utm_source.json
+msgid "Slug"
+msgstr "Slug"
+
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
@@ -24180,7 +24245,7 @@ msgstr "Ange anpassad timeout, standard timeout är 1500 sekunder"
 msgid "Splash Image"
 msgstr "Splash Bild"
 
-#: desk/reportview.py:383 public/js/frappe/web_form/web_form_list.js:175
+#: desk/reportview.py:387 public/js/frappe/web_form/web_form_list.js:175
 #: templates/print_formats/standard_macros.html:44
 msgid "Sr"
 msgstr "Rad"
@@ -24592,7 +24657,7 @@ msgstr "Underdomän"
 #: desk/doctype/notification_log/notification_log.json
 #: email/doctype/email_template/email_template.json
 #: email/doctype/newsletter/newsletter.json
-#: email/doctype/notification/notification.js:193
+#: email/doctype/notification/notification.js:200
 #: email/doctype/notification/notification.json
 #: public/js/frappe/views/communication.js:107
 #: public/js/frappe/views/inbox/inbox_view.js:63
@@ -24799,7 +24864,7 @@ msgstr "Antal Klara Jobb "
 msgid "Successful Transactions"
 msgstr "Klara Transaktioner"
 
-#: model/rename_doc.py:682
+#: model/rename_doc.py:688
 msgid "Successful: {0} to {1}"
 msgstr "Klar: {0} till {1}"
 
@@ -25140,9 +25205,11 @@ msgstr "System Logg"
 #: social/doctype/energy_point_settings/energy_point_settings.json
 #: website/doctype/discussion_reply/discussion_reply.json
 #: website/doctype/discussion_topic/discussion_topic.json
-#: website/doctype/marketing_campaign/marketing_campaign.json
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 #: website/doctype/personal_data_download_request/personal_data_download_request.json
+#: website/doctype/utm_campaign/utm_campaign.json
+#: website/doctype/utm_medium/utm_medium.json
+#: website/doctype/utm_source/utm_source.json
 #: website/doctype/web_page_view/web_page_view.json
 #: website/doctype/web_template/web_template.json
 #: website/doctype/website_route_meta/website_route_meta.json
@@ -25379,7 +25446,7 @@ msgstr "Tillfälligt Inaktiverad"
 msgid "Test Job ID"
 msgstr "Test Jobb ID"
 
-#: email/doctype/newsletter/newsletter.py:94
+#: email/doctype/newsletter/newsletter.py:92
 msgid "Test email sent to {0}"
 msgstr "Test E-post skickad till {0}"
 
@@ -25450,7 +25517,7 @@ msgstr "Tack för din E-post"
 msgid "Thank you for your feedback!"
 msgstr "Tack för återkoppling!"
 
-#: email/doctype/newsletter/newsletter.py:332
+#: email/doctype/newsletter/newsletter.py:330
 msgid "Thank you for your interest in subscribing to our updates"
 msgstr "Tack för prenumereration på vårt nyghetsbrev"
 
@@ -25477,7 +25544,7 @@ msgid "The Client ID obtained from the Google Cloud Console under <a href=\"http
 "</a>"
 msgstr "Klient ID som erhållits från Google Cloud Console under <a href=\"https://console.cloud.google.com/apis/credentials\">\"API och tjänster\" &gt; \"Inloggningsuppgifter\"</a>"
 
-#: email/doctype/notification/notification.py:184
+#: email/doctype/notification/notification.py:198
 msgid "The Condition '{0}' is invalid"
 msgstr "Villkor '{0}' är ogiltig"
 
@@ -25489,7 +25556,7 @@ msgstr "Angiven Fil URL är felaktig"
 msgid "The Push Relay Server URL key (`push_relay_server_url`) is missing in your site config"
 msgstr "Push Relay Server URL nyckel (`push_relay_server_url`) saknas i webbplats konfiguration"
 
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:363
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:367
 msgid "The User record for this request has been auto-deleted due to inactivity by system admins."
 msgstr "Användare post för denna begäran har raderats automatiskt på grund av inaktivitet av System Administratörer."
 
@@ -25618,7 +25685,7 @@ msgstr "Sida finns inte längre."
 msgid "The password of your account has expired."
 msgstr "Ditt Konto Lösenord har gått ut."
 
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:394
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:398
 msgid "The process for deletion of {0} data associated with {1} has been initiated."
 msgstr "Process för att radera {0} data kopplade till {1} är påbörjad."
 
@@ -25639,7 +25706,7 @@ msgstr "Länk för återställning av lösenord har upphört att gälla"
 msgid "The reset password link has either been used before or is invalid"
 msgstr "Länk för återställning av lösenord har antingen använts tidigare eller är ogiltig"
 
-#: app.py:367 public/js/frappe/request.js:147
+#: app.py:391 public/js/frappe/request.js:148
 msgid "The resource you are looking for is not available"
 msgstr "Resurs är inte tillgänglig"
 
@@ -25651,7 +25718,7 @@ msgstr "Roll {0} ska vara anpassad roll."
 msgid "The selected document {0} is not a {1}."
 msgstr "Vald dokument {0} är inte {1}."
 
-#: utils/response.py:317
+#: utils/response.py:324
 msgid "The system is being updated. Please refresh again after a few moments."
 msgstr "Systemet håller på att uppdateras. Uppdatera igen efter en stund."
 
@@ -25714,7 +25781,7 @@ msgstr "Tema URL"
 msgid "There are documents which have workflow states that do not exist in this Workflow. It is recommended that you add these states to the Workflow and change their states before removing these states."
 msgstr "Det finns dokument som har arbetsflöde tillstånd som inte finns i detta arbetsflöde. Det rekommenderas att du lägger till dessa tillstånd i arbetsflöde och ändrar deras tillstånd innan du tar bort dessa tillstånd."
 
-#: public/js/frappe/ui/notifications/notifications.js:435
+#: public/js/frappe/ui/notifications/notifications.js:440
 msgid "There are no upcoming events for you."
 msgstr "Det finns inga kommande händelser för dig."
 
@@ -25743,7 +25810,7 @@ msgstr "Det finns fel i adress mall {0}"
 msgid "There is no data to be exported"
 msgstr "Det finns ingen data att exportera"
 
-#: public/js/frappe/ui/notifications/notifications.js:485
+#: public/js/frappe/ui/notifications/notifications.js:490
 msgid "There is nothing new to show you right now."
 msgstr "Det finns inget nytt att visa dig just nu."
 
@@ -25980,7 +26047,7 @@ msgstr "Detta liknar vanlig använd lösenord."
 msgid "This is the number of the last created transaction with this prefix"
 msgstr "Detta är nummer på senast skapad transaktion med detta prefix"
 
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:403
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:407
 msgid "This link has already been activated for verification."
 msgstr "Länk är redan aktiverad för verifiering."
 
@@ -26016,7 +26083,7 @@ msgstr "Rapport skapades {0}"
 msgid "This report was generated {0}."
 msgstr "Denna rapport skapades {0}."
 
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:118
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:122
 msgid "This request has not yet been approved by the user."
 msgstr "Begäran har ännu inte godkänts av Användare."
 
@@ -26176,7 +26243,7 @@ msgstr "Tid i sekunder att behålla QR Kod Bild på server. Min: <strong>240</st
 msgid "Time series based on is required to create a dashboard chart"
 msgstr "Tid Nummer Serier baserade på erfodras för att skapa Översikt Panel"
 
-#: public/js/frappe/form/controls/time.js:107
+#: public/js/frappe/form/controls/time.js:124
 msgid "Time {0} must be in format: {1}"
 msgstr "Tid {0} måste vara i format: {1}"
 
@@ -26291,7 +26358,7 @@ msgstr "Tid Stämpel"
 #: desk/doctype/system_health_report_errors/system_health_report_errors.json
 #: desk/doctype/workspace/workspace.json
 #: email/doctype/email_group/email_group.json
-#: public/js/frappe/views/workspace/workspace.js:376
+#: public/js/frappe/views/workspace/workspace.js:381
 #: website/doctype/blog_category/blog_category.json
 #: website/doctype/blog_post/blog_post.json
 #: website/doctype/blog_settings/blog_settings.json
@@ -26403,7 +26470,7 @@ msgstr "För att konfigurera Återkommande, aktivera 'Tillåt Återkommande' fr�
 msgid "To enable it follow the instructions in the following link: {0}"
 msgstr "För att aktivera följinstruktioner på följande länk: {0}"
 
-#: core/doctype/server_script/server_script.js:37
+#: core/doctype/server_script/server_script.js:38
 msgid "To enable server scripts, read the {0}."
 msgstr "För att aktivera serverskript, läs {0}."
 
@@ -26735,7 +26802,12 @@ msgstr "Spåra om E-post är öppnad av mottagare.\n"
 msgid "Track milestones for any document"
 msgstr "Spåra milstolpar för alla dokument"
 
-#: public/js/frappe/utils/utils.js:1771
+#. Label of a Card Break in the Website Workspace
+#: website/workspace/website/website.json
+msgid "Tracking"
+msgstr "Spårning"
+
+#: public/js/frappe/utils/utils.js:1784
 msgid "Tracking URL generated and copied to clipboard"
 msgstr "Spårning URL skapad och kopierad till urklipp"
 
@@ -26788,6 +26860,10 @@ msgstr "Översättningbar"
 #: custom/doctype/customize_form/customize_form.json
 msgid "Translate Link Fields"
 msgstr "Översätt Länk Fält"
+
+#: public/js/frappe/views/reports/report_view.js:1579
+msgid "Translate values"
+msgstr "Översätt värden"
 
 #: public/js/frappe/views/translation_manager.js:11
 msgid "Translate {0}"
@@ -27035,6 +27111,27 @@ msgstr "Sida URL"
 msgid "URL to go to on clicking the slideshow image"
 msgstr "Omdirigering URL när du klickar på Bildspel Bild"
 
+#. Name of a DocType
+#. Label of a Link in the Website Workspace
+#: website/doctype/utm_campaign/utm_campaign.json
+#: website/workspace/website/website.json
+msgid "UTM Campaign"
+msgstr "UTM Kampanj"
+
+#. Name of a DocType
+#. Label of a Link in the Website Workspace
+#: website/doctype/utm_medium/utm_medium.json
+#: website/workspace/website/website.json
+msgid "UTM Medium"
+msgstr "UTM Medium"
+
+#. Name of a DocType
+#. Label of a Link in the Website Workspace
+#: website/doctype/utm_source/utm_source.json
+#: website/workspace/website/website.json
+msgid "UTM Source"
+msgstr "UTM Källa"
+
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgid "UUID"
@@ -27133,7 +27230,7 @@ msgstr "Okänd Kolumn: {0}"
 msgid "Unknown Rounding Method: {}"
 msgstr "Okänd Avrundning Sätt: {}"
 
-#: auth.py:296
+#: auth.py:298
 msgid "Unknown User"
 msgstr "Okänd Användare"
 
@@ -27317,7 +27414,7 @@ msgstr "Uppdaterad till ny Version 🎉"
 msgid "Updated successfully"
 msgstr "Uppdaterad"
 
-#: utils/response.py:316
+#: utils/response.py:323
 msgid "Updating"
 msgstr "Uppdaterar"
 
@@ -27696,7 +27793,7 @@ msgstr "Användare Behörighet"
 #: core/page/permission_manager/permission_manager_help.html:30
 #: core/workspace/users/users.json
 #: public/js/frappe/views/reports/query_report.js:1790
-#: public/js/frappe/views/reports/report_view.js:1666
+#: public/js/frappe/views/reports/report_view.js:1675
 msgid "User Permissions"
 msgstr "Användare Behörigheter"
 
@@ -27833,7 +27930,7 @@ msgid "User {0} does not have the permission to create a Workspace."
 msgstr "Användare {0} har inte behörighet att skapa Arbetsyta."
 
 #: templates/emails/data_deletion_approval.html:1
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:108
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:112
 msgid "User {0} has requested for data deletion"
 msgstr "Användare {0} begärde radering av data"
 
@@ -28154,7 +28251,7 @@ msgid "View Full Log"
 msgstr "Visa Full Logg"
 
 #: public/js/frappe/views/treeview.js:464
-#: public/js/frappe/widgets/quick_list_widget.js:247
+#: public/js/frappe/widgets/quick_list_widget.js:245
 msgid "View List"
 msgstr "Visa Lista"
 
@@ -28474,14 +28571,16 @@ msgstr "Webhook URL"
 #. Group in Module Def's connections
 #. Name of a Workspace
 #: core/doctype/module_def/module_def.json
-#: email/doctype/newsletter/newsletter.py:453
+#: email/doctype/newsletter/newsletter.py:451
 #: public/js/frappe/ui/sidebar.js:153 public/js/frappe/ui/toolbar/about.js:8
 #: website/workspace/website/website.json
 msgid "Website"
 msgstr "Webbplats"
 
 #. Name of a report
+#. Label of a Link in the Website Workspace
 #: website/report/website_analytics/website_analytics.json
+#: website/workspace/website/website.json
 msgid "Website Analytics"
 msgstr "Webbplats Analys"
 
@@ -28983,7 +29082,7 @@ msgstr "Arbetsyta Genväg"
 msgid "Workspace Visibility"
 msgstr "Arbetsyta Synlighet"
 
-#: public/js/frappe/views/workspace/workspace.js:464
+#: public/js/frappe/views/workspace/workspace.js:469
 msgid "Workspace {0} created"
 msgstr "Arbetsyta {0} skapad"
 
@@ -29086,8 +29185,8 @@ msgstr "Gul"
 #. Settings'
 #. Option for the 'Standard' (Select) field in DocType 'Print Format'
 #: core/doctype/page/page.json core/doctype/report/report.json
-#: email/doctype/notification/notification.py:86
 #: email/doctype/notification/notification.py:92
+#: email/doctype/notification/notification.py:96
 #: integrations/doctype/ldap_settings/ldap_settings.json
 #: integrations/doctype/webhook/webhook.py:121
 #: integrations/doctype/webhook/webhook.py:128
@@ -29167,7 +29266,7 @@ msgstr "Du har inte behörighet att skicka e-post i kopplad till detta dokument"
 msgid "You are not allowed to update this Web Form Document"
 msgstr "Du har inte behörighet att uppdatera denna Webb Formulär Dokument"
 
-#: public/js/frappe/request.js:35
+#: public/js/frappe/request.js:36
 msgid "You are not connected to Internet. Retry after sometime."
 msgstr "Du är inte ansluten till nätverk. Försök igen senare."
 
@@ -29346,11 +29445,11 @@ msgstr "Du skapade detta"
 msgid "You do not have Read or Select Permissions for {}"
 msgstr "Du har inte Läs eller Val Behörigheter för {}"
 
-#: public/js/frappe/request.js:174
+#: public/js/frappe/request.js:175
 msgid "You do not have enough permissions to access this resource. Please contact your manager to get access."
 msgstr "Du har inte behörighet för att komma åt denna resurs. Kontakta Administratör ."
 
-#: app.py:358
+#: app.py:382
 msgid "You do not have enough permissions to complete the action"
 msgstr "Du har inte behörighet att slutföra åtgärd"
 
@@ -29363,7 +29462,7 @@ msgstr "Du har inte tillräckligt med poäng"
 msgid "You do not have enough review points"
 msgstr "Du har inte tillräckligt med recension poäng"
 
-#: www/printview.py:376
+#: www/printview.py:375
 msgid "You do not have permission to view this document"
 msgstr "Du har inte behörighet att se detta dokument"
 
@@ -29379,7 +29478,7 @@ msgstr "Du har inte behörighet till Rapport: {0}"
 msgid "You don't have permission to access the {0} DocType."
 msgstr "Du har inte behörighet att komma åt {0} DocType."
 
-#: utils/response.py:270 utils/response.py:274
+#: utils/response.py:277 utils/response.py:281
 msgid "You don't have permission to access this file"
 msgstr "Du har inte behörighet att komma åt den här filen"
 
@@ -29476,7 +29575,7 @@ msgstr "Du måste vara systemanvändare för att komma åt denna sida."
 msgid "You need to be in developer mode to edit a Standard Web Form"
 msgstr "Du måste vara i Utvecklarläge att redigera Standard Webb Formulär"
 
-#: utils/response.py:259
+#: utils/response.py:266
 msgid "You need to be logged in and have System Manager Role to be able to access backups."
 msgstr "Du måste vara inloggad och ha System Ansvarig roll för att kunna ha tillgång till säkerhetskopior."
 
@@ -29512,7 +29611,7 @@ msgstr "Du måste välja index du vill lägga till först."
 msgid "You need to set one IMAP folder for {0}"
 msgstr "Du måste ange en IMAP mapp för {0}"
 
-#: model/rename_doc.py:377
+#: model/rename_doc.py:383
 msgid "You need write permission to rename"
 msgstr "Du har inte behörighet för att byta namn"
 
@@ -29579,12 +29678,12 @@ msgstr "PDF är redo för nedladdning"
 msgid "Your Shortcuts"
 msgstr "Genvägar"
 
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:141
-#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:147
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:145
+#: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:151
 msgid "Your account has been deleted"
 msgstr "Ditt konto är raderad"
 
-#: auth.py:488
+#: auth.py:492
 msgid "Your account has been locked and will resume after {0} seconds"
 msgstr "Ditt konto är låst och kommer att låsas upp efter {0} sekunder"
 
@@ -29634,7 +29733,7 @@ msgstr "Bolag Namn och Adress för E-post Signatur."
 msgid "Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail."
 msgstr "Din fråga har tagits emot. Vi kommer att svara inom kort. Om du har ytterligare information, vänligen svara på detta mail."
 
-#: app.py:349
+#: app.py:373
 msgid "Your session has expired, please login again to continue."
 msgstr "Din session har gått ut, logga in igen för att fortsätta."
 
@@ -29989,7 +30088,7 @@ msgctxt "Minutes (Field: Duration)"
 msgid "m"
 msgstr "m"
 
-#: model/rename_doc.py:212
+#: model/rename_doc.py:213
 msgid "merged {0} into {1}"
 msgstr "slog samman {0} in i {1}"
 
@@ -30149,7 +30248,7 @@ msgstr "röd"
 msgid "removed rows for {0}"
 msgstr "tog bort rader för {0}"
 
-#: model/rename_doc.py:214
+#: model/rename_doc.py:215
 msgid "renamed from {0} to {1}"
 msgstr "ändrade namn från {0} till {1}"
 
@@ -30305,7 +30404,7 @@ msgstr "via Data Import"
 msgid "via Google Meet"
 msgstr "via Google Meet"
 
-#: email/doctype/notification/notification.py:308
+#: email/doctype/notification/notification.py:371
 msgid "via Notification"
 msgstr "via Avisering"
 
@@ -30678,7 +30777,7 @@ msgstr "{0} h"
 msgid "{0} has already assigned default value for {1}."
 msgstr "{0} är redan tilldelat standard värde för {1}."
 
-#: email/doctype/newsletter/newsletter.py:380
+#: email/doctype/newsletter/newsletter.py:378
 msgid "{0} has been successfully added to the Email Group."
 msgstr "{0} är lagd till E-post Grupp."
 
@@ -30686,7 +30785,7 @@ msgstr "{0} är lagd till E-post Grupp."
 msgid "{0} has left the conversation in {1} {2}"
 msgstr "{0} har lämnat konversation i {1} {2}"
 
-#: __init__.py:2507
+#: __init__.py:2510
 msgid "{0} has no versions tracked."
 msgstr "{0} har inga spårade versioner."
 
@@ -30760,7 +30859,7 @@ msgstr "{0} är erfodrad"
 msgid "{0} is not a field of doctype {1}"
 msgstr "{0} är inte ett fält av doctype {1}"
 
-#: www/printview.py:359
+#: www/printview.py:358
 msgid "{0} is not a raw printing format."
 msgstr "{0} är inte Direkt Utskrift Mall."
 
@@ -30924,7 +31023,7 @@ msgstr "{0} måste börja och sluta med bokstav och får bara innehålla bokstä
 msgid "{0} not a valid State"
 msgstr "{0} är inte giltig Tillstånd"
 
-#: model/rename_doc.py:380
+#: model/rename_doc.py:386
 msgid "{0} not allowed to be renamed"
 msgstr "{0} Ej Tillåtet att ändra namn på"
 
@@ -31105,7 +31204,7 @@ msgstr "{0} {1} kan inte vara \"{2}\". Det kan vara en av följande: \"{3}\""
 msgid "{0} {1} cannot be a leaf node as it has children"
 msgstr "{0} {1} kan inte vara undernod då den har undernoder"
 
-#: model/rename_doc.py:371
+#: model/rename_doc.py:373
 msgid "{0} {1} does not exist, select a new target to merge"
 msgstr "{0} {1} existerar inte. Välj ny mål att sammanfoga"
 
@@ -31292,7 +31391,7 @@ msgstr "{} är inaktiverad. Den kan bara aktiveras om {} är markerad."
 msgid "{} is not a valid date string."
 msgstr "{} är inte giltig datum sträng."
 
-#: commands/utils.py:539
+#: commands/utils.py:547
 msgid "{} not found in PATH! This is required to access the console."
 msgstr "{} hittades inte i Sökväg! Detta erfodras för att komma åt konsol."
 
