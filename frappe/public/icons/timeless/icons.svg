@@ -6,9 +6,11 @@ Instructions:
 3. Don't set stroke, fill colour
 4. Use viewport 24 24
 
+Tip: use lucide.svg in /icons for all downloaded icons
+
 -->
 
-<svg id="frappe-symbols" aria-hidden="true" style="display: none;" class="es-icon" xmlns="http://www.w3.org/2000/svg">
+<svg id="frappe-symbols" aria-hidden="true" style="display: none;" class="icon" xmlns="http://www.w3.org/2000/svg">
 	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-up-line">
 		<path d="M13 10.5L8 5.5L3 10.5" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
@@ -327,6 +329,14 @@ Instructions:
 
 	<symbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="icon-comment">
 		<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>
+	</symbol>
+
+	<symbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="icon-home">
+		<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+	</symbol>
+
+	<symbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="icon-grid">
+		<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>
 	</symbol>
 
 	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-refresh">

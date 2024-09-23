@@ -473,6 +473,9 @@ def get_workspace_sidebar_items():
 			if page["name"] in workspace_visibilty:
 				page["visibility"] = workspace_visibilty[page["name"]]
 
+			if not page["app"] and page["module"]:
+				page["app"] = frappe.db.get_value("Module Def", page["module"], "app_name")
+
 		except frappe.PermissionError:
 			pass
 	if private_pages:

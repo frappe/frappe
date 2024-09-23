@@ -13,77 +13,10 @@
 		background-color: var(--subtle-fg);
 		font-size: var(--text-base);
 	}
-
-	.me-container {
-		max-width: 540px;
-		margin: 3rem auto;
-		padding: var(--padding-2xl);
-		border-radius: var(--border-radius-lg);
-		background-color: var(--bg-color);
-		/* border: 1px solid var(--border-color); */
-		box-shadow: var(--shadow-lg);
-	}
-
-	.me-items {
-		border: 1px solid var(--border-color);
-		border-radius: var(--border-radius);
-	}
-
-	.me-section {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 10px;
-		border-bottom: 1px solid var(--border-color);
-	}
-
-	.me-section.head {
-		padding: 0;
-		padding-bottom: var(--padding-lg);
-		margin-top: -10px;
-		border-bottom: none;
-	}
-
-	.me-section:last-child {
-		border-bottom: none;
-	}
-
-	.icon-md {
-		margin-top: -3px;
-	}
-
-	.icon {
-		stroke: var(--text-light);
-	}
-
-	.me-section a {
-		text-decoration: none;
-	}
-
-	.item-link-text {
-		padding-left: var(--padding-sm);
-		color: var(--text-light);
-	}
-
-	.title {
-		font-weight: var(--weight-semibold);
-		font-size: var(--text-lg);
-		color: var(--text-color);
-	}
-
-	.me-logout {
-		margin: var(--margin-md) auto;
-		text-align: center;
-	}
-
-	.me-logout a {
-		color: var(--text-light);
-	}
-
 </style>
 
-<div class="me-container">
-	<div class="me-section head">
+<div class="portal-container">
+	<div class="portal-section head">
 		<div class="title">{{_("Settings")}}</div>
 		<div>
 			<span class="my-account-avatar">
@@ -94,8 +27,8 @@
 			</span>
 		</div>
 	</div>
-	<div class="me-items">
-		<div class="me-section">
+	<div class="portal-items">
+		<div class="portal-section">
 			<span class="my-account-item-link">
 				<a href="/update-profile/{{ user }}">
 					<svg class="edit-profile-icon icon icon-md">
@@ -108,7 +41,7 @@
 			</span>
 		</div>
 
-		<div class="me-section">
+		<div class="portal-section">
 			<span class="my-account-item-link">
 				<a href="/update-password">
 					<svg class="right-icon icon icon-md"><use href="#icon-lock"></use></svg>
@@ -116,7 +49,7 @@
 				</a>
 			</span>
 		</div>
-		<div class="me-section">
+		<div class="portal-section">
 			<span class="my-account-item-link">
 				<a href="/third_party_apps">
 					<svg class="right-icon icon icon-md"><use href="#icon-web"></use></svg>
@@ -137,7 +70,15 @@
 	</div>
 </div>
 
-<div class="me-logout">
+<div class="portal-footer">
+	<a href="/">
+		<svg class="right-icon icon icon-md"><use href="#icon-home"></use></svg>
+		{{ _("Home") }}
+	</a>
+	<a href="/apps">
+		<svg class="right-icon icon icon-md"><use href="#icon-grid"></use></svg>
+		{{ _("Apps") }}
+	</a>
 	<a href="/logout">
 		<svg class="right-icon icon icon-md"><use href="#icon-logout"></use></svg>
 		{{ _("Logout") }}

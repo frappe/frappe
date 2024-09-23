@@ -101,13 +101,12 @@ frappe.ui.Sidebar = class Sidebar {
 			<a>
 				<div class="sidebar-item-icon">
 					<img
-						style="margin-right: var(--margin-sm);"
 						class="app-logo"
 						src="${app.app_logo_url}"
 						alt="${__("App Logo")}"
 					>
 				</div>
-				<span>${app.app_title}</span>
+				<span class="app-item-title">${app.app_title}</span>
 			</a>
 		</div>`).appendTo(app_switcher_menu);
 	}
