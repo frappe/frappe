@@ -85,6 +85,11 @@ class Workspace(Document):
 			if d.link_type == "Report" and d.is_query_report != 1:
 				d.report_ref_doctype = frappe.get_value("Report", d.link_to, "ref_doctype")
 
+		if not self.app and self.module:
+			from frappe.modules.utils import get_module_app
+
+			self.app = get_module_app(self.module)
+
 	def clear_cache(self):
 		super().clear_cache()
 		if self.for_user:
@@ -262,7 +267,7 @@ def new_page(new_page):
 
 	doc = frappe.new_doc("Workspace")
 	doc.title = page.get("title")
-	doc.icon = page.get("icon") or "dashboard"
+	doc.icon = page.get("icon") or "grid"
 	doc.indicator_color = page.get("indicator_color")
 	doc.content = page.get("content")
 	doc.parent_page = page.get("parent_page")
