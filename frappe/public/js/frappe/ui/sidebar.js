@@ -128,6 +128,10 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	set_current_app(app) {
+		if (!app) {
+			console.warn("set_current_app: app not defined");
+			return;
+		}
 		let app_data = frappe.boot.app_data_map[app];
 
 		this.wrapper
@@ -176,6 +180,9 @@ frappe.ui.Sidebar = class Sidebar {
 					name: page.name,
 					public: page.public,
 				};
+				if (!page.app && page.module) {
+					page.app = frappe.boot.module_app[frappe.slug(page.module)];
+				}
 				frappe.workspace_map[page.name] = page;
 				frappe.workspace_list.push(page);
 			}
