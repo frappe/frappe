@@ -9,8 +9,7 @@
 					label: 'Add',
 					variant: 'solid',
 					onClick: () => {
-						store.addResource(newResource)
-						showDialog = false
+						emit('addResource', newResource)
 					},
 				},
 			],
@@ -18,15 +17,15 @@
 	>
 		<template #body-content>
 			<div class="flex flex-col gap-3">
-				<FormControl label="Resource Name" v-model="newResource.resourceName" autocomplete="off" />
+				<FormControl label="Resource Name" v-model="newResource.name" autocomplete="off" />
 				<FormControl
 					label="Resource Type"
 					type="select"
 					:options="['List Resource', 'Document Resource', 'API Resource']"
 					autocomplete="off"
-					v-model="newResource.resourceType"
+					v-model="newResource.resource_type"
 				/>
-				<template v-if="newResource.resourceType === 'API Resource'">
+				<template v-if="newResource.resource_type === 'API Resource'">
 					<FormControl label="URL" v-model="newResource.url" />
 					<FormControl
 						label="Method"
@@ -36,18 +35,18 @@
 					/>
 				</template>
 				<template v-else>
-					<Link doctype="DocType" label="Document Type" v-model="newResource.doctype" />
+					<Link doctype="DocType" label="Document Type" v-model="newResource.document_type" />
 					<Link
-						v-if="newResource.resourceType === 'Document Resource' && newResource.doctype"
-						:doctype="newResource.doctype"
+						v-if="newResource.resource_type === 'Document Resource' && newResource.document_type"
+						:doctype="newResource.document_type"
 						label="Document Name"
-						v-model="newResource.name"
+						v-model="newResource.document_name"
 					/>
 					<FormControl
-						v-if="newResource.doctype"
+						v-if="newResource.resource_type === 'List Resource' && newResource.document_type"
 						type="autocomplete"
 						label="Fields"
-						:placeholder="`Select fields from ${newResource.doctype}`"
+						:placeholder="`Select fields from ${newResource.document_type}`"
 						v-model="newResource.fields"
 						:options="doctypeFields"
 						:multiple="true"
@@ -62,26 +61,25 @@
 import { ref, watch } from "vue"
 import { createResource } from "frappe-ui"
 import Link from "@/components/Link.vue"
-import useStore from "@/store"
 
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
-const store = useStore()
+const emit = defineEmits(["addResource"])
 
 const newResource = ref({
-	resourceName: "",
-	resourceType: "",
+	name: "",
+	resource_type: "",
 	url: "",
 	method: "GET",
-	doctype: "",
+	document_type: "",
+	document_name: "",
 	fields: [],
-	name: "",
 })
 const doctypeFields = ref([])
 
 watch(
-	() => newResource.value.doctype,
+	() => newResource.value.document_type,
 	async () => {
-		if (newResource.value.doctype) {
+		if (newResource.value.document_type) {
 			doctypeFields.value = await getDoctypeFields()
 		}
 	},
@@ -90,7 +88,7 @@ watch(
 async function getDoctypeFields() {
 	const doctypeFields = createResource({
 		url: "studio.api.get_doctype_fields",
-		params: { doctype: newResource.value.doctype },
+		params: { doctype: newResource.value.document_type },
 		transform: (data) => {
 			return data.map((field) => {
 				return {

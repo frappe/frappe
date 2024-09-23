@@ -8,9 +8,9 @@ import {
 	jsToJson,
 	getBlockCopyWithoutParent,
 	jsonToJs,
-	getAutocompleteValues,
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
+import { studioPageResources } from "@/data/studioResources"
 
 const useStore = defineStore("store", () => {
 	const canvas = ref(null)
@@ -67,6 +67,7 @@ const useStore = defineStore("store", () => {
 			pageBlocks.value = [getBlockInstance(blocks[0])]
 		}
 		selectedPage.value = page.name
+		await setPageResources(page)
 	}
 
 	async function fetchPage(pageName) {
@@ -139,25 +140,29 @@ const useStore = defineStore("store", () => {
 	const stylePropertyFilter = ref(null)
 
 	// data
-	const resources = reactive([])
-	function addResource(resourceConfig) {
-		const resource = getNewResource(resourceConfig)
-		resource.resourceName = resourceConfig.resourceName
-		resources.push(resource)
+	const resources = reactive({})
+
+	async function setPageResources(page) {
+		studioPageResources.filters = { parent: page.name }
+		await studioPageResources.reload()
+
+		studioPageResources.data.map((resource) => {
+			resources[resource.resource_name] = getNewResource(resource)
+		})
 	}
 
 	function getNewResource(resource) {
-		const fields = getAutocompleteValues(resource.fields)
-		switch (resource.resourceType) {
+		const fields = JSON.parse(resource.fields || "[]")
+		switch (resource.resource_type) {
 			case "Document Resource":
 				return createDocumentResource({
-					doctype: resource.doctype,
-					name: resource.name,
+					doctype: resource.document_type,
+					name: resource.document_name,
 					auto: true,
 				})
 			case "List Resource":
 				return createListResource({
-					doctype: resource.doctype,
+					doctype: resource.document_type,
 					fields: fields.length ? fields : "*",
 					auto: true,
 				})
@@ -199,7 +204,7 @@ const useStore = defineStore("store", () => {
 		stylePropertyFilter,
 		// data
 		resources,
-		addResource,
+		setPageResources,
 	}
 })
 
