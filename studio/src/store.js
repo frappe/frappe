@@ -1,4 +1,4 @@
-import { ref, reactive, computed } from "vue"
+import { ref, reactive, computed, nextTick } from "vue"
 import { defineStore } from "pinia"
 import { createResource, createListResource, createDocumentResource } from "frappe-ui"
 
@@ -57,6 +57,7 @@ const useStore = defineStore("store", () => {
 	const settingPage = ref(false)
 
 	async function setPage(pageName) {
+		settingPage.value = true
 		const page = await fetchPage(pageName)
 		activePage.value = page
 
@@ -68,6 +69,9 @@ const useStore = defineStore("store", () => {
 		}
 		selectedPage.value = page.name
 		await setPageResources(page)
+		nextTick(() => {
+			settingPage.value = false
+		})
 	}
 
 	async function fetchPage(pageName) {

@@ -77,10 +77,38 @@ const styles = computed(() => {
 	return props.block.getStyles()
 })
 
+const isDynamicValue = (value) => {
+	if (typeof value !== "string") return false
+	return value && value.startsWith("{{") && value.endsWith("}}")
+}
+
+function getDynamicValue(object, pathToProperty: string) {
+	let obj = object
+	for (const key of pathToProperty.split(".")) {
+		obj = obj?.[key]
+	}
+	return obj
+}
+
+const getComponentProps = () => {
+	if (!props.block || props.block.isRoot()) return []
+
+	const componentProps = { ...props.block.componentProps }
+
+	Object.entries(componentProps).forEach(([propName, config]) => {
+		if (isDynamicValue(config)) {
+			// get dynamic value for "{{ a.b.c }}" from "store.resources?.a?.b?.c"
+			const pathToProperty = config.slice(2, -2).trim()
+			componentProps[propName] = getDynamicValue(store.resources, pathToProperty)
+		}
+	})
+	return componentProps
+}
+
 const attrs = useAttrs()
 const componentProps = computed(() => {
 	return {
-		...props.block.componentProps,
+		...getComponentProps(),
 		...attrs,
 	}
 })

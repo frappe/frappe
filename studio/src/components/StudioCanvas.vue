@@ -55,7 +55,7 @@
 				</div>
 				<StudioComponent
 					class="h-full min-h-[inherit]"
-					v-if="showBlocks && rootComponent"
+					v-if="showBlocks && rootComponent && !store.settingPage"
 					:block="rootComponent"
 					:breakpoint="breakpoint.device"
 				/>
