@@ -196,7 +196,6 @@ class User(Document):
 		self.validate_allowed_modules()
 		self.validate_user_image()
 		self.set_time_zone()
-		self.set_desk_properties()
 
 		if self.language == "Loading...":
 			self.language = None
@@ -812,11 +811,6 @@ class User(Document):
 				"args": ["Form", self.doctype, self.name],
 			},
 		)
-
-	def set_desk_properties(self):
-		if self.user_type == "Website User":
-			for key in desk_properties:
-				self.set(key, 0)
 
 
 @frappe.whitelist()
