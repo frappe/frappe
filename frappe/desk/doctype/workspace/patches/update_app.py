@@ -7,7 +7,7 @@ from frappe.modules.utils import get_module_app
 def execute():
 	for module in frappe.get_all("Module Def", ["name", "app_name"]):
 		if not module.app_name:
-			frappe.db.set_value("Module Def", module.name, get_module_app(module.name))
+			frappe.db.set_value("Module Def", module.name, "app_name", get_module_app(module.name))
 
 	for workspace in frappe.get_all("Workspace", ["name", "module", "app"]):
 		if not workspace.app and workspace.module:
