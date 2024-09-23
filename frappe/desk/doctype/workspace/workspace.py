@@ -267,7 +267,7 @@ def new_page(new_page):
 
 	doc = frappe.new_doc("Workspace")
 	doc.title = page.get("title")
-	doc.icon = page.get("icon") or "dashboard"
+	doc.icon = page.get("icon") or "grid"
 	doc.indicator_color = page.get("indicator_color")
 	doc.content = page.get("content")
 	doc.parent_page = page.get("parent_page")
