@@ -187,6 +187,7 @@ def backup_to_s3():
 
 def upload_file_to_s3(filename, folder, conn, bucket):
 	destpath = os.path.join(folder, os.path.basename(filename))
+<<<<<<< HEAD
 	try:
 		print("Uploading file:", filename)
 		conn.upload_file(filename, bucket, destpath)  # Requires PutObject permission
@@ -194,3 +195,7 @@ def upload_file_to_s3(filename, folder, conn, bucket):
 	except Exception as e:
 		frappe.log_error()
 		print("Error uploading: %s" % (e))
+=======
+	print("Uploading file:", filename)
+	conn.upload_file(filename, bucket, destpath)  # Requires PutObject permission
+>>>>>>> 8d52eeafe0 (fix: don't catch S3 upload error prematurely)
