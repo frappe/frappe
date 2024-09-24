@@ -87,7 +87,7 @@ function getDynamicValue(object, pathToProperty: string) {
 	for (const key of pathToProperty.split(".")) {
 		obj = obj?.[key]
 	}
-	return obj
+	return obj || undefined
 }
 
 const getComponentProps = () => {
