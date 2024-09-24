@@ -740,7 +740,7 @@ class BaseDocument:
 
 			# check if parentfield exists (only applicable for child table doctype)
 			elif self.get("parentfield"):
-				return _("Error: {0} Row #{1}: Value missing for {2}").format(
+				return _("Error: {0} Row #{1}: Value missing for: {2}").format(
 					frappe.bold(_(self.doctype)),
 					self.idx,
 					_(df.label, context=df.parent),
