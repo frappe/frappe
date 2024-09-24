@@ -2,8 +2,7 @@
 	<div class="flex flex-col gap-5">
 		<div class="flex flex-col gap-2">
 			<div v-for="(resource, name) in store.resources" :key="name">
-				<span class="text-xs text-gray-700"> {{ name }}</span>
-				<pre>{{ resource }}</pre>
+				<ObjectBrowser :object="resource" :name="name" />
 			</div>
 		</div>
 
@@ -14,6 +13,7 @@
 <script setup>
 import useStudioStore from "@/stores/studioStore"
 import PageResourceManager from "@/components/PageResourceManager.vue"
+import ObjectBrowser from "@/components/ObjectBrowser.vue"
 
 const store = useStudioStore()
 </script>
