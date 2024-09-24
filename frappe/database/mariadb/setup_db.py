@@ -18,7 +18,7 @@ def get_mariadb_version(version_string: str = ""):
 	return version.rsplit(".", 1)
 
 
-def setup_database(force, source_sql, verbose, no_mariadb_socket=False):
+def setup_database(force, verbose, no_mariadb_socket=False):
 	frappe.local.session = frappe._dict({"user": "Administrator"})
 
 	db_name = frappe.local.conf.db_name
@@ -50,8 +50,6 @@ def setup_database(force, source_sql, verbose, no_mariadb_socket=False):
 	# close root connection
 	root_conn.close()
 
-	bootstrap_database(db_name, verbose, source_sql)
-
 
 def drop_user_and_database(db_name, root_login, root_password):
 	frappe.local.db = get_root_connection(root_login, root_password)
@@ -68,8 +66,8 @@ def bootstrap_database(db_name, verbose, source_sql=None):
 	check_compatible_versions()
 
 	import_db_from_sql(source_sql, verbose)
-
 	frappe.connect(db_name=db_name)
+
 	if "tabDefaultValue" not in frappe.db.get_tables(cached=False):
 		from click import secho
 
