@@ -210,6 +210,12 @@ function getDynamicPropValue(propValue: any, context: any) {
 		const expression = match[1].trim()
 		const dynamicValue = evaluateExpression(expression, context)
 
+		if (typeof dynamicValue === "object") {
+			// for proptype as object, return the evaluated object as is
+			// TODO: handle this more explicitly by checking the actual prop type
+			return dynamicValue || undefined
+		}
+
 		// Append the static part of the string
 		result += propValue.slice(lastIndex, match.index)
 		// Append the evaluated dynamic value
