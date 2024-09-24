@@ -10,6 +10,9 @@ import { usePageMeta } from "frappe-ui"
 import { getBlockInstance, jsonToJs, findPageWithRoute } from "@/utils/helpers"
 import AppComponent from "@/components/AppComponent.vue"
 
+import useAppStore from "@/stores/appStore"
+
+const store = useAppStore()
 const route = useRoute()
 const page = ref(null)
 const rootBlock = ref(null)
@@ -25,6 +28,7 @@ watch(
 			if (blocks) {
 				rootBlock.value = getBlockInstance(blocks[0])
 			}
+			await store.setPageResources(page.value)
 		}
 	},
 	{ immediate: true },

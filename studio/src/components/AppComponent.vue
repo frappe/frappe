@@ -12,9 +12,11 @@
 
 <script setup>
 import Block from "@/utils/block"
-import { computed, onMounted, ref } from "vue"
+import { computed, onMounted, ref, useAttrs } from "vue"
 import components from "@/data/components"
-import { getComponentRoot } from "@/utils/helpers"
+import { getComponentRoot, isDynamicValue, getDynamicValue } from "@/utils/helpers"
+
+import useAppStore from "@/stores/appStore"
 
 const props = defineProps({
 	block: {
@@ -26,9 +28,27 @@ const props = defineProps({
 const componentRef = ref(null)
 const styles = computed(() => props.block.getStyles())
 
+const store = useAppStore()
+const getComponentProps = () => {
+	if (!props.block || props.block.isRoot()) return []
+
+	const componentProps = { ...props.block.componentProps }
+
+	Object.entries(componentProps).forEach(([propName, config]) => {
+		if (isDynamicValue(config)) {
+			// get dynamic value for "{{ a.b.c }}" from "store.resources?.a?.b?.c"
+			const pathToProperty = config.slice(2, -2).trim()
+			componentProps[propName] = getDynamicValue(store.resources, pathToProperty)
+		}
+	})
+	return componentProps
+}
+
+const attrs = useAttrs()
 const componentProps = computed(() => {
 	return {
-		...props.block.componentProps,
+		...getComponentProps(),
+		...attrs,
 	}
 })
 
