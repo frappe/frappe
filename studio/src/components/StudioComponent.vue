@@ -50,7 +50,7 @@ import ComponentEditor from "@/components/ComponentEditor.vue"
 
 import Block from "@/utils/block"
 import useStore from "@/store"
-import { getComponentRoot } from "@/utils/helpers"
+import { getComponentRoot, isDynamicValue, getDynamicValue } from "@/utils/helpers"
 
 const props = defineProps({
 	block: {
@@ -76,19 +76,6 @@ const canvasProps = inject("canvasProps") as CanvasProps
 const styles = computed(() => {
 	return props.block.getStyles()
 })
-
-const isDynamicValue = (value) => {
-	if (typeof value !== "string") return false
-	return value && value.startsWith("{{") && value.endsWith("}}")
-}
-
-function getDynamicValue(object, pathToProperty: string) {
-	let obj = object
-	for (const key of pathToProperty.split(".")) {
-		obj = obj?.[key]
-	}
-	return obj || undefined
-}
 
 const getComponentProps = () => {
 	if (!props.block || props.block.isRoot()) return []

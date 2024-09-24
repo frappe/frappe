@@ -8,6 +8,8 @@ import {
 	jsToJson,
 	getBlockCopyWithoutParent,
 	jsonToJs,
+	// page
+	fetchPage,
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
 import { studioPageResources } from "@/data/studioResources"
@@ -72,26 +74,6 @@ const useStore = defineStore("store", () => {
 		nextTick(() => {
 			settingPage.value = false
 		})
-	}
-
-	async function fetchPage(pageName) {
-		const pageResource = createDocumentResource({
-			doctype: "Studio Page",
-			name: pageName,
-		})
-		await pageResource.get.promise
-		return pageResource.doc
-	}
-
-	async function findPageWithRoute(route) {
-		let pageName = createResource({
-			url: "studio.studio.doctype.studio_page.studio_page.find_page_with_route",
-			method: "GET",
-			params: { route: `studio-app/${route}` },
-		})
-		await pageName.fetch()
-		pageName = pageName.data
-		return fetchPage(pageName)
 	}
 
 	function savePage() {
@@ -198,8 +180,6 @@ const useStore = defineStore("store", () => {
 		savingPage,
 		activePage,
 		setPage,
-		findPageWithRoute,
-		fetchPage,
 		savePage,
 		updateActivePage,
 		publishPage,

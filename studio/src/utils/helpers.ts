@@ -3,6 +3,8 @@ import Block from "./block"
 import getBlockTemplate from "./blockTemplate"
 import * as frappeUI from "frappe-ui"
 
+import { createDocumentResource, createResource } from "frappe-ui"
+
 function getBlockInstance(options: BlockOptions, retainId = true): Block {
 	if (typeof options === "string") {
 		options = jsonToJs(options)
@@ -160,9 +162,43 @@ function replaceMapKey(map: Map<any, any>, oldKey: string, newKey: string) {
 	return newMap;
 }
 
+// page
+async function fetchPage(pageName: string) {
+	const pageResource = createDocumentResource({
+		doctype: "Studio Page",
+		name: pageName,
+	})
+	await pageResource.get.promise
+	return pageResource.doc
+}
+
+async function findPageWithRoute(route: string) {
+	let pageName = createResource({
+		url: "studio.studio.doctype.studio_page.studio_page.find_page_with_route",
+		method: "GET",
+		params: { route: `studio-app/${route}` },
+	})
+	await pageName.fetch()
+	pageName = pageName.data
+	return fetchPage(pageName)
+}
+
 // data
 function getAutocompleteValues(data: any[]) {
 	return (data || []).map((d) => d["value"])
+}
+
+const isDynamicValue = (value: any) => {
+	if (typeof value !== "string") return false
+	return value && value.startsWith("{{") && value.endsWith("}}")
+}
+
+function getDynamicValue(object: any, pathToProperty: string) {
+	let obj = object
+	for (const key of pathToProperty.split(".")) {
+		obj = obj?.[key]
+	}
+	return obj || undefined
 }
 
 export {
@@ -181,6 +217,11 @@ export {
 	jsonToJs,
 	mapToObject,
 	replaceMapKey,
+	// page
+	fetchPage,
+	findPageWithRoute,
 	// data
 	getAutocompleteValues,
+	isDynamicValue,
+	getDynamicValue,
 }
