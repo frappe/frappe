@@ -156,26 +156,49 @@ def load_desktop_data(bootinfo):
 	Module = frappe.qb.DocType("Module Def")
 
 	for app_name in frappe.get_installed_apps():
+		# get app details from app_info (/apps)
+		apps = frappe.get_hooks("add_to_apps_screen", app_name=app_name)
+		app_info = {}
+		if apps:
+			app_info = apps[0]
+			has_permission = app_info.get("has_permission")
+			if has_permission and not frappe.get_attr(has_permission)():
+				continue
+
+		workspaces = [
+			r[0]
+			for r in (
+				frappe.qb.from_(Workspace)
+				.inner_join(Module)
+				.on(Workspace.module == Module.name)
+				.select(Workspace.name)
+				.where(Module.app_name == app_name)
+				.run()
+			)
+			if r[0] in allowed_pages
+		]
+
 		bootinfo.app_data.append(
 			dict(
-				app_name=app_name,
-				app_title=frappe.get_hooks("app_title", app_name=app_name) or app_name,
-				app_home=frappe.get_hooks("app_home", app_name=app_name),
-				app_logo_url=frappe.get_hooks("app_logo_url", app_name=app_name)
+				app_name=app_info.get("name") or app_name,
+				app_title=app_info.get("title")
+				or (
+					frappe.get_hooks("app_title", app_name=app_name)
+					and frappe.get_hooks("app_title", app_name=app_name)[0]
+					or ""
+				)
+				or app_name,
+				app_route=(
+					frappe.get_hooks("app_home", app_name=app_name)
+					and frappe.get_hooks("app_home", app_name=app_name)[0]
+				)
+				or (workspaces and "/app/" + frappe.utils.slug(workspaces[0]))
+				or "",
+				app_logo_url=app_info.get("logo")
+				or frappe.get_hooks("app_logo_url", app_name=app_name)
 				or frappe.get_hooks("app_logo_url", app_name="frappe"),
 				modules=[m.name for m in frappe.get_all("Module Def", dict(app_name=app_name))],
-				workspaces=[
-					r[0]
-					for r in (
-						frappe.qb.from_(Workspace)
-						.inner_join(Module)
-						.on(Workspace.module == Module.name)
-						.select(Workspace.name)
-						.where(Module.app_name == app_name)
-						.run()
-					)
-					if r[0] in allowed_pages
-				],
+				workspaces=workspaces,
 			)
 		)
 

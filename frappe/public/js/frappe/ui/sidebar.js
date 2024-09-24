@@ -97,17 +97,16 @@ frappe.ui.Sidebar = class Sidebar {
 
 	add_app_item(app, app_switcher_menu) {
 		$(`<div class="app-item" data-app-name="${app.app_name}"
-			data-app-home="${app.app_home}">
+			data-app-route="${app.app_route}">
 			<a>
 				<div class="sidebar-item-icon">
 					<img
-						style="margin-right: var(--margin-sm);"
 						class="app-logo"
 						src="${app.app_logo_url}"
 						alt="${__("App Logo")}"
 					>
 				</div>
-				<span>${app.app_title}</span>
+				<span class="app-item-title">${app.app_title}</span>
 			</a>
 		</div>`).appendTo(app_switcher_menu);
 	}
@@ -115,7 +114,7 @@ frappe.ui.Sidebar = class Sidebar {
 	setup_select_app(app_switcher_menu) {
 		app_switcher_menu.find(".app-item").on("click", (e) => {
 			let item = $(e.delegateTarget);
-			let route = item.attr("data-app-home");
+			let route = item.attr("data-app-route");
 			app_switcher_menu.toggleClass("hidden");
 
 			if (route.startsWith("/app")) {
@@ -129,6 +128,10 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	set_current_app(app) {
+		if (!app) {
+			console.warn("set_current_app: app not defined");
+			return;
+		}
 		let app_data = frappe.boot.app_data_map[app];
 
 		this.wrapper
@@ -171,12 +174,16 @@ frappe.ui.Sidebar = class Sidebar {
 		if (this.all_pages) {
 			frappe.workspaces = {};
 			frappe.workspace_list = [];
+			frappe.workspace_map = {};
 			for (let page of this.all_pages) {
 				frappe.workspaces[frappe.router.slug(page.name)] = {
 					name: page.name,
 					public: page.public,
 				};
-
+				if (!page.app && page.module) {
+					page.app = frappe.boot.module_app[frappe.slug(page.module)];
+				}
+				frappe.workspace_map[page.name] = page;
 				frappe.workspace_list.push(page);
 			}
 			this.make_sidebar();

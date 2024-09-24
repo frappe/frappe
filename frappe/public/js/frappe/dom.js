@@ -296,7 +296,7 @@ frappe.timeout = (seconds) => {
 	});
 };
 
-frappe.scrub = function (text, spacer = "_") {
+frappe.scrub = frappe.slug = function (text, spacer = "_") {
 	return text.replace(/ /g, spacer).toLowerCase();
 };
 

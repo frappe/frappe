@@ -4,6 +4,9 @@
 	{% include "templates/includes/meta_block.html" %}
 {% endblock %}
 
+{% if hide_navbar %}{% block navbar %}{% endblock %}{% endif %}
+{% if hide_footer %}{% block footer %}{% endblock %}{% endif %}
+
 {% block breadcrumbs %}{% endblock %}
 
 {% block header %}

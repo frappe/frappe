@@ -64,8 +64,8 @@ body {
 
 .body-sidebar {
 	width: 53px;
-	background: var(--subtle-accent);
-	border: 1px solid var(--border-color);
+	background: var(--subtle-fg);
+	border-right: 1px solid var(--border-color);
 
 	display: flex;
 	flex-direction: column;
@@ -143,6 +143,7 @@ body {
 
 		.sidebar-item-label {
 			display: none;
+			font-size: var(--text-sm);
 		}
 
 		.item-anchor {
@@ -267,6 +268,13 @@ body {
 		text-decoration: none;
 		display: flex;
 		align-items: center;
+		gap: var(--margin-sm);
+	}
+
+	.app-item-title {
+		text-overflow: ellipsis;
+		text-wrap: nowrap;
+		overflow: hidden;
 	}
 }
 
@@ -549,6 +557,7 @@ body {
 		min-width: 180px;
 		max-width: 220px;
 		z-index: 100;
+		font-size: var(--text-sm);
 
 		.dropdown-item {
 			display: flex;

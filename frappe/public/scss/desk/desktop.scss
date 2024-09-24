@@ -1192,7 +1192,7 @@ body {
 
 						&.ce-paragraph {
 							display: block;
-							padding: 0px 7px;
+							padding: 0px;
 							// paragraphs should not get much focus
 							color: var(--text-light);
 						}
@@ -1228,7 +1228,6 @@ body {
 							min-height: 40px;
 							box-shadow: none;
 							background-color: var(--bg-color);
-							color: var(--text-muted);
 							cursor: text;
 
 							.ce-header {
@@ -1253,10 +1252,6 @@ body {
 					}
 				}
 			}
-		}
-
-		svg {
-			fill: none;
 		}
 
 		.ce-toolbar {

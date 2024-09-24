@@ -413,6 +413,9 @@ def get_desktop_page(page):
 @frappe.whitelist()
 def get_workspace_sidebar_items():
 	"""Get list of sidebar items for desk"""
+
+	from frappe.modules.utils import get_module_app
+
 	has_access = "Workspace Manager" in frappe.get_roles()
 
 	# don't get domain restricted pages
@@ -472,6 +475,11 @@ def get_workspace_sidebar_items():
 
 			if page["name"] in workspace_visibilty:
 				page["visibility"] = workspace_visibilty[page["name"]]
+
+			if not page["app"] and page["module"]:
+				page["app"] = frappe.db.get_value("Module Def", page["module"], "app_name") or get_module_app(
+					page["module"]
+				)
 
 		except frappe.PermissionError:
 			pass
