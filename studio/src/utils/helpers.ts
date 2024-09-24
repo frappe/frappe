@@ -115,6 +115,10 @@ function areObjectsEqual(obj1: any, obj2: any): boolean {
 	return true
 }
 
+function isObjectEmpty(obj: any) {
+	return Object.keys(obj).length === 0
+}
+
 function jsToJson(obj: any): string {
 	const replacer = (key: string, value: any) => {
 		// Preserve functions by converting them to strings
@@ -237,6 +241,7 @@ export {
 	kebabToCamelCase,
 	copyObject,
 	areObjectsEqual,
+	isObjectEmpty,
 	jsToJson,
 	jsonToJs,
 	mapToObject,

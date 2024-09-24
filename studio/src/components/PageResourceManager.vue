@@ -1,5 +1,5 @@
 <template>
-	<div class="flex flex-col gap-5">
+	<div class="flex flex-col">
 		<Button @click="showAddResourceDialog = true">Add Resource</Button>
 		<ResourceDialog v-model:showDialog="showAddResourceDialog" @addResource="addResource" />
 	</div>

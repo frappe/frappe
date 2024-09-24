@@ -42,7 +42,7 @@
 				/>
 			</div>
 
-			<DataPanel v-show="activeTab === 'Data'" class="mx-2 my-3" />
+			<DataPanel v-show="activeTab === 'Data'" />
 		</div>
 	</div>
 </template>

@@ -4,7 +4,7 @@
 		<div
 			v-if="name"
 			@click="toggleExpanded('root')"
-			class="mb-1 flex cursor-pointer items-center gap-0.5 font-bold"
+			class="flex cursor-pointer items-center gap-0.5 font-bold"
 		>
 			<FeatherIcon :name="isExpanded('root') ? 'chevron-down' : 'chevron-right'" class="h-3 w-3" />
 			<span class="text-pink-700">{{ name }}</span>
@@ -13,7 +13,7 @@
 		<!-- object properties -->
 		<div v-if="!name || isExpanded('root')" class="ml-4">
 			<div v-for="(value, key) in object" :key="key">
-				<div class="my-[7px] mb-1 flex items-center gap-0.5">
+				<div class="my-[7px] flex items-center gap-0.5">
 					<FeatherIcon
 						@click="toggleExpanded(key)"
 						v-if="isExpandable(value)"
