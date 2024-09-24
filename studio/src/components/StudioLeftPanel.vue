@@ -55,7 +55,7 @@ import ComponentPanel from "@/components/ComponentPanel.vue"
 import ComponentLayers from "@/components/ComponentLayers.vue"
 
 import Block from "@/utils/block"
-import useStore from "@/store"
+import useStudioStore from "@/stores/studioStore"
 import DataPanel from "./DataPanel.vue"
 
 const sidebarMenu = [
@@ -76,7 +76,7 @@ const sidebarMenu = [
 		icon: "code",
 	},
 ]
-const store = useStore()
+const store = useStudioStore()
 
 const activeTab = ref("Add Component")
 const setActiveTab = (tab) => {

@@ -3,7 +3,7 @@ import Block from "./block"
 import getBlockTemplate from "./blockTemplate"
 import * as frappeUI from "frappe-ui"
 
-import { createDocumentResource, createResource } from "frappe-ui"
+import { createDocumentResource, createListResource, createResource } from "frappe-ui"
 
 function getBlockInstance(options: BlockOptions, retainId = true): Block {
 	if (typeof options === "string") {
@@ -201,6 +201,30 @@ function getDynamicValue(object: any, pathToProperty: string) {
 	return obj || undefined
 }
 
+function getNewResource(resource) {
+	const fields = JSON.parse(resource.fields || "[]")
+	switch (resource.resource_type) {
+		case "Document Resource":
+			return createDocumentResource({
+				doctype: resource.document_type,
+				name: resource.document_name,
+				auto: true,
+			})
+		case "List Resource":
+			return createListResource({
+				doctype: resource.document_type,
+				fields: fields.length ? fields : "*",
+				auto: true,
+			})
+		case "API Resource":
+			return createResource({
+				url: resource.url,
+				method: resource.method,
+				auto: true,
+			})
+	}
+}
+
 export {
 	getBlockInstance,
 	getComponentBlock,
@@ -224,4 +248,5 @@ export {
 	getAutocompleteValues,
 	isDynamicValue,
 	getDynamicValue,
+	getNewResource,
 }

@@ -1,8 +1,8 @@
-import useStore from "@/store"
-import { CSSProperties, nextTick } from "vue"
+import useStudioStore from "@/stores/studioStore"
+import { CSSProperties } from "vue"
 import Block from "./block"
 
-const store = useStore()
+const store = useStudioStore()
 
 type styleProperty = keyof CSSProperties
 

@@ -7,7 +7,7 @@
 
 <script setup lang="ts">
 import { ref, PropType } from "vue"
-import useStore from "@/store"
+import useStudioStore from "@/stores/studioStore"
 import ResourceDialog from "@/components/ResourceDialog.vue"
 
 import { StudioPage } from "@/types"
@@ -29,7 +29,7 @@ const props = defineProps({
  * show resources on the data panel
  */
 
-const store = useStore()
+const store = useStudioStore()
 const showAddResourceDialog = ref(false)
 
 const attachResource = async (resource) => {

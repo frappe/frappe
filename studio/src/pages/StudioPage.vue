@@ -36,13 +36,13 @@ import StudioLeftPanel from "@/components/StudioLeftPanel.vue"
 import StudioRightPanel from "@/components/StudioRightPanel.vue"
 import StudioCanvas from "@/components/StudioCanvas.vue"
 
-import useStore from "@/store"
+import useStudioStore from "@/stores/studioStore"
 import { studioPages } from "@/data/studioPages"
 import { getRootBlock } from "@/utils/helpers"
 
 const route = useRoute()
 const router = useRouter()
-const store = useStore()
+const store = useStudioStore()
 
 const canvas = ref(null)
 watchEffect(() => {

@@ -12,8 +12,8 @@
 </template>
 
 <script setup>
-import useStore from "@/store"
+import useStudioStore from "@/stores/studioStore"
 import PageResourceManager from "@/components/PageResourceManager.vue"
 
-const store = useStore()
+const store = useStudioStore()
 </script>

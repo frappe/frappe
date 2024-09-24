@@ -1,6 +1,5 @@
 import { ref, reactive, computed, nextTick } from "vue"
 import { defineStore } from "pinia"
-import { createResource, createListResource, createDocumentResource } from "frappe-ui"
 
 import {
 	getBlockInstance,
@@ -10,11 +9,13 @@ import {
 	jsonToJs,
 	// page
 	fetchPage,
+	// data
+	getNewResource,
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
 import { studioPageResources } from "@/data/studioResources"
 
-const useStore = defineStore("store", () => {
+const useStudioStore = defineStore("store", () => {
 	const canvas = ref(null)
 	const studioLayout = reactive({
 		leftPanelWidth: 300,
@@ -137,30 +138,6 @@ const useStore = defineStore("store", () => {
 		})
 	}
 
-	function getNewResource(resource) {
-		const fields = JSON.parse(resource.fields || "[]")
-		switch (resource.resource_type) {
-			case "Document Resource":
-				return createDocumentResource({
-					doctype: resource.document_type,
-					name: resource.document_name,
-					auto: true,
-				})
-			case "List Resource":
-				return createListResource({
-					doctype: resource.document_type,
-					fields: fields.length ? fields : "*",
-					auto: true,
-				})
-			case "API Resource":
-				return createResource({
-					url: resource.url,
-					method: resource.method,
-					auto: true,
-				})
-		}
-	}
-
 	return {
 		// layout
 		canvas,
@@ -192,4 +169,4 @@ const useStore = defineStore("store", () => {
 	}
 })
 
-export default useStore
+export default useStudioStore

@@ -49,7 +49,7 @@ import type { ComponentPublicInstance } from "vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
 
 import Block from "@/utils/block"
-import useStore from "@/store"
+import useStudioStore from "@/stores/studioStore"
 import { getComponentRoot, isDynamicValue, getDynamicValue } from "@/utils/helpers"
 
 const props = defineProps({
@@ -68,7 +68,7 @@ defineOptions({
 
 const isComponentReady = ref(false)
 const editor = ref(null)
-const store = useStore()
+const store = useStudioStore()
 const classes = ["__studio_component__", "outline-none", "select-none"]
 
 const canvasProps = inject("canvasProps") as CanvasProps

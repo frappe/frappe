@@ -30,12 +30,12 @@
 
 <script setup>
 import { ref } from "vue"
-import useStore from "@/store"
+import useStudioStore from "@/stores/studioStore"
 
 import ComponentProps from "@/components/ComponentProps.vue"
 import ComponentStyles from "@/components/ComponentStyles.vue"
 
-const store = useStore()
+const store = useStudioStore()
 
 const activeTab = ref("Props")
 const setActiveTab = (tab) => (activeTab.value = tab)

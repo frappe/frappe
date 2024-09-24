@@ -17,7 +17,7 @@ import { ref, nextTick } from "vue"
 import { vOnClickOutside } from "@vueuse/components"
 import ContextMenu from "@/components/ContextMenu.vue"
 import Block from "@/utils/block"
-import useStore from "@/store"
+import useStudioStore from "@/stores/studioStore"
 import { ContextMenuOption } from "@/types"
 import { getComponentBlock } from "@/utils/helpers"
 
@@ -26,7 +26,7 @@ const props = defineProps<{
 	editable: boolean
 }>()
 
-const store = useStore()
+const store = useStudioStore()
 
 const contextMenuVisible = ref(false)
 const posX = ref(0)

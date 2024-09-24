@@ -2,7 +2,7 @@ import { BlockOptions, BlockStyleMap } from "@/types"
 import { clamp } from "@vueuse/core"
 import { reactive, CSSProperties, nextTick } from 'vue'
 
-import useStore from "@/store";
+import useStudioStore from "@/stores/studioStore";
 import components from "@/data/components";
 import { copyObject, getBlockCopy, kebabToCamelCase, numberToPx } from "./helpers";
 
@@ -116,7 +116,7 @@ class Block implements BlockOptions {
 	}
 
 	setStyle(style: styleProperty, value: StyleValue) {
-		const store = useStore()
+		const store = useStudioStore()
 		let styleObj = this.baseStyles
 		style = kebabToCamelCase(style) as styleProperty
 
@@ -288,7 +288,7 @@ class Block implements BlockOptions {
 	duplicateBlock() {
 		if (this.isRoot()) return
 
-		const store = useStore()
+		const store = useStudioStore()
 		const blockCopy = getBlockCopy(this)
 		const parentBlock = this.getParentBlock()
 
@@ -314,7 +314,7 @@ class Block implements BlockOptions {
 	}
 
 	selectBlock() {
-		const store = useStore();
+		const store = useStudioStore();
 		nextTick(() => {
 			store.selectBlock(this, null);
 		});

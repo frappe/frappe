@@ -24,5 +24,6 @@ studio.mount("#studio")
 // For rendering apps built by studio
 const app = createApp(App)
 app.use(app_router)
+app.use(pinia)
 app.component("FeatherIcon", FeatherIcon)
 app.mount("#app")

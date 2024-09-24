@@ -39,7 +39,7 @@
 import { TextInput } from "frappe-ui"
 import Block from "@/utils/block"
 import OptionToggle from "@/components/OptionToggle.vue"
-import useStore from "@/store"
+import useStudioStore from "@/stores/studioStore"
 import blockController from "@/utils/blockController"
 import { Ref, computed, ref } from "vue"
 import BlockFlexLayoutHandler from "@/components/BlockFlexLayoutHandler.vue"
@@ -56,7 +56,7 @@ const props = defineProps({
 	},
 })
 
-const store = useStore()
+const store = useStudioStore()
 
 // command + f should focus on search input
 window.addEventListener("keydown", (e) => {
