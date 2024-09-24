@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-02 18:21+0000\n"
-"PO-Revision-Date: 2024-09-15 20:52\n"
+"PO-Revision-Date: 2024-09-22 23:11\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -14700,7 +14700,7 @@ msgstr "Hantera Appar"
 #: website/doctype/web_form_field/web_form_field.json
 #: website/doctype/web_template_field/web_template_field.json
 msgid "Mandatory"
-msgstr "Erfodras"
+msgstr "Erfordras"
 
 #. Label of a Code field in DocType 'Custom Field'
 #. Label of a Code field in DocType 'Customize Form Field'
@@ -25892,7 +25892,7 @@ msgstr "Växla Diagram"
 #. Type: Action
 #: hooks.py
 msgid "Toggle Full Width"
-msgstr "Ändra till/från Full Bredd"
+msgstr "Ändra Full Bredd"
 
 #: public/js/frappe/views/file/file_view.js:33
 msgid "Toggle Grid View"
