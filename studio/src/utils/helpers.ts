@@ -199,14 +199,28 @@ const isDynamicValue = (value: any) => {
 }
 
 function getDynamicPropValue(propValue: any, context: any) {
-	// Extract the dynamic expression
-	const expression = propValue.match(/\{\{(.*?)\}\}/)[1].trim();
+	let result = ""
+	let lastIndex = 0
 
-	// Evaluate the expression
-	const dynamicValue = evaluateExpression(expression, context)
+	// Find all dynamic expressions in the prop value
+	const matches = propValue.matchAll(/\{\{(.*?)\}\}/g)
 
-	// Replace the dynamic part with the evaluated result
-	return propValue.replace(/\{\{.*?\}\}/, dynamicValue !== undefined ? String(dynamicValue) : '')
+	// Evaluate each dynamic expression and add it to the result
+	for (const match of matches) {
+		const expression = match[1].trim()
+		const dynamicValue = evaluateExpression(expression, context)
+
+		// Append the static part of the string
+		result += propValue.slice(lastIndex, match.index)
+		// Append the evaluated dynamic value
+		result += dynamicValue !== undefined ? String(dynamicValue) : ''
+		// update lastIndex to the end of the current match
+		lastIndex = match.index + match[0].length
+	}
+
+	// Append the final static part of the string
+	result += propValue.slice(lastIndex)
+	return result || undefined
 }
 
 function evaluateExpression(expression: string, context: any) {
