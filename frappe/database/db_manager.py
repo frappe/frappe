@@ -59,9 +59,9 @@ class DbManager:
 		pv = find_executable("pv")
 
 		if pv:
-			pipe = rf"{pv} {source} | sed '/\/\*!999999\\- enable the sandbox mode \*\//d' |"
+			pipe = f"{pv} {source} | " + r"sed '/\/\*M\{0,1\}!999999\\- enable the sandbox mode \*\//d' |"
 		else:
-			pipe = rf"cat {source} | sed '/\/\*!999999\\- enable the sandbox mode \*\//d' |"
+			pipe = f"cat {source} | " + r"sed '/\/\*M\{0,1\}!999999\\- enable the sandbox mode \*\//d' |"
 
 		if pipe:
 			print("Restoring Database file...")

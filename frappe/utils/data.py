@@ -2178,10 +2178,13 @@ class UnicodeWithAttrs(str):
 		self.metadata = text.metadata
 
 
-def format_timedelta(o: datetime.timedelta) -> str:
-	# mariadb allows a wide diff range - https://mariadb.com/kb/en/time/
-	# but frappe doesnt - i think via babel : only allows 0..23 range for hour
-	total_seconds = o.total_seconds()
+def format_timedelta(o: datetime.timedelta | str) -> str:
+	# MariaDB allows a wide range - https://mariadb.com/kb/en/time/
+	# but Frappe doesn't - I think via babel : only allows 0..23 range for hour
+	if isinstance(o, datetime.timedelta):
+		total_seconds = o.total_seconds()
+	else:
+		total_seconds = cint(o)
 	hours, remainder = divmod(total_seconds, 3600)
 	minutes, seconds = divmod(remainder, 60)
 	rounded_seconds = round(seconds, 6)
