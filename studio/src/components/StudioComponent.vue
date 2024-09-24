@@ -50,7 +50,7 @@ import ComponentEditor from "@/components/ComponentEditor.vue"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
-import { getComponentRoot, isDynamicValue, getDynamicValue } from "@/utils/helpers"
+import { getComponentRoot, isDynamicValue, getDynamicPropValue } from "@/utils/helpers"
 
 const props = defineProps({
 	block: {
@@ -84,9 +84,7 @@ const getComponentProps = () => {
 
 	Object.entries(componentProps).forEach(([propName, config]) => {
 		if (isDynamicValue(config)) {
-			// get dynamic value for "{{ a.b.c }}" from "store.resources?.a?.b?.c"
-			const pathToProperty = config.slice(2, -2).trim()
-			componentProps[propName] = getDynamicValue(store.resources, pathToProperty)
+			componentProps[propName] = getDynamicPropValue(config, store.resources)
 		}
 	})
 	return componentProps

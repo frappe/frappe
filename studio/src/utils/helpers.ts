@@ -193,16 +193,38 @@ function getAutocompleteValues(data: any[]) {
 }
 
 const isDynamicValue = (value: any) => {
+	// Check if the prop value is a string and contains a dynamic expression
 	if (typeof value !== "string") return false
-	return value && value.startsWith("{{") && value.endsWith("}}")
+	return value && value.includes("{{") && value.includes("}}")
 }
 
-function getDynamicValue(object: any, pathToProperty: string) {
-	let obj = object
-	for (const key of pathToProperty.split(".")) {
-		obj = obj?.[key]
+function getDynamicPropValue(propValue: any, context: any) {
+	// Extract the dynamic expression
+	const expression = propValue.match(/\{\{(.*?)\}\}/)[1].trim();
+
+	// Evaluate the expression
+	const dynamicValue = evaluateExpression(expression, context)
+
+	// Replace the dynamic part with the evaluated result
+	return propValue.replace(/\{\{.*?\}\}/, dynamicValue !== undefined ? String(dynamicValue) : '')
+}
+
+function evaluateExpression(expression: string, context: any) {
+	try {
+		// Split the expression into individual properties and evaluate them one by one
+		const properties = expression.split('.')
+		let value = context
+		for (const prop of properties) {
+			value = value?.[prop]
+			if (value === undefined) {
+				return undefined
+			}
+		}
+		return value
+	} catch (error) {
+		console.error(`Error evaluating expression: ${expression}`, error)
+		return undefined
 	}
-	return obj || undefined
 }
 
 function getNewResource(resource) {
@@ -252,6 +274,6 @@ export {
 	// data
 	getAutocompleteValues,
 	isDynamicValue,
-	getDynamicValue,
+	getDynamicPropValue,
 	getNewResource,
 }
