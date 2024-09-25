@@ -12,7 +12,7 @@ context("Awesome Bar", () => {
 	beforeEach(() => {
 		let txt = `Search or type a command (${
 			window.navigator.platform === "MacIntel" ? "⌘" : "Ctrl"
-		} + G)`;
+		} + K)`;
 		cy.findByPlaceholderText(txt).as("awesome_bar");
 		cy.get("@awesome_bar").type("{selectall}");
 	});

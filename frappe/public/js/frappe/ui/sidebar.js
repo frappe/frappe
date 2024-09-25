@@ -154,7 +154,7 @@ frappe.ui.Sidebar = class Sidebar {
 			{
 				app_name: "website",
 				app_title: __("Website"),
-				app_home: "/",
+				app_route: "/",
 				app_logo_url: "/assets/frappe/images/web.svg",
 			},
 			app_switcher_menu
