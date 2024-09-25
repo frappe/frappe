@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-24 15:33+0000\n"
-"PO-Revision-Date: 2024-09-24 23:32\n"
+"PO-Revision-Date: 2024-09-25 23:37\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -728,7 +728,7 @@ msgstr "<span class=\"h4\"><b>Rapporter &amp; Inställningar</b></span>"
 #: frappe/core/workspace/users/users.json
 #: frappe/website/workspace/website/website.json
 msgid "<span class=\"h4\"><b>Your Shortcuts</b></span>"
-msgstr "<span class=\"h4\"><b>Genvägar</b></span>"
+msgstr "<span class=\"h4\"><b>Dina genvägar</b></span>"
 
 #. Header text in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -1276,7 +1276,7 @@ msgstr "Lägg till Ny Behörighet Regel"
 
 #: frappe/desk/doctype/event/event.js:35 frappe/desk/doctype/event/event.js:42
 msgid "Add Participants"
-msgstr "Lägg till Deltagare"
+msgstr "Lägg till deltagare"
 
 #. Label of a Check field in DocType 'Email Group'
 #: frappe/email/doctype/email_group/email_group.json
@@ -1604,7 +1604,7 @@ msgstr "Avancerad Sökning"
 #. Label of a Section Break field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Advanced Settings"
-msgstr "Avancerade Inställningar"
+msgstr "Avancerade inställningar"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -3176,12 +3176,12 @@ msgstr "Tillbaka till Inloggning"
 #: frappe/website/doctype/social_link_settings/social_link_settings.json
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Background Color"
-msgstr "Bakgrund Färg"
+msgstr "Bakgrundsfärg"
 
 #. Label of a Attach Image field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Background Image"
-msgstr "Bakgrund Bild"
+msgstr "Bakgrundsbild"
 
 #. Label of a Link in the Build Workspace
 #. Label of a Section Break field in DocType 'System Health Report'
@@ -3326,7 +3326,7 @@ msgstr "Bar"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Barcode"
-msgstr "Streck/QR Kod"
+msgstr "Streckkod"
 
 #. Label of a Data field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -3458,7 +3458,7 @@ msgstr "Resume"
 #. Label of a Date field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Birth Date"
-msgstr "Födelsedag"
+msgstr "Födelsedatum"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:41
 msgid "Blank Template"
@@ -5157,7 +5157,7 @@ msgstr "Bolag Introduktion"
 #. Label of a Data field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Company Name"
-msgstr "Bolag Namn"
+msgstr "Företagsnamn"
 
 #: frappe/core/doctype/server_script/server_script.js:14
 #: frappe/custom/doctype/client_script/client_script.js:54
@@ -6863,7 +6863,7 @@ msgstr "Ta Bort Alla"
 #: frappe/public/js/form_builder/components/Section.vue:196
 msgctxt "Title of confirmation dialog"
 msgid "Delete Column"
-msgstr "Ta bort Kolumn"
+msgstr "Radera kolumn"
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.js:10
 msgid "Delete Data"
@@ -6894,7 +6894,7 @@ msgstr "Ta bort och Skapa Ny"
 #: frappe/public/js/form_builder/components/Section.vue:203
 msgctxt "Button text"
 msgid "Delete column"
-msgstr "Ta bort kolumn"
+msgstr "Radera kolumn"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:721
 msgid "Delete comment?"
@@ -7930,7 +7930,7 @@ msgstr "Domän"
 #. Label of a Data field in DocType 'Email Domain'
 #: frappe/email/doctype/email_domain/email_domain.json
 msgid "Domain Name"
-msgstr "Domän namn"
+msgstr "Domännamn"
 
 #. Name of a DocType
 #: frappe/core/doctype/domain_settings/domain_settings.json
@@ -10028,7 +10028,7 @@ msgstr "Fil Namn"
 #. Label of a Int field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "File Size"
-msgstr "Fil Storlek"
+msgstr "Filstorlek"
 
 #. Label of a Section Break field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -14704,7 +14704,7 @@ msgstr "Logga in med {0}"
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json frappe/www/apps.html:59
 msgid "Logout"
-msgstr "Logga Ut"
+msgstr "Logga ut"
 
 #: frappe/core/doctype/user/user.js:195
 msgid "Logout All Sessions"
