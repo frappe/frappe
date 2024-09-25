@@ -77,21 +77,25 @@
 
 {% elif status == "unsubscribed" %}
 <!-- Unsubscribed page comes after submission -->
-	<div class="page-card">
-		<div class='page-card-head'>
-			<span class='indicator green'>Unsubscribed</span>
+	<div class="portal-container">
+		<div class='portal-section head'>
+			<div class="title">Unsubscribed</div>
 		</div>
-		You have been unsubscribed from selected mailing list.
+		<div class="portal-section">
+			You have been unsubscribed from selected mailing list.
+		</div>
 	</div>
 
 {% else %}
 <!-- For invalid and unsigned request -->
-	<div class="page-card">
-		<div class='page-card-head'>
-			<span class='indicator red'>Unsubscribe</span>
-		</div>
-		<b>Invalid Request.</b>
+<div class="portal-container">
+	<div class='portal-section head'>
+		<div class="title">Unsubscribe</div>
 	</div>
+	<div class="portal-section">
+		Invalid request
+	</div>
+</div>
 {% endif %}
 
 {% endblock %}
