@@ -55,7 +55,7 @@
 				</div>
 				<StudioComponent
 					class="h-full min-h-[inherit]"
-					v-if="showBlocks && rootComponent"
+					v-if="showBlocks && rootComponent && !store.settingPage"
 					:block="rootComponent"
 					:breakpoint="breakpoint.device"
 				/>
@@ -80,7 +80,7 @@ import { useDropZone, useElementBounding } from "@vueuse/core"
 import StudioComponent from "@/components/StudioComponent.vue"
 import FitScreenIcon from "@/components/Icons/FitScreenIcon.vue"
 
-import useStore from "@/store"
+import useStudioStore from "@/stores/studioStore"
 import { getBlockCopy, getComponentBlock } from "@/utils/helpers"
 import setPanAndZoom from "@/utils/panAndZoom"
 
@@ -94,7 +94,7 @@ const props = defineProps({
 		default: () => ({}),
 	},
 })
-const store = useStore()
+const store = useStudioStore()
 
 const canvasContainer = ref(null)
 const canvas = ref(null)

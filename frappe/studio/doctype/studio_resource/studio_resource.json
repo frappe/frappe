@@ -1,0 +1,102 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "prompt",
+ "creation": "2024-09-23 09:50:16.776464",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "resource_type",
+  "fields",
+  "document_resource_section",
+  "document_type",
+  "column_break_kkyr",
+  "document_name",
+  "api_resource_section",
+  "url",
+  "column_break_cvbv",
+  "method"
+ ],
+ "fields": [
+  {
+   "fieldname": "resource_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Resource Type",
+   "options": "List Resource\nDocument Resource\nAPI Resource",
+   "reqd": 1
+  },
+  {
+   "fieldname": "fields",
+   "fieldtype": "JSON",
+   "label": "Fields",
+   "max_height": "100px"
+  },
+  {
+   "fieldname": "document_resource_section",
+   "fieldtype": "Section Break",
+   "label": "Document Resource"
+  },
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "label": "Document Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "column_break_kkyr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "document_name",
+   "fieldtype": "Data",
+   "label": "Document Name"
+  },
+  {
+   "fieldname": "api_resource_section",
+   "fieldtype": "Section Break",
+   "label": "API Resource"
+  },
+  {
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "label": "API URL"
+  },
+  {
+   "fieldname": "column_break_cvbv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "GET",
+   "fieldname": "method",
+   "fieldtype": "Select",
+   "label": "API Method",
+   "options": "GET\nPOST\nPUT\nDELETE"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-09-23 12:52:00.527697",
+ "modified_by": "Administrator",
+ "module": "Studio",
+ "name": "Studio Resource",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

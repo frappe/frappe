@@ -58,11 +58,11 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import useStore from "@/store"
+import useStudioStore from "@/stores/studioStore"
 
 import PageOptions from "@/components/PageOptions.vue"
 
-const store = useStore()
+const store = useStudioStore()
 const publishing = ref(false)
 
 const routeString = computed(() => store.activePage?.route || "/")

@@ -3,6 +3,8 @@ import Block from "./block"
 import getBlockTemplate from "./blockTemplate"
 import * as frappeUI from "frappe-ui"
 
+import { createDocumentResource, createListResource, createResource, confirmDialog } from "frappe-ui"
+
 function getBlockInstance(options: BlockOptions, retainId = true): Block {
 	if (typeof options === "string") {
 		options = jsonToJs(options)
@@ -113,6 +115,10 @@ function areObjectsEqual(obj1: any, obj2: any): boolean {
 	return true
 }
 
+function isObjectEmpty(obj: any) {
+	return Object.keys(obj).length === 0
+}
+
 function jsToJson(obj: any): string {
 	const replacer = (key: string, value: any) => {
 		// Preserve functions by converting them to strings
@@ -160,6 +166,126 @@ function replaceMapKey(map: Map<any, any>, oldKey: string, newKey: string) {
 	return newMap;
 }
 
+// page
+async function fetchPage(pageName: string) {
+	const pageResource = createDocumentResource({
+		doctype: "Studio Page",
+		name: pageName,
+	})
+	await pageResource.get.promise
+	return pageResource.doc
+}
+
+async function findPageWithRoute(route: string) {
+	let pageName = createResource({
+		url: "studio.studio.doctype.studio_page.studio_page.find_page_with_route",
+		method: "GET",
+		params: { route: `studio-app/${route}` },
+	})
+	await pageName.fetch()
+	pageName = pageName.data
+	return fetchPage(pageName)
+}
+
+// data
+function getAutocompleteValues(data: any[]) {
+	return (data || []).map((d) => d["value"])
+}
+
+const isDynamicValue = (value: any) => {
+	// Check if the prop value is a string and contains a dynamic expression
+	if (typeof value !== "string") return false
+	return value && value.includes("{{") && value.includes("}}")
+}
+
+function getDynamicPropValue(propValue: any, context: any) {
+	let result = ""
+	let lastIndex = 0
+
+	// Find all dynamic expressions in the prop value
+	const matches = propValue.matchAll(/\{\{(.*?)\}\}/g)
+
+	// Evaluate each dynamic expression and add it to the result
+	for (const match of matches) {
+		const expression = match[1].trim()
+		const dynamicValue = evaluateExpression(expression, context)
+
+		if (typeof dynamicValue === "object") {
+			// for proptype as object, return the evaluated object as is
+			// TODO: handle this more explicitly by checking the actual prop type
+			return dynamicValue || undefined
+		}
+
+		// Append the static part of the string
+		result += propValue.slice(lastIndex, match.index)
+		// Append the evaluated dynamic value
+		result += dynamicValue !== undefined ? String(dynamicValue) : ''
+		// update lastIndex to the end of the current match
+		lastIndex = match.index + match[0].length
+	}
+
+	// Append the final static part of the string
+	result += propValue.slice(lastIndex)
+	return result || undefined
+}
+
+function evaluateExpression(expression: string, context: any) {
+	try {
+		// Split the expression into individual properties and evaluate them one by one
+		const properties = expression.split('.')
+		let value = context
+		for (const prop of properties) {
+			value = value?.[prop]
+			if (value === undefined) {
+				return undefined
+			}
+		}
+		return value
+	} catch (error) {
+		console.error(`Error evaluating expression: ${expression}`, error)
+		return undefined
+	}
+}
+
+function getNewResource(resource) {
+	const fields = JSON.parse(resource.fields || "[]")
+	switch (resource.resource_type) {
+		case "Document Resource":
+			return createDocumentResource({
+				doctype: resource.document_type,
+				name: resource.document_name,
+				auto: true,
+			})
+		case "List Resource":
+			return createListResource({
+				doctype: resource.document_type,
+				fields: fields.length ? fields : "*",
+				auto: true,
+			})
+		case "API Resource":
+			return createResource({
+				url: resource.url,
+				method: resource.method,
+				auto: true,
+			})
+	}
+}
+
+// dialogs
+async function confirm(message: string, title: string = "Confirm"): Promise<boolean> {
+	return new Promise((resolve) => {
+		confirmDialog({
+			title: title,
+			message: message,
+			onConfirm: ({ hideDialog }: { hideDialog: Function }) => {
+				resolve(true);
+				hideDialog();
+			},
+		});
+	});
+}
+
+
 export {
 	getBlockInstance,
 	getComponentBlock,
@@ -172,8 +298,19 @@ export {
 	kebabToCamelCase,
 	copyObject,
 	areObjectsEqual,
+	isObjectEmpty,
 	jsToJson,
 	jsonToJs,
 	mapToObject,
 	replaceMapKey,
+	// page
+	fetchPage,
+	findPageWithRoute,
+	// data
+	getAutocompleteValues,
+	isDynamicValue,
+	getDynamicPropValue,
+	getNewResource,
+	// dialog
+	confirm,
 }

@@ -1,7 +1,7 @@
 <template>
 	<div class="flex select-none flex-col pb-16">
 		<div class="flex flex-col gap-3">
-			<div v-if="componentProps" v-for="(config, propName) in componentProps" :key="propName">
+			<div v-if="!isObjectEmpty(componentProps)" v-for="(config, propName) in componentProps" :key="propName">
 				<InlineInput
 					:label="propName"
 					:type="config.inputType"
@@ -9,6 +9,8 @@
 					@update:modelValue="(val) => updateComponentProp(propName, val)"
 				/>
 			</div>
+
+			<EmptyState v-else message="Select a block to edit properties" />
 		</div>
 	</div>
 </template>
@@ -18,7 +20,9 @@ import { computed } from "vue"
 import Block from "@/utils/block"
 
 import { getComponentProps } from "@/utils/components"
+import { isObjectEmpty } from "@/utils/helpers"
 import InlineInput from "@/components/InlineInput.vue"
+import EmptyState from "@/components/EmptyState.vue"
 
 const props = defineProps({
 	block: {

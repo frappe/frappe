@@ -43,7 +43,7 @@
 		:modelValue="blockController.getStyle('flexWrap') || 'nowrap'"
 		@update:modelValue="(val: string | number) => blockController.setStyle('flexWrap', val)"
 	></OptionToggle>
-	<div class="flex flex-col gap-3" v-if="blockController.getParentBlock()?.isFlex()">
+	<div class="flex flex-col gap-3">
 		<OptionToggle
 			label="Grow"
 			:options="[

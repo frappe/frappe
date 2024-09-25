@@ -40,7 +40,7 @@ import PaddingHandler from "@/components/PaddingHandler.vue"
 import MarginHandler from "@/components/MarginHandler.vue"
 
 import Block from "@/utils/block"
-import useStore from "@/store"
+import useStudioStore from "@/stores/studioStore"
 import trackTarget from "@/utils/trackTarget"
 
 const props = defineProps({
@@ -62,7 +62,7 @@ const props = defineProps({
 	},
 })
 
-const store = useStore()
+const store = useStudioStore()
 const editor = ref(null)
 const resizing = ref(false)
 const updateTracker = ref(() => {})

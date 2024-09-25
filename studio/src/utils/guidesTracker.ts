@@ -1,12 +1,12 @@
 // Extracted from Builder
 import { useElementBounding } from "@vueuse/core";
 import { reactive } from "vue";
-import useStore from "@/store";
+import useStudioStore from "@/stores/studioStore";
 
 import { CanvasProps } from "@/types"
 
 
-const store = useStore();
+const store = useStudioStore();
 const tracks = [
 	{
 		point: 0,

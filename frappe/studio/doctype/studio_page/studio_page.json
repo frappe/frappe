@@ -13,7 +13,9 @@
   "route",
   "section_break_qtyt",
   "blocks",
-  "draft_blocks"
+  "draft_blocks",
+  "data_tab",
+  "resources"
  ],
  "fields": [
   {
@@ -55,11 +57,22 @@
    "fieldname": "draft_blocks",
    "fieldtype": "JSON",
    "label": "Draft Blocks"
+  },
+  {
+   "fieldname": "data_tab",
+   "fieldtype": "Tab Break",
+   "label": "Data"
+  },
+  {
+   "fieldname": "resources",
+   "fieldtype": "Table MultiSelect",
+   "label": "Resources",
+   "options": "Studio Page Resource"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-12 18:53:20.336467",
+ "modified": "2024-09-23 10:40:52.507929",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page",

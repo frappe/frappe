@@ -78,7 +78,7 @@ import Draggable from "vuedraggable"
 import ComponentLayers from "@/components/ComponentLayers.vue"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 
-import useStore from "@/store"
+import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
 import LucideIcon from "./LucideIcon.vue"
 
@@ -93,7 +93,7 @@ const props = defineProps({
 	},
 })
 
-const store = useStore()
+const store = useStudioStore()
 const childLayer = ref<InstanceType<typeof ComponentLayers> | null>(null)
 
 interface LayerBlock extends Block {

@@ -105,7 +105,7 @@ const setupEditor = () => {
 	aceEditor.on("blur", () => {
 		try {
 			let value = aceEditor?.getValue() || ""
-			if (props.type === "JSON" || typeof props.modelValue === "object") {
+			if ((props.type === "JSON" || typeof props.modelValue === "object") && !value.startsWith("{{")) {
 				value = jsonToJs(value)
 				if (areObjectsEqual(value, props.modelValue)) return
 			} else if (value === props.modelValue) {

@@ -37,11 +37,11 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import useStore from "@/store"
+import useStudioStore from "@/stores/studioStore"
 import { StudioPage } from "@/types"
 import Input from "@/components/Input.vue"
 
-const store = useStore()
+const store = useStudioStore()
 const props = defineProps<{
 	page: StudioPage
 }>()

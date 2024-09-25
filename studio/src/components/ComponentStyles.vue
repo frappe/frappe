@@ -31,7 +31,7 @@
 		</div>
 	</div>
 	<div v-else>
-		<p class="dark:text-zinc-500 text-center text-sm text-gray-600">Select a block to edit properties.</p>
+		<EmptyState message="Select a block to edit styles" />
 	</div>
 </template>
 
@@ -39,7 +39,7 @@
 import { TextInput } from "frappe-ui"
 import Block from "@/utils/block"
 import OptionToggle from "@/components/OptionToggle.vue"
-import useStore from "@/store"
+import useStudioStore from "@/stores/studioStore"
 import blockController from "@/utils/blockController"
 import { Ref, computed, ref } from "vue"
 import BlockFlexLayoutHandler from "@/components/BlockFlexLayoutHandler.vue"
@@ -48,6 +48,7 @@ import BlockPositionHandler from "@/components/BlockPositionHandler.vue"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
 import DimensionInput from "@/components/DimensionInput.vue"
 import InlineInput from "@/components/InlineInput.vue"
+import EmptyState from "@/components/EmptyState.vue"
 
 const props = defineProps({
 	block: {
@@ -56,7 +57,7 @@ const props = defineProps({
 	},
 })
 
-const store = useStore()
+const store = useStudioStore()
 
 // command + f should focus on search input
 window.addEventListener("keydown", (e) => {

@@ -49,8 +49,8 @@ import type { ComponentPublicInstance } from "vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
 
 import Block from "@/utils/block"
-import useStore from "@/store"
-import { getComponentRoot } from "@/utils/helpers"
+import useStudioStore from "@/stores/studioStore"
+import { getComponentRoot, isDynamicValue, getDynamicPropValue } from "@/utils/helpers"
 
 const props = defineProps({
 	block: {
@@ -68,7 +68,7 @@ defineOptions({
 
 const isComponentReady = ref(false)
 const editor = ref(null)
-const store = useStore()
+const store = useStudioStore()
 const classes = ["__studio_component__", "outline-none", "select-none"]
 
 const canvasProps = inject("canvasProps") as CanvasProps
@@ -77,10 +77,23 @@ const styles = computed(() => {
 	return props.block.getStyles()
 })
 
+const getComponentProps = () => {
+	if (!props.block || props.block.isRoot()) return []
+
+	const componentProps = { ...props.block.componentProps }
+
+	Object.entries(componentProps).forEach(([propName, config]) => {
+		if (isDynamicValue(config)) {
+			componentProps[propName] = getDynamicPropValue(config, store.resources)
+		}
+	})
+	return componentProps
+}
+
 const attrs = useAttrs()
 const componentProps = computed(() => {
 	return {
-		...props.block.componentProps,
+		...getComponentProps(),
 		...attrs,
 	}
 })

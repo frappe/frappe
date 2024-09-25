@@ -1,6 +1,5 @@
-import { ref, reactive, computed } from "vue"
+import { ref, reactive, computed, nextTick } from "vue"
 import { defineStore } from "pinia"
-import { createResource, createDocumentResource } from "frappe-ui"
 
 import {
 	getBlockInstance,
@@ -8,10 +7,15 @@ import {
 	jsToJson,
 	getBlockCopyWithoutParent,
 	jsonToJs,
+	// page
+	fetchPage,
+	// data
+	getNewResource,
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
+import { studioPageResources } from "@/data/studioResources"
 
-const useStore = defineStore("store", () => {
+const useStudioStore = defineStore("store", () => {
 	const canvas = ref(null)
 	const studioLayout = reactive({
 		leftPanelWidth: 300,
@@ -56,6 +60,7 @@ const useStore = defineStore("store", () => {
 	const settingPage = ref(false)
 
 	async function setPage(pageName) {
+		settingPage.value = true
 		const page = await fetchPage(pageName)
 		activePage.value = page
 
@@ -66,26 +71,10 @@ const useStore = defineStore("store", () => {
 			pageBlocks.value = [getBlockInstance(blocks[0])]
 		}
 		selectedPage.value = page.name
-	}
-
-	async function fetchPage(pageName) {
-		const pageResource = createDocumentResource({
-			doctype: "Studio Page",
-			name: pageName,
+		await setPageResources(page)
+		nextTick(() => {
+			settingPage.value = false
 		})
-		await pageResource.get.promise
-		return pageResource.doc
-	}
-
-	async function findPageWithRoute(route) {
-		let pageName = createResource({
-			url: "studio.studio.doctype.studio_page.studio_page.find_page_with_route",
-			method: "GET",
-			params: { route: `studio-app/${route}` },
-		})
-		await pageName.fetch()
-		pageName = pageName.data
-		return fetchPage(pageName)
 	}
 
 	function savePage() {
@@ -137,6 +126,20 @@ const useStore = defineStore("store", () => {
 	// styles
 	const stylePropertyFilter = ref(null)
 
+	// data
+	const resources = ref({})
+
+	async function setPageResources(page) {
+		studioPageResources.filters = { parent: page.name }
+		await studioPageResources.reload()
+		resources.value = {}
+
+		studioPageResources.data.map((resource) => {
+			resources.value[resource.resource_name] = getNewResource(resource)
+			resources.value[resource.resource_name].docname = resource.name
+		})
+	}
+
 	return {
 		// layout
 		canvas,
@@ -156,15 +159,16 @@ const useStore = defineStore("store", () => {
 		savingPage,
 		activePage,
 		setPage,
-		findPageWithRoute,
-		fetchPage,
 		savePage,
 		updateActivePage,
 		publishPage,
 		openPageInBrowser,
 		// styles
 		stylePropertyFilter,
+		// data
+		resources,
+		setPageResources,
 	}
 })
 
-export default useStore
+export default useStudioStore
