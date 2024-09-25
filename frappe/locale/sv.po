@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-24 14:00+0000\n"
-"PO-Revision-Date: 2024-09-24 23:32\n"
+"PO-Revision-Date: 2024-09-25 23:38\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -1244,7 +1244,7 @@ msgstr "Lägg till Ny Behörighet Regel"
 
 #: frappe/desk/doctype/event/event.js:35 frappe/desk/doctype/event/event.js:42
 msgid "Add Participants"
-msgstr "Lägg till Deltagare"
+msgstr "Lägg till deltagare"
 
 #. Label of the add_query_parameters (Check) field in DocType 'Email Group'
 #: frappe/email/doctype/email_group/email_group.json
@@ -1581,7 +1581,7 @@ msgstr "Avancerad Sökning"
 #. Label of the sb_advanced (Section Break) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Advanced Settings"
-msgstr "Avancerade Inställningar"
+msgstr "Avancerade inställningar"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:63
 #: frappe/public/js/frappe/ui/filters/filter.js:69
@@ -3224,13 +3224,13 @@ msgstr "Tillbaka till Inloggning"
 #: frappe/website/doctype/social_link_settings/social_link_settings.json
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Background Color"
-msgstr "Bakgrund Färg"
+msgstr "Bakgrundsfärg"
 
 #. Label of the background_image (Attach Image) field in DocType 'Web Page
 #. Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Background Image"
-msgstr "Bakgrund Bild"
+msgstr "Bakgrundsbild"
 
 #. Label of a Link in the Build Workspace
 #. Label of the background_jobs_section (Section Break) field in DocType
@@ -3381,7 +3381,7 @@ msgstr "Bar"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Barcode"
-msgstr "Streck/QR Kod"
+msgstr "Streckkod"
 
 #. Label of the base_dn (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -3525,7 +3525,7 @@ msgstr "Resume"
 #. Label of the birth_date (Date) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Birth Date"
-msgstr "Födelsedag"
+msgstr "Födelsedatum"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:41
 msgid "Blank Template"
@@ -5217,7 +5217,7 @@ msgstr "Bolag Introduktion"
 #. Label of the company_name (Data) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Company Name"
-msgstr "Bolag Namn"
+msgstr "Företagsnamn"
 
 #: frappe/core/doctype/server_script/server_script.js:14
 #: frappe/custom/doctype/client_script/client_script.js:54
@@ -5646,7 +5646,7 @@ msgstr "Kopiera fel till urklipp"
 
 #: frappe/public/js/frappe/form/toolbar.js:481
 msgid "Copy to Clipboard"
-msgstr "Kopiera till Urklipp"
+msgstr "Kopiera till urklipp"
 
 #. Label of the copyright (Data) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -5768,7 +5768,7 @@ msgstr "Skapa & Fortsätt"
 
 #: frappe/public/js/frappe/ui/address_autocomplete/autocomplete_dialog.js:49
 msgid "Create Address"
-msgstr "Skapa Adress"
+msgstr "Skapa adress"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:187
 #: frappe/public/js/frappe/views/reports/query_report.js:232
@@ -6928,7 +6928,7 @@ msgstr "Ta Bort Alla"
 #: frappe/public/js/form_builder/components/Section.vue:196
 msgctxt "Title of confirmation dialog"
 msgid "Delete Column"
-msgstr "Ta bort Kolumn"
+msgstr "Radera kolumn"
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.js:10
 msgid "Delete Data"
@@ -6955,7 +6955,7 @@ msgstr "Ta bort och Skapa Ny"
 #: frappe/public/js/form_builder/components/Section.vue:203
 msgctxt "Button text"
 msgid "Delete column"
-msgstr "Ta bort kolumn"
+msgstr "Radera kolumn"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:721
 msgid "Delete comment?"
@@ -8062,7 +8062,7 @@ msgstr "Domän"
 #. Label of the domain_name (Data) field in DocType 'Email Domain'
 #: frappe/email/doctype/email_domain/email_domain.json
 msgid "Domain Name"
-msgstr "Domän namn"
+msgstr "Domännamn"
 
 #. Name of a DocType
 #: frappe/core/doctype/domain_settings/domain_settings.json
@@ -10242,7 +10242,7 @@ msgstr "Fil Namn"
 #. Label of the file_size (Int) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "File Size"
-msgstr "Fil Storlek"
+msgstr "Filstorlek"
 
 #. Label of the section_break_ryki (Section Break) field in DocType 'System
 #. Health Report'
@@ -15032,7 +15032,7 @@ msgstr "Logga in med {0}"
 #: frappe/core/doctype/activity_log/activity_log.json frappe/www/apps.html:59
 #: frappe/www/me.html:84
 msgid "Logout"
-msgstr "Logga Ut"
+msgstr "Logga ut"
 
 #: frappe/core/doctype/user/user.js:197
 msgid "Logout All Sessions"
