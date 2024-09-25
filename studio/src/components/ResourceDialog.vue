@@ -14,6 +14,7 @@
 				},
 			],
 		}"
+		@after-leave="newResource = { ...emptyResource }"
 	>
 		<template #body-content>
 			<div class="flex flex-col gap-3">
@@ -82,7 +83,7 @@ import FormControl from "frappe-ui/src/components/FormControl.vue"
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 const emit = defineEmits(["addResource"])
 
-const newResource = ref({
+const emptyResource = {
 	// source
 	source: "New Resource",
 	// config
@@ -93,7 +94,9 @@ const newResource = ref({
 	document_type: "",
 	document_name: "",
 	fields: [],
-})
+}
+
+const newResource = ref({ ...emptyResource })
 const doctypeFields = ref([])
 
 watch(
