@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-24 14:00+0000\n"
-"PO-Revision-Date: 2024-09-24 23:32\n"
+"PO-Revision-Date: 2024-09-25 23:38\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -17209,7 +17209,7 @@ msgstr "Taslak belgelerin yazdırılmasına izin verilmiyor"
 
 #: frappe/permissions.py:211
 msgid "Not allowed via controller permission check"
-msgstr ""
+msgstr "Denetleyici izin kontrolü ile izin verilmiyor"
 
 #: frappe/public/js/frappe/request.js:146 frappe/website/js/website.js:94
 msgid "Not found"
@@ -28251,7 +28251,7 @@ msgstr "Kullanıcı {0} yeniden adlandırılamaz"
 
 #: frappe/permissions.py:137
 msgid "User {0} does not have access to this document"
-msgstr "Kullanıcı {0} bu belgeye erişime sahip değil"
+msgstr "{0} kullanıcısı bu erişim için gerekli yetkiye sahip değil"
 
 #: frappe/permissions.py:160
 msgid "User {0} does not have doctype access via role permission for document {1}"
@@ -29970,7 +29970,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/footer/form_timeline.js:420
 msgctxt "Form timeline"
 msgid "You removed attachment {0}"
-msgstr ""
+msgstr "Eki kaldırdınız {0}"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:520
 msgid "You seem good to go!"
@@ -30037,7 +30037,7 @@ msgstr "Hesabınız kilitlendi ve {0} saniye sonra yeniden erişilebilir olacak"
 
 #: frappe/desk/form/assign_to.py:278
 msgid "Your assignment on {0} {1} has been removed by {2}"
-msgstr ""
+msgstr "{0} {1} üzerindeki atama {2} tarafından kaldırıldı"
 
 #: frappe/core/doctype/file/file.js:66
 msgid "Your browser does not support the audio element."
@@ -31633,7 +31633,7 @@ msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1319
 msgid "{0}: Field {1} in row {2} cannot be hidden and mandatory without default"
-msgstr ""
+msgstr "{0}: {2} satırındaki {1} alanı varsayılan olmadan gizlenemez ve zorunlu olamaz"
 
 #: frappe/core/doctype/doctype/doctype.py:1278
 msgid "{0}: Field {1} of type {2} cannot be mandatory"
