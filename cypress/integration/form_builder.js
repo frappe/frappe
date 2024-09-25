@@ -35,6 +35,40 @@ context("Form Builder", () => {
 		cy.get(".title-area .indicator-pill.orange").should("have.text", "Not Saved");
 	});
 
+	it("Check if Filters are applied to the link field", () => {
+		// Visit the Form Builder
+		cy.visit(`/app/doctype/${doctype_name}`);
+		cy.findByRole("tab", { name: "Form" }).click();
+
+		cy.get("[data-fieldname='gender']").click();
+
+		// click on filter action button
+		cy.get('[data-fieldname="gender"] .field-actions button:first').click();
+
+		// add filter
+		cy.get(".modal-body .clear-filters").click();
+		cy.get(".modal-body .filter-action-buttons .add-filter").click();
+		cy.wait(100);
+		cy.get(".modal-body .filter-box .list_filter .filter-field .link-field input").type(
+			"Male"
+		);
+		cy.get(".btn-modal-primary").click();
+
+		// Save the document
+		cy.click_doc_primary_button("Save");
+
+		// Open a new Form
+		cy.new_form(doctype_name);
+		// Click on the "salutation" field
+		cy.get_field("gender").clear().click();
+
+		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
+		cy.wait("@search_link").then((data) => {
+			expect(data.response.body.message.length).to.eq(1);
+			expect(data.response.body.message[0].value).to.eq("Male");
+		});
+	});
+
 	it("Add empty section and save", () => {
 		cy.visit(`/app/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();

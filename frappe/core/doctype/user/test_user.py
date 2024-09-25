@@ -11,6 +11,7 @@ from werkzeug.http import parse_cookie
 import frappe
 import frappe.exceptions
 from frappe.core.doctype.user.user import (
+	User,
 	handle_password_test_fail,
 	reset_password,
 	sign_up,
@@ -291,7 +292,7 @@ class TestUser(FrappeTestCase):
 		res1 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
 		res2 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
 		self.assertEqual(res1.status_code, 404)
-		self.assertEqual(res2.status_code, 417)
+		self.assertEqual(res2.status_code, 429)
 
 	def test_user_rename(self):
 		old_name = "test_user_rename@example.com"
@@ -405,7 +406,7 @@ class TestUser(FrappeTestCase):
 
 		# test redirect URL for website users
 		frappe.set_user("test2@example.com")
-		self.assertEqual(update_password(new_password, old_password=old_password), "/")
+		self.assertEqual(update_password(new_password, old_password=old_password), "me")
 		# reset password
 		update_password(old_password, old_password=new_password)
 
@@ -417,7 +418,7 @@ class TestUser(FrappeTestCase):
 			test_user.reload()
 			link = sendmail.call_args_list[0].kwargs["args"]["link"]
 			key = parse_qs(urlparse(link).query)["key"][0]
-			self.assertEqual(update_password(new_password, key=key), "/")
+			self.assertEqual(update_password(new_password, key=key), "me")
 			update_password(old_password, old_password=new_password)
 			self.assertEqual(
 				frappe.message_log[0].get("message"),
@@ -475,7 +476,7 @@ def test_user(
 	try:
 		first_name = first_name or frappe.generate_hash()
 		email = email or (first_name + "@example.com")
-		user = frappe.new_doc(
+		user: User = frappe.new_doc(
 			"User",
 			send_welcome_email=0,
 			email=email,

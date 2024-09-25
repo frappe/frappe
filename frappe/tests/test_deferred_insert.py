@@ -10,3 +10,9 @@ class TestDeferredInsert(FrappeTestCase):
 
 		save_to_db()
 		self.assertTrue(frappe.db.exists("Route History", route_history))
+
+		route_history = {"route": frappe.generate_hash(), "user": "Administrator"}
+		deferred_insert("Route History", [route_history])
+		frappe.clear_cache()  # deferred_insert cache keys are supposed to be persistent
+		save_to_db()
+		self.assertTrue(frappe.db.exists("Route History", route_history))

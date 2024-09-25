@@ -16,6 +16,7 @@ class ScheduledJobLog(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		debug_log: DF.Code | None
 		details: DF.Code | None
 		scheduled_job_type: DF.Link
 		status: DF.Literal["Scheduled", "Complete", "Failed"]

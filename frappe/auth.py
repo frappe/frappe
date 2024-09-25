@@ -11,6 +11,7 @@ import frappe.database
 import frappe.utils
 import frappe.utils.user
 from frappe import _
+from frappe.apps import get_default_path
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
 from frappe.sessions import Session, clear_sessions, delete_session, get_expiry_in_seconds
 from frappe.translate import get_language
@@ -176,12 +177,12 @@ class LoginManager:
 			frappe.local.cookie_manager.set_cookie("system_user", "no")
 			if not resume:
 				frappe.local.response["message"] = "No App"
-				frappe.local.response["home_page"] = "/" + get_home_page()
+				frappe.local.response["home_page"] = get_default_path() or "/" + get_home_page()
 		else:
 			frappe.local.cookie_manager.set_cookie("system_user", "yes")
 			if not resume:
 				frappe.local.response["message"] = "Logged In"
-				frappe.local.response["home_page"] = "/app"
+				frappe.local.response["home_page"] = get_default_path() or "/app"
 
 		if not resume:
 			frappe.response["full_name"] = self.full_name
@@ -421,7 +422,18 @@ def clear_cookies():
 
 
 def validate_ip_address(user):
-	"""check if IP Address is valid"""
+	"""
+	Method to check if the user has IP restrictions enabled, and if so is the IP address they are
+	connecting from allowlisted.
+
+	Certain methods called from our socketio backend need direct access, and so the IP is not
+	checked for those
+	"""
+	if hasattr(frappe.local, "request") and frappe.local.request.path.startswith(
+		"/api/method/frappe.realtime."
+	):
+		return True
+
 	from frappe.core.doctype.user.user import get_restricted_ip_list
 
 	# Only fetch required fields - for perf

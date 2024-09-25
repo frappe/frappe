@@ -149,10 +149,10 @@ class RedisWrapper(redis.Redis):
 			pass
 
 	def lpush(self, key, value):
-		super().lpush(self.make_key(key), value)
+		return super().lpush(self.make_key(key), value)
 
 	def rpush(self, key, value):
-		super().rpush(self.make_key(key), value)
+		return super().rpush(self.make_key(key), value)
 
 	def lpop(self, key):
 		return super().lpop(self.make_key(key))

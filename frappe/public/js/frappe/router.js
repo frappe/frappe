@@ -231,11 +231,15 @@ frappe.router = {
 			} else if (frappe.model.is_single(doctype_route.doctype)) {
 				route = ["Form", doctype_route.doctype, doctype_route.doctype];
 			} else if (meta.default_view) {
-				route = [
-					"List",
-					doctype_route.doctype,
-					this.list_views_route[meta.default_view.toLowerCase()],
-				];
+				if (meta.default_view === "Tree") {
+					route = ["Tree", doctype_route.doctype];
+				} else {
+					route = [
+						"List",
+						doctype_route.doctype,
+						this.list_views_route[meta.default_view.toLowerCase()],
+					];
+				}
 			} else {
 				route = ["List", doctype_route.doctype, "List"];
 			}
@@ -516,8 +520,8 @@ frappe.router = {
 
 	strip_prefix(route) {
 		if (route.substr(0, 1) == "/") route = route.substr(1); // for /app/sub
+		if (route == "app") route = route.substr(4); // for app
 		if (route.startsWith("app/")) route = route.substr(4); // for desk/sub
-		if (route == "app") route = route.substr(4); // for /app
 		if (route.substr(0, 1) == "/") route = route.substr(1);
 		if (route.substr(0, 1) == "#") route = route.substr(1);
 		if (route.substr(0, 1) == "!") route = route.substr(1);

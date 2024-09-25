@@ -1,0 +1,11 @@
+**/hooks.py,frappe.gettext.extractors.navbar.extract
+**/doctype/*/*.json,frappe.gettext.extractors.doctype.extract
+**/workspace/*/*.json,frappe.gettext.extractors.workspace.extract
+**/onboarding_step/*/*.json,frappe.gettext.extractors.onboarding_step.extract
+**/module_onboarding/*/*.json,frappe.gettext.extractors.module_onboarding.extract
+**/report/*/*.json,frappe.gettext.extractors.report.extract
+**.py,frappe.gettext.extractors.python.extract
+**/templates/**.js,frappe.gettext.extractors.html_template.extract
+**.js,frappe.gettext.extractors.javascript.extract
+**.html,frappe.gettext.extractors.html_template.extract
+**.vue,frappe.gettext.extractors.html_template.extract

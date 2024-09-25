@@ -87,6 +87,7 @@ class DocField(Document):
 		is_virtual: DF.Check
 		label: DF.Data | None
 		length: DF.Int
+		link_filters: DF.JSON | None
 		mandatory_depends_on: DF.Code | None
 		max_height: DF.Data | None
 		no_copy: DF.Check
@@ -110,6 +111,7 @@ class DocField(Document):
 		search_index: DF.Check
 		set_only_once: DF.Check
 		show_dashboard: DF.Check
+		show_on_timeline: DF.Check
 		sort_options: DF.Check
 		translatable: DF.Check
 		unique: DF.Check

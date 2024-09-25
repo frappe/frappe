@@ -20,6 +20,7 @@
   "section_break_sgro",
   "form_dict",
   "section_break_9jhm",
+  "suggested_indexes",
   "sql_queries",
   "section_break_optn",
   "profile"
@@ -119,6 +120,13 @@
    "fieldtype": "Code",
    "label": "cProfile Output",
    "read_only": 1
+  },
+  {
+   "description": "Disclaimer: These indexes are suggested based on data and queries performed during this recording. These suggestions may or may not help.",
+   "fieldname": "suggested_indexes",
+   "fieldtype": "Table",
+   "label": "Suggested Indexes",
+   "options": "Recorder Suggested Index"
   }
  ],
  "hide_toolbar": 1,
@@ -126,7 +134,7 @@
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2024-02-01 22:13:26.505174",
+ "modified": "2024-05-14 15:16:55.626656",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Recorder",

@@ -236,6 +236,7 @@ class SendMailContext:
 		self.sent_to_atleast_one_recipient = any(
 			rec.recipient for rec in self.queue_doc.recipients if rec.is_mail_sent()
 		)
+		self.email_account_doc = None
 
 	def fetch_smtp_server(self):
 		self.email_account_doc = self.queue_doc.get_email_account(raise_error=True)
@@ -248,7 +249,7 @@ class SendMailContext:
 
 	def __exit__(self, exc_type, exc_val, exc_tb):
 		if exc_type:
-			update_fields = {"error": "".join(traceback.format_tb(exc_tb))}
+			update_fields = {"error": frappe.get_traceback()}
 			if self.queue_doc.retry < get_email_retry_limit():
 				update_fields.update(
 					{
@@ -325,7 +326,11 @@ class SendMailContext:
 			}
 			tracker_url = get_url(f"{email_read_tracker_url}?{get_signed_params(params)}")
 
-		elif frappe.conf.use_ssl and self.email_account_doc.track_email_status:
+		elif (
+			self.email_account_doc
+			and self.email_account_doc.track_email_status
+			and self.queue_doc.communication
+		):
 			tracker_url = f"{get_url()}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={self.queue_doc.communication}"
 
 		if tracker_url:

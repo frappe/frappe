@@ -143,6 +143,8 @@ def prepare_filters(doctype, controller, kwargs):
 
 	if hasattr(controller, "website") and controller.website.get("condition_field"):
 		filters[controller.website["condition_field"]] = 1
+	elif meta.is_published_field:
+		filters[meta.is_published_field] = 1
 
 	if filters.pathname:
 		# resolve additional filters from path
@@ -184,7 +186,7 @@ def get_list_context(context, doctype, web_form_name=None):
 	# get context for custom webform
 	if meta.custom and web_form_name:
 		webform_list_contexts = frappe.get_hooks("webform_list_context")
-		if webform_list_contexts:
+		if webform_list_contexts and not frappe.get_doc("Module Def", meta.module).custom:
 			out = frappe._dict(frappe.get_attr(webform_list_contexts[0])(meta.module) or {})
 			if out:
 				list_context = out

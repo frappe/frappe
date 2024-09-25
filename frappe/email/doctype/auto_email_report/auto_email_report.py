@@ -347,7 +347,9 @@ def make_links(columns, data):
 			elif col.fieldtype == "Currency":
 				doc = None
 				if doc_name and col.get("parent") and not frappe.get_meta(col.parent).istable:
-					doc = frappe.get_doc(col.parent, doc_name)
+					if frappe.db.exists(col.parent, doc_name):
+						doc = frappe.get_doc(col.parent, doc_name)
+
 				# Pass the Document to get the currency based on docfield option
 				row[col.fieldname] = frappe.format_value(row[col.fieldname], col, doc=doc)
 	return columns, data

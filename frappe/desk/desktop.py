@@ -416,7 +416,7 @@ def get_workspace_sidebar_items():
 	has_access = "Workspace Manager" in frappe.get_roles()
 
 	# don't get domain restricted pages
-	blocked_modules = frappe.get_doc("User", frappe.session.user).get_blocked_modules()
+	blocked_modules = frappe.get_cached_doc("User", frappe.session.user).get_blocked_modules()
 	blocked_modules.append("Dummy Module")
 
 	# adding None to allowed_domains to include pages without domain restriction
@@ -469,7 +469,11 @@ def get_workspace_sidebar_items():
 		pages = [frappe.get_doc("Workspace", "Welcome Workspace").as_dict()]
 		pages[0]["label"] = _("Welcome Workspace")
 
-	return {"pages": pages, "has_access": has_access}
+	return {
+		"pages": pages,
+		"has_access": has_access,
+		"has_create_access": frappe.has_permission(doctype="Workspace", ptype="create"),
+	}
 
 
 def get_table_with_counts():

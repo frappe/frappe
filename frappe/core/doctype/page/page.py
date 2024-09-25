@@ -173,11 +173,6 @@ class Page(Document):
 					# flag for not caching this page
 					self._dynamic_page = True
 
-		if frappe.lang != "en":
-			from frappe.translate import get_lang_js
-
-			self.script += get_lang_js("page", self.name)
-
 		for path in get_code_files_via_hooks("page_js", self.name):
 			js = get_js(path)
 			if js:

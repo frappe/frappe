@@ -4,6 +4,39 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 		this.load_lib().then(() => this.make_ace_editor());
 	}
 
+	make_wrapper() {
+		super.make_wrapper();
+		this.set_copy_button();
+	}
+
+	set_copy_button() {
+		if (!this.frm?.doc) {
+			return;
+		}
+
+		const codeField = this.df.fieldtype === "Code";
+		if ((codeField && this.df.read_only === 1) || (codeField && this.frm.doc.docstatus > 0)) {
+			this.button = $(
+				`<button
+					class="btn icon-btn"
+					style="position: absolute; top: 32px; right: 5px;"
+					onmouseover="this.classList.add('btn-default')"
+					onmouseout="this.classList.remove('btn-default')"
+				>
+					<svg class="es-icon es-line  icon-sm" style="" aria-hidden="true">
+						<use class="" href="#es-line-copy-light"></use>
+					</svg>
+				</button>`
+			);
+			this.button.on("click", () => {
+				frappe.utils.copy_to_clipboard(
+					frappe.model.get_value(this.doctype, this.docname, this.df.fieldname)
+				);
+			});
+			this.button.appendTo(this.$wrapper);
+		}
+	}
+
 	make_ace_editor() {
 		if (this.editor) return;
 		this.ace_editor_target = $('<div class="ace-editor-target"></div>').appendTo(

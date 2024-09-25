@@ -52,7 +52,7 @@
    "fieldname": "social_login_provider",
    "fieldtype": "Select",
    "label": "Social Login Provider",
-   "options": "Custom\nFacebook\nFrappe\nGitHub\nGoogle\nOffice 365\nSalesforce\nfairlogin",
+   "options": "Custom\nFacebook\nFrappe\nGitHub\nGoogle\nOffice 365\nSalesforce\nfairlogin\nKeycloak",
    "set_only_once": 1
   },
   {
@@ -167,7 +167,7 @@
    "label": "Configuration"
   },
   {
-   "description": "Controls whether new users can sign up using this Social Login Key. If unset, Website Settings is respected. ",
+   "description": "Controls whether new users can sign up using this Social Login Key. If unset, Website Settings is respected.",
    "fieldname": "sign_ups",
    "fieldtype": "Select",
    "label": "Sign ups",
@@ -176,7 +176,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-10-14 12:22:23.601130",
+ "modified": "2024-09-06 15:22:46.342392",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Social Login Key",

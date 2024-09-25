@@ -19,15 +19,17 @@ def make_request(method, url, auth=None, headers=None, data=None, json=None, par
 		response = frappe.flags.integration_request = s.request(
 			method, url, data=data, auth=auth, headers=headers, json=json, params=params
 		)
-		content_type = response.headers.get("content-type")
-		if content_type == "text/plain; charset=utf-8":
-			return parse_qs(response.text)
-		elif content_type.startswith("application/") and content_type.split(";")[0].endswith("json"):
-			return response.json()
-		elif response.text:
-			return response.text
-		else:
-			return
+		response.raise_for_status()
+
+		# Check whether the response has a content-type, before trying to check what it is
+		if content_type := response.headers.get("content-type"):
+			if content_type == "text/plain; charset=utf-8":
+				return parse_qs(response.text)
+			elif content_type.startswith("application/") and content_type.split(";")[0].endswith("json"):
+				return response.json()
+			elif response.text:
+				return response.text
+		return
 	except Exception as exc:
 		frappe.log_error()
 		raise exc

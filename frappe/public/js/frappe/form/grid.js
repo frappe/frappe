@@ -144,7 +144,7 @@ export default class Grid {
 	set_grid_description() {
 		let description_wrapper = $(this.parent).find(".grid-description");
 		if (this.df.description) {
-			description_wrapper.text(__(this.df.description));
+			description_wrapper.html(__(this.df.description));
 		} else {
 			description_wrapper.hide();
 		}
@@ -321,9 +321,9 @@ export default class Grid {
 	}
 
 	get_selected_children() {
-		return (this.grid_rows || [])
+		return (this.data || [])
 			.map((row) => {
-				return row.doc.__checked ? row.doc : null;
+				return row.__checked ? row : 0;
 			})
 			.filter((d) => {
 				return d;
@@ -790,7 +790,7 @@ export default class Grid {
 	}
 
 	set_value(fieldname, value, doc) {
-		if (this.display_status !== "None" && doc.name && this.grid_rows_by_docname[doc.name]) {
+		if (this.display_status !== "None" && doc?.name && this.grid_rows_by_docname?.[doc.name]) {
 			this.grid_rows_by_docname[doc.name].refresh_field(fieldname, value);
 		}
 	}
@@ -833,7 +833,10 @@ export default class Grid {
 					acc[d.fieldname] = d.default;
 					return acc;
 				}, {});
-				this.df.data.push({ idx: this.df.data.length + 1, __islocal: true, ...defaults });
+
+				const row_idx = this.df.data.length + 1;
+				this.df.data.push({ idx: row_idx, __islocal: true, ...defaults });
+				this.df.on_add_row && this.df.on_add_row(row_idx);
 				this.refresh();
 			}
 
@@ -1067,7 +1070,7 @@ export default class Grid {
 
 	setup_allow_bulk_edit() {
 		let me = this;
-		if (this.frm && this.frm.get_docfield(this.df.fieldname).allow_bulk_edit) {
+		if (this.frm && this.frm.get_docfield(this.df.fieldname)?.allow_bulk_edit) {
 			// download
 			this.setup_download();
 
@@ -1219,7 +1222,7 @@ export default class Grid {
 		}
 
 		for (let row of this.grid_rows) {
-			let docfield = row.docfields.find((d) => d.fieldname === fieldname);
+			let docfield = row?.docfields?.find((d) => d.fieldname === fieldname);
 			if (docfield) {
 				docfield[property] = value;
 			} else {

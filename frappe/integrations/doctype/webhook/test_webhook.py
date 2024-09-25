@@ -77,6 +77,8 @@ class TestWebhook(FrappeTestCase):
 
 	def setUp(self):
 		# retrieve or create a User webhook for `after_insert`
+		self.responses = responses.RequestsMock()
+		self.responses.start()
 		webhook_fields = {
 			"webhook_doctype": "User",
 			"webhook_docevent": "after_insert",
@@ -100,9 +102,6 @@ class TestWebhook(FrappeTestCase):
 		self.test_user.email = "user1@integration.webhooks.test.com"
 		self.test_user.first_name = "user1"
 		self.test_user.send_welcome_email = False
-
-		self.responses = responses.RequestsMock()
-		self.responses.start()
 
 	def tearDown(self) -> None:
 		self.user.delete()

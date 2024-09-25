@@ -190,14 +190,12 @@ class BackupGenerator:
 			self.set_backup_file_name()
 
 		if not (last_db and last_file and last_private_file and site_config_backup_path):
-			self.take_dump()
-			self.add_to_rollback(lambda: os.remove(self.backup_path_db))
-			self.copy_site_config()
-			self.add_to_rollback(lambda: os.remove(self.backup_path_conf))
+			self.delete_if_step_fails(self.take_dump, self.backup_path_db)
+			self.delete_if_step_fails(self.copy_site_config, self.backup_path_conf)
 			if not ignore_files:
-				self.backup_files()
-				self.add_to_rollback(lambda: os.remove(self.backup_path_files))
-				self.add_to_rollback(lambda: os.remove(self.backup_path_private_files))
+				self.delete_if_step_fails(
+					self.backup_files, self.backup_path_files, self.backup_path_private_files
+				)
 
 			if frappe.get_system_settings("encrypt_backup"):
 				self.backup_encryption()
@@ -356,12 +354,21 @@ class BackupGenerator:
 			else:
 				cmd_string = "tar -cf {0} {1}"
 
-			frappe.utils.execute_in_shell(
-				cmd_string.format(backup_path, files_path),
-				verbose=self.verbose,
-				low_priority=True,
-				check_exit_code=True,
-			)
+			try:
+				frappe.utils.execute_in_shell(
+					cmd_string.format(backup_path, files_path),
+					verbose=self.verbose,
+					low_priority=True,
+					check_exit_code=True,
+				)
+			except frappe.CommandFailedError as e:
+				if e.err and "file changed as we read it" in e.err:
+					click.secho(
+						"Ignoring `tar: file changed as we read it` to prevent backup failure",
+						fg="red",
+					)
+				else:
+					raise e
 
 	def copy_site_config(self):
 		site_config_backup_path = self.backup_path_conf
@@ -492,6 +499,24 @@ download only after 24 hours."""
 		"""
 		if self.rollback_callback:
 			self.rollback_callback.add(func)
+
+	def delete_if_step_fails(self, step: Callable, *paths: str):
+		"""
+		Deletes the given path if the given step fails
+
+		:param step: The step to execute
+		:param paths: The paths to delete
+		:return: Nothing
+		"""
+		try:
+			step()
+		except Exception as e:
+			for path in paths:
+				if os.path.exists(path):
+					os.remove(path)
+			raise e
+		for path in paths:
+			self.add_to_rollback(lambda: os.remove(path))
 
 
 @frappe.whitelist()

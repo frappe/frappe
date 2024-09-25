@@ -7,6 +7,7 @@
 	Translation tools for frappe
 """
 
+
 import functools
 import io
 import itertools
@@ -14,40 +15,13 @@ import json
 import operator
 import os
 import re
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from csv import reader, writer
 
-from pypika.terms import PseudoColumn
-
 import frappe
-from frappe.model.utils import InvalidIncludePath, render_include
 from frappe.query_builder import DocType, Field
 from frappe.utils import cstr, get_bench_path, is_html, strip, strip_html_tags, unique
 
-TRANSLATE_PATTERN = re.compile(
-	r"_\(\s*"  # starts with literal `_(`, ignore following whitespace/newlines
-	# BEGIN: message search
-	r"([\"']{,3})"  # start of message string identifier - allows: ', ", """, '''; 1st capture group
-	r"(?P<message>((?!\1).)*)"  # Keep matching until string closing identifier is met which is same as 1st capture group
-	r"\1"  # match exact string closing identifier
-	# END: message search
-	# BEGIN: python context search
-	r"(\s*,\s*context\s*=\s*"  # capture `context=` with ignoring whitespace
-	r"([\"'])"  # start of context string identifier; 5th capture group
-	r"(?P<py_context>((?!\5).)*)"  # capture context string till closing id is found
-	r"\5"  # match context string closure
-	r")?"  # match 0 or 1 context strings
-	# END: python context search
-	# BEGIN: JS context search
-	r"(\s*,\s*(.)*?\s*(,\s*"  # skip message format replacements: ["format", ...] | null | []
-	r"([\"'])"  # start of context string; 11th capture group
-	r"(?P<js_context>((?!\11).)*)"  # capture context string till closing id is found
-	r"\11"  # match context string closure
-	r")*"
-	r")*"  # match one or more context string
-	# END: JS context search
-	r"\s*\)"  # Closing function call ignore leading whitespace/newlines
-)
 REPORT_TRANSLATE_PATTERN = re.compile('"([^:,^"]*):')
 CSV_STRIP_WHITESPACE_PATTERN = re.compile(r"{\s?([0-9]+)\s?}")
 
@@ -115,28 +89,22 @@ def get_parent_language(lang: str) -> str:
 	        1. zh-TW -> zh
 	        2. sr-BA -> sr
 	"""
-	is_language_variant = "-" in lang
-	if is_language_variant:
-		return lang[: lang.index("-")]
+	for sep in ("_", "-"):
+		if sep in lang:
+			return lang.split(sep)[0]
 
 
 def get_user_lang(user: str | None = None) -> str:
 	"""Set frappe.local.lang from user preferences on session beginning or resumption"""
 	user = user or frappe.session.user
-	lang = frappe.cache.hget("lang", user)
 
-	if not lang:
-		# User.language => Session Defaults => frappe.local.lang => 'en'
-		lang = (
-			frappe.db.get_value("User", user, "language")
-			or frappe.db.get_default("lang")
-			or frappe.local.lang
-			or "en"
-		)
-
-		frappe.cache.hset("lang", user, lang)
-
-	return lang
+	# User.language => Session Defaults => frappe.local.lang => 'en'
+	return (
+		frappe.get_cached_value("User", user, "language")
+		or frappe.db.get_default("lang")
+		or frappe.local.lang
+		or "en"
+	)
 
 
 def get_lang_code(lang: str) -> str | None:
@@ -153,120 +121,16 @@ def set_default_language(lang):
 
 
 def get_lang_dict():
-	"""Returns all languages in dict format, full name is the key e.g. `{"english":"en"}`"""
+	"""Return all languages in dict format, full name is the key e.g. `{"english":"en"}`."""
 	return dict(
-		frappe.get_all("Language", fields=["language_name", "name"], order_by="modified", as_list=True)
+		frappe.get_all("Language", fields=["language_name", "name"], order_by="creation", as_list=True)
 	)
-
-
-def get_dict(fortype: str, name: str | None = None) -> dict[str, str]:
-	"""Returns translation dict for a type of object.
-
-	:param fortype: must be one of `doctype`, `page`, `report`, `include`, `jsfile`, `boot`
-	:param name: name of the document for which assets are to be returned.
-	"""
-	fortype = fortype.lower()
-	asset_key = fortype + ":" + (name or "-")
-	translation_assets = frappe.cache.hget("translation_assets", frappe.local.lang) or {}
-
-	if asset_key not in translation_assets:
-		messages = []
-		if fortype == "doctype":
-			messages = get_messages_from_doctype(name)
-		elif fortype == "page":
-			messages = get_messages_from_page(name)
-		elif fortype == "report":
-			messages = get_messages_from_report(name)
-		elif fortype == "include":
-			messages = get_messages_from_include_files()
-		elif fortype == "jsfile":
-			messages = get_messages_from_file(name)
-		elif fortype == "boot":
-			apps = frappe.get_all_apps(True)
-			for app in apps:
-				messages.extend(get_server_messages(app))
-
-			messages += get_messages_from_navbar()
-			messages += get_messages_from_include_files()
-			messages += (
-				frappe.qb.from_("Print Format").select(PseudoColumn("'Print Format:'"), "name")
-			).run()
-			messages += (frappe.qb.from_("DocType").select(PseudoColumn("'DocType:'"), "name")).run()
-			messages += frappe.qb.from_("Role").select(PseudoColumn("'Role:'"), "name").run()
-			messages += (frappe.qb.from_("Module Def").select(PseudoColumn("'Module:'"), "name")).run()
-			messages += (
-				frappe.qb.from_("Workspace Shortcut")
-				.where(Field("format").isnotnull())
-				.select(PseudoColumn("''"), "format")
-			).run()
-			messages += (frappe.qb.from_("Onboarding Step").select(PseudoColumn("''"), "title")).run()
-
-		messages = deduplicate_messages(messages)
-		message_dict = make_dict_from_messages(messages, load_user_translation=False)
-		message_dict.update(get_dict_from_hooks(fortype, name))
-		# remove untranslated
-		message_dict = {k: v for k, v in message_dict.items() if k != v}
-		translation_assets[asset_key] = message_dict
-		frappe.cache.hset("translation_assets", frappe.local.lang, translation_assets)
-
-	translation_map: dict = translation_assets[asset_key]
-
-	translation_map.update(get_user_translations(frappe.local.lang))
-
-	return translation_map
 
 
 def get_messages_for_boot():
 	"""Return all message translations that are required on boot."""
-	messages = get_all_translations(frappe.local.lang)
-	messages.update(get_dict_from_hooks("boot", None))
 
-	return messages
-
-
-def get_dict_from_hooks(fortype, name):
-	translated_dict = {}
-
-	hooks = frappe.get_hooks("get_translated_dict")
-	for hook_fortype, fortype_name in hooks:
-		if hook_fortype == fortype and fortype_name == name:
-			for method in hooks[(hook_fortype, fortype_name)]:
-				translated_dict.update(frappe.get_attr(method)())
-
-	return translated_dict
-
-
-def make_dict_from_messages(messages, full_dict=None, load_user_translation=True):
-	"""Returns translated messages as a dict in Language specified in `frappe.local.lang`
-
-	:param messages: List of untranslated messages
-	"""
-	out = {}
-	if full_dict is None:
-		if load_user_translation:
-			full_dict = get_all_translations(frappe.local.lang)
-		else:
-			full_dict = get_translations_from_apps(frappe.local.lang)
-
-	for m in messages:
-		if m[1] in full_dict:
-			out[m[1]] = full_dict[m[1]]
-		# check if msg with context as key exist eg. msg:context
-		if len(m) > 2 and m[2]:
-			key = m[1] + ":" + m[2]
-			if full_dict.get(key):
-				out[key] = full_dict[key]
-
-	return out
-
-
-def get_lang_js(fortype: str, name: str) -> str:
-	"""Returns code snippet to be appended at the end of a JS script.
-
-	:param fortype: Type of object, e.g. `DocType`
-	:param name: Document name
-	"""
-	return f"\n\n$.extend(frappe._messages, {json.dumps(get_dict(fortype, name))})"
+	return get_all_translations(frappe.local.lang)
 
 
 def get_all_translations(lang: str) -> dict[str, str]:
@@ -278,19 +142,20 @@ def get_all_translations(lang: str) -> dict[str, str]:
 		return {}
 
 	def _merge_translations():
+		from frappe.geo.country_info import get_translated_countries
+
 		all_translations = get_translations_from_apps(lang).copy()
-		try:
-			# get user specific translation data
-			user_translations = get_user_translations(lang)
-			all_translations.update(user_translations)
-		except Exception:
-			pass
+		with suppress(Exception):
+			all_translations.update(get_user_translations(lang))
+			all_translations.update(get_translated_countries())
 
 		return all_translations
 
 	try:
 		return frappe.cache.hget(MERGED_TRANSLATION_KEY, lang, generator=_merge_translations)
 	except Exception:
+		if frappe.flags and frappe.flags.in_test:
+			raise
 		# People mistakenly call translation function on global variables
 		# where locals are not initalized, translations dont make much sense there
 		frappe.logger().error("Unable to load translations", exc_info=True)
@@ -301,25 +166,28 @@ def get_translations_from_apps(lang, apps=None):
 	"""Combine all translations from `.csv` files in all `apps`.
 	For derivative languages (es-GT), take translations from the
 	base language (es) and then update translations from the child (es-GT)"""
-
-	if lang == "en":
-		return {}
-
 	translations = {}
+	from frappe.gettext.translate import get_translations_from_mo
+
 	for app in apps or frappe.get_installed_apps(_ensure_on_bench=True):
-		path = os.path.join(frappe.get_app_path(app, "translations"), lang + ".csv")
-		translations.update(get_translation_dict_from_file(path, lang, app) or {})
-	if "-" in lang:
-		parent = lang.split("-", 1)[0]
-		parent_translations = get_translations_from_apps(parent)
+		translations.update(get_translations_from_csv(lang, app) or {})
+		translations.update(get_translations_from_mo(lang, app) or {})
+	if parent := get_parent_language(lang):
+		parent_translations = get_translations_from_apps(parent, apps)
 		parent_translations.update(translations)
 		return parent_translations
 
 	return translations
 
 
+def get_translations_from_csv(lang, app):
+	return get_translation_dict_from_file(
+		os.path.join(frappe.get_app_path(app, "translations"), lang + ".csv"), lang, app
+	)
+
+
 def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, str]:
-	"""load translation dict from given path"""
+	"""Return translation dict from given CSV file at path"""
 	translation_map = {}
 	if os.path.exists(path):
 		csv_content = read_csv_file(path)
@@ -340,9 +208,6 @@ def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, st
 
 
 def get_user_translations(lang):
-	if not frappe.db:
-		frappe.connect()
-
 	def _read_from_db():
 		user_translations = {}
 		translations = frappe.get_all(
@@ -362,17 +227,13 @@ def get_user_translations(lang):
 
 def clear_cache():
 	"""Clear all translation assets from :meth:`frappe.cache`"""
-	frappe.cache.delete_key("langinfo")
-
-	# clear translations saved in boot cache
-	frappe.cache.delete_key("bootinfo")
-	frappe.cache.delete_key("translation_assets")
-	frappe.cache.delete_key(USER_TRANSLATION_KEY)
-	frappe.cache.delete_key(MERGED_TRANSLATION_KEY)
+	frappe.cache.delete_value(
+		keys=["bootinfo", USER_TRANSLATION_KEY, MERGED_TRANSLATION_KEY],
+	)
 
 
 def get_messages_for_app(app, deduplicate=True):
-	"""Returns all messages (list) for a specified `app`"""
+	"""Return all messages (list) for a specified `app`."""
 	messages = []
 	modules = [frappe.unscrub(m) for m in frappe.local.app_modules[app]]
 
@@ -441,6 +302,8 @@ def get_messages_from_navbar():
 def get_messages_from_doctype(name):
 	"""Extract all translatable messages for a doctype. Includes labels, Python code,
 	Javascript code, html templates"""
+	from frappe.gettext.extractors.utils import is_translatable
+
 	messages = []
 	meta = frappe.get_meta(name)
 
@@ -481,6 +344,7 @@ def get_messages_from_doctype(name):
 
 def get_messages_from_workflow(doctype=None, app_name=None):
 	assert doctype or app_name, "doctype or app_name should be provided"
+	from frappe.gettext.extractors.utils import is_translatable
 
 	# translations for Workflows
 	workflows = []
@@ -550,6 +414,8 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 
 
 def get_messages_from_custom_fields(app_name):
+	from frappe.gettext.extractors.utils import is_translatable
+
 	fixtures = frappe.get_hooks("fixtures", app_name=app_name) or []
 	custom_fields = []
 
@@ -584,12 +450,14 @@ def get_messages_from_custom_fields(app_name):
 
 
 def get_messages_from_page(name):
-	"""Returns all translatable strings from a :class:`frappe.core.doctype.Page`"""
+	"""Return all translatable strings from a :class:`frappe.core.doctype.Page`."""
 	return _get_messages_from_page_or_report("Page", name)
 
 
 def get_messages_from_report(name):
-	"""Returns all translatable strings from a :class:`frappe.core.doctype.Report`"""
+	"""Return all translatable strings from a :class:`frappe.core.doctype.Report`."""
+	from frappe.gettext.extractors.utils import is_translatable
+
 	report = frappe.get_doc("Report", name)
 	messages = _get_messages_from_page_or_report(
 		"Report", name, frappe.db.get_value("DocType", report.ref_doctype, "module")
@@ -655,7 +523,7 @@ def get_server_messages(app):
 
 
 def get_messages_from_include_files(app_name=None):
-	"""Returns messages from js files included at time of boot like desk.min.js for desk and web"""
+	"""Return messages from js files included at time of boot like desk.min.js for desk and web."""
 	from frappe.utils.jinja_globals import bundled_asset
 
 	messages = []
@@ -689,10 +557,13 @@ def get_all_messages_from_js_files(app_name=None):
 
 
 def get_messages_from_file(path: str) -> list[tuple[str, str, str | None, int]]:
-	"""Returns a list of transatable strings from a code file
+	"""Return a list of transatable strings from a code file.
 
 	:param path: path of the code file
 	"""
+
+	from frappe.gettext.extractors.utils import extract_messages_from_code
+
 	frappe.flags.setdefault("scanned_files", set())
 	# TODO: Find better alternative
 	# To avoid duplicate scan
@@ -738,7 +609,7 @@ def extract_messages_from_python_code(code: str) -> list[tuple[int, str, str | N
 
 	for message in extract_python(
 		io.BytesIO(code.encode()),
-		keywords=["_"],
+		keywords=["_", "_lt"],
 		comment_tags=(),
 		options={},
 	):
@@ -759,12 +630,9 @@ def extract_messages_from_javascript_code(code: str) -> list[tuple[int, str, str
 	"""Extracts translatable strings from JavaScript code using babel."""
 
 	messages = []
+	from frappe.gettext.extractors.javascript import extract_javascript
 
-	for message in extract_javascript(
-		code,
-		keywords=["__"],
-		options={},
-	):
+	for message in extract_javascript(code):
 		lineno, _func, args = message
 
 		if not args or not args[0]:
@@ -779,200 +647,6 @@ def extract_messages_from_javascript_code(code: str) -> list[tuple[int, str, str
 		messages.append((lineno, source_text, context))
 
 	return messages
-
-
-def extract_javascript(code, keywords=("__",), options=None):
-	"""Extract messages from JavaScript source code.
-
-	This is a modified version of babel's JS parser. Reused under BSD license.
-	License: https://github.com/python-babel/babel/blob/master/LICENSE
-
-	Changes from upstream:
-	- Preserve arguments, babel's parser flattened all values in args,
-	  we need order because we use different syntax for translation
-	  which can contain 2nd arg which is array of many values. If
-	  argument is non-primitive type then value is NOT returned in
-	  args.
-	  E.g. __("0", ["1", "2"], "3") -> ("0", None, "3")
-	- remove comments support
-	- changed signature to accept string directly.
-
-	:param code: code as string
-	:param keywords: a list of keywords (i.e. function names) that should be
-	                 recognized as translation functions
-	:param options: a dictionary of additional options (optional)
-	                Supported options are:
-	                * `template_string` -- set to false to disable ES6
-	                                       template string support.
-	"""
-	from babel.messages.jslexer import Token, tokenize, unquote_string
-
-	if options is None:
-		options = {}
-
-	funcname = message_lineno = None
-	messages = []
-	last_argument = None
-	concatenate_next = False
-	last_token = None
-	call_stack = -1
-
-	# Tree level = depth inside function call tree
-	#  Example: __("0", ["1", "2"], "3")
-	# Depth         __()
-	#             /   |   \
-	#   0       "0" [...] "3"  <- only 0th level strings matter
-	#                /  \
-	#   1          "1"  "2"
-	tree_level = 0
-	opening_operators = {"[", "{"}
-	closing_operators = {"]", "}"}
-	all_container_operators = opening_operators.union(closing_operators)
-	dotted = any("." in kw for kw in keywords)
-
-	for token in tokenize(
-		code,
-		jsx=True,
-		template_string=options.get("template_string", True),
-		dotted=dotted,
-	):
-		if (  # Turn keyword`foo` expressions into keyword("foo") calls:
-			funcname
-			and (last_token and last_token.type == "name")  # have a keyword...
-			and token.type  # we've seen nothing after the keyword...
-			== "template_string"  # this is a template string
-		):
-			message_lineno = token.lineno
-			messages = [unquote_string(token.value)]
-			call_stack = 0
-			tree_level = 0
-			token = Token("operator", ")", token.lineno)
-
-		if token.type == "operator" and token.value == "(":
-			if funcname:
-				message_lineno = token.lineno
-				call_stack += 1
-
-		elif call_stack >= 0 and token.type == "operator" and token.value in all_container_operators:
-			if token.value in opening_operators:
-				tree_level += 1
-			if token.value in closing_operators:
-				tree_level -= 1
-
-		elif call_stack == -1 and token.type == "linecomment" or token.type == "multilinecomment":
-			pass  # ignore comments
-
-		elif funcname and call_stack == 0:
-			if token.type == "operator" and token.value == ")":
-				if last_argument is not None:
-					messages.append(last_argument)
-				if len(messages) > 1:
-					messages = tuple(messages)
-				elif messages:
-					messages = messages[0]
-				else:
-					messages = None
-
-				if messages is not None:
-					yield (message_lineno, funcname, messages)
-
-				funcname = message_lineno = last_argument = None
-				concatenate_next = False
-				messages = []
-				call_stack = -1
-				tree_level = 0
-
-			elif token.type in ("string", "template_string"):
-				new_value = unquote_string(token.value)
-				if tree_level > 0:
-					pass
-				elif concatenate_next:
-					last_argument = (last_argument or "") + new_value
-					concatenate_next = False
-				else:
-					last_argument = new_value
-
-			elif token.type == "operator":
-				if token.value == ",":
-					if last_argument is not None:
-						messages.append(last_argument)
-						last_argument = None
-					else:
-						if tree_level == 0:
-							messages.append(None)
-					concatenate_next = False
-				elif token.value == "+":
-					concatenate_next = True
-
-		elif call_stack > 0 and token.type == "operator" and token.value == ")":
-			call_stack -= 1
-			tree_level = 0
-
-		elif funcname and call_stack == -1:
-			funcname = None
-
-		elif (
-			call_stack == -1
-			and token.type == "name"
-			and token.value in keywords
-			and (last_token is None or last_token.type != "name" or last_token.value != "function")
-		):
-			funcname = token.value
-
-		last_token = token
-
-
-def extract_messages_from_code(code):
-	"""
-	Extracts translatable strings from a code file
-	:param code: code from which translatable files are to be extracted
-	"""
-	from jinja2 import TemplateError
-
-	try:
-		code = frappe.as_unicode(render_include(code))
-
-	# Exception will occur when it encounters John Resig's microtemplating code
-	except (TemplateError, ImportError, InvalidIncludePath, OSError) as e:
-		if isinstance(e, InvalidIncludePath):
-			frappe.clear_last_message()
-
-	messages = []
-
-	for m in TRANSLATE_PATTERN.finditer(code):
-		message = m.group("message")
-		context = m.group("py_context") or m.group("js_context")
-		pos = m.start()
-
-		if is_translatable(message):
-			messages.append([pos, message, context])
-
-	return add_line_number(messages, code)
-
-
-def is_translatable(m):
-	if (
-		re.search("[a-zA-Z]", m)
-		and not m.startswith("fa fa-")
-		and not m.endswith("px")
-		and not m.startswith("eval:")
-	):
-		return True
-	return False
-
-
-def add_line_number(messages, code):
-	ret = []
-	messages = sorted(messages, key=lambda x: x[0])
-	newlines = [m.start() for m in re.compile(r"\n").finditer(code)]
-	line = 1
-	newline_i = 0
-	for pos, message, context in messages:
-		while newline_i < len(newlines) and pos > newlines[newline_i]:
-			line += 1
-			newline_i += 1
-		ret.append([line, message, context])
-	return ret
 
 
 def read_csv_file(path):
@@ -1018,7 +692,7 @@ def write_csv_file(path, app_messages, lang_dict):
 
 
 def get_untranslated(lang, untranslated_file, get_all=False, app="_ALL_APPS"):
-	"""Returns all untranslated strings for a language and writes in a file
+	"""Return all untranslated strings for a language and write in a file.
 
 	:param lang: Language code.
 	:param untranslated_file: Output file path.
@@ -1117,7 +791,6 @@ def import_translations(lang, path):
 
 def migrate_translations(source_app, target_app):
 	"""Migrate target-app-specific translations from source-app to target-app"""
-	clear_cache()
 	strings_in_source_app = [m[1] for m in frappe.translate.get_messages_for_app(source_app)]
 	strings_in_target_app = [m[1] for m in frappe.translate.get_messages_for_app(target_app)]
 
@@ -1246,61 +919,15 @@ def get_translations(source_text):
 	)
 
 
-@frappe.whitelist()
-def get_messages(language, start=0, page_length=100, search_text=""):
-	from frappe.frappeclient import FrappeClient
-
-	translator = FrappeClient(get_translator_url())
-	return translator.post_api("translator.api.get_strings_for_translation", params=locals())
-
-
-@frappe.whitelist()
-def get_source_additional_info(source, language=""):
-	from frappe.frappeclient import FrappeClient
-
-	translator = FrappeClient(get_translator_url())
-	return translator.post_api("translator.api.get_source_additional_info", params=locals())
-
-
-@frappe.whitelist()
-def get_contributions(language):
-	return frappe.get_all(
-		"Translation",
-		fields=["*"],
-		filters={
-			"contributed": 1,
-		},
-	)
-
-
-@frappe.whitelist()
-def get_contribution_status(message_id):
-	from frappe.frappeclient import FrappeClient
-
-	doc = frappe.get_doc("Translation", message_id)
-	translator = FrappeClient(get_translator_url())
-	return translator.get_api(
-		"translator.api.get_contribution_status",
-		params={"translation_id": doc.contribution_docname},
-	)
-
-
-def get_translator_url():
-	return frappe.get_hooks()["translator_url"][0]
-
-
 @frappe.whitelist(allow_guest=True)
 def get_all_languages(with_language_name: bool = False) -> list:
-	"""Returns all enabled language codes ar, ch etc"""
+	"""Return all enabled language codes ar, ch etc."""
 
 	def get_language_codes():
 		return frappe.get_all("Language", filters={"enabled": 1}, pluck="name")
 
 	def get_all_language_with_name():
 		return frappe.get_all("Language", ["language_code", "language_name"], {"enabled": 1})
-
-	if not frappe.db:
-		frappe.connect()
 
 	if with_language_name:
 		return frappe.cache.get_value("languages_with_name", get_all_language_with_name)

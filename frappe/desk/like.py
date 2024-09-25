@@ -58,7 +58,7 @@ def _toggle_like(doctype, name, add, user=None):
 			frappe.db.set_value(doctype, name, "_liked_by", json.dumps(liked_by), update_modified=False)
 
 	except frappe.db.ProgrammingError as e:
-		if frappe.db.is_column_missing(e):
+		if frappe.db.is_missing_column(e):
 			add_column(doctype, "_liked_by", "Text")
 			_toggle_like(doctype, name, add, user)
 		else:

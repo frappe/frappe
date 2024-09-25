@@ -1,10 +1,12 @@
 frappe.ui.get_print_settings = function (pdf, callback, letter_head, pick_columns) {
 	var print_settings = locals[":Print Settings"]["Print Settings"];
 
-	var default_letter_head =
-		locals[":Company"] && frappe.defaults.get_default("company")
-			? locals[":Company"][frappe.defaults.get_default("company")]["default_letter_head"]
-			: "";
+	var company = frappe.defaults.get_default("company");
+	var default_letter_head = "";
+
+	if (locals[":Company"] && locals[":Company"][company]) {
+		default_letter_head = locals[":Company"][company]["default_letter_head"] || "";
+	}
 
 	var columns = [
 		{
@@ -13,11 +15,11 @@ frappe.ui.get_print_settings = function (pdf, callback, letter_head, pick_column
 			label: __("With Letter head"),
 		},
 		{
-			fieldtype: "Select",
+			fieldtype: "Link",
 			fieldname: "letter_head",
 			label: __("Letter Head"),
 			depends_on: "with_letter_head",
-			options: Object.keys(frappe.boot.letter_heads),
+			options: "Letter Head",
 			default: letter_head || default_letter_head,
 		},
 		{

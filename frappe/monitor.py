@@ -1,15 +1,17 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import datetime
 import json
 import os
 import traceback
 import uuid
-from datetime import datetime
 
+import pytz
 import rq
 
 import frappe
+from frappe.utils.data import cint
 
 MONITOR_REDIS_KEY = "monitor-transactions"
 MONITOR_MAX_ENTRIES = 1000000
@@ -50,7 +52,7 @@ class Monitor:
 			self.data = frappe._dict(
 				{
 					"site": frappe.local.site,
-					"timestamp": datetime.utcnow(),
+					"timestamp": datetime.datetime.now(pytz.UTC),
 					"transaction_type": transaction_type,
 					"uuid": str(uuid.uuid4()),
 				}
@@ -92,7 +94,7 @@ class Monitor:
 
 	def dump(self, response=None):
 		try:
-			timediff = datetime.utcnow() - self.data.timestamp
+			timediff = datetime.datetime.now(pytz.UTC) - self.data.timestamp
 			# Obtain duration in microseconds
 			self.data.duration = int(timediff.total_seconds() * 1000000)
 
@@ -114,10 +116,10 @@ class Monitor:
 			traceback.print_exc()
 
 	def store(self):
-		if frappe.cache.llen(MONITOR_REDIS_KEY) > MONITOR_MAX_ENTRIES:
-			frappe.cache.ltrim(MONITOR_REDIS_KEY, 1, -1)
 		serialized = json.dumps(self.data, sort_keys=True, default=str, separators=(",", ":"))
-		frappe.cache.rpush(MONITOR_REDIS_KEY, serialized)
+		length = frappe.cache.rpush(MONITOR_REDIS_KEY, serialized)
+		if cint(length) > MONITOR_MAX_ENTRIES:
+			frappe.cache.ltrim(MONITOR_REDIS_KEY, 1, -1)
 
 
 def flush():

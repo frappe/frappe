@@ -6,17 +6,11 @@ app_name = "frappe"
 app_title = "Frappe Framework"
 app_publisher = "Frappe Technologies"
 app_description = "Full stack web framework with Python, Javascript, MariaDB, Redis, Node"
-source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
 app_logo_url = "/assets/frappe/images/frappe-framework-logo.svg"
-
 develop_version = "15.x.x-develop"
 
 app_email = "developers@frappe.io"
-
-docs_app = "frappe_docs"
-
-translator_url = "https://translate.erpnext.com"
 
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
@@ -200,11 +194,16 @@ doc_events = {
 
 scheduler_events = {
 	"cron": {
+		# 15 minutes
 		"0/15 * * * *": [
 			"frappe.oauth.delete_oauth2_data",
 			"frappe.website.doctype.web_page.web_page.check_publish_status",
 			"frappe.twofactor.delete_all_barcodes_for_users",
+			"frappe.email.doctype.email_account.email_account.notify_unreplied",
+			"frappe.utils.global_search.sync_global_search",
+			"frappe.deferred_insert.save_to_db",
 		],
+		# 10 minutes
 		"0/10 * * * *": [
 			"frappe.email.doctype.email_account.email_account.pull",
 		],
@@ -219,8 +218,6 @@ scheduler_events = {
 	},
 	"all": [
 		"frappe.email.queue.flush",
-		"frappe.email.doctype.email_account.email_account.notify_unreplied",
-		"frappe.utils.global_search.sync_global_search",
 		"frappe.monitor.flush",
 		"frappe.automation.doctype.reminder.reminder.send_reminders",
 	],
@@ -228,7 +225,6 @@ scheduler_events = {
 		"frappe.model.utils.link_count.update_link_count",
 		"frappe.model.utils.user_settings.sync_user_settings",
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
-		"frappe.deferred_insert.save_to_db",
 		"frappe.desk.form.document_follow.send_hourly_updates",
 		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
 		"frappe.email.doctype.newsletter.newsletter.send_scheduled_email",
@@ -248,7 +244,6 @@ scheduler_events = {
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
-		"frappe.utils.change_log.check_for_update",
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_daily",
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
 		"frappe.integrations.doctype.google_drive.google_drive.daily_backup",
@@ -257,8 +252,10 @@ scheduler_events = {
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly",
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_weekly",
 		"frappe.desk.form.document_follow.send_weekly_updates",
+		"frappe.utils.change_log.check_for_update",
 		"frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_summary",
 		"frappe.integrations.doctype.google_drive.google_drive.weekly_backup",
+		"frappe.desk.doctype.changelog_feed.changelog_feed.fetch_changelog_feed",
 	],
 	"monthly": [
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly",
@@ -267,11 +264,6 @@ scheduler_events = {
 	"monthly_long": [
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_monthly"
 	],
-}
-
-get_translated_dict = {
-	("doctype", "System Settings"): "frappe.geo.country_info.get_translated_dict",
-	("page", "setup-wizard"): "frappe.geo.country_info.get_translated_dict",
 }
 
 sounds = [
@@ -381,6 +373,7 @@ global_search_doctypes = {
 
 override_whitelisted_methods = {
 	# Legacy File APIs
+	"frappe.utils.file_manager.download_file": "download_file",
 	"frappe.core.doctype.file.file.download_file": "download_file",
 	"frappe.core.doctype.file.file.unzip_file": "frappe.core.api.file.unzip_file",
 	"frappe.core.doctype.file.file.get_attached_images": "frappe.core.api.file.get_attached_images",
@@ -430,6 +423,10 @@ before_request = [
 	"frappe.rate_limiter.apply",
 ]
 
+after_request = [
+	"frappe.monitor.stop",
+]
+
 # Background Job Hooks
 before_job = [
 	"frappe.recorder.record",
@@ -452,10 +449,94 @@ after_job = [
 extend_bootinfo = [
 	"frappe.utils.telemetry.add_bootinfo",
 	"frappe.core.doctype.user_permission.user_permission.send_user_permissions",
-	"frappe.utils.sentry.add_bootinfo",
 ]
 
+get_changelog_feed = "frappe.desk.doctype.changelog_feed.changelog_feed.get_feed"
+
 export_python_type_annotations = True
+
+standard_navbar_items = [
+	{
+		"item_label": "My Profile",
+		"item_type": "Route",
+		"route": "/app/user-profile",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "My Settings",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.route_to_user()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Session Defaults",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.setup_session_defaults()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Reload",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.clear_cache()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "View Website",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.view_website()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Apps",
+		"item_type": "Route",
+		"route": "/apps",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Toggle Full Width",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.toggle_full_width()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Toggle Theme",
+		"item_type": "Action",
+		"action": "new frappe.ui.ThemeSwitcher().show()",
+		"is_standard": 1,
+	},
+	{
+		"item_type": "Separator",
+		"is_standard": 1,
+		"item_label": "",
+	},
+	{
+		"item_label": "Log out",
+		"item_type": "Action",
+		"action": "frappe.app.logout()",
+		"is_standard": 1,
+	},
+]
+
+standard_help_items = [
+	{
+		"item_label": "About",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.show_about()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Keyboard Shortcuts",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.show_shortcuts(event)",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Frappe Support",
+		"item_type": "Route",
+		"route": "https://frappe.io/support",
+		"is_standard": 1,
+	},
+]
 
 # log doctype cleanups to automatically add in log settings
 default_log_clearing_doctypes = {
@@ -471,3 +552,11 @@ default_log_clearing_doctypes = {
 	"Activity Log": 90,
 	"Route History": 90,
 }
+
+# These keys will not be erased when doing frappe.clear_cache()
+persistent_cache_keys = [
+	"changelog-*",  # version update notifications
+	"insert_queue_for_*",  # Deferred Insert
+	"recorder-*",  # Recorder
+	"global_search_queue",
+]

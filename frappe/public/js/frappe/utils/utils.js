@@ -932,18 +932,18 @@ Object.assign(frappe.utils, {
 		let route = route_str.split("/");
 
 		if (route[2] === "Report" || route[0] === "query-report") {
-			return __("{0} Report", [route[3] || route[1]]);
+			return __("{0} Report", [__(route[3]) || __(route[1])]);
 		}
 		if (route[0] === "List") {
-			return __("{0} List", [route[1]]);
+			return __("{0} List", [__(route[1])]);
 		}
 		if (route[0] === "modules") {
-			return __("{0} Modules", [route[1]]);
+			return __("{0} Modules", [__(route[1])]);
 		}
 		if (route[0] === "dashboard") {
-			return __("{0} Dashboard", [route[1]]);
+			return __("{0} Dashboard", [__(route[1])]);
 		}
-		return __(frappe.utils.to_title_case(route[0], true));
+		return __(frappe.utils.to_title_case(__(route[0]), true));
 	},
 	report_column_total: function (values, column, type) {
 		if (column.column.disable_total) {
@@ -1310,10 +1310,11 @@ Object.assign(frappe.utils, {
 			} else if (type === "report") {
 				if (item.is_query_report) {
 					route = "query-report/" + item.name;
-				} else if (!item.doctype) {
-					route = "/report/" + item.name;
+				} else if (!item.is_query_report && item.report_ref_doctype) {
+					route =
+						frappe.router.slug(item.report_ref_doctype) + "/view/report/" + item.name;
 				} else {
-					route = frappe.router.slug(item.doctype) + "/view/report/" + item.name;
+					route = "/report/" + item.name;
 				}
 			} else if (type === "page") {
 				route = item.name;
@@ -1350,10 +1351,19 @@ Object.assign(frappe.utils, {
 
 		// return number if total digits is lesser than min_length
 		const len = String(number).match(/\d/g).length;
-		if (len < min_length) return number.toString();
+		if (len < min_length) {
+			return number.toString();
+		}
 
 		const number_system = this.get_number_system(country);
 		let x = Math.abs(Math.round(number));
+
+		// if rounding was sufficient to get below min_length, return the rounded number
+		const x_string = x.toString();
+		if (x_string.length < min_length) {
+			return x_string;
+		}
+
 		for (const map of number_system) {
 			if (x >= map.divisor) {
 				let result = number / map.divisor;

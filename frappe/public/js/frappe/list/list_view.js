@@ -546,7 +546,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	toggle_result_area() {
 		super.toggle_result_area();
-		this.toggle_actions_menu_button(this.$result.find(".list-row-check:checked").length > 0);
+		this.toggle_actions_menu_button(
+			this.$result.find(".list-row-checkbox:checked").length > 0
+		);
 	}
 
 	toggle_actions_menu_button(toggle) {
@@ -783,9 +785,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		const format = () => {
-			if (df.fieldtype === "Code") {
-				return value;
-			} else if (df.fieldtype === "Percent") {
+			if (df.fieldtype === "Percent") {
 				return `<div class="progress" style="margin: 0px;">
 						<div class="progress-bar progress-bar-success" role="progressbar"
 							aria-valuenow="${value}"
@@ -837,11 +837,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					data-filter="${fieldname},=,${value}">
 					${_value}
 				</a>`;
-			} else if (
-				["Text Editor", "Text", "Small Text", "HTML Editor", "Markdown Editor"].includes(
-					df.fieldtype
-				)
-			) {
+			} else if (frappe.model.html_fieldtypes.includes(df.fieldtype)) {
 				html = `<span class="ellipsis">
 					${_value}
 				</span>`;
@@ -952,7 +948,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				<span class="modified">${modified}</span>
 				${comment_count || ""}
 				${comment_count ? '<span class="mx-2">·</span>' : ""}
-				<span class="list-row-like hidden-xs style="margin-bottom: 1px;">
+				<span class="list-row-like hidden-xs" style="margin-bottom: 1px;">
 					${this.get_like_html(doc)}
 				</span>
 			</div>
@@ -1855,6 +1851,30 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			};
 		};
 
+		const bulk_assignment_clear = () => {
+			return {
+				label: __("Clear Assignment", null, "Button in list view actions menu"),
+				action: () => {
+					frappe.confirm(
+						"Are you sure you want to clear the assignments?",
+						() => {
+							this.disable_list_update = true;
+							bulk_operations.clear_assignment(this.get_checked_items(true), () => {
+								this.disable_list_update = false;
+								this.clear_checked_items();
+								this.refresh();
+							});
+						},
+						() => {
+							this.clear_checked_items();
+							this.refresh();
+						}
+					);
+				},
+				standard: true,
+			};
+		};
+
 		const bulk_assignment_rule = () => {
 			return {
 				label: __("Apply Assignment Rule", null, "Button in list view actions menu"),
@@ -2022,6 +2042,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		// bulk assignment
 		actions_menu_items.push(bulk_assignment());
+
+		actions_menu_items.push(bulk_assignment_clear());
 
 		actions_menu_items.push(bulk_assignment_rule());
 

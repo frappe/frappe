@@ -29,7 +29,7 @@
  ],
  "fields": [
   {
-   "description": "To print output use <code>log(text)</code>",
+   "description": "To print output use <code>print(text)</code>",
    "fieldname": "console",
    "fieldtype": "Code",
    "label": "Console",
@@ -86,7 +86,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-04-15 14:15:58.398590",
+ "modified": "2023-11-03 13:02:00.706806",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "System Console",

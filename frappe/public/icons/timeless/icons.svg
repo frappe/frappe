@@ -421,7 +421,7 @@
 	</symbol>
 
 	<symbol fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" id="icon-map">
-		<g stroke="#111" stroke-miterlimit="10">
+		<g stroke="var(--icon-stroke)" stroke-miterlimit="10">
 		<path d="M11.467 3.458c1.958 1.957 1.958 5.088.027 7.02L7.97 14l-3.523-3.523a4.945 4.945 0 010-6.993l.026-.026a4.922 4.922 0 016.993 0zm0 0c-.026-.026-.026-.026 0 0z"></path>
 		<path d="M7.971 8.259a1.305 1.305 0 100-2.61 1.305 1.305 0 000 2.61z"></path>
 		</g>

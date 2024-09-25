@@ -18,7 +18,7 @@ context("Workspace Blocks", () => {
 
 		cy.visit("/app/website");
 		cy.get(".codex-editor__redactor .ce-block");
-		cy.get('.custom-actions button[data-label="Create%20Workspace"]').click();
+		cy.get(".btn-new-workspace").click();
 		cy.fill_field("title", "Test Block Page", "Data");
 		cy.get_open_dialog().find(".modal-header").click();
 		cy.get_open_dialog().find(".btn-primary").click();
@@ -71,7 +71,7 @@ context("Workspace Blocks", () => {
 		}).as("get_doctype");
 
 		cy.get(".codex-editor__redactor .ce-block");
-		cy.get(".standard-actions .btn-secondary[data-label=Edit]").click();
+		cy.get(".btn-edit-workspace").click();
 
 		// test quick list creation
 		cy.get(".ce-block").first().click({ force: true }).type("{enter}");
@@ -159,14 +159,14 @@ context("Workspace Blocks", () => {
 		]);
 
 		cy.get(".codex-editor__redactor .ce-block");
-		cy.get(".standard-actions .btn-secondary[data-label=Edit]").click();
+		cy.get(".btn-edit-workspace").click();
 
 		cy.get(".ce-block").first().click({ force: true }).type("{enter}");
 		cy.get(".block-list-container .block-list-item").contains("Number Card").click();
 
 		// add number card
 		cy.fill_field("number_card_name", "Test Number Card", "Link");
-		cy.get('[data-fieldname="number_card_name"] ul li').contains("Test Number Card").click();
+		cy.get('[data-fieldname="number_card_name"] ul div').contains("Test Number Card").click();
 		cy.click_modal_primary_button("Add");
 		cy.get(".ce-block .number-widget-box").first().as("number_card");
 		cy.get("@number_card").find(".widget-title").should("contain", "Test Number Card");
@@ -174,7 +174,7 @@ context("Workspace Blocks", () => {
 		cy.get("@number_card").find(".widget-title").should("contain", "Test Number Card");
 
 		// edit number card
-		cy.get(".standard-actions .btn-secondary[data-label=Edit]").click();
+		cy.get(".btn-edit-workspace").click();
 		cy.get("@number_card").realHover().find(".widget-control .edit-button").click();
 		cy.get_field("label", "Data").invoke("val", "ToDo Count");
 		cy.click_modal_primary_button("Save");

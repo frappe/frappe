@@ -110,6 +110,11 @@ frappe.ui.form.on("User", {
 	refresh: function (frm) {
 		let doc = frm.doc;
 
+		frappe.xcall("frappe.apps.get_apps").then((r) => {
+			let apps = r?.map((r) => r.name) || [];
+			frm.set_df_property("default_app", "options", [" ", ...apps]);
+		});
+
 		if (frm.is_new()) {
 			frm.set_value("time_zone", frappe.sys_defaults.time_zone);
 		}
@@ -286,7 +291,7 @@ frappe.ui.form.on("User", {
 			frm.set_df_property("enabled", "read_only", 0);
 		}
 
-		if (frappe.session.user !== "Administrator") {
+		if (frm.doc.name !== "Administrator") {
 			frm.toggle_enable("email", frm.is_new());
 		}
 	},

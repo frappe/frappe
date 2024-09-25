@@ -17,7 +17,9 @@ class WebsiteRouteRedirect(Document):
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
+		redirect_http_status: DF.Literal["301", "302", "307", "308"]
 		source: DF.SmallText
 		target: DF.SmallText
 	# end: auto-generated types
+
 	pass

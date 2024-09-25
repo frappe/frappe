@@ -15,6 +15,7 @@ from enum import Enum
 from typing import Any, Literal, Optional, TypeVar, Union
 from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlparse, urlunparse
 
+import pytz
 from click import secho
 from dateutil import parser
 from dateutil.parser import ParserError
@@ -299,7 +300,7 @@ def time_diff_in_hours(string_ed_date, string_st_date):
 
 
 def now_datetime():
-	dt = convert_utc_to_system_timezone(datetime.datetime.utcnow())
+	dt = convert_utc_to_system_timezone(datetime.datetime.now(pytz.UTC))
 	return dt.replace(tzinfo=None)
 
 
@@ -312,29 +313,24 @@ def get_eta(from_time, percent_complete):
 	return str(datetime.timedelta(seconds=(100 - percent_complete) / percent_complete * diff))
 
 
-def _get_system_timezone():
+def get_system_timezone() -> str:
+	"""Return the system timezone."""
 	return frappe.get_system_settings("time_zone") or "Asia/Kolkata"  # Default to India ?!
-
-
-def get_system_timezone():
-	if frappe.local.flags.in_test:
-		return _get_system_timezone()
-
-	return frappe.cache.get_value("time_zone", _get_system_timezone)
 
 
 def convert_utc_to_timezone(utc_timestamp, time_zone):
 	from pytz import UnknownTimeZoneError, timezone
 
-	utcnow = timezone("UTC").localize(utc_timestamp)
+	if utc_timestamp.tzinfo is None:
+		utc_timestamp = timezone("UTC").localize(utc_timestamp)
 	try:
-		return utcnow.astimezone(timezone(time_zone))
+		return utc_timestamp.astimezone(timezone(time_zone))
 	except UnknownTimeZoneError:
-		return utcnow
+		return utc_timestamp
 
 
 def get_datetime_in_timezone(time_zone):
-	utc_timestamp = datetime.datetime.utcnow()
+	utc_timestamp = datetime.datetime.now(pytz.UTC)
 	return convert_utc_to_timezone(utc_timestamp, time_zone)
 
 
@@ -571,7 +567,7 @@ def format_date(string_date=None, format_string: str | None = None, parse_day_fi
 		formatted_date = babel.dates.format_date(
 			date, format_string, locale=(frappe.local.lang or "").replace("-", "_")
 		)
-	except UnknownLocaleError:
+	except (UnknownLocaleError, ValueError):
 		format_string = format_string.replace("MM", "%m").replace("dd", "%d").replace("yyyy", "%Y")
 		formatted_date = date.strftime(format_string)
 	return formatted_date
@@ -602,7 +598,7 @@ def format_time(time_string=None, format_string: str | None = None) -> str:
 		formatted_time = babel.dates.format_time(
 			time_, format_string, locale=(frappe.local.lang or "").replace("-", "_")
 		)
-	except UnknownLocaleError:
+	except (UnknownLocaleError, ValueError):
 		formatted_time = time_.strftime("%H:%M:%S")
 	return formatted_time
 
@@ -630,7 +626,7 @@ def format_datetime(datetime_string: DateTimeLikeObject, format_string: str | No
 		formatted_datetime = babel.dates.format_datetime(
 			datetime, format_string, locale=(frappe.local.lang or "").replace("-", "_")
 		)
-	except UnknownLocaleError:
+	except (UnknownLocaleError, ValueError):
 		formatted_datetime = datetime.strftime("%Y-%m-%d %H:%M:%S")
 	return formatted_datetime
 
@@ -2171,10 +2167,13 @@ class UnicodeWithAttrs(str):
 		self.metadata = text.metadata
 
 
-def format_timedelta(o: datetime.timedelta) -> str:
-	# mariadb allows a wide diff range - https://mariadb.com/kb/en/time/
-	# but frappe doesnt - i think via babel : only allows 0..23 range for hour
-	total_seconds = o.total_seconds()
+def format_timedelta(o: datetime.timedelta | str) -> str:
+	# MariaDB allows a wide range - https://mariadb.com/kb/en/time/
+	# but Frappe doesn't - I think via babel : only allows 0..23 range for hour
+	if isinstance(o, datetime.timedelta):
+		total_seconds = o.total_seconds()
+	else:
+		total_seconds = cint(o)
 	hours, remainder = divmod(total_seconds, 3600)
 	minutes, seconds = divmod(remainder, 60)
 	rounded_seconds = round(seconds, 6)

@@ -255,16 +255,33 @@ def get_context(context):
 			description = self.introduction_text[:140]
 
 		context.metatags = {
-			"name": self.meta_title or self.title,
+			"title": self.meta_title or self.title,
 			"description": description,
 			"image": self.meta_image,
 		}
 
 	def load_translations(self, context):
-		translated_messages = frappe.translate.get_dict("doctype", self.doc_type)
-		# Sr is not added by default, had to be added manually
-		translated_messages["Sr"] = _("Sr")
-		context.translated_messages = frappe.as_json(translated_messages)
+		messages = [
+			"Sr",
+			"Attach",
+			self.title,
+			self.introduction_text,
+			self.success_title,
+			self.success_message,
+			self.list_title,
+			self.button_label,
+			self.meta_title,
+			self.meta_description,
+		]
+
+		for field in self.web_form_fields:
+			messages.extend([field.label, field.description])
+			if field.fieldtype == "Select" and field.options:
+				messages.extend(field.options.split("\n"))
+
+		messages.extend(col.get("label") if col else "" for col in self.list_columns)
+
+		context.translated_messages = frappe.as_json({message: _(message) for message in messages if message})
 
 	def load_list_data(self, context):
 		if not self.list_columns:
@@ -634,51 +651,33 @@ def get_in_list_view_fields(doctype):
 	return [get_field_df(f) for f in fields]
 
 
-@frappe.whitelist(allow_guest=True)
 def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=False):
-	web_form_doc = frappe.get_doc("Web Form", web_form_name)
-	doctype_validated = False
-	limited_to_user = False
-	if web_form_doc.login_required:
-		# check if frappe session user is not guest or admin
-		if frappe.session.user != "Guest":
-			doctype_validated = True
+	web_form: WebForm = frappe.get_doc("Web Form", web_form_name)
 
-			if not allow_read_on_all_link_options:
-				limited_to_user = True
-		else:
-			frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)
+	if web_form.login_required and frappe.session.user == "Guest":
+		frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)
 
-	else:
-		for field in web_form_doc.web_form_fields:
-			if field.options == doctype:
-				doctype_validated = True
-				break
-
-	if doctype_validated:
-		link_options, filters = [], {}
-
-		if limited_to_user:
-			filters = {"owner": frappe.session.user}
-
-		fields = ["name as value"]
-
-		meta = frappe.get_meta(doctype)
-
-		if meta.title_field and meta.show_title_field_in_link:
-			fields.append(f"{meta.title_field} as label")
-
-		link_options = frappe.get_all(doctype, filters, fields)
-
-		if meta.title_field and meta.show_title_field_in_link:
-			return json.dumps(link_options, default=str)
-		else:
-			return "\n".join([str(doc.value) for doc in link_options])
-
-	else:
-		raise frappe.PermissionError(
-			_("You don't have permission to access the {0} DocType.").format(doctype)
+	if not web_form.published or not any(f for f in web_form.web_form_fields if f.options == doctype):
+		frappe.throw(
+			_("You don't have permission to access the {0} DocType.").format(doctype), frappe.PermissionError
 		)
+
+	link_options, filters = [], {}
+	if web_form.login_required and not allow_read_on_all_link_options:
+		filters = {"owner": frappe.session.user}
+
+	fields = ["name as value"]
+
+	meta = frappe.get_meta(doctype)
+	if meta.title_field and meta.show_title_field_in_link:
+		fields.append(f"{meta.title_field} as label")
+
+	link_options = frappe.get_all(doctype, filters, fields)
+
+	if meta.title_field and meta.show_title_field_in_link:
+		return json.dumps(link_options, default=str)
+	else:
+		return "\n".join([str(doc.value) for doc in link_options])
 
 
 @redis_cache(ttl=60 * 60)

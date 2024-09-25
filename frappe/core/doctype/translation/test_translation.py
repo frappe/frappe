@@ -3,7 +3,6 @@
 import frappe
 from frappe import _
 from frappe.tests.utils import FrappeTestCase
-from frappe.translate import clear_cache
 
 
 class TestTranslation(FrappeTestCase):
@@ -12,6 +11,8 @@ class TestTranslation(FrappeTestCase):
 
 	def tearDown(self):
 		frappe.local.lang = "en"
+		from frappe.translate import clear_cache
+
 		clear_cache()
 
 	def test_doctype(self):

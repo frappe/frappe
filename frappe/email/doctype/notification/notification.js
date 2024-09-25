@@ -1,6 +1,8 @@
 // Copyright (c) 2018, Frappe Technologies and contributors
 // For license information, please see license.txt
 
+const DATE_BASED_EVENTS = ["Days Before", "Days After"];
+
 frappe.notification = {
 	setup_fieldname_select: function (frm) {
 		// get the doctype to update fields
@@ -129,6 +131,8 @@ Last comment: {{ comments[-1].comment }} by {{ comments[-1].by }}
 frappe.ui.form.on("Notification", {
 	onload: function (frm) {
 		frm.set_query("document_type", function () {
+			if (DATE_BASED_EVENTS.includes(frm.doc.event)) return;
+
 			return {
 				filters: {
 					istable: 0,
@@ -166,23 +170,23 @@ frappe.ui.form.on("Notification", {
 		frappe.set_route("Form", "Customize Form");
 	},
 	event: function (frm) {
-		if (["Days Before", "Days After"].includes(frm.doc.event)) {
-			frm.add_custom_button(__("Get Alerts for Today"), function () {
-				frappe.call({
-					method: "frappe.email.doctype.notification.notification.get_documents_for_today",
-					args: {
-						notification: frm.doc.name,
-					},
-					callback: function (r) {
-						if (r.message && r.message.length > 0) {
-							frappe.msgprint(r.message.toString());
-						} else {
-							frappe.msgprint(__("No alerts for today"));
-						}
-					},
-				});
+		if (!DATE_BASED_EVENTS.includes(frm.doc.event) || frm.is_new()) return;
+
+		frm.add_custom_button(__("Get Alerts for Today"), function () {
+			frappe.call({
+				method: "frappe.email.doctype.notification.notification.get_documents_for_today",
+				args: {
+					notification: frm.doc.name,
+				},
+				callback: function (r) {
+					if (r.message && r.message.length > 0) {
+						frappe.msgprint(r.message.toString());
+					} else {
+						frappe.msgprint(__("No alerts for today"));
+					}
+				},
 			});
-		}
+		});
 	},
 	channel: function (frm) {
 		frm.toggle_reqd("recipients", frm.doc.channel == "Email");

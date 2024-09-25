@@ -170,11 +170,16 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		return LazyDecode(self._cursor.query)
 
 	def get_connection(self):
-		conn = psycopg2.connect(
-			"host='{}' dbname='{}' user='{}' password='{}' port={}".format(
-				self.host, self.user, self.user, self.password, self.port
-			)
-		)
+		conn_settings = {
+			"user": self.user,
+			"dbname": self.cur_db_name,
+			"host": self.host,
+			"password": self.password,
+		}
+		if self.port:
+			conn_settings["port"] = self.port
+
+		conn = psycopg2.connect(**conn_settings)
 		conn.set_isolation_level(ISOLATION_LEVEL_REPEATABLE_READ)
 
 		return conn
@@ -204,7 +209,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def get_database_size(self):
 		"""'Returns database size in MB"""
 		db_size = self.sql(
-			"SELECT (pg_database_size(%s) / 1024 / 1024) as database_size", self.db_name, as_dict=True
+			"SELECT (pg_database_size(%s) / 1024 / 1024) as database_size", self.cur_db_name, as_dict=True
 		)
 		return db_size[0].get("database_size")
 
@@ -223,7 +228,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			from information_schema.tables
 			where table_catalog='{}'
 				and table_type = 'BASE TABLE'
-				and table_schema='{}'""".format(frappe.conf.db_name, frappe.conf.get("db_schema", "public"))
+				and table_schema='{}'""".format(self.cur_db_name, frappe.conf.get("db_schema", "public"))
 			)
 		]
 

@@ -23,9 +23,7 @@ class Workspace(Document):
 	if TYPE_CHECKING:
 		from frappe.core.doctype.has_role.has_role import HasRole
 		from frappe.desk.doctype.workspace_chart.workspace_chart import WorkspaceChart
-		from frappe.desk.doctype.workspace_custom_block.workspace_custom_block import (
-			WorkspaceCustomBlock,
-		)
+		from frappe.desk.doctype.workspace_custom_block.workspace_custom_block import WorkspaceCustomBlock
 		from frappe.desk.doctype.workspace_link.workspace_link import WorkspaceLink
 		from frappe.desk.doctype.workspace_number_card.workspace_number_card import WorkspaceNumberCard
 		from frappe.desk.doctype.workspace_quick_list.workspace_quick_list import WorkspaceQuickList
@@ -81,6 +79,10 @@ class Workspace(Document):
 				raise
 		except Exception:
 			frappe.throw(_("Content data shoud be a list"))
+
+		for d in self.get("links"):
+			if d.link_type == "Report" and d.is_query_report != 1:
+				d.report_ref_doctype = frappe.get_value("Report", d.link_to, "ref_doctype")
 
 	def clear_cache(self):
 		super().clear_cache()
@@ -250,6 +252,12 @@ def new_page(new_page):
 		not page.get("public") and page.get("for_user") != frappe.session.user and not is_workspace_manager()
 	):
 		frappe.throw(_("Cannot create private workspace of other users"), frappe.PermissionError)
+
+	elif not frappe.has_permission(doctype="Workspace", ptype="create"):
+		frappe.flags.error_message = _("User {0} does not have the permission to create a Workspace.").format(
+			frappe.bold(frappe.session.user)
+		)
+		raise frappe.PermissionError
 
 	doc = frappe.new_doc("Workspace")
 	doc.title = page.get("title")

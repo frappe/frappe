@@ -529,29 +529,32 @@ frappe.ui.form.on("Dashboard Chart", {
 
 	set_parent_document_type: async function (frm) {
 		let document_type = frm.doc.document_type;
-		let doc_is_table =
-			document_type &&
-			(await frappe.db.get_value("DocType", document_type, "istable")).message.istable;
-
-		frm.set_df_property("parent_document_type", "hidden", !doc_is_table);
-
-		if (document_type && doc_is_table) {
-			let parents = await frappe.xcall(
-				"frappe.desk.doctype.dashboard_chart.dashboard_chart.get_parent_doctypes",
-				{ child_type: document_type }
-			);
-
-			frm.set_query("parent_document_type", function () {
-				return {
-					filters: {
-						name: ["in", parents],
-					},
-				};
-			});
-
-			if (parents.length === 1) {
-				frm.set_value("parent_document_type", parents[0]);
-			}
+		if (!document_type) {
+			frm.set_df_property("parent_document_type", "hidden", 1);
+			return;
 		}
+		frappe.model.with_doctype(document_type, async () => {
+			let doc_is_table = frappe.get_meta(document_type).istable;
+			frm.set_df_property("parent_document_type", "hidden", !doc_is_table);
+
+			if (doc_is_table) {
+				let parents = await frappe.xcall(
+					"frappe.desk.doctype.dashboard_chart.dashboard_chart.get_parent_doctypes",
+					{ child_type: document_type }
+				);
+
+				frm.set_query("parent_document_type", function () {
+					return {
+						filters: {
+							name: ["in", parents],
+						},
+					};
+				});
+
+				if (parents.length === 1) {
+					frm.set_value("parent_document_type", parents[0]);
+				}
+			}
+		});
 	},
 });

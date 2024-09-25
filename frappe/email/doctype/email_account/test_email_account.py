@@ -339,6 +339,15 @@ class TestEmailAccount(FrappeTestCase):
 		email_account.handle_bad_emails(uid=-1, raw=mail_content, reason="Testing")
 		self.assertTrue(frappe.db.get_value("Unhandled Email", {"message_id": message_id}))
 
+	def test_handle_bad_encoding(self):
+		"""If the email has invalid encoding, it should still be saved as an Unhandled Email."""
+		uid = "test invalid encoding"
+		mail_content = b"\x80"  # invalid byte
+
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.handle_bad_emails(uid=uid, raw=mail_content, reason="Testing")
+		self.assertTrue(frappe.db.get_value("Unhandled Email", {"uid": uid}))
+
 	def test_imap_folder(self):
 		# assert tests if imap_folder >= 1 and imap is checked
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")

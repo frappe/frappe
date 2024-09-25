@@ -1014,7 +1014,7 @@ class Document(BaseDocument):
 			"on_cancel": "Cancel",
 		}
 
-		if not self.flags.in_insert:
+		if not self.flags.in_insert and not self.flags.in_delete:
 			# value change is not applicable in insert
 			event_map["on_change"] = "Value Change"
 
@@ -1333,12 +1333,6 @@ class Document(BaseDocument):
 	def validate_value(self, fieldname, condition, val2, doc=None, raise_exception=None):
 		"""Check that value of fieldname should be 'condition' val2
 		else throw Exception."""
-		error_condition_map = {
-			"in": _("one of"),
-			"not in": _("none of"),
-			"^": _("beginning with"),
-		}
-
 		if not doc:
 			doc = self
 
@@ -1349,13 +1343,21 @@ class Document(BaseDocument):
 
 		if not compare(val1, condition, val2):
 			label = doc.meta.get_label(fieldname)
-			condition_str = error_condition_map.get(condition, condition)
 			if doc.get("parentfield"):
-				msg = _("Incorrect value in row {0}: {1} must be {2} {3}").format(
-					doc.idx, label, condition_str, val2
-				)
+				msg = _("Incorrect value in row {0}:").format(doc.idx)
 			else:
-				msg = _("Incorrect value: {0} must be {1} {2}").format(label, condition_str, val2)
+				msg = _("Incorrect value:")
+
+			if condition == "in":
+				msg += _("{0} must be one of {1}").format(label, val2)
+			elif condition == "not in":
+				msg += _("{0} must be none of {1}").format(label, val2)
+			elif condition == "^":
+				msg += _("{0} must be beginning with '{1}'").format(label, val2)
+			elif condition == "=":
+				msg += _("{0} must be equal to '{1}'").format(label, val2)
+			else:
+				msg += _("{0} must be {1} {2}").format(label, condition, val2)
 
 			# raise passed exception or True
 			msgprint(msg, raise_exception=raise_exception or True)
@@ -1617,6 +1619,12 @@ class Document(BaseDocument):
 
 		DocTags(self.doctype).add(self.name, tag)
 
+	def remove_tag(self, tag):
+		"""Remove a Tag to this document"""
+		from frappe.desk.doctype.tag.tag import DocTags
+
+		DocTags(self.doctype).remove(self.name, tag)
+
 	def get_tags(self):
 		"""Return a list of Tags attached to this document"""
 		from frappe.desk.doctype.tag.tag import DocTags
@@ -1699,12 +1707,12 @@ def bulk_insert(
 	for child_table in doctype_meta.get_table_fields():
 		valid_column_map[child_table.options] = frappe.get_meta(child_table.options).get_valid_columns()
 		values_map[child_table.options] = _document_values_generator(
-			(
+			[
 				ch_doc
 				for ch_doc in (
 					child_docs for doc in documents for child_docs in doc.get(child_table.fieldname)
 				)
-			),
+			],
 			valid_column_map[child_table.options],
 		)
 
@@ -1731,8 +1739,9 @@ def _document_values_generator(
 
 @frappe.whitelist()
 def unlock_document(doctype: str | None = None, name: str | None = None, args=None):
+	# Backward compatibility
 	if not doctype and not name and args:
-		# Backward compatibility
+		args = json.loads(args)
 		doctype = str(args["doctype"])
 		name = str(args["name"])
 	frappe.get_doc(doctype, name).unlock()

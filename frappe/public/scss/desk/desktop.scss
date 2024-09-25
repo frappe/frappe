@@ -972,6 +972,10 @@ body {
 					.links-widget-box {
 						background-color: var(--bg-color) !important;
 					}
+
+					.workspace-footer {
+						display: none;
+					}
 				}
 			}
 
@@ -991,6 +995,12 @@ body {
 		box-shadow: none;
 		border-radius: var(--border-radius-lg);
 		padding: var(--padding-sm);
+	}
+
+	.workspace-footer {
+		height: 30px;
+		display: flex;
+		flex-direction: row-reverse;
 	}
 
 	.block-menu-item-icon svg {

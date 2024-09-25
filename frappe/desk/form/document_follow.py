@@ -10,7 +10,7 @@ from frappe.utils import get_url_to_form
 
 
 @frappe.whitelist()
-def update_follow(doctype, doc_name, following):
+def update_follow(doctype: str, doc_name: str, following: bool):
 	if following:
 		return follow_document(doctype, doc_name, frappe.session.user)
 	else:

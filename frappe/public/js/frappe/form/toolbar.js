@@ -77,7 +77,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 			this.frm.perm[0].write &&
 			!this.frm.doc.__islocal &&
 			doc_field.fieldtype === "Data" &&
-			!doc_field.read_only
+			!doc_field.read_only &&
+			!doc_field.set_only_once
 		) {
 			return true;
 		} else {

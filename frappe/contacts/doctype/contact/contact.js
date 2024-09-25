@@ -60,25 +60,30 @@ frappe.ui.form.on("Contact", {
 			});
 		}
 
-		if (frm.doc.links) {
-			frappe.call({
-				method: "frappe.contacts.doctype.contact.contact.address_query",
-				args: { links: frm.doc.links },
-				callback: function (r) {
-					if (r && r.message) {
-						frm.set_query("address", function () {
-							return {
-								filters: {
-									name: ["in", r.message],
-								},
-							};
-						});
-					}
-				},
-			});
+		if (frm.doc.links && frm.doc.links.length > 0) {
+			const filtered_links = frm.doc.links.filter(
+				(link) => link.link_doctype && link.link_name
+			);
 
-			for (let i in frm.doc.links) {
-				let link = frm.doc.links[i];
+			if (filtered_links.length > 0) {
+				frappe.call({
+					method: "frappe.contacts.doctype.contact.contact.address_query",
+					args: { links: filtered_links },
+					callback: function (r) {
+						if (r && r.message) {
+							frm.set_query("address", function () {
+								return {
+									filters: {
+										name: ["in", r.message],
+									},
+								};
+							});
+						}
+					},
+				});
+			}
+
+			for (const link of filtered_links) {
 				frm.add_custom_button(
 					__("{0}: {1}", [__(link.link_doctype), __(link.link_name)]),
 					function () {

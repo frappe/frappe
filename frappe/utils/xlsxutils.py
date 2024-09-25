@@ -8,6 +8,7 @@ import xlrd
 from openpyxl import load_workbook
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
+from openpyxl.workbook.child import INVALID_TITLE_REGEX
 
 import frappe
 from frappe.utils.html_utils import unescape_html
@@ -21,7 +22,8 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 	if wb is None:
 		wb = openpyxl.Workbook(write_only=True)
 
-	ws = wb.create_sheet(sheet_name, 0)
+	sheet_name_sanitized = INVALID_TITLE_REGEX.sub(" ", sheet_name)
+	ws = wb.create_sheet(sheet_name_sanitized, 0)
 
 	for i, column_width in enumerate(column_widths):
 		if column_width:
@@ -85,7 +87,7 @@ def read_xlsx_file_from_attached_file(file_url=None, fcontent=None, filepath=Non
 		return
 
 	rows = []
-	wb1 = load_workbook(filename=filename, read_only=True, data_only=True)
+	wb1 = load_workbook(filename=filename, data_only=True)
 	ws1 = wb1.active
 	for row in ws1.iter_rows():
 		rows.append([cell.value for cell in row])

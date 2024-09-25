@@ -185,6 +185,7 @@ export default class ListFilter {
 					["for_user", "=", frappe.session.user],
 					["for_user", "=", ""],
 				],
+				order_by: "filter_name asc",
 			})
 			.then((filters) => {
 				this.filters = filters || [];

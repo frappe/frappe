@@ -219,7 +219,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2023-08-25 15:04:03.419848",
+ "modified": "2024-05-30 17:30:36.791171",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",
@@ -235,6 +235,18 @@
    "read": 1,
    "report": 1,
    "role": "Workspace Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Desk User",
    "share": 1,
    "write": 1
   }

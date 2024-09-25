@@ -152,7 +152,7 @@ class TestAuth(FrappeTestCase):
 		# Rate limiting
 		for _ in range(6):
 			res = requests.get(_generate_temporary_login_link(user, 10))
-			if res.status_code == 417:
+			if res.status_code == 429:
 				break
 		else:
 			self.fail("Rate limting not working")

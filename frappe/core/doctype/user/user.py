@@ -9,6 +9,7 @@ import frappe.defaults
 import frappe.permissions
 import frappe.share
 from frappe import STANDARD_USERS, _, msgprint, throw
+from frappe.apps import get_default_path
 from frappe.auth import MAX_PASSWORD_SIZE
 from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
 from frappe.desk.doctype.notification_settings.notification_settings import (
@@ -16,7 +17,6 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 	toggle_notifications,
 )
 from frappe.desk.notifications import clear_notifications
-from frappe.model.delete_doc import check_if_doc_is_linked
 from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.rate_limiter import rate_limit
@@ -36,7 +36,7 @@ from frappe.utils.deprecations import deprecated
 from frappe.utils.password import check_password, get_password_reset_limit
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
-from frappe.website.utils import is_signup_disabled
+from frappe.website.utils import get_home_page, is_signup_disabled
 
 
 class User(Document):
@@ -61,6 +61,7 @@ class User(Document):
 		birth_date: DF.Date | None
 		block_modules: DF.Table[BlockModule]
 		bypass_restrict_ip_check_if_2fa_enabled: DF.Check
+		default_app: DF.Literal[None]
 		default_workspace: DF.Link | None
 		defaults: DF.Table[DefaultValue]
 		desk_theme: DF.Literal["Light", "Dark", "Automatic"]
@@ -152,7 +153,7 @@ class User(Document):
 			self.password_strength_test()
 
 		if self.name not in STANDARD_USERS:
-			self.validate_email_type(self.email)
+			self.email = self.name
 			self.validate_email_type(self.name)
 		self.add_system_manager_role()
 		self.populate_role_profile_roles()
@@ -354,7 +355,11 @@ class User(Document):
 							user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions
 						)
 
-					if not self.flags.no_welcome_mail and cint(self.send_welcome_email):
+					if (
+						not self.flags.no_welcome_mail
+						and cint(self.send_welcome_email)
+						and not self.flags.email_sent
+					):
 						self.send_welcome_mail_to_user()
 						self.flags.email_sent = 1
 						if frappe.session.user != "Guest":
@@ -557,13 +562,26 @@ class User(Document):
 		# Delete EPS data
 		frappe.db.delete("Energy Point Log", {"user": self.name})
 
-		# Ask user to disable instead if document is still linked
-		try:
-			check_if_doc_is_linked(self)
-		except frappe.LinkExistsError:
-			frappe.throw(_("You can disable the user instead of deleting it."), frappe.LinkExistsError)
+		# Remove user link from Workflow Action
+		frappe.db.set_value("Workflow Action", {"user": self.name}, "user", None)
+
+		# Delete user's List Filters
+		frappe.db.delete("List Filter", {"for_user": self.name})
+
+		# Remove user from Note's Seen By table
+		seen_notes = frappe.get_all("Note", filters=[["Note Seen By", "user", "=", self.name]], pluck="name")
+		for note_id in seen_notes:
+			note = frappe.get_doc("Note", note_id)
+			for row in note.seen_by:
+				if row.user == self.name:
+					note.remove(row)
+			note.save(ignore_permissions=True)
 
 	def before_rename(self, old_name, new_name, merge=False):
+		# if merging, delete the old user notification settings
+		if merge:
+			frappe.delete_doc("Notification Settings", old_name, ignore_permissions=True)
+
 		frappe.clear_cache(user=old_name)
 		self.validate_rename(old_name, new_name)
 
@@ -863,9 +881,9 @@ def update_password(
 	frappe.db.set_value("User", user, "reset_password_key", "")
 
 	if user_doc.user_type == "System User":
-		return "/app"
+		return get_default_path() or "/app"
 	else:
-		return redirect_url or "/"
+		return redirect_url or get_default_path() or get_home_page()
 
 
 @frappe.whitelist(allow_guest=True)

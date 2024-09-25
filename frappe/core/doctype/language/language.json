@@ -1,6 +1,5 @@
 {
  "actions": [],
- "allow_rename": 1,
  "autoname": "field:language_code",
  "creation": "2014-08-22 16:12:17.249590",
  "doctype": "DocType",
@@ -27,7 +26,8 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Language Name",
-   "reqd": 1
+   "reqd": 1,
+   "set_only_once": 1
   },
   {
    "fieldname": "flag",
@@ -51,7 +51,7 @@
  "icon": "fa fa-globe",
  "in_create": 1,
  "links": [],
- "modified": "2023-04-13 13:48:38.127995",
+ "modified": "2024-06-06 18:25:01.010821",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Language",

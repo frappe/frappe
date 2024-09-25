@@ -629,7 +629,10 @@ frappe.ui.form.Layout = class Layout {
 					// show grid row (if exists)
 					field.grid.grid_rows[0].show_form();
 					return true;
-				} else if (!frappe.model.no_value_type.includes(field.df.fieldtype)) {
+				} else if (
+					field.df.fieldtype === "Table MultiSelect" ||
+					!frappe.model.no_value_type.includes(field.df.fieldtype)
+				) {
 					this.set_focus(field);
 					return true;
 				}

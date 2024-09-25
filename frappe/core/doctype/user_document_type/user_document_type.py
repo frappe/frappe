@@ -19,11 +19,14 @@ class UserDocumentType(Document):
 		create: DF.Check
 		delete: DF.Check
 		document_type: DF.Link
+		email: DF.Check
 		is_custom: DF.Check
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
+		print: DF.Check
 		read: DF.Check
+		share: DF.Check
 		submit: DF.Check
 		write: DF.Check
 	# end: auto-generated types

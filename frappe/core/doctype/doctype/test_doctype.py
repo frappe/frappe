@@ -774,6 +774,19 @@ class TestDocType(FrappeTestCase):
 		self.assertTrue(doctype.fields[1].in_list_view)
 		frappe.delete_doc("DocType", doctype.name)
 
+	def test_no_recursive_fetch(self):
+		recursive_dt = new_doctype(
+			fields=[
+				{
+					"label": "User",
+					"fieldname": "user",
+					"fieldtype": "Link",
+					"fetch_from": "user.email",
+				}
+			],
+		)
+		self.assertRaises(frappe.ValidationError, recursive_dt.insert)
+
 
 def new_doctype(
 	name: str | None = None,
