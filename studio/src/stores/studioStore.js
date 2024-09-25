@@ -127,14 +127,16 @@ const useStudioStore = defineStore("store", () => {
 	const stylePropertyFilter = ref(null)
 
 	// data
-	const resources = reactive({})
+	const resources = ref({})
 
 	async function setPageResources(page) {
 		studioPageResources.filters = { parent: page.name }
 		await studioPageResources.reload()
+		resources.value = {}
 
 		studioPageResources.data.map((resource) => {
-			resources[resource.resource_name] = getNewResource(resource)
+			resources.value[resource.resource_name] = getNewResource(resource)
+			resources.value[resource.resource_name].docname = resource.name
 		})
 	}
 
