@@ -640,7 +640,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_count_element() {
-		return this.$result.find(".list-count");
+		return this.$result?.find(".list-count");
 	}
 
 	get_header_html() {
