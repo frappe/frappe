@@ -3,7 +3,7 @@ import Block from "./block"
 import getBlockTemplate from "./blockTemplate"
 import * as frappeUI from "frappe-ui"
 
-import { createDocumentResource, createListResource, createResource } from "frappe-ui"
+import { createDocumentResource, createListResource, createResource, confirmDialog } from "frappe-ui"
 
 function getBlockInstance(options: BlockOptions, retainId = true): Block {
 	if (typeof options === "string") {
@@ -271,6 +271,21 @@ function getNewResource(resource) {
 	}
 }
 
+// dialogs
+async function confirm(message: string, title: string = "Confirm"): Promise<boolean> {
+	return new Promise((resolve) => {
+		confirmDialog({
+			title: title,
+			message: message,
+			onConfirm: ({ hideDialog }: { hideDialog: Function }) => {
+				resolve(true);
+				hideDialog();
+			},
+		});
+	});
+}
+
+
 export {
 	getBlockInstance,
 	getComponentBlock,
@@ -296,4 +311,6 @@ export {
 	isDynamicValue,
 	getDynamicPropValue,
 	getNewResource,
+	// dialog
+	confirm,
 }

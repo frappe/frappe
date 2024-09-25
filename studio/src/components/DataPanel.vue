@@ -11,7 +11,7 @@
 					<FeatherIcon
 						name="trash"
 						class="invisible h-3 w-3 cursor-pointer group-hover/resource:visible"
-						@click="deleteResource(resource.docname)"
+						@click="deleteResource(resource.docname, name)"
 					/>
 				</div>
 			</div>
@@ -34,7 +34,7 @@ import ObjectBrowser from "@/components/ObjectBrowser.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import ResourceDialog from "@/components/ResourceDialog.vue"
 
-import { isObjectEmpty, getAutocompleteValues } from "@/utils/helpers"
+import { isObjectEmpty, getAutocompleteValues, confirm } from "@/utils/helpers"
 import { studioResources, studioPageResources } from "@/data/studioResources"
 
 /**
@@ -84,9 +84,12 @@ const addResource = (resource) => {
 		})
 }
 
-const deleteResource = (name) => {
-	studioPageResources.delete.submit(name).then(() => {
-		store.setPageResources(store.activePage)
-	})
+const deleteResource = async (docname, resource_name) => {
+	const confirmed = await confirm(`Are you sure you want to delete the resource ${resource_name}?`)
+	if (confirmed) {
+		studioPageResources.delete.submit(docname).then(() => {
+			store.setPageResources(store.activePage)
+		})
+	}
 }
 </script>
