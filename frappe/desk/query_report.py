@@ -791,11 +791,10 @@ def validate_filters_permissions(report_name, filters=None, user=None):
 		filters = json.loads(filters)
 
 	report = frappe.get_doc("Report", report_name)
-	for fieldname, value in filters.items():
-		for field in report.filters:
-			if field.fieldname == fieldname and field.fieldtype == "Link":
-				linked_doctype = field.options
-				if not has_permission(doctype=linked_doctype, doc=value, user=user):
-					frappe.throw(
-						_("You do not have permission to access {0}: {1}.").format(linked_doctype, value)
-					)
+	for field in report.filters:
+		if field.fieldname in filters and field.fieldtype == "Link":
+			linked_doctype = field.options
+			if not has_permission(doctype=linked_doctype, doc=filters[field], user=user):
+				frappe.throw(
+					_("You do not have permission to access {0}: {1}.").format(linked_doctype, filters[field])
+				)
