@@ -470,7 +470,8 @@ frappe.router = {
 		// 1. User's default workspace in user doctype
 		// 2. Private home
 		// 3. Public home
-		// 4. First workspace in list
+		// 4. First workspace in list of current app
+		// 5. First workspace in list
 		let private_home = `home-${frappe.user.name.toLowerCase()}`;
 		let default_workspace = frappe.router.slug(frappe.boot.user.default_workspace?.name || "");
 
@@ -478,6 +479,7 @@ frappe.router = {
 			frappe.workspaces[default_workspace] ||
 			frappe.workspaces[private_home] ||
 			frappe.workspaces["home"] ||
+			Object.values(frappe.workspace_map).find((w) => w.app === frappe.current_app) ||
 			Object.values(frappe.workspaces)[0];
 
 		if (workspace) {
