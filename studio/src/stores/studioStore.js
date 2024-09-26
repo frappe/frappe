@@ -53,7 +53,7 @@ const useStudioStore = defineStore("store", () => {
 		}
 	}
 
-	// studio apps & pages
+	// studio apps
 	const activeApp = ref(null)
 	const appScreens = ref([])
 

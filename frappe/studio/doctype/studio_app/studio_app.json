@@ -58,7 +58,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-25 23:52:56.478335",
+ "modified": "2024-09-26 12:54:31.785665",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio App",
@@ -80,5 +80,6 @@
  ],
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "app_title"
 }
