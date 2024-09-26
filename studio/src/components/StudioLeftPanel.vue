@@ -32,7 +32,7 @@
 				{{ activeTab }}
 			</div>
 
-			<ScreensPanel v-show="activeTab === 'Screens'" class="mx-2 my-3" />
+			<PagesPanel v-show="activeTab === 'Pages'" class="mx-2 my-3" />
 			<ComponentPanel v-show="activeTab === 'Add Component'" class="mx-2 my-3" />
 			<div v-show="activeTab === 'Layers'" class="p-4 pt-3">
 				<ComponentLayers
@@ -52,7 +52,7 @@
 import { ref, watch } from "vue"
 import { Tooltip, FeatherIcon } from "frappe-ui"
 
-import ScreensPanel from "@/components/ScreensPanel.vue"
+import PagesPanel from "@/components/PagesPanel.vue"
 import ComponentPanel from "@/components/ComponentPanel.vue"
 import ComponentLayers from "@/components/ComponentLayers.vue"
 
@@ -62,7 +62,7 @@ import DataPanel from "./DataPanel.vue"
 
 const sidebarMenu = [
 	{
-		label: "Screens",
+		label: "Pages",
 		icon: "book",
 	},
 	{

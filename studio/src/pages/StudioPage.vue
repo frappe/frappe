@@ -39,7 +39,7 @@ import StudioCanvas from "@/components/StudioCanvas.vue"
 import useStudioStore from "@/stores/studioStore"
 import { studioPages } from "@/data/studioPages"
 import { getRootBlock } from "@/utils/helpers"
-import { studioAppScreens } from "@/data/studioApps"
+import { studioAppPages } from "@/data/studioApps"
 
 const route = useRoute()
 const router = useRouter()
@@ -75,12 +75,12 @@ onActivated(async () => {
 			})
 			.then(async (data) => {
 				const appID = route.params.appID
-				// add the newly created screen/page to the app's screens child table
-				await studioAppScreens.insert.submit({
-					screen: data.name,
+				// add the newly created page to the app's pages child table
+				await studioAppPages.insert.submit({
+					studio_page: data.name,
 					parent: appID,
 					parenttype: "Studio App",
-					parentfield: "screens",
+					parentfield: "pages",
 				})
 
 				router.push({ name: "StudioPage", params: { pageID: data.name }, force: true })

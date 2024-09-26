@@ -25,5 +25,5 @@ class StudioApp(Document):
 		if self.app_home:
 			return
 
-		if self.screens:
-			self.app_home = self.screens[0].screen
+		if self.pages:
+			self.app_home = self.pages[0].studio_page

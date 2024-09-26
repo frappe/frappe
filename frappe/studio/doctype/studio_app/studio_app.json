@@ -12,7 +12,7 @@
   "column_break_aroi",
   "app_home",
   "section_break_gacp",
-  "screens"
+  "pages"
  ],
  "fields": [
   {
@@ -29,12 +29,6 @@
   {
    "fieldname": "section_break_gacp",
    "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "screens",
-   "fieldtype": "Table",
-   "label": "Screens",
-   "options": "Studio App Screen"
   },
   {
    "fieldname": "app_home",
@@ -54,11 +48,17 @@
    "fieldname": "app_title",
    "fieldtype": "Data",
    "label": "App Title"
+  },
+  {
+   "fieldname": "pages",
+   "fieldtype": "Table",
+   "label": "Pages",
+   "options": "Studio App Page"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-26 12:54:31.785665",
+ "modified": "2024-09-26 18:57:41.529135",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio App",

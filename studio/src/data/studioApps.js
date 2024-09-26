@@ -10,10 +10,15 @@ const studioApps = createListResource({
 	pageLength: 50,
 })
 
-const studioAppScreens = createListResource({
-	doctype: "Studio App Screen",
+const studioAppPages = createListResource({
+	doctype: "Studio App Page",
 	parent: "Studio App",
-	fields: ["screen.page_title as screen_title", "screen.route", "screen.name as screen_name", "name"],
+	fields: [
+		"studio_page.page_title as page_title",
+		"studio_page.route",
+		"studio_page.name as page_name",
+		"name",
+	],
 })
 
-export { studioApps, studioAppScreens }
+export { studioApps, studioAppPages }

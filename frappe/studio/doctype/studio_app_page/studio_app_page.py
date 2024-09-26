@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class StudioAppScreen(Document):
+class StudioAppPage(Document):
 	pass

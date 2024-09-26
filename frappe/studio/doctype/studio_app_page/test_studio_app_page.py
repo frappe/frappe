@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestStudioAppScreen(FrappeTestCase):
+class TestStudioAppPage(FrappeTestCase):
 	pass
