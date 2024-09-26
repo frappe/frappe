@@ -603,7 +603,7 @@ export default class ChartWidget extends Widget {
 			let chart_options = JSON.parse(this.chart_doc.custom_options);
 			fieldtype = chart_options.fieldtype;
 			options = chart_options.options;
-		}	
+		}
 
 		chart_args.tooltipOptions = {
 			formatTooltipY: (value) =>
