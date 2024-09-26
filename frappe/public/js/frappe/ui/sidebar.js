@@ -296,6 +296,27 @@ frappe.ui.Sidebar = class Sidebar {
 	sidebar_item_container(item) {
 		item.indicator_color =
 			item.indicator_color || this.indicator_colors[Math.floor(Math.random() * 12)];
+		let path;
+		if (item.type === "Link") {
+			if (item.link_type === "Report") {
+				path = frappe.utils.generate_route({
+					type: item.link_type,
+					name: item.link_to,
+					is_query_report: item.report.report_type === "Query Report",
+					report_ref_doctype: item.report.ref_doctype,
+				});
+			} else {
+				path = frappe.utils.generate_route({ type: item.link_type, name: item.link_to });
+			}
+		} else if (item.type === "URL") {
+			path = item.external_link;
+		} else {
+			if (item.public) {
+				path = "/app/" + frappe.router.slug(item.name);
+			} else {
+				path = "/app/private/" + frappe.router.slug(item.name.split("-")[0]);
+			}
+		}
 
 		return $(`
 			<div
@@ -308,11 +329,8 @@ frappe.ui.Sidebar = class Sidebar {
 			>
 				<div class="standard-sidebar-item ${item.selected ? "selected" : ""}">
 					<a
-						href="/app/${
-							item.public
-								? frappe.router.slug(item.name)
-								: "private/" + frappe.router.slug(item.name.split("-")[0])
-						}"
+						href="${path}"
+						target="${item.type === "URL" ? "_blank" : ""}"
 						class="item-anchor ${item.is_editable ? "" : "block-click"}" title="${__(item.title)}"
 					>
 						<span class="sidebar-item-icon" item-icon=${item.icon || "folder-normal"}>
