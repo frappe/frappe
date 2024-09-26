@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-24 15:33+0000\n"
-"PO-Revision-Date: 2024-09-25 23:37\n"
+"PO-Revision-Date: 2024-09-26 23:48\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -6107,7 +6107,7 @@ msgstr ""
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:114
 msgid "Custom LDAP Directoy Selected, please ensure 'LDAP Group Member attribute' and 'Group Object Class' are entered"
-msgstr ""
+msgstr "Özel LDAP Dizini Seçildi, lütfen 'LDAP Grup Üyesi niteliği' ve 'Grup Nesne Sınıfı'nın girildiğinden emin olun"
 
 #. Label of a Data field in DocType 'Web Form Field'
 #. Label of a Data field in DocType 'Web Form List Column'
@@ -10725,7 +10725,7 @@ msgstr ""
 #: frappe/public/js/frappe/file_uploader/ImageCropper.vue:112
 msgctxt "Image Cropper"
 msgid "Free"
-msgstr "Ücretsiz"
+msgstr "Serbest"
 
 #. Label of a Select field in DocType 'Auto Repeat'
 #. Label of a Select field in DocType 'Scheduled Job Type'
