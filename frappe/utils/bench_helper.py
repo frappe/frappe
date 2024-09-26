@@ -45,7 +45,7 @@ def FrappeClickWrapper(cls, handler):
 		def invoke(self, ctx):
 			try:
 				return super().invoke(ctx)
-			except click.ClickException as e:
+			except (click.ClickException, click.exceptions.Exit, click.exceptions.Abort) as e:
 				raise e
 			except Exception as exc:
 				# call the handler
