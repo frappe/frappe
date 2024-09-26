@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-24 14:00+0000\n"
-"PO-Revision-Date: 2024-09-25 23:38\n"
+"PO-Revision-Date: 2024-09-26 23:48\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -1257,7 +1257,7 @@ msgstr "Lägg till Recension"
 
 #: frappe/core/doctype/user/user.py:790
 msgid "Add Roles"
-msgstr "Lägg till Roller"
+msgstr "Lägg till roller"
 
 #: frappe/public/js/frappe/form/grid.js:63
 msgid "Add Row"
@@ -6198,7 +6198,7 @@ msgstr "Anpassade Rapporter"
 #. Name of a DocType
 #: frappe/core/doctype/custom_role/custom_role.json
 msgid "Custom Role"
-msgstr "Anpassad Roll"
+msgstr "Anpassad roll"
 
 #. Label of the custom_scss (Code) field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
@@ -6821,7 +6821,7 @@ msgstr "Standard Tema"
 #. Label of the default_role (Link) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Default User Role"
-msgstr "Standard Användare Roll"
+msgstr "Standard användarroll"
 
 #. Label of the default_user_type (Link) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -8490,7 +8490,7 @@ msgstr "Redigera Utskrift Format"
 #: frappe/desk/page/user_profile/user_profile_sidebar.html:51
 #: frappe/www/me.html:38
 msgid "Edit Profile"
-msgstr "Redigera Profil"
+msgstr "Redigera profil"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:173
 msgid "Edit Properties"
@@ -8502,7 +8502,7 @@ msgstr "Redigera Snabb Listor"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:40
 msgid "Edit Shortcut"
-msgstr "Redigera Genvägar"
+msgstr "Redigera genväg"
 
 #. Label of the edit_values (Button) field in DocType 'Web Page Block'
 #. Label of the edit_navbar_template_values (Button) field in DocType 'Website
@@ -19130,7 +19130,7 @@ msgstr "Ange mobil nummer"
 
 #: frappe/www/update-password.html:104
 msgid "Please enter your new password."
-msgstr "Ange ny lösenord."
+msgstr "Ange ditt nya lösenord."
 
 #: frappe/www/update-password.html:97
 msgid "Please enter your old password."
@@ -19252,7 +19252,7 @@ msgstr "Ange Dropbox Åtkomst Nycklar i Inställningar eller DocType"
 
 #: frappe/contacts/doctype/contact/contact.py:288
 msgid "Please set Email Address"
-msgstr "Ange E-post"
+msgstr "Ställ in e-postadress"
 
 #: frappe/printing/page/print/print.js:549
 msgid "Please set a printer mapping for this print format in the Printer Settings"
@@ -19337,7 +19337,7 @@ msgstr "Använd giltig LDAP Sökfilter"
 
 #: frappe/email/doctype/newsletter/newsletter.py:331
 msgid "Please verify your Email Address"
-msgstr "Kontrollera din E-post"
+msgstr "Verifiera din e-postadress"
 
 #: frappe/utils/password.py:202
 msgid "Please visit https://frappecloud.com/docs/sites/migrate-an-existing-site#encryption-key for more information."
@@ -21839,7 +21839,7 @@ msgstr "Roll \"Skrivbord Användare\" kommer att ges till alla system användare
 #: frappe/core/doctype/role/role.json
 #: frappe/core/doctype/role_profile/role_profile.json
 msgid "Role Name"
-msgstr "Roll Namn"
+msgstr "Rollnamn"
 
 #. Name of a DocType
 #. Label of a Link in the Users Workspace
@@ -28148,7 +28148,7 @@ msgstr "Användare Rättigheter skapade"
 #. Label of the erpnext_role (Link) field in DocType 'LDAP Group Mapping'
 #: frappe/integrations/doctype/ldap_group_mapping/ldap_group_mapping.json
 msgid "User Role"
-msgstr "Användare Roll"
+msgstr "Användarroll"
 
 #. Name of a DocType
 #: frappe/core/doctype/user_role_profile/user_role_profile.json
