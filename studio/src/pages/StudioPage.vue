@@ -64,7 +64,7 @@ watch(
 	{ deep: true },
 )
 
-onActivated(async () => {
+async function setPage() {
 	if (route.params.pageID === store.selectedPage) return
 
 	if (route.params.pageID === "new") {
@@ -91,13 +91,14 @@ onActivated(async () => {
 		store.setApp(route.params.appID)
 		await store.setPage(route.params.pageID)
 	}
-})
+}
+
+onActivated(() => setPage())
 
 watch(
 	() => route.params.pageID,
 	() => {
-		if (route.params.pageID === store.selectedPage) return
-		store.setPage(route.params.pageID)
+		setPage()
 	},
 	{ immediate: true },
 )

@@ -182,8 +182,8 @@ async function fetchPage(pageName: string) {
 		doctype: "Studio Page",
 		name: pageName,
 	})
-	await pageResource.get.promise
-	return pageResource.doc
+	await pageResource?.get?.promise
+	return pageResource?.doc
 }
 
 async function findPageWithRoute(appRoute: string, pageRoute: string) {
