@@ -14,20 +14,23 @@
 				<label class="block text-xs text-gray-600">App Route</label>
 				<div class="relative flex items-stretch">
 					<Input
+						ref="inputRef"
 						type="text"
 						variant="outline"
-						class="w-full [&>div>input]:pl-[100px]"
+						class="w-full"
 						@input="(val: string) => (page.route = val)"
 						:modelValue="pageRoute"
 						:hideClearButton="true"
-						@update:modelValue="(val: string) => store.updateActivePage('route', `studio-app/${val}`)"
+						@update:modelValue="(val: string) => store.updateActivePage('route', `${app?.route}/${val}`)"
 					/>
 
 					<!-- App Route Prefix -->
 					<div
 						class="absolute bottom-[1px] left-[1px] flex items-center rounded-l-[0.4rem] bg-gray-100 text-gray-700"
 					>
-						<span class="flex h-[1.6rem] items-center text-nowrap px-2 py-0 text-base"> studio-app/ </span>
+						<span class="flex h-[1.6rem] items-center text-nowrap px-2 py-0 text-base">
+							{{ app?.route }}
+						</span>
 					</div>
 				</div>
 			</div>
@@ -36,17 +39,45 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, ref, watch } from "vue"
 import useStudioStore from "@/stores/studioStore"
-import { StudioPage } from "@/types"
+import { StudioPage, StudioApp } from "@/types"
 import Input from "@/components/Input.vue"
 
 const store = useStudioStore()
 const props = defineProps<{
 	page: StudioPage
+	app: StudioApp
+	isOpen: boolean
 }>()
 
+const inputRef = ref<InstanceType<typeof Input> | null>(null)
+
 const pageRoute = computed(() => {
-	return props.page.route.replace("studio-app/", "")
+	return props.page.route.replace(props.app?.route, "")
 })
+
+const dynamicPadding = computed(() => {
+	const prefixWidth = props.app?.route?.length * 8 + 4 // Assuming 8px per character plus 4px for padding
+	return `${Math.round(prefixWidth)}px`
+})
+
+const applyDynamicPadding = () => {
+	if (inputRef.value) {
+		const inputElement = inputRef.value.$el.querySelector("input")
+		if (inputElement) {
+			inputElement.style.paddingLeft = dynamicPadding.value
+		}
+	}
+}
+
+watch(
+	() => props.isOpen,
+	() => {
+		// apply dynamic padding to input element when the popover is opened
+		// to avoid overlapping with the prefix content
+		applyDynamicPadding()
+	},
+	{ immediate: true },
+)
 </script>

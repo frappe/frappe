@@ -21,7 +21,7 @@ class StudioPage(Document):
 		if not self.page_title:
 			self.page_title = "My Page"
 		if not self.route:
-			self.route = f"studio-app/{camel_case_to_kebab_case(self.page_title, True)}-{frappe.generate_hash(length=4)}"
+			self.route = f"{camel_case_to_kebab_case(self.page_title, True)}-{frappe.generate_hash(length=4)}"
 
 	@frappe.whitelist()
 	def publish(self, **kwargs):

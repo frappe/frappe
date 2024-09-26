@@ -5,7 +5,7 @@
 				<router-link
 					:to="{
 						name: 'StudioPage',
-						params: { appID: store.activeApp, pageID: screen.screen_name },
+						params: { appID: store.activeApp?.name, pageID: screen.screen_name },
 					}"
 					class="flex cursor-pointer items-center gap-2 truncate rounded px-2 py-2 transition duration-300 ease-in-out"
 					:class="[

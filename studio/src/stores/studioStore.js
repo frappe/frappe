@@ -7,9 +7,8 @@ import {
 	jsToJson,
 	getBlockCopyWithoutParent,
 	jsonToJs,
-	// page
+	fetchApp,
 	fetchPage,
-	// data
 	getNewResource,
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
@@ -58,7 +57,8 @@ const useStudioStore = defineStore("store", () => {
 	const appScreens = ref([])
 
 	async function setApp(appName) {
-		activeApp.value = appName
+		const appDoc = await fetchApp(appName)
+		activeApp.value = appDoc
 		await setAppScreens(appName)
 	}
 
