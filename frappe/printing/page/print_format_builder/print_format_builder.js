@@ -502,12 +502,12 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 			});
 
 			d.set_value("label", field.attr("data-label"));
-			d.set_value("nolabel", +field.attr("data-nolabel"));
+			d.set_value("nolabel", field.attr("data-nolabel"));
 
 			d.set_primary_action(__("Update"), function () {
 				field.attr("data-align", d.get_value("align"));
 				field.attr("data-label", d.get_value("label"));
-				field.attr("data-nolabel", +d.get_value("nolabel"));
+				field.attr("data-nolabel", d.get_value("nolabel"));
 				field.find(".field-label").html(d.get_value("label"));
 				d.hide();
 			});
@@ -814,7 +814,7 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 								df.label = label;
 							}
 
-							if (+nolabel) {
+							if (cint(nolabel)) {
 								df.nolabel = 1;
 							}
 
