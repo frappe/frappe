@@ -14,6 +14,7 @@ import {
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
 import { studioPageResources } from "@/data/studioResources"
+import { studioAppScreens } from "@/data/studioApps"
 
 const useStudioStore = defineStore("store", () => {
 	const canvas = ref(null)
@@ -50,6 +51,25 @@ const useStudioStore = defineStore("store", () => {
 		} else {
 			selectedBlockIds.value.splice(0, selectedBlockIds.value.length, block.componentId)
 		}
+	}
+
+	// studio apps & pages
+	const activeApp = ref(null)
+	const appScreens = ref([])
+
+	async function setApp(appName) {
+		activeApp.value = appName
+		await setAppScreens(appName)
+	}
+
+	async function setAppScreens(appName) {
+		studioAppScreens.filters = { parent: appName }
+		await studioAppScreens.reload()
+		appScreens.value = {}
+
+		studioAppScreens.data.map((screen) => {
+			appScreens.value[screen.screen_name] = screen
+		})
 	}
 
 	// studio pages
@@ -153,6 +173,11 @@ const useStudioStore = defineStore("store", () => {
 		selectedBlocks,
 		selectBlock,
 		pageBlocks,
+		// studio app
+		activeApp,
+		setApp,
+		appScreens,
+		setAppScreens,
 		// studio pages
 		selectedPage,
 		settingPage,

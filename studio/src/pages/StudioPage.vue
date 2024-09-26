@@ -39,6 +39,7 @@ import StudioCanvas from "@/components/StudioCanvas.vue"
 import useStudioStore from "@/stores/studioStore"
 import { studioPages } from "@/data/studioPages"
 import { getRootBlock } from "@/utils/helpers"
+import { studioAppScreens } from "@/data/studioApps"
 
 const route = useRoute()
 const router = useRouter()
@@ -72,8 +73,17 @@ onActivated(async () => {
 				page_title: "My Page",
 				draft_blocks: [getRootBlock()],
 			})
-			.then((data) => {
+			.then(async (data) => {
+				const appID = route.params.appID
+				await studioAppScreens.insert.submit({
+					screen: data.name,
+					parent: appID,
+					parenttype: "Studio App",
+					parentfield: "screens",
+				})
+
 				router.push({ name: "StudioPage", params: { pageID: data.name }, force: true })
+				store.setApp(appID)
 				store.setPage(data.name)
 			})
 	} else {

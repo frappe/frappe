@@ -1,43 +1,30 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:app_name",
  "creation": "2024-09-25 20:56:56.296301",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "title",
+  "app_name",
+  "app_title",
   "route",
   "column_break_aroi",
-  "published",
+  "app_home",
   "section_break_gacp",
   "screens"
  ],
  "fields": [
   {
-   "fieldname": "title",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Title",
-   "reqd": 1
-  },
-  {
    "fieldname": "route",
    "fieldtype": "Data",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Route",
-   "reqd": 1
+   "label": "Route"
   },
   {
    "fieldname": "column_break_aroi",
    "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "fieldname": "published",
-   "fieldtype": "Check",
-   "label": "Published"
   },
   {
    "fieldname": "section_break_gacp",
@@ -48,14 +35,34 @@
    "fieldtype": "Table",
    "label": "Screens",
    "options": "Studio App Screen"
+  },
+  {
+   "fieldname": "app_home",
+   "fieldtype": "Link",
+   "label": "App Home",
+   "options": "Studio Page"
+  },
+  {
+   "fieldname": "app_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "App Name",
+   "unique": 1
+  },
+  {
+   "fieldname": "app_title",
+   "fieldtype": "Data",
+   "label": "App Title"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-25 21:02:17.584387",
+ "modified": "2024-09-25 23:52:56.478335",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio App",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
