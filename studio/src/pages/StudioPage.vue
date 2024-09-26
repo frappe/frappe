@@ -75,6 +75,7 @@ onActivated(async () => {
 			})
 			.then(async (data) => {
 				const appID = route.params.appID
+				// add the newly created screen/page to the app's screens child table
 				await studioAppScreens.insert.submit({
 					screen: data.name,
 					parent: appID,
