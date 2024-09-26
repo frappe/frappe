@@ -29,7 +29,7 @@
 						class="absolute bottom-[1px] left-[1px] flex items-center rounded-l-[0.4rem] bg-gray-100 text-gray-700"
 					>
 						<span class="flex h-[1.6rem] items-center text-nowrap px-2 py-0 text-base">
-							{{ app?.route }}
+							{{ `${app?.route}/` }}
 						</span>
 					</div>
 				</div>
@@ -54,11 +54,11 @@ const props = defineProps<{
 const inputRef = ref<InstanceType<typeof Input> | null>(null)
 
 const pageRoute = computed(() => {
-	return props.page.route.replace(props.app?.route, "")
+	return props.page.route.replace(`${props.app?.route}/`, "")
 })
 
 const dynamicPadding = computed(() => {
-	const prefixWidth = props.app?.route?.length * 8 + 4 // Assuming 8px per character plus 4px for padding
+	const prefixWidth = props.app?.route?.length * 8 + 15 // Assuming 8px per character plus 4px for padding
 	return `${Math.round(prefixWidth)}px`
 })
 
