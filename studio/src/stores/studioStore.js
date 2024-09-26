@@ -92,6 +92,8 @@ const useStudioStore = defineStore("store", () => {
 		}
 		selectedPage.value = page.name
 		await setPageResources(page)
+		canvas.value.setRootBlock(pageBlocks.value[0])
+
 		nextTick(() => {
 			settingPage.value = false
 		})

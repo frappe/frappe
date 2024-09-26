@@ -2,6 +2,15 @@
 	<div ref="canvasContainer">
 		<slot name="header"></slot>
 		<div class="overlay absolute" id="overlay" ref="overlay" />
+		<Transition name="fade">
+			<div
+				class="absolute bottom-0 left-0 right-0 top-0 z-[19] grid w-full place-items-center bg-gray-50"
+				v-show="store.settingPage"
+			>
+				<LoadingIndicator class="h-5 w-5 text-gray-700" />
+			</div>
+		</Transition>
+
 		<div
 			v-if="isOverDropZone"
 			class="pointer-events-none absolute bottom-0 left-0 right-0 top-0 z-30 bg-cyan-300 opacity-20"
@@ -55,7 +64,7 @@
 				</div>
 				<StudioComponent
 					class="h-full min-h-[inherit]"
-					v-if="showBlocks && rootComponent && !store.settingPage"
+					v-if="showBlocks && rootComponent"
 					:block="rootComponent"
 					:breakpoint="breakpoint.device"
 				/>
@@ -77,16 +86,18 @@
 <script setup>
 import { ref, reactive, computed, onMounted, nextTick, provide } from "vue"
 import { useDropZone, useElementBounding } from "@vueuse/core"
+import { LoadingIndicator } from "frappe-ui"
 import StudioComponent from "@/components/StudioComponent.vue"
 import FitScreenIcon from "@/components/Icons/FitScreenIcon.vue"
 
 import useStudioStore from "@/stores/studioStore"
 import { getBlockCopy, getComponentBlock } from "@/utils/helpers"
 import setPanAndZoom from "@/utils/panAndZoom"
+import Block from "@/utils/block"
 
 const props = defineProps({
 	componentTree: {
-		type: Object,
+		type: Block,
 		required: true,
 	},
 	canvasStyles: {
@@ -179,6 +190,15 @@ const findBlock = (componentId, blocks = null) => {
 
 const getRootBlock = () => rootComponent.value
 
+const setRootBlock = (newBlock, resetCanvas = false) => {
+	rootComponent.value = newBlock
+	if (resetCanvas) {
+		nextTick(() => {
+			setScaleAndTranslate()
+		})
+	}
+}
+
 // canvas positioning
 const containerBound = reactive(useElementBounding(canvasContainer))
 const canvasBound = reactive(useElementBounding(canvas))
@@ -225,6 +245,7 @@ defineExpose({
 	canvasProps,
 	findBlock,
 	getRootBlock,
+	setRootBlock,
 })
 </script>
 

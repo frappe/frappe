@@ -88,9 +88,19 @@ onActivated(async () => {
 				store.setPage(data.name)
 			})
 	} else {
+		store.setApp(route.params.appID)
 		await store.setPage(route.params.pageID)
 	}
 })
+
+watch(
+	() => route.params.pageID,
+	() => {
+		if (route.params.pageID === store.selectedPage) return
+		store.setPage(route.params.pageID)
+	},
+	{ immediate: true },
+)
 
 usePageMeta(() => {
 	return {
