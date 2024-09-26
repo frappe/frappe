@@ -123,6 +123,7 @@ const useStudioStore = defineStore("store", () => {
 					if (activePage.value) {
 						activePage.value[key] = value
 					}
+					setAppPages(activeApp?.value?.name)
 				},
 			},
 		)
