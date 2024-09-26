@@ -101,11 +101,15 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 				filename = file_url_parts[1];
 				dataurl = file_url_parts[2] + ":" + file_url_parts[3];
 			}
+			
+			// hash is not escaped, https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI
+			let encoded_url = encodeURI(dataurl || this.value).replace(/#/g, "%23");
+			
 			this.$value
 				.toggle(true)
 				.find(".attached-file-link")
 				.html(filename || this.value)
-				.attr("href", dataurl || this.value);
+				.attr("href", encoded_url);
 		} else {
 			this.$input.toggle(true);
 			this.$value.toggle(false);
