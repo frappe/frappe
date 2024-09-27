@@ -82,6 +82,8 @@ def get_vanilla_controller(doctype):
 				return NestedSet if doctype_info.is_tree else Document
 			module_name = doctype_info.module
 
+	module_path = None
+
 	module = load_doctype_module(doctype, module_name)
 	classname = doctype.replace(" ", "").replace("-", "")
 	class_ = getattr(module, classname, None)
