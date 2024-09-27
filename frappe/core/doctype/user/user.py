@@ -73,11 +73,7 @@ class User(Document):
 		block_modules: DF.Table[BlockModule]
 		bulk_actions: DF.Check
 		bypass_restrict_ip_check_if_2fa_enabled: DF.Check
-<<<<<<< HEAD
-=======
-		code_editor_type: DF.Literal["vscode", "vim", "emacs"]
 		dashboard: DF.Check
->>>>>>> 895ca9a30b (refactor: make desk settings user specific)
 		default_app: DF.Literal[None]
 		default_workspace: DF.Link | None
 		defaults: DF.Table[DefaultValue]
@@ -193,13 +189,6 @@ class User(Document):
 		self.validate_allowed_modules()
 		self.validate_user_image()
 		self.set_time_zone()
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-		self.set_desk_properties()
->>>>>>> 895ca9a30b (refactor: make desk settings user specific)
-=======
->>>>>>> fe48e775fb (chore: make the sections collapsible)
 
 		if self.language == "Loading...":
 			self.language = None

@@ -25,11 +25,6 @@ class Role(Document):
 		restrict_to_domain: DF.Link | None
 		role_name: DF.Data
 		two_factor_auth: DF.Check
-<<<<<<< HEAD
-		view_switcher: DF.Check
-=======
-	# end: auto-generated types
->>>>>>> 895ca9a30b (refactor: make desk settings user specific)
 
 	# end: auto-generated types
 	def before_rename(self, old, new, merge=False):

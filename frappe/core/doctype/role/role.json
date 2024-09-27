@@ -74,11 +74,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2024-03-13 20:59:37.875253",
-=======
  "modified": "2024-09-19 17:07:08.672124",
->>>>>>> 895ca9a30b (refactor: make desk settings user specific)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role",
