@@ -229,6 +229,15 @@ def rename_doc(
 			indicator="green",
 		)
 
+	# let people watching the old form know that it has been renamed
+	frappe.publish_realtime(
+		event="doc_rename",
+		message={"doctype": doctype, "old": old, "new": new},
+		doctype=doctype,
+		docname=old,
+		after_commit=True,
+	)
+
 	return new
 
 
