@@ -9,7 +9,7 @@ from pypika.terms import PseudoColumn
 import frappe
 from frappe.query_builder.terms import NamedParameterWrapper
 
-from .builder import MariaDB, Postgres
+from .builder import MariaDB, Postgres, OracleDB
 
 
 class PseudoColumnMapper(PseudoColumn):
@@ -17,7 +17,7 @@ class PseudoColumnMapper(PseudoColumn):
 		super().__init__(name)
 
 	def get_sql(self, **kwargs):
-		if frappe.db.db_type == "postgres":
+		if frappe.db.db_type in ("postgres", "oracledb"):
 			self.name = self.name.replace("`", '"')
 		return self.name
 
@@ -25,6 +25,7 @@ class PseudoColumnMapper(PseudoColumn):
 class db_type_is(Enum):
 	MARIADB = "mariadb"
 	POSTGRES = "postgres"
+	ORACLEDB = "oracledb"
 
 
 class ImportMapper:
@@ -41,8 +42,8 @@ class BuilderIdentificationFailed(Exception):
 		super().__init__("Couldn't guess builder")
 
 
-def get_query_builder(type_of_db: str) -> Postgres | MariaDB:
-	"""[return the query builder object]
+def get_query_builder(type_of_db: str) -> Postgres | MariaDB | OracleDB:
+	"""Return the query builder object.
 
 	Args:
 	        type_of_db (str): [string value of the db used]
@@ -51,7 +52,8 @@ def get_query_builder(type_of_db: str) -> Postgres | MariaDB:
 	        Query: [Query object]
 	"""
 	db = db_type_is(type_of_db)
-	picks = {db_type_is.MARIADB: MariaDB, db_type_is.POSTGRES: Postgres}
+	picks = {db_type_is.MARIADB: MariaDB, db_type_is.POSTGRES: Postgres,
+			 db_type_is.ORACLEDB: OracleDB}
 	return picks[db]
 
 
@@ -83,7 +85,10 @@ def patch_query_execute():
 
 	def execute_query(query, *args, **kwargs):
 		child_queries = query._child_queries if isinstance(query._child_queries, list) else []
-		query, params = prepare_query(query)
+		if frappe.conf.db_type != 'oracledb':
+			query, params = prepare_query(query)
+		else:
+			params = []
 		result = frappe.db.sql(query, params, *args, **kwargs)  # nosemgrep
 		execute_child_queries(child_queries, result)
 		return result

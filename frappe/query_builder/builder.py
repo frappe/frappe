@@ -1,8 +1,8 @@
 import types
 import typing
 
-from pypika import MySQLQuery, Order, PostgreSQLQuery, terms
-from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
+from pypika import MySQLQuery, Order, PostgreSQLQuery, terms, OracleQuery
+from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder, OracleQueryBuilder
 from pypika.queries import QueryBuilder, Schema, Table
 from pypika.terms import Function
 
@@ -94,6 +94,40 @@ class Postgres(Base, PostgreSQLQuery):
 					table = cls.schema_translation.get(table._table_name) or table
 
 		elif isinstance(table, str):
+			table = cls.DocType(table)
+
+		return super().from_(table, *args, **kwargs)
+
+
+class OracleDB(Base, OracleQuery):
+	field_translation = types.MappingProxyType(
+		{"table_name": "relname", "table_rows": "n_tup_ins"})
+	schema_translation = types.MappingProxyType({"tables": "pg_stat_all_tables"})
+	# TODO: Find a better way to do this
+	# These are interdependent query changes that need fixing. These
+	# translations happen in the same query. But there is no check to see if
+	# the Fields are changed only when a particular `information_schema` schema
+	# is used. Replacing them is not straightforward because the "from_"
+	# function can not see the arguments passed to the "select" function as
+	# they are two different objects. The quick fix used here is to replace the
+	# Field names in the "Field" function.
+
+	_BuilderClasss = OracleQueryBuilder
+
+	@classmethod
+	def _builder(cls, *args, **kwargs) -> "OracleQueryBuilder":
+		return super()._builder(*args, wrapper_cls=ParameterizedValueWrapper, **kwargs)
+
+	@classmethod
+	def Field(cls, field_name, *args, **kwargs):
+		if field_name in cls.field_translation:
+			field_name = cls.field_translation[field_name]
+		return terms.Field(field_name, *args, **kwargs)
+
+	@classmethod
+	def from_(cls, table, *args, **kwargs):
+
+		if isinstance(table, str):
 			table = cls.DocType(table)
 
 		return super().from_(table, *args, **kwargs)

@@ -6,13 +6,13 @@ from functools import cached_property, wraps
 from types import NoneType
 
 import frappe
-from frappe.query_builder.builder import MariaDB, Postgres
+from frappe.query_builder.builder import MariaDB, Postgres, OracleDB
 from frappe.query_builder.functions import Function
 
 if typing.TYPE_CHECKING:
 	from frappe.query_builder import DocType
 
-Query = str | MariaDB | Postgres
+Query = str | MariaDB | Postgres | OracleDB
 QueryValues = tuple | list | dict | None
 
 EmptyQueryValues = object()

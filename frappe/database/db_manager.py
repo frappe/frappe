@@ -90,7 +90,7 @@ class DbManager:
 			db_name=target,
 		)
 		if not bin:
-			frappe.throw(
+			return frappe.throw(
 				_("{} not found in PATH! This is required to restore the database.").format(bin_name),
 				exc=frappe.ExecutableNotFound,
 			)
