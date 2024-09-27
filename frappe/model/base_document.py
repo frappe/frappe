@@ -73,6 +73,8 @@ def get_controller(doctype):
 	return site_controllers[doctype]
 
 def get_vanilla_controller(doctype):
+	from frappe.model.document import Document
+	from frappe.utils.nestedset import NestedSet
     
 	module_name = "Core"
 	if doctype not in DOCTYPES_FOR_DOCTYPE:
