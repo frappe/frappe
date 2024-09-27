@@ -132,7 +132,7 @@ frappe.ui.Sidebar = class Sidebar {
 			console.warn("set_current_app: app not defined");
 			return;
 		}
-		let app_data = frappe.boot.app_data_map[app];
+		let app_data = frappe.boot.app_data_map[app] || frappe.boot.app_data_map["frappe"];
 
 		this.wrapper
 			.find(".app-switcher-dropdown .sidebar-item-icon img")
