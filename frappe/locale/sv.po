@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-24 14:00+0000\n"
-"PO-Revision-Date: 2024-09-26 23:48\n"
+"PO-Revision-Date: 2024-09-27 23:48\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -863,7 +863,7 @@ msgstr "API Slutpunkt Argument"
 #: frappe/integrations/doctype/google_settings/google_settings.json
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.json
 msgid "API Key"
-msgstr "API-nyckel"
+msgstr ""
 
 #. Description of the 'Authentication' (Section Break) field in DocType 'Push
 #. Notification Settings'
@@ -1107,13 +1107,13 @@ msgstr "Active Directory"
 #. Label of the active_domains (Table) field in DocType 'Domain Settings'
 #: frappe/core/doctype/domain_settings/domain_settings.json
 msgid "Active Domains"
-msgstr "Aktiva domäner"
+msgstr ""
 
 #. Label of the active_sessions (Int) field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 #: frappe/www/third_party_apps.html:34
 msgid "Active Sessions"
-msgstr "Aktiva sessioner"
+msgstr ""
 
 #. Group in User's connections
 #: frappe/core/doctype/user/user.json
@@ -1129,7 +1129,7 @@ msgstr "Aktivitet"
 #: frappe/core/workspace/build/build.json
 #: frappe/core/workspace/users/users.json
 msgid "Activity Log"
-msgstr "Aktivitetslogg"
+msgstr ""
 
 #: frappe/core/page/permission_manager/permission_manager.js:475
 #: frappe/email/doctype/email_group/email_group.js:60
@@ -1244,7 +1244,7 @@ msgstr "Lägg till Ny Behörighet Regel"
 
 #: frappe/desk/doctype/event/event.js:35 frappe/desk/doctype/event/event.js:42
 msgid "Add Participants"
-msgstr "Lägg till deltagare"
+msgstr ""
 
 #. Label of the add_query_parameters (Check) field in DocType 'Email Group'
 #: frappe/email/doctype/email_group/email_group.json
@@ -1257,7 +1257,7 @@ msgstr "Lägg till Recension"
 
 #: frappe/core/doctype/user/user.py:790
 msgid "Add Roles"
-msgstr "Lägg till roller"
+msgstr ""
 
 #: frappe/public/js/frappe/form/grid.js:63
 msgid "Add Row"
@@ -1322,7 +1322,7 @@ msgstr "Lägg till Filter"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:9
 msgid "Add a New Role"
-msgstr "Lägg till en ny roll"
+msgstr ""
 
 #: frappe/public/js/frappe/form/form_tour.js:211
 msgid "Add a Row"
@@ -1467,14 +1467,14 @@ msgstr "Adress"
 #: frappe/contacts/doctype/address/address.json
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Address Line 1"
-msgstr "Adressrad 1"
+msgstr ""
 
 #. Label of the address_line2 (Data) field in DocType 'Address'
 #. Label of the address_line2 (Data) field in DocType 'Contact Us Settings'
 #: frappe/contacts/doctype/address/address.json
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Address Line 2"
-msgstr "Adressrad 2"
+msgstr ""
 
 #. Name of a DocType
 #: frappe/contacts/doctype/address_template/address_template.json
@@ -1581,7 +1581,7 @@ msgstr "Avancerad Sökning"
 #. Label of the sb_advanced (Section Break) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Advanced Settings"
-msgstr "Avancerade inställningar"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:63
 #: frappe/public/js/frappe/ui/filters/filter.js:69
@@ -3224,13 +3224,13 @@ msgstr "Tillbaka till Inloggning"
 #: frappe/website/doctype/social_link_settings/social_link_settings.json
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Background Color"
-msgstr "Bakgrundsfärg"
+msgstr ""
 
 #. Label of the background_image (Attach Image) field in DocType 'Web Page
 #. Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Background Image"
-msgstr "Bakgrundsbild"
+msgstr ""
 
 #. Label of a Link in the Build Workspace
 #. Label of the background_jobs_section (Section Break) field in DocType
@@ -3381,7 +3381,7 @@ msgstr "Bar"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Barcode"
-msgstr "Streckkod"
+msgstr ""
 
 #. Label of the base_dn (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -3525,7 +3525,7 @@ msgstr "Resume"
 #. Label of the birth_date (Date) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Birth Date"
-msgstr "Födelsedatum"
+msgstr ""
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:41
 msgid "Blank Template"
@@ -4461,7 +4461,7 @@ msgstr "Ändra Brevhuvud"
 #. Label of the change_password (Section Break) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Change Password"
-msgstr "Ändra lösenord"
+msgstr ""
 
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:27
 msgid "Change Print Format"
@@ -5200,7 +5200,7 @@ msgstr "E-post Typ"
 
 #: frappe/desk/page/leaderboard/leaderboard.js:112
 msgid "Company"
-msgstr "Företag"
+msgstr ""
 
 #. Name of a DocType
 #: frappe/website/doctype/company_history/company_history.json
@@ -5217,7 +5217,7 @@ msgstr "Bolag Introduktion"
 #. Label of the company_name (Data) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Company Name"
-msgstr "Företagsnamn"
+msgstr ""
 
 #: frappe/core/doctype/server_script/server_script.js:14
 #: frappe/custom/doctype/client_script/client_script.js:54
@@ -5386,7 +5386,7 @@ msgstr "Bekräfta Ny Lösenord"
 
 #: frappe/www/update-password.html:34
 msgid "Confirm Password"
-msgstr "Bekräfta lösenord"
+msgstr ""
 
 #: frappe/templates/emails/data_deletion_approval.html:6
 #: frappe/templates/emails/delete_data_confirmation.html:7
@@ -5646,7 +5646,7 @@ msgstr "Kopiera fel till urklipp"
 
 #: frappe/public/js/frappe/form/toolbar.js:481
 msgid "Copy to Clipboard"
-msgstr "Kopiera till urklipp"
+msgstr ""
 
 #. Label of the copyright (Data) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -5768,7 +5768,7 @@ msgstr "Skapa & Fortsätt"
 
 #: frappe/public/js/frappe/ui/address_autocomplete/autocomplete_dialog.js:49
 msgid "Create Address"
-msgstr "Skapa adress"
+msgstr ""
 
 #: frappe/public/js/frappe/views/reports/query_report.js:187
 #: frappe/public/js/frappe/views/reports/query_report.js:232
@@ -6198,7 +6198,7 @@ msgstr "Anpassade Rapporter"
 #. Name of a DocType
 #: frappe/core/doctype/custom_role/custom_role.json
 msgid "Custom Role"
-msgstr "Anpassad roll"
+msgstr ""
 
 #. Label of the custom_scss (Code) field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
@@ -6821,7 +6821,7 @@ msgstr "Standard Tema"
 #. Label of the default_role (Link) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Default User Role"
-msgstr "Standard användarroll"
+msgstr ""
 
 #. Label of the default_user_type (Link) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -6910,12 +6910,12 @@ msgstr "Försenad"
 #: frappe/templates/discussions/reply_card.html:35
 #: frappe/templates/discussions/reply_section.html:29
 msgid "Delete"
-msgstr "Radera"
+msgstr ""
 
 #: frappe/public/js/frappe/list/list_view.js:1978
 msgctxt "Button in list view actions menu"
 msgid "Delete"
-msgstr "Radera"
+msgstr ""
 
 #: frappe/www/me.html:65
 msgid "Delete Account"
@@ -6928,7 +6928,7 @@ msgstr "Ta Bort Alla"
 #: frappe/public/js/form_builder/components/Section.vue:196
 msgctxt "Title of confirmation dialog"
 msgid "Delete Column"
-msgstr "Radera kolumn"
+msgstr ""
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.js:10
 msgid "Delete Data"
@@ -6955,7 +6955,7 @@ msgstr "Ta bort och Skapa Ny"
 #: frappe/public/js/form_builder/components/Section.vue:203
 msgctxt "Button text"
 msgid "Delete column"
-msgstr "Radera kolumn"
+msgstr ""
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:721
 msgid "Delete comment?"
@@ -8062,7 +8062,7 @@ msgstr "Domän"
 #. Label of the domain_name (Data) field in DocType 'Email Domain'
 #: frappe/email/doctype/email_domain/email_domain.json
 msgid "Domain Name"
-msgstr "Domännamn"
+msgstr ""
 
 #. Name of a DocType
 #: frappe/core/doctype/domain_settings/domain_settings.json
@@ -8167,7 +8167,7 @@ msgstr "Ladda ner Rapport"
 #. Label of the download_template (Button) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Download Template"
-msgstr "Ladda ner mall"
+msgstr ""
 
 #: frappe/website/doctype/personal_data_download_request/personal_data_download_request.py:61
 #: frappe/website/doctype/personal_data_download_request/personal_data_download_request.py:69
@@ -8490,7 +8490,7 @@ msgstr "Redigera Utskrift Format"
 #: frappe/desk/page/user_profile/user_profile_sidebar.html:51
 #: frappe/www/me.html:38
 msgid "Edit Profile"
-msgstr "Redigera profil"
+msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:173
 msgid "Edit Properties"
@@ -8502,7 +8502,7 @@ msgstr "Redigera Snabb Listor"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:40
 msgid "Edit Shortcut"
-msgstr "Redigera genväg"
+msgstr ""
 
 #. Label of the edit_values (Button) field in DocType 'Web Page Block'
 #. Label of the edit_navbar_template_values (Button) field in DocType 'Website
@@ -8657,7 +8657,7 @@ msgstr "E-post Konto inte konfigurerad. Skapa ny E-post Konto från Inställning
 #: frappe/www/complete_signup.html:11 frappe/www/login.html:164
 #: frappe/www/login.html:196
 msgid "Email Address"
-msgstr "E-postadress"
+msgstr ""
 
 #. Description of the 'Email Address' (Data) field in DocType 'Google Contacts'
 #: frappe/integrations/doctype/google_contacts/google_contacts.json
@@ -8666,7 +8666,7 @@ msgstr "E-post vars Google Kontakter ska synkroniseras."
 
 #: frappe/email/doctype/email_group/email_group.js:43
 msgid "Email Addresses"
-msgstr "E-postadresser"
+msgstr ""
 
 #. Label of a Link in the Tools Workspace
 #. Name of a DocType
@@ -9154,7 +9154,7 @@ msgstr "Krypteringsnyckeln är ogiltig! Kontrollera site_config.json"
 #: frappe/public/js/frappe/utils/common.js:416
 #: frappe/website/doctype/web_page/web_page.json
 msgid "End Date"
-msgstr "Slutdatum"
+msgstr ""
 
 #. Label of the end_date_field (Select) field in DocType 'Calendar View'
 #: frappe/desk/doctype/calendar_view/calendar_view.json
@@ -9293,7 +9293,7 @@ msgstr "Ange url parameter för mottagare"
 
 #: frappe/public/js/frappe/ui/messages.js:334
 msgid "Enter your password"
-msgstr "Ange ditt lösenord"
+msgstr ""
 
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.js:22
 msgid "Entity Name"
@@ -10242,7 +10242,7 @@ msgstr "Fil Namn"
 #. Label of the file_size (Int) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "File Size"
-msgstr "Filstorlek"
+msgstr ""
 
 #. Label of the section_break_ryki (Section Break) field in DocType 'System
 #. Health Report'
@@ -10845,7 +10845,7 @@ msgstr "Tvinga Webbaserade Bildtagning för Uppladdningar"
 
 #: frappe/www/login.html:35
 msgid "Forgot Password?"
-msgstr "Glömt lösenord?"
+msgstr ""
 
 #. Label of the form_builder_tab (Tab Break) field in DocType 'DocType'
 #. Option for the 'Apply To' (Select) field in DocType 'Client Script'
@@ -11829,7 +11829,7 @@ msgstr "Hjälp Artikel"
 #. Label of the help_articles (Int) field in DocType 'Help Category'
 #: frappe/website/doctype/help_category/help_category.json
 msgid "Help Articles"
-msgstr "Hjälpartiklar"
+msgstr ""
 
 #. Name of a DocType
 #. Label of a Link in the Website Workspace
@@ -12199,7 +12199,7 @@ msgstr "IMAP Mapp"
 #: frappe/core/doctype/activity_log/activity_log.json
 #: frappe/core/doctype/comment/comment.json
 msgid "IP Address"
-msgstr "IP-adress"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of the icon (Data) field in DocType 'DocType'
@@ -13246,7 +13246,7 @@ msgstr "Ogiltig Webbplats"
 
 #: frappe/utils/verified_command.py:48 frappe/www/update-password.html:140
 msgid "Invalid Link"
-msgstr "Ogiltig länk"
+msgstr ""
 
 #: frappe/www/login.py:117
 msgid "Invalid Login Token"
@@ -13293,7 +13293,7 @@ msgstr "Ogiltiga Parametrar"
 #: frappe/www/update-password.html:131 frappe/www/update-password.html:133
 #: frappe/www/update-password.html:234
 msgid "Invalid Password"
-msgstr "Ogiltigt lösenord"
+msgstr ""
 
 #: frappe/utils/__init__.py:119
 msgid "Invalid Phone Number"
@@ -15032,7 +15032,7 @@ msgstr "Logga in med {0}"
 #: frappe/core/doctype/activity_log/activity_log.json frappe/www/apps.html:59
 #: frappe/www/me.html:84
 msgid "Logout"
-msgstr "Logga ut"
+msgstr ""
 
 #: frappe/core/doctype/user/user.js:197
 msgid "Logout All Sessions"
@@ -16130,7 +16130,7 @@ msgstr "Mx"
 #: frappe/website/doctype/website_settings/website_settings.py:181
 #: frappe/www/list.py:21 frappe/www/me.html:8 frappe/www/update_password.py:10
 msgid "My Account"
-msgstr "Mitt konto"
+msgstr ""
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:57
 msgid "My Device"
@@ -16332,7 +16332,7 @@ msgstr "Ny Aktivitet"
 #: frappe/public/js/frappe/ui/address_autocomplete/autocomplete_dialog.js:5
 #: frappe/public/js/frappe/utils/address_and_contact.js:71
 msgid "New Address"
-msgstr "Ny adress"
+msgstr ""
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:58
 msgid "New Chart"
@@ -16344,7 +16344,7 @@ msgstr "Ny Kommentar {0}: {1}"
 
 #: frappe/public/js/frappe/form/templates/contact_list.html:90
 msgid "New Contact"
-msgstr "Ny kontakt"
+msgstr ""
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:70
 msgid "New Custom Block"
@@ -16423,7 +16423,7 @@ msgstr "Ny Introduktion"
 
 #: frappe/core/doctype/user/user.js:185 frappe/www/update-password.html:29
 msgid "New Password"
-msgstr "Nytt lösenord"
+msgstr ""
 
 #: frappe/printing/page/print/print.js:267
 #: frappe/printing/page/print/print.js:321
@@ -16813,7 +16813,7 @@ msgstr "Ingen Välj Fält Hittad"
 
 #: frappe/core/doctype/recorder/recorder.py:187
 msgid "No Suggestions"
-msgstr "Inga förslag"
+msgstr ""
 
 #: frappe/desk/reportview.py:637
 msgid "No Tags"
@@ -19109,7 +19109,7 @@ msgstr "Ange omdirigering URL"
 
 #: frappe/templates/includes/comments/comments.html:163
 msgid "Please enter a valid email address."
-msgstr "Ange en giltig e-postadress."
+msgstr ""
 
 #: frappe/templates/includes/contact.js:15
 msgid "Please enter both your email and message so that we can get back to you. Thanks!"
@@ -19130,7 +19130,7 @@ msgstr "Ange mobil nummer"
 
 #: frappe/www/update-password.html:104
 msgid "Please enter your new password."
-msgstr "Ange ditt nya lösenord."
+msgstr ""
 
 #: frappe/www/update-password.html:97
 msgid "Please enter your old password."
@@ -19252,7 +19252,7 @@ msgstr "Ange Dropbox Åtkomst Nycklar i Inställningar eller DocType"
 
 #: frappe/contacts/doctype/contact/contact.py:288
 msgid "Please set Email Address"
-msgstr "Ställ in e-postadress"
+msgstr ""
 
 #: frappe/printing/page/print/print.js:549
 msgid "Please set a printer mapping for this print format in the Printer Settings"
@@ -19337,7 +19337,7 @@ msgstr "Använd giltig LDAP Sökfilter"
 
 #: frappe/email/doctype/newsletter/newsletter.py:331
 msgid "Please verify your Email Address"
-msgstr "Verifiera din e-postadress"
+msgstr ""
 
 #: frappe/utils/password.py:202
 msgid "Please visit https://frappecloud.com/docs/sites/migrate-an-existing-site#encryption-key for more information."
@@ -21543,7 +21543,7 @@ msgstr "Återställ OTP Hemlighet"
 #: frappe/www/me.html:48 frappe/www/update-password.html:3
 #: frappe/www/update-password.html:19
 msgid "Reset Password"
-msgstr "Återställ lösenord"
+msgstr ""
 
 #. Label of the reset_password_key (Data) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -21584,7 +21584,7 @@ msgstr "Återställ Standard"
 
 #: frappe/templates/emails/password_reset.html:3
 msgid "Reset your password"
-msgstr "Återställ ditt lösenord"
+msgstr ""
 
 #. Label of the response (Text Editor) field in DocType 'Email Template'
 #. Label of the response_section (Section Break) field in DocType 'Integration
@@ -21839,7 +21839,7 @@ msgstr "Roll \"Skrivbord Användare\" kommer att ges till alla system användare
 #: frappe/core/doctype/role/role.json
 #: frappe/core/doctype/role_profile/role_profile.json
 msgid "Role Name"
-msgstr "Rollnamn"
+msgstr ""
 
 #. Name of a DocType
 #. Label of a Link in the Users Workspace
@@ -23851,7 +23851,7 @@ msgstr "Visa Absoluta Värden"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:80
 msgid "Show All"
-msgstr "Visa alla"
+msgstr ""
 
 #: frappe/desk/doctype/calendar_view/calendar_view.js:10
 msgid "Show Calendar"
@@ -24059,7 +24059,7 @@ msgstr "Visa som Kopia Till"
 #. Label of the show_attachments (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Show attachments"
-msgstr "Visa bilagor"
+msgstr ""
 
 #. Label of the show_footer_on_login (Check) field in DocType 'Website
 #. Settings'
@@ -27300,7 +27300,7 @@ msgstr "Tisdag"
 #: frappe/core/doctype/role/role.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Two Factor Authentication"
-msgstr "Tvåfaktorsautentisering"
+msgstr ""
 
 #. Label of the two_factor_method (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -28148,7 +28148,7 @@ msgstr "Användare Rättigheter skapade"
 #. Label of the erpnext_role (Link) field in DocType 'LDAP Group Mapping'
 #: frappe/integrations/doctype/ldap_group_mapping/ldap_group_mapping.json
 msgid "User Role"
-msgstr "Användarroll"
+msgstr ""
 
 #. Name of a DocType
 #: frappe/core/doctype/user_role_profile/user_role_profile.json
@@ -28297,7 +28297,7 @@ msgstr "Användare Info URI"
 #: frappe/core/doctype/user_social_login/user_social_login.json
 #: frappe/www/login.py:104
 msgid "Username"
-msgstr "Användarnamn"
+msgstr ""
 
 #: frappe/core/doctype/user/user.py:674
 msgid "Username {0} already exists"
@@ -30057,7 +30057,7 @@ msgstr "Anslutning begäran till Google Kalender godkändes"
 
 #: frappe/www/contact.html:35
 msgid "Your email address"
-msgstr "Din e-postadress"
+msgstr ""
 
 #: frappe/public/js/frappe/web_form/web_form.js:428
 msgid "Your form has been successfully updated"
