@@ -223,13 +223,14 @@ if TYPE_CHECKING:  # pragma: no cover
 
 	from frappe.database.mariadb.database import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
+	from frappe.database.oracledb.database import OracleDBDatabase
 	from frappe.email.doctype.email_queue.email_queue import EmailQueue
 	from frappe.model.document import Document
-	from frappe.query_builder.builder import MariaDB, Postgres
+	from frappe.query_builder.builder import MariaDB, Postgres, OracleDB
 	from frappe.utils.redis_wrapper import RedisWrapper
 
-	db: MariaDBDatabase | PostgresDatabase
-	qb: MariaDB | Postgres
+	db: MariaDBDatabase | PostgresDatabase | OracleDBDatabase
+	qb: MariaDB | Postgres | OracleDB
 	cache: RedisWrapper
 	response: _dict
 	conf: _dict

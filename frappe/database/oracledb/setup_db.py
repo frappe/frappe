@@ -15,16 +15,16 @@ def setup_database():
 
 	# Drop the user if it exists along with its schema
 	if cursor.execute(
-		f"SELECT 1 FROM all_users WHERE username = '{frappe.conf.db_user.upper()}'").fetchone():
-		cursor.execute(f"DROP USER {frappe.conf.db_user} CASCADE")
+		f"SELECT 1 FROM all_users WHERE username = '{frappe.conf.db_name.upper()}'").fetchone():
+		cursor.execute(f"DROP USER {frappe.conf.db_name} CASCADE")
 
 	# Create user and grant privileges
-	query = f'CREATE USER {frappe.conf.db_user} IDENTIFIED BY "{frappe.conf.db_password}"'
+	query = f'CREATE USER {frappe.conf.db_name} IDENTIFIED BY "{frappe.conf.db_password}"'
 	cursor.execute(query)
-	cursor.execute(f"GRANT CONNECT, RESOURCE, DBA TO {frappe.conf.db_user}")
+	cursor.execute(f"GRANT CONNECT, RESOURCE, DBA TO {frappe.conf.db_name}")
 
 	# Create schema
-	cursor.execute(f"ALTER SESSION SET CURRENT_SCHEMA = {frappe.conf.db_user}")
+	cursor.execute(f"ALTER SESSION SET CURRENT_SCHEMA = {frappe.conf.db_name}")
 	cursor.close()
 
 
@@ -46,7 +46,6 @@ def get_root_connection():
 			)
 
 		frappe.local.flags.root_connection = frappe.database.get_db(
-			socket=frappe.conf.db_socket,
 			host=frappe.conf.db_host,
 			port=frappe.conf.db_port,
 			user=frappe.flags.root_login,

@@ -39,6 +39,7 @@ def _new_site(
 	site,
 	db_root_username=None,
 	db_root_password=None,
+	db_root_service_name=None,
 	admin_password=None,
 	verbose=False,
 	install_apps=None,
@@ -87,12 +88,12 @@ def _new_site(
 		install_db(
 			root_login=db_root_username,
 			root_password=db_root_password,
+			root_service_name=db_root_service_name,
 			db_name=db_name,
 			admin_password=admin_password,
 			verbose=verbose,
 			source_sql=source_sql,
 			force=force,
-			reinstall=reinstall,
 			db_password=db_password,
 			db_type=db_type,
 			db_host=db_host,
@@ -121,13 +122,13 @@ def _new_site(
 def install_db(
 	root_login=None,
 	root_password=None,
+	root_service_name=None,
 	db_name=None,
 	source_sql=None,
 	admin_password=None,
 	verbose=True,
 	force=0,
 	site_config=None,
-	reinstall=False,
 	db_password=None,
 	db_type=None,
 	db_host=None,
@@ -144,11 +145,14 @@ def install_db(
 		root_login = "root"
 	elif not root_login and db_type == "postgres":
 		root_login = "postgres"
+	elif not root_login and db_type == "oracledb":
+		root_login = "system"
 
 	make_conf(
 		db_name,
 		site_config=site_config,
 		db_password=db_password,
+		db_service_name=root_service_name,
 		db_type=db_type,
 		db_host=db_host,
 		db_port=db_port,
@@ -526,16 +530,17 @@ def init_singles():
 			continue
 
 
-def make_conf(db_name=None, db_password=None, site_config=None, db_type=None, db_host=None, db_port=None):
+def make_conf(db_name=None, db_password=None, site_config=None, db_type=None, db_host=None, db_port=None, db_service_name=None):
 	site = frappe.local.site
-	make_site_config(db_name, db_password, site_config, db_type=db_type, db_host=db_host, db_port=db_port)
+	make_site_config(db_name, db_password, site_config, db_type=db_type, db_host=db_host, db_port=db_port, db_service_name=db_service_name)
 	sites_path = frappe.local.sites_path
 	frappe.destroy()
 	frappe.init(site, sites_path=sites_path)
 
 
 def make_site_config(
-	db_name=None, db_password=None, site_config=None, db_type=None, db_host=None, db_port=None
+	db_name=None, db_password=None, site_config=None, db_type=None, db_host=None, db_port=None,
+	db_service_name=None
 ):
 	frappe.create_folder(os.path.join(frappe.local.site_path))
 	site_file = get_site_config_path()
@@ -552,6 +557,9 @@ def make_site_config(
 
 			if db_port:
 				site_config["db_port"] = db_port
+
+			if db_service_name:
+				site_config["db_service_name"] = db_service_name
 
 		with open(site_file, "w") as f:
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))

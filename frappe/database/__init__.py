@@ -43,7 +43,7 @@ def drop_user_and_database(db_name, root_login=None, root_password=None):
 		return frappe.database.mariadb.setup_db.drop_user_and_database(db_name, root_login, root_password)
 
 
-def get_db(host=None, user=None, password=None, port=None, cur_db_name=None):
+def get_db(host=None, user=None, password=None, port=None, cur_db_name=None, service_name=None):
 	import frappe
 
 	if frappe.conf.db_type == "postgres":
@@ -52,7 +52,8 @@ def get_db(host=None, user=None, password=None, port=None, cur_db_name=None):
 		return frappe.database.postgres.database.PostgresDatabase(host, user, password, port, cur_db_name)
 	elif frappe.conf.db_type == "oracledb":
 		import frappe.database.oracledb.database
-		return frappe.database.oracledb.database.OracleDBDatabase(host, user, password, port, cur_db_name=cur_db_name)
+		return frappe.database.oracledb.database.OracleDBDatabase(
+			host, user, password, port, cur_db_name=cur_db_name, service_name=service_name)
 	else:
 		import frappe.database.mariadb.database
 

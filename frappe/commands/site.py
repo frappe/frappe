@@ -11,6 +11,7 @@ import frappe
 from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
 from frappe.utils import CallbackManager
+# from frappe.utils.bench_helper import CliCtxObj
 
 
 @click.command("new-site")
@@ -19,8 +20,8 @@ from frappe.utils import CallbackManager
 @click.option("--db-password", help="Database password")
 @click.option(
 	"--db-type",
-	default="mariadb",
-	type=click.Choice(["mariadb", "postgres"]),
+	default="oracledb",
+	type=click.Choice(["mariadb", "postgres", "oracledb"]),
 	help='Optional "postgres" or "mariadb". Default is "mariadb"',
 )
 @click.option("--db-host", help="Database Host")
@@ -29,6 +30,10 @@ from frappe.utils import CallbackManager
 	"--db-root-username",
 	"--mariadb-root-username",
 	help='Root username for MariaDB or PostgreSQL, Default is "root"',
+)
+@click.option(
+	"--db-root-service-name",
+	help='service name'
 )
 @click.option("--db-root-password", "--mariadb-root-password", help="Root password for MariaDB or PostgreSQL")
 @click.option(
@@ -47,6 +52,7 @@ def new_site(
 	site,
 	db_root_username=None,
 	db_root_password=None,
+	db_root_service_name=None,
 	admin_password=None,
 	verbose=False,
 	source_sql=None,
@@ -84,6 +90,52 @@ def new_site(
 
 	if set_default:
 		use(site)
+
+
+def test_new_site(
+	site,
+	db_root_username=None,
+	db_root_password=None,
+	db_root_service_name=None,
+	admin_password=None,
+	verbose=False,
+	source_sql=None,
+	force=None,
+	no_mariadb_socket=False,
+	install_app=None,
+	db_name=None,
+	db_password=None,
+	db_type=None,
+	db_host=None,
+	db_port=None,
+	set_default=False,
+):
+	"Create a new site"
+	from frappe.installer import _new_site
+
+	frappe.init(site=site, new_site=True)
+
+	_new_site(
+		db_name,
+		site,
+		db_root_username=db_root_username,
+		db_root_password=db_root_password,
+		db_root_service_name=db_root_service_name,
+		admin_password=admin_password,
+		verbose=verbose,
+		install_apps=install_app,
+		source_sql=source_sql,
+		force=force,
+		no_mariadb_socket=no_mariadb_socket,
+		db_password=db_password,
+		db_type=db_type,
+		db_host=db_host,
+		db_port=db_port,
+	)
+
+	if set_default:
+		use(site)
+
 
 
 @click.command("restore")
