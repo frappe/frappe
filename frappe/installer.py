@@ -26,8 +26,8 @@ def _is_scheduler_enabled() -> bool:
 	try:
 		frappe.connect()
 		enable_scheduler = cint(frappe.db.get_single_value("System Settings", "enable_scheduler"))
-	except Exception:
-		pass
+	except Exception as e:
+		print(f"Error _is_scheduler_enabled: {e}")
 	finally:
 		frappe.db.close()
 
@@ -530,12 +530,15 @@ def init_singles():
 			continue
 
 
-def make_conf(db_name=None, db_password=None, site_config=None, db_type=None, db_host=None, db_port=None, db_service_name=None):
+def make_conf(db_name=None, db_password=None, site_config=None, db_type=None,
+			  db_host=None, db_port=None,
+			  db_service_name=None):
 	site = frappe.local.site
 	make_site_config(db_name, db_password, site_config, db_type=db_type, db_host=db_host, db_port=db_port, db_service_name=db_service_name)
 	sites_path = frappe.local.sites_path
 	frappe.destroy()
 	frappe.init(site, sites_path=sites_path)
+	frappe.connect(site, db_name) # to link frappe.db = database
 
 
 def make_site_config(

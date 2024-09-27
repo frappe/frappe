@@ -334,6 +334,7 @@ def connect(site: str | None = None, db_name: str | None = None, set_admin_as_us
 		user=db_name or local.conf.db_name,
 		password=local.conf.db_password,
 		cur_db_name=db_name or local.conf.db_name,
+		service_name=frappe.conf.db_service_name
 	)
 	if set_admin_as_user:
 		set_user("Administrator")
