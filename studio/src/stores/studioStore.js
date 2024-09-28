@@ -79,7 +79,8 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	async function deleteAppPage(appName, page) {
-		const confirmed = await confirm(`Are you sure you want to delete the page ${page.page_title.bold()}?`)
+		// TODO: disallow deleting app home or app with only one page
+		const confirmed = await confirm(`Are you sure you want to delete the page <b>${page.page_title}</b>?`)
 		if (confirmed) {
 			// delink page from app
 			await studioAppPages.delete.submit(page.name)
@@ -89,7 +90,7 @@ const useStudioStore = defineStore("store", () => {
 			} catch (e) {
 				// ignore error - might be linked to other apps
 			}
-			setApp(appName)
+			await setApp(appName)
 		}
 	}
 

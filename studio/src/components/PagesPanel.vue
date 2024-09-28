@@ -51,8 +51,15 @@
 								{
 									label: 'Delete',
 									icon: 'trash',
-									onClick: () => {
-										store.deleteAppPage(store.activeApp?.name, page)
+									onClick: async () => {
+										await store.deleteAppPage(store.activeApp?.name, page)
+										if (page.page_name === store.activePage.name) {
+											router.push({
+												name: 'StudioPage',
+												params: { appID: store.activeApp.name, pageID: store.activeApp.app_home },
+												replace: true,
+											})
+										}
 									},
 								},
 							]"
