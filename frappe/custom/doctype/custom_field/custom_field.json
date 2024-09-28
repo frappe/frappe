@@ -470,11 +470,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2024-03-07 17:34:47.167183",
-=======
  "modified": "2024-09-28 20:19:35.935720",
->>>>>>> 6aa37db9f4 (feat: Added placeholder docfield, customize form field, and custom field)
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
