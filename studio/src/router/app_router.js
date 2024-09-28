@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from "vue-router"
 
 const routes = [
 	{
-		path: "/:pageRoute",
+		path: "/:appRoute/:pageRoute",
 		name: "AppContainer",
 		component: () => import("@/pages/AppContainer.vue"),
 	},

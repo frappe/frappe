@@ -7,13 +7,14 @@ import {
 	jsToJson,
 	getBlockCopyWithoutParent,
 	jsonToJs,
-	// page
+	fetchApp,
 	fetchPage,
-	// data
 	getNewResource,
+	confirm,
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
 import { studioPageResources } from "@/data/studioResources"
+import { studioApps, studioAppPages } from "@/data/studioApps"
 
 const useStudioStore = defineStore("store", () => {
 	const canvas = ref(null)
@@ -52,6 +53,47 @@ const useStudioStore = defineStore("store", () => {
 		}
 	}
 
+	// studio apps
+	const activeApp = ref(null)
+	const appPages = ref([])
+
+	async function setApp(appName) {
+		const appDoc = await fetchApp(appName)
+		activeApp.value = appDoc
+		await setAppPages(appName)
+	}
+
+	async function setAppPages(appName) {
+		studioAppPages.filters = { parent: appName }
+		await studioAppPages.reload()
+		appPages.value = {}
+
+		studioAppPages.data.map((page) => {
+			appPages.value[page.page_name] = page
+		})
+	}
+
+	async function setAppHome(appName, pageName) {
+		await studioApps.setValue.submit({ name: appName, app_home: pageName })
+		setApp(appName)
+	}
+
+	async function deleteAppPage(appName, page) {
+		// TODO: disallow deleting app home or app with only one page
+		const confirmed = await confirm(`Are you sure you want to delete the page <b>${page.page_title}</b>?`)
+		if (confirmed) {
+			// delink page from app
+			await studioAppPages.delete.submit(page.name)
+			try {
+				// try deleting the main page
+				await studioPages.delete.submit(page.page_name)
+			} catch (e) {
+				// ignore error - might be linked to other apps
+			}
+			await setApp(appName)
+		}
+	}
+
 	// studio pages
 	const activePage = ref(null)
 	const pageBlocks = ref([])
@@ -72,6 +114,8 @@ const useStudioStore = defineStore("store", () => {
 		}
 		selectedPage.value = page.name
 		await setPageResources(page)
+		canvas.value.setRootBlock(pageBlocks.value[0])
+
 		nextTick(() => {
 			settingPage.value = false
 		})
@@ -101,6 +145,7 @@ const useStudioStore = defineStore("store", () => {
 					if (activePage.value) {
 						activePage.value[key] = value
 					}
+					setAppPages(activeApp?.value?.name)
 				},
 			},
 		)
@@ -153,6 +198,13 @@ const useStudioStore = defineStore("store", () => {
 		selectedBlocks,
 		selectBlock,
 		pageBlocks,
+		// studio app
+		activeApp,
+		setApp,
+		setAppHome,
+		deleteAppPage,
+		appPages,
+		setAppPages,
 		// studio pages
 		selectedPage,
 		settingPage,

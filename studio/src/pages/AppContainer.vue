@@ -18,12 +18,12 @@ const page = ref(null)
 const rootBlock = ref(null)
 
 watch(
-	() => route.params?.pageRoute,
-	async (pageRoute, _) => {
-		if (pageRoute === "studio") return
+	[() => route.params?.appRoute, () => route.params?.pageRoute],
+	async ([appRoute, pageRoute]) => {
+		if (appRoute === "studio") return
 
 		if (pageRoute) {
-			page.value = await findPageWithRoute(pageRoute)
+			page.value = await findPageWithRoute(appRoute, pageRoute)
 			const blocks = jsonToJs(page.value.blocks)
 			if (blocks) {
 				rootBlock.value = getBlockInstance(blocks[0])

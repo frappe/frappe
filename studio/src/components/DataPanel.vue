@@ -19,7 +19,7 @@
 			<EmptyState v-else message="No resources added" />
 
 			<div class="mt-2 flex flex-col" v-if="store.activePage">
-				<Button @click="showAddResourceDialog = true">Add Resource</Button>
+				<Button icon-left="plus" @click="showAddResourceDialog = true">Add Resource</Button>
 				<ResourceDialog v-model:showDialog="showAddResourceDialog" @addResource="addResource" />
 			</div>
 		</CollapsibleSection>

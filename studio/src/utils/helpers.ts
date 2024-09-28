@@ -166,21 +166,31 @@ function replaceMapKey(map: Map<any, any>, oldKey: string, newKey: string) {
 	return newMap;
 }
 
+// app
+async function fetchApp(appName: string) {
+	const appResource = createDocumentResource({
+		doctype: "Studio App",
+		name: appName,
+	})
+	await appResource.get.promise
+	return appResource.doc
+}
+
 // page
 async function fetchPage(pageName: string) {
 	const pageResource = createDocumentResource({
 		doctype: "Studio Page",
 		name: pageName,
 	})
-	await pageResource.get.promise
-	return pageResource.doc
+	await pageResource?.get?.promise
+	return pageResource?.doc
 }
 
-async function findPageWithRoute(route: string) {
+async function findPageWithRoute(appRoute: string, pageRoute: string) {
 	let pageName = createResource({
 		url: "studio.studio.doctype.studio_page.studio_page.find_page_with_route",
 		method: "GET",
-		params: { route: `studio-app/${route}` },
+		params: { route: `studio-app/${appRoute}/${pageRoute}` },
 	})
 	await pageName.fetch()
 	pageName = pageName.data
@@ -303,6 +313,8 @@ export {
 	jsonToJs,
 	mapToObject,
 	replaceMapKey,
+	// app
+	fetchApp,
 	// page
 	fetchPage,
 	findPageWithRoute,

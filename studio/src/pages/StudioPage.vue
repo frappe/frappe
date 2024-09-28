@@ -39,6 +39,7 @@ import StudioCanvas from "@/components/StudioCanvas.vue"
 import useStudioStore from "@/stores/studioStore"
 import { studioPages } from "@/data/studioPages"
 import { getRootBlock } from "@/utils/helpers"
+import { studioAppPages } from "@/data/studioApps"
 
 const route = useRoute()
 const router = useRouter()
@@ -63,7 +64,7 @@ watch(
 	{ deep: true },
 )
 
-onActivated(async () => {
+async function setPage() {
 	if (route.params.pageID === store.selectedPage) return
 
 	if (route.params.pageID === "new") {
@@ -72,14 +73,35 @@ onActivated(async () => {
 				page_title: "My Page",
 				draft_blocks: [getRootBlock()],
 			})
-			.then((data) => {
+			.then(async (data) => {
+				const appID = route.params.appID
+				// add the newly created page to the app's pages child table
+				await studioAppPages.insert.submit({
+					studio_page: data.name,
+					parent: appID,
+					parenttype: "Studio App",
+					parentfield: "pages",
+				})
+
 				router.push({ name: "StudioPage", params: { pageID: data.name }, force: true })
+				store.setApp(appID)
 				store.setPage(data.name)
 			})
 	} else {
+		store.setApp(route.params.appID)
 		await store.setPage(route.params.pageID)
 	}
-})
+}
+
+onActivated(() => setPage())
+
+watch(
+	() => route.params.pageID,
+	() => {
+		setPage()
+	},
+	{ immediate: true },
+)
 
 usePageMeta(() => {
 	return {

@@ -1,10 +1,9 @@
 # Copyright (c) 2024, Frappe Technologies Pvt Ltd and contributors
 # For license information, please see license.txt
-
-import re
-
 import frappe
 from frappe.model.document import Document
+
+from studio.utils import camel_case_to_kebab_case
 
 
 class StudioPage(Document):
@@ -22,7 +21,7 @@ class StudioPage(Document):
 		if not self.page_title:
 			self.page_title = "My Page"
 		if not self.route:
-			self.route = f"studio-app/{camel_case_to_kebab_case(self.page_title, True)}-{frappe.generate_hash(length=4)}"
+			self.route = f"{camel_case_to_kebab_case(self.page_title, True)}-{frappe.generate_hash(length=4)}"
 
 	@frappe.whitelist()
 	def publish(self, **kwargs):
@@ -32,15 +31,6 @@ class StudioPage(Document):
 			self.blocks = self.draft_blocks
 			self.draft_blocks = None
 		self.save()
-
-
-def camel_case_to_kebab_case(text, remove_spaces=False):
-	if not text:
-		return ""
-	text = re.sub(r"(?<!^)(?=[A-Z])", "-", text).lower()
-	if remove_spaces:
-		text = text.replace(" ", "")
-	return text
 
 
 @frappe.whitelist()
