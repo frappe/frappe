@@ -11,7 +11,7 @@
 							})
 						}
 					"
-					class="flex cursor-pointer items-center gap-2 truncate rounded px-2 py-2 transition duration-300 ease-in-out"
+					class="group flex cursor-pointer items-center gap-2 truncate rounded px-2 py-2 transition duration-300 ease-in-out"
 					:class="[
 						store.activePage?.name === page.page_name ? 'border-[1px] border-gray-300' : 'hover:bg-gray-50',
 					]"
@@ -33,6 +33,40 @@
 					>
 						App Home
 					</Badge>
+
+					<!-- Menu -->
+					<div
+						class="invisible ml-auto flex items-center gap-1.5 text-gray-600 group-hover:visible has-[.active-item]:visible"
+					>
+						<Dropdown
+							:options="[
+								{
+									label: 'Set as App Home',
+									icon: 'home',
+									condition: () => store.activeApp?.app_home !== page.page_name,
+									onClick: () => {
+										store.setAppHome(store.activeApp?.name, page.page_name)
+									},
+								},
+								{
+									label: 'Delete',
+									icon: 'trash',
+									onClick: () => {
+										store.deleteAppPage(store.activeApp?.name, page)
+									},
+								},
+							]"
+						>
+							<template v-slot="{ open }">
+								<button
+									class="flex cursor-pointer items-center rounded-sm p-0.5 text-gray-700 hover:bg-gray-300"
+									:class="open ? 'active-item' : ''"
+								>
+									<FeatherIcon name="more-horizontal" class="h-4 w-4" />
+								</button>
+							</template>
+						</Dropdown>
+					</div>
 				</div>
 			</div>
 		</div>

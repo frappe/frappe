@@ -10,10 +10,11 @@ import {
 	fetchApp,
 	fetchPage,
 	getNewResource,
+	confirm,
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
 import { studioPageResources } from "@/data/studioResources"
-import { studioAppPages } from "@/data/studioApps"
+import { studioApps, studioAppPages } from "@/data/studioApps"
 
 const useStudioStore = defineStore("store", () => {
 	const canvas = ref(null)
@@ -70,6 +71,26 @@ const useStudioStore = defineStore("store", () => {
 		studioAppPages.data.map((page) => {
 			appPages.value[page.page_name] = page
 		})
+	}
+
+	async function setAppHome(appName, pageName) {
+		await studioApps.setValue.submit({ name: appName, app_home: pageName })
+		setApp(appName)
+	}
+
+	async function deleteAppPage(appName, page) {
+		const confirmed = await confirm(`Are you sure you want to delete the page ${page.page_title.bold()}?`)
+		if (confirmed) {
+			// delink page from app
+			await studioAppPages.delete.submit(page.name)
+			try {
+				// try deleting the main page
+				await studioPages.delete.submit(page.page_name)
+			} catch (e) {
+				// ignore error - might be linked to other apps
+			}
+			setApp(appName)
+		}
 	}
 
 	// studio pages
@@ -179,6 +200,8 @@ const useStudioStore = defineStore("store", () => {
 		// studio app
 		activeApp,
 		setApp,
+		setAppHome,
+		deleteAppPage,
 		appPages,
 		setAppPages,
 		// studio pages
