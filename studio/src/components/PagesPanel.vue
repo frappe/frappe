@@ -2,11 +2,15 @@
 	<div class="flex h-full flex-col">
 		<div class="flex flex-col space-y-1">
 			<div class="w-full" v-for="page in store.appPages" :key="page.name">
-				<router-link
-					:to="{
-						name: 'StudioPage',
-						params: { appID: store.activeApp?.name, pageID: page.page_name },
-					}"
+				<div
+					@click="
+						() => {
+							router.push({
+								name: 'StudioPage',
+								params: { appID: store.activeApp?.name, pageID: page.page_name },
+							})
+						}
+					"
 					class="flex cursor-pointer items-center gap-2 truncate rounded px-2 py-2 transition duration-300 ease-in-out"
 					:class="[
 						store.activePage?.name === page.page_name ? 'border-[1px] border-gray-300' : 'hover:bg-gray-50',
@@ -29,7 +33,7 @@
 					>
 						App Home
 					</Badge>
-				</router-link>
+				</div>
 			</div>
 		</div>
 
@@ -44,6 +48,8 @@
 
 <script setup>
 import useStudioStore from "@/stores/studioStore"
+import { useRouter } from "vue-router"
 
 const store = useStudioStore()
+const router = useRouter()
 </script>
