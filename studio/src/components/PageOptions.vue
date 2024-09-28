@@ -2,7 +2,7 @@
 	<div>
 		<div class="flex flex-row flex-wrap gap-4">
 			<Input
-				label="App Title"
+				label="Page Title"
 				type="text"
 				variant="outline"
 				class="w-full"
@@ -11,7 +11,7 @@
 			/>
 
 			<div class="flex w-full flex-col gap-1">
-				<label class="block text-xs text-gray-600">App Route</label>
+				<label class="block text-xs text-gray-600">Page Route</label>
 				<div class="relative flex items-stretch">
 					<Input
 						ref="inputRef"
