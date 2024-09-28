@@ -101,7 +101,7 @@ def _new_site(
 			no_mariadb_socket=no_mariadb_socket,
 		)
 
-		apps_to_install = ["frappe"] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
+		apps_to_install = ["frappe"] + (frappe.conf.get("install_apps") or []) + ((install_apps and list(install_apps)) or [])
 
 		for app in apps_to_install:
 			# NOTE: not using force here for 2 reasons:
@@ -538,7 +538,6 @@ def make_conf(db_name=None, db_password=None, site_config=None, db_type=None,
 	sites_path = frappe.local.sites_path
 	frappe.destroy()
 	frappe.init(site, sites_path=sites_path)
-	frappe.connect(site, db_name) # to link frappe.db = database
 
 
 def make_site_config(

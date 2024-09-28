@@ -236,7 +236,7 @@ def get_defaults_for(parent="__default"):
 			frappe.qb.from_(table)
 			.where(table.parent == parent)
 			.select(table.defkey, table.defvalue)
-			.orderby("creation")
+			.orderby(table.creation)
 			.run(as_dict=True)
 		)
 

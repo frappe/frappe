@@ -44,13 +44,12 @@ class OracleDbManager(DbManager):
 
 		# Generate the restore command
 		bin, args, bin_name = get_command(
-			socket=frappe.conf.db_socket,
 			host=frappe.conf.db_host,
 			port=frappe.conf.db_port,
-			user=user,
-			password=password,
-			db_name=target,
-			service_name=service_name
+			user=user or frappe.conf.db_name,
+			password=password or frappe.conf.db_password,
+			db_name=target or frappe.conf.db_name,
+			service_name=service_name or frappe.conf.db_service_name
 		)
 		if not bin:
 			return frappe.throw(
@@ -223,3 +222,72 @@ class OracleDBDatabase(OracleDBExceptionUtil, OracleDBConnectionUtil, Database):
 			frappe.cache.set_value("db_tables", tables)
 
 		return tables
+
+	def _create_table_oracle(self, table_name: str, query: str) -> None:
+		self.sql_ddl(
+			f"""
+			BEGIN
+				DECLARE
+					v_count NUMBER := 0;
+				BEGIN
+					SELECT COUNT(*)
+					INTO v_count
+					FROM USER_TABLES
+					WHERE TABLE_NAME = '{table_name}';
+					IF v_count = 0 THEN
+						EXECUTE IMMEDIATE '{query}';
+					ELSE
+						DBMS_OUTPUT.PUT_LINE('Table {table_name} already exists.');
+					END IF;
+				END;
+			END;
+			"""
+		)
+
+	def create_auth_table(self) -> None:
+		self._create_table_oracle(
+			"__Auth",
+			"""
+			CREATE TABLE "__Auth" (
+							"doctype" VARCHAR2(140) NOT NULL,
+							"name" VARCHAR2(255) NOT NULL,
+							"fieldname" VARCHAR2(140) NOT NULL,
+							"password" VARCHAR2(255) NOT NULL,
+							"encrypted" NUMBER(1) DEFAULT 0 NOT NULL,
+							PRIMARY KEY ("doctype", "name", "fieldname"))
+			"""
+		)
+		# self.sql_ddl("""
+		# 	CREATE TABLE "__Auth" (
+		# 	"doctype" VARCHAR2(140) NOT NULL,
+		# 	"name" VARCHAR2(255) NOT NULL,
+		# 	"fieldname" VARCHAR2(140) NOT NULL,
+		# 	"password" VARCHAR2(255) NOT NULL,
+		# 	"encrypted" NUMBER(1) DEFAULT 0 NOT NULL,
+		# 	PRIMARY KEY ("doctype", "name", "fieldname")
+		# 	)
+		# 	""")
+
+	def create_global_search_table(self) -> None:
+		if "__global_search" not in self.get_tables():
+			self.sql("""
+				CREATE TABLE "__global_search" (
+				"doctype" VARCHAR2(100),
+				"name" VARCHAR2(255),
+				"title" VARCHAR2(255),
+				"content" VARCHAR2(255),
+				"route" VARCHAR2(255),
+				"published" NUMBER(1) DEFAULT 0 NOT NULL,
+				CONSTRAINT "doctype_name" UNIQUE ("doctype", "name")
+				)
+				""")
+
+	def create_user_settings_table(self) -> None:
+		self._create_table_oracle(
+			"__UserSettings",
+			"""CREATE TABLE "__UserSettings" (
+				"user" VARCHAR2(180) NOT NULL,
+				"doctype" VARCHAR2(180) NOT NULL,
+				"data" VARCHAR2(4000),
+				UNIQUE("user", "doctype"))
+		""")

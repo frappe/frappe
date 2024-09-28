@@ -1,5 +1,6 @@
 import types
 import typing
+from typing import Any, Optional
 
 from pypika import MySQLQuery, Order, PostgreSQLQuery, terms, OracleQuery
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder, OracleQueryBuilder
@@ -99,6 +100,46 @@ class Postgres(Base, PostgreSQLQuery):
 		return super().from_(table, *args, **kwargs)
 
 
+class FrappeOracleQueryBuilder(OracleQueryBuilder):
+
+	def get_sql(self, with_alias: bool = False, subquery: bool = False, **kwargs) -> str:
+		if self._from[0].get_table_name() in ('all_tables'):
+			return super().get_sql(with_alias=with_alias, subquery=subquery, **kwargs)
+		return super().get_sql(with_alias=with_alias, subquery=subquery, **kwargs)
+
+	def _select_sql(self, **kwargs: Any) -> str:
+		if self._from[0].get_table_name() not in ('all_tables'):
+			for term in self._selects:
+				term.name = '"{}"'.format(term.name)
+		return super()._select_sql(**kwargs)
+
+	def _orderby_sql(self, **kwargs: Any) -> str:
+		if self._from[0].get_table_name() not in ('all_tables'):
+			for field, _ in self._orderbys:
+				field.name = '"{}"'.format(field.name)
+		return super()._orderby_sql(**kwargs)
+
+	def _where_sql(self, quote_char: Optional[str] = None, **kwargs: Any) -> str:
+		if self._from[0].get_table_name() not in ('all_tables'):
+			self._wheres.left.name = '"{}"'.format(self._wheres.left.name)
+		return super()._where_sql(quote_char=quote_char, **kwargs)
+
+	def limit(self, limit: int) -> "QueryBuilder":
+		return super().limit(limit)
+
+	def _limit_sql(self) -> str:
+		return " FETCH FIRST {} ROWS ONLY".format(self._limit)
+
+
+	def __str__(self) -> str:
+		"test"
+		return self.get_sql(dialect=self.dialect)
+
+	def __repr__(self):
+		return f"{self}"
+
+
+
 class OracleDB(Base, OracleQuery):
 	field_translation = types.MappingProxyType(
 		{"table_name": "relname", "table_rows": "n_tup_ins"})
@@ -112,11 +153,12 @@ class OracleDB(Base, OracleQuery):
 	# they are two different objects. The quick fix used here is to replace the
 	# Field names in the "Field" function.
 
-	_BuilderClasss = OracleQueryBuilder
+	_BuilderClasss = FrappeOracleQueryBuilder
 
 	@classmethod
-	def _builder(cls, *args, **kwargs) -> "OracleQueryBuilder":
-		return super()._builder(*args, wrapper_cls=ParameterizedValueWrapper, **kwargs)
+	def _builder(cls, *args, **kwargs) -> "FrappeOracleQueryBuilder":
+		return FrappeOracleQueryBuilder(*args, wrapper_cls=ParameterizedValueWrapper, **kwargs)
+		# return super()._builder(*args, wrapper_cls=ParameterizedValueWrapper, **kwargs)
 
 	@classmethod
 	def Field(cls, field_name, *args, **kwargs):
@@ -126,6 +168,11 @@ class OracleDB(Base, OracleQuery):
 
 	@classmethod
 	def from_(cls, table, *args, **kwargs):
+		if table.get_table_name() not in ('all_tables'):
+			import frappe
+			_table = table.get_table_name()
+			table = cls.Table(f'"{_table}"', schema= frappe.conf.db_name.upper(), alias=_table)
+			print(f"Table: {table}")
 
 		if isinstance(table, str):
 			table = cls.DocType(table)

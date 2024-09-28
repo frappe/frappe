@@ -8,7 +8,7 @@ from frappe.database.oracledb.database import OracleDbManager as DbManager
 from frappe.utils import cint
 
 
-def setup_database():
+def setup_database(verbose=False, source_sql=None):
 	root_conn = get_root_connection()
 	root_conn.autocommit = True
 	cursor = root_conn.get_cursor()
@@ -26,6 +26,8 @@ def setup_database():
 	# Create schema
 	cursor.execute(f"ALTER SESSION SET CURRENT_SCHEMA = {frappe.conf.db_name}")
 	cursor.close()
+
+	bootstrap_database(verbose, source_sql=source_sql)
 
 
 def get_root_connection():

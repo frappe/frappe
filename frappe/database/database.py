@@ -1038,7 +1038,8 @@ class Database:
 	def begin(self, *, read_only=False):
 		read_only = read_only or frappe.flags.read_only
 		mode = "READ ONLY" if read_only else ""
-		self.sql(f"START TRANSACTION {mode}")
+		if self.db_type != 'oracledb':
+			self.sql(f"START TRANSACTION {mode}")
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""

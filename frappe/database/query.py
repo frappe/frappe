@@ -52,6 +52,7 @@ class Engine:
 	) -> QueryBuilder:
 		self.is_mariadb = frappe.db.db_type == "mariadb"
 		self.is_postgres = frappe.db.db_type == "postgres"
+		self.is_oracledb = frappe.db.db_type == "oracledb"
 		self.validate_filters = validate_filters
 
 		if isinstance(table, Table):
