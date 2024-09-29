@@ -4,7 +4,7 @@
 		<div class="flex flex-col space-y-2">
 			<AvatarCard
 				v-for="card in cards"
-				:key="card.id"
+				:key="card[rowKey]"
 				:imageURL="card.imageURL"
 				:title="card.title"
 				:subtitle="card.subtitle"
@@ -25,6 +25,10 @@ defineProps({
 	cards: {
 		type: Array as PropType<IAvatarCard[]>,
 		required: true,
+	},
+	rowKey: {
+		type: String,
+		default: "name",
 	},
 })
 </script>

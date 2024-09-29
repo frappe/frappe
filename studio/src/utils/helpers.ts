@@ -259,24 +259,53 @@ function evaluateExpression(expression: string, context: any) {
 
 function getNewResource(resource) {
 	const fields = JSON.parse(resource.fields || "[]")
+
+	const getTransforms = () => {
+		/**
+		 * Create a function that includes the user's transform function
+		 * Invoke the transform function with data/doc
+		 */
+		if (resource.transform_results) {
+			if (resource.resource_type === "Document Resource") {
+				return {
+					transform: (doc) => {
+						const transformFn = new Function(resource.transform + "\nreturn transform")()
+						return transformFn.call(null, doc);
+					}
+				}
+			} else {
+				return {
+					transform: (data) => {
+						const transformFn = new Function(resource.transform + "\nreturn transform")()
+						return transformFn.call(null, data);
+					}
+				}
+			}
+		}
+		return {}
+	}
+
 	switch (resource.resource_type) {
 		case "Document Resource":
 			return createDocumentResource({
 				doctype: resource.document_type,
 				name: resource.document_name,
 				auto: true,
+				...getTransforms()
 			})
 		case "List Resource":
 			return createListResource({
 				doctype: resource.document_type,
 				fields: fields.length ? fields : "*",
 				auto: true,
+				...getTransforms(),
 			})
 		case "API Resource":
 			return createResource({
 				url: resource.url,
 				method: resource.method,
 				auto: true,
+				...getTransforms(),
 			})
 	}
 }

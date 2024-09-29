@@ -21,6 +21,8 @@ const studioPageResources = createListResource({
 		"studio_resource.url",
 		"studio_resource.method",
 		"studio_resource.name as resource_name",
+		"studio_resource.transform_results",
+		"studio_resource.transform",
 		"name",
 	],
 })

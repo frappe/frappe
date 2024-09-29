@@ -15,7 +15,10 @@
   "api_resource_section",
   "url",
   "column_break_cvbv",
-  "method"
+  "method",
+  "transform_section",
+  "transform_results",
+  "transform"
  ],
  "fields": [
   {
@@ -72,11 +75,29 @@
    "fieldtype": "Select",
    "label": "API Method",
    "options": "GET\nPOST\nPUT\nDELETE"
+  },
+  {
+   "fieldname": "transform_section",
+   "fieldtype": "Section Break",
+   "label": "Transform"
+  },
+  {
+   "depends_on": "transform_results",
+   "fieldname": "transform",
+   "fieldtype": "Code",
+   "label": "Transform Function",
+   "options": "JavaScript"
+  },
+  {
+   "default": "0",
+   "fieldname": "transform_results",
+   "fieldtype": "Check",
+   "label": "Transform Results"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-23 12:52:00.527697",
+ "modified": "2024-09-29 19:45:20.620746",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Resource",

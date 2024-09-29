@@ -68,6 +68,17 @@
 							:multiple="true"
 						/>
 					</template>
+
+					<div class="flex flex-row gap-1.5">
+						<FormControl size="sm" type="checkbox" v-model="newResource.transform_results" />
+						<InputLabel>Transform Results</InputLabel>
+					</div>
+					<InlineInput
+						v-if="newResource.transform_results"
+						v-model="newResource.transform"
+						type="code"
+						height="150px"
+					/>
 				</template>
 			</div>
 		</template>
@@ -78,7 +89,8 @@
 import { ref, watch } from "vue"
 import { createResource } from "frappe-ui"
 import Link from "@/components/Link.vue"
-import FormControl from "frappe-ui/src/components/FormControl.vue"
+import InlineInput from "@/components/InlineInput.vue"
+import InputLabel from "@/components/InputLabel.vue"
 
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 const emit = defineEmits(["addResource"])
@@ -94,10 +106,20 @@ const emptyResource = {
 	document_type: "",
 	document_name: "",
 	fields: [],
+	transform_results: false,
+	transform: "",
 }
 
 const newResource = ref({ ...emptyResource })
 const doctypeFields = ref([])
+
+const getTransformFnBoilerplate = (resource_type) => {
+	if (resource_type == "Document Resource") {
+		return "function transform(doc) { \n\treturn doc; \n}"
+	} else {
+		return "function transform(data) { \n\treturn data; \n}"
+	}
+}
 
 watch(
 	() => newResource.value.document_type,
@@ -105,6 +127,13 @@ watch(
 		if (newResource.value.document_type) {
 			doctypeFields.value = await getDoctypeFields()
 		}
+	},
+)
+
+watch(
+	() => newResource.value.resource_type,
+	() => {
+		newResource.value.transform = getTransformFnBoilerplate(newResource.value.resource_type)
 	},
 )
 

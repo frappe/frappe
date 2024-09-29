@@ -77,6 +77,8 @@ const addResource = (resource) => {
 			url: resource.url,
 			method: resource.method,
 			fields: fields,
+			transform_results: resource.transform_results,
+			transform: resource.transform,
 		})
 		.then((res) => {
 			studioPageResources.filters = { parent: store.activePage?.name }
