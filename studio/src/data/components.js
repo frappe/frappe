@@ -2,6 +2,8 @@ import { defineAsyncComponent, h } from "vue"
 import * as frappeUI from "frappe-ui"
 import Header from "@/components/AppLayout/Header.vue"
 import Sidebar from "@/components/AppLayout/Sidebar.vue"
+import CardList from "@/components/AppLayout/CardList.vue"
+import AvatarCard from "@/components/AppLayout/AvatarCard.vue"
 
 export const COMPONENTS = {
 	Alert: {
@@ -540,6 +542,39 @@ export const COMPONENTS = {
 				{ label: "Home", featherIcon: "home" },
 				{ label: "Notifications", featherIcon: "bell" },
 				{ label: "Settings", featherIcon: "settings" },
+			],
+		},
+	},
+	AvatarCard: {
+		name: "AvatarCard",
+		title: "Avatar Card",
+		icon: "Image",
+		props: AvatarCard.props,
+		initialState: {
+			title: "Up&Up",
+			subtitle: "Coldplay",
+			imageURL: "https://upload.wikimedia.org/wikipedia/en/e/e9/Coldplay%2C_Up%26Up%2C_Artwork.jpg",
+		},
+	},
+	CardList: {
+		name: "CardList",
+		title: "Card List",
+		icon: "List",
+		props: CardList.props,
+		initialState: {
+			title: "Your Top Songs",
+			cards: [
+				{
+					title: "A Sky Full of Stars",
+					subtitle: "Coldplay",
+					imageURL:
+						"https://upload.wikimedia.org/wikipedia/en/thumb/8/8d/Coldplay_-_A_Sky_Full_of_Stars_%28Single%29.png/220px-Coldplay_-_A_Sky_Full_of_Stars_%28Single%29.png",
+				},
+				{
+					title: "Up&Up",
+					subtitle: "Coldplay",
+					imageURL: "https://upload.wikimedia.org/wikipedia/en/e/e9/Coldplay%2C_Up%26Up%2C_Artwork.jpg",
+				},
 			],
 		},
 	},
