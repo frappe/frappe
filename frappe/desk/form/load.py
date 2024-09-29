@@ -10,6 +10,7 @@ import frappe.defaults
 import frappe.desk.form.meta
 import frappe.utils
 from frappe import _, _dict
+from frappe.core.doctype.file.file import has_permission
 from frappe.desk.form.document_follow import is_document_followed
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import get_doc_permissions
@@ -47,7 +48,7 @@ def getdoc(doctype, name, user=None):
 
 	# add file list
 	doc.add_viewed()
-	get_docinfo(doc)
+	get_docinfo(doc, user=user)
 
 	doc.add_seen()
 	set_link_titles(doc)
@@ -90,7 +91,7 @@ def get_meta_bundle(doctype):
 
 
 @frappe.whitelist()
-def get_docinfo(doc=None, doctype=None, name=None):
+def get_docinfo(doc=None, doctype=None, name=None, user=None):
 	from frappe.share import _get_users as get_docshares
 
 	if not doc:
@@ -108,13 +109,13 @@ def get_docinfo(doc=None, doctype=None, name=None):
 
 	docinfo = frappe._dict(user_info={})
 
-	add_comments(doc, docinfo)
+	add_comments(doc, docinfo, user=user)
 
 	docinfo.update(
 		{
 			"doctype": doc.doctype,
 			"name": doc.name,
-			"attachments": get_attachments(doc.doctype, doc.name),
+			"attachments": get_attachments(doc.doctype, doc.name, user=user),
 			"communications": communications_except_auto_messages,
 			"automated_messages": automated_messages,
 			"versions": get_versions(doc),
@@ -136,7 +137,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 	frappe.response["docinfo"] = docinfo
 
 
-def add_comments(doc, docinfo):
+def add_comments(doc, docinfo, user=None):
 	# divide comments into separate lists
 	docinfo.comments = []
 	docinfo.shared = []
@@ -152,6 +153,7 @@ def add_comments(doc, docinfo):
 		filters={"reference_doctype": doc.doctype, "reference_name": doc.name},
 	)
 
+	attachments_removed = []
 	for c in comments:
 		match c.comment_type:
 			case "Comment":
@@ -161,14 +163,80 @@ def add_comments(doc, docinfo):
 				docinfo.shared.append(c)
 			case "Assignment Completed" | "Assigned":
 				docinfo.assignment_logs.append(c)
-			case "Attachment" | "Attachment Removed":
-				docinfo.attachment_logs.append(c)
+			case "Attachment Removed":
+				attachments_removed.append(c["content"])
 			case "Info" | "Edit" | "Label":
 				docinfo.info_logs.append(c)
 			case "Like":
 				docinfo.like_logs.append(c)
 			case "Workflow":
 				docinfo.workflow_logs.append(c)
+
+	def get_attachment_content(file_doc, is_deleted):
+		icon = ' <i class="fa fa-lock text-warning"></i>' if file_doc.is_private else ""
+		file_url = (
+			quote_plus(frappe.safe_encode(file_doc.file_url), safe="/:")
+			if file_doc.file_url
+			else file_doc.file_name
+		)
+		file_name = file_doc.file_name or file_doc.file_url
+		if is_deleted:
+			return f'<span class="text-extra-muted">{file_doc.file_name}</span>'
+		return f"<a href='{file_url}' target='_blank'>{file_name}</a>{icon}"
+
+	# filter attachments added and removed by which ones the user can/could see
+	attachments_added = frappe.get_all(
+		"File", {"attached_to_doctype": doc.doctype, "attached_to_name": doc.name}, pluck="name"
+	)
+	for attachment in attachments_added:
+		file_doc = frappe.get_doc("File", attachment)
+		if not has_permission(file_doc, "read", user=user):
+			continue
+		# create a "synthetic" Comment for the frontend to process
+		docinfo.attachment_logs.append(
+			frappe._dict(
+				{
+					"name": file_doc.name,
+					"creation": file_doc.creation,
+					"content": get_attachment_content(file_doc, False),
+					"owner": file_doc.owner,
+					"comment_type": "Attachment",
+				}
+			)
+		)
+	for attachment in attachments_removed:
+		deleted_doc = frappe.db.get_value(
+			"Deleted Document",
+			{"deleted_doctype": "File", "deleted_name": attachment},
+			["name", "creation", "owner", "data"],
+			as_dict=True,
+		)
+		file_doc = frappe.get_doc(json.loads(deleted_doc["data"]))
+		if not has_permission(file_doc, "read", user=user):
+			continue
+		docinfo.attachment_logs.append(
+			frappe._dict(
+				{
+					"name": deleted_doc["name"],
+					"creation": deleted_doc["creation"],
+					"content": get_attachment_content(file_doc, True),
+					"owner": deleted_doc["owner"],
+					"comment_type": "Attachment Removed",
+				}
+			)
+		)
+		# "added" record wouldn't show up from query above since file was deleted, add it from here but without link
+		docinfo.attachment_logs.append(
+			frappe._dict(
+				{
+					"name": file_doc.name,
+					"creation": file_doc.creation,
+					"content": get_attachment_content(file_doc, True),
+					"owner": file_doc.owner,
+					"comment_type": "Attachment",
+				}
+			)
+		)
 
 	return comments
 
@@ -181,12 +249,28 @@ def get_milestones(doctype, name):
 	)
 
 
-def get_attachments(dt, dn):
-	return frappe.get_all(
+def get_attachments(dt, dn, user=None):
+	all_attachments = frappe.get_all(
 		"File",
-		fields=["name", "file_name", "file_url", "is_private"],
 		filters={"attached_to_name": dn, "attached_to_doctype": dt},
+		pluck="name",
 	)
+	visible_attachments = []
+	for attachment in all_attachments:
+		file_doc = frappe.get_doc("File", attachment)
+		if not has_permission(file_doc, "read", user=user):
+			continue
+		visible_attachments.append(
+			frappe._dict(
+				{
+					"name": file_doc.name,
+					"file_name": file_doc.file_name,
+					"file_url": file_doc.file_url,
+					"is_private": file_doc.is_private,
+				}
+			)
+		)
+	return visible_attachments
 
 
 def get_versions(doc: "Document") -> list[dict]:

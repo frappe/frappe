@@ -112,10 +112,6 @@ class File(Document):
 
 		self.validate_duplicate_entry()  # Hash is generated in save_file
 
-	def after_insert(self):
-		if not self.is_folder:
-			self.create_attachment_record()
-
 	def validate(self):
 		if self.is_folder:
 			return
@@ -153,7 +149,7 @@ class File(Document):
 		self.validate_empty_folder()
 		self._delete_file_on_disk()
 		if not self.is_folder:
-			self.add_comment_in_reference_doc("Attachment Removed", _("Removed {0}").format(self.file_name))
+			self.add_comment_in_reference_doc("Attachment Removed", self.name)
 
 	def on_rollback(self):
 		rollback_flags = ("new_file", "original_content", "original_path")
@@ -721,16 +717,6 @@ class File(Document):
 		"""Split and return filename and extension for the set `file_name`."""
 		return os.path.splitext(self.file_name)
 
-	def create_attachment_record(self):
-		icon = ' <i class="fa fa-lock text-warning"></i>' if self.is_private else ""
-		file_url = quote(frappe.safe_encode(self.file_url), safe="/:") if self.file_url else self.file_name
-		file_name = self.file_name or self.file_url
-
-		self.add_comment_in_reference_doc(
-			"Attachment",
-			_("Added {0}").format(f"<a href='{file_url}' target='_blank'>{file_name}</a>{icon}"),
-		)
-
 	def add_comment_in_reference_doc(self, comment_type, text):
 		if self.attached_to_doctype and self.attached_to_name:
 			try:
@@ -804,6 +790,14 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 
 	if user == "Administrator":
 		return True
+
+	if doc.attached_to_doctype:
+		# if file is attached via Attach field with restrictions, it must not be leaked even if marked public
+		meta = frappe.get_meta(doc.attached_to_doctype)
+		if doc.attached_to_field and doc.attached_to_field not in meta.get_permitted_fieldnames(
+			user=user, permission_type=ptype
+		):
+			return False
 
 	if not doc.is_private and ptype in ("read", "select"):
 		return True

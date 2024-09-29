@@ -28,6 +28,7 @@ if TYPE_CHECKING:
 
 test_content1 = "Hello"
 test_content2 = "Hello World"
+test_dependencies = ["Role", "User"]
 
 
 def make_test_doc(ignore_permissions=False):
@@ -705,6 +706,230 @@ class TestAttachmentsAccess(FrappeTestCase):
 	def tearDown(self) -> None:
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
+
+
+class TestAttachmentPermissions(FrappeTestCase):
+	test_doctype_open = "Test For Attachment Permissions"
+	test_doctype_closed = "Test For Attachment Permissions2"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.get_doc(
+			doctype="DocType",
+			name=cls.test_doctype_open,
+			module="Custom",
+			custom=1,
+			fields=[
+				{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+				{
+					"label": "Attachment",
+					"fieldname": "attachment_regular",
+					"fieldtype": "Attach",
+					"permlevel": 0,
+				},
+				{
+					"label": "Attachment (hidden)",
+					"fieldname": "attachment_hidden",
+					"fieldtype": "Attach",
+					"permlevel": 1,
+				},
+			],
+			permissions=[
+				{
+					"role": "System Manager",
+					"select": 1,
+					"read": 1,
+					"write": 1,
+					"create": 1,
+					"delete": 1,
+					"report": 1,
+					"share": 1,
+				},
+				{
+					"role": "_Test Role",
+					"select": 1,
+					"read": 1,
+					"write": 1,
+					"create": 1,
+					"delete": 1,
+					"report": 1,
+					"share": 1,
+				},
+				{
+					"role": "Guest",
+					"select": 1,
+					"read": 1,
+					"write": 1,
+					"create": 1,
+					"delete": 1,
+					"report": 1,
+					"share": 1,
+				},
+			],
+		).insert(ignore_if_duplicate=True)
+		frappe.get_doc(
+			doctype="DocType",
+			name=cls.test_doctype_closed,
+			module="Custom",
+			custom=1,
+			fields=[
+				{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+				{
+					"label": "Attachment",
+					"fieldname": "attachment_regular",
+					"fieldtype": "Attach",
+					"permlevel": 0,
+				},
+				{
+					"label": "Attachment (hidden)",
+					"fieldname": "attachment_hidden",
+					"fieldtype": "Attach",
+					"permlevel": 1,
+				},
+			],
+			permissions=[
+				{
+					"role": "System Manager",
+					"select": 1,
+					"read": 1,
+					"write": 1,
+					"create": 1,
+					"delete": 1,
+					"report": 1,
+					"share": 1,
+				},
+				{
+					"role": "_Test Role",
+					"select": 1,
+					"read": 1,
+					"write": 1,
+					"create": 1,
+					"delete": 1,
+					"report": 1,
+					"share": 1,
+				},
+				{
+					"role": "_Test Role 2",
+					"select": 1,
+					"read": 1,
+					"write": 1,
+					"create": 1,
+					"delete": 1,
+					"report": 1,
+					"share": 1,
+				},
+				{"role": "_Test Role 2", "permlevel": 1, "read": 1, "write": 1},
+			],
+		).insert(ignore_if_duplicate=True)
+
+	@classmethod
+	def tearDownClass(cls) -> None:
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+		# create doctype indirectly commits; delete them, drop the tables and commit as rollback is called again later
+		frappe.db.sql(f"DROP TABLE `tab{cls.test_doctype_open}`")
+		frappe.db.sql(f"DROP TABLE `tab{cls.test_doctype_closed}`")
+		frappe.delete_doc("DocType", cls.test_doctype_open)
+		frappe.delete_doc("DocType", cls.test_doctype_closed)
+		frappe.db.commit()
+
+	def setUp(self):
+		doc = frappe.new_doc(
+			doctype=self.test_doctype_open,
+			title="Test Permissions",
+		).insert()
+		self.attached_to_docname = doc.name
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def test_attach_field_permission(self):
+		attachment = frappe.new_doc(
+			"File",
+			file_name="attachment_perm.txt",
+			attached_to_doctype=self.test_doctype_open,
+			attached_to_name=self.attached_to_docname,
+			attached_to_field="attachment_regular",
+			content="Testing Attachment Permissions",
+			is_private=1,
+		).insert()
+
+		frappe.set_user("deskuser@example.com")
+		self.assertTrue(
+			attachment.is_downloadable(),
+			"Regular Attach field's attachment should be downloadable when user is logged in",
+		)
+		attachment.attached_to_field = "attachment_hidden"
+		attachment.save(ignore_permissions=True).reload()
+		self.assertFalse(
+			attachment.is_downloadable(),
+			"User has no permission to view Attach field, should be unable to download attached file",
+		)
+
+		with self.set_user("Administrator"):
+			doc = frappe.new_doc(
+				doctype=self.test_doctype_closed,
+				title="Test Permissions",
+			).insert()
+			attached_to_docname = doc.name
+			attachment2 = frappe.new_doc(
+				"File",
+				file_name="attachment_perm2.txt",
+				attached_to_doctype=self.test_doctype_closed,
+				attached_to_name=attached_to_docname,
+				attached_to_field="attachment_hidden",
+				content="Testing Attachment Permissions",
+				is_private=1,
+			).insert()
+		frappe.set_user("deskuser2@example.com")
+		self.assertTrue(
+			attachment2.is_downloadable(),
+			"User has permission to view Attach field, should be able to download attached file",
+		)
+
+	def test_attachment_permission(self):
+		attachment = frappe.new_doc(
+			"File",
+			file_name="attachment_perm.txt",
+			attached_to_doctype=self.test_doctype_open,
+			attached_to_name=self.attached_to_docname,
+			content="Testing Attachment Permissions",
+			is_private=1,
+		).insert()
+
+		frappe.set_user("deskuser@example.com")
+		self.assertTrue(
+			attachment.is_downloadable(),
+			"File attached to document should be downloadable when user is logged in",
+		)
+
+	def test_guest_permission(self):
+		attachment = frappe.new_doc(
+			"File",
+			file_name="attachment_perm.txt",
+			attached_to_doctype=self.test_doctype_open,
+			attached_to_name=self.attached_to_docname,
+			content="Testing Attachment Permissions",
+			is_private=0,
+		).insert()
+
+		frappe.set_user("Guest")
+		self.assertTrue(attachment.is_downloadable(), "Guest has access to public files")
+		attachment.attached_to_field = "attachment_regular"
+		attachment.save(ignore_permissions=True).reload()
+		self.assertTrue(attachment.is_downloadable(), "Guest has access to unrestricted Attach field's file")
+		attachment.attached_to_field = "attachment_hidden"
+		attachment.save(ignore_permissions=True).reload()
+		self.assertFalse(
+			attachment.is_downloadable(), "Guest has no access to restricted Attach field's file"
+		)
+		attachment.attached_to_doctype = self.test_doctype_closed
+		attachment.save(ignore_permissions=True)
+		self.assertFalse(
+			attachment.is_downloadable(), "Guest cannot download files attached to doc without Guest role"
+		)
 
 
 class TestFileUtils(FrappeTestCase):
