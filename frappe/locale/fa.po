@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-24 14:00+0000\n"
-"PO-Revision-Date: 2024-09-24 23:32\n"
+"PO-Revision-Date: 2024-09-29 00:06\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -3663,7 +3663,7 @@ msgstr "سایه های دکمه ای"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "By \"Naming Series\" field"
-msgstr "با فیلد «نامگذاری سری»."
+msgstr "با فیلد «سری نامگذاری»."
 
 #: frappe/website/doctype/web_page/web_page.js:111
 #: frappe/website/doctype/web_page/web_page.js:118
@@ -12223,7 +12223,7 @@ msgstr "اگر در حال به‌روزرسانی هستید، لطفاً «ب�
 
 #: frappe/core/doctype/data_export/exporter.py:188
 msgid "If you are uploading new records, \"Naming Series\" becomes mandatory, if present."
-msgstr "اگر رکوردهای جدیدی را آپلود می کنید، در صورت وجود، \"نامگذاری سری\" اجباری می شود."
+msgstr "اگر رکوردهای جدیدی را آپلود می کنید، در صورت وجود، \"سری نامگذاری\" اجباری می شود."
 
 #: frappe/core/doctype/data_export/exporter.py:186
 msgid "If you are uploading new records, leave the \"name\" (ID) column blank."
@@ -14830,7 +14830,7 @@ msgstr "با لینک ایمیل وارد شوید"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Login with email link expiry (in minutes)"
-msgstr "ورود با انقضای لینک ایمیل (در چند دقیقه)"
+msgstr "ورود با انقضای لینک ایمیل (به دقیقه)"
 
 #: frappe/auth.py:132
 msgid "Login with username and password is not allowed."
@@ -16037,11 +16037,11 @@ msgstr "قانون نامگذاری"
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Naming Series"
-msgstr "نامگذاری سری"
+msgstr "سری نامگذاری"
 
 #: frappe/model/naming.py:259
 msgid "Naming Series mandatory"
-msgstr "نامگذاری سری الزامی است"
+msgstr "سری نامگذاری الزامی است"
 
 #. Option for the 'Type' (Select) field in DocType 'Web Template'
 #. Label of the top_bar (Section Break) field in DocType 'Website Settings'
@@ -17227,7 +17227,7 @@ msgstr "در صورت عدم پاسخگویی اطلاع دهید"
 #. Label of the unreplied_for_mins (Int) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Notify if unreplied for (in mins)"
-msgstr "در صورت عدم پاسخگویی (در چند دقیقه) اطلاع دهید"
+msgstr "در صورت عدم پاسخگویی (به دقیقه) اطلاع دهید"
 
 #. Label of the notify_on_login (Check) field in DocType 'Note'
 #: frappe/desk/doctype/note/note.json
@@ -26838,7 +26838,7 @@ msgstr "جمع:"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1178
 msgid "Totals"
-msgstr "جمع کل"
+msgstr "جمع"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1153
 msgid "Totals Row"
@@ -30167,7 +30167,7 @@ msgstr "درون‌ریزی"
 #. Description of the 'Read Time' (Int) field in DocType 'Blog Post'
 #: frappe/website/doctype/blog_post/blog_post.json
 msgid "in minutes"
-msgstr "در دقیقه"
+msgstr "به دقیقه"
 
 #: frappe/templates/signup.html:11 frappe/www/login.html:10
 msgid "jane@example.com"
