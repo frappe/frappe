@@ -329,6 +329,11 @@ class Block implements BlockOptions {
 
 	// events
 	addEvent(event: any) {
+		const pageName = event.page?.value
+		if (pageName) {
+			const store = useStudioStore()
+			event.page = store.getAppPageRoute(pageName)
+		}
 		this.componentEvents[event.event] = event
 	}
 

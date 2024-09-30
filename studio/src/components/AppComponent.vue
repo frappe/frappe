@@ -5,6 +5,7 @@
 		v-bind="componentProps"
 		:data-component-id="block.componentId"
 		:style="styles"
+		v-on="componentEvents"
 	>
 		<AppComponent v-for="child in block?.children" :key="child.componentId" :block="child" />
 	</component>
@@ -13,6 +14,7 @@
 <script setup>
 import Block from "@/utils/block"
 import { computed, onMounted, ref, useAttrs } from "vue"
+import { useRouter, useRoute } from "vue-router"
 import components from "@/data/components"
 import { getComponentRoot, isDynamicValue, getDynamicPropValue } from "@/utils/helpers"
 
@@ -49,6 +51,35 @@ const componentProps = computed(() => {
 		...attrs,
 	}
 })
+
+const router = useRouter()
+const route = useRoute()
+const componentEvents = computed(() => {
+	const events = {}
+	Object.entries(props.block.componentEvents).forEach(([eventName, event]) => {
+		const getEventFn = () => {
+			if (event.action === "Switch App Page") {
+				return () => {
+					router.push({
+						name: "AppContainer",
+						params: {
+							appRoute: route.params.appRoute,
+							pageRoute: getPageRoute(route.params.appRoute, event.page),
+						},
+					})
+				}
+			}
+		}
+		events[eventName] = getEventFn()
+	})
+
+	return events
+})
+
+function getPageRoute(appRoute, page) {
+	// extract page route from full page route
+	return page.replace(`studio-app/${appRoute}/`, "")
+}
 
 onMounted(() => {
 	// set data-component-id on mount since some frappeui components have inheritAttrs: false

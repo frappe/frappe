@@ -94,6 +94,10 @@ const useStudioStore = defineStore("store", () => {
 		}
 	}
 
+	function getAppPageRoute(pageName) {
+		return Object.values(appPages.value).find((page) => page.page_name === pageName)?.route
+	}
+
 	// studio pages
 	const activePage = ref(null)
 	const pageBlocks = ref([])
@@ -205,6 +209,7 @@ const useStudioStore = defineStore("store", () => {
 		deleteAppPage,
 		appPages,
 		setAppPages,
+		getAppPageRoute,
 		// studio pages
 		selectedPage,
 		settingPage,

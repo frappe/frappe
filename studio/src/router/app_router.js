@@ -5,6 +5,7 @@ const routes = [
 		path: "/:appRoute/:pageRoute",
 		name: "AppContainer",
 		component: () => import("@/pages/AppContainer.vue"),
+		params: true,
 	},
 ]
 

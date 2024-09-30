@@ -58,7 +58,7 @@ function getPropInputType(propType: string) {
 
 // events
 function getComponentEvents(componentName: string) {
-	return components.getEmits(componentName)
+	return components.getEmits(componentName) || []
 }
 
 export {

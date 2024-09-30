@@ -95,7 +95,7 @@ const showAddEventDialog = ref(false)
 const emptyEvent = {
 	event: "",
 	action: "",
-	page: "",
+	page: {},
 	url: "",
 }
 const newEvent = ref({ ...emptyEvent })
@@ -121,14 +121,19 @@ const actions = {
 			getProps: () => {
 				return {
 					type: "autocomplete",
-					options: Object.values(store.appPages || [])?.map((page) => page.page_title),
+					options: Object.values(store.appPages || [])?.map((page) => {
+						return {
+							value: page.page_name,
+							label: page.page_title,
+						}
+					}),
 					label: "Page",
 					modelValue: newEvent.value.page,
 				}
 			},
 			events: {
 				"update:modelValue": (val: SelectOption) => {
-					newEvent.value.page = val.value
+					newEvent.value.page = val
 				},
 			},
 		},
