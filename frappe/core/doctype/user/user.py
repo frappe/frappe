@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import json
 from collections.abc import Iterable
 from datetime import timedelta
 
@@ -10,6 +9,7 @@ import frappe.defaults
 import frappe.permissions
 import frappe.share
 from frappe import STANDARD_USERS, _, msgprint, throw
+from frappe.apps import get_default_path
 from frappe.auth import MAX_PASSWORD_SIZE
 from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
 from frappe.desk.doctype.notification_settings.notification_settings import (
@@ -17,7 +17,6 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 	toggle_notifications,
 )
 from frappe.desk.notifications import clear_notifications
-from frappe.model.delete_doc import check_if_doc_is_linked
 from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.rate_limiter import rate_limit
@@ -37,7 +36,18 @@ from frappe.utils.deprecations import deprecated, deprecation_warning
 from frappe.utils.password import check_password, get_password_reset_limit
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
-from frappe.website.utils import is_signup_disabled
+from frappe.website.utils import get_home_page, is_signup_disabled
+
+desk_properties = (
+	"search_bar",
+	"notifications",
+	"list_sidebar",
+	"bulk_actions",
+	"view_switcher",
+	"form_sidebar",
+	"timeline",
+	"dashboard",
+)
 
 
 class User(Document):
@@ -62,15 +72,18 @@ class User(Document):
 		bio: DF.SmallText | None
 		birth_date: DF.Date | None
 		block_modules: DF.Table[BlockModule]
+		bulk_actions: DF.Check
 		bypass_restrict_ip_check_if_2fa_enabled: DF.Check
 		code_editor_type: DF.Literal["vscode", "vim", "emacs"]
+		dashboard: DF.Check
+		default_app: DF.Literal[None]
 		default_workspace: DF.Link | None
 		defaults: DF.Table[DefaultValue]
 		desk_theme: DF.Literal["Light", "Dark", "Automatic"]
 		document_follow_frequency: DF.Literal["Hourly", "Daily", "Weekly"]
 		document_follow_notify: DF.Check
 		email: DF.Data
-		email_signature: DF.SmallText | None
+		email_signature: DF.TextEditor | None
 		enabled: DF.Check
 		first_name: DF.Data
 		follow_assigned_documents: DF.Check
@@ -78,6 +91,7 @@ class User(Document):
 		follow_created_documents: DF.Check
 		follow_liked_documents: DF.Check
 		follow_shared_documents: DF.Check
+		form_sidebar: DF.Check
 		full_name: DF.Data | None
 		gender: DF.Link | None
 		home_settings: DF.Code | None
@@ -90,6 +104,7 @@ class User(Document):
 		last_name: DF.Data | None
 		last_password_reset_date: DF.Date | None
 		last_reset_password_key_generated_on: DF.Datetime | None
+		list_sidebar: DF.Check
 		location: DF.Data | None
 		login_after: DF.Int
 		login_before: DF.Int
@@ -99,6 +114,7 @@ class User(Document):
 		module_profile: DF.Link | None
 		mute_sounds: DF.Check
 		new_password: DF.Password | None
+		notifications: DF.Check
 		onboarding_status: DF.SmallText | None
 		phone: DF.Data | None
 		redirect_url: DF.SmallText | None
@@ -107,17 +123,20 @@ class User(Document):
 		role_profile_name: DF.Link | None
 		role_profiles: DF.TableMultiSelect[UserRoleProfile]
 		roles: DF.Table[HasRole]
+		search_bar: DF.Check
 		send_me_a_copy: DF.Check
 		send_welcome_email: DF.Check
 		simultaneous_sessions: DF.Int
 		social_logins: DF.Table[UserSocialLogin]
 		thread_notify: DF.Check
 		time_zone: DF.Autocomplete | None
+		timeline: DF.Check
 		unsubscribed: DF.Check
 		user_emails: DF.Table[UserEmail]
 		user_image: DF.AttachImage | None
 		user_type: DF.Link | None
 		username: DF.Data | None
+		view_switcher: DF.Check
 	# end: auto-generated types
 
 	__new_password = None
@@ -135,7 +154,7 @@ class User(Document):
 			self.name = self.email
 
 	def onload(self):
-		from frappe.config import get_modules_from_all_apps
+		from frappe.utils.modules import get_modules_from_all_apps
 
 		self.set_onload("all_modules", sorted(m.get("module_name") for m in get_modules_from_all_apps()))
 
@@ -177,11 +196,18 @@ class User(Document):
 		self.validate_allowed_modules()
 		self.validate_user_image()
 		self.set_time_zone()
+
 		if self.language == "Loading...":
 			self.language = None
 
 		if (self.name not in ["Administrator", "Guest"]) and (not self.get_social_login_userid("frappe")):
 			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
+
+	def disable_email_fields_if_user_disabled(self):
+		if not self.enabled:
+			self.thread_notify = 0
+			self.send_me_a_copy = 0
+			self.allowed_in_mentions = 0
 
 	@frappe.whitelist()
 	def populate_role_profile_roles(self):
@@ -261,6 +287,18 @@ class User(Document):
 		if self.time_zone:
 			frappe.defaults.set_default("time_zone", self.time_zone, self.name)
 
+		if self.has_value_changed("language"):
+			locale_keys = ("date_format", "time_format", "number_format", "first_day_of_the_week")
+			if self.language:
+				language = frappe.get_doc("Language", self.language)
+				for key in locale_keys:
+					value = language.get(key)
+					if value:
+						frappe.defaults.set_default(key, value, self.name)
+			else:
+				for key in locale_keys:
+					frappe.defaults.clear_default(key, parent=self.name)
+
 		if self.has_value_changed("enabled"):
 			frappe.cache.delete_key("users_for_mentions")
 			frappe.cache.delete_key("enabled_users")
@@ -285,6 +323,7 @@ class User(Document):
 
 		# toggle notifications based on the user's status
 		toggle_notifications(self.name, enable=cint(self.enabled), ignore_permissions=True)
+		self.disable_email_fields_if_user_disabled()
 
 	def email_new_password(self, new_password=None):
 		if new_password and not self.flags.in_insert:
@@ -356,7 +395,11 @@ class User(Document):
 							user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions
 						)
 
-					if not self.flags.no_welcome_mail and cint(self.send_welcome_email):
+					if (
+						not self.flags.no_welcome_mail
+						and cint(self.send_welcome_email)
+						and not self.flags.email_sent
+					):
 						self.send_welcome_mail_to_user()
 						self.flags.email_sent = 1
 						if frappe.session.user != "Guest":
@@ -536,11 +579,20 @@ class User(Document):
 		# Delete EPS data
 		frappe.db.delete("Energy Point Log", {"user": self.name})
 
-		# Ask user to disable instead if document is still linked
-		try:
-			check_if_doc_is_linked(self)
-		except frappe.LinkExistsError:
-			frappe.throw(_("You can disable the user instead of deleting it."), frappe.LinkExistsError)
+		# Remove user link from Workflow Action
+		frappe.db.set_value("Workflow Action", {"user": self.name}, "user", None)
+
+		# Delete user's List Filters
+		frappe.db.delete("List Filter", {"for_user": self.name})
+
+		# Remove user from Note's Seen By table
+		seen_notes = frappe.get_all("Note", filters=[["Note Seen By", "user", "=", self.name]], pluck="name")
+		for note_id in seen_notes:
+			note = frappe.get_doc("Note", note_id)
+			for row in note.seen_by:
+				if row.user == self.name:
+					note.remove(row)
+			note.save(ignore_permissions=True)
 
 	def before_rename(self, old_name, new_name, merge=False):
 		# if merging, delete the old user notification settings
@@ -745,6 +797,9 @@ class User(Document):
 		if not self.time_zone:
 			self.time_zone = get_system_timezone()
 
+	def get_permission_log_options(self, event=None):
+		return {"fields": ("role_profile_name", "roles", "module_profile", "block_modules")}
+
 	def check_roles_added(self):
 		if self.user_type != "System User" or self.roles or not self.is_new():
 			return
@@ -846,9 +901,9 @@ def update_password(
 	frappe.db.set_value("User", user, "reset_password_key", "")
 
 	if user_doc.user_type == "System User":
-		return "/app"
+		return get_default_path() or "/app"
 	else:
-		return redirect_url or "/"
+		return redirect_url or get_default_path() or get_home_page()
 
 
 @frappe.whitelist(allow_guest=True)
@@ -1018,7 +1073,7 @@ def reset_password(user: str) -> str:
 		user.reset_password(send_email=True)
 
 		return frappe.msgprint(
-			msg=_("Password reset instructions have been sent to your email"),
+			msg=_("Password reset instructions have been sent to {}'s email").format(user.full_name),
 			title=_("Password Email Sent"),
 		)
 	except frappe.DoesNotExistError:

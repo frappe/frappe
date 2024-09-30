@@ -127,8 +127,17 @@ def delete_doc(
 
 				# check if links exist
 				if not force:
-					check_if_doc_is_linked(doc)
-					check_if_doc_is_dynamically_linked(doc)
+					try:
+						check_if_doc_is_linked(doc)
+						check_if_doc_is_dynamically_linked(doc)
+					except frappe.LinkExistsError as e:
+						if doc.meta.has_field("enabled") or doc.meta.has_field("disabled"):
+							frappe.throw(
+								_("You can disable this {0} instead of deleting it.").format(_(doctype)),
+								frappe.LinkExistsError,
+							)
+						else:
+							raise e
 
 			update_naming_series(doc)
 			delete_from_table(doctype, name, ignore_doctypes, doc)
@@ -237,7 +246,7 @@ def check_permission_and_not_submitted(doc):
 		)
 
 	# check if submitted
-	if doc.docstatus.is_submitted():
+	if doc.meta.is_submittable and doc.docstatus.is_submitted():
 		frappe.msgprint(
 			_("{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first.").format(
 				_(doc.doctype),

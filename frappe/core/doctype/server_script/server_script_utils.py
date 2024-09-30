@@ -25,6 +25,9 @@ EVENT_MAP = {
 	"on_payment_paid": "On Payment Paid",
 	"on_payment_failed": "On Payment Failed",
 	"on_payment_authorized": "On Payment Authorization",
+	"on_payment_charge_processed": "On Payment Charge Processed",
+	"on_payment_mandated_charge_processed": "On Payment Mandate Charge Processed",
+	"on_payment_mandate_acquisition_processed": "On Payment Mandate Acquisition Processed",
 }
 
 

@@ -572,6 +572,20 @@ class TestDB(FrappeTestCase):
 
 		frappe.db.rollback()
 
+	def test_get_list_return_value_data_type(self):
+		frappe.db.delete("Note")
+
+		frappe.get_doc(doctype="Note", title="note1", content="something").insert()
+		frappe.get_doc(doctype="Note", title="note2", content="someting else").insert()
+
+		note_docs = frappe.db.sql("select * from `tabNote`")
+
+		# should return both records
+		self.assertEqual(len(note_docs), 2)
+
+		# data-type should be list
+		self.assertIsInstance(note_docs, tuple)
+
 	@run_only_if(db_type_is.POSTGRES)
 	def test_modify_query(self):
 		from frappe.database.postgres.database import modify_query
@@ -1079,3 +1093,269 @@ class TestSqlIterator(FrappeTestCase):
 	def test_unbuffered_cursor(self):
 		with frappe.db.unbuffered_cursor():
 			self.test_db_sql_iterator()
+
+
+class ExtFrappeTestCase(FrappeTestCase):
+	def assertSqlException(self):
+		class SqlExceptionContextManager:
+			def __init__(self, test_case):
+				self.test_case = test_case
+
+			def __enter__(self):
+				return self
+
+			def __exit__(self, exc_type, exc_value, traceback):
+				if exc_type is None:
+					self.test_case.fail("Expected exception but none was raised")
+				else:
+					frappe.db.rollback()
+				# Returning True suppresses the exception
+				return True
+
+		return SqlExceptionContextManager(self)
+
+
+@run_only_if(db_type_is.POSTGRES)
+class TestPostgresSchemaQueryIndependence(ExtFrappeTestCase):
+	test_table_name = "TestSchemaTable"
+
+	def setUp(self, rollback=False) -> None:
+		if rollback:
+			frappe.db.rollback()
+
+		if frappe.db.sql(
+			"""SELECT 1
+					FROM information_schema.schemata
+					WHERE schema_name = 'alt_schema'
+					LIMIT 1 """
+		):
+			self.cleanup()
+
+		frappe.db.sql(
+			f"""
+			CREATE SCHEMA alt_schema;
+
+			CREATE TABLE "public"."tab{self.test_table_name}" (
+					col_a VARCHAR,
+					col_b VARCHAR
+			);
+
+			CREATE TABLE "alt_schema"."tab{self.test_table_name}" (
+					col_c VARCHAR PRIMARY KEY,
+					col_d VARCHAR
+			);
+
+			CREATE TABLE "alt_schema"."tab{self.test_table_name}_2" (
+					col_c VARCHAR,
+					col_d VARCHAR
+			);
+
+			CREATE TABLE "alt_schema"."tabUser" (
+					col_c VARCHAR,
+					col_d VARCHAR
+			);
+
+			insert into "public"."tab{self.test_table_name}" (col_a, col_b) values ('a', 'b');
+			"""
+		)
+
+	def tearDown(self) -> None:
+		self.cleanup()
+
+	def cleanup(self) -> None:
+		frappe.db.sql(
+			f"""
+				DROP TABLE "public"."tab{self.test_table_name}";
+				DROP TABLE "alt_schema"."tab{self.test_table_name}";
+				DROP TABLE "alt_schema"."tab{self.test_table_name}_2";
+				DROP TABLE "alt_schema"."tabUser";
+				DROP SCHEMA "alt_schema" CASCADE;
+				"""
+		)
+
+	def test_get_tables(self) -> None:
+		tables = frappe.db.get_tables(cached=False)
+
+		# should have received the table {test_table_name} only once (from public schema)
+		count = sum([1 for table in tables if f"tab{self.test_table_name}" in table])
+		self.assertEqual(count, 1)
+
+		# should not have received {test_table_name}_2, as selection should only be from public schema
+		self.assertNotIn(f"tab{self.test_table_name}_2", tables)
+
+	def test_db_table_columns(self) -> None:
+		columns = frappe.db.get_table_columns(self.test_table_name)
+
+		# should have received the columns of the table from public schema
+		self.assertEqual(columns, ["col_a", "col_b"])
+
+		frappe.conf["db_schema"] = "alt_schema"
+		frappe.cache.delete_key("table_columns")  # remove table columns cache for next try from alt_schema
+
+		# should have received the columns of the table from alt_schema
+		columns = frappe.db.get_table_columns(self.test_table_name)
+		self.assertEqual(columns, ["col_c", "col_d"])
+
+		del frappe.conf["db_schema"]
+		frappe.cache.delete_key("table_columns")
+
+	def test_describe(self) -> None:
+		self.assertSequenceEqual([("col_a",), ("col_b",)], frappe.db.describe(self.test_table_name))
+
+	def test_has_index(self) -> None:
+		# should not find any index on the table in default public schema (as it is only in the alt_schema)
+		self.assertFalse(frappe.db.has_index(f"tab{self.test_table_name}", f"tab{self.test_table_name}_pkey"))
+
+	def test_add_index(self) -> None:
+		frappe.conf["db_schema"] = "alt_schema"
+
+		# only dummy tabUser table in alt_schema has "col_c" column
+		frappe.db.add_index("User", ("col_c",))
+
+		del frappe.conf["db_schema"]
+		frappe.cache.delete_key("table_columns")
+
+		# the index creation in the default schema should fail
+		with self.assertSqlException():
+			frappe.db.add_index(doctype="User", fields=("col_c",))
+
+	# TODO: is there some method like remove_index:
+	# TODO: apps/frappe/frappe/patches/v14_0/drop_unused_indexes.py # def drop_index_if_exists()
+	# TODO: apps/frappe/frappe/database/postgres/schema.py # def alter()
+
+	def test_add_unique(self) -> None:
+		# should fail to add a unique constraint on the table in default public schema with those columns which are only present in alt_schema
+		with self.assertSqlException():
+			frappe.db.add_unique(f"{self.test_table_name}", ["col_c", "col_d"])
+
+		# but should work if the schema is configured to alt_schema
+		frappe.conf["db_schema"] = "alt_schema"
+
+		# should have received the columns of the table from alt_schema
+		frappe.db.add_unique(f"{self.test_table_name}", ["col_c", "col_d"])
+
+		del frappe.conf["db_schema"]
+
+	def test_get_table_columns_description(self):
+		# should only return the columns of the table in the default public schema
+		columns = frappe.db.get_table_columns_description(f"tab{self.test_table_name}")
+
+		self.assertTrue(any([col for col in columns if col["name"] == "col_a"]))
+		self.assertTrue(any([col for col in columns if col["name"] == "col_b"]))
+		self.assertFalse(any([col for col in columns if col["name"] == "col_c"]))
+		self.assertFalse(any([col for col in columns if col["name"] == "col_d"]))
+
+	def test_get_column_type(self):
+		# should return the column type of the column in the default public schema
+		self.assertEqual(frappe.db.get_column_type(self.test_table_name, "col_a"), "character varying")
+
+		# should raise an error for the column in the alt_schema
+		with self.assertSqlException():
+			frappe.db.get_column_type(self.test_table_name, "col_c")
+
+	def test_search_path(self):
+		# by default the the public schema tables should be addressed by search path
+		rows = frappe.db.sql(f'select * from "tab{self.test_table_name}"')
+		self.assertEqual(
+			rows,
+			(
+				(
+					"a",
+					"b",
+				),
+			),
+		)  # there should be a single row in the public table
+
+		# when schema is changed to alt_schema, the alt_schema tables should be addressed by search path
+		frappe.conf["db_schema"] = "alt_schema"
+		frappe.db.connect()
+		rows = frappe.db.sql(f'select * from "tab{self.test_table_name}"')
+		self.assertEqual(rows, ())  # there are no records in the alt_schema table
+
+		del frappe.conf["db_schema"]
+
+
+class TestDbConnectWithEnvCredentials(FrappeTestCase):
+	current_site = frappe.local.site
+
+	def tearDown(self):
+		frappe.init(self.current_site, force=True)
+		frappe.connect()
+
+	def test_connect_fails_with_wrong_credentials_by_env(self) -> None:
+		import contextlib
+		import os
+		import re
+
+		@contextlib.contextmanager
+		def set_env_variable(key, value):
+			if orig_value_set := key in os.environ:
+				orig_value = os.environ.get(key)
+
+			os.environ[key] = value
+
+			try:
+				yield
+			finally:
+				if orig_value_set:
+					os.environ[key] = orig_value
+				else:
+					del os.environ[key]
+
+		# with wrong db name
+		with set_env_variable("FRAPPE_DB_NAME", "dbiq"):
+			frappe.init(self.current_site, force=True)
+			frappe.connect()
+
+			with self.assertRaises(Exception) as cm:
+				frappe.db.connect()
+
+			self.assertTrue(re.search(r"database [\"']dbiq[\"']", str(cm.exception)))
+
+		# with wrong host
+		with set_env_variable("FRAPPE_DB_HOST", "iqx.local"):
+			frappe.init(self.current_site, force=True)
+			frappe.connect()
+
+			with self.assertRaises(Exception) as cm:
+				frappe.db.connect()
+
+			self.assertTrue(re.search(r"(host name|server on) [\"']iqx.local[\"']", str(cm.exception)))
+
+		# with wrong user name
+		with set_env_variable("FRAPPE_DB_USER", "uname"):
+			frappe.init(self.current_site, force=True)
+			frappe.connect()
+
+			with self.assertRaises(Exception) as cm:
+				frappe.db.connect()
+
+			self.assertTrue(re.search(r"user [\"']uname[\"']", str(cm.exception)))
+
+		# with wrong password
+		with set_env_variable("FRAPPE_DB_PASSWORD", "pass"):
+			frappe.init(self.current_site, force=True)
+			frappe.connect()
+
+			with self.assertRaises(Exception) as cm:
+				frappe.db.connect()
+
+			self.assertTrue(
+				re.search(r"(password authentication failed|Access denied for)", str(cm.exception))
+			)
+
+		# with wrong password
+		with set_env_variable("FRAPPE_DB_PORT", "1111"):
+			frappe.init(self.current_site, force=True)
+			frappe.connect()
+
+			with self.assertRaises(Exception) as cm:
+				frappe.db.connect()
+
+			self.assertTrue(re.search("(port 1111 failed|Errno 111)", str(cm.exception)))
+
+		# now with configured settings without any influences from env
+		# finally connect should work without any error (when no wrong credentials are given via ENV)
+		frappe.init(self.current_site, force=True)
+		frappe.connect()
+		frappe.db.connect()

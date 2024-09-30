@@ -22,6 +22,7 @@ from frappe.installer import parse_app_name
 from frappe.model.document import Document
 from frappe.tests.utils import FrappeTestCase, MockedRequestTestCase, change_settings
 from frappe.utils import (
+	add_trackers_to_url,
 	ceil,
 	dict_to_str,
 	evaluate_filters,
@@ -35,7 +36,9 @@ from frappe.utils import (
 	get_site_info,
 	get_sites,
 	get_url,
+	map_trackers,
 	money_in_words,
+	parse_and_map_trackers_from_url,
 	parse_timedelta,
 	random_string,
 	remove_blanks,
@@ -218,35 +221,39 @@ class TestFilters(FrappeTestCase):
 
 class TestMoney(FrappeTestCase):
 	def test_money_in_words(self):
-		nums_bhd = [
-			(5000, "BHD Five Thousand only."),
-			(5000.0, "BHD Five Thousand only."),
-			(0.1, "One Hundred Fils only."),
-			(0, "BHD Zero only."),
-			("Fail", ""),
-		]
+		test_cases = {
+			"BHD": [
+				(5000, "BHD Five Thousand only."),
+				(5000.0, "BHD Five Thousand only."),
+				(0.1, "One Hundred Fils only."),
+				(0, "BHD Zero only."),
+				("Fail", ""),
+			],
+			"NGN": [
+				(5000, "NGN Five Thousand only."),
+				(5000.0, "NGN Five Thousand only."),
+				(0.1, "Ten Kobo only."),
+				(0, "NGN Zero only."),
+				("Fail", ""),
+			],
+			"MRO": [
+				(5000, "MRO Five Thousand only."),
+				(5000.0, "MRO Five Thousand only."),
+				(1.4, "MRO One and Two Khoums only."),
+				(0.2, "One Khoums only."),
+				(0, "MRO Zero only."),
+				("Fail", ""),
+			],
+		}
 
-		nums_ngn = [
-			(5000, "NGN Five Thousand only."),
-			(5000.0, "NGN Five Thousand only."),
-			(0.1, "Ten Kobo only."),
-			(0, "NGN Zero only."),
-			("Fail", ""),
-		]
-
-		for num in nums_bhd:
-			self.assertEqual(
-				money_in_words(num[0], "BHD"),
-				num[1],
-				"{} is not the same as {}".format(money_in_words(num[0], "BHD"), num[1]),
-			)
-
-		for num in nums_ngn:
-			self.assertEqual(
-				money_in_words(num[0], "NGN"),
-				num[1],
-				"{} is not the same as {}".format(money_in_words(num[0], "NGN"), num[1]),
-			)
+		for currency, cases in test_cases.items():
+			for money, expected_words in cases:
+				words = money_in_words(money, currency)
+				self.assertEqual(
+					words,
+					expected_words,
+					f"{words} is not the same as {expected_words}",
+				)
 
 
 class TestDataManipulation(FrappeTestCase):
@@ -1349,3 +1356,55 @@ class TestCrypto(FrappeTestCase):
 			sha256_hash(b"The quick brown fox jumps over the lazy dog"),
 			"d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592",
 		)
+
+
+class TestURLTrackers(FrappeTestCase):
+	def test_add_trackers_to_url(self):
+		url = "https://example.com"
+		source = "test_source"
+		campaign = "test_campaign"
+		medium = "test_medium"
+		content = "test_content"
+
+		with patch("frappe.db.get_value") as mock_get_value:
+			mock_get_value.side_effect = lambda *args: args[1]  # Return unslugged input value
+			result = add_trackers_to_url(url, source, campaign, medium, content)
+
+		expected = "https://example.com?utm_source=test_source&utm_medium=test_medium&utm_campaign=test_campaign&utm_content=test_content"
+		self.assertEqual(result, expected)
+
+	def test_parse_and_map_trackers_from_url(self):
+		url = "https://example.com?utm_source=test_source&utm_medium=test_medium&utm_campaign=test_campaign&utm_content=test_content"
+
+		with patch("frappe.db.get_value") as mock_get_value:
+			mock_get_value.return_value = None  # Simulate no existing records
+			result = parse_and_map_trackers_from_url(url)
+
+		expected = {
+			"utm_source": "test_source",
+			"utm_medium": "test_medium",
+			"utm_campaign": "test_campaign",
+			"utm_content": "test_content",
+		}
+		self.assertEqual(result, expected)
+
+	def test_map_trackers(self):
+		url_trackers = {
+			"utm_source": "test_source",
+			"utm_medium": "test_medium",
+			"utm_campaign": "test_campaign",
+			"utm_content": "test_content",
+		}
+
+		result = map_trackers(url_trackers, create=True)
+
+		expected = {
+			"utm_source": frappe.get_doc("UTM Source", "test_source"),
+			"utm_medium": frappe.get_doc("UTM Medium", "test_medium"),
+			"utm_campaign": frappe.get_doc("UTM Campaign", "test_campaign"),
+			"utm_content": "test_content",
+		}
+		self.assertDocumentEqual(result["utm_source"], expected["utm_source"])
+		self.assertDocumentEqual(result["utm_medium"], expected["utm_medium"])
+		self.assertDocumentEqual(result["utm_campaign"], expected["utm_campaign"])
+		self.assertEqual(result["utm_content"], expected["utm_content"])

@@ -4,6 +4,7 @@
 import os
 from urllib.parse import urlencode, urljoin
 
+from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
 
 import frappe
@@ -147,6 +148,29 @@ class ConnectedApp(Document):
 
 		return token_cache
 
+	def get_backend_app_token(self):
+		"""Get an Access Token for the Cloud-Registered Service Principal"""
+		# There is no User assigned to the app, so we give it an empty string,
+		# otherwise it will assign the logged in user.
+		token_cache = self.get_token_cache("")
+		if token_cache is None:
+			token_cache = frappe.new_doc("Token Cache")
+			token_cache.connected_app = self.name
+		elif not token_cache.is_expired():
+			return token_cache
+
+		# Get a new Access token for the App
+		client = BackendApplicationClient(client_id=self.client_id, scope=self.get_scopes())
+		oauth_session = OAuth2Session(client=client)
+
+		token = oauth_session.fetch_token(self.token_uri, client_secret=self.get_password("client_secret"))
+
+		token_cache.update_data(token)
+		token_cache.save(ignore_permissions=True)
+		frappe.db.commit()
+
+		return token_cache
+
 
 @frappe.whitelist(methods=["GET"], allow_guest=True)
 def callback(code=None, state=None):
@@ -170,7 +194,7 @@ def callback(code=None, state=None):
 	token_cache = frappe.get_doc("Token Cache", connected_app.name + "-" + frappe.session.user)
 
 	if state != token_cache.state:
-		frappe.throw(_("Invalid state."))
+		frappe.throw(_("Invalid token state! Check if the token has been created by the OAuth user."))
 
 	oauth_session = connected_app.get_oauth2_session(init=True)
 	query_params = connected_app.get_query_params()

@@ -22,6 +22,8 @@
   "allow_edit",
   "allow_delete",
   "anonymous",
+  "hide_navbar",
+  "hide_footer",
   "column_break_2",
   "apply_document_permissions",
   "allow_print",
@@ -94,7 +96,8 @@
    "default": "0",
    "fieldname": "is_standard",
    "fieldtype": "Check",
-   "label": "Is Standard"
+   "label": "Is standard",
+   "no_copy": 1
   },
   {
    "default": "0",
@@ -108,34 +111,34 @@
    "depends_on": "eval:!doc.anonymous",
    "fieldname": "login_required",
    "fieldtype": "Check",
-   "label": "Login Required"
+   "label": "Login required"
   },
   {
    "default": "0",
    "depends_on": "login_required",
    "fieldname": "allow_edit",
    "fieldtype": "Check",
-   "label": "Allow Editing After Submit"
+   "label": "Allow editing after submit"
   },
   {
    "default": "0",
    "depends_on": "login_required",
    "fieldname": "allow_multiple",
    "fieldtype": "Check",
-   "label": "Allow Multiple Responses"
+   "label": "Allow multiple responses"
   },
   {
    "default": "0",
    "depends_on": "eval: doc.allow_multiple && doc.login_required",
    "fieldname": "allow_delete",
    "fieldtype": "Check",
-   "label": "Allow Delete"
+   "label": "Allow delete"
   },
   {
    "default": "0",
    "fieldname": "allow_print",
    "fieldtype": "Check",
-   "label": "Allow Print"
+   "label": "Allow print"
   },
   {
    "depends_on": "allow_print",
@@ -149,21 +152,21 @@
    "depends_on": "login_required",
    "fieldname": "allow_comments",
    "fieldtype": "Check",
-   "label": "Allow Comments"
+   "label": "Allow comments"
   },
   {
    "default": "0",
    "depends_on": "login_required",
    "fieldname": "show_attachments",
    "fieldtype": "Check",
-   "label": "Show Attachments"
+   "label": "Show attachments"
   },
   {
    "default": "0",
    "description": "Allow saving if mandatory fields are not filled",
    "fieldname": "allow_incomplete",
    "fieldtype": "Check",
-   "label": "Allow Incomplete Forms"
+   "label": "Allow incomplete forms"
   },
   {
    "fieldname": "introduction_text",
@@ -210,7 +213,7 @@
    "default": "0",
    "fieldname": "show_sidebar",
    "fieldtype": "Check",
-   "label": "Show Sidebar"
+   "label": "Show sidebar"
   },
   {
    "description": "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]",
@@ -229,14 +232,14 @@
    "default": "0",
    "fieldname": "apply_document_permissions",
    "fieldtype": "Check",
-   "label": "Apply Document Permissions"
+   "label": "Apply document permissions"
   },
   {
    "default": "0",
    "depends_on": "login_required",
    "fieldname": "show_list",
    "fieldtype": "Check",
-   "label": "Show List"
+   "label": "Show list"
   },
   {
    "depends_on": "eval: doc.login_required && doc.show_list",
@@ -368,7 +371,6 @@
   },
   {
    "default": "0",
-   "description": "Receive anonymous response",
    "fieldname": "anonymous",
    "fieldtype": "Check",
    "label": "Anonymous"
@@ -387,13 +389,25 @@
    "fieldname": "condition_json",
    "fieldtype": "JSON",
    "label": "Condition JSON"
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_navbar",
+   "fieldtype": "Check",
+   "label": "Hide navbar"
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_footer",
+   "fieldtype": "Check",
+   "label": "Hide footer"
   }
  ],
  "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2024-03-23 16:04:01.886581",
+ "modified": "2024-09-11 14:28:39.391595",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

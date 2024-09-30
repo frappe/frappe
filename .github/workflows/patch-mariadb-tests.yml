@@ -99,8 +99,25 @@ jobs:
       - name: Install Dependencies
         run: |
           bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
+        env:
+          BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
+          AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
+          TYPE: server
+          DB: mariadb
+
+      - name: Init Bench
+        run: |
           pip install frappe-bench
-          bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
+          bash ${GITHUB_WORKSPACE}/.github/helper/install_bench.sh
+        env:
+          BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
+          AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
+          TYPE: server
+          DB: mariadb
+
+      - name: Init Test Site
+        run: |
+          bash ${GITHUB_WORKSPACE}/.github/helper/install_site.sh
         env:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
           AFTER: ${{ env.GITHUB_EVENT_PATH.after }}

@@ -139,7 +139,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		//Unselect old values
 		this.values.forEach((value) => {
 			this.$list_wrapper
-				.find(`.selectable-item[data-value=${value}]`)
+				.find(`.selectable-item[data-value=${CSS.escape(value)}]`)
 				.toggleClass("selected");
 		});
 		this.values = value;
@@ -147,7 +147,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 			this.update_selected_values(value);
 			//Select new values
 			this.$list_wrapper
-				.find(`.selectable-item[data-value=${value}]`)
+				.find(`.selectable-item[data-value=${CSS.escape(value)}]`)
 				.toggleClass("selected");
 		});
 		this.parse_validate_and_set_in_model("");

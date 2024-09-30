@@ -17,6 +17,7 @@ import frappe.model.meta
 import frappe.translate
 import frappe.utils
 from frappe import _
+from frappe.apps import get_apps, get_default_path, is_desk_apps
 from frappe.cache_manager import clear_user_cache
 from frappe.query_builder import Order
 from frappe.utils import cint, cstr, get_assets_json
@@ -44,28 +45,30 @@ def clear_sessions(user=None, keep_current=False, force=False):
 	if force:
 		reason = "Force Logged out by the user"
 
-	for sid in get_sessions_to_clear(user, keep_current):
+	for sid in get_sessions_to_clear(user, keep_current, force):
 		delete_session(sid, reason=reason)
 
 
-def get_sessions_to_clear(user=None, keep_current=False):
+def get_sessions_to_clear(user=None, keep_current=False, force=False):
 	"""Return sessions of the current user. Called at login / logout.
 
 	:param user: user name (default: current user)
 	:param keep_current: keep current session (default: false)
+	:param force: ignore simultaneous sessions count, log the user out of all except current (default: false)
 	"""
 	if not user:
 		user = frappe.session.user
 
 	offset = 0
-	if user == frappe.session.user:
+	if not force and user == frappe.session.user:
 		simultaneous_sessions = frappe.db.get_value("User", user, "simultaneous_sessions") or 1
 		offset = simultaneous_sessions
 
 	session = frappe.qb.DocType("Sessions")
 	session_id = frappe.qb.from_(session).where(session.user == user)
 	if keep_current:
-		offset = max(0, offset - 1)
+		if not force:
+			offset = max(0, offset - 1)
 		session_id = session_id.where(session.sid != frappe.session.sid)
 
 	query = (
@@ -79,7 +82,7 @@ def delete_session(sid=None, user=None, reason="Session Expired"):
 	from frappe.core.doctype.activity_log.feed import logout_feed
 
 	if frappe.flags.read_only:
-		# This isn't manually initated logout, most likely user's cookies were expired in such case
+		# This isn't manually initiated logout, most likely user's cookies were expired in such case
 		# we should just ignore it till database is back up again.
 		return
 
@@ -166,6 +169,11 @@ def get():
 	bootinfo["disable_async"] = frappe.conf.disable_async
 
 	bootinfo["setup_complete"] = cint(frappe.get_system_settings("setup_complete"))
+	bootinfo["apps_data"] = {
+		"apps": get_apps() or [],
+		"is_desk_apps": 1 if bool(is_desk_apps(get_apps())) else 0,
+		"default_path": get_default_path() or "",
+	}
 
 	bootinfo["desk_theme"] = frappe.db.get_value("User", frappe.session.user, "desk_theme") or "Light"
 	bootinfo["user"]["impersonated_by"] = frappe.session.data.get("impersonated_by")

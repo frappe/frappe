@@ -442,6 +442,12 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	# Set the user as database name if not set in config
 	config["db_user"] = os.environ.get("FRAPPE_DB_USER") or config.get("db_user") or config.get("db_name")
 
+	# vice versa for dbname if not defined
+	config["db_name"] = os.environ.get("FRAPPE_DB_NAME") or config.get("db_name") or config["db_user"]
+
+	# read password
+	config["db_password"] = os.environ.get("FRAPPE_DB_PASSWORD") or config.get("db_password")
+
 	# Allow externally extending the config with hooks
 	if extra_config := config.get("extra_config"):
 		if isinstance(extra_config, str):
@@ -646,6 +652,10 @@ def msgprint(
 	_raise_exception()
 
 
+def toast(message: str, indicator: Literal["blue", "green", "orange", "red", "yellow"] | None = None):
+	frappe.msgprint(message, indicator=indicator, alert=True)
+
+
 def clear_messages():
 	local.message_log = []
 
@@ -688,6 +698,10 @@ def throw(
 		as_list=as_list,
 		primary_action=primary_action,
 	)
+
+
+def throw_permission_error():
+	throw(_("Not permitted"), PermissionError)
 
 
 def create_folder(path, with_init=False):
@@ -933,7 +947,7 @@ def is_whitelisted(method):
 		summary = _("You are not permitted to access this resource.")
 		detail = _("Function {0} is not whitelisted.").format(bold(f"{method.__module__}.{method.__name__}"))
 		msg = f"<details><summary>{summary}</summary>{detail}</details>"
-		throw(msg, PermissionError, title="Method Not Allowed")
+		throw(msg, PermissionError, title=_("Method Not Allowed"))
 
 	if is_guest and method not in xss_safe_methods:
 		# strictly sanitize form_dict
@@ -2397,8 +2411,11 @@ def logger(module=None, with_more_info=False, allow_site=True, filter=None, max_
 
 
 def get_desk_link(doctype, name):
-	html = '<a href="/app/Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {name}</a>'
-	return html.format(doctype=doctype, name=name, doctype_local=_(doctype))
+	meta = get_meta(doctype)
+	title = get_value(doctype, name, meta.get_title_field())
+
+	html = '<a href="/app/Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {title_local}</a>'
+	return html.format(doctype=doctype, name=name, doctype_local=_(doctype), title_local=_(title))
 
 
 def bold(text: str) -> str:

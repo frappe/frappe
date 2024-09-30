@@ -32,6 +32,7 @@
   "fetch_if_empty",
   "visibility_section",
   "hidden",
+  "show_on_timeline",
   "bold",
   "allow_in_quick_entry",
   "translatable",
@@ -74,6 +75,7 @@
   "column_break_22",
   "description",
   "documentation_url",
+  "placeholder",
   "oldfieldname",
   "oldfieldtype"
  ],
@@ -578,13 +580,25 @@
    "fieldname": "not_nullable",
    "fieldtype": "Check",
    "label": "Not Nullable"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.hidden",
+   "fieldname": "show_on_timeline",
+   "fieldtype": "Check",
+   "label": "Show on Timeline"
+  },
+  {
+   "fieldname": "placeholder",
+   "fieldtype": "Data",
+   "label": "Placeholder"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-04-12 16:27:34.546314",
+ "modified": "2024-09-28 20:17:43.400728",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",

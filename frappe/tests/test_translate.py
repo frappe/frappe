@@ -156,7 +156,7 @@ class TestTranslate(FrappeTestCase):
 		site = frappe.local.site
 		frappe.destroy()
 		_("this shouldn't break")
-		frappe.init(site=site)
+		frappe.init(site)
 		frappe.connect()
 
 	def test_guest_request_language_resolution_with_request_header(self):

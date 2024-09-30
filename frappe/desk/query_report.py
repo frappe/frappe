@@ -34,6 +34,9 @@ def get_report_doc(report_name):
 				doc.custom_filters = data.get("filters")
 		doc.is_custom_report = True
 
+		# Follow whatever the custom report has set for prepared report field
+		doc.prepared_report = custom_report_doc.prepared_report
+
 	if not doc.is_permitted():
 		frappe.throw(
 			_("You don't have access to Report: {0}").format(report_name),

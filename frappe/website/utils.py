@@ -10,6 +10,7 @@ import yaml
 from werkzeug.wrappers import Response
 
 import frappe
+from frappe.apps import get_apps, get_default_path, is_desk_apps
 from frappe.model.document import Document
 from frappe.utils import (
 	cint,
@@ -163,14 +164,21 @@ def get_home_page_via_hooks():
 
 
 def get_boot_data():
+	from frappe.locale import get_date_format, get_first_day_of_the_week, get_number_format, get_time_format
+
 	return {
 		"lang": frappe.local.lang or "en",
+		"apps_data": {
+			"apps": get_apps() or [],
+			"is_desk_apps": 1 if bool(is_desk_apps(get_apps())) else 0,
+			"default_path": get_default_path() or "",
+		},
 		"sysdefaults": {
 			"float_precision": cint(frappe.get_system_settings("float_precision")) or 3,
-			"date_format": frappe.get_system_settings("date_format") or "yyyy-mm-dd",
-			"time_format": frappe.get_system_settings("time_format") or "HH:mm:ss",
-			"first_day_of_the_week": frappe.get_system_settings("first_day_of_the_week") or "Sunday",
-			"number_format": frappe.get_system_settings("number_format") or "#,###.##",
+			"date_format": get_date_format(),
+			"time_format": get_time_format(),
+			"first_day_of_the_week": get_first_day_of_the_week(),
+			"number_format": get_number_format().string,
 		},
 		"time_zone": {
 			"system": get_system_timezone(),
@@ -517,6 +525,7 @@ def cache_html(func):
 				html = page_cache[frappe.local.lang]
 			if html:
 				frappe.local.response.from_cache = True
+				frappe.local.response.can_cache = True
 				return html
 		html = func(*args, **kwargs)
 		context = args[0].context
@@ -524,6 +533,7 @@ def cache_html(func):
 			page_cache = frappe.cache.hget("website_page", args[0].path) or {}
 			page_cache[frappe.local.lang] = html
 			frappe.cache.hset("website_page", args[0].path, page_cache)
+			frappe.local.response.can_cache = True
 
 		return html
 
@@ -573,7 +583,7 @@ def add_preload_for_bundled_assets(response):
 
 	version = get_build_version()
 	links.extend(
-		f"</assets/{svg}?v={version}>; rel=preload; as=fetch; crossorigin"
+		f"<{svg}?v={version}>; rel=preload; as=fetch; crossorigin"
 		for svg in frappe.local.preload_assets["icons"]
 	)
 

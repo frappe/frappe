@@ -133,7 +133,7 @@ def two_factor_is_enabled_for_(user):
 def get_otpsecret_for_(user):
 	"""Set OTP Secret for user even if not set."""
 	if otp_secret := get_default(user + "_otpsecret"):
-		return decrypt(otp_secret)
+		return decrypt(otp_secret, key=f"{user}.otpsecret")
 
 	otp_secret = b32encode(os.urandom(10)).decode("utf-8")
 	set_default(user + "_otpsecret", encrypt(otp_secret))
@@ -344,30 +344,14 @@ def send_token_via_email(user, token, otp_secret, otp_issuer, subject=None, mess
 	hotp = pyotp.HOTP(otp_secret)
 	otp = hotp.at(int(token))
 	template_args = {"otp": otp, "otp_issuer": otp_issuer}
-	if not subject:
-		subject = get_email_subject_for_2fa(template_args)
-	if not message:
-		message = get_email_body_for_2fa(template_args)
 
-	email_args = {
-		"recipients": user_email,
-		"sender": None,
-		"subject": subject,
-		"message": message,
-		"header": [_("Verfication Code"), "blue"],
-		"delayed": False,
-		"retry": 3,
-	}
-
-	enqueue(
-		method=frappe.sendmail,
-		queue="short",
-		timeout=300,
-		event=None,
-		is_async=True,
-		job_name=None,
-		now=False,
-		**email_args,
+	frappe.sendmail(
+		recipients=user_email,
+		subject=subject or get_email_subject_for_2fa(template_args),
+		message=message or get_email_body_for_2fa(template_args),
+		header=[_("Verification Code"), "blue"],
+		delayed=False,
+		retry=3,
 	)
 	return True
 

@@ -2,6 +2,8 @@
 	border: 1px solid var(--table-border-color);
 	border-radius: var(--border-radius-md);
 	color: var(--text-color);
+	min-height: 150px;
+	background-color: var(--subtle-accent);
 }
 
 .form-grid.error {
@@ -11,12 +13,17 @@
 .grid-heading-row {
 	border-bottom: 1px solid var(--table-border-color);
 	color: var(--gray-600);
-	background-color: var(--subtle-fg);
 	@include get_textstyle("sm", "regular");
 	height: 32px;
 	padding: 0 !important;
 	border-top-left-radius: var(--border-radius-md);
 	border-top-right-radius: var(--border-radius-md);
+
+	.grid-row {
+		background-color: var(--subtle-fg);
+		border-top-left-radius: var(--border-radius-md);
+		border-top-right-radius: var(--border-radius-md);
+	}
 
 	&.with-filter {
 		height: 64px;
@@ -109,9 +116,16 @@
 	}
 }
 
+.grid-empty {
+	height: 110px;
+	background-color: var(--subtle-accent);
+	display: flex;
+	vertical-align: middle;
+}
+
 .grid-static-col,
 .row-index {
-	height: 38px;
+	// height: 38px;
 	max-height: 200px;
 
 	&.search {
@@ -125,11 +139,12 @@
 }
 
 .row-check {
-	height: 38px;
+	// height: 38px;
 	text-align: center;
 
 	input {
 		margin-right: 0 !important;
+		margin-bottom: -3px;
 	}
 
 	&.search {
@@ -138,7 +153,7 @@
 }
 
 .grid-row-check {
-	margin-top: 2px;
+	margin-top: 3px;
 
 	&::after {
 		// Extend the checkbox's clickable area
@@ -191,9 +206,10 @@
 }
 
 .grid-body {
-	background-color: var(--fg-color);
+	background-color: var(--subtle-accent);
 	border-bottom-left-radius: var(--border-radius);
 	border-bottom-right-radius: var(--border-radius);
+	margin-bottom: -1px; // double bottom border
 
 	.col:last-child {
 		border: none;
@@ -227,7 +243,7 @@
 		}
 
 		textarea {
-			height: 46px !important;
+			height: 39px !important;
 		}
 
 		.form-control,
@@ -277,7 +293,8 @@
 	}
 
 	.grid-static-col[data-fieldtype="Check"] .static-area {
-		padding-top: 2px;
+		padding-top: 4px;
+		margin-bottom: -4px;
 	}
 
 	.grid-static-col[data-fieldtype="Rating"] .field-area {
@@ -329,12 +346,13 @@
 .grid-row {
 	padding: 0px var(--padding-md);
 	border-bottom: 1px solid var(--table-border-color);
+	background-color: var(--fg-color);
+
 	@include transition(0.2s);
 	// REDESIGN TODO: Fix border bottom for last item
 	&:last-child {
 		border-bottom-left-radius: var(--border-radius);
 		border-bottom-right-radius: var(--border-radius);
-		border: none;
 	}
 
 	td {
@@ -346,7 +364,7 @@
 	}
 
 	.frappe-control {
-		margin-bottom: 0px;
+		margin-bottom: 0px !important;
 		position: relative;
 	}
 

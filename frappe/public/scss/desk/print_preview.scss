@@ -7,7 +7,6 @@
 .print-preview-wrapper {
 	padding: 80px 0;
 	background-color: var(--gray-200);
-	border-radius: var(--border-radius);
 
 	@include media-breakpoint-down(md) {
 		padding: 0;
@@ -43,10 +42,19 @@
 }
 
 .layout-side-section.print-preview-sidebar {
-	padding-right: var(--padding-md);
+	padding: var(--padding-md);
+	border-left: 0px;
+
+	.checkbox label {
+		align-items: unset;
+	}
+
+	.input-area {
+		margin-top: 0.2rem;
+	}
 
 	.label-area {
-		white-space: nowrap;
+		white-space: unset;
 	}
 }
 

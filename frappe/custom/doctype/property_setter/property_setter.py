@@ -59,6 +59,16 @@ class PropertySetter(Document):
 
 			validate_fields_for_doctype(self.doc_type)
 
+	def get_permission_log_options(self, event=None):
+		if self.property in ("ignore_user_permissions", "permlevel"):
+			return {
+				"for_doctype": "DocType",
+				"for_document": self.doc_type,
+				"fields": ("value", "property", "field_name"),
+			}
+
+		self._no_perm_log = True
+
 
 def make_property_setter(
 	doctype,
@@ -87,12 +97,17 @@ def make_property_setter(
 	return property_setter
 
 
-def delete_property_setter(doc_type, property, field_name=None, row_name=None):
+def delete_property_setter(doc_type, property=None, field_name=None, row_name=None):
 	"""delete other property setters on this, if this is new"""
-	filters = dict(doc_type=doc_type, property=property)
+	filters = {"doc_type": doc_type}
+	if property:
+		filters["property"] = property
+
 	if field_name:
 		filters["field_name"] = field_name
 	if row_name:
 		filters["row_name"] = row_name
 
-	frappe.db.delete("Property Setter", filters)
+	property_setters = frappe.db.get_values("Property Setter", filters)
+	for ps in property_setters:
+		frappe.get_doc("Property Setter", ps).delete(ignore_permissions=True)

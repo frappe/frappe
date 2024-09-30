@@ -32,7 +32,7 @@ frappe.setup = {
 
 frappe.pages["setup-wizard"].on_page_load = function (wrapper) {
 	if (frappe.boot.setup_complete) {
-		window.location.href = "/app";
+		window.location.href = frappe.boot.apps_data.default_path || "/app";
 	}
 	let requires = frappe.boot.setup_wizard_requires || [];
 	frappe.require(requires, function () {
@@ -207,7 +207,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		}
 		setTimeout(function () {
 			// Reload
-			window.location.href = "/app";
+			window.location.href = frappe.boot.apps_data.default_path || "/app";
 		}, 2000);
 	}
 
@@ -397,7 +397,6 @@ frappe.setup.slides_settings = [
 				fieldtype: "Select",
 				reqd: 1,
 			},
-			{ fieldtype: "Column Break" },
 			{
 				fieldname: "currency",
 				label: __("Currency"),
@@ -413,13 +412,6 @@ frappe.setup.slides_settings = [
 				label: __("Allow sending usage data for improving applications"),
 				fieldtype: "Check",
 				default: cint(frappe.telemetry.can_enable()),
-				depends_on: "eval:frappe.telemetry.can_enable()",
-			},
-			{
-				fieldname: "allow_recording_first_session",
-				label: __("Allow recording my first session to improve user experience"),
-				fieldtype: "Check",
-				default: 0,
 				depends_on: "eval:frappe.telemetry.can_enable()",
 			},
 		],
@@ -471,7 +463,15 @@ frappe.setup.slides_settings = [
 				fieldtype: "Data",
 				options: "Email",
 			},
-			{ fieldname: "password", label: __("Password"), fieldtype: "Password", length: 512 },
+			{
+				fieldname: "password",
+				label:
+					frappe.session.user === "Administrator"
+						? __("Password")
+						: __("Update Password"),
+				fieldtype: "Password",
+				length: 512,
+			},
 		],
 
 		onload: function (slide) {
@@ -612,9 +612,11 @@ frappe.setup.utils = {
 			Bind a slide's country, timezone and currency fields
 		*/
 		slide.get_input("country").on("change", function () {
-			let country = slide.get_input("country").val();
-			let $timezone = slide.get_input("timezone");
 			let data = frappe.setup.data.regional_data;
+			let country = slide.get_input("country").val();
+			if (!(country in data.country_info)) return;
+
+			let $timezone = slide.get_input("timezone");
 
 			$timezone.empty();
 

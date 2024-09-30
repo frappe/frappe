@@ -18,21 +18,22 @@ context("Workspace Blocks", () => {
 
 		cy.visit("/app/website");
 		cy.get(".codex-editor__redactor .ce-block");
-		cy.get('.custom-actions button[data-label="Create%20Workspace"]').click();
+		cy.get(".btn-new-workspace").click();
 		cy.fill_field("title", "Test Block Page", "Data");
+		cy.fill_field("type", "Workspace", "Select");
 		cy.get_open_dialog().find(".modal-header").click();
 		cy.get_open_dialog().find(".btn-primary").click();
 
 		// check if sidebar item is added in private section
-		cy.get('.sidebar-item-container[item-name="Test Block Page"]').should(
+		cy.get('.sidebar-item-container[item-title="Test Block Page"]').should(
 			"have.attr",
 			"item-public",
 			"0"
 		);
-
+		cy.wait(300);
 		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
 		cy.wait(300);
-		cy.get('.sidebar-item-container[item-name="Test Block Page"]').should(
+		cy.get('.sidebar-item-container[item-title="Test Block Page"]').should(
 			"have.attr",
 			"item-public",
 			"0"
@@ -71,7 +72,7 @@ context("Workspace Blocks", () => {
 		}).as("get_doctype");
 
 		cy.get(".codex-editor__redactor .ce-block");
-		cy.get(".standard-actions .btn-secondary[data-label=Edit]").click();
+		cy.get(".btn-edit-workspace").click();
 
 		// test quick list creation
 		cy.get(".ce-block").first().click({ force: true }).type("{enter}");
@@ -159,7 +160,7 @@ context("Workspace Blocks", () => {
 		]);
 
 		cy.get(".codex-editor__redactor .ce-block");
-		cy.get(".standard-actions .btn-secondary[data-label=Edit]").click();
+		cy.get(".btn-edit-workspace").click();
 
 		cy.get(".ce-block").first().click({ force: true }).type("{enter}");
 		cy.get(".block-list-container .block-list-item").contains("Number Card").click();
@@ -174,7 +175,7 @@ context("Workspace Blocks", () => {
 		cy.get("@number_card").find(".widget-title").should("contain", "Test Number Card");
 
 		// edit number card
-		cy.get(".standard-actions .btn-secondary[data-label=Edit]").click();
+		cy.get(".btn-edit-workspace").click();
 		cy.get("@number_card").realHover().find(".widget-control .edit-button").click();
 		cy.get_field("label", "Data").invoke("val", "ToDo Count");
 		cy.click_modal_primary_button("Save");

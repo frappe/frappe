@@ -49,9 +49,9 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 		this.page.sidebar = $('<div class="print-format-builder-sidebar"></div>').appendTo(
 			this.page.sidebar
 		);
-		this.page.main = $(
-			'<div class="col-md-12 border print-format-builder-main frappe-card"></div>'
-		).appendTo(this.page.main);
+		this.page.main = $('<div class="col-md-12 print-format-builder-main"></div>').appendTo(
+			this.page.main
+		);
 
 		// future-bindings for buttons on sections / fields
 		// bind only once

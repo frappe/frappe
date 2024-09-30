@@ -21,11 +21,13 @@ from frappe import _
 from frappe.core.utils import html2text
 from frappe.frappeclient import FrappeClient
 from frappe.handler import execute_cmd
+from frappe.locale import get_date_format, get_number_format, get_time_format
 from frappe.model.delete_doc import delete_doc
 from frappe.model.mapper import get_mapped_doc
 from frappe.model.rename_doc import rename_doc
 from frappe.modules import scrub
 from frappe.utils.background_jobs import enqueue, get_jobs
+from frappe.utils.number_format import NumberFormat
 from frappe.website.utils import get_next_link, get_toc
 from frappe.www.printview import get_visible_columns
 
@@ -164,11 +166,13 @@ def get_safe_globals():
 	datautils = frappe._dict()
 
 	if frappe.db:
-		date_format = frappe.db.get_default("date_format") or "yyyy-mm-dd"
-		time_format = frappe.db.get_default("time_format") or "HH:mm:ss"
+		date_format = get_date_format()
+		time_format = get_time_format()
+		number_format = get_number_format()
 	else:
 		date_format = "yyyy-mm-dd"
 		time_format = "HH:mm:ss"
+		number_format = NumberFormat.from_string("#,###.##")
 
 	add_data_utils(datautils)
 
@@ -194,6 +198,7 @@ def get_safe_globals():
 			format_value=frappe.format_value,
 			date_format=date_format,
 			time_format=time_format,
+			number_format=number_format,
 			format_date=frappe.utils.data.global_date_format,
 			form_dict=form_dict,
 			bold=frappe.bold,
@@ -625,6 +630,9 @@ VALID_UTILS = (
 	"comma_sep",
 	"new_line_sep",
 	"filter_strip_join",
+	"add_trackers_to_url",
+	"parse_and_map_trackers_from_url",
+	"map_trackers",
 	"get_url",
 	"get_host_name_from_request",
 	"url_contains_port",
@@ -656,6 +664,7 @@ VALID_UTILS = (
 	"formatdate",
 	"get_user_info_for_avatar",
 	"get_abbr",
+	"get_month",
 )
 
 

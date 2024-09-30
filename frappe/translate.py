@@ -1,12 +1,11 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 """
-	frappe.translate
-	~~~~~~~~~~~~~~~~
+frappe.translate
+~~~~~~~~~~~~~~~~
 
-	Translation tools for frappe
+Translation tools for frappe
 """
-
 
 import functools
 import io
@@ -136,7 +135,7 @@ def get_messages_for_boot():
 def get_all_translations(lang: str) -> dict[str, str]:
 	"""Load and return the entire translations dictionary for a language from apps + user translations.
 
-	:param lang: Language Code, e.g. `hi`
+	:param lang: Language Code, e.g. `hi` or `es-CO`
 	"""
 	if not lang:
 		return {}
@@ -144,8 +143,18 @@ def get_all_translations(lang: str) -> dict[str, str]:
 	def _merge_translations():
 		from frappe.geo.country_info import get_translated_countries
 
-		all_translations = get_translations_from_apps(lang).copy()
+		parent_lang = get_parent_language(lang)
+
+		# Get translations for parent language
+		all_translations = get_translations_from_apps(parent_lang).copy() if parent_lang else {}
+
+		# Update with child language translations (overriding parent translations)
+		all_translations.update(get_translations_from_apps(lang))
+
 		with suppress(Exception):
+			# Get translations for parent language
+			all_translations.update(get_user_translations(parent_lang) if parent_lang else {})
+			# Update with child language translations (overriding parent translations)
 			all_translations.update(get_user_translations(lang))
 			all_translations.update(get_translated_countries())
 
@@ -155,7 +164,7 @@ def get_all_translations(lang: str) -> dict[str, str]:
 		return frappe.cache.hget(MERGED_TRANSLATION_KEY, lang, generator=_merge_translations)
 	except Exception:
 		# People mistakenly call translation function on global variables
-		# where locals are not initalized, translations dont make much sense there
+		# where locals are not initialized, translations don't make much sense there
 		frappe.logger().error("Unable to load translations", exc_info=True)
 		return {}
 
@@ -351,7 +360,7 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 	else:
 		fixtures = frappe.get_hooks("fixtures", app_name=app_name) or []
 		for fixture in fixtures:
-			if isinstance(fixture, str) and fixture == "Worflow":
+			if isinstance(fixture, str) and fixture == "Workflow":
 				workflows = frappe.get_all("Workflow")
 				break
 			elif isinstance(fixture, dict) and fixture.get("dt", fixture.get("doctype")) == "Workflow":
@@ -630,11 +639,7 @@ def extract_messages_from_javascript_code(code: str) -> list[tuple[int, str, str
 	messages = []
 	from frappe.gettext.extractors.javascript import extract_javascript
 
-	for message in extract_javascript(
-		code,
-		keywords=["__"],
-		options={},
-	):
+	for message in extract_javascript(code):
 		lineno, _func, args = message
 
 		if not args or not args[0]:

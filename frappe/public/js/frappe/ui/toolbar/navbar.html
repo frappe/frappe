@@ -4,7 +4,7 @@
 			<a class="navbar-brand navbar-home" href="/app">
 				<img
 					class="app-logo"
-					src="{{ frappe.boot.app_logo_url }}"
+					src="{{ frappe.boot.app_data[0].app_logo_url }}"
 					alt="{{ __("App Logo") }}"
 				>
 			</a>
@@ -26,7 +26,7 @@
 							id="navbar-search"
 							type="text"
 							class="form-control"
-							placeholder="{%= __('Search or type a command ({0})', [frappe.utils.is_mac() ? '⌘ + G' : 'Ctrl + G']) %}"
+							placeholder="{%= __('Search or type a command ({0})', [frappe.utils.is_mac() ? '⌘ + K' : 'Ctrl + K']) %}"
 							aria-haspopup="true"
 						>
 						<span class="search-icon">

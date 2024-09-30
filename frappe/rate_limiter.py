@@ -126,7 +126,7 @@ def rate_limit(
 
 			ip = frappe.local.request_ip if ip_based is True else None
 
-			user_key = frappe.form_dict[key] if key else None
+			user_key = frappe.form_dict.get(key, "")
 
 			identity = None
 

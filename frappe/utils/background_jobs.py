@@ -163,7 +163,7 @@ def enqueue(
 
 	def enqueue_call():
 		return q.enqueue_call(
-			execute_job,
+			"frappe.utils.background_jobs.execute_job",
 			on_success=Callback(func=on_success) if on_success else None,
 			on_failure=Callback(func=on_failure) if on_failure else None,
 			timeout=timeout,
@@ -204,7 +204,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	retval = None
 
 	if is_async:
-		frappe.init(site=site)
+		frappe.init(site)
 		frappe.connect()
 		if os.environ.get("CI"):
 			frappe.flags.in_test = True

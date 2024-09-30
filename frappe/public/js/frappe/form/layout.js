@@ -97,7 +97,7 @@ frappe.ui.form.Layout = class Layout {
 		return fields;
 	}
 
-	show_message(html, color) {
+	show_message(html, color, permanent = false) {
 		if (this.message_color) {
 			// remove previous color
 			this.message.removeClass(this.message_color);
@@ -112,8 +112,10 @@ frappe.ui.form.Layout = class Layout {
 			}
 			this.message.removeClass("hidden").addClass(this.message_color);
 			$(html).appendTo(this.message);
-			close_message.appendTo(this.message);
-			close_message.on("click", () => this.message.empty().addClass("hidden"));
+			if (!permanent) {
+				close_message.appendTo(this.message);
+				close_message.on("click", () => this.message.empty().addClass("hidden"));
+			}
 		} else {
 			this.message.empty().addClass("hidden");
 		}
@@ -501,7 +503,7 @@ frappe.ui.form.Layout = class Layout {
 		let tabs_content = this.tabs_content[0];
 		if (!tabs_list.length) return;
 
-		$(window).scroll(
+		$(".main-section").scroll(
 			frappe.utils.throttle(() => {
 				let current_scroll = document.documentElement.scrollTop;
 				if (current_scroll > 0 && last_scroll <= current_scroll) {

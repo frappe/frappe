@@ -195,6 +195,7 @@ frappe.patches.v15_0.copy_disable_prepared_report_to_prepared_report
 execute:frappe.reload_doc("desk", "doctype", "Form Tour")
 execute:frappe.delete_doc('Page', 'recorder', ignore_missing=True, force=True)
 frappe.patches.v14_0.modify_value_column_size_for_singles
+frappe.patches.v15_0.migrate_to_utm
 
 [post_model_sync]
 execute:frappe.get_doc('Role', 'Guest').save() # remove desk access
@@ -237,3 +238,7 @@ frappe.patches.v15_0.migrate_session_data
 frappe.custom.doctype.property_setter.patches.remove_invalid_fetch_from_expressions
 frappe.patches.v16_0.switch_default_sort_order
 frappe.integrations.doctype.oauth_client.patches.set_default_allowed_role_in_oauth_client
+execute:frappe.db.set_single_value("Workspace Settings", "workspace_setup_completed", 1)
+frappe.patches.v16_0.add_app_launcher_in_navbar_settings
+frappe.desk.doctype.workspace.patches.update_app
+frappe.patches.v16_0.move_role_desk_settings_to_user

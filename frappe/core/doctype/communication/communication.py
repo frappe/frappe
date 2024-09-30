@@ -3,7 +3,7 @@
 
 from collections import Counter
 from email.utils import getaddresses
-from urllib.parse import unquote
+from urllib.parse import unquote_plus
 
 from bs4 import BeautifulSoup
 
@@ -593,47 +593,62 @@ def parse_email(email_strings):
 	When automatic email linking is enabled, an email from email_strings can contain
 	a doctype and docname ie in the format `admin+doctype+docname@example.com` or `admin+doctype=docname@example.com`,
 	the email is parsed and doctype and docname is extracted.
+
+	see: RFC5233
 	"""
 	for email_string in email_strings:
 		if not email_string:
 			continue
 
 		for email in email_string.split(","):
-			email_username = email.split("@", 1)[0]
-			email_local_parts = email_username.split("+")
-			docname = doctype = None
-			if len(email_local_parts) == 3:
-				doctype = unquote(email_local_parts[1])
-				docname = unquote(email_local_parts[2])
+			local_part = email.split("@", 1)[0].strip('"')
+			user, detail = None, None
+			if "+" in local_part:
+				user, detail = local_part.split("+", 1)
+			elif "--" in local_part:
+				detail, user = local_part.rsplit("--", 1)
 
-			elif len(email_local_parts) == 2:
-				document_parts = email_local_parts[1].split("=", 1)
-				if len(document_parts) != 2:
-					continue
+			if not detail:
+				continue
 
-				doctype = unquote(document_parts[0])
-				docname = unquote(document_parts[1])
+			document_parts = None
+			if "=" in detail:
+				document_parts = detail.split("=", 1)
+			elif "+" in detail:
+				document_parts = detail.split("+", 1)
 
-			if doctype and docname:
-				yield doctype, docname
+			if not document_parts or len(document_parts) != 2:
+				continue
+
+			doctype = unquote_plus(document_parts[0])
+			docname = unquote_plus(document_parts[1])
+			yield doctype, docname
 
 
 def get_email_without_link(email):
 	"""Return email address without doctype links.
 
 	e.g. 'admin@example.com' is returned for email 'admin+doctype+docname@example.com'
+
+	see: RFC5233
 	"""
 	if not frappe.get_all("Email Account", filters={"enable_automatic_linking": 1}):
 		return email
 
 	try:
 		_email = email.split("@")
-		email_id = _email[0].split("+", 1)[0]
-		email_host = _email[1]
+		_local_part = _email[0].strip('"')
+		if "+" in _local_part:
+			user = _local_part.split("+", 1)[0]
+		elif "--" in _local_part:
+			user = _local_part.split("--", 1)[1]
+		else:
+			user = _local_part
+		domain = _email[1]
 	except IndexError:
 		return email
 
-	return f"{email_id}@{email_host}"
+	return f"{user}@{domain}"
 
 
 def update_parent_document_on_communication(doc):
@@ -652,8 +667,15 @@ def update_parent_document_on_communication(doc):
 	if status_field:
 		options = (status_field.options or "").splitlines()
 
-		# if status has a "Replied" option, then update the status for received communication
-		if ("Replied" in options) and doc.sent_or_received == "Received":
+		# if status has a "Open" option and status is "Replied", then update the status for received communication
+		if (
+			("Open" in options)
+			and parent.status == "Replied"
+			and doc.sent_or_received == "Received"
+			or (
+				parent.doctype == "Issue" and ("Open" in options) and doc.sent_or_received == "Received"
+			)  # For 'Issue', current status is not considered.
+		):
 			parent.db_set("status", "Open")
 			parent.run_method("handle_hold_time", "Replied")
 			apply_assignment_rule(parent)

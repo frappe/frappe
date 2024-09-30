@@ -7,7 +7,6 @@ import json
 import frappe
 from frappe import _
 from frappe.boot import get_allowed_report_names
-from frappe.config import get_modules_from_all_apps_for_user
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
@@ -20,6 +19,7 @@ from frappe.utils.dateutils import (
 	get_period,
 	get_period_beginning,
 )
+from frappe.utils.modules import get_modules_from_all_apps_for_user
 
 
 def get_permission_query_conditions(user):
@@ -278,6 +278,16 @@ def get_group_by_chart_config(chart, filters) -> dict | None:
 		order_by="count desc",
 		ignore_ifnull=True,
 	)
+
+	group_by_field_field = frappe.get_meta(doctype).get_field(
+		group_by_field
+	)  # get info about @group_by_field
+
+	if data and group_by_field_field.fieldtype == "Link":  # if @group_by_field is link
+		title_field = frappe.get_meta(group_by_field_field.options)  # get title field
+		if title_field.title_field:  # if has title_field
+			for item in data:  # replace chart labels from name to title value
+				item.name = frappe.get_value(group_by_field_field.options, item.name, title_field.title_field)
 
 	if data:
 		return {

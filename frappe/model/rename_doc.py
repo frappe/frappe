@@ -170,6 +170,7 @@ def rename_doc(
 			force=force,
 			ignore_permissions=ignore_permissions,
 			ignore_if_exists=ignore_if_exists,
+			old_doc=old_doc,
 		)
 
 	if not merge:
@@ -348,6 +349,7 @@ def validate_rename(
 	ignore_permissions: bool = False,
 	ignore_if_exists: bool = False,
 	save_point=False,
+	old_doc: Document | None = None,
 ) -> str:
 	# using for update so that it gets locked and someone else cannot edit it while this rename is going on!
 	if save_point:
@@ -373,7 +375,11 @@ def validate_rename(
 	if not merge and exists and not ignore_if_exists:
 		frappe.throw(_("Another {0} with name {1} exists, select another name").format(doctype, new))
 
-	if not (ignore_permissions or frappe.permissions.has_permission(doctype, "write", print_logs=False)):
+	kwargs = {"doctype": doctype, "ptype": "write", "print_logs": False}
+	if old_doc:
+		kwargs |= {"doc": old_doc}
+
+	if not (ignore_permissions or frappe.permissions.has_permission(**kwargs)):
 		frappe.throw(_("You need write permission to rename"))
 
 	if not force and not ignore_permissions and not meta.allow_rename:
@@ -478,22 +484,21 @@ def get_link_fields(doctype: str) -> list[dict]:
 		custom_fields = (
 			frappe.qb.from_(cf)
 			.select(cf.dt.as_("parent"), cf.fieldname, cf_issingle)
-			.where((cf.options == doctype) & (cf.fieldtype == "Link") & (cf.dt.notin(virtual_doctypes)))
-			.run(as_dict=True)
+			.where((cf.options == doctype) & (cf.fieldtype == "Link"))
 		)
+		if virtual_doctypes:
+			custom_fields = custom_fields.where(cf.dt.notin(virtual_doctypes))
+		custom_fields = custom_fields.run(as_dict=True)
 
 		ps_issingle = frappe.qb.from_(dt).select(dt.issingle).where(dt.name == ps.doc_type).as_("issingle")
 		property_setter_fields = (
 			frappe.qb.from_(ps)
 			.select(ps.doc_type.as_("parent"), ps.field_name.as_("fieldname"), ps_issingle)
-			.where(
-				(ps.property == "options")
-				& (ps.value == doctype)
-				& (ps.field_name.notnull())
-				& (ps.doc_type.notin(virtual_doctypes))
-			)
-			.run(as_dict=True)
+			.where((ps.property == "options") & (ps.value == doctype) & (ps.field_name.notnull()))
 		)
+		if virtual_doctypes:
+			property_setter_fields = property_setter_fields.where(ps.doc_type.notin(virtual_doctypes))
+		property_setter_fields = property_setter_fields.run(as_dict=True)
 
 		frappe.flags.link_fields[doctype] = standard_fields + custom_fields + property_setter_fields
 

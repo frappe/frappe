@@ -201,6 +201,10 @@ Reply-To: test2_@erpnext.com
 		)
 		self.assertIn("user@example.com", mail)
 
+	def test_poorly_encoded_messages2(self):
+		mail = Email.decode_email(" =?UTF-8?B?X\xe0\xe0Y?=  <xy@example.com>")
+		self.assertIn("xy@example.com", mail)
+
 
 def fixed_column_width(string, chunk_size):
 	parts = [string[0 + i : chunk_size + i] for i in range(0, len(string), chunk_size)]

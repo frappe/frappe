@@ -351,6 +351,10 @@ $.extend(frappe, {
 	add_switch_to_desk: function () {
 		$(".switch-to-desk").removeClass("hidden");
 	},
+	add_apps: function (obj) {
+		$(".logged-in .apps").attr("href", obj.route).text(obj.label);
+		$(".logged-in .apps").removeClass("hidden");
+	},
 	add_link_to_headings: function () {
 		$(".doc-content .from-markdown")
 			.find("h2, h3, h4, h5, h6")
@@ -421,7 +425,9 @@ frappe.setup_search = function (target, search_scope) {
 	}
 
 	let $search_input = $(`<div class="dropdown" id="dropdownMenuSearch">
-			<input type="search" class="form-control" placeholder="Search the docs (Press / to focus)" />
+			<input type="search" class="form-control" placeholder="${__(
+				"Search the docs (Press / to focus)"
+			)}" />
 			<div class="overflow-hidden shadow dropdown-menu w-100" aria-labelledby="dropdownMenuSearch">
 			</div>
 			<div class="search-icon">
@@ -606,6 +612,23 @@ $(document).ready(function () {
 	$(".logged-in").toggleClass("hide", logged_in ? false : true);
 
 	frappe.bind_navbar_search();
+
+	// add apps link
+	let apps = frappe.boot?.apps_data?.apps;
+	let obj = {
+		label: __("Apps"),
+		route: "/apps",
+	};
+	if (apps?.length) {
+		if (apps.length == 1) {
+			obj = {
+				label: __(apps[0].title),
+				route: apps[0].route,
+			};
+		}
+		let is_desk_apps = frappe.boot?.apps_data?.is_desk_apps;
+		!is_desk_apps && frappe.add_apps(obj);
+	}
 
 	// switch to app link
 	if (frappe.get_cookie("system_user") === "yes" && logged_in) {

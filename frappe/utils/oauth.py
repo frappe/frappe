@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 import frappe
 import frappe.utils
 from frappe import _
+from frappe.apps import get_default_path
 from frappe.utils.password import get_decrypted_password
 
 if TYPE_CHECKING:
@@ -27,6 +28,11 @@ def get_oauth2_providers() -> dict[str, dict]:
 		if provider.custom_base_url:
 			authorize_url = provider.base_url + provider.authorize_url
 			access_token_url = provider.base_url + provider.access_token_url
+
+		# Keycloak needs this, the base URL also has a route, that urljoin() ignores
+		if provider.name == "keycloak":
+			provider.api_endpoint = provider.base_url + provider.api_endpoint
+
 		out[provider.name] = {
 			"flow_params": {
 				"name": provider.name,
@@ -311,7 +317,7 @@ def redirect_post_login(desk_user: bool, redirect_to: str | None = None, provide
 	frappe.local.response["type"] = "redirect"
 
 	if not redirect_to:
-		desk_uri = "/app/workspace" if provider == "facebook" else "/app"
+		desk_uri = "/app/workspace" if provider == "facebook" else get_default_path()
 		redirect_to = frappe.utils.get_url(desk_uri if desk_user else "/me")
 
 	frappe.local.response["location"] = redirect_to

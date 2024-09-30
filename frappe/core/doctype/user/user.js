@@ -103,6 +103,11 @@ frappe.ui.form.on("User", {
 	refresh: function (frm) {
 		let doc = frm.doc;
 
+		frappe.xcall("frappe.apps.get_apps").then((r) => {
+			let apps = r?.map((r) => r.name) || [];
+			frm.set_df_property("default_app", "options", [" ", ...apps]);
+		});
+
 		if (frm.is_new()) {
 			frm.set_value("time_zone", frappe.sys_defaults.time_zone);
 		}
@@ -137,6 +142,15 @@ frappe.ui.form.on("User", {
 					__("View Permitted Documents"),
 					() =>
 						frappe.set_route("query-report", "Permitted Documents For User", {
+							user: frm.doc.name,
+						}),
+					__("Permissions")
+				);
+
+				frm.add_custom_button(
+					__("View Doctype Permissions"),
+					() =>
+						frappe.set_route("query-report", "User Doctype Permissions", {
 							user: frm.doc.name,
 						}),
 					__("Permissions")

@@ -100,6 +100,7 @@ class DocField(Document):
 		parentfield: DF.Data
 		parenttype: DF.Data
 		permlevel: DF.Int
+		placeholder: DF.Data | None
 		precision: DF.Literal["", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 		print_hide: DF.Check
 		print_hide_if_no_value: DF.Check
@@ -112,6 +113,7 @@ class DocField(Document):
 		search_index: DF.Check
 		set_only_once: DF.Check
 		show_dashboard: DF.Check
+		show_on_timeline: DF.Check
 		sort_options: DF.Check
 		translatable: DF.Check
 		unique: DF.Check

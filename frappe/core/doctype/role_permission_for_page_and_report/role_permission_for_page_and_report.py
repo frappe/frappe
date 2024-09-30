@@ -5,7 +5,6 @@ import frappe
 from frappe.core.doctype.report.report import is_prepared_report_enabled
 from frappe.model.document import Document
 from frappe.permissions import ALL_USER_ROLE
-from frappe.utils import cint
 
 
 class RolePermissionforPageandReport(Document):
@@ -67,16 +66,17 @@ class RolePermissionforPageandReport(Document):
 
 	def update_custom_roles(self):
 		args = self.get_args()
+		roles = self.get_roles()
 		name = frappe.db.get_value("Custom Role", args, "name")
 
-		args.update({"doctype": "Custom Role", "roles": self.get_roles()})
+		args.update({"doctype": "Custom Role", "roles": roles})
 
 		if self.report:
 			args.update({"ref_doctype": frappe.db.get_value("Report", self.report, "ref_doctype")})
 
 		if name:
 			custom_role = frappe.get_doc("Custom Role", name)
-			custom_role.set("roles", self.get_roles())
+			custom_role.set("roles", roles)
 			custom_role.save()
 		else:
 			frappe.get_doc(args).insert()
