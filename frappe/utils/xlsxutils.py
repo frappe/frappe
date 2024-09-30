@@ -9,6 +9,7 @@ from openpyxl import load_workbook
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
 from openpyxl.workbook.child import INVALID_TITLE_REGEX
+from xml.sax.saxutils import escape
 
 import frappe
 from frappe.utils.html_utils import unescape_html
@@ -39,6 +40,10 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 				value = handle_html(item)
 			else:
 				value = item
+
+			# Escape XML-incompatible characters
+            if isinstance(value, str):
+                value = escape(value)
 
 			if isinstance(item, str) and next(ILLEGAL_CHARACTERS_RE.finditer(value), None):
 				# Remove illegal characters from the string
