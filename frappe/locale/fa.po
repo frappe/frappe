@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-24 15:33+0000\n"
-"PO-Revision-Date: 2024-09-29 00:06\n"
+"PO-Revision-Date: 2024-09-30 00:38\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -2405,7 +2405,7 @@ msgstr "در حال واگذاری..."
 #. Option for the 'Type' (Select) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "Assignment"
-msgstr "وظیفه"
+msgstr "تخصیص"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
@@ -4457,7 +4457,7 @@ msgstr "پاک کردن و اضافه کردن الگو"
 #: frappe/public/js/frappe/list/list_view.js:1856
 msgctxt "Button in list view actions menu"
 msgid "Clear Assignment"
-msgstr ""
+msgstr "پاک کردن واگذاری"
 
 #: frappe/public/js/frappe/ui/keyboard.js:278
 msgid "Clear Cache and Reload"
@@ -13369,7 +13369,7 @@ msgstr "میانبرهای صفحه کلید"
 #. Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Keycloak"
-msgstr ""
+msgstr "Keycloak"
 
 #: frappe/public/js/frappe/utils/number_systems.js:37
 msgctxt "Number system"
@@ -27576,11 +27576,11 @@ msgstr "وردنا"
 
 #: frappe/templates/includes/login/login.js:341
 msgid "Verification"
-msgstr ""
+msgstr "تأیید"
 
 #: frappe/templates/includes/login/login.js:344 frappe/twofactor.py:353
 msgid "Verification Code"
-msgstr ""
+msgstr "کد تایید"
 
 #: frappe/templates/emails/delete_data_confirmation.html:10
 msgid "Verification Link"
@@ -29026,7 +29026,7 @@ msgstr "به نظر می رسد خوب است بروید!"
 
 #: frappe/templates/includes/contact.js:20
 msgid "You seem to have written your name instead of your email. Please enter a valid email address so that we can get back."
-msgstr ""
+msgstr "به نظر می رسد شما به جای ایمیل خود نام خود را نوشته اید. لطفا یک آدرس ایمیل معتبر وارد کنید تا بتوانیم برگردیم."
 
 #: frappe/public/js/frappe/list/bulk_operations.js:31
 msgid "You selected Draft or Cancelled documents"
