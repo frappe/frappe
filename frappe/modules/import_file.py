@@ -154,9 +154,13 @@ def import_file_by_path(
 
 			if doc["doctype"] == "DocType":
 				doctype_table = DocType("DocType")
-				frappe.qb.update(doctype_table).set(doctype_table.migration_hash, calculated_hash).where(
-					doctype_table.name == doc["name"]
-				).run()
+				_update = (
+					frappe
+					.qb
+					.update(doctype_table)
+					.set(doctype_table.migration_hash, calculated_hash)
+					.where(doctype_table.name == doc["name"]))
+				_update.run()
 
 			new_modified_timestamp = doc.get("modified")
 
@@ -196,9 +200,9 @@ def update_modified(original_modified, doc):
 	else:
 		doctype_table = DocType(doc["doctype"])
 
-		frappe.qb.update(doctype_table).set(doctype_table.modified, original_modified).where(
+		(frappe.qb.update(doctype_table).set(doctype_table.modified, original_modified).where(
 			doctype_table.name == doc["name"]
-		).run()
+		).run())
 
 
 def import_doc(

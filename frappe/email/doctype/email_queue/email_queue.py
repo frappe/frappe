@@ -457,7 +457,10 @@ def on_doctype_update():
 	"""Add index in `tabCommunication` for `(reference_doctype, reference_name)`"""
 	frappe.db.add_index("Email Queue", ("status", "send_after", "priority", "creation"), "index_bulk_flush")
 
-	frappe.db.add_index("Email Queue", ["message_id(140)"])
+	if frappe.is_oracledb:
+		frappe.db.add_index("Email Queue", ["message_id"])
+	else:
+		frappe.db.add_index("Email Queue", ["message_id(140)"])
 
 
 def get_email_retry_limit():

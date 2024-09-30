@@ -86,7 +86,10 @@ class Engine:
 			self.query = self.query.distinct()
 
 		if for_update:
-			self.query = self.query.for_update(skip_locked=skip_locked, nowait=not wait)
+			if frappe.is_oracledb:
+				self.query = self.query.for_update()
+			else:
+				self.query = self.query.for_update(skip_locked=skip_locked, nowait=not wait)
 
 		if group_by:
 			self.query = self.query.groupby(group_by)

@@ -1,6 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import datetime
+import re
 import json
 import weakref
 from functools import cached_property
@@ -551,17 +552,46 @@ class BaseDocument:
 
 		columns = list(d)
 		try:
-			frappe.db.sql(
-				"""INSERT INTO `tab{doctype}` ({columns})
-					VALUES ({values}) {conflict_handler}""".format(
-					doctype=self.doctype,
-					columns=", ".join("`" + c + "`" for c in columns),
-					values=", ".join(["%s"] * len(columns)),
-					conflict_handler=conflict_handler,
-				),
-				list(d.values()),
-			)
+			if frappe.conf.db_type == 'oracledb':
+				_values = []
+				for d_value in d.values():
+					if isinstance(d_value, str):
+						if re.search('\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+', d_value):
+							_values.append(f"to_timestamp('{d_value}', 'yyyy-mm-dd hh24:mi:ss.ff6')")
+						elif re.search('\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}', d_value):
+							_values.append(f"to_timestamp('{d_value}', 'yyyy-mm-dd hh24:mi:ss')")
+						else:
+							_values.append("'{}'".format(d_value.replace("'", "''")))
+					elif d_value is None:
+						_values.append('NULL')
+					else:
+						_values.append(str(d_value))
+
+				# TODO: handle conflict
+				frappe.db.sql(
+					"""INSERT INTO {schema}."tab{doctype}" ({columns})
+						VALUES ({values})""".format(
+						schema=frappe.conf.db_name.upper(),
+						doctype=self.doctype,
+						columns=", ".join('"' + c + '"' for c in columns),
+						values=", ".join(_values)
+					), []
+					# list(d.values()),
+				)
+				frappe.db.commit()
+			else:
+				frappe.db.sql(
+					"""INSERT INTO `tab{doctype}` ({columns})
+						VALUES ({values}) {conflict_handler}""".format(
+						doctype=self.doctype,
+						columns=", ".join("`" + c + "`" for c in columns),
+						values=", ".join(["%s"] * len(columns)),
+						conflict_handler=conflict_handler,
+					),
+					list(d.values()),
+				)
 		except Exception as e:
+			print(f"baseDocument error: {e}")
 			if frappe.db.is_primary_key_violation(e):
 				if self.meta.autoname == "hash":
 					# hash collision? try again
@@ -574,7 +604,8 @@ class BaseDocument:
 
 				if not ignore_if_duplicate:
 					frappe.msgprint(
-						_("{0} {1} already exists").format(_(self.doctype), frappe.bold(self.name)),
+						_("{0} {1} already exists").format(_(self.doctype),
+														   frappe.bold(self.name)),
 						title=_("Duplicate Name"),
 						indicator="red",
 					)

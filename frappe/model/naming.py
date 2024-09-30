@@ -221,12 +221,7 @@ def set_naming_from_document_naming_rule(doc):
 	if doc.doctype in IGNORED_DOCTYPES:
 		return
 
-	document_naming_rules = frappe.cache_manager.get_doctype_map(
-		"Document Naming Rule",
-		doc.doctype,
-		filters={"document_type": doc.doctype, "disabled": 0},
-		order_by="priority desc",
-	)
+	document_naming_rules = frappe.cache_manager.get_doctype_map("Document Naming Rule", doc.doctype, filters={"document_type": doc.doctype, "disabled": 0}, order_by="priority desc")
 
 	for d in document_naming_rules:
 		frappe.get_cached_doc("Document Naming Rule", d.name).apply(doc)

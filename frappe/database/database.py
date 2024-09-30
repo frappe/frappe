@@ -88,7 +88,7 @@ class Database:
 		self.password = password
 		self.cur_db_name = cur_db_name
 		self._conn = None
-		if service_name is None:
+		if self.db_type == 'oracledb' and service_name is None:
 			raise ValueError("None value is not allowed in service_name")
 		self.service_name = service_name
 
@@ -237,6 +237,8 @@ class Database:
 				print(f"[query: {query}]")
 				self._cursor.execute(query)
 		except Exception as e:
+			if self.is_duplicate_entry(e):
+				return ()
 			if self.is_syntax_error(e):
 				frappe.log(f"Syntax error in query:\n{query} {values or ''}")
 
@@ -1079,7 +1081,9 @@ class Database:
 		self.sql(f"savepoint {save_point}")
 
 	def release_savepoint(self, save_point):
-		self.sql(f"release savepoint {save_point}")
+		if self.db_type != 'oracledb':
+			# TODO: Do research in future for oracle db
+			self.sql(f"release savepoint {save_point}")
 
 	def field_exists(self, dt, fn):
 		"""Return true of field exists."""

@@ -2,7 +2,7 @@ from datetime import datetime, time, timedelta
 from typing import Any
 
 from pypika.queries import QueryBuilder
-from pypika.terms import Criterion, Function, ValueWrapper
+from pypika.terms import Array, Criterion, Function, Node, NodeT, NullValue, Term, Tuple, ValueWrapper
 from pypika.utils import format_alias_sql
 
 import frappe
@@ -52,9 +52,14 @@ class ParameterizedValueWrapper(ValueWrapper):
 		**kwargs: Any,
 	) -> str:
 		if param_wrapper and isinstance(self.value, str):
-			# add quotes if it's a string value
-			value_sql = self.get_value_sql(quote_char=quote_char, **kwargs)
-			sql = param_wrapper.get_sql(param_value=value_sql, **kwargs)
+			if self.value.startswith('to_timestamp'):
+				sql = self.value
+			else:
+				# add quotes if it's a string value
+				value_sql = self.get_value_sql(quote_char=quote_char, **kwargs)
+				sql = param_wrapper.get_sql(param_value=value_sql, **kwargs)
+		elif isinstance(self.value, str) and self.value.startswith('to_timestamp'):
+			sql = self.value
 		else:
 			# * BUG: pypika doesen't parse timedeltas and datetime.time
 			if isinstance(self.value, timedelta):
@@ -63,6 +68,8 @@ class ParameterizedValueWrapper(ValueWrapper):
 				self.value = format_time(self.value)
 			elif isinstance(self.value, datetime):
 				self.value = frappe.db.format_datetime(self.value)
+				if frappe.is_oracledb:
+					return f"to_timestamp('{self.value}', 'yyyy-mm-dd hh24:mi:ss.ff6')"
 
 			sql = self.get_value_sql(
 				quote_char=quote_char,
@@ -118,6 +125,5 @@ class SubQuery(Criterion):
 	def get_sql(self, **kwg: Any) -> str:
 		kwg["subquery"] = True
 		return self.subq.get_sql(**kwg)
-
 
 subqry = SubQuery

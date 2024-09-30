@@ -531,11 +531,26 @@ class Document(BaseDocument):
 		frappe.db.delete("Singles", {"doctype": self.doctype})
 		for field, value in d.items():
 			if field != "doctype":
-				frappe.db.sql(
-					"""insert into `tabSingles` (doctype, field, value)
-					values (%s, %s, %s)""",
-					(self.doctype, field, value),
-				)
+				print(f"update_single: [{field}, {value}]")
+				if frappe.is_oracledb:
+					def process_value(value):
+						if value is None:
+							return 'NULL'
+						elif isinstance(value, str) or hasattr(value, 'replace'):
+							return "'{}'".format(value.replace("'", "''"))
+						else:
+							return f"'{value}'"
+
+					frappe.db.sql(
+						f'''insert into {frappe.conf.db_name.upper()}."tabSingles" ("doctype", "field", "value") values ('{self.doctype}', '{field}', {process_value(value=value)})''',
+						[],
+					)
+				else:
+					frappe.db.sql(
+						"""insert into `tabSingles` (doctype, field, value)
+						values (%s, %s, %s)""",
+						(self.doctype, field, value),
+					)
 
 		if self.doctype in frappe.db.value_cache:
 			del frappe.db.value_cache[self.doctype]
@@ -1684,7 +1699,7 @@ def bulk_insert(
 	doctype: str,
 	documents: Iterable["Document"],
 	ignore_duplicates: bool = False,
-	chunk_size=10_000,
+	chunk_size=3,
 ):
 	"""Insert simple Documents objects to database in bulk.
 

@@ -237,8 +237,9 @@ def get_defaults_for(parent="__default"):
 			.where(table.parent == parent)
 			.select(table.defkey, table.defvalue)
 			.orderby(table.creation)
-			.run(as_dict=True)
 		)
+
+		res = res.run(as_dict=True)
 
 		defaults = frappe._dict()
 		for d in res:

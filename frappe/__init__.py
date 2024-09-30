@@ -202,6 +202,7 @@ def set_user_lang(user: str, user_language: str | None = None) -> None:
 db = local("db")
 qb = local("qb")
 conf = local("conf")
+is_oracledb = local("is_oracledb")
 form = form_dict = local("form_dict")
 request = local("request")
 job = local("job")
@@ -304,6 +305,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.dev_server = _dev_server
 	local.qb = get_query_builder(local.conf.db_type)
 	local.qb.get_query = get_query
+	local.is_oracledb = local.conf.db_type == "oracledb"
 	setup_redis_cache_connection()
 
 	if not _qb_patched.get(local.conf.db_type):

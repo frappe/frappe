@@ -73,7 +73,8 @@ class MariaDBTable(DBTable):
 			for col in columns_to_modify
 		]
 		modify_column_query.extend(
-			[f"ADD UNIQUE INDEX IF NOT EXISTS {col.fieldname} (`{col.fieldname}`)" for col in self.add_unique]
+			[f"ADD UNIQUE INDEX IF NOT EXISTS {col.fieldname} (`{col.fieldname}`)"
+			 for col in self.add_unique]
 		)
 		add_index_query = [
 			f"ADD INDEX `{col.fieldname}_index`(`{col.fieldname}`)"

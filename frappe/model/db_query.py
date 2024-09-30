@@ -126,7 +126,11 @@ class DatabaseQuery:
 		if fields:
 			self.fields = fields
 		else:
-			self.fields = [f"`tab{self.doctype}`.`{pluck or 'name'}`"]
+			if frappe.conf.db_type == 'oracledb':
+				# TODO: check below syntax in future
+				self.fields = [f'tab{self.doctype.replace(" ", "_")}."{pluck or "name"}"']
+			else:
+				self.fields = [f"`tab{self.doctype}`.`{pluck or 'name'}`"]
 
 		if start:
 			limit_start = start
@@ -222,6 +226,15 @@ class DatabaseQuery:
 		if frappe.db.db_type == "postgres" and args.order_by and args.group_by:
 			args = self.prepare_select_args(args)
 
+		if frappe.is_oracledb:
+			_old_alias_table = args.tables
+			_new_alias_table = args.tables.replace(' ', '_')
+			for k in ('conditions', 'group_by', 'order_by'):
+				if args[k]:
+					args[k] = args[k].replace(_old_alias_table, _new_alias_table).strip()
+			if " join " not in args.tables.lower():
+				args.tables = f'{frappe.conf.db_name}."{args.tables}" {_new_alias_table}'
+
 		query = """select {fields}
 			from {tables}
 			{conditions}
@@ -257,13 +270,25 @@ class DatabaseQuery:
 		args.tables = self.tables[0]
 
 		# left join parent, child tables
+		if self.tables[1:]:
+			args.tables = f'{frappe.conf.db_name.upper()}."{args.tables}" {args.tables.replace(" ", "_")}'
 		for child in self.tables[1:]:
-			parent_name = cast_name(f"{self.tables[0]}.name")
-			args.tables += f" {self.join} {child} on ({child}.parenttype = {frappe.db.escape(self.doctype)} and {child}.parent = {parent_name})"
+			if frappe.is_oracledb:
+				parent_name = cast_name(f'{self.tables[0].replace(" ", "_")}."name"')
+				_child_table = f'{frappe.conf.db_name.upper()}."{child}"'
+				_child_alias = child.replace(' ', '_')
+				args.tables += f' {self.join} {_child_table} {_child_alias} on ({_child_alias}."parenttype" = {frappe.db.escape(self.doctype)} and {_child_alias}."parent" = {parent_name})'
+			else:
+				parent_name = cast_name(f"{self.tables[0]}.name")
+				args.tables += f" {self.join} {child} on ({child}.parenttype = {frappe.db.escape(self.doctype)} and {child}.parent = {parent_name})"
 
 		# left join link tables
 		for link in self.link_tables:
-			args.tables += f" {self.join} {link.table_name} {link.table_alias} on ({link.table_alias}.`name` = {self.tables[0]}.`{link.fieldname}`)"
+			if frappe.is_oracledb:
+				args.tables += f' {self.join} {link.table_name} {link.table_alias} on ({link.table_alias.replace(" ", "_")}."name" = {self.tables[0].replace(" ", "_")}."{link.fieldname}")'
+			else:
+				args.tables += f" {self.join} {link.table_name} {link.table_alias} on ({link.table_alias}.`name` = {self.tables[0]}.`{link.fieldname}`)"
+
 
 		if self.grouped_or_conditions:
 			self.conditions.append(f"({' or '.join(self.grouped_or_conditions)})")
@@ -297,7 +322,13 @@ class DatabaseQuery:
 				col, _, new = field.split()
 				fields.append(f"`{col}` as {new}")
 			else:
-				fields.append(f"`{field}`")
+				if frappe.is_oracledb:
+					if "." not in field:
+						fields.append(f'"{field}"')
+					else:
+						fields.append(str(field))
+				else:
+					fields.append(f"`{field}`")
 
 		args.fields = ", ".join(fields)
 
@@ -445,7 +476,10 @@ class DatabaseQuery:
 
 	def extract_tables(self):
 		"""extract tables from fields"""
-		self.tables = [f"`tab{self.doctype}`"]
+		if frappe.conf.db_type == 'oracledb':
+			self.tables = [f"tab{self.doctype}"]
+		else:
+			self.tables = [f"`tab{self.doctype}`"]
 		sql_functions = [
 			"dayofyear(",
 			"extract(",
@@ -473,10 +507,11 @@ class DatabaseQuery:
 					table_name = table_name[13:]
 				if table_name.lower().startswith("distinct"):
 					table_name = table_name[8:].strip()
-				if table_name[0] != "`":
+				if not frappe.is_oracledb and table_name[0] != "`":
 					table_name = f"`{table_name}`"
 				if (
 					table_name not in self.query_tables
+					and (frappe.is_oracledb and table_name not in (_t.replace(' ', '_') for _t in self.query_tables))
 					and table_name not in self.linked_table_aliases.values()
 				):
 					self.append_table(table_name)
@@ -663,7 +698,10 @@ class DatabaseQuery:
 				if ch_doctype in self.linked_table_aliases:
 					ch_doctype = self.linked_table_aliases[ch_doctype]
 
-				ch_doctype = ch_doctype.replace("`", "").replace("tab", "", 1)
+				if frappe.is_oracledb:
+					ch_doctype = ch_doctype.replace('"', "").replace("tab", "", 1)
+				else:
+					ch_doctype = ch_doctype.replace("`", "").replace("tab", "", 1)
 
 				if wrap_grave_quotes(table) in self.query_tables:
 					permitted_child_table_fields = get_permitted_fields(
@@ -711,11 +749,21 @@ class DatabaseQuery:
 		additional_filters_config = get_additional_filters_from_hooks()
 		f = get_filter(self.doctype, f, additional_filters_config)
 
-		tname = "`tab" + f.doctype + "`"
+		if frappe.conf.db_type == 'oracledb':
+			tname = f'tab{f.doctype}'
+		else:
+			tname = "`tab" + f.doctype + "`"
 		if tname not in self.tables:
 			self.append_table(tname)
 
-		column_name = cast_name(f.fieldname if "ifnull(" in f.fieldname else f"{tname}.`{f.fieldname}`")
+		if frappe.is_oracledb:
+			column_name = cast_name(
+				f.fieldname if "ifnull(" in f.fieldname
+				else f'{tname.replace(" ", "_")}."{f.fieldname}"')
+		else:
+			column_name = cast_name(
+				f.fieldname if "ifnull(" in f.fieldname else f"{tname}.`{f.fieldname}`"
+			)
 
 		if f.operator.lower() in additional_filters_config:
 			f.update(get_additional_filter_field(additional_filters_config, f, f.value))
@@ -1096,9 +1144,14 @@ class DatabaseQuery:
 					sort_field = self.doctype_meta.sort_field or "modified"
 					sort_order = (self.doctype_meta.sort_field and self.doctype_meta.sort_order) or "desc"
 					if self.order_by:
-						args.order_by = (
-							f"`tab{self.doctype}`.`{sort_field or 'modified'}` {sort_order or 'desc'}"
-						)
+						if frappe.is_oracledb:
+							args.order_by = (
+								f"tab{self.doctype.replace(' ', '_')}.\"{sort_field or 'modified'}\" {sort_order or 'desc'}"
+							)
+						else:
+							args.order_by = (
+								f"`tab{self.doctype}`.`{sort_field or 'modified'}` {sort_order or 'desc'}"
+							)
 
 	def validate_order_by_and_group_by(self, parameters: str):
 		"""Check order by, group by so that atleast one column is selected and does not have subquery"""
@@ -1174,7 +1227,7 @@ def cast_name(column: str) -> str:
 	input - "ifnull(`tabBlog Post`.`name`, '')=''"
 	output - "ifnull(cast(`tabBlog Post`.`name` as varchar), '')=''" """
 
-	if frappe.db.db_type == "mariadb":
+	if frappe.db.db_type in ("mariadb", "oracledb"):
 		return column
 
 	kwargs = {"string": column}
@@ -1352,7 +1405,11 @@ def requires_owner_constraint(role_permissions):
 
 
 def wrap_grave_quotes(table: str) -> str:
-	if table[0] != "`":
+	if frappe.is_oracledb:
+		return table
+		# if table[0] != '"':
+		# 	table = f'"{table}"'
+	elif table[0] != "`":
 		table = f"`{table}`"
 	return table
 

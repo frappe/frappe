@@ -44,6 +44,9 @@ class DBTable:
 			self.alter()
 
 	def create(self):
+		"""
+		Child class method call, if implemented.
+		"""
 		pass
 
 	def get_column_definitions(self):
@@ -182,7 +185,7 @@ class DbColumn:
 		self.unique = unique
 		self.precision = precision
 
-	def get_definition(self, for_modification=False):
+	def get_definition(self, for_modification=False, syntax_template: str = " not null default {}"):
 		column_def = get_definition(self.fieldtype, precision=self.precision, length=self.length)
 
 		if not column_def:
@@ -190,11 +193,11 @@ class DbColumn:
 
 		if self.fieldtype in ("Check", "Int"):
 			default_value = cint(self.default) or 0
-			column_def += f" not null default {default_value}"
+			column_def += syntax_template.format(default_value)  # f" not null default {default_value}"
 
 		elif self.fieldtype in ("Currency", "Float", "Percent"):
 			default_value = flt(self.default) or 0
-			column_def += f" not null default {default_value}"
+			column_def += syntax_template.format(default_value)  # f" not null default {default_value}"
 
 		elif (
 			self.default

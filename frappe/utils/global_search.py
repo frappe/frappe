@@ -448,6 +448,16 @@ def sync_value(value: dict):
 				`title`=%(title)s,
 				`route`=%(route)s
 		""",
+			"oracledb": """INSERT INTO "__global_search"
+			("doctype", "name", "content", "published", "title", "route")
+			VALUES (:doctype, :name, :content, :published, :title, :route)
+		""",
+			# TODO: Research on insert-update case in oracle db
+			# ON CONFLICT("doctype", "name") DO UPDATE SET
+			# "content" =:content,
+			# "published" =:published,
+			# "title" =:title,
+			# "route" =:route
 		},
 		value,
 	)

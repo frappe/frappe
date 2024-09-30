@@ -1,10 +1,16 @@
+import re
+import itertools
+
+from typing import Iterable, Sequence, Any
+
 import oracledb
 
 import frappe
-from frappe.database.database import Database
+from frappe.database.database import Database, INDEX_PATTERN
 from frappe.database.db_manager import DbManager
 from frappe.database.utils import EmptyQueryValues, LazyDecode
 from frappe.utils import cstr, get_table_name, get_datetime, UnicodeWithAttrs
+from frappe.database.oracledb.schema import OracleDBTable
 
 
 class OracleDbManager(DbManager):
@@ -216,7 +222,8 @@ class OracleDBDatabase(OracleDBExceptionUtil, OracleDBConnectionUtil, Database):
 		if to_query:
 			table_instance = frappe.qb.Table('all_tables')
 
-			query = frappe.qb.from_(table_instance).select(table_instance.table_name).where(table_instance.tablespace_name.notin(["SYSTEM", "SYSAUX"]))
+			query = frappe.qb.from_(table_instance).select(table_instance.table_name).where(
+				table_instance.tablespace_name.notin(["SYSTEM", "SYSAUX"]))
 
 			tables = query.run(pluck=True)
 			frappe.cache.set_value("db_tables", tables)
@@ -257,16 +264,17 @@ class OracleDBDatabase(OracleDBExceptionUtil, OracleDBConnectionUtil, Database):
 							PRIMARY KEY ("doctype", "name", "fieldname"))
 			"""
 		)
-		# self.sql_ddl("""
-		# 	CREATE TABLE "__Auth" (
-		# 	"doctype" VARCHAR2(140) NOT NULL,
-		# 	"name" VARCHAR2(255) NOT NULL,
-		# 	"fieldname" VARCHAR2(140) NOT NULL,
-		# 	"password" VARCHAR2(255) NOT NULL,
-		# 	"encrypted" NUMBER(1) DEFAULT 0 NOT NULL,
-		# 	PRIMARY KEY ("doctype", "name", "fieldname")
-		# 	)
-		# 	""")
+
+	# self.sql_ddl("""
+	# 	CREATE TABLE "__Auth" (
+	# 	"doctype" VARCHAR2(140) NOT NULL,
+	# 	"name" VARCHAR2(255) NOT NULL,
+	# 	"fieldname" VARCHAR2(140) NOT NULL,
+	# 	"password" VARCHAR2(255) NOT NULL,
+	# 	"encrypted" NUMBER(1) DEFAULT 0 NOT NULL,
+	# 	PRIMARY KEY ("doctype", "name", "fieldname")
+	# 	)
+	# 	""")
 
 	def create_global_search_table(self) -> None:
 		if "__global_search" not in self.get_tables():
@@ -291,3 +299,181 @@ class OracleDBDatabase(OracleDBExceptionUtil, OracleDBConnectionUtil, Database):
 				"data" VARCHAR2(4000),
 				UNIQUE("user", "doctype"))
 		""")
+
+	def get_table_columns_description(self, table_name: str):
+		# TODO: Below Query written by Mayank, which is not logically same with other database queries.
+		return self.sql(
+			f"""
+			SELECT column_name AS "name",
+			table_name AS "table",
+			data_type AS "type",
+			CASE WHEN (nullable = 'N') THEN 1 ELSE 0 end AS "not_nullable",
+			data_default AS "default",
+						CASE WHEN (SELECT CASE WHEN uc.constraint_type = 'U' THEN 1 ELSE 0 end
+								FROM user_cons_columns ucc INNER JOIN user_constraints uc
+								ON ucc.constraint_name = uc.constraint_name
+								WHERE ucc.table_name = utc.table_name
+								AND ucc.column_name = utc.column_name
+								AND uc.constraint_type != 'C'
+							) = 1 THEN 1 ELSE 0 END AS "unique",
+							CASE WHEN (SELECT CASE WHEN uic.column_position = 1 THEN 1 ELSE 0 end
+								FROM user_ind_columns uic
+								JOIN user_indexes ui
+								ON uic.index_name = ui.index_name
+								WHERE ui.uniqueness = 'NONUNIQUE'
+								AND uic.column_name = utc.COLUMN_NAME
+								AND uic.table_name = utc.TABLE_NAME
+							) = 1 THEN 'true' ELSE 'false' end AS "index"
+			FROM user_tab_columns utc
+			WHERE utc.table_name = '{table_name}'""", as_dict=True)
+
+	def updatedb(self, doctype, meta=None):
+		"""
+		Syncs a `DocType` to the table
+		* creates if required
+		* updates columns
+		* updates indices"""
+		res = self.sql('SELECT "issingle" FROM {}."tabDocType" WHERE "name" = {}'.format(
+			frappe.conf.db_name.upper(), f"'{doctype}'"), []
+		)
+		if not res:
+			raise Exception(f'Wrong doctype {doctype} in updatedb')
+
+		if not res[0][0]:
+			db_table = OracleDBTable(doctype, meta)
+			db_table.validate()
+			db_table.sync()
+			self.commit()
+
+	def escape(self, s, percent=True):
+		if isinstance(s, bytes):
+			s = s.decode("utf-8")
+		if percent:
+			s = s.replace('%', '%%')
+		if s == "":
+			return "NULL"
+		return "'" + s + "'"
+
+	def get_db_table_columns(self, table) -> list[str]:
+		columns = frappe.cache.hget("table_columns", table)
+		if columns is None:
+			user_tab_columns = frappe.qb.Table("user_tab_columns")
+
+			columns = (
+				frappe.qb.from_(user_tab_columns)
+				.select(user_tab_columns.column_name)
+				.where(user_tab_columns.table_name == table)
+				.run(pluck=True)
+			)
+
+			if columns:
+				frappe.cache.hset("table_columns", table, columns)
+
+		return columns
+
+	def add_index(self, doctype: str, fields: list, index_name: str = None):
+		table_name = get_table_name(doctype)
+		index_name = index_name or table_name + '_' + "_".join(fields) + "_index"
+		index_name = INDEX_PATTERN.sub(r"", index_name)
+		if not self.has_index(table_name, index_name, fields):
+			self.commit()
+			fields = ['"' + i + '"' for i in fields]
+			self.sql(f'CREATE INDEX "{index_name}" ON "{table_name}" ({", ".join(fields)})')
+
+	def has_index(self, table_name, index_name, fields=None):
+		"""
+		Check if a table has a specific index.
+		"""
+		if not fields:
+			result = self.sql(f"""
+			SELECT index_name from USER_IND_COLUMNS
+			WHERE table_name = '{table_name}' AND index_name = '{index_name}'
+			""")
+		else:
+			if len(fields) == 1:
+				field_string = f" = '{fields[0]}'  "
+			else:
+				field_string = f' IN {tuple(fields)}  '
+			result = self.sql("""
+			SELECT count(column_name)
+			FROM USER_IND_COLUMNS WHERE column_name """ + field_string +
+							  f"""AND table_name = '{table_name}'
+			GROUP  BY index_name, table_name
+			""", pluck=True)
+		print(f'Index check {result}')
+		return bool(result)
+
+	def add_unique(self, doctype, fields, constraint_name=None):
+		table_name = get_table_name(doctype)
+		constraint_name = constraint_name or "unique_" + "_".join(fields)
+		fields = ['"' + i + '"' for i in fields]
+		fields_sql = ', '.join(fields)
+		if not self.sql(f"""
+		SELECT CONSTRAINT_NAME FROM user_constraints
+		WHERE table_name = '{table_name}' AND CONSTRAINT_TYPE = 'U' AND CONSTRAINT_NAME = '{constraint_name}'
+		"""):
+			self.commit()
+			self.sql(
+				f'ALTER TABLE "{table_name}" ADD CONSTRAINT "{constraint_name}" UNIQUE ({fields_sql})')
+
+	def bulk_insert(
+		self,
+		doctype: str,
+		fields: list[str],
+		values: Iterable[Sequence[Any]],
+		ignore_duplicates=False,
+		*,
+		chunk_size=3,
+	):
+
+
+		"""
+		Insert multiple records at a time
+
+		:param doctype: Doctype name
+		:param fields: list of fields
+		:params values: iterable of values
+		"""
+		table = frappe.qb.DocType(doctype)
+
+		query = frappe.qb.into(table).columns(fields)
+
+		if ignore_duplicates:
+			# Pypika does not have same api for ignoring duplicates
+			if frappe.conf.db_type == "mariadb":
+				query = query.ignore()
+			elif frappe.conf.db_type == "postgres":
+				query = query.on_conflict().do_nothing()
+
+		value_iterator = iter(values)
+		_fields = ",".join(f'"{i}"' for i in fields)
+		while value_chunk := tuple(itertools.islice(value_iterator, chunk_size)):
+			insert_bulk_query = """
+			INSERT ALL
+			 {}
+			 SELECT * FROM DUAL
+			 """.format(" ".join(
+				f'INTO {frappe.conf.db_name.upper()}."{query._insert_table.alias}" ({_fields}) VALUES ({",".join([self.check_dateformat(value) for value in row])}) '
+				for row in value_chunk
+			))
+
+			frappe.db.sql(
+				insert_bulk_query,
+				[]
+			)
+			# query.insert(*(
+			# tuple([self.check_dateformat(value) for value in row])
+			# for row in value_chunk
+			# )).run()
+
+	@staticmethod
+	def check_dateformat(value):
+		if value is None:
+			return 'NULL'
+		if not isinstance(value, str):
+			return str(value)
+		if re.search('\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+', value):  # noqa: W605
+			return f"to_timestamp('{value}', 'yyyy-mm-dd hh24:mi:ss.ff6')"
+		elif re.search('\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}', value):  # noqa: W605
+			return f"to_timestamp('{value}', 'yyyy-mm-dd hh24:mi:ss')"
+		return "'{}'".format(value.replace("'", "''"))
