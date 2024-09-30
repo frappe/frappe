@@ -1,5 +1,12 @@
 <template>
-	<div class="mb-2 flex w-full items-center justify-center overflow-hidden rounded-lg bg-gray-900 p-2">
+	<div
+		@click="
+			() => {
+				if (route) $router.push(route)
+			}
+		"
+		class="mb-2 flex w-full items-center justify-center overflow-hidden rounded-lg bg-gray-900 p-2"
+	>
 		<Avatar :image="imageURL" size="2xl" shape="square" />
 		<div class="flex-grow pl-2">
 			<h2 class="truncate text-lg font-semibold text-white">{{ title }}</h2>

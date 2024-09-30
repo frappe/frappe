@@ -9,6 +9,7 @@
 				:imageURL="card.imageURL"
 				:title="card.title"
 				:subtitle="card.subtitle"
+				:route="card.route"
 				@click="
 					() => {
 						selectedCard = card
