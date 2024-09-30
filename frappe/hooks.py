@@ -157,6 +157,7 @@ doc_events = {
 			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.update_due_date",
 			"frappe.core.doctype.user_type.user_type.apply_permissions_for_non_standard_user_type",
+			"frappe.core.doctype.permission_log.permission_log.make_perm_log",
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
@@ -178,6 +179,7 @@ doc_events = {
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points",
 			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone",
 		],
+		"after_delete": ["frappe.core.doctype.permission_log.permission_log.make_perm_log"],
 	},
 	"Event": {
 		"after_insert": "frappe.integrations.doctype.google_calendar.google_calendar.insert_event_in_google_calendar",
@@ -422,6 +424,7 @@ ignore_links_on_delete = [
 	"Workspace",
 	"Route History",
 	"Access Log",
+	"Permission Log",
 ]
 
 # Request Hooks

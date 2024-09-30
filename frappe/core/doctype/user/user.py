@@ -778,6 +778,9 @@ class User(Document):
 		if not self.time_zone:
 			self.time_zone = get_system_timezone()
 
+	def get_permission_log_options(self, event=None):
+		return {"fields": ("role_profile_name", "roles", "module_profile", "block_modules")}
+
 	def check_roles_added(self):
 		if self.user_type != "System User" or self.roles or not self.is_new():
 			return
