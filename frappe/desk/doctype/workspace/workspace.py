@@ -34,6 +34,7 @@ class Workspace(Document):
 		charts: DF.Table[WorkspaceChart]
 		content: DF.LongText | None
 		custom_blocks: DF.Table[WorkspaceCustomBlock]
+		external_link: DF.Data | None
 		for_user: DF.Data | None
 		hide_custom: DF.Check
 		indicator_color: DF.Literal[
@@ -52,6 +53,8 @@ class Workspace(Document):
 		]
 		is_hidden: DF.Check
 		label: DF.Data
+		link_to: DF.DynamicLink | None
+		link_type: DF.Literal["DocType", "Page", "Report"]
 		links: DF.Table[WorkspaceLink]
 		module: DF.Link | None
 		number_cards: DF.Table[WorkspaceNumberCard]
@@ -63,6 +66,7 @@ class Workspace(Document):
 		sequence_id: DF.Float
 		shortcuts: DF.Table[WorkspaceShortcut]
 		title: DF.Data
+		type: DF.Literal["Workspace", "Link", "URL"]
 	# end: auto-generated types
 
 	def validate(self):
@@ -275,6 +279,10 @@ def new_page(new_page):
 	doc.for_user = page.get("for_user")
 	doc.public = page.get("public")
 	doc.app = page.get("app")
+	doc.type = page.get("type")
+	doc.link_to = page.get("link_to")
+	doc.link_type = page.get("link_type")
+	doc.external_link = page.get("external_link")
 	doc.sequence_id = last_sequence_id(doc) + 1
 	doc.save(ignore_permissions=True)
 

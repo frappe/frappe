@@ -1307,7 +1307,7 @@ Object.assign(frappe.utils, {
 					route =
 						frappe.router.slug(item.report_ref_doctype) + "/view/report/" + item.name;
 				} else {
-					route = "/report/" + item.name;
+					route = "report/" + item.name;
 				}
 			} else if (type === "page") {
 				route = item.name;

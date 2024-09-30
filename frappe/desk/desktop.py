@@ -447,6 +447,10 @@ def get_workspace_sidebar_items():
 		"indicator_color",
 		"is_hidden",
 		"app",
+		"type",
+		"link_type",
+		"link_to",
+		"external_link",
 	]
 	all_pages = frappe.get_all(
 		"Workspace", fields=fields, filters=filters, order_by=order_by, ignore_permissions=True
@@ -480,6 +484,14 @@ def get_workspace_sidebar_items():
 				page["app"] = frappe.db.get_value("Module Def", page["module"], "app_name") or get_module_app(
 					page["module"]
 				)
+			if page["link_type"] == "Report":
+				report_type, ref_doctype = frappe.db.get_value(
+					"Report", page["link_to"], ["report_type", "ref_doctype"]
+				)
+				page["report"] = {
+					"report_type": report_type,
+					"ref_doctype": ref_doctype,
+				}
 
 		except frappe.PermissionError:
 			pass
