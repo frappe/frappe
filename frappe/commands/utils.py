@@ -260,16 +260,16 @@ def execute(context: CliCtxObj, method, args=None, kwargs=None, profile=False):
 
 			if args:
 				try:
-					args = eval(args)
+					fn_args = eval(args)
 				except NameError:
-					args = [args]
+					fn_args = [args]
 			else:
-				args = ()
+				fn_args = ()
 
 			if kwargs:
-				kwargs = eval(kwargs)
+				fn_kwargs = eval(kwargs)
 			else:
-				kwargs = {}
+				fn_kwargs = {}
 
 			if profile:
 				import cProfile
@@ -278,13 +278,13 @@ def execute(context: CliCtxObj, method, args=None, kwargs=None, profile=False):
 				pr.enable()
 
 			try:
-				ret = frappe.get_attr(method)(*args, **kwargs)
+				ret = frappe.get_attr(method)(*fn_args, **fn_kwargs)
 			except Exception:
 				# eval is safe here because input is from console
 				code = compile(method, "<bench execute>", "eval")
 				ret = eval(code, globals(), locals())  # nosemgrep
 				if callable(ret):
-					suffix = "(*args, **kwargs)"
+					suffix = "(*fn_args, **fn_kwargs)"
 					code = compile(method + suffix, "<bench execute>", "eval")
 					ret = eval(code, globals(), locals())  # nosemgrep
 
