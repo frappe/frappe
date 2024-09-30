@@ -14,6 +14,7 @@ Example:
 
 
 """
+
 import json
 import os
 import typing
@@ -496,7 +497,7 @@ class Meta(Document):
 					field_order = fields_to_prepend
 
 		existing_fields = set(field_order) if field_order else False
-		insert_after_map = {}
+		insertion_map = {}
 
 		for index, field in enumerate(self.fields):
 			if existing_fields and field.fieldname in existing_fields:
@@ -505,19 +506,29 @@ class Meta(Document):
 			if not getattr(field, "is_custom_field", False):
 				if existing_fields:
 					# compute insert_after from previous field
-					insert_after_map.setdefault(self.fields[index - 1].fieldname, []).append(field.fieldname)
+					insertion_map.setdefault(self.fields[index - 1].fieldname, []).append(field.fieldname)
 				else:
 					field_order.append(field.fieldname)
 
-			elif insert_after := getattr(field, "insert_after", None):
-				insert_after_map.setdefault(insert_after, []).append(field.fieldname)
+			elif target_position := getattr(field, "insert_after", None):
+				original_target = target_position
+				if field.fieldtype in ["Section Break", "Column Break"] and target_position in field_order:
+					# Find the next section or column break and set target_position to just one field before
+					for current_field in field_order[field_order.index(target_position) + 1 :]:
+						if self._fields[current_field].fieldtype == "Section Break" or (
+							self._fields[current_field].fieldtype == self._fields[original_target].fieldtype
+						):
+							# Break out to add this just after the last field
+							break
+						target_position = current_field
+				insertion_map.setdefault(target_position, []).append(field.fieldname)
 
 			else:
 				# if custom field is at the top, insert after is None
 				field_order.insert(0, field.fieldname)
 
-		if insert_after_map:
-			_update_field_order_based_on_insert_after(field_order, insert_after_map)
+		if insertion_map:
+			_update_field_order_based_on_insert_after(field_order, insertion_map)
 
 		self._update_fields_based_on_order(field_order)
 
