@@ -33,7 +33,7 @@ frappe.db = {
 					r.message && r.message.name ? resolve(true) : resolve(false);
 				});
 			} else if (typeof nameOrFilters === "object") {
-				frappe.db.count(doctype, { filters: filters, limit: 1 }).then((count) => {
+				frappe.db.count(doctype, { filters: nameOrFilters, limit: 1 }).then((count) => {
 					resolve(count > 0);
 				});
 			}
