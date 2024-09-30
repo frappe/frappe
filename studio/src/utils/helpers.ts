@@ -198,6 +198,16 @@ async function findPageWithRoute(appRoute: string, pageRoute: string) {
 	return fetchPage(pageName)
 }
 
+async function fetchAppPages(appRoute: string) {
+	let appRoutes = createResource({
+		url: "studio.studio.doctype.studio_app.studio_app.get_app_pages",
+		method: "GET",
+		params: { app_route: appRoute },
+	})
+	await appRoutes.fetch()
+	return appRoutes.data
+}
+
 // data
 function getAutocompleteValues(data: any[]) {
 	return (data || []).map((d) => d["value"])
@@ -345,6 +355,7 @@ export {
 	replaceMapKey,
 	// app
 	fetchApp,
+	fetchAppPages,
 	// page
 	fetchPage,
 	findPageWithRoute,
