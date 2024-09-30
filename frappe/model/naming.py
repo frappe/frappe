@@ -378,11 +378,17 @@ def getseries(key, digits):
 	if current and current[0][0] is not None:
 		current = current[0][0]
 		# yes, update it
-		frappe.db.sql("UPDATE `tabSeries` SET `current` = `current` + 1 WHERE `name`=%s", (key,))
+		if frappe.is_oracledb:
+			frappe.db.sql(f'UPDATE {frappe.conf.db_name.upper()}."tabSeries" SET "current" = "current" + 1 WHERE "name"=\'{key}\'', [])
+		else:
+			frappe.db.sql("UPDATE `tabSeries` SET `current` = `current` + 1 WHERE `name`=%s", (key,))
 		current = cint(current) + 1
 	else:
 		# no, create it
-		frappe.db.sql("INSERT INTO `tabSeries` (`name`, `current`) VALUES (%s, 1)", (key,))
+		if frappe.is_oracledb:
+			frappe.db.sql(f'INSERT INTO {frappe.conf.db_name}."tabSeries" ("name", "current") VALUES (\'{key}\', 1)', [])
+		else:
+			frappe.db.sql("INSERT INTO `tabSeries` (`name`, `current`) VALUES (%s, 1)", (key,))
 		current = 1
 	return ("%0" + str(digits) + "d") % current
 

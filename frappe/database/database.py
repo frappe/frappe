@@ -740,7 +740,7 @@ class Database:
 			"Singles",
 			filters={"doctype": doctype},
 			fields=["field", "value"],
-			for_update=for_update,
+			for_update= False if frappe.is_oracledb else for_update,
 		).run(debug=debug)
 
 		if not cast:

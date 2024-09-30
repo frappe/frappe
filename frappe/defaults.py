@@ -154,13 +154,18 @@ def set_default(key, value, parent, parenttype="__default"):
 	:param parent: Usually, **User** to whom the default belongs.
 	:param parenttype: [optional] default is `__default`."""
 	table = DocType("DefaultValue")
-	key_exists = (
+	expr = (
 		frappe.qb.from_(table)
 		.where((table.defkey == key) & (table.parent == parent))
 		.select(table.defkey)
-		.for_update()
-		.run()
 	)
+
+	if frappe.is_oracledb:
+		key_exists = expr.run()
+	else:
+		# TODO: check for update for oracle also
+		key_exists = expr.for_update().run()
+
 	if key_exists:
 		frappe.db.delete("DefaultValue", {"defkey": key, "parent": parent})
 	if value is not None:
