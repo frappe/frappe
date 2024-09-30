@@ -561,6 +561,7 @@ export const COMPONENTS = {
 		title: "Card List",
 		icon: "List",
 		props: CardList.props,
+		emits: CardList.emits,
 		initialState: {
 			title: "Your Top Songs",
 			cards: [
@@ -608,11 +609,20 @@ function getProps(name) {
 	}
 }
 
+function getEmits(name) {
+	if (name in frappeUI) {
+		return frappeUI[name]?.emits
+	} else {
+		return COMPONENTS[name]?.emits
+	}
+}
+
 export default {
 	...COMPONENTS,
 	list: Object.values(COMPONENTS),
 	get,
 	getComponent,
 	getProps,
+	getEmits,
 	isFrappeUIComponent,
 }

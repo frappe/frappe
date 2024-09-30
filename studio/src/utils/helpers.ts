@@ -116,6 +116,7 @@ function areObjectsEqual(obj1: any, obj2: any): boolean {
 }
 
 function isObjectEmpty(obj: any) {
+	if (!obj) return true
 	return Object.keys(obj).length === 0
 }
 
