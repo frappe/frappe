@@ -170,6 +170,7 @@ class DocType(Document):
 		subject_field: DF.Data | None
 		timeline_field: DF.Data | None
 		title_field: DF.Data | None
+		trace_flow: DF.Check
 		track_changes: DF.Check
 		track_seen: DF.Check
 		track_views: DF.Check
@@ -209,6 +210,7 @@ class DocType(Document):
 		self.make_repeatable()
 		self.validate_nestedset()
 		self.validate_child_table()
+		self.validate_trace_flow()
 		self.validate_website()
 		self.validate_virtual_doctype_methods()
 		self.ensure_minimum_max_attachment_limit()
@@ -1004,6 +1006,17 @@ class DocType(Document):
 		add_column(self.name, "parent", "Data")
 		add_column(self.name, "parenttype", "Data")
 		add_column(self.name, "parentfield", "Data")
+
+	def validate_trace_flow(self):
+		if not self.get("trace_flow") or self.get("is_virtual"):
+			return
+
+		self.add_trace_fields()
+
+	def add_trace_fields(self):
+		from frappe.database.schema import add_column
+
+		add_column(self.name, "tracer", "Link")
 
 	def get_max_idx(self):
 		"""Return the highest `idx`."""
