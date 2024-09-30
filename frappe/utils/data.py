@@ -2065,9 +2065,9 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 	if f.operator.lower() not in valid_operators:
 		frappe.throw(frappe._("Operator must be one of {0}").format(", ".join(valid_operators)))
 
+	meta = frappe.get_meta(f.doctype)
 	if f.doctype and (f.fieldname not in default_fields + optional_fields + child_table_fields):
 		# verify fieldname belongs to the doctype
-		meta = frappe.get_meta(f.doctype)
 		if not meta.has_field(f.fieldname):
 			# try and match the doctype name from child tables
 			for df in meta.get_table_fields():
@@ -2076,7 +2076,7 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 					break
 
 	try:
-		df = frappe.get_meta(f.doctype).get_field(f.fieldname) if f.doctype else None
+		df = meta.get_field(f.fieldname) if f.doctype else None
 	except frappe.exceptions.DoesNotExistError:
 		df = None
 
