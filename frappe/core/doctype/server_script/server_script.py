@@ -32,6 +32,7 @@ class ServerScript(Document):
 
 		allow_guest: DF.Check
 		api_method: DF.Data | None
+		business_flow: DF.Link | None
 		cron_format: DF.Data | None
 		disabled: DF.Check
 		doctype_event: DF.Literal[

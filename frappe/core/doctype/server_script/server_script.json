@@ -14,6 +14,7 @@
   "api_method",
   "allow_guest",
   "column_break_3",
+  "business_flow",
   "module",
   "disabled",
   "section_break_8",
@@ -142,6 +143,13 @@
    "fieldname": "cron_format",
    "fieldtype": "Data",
    "label": "Cron Format"
+  },
+  {
+   "description": "In which this server script participates.",
+   "fieldname": "business_flow",
+   "fieldtype": "Link",
+   "label": "Business Flow",
+   "options": "Business Flow"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -151,7 +159,7 @@
    "link_fieldname": "server_script"
   }
  ],
- "modified": "2024-05-08 03:21:54.169380",
+ "modified": "2024-09-30 17:54:27.652902",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",

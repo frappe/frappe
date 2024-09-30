@@ -1,0 +1,103 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:title",
+ "creation": "2024-09-30 17:42:05.900927",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "documentation_section",
+  "description",
+  "entrypoint_section",
+  "entrypoint_document",
+  "column_break_gubz",
+  "entrypoint_condition"
+ ],
+ "fields": [
+  {
+   "description": "Unless an override is forced in code, the system associates this flow with the <a href=\"/app/flow-tracer\"><i>Flow Tracer</i></a> during its creation and when the given condition is met on the entry point document.",
+   "fieldname": "entrypoint_section",
+   "fieldtype": "Section Break",
+   "label": "Entrypoint"
+  },
+  {
+   "fieldname": "entrypoint_document",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_gubz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "entrypoint_condition",
+   "fieldtype": "Code",
+   "in_list_view": 1,
+   "label": "Condition",
+   "options": "Python",
+   "reqd": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "documentation_section",
+   "fieldtype": "Section Break",
+   "label": "Documentation"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Markdown Editor"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "group": "Automation",
+   "link_doctype": "Server Script",
+   "link_fieldname": "business_flow"
+  },
+  {
+   "group": "Automation",
+   "link_doctype": "Notification",
+   "link_fieldname": "business_flow"
+  },
+  {
+   "group": "Automation",
+   "link_doctype": "Webhook",
+   "link_fieldname": "business_flow"
+  }
+ ],
+ "modified": "2024-09-30 20:11:51.627721",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Business Flow",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

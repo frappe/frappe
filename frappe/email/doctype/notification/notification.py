@@ -34,6 +34,7 @@ class Notification(Document):
 		from frappe.types import DF
 
 		attach_print: DF.Check
+		business_flow: DF.Link | None
 		channel: DF.Literal["Email", "Slack", "System Notification", "SMS"]
 		condition: DF.Code | None
 		date_changed: DF.Literal[None]
