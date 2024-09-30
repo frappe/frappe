@@ -1,3 +1,4 @@
+import re
 from collections.abc import Callable
 from enum import Enum
 from importlib import import_module
@@ -156,3 +157,19 @@ def patch_query_aggregation():
 	frappe.qb.min = _min
 	frappe.qb.avg = _avg
 	frappe.qb.sum = _sum
+
+
+def conversion_column_value(value):
+	if isinstance(value, str):
+		if re.search('\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+', value):  # noqa: W605
+			ret = f"to_timestamp('{value}', 'yyyy-mm-dd hh24:mi:ss.ff6')"
+		elif re.search('\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}', value):  # noqa: W605
+			ret = f"to_timestamp('{value}', 'yyyy-mm-dd hh24:mi:ss')"
+		else:
+			ret = "'{}'".format(value.replace("'", "''"))
+	elif value is None:
+		ret = 'NULL'
+	else:
+		ret = str(value)
+
+	return ret

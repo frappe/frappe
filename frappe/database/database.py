@@ -531,7 +531,7 @@ class Database:
 			debug,
 			order_by,
 			cache=cache,
-			for_update=for_update,
+			for_update=False if frappe.is_oracledb else for_update,
 			run=run,
 			pluck=pluck,
 			distinct=distinct,
@@ -613,7 +613,7 @@ class Database:
 				as_dict=as_dict,
 				skip_locked=skip_locked,
 				wait=True,
-				for_update=for_update,
+				for_update=False if frappe.is_oracledb else for_update,
 			)
 
 		else:
@@ -638,7 +638,7 @@ class Database:
 						pluck=pluck,
 						distinct=distinct,
 						limit=limit,
-						for_update=for_update,
+						for_update=False if frappe.is_oracledb else for_update,
 						skip_locked=skip_locked,
 						wait=wait,
 					)
@@ -816,7 +816,19 @@ class Database:
 		)
 
 		singles_data = ((doctype, key, sbool(value)) for key, value in to_update.items())
-		frappe.qb.into("Singles").columns("doctype", "field", "value").insert(*singles_data).run(debug=debug)
+		if frappe.is_oracledb:
+			values = [
+				'INTO {}."{}" ("doctype", "field", "value") VALUES ({})'.format(
+					frappe.conf.db_name.upper(),
+					'tabSingles',
+					f"'{x}', '{y}', '{z}'"
+				)
+				for x, y, z in singles_data
+			]
+			query = 'INSERT ALL {} SELECT * FROM DUAL'.format(" ".join(values))
+			frappe.db.sql(query, [])
+		else:
+			frappe.qb.into("Singles").columns("doctype", "field", "value").insert(*singles_data).run(debug=debug)
 		frappe.clear_document_cache(doctype, doctype)
 
 		if doctype in self.value_cache:
@@ -888,7 +900,7 @@ class Database:
 			table=doctype,
 			filters=filters,
 			order_by=order_by,
-			for_update=for_update,
+			for_update=False if frappe.is_oracledb else for_update,
 			skip_locked=skip_locked,
 			wait=wait,
 			fields=fields,
@@ -927,7 +939,7 @@ class Database:
 				distinct=distinct,
 				limit=limit,
 				validate_filters=True,
-				for_update=for_update,
+				for_update=False if frappe.is_oracledb else for_update,
 				skip_locked=skip_locked,
 				wait=wait,
 			).run(debug=debug, run=run, as_dict=as_dict, pluck=pluck)

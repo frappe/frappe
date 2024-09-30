@@ -267,8 +267,12 @@ class FrappeOracleQueryBuilder(OracleQueryBuilder):
 		return f" VALUES ({values})"
 
 	def _insert_sql(self, **kwargs: Any) -> str:
+		table = self._insert_table.get_sql(**kwargs)
+		if not (table[0] == '"' and table[-1] == '"' and "." not in table):
+			table = f'"{table}"'
+
 		return "INSERT {ignore}INTO {table}".format(
-			table=self._insert_table.get_sql(**kwargs),
+			table=table,
 			ignore="IGNORE " if self._ignore else "",
 		)
 

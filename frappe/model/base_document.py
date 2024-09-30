@@ -8,6 +8,7 @@ from functools import cached_property
 from typing import TYPE_CHECKING, TypeVar
 
 import frappe
+from frappe.query_builder.utils import conversion_column_value
 from frappe import _, _dict
 from frappe.model import (
 	child_table_fields,
@@ -553,19 +554,7 @@ class BaseDocument:
 		columns = list(d)
 		try:
 			if frappe.conf.db_type == 'oracledb':
-				_values = []
-				for d_value in d.values():
-					if isinstance(d_value, str):
-						if re.search('\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+', d_value):
-							_values.append(f"to_timestamp('{d_value}', 'yyyy-mm-dd hh24:mi:ss.ff6')")
-						elif re.search('\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}', d_value):
-							_values.append(f"to_timestamp('{d_value}', 'yyyy-mm-dd hh24:mi:ss')")
-						else:
-							_values.append("'{}'".format(d_value.replace("'", "''")))
-					elif d_value is None:
-						_values.append('NULL')
-					else:
-						_values.append(str(d_value))
+				_values = [conversion_column_value(d_value) for d_value in d.values()]
 
 				# TODO: handle conflict
 				frappe.db.sql(
@@ -638,13 +627,23 @@ class BaseDocument:
 		columns = list(d)
 
 		try:
-			frappe.db.sql(
-				"""UPDATE `tab{doctype}`
-				SET {values} WHERE `name`=%s""".format(
-					doctype=self.doctype, values=", ".join("`" + c + "`=%s" for c in columns)
-				),
-				[*list(d.values()), name],
-			)
+			if frappe.is_oracledb:
+				db_name = frappe.conf.db_name
+				values = ", ".join(
+					f'"{c}" = {conversion_column_value(v)}'
+					for c, v in zip(columns, list(d.values()), strict=False)
+				)
+
+				frappe.db.sql(f'UPDATE {db_name}."tab{self.doctype}" SET {values} '
+							  f'WHERE "name"=\'{name}\'', [] )
+			else:
+				frappe.db.sql(
+					"""UPDATE `tab{doctype}`
+					SET {values} WHERE `name`=%s""".format(
+						doctype=self.doctype, values=", ".join("`" + c + "`=%s" for c in columns)
+					),
+					[*list(d.values()), name],
+				)
 		except Exception as e:
 			if frappe.db.is_unique_key_violation(e):
 				self.show_unique_validation_message(e)
