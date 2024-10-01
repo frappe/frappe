@@ -4,17 +4,6 @@
 import frappe
 from frappe.model.document import Document
 from frappe.website.path_resolver import validate_path
-
-desk_properties = (
-	"search_bar",
-	"notifications",
-	"list_sidebar",
-	"bulk_actions",
-	"view_switcher",
-	"form_sidebar",
-	"timeline",
-	"dashboard",
-)
 from frappe.website.router import clear_routing_cache
 
 STANDARD_ROLES = ("Administrator", "System Manager", "Script Manager", "All", "Guest")
@@ -29,21 +18,13 @@ class Role(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		bulk_actions: DF.Check
-		dashboard: DF.Check
 		desk_access: DF.Check
 		disabled: DF.Check
-		form_sidebar: DF.Check
 		home_page: DF.Data | None
 		is_custom: DF.Check
-		list_sidebar: DF.Check
-		notifications: DF.Check
 		restrict_to_domain: DF.Link | None
 		role_name: DF.Data
-		search_bar: DF.Check
-		timeline: DF.Check
 		two_factor_auth: DF.Check
-		view_switcher: DF.Check
 
 	# end: auto-generated types
 	def before_rename(self, old, new, merge=False):
@@ -77,10 +58,6 @@ class Role(Document):
 		# set if desk_access is not allowed, unset all desk properties
 		if self.name == "Guest":
 			self.desk_access = 0
-
-		if not self.desk_access:
-			for key in desk_properties:
-				self.set(key, 0)
 
 	def remove_roles(self):
 		frappe.db.delete("Has Role", {"role": self.name})
