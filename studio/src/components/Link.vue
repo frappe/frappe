@@ -7,7 +7,7 @@
 			ref="autocompleteRef"
 			size="sm"
 			v-model="value"
-			:placeholder="`Select ${doctype}`"
+			:placeholder="placeholder || `Select ${doctype}`"
 			:options="options.data"
 			:label="label"
 			@update:query="handleQueryUpdate"
@@ -23,6 +23,7 @@ const props = withDefaults(
 	defineProps<{
 		doctype: string
 		label?: string
+		placeholder?: string
 		modelValue?: string
 		filters?: Record<string, any>
 	}>(),
