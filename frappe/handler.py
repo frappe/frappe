@@ -219,6 +219,7 @@ def upload_file():
 				args["max_height"] = int(frappe.form_dict.max_height)
 			content = optimize_image(**args)
 
+	frappe.local.uploaded_file_url = file_url
 	frappe.local.uploaded_file = content
 	frappe.local.uploaded_filename = filename
 
