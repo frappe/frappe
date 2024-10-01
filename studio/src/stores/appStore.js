@@ -11,8 +11,18 @@ const useAppStore = defineStore("appStore", () => {
 		studioPageResources.filters = { parent: page.name }
 		await studioPageResources.reload()
 
-		studioPageResources.data.map((resource) => {
-			resources[resource.resource_name] = getNewResource(resource)
+		const resourcePromises = studioPageResources.data.map(async (resource) => {
+			const newResource = await getNewResource(resource)
+			return {
+				resource_name: resource.resource_name,
+				value: newResource,
+			}
+		})
+
+		const resolvedResources = await Promise.all(resourcePromises)
+
+		resolvedResources.forEach((item) => {
+			resources[item.resource_name] = item.value
 		})
 	}
 
