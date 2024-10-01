@@ -196,6 +196,7 @@ const useStudioStore = defineStore("store", () => {
 
 		resolvedResources.forEach((item) => {
 			resources.value[item.name] = item.value
+			resources.value[item.name].docname = item.docname
 		})
 	}
 
