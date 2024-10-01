@@ -69,6 +69,7 @@ class ParameterizedValueWrapper(ValueWrapper):
 			elif isinstance(self.value, datetime):
 				self.value = frappe.db.format_datetime(self.value)
 				if frappe.is_oracledb:
+					print(f"VALUE: {self.value}")
 					return f"to_timestamp('{self.value}', 'yyyy-mm-dd hh24:mi:ss.ff6')"
 
 			sql = self.get_value_sql(

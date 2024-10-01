@@ -431,7 +431,7 @@ def get_workspace_sidebar_items():
 		filters = []
 
 	# pages sorted based on sequence id
-	order_by = "sequence_id asc"
+	order_by = '"sequence_id" asc'
 	fields = [
 		"name",
 		"title",

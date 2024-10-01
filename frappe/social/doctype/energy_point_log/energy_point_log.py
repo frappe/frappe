@@ -246,35 +246,65 @@ def get_energy_points(user):
 def get_user_energy_and_review_points(user=None, from_date=None, as_dict=True):
 	conditions = ""
 	given_points_condition = ""
-	values = frappe._dict()
-	if user:
-		conditions = "WHERE `user` = %(user)s"
-		values.user = user
-	if from_date:
-		conditions += "WHERE" if not conditions else "AND"
-		given_points_condition += "AND `creation` >= %(from_date)s"
-		conditions += " `creation` >= %(from_date)s OR `type`='Review'"
-		values.from_date = from_date
+	if frappe.is_oracledb:
+		values = frappe._dict()
+		if user:
+			conditions = f'WHERE "user" =\'{user}\''
 
-	points_list = frappe.db.sql(
-		f"""
-		SELECT
-			SUM(CASE WHEN `type` != 'Review' THEN `points` ELSE 0 END) AS energy_points,
-			SUM(CASE WHEN `type` = 'Review' THEN `points` ELSE 0 END) AS review_points,
-			SUM(CASE
-				WHEN `type`='Review' AND `points` < 0 {given_points_condition}
-				THEN ABS(`points`)
-				ELSE 0
-			END) as given_points,
-			`user`
-		FROM `tabEnergy Point Log`
-		{conditions}
-		GROUP BY `user`
-		ORDER BY `energy_points` DESC
-	""",
-		values=values,
-		as_dict=1,
-	)
+		if from_date:
+			conditions += "WHERE" if not conditions else "AND"
+			given_points_condition += f'AND "creation" >= to_timestamp(\'{from_date}\', \'yyyy-mm-dd hh24:mi:ss.ff6\')'
+			conditions += f' "creation" >= to_timestamp(\'{from_date}\', \'yyyy-mm-dd hh24:mi:ss.ff6\') OR "type"=\'Review\''
+
+		points_list = frappe.db.sql(
+			f"""
+			SELECT
+				SUM(CASE WHEN "type" != 'Review' THEN "points" ELSE 0 END) AS energy_points,
+				SUM(CASE WHEN "type" = 'Review' THEN "points" ELSE 0 END) AS review_points,
+				SUM(CASE
+					WHEN "type"='Review' AND "points" < 0 {given_points_condition}
+					THEN ABS("points")
+					ELSE 0
+				END) as given_points,
+				"user"
+			FROM {frappe.conf.db_name.upper()}."tabEnergy Point Log"
+			{conditions}
+			GROUP BY "user"
+			ORDER BY energy_points DESC
+		""",
+			values=[],
+			as_dict=1,
+		)
+	else:
+		values = frappe._dict()
+		if user:
+			conditions = "WHERE `user` = %(user)s"
+			values.user = user
+		if from_date:
+			conditions += "WHERE" if not conditions else "AND"
+			given_points_condition += "AND `creation` >= %(from_date)s"
+			conditions += " `creation` >= %(from_date)s OR `type`='Review'"
+			values.from_date = from_date
+
+		points_list = frappe.db.sql(
+			f"""
+			SELECT
+				SUM(CASE WHEN `type` != 'Review' THEN `points` ELSE 0 END) AS energy_points,
+				SUM(CASE WHEN `type` = 'Review' THEN `points` ELSE 0 END) AS review_points,
+				SUM(CASE
+					WHEN `type`='Review' AND `points` < 0 {given_points_condition}
+					THEN ABS(`points`)
+					ELSE 0
+				END) as given_points,
+				`user`
+			FROM `tabEnergy Point Log`
+			{conditions}
+			GROUP BY `user`
+			ORDER BY `energy_points` DESC
+		""",
+			values=values,
+			as_dict=1,
+		)
 
 	if not as_dict:
 		return points_list

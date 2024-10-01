@@ -227,9 +227,15 @@ def export_doc(doctype, name, module=None):
 
 def get_doctype_module(doctype: str) -> str:
 	"""Returns **Module Def** name of given doctype."""
+	def callback_func():
+		expr = frappe.qb.from_("DocType")
+		if frappe.is_oracledb:
+			return expr.select('"name"', '"module"').run()
+		else:
+			return expr.select("name", "module").run()
 	doctype_module_map = frappe.cache.get_value(
 		"doctype_modules",
-		generator=lambda: dict(frappe.qb.from_("DocType").select("name", "module").run()),
+		generator=lambda: dict(callback_func()),
 	)
 
 	if module_name := doctype_module_map.get(doctype):

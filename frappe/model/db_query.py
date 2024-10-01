@@ -335,7 +335,10 @@ class DatabaseQuery:
 		self.set_order_by(args)
 
 		self.validate_order_by_and_group_by(args.order_by)
-		args.order_by = args.order_by and (" order by " + args.order_by) or ""
+		if frappe.is_oracledb:
+			args.order_by = args.order_by and (" order by " + args.order_by) or ""
+		else:
+			args.order_by = args.order_by and (" order by " + args.order_by) or ""
 
 		self.validate_order_by_and_group_by(self.group_by)
 		args.group_by = self.group_by and (" group by " + self.group_by) or ""
@@ -1110,7 +1113,12 @@ class DatabaseQuery:
 
 	def set_order_by(self, args):
 		if self.order_by and self.order_by != "KEEP_DEFAULT_ORDERING":
-			args.order_by = self.order_by
+			if ' desc' in self.order_by.lower() or ' asc' in self.order_by.lower():
+				# _order = self.order_by.split()
+				# args.order_by = f'"{_order[0]}" {_order[1]}'
+				args.order_by = self.order_by
+			else:
+				args.order_by = f'"{self.order_by}"'
 		else:
 			args.order_by = ""
 
@@ -1186,6 +1194,8 @@ class DatabaseQuery:
 
 	def add_limit(self):
 		if self.limit_page_length:
+			if frappe.is_oracledb:
+				return f"OFFSET {self.limit_start} ROWS FETCH NEXT {self.limit_page_length} ROWS ONLY"
 			return f"limit {self.limit_page_length} offset {self.limit_start}"
 		else:
 			return ""

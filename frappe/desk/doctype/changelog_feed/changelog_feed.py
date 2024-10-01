@@ -34,7 +34,7 @@ def fetch_changelog_feed():
 		"Changelog Feed",
 		filters={},
 		fieldname="posting_timestamp",
-		order_by="posting_timestamp desc",
+		order_by='"posting_timestamp" desc',
 	) or add_to_date(None, months=-1, as_datetime=True, as_string=False)
 
 	for fn in frappe.get_hooks("get_changelog_feed"):
@@ -69,8 +69,8 @@ def get_changelog_feed_items():
 		"Changelog Feed",
 		fields=["title", "app_name", "link", "posting_timestamp"],
 		# allow pubishing feed for many apps with single hook
-		filters={"app_name": ("in", frappe.get_installed_apps())},
-		order_by="posting_timestamp desc",
+		filters={'app_name': ("in", frappe.get_installed_apps())},
+		order_by='"posting_timestamp" desc',
 		limit=20,
 	)
 	for f in feed:

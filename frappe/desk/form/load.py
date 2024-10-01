@@ -197,7 +197,7 @@ def get_versions(doc: "Document") -> list[dict]:
 		filters=dict(ref_doctype=doc.doctype, docname=doc.name),
 		fields=["name", "owner", "creation", "data"],
 		limit=10,
-		order_by="creation desc",
+		order_by='"creation" desc' if frappe.is_oracledb else "creation desc",
 	)
 
 
@@ -273,70 +273,124 @@ def get_communication_data(
 	doctype, name, start=0, limit=20, after=None, fields=None, group_by=None, as_dict=True
 ):
 	"""Returns list of communications for a given document"""
-	if not fields:
-		fields = """
-			C.name, C.communication_type, C.communication_medium,
-			C.comment_type, C.communication_date, C.content,
-			C.sender, C.sender_full_name, C.cc, C.bcc,
-			C.creation AS creation, C.subject, C.delivery_status,
-			C._liked_by, C.reference_doctype, C.reference_name,
-			C.read_by_recipient, C.rating, C.recipients
+	if frappe.is_oracledb:
+		if not fields:
+			fields = """
+				C."name", C."communication_type", C."communication_medium",
+				C."comment_type", C."communication_date", C."content",
+				C."sender", C."sender_full_name", C."cc", C."bcc",
+				C."creation" AS creation, C."subject", C."delivery_status",
+				C."_liked_by", C."reference_doctype", C."reference_name",
+				C."read_by_recipient", C."rating", C."recipients"
+			"""
+
+		conditions = ""
+		if after:
+			# find after a particular date
+			conditions += f"""
+				AND C."communication_date" > {after}
+			"""
+
+		if doctype == "User":
+			conditions += """
+				AND NOT (C."reference_doctype"='User' AND C."communication_type"='Communication')
+			"""
+
+		# communications linked to reference_doctype
+		part1 = f"""
+			SELECT {fields}
+			FROM {frappe.conf.db_name.upper()}."tabCommunication" C
+			WHERE C."communication_type" IN ('Communication', 'Feedback', 'Automated Message')
+			AND (C."reference_doctype" = '{doctype}' AND C."reference_name" = '{name}')
+			{conditions}
 		"""
 
-	conditions = ""
-	if after:
-		# find after a particular date
-		conditions += f"""
-			AND C.communication_date > {after}
+		# communications linked in Timeline Links
+		part2 = f"""
+			SELECT {fields}
+			FROM {frappe.conf.db_name.upper()}."tabCommunication" C
+			INNER JOIN {frappe.conf.db_name.upper()}."tabCommunication Link" tcl ON C."name"=tcl."parent"
+			WHERE C."communication_type" IN ('Communication', 'Feedback', 'Automated Message')
+			AND tcl."link_doctype" = '{doctype}' AND tcl."link_name" = '{name}'
+			{conditions}
+		"""
+		return frappe.db.sql(
+			"""
+			SELECT *
+			FROM (({part1}) UNION ({part2})) combined
+			{group_by}
+			ORDER BY "communication_date" DESC
+			OFFSET {start} ROWS
+			FETCH NEXT {limit} ROWS ONLY
+		""".format(part1=part1, part2=part2, group_by=(group_by or ""), limit=limit, start=frappe.utils.cint(start)),
+			[],
+			as_dict=as_dict,
+		)
+	else:
+		if not fields:
+			fields = """
+				C.name, C.communication_type, C.communication_medium,
+				C.comment_type, C.communication_date, C.content,
+				C.sender, C.sender_full_name, C.cc, C.bcc,
+				C.creation AS creation, C.subject, C.delivery_status,
+				C._liked_by, C.reference_doctype, C.reference_name,
+				C.read_by_recipient, C.rating, C.recipients
+			"""
+
+		conditions = ""
+		if after:
+			# find after a particular date
+			conditions += f"""
+				AND C.communication_date > {after}
+			"""
+
+		if doctype == "User":
+			conditions += """
+				AND NOT (C.reference_doctype='User' AND C.communication_type='Communication')
+			"""
+
+		# communications linked to reference_doctype
+		part1 = f"""
+			SELECT {fields}
+			FROM `tabCommunication` as C
+			WHERE C.communication_type IN ('Communication', 'Feedback', 'Automated Message')
+			AND (C.reference_doctype = %(doctype)s AND C.reference_name = %(name)s)
+			{conditions}
 		"""
 
-	if doctype == "User":
-		conditions += """
-			AND NOT (C.reference_doctype='User' AND C.communication_type='Communication')
+		# communications linked in Timeline Links
+		part2 = f"""
+			SELECT {fields}
+			FROM `tabCommunication` as C
+			INNER JOIN `tabCommunication Link` ON C.name=`tabCommunication Link`.parent
+			WHERE C.communication_type IN ('Communication', 'Feedback', 'Automated Message')
+			AND `tabCommunication Link`.link_doctype = %(doctype)s AND `tabCommunication Link`.link_name = %(name)s
+			{conditions}
 		"""
 
-	# communications linked to reference_doctype
-	part1 = f"""
-		SELECT {fields}
-		FROM `tabCommunication` as C
-		WHERE C.communication_type IN ('Communication', 'Feedback', 'Automated Message')
-		AND (C.reference_doctype = %(doctype)s AND C.reference_name = %(name)s)
-		{conditions}
-	"""
-
-	# communications linked in Timeline Links
-	part2 = f"""
-		SELECT {fields}
-		FROM `tabCommunication` as C
-		INNER JOIN `tabCommunication Link` ON C.name=`tabCommunication Link`.parent
-		WHERE C.communication_type IN ('Communication', 'Feedback', 'Automated Message')
-		AND `tabCommunication Link`.link_doctype = %(doctype)s AND `tabCommunication Link`.link_name = %(name)s
-		{conditions}
-	"""
-
-	return frappe.db.sql(
-		"""
-		SELECT *
-		FROM (({part1}) UNION ({part2})) AS combined
-		{group_by}
-		ORDER BY communication_date DESC
-		LIMIT %(limit)s
-		OFFSET %(start)s
-	""".format(part1=part1, part2=part2, group_by=(group_by or "")),
-		dict(
-			doctype=doctype,
-			name=name,
-			start=frappe.utils.cint(start),
-			limit=limit,
-		),
-		as_dict=as_dict,
-	)
+		return frappe.db.sql(
+				"""
+				SELECT *
+				FROM (({part1}) UNION ({part2})) AS combined
+				{group_by}
+				ORDER BY communication_date DESC
+				LIMIT %(limit)s
+				OFFSET %(start)s
+			""".format(part1=part1, part2=part2, group_by=(group_by or "")),
+				dict(
+					doctype=doctype,
+					name=name,
+					start=frappe.utils.cint(start),
+					limit=limit,
+				),
+				as_dict=as_dict,
+			)
 
 
 def get_assignments(dt, dn):
 	return frappe.get_all(
 		"ToDo",
-		fields=["name", "allocated_to as owner", "description", "status"],
+		fields=["name", '"allocated_to" as owner' if frappe.is_oracledb else "allocated_to as owner", "description", "status"],
 		filters={
 			"reference_type": dt,
 			"reference_name": dn,

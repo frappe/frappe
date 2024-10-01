@@ -666,11 +666,20 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 	if web_form.login_required and not allow_read_on_all_link_options:
 		filters = {"owner": frappe.session.user}
 
-	fields = ["name as value"]
+	if frappe.is_oracledb:
 
-	meta = frappe.get_meta(doctype)
-	if meta.title_field and meta.show_title_field_in_link:
-		fields.append(f"{meta.title_field} as label")
+		fields = ['"name" "value"']
+
+		meta = frappe.get_meta(doctype)
+		if meta.title_field and meta.show_title_field_in_link:
+			fields.append(f'"{meta.title_field}" "label"')
+	else:
+		fields = ["name as value"]
+
+		meta = frappe.get_meta(doctype)
+		if meta.title_field and meta.show_title_field_in_link:
+			fields.append(f"{meta.title_field} as label")
+
 
 	link_options = frappe.get_all(doctype, filters, fields)
 

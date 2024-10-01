@@ -8,9 +8,11 @@ from pypika.terms import Values
 import frappe
 from frappe import _
 from frappe.query_builder import Table
+from frappe.query_builder.builder import FrappeTable
 from frappe.utils import cstr, encode
 
 Auth = Table("__Auth")
+
 
 
 passlibctx = CryptContext(
@@ -20,8 +22,17 @@ passlibctx = CryptContext(
 	],
 )
 
+def set_auth():
+	global Auth
+	if frappe.is_oracledb and isinstance(Auth, Table):
+		Auth = FrappeTable(
+			name=Auth._table_name,
+			schema=frappe.conf.db_name
+		)
 
 def get_decrypted_password(doctype, name, fieldname="password", raise_exception=True):
+	set_auth()
+
 	result = (
 		frappe.qb.from_(Auth)
 		.select(Auth.password)
@@ -45,6 +56,7 @@ def get_decrypted_password(doctype, name, fieldname="password", raise_exception=
 
 
 def set_encrypted_password(doctype, name, pwd, fieldname="password"):
+	set_auth()
 	query = (
 		frappe.qb.into(Auth)
 		.columns(Auth.doctype, Auth.name, Auth.fieldname, Auth.password, Auth.encrypted)
@@ -72,6 +84,7 @@ def remove_encrypted_password(doctype, name, fieldname="password"):
 
 def check_password(user, pwd, doctype="User", fieldname="password", delete_tracker_cache=True):
 	"""Checks if user and password are correct, else raises frappe.AuthenticationError"""
+	set_auth()
 
 	result = (
 		frappe.qb.from_(Auth)
@@ -119,6 +132,8 @@ def update_password(user, pwd, doctype="User", fieldname="password", logout_all_
 	:param fieldname: fieldname (in given doctype) (for encryption)
 	:param logout_all_session: delete all other session
 	"""
+	set_auth()
+
 	hashPwd = passlibctx.hash(pwd)
 
 	query = (
@@ -158,12 +173,14 @@ def delete_all_passwords_for(doctype, name):
 
 def rename_password(doctype, old_name, new_name):
 	# NOTE: fieldname is not considered, since the document is renamed
+	set_auth()
 	frappe.qb.update(Auth).set(Auth.name, new_name).where(
 		(Auth.doctype == doctype) & (Auth.name == old_name)
 	).run()
 
 
 def rename_password_field(doctype, old_fieldname, new_fieldname):
+	set_auth()
 	frappe.qb.update(Auth).set(Auth.fieldname, new_fieldname).where(
 		(Auth.doctype == doctype) & (Auth.fieldname == old_fieldname)
 	).run()

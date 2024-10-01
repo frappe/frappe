@@ -273,8 +273,13 @@ class Session:
 			frappe.db.commit()
 
 	def insert_session_record(self):
-		Sessions = frappe.qb.DocType("Sessions")
+		if frappe.is_oracledb:
+			Sessions = frappe.qb.DocType("Sessions", schema=frappe.conf.db_name.upper())
+		else:
+			Sessions = frappe.qb.DocType("Sessions")
 		now = frappe.utils.now()
+
+		print(f"Sessions: [{Sessions}], [{type(Sessions)}]")
 
 		(
 			frappe.qb.into(Sessions)

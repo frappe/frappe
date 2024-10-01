@@ -149,7 +149,7 @@ class FormMeta(Meta):
 				"Client Script",
 				filters={"dt": self.name, "enabled": 1},
 				fields=["name", "script", "view"],
-				order_by="creation asc",
+				order_by='"creation" asc',
 			)
 			or ""
 		)
@@ -221,13 +221,22 @@ class FormMeta(Meta):
 					self._show_missing_doctype_msg(df)
 
 	def load_print_formats(self):
-		print_formats = frappe.db.sql(
-			"""select * FROM `tabPrint Format`
-			WHERE doc_type=%s AND docstatus<2 and disabled=0""",
-			(self.name,),
-			as_dict=1,
-			update={"doctype": "Print Format"},
-		)
+		if frappe.is_oracledb:
+			print_formats = frappe.db.sql(
+				f"""select * FROM {frappe.conf.db_name.upper()}."tabPrint Format"
+				WHERE "doc_type"='{self.name}' AND "docstatus"<2 and "disabled"=0""",
+				(),
+				as_dict=1,
+				update={"doctype": "Print Format"},
+			)
+		else:
+			print_formats = frappe.db.sql(
+				"""select * FROM `tabPrint Format`
+				WHERE doc_type=%s AND docstatus<2 and disabled=0""",
+				(self.name,),
+				as_dict=1,
+				update={"doctype": "Print Format"},
+			)
 
 		self.set("__print_formats", print_formats)
 

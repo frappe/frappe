@@ -400,6 +400,7 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 		return {
 			"mariadb": MariaDBDatabase.default_port,  # 3306
 			"postgres": 5432,
+			"oracledb": 1521
 		}[db_type]
 
 	config["redis_queue"] = (
@@ -2065,8 +2066,9 @@ def get_all(doctype, *args, **kwargs):
 	kwargs["ignore_permissions"] = True
 	if "limit_page_length" not in kwargs:
 		kwargs["limit_page_length"] = 0
-	return get_list(doctype, *args, **kwargs)
 
+	print("====>>>>>", doctype, args, kwargs)
+	return get_list(doctype, *args, **kwargs)
 
 def get_value(*args, **kwargs):
 	"""Returns a document property or list of properties.

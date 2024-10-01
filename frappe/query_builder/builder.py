@@ -36,7 +36,7 @@ class FrappeField(Field):
 
 			field_alias = getattr(self, "alias", None)
 			if with_alias:
-				return format_alias_sql(field_sql, field_alias, quote_char=quote_char, **kwargs)
+				return format_alias_sql(field_sql, field_alias, quote_char='"', **kwargs)
 			return field_sql
 		return super().get_sql(**kwargs)
 
@@ -58,6 +58,11 @@ class FrappeTable(Table):
 			query_cls=query_cls
 		)
 
+	def __repr__(self) -> str:
+		if self._schema:
+			return f"FrappeTable('{self._table_name}', schema='{self._schema}')"
+		return f"FrappeTable('{self._table_name}')"
+
 	def get_sql(self, **kwargs: Any) -> str:
 		# quote_char = kwargs.get("quote_char")
 		# # FIXME escape
@@ -65,7 +70,7 @@ class FrappeTable(Table):
 		table_sql = self._table_name
 
 		if self._schema is not None:
-			table_sql = f'{self._schema.get_sql(**kwargs)}."{table_sql}"'
+			table_sql = f'{self._schema.get_sql(**kwargs).upper()}."{table_sql}"'
 
 		if self._for:
 			table_sql = f"{table_sql} FOR {self._for.get_sql(**kwargs)}"
@@ -98,7 +103,8 @@ class Base:
 		table_name = get_table_name(table_name)
 		if ' ' in table_name and 'alias' not in kwargs:
 			if frappe.is_oracledb:
-				return FrappeTable(table_name, alias=table_name.replace(' ', '_'), *args, **kwargs)
+				return FrappeTable(table_name,
+								   alias=table_name.replace(' ', '_'), *args, **kwargs)
 			return Table(table_name, alias=table_name.replace(' ', '_'), *args, **kwargs)
 		if frappe.is_oracledb:
 			return FrappeTable(table_name, *args, **kwargs)
@@ -130,6 +136,7 @@ class MariaDB(Base, MySQLQuery):
 	def from_(cls, table, *args, **kwargs):
 		if isinstance(table, str):
 			table = cls.DocType(table)
+		print(f"MariaDB; [{table}]")
 		return super().from_(table, *args, **kwargs)
 
 
@@ -175,12 +182,19 @@ class FrappeOracleQueryBuilder(OracleQueryBuilder):
 	IGNORE_TABLES_LIST = ('all_tables', 'user_tab_columns', 'user_tables')
 
 	def _from_sql(self, with_namespace: bool = False, **kwargs: Any) -> str:
+		print(f"self._form: {self._from}")
+		_table = []
+
+		for clause in self._from:
+			table_name = clause.get_sql(
+				subquery=True,
+				with_alias=True,
+				**kwargs
+			)
+			_table.append(table_name)
+
 		return " FROM {selectable}".format(
-			selectable=",".join(
-				clause.get_sql(subquery=True,
-							   with_alias=True,
-							   **kwargs)
-				for clause in self._from)
+			selectable=",".join(_table)
 		)
 
 	def is_db_metadata_table(self):
@@ -230,7 +244,7 @@ class FrappeOracleQueryBuilder(OracleQueryBuilder):
 			for field, value in self._updates:
 				if not (field.name[0] == '"' and field.name[-1] == '"'):
 					field.name = f'"{field.name}"'
-				if isinstance(value.value, str) and re.search('\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+', value.value):  # noqa: W605
+				if isinstance(value.value, str) and re.search('^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+$', value.value):  # noqa: W605
 					value.value = f"to_timestamp('{value.value}', 'yyyy-mm-dd hh24:mi:ss.ff6')"
 		expr = []
 		for field, value in self._updates:
@@ -258,18 +272,13 @@ class FrappeOracleQueryBuilder(OracleQueryBuilder):
 	def _values_sql(self, **kwargs: Any) -> str:
 
 		values = "),(".join(
-			(
-				",".join(term.get_sql(with_alias=True, subquery=True, **kwargs)
-						 for term in row)
-			 )
+			",".join(conversion_column_value(term.get_sql(with_alias=True, subquery=True, **kwargs)) for term in row)
 			for row in self._values
 		)
 		return f" VALUES ({values})"
 
 	def _insert_sql(self, **kwargs: Any) -> str:
 		table = self._insert_table.get_sql(**kwargs)
-		if not (table[0] == '"' and table[-1] == '"' and "." not in table):
-			table = f'"{table}"'
 
 		return "INSERT {ignore}INTO {table}".format(
 			table=table,
@@ -283,9 +292,7 @@ class FrappeOracleQueryBuilder(OracleQueryBuilder):
 
 
 class OracleDB(Base, OracleQuery):
-	field_translation = types.MappingProxyType(
-		{"table_name": "relname", "table_rows": "n_tup_ins"})
-	schema_translation = types.MappingProxyType({"tables": "pg_stat_all_tables"})
+	Field = FrappeField
 	# TODO: Find a better way to do this
 	# These are interdependent query changes that need fixing. These
 	# translations happen in the same query. But there is no check to see if
@@ -304,21 +311,29 @@ class OracleDB(Base, OracleQuery):
 	@staticmethod
 	def DocType(table_name: str, *args, **kwargs) -> Table:
 		table_name = get_table_name(table_name)
+		if table_name not in FrappeOracleQueryBuilder.IGNORE_TABLES_LIST:
+			kwargs["schema"] = frappe.conf.db_name
+
 		if ' ' in table_name and 'alias' not in kwargs:
 			return FrappeTable(table_name, alias=table_name.replace(' ', '_'), *args, **kwargs)
 		return FrappeTable(table_name, *args, **kwargs)
 
 	@classmethod
 	def Field(cls, field_name, *args, **kwargs):
-		if field_name in cls.field_translation:
-			field_name = cls.field_translation[field_name]
-		return terms.Field(field_name, *args, **kwargs)
+		# if field_name in cls.field_translation:
+		# 	field_name = cls.field_translation[field_name]
+		# return terms.Field(field_name, *args, **kwargs)
+		return FrappeField(field_name, *args, **kwargs)
 
 	@classmethod
 	def get_table(cls, table):
-		if table.get_table_name() not in FrappeOracleQueryBuilder.IGNORE_TABLES_LIST:
-			table._schema = cls.Table._init_schema(frappe.conf.db_name.upper())
-			print(f"Table: {table}")
+		if not isinstance(table, str) and table.get_table_name() not in FrappeOracleQueryBuilder.IGNORE_TABLES_LIST:
+			# table._schema = FrappeTable._init_schema(frappe.conf.db_name.upper())
+
+			table = FrappeTable(
+				name=table._table_name,
+				schema=frappe.conf.db_name.upper()
+			)
 
 		if isinstance(table, str):
 			table = cls.DocType(table)
@@ -335,3 +350,25 @@ class OracleDB(Base, OracleQuery):
 		table = OracleDB.get_table(table=table)
 		return super().update(table, *args, **kwargs)
 
+def conversion_column_value(value: str | int):
+	if isinstance(value, str):
+		if not value:
+			return "''"
+
+		if value[0] == "'" and value[-1] == "'":
+			value = value[1:-1]
+
+		if re.search('^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+$', value):  # noqa: W605
+			ret = f"to_timestamp('{value}', 'yyyy-mm-dd hh24:mi:ss.ff6')"
+		elif re.search('^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$', value):  # noqa: W605
+			ret = f"to_timestamp('{value}', 'yyyy-mm-dd hh24:mi:ss')"
+		elif value[0] != "'" or value[-1] != "'":
+			ret = "'{}'".format(value.replace("'", "''"))
+		else:
+			ret = value
+	elif value is None:
+		ret = 'NULL'
+	else:
+		ret = str(value)
+
+	return ret

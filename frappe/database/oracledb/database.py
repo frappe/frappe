@@ -11,6 +11,7 @@ from frappe.database.db_manager import DbManager
 from frappe.database.utils import EmptyQueryValues, LazyDecode
 from frappe.utils import cstr, get_table_name, get_datetime, UnicodeWithAttrs
 from frappe.database.oracledb.schema import OracleDBTable
+from frappe.query_builder.builder import conversion_column_value
 
 
 class OracleDbManager(DbManager):
@@ -453,7 +454,7 @@ class OracleDBDatabase(OracleDBExceptionUtil, OracleDBConnectionUtil, Database):
 			 {}
 			 SELECT * FROM DUAL
 			 """.format(" ".join(
-				f'INTO {frappe.conf.db_name.upper()}."{query._insert_table.alias}" ({_fields}) VALUES ({",".join([self.check_dateformat(value) for value in row])}) '
+				f'INTO {frappe.conf.db_name.upper()}."{query._insert_table.alias}" ({_fields}) VALUES ({",".join([conversion_column_value(value) for value in row])}) '
 				for row in value_chunk
 			))
 
@@ -461,19 +462,3 @@ class OracleDBDatabase(OracleDBExceptionUtil, OracleDBConnectionUtil, Database):
 				insert_bulk_query,
 				[]
 			)
-			# query.insert(*(
-			# tuple([self.check_dateformat(value) for value in row])
-			# for row in value_chunk
-			# )).run()
-
-	@staticmethod
-	def check_dateformat(value):
-		if value is None:
-			return 'NULL'
-		if not isinstance(value, str):
-			return str(value)
-		if re.search('\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+', value):  # noqa: W605
-			return f"to_timestamp('{value}', 'yyyy-mm-dd hh24:mi:ss.ff6')"
-		elif re.search('\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}', value):  # noqa: W605
-			return f"to_timestamp('{value}', 'yyyy-mm-dd hh24:mi:ss')"
-		return "'{}'".format(value.replace("'", "''"))

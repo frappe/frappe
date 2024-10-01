@@ -291,16 +291,21 @@ def load_messages(language):
 
 @frappe.whitelist()
 def load_languages():
-	language_codes = frappe.db.sql(
-		"select language_code, language_name from tabLanguage order by name", as_dict=True
-	)
+	if frappe.is_oracledb:
+		language_codes = frappe.db.sql(
+			f'select "language_code", "language_name" from {frappe.conf.db_name.upper()}."tabLanguage" order by "name"', as_dict=True
+		)
+	else:
+		language_codes = frappe.db.sql(
+			"select language_code, language_name from tabLanguage order by name", as_dict=True
+		)
 	codes_to_names = {}
 	for d in language_codes:
 		codes_to_names[d.language_code] = d.language_name
 	return {
 		"default_language": frappe.db.get_value("Language", frappe.local.lang, "language_name")
 		or frappe.local.lang,
-		"languages": sorted(frappe.db.sql_list("select language_name from tabLanguage order by name")),
+		"languages": sorted(frappe.db.sql_list(f'select "language_name" from {frappe.conf.db_name.upper()}."tabLanguage" order by "name"')),
 		"codes_to_names": codes_to_names,
 	}
 

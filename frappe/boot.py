@@ -332,7 +332,9 @@ def load_print_css(bootinfo, print_settings):
 
 def get_unseen_notes():
 	note = DocType("Note")
-	nsb = DocType("Note Seen By").as_("nsb")
+	nsb = DocType("Note Seen By")
+	if not frappe.is_oracledb:
+		nsb = nsb.as_("nsb")
 
 	return (
 		frappe.qb.from_(note)
@@ -403,11 +405,18 @@ def get_notification_settings():
 
 def get_link_title_doctypes():
 	dts = frappe.get_all("DocType", {"show_title_field_in_link": 1})
-	custom_dts = frappe.get_all(
-		"Property Setter",
-		{"property": "show_title_field_in_link", "value": "1"},
-		["doc_type as name"],
-	)
+	if frappe.is_oracledb:
+		custom_dts = frappe.get_all(
+			"Property Setter",
+			{"property": "show_title_field_in_link", "value": "1"},
+			['"doc_type" "name"'],
+		)
+	else:
+		custom_dts = frappe.get_all(
+			"Property Setter",
+			{"property": "show_title_field_in_link", "value": "1"},
+			["doc_type as name"],
+		)
 	return [d.name for d in dts + custom_dts if d]
 
 
