@@ -3,7 +3,7 @@
 		v-model="showDialog"
 		:options="{
 			title: 'Add Data Source',
-			size: 'lg',
+			size: '2xl',
 			actions: [
 				{
 					label: 'Add',

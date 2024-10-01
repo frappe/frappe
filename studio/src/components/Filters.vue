@@ -14,7 +14,7 @@
 						<div class="w-13 flex-shrink-0 pl-2 text-end text-base text-gray-600">
 							{{ i == 0 ? "Where" : "And" }}
 						</div>
-						<div id="fieldname" class="!min-w-[100px] flex-1">
+						<div id="fieldname" class="!min-w-[120px] flex-1">
 							<Autocomplete
 								:modelValue="filter.fieldname"
 								:options="fields"
@@ -22,7 +22,7 @@
 								placeholder="Filter by..."
 							/>
 						</div>
-						<div id="operator" class="!min-w-[100px] flex-shrink-0">
+						<div id="operator" class="!min-w-[120px] flex-shrink-0">
 							<FormControl
 								type="select"
 								:modelValue="filter.operator"
@@ -31,7 +31,7 @@
 								placeholder="Operator"
 							/>
 						</div>
-						<div id="value" class="!min-w-[120px] flex-1">
+						<div id="value" class="!min-w-[140px] flex-1">
 							<Link
 								v-if="typeLink.includes(filter.field.fieldtype) && ['=', '!='].includes(filter.operator)"
 								:doctype="filter.field.options"
@@ -44,6 +44,7 @@
 								:is="getValueSelector(filter.field.fieldtype, filter.field.options)"
 								v-model="filter.value"
 								placeholder="Value"
+								autocomplete="off"
 							/>
 						</div>
 					</div>
