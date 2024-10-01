@@ -198,15 +198,20 @@ frappe.views.Workspace = class Workspace {
 		if (this.sidebar.all_pages.length) {
 			this.create_page_skeleton();
 
-			let current_page = this.sidebar.all_pages.filter((p) => p.name == page.name)[0];
+			let current_page = this.sidebar.all_pages.find((p) => p.name == page.name);
 			this._page = current_page;
 
 			// set app
-			let app = this._page.app;
-			if (!app && this._page.module) {
-				app = frappe.boot.module_app[frappe.router.slug(this._page.module)];
+			let app;
+			if (!this._page.public) {
+				app = "private";
+			} else {
+				app = this._page.app;
+				if (!app && this._page.module) {
+					app = frappe.boot.module_app[frappe.router.slug(this._page.module)];
+				}
+				if (!app) app = "frappe";
 			}
-			if (!app) app = "frappe";
 
 			if (typeof current_page.content == "string") {
 				current_page.content = JSON.parse(current_page.content);

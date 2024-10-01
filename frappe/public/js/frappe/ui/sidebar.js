@@ -85,9 +85,16 @@ frappe.ui.Sidebar = class Sidebar {
 		});
 
 		frappe.boot.app_data_map = {};
+		frappe.boot.app_data.push({
+			app_name: "private",
+			app_title: __("Private"),
+			app_route: "/app/private",
+			app_logo_url: "/assets/frappe/images/frappe-framework-logo.svg",
+			workspaces: this.all_pages.filter((p) => p.public === 0),
+		});
 		for (var app of frappe.boot.app_data) {
 			frappe.boot.app_data_map[app.app_name] = app;
-			if (app.workspaces?.length) {
+			if (app.workspaces?.length || app.app_name === "private") {
 				this.add_app_item(app, app_switcher_menu);
 			}
 		}
@@ -117,7 +124,12 @@ frappe.ui.Sidebar = class Sidebar {
 			let route = item.attr("data-app-route");
 			app_switcher_menu.toggleClass("hidden");
 
-			if (route.startsWith("/app")) {
+			if (route.startsWith("/app/private")) {
+				this.set_current_app("private");
+				let ws = Object.values(frappe.workspace_map).find((ws) => ws.public === 0);
+				route += "/" + frappe.router.slug(ws.title);
+				frappe.set_route(route);
+			} else if (route.startsWith("/app")) {
 				frappe.set_route(route);
 				this.set_current_app(item.attr("data-app-name"));
 			} else {
@@ -198,14 +210,11 @@ frappe.ui.Sidebar = class Sidebar {
 		let app_workspaces = frappe.boot.app_data_map[frappe.current_app || "frappe"].workspaces;
 
 		let parent_pages = this.all_pages.filter((p) => !p.parent_page).uniqBy((p) => p.name);
-		parent_pages = [
-			...parent_pages.filter(
-				(p) =>
-					!p.public &&
-					(app_workspaces.includes(p.name) || p.app === frappe.current_app || !p.app)
-			),
-			...parent_pages.filter((p) => p.public && app_workspaces.includes(p.name)),
-		];
+		if (frappe.current_app === "private") {
+			parent_pages = parent_pages.filter((p) => !p.public);
+		} else {
+			parent_pages = parent_pages.filter((p) => p.public && app_workspaces.includes(p.name));
+		}
 
 		this.build_sidebar_section("All", parent_pages);
 
