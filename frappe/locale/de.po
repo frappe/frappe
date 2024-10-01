@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-09-24 14:00+0000\n"
-"PO-Revision-Date: 2024-09-24 23:32\n"
+"POT-Creation-Date: 2024-09-29 09:33+0000\n"
+"PO-Revision-Date: 2024-10-01 00:39\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -74,7 +74,7 @@ msgstr "&lt;head&gt; HTML"
 msgid "'In Global Search' is not allowed for field {0} of type {1}"
 msgstr "'In der globalen Suche' ist für Feld {0} des Typs {1} nicht erlaubt"
 
-#: frappe/core/doctype/doctype/doctype.py:1339
+#: frappe/core/doctype/doctype/doctype.py:1349
 msgid "'In Global Search' not allowed for type {0} in row {1}"
 msgstr "'In Globaler Suche' nicht zulässig für Typ {0} in Zeile {1}"
 
@@ -94,7 +94,7 @@ msgstr "Keine \"Empfänger\" angegeben"
 msgid "'{0}' is not a valid URL"
 msgstr "'{0} ist keine gültige URL"
 
-#: frappe/core/doctype/doctype/doctype.py:1333
+#: frappe/core/doctype/doctype/doctype.py:1343
 msgid "'{0}' not allowed for type {1} in row {2}"
 msgstr "&#39;{0}&#39; ist für Typ {1} in Zeile {2} nicht zulässig"
 
@@ -734,7 +734,7 @@ msgstr ">"
 msgid ">="
 msgstr ">="
 
-#: frappe/core/doctype/doctype/doctype.py:1017
+#: frappe/core/doctype/doctype/doctype.py:1027
 msgid "A DocType's name should start with a letter and can only consist of letters, numbers, spaces, underscores and hyphens"
 msgstr "Der Name eines DocTypes sollte mit einem Buchstaben beginnen und darf nur aus Buchstaben, Zahlen, Leerzeichen, Unterstrichen und Bindestrichen bestehen"
 
@@ -742,7 +742,7 @@ msgstr "Der Name eines DocTypes sollte mit einem Buchstaben beginnen und darf nu
 msgid "A featured post must have a cover image"
 msgstr "Ein vorgestellter Beitrag muss ein Titelbild haben"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:173
+#: frappe/custom/doctype/custom_field/custom_field.py:174
 msgid "A field with the name {0} already exists in {1}"
 msgstr "Ein Feld mit dem Namen {0} existiert bereits in {1}"
 
@@ -1258,7 +1258,7 @@ msgstr "Abfrageparameter hinzufügen"
 msgid "Add Review"
 msgstr "Bewertung hinzufügen"
 
-#: frappe/core/doctype/user/user.py:790
+#: frappe/core/doctype/user/user.py:809
 msgid "Add Roles"
 msgstr "Rollen hinzufügen"
 
@@ -1551,11 +1551,11 @@ msgstr "Verwaltung"
 msgid "Administrator"
 msgstr "Administrator"
 
-#: frappe/core/doctype/user/user.py:1194
+#: frappe/core/doctype/user/user.py:1213
 msgid "Administrator Logged In"
 msgstr "Administrator hat sich angemeldet"
 
-#: frappe/core/doctype/user/user.py:1188
+#: frappe/core/doctype/user/user.py:1207
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr "Administrator hat auf {0} über {1} zugegriffen mit IP-Adresse {2}."
 
@@ -2043,7 +2043,7 @@ msgstr "Erlaubte Rollen"
 msgid "Allowing DocType, DocType. Be careful!"
 msgstr "DocType, DocType zulassen. Achtung!"
 
-#: frappe/core/doctype/user/user.py:997
+#: frappe/core/doctype/user/user.py:1016
 msgid "Already Registered"
 msgstr "Bereits registriert"
 
@@ -3213,7 +3213,7 @@ msgstr "Zurück"
 msgid "Back to Desk"
 msgstr "Zurück zum Schreibtisch"
 
-#: frappe/www/404.html:20
+#: frappe/www/404.html:26
 msgid "Back to Home"
 msgstr "Zurück zur Startseite"
 
@@ -3766,8 +3766,8 @@ msgstr "Baue {0}"
 msgid "Built on {0}"
 msgstr "Basierend auf {0}"
 
-#. Label of the bulk_actions (Check) field in DocType 'Role'
-#: frappe/core/doctype/role/role.json
+#. Label of the bulk_actions (Check) field in DocType 'User'
+#: frappe/core/doctype/user/user.json
 msgid "Bulk Actions"
 msgstr "Massenbearbeitung"
 
@@ -4062,11 +4062,11 @@ msgstr "Kann buchen"
 msgid "Can Write"
 msgstr "Kann schreiben"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:360
+#: frappe/custom/doctype/custom_field/custom_field.py:361
 msgid "Can not rename as column {0} is already present on DocType."
 msgstr "Kann nicht umbenannt werden, da Spalte {0} bereits im DocType vorhanden ist."
 
-#: frappe/core/doctype/doctype/doctype.py:1148
+#: frappe/core/doctype/doctype/doctype.py:1158
 msgid "Can only change to/from Autoincrement naming rule when there is no data in the doctype"
 msgstr "Kann nur zu/von der Benennungsregel Autoincrement wechseln, wenn keine Daten im Doctype vorhanden sind"
 
@@ -4171,7 +4171,7 @@ msgstr "Werte können nicht abgerufen werden"
 msgid "Cannot Remove"
 msgstr "Kann nicht entfernt werden."
 
-#: frappe/model/base_document.py:1096
+#: frappe/model/base_document.py:1091
 msgid "Cannot Update After Submit"
 msgstr "Kann nach dem Buchen nicht mehr geändert werden"
 
@@ -4207,7 +4207,7 @@ msgstr "Der Status des abgebrochenen Dokuments kann nicht geändert werden <b>(S
 msgid "Cannot change state of Cancelled Document. Transition row {0}"
 msgstr "Zustand des aufgehobenen Dokumentes kann nicht geändert werden. Übergangszeile {0}"
 
-#: frappe/core/doctype/doctype/doctype.py:1138
+#: frappe/core/doctype/doctype/doctype.py:1148
 msgid "Cannot change to/from autoincrement autoname in Customize Form"
 msgstr "In „Formular anpassen“ kann nicht von/zu Benennungsschema „Autoinkrementierung“ gewechselt werden"
 
@@ -4636,7 +4636,7 @@ msgstr "Untergeordnete DocTypes sind nicht erlaubt"
 msgid "Child Doctype"
 msgstr "Untergeordneter DocType"
 
-#: frappe/core/doctype/doctype/doctype.py:1632
+#: frappe/core/doctype/doctype/doctype.py:1642
 msgid "Child Table {0} for field {1}"
 msgstr "Untertabelle {0} für Feld {1}"
 
@@ -4698,7 +4698,7 @@ msgctxt "Button in list view actions menu"
 msgid "Clear Assignment"
 msgstr "Zuweisung löschen"
 
-#: frappe/public/js/frappe/ui/keyboard.js:284
+#: frappe/public/js/frappe/ui/keyboard.js:295
 msgid "Clear Cache and Reload"
 msgstr "Cache leeren und neu laden"
 
@@ -5246,7 +5246,7 @@ msgstr "Komplett"
 msgid "Complete By"
 msgstr "Fertigstellen bis"
 
-#: frappe/core/doctype/user/user.py:450
+#: frappe/core/doctype/user/user.py:469
 #: frappe/templates/emails/new_user.html:10
 msgid "Complete Registration"
 msgstr "Anmeldung abschliessen"
@@ -6114,15 +6114,15 @@ msgstr "Benutzerdefinierte Dokumente"
 msgid "Custom Field"
 msgstr "Benutzerdefiniertes Feld"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:218
+#: frappe/custom/doctype/custom_field/custom_field.py:219
 msgid "Custom Field {0} is created by the Administrator and can only be deleted through the Administrator account."
 msgstr "Das benutzerdefinierte Feld {0} wird vom Administrator erstellt und kann nur über das Administratorkonto gelöscht werden."
 
-#: frappe/custom/doctype/custom_field/custom_field.py:260
+#: frappe/custom/doctype/custom_field/custom_field.py:261
 msgid "Custom Fields can only be added to a standard DocType."
 msgstr "Benutzerdefinierte Felder können nur zu einem Standard-DocType hinzugefügt werden."
 
-#: frappe/custom/doctype/custom_field/custom_field.py:257
+#: frappe/custom/doctype/custom_field/custom_field.py:258
 msgid "Custom Fields cannot be added to core DocTypes."
 msgstr "Benutzerdefinierte Felder können nicht zu zentralen DocTypes hinzugefügt werden."
 
@@ -6219,7 +6219,7 @@ msgstr "Benutzerdefinierte Sidebar Menu"
 msgid "Custom Translation"
 msgstr "Benutzerdefinierte Übersetzung"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:373
+#: frappe/custom/doctype/custom_field/custom_field.py:374
 msgid "Custom field renamed to {0} successfully."
 msgstr "Benutzerdefiniertes Feld erfolgreich in {0} umbenannt."
 
@@ -6399,13 +6399,13 @@ msgstr "Dunkle Farbe"
 msgid "Dark Theme"
 msgstr "Dunkles Design"
 
-#. Label of the dashboard (Check) field in DocType 'Role'
+#. Label of the dashboard (Check) field in DocType 'User'
 #. Label of a Link in the Build Workspace
 #. Name of a DocType
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
 #. Option for the 'Type' (Select) field in DocType 'Workspace Shortcut'
 #. Option for the 'DocType View' (Select) field in DocType 'Workspace Shortcut'
-#: frappe/core/doctype/role/role.json
+#: frappe/core/doctype/user/user.json
 #: frappe/core/page/dashboard_view/dashboard_view.js:10
 #: frappe/core/workspace/build/build.json
 #: frappe/desk/doctype/dashboard/dashboard.json
@@ -6522,10 +6522,6 @@ msgstr "Vorlage für Datenimport"
 #: frappe/custom/doctype/customize_form/customize_form.py:611
 msgid "Data Too Long"
 msgstr "Daten zu lang"
-
-#: frappe/model/base_document.py:744
-msgid "Data missing in table"
-msgstr "In der Tabelle fehlen Daten"
 
 #. Label of the database (Data) field in DocType 'System Health Report'
 #. Label of the database_section (Section Break) field in DocType 'System
@@ -6850,11 +6846,11 @@ msgstr "Standardansicht"
 msgid "Default Workspace"
 msgstr "Standardarbeitsbereich"
 
-#: frappe/core/doctype/doctype/doctype.py:1361
+#: frappe/core/doctype/doctype/doctype.py:1371
 msgid "Default for 'Check' type of field {0} must be either '0' or '1'"
 msgstr "Die Standardeinstellung für den Feldtyp &#39;Check&#39; {0} muss entweder &#39;0&#39; oder &#39;1&#39; sein."
 
-#: frappe/core/doctype/doctype/doctype.py:1374
+#: frappe/core/doctype/doctype/doctype.py:1384
 msgid "Default value for {0} must be in the list of options."
 msgstr "Der Standardwert für {0} muss in der Liste der Optionen enthalten sein."
 
@@ -7589,7 +7585,7 @@ msgstr "Der DocStatus der folgenden Zustände hat sich geändert:<br><strong>{0}
 msgid "DocType"
 msgstr "DocType"
 
-#: frappe/core/doctype/doctype/doctype.py:1562
+#: frappe/core/doctype/doctype/doctype.py:1572
 msgid "DocType <b>{0}</b> provided for the field <b>{1}</b> must have atleast one Link field"
 msgstr "Der für das Feld <b>{1} angegebene</b> DocType <b>{0}</b> muss mindestens ein Link-Feld enthalten"
 
@@ -7686,7 +7682,7 @@ msgstr "DocType {0} existiert nicht."
 msgid "DocType {} not found"
 msgstr "DocType {} nicht gefunden"
 
-#: frappe/core/doctype/doctype/doctype.py:1011
+#: frappe/core/doctype/doctype/doctype.py:1021
 msgid "DocType's name should not start or end with whitespace"
 msgstr "Der Name von DocType sollte nicht mit Leerzeichen beginnen oder enden"
 
@@ -7700,7 +7696,7 @@ msgstr "DocTypes können nicht geändert werden, bitte verwenden Sie stattdessen
 msgid "Doctype"
 msgstr "DocType"
 
-#: frappe/core/doctype/doctype/doctype.py:1005
+#: frappe/core/doctype/doctype/doctype.py:1015
 msgid "Doctype name is limited to {0} characters ({1})"
 msgstr "Der DocType-Name ist auf {0} Zeichen begrenzt ({1})"
 
@@ -7762,19 +7758,19 @@ msgstr "Dokumenten-Verknüpfung"
 msgid "Document Links"
 msgstr "Dokumentverknüpfungen"
 
-#: frappe/core/doctype/doctype/doctype.py:1196
+#: frappe/core/doctype/doctype/doctype.py:1206
 msgid "Document Links Row #{0}: Could not find field {1} in {2} DocType"
 msgstr "Dokumentenverknüpfungen Zeile #{0}: Feld {1} konnte nicht in DocType {2} gefunden werden"
 
-#: frappe/core/doctype/doctype/doctype.py:1216
+#: frappe/core/doctype/doctype/doctype.py:1226
 msgid "Document Links Row #{0}: Invalid doctype or fieldname."
 msgstr "Dokumentenverknüpfungen Zeile #{0}: Ungültiger DocType oder Feldname."
 
-#: frappe/core/doctype/doctype/doctype.py:1179
+#: frappe/core/doctype/doctype/doctype.py:1189
 msgid "Document Links Row #{0}: Parent DocType is mandatory for internal links"
 msgstr "Dokumentenverknüpfungen Zeile #{0}: Übergeordneter DocType ist obligatorisch für interne Links"
 
-#: frappe/core/doctype/doctype/doctype.py:1185
+#: frappe/core/doctype/doctype/doctype.py:1195
 msgid "Document Links Row #{0}: Table Fieldname is mandatory for internal links"
 msgstr "Dokumentverknüpfungen Zeile #{0}: Tabellenfeldname ist obligatorisch für interne Links"
 
@@ -8608,7 +8604,7 @@ msgstr "Elementauswahl"
 #: frappe/templates/includes/comments/comments.html:25
 #: frappe/templates/signup.html:9
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
-#: frappe/www/login.html:7 frappe/www/login.py:98
+#: frappe/www/login.html:7 frappe/www/login.py:99
 msgid "Email"
 msgstr "E-Mail"
 
@@ -8639,7 +8635,7 @@ msgstr "E-Mail-Konto deaktiviert."
 msgid "Email Account Name"
 msgstr "E-Mail-Konten-Name"
 
-#: frappe/core/doctype/user/user.py:723
+#: frappe/core/doctype/user/user.py:742
 msgid "Email Account added multiple times"
 msgstr "E-Mail-Konto wurde mehrmals hinzugefügt"
 
@@ -9327,7 +9323,6 @@ msgstr "ist gleich"
 #: frappe/email/doctype/email_queue_recipient/email_queue_recipient.json
 #: frappe/integrations/doctype/integration_request/integration_request.json
 #: frappe/integrations/doctype/webhook_request_log/webhook_request_log.json
-#: frappe/model/base_document.py:744 frappe/model/base_document.py:750
 #: frappe/public/js/frappe/ui/messages.js:22
 msgid "Error"
 msgstr "Fehler"
@@ -9336,10 +9331,6 @@ msgstr "Fehler"
 msgctxt "Title of error message in web form"
 msgid "Error"
 msgstr "Fehler"
-
-#: frappe/www/error.html:34
-msgid "Error Code: {0}"
-msgstr "Fehlercode: {0}"
 
 #. Name of a DocType
 #: frappe/core/doctype/error_log/error_log.json
@@ -9402,13 +9393,25 @@ msgstr "Fehler beim Verbinden mit dem E-Mail-Konto {0}"
 msgid "Error while evaluating Notification {0}. Please fix your template."
 msgstr "Fehler beim Auswerten der Benachrichtigung {0}. Bitte reparieren Sie Ihre Vorlage."
 
+#: frappe/model/base_document.py:743
+msgid "Error: Data missing in table {0}"
+msgstr ""
+
 #: frappe/model/document.py:833
 msgid "Error: Document has been modified after you have opened it"
 msgstr "Fehler: Dokument wurde geändert, nachdem es geöffnet wurde"
 
-#: frappe/model/base_document.py:758
+#: frappe/model/base_document.py:753
 msgid "Error: Value missing for {0}: {1}"
 msgstr "Fehler: Wert fehlt für {0}: {1}"
+
+#: frappe/www/error.html:36
+msgid "Error: {0}"
+msgstr ""
+
+#: frappe/model/base_document.py:747
+msgid "Error: {0} Row #{1}: Value missing for: {2}"
+msgstr ""
 
 #. Label of the errors_generated_in_last_1_day_section (Section Break) field in
 #. DocType 'System Health Report'
@@ -9997,7 +10000,7 @@ msgstr "Feld"
 msgid "Field \"route\" is mandatory for Web Views"
 msgstr "Das Feld &quot;Route&quot; ist für Web-Ansichten obligatorisch"
 
-#: frappe/core/doctype/doctype/doctype.py:1511
+#: frappe/core/doctype/doctype/doctype.py:1521
 msgid "Field \"title\" is mandatory if \"Website Search Field\" is set."
 msgstr "Das Feld \"Titel\" ist obligatorisch, wenn \"Website-Suchfeld\" eingestellt ist."
 
@@ -10010,7 +10013,7 @@ msgstr "Das Feld &quot;Wert&quot; ist obligatorisch. Bitte geben Sie Wert aktual
 msgid "Field Description"
 msgstr "Feldbeschreibung"
 
-#: frappe/core/doctype/doctype/doctype.py:1060
+#: frappe/core/doctype/doctype/doctype.py:1070
 msgid "Field Missing"
 msgstr "Feld fehlt"
 
@@ -10102,7 +10105,7 @@ msgstr "Feldname"
 msgid "Fieldname '{0}' conflicting with a {1} of the name {2} in {3}"
 msgstr "Feldname '{0}' im Konflikt mit einem {1} mit dem Namen {2} in {3}"
 
-#: frappe/core/doctype/doctype/doctype.py:1059
+#: frappe/core/doctype/doctype/doctype.py:1069
 msgid "Fieldname called {0} must exist to enable autonaming"
 msgstr "Der Feldname {0} muss existieren, um die automatische Benennung zu ermöglichen"
 
@@ -10110,7 +10113,7 @@ msgstr "Der Feldname {0} muss existieren, um die automatische Benennung zu ermö
 msgid "Fieldname is limited to 64 characters ({0})"
 msgstr "Feldname ist auf 64 Zeichen ({0})"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:195
+#: frappe/custom/doctype/custom_field/custom_field.py:196
 msgid "Fieldname not set for Custom Field"
 msgstr "Feldname für benutzerdefiniertes Feld nicht gesetzt"
 
@@ -10126,7 +10129,7 @@ msgstr "Feldname {0} erscheint mehrfach"
 msgid "Fieldname {0} cannot have special characters like {1}"
 msgstr "Feldname {0} kann nicht Sonderzeichen wie {1} beinhalten"
 
-#: frappe/core/doctype/doctype/doctype.py:1892
+#: frappe/core/doctype/doctype/doctype.py:1902
 msgid "Fieldname {0} conflicting with meta object"
 msgstr "Feldname {0} im Konflikt mit Meta-Objekt"
 
@@ -10194,7 +10197,7 @@ msgstr "Felder, die durch Komma (,) getrennt sind, sind in der \"Suchen nach\"-L
 msgid "Fieldtype"
 msgstr "Feldtyp"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:191
+#: frappe/custom/doctype/custom_field/custom_field.py:192
 msgid "Fieldtype cannot be changed from {0} to {1}"
 msgstr "Feldtyp kann nicht von {0} auf {1} geändert werden"
 
@@ -10533,11 +10536,11 @@ msgstr "Gleitkommazahl-Genauigkeit"
 msgid "Fold"
 msgstr "Falz"
 
-#: frappe/core/doctype/doctype/doctype.py:1435
+#: frappe/core/doctype/doctype/doctype.py:1445
 msgid "Fold can not be at the end of the form"
 msgstr "Falz kann nicht am Ende eines Formulars sein"
 
-#: frappe/core/doctype/doctype/doctype.py:1433
+#: frappe/core/doctype/doctype/doctype.py:1443
 msgid "Fold must come before a Section Break"
 msgstr "Falz muss vor einem Bereichsumbruch kommen"
 
@@ -10804,7 +10807,7 @@ msgstr "Bei mehreren Adressen geben Sie bitte jede Adresse in einer neuen Zeile 
 msgid "For updating, you can update only selective columns."
 msgstr "Nur ausgewählte Spalten können aktualisiert werden"
 
-#: frappe/core/doctype/doctype/doctype.py:1736
+#: frappe/core/doctype/doctype/doctype.py:1746
 msgid "For {0} at level {1} in {2} in row {3}"
 msgstr "Für {0} auf der Ebene {1} in {2} in Zeile {3}"
 
@@ -10878,10 +10881,10 @@ msgstr "Formular Dict"
 
 #. Label of the form_settings_section (Section Break) field in DocType
 #. 'DocType'
-#. Label of the form_settings_section (Section Break) field in DocType 'Role'
+#. Label of the form_settings_section (Section Break) field in DocType 'User'
 #. Label of the form_settings_section (Section Break) field in DocType
 #. 'Customize Form'
-#: frappe/core/doctype/doctype/doctype.json frappe/core/doctype/role/role.json
+#: frappe/core/doctype/doctype/doctype.json frappe/core/doctype/user/user.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Form Settings"
 msgstr "Formulareinstellungen"
@@ -10938,8 +10941,8 @@ msgstr "Teileinheiten"
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
-#: frappe/www/login.html:61 frappe/www/login.html:142 frappe/www/login.py:49
-#: frappe/www/login.py:138
+#: frappe/www/login.html:61 frappe/www/login.html:142 frappe/www/login.py:50
+#: frappe/www/login.py:139
 msgid "Frappe"
 msgstr "Frappé"
 
@@ -11972,7 +11975,7 @@ msgstr "Tage verstecken"
 msgid "Hide Descendants"
 msgstr "Nachkommen ausblenden"
 
-#: frappe/www/error.html:41 frappe/www/error.html:56
+#: frappe/www/error.html:62
 msgid "Hide Error"
 msgstr "Fehler ausblenden"
 
@@ -12084,8 +12087,8 @@ msgstr "Hinweis: Geben Sie Symbole, Zahlen und Großbuchstaben in das Passwort e
 #: frappe/website/doctype/blog_post/blog_post.py:267
 #: frappe/website/doctype/website_settings/website_settings.json
 #: frappe/website/web_template/primary_navbar/primary_navbar.html:9
-#: frappe/www/contact.py:22 frappe/www/error.html:30 frappe/www/login.html:150
-#: frappe/www/me.html:76 frappe/www/message.html:34
+#: frappe/www/contact.py:22 frappe/www/login.html:150 frappe/www/me.html:76
+#: frappe/www/message.html:27
 msgid "Home"
 msgstr "Startseite"
 
@@ -12259,7 +12262,7 @@ msgstr "Wenn eine strikte Benutzerberechtigung aktiviert ist und die Benutzerber
 msgid "If Checked workflow status will not override status in list view"
 msgstr "Falls diese Option aktiviert ist, wird der Workflow-Status nicht den Status in der Listenansicht überschreiben"
 
-#: frappe/core/doctype/doctype/doctype.py:1748
+#: frappe/core/doctype/doctype/doctype.py:1758
 #: frappe/core/report/user_doctype_permissions/user_doctype_permissions.py:45
 #: frappe/public/js/frappe/roles_editor.js:66
 msgid "If Owner"
@@ -12547,11 +12550,11 @@ msgstr "Bildansicht"
 msgid "Image Width"
 msgstr "Bildbreite"
 
-#: frappe/core/doctype/doctype/doctype.py:1491
+#: frappe/core/doctype/doctype/doctype.py:1501
 msgid "Image field must be a valid fieldname"
 msgstr "Bildfeld muss ein gültiger Feldname sein"
 
-#: frappe/core/doctype/doctype/doctype.py:1493
+#: frappe/core/doctype/doctype/doctype.py:1503
 msgid "Image field must be of type Attach Image"
 msgstr "Bildfeld muss Typ anhängen Bild"
 
@@ -12999,11 +13002,11 @@ msgstr "Darüber einfügen"
 msgid "Insert After"
 msgstr "Einfügen nach"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:249
+#: frappe/custom/doctype/custom_field/custom_field.py:250
 msgid "Insert After cannot be set as {0}"
 msgstr "Dahinter einfügen kann nicht als eingestellt werden {0}"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:242
+#: frappe/custom/doctype/custom_field/custom_field.py:243
 msgid "Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist"
 msgstr "Dahinter einfügen Feld &#39;{0}&#39; in benutzerdefinierten Feld erwähnt &#39;{1}&#39;, mit dem Label &#39;{2}&#39; existiert nicht"
 
@@ -13227,7 +13230,7 @@ msgstr "Ungültiger DocType"
 msgid "Invalid DocType: {0}"
 msgstr "Ungültiger DocType: {0}"
 
-#: frappe/core/doctype/doctype/doctype.py:1257
+#: frappe/core/doctype/doctype/doctype.py:1267
 msgid "Invalid Fieldname"
 msgstr "Ungültiger Feldname"
 
@@ -13251,7 +13254,7 @@ msgstr "Ungültige Startseite"
 msgid "Invalid Link"
 msgstr "Ungültige Verknüpfung"
 
-#: frappe/www/login.py:117
+#: frappe/www/login.py:118
 msgid "Invalid Login Token"
 msgstr "Ungültiges Login-Token"
 
@@ -13271,8 +13274,8 @@ msgstr "Ungültiger Nummernkreis: {}"
 msgid "Invalid Operation"
 msgstr "Ungültige Operation"
 
-#: frappe/core/doctype/doctype/doctype.py:1626
-#: frappe/core/doctype/doctype/doctype.py:1635
+#: frappe/core/doctype/doctype/doctype.py:1636
+#: frappe/core/doctype/doctype/doctype.py:1645
 msgid "Invalid Option"
 msgstr "Ungültige Option"
 
@@ -13292,7 +13295,7 @@ msgstr "Ungültige Überschreibung"
 msgid "Invalid Parameters."
 msgstr "Ungültige Parameter."
 
-#: frappe/core/doctype/user/user.py:1209 frappe/www/update-password.html:110
+#: frappe/core/doctype/user/user.py:1228 frappe/www/update-password.html:110
 #: frappe/www/update-password.html:131 frappe/www/update-password.html:133
 #: frappe/www/update-password.html:234
 msgid "Invalid Password"
@@ -13303,7 +13306,7 @@ msgid "Invalid Phone Number"
 msgstr "Ungültige Telefonnummer"
 
 #: frappe/auth.py:94 frappe/utils/oauth.py:185 frappe/utils/oauth.py:192
-#: frappe/www/login.py:117
+#: frappe/www/login.py:118
 msgid "Invalid Request"
 msgstr "ungültige Anfrage"
 
@@ -13311,7 +13314,7 @@ msgstr "ungültige Anfrage"
 msgid "Invalid Search Field {0}"
 msgstr "Ungültiges Suchfeld {0}"
 
-#: frappe/core/doctype/doctype/doctype.py:1199
+#: frappe/core/doctype/doctype/doctype.py:1209
 msgid "Invalid Table Fieldname"
 msgstr "Ungültiger Tabellenfeldname"
 
@@ -13358,7 +13361,7 @@ msgstr "Ungültiger Ausdruck im Filter {0} ({1}) gesetzt"
 msgid "Invalid field name {0}"
 msgstr "Ungültiger Feldname {0}"
 
-#: frappe/core/doctype/doctype/doctype.py:1068
+#: frappe/core/doctype/doctype/doctype.py:1078
 msgid "Invalid fieldname '{0}' in autoname"
 msgstr "Ungültige Feldname &#39;{0}&#39; in auton"
 
@@ -13422,7 +13425,7 @@ msgstr "Ungültige Werte für Felder:"
 msgid "Invalid wkhtmltopdf version"
 msgstr "Ungültige wkhtmltopdf-Version"
 
-#: frappe/core/doctype/doctype/doctype.py:1549
+#: frappe/core/doctype/doctype/doctype.py:1559
 msgid "Invalid {0} condition"
 msgstr "Ungültige {0} Bedingung"
 
@@ -13570,7 +13573,7 @@ msgstr "Ist öffentlich"
 msgid "Is Published Field"
 msgstr "Ist Veröffentlicht Feld"
 
-#: frappe/core/doctype/doctype/doctype.py:1500
+#: frappe/core/doctype/doctype/doctype.py:1510
 msgid "Is Published Field must be a valid fieldname"
 msgstr "Ist Veröffentlicht Feld muss eine gültige Feldname sein"
 
@@ -14112,7 +14115,7 @@ msgstr "Bezeichnungshilfe"
 msgid "Label and Type"
 msgstr "Bezeichnung und Typ"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:143
+#: frappe/custom/doctype/custom_field/custom_field.py:144
 msgid "Label is mandatory"
 msgstr "Bezeichnung ist zwingend erforderlich"
 
@@ -14748,11 +14751,11 @@ msgstr "Listenfilter"
 msgid "List Setting Message"
 msgstr "Listeneinstellungsnachricht"
 
-#. Label of the list_settings_section (Section Break) field in DocType 'Role'
+#. Label of the list_settings_section (Section Break) field in DocType 'User'
 #. Label of the section_break_8 (Section Break) field in DocType 'Customize
 #. Form'
 #. Label of the section_break_3 (Section Break) field in DocType 'Web Form'
-#: frappe/core/doctype/role/role.json
+#: frappe/core/doctype/user/user.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 #: frappe/website/doctype/web_form/web_form.json
 msgid "List Settings"
@@ -14954,7 +14957,7 @@ msgstr "Anmeldemethoden"
 msgid "Login Page"
 msgstr "Anmeldeseite"
 
-#: frappe/www/login.py:141
+#: frappe/www/login.py:142
 msgid "Login To {0}"
 msgstr "Anmelden bei {0}"
 
@@ -15394,7 +15397,7 @@ msgstr "Maximaler Wert"
 msgid "Max auto email report per user"
 msgstr "Höchstzahl automatischer E-Mail-Berichte pro Benutzer"
 
-#: frappe/core/doctype/doctype/doctype.py:1327
+#: frappe/core/doctype/doctype/doctype.py:1337
 msgid "Max width for type Currency is 100px in row {0}"
 msgstr "Max Breite für Typ Währung ist 100px in Zeile {0}"
 
@@ -15528,7 +15531,7 @@ msgstr "Zusammenführung ist nur möglich zwischen Gruppen oder Knoten"
 #: frappe/public/js/frappe/ui/messages.js:175
 #: frappe/public/js/frappe/views/communication.js:114
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
-#: frappe/www/message.html:3 frappe/www/message.html:25
+#: frappe/www/message.html:3 frappe/www/message.html:16
 msgid "Message"
 msgstr "Nachricht"
 
@@ -15738,7 +15741,7 @@ msgstr "Frau"
 msgid "Missing DocType"
 msgstr "Fehlender DocType"
 
-#: frappe/core/doctype/doctype/doctype.py:1511
+#: frappe/core/doctype/doctype/doctype.py:1521
 msgid "Missing Field"
 msgstr "Fehlendes Feld"
 
@@ -15765,7 +15768,7 @@ msgstr "Fehlender Wert"
 msgid "Missing Values Required"
 msgstr "Angaben zu fehlenden Werten erforderlich"
 
-#: frappe/www/login.py:101
+#: frappe/www/login.py:102
 msgid "Mobile"
 msgstr "Mobil"
 
@@ -16269,7 +16272,7 @@ msgstr "Navbar-Vorlage"
 msgid "Navbar Template Values"
 msgstr "Navbar-Vorlagenwerte"
 
-#: frappe/public/js/frappe/ui/keyboard.js:214
+#: frappe/public/js/frappe/ui/keyboard.js:225
 msgid "Navigate Home"
 msgstr "Nach Hause navigieren"
 
@@ -16288,8 +16291,8 @@ msgid "Navigate to main content"
 msgstr "Zum Hauptinhalt navigieren"
 
 #. Label of the navigation_settings_section (Section Break) field in DocType
-#. 'Role'
-#: frappe/core/doctype/role/role.json
+#. 'User'
+#: frappe/core/doctype/user/user.json
 msgid "Navigation Settings"
 msgstr "Navigationseinstellungen"
 
@@ -16526,7 +16529,7 @@ msgstr "Neu {0}: {1}"
 msgid "New {} releases for the following apps are available"
 msgstr "Neue {} Versionen für die folgenden Apps sind verfügbar"
 
-#: frappe/core/doctype/user/user.py:786
+#: frappe/core/doctype/user/user.py:805
 msgid "Newly created user {0} has no roles enabled."
 msgstr "Der neu erstellte Benutzer {0} hat keine aktivierten Rollen."
 
@@ -16767,7 +16770,7 @@ msgstr "Kein Name für {0} angegeben"
 msgid "No New notifications"
 msgstr "Keine neuen Benachrichtigungen"
 
-#: frappe/core/doctype/doctype/doctype.py:1728
+#: frappe/core/doctype/doctype/doctype.py:1738
 msgid "No Permissions Specified"
 msgstr "Keine Berechtigungen angegeben"
 
@@ -16807,7 +16810,7 @@ msgstr "Keine Ergebnisse"
 msgid "No Results found"
 msgstr "Keine Ergebnisse gefunden"
 
-#: frappe/core/doctype/user/user.py:787
+#: frappe/core/doctype/user/user.py:806
 msgid "No Roles Specified"
 msgstr "Keine Rollen festgelegt"
 
@@ -17075,7 +17078,7 @@ msgstr "Normalisierte Kopien"
 msgid "Normalized Query"
 msgstr "Normalisierte Abfrage"
 
-#: frappe/core/doctype/user/user.py:992
+#: frappe/core/doctype/user/user.py:1011
 #: frappe/templates/includes/login/login.js:257 frappe/utils/oauth.py:271
 msgid "Not Allowed"
 msgstr "Nicht Erlaubt"
@@ -17126,7 +17129,7 @@ msgstr "Nicht nullbar"
 #: frappe/geo/utils.py:97 frappe/public/js/frappe/web_form/webform_script.js:15
 #: frappe/website/doctype/web_form/web_form.py:604
 #: frappe/website/page_renderers/not_permitted_page.py:20
-#: frappe/www/login.py:182 frappe/www/qrcode.py:22 frappe/www/qrcode.py:25
+#: frappe/www/login.py:183 frappe/www/qrcode.py:22 frappe/www/qrcode.py:25
 #: frappe/www/qrcode.py:37
 msgid "Not Permitted"
 msgstr "Nicht zulässig"
@@ -17176,7 +17179,7 @@ msgstr "Nicht eingetragen"
 msgid "Not a valid Comma Separated Value (CSV File)"
 msgstr "Keine gültige .csv-Datei"
 
-#: frappe/core/doctype/user/user.py:242
+#: frappe/core/doctype/user/user.py:261
 msgid "Not a valid User Image."
 msgstr "Kein gültiges Benutzerbild."
 
@@ -17380,8 +17383,8 @@ msgstr "Benachrichtigung: Dokument {0} hat keine {1} Nummer gesetzt (Feld: {2})"
 msgid "Notification: user {0} has no Mobile number set"
 msgstr "Benachrichtigung: Benutzer {0} hat keine Mobiltelefonnummer festgelegt"
 
-#. Label of the notifications (Check) field in DocType 'Role'
-#: frappe/core/doctype/role/role.json
+#. Label of the notifications (Check) field in DocType 'User'
+#: frappe/core/doctype/user/user.json
 #: frappe/public/js/frappe/ui/notifications/notifications.js:50
 #: frappe/public/js/frappe/ui/notifications/notifications.js:187
 msgid "Notifications"
@@ -17659,7 +17662,7 @@ msgstr "Versatz Y"
 msgid "Old Password"
 msgstr "Altes Passwort"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:362
+#: frappe/custom/doctype/custom_field/custom_field.py:363
 msgid "Old and new fieldnames are same."
 msgstr "Alte und neue Feldnamen sind gleich."
 
@@ -17811,7 +17814,7 @@ msgstr "Nur der Administrator darf den Recorder verwenden"
 msgid "Only Allow Edit For"
 msgstr "Änderungen nur zulassen für"
 
-#: frappe/core/doctype/doctype/doctype.py:1605
+#: frappe/core/doctype/doctype/doctype.py:1615
 msgid "Only Options allowed for Data field are:"
 msgstr "Für das Datenfeld sind nur folgende Optionen zulässig:"
 
@@ -17900,7 +17903,8 @@ msgctxt "Access"
 msgid "Open"
 msgstr "Offen"
 
-#: frappe/public/js/frappe/ui/keyboard.js:205
+#: frappe/public/js/frappe/ui/keyboard.js:206
+#: frappe/public/js/frappe/ui/keyboard.js:216
 msgid "Open Awesomebar"
 msgstr "Öffnen Sie die Awesomebar"
 
@@ -17918,7 +17922,7 @@ msgstr "Dokument öffnen"
 msgid "Open Documents"
 msgstr "Dokumente öffnen"
 
-#: frappe/public/js/frappe/ui/keyboard.js:240
+#: frappe/public/js/frappe/ui/keyboard.js:251
 msgid "Open Help"
 msgstr "Öffnen Sie die Hilfe"
 
@@ -17928,7 +17932,7 @@ msgstr "Öffnen Sie die Hilfe"
 msgid "Open Reference Document"
 msgstr "Referenzdokument öffnen"
 
-#: frappe/public/js/frappe/ui/keyboard.js:223
+#: frappe/public/js/frappe/ui/keyboard.js:234
 msgid "Open Settings"
 msgstr "Einstellungen öffnen"
 
@@ -18026,7 +18030,7 @@ msgstr "Option 2"
 msgid "Option 3"
 msgstr "Option 3"
 
-#: frappe/core/doctype/doctype/doctype.py:1623
+#: frappe/core/doctype/doctype/doctype.py:1633
 msgid "Option {0} for field {1} is not a child table"
 msgstr "Option {0} für Feld {1} ist keine untergeordnete Tabelle"
 
@@ -18058,7 +18062,7 @@ msgstr "Optional: Der Alarm wird gesendet, wenn dieser Ausdruck wahr ist"
 msgid "Options"
 msgstr "Optionen"
 
-#: frappe/core/doctype/doctype/doctype.py:1351
+#: frappe/core/doctype/doctype/doctype.py:1361
 msgid "Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'"
 msgstr "\"Dynamic Link\"-Feldtyp aus \"Optionen\" muss auf ein anderes Verknüpfungsfeld mit Optionen wie \"DocType\" zeigen"
 
@@ -18067,7 +18071,7 @@ msgstr "\"Dynamic Link\"-Feldtyp aus \"Optionen\" muss auf ein anderes Verknüpf
 msgid "Options Help"
 msgstr "Hilfe zu Optionen"
 
-#: frappe/core/doctype/doctype/doctype.py:1645
+#: frappe/core/doctype/doctype/doctype.py:1655
 msgid "Options for Rating field can range from 3 to 10"
 msgstr "Optionen für Bewertungsfeld können zwischen 3 und 10 liegen"
 
@@ -18075,7 +18079,7 @@ msgstr "Optionen für Bewertungsfeld können zwischen 3 und 10 liegen"
 msgid "Options for select. Each option on a new line."
 msgstr "Optionen zum Auswählen. Jede Option in einer neuen Zeile."
 
-#: frappe/core/doctype/doctype/doctype.py:1368
+#: frappe/core/doctype/doctype/doctype.py:1378
 msgid "Options for {0} must be set before setting the default value."
 msgstr "Optionen für {0} müssen festgelegt werden, bevor der Standardwert festgelegt wird."
 
@@ -18083,7 +18087,7 @@ msgstr "Optionen für {0} müssen festgelegt werden, bevor der Standardwert fest
 msgid "Options is required for field {0} of type {1}"
 msgstr "Optionen sind erforderlich für Feld {0} des Typs {1}"
 
-#: frappe/model/base_document.py:807
+#: frappe/model/base_document.py:802
 msgid "Options not set for link field {0}"
 msgstr "Optionen nicht für das Verknüpfungs-Feld {0} gesetzt"
 
@@ -18396,7 +18400,7 @@ msgstr "Seite ist abgelaufen!"
 msgid "Page height and width cannot be zero"
 msgstr "Seitenhöhe und -Breite können nicht Null sein"
 
-#: frappe/public/js/frappe/views/container.js:52
+#: frappe/public/js/frappe/views/container.js:52 frappe/www/404.html:23
 msgid "Page not found"
 msgstr "Seite nicht gefunden"
 
@@ -18451,11 +18455,11 @@ msgstr "Übergeordnetes Feld"
 
 #. Label of the nsm_parent_field (Data) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
-#: frappe/core/doctype/doctype/doctype.py:916
+#: frappe/core/doctype/doctype/doctype.py:926
 msgid "Parent Field (Tree)"
 msgstr "Übergeordnetes Feld (Baum)"
 
-#: frappe/core/doctype/doctype/doctype.py:922
+#: frappe/core/doctype/doctype/doctype.py:932
 msgid "Parent Field must be a valid fieldname"
 msgstr "Das übergeordnete Feld muss ein gültiger Feldname sein"
 
@@ -18464,7 +18468,7 @@ msgstr "Das übergeordnete Feld muss ein gültiger Feldname sein"
 msgid "Parent Label"
 msgstr "Übergeordnete Bezeichnung"
 
-#: frappe/core/doctype/doctype/doctype.py:1182
+#: frappe/core/doctype/doctype/doctype.py:1192
 msgid "Parent Missing"
 msgstr "Stammeintrag fehlt"
 
@@ -18545,11 +18549,11 @@ msgstr "Passiv"
 msgid "Password"
 msgstr "Passwort"
 
-#: frappe/core/doctype/user/user.py:1055
+#: frappe/core/doctype/user/user.py:1074
 msgid "Password Email Sent"
 msgstr "Passwort E-Mail gesendet"
 
-#: frappe/core/doctype/user/user.py:430
+#: frappe/core/doctype/user/user.py:449
 msgid "Password Reset"
 msgstr "Passwort zurücksetzen"
 
@@ -18583,7 +18587,7 @@ msgstr "Passwort fehlt im E-Mail-Konto"
 msgid "Password not found for {0} {1} {2}"
 msgstr "Passwort für {0} {1} {2} nicht gefunden"
 
-#: frappe/core/doctype/user/user.py:1054
+#: frappe/core/doctype/user/user.py:1073
 msgid "Password reset instructions have been sent to {}'s email"
 msgstr "Anweisungen zum Zurücksetzen des Passworts wurden an die E-Mail von {} gesendet"
 
@@ -18595,7 +18599,7 @@ msgstr "Passwort gesetzt"
 msgid "Password size exceeded the maximum allowed size"
 msgstr "Passwort überschreitet die maximal zulässige Länge"
 
-#: frappe/core/doctype/user/user.py:850
+#: frappe/core/doctype/user/user.py:869
 msgid "Password size exceeded the maximum allowed size."
 msgstr "Passwort überschreitet die maximal zulässige Länge."
 
@@ -18812,8 +18816,8 @@ msgstr "Berechtigungsart"
 msgid "Permissions"
 msgstr "Berechtigungen"
 
-#: frappe/core/doctype/doctype/doctype.py:1819
 #: frappe/core/doctype/doctype/doctype.py:1829
+#: frappe/core/doctype/doctype/doctype.py:1839
 msgid "Permissions Error"
 msgstr "Berechtigungsfehler"
 
@@ -18923,6 +18927,15 @@ msgstr "Postleitzahl"
 msgid "Pink"
 msgstr "Rosa"
 
+#. Label of the placeholder (Data) field in DocType 'DocField'
+#. Label of the placeholder (Data) field in DocType 'Custom Field'
+#. Label of the placeholder (Data) field in DocType 'Customize Form Field'
+#: frappe/core/doctype/docfield/docfield.json
+#: frappe/custom/doctype/custom_field/custom_field.json
+#: frappe/custom/doctype/customize_form_field/customize_form_field.json
+msgid "Placeholder"
+msgstr ""
+
 #. Option for the 'Message Type' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Plain Text"
@@ -18965,7 +18978,7 @@ msgstr "Bitte füge einen Betreff zu deiner E-Mail hinzu"
 msgid "Please add a valid comment."
 msgstr "Bitte fügen Sie einen gültigen Kommentar hinzu."
 
-#: frappe/core/doctype/user/user.py:1037
+#: frappe/core/doctype/user/user.py:1056
 msgid "Please ask your administrator to verify your sign-up"
 msgstr "Bitte fragen Sie Ihren Administrator Ihre Anmeldung bis zum überprüfen"
 
@@ -18993,11 +19006,11 @@ msgstr "Bitte überprüfen Sie die OpenID-Konfigurations-URL"
 msgid "Please check the filter values set for Dashboard Chart: {}"
 msgstr "Bitte überprüfen Sie die für das Dashboard-Diagramm festgelegten Filterwerte: {}"
 
-#: frappe/model/base_document.py:886
+#: frappe/model/base_document.py:881
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr "Bitte überprüfen Sie den Wert von &quot;Abrufen von&quot; für Feld {0}"
 
-#: frappe/core/doctype/user/user.py:1035
+#: frappe/core/doctype/user/user.py:1054
 msgid "Please check your email for verification"
 msgstr "Bitte überprüfen Sie Ihren Posteingang. Wir haben Ihnen eine E-Mail mit einer Bitte um Bestätigung geschickt."
 
@@ -19294,7 +19307,7 @@ msgstr "Bitte richten Sie zuerst eine Nachricht ein"
 msgid "Please setup default Email Account from Settings > Email Account"
 msgstr "Bitte richten Sie ein Standard-E-Mail-Konto unter Einstellungen > E-Mail-Konto ein"
 
-#: frappe/core/doctype/user/user.py:395
+#: frappe/core/doctype/user/user.py:414
 msgid "Please setup default outgoing Email Account from Settings > Email Account"
 msgstr "Bitte legen Sie das Standard-E-Mail-Konto unter Einstellungen > E-Mail-Konto fest"
 
@@ -19465,7 +19478,7 @@ msgstr "Beiträge abgelegt unter {0}"
 msgid "Precision"
 msgstr "Genauigkeit"
 
-#: frappe/core/doctype/doctype/doctype.py:1385
+#: frappe/core/doctype/doctype/doctype.py:1395
 msgid "Precision should be between 1 and 6"
 msgstr "Genauigkeit sollte zwischen 1 und 6 liegen"
 
@@ -20598,7 +20611,7 @@ msgstr ""
 msgid "Records for following doctypes will be filtered"
 msgstr "Datensätze für folgende Dokumenttypen werden gefiltert"
 
-#: frappe/core/doctype/doctype/doctype.py:1593
+#: frappe/core/doctype/doctype/doctype.py:1603
 msgid "Recursive Fetch From"
 msgstr "Rekursives Abrufen von"
 
@@ -20927,7 +20940,7 @@ msgstr "Aktualisiere"
 msgid "Refreshing..."
 msgstr "Aktualisiere..."
 
-#: frappe/core/doctype/user/user.py:999
+#: frappe/core/doctype/user/user.py:1018
 msgid "Registered but disabled"
 msgstr "Registrierte aber deaktiviert"
 
@@ -21335,7 +21348,7 @@ msgstr "Berichtsansicht"
 msgid "Report bug"
 msgstr "Fehler melden"
 
-#: frappe/core/doctype/doctype/doctype.py:1794
+#: frappe/core/doctype/doctype/doctype.py:1804
 msgid "Report cannot be set for Single types"
 msgstr "Bericht kann nicht für Einzel-Typen festgelegt werden"
 
@@ -21899,7 +21912,7 @@ msgstr "Rollenreplikation"
 msgid "Role and Level"
 msgstr "Rolle und Ebene"
 
-#: frappe/core/doctype/user/user.py:336
+#: frappe/core/doctype/user/user.py:355
 msgid "Role has been set as per the user type {0}"
 msgstr "Die Rolle wurde gemäß Benutzertyp {0} festgelegt"
 
@@ -22014,8 +22027,7 @@ msgstr "Routenumleitungen"
 msgid "Route: Example \"/app\""
 msgstr "Route: Beispiel \"/app\""
 
-#: frappe/model/base_document.py:752 frappe/model/base_document.py:793
-#: frappe/model/document.py:626
+#: frappe/model/base_document.py:788 frappe/model/document.py:626
 msgid "Row"
 msgstr "Zeile"
 
@@ -22023,12 +22035,12 @@ msgstr "Zeile"
 msgid "Row #"
 msgstr "Zeile #"
 
-#: frappe/core/doctype/doctype/doctype.py:1816
 #: frappe/core/doctype/doctype/doctype.py:1826
+#: frappe/core/doctype/doctype/doctype.py:1836
 msgid "Row # {0}: Non administrator user can not set the role {1} to the custom doctype"
 msgstr "Zeile # {0}: Nicht-Administrator-Benutzer können die Rolle {1} nicht auf den benutzerdefinierten Doctype einstellen"
 
-#: frappe/model/base_document.py:917
+#: frappe/model/base_document.py:912
 msgid "Row #{0}:"
 msgstr "Zeile #{0}:"
 
@@ -22587,12 +22599,12 @@ msgstr "Skripte"
 #: frappe/public/js/frappe/ui/toolbar/search.js:49
 #: frappe/public/js/frappe/ui/toolbar/search.js:68
 #: frappe/templates/discussions/search.html:2
-#: frappe/templates/includes/search_template.html:26 frappe/www/search.py:19
+#: frappe/templates/includes/search_template.html:26
 msgid "Search"
 msgstr "Suchen"
 
-#. Label of the search_bar (Check) field in DocType 'Role'
-#: frappe/core/doctype/role/role.json
+#. Label of the search_bar (Check) field in DocType 'User'
+#: frappe/core/doctype/user/user.json
 msgid "Search Bar"
 msgstr "Suchleiste"
 
@@ -22617,15 +22629,11 @@ msgstr "Suchprioritäten"
 msgid "Search Results"
 msgstr "Suchergebnisse"
 
-#: frappe/www/search.py:14
-msgid "Search Results for"
-msgstr "Suchergebnisse für"
-
 #: frappe/public/js/frappe/file_uploader/FileBrowser.vue:13
 msgid "Search by filename or extension"
 msgstr "Nach Dateiname oder Endung suchen"
 
-#: frappe/core/doctype/doctype/doctype.py:1452
+#: frappe/core/doctype/doctype/doctype.py:1462
 msgid "Search field {0} is not valid"
 msgstr "Suchfeld {0} ist nicht gültig"
 
@@ -22985,11 +22993,11 @@ msgstr "Wählen Sie ein Feld aus, um seine Eigenschaften zu bearbeiten."
 msgid "Select a group node first."
 msgstr "Zuerst einen Gruppenknoten wählen."
 
-#: frappe/core/doctype/doctype/doctype.py:1927
+#: frappe/core/doctype/doctype/doctype.py:1937
 msgid "Select a valid Sender Field for creating documents from Email"
 msgstr "Wählen Sie ein gültiges Absenderfeld zum Erstellen von Dokumenten aus E-Mail"
 
-#: frappe/core/doctype/doctype/doctype.py:1911
+#: frappe/core/doctype/doctype/doctype.py:1921
 msgid "Select a valid Subject field for creating documents from Email"
 msgstr "Wählen Sie ein gültiges Betrefffeld zum Erstellen von Dokumenten aus E-Mail"
 
@@ -23287,7 +23295,7 @@ msgstr "Absender E-Mail"
 msgid "Sender Email Field"
 msgstr "Absender-E-Mail-Feld"
 
-#: frappe/core/doctype/doctype/doctype.py:1930
+#: frappe/core/doctype/doctype/doctype.py:1940
 msgid "Sender Field should have Email in options"
 msgstr "Das Absenderfeld sollte E-Mail-Optionen enthalten"
 
@@ -23387,7 +23395,7 @@ msgstr "Nummernkreis aktualisiert für {}"
 msgid "Series counter for {} updated to {} successfully"
 msgstr "Nummernkreis-Zähler für {} erfolgreich auf {} aktualisiert"
 
-#: frappe/core/doctype/doctype/doctype.py:1092
+#: frappe/core/doctype/doctype/doctype.py:1102
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.py:170
 msgid "Series {0} already used in {1}"
 msgstr "Serie {0} bereits verwendet in {1}"
@@ -23881,7 +23889,7 @@ msgstr "Dashboard anzeigen"
 msgid "Show Document"
 msgstr "Dokument anzeigen"
 
-#: frappe/www/error.html:41 frappe/www/error.html:59
+#: frappe/www/error.html:42 frappe/www/error.html:65
 msgid "Show Error"
 msgstr "Fehler anzeigen"
 
@@ -23911,7 +23919,7 @@ msgstr "Vollständigen Fehler anzeigen und die Meldung des Problems an die Entwi
 msgid "Show Full Form?"
 msgstr "Vollständiges Formular anzeigen?"
 
-#: frappe/public/js/frappe/ui/keyboard.js:231
+#: frappe/public/js/frappe/ui/keyboard.js:242
 msgid "Show Keyboard Shortcuts"
 msgstr "Tastaturkürzel anzeigen"
 
@@ -24135,9 +24143,9 @@ msgstr "Nur numerische Felder aus Bericht anzeigen"
 msgid "Showing only first {0} rows out of {1}"
 msgstr "Zeigt nur die ersten {0} Zeilen von {1}"
 
-#. Label of the list_sidebar (Check) field in DocType 'Role'
-#. Label of the form_sidebar (Check) field in DocType 'Role'
-#: frappe/core/doctype/role/role.json
+#. Label of the list_sidebar (Check) field in DocType 'User'
+#. Label of the form_sidebar (Check) field in DocType 'User'
+#: frappe/core/doctype/user/user.json
 msgid "Sidebar"
 msgstr "Seitenleiste"
 
@@ -24162,7 +24170,7 @@ msgstr "Sidebar und Kommentare"
 msgid "Sign Up and Confirmation"
 msgstr "Anmeldung und Bestätigung"
 
-#: frappe/core/doctype/user/user.py:992
+#: frappe/core/doctype/user/user.py:1011
 msgid "Sign Up is disabled"
 msgstr "Die Registrierung ist deaktiviert"
 
@@ -24473,7 +24481,7 @@ msgstr "Optionen sortieren"
 msgid "Sort Order"
 msgstr "Sortierung"
 
-#: frappe/core/doctype/doctype/doctype.py:1535
+#: frappe/core/doctype/doctype/doctype.py:1545
 msgid "Sort field {0} must be a valid fieldname"
 msgstr "Sortierfeld {0} muss ein gültiger Feldname sein"
 
@@ -24610,11 +24618,11 @@ msgstr "Standard-Webformulare können nicht geändert werden, duplizieren Sie st
 msgid "Standard rich text editor with controls"
 msgstr "Standard-Rich-Text-Editor mit Steuerelementen"
 
-#: frappe/core/doctype/role/role.py:65
+#: frappe/core/doctype/role/role.py:46
 msgid "Standard roles cannot be disabled"
 msgstr "Standardrollen können nicht deaktiviert werden"
 
-#: frappe/core/doctype/role/role.py:51
+#: frappe/core/doctype/role/role.py:32
 msgid "Standard roles cannot be renamed"
 msgstr "Standardrollen kann nicht umbenannt werden"
 
@@ -24819,7 +24827,7 @@ msgstr "Status aktualisiert"
 msgid "Status Updated. The email will be picked up in the next scheduled run."
 msgstr "Status aktualisiert. Die E-Mail wird beim nächsten geplanten Lauf verarbeitet."
 
-#: frappe/www/message.html:40
+#: frappe/www/message.html:22
 msgid "Status: {0}"
 msgstr "Status: {0}"
 
@@ -24962,7 +24970,7 @@ msgstr "Betreff"
 msgid "Subject Field"
 msgstr "Themenfeld"
 
-#: frappe/core/doctype/doctype/doctype.py:1920
+#: frappe/core/doctype/doctype/doctype.py:1930
 msgid "Subject Field type should be Data, Text, Long Text, Small Text, Text Editor"
 msgstr "Betreff Der Feldtyp sollte Daten, Text, Langtext, Kleiner Text, Texteditor sein"
 
@@ -25202,7 +25210,7 @@ msgstr "Optimierungen vorschlagen"
 msgid "Suggested Indexes"
 msgstr "Vorgeschlagene Indizes"
 
-#: frappe/core/doctype/user/user.py:707
+#: frappe/core/doctype/user/user.py:726
 msgid "Suggested Username: {0}"
 msgstr "Empfohlener Benutzername: {0}"
 
@@ -25329,7 +25337,7 @@ msgstr "System"
 msgid "System Console"
 msgstr "Systemkonsole"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:358
+#: frappe/custom/doctype/custom_field/custom_field.py:359
 msgid "System Generated Fields can not be renamed"
 msgstr "Systemgenerierte Felder können nicht umbenannt werden"
 
@@ -25605,7 +25613,7 @@ msgstr "Tabellenfeld"
 msgid "Table Fieldname"
 msgstr "Tabellenfeldname"
 
-#: frappe/core/doctype/doctype/doctype.py:1188
+#: frappe/core/doctype/doctype/doctype.py:1198
 msgid "Table Fieldname Missing"
 msgstr "Tabellenfeldname fehlt"
 
@@ -25748,7 +25756,7 @@ msgstr "Vorlagenwarnungen"
 msgid "Templates"
 msgstr "Vorlagen"
 
-#: frappe/core/doctype/user/user.py:1003
+#: frappe/core/doctype/user/user.py:1022
 msgid "Temporarily Disabled"
 msgstr "Zeitweise nicht verfügbar"
 
@@ -25975,7 +25983,7 @@ msgstr "Das Limit für den Benutzertyp {0} in der Seitenkonfigurationsdatei wurd
 msgid "The link will expire in {0} minutes"
 msgstr "Der Link läuft in {0} Minuten ab"
 
-#: frappe/www/login.py:183
+#: frappe/www/login.py:184
 msgid "The link you trying to login is invalid or expired."
 msgstr "Der Link, mit dem Sie sich anmelden möchten, ist ungültig oder abgelaufen."
 
@@ -26002,10 +26010,6 @@ msgstr "Die nächste Tour beginnt dort, wo der Benutzer aufgehört hat."
 msgid "The number of seconds until the request expires"
 msgstr "Die Anzahl der Sekunden bis die Anfrage abläuft"
 
-#: frappe/www/404.html:18
-msgid "The page you are looking for has gone missing."
-msgstr "Die von Ihnen gesuchte Seite ist verschwunden."
-
 #: frappe/www/update-password.html:75
 msgid "The password of your account has expired."
 msgstr "Das Passwort Ihres Kontos ist abgelaufen."
@@ -26023,11 +26027,11 @@ msgstr "Die Projektnummer aus der Google Cloud Console unter <a href=\"https://c
 "\"IAM &amp; Admin\" &gt; \"Einstellungen\"\n"
 "</a>"
 
-#: frappe/core/doctype/user/user.py:963
+#: frappe/core/doctype/user/user.py:982
 msgid "The reset password link has been expired"
 msgstr "Der Link zum Zurücksetzen des Passworts ist abgelaufen"
 
-#: frappe/core/doctype/user/user.py:965
+#: frappe/core/doctype/user/user.py:984
 msgid "The reset password link has either been used before or is invalid"
 msgstr "Der Link zum Zurücksetzen des Passworts wurde bereits verwendet oder ist ungültig"
 
@@ -26123,7 +26127,7 @@ msgstr "Es gibt bereits {0} mit denselben Filtern in der Warteschlange:"
 msgid "There can be only 9 Page Break fields in a Web Form"
 msgstr "Es dürfen höchstens 9 Seitenumbrüche in einem Webformular vorkommen"
 
-#: frappe/core/doctype/doctype/doctype.py:1428
+#: frappe/core/doctype/doctype/doctype.py:1438
 msgid "There can be only one Fold in a form"
 msgstr "Es darf nur einen Falz in einem Formular geben"
 
@@ -26174,10 +26178,6 @@ msgstr "Beim Versand der E-Mail ist ein Fehler aufgetreten. Bitte versuchen Sie 
 #: frappe/model/naming.py:485
 msgid "There were some errors setting the name, please contact the administrator"
 msgstr "Beim Setzen des Namens hat es einige Fehler gegeben. Kontaktieren Sie bitte Ihren Administrator"
-
-#: frappe/www/404.html:15
-msgid "There's nothing here"
-msgstr "Hier gibt es nichts"
 
 #. Description of the 'Announcement Widget' (Text Editor) field in DocType
 #. 'Navbar Settings'
@@ -26249,7 +26249,7 @@ msgstr "Dieses Diagramm steht allen Benutzern zur Verfügung, wenn dies festgele
 msgid "This doctype has no orphan fields to trim"
 msgstr "Dieser Doctype hat keine verwaisten Felder zum Kürzen"
 
-#: frappe/core/doctype/doctype/doctype.py:1037
+#: frappe/core/doctype/doctype/doctype.py:1047
 msgid "This doctype has pending migrations, run 'bench migrate' before modifying the doctype to avoid losing changes."
 msgstr "Dieser Doctype hat anstehende Migrationen. Führen Sie 'bench migrate' aus, bevor Sie den Doctype ändern, damit die Änderungen nicht verloren gehen."
 
@@ -26466,7 +26466,7 @@ msgstr "Dadurch wird diese Tour zurückgesetzt und für alle Benutzer sichtbar. 
 msgid "This will terminate the job immediately and might be dangerous, are you sure? "
 msgstr "Das wird den Auftrag sofort beenden und könnte gefährlich sein, sind Sie sicher? "
 
-#: frappe/core/doctype/user/user.py:1223
+#: frappe/core/doctype/user/user.py:1242
 msgid "Throttled"
 msgstr "Gedrosselt"
 
@@ -26589,8 +26589,8 @@ msgstr "Zeitüberschreitung"
 msgid "Timeless Night"
 msgstr "Zeitlose Nacht"
 
-#. Label of the timeline (Check) field in DocType 'Role'
-#: frappe/core/doctype/role/role.json
+#. Label of the timeline (Check) field in DocType 'User'
+#: frappe/core/doctype/user/user.json
 msgid "Timeline"
 msgstr "Zeitleiste"
 
@@ -26616,11 +26616,11 @@ msgstr "Timeline-Links"
 msgid "Timeline Name"
 msgstr "Timeline-Name"
 
-#: frappe/core/doctype/doctype/doctype.py:1523
+#: frappe/core/doctype/doctype/doctype.py:1533
 msgid "Timeline field must be a Link or Dynamic Link"
 msgstr "Timeline-Bereich muss einen Link oder Dynamic Link sein"
 
-#: frappe/core/doctype/doctype/doctype.py:1519
+#: frappe/core/doctype/doctype/doctype.py:1529
 msgid "Timeline field must be a valid fieldname"
 msgstr "Timeline-Feld muss eine gültige Feldname sein"
 
@@ -26718,7 +26718,7 @@ msgstr "Bezeichnungs-Feld"
 msgid "Title Prefix"
 msgstr "Titel-Präfix"
 
-#: frappe/core/doctype/doctype/doctype.py:1460
+#: frappe/core/doctype/doctype/doctype.py:1470
 msgid "Title field must be a valid fieldname"
 msgstr "Bezeichnungsfeld muss ein gültiger Feldname sein"
 
@@ -26936,7 +26936,7 @@ msgstr "Zu viele Anfragen"
 msgid "Too many changes to database in single action."
 msgstr "Zu viele Änderungen an der Datenbank in einer einzelnen Aktion."
 
-#: frappe/core/doctype/user/user.py:1004
+#: frappe/core/doctype/user/user.py:1023
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr "Zu viele Benutzer unterzeichnete vor kurzem, also die Registrierung ist deaktiviert. Bitte versuchen Sie es in einer Stunde zurück"
 
@@ -27249,7 +27249,7 @@ msgstr "Die Baumansicht ist für {0} nicht verfügbar"
 msgid "Trigger Method"
 msgstr "Trigger-Methode"
 
-#: frappe/public/js/frappe/ui/keyboard.js:194
+#: frappe/public/js/frappe/ui/keyboard.js:195
 msgid "Trigger Primary Action"
 msgstr "Primäre Aktion auslösen"
 
@@ -27614,7 +27614,7 @@ msgstr "Auswahl aufheben"
 msgid "Unshared"
 msgstr "Nicht geteilt"
 
-#: frappe/email/queue.py:66
+#: frappe/email/queue.py:66 frappe/www/unsubscribe.html:32
 msgid "Unsubscribe"
 msgstr "Abmelden"
 
@@ -28244,7 +28244,7 @@ msgstr "Benutzer darf {0}: {1} nicht löschen"
 msgid "User permission already exists"
 msgstr "Benutzerberechtigung ist bereits vorhanden"
 
-#: frappe/www/login.py:156
+#: frappe/www/login.py:157
 msgid "User with email address {0} does not exist"
 msgstr "Benutzer mit E-Mail-Adresse {0} existiert nicht"
 
@@ -28252,15 +28252,15 @@ msgstr "Benutzer mit E-Mail-Adresse {0} existiert nicht"
 msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
 msgstr "Ein Benutzer mit der E-Mail-Adresse {0} existiert nicht im System. Bitten Sie den 'Systemadministrator', den Benutzer für Sie anzulegen."
 
-#: frappe/core/doctype/user/user.py:509
+#: frappe/core/doctype/user/user.py:528
 msgid "User {0} cannot be deleted"
 msgstr "Benutzer {0} kann nicht gelöscht werden"
 
-#: frappe/core/doctype/user/user.py:299
+#: frappe/core/doctype/user/user.py:318
 msgid "User {0} cannot be disabled"
 msgstr "Benutzer {0} kann nicht deaktiviert werden"
 
-#: frappe/core/doctype/user/user.py:589
+#: frappe/core/doctype/user/user.py:608
 msgid "User {0} cannot be renamed"
 msgstr "Benutzer {0} kann nicht umbenannt werden"
 
@@ -28281,7 +28281,7 @@ msgstr "Der Benutzer {0} hat nicht die Berechtigung, einen Arbeitsbereich zu ers
 msgid "User {0} has requested for data deletion"
 msgstr "Benutzer {0} hat das Löschen von Daten angefordert"
 
-#: frappe/core/doctype/user/user.py:1352
+#: frappe/core/doctype/user/user.py:1371
 msgid "User {0} impersonated as {1}"
 msgstr "Benutzer {0} hat sich als {1} ausgegeben"
 
@@ -28306,11 +28306,11 @@ msgstr "Benutzerinfo URI"
 #. Label of the username (Data) field in DocType 'User Social Login'
 #: frappe/core/doctype/user/user.json
 #: frappe/core/doctype/user_social_login/user_social_login.json
-#: frappe/www/login.py:104
+#: frappe/www/login.py:105
 msgid "Username"
 msgstr "Benutzername"
 
-#: frappe/core/doctype/user/user.py:674
+#: frappe/core/doctype/user/user.py:693
 msgid "Username {0} already exists"
 msgstr "Benutzername {0} ist bereits vorhanden"
 
@@ -28450,7 +28450,7 @@ msgstr "Wert geändert"
 msgid "Value To Be Set"
 msgstr "Wert, der gesetzt werden soll"
 
-#: frappe/model/base_document.py:989 frappe/model/document.py:682
+#: frappe/model/base_document.py:984 frappe/model/document.py:682
 msgid "Value cannot be changed for {0}"
 msgstr "Wert kann für {0} nicht geändert werden"
 
@@ -28480,10 +28480,6 @@ msgstr "Wert für {0} kann keine Liste sein"
 msgid "Value from this field will be set as the due date in the ToDo"
 msgstr "Der Wert aus diesem Feld wird im Fälligkeitsdatum als Fälligkeitsdatum festgelegt"
 
-#: frappe/model/base_document.py:754
-msgid "Value missing for"
-msgstr "Fehlender Wert für"
-
 #: frappe/core/doctype/data_import/importer.py:707
 msgid "Value must be one of {0}"
 msgstr "Wert muss einer von {0} sein"
@@ -28493,7 +28489,7 @@ msgstr "Wert muss einer von {0} sein"
 msgid "Value to Validate"
 msgstr "Zu validierender Wert"
 
-#: frappe/model/base_document.py:1059
+#: frappe/model/base_document.py:1054
 msgid "Value too big"
 msgstr "Wert zu groß"
 
@@ -28637,8 +28633,8 @@ msgstr "Zeige Bericht"
 msgid "View Settings"
 msgstr "Einstellungen anzeigen"
 
-#. Label of the view_switcher (Check) field in DocType 'Role'
-#: frappe/core/doctype/role/role.json
+#. Label of the view_switcher (Check) field in DocType 'User'
+#: frappe/core/doctype/user/user.json
 msgid "View Switcher"
 msgstr "Ansicht wechseln"
 
@@ -28738,7 +28734,7 @@ msgstr "Warnung"
 msgid "Warning: DATA LOSS IMMINENT! Proceeding will permanently delete following database columns from doctype {0}:"
 msgstr "Warnung: DROHENDER DATENVERLUST! Wenn Sie fortfahren, werden die folgenden Datenbankspalten von DocType {0} dauerhaft gelöscht:"
 
-#: frappe/core/doctype/doctype/doctype.py:1108
+#: frappe/core/doctype/doctype/doctype.py:1118
 msgid "Warning: Naming is not set"
 msgstr "Warnung: Benennungsschema wurde nicht festgelegt"
 
@@ -28987,7 +28983,7 @@ msgstr "Webseiten-Skript"
 msgid "Website Search Field"
 msgstr "Website-Suchfeld"
 
-#: frappe/core/doctype/doctype/doctype.py:1507
+#: frappe/core/doctype/doctype/doctype.py:1517
 msgid "Website Search Field must be a valid fieldname"
 msgstr "Website-Suchfeld muss ein gültiger Feldname sein"
 
@@ -29145,11 +29141,11 @@ msgstr "Willkommens-URL"
 msgid "Welcome Workspace"
 msgstr "Willkommens-Arbeitsbereich"
 
-#: frappe/core/doctype/user/user.py:387
+#: frappe/core/doctype/user/user.py:406
 msgid "Welcome email sent"
 msgstr "Willkommens-E-Mail gesendet"
 
-#: frappe/core/doctype/user/user.py:448
+#: frappe/core/doctype/user/user.py:467
 msgid "Welcome to {0}"
 msgstr "Willkommen auf {0}"
 
@@ -29382,7 +29378,7 @@ msgstr "Workflow erfolgreich aktualisiert"
 msgid "Workspace"
 msgstr "Arbeitsbereich"
 
-#: frappe/public/js/frappe/router.js:173
+#: frappe/public/js/frappe/router.js:182
 msgid "Workspace <b>{0}</b> does not exist"
 msgstr "Arbeitsbereich <b>{0}</b> existiert nicht"
 
@@ -29467,7 +29463,7 @@ msgstr "Aufwickeln"
 msgid "Write"
 msgstr "Schreiben"
 
-#: frappe/model/base_document.py:889
+#: frappe/model/base_document.py:884
 msgid "Wrong Fetch From value"
 msgstr "Falscher Abruf vom Wert"
 
@@ -30558,7 +30554,7 @@ msgid "on_update_after_submit"
 msgstr "on_update_after_submit"
 
 #: frappe/public/js/frappe/utils/utils.js:396 frappe/www/login.html:87
-#: frappe/www/login.py:106
+#: frappe/www/login.py:107
 msgid "or"
 msgstr "oder"
 
@@ -30921,7 +30917,7 @@ msgstr "{0} Karte"
 msgid "{0} Name"
 msgstr "{0} ID"
 
-#: frappe/model/base_document.py:1089
+#: frappe/model/base_document.py:1084
 msgid "{0} Not allowed to change {1} after submission from {2} to {3}"
 msgstr "{0} Es ist nicht erlaubt, {1} nach dem Buchen von {2} auf {3} zu ändern"
 
@@ -31065,7 +31061,7 @@ msgstr "{0} wurde von {1} zu {2} geändert"
 msgid "{0} comments"
 msgstr "{0} Kommentare"
 
-#: frappe/core/doctype/doctype/doctype.py:1590
+#: frappe/core/doctype/doctype/doctype.py:1600
 msgid "{0} contains an invalid Fetch From expression, Fetch From can't be self-referential."
 msgstr "{0} enthält einen ungültigen Fetch From-Ausdruck. Fetch From kann nicht selbstreferenziell sein."
 
@@ -31182,7 +31178,7 @@ msgstr "{0}, falls Sie nicht innerhalb von {1} Sekunden weitergeleitet werden"
 msgid "{0} in row {1} cannot have both URL and child items"
 msgstr "{0} in Zeile {1} kann nicht sowohl die URL als auch Unterpunkte haben"
 
-#: frappe/core/doctype/doctype/doctype.py:917
+#: frappe/core/doctype/doctype/doctype.py:927
 msgid "{0} is a mandatory field"
 msgstr "{0} ist ein Pflichtfeld"
 
@@ -31190,7 +31186,7 @@ msgstr "{0} ist ein Pflichtfeld"
 msgid "{0} is a not a valid zip file"
 msgstr "{0} ist keine gültige Zip-Datei"
 
-#: frappe/core/doctype/doctype/doctype.py:1603
+#: frappe/core/doctype/doctype/doctype.py:1613
 msgid "{0} is an invalid Data field."
 msgstr "{0} ist ein ungültiges Datenfeld."
 
@@ -31331,7 +31327,7 @@ msgstr "{0} ist innerhalb von {1}"
 msgid "{0} items selected"
 msgstr "{0} Elemente ausgewählt"
 
-#: frappe/core/doctype/user/user.py:1361
+#: frappe/core/doctype/user/user.py:1380
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr "{0} hat sich gerade als Sie ausgegeben und gab dafür diesen Grund an: {1}"
 
@@ -31384,7 +31380,7 @@ msgstr "{0} darf nichts von {1} sein"
 msgid "{0} must be one of {1}"
 msgstr "{0} muss aus {1} sein"
 
-#: frappe/model/base_document.py:811
+#: frappe/model/base_document.py:806
 msgid "{0} must be set first"
 msgstr "{0} muss als erstes gesetzt sein"
 
@@ -31578,7 +31574,7 @@ msgstr "{0} {1} zum Dashboard hinzugefügt {2}"
 msgid "{0} {1} already exists"
 msgstr "{0} {1} existiert bereits"
 
-#: frappe/model/base_document.py:922
+#: frappe/model/base_document.py:917
 msgid "{0} {1} cannot be \"{2}\". It should be one of \"{3}\""
 msgstr "{0} {1} kann nicht \"{2}\" sein . Es sollte aus \"{3}\" sein."
 
@@ -31602,39 +31598,39 @@ msgstr "{0} {1} nicht gefunden"
 msgid "{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first."
 msgstr "{0} {1}: Übermittelter Datensatz kann nicht gelöscht werden. Sie müssen {2} zuerst {3} abbrechen."
 
-#: frappe/model/base_document.py:1050
+#: frappe/model/base_document.py:1045
 msgid "{0}, Row {1}"
 msgstr "{0}, Zeile {1}"
 
-#: frappe/model/base_document.py:1055
+#: frappe/model/base_document.py:1050
 msgid "{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}"
 msgstr "{0}: '{1}' ({3}) wird abgeschnitten werden, da maximal {2} Zeichen erlaubt sind"
 
-#: frappe/core/doctype/doctype/doctype.py:1785
+#: frappe/core/doctype/doctype/doctype.py:1795
 msgid "{0}: Cannot set Amend without Cancel"
 msgstr "{0}: \"Geändert\" kann nicht eingestellt werden ohne \"Abbruch\""
 
-#: frappe/core/doctype/doctype/doctype.py:1803
+#: frappe/core/doctype/doctype/doctype.py:1813
 msgid "{0}: Cannot set Assign Amend if not Submittable"
 msgstr "{0}: Kann nicht als \"als geändert markieren\" eingestellt werden, wenn nicht übertragbar"
 
-#: frappe/core/doctype/doctype/doctype.py:1801
+#: frappe/core/doctype/doctype/doctype.py:1811
 msgid "{0}: Cannot set Assign Submit if not Submittable"
 msgstr "{0}: Kann nicht als \"als übertragen markieren\" eingestellt werden, wenn nicht übertragbar"
 
-#: frappe/core/doctype/doctype/doctype.py:1780
+#: frappe/core/doctype/doctype/doctype.py:1790
 msgid "{0}: Cannot set Cancel without Submit"
 msgstr "{0}: \"Abbruch\" kann nicht ohne \"Übertragen\" eingestellt werden"
 
-#: frappe/core/doctype/doctype/doctype.py:1787
+#: frappe/core/doctype/doctype/doctype.py:1797
 msgid "{0}: Cannot set Import without Create"
 msgstr "{0}: Kann nicht auf \"Import\" eingestellt werden ohne \"Erstellen\""
 
-#: frappe/core/doctype/doctype/doctype.py:1783
+#: frappe/core/doctype/doctype/doctype.py:1793
 msgid "{0}: Cannot set Submit, Cancel, Amend without Write"
 msgstr "{0}: Kann nicht auf \"Übertragen\", \"Stornieren\", \"Ändern\" eingestellt werden ohne \"Schreiben\""
 
-#: frappe/core/doctype/doctype/doctype.py:1807
+#: frappe/core/doctype/doctype/doctype.py:1817
 msgid "{0}: Cannot set import as {1} is not importable"
 msgstr "{0}: Kann nicht auf \"Import\" eingestellt werden, da {1} nicht importierbar ist"
 
@@ -31642,43 +31638,43 @@ msgstr "{0}: Kann nicht auf \"Import\" eingestellt werden, da {1} nicht importie
 msgid "{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings"
 msgstr "{0}: Neues wiederkehrendes Dokument konnte nicht angehängt werden. Aktivieren Sie {1} in den Druckeinstellungen, um das Anhängen eines Dokuments in der E-Mail für die automatische Wiederholungsbenachrichtigung zu aktivieren"
 
-#: frappe/core/doctype/doctype/doctype.py:1411
+#: frappe/core/doctype/doctype/doctype.py:1421
 msgid "{0}: Field '{1}' cannot be set as Unique as it has non-unique values"
 msgstr "{0}: Feld &#39;{1}&#39; kann nicht als eindeutig festgelegt werden, da es nicht eindeutige Werte enthält"
 
-#: frappe/core/doctype/doctype/doctype.py:1319
+#: frappe/core/doctype/doctype/doctype.py:1329
 msgid "{0}: Field {1} in row {2} cannot be hidden and mandatory without default"
 msgstr "{0}: Das Feld {1} in Zeile {2} kann ohne Vorgabe nicht ausgeblendet und obligatorisch sein"
 
-#: frappe/core/doctype/doctype/doctype.py:1278
+#: frappe/core/doctype/doctype/doctype.py:1288
 msgid "{0}: Field {1} of type {2} cannot be mandatory"
 msgstr "{0}: Feld {1} vom Typ {2} kann nicht obligatorisch sein"
 
-#: frappe/core/doctype/doctype/doctype.py:1266
+#: frappe/core/doctype/doctype/doctype.py:1276
 msgid "{0}: Fieldname {1} appears multiple times in rows {2}"
 msgstr "{0}: Der Feldname {1} wird mehrmals in Zeilen {2} angezeigt."
 
-#: frappe/core/doctype/doctype/doctype.py:1398
+#: frappe/core/doctype/doctype/doctype.py:1408
 msgid "{0}: Fieldtype {1} for {2} cannot be unique"
 msgstr "{0}: Der Feldtyp {1} für {2} kann nicht eindeutig sein"
 
-#: frappe/core/doctype/doctype/doctype.py:1740
+#: frappe/core/doctype/doctype/doctype.py:1750
 msgid "{0}: No basic permissions set"
 msgstr "{0}: Keine Grundberechtigungen festgelegt"
 
-#: frappe/core/doctype/doctype/doctype.py:1754
+#: frappe/core/doctype/doctype/doctype.py:1764
 msgid "{0}: Only one rule allowed with the same Role, Level and {1}"
 msgstr "{0}: Nur eine Regel mit der gleichen Rolle, Ebene und {1} erlaubt"
 
-#: frappe/core/doctype/doctype/doctype.py:1300
+#: frappe/core/doctype/doctype/doctype.py:1310
 msgid "{0}: Options must be a valid DocType for field {1} in row {2}"
 msgstr "{0}: Optionen müssen ein gültiger DocType für Feld {1} in Zeile {2} sein"
 
-#: frappe/core/doctype/doctype/doctype.py:1289
+#: frappe/core/doctype/doctype/doctype.py:1299
 msgid "{0}: Options required for Link or Table type field {1} in row {2}"
 msgstr "{0}: Erforderliche Optionen für das Feld für den Link- oder Tabellentyp {1} in Zeile {2}"
 
-#: frappe/core/doctype/doctype/doctype.py:1307
+#: frappe/core/doctype/doctype/doctype.py:1317
 msgid "{0}: Options {1} must be the same as doctype name {2} for the field {3}"
 msgstr "{0}: Die Optionen {1} müssen mit dem Doctype-Namen {2} für das Feld {3} identisch sein."
 
@@ -31686,7 +31682,7 @@ msgstr "{0}: Die Optionen {1} müssen mit dem Doctype-Namen {2} für das Feld {3
 msgid "{0}: Other permission rules may also apply"
 msgstr "{0}: Andere Genehmigungsregeln können ebenfalls gelten"
 
-#: frappe/core/doctype/doctype/doctype.py:1769
+#: frappe/core/doctype/doctype/doctype.py:1779
 msgid "{0}: Permission at level 0 must be set before higher levels are set"
 msgstr "{0} : Die Erlaubnis für Ebene 0 muss gesetzt werden bevor höhere Ebenen eingestellt werden können"
 
@@ -31694,7 +31690,7 @@ msgstr "{0} : Die Erlaubnis für Ebene 0 muss gesetzt werden bevor höhere Ebene
 msgid "{0}: You can increase the limit for the field if required via {1}"
 msgstr "{0}: Sie können das Limit für das Feld bei Bedarf über {1} erhöhen"
 
-#: frappe/core/doctype/doctype/doctype.py:1253
+#: frappe/core/doctype/doctype/doctype.py:1263
 msgid "{0}: fieldname cannot be set to reserved keyword {1}"
 msgstr "{0}: Feldname kann nicht auf reserviertes Schlüsselwort {1} gesetzt werden"
 
@@ -31711,7 +31707,7 @@ msgstr "{0}: {1} ist auf Status {2} festgelegt"
 msgid "{0}: {1} vs {2}"
 msgstr "{0}: {1} vs {2}"
 
-#: frappe/core/doctype/doctype/doctype.py:1419
+#: frappe/core/doctype/doctype/doctype.py:1429
 msgid "{0}:Fieldtype {1} for {2} cannot be indexed"
 msgstr "{0}: Der Feldtyp {1} für {2} kann nicht indiziert werden"
 
@@ -31735,7 +31731,7 @@ msgstr "{count} Zeile ausgewählt"
 msgid "{count} rows selected"
 msgstr "{count} Zeilen ausgewählt"
 
-#: frappe/core/doctype/doctype/doctype.py:1473
+#: frappe/core/doctype/doctype/doctype.py:1483
 msgid "{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}."
 msgstr "{{{0}}} ist kein gültiges Format für Feldnamen. Es sollte sein {{field_name}}."
 
