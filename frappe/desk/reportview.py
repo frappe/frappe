@@ -51,27 +51,39 @@ def get_list():
 @frappe.whitelist()
 @frappe.read_only()
 def get_count() -> int:
-	args = get_form_params()
+    args = get_form_params()
 
-	if is_virtual_doctype(args.doctype):
-		controller = get_controller(args.doctype)
-		count = controller.get_count(args)
-	else:
-		args.distinct = sbool(args.distinct)
-		distinct = "distinct " if args.distinct else ""
-		args.limit = cint(args.limit)
-		fieldname = f"{distinct}`tab{args.doctype}`.name"
-		args.order_by = None
+    if is_virtual_doctype(args.doctype):
+        controller = get_controller(args.doctype)
+        count = controller.get_count(args)
+    else:
+        args.distinct = sbool(args.distinct)
+        distinct_clause = "distinct " if args.distinct else ""
+        args.limit = cint(args.limit)
 
-		if args.limit:
-			args.fields = [fieldname]
-			partial_query = execute(**args, run=0)
-			count = frappe.db.sql(f"""select count(*) from ( {partial_query} ) p""")[0][0]
-		else:
-			args.fields = [f"count({fieldname}) as total_count"]
-			count = execute(**args)[0].get("total_count")
+        # Prepare the field name for the count query
+        fieldname = f"{distinct_clause}`tab{args.doctype}`.name"
+        args.order_by = None
 
-	return count
+        if args.limit:
+            # Ensure the inner query does not repeat distinct
+            partial_query = execute(**args, run=0)
+
+            count_query = f"""
+                select count(*) from (
+                    select {fieldname}
+                    from `tab{args.doctype}` 
+                    left join `tabTimesheet Detail` on (`tabTimesheet Detail`.parenttype = 'Timesheet' and `tabTimesheet Detail`.parent = cast(`tab{args.doctype}`.name as varchar))
+                    limit {args.limit}
+                ) as p
+            """
+            count = frappe.db.sql(count_query)[0][0]
+        else:
+            args.fields = [f"count({fieldname}) as total_count"]
+            count = execute(**args)[0].get("total_count")
+
+    return count
+
 
 
 def execute(doctype, *args, **kwargs):
