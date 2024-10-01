@@ -1,6 +1,6 @@
 <template>
 	<div class="flex flex-col p-4">
-		<CollapsibleSection sectionName="Resources">
+		<CollapsibleSection sectionName="Data Sources">
 			<div class="flex flex-col gap-2" v-if="!isObjectEmpty(store.resources)">
 				<div
 					v-for="(resource, name) in store.resources"
@@ -19,7 +19,7 @@
 			<EmptyState v-else message="No resources added" />
 
 			<div class="mt-2 flex flex-col" v-if="store.activePage">
-				<Button icon-left="plus" @click="showAddResourceDialog = true">Add Resource</Button>
+				<Button icon-left="plus" @click="showAddResourceDialog = true">Add Data Source</Button>
 				<ResourceDialog v-model:showDialog="showAddResourceDialog" @addResource="addResource" />
 			</div>
 		</CollapsibleSection>
@@ -62,7 +62,7 @@ const attachResource = async (resource) => {
 }
 
 const addResource = (resource) => {
-	if (resource.source === "Existing Resource") {
+	if (resource.source === "Existing Data Source") {
 		attachResource(resource)
 		return
 	}

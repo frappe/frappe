@@ -92,7 +92,7 @@ interface StudioApp {
 type SelectOption = { value: string, label: string }
 
 // data
-type ResourceType = "Resource" | "List Resource" | "Document Resource"
+type ResourceType = "API Resource" | "Document List" | "Document"
 interface ResourceOptions {
 	type?: ResourceType
 	url?: string

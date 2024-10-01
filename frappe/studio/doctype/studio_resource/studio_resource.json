@@ -26,7 +26,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Resource Type",
-   "options": "List Resource\nDocument Resource\nAPI Resource",
+   "options": "Document List\nDocument\nAPI Resource",
    "reqd": 1
   },
   {
@@ -97,7 +97,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-29 19:45:20.620746",
+ "modified": "2024-10-01 19:20:49.344439",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Resource",

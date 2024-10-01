@@ -283,7 +283,7 @@ function getNewResource(resource) {
 		 * Invoke the transform function with data/doc
 		 */
 		if (resource.transform_results) {
-			if (resource.resource_type === "Document Resource") {
+			if (resource.resource_type === "Document") {
 				return {
 					transform: (doc) => {
 						const transformFn = new Function(resource.transform + "\nreturn transform")()
@@ -303,14 +303,14 @@ function getNewResource(resource) {
 	}
 
 	switch (resource.resource_type) {
-		case "Document Resource":
+		case "Document":
 			return createDocumentResource({
 				doctype: resource.document_type,
 				name: resource.document_name,
 				auto: true,
 				...getTransforms()
 			})
-		case "List Resource":
+		case "Document List":
 			return createListResource({
 				doctype: resource.document_type,
 				fields: fields.length ? fields : "*",

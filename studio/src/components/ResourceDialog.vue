@@ -2,7 +2,7 @@
 	<Dialog
 		v-model="showDialog"
 		:options="{
-			title: 'Add Resource',
+			title: 'Add Data Source',
 			size: 'lg',
 			actions: [
 				{
@@ -21,23 +21,24 @@
 				<FormControl
 					label="New or Existing"
 					type="select"
-					:options="['New Resource', 'Existing Resource']"
+					:options="['New Data Source', 'Existing Data Source']"
 					autocomplete="off"
 					v-model="newResource.source"
 				/>
 				<Link
-					v-if="newResource.source === 'Existing Resource'"
+					v-if="newResource.source === 'Existing Data Source'"
 					doctype="Studio Resource"
-					label="Resource"
+					label="Data Source"
+					placeholder="Select Data Source"
 					v-model="newResource.name"
 				/>
 
 				<template v-else>
-					<FormControl label="Resource Name" v-model="newResource.name" autocomplete="off" />
+					<FormControl label="Name" v-model="newResource.name" autocomplete="off" />
 					<FormControl
-						label="Resource Type"
+						label="Type"
 						type="select"
-						:options="['List Resource', 'Document Resource', 'API Resource']"
+						:options="['Document List', 'Document', 'API Resource']"
 						autocomplete="off"
 						v-model="newResource.resource_type"
 					/>
@@ -53,13 +54,13 @@
 					<template v-else>
 						<Link doctype="DocType" label="Document Type" v-model="newResource.document_type" />
 						<Link
-							v-if="newResource.resource_type === 'Document Resource' && newResource.document_type"
+							v-if="newResource.resource_type === 'Document' && newResource.document_type"
 							:doctype="newResource.document_type"
 							label="Document Name"
 							v-model="newResource.document_name"
 						/>
 						<FormControl
-							v-if="newResource.resource_type === 'List Resource' && newResource.document_type"
+							v-if="newResource.resource_type === 'Document List' && newResource.document_type"
 							type="autocomplete"
 							label="Fields"
 							:placeholder="`Select fields from ${newResource.document_type}`"
@@ -97,7 +98,7 @@ const emit = defineEmits(["addResource"])
 
 const emptyResource = {
 	// source
-	source: "New Resource",
+	source: "New Data Source",
 	// config
 	name: "",
 	resource_type: "",
@@ -114,7 +115,7 @@ const newResource = ref({ ...emptyResource })
 const doctypeFields = ref([])
 
 const getTransformFnBoilerplate = (resource_type) => {
-	if (resource_type == "Document Resource") {
+	if (resource_type == "Document") {
 		return "function transform(doc) { \n\treturn doc; \n}"
 	} else {
 		return "function transform(data) { \n\treturn data; \n}"
