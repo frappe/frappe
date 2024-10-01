@@ -24,7 +24,7 @@ import sys
 import traceback
 import warnings
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, overload
+from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, Union, overload
 
 import click
 from werkzeug.local import Local, release_local
@@ -1099,6 +1099,12 @@ def only_has_select_perm(doctype, user=None, ignore_permissions=False):
 	return permissions.get("select") and not permissions.get("read")
 
 
+def requires_permission(*args):
+	from frappe.permissions import requires_permission
+
+	return requires_permission(*args)
+
+
 def has_permission(
 	doctype=None,
 	ptype="read",
@@ -1229,20 +1235,90 @@ def new_doc(
 	as_dict: bool = False,
 	**kwargs,
 ) -> "Document":
-	"""Return a new document of the given DocType with defaults set.
-
-	:param doctype: DocType of the new document.
-	:param parent_doc: [optional] add to parent document.
-	:param parentfield: [optional] add against this `parentfield`.
-	:param as_dict: [optional] return as dictionary instead of Document.
-	:param kwargs: [optional] You can specify fields as field=value pairs in function call.
 	"""
+	Creates and returns a new document of the specified DocType with defaults set.
 
-	from frappe.model.create_new import get_new_doc
+	This function initializes a new document, sets default values, and optionally
+	adds it to a parent document or updates it with provided field values.
 
-	new_doc = get_new_doc(doctype, parent_doc, parentfield, as_dict=as_dict)
+	Args:
+	    doctype (str): The DocType of the new document to be created.
+	    parent_doc (Optional[Document]): If provided, the new document will be added
+	        as a child to this parent document.
+	    parentfield (Optional[str]): The name of the table field in the parent document
+	        where the new document should be added. Required if parent_doc is specified.
+	    as_dict (bool): If True, returns the document as a dictionary instead of a Document object.
+	    **kwargs: Additional fields and their values to be set in the new document.
+
+	Returns:
+	    Document | dict: A new document of the specified DocType, either as a Document object
+	    or as a dictionary, depending on the 'as_dict' parameter.
+
+	Examples:
+	    >>> new_doc("Task")
+	    >>> new_doc("Task", subject="New Task", description="This is a new task")
+	    >>> new_doc("Task Item", parent_doc=project_doc, parentfield="tasks")
+	"""
+	from frappe.model.document import Document
+
+	new_doc = Document.new_doc(doctype, parent_doc, parentfield, as_dict=as_dict)
 
 	return new_doc.update(kwargs)
+
+
+_SourceDoc: TypeAlias = Union[str, "Document"]
+
+
+@overload
+def new_doc_from(
+	doctype: str, source_doc: str, source_name: str, whitelist_permissions: bool = False
+) -> "Document":
+	...
+
+
+@overload
+def new_doc_from(
+	doctype: str, source_doc: "Document", source_name: Literal[""], whitelist_permissions: bool = False
+) -> "Document":
+	...
+
+
+def new_doc_from(
+	doctype: str, source_doc: _SourceDoc, source_name: str = "", whitelist_permissions: bool = False
+) -> "Document":
+	"""
+	Create a new document of 'doctype' from an existing document of 'source_doc'.
+
+	This function attempts to convert an existing document into a new document of a different DocType.
+	It uses conversion methods defined in either the source or target DocType.
+
+	Args:
+	    doctype (str): The DocType of the new document to be created.
+	    source_doc (str | Document): The DocType of the existing document to convert from,
+	        or the Document instance itself.
+	    source_name (str, optional): The name (ID) of the existing document to convert from.
+	        Not required if source_doc is a Document instance.
+	    whitelist_permissions (bool, optional): If True, ignores checks for declared permissions during the conversion.
+	        Defaults to False.
+
+	Returns:
+	    Document: A new document of 'doctype' with data converted from the source document.
+
+	Raises:
+	    NotImplementedError: If no suitable conversion method is found in either DocType.
+
+	Examples:
+	    >>> new_doc_from("Sales Invoice", "Sales Order", "SO-0001")
+	    >>> new_doc_from("Delivery Note", "Sales Invoice", "INV-0001")
+	>>> source_doc = frappe.get_doc("Sales Order", "SO-0001")
+	>>> new_doc_from("Sales Invoice", source_doc)
+
+	Note:
+	    This function requires either a '_from_*' method in the target DocType or
+	    an '_into_*' method in the source DocType to perform the conversion.
+	"""
+	doc = new_doc(doctype)
+	return doc.from_doc(source_doc, source_name, whitelist_permissions=whitelist_permissions)
 
 
 def set_value(doctype, docname, fieldname, value=None):

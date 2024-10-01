@@ -207,6 +207,7 @@ def get_safe_globals():
 			qb=frappe.qb,
 			get_meta=frappe.get_meta,
 			new_doc=frappe.new_doc,
+			new_doc_from=frappe.new_doc_from,
 			get_doc=frappe.get_doc,
 			get_mapped_doc=get_mapped_doc,
 			get_last_doc=frappe.get_last_doc,

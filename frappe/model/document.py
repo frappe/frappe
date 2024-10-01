@@ -4,7 +4,9 @@ import hashlib
 import json
 import time
 from collections.abc import Generator, Iterable
-from typing import TYPE_CHECKING, Any, Optional
+from contextlib import contextmanager
+from functools import wraps
+from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, Union, overload
 
 from werkzeug.exceptions import NotFound
 
@@ -33,6 +35,8 @@ if TYPE_CHECKING:
 
 DOCUMENT_LOCK_EXPIRTY = 12 * 60 * 60  # All locks expire in 12 hours automatically
 DOCUMENT_LOCK_SOFT_EXPIRY = 60 * 60  # Let users force-unlock after 60 minutes
+
+_SourceDoc: TypeAlias = Union[str, "Document"]
 
 
 def get_doc(*args, **kwargs):
@@ -89,6 +93,38 @@ def get_doc(*args, **kwargs):
 	raise ImportError(doctype)
 
 
+@contextmanager
+def read_only_document():
+	# Store original methods
+	original_methods = {
+		"save": Document.save,
+		"_save": Document._save,
+		"insert": Document.insert,
+		"delete": Document.delete,
+		"submit": Document.submit,
+		"cancel": Document.cancel,
+		"db_set": Document.db_set,
+	}
+
+	def read_only_method(func):
+		@wraps(func)
+		def wrapper(*args, **kwargs):
+			raise frappe.DatabaseModificationError(f"Cannot call {func.__name__} in read-only document mode")
+
+		return wrapper
+
+	# Replace methods with read-only versions
+	for method_name, method in original_methods.items():
+		setattr(Document, method_name, read_only_method(method))
+
+	try:
+		yield
+	finally:
+		# Restore original methods
+		for method_name, method in original_methods.items():
+			setattr(Document, method_name, method)
+
+
 class Document(BaseDocument):
 	"""All controllers inherit from `Document`."""
 
@@ -141,6 +177,136 @@ class Document(BaseDocument):
 		else:
 			# incorrect arguments. let's not proceed.
 			raise ValueError("Illegal arguments")
+
+	@staticmethod
+	def new_doc(doctype, parent_doc=None, parentfield=None, as_dict=False):
+		"""
+		Creates and returns a new document of the specified DocType with defaults set.
+
+		Args:
+		    doctype (str): The DocType of the new document to be created.
+		    parent_doc (Document, optional): Parent document for child DocTypes.
+		    parentfield (str, optional): The parentfield for child DocTypes.
+		    as_dict (bool, optional): If True, returns the document as a dict.
+
+		Returns:
+		    Document or dict: A new document of the specified DocType.
+		"""
+		from frappe.model.create_new import get_new_doc
+
+		return get_new_doc(doctype, parent_doc, parentfield, as_dict=as_dict)
+
+	@overload
+	def from_doc(self, source_doc: str, source_name: str, whitelist_permissions: bool = False) -> "Document":
+		...
+
+	@overload
+	def from_doc(
+		self, source_doc: "Document", source_name: Literal[""], whitelist_permissions: bool = False
+	) -> "Document":
+		...
+
+	def from_doc(
+		self, source_doc: _SourceDoc, source_name: str = "", whitelist_permissions: bool = False
+	) -> "Document":
+		"""
+		Create a new document of 'doctype' from an existing document of 'source_doc'.
+		This method attempts to use conversion methods in the following order:
+		1. The new document's '_from_*' method
+		2. The source document's '_into_*' method
+
+		If neither method is found, it raises an exception.
+
+		Args:
+		    source_doc (str | Document): The DocType of the source document,
+		        or the Document instance itself.
+		    source_name (str, optional): The name (ID) of the source document.
+		        Not required if source_doc is a Document instance.
+		    whitelist_permissions (bool, optional): If True, ignores checks for declared permissions during the conversion.
+		        Defaults to False.
+
+		Returns:
+		    Document: The current document updated with data converted from the source document.
+
+		Raises:
+		    NotImplementedError: If no suitable conversion method is found.
+
+		Example:
+		    >>> target_doc = frappe.get_doc("Sales Invoice", "INV-0001")
+		    >>> updated_doc = target_doc.from_doc("Sales Order", "SO-0001")
+		    >>> # Or using a Document instance
+		    >>> source_doc = frappe.get_doc("Sales Order", "SO-0001")
+		    >>> updated_doc = target_doc.from_doc(source_doc)
+		"""
+		if isinstance(source_doc, Document):
+			source_doctype = source_doc.doctype
+		else:
+			source_doctype = source_doc
+			source_doc = frappe.get_doc(source_doctype, source_name)
+
+		from_converter_method = f"_from_{frappe.scrub(source_doctype)}"
+		into_converter_method = f"_into_{frappe.scrub(self.doctype)}"
+
+		# All methods use @frappe.require_permission, handling whitelist_permissions
+		if hasattr(self, from_converter_method):
+			with read_only_document():
+				getattr(self, from_converter_method)(source_doc, whitelist_permissions=whitelist_permissions)
+		elif hasattr(source_doc, into_converter_method):
+			with read_only_document():
+				getattr(source_doc, into_converter_method)(self, whitelist_permissions=whitelist_permissions)
+		else:
+			frappe.throw(
+				_(
+					"No conversion method found. {0} does not implement '{1}', and {2} does not implement '{3}'."
+				).format(self.doctype, from_converter_method, source_doctype, into_converter_method),
+				NotImplementedError,
+			)
+
+		return self
+
+	def into(self, target_doctype: str, whitelist_permissions: bool = False):
+		"""
+		Convert this document into a new document of 'target_doctype'.
+		This method attempts to use conversion methods in the following order:
+		1. The current document's '_into_*' method
+		2. The target document's '_from_*' method
+
+		If neither method is found, it raises a NotImplementedError.
+
+		Args:
+		    target_doctype (str): The DocType of the new document to be created.
+		    whitelist_permissions (bool, optional): If True, ignores checks for declared permissions during the conversion.
+		        Defaults to False.
+
+		Returns:
+		    Document: A new document of 'target_doctype' with data converted from the current document.
+
+		Raises:
+		    NotImplementedError: If no suitable conversion method is found.
+
+		Example:
+		    >>> sales_order = frappe.get_doc("Sales Order", "SO-0001")
+		    >>> invoice = sales_order.into("Sales Invoice")
+		"""
+		new_doc = frappe.new_doc(target_doctype)
+		into_converter_method = f"_into_{frappe.scrub(target_doctype)}"
+		from_converter_method = f"_from_{frappe.scrub(self.doctype)}"
+
+		# All methods use @frappe.require_permission, handling whitelist_permissions
+		if hasattr(self, into_converter_method):
+			with read_only_document():
+				getattr(self, into_converter_method)(new_doc, whitelist_permissions=whitelist_permissions)
+		elif hasattr(new_doc, from_converter_method):
+			with read_only_document():
+				getattr(new_doc, from_converter_method)(self, whitelist_permissions=whitelist_permissions)
+		else:
+			frappe.throw(
+				_(
+					"No conversion method found. {0} does not implement '{1}', and {2} does not implement '{3}'."
+				).format(self.doctype, into_converter_method, target_doctype, from_converter_method),
+				NotImplementedError,
+			)
+		return new_doc
 
 	@property
 	def is_locked(self):
