@@ -44,6 +44,7 @@
 			</div>
 
 			<DataPanel v-show="activeTab === 'Data'" />
+			<ActionsPanel v-show="activeTab === 'Actions'" />
 		</div>
 	</div>
 </template>
@@ -55,10 +56,11 @@ import { Tooltip, FeatherIcon } from "frappe-ui"
 import PagesPanel from "@/components/PagesPanel.vue"
 import ComponentPanel from "@/components/ComponentPanel.vue"
 import ComponentLayers from "@/components/ComponentLayers.vue"
+import DataPanel from "@/components/DataPanel.vue"
+import ActionsPanel from "@/components/ActionsPanel.vue"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
-import DataPanel from "./DataPanel.vue"
 
 const sidebarMenu = [
 	{
@@ -78,7 +80,7 @@ const sidebarMenu = [
 		icon: "database",
 	},
 	{
-		label: "Code",
+		label: "Actions",
 		icon: "code",
 	},
 ]

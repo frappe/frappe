@@ -189,6 +189,12 @@ const useStudioStore = defineStore("store", () => {
 		})
 	}
 
+	// actions
+	const actions = ref({})
+	const addAction = (action) => {}
+
+	const removeAction = (action) => {}
+
 	return {
 		// layout
 		canvas,
@@ -225,6 +231,10 @@ const useStudioStore = defineStore("store", () => {
 		// data
 		resources,
 		setPageResources,
+		// actions
+		actions,
+		addAction,
+		removeAction,
 	}
 })
 

@@ -15,7 +15,9 @@
   "blocks",
   "draft_blocks",
   "data_tab",
-  "resources"
+  "resources",
+  "actions_tab",
+  "actions"
  ],
  "fields": [
   {
@@ -68,11 +70,22 @@
    "fieldtype": "Table MultiSelect",
    "label": "Resources",
    "options": "Studio Page Resource"
+  },
+  {
+   "fieldname": "actions_tab",
+   "fieldtype": "Tab Break",
+   "label": "Actions"
+  },
+  {
+   "fieldname": "actions",
+   "fieldtype": "Table",
+   "label": "Actions",
+   "options": "Studio Page Action"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-23 10:40:52.507929",
+ "modified": "2024-10-01 18:44:10.652177",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page",
