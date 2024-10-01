@@ -472,16 +472,6 @@ export default class Grid {
 			if (!d) {
 				return;
 			}
-<<<<<<< HEAD
-			if (d.idx === undefined) {
-				d.idx = ri + 1;
-			}
-			if (d.name === undefined) {
-				d.name = "row " + d.idx;
-			}
-=======
-			let grid_row;
->>>>>>> 0646be24de (fix: update idx and name in table before rendering result rows)
 			if (this.grid_rows[ri] && !append_row) {
 				var grid_row = this.grid_rows[ri];
 				grid_row.doc = d;
