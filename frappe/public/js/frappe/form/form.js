@@ -333,6 +333,14 @@ frappe.ui.form.Form = class FrappeForm {
 		$(document).on("rename", (ev, dt, old_name, new_name) => {
 			if (dt == this.doctype) this.rename_notify(dt, old_name, new_name);
 		});
+
+		frappe.realtime.on("doc_rename", (data) => {
+			// the current form has been renamed by some backend process
+			if (data.doctype == this.doctype && data.old == this.docname) {
+				// the current form does not exist anymore, route to the new one
+				frappe.set_route("Form", this.doctype, data.new);
+			}
+		});
 	}
 
 	setup_file_drop() {
