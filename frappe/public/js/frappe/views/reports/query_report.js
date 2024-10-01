@@ -1318,7 +1318,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		raise && this.toggle_message(false);
 
 		return this.filters
-			.filter((f) => f.get_value())
+			.filter((f) => f.get_value?.())
 			.map((f) => {
 				var v = f.get_value();
 				// hidden fields dont have $input
