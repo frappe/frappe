@@ -16,11 +16,7 @@
 						<Autocomplete
 							:modelValue="filter.fieldname"
 							:options="fields"
-							@update:modelValue="
-								(val) => {
-									filter.fieldname = val.value
-								}
-							"
+							@update:modelValue="filter.fieldname = $event.value"
 							placeholder="Filter by..."
 						/>
 					</div>
@@ -28,13 +24,21 @@
 						<FormControl
 							type="select"
 							:modelValue="filter.operator"
-							@update:modelValue="(val) => (filter.operator = val.value)"
+							@update:modelValue="filter.operator = $event"
 							:options="getOperators(filter.field.fieldtype)"
 							placeholder="Operator"
 						/>
 					</div>
-					<div id="value" class="!min-w-[140px] flex-1">
+					<div id="value" class="!min-w-[120px] flex-1">
+						<Link
+							v-if="typeLink.includes(filter.field.fieldtype) && ['=', '!='].includes(filter.operator)"
+							:doctype="filter.field.options"
+							:modelValue="filter.value"
+							@update:modelValue="filter.value = $event"
+							placeholder="Value"
+						/>
 						<component
+							v-else
 							:is="getValueSelector(filter.field.fieldtype, filter.field.options)"
 							v-model="filter.value"
 							placeholder="Value"
@@ -50,7 +54,7 @@
 			</div>
 			<div class="flex items-center justify-between gap-2">
 				<Autocomplete
-					value=""
+					:modelValue="''"
 					:options="fields"
 					@update:modelValue="(field) => addFilter(field.value)"
 					placeholder="Filter by..."
@@ -77,7 +81,8 @@
 
 <script setup>
 import { Autocomplete, FeatherIcon, FormControl } from "frappe-ui"
-import { computed, h } from "vue"
+import { computed, h, ref, watch } from "vue"
+import Link from "@/components/Link.vue"
 
 const typeCheck = ["Check"]
 const typeLink = ["Link"]
@@ -120,12 +125,18 @@ const fields = computed(() => {
 	return fields
 })
 
-const filters = computed({
-	get: () => makeFiltersList(props.modelValue),
-	set: (value) => {
-		emits("update:modelValue", makeFiltersDict(value))
+const filters = ref(makeFiltersList(props.modelValue))
+watch(filters, (value) => emits("update:modelValue", makeFiltersDict(value)), { deep: true })
+watch(
+	() => props.modelValue,
+	(value) => {
+		const newFilters = makeFiltersList(value)
+		if (JSON.stringify(filters.value) !== JSON.stringify(newFilters)) {
+			filters.value = newFilters
+		}
 	},
-})
+	{ deep: true },
+)
 
 function makeFiltersList(filtersDict) {
 	return Object.entries(filtersDict).map(([fieldname, [operator, value]]) => {
