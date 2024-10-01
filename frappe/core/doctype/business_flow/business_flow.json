@@ -2,6 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:title",
+ "beta": 1,
  "creation": "2024-09-30 17:42:05.900927",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -77,7 +78,7 @@
    "link_fieldname": "business_flow"
   }
  ],
- "modified": "2024-09-30 20:11:51.627721",
+ "modified": "2024-10-01 01:05:29.571150",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Business Flow",

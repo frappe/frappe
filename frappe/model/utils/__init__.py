@@ -19,6 +19,7 @@ STANDARD_FIELD_CONVERSION_MAP = {
 	"_comments": "Text",
 	"_assign": "Text",
 	"docstatus": "Int",
+	"tracer": "Data",
 }
 INCLUDE_DIRECTIVE_PATTERN = re.compile(r"""{% include\s['"](.*)['"]\s%}""")
 

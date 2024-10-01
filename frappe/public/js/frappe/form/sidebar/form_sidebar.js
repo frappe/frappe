@@ -37,6 +37,7 @@ frappe.ui.form.Sidebar = class {
 		this.show_auto_repeat_status();
 		this.show_error_log_status();
 		this.show_webhook_request_log_status();
+		this.show_flow_trace_status();
 		frappe.ui.form.setup_user_image_event(this.frm);
 
 		this.refresh();
@@ -184,6 +185,17 @@ frappe.ui.form.Sidebar = class {
 					reference_doctype: this.frm.doc.doctype,
 					reference_document: this.frm.doc.name,
 				});
+			});
+		}
+	}
+
+	show_flow_trace_status() {
+		if (this.frm.doc.tracer) {
+			let el = this.sidebar.find(".flow-trace-status");
+			el.closest(".sidebar-section").removeClass("hidden");
+			el.show();
+			el.on("click", () => {
+				frappe.set_route("Form", "Flow Tracer", this.frm.doc.tracer);
 			});
 		}
 	}

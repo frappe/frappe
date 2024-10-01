@@ -162,7 +162,9 @@ def set_value(doctype, name, fieldname, value=None):
 	:param fieldname: fieldname string or JSON / dict with key value pair
 	:param value: value if fieldname is JSON / dict"""
 
-	if fieldname in (frappe.model.default_fields + frappe.model.child_table_fields):
+	if fieldname in (
+		frappe.model.default_fields + frappe.model.child_table_fields + frappe.model.tracer_fields
+	):
 		frappe.throw(_("Cannot edit standard fields"))
 
 	if not value:

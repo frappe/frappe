@@ -16,6 +16,7 @@ from frappe.model import (
 	float_like_fields,
 	get_permitted_fields,
 	table_fields,
+	tracer_fields,
 )
 from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name
@@ -488,6 +489,7 @@ class BaseDocument:
 		self,
 		no_nulls=False,
 		no_default_fields=False,
+		no_tracer_fields=False,
 		convert_dates_to_str=False,
 		no_child_table_fields=False,
 		no_private_properties=False,
@@ -510,6 +512,11 @@ class BaseDocument:
 
 		if no_default_fields:
 			for key in default_fields:
+				if key in doc:
+					del doc[key]
+
+		if no_tracer_fields:
+			for key in tracer_fields:
 				if key in doc:
 					del doc[key]
 

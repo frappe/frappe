@@ -31,6 +31,7 @@ from frappe.model import (
 	no_value_fields,
 	optional_fields,
 	table_fields,
+	tracer_fields,
 )
 from frappe.model.base_document import (
 	DOCTYPE_TABLE_FIELDS,
@@ -50,6 +51,7 @@ DEFAULT_FIELD_LABELS = {
 	"modified": _lt("Last Updated On"),
 	"modified_by": _lt("Last Updated By"),
 	"owner": _lt("Created By"),
+	"tracer": _lt("Flow Tracer"),
 	"_user_tags": _lt("Tags"),
 	"_liked_by": _lt("Liked By"),
 	"_comments": _lt("Comments"),
@@ -110,6 +112,7 @@ class Meta(Document):
 	standard_set_once_fields = (
 		frappe._dict(fieldname="creation", fieldtype="Datetime"),
 		frappe._dict(fieldname="owner", fieldtype="Data"),
+		frappe._dict(fieldname="tracer", fieldtype="Link"),
 	)
 
 	def __init__(self, doctype):
@@ -228,6 +231,8 @@ class Meta(Document):
 				]
 				if self.istable:
 					self._valid_columns += list(child_table_fields)
+				if self.trace_flow:
+					self._valid_columns += list(tracer_fields)
 
 		return self._valid_columns
 
@@ -241,6 +246,8 @@ class Meta(Document):
 				]
 				if self.istable:
 					self._valid_fields += list(child_table_fields)
+				if self.trace_flow:
+					self._valid_fields += list(tracer_fields)
 
 		return self._valid_fields
 

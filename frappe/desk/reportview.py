@@ -12,7 +12,13 @@ import frappe
 import frappe.permissions
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
-from frappe.model import child_table_fields, default_fields, get_permitted_fields, optional_fields
+from frappe.model import (
+	child_table_fields,
+	default_fields,
+	get_permitted_fields,
+	optional_fields,
+	tracer_fields,
+)
 from frappe.model.base_document import get_controller
 from frappe.model.db_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
@@ -185,7 +191,12 @@ def raise_invalid_field(fieldname):
 def is_standard(fieldname):
 	if "." in fieldname:
 		fieldname = fieldname.split(".")[1].strip("`")
-	return fieldname in default_fields or fieldname in optional_fields or fieldname in child_table_fields
+	return (
+		fieldname in default_fields
+		or fieldname in optional_fields
+		or fieldname in child_table_fields
+		or fieldname in tracer_fields
+	)
 
 
 @lru_cache
