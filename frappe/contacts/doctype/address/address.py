@@ -274,7 +274,10 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 	meta = frappe.get_meta(doctype)
 	for fieldname, value in filters.items():
 		if meta.get_field(fieldname) or fieldname in frappe.db.DEFAULT_COLUMNS:
-			condition += f" and {fieldname}={frappe.db.escape(value)}"
+			if isinstance(value, int):
+				condition += f" and {fieldname}={value}"
+			else:
+				condition += f" and {fieldname}={frappe.db.escape((value))}"
 
 	searchfields = meta.get_search_fields()
 
