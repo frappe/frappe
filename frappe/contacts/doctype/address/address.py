@@ -144,14 +144,13 @@ def get_default_address(doctype: str, name: str | None, sort_key: str = "is_prim
 	"""Returns default Address name for the given doctype, name"""
 	if sort_key not in ["is_shipping_address", "is_primary_address"]:
 		return None
-
+	filters = [["disabled", "=", 0]]
+	if doctype and name:
+		filters.append(["Dynamic Link", "link_doctype", "=", doctype])
+		filters.append(["Dynamic Link", "link_name", "=", name])
 	addresses = frappe.get_all(
 		"Address",
-		filters=[
-			["Dynamic Link", "link_doctype", "=", doctype],
-			["Dynamic Link", "link_name", "=", name],
-			["disabled", "=", 0],
-		],
+		filters=filters,
 		pluck="name",
 		order_by=f"{sort_key} DESC",
 		limit=1,
