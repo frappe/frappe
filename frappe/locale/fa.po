@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-24 15:33+0000\n"
-"PO-Revision-Date: 2024-09-30 00:38\n"
+"PO-Revision-Date: 2024-10-01 00:39\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -27358,7 +27358,7 @@ msgstr "کاربر {0} درخواست حذف داده ها را داده است"
 
 #: frappe/core/doctype/user/user.py:1358
 msgid "User {0} impersonated as {1}"
-msgstr "کاربر {0} جعل هویت به عنوان {1}"
+msgstr "کاربر {0} به عنوان {1} جعل هویت کرد"
 
 #: frappe/utils/oauth.py:271
 msgid "User {0} is disabled"
