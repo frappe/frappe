@@ -183,9 +183,19 @@ const useStudioStore = defineStore("store", () => {
 		await studioPageResources.reload()
 		resources.value = {}
 
-		studioPageResources.data.map((resource) => {
-			resources.value[resource.resource_name] = getNewResource(resource)
-			resources.value[resource.resource_name].docname = resource.name
+		const resourcePromises = studioPageResources.data.map(async (resource) => {
+			const newResource = await getNewResource(resource)
+			return {
+				name: resource.resource_name,
+				value: newResource,
+				docname: resource.name,
+			}
+		})
+
+		const resolvedResources = await Promise.all(resourcePromises)
+
+		resolvedResources.forEach((item) => {
+			resources.value[item.name] = item.value
 		})
 	}
 

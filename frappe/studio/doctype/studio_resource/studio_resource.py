@@ -9,3 +9,6 @@ class StudioResource(Document):
 	def before_insert(self):
 		if isinstance(self.fields, list):
 			self.fields = frappe.as_json(self.fields, indent=None)
+
+		if isinstance(self.filters, list):
+			self.filters = frappe.as_json(self.filters, indent=None)

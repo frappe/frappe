@@ -274,56 +274,73 @@ function evaluateExpression(expression: string, context: any) {
 	}
 }
 
-function getNewResource(resource) {
-	const fields = JSON.parse(resource.fields || "[]")
-
-	const getTransforms = () => {
-		/**
-		 * Create a function that includes the user's transform function
-		 * Invoke the transform function with data/doc
-		 */
-		if (resource.transform_results) {
-			if (resource.resource_type === "Document") {
-				return {
-					transform: (doc) => {
-						const transformFn = new Function(resource.transform + "\nreturn transform")()
-						return transformFn.call(null, doc);
-					}
+function getTransforms(resource) {
+	/**
+	 * Create a function that includes the user's transform function
+	 * Invoke the transform function with data/doc
+	 */
+	if (resource.transform_results) {
+		if (resource.resource_type === "Document") {
+			return {
+				transform: (doc) => {
+					const transformFn = new Function(resource.transform + "\nreturn transform")()
+					return transformFn.call(null, doc);
 				}
-			} else {
-				return {
-					transform: (data) => {
-						const transformFn = new Function(resource.transform + "\nreturn transform")()
-						return transformFn.call(null, data);
-					}
+			}
+		} else {
+			return {
+				transform: (data) => {
+					const transformFn = new Function(resource.transform + "\nreturn transform")()
+					return transformFn.call(null, data);
 				}
 			}
 		}
-		return {}
 	}
+	return {}
+}
+
+async function getDocumentResource(resource) {
+	let docname = resource.document_name
+	if (!docname && resource.filters) {
+		// fetch the docname based on filters
+		const docList = createListResource({
+			doctype: resource.document_type,
+			fields: ["name"],
+			filters: resource.filters,
+			auto: true
+		})
+		await docList.list?.promise
+		docname = docList.data?.[0]?.name
+	}
+
+	return createDocumentResource({
+		doctype: resource.document_type,
+		name: docname,
+		auto: true,
+		...getTransforms(resource)
+	})
+}
+
+function getNewResource(resource) {
+	const fields = JSON.parse(resource.fields || "[]")
 
 	switch (resource.resource_type) {
 		case "Document":
-			return createDocumentResource({
-				doctype: resource.document_type,
-				name: resource.document_name,
-				auto: true,
-				...getTransforms()
-			})
+			return getDocumentResource(resource)
 		case "Document List":
 			return createListResource({
 				doctype: resource.document_type,
 				fields: fields.length ? fields : "*",
 				filters: resource.filters,
 				auto: true,
-				...getTransforms(),
+				...getTransforms(resource),
 			})
 		case "API Resource":
 			return createResource({
 				url: resource.url,
 				method: resource.method,
 				auto: true,
-				...getTransforms(),
+				...getTransforms(resource),
 			})
 	}
 }
