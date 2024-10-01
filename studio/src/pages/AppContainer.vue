@@ -3,43 +3,19 @@
 </template>
 
 <script setup lang="ts">
-import { watch, ref, onMounted } from "vue"
-import { useRoute, useRouter } from "vue-router"
+import { watch, ref } from "vue"
+import { useRoute } from "vue-router"
 import { usePageMeta } from "frappe-ui"
 
-import { getBlockInstance, jsonToJs, findPageWithRoute, fetchAppPages } from "@/utils/helpers"
+import { getBlockInstance, jsonToJs, findPageWithRoute } from "@/utils/helpers"
 import AppComponent from "@/components/AppComponent.vue"
 
 import useAppStore from "@/stores/appStore"
 
 const store = useAppStore()
 const route = useRoute()
-const router = useRouter()
 const page = ref(null)
 const rootBlock = ref(null)
-
-const addDynamicRoutes = async (appRoute) => {
-	try {
-		const pages = await fetchAppPages(appRoute)
-
-		pages.forEach((page) => {
-			router.addRoute({
-				path: page.route.replace("studio-app", ""),
-				name: page.page_title,
-				component: () => import("@/pages/AppContainer.vue"),
-				props: true,
-				meta: {
-					isDynamic: true,
-					appRoute: appRoute,
-				},
-			})
-		})
-
-		router.replace(router.currentRoute.value.fullPath)
-	} catch (error) {
-		console.error("Error fetching dynamic routes:", error)
-	}
-}
 
 watch(
 	() => route.path,
@@ -56,7 +32,6 @@ watch(
 		}
 
 		if (currentPath) {
-			// find page with matched route
 			page.value = await findPageWithRoute(appRoute, currentPath)
 			if (!page.value) return
 			const blocks = jsonToJs(page.value?.blocks)
@@ -74,13 +49,6 @@ watch(
 usePageMeta(() => {
 	return {
 		title: page.value?.page_title,
-	}
-})
-
-onMounted(async () => {
-	const appRoute = route.params?.appRoute || route.meta?.appRoute
-	if (appRoute && appRoute !== "studio") {
-		await addDynamicRoutes(appRoute)
 	}
 })
 </script>
