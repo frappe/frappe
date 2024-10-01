@@ -314,6 +314,7 @@ function getNewResource(resource) {
 			return createListResource({
 				doctype: resource.document_type,
 				fields: fields.length ? fields : "*",
+				filters: resource.filters,
 				auto: true,
 				...getTransforms(),
 			})

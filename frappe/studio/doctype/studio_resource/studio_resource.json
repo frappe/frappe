@@ -8,6 +8,7 @@
  "field_order": [
   "resource_type",
   "fields",
+  "filters",
   "document_resource_section",
   "document_type",
   "column_break_kkyr",
@@ -93,11 +94,17 @@
    "fieldname": "transform_results",
    "fieldtype": "Check",
    "label": "Transform Results"
+  },
+  {
+   "fieldname": "filters",
+   "fieldtype": "JSON",
+   "label": "Filters",
+   "max_height": "100px"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-10-01 19:20:49.344439",
+ "modified": "2024-10-01 22:29:48.784772",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Resource",

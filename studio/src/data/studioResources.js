@@ -16,6 +16,7 @@ const studioPageResources = createListResource({
 	fields: [
 		"studio_resource.resource_type",
 		"studio_resource.fields",
+		"studio_resource.filters",
 		"studio_resource.document_type",
 		"studio_resource.document_name",
 		"studio_resource.url",

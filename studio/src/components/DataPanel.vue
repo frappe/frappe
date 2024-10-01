@@ -77,6 +77,7 @@ const addResource = (resource) => {
 			url: resource.url,
 			method: resource.method,
 			fields: fields,
+			filters: resource.filters,
 			transform_results: resource.transform_results,
 			transform: resource.transform,
 		})

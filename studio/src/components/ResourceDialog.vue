@@ -68,6 +68,12 @@
 							:options="doctypeFields"
 							:multiple="true"
 						/>
+						<Filters
+							v-if="newResource.document_type"
+							v-model="newResource.filters"
+							:docfields="filterFields"
+							label="Filters"
+						/>
 					</template>
 
 					<div class="flex flex-row gap-1.5">
@@ -92,6 +98,7 @@ import { createResource } from "frappe-ui"
 import Link from "@/components/Link.vue"
 import InlineInput from "@/components/InlineInput.vue"
 import InputLabel from "@/components/InputLabel.vue"
+import Filters from "@/components/Filters.vue"
 
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 const emit = defineEmits(["addResource"])
@@ -107,12 +114,14 @@ const emptyResource = {
 	document_type: "",
 	document_name: "",
 	fields: [],
+	filters: {},
 	transform_results: false,
 	transform: "",
 }
 
 const newResource = ref({ ...emptyResource })
 const doctypeFields = ref([])
+const filterFields = ref([])
 
 const getTransformFnBoilerplate = (resource_type) => {
 	if (resource_type == "Document") {
@@ -126,7 +135,7 @@ watch(
 	() => newResource.value.document_type,
 	async () => {
 		if (newResource.value.document_type) {
-			doctypeFields.value = await getDoctypeFields()
+			setDoctypeFields()
 		}
 	},
 )
@@ -138,11 +147,12 @@ watch(
 	},
 )
 
-async function getDoctypeFields() {
-	const doctypeFields = createResource({
+async function setDoctypeFields() {
+	const fields = createResource({
 		url: "studio.api.get_doctype_fields",
 		params: { doctype: newResource.value.document_type },
 		transform: (data) => {
+			filterFields.value = data
 			return data.map((field) => {
 				return {
 					label: field.fieldname,
@@ -151,7 +161,7 @@ async function getDoctypeFields() {
 			})
 		},
 	})
-	await doctypeFields.reload()
-	return doctypeFields.data
+	await fields.reload()
+	doctypeFields.value = fields.data
 }
 </script>
