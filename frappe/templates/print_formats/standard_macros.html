@@ -3,7 +3,7 @@
 		{{ render_table(df, doc) }}
 	{%- elif df.fieldtype=="HTML" and df.options -%}
 		<div>{{ frappe.render_template(df.options, {"doc": doc}) or "" }}</div>
-	{%- elif df.fieldtype in ("Text", "Text Editor", "Code", "Long Text") -%}
+	{%- elif df.fieldtype in ("Text", "Code", "Long Text") -%}
 		{{ render_text_field(df, doc) }}
 	{%- elif df.fieldtype in ("Image", "Attach Image")
 		and (
