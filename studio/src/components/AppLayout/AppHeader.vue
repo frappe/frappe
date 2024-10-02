@@ -4,7 +4,12 @@
 	>
 		<div class="w-full">
 			<div class="flex w-full items-center justify-center">
-				<LucideIcon class="absolute left-4 h-6 w-6" name="ChevronLeft" @click="() => $router.back()" />
+				<LucideIcon
+					v-if="!hideBackButton"
+					class="absolute left-4 h-6 w-6"
+					name="ChevronLeft"
+					@click="() => $router.back()"
+				/>
 				<div class="flex cursor-pointer items-center justify-center gap-2">
 					<template v-if="!hideLogo">
 						<div v-if="logoSVG" class="flex items-center gap-2">
@@ -33,6 +38,10 @@ defineProps({
 		type: String,
 	},
 	hideLogo: {
+		type: Boolean,
+		default: false,
+	},
+	hideBackButton: {
 		type: Boolean,
 		default: false,
 	},
