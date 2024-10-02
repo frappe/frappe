@@ -704,7 +704,7 @@ class DatabaseQuery:
 					ch_doctype = self.linked_table_aliases[ch_doctype]
 
 				if frappe.is_oracledb:
-					ch_doctype = ch_doctype.replace('"', "").replace("tab", "", 1)
+					ch_doctype = ch_doctype.replace('"', "").replace("tab", "", 1).replace("_", " ")
 				else:
 					ch_doctype = ch_doctype.replace("`", "").replace("tab", "", 1)
 
@@ -1442,9 +1442,10 @@ def requires_owner_constraint(role_permissions):
 
 def wrap_grave_quotes(table: str) -> str:
 	if frappe.is_oracledb:
+		if '(' in table:
+			table = table.split('(')[1]
+		table = table.replace('_',' ')
 		return table
-		# if table[0] != '"':
-		# 	table = f'"{table}"'
 	elif table[0] != "`":
 		table = f"`{table}`"
 	return table

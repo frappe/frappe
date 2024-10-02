@@ -111,9 +111,18 @@ class DocTags:
 			tl = unique(filter(lambda x: x, tl))
 			tags = "," + ",".join(tl)
 		try:
-			frappe.db.sql(
-				"update `tab{}` set _user_tags={} where name={}".format(self.dt, "%s", "%s"), (tags, dn)
-			)
+			if frappe.is_oracledb:
+				frappe.db.sql(
+					'update {}."tab{}" set "_user_tags"=\'{}\' where "name"=\'{}\''.format(
+						frappe.conf.db_name.upper(),
+						self.dt,
+						tags, dn), ()
+				)
+			else:
+				frappe.db.sql(
+					"update `tab{}` set _user_tags={} where name={}".format(self.dt, "%s", "%s"), (tags, dn)
+				)
+
 			doc = frappe.get_doc(self.dt, dn)
 			update_tags(doc, tags)
 		except Exception as e:

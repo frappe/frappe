@@ -18,6 +18,11 @@ def convert_mariadb_to_orcaledb(string):
 		is_replace = True
 	if is_replace:
 		return string
+
+	if re.search('\w+\."\w+"', string):
+		return string
+	elif re.search('"\w+"', string):
+		return string
 	return f'"{string}"'
 
 
@@ -32,8 +37,25 @@ def convert_fields(fields: dict):
 
 	if frappe.is_oracledb:
 		if fields.get("order_by"):
-			string = fields.get("order_by").split(" ")
-			fields["order_by"] = f"{convert_mariadb_to_orcaledb(string=string[0])} {string[1]}"
+			# if multiple orderby pass.
+			order_by = []
+			for order_by_clause in fields.get("order_by").split(","):
+				if re.search(' asc$', order_by_clause, re.IGNORECASE):
+					order_by.append(
+						convert_mariadb_to_orcaledb(order_by_clause[:-4]) + ' asc'
+					)
+				elif re.search(' desc$', order_by_clause, re.IGNORECASE):
+					order_by.append(
+						convert_mariadb_to_orcaledb(order_by_clause[:-5]) + ' desc'
+					)
+				else:
+					order_by.append(
+						convert_mariadb_to_orcaledb(order_by_clause)
+					)
+			fields["order_by"] = ", ".join(order_by)
+
+
+			# fields["order_by"] = f"{convert_mariadb_to_orcaledb(string=string[0])} {string[1]}"
 
 
 def validate_route_conflict(doctype, name):

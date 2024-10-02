@@ -61,7 +61,10 @@ def get_count() -> int:
 		args.distinct = sbool(args.distinct)
 		distinct = "distinct " if args.distinct else ""
 		args.limit = cint(args.limit)
-		fieldname = f"{distinct}`tab{args.doctype}`.name"
+		if frappe.is_oracledb:
+			fieldname = f'{distinct}tab{args.doctype.replace(" ", "_")}."name"'
+		else:
+			fieldname = f"{distinct}`tab{args.doctype}`.name"
 		args.order_by = None
 
 		if args.limit:
@@ -69,7 +72,7 @@ def get_count() -> int:
 			partial_query = execute(**args, run=0)
 			count = frappe.db.sql(f"""select count(*) from ( {partial_query} ) p""")[0][0]
 		else:
-			args.fields = [f"count({fieldname}) as total_count"]
+			args.fields = [f"count({fieldname}) total_count" if frappe.is_oracledb else f"count({fieldname}) as total_count"]
 			count = execute(**args)[0].get("total_count")
 
 	return count
