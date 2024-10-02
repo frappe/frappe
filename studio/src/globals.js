@@ -52,6 +52,7 @@ import Audio from "@/components/AppLayout/Audio.vue"
 import ImageView from "@/components/AppLayout/ImageView.vue"
 import TextBlock from "@/components/AppLayout/TextBlock.vue"
 import AppHeader from "@/components/AppLayout/AppHeader.vue"
+import BottomTabs from "@/components/AppLayout/BottomTabs.vue"
 
 export function registerGlobalComponents(app) {
 	app.component("Alert", Alert)
@@ -107,4 +108,5 @@ export function registerGlobalComponents(app) {
 	app.component("ImageView", ImageView)
 	app.component("TextBlock", TextBlock)
 	app.component("AppHeader", AppHeader)
+	app.component("BottomTabs", BottomTabs)
 }

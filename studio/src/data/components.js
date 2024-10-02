@@ -8,6 +8,7 @@ import Audio from "@/components/AppLayout/Audio.vue"
 import ImageView from "@/components/AppLayout/ImageView.vue"
 import TextBlock from "@/components/AppLayout/TextBlock.vue"
 import AppHeader from "@/components/AppLayout/AppHeader.vue"
+import BottomTabs from "@/components/AppLayout/BottomTabs.vue"
 
 export const COMPONENTS = {
 	Alert: {
@@ -604,7 +605,7 @@ export const COMPONENTS = {
 	TextBlock: {
 		name: "TextBlock",
 		title: "Text Block",
-		icon: "Text",
+		icon: "Type",
 		props: TextBlock.props,
 		initialState: {
 			fontSize: "text-md",
@@ -618,6 +619,26 @@ export const COMPONENTS = {
 		props: AppHeader.props,
 		initialState: {
 			title: "Frappe",
+		},
+	},
+	BottomTabs: {
+		name: "BottomTabs",
+		title: "Bottom Tabs",
+		icon: "ArrowRightLeft",
+		props: BottomTabs.props,
+		initialState: {
+			tabs: [
+				{
+					label: "Home",
+					icon: "home",
+					route: "/",
+				},
+				{
+					label: "Settings",
+					icon: "settings",
+					route: "/settings",
+				},
+			],
 		},
 	},
 }
