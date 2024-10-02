@@ -95,6 +95,7 @@ class CustomizeFormField(Document):
 		parentfield: DF.Data
 		parenttype: DF.Data
 		permlevel: DF.Int
+		placeholder: DF.Data | None
 		precision: DF.Literal["", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 		print_hide: DF.Check
 		print_hide_if_no_value: DF.Check
