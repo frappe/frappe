@@ -4,7 +4,9 @@ import hashlib
 import json
 import time
 from collections.abc import Generator, Iterable
-from typing import TYPE_CHECKING, Any, Optional
+from contextlib import contextmanager
+from functools import wraps
+from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, Union, overload
 
 from werkzeug.exceptions import NotFound
 
@@ -87,6 +89,61 @@ def get_doc(*args, **kwargs):
 		return controller(*args, **kwargs)
 
 	raise ImportError(doctype)
+
+
+@contextmanager
+def read_only_document(context=None):
+	# Store original methods
+	original_methods = {
+		"save": Document.save,
+		"_save": Document._save,
+		"insert": Document.insert,
+		"delete": Document.delete,
+		"submit": Document.submit,
+		"cancel": Document.cancel,
+		"db_set": Document.db_set,
+	}
+
+	def read_only_method(func):
+		@wraps(func)
+		def wrapper(self, *args, **kwargs):
+			if self.doctype == "Error Log" and func.__name__ == "insert":
+				return original_methods["insert"](self, *args, **kwargs)
+			error_msg = f"Cannot call {func.__name__} in read-only document mode"
+			if context:
+				error_msg += f" ({context})"
+			raise frappe.DatabaseModificationError(error_msg)
+
+		return wrapper
+
+	# Use a thread-local variable to track nested invocations
+	if not hasattr(frappe.local, "read_only_depth"):
+		frappe.local.read_only_depth = 0
+
+	try:
+		# Increment the depth counter
+		frappe.local.read_only_depth += 1
+
+		# Only apply read-only methods if this is the outermost invocation
+		if frappe.local.read_only_depth == 1:
+			# Replace methods with read-only versions
+			for method_name, method in original_methods.items():
+				setattr(Document, method_name, read_only_method(method))
+
+		yield
+
+	finally:
+		# Decrement the depth counter
+		frappe.local.read_only_depth -= 1
+
+		# Only restore original methods if this is the outermost invocation
+		if frappe.local.read_only_depth == 0:
+			# Restore original methods
+			for method_name, method in original_methods.items():
+				setattr(Document, method_name, method)
+
+			# Clean up the thread-local variable
+			del frappe.local.read_only_depth
 
 
 class Document(BaseDocument):
