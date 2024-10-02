@@ -229,3 +229,4 @@ frappe.patches.v15_0.set_file_type
 frappe.core.doctype.data_import.patches.remove_stale_docfields_from_legacy_version
 frappe.patches.v15_0.sanitize_workspace_titles
 frappe.integrations.doctype.oauth_client.patches.set_default_allowed_role_in_oauth_client
+frappe.patches.v16_0.move_role_desk_settings_to_user
