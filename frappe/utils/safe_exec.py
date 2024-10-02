@@ -34,6 +34,9 @@ from frappe.utils.number_format import NumberFormat
 from frappe.website.utils import get_next_link, get_toc
 from frappe.www.printview import get_visible_columns
 
+if TYPE_CHECKING:
+	from frappe.utils.jinja import DocumentProxy
+
 
 class ServerScriptNotEnabled(frappe.PermissionError):
 	pass
@@ -328,12 +331,27 @@ def get_keys_for_autocomplete(
 	meta: str = "ctx",
 	depth: int = 0,
 	max_depth: int | None = None,
+	document_proxy_class: "DocumentProxy" = None,
 ):
 	if max_depth and depth > max_depth:
 		return
 	full_key = f"{prefix}.{key}" if prefix else key
 	if key.startswith("_"):
 		return
+	if document_proxy_class and isinstance(value, document_proxy_class):
+		yield from chain.from_iterable(
+			get_keys_for_autocomplete(
+				field,
+				getattr(value, field),
+				full_key,
+				offset,
+				meta,
+				depth + 1,
+				max_depth=max_depth,
+				document_proxy_class=document_proxy_class,
+			)
+			for field in value._fieldnames
+		)
 	if isinstance(value, NamespaceDict | dict) and value:
 		if key == "form_dict":
 			yield {"value": full_key, "score": offset + 7, "meta": meta}
@@ -347,6 +365,7 @@ def get_keys_for_autocomplete(
 					meta,
 					depth + 1,
 					max_depth=max_depth,
+					document_proxy_class=document_proxy_class,
 				)
 				for key, value in value.items()
 			)
