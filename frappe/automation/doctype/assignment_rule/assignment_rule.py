@@ -252,7 +252,7 @@ def apply(doc=None, method=None, doctype=None, name=None):
 		"Assignment Rule",
 		doc.doctype,
 		filters={"document_type": doc.doctype, "disabled": 0},
-		order_by="priority desc",
+		order_by='tabAssignment_Rule."priority" desc' if frappe.is_oracledb else "priority desc",
 	)
 
 	# multiple auto assigns

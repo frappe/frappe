@@ -1,7 +1,39 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import re
+
 import frappe
+
+
+def convert_mariadb_to_orcaledb(string):
+	if not frappe.is_oracledb:
+		return string
+	pattern = '`(?P<alias>\w+( \w+)*)`.`?(?P<column>\w+)`?'
+	is_replace = False
+	while _match := re.search(pattern=pattern, string=string):
+		alias, column = _match.groupdict().values()
+		template = '{alias}."{column}"'.format(alias=alias.replace(' ', '_'), column=column)
+		string = string.replace(string[_match.start():_match.end()], template)
+		is_replace = True
+	if is_replace:
+		return string
+	return f'"{string}"'
+
+
+def convert_list(fields: list):
+	return [
+		convert_mariadb_to_orcaledb(string=string)
+		for string in fields
+	]
+
+def convert_fields(fields: dict):
+	fields['fields'] = convert_list(fields['fields'])
+
+	if frappe.is_oracledb:
+		if fields.get("order_by"):
+			string = fields.get("order_by").split(" ")
+			fields["order_by"] = f"{convert_mariadb_to_orcaledb(string=string[0])} {string[1]}"
 
 
 def validate_route_conflict(doctype, name):

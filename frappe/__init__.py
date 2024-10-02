@@ -2067,7 +2067,6 @@ def get_all(doctype, *args, **kwargs):
 	if "limit_page_length" not in kwargs:
 		kwargs["limit_page_length"] = 0
 
-	print("====>>>>>", doctype, args, kwargs)
 	return get_list(doctype, *args, **kwargs)
 
 def get_value(*args, **kwargs):

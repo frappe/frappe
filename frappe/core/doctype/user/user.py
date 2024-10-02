@@ -806,14 +806,21 @@ def get_all_roles():
 	"""return all roles"""
 	active_domains = frappe.get_active_domains()
 
+	if frappe.is_oracledb:
+		or_filters = {'ifnull(tabRole."restrict_to_domain", \'\')': "", "restrict_to_domain": ("in", active_domains)}
+		order_by = 'tabRole."name"'
+	else:
+		or_filters={"ifnull(restrict_to_domain, '')": "", "restrict_to_domain": ("in", active_domains)}
+		order_by="name"
+
 	roles = frappe.get_all(
 		"Role",
 		filters={
 			"name": ("not in", frappe.permissions.AUTOMATIC_ROLES),
 			"disabled": 0,
 		},
-		or_filters={"ifnull(restrict_to_domain, '')": "", "restrict_to_domain": ("in", active_domains)},
-		order_by="name",
+		or_filters=or_filters,
+		order_by=order_by
 	)
 
 	return sorted([role.get("name") for role in roles])

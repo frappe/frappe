@@ -18,6 +18,7 @@ from frappe.model.db_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
 from frappe.utils import add_user_info, cint, format_duration
 from frappe.utils.data import sbool
+from frappe.desk.utils import convert_fields
 
 
 @frappe.whitelist()
@@ -73,24 +74,10 @@ def get_count() -> int:
 
 	return count
 
-def convert_mariadb_to_orcaledb(req):
-	def convert(string):
-		pattern = '`(?P<alias>\w+)`.`?(?P<column>\w+)`?'
-		_match = re.match(pattern=pattern, string=string)
-		if _match:
-			template = '{alias}."{column}"'.format(**_match.groupdict())
-			return template
-		print("->> ", string)
-		return f'"{string}"'
-
-	req['fields'] = [convert(s) for s in req['fields']]
-	if req.get("order_by"):
-		string = req.get("order_by").split(" ")
-		req["order_by"] = "{} {}".format(convert(string=string[0]), string[1])
 
 def execute(doctype, *args, **kwargs):
 	if frappe.is_oracledb:
-		convert_mariadb_to_orcaledb(kwargs)
+		convert_fields(kwargs)
 	return DatabaseQuery(doctype).execute(*args, **kwargs)
 
 

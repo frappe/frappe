@@ -16,6 +16,7 @@ from frappe.model.db_query import get_order_by
 from frappe.permissions import has_permission
 from frappe.utils import cint, cstr, unique
 from frappe.utils.data import make_filter_tuple
+from frappe.desk.utils import convert_mariadb_to_orcaledb, convert_list, convert_fields
 
 
 def sanitize_searchfield(searchfield: str):
@@ -159,27 +160,45 @@ def search_widget(
 	fields = get_std_fields_list(meta, searchfield or "name")
 	if filter_fields:
 		fields = list(set(fields + json.loads(filter_fields)))
-	formatted_fields = [f"`tab{meta.name}`.`{f.strip()}`" for f in fields]
 
-	# Insert title field query after name
-	if meta.show_title_field_in_link and meta.title_field:
-		formatted_fields.insert(1, f"`tab{meta.name}`.{meta.title_field} as `label`")
+	if frappe.is_oracledb:
+		formatted_fields = [f'tab{meta.name.replace(" ", "_")}."{f.strip()}"' for f in fields]
 
-	order_by_based_on_meta = get_order_by(doctype, meta)
-	# `idx` is number of times a document is referred, check link_count.py
-	order_by = f"`tab{doctype}`.idx desc, {order_by_based_on_meta}"
+		# Insert title field query after name
+		if meta.show_title_field_in_link and meta.title_field:
+			formatted_fields.insert(1, f'tab{meta.name.replace(" ", "_")}."{meta.title_field}" as label')
 
-	if not meta.translated_doctype:
-		_txt = frappe.db.escape((txt or "").replace("%", "").replace("@", ""))
-		# locate returns 0 if string is not found, convert 0 to null and then sort null to end in order by
-		_relevance = f"(1 / nullif(locate({_txt}, `tab{doctype}`.`name`), 0))"
-		formatted_fields.append(f"""{_relevance} as `_relevance`""")
-		# Since we are sorting by alias postgres needs to know number of column we are sorting
-		if frappe.db.db_type == "mariadb":
-			order_by = f"ifnull(_relevance, -9999) desc, {order_by}"
-		elif frappe.db.db_type == "postgres":
+		order_by_based_on_meta = get_order_by(doctype, meta)
+		# `idx` is number of times a document is referred, check link_count.py
+		order_by = f'tab{doctype.replace(" ", "_")}."idx" desc, {order_by_based_on_meta}'
+
+		if not meta.translated_doctype:
+			_txt = frappe.db.escape((txt or "").replace("%", "").replace("@", ""))
+			# locate returns 0 if string is not found, convert 0 to null and then sort null to end in order by
+			_relevance = f'(1 / nullif(locate({_txt}, tab{doctype.replace(" ", "_")}."name"), 0))'
+			formatted_fields.append(f'"{_relevance}" _relevance')
+	else:
+		formatted_fields = [f"`tab{meta.name}`.`{f.strip()}`" for f in fields]
+
+		# Insert title field query after name
+		if meta.show_title_field_in_link and meta.title_field:
+			formatted_fields.insert(1, f"`tab{meta.name}`.{meta.title_field} as `label`")
+
+		order_by_based_on_meta = get_order_by(doctype, meta)
+		# `idx` is number of times a document is referred, check link_count.py
+		order_by = f"`tab{doctype}`.idx desc, {order_by_based_on_meta}"
+
+		if not meta.translated_doctype:
+			_txt = frappe.db.escape((txt or "").replace("%", "").replace("@", ""))
+			# locate returns 0 if string is not found, convert 0 to null and then sort null to end in order by
+			_relevance = f"(1 / nullif(locate({_txt}, `tab{doctype}`.`name`), 0))"
+			formatted_fields.append(f"""{_relevance} as `_relevance`""")
 			# Since we are sorting by alias postgres needs to know number of column we are sorting
-			order_by = f"{len(formatted_fields)} desc nulls last, {order_by}"
+			if frappe.db.db_type == "mariadb":
+				order_by = f"ifnull(_relevance, -9999) desc, {order_by}"
+			elif frappe.db.db_type == "postgres":
+				# Since we are sorting by alias postgres needs to know number of column we are sorting
+				order_by = f"{len(formatted_fields)} desc nulls last, {order_by}"
 
 	ignore_permissions = doctype == "DocType" or (
 		cint(ignore_user_permissions)
@@ -189,6 +208,7 @@ def search_widget(
 			parent_doctype=reference_doctype,
 		)
 	)
+
 
 	values = frappe.get_list(
 		doctype,

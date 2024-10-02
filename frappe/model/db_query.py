@@ -521,6 +521,8 @@ class DatabaseQuery:
 
 	def append_table(self, table_name):
 		self.tables.append(table_name)
+		if '`' in table_name:
+			table_name = table_name.replace('`', '')
 		doctype = table_name[4:-1]
 		self.check_read_permission(doctype)
 
@@ -1118,7 +1120,8 @@ class DatabaseQuery:
 				# args.order_by = f'"{_order[0]}" {_order[1]}'
 				args.order_by = self.order_by
 			else:
-				args.order_by = f'"{self.order_by}"'
+				if not re.search('\w+\."\w+"', self.order_by):
+					args.order_by = f'"{self.order_by}"'
 		else:
 			args.order_by = ""
 
@@ -1274,26 +1277,49 @@ def get_order_by(doctype, meta):
 	order_by = ""
 
 	sort_field = sort_order = None
-	if meta.sort_field and "," in meta.sort_field:
-		# multiple sort given in doctype definition
-		# Example:
-		# `idx desc, modified desc`
-		# will covert to
-		# `tabItem`.`idx` desc, `tabItem`.`modified` desc
-		order_by = ", ".join(
-			f"`tab{doctype}`.`{f_split[0].strip()}` {f_split[1].strip()}"
-			for f in meta.sort_field.split(",")
-			if (f_split := f.split(maxsplit=2))
-		)
 
+	if frappe.is_oracledb:
+		if meta.sort_field and "," in meta.sort_field:
+			# multiple sort given in doctype definition
+			# Example:
+			# `idx desc, modified desc`
+			# will covert to
+			# `tabItem`.`idx` desc, `tabItem`.`modified` desc
+			order_by = ", ".join(
+				f'tab{doctype.replace(" ", "_")}."{f_split[0].strip()}" {f_split[1].strip()}'
+				for f in meta.sort_field.split(",")
+				if (f_split := f.split(maxsplit=2))
+			)
+
+		else:
+			sort_field = meta.sort_field or "modified"
+			sort_order = (meta.sort_field and meta.sort_order) or "desc"
+			order_by = f'tab{doctype.replace(" ", "_")}."{sort_field or "modified"}" {sort_order or "desc"}'
+
+		# draft docs always on top
+		if meta.is_submittable:
+			order_by = f'tab{doctype}."docstatus" asc, {order_by}'
 	else:
-		sort_field = meta.sort_field or "modified"
-		sort_order = (meta.sort_field and meta.sort_order) or "desc"
-		order_by = f"`tab{doctype}`.`{sort_field or 'modified'}` {sort_order or 'desc'}"
+		if meta.sort_field and "," in meta.sort_field:
+			# multiple sort given in doctype definition
+			# Example:
+			# `idx desc, modified desc`
+			# will covert to
+			# `tabItem`.`idx` desc, `tabItem`.`modified` desc
+			order_by = ", ".join(
+				f"`tab{doctype}`.`{f_split[0].strip()}` {f_split[1].strip()}"
+				for f in meta.sort_field.split(",")
+				if (f_split := f.split(maxsplit=2))
+			)
 
-	# draft docs always on top
-	if meta.is_submittable:
-		order_by = f"`tab{doctype}`.docstatus asc, {order_by}"
+		else:
+			sort_field = meta.sort_field or "modified"
+			sort_order = (meta.sort_field and meta.sort_order) or "desc"
+			order_by = f"`tab{doctype}`.`{sort_field or 'modified'}` {sort_order or 'desc'}"
+
+		# draft docs always on top
+		if meta.is_submittable:
+			order_by = f"`tab{doctype}`.docstatus asc, {order_by}"
 
 	return order_by
 

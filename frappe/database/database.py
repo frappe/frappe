@@ -239,6 +239,8 @@ class Database:
 				self._cursor.execute(query, values)
 			else:
 				print(f"[query: {query}]")
+				if "tabDashboard_Settings" in query:
+					raise
 				self._cursor.execute(query)
 		except Exception as e:
 			raise Exception(f'{e}: query: {query} | {type(query_bk)}')
