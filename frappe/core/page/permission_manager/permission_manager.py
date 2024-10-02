@@ -37,7 +37,7 @@ def get_roles_and_doctypes():
 			"istable": 0,
 			"name": ("not in", ",".join(not_allowed_in_permission_manager)),
 		},
-		or_filters={"ifnull(restrict_to_domain, '')": "", "restrict_to_domain": ("in", active_domains)},
+		or_filters={'ifnull(tabDocType."restrict_to_domain", \'\')' if frappe.is_oracledb else "ifnull(restrict_to_domain, '')": "", "restrict_to_domain": ("in", active_domains)},
 		fields=["name"],
 	)
 
@@ -53,7 +53,7 @@ def get_roles_and_doctypes():
 			"name": ("not in", restricted_roles),
 			"disabled": 0,
 		},
-		or_filters={"ifnull(restrict_to_domain, '')": "", "restrict_to_domain": ("in", active_domains)},
+		or_filters={'ifnull(tabRole."restrict_to_domain", \'\')' if frappe.is_oracledb else "ifnull(restrict_to_domain, '')": "", "restrict_to_domain": ("in", active_domains)},
 		fields=["name"],
 	)
 

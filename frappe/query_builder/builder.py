@@ -304,7 +304,6 @@ class OracleDB(Base, OracleQuery):
 	@classmethod
 	def get_table(cls, table):
 		if not isinstance(table, str) and table.get_table_name() not in FrappeOracleQueryBuilder.IGNORE_TABLES_LIST:
-			# table._schema = FrappeTable._init_schema(frappe.conf.db_name.upper())
 
 			table = FrappeTable(
 				name=table._table_name,

@@ -33,9 +33,9 @@ def get_energy_points_percentage_chart_data(user, field):
 	result = frappe.get_all(
 		"Energy Point Log",
 		filters={"user": user, "type": ["!=", "Review"]},
-		group_by=field,
-		order_by=field,
-		fields=[field, "ABS(sum(points)) as points"],
+		group_by= f'tabEnergy_Point_Log."{field}"' if frappe.is_oracledb else field,
+		order_by=f'tabEnergy_Point_Log."{field}"' if frappe.is_oracledb else field,
+		fields=[field,'ABS(sum(tabEnergy_Point_Log."points")) points' if frappe.is_oracledb else "ABS(sum(points)) as points"],
 		as_list=True,
 	)
 
@@ -108,5 +108,5 @@ def get_energy_points_list(start, limit, user):
 		],
 		start=start,
 		limit=limit,
-		order_by="creation desc",
+		order_by='"creation" desc' if frappe.is_oracledb else "creation desc",
 	)

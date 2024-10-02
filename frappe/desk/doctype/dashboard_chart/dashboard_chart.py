@@ -196,6 +196,12 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	from_date = from_date.strftime("%Y-%m-%d")
 	to_date = to_date
 
+	if frappe.is_oracledb:
+		datefield = f'tab{doctype.replace(" ", "_")}."{datefield}"'
+		value_field = f'tab{doctype.replace(" ", "_")}."{value_field}"'
+		from_date = f"to_timestamp({from_date}, 'yyyy-mm-dd')"
+		to_date = f"to_timestamp({str(to_date)}, 'yyyy-mm-dd hh24:mi:ss.ff6')"
+
 	filters.append([doctype, datefield, ">=", from_date, False])
 	filters.append([doctype, datefield, "<=", to_date, False])
 
