@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-24 15:33+0000\n"
-"PO-Revision-Date: 2024-09-26 23:48\n"
+"PO-Revision-Date: 2024-10-02 01:10\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -2545,11 +2545,11 @@ msgstr "Bana Ata"
 
 #: frappe/automation/doctype/assignment_rule/assignment_rule.js:53
 msgid "Assign to the one who has the least assignments"
-msgstr ""
+msgstr "En az görevi olan kişiye atama yapın"
 
 #: frappe/automation/doctype/assignment_rule/assignment_rule.js:54
 msgid "Assign to the user set in this field"
-msgstr ""
+msgstr "Bu alanda ayarlanan kullanıcıya atayın"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
@@ -2601,7 +2601,7 @@ msgstr "Atama Tamamlandı"
 #. Label of a Table field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Assignment Days"
-msgstr ""
+msgstr "Görev Günleri"
 
 #. Name of a DocType
 #. Label of a Link in the Tools Workspace
@@ -2617,16 +2617,16 @@ msgstr "Atama Kuralı"
 #. Name of a DocType
 #: frappe/automation/doctype/assignment_rule_day/assignment_rule_day.json
 msgid "Assignment Rule Day"
-msgstr ""
+msgstr "Atama Kuralı Günü"
 
 #. Name of a DocType
 #: frappe/automation/doctype/assignment_rule_user/assignment_rule_user.json
 msgid "Assignment Rule User"
-msgstr ""
+msgstr "Atama Kuralı Kullanıcısı"
 
 #: frappe/automation/doctype/assignment_rule/assignment_rule.py:54
 msgid "Assignment Rule is not allowed on {0} document type"
-msgstr ""
+msgstr "Atama Kuralına {0} belge türünde izin verilmez"
 
 #. Label of a Section Break field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
@@ -2635,11 +2635,11 @@ msgstr "Atama Kuralları"
 
 #: frappe/desk/doctype/notification_log/notification_log.py:157
 msgid "Assignment Update on {0}"
-msgstr ""
+msgstr "Görev Güncellemesi {0}"
 
 #: frappe/desk/form/assign_to.py:61
 msgid "Assignment for {0} {1}"
-msgstr ""
+msgstr "{0} {1} için Atama"
 
 #: frappe/desk/doctype/todo/todo.py:61
 msgid "Assignment of {0} removed by {1}"
@@ -4831,7 +4831,7 @@ msgstr "Kapat"
 #. Label of a Code field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Close Condition"
-msgstr ""
+msgstr "Koşulu Kapat"
 
 #: frappe/public/js/form_builder/components/FieldProperties.vue:79
 msgid "Close properties"
@@ -9008,30 +9008,30 @@ msgstr "Bitiş"
 #. Option for the 'Type' (Select) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "Energy Point"
-msgstr ""
+msgstr "Tecrübe Puanı"
 
 #. Linked DocType in User's connections
 #. Name of a DocType
 #: frappe/core/doctype/user/user.json
 #: frappe/social/doctype/energy_point_log/energy_point_log.json
 msgid "Energy Point Log"
-msgstr "Personel Puanı Kayıtları"
+msgstr "Tecrübe Puanı Günlüğü"
 
 #. Linked DocType in DocType's connections
 #. Name of a DocType
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/social/doctype/energy_point_rule/energy_point_rule.json
 msgid "Energy Point Rule"
-msgstr "Personel Puanı Kuralı"
+msgstr "Tecrübe Puanı Kuralı"
 
 #. Name of a DocType
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.json
 msgid "Energy Point Settings"
-msgstr ""
+msgstr "Tecrübe Puanı Ayarları"
 
 #: frappe/desk/doctype/notification_log/notification_log.py:159
 msgid "Energy Point Update on {0}"
-msgstr ""
+msgstr "Tecrübe Puanı Güncellemesi {0}"
 
 #. Label of a Check field in DocType 'Notification Settings'
 #: frappe/desk/doctype/notification_settings/notification_settings.json
@@ -9039,12 +9039,12 @@ msgstr ""
 #: frappe/desk/page/user_profile/user_profile_controller.js:402
 #: frappe/templates/emails/energy_points_summary.html:39
 msgid "Energy Points"
-msgstr "Personel Puanı"
+msgstr "Tecrübe Puanları"
 
 #. Label of a Data field in DocType 'Submission Queue'
 #: frappe/core/doctype/submission_queue/submission_queue.json
 msgid "Enqueued By"
-msgstr ""
+msgstr "Sıraya Alındı"
 
 #: frappe/core/doctype/recorder/recorder.py:127
 msgid "Enqueued creation of indexes"
@@ -9579,7 +9579,7 @@ msgstr "Başarısız"
 #: frappe/core/doctype/submission_queue/submission_queue.json
 #: frappe/integrations/doctype/integration_request/integration_request.json
 msgid "Failed"
-msgstr "Başarısız Oldu"
+msgstr "Başarısız"
 
 #. Label of a Int field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -10999,7 +10999,7 @@ msgstr "Github markdown sözdizimi"
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.js:7
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.js:14
 msgid "Give Review Points"
-msgstr ""
+msgstr "İnceleme Puanları Verin"
 
 #. Name of a DocType
 #: frappe/desk/doctype/global_search_doctype/global_search_doctype.json
@@ -13888,7 +13888,7 @@ msgstr ""
 #. Label of a Date field in DocType 'Energy Point Settings'
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.json
 msgid "Last Point Allocation Date"
-msgstr ""
+msgstr "Son Puan Tahsis Tarihi"
 
 #. Option for the 'Timespan' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -15090,7 +15090,8 @@ msgstr "{0} maksimum ek sınırına ulaşıldı."
 #: frappe/social/doctype/energy_point_rule/energy_point_rule.json
 msgid "Maximum points allowed after multiplying points with the multiplier value\n"
 "(Note: For no limit leave this field empty or set 0)"
-msgstr ""
+msgstr "Puanlar çarpan değeri ile çarpıldıktan sonra izin verilen maksimum puan\n"
+"(Not: Limit olmaması için bu alanı boş bırakın veya 0 olarak ayarlayın)"
 
 #: frappe/model/rename_doc.py:679
 msgid "Maximum {0} rows allowed"
@@ -17490,7 +17491,7 @@ msgstr "Ayarları Aç"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:8
 msgid "Open Source Applications for the Web"
-msgstr "Web için Açık Kaynak Uygulamaları"
+msgstr "Web için Açık Kaynaklı Uygulamalar"
 
 #. Label of a Check field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
@@ -18873,7 +18874,7 @@ msgstr "Daha fazla bilgi için lütfen https://frappecloud.com/docs/sites/migrat
 #. Label of a Select field in DocType 'Energy Point Settings'
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.json
 msgid "Point Allocation Periodicity"
-msgstr ""
+msgstr "Puan Tahsis Periyodu"
 
 #. Label of a Int field in DocType 'Energy Point Log'
 #. Label of a Int field in DocType 'Energy Point Rule'
@@ -18885,7 +18886,7 @@ msgstr "Puan"
 
 #: frappe/templates/emails/energy_points_summary.html:40
 msgid "Points Given"
-msgstr ""
+msgstr "Verilen Puanlar"
 
 #. Option for the 'SocketIO Transport Mode' (Select) field in DocType 'System
 #. Health Report'
@@ -19766,7 +19767,7 @@ msgstr ""
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:174
 msgid "Queued for Submission. You can track the progress over {0}."
-msgstr ""
+msgstr "Gönderim için sıraya alındı. İlerlemeyi {0} üzerinden takip edebilirsiniz."
 
 #: frappe/integrations/doctype/dropbox_settings/dropbox_settings.py:65
 #: frappe/integrations/doctype/google_drive/google_drive.py:155
@@ -20351,7 +20352,7 @@ msgstr "Referans Tipi"
 
 #: frappe/social/doctype/energy_point_rule/energy_point_rule.py:145
 msgid "Reference document has been cancelled"
-msgstr ""
+msgstr "Referans belge iptal edildi"
 
 #. Label of a Dynamic Link field in DocType 'View Log'
 #: frappe/core/doctype/view_log/view_log.json
@@ -20503,7 +20504,7 @@ msgstr "Bana Hatırlat"
 #. Name of a DocType
 #: frappe/automation/doctype/reminder/reminder.json
 msgid "Reminder"
-msgstr "hatırlama"
+msgstr "Hatırlatıcı"
 
 #: frappe/automation/doctype/reminder/reminder.py:39
 msgid "Reminder cannot be created in past."
@@ -21173,7 +21174,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Energy Point Log'
 #: frappe/social/doctype/energy_point_log/energy_point_log.json
 msgid "Reverted"
-msgstr ""
+msgstr "Geri Alındı"
 
 #: frappe/database/schema.py:156
 msgid "Reverting length to {0} for '{1}' in '{2}'. Setting the length as {3} will cause truncation of data."
@@ -22478,11 +22479,11 @@ msgstr "Yeni bir etkinlik oluşturmak için zaman aralıklarını seçin veya s�
 
 #: frappe/public/js/frappe/list/bulk_operations.js:239
 msgid "Select records for assignment"
-msgstr ""
+msgstr "Atama için kayıtları seçin"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:260
 msgid "Select records for removing assignment"
-msgstr ""
+msgstr "Atamayı kaldırmak için kayıtları seçin"
 
 #. Description of the 'Insert After' (Select) field in DocType 'Custom Field'
 #: frappe/custom/doctype/custom_field/custom_field.json
@@ -24338,7 +24339,7 @@ msgstr "Konu Alanı türü Veri, Metin, Uzun Metin, Küçük Metin, Metin Düzen
 #. Name of a DocType
 #: frappe/core/doctype/submission_queue/submission_queue.json
 msgid "Submission Queue"
-msgstr ""
+msgstr "Gönderim Kuyruğu"
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'
@@ -25298,7 +25299,7 @@ msgstr ""
 
 #: frappe/automation/doctype/assignment_rule/assignment_rule.py:60
 msgid "The following Assignment Days have been repeated: {0}"
-msgstr ""
+msgstr "Aşağıdaki Görev Günleri tekrarlandı: {0}"
 
 #: frappe/printing/doctype/letter_head/letter_head.js:30
 msgid "The following Header Script will add the current date to an element in 'Header HTML' with class 'header-content'"
@@ -26335,7 +26336,7 @@ msgstr "Sağ Üst"
 
 #: frappe/templates/emails/energy_points_summary.html:33
 msgid "Top {0}"
-msgstr ""
+msgstr "En İyi {0}"
 
 #. Label of a Link field in DocType 'Discussion Reply'
 #: frappe/website/doctype/discussion_reply/discussion_reply.json
@@ -29869,7 +29870,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/utils/energy_point_utils.js:61
 msgid "gained by {0} via automatic rule {1}"
-msgstr ""
+msgstr "{0} tarafından otomatik kural {1} ile kazanıldı"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
@@ -30144,7 +30145,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Reminder'
 #: frappe/automation/doctype/reminder/reminder.json
 msgid "notified"
-msgstr ""
+msgstr "bildirildi"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:25
 msgid "now"
@@ -30663,7 +30664,7 @@ msgstr ""
 
 #: frappe/automation/doctype/assignment_rule/assignment_rule.py:380
 msgid "via Assignment Rule"
-msgstr ""
+msgstr "Atama Kuralı ile"
 
 #: frappe/core/doctype/data_import/importer.py:267
 #: frappe/core/doctype/data_import/importer.py:288
@@ -31059,7 +31060,7 @@ msgstr ""
 
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:120
 msgid "{0} gained {1} point for {2} {3}"
-msgstr ""
+msgstr "{0} {2} {3} için {1} puan kazandın"
 
 #: frappe/templates/emails/energy_points_summary.html:8
 msgid "{0} gained {1} points"
@@ -31067,7 +31068,7 @@ msgstr "{0} {1} puan kazandı"
 
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:122
 msgid "{0} gained {1} points for {2} {3}"
-msgstr ""
+msgstr "{0} {2} {3} için {1} puan kazandın"
 
 #: frappe/templates/emails/energy_points_summary.html:23
 msgid "{0} gave {1} points"
