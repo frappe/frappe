@@ -6,6 +6,7 @@ import CardList from "@/components/AppLayout/CardList.vue"
 import AvatarCard from "@/components/AppLayout/AvatarCard.vue"
 import Audio from "@/components/AppLayout/Audio.vue"
 import ImageView from "@/components/AppLayout/ImageView.vue"
+import TextBlock from "@/components/AppLayout/TextBlock.vue"
 
 export const COMPONENTS = {
 	Alert: {
@@ -597,6 +598,16 @@ export const COMPONENTS = {
 		props: ImageView.props,
 		initialState: {
 			image: "https://upload.wikimedia.org/wikipedia/en/e/e9/Coldplay%2C_Up%26Up%2C_Artwork.jpg",
+		},
+	},
+	TextBlock: {
+		name: "TextBlock",
+		title: "Text Block",
+		icon: "Text",
+		props: TextBlock.props,
+		initialState: {
+			fontSize: "text-md",
+			fontWeight: "font-normal",
 		},
 	},
 }

@@ -50,6 +50,7 @@ import CardList from "@/components/AppLayout/CardList.vue"
 import AvatarCard from "@/components/AppLayout/AvatarCard.vue"
 import Audio from "@/components/AppLayout/Audio.vue"
 import ImageView from "@/components/AppLayout/ImageView.vue"
+import TextBlock from "@/components/AppLayout/TextBlock.vue"
 
 export function registerGlobalComponents(app) {
 	app.component("Alert", Alert)
@@ -103,4 +104,5 @@ export function registerGlobalComponents(app) {
 	app.component("AvatarCard", AvatarCard)
 	app.component("Audio", Audio)
 	app.component("ImageView", ImageView)
+	app.component("TextBlock", TextBlock)
 }

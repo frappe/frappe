@@ -1,5 +1,5 @@
 <template>
-	<div class="w-full max-w-md">
+	<div class="w-full">
 		<audio
 			ref="audioElement"
 			:src="file"
