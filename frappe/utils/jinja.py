@@ -16,29 +16,19 @@ def process_context(
 	if not document_proxy_class:  # lazy import
 		document_proxy_class = DocumentProxy
 
-	if for_code_completion:
+	if meta := for_code_completion:
+		meta = isinstance(meta, str) and meta or "ctx"
+		from frappe.utils.safe_exec import get_keys_for_autocomplete
 
-		def process_value(key, value, prefix="", depth=0):
-			full_key = f"{prefix}.{key}" if prefix else key
-			result = [{"value": full_key, "score": 1000, "meta": "ctx"}]
-			if depth >= 2:
-				return result
+		def generate_completion_list(context):
+			for key, value in context.items():
+				if isinstance(value, Document):
+					value = document_proxy_class(value.doctype, value.name)
+				yield from get_keys_for_autocomplete(
+					key, value, meta=meta, max_depth=2, document_proxy_class=document_proxy_class
+				)
 
-			if isinstance(value, Document):  # on entry
-				value = document_proxy_class(value.doctype, value.name)
-			if isinstance(value, document_proxy_class):
-				for field in value._fieldnames:
-					result.extend(process_value(field, getattr(value, field), full_key, depth + 1))
-			elif isinstance(value, dict):
-				for k, v in value.items():
-					result.extend(process_value(k, v, full_key, depth + 1))
-
-			return result
-
-		completion_list = []
-		for key, value in context.items():
-			completion_list.extend(process_value(key, value))
-		return completion_list
+		return list(generate_completion_list(context))
 
 	else:
 
