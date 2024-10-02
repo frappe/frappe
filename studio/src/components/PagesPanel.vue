@@ -22,7 +22,8 @@
 							store.activePage?.name === page.page_name ? 'font-medium text-gray-700' : 'text-gray-500',
 						]"
 					>
-						{{ page.page_title }}
+						{{ page.page_title }} -
+						<span class="text-xs">{{ page.route.replace(store.activeApp.route, "") }}</span>
 					</div>
 					<Badge
 						v-if="store.activeApp?.app_home === page.page_name"
