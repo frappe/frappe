@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-29 09:33+0000\n"
-"PO-Revision-Date: 2024-10-01 00:39\n"
+"PO-Revision-Date: 2024-10-02 01:10\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -9393,7 +9393,7 @@ msgstr "Fel vid test av Avisering {0}. Fixa Mall."
 
 #: frappe/model/base_document.py:743
 msgid "Error: Data missing in table {0}"
-msgstr ""
+msgstr "Fel: Data saknas i tabell {0}"
 
 #: frappe/model/document.py:833
 msgid "Error: Document has been modified after you have opened it"
@@ -9405,11 +9405,11 @@ msgstr "Fel: Värdet saknas för {0}: {1}"
 
 #: frappe/www/error.html:36
 msgid "Error: {0}"
-msgstr ""
+msgstr "Fel: {0}"
 
 #: frappe/model/base_document.py:747
 msgid "Error: {0} Row #{1}: Value missing for: {2}"
-msgstr ""
+msgstr "Fel: {0} Rad #{1}: Värde saknas för: {2}"
 
 #. Label of the errors_generated_in_last_1_day_section (Section Break) field in
 #. DocType 'System Health Report'
@@ -18930,7 +18930,7 @@ msgstr "Rosa"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Placeholder"
-msgstr ""
+msgstr "Platshållare"
 
 #. Option for the 'Message Type' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
