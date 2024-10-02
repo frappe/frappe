@@ -7,6 +7,7 @@ import AvatarCard from "@/components/AppLayout/AvatarCard.vue"
 import Audio from "@/components/AppLayout/Audio.vue"
 import ImageView from "@/components/AppLayout/ImageView.vue"
 import TextBlock from "@/components/AppLayout/TextBlock.vue"
+import AppHeader from "@/components/AppLayout/AppHeader.vue"
 
 export const COMPONENTS = {
 	Alert: {
@@ -608,6 +609,15 @@ export const COMPONENTS = {
 		initialState: {
 			fontSize: "text-md",
 			fontWeight: "font-normal",
+		},
+	},
+	AppHeader: {
+		name: "AppHeader",
+		title: "App Header",
+		icon: "Frame",
+		props: AppHeader.props,
+		initialState: {
+			title: "Frappe",
 		},
 	},
 }
