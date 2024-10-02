@@ -271,73 +271,140 @@ def get_events(start, end, user=None, for_reminder=False, filters=None) -> list[
 
 	filter_condition = get_filters_cond("Event", filters, [])
 
-	tables = ["`tabEvent`"]
-	if "`tabEvent Participants`" in filter_condition:
-		tables.append("`tabEvent Participants`")
+	if frappe.is_oracledb:
+		tables = [f'{frappe.conf.db_name}."tabEvent" tabEvent']
+		if '"tabEvent Participants"' in filter_condition:
+			tables.append(f'{frappe.conf.db_name}."tabEvent Participants" tabEvent_Participants')
 
-	events = frappe.db.sql(
-		"""
-		SELECT `tabEvent`.name,
-				`tabEvent`.subject,
-				`tabEvent`.description,
-				`tabEvent`.color,
-				`tabEvent`.starts_on,
-				`tabEvent`.ends_on,
-				`tabEvent`.owner,
-				`tabEvent`.all_day,
-				`tabEvent`.event_type,
-				`tabEvent`.repeat_this_event,
-				`tabEvent`.repeat_on,
-				`tabEvent`.repeat_till,
-				`tabEvent`.monday,
-				`tabEvent`.tuesday,
-				`tabEvent`.wednesday,
-				`tabEvent`.thursday,
-				`tabEvent`.friday,
-				`tabEvent`.saturday,
-				`tabEvent`.sunday
-		FROM {tables}
-		WHERE (
-				(
-					(date(`tabEvent`.starts_on) BETWEEN date(%(start)s) AND date(%(end)s))
-					OR (date(`tabEvent`.ends_on) BETWEEN date(%(start)s) AND date(%(end)s))
+		events = frappe.db.sql(
+			"""
+			SELECT  tabEvent."name",
+					tabEvent."subject",
+					tabEvent."description",
+					tabEvent."color",
+					tabEvent."starts_on",
+					tabEvent."ends_on",
+					tabEvent."owner",
+					tabEvent."all_day",
+					tabEvent."event_type",
+					tabEvent."repeat_this_event",
+					tabEvent."repeat_on",
+					tabEvent."repeat_till",
+					tabEvent."monday",
+					tabEvent."tuesday",
+					tabEvent."wednesday",
+					tabEvent."thursday",
+					tabEvent."friday",
+					tabEvent."saturday",
+					tabEvent."sunday"
+			FROM {tables}
+			WHERE (
+					(
+						(cast(tabEvent."starts_on" AS DATE) BETWEEN to_date({start}, 'YYYY-MM-DD') AND to_date({end}, 'YYYY-MM-DD'))
+						OR (cast(tabEvent."ends_on" AS DATE) BETWEEN to_date({start}, 'YYYY-MM-DD') AND to_date({end}, 'YYYY-MM-DD'))
+						OR (
+							cast(tabEvent."starts_on" AS DATE) <= to_date({start}, 'YYYY-MM-DD')
+							AND cast(tabEvent."ends_on" AS DATE) >= to_date({end}, 'YYYY-MM-DD')
+						)
+					)
 					OR (
-						date(`tabEvent`.starts_on) <= date(%(start)s)
-						AND date(`tabEvent`.ends_on) >= date(%(end)s)
+						cast(tabEvent."starts_on" AS DATE) <= to_date({start}, 'YYYY-MM-DD')
+						AND tabEvent."repeat_this_event"=1
+						AND coalesce(tabEvent."repeat_till", to_date('3000-01-01','YYYY-MM-DD')) > to_date({start}, 'YYYY-MM-DD')
+					)
+				) {reminder_condition} {filter_condition}
+			AND (
+					tabEvent."event_type"='Public'
+					OR tabEvent."owner"={user}
+					OR EXISTS(
+						SELECT tabDocShare."name"
+						FROM {schema}."tabDocShare" tabDocShare
+						WHERE tabDocShare."share_doctype"='Event'
+							AND tabDocShare."share_name"=tabEvent."name"
+							AND tabDocShare."user"={user}
 					)
 				)
-				OR (
-					date(`tabEvent`.starts_on) <= date(%(start)s)
-					AND `tabEvent`.repeat_this_event=1
-					AND coalesce(`tabEvent`.repeat_till, '3000-01-01') > date(%(start)s)
+			AND tabEvent."status"='Open'
+			ORDER BY tabEvent."starts_on" """.format(
+				schema=frappe.conf.db_name,
+				tables=", ".join(tables),
+				filter_condition=filter_condition,
+				reminder_condition="AND coalesce(tabEvent.\"send_reminder\", 0)=1" if for_reminder else "",
+				start=f"'{start}'",
+				end=f"'{end}'",
+				user=f"'{user}'"
+			),
+			[],
+			as_dict=1
+		)
+	else:
+		tables = ["`tabEvent`"]
+		if "`tabEvent Participants`" in filter_condition:
+			tables.append("`tabEvent Participants`")
+
+		events = frappe.db.sql(
+			"""
+			SELECT `tabEvent`.name,
+					`tabEvent`.subject,
+					`tabEvent`.description,
+					`tabEvent`.color,
+					`tabEvent`.starts_on,
+					`tabEvent`.ends_on,
+					`tabEvent`.owner,
+					`tabEvent`.all_day,
+					`tabEvent`.event_type,
+					`tabEvent`.repeat_this_event,
+					`tabEvent`.repeat_on,
+					`tabEvent`.repeat_till,
+					`tabEvent`.monday,
+					`tabEvent`.tuesday,
+					`tabEvent`.wednesday,
+					`tabEvent`.thursday,
+					`tabEvent`.friday,
+					`tabEvent`.saturday,
+					`tabEvent`.sunday
+			FROM {tables}
+			WHERE (
+					(
+						(date(`tabEvent`.starts_on) BETWEEN date(%(start)s) AND date(%(end)s))
+						OR (date(`tabEvent`.ends_on) BETWEEN date(%(start)s) AND date(%(end)s))
+						OR (
+							date(`tabEvent`.starts_on) <= date(%(start)s)
+							AND date(`tabEvent`.ends_on) >= date(%(end)s)
+						)
+					)
+					OR (
+						date(`tabEvent`.starts_on) <= date(%(start)s)
+						AND `tabEvent`.repeat_this_event=1
+						AND coalesce(`tabEvent`.repeat_till, '3000-01-01') > date(%(start)s)
+					)
 				)
-			)
-		{reminder_condition}
-		{filter_condition}
-		AND (
-				`tabEvent`.event_type='Public'
-				OR `tabEvent`.owner=%(user)s
-				OR EXISTS(
-					SELECT `tabDocShare`.name
-					FROM `tabDocShare`
-					WHERE `tabDocShare`.share_doctype='Event'
-						AND `tabDocShare`.share_name=`tabEvent`.name
-						AND `tabDocShare`.user=%(user)s
+			{reminder_condition}
+			{filter_condition}
+			AND (
+					`tabEvent`.event_type='Public'
+					OR `tabEvent`.owner=%(user)s
+					OR EXISTS(
+						SELECT `tabDocShare`.name
+						FROM `tabDocShare`
+						WHERE `tabDocShare`.share_doctype='Event'
+							AND `tabDocShare`.share_name=`tabEvent`.name
+							AND `tabDocShare`.user=%(user)s
+					)
 				)
-			)
-		AND `tabEvent`.status='Open'
-		ORDER BY `tabEvent`.starts_on""".format(
-			tables=", ".join(tables),
-			filter_condition=filter_condition,
-			reminder_condition="AND coalesce(`tabEvent`.send_reminder, 0)=1" if for_reminder else "",
-		),
-		{
-			"start": start,
-			"end": end,
-			"user": user,
-		},
-		as_dict=1,
-	)
+			AND `tabEvent`.status='Open'
+			ORDER BY `tabEvent`.starts_on""".format(
+				tables=", ".join(tables),
+				filter_condition=filter_condition,
+				reminder_condition="AND coalesce(`tabEvent`.send_reminder, 0)=1" if for_reminder else "",
+			),
+			{
+				"start": start,
+				"end": end,
+				"user": user,
+			},
+			as_dict=1,
+		)
 
 	# process recurring events
 	start = start.split(" ", 1)[0]

@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, time, timedelta
 from typing import Any
 
@@ -64,13 +65,23 @@ class ParameterizedValueWrapper(ValueWrapper):
 			# * BUG: pypika doesen't parse timedeltas and datetime.time
 			if isinstance(self.value, timedelta):
 				self.value = format_timedelta(self.value)
+				if frappe.is_oracledb:
+					print(f"VALUE: {self.value}")
+					return f"to_timestamp('{self.value}', 'yyyy-mm-dd hh24:mi:ss.ff6')"
 			elif isinstance(self.value, time):
 				self.value = format_time(self.value)
+				if frappe.is_oracledb:
+					print(f"VALUE: {self.value}")
+					return f"to_timestamp('{self.value}', 'yyyy-mm-dd hh24:mi:ss.ff6')"
 			elif isinstance(self.value, datetime):
 				self.value = frappe.db.format_datetime(self.value)
 				if frappe.is_oracledb:
 					print(f"VALUE: {self.value}")
 					return f"to_timestamp('{self.value}', 'yyyy-mm-dd hh24:mi:ss.ff6')"
+			elif frappe.is_oracledb:
+				self.value = conversion_column_value(self.value)
+				return self.value
+
 
 			sql = self.get_value_sql(
 				quote_char=quote_char,
@@ -112,6 +123,31 @@ class ParameterizedFunction(Function):
 			return format_alias_sql(function_sql, self.alias, quote_char=quote_char, **kwargs)
 
 		return function_sql
+
+
+def conversion_column_value(value: str | int):
+	if isinstance(value, str):
+		if not value:
+			return "''"
+
+		if value[0] == "'" and value[-1] == "'":
+			value = value[1:-1]
+
+		if re.search('^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+$', value):  # noqa: W605
+			ret = f"to_timestamp('{value}', 'yyyy-mm-dd hh24:mi:ss.ff6')"
+		elif re.search('^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$', value):  # noqa: W605
+			ret = f"to_timestamp('{value}', 'yyyy-mm-dd hh24:mi:ss')"
+		elif value[0] != "'" or value[-1] != "'":
+			ret = "'{}'".format(value.replace("'", "''"))
+		else:
+			ret = value
+	elif value is None:
+		ret = 'NULL'
+	else:
+		ret = str(value)
+
+	return ret
+
 
 
 class SubQuery(Criterion):

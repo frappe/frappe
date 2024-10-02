@@ -286,6 +286,7 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 		click.secho(f"App {name} already installed", fg="yellow")
 		return
 
+
 	print(f"\nInstalling {name}...")
 
 	if name != "frappe":

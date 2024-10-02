@@ -14,11 +14,19 @@ def get_user_settings(doctype, for_update=False):
 	user_settings = frappe.cache.hget("_user_settings", f"{doctype}::{frappe.session.user}")
 
 	if user_settings is None:
-		user_settings = frappe.db.sql(
-			"""select data from `__UserSettings`
-			where `user`=%s and `doctype`=%s""",
-			(frappe.session.user, doctype),
-		)
+		if frappe.is_oracledb:
+			user_settings = frappe.db.sql(
+				f"""select "data" from {frappe.conf.db_name}."__UserSettings"
+				where "user"='{frappe.session.user}' and "doctype"='{doctype}'""",
+				(),
+			)
+		else:
+
+			user_settings = frappe.db.sql(
+				"""select data from `__UserSettings`
+				where `user`=%s and `doctype`=%s""",
+				(frappe.session.user, doctype),
+			)
 		user_settings = user_settings and user_settings[0][0] or "{}"
 
 		if not for_update:

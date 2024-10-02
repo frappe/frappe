@@ -3,14 +3,14 @@ import types
 import typing
 from typing import Any, Optional, Type, Union
 
-from pypika import MySQLQuery, OracleQuery, Order, PostgreSQLQuery, terms
+from pypika import MySQLQuery, OracleQuery, Order, PostgreSQLQuery, terms, EmptyCriterion
 from pypika.dialects import MySQLQueryBuilder, OracleQueryBuilder, PostgreSQLQueryBuilder
 from pypika.queries import Query, QueryBuilder, Schema, Table, Field
-from pypika.terms import BasicCriterion, ComplexCriterion, ContainsCriterion, Function
+from pypika.terms import BasicCriterion, ComplexCriterion, ContainsCriterion, Function, Term
 from pypika.utils import format_alias_sql, format_quotes
 
 import frappe
-from frappe.query_builder.terms import ParameterizedValueWrapper
+from frappe.query_builder.terms import ParameterizedValueWrapper, conversion_column_value
 from frappe.utils import get_table_name
 
 
@@ -203,36 +203,12 @@ class FrappeOracleQueryBuilder(OracleQueryBuilder):
 		elif self._update_table is not None and self._update_table:
 			return self._update_table.get_table_name() in FrappeOracleQueryBuilder.IGNORE_TABLES_LIST
 
-	# def get_sql(self, with_alias: bool = False, subquery: bool = False, **kwargs) -> str:
-	# 	return super().get_sql(with_alias=with_alias, subquery=subquery, **kwargs)
-
-	# def _select_sql(self, **kwargs: Any) -> str:
-	# 	# if not self.is_db_metadata_table():
-	# 	# 	for term in self._selects:
-	# 	# 		term.name = f'"{term.name}"'
-	# 	return super()._select_sql(**kwargs)
-
 	def _orderby_sql(self, **kwargs: Any) -> str:
 		if not self.is_db_metadata_table():
 			for field, _ in self._orderbys:
 				field.name = FrappeOracleQueryBuilder.check_double_quotes(field.name)
 		return super()._orderby_sql(**kwargs)
 
-	# def _where_sql(self, quote_char: Optional[str] = None, **kwargs: Any) -> str:
-	# 	if not self.is_db_metadata_table():
-	# 		self.handle_where_clause(self._wheres)
-	# 	return super()._where_sql(quote_char=quote_char, **kwargs)
-	#
-	# @staticmethod
-	# def handle_where_clause(where_statement):
-	# 	if isinstance(where_statement, ComplexCriterion):
-	# 		FrappeOracleQueryBuilder.handle_where_clause(where_statement.left)
-	# 		FrappeOracleQueryBuilder.handle_where_clause(where_statement.right)
-	# 	elif isinstance(where_statement, ContainsCriterion):
-	# 		where_statement.term.name = FrappeOracleQueryBuilder.check_double_quotes(where_statement.term.name)
-	# 	else:
-	# 		where_statement.left.name = FrappeOracleQueryBuilder.check_double_quotes(where_statement.left.name)
-	#
 	@staticmethod
 	def check_double_quotes(name):
 		if not (name[0] == '"' and name[-1] == '"'):
@@ -272,7 +248,7 @@ class FrappeOracleQueryBuilder(OracleQueryBuilder):
 	def _values_sql(self, **kwargs: Any) -> str:
 
 		values = "),(".join(
-			",".join(conversion_column_value(term.get_sql(with_alias=True, subquery=True, **kwargs)) for term in row)
+			",".join(term.get_sql(with_alias=True, subquery=True, **kwargs) for term in row)
 			for row in self._values
 		)
 		return f" VALUES ({values})"
@@ -350,25 +326,3 @@ class OracleDB(Base, OracleQuery):
 		table = OracleDB.get_table(table=table)
 		return super().update(table, *args, **kwargs)
 
-def conversion_column_value(value: str | int):
-	if isinstance(value, str):
-		if not value:
-			return "''"
-
-		if value[0] == "'" and value[-1] == "'":
-			value = value[1:-1]
-
-		if re.search('^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+$', value):  # noqa: W605
-			ret = f"to_timestamp('{value}', 'yyyy-mm-dd hh24:mi:ss.ff6')"
-		elif re.search('^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$', value):  # noqa: W605
-			ret = f"to_timestamp('{value}', 'yyyy-mm-dd hh24:mi:ss')"
-		elif value[0] != "'" or value[-1] != "'":
-			ret = "'{}'".format(value.replace("'", "''"))
-		else:
-			ret = value
-	elif value is None:
-		ret = 'NULL'
-	else:
-		ret = str(value)
-
-	return ret
