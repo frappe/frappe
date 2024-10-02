@@ -117,12 +117,8 @@ def search_widget(
 	meta = frappe.get_meta(doctype)
 
 	if isinstance(filters, dict):
-		filters_items = filters.items()
-		filters = []
-		for key, value in filters_items:
-			filters.append(make_filter_tuple(doctype, key, value))
-
-	if filters is None:
+		filters = [make_filter_tuple(doctype, key, value) for key, value in filters.items()]
+	elif filters is None:
 		filters = []
 	or_filters = []
 
