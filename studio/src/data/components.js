@@ -568,18 +568,17 @@ export const COMPONENTS = {
 		props: CardList.props,
 		emits: CardList.emits,
 		initialState: {
-			title: "Your Top Songs",
+			title: "Card List",
 			cards: [
 				{
-					title: "A Sky Full of Stars",
-					subtitle: "Coldplay",
-					imageURL:
-						"https://upload.wikimedia.org/wikipedia/en/thumb/8/8d/Coldplay_-_A_Sky_Full_of_Stars_%28Single%29.png/220px-Coldplay_-_A_Sky_Full_of_Stars_%28Single%29.png",
+					title: "Card Title",
+					subtitle: "Subtitle",
+					imageURL: "https://avatars.githubusercontent.com/u/499550",
 				},
 				{
-					title: "Up&Up",
-					subtitle: "Coldplay",
-					imageURL: "https://upload.wikimedia.org/wikipedia/en/e/e9/Coldplay%2C_Up%26Up%2C_Artwork.jpg",
+					title: "Card Title",
+					subtitle: "Subtitle",
+					imageURL: "https://avatars.githubusercontent.com/u/499120",
 				},
 			],
 		},
