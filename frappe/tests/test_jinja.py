@@ -181,16 +181,22 @@ class TestProcessContext(unittest.TestCase):
 		self.mock_doc = Mock(spec=Document, doctype="Test DocType")
 		self.mock_doc.name = "TEST001"
 		self.mock_doc.get.side_effect = lambda field: {
+			"owner": "test@example.com",
+			"creation": "2024-10-03 12:00:00",
+			"modified": "2024-10-03 12:00:00",
+			"modified_by": "test@example.com",
+			"docstatus": 0,
+			"idx": 1,
 			"test_field": "Test Value",
 			"link_field": "LINK001",
-			"nested_field": "TEST001",
 		}[field]
 
 		self.mock_meta = Mock()
 		self.mock_meta.fields = [
 			_dict({"fieldname": "test_field", "fieldtype": "Data"}),
-			_dict({"fieldname": "link_field", "fieldtype": "Link", "options": "Linked DocType"}),
-			_dict({"fieldname": "nested_field", "fieldtype": "Link", "options": "Test DocType"}),
+			_dict(
+				{"fieldname": "link_field", "fieldtype": "Link", "options": "Linked DocType"}
+			),  # nests in the mock
 		]
 
 		self.mock_get_meta = patch("frappe.get_meta", return_value=self.mock_meta).start()
@@ -227,8 +233,8 @@ class TestProcessContext(unittest.TestCase):
 
 		# Check Recursion
 		self.assertIsInstance(processed["dict"]["nested_doc"], DocumentProxy)
-		self.assertIsInstance(processed["dict"]["nested_doc"].nested_field, DocumentProxy)
-		self.assertIsInstance(processed["dict"]["nested_doc"]["nested_field"]["nested_field"], DocumentProxy)
+		self.assertIsInstance(processed["dict"]["nested_doc"].link_field, DocumentProxy)
+		self.assertIsInstance(processed["dict"]["nested_doc"]["link_field"]["link_field"], DocumentProxy)
 
 		# Check level 2
 		self.assertIsInstance(processed["dict"]["deeper"]["nested_doc"], DocumentProxy)
@@ -245,71 +251,133 @@ class TestProcessContext(unittest.TestCase):
 		context = {"doc": self.mock_doc, "value": "test", "list": [1, 2, 3], "dict": {"key": "value"}}
 
 		completion_list = process_context(context, for_code_completion=True)
-
-		expected_keys = [
-			"doc",
-			"doc.test_field",
-			"doc.link_field",
-			"value",
-			"list",
-			"dict",
-			"dict.key",
+		expected_items = [
+			{"value": "doc.test_field", "score": 6, "meta": "ctx"},
+			{"value": "doc.link_field.test_field", "score": 6, "meta": "ctx"},
+			{"value": "doc.link_field.link_field", "score": 6, "meta": "ctx"},
+			{"value": "doc.link_field.doctype", "score": 6, "meta": "ctx"},
+			{"value": "doc.link_field.name", "score": 6, "meta": "ctx"},
+			{"value": "doc.link_field.owner", "score": 6, "meta": "ctx"},
+			{"value": "doc.link_field.creation", "score": 6, "meta": "ctx"},
+			{"value": "doc.link_field.modified", "score": 6, "meta": "ctx"},
+			{"value": "doc.link_field.modified_by", "score": 6, "meta": "ctx"},
+			{"value": "doc.link_field.docstatus", "score": 6, "meta": "ctx"},
+			{"value": "doc.link_field.idx", "score": 6, "meta": "ctx"},
+			{"value": "doc.link_field", "score": 6, "meta": "ctx"},
+			{"value": "doc.doctype", "score": 6, "meta": "ctx"},
+			{"value": "doc.name", "score": 6, "meta": "ctx"},
+			{"value": "doc.owner.test_field", "score": 6, "meta": "ctx"},
+			{"value": "doc.owner.link_field", "score": 6, "meta": "ctx"},
+			{"value": "doc.owner.doctype", "score": 6, "meta": "ctx"},
+			{"value": "doc.owner.name", "score": 6, "meta": "ctx"},
+			{"value": "doc.owner.owner", "score": 6, "meta": "ctx"},
+			{"value": "doc.owner.creation", "score": 6, "meta": "ctx"},
+			{"value": "doc.owner.modified", "score": 6, "meta": "ctx"},
+			{"value": "doc.owner.modified_by", "score": 6, "meta": "ctx"},
+			{"value": "doc.owner.docstatus", "score": 6, "meta": "ctx"},
+			{"value": "doc.owner.idx", "score": 6, "meta": "ctx"},
+			{"value": "doc.owner", "score": 6, "meta": "ctx"},
+			{"value": "doc.creation", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified_by.test_field", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified_by.link_field", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified_by.doctype", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified_by.name", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified_by.owner", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified_by.creation", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified_by.modified", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified_by.modified_by", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified_by.docstatus", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified_by.idx", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified_by", "score": 6, "meta": "ctx"},
+			{"value": "doc.docstatus", "score": 6, "meta": "ctx"},
+			{"value": "doc.idx", "score": 6, "meta": "ctx"},
+			{"value": "doc", "score": 6, "meta": "ctx"},
+			{"value": "value", "score": 6, "meta": "ctx"},
+			{"value": "list", "score": 6, "meta": "ctx"},
+			{"value": "dict.key", "score": 6, "meta": "ctx"},
 		]
 
-		completion_keys = [item["value"] for item in completion_list]
-		for key in expected_keys:
-			self.assertIn(key, completion_keys)
+		self.assertEqual(completion_list, expected_items)
 
-	def test_process_context_completion_nested(self):
-		context = {
-			"doc": self.mock_doc,  # Level 0
-			"nested": {
-				"doc": self.mock_doc,  # Level 1
-				"deeper": {
-					"doc": self.mock_doc,  # Level 2
-					"deepest": {
-						"doc": self.mock_doc,  # Level 3
-					},
+	def test_process_context_completion_with_get_keys_for_autocomplete(self):
+		from frappe.utils.safe_exec import NamespaceDict
+
+		# Mock frappe namespace
+		mock_frappe = NamespaceDict(
+			**{
+				"get_doc": lambda doctype, name: None,
+				"db": {
+					"get_value": lambda doctype, filters, fieldname: None,
+					"set_value": lambda doctype, name, field, value: None,
 				},
-				"list": [1, {"key": "value"}],
-			},
+				"utils": {
+					"now": lambda: None,
+					"cstr": lambda text: str(text),
+					"cint": lambda text: int(text),
+				},
+			}
+		)
+
+		context = {
+			"doc": self.mock_doc,
+			"function": lambda x: x * 2,
+			"frappe": mock_frappe,  # Add mock frappe namespace
 		}
 
 		completion_list = process_context(context, for_code_completion=True)
-
-		expected_keys = [
-			"doc",
-			"doc.test_field",
-			"doc.link_field",
-			"doc.nested_field",
-			"doc.nested_field",
-			"doc.nested_field.test_field",
-			"doc.nested_field.link_field",
-			"doc.nested_field.nested_field",
-			"nested",
-			"nested.doc",
-			"nested.doc.test_field",
-			"nested.doc.link_field",
-			"nested.doc.nested_field",
-			"nested.deeper",
-			"nested.deeper.doc",  # no recursion anymore
-			"nested.deeper.deepest",  # no recursion
-			"nested.list",
+		expected_items = [
+			{"value": "doc.test_field", "score": 6, "meta": "ctx"},
+			{"value": "doc.link_field.test_field", "score": 6, "meta": "ctx"},
+			{"value": "doc.link_field.link_field", "score": 6, "meta": "ctx"},
+			{"value": "doc.link_field.doctype", "score": 6, "meta": "ctx"},
+			{"value": "doc.link_field.name", "score": 6, "meta": "ctx"},
+			{"value": "doc.link_field.owner", "score": 6, "meta": "ctx"},
+			{"value": "doc.link_field.creation", "score": 6, "meta": "ctx"},
+			{"value": "doc.link_field.modified", "score": 6, "meta": "ctx"},
+			{"value": "doc.link_field.modified_by", "score": 6, "meta": "ctx"},
+			{"value": "doc.link_field.docstatus", "score": 6, "meta": "ctx"},
+			{"value": "doc.link_field.idx", "score": 6, "meta": "ctx"},
+			{"value": "doc.link_field", "score": 6, "meta": "ctx"},
+			{"value": "doc.doctype", "score": 6, "meta": "ctx"},
+			{"value": "doc.name", "score": 6, "meta": "ctx"},
+			{"value": "doc.owner.test_field", "score": 6, "meta": "ctx"},
+			{"value": "doc.owner.link_field", "score": 6, "meta": "ctx"},
+			{"value": "doc.owner.doctype", "score": 6, "meta": "ctx"},
+			{"value": "doc.owner.name", "score": 6, "meta": "ctx"},
+			{"value": "doc.owner.owner", "score": 6, "meta": "ctx"},
+			{"value": "doc.owner.creation", "score": 6, "meta": "ctx"},
+			{"value": "doc.owner.modified", "score": 6, "meta": "ctx"},
+			{"value": "doc.owner.modified_by", "score": 6, "meta": "ctx"},
+			{"value": "doc.owner.docstatus", "score": 6, "meta": "ctx"},
+			{"value": "doc.owner.idx", "score": 6, "meta": "ctx"},
+			{"value": "doc.owner", "score": 6, "meta": "ctx"},
+			{"value": "doc.creation", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified_by.test_field", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified_by.link_field", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified_by.doctype", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified_by.name", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified_by.owner", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified_by.creation", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified_by.modified", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified_by.modified_by", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified_by.docstatus", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified_by.idx", "score": 6, "meta": "ctx"},
+			{"value": "doc.modified_by", "score": 6, "meta": "ctx"},
+			{"value": "doc.docstatus", "score": 6, "meta": "ctx"},
+			{"value": "doc.idx", "score": 6, "meta": "ctx"},
+			{"value": "doc", "score": 6, "meta": "ctx"},
+			{"value": "function", "score": 9, "meta": "ctx"},
+			{"value": "frappe.get_doc", "score": 9, "meta": "ctx"},
+			{"value": "frappe.db.get_value", "score": 9, "meta": "ctx"},
+			{"value": "frappe.db.set_value", "score": 9, "meta": "ctx"},
+			{"value": "frappe.utils.now", "score": 9, "meta": "ctx"},
+			{"value": "frappe.utils.cstr", "score": 9, "meta": "ctx"},
+			{"value": "frappe.utils.cint", "score": 9, "meta": "ctx"},
 		]
 
-		unexpected_keys = [
-			"nested.deeper.deepest.doc",
-		]
-
-		completion_keys = [item["value"] for item in completion_list]
-
-		# Check for expected keys
-		for key in expected_keys:
-			self.assertIn(key, completion_keys)
-
-		# Check that unexpected keys (level 3) are not present
-		for key in unexpected_keys:
-			self.assertNotIn(key, completion_keys)
+		self.assertEqual(completion_list, expected_items)
 
 
 class CustomDocumentProxy(DocumentProxy):

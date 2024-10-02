@@ -7,6 +7,9 @@ import mimetypes
 import types
 from contextlib import contextmanager
 from functools import lru_cache
+from itertools import chain
+from types import FunctionType, MethodType, ModuleType
+from typing import TYPE_CHECKING, Any
 
 import RestrictedPython.Guards
 from RestrictedPython import PrintCollector, compile_restricted, safe_globals
@@ -30,6 +33,9 @@ from frappe.utils.background_jobs import enqueue, get_jobs
 from frappe.utils.number_format import NumberFormat
 from frappe.website.utils import get_next_link, get_toc
 from frappe.www.printview import get_visible_columns
+
+if TYPE_CHECKING:
+	from frappe.utils.jinja import DocumentProxy
 
 
 class ServerScriptNotEnabled(frappe.PermissionError):
@@ -315,6 +321,68 @@ def get_safe_globals():
 	out.update(get_python_builtins())
 
 	return out
+
+
+def get_keys_for_autocomplete(
+	key: str,
+	value: Any,
+	prefix: str = "",
+	offset: int = 0,
+	meta: str = "ctx",
+	depth: int = 0,
+	max_depth: int | None = None,
+	document_proxy_class: "DocumentProxy" = None,
+):
+	if max_depth and depth > max_depth:
+		return
+	full_key = f"{prefix}.{key}" if prefix else key
+	if key.startswith("_"):
+		return
+	if document_proxy_class and isinstance(value, document_proxy_class):
+		yield from chain.from_iterable(
+			get_keys_for_autocomplete(
+				field,
+				getattr(value, field),
+				full_key,
+				offset,
+				meta,
+				depth + 1,
+				max_depth=max_depth,
+				document_proxy_class=document_proxy_class,
+			)
+			for field in value._fieldnames
+		)
+	if isinstance(value, NamespaceDict | dict) and value:
+		if key == "form_dict":
+			yield {"value": full_key, "score": offset + 7, "meta": meta}
+		else:
+			yield from chain.from_iterable(
+				get_keys_for_autocomplete(
+					key,
+					value,
+					full_key,
+					offset,
+					meta,
+					depth + 1,
+					max_depth=max_depth,
+					document_proxy_class=document_proxy_class,
+				)
+				for key, value in value.items()
+			)
+	else:
+		if isinstance(value, type) and issubclass(value, Exception):
+			score = offset + 0
+		elif isinstance(value, ModuleType):
+			score = offset + 10
+		elif isinstance(value, FunctionType | MethodType):
+			score = offset + 9
+		elif isinstance(value, type):
+			score = offset + 8
+		elif isinstance(value, dict):
+			score = offset + 7
+		else:
+			score = offset + 6
+		yield {"value": full_key, "score": score, "meta": meta}
 
 
 def is_job_queued(job_name, queue="default"):
