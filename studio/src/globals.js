@@ -48,6 +48,7 @@ import Header from "@/components/AppLayout/Header.vue"
 import Sidebar from "@/components/AppLayout/Sidebar.vue"
 import CardList from "@/components/AppLayout/CardList.vue"
 import AvatarCard from "@/components/AppLayout/AvatarCard.vue"
+import Audio from "@/components/AppLayout/Audio.vue"
 
 export function registerGlobalComponents(app) {
 	app.component("Alert", Alert)
@@ -99,4 +100,5 @@ export function registerGlobalComponents(app) {
 	app.component("Sidebar", Sidebar)
 	app.component("CardList", CardList)
 	app.component("AvatarCard", AvatarCard)
+	app.component("Audio", Audio)
 }
