@@ -5,6 +5,7 @@ import Sidebar from "@/components/AppLayout/Sidebar.vue"
 import CardList from "@/components/AppLayout/CardList.vue"
 import AvatarCard from "@/components/AppLayout/AvatarCard.vue"
 import Audio from "@/components/AppLayout/Audio.vue"
+import ImageView from "@/components/AppLayout/ImageView.vue"
 
 export const COMPONENTS = {
 	Alert: {
@@ -587,6 +588,15 @@ export const COMPONENTS = {
 		props: Audio.props,
 		initialState: {
 			file: "https://cdn.uppbeat.io/audio-output/208/3691/main-version/streaming-previews/STREAMING-achievement-philip-anderson-main-version-01-31-13804.mp3",
+		},
+	},
+	ImageView: {
+		name: "ImageView",
+		title: "Image View",
+		icon: "Image",
+		props: ImageView.props,
+		initialState: {
+			image: "https://upload.wikimedia.org/wikipedia/en/e/e9/Coldplay%2C_Up%26Up%2C_Artwork.jpg",
 		},
 	},
 }
