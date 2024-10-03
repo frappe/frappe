@@ -4,7 +4,7 @@ from collections.abc import Iterable
 from unittest.mock import Mock, patch
 
 import frappe
-from frappe import _dict
+from frappe import _dict, scrub
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.model.document import Document, DocumentProxy
 from frappe.utils.jinja import process_context, render_template
@@ -703,6 +703,116 @@ class TestRenderTemplateIntegration(unittest.TestCase):
 		- {self.top_manager.name}
 		"""
 		self.assertEqual(result.strip(), expected_output.strip())
+
+
+class TestRenderTemplateWithGlobals(unittest.TestCase):
+	def test_render_template_with_globals(self):
+		# Create DocumentProxy instances
+		user = DocumentProxy("User", "Administrator")
+
+		context = {"user": user}
+
+		result = render_template("frappe/tests/test_template_globals.html", context)
+
+		# Test JSON
+		self.assertIn(
+			'JSON Dumps: {\n "lang": "DocumentProxy(Language, None)",\n "user": "Administrator"\n}', result
+		)
+
+		# Test frappe.bold
+		self.assertIn("<strong>Administrator</strong>", result)
+
+		# Test frappe.get_meta
+		self.assertIn("Meta name: User", result)
+
+		# Test frappe.get_doc
+		self.assertIn("User dict name: Administrator", result)
+
+		# Test frappe.utils.get_url
+		self.assertIn("http://", result)
+
+		# Test frappe.render_template
+		self.assertIn("Hello Administrator", result)
+
+		# Test frappe.db.get_value
+		self.assertIn("User email: admin@example.com", result)
+
+		# Test scrub
+		self.assertIn("administrator", result)
+
+
+class TestDocumentProxyRendering(unittest.TestCase):
+	@classmethod
+	def setUpClass(cls):
+		# Create test users
+		cls.test_user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "test_render@example.com",
+				"first_name": "Test",
+				"last_name": "Render",
+				"language": "en",
+			}
+		).insert(ignore_permissions=True)
+
+		cls.admin_user = frappe.get_doc("User", "Administrator")
+
+	@classmethod
+	def tearDownClass(cls):
+		# Clean up test data
+		frappe.delete_doc("User", cls.test_user.name, ignore_permissions=True)
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+
+	def test_fallback_behavior(self):
+		template = "{{ doc.first_name }} {{ doc.last_name }} {{ doc.middle_name or 'N/A' }}"
+		result = render_template(template, {"doc": self.test_user})
+		self.assertEqual(result, "Test Render N/A")
+
+	def test_nested_attribute_access(self):
+		template = "{{ doc.owner.name }}"
+		result = render_template(template, {"doc": self.test_user})
+		self.assertEqual(result, "Administrator")
+
+		template = "{{ doc.modified_by.name }}"
+		result = render_template(template, {"doc": self.test_user})
+		self.assertEqual(result, "Administrator")
+
+	def test_attribute_existence(self):
+		template = "{% if 'middle_name' in doc and doc.middle_name %}Has middle name{% elif 'middle_name' in doc %}Has no middle name{% else %}Can't have middle name{% endif %}"
+		result = render_template(template, {"doc": self.test_user})
+		self.assertEqual(result, "Has no middle name")
+
+	def test_language_specific_field(self):
+		template = "{{ doc.language.language_name }}"
+		result = render_template(template, {"doc": self.test_user})
+		self.assertEqual(result, "English")
+
+	def test_different_user_types(self):
+		admin_template = (
+			"{{ doc.name }} {% if frappe.get_doc(doc).has_desk_access() %}(Desk Access){% endif %}"
+		)
+		admin_result = render_template(admin_template, {"doc": self.admin_user})
+		self.assertEqual(admin_result, "Administrator (Desk Access)")
+
+		user_result = render_template(admin_template, {"doc": self.test_user})
+		self.assertEqual(user_result, "test_render@example.com ")
+
+	def test_document_proxy_in_list(self):
+		users = [self.admin_user, self.test_user]
+		template = "{% for user in users %}{{ user.name }}{% if not loop.last %}, {% endif %}{% endfor %}"
+		result = render_template(template, {"users": users})
+		self.assertEqual(result, "Administrator, test_render@example.com")
+
+	def test_document_proxy_in_dict(self):
+		user_dict = {"admin": self.admin_user, "test": self.test_user}
+		template = "Admin: {{ users.admin.name }}, Test: {{ users.test.name }}"
+		result = render_template(template, {"users": user_dict})
+		self.assertEqual(result, "Admin: Administrator, Test: test_render@example.com")
 
 
 if __name__ == "__main__":
