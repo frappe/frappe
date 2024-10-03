@@ -846,6 +846,9 @@ def get_default_df(fieldname):
 		elif fieldname in ("idx", "docstatus"):
 			return frappe._dict(fieldname=fieldname, fieldtype="Int")
 
+		elif fieldname in ("owner", "modified_by"):
+			return frappe._dict(fieldname=fieldname, fieldtype="Link", options="User")
+
 		return frappe._dict(fieldname=fieldname, fieldtype="Data")
 
 
