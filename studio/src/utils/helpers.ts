@@ -225,12 +225,12 @@ const isDynamicValue = (value: any) => {
 	return value && value.includes("{{") && value.includes("}}")
 }
 
-function getDynamicPropValue(propValue: any, context: any) {
+function getDynamicValue(value: any, context: any) {
 	let result = ""
 	let lastIndex = 0
 
 	// Find all dynamic expressions in the prop value
-	const matches = propValue.matchAll(/\{\{(.*?)\}\}/g)
+	const matches = value.matchAll(/\{\{(.*?)\}\}/g)
 
 	// Evaluate each dynamic expression and add it to the result
 	for (const match of matches) {
@@ -244,7 +244,7 @@ function getDynamicPropValue(propValue: any, context: any) {
 		}
 
 		// Append the static part of the string
-		result += propValue.slice(lastIndex, match.index)
+		result += value.slice(lastIndex, match.index)
 		// Append the evaluated dynamic value
 		result += dynamicValue !== undefined ? String(dynamicValue) : ''
 		// update lastIndex to the end of the current match
@@ -252,8 +252,26 @@ function getDynamicPropValue(propValue: any, context: any) {
 	}
 
 	// Append the final static part of the string
-	result += propValue.slice(lastIndex)
+	result += value.slice(lastIndex)
 	return result || undefined
+}
+
+function getEvaluatedFilters(filters: any, context: any) {
+	filters = JSON.parse(filters)
+	if (!filters) return undefined
+	const evaluatedFilters: Filters = {}
+
+	for (const key in filters) {
+		let value = Array.isArray(filters[key]) ? filters[key][1] : filters[key]
+
+		if (isDynamicValue(value)) {
+			evaluatedFilters[key] = getDynamicValue(value, context)
+		} else {
+			evaluatedFilters[key] = value
+		}
+	}
+
+	return evaluatedFilters
 }
 
 function evaluateExpression(expression: string, context: any) {
@@ -299,14 +317,14 @@ function getTransforms(resource) {
 	return {}
 }
 
-async function getDocumentResource(resource) {
+async function getDocumentResource(resource, context: undefined | any = undefined) {
 	let docname = resource.document_name
 	if (!docname && resource.filters) {
 		// fetch the docname based on filters
 		const docList = createListResource({
 			doctype: resource.document_type,
 			fields: ["name"],
-			filters: resource.filters,
+			filters: getEvaluatedFilters(resource.filters, context),
 			auto: true
 		})
 		await docList.list?.promise
@@ -321,17 +339,17 @@ async function getDocumentResource(resource) {
 	})
 }
 
-function getNewResource(resource) {
+function getNewResource(resource, context: undefined | any = undefined) {
 	const fields = JSON.parse(resource.fields || "[]")
 
 	switch (resource.resource_type) {
 		case "Document":
-			return getDocumentResource(resource)
+			return getDocumentResource(resource, context)
 		case "Document List":
 			return createListResource({
 				doctype: resource.document_type,
 				fields: fields.length ? fields : "*",
-				filters: resource.filters,
+				filters: getEvaluatedFilters(resource.filters, context),
 				auto: true,
 				...getTransforms(resource),
 			})
@@ -386,7 +404,7 @@ export {
 	// data
 	getAutocompleteValues,
 	isDynamicValue,
-	getDynamicPropValue,
+	getDynamicValue,
 	getNewResource,
 	// dialog
 	confirm,

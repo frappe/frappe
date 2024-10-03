@@ -16,7 +16,7 @@ import Block from "@/utils/block"
 import { computed, onMounted, ref, useAttrs } from "vue"
 import { useRouter, useRoute } from "vue-router"
 import components from "@/data/components"
-import { getComponentRoot, isDynamicValue, getDynamicPropValue } from "@/utils/helpers"
+import { getComponentRoot, isDynamicValue, getDynamicValue } from "@/utils/helpers"
 
 import useAppStore from "@/stores/appStore"
 
@@ -38,7 +38,7 @@ const getComponentProps = () => {
 
 	Object.entries(componentProps).forEach(([propName, config]) => {
 		if (isDynamicValue(config)) {
-			componentProps[propName] = getDynamicPropValue(config, store.resources)
+			componentProps[propName] = getDynamicValue(config, store.resources)
 		}
 	})
 	return componentProps

@@ -38,6 +38,7 @@ watch(
 			if (blocks) {
 				rootBlock.value = getBlockInstance(blocks[0])
 			}
+			await store.setLocalState({ route: route })
 			await store.setPageResources(page.value)
 		} else {
 			rootBlock.value = null

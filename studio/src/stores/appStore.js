@@ -1,10 +1,11 @@
 import { defineStore } from "pinia"
-import { reactive } from "vue"
+import { reactive, ref } from "vue"
 import { studioPageResources } from "@/data/studioResources"
 import { getNewResource } from "@/utils/helpers"
 
 const useAppStore = defineStore("appStore", () => {
 	const resources = reactive({})
+	const localState = ref({})
 
 	// TODO: deduplicate with studioStore later, if possible
 	async function setPageResources(page) {
@@ -12,7 +13,7 @@ const useAppStore = defineStore("appStore", () => {
 		await studioPageResources.reload()
 
 		const resourcePromises = studioPageResources.data.map(async (resource) => {
-			const newResource = await getNewResource(resource)
+			const newResource = await getNewResource(resource, localState.value)
 			return {
 				resource_name: resource.resource_name,
 				value: newResource,
@@ -26,9 +27,15 @@ const useAppStore = defineStore("appStore", () => {
 		})
 	}
 
+	async function setLocalState(params) {
+		localState.value = params
+	}
+
 	return {
 		resources,
 		setPageResources,
+		localState,
+		setLocalState,
 	}
 })
 

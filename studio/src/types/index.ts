@@ -101,3 +101,5 @@ interface ResourceOptions {
 	filters?: Record<string, any>
 	[key: string]: any
 }
+
+type Filters = Record<string, string | Array<string>>
