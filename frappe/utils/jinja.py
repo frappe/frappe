@@ -1,5 +1,57 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+	from frappe.model.document import DocumentProxy
+
+
+def process_context(
+	context: dict[Any],
+	for_code_completion: bool = False,
+	document_proxy_class: type["DocumentProxy"] | None = None,
+):
+	from frappe.model.document import Document, DocumentProxy
+
+	if not document_proxy_class:  # lazy import
+		document_proxy_class = DocumentProxy
+
+	if for_code_completion:
+
+		def process_value(key, value, prefix="", depth=0):
+			full_key = f"{prefix}.{key}" if prefix else key
+			result = [{"value": full_key, "score": 1000, "meta": "ctx"}]
+			if depth >= 2:
+				return result
+
+			if isinstance(value, Document):  # on entry
+				value = document_proxy_class(value.doctype, value.name)
+			if isinstance(value, document_proxy_class):
+				for field in value._fieldnames:
+					result.extend(process_value(field, getattr(value, field), full_key, depth + 1))
+			elif isinstance(value, dict):
+				for k, v in value.items():
+					result.extend(process_value(k, v, full_key, depth + 1))
+
+			return result
+
+		completion_list = []
+		for key, value in context.items():
+			completion_list.extend(process_value(key, value))
+		return completion_list
+
+	else:
+
+		def process_value(value, depth=0):
+			if isinstance(value, Document):
+				return document_proxy_class(value.doctype, value.name)
+			elif isinstance(value, dict) and not depth >= 2:
+				return {k: process_value(v, depth + 1) for k, v in value.items()}
+			return value
+
+		return {key: process_value(value) for key, value in context.items()}
+
+
 def get_jenv():
 	import frappe
 
@@ -69,7 +121,13 @@ def validate_template(html):
 		frappe.throw(f"Syntax error in template as line {e.lineno}: {e.message}")
 
 
-def render_template(template, context=None, is_path=None, safe_render=True):
+def render_template(
+	template,
+	context=None,
+	is_path=None,
+	safe_render=True,
+	document_proxy_class: type["DocumentProxy"] | None = None,
+):
 	"""Render a template using Jinja
 
 	:param template: path or HTML containing the jinja template
@@ -88,13 +146,15 @@ def render_template(template, context=None, is_path=None, safe_render=True):
 	if context is None:
 		context = {}
 
+	processed_context = process_context(context, document_proxy_class=document_proxy_class)
+
 	if is_path or guess_is_path(template):
-		return get_jenv().get_template(template).render(context)
+		return get_jenv().get_template(template).render(processed_context)
 	else:
 		if safe_render and ".__" in template:
 			throw(_("Illegal template"))
 		try:
-			return get_jenv().from_string(template).render(context)
+			return get_jenv().from_string(template).render(processed_context)
 		except TemplateError:
 			throw(
 				title="Jinja Template Error",
