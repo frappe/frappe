@@ -1,0 +1,5 @@
+<h1>Welcome, {{ user.first_name }}</h1>
+<p>
+	{{ user.first_name }} reports to {{ user.reports_to.first_name }} {{ user.reports_to.last_name }},
+	who reports to {{ user.reports_to.reports_to.first_name }} {{ user.reports_to.reports_to.last_name }}.
+</p>
