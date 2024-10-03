@@ -212,6 +212,7 @@ class FrappeClient:
 		return self.post_request({"cmd": "frappe.client.cancel", "doctype": doctype, "name": name})
 
 	def get_doc(self, doctype, name="", filters=None, fields=None):
+
 		"""Returns a single remote document
 
 		:param doctype: DocType of the document to be returned

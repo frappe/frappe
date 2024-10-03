@@ -428,14 +428,14 @@ def get_quarter_start(dt, as_str: Literal[True] = False, use_custom_calendar: bo
 
 
 def get_quarter_start(dt, as_str: bool = False, use_custom_calendar: bool = False) -> str | datetime.date:
-	date = getdate(dt)
+	dt = getdate(dt)
 	if use_custom_calendar and frappe.defaults.get_defaults().calendar_type == 'jalali':
-		date = jdatetime.date.fromgregorian(date=date)
-	quarter = (date.month - 1) // 3 + 1
+		dt = jdatetime.date.fromgregorian(date=dt)
+	quarter = (dt.month - 1) // 3 + 1
 	if isinstance(dt, jdatetime.date):
-		first_date_of_quarter = jdatetime.date(date.year, ((quarter - 1) * 3) + 1, 1).togregorian()
+		first_date_of_quarter = jdatetime.date(dt.year, ((quarter - 1) * 3) + 1, 1).togregorian()
 	else:
-		first_date_of_quarter = datetime.date(date.year, ((quarter - 1) * 3) + 1, 1)
+		first_date_of_quarter = datetime.date(dt.year, ((quarter - 1) * 3) + 1, 1)
 	return first_date_of_quarter.strftime(DATE_FORMAT) if as_str else first_date_of_quarter
 
 
@@ -581,6 +581,7 @@ def format_date(
 		return ""
 
 	date = getdate(string_date, parse_day_first)
+
 	if not format_string:
 		format_string = get_user_date_format()
 	format_string = format_string.replace("mm", "MM").replace("Y", "y")
@@ -591,6 +592,7 @@ def format_date(
 	except UnknownLocaleError:
 		format_string = format_string.replace("MM", "%m").replace("dd", "%d").replace("yyyy", "%Y")
 		formatted_date = date.strftime(format_string)
+		
 	return formatted_date
 
 

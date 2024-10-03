@@ -20,8 +20,10 @@ from frappe.utils import cint, cstr, flt, format_duration, get_html_format, sboo
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
+	
 	doc.custom_columns = []
 	doc.custom_filters = []
+
 
 	if doc.report_type == "Custom Report":
 		custom_report_doc = doc
@@ -57,7 +59,7 @@ def get_report_result(report, filters):
 
 	if report.report_type == "Query Report":
 		res = report.execute_query_report(filters)
-
+		
 	elif report.report_type == "Script Report":
 		res = report.execute_script_report(filters)
 
@@ -83,6 +85,7 @@ def generate_report_result(
 	columns, result, message, chart, report_summary, skip_total_row = ljust_list(res, 6)
 	columns = [get_column_as_dict(col) for col in (columns or [])]
 	report_column_names = [col["fieldname"] for col in columns]
+	
 	# convert to list of dicts
 
 	result = normalize_result(result, columns)
@@ -194,7 +197,10 @@ def run(
 	parent_field=None,
 	are_default_filters=True,
 ):
+
+
 	report = get_report_doc(report_name)
+	
 	if not user:
 		user = frappe.session.user
 	if not frappe.has_permission(report.ref_doctype, "report"):
@@ -217,14 +223,20 @@ def run(
 		else:
 			dn = ""
 		result = get_prepared_report_result(report, filters, dn, user)
+		
 	else:
+		
 		result = generate_report_result(report, filters, user, custom_columns, is_tree, parent_field)
 		add_data_to_monitor(report=report.reference_report or report.name)
+
+	
 
 	result["add_total_row"] = report.add_total_row and not result.get("skip_total_row", False)
 
 	if sbool(are_default_filters) and report.custom_filters:
 		result["custom_filters"] = report.custom_filters
+
+	#print(result)
 
 	return result
 

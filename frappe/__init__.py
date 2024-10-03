@@ -1252,6 +1252,7 @@ def get_doc(documentdict: dict) -> "_NewDocument":
 
 
 def get_doc(*args, **kwargs):
+
 	"""Return a `frappe.model.document.Document` object of the given type and name.
 
 	:param arg1: DocType name as string **or** document JSON.

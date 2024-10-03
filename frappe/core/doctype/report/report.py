@@ -178,6 +178,10 @@ class Report(Document):
 		# report in python module
 		module = self.module or frappe.db.get_value("DocType", self.ref_doctype, "module")
 		method_name = get_report_module_dotted_path(module, self.name) + ".execute"
+		'''
+		print("------")
+		print(method_name)
+		'''
 		return frappe.get_attr(method_name)(frappe._dict(filters))
 
 	def execute_script(self, filters):

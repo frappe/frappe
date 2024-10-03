@@ -31,6 +31,7 @@ if TYPE_CHECKING:
 
 
 def get_doc(*args, **kwargs):
+	
 	"""returns a frappe.model.Document object.
 
 	:param arg1: Document dict or DocType name.
