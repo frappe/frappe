@@ -1,5 +1,6 @@
 import sys
 import unittest
+from collections.abc import Iterable
 from unittest.mock import Mock, patch
 
 import frappe
@@ -17,8 +18,42 @@ class TestDocumentProxy(unittest.TestCase):
 		self.mock_meta = Mock()
 		self.mock_meta.fields = [
 			_dict({"fieldname": "test_field", "fieldtype": "Data"}),
+			_dict({"fieldname": "child_field", "fieldtype": "Data"}),
 			_dict({"fieldname": "link_field", "fieldtype": "Link", "options": "Linked DocType"}),
+			_dict(
+				{
+					"fieldname": "dynamic_link_field",
+					"fieldtype": "Dynamic Link",
+					"options": "link_doctype_field",
+				}
+			),
+			_dict({"fieldname": "link_doctype_field", "fieldtype": "Link", "options": "DocType"}),
+			_dict({"fieldname": "table_field", "fieldtype": "Table", "options": "Child DocType"}),
+			_dict(
+				{
+					"fieldname": "table_multiselect_field",
+					"fieldtype": "Table MultiSelect",
+					"options": "Child DocType",
+				}
+			),
 		]
+
+		# Mock child table data
+		child_mock_1 = Mock(spec=Document, doctype="Child DocType")
+		child_mock_1.name = "CHILD001"
+		child_mock_2 = Mock(spec=Document, doctype="Child DocType")
+		child_mock_2.name = "CHILD002"
+		self.mock_child_docs = [child_mock_1, child_mock_2]
+
+		self.mock_doc.get.side_effect = lambda field: {
+			"test_field": "Test Value",
+			"link_field": "LINK001",
+			"child_field": "Child Value",
+			"dynamic_link_field": "DYNAMIC001",
+			"link_doctype_field": "Some DocType",
+			"table_field": self.mock_child_docs,
+			"table_multiselect_field": self.mock_child_docs,
+		}.get(field)
 
 		self.mock_get_meta = patch("frappe.get_meta", return_value=self.mock_meta).start()
 		self.mock_get_doc = patch("frappe.get_doc", return_value=self.mock_doc).start()
@@ -111,6 +146,34 @@ class TestDocumentProxy(unittest.TestCase):
 		# Test again after document fetch
 		self.assertIn("test_field", proxy)
 		self.assertNotIn("non_existing_field", proxy)
+
+	def test_document_proxy_dynamic_link_field(self):
+		proxy = DocumentProxy("Test DocType", "TEST001")
+		dynamic_link_value = proxy.dynamic_link_field
+
+		self.assertIsInstance(dynamic_link_value, DocumentProxy)
+		self.assertEqual(dynamic_link_value.name, "DYNAMIC001")
+		self.assertEqual(dynamic_link_value.doctype, "Some DocType")
+
+	def test_document_proxy_table_field(self):
+		proxy = DocumentProxy("Test DocType", "TEST001")
+		table_field = proxy.table_field
+
+		self.assertIsInstance(table_field, Iterable)
+		self.assertEqual(len(table_field), 2)
+		self.assertIsInstance(table_field[0], DocumentProxy)
+		self.assertEqual(table_field[0].child_field, "Child Value")
+		self.assertEqual(table_field[0].name, "CHILD001")
+
+	def test_document_proxy_table_multiselect_field(self):
+		proxy = DocumentProxy("Test DocType", "TEST001")
+		table_multiselect_field = proxy.table_multiselect_field
+
+		self.assertIsInstance(table_multiselect_field, Iterable)
+		self.assertEqual(len(table_multiselect_field), 2)
+		self.assertIsInstance(table_multiselect_field[0], DocumentProxy)
+		self.assertEqual(table_multiselect_field[1].child_field, "Child Value")
+		self.assertEqual(table_multiselect_field[1].name, "CHILD002")
 
 
 class TestProcessContext(unittest.TestCase):
@@ -328,7 +391,38 @@ def run_specific_test(test_class, test_case=None):
 class TestRenderTemplateIntegration(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
-		# Create custom field 'reports_to' in the User doctype
+		# Create child doctypes first
+		cls.create_child_doctype(
+			"User Skill",
+			[
+				{"fieldname": "skill", "fieldtype": "Data", "label": "Skill"},
+				{
+					"fieldname": "proficiency",
+					"fieldtype": "Select",
+					"label": "Proficiency",
+					"options": "Beginner\nIntermediate\nExpert",
+				},
+			],
+		)
+		cls.create_child_doctype(
+			"Favorite Document",
+			[
+				{
+					"fieldname": "document_type",
+					"fieldtype": "Link",
+					"label": "Document Type",
+					"options": "DocType",
+				},
+				{
+					"fieldname": "document_name",
+					"fieldtype": "Dynamic Link",
+					"label": "Document Name",
+					"options": "document_type",
+				},
+			],
+		)
+
+		# Now create custom fields
 		create_custom_field(
 			"User",
 			{
@@ -340,15 +434,82 @@ class TestRenderTemplateIntegration(unittest.TestCase):
 			},
 		)
 
+		# Create custom fields for Dynamic Link, Table, and Table MultiSelect
+		create_custom_field(
+			"User",
+			{
+				"fieldname": "role_type",
+				"label": "Role Type",
+				"fieldtype": "Link",
+				"options": "DocType",
+				"insert_after": "reports_to",
+			},
+		)
+		create_custom_field(
+			"User",
+			{
+				"fieldname": "dynamic_role",
+				"label": "Dynamic Role",
+				"fieldtype": "Dynamic Link",
+				"options": "role_type",
+				"insert_after": "role_type",
+			},
+		)
+		create_custom_field(
+			"User",
+			{
+				"fieldname": "user_skills",
+				"label": "User Skills",
+				"fieldtype": "Table",
+				"options": "User Skill",
+				"insert_after": "dynamic_role",
+			},
+		)
+		create_custom_field(
+			"User",
+			{
+				"fieldname": "favorite_documents",
+				"label": "Favorite Documents",
+				"fieldtype": "Table MultiSelect",
+				"options": "Favorite Document",
+				"insert_after": "user_skills",
+			},
+		)
+
 	@classmethod
 	def tearDownClass(cls):
-		# Remove the custom field after tests
+		# Remove custom fields
 		frappe.delete_doc("Custom Field", "User-reports_to")
+		frappe.delete_doc("Custom Field", "User-role_type")
+		frappe.delete_doc("Custom Field", "User-dynamic_role")
+		frappe.delete_doc("Custom Field", "User-user_skills")
+		frappe.delete_doc("Custom Field", "User-favorite_documents")
+
+		# Remove child doctypes
+		frappe.delete_doc("DocType", "User Skill")
+		frappe.delete_doc("DocType", "Favorite Document")
+
+	@classmethod
+	def create_child_doctype(cls, doctype_name, fields):
+		if not frappe.db.exists("DocType", doctype_name):
+			doctype = frappe.new_doc("DocType")
+			doctype.name = doctype_name
+			doctype.module = "Core"
+			doctype.istable = 1
+			doctype.custom = 1
+			for field in fields:
+				doctype.append("fields", field)
+			doctype.insert(ignore_permissions=True)
 
 	def setUp(self):
 		frappe.delete_doc_if_exists("User", "test_render_template@example.com")
 		frappe.delete_doc_if_exists("User", "manager_render_template@example.com")
 		frappe.delete_doc_if_exists("User", "top_manager_render_template@example.com")
+
+		# Ensure the "Employee" role exists
+		if not frappe.db.exists("Role", "Employee"):
+			frappe.get_doc({"doctype": "Role", "role_name": "Employee"}).insert(ignore_permissions=True)
+
 		# Set up test data in the database
 		self.top_manager = frappe.get_doc(
 			{
@@ -375,6 +536,16 @@ class TestRenderTemplateIntegration(unittest.TestCase):
 				"email": "test_render_template@example.com",
 				"first_name": "Test",
 				"last_name": "User",
+				"role_type": "Role",
+				"dynamic_role": "Employee",
+				"user_skills": [
+					{"skill": "Python", "proficiency": "Expert"},
+					{"skill": "JavaScript", "proficiency": "Intermediate"},
+				],
+				"favorite_documents": [
+					{"document_type": "User", "document_name": self.manager.name},
+					{"document_type": "User", "document_name": self.top_manager.name},
+				],
 				"reports_to": self.manager.name,  # Link to the middle manager
 			}
 		).insert(ignore_permissions=True)
@@ -428,6 +599,42 @@ class TestRenderTemplateIntegration(unittest.TestCase):
 		result = render_template(template, {"user": self.test_user})
 		expected_output = "Test reports to Middle Manager, who reports to Top Manager."
 		self.assertEqual(result.strip(), expected_output)
+
+	def test_render_template_with_dynamic_link(self):
+		template = "{{ user.first_name }}'s role: {{ user.dynamic_role }} ({{ user.role_type }})"
+		result = render_template(template, {"user": self.test_user})
+		expected_output = "Test's role: Employee (Role)"
+		self.assertEqual(result.strip(), expected_output)
+
+	def test_render_template_with_table_field(self):
+		template = """
+		{{ user.first_name }}'s skills:
+		{%- for skill in user.user_skills %}
+		- {{ skill.skill }}: {{ skill.proficiency }}
+		{%- endfor %}
+		"""
+		result = render_template(template, {"user": self.test_user})
+		expected_output = """
+		Test's skills:
+		- Python: Expert
+		- JavaScript: Intermediate
+		"""
+		self.assertEqual(result.strip(), expected_output.strip())
+
+	def test_render_template_with_table_multiselect_field(self):
+		template = """
+		{{ user.first_name }}'s favorite users:
+		{%- for fav in user.favorite_documents %}
+		- {{ fav.document_name }}
+		{%- endfor %}
+		"""
+		result = render_template(template, {"user": self.test_user})
+		expected_output = f"""
+		Test's favorite users:
+		- {self.manager.name}
+		- {self.top_manager.name}
+		"""
+		self.assertEqual(result.strip(), expected_output.strip())
 
 
 if __name__ == "__main__":
