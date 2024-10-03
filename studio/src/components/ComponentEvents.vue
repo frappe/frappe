@@ -97,6 +97,7 @@ const emptyEvent = {
 	action: "",
 	page: {},
 	url: "",
+	api_endpoint: "",
 }
 const newEvent = ref({ ...emptyEvent })
 
@@ -161,13 +162,14 @@ const actions = {
 			getProps: () => {
 				return {
 					type: "input",
-					label: "URL",
-					modelValue: newEvent.value.url,
+					label: "API Endpoint",
+					modelValue: newEvent.value.api_endpoint,
+					autocomplete: "off",
 				}
 			},
 			events: {
 				"update:modelValue": (val: string) => {
-					newEvent.value.url = val
+					newEvent.value.api_endpoint = val
 				},
 			},
 		},

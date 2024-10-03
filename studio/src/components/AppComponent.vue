@@ -15,6 +15,7 @@
 import Block from "@/utils/block"
 import { computed, onMounted, ref, useAttrs } from "vue"
 import { useRouter, useRoute } from "vue-router"
+import { createResource } from "frappe-ui"
 import components from "@/data/components"
 import { getComponentRoot, isDynamicValue, getDynamicValue } from "@/utils/helpers"
 
@@ -67,6 +68,20 @@ const componentEvents = computed(() => {
 							pageRoute: getPageRoute(route.params.appRoute, event.page),
 						},
 					})
+				}
+			} else if (event.action === "Call API") {
+				return () => {
+					const path = event.api_endpoint.split(".")
+					const resource = store.resources[path[0]]
+
+					if (resource) {
+						resource[path[1]].submit()
+					} else {
+						createResource({
+							url: event.api_endpoint,
+							auto: true,
+						})
+					}
 				}
 			}
 		}
