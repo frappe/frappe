@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-29 09:33+0000\n"
-"PO-Revision-Date: 2024-10-01 00:39\n"
+"PO-Revision-Date: 2024-10-03 01:14\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -447,14 +447,18 @@ msgstr ""
 msgid "<p><strong>Condition Examples:</strong></p>\n"
 "<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
 "</pre>"
-msgstr ""
+msgstr "<p><strong>Ejemplos de condiciones:</strong></p>\n"
+"<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
+"</pre>"
 
 #. Content of the 'html_7' (HTML) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "<p><strong>Condition Examples:</strong></p>\n"
 "<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
 "</pre>\n"
-msgstr ""
+msgstr "<p><strong>Ejemplos de condiciones:</strong></p>\n"
+"<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
+"</pre>\n"
 
 #. Content of the 'Condition Description' (HTML) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -469,7 +473,10 @@ msgid "<p>Set context before rendering a template. Example:</p><p>\n"
 "</p><div><pre><code>\n"
 "context.project = frappe.get_doc(\"Project\", frappe.form_dict.name)\n"
 "</code></pre></div>"
-msgstr ""
+msgstr "<p>Establece el contexto antes de renderizar una plantilla. Ejemplo:</p><p>\n"
+"</p><div><pre><code>\n"
+"context.project = frappe.get_doc(\"Project\", frappe.form_dict.name)\n"
+"</code></pre></div>"
 
 #. Content of the 'JS Message' (HTML) field in DocType 'Custom HTML Block'
 #: frappe/desk/doctype/custom_html_block/custom_html_block.json
@@ -533,16 +540,16 @@ msgstr ""
 #. Header text in the Welcome Workspace Workspace
 #: frappe/core/workspace/welcome_workspace/welcome_workspace.json
 msgid "<span class=\"h2\">Hi,</span>"
-msgstr ""
+msgstr "<span class=\"h2\">Hola,</span>"
 
 #. Header text in the Integrations Workspace
 #: frappe/integrations/workspace/integrations/integrations.json
 msgid "<span class=\"h4\"><b>Reports &amp; Masters</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>Informes &amp; Maestros</b></span>"
 
 #: frappe/custom/doctype/custom_field/custom_field.js:39
 msgid "<strong>Warning:</strong> This field is system generated and may be overwritten by a future update. Modify it using {0} instead."
-msgstr ""
+msgstr "<strong>Advertencia:</strong> Este campo es generado por el sistema y puede ser sobrescrito por una futura actualización. Modifíquelo utilizando {0} en su lugar."
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
 #. Condition'
@@ -564,7 +571,7 @@ msgstr ">="
 
 #: frappe/core/doctype/doctype/doctype.py:1027
 msgid "A DocType's name should start with a letter and can only consist of letters, numbers, spaces, underscores and hyphens"
-msgstr ""
+msgstr "El nombre de un DocType debe empezar por una letra y sólo puede estar formado por letras, números, espacios, guiones bajos y guiones"
 
 #: frappe/website/doctype/blog_post/blog_post.py:93
 msgid "A featured post must have a cover image"
@@ -1000,16 +1007,16 @@ msgstr "Añadir imagen de fondo"
 #. Label of the add_border_at_bottom (Check) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Border at Bottom"
-msgstr ""
+msgstr "Añadir borde al final"
 
 #. Label of the add_border_at_top (Check) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Border at Top"
-msgstr ""
+msgstr "Añadir borde al principio"
 
 #: frappe/desk/doctype/number_card/number_card.js:36
 msgid "Add Card to Dashboard"
-msgstr ""
+msgstr "Agregar Tarjeta al tablero"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:210
 msgid "Add Chart to Dashboard"
@@ -1103,12 +1110,12 @@ msgstr "Agregar Firma"
 #. Label of the add_bottom_padding (Check) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Space at Bottom"
-msgstr ""
+msgstr "Añadir espacio al final"
 
 #. Label of the add_top_padding (Check) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Space at Top"
-msgstr ""
+msgstr "Añadir espacio al inicio"
 
 #: frappe/email/doctype/email_group/email_group.js:38
 #: frappe/email/doctype/email_group/email_group.js:59
@@ -1206,7 +1213,7 @@ msgstr "Agregar nueva pestaña"
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:125
 msgid "Add page break"
-msgstr ""
+msgstr "Añadir salto de página"
 
 #: frappe/custom/doctype/client_script/client_script.js:16
 msgid "Add script for Child Table"
@@ -1214,11 +1221,11 @@ msgstr "Agregar script para tabla secundaria"
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:111
 msgid "Add section above"
-msgstr ""
+msgstr "Añadir sección arriba"
 
 #: frappe/public/js/form_builder/components/Section.vue:265
 msgid "Add section below"
-msgstr ""
+msgstr "Añadir sección debajo"
 
 #: frappe/public/js/form_builder/components/Sidebar.vue:52
 #: frappe/public/js/form_builder/components/Tabs.vue:157
@@ -1743,12 +1750,12 @@ msgstr "Permitir aprobación para el creador del documento"
 #. Label of the allow_comments (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Allow comments"
-msgstr ""
+msgstr "Permitir comentarios"
 
 #. Label of the allow_delete (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Allow delete"
-msgstr ""
+msgstr "Permitir eliminar"
 
 #. Label of the email_append_to (Check) field in DocType 'DocType'
 #. Label of the email_append_to (Check) field in DocType 'Customize Form'
@@ -1785,7 +1792,7 @@ msgstr ""
 #. Label of the allow_multiple (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Allow multiple responses"
-msgstr ""
+msgstr "Permitir múltiples respuestas"
 
 #. Label of the allow_on_submit (Check) field in DocType 'DocField'
 #. Label of the allow_on_submit (Check) field in DocType 'Custom Field'
@@ -1811,7 +1818,7 @@ msgstr "Permitir salto de página dentro de las tablas"
 #. Label of the allow_print (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Allow print"
-msgstr ""
+msgstr "Permitir impresión"
 
 #. Description of the 'Allow incomplete forms' (Check) field in DocType 'Web
 #. Form'
@@ -2156,7 +2163,7 @@ msgstr "Aplicado en"
 
 #: frappe/public/js/form_builder/components/Field.vue:103
 msgid "Apply"
-msgstr ""
+msgstr "Aplicar"
 
 #: frappe/public/js/frappe/list/list_view.js:1940
 msgctxt "Button in list view actions menu"
@@ -2197,7 +2204,7 @@ msgstr "Aplicar permiso del usuario en"
 #. Label of the apply_document_permissions (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Apply document permissions"
-msgstr ""
+msgstr "Aplicar permisos de documentos"
 
 #. Description of the 'If user is the owner' (Check) field in DocType 'Custom
 #. DocPerm'
@@ -2239,7 +2246,7 @@ msgstr "Aprobación requerida"
 #: frappe/hooks.py frappe/templates/includes/navbar/navbar_login.html:18
 #: frappe/website/js/website.js:619 frappe/www/me.html:80
 msgid "Apps"
-msgstr ""
+msgstr "Apps"
 
 #: frappe/public/js/frappe/utils/number_systems.js:41
 msgctxt "Number system"
@@ -3442,7 +3449,7 @@ msgstr "Bloguero"
 #: frappe/core/doctype/doctype_state/doctype_state.json
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Blue"
-msgstr ""
+msgstr "Azul"
 
 #. Label of the bold (Check) field in DocType 'DocField'
 #. Label of the bold (Check) field in DocType 'Custom Field'
@@ -4277,7 +4284,7 @@ msgstr "Cambio"
 
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:38
 msgid "Change Image"
-msgstr ""
+msgstr "Cambia Imagen"
 
 #. Label of the label (Data) field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
@@ -6132,7 +6139,7 @@ msgstr "Cortar"
 #: frappe/core/doctype/doctype_state/doctype_state.json
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Cyan"
-msgstr ""
+msgstr "Cian"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #. Option for the 'Request Method' (Select) field in DocType 'Webhook'
@@ -6752,7 +6759,7 @@ msgstr "Borrar Todo"
 #: frappe/public/js/form_builder/components/Section.vue:196
 msgctxt "Title of confirmation dialog"
 msgid "Delete Column"
-msgstr ""
+msgstr "Eliminar columna"
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.js:10
 msgid "Delete Data"
@@ -6770,7 +6777,7 @@ msgstr ""
 #: frappe/public/js/form_builder/components/Tabs.vue:64
 msgctxt "Title of confirmation dialog"
 msgid "Delete Tab"
-msgstr ""
+msgstr "Eliminar pestaña"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:864
 msgid "Delete and Generate New"
@@ -6808,7 +6815,7 @@ msgstr "Eliminar sección"
 #: frappe/public/js/form_builder/components/Tabs.vue:71
 msgctxt "Button text"
 msgid "Delete tab"
-msgstr ""
+msgstr "Eliminar pestaña"
 
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.py:29
 msgid "Delete this record to allow sending to this email address"
@@ -7998,11 +8005,11 @@ msgstr "Descargue sus datos"
 
 #: frappe/contacts/doctype/contact/contact.js:98
 msgid "Download vCard"
-msgstr ""
+msgstr "Descargar vCard"
 
 #: frappe/contacts/doctype/contact/contact_list.js:4
 msgid "Download vCards"
-msgstr ""
+msgstr "Descargar vCard"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:47
 msgid "Dr"
@@ -8697,7 +8704,7 @@ msgstr "Código integrado copiado"
 
 #: frappe/public/js/form_builder/components/Section.vue:285
 msgid "Empty column"
-msgstr ""
+msgstr "Columna vacía"
 
 #. Label of the enable (Check) field in DocType 'Google Calendar'
 #. Label of the enable (Check) field in DocType 'Google Contacts'
@@ -9218,7 +9225,7 @@ msgstr "Error al evaluar Notificación {0}. Por favor arregla tu plantilla."
 
 #: frappe/model/base_document.py:743
 msgid "Error: Data missing in table {0}"
-msgstr ""
+msgstr "Error: Faltan datos en la tabla {0}"
 
 #: frappe/model/document.py:833
 msgid "Error: Document has been modified after you have opened it"
@@ -9230,11 +9237,11 @@ msgstr "Error: falta el valor para {0}: {1}"
 
 #: frappe/www/error.html:36
 msgid "Error: {0}"
-msgstr ""
+msgstr "Error: {0}"
 
 #: frappe/model/base_document.py:747
 msgid "Error: {0} Row #{1}: Value missing for: {2}"
-msgstr ""
+msgstr "Error: {0} Fila #{1}: Valor faltante para: {2}"
 
 #. Label of the errors_generated_in_last_1_day_section (Section Break) field in
 #. DocType 'System Health Report'
@@ -11362,15 +11369,15 @@ msgstr "Gráfico"
 #: frappe/core/doctype/doctype_state/doctype_state.json
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Gray"
-msgstr ""
+msgstr "Gris"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:23
 msgid "Greater Than"
-msgstr ""
+msgstr "Mayor que"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:25
 msgid "Greater Than Or Equal To"
-msgstr ""
+msgstr "Mayor o igual que"
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #. Option for the 'Indicator' (Select) field in DocType 'Kanban Board Column'
@@ -12640,7 +12647,7 @@ msgstr "Vista de buzón"
 #. Label of the include_name_field (Check) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
 msgid "Include Name Field"
-msgstr ""
+msgstr "Incluir campo de nombre"
 
 #. Label of the navbar_search (Check) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -13496,7 +13503,7 @@ msgstr "Es Virtual"
 #. Label of the is_standard (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Is standard"
-msgstr ""
+msgstr "Es estándar"
 
 #: frappe/core/doctype/file/utils.py:157 frappe/utils/file_manager.py:311
 msgid "It is risky to delete this file: {0}. Please contact your System Manager."
@@ -13616,7 +13623,7 @@ msgstr "El trabajo no se está ejecutando."
 
 #: frappe/desk/doctype/event/event.js:55
 msgid "Join video conference with {0}"
-msgstr ""
+msgstr "Únase a la videoconferencia con {0}"
 
 #: frappe/public/js/frappe/form/toolbar.js:372
 #: frappe/public/js/frappe/form/toolbar.js:802
@@ -13700,7 +13707,7 @@ msgstr "Atajos de teclado"
 #. Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Keycloak"
-msgstr ""
+msgstr "Keycloak"
 
 #: frappe/public/js/frappe/utils/number_systems.js:37
 msgctxt "Number system"
@@ -14059,7 +14066,7 @@ msgstr ""
 #. Label of the datetime_last_run (Datetime) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Last Run"
-msgstr ""
+msgstr "Última ejecución"
 
 #. Label of the last_sync_on (Datetime) field in DocType 'Google Contacts'
 #: frappe/integrations/doctype/google_contacts/google_contacts.json
@@ -14155,12 +14162,12 @@ msgstr "Inactivo/Fuera"
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Left Bottom"
-msgstr ""
+msgstr "Izquierda inferior"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Left Center"
-msgstr ""
+msgstr "Izquierda Centro"
 
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.py:58
 msgid "Left this conversation"
@@ -14194,11 +14201,11 @@ msgstr "Menos"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:24
 msgid "Less Than"
-msgstr ""
+msgstr "Menor que"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:26
 msgid "Less Than Or Equal To"
-msgstr ""
+msgstr "Menor o igual que"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:434
 msgid "Let us continue with the onboarding"
@@ -14317,7 +14324,7 @@ msgstr "Claro"
 #: frappe/core/doctype/doctype_state/doctype_state.json
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Light Blue"
-msgstr ""
+msgstr "Azul claro"
 
 #. Label of the light_color (Link) field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
@@ -14854,7 +14861,7 @@ msgstr "Inicio de sesión con nombre de usuario y contraseña no está permitido
 
 #: frappe/www/login.html:97
 msgid "Login with {0}"
-msgstr ""
+msgstr "Iniciar sesión con {0}"
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json frappe/www/apps.html:59
@@ -14932,7 +14939,7 @@ msgstr "Licencia MIT"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:49
 msgid "Madam"
-msgstr ""
+msgstr "Señora"
 
 #. Label of the main_section (Text Editor) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -14998,7 +15005,7 @@ msgstr "Hace pública la página"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:29
 msgid "Male"
-msgstr ""
+msgstr "Masculino"
 
 #: frappe/www/me.html:56
 msgid "Manage 3rd party apps"
@@ -15492,7 +15499,7 @@ msgstr "Método necesario para crear una Tarjeta Numérica"
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Mid Center"
-msgstr ""
+msgstr "Centro medio"
 
 #. Label of the middle_name (Data) field in DocType 'Contact'
 #. Label of the middle_name (Data) field in DocType 'User'
@@ -15534,12 +15541,12 @@ msgstr "Menor"
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Minutes After"
-msgstr ""
+msgstr "Minutos después"
 
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Minutes Before"
-msgstr ""
+msgstr "Minutos antes"
 
 #. Label of the minutes_offset (Int) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -15951,7 +15958,7 @@ msgstr "Sonidos Silenciados"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:46
 msgid "Mx"
-msgstr ""
+msgstr "Mx"
 
 #: frappe/templates/includes/web_sidebar.html:41
 #: frappe/website/doctype/web_form/web_form.py:402
@@ -16819,7 +16826,7 @@ msgstr "No se exportarán registros"
 
 #: frappe/public/js/frappe/form/grid.js:63
 msgid "No rows"
-msgstr ""
+msgstr "Sin filas"
 
 #: frappe/email/doctype/notification/notification.py:129
 msgid "No subject"
@@ -17915,7 +17922,7 @@ msgstr "Las opciones no establecidas para el campo enlazado {0}"
 #: frappe/core/doctype/doctype_state/doctype_state.json
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Orange"
-msgstr ""
+msgstr "Naranja"
 
 #. Label of the order (Code) field in DocType 'Kanban Board Column'
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
@@ -18579,7 +18586,7 @@ msgstr "Error de Permiso"
 #. Name of a DocType
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 msgid "Permission Inspector"
-msgstr "Supervisor de permisos"
+msgstr "Supervisor de Permisos"
 
 #. Label of the permlevel (Int) field in DocType 'Custom Field'
 #: frappe/core/page/permission_manager/permission_manager.js:456
@@ -18744,7 +18751,7 @@ msgstr "Código PIN"
 #: frappe/core/doctype/doctype_state/doctype_state.json
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Pink"
-msgstr ""
+msgstr "Rosa"
 
 #. Label of the placeholder (Data) field in DocType 'DocField'
 #. Label of the placeholder (Data) field in DocType 'Custom Field'
@@ -19408,7 +19415,7 @@ msgstr "Vista previa de los nombres generados"
 
 #: frappe/public/js/frappe/views/render_preview.js:19
 msgid "Preview on {0}"
-msgstr ""
+msgstr "Vista previa en {0}"
 
 #: frappe/public/js/print_format_builder/Preview.vue:103
 msgid "Preview type"
@@ -19933,7 +19940,7 @@ msgstr "Usuario de compras"
 #: frappe/core/doctype/doctype_state/doctype_state.json
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Purple"
-msgstr ""
+msgstr "Morado"
 
 #. Name of a DocType
 #. Label of a Link in the Integrations Workspace
@@ -20439,7 +20446,7 @@ msgstr ""
 #: frappe/core/doctype/doctype_state/doctype_state.json
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Red"
-msgstr ""
+msgstr "Rojo"
 
 #. Label of the redirect_http_status (Select) field in DocType 'Website Route
 #. Redirect'
@@ -25392,7 +25399,7 @@ msgstr "Salto de Pestaña"
 
 #: frappe/public/js/form_builder/components/Tabs.vue:135
 msgid "Tab Label"
-msgstr ""
+msgstr "Etiqueta de pestaña"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of the table (Data) field in DocType 'Recorder Suggested Index'
@@ -27026,7 +27033,7 @@ msgstr "Árbol"
 
 #: frappe/public/js/frappe/list/base_list.js:211
 msgid "Tree View"
-msgstr ""
+msgstr "Vista en árbol"
 
 #. Description of the 'Is Tree' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -27575,7 +27582,7 @@ msgstr "Actualizando configuración global"
 
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.js:59
 msgid "Updating naming series options"
-msgstr ""
+msgstr "Actualizando opciones de la serie de nombres"
 
 #: frappe/public/js/frappe/form/toolbar.js:128
 msgid "Updating related fields..."
@@ -27598,15 +27605,15 @@ msgstr "Subir"
 
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:93
 msgid "Upload Image"
-msgstr ""
+msgstr "Cargar Imagen"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:198
 msgid "Upload file"
-msgstr ""
+msgstr "Cargar archivo"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:201
 msgid "Upload {0} files"
-msgstr ""
+msgstr "Cargar archivos {0}"
 
 #. Label of the uploaded_to_dropbox (Check) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
@@ -29328,7 +29335,7 @@ msgstr "Anual"
 #: frappe/core/doctype/doctype_state/doctype_state.json
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Yellow"
-msgstr ""
+msgstr "Amarillo"
 
 #. Option for the 'Standard' (Select) field in DocType 'Page'
 #. Option for the 'Is Standard' (Select) field in DocType 'Report'
@@ -31563,7 +31570,7 @@ msgstr "{} no es una cadena de fecha válida."
 
 #: frappe/commands/utils.py:547
 msgid "{} not found in PATH! This is required to access the console."
-msgstr "¡{} no encontrado en RUTA! Esto es necesario para acceder a la consola."
+msgstr "¡{} no encontrado en PATH! Esto es necesario para acceder a la consola."
 
 #: frappe/database/db_manager.py:95
 msgid "{} not found in PATH! This is required to restore the database."
