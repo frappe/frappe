@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-29 09:33+0000\n"
-"PO-Revision-Date: 2024-10-01 00:39\n"
+"PO-Revision-Date: 2024-10-03 01:15\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -12239,7 +12239,7 @@ msgstr "اگر اخیراً سایت را بازیابی کرده اید، مم�
 #. Description of the 'Parent Label' (Select) field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
 msgid "If you set this, this Item will come in a drop-down under the selected parent."
-msgstr "اگر این مورد را تنظیم کنید، این مورد به صورت کشویی در زیر والد انتخاب شده قرار می گیرد."
+msgstr "اگر این را تنظیم کنید، این آیتم به صورت کشویی در زیر والد انتخاب شده قرار می گیرد."
 
 #: frappe/templates/emails/administrator_logged_in.html:3
 msgid "If you think this is unauthorized, please change the Administrator password."
@@ -13492,7 +13492,7 @@ msgstr "حذف این فایل خطرناک است: {0}. لطفا با مدیر 
 #. Label of the item_label (Data) field in DocType 'Navbar Item'
 #: frappe/core/doctype/navbar_item/navbar_item.json
 msgid "Item Label"
-msgstr "برچسب مورد"
+msgstr "برچسب آیتم"
 
 #. Label of the item_type (Select) field in DocType 'Navbar Item'
 #: frappe/core/doctype/navbar_item/navbar_item.json
@@ -13501,7 +13501,7 @@ msgstr "نوع آیتم"
 
 #: frappe/utils/nestedset.py:229
 msgid "Item cannot be added to its own descendants"
-msgstr "مورد را نمی توان به فرزندان خود اضافه کرد"
+msgstr "آیتم را نمی توان به فرزندان خود اضافه کرد"
 
 #. Option for the 'Print Format Type' (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
