@@ -5,7 +5,7 @@ import json
 import time
 from collections.abc import Generator, Iterable
 from contextlib import contextmanager
-from functools import wraps
+from functools import singledispatchmethod, wraps
 from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, Union, overload
 
 from werkzeug.exceptions import NotFound
@@ -20,7 +20,7 @@ from frappe.model import optional_fields, table_fields
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name, validate_name
-from frappe.model.utils import is_virtual_doctype
+from frappe.model.utils import is_virtual_doctype, simple_singledispatch
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
 from frappe.types import DF
 from frappe.utils import compare, cstr, date_diff, file_lock, flt, now
@@ -37,7 +37,8 @@ DOCUMENT_LOCK_EXPIRTY = 12 * 60 * 60  # All locks expire in 12 hours automatical
 DOCUMENT_LOCK_SOFT_EXPIRY = 60 * 60  # Let users force-unlock after 60 minutes
 
 
-def get_doc(*args, **kwargs):
+@simple_singledispatch
+def get_doc(*args, **kwargs) -> "Document":
 	"""Return a `frappe.model.Document` object.
 
 	:param arg1: Document dict or DocType name.
@@ -64,31 +65,35 @@ def get_doc(*args, **kwargs):
 	        # select a document for update
 	        user = get_doc("User", "test@example.com", for_update=True)
 	"""
-	if args:
-		if isinstance(args[0], BaseDocument):
-			# already a document
-			return args[0]
-		elif isinstance(args[0], str):
-			doctype = args[0]
+	if not args and kwargs:
+		return get_doc_from_dict(kwargs)
+	else:
+		raise ValueError("First non keyword argument must be a string, dict or DocRef")
 
-		elif isinstance(args[0], dict):
-			# passed a dict
-			kwargs = args[0]
 
-		else:
-			raise ValueError("First non keyword argument must be a string or dict")
+@get_doc.register(BaseDocument)
+def _basedoc(doc: BaseDocument, *args, **kwargs) -> "Document":
+	return doc
 
-	if len(args) < 2 and kwargs:
-		if "doctype" in kwargs:
-			doctype = kwargs["doctype"]
-		else:
-			raise ValueError('"doctype" is a required key')
 
+@get_doc.register(str)
+def get_doc_str(doctype: str, name: str | None = None, **kwargs) -> "Document":
+	# if no name: it's a single
 	controller = get_controller(doctype)
 	if controller:
-		return controller(*args, **kwargs)
+		return controller(doctype, name, **kwargs)
 
 	raise ImportError(doctype)
+
+
+@get_doc.register(dict)
+def get_doc_from_dict(data: dict[str, Any], **kwargs) -> "Document":
+	if "doctype" not in data:
+		raise ValueError('"doctype" is a required key')
+	controller = get_controller(data["doctype"])
+	if controller:
+		return controller(**data)
+	raise ImportError(data["doctype"])
 
 
 @contextmanager
