@@ -5,11 +5,8 @@ import re
 from functools import partial
 
 import frappe
-from frappe.app import make_form_dict
 from frappe.desk.search import get_names_for_mentions, search_link, search_widget
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import set_request
-from frappe.website.serve import get_response
 
 
 class TestSearch(FrappeTestCase):
@@ -251,21 +248,3 @@ def teardown_test_link_field_order(TestCase):
 	)
 
 	TestCase.tree_doc.delete()
-
-
-class TestWebsiteSearch(FrappeTestCase):
-	def get(self, path, user="Guest"):
-		frappe.set_user(user)
-		set_request(method="GET", path=path)
-		make_form_dict(frappe.local.request)
-		response = get_response()
-		frappe.set_user("Administrator")
-		return response
-
-	def test_basic_search(self):
-		no_search = self.get("/search")
-		self.assertEqual(no_search.status_code, 200)
-
-		response = self.get("/search?q=b")
-		self.assertEqual(response.status_code, 200)
-		self.assertIn("Search Results", response.get_data(as_text=True))

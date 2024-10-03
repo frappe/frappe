@@ -1,9 +1,9 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.config import get_modules_from_all_apps_for_user
 from frappe.core.doctype.user.test_user import test_user
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils.modules import get_modules_from_all_apps_for_user
 
 
 class TestDashboard(FrappeTestCase):

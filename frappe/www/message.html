@@ -1,44 +1,35 @@
 {% extends "templates/web.html" %}
 
 {% block title %}{{ title or _("Message") }}{% endblock %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
 
 {% block page_content %}
 <style>
-{% include "templates/styles/card_style.css" %}
-{% if fullpage %}
-header, footer {
-	display: none;
-}
-html, body {
-	background-color: #f5f7fa;
-}
-{% endif %}
-{% if card_width %}
-.page-card {
-	max-width: {{ card_width }}px;
-}
-{% endif %}
+	body {
+		background-color: var(--subtle-accent);
+		font-size: var(--text-base);
+	}
 </style>
-<div class='page-card'>
-	<h5 class='page-card-head'>
-		<span class='indicator {{ indicator_color or "blue" }}'>
-			{{ title or _("Message") }}</span>
-	</h5>
-	<div class="page-card-body">
-	{% block message_body %}
-		{% if message %}
-		<p>{{ message }}</p>
-		{% endif %}
-		{% if primary_action %}
-		<div><a href='{{ primary_action or "/" }}' class='btn btn-primary btn-sm btn-block'>
-			{{ primary_label or _("Home") }}</a></div>
-		{% endif %}
-	{% endblock %}
+<div class='error-page'>
+	<div>
+		<h4 class='page-card-head'>{{ title or _("Message") }}</h4>
+		<div class="details">
+		{% block message_body %}
+			{% if message %}
+				<p>{{ message }}</p>
+				{% if error_code %}
+				<p class='text-muted text-center small' style='margin-top: -20px;'>{{ _("Status: {0}").format(error_code) }}</p>
+				{% endif %}
+			{% endif %}
+			{% if primary_action %}
+			<div><a href='{{ primary_action or "/" }}' class='btn btn-primary btn-sm btn-block'>
+				{{ primary_label or _("Home") }}</a></div>
+			{% endif %}
+		{% endblock %}
+		</div>
 	</div>
 </div>
-{% if error_code %}
-<p class='text-muted text-center small' style='margin-top: -20px;'>{{ _("Status: {0}").format(error_code) }}</p>
-{% endif %}
 <script>
 	frappe.ready(function() {
 		if (window.location.hash || window.location.href.includes('/app')) {

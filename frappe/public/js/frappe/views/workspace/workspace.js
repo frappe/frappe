@@ -61,6 +61,10 @@ frappe.views.Workspace = class Workspace {
 
 	prepare_new_and_edit() {
 		this.$page = $(`
+		<div class="workspace-header" style="display: flex; gap: 7px; margin-top: var(--margin-sm);">
+			<div class="workspace-icon"></div>
+			<h4 class="workspace-title"></h4>
+		</div>
 		<div class="editor-js-container"></div>
 		<div class="workspace-footer">
 			<button data-label="New" class="btn btn-default ellipsis btn-new-workspace">
@@ -94,7 +98,7 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	get_pages() {
-		return frappe.xcall("frappe.desk.desktop.get_workspace_sidebar_items");
+		return frappe.xcall("frappe.desk.desktop.get_workspace_sidebar_items", null, "GET");
 	}
 
 	show() {
@@ -105,6 +109,7 @@ frappe.views.Workspace = class Workspace {
 		}
 
 		let page = this.get_page_to_show();
+		if (this._page?.name === page.name) return; // already shown
 
 		if (!frappe.router.current_route[0]) {
 			frappe.route_flags.replace_route = true;
@@ -118,8 +123,13 @@ frappe.views.Workspace = class Workspace {
 
 	get_data(page) {
 		return frappe
-			.call("frappe.desk.desktop.get_desktop_page", {
-				page: page,
+			.call({
+				method: "frappe.desk.desktop.get_desktop_page",
+				args: {
+					// send sorted min requirements to increase chance of cache hit
+					page: { name: page.name, title: page.title, public: page.public },
+				},
+				type: "GET",
 			})
 			.then((data) => {
 				this.page_data = data.message;
@@ -150,12 +160,12 @@ frappe.views.Workspace = class Workspace {
 
 		if (frappe.boot.user.default_workspace) {
 			default_page = {
-				name: frappe.boot.user.default_workspace.title,
+				name: frappe.boot.user.default_workspace.name,
 				public: frappe.boot.user.default_workspace.public,
 			};
 		} else if (
 			localStorage.current_page &&
-			this.sidebar.all_pages.filter((page) => page.title == localStorage.current_page)
+			this.sidebar.all_pages.filter((page) => page.name == localStorage.current_page)
 				.length != 0
 		) {
 			default_page = {
@@ -164,7 +174,7 @@ frappe.views.Workspace = class Workspace {
 			};
 		} else if (Object.keys(this.sidebar.all_pages).length !== 0) {
 			default_page = {
-				name: this.sidebar.all_pages[0].title,
+				name: this.sidebar.all_pages[0].name,
 				public: this.sidebar.all_pages[0].public,
 			};
 		} else {
@@ -174,6 +184,7 @@ frappe.views.Workspace = class Workspace {
 		const route = frappe.get_route();
 		const page = (route[1] == "private" ? route[2] : route[1]) || default_page.name;
 		const is_public = route[1] ? route[1] != "private" : default_page.public;
+
 		return { name: page, public: is_public };
 	}
 
@@ -187,10 +198,26 @@ frappe.views.Workspace = class Workspace {
 		if (this.sidebar.all_pages.length) {
 			this.create_page_skeleton();
 
-			let current_page = this.sidebar.all_pages.filter((p) => p.title == page.name)[0];
+			let current_page = this.sidebar.all_pages.find((p) => p.name == page.name);
 			this._page = current_page;
-			this.content = current_page && JSON.parse(current_page.content);
 
+			// set app
+			let app;
+			if (!this._page.public) {
+				app = "private";
+			} else {
+				app = this._page.app;
+				if (!app && this._page.module) {
+					app = frappe.boot.module_app[frappe.router.slug(this._page.module)];
+				}
+				if (!app) app = "frappe";
+			}
+
+			if (typeof current_page.content == "string") {
+				current_page.content = JSON.parse(current_page.content);
+			}
+
+			this.content = current_page.content;
 			this.content && this.add_custom_cards_in_content();
 
 			$(".item-anchor").addClass("disable-click");
@@ -205,8 +232,17 @@ frappe.views.Workspace = class Workspace {
 
 			this.prepare_editorjs();
 			$(".item-anchor").removeClass("disable-click");
+			$(".body-sidebar-container").removeClass("expanded");
 
 			this.remove_page_skeleton();
+			frappe.app.sidebar.set_current_app(app);
+			this.wrapper.find(".workspace-title").html(__(this._page.title));
+			this.wrapper
+				.find(".workspace-icon")
+				.html(frappe.utils.icon(this._page.icon || "folder-normal", "md"));
+
+			localStorage.current_page = current_page.name;
+			localStorage.is_current_page_public = current_page.public ? "true" : "false";
 		}
 	}
 
@@ -233,7 +269,7 @@ frappe.views.Workspace = class Workspace {
 				this.editor.configuration.tools.chart.config.page_data = this.page_data;
 				this.editor.configuration.tools.shortcut.config.page_data = this.page_data;
 				this.editor.configuration.tools.card.config.page_data = this.page_data;
-				this.editor.configuration.tools.onboarding.config.page_data = this.page_data;
+				// this.editor.configuration.tools.onboarding.config.page_data = this.page_data;
 				this.editor.configuration.tools.quick_list.config.page_data = this.page_data;
 				this.editor.configuration.tools.number_card.config.page_data = this.page_data;
 				this.editor.configuration.tools.custom_block.config.page_data = this.page_data;
@@ -245,7 +281,7 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	setup_actions(page) {
-		let current_page = this.sidebar.all_pages.filter((p) => p.title == page.name)[0];
+		let current_page = this.sidebar.all_pages.filter((p) => p.name == page.name)[0];
 
 		if (!this.is_read_only) {
 			this.setup_customization_buttons(current_page);
@@ -276,12 +312,22 @@ frappe.views.Workspace = class Workspace {
 		this.page.clear_primary_action();
 		this.page.clear_secondary_action();
 		this.page.clear_inner_toolbar();
+
+		// switch headers
+		if (!this.body.hasClass("edit-mode")) {
+			this.wrapper.find(".page-head").addClass("hidden");
+			this.wrapper.find(".workspace-header").removeClass("hidden");
+		}
 	}
 
 	setup_customization_buttons(page) {
 		this.body.addClass("edit-mode");
 		this.initialize_editorjs_undo();
 		this.clear_page_actions();
+
+		// switch headers
+		this.wrapper.find(".page-head").removeClass("hidden");
+		this.wrapper.find(".workspace-header").addClass("hidden");
 
 		page.is_editable &&
 			this.page.set_primary_action(
@@ -317,103 +363,6 @@ frappe.views.Workspace = class Workspace {
 		}
 	}
 
-	edit_page(item) {
-		var me = this;
-		let old_item = item;
-		let parent_pages = this.sidebar.all_pages;
-		let idx = parent_pages.findIndex((x) => x == item.title);
-		if (idx !== -1) parent_pages.splice(idx, 1);
-		const d = new frappe.ui.Dialog({
-			title: __("Update Details"),
-			fields: [
-				{
-					label: __("Title"),
-					fieldtype: "Data",
-					fieldname: "title",
-					reqd: 1,
-					default: item.title,
-				},
-				{
-					label: __("Parent"),
-					fieldtype: "Select",
-					fieldname: "parent",
-					options: parent_pages,
-					default: item.parent_page,
-				},
-				{
-					label: __("Public"),
-					fieldtype: "Check",
-					fieldname: "is_public",
-					depends_on: `eval:${this.has_access}`,
-					default: item.public,
-					onchange: function () {
-						d.set_df_property(
-							"parent",
-							"options",
-							this.get_value() ? me.public_parent_pages : me.private_parent_pages
-						);
-						d.set_df_property("icon", "hidden", this.get_value() ? 0 : 1);
-						d.set_df_property("indicator_color", "hidden", this.get_value() ? 1 : 0);
-					},
-				},
-				{
-					fieldtype: "Column Break",
-				},
-				{
-					label: __("Icon"),
-					fieldtype: "Icon",
-					fieldname: "icon",
-					default: item.public && item.icon,
-					hidden: !item.public,
-				},
-				{
-					label: __("Indicator color"),
-					fieldtype: "Select",
-					fieldname: "indicator_color",
-					options: this.indicator_colors,
-					default: !item.public && item.indicator_color,
-					hidden: item.public,
-				},
-			],
-			primary_action_label: __("Update"),
-			primary_action: (values) => {
-				values.title = strip_html(values.title);
-				frappe.call({
-					method: "frappe.desk.doctype.workspace.workspace.update_page",
-					args: {
-						name: old_item.name,
-						title: values.title,
-						icon: values.icon || "",
-						indicator_color: values.indicator_color || "",
-						parent: values.parent || "",
-						public: values.is_public || 0,
-					},
-					callback: function (res) {
-						if (res.message) {
-							let message = __("Workspace {0} Edited Successfully", [
-								old_item.title.bold(),
-							]);
-							if (!window.Cypress) {
-								frappe.show_alert({ message: message, indicator: "green" });
-							}
-						}
-					},
-				});
-
-				if (this.make_page_selected) {
-					let pre_url = values.is_public ? "" : "private/";
-					let route = pre_url + frappe.router.slug(values.title);
-					frappe.set_route(route);
-
-					this.make_page_selected = false;
-				}
-
-				this.sidebar.make_sidebar();
-			},
-		});
-		d.show();
-	}
-
 	make_blocks_sortable() {
 		let me = this;
 		this.page_sortable = Sortable.create(
@@ -443,6 +392,41 @@ frappe.views.Workspace = class Workspace {
 					fieldtype: "Data",
 					fieldname: "title",
 					reqd: 1,
+				},
+				{
+					label: __("Type"),
+					fieldtype: "Select",
+					fieldname: "type",
+					options: ["Workspace", "Link", "URL"],
+					reqd: 1,
+					onchange: function () {
+						d.set_df_property("link_type", "hidden", this.get_value() != "Link");
+						d.set_df_property("link_to", "hidden", this.get_value() != "Link");
+					},
+				},
+				{
+					label: __("Link Type"),
+					depends_on: `eval:doc.type=='Link'`,
+					mandatory_depends_on: `eval:doc.type=='Link'`,
+					fieldtype: "Select",
+					fieldname: "link_type",
+					options: ["DocType", "Page", "Report"],
+				},
+				{
+					label: __("Link To"),
+					depends_on: `eval:doc.type=='Link'`,
+					mandatory_depends_on: `eval:doc.type=='Link'`,
+					fieldtype: "Dynamic Link",
+					fieldname: "link_to",
+					options: "link_type",
+				},
+				{
+					label: __("External Link"),
+					depends_on: `eval:doc.type=='URL'`,
+					mandatory_depends_on: `eval:doc.type=='URL'`,
+					fieldtype: "Data",
+					fieldname: "external_link",
+					options: "URL",
 				},
 				{
 					label: __("Parent"),
@@ -484,7 +468,9 @@ frappe.views.Workspace = class Workspace {
 			primary_action: (values) => {
 				values.title = strip_html(values.title);
 				d.hide();
-				this.setup_customization_buttons({ is_editable: true });
+				if (values.type === "Workspace") {
+					this.setup_customization_buttons({ is_editable: true });
+				}
 
 				let name = values.title + (values.is_public ? "" : "-" + frappe.session.user);
 				let blocks = [
@@ -506,48 +492,62 @@ frappe.views.Workspace = class Workspace {
 					parent_page: values.parent || "",
 					is_editable: true,
 					selected: true,
+					app: frappe.current_app,
+					type: values.type,
+					link_type: values.link_type,
+					link_to: values.link_to,
+					external_link: values.external_link,
 				};
 
-				this.editor
-					.render({
-						blocks: blocks,
-					})
-					.then(async () => {
-						if (this.editor.configuration.readOnly) {
-							this.is_read_only = false;
-							await this.editor.readOnly.toggle();
-						}
+				if (new_page.type !== "Workspace") {
+					this.create_page(new_page);
+				} else {
+					this.editor
+						.render({
+							blocks: blocks,
+						})
+						.then(async () => {
+							if (this.editor.configuration.readOnly) {
+								this.is_read_only = false;
+								await this.editor.readOnly.toggle();
+							}
 
-						frappe.call({
-							method: "frappe.desk.doctype.workspace.workspace.new_page",
-							args: {
-								new_page: new_page,
-							},
-							callback: (r) => {
-								if (r.message) {
-									let message = __("Workspace {0} created", [
-										new_page.title.bold(),
-									]);
-									if (!window.Cypress) {
-										frappe.show_alert({
-											message: message,
-											indicator: "green",
-										});
-									}
-
-									frappe.boot.sidebar_pages = r.message;
-									this.sidebar.setup_pages();
-
-									let pre_url = new_page.public ? "" : "private/";
-									let route = pre_url + frappe.router.slug(new_page.title);
-									frappe.set_route(route);
-								}
-							},
+							this.create_page(new_page).then(() => {
+								let pre_url = new_page.public ? "" : "private/";
+								let route = pre_url + frappe.router.slug(new_page.title);
+								frappe.set_route(route);
+							});
 						});
-					});
+				}
 			},
 		});
 		d.show();
+	}
+
+	create_page(new_page) {
+		return new Promise((resolve) => {
+			frappe.call({
+				method: "frappe.desk.doctype.workspace.workspace.new_page",
+				args: {
+					new_page: new_page,
+				},
+				callback: (r) => {
+					if (r.message) {
+						let message = __("Workspace {0} created", [new_page.title.bold()]);
+						if (!window.Cypress) {
+							frappe.show_alert({
+								message: message,
+								indicator: "green",
+							});
+						}
+
+						frappe.boot.sidebar_pages = r.message;
+						this.sidebar.setup_pages();
+						resolve();
+					}
+				},
+			});
+		});
 	}
 
 	initialize_editorjs(blocks) {
@@ -625,7 +625,7 @@ frappe.views.Workspace = class Workspace {
 
 	save_page(page) {
 		let me = this;
-		this.current_page = { name: page.title, public: page.public };
+		this.current_page = { name: page.name, public: page.public };
 
 		return this.editor
 			.save()
@@ -665,7 +665,7 @@ frappe.views.Workspace = class Workspace {
 				frappe.call({
 					method: "frappe.desk.doctype.workspace.workspace.save_page",
 					args: {
-						title: page.title,
+						name: page.name,
 						public: page.public || 0,
 						new_widgets: new_widgets,
 						blocks: JSON.stringify(blocks),
@@ -692,6 +692,7 @@ frappe.views.Workspace = class Workspace {
 
 	reload() {
 		delete this.pages[this._page.name];
+		this._page = null;
 		return this.get_pages().then((r) => {
 			frappe.boot.sidebar_pages = r;
 			this.sidebar.setup_pages();
@@ -705,13 +706,17 @@ frappe.views.Workspace = class Workspace {
 			"",
 			...this.sidebar.all_pages
 				.filter((p) => p.public && !p.parent_page)
-				.map((p) => p.title),
+				.map((p) => {
+					return { label: p.title, value: p.name };
+				}),
 		];
 		this.private_parent_pages = [
 			"",
 			...this.sidebar.all_pages
 				.filter((p) => !p.public && !p.parent_page)
-				.map((p) => p.title),
+				.map((p) => {
+					return { label: p.title, value: p.name };
+				}),
 		];
 
 		if (page) {

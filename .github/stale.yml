@@ -10,12 +10,16 @@ daysUntilClose: 3
 # Issues or Pull Requests with these labels will never be considered stale. Set to `[]` to disable
 exemptLabels:
   - hotfix
+  - no-stale
 
 # Set to true to ignore issues in a project (defaults to false)
 exemptProjects: false
 
 # Set to true to ignore issues in a milestone (defaults to false)
 exemptMilestones: true
+
+# Skip the stale action for draft PRs
+exemptDraftPr: true
 
 # Label to use when marking as stale
 staleLabel: inactive

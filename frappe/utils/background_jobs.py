@@ -204,7 +204,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	retval = None
 
 	if is_async:
-		frappe.init(site=site)
+		frappe.init(site)
 		frappe.connect()
 		if os.environ.get("CI"):
 			frappe.flags.in_test = True

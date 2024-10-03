@@ -1,17 +1,24 @@
 .error-page {
-	margin: 3rem 0;
-	text-align: center;
+	height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 
-	.img-404 {
-		width: 40%;
-		margin: var(--margin-2xl) auto;
-
-		@include media-breakpoint-down(sm) {
-			width: 80%;
-		}
+	p,
+	h4 {
+		color: var(--text-light);
 	}
 
-	.back-to-home {
-		@include get_textstyle("base", "regular");
+	h4 {
+		text-align: center;
+		margin-top: 0px;
+	}
+
+	.details {
+		border-top: 1px solid var(--border-color);
+		margin-top: var(--margin-md);
+		padding-top: var(--padding-md);
+		max-width: 800px;
+		text-align: center;
 	}
 }

@@ -1,7 +1,11 @@
 import copy
 import datetime
+import functools
 import os
+import pdb
 import signal
+import sys
+import traceback
 import unittest
 from collections.abc import Sequence
 from contextlib import contextmanager
@@ -15,6 +19,75 @@ from frappe.utils import cint
 from frappe.utils.data import convert_utc_to_timezone, get_datetime, get_system_timezone
 
 datetime_like_types = (datetime.datetime, datetime.date, datetime.time, datetime.timedelta)
+
+
+def debug_on(*exceptions):
+	"""
+	A decorator to automatically start the debugger when specified exceptions occur.
+
+	This decorator allows you to automatically invoke the debugger (pdb) when certain
+	exceptions are raised in the decorated function. If no exceptions are specified,
+	it defaults to catching AssertionError.
+
+	Args:
+	        *exceptions: Variable length argument list of exception classes to catch.
+	                If none provided, defaults to (AssertionError,).
+
+	Returns:
+	        function: A decorator function.
+
+	Usage:
+	        1. Basic usage (catches AssertionError):
+	                @debug_on()
+	                def test_assertion_error():
+	                        assert False, "This will start the debugger"
+
+	        2. Catching specific exceptions:
+	                @debug_on(ValueError, TypeError)
+	                def test_specific_exceptions():
+	                        raise ValueError("This will start the debugger")
+
+	        3. Using on a method in a test class:
+	                class TestMyFunctionality(unittest.TestCase):
+	                        @debug_on(ZeroDivisionError)
+	                        def test_division_by_zero(self):
+	                                result = 1 / 0
+
+	Note:
+	        When an exception is caught, this decorator will print the exception traceback
+	        and then start the post-mortem debugger, allowing you to inspect the state of
+	        the program at the point where the exception was raised.
+	"""
+	if not exceptions:
+		exceptions = (AssertionError,)
+
+	def decorator(f):
+		@functools.wraps(f)
+		def wrapper(*args, **kwargs):
+			try:
+				return f(*args, **kwargs)
+			except exceptions as e:
+				exc_type, exc_value, exc_traceback = sys.exc_info()
+				# Pretty print the exception
+				print("\n\033[91m" + "=" * 60 + "\033[0m")  # Red line
+				print("\033[93m" + str(exc_type.__name__) + ": " + str(exc_value) + "\033[0m")
+				print("\033[91m" + "=" * 60 + "\033[0m")  # Red line
+
+				# Print the formatted traceback
+				traceback_lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+				for line in traceback_lines:
+					print("\033[96m" + line.rstrip() + "\033[0m")  # Cyan color
+
+				print("\033[91m" + "=" * 60 + "\033[0m")  # Red line
+				print("\033[92mEntering post-mortem debugging\033[0m")
+				print("\033[91m" + "=" * 60 + "\033[0m")  # Red line
+				pdb.post_mortem()
+
+				raise e
+
+		return wrapper
+
+	return decorator
 
 
 class FrappeTestCase(unittest.TestCase):
@@ -33,6 +106,7 @@ class FrappeTestCase(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
 		cls.TEST_SITE = getattr(frappe.local, "site", None) or cls.TEST_SITE
+		frappe.init(cls.TEST_SITE)
 		cls.ADMIN_PASSWORD = frappe.get_conf(cls.TEST_SITE).admin_password
 		cls._primary_connection = frappe.local.db
 		cls._secondary_connection = None
@@ -46,6 +120,9 @@ class FrappeTestCase(unittest.TestCase):
 		cls.addClassCleanup(_rollback_db)
 
 		return super().setUpClass()
+
+	def _apply_debug_decorator(self, exceptions=()):
+		setattr(self, self._testMethodName, debug_on(*exceptions)(getattr(self, self._testMethodName)))
 
 	def assertSequenceSubset(self, larger: Sequence, smaller: Sequence, msg=None):
 		"""Assert that `expected` is a subset of `actual`."""
@@ -77,7 +154,7 @@ class FrappeTestCase(unittest.TestCase):
 			)
 		elif isinstance(expected, bool | int):
 			self.assertEqual(expected, cint(actual), msg=msg)
-		elif isinstance(expected, datetime_like_types):
+		elif isinstance(expected, datetime_like_types) or isinstance(actual, datetime_like_types):
 			self.assertEqual(str(expected), str(actual), msg=msg)
 		else:
 			self.assertEqual(expected, actual, msg=msg)

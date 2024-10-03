@@ -147,6 +147,15 @@ frappe.ui.form.on("User", {
 					__("Permissions")
 				);
 
+				frm.add_custom_button(
+					__("View Doctype Permissions"),
+					() =>
+						frappe.set_route("query-report", "User Doctype Permissions", {
+							user: frm.doc.name,
+						}),
+					__("Permissions")
+				);
+
 				frm.toggle_display(["sb1", "sb3", "modules_access"], true);
 			}
 

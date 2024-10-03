@@ -20,11 +20,12 @@ context("Workspace Blocks", () => {
 		cy.get(".codex-editor__redactor .ce-block");
 		cy.get(".btn-new-workspace").click();
 		cy.fill_field("title", "Test Block Page", "Data");
+		cy.fill_field("type", "Workspace", "Select");
 		cy.get_open_dialog().find(".modal-header").click();
 		cy.get_open_dialog().find(".btn-primary").click();
 
 		// check if sidebar item is added in private section
-		cy.get('.sidebar-item-container[item-name="Test Block Page"]').should(
+		cy.get('.sidebar-item-container[item-title="Test Block Page"]').should(
 			"have.attr",
 			"item-public",
 			"0"
@@ -32,7 +33,7 @@ context("Workspace Blocks", () => {
 		cy.wait(300);
 		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
 		cy.wait(300);
-		cy.get('.sidebar-item-container[item-name="Test Block Page"]').should(
+		cy.get('.sidebar-item-container[item-title="Test Block Page"]').should(
 			"have.attr",
 			"item-public",
 			"0"

@@ -16,8 +16,8 @@ frappe.ui.form.ControlComment = class ControlComment extends frappe.ui.form.Cont
 
 					<div class="form-stats-likes">
 						<span class="liked-by like-action d-flex align-items-center">
-							<svg class="es-icon icon-sm">
-								<use href="#es-solid-heart" class="like-icon"></use>
+							<svg class="icon icon-sm like-icon">
+								<use href="#icon-heart"></use>
 							</svg>
 							<span class="like-count ml-2"></span>
 						</span>

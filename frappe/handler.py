@@ -102,11 +102,7 @@ def is_valid_http_method(method):
 	http_method = frappe.local.request.method
 
 	if http_method not in frappe.allowed_http_methods_for_whitelisted_func[method]:
-		throw_permission_error()
-
-
-def throw_permission_error():
-	frappe.throw(_("Not permitted"), frappe.PermissionError)
+		frappe.throw_permission_error()
 
 
 @frappe.whitelist(allow_guest=True)
@@ -177,6 +173,7 @@ def upload_file():
 				args["max_height"] = int(frappe.form_dict.max_height)
 			content = optimize_image(**args)
 
+	frappe.local.uploaded_file_url = file_url
 	frappe.local.uploaded_file = content
 	frappe.local.uploaded_filename = filename
 
@@ -270,7 +267,7 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 		doc.check_if_latest()
 
 	if not doc or not doc.has_permission("read"):
-		throw_permission_error()
+		frappe.throw_permission_error()
 
 	try:
 		args = frappe.parse_json(args)

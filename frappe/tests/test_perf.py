@@ -41,7 +41,7 @@ class TestPerformance(FrappeTestCase):
 	def reset_request_specific_caches(self):
 		# To simulate close to request level of handling
 		frappe.destroy()  # releases everything on frappe.local
-		frappe.init(site=self.TEST_SITE)
+		frappe.init(self.TEST_SITE)
 		frappe.connect()
 		frappe.clear_cache()
 

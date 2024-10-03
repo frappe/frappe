@@ -30,9 +30,11 @@
 .form-section,
 .form-dashboard-section {
 	.form-section-description {
+		max-width: var(--page-max-width);
+		margin: auto;
 		margin-bottom: 10px;
 		@include get_textstyle("base", "regular");
-		color: var(--heading-color);
+		color: var(--text-light);
 	}
 
 	.section-head {
@@ -81,11 +83,15 @@
 	max-width: 100% !important;
 }
 
+#customize-form-form_tab .section-body {
+	max-width: 100% !important;
+}
+
 .form-column {
 	.form-column-description {
 		margin-bottom: 10px;
 		font-size: var(--text-xs);
-		color: var(--text-muted);
+		color: var(--text-light);
 		padding-left: 0;
 	}
 
@@ -431,8 +437,8 @@
 // above mobile
 @media (min-width: map-get($grid-breakpoints, "md")) {
 	// for 1, 2 column layouts, implement horizontal, else vertical
-	.col-sm-12 .horizontal,
-	.col-sm-6 .horizontal {
+	.col-sm-12 > form > .frappe-control > .horizontal,
+	.col-sm-6 > form > .frappe-control > .horizontal {
 		display: flex;
 		justify-content: space-between;
 		vertical-align: middle;
@@ -502,6 +508,7 @@
 }
 .form-tab-content {
 	scroll-margin-top: calc(var(--navbar-height) + 52px);
+	margin-top: var(--margin-sm);
 }
 .form-tabs-sticky-up {
 	top: calc(var(--navbar-height) - 1px);

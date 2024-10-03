@@ -17,6 +17,7 @@
 	display: flex;
 	gap: 0.5em;
 	overflow-y: hidden;
+	margin: var(--margin-sm);
 
 	-ms-overflow-style: none; /* IE and Edge */
 	scrollbar-width: none; /* Firefox */
@@ -31,7 +32,9 @@
 		flex: 1 0 260px;
 		border-radius: var(--border-radius);
 		padding: var(--padding-md);
-		min-height: calc(100vh - 150px);
+		min-height: calc(
+			100vh - var(--navbar-height) - var(--page-head-height) - var(--margin-sm) * 2
+		);
 
 		.add-card {
 			@include flex(flex, center, center, null);

@@ -7,7 +7,7 @@ context("Workspace 2.0", () => {
 	it("Navigate to page from sidebar", () => {
 		cy.visit("/app/build");
 		cy.get(".codex-editor__redactor .ce-block");
-		cy.get('.sidebar-item-container[item-name="Website"]').first().click();
+		cy.get('.sidebar-item-container[item-title="Website"]').first().click();
 		cy.location("pathname").should("eq", "/app/website");
 	});
 
@@ -20,13 +20,14 @@ context("Workspace 2.0", () => {
 		cy.get(".codex-editor__redactor .ce-block");
 		cy.get(".btn-new-workspace").click();
 		cy.fill_field("title", "Test Private Page", "Data");
+		cy.fill_field("type", "Workspace", "Select");
 		cy.wait(300);
 
 		cy.get_open_dialog().find(".modal-header").click();
 		cy.get_open_dialog().find(".btn-primary").click();
 
 		// check if sidebar item is added in pubic section
-		cy.get('.sidebar-item-container[item-name="Test Private Page"]').should(
+		cy.get('.sidebar-item-container[item-title="Test Private Page"]').should(
 			"have.attr",
 			"item-public",
 			"0"
@@ -34,7 +35,7 @@ context("Workspace 2.0", () => {
 		cy.wait(300);
 		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
 		cy.wait(300);
-		cy.get('.sidebar-item-container[item-name="Test Private Page"]').should(
+		cy.get('.sidebar-item-container[item-title="Test Private Page"]').should(
 			"have.attr",
 			"item-public",
 			"0"
@@ -53,12 +54,13 @@ context("Workspace 2.0", () => {
 		cy.get(".btn-new-workspace").click();
 		cy.fill_field("title", "Test Child Page", "Data");
 		cy.fill_field("parent", "Test Private Page", "Select");
+		cy.fill_field("type", "Workspace", "Select");
 		cy.get_open_dialog().find(".modal-header").click();
 		cy.wait(300);
 		cy.get_open_dialog().find(".btn-primary").click();
 
 		// check if sidebar item is added in pubic section
-		cy.get('.sidebar-item-container[item-name="Test Child Page"]').should(
+		cy.get('.sidebar-item-container[item-title="Test Child Page"]').should(
 			"have.attr",
 			"item-public",
 			"0"
@@ -66,7 +68,7 @@ context("Workspace 2.0", () => {
 		cy.wait(300);
 		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
 		cy.wait(300);
-		cy.get('.sidebar-item-container[item-name="Test Child Page"]').should(
+		cy.get('.sidebar-item-container[item-title="Test Child Page"]').should(
 			"have.attr",
 			"item-public",
 			"0"
@@ -76,7 +78,7 @@ context("Workspace 2.0", () => {
 	});
 
 	it("Add New Block", () => {
-		cy.get('.sidebar-item-container[item-name="Test Private Page"]').as("sidebar-item");
+		cy.get('.sidebar-item-container[item-title="Test Private Page"]').as("sidebar-item");
 
 		cy.get("@sidebar-item").find(".standard-sidebar-item").first().click({ force: true });
 

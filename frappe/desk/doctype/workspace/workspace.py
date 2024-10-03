@@ -30,9 +30,11 @@ class Workspace(Document):
 		from frappe.desk.doctype.workspace_shortcut.workspace_shortcut import WorkspaceShortcut
 		from frappe.types import DF
 
+		app: DF.Data | None
 		charts: DF.Table[WorkspaceChart]
 		content: DF.LongText | None
 		custom_blocks: DF.Table[WorkspaceCustomBlock]
+		external_link: DF.Data | None
 		for_user: DF.Data | None
 		hide_custom: DF.Check
 		indicator_color: DF.Literal[
@@ -51,10 +53,12 @@ class Workspace(Document):
 		]
 		is_hidden: DF.Check
 		label: DF.Data
+		link_to: DF.DynamicLink | None
+		link_type: DF.Literal["DocType", "Page", "Report"]
 		links: DF.Table[WorkspaceLink]
 		module: DF.Link | None
 		number_cards: DF.Table[WorkspaceNumberCard]
-		parent_page: DF.Data | None
+		parent_page: DF.Link | None
 		public: DF.Check
 		quick_lists: DF.Table[WorkspaceQuickList]
 		restrict_to_domain: DF.Link | None
@@ -62,6 +66,7 @@ class Workspace(Document):
 		sequence_id: DF.Float
 		shortcuts: DF.Table[WorkspaceShortcut]
 		title: DF.Data
+		type: DF.Literal["Workspace", "Link", "URL"]
 	# end: auto-generated types
 
 	def validate(self):
@@ -83,6 +88,11 @@ class Workspace(Document):
 		for d in self.get("links"):
 			if d.link_type == "Report" and d.is_query_report != 1:
 				d.report_ref_doctype = frappe.get_value("Report", d.link_to, "ref_doctype")
+
+		if not self.app and self.module:
+			from frappe.modules.utils import get_module_app
+
+			self.app = get_module_app(self.module)
 
 	def clear_cache(self):
 		super().clear_cache()
@@ -261,13 +271,18 @@ def new_page(new_page):
 
 	doc = frappe.new_doc("Workspace")
 	doc.title = page.get("title")
-	doc.icon = page.get("icon") or "dashboard"
+	doc.icon = page.get("icon") or "grid"
 	doc.indicator_color = page.get("indicator_color")
 	doc.content = page.get("content")
 	doc.parent_page = page.get("parent_page")
 	doc.label = page.get("label")
 	doc.for_user = page.get("for_user")
 	doc.public = page.get("public")
+	doc.app = page.get("app")
+	doc.type = page.get("type")
+	doc.link_to = page.get("link_to")
+	doc.link_type = page.get("link_type")
+	doc.external_link = page.get("external_link")
 	doc.sequence_id = last_sequence_id(doc) + 1
 	doc.save(ignore_permissions=True)
 
@@ -275,24 +290,15 @@ def new_page(new_page):
 
 
 @frappe.whitelist()
-def save_page(title, public, new_widgets, blocks):
+def save_page(name, public, new_widgets, blocks):
 	public = frappe.parse_json(public)
 
-	filters = {"public": public, "label": title}
-
-	if not public:
-		filters = {"for_user": frappe.session.user, "label": title + "-" + frappe.session.user}
-	pages = frappe.get_all("Workspace", filters=filters)
-	if pages:
-		doc = frappe.get_doc("Workspace", pages[0])
-	else:
-		frappe.throw(_("Workspace not found"), frappe.DoesNotExistError)
-
+	doc = frappe.get_doc("Workspace", name)
 	doc.content = blocks
 
-	save_new_widget(doc, title, blocks, new_widgets)
+	save_new_widget(doc, name, blocks, new_widgets)
 
-	return {"name": title, "public": public, "label": doc.label}
+	return {"name": name, "public": public, "label": doc.label}
 
 
 @frappe.whitelist()
