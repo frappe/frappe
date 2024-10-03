@@ -13,6 +13,8 @@
   "document_type",
   "column_break_kkyr",
   "document_name",
+  "section_break_jlam",
+  "whitelisted_methods",
   "api_resource_section",
   "url",
   "column_break_cvbv",
@@ -100,11 +102,22 @@
    "fieldtype": "JSON",
    "label": "Filters",
    "max_height": "100px"
+  },
+  {
+   "fieldname": "section_break_jlam",
+   "fieldtype": "Section Break",
+   "hide_border": 1
+  },
+  {
+   "fieldname": "whitelisted_methods",
+   "fieldtype": "JSON",
+   "label": "Whitelisted Methods",
+   "max_height": "100px"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-10-01 22:29:48.784772",
+ "modified": "2024-10-04 03:37:67.784712",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Resource",

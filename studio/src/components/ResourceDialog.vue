@@ -53,12 +53,6 @@
 					</template>
 					<template v-else>
 						<Link doctype="DocType" label="Document Type" v-model="newResource.document_type" />
-						<Link
-							v-if="newResource.resource_type === 'Document' && newResource.document_type"
-							:doctype="newResource.document_type"
-							label="Document Name"
-							v-model="newResource.document_name"
-						/>
 						<FormControl
 							v-if="newResource.resource_type === 'Document List' && newResource.document_type"
 							type="autocomplete"
@@ -66,6 +60,20 @@
 							:placeholder="`Select fields from ${newResource.document_type}`"
 							v-model="newResource.fields"
 							:options="doctypeFields"
+							:multiple="true"
+						/>
+						<Link
+							v-if="newResource.resource_type === 'Document' && newResource.document_type"
+							:doctype="newResource.document_type"
+							label="Document Name"
+							v-model="newResource.document_name"
+						/>
+						<FormControl
+							v-if="newResource.resource_type === 'Document' && newResource.document_type"
+							type="autocomplete"
+							label="Whitelisted Methods"
+							v-model="newResource.whitelisted_methods"
+							:options="whitelistedMethods"
 							:multiple="true"
 						/>
 						<Filters
@@ -115,6 +123,7 @@ const emptyResource = {
 	document_name: "",
 	fields: [],
 	filters: {},
+	whitelisted_methods: [],
 	transform_results: false,
 	transform: "",
 }
@@ -122,6 +131,7 @@ const emptyResource = {
 const newResource = ref({ ...emptyResource })
 const doctypeFields = ref([])
 const filterFields = ref([])
+const whitelistedMethods = ref([])
 
 const getTransformFnBoilerplate = (resource_type) => {
 	if (resource_type == "Document") {
@@ -136,6 +146,10 @@ watch(
 	async () => {
 		if (newResource.value.document_type) {
 			setDoctypeFields()
+		}
+
+		if (newResource.value.resource_type === "Document") {
+			setWhitelistedMethods()
 		}
 	},
 )
@@ -163,5 +177,22 @@ async function setDoctypeFields() {
 	})
 	await fields.reload()
 	doctypeFields.value = fields.data
+}
+
+async function setWhitelistedMethods() {
+	const methods = createResource({
+		url: "studio.api.get_whitelisted_methods",
+		params: { doctype: newResource.value.document_type },
+		transform: (data) => {
+			return data.map((method) => {
+				return {
+					label: method,
+					value: method,
+				}
+			})
+		},
+	})
+	await methods.reload()
+	whitelistedMethods.value = methods.data
 }
 </script>

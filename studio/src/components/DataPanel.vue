@@ -66,7 +66,6 @@ const addResource = (resource) => {
 		attachResource(resource)
 		return
 	}
-	const fields = getAutocompleteValues(resource.fields)
 
 	studioResources.insert
 		.submit({
@@ -76,8 +75,9 @@ const addResource = (resource) => {
 			document_name: resource.document_name,
 			url: resource.url,
 			method: resource.method,
-			fields: fields,
+			fields: getAutocompleteValues(resource.fields),
 			filters: resource.filters,
+			whitelisted_methods: getAutocompleteValues(resource.whitelisted_methods),
 			transform_results: resource.transform_results,
 			transform: resource.transform,
 		})
