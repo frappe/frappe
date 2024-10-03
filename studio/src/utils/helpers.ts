@@ -317,6 +317,16 @@ function getTransforms(resource) {
 	return {}
 }
 
+function getWhitelistedMethods(resource) {
+	if (resource.whitelisted_methods) {
+		const whitelisted_methods = JSON.parse(resource.whitelisted_methods || [])
+		const methods: Record<string, string> = {}
+		whitelisted_methods.forEach((method: string) => methods[method] = method)
+		return { whitelistedMethods: methods }
+	}
+	return {}
+}
+
 async function getDocumentResource(resource, context: undefined | any = undefined) {
 	let docname = resource.document_name
 	if (!docname && resource.filters) {
@@ -335,7 +345,8 @@ async function getDocumentResource(resource, context: undefined | any = undefine
 		doctype: resource.document_type,
 		name: docname,
 		auto: true,
-		...getTransforms(resource)
+		...getTransforms(resource),
+		...getWhitelistedMethods(resource),
 	})
 }
 
