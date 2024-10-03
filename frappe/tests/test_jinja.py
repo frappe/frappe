@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 
 import frappe
 from frappe import _dict
+from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.model.document import Document, DocumentProxy
 from frappe.utils.jinja import process_context, render_template
 
@@ -322,6 +323,111 @@ def run_specific_test(test_class, test_case=None):
 
 	runner = unittest.TextTestRunner(verbosity=2)
 	runner.run(suite)
+
+
+class TestRenderTemplateIntegration(unittest.TestCase):
+	@classmethod
+	def setUpClass(cls):
+		# Create custom field 'reports_to' in the User doctype
+		create_custom_field(
+			"User",
+			{
+				"fieldname": "reports_to",
+				"label": "Reports To",
+				"fieldtype": "Link",
+				"options": "User",
+				"insert_after": "last_name",
+			},
+		)
+
+	@classmethod
+	def tearDownClass(cls):
+		# Remove the custom field after tests
+		frappe.delete_doc("Custom Field", "User-reports_to")
+
+	def setUp(self):
+		frappe.delete_doc_if_exists("User", "test_render_template@example.com")
+		frappe.delete_doc_if_exists("User", "manager_render_template@example.com")
+		frappe.delete_doc_if_exists("User", "top_manager_render_template@example.com")
+		# Set up test data in the database
+		self.top_manager = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "top_manager_render_template@example.com",
+				"first_name": "Top",
+				"last_name": "Manager",
+			}
+		).insert(ignore_permissions=True)
+
+		self.manager = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "manager_render_template@example.com",
+				"first_name": "Middle",
+				"last_name": "Manager",
+				"reports_to": self.top_manager.name,  # Link to the top manager
+			}
+		).insert(ignore_permissions=True)
+
+		self.test_user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "test_render_template@example.com",
+				"first_name": "Test",
+				"last_name": "User",
+				"reports_to": self.manager.name,  # Link to the middle manager
+			}
+		).insert(ignore_permissions=True)
+
+	def tearDown(self):
+		# Clean up test data
+		frappe.delete_doc("User", self.test_user.name, ignore_permissions=True)
+		frappe.delete_doc("User", self.manager.name, ignore_permissions=True)
+		frappe.delete_doc("User", self.top_manager.name, ignore_permissions=True)
+
+	def test_render_template_from_string(self):
+		result = render_template("Hello {{ user }}", {"user": "Test User"})
+		self.assertEqual(result, "Hello Test User")
+
+	def test_render_template_with_db_context(self):
+		result = render_template("{{ user.first_name }} {{ user.last_name }}", {"user": self.test_user})
+		self.assertEqual(result, "Test User")
+
+	def test_render_template_with_filters(self):
+		result = render_template('{{ "hello world" | upper }}', {})
+		self.assertEqual(result, "HELLO WORLD")
+
+	def test_render_template_from_path(self):
+		user = frappe.get_doc("User", self.test_user.name)
+		manager = frappe.get_doc("User", self.manager.name)
+		director = frappe.get_doc("User", self.top_manager.name)
+
+		result = render_template("frappe/tests/test_template.html", {"user": user})
+		self.assertIn(f"Welcome, {user.first_name}", result)
+		self.assertIn(f"{user.first_name} reports to {manager.first_name} {manager.last_name}", result)
+		self.assertIn(f"who reports to {director.first_name} {director.last_name}", result)
+
+	def test_render_template_with_context_processing(self):
+		doc = frappe.get_doc("User", self.test_user.name)
+		template = """
+		{{ doc.first_name }} {{ doc.last_name }} ({{ doc.email }})
+		Reports to: {{ doc.reports_to.first_name }} {{ doc.reports_to.last_name }}
+		"""
+		result = render_template(template, {"doc": doc})
+		expected_output = """
+		Test User (test_render_template@example.com)
+		Reports to: Middle Manager
+		"""
+		self.assertEqual(result.strip(), expected_output.strip())
+
+	def test_render_template_with_link_traversal(self):
+		template = (
+			"{{ user.first_name }} reports to {{ user.reports_to.first_name }} {{ user.reports_to.last_name }}, "
+			"who reports to {{ user.reports_to.reports_to.first_name }} {{ user.reports_to.reports_to.last_name }}."
+		)
+		result = render_template(template, {"user": self.test_user})
+		expected_output = "Test reports to Middle Manager, who reports to Top Manager."
+		self.assertEqual(result.strip(), expected_output)
 
 
 if __name__ == "__main__":
