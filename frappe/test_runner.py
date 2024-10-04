@@ -240,34 +240,25 @@ class TimeLoggingTestResult(unittest.TextTestResult):
 
 def run_all_tests(app: str | None, config: TestConfig) -> unittest.TestResult:
 	"""Run all tests for the specified app or all installed apps"""
-	apps: list[str] = [app] if app else frappe.get_installed_apps()
-
+	apps = [app] if app else frappe.get_installed_apps()
 	test_suite = unittest.TestSuite()
+
 	for app in apps:
 		for path, folders, files in os.walk(frappe.get_app_path(app)):
-			for dontwalk in ("locals", ".git", "public", "__pycache__"):
-				if dontwalk in folders:
-					folders.remove(dontwalk)
-
-			# for predictability
+			folders[:] = [f for f in folders if f not in ("locals", ".git", "public", "__pycache__")]
 			folders.sort()
 			files.sort()
 
-			# print path
 			for filename in files:
 				if filename.startswith("test_") and filename.endswith(".py") and filename != "test_runner.py":
-					# print filename[:-3]
 					_add_test(app, path, filename, config.verbose, test_suite)
 
-	if config.junit_xml_output:
-		runner = unittest_runner(verbosity=1 + cint(config.verbose), failfast=config.failfast)
-	else:
-		runner = unittest_runner(
-			resultclass=TimeLoggingTestResult,
-			verbosity=1 + cint(config.verbose),
-			failfast=config.failfast,
-			tb_locals=config.verbose,
-		)
+	runner = unittest_runner(
+		resultclass=TimeLoggingTestResult if not config.junit_xml_output else None,
+		verbosity=1 + cint(config.verbose),
+		failfast=config.failfast,
+		tb_locals=config.verbose,
+	)
 
 	if config.profile:
 		pr = cProfile.Profile()
@@ -278,8 +269,7 @@ def run_all_tests(app: str | None, config: TestConfig) -> unittest.TestResult:
 	if config.profile:
 		pr.disable()
 		s = StringIO()
-		ps = pstats.Stats(pr, stream=s).sort_stats("cumulative")
-		ps.print_stats()
+		pstats.Stats(pr, stream=s).sort_stats("cumulative").print_stats()
 		print(s.getvalue())
 
 	return out
