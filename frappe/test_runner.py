@@ -41,7 +41,7 @@ class TestRunnerError(Exception):
 	pass
 
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -49,7 +49,6 @@ logger = logging.getLogger(__name__)
 class TestConfig:
 	"""Configuration class for test runner"""
 
-	verbose: bool = False
 	profile: bool = False
 	failfast: bool = False
 	junit_xml_output: bool = False
@@ -95,8 +94,9 @@ def main(
 	"""Main function to run tests"""
 	global unittest_runner
 
+	logger.setLevel(logging.DEBUG if verbose else logging.INFO)
+
 	test_config = TestConfig(
-		verbose=verbose,
 		profile=profile,
 		failfast=failfast,
 		junit_xml_output=bool(junit_xml_output),
@@ -104,7 +104,8 @@ def main(
 		case=case,
 		pdb_on_exceptions=pdb_on_exceptions,
 	)
-	_initialize_test_environment(site, skip_before_tests, skip_test_records, test_config)
+
+	_initialize_test_environment(site, skip_before_tests, skip_test_records)
 
 	xml_output_file = _setup_xml_output(junit_xml_output)
 
@@ -133,7 +134,7 @@ def main(
 			xml_output_file.close()
 
 
-def _initialize_test_environment(site, skip_before_tests, skip_test_records, test_config):
+def _initialize_test_environment(site, skip_before_tests, skip_test_records):
 	"""Initialize the test environment"""
 	frappe.init(site)
 	if not frappe.db:
@@ -143,8 +144,9 @@ def _initialize_test_environment(site, skip_before_tests, skip_test_records, tes
 	frappe.flags.skip_test_records = skip_test_records
 
 	# Set various test-related flags
-	frappe.flags.print_messages = test_config.verbose
 	frappe.flags.in_test = True
+	frappe.flags.print_messages = logger.getEffectiveLevel() < logging.INFO
+	frappe.flags.tests_verbose = logger.getEffectiveLevel() < logging.INFO
 	frappe.clear_cache()
 
 
@@ -171,8 +173,7 @@ def _disable_scheduler_if_needed():
 
 def _run_before_test_hooks(test_config, app):
 	"""Run 'before_tests' hooks if not skipped by the caller"""
-	if test_config.verbose:
-		print('Running "before_tests" hooks')
+	logger.debug('Running "before_tests" hooks')
 	for hook_function in frappe.get_hooks("before_tests", app_name=app):
 		frappe.get_attr(hook_function)()
 
@@ -248,13 +249,13 @@ def _run_all_tests(app: str | None, config: TestConfig) -> unittest.TestResult:
 				if not any(
 					part in relative_path.parts for part in ["locals", ".git", "public", "__pycache__"]
 				):
-					_add_test(app_path, path, config.verbose, test_suite)
+					_add_test(app_path, path, test_suite)
 
 	runner = unittest_runner(
 		resultclass=TimeLoggingTestResult if not config.junit_xml_output else None,
-		verbosity=1 + cint(config.verbose),
+		verbosity=2 if logger.getEffectiveLevel() < logging.INFO else 1,
 		failfast=config.failfast,
-		tb_locals=config.verbose,
+		tb_locals=logger.getEffectiveLevel() < logging.DEBUG,
 	)
 
 	if config.profile:
@@ -286,7 +287,7 @@ def _run_doctype_tests(doctypes, config: TestConfig, force=False):
 			test_module = get_module_name(doctype, module, "test_")
 			if force:
 				frappe.db.delete(doctype)
-			make_test_records(doctype, verbose=config.verbose, force=force, commit=True)
+			make_test_records(doctype, force=force, commit=True)
 			modules.append(importlib.import_module(test_module))
 
 		return _run_unittest(modules, config=config)
@@ -300,7 +301,7 @@ def _run_module_tests(module, config: TestConfig):
 	module = importlib.import_module(module)
 	if hasattr(module, "test_dependencies"):
 		for doctype in module.test_dependencies:
-			make_test_records(doctype, verbose=config.verbose, commit=True)
+			make_test_records(doctype, commit=True)
 
 	frappe.db.commit()
 	return _run_unittest(module, config=config)
@@ -331,12 +332,10 @@ def _run_unittest(modules, config: TestConfig):
 
 	runner = unittest_runner(
 		resultclass=None if config.junit_xml_output else TimeLoggingTestResult,
-		verbosity=1 + cint(config.verbose),
+		verbosity=2 if logger.getEffectiveLevel() < logging.INFO else 1,
 		failfast=config.failfast,
-		tb_locals=config.verbose,
+		tb_locals=logger.getEffectiveLevel() < logging.DEBUG,
 	)
-
-	frappe.flags.tests_verbose = config.verbose
 
 	if config.profile:
 		pr = cProfile.Profile()
@@ -363,9 +362,7 @@ def _iterate_suite(suite):
 			yield test
 
 
-def _add_test(
-	app_path: Path, path: Path, verbose: bool, test_suite: unittest.TestSuite | None = None
-) -> None:
+def _add_test(app_path: Path, path: Path, test_suite: unittest.TestSuite | None = None) -> None:
 	relative_path = path.relative_to(app_path)
 
 	if path.parts[-4:-1] == ("doctype", "doctype", "boilerplate"):
@@ -380,7 +377,7 @@ def _add_test(
 
 	if hasattr(module, "test_dependencies"):
 		for doctype in module.test_dependencies:
-			make_test_records(doctype, verbose=verbose, commit=True)
+			make_test_records(doctype, commit=True)
 
 	test_suite = test_suite or unittest.TestSuite()
 
@@ -389,12 +386,12 @@ def _add_test(
 		if json_file.exists():
 			with json_file.open() as f:
 				doctype = json.loads(f.read())["name"]
-			make_test_records(doctype, verbose=verbose, commit=True)
+			make_test_records(doctype, commit=True)
 
 	test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
 
 
-def make_test_records(doctype, verbose=0, force=False, commit=False):
+def make_test_records(doctype, force=False, commit=False):
 	"""Make test records for the specified doctype"""
 	if frappe.flags.skip_test_records:
 		return
@@ -405,8 +402,8 @@ def make_test_records(doctype, verbose=0, force=False, commit=False):
 
 		if options not in frappe.local.test_objects:
 			frappe.local.test_objects[options] = []
-			make_test_records(options, verbose, force, commit=commit)
-			make_test_records_for_doctype(options, verbose, force, commit=commit)
+			make_test_records(options, force, commit=commit)
+			make_test_records_for_doctype(options, force, commit=commit)
 
 
 @cache
@@ -450,37 +447,36 @@ def get_dependencies(doctype):
 	return options_list
 
 
-def make_test_records_for_doctype(doctype, verbose=0, force=False, commit=False):
+def make_test_records_for_doctype(doctype, force=False, commit=False):
 	"""Make test records for the specified doctype"""
 	test_record_log_instance = TestRecordLog()
 	if not force and doctype in test_record_log_instance.get():
 		return
 
 	module, test_module = get_modules(doctype)
-	if verbose:
-		print(f"Making for {doctype}")
+	logger.debug(f"Making test records for {doctype}")
 
 	if hasattr(test_module, "_make_test_records"):
-		frappe.local.test_objects[doctype] = frappe.local.test_objects.get(
-			doctype, []
-		) + test_module._make_test_records(verbose)
+		frappe.local.test_objects[doctype] = (
+			frappe.local.test_objects.get(doctype, []) + test_module._make_test_records()
+		)
 	elif hasattr(test_module, "test_records"):
 		frappe.local.test_objects[doctype] = frappe.local.test_objects.get(doctype, []) + make_test_objects(
-			doctype, test_module.test_records, verbose, force, commit=commit
+			doctype, test_module.test_records, force, commit=commit
 		)
 	else:
 		test_records = frappe.get_test_records(doctype)
 		if test_records:
 			frappe.local.test_objects[doctype] = frappe.local.test_objects.get(
 				doctype, []
-			) + make_test_objects(doctype, test_records, verbose, force, commit=commit)
-		elif verbose:
+			) + make_test_objects(doctype, test_records, force, commit=commit)
+		elif logger.getEffectiveLevel() < logging.INFO:
 			print_mandatory_fields(doctype)
 
 	test_record_log_instance.add(doctype)
 
 
-def make_test_objects(doctype, test_records=None, verbose=None, reset=False, commit=False):
+def make_test_objects(doctype, test_records=None, reset=False, commit=False):
 	"""Make test objects from given list of `test_records` or from `test_records.json`"""
 	records = []
 
@@ -536,7 +532,7 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False, com
 			):
 				revert_naming(d)
 			else:
-				verbose and print("Error in making test record for", d.doctype, d.name)
+				logger.DEBUG(f"Error in making test record for {d.doctype} {d.name}")
 				raise
 
 		records.append(d.name)
@@ -549,13 +545,13 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False, com
 def print_mandatory_fields(doctype):
 	"""Print mandatory fields for the specified doctype"""
 	meta = frappe.get_meta(doctype)
-	print(f"Please setup make_test_records for: {doctype}")
-	print("-" * 60)
-	print(f"Autoname: {meta.autoname or ''}")
-	print("Mandatory Fields:")
+	logger.debug(f"Please setup make_test_records for: {doctype}")
+	logger.debug("-" * 60)
+	logger.debug(f"Autoname: {meta.autoname or ''}")
+	logger.debug("Mandatory Fields:")
 	for d in meta.get("fields", {"reqd": 1}):
-		print(f" - {d.parent}:{d.fieldname} | {d.fieldtype} | {d.options or ''}")
-	print()
+		logger.debug(f" - {d.parent}:{d.fieldname} | {d.fieldtype} | {d.options or ''}")
+	logger.debug("")
 
 
 class TestRecordLog:
