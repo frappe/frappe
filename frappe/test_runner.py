@@ -317,13 +317,13 @@ def _run_unittest(modules, config: TestConfig):
 
 		if config.tests:
 			final_test_suite.addTests(
-				test for test in iterate_suite(test_suite) if test._testMethodName in config.tests
+				test for test in _iterate_suite(test_suite) if test._testMethodName in config.tests
 			)
 		else:
 			final_test_suite.addTest(test_suite)
 
 	if config.pdb_on_exceptions:
-		for test_case in iterate_suite(final_test_suite):
+		for test_case in _iterate_suite(final_test_suite):
 			if hasattr(test_case, "_apply_debug_decorator"):
 				test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
@@ -352,11 +352,11 @@ def _run_unittest(modules, config: TestConfig):
 	return out
 
 
-def iterate_suite(suite):
+def _iterate_suite(suite):
 	"""Helper function to iterate through a test suite"""
 	for test in suite:
 		if isinstance(test, unittest.TestSuite):
-			yield from iterate_suite(test)
+			yield from _iterate_suite(test)
 		elif isinstance(test, unittest.TestCase):
 			yield test
 
