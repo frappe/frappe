@@ -111,13 +111,14 @@ def main(
 			_run_before_test_hooks(test_config, app)
 
 		if doctype or doctype_list_path:
-			test_result = _run_doctype_tests(doctype, test_config, doctype_list_path, force)
+			doctype = _load_doctype_list(doctype_list_path) if doctype_list_path else doctype
+			test_result = _run_doctype_tests(doctype, test_config, force)
 		elif module_def:
 			test_result = _run_module_def_tests(app, module_def, test_config, force)
 		elif module:
-			test_result = run_tests_for_module(module, test_config)
+			test_result = _run_module_tests(module, test_config)
 		else:
-			test_result = run_all_tests(app, test_config)
+			test_result = _run_all_tests(app, test_config)
 
 		_cleanup_after_tests(scheduler_disabled_by_user)
 
@@ -173,13 +174,6 @@ def _run_before_test_hooks(test_config, app):
 		frappe.get_attr(hook_function)()
 
 
-def _run_doctype_tests(doctype, test_config, doctype_list_path, force):
-	"""Run tests for the specified doctype(s)"""
-	if doctype_list_path:
-		doctype = _load_doctype_list(doctype_list_path)
-	return run_tests_for_doctype(doctype, test_config, force)
-
-
 def _load_doctype_list(doctype_list_path):
 	"""Load the list of doctypes from the specified file"""
 	app, path = doctype_list_path.split(os.path.sep, 1)
@@ -190,7 +184,7 @@ def _load_doctype_list(doctype_list_path):
 def _run_module_def_tests(app, module_def, test_config, force):
 	"""Run tests for the specified module definition"""
 	doctypes = _get_doctypes_for_module_def(app, module_def)
-	return run_tests_for_doctype(doctypes, test_config, force)
+	return _run_doctype_tests(doctypes, test_config, force)
 
 
 def _get_doctypes_for_module_def(app, module_def):
@@ -238,7 +232,7 @@ class TimeLoggingTestResult(unittest.TextTestResult):
 		super().addSuccess(test)
 
 
-def run_all_tests(app: str | None, config: TestConfig) -> unittest.TestResult:
+def _run_all_tests(app: str | None, config: TestConfig) -> unittest.TestResult:
 	"""Run all tests for the specified app or all installed apps"""
 	apps = [app] if app else frappe.get_installed_apps()
 	test_suite = unittest.TestSuite()
@@ -275,7 +269,7 @@ def run_all_tests(app: str | None, config: TestConfig) -> unittest.TestResult:
 	return out
 
 
-def run_tests_for_doctype(doctypes, config: TestConfig, force=False):
+def _run_doctype_tests(doctypes, config: TestConfig, force=False):
 	"""Run tests for the specified doctype(s)"""
 	try:
 		modules = []
@@ -298,7 +292,7 @@ def run_tests_for_doctype(doctypes, config: TestConfig, force=False):
 		raise TestRunnerError(f"Failed to run tests for doctypes: {e!s}") from e
 
 
-def run_tests_for_module(module, config: TestConfig):
+def _run_module_tests(module, config: TestConfig):
 	"""Run tests for the specified module"""
 	module = importlib.import_module(module)
 	if hasattr(module, "test_dependencies"):
