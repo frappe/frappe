@@ -448,30 +448,23 @@ def make_test_records_for_doctype(doctype, verbose=0, force=False, commit=False)
 		return
 
 	module, test_module = get_modules(doctype)
-
 	if verbose:
-		print("Making for " + doctype)
+		print(f"Making for {doctype}")
 
 	if hasattr(test_module, "_make_test_records"):
-		frappe.local.test_objects[doctype] += test_module._make_test_records(verbose)
-
+		frappe.local.test_objects[doctype] = frappe.local.test_objects.get(
+			doctype, []
+		) + test_module._make_test_records(verbose)
 	elif hasattr(test_module, "test_records"):
-		if doctype in frappe.local.test_objects:
-			frappe.local.test_objects[doctype] += make_test_objects(
-				doctype, test_module.test_records, verbose, force, commit=commit
-			)
-		else:
-			frappe.local.test_objects[doctype] = make_test_objects(
-				doctype, test_module.test_records, verbose, force, commit=commit
-			)
-
+		frappe.local.test_objects[doctype] = frappe.local.test_objects.get(doctype, []) + make_test_objects(
+			doctype, test_module.test_records, verbose, force, commit=commit
+		)
 	else:
 		test_records = frappe.get_test_records(doctype)
 		if test_records:
-			frappe.local.test_objects[doctype] += make_test_objects(
-				doctype, test_records, verbose, force, commit=commit
-			)
-
+			frappe.local.test_objects[doctype] = frappe.local.test_objects.get(
+				doctype, []
+			) + make_test_objects(doctype, test_records, verbose, force, commit=commit)
 		elif verbose:
 			print_mandatory_fields(doctype)
 
