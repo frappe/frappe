@@ -868,13 +868,14 @@ def run_parallel_tests(
 		else:
 			from frappe.parallel_test_runner import ParallelTestRunner
 
-			ParallelTestRunner(
+			runner = ParallelTestRunner(
 				app,
 				site=site,
 				build_number=build_number,
 				total_builds=total_builds,
 				dry_run=dry_run,
 			)
+			runner.setup_and_run()
 
 
 @click.command(
