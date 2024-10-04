@@ -19,8 +19,10 @@ import sys
 import time
 import unittest
 from dataclasses import dataclass
+from functools import cache
 from importlib import reload
 from io import StringIO
+from pathlib import Path
 from typing import Optional, Union
 
 import frappe
@@ -239,14 +241,14 @@ def _run_all_tests(app: str | None, config: TestConfig) -> unittest.TestResult:
 	test_suite = unittest.TestSuite()
 
 	for app in apps:
-		for path, folders, files in os.walk(frappe.get_app_path(app)):
-			folders[:] = [f for f in folders if f not in ("locals", ".git", "public", "__pycache__")]
-			folders.sort()
-			files.sort()
-
-			for filename in files:
-				if filename.startswith("test_") and filename.endswith(".py") and filename != "test_runner.py":
-					_add_test(app, path, filename, config.verbose, test_suite)
+		app_path = Path(frappe.get_app_path(app))
+		for path in app_path.rglob("test_*.py"):
+			if path.name != "test_runner.py":
+				relative_path = path.relative_to(app_path)
+				if not any(
+					part in relative_path.parts for part in ["locals", ".git", "public", "__pycache__"]
+				):
+					_add_test(app_path, path, config.verbose, test_suite)
 
 	runner = unittest_runner(
 		resultclass=TimeLoggingTestResult if not config.junit_xml_output else None,
@@ -361,14 +363,19 @@ def _iterate_suite(suite):
 			yield test
 
 
-def _add_test(app, path, filename, verbose, test_suite=None):
-	app_path = frappe.get_app_path(app)
-	relative_path = os.path.relpath(path, app_path)
+def _add_test(
+	app_path: Path, path: Path, verbose: bool, test_suite: unittest.TestSuite | None = None
+) -> None:
+	relative_path = path.relative_to(app_path)
 
-	if os.path.sep.join(["doctype", "doctype", "boilerplate"]) in path:
+	if path.parts[-4:-1] == ("doctype", "doctype", "boilerplate"):
 		return  # Skip boilerplate files
 
-	module_name = f"{app}.{relative_path.replace('/', '.')}.{filename[:-3]}" if relative_path != "." else app
+	module_name = (
+		f"{app_path.stem}.{'.'.join(relative_path.parent.parts)}.{path.stem}"
+		if str(relative_path.parent) != "."
+		else f"{app_path.stem}.{path.stem}"
+	)
 	module = importlib.import_module(module_name)
 
 	if hasattr(module, "test_dependencies"):
@@ -377,12 +384,12 @@ def _add_test(app, path, filename, verbose, test_suite=None):
 
 	test_suite = test_suite or unittest.TestSuite()
 
-	if os.path.basename(os.path.dirname(path)) == "doctype":
-		json_file = os.path.join(path, filename[5:].replace(".py", ".json"))
-		if os.path.exists(json_file):
-			with open(json_file) as f:
+	if path.parent.name == "doctype":
+		json_file = path.with_name(path.stem[5:] + ".json")
+		if json_file.exists():
+			with json_file.open() as f:
 				doctype = json.loads(f.read())["name"]
-			make_test_records(doctype, verbose, commit=True)
+			make_test_records(doctype, verbose=verbose, commit=True)
 
 	test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
 
@@ -402,6 +409,7 @@ def make_test_records(doctype, verbose=0, force=False, commit=False):
 			make_test_records_for_doctype(options, verbose, force, commit=commit)
 
 
+@cache
 def get_modules(doctype):
 	"""Get the modules for the specified doctype"""
 	module = frappe.db.get_value("DocType", doctype, "module")
@@ -415,6 +423,7 @@ def get_modules(doctype):
 	return module, test_module
 
 
+@cache
 def get_dependencies(doctype):
 	"""Get the dependencies for the specified doctype"""
 	module, test_module = get_modules(doctype)
@@ -551,7 +560,7 @@ def print_mandatory_fields(doctype):
 
 class TestRecordLog:
 	def __init__(self):
-		self.log_file = frappe.get_site_path(".test_log")
+		self.log_file = Path(frappe.get_site_path(".test_log"))
 		self._log = None
 
 	def get(self):
@@ -566,13 +575,13 @@ class TestRecordLog:
 			self._write_log(log)
 
 	def _read_log(self):
-		if os.path.exists(self.log_file):
-			with open(self.log_file) as f:
+		if self.log_file.exists():
+			with self.log_file.open() as f:
 				return f.read().splitlines()
 		return []
 
 	def _write_log(self, log):
-		with open(self.log_file, "w") as f:
+		with self.log_file.open("w") as f:
 			f.write("\n".join(l for l in log if l is not None))
 
 
