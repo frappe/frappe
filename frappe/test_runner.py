@@ -19,7 +19,7 @@ import sys
 import time
 import unittest
 from dataclasses import dataclass, field
-from functools import cache
+from functools import cache, wraps
 from importlib import reload
 from io import StringIO
 from pathlib import Path
@@ -35,6 +35,20 @@ from frappe.tests.utils import FrappeIntegrationTestCase
 from frappe.utils import cint
 
 SLOW_TEST_THRESHOLD = 2
+
+logger = logging.getLogger(__name__)
+
+
+def debug_timer(func):
+	@wraps(func)
+	def wrapper(*args, **kwargs):
+		start_time = time.time()
+		result = func(*args, **kwargs)
+		end_time = time.time()
+		logger.debug(f" {func.__name__} took {end_time - start_time:.3f} seconds")
+		return result
+
+	return wrapper
 
 
 class TestRunner(unittest.TextTestRunner):
@@ -64,6 +78,7 @@ class TestRunner(unittest.TextTestRunner):
 		)
 		self.junit_xml_output = junit_xml_output
 		self.profile = profile
+		logger.debug("TestRunner initialized")
 
 	def run(
 		self, test_suites: tuple[unittest.TestSuite, unittest.TestSuite]
@@ -75,13 +90,25 @@ class TestRunner(unittest.TextTestRunner):
 			pr.enable()
 
 		# Run unit tests
-		logger.info("Running Unit Tests...")
+		click.echo(
+			"\n"
+			+ click.style(
+				f"Running {len(list(self._iterate_suite(unit_suite)))} unit tests", fg="cyan", bold=True
+			)
+		)
 		unit_result = super().run(unit_suite)
 
 		# Run integration tests only if unit tests pass
 		integration_result = None
 		if unit_result.wasSuccessful():
-			logger.info("Running Integration Tests...")
+			click.echo(
+				"\n"
+				+ click.style(
+					f"Running {len(list(self._iterate_suite(integration_suite)))} integration tests",
+					fg="cyan",
+					bold=True,
+				)
+			)
 			integration_result = super().run(integration_suite)
 
 		if self.profile:
@@ -96,6 +123,7 @@ class TestRunner(unittest.TextTestRunner):
 	def discover_tests(
 		self, apps: list[str], config: TestConfig
 	) -> tuple[unittest.TestSuite, unittest.TestSuite]:
+		logger.debug(f"Discovering tests for apps: {apps}")
 		unit_test_suite = unittest.TestSuite()
 		integration_test_suite = unittest.TestSuite()
 
@@ -126,6 +154,9 @@ class TestRunner(unittest.TextTestRunner):
 
 				self._add_module_tests(module, unit_test_suite, integration_test_suite, config)
 
+		logger.debug(
+			f"Discovered {len(list(self._iterate_suite(unit_test_suite)))} unit tests and {len(list(self._iterate_suite(integration_test_suite)))} integration tests"
+		)
 		return unit_test_suite, integration_test_suite
 
 	def discover_doctype_tests(
@@ -164,6 +195,7 @@ class TestRunner(unittest.TextTestRunner):
 		modules = [modules] if not isinstance(modules, list | tuple) else modules
 
 		for module in modules:
+			module = importlib.import_module(module)
 			self._add_module_tests(module, unit_test_suite, integration_test_suite, config)
 
 		return unit_test_suite, integration_test_suite
@@ -211,6 +243,7 @@ class TestRunner(unittest.TextTestRunner):
 
 class TestResult(unittest.TextTestResult):
 	def startTest(self, test):
+		logger.debug(f"--- Starting test: {test}")
 		self.tb_locals = True
 		self._started_at = time.monotonic()
 		super(unittest.TextTestResult, self).startTest(test)
@@ -228,26 +261,32 @@ class TestResult(unittest.TextTestResult):
 		threshold_passed = elapsed >= SLOW_TEST_THRESHOLD
 		elapsed = click.style(f" ({elapsed:.03}s)", fg="red") if threshold_passed else ""
 		click.echo(f"  {click.style(' ✔ ', fg='green')} {self.getTestMethodName(test)}{elapsed}")
+		logger.debug(f"=== Test passed: {test}")
 
 	def addError(self, test, err):
 		super(unittest.TextTestResult, self).addError(test, err)
 		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
+		logger.debug(f"=== Test error: {test}")
 
 	def addFailure(self, test, err):
 		super(unittest.TextTestResult, self).addFailure(test, err)
 		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
+		logger.debug(f"=== Test failed: {test}")
 
 	def addSkip(self, test, reason):
 		super(unittest.TextTestResult, self).addSkip(test, reason)
 		click.echo(f"  {click.style(' = ', fg='white')} {self.getTestMethodName(test)}")
+		logger.debug(f"=== Test skipped: {test}")
 
 	def addExpectedFailure(self, test, err):
 		super(unittest.TextTestResult, self).addExpectedFailure(test, err)
 		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
+		logger.debug(f"=== Test expected failure: {test}")
 
 	def addUnexpectedSuccess(self, test):
 		super(unittest.TextTestResult, self).addUnexpectedSuccess(test)
 		click.echo(f"  {click.style(' ✔ ', fg='green')} {self.getTestMethodName(test)}")
+		logger.debug(f"=== Test unexpected success: {test}")
 
 	def printErrors(self):
 		click.echo("\n")
@@ -326,6 +365,30 @@ def main(
 ) -> None:
 	"""Main function to run tests"""
 	logger.setLevel(logging.DEBUG if verbose else logging.INFO)
+	start_time = time.time()
+
+	# Check for mutually exclusive arguments
+	exclusive_args = [doctype, doctype_list_path, module_def, module]
+	if sum(arg is not None for arg in exclusive_args) > 1:
+		error_message = (
+			"Error: The following arguments are mutually exclusive: "
+			"doctype, doctype_list_path, module_def, and module. "
+			"Please specify only one of these."
+		)
+		logger.error(error_message)
+		sys.exit(1)
+
+	# Prepare debug log message
+	debug_params = []
+	for param_name in ["site", "app", "module", "doctype", "module_def", "doctype_list_path"]:
+		param_value = locals()[param_name]
+		if param_value is not None:
+			debug_params.append(f"{param_name}={param_value}")
+
+	if debug_params:
+		logger.debug(f"Starting test run with parameters: {', '.join(debug_params)}")
+	else:
+		logger.debug("Starting test run with no specific parameters")
 
 	test_config = TestConfig(
 		profile=profile,
@@ -387,6 +450,9 @@ def main(
 		if xml_output_file:
 			xml_output_file.close()
 
+		end_time = time.time()
+		logger.debug(f"Total test run time: {end_time - start_time:.3f} seconds")
+
 
 def print_test_results(unit_result: unittest.TestResult, integration_result: unittest.TestResult | None):
 	"""Print detailed test results including failures and errors"""
@@ -431,8 +497,10 @@ def print_test_results(unit_result: unittest.TestResult, integration_result: uni
 		click.echo(f"\n{click.style('Some tests failed or encountered errors.', fg='red', bold=True)}")
 
 
+@debug_timer
 def _initialize_test_environment(site, skip_before_tests, skip_test_records):
 	"""Initialize the test environment"""
+	logger.debug(f"Initializing test environment for site: {site}")
 	frappe.init(site)
 	if not frappe.db:
 		frappe.connect()
@@ -445,6 +513,7 @@ def _initialize_test_environment(site, skip_before_tests, skip_test_records):
 	frappe.flags.print_messages = logger.getEffectiveLevel() < logging.INFO
 	frappe.flags.tests_verbose = logger.getEffectiveLevel() < logging.INFO
 	frappe.clear_cache()
+	logger.debug("Test environment initialized")
 
 
 def _setup_xml_output(junit_xml_output):
@@ -468,6 +537,7 @@ def _disable_scheduler_if_needed():
 	return scheduler_disabled_by_user
 
 
+@debug_timer
 def _run_before_test_hooks(test_config, app):
 	"""Run 'before_tests' hooks if not skipped by the caller"""
 	logger.debug('Running "before_tests" hooks')
@@ -520,14 +590,19 @@ def _cleanup_after_tests(scheduler_disabled_by_user):
 	frappe.clear_cache()
 
 
+@debug_timer
 def _run_all_tests(
 	app: str | None, config: TestConfig, runner: TestRunner
 ) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 	"""Run all tests for the specified app or all installed apps"""
 
 	apps = [app] if app else frappe.get_installed_apps()
+	logger.debug(f"Running tests for apps: {apps}")
 	try:
 		unit_test_suite, integration_test_suite = runner.discover_tests(apps, config)
+		logger.debug(
+			f"Discovered {len(list(runner._iterate_suite(unit_test_suite)))} unit tests and {len(list(runner._iterate_suite(integration_test_suite)))} integration tests"
+		)
 
 		if config.pdb_on_exceptions:
 			for test_suite in (unit_test_suite, integration_test_suite):
@@ -541,6 +616,7 @@ def _run_all_tests(
 		raise TestRunnerError(f"Failed to run tests for {app or 'all apps'}: {e!s}") from e
 
 
+@debug_timer
 def _run_doctype_tests(
 	doctypes, config: TestConfig, runner: TestRunner, force=False
 ) -> tuple[unittest.TestResult, unittest.TestResult | None]:
@@ -561,11 +637,11 @@ def _run_doctype_tests(
 		raise TestRunnerError(f"Failed to run tests for doctypes: {e!s}") from e
 
 
+@debug_timer
 def _run_module_tests(
 	module, config: TestConfig, runner: TestRunner
 ) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 	"""Run tests for the specified module"""
-
 	try:
 		unit_test_suite, integration_test_suite = runner.discover_module_tests(module, config)
 
@@ -583,6 +659,7 @@ def _run_module_tests(
 
 def make_test_records(doctype, force=False, commit=False):
 	"""Make test records for the specified doctype"""
+	logger.debug(f"Making test records for doctype: {doctype}")
 	if frappe.flags.skip_test_records:
 		return
 
@@ -668,6 +745,7 @@ def make_test_records_for_doctype(doctype, force=False, commit=False):
 
 def make_test_objects(doctype, test_records=None, reset=False, commit=False):
 	"""Make test objects from given list of `test_records` or from `test_records.json`"""
+	logger.debug(f"Making test objects for doctype: {doctype}")
 	records = []
 
 	def revert_naming(d):
@@ -722,7 +800,7 @@ def make_test_objects(doctype, test_records=None, reset=False, commit=False):
 			):
 				revert_naming(d)
 			else:
-				logger.DEBUG(f"Error in making test record for {d.doctype} {d.name}")
+				logger.debug(f"Error in making test record for {d.doctype} {d.name}")
 				raise
 
 		records.append(d.name)
