@@ -526,15 +526,19 @@ def _run_all_tests(
 ) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 	"""Run all tests for the specified app or all installed apps"""
 
-	unit_test_suite, integration_test_suite = runner.discover_tests(app, config)
+	try:
+		unit_test_suite, integration_test_suite = runner.discover_tests(app, config)
 
-	if config.pdb_on_exceptions:
-		for test_suite in (unit_test_suite, integration_test_suite):
-			for test_case in runner._iterate_suite(test_suite):
-				if hasattr(test_case, "_apply_debug_decorator"):
-					test_case._apply_debug_decorator(config.pdb_on_exceptions)
+		if config.pdb_on_exceptions:
+			for test_suite in (unit_test_suite, integration_test_suite):
+				for test_case in runner._iterate_suite(test_suite):
+					if hasattr(test_case, "_apply_debug_decorator"):
+						test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
-	return runner.run((unit_test_suite, integration_test_suite))
+		return runner.run((unit_test_suite, integration_test_suite))
+	except Exception as e:
+		logger.error(f"Error running all tests for {app or 'all apps'}: {e!s}")
+		raise TestRunnerError(f"Failed to run tests for {app or 'all apps'}: {e!s}") from e
 
 
 def _run_doctype_tests(
@@ -561,22 +565,20 @@ def _run_module_tests(
 	module, config: TestConfig, runner: TestRunner
 ) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 	"""Run tests for the specified module"""
-	module = importlib.import_module(module)
-	if hasattr(module, "test_dependencies"):
-		for doctype in module.test_dependencies:
-			make_test_records(doctype, commit=True)
 
-	frappe.db.commit()
+	try:
+		unit_test_suite, integration_test_suite = runner.discover_module_tests(module, config)
 
-	unit_test_suite, integration_test_suite = runner.discover_module_tests(module, config)
+		if config.pdb_on_exceptions:
+			for test_suite in (unit_test_suite, integration_test_suite):
+				for test_case in runner._iterate_suite(test_suite):
+					if hasattr(test_case, "_apply_debug_decorator"):
+						test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
-	if config.pdb_on_exceptions:
-		for test_suite in (unit_test_suite, integration_test_suite):
-			for test_case in runner._iterate_suite(test_suite):
-				if hasattr(test_case, "_apply_debug_decorator"):
-					test_case._apply_debug_decorator(config.pdb_on_exceptions)
-
-	return runner.run((unit_test_suite, integration_test_suite))
+		return runner.run((unit_test_suite, integration_test_suite))
+	except Exception as e:
+		logger.error(f"Error running tests for mosule {module}: {e!s}")
+		raise TestRunnerError(f"Failed to run tests for module: {e!s}") from e
 
 
 def make_test_records(doctype, force=False, commit=False):
