@@ -362,36 +362,26 @@ def iterate_suite(suite):
 
 
 def _add_test(app, path, filename, verbose, test_suite=None):
-	import os
-
-	if os.path.sep.join(["doctype", "doctype", "boilerplate"]) in path:
-		# in /doctype/doctype/boilerplate/
-		return
-
 	app_path = frappe.get_app_path(app)
 	relative_path = os.path.relpath(path, app_path)
-	if relative_path == ".":
-		module_name = app
-	else:
-		module_name = "{app}.{relative_path}.{module_name}".format(
-			app=app, relative_path=relative_path.replace("/", "."), module_name=filename[:-3]
-		)
 
+	if os.path.sep.join(["doctype", "doctype", "boilerplate"]) in path:
+		return  # Skip boilerplate files
+
+	module_name = f"{app}.{relative_path.replace('/', '.')}.{filename[:-3]}" if relative_path != "." else app
 	module = importlib.import_module(module_name)
 
 	if hasattr(module, "test_dependencies"):
 		for doctype in module.test_dependencies:
 			make_test_records(doctype, verbose=verbose, commit=True)
 
-	if not test_suite:
-		test_suite = unittest.TestSuite()
+	test_suite = test_suite or unittest.TestSuite()
 
 	if os.path.basename(os.path.dirname(path)) == "doctype":
-		txt_file = os.path.join(path, filename[5:].replace(".py", ".json"))
-		if os.path.exists(txt_file):
-			with open(txt_file) as f:
-				doc = json.loads(f.read())
-			doctype = doc["name"]
+		json_file = os.path.join(path, filename[5:].replace(".py", ".json"))
+		if os.path.exists(json_file):
+			with open(json_file) as f:
+				doctype = json.loads(f.read())["name"]
 			make_test_records(doctype, verbose, commit=True)
 
 	test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
