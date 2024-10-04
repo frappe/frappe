@@ -23,7 +23,7 @@ from functools import cache
 from importlib import reload
 from io import StringIO
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Union, Tuple
 
 import click
 
@@ -38,36 +38,58 @@ SLOW_TEST_THRESHOLD = 2
 
 
 class TestRunner(unittest.TextTestRunner):
-    def __init__(
-        self,
-        stream=None,
-        descriptions=True,
-        verbosity=1,
-        failfast=False,
-        buffer=False,
-        resultclass=None,
-        warnings=None,
-        *,
-        tb_locals=False,
-        junit_xml_output: bool = False,
-        profile: bool = False,
-    ):
-        super().__init__(
-            stream=stream,
-            descriptions=descriptions,
-            verbosity=verbosity,
-            failfast=failfast,
-            buffer=buffer,
-            resultclass=resultclass or TestResult,
-            warnings=warnings,
-            tb_locals=tb_locals,
-        )
-        self.junit_xml_output = junit_xml_output
-        self.profile = profile
+	def __init__(
+		self,
+		stream=None,
+		descriptions=True,
+		verbosity=1,
+		failfast=False,
+		buffer=False,
+		resultclass=None,
+		warnings=None,
+		*,
+		tb_locals=False,
+		junit_xml_output: bool = False,
+		profile: bool = False,
+	):
+		super().__init__(
+			stream=stream,
+			descriptions=descriptions,
+			verbosity=verbosity,
+			failfast=failfast,
+			buffer=buffer,
+			resultclass=resultclass or TestResult,
+			warnings=warnings,
+			tb_locals=tb_locals,
+		)
+		self.junit_xml_output = junit_xml_output
+		self.profile = profile
 
-    def run(self, test):
-        # We'll implement this method in the next iteration
-        pass
+	def run(self, test_suites: Tuple[unittest.TestSuite, unittest.TestSuite]) -> Tuple[unittest.TestResult, unittest.TestResult | None]:
+		unit_suite, integration_suite = test_suites
+
+		if self.profile:
+			pr = cProfile.Profile()
+			pr.enable()
+
+		# Run unit tests
+		logger.info("Running Unit Tests...")
+		unit_result = super().run(unit_suite)
+
+		# Run integration tests only if unit tests pass
+		integration_result = None
+		if unit_result.wasSuccessful():
+			logger.info("Running Integration Tests...")
+			integration_result = super().run(integration_suite)
+
+		if self.profile:
+			pr.disable()
+			s = StringIO()
+			ps = pstats.Stats(pr, stream=s).sort_stats("cumulative")
+			ps.print_stats()
+			print(s.getvalue())
+
+		return unit_result, integration_result
 
 
 class TestResult(unittest.TextTestResult):
@@ -186,8 +208,6 @@ def main(
 	selected_categories: list[str] | None = None,
 ) -> None:
 	"""Main function to run tests"""
-	global unittest_runner
-
 	logger.setLevel(logging.DEBUG if verbose else logging.INFO)
 
 	test_config = TestConfig(
@@ -210,15 +230,25 @@ def main(
 		if not frappe.flags.skip_before_tests:
 			_run_before_test_hooks(test_config, app)
 
+		# Create TestRunner instance
+		runner = TestRunner(
+			resultclass=TestResult if not test_config.junit_xml_output else None,
+			verbosity=2 if logger.getEffectiveLevel() < logging.INFO else 1,
+			failfast=test_config.failfast,
+			tb_locals=logger.getEffectiveLevel() < logging.DEBUG,
+			junit_xml_output=test_config.junit_xml_output,
+			profile=test_config.profile,
+		)
+
 		if doctype or doctype_list_path:
 			doctype = _load_doctype_list(doctype_list_path) if doctype_list_path else doctype
-			unit_result, integration_result = _run_doctype_tests(doctype, test_config, force)
+			unit_result, integration_result = _run_doctype_tests(doctype, test_config, force, runner)
 		elif module_def:
-			unit_result, integration_result = _run_module_def_tests(app, module_def, test_config, force)
+			unit_result, integration_result = _run_module_def_tests(app, module_def, test_config, force, runner)
 		elif module:
-			unit_result, integration_result = _run_module_tests(module, test_config)
+			unit_result, integration_result = _run_module_tests(module, test_config, runner)
 		else:
-			unit_result, integration_result = _run_all_tests(app, test_config)
+			unit_result, integration_result = _run_all_tests(app, test_config, runner)
 
 		_cleanup_after_tests(scheduler_disabled_by_user)
 
@@ -437,7 +467,7 @@ def _run_module_tests(module, config: TestConfig) -> tuple[unittest.TestResult, 
 	return _run_unittest(module, config=config)
 
 
-def _run_unittest(modules, config: TestConfig) -> tuple[unittest.TestResult, unittest.TestResult | None]:
+def _run_unittest(modules, config: TestConfig, runner: TestRunner) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 	"""Run unittest for the specified module(s)"""
 	frappe.db.begin()
 	modules = [modules] if not isinstance(modules, list | tuple) else modules
@@ -470,35 +500,7 @@ def _run_unittest(modules, config: TestConfig) -> tuple[unittest.TestResult, uni
 				if hasattr(test_case, "_apply_debug_decorator"):
 					test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
-	runner = unittest_runner(
-		resultclass=None if config.junit_xml_output else TestResult,
-		verbosity=2 if logger.getEffectiveLevel() < logging.INFO else 1,
-		failfast=config.failfast,
-		tb_locals=logger.getEffectiveLevel() < logging.DEBUG,
-	)
-
-	if config.profile:
-		pr = cProfile.Profile()
-		pr.enable()
-
-	# Run unit tests
-	logger.info("Running Unit Tests...")
-	unit_result = runner.run(unit_test_suite)
-
-	# Run integration tests only if unit tests pass
-	integration_result = None
-	if unit_result.wasSuccessful():
-		logger.info("Running Integration Tests...")
-		integration_result = runner.run(integration_test_suite)
-
-	if config.profile:
-		pr.disable()
-		s = StringIO()
-		ps = pstats.Stats(pr, stream=s).sort_stats("cumulative")
-		ps.print_stats()
-		print(s.getvalue())
-
-	return unit_result, integration_result
+	return runner.run((unit_test_suite, integration_test_suite))
 
 
 def _iterate_suite(suite):
