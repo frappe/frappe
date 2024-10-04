@@ -139,34 +139,14 @@ class TestRunner(unittest.TextTestRunner):
 
 		return unit_test_suite, integration_test_suite
 
-	def discover_module_tests(
-		self, modules, config: TestConfig
-	) -> tuple[unittest.TestSuite, unittest.TestSuite]:
+	def discover_module_tests(self, modules, config: TestConfig) -> tuple[unittest.TestSuite, unittest.TestSuite]:
 		unit_test_suite = unittest.TestSuite()
 		integration_test_suite = unittest.TestSuite()
 
 		modules = [modules] if not isinstance(modules, list | tuple) else modules
 
 		for module in modules:
-			if config.case:
-				test_suite = unittest.TestLoader().loadTestsFromTestCase(getattr(module, config.case))
-			else:
-				test_suite = unittest.TestLoader().loadTestsFromModule(module)
-
-			for test in self._iterate_suite(test_suite):
-				if config.tests and test._testMethodName not in config.tests:
-					continue
-
-				category = "integration" if isinstance(test, FrappeIntegrationTestCase) else "unit"
-
-				if config.selected_categories and category not in config.selected_categories:
-					continue
-
-				config.categories[category].append(test)
-				if category == "unit":
-					unit_test_suite.addTest(test)
-				else:
-					integration_test_suite.addTest(test)
+			self._add_module_tests(module, unit_test_suite, integration_test_suite, config)
 
 		return unit_test_suite, integration_test_suite
 
@@ -210,7 +190,11 @@ class TestRunner(unittest.TextTestRunner):
 		integration_test_suite: unittest.TestSuite,
 		config: TestConfig,
 	):
-		test_suite = unittest.TestLoader().loadTestsFromModule(module)
+		if config.case:
+			test_suite = unittest.TestLoader().loadTestsFromTestCase(getattr(module, config.case))
+		else:
+			test_suite = unittest.TestLoader().loadTestsFromModule(module)
+
 		for test in self._iterate_suite(test_suite):
 			if config.tests and test._testMethodName not in config.tests:
 				continue
