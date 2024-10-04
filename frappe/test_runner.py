@@ -34,8 +34,40 @@ from frappe.modules import get_module_name, load_doctype_module
 from frappe.tests.utils import FrappeIntegrationTestCase
 from frappe.utils import cint
 
-unittest_runner = unittest.TextTestRunner
 SLOW_TEST_THRESHOLD = 2
+
+
+class TestRunner(unittest.TextTestRunner):
+    def __init__(
+        self,
+        stream=None,
+        descriptions=True,
+        verbosity=1,
+        failfast=False,
+        buffer=False,
+        resultclass=None,
+        warnings=None,
+        *,
+        tb_locals=False,
+        junit_xml_output: bool = False,
+        profile: bool = False,
+    ):
+        super().__init__(
+            stream=stream,
+            descriptions=descriptions,
+            verbosity=verbosity,
+            failfast=failfast,
+            buffer=buffer,
+            resultclass=resultclass or TestResult,
+            warnings=warnings,
+            tb_locals=tb_locals,
+        )
+        self.junit_xml_output = junit_xml_output
+        self.profile = profile
+
+    def run(self, test):
+        # We'll implement this method in the next iteration
+        pass
 
 
 class TestResult(unittest.TextTestResult):
