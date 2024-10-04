@@ -30,7 +30,7 @@
     "@headlessui/vue": "^1.7.16",
     "@popperjs/core": "^2.11.2",
     "@redis/client": "^1.5.8",
-    "@sentry/browser": "^7.15.0",
+    "@sentry/browser": "^7.119.1",
     "@vue-flow/background": "^1.1.0",
     "@vue-flow/core": "^1.16.2",
     "@vue/component-compiler": "^4.2.4",
