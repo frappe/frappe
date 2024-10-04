@@ -103,12 +103,29 @@ class TestRunner(unittest.TextTestRunner):
 		for app in apps:
 			app_path = Path(frappe.get_app_path(app))
 			for path in app_path.rglob("test_*.py"):
+				if path.parts[-4:-1] == ("doctype", "doctype", "boilerplate"):
+					continue
 				if path.name != "test_runner.py":
-					relative_path = path.relative_to(app_path)
-					if not any(
-						part in relative_path.parts for part in ["locals", ".git", "public", "__pycache__"]
-					):
-						self._add_test(app_path, path, unit_test_suite, integration_test_suite, config)
+					continue
+				relative_path = path.relative_to(app_path)
+				if any(part in relative_path.parts for part in ["locals", ".git", "public", "__pycache__"]):
+					continue
+
+				module_name = (
+					f"{app_path.stem}.{'.'.join(relative_path.parent.parts)}.{path.stem}"
+					if str(relative_path.parent) != "."
+					else f"{app_path.stem}.{path.stem}"
+				)
+				module = importlib.import_module(module_name)
+
+				if path.parent.name == "doctype":
+					json_file = path.with_name(path.stem[5:] + ".json")
+					if json_file.exists():
+						with json_file.open() as f:
+							doctype = json.loads(f.read())["name"]
+						make_test_records(doctype, commit=True)
+
+				self._add_module_tests(module, unit_test_suite, integration_test_suite, config)
 
 		return unit_test_suite, integration_test_suite
 
@@ -151,35 +168,6 @@ class TestRunner(unittest.TextTestRunner):
 			self._add_module_tests(module, unit_test_suite, integration_test_suite, config)
 
 		return unit_test_suite, integration_test_suite
-
-	def _add_test(
-		self,
-		app_path: Path,
-		path: Path,
-		unit_test_suite: unittest.TestSuite,
-		integration_test_suite: unittest.TestSuite,
-		config: TestConfig,
-	) -> None:
-		relative_path = path.relative_to(app_path)
-
-		if path.parts[-4:-1] == ("doctype", "doctype", "boilerplate"):
-			return  # Skip boilerplate files
-
-		module_name = (
-			f"{app_path.stem}.{'.'.join(relative_path.parent.parts)}.{path.stem}"
-			if str(relative_path.parent) != "."
-			else f"{app_path.stem}.{path.stem}"
-		)
-		module = importlib.import_module(module_name)
-
-		if path.parent.name == "doctype":
-			json_file = path.with_name(path.stem[5:] + ".json")
-			if json_file.exists():
-				with json_file.open() as f:
-					doctype = json.loads(f.read())["name"]
-				make_test_records(doctype, commit=True)
-
-		self._add_module_tests(module, unit_test_suite, integration_test_suite, config)
 
 	def _add_module_tests(
 		self,
