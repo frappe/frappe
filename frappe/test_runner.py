@@ -94,18 +94,17 @@ class TestRunner(unittest.TextTestRunner):
 		return unit_result, integration_result
 
 	def discover_tests(
-		self, app: str | None, config: TestConfig
+		self, apps: list[str], config: TestConfig
 	) -> tuple[unittest.TestSuite, unittest.TestSuite]:
 		unit_test_suite = unittest.TestSuite()
 		integration_test_suite = unittest.TestSuite()
 
-		apps = [app] if app else frappe.get_installed_apps()
 		for app in apps:
 			app_path = Path(frappe.get_app_path(app))
 			for path in app_path.rglob("test_*.py"):
 				if path.parts[-4:-1] == ("doctype", "doctype", "boilerplate"):
 					continue
-				if path.name != "test_runner.py":
+				if path.name == "test_runner.py":
 					continue
 				relative_path = path.relative_to(app_path)
 				if any(part in relative_path.parts for part in ["locals", ".git", "public", "__pycache__"]):
@@ -363,7 +362,7 @@ def main(
 			unit_result, integration_result = _run_doctype_tests(doctype, test_config, runner, force)
 		elif module_def:
 			unit_result, integration_result = _run_module_def_tests(
-				app, module_def, test_config, force, runner
+				app, module_def, test_config, runner, force
 			)
 		elif module:
 			unit_result, integration_result = _run_module_tests(module, test_config, runner)
@@ -484,11 +483,11 @@ def _load_doctype_list(doctype_list_path):
 
 
 def _run_module_def_tests(
-	app, module_def, config: TestConfig, force
+	app, module_def, config: TestConfig, runner: TestRunner, force
 ) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 	"""Run tests for the specified module definition"""
 	doctypes = _get_doctypes_for_module_def(app, module_def)
-	return _run_doctype_tests(doctypes, config, force)
+	return _run_doctype_tests(doctypes, config, runner, force)
 
 
 def _get_doctypes_for_module_def(app, module_def):
@@ -526,8 +525,9 @@ def _run_all_tests(
 ) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 	"""Run all tests for the specified app or all installed apps"""
 
+	apps = [app] if app else frappe.get_installed_apps()
 	try:
-		unit_test_suite, integration_test_suite = runner.discover_tests(app, config)
+		unit_test_suite, integration_test_suite = runner.discover_tests(apps, config)
 
 		if config.pdb_on_exceptions:
 			for test_suite in (unit_test_suite, integration_test_suite):
