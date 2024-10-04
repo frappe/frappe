@@ -391,29 +391,45 @@ def main(
 
 def print_test_results(unit_result: unittest.TestResult, integration_result: unittest.TestResult | None):
 	"""Print detailed test results including failures and errors"""
-	print("Test Results:")
+	click.echo("\n" + click.style("Test Results:", fg="cyan", bold=True))
 
 	def _print_result(result, category):
 		tests_run = result.testsRun
 		failures = len(result.failures)
 		errors = len(result.errors)
-
-		print(f"{category} Tests: {tests_run} run, {failures} failures, {errors} errors")
+		click.echo(
+			f"\n{click.style(f'{category} Tests:', bold=True)}\n"
+			f"  Ran: {click.style(f'{tests_run:<3}', fg='cyan')}"
+			f"  Failures: {click.style(f'{failures:<3}', fg='red' if failures else 'green')}"
+			f"  Errors: {click.style(f'{errors:<3}', fg='red' if errors else 'green')}"
+		)
 
 		if failures > 0:
-			print(f"\n{category} Test Failures:")
+			click.echo(f"\n{click.style(category + ' Test Failures:', fg='red', bold=True)}")
 			for i, failure in enumerate(result.failures, 1):
-				print(f"{i}. {failure[0]}")
+				click.echo(f"  {i}. {click.style(str(failure[0]), fg='yellow')}")
 
 		if errors > 0:
-			print(f"\n{category} Test Errors:")
+			click.echo(f"\n{click.style(category + ' Test Errors:', fg='red', bold=True)}")
 			for i, error in enumerate(result.errors, 1):
-				print(f"{i}. {error[0]}")
+				click.echo(f"  {i}. {click.style(str(error[0]), fg='yellow')}")
+				click.echo(click.style("     " + str(error[1]).split("\n")[-2], fg="red"))
 
 	_print_result(unit_result, "Unit")
 
 	if integration_result:
 		_print_result(integration_result, "Integration")
+
+	# Print overall status
+	total_failures = len(unit_result.failures) + (
+		len(integration_result.failures) if integration_result else 0
+	)
+	total_errors = len(unit_result.errors) + (len(integration_result.errors) if integration_result else 0)
+
+	if total_failures == 0 and total_errors == 0:
+		click.echo(f"\n{click.style('All tests passed successfully!', fg='green', bold=True)}")
+	else:
+		click.echo(f"\n{click.style('Some tests failed or encountered errors.', fg='red', bold=True)}")
 
 
 def _initialize_test_environment(site, skip_before_tests, skip_test_records):
