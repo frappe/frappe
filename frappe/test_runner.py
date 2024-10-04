@@ -18,7 +18,7 @@ import pstats
 import sys
 import time
 import unittest
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cache
 from importlib import reload
 from io import StringIO
@@ -29,6 +29,7 @@ import frappe
 import frappe.utils.scheduler
 from frappe.model.naming import revert_series_if_last
 from frappe.modules import get_module_name, load_doctype_module
+from frappe.tests.utils import FrappeIntegrationTestCase
 from frappe.utils import cint
 
 unittest_runner = unittest.TextTestRunner
@@ -55,6 +56,7 @@ class TestConfig:
 	tests: tuple = ()
 	case: str | None = None
 	pdb_on_exceptions: tuple | None = None
+	categories: dict = field(default_factory=lambda: {"unit": [], "integration": []})
 
 
 def xmlrunner_wrapper(output):
@@ -127,11 +129,22 @@ def main(
 
 		_cleanup_after_tests(scheduler_disabled_by_user)
 
+		print_test_categories(test_config)  # Add this line
+
+		_cleanup_after_tests(scheduler_disabled_by_user)
+
 		return test_result
 
 	finally:
 		if xml_output_file:
 			xml_output_file.close()
+
+
+def print_test_categories(config: TestConfig):
+	"""Print the categorized tests"""
+	logger.info("Test Categories:")
+	logger.info(f" Unit Tests: {len(config.categories['unit'])}")
+	logger.info(f" Integration Tests: {len(config.categories['integration'])}")
 
 
 def _initialize_test_environment(site, skip_before_tests, skip_test_records):
@@ -318,12 +331,16 @@ def _run_unittest(modules, config: TestConfig):
 		if config.case:
 			test_suite = unittest.TestLoader().loadTestsFromTestCase(getattr(module, config.case))
 
-		if config.tests:
-			final_test_suite.addTests(
-				test for test in _iterate_suite(test_suite) if test._testMethodName in config.tests
-			)
-		else:
-			final_test_suite.addTest(test_suite)
+		for test in _iterate_suite(test_suite):
+			if config.tests and test._testMethodName not in config.tests:
+				continue
+
+			if isinstance(test, FrappeIntegrationTestCase):
+				config.categories["integration"].append(test)
+			else:
+				config.categories["unit"].append(test)
+
+			final_test_suite.addTest(test)
 
 	if config.pdb_on_exceptions:
 		for test_case in _iterate_suite(final_test_suite):
