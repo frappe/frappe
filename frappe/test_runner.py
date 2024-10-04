@@ -443,38 +443,32 @@ def get_dependencies(doctype):
 
 def make_test_records_for_doctype(doctype, verbose=0, force=False, commit=False):
 	"""Make test records for the specified doctype"""
-	if not force and doctype in get_test_record_log():
+	test_record_log_instance = TestRecordLog()
+	if not force and doctype in test_record_log_instance.get():
 		return
 
 	module, test_module = get_modules(doctype)
-
 	if verbose:
-		print("Making for " + doctype)
+		print(f"Making for {doctype}")
 
 	if hasattr(test_module, "_make_test_records"):
-		frappe.local.test_objects[doctype] += test_module._make_test_records(verbose)
-
+		frappe.local.test_objects[doctype] = frappe.local.test_objects.get(
+			doctype, []
+		) + test_module._make_test_records(verbose)
 	elif hasattr(test_module, "test_records"):
-		if doctype in frappe.local.test_objects:
-			frappe.local.test_objects[doctype] += make_test_objects(
-				doctype, test_module.test_records, verbose, force, commit=commit
-			)
-		else:
-			frappe.local.test_objects[doctype] = make_test_objects(
-				doctype, test_module.test_records, verbose, force, commit=commit
-			)
-
+		frappe.local.test_objects[doctype] = frappe.local.test_objects.get(doctype, []) + make_test_objects(
+			doctype, test_module.test_records, verbose, force, commit=commit
+		)
 	else:
 		test_records = frappe.get_test_records(doctype)
 		if test_records:
-			frappe.local.test_objects[doctype] += make_test_objects(
-				doctype, test_records, verbose, force, commit=commit
-			)
-
+			frappe.local.test_objects[doctype] = frappe.local.test_objects.get(
+				doctype, []
+			) + make_test_objects(doctype, test_records, verbose, force, commit=commit)
 		elif verbose:
 			print_mandatory_fields(doctype)
 
-	add_to_test_record_log(doctype)
+	test_record_log_instance.add(doctype)
 
 
 def make_test_objects(doctype, test_records=None, verbose=None, reset=False, commit=False):
@@ -545,33 +539,47 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False, com
 
 def print_mandatory_fields(doctype):
 	"""Print mandatory fields for the specified doctype"""
-	print("Please setup make_test_records for: " + doctype)
-	print("-" * 60)
 	meta = frappe.get_meta(doctype)
-	print("Autoname: " + (meta.autoname or ""))
-	print("Mandatory Fields: ")
+	print(f"Please setup make_test_records for: {doctype}")
+	print("-" * 60)
+	print(f"Autoname: {meta.autoname or ''}")
+	print("Mandatory Fields:")
 	for d in meta.get("fields", {"reqd": 1}):
-		print(d.parent + ":" + d.fieldname + " | " + d.fieldtype + " | " + (d.options or ""))
+		print(f" - {d.parent}:{d.fieldname} | {d.fieldtype} | {d.options or ''}")
 	print()
 
 
+class TestRecordLog:
+	def __init__(self):
+		self.log_file = frappe.get_site_path(".test_log")
+		self._log = None
+
+	def get(self):
+		if self._log is None:
+			self._log = self._read_log()
+		return self._log
+
+	def add(self, doctype):
+		log = self.get()
+		if doctype not in log:
+			log.append(doctype)
+			self._write_log(log)
+
+	def _read_log(self):
+		if os.path.exists(self.log_file):
+			with open(self.log_file) as f:
+				return f.read().splitlines()
+		return []
+
+	def _write_log(self, log):
+		with open(self.log_file, "w") as f:
+			f.write("\n".join(l for l in log if l is not None))
+
+
+# Compatibility functions
 def add_to_test_record_log(doctype):
-	"""Add `doctype` to site/.test_log
-	`.test_log` is a cache of all doctypes for which test records are created"""
-	test_record_log = get_test_record_log()
-	if doctype not in test_record_log:
-		frappe.flags.test_record_log.append(doctype)
-		with open(frappe.get_site_path(".test_log"), "w") as f:
-			f.write("\n".join(filter(None, frappe.flags.test_record_log)))
+	TestRecordLog().add(doctype)
 
 
 def get_test_record_log():
-	"""Return the list of doctypes for which test records have been created"""
-	if "test_record_log" not in frappe.flags:
-		if os.path.exists(frappe.get_site_path(".test_log")):
-			with open(frappe.get_site_path(".test_log")) as f:
-				frappe.flags.test_record_log = f.read().splitlines()
-		else:
-			frappe.flags.test_record_log = []
-
-	return frappe.flags.test_record_log
+	return TestRecordLog().get()
