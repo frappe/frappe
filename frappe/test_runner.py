@@ -92,15 +92,44 @@ def main(
 	"""Main function to run tests"""
 	global unittest_runner
 
-	# Construct TestConfig object
-	test_config = TestConfig()
-	test_config.verbose = verbose
-	test_config.profile = profile
-	test_config.failfast = failfast
-	test_config.junit_xml_output = bool(junit_xml_output)
-	test_config.tests = tests
-	test_config.case = case
+	test_config = TestConfig(
+		verbose=verbose,
+		profile=profile,
+		failfast=failfast,
+		junit_xml_output=bool(junit_xml_output),
+		tests=tests,
+		case=case,
+	)
+	_initialize_test_environment(site, skip_before_tests, skip_test_records, test_config, pdb_on_exceptions)
 
+	xml_output_file = _setup_xml_output(junit_xml_output)
+
+	try:
+		scheduler_disabled_by_user = _disable_scheduler_if_needed()
+
+		if not frappe.flags.skip_before_tests:
+			_run_before_test_hooks(test_config, app)
+
+		if doctype or doctype_list_path:
+			test_result = _run_doctype_tests(doctype, test_config, doctype_list_path, force)
+		elif module_def:
+			test_result = _run_module_def_tests(app, module_def, test_config, force)
+		elif module:
+			test_result = run_tests_for_module(module, test_config)
+		else:
+			test_result = run_all_tests(app, test_config)
+
+		_cleanup_after_tests(scheduler_disabled_by_user)
+
+		return test_result
+
+	finally:
+		if xml_output_file:
+			xml_output_file.close()
+
+
+def _initialize_test_environment(site, skip_before_tests, skip_test_records, test_config, pdb_on_exceptions):
+	"""Initialize the test environment"""
 	frappe.init(site)
 	if not frappe.db:
 		frappe.connect()
@@ -108,74 +137,90 @@ def main(
 	frappe.flags.skip_before_tests = skip_before_tests
 	frappe.flags.skip_test_records = skip_test_records
 
-	if doctype_list_path:
-		app, doctype_list_path = doctype_list_path.split(os.path.sep, 1)
-		with open(frappe.get_app_path(app, doctype_list_path)) as f:
-			doctype = f.read().strip().splitlines()
+	# Set various test-related flags
+	frappe.flags.print_messages = test_config.verbose
+	frappe.flags.in_test = True
+	frappe.flags.pdb_on_exceptions = pdb_on_exceptions
+	frappe.clear_cache()
 
-	xmloutput_fh = None
+
+def _setup_xml_output(junit_xml_output):
+	"""Setup XML output for test results if specified"""
+	global unittest_runner
+
 	if junit_xml_output:
-		with open(junit_xml_output, "wb") as xmloutput_fh:
-			unittest_runner = xmlrunner_wrapper(xmloutput_fh)
+		xml_output_file = open(junit_xml_output, "wb")
+		unittest_runner = xmlrunner_wrapper(xml_output_file)
+		return xml_output_file
 	else:
 		unittest_runner = unittest.TextTestRunner
+		return None
 
-	try:
-		frappe.flags.print_messages = test_config.verbose
-		frappe.flags.in_test = True
-		frappe.flags.pdb_on_exceptions = pdb_on_exceptions
 
-		# workaround! since there is no separate test db
-		frappe.clear_cache()
-		scheduler_disabled_by_user = frappe.utils.scheduler.is_scheduler_disabled(verbose=False)
-		if not scheduler_disabled_by_user:
-			frappe.utils.scheduler.disable_scheduler()
+def _disable_scheduler_if_needed():
+	"""Disable scheduler if it's not already disabled"""
+	scheduler_disabled_by_user = frappe.utils.scheduler.is_scheduler_disabled(verbose=False)
+	if not scheduler_disabled_by_user:
+		frappe.utils.scheduler.disable_scheduler()
+	return scheduler_disabled_by_user
 
-		if not frappe.flags.skip_before_tests:
-			if test_config.verbose:
-				print('Running "before_tests" hooks')
-			for fn in frappe.get_hooks("before_tests", app_name=app):
-				frappe.get_attr(fn)()
 
-		if doctype:
-			ret = run_tests_for_doctype(doctype, test_config, force)
-		elif module_def:
-			doctypes = []
-			doctypes_ = frappe.get_list(
-				"DocType",
-				filters={"module": module_def, "istable": 0},
-				fields=["name", "module"],
-				as_list=True,
-			)
-			for doctype, module in doctypes_:
-				test_module = get_module_name(doctype, module, "test_", app=app)
-				try:
-					importlib.import_module(test_module)
-				except Exception:
-					pass
-				else:
-					doctypes.append(doctype)
+def _run_before_test_hooks(test_config, app):
+	"""Run 'before_tests' hooks if not skipped by the caller"""
+	if test_config.verbose:
+		print('Running "before_tests" hooks')
+	for hook_function in frappe.get_hooks("before_tests", app_name=app):
+		frappe.get_attr(hook_function)()
 
-			ret = run_tests_for_doctype(doctypes, test_config, force)
-		elif module:
-			ret = run_tests_for_module(module, test_config)
-		else:
-			ret = run_all_tests(app, test_config)
 
-		if not scheduler_disabled_by_user:
-			frappe.utils.scheduler.enable_scheduler()
+def _run_doctype_tests(doctype, test_config, doctype_list_path, force):
+	"""Run tests for the specified doctype(s)"""
+	if doctype_list_path:
+		doctype = _load_doctype_list(doctype_list_path)
+	return run_tests_for_doctype(doctype, test_config, force)
 
-		if frappe.db:
-			frappe.db.commit()
 
-		# workaround! since there is no separate test db
-		frappe.clear_cache()
-		return ret
+def _load_doctype_list(doctype_list_path):
+	"""Load the list of doctypes from the specified file"""
+	app, path = doctype_list_path.split(os.path.sep, 1)
+	with open(frappe.get_app_path(app, path)) as f:
+		return f.read().strip().splitlines()
 
-	finally:
-		if xmloutput_fh:
-			xmloutput_fh.flush()
-			xmloutput_fh.close()
+
+def _run_module_def_tests(app, module_def, test_config, force):
+	"""Run tests for the specified module definition"""
+	doctypes = _get_doctypes_for_module_def(app, module_def)
+	return run_tests_for_doctype(doctypes, test_config, force)
+
+
+def _get_doctypes_for_module_def(app, module_def):
+	"""Get the list of doctypes for the specified module definition"""
+	doctypes = []
+	doctypes_ = frappe.get_list(
+		"DocType",
+		filters={"module": module_def, "istable": 0},
+		fields=["name", "module"],
+		as_list=True,
+	)
+	for doctype, module in doctypes_:
+		test_module = get_module_name(doctype, module, "test_", app=app)
+		try:
+			importlib.import_module(test_module)
+			doctypes.append(doctype)
+		except Exception:
+			pass
+	return doctypes
+
+
+def _cleanup_after_tests(scheduler_disabled_by_user):
+	"""Perform cleanup operations after running tests"""
+	if not scheduler_disabled_by_user:
+		frappe.utils.scheduler.enable_scheduler()
+
+	if frappe.db:
+		frappe.db.commit()
+
+	frappe.clear_cache()
 
 
 class TimeLoggingTestResult(unittest.TextTestResult):
