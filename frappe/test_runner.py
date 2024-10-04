@@ -139,7 +139,9 @@ class TestRunner(unittest.TextTestRunner):
 
 		return unit_test_suite, integration_test_suite
 
-	def discover_module_tests(self, modules, config: TestConfig) -> tuple[unittest.TestSuite, unittest.TestSuite]:
+	def discover_module_tests(
+		self, modules, config: TestConfig
+	) -> tuple[unittest.TestSuite, unittest.TestSuite]:
 		unit_test_suite = unittest.TestSuite()
 		integration_test_suite = unittest.TestSuite()
 
@@ -170,10 +172,6 @@ class TestRunner(unittest.TextTestRunner):
 		)
 		module = importlib.import_module(module_name)
 
-		if hasattr(module, "test_dependencies"):
-			for doctype in module.test_dependencies:
-				make_test_records(doctype, commit=True)
-
 		if path.parent.name == "doctype":
 			json_file = path.with_name(path.stem[5:] + ".json")
 			if json_file.exists():
@@ -190,6 +188,11 @@ class TestRunner(unittest.TextTestRunner):
 		integration_test_suite: unittest.TestSuite,
 		config: TestConfig,
 	):
+		# Handle module test dependencies
+		if hasattr(module, "test_dependencies"):
+			for doctype in module.test_dependencies:
+				make_test_records(doctype, commit=True)
+
 		if config.case:
 			test_suite = unittest.TestLoader().loadTestsFromTestCase(getattr(module, config.case))
 		else:
