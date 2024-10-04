@@ -407,9 +407,6 @@ def main(
 	try:
 		scheduler_disabled_by_user = _disable_scheduler_if_needed()
 
-		if not frappe.flags.skip_before_tests:
-			_run_before_test_hooks(test_config, app)
-
 		# Create TestRunner instance
 		runner = TestRunner(
 			resultclass=TestResult if not test_config.junit_xml_output else None,
@@ -537,14 +534,6 @@ def _disable_scheduler_if_needed():
 	return scheduler_disabled_by_user
 
 
-@debug_timer
-def _run_before_test_hooks(test_config, app):
-	"""Run 'before_tests' hooks if not skipped by the caller"""
-	logger.debug('Running "before_tests" hooks')
-	for hook_function in frappe.get_hooks("before_tests", app_name=app):
-		frappe.get_attr(hook_function)()
-
-
 def _load_doctype_list(doctype_list_path):
 	"""Load the list of doctypes from the specified file"""
 	app, path = doctype_list_path.split(os.path.sep, 1)
@@ -610,6 +599,15 @@ def _run_all_tests(
 					if hasattr(test_case, "_apply_debug_decorator"):
 						test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
+		# Run before_tests hooks only if there are integration tests and hooks are not skipped
+		if (
+			not frappe.flags.skip_before_tests
+			and len(list(runner._iterate_suite(integration_test_suite))) > 0
+		):
+			_run_before_test_hooks(config, app)
+		else:
+			logger.debug("Skipping before_tests hooks: No integration tests or hooks explicitly skipped")
+
 		return runner.run((unit_test_suite, integration_test_suite))
 	except Exception as e:
 		logger.error(f"Error running all tests for {app or 'all apps'}: {e!s}")
@@ -631,6 +629,15 @@ def _run_doctype_tests(
 					if hasattr(test_case, "_apply_debug_decorator"):
 						test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
+		# Run before_tests hooks only if there are integration tests and hooks are not skipped
+		if (
+			not frappe.flags.skip_before_tests
+			and len(list(runner._iterate_suite(integration_test_suite))) > 0
+		):
+			_run_before_test_hooks(config, None)  # Pass None for app as it's not applicable here
+		else:
+			logger.debug("Skipping before_tests hooks: No integration tests or hooks explicitly skipped")
+
 		return runner.run((unit_test_suite, integration_test_suite))
 	except Exception as e:
 		logger.error(f"Error running tests for doctypes {doctypes}: {e!s}")
@@ -651,9 +658,18 @@ def _run_module_tests(
 					if hasattr(test_case, "_apply_debug_decorator"):
 						test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
+		# Run before_tests hooks only if there are integration tests and hooks are not skipped
+		if (
+			not frappe.flags.skip_before_tests
+			and len(list(runner._iterate_suite(integration_test_suite))) > 0
+		):
+			_run_before_test_hooks(config, None)  # Pass None for app as it's not applicable here
+		else:
+			logger.debug("Skipping before_tests hooks: No integration tests or hooks explicitly skipped")
+
 		return runner.run((unit_test_suite, integration_test_suite))
 	except Exception as e:
-		logger.error(f"Error running tests for mosule {module}: {e!s}")
+		logger.error(f"Error running tests for module {module}: {e!s}")
 		raise TestRunnerError(f"Failed to run tests for module: {e!s}") from e
 
 
@@ -856,3 +872,22 @@ def add_to_test_record_log(doctype):
 
 def get_test_record_log():
 	return TestRecordLog().get()
+
+
+@debug_timer
+def _run_before_test_hooks(config: TestConfig, app: str | None):
+	"""Run 'before_tests' hooks"""
+	# Explanatory comment
+	"""
+	We skip the before_tests hooks if there are only unit tests because:
+	1. Unit tests are designed to be independent and should not rely on external state or setup.
+	2. They should be fast and lightweight, avoiding unnecessary setup operations.
+	3. Running hooks might introduce side effects or dependencies that could compromise the isolation of unit tests.
+	4. Unit tests typically mock or stub external dependencies, making most setup hooks unnecessary.
+
+	Integration tests, on the other hand, often require a more complete environment setup,
+	which is why we run the hooks when integration tests are present.
+	"""
+	logger.debug('Running "before_tests" hooks')
+	for hook_function in frappe.get_hooks("before_tests", app_name=app):
+		frappe.get_attr(hook_function)()
