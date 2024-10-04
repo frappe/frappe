@@ -134,26 +134,27 @@ if __name__ == "__main__":
 	# Run tests with code coverage
 	with CodeCoverage(with_coverage=with_coverage, app=app):
 		# Add ASCII banner at the end
-		mode = "Orchestrator" if use_orchestrator else "Parallel"
-		banner = f"""
-		╔{'═' * 50}╗
-		║{' ' * 50}║
-		║     CI Helper Script Execution Summary     ║
-		║{' ' * 50}║
-		╠{'═' * 50}╣
-		║ Mode:         {mode:<29} ║
-		║ App:          {app:<29} ║
-		║ Site:         {site:<29} ║
-		║ Build Number: {build_number:<29} ║
-		║ Total Builds: {total_builds:<29} ║
-		╚{'═' * 50}╝
-		"""
-		print(banner)
 		if use_orchestrator:
 			from frappe.parallel_test_runner import ParallelTestWithOrchestrator
 
-			ParallelTestWithOrchestrator(app, site=site)
+			runner = ParallelTestWithOrchestrator(app, site=site)
 		else:
 			from frappe.parallel_test_runner import ParallelTestRunner
 
-			ParallelTestRunner(app, site=site, build_number=build_number, total_builds=total_builds)
+			runner = ParallelTestRunner(app, site=site, build_number=build_number, total_builds=total_builds)
+
+		mode = "Orchestrator" if use_orchestrator else "Parallel"
+		banner = f"""
+		╔════════════════════════════════════════════╗
+		║     CI Helper Script Execution Summary     ║
+		╠════════════════════════════════════════════╣
+		║ Mode:           {mode:<26} ║
+		║ App:            {app:<26} ║
+		║ Site:           {site:<26} ║
+		║ Build Number:   {build_number:<26} ║
+		║ Total Builds:   {total_builds:<26} ║
+		║ Tests in Build: ~{runner.total_tests:<25} ║
+		╚════════════════════════════════════════════╝
+		"""
+		print(banner)
+		runner.setup_and_run()
