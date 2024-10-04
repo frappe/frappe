@@ -19,6 +19,7 @@ import sys
 import time
 import unittest
 from dataclasses import dataclass
+from functools import cache
 from importlib import reload
 from io import StringIO
 from pathlib import Path
@@ -408,6 +409,7 @@ def make_test_records(doctype, verbose=0, force=False, commit=False):
 			make_test_records_for_doctype(options, verbose, force, commit=commit)
 
 
+@cache
 def get_modules(doctype):
 	"""Get the modules for the specified doctype"""
 	module = frappe.db.get_value("DocType", doctype, "module")
@@ -421,6 +423,7 @@ def get_modules(doctype):
 	return module, test_module
 
 
+@cache
 def get_dependencies(doctype):
 	"""Get the dependencies for the specified doctype"""
 	module, test_module = get_modules(doctype)
