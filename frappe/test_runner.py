@@ -23,7 +23,7 @@ from functools import cache
 from importlib import reload
 from io import StringIO
 from pathlib import Path
-from typing import Optional, Union, Tuple
+from typing import Optional, Union
 
 import click
 
@@ -65,7 +65,9 @@ class TestRunner(unittest.TextTestRunner):
 		self.junit_xml_output = junit_xml_output
 		self.profile = profile
 
-	def run(self, test_suites: Tuple[unittest.TestSuite, unittest.TestSuite]) -> Tuple[unittest.TestResult, unittest.TestResult | None]:
+	def run(
+		self, test_suites: tuple[unittest.TestSuite, unittest.TestSuite]
+	) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 		unit_suite, integration_suite = test_suites
 
 		if self.profile:
@@ -90,6 +92,80 @@ class TestRunner(unittest.TextTestRunner):
 			print(s.getvalue())
 
 		return unit_result, integration_result
+
+	def discover_tests(
+		self, app: str | None, config: TestConfig
+	) -> tuple[unittest.TestSuite, unittest.TestSuite]:
+		unit_test_suite = unittest.TestSuite()
+		integration_test_suite = unittest.TestSuite()
+
+		apps = [app] if app else frappe.get_installed_apps()
+		for app in apps:
+			app_path = Path(frappe.get_app_path(app))
+			for path in app_path.rglob("test_*.py"):
+				if path.name != "test_runner.py":
+					relative_path = path.relative_to(app_path)
+					if not any(
+						part in relative_path.parts for part in ["locals", ".git", "public", "__pycache__"]
+					):
+						self._add_test(app_path, path, unit_test_suite, integration_test_suite, config)
+
+		return unit_test_suite, integration_test_suite
+
+	def _add_test(
+		self,
+		app_path: Path,
+		path: Path,
+		unit_test_suite: unittest.TestSuite,
+		integration_test_suite: unittest.TestSuite,
+		config: TestConfig,
+	) -> None:
+		relative_path = path.relative_to(app_path)
+
+		if path.parts[-4:-1] == ("doctype", "doctype", "boilerplate"):
+			return  # Skip boilerplate files
+
+		module_name = (
+			f"{app_path.stem}.{'.'.join(relative_path.parent.parts)}.{path.stem}"
+			if str(relative_path.parent) != "."
+			else f"{app_path.stem}.{path.stem}"
+		)
+		module = importlib.import_module(module_name)
+
+		if hasattr(module, "test_dependencies"):
+			for doctype in module.test_dependencies:
+				make_test_records(doctype, commit=True)
+
+		if path.parent.name == "doctype":
+			json_file = path.with_name(path.stem[5:] + ".json")
+			if json_file.exists():
+				with json_file.open() as f:
+					doctype = json.loads(f.read())["name"]
+				make_test_records(doctype, commit=True)
+
+		test_suite = unittest.TestLoader().loadTestsFromModule(module)
+		for test in self._iterate_suite(test_suite):
+			if config.tests and test._testMethodName not in config.tests:
+				continue
+
+			category = "integration" if isinstance(test, FrappeIntegrationTestCase) else "unit"
+
+			if config.selected_categories and category not in config.selected_categories:
+				continue
+
+			config.categories[category].append(test)
+			if category == "unit":
+				unit_test_suite.addTest(test)
+			else:
+				integration_test_suite.addTest(test)
+
+	@staticmethod
+	def _iterate_suite(suite):
+		for test in suite:
+			if isinstance(test, unittest.TestSuite):
+				yield from TestRunner._iterate_suite(test)
+			elif isinstance(test, unittest.TestCase):
+				yield test
 
 
 class TestResult(unittest.TextTestResult):
@@ -244,7 +320,9 @@ def main(
 			doctype = _load_doctype_list(doctype_list_path) if doctype_list_path else doctype
 			unit_result, integration_result = _run_doctype_tests(doctype, test_config, force, runner)
 		elif module_def:
-			unit_result, integration_result = _run_module_def_tests(app, module_def, test_config, force, runner)
+			unit_result, integration_result = _run_module_def_tests(
+				app, module_def, test_config, force, runner
+			)
 		elif module:
 			unit_result, integration_result = _run_module_tests(module, test_config, runner)
 		else:
@@ -387,48 +465,24 @@ def _run_all_tests(
 	app: str | None, config: TestConfig
 ) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 	"""Run all tests for the specified app or all installed apps"""
-	apps = [app] if app else frappe.get_installed_apps()
-	unit_test_suite = unittest.TestSuite()
-	integration_test_suite = unittest.TestSuite()
-
-	for app in apps:
-		app_path = Path(frappe.get_app_path(app))
-		for path in app_path.rglob("test_*.py"):
-			if path.name != "test_runner.py":
-				relative_path = path.relative_to(app_path)
-				if not any(
-					part in relative_path.parts for part in ["locals", ".git", "public", "__pycache__"]
-				):
-					_add_test(app_path, path, unit_test_suite, integration_test_suite, config)
-
-	runner = unittest_runner(
+	runner = TestRunner(
 		resultclass=TestResult if not config.junit_xml_output else None,
 		verbosity=2 if logger.getEffectiveLevel() < logging.INFO else 1,
 		failfast=config.failfast,
 		tb_locals=logger.getEffectiveLevel() < logging.DEBUG,
+		junit_xml_output=config.junit_xml_output,
+		profile=config.profile,
 	)
 
-	if config.profile:
-		pr = cProfile.Profile()
-		pr.enable()
+	unit_test_suite, integration_test_suite = runner.discover_tests(app, config)
 
-	# Run unit tests
-	logger.info("Running Unit Tests...")
-	unit_result = runner.run(unit_test_suite)
+	if config.pdb_on_exceptions:
+		for test_suite in (unit_test_suite, integration_test_suite):
+			for test_case in runner._iterate_suite(test_suite):
+				if hasattr(test_case, "_apply_debug_decorator"):
+					test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
-	# Run integration tests only if unit tests pass
-	integration_result = None
-	if unit_result.wasSuccessful():
-		logger.info("Running Integration Tests...")
-		integration_result = runner.run(integration_test_suite)
-
-	if config.profile:
-		pr.disable()
-		s = StringIO()
-		pstats.Stats(pr, stream=s).sort_stats("cumulative").print_stats()
-		print(s.getvalue())
-
-	return unit_result, integration_result
+	return runner.run((unit_test_suite, integration_test_suite))
 
 
 def _run_doctype_tests(
@@ -467,7 +521,9 @@ def _run_module_tests(module, config: TestConfig) -> tuple[unittest.TestResult, 
 	return _run_unittest(module, config=config)
 
 
-def _run_unittest(modules, config: TestConfig, runner: TestRunner) -> tuple[unittest.TestResult, unittest.TestResult | None]:
+def _run_unittest(
+	modules, config: TestConfig, runner: TestRunner
+) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 	"""Run unittest for the specified module(s)"""
 	frappe.db.begin()
 	modules = [modules] if not isinstance(modules, list | tuple) else modules
@@ -510,53 +566,6 @@ def _iterate_suite(suite):
 			yield from _iterate_suite(test)
 		elif isinstance(test, unittest.TestCase):
 			yield test
-
-
-def _add_test(
-	app_path: Path,
-	path: Path,
-	unit_test_suite: unittest.TestSuite,
-	integration_test_suite: unittest.TestSuite,
-	config: TestConfig,
-) -> None:
-	relative_path = path.relative_to(app_path)
-
-	if path.parts[-4:-1] == ("doctype", "doctype", "boilerplate"):
-		return  # Skip boilerplate files
-
-	module_name = (
-		f"{app_path.stem}.{'.'.join(relative_path.parent.parts)}.{path.stem}"
-		if str(relative_path.parent) != "."
-		else f"{app_path.stem}.{path.stem}"
-	)
-	module = importlib.import_module(module_name)
-
-	if hasattr(module, "test_dependencies"):
-		for doctype in module.test_dependencies:
-			make_test_records(doctype, commit=True)
-
-	if path.parent.name == "doctype":
-		json_file = path.with_name(path.stem[5:] + ".json")
-		if json_file.exists():
-			with json_file.open() as f:
-				doctype = json.loads(f.read())["name"]
-			make_test_records(doctype, commit=True)
-
-	test_suite = unittest.TestLoader().loadTestsFromModule(module)
-	for test in _iterate_suite(test_suite):
-		if config.tests and test._testMethodName not in config.tests:
-			continue
-
-		category = "integration" if isinstance(test, FrappeIntegrationTestCase) else "unit"
-
-		if config.selected_categories and category not in config.selected_categories:
-			continue
-
-		config.categories[category].append(test)
-		if category == "unit":
-			unit_test_suite.addTest(test)
-		else:
-			integration_test_suite.addTest(test)
 
 
 def make_test_records(doctype, force=False, commit=False):
