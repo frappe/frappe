@@ -1,5 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from __future__ import annotations
+
 import cProfile
 import importlib
 import json
@@ -10,6 +12,7 @@ import time
 import unittest
 from importlib import reload
 from io import StringIO
+from typing import List, Optional, Union
 
 import frappe
 import frappe.utils.scheduler
@@ -38,23 +41,23 @@ def xmlrunner_wrapper(output):
 
 
 def main(
-	site=None,
-	app=None,
-	module=None,
-	doctype=None,
-	module_def=None,
-	verbose=False,
-	tests=(),
-	force=False,
-	profile=False,
-	junit_xml_output=None,
-	doctype_list_path=None,
-	failfast=False,
-	case=None,
-	skip_test_records=False,
-	skip_before_tests=False,
-	pdb_on_exceptions=False,
-):
+	site: str | None = None,
+	app: str | None = None,
+	module: str | None = None,
+	doctype: str | None = None,
+	module_def: str | None = None,
+	verbose: bool = False,
+	tests: tuple = (),
+	force: bool = False,
+	profile: bool = False,
+	junit_xml_output: str | None = None,
+	doctype_list_path: str | None = None,
+	failfast: bool = False,
+	case: str | None = None,
+	skip_test_records: bool = False,
+	skip_before_tests: bool = False,
+	pdb_on_exceptions: bool = False,
+) -> None:
 	global unittest_runner
 
 	frappe.init(site)
@@ -71,8 +74,8 @@ def main(
 
 	xmloutput_fh = None
 	if junit_xml_output:
-		xmloutput_fh = open(junit_xml_output, "wb")
-		unittest_runner = xmlrunner_wrapper(xmloutput_fh)
+		with open(junit_xml_output, "wb") as xmloutput_fh:
+			unittest_runner = xmlrunner_wrapper(xmloutput_fh)
 	else:
 		unittest_runner = unittest.TextTestRunner
 
@@ -159,10 +162,14 @@ class TimeLoggingTestResult(unittest.TextTestResult):
 		super().addSuccess(test)
 
 
-def run_all_tests(app=None, verbose=False, profile=False, failfast=False, junit_xml_output=False):
-	import os
-
-	apps = [app] if app else frappe.get_installed_apps()
+def run_all_tests(
+	app: str | None = None,
+	verbose: bool = False,
+	profile: bool = False,
+	failfast: bool = False,
+	junit_xml_output: bool = False
+) -> unittest.TestResult:
+	apps: list[str] = [app] if app else frappe.get_installed_apps()
 
 	test_suite = unittest.TestSuite()
 	for app in apps:
