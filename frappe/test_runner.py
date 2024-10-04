@@ -22,6 +22,7 @@ from dataclasses import dataclass
 from functools import cache
 from importlib import reload
 from io import StringIO
+from pathlib import Path
 from typing import Optional, Union
 
 import frappe
@@ -240,14 +241,14 @@ def _run_all_tests(app: str | None, config: TestConfig) -> unittest.TestResult:
 	test_suite = unittest.TestSuite()
 
 	for app in apps:
-		for path, folders, files in os.walk(frappe.get_app_path(app)):
-			folders[:] = [f for f in folders if f not in ("locals", ".git", "public", "__pycache__")]
-			folders.sort()
-			files.sort()
-
-			for filename in files:
-				if filename.startswith("test_") and filename.endswith(".py") and filename != "test_runner.py":
-					_add_test(app, path, filename, config.verbose, test_suite)
+		app_path = Path(frappe.get_app_path(app))
+		for path in app_path.rglob("test_*.py"):
+			if path.name != "test_runner.py":
+				relative_path = path.relative_to(app_path)
+				if not any(
+					part in relative_path.parts for part in ["locals", ".git", "public", "__pycache__"]
+				):
+					_add_test(app_path, path, config.verbose, test_suite)
 
 	runner = unittest_runner(
 		resultclass=TimeLoggingTestResult if not config.junit_xml_output else None,
@@ -362,14 +363,19 @@ def _iterate_suite(suite):
 			yield test
 
 
-def _add_test(app, path, filename, verbose, test_suite=None):
-	app_path = frappe.get_app_path(app)
-	relative_path = os.path.relpath(path, app_path)
+def _add_test(
+	app_path: Path, path: Path, verbose: bool, test_suite: unittest.TestSuite | None = None
+) -> None:
+	relative_path = path.relative_to(app_path)
 
-	if os.path.sep.join(["doctype", "doctype", "boilerplate"]) in path:
+	if path.parts[-4:-1] == ("doctype", "doctype", "boilerplate"):
 		return  # Skip boilerplate files
 
-	module_name = f"{app}.{relative_path.replace('/', '.')}.{filename[:-3]}" if relative_path != "." else app
+	module_name = (
+		f"{app_path.stem}.{'.'.join(relative_path.parent.parts)}.{path.stem}"
+		if str(relative_path.parent) != "."
+		else f"{app_path.stem}.{path.stem}"
+	)
 	module = importlib.import_module(module_name)
 
 	if hasattr(module, "test_dependencies"):
@@ -378,12 +384,12 @@ def _add_test(app, path, filename, verbose, test_suite=None):
 
 	test_suite = test_suite or unittest.TestSuite()
 
-	if os.path.basename(os.path.dirname(path)) == "doctype":
-		json_file = os.path.join(path, filename[5:].replace(".py", ".json"))
-		if os.path.exists(json_file):
-			with open(json_file) as f:
+	if path.parent.name == "doctype":
+		json_file = path.with_name(path.stem[5:] + ".json")
+		if json_file.exists():
+			with json_file.open() as f:
 				doctype = json.loads(f.read())["name"]
-			make_test_records(doctype, verbose, commit=True)
+			make_test_records(doctype, verbose=verbose, commit=True)
 
 	test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
 
@@ -471,66 +477,48 @@ def make_test_records_for_doctype(doctype, verbose=0, force=False, commit=False)
 def make_test_objects(doctype, test_records=None, verbose=None, reset=False, commit=False):
 	"""Make test objects from given list of `test_records` or from `test_records.json`"""
 	records = []
-
-	def revert_naming(d):
-		if getattr(d, "naming_series", None):
-			revert_series_if_last(d.naming_series, d.name)
-
-	if test_records is None:
-		test_records = frappe.get_test_records(doctype)
+	test_records = test_records or frappe.get_test_records(doctype)
 
 	for doc in test_records:
 		if not reset:
 			frappe.db.savepoint("creating_test_record")
 
-		if not doc.get("doctype"):
-			doc["doctype"] = doctype
-
+		doc = {"doctype": doctype, **doc} if "doctype" not in doc else doc
 		d = frappe.copy_doc(doc)
 
 		if d.meta.get_field("naming_series"):
-			if not d.naming_series:
-				d.naming_series = "_T-" + d.doctype + "-"
+			d.naming_series = d.naming_series or f"_T-{d.doctype}-"
 
-		if doc.get("name"):
-			d.name = doc.get("name")
-		else:
-			d.set_new_name()
+		d.name = doc.get("name") or d.set_new_name()
 
 		if frappe.db.exists(d.doctype, d.name) and not reset:
 			frappe.db.rollback(save_point="creating_test_record")
-			# do not create test records, if already exists
 			continue
 
-		# submit if docstatus is set to 1 for test record
-		docstatus = d.docstatus
-
 		d.docstatus = 0
-
 		try:
 			d.run_method("before_test_insert")
 			d.insert(ignore_if_duplicate=True)
-
-			if docstatus == 1:
+			if doc.get("docstatus") == 1:
 				d.submit()
-
 		except frappe.NameError:
-			revert_naming(d)
-
+			if d.naming_series:
+				revert_series_if_last(d.naming_series, d.name)
 		except Exception as e:
 			if (
 				d.flags.ignore_these_exceptions_in_test
 				and e.__class__ in d.flags.ignore_these_exceptions_in_test
 			):
-				revert_naming(d)
+				if d.naming_series:
+					revert_series_if_last(d.naming_series, d.name)
 			else:
-				verbose and print("Error in making test record for", d.doctype, d.name)
+				verbose and print(f"Error in making test record for {d.doctype} {d.name}")
 				raise
 
 		records.append(d.name)
-
 		if commit:
 			frappe.db.commit()
+
 	return records
 
 
@@ -548,7 +536,7 @@ def print_mandatory_fields(doctype):
 
 class TestRecordLog:
 	def __init__(self):
-		self.log_file = frappe.get_site_path(".test_log")
+		self.log_file = Path(frappe.get_site_path(".test_log"))
 		self._log = None
 
 	def get(self):
@@ -563,13 +551,13 @@ class TestRecordLog:
 			self._write_log(log)
 
 	def _read_log(self):
-		if os.path.exists(self.log_file):
-			with open(self.log_file) as f:
+		if self.log_file.exists():
+			with self.log_file.open() as f:
 				return f.read().splitlines()
 		return []
 
 	def _write_log(self, log):
-		with open(self.log_file, "w") as f:
+		with self.log_file.open("w") as f:
 			f.write("\n".join(l for l in log if l is not None))
 
 
