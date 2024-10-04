@@ -53,6 +53,7 @@ class TestConfig:
 	junit_xml_output: bool = False
 	tests: tuple = ()
 	case: str | None = None
+	pdb_on_exceptions: tuple | None = None
 
 
 def xmlrunner_wrapper(output):
@@ -99,8 +100,9 @@ def main(
 		junit_xml_output=bool(junit_xml_output),
 		tests=tests,
 		case=case,
+		pdb_on_exceptions=pdb_on_exceptions,
 	)
-	_initialize_test_environment(site, skip_before_tests, skip_test_records, test_config, pdb_on_exceptions)
+	_initialize_test_environment(site, skip_before_tests, skip_test_records, test_config)
 
 	xml_output_file = _setup_xml_output(junit_xml_output)
 
@@ -129,7 +131,7 @@ def main(
 			xml_output_file.close()
 
 
-def _initialize_test_environment(site, skip_before_tests, skip_test_records, test_config, pdb_on_exceptions):
+def _initialize_test_environment(site, skip_before_tests, skip_test_records, test_config):
 	"""Initialize the test environment"""
 	frappe.init(site)
 	if not frappe.db:
@@ -141,7 +143,6 @@ def _initialize_test_environment(site, skip_before_tests, skip_test_records, tes
 	# Set various test-related flags
 	frappe.flags.print_messages = test_config.verbose
 	frappe.flags.in_test = True
-	frappe.flags.pdb_on_exceptions = pdb_on_exceptions
 	frappe.clear_cache()
 
 
@@ -306,51 +307,38 @@ def _run_module_tests(module, config: TestConfig):
 def _run_unittest(modules, config: TestConfig):
 	"""Run unittest for the specified module(s)"""
 	frappe.db.begin()
-
+	modules = [modules] if not isinstance(modules, list | tuple) else modules
 	final_test_suite = unittest.TestSuite()
 
-	if not isinstance(modules, list | tuple):
-		modules = [modules]
-
-	def iterate_suite(suite):
-		for test in suite:
-			if isinstance(test, unittest.TestSuite):
-				yield from iterate_suite(test)
-			elif isinstance(test, unittest.TestCase):
-				yield test
-
 	for module in modules:
+		test_suite = unittest.TestLoader().loadTestsFromModule(module)
 		if config.case:
 			test_suite = unittest.TestLoader().loadTestsFromTestCase(getattr(module, config.case))
-		else:
-			test_suite = unittest.TestLoader().loadTestsFromModule(module)
+
 		if config.tests:
-			for test_case in iterate_suite(test_suite):
-				if test_case._testMethodName in config.tests:
-					final_test_suite.addTest(test_case)
+			final_test_suite.addTests(
+				test for test in iterate_suite(test_suite) if test._testMethodName in config.tests
+			)
 		else:
 			final_test_suite.addTest(test_suite)
 
-		if frappe.flags.pdb_on_exceptions:
-			for test_case in iterate_suite(final_test_suite):
-				if hasattr(test_case, "_apply_debug_decorator"):
-					test_case._apply_debug_decorator(frappe.flags.pdb_on_exceptions)
+	if config.pdb_on_exceptions:
+		for test_case in iterate_suite(final_test_suite):
+			if hasattr(test_case, "_apply_debug_decorator"):
+				test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
-	if config.junit_xml_output:
-		runner = unittest_runner(verbosity=1 + cint(config.verbose), failfast=config.failfast)
-	else:
-		runner = unittest_runner(
-			resultclass=TimeLoggingTestResult,
-			verbosity=1 + cint(config.verbose),
-			failfast=config.failfast,
-			tb_locals=config.verbose,
-		)
+	runner = unittest_runner(
+		resultclass=None if config.junit_xml_output else TimeLoggingTestResult,
+		verbosity=1 + cint(config.verbose),
+		failfast=config.failfast,
+		tb_locals=config.verbose,
+	)
+
+	frappe.flags.tests_verbose = config.verbose
 
 	if config.profile:
 		pr = cProfile.Profile()
 		pr.enable()
-
-	frappe.flags.tests_verbose = config.verbose
 
 	out = runner.run(final_test_suite)
 
@@ -362,6 +350,15 @@ def _run_unittest(modules, config: TestConfig):
 		print(s.getvalue())
 
 	return out
+
+
+def iterate_suite(suite):
+	"""Helper function to iterate through a test suite"""
+	for test in suite:
+		if isinstance(test, unittest.TestSuite):
+			yield from iterate_suite(test)
+		elif isinstance(test, unittest.TestCase):
+			yield test
 
 
 def _add_test(app, path, filename, verbose, test_suite=None):
