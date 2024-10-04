@@ -112,7 +112,9 @@ class TestRunner(unittest.TextTestRunner):
 
 		return unit_test_suite, integration_test_suite
 
-	def discover_doctype_tests(self, doctypes: str | list[str], config: TestConfig, force: bool = False) -> tuple[unittest.TestSuite, unittest.TestSuite]:
+	def discover_doctype_tests(
+		self, doctypes: str | list[str], config: TestConfig, force: bool = False
+	) -> tuple[unittest.TestSuite, unittest.TestSuite]:
 		unit_test_suite = unittest.TestSuite()
 		integration_test_suite = unittest.TestSuite()
 
@@ -134,6 +136,37 @@ class TestRunner(unittest.TextTestRunner):
 				self._add_module_tests(module, unit_test_suite, integration_test_suite, config)
 			except ImportError:
 				logger.warning(f"No test module found for doctype {doctype}")
+
+		return unit_test_suite, integration_test_suite
+
+	def discover_module_tests(
+		self, modules, config: TestConfig
+	) -> tuple[unittest.TestSuite, unittest.TestSuite]:
+		unit_test_suite = unittest.TestSuite()
+		integration_test_suite = unittest.TestSuite()
+
+		modules = [modules] if not isinstance(modules, list | tuple) else modules
+
+		for module in modules:
+			if config.case:
+				test_suite = unittest.TestLoader().loadTestsFromTestCase(getattr(module, config.case))
+			else:
+				test_suite = unittest.TestLoader().loadTestsFromModule(module)
+
+			for test in self._iterate_suite(test_suite):
+				if config.tests and test._testMethodName not in config.tests:
+					continue
+
+				category = "integration" if isinstance(test, FrappeIntegrationTestCase) else "unit"
+
+				if config.selected_categories and category not in config.selected_categories:
+					continue
+
+				config.categories[category].append(test)
+				if category == "unit":
+					unit_test_suite.addTest(test)
+				else:
+					integration_test_suite.addTest(test)
 
 		return unit_test_suite, integration_test_suite
 
@@ -170,7 +203,13 @@ class TestRunner(unittest.TextTestRunner):
 
 		self._add_module_tests(module, unit_test_suite, integration_test_suite, config)
 
-	def _add_module_tests(self, module, unit_test_suite: unittest.TestSuite, integration_test_suite: unittest.TestSuite, config: TestConfig):
+	def _add_module_tests(
+		self,
+		module,
+		unit_test_suite: unittest.TestSuite,
+		integration_test_suite: unittest.TestSuite,
+		config: TestConfig,
+	):
 		test_suite = unittest.TestLoader().loadTestsFromModule(module)
 		for test in self._iterate_suite(test_suite):
 			if config.tests and test._testMethodName not in config.tests:
@@ -346,7 +385,7 @@ def main(
 
 		if doctype or doctype_list_path:
 			doctype = _load_doctype_list(doctype_list_path) if doctype_list_path else doctype
-			unit_result, integration_result = _run_doctype_tests(doctype, test_config, force, runner)
+			unit_result, integration_result = _run_doctype_tests(doctype, test_config, runner, force)
 		elif module_def:
 			unit_result, integration_result = _run_module_def_tests(
 				app, module_def, test_config, force, runner
@@ -453,7 +492,9 @@ def _load_doctype_list(doctype_list_path):
 		return f.read().strip().splitlines()
 
 
-def _run_module_def_tests(app, module_def, config: TestConfig, force) -> tuple[unittest.TestResult, unittest.TestResult | None]:
+def _run_module_def_tests(
+	app, module_def, config: TestConfig, force
+) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 	"""Run tests for the specified module definition"""
 	doctypes = _get_doctypes_for_module_def(app, module_def)
 	return _run_doctype_tests(doctypes, config, force)
@@ -490,17 +531,9 @@ def _cleanup_after_tests(scheduler_disabled_by_user):
 
 
 def _run_all_tests(
-	app: str | None, config: TestConfig
+	app: str | None, config: TestConfig, runner: TestRunner
 ) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 	"""Run all tests for the specified app or all installed apps"""
-	runner = TestRunner(
-		resultclass=TestResult if not config.junit_xml_output else None,
-		verbosity=2 if logger.getEffectiveLevel() < logging.INFO else 1,
-		failfast=config.failfast,
-		tb_locals=logger.getEffectiveLevel() < logging.DEBUG,
-		junit_xml_output=config.junit_xml_output,
-		profile=config.profile,
-	)
 
 	unit_test_suite, integration_test_suite = runner.discover_tests(app, config)
 
@@ -514,19 +547,11 @@ def _run_all_tests(
 
 
 def _run_doctype_tests(
-	doctypes, config: TestConfig, force=False
+	doctypes, config: TestConfig, runner: TestRunner, force=False
 ) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 	"""Run tests for the specified doctype(s)"""
-	try:
-		runner = TestRunner(
-			resultclass=TestResult if not config.junit_xml_output else None,
-			verbosity=2 if logger.getEffectiveLevel() < logging.INFO else 1,
-			failfast=config.failfast,
-			tb_locals=logger.getEffectiveLevel() < logging.DEBUG,
-			junit_xml_output=config.junit_xml_output,
-			profile=config.profile,
-		)
 
+	try:
 		unit_test_suite, integration_test_suite = runner.discover_doctype_tests(doctypes, config, force)
 
 		if config.pdb_on_exceptions:
@@ -541,7 +566,9 @@ def _run_doctype_tests(
 		raise TestRunnerError(f"Failed to run tests for doctypes: {e!s}") from e
 
 
-def _run_module_tests(module, config: TestConfig) -> tuple[unittest.TestResult, unittest.TestResult | None]:
+def _run_module_tests(
+	module, config: TestConfig, runner: TestRunner
+) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 	"""Run tests for the specified module"""
 	module = importlib.import_module(module)
 	if hasattr(module, "test_dependencies"):
@@ -549,54 +576,16 @@ def _run_module_tests(module, config: TestConfig) -> tuple[unittest.TestResult, 
 			make_test_records(doctype, commit=True)
 
 	frappe.db.commit()
-	return _run_unittest(module, config=config)
 
-
-def _run_unittest(
-	modules, config: TestConfig, runner: TestRunner
-) -> tuple[unittest.TestResult, unittest.TestResult | None]:
-	"""Run unittest for the specified module(s)"""
-	frappe.db.begin()
-	modules = [modules] if not isinstance(modules, list | tuple) else modules
-	unit_test_suite = unittest.TestSuite()
-	integration_test_suite = unittest.TestSuite()
-
-	for module in modules:
-		test_suite = unittest.TestLoader().loadTestsFromModule(module)
-		if config.case:
-			test_suite = unittest.TestLoader().loadTestsFromTestCase(getattr(module, config.case))
-
-		for test in _iterate_suite(test_suite):
-			if config.tests and test._testMethodName not in config.tests:
-				continue
-
-			category = "integration" if isinstance(test, FrappeIntegrationTestCase) else "unit"
-
-			if config.selected_categories and category not in config.selected_categories:
-				continue
-
-			config.categories[category].append(test)
-			if category == "unit":
-				unit_test_suite.addTest(test)
-			else:
-				integration_test_suite.addTest(test)
+	unit_test_suite, integration_test_suite = runner.discover_module_tests(module, config)
 
 	if config.pdb_on_exceptions:
 		for test_suite in (unit_test_suite, integration_test_suite):
-			for test_case in _iterate_suite(test_suite):
+			for test_case in runner._iterate_suite(test_suite):
 				if hasattr(test_case, "_apply_debug_decorator"):
 					test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
 	return runner.run((unit_test_suite, integration_test_suite))
-
-
-def _iterate_suite(suite):
-	"""Helper function to iterate through a test suite"""
-	for test in suite:
-		if isinstance(test, unittest.TestSuite):
-			yield from _iterate_suite(test)
-		elif isinstance(test, unittest.TestCase):
-			yield test
 
 
 def make_test_records(doctype, force=False, commit=False):
