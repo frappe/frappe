@@ -419,26 +419,20 @@ def get_dependencies(doctype):
 	"""Get the dependencies for the specified doctype"""
 	module, test_module = get_modules(doctype)
 	meta = frappe.get_meta(doctype)
-	link_fields = meta.get_link_fields()
 
-	for df in meta.get_table_fields():
-		link_fields.extend(frappe.get_meta(df.options).get_link_fields())
+	link_fields = meta.get_link_fields() + [
+		field for df in meta.get_table_fields() for field in frappe.get_meta(df.options).get_link_fields()
+	]
 
-	options_list = [df.options for df in link_fields] + [doctype]
+	doctype_set = set(df.options for df in link_fields) | {doctype}
 
 	if hasattr(test_module, "test_dependencies"):
-		options_list += test_module.test_dependencies
-
-	options_list = list(set(options_list))
+		doctype_set.update(test_module.test_dependencies)
 
 	if hasattr(test_module, "test_ignore"):
-		for doctype_name in test_module.test_ignore:
-			if doctype_name in options_list:
-				options_list.remove(doctype_name)
+		doctype_set -= set(test_module.test_ignore)
 
-	options_list.sort()
-
-	return options_list
+	return sorted(doctype_set)
 
 
 def make_test_records_for_doctype(doctype, verbose=0, force=False, commit=False):
