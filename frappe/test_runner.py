@@ -545,13 +545,13 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False, com
 
 def print_mandatory_fields(doctype):
 	"""Print mandatory fields for the specified doctype"""
-	print("Please setup make_test_records for: " + doctype)
-	print("-" * 60)
 	meta = frappe.get_meta(doctype)
-	print("Autoname: " + (meta.autoname or ""))
-	print("Mandatory Fields: ")
+	print(f"Please setup make_test_records for: {doctype}")
+	print("-" * 60)
+	print(f"Autoname: {meta.autoname or ''}")
+	print("Mandatory Fields:")
 	for d in meta.get("fields", {"reqd": 1}):
-		print(d.parent + ":" + d.fieldname + " | " + d.fieldtype + " | " + (d.options or ""))
+		print(f" - {d.parent}:{d.fieldname} | {d.fieldtype} | {d.options or ''}")
 	print()
 
 
