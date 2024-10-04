@@ -12,7 +12,7 @@ import time
 import unittest
 from importlib import reload
 from io import StringIO
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 import frappe
 import frappe.utils.scheduler
@@ -235,7 +235,7 @@ def run_tests_for_doctype(
 
 		test_module = get_module_name(doctype, module, "test_")
 		if force:
-			for name in frappe.db.sql_list("select name from `tab%s`" % doctype):
+			for name in frappe.db.sql_list(f"select name from `tab{doctype}`"):
 				frappe.delete_doc(doctype, name, force=True)
 		make_test_records(doctype, verbose=verbose, force=force, commit=True)
 		modules.append(importlib.import_module(test_module))
