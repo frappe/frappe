@@ -279,19 +279,16 @@ def run_tests_for_doctype(doctypes, config: TestConfig, force=False):
 	"""Run tests for the specified doctype(s)"""
 	try:
 		modules = []
-		if not isinstance(doctypes, list | tuple):
-			doctypes = [doctypes]
+		doctypes = [doctypes] if not isinstance(doctypes, list | tuple) else doctypes
 
 		for doctype in doctypes:
 			module = frappe.db.get_value("DocType", doctype, "module")
 			if not module:
-				logger.error(f"Invalid doctype {doctype}")
 				raise TestRunnerError(f"Invalid doctype {doctype}")
 
 			test_module = get_module_name(doctype, module, "test_")
 			if force:
-				for name in frappe.db.sql_list(f"select name from `tab{doctype}`"):
-					frappe.delete_doc(doctype, name, force=True)
+				frappe.db.delete(doctype)
 			make_test_records(doctype, verbose=config.verbose, force=force, commit=True)
 			modules.append(importlib.import_module(test_module))
 
