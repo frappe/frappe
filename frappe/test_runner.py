@@ -112,6 +112,31 @@ class TestRunner(unittest.TextTestRunner):
 
 		return unit_test_suite, integration_test_suite
 
+	def discover_doctype_tests(self, doctypes: str | list[str], config: TestConfig, force: bool = False) -> tuple[unittest.TestSuite, unittest.TestSuite]:
+		unit_test_suite = unittest.TestSuite()
+		integration_test_suite = unittest.TestSuite()
+
+		if isinstance(doctypes, str):
+			doctypes = [doctypes]
+
+		for doctype in doctypes:
+			module = frappe.db.get_value("DocType", doctype, "module")
+			if not module:
+				raise TestRunnerError(f"Invalid doctype {doctype}")
+
+			test_module = get_module_name(doctype, module, "test_")
+			if force:
+				frappe.db.delete(doctype)
+			make_test_records(doctype, force=force, commit=True)
+
+			try:
+				module = importlib.import_module(test_module)
+				self._add_module_tests(module, unit_test_suite, integration_test_suite, config)
+			except ImportError:
+				logger.warning(f"No test module found for doctype {doctype}")
+
+		return unit_test_suite, integration_test_suite
+
 	def _add_test(
 		self,
 		app_path: Path,
@@ -143,6 +168,9 @@ class TestRunner(unittest.TextTestRunner):
 					doctype = json.loads(f.read())["name"]
 				make_test_records(doctype, commit=True)
 
+		self._add_module_tests(module, unit_test_suite, integration_test_suite, config)
+
+	def _add_module_tests(self, module, unit_test_suite: unittest.TestSuite, integration_test_suite: unittest.TestSuite, config: TestConfig):
 		test_suite = unittest.TestLoader().loadTestsFromModule(module)
 		for test in self._iterate_suite(test_suite):
 			if config.tests and test._testMethodName not in config.tests:
@@ -425,10 +453,10 @@ def _load_doctype_list(doctype_list_path):
 		return f.read().strip().splitlines()
 
 
-def _run_module_def_tests(app, module_def, test_config, force):
+def _run_module_def_tests(app, module_def, config: TestConfig, force) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 	"""Run tests for the specified module definition"""
 	doctypes = _get_doctypes_for_module_def(app, module_def)
-	return _run_doctype_tests(doctypes, test_config, force)
+	return _run_doctype_tests(doctypes, config, force)
 
 
 def _get_doctypes_for_module_def(app, module_def):
@@ -490,21 +518,24 @@ def _run_doctype_tests(
 ) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 	"""Run tests for the specified doctype(s)"""
 	try:
-		modules = []
-		doctypes = [doctypes] if not isinstance(doctypes, list | tuple) else doctypes
+		runner = TestRunner(
+			resultclass=TestResult if not config.junit_xml_output else None,
+			verbosity=2 if logger.getEffectiveLevel() < logging.INFO else 1,
+			failfast=config.failfast,
+			tb_locals=logger.getEffectiveLevel() < logging.DEBUG,
+			junit_xml_output=config.junit_xml_output,
+			profile=config.profile,
+		)
 
-		for doctype in doctypes:
-			module = frappe.db.get_value("DocType", doctype, "module")
-			if not module:
-				raise TestRunnerError(f"Invalid doctype {doctype}")
+		unit_test_suite, integration_test_suite = runner.discover_doctype_tests(doctypes, config, force)
 
-			test_module = get_module_name(doctype, module, "test_")
-			if force:
-				frappe.db.delete(doctype)
-			make_test_records(doctype, force=force, commit=True)
-			modules.append(importlib.import_module(test_module))
+		if config.pdb_on_exceptions:
+			for test_suite in (unit_test_suite, integration_test_suite):
+				for test_case in runner._iterate_suite(test_suite):
+					if hasattr(test_case, "_apply_debug_decorator"):
+						test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
-		return _run_unittest(modules, config=config)
+		return runner.run((unit_test_suite, integration_test_suite))
 	except Exception as e:
 		logger.error(f"Error running tests for doctypes {doctypes}: {e!s}")
 		raise TestRunnerError(f"Failed to run tests for doctypes: {e!s}") from e
