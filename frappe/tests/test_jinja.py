@@ -1,16 +1,17 @@
 import sys
 import unittest
 from collections.abc import Iterable
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, call, patch
 
 import frappe
 from frappe import _dict, scrub
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.model.document import Document, DocumentProxy
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils.jinja import process_context, render_template
 
 
-class TestDocumentProxy(unittest.TestCase):
+class TestDocumentProxy(UnitTestCase):
 	def setUp(self):
 		self.mock_doc = Mock(spec=Document, doctype="Test DocType")
 		self.mock_doc.name = "TEST001"
@@ -176,7 +177,7 @@ class TestDocumentProxy(unittest.TestCase):
 		self.assertEqual(table_multiselect_field[1].name, "CHILD002")
 
 
-class TestProcessContext(unittest.TestCase):
+class TestProcessContext(UnitTestCase):
 	def setUp(self):
 		self.mock_doc = Mock(spec=Document, doctype="Test DocType")
 		self.mock_doc.name = "TEST001"
@@ -250,7 +251,14 @@ class TestProcessContext(unittest.TestCase):
 	def test_process_context_completion(self):
 		context = {"doc": self.mock_doc, "value": "test", "list": [1, 2, 3], "dict": {"key": "value"}}
 
+		# Reset the call count before running the function
+		self.mock_get_meta.reset_mock()
 		completion_list = process_context(context, for_code_completion=True)
+		# Assert that get_meta was called exactly three times with the correct doctypes
+		self.assertEqual(self.mock_get_meta.call_count, 3)
+		self.mock_get_meta.assert_has_calls(
+			[call("Test DocType"), call("Linked DocType"), call("User")], any_order=True
+		)
 		expected_items = [
 			{"value": "doc.test_field", "score": 6, "meta": "ctx"},
 			{"value": "doc.link_field.test_field", "score": 6, "meta": "ctx"},
@@ -390,7 +398,7 @@ class CustomDocumentProxy(DocumentProxy):
 		return super().__getattr__(attr)
 
 
-class TestCustomDocumentProxy(unittest.TestCase):
+class TestCustomDocumentProxy(UnitTestCase):
 	def setUp(self):
 		self.mock_doc = Mock(spec=Document, doctype="Test DocType")
 		self.mock_doc.name = "TEST001"
@@ -456,9 +464,10 @@ def run_specific_test(test_class, test_case=None):
 	runner.run(suite)
 
 
-class TestRenderTemplateIntegration(unittest.TestCase):
+class TestRenderTemplateIntegration(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		# Create child doctypes first
 		cls.create_child_doctype(
 			"User Skill",
@@ -705,7 +714,7 @@ class TestRenderTemplateIntegration(unittest.TestCase):
 		self.assertEqual(result.strip(), expected_output.strip())
 
 
-class TestRenderTemplateWithGlobals(unittest.TestCase):
+class TestRenderTemplateWithGlobals(IntegrationTestCase):
 	def test_render_template_with_globals(self):
 		# Create DocumentProxy instances
 		user = DocumentProxy("User", "Administrator")
@@ -741,9 +750,10 @@ class TestRenderTemplateWithGlobals(unittest.TestCase):
 		self.assertIn("administrator", result)
 
 
-class TestDocumentProxyRendering(unittest.TestCase):
+class TestDocumentProxyRendering(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		# Create test users
 		cls.test_user = frappe.get_doc(
 			{
@@ -821,6 +831,16 @@ if __name__ == "__main__":
 	frappe.conf.developer_mode = False
 	frappe.local = Mock()
 	frappe.local.site = "test_site"
+
+	def get_test_classes():
+		return [
+			cls
+			for name, cls in globals().items()
+			if isinstance(cls, type)
+			and issubclass(cls, UnitTestCase)
+			and not issubclass(cls, IntegrationTestCase)
+		]
+
 	if len(sys.argv) > 1:
 		test_class_name = sys.argv[1]
 		test_case_name = sys.argv[2] if len(sys.argv) > 2 else None
@@ -831,7 +851,16 @@ if __name__ == "__main__":
 			print(f"Test class '{test_class_name}' not found.")
 			sys.exit(1)
 
+		if issubclass(test_class, IntegrationTestCase):
+			print(f"Skipping IntegrationTestCase: {test_class_name}")
+			sys.exit(0)
+
 		run_specific_test(test_class, test_case_name)
 	else:
-		# Run all tests
-		unittest.main()
+		# Run all tests except FrappeTestCase instances
+		suite = unittest.TestSuite()
+		for test_class in get_test_classes():
+			suite.addTest(unittest.makeSuite(test_class))
+
+		runner = unittest.TextTestRunner(verbosity=2)
+		runner.run(suite)
