@@ -57,6 +57,7 @@ class TestConfig:
 	case: str | None = None
 	pdb_on_exceptions: tuple | None = None
 	categories: dict = field(default_factory=lambda: {"unit": [], "integration": []})
+	selected_categories: list[str] = field(default_factory=list)
 
 
 def xmlrunner_wrapper(output):
@@ -92,6 +93,7 @@ def main(
 	skip_test_records: bool = False,
 	skip_before_tests: bool = False,
 	pdb_on_exceptions: bool = False,
+	selected_categories: list[str] | None = None,
 ) -> None:
 	"""Main function to run tests"""
 	global unittest_runner
@@ -105,6 +107,7 @@ def main(
 		tests=tests,
 		case=case,
 		pdb_on_exceptions=pdb_on_exceptions,
+		selected_categories=selected_categories or [],
 	)
 
 	_initialize_test_environment(site, skip_before_tests, skip_test_records)
@@ -143,8 +146,10 @@ def main(
 def print_test_categories(config: TestConfig):
 	"""Print the categorized tests"""
 	logger.info("Test Categories:")
-	logger.info(f" Unit Tests: {len(config.categories['unit'])}")
-	logger.info(f" Integration Tests: {len(config.categories['integration'])}")
+	if not config.selected_categories or "unit" in config.selected_categories:
+		logger.info(f"Unit Tests: {len(config.categories['unit'])}")
+	if not config.selected_categories or "integration" in config.selected_categories:
+		logger.info(f"Integration Tests: {len(config.categories['integration'])}")
 
 
 def _initialize_test_environment(site, skip_before_tests, skip_test_records):
@@ -335,11 +340,12 @@ def _run_unittest(modules, config: TestConfig):
 			if config.tests and test._testMethodName not in config.tests:
 				continue
 
-			if isinstance(test, FrappeIntegrationTestCase):
-				config.categories["integration"].append(test)
-			else:
-				config.categories["unit"].append(test)
+			category = "integration" if isinstance(test, FrappeIntegrationTestCase) else "unit"
 
+			if config.selected_categories and category not in config.selected_categories:
+				continue
+
+			config.categories[category].append(test)
 			final_test_suite.addTest(test)
 
 	if config.pdb_on_exceptions:
