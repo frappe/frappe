@@ -122,34 +122,58 @@ def main(
 
 		if doctype or doctype_list_path:
 			doctype = _load_doctype_list(doctype_list_path) if doctype_list_path else doctype
-			test_result = _run_doctype_tests(doctype, test_config, force)
+			unit_result, integration_result = _run_doctype_tests(doctype, test_config, force)
 		elif module_def:
-			test_result = _run_module_def_tests(app, module_def, test_config, force)
+			unit_result, integration_result = _run_module_def_tests(app, module_def, test_config, force)
 		elif module:
-			test_result = _run_module_tests(module, test_config)
+			unit_result, integration_result = _run_module_tests(module, test_config)
 		else:
-			test_result = _run_all_tests(app, test_config)
+			unit_result, integration_result = _run_all_tests(app, test_config)
 
 		_cleanup_after_tests(scheduler_disabled_by_user)
 
-		print_test_categories(test_config)  # Add this line
+		print_test_results(unit_result, integration_result)
 
-		_cleanup_after_tests(scheduler_disabled_by_user)
+		# Determine overall success
+		success = unit_result.wasSuccessful() and (
+			integration_result is None or integration_result.wasSuccessful()
+		)
 
-		return test_result
+		if not success:
+			sys.exit(1)
+
+		return unit_result, integration_result
 
 	finally:
 		if xml_output_file:
 			xml_output_file.close()
 
 
-def print_test_categories(config: TestConfig):
-	"""Print the categorized tests"""
-	logger.info("Test Categories:")
-	if not config.selected_categories or "unit" in config.selected_categories:
-		logger.info(f"Unit Tests: {len(config.categories['unit'])}")
-	if not config.selected_categories or "integration" in config.selected_categories:
-		logger.info(f"Integration Tests: {len(config.categories['integration'])}")
+def print_test_results(unit_result: unittest.TestResult, integration_result: unittest.TestResult | None):
+	"""Print detailed test results including failures and errors"""
+	print("Test Results:")
+
+	def _print_result(result, category):
+		tests_run = result.testsRun
+		failures = len(result.failures)
+		errors = len(result.errors)
+
+		print(f"{category} Tests: {tests_run} run, {failures} failures, {errors} errors")
+
+		if failures > 0:
+			print(f"\n{category} Test Failures:")
+			for i, failure in enumerate(result.failures, 1):
+				print(f"{i}. {failure[0]}")
+
+		if errors > 0:
+			print(f"\n{category} Test Errors:")
+			for i, error in enumerate(result.errors, 1):
+				print(f"{i}. {error[0]}")
+
+	_print_result(unit_result, "Unit")
+
+	if integration_result:
+		_print_result(integration_result, "Integration")
 
 
 def _initialize_test_environment(site, skip_before_tests, skip_test_records):
@@ -254,10 +278,13 @@ class TimeLoggingTestResult(unittest.TextTestResult):
 		super().addSuccess(test)
 
 
-def _run_all_tests(app: str | None, config: TestConfig) -> unittest.TestResult:
+def _run_all_tests(
+	app: str | None, config: TestConfig
+) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 	"""Run all tests for the specified app or all installed apps"""
 	apps = [app] if app else frappe.get_installed_apps()
-	test_suite = unittest.TestSuite()
+	unit_test_suite = unittest.TestSuite()
+	integration_test_suite = unittest.TestSuite()
 
 	for app in apps:
 		app_path = Path(frappe.get_app_path(app))
@@ -267,7 +294,7 @@ def _run_all_tests(app: str | None, config: TestConfig) -> unittest.TestResult:
 				if not any(
 					part in relative_path.parts for part in ["locals", ".git", "public", "__pycache__"]
 				):
-					_add_test(app_path, path, test_suite)
+					_add_test(app_path, path, unit_test_suite, integration_test_suite, config)
 
 	runner = unittest_runner(
 		resultclass=TimeLoggingTestResult if not config.junit_xml_output else None,
@@ -280,7 +307,15 @@ def _run_all_tests(app: str | None, config: TestConfig) -> unittest.TestResult:
 		pr = cProfile.Profile()
 		pr.enable()
 
-	out = runner.run(test_suite)
+	# Run unit tests
+	logger.info("Running Unit Tests...")
+	unit_result = runner.run(unit_test_suite)
+
+	# Run integration tests only if unit tests pass
+	integration_result = None
+	if unit_result.wasSuccessful():
+		logger.info("Running Integration Tests...")
+		integration_result = runner.run(integration_test_suite)
 
 	if config.profile:
 		pr.disable()
@@ -288,10 +323,12 @@ def _run_all_tests(app: str | None, config: TestConfig) -> unittest.TestResult:
 		pstats.Stats(pr, stream=s).sort_stats("cumulative").print_stats()
 		print(s.getvalue())
 
-	return out
+	return unit_result, integration_result
 
 
-def _run_doctype_tests(doctypes, config: TestConfig, force=False):
+def _run_doctype_tests(
+	doctypes, config: TestConfig, force=False
+) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 	"""Run tests for the specified doctype(s)"""
 	try:
 		modules = []
@@ -314,7 +351,7 @@ def _run_doctype_tests(doctypes, config: TestConfig, force=False):
 		raise TestRunnerError(f"Failed to run tests for doctypes: {e!s}") from e
 
 
-def _run_module_tests(module, config: TestConfig):
+def _run_module_tests(module, config: TestConfig) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 	"""Run tests for the specified module"""
 	module = importlib.import_module(module)
 	if hasattr(module, "test_dependencies"):
@@ -325,11 +362,12 @@ def _run_module_tests(module, config: TestConfig):
 	return _run_unittest(module, config=config)
 
 
-def _run_unittest(modules, config: TestConfig):
+def _run_unittest(modules, config: TestConfig) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 	"""Run unittest for the specified module(s)"""
 	frappe.db.begin()
 	modules = [modules] if not isinstance(modules, list | tuple) else modules
-	final_test_suite = unittest.TestSuite()
+	unit_test_suite = unittest.TestSuite()
+	integration_test_suite = unittest.TestSuite()
 
 	for module in modules:
 		test_suite = unittest.TestLoader().loadTestsFromModule(module)
@@ -346,12 +384,16 @@ def _run_unittest(modules, config: TestConfig):
 				continue
 
 			config.categories[category].append(test)
-			final_test_suite.addTest(test)
+			if category == "unit":
+				unit_test_suite.addTest(test)
+			else:
+				integration_test_suite.addTest(test)
 
 	if config.pdb_on_exceptions:
-		for test_case in _iterate_suite(final_test_suite):
-			if hasattr(test_case, "_apply_debug_decorator"):
-				test_case._apply_debug_decorator(config.pdb_on_exceptions)
+		for test_suite in (unit_test_suite, integration_test_suite):
+			for test_case in _iterate_suite(test_suite):
+				if hasattr(test_case, "_apply_debug_decorator"):
+					test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
 	runner = unittest_runner(
 		resultclass=None if config.junit_xml_output else TimeLoggingTestResult,
@@ -364,7 +406,15 @@ def _run_unittest(modules, config: TestConfig):
 		pr = cProfile.Profile()
 		pr.enable()
 
-	out = runner.run(final_test_suite)
+	# Run unit tests
+	logger.info("Running Unit Tests...")
+	unit_result = runner.run(unit_test_suite)
+
+	# Run integration tests only if unit tests pass
+	integration_result = None
+	if unit_result.wasSuccessful():
+		logger.info("Running Integration Tests...")
+		integration_result = runner.run(integration_test_suite)
 
 	if config.profile:
 		pr.disable()
@@ -373,7 +423,7 @@ def _run_unittest(modules, config: TestConfig):
 		ps.print_stats()
 		print(s.getvalue())
 
-	return out
+	return unit_result, integration_result
 
 
 def _iterate_suite(suite):
@@ -385,7 +435,13 @@ def _iterate_suite(suite):
 			yield test
 
 
-def _add_test(app_path: Path, path: Path, test_suite: unittest.TestSuite | None = None) -> None:
+def _add_test(
+	app_path: Path,
+	path: Path,
+	unit_test_suite: unittest.TestSuite,
+	integration_test_suite: unittest.TestSuite,
+	config: TestConfig,
+) -> None:
 	relative_path = path.relative_to(app_path)
 
 	if path.parts[-4:-1] == ("doctype", "doctype", "boilerplate"):
@@ -402,8 +458,6 @@ def _add_test(app_path: Path, path: Path, test_suite: unittest.TestSuite | None 
 		for doctype in module.test_dependencies:
 			make_test_records(doctype, commit=True)
 
-	test_suite = test_suite or unittest.TestSuite()
-
 	if path.parent.name == "doctype":
 		json_file = path.with_name(path.stem[5:] + ".json")
 		if json_file.exists():
@@ -411,7 +465,21 @@ def _add_test(app_path: Path, path: Path, test_suite: unittest.TestSuite | None 
 				doctype = json.loads(f.read())["name"]
 			make_test_records(doctype, commit=True)
 
-	test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
+	test_suite = unittest.TestLoader().loadTestsFromModule(module)
+	for test in _iterate_suite(test_suite):
+		if config.tests and test._testMethodName not in config.tests:
+			continue
+
+		category = "integration" if isinstance(test, FrappeIntegrationTestCase) else "unit"
+
+		if config.selected_categories and category not in config.selected_categories:
+			continue
+
+		config.categories[category].append(test)
+		if category == "unit":
+			unit_test_suite.addTest(test)
+		else:
+			integration_test_suite.addTest(test)
 
 
 def make_test_records(doctype, force=False, commit=False):
