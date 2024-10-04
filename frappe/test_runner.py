@@ -25,6 +25,8 @@ from io import StringIO
 from pathlib import Path
 from typing import Optional, Union
 
+import click
+
 import frappe
 import frappe.utils.scheduler
 from frappe.model.naming import revert_series_if_last
@@ -34,6 +36,62 @@ from frappe.utils import cint
 
 unittest_runner = unittest.TextTestRunner
 SLOW_TEST_THRESHOLD = 2
+
+
+class TestResult(unittest.TextTestResult):
+	def startTest(self, test):
+		self.tb_locals = True
+		self._started_at = time.monotonic()
+		super(unittest.TextTestResult, self).startTest(test)
+		test_class = unittest.util.strclass(test.__class__)
+		if not hasattr(self, "current_test_class") or self.current_test_class != test_class:
+			click.echo(f"\n{unittest.util.strclass(test.__class__)}")
+			self.current_test_class = test_class
+
+	def getTestMethodName(self, test):
+		return test._testMethodName if hasattr(test, "_testMethodName") else str(test)
+
+	def addSuccess(self, test):
+		super(unittest.TextTestResult, self).addSuccess(test)
+		elapsed = time.monotonic() - self._started_at
+		threshold_passed = elapsed >= SLOW_TEST_THRESHOLD
+		elapsed = click.style(f" ({elapsed:.03}s)", fg="red") if threshold_passed else ""
+		click.echo(f"  {click.style(' ✔ ', fg='green')} {self.getTestMethodName(test)}{elapsed}")
+
+	def addError(self, test, err):
+		super(unittest.TextTestResult, self).addError(test, err)
+		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
+
+	def addFailure(self, test, err):
+		super(unittest.TextTestResult, self).addFailure(test, err)
+		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
+
+	def addSkip(self, test, reason):
+		super(unittest.TextTestResult, self).addSkip(test, reason)
+		click.echo(f"  {click.style(' = ', fg='white')} {self.getTestMethodName(test)}")
+
+	def addExpectedFailure(self, test, err):
+		super(unittest.TextTestResult, self).addExpectedFailure(test, err)
+		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
+
+	def addUnexpectedSuccess(self, test):
+		super(unittest.TextTestResult, self).addUnexpectedSuccess(test)
+		click.echo(f"  {click.style(' ✔ ', fg='green')} {self.getTestMethodName(test)}")
+
+	def printErrors(self):
+		click.echo("\n")
+		self.printErrorList(" ERROR ", self.errors, "red")
+		self.printErrorList(" FAIL ", self.failures, "red")
+
+	def printErrorList(self, flavour, errors, color):
+		for test, err in errors:
+			click.echo(self.separator1)
+			click.echo(f"{click.style(flavour, bg=color)} {self.getDescription(test)}")
+			click.echo(self.separator2)
+			click.echo(err)
+
+	def __str__(self):
+		return f"Tests: {self.testsRun}, Failing: {len(self.failures)}, Errors: {len(self.errors)}"
 
 
 class TestRunnerError(Exception):
@@ -263,21 +321,6 @@ def _cleanup_after_tests(scheduler_disabled_by_user):
 	frappe.clear_cache()
 
 
-class TimeLoggingTestResult(unittest.TextTestResult):
-	"""Custom TestResult class for logging test execution time"""
-
-	def startTest(self, test):
-		self._started_at = time.monotonic()
-		super().startTest(test)
-
-	def addSuccess(self, test):
-		elapsed = time.monotonic() - self._started_at
-		name = self.getDescription(test)
-		if elapsed >= SLOW_TEST_THRESHOLD:
-			self.stream.write(f"\n{name} ({elapsed:.03}s)\n")
-		super().addSuccess(test)
-
-
 def _run_all_tests(
 	app: str | None, config: TestConfig
 ) -> tuple[unittest.TestResult, unittest.TestResult | None]:
@@ -297,7 +340,7 @@ def _run_all_tests(
 					_add_test(app_path, path, unit_test_suite, integration_test_suite, config)
 
 	runner = unittest_runner(
-		resultclass=TimeLoggingTestResult if not config.junit_xml_output else None,
+		resultclass=TestResult if not config.junit_xml_output else None,
 		verbosity=2 if logger.getEffectiveLevel() < logging.INFO else 1,
 		failfast=config.failfast,
 		tb_locals=logger.getEffectiveLevel() < logging.DEBUG,
@@ -396,7 +439,7 @@ def _run_unittest(modules, config: TestConfig) -> tuple[unittest.TestResult, uni
 					test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
 	runner = unittest_runner(
-		resultclass=None if config.junit_xml_output else TimeLoggingTestResult,
+		resultclass=None if config.junit_xml_output else TestResult,
 		verbosity=2 if logger.getEffectiveLevel() < logging.INFO else 1,
 		failfast=config.failfast,
 		tb_locals=logger.getEffectiveLevel() < logging.DEBUG,
