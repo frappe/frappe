@@ -38,70 +38,6 @@ def get_file_url(file_data_name):
 	return data.file_url or data.file_name
 
 
-def upload():
-	# get record details
-	dt = frappe.form_dict.doctype
-	dn = frappe.form_dict.docname
-	file_url = frappe.form_dict.file_url
-	filename = frappe.form_dict.filename
-	frappe.form_dict.is_private = cint(frappe.form_dict.is_private)
-
-	if not filename and not file_url:
-		frappe.msgprint(_("Please select a file or url"), raise_exception=True)
-
-	file_doc = get_file_doc()
-
-	comment = {}
-	if dt and dn:
-		file_url = file_doc.file_url.replace("#", "%23") if file_doc.file_name else file_doc.file_url
-		icon = ' <i class="fa fa-lock text-warning"></i>' if file_doc.is_private else ""
-		file_name = file_doc.file_name or file_doc.file_url
-		comment = frappe.get_doc(dt, dn).add_comment(
-			"Attachment",
-			f"<a href='{file_url}' target='_blank'>{file_name}</a>{icon}",
-		)
-
-	return {
-		"name": file_doc.name,
-		"file_name": file_doc.file_name,
-		"file_url": file_doc.file_url,
-		"is_private": file_doc.is_private,
-		"comment": comment.as_dict() if comment else {},
-	}
-
-
-def get_file_doc(dt=None, dn=None, folder=None, is_private=None, df=None):
-	"""Return File object (Document) from given parameters or `form_dict`."""
-	r = frappe.form_dict
-
-	if dt is None:
-		dt = r.doctype
-	if dn is None:
-		dn = r.docname
-	if df is None:
-		df = r.docfield
-	if folder is None:
-		folder = r.folder
-	if is_private is None:
-		is_private = r.is_private
-
-	if r.filedata:
-		file_doc = save_uploaded(dt, dn, folder, is_private, df)
-
-	elif r.file_url:
-		file_doc = save_url(r.file_url, r.filename, dt, dn, folder, is_private, df)
-
-	return file_doc
-
-
-def save_uploaded(dt, dn, folder, is_private, df=None):
-	fname, content = get_uploaded_content()
-	if content:
-		return save_file(fname, content, dt, dn, folder, is_private=is_private, df=df)
-	else:
-		raise Exception
-
-
 def save_url(file_url, filename, dt, dn, folder, is_private, df=None):
 	# if not (file_url.startswith("http://") or file_url.startswith("https://")):
 	# 	frappe.msgprint("URL must start with 'http://' or 'https://'")
@@ -128,63 +64,6 @@ def save_url(file_url, filename, dt, dn, folder, is_private, df=None):
 		f.insert()
 	except frappe.DuplicateEntryError:
 		return frappe.get_doc("File", f.duplicate_entry)
-	return f
-
-
-def get_uploaded_content():
-	# should not be unicode when reading a file, hence using frappe.form
-	if "filedata" in frappe.form_dict:
-		if "," in frappe.form_dict.filedata:
-			frappe.form_dict.filedata = frappe.form_dict.filedata.rsplit(",", 1)[1]
-		frappe.uploaded_content = safe_b64decode(frappe.form_dict.filedata)
-		frappe.uploaded_filename = frappe.form_dict.filename
-		return frappe.uploaded_filename, frappe.uploaded_content
-	else:
-		frappe.msgprint(_("No file attached"))
-		return None, None
-
-
-def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, df=None):
-	if decode:
-		if isinstance(content, str):
-			content = content.encode("utf-8")
-
-		if b"," in content:
-			content = content.split(b",")[1]
-		content = safe_b64decode(content)
-
-	file_size = check_max_file_size(content)
-	content_hash = get_content_hash(content)
-	content_type = mimetypes.guess_type(fname)[0]
-	fname = get_file_name(fname, content_hash[-6:])
-	file_data = get_file_data_from_hash(content_hash, is_private=is_private)
-	if not file_data:
-		call_hook_method("before_write_file", file_size=file_size)
-
-		write_file_method = get_hook_method("write_file", fallback=save_file_on_filesystem)
-		file_data = write_file_method(fname, content, content_type=content_type, is_private=is_private)
-		file_data = copy(file_data)
-
-	file_data.update(
-		{
-			"doctype": "File",
-			"attached_to_doctype": dt,
-			"attached_to_name": dn,
-			"attached_to_field": df,
-			"folder": folder,
-			"file_size": file_size,
-			"content_hash": content_hash,
-			"is_private": is_private,
-		}
-	)
-
-	f = frappe.get_doc(file_data)
-	f.flags.ignore_permissions = True
-	try:
-		f.insert()
-	except frappe.DuplicateEntryError:
-		return frappe.get_doc("File", f.duplicate_entry)
-
 	return f
 
 
