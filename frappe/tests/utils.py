@@ -7,8 +7,9 @@ import signal
 import sys
 import traceback
 import unittest
-from collections.abc import Sequence
-from contextlib import contextmanager
+from collections.abc import Callable, Sequence
+from contextlib import AbstractContextManager, contextmanager
+from typing import Any, Union
 from unittest.mock import patch
 
 import pytz
@@ -93,22 +94,31 @@ def debug_on(*exceptions):
 class UnitTestCase(unittest.TestCase):
 	"""Unit test class for Frappe tests.
 
-	If you specify `setUpClass` then make sure to call `super().setUpClass`
-	otherwise this class will become ineffective.
+	This class extends unittest.TestCase and provides additional utilities
+	specific to Frappe framework. It's designed for testing individual
+	components or functions in isolation.
+
+	Key features:
+	- Custom assertions for Frappe-specific comparisons
+	- Utilities for HTML and SQL normalization
+	- Context managers for user switching and time freezing
+
+	Note: If you override `setUpClass`, make sure to call `super().setUpClass()`
+	to maintain the functionality of this base class.
 	"""
 
 	def _apply_debug_decorator(self, exceptions=()):
 		setattr(self, self._testMethodName, debug_on(*exceptions)(getattr(self, self._testMethodName)))
 
-	def assertQueryEqual(self, first: str, second: str):
+	def assertQueryEqual(self, first: str, second: str) -> None:
 		self.assertEqual(self.normalize_sql(first), self.normalize_sql(second))
 
-	def assertSequenceSubset(self, larger: Sequence, smaller: Sequence, msg=None):
+	def assertSequenceSubset(self, larger: Sequence, smaller: Sequence, msg: str | None = None) -> None:
 		"""Assert that `expected` is a subset of `actual`."""
 		self.assertTrue(set(smaller).issubset(set(larger)), msg=msg)
 
 	# --- Frappe Framework specific assertions
-	def assertDocumentEqual(self, expected, actual):
+	def assertDocumentEqual(self, expected: dict | BaseDocument, actual: BaseDocument) -> None:
 		"""Compare a (partial) expected document with actual Document."""
 
 		if isinstance(expected, BaseDocument):
@@ -123,7 +133,7 @@ class UnitTestCase(unittest.TestCase):
 			else:
 				self._compare_field(value, actual.get(field), actual, field)
 
-	def _compare_field(self, expected, actual, doc: BaseDocument, field: str):
+	def _compare_field(self, expected: Any, actual: Any, doc: BaseDocument, field: str) -> None:
 		msg = f"{field} should be same."
 
 		if isinstance(expected, float):
@@ -143,6 +153,15 @@ class UnitTestCase(unittest.TestCase):
 		from bs4 import BeautifulSoup
 
 		return BeautifulSoup(code, "html.parser").prettify(formatter=None)
+
+	@contextmanager
+	def set_user(self, user: str) -> AbstractContextManager[None]:
+		try:
+			old_user = frappe.session.user
+			frappe.set_user(user)
+			yield
+		finally:
+			frappe.set_user(old_user)
 
 	def normalize_sql(self, query: str) -> str:
 		"""Formats SQL consistently so simple string comparisons can work on them."""
@@ -166,16 +185,9 @@ class UnitTestCase(unittest.TestCase):
 		)
 
 	@contextmanager
-	def set_user(self, user: str):
-		try:
-			old_user = frappe.session.user
-			frappe.set_user(user)
-			yield
-		finally:
-			frappe.set_user(old_user)
-
-	@contextmanager
-	def freeze_time(self, time_to_freeze, is_utc=False, *args, **kwargs):
+	def freeze_time(
+		self, time_to_freeze: Any, is_utc: bool = False, *args: Any, **kwargs: Any
+	) -> AbstractContextManager[None]:
 		from freezegun import freeze_time
 
 		if not is_utc:
@@ -190,9 +202,13 @@ class UnitTestCase(unittest.TestCase):
 class IntegrationTestCase(UnitTestCase):
 	"""Integration test class for Frappe tests.
 
+	Key features:
+	- Automatic database setup and teardown
+	- Utilities for managing database connections
+	- Context managers for query counting and Redis call monitoring
 
-	If you specify `setUpClass` then make sure to call `super().setUpClass`
-	otherwise this class will become ineffective.
+	Note: If you override `setUpClass`, make sure to call `super().setUpClass()`
+	to maintain the functionality of this base class.
 	"""
 
 	TEST_SITE = "test_site"
@@ -202,6 +218,7 @@ class IntegrationTestCase(UnitTestCase):
 
 	@classmethod
 	def setUpClass(cls) -> None:
+		super().setUpClass()
 		cls.TEST_SITE = getattr(frappe.local, "site", None) or cls.TEST_SITE
 		frappe.init(cls.TEST_SITE)
 		cls.ADMIN_PASSWORD = frappe.get_conf(cls.TEST_SITE).admin_password
@@ -216,10 +233,21 @@ class IntegrationTestCase(UnitTestCase):
 		cls.addClassCleanup(_restore_thread_locals, copy.deepcopy(frappe.local.flags))
 		cls.addClassCleanup(_rollback_db)
 
-		return super().setUpClass()
+	@classmethod
+	def tearDownClass(cls) -> None:
+		# Add any necessary teardown code here
+		super().tearDownClass()
+
+	def setUp(self) -> None:
+		super().setUp()
+		# Add any per-test setup code here
+
+	def tearDown(self) -> None:
+		# Add any per-test teardown code here
+		super().tearDown()
 
 	@contextmanager
-	def primary_connection(self):
+	def primary_connection(self) -> AbstractContextManager[None]:
 		"""Switch to primary DB connection
 
 		This is used for simulating multiple users performing actions by simulating two DB connections"""
@@ -231,7 +259,7 @@ class IntegrationTestCase(UnitTestCase):
 			frappe.local.db = current_conn
 
 	@contextmanager
-	def secondary_connection(self):
+	def secondary_connection(self) -> AbstractContextManager[None]:
 		"""Switch to secondary DB connection."""
 		if self._secondary_connection is None:
 			frappe.connect()  # get second connection
@@ -245,12 +273,12 @@ class IntegrationTestCase(UnitTestCase):
 			frappe.local.db = current_conn
 			self.addCleanup(self._rollback_connections)
 
-	def _rollback_connections(self):
+	def _rollback_connections(self) -> None:
 		self._primary_connection.rollback()
 		self._secondary_connection.rollback()
 
 	@contextmanager
-	def assertQueryCount(self, count):
+	def assertQueryCount(self, count: int) -> AbstractContextManager[None]:
 		queries = []
 
 		def _sql_with_count(*args, **kwargs):
@@ -267,7 +295,7 @@ class IntegrationTestCase(UnitTestCase):
 			frappe.db.__class__.sql = orig_sql
 
 	@contextmanager
-	def assertRedisCallCounts(self, count):
+	def assertRedisCallCounts(self, count: int) -> AbstractContextManager[None]:
 		commands = []
 
 		def execute_command_and_count(*args, **kwargs):
@@ -289,7 +317,7 @@ class IntegrationTestCase(UnitTestCase):
 			frappe.cache.execute_command = orig_execute
 
 	@contextmanager
-	def assertRowsRead(self, count):
+	def assertRowsRead(self, count: int) -> AbstractContextManager[None]:
 		rows_read = 0
 
 		def _sql_with_count(*args, **kwargs):
@@ -309,7 +337,7 @@ class IntegrationTestCase(UnitTestCase):
 			frappe.db.sql = orig_sql
 
 	@contextmanager
-	def switch_site(self, site: str):
+	def switch_site(self, site: str) -> AbstractContextManager[None]:
 		"""Switch connection to different site.
 		Note: Drops current site connection completely."""
 
