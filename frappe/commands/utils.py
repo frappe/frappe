@@ -1207,6 +1207,13 @@ def rebuild_global_search(context: CliCtxObj, static_pages=False):
 def list_sites(context: CliCtxObj, output_json=False):
 	"List all the sites in current bench"
 	site_dir = os.getcwd()
+	# Get the current site from common_site_config.json
+	common_site_config_path = os.path.join(site_dir, "common_site_config.json")
+	default_site = None
+	if os.path.exists(common_site_config_path):
+		with open(common_site_config_path) as f:
+			config = json.load(f)
+			default_site = config.get("default_site")
 	sites = [
 		site
 		for site in os.listdir(site_dir)
@@ -1219,7 +1226,10 @@ def list_sites(context: CliCtxObj, output_json=False):
 	elif sites:
 		click.echo("Available sites:")
 		for site in sites:
-			click.echo(f"  {site}")
+			if site == default_site:
+				click.echo(f"* {site}")
+			else:
+				click.echo(f"  {site}")
 	else:
 		click.echo("No sites found")
 
