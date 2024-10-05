@@ -326,6 +326,7 @@ class TestConfig:
 	pdb_on_exceptions: tuple | None = None
 	categories: dict = field(default_factory=lambda: {"unit": [], "integration": []})
 	selected_categories: list[str] = field(default_factory=list)
+	skip_before_tests: bool = False  # New attribute
 
 
 def xmlrunner_wrapper(output):
@@ -398,9 +399,10 @@ def main(
 		case=case,
 		pdb_on_exceptions=pdb_on_exceptions,
 		selected_categories=selected_categories or [],
+		skip_before_tests=skip_before_tests,  # Set the new attribute
 	)
 
-	_initialize_test_environment(site, skip_before_tests, skip_test_records)
+	_initialize_test_environment(site, skip_test_records)
 
 	xml_output_file = _setup_xml_output(junit_xml_output)
 
@@ -495,14 +497,13 @@ def print_test_results(unit_result: unittest.TestResult, integration_result: uni
 
 
 @debug_timer
-def _initialize_test_environment(site, skip_before_tests, skip_test_records):
+def _initialize_test_environment(site, skip_test_records):
 	"""Initialize the test environment"""
 	logger.debug(f"Initializing test environment for site: {site}")
 	frappe.init(site)
 	if not frappe.db:
 		frappe.connect()
 
-	frappe.flags.skip_before_tests = skip_before_tests
 	frappe.flags.skip_test_records = skip_test_records
 
 	# Set various test-related flags
@@ -600,10 +601,7 @@ def _run_all_tests(
 						test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
 		# Run before_tests hooks only if there are integration tests and hooks are not skipped
-		if (
-			not frappe.flags.skip_before_tests
-			and len(list(runner._iterate_suite(integration_test_suite))) > 0
-		):
+		if not config.skip_before_tests and len(list(runner._iterate_suite(integration_test_suite))) > 0:
 			_run_before_test_hooks(config, app)
 		else:
 			logger.debug("Skipping before_tests hooks: No integration tests or hooks explicitly skipped")
@@ -630,10 +628,7 @@ def _run_doctype_tests(
 						test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
 		# Run before_tests hooks only if there are integration tests and hooks are not skipped
-		if (
-			not frappe.flags.skip_before_tests
-			and len(list(runner._iterate_suite(integration_test_suite))) > 0
-		):
+		if not config.skip_before_tests and len(list(runner._iterate_suite(integration_test_suite))) > 0:
 			_run_before_test_hooks(config, None)  # Pass None for app as it's not applicable here
 		else:
 			logger.debug("Skipping before_tests hooks: No integration tests or hooks explicitly skipped")
@@ -659,10 +654,7 @@ def _run_module_tests(
 						test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
 		# Run before_tests hooks only if there are integration tests and hooks are not skipped
-		if (
-			not frappe.flags.skip_before_tests
-			and len(list(runner._iterate_suite(integration_test_suite))) > 0
-		):
+		if not config.skip_before_tests and len(list(runner._iterate_suite(integration_test_suite))) > 0:
 			_run_before_test_hooks(config, None)  # Pass None for app as it's not applicable here
 		else:
 			logger.debug("Skipping before_tests hooks: No integration tests or hooks explicitly skipped")
