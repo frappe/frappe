@@ -78,7 +78,21 @@ class TestRunner(unittest.TextTestRunner):
 		)
 		self.junit_xml_output = junit_xml_output
 		self.profile = profile
+		self.test_record_callbacks = []
 		logger.debug("TestRunner initialized")
+
+	def add_test_record_callback(self, callback):
+		self.test_record_callbacks.append(callback)
+
+	def execute_test_record_callbacks(self):
+		for callback in self.test_record_callbacks:
+			callback()
+		self.test_record_callbacks.clear()
+
+	def should_create_test_records(
+		self, config: TestConfig, integration_test_suite: unittest.TestSuite
+	) -> bool:
+		return not config.skip_test_records and len(list(self._iterate_suite(integration_test_suite))) > 0
 
 	def run(
 		self, test_suites: tuple[unittest.TestSuite, unittest.TestSuite]
@@ -150,7 +164,7 @@ class TestRunner(unittest.TextTestRunner):
 					if json_file.exists():
 						with json_file.open() as f:
 							doctype = json.loads(f.read())["name"]
-						make_test_records(doctype, commit=True)
+							self.add_test_record_callback(lambda: make_test_records(doctype, commit=True))
 
 				self._add_module_tests(module, unit_test_suite, integration_test_suite, config)
 
@@ -177,14 +191,14 @@ class TestRunner(unittest.TextTestRunner):
 			if force:
 				frappe.db.delete(doctype)
 
-			if not config.skip_test_records:
-				make_test_records(doctype, force=force, commit=True, config=config)
-
 			try:
 				module = importlib.import_module(test_module)
 				self._add_module_tests(module, unit_test_suite, integration_test_suite, config)
 			except ImportError:
 				logger.warning(f"No test module found for doctype {doctype}")
+
+			if not config.skip_test_records:
+				self.add_test_record_callback(lambda: make_test_records(doctype, force=force, commit=True))
 
 		return unit_test_suite, integration_test_suite
 
@@ -602,11 +616,7 @@ def _run_all_tests(
 					if hasattr(test_case, "_apply_debug_decorator"):
 						test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
-		# Run before_tests hooks only if there are integration tests and hooks are not skipped
-		if not config.skip_before_tests and len(list(runner._iterate_suite(integration_test_suite))) > 0:
-			_run_before_test_hooks(config, app)
-		else:
-			logger.debug("Skipping before_tests hooks: No integration tests or hooks explicitly skipped")
+		_prepare_integration_tests(runner, integration_test_suite, config, app)
 
 		return runner.run((unit_test_suite, integration_test_suite))
 	except Exception as e:
@@ -623,21 +633,13 @@ def _run_doctype_tests(
 	try:
 		unit_test_suite, integration_test_suite = runner.discover_doctype_tests(doctypes, config, force)
 
-		if not config.skip_test_records:
-			for doctype in doctypes if isinstance(doctypes, list) else [doctypes]:
-				make_test_records(doctype, force=force, commit=True, config=config)
-
 		if config.pdb_on_exceptions:
 			for test_suite in (unit_test_suite, integration_test_suite):
 				for test_case in runner._iterate_suite(test_suite):
 					if hasattr(test_case, "_apply_debug_decorator"):
 						test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
-		# Run before_tests hooks only if there are integration tests and hooks are not skipped
-		if not config.skip_before_tests and len(list(runner._iterate_suite(integration_test_suite))) > 0:
-			_run_before_test_hooks(config, None)  # Pass None for app as it's not applicable here
-		else:
-			logger.debug("Skipping before_tests hooks: No integration tests or hooks explicitly skipped")
+		_prepare_integration_tests(runner, integration_test_suite, config, None)
 
 		return runner.run((unit_test_suite, integration_test_suite))
 	except Exception as e:
@@ -659,16 +661,30 @@ def _run_module_tests(
 					if hasattr(test_case, "_apply_debug_decorator"):
 						test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
-		# Run before_tests hooks only if there are integration tests and hooks are not skipped
-		if not config.skip_before_tests and len(list(runner._iterate_suite(integration_test_suite))) > 0:
-			_run_before_test_hooks(config, None)  # Pass None for app as it's not applicable here
-		else:
-			logger.debug("Skipping before_tests hooks: No integration tests or hooks explicitly skipped")
+		_prepare_integration_tests(runner, integration_test_suite, config, None)
 
 		return runner.run((unit_test_suite, integration_test_suite))
 	except Exception as e:
 		logger.error(f"Error running tests for module {module}: {e!s}")
 		raise TestRunnerError(f"Failed to run tests for module: {e!s}") from e
+
+
+def _prepare_integration_tests(
+	runner: TestRunner, integration_test_suite: unittest.TestSuite, config: TestConfig, app: str
+) -> None:
+	"""Prepare the environment for integration tests."""
+	if next(runner._iterate_suite(integration_test_suite), None) is not None:
+		if not config.skip_before_tests:
+			_run_before_test_hooks(config, app)
+		else:
+			logger.debug("Skipping before_tests hooks: Explicitly skipped")
+
+		if not config.skip_test_records:
+			_execute_test_record_callbacks(runner)
+		else:
+			logger.debug("Skipping test record creation: Explicitly skipped")
+	else:
+		logger.debug("Skipping before_tests hooks and test record creation: No integration tests")
 
 
 def make_test_records(doctype, force=False, commit=False):
@@ -888,3 +904,31 @@ def _run_before_test_hooks(config: TestConfig, app: str | None):
 	logger.debug('Running "before_tests" hooks')
 	for hook_function in frappe.get_hooks("before_tests", app_name=app):
 		frappe.get_attr(hook_function)()
+
+
+@debug_timer
+def _execute_test_record_callbacks(runner):
+	"""Execute test record creation callbacks"""
+	# Explanatory comment
+	"""
+	We skip the test record creation callbacks if there are only unit tests because:
+	1. Unit tests are designed to be isolated and should not depend on database state.
+	2. They should be fast and lightweight, avoiding time-consuming data setup operations.
+	3. Creating test records might introduce side effects or dependencies that could compromise the isolation of unit tests.
+	4. Unit tests typically mock or stub database interactions, making most test records unnecessary.
+	5. Skipping record creation helps maintain the independence and reproducibility of unit tests.
+
+	Integration tests, on the other hand, often require a more complete data environment,
+	which is why we execute the callbacks when integration tests are present.
+
+	When executed, these callbacks:
+	- Create or modify database records needed for integration tests.
+	- Ensure a consistent starting state for each test, improving test reliability.
+	- Allow for setup of complex scenarios or specific test requirements.
+	- Are crucial for tests that depend on certain data existing in the database.
+
+	The callbacks are collected during the test discovery phase and executed here,
+	allowing for flexible and modular test data setup across different modules and apps.
+	"""
+	logger.debug("Running test record creation callbacks")
+	runner.execute_test_record_callbacks()
