@@ -763,7 +763,7 @@ def transform_database(context: CliCtxObj, table, engine, row_format, failfast):
 @click.option("--pdb", is_flag=True, default=False, help="Open pdb on AssertionError")
 @click.option("--profile", is_flag=True, default=False)
 @click.option("--coverage", is_flag=True, default=False)
-@click.option("--skip-test-records", is_flag=True, default=False, help="Don't create test records")
+@click.option("--skip-test-records", is_flag=True, default=False, help="DEPRECATED")
 @click.option("--skip-before-tests", is_flag=True, default=False, help="Don't run before tests hook")
 @click.option("--junit-xml-output", help="Destination file path for junit xml report")
 @click.option(
@@ -816,6 +816,12 @@ def run_tests(
 			click.secho(f"bench --site {site} set-config allow_tests true", fg="green")
 			return
 
+		if skip_test_records:
+			click.secho("--skip-test-records is deprecated and without effect!", bold=True)
+			click.secho("All records are loaded lazily on first use, so the flag is useless, now.")
+			click.secho("Simply remove the flag.", fg="green")
+			return
+
 		unit_ret, integration_ret = frappe.test_runner.main(
 			site,
 			app,
@@ -830,7 +836,6 @@ def run_tests(
 			doctype_list_path=doctype_list_path,
 			failfast=failfast,
 			case=case,
-			skip_test_records=skip_test_records,
 			skip_before_tests=skip_before_tests,
 			pdb_on_exceptions=pdb_on_exceptions,
 			selected_categories=[] if test_category == "all" else test_category,

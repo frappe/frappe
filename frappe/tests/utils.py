@@ -327,6 +327,7 @@ class UnitTestCase(unittest.TestCase):
 	def setUpClass(cls) -> None:
 		super().setUpClass()
 		cls.doctype = cls._get_doctype_from_module()
+		cls.module = frappe.get_module(cls.__module__)
 
 	@classmethod
 	def _get_doctype_from_module(cls):
@@ -452,6 +453,7 @@ class IntegrationTestCase(UnitTestCase):
 	- Automatic database setup and teardown
 	- Utilities for managing database connections
 	- Context managers for query counting and Redis call monitoring
+	- Lazy loading of test record dependencies
 
 	Note: If you override `setUpClass`, make sure to call `super().setUpClass()`
 	to maintain the functionality of this base class.
@@ -465,11 +467,23 @@ class IntegrationTestCase(UnitTestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
 		super().setUpClass()
+
+		# Site initialization
 		cls.TEST_SITE = getattr(frappe.local, "site", None) or cls.TEST_SITE
 		frappe.init(cls.TEST_SITE)
 		cls.ADMIN_PASSWORD = frappe.get_conf(cls.TEST_SITE).admin_password
+
 		cls._primary_connection = frappe.local.db
 		cls._secondary_connection = None
+
+		# Create test record dependencies
+		cls._newly_created_test_records = []
+		if cls.doctype and cls.doctype not in frappe.local.test_objects:
+			cls._newly_created_test_records += make_test_records(cls.doctype)
+		for doctype in getattr(cls.module, "test_dependencies", []):
+			if doctype not in frappe.local.test_objects:
+				cls._newly_created_test_records += make_test_records(doctype)
+
 		# flush changes done so far to avoid flake
 		frappe.db.commit()
 		if cls.SHOW_TRANSACTION_COMMIT_WARNINGS:

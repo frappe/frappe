@@ -87,26 +87,10 @@ class ParallelTestRunner:
 		frappe.set_user("Administrator")
 		path, filename = file_info
 		module = self.get_module(path, filename)
-		self.create_test_dependency_records(module, path, filename)
 		test_suite = unittest.TestSuite()
 		module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
 		test_suite.addTest(module_test_cases)
 		test_suite(self.test_result)
-
-	def create_test_dependency_records(self, module, path, filename):
-		if hasattr(module, "test_dependencies"):
-			for doctype in module.test_dependencies:
-				make_test_records(doctype, commit=True)
-
-		if os.path.basename(os.path.dirname(path)) == "doctype":
-			# test_data_migration_connector.py > data_migration_connector.json
-			test_record_filename = re.sub("^test_", "", filename).replace(".py", ".json")
-			test_record_file_path = os.path.join(path, test_record_filename)
-			if os.path.exists(test_record_file_path):
-				with open(test_record_file_path) as f:
-					doc = json.loads(f.read())
-					doctype = doc["name"]
-					make_test_records(doctype, commit=True)
 
 	def get_module(self, path, filename):
 		app_path = frappe.get_app_path(self.app)
