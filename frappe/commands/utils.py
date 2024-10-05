@@ -769,6 +769,12 @@ def transform_database(context: CliCtxObj, table, engine, row_format, failfast):
 @click.option(
 	"--failfast", is_flag=True, default=False, help="Stop the test run on the first error or failure"
 )
+@click.option(
+	"--test-category",
+	type=click.Choice(["unit", "integration", "all"]),
+	default="all",
+	help="Select test category to run",
+)
 @pass_context
 def run_tests(
 	context: CliCtxObj,
@@ -785,6 +791,7 @@ def run_tests(
 	skip_before_tests=False,
 	failfast=False,
 	case=None,
+	test_category="all",
 	pdb=False,
 ):
 	"""Run python unit-tests"""
@@ -826,6 +833,7 @@ def run_tests(
 			skip_test_records=skip_test_records,
 			skip_before_tests=skip_before_tests,
 			pdb_on_exceptions=pdb_on_exceptions,
+			selected_categories=[] if test_category == "all" else test_category,
 		)
 
 		if (
