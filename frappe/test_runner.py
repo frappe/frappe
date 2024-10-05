@@ -519,8 +519,6 @@ def _initialize_test_environment(site, config: TestConfig):
 	"""Initialize the test environment"""
 	logger.debug(f"Initializing test environment for site: {site}")
 	frappe.init(site)
-	if not frappe.db:
-		frappe.connect()
 
 	# Set various test-related flags
 	frappe.flags.in_test = True
@@ -674,12 +672,46 @@ def _prepare_integration_tests(
 ) -> None:
 	"""Prepare the environment for integration tests."""
 	if next(runner._iterate_suite(integration_test_suite), None) is not None:
+		if not frappe.db:
+			frappe.connect()
 		if not config.skip_before_tests:
+			# Explanatory comment
+			"""
+			We skip the before_tests hooks if there are only unit tests because:
+			1. Unit tests are designed to be independent and should not rely on external state or setup.
+			2. They should be fast and lightweight, avoiding unnecessary setup operations.
+			3. Running hooks might introduce side effects or dependencies that could compromise the isolation of unit tests.
+			4. Unit tests typically mock or stub external dependencies, making most setup hooks unnecessary.
+
+			Integration tests, on the other hand, often require a more complete environment setup,
+			which is why we run the hooks when integration tests are present.
+			"""
 			_run_before_test_hooks(config, app)
 		else:
 			logger.debug("Skipping before_tests hooks: Explicitly skipped")
 
 		if not config.skip_test_records:
+			# Explanatory comment
+			"""
+			We skip the test record creation callbacks if there are only unit tests because:
+			1. Unit tests are designed to be isolated and should not depend on database state.
+			2. They should be fast and lightweight, avoiding time-consuming data setup operations.
+			3. Creating test records might introduce side effects or dependencies that could compromise the isolation of unit tests.
+			4. Unit tests typically mock or stub database interactions, making most test records unnecessary.
+			5. Skipping record creation helps maintain the independence and reproducibility of unit tests.
+
+			Integration tests, on the other hand, often require a more complete data environment,
+			which is why we execute the callbacks when integration tests are present.
+
+			When executed, these callbacks:
+			- Create or modify database records needed for integration tests.
+			- Ensure a consistent starting state for each test, improving test reliability.
+			- Allow for setup of complex scenarios or specific test requirements.
+			- Are crucial for tests that depend on certain data existing in the database.
+
+			The callbacks are collected during the test discovery phase and executed here,
+			allowing for flexible and modular test data setup across different modules and apps.
+			"""
 			_execute_test_record_callbacks(runner)
 		else:
 			logger.debug("Skipping test record creation: Explicitly skipped")
@@ -890,17 +922,6 @@ def get_test_record_log():
 @debug_timer
 def _run_before_test_hooks(config: TestConfig, app: str | None):
 	"""Run 'before_tests' hooks"""
-	# Explanatory comment
-	"""
-	We skip the before_tests hooks if there are only unit tests because:
-	1. Unit tests are designed to be independent and should not rely on external state or setup.
-	2. They should be fast and lightweight, avoiding unnecessary setup operations.
-	3. Running hooks might introduce side effects or dependencies that could compromise the isolation of unit tests.
-	4. Unit tests typically mock or stub external dependencies, making most setup hooks unnecessary.
-
-	Integration tests, on the other hand, often require a more complete environment setup,
-	which is why we run the hooks when integration tests are present.
-	"""
 	logger.debug('Running "before_tests" hooks')
 	for hook_function in frappe.get_hooks("before_tests", app_name=app):
 		frappe.get_attr(hook_function)()
@@ -909,26 +930,5 @@ def _run_before_test_hooks(config: TestConfig, app: str | None):
 @debug_timer
 def _execute_test_record_callbacks(runner):
 	"""Execute test record creation callbacks"""
-	# Explanatory comment
-	"""
-	We skip the test record creation callbacks if there are only unit tests because:
-	1. Unit tests are designed to be isolated and should not depend on database state.
-	2. They should be fast and lightweight, avoiding time-consuming data setup operations.
-	3. Creating test records might introduce side effects or dependencies that could compromise the isolation of unit tests.
-	4. Unit tests typically mock or stub database interactions, making most test records unnecessary.
-	5. Skipping record creation helps maintain the independence and reproducibility of unit tests.
-
-	Integration tests, on the other hand, often require a more complete data environment,
-	which is why we execute the callbacks when integration tests are present.
-
-	When executed, these callbacks:
-	- Create or modify database records needed for integration tests.
-	- Ensure a consistent starting state for each test, improving test reliability.
-	- Allow for setup of complex scenarios or specific test requirements.
-	- Are crucial for tests that depend on certain data existing in the database.
-
-	The callbacks are collected during the test discovery phase and executed here,
-	allowing for flexible and modular test data setup across different modules and apps.
-	"""
 	logger.debug("Running test record creation callbacks")
 	runner.execute_test_record_callbacks()
