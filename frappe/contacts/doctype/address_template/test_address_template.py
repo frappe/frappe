@@ -2,11 +2,11 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.contacts.doctype.address_template.address_template import get_default_address_template
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils.jinja import validate_template
 
 
-class TestAddressTemplate(FrappeTestCase):
+class TestAddressTemplate(IntegrationTestCase):
 	def setUp(self) -> None:
 		frappe.db.delete("Address Template", {"country": "India"})
 		frappe.db.delete("Address Template", {"country": "Brazil"})

@@ -5,10 +5,10 @@ import json
 import os
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestPackage(FrappeTestCase):
+class TestPackage(IntegrationTestCase):
 	def test_package_release(self):
 		make_test_package()
 		make_test_module()

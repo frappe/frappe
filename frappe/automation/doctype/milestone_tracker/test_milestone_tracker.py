@@ -2,10 +2,10 @@
 # License: MIT. See LICENSE
 import frappe
 import frappe.cache_manager
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestMilestoneTracker(FrappeTestCase):
+class TestMilestoneTracker(IntegrationTestCase):
 	def test_milestone(self):
 		frappe.db.delete("Milestone Tracker")
 

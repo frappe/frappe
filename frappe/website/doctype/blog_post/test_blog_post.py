@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 
 import frappe
 from frappe.custom.doctype.customize_form.customize_form import reset_customization
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import random_string, set_request
 from frappe.website.doctype.blog_post.blog_post import get_blog_list
 from frappe.website.serve import get_response
@@ -16,7 +16,7 @@ from frappe.website.website_generator import WebsiteGenerator
 test_dependencies = ["Blog Post"]
 
 
-class TestBlogPost(FrappeTestCase):
+class TestBlogPost(IntegrationTestCase):
 	def setUp(self):
 		reset_customization("Blog Post")
 

@@ -3,12 +3,12 @@
 import frappe
 from frappe.contacts.doctype.contact.contact import get_full_name
 from frappe.email import get_contact_list
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 test_dependencies = ["Contact", "Salutation"]
 
 
-class TestContact(FrappeTestCase):
+class TestContact(IntegrationTestCase):
 	def test_check_default_email(self):
 		emails = [
 			{"email": "test1@example.com", "is_primary": 0},

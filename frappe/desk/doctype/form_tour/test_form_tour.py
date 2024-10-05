@@ -2,8 +2,8 @@
 # License: MIT. See LICENSE
 
 # import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestFormTour(FrappeTestCase):
+class TestFormTour(IntegrationTestCase):
 	pass

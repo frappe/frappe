@@ -6,10 +6,10 @@ from functools import partial
 
 import frappe
 from frappe.desk.search import get_names_for_mentions, search_link, search_widget
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestSearch(FrappeTestCase):
+class TestSearch(IntegrationTestCase):
 	def setUp(self):
 		if self._testMethodName == "test_link_field_order":
 			setup_test_link_field_order(self)

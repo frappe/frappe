@@ -4,8 +4,8 @@ import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Abs, Count, Ifnull, Max, Now, Timestamp
+from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import db_type_is, run_only_if
-from frappe.tests.utils import FrappeTestCase
 from frappe.utils.nestedset import get_ancestors_of, get_descendants_of
 
 
@@ -52,7 +52,7 @@ def create_tree_docs():
 		d.insert()
 
 
-class TestQuery(FrappeTestCase):
+class TestQuery(IntegrationTestCase):
 	@run_only_if(db_type_is.MARIADB)
 	def test_multiple_tables_in_filters(self):
 		self.assertEqual(

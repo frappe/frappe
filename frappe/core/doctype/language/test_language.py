@@ -1,9 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 # test_records = frappe.get_test_records('Language')
 
 
-class TestLanguage(FrappeTestCase):
+class TestLanguage(IntegrationTestCase):
 	pass

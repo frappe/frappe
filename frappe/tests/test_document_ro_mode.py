@@ -3,10 +3,10 @@ from contextlib import contextmanager
 
 import frappe
 from frappe.model.document import Document, read_only_document
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestReadOnlyDocument(FrappeTestCase):
+class TestReadOnlyDocument(IntegrationTestCase):
 	def setUp(self):
 		# Create a test document
 		self.test_doc = frappe.get_doc({"doctype": "ToDo", "description": "Test ToDo"})

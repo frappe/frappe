@@ -184,6 +184,19 @@ class UnitTestCase(unittest.TestCase):
 			)
 		)
 
+	@staticmethod
+	@contextmanager
+	def patch_hooks(overridden_hooks: dict) -> AbstractContextManager[None]:
+		get_hooks = frappe.get_hooks
+
+		def patched_hooks(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
+			if hook in overridden_hooks:
+				return overridden_hooks[hook]
+			return get_hooks(hook, default, app_name)
+
+		with patch.object(frappe, "get_hooks", patched_hooks):
+			yield
+
 	@contextmanager
 	def freeze_time(
 		self, time_to_freeze: Any, is_utc: bool = False, *args: Any, **kwargs: Any
@@ -402,6 +415,7 @@ class IntegrationTestCase(UnitTestCase):
 # TODO: move to dumpster
 FrappeTestCase = IntegrationTestCase
 change_settings = IntegrationTestCase.change_settings
+patch_hooks = UnitTestCase.patch_hooks
 
 
 class MockedRequestTestCase(IntegrationTestCase):
@@ -472,19 +486,6 @@ def timeout(seconds=30, error_message="Test timed out."):
 		return decorator(seconds)
 
 	return decorator
-
-
-@contextmanager
-def patch_hooks(overridden_hoooks):
-	get_hooks = frappe.get_hooks
-
-	def patched_hooks(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
-		if hook in overridden_hoooks:
-			return overridden_hoooks[hook]
-		return get_hooks(hook, default, app_name)
-
-	with patch.object(frappe, "get_hooks", patched_hooks):
-		yield
 
 
 def check_orpahned_doctypes():

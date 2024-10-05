@@ -13,7 +13,7 @@ from frappe.integrations.doctype.webhook.webhook import (
 	get_webhook_data,
 	get_webhook_headers,
 )
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
 @contextmanager
@@ -29,7 +29,7 @@ def get_test_webhook(config):
 		wh.delete()
 
 
-class TestWebhook(FrappeTestCase):
+class TestWebhook(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		# delete any existing webhooks

@@ -3,7 +3,7 @@
 import json
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 from frappe.website.doctype.web_form.web_form import accept
 from frappe.website.serve import get_response_content
@@ -11,7 +11,7 @@ from frappe.website.serve import get_response_content
 test_dependencies = ["Web Form"]
 
 
-class TestWebForm(FrappeTestCase):
+class TestWebForm(IntegrationTestCase):
 	def setUp(self):
 		frappe.conf.disable_website_cache = True
 

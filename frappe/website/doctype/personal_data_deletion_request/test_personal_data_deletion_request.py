@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request import (
 	process_data_deletion_request,
 	remove_unverified_record,
@@ -13,7 +13,7 @@ from frappe.website.doctype.personal_data_download_request.test_personal_data_do
 )
 
 
-class TestPersonalDataDeletionRequest(FrappeTestCase):
+class TestPersonalDataDeletionRequest(IntegrationTestCase):
 	def setUp(self):
 		create_user_if_not_exists(email="test_delete@example.com")
 		self.delete_request = frappe.get_doc(

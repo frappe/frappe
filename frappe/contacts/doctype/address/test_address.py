@@ -4,10 +4,10 @@ from functools import partial
 
 import frappe
 from frappe.contacts.doctype.address.address import address_query, get_address_display
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestAddress(FrappeTestCase):
+class TestAddress(IntegrationTestCase):
 	def test_template_works(self):
 		if not frappe.db.exists("Address Template", "India"):
 			frappe.get_doc({"doctype": "Address Template", "country": "India", "is_default": 1}).insert()

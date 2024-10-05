@@ -3,12 +3,12 @@
 
 import frappe
 from frappe.test_runner import make_test_objects
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import format_date, today
 from frappe.utils.goal import get_monthly_goal_graph_data, get_monthly_results
 
 
-class TestGoal(FrappeTestCase):
+class TestGoal(IntegrationTestCase):
 	def setUp(self):
 		make_test_objects("Event", reset=True)
 

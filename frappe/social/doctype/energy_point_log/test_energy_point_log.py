@@ -3,14 +3,14 @@
 import frappe
 from frappe.desk.form.assign_to import add as assign_to
 from frappe.desk.page.user_profile.user_profile import get_energy_points_heatmap_data
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils.testutils import add_custom_field, clear_custom_fields
 
 from .energy_point_log import create_review_points_log, review
 from .energy_point_log import get_energy_points as _get_energy_points
 
 
-class TestEnergyPointLog(FrappeTestCase):
+class TestEnergyPointLog(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()

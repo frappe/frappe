@@ -1,7 +1,7 @@
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestSMSSettings(FrappeTestCase):
+class TestSMSSettings(IntegrationTestCase):
 	pass

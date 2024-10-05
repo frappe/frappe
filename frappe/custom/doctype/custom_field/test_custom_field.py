@@ -7,12 +7,12 @@ from frappe.custom.doctype.custom_field.custom_field import (
 	create_custom_fields,
 	rename_fieldname,
 )
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 test_records = frappe.get_test_records("Custom Field")
 
 
-class TestCustomField(FrappeTestCase):
+class TestCustomField(IntegrationTestCase):
 	def test_create_custom_fields(self):
 		create_custom_fields(
 			{

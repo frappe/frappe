@@ -8,12 +8,12 @@ from dateutil.relativedelta import relativedelta
 
 import frappe
 from frappe.desk.doctype.dashboard_chart.dashboard_chart import get
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import formatdate, get_last_day, getdate
 from frappe.utils.dateutils import get_period, get_period_ending
 
 
-class TestDashboardChart(FrappeTestCase):
+class TestDashboardChart(IntegrationTestCase):
 	def test_period_ending(self):
 		self.assertEqual(get_period_ending("2019-04-10", "Daily"), getdate("2019-04-10"))
 

@@ -1,9 +1,9 @@
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import get_html_for_route
 
 
-class TestSitemap(FrappeTestCase):
+class TestSitemap(IntegrationTestCase):
 	def test_sitemap(self):
 		from frappe.test_runner import make_test_records
 

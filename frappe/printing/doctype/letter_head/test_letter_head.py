@@ -1,10 +1,10 @@
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestLetterHead(FrappeTestCase):
+class TestLetterHead(IntegrationTestCase):
 	def test_auto_image(self):
 		letter_head = frappe.get_doc(
 			doctype="Letter Head", letter_head_name="Test", source="Image", image="/public/test.png"

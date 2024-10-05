@@ -4,12 +4,12 @@ import frappe
 from frappe.core.doctype.doctype.doctype import clear_permissions_cache
 from frappe.model.db_query import DatabaseQuery
 from frappe.permissions import add_permission, reset_perms
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 test_dependencies = ["User"]
 
 
-class TestToDo(FrappeTestCase):
+class TestToDo(IntegrationTestCase):
 	def test_delete(self):
 		todo = frappe.get_doc(doctype="ToDo", description="test todo", assigned_by="Administrator").insert()
 

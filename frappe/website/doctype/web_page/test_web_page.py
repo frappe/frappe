@@ -1,12 +1,12 @@
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.website.path_resolver import PathResolver
 from frappe.website.serve import get_response_content
 
 test_records = frappe.get_test_records("Web Page")
 
 
-class TestWebPage(FrappeTestCase):
+class TestWebPage(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.delete("Web Page")
 		for t in test_records:

@@ -3,12 +3,12 @@
 
 import frappe
 from frappe.core.doctype.role.role import get_info_based_on_role
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 test_records = frappe.get_test_records("Role")
 
 
-class TestUser(FrappeTestCase):
+class TestUser(IntegrationTestCase):
 	def test_disable_role(self):
 		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 3")
 

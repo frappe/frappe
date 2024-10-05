@@ -1,12 +1,12 @@
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 test_dependencies = ["Role"]
 
 
-class TestRoleProfile(FrappeTestCase):
+class TestRoleProfile(IntegrationTestCase):
 	def test_make_new_role_profiles(self):
 		frappe.delete_doc_if_exists("Role Profile", "Test 1", force=1)
 		new_role_profile = frappe.get_doc(doctype="Role Profile", role_profile="Test 1").insert()

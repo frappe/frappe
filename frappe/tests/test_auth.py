@@ -9,8 +9,8 @@ import frappe
 from frappe.auth import LoginAttemptTracker
 from frappe.frappeclient import AuthError, FrappeClient
 from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds
+from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import FrappeAPITestCase
-from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_datetime, get_site_url, now
 from frappe.utils.data import add_to_date
 from frappe.www.login import _generate_temporary_login_link
@@ -27,7 +27,7 @@ def add_user(email, password, username=None, mobile_no=None):
 	frappe.db.commit()
 
 
-class TestAuth(FrappeTestCase):
+class TestAuth(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
@@ -165,7 +165,7 @@ class TestAuth(FrappeTestCase):
 		self.assertAlmostEqual(get_expiry_in_seconds(), expiry_time - current_time, delta=60 * 60)
 
 
-class TestLoginAttemptTracker(FrappeTestCase):
+class TestLoginAttemptTracker(IntegrationTestCase):
 	def test_account_lock(self):
 		"""Make sure that account locks after `n consecutive failures"""
 		tracker = LoginAttemptTracker("tester", max_consecutive_login_attempts=3, lock_interval=60)

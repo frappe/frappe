@@ -5,10 +5,10 @@ import copy
 import frappe
 from frappe.core.doctype.version.version import get_diff
 from frappe.test_runner import make_test_objects
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestVersion(FrappeTestCase):
+class TestVersion(IntegrationTestCase):
 	def test_get_diff(self):
 		frappe.set_user("Administrator")
 		test_records = make_test_objects("Event", reset=True)

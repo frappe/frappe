@@ -8,12 +8,12 @@ import frappe.recorder
 from frappe.core.doctype.recorder.recorder import _optimize_query, serialize_request
 from frappe.query_builder.utils import db_type_is
 from frappe.recorder import get as get_recorder_data
+from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import run_only_if
-from frappe.tests.utils import FrappeTestCase
 from frappe.utils import set_request
 
 
-class TestRecorder(FrappeTestCase):
+class TestRecorder(IntegrationTestCase):
 	def setUp(self):
 		self.start_recoder()
 
@@ -79,7 +79,7 @@ class TestRecorder(FrappeTestCase):
 		self.assertIsInstance(serialize_request(request_doc), dict)
 
 
-class TestQueryOptimization(FrappeTestCase):
+class TestQueryOptimization(IntegrationTestCase):
 	@run_only_if(db_type_is.MARIADB)
 	def test_query_optimizer(self):
 		suggested_index = _optimize_query(

@@ -9,7 +9,7 @@ from frappe.app import make_form_dict
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.doctype.note.note import Note
 from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import cint, now_datetime, set_request
 from frappe.website.serve import get_response
 
@@ -27,7 +27,7 @@ class CustomNoteWithoutProperty(Note):
 		return now_datetime() - self.creation
 
 
-class TestDocument(FrappeTestCase):
+class TestDocument(IntegrationTestCase):
 	def test_get_return_empty_list_for_table_field_if_none(self):
 		d = frappe.get_doc({"doctype": "User"})
 		self.assertEqual(d.get("roles"), [])
@@ -524,7 +524,7 @@ class TestDocument(FrappeTestCase):
 		self.assertEqual(val, changed_val)
 
 
-class TestDocumentWebView(FrappeTestCase):
+class TestDocumentWebView(IntegrationTestCase):
 	def get(self, path, user="Guest"):
 		frappe.set_user(user)
 		set_request(method="GET", path=path)

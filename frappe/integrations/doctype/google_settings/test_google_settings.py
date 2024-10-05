@@ -2,12 +2,12 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 from .google_settings import get_file_picker_settings
 
 
-class TestGoogleSettings(FrappeTestCase):
+class TestGoogleSettings(IntegrationTestCase):
 	def setUp(self):
 		settings = frappe.get_single("Google Settings")
 		settings.client_id = "test_client_id"

@@ -2,10 +2,10 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.installer import update_site_config
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestUserType(FrappeTestCase):
+class TestUserType(IntegrationTestCase):
 	def setUp(self):
 		create_role()
 

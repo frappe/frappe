@@ -6,7 +6,7 @@ import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType, sync_jobs
 from frappe.core.doctype.server_script.server_script import ServerScript
 from frappe.frappeclient import FrappeClient, FrappeException
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import get_site_url
 
 scripts = [
@@ -108,7 +108,7 @@ doc.save()
 ]
 
 
-class TestServerScript(FrappeTestCase):
+class TestServerScript(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()

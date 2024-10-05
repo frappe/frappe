@@ -1,8 +1,8 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 # import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestPortalSettings(FrappeTestCase):
+class TestPortalSettings(IntegrationTestCase):
 	pass

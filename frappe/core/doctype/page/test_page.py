@@ -5,12 +5,12 @@ import unittest
 from unittest.mock import patch
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 test_records = frappe.get_test_records("Page")
 
 
-class TestPage(FrappeTestCase):
+class TestPage(IntegrationTestCase):
 	def test_naming(self):
 		self.assertRaises(
 			frappe.NameError,

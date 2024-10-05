@@ -1,13 +1,13 @@
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import validate_url
 
 # test_records = frappe.get_test_records('Email Group')
 
 
-class TestEmailGroup(FrappeTestCase):
+class TestEmailGroup(IntegrationTestCase):
 	def test_welcome_url(self):
 		email_group = frappe.new_doc("Email Group")
 		email_group.title = "Test"
