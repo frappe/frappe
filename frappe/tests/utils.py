@@ -29,22 +29,6 @@ import logging
 
 logger = logging.Logger(__file__)
 
-# Moved from test_runner.py
-
-
-def make_test_records(doctype, force=False, commit=False):
-	"""Make test records for the specified doctype"""
-	logger.debug(f"Making test records for doctype: {doctype}")
-
-	for options in get_dependencies(doctype):
-		if options == "[Select]":
-			continue
-
-		if options not in frappe.local.test_objects:
-			frappe.local.test_objects[options] = []
-			make_test_records(options, force, commit=commit)
-			make_test_records_for_doctype(options, force, commit=commit)
-
 
 @cache
 def get_modules(doctype):
@@ -70,7 +54,7 @@ def get_dependencies(doctype):
 	for df in meta.get_table_fields():
 		link_fields.extend(frappe.get_meta(df.options).get_link_fields())
 
-	options_list = [df.options for df in link_fields] + [doctype]
+	options_list = [df.options for df in link_fields]
 
 	if hasattr(test_module, "test_dependencies"):
 		options_list += test_module.test_dependencies
@@ -87,7 +71,48 @@ def get_dependencies(doctype):
 	return options_list
 
 
+# Test record generation
+
+
+def make_test_records(doctype, force=False, commit=False):
+	return list(_make_test_records(doctype, force, commit))
+
+
 def make_test_records_for_doctype(doctype, force=False, commit=False):
+	return list(_make_test_records_for_doctype(doctype, force, commit))
+
+
+def make_test_objects(doctype, test_records=None, reset=False, commit=False):
+	return list(_make_test_objects(doctype, test_records, reset, commit))
+
+
+def _make_test_records(doctype, force=False, commit=False):
+	"""Make test records for the specified doctype"""
+
+	loadme = False
+
+	if doctype not in frappe.local.test_objects:
+		loadme = True
+		frappe.local.test_objects[doctype] = []  # infinite recursion guard, here
+
+	# First, create test records for dependencies
+	for dependency in get_dependencies(doctype):
+		if dependency != "[Select]" and dependency not in frappe.local.test_objects:
+			yield from _make_test_records(dependency, force, commit)
+
+	# Then, create test records for the doctype itself
+	if loadme:
+		# Yield the doctype and record length
+		yield (
+			doctype,
+			len(
+				# Create all test records
+				list(_make_test_records_for_doctype(doctype, force, commit))
+			),
+		)
+
+
+def _make_test_records_for_doctype(doctype, force=False, commit=False):
 	"""Make test records for the specified doctype"""
 
 	test_record_log_instance = TestRecordLog()
@@ -95,32 +120,22 @@ def make_test_records_for_doctype(doctype, force=False, commit=False):
 		return
 
 	module, test_module = get_modules(doctype)
-	logger.debug(f"Making test records for {doctype}")
-
 	if hasattr(test_module, "_make_test_records"):
-		frappe.local.test_objects[doctype] = (
-			frappe.local.test_objects.get(doctype, []) + test_module._make_test_records()
-		)
+		yield from test_module._make_test_records()
 	elif hasattr(test_module, "test_records"):
-		frappe.local.test_objects[doctype] = frappe.local.test_objects.get(doctype, []) + make_test_objects(
-			doctype, test_module.test_records, force, commit=commit
-		)
+		yield from _make_test_objects(doctype, test_module.test_records, force, commit=commit)
 	else:
 		test_records = frappe.get_test_records(doctype)
 		if test_records:
-			frappe.local.test_objects[doctype] = frappe.local.test_objects.get(
-				doctype, []
-			) + make_test_objects(doctype, test_records, force, commit=commit)
+			yield from _make_test_objects(doctype, test_records, force, commit=commit)
 		elif logger.getEffectiveLevel() < logging.INFO:
 			print_mandatory_fields(doctype)
 
 	test_record_log_instance.add(doctype)
 
 
-def make_test_objects(doctype, test_records=None, reset=False, commit=False):
-	"""Make test objects from given list of `test_records` or from `test_records.json`"""
-	logger.debug(f"Making test objects for doctype: {doctype}")
-	records = []
+def _make_test_objects(doctype, test_records=None, reset=False, commit=False):
+	"""Generator function to make test objects"""
 
 	def revert_naming(d):
 		if getattr(d, "naming_series", None):
@@ -177,11 +192,11 @@ def make_test_objects(doctype, test_records=None, reset=False, commit=False):
 				logger.debug(f"Error in making test record for {d.doctype} {d.name}")
 				raise
 
-		records.append(d.name)
-
 		if commit:
 			frappe.db.commit()
-	return records
+
+		frappe.local.test_objects[doctype] += d.name
+		yield d.name
 
 
 def print_mandatory_fields(doctype):
