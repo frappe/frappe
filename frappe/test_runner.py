@@ -100,10 +100,7 @@ class TestRunner(unittest.TextTestRunner):
 
 		# Run unit tests
 		click.echo(
-			"\n"
-			+ click.style(
-				f"Running {len(list(self._iterate_suite(unit_suite)))} unit tests", fg="cyan", bold=True
-			)
+			"\n" + click.style(f"Running {unit_suite.countTestCases()} unit tests", fg="cyan", bold=True)
 		)
 		unit_result = super().run(unit_suite)
 
@@ -113,7 +110,7 @@ class TestRunner(unittest.TextTestRunner):
 			click.echo(
 				"\n"
 				+ click.style(
-					f"Running {len(list(self._iterate_suite(integration_suite)))} integration tests",
+					f"Running {integration_suite.countTestCases()} integration tests",
 					fg="cyan",
 					bold=True,
 				)
@@ -164,7 +161,7 @@ class TestRunner(unittest.TextTestRunner):
 				self._add_module_tests(module, unit_test_suite, integration_test_suite, config)
 
 		logger.debug(
-			f"Discovered {len(list(self._iterate_suite(unit_test_suite)))} unit tests and {len(list(self._iterate_suite(integration_test_suite)))} integration tests"
+			f"Discovered {unit_test_suite.countTestCases()} unit tests and {integration_test_suite.countTestCases()} integration tests"
 		)
 		return unit_test_suite, integration_test_suite
 
@@ -425,7 +422,7 @@ def main(
 			resultclass=TestResult if not test_config.junit_xml_output else None,
 			verbosity=2 if logger.getEffectiveLevel() < logging.INFO else 1,
 			failfast=test_config.failfast,
-			tb_locals=logger.getEffectiveLevel() < logging.DEBUG,
+			tb_locals=logger.getEffectiveLevel() <= logging.INFO,
 			junit_xml_output=test_config.junit_xml_output,
 			profile=test_config.profile,
 		)
