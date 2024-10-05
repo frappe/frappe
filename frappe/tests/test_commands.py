@@ -1011,6 +1011,6 @@ class TestSchedulerCLI(BaseTestCommands):
 
 class TestCLIImplementation(BaseTestCommands):
 	def test_missing_commands(self):
-		self.execute("bench --site {site} migrat")
+		self.execute("bench --site {site} migrate")
 		self.assertNotEqual(self.returncode, 0)
 		self.assertRegex(self.stderr, r"No such.*migrat.*migrate")
