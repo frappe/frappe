@@ -439,13 +439,13 @@ def main(
 
 		if doctype or doctype_list_path:
 			doctype = _load_doctype_list(doctype_list_path) if doctype_list_path else doctype
-			unit_result, integration_result = _run_doctype_tests(doctype, test_config, runner, force)
+			unit_result, integration_result = _run_doctype_tests(doctype, test_config, runner, force, app)
 		elif module_def:
 			unit_result, integration_result = _run_module_def_tests(
 				app, module_def, test_config, runner, force
 			)
 		elif module:
-			unit_result, integration_result = _run_module_tests(module, test_config, runner)
+			unit_result, integration_result = _run_module_tests(module, test_config, runner, app)
 		else:
 			unit_result, integration_result = _run_all_tests(app, test_config, runner)
 
@@ -563,7 +563,7 @@ def _run_module_def_tests(
 ) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 	"""Run tests for the specified module definition"""
 	doctypes = _get_doctypes_for_module_def(app, module_def)
-	return _run_doctype_tests(doctypes, config, runner, force)
+	return _run_doctype_tests(doctypes, config, runner, force, app)
 
 
 def _get_doctypes_for_module_def(app, module_def):
@@ -626,7 +626,7 @@ def _run_all_tests(
 
 @debug_timer
 def _run_doctype_tests(
-	doctypes, config: TestConfig, runner: TestRunner, force=False
+	doctypes, config: TestConfig, runner: TestRunner, force=False, app: str | None = None
 ) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 	"""Run tests for the specified doctype(s)"""
 
@@ -639,7 +639,7 @@ def _run_doctype_tests(
 					if hasattr(test_case, "_apply_debug_decorator"):
 						test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
-		_prepare_integration_tests(runner, integration_test_suite, config, None)
+		_prepare_integration_tests(runner, integration_test_suite, config, app)
 
 		return runner.run((unit_test_suite, integration_test_suite))
 	except Exception as e:
@@ -649,7 +649,7 @@ def _run_doctype_tests(
 
 @debug_timer
 def _run_module_tests(
-	module, config: TestConfig, runner: TestRunner
+	module, config: TestConfig, runner: TestRunner, app: str | None = None
 ) -> tuple[unittest.TestResult, unittest.TestResult | None]:
 	"""Run tests for the specified module"""
 	try:
@@ -661,7 +661,7 @@ def _run_module_tests(
 					if hasattr(test_case, "_apply_debug_decorator"):
 						test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
-		_prepare_integration_tests(runner, integration_test_suite, config, None)
+		_prepare_integration_tests(runner, integration_test_suite, config, app)
 
 		return runner.run((unit_test_suite, integration_test_suite))
 	except Exception as e:
