@@ -308,6 +308,23 @@ class UnitTestCase(unittest.TestCase):
 	to maintain the functionality of this base class.
 	"""
 
+	@classmethod
+	def setUpClass(cls) -> None:
+		super().setUpClass()
+		cls.doctype = cls._get_doctype_from_module()
+
+	@classmethod
+	def _get_doctype_from_module(cls):
+		module_path = cls.__module__.split(".")
+		try:
+			doctype_index = module_path.index("doctype")
+			doctype_snake_case = module_path[doctype_index + 1]
+			return frappe.unscrub(doctype_snake_case)
+		except (ValueError, IndexError):
+			# 'doctype' not found in module_path
+			pass
+		return None
+
 	def _apply_debug_decorator(self, exceptions=()):
 		setattr(self, self._testMethodName, debug_on(*exceptions)(getattr(self, self._testMethodName)))
 
