@@ -90,39 +90,18 @@ def debug_on(*exceptions):
 	return decorator
 
 
-class FrappeIntegrationTestCase(unittest.TestCase):
-	"""Base test class for Frappe tests.
-
+class UnitTestCase(unittest.TestCase):
+	"""Unit test class for Frappe tests.
 
 	If you specify `setUpClass` then make sure to call `super().setUpClass`
 	otherwise this class will become ineffective.
 	"""
 
-	TEST_SITE = "test_site"
-
-	SHOW_TRANSACTION_COMMIT_WARNINGS = False
-	maxDiff = 10_000  # prints long diffs but useful in CI
-
-	@classmethod
-	def setUpClass(cls) -> None:
-		cls.TEST_SITE = getattr(frappe.local, "site", None) or cls.TEST_SITE
-		frappe.init(cls.TEST_SITE)
-		cls.ADMIN_PASSWORD = frappe.get_conf(cls.TEST_SITE).admin_password
-		cls._primary_connection = frappe.local.db
-		cls._secondary_connection = None
-		# flush changes done so far to avoid flake
-		frappe.db.commit()
-		if cls.SHOW_TRANSACTION_COMMIT_WARNINGS:
-			frappe.db.before_commit.add(_commit_watcher)
-
-		# enqueue teardown actions (executed in LIFO order)
-		cls.addClassCleanup(_restore_thread_locals, copy.deepcopy(frappe.local.flags))
-		cls.addClassCleanup(_rollback_db)
-
-		return super().setUpClass()
-
 	def _apply_debug_decorator(self, exceptions=()):
 		setattr(self, self._testMethodName, debug_on(*exceptions)(getattr(self, self._testMethodName)))
+
+	def assertQueryEqual(self, first: str, second: str):
+		self.assertEqual(self.normalize_sql(first), self.normalize_sql(second))
 
 	def assertSequenceSubset(self, larger: Sequence, smaller: Sequence, msg=None):
 		"""Assert that `expected` is a subset of `actual`."""
@@ -171,6 +150,74 @@ class FrappeIntegrationTestCase(unittest.TestCase):
 
 		return sqlparse.format(query.strip(), keyword_case="upper", reindent=True, strip_comments=True)
 
+	@classmethod
+	def enable_safe_exec(cls) -> None:
+		"""Enable safe exec and disable them after test case is completed."""
+		from frappe.installer import update_site_config
+		from frappe.utils.safe_exec import SAFE_EXEC_CONFIG_KEY
+
+		cls._common_conf = os.path.join(frappe.local.sites_path, "common_site_config.json")
+		update_site_config(SAFE_EXEC_CONFIG_KEY, 1, validate=False, site_config_path=cls._common_conf)
+
+		cls.addClassCleanup(
+			lambda: update_site_config(
+				SAFE_EXEC_CONFIG_KEY, 0, validate=False, site_config_path=cls._common_conf
+			)
+		)
+
+	@contextmanager
+	def set_user(self, user: str):
+		try:
+			old_user = frappe.session.user
+			frappe.set_user(user)
+			yield
+		finally:
+			frappe.set_user(old_user)
+
+	@contextmanager
+	def freeze_time(self, time_to_freeze, is_utc=False, *args, **kwargs):
+		from freezegun import freeze_time
+
+		if not is_utc:
+			# Freeze time expects UTC or tzaware objects. We have neither, so convert to UTC.
+			timezone = pytz.timezone(get_system_timezone())
+			time_to_freeze = timezone.localize(get_datetime(time_to_freeze)).astimezone(pytz.utc)
+
+		with freeze_time(time_to_freeze, *args, **kwargs):
+			yield
+
+
+class IntegrationTestCase(UnitTestCase):
+	"""Integration test class for Frappe tests.
+
+
+	If you specify `setUpClass` then make sure to call `super().setUpClass`
+	otherwise this class will become ineffective.
+	"""
+
+	TEST_SITE = "test_site"
+
+	SHOW_TRANSACTION_COMMIT_WARNINGS = False
+	maxDiff = 10_000  # prints long diffs but useful in CI
+
+	@classmethod
+	def setUpClass(cls) -> None:
+		cls.TEST_SITE = getattr(frappe.local, "site", None) or cls.TEST_SITE
+		frappe.init(cls.TEST_SITE)
+		cls.ADMIN_PASSWORD = frappe.get_conf(cls.TEST_SITE).admin_password
+		cls._primary_connection = frappe.local.db
+		cls._secondary_connection = None
+		# flush changes done so far to avoid flake
+		frappe.db.commit()
+		if cls.SHOW_TRANSACTION_COMMIT_WARNINGS:
+			frappe.db.before_commit.add(_commit_watcher)
+
+		# enqueue teardown actions (executed in LIFO order)
+		cls.addClassCleanup(_restore_thread_locals, copy.deepcopy(frappe.local.flags))
+		cls.addClassCleanup(_rollback_db)
+
+		return super().setUpClass()
+
 	@contextmanager
 	def primary_connection(self):
 		"""Switch to primary DB connection
@@ -201,9 +248,6 @@ class FrappeIntegrationTestCase(unittest.TestCase):
 	def _rollback_connections(self):
 		self._primary_connection.rollback()
 		self._secondary_connection.rollback()
-
-	def assertQueryEqual(self, first: str, second: str):
-		self.assertEqual(self.normalize_sql(first), self.normalize_sql(second))
 
 	@contextmanager
 	def assertQueryCount(self, count):
@@ -264,30 +308,6 @@ class FrappeIntegrationTestCase(unittest.TestCase):
 		finally:
 			frappe.db.sql = orig_sql
 
-	@classmethod
-	def enable_safe_exec(cls) -> None:
-		"""Enable safe exec and disable them after test case is completed."""
-		from frappe.installer import update_site_config
-		from frappe.utils.safe_exec import SAFE_EXEC_CONFIG_KEY
-
-		cls._common_conf = os.path.join(frappe.local.sites_path, "common_site_config.json")
-		update_site_config(SAFE_EXEC_CONFIG_KEY, 1, validate=False, site_config_path=cls._common_conf)
-
-		cls.addClassCleanup(
-			lambda: update_site_config(
-				SAFE_EXEC_CONFIG_KEY, 0, validate=False, site_config_path=cls._common_conf
-			)
-		)
-
-	@contextmanager
-	def set_user(self, user: str):
-		try:
-			old_user = frappe.session.user
-			frappe.set_user(user)
-			yield
-		finally:
-			frappe.set_user(old_user)
-
 	@contextmanager
 	def switch_site(self, site: str):
 		"""Switch connection to different site.
@@ -302,23 +322,61 @@ class FrappeIntegrationTestCase(unittest.TestCase):
 			frappe.init(old_site, force=True)
 			frappe.connect()
 
+	@staticmethod
 	@contextmanager
-	def freeze_time(self, time_to_freeze, is_utc=False, *args, **kwargs):
-		from freezegun import freeze_time
+	def change_settings(doctype, settings_dict=None, /, commit=False, **settings):
+		"""A context manager to ensure that settings are changed before running
+		function and restored after running it regardless of exceptions occurred.
+		This is useful in tests where you want to make changes in a function but
+		don't retain those changes.
+		import and use as decorator to cover full function or using `with` statement.
 
-		if not is_utc:
-			# Freeze time expects UTC or tzaware objects. We have neither, so convert to UTC.
-			timezone = pytz.timezone(get_system_timezone())
-			time_to_freeze = timezone.localize(get_datetime(time_to_freeze)).astimezone(pytz.utc)
+		example:
+		@change_settings("Print Settings", {"send_print_as_pdf": 1})
+		def test_case(self):
+		        ...
 
-		with freeze_time(time_to_freeze, *args, **kwargs):
-			yield
+		@change_settings("Print Settings", send_print_as_pdf=1)
+		def test_case(self):
+		        ...
+		"""
+
+		if settings_dict is None:
+			settings_dict = settings
+
+		try:
+			settings = frappe.get_doc(doctype)
+			# remember setting
+			previous_settings = copy.deepcopy(settings_dict)
+			for key in previous_settings:
+				previous_settings[key] = getattr(settings, key)
+
+			# change setting
+			for key, value in settings_dict.items():
+				setattr(settings, key, value)
+			settings.save(ignore_permissions=True)
+			# singles are cached by default, clear to avoid flake
+			frappe.db.value_cache[settings] = {}
+			if commit:
+				frappe.db.commit()
+			yield  # yield control to calling function
+
+		finally:
+			# restore settings
+			settings = frappe.get_doc(doctype)
+			for key, value in previous_settings.items():
+				setattr(settings, key, value)
+			settings.save(ignore_permissions=True)
+			if commit:
+				frappe.db.commit()
 
 
-FrappeTestCase = FrappeIntegrationTestCase
+# TODO: move to dumpster
+FrappeTestCase = IntegrationTestCase
+change_settings = IntegrationTestCase.change_settings
 
 
-class MockedRequestTestCase(FrappeIntegrationTestCase):
+class MockedRequestTestCase(IntegrationTestCase):
 	def setUp(self):
 		import responses
 
@@ -355,54 +413,6 @@ def _restore_thread_locals(flags):
 
 	if hasattr(frappe.local, "request"):
 		delattr(frappe.local, "request")
-
-
-@contextmanager
-def change_settings(doctype, settings_dict=None, /, commit=False, **settings):
-	"""A context manager to ensure that settings are changed before running
-	function and restored after running it regardless of exceptions occurred.
-	This is useful in tests where you want to make changes in a function but
-	don't retain those changes.
-	import and use as decorator to cover full function or using `with` statement.
-
-	example:
-	@change_settings("Print Settings", {"send_print_as_pdf": 1})
-	def test_case(self):
-	        ...
-
-	@change_settings("Print Settings", send_print_as_pdf=1)
-	def test_case(self):
-	        ...
-	"""
-
-	if settings_dict is None:
-		settings_dict = settings
-
-	try:
-		settings = frappe.get_doc(doctype)
-		# remember setting
-		previous_settings = copy.deepcopy(settings_dict)
-		for key in previous_settings:
-			previous_settings[key] = getattr(settings, key)
-
-		# change setting
-		for key, value in settings_dict.items():
-			setattr(settings, key, value)
-		settings.save(ignore_permissions=True)
-		# singles are cached by default, clear to avoid flake
-		frappe.db.value_cache[settings] = {}
-		if commit:
-			frappe.db.commit()
-		yield  # yield control to calling function
-
-	finally:
-		# restore settings
-		settings = frappe.get_doc(doctype)
-		for key, value in previous_settings.items():
-			setattr(settings, key, value)
-		settings.save(ignore_permissions=True)
-		if commit:
-			frappe.db.commit()
 
 
 def timeout(seconds=30, error_message="Test timed out."):

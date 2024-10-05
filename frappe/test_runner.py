@@ -31,7 +31,7 @@ import frappe
 import frappe.utils.scheduler
 from frappe.model.naming import revert_series_if_last
 from frappe.modules import get_module_name, load_doctype_module
-from frappe.tests.utils import FrappeIntegrationTestCase
+from frappe.tests.utils import IntegrationTestCase
 from frappe.utils import cint
 
 SLOW_TEST_THRESHOLD = 2
@@ -229,7 +229,7 @@ class TestRunner(unittest.TextTestRunner):
 			if config.tests and test._testMethodName not in config.tests:
 				continue
 
-			category = "integration" if isinstance(test, FrappeIntegrationTestCase) else "unit"
+			category = "integration" if isinstance(test, IntegrationTestCase) else "unit"
 
 			if config.selected_categories and category not in config.selected_categories:
 				continue
