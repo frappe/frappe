@@ -769,6 +769,12 @@ def transform_database(context: CliCtxObj, table, engine, row_format, failfast):
 @click.option(
 	"--failfast", is_flag=True, default=False, help="Stop the test run on the first error or failure"
 )
+@click.option(
+	"--test-category",
+	type=click.Choice(["unit", "integration", "all"]),
+	default="all",
+	help="Select test category to run",
+)
 @pass_context
 def run_tests(
 	context: CliCtxObj,
@@ -785,6 +791,7 @@ def run_tests(
 	skip_before_tests=False,
 	failfast=False,
 	case=None,
+	test_category="all",
 	pdb=False,
 ):
 	"""Run python unit-tests"""
@@ -809,7 +816,7 @@ def run_tests(
 			click.secho(f"bench --site {site} set-config allow_tests true", fg="green")
 			return
 
-		ret = frappe.test_runner.main(
+		unit_ret, integration_ret = frappe.test_runner.main(
 			site,
 			app,
 			module,
@@ -826,11 +833,18 @@ def run_tests(
 			skip_test_records=skip_test_records,
 			skip_before_tests=skip_before_tests,
 			pdb_on_exceptions=pdb_on_exceptions,
+			selected_categories=[] if test_category == "all" else test_category,
 		)
 
-		if len(ret.failures) == 0 and len(ret.errors) == 0:
+		if (
+			len(unit_ret.failures) == 0
+			and len(unit_ret.errors) == 0
+			and len(integration_ret.failures) == 0
+			and len(integration_ret.errors) == 0
+		):
 			ret = 0
-
+		else:
+			ret = (unit_ret, integration_ret)
 		if os.environ.get("CI"):
 			sys.exit(ret)
 
@@ -1193,6 +1207,13 @@ def rebuild_global_search(context: CliCtxObj, static_pages=False):
 def list_sites(context: CliCtxObj, output_json=False):
 	"List all the sites in current bench"
 	site_dir = os.getcwd()
+	# Get the current site from common_site_config.json
+	common_site_config_path = os.path.join(site_dir, "common_site_config.json")
+	default_site = None
+	if os.path.exists(common_site_config_path):
+		with open(common_site_config_path) as f:
+			config = json.load(f)
+			default_site = config.get("default_site")
 	sites = [
 		site
 		for site in os.listdir(site_dir)
@@ -1205,7 +1226,10 @@ def list_sites(context: CliCtxObj, output_json=False):
 	elif sites:
 		click.echo("Available sites:")
 		for site in sites:
-			click.echo(f"  {site}")
+			if site == default_site:
+				click.echo(f"* {site}")
+			else:
+				click.echo(f"  {site}")
 	else:
 		click.echo("No sites found")
 

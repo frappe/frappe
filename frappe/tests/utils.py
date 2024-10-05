@@ -90,7 +90,7 @@ def debug_on(*exceptions):
 	return decorator
 
 
-class FrappeTestCase(unittest.TestCase):
+class FrappeIntegrationTestCase(unittest.TestCase):
 	"""Base test class for Frappe tests.
 
 
@@ -315,7 +315,10 @@ class FrappeTestCase(unittest.TestCase):
 			yield
 
 
-class MockedRequestTestCase(FrappeTestCase):
+FrappeTestCase = FrappeIntegrationTestCase
+
+
+class MockedRequestTestCase(FrappeIntegrationTestCase):
 	def setUp(self):
 		import responses
 
