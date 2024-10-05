@@ -417,7 +417,7 @@ def main(
 		pdb_on_exceptions=pdb_on_exceptions,
 		selected_categories=selected_categories or [],
 		skip_before_tests=skip_before_tests,
-		skip_test_records=skip_test_records,  # Set the new attribute
+		skip_test_records=skip_test_records,
 	)
 
 	_initialize_test_environment(site, test_config)
@@ -672,6 +672,15 @@ def _prepare_integration_tests(
 ) -> None:
 	"""Prepare the environment for integration tests."""
 	if next(runner._iterate_suite(integration_test_suite), None) is not None:
+		# Explanatory comment
+		"""
+		We initialize the database connection only if there are integration tests because:
+		1. Unit tests are designed to be independent and should not rely on database state.
+		2. Initializing the database connection for unit tests adds unnecessary overhead.
+		3. Integration tests often require database access for end-to-end functionality testing.
+		4. Connecting to the database only when needed improves overall test performance.
+		5. This approach maintains a clear separation between unit and integration tests.
+		"""
 		if not frappe.db:
 			frappe.connect()
 		if not config.skip_before_tests:
