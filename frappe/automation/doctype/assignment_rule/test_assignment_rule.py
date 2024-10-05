@@ -2,8 +2,8 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.test_runner import make_test_records
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import make_test_records
 
 TEST_DOCTYPE = "Assignment Test"
 

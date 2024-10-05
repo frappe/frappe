@@ -4,8 +4,8 @@ import copy
 
 import frappe
 from frappe.core.doctype.version.version import get_diff
-from frappe.test_runner import make_test_objects
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import make_test_objects
 
 
 class TestVersion(IntegrationTestCase):

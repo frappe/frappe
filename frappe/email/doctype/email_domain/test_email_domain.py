@@ -1,8 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.test_runner import make_test_objects
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import make_test_objects
 
 test_records = frappe.get_test_records("Email Domain")
 

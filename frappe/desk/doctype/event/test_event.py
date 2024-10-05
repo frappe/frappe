@@ -7,8 +7,8 @@ import json
 import frappe
 import frappe.defaults
 from frappe.desk.doctype.event.event import get_events
-from frappe.test_runner import make_test_objects
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import make_test_objects
 
 test_records = frappe.get_test_records("Event")
 

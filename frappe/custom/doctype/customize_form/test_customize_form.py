@@ -6,8 +6,8 @@ import json
 import frappe
 from frappe.core.doctype.doctype.doctype import InvalidFieldNameError
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.test_runner import make_test_records_for_doctype
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import make_test_records_for_doctype
 
 test_dependencies = ["Custom Field", "Property Setter"]
 

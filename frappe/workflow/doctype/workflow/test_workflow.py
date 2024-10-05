@@ -9,8 +9,8 @@ from frappe.model.workflow import (
 	get_common_transition_actions,
 )
 from frappe.query_builder import DocType
-from frappe.test_runner import make_test_records
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import make_test_records
 from frappe.utils import random_string
 
 
