@@ -145,7 +145,7 @@ class TestRunner(unittest.TextTestRunner):
 				)
 				module = importlib.import_module(module_name)
 
-				if path.parent.name == "doctype":
+				if path.parent.name == "doctype" and not config.skip_test_records:
 					json_file = path.with_name(path.stem[5:] + ".json")
 					if json_file.exists():
 						with json_file.open() as f:
@@ -176,7 +176,9 @@ class TestRunner(unittest.TextTestRunner):
 			test_module = get_module_name(doctype, module, "test_")
 			if force:
 				frappe.db.delete(doctype)
-			make_test_records(doctype, force=force, commit=True)
+
+			if not config.skip_test_records:
+				make_test_records(doctype, force=force, commit=True, config=config)
 
 			try:
 				module = importlib.import_module(test_module)
@@ -208,7 +210,7 @@ class TestRunner(unittest.TextTestRunner):
 		config: TestConfig,
 	):
 		# Handle module test dependencies
-		if hasattr(module, "test_dependencies"):
+		if hasattr(module, "test_dependencies") and not config.skip_test_records:
 			for doctype in module.test_dependencies:
 				make_test_records(doctype, commit=True)
 
@@ -326,7 +328,8 @@ class TestConfig:
 	pdb_on_exceptions: tuple | None = None
 	categories: dict = field(default_factory=lambda: {"unit": [], "integration": []})
 	selected_categories: list[str] = field(default_factory=list)
-	skip_before_tests: bool = False  # New attribute
+	skip_before_tests: bool = False
+	skip_test_records: bool = False  # New attribute
 
 
 def xmlrunner_wrapper(output):
@@ -399,10 +402,11 @@ def main(
 		case=case,
 		pdb_on_exceptions=pdb_on_exceptions,
 		selected_categories=selected_categories or [],
-		skip_before_tests=skip_before_tests,  # Set the new attribute
+		skip_before_tests=skip_before_tests,
+		skip_test_records=skip_test_records,  # Set the new attribute
 	)
 
-	_initialize_test_environment(site, skip_test_records)
+	_initialize_test_environment(site, test_config)
 
 	xml_output_file = _setup_xml_output(junit_xml_output)
 
@@ -497,14 +501,12 @@ def print_test_results(unit_result: unittest.TestResult, integration_result: uni
 
 
 @debug_timer
-def _initialize_test_environment(site, skip_test_records):
+def _initialize_test_environment(site, config: TestConfig):
 	"""Initialize the test environment"""
 	logger.debug(f"Initializing test environment for site: {site}")
 	frappe.init(site)
 	if not frappe.db:
 		frappe.connect()
-
-	frappe.flags.skip_test_records = skip_test_records
 
 	# Set various test-related flags
 	frappe.flags.in_test = True
@@ -621,6 +623,10 @@ def _run_doctype_tests(
 	try:
 		unit_test_suite, integration_test_suite = runner.discover_doctype_tests(doctypes, config, force)
 
+		if not config.skip_test_records:
+			for doctype in doctypes if isinstance(doctypes, list) else [doctypes]:
+				make_test_records(doctype, force=force, commit=True, config=config)
+
 		if config.pdb_on_exceptions:
 			for test_suite in (unit_test_suite, integration_test_suite):
 				for test_case in runner._iterate_suite(test_suite):
@@ -668,8 +674,6 @@ def _run_module_tests(
 def make_test_records(doctype, force=False, commit=False):
 	"""Make test records for the specified doctype"""
 	logger.debug(f"Making test records for doctype: {doctype}")
-	if frappe.flags.skip_test_records:
-		return
 
 	for options in get_dependencies(doctype):
 		if options == "[Select]":
@@ -724,6 +728,7 @@ def get_dependencies(doctype):
 
 def make_test_records_for_doctype(doctype, force=False, commit=False):
 	"""Make test records for the specified doctype"""
+
 	test_record_log_instance = TestRecordLog()
 	if not force and doctype in test_record_log_instance.get():
 		return
