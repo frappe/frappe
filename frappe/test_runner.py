@@ -89,11 +89,6 @@ class TestRunner(unittest.TextTestRunner):
 			callback()
 		self.test_record_callbacks.clear()
 
-	def should_create_test_records(
-		self, config: TestConfig, integration_test_suite: unittest.TestSuite
-	) -> bool:
-		return not config.skip_test_records and len(list(self._iterate_suite(integration_test_suite))) > 0
-
 	def run(
 		self, test_suites: tuple[unittest.TestSuite, unittest.TestSuite]
 	) -> tuple[unittest.TestResult, unittest.TestResult | None]:
@@ -425,8 +420,6 @@ def main(
 	xml_output_file = _setup_xml_output(junit_xml_output)
 
 	try:
-		scheduler_disabled_by_user = _disable_scheduler_if_needed()
-
 		# Create TestRunner instance
 		runner = TestRunner(
 			resultclass=TestResult if not test_config.junit_xml_output else None,
@@ -448,8 +441,6 @@ def main(
 			unit_result, integration_result = _run_module_tests(module, test_config, runner, app)
 		else:
 			unit_result, integration_result = _run_all_tests(app, test_config, runner)
-
-		_cleanup_after_tests(scheduler_disabled_by_user)
 
 		print_test_results(unit_result, integration_result)
 
@@ -519,12 +510,20 @@ def _initialize_test_environment(site, config: TestConfig):
 	"""Initialize the test environment"""
 	logger.debug(f"Initializing test environment for site: {site}")
 	frappe.init(site)
+	if not frappe.db:
+		frappe.connect()
+	try:
+		# require db access
+		_disable_scheduler_if_needed()
+		frappe.clear_cache()
+	except Exception as e:
+		logger.error(f"Error connecting to the database: {e!s}")
+		raise TestRunnerError(f"Failed to connect to the database: {e}") from e
 
 	# Set various test-related flags
 	frappe.flags.in_test = True
 	frappe.flags.print_messages = logger.getEffectiveLevel() < logging.INFO
 	frappe.flags.tests_verbose = logger.getEffectiveLevel() < logging.INFO
-	frappe.clear_cache()
 	logger.debug("Test environment initialized")
 
 
@@ -539,14 +538,6 @@ def _setup_xml_output(junit_xml_output):
 	else:
 		unittest_runner = unittest.TextTestRunner
 		return None
-
-
-def _disable_scheduler_if_needed():
-	"""Disable scheduler if it's not already disabled"""
-	scheduler_disabled_by_user = frappe.utils.scheduler.is_scheduler_disabled(verbose=False)
-	if not scheduler_disabled_by_user:
-		frappe.utils.scheduler.disable_scheduler()
-	return scheduler_disabled_by_user
 
 
 def _load_doctype_list(doctype_list_path):
@@ -583,15 +574,27 @@ def _get_doctypes_for_module_def(app, module_def):
 	return doctypes
 
 
-def _cleanup_after_tests(scheduler_disabled_by_user):
+# Global variable to track scheduler state
+scheduler_disabled_by_user = False
+
+
+def _disable_scheduler_if_needed():
+	"""Disable scheduler if it's not already disabled"""
+	global scheduler_disabled_by_user
+	scheduler_disabled_by_user = frappe.utils.scheduler.is_scheduler_disabled(verbose=False)
+	if not scheduler_disabled_by_user:
+		frappe.utils.scheduler.disable_scheduler()
+
+
+def _cleanup_after_tests():
 	"""Perform cleanup operations after running tests"""
+	global scheduler_disabled_by_user
 	if not scheduler_disabled_by_user:
 		frappe.utils.scheduler.enable_scheduler()
 
 	if frappe.db:
 		frappe.db.commit()
-
-	frappe.clear_cache()
+		frappe.clear_cache()
 
 
 @debug_timer
@@ -615,8 +618,9 @@ def _run_all_tests(
 						test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
 		_prepare_integration_tests(runner, integration_test_suite, config, app)
-
-		return runner.run((unit_test_suite, integration_test_suite))
+		res = runner.run((unit_test_suite, integration_test_suite))
+		_cleanup_after_tests()
+		return res
 	except Exception as e:
 		logger.error(f"Error running all tests for {app or 'all apps'}: {e!s}")
 		raise TestRunnerError(f"Failed to run tests for {app or 'all apps'}: {e!s}") from e
@@ -638,8 +642,9 @@ def _run_doctype_tests(
 						test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
 		_prepare_integration_tests(runner, integration_test_suite, config, app)
-
-		return runner.run((unit_test_suite, integration_test_suite))
+		res = runner.run((unit_test_suite, integration_test_suite))
+		_cleanup_after_tests()
+		return res
 	except Exception as e:
 		logger.error(f"Error running tests for doctypes {doctypes}: {e!s}")
 		raise TestRunnerError(f"Failed to run tests for doctypes: {e!s}") from e
@@ -660,8 +665,9 @@ def _run_module_tests(
 						test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
 		_prepare_integration_tests(runner, integration_test_suite, config, app)
-
-		return runner.run((unit_test_suite, integration_test_suite))
+		res = runner.run((unit_test_suite, integration_test_suite))
+		_cleanup_after_tests()
+		return res
 	except Exception as e:
 		logger.error(f"Error running tests for module {module}: {e!s}")
 		raise TestRunnerError(f"Failed to run tests for module: {e!s}") from e
@@ -697,8 +703,6 @@ def _prepare_integration_tests(
 		By selectively applying these setup steps, we maintain the integrity and purpose
 		of both unit and integration tests while optimizing performance.
 		"""
-		if not frappe.db:
-			frappe.connect()
 		if not config.skip_before_tests:
 			_run_before_test_hooks(config, app)
 		else:
