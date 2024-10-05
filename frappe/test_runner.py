@@ -674,53 +674,37 @@ def _prepare_integration_tests(
 	if next(runner._iterate_suite(integration_test_suite), None) is not None:
 		# Explanatory comment
 		"""
-		We initialize the database connection only if there are integration tests because:
-		1. Unit tests are designed to be independent and should not rely on database state.
-		2. Initializing the database connection for unit tests adds unnecessary overhead.
-		3. Integration tests often require database access for end-to-end functionality testing.
-		4. Connecting to the database only when needed improves overall test performance.
-		5. This approach maintains a clear separation between unit and integration tests.
+		We perform specific setup steps only for integration tests:
+
+		1. Database Connection:
+		   - Initialized only for integration tests to avoid overhead in unit tests.
+		   - Essential for end-to-end functionality testing in integration tests.
+		   - Maintains separation between unit and integration tests.
+
+		2. Before Tests Hooks:
+		   - Executed only for integration tests unless explicitly skipped.
+		   - Provides necessary environment setup for integration tests.
+		   - Skipped for unit tests to maintain their independence and isolation.
+
+		3. Test Record Creation:
+		   - Performed only for integration tests unless explicitly skipped.
+		   - Creates or modifies database records needed for integration tests.
+		   - Ensures consistent starting state and allows for complex test scenarios.
+		   - Skipped for unit tests to maintain their isolation and reproducibility.
+
+		These steps are crucial for integration tests but unnecessary or potentially
+		harmful for unit tests, which should be independent of external state and fast to execute.
+		By selectively applying these setup steps, we maintain the integrity and purpose
+		of both unit and integration tests while optimizing performance.
 		"""
 		if not frappe.db:
 			frappe.connect()
 		if not config.skip_before_tests:
-			# Explanatory comment
-			"""
-			We skip the before_tests hooks if there are only unit tests because:
-			1. Unit tests are designed to be independent and should not rely on external state or setup.
-			2. They should be fast and lightweight, avoiding unnecessary setup operations.
-			3. Running hooks might introduce side effects or dependencies that could compromise the isolation of unit tests.
-			4. Unit tests typically mock or stub external dependencies, making most setup hooks unnecessary.
-
-			Integration tests, on the other hand, often require a more complete environment setup,
-			which is why we run the hooks when integration tests are present.
-			"""
 			_run_before_test_hooks(config, app)
 		else:
 			logger.debug("Skipping before_tests hooks: Explicitly skipped")
 
 		if not config.skip_test_records:
-			# Explanatory comment
-			"""
-			We skip the test record creation callbacks if there are only unit tests because:
-			1. Unit tests are designed to be isolated and should not depend on database state.
-			2. They should be fast and lightweight, avoiding time-consuming data setup operations.
-			3. Creating test records might introduce side effects or dependencies that could compromise the isolation of unit tests.
-			4. Unit tests typically mock or stub database interactions, making most test records unnecessary.
-			5. Skipping record creation helps maintain the independence and reproducibility of unit tests.
-
-			Integration tests, on the other hand, often require a more complete data environment,
-			which is why we execute the callbacks when integration tests are present.
-
-			When executed, these callbacks:
-			- Create or modify database records needed for integration tests.
-			- Ensure a consistent starting state for each test, improving test reliability.
-			- Allow for setup of complex scenarios or specific test requirements.
-			- Are crucial for tests that depend on certain data existing in the database.
-
-			The callbacks are collected during the test discovery phase and executed here,
-			allowing for flexible and modular test data setup across different modules and apps.
-			"""
 			_execute_test_record_callbacks(runner)
 		else:
 			logger.debug("Skipping test record creation: Explicitly skipped")
