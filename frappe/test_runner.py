@@ -592,7 +592,8 @@ def _run_all_tests(
 					if hasattr(test_case, "_apply_debug_decorator"):
 						test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
-		_prepare_integration_tests(runner, integration_test_suite, config, app)
+		for app in apps:
+			_prepare_integration_tests(runner, integration_test_suite, config, app)
 		res = runner.run((unit_test_suite, integration_test_suite))
 		_cleanup_after_tests()
 		return res
@@ -615,7 +616,6 @@ def _run_doctype_tests(
 				for test_case in runner._iterate_suite(test_suite):
 					if hasattr(test_case, "_apply_debug_decorator"):
 						test_case._apply_debug_decorator(config.pdb_on_exceptions)
-
 		_prepare_integration_tests(runner, integration_test_suite, config, app)
 		res = runner.run((unit_test_suite, integration_test_suite))
 		_cleanup_after_tests()
@@ -671,7 +671,8 @@ def _prepare_integration_tests(
 			_run_before_test_hooks(config, app)
 		else:
 			logger.debug("Skipping before_tests hooks: Explicitly skipped")
-		_run_global_test_records_dependencies_install(app)
+		if app:
+			_run_global_test_records_dependencies_install(app)
 	else:
 		logger.debug("Skipping before_tests hooks and global test record creation: No integration tests")
 
