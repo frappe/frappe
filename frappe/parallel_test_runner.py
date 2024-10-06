@@ -163,7 +163,7 @@ def split_by_weight(work, weights, chunk_count):
 def get_all_tests(app):
 	test_file_list = []
 	for path, folders, files in os.walk(frappe.get_app_path(app)):
-		for dontwalk in ("locals", ".git", "public", "__pycache__"):
+		for dontwalk in ("node_modules", "locals", ".git", "public", "__pycache__"):
 			if dontwalk in folders:
 				folders.remove(dontwalk)
 

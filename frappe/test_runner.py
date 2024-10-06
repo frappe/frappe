@@ -124,22 +124,26 @@ class TestRunner(unittest.TextTestRunner):
 
 		for app in apps:
 			app_path = Path(frappe.get_app_path(app))
-			for path in app_path.rglob("test_*.py"):
-				if path.parts[-4:-1] == ("doctype", "doctype", "boilerplate"):
-					continue
-				if path.name == "test_runner.py":
-					continue
-				relative_path = path.relative_to(app_path)
-				if any(part in relative_path.parts for part in ["locals", ".git", "public", "__pycache__"]):
+			for path, folders, files in os.walk(app_path):
+				folders[:] = [f for f in folders if not f.startswith(".")]
+				for dontwalk in ("node_modules", "locals", "public", "__pycache__"):
+					if dontwalk in folders:
+						folders.remove(dontwalk)
+				if os.path.sep.join(["doctype", "doctype", "boilerplate"]) in path:
+					# in /doctype/doctype/boilerplate/
 					continue
 
-				module_name = (
-					f"{app_path.stem}.{'.'.join(relative_path.parent.parts)}.{path.stem}"
-					if str(relative_path.parent) != "."
-					else f"{app_path.stem}.{path.stem}"
-				)
-				module = importlib.import_module(module_name)
-				self._add_module_tests(module, unit_test_suite, integration_test_suite, config)
+				path = Path(path)
+				for file in [
+					path.joinpath(filename)
+					for filename in files
+					if filename.startswith("test_")
+					and filename.endswith(".py")
+					and filename != "test_runner.py"
+				]:
+					module_name = f"{'.'.join(file.relative_to(app_path.parent).parent.parts)}.{file.stem}"
+					module = importlib.import_module(module_name)
+					self._add_module_tests(module, unit_test_suite, integration_test_suite, config)
 
 		logger.debug(
 			f"Discovered {unit_test_suite.countTestCases()} unit tests and {integration_test_suite.countTestCases()} integration tests"
