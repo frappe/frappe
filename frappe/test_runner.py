@@ -43,7 +43,7 @@ def debug_timer(func):
 		start_time = time.monotonic()
 		result = func(*args, **kwargs)
 		end_time = time.monotonic()
-		logger.debug(f" {func.__name__} took {end_time - start_time:.3f} seconds")
+		logger.debug(f" {func.__name__:<50}  ⌛{end_time - start_time:>6.3f} seconds")
 		return result
 
 	return wrapper
@@ -228,12 +228,11 @@ class TestRunner(unittest.TextTestRunner):
 
 class TestResult(unittest.TextTestResult):
 	def startTest(self, test):
-		logger.debug(f"--- Starting test: {test}")
 		self.tb_locals = True
 		self._started_at = time.monotonic()
 		super(unittest.TextTestResult, self).startTest(test)
 		test_class = unittest.util.strclass(test.__class__)
-		if not hasattr(self, "current_test_class") or self.current_test_class != test_class:
+		if getattr(self, "current_test_class", None) != test_class:
 			if new_doctypes := getattr(test.__class__, "_newly_created_test_records", None):
 				click.echo(f"\n{unittest.util.strclass(test.__class__)}")
 				click.secho(
@@ -251,34 +250,36 @@ class TestResult(unittest.TextTestResult):
 		super(unittest.TextTestResult, self).addSuccess(test)
 		elapsed = time.monotonic() - self._started_at
 		threshold_passed = elapsed >= SLOW_TEST_THRESHOLD
-		elapsed = click.style(f" ({elapsed:.03}s)", fg="red") if threshold_passed else ""
-		click.echo(f"  {click.style(' ✔ ', fg='green')} {self.getTestMethodName(test)}{elapsed}")
-		logger.debug(f"=== Test passed: {test}")
+		elapsed_over_threashold = click.style(f" ({elapsed:.03}s)", fg="red") if threshold_passed else ""
+		logger.info(
+			f"  {click.style(' ✔ ', fg='green')} {self.getTestMethodName(test)}{elapsed_over_threashold}"
+		)
+		logger.debug(f"=== success === {test} {elapsed}")
 
 	def addError(self, test, err):
 		super(unittest.TextTestResult, self).addError(test, err)
 		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
-		logger.debug(f"=== Test error: {test}")
+		logger.debug(f"=== error === {test}")
 
 	def addFailure(self, test, err):
 		super(unittest.TextTestResult, self).addFailure(test, err)
 		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
-		logger.debug(f"=== Test failed: {test}")
+		logger.debug(f"=== failure === {test}")
 
 	def addSkip(self, test, reason):
 		super(unittest.TextTestResult, self).addSkip(test, reason)
 		click.echo(f"  {click.style(' = ', fg='white')} {self.getTestMethodName(test)}")
-		logger.debug(f"=== Test skipped: {test}")
+		logger.debug(f"=== skipped === {test}")
 
 	def addExpectedFailure(self, test, err):
 		super(unittest.TextTestResult, self).addExpectedFailure(test, err)
 		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
-		logger.debug(f"=== Test expected failure: {test}")
+		logger.debug(f"=== expected failure === {test}")
 
 	def addUnexpectedSuccess(self, test):
 		super(unittest.TextTestResult, self).addUnexpectedSuccess(test)
 		click.echo(f"  {click.style(' ✔ ', fg='green')} {self.getTestMethodName(test)}")
-		logger.debug(f"=== Test unexpected success: {test}")
+		logger.debug(f"=== unexpected success === {test}")
 
 	def printErrors(self):
 		click.echo("\n")
@@ -585,10 +586,6 @@ def _run_all_tests(
 	logger.debug(f"Running tests for apps: {apps}")
 	try:
 		unit_test_suite, integration_test_suite = runner.discover_tests(apps, config)
-		logger.debug(
-			f"Discovered {len(list(runner._iterate_suite(unit_test_suite)))} unit tests and {len(list(runner._iterate_suite(integration_test_suite)))} integration tests"
-		)
-
 		if config.pdb_on_exceptions:
 			for test_suite in (unit_test_suite, integration_test_suite):
 				for test_case in runner._iterate_suite(test_suite):
@@ -674,11 +671,7 @@ def _prepare_integration_tests(
 			_run_before_test_hooks(config, app)
 		else:
 			logger.debug("Skipping before_tests hooks: Explicitly skipped")
-
-		test_module = frappe.get_module(f"{app}.tests")
-		if hasattr(test_module, "global_test_dependencies"):
-			for doctype in test_module.global_test_dependencies:
-				make_test_records(doctype, commit=True)
+		_run_global_test_records_dependencies_install(app)
 	else:
 		logger.debug("Skipping before_tests hooks and global test record creation: No integration tests")
 
@@ -686,9 +679,20 @@ def _prepare_integration_tests(
 @debug_timer
 def _run_before_test_hooks(config: TestConfig, app: str | None):
 	"""Run 'before_tests' hooks"""
-	logger.debug('Running "before_tests" hooks')
+	logger.debug(f'Running "before_tests" hooks for {app}')
 	for hook_function in frappe.get_hooks("before_tests", app_name=app):
 		frappe.get_attr(hook_function)()
+
+
+@debug_timer
+def _run_global_test_records_dependencies_install(app: str):
+	"""Run global test records dependencies install"""
+	test_module = frappe.get_module(f"{app}.tests")
+	logger.debug(f"Loading global tests records from {test_module.__name__}")
+	if hasattr(test_module, "global_test_dependencies"):
+		for doctype in test_module.global_test_dependencies:
+			logger.debug(f" Loading records for {doctype}")
+			make_test_records(doctype, commit=True)
 
 
 # Backwards-compatible aliases
