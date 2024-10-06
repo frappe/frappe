@@ -58,6 +58,7 @@ jobs:
         image: mariadb:11.3
         env:
           MARIADB_ROOT_PASSWORD: travis
+          MARIADB_EXTRA_FLAGS: --innodb-flush-method=nosync --innodb-flush-log-at-trx-commit=0
         ports:
           - 3306:3306
         options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3
@@ -73,6 +74,7 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
+        command: -c fsync=off
 
       smtp_server:
         image: rnwood/smtp4dev
