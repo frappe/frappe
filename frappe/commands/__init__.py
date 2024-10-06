@@ -108,6 +108,7 @@ def get_commands():
 	from .redis_utils import commands as redis_commands
 	from .scheduler import commands as scheduler_commands
 	from .site import commands as site_commands
+	from .testing import commands as testing_commands
 	from .translate import commands as translate_commands
 	from .utils import commands as utils_commands
 
@@ -115,6 +116,7 @@ def get_commands():
 	all_commands = (
 		scheduler_commands
 		+ site_commands
+		+ testing_commands
 		+ translate_commands
 		+ gettext_commands
 		+ utils_commands
