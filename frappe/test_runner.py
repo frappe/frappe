@@ -211,7 +211,7 @@ class TestRunner(unittest.TextTestRunner):
 
 	@staticmethod
 	@debug_timer
-	def _run_before_test_hooks(config: TestConfig, app: str | None):
+	def _run_before_test_hooks(app: str | None):
 		"""Run 'before_tests' hooks"""
 		logger.debug('Running "before_tests" hooks')
 		for hook_function in frappe.get_hooks("before_tests", app_name=app):
