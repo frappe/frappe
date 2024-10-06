@@ -2,8 +2,17 @@
 # See license.txt
 
 # import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 
-class TestUTMCampaign(FrappeTestCase):
+class UnitTestUtmCampaign(UnitTestCase):
+	"""
+	Unit tests for UtmCampaign.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestUTMCampaign(IntegrationTestCase):
 	pass

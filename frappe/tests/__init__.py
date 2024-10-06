@@ -1,6 +1,10 @@
+# TODO: move to dumpster
 import frappe
 
+from .utils import IntegrationTestCase, MockedRequestTestCase, UnitTestCase
 
+
+# TODO: move to dumpster
 def update_system_settings(args, commit=False):
 	doc = frappe.get_doc("System Settings")
 	doc.update(args)
@@ -10,6 +14,7 @@ def update_system_settings(args, commit=False):
 		frappe.db.commit()
 
 
+# TODO: move to dumpster
 def get_system_setting(key):
 	return frappe.db.get_single_value("System Settings", key)
 

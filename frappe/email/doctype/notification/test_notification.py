@@ -8,7 +8,7 @@ import frappe
 import frappe.utils
 import frappe.utils.scheduler
 from frappe.desk.form import assign_to
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 from .notification import trigger_notifications
 
@@ -25,7 +25,16 @@ def get_test_notification(config):
 		frappe.db.commit()
 
 
-class TestNotification(FrappeTestCase):
+class UnitTestNotification(UnitTestCase):
+	"""
+	Unit tests for Notification.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestNotification(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.delete("Email Queue")
 		frappe.set_user("test@example.com")
@@ -490,7 +499,7 @@ OK
 
 
 # from frappe.utils import add_to_date, now_datetime
-# class TestNotificationOffsetRange(FrappeTestCase):
+# class TestNotificationOffsetRange(IntegrationTestCase):
 # 	def setUp(self):
 # 		frappe.set_user("test@example.com")
 # 		# Create an event and notification before each test

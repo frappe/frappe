@@ -8,12 +8,21 @@ from dateutil.relativedelta import relativedelta
 
 import frappe
 from frappe.desk.doctype.dashboard_chart.dashboard_chart import get
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils import formatdate, get_last_day, getdate
 from frappe.utils.dateutils import get_period, get_period_ending
 
 
-class TestDashboardChart(FrappeTestCase):
+class UnitTestDashboardChart(UnitTestCase):
+	"""
+	Unit tests for DashboardChart.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestDashboardChart(IntegrationTestCase):
 	def test_period_ending(self):
 		self.assertEqual(get_period_ending("2019-04-10", "Daily"), getdate("2019-04-10"))
 

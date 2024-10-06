@@ -2,8 +2,17 @@
 # See license.txt
 
 # import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 
-class TestGeolocationSettings(FrappeTestCase):
+class UnitTestGeolocationSettings(UnitTestCase):
+	"""
+	Unit tests for GeolocationSettings.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestGeolocationSettings(IntegrationTestCase):
 	pass

@@ -4,12 +4,12 @@
 import frappe
 import frappe.monitor
 from frappe.monitor import MONITOR_REDIS_KEY, get_trace_id
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 from frappe.utils.response import build_response
 
 
-class TestMonitor(FrappeTestCase):
+class TestMonitor(IntegrationTestCase):
 	def setUp(self):
 		frappe.conf.monitor = 1
 		frappe.cache.delete_value(MONITOR_REDIS_KEY)

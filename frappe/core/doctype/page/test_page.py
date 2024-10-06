@@ -5,12 +5,21 @@ import unittest
 from unittest.mock import patch
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 test_records = frappe.get_test_records("Page")
 
 
-class TestPage(FrappeTestCase):
+class UnitTestPage(UnitTestCase):
+	"""
+	Unit tests for Page.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestPage(IntegrationTestCase):
 	def test_naming(self):
 		self.assertRaises(
 			frappe.NameError,

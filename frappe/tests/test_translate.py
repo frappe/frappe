@@ -9,7 +9,7 @@ import frappe
 import frappe.translate
 from frappe import _, _lt
 from frappe.gettext.extractors.javascript import extract_javascript
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.translate import (
 	MERGED_TRANSLATION_KEY,
 	USER_TRANSLATION_KEY,
@@ -35,7 +35,7 @@ first_lang, second_lang, third_lang, fourth_lang, fifth_lang = choices(
 _lazy_translations = _lt("Communication")
 
 
-class TestTranslate(FrappeTestCase):
+class TestTranslate(IntegrationTestCase):
 	guest_sessions_required = (
 		"test_guest_request_language_resolution_with_cookie",
 		"test_guest_request_language_resolution_with_request_header",

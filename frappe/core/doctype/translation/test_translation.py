@@ -2,10 +2,19 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe import _
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 
-class TestTranslation(FrappeTestCase):
+class UnitTestTranslation(UnitTestCase):
+	"""
+	Unit tests for Translation.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestTranslation(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.delete("Translation")
 
