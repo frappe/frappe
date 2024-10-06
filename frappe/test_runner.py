@@ -219,7 +219,7 @@ class TestRunner(unittest.TextTestRunner):
 			category = "integration" if isinstance(test, IntegrationTestCase) else "unit"
 			if self.cfg.selected_categories and category not in self.cfg.selected_categories:
 				continue
-			self.per_app_categories[app][category].append(test)
+			self.per_app_categories[app][category].addTest(test)
 
 	def _prepare_integration(self, suite: unittest.TestSuite, app: str) -> None:
 		"""Prepare the environment for integration tests."""
