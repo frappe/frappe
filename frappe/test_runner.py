@@ -236,7 +236,7 @@ class TestResult(unittest.TextTestResult):
 			if new_doctypes := getattr(test.__class__, "_newly_created_test_records", None):
 				click.echo(f"\n{unittest.util.strclass(test.__class__)}")
 				click.secho(
-					f"  Following Test Records created: {', '.join([f'{name} ({qty})' for name, qty in reversed(new_doctypes)])}",
+					f"  Test Records created: {', '.join([f'{name} ({qty})' for name, qty in reversed(new_doctypes)])}",
 					fg="bright_black",
 				)
 			else:

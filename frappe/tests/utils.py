@@ -1,6 +1,7 @@
 import copy
 import datetime
 import functools
+import json
 import os
 import pdb
 import signal
@@ -335,7 +336,10 @@ class UnitTestCase(unittest.TestCase):
 		try:
 			doctype_index = module_path.index("doctype")
 			doctype_snake_case = module_path[doctype_index + 1]
-			return frappe.unscrub(doctype_snake_case)
+			json_file_path = Path(*module_path[:-1]).joinpath(f"{doctype_snake_case}.json")
+			if json_file_path.is_file():
+				doctype_data = json.loads(json_file_path.read_text())
+				return doctype_data.get("name")
 		except (ValueError, IndexError):
 			# 'doctype' not found in module_path
 			pass
