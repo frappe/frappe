@@ -2,7 +2,16 @@
 # See license.txt
 
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
+
+
+class UnitTestSystemHealthReport(UnitTestCase):
+	"""
+	Unit tests for SystemHealthReport.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
 class TestSystemHealthReport(IntegrationTestCase):

@@ -3,9 +3,18 @@
 
 import frappe
 from frappe.core.doctype.role.role import get_info_based_on_role
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 test_records = frappe.get_test_records("Role")
+
+
+class UnitTestRole(UnitTestCase):
+	"""
+	Unit tests for Role.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
 class TestUser(IntegrationTestCase):

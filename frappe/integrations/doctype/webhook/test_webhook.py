@@ -13,7 +13,7 @@ from frappe.integrations.doctype.webhook.webhook import (
 	get_webhook_data,
 	get_webhook_headers,
 )
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 
 @contextmanager
@@ -27,6 +27,15 @@ def get_test_webhook(config):
 		yield wh
 	finally:
 		wh.delete()
+
+
+class UnitTestWebhook(UnitTestCase):
+	"""
+	Unit tests for Webhook.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
 class TestWebhook(IntegrationTestCase):

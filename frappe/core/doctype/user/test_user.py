@@ -22,12 +22,21 @@ from frappe.core.doctype.user.user import (
 from frappe.desk.notifications import extract_mentions
 from frappe.frappeclient import FrappeClient
 from frappe.model.delete_doc import delete_doc
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.utils import get_url
 
 user_module = frappe.core.doctype.user.user
 test_records = frappe.get_test_records("User")
+
+
+class UnitTestUser(UnitTestCase):
+	"""
+	Unit tests for User.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
 class TestUser(IntegrationTestCase):

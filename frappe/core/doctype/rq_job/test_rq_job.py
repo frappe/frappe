@@ -10,7 +10,7 @@ from rq.job import Job
 import frappe
 from frappe.core.doctype.rq_job.rq_job import RQJob, remove_failed_jobs, stop_job
 from frappe.installer import update_site_config
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.utils import timeout
 from frappe.utils import cstr, execute_in_shell
 from frappe.utils.background_jobs import get_job_status, is_job_enqueued
@@ -22,6 +22,15 @@ def wait_for_completion(job: Job):
 		if not (job.is_queued or job.is_started):
 			break
 		time.sleep(0.2)
+
+
+class UnitTestRqJob(UnitTestCase):
+	"""
+	Unit tests for RqJob.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
 class TestRQJob(IntegrationTestCase):

@@ -1,9 +1,18 @@
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 # test_records = frappe.get_test_records('Help Article')
+
+
+class UnitTestHelpArticle(UnitTestCase):
+	"""
+	Unit tests for HelpArticle.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
 class TestHelpArticle(IntegrationTestCase):

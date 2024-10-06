@@ -5,7 +5,16 @@ from frappe.core.doctype.session_default_settings.session_default_settings impor
 	clear_session_defaults,
 	set_session_default_values,
 )
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
+
+
+class UnitTestSessionDefaultSettings(UnitTestCase):
+	"""
+	Unit tests for SessionDefaultSettings.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
 class TestSessionDefaultSettings(IntegrationTestCase):

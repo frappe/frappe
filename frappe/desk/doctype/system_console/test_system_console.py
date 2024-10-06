@@ -1,7 +1,16 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
+
+
+class UnitTestSystemConsole(UnitTestCase):
+	"""
+	Unit tests for SystemConsole.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
 class TestSystemConsole(IntegrationTestCase):

@@ -3,7 +3,16 @@
 
 import frappe
 from frappe.core.doctype.rq_worker.rq_worker import RQWorker
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
+
+
+class UnitTestRqWorker(UnitTestCase):
+	"""
+	Unit tests for RqWorker.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
 class TestRQWorker(IntegrationTestCase):

@@ -4,7 +4,16 @@
 # pre loaded
 
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
+
+
+class UnitTestCurrency(UnitTestCase):
+	"""
+	Unit tests for Currency.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
 class TestUser(IntegrationTestCase):

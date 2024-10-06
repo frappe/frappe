@@ -3,12 +3,21 @@
 import json
 
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils import set_request
 from frappe.website.doctype.web_form.web_form import accept
 from frappe.website.serve import get_response_content
 
 test_dependencies = ["Web Form"]
+
+
+class UnitTestWebForm(UnitTestCase):
+	"""
+	Unit tests for WebForm.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
 class TestWebForm(IntegrationTestCase):

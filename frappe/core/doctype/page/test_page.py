@@ -5,9 +5,18 @@ import unittest
 from unittest.mock import patch
 
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 test_records = frappe.get_test_records("Page")
+
+
+class UnitTestPage(UnitTestCase):
+	"""
+	Unit tests for Page.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
 class TestPage(IntegrationTestCase):

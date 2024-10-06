@@ -2,8 +2,17 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.contacts.doctype.address_template.address_template import get_default_address_template
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils.jinja import validate_template
+
+
+class UnitTestAddressTemplate(UnitTestCase):
+	"""
+	Unit tests for AddressTemplate.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
 class TestAddressTemplate(IntegrationTestCase):

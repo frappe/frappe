@@ -3,9 +3,18 @@
 from bs4 import BeautifulSoup
 
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils import set_request
 from frappe.website.serve import get_response
+
+
+class UnitTestWebTemplate(UnitTestCase):
+	"""
+	Unit tests for WebTemplate.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
 class TestWebTemplate(IntegrationTestCase):

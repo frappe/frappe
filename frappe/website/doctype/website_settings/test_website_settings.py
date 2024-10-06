@@ -2,8 +2,17 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.website.doctype.website_settings.website_settings import get_website_settings
+
+
+class UnitTestWebsiteSettings(UnitTestCase):
+	"""
+	Unit tests for WebsiteSettings.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
 class TestWebsiteSettings(IntegrationTestCase):

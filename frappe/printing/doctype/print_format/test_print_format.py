@@ -6,12 +6,21 @@ import unittest
 from typing import TYPE_CHECKING
 
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 if TYPE_CHECKING:
 	from frappe.printing.doctype.print_format.print_format import PrintFormat
 
 test_records = frappe.get_test_records("Print Format")
+
+
+class UnitTestPrintFormat(UnitTestCase):
+	"""
+	Unit tests for PrintFormat.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
 class TestPrintFormat(IntegrationTestCase):

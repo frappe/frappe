@@ -8,7 +8,7 @@ import frappe
 import frappe.utils
 import frappe.utils.scheduler
 from frappe.desk.form import assign_to
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 from .notification import trigger_notifications
 
@@ -23,6 +23,15 @@ def get_test_notification(config):
 	finally:
 		notification.delete()
 		frappe.db.commit()
+
+
+class UnitTestNotification(UnitTestCase):
+	"""
+	Unit tests for Notification.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
 class TestNotification(IntegrationTestCase):

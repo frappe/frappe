@@ -1,9 +1,18 @@
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.website.path_resolver import PathResolver
 from frappe.website.serve import get_response_content
 
 test_records = frappe.get_test_records("Web Page")
+
+
+class UnitTestWebPage(UnitTestCase):
+	"""
+	Unit tests for WebPage.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
 class TestWebPage(IntegrationTestCase):

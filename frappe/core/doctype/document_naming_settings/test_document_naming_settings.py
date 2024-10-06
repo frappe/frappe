@@ -7,8 +7,17 @@ from frappe.core.doctype.document_naming_settings.document_naming_settings impor
 	DocumentNamingSettings,
 )
 from frappe.model.naming import NamingSeries, get_default_naming_series
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils import cint
+
+
+class UnitTestDocumentNamingSettings(UnitTestCase):
+	"""
+	Unit tests for DocumentNamingSettings.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
 class TestNamingSeries(IntegrationTestCase):

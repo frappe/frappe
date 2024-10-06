@@ -4,7 +4,16 @@ from functools import partial
 
 import frappe
 from frappe.contacts.doctype.address.address import address_query, get_address_display
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
+
+
+class UnitTestAddress(UnitTestCase):
+	"""
+	Unit tests for Address.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
 class TestAddress(IntegrationTestCase):

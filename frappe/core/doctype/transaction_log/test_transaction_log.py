@@ -3,9 +3,18 @@
 import hashlib
 
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 test_records = []
+
+
+class UnitTestTransactionLog(UnitTestCase):
+	"""
+	Unit tests for TransactionLog.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
 class TestTransactionLog(IntegrationTestCase):
