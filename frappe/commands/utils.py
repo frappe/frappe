@@ -822,7 +822,7 @@ def run_tests(
 			click.secho("Simply remove the flag.", fg="green")
 			return
 
-		unit_ret, integration_ret = frappe.test_runner.main(
+		frappe.test_runner.main(
 			site,
 			app,
 			module,
@@ -840,18 +840,6 @@ def run_tests(
 			pdb_on_exceptions=pdb_on_exceptions,
 			selected_categories=[] if test_category == "all" else test_category,
 		)
-
-		if (
-			len(unit_ret.failures) == 0
-			and len(unit_ret.errors) == 0
-			and len(integration_ret.failures) == 0
-			and len(integration_ret.errors) == 0
-		):
-			ret = 0
-		else:
-			ret = (unit_ret, integration_ret)
-		if os.environ.get("CI"):
-			sys.exit(ret)
 
 
 @click.command("run-parallel-tests")

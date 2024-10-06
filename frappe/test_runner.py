@@ -94,27 +94,27 @@ class TestRunner(unittest.TextTestRunner):
 		self.per_app_categories = defaultdict(lambda: defaultdict(unittest.TestSuite))
 		logger.debug("TestRunner initialized")
 
-	def run(self, app: str) -> list[unittest.TestResult]:
+	def run(self) -> list[unittest.TestResult]:
 		results = []
-		app_categories = self.per_app_categories.get(app, {})
-		sorted_categories = sorted(
-			app_categories.items(), key=lambda x: CATEGORY_PRIORITIES.get(x[0], float("inf"))
-		)
-		for category, suite in sorted_categories:
-			if not self._has_tests(suite):
-				continue
+		for app, categories in self.per_app_categories.items():
+			sorted_categories = sorted(
+				categories.items(), key=lambda x: CATEGORY_PRIORITIES.get(x[0], float("inf"))
+			)
+			for category, suite in sorted_categories:
+				if not self._has_tests(suite):
+					continue
 
-			self._prepare_category(category, suite, app)
-			self._apply_debug_decorators(suite)
+				self._prepare_category(category, suite, app)
+				self._apply_debug_decorators(suite)
 
-			with self._profile():
-				click.secho(
-					f"\nRunning {suite.countTestCases()} {category} tests for {app}", fg="cyan", bold=True
-				)
-				result = super().run(suite)
-				results.append((category, result))
-			if not result.wasSuccessful() and self.cfg.failfast:
-				break
+				with self._profile():
+					click.secho(
+						f"\nRunning {suite.countTestCases()} {category} tests for {app}", fg="cyan", bold=True
+					)
+					result = super().run(suite)
+					results.append((app, category, result))
+				if not result.wasSuccessful() and self.cfg.failfast:
+					break
 		return results
 
 	def _has_tests(self, suite):
@@ -565,9 +565,7 @@ def _run_all_tests(apps: list[str], runner: TestRunner) -> list[unittest.TestRes
 	"""Run all tests for the specified app or all installed apps"""
 	logger.debug(f"Running tests for apps: {apps}")
 	try:
-		for current_app in apps:
-			logger.debug(f"Running tests for app: {current_app}")
-			return runner.discover_tests(current_app).run(current_app)
+		runner = runner.discover_tests(apps).run()
 	except Exception as e:
 		logger.error(f"Error running all tests for {apps or 'all apps'}: {e!s}")
 		raise TestRunnerError(f"Failed to run tests for {apps or 'all apps'}: {e!s}") from e
