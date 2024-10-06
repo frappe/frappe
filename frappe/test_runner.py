@@ -62,7 +62,7 @@ def debug_timer(func):
 
 def iterOnFirstArg(func):
 	return lambda self, arg, *args, **kwargs: [
-		func(self, a, *args, **kwargs) for a in ([arg] if isinstance(arg, str) else arg)
+		func(self, a, *args, **kwargs) for a in ([arg] if isinstance(arg, str | tuple) else arg)
 	][-1]
 
 
@@ -172,37 +172,15 @@ class TestRunner(unittest.TextTestRunner):
 		return self
 
 	@iterOnFirstArg
-	def discover_doctype_tests(self, doctype: str, app: str | None, force: bool = False) -> TestRunner:
-		module = frappe.db.get_value("DocType", doctype, "module")
-		if not module:
-			raise TestRunnerError(f"Invalid doctype {doctype}")
-
-		# Check if the DocType belongs to the specified app
-		doctype_app = frappe.db.get_value("Module Def", module, "app_name")
-		if app and doctype_app != app:
-			raise TestRunnerError(f"DocType {doctype} does not belong to app {app}")
-		elif not app:
-			app = doctype_app
-
+	def discover_doctype_tests(self, spec: tuple[str, str, str]) -> TestRunner:
+		app, module, doctype = spec
 		test_module = get_module_name(doctype, module, "test_")
-		force and frappe.db.delete(doctype)
-		try:
-			self._add_module_tests(app, test_module)
-		except ImportError:
-			logger.warning(f"No test module found for doctype {doctype}")
+		self._add_module_tests(app, test_module)
 		return self
 
 	@iterOnFirstArg
-	def discover_module_tests(
-		self,
-		module: str,
-		app: str | None,
-	) -> TestRunner:
-		module_app = frappe.db.get_value("Module Def", module, "app_name")
-		if app and module_app != app:
-			raise TestRunnerError(f"Module {module} does not belong to app {app}")
-		elif not app:
-			app = module_app
+	def discover_module_tests(self, spec: tuple[str, str]) -> TestRunner:
+		app, module = spec
 		self._add_module_tests(app, module)
 		return self
 
@@ -604,11 +582,28 @@ def _run_all_tests(apps: list[str], runner: TestRunner) -> list[unittest.TestRes
 
 @debug_timer
 def _run_doctype_tests(
-	doctypes, runner: TestRunner, force=False, app: str | None = None
+	doctypes: str | list[str], runner: TestRunner, force=False, app: str | None = None
 ) -> list[unittest.TestResult]:
 	"""Run tests for the specified doctype(s)"""
+	if isinstance(doctypes, str):
+		doctypes = [doctypes]
+	args = []
+	for doctype in doctypes:
+		module = frappe.db.get_value("DocType", doctype, "module")
+		if not module:
+			raise TestRunnerError(f"Invalid doctype {doctype}")
+
+		# Check if the DocType belongs to the specified app
+		doctype_app = frappe.db.get_value("Module Def", module, "app_name")
+		if app and doctype_app != app:
+			raise TestRunnerError(f"DocType {doctype} does not belong to app {app}")
+		elif not app:
+			app = doctype_app
+		args.append((app, frappe.scrub(module), doctype))
+		force and frappe.db.delete(doctype)
+
 	try:
-		return runner.discover_doctype_tests(doctypes, app, force).run(app)
+		return runner.discover_doctype_tests(args).run(app)
 	except Exception as e:
 		logger.error(f"Error running tests for doctypes {doctypes}: {e!s}")
 		raise TestRunnerError(f"Failed to run tests for doctypes: {e!s}") from e
@@ -617,8 +612,13 @@ def _run_doctype_tests(
 @debug_timer
 def _run_module_tests(module, runner: TestRunner, app: str | None = None) -> list[unittest.TestResult]:
 	"""Run tests for the specified module"""
+	module_app = frappe.db.get_value("Module Def", module, "app_name")
+	if app and module_app != app:
+		raise TestRunnerError(f"Module {module} does not belong to app {app}")
+	elif not app:
+		app = module_app
 	try:
-		return runner.discover_module_tests(module, app).run(app)
+		return runner.discover_module_tests((app, frappe.scrub(module))).run(app)
 	except Exception as e:
 		logger.error(f"Error running tests for module {module}: {e!s}")
 		raise TestRunnerError(f"Failed to run tests for module: {e!s}") from e
