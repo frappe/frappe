@@ -596,7 +596,7 @@ def _run_all_tests(apps: list[str], runner: TestRunner) -> list[unittest.TestRes
 	try:
 		for current_app in apps:
 			logger.debug(f"Running tests for app: {current_app}")
-			return runner.discover_tests(current_app).run()
+			return runner.discover_tests(current_app).run(current_app)
 	except Exception as e:
 		logger.error(f"Error running all tests for {apps or 'all apps'}: {e!s}")
 		raise TestRunnerError(f"Failed to run tests for {apps or 'all apps'}: {e!s}") from e
@@ -608,7 +608,7 @@ def _run_doctype_tests(
 ) -> list[unittest.TestResult]:
 	"""Run tests for the specified doctype(s)"""
 	try:
-		return runner.discover_doctype_tests(doctypes, app, force).run()
+		return runner.discover_doctype_tests(doctypes, app, force).run(app)
 	except Exception as e:
 		logger.error(f"Error running tests for doctypes {doctypes}: {e!s}")
 		raise TestRunnerError(f"Failed to run tests for doctypes: {e!s}") from e
@@ -618,7 +618,7 @@ def _run_doctype_tests(
 def _run_module_tests(module, runner: TestRunner, app: str | None = None) -> list[unittest.TestResult]:
 	"""Run tests for the specified module"""
 	try:
-		return runner.discover_module_tests(module, app).run()
+		return runner.discover_module_tests(module, app).run(app)
 	except Exception as e:
 		logger.error(f"Error running tests for module {module}: {e!s}")
 		raise TestRunnerError(f"Failed to run tests for module: {e!s}") from e
