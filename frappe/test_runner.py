@@ -29,7 +29,7 @@ import click
 import frappe
 import frappe.utils.scheduler
 from frappe.modules import get_module_name
-from frappe.tests.utils import IntegrationTestCase, make_test_records
+from frappe.tests.utils import IntegrationTestCase
 from frappe.utils import cint
 
 SLOW_TEST_THRESHOLD = 2
@@ -40,10 +40,10 @@ logger = logging.getLogger(__name__)
 def debug_timer(func):
 	@wraps(func)
 	def wrapper(*args, **kwargs):
-		start_time = time.time()
+		start_time = time.monotonic()
 		result = func(*args, **kwargs)
-		end_time = time.time()
-		logger.debug(f" {func.__name__} took {end_time - start_time:.3f} seconds")
+		end_time = time.monotonic()
+		logger.debug(f" {func.__name__:<50}  ⌛{end_time - start_time:>6.3f} seconds")
 		return result
 
 	return wrapper
@@ -76,16 +76,7 @@ class TestRunner(unittest.TextTestRunner):
 		)
 		self.junit_xml_output = junit_xml_output
 		self.profile = profile
-		self.test_record_callbacks = []
 		logger.debug("TestRunner initialized")
-
-	def add_test_record_callback(self, callback):
-		self.test_record_callbacks.append(callback)
-
-	def execute_test_record_callbacks(self):
-		for callback in self.test_record_callbacks:
-			callback()
-		self.test_record_callbacks.clear()
 
 	def run(
 		self, test_suites: tuple[unittest.TestSuite, unittest.TestSuite]
@@ -133,30 +124,26 @@ class TestRunner(unittest.TextTestRunner):
 
 		for app in apps:
 			app_path = Path(frappe.get_app_path(app))
-			for path in app_path.rglob("test_*.py"):
-				if path.parts[-4:-1] == ("doctype", "doctype", "boilerplate"):
-					continue
-				if path.name == "test_runner.py":
-					continue
-				relative_path = path.relative_to(app_path)
-				if any(part in relative_path.parts for part in ["locals", ".git", "public", "__pycache__"]):
+			for path, folders, files in os.walk(app_path):
+				folders[:] = [f for f in folders if not f.startswith(".")]
+				for dontwalk in ("node_modules", "locals", "public", "__pycache__"):
+					if dontwalk in folders:
+						folders.remove(dontwalk)
+				if os.path.sep.join(["doctype", "doctype", "boilerplate"]) in path:
+					# in /doctype/doctype/boilerplate/
 					continue
 
-				module_name = (
-					f"{app_path.stem}.{'.'.join(relative_path.parent.parts)}.{path.stem}"
-					if str(relative_path.parent) != "."
-					else f"{app_path.stem}.{path.stem}"
-				)
-				module = importlib.import_module(module_name)
-
-				if path.parent.name == "doctype" and not config.skip_test_records:
-					json_file = path.with_name(path.stem[5:] + ".json")
-					if json_file.exists():
-						with json_file.open() as f:
-							doctype = json.loads(f.read())["name"]
-							self.add_test_record_callback(lambda: make_test_records(doctype, commit=True))
-
-				self._add_module_tests(module, unit_test_suite, integration_test_suite, config)
+				path = Path(path)
+				for file in [
+					path.joinpath(filename)
+					for filename in files
+					if filename.startswith("test_")
+					and filename.endswith(".py")
+					and filename != "test_runner.py"
+				]:
+					module_name = f"{'.'.join(file.relative_to(app_path.parent).parent.parts)}.{file.stem}"
+					module = importlib.import_module(module_name)
+					self._add_module_tests(module, unit_test_suite, integration_test_suite, config)
 
 		logger.debug(
 			f"Discovered {unit_test_suite.countTestCases()} unit tests and {integration_test_suite.countTestCases()} integration tests"
@@ -187,9 +174,6 @@ class TestRunner(unittest.TextTestRunner):
 			except ImportError:
 				logger.warning(f"No test module found for doctype {doctype}")
 
-			if not config.skip_test_records:
-				self.add_test_record_callback(lambda: make_test_records(doctype, force=force, commit=True))
-
 		return unit_test_suite, integration_test_suite
 
 	def discover_module_tests(
@@ -213,11 +197,6 @@ class TestRunner(unittest.TextTestRunner):
 		integration_test_suite: unittest.TestSuite,
 		config: TestConfig,
 	):
-		# Handle module test dependencies
-		if hasattr(module, "test_dependencies") and not config.skip_test_records:
-			for doctype in module.test_dependencies:
-				make_test_records(doctype, commit=True)
-
 		if config.case:
 			test_suite = unittest.TestLoader().loadTestsFromTestCase(getattr(module, config.case))
 		else:
@@ -249,13 +228,19 @@ class TestRunner(unittest.TextTestRunner):
 
 class TestResult(unittest.TextTestResult):
 	def startTest(self, test):
-		logger.debug(f"--- Starting test: {test}")
 		self.tb_locals = True
 		self._started_at = time.monotonic()
 		super(unittest.TextTestResult, self).startTest(test)
 		test_class = unittest.util.strclass(test.__class__)
-		if not hasattr(self, "current_test_class") or self.current_test_class != test_class:
-			click.echo(f"\n{unittest.util.strclass(test.__class__)}")
+		if getattr(self, "current_test_class", None) != test_class:
+			if new_doctypes := getattr(test.__class__, "_newly_created_test_records", None):
+				click.echo(f"\n{unittest.util.strclass(test.__class__)}")
+				click.secho(
+					f"  Test Records created: {', '.join([f'{name} ({qty})' for name, qty in reversed(new_doctypes)])}",
+					fg="bright_black",
+				)
+			else:
+				click.echo(f"\n{unittest.util.strclass(test.__class__)}")
 			self.current_test_class = test_class
 
 	def getTestMethodName(self, test):
@@ -265,34 +250,36 @@ class TestResult(unittest.TextTestResult):
 		super(unittest.TextTestResult, self).addSuccess(test)
 		elapsed = time.monotonic() - self._started_at
 		threshold_passed = elapsed >= SLOW_TEST_THRESHOLD
-		elapsed = click.style(f" ({elapsed:.03}s)", fg="red") if threshold_passed else ""
-		click.echo(f"  {click.style(' ✔ ', fg='green')} {self.getTestMethodName(test)}{elapsed}")
-		logger.debug(f"=== Test passed: {test}")
+		elapsed_over_threashold = click.style(f" ({elapsed:.03}s)", fg="red") if threshold_passed else ""
+		logger.info(
+			f"  {click.style(' ✔ ', fg='green')} {self.getTestMethodName(test)}{elapsed_over_threashold}"
+		)
+		logger.debug(f"=== success === {test} {elapsed}")
 
 	def addError(self, test, err):
 		super(unittest.TextTestResult, self).addError(test, err)
 		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
-		logger.debug(f"=== Test error: {test}")
+		logger.debug(f"=== error === {test}")
 
 	def addFailure(self, test, err):
 		super(unittest.TextTestResult, self).addFailure(test, err)
 		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
-		logger.debug(f"=== Test failed: {test}")
+		logger.debug(f"=== failure === {test}")
 
 	def addSkip(self, test, reason):
 		super(unittest.TextTestResult, self).addSkip(test, reason)
 		click.echo(f"  {click.style(' = ', fg='white')} {self.getTestMethodName(test)}")
-		logger.debug(f"=== Test skipped: {test}")
+		logger.debug(f"=== skipped === {test}")
 
 	def addExpectedFailure(self, test, err):
 		super(unittest.TextTestResult, self).addExpectedFailure(test, err)
 		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
-		logger.debug(f"=== Test expected failure: {test}")
+		logger.debug(f"=== expected failure === {test}")
 
 	def addUnexpectedSuccess(self, test):
 		super(unittest.TextTestResult, self).addUnexpectedSuccess(test)
 		click.echo(f"  {click.style(' ✔ ', fg='green')} {self.getTestMethodName(test)}")
-		logger.debug(f"=== Test unexpected success: {test}")
+		logger.debug(f"=== unexpected success === {test}")
 
 	def printErrors(self):
 		click.echo("\n")
@@ -333,7 +320,6 @@ class TestConfig:
 	categories: dict = field(default_factory=lambda: {"unit": [], "integration": []})
 	selected_categories: list[str] = field(default_factory=list)
 	skip_before_tests: bool = False
-	skip_test_records: bool = False  # New attribute
 
 
 def xmlrunner_wrapper(output):
@@ -366,7 +352,6 @@ def main(
 	doctype_list_path: str | None = None,
 	failfast: bool = False,
 	case: str | None = None,
-	skip_test_records: bool = False,
 	skip_before_tests: bool = False,
 	pdb_on_exceptions: bool = False,
 	selected_categories: list[str] | None = None,
@@ -407,7 +392,6 @@ def main(
 		pdb_on_exceptions=pdb_on_exceptions,
 		selected_categories=selected_categories or [],
 		skip_before_tests=skip_before_tests,
-		skip_test_records=skip_test_records,
 	)
 
 	_initialize_test_environment(site, test_config)
@@ -602,17 +586,14 @@ def _run_all_tests(
 	logger.debug(f"Running tests for apps: {apps}")
 	try:
 		unit_test_suite, integration_test_suite = runner.discover_tests(apps, config)
-		logger.debug(
-			f"Discovered {len(list(runner._iterate_suite(unit_test_suite)))} unit tests and {len(list(runner._iterate_suite(integration_test_suite)))} integration tests"
-		)
-
 		if config.pdb_on_exceptions:
 			for test_suite in (unit_test_suite, integration_test_suite):
 				for test_case in runner._iterate_suite(test_suite):
 					if hasattr(test_case, "_apply_debug_decorator"):
 						test_case._apply_debug_decorator(config.pdb_on_exceptions)
 
-		_prepare_integration_tests(runner, integration_test_suite, config, app)
+		for app in apps:
+			_prepare_integration_tests(runner, integration_test_suite, config, app)
 		res = runner.run((unit_test_suite, integration_test_suite))
 		_cleanup_after_tests()
 		return res
@@ -635,7 +616,6 @@ def _run_doctype_tests(
 				for test_case in runner._iterate_suite(test_suite):
 					if hasattr(test_case, "_apply_debug_decorator"):
 						test_case._apply_debug_decorator(config.pdb_on_exceptions)
-
 		_prepare_integration_tests(runner, integration_test_suite, config, app)
 		res = runner.run((unit_test_suite, integration_test_suite))
 		_cleanup_after_tests()
@@ -677,53 +657,43 @@ def _prepare_integration_tests(
 		"""
 		We perform specific setup steps only for integration tests:
 
-		1. Database Connection:
-		   - Initialized only for integration tests to avoid overhead in unit tests.
-		   - Essential for end-to-end functionality testing in integration tests.
-		   - Maintains separation between unit and integration tests.
-
-		2. Before Tests Hooks:
+		1. Before Tests Hooks:
 		   - Executed only for integration tests unless explicitly skipped.
 		   - Provides necessary environment setup for integration tests.
 		   - Skipped for unit tests to maintain their independence and isolation.
 
-		3. Test Record Creation:
-		   - Performed only for integration tests unless explicitly skipped.
-		   - Creates or modifies database records needed for integration tests.
-		   - Ensures consistent starting state and allows for complex test scenarios.
+		2. Global Test Record Creation:
+		   - Performed only for integration tests.
+		   - Creates or modifies global per-app database records needed for integration tests.
 		   - Skipped for unit tests to maintain their isolation and reproducibility.
-
-		These steps are crucial for integration tests but unnecessary or potentially
-		harmful for unit tests, which should be independent of external state and fast to execute.
-		By selectively applying these setup steps, we maintain the integrity and purpose
-		of both unit and integration tests while optimizing performance.
 		"""
 		if not config.skip_before_tests:
 			_run_before_test_hooks(config, app)
 		else:
 			logger.debug("Skipping before_tests hooks: Explicitly skipped")
-
-		if not config.skip_test_records:
-			_execute_test_record_callbacks(runner)
-		else:
-			logger.debug("Skipping test record creation: Explicitly skipped")
+		if app:
+			_run_global_test_records_dependencies_install(app)
 	else:
-		logger.debug("Skipping before_tests hooks and test record creation: No integration tests")
+		logger.debug("Skipping before_tests hooks and global test record creation: No integration tests")
 
 
 @debug_timer
 def _run_before_test_hooks(config: TestConfig, app: str | None):
 	"""Run 'before_tests' hooks"""
-	logger.debug('Running "before_tests" hooks')
+	logger.debug(f'Running "before_tests" hooks for {app}')
 	for hook_function in frappe.get_hooks("before_tests", app_name=app):
 		frappe.get_attr(hook_function)()
 
 
 @debug_timer
-def _execute_test_record_callbacks(runner):
-	"""Execute test record creation callbacks"""
-	logger.debug("Running test record creation callbacks")
-	runner.execute_test_record_callbacks()
+def _run_global_test_records_dependencies_install(app: str):
+	"""Run global test records dependencies install"""
+	test_module = frappe.get_module(f"{app}.tests")
+	logger.debug(f"Loading global tests records from {test_module.__name__}")
+	if hasattr(test_module, "global_test_dependencies"):
+		for doctype in test_module.global_test_dependencies:
+			logger.debug(f" Loading records for {doctype}")
+			make_test_records(doctype, commit=True)
 
 
 # Backwards-compatible aliases
@@ -732,6 +702,7 @@ from frappe.tests.utils import (
 	get_dependencies,
 	get_modules,
 	make_test_objects,
+	make_test_records,
 	make_test_records_for_doctype,
 	print_mandatory_fields,
 )

@@ -10,6 +10,7 @@ be used to build database driven apps.
 
 Read the documentation: https://frappeframework.com/docs
 """
+
 import copy
 import faulthandler
 import functools
@@ -23,6 +24,7 @@ import signal
 import sys
 import traceback
 import warnings
+from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, overload
 
@@ -269,7 +271,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 		}
 	)
 	local.locked_documents = []
-	local.test_objects = {}
+	local.test_objects = defaultdict(list)
 
 	local.site = site
 	local.sites_path = sites_path

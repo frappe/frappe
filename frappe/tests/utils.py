@@ -1,6 +1,7 @@
 import copy
 import datetime
 import functools
+import json
 import os
 import pdb
 import signal
@@ -29,22 +30,6 @@ import logging
 
 logger = logging.Logger(__file__)
 
-# Moved from test_runner.py
-
-
-def make_test_records(doctype, force=False, commit=False):
-	"""Make test records for the specified doctype"""
-	logger.debug(f"Making test records for doctype: {doctype}")
-
-	for options in get_dependencies(doctype):
-		if options == "[Select]":
-			continue
-
-		if options not in frappe.local.test_objects:
-			frappe.local.test_objects[options] = []
-			make_test_records(options, force, commit=commit)
-			make_test_records_for_doctype(options, force, commit=commit)
-
 
 @cache
 def get_modules(doctype):
@@ -70,7 +55,7 @@ def get_dependencies(doctype):
 	for df in meta.get_table_fields():
 		link_fields.extend(frappe.get_meta(df.options).get_link_fields())
 
-	options_list = [df.options for df in link_fields] + [doctype]
+	options_list = [df.options for df in link_fields]
 
 	if hasattr(test_module, "test_dependencies"):
 		options_list += test_module.test_dependencies
@@ -87,7 +72,48 @@ def get_dependencies(doctype):
 	return options_list
 
 
+# Test record generation
+
+
+def make_test_records(doctype, force=False, commit=False):
+	return list(_make_test_records(doctype, force, commit))
+
+
 def make_test_records_for_doctype(doctype, force=False, commit=False):
+	return list(_make_test_records_for_doctype(doctype, force, commit))
+
+
+def make_test_objects(doctype, test_records=None, reset=False, commit=False):
+	return list(_make_test_objects(doctype, test_records, reset, commit))
+
+
+def _make_test_records(doctype, force=False, commit=False):
+	"""Make test records for the specified doctype"""
+
+	loadme = False
+
+	if doctype not in frappe.local.test_objects:
+		loadme = True
+		frappe.local.test_objects[doctype] = []  # infinite recursion guard, here
+
+	# First, create test records for dependencies
+	for dependency in get_dependencies(doctype):
+		if dependency != "[Select]" and dependency not in frappe.local.test_objects:
+			yield from _make_test_records(dependency, force, commit)
+
+	# Then, create test records for the doctype itself
+	if loadme:
+		# Yield the doctype and record length
+		yield (
+			doctype,
+			len(
+				# Create all test records
+				list(_make_test_records_for_doctype(doctype, force, commit))
+			),
+		)
+
+
+def _make_test_records_for_doctype(doctype, force=False, commit=False):
 	"""Make test records for the specified doctype"""
 
 	test_record_log_instance = TestRecordLog()
@@ -95,32 +121,22 @@ def make_test_records_for_doctype(doctype, force=False, commit=False):
 		return
 
 	module, test_module = get_modules(doctype)
-	logger.debug(f"Making test records for {doctype}")
-
 	if hasattr(test_module, "_make_test_records"):
-		frappe.local.test_objects[doctype] = (
-			frappe.local.test_objects.get(doctype, []) + test_module._make_test_records()
-		)
+		yield from test_module._make_test_records()
 	elif hasattr(test_module, "test_records"):
-		frappe.local.test_objects[doctype] = frappe.local.test_objects.get(doctype, []) + make_test_objects(
-			doctype, test_module.test_records, force, commit=commit
-		)
+		yield from _make_test_objects(doctype, test_module.test_records, force, commit=commit)
 	else:
 		test_records = frappe.get_test_records(doctype)
 		if test_records:
-			frappe.local.test_objects[doctype] = frappe.local.test_objects.get(
-				doctype, []
-			) + make_test_objects(doctype, test_records, force, commit=commit)
+			yield from _make_test_objects(doctype, test_records, force, commit=commit)
 		elif logger.getEffectiveLevel() < logging.INFO:
 			print_mandatory_fields(doctype)
 
 	test_record_log_instance.add(doctype)
 
 
-def make_test_objects(doctype, test_records=None, reset=False, commit=False):
-	"""Make test objects from given list of `test_records` or from `test_records.json`"""
-	logger.debug(f"Making test objects for doctype: {doctype}")
-	records = []
+def _make_test_objects(doctype, test_records=None, reset=False, commit=False):
+	"""Generator function to make test objects"""
 
 	def revert_naming(d):
 		if getattr(d, "naming_series", None):
@@ -177,11 +193,11 @@ def make_test_objects(doctype, test_records=None, reset=False, commit=False):
 				logger.debug(f"Error in making test record for {d.doctype} {d.name}")
 				raise
 
-		records.append(d.name)
-
 		if commit:
 			frappe.db.commit()
-	return records
+
+		frappe.local.test_objects[doctype] += d.name
+		yield d.name
 
 
 def print_mandatory_fields(doctype):
@@ -308,6 +324,27 @@ class UnitTestCase(unittest.TestCase):
 	to maintain the functionality of this base class.
 	"""
 
+	@classmethod
+	def setUpClass(cls) -> None:
+		super().setUpClass()
+		cls.doctype = cls._get_doctype_from_module()
+		cls.module = frappe.get_module(cls.__module__)
+
+	@classmethod
+	def _get_doctype_from_module(cls):
+		module_path = cls.__module__.split(".")
+		try:
+			doctype_index = module_path.index("doctype")
+			doctype_snake_case = module_path[doctype_index + 1]
+			json_file_path = Path(*module_path[:-1]).joinpath(f"{doctype_snake_case}.json")
+			if json_file_path.is_file():
+				doctype_data = json.loads(json_file_path.read_text())
+				return doctype_data.get("name")
+		except (ValueError, IndexError):
+			# 'doctype' not found in module_path
+			pass
+		return None
+
 	def _apply_debug_decorator(self, exceptions=()):
 		setattr(self, self._testMethodName, debug_on(*exceptions)(getattr(self, self._testMethodName)))
 
@@ -420,6 +457,7 @@ class IntegrationTestCase(UnitTestCase):
 	- Automatic database setup and teardown
 	- Utilities for managing database connections
 	- Context managers for query counting and Redis call monitoring
+	- Lazy loading of test record dependencies
 
 	Note: If you override `setUpClass`, make sure to call `super().setUpClass()`
 	to maintain the functionality of this base class.
@@ -433,11 +471,23 @@ class IntegrationTestCase(UnitTestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
 		super().setUpClass()
+
+		# Site initialization
 		cls.TEST_SITE = getattr(frappe.local, "site", None) or cls.TEST_SITE
 		frappe.init(cls.TEST_SITE)
 		cls.ADMIN_PASSWORD = frappe.get_conf(cls.TEST_SITE).admin_password
+
 		cls._primary_connection = frappe.local.db
 		cls._secondary_connection = None
+
+		# Create test record dependencies
+		cls._newly_created_test_records = []
+		if cls.doctype and cls.doctype not in frappe.local.test_objects:
+			cls._newly_created_test_records += make_test_records(cls.doctype)
+		for doctype in getattr(cls.module, "test_dependencies", []):
+			if doctype not in frappe.local.test_objects:
+				cls._newly_created_test_records += make_test_records(doctype)
+
 		# flush changes done so far to avoid flake
 		frappe.db.commit()
 		if cls.SHOW_TRANSACTION_COMMIT_WARNINGS:

@@ -184,7 +184,6 @@ class TestCustomizeForm(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.get_value("Custom Field", custom_field.name), None)
 
-		frappe.local.test_objects["Custom Field"] = []
 		make_test_records_for_doctype("Custom Field")
 
 	def test_reset_to_defaults(self):
@@ -194,7 +193,6 @@ class TestCustomizeForm(IntegrationTestCase):
 
 		self.assertEqual(d.get("fields", {"fieldname": "repeat_this_event"})[0].in_list_view, 0)
 
-		frappe.local.test_objects["Property Setter"] = []
 		make_test_records_for_doctype("Property Setter")
 
 	def test_set_allow_on_submit(self):

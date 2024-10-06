@@ -23,7 +23,9 @@ class UnitTestSubmissionQueue(UnitTestCase):
 
 
 class TestSubmissionQueue(IntegrationTestCase):
-	queue = get_queue(qtype="default")
+	@classmethod
+	def setUpClass(cls):
+		cls.queue = get_queue(qtype="default")
 
 	@timeout(seconds=20)
 	def check_status(self, job: "Job", status, wait=True):
