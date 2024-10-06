@@ -129,7 +129,7 @@ def _make_test_records_for_doctype(doctype, force=False, commit=False):
 		test_records = frappe.get_test_records(doctype)
 		if test_records:
 			yield from _make_test_objects(doctype, test_records, force, commit=commit)
-		elif logger.getEffectiveLevel() < logging.INFO:
+		else:
 			print_mandatory_fields(doctype)
 
 	test_record_log_instance.add(doctype)
@@ -203,13 +203,13 @@ def _make_test_objects(doctype, test_records=None, reset=False, commit=False):
 def print_mandatory_fields(doctype):
 	"""Print mandatory fields for the specified doctype"""
 	meta = frappe.get_meta(doctype)
-	logger.debug(f"Please setup make_test_records for: {doctype}")
-	logger.debug("-" * 60)
-	logger.debug(f"Autoname: {meta.autoname or ''}")
-	logger.debug("Mandatory Fields:")
+	logger.warning(f"Please setup make_test_records for: {doctype}")
+	logger.warning("-" * 60)
+	logger.warning(f"Autoname: {meta.autoname or ''}")
+	logger.warning("Mandatory Fields:")
 	for d in meta.get("fields", {"reqd": 1}):
-		logger.debug(f" - {d.parent}:{d.fieldname} | {d.fieldtype} | {d.options or ''}")
-	logger.debug("")
+		logger.warning(f" - {d.parent}:{d.fieldname} | {d.fieldtype} | {d.options or ''}")
+	logger.warning("")
 
 
 class TestRecordLog:
