@@ -59,7 +59,8 @@ def _cleanup_after_tests():
 		frappe.utils.scheduler.enable_scheduler()
 
 	if frappe.db:
-		frappe.db.commit()
+		# this commit ends the transaction
+		frappe.db.commit()  # nosemgrep
 		frappe.clear_cache()
 
 
