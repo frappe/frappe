@@ -172,13 +172,6 @@ class TestRunner(unittest.TextTestRunner):
 		return self
 
 	@iterOnFirstArg
-	def discover_doctype_tests(self, spec: tuple[str, str, str]) -> TestRunner:
-		app, module, doctype = spec
-		test_module = get_module_name(doctype, module, "test_")
-		self._add_module_tests(app, test_module)
-		return self
-
-	@iterOnFirstArg
 	def discover_module_tests(self, spec: tuple[str, str]) -> TestRunner:
 		app, module = spec
 		self._add_module_tests(app, module)
@@ -197,7 +190,7 @@ class TestRunner(unittest.TextTestRunner):
 			category = "integration" if isinstance(test, IntegrationTestCase) else "unit"
 			if self.cfg.selected_categories and category not in self.cfg.selected_categories:
 				continue
-			self.per_app_categories[app][category].addTest(test)
+			self.per_app_categories[app or "default"][category].addTest(test)
 
 	def _prepare_integration(self, suite: unittest.TestSuite, app: str) -> None:
 		"""Prepare the environment for integration tests."""
@@ -599,11 +592,12 @@ def _run_doctype_tests(
 			raise TestRunnerError(f"DocType {doctype} does not belong to app {app}")
 		elif not app:
 			app = doctype_app
-		args.append((app, frappe.scrub(module), doctype))
+		test_module = frappe.modules.utils.get_module_name(doctype, module, "test_")
+		args.append((app, test_module))
 		force and frappe.db.delete(doctype)
 
 	try:
-		return runner.discover_doctype_tests(args).run(app)
+		return runner.discover_module_tests(args).run(app)
 	except Exception as e:
 		logger.error(f"Error running tests for doctypes {doctypes}: {e!s}")
 		raise TestRunnerError(f"Failed to run tests for doctypes: {e!s}") from e
@@ -611,14 +605,9 @@ def _run_doctype_tests(
 
 @debug_timer
 def _run_module_tests(module, runner: TestRunner, app: str | None = None) -> list[unittest.TestResult]:
-	"""Run tests for the specified module"""
-	module_app = frappe.db.get_value("Module Def", module, "app_name")
-	if app and module_app != app:
-		raise TestRunnerError(f"Module {module} does not belong to app {app}")
-	elif not app:
-		app = module_app
+	"""Run tests for the specified module python test module"""
 	try:
-		return runner.discover_module_tests((app, frappe.scrub(module))).run(app)
+		return runner.discover_module_tests((app, module)).run(app)
 	except Exception as e:
 		logger.error(f"Error running tests for module {module}: {e!s}")
 		raise TestRunnerError(f"Failed to run tests for module: {e!s}") from e
