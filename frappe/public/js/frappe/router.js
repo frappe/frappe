@@ -137,15 +137,6 @@ frappe.router = {
 		}
 		if (this.re_route(sub_path)) return;
 
-		if (!frappe.workspaces[sub_path]) {
-			let is_workspace = await frappe.db.get_value("Workspace", sub_path, "name");
-			is_workspace = is_workspace.message.name;
-
-			if (is_workspace) {
-				frappe.set_route(["app"]);
-			}
-		}
-
 		this.current_sub_path = sub_path;
 		this.current_route = await this.parse();
 		this.set_history(sub_path);
