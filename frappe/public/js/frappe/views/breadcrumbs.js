@@ -76,6 +76,7 @@ frappe.breadcrumbs = {
 
 		if (
 			breadcrumbs.workspace &&
+			frappe.workspace_map[breadcrumbs.workspace]?.app &&
 			frappe.workspace_map[breadcrumbs.workspace]?.app != frappe.current_app
 		) {
 			frappe.app.sidebar.set_current_app(frappe.workspace_map[breadcrumbs.workspace].app);
