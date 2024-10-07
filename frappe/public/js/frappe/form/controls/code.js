@@ -1,8 +1,134 @@
 frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlText {
 	make_input() {
-		if (this.editor) return;
-		this.load_lib().then(() => this.make_ace_editor());
+		super.make_input();
+		if (!this.cm) {
+			this.init_codemirror();
+		}
 	}
+	async init_codemirror() {
+		const [CM, view, state, autocompletion, lint] = await Promise.all([
+			import("codemirror"),
+			import("@codemirror/view"),
+			import("@codemirror/state"),
+			import("@codemirror/autocomplete"),
+			import("@codemirror/lint"),
+		]);
+
+		const language = this.df.options;
+		const languageSupport = await this.get_language_support(language);
+
+		// Simple example completions (you may want to adjust these based on the language)
+		const myCompletions = autocompletion.completeFromList([
+			{ label: "function", type: "keyword" },
+			{ label: "return", type: "keyword" },
+			{ label: "if", type: "keyword" },
+			{ label: "else", type: "keyword" },
+			// Add more completions as needed
+		]);
+
+		// Simple example linter
+		const myLinter = lint.linter((view) => {
+			let diagnostics = [];
+			let text = view.state.doc.toString();
+			if (text.includes("console.log")) {
+				diagnostics.push({
+					from: text.indexOf("console.log"),
+					to: text.indexOf("console.log") + "console.log".length,
+					severity: "warning",
+					message: "Avoid using console.log in production",
+				});
+			}
+			return diagnostics;
+		});
+
+		this.cm = new view.EditorView({
+			state: state.EditorState.create({
+				doc: this.value || "",
+				extensions: [
+					CM.basicSetup,
+					view.lineNumbers(),
+					view.highlightActiveLineGutter(),
+					view.highlightSpecialChars(),
+					//      // view.history(),
+					//      // view.foldGutter(),
+					view.drawSelection(),
+					view.dropCursor(),
+					state.EditorState.allowMultipleSelections.of(true),
+					//      // view.indentOnInput(),
+					//      // CM.defaultHighlightStyle.fallback,
+					//      // view.bracketMatching(),
+					view.rectangularSelection(),
+					view.crosshairCursor(),
+					view.highlightActiveLine(),
+					// view.hoverTooltip(),
+					//      // view.keymap.of([
+					//      //   ...view.defaultKeymap,
+					//      //   ...view.historyKeymap,
+					//      //   ...view.indentWithTab
+					//      // ]),
+					//      autocompletion.autocompletion({
+					//        override: [myCompletions]
+					//      }),
+					//      lint.linter(myLinter),
+					languageSupport,
+				],
+			}),
+			parent: this.input_area,
+		});
+	}
+
+	async get_language_support(language) {
+		const language_map = {
+			Javascript: () => import("@codemirror/lang-javascript").then((m) => m.javascript()),
+			JS: () => import("@codemirror/lang-javascript").then((m) => m.javascript()),
+			Python: () => import("@codemirror/lang-python").then((m) => m.python()),
+			Py: () => import("@codemirror/lang-python").then((m) => m.python()),
+			PythonExpression: () => import("@codemirror/lang-python").then((m) => m.python()),
+			HTML: () => import("@codemirror/lang-html").then((m) => m.html()),
+			CSS: () => import("@codemirror/lang-css").then((m) => m.css()),
+			Markdown: () => import("@codemirror/lang-markdown").then((m) => m.markdown()),
+			SCSS: () => import("@codemirror/lang-css").then((m) => m.css()), // SCSS is not directly supported, using CSS as fallback
+			JSON: () => import("@codemirror/lang-json").then((m) => m.json()),
+			SQL: () => import("@codemirror/lang-sql").then((m) => m.sql()),
+			Golang: () => import("@codemirror/lang-go").then((m) => m.go()),
+			Go: () => import("@codemirror/lang-go").then((m) => m.go()),
+			// Jinja is not directly supported in CodeMirror 6
+			// You might need to find or create custom language packages for these
+			Jinja: () => Promise.resolve([]), // Placeholder
+		};
+
+		const languageSupport = language_map[language];
+		if (languageSupport) {
+			return await languageSupport();
+		}
+		const valid_languages = Object.keys(language_map);
+		console.warn(
+			`Invalid language option provided for field "${language}". Valid options are ${valid_languages.join(
+				", "
+			)}.`
+		);
+		return []; // Return empty array if language is not supported
+	}
+
+	set_input_value(value) {
+		if (this.cm) {
+			this.cm.dispatch({
+				changes: { from: 0, to: this.cm.state.doc.length, insert: value || "" },
+			});
+		}
+		super.set_input_value(value);
+	}
+
+	get_input_value() {
+		return this.cm ? this.cm.state.doc.toString() : super.get_input_value();
+	}
+
+	// old imple
+
+	// make_input() {
+	// 	if (this.editor) return;
+	// 	this.load_lib().then(() => this.make_ace_editor());
+	// }
 
 	refresh() {
 		super.refresh();
@@ -237,9 +363,9 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 		});
 	}
 
-	get_input_value() {
-		return this.editor ? this.editor.session.getValue() : "";
-	}
+	// get_input_value() {
+	// 	return this.editor ? this.editor.session.getValue() : "";
+	// }
 
 	load_lib() {
 		if (this.library_loaded) return this.library_loaded;
