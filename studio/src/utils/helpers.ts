@@ -276,16 +276,23 @@ function getEvaluatedFilters(filters: any, context: any) {
 
 function evaluateExpression(expression: string, context: any) {
 	try {
-		// Split the expression into individual properties and evaluate them one by one
-		const properties = expression.split('.')
-		let value = context
-		for (const prop of properties) {
-			value = value?.[prop]
-			if (value === undefined) {
-				return undefined
+		// Replace dot notation with optional chaining
+		const safeExpression = expression.replace(/(\w+)(?:\.(\w+))+/g, (match) => {
+			return match.split('.').join('?.')
+		})
+
+		// Create a function that takes the context as an argument
+		const func = new Function('context', `
+			with (context || {}) {
+				try {
+					return ${safeExpression};
+				} catch (e) {
+					return undefined;
+				}
 			}
-		}
-		return value
+		`)
+
+		return func(context)
 	} catch (error) {
 		console.error(`Error evaluating expression: ${expression}`, error)
 		return undefined
