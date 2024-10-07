@@ -1,24 +1,242 @@
 import copy
 import datetime
 import functools
+import json
 import os
 import pdb
 import signal
 import sys
 import traceback
 import unittest
-from collections.abc import Sequence
-from contextlib import contextmanager
+from collections.abc import Callable, Sequence
+from contextlib import AbstractContextManager, contextmanager
+from functools import cache
+from importlib import reload
+from pathlib import Path
+from typing import Any, Union
 from unittest.mock import patch
 
 import pytz
 
 import frappe
 from frappe.model.base_document import BaseDocument, get_controller
+from frappe.model.naming import revert_series_if_last
+from frappe.modules import load_doctype_module
 from frappe.utils import cint
 from frappe.utils.data import convert_utc_to_timezone, get_datetime, get_system_timezone
 
 datetime_like_types = (datetime.datetime, datetime.date, datetime.time, datetime.timedelta)
+import logging
+
+logger = logging.Logger(__file__)
+
+
+@cache
+def get_modules(doctype):
+	"""Get the modules for the specified doctype"""
+	module = frappe.db.get_value("DocType", doctype, "module")
+	try:
+		test_module = load_doctype_module(doctype, module, "test_")
+		if test_module:
+			reload(test_module)
+	except ImportError:
+		test_module = None
+
+	return module, test_module
+
+
+@cache
+def get_dependencies(doctype):
+	"""Get the dependencies for the specified doctype"""
+	module, test_module = get_modules(doctype)
+	meta = frappe.get_meta(doctype)
+	link_fields = meta.get_link_fields()
+
+	for df in meta.get_table_fields():
+		link_fields.extend(frappe.get_meta(df.options).get_link_fields())
+
+	options_list = [df.options for df in link_fields]
+
+	if hasattr(test_module, "test_dependencies"):
+		options_list += test_module.test_dependencies
+
+	options_list = list(set(options_list))
+
+	if hasattr(test_module, "test_ignore"):
+		for doctype_name in test_module.test_ignore:
+			if doctype_name in options_list:
+				options_list.remove(doctype_name)
+
+	options_list.sort()
+
+	return options_list
+
+
+# Test record generation
+
+
+def make_test_records(doctype, force=False, commit=False):
+	return list(_make_test_records(doctype, force, commit))
+
+
+def make_test_records_for_doctype(doctype, force=False, commit=False):
+	return list(_make_test_records_for_doctype(doctype, force, commit))
+
+
+def make_test_objects(doctype, test_records=None, reset=False, commit=False):
+	return list(_make_test_objects(doctype, test_records, reset, commit))
+
+
+def _make_test_records(doctype, force=False, commit=False):
+	"""Make test records for the specified doctype"""
+
+	loadme = False
+
+	if doctype not in frappe.local.test_objects:
+		loadme = True
+		frappe.local.test_objects[doctype] = []  # infinite recursion guard, here
+
+	# First, create test records for dependencies
+	for dependency in get_dependencies(doctype):
+		if dependency != "[Select]" and dependency not in frappe.local.test_objects:
+			yield from _make_test_records(dependency, force, commit)
+
+	# Then, create test records for the doctype itself
+	if loadme:
+		# Yield the doctype and record length
+		yield (
+			doctype,
+			len(
+				# Create all test records
+				list(_make_test_records_for_doctype(doctype, force, commit))
+			),
+		)
+
+
+def _make_test_records_for_doctype(doctype, force=False, commit=False):
+	"""Make test records for the specified doctype"""
+
+	test_record_log_instance = TestRecordLog()
+	if not force and doctype in test_record_log_instance.get():
+		return
+
+	module, test_module = get_modules(doctype)
+	if hasattr(test_module, "_make_test_records"):
+		yield from test_module._make_test_records()
+	elif hasattr(test_module, "test_records"):
+		yield from _make_test_objects(doctype, test_module.test_records, force, commit=commit)
+	else:
+		test_records = frappe.get_test_records(doctype)
+		if test_records:
+			yield from _make_test_objects(doctype, test_records, force, commit=commit)
+		elif logger.getEffectiveLevel() < logging.INFO:
+			print_mandatory_fields(doctype)
+
+	test_record_log_instance.add(doctype)
+
+
+def _make_test_objects(doctype, test_records=None, reset=False, commit=False):
+	"""Generator function to make test objects"""
+
+	def revert_naming(d):
+		if getattr(d, "naming_series", None):
+			revert_series_if_last(d.naming_series, d.name)
+
+	if test_records is None:
+		test_records = frappe.get_test_records(doctype)
+
+	for doc in test_records:
+		if not reset:
+			frappe.db.savepoint("creating_test_record")
+
+		if not doc.get("doctype"):
+			doc["doctype"] = doctype
+
+		d = frappe.copy_doc(doc)
+
+		if d.meta.get_field("naming_series"):
+			if not d.naming_series:
+				d.naming_series = "_T-" + d.doctype + "-"
+
+		if doc.get("name"):
+			d.name = doc.get("name")
+		else:
+			d.set_new_name()
+
+		if frappe.db.exists(d.doctype, d.name) and not reset:
+			frappe.db.rollback(save_point="creating_test_record")
+			# do not create test records, if already exists
+			continue
+
+		# submit if docstatus is set to 1 for test record
+		docstatus = d.docstatus
+
+		d.docstatus = 0
+
+		try:
+			d.run_method("before_test_insert")
+			d.insert(ignore_if_duplicate=True)
+
+			if docstatus == 1:
+				d.submit()
+
+		except frappe.NameError:
+			revert_naming(d)
+
+		except Exception as e:
+			if (
+				d.flags.ignore_these_exceptions_in_test
+				and e.__class__ in d.flags.ignore_these_exceptions_in_test
+			):
+				revert_naming(d)
+			else:
+				logger.debug(f"Error in making test record for {d.doctype} {d.name}")
+				raise
+
+		if commit:
+			frappe.db.commit()
+
+		frappe.local.test_objects[doctype] += d.name
+		yield d.name
+
+
+def print_mandatory_fields(doctype):
+	"""Print mandatory fields for the specified doctype"""
+	meta = frappe.get_meta(doctype)
+	logger.debug(f"Please setup make_test_records for: {doctype}")
+	logger.debug("-" * 60)
+	logger.debug(f"Autoname: {meta.autoname or ''}")
+	logger.debug("Mandatory Fields:")
+	for d in meta.get("fields", {"reqd": 1}):
+		logger.debug(f" - {d.parent}:{d.fieldname} | {d.fieldtype} | {d.options or ''}")
+	logger.debug("")
+
+
+class TestRecordLog:
+	def __init__(self):
+		self.log_file = Path(frappe.get_site_path(".test_log"))
+		self._log = None
+
+	def get(self):
+		if self._log is None:
+			self._log = self._read_log()
+		return self._log
+
+	def add(self, doctype):
+		log = self.get()
+		if doctype not in log:
+			log.append(doctype)
+			self._write_log(log)
+
+	def _read_log(self):
+		if self.log_file.exists():
+			with self.log_file.open() as f:
+				return f.read().splitlines()
+		return []
+
+	def _write_log(self, log):
+		with self.log_file.open("w") as f:
+			f.write("\n".join(l for l in log if l is not None))
 
 
 def debug_on(*exceptions):
@@ -68,29 +286,20 @@ def debug_on(*exceptions):
 				return f(*args, **kwargs)
 			except exceptions as e:
 				exc_type, exc_value, exc_traceback = sys.exc_info()
+				# Pretty print the exception
+				print("\n\033[91m" + "=" * 60 + "\033[0m")  # Red line
+				print("\033[93m" + str(exc_type.__name__) + ": " + str(exc_value) + "\033[0m")
+				print("\033[91m" + "=" * 60 + "\033[0m")  # Red line
 
-				traceback.print_exception(exc_type, exc_value, exc_traceback)
+				# Print the formatted traceback
+				traceback_lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+				for line in traceback_lines:
+					print("\033[96m" + line.rstrip() + "\033[0m")  # Cyan color
 
-				# Find the most relevant traceback frame
-				apps_path = frappe.get_app_path("frappe", "..", "..")
-
-				tb = exc_traceback.tb_next
-				target_frame = None
-
-				while tb:
-					if tb.tb_frame.f_code.co_filename.startswith(apps_path):
-						target_frame = tb
-						break
-					tb = tb.tb_next
-
-				if target_frame:
-					print(f"Starting debugger in: {target_frame.tb_frame.f_code.co_filename}:{tb.tb_lineno}")
-					p = pdb.Pdb()
-					p.reset()
-					p.interaction(target_frame.tb_frame, None)
-				else:
-					print("Could not find a suitable traceback frame, using the last frame.")
-					pdb.post_mortem(exc_traceback)
+				print("\033[91m" + "=" * 60 + "\033[0m")  # Red line
+				print("\033[92mEntering post-mortem debugging\033[0m")
+				print("\033[91m" + "=" * 60 + "\033[0m")  # Red line
+				pdb.post_mortem()
 
 				raise e
 
@@ -99,46 +308,55 @@ def debug_on(*exceptions):
 	return decorator
 
 
-class FrappeTestCase(unittest.TestCase):
-	"""Base test class for Frappe tests.
+class UnitTestCase(unittest.TestCase):
+	"""Unit test class for Frappe tests.
 
+	This class extends unittest.TestCase and provides additional utilities
+	specific to Frappe framework. It's designed for testing individual
+	components or functions in isolation.
 
-	If you specify `setUpClass` then make sure to call `super().setUpClass`
-	otherwise this class will become ineffective.
+	Key features:
+	- Custom assertions for Frappe-specific comparisons
+	- Utilities for HTML and SQL normalization
+	- Context managers for user switching and time freezing
+
+	Note: If you override `setUpClass`, make sure to call `super().setUpClass()`
+	to maintain the functionality of this base class.
 	"""
-
-	TEST_SITE = "test_site"
-
-	SHOW_TRANSACTION_COMMIT_WARNINGS = False
-	maxDiff = 10_000  # prints long diffs but useful in CI
 
 	@classmethod
 	def setUpClass(cls) -> None:
-		cls.TEST_SITE = getattr(frappe.local, "site", None) or cls.TEST_SITE
-		frappe.init(cls.TEST_SITE)
-		cls.ADMIN_PASSWORD = frappe.get_conf(cls.TEST_SITE).admin_password
-		cls._primary_connection = frappe.local.db
-		cls._secondary_connection = None
-		# flush changes done so far to avoid flake
-		frappe.db.commit()
-		if cls.SHOW_TRANSACTION_COMMIT_WARNINGS:
-			frappe.db.before_commit.add(_commit_watcher)
+		super().setUpClass()
+		cls.doctype = cls._get_doctype_from_module()
+		cls.module = frappe.get_module(cls.__module__)
 
-		# enqueue teardown actions (executed in LIFO order)
-		cls.addClassCleanup(_restore_thread_locals, copy.deepcopy(frappe.local.flags))
-		cls.addClassCleanup(_rollback_db)
-
-		return super().setUpClass()
+	@classmethod
+	def _get_doctype_from_module(cls):
+		module_path = cls.__module__.split(".")
+		try:
+			doctype_index = module_path.index("doctype")
+			doctype_snake_case = module_path[doctype_index + 1]
+			json_file_path = Path(*module_path[:-1]).joinpath(f"{doctype_snake_case}.json")
+			if json_file_path.is_file():
+				doctype_data = json.loads(json_file_path.read_text())
+				return doctype_data.get("name")
+		except (ValueError, IndexError):
+			# 'doctype' not found in module_path
+			pass
+		return None
 
 	def _apply_debug_decorator(self, exceptions=()):
 		setattr(self, self._testMethodName, debug_on(*exceptions)(getattr(self, self._testMethodName)))
 
-	def assertSequenceSubset(self, larger: Sequence, smaller: Sequence, msg=None):
+	def assertQueryEqual(self, first: str, second: str) -> None:
+		self.assertEqual(self.normalize_sql(first), self.normalize_sql(second))
+
+	def assertSequenceSubset(self, larger: Sequence, smaller: Sequence, msg: str | None = None) -> None:
 		"""Assert that `expected` is a subset of `actual`."""
 		self.assertTrue(set(smaller).issubset(set(larger)), msg=msg)
 
 	# --- Frappe Framework specific assertions
-	def assertDocumentEqual(self, expected, actual):
+	def assertDocumentEqual(self, expected: dict | BaseDocument, actual: BaseDocument) -> None:
 		"""Compare a (partial) expected document with actual Document."""
 
 		if isinstance(expected, BaseDocument):
@@ -153,7 +371,7 @@ class FrappeTestCase(unittest.TestCase):
 			else:
 				self._compare_field(value, actual.get(field), actual, field)
 
-	def _compare_field(self, expected, actual, doc: BaseDocument, field: str):
+	def _compare_field(self, expected: Any, actual: Any, doc: BaseDocument, field: str) -> None:
 		msg = f"{field} should be same."
 
 		if isinstance(expected, float):
@@ -174,14 +392,126 @@ class FrappeTestCase(unittest.TestCase):
 
 		return BeautifulSoup(code, "html.parser").prettify(formatter=None)
 
+	@contextmanager
+	def set_user(self, user: str) -> AbstractContextManager[None]:
+		try:
+			old_user = frappe.session.user
+			frappe.set_user(user)
+			yield
+		finally:
+			frappe.set_user(old_user)
+
 	def normalize_sql(self, query: str) -> str:
 		"""Formats SQL consistently so simple string comparisons can work on them."""
 		import sqlparse
 
 		return sqlparse.format(query.strip(), keyword_case="upper", reindent=True, strip_comments=True)
 
+	@classmethod
+	def enable_safe_exec(cls) -> None:
+		"""Enable safe exec and disable them after test case is completed."""
+		from frappe.installer import update_site_config
+		from frappe.utils.safe_exec import SAFE_EXEC_CONFIG_KEY
+
+		cls._common_conf = os.path.join(frappe.local.sites_path, "common_site_config.json")
+		update_site_config(SAFE_EXEC_CONFIG_KEY, 1, validate=False, site_config_path=cls._common_conf)
+
+		cls.addClassCleanup(
+			lambda: update_site_config(
+				SAFE_EXEC_CONFIG_KEY, 0, validate=False, site_config_path=cls._common_conf
+			)
+		)
+
+	@staticmethod
 	@contextmanager
-	def primary_connection(self):
+	def patch_hooks(overridden_hooks: dict) -> AbstractContextManager[None]:
+		get_hooks = frappe.get_hooks
+
+		def patched_hooks(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
+			if hook in overridden_hooks:
+				return overridden_hooks[hook]
+			return get_hooks(hook, default, app_name)
+
+		with patch.object(frappe, "get_hooks", patched_hooks):
+			yield
+
+	@contextmanager
+	def freeze_time(
+		self, time_to_freeze: Any, is_utc: bool = False, *args: Any, **kwargs: Any
+	) -> AbstractContextManager[None]:
+		from freezegun import freeze_time
+
+		if not is_utc:
+			# Freeze time expects UTC or tzaware objects. We have neither, so convert to UTC.
+			timezone = pytz.timezone(get_system_timezone())
+			time_to_freeze = timezone.localize(get_datetime(time_to_freeze)).astimezone(pytz.utc)
+
+		with freeze_time(time_to_freeze, *args, **kwargs):
+			yield
+
+
+class IntegrationTestCase(UnitTestCase):
+	"""Integration test class for Frappe tests.
+
+	Key features:
+	- Automatic database setup and teardown
+	- Utilities for managing database connections
+	- Context managers for query counting and Redis call monitoring
+	- Lazy loading of test record dependencies
+
+	Note: If you override `setUpClass`, make sure to call `super().setUpClass()`
+	to maintain the functionality of this base class.
+	"""
+
+	TEST_SITE = "test_site"
+
+	SHOW_TRANSACTION_COMMIT_WARNINGS = False
+	maxDiff = 10_000  # prints long diffs but useful in CI
+
+	@classmethod
+	def setUpClass(cls) -> None:
+		super().setUpClass()
+
+		# Site initialization
+		cls.TEST_SITE = getattr(frappe.local, "site", None) or cls.TEST_SITE
+		frappe.init(cls.TEST_SITE)
+		cls.ADMIN_PASSWORD = frappe.get_conf(cls.TEST_SITE).admin_password
+
+		cls._primary_connection = frappe.local.db
+		cls._secondary_connection = None
+
+		# Create test record dependencies
+		cls._newly_created_test_records = []
+		if cls.doctype and cls.doctype not in frappe.local.test_objects:
+			cls._newly_created_test_records += make_test_records(cls.doctype)
+		for doctype in getattr(cls.module, "test_dependencies", []):
+			if doctype not in frappe.local.test_objects:
+				cls._newly_created_test_records += make_test_records(doctype)
+
+		# flush changes done so far to avoid flake
+		frappe.db.commit()
+		if cls.SHOW_TRANSACTION_COMMIT_WARNINGS:
+			frappe.db.before_commit.add(_commit_watcher)
+
+		# enqueue teardown actions (executed in LIFO order)
+		cls.addClassCleanup(_restore_thread_locals, copy.deepcopy(frappe.local.flags))
+		cls.addClassCleanup(_rollback_db)
+
+	@classmethod
+	def tearDownClass(cls) -> None:
+		# Add any necessary teardown code here
+		super().tearDownClass()
+
+	def setUp(self) -> None:
+		super().setUp()
+		# Add any per-test setup code here
+
+	def tearDown(self) -> None:
+		# Add any per-test teardown code here
+		super().tearDown()
+
+	@contextmanager
+	def primary_connection(self) -> AbstractContextManager[None]:
 		"""Switch to primary DB connection
 
 		This is used for simulating multiple users performing actions by simulating two DB connections"""
@@ -193,7 +523,7 @@ class FrappeTestCase(unittest.TestCase):
 			frappe.local.db = current_conn
 
 	@contextmanager
-	def secondary_connection(self):
+	def secondary_connection(self) -> AbstractContextManager[None]:
 		"""Switch to secondary DB connection."""
 		if self._secondary_connection is None:
 			frappe.connect()  # get second connection
@@ -207,15 +537,12 @@ class FrappeTestCase(unittest.TestCase):
 			frappe.local.db = current_conn
 			self.addCleanup(self._rollback_connections)
 
-	def _rollback_connections(self):
+	def _rollback_connections(self) -> None:
 		self._primary_connection.rollback()
 		self._secondary_connection.rollback()
 
-	def assertQueryEqual(self, first: str, second: str):
-		self.assertEqual(self.normalize_sql(first), self.normalize_sql(second))
-
 	@contextmanager
-	def assertQueryCount(self, count):
+	def assertQueryCount(self, count: int) -> AbstractContextManager[None]:
 		queries = []
 
 		def _sql_with_count(*args, **kwargs):
@@ -232,7 +559,7 @@ class FrappeTestCase(unittest.TestCase):
 			frappe.db.__class__.sql = orig_sql
 
 	@contextmanager
-	def assertRedisCallCounts(self, count):
+	def assertRedisCallCounts(self, count: int) -> AbstractContextManager[None]:
 		commands = []
 
 		def execute_command_and_count(*args, **kwargs):
@@ -254,7 +581,7 @@ class FrappeTestCase(unittest.TestCase):
 			frappe.cache.execute_command = orig_execute
 
 	@contextmanager
-	def assertRowsRead(self, count):
+	def assertRowsRead(self, count: int) -> AbstractContextManager[None]:
 		rows_read = 0
 
 		def _sql_with_count(*args, **kwargs):
@@ -273,32 +600,8 @@ class FrappeTestCase(unittest.TestCase):
 		finally:
 			frappe.db.sql = orig_sql
 
-	@classmethod
-	def enable_safe_exec(cls) -> None:
-		"""Enable safe exec and disable them after test case is completed."""
-		from frappe.installer import update_site_config
-		from frappe.utils.safe_exec import SAFE_EXEC_CONFIG_KEY
-
-		cls._common_conf = os.path.join(frappe.local.sites_path, "common_site_config.json")
-		update_site_config(SAFE_EXEC_CONFIG_KEY, 1, validate=False, site_config_path=cls._common_conf)
-
-		cls.addClassCleanup(
-			lambda: update_site_config(
-				SAFE_EXEC_CONFIG_KEY, 0, validate=False, site_config_path=cls._common_conf
-			)
-		)
-
 	@contextmanager
-	def set_user(self, user: str):
-		try:
-			old_user = frappe.session.user
-			frappe.set_user(user)
-			yield
-		finally:
-			frappe.set_user(old_user)
-
-	@contextmanager
-	def switch_site(self, site: str):
+	def switch_site(self, site: str) -> AbstractContextManager[None]:
 		"""Switch connection to different site.
 		Note: Drops current site connection completely."""
 
@@ -311,20 +614,62 @@ class FrappeTestCase(unittest.TestCase):
 			frappe.init(old_site, force=True)
 			frappe.connect()
 
+	@staticmethod
 	@contextmanager
-	def freeze_time(self, time_to_freeze, is_utc=False, *args, **kwargs):
-		from freezegun import freeze_time
+	def change_settings(doctype, settings_dict=None, /, commit=False, **settings):
+		"""A context manager to ensure that settings are changed before running
+		function and restored after running it regardless of exceptions occurred.
+		This is useful in tests where you want to make changes in a function but
+		don't retain those changes.
+		import and use as decorator to cover full function or using `with` statement.
 
-		if not is_utc:
-			# Freeze time expects UTC or tzaware objects. We have neither, so convert to UTC.
-			timezone = pytz.timezone(get_system_timezone())
-			time_to_freeze = timezone.localize(get_datetime(time_to_freeze)).astimezone(pytz.utc)
+		example:
+		@change_settings("Print Settings", {"send_print_as_pdf": 1})
+		def test_case(self):
+		        ...
 
-		with freeze_time(time_to_freeze, *args, **kwargs):
-			yield
+		@change_settings("Print Settings", send_print_as_pdf=1)
+		def test_case(self):
+		        ...
+		"""
+
+		if settings_dict is None:
+			settings_dict = settings
+
+		try:
+			settings = frappe.get_doc(doctype)
+			# remember setting
+			previous_settings = copy.deepcopy(settings_dict)
+			for key in previous_settings:
+				previous_settings[key] = getattr(settings, key)
+
+			# change setting
+			for key, value in settings_dict.items():
+				setattr(settings, key, value)
+			settings.save(ignore_permissions=True)
+			# singles are cached by default, clear to avoid flake
+			frappe.db.value_cache[settings] = {}
+			if commit:
+				frappe.db.commit()
+			yield  # yield control to calling function
+
+		finally:
+			# restore settings
+			settings = frappe.get_doc(doctype)
+			for key, value in previous_settings.items():
+				setattr(settings, key, value)
+			settings.save(ignore_permissions=True)
+			if commit:
+				frappe.db.commit()
 
 
-class MockedRequestTestCase(FrappeTestCase):
+# TODO: move to dumpster
+FrappeTestCase = IntegrationTestCase
+change_settings = IntegrationTestCase.change_settings
+patch_hooks = UnitTestCase.patch_hooks
+
+
+class MockedRequestTestCase(IntegrationTestCase):
 	def setUp(self):
 		import responses
 
@@ -363,54 +708,6 @@ def _restore_thread_locals(flags):
 		delattr(frappe.local, "request")
 
 
-@contextmanager
-def change_settings(doctype, settings_dict=None, /, commit=False, **settings):
-	"""A context manager to ensure that settings are changed before running
-	function and restored after running it regardless of exceptions occurred.
-	This is useful in tests where you want to make changes in a function but
-	don't retain those changes.
-	import and use as decorator to cover full function or using `with` statement.
-
-	example:
-	@change_settings("Print Settings", {"send_print_as_pdf": 1})
-	def test_case(self):
-	        ...
-
-	@change_settings("Print Settings", send_print_as_pdf=1)
-	def test_case(self):
-	        ...
-	"""
-
-	if settings_dict is None:
-		settings_dict = settings
-
-	try:
-		settings = frappe.get_doc(doctype)
-		# remember setting
-		previous_settings = copy.deepcopy(settings_dict)
-		for key in previous_settings:
-			previous_settings[key] = getattr(settings, key)
-
-		# change setting
-		for key, value in settings_dict.items():
-			setattr(settings, key, value)
-		settings.save(ignore_permissions=True)
-		# singles are cached by default, clear to avoid flake
-		frappe.db.value_cache[settings] = {}
-		if commit:
-			frappe.db.commit()
-		yield  # yield control to calling function
-
-	finally:
-		# restore settings
-		settings = frappe.get_doc(doctype)
-		for key, value in previous_settings.items():
-			setattr(settings, key, value)
-		settings.save(ignore_permissions=True)
-		if commit:
-			frappe.db.commit()
-
-
 def timeout(seconds=30, error_message="Test timed out."):
 	"""Timeout decorator to ensure a test doesn't run for too long.
 
@@ -440,19 +737,6 @@ def timeout(seconds=30, error_message="Test timed out."):
 		return decorator(seconds)
 
 	return decorator
-
-
-@contextmanager
-def patch_hooks(overridden_hoooks):
-	get_hooks = frappe.get_hooks
-
-	def patched_hooks(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
-		if hook in overridden_hoooks:
-			return overridden_hoooks[hook]
-		return get_hooks(hook, default, app_name)
-
-	with patch.object(frappe, "get_hooks", patched_hooks):
-		yield
 
 
 def check_orpahned_doctypes():

@@ -11,8 +11,9 @@ import click
 import requests
 
 import frappe
+from frappe.tests.utils import make_test_records
 
-from .test_runner import SLOW_TEST_THRESHOLD, make_test_records
+from .test_runner import TestResult
 
 click_ctx = click.get_current_context(True)
 if click_ctx:
@@ -26,11 +27,18 @@ class ParallelTestRunner:
 		self.build_number = frappe.utils.cint(build_number) or 1
 		self.total_builds = frappe.utils.cint(total_builds)
 		self.dry_run = dry_run
+		self.test_file_list = []
+		self.total_tests = 0
+		self.test_result = None
+		self.setup_test_file_list()
+
+	def setup_and_run(self):
 		self.setup_test_site()
 		self.run_tests()
+		self.print_result()
 
 	def setup_test_site(self):
-		frappe.init(site=self.site)
+		frappe.init(self.site)
 		if not frappe.db:
 			frappe.connect()
 
@@ -57,13 +65,16 @@ class ParallelTestRunner:
 		elapsed = click.style(f" ({elapsed:.03}s)", fg="red")
 		click.echo(f"Before Test {elapsed}")
 
+	def setup_test_file_list(self):
+		self.test_file_list = self.get_test_file_list()
+		self.total_tests = sum(self.get_test_count(test) for test in self.test_file_list)
+		click.echo(f"Estimated total tests for build {self.build_number}: {self.total_tests}")
+
 	def run_tests(self):
-		self.test_result = ParallelTestResult(stream=sys.stderr, descriptions=True, verbosity=2)
+		self.test_result = TestResult(stream=sys.stderr, descriptions=True, verbosity=2)
 
-		for test_file_info in self.get_test_file_list():
+		for test_file_info in self.test_file_list:
 			self.run_tests_for_file(test_file_info)
-
-		self.print_result()
 
 	def run_tests_for_file(self, file_info):
 		if not file_info:
@@ -76,26 +87,10 @@ class ParallelTestRunner:
 		frappe.set_user("Administrator")
 		path, filename = file_info
 		module = self.get_module(path, filename)
-		self.create_test_dependency_records(module, path, filename)
 		test_suite = unittest.TestSuite()
 		module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
 		test_suite.addTest(module_test_cases)
 		test_suite(self.test_result)
-
-	def create_test_dependency_records(self, module, path, filename):
-		if hasattr(module, "test_dependencies"):
-			for doctype in module.test_dependencies:
-				make_test_records(doctype, commit=True)
-
-		if os.path.basename(os.path.dirname(path)) == "doctype":
-			# test_data_migration_connector.py > data_migration_connector.json
-			test_record_filename = re.sub("^test_", "", filename).replace(".py", ".json")
-			test_record_file_path = os.path.join(path, test_record_filename)
-			if os.path.exists(test_record_file_path):
-				with open(test_record_file_path) as f:
-					doc = json.loads(f.read())
-					doctype = doc["name"]
-					make_test_records(doctype, commit=True)
 
 	def get_module(self, path, filename):
 		app_path = frappe.get_app_path(self.app)
@@ -165,66 +160,10 @@ def split_by_weight(work, weights, chunk_count):
 	return chunks
 
 
-class ParallelTestResult(unittest.TextTestResult):
-	def startTest(self, test):
-		self.tb_locals = True
-		self._started_at = time.monotonic()
-		super(unittest.TextTestResult, self).startTest(test)
-		test_class = unittest.util.strclass(test.__class__)
-		if not hasattr(self, "current_test_class") or self.current_test_class != test_class:
-			click.echo(f"\n{unittest.util.strclass(test.__class__)}")
-			self.current_test_class = test_class
-
-	def getTestMethodName(self, test):
-		return test._testMethodName if hasattr(test, "_testMethodName") else str(test)
-
-	def addSuccess(self, test):
-		super(unittest.TextTestResult, self).addSuccess(test)
-		elapsed = time.monotonic() - self._started_at
-		threshold_passed = elapsed >= SLOW_TEST_THRESHOLD
-		elapsed = click.style(f" ({elapsed:.03}s)", fg="red") if threshold_passed else ""
-		click.echo(f"  {click.style(' ✔ ', fg='green')} {self.getTestMethodName(test)}{elapsed}")
-
-	def addError(self, test, err):
-		super(unittest.TextTestResult, self).addError(test, err)
-		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
-
-	def addFailure(self, test, err):
-		super(unittest.TextTestResult, self).addFailure(test, err)
-		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
-
-	def addSkip(self, test, reason):
-		super(unittest.TextTestResult, self).addSkip(test, reason)
-		click.echo(f"  {click.style(' = ', fg='white')} {self.getTestMethodName(test)}")
-
-	def addExpectedFailure(self, test, err):
-		super(unittest.TextTestResult, self).addExpectedFailure(test, err)
-		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
-
-	def addUnexpectedSuccess(self, test):
-		super(unittest.TextTestResult, self).addUnexpectedSuccess(test)
-		click.echo(f"  {click.style(' ✔ ', fg='green')} {self.getTestMethodName(test)}")
-
-	def printErrors(self):
-		click.echo("\n")
-		self.printErrorList(" ERROR ", self.errors, "red")
-		self.printErrorList(" FAIL ", self.failures, "red")
-
-	def printErrorList(self, flavour, errors, color):
-		for test, err in errors:
-			click.echo(self.separator1)
-			click.echo(f"{click.style(flavour, bg=color)} {self.getDescription(test)}")
-			click.echo(self.separator2)
-			click.echo(err)
-
-	def __str__(self):
-		return f"Tests: {self.testsRun}, Failing: {len(self.failures)}, Errors: {len(self.errors)}"
-
-
 def get_all_tests(app):
 	test_file_list = []
 	for path, folders, files in os.walk(frappe.get_app_path(app)):
-		for dontwalk in ("locals", ".git", "public", "__pycache__"):
+		for dontwalk in ("node_modules", "locals", ".git", "public", "__pycache__"):
 			if dontwalk in folders:
 				folders.remove(dontwalk)
 

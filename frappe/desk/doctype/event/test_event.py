@@ -7,13 +7,22 @@ import json
 import frappe
 import frappe.defaults
 from frappe.desk.doctype.event.event import get_events
-from frappe.test_runner import make_test_objects
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests.utils import make_test_objects
 
 test_records = frappe.get_test_records("Event")
 
 
-class TestEvent(FrappeTestCase):
+class UnitTestEvent(UnitTestCase):
+	"""
+	Unit tests for Event.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestEvent(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.delete("Event")
 		make_test_objects("Event", reset=True)

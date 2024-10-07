@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import json
 from collections.abc import Iterable
 from datetime import timedelta
 
@@ -39,6 +38,17 @@ from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
 from frappe.website.utils import get_home_page, is_signup_disabled
 
+desk_properties = (
+	"search_bar",
+	"notifications",
+	"list_sidebar",
+	"bulk_actions",
+	"view_switcher",
+	"form_sidebar",
+	"timeline",
+	"dashboard",
+)
+
 
 class User(Document):
 	# begin: auto-generated types
@@ -62,8 +72,10 @@ class User(Document):
 		bio: DF.SmallText | None
 		birth_date: DF.Date | None
 		block_modules: DF.Table[BlockModule]
+		bulk_actions: DF.Check
 		bypass_restrict_ip_check_if_2fa_enabled: DF.Check
 		code_editor_type: DF.Literal["vscode", "vim", "emacs"]
+		dashboard: DF.Check
 		default_app: DF.Literal[None]
 		default_workspace: DF.Link | None
 		defaults: DF.Table[DefaultValue]
@@ -79,6 +91,7 @@ class User(Document):
 		follow_created_documents: DF.Check
 		follow_liked_documents: DF.Check
 		follow_shared_documents: DF.Check
+		form_sidebar: DF.Check
 		full_name: DF.Data | None
 		gender: DF.Link | None
 		home_settings: DF.Code | None
@@ -91,6 +104,7 @@ class User(Document):
 		last_name: DF.Data | None
 		last_password_reset_date: DF.Date | None
 		last_reset_password_key_generated_on: DF.Datetime | None
+		list_sidebar: DF.Check
 		location: DF.Data | None
 		login_after: DF.Int
 		login_before: DF.Int
@@ -100,6 +114,7 @@ class User(Document):
 		module_profile: DF.Link | None
 		mute_sounds: DF.Check
 		new_password: DF.Password | None
+		notifications: DF.Check
 		onboarding_status: DF.SmallText | None
 		phone: DF.Data | None
 		redirect_url: DF.SmallText | None
@@ -108,17 +123,20 @@ class User(Document):
 		role_profile_name: DF.Link | None
 		role_profiles: DF.TableMultiSelect[UserRoleProfile]
 		roles: DF.Table[HasRole]
+		search_bar: DF.Check
 		send_me_a_copy: DF.Check
 		send_welcome_email: DF.Check
 		simultaneous_sessions: DF.Int
 		social_logins: DF.Table[UserSocialLogin]
 		thread_notify: DF.Check
 		time_zone: DF.Autocomplete | None
+		timeline: DF.Check
 		unsubscribed: DF.Check
 		user_emails: DF.Table[UserEmail]
 		user_image: DF.AttachImage | None
 		user_type: DF.Link | None
 		username: DF.Data | None
+		view_switcher: DF.Check
 	# end: auto-generated types
 
 	__new_password = None
@@ -178,6 +196,7 @@ class User(Document):
 		self.validate_allowed_modules()
 		self.validate_user_image()
 		self.set_time_zone()
+
 		if self.language == "Loading...":
 			self.language = None
 
@@ -267,6 +286,18 @@ class User(Document):
 		# Set user selected timezone
 		if self.time_zone:
 			frappe.defaults.set_default("time_zone", self.time_zone, self.name)
+
+		if self.has_value_changed("language"):
+			locale_keys = ("date_format", "time_format", "number_format", "first_day_of_the_week")
+			if self.language:
+				language = frappe.get_doc("Language", self.language)
+				for key in locale_keys:
+					value = language.get(key)
+					if value:
+						frappe.defaults.set_default(key, value, self.name)
+			else:
+				for key in locale_keys:
+					frappe.defaults.clear_default(key, parent=self.name)
 
 		if self.has_value_changed("enabled"):
 			frappe.cache.delete_key("users_for_mentions")
@@ -765,6 +796,9 @@ class User(Document):
 	def set_time_zone(self):
 		if not self.time_zone:
 			self.time_zone = get_system_timezone()
+
+	def get_permission_log_options(self, event=None):
+		return {"fields": ("role_profile_name", "roles", "module_profile", "block_modules")}
 
 	def check_roles_added(self):
 		if self.user_type != "System User" or self.roles or not self.is_new():

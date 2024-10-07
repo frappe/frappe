@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import re
+from functools import wraps
 
 import frappe
 from frappe.build import html_to_js_template
@@ -146,3 +147,29 @@ def is_single_doctype(doctype: str) -> bool:
 		return frappe.db.get_value("DocType", doctype, "issingle")
 	else:
 		return getattr(frappe.get_meta(doctype), "issingle", False)
+
+
+def simple_singledispatch(func):
+	registry = {}
+
+	def dispatch(arg):
+		for cls in arg.__class__.__mro__:
+			if cls in registry:
+				return registry[cls]
+		return func
+
+	def register(type_):
+		def decorator(f):
+			registry[type_] = f
+			return f
+
+		return decorator
+
+	@wraps(func)
+	def wrapper(*args, **kw):
+		if not args:
+			return func(*args, **kw)
+		return dispatch(args[0])(*args, **kw)
+
+	wrapper.register = register
+	return wrapper

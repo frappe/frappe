@@ -170,6 +170,7 @@ def rename_doc(
 			force=force,
 			ignore_permissions=ignore_permissions,
 			ignore_if_exists=ignore_if_exists,
+			old_doc=old_doc,
 		)
 
 	if not merge:
@@ -227,6 +228,15 @@ def rename_doc(
 			alert=True,
 			indicator="green",
 		)
+
+	# let people watching the old form know that it has been renamed
+	frappe.publish_realtime(
+		event="doc_rename",
+		message={"doctype": doctype, "old": old, "new": new},
+		doctype=doctype,
+		docname=old,
+		after_commit=True,
+	)
 
 	return new
 
@@ -348,6 +358,7 @@ def validate_rename(
 	ignore_permissions: bool = False,
 	ignore_if_exists: bool = False,
 	save_point=False,
+	old_doc: Document | None = None,
 ) -> str:
 	# using for update so that it gets locked and someone else cannot edit it while this rename is going on!
 	if save_point:
@@ -373,7 +384,11 @@ def validate_rename(
 	if not merge and exists and not ignore_if_exists:
 		frappe.throw(_("Another {0} with name {1} exists, select another name").format(doctype, new))
 
-	if not (ignore_permissions or frappe.permissions.has_permission(doctype, "write", print_logs=False)):
+	kwargs = {"doctype": doctype, "ptype": "write", "print_logs": False}
+	if old_doc:
+		kwargs |= {"doc": old_doc}
+
+	if not (ignore_permissions or frappe.permissions.has_permission(**kwargs)):
 		frappe.throw(_("You need write permission to rename"))
 
 	if not force and not ignore_permissions and not meta.allow_rename:

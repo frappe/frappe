@@ -39,3 +39,6 @@ class RoleProfile(Document):
 		for user in users:
 			user = frappe.get_doc("User", user)
 			user.save()  # resaving syncs roles
+
+	def get_permission_log_options(self, event=None):
+		return {"fields": ["roles"]}

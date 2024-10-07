@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.website.doctype.website_theme.website_theme import (
 	after_migrate,
 	get_active_theme,
@@ -29,7 +29,16 @@ def get_theme_file(theme):
 	return Path(frappe.get_site_path("public", theme.theme_url[1:]))
 
 
-class TestWebsiteTheme(FrappeTestCase):
+class UnitTestWebsiteTheme(UnitTestCase):
+	"""
+	Unit tests for WebsiteTheme.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestWebsiteTheme(IntegrationTestCase):
 	def test_website_theme(self):
 		with website_theme_fixture(
 			google_font="Inter",

@@ -10,6 +10,7 @@ be used to build database driven apps.
 
 Read the documentation: https://frappeframework.com/docs
 """
+
 import copy
 import faulthandler
 import functools
@@ -23,6 +24,7 @@ import signal
 import sys
 import traceback
 import warnings
+from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, overload
 
@@ -269,7 +271,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 		}
 	)
 	local.locked_documents = []
-	local.test_objects = {}
+	local.test_objects = defaultdict(list)
 
 	local.site = site
 	local.sites_path = sites_path
@@ -420,10 +422,11 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	# Generalized env variable overrides and defaults
 	def db_default_ports(db_type):
 		from frappe.database.mariadb.database import MariaDBDatabase
+		from frappe.database.postgres.database import PostgresDatabase
 
 		return {
 			"mariadb": MariaDBDatabase.default_port,
-			"postgres": 5432,
+			"postgres": PostgresDatabase.default_port,
 		}[db_type]
 
 	config["redis_queue"] = (
@@ -2411,8 +2414,11 @@ def logger(module=None, with_more_info=False, allow_site=True, filter=None, max_
 
 
 def get_desk_link(doctype, name):
-	html = '<a href="/app/Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {name}</a>'
-	return html.format(doctype=doctype, name=name, doctype_local=_(doctype))
+	meta = get_meta(doctype)
+	title = get_value(doctype, name, meta.get_title_field())
+
+	html = '<a href="/app/Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {title_local}</a>'
+	return html.format(doctype=doctype, name=name, doctype_local=_(doctype), title_local=_(title))
 
 
 def bold(text: str) -> str:

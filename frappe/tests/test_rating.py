@@ -1,9 +1,9 @@
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestRating(FrappeTestCase):
+class TestRating(IntegrationTestCase):
 	def setUp(self):
 		doc = new_doctype(
 			fields=[
