@@ -116,9 +116,9 @@ def main(
 			click.secho(
 				f"\nRunning {suite.countTestCases()} {category} tests for {app}", fg="cyan", bold=True
 			)
-			results.append(runner.run(suite))
+			results.append([app, category, runner.run(suite)])
 
-		success = all(r.wasSuccessful() for r in results)
+		success = all(r.wasSuccessful() for _, _, r in results)
 		click.secho("\nTest Results:", fg="cyan", bold=True)
 
 		def _print_result(app, category, result):
@@ -144,7 +144,7 @@ def main(
 					click.echo(click.style("     " + str(error[1]).split("\n")[-2], fg="red"))
 
 		for app, category, result in results:
-			_print_result(frappe.unscrub(app), frappe.unscrub(category), result)
+			_print_result(frappe.unscrub(app or "Unspecified App"), frappe.unscrub(category), result)
 
 		if success:
 			click.echo(f"\n{click.style('All tests passed successfully!', fg='green', bold=True)}")
