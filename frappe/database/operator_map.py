@@ -8,6 +8,7 @@ import frappe
 from frappe.database.utils import NestedSetHierarchy
 from frappe.model.db_query import get_timespan_date_range
 from frappe.query_builder import Field
+from frappe.query_builder.functions import Coalesce
 
 
 def like(key: Field, value: str) -> frappe.qb:
@@ -94,7 +95,7 @@ def func_between(key: Field, value: list | tuple) -> frappe.qb:
 
 def func_is(key, value):
 	"Wrapper for IS"
-	return key.isnotnull() if value.lower() == "set" else key.isnull()
+	return Coalesce(key, "") != "" if value.lower() == "set" else Coalesce(key, "") == ""
 
 
 def func_timespan(key: Field, value: str) -> frappe.qb:
