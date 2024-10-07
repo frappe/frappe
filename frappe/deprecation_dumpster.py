@@ -36,7 +36,7 @@ class Color:
 try:
 	# since python 3.13, PEP 702
 	from warnings import deprecated as _deprecated
-except Exception:
+except ImportError:
 	import functools
 	import warnings
 	from collections.abc import Callable
