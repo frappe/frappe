@@ -204,13 +204,13 @@ def get_versions(doc: "Document") -> list[dict]:
 
 
 def get_error_log_exists(doc: "Document") -> bool:
-	if has_permission("Error Log"):
+	if has_permission("Error Log", print_logs=False):
 		return frappe.db.exists("Error Log", {"reference_doctype": doc.doctype, "reference_name": doc.name})
 	return False
 
 
 def get_webhook_request_log_exists(doc: "Document") -> bool:
-	if has_permission("Webhook Request Log"):
+	if has_permission("Webhook Request Log", print_logs=False):
 		return frappe.db.exists(
 			"Webhook Request Log", {"reference_doctype": doc.doctype, "reference_document": doc.name}
 		)
