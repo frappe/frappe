@@ -35,7 +35,7 @@ def FrappeClickWrapper(cls, handler):
 		def make_context(self, info_name, args, parent=None, **extra):
 			try:
 				return super().make_context(info_name, args, parent=parent, **extra)
-			except click.ClickException as e:
+			except (click.ClickException, click.exceptions.Exit, click.exceptions.Abort) as e:
 				raise e
 			except Exception as exc:
 				# call the handler

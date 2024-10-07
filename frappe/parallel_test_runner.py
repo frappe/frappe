@@ -13,7 +13,7 @@ import requests
 import frappe
 from frappe.tests.utils import make_test_records
 
-from .test_runner import TestResult
+from .testing.result import TestResult
 
 click_ctx = click.get_current_context(True)
 if click_ctx:
