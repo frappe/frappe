@@ -23,6 +23,7 @@ import logging
 import unittest
 
 import frappe
+import frappe.utils.scheduler
 from frappe.tests.utils import make_test_records
 
 from .runner import TestRunnerError

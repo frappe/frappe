@@ -1,28 +1,19 @@
-import importlib
-import logging
 import os
 import subprocess
 import sys
 import time
-import unittest
-from typing import Optional, Union
+from typing import TYPE_CHECKING
 
 import click
 
 import frappe
-import frappe.utils.scheduler
 from frappe.commands import get_site, pass_context
-from frappe.coverage import CodeCoverage
-from frappe.modules import get_module_name
-from frappe.testing import (
-	TestConfig,
-	TestRunner,
-	discover_all_tests,
-	discover_doctype_tests,
-	discover_module_tests,
-)
-from frappe.testing.environment import _cleanup_after_tests, _initialize_test_environment
 from frappe.utils.bench_helper import CliCtxObj
+
+if TYPE_CHECKING:
+	import unittest
+
+	from frappe.testing import TestRunner
 
 
 def main(
@@ -44,6 +35,17 @@ def main(
 	selected_categories: list[str] | None = None,
 ) -> None:
 	"""Main function to run tests"""
+	import logging
+
+	from frappe.testing import (
+		TestConfig,
+		TestRunner,
+		discover_all_tests,
+		discover_doctype_tests,
+		discover_module_tests,
+	)
+	from frappe.testing.environment import _cleanup_after_tests, _initialize_test_environment
+
 	testing_module_logger = logging.getLogger("frappe.testing")
 	testing_module_logger.setLevel(logging.DEBUG if verbose else logging.INFO)
 	start_time = time.time()
@@ -166,6 +168,7 @@ def main(
 def _setup_xml_output(junit_xml_output):
 	"""Setup XML output for test results if specified"""
 	global unittest_runner
+	import unittest
 
 	if junit_xml_output:
 		xml_output_file = open(junit_xml_output, "wb")
@@ -189,10 +192,10 @@ def _load_doctype_list(doctype_list_path):
 		return f.read().strip().splitlines()
 
 
-def _run_module_def_tests(
-	app, module_def, runner: TestRunner, force
-) -> tuple[unittest.TestResult, unittest.TestResult | None]:
+def _run_module_def_tests(app, module_def, runner: "TestRunner", force) -> "TestRunner":
 	"""Run tests for the specified module definition"""
+	from frappe.testing import discover_doctype_tests
+
 	doctypes = _get_doctypes_for_module_def(app, module_def)
 	return discover_doctype_tests(doctypes, runner, force, app)
 
@@ -206,9 +209,13 @@ def _get_doctypes_for_module_def(app, module_def):
 		fields=["name", "module"],
 		as_list=True,
 	)
+	from frappe.modules import get_module_name
+
 	for doctype, module in doctypes_:
 		test_module = get_module_name(doctype, module, "test_", app=app)
 		try:
+			import importlib
+
 			importlib.import_module(test_module)
 			doctypes.append(doctype)
 		except Exception:
@@ -266,6 +273,8 @@ def run_tests(
 	pdb_on_exceptions = None
 	if pdb:
 		pdb_on_exceptions = (AssertionError,)
+
+	from frappe.coverage import CodeCoverage
 
 	with CodeCoverage(coverage, app):
 		import frappe
@@ -331,6 +340,8 @@ def run_parallel_tests(
 	dry_run=False,
 ):
 	from traceback_with_variables import activate_by_import
+
+	from frappe.coverage import CodeCoverage
 
 	with CodeCoverage(with_coverage, app):
 		site = get_site(context)
