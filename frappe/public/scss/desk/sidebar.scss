@@ -635,7 +635,6 @@ body {
 		@include get_textstyle("sm", "regular");
 		justify-content: space-between;
 		box-shadow: none;
-		line-height: 1;
 	}
 }
 .attachment-row {
@@ -648,6 +647,7 @@ body {
 			width: 94px;
 			display: block;
 			margin-left: var(--margin-xs);
+			text-align: left;
 		}
 	}
 }
