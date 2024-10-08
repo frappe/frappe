@@ -3,6 +3,19 @@ import frappe
 from .classes import *
 from .classes.context_managers import *
 
+global_test_dependencies = ["User"]
+
+# TODO: move to dumpster - not meant to be a public interface anymore
+import frappe.tests.utils as utils
+
+utils.IntegrationTestCase = IntegrationTestCase
+utils.UnitTestCase = UnitTestCase
+utils.FrappeTestCase = IntegrationTestCase
+utils.change_settings = IntegrationTestCase.change_settings
+utils.patch_hooks = UnitTestCase.patch_hooks
+utils.debug_on = debug_on
+utils.timeout = timeout
+
 
 # TODO: move to dumpster
 def update_system_settings(args, commit=False):
@@ -17,6 +30,3 @@ def update_system_settings(args, commit=False):
 # TODO: move to dumpster
 def get_system_setting(key):
 	return frappe.db.get_single_value("System Settings", key)
-
-
-global_test_dependencies = ["User"]
