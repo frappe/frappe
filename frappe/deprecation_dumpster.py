@@ -288,3 +288,119 @@ def get_translated_dict():
 )
 def validate_roles(self):
 	self.populate_role_profile_roles()
+
+
+@deprecated(
+	"frappe.tests_runner.get_dependencies", "2024-20-08", "v17", "use frappe.tests.utils.get_dependencies"
+)
+def test_runner_get_dependencies(doctype):
+	from frappe.tests.utils import get_dependencies
+
+	return get_dependencies(doctype)
+
+
+@deprecated("frappe.tests_runner.get_modules", "2024-20-08", "v17", "use frappe.tests.utils.get_modules")
+def test_runner_get_modules(doctype):
+	from frappe.tests.utils import get_modules
+
+	return get_modules(doctype)
+
+
+@deprecated(
+	"frappe.tests_runner.make_test_records", "2024-20-08", "v17", "use frappe.tests.utils.make_test_records"
+)
+def test_runner_make_test_records(*args, **kwargs):
+	from frappe.tests.utils import make_test_records
+
+	return make_test_records(*args, **kwargs)
+
+
+@deprecated(
+	"frappe.tests_runner.make_test_objects", "2024-20-08", "v17", "use frappe.tests.utils.make_test_objects"
+)
+def test_runner_make_test_objects(*args, **kwargs):
+	from frappe.tests.utils import make_test_objects
+
+	return make_test_objects(*args, **kwargs)
+
+
+@deprecated(
+	"frappe.tests_runner.make_test_records_for_doctype",
+	"2024-20-08",
+	"v17",
+	"use frappe.tests.utils.make_test_records_for_doctype",
+)
+def test_runner_make_test_records_for_doctype(*args, **kwargs):
+	from frappe.tests.utils import make_test_records_for_doctype
+
+	return make_test_records_for_doctype(*args, **kwargs)
+
+
+@deprecated(
+	"frappe.tests_runner.print_mandatory_fields",
+	"2024-20-08",
+	"v17",
+	"no public api anymore",
+)
+def test_runner_print_mandatory_fields(*args, **kwargs):
+	from frappe.tests.utils.generators import print_mandatory_fields
+
+	return print_mandatory_fields(*args, **kwargs)
+
+
+@deprecated(
+	"frappe.tests_runner.get_test_record_log",
+	"2024-20-08",
+	"v17",
+	"no public api anymore",
+)
+def test_runner_get_test_record_log(doctype):
+	from frappe.tests.utils.generators import TestRecordLog
+
+	return TestRecordLog().get(doctype)
+
+
+@deprecated(
+	"frappe.tests_runner.add_to_test_record_log",
+	"2024-20-08",
+	"v17",
+	"no public api anymore",
+)
+def test_runner_add_to_test_record_log(doctype):
+	from frappe.tests.utils.generators import TestRecordLog
+
+	return TestRecordLog().add(doctype)
+
+
+@deprecated(
+	"frappe.tests_runner.main",
+	"2024-20-08",
+	"v17",
+	"no public api anymore",
+)
+def test_runner_main(*args, **kwargs):
+	from frappe.commands.testing import main
+
+	return main(*args, **kwargs)
+
+
+@deprecated(
+	"frappe.tests_runner.xmlrunner_wrapper",
+	"2024-20-08",
+	"v17",
+	"no public api anymore",
+)
+def test_xmlrunner_wrapper(output):
+	"""Convenience wrapper to keep method signature unchanged for XMLTestRunner and TextTestRunner"""
+	try:
+		import xmlrunner
+	except ImportError:
+		print("Development dependencies are required to execute this command. To install run:")
+		print("$ bench setup requirements --dev")
+		raise
+
+	def _runner(*args, **kwargs):
+		kwargs["output"] = output
+		return xmlrunner.XMLTestRunner(*args, **kwargs)
+
+	return _runner
