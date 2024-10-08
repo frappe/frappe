@@ -1,45 +1,76 @@
-# Frappe Test Utilities
+# Frappe Test Framework
 
-This README provides an overview of the test utilities available in the Frappe framework, particularly focusing on the `frappe/tests/utils.py` file. These utilities are designed to facilitate efficient and effective testing of Frappe applications.
+This README provides an overview of the test case framework available in Frappe. These utilities are designed to facilitate efficient and effective testing of Frappe applications.
 
-## Main Functions
+This is different from the `frappe.testing` module which houses the discovery and runner infrastructure for CLI and CI.
 
-The `utils.py` file contains several key components:
+## Directory Structure
 
-1. Test record generation utilities
-2. Test case classes (UnitTestCase and IntegrationTestCase)
-3. Context managers for various testing scenarios
-4. Utility functions and decorators
+The test framework is organized into the following structure:
 
-## Test Case Classes
+```
+frappe/tests/
+├── classes/
+│   ├── context_managers.py
+│   ├── unit_test_case.py
+│   └── ...
+├── utils/
+│   ├── generators.py
+│   └── ...
+├── test_api.py
+├── test_child_table.py
+└── ...
+```
 
-### UnitTestCase
+## Key Components
 
-This class extends `unittest.TestCase` and provides additional utilities specific to Frappe framework. It's designed for testing individual components or functions in isolation.
+1. Test case classes (UnitTestCase and IntegrationTestCase)
+3. Framework and class specific context managers
+4. Utility functions and generators
+5. Specific test modules for various Frappe components
 
-Some key methods and features include:
+### Test Case Classes
 
-- Custom assertions (e.g., `assertQueryEqual`, `assertDocumentEqual`)
-- HTML and SQL normalization
+#### UnitTestCase ([`classes/unit_test_case.py`](./classes/unit_test_case.py))
+
+###### Import convention: `from frappe.tests import UnitTestCase`
+
+This class extends `unittest.TestCase` and provides additional utilities specific to the Frappe framework. It's designed for testing individual components or functions in isolation.
+
+Key features include:
+- Custom assertions for Frappe-specific comparisons
+- Utilities for HTML and SQL normalization
 - Context managers for user switching and time freezing
 
-### IntegrationTestCase
+#### IntegrationTestCase ([`classes/integration_test_case.py`](./classes/integration_test_case.py))
+
+###### Import convention: `from frappe.tests import IntegrationTestCase`
 
 This class extends `UnitTestCase` and is designed for integration testing. It provides features for:
+- Automatic site and connection setup
+- Automatic test records loading
+- Automatic reset of thread locals
+- Context managers that depend on a site connection
+- Asserts that depend on a site connection
 
-- Automatic database setup and teardown
-- Database connection management
-- Query counting and Redis call monitoring
-- Lazy loading of test record dependencies
+For a detailed list of context managers, please refer to the code.
 
-For a complete list of methods and their usage, please refer to the actual code in `frappe/tests/utils.py`.
+### Utility Functions and Generators ([`utils/generators.py`](./utils/generators.py))
+
+This module contains utility functions for generating test records and managing test data.
+
+### Specific Test Modules
+
+Various test modules (e.g., test_api.py, test_document.py) contain tests for specific Frappe core components and functionalities.
+
+Note that Document tests are collocated alongside each Document module.
 
 ## Usage
 
 To use these test utilities in your Frappe application tests, you can inherit from the appropriate test case class:
 
 ```python
-from frappe.tests.utils import UnitTestCase
+from frappe.tests import UnitTestCase
 
 class MyTestCase(UnitTestCase):
     def test_something(self):
@@ -47,8 +78,11 @@ class MyTestCase(UnitTestCase):
         pass
 ```
 
-Remember that this README provides an overview as of the time of writing. Always refer to the actual code for the most up-to-date and detailed information on available methods and their usage.
-
 ## Contributing
 
-If you're adding new test utilities or modifying existing ones, please ensure to update this README accordingly.
+When adding new test utilities or modifying existing ones:
+1. Place them in the appropriate directory based on their function.
+2. Update this README to reflect any significant changes in the framework structure or usage.
+3. Ensure that your changes follow the existing coding style and conventions.
+
+Remember to always refer to the actual code for the most up-to-date and detailed information on available methods and their usage.
