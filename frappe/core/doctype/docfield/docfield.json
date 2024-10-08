@@ -593,8 +593,12 @@
    "depends_on": "eval:['Attach', 'Attach Image'].includes(doc.fieldtype)",
    "fieldname": "make_attachment_public",
    "fieldtype": "Check",
+<<<<<<< HEAD
    "label": "Make Attachment Public"
 >>>>>>> 7e058ce998 (add Make Attachment Public check)
+=======
+   "label": "Make Attachment Public (by default)"
+>>>>>>> 750a373388 (fix: update docfield public attachment field label to convey that default behaviour)
   }
  ],
  "idx": 1,
