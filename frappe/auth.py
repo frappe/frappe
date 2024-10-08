@@ -22,7 +22,6 @@ from frappe.twofactor import (
 	should_run_2fa,
 )
 from frappe.utils import cint, date_diff, datetime, get_datetime, today
-from frappe.utils.deprecations import deprecation_warning
 from frappe.utils.password import check_password, get_decrypted_password
 from frappe.website.utils import get_home_page
 
@@ -518,7 +517,9 @@ class LoginAttemptTracker:
 		:param lock_interval: Locking interval incase of maximum failed attempts
 		"""
 		if user_name:
-			deprecation_warning("`username` parameter is deprecated, use `key` instead.")
+			from frappe.deprecation_dumpster import deprecation_warning
+
+			deprecation_warning("unknown", "v17", "`username` parameter is deprecated, use `key` instead.")
 		self.key = key or user_name
 		self.lock_interval = datetime.timedelta(seconds=lock_interval)
 		self.max_failed_logins = max_consecutive_login_attempts
