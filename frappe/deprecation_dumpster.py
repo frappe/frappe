@@ -517,3 +517,15 @@ def tests_UnitTestCase(*args, **kwargs):
 	from frappe.tests import UnitTestCase
 
 	return UnitTestCase(*args, **kwargs)
+
+
+@deprecated(
+	"frappe.model.trace.traced_field_context",
+	"2024-20-08",
+	"v17",
+	"use `cls.trace_fields`",
+)
+def model_trace_traced_field_context(*args, **kwargs):
+	from frappe.tests.classes.context_managers import trace_fields
+
+	return trace_fields(*args, **kwargs)

@@ -167,3 +167,6 @@ def traced_field(*args, **kwargs):
 	        TracedValue: An instance of the TracedValue descriptor.
 	"""
 	return TracedValue(*args, **kwargs)
+
+
+from frappe.deprecation_dumpster import model_trace_traced_field_context as traced_field_context
