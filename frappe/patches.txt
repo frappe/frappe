@@ -243,3 +243,4 @@ frappe.patches.v16_0.add_app_launcher_in_navbar_settings
 frappe.desk.doctype.workspace.patches.update_app
 frappe.patches.v16_0.move_role_desk_settings_to_user
 frappe.patches.v16_0.update_expression_series
+frappe.patches.v16_0.add_background_tasks_log_settings

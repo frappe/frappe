@@ -72,9 +72,11 @@ def enqueue(
 	*,
 	on_success: Callable | None = None,
 	on_failure: Callable | None = None,
+	on_stopped: Callable | None = None,
 	at_front: bool = False,
 	job_id: str | None = None,
-	deduplicate=False,
+	deduplicate: bool = False,
+	track_job: bool = True,
 	**kwargs,
 ) -> Job | Any:
 	"""
@@ -92,10 +94,12 @@ def enqueue(
 	committed
 	:param on_success: Success callback
 	:param on_failure: Failure callback
+	:param on_stopped: Stopped callback
 	:param at_front: Enqueue the job at the front of the queue or not
 	:param kwargs: keyword arguments to be passed to the method
 	:param deduplicate: do not re-queue job if it's already queued, requires job_id.
 	:param job_id: Assigning unique job id, which can be checked using `is_job_enqueued`
+	:param track_job: Store some metadata in `Background Task` doctype
 	"""
 	# To handle older implementations
 	is_async = kwargs.pop("async", is_async)
@@ -113,6 +117,9 @@ def enqueue(
 			job.delete()
 
 		# If job exists and is completed then delete it before re-queue
+
+	# Produce a more readable method name
+	method_name = frappe.utils.method_to_string(method)
 
 	# namespace job ids to sites
 	job_id = create_job_id(job_id)
@@ -137,6 +144,31 @@ def enqueue(
 	if call_directly:
 		return frappe.call(method, **kwargs)
 
+	task_id = None
+
+	if not frappe.flags.in_migrate and track_job:
+		task_id = strip_site_from_task_id(job_id)
+
+		doc = frappe.new_doc(
+			"Background Task",
+			task_id=task_id,
+			user=frappe.session.user,
+			status="Queued",
+			method=method_name,
+			queue=queue,
+			timeout=timeout,
+			kwargs=frappe.as_json(kwargs),
+			at_front=at_front,
+			on_success=on_success,
+			on_failure=on_failure,
+			on_stopped=on_stopped,
+		)
+		doc.insert()
+
+		on_success = Callback(success_callback)
+		on_failure = Callback(failure_callback)
+		on_stopped = Callback(stopped_callback)
+
 	try:
 		q = get_queue(queue, is_async=is_async)
 	except ConnectionError:
@@ -150,31 +182,27 @@ def enqueue(
 	if not timeout:
 		timeout = get_queues_timeout().get(queue) or 300
 
-	# Prepare a more readable name than <function $name at $address>
-	if isinstance(method, Callable):
-		method_name = f"{method.__module__}.{method.__qualname__}"
-	else:
-		method_name = method
+	meta = {"site": frappe.local.site}
 
-	queue_args = {
-		"site": frappe.local.site,
+	queue_args = meta | {
 		"user": frappe.session.user,
 		"method": method,
 		"event": event,
 		"job_name": job_name or method_name,
 		"is_async": is_async,
 		"kwargs": kwargs,
+		"task_id": task_id,
 	}
-
-	on_failure = on_failure or truncate_failed_registry
 
 	def enqueue_call():
 		return q.enqueue_call(
 			"frappe.utils.background_jobs.execute_job",
-			on_success=Callback(func=on_success) if on_success else None,
-			on_failure=Callback(func=on_failure),
+			on_success=on_success,
+			on_failure=on_failure or truncate_failed_registry,
+			on_stopped=on_stopped,
 			timeout=timeout,
 			kwargs=queue_args,
+			meta=meta,
 			at_front=at_front,
 			failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
 			result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
@@ -206,8 +234,32 @@ def run_doc_method(doctype, name, doc_method, **kwargs):
 	getattr(frappe.get_doc(doctype, name), doc_method)(**kwargs)
 
 
-def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True, retry=0):
-	"""Executes job in a worker, performs commit/rollback and logs if there is any error"""
+def execute_job(
+	site: str,
+	method: str | Callable,
+	event: str | None = None,
+	job_name: str | None = None,
+	kwargs: dict | None = None,
+	user: str | None = None,
+	is_async: bool = True,
+	retry: int = 0,
+	task_id: str | None = None,
+):
+	"""
+	Executes job in a worker, performs commit/rollback and logs if there is any error
+
+	:param site: Site name
+	:param method: Method to be executed
+	:param event: Event name
+	:param job_name: Job name
+	:param kwargs: Keyword arguments to be passed to the method
+	:param user: User who triggered the job
+	:param is_async: If is_async=False, the method is executed immediately, else via a worker
+	:param retry: Number of times the job has been retried
+	:param task_id: Optional task ID
+
+	:return: Return value of the method
+	"""
 	retval = None
 
 	if is_async:
@@ -223,7 +275,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		method_name = method
 		method = frappe.get_attr(method)
 	else:
-		method_name = f"{method.__module__}.{method.__qualname__}"
+		method_name = frappe.utils.method_to_string(method)
 
 	actual_func_name = kwargs.get("job_type") if "run_scheduled_job" in method_name else method_name
 	setproctitle.setproctitle(f"rq: Started running {actual_func_name} at {time.time()}")
@@ -236,6 +288,15 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		user=user,
 		after_job=CallbackManager(),
 	)
+
+	# Set task to started
+	if task_id:
+		frappe.db.set_value(
+			"Background Task",
+			task_id,
+			{"status": "In Progress", "task_start": frappe.utils.now_datetime()},
+		)
+		frappe.db.commit()
 
 	for before_job_task in frappe.get_hooks("before_job"):
 		frappe.call(before_job_task, method=method_name, kwargs=kwargs, transaction_type="job")
@@ -258,7 +319,9 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 			frappe.destroy()
 			time.sleep(retry + 1)
 
-			return execute_job(site, method, event, job_name, kwargs, is_async=is_async, retry=retry + 1)
+			return execute_job(
+				site, method, event, job_name, kwargs, is_async=is_async, retry=retry + 1, task_id=task_id
+			)
 
 		else:
 			frappe.log_error(title=method_name)
@@ -723,3 +786,89 @@ def _start_sentry():
 		_experiments=experiments,
 		**kwargs,
 	)
+
+
+def success_callback(job: Job, connection: redis.Redis, result: Any) -> None:
+	"""Callback function to update the status of the job to "Completed"."""
+	frappe.init(site=job.meta["site"])
+	frappe.connect()
+	task_id = strip_site_from_task_id(job.id)
+	doc = frappe.get_doc(
+		"Background Task",
+		task_id,
+	)
+	try:
+		doc.status = "Completed"
+		doc.result = result
+		doc.task_end = frappe.utils.now_datetime()
+		doc.save()
+	except Exception:
+		frappe.db.rollback()
+		doc.log_error("Error in success callback")
+		frappe.db.set_value(
+			"Background Task", task_id, {"status": "Completed", "task_end": frappe.utils.now_datetime()}
+		)
+	frappe.db.commit()
+	frappe.destroy()
+
+
+def failure_callback(job: Job, connection: redis.Redis, *exc_info) -> None:
+	"""Callback function to update the status of the job to "Failed"."""
+	import traceback
+
+	frappe.init(site=job.meta["site"])
+	frappe.connect()
+	task_id = strip_site_from_task_id(job.id)
+	doc = frappe.get_doc("Background Task", task_id)
+	try:
+		doc.status = "Failed"
+		doc.result = "".join(traceback.format_exception(*exc_info))
+		doc.task_end = frappe.utils.now()
+		doc.save()
+
+		from frappe.utils.background_jobs import truncate_failed_registry
+
+		frappe.call(truncate_failed_registry, job, connection, *exc_info)
+	except Exception:
+		frappe.db.rollback()
+		doc.log_error("Error in failure callback")
+		frappe.db.set_value(
+			"Background Task", task_id, {"status": "Failed", "task_end": frappe.utils.now_datetime()}
+		)
+	frappe.db.commit()
+	frappe.destroy()
+
+
+def stopped_callback(job: Job, connection: redis.Redis) -> None:
+	"""Callback function to update the status of the job to "Stopped"."""
+	frappe.init(site=job.meta["site"])
+	frappe.connect()
+	task_id = strip_site_from_task_id(job.id)
+	doc = frappe.get_doc("Background Task", task_id)
+	try:
+		doc.status = "Stopped"
+		doc.task_end = frappe.utils.now_datetime()
+		doc.save()
+
+		if doc.stopped_callback:
+			frappe.call(doc.stopped_callback, job, connection)
+	except Exception:
+		frappe.db.rollback()
+		doc.log_error("Error in stopped callback")
+		frappe.db.set_value(
+			"Background Task",
+			{"task_id": task_id},
+			{"status": "Stopped", "task_end": frappe.utils.now_datetime()},
+		)
+	frappe.db.commit()
+	frappe.destroy()
+
+
+def strip_site_from_task_id(task_id: str) -> str:
+	"""
+	Task IDs are in the format `${site}::${task_id}`. This function strips the site from the task ID.
+
+	:param task_id: The full task ID
+	:return: The task ID without the site prefix
+	"""
+	return task_id.split("::")[-1]
