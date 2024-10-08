@@ -31,6 +31,8 @@ class IntegrationTestCase(UnitTestCase):
 
 	@classmethod
 	def setUpClass(cls) -> None:
+		if getattr(cls, "_integration_test_case_class_setup_done", None):
+			return
 		super().setUpClass()
 
 		# Site initialization
@@ -57,6 +59,7 @@ class IntegrationTestCase(UnitTestCase):
 		# enqueue teardown actions (executed in LIFO order)
 		cls.addClassCleanup(_restore_thread_locals, copy.deepcopy(frappe.local.flags))
 		cls.addClassCleanup(_rollback_db)
+		cls._integration_test_case_class_setup_done = True
 
 	@classmethod
 	def tearDownClass(cls) -> None:
@@ -160,68 +163,6 @@ class IntegrationTestCase(UnitTestCase):
 			self.assertLessEqual(rows_read, count, msg="Queries read more rows than expected")
 		finally:
 			frappe.db.sql = orig_sql
-
-	@contextmanager
-	def switch_site(self, site: str) -> AbstractContextManager[None]:
-		"""Switch connection to different site.
-		Note: Drops current site connection completely."""
-
-		try:
-			old_site = frappe.local.site
-			frappe.init(site, force=True)
-			frappe.connect()
-			yield
-		finally:
-			frappe.init(old_site, force=True)
-			frappe.connect()
-
-	@staticmethod
-	@contextmanager
-	def change_settings(doctype, settings_dict=None, /, commit=False, **settings):
-		"""A context manager to ensure that settings are changed before running
-		function and restored after running it regardless of exceptions occurred.
-		This is useful in tests where you want to make changes in a function but
-		don't retain those changes.
-		import and use as decorator to cover full function or using `with` statement.
-
-		example:
-		@change_settings("Print Settings", {"send_print_as_pdf": 1})
-		def test_case(self):
-		        ...
-
-		@change_settings("Print Settings", send_print_as_pdf=1)
-		def test_case(self):
-		        ...
-		"""
-
-		if settings_dict is None:
-			settings_dict = settings
-
-		try:
-			settings = frappe.get_doc(doctype)
-			# remember setting
-			previous_settings = copy.deepcopy(settings_dict)
-			for key in previous_settings:
-				previous_settings[key] = getattr(settings, key)
-
-			# change setting
-			for key, value in settings_dict.items():
-				setattr(settings, key, value)
-			settings.save(ignore_permissions=True)
-			# singles are cached by default, clear to avoid flake
-			frappe.db.value_cache[settings] = {}
-			if commit:
-				frappe.db.commit()
-			yield  # yield control to calling function
-
-		finally:
-			# restore settings
-			settings = frappe.get_doc(doctype)
-			for key, value in previous_settings.items():
-				setattr(settings, key, value)
-			settings.save(ignore_permissions=True)
-			if commit:
-				frappe.db.commit()
 
 
 def _commit_watcher():
