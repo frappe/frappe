@@ -33,9 +33,8 @@ import frappe.commands.utils
 import frappe.recorder
 from frappe.installer import add_to_installed_apps, remove_app
 from frappe.query_builder.utils import db_type_is
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, timeout
 from frappe.tests.test_query_builder import run_only_if
-from frappe.tests.utils import timeout
 from frappe.utils import add_to_date, get_bench_path, get_bench_relative_path, now
 from frappe.utils.backups import BackupGenerator, fetch_latest_backups
 from frappe.utils.jinja_globals import bundled_asset

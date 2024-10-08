@@ -28,6 +28,7 @@ def xmlrunner_wrapper(output):
 	return _runner
 
 
+# TODO: move to deprecation dumpster
 from frappe.tests.utils import (
 	TestRecordLog,
 	get_dependencies,
@@ -39,6 +40,7 @@ from frappe.tests.utils import (
 )
 
 
+# TODO: move to deprecation dumpster
 # Compatibility functions
 def add_to_test_record_log(doctype):
 	TestRecordLog().add(doctype)

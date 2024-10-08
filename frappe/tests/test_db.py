@@ -14,9 +14,8 @@ from frappe.database.database import get_query_execution_timeout
 from frappe.database.utils import FallBackDateTimeStr
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Concat_ws
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, timeout
 from frappe.tests.test_query_builder import db_type_is, run_only_if
-from frappe.tests.utils import timeout
 from frappe.utils import add_days, now, random_string, set_request
 from frappe.utils.data import now_datetime
 from frappe.utils.testutils import clear_custom_fields
