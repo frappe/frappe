@@ -18,6 +18,7 @@
   "date_format",
   "time_format",
   "number_format",
+  "use_number_format_from_currency",
   "first_day_of_the_week",
   "column_break_7",
   "float_precision",
@@ -608,12 +609,18 @@
    "fieldname": "rate_limit_email_link_login",
    "fieldtype": "Int",
    "label": "Rate limit for email link login"
+  },
+  {
+   "default": "0",
+   "fieldname": "use_number_format_from_currency",
+   "fieldtype": "Check",
+   "label": "Use Number Format from Currency"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2024-03-22 16:35:52.338727",
+ "modified": "2024-09-26 16:20:59.417151",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
