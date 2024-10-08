@@ -101,7 +101,8 @@ class UnitTestCase(unittest.TestCase):
 		else:
 			self.assertEqual(expected, actual, msg=msg)
 
-	def normalize_html(self, code: str) -> str:
+	@staticmethod
+	def normalize_html(code: str) -> str:
 		"""Formats HTML consistently so simple string comparisons can work on them."""
 		from bs4 import BeautifulSoup
 
@@ -116,7 +117,8 @@ class UnitTestCase(unittest.TestCase):
 		finally:
 			frappe.set_user(old_user)
 
-	def normalize_sql(self, query: str) -> str:
+	@staticmethod
+	def normalize_sql(query: str) -> str:
 		"""Formats SQL consistently so simple string comparisons can work on them."""
 		import sqlparse
 
