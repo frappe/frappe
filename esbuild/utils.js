@@ -1,3 +1,4 @@
+const fg = require("fast-glob");
 const path = require("path");
 const fs = require("fs");
 const chalk = require("chalk");
@@ -68,12 +69,57 @@ function run_serially(tasks) {
 }
 
 function get_apps_list() {
+	try {
+		/**
+		 * When building assets while installing the apps, apps.txt may
+		 * not have the app being installed ∴ reading the apps directory
+		 * is more fool-proof method to fetch the apps.
+		 */
+		return get_cloned_apps();
+	} catch {
+		// no-op
+	}
+
 	return fs
 		.readFileSync(path.resolve(sites_path, "apps.txt"), {
 			encoding: "utf-8",
 		})
 		.split("\n")
 		.filter(Boolean);
+}
+
+function get_cloned_apps() {
+	/**
+	 * Returns frappe apps in the bench/apps folder
+	 */
+	const apps = [];
+	for (const app of fs.readdirSync(apps_path)) {
+		const app_path = path.resolve(apps_path, app);
+		if (is_frappe_app(app, app_path)) apps.push(app);
+	}
+
+	return apps;
+}
+
+function is_frappe_app(app_name, app_path) {
+	/**
+	 * Same as the is_frappe_app check in frappe/bench
+	 */
+	if (!fs.lstatSync(app_path).isDirectory()) return false;
+
+	const files_in_app = ["hooks.py", "modules.txt", "patches.txt"];
+
+	for (const file of files_in_app) {
+		// Heuristic check
+		const file_path = path.resolve(app_path, app_name, file);
+		if (fs.existsSync(file_path)) continue;
+
+		// Absolute check (takes more time, hence the above one)
+		const pattern = `${app_path}/**/${file}`;
+		if (fg.sync(pattern).length == 0) return false;
+	}
+
+	return true;
 }
 
 function get_cli_arg(name) {
@@ -141,4 +187,5 @@ module.exports = {
 	log_warn,
 	log_error,
 	get_redis_subscriber,
+	get_cloned_apps,
 };
