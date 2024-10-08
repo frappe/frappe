@@ -599,7 +599,7 @@
    "depends_on": "eval:['Attach', 'Attach Image'].includes(doc.fieldtype)",
    "fieldname": "make_attachment_public",
    "fieldtype": "Check",
-   "label": "Make Attachment Public"
+   "label": "Make Attachment Public (by default)"
   }
  ],
  "idx": 1,
