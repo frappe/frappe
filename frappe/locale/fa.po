@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-24 15:33+0000\n"
-"PO-Revision-Date: 2024-09-30 00:38\n"
+"PO-Revision-Date: 2024-10-08 02:10\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -6748,12 +6748,12 @@ msgstr "این سابقه را حذف کنید تا امکان ارسال به �
 #: frappe/public/js/frappe/list/list_view.js:1923
 msgctxt "Title of confirmation dialog"
 msgid "Delete {0} item permanently?"
-msgstr "{0} مورد برای همیشه حذف شود؟"
+msgstr "{0} آیتم برای همیشه حذف شود؟"
 
 #: frappe/public/js/frappe/list/list_view.js:1929
 msgctxt "Title of confirmation dialog"
 msgid "Delete {0} items permanently?"
-msgstr "{0} مورد برای همیشه حذف شود؟"
+msgstr "{0} آیتم برای همیشه حذف شود؟"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
@@ -9445,7 +9445,7 @@ msgstr "رمزگشایی توکن انجام نشد، لطفاً یک توکن �
 
 #: frappe/utils/password.py:198
 msgid "Failed to decrypt key {0}"
-msgstr ""
+msgstr "رمزگشایی کلید {0} انجام نشد"
 
 #: frappe/desk/reportview.py:561
 msgid "Failed to delete {0} documents: {1}"
@@ -11950,7 +11950,7 @@ msgstr "اگر فقط می خواهید برای سایت خود سفارشی ک
 #. Description of the 'Parent Label' (Select) field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
 msgid "If you set this, this Item will come in a drop-down under the selected parent."
-msgstr "اگر این مورد را تنظیم کنید، این مورد به صورت کشویی در زیر والد انتخاب شده قرار می گیرد."
+msgstr "اگر این را تنظیم کنید، این آیتم به صورت کشویی در زیر والد انتخاب شده قرار می گیرد."
 
 #: frappe/templates/emails/administrator_logged_in.html:3
 msgid "If you think this is unauthorized, please change the Administrator password."
@@ -12907,7 +12907,7 @@ msgstr "فایل الگو برای درون‌بُرد نامعتبر است"
 
 #: frappe/integrations/doctype/connected_app/connected_app.py:172
 msgid "Invalid token state! Check if the token has been created by the OAuth user."
-msgstr ""
+msgstr "حالت توکن نامعتبر! بررسی کنید که آیا توکن توسط کاربر OAuth ایجاد شده است."
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:165
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:336
@@ -12921,7 +12921,7 @@ msgstr "مقادیر نامعتبر برای فیلدها:"
 
 #: frappe/printing/page/print/print.js:614
 msgid "Invalid wkhtmltopdf version"
-msgstr ""
+msgstr "نسخه wkhtmltopdf نامعتبر است"
 
 #: frappe/core/doctype/doctype/doctype.py:1526
 msgid "Invalid {0} condition"
@@ -13175,7 +13175,7 @@ msgstr "حذف این فایل خطرناک است: {0}. لطفا با مدیر 
 #. Label of a Data field in DocType 'Navbar Item'
 #: frappe/core/doctype/navbar_item/navbar_item.json
 msgid "Item Label"
-msgstr "برچسب مورد"
+msgstr "برچسب آیتم"
 
 #. Label of a Select field in DocType 'Navbar Item'
 #: frappe/core/doctype/navbar_item/navbar_item.json
@@ -13184,7 +13184,7 @@ msgstr "نوع آیتم"
 
 #: frappe/utils/nestedset.py:233
 msgid "Item cannot be added to its own descendants"
-msgstr "مورد را نمی توان به فرزندان خود اضافه کرد"
+msgstr "آیتم را نمی توان به فرزندان خود اضافه کرد"
 
 #. Option for the 'Print Format Type' (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -15718,7 +15718,7 @@ msgstr "نوار ناوبری"
 #. Name of a DocType
 #: frappe/core/doctype/navbar_item/navbar_item.json
 msgid "Navbar Item"
-msgstr "مورد نوار ناوبری"
+msgstr "آیتم نوار ناوبری"
 
 #. Name of a DocType
 #. Label of a Link in the Build Workspace
@@ -16172,7 +16172,7 @@ msgstr "بدون تصاویر"
 
 #: frappe/desk/page/leaderboard/leaderboard.js:282
 msgid "No Items Found"
-msgstr "موردی یافت نشد"
+msgstr "آیتمی یافت نشد"
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:363
 msgid "No LDAP User found for email: {0}"
@@ -17322,7 +17322,7 @@ msgstr "باز کردن در یک تب جدید"
 #: frappe/public/js/frappe/list/list_view.js:1206
 msgctxt "Description of a list view shortcut"
 msgid "Open list item"
-msgstr "مورد فهرست را باز کنید"
+msgstr "آیتم فهرست را باز کنید"
 
 #: frappe/www/qrcode.html:13
 msgid "Open your authentication app on your mobile phone."
@@ -18457,7 +18457,7 @@ msgstr "لطفا یک آدرس ایمیل معتبر وارد کنید."
 
 #: frappe/templates/includes/contact.js:15
 msgid "Please enter both your email and message so that we can get back to you. Thanks!"
-msgstr ""
+msgstr "لطفا ایمیل و پیام خود را وارد کنید تا بتوانیم با شما تماس بگیریم. با تشکر!"
 
 #: frappe/www/update-password.html:232
 msgid "Please enter the password"
@@ -22273,13 +22273,13 @@ msgstr "حداقل 2 عمل را انتخاب کنید"
 #: frappe/public/js/frappe/list/list_view.js:1220
 msgctxt "Description of a list view shortcut"
 msgid "Select list item"
-msgstr "مورد فهرست را انتخاب کنید"
+msgstr "آیتم فهرست را انتخاب کنید"
 
 #: frappe/public/js/frappe/list/list_view.js:1172
 #: frappe/public/js/frappe/list/list_view.js:1188
 msgctxt "Description of a list view shortcut"
 msgid "Select multiple list items"
-msgstr "چندین مورد از فهرست را انتخاب کنید"
+msgstr "چندین آیتم از فهرست را انتخاب کنید"
 
 #: frappe/public/js/frappe/views/calendar/calendar.js:175
 msgid "Select or drag across time slots to create a new event."
@@ -26073,7 +26073,7 @@ msgstr "بالا"
 #. Name of a DocType
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
 msgid "Top Bar Item"
-msgstr "مورد نوار بالا"
+msgstr "آیتم نوار بالا"
 
 #. Label of a Table field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -26308,7 +26308,7 @@ msgstr "ترجمه فیلدهای پیوند"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1580
 msgid "Translate values"
-msgstr ""
+msgstr "ترجمه مقادیر"
 
 #: frappe/public/js/frappe/views/translation_manager.js:11
 msgid "Translate {0}"
@@ -26779,7 +26779,7 @@ msgstr "سفارش به روز رسانی"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:472
 msgid "Update Password"
-msgstr ""
+msgstr "به‌روزرسانی گذرواژه"
 
 #. Label of a Section Break field in DocType 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
@@ -27358,7 +27358,7 @@ msgstr "کاربر {0} درخواست حذف داده ها را داده است"
 
 #: frappe/core/doctype/user/user.py:1358
 msgid "User {0} impersonated as {1}"
-msgstr "کاربر {0} جعل هویت به عنوان {1}"
+msgstr "کاربر {0} به عنوان {1} جعل هویت کرد"
 
 #: frappe/utils/oauth.py:271
 msgid "User {0} is disabled"
@@ -28061,7 +28061,7 @@ msgstr "نوار کناری وب سایت"
 #. Name of a DocType
 #: frappe/website/doctype/website_sidebar_item/website_sidebar_item.json
 msgid "Website Sidebar Item"
-msgstr "مورد نوار کناری وب سایت"
+msgstr "آیتم نوار کناری وب سایت"
 
 #. Name of a DocType
 #. Label of a Link in the Website Workspace
@@ -31035,7 +31035,7 @@ msgstr "{0} در محدوده {1} است"
 
 #: frappe/public/js/frappe/list/list_view.js:1593
 msgid "{0} items selected"
-msgstr "{0} مورد انتخاب شد"
+msgstr "{0} آیتم انتخاب شد"
 
 #: frappe/core/doctype/user/user.py:1367
 msgid "{0} just impersonated as you. They gave this reason: {1}"
