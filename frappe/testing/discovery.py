@@ -74,6 +74,7 @@ def discover_doctype_tests(doctypes: list[str], runner, app: str, force: bool = 
 	"""Discover tests for the specified doctype(s)"""
 	if isinstance(doctypes, str):
 		doctypes = [doctypes]
+	_app = app
 	for doctype in doctypes:
 		try:
 			module = frappe.db.get_value("DocType", doctype, "module")
@@ -82,13 +83,15 @@ def discover_doctype_tests(doctypes: list[str], runner, app: str, force: bool = 
 
 			# Check if the DocType belongs to the specified app
 			doctype_app = frappe.db.get_value("Module Def", module, "app_name")
-			if app and doctype_app != app:
-				raise TestRunnerError(f"DocType {doctype} does not belong to app {app}")
-			elif not app:
-				app = doctype_app
+			if app is None:
+				_app = doctype_app
+			elif doctype_app != app:
+				raise TestRunnerError(
+					f"Mismatch between specified app '{app}' and doctype app '{doctype_app}'"
+				)
 			test_module = frappe.modules.utils.get_module_name(doctype, module, "test_")
 			force and frappe.db.delete(doctype)
-			_add_module_tests(runner, app, test_module)
+			_add_module_tests(runner, _app, test_module)
 		except Exception as e:
 			logger.error(f"Error discovering tests for {doctype}: {e!s}")
 			raise TestRunnerError(f"Failed to discover tests for {doctype}: {e!s}") from e
@@ -100,9 +103,15 @@ def discover_module_tests(modules: list[str], runner, app: str) -> "TestRunner":
 	"""Discover tests for the specified test module"""
 	if isinstance(modules, str):
 		modules = [modules]
+	_app = app
 	try:
 		for module in modules:
-			_add_module_tests(runner, app, module)
+			module_app = module.split(".")[0]
+			if app is None:
+				_app = module_app
+			elif app != module_app:
+				raise TestRunnerError(f"Mismatch between specified app '{app}' and module app '{module_app}'")
+			_add_module_tests(runner, _app, module)
 	except Exception as e:
 		logger.error(f"Error discovering tests for {module}: {e!s}")
 		raise TestRunnerError(f"Failed to discover tests for {module}: {e!s}") from e
