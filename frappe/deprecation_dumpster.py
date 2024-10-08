@@ -404,3 +404,116 @@ def test_xmlrunner_wrapper(output):
 		return xmlrunner.XMLTestRunner(*args, **kwargs)
 
 	return _runner
+
+
+@deprecated(
+	"frappe.tests.upate_system_settings",
+	"2024-20-08",
+	"v17",
+	"use with `self.change_settings(...):` context manager",
+)
+def tests_update_system_settings(args, commit=False):
+	import frappe
+
+	doc = frappe.get_doc("System Settings")
+	doc.update(args)
+	doc.flags.ignore_mandatory = 1
+	doc.save()
+	if commit:
+		frappe.db.commit()
+
+
+@deprecated(
+	"frappe.tests.get_system_setting",
+	"2024-20-08",
+	"v17",
+	"use `frappe.db.get_single_value('System Settings', key)`",
+)
+def tests_get_system_setting(key):
+	import frappe
+
+	return frappe.db.get_single_value("System Settings", key)
+
+
+@deprecated(
+	"frappe.tests.utils.change_settings",
+	"2024-20-08",
+	"v17",
+	"use `frappe.tests.change_settings` or the cls.change_settings",
+)
+def tests_change_settings(*args, **kwargs):
+	from frappe.tests.classes.context_managers import change_settings
+
+	return change_settings(*args, **kwargs)
+
+
+@deprecated(
+	"frappe.tests.utils.patch_hooks",
+	"2024-20-08",
+	"v17",
+	"use `frappe.tests.patch_hooks` or the cls.patch_hooks",
+)
+def tests_patch_hooks(*args, **kwargs):
+	from frappe.tests.classes.context_managers import patch_hooks
+
+	return patch_hooks(*args, **kwargs)
+
+
+@deprecated(
+	"frappe.tests.utils.debug_on",
+	"2024-20-08",
+	"v17",
+	"use `frappe.tests.debug_on` or the cls.debug_on",
+)
+def tests_debug_on(*args, **kwargs):
+	from frappe.tests.classes.context_managers import debug_on
+
+	return debug_on(*args, **kwargs)
+
+
+@deprecated(
+	"frappe.tests.utils.timeout",
+	"2024-20-08",
+	"v17",
+	"use `frappe.tests.timeout` or the cls.timeout",
+)
+def tests_timeout(*args, **kwargs):
+	from frappe.tests.classes.context_managers import timeout
+
+	return timeout(*args, **kwargs)
+
+
+@deprecated(
+	"frappe.tests.utils.FrappeTestCase",
+	"2024-20-08",
+	"v17",
+	"use `frappe.tests.UnitTestCase` or `frappe.tests.IntegrationTestCase` respectively",
+)
+def tests_FrappeTestCase(*args, **kwargs):
+	from frappe.tests import IntegrationTestCase
+
+	return IntegrationTestCase(*args, **kwargs)
+
+
+@deprecated(
+	"frappe.tests.utils.IntegrationTestCase",
+	"2024-20-08",
+	"v17",
+	"use `frappe.tests.IntegrationTestCase`",
+)
+def tests_IntegrationTestCase(*args, **kwargs):
+	from frappe.tests import IntegrationTestCase
+
+	return IntegrationTestCase(*args, **kwargs)
+
+
+@deprecated(
+	"frappe.tests.utils.UnitTestCase",
+	"2024-20-08",
+	"v17",
+	"use `frappe.tests.UnitTestCase`",
+)
+def tests_UnitTestCase(*args, **kwargs):
+	from frappe.tests import UnitTestCase
+
+	return UnitTestCase(*args, **kwargs)
