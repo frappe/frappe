@@ -96,7 +96,7 @@ class IntegrationTestPreparation:
 		"""Run 'before_tests' hooks"""
 		logger.info(f'Running "before_tests" hooks for {category} tests on app: {app}')
 		for hook_function in frappe.get_hooks("before_tests", app_name=app):
-			logger.info('Running "before_tests" hook function {hook_function}')
+			logger.info(f'Running "before_tests" hook function {hook_function}')
 			frappe.get_attr(hook_function)()
 
 	@staticmethod

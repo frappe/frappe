@@ -102,7 +102,7 @@ def main(
 
 		if doctype or doctype_list_path:
 			doctype = _load_doctype_list(doctype_list_path) if doctype_list_path else doctype
-			discover_doctype_tests(doctype, runner, force, app)
+			discover_doctype_tests(doctype, runner, app, force)
 		elif module_def:
 			_run_module_def_tests(app, module_def, runner, force)
 		elif module:
@@ -197,7 +197,7 @@ def _run_module_def_tests(app, module_def, runner: "TestRunner", force) -> "Test
 	from frappe.testing import discover_doctype_tests
 
 	doctypes = _get_doctypes_for_module_def(app, module_def)
-	return discover_doctype_tests(doctypes, runner, force, app)
+	return discover_doctype_tests(doctypes, runner, app, force)
 
 
 def _get_doctypes_for_module_def(app, module_def):
