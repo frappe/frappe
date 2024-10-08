@@ -31,6 +31,19 @@ class IntegrationTestCase(UnitTestCase):
 	maxDiff = 10_000  # prints long diffs but useful in CI
 
 	@classmethod
+	def __init_subclass__(cls, **kwargs):
+		"""Ensure to always run IntegrationTestCase.setUpClass (first)."""
+		super().__init_subclass__(**kwargs)
+		_setUpClass = cls.setUpClass
+
+		@classmethod
+		def setUpClass(new_cls):
+			IntegrationTestCase.setUpClass.__func__(new_cls)
+			_setUpClass.__func__(new_cls)
+
+		cls.setUpClass = setUpClass
+
+	@classmethod
 	def setUpClass(cls) -> None:
 		if getattr(cls, "_integration_test_case_class_setup_done", None):
 			return
