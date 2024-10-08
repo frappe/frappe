@@ -561,55 +561,20 @@
    "fieldname": "sort_options",
    "fieldtype": "Check",
    "label": "Sort Options"
-<<<<<<< HEAD
-=======
-  },
-  {
-   "fieldname": "link_filters",
-   "fieldtype": "JSON",
-   "label": "Link Filters"
-  },
-  {
-   "default": "0",
-   "depends_on": "eval:!in_list([\"Check\", \"Currency\", \"Float\", \"Int\", \"Percent\", \"Rating\", \"Select\", \"Table\", \"Table MultiSelect\"], doc.fieldtype)",
-   "fieldname": "not_nullable",
-   "fieldtype": "Check",
-   "label": "Not Nullable"
-  },
-  {
-   "default": "0",
-   "depends_on": "eval: doc.hidden",
-   "fieldname": "show_on_timeline",
-   "fieldtype": "Check",
-   "label": "Show on Timeline"
-  },
-  {
-   "fieldname": "placeholder",
-   "fieldtype": "Data",
-   "label": "Placeholder"
   },
   {
    "default": "0",
    "depends_on": "eval:['Attach', 'Attach Image'].includes(doc.fieldtype)",
    "fieldname": "make_attachment_public",
    "fieldtype": "Check",
-<<<<<<< HEAD
-   "label": "Make Attachment Public"
->>>>>>> 7e058ce998 (add Make Attachment Public check)
-=======
    "label": "Make Attachment Public (by default)"
->>>>>>> 750a373388 (fix: update docfield public attachment field label to convey that default behaviour)
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2024-05-28 15:55:44.007917",
-=======
  "modified": "2024-10-01 07:26:16.380090",
->>>>>>> 7e058ce998 (add Make Attachment Public check)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",
