@@ -620,11 +620,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2024-03-22 16:35:52.338727",
-=======
  "modified": "2024-09-26 16:20:59.417151",
->>>>>>> f10d46b409 (chore: add in system setting to allow using number format from currency)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
