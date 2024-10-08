@@ -420,7 +420,8 @@ def tests_update_system_settings(args, commit=False):
 	doc.flags.ignore_mandatory = 1
 	doc.save()
 	if commit:
-		frappe.db.commit()
+		# moved here
+		frappe.db.commit()  # nosemgrep
 
 
 @deprecated(
