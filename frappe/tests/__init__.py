@@ -1,7 +1,7 @@
-# TODO: move to dumpster
 import frappe
 
-from .utils import IntegrationTestCase, MockedRequestTestCase, UnitTestCase
+from .classes import *
+from .classes.context_managers import *
 
 
 # TODO: move to dumpster

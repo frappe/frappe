@@ -7,6 +7,14 @@ import traceback
 
 logger = logging.Logger(__file__)
 
+# NOTE: declare those who should also be made available directly frappe.tests.* namespace
+# these can be general purpose context managers who do NOT depend on a particular
+# test class setup, such as for example the IntegrationTestCase's connection to site
+__all__ = [
+	"debug_on",
+	"timeout",
+]
+
 
 def debug_on(*exceptions):
 	"""
