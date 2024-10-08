@@ -2,8 +2,17 @@
 # See license.txt
 
 # import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 
-class TestDocumentShareKey(FrappeTestCase):
+class UnitTestDocumentShareKey(UnitTestCase):
+	"""
+	Unit tests for DocumentShareKey.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestDocumentShareKey(IntegrationTestCase):
 	pass

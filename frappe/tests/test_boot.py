@@ -1,10 +1,10 @@
 import frappe
 from frappe.boot import get_unseen_notes, get_user_pages_or_reports
 from frappe.desk.doctype.note.note import mark_as_seen
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestBootData(FrappeTestCase):
+class TestBootData(IntegrationTestCase):
 	def test_get_unseen_notes(self):
 		frappe.db.delete("Note")
 		frappe.db.delete("Note Seen By")
@@ -28,7 +28,7 @@ class TestBootData(FrappeTestCase):
 		self.assertListEqual(unseen_notes, [])
 
 
-class TestPermissionQueries(FrappeTestCase):
+class TestPermissionQueries(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
 		cls.enable_safe_exec()

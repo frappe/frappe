@@ -103,9 +103,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	get_no_result_message() {
 		return `<div class="msg-box no-border">
-			<div>
-				<img src="/assets/frappe/images/ui-states/list-empty-state.svg" alt="Generic Empty State" class="null-state">
-			</div>
+			<svg class="icon icon-xl mb-4" style="stroke: var(--text-light);">
+				<use href="#icon-table"></use>
+			</svg>
 			<p>${__("Nothing to show")}</p>
 		</div>`;
 	}
@@ -414,7 +414,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			.then((doc) => {
 				this.report_doc = doc;
 			})
-			.then(() => frappe.model.with_doctype(this.report_doc.ref_doctype));
+			.then(() => frappe.model.with_doctype(this.report_doc?.ref_doctype));
 	}
 
 	get_report_settings() {
@@ -1015,9 +1015,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	show_loading_screen() {
 		const loading_state = `<div class="msg-box no-border">
-			<div>
-				<img src="/assets/frappe/images/ui-states/list-empty-state.svg" alt="Generic Empty State" class="null-state">
-			</div>
+			<svg class="icon icon-xl mb-4" style="stroke: var(--text-light);">
+				<use href="#icon-table"></use>
+			</svg>
 			<p>${__("Loading")}...</p>
 		</div>`;
 
@@ -1043,10 +1043,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (options.fieldtype) {
 			options.tooltipOptions = {
 				formatTooltipY: (d) =>
-					frappe.format(d, {
-						fieldtype: options.fieldtype,
-						options: options.options,
-					}),
+					frappe.format(
+						d,
+						{
+							fieldtype: options.fieldtype,
+							options: options.options,
+						},
+						options.options,
+						options
+					),
 			};
 		}
 		options.axisOptions = {
@@ -1318,19 +1323,21 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	get_filter_values(raise) {
 		// check for mandatory property for filters added via UI
-		const mandatory = this.filters.filter((f) => f.df.reqd || f.df.mandatory);
-		const missing_mandatory = mandatory.filter((f) => !f.get_value());
-		if (raise && missing_mandatory.length > 0) {
-			let message = __("Please set filters");
-			this.hide_loading_screen();
-			this.toggle_message(raise, message);
-			throw "Filter missing";
+		if (raise) {
+			const mandatory = this.filters.filter((f) => f.df.reqd || f.df.mandatory);
+			const missing_mandatory = mandatory.filter((f) => !f.get_value());
+			if (missing_mandatory.length > 0) {
+				let message = __("Please set filters");
+				this.hide_loading_screen();
+				this.toggle_message(raise, message);
+				throw "Filter missing";
+			}
 		}
 
 		raise && this.toggle_message(false);
 
 		return this.filters
-			.filter((f) => f.get_value())
+			.filter((f) => f.get_value?.())
 			.map((f) => {
 				var v = f.get_value();
 				// hidden fields dont have $input
@@ -1474,6 +1481,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	get_filters_html_for_print() {
 		const applied_filters = this.get_filter_values();
 		return Object.keys(applied_filters)
+			.filter((fieldname) => !frappe.utils.is_empty(applied_filters[fieldname]))
 			.map((fieldname) => {
 				const docfield = frappe.query_report.get_filter(fieldname).df;
 				const value = applied_filters[fieldname];
@@ -1687,7 +1695,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								fieldtype: "Select",
 								fieldname: "doctype",
 								label: __("From Document Type"),
-								options: this.linked_doctypes.map((df) => ({
+								options: this.linked_doctypes?.map((df) => ({
 									label: df.doctype,
 									value: df.doctype,
 								})),
@@ -1961,11 +1969,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.page.main
 		);
 		if (this.tree_report) {
-			this.$tree_footer = $(`<div class="tree-footer col-md-6">
-				<button class="btn btn-xs btn-default" data-action="expand_all_rows">
-					${__("Expand All")}</button>
-				<button class="btn btn-xs btn-default" data-action="collapse_all_rows">
-					${__("Collapse All")}</button>
+			this.$tree_footer = $(`<div class="tree-footer col-md-3">
+				<div class="input-group">
+				  <input id="tree-level" type="number" class="form-control" aria-label="Tree Level" value="2">
+					<button class="btn btn-xs btn-primary" data-action="set_tree_level">
+						${__("Set Level")}</button>
+					<button class="btn btn-xs btn-secondary" data-action="expand_all_rows">
+						${__("Expand All")}</button>
+					<button class="btn btn-xs btn-secondary" data-action="collapse_all_rows">
+						${__("Collapse All")}</button>
+				</div>
 			</div>`);
 			$(this.$report_footer).append(this.$tree_footer);
 			this.$tree_footer.find("[data-action=collapse_all_rows]").show();
@@ -1984,18 +1997,47 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	expand_all_rows() {
 		this.$tree_footer.find("[data-action=expand_all_rows]").hide();
+		let rows = this.datatable.rowmanager.datamanager.getRows();
+		let maxDepth = rows.reduce((max, row) => {
+			return Math.max(max, row.meta.indent || 0);
+		}, 0);
+		var treeLevel = maxDepth + 1;
+		this.$tree_footer.find("#tree-level").val(treeLevel);
 		this.datatable.rowmanager.expandAllNodes();
 		this.$tree_footer.find("[data-action=collapse_all_rows]").show();
 	}
 
 	collapse_all_rows() {
 		this.$tree_footer.find("[data-action=collapse_all_rows]").hide();
+		this.$tree_footer.find("#tree-level").val(1);
 		this.datatable.rowmanager.collapseAllNodes();
 		this.$tree_footer.find("[data-action=expand_all_rows]").show();
 	}
 
+	set_tree_level() {
+		var inputVal = parseInt(this.$tree_footer.find("#tree-level").val(), 10) || 0;
+		let rows = this.datatable.rowmanager.datamanager.getRows();
+		let maxDepth = rows.reduce((max, row) => {
+			return Math.max(max, row.meta.indent || 0);
+		}, 0);
+		var treeLevel = Math.min(maxDepth + 1, Math.max(1, inputVal));
+		var treeDepth = treeLevel - 1;
+		this.$tree_footer.find("#tree-level").val(treeLevel);
+		if (treeDepth === 0) {
+			this.$tree_footer.find("[data-action=collapse_all_rows]").hide();
+		} else {
+			this.$tree_footer.find("[data-action=collapse_all_rows]").show();
+		}
+		this.datatable.rowmanager.setTreeDepth(treeDepth);
+		if (treeDepth === 0) {
+			this.$tree_footer.find("[data-action=expand_all_rows]").show();
+		} else {
+			this.$tree_footer.find("[data-action=expand_all_rows]").hide();
+		}
+	}
+
 	message_div(message) {
-		return `<div class='flex justify-center align-center text-muted' style='height: 50vh;'>
+		return `<div class='flex justify-center align-center text-muted' style='height: calc(100vh - 280px);'>
 			<div>${message}</div>
 		</div>`;
 	}

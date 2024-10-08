@@ -17,6 +17,7 @@ class WebhookRequestLog(Document):
 		data: DF.Code | None
 		error: DF.Text | None
 		headers: DF.Code | None
+		reference_doctype: DF.Data | None
 		reference_document: DF.Data | None
 		response: DF.Code | None
 		url: DF.Data | None

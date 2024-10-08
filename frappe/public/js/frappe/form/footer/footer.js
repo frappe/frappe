@@ -85,14 +85,9 @@ frappe.ui.form.Footer = class FormFooter {
 		frappe.ui.setup_like_popover(this.wrapper.find(".form-stats-likes"), ".like-icon");
 
 		this.like_icon.on("click", () => {
-			frappe.ui.toggle_like(
-				this.like_wrapper,
-				this.frm.doctype,
-				this.frm.doc.name,
-				function () {
-					this.refresh_like();
-				}
-			);
+			frappe.ui.toggle_like(this.like_wrapper, this.frm.doctype, this.frm.doc.name, () => {
+				this.refresh_like();
+			});
 		});
 	}
 

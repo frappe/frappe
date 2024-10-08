@@ -22,15 +22,24 @@ from frappe.core.doctype.user.user import (
 from frappe.desk.notifications import extract_mentions
 from frappe.frappeclient import FrappeClient
 from frappe.model.delete_doc import delete_doc
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.test_api import FrappeAPITestCase
-from frappe.tests.utils import FrappeTestCase, change_settings
 from frappe.utils import get_url
 
 user_module = frappe.core.doctype.user.user
 test_records = frappe.get_test_records("User")
 
 
-class TestUser(FrappeTestCase):
+class UnitTestUser(UnitTestCase):
+	"""
+	Unit tests for User.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestUser(IntegrationTestCase):
 	def tearDown(self):
 		# disable password strength test
 		frappe.db.set_single_value("System Settings", "enable_password_policy", 0)
@@ -279,7 +288,7 @@ class TestUser(FrappeTestCase):
 		"""
 		self.assertListEqual(extract_mentions(comment), ["test@example.com", "test1@example.com"])
 
-	@change_settings("System Settings", commit=True, password_reset_limit=1)
+	@IntegrationTestCase.change_settings("System Settings", commit=True, password_reset_limit=1)
 	def test_rate_limiting_for_reset_password(self):
 		url = get_url()
 		data = {"cmd": "frappe.core.doctype.user.user.reset_password", "user": "test@test.com"}
@@ -358,7 +367,7 @@ class TestUser(FrappeTestCase):
 				"/signup",
 			)
 
-	@change_settings("System Settings", password_reset_limit=6)
+	@IntegrationTestCase.change_settings("System Settings", password_reset_limit=6)
 	def test_reset_password(self):
 		from frappe.auth import CookieManager, LoginManager
 		from frappe.utils import set_request
@@ -406,7 +415,7 @@ class TestUser(FrappeTestCase):
 
 		# test redirect URL for website users
 		frappe.set_user("test2@example.com")
-		self.assertEqual(update_password(new_password, old_password=old_password), "/")
+		self.assertEqual(update_password(new_password, old_password=old_password), "me")
 		# reset password
 		update_password(old_password, old_password=new_password)
 
@@ -418,7 +427,7 @@ class TestUser(FrappeTestCase):
 			test_user.reload()
 			link = sendmail.call_args_list[0].kwargs["args"]["link"]
 			key = parse_qs(urlparse(link).query)["key"][0]
-			self.assertEqual(update_password(new_password, key=key), "/")
+			self.assertEqual(update_password(new_password, key=key), "me")
 			update_password(old_password, old_password=new_password)
 			self.assertEqual(
 				frappe.message_log[0].get("message"),
@@ -433,8 +442,8 @@ class TestUser(FrappeTestCase):
 		self.assertEqual(reset_password(user="random"), "not found")
 
 	def test_user_onload_modules(self):
-		from frappe.config import get_modules_from_all_apps
 		from frappe.desk.form.load import getdoc
+		from frappe.utils.modules import get_modules_from_all_apps
 
 		frappe.response.docs = []
 		getdoc("User", "Administrator")
@@ -444,7 +453,7 @@ class TestUser(FrappeTestCase):
 			sorted(m.get("module_name") for m in get_modules_from_all_apps()),
 		)
 
-	@change_settings("System Settings", reset_password_link_expiry_duration=1)
+	@IntegrationTestCase.change_settings("System Settings", reset_password_link_expiry_duration=1)
 	def test_reset_password_link_expiry(self):
 		new_password = "new_password"
 		frappe.set_user("testpassword@example.com")

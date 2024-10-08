@@ -8,7 +8,7 @@ import re
 from typing import TYPE_CHECKING, Optional, TypedDict
 
 import frappe
-from frappe import _, get_module_path
+from frappe import _, cstr, get_module_path
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.document_share_key.document_share_key import is_expired
 from frappe.utils import cint, escape_html, strip_html
@@ -68,7 +68,6 @@ def get_context(context) -> PrintContext:
 		doctype=frappe.form_dict.doctype, document=frappe.form_dict.name, file_type="PDF", method="Print"
 	)
 
-	print_style = None
 	body = get_rendered_template(
 		doc,
 		print_format=print_format,
@@ -84,7 +83,7 @@ def get_context(context) -> PrintContext:
 		"body": body,
 		"print_style": print_style,
 		"comment": frappe.session.user,
-		"title": frappe.utils.strip_html(doc.get_title() or doc.name),
+		"title": frappe.utils.strip_html(cstr(doc.get_title() or doc.name)),
 		"lang": frappe.local.lang,
 		"layout_direction": "rtl" if is_rtl() else "ltr",
 		"doctype": frappe.form_dict.doctype,

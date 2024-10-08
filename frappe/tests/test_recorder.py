@@ -8,13 +8,13 @@ import sqlparse
 import frappe
 import frappe.recorder
 from frappe.recorder import normalize_query
-from frappe.tests.utils import FrappeTestCase, timeout
+from frappe.tests import IntegrationTestCase, timeout
 from frappe.utils import set_request
 from frappe.utils.doctor import any_job_pending
 from frappe.website.serve import get_response_content
 
 
-class TestRecorder(FrappeTestCase):
+class TestRecorder(IntegrationTestCase):
 	def setUp(self):
 		self.wait_for_background_jobs()
 		frappe.recorder.stop()
@@ -143,7 +143,7 @@ class TestRecorder(FrappeTestCase):
 		self.assertIn("Error", content)
 
 
-class TestRecorderDeco(FrappeTestCase):
+class TestRecorderDeco(IntegrationTestCase):
 	def test_recorder_flag(self):
 		frappe.recorder.delete()
 
@@ -155,7 +155,7 @@ class TestRecorderDeco(FrappeTestCase):
 		self.assertTrue(frappe.recorder.get())
 
 
-class TestQueryNormalization(FrappeTestCase):
+class TestQueryNormalization(IntegrationTestCase):
 	def test_query_normalization(self):
 		test_cases = {
 			"select * from user where name = 'x'": "select * from user where name = ?",

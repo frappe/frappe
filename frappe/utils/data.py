@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import base64
+import calendar
 import datetime
 import hashlib
 import json
@@ -23,6 +24,9 @@ from dateutil.relativedelta import relativedelta
 
 import frappe
 from frappe.desk.utils import slug
+from frappe.locale import get_date_format, get_first_day_of_the_week, get_number_format, get_time_format
+from frappe.utils.deprecations import deprecated
+from frappe.utils.number_format import NUMBER_FORMAT_MAP, NumberFormat
 
 DateTimeLikeObject = str | datetime.date | datetime.datetime
 NumericType = int | float
@@ -82,10 +86,6 @@ class Weekday(Enum):
 	Thursday = 4
 	Friday = 5
 	Saturday = 6
-
-
-def get_first_day_of_the_week() -> str:
-	return frappe.get_system_settings("first_day_of_the_week") or "Sunday"
 
 
 def get_start_of_week_index() -> int:
@@ -676,9 +676,9 @@ def get_time_str(timedelta_obj: datetime.timedelta | str) -> str:
 def get_user_date_format() -> str:
 	"""Get the current user date format. The result will be cached."""
 	if getattr(frappe.local, "user_date_format", None) is None:
-		frappe.local.user_date_format = frappe.db.get_default("date_format")
+		frappe.local.user_date_format = get_date_format()
 
-	return frappe.local.user_date_format or "yyyy-mm-dd"
+	return frappe.local.user_date_format
 
 
 get_user_format = get_user_date_format  # for backwards compatibility
@@ -687,9 +687,9 @@ get_user_format = get_user_date_format  # for backwards compatibility
 def get_user_time_format() -> str:
 	"""Get the current user time format. The result will be cached."""
 	if getattr(frappe.local, "user_time_format", None) is None:
-		frappe.local.user_time_format = frappe.db.get_default("time_format")
+		frappe.local.user_time_format = get_time_format()
 
-	return frappe.local.user_time_format or "HH:mm:ss"
+	return frappe.local.user_time_format
 
 
 def format_date(string_date=None, format_string: str | None = None, parse_day_first: bool = False) -> str:
@@ -876,6 +876,20 @@ def get_weekday(datetime: DateTimeLikeObject | None = None) -> str:
 
 	weekdays = get_weekdays()
 	return weekdays[datetime.weekday()]
+
+
+def get_month(datetime: DateTimeLikeObject | None = None) -> str:
+	"""Return the month name (e.g. 'January') for the given datetime like object (datetime.date, datetime.datetime, string).
+
+	If `datetime` argument is not provided, the current month name is returned.
+	"""
+	if not datetime:
+		datetime = now_datetime()
+
+	if isinstance(datetime, str):
+		datetime = get_datetime(datetime)
+
+	return calendar.month_name[datetime.month]
 
 
 def get_timespan_date_range(
@@ -1332,14 +1346,13 @@ def fmt_money(
 	format: str | None = None,
 ) -> str:
 	"""Convert to string with commas for thousands, millions etc."""
-	number_format = format or frappe.db.get_default("number_format") or "#,###.##"
+	number_format = NumberFormat.from_string(format) if format else get_number_format()
+
 	if precision is None:
 		precision = cint(frappe.db.get_default("currency_precision")) or None
 
-	decimal_str, comma_str, number_format_precision = get_number_format_info(number_format)
-
 	if precision is None:
-		precision = number_format_precision
+		precision = number_format.precision
 
 	# 40,000 -> 40,000.00
 	# 40,000.00000 -> 40,000.00
@@ -1351,7 +1364,7 @@ def fmt_money(
 	if amount is None:
 		amount = 0
 
-	if decimal_str:
+	if number_format.decimal_separator:
 		decimals_after = str(round(amount % 1, precision))
 		parts = decimals_after.split(".")
 		parts = parts[1] if len(parts) > 1 else parts[0]
@@ -1362,7 +1375,7 @@ def fmt_money(
 					fraction = frappe.db.get_value("Currency", currency, "fraction_units", cache=True) or 100
 					precision = len(cstr(fraction)) - 1
 				else:
-					precision = number_format_precision
+					precision = number_format.precision
 			elif len(decimals) < precision:
 				precision = len(decimals)
 
@@ -1384,7 +1397,7 @@ def fmt_money(
 		parts.append(amount[-3:])
 		amount = amount[:-3]
 
-		val = number_format == "#,##,###.##" and 2 or 3
+		val = 2 if number_format.string == "#,##,###.##" else 3
 
 		while len(amount) > val:
 			parts.append(amount[-val:])
@@ -1394,7 +1407,9 @@ def fmt_money(
 
 	parts.reverse()
 
-	amount = comma_str.join(parts) + ((precision and decimal_str) and (decimal_str + decimals) or "")
+	amount = number_format.thousands_separator.join(parts) + (
+		(precision and number_format.decimal_separator) and (number_format.decimal_separator + decimals) or ""
+	)
 	if amount != "0":
 		amount = minus + amount
 
@@ -1410,29 +1425,21 @@ def fmt_money(
 	return amount
 
 
-number_format_info = {
-	"#,###.##": (".", ",", 2),
-	"#.###,##": (",", ".", 2),
-	"# ###.##": (".", " ", 2),
-	"# ###,##": (",", " ", 2),
-	"#'###.##": (".", "'", 2),
-	"#, ###.##": (".", ", ", 2),
-	"#,##,###.##": (".", ",", 2),
-	"#,###.###": (".", ",", 3),
-	"#.###": ("", ".", 0),
-	"#,###": ("", ",", 0),
-	"#.########": (".", "", 8),
-}
+# keep for backwards compatibility
+number_format_info = NUMBER_FORMAT_MAP
 
 
+@deprecated
 def get_number_format_info(format: str) -> tuple[str, str, int]:
-	"""Return the decimal separator, thousands separator and precision for the given number `format` string.
+	"""DEPRECATED: use `NumberFormat.from_string()` from `frappe.utils.number_format` instead.
 
-	e.g. get_number_format_info('1,00,000.50') -> ('.', ',', 2)
+	Return the decimal separator, thousands separator and precision for the given number `format` string.
+
+	e.g. get_number_format_info('#,##,###.##') -> ('.', ',', 2)
 
 	Will return ('.', ',', 2) for format strings which can't be guessed.
 	"""
-	return number_format_info.get(format) or (".", ",", 2)
+	return NUMBER_FORMAT_MAP.get(format) or (".", ",", 2)
 
 
 #
@@ -1461,18 +1468,16 @@ def money_in_words(
 	d = get_defaults()
 	if not main_currency:
 		main_currency = d.get("currency", "INR")
+
 	if not fraction_currency:
 		fraction_currency = frappe.db.get_value("Currency", main_currency, "fraction", cache=True) or _(
 			"Cent"
 		)
 
-	number_format = (
-		frappe.db.get_value("Currency", main_currency, "number_format", cache=True)
-		or frappe.db.get_default("number_format")
-		or "#,###.##"
-	)
+	number_format = get_number_format()
 
-	fraction_length = get_number_format_info(number_format)[2]
+	fraction_units = frappe.db.get_value("Currency", main_currency, "fraction_units", cache=True)
+	fraction_length = math.ceil(math.log10(fraction_units)) or number_format.precision
 
 	n = f"%.{fraction_length}f" % number
 
@@ -1484,21 +1489,21 @@ def money_in_words(
 		fraction += zeros
 
 	in_million = True
-	if number_format == "#,##,###.##":
+	if number_format.string == "#,##,###.##":
 		in_million = False
 
+	def fraction_in_words() -> str:
+		return in_words(float(f"0.{fraction}") * fraction_units, in_million).title()
+
 	# 0.00
-	if main == "0" and fraction in ["00", "000"]:
+	if main == "0" and fraction in ["0", "00", "000"]:
 		out = _(main_currency, context="Currency") + " " + _("Zero")
-	# 0.XX
 	elif main == "0":
-		out = in_words(fraction, in_million).title() + " " + fraction_currency
+		out = f"{fraction_in_words()} {fraction_currency}"
 	else:
 		out = _(main_currency, context="Currency") + " " + in_words(main, in_million).title()
 		if cint(fraction):
-			out = (
-				out + " " + _("and") + " " + in_words(fraction, in_million).title() + " " + fraction_currency
-			)
+			out = out + " " + _("and") + " " + fraction_in_words() + " " + fraction_currency
 
 	return _("{0} only.", context="Money in words").format(out)
 
@@ -2437,10 +2442,13 @@ class UnicodeWithAttrs(str):
 		self.metadata = text.metadata
 
 
-def format_timedelta(o: datetime.timedelta) -> str:
-	# mariadb allows a wide diff range - https://mariadb.com/kb/en/time/
-	# but frappe doesnt - i think via babel : only allows 0..23 range for hour
-	total_seconds = o.total_seconds()
+def format_timedelta(o: datetime.timedelta | str) -> str:
+	# MariaDB allows a wide range - https://mariadb.com/kb/en/time/
+	# but Frappe doesn't - I think via babel : only allows 0..23 range for hour
+	if isinstance(o, datetime.timedelta):
+		total_seconds = o.total_seconds()
+	else:
+		total_seconds = cint(o)
 	hours, remainder = divmod(total_seconds, 3600)
 	minutes, seconds = divmod(remainder, 60)
 	rounded_seconds = round(seconds, 6)
@@ -2501,9 +2509,21 @@ def add_trackers_to_url(
 	medium: str | None = None,
 	content: str | None = None,
 ) -> str:
+	def get_utm_values():
+		_source = frappe.db.get_value("UTM Source", source, "slug") or source
+		_campaign = frappe.db.get_value("UTM Campaign", campaign, "slug") or campaign
+		_medium = frappe.db.get_value("UTM Medium", medium, "slug") or medium
+		return _source, _medium, _campaign
+
 	url_parts = list(urlparse(url))
 	if url_parts[0] == "mailto":
 		return url
+
+	source, medium, campaign = frappe.cache.get_value(
+		"utm_" + cstr(source) + "_" + cstr(medium) + "_" + cstr(campaign),
+		get_utm_values,
+		shared=True,
+	)
 
 	trackers = {"utm_source": source}
 
@@ -2520,6 +2540,50 @@ def add_trackers_to_url(
 
 	url_parts[4] = urlencode(query)
 	return urlunparse(url_parts)
+
+
+def parse_and_map_trackers_from_url(url: str, create: bool = False) -> dict:
+	query = urlparse(url).query
+
+	url_trackers = dict(parse_qsl(query))
+
+	return map_trackers(url_trackers, create)
+
+
+def map_trackers(url_trackers: dict, create: bool = False):
+	frappe_trackers = {}
+
+	if url_source := url_trackers.get("utm_source", url_trackers.get("source")):
+		source = frappe.db.get_value("UTM Source", {"slug": slug(url_source)}, "name") or url_source
+		if create and source == url_source and not frappe.db.exists("UTM Source", source):
+			source = frappe.new_doc("UTM Source")
+			source.name = url_source
+			source.description = f"Autogenerated from {url_trackers}"
+			source.save(ignore_permissions=True)
+		frappe_trackers["utm_source"] = source
+
+	if url_medium := url_trackers.get("utm_medium", url_trackers.get("medium")):
+		medium = frappe.db.get_value("UTM Medium", {"slug": slug(url_medium)}, "name") or url_medium
+		if create and medium == url_medium and not frappe.db.exists("UTM Medium", medium):
+			medium = frappe.new_doc("UTM Medium")
+			medium.name = url_medium
+			medium.description = f"Autogenerated from {url_trackers}"
+			medium.save(ignore_permissions=True)
+		frappe_trackers["utm_medium"] = medium
+
+	if url_campaign := url_trackers.get("utm_campaign", url_trackers.get("campaign")):
+		campaign = frappe.db.get_value("UTM Campaign", {"slug": slug(url_campaign)}, "name") or url_campaign
+		if create and campaign == url_campaign and not frappe.db.exists("UTM Campaign", campaign):
+			campaign = frappe.new_doc("UTM Campaign")
+			campaign.name = url_campaign
+			campaign.campaign_description = f"Autogenerated from {url_trackers}"
+			campaign.save(ignore_permissions=True)
+		frappe_trackers["utm_campaign"] = campaign
+
+	if url_content := url_trackers.get("utm_content", url_trackers.get("content")):
+		frappe_trackers["utm_content"] = url_content
+
+	return frappe_trackers
 
 
 # This is used in test to count memory overhead of default imports.

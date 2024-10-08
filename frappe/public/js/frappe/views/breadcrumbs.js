@@ -74,6 +74,14 @@ frappe.breadcrumbs = {
 			}
 		}
 
+		if (
+			breadcrumbs.workspace &&
+			frappe.workspace_map[breadcrumbs.workspace]?.app &&
+			frappe.workspace_map[breadcrumbs.workspace]?.app != frappe.current_app
+		) {
+			frappe.app.sidebar.set_current_app(frappe.workspace_map[breadcrumbs.workspace].app);
+		}
+
 		this.toggle(true);
 	},
 
@@ -142,23 +150,29 @@ frappe.breadcrumbs = {
 				frappe.boot.module_wise_workspaces[breadcrumbs.module]?.includes(last_workspace)
 			) {
 				breadcrumbs.workspace = last_workspace;
-				return;
 			}
-		}
-
-		if (breadcrumbs.module) {
-			if (this.module_map[breadcrumbs.module]) {
-				breadcrumbs.module = this.module_map[breadcrumbs.module];
+		} else {
+			// choose from __workspaces
+			const doctype_meta = frappe.get_meta(breadcrumbs.doctype);
+			if (doctype_meta?.__workspaces?.length) {
+				breadcrumbs.workspace = doctype_meta.__workspaces[0];
 			}
 
-			breadcrumbs.module_info = frappe.get_module(breadcrumbs.module);
+			if (breadcrumbs.module) {
+				if (this.module_map[breadcrumbs.module]) {
+					breadcrumbs.module = this.module_map[breadcrumbs.module];
+				}
 
-			// set workspace
-			if (
-				breadcrumbs.module_info &&
-				frappe.boot.module_wise_workspaces[breadcrumbs.module]
-			) {
-				breadcrumbs.workspace = frappe.boot.module_wise_workspaces[breadcrumbs.module][0];
+				breadcrumbs.module_info = frappe.get_module(breadcrumbs.module);
+
+				// set workspace
+				if (
+					breadcrumbs.module_info &&
+					frappe.boot.module_wise_workspaces[breadcrumbs.module]
+				) {
+					breadcrumbs.workspace =
+						frappe.boot.module_wise_workspaces[breadcrumbs.module][0];
+				}
 			}
 		}
 	},

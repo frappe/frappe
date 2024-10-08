@@ -32,7 +32,6 @@ from frappe.monitor import get_trace_id
 from frappe.query_builder.functions import Count
 from frappe.utils import CallbackManager, cint, get_datetime, get_table_name, getdate, now, sbool
 from frappe.utils import cast as cast_fieldtype
-from frappe.utils.deprecations import deprecated, deprecation_warning
 
 if TYPE_CHECKING:
 	from psycopg2 import connection as PostgresConnection
@@ -962,8 +961,12 @@ class Database:
 		if dn is None or dt == dn:
 			if not is_single_doctype(dt):
 				return
+			from frappe.deprecation_dumpster import deprecation_warning
+
 			deprecation_warning(
-				"Calling db.set_value on single doctype is deprecated. This behaviour will be removed in future. Use db.set_single_value instead."
+				"unknown",
+				"v17",
+				"Calling db.set_value on single doctype is deprecated. This behaviour will be removed in future. Use db.set_single_value instead.",
 			)
 			self.set_single_value(
 				doctype=dt,
@@ -1243,10 +1246,9 @@ class Database:
 		# implemented in specific class
 		raise NotImplementedError
 
-	@staticmethod
-	@deprecated
-	def is_column_missing(e):
-		return frappe.db.is_missing_column(e)
+	from frappe.deprecation_dumpster import is_column_missing as _is_column_missing
+
+	is_column_missing = staticmethod(_is_column_missing)
 
 	def get_descendants(self, doctype, name):
 		"""Return descendants of the group node in tree"""

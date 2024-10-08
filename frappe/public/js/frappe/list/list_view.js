@@ -106,8 +106,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			});
 		}
 
-		if (this.view_name == "List") this.toggle_paging = true;
-
 		this.patch_refresh_and_load_lib();
 		return this.get_list_view_settings();
 	}
@@ -476,9 +474,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					[__(this.doctype)],
 					"Create a new document from list view"
 			  );
-		let empty_state_image =
-			this.settings.empty_state_image ||
-			"/assets/frappe/images/ui-states/list-empty-state.svg";
 
 		const new_button = this.can_create
 			? `<p><button class="btn btn-default btn-sm btn-new-doc hidden-xs">
@@ -489,8 +484,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			: "";
 
 		return `<div class="msg-box no-border">
-			<div>
-				<img src="${empty_state_image}" alt="Generic Empty State" class="null-state">
+			<div class="mb-4">
+			  	<svg class="icon icon-xl" style="stroke: var(--text-light);">
+					<use href="#icon-small-file"></use>
+				</svg>
 			</div>
 			<p>${no_result_message}</p>
 			${new_button}
@@ -566,6 +563,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (this.$result.find(".list-row-head").length === 0) {
 			// append header once
 			this.$result.prepend(this.get_header_html());
+
+			if (this.filter_area.filter_list.get_filter_value("_liked_by")) {
+				// if there is a liked fitler, then add liked
+				this.$result.find(".list-liked-by-me").addClass("liked");
+			}
 		}
 	}
 
@@ -584,17 +586,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			sort_by: this.sort_selector && this.sort_selector.sort_by,
 			sort_order: this.sort_selector && this.sort_selector.sort_order,
 		});
-		this.toggle_paging && this.$paging_area.toggle(false);
 	}
 
 	after_render() {
-		this.$no_result.html(`
-			<div class="no-result text-muted flex justify-center align-center">
-				${this.get_no_result_message()}
-			</div>
-		`);
+		this.$no_result.html(this.get_no_result_message());
 		this.setup_new_doc_event();
-		this.toggle_paging && this.$paging_area.toggle(true);
 	}
 
 	render() {
@@ -605,6 +601,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	render_list() {
 		// clear rows
 		this.$result.find(".list-row-container").remove();
+		this.render_header();
 
 		if (this.data.length > 0) {
 			// append rows
@@ -643,7 +640,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_count_element() {
-		return this.$result.find(".list-count");
+		return this.$result?.find(".list-count");
 	}
 
 	get_header_html() {
@@ -690,7 +687,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			<span class="list-count"></span>
 			<span class="level-item list-liked-by-me hidden-xs">
 				<span title="${__("Liked by me")}">
-					${frappe.utils.icon("es-solid-heart", "sm", "like-icon")}
+					<svg class="icon icon-sm like-icon">
+						<use href="#icon-heart"></use>
+					</svg>
 				</span>
 			</span>
 		`;
@@ -1464,9 +1463,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		this.$result.on("click", ".list-liked-by-me", (e) => {
 			const $this = $(e.currentTarget);
-			$this.toggleClass("active");
+			$this.toggleClass("liked");
 
-			if ($this.hasClass("active")) {
+			if ($this.hasClass("liked")) {
 				this.filter_area.add(
 					this.doctype,
 					"_liked_by",
@@ -2237,7 +2236,7 @@ class ElementFactory {
 	create_like_element(doctype) {
 		const like = document.createElement("span");
 		like.classList.add("like-action");
-		like.innerHTML = frappe.utils.icon("es-solid-heart", "sm", "like-icon");
+		like.innerHTML = `<svg class="icon icon-sm like-icon"><use href="#icon-heart"></use></svg>`;
 		like.dataset.doctype = doctype;
 
 		return like;

@@ -5,26 +5,25 @@ frappe.ui.form.on("Workspace Settings", {
 	setup(frm) {
 		frm.hide_full_form_button = true;
 		frm.docfields = [];
+		frm.workspace_map = {};
 		let workspace_visibilty = JSON.parse(frm.doc.workspace_visibility_json || "{}");
 
 		// build fields from workspaces
 		let cnt = 0,
 			column_added = false;
-		for (let w of frappe.boot.allowed_workspaces) {
-			if (w.public) {
+		for (let page of frappe.boot.allowed_workspaces) {
+			if (page.public) {
+				frm.workspace_map[page.name] = page;
 				cnt++;
 				frm.docfields.push({
 					fieldtype: "Check",
-					fieldname: w.name,
-					label: w.title,
-					initial_value: workspace_visibilty[w.name] !== 0, // not set is also visible
+					fieldname: page.name,
+					hidden: !frappe.boot.app_data_map[frappe.current_app].workspaces.includes(
+						page.title
+					),
+					label: page.title + (page.parent_page ? ` (${page.parent_page})` : ""),
+					initial_value: workspace_visibilty[page.name] !== 0, // not set is also visible
 				});
-			}
-
-			if (cnt >= frappe.boot.allowed_workspaces.length / 2 && !column_added) {
-				// add column break to split into 2 columns
-				frm.docfields.push({ fieldtype: "Column Break" });
-				column_added = true;
 			}
 		}
 
@@ -36,9 +35,6 @@ frappe.ui.form.on("Workspace Settings", {
 	},
 	after_save(frm) {
 		// reload page to show latest sidebar
-		window.location.reload();
-	},
-	refresh(frm) {
-		frm.dialog.set_alert(__("Select modules you want to see in the sidebar"));
+		frappe.app.sidebar.reload();
 	},
 });

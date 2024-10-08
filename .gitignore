@@ -194,3 +194,7 @@ cypress/videos
 
 # JetBrains IDEs
 .idea/
+# Helix Editor
+.helix/
+# Aider AI Chat
+.aider*

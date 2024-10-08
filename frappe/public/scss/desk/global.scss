@@ -9,15 +9,6 @@ body {
 	font-weight: var(--weight-regular);
 	letter-spacing: 0.02em;
 	background-color: var(--bg-color);
-
-	&.full-width {
-		@include media-breakpoint-up(md) {
-			.container {
-				width: 90%;
-				max-width: 100%;
-			}
-		}
-	}
 }
 
 a {
@@ -94,6 +85,10 @@ a.badge-hover {
 pre {
 	color: var(--text-light);
 	white-space: pre-wrap;
+}
+
+.container {
+	max-width: 100%;
 }
 
 .col-xs-1 {
@@ -174,11 +169,6 @@ footer {
 
 .pull-right {
 	float: right;
-}
-
-img {
-	max-width: 100%;
-	height: auto;
 }
 
 .missing-image {
@@ -519,7 +509,7 @@ kbd {
 
 // freeze backdrop text
 #freeze {
-	z-index: 1055;
+	z-index: 2000;
 	bottom: 0;
 	opacity: 0;
 	background-color: var(--bg-color);
@@ -584,10 +574,6 @@ body.no-sidebar {
 	@include media-breakpoint-up(md) {
 		.layout-side-section {
 			display: none;
-		}
-
-		.layout-main-section-wrapper {
-			width: 100% !important;
 		}
 	}
 }

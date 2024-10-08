@@ -52,7 +52,6 @@
 
 			.layout-main-section-wrapper {
 				flex: 1;
-				max-width: 100%;
 			}
 		}
 	}
@@ -61,12 +60,18 @@
 .list-row-container {
 	display: flex;
 	flex-direction: column;
+	padding: var(--padding-xs) var(--padding-md);
 	border-bottom: 1px solid $border-color;
 
 	&:focus {
 		.list-row {
 			background-color: var(--highlight-color);
 		}
+	}
+
+	&:first-child {
+		padding-top: 0;
+		border-bottom: none;
 	}
 
 	&:last-child {
@@ -77,6 +82,7 @@
 .list-row {
 	padding-right: 15px;
 	height: var(--list-row-height);
+	border-radius: var(--border-radius);
 	cursor: pointer;
 	transition: color 0.2s;
 	-webkit-transition: color 0.2s;
@@ -164,7 +170,8 @@
 	@extend .list-row;
 	cursor: default;
 	background-color: var(--subtle-fg);
-	height: 36px;
+	border-radius: var(--border-radius);
+	height: var(--list-row-height);
 
 	.list-subject {
 		font-weight: normal;
@@ -221,14 +228,14 @@ $level-margin-right: 8px;
 		}
 	}
 	.btn-paging {
-		background-color: var(--gray-50);
+		background-color: var(--control-bg);
 	}
 }
 
-.frappe-card {
+.layout-main-list {
 	.list-paging-area,
 	.footnote-area {
-		padding: var(--padding-md);
+		padding: var(--padding-sm) var(--padding-md);
 	}
 }
 

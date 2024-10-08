@@ -5,13 +5,22 @@ import json
 import frappe
 from frappe.contacts.doctype.contact.contact import get_contact_name
 from frappe.core.doctype.user.user import create_contact
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.website.doctype.personal_data_download_request.personal_data_download_request import (
 	get_user_data,
 )
 
 
-class TestRequestPersonalData(FrappeTestCase):
+class UnitTestPersonalDataDownloadRequest(UnitTestCase):
+	"""
+	Unit tests for PersonalDataDownloadRequest.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestRequestPersonalData(IntegrationTestCase):
 	def setUp(self):
 		create_user_if_not_exists(email="test_privacy@example.com")
 

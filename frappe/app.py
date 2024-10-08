@@ -8,6 +8,7 @@ import os
 import re
 
 from werkzeug.exceptions import HTTPException, NotFound
+from werkzeug.http import generate_etag, is_resource_modified, quote_etag
 from werkzeug.middleware.profiler import ProfilerMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.middleware.shared_data import SharedDataMiddleware
@@ -26,7 +27,6 @@ from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, val
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils import CallbackManager, cint, get_site_name
 from frappe.utils.data import escape_html
-from frappe.utils.deprecations import deprecation_warning
 from frappe.utils.error import log_error_snapshot
 from frappe.website.serve import get_response
 
@@ -104,8 +104,12 @@ def application(request: Request):
 			response = Response()
 
 		elif frappe.form_dict.cmd:
+			from frappe.deprecation_dumpster import deprecation_warning
+
 			deprecation_warning(
-				f"{frappe.form_dict.cmd}: Sending `cmd` for RPC calls is deprecated, call REST API instead `/api/method/cmd`"
+				"unknown",
+				"v17",
+				f"{frappe.form_dict.cmd}: Sending `cmd` for RPC calls is deprecated, call REST API instead `/api/method/cmd`",
 			)
 			frappe.handler.handle()
 			response = frappe.utils.response.build_response("json")
@@ -148,8 +152,13 @@ def application(request: Request):
 			# We can not handle exceptions safely here.
 			frappe.logger().error("Failed to run after request hook", exc_info=True)
 
-		log_request(request, response)
-		process_response(response)
+	log_request(request, response)
+	# return 304 if unmodified
+	if not response.direct_passthrough:
+		etag = generate_etag(response.data)
+		if not is_resource_modified(request.environ, etag):
+			return Response(status=304, headers={"ETag": quote_etag(etag)})
+	process_response(response)
 
 	return response
 
@@ -169,7 +178,7 @@ def init_request(request):
 	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With") == "XMLHttpRequest"
 
 	site = _site or request.headers.get("X-Frappe-Site-Name") or get_site_name(request.host)
-	frappe.init(site=site, sites_path=_sites_path, force=True)
+	frappe.init(site, sites_path=_sites_path, force=True)
 
 	if not (frappe.local.conf and frappe.local.conf.db_name):
 		# site does not exist
@@ -237,8 +246,26 @@ def process_response(response):
 	if not response:
 		return
 
-	# set cookies
-	if hasattr(frappe.local, "cookie_manager"):
+	# cache control
+	# read: https://simonhearne.com/2022/caching-header-best-practices/
+	if frappe.local.response.can_cache:
+		response.headers.extend(
+			{
+				# default: 5m (proxy), 5m (client), 3h (allow stale resources for this long if upstream is down)
+				"Cache-Control": "public,s-maxage=300,max-age=300,stale-while-revalidate=10800",
+				# for revalidation of a stale resource
+				"ETag": quote_etag(generate_etag(response.data)),
+			}
+		)
+	else:
+		response.headers.extend(
+			{
+				"Cache-Control": "no-store,no-cache,must-revalidate,max-age=0",
+			}
+		)
+
+	# Set cookies, only if response is non-cacheable to avoid proxy cache invalidation
+	if hasattr(frappe.local, "cookie_manager") and not frappe.local.response.can_cache:
 		frappe.local.cookie_manager.flush_cookies(response=response)
 
 	# rate limiter headers

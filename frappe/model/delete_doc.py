@@ -246,7 +246,7 @@ def check_permission_and_not_submitted(doc):
 		)
 
 	# check if submitted
-	if doc.docstatus.is_submitted():
+	if doc.meta.is_submittable and doc.docstatus.is_submitted():
 		frappe.msgprint(
 			_("{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first.").format(
 				_(doc.doctype),

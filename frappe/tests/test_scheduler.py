@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType, sync_jobs
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, get_datetime
 from frappe.utils.data import now_datetime
 from frappe.utils.doctor import purge_pending_jobs
@@ -28,7 +28,7 @@ def test_method():
 	pass
 
 
-class TestScheduler(FrappeTestCase):
+class TestScheduler(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.rollback()
 

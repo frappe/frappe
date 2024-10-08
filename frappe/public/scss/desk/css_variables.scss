@@ -20,7 +20,7 @@
 	--error-border: var(--red-400);
 
 	// page
-	--page-head-height: 60px;
+	--page-head-height: 45px;
 	--page-bottom-margin: 60px;
 
 	// checkbox
@@ -52,7 +52,7 @@
 	--progress-bar-bg: var(--primary);
 
 	// list
-	--list-row-height: 40px;
+	--list-row-height: 30px;
 	--list-checkbox-padding: calc((var(--list-row-height) - var(--checkbox-size)) / 2);
 
 	@include media-breakpoint-down(md) {

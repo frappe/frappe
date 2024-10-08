@@ -14,10 +14,12 @@ Example:
 
 
 """
+
 import json
 import os
 import typing
 from datetime import datetime
+from functools import singledispatchmethod
 
 import click
 
@@ -56,10 +58,20 @@ DEFAULT_FIELD_LABELS = {
 }
 
 
-def get_meta(doctype, cached=True) -> "_Meta":
-	cached = cached and isinstance(doctype, str)
-	if cached and (meta := frappe.cache.hget("doctype_meta", doctype)):
-		return meta
+def get_meta(doctype: str | Document, cached=True) -> "_Meta":
+	"""Get metadata for a doctype.
+
+	Args:
+	    doctype: The doctype as a string or Document object.
+	    cached: Whether to use cached metadata (default: True).
+
+	Returns:
+	    Meta object for the given doctype.
+	"""
+	doctype_name = getattr(doctype, "doctype", doctype)
+	if cached and not isinstance(doctype, Document):
+		if meta := frappe.cache.hget("doctype_meta", doctype_name):
+			return meta
 
 	meta = Meta(doctype)
 	frappe.cache.hset("doctype_meta", meta.name, meta)
@@ -111,12 +123,18 @@ class Meta(Document):
 		frappe._dict(fieldname="owner", fieldtype="Data"),
 	)
 
-	def __init__(self, doctype):
-		if isinstance(doctype, Document):
-			super().__init__(doctype.as_dict())
-		else:
-			super().__init__("DocType", doctype)
+	@singledispatchmethod
+	def __init__(self, arg):
+		raise TypeError(f"Unsupported argument type: {type(arg)}")
 
+	@__init__.register(str)
+	def _(self, doctype):
+		super().__init__("DocType", doctype)
+		self.process()
+
+	@__init__.register(Document)
+	def _(self, doc):
+		super().__init__(doc.as_dict())
 		self.process()
 
 	def load_from_db(self):
@@ -221,12 +239,27 @@ class Meta(Document):
 				self._valid_columns = get_table_columns(self.name)
 			else:
 				self._valid_columns = self.default_fields + [
-					df.fieldname for df in self.get("fields") if df.fieldtype in data_fieldtypes
+					df.fieldname
+					for df in self.get("fields")
+					if not df.get("is_virtual") and df.fieldtype in data_fieldtypes
 				]
 				if self.istable:
 					self._valid_columns += list(child_table_fields)
 
 		return self._valid_columns
+
+	def get_valid_fields(self) -> list[str]:
+		if not hasattr(self, "_valid_fields"):
+			if (frappe.flags.in_install or frappe.flags.in_migrate) and self.name in self.special_doctypes:
+				self._valid_fields = get_table_columns(self.name)
+			else:
+				self._valid_fields = self.default_fields + [
+					df.fieldname for df in self.get("fields") if df.fieldtype in data_fieldtypes
+				]
+				if self.istable:
+					self._valid_fields += list(child_table_fields)
+
+		return self._valid_fields
 
 	def get_table_field_doctype(self, fieldname):
 		return TABLE_DOCTYPES_FOR_DOCTYPE.get(fieldname)
@@ -481,7 +514,7 @@ class Meta(Document):
 					field_order = fields_to_prepend
 
 		existing_fields = set(field_order) if field_order else False
-		insert_after_map = {}
+		insertion_map = {}
 
 		for index, field in enumerate(self.fields):
 			if existing_fields and field.fieldname in existing_fields:
@@ -490,19 +523,29 @@ class Meta(Document):
 			if not getattr(field, "is_custom_field", False):
 				if existing_fields:
 					# compute insert_after from previous field
-					insert_after_map.setdefault(self.fields[index - 1].fieldname, []).append(field.fieldname)
+					insertion_map.setdefault(self.fields[index - 1].fieldname, []).append(field.fieldname)
 				else:
 					field_order.append(field.fieldname)
 
-			elif insert_after := getattr(field, "insert_after", None):
-				insert_after_map.setdefault(insert_after, []).append(field.fieldname)
+			elif target_position := getattr(field, "insert_after", None):
+				original_target = target_position
+				if field.fieldtype in ["Section Break", "Column Break"] and target_position in field_order:
+					# Find the next section or column break and set target_position to just one field before
+					for current_field in field_order[field_order.index(target_position) + 1 :]:
+						if self._fields[current_field].fieldtype == "Section Break" or (
+							self._fields[current_field].fieldtype == self._fields[original_target].fieldtype
+						):
+							# Break out to add this just after the last field
+							break
+						target_position = current_field
+				insertion_map.setdefault(target_position, []).append(field.fieldname)
 
 			else:
 				# if custom field is at the top, insert after is None
 				field_order.insert(0, field.fieldname)
 
-		if insert_after_map:
-			_update_field_order_based_on_insert_after(field_order, insert_after_map)
+		if insertion_map:
+			_update_field_order_based_on_insert_after(field_order, insertion_map)
 
 		self._update_fields_based_on_order(field_order)
 
@@ -796,7 +839,7 @@ def get_field_currency(df, doc=None):
 
 def get_field_precision(df, doc=None, currency=None):
 	"""get precision based on DocField options and fieldvalue in doc"""
-	from frappe.utils import get_number_format_info
+	from frappe.locale import get_number_format
 
 	if df.precision:
 		precision = cint(df.precision)
@@ -804,8 +847,8 @@ def get_field_precision(df, doc=None, currency=None):
 	elif df.fieldtype == "Currency":
 		precision = cint(frappe.db.get_default("currency_precision"))
 		if not precision:
-			number_format = frappe.db.get_default("number_format") or "#,###.##"
-			decimal_str, comma_str, precision = get_number_format_info(number_format)
+			number_format = get_number_format()
+			precision = number_format.precision
 	else:
 		precision = cint(frappe.db.get_default("float_precision")) or 3
 
@@ -819,6 +862,9 @@ def get_default_df(fieldname):
 
 		elif fieldname in ("idx", "docstatus"):
 			return frappe._dict(fieldname=fieldname, fieldtype="Int")
+
+		elif fieldname in ("owner", "modified_by"):
+			return frappe._dict(fieldname=fieldname, fieldtype="Link", options="User")
 
 		return frappe._dict(fieldname=fieldname, fieldtype="Data")
 

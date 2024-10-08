@@ -299,6 +299,9 @@ Object.assign(frappe.utils, {
 			);
 		return content.html();
 	},
+	scroll_page_to_top() {
+		$(".main-section").scrollTop(0);
+	},
 	scroll_to: function (
 		element,
 		animate = true,
@@ -918,16 +921,19 @@ Object.assign(frappe.utils, {
 		let route = route_str.split("/");
 
 		if (route[2] === "Report" || route[0] === "query-report") {
-			return __("{0} Report", [__(route[3]) || __(route[1])]);
+			return (__(route[3]) || __(route[1])).bold() + " " + __("Report");
 		}
 		if (route[0] === "List") {
-			return __("{0} List", [__(route[1])]);
+			return __(route[1]).bold() + " " + __("List");
 		}
 		if (route[0] === "modules") {
-			return __("{0} Modules", [__(route[1])]);
+			return __(route[1]).bold() + " " + __("Module");
+		}
+		if (route[0] === "Workspaces") {
+			return __(route[1]).bold() + " " + __("Workspace");
 		}
 		if (route[0] === "dashboard") {
-			return __("{0} Dashboard", [__(route[1])]);
+			return __(route[1]).bold() + " " + __("Dashboard");
 		}
 		return __(frappe.utils.to_title_case(__(route[0]), true));
 	},
@@ -1301,7 +1307,7 @@ Object.assign(frappe.utils, {
 					route =
 						frappe.router.slug(item.report_ref_doctype) + "/view/report/" + item.name;
 				} else {
-					route = "/report/" + item.name;
+					route = "report/" + item.name;
 				}
 			} else if (type === "page") {
 				route = item.name;
@@ -1712,8 +1718,9 @@ Object.assign(frappe.utils, {
 				{
 					fieldname: "source",
 					label: __("Source"),
-					fieldtype: "Data",
+					fieldtype: "Link",
 					reqd: 1,
+					options: "UTM Source",
 					description: "The referrer (e.g. google, newsletter)",
 					default: localStorage.getItem("tracker_url:source"),
 				},
@@ -1722,13 +1729,14 @@ Object.assign(frappe.utils, {
 					label: __("Campaign"),
 					fieldtype: "Link",
 					ignore_link_validation: 1,
-					options: "Marketing Campaign",
+					options: "UTM Campaign",
 					default: localStorage.getItem("tracker_url:campaign"),
 				},
 				{
 					fieldname: "medium",
 					label: __("Medium"),
-					fieldtype: "Data",
+					fieldtype: "Link",
+					options: "UTM Medium",
 					description: "Marketing medium (e.g. cpc, banner, email)",
 					default: localStorage.getItem("tracker_url:medium"),
 				},
@@ -1740,21 +1748,32 @@ Object.assign(frappe.utils, {
 					default: localStorage.getItem("tracker_url:content"),
 				},
 			],
-			function (data) {
+			async function (data) {
 				let url = data.url;
 				localStorage.setItem("tracker_url:url", data.url);
 
-				url += "?utm_source=" + encodeURIComponent(data.source);
+				const { message } = await frappe.db.get_value("UTM Source", data.source, "slug");
+				url += "?utm_source=" + encodeURIComponent(message.slug || data.source);
 				localStorage.setItem("tracker_url:source", data.source);
 				if (data.campaign) {
-					url += "&utm_campaign=" + encodeURIComponent(data.campaign);
+					const { message } = await frappe.db.get_value(
+						"UTM Campaign",
+						data.campaign,
+						"slug"
+					);
+					url += "&utm_campaign=" + encodeURIComponent(message.slug || data.campaign);
 					localStorage.setItem("tracker_url:campaign", data.campaign);
 				}
 				if (data.medium) {
-					url += "&utm_medium=" + encodeURIComponent(data.medium);
+					const { message } = await frappe.db.get_value(
+						"UTM Medium",
+						data.medium,
+						"slug"
+					);
+					url += "&utm_medium=" + encodeURIComponent(message.slug || data.medium);
 					localStorage.setItem("tracker_url:medium", data.medium);
 				}
-				if (data.medium) {
+				if (data.content) {
 					url += "&utm_content=" + encodeURIComponent(data.content);
 					localStorage.setItem("tracker_url:content", data.content);
 				}
@@ -1770,5 +1789,23 @@ Object.assign(frappe.utils, {
 			},
 			__("Generate Tracking URL")
 		);
+	},
+
+	/**
+	 * Checks if a value is empty.
+	 *
+	 * Returns false for: "hello", 0, 1, 3.1415, {"a": 1}, [1, 2, 3]
+	 * Returns true for: "", null, undefined, {}, []
+	 *
+	 * @param {*} value - The value to check.
+	 * @returns {boolean} - Returns `true` if the value is empty, `false` otherwise.
+	 */
+	is_empty(value) {
+		if (!value && value !== 0) return true;
+
+		if (typeof value === "object")
+			return (Array.isArray(value) ? value : Object.keys(value)).length === 0;
+
+		return false;
 	},
 });

@@ -26,7 +26,6 @@ import frappe.monitor
 from frappe import _
 from frappe.utils import CallbackManager, cint, get_bench_id
 from frappe.utils.commands import log
-from frappe.utils.deprecations import deprecation_warning
 from frappe.utils.redis_queue import RedisQueue
 
 # TTL to keep RQ job logs in redis for.
@@ -119,11 +118,19 @@ def enqueue(
 	job_id = create_job_id(job_id)
 
 	if job_name:
-		deprecation_warning("Using enqueue with `job_name` is deprecated, use `job_id` instead.")
+		from frappe.deprecation_dumpster import deprecation_warning
+
+		deprecation_warning(
+			"unknown", "v17", "Using enqueue with `job_name` is deprecated, use `job_id` instead."
+		)
 
 	if not is_async and not frappe.flags.in_test:
+		from frappe.deprecation_dumpster import deprecation_warning
+
 		deprecation_warning(
-			"Using enqueue with is_async=False outside of tests is not recommended, use now=True instead."
+			"unknown",
+			"v17",
+			"Using enqueue with is_async=False outside of tests is not recommended, use now=True instead.",
 		)
 
 	call_directly = now or (not is_async and not frappe.flags.in_test)
@@ -204,7 +211,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	retval = None
 
 	if is_async:
-		frappe.init(site=site)
+		frappe.init(site)
 		frappe.connect()
 		if os.environ.get("CI"):
 			frappe.flags.in_test = True

@@ -10,7 +10,6 @@ import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.translate import print_language
-from frappe.utils.deprecations import deprecated
 from frappe.utils.pdf import get_pdf
 
 no_cache = 1
@@ -214,11 +213,7 @@ def _download_multi_pdf(
 			frappe.local.response.type = "pdf"
 
 
-@deprecated
-def read_multi_pdf(output: PdfWriter) -> bytes:
-	with BytesIO() as merged_pdf:
-		output.write(merged_pdf)
-		return merged_pdf.getvalue()
+from frappe.deprecation_dumpster import read_multi_pdf
 
 
 @frappe.whitelist(allow_guest=True)

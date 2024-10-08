@@ -3,6 +3,7 @@
 		title="{{ __("Hidden") }}"{% } %}
 	data-fieldname="{%= field.fieldname %}"
 	data-label="{{ __(field.label, context=field.parent) }}"
+	data-nolabel="{%= field.nolabel ? 1 : 0 %}"
 
 	{% if field.align %}data-align="{{ field.align }}"{% endif %}
 	data-fieldtype="{%= field.fieldtype %}"

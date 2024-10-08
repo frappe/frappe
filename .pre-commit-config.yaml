@@ -19,6 +19,7 @@ repos:
       - id: check-toml
       - id: check-yaml
       - id: debug-statements
+        exclude: ^frappe/tests/classes/context_managers\.py$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.2.0

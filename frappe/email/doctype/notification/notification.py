@@ -4,6 +4,7 @@
 import json
 import os
 from collections import namedtuple
+from functools import partial
 
 import frappe
 from frappe import _
@@ -13,7 +14,7 @@ from frappe.desk.doctype.notification_log.notification_log import enqueue_create
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 from frappe.model.document import Document
 from frappe.modules.utils import export_module_json, get_doc_module
-from frappe.utils import add_to_date, cast, nowdate, validate_email_address
+from frappe.utils import add_to_date, cast, now_datetime, nowdate, validate_email_address
 from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
 
@@ -36,6 +37,8 @@ class Notification(Document):
 		channel: DF.Literal["Email", "Slack", "System Notification", "SMS"]
 		condition: DF.Code | None
 		date_changed: DF.Literal[None]
+		datetime_changed: DF.Literal[None]
+		datetime_last_run: DF.Datetime | None
 		days_in_advance: DF.Int
 		document_type: DF.Link
 		enabled: DF.Check
@@ -47,6 +50,8 @@ class Notification(Document):
 			"Cancel",
 			"Days After",
 			"Days Before",
+			"Minutes After",
+			"Minutes Before",
 			"Value Change",
 			"Method",
 			"Custom",
@@ -55,6 +60,7 @@ class Notification(Document):
 		message: DF.Code | None
 		message_type: DF.Literal["Markdown", "HTML", "Plain Text"]
 		method: DF.Data | None
+		minutes_offset: DF.Int
 		module: DF.Link | None
 		print_format: DF.Link | None
 		property_value: DF.Data | None
@@ -87,8 +93,6 @@ class Notification(Document):
 		try:
 			doc = frappe.get_cached_doc(self.document_type, preview_document)
 			context = get_context(doc)
-			if self.is_standard:
-				self.load_standard_properties(context)
 			return _("Yes") if frappe.safe_eval(self.condition, eval_locals=context) else _("No")
 		except Exception as e:
 			frappe.local.message_log = []
@@ -139,6 +143,16 @@ class Notification(Document):
 
 		if self.event in ("Days Before", "Days After") and not self.date_changed:
 			frappe.throw(_("Please specify which date field must be checked"))
+
+		if self.event in ("Minutes Before", "Minutes After"):
+			if not self.datetime_changed:
+				frappe.throw(_("Please specify which datetime field must be checked"))
+			if not self.minutes_offset:
+				frappe.throw(_("Please specify the minutes offset"))
+			if self.minutes_offset < 10:
+				frappe.throw(
+					_("Please specify at least 10 minutes due to the trigger cadence of the scheduler")
+				)
 
 		if self.event == "Value Change" and not self.value_changed:
 			frappe.throw(_("Please specify which value field must be checked"))
@@ -224,6 +238,90 @@ def get_context(context):
 			docs.append(doc)
 
 		return docs
+
+	def get_documents_for_this_moment(self) -> list[Document]:
+		"""
+		Get list of documents that will be triggered at this moment.
+
+		This method retrieves documents based on the specified datetime field and minutes offset.
+		It considers documents that fall within the time range from the last run time plus the offset
+		up to the current time plus the offset.
+
+		Returns:
+		        list: A list of document objects that meet the criteria for notification.
+		"""
+		docs = []
+
+		offset_in_minutes = self.minutes_offset
+
+		now = now_datetime()  # reference now
+		last = (
+			# one ficticious scheduler tick earlier if frist run
+			add_to_date(now, minutes=-5) if not self.datetime_last_run else self.datetime_last_run
+		)
+
+		if self.event == "Minutes After":
+			offset = partial(add_to_date, minutes=-offset_in_minutes)
+		else:
+			offset = partial(add_to_date, minutes=offset_in_minutes)
+
+		(lower, upper) = map(offset, [last, now])  # nosemgrep
+
+		doc_list = frappe.get_all(
+			self.document_type,
+			fields="name",
+			filters=[
+				{self.datetime_changed: (">", lower)},
+				{self.datetime_changed: ("<=", upper)},
+			],
+		)
+
+		self.db_set("datetime_last_run", now)  # set reference now for next run
+
+		for d in doc_list:
+			doc = frappe.get_doc(self.document_type, d.name)
+
+			if self.condition and not frappe.safe_eval(self.condition, None, get_context(doc)):
+				continue
+
+			docs.append(doc)
+
+		return docs
+
+	def queue_send(self, doc, enqueue_after_commit=True):
+		"""
+		Enqueue the process to build recipients and send notifications.
+
+		This method is particularly useful for sending notifications, especially 'Custom'-type,
+		without the additional overhead associated with `Document.queue_action`.
+
+		Args:
+		              doc (Document): The document object for which the notification is being sent.
+		              enqueue_after_commit (bool, optional): If True, the task will be enqueued after
+		                the current transaction is committed. Defaults to True.
+
+		Note:
+		              This method is the recommended way to send 'Custom'-type notifications.
+
+		Example:
+		              To queue a notification from a server script:
+
+		              ```python
+		              notification = frappe.get_doc("Notification", "My Notification", ignore_permissions=True)
+		              notification.queue_send(customer)
+		              ```
+
+		              This example queues the "My Notification" to be sent for the specified customer document.
+		"""
+		from frappe.utils.background_jobs import enqueue
+
+		return enqueue(
+			"frappe.email.doctype.notification.notification.evaluate_alert",
+			doc=doc,
+			alert=self,
+			now=frappe.flags.in_test,
+			enqueue_after_commit=enqueue_after_commit,
+		)
 
 	def send(self, doc):
 		"""Build recipients and send Notification"""
@@ -552,6 +650,10 @@ def get_documents_for_today(notification):
 	return [d.name for d in notification.get_documents_for_today()]
 
 
+def trigger_offset_alerts():
+	trigger_notifications(None, "offset")
+
+
 def trigger_daily_alerts():
 	trigger_notifications(None, "daily")
 
@@ -570,10 +672,23 @@ def trigger_notifications(doc, method=None):
 
 			for doc in alert.get_documents_for_today():
 				evaluate_alert(doc, alert, alert.event)
-				frappe.db.commit()
+				#  this is the end of the transaction in the alert trigger stack
+				frappe.db.commit()  # nosemgrep
+
+	elif method == "offset":
+		doc_list = frappe.get_all(
+			"Notification", filters={"event": ("in", ("Minutes Before", "Minutes After")), "enabled": 1}
+		)
+		for d in doc_list:
+			alert = frappe.get_doc("Notification", d.name)
+
+			for doc in alert.get_documents_for_this_moment():
+				evaluate_alert(doc, alert, alert.event)
+				#  this is the end of the transaction in the alert trigger stack
+				frappe.db.commit()  # nosemgrep
 
 
-def evaluate_alert(doc: Document, alert, event):
+def evaluate_alert(doc: Document, alert, event=None):
 	from jinja2 import TemplateError
 
 	try:
@@ -612,8 +727,8 @@ def evaluate_alert(doc: Document, alert, event):
 		frappe.throw(message, title=_("Error in Notification"))
 	except Exception as e:
 		title = str(e)
-		frappe.log_error(title=title)
-
+		message = frappe.get_traceback(with_context=True)
+		frappe.log_error(title=title, message=message)
 		msg = f"<details><summary>{title}</summary>{message}</details>"
 		frappe.throw(msg, title=_("Error in Notification"))
 

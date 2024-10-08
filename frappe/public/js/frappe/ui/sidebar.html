@@ -1,0 +1,44 @@
+<div class="body-sidebar-container">
+	<div class="body-sidebar-placeholder"></div>
+		<div class="body-sidebar">
+			<div class="body-sidebar-top">
+				<a class="app-switcher-dropdown"
+						style="text-decoration: none; width: 100%; position: relative;">
+
+					<div class="standard-sidebar-item">
+						<div class="d-flex">
+							<div class="sidebar-item-icon">
+								<img class="app-logo"
+									src="{%= app_logo_url %}" alt="{%= ("App Logo") %}">
+							</div>
+							<div class="sidebar-item-label" style="margin-left: 5px; margin-top: 1px">
+								{%= app_title %}
+							</div>
+						</div>
+						<div class="sidebar-item-control">
+							<button class="btn-reset drop-icon show-in-edit-mode">
+								<svg class="es-icon es-line  icon-sm" style="" aria-hidden="true">
+									<use class="" href="#es-line-down"></use>
+								</svg>
+							</button>
+						</div>
+					</div>
+				</a>
+
+				<div class="app-switcher-menu hidden" role="menu">
+				</div>
+				<div class="sidebar-items">
+				</div>
+			</div>
+			<div class="body-sidebar-bottom">
+				<a class="edit-sidebar-link text-extra-muted hidden">
+					<svg class="icon icon-sm" style="margin-top: -2px;">
+						<use href="#icon-setting-gear"></use></svg> Settings</a>
+				<a class="close-sidebar-link text-extra-muted hidden">
+					<svg class="icon icon-sm" style="margin-top: -2px;">
+						<use href="#icon-close"></use></svg> Close</a>
+			</div>
+		</div>
+
+	</div>
+</div>

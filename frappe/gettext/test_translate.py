@@ -1,5 +1,6 @@
 from frappe.gettext.translate import (
 	generate_pot,
+	get_is_gitignored_function_for_app,
 	get_method_map,
 	get_mo_path,
 	get_po_path,
@@ -9,10 +10,10 @@ from frappe.gettext.translate import (
 	write_binary,
 	write_catalog,
 )
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestTranslate(FrappeTestCase):
+class TestTranslate(IntegrationTestCase):
 	def setUp(self):
 		pass
 
@@ -62,3 +63,37 @@ class TestTranslate(FrappeTestCase):
 
 		self.assertTrue(po_path.exists())
 		self.assertIn("msgid", po_path.read_text())
+
+	def test_gitignore(self):
+		import os
+
+		import frappe
+
+		is_gitignored = get_is_gitignored_function_for_app("frappe")
+
+		file_name = "frappe/public/dist/test_translate_test_gitignore.js"
+		file_path = frappe.get_app_source_path("frappe", file_name)
+		self.assertTrue(is_gitignored("frappe/public/node_modules"))
+		self.assertTrue(is_gitignored("frappe/public/dist"))
+		self.assertTrue(is_gitignored("frappe/public/dist/sub"))
+		self.assertTrue(is_gitignored(file_name))
+		self.assertTrue(is_gitignored(file_path))
+		self.assertFalse(is_gitignored("frappe/public/dist2"))
+		self.assertFalse(is_gitignored("frappe/public/dist2/sub"))
+
+		# Make directory if not exist
+		os.makedirs(os.path.dirname(file_path), exist_ok=True)
+		with open(file_path, "w") as f:
+			f.write('__("test_translate_test_gitignore")')
+
+		pot_path = get_pot_path("frappe")
+		pot_path.unlink(missing_ok=True)
+
+		generate_pot("frappe")
+
+		self.assertTrue(pot_path.exists())
+		self.assertNotIn("test_translate_test_gitignore", pot_path.read_text())
+
+		os.remove(file_path)
+
+		self.assertTrue(get_is_gitignored_function_for_app(None)("frappe/public/dist"))

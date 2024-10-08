@@ -45,6 +45,7 @@ class Report(Document):
 		report_script: DF.Code | None
 		report_type: DF.Literal["Report Builder", "Query Report", "Script Report", "Custom Report"]
 		roles: DF.Table[HasRole]
+		timeout: DF.Int
 	# end: auto-generated types
 
 	def validate(self):
@@ -93,6 +94,9 @@ class Report(Document):
 		):
 			frappe.throw(_("You are not allowed to delete Standard Report"))
 		delete_custom_role("report", self.name)
+
+	def get_permission_log_options(self, event=None):
+		return {"fields": ["roles"]}
 
 	def get_columns(self):
 		return [d.as_dict(no_default_fields=True, no_child_table_fields=True) for d in self.columns]

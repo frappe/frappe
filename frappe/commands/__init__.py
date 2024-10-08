@@ -1,8 +1,5 @@
 # Copyright (c) 2015, Web Notes Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-
-import cProfile
-import pstats
 import subprocess  # nosec
 import sys
 from functools import wraps
@@ -20,24 +17,27 @@ click.disable_unicode_literals_warning = True
 def pass_context(f):
 	@wraps(f)
 	def _func(ctx, *args, **kwargs):
-		profile = ctx.obj["profile"]
+		profile = ctx.obj.profile
 		if profile:
+			import cProfile
+
 			pr = cProfile.Profile()
 			pr.enable()
 
 		try:
-			ret = f(frappe._dict(ctx.obj), *args, **kwargs)
-		except frappe.exceptions.SiteNotSpecifiedError as e:
-			click.secho(str(e), fg="yellow")
-			sys.exit(1)
-		except frappe.exceptions.IncorrectSitePath:
-			site = ctx.obj.get("sites", "")[0]
-			click.secho(f"Site {site} does not exist!", fg="yellow")
-			sys.exit(1)
+			ret = f(ctx.obj, *args, **kwargs)
+		except (
+			frappe.exceptions.SiteNotSpecifiedError,
+			frappe.exceptions.IncorrectSitePath,
+			frappe.exceptions.CommandFailedError,
+		) as e:
+			raise click.UsageError(e, ctx) from e
 
 		if profile:
 			pr.disable()
 			s = StringIO()
+			import pstats
+
 			ps = pstats.Stats(pr, stream=s).sort_stats("cumtime", "tottime", "ncalls")
 			ps.print_stats()
 
@@ -109,6 +109,7 @@ def get_commands():
 	from .redis_utils import commands as redis_commands
 	from .scheduler import commands as scheduler_commands
 	from .site import commands as site_commands
+	from .testing import commands as testing_commands
 	from .translate import commands as translate_commands
 	from .utils import commands as utils_commands
 
@@ -116,6 +117,7 @@ def get_commands():
 	all_commands = (
 		scheduler_commands
 		+ site_commands
+		+ testing_commands
 		+ translate_commands
 		+ gettext_commands
 		+ utils_commands

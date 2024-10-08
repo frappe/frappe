@@ -27,9 +27,9 @@ import frappe
 from frappe.frappeclient import FrappeClient
 from frappe.model.base_document import get_controller
 from frappe.query_builder.utils import db_type_is
+from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.test_query_builder import run_only_if
-from frappe.tests.utils import FrappeTestCase
 from frappe.utils import cint
 from frappe.website.path_resolver import PathResolver
 
@@ -37,11 +37,11 @@ TEST_USER = "test@example.com"
 
 
 @run_only_if(db_type_is.MARIADB)
-class TestPerformance(FrappeTestCase):
+class TestPerformance(IntegrationTestCase):
 	def reset_request_specific_caches(self):
 		# To simulate close to request level of handling
 		frappe.destroy()  # releases everything on frappe.local
-		frappe.init(site=self.TEST_SITE)
+		frappe.init(self.TEST_SITE)
 		frappe.connect()
 		frappe.clear_cache()
 

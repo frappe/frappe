@@ -1,8 +1,17 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 # import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 
-class TestWebPageView(FrappeTestCase):
+class UnitTestWebPageView(UnitTestCase):
+	"""
+	Unit tests for WebPageView.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestWebPageView(IntegrationTestCase):
 	pass
