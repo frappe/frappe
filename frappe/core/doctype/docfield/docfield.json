@@ -53,6 +53,7 @@
   "allow_on_submit",
   "ignore_user_permissions",
   "allow_bulk_edit",
+  "make_attachment_public",
   "column_break_13",
   "permlevel",
   "ignore_xss_filter",
@@ -560,13 +561,20 @@
    "fieldname": "sort_options",
    "fieldtype": "Check",
    "label": "Sort Options"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:['Attach', 'Attach Image'].includes(doc.fieldtype)",
+   "fieldname": "make_attachment_public",
+   "fieldtype": "Check",
+   "label": "Make Attachment Public (by default)"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-05-28 15:55:44.007917",
+ "modified": "2024-10-01 07:26:16.380090",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",
