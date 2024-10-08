@@ -688,6 +688,7 @@ export default class GridRow {
 		this.grid.visible_columns.forEach((col, ci) => {
 			// to get update df for the row
 			let df = fields.find((field) => field?.fieldname === col[0].fieldname);
+			if (!df) return;
 
 			this.set_dependant_property(df);
 
