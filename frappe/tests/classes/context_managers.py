@@ -1,13 +1,17 @@
 import logging
+from collections.abc import Callable
 from contextlib import contextmanager
 from functools import wraps
 from inspect import isfunction, ismethod
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import frappe
 
 from .integration_test_case import IntegrationTestCase
 from .unit_test_case import UnitTestCase
+
+if TYPE_CHECKING:
+	from frappe.model import Document
 
 # NOTE: please lazily import any further namespaces within the contextmanager below
 
@@ -187,6 +191,72 @@ def timeout(seconds=30, error_message="Operation timed out."):
 	return decorator
 
 
+@UnitTestCase.registerAs(staticmethod)
+@contextmanager
+def trace_fields(
+	doc_class: type,
+	field_name: str | None = None,
+	forbidden_values: list | None = None,
+	custom_validation: Callable | None = None,
+	**field_configs: dict[str, dict[str, list | Callable]],
+) -> "Document":
+	"""
+	A context manager for temporarily tracing fields in a DocType.
+
+	Can be used in two ways:
+	1. Tracing a single field:
+	   trace_fields(DocType, "field_name", forbidden_values=[...], custom_validation=...)
+	2. Tracing multiple fields:
+	   trace_fields(DocType, field1={"forbidden_values": [...], "custom_validation": ...}, ...)
+
+	Args:
+	    doc_class (Document): The DocType class to modify.
+	    field_name (str, optional): The name of the field to trace (for single field tracing).
+	    forbidden_values (list, optional): A list of forbidden values for the field (for single field tracing).
+	    custom_validation (callable, optional): A custom validation function (for single field tracing).
+	    **field_configs: Keyword arguments for multiple field tracing, where each key is a field name and
+	                     the value is a dict containing 'forbidden_values' and/or 'custom_validation'.
+
+	Yields:
+	    Document class
+	"""
+	from frappe.model.trace import traced_field
+
+	original_attrs = {}
+	original_init = doc_class.__init__
+
+	# Prepare configurations
+	if field_name:
+		field_configs = {
+			field_name: {"forbidden_values": forbidden_values, "custom_validation": custom_validation}
+		}
+
+	# Apply traced fields
+	for f_name, config in field_configs.items():
+		original_attrs[f_name] = getattr(doc_class, f_name, None)
+		f_forbidden_values = config.get("forbidden_values")
+		f_custom_validation = config.get("custom_validation")
+		setattr(doc_class, f_name, traced_field(f_name, f_forbidden_values, f_custom_validation))
+
+	# Modify init method
+	def new_init(self, *args, **kwargs):
+		original_init(self, *args, **kwargs)
+		for f_name in field_configs:
+			setattr(self, f"_{f_name}", getattr(self, f_name, None))
+
+	doc_class.__init__ = new_init
+
+	yield doc_class
+
+	# Restore original attributes and init method
+	for f_name, original_attr in original_attrs.items():
+		if original_attr is not None:
+			setattr(doc_class, f_name, original_attr)
+		else:
+			delattr(doc_class, f_name)
+	doc_class.__init__ = original_init
+
+
 # NOTE: declare those who should also be made available directly frappe.tests.* namespace
 # these can be general purpose context managers who do NOT depend on a particular
 # test class setup, such as for example the IntegrationTestCase's connection to site
@@ -200,4 +270,5 @@ __all__ = [
 	"debug_on",
 	"timeout_context",
 	"timeout",
+	"trace_fields",
 ]
