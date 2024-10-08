@@ -16,7 +16,7 @@ class UnitTestSystemConsole(UnitTestCase):
 class TestSystemConsole(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
-		cls.enable_safe_exec()
+		cls.enterClassContext(cls.enable_safe_exec())
 		return super().setUpClass()
 
 	def test_system_console(self):
