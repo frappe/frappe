@@ -7,9 +7,8 @@ from contextlib import contextmanager
 import frappe
 from frappe.desk.query_report import generate_report_result, get_report_doc
 from frappe.query_builder.utils import db_type_is
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase, timeout
 from frappe.tests.test_query_builder import run_only_if
-from frappe.tests.utils import timeout
 
 
 class UnitTestPreparedReport(UnitTestCase):

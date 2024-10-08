@@ -27,7 +27,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import frappe
-from frappe.tests.utils import IntegrationTestCase
+from frappe.tests import IntegrationTestCase
 
 from .utils import debug_timer
 

@@ -5,8 +5,7 @@ import time
 import typing
 
 import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase
-from frappe.tests.utils import timeout
+from frappe.tests import IntegrationTestCase, UnitTestCase, timeout
 from frappe.utils.background_jobs import get_queue
 
 if typing.TYPE_CHECKING:
