@@ -27,7 +27,7 @@ from frappe.tests.test_api import FrappeAPITestCase
 from frappe.utils import get_url
 
 user_module = frappe.core.doctype.user.user
-test_records = frappe.get_test_records("User")
+test_records = frappe.tests.utils.load_test_records_for("User")
 
 
 class UnitTestUser(UnitTestCase):

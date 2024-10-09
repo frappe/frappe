@@ -11,7 +11,7 @@ from frappe.tests import IntegrationTestCase, UnitTestCase
 if TYPE_CHECKING:
 	from frappe.printing.doctype.print_format.print_format import PrintFormat
 
-test_records = frappe.get_test_records("Print Format")
+test_records = frappe.tests.utils.load_test_records_for("Print Format")
 
 
 class UnitTestPrintFormat(UnitTestCase):
