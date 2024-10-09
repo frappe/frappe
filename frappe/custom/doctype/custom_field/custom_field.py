@@ -24,6 +24,7 @@ class CustomField(Document):
 
 		allow_in_quick_entry: DF.Check
 		allow_on_submit: DF.Check
+		allow_others: DF.Check
 		bold: DF.Check
 		collapsible: DF.Check
 		collapsible_depends_on: DF.Code | None
@@ -71,6 +72,7 @@ class CustomField(Document):
 			"Rating",
 			"Section Break",
 			"Select",
+			"Radio",
 			"Signature",
 			"Small Text",
 			"Tab Break",
@@ -200,6 +202,7 @@ class CustomField(Document):
 			self.translatable = 0
 
 		check_fieldname_conflicts(self)
+		self.scrub_options_in_radio()
 
 	def on_update(self):
 		# validate field
@@ -264,6 +267,17 @@ class CustomField(Document):
 			}
 
 		self._no_perm_log = True
+
+	def scrub_options_in_radio(self):
+		"""Strip options for whitespaces and empty lines cannot"""
+
+		if self.fieldtype == "Radio" and self.options is not None:
+			options_list = []
+			for i, option in enumerate(self.options.split("\n")):
+				_option = option.strip()
+				if (i == 0 or _option)  and len(_option) > 0:
+					options_list.append(_option)
+			self.options = "\n".join(options_list)
 
 
 @frappe.whitelist()
