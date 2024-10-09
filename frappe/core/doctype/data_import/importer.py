@@ -1052,6 +1052,21 @@ class Column:
 							"message": message.format(invalid_values, valid_values),
 						}
 					)
+		elif self.df.fieldtype == "Radio":
+			options = get_select_options(self.df)
+			if options and not self.df.allow_others:
+				values = {cstr(v) for v in self.column_values if v}
+				invalid = values - set(options)
+				if invalid:
+					valid_values = ", ".join(frappe.bold(o) for o in options)
+					invalid_values = ", ".join(frappe.bold(i) for i in invalid)
+					message = _("The following values are invalid: {0}. Values must be one of {1}")
+					self.warnings.append(
+						{
+							"col": self.column_number,
+							"message": message.format(invalid_values, valid_values),
+						}
+					)
 
 	def as_dict(self):
 		d = frappe._dict()
