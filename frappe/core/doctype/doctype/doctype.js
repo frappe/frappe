@@ -41,7 +41,7 @@ frappe.ui.form.on("DocType", {
 			}
 		});
 
-		if (frappe.session.user !== "Administrator" || !frappe.boot.developer_mode) {
+		if (frappe.session.user !== "Administrator" && !frappe.boot.developer_mode) {
 			if (frm.is_new()) {
 				frm.set_value("custom", 1);
 			}
