@@ -921,7 +921,7 @@ class BaseDocument:
 						prefix, label, value, comma_options
 					)
 				)
-				
+
 	def _validate_radios(self):
 		if frappe.flags.in_import:
 			return
@@ -940,7 +940,11 @@ class BaseDocument:
 			self.set(df.fieldname, cstr(self.get(df.fieldname)).strip())
 			value = self.get(df.fieldname)
 
-			if value not in options and not (frappe.flags.in_test and value.startswith("_T-")) and not df.allow_others:
+			if (
+				value not in options
+				and not (frappe.flags.in_test and value.startswith("_T-"))
+				and not df.allow_others
+			):
 				# show an elaborate message
 				prefix = _("Row #{0}:").format(self.idx) if self.get("parentfield") else ""
 				label = _(self.meta.get_label(df.fieldname))

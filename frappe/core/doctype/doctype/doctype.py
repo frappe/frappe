@@ -1601,7 +1601,7 @@ def validate_fields(meta: Meta):
 			options_list = []
 			for i, option in enumerate(field.options.split("\n")):
 				_option = option.strip()
-				if (i == 0 or _option)  and len(_option) > 0:
+				if (i == 0 or _option) and len(_option) > 0:
 					options_list.append(_option)
 			field.options = "\n".join(options_list)
 
