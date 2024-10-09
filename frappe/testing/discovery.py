@@ -136,5 +136,3 @@ def _add_module_tests(runner, app: str, module: str):
 
 class TestRunnerError(Exception):
 	"""Custom exception for test runner errors"""
-
-	pass

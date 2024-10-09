@@ -21,17 +21,12 @@ It can be customized through the TestConfig object passed during initialization.
 import contextlib
 import cProfile
 import logging
-import os
 import pstats
 import unittest
 from collections import defaultdict
 from collections.abc import Iterator
 from io import StringIO
-from pathlib import Path
 
-import click
-
-import frappe
 from frappe.tests.classes.context_managers import debug_on
 
 from .config import TestConfig
@@ -59,7 +54,7 @@ class TestRunner(unittest.TextTestRunner):
 		failfast=False,
 		buffer=False,
 		resultclass=None,
-		warnings=None,
+		warnings="module",
 		*,
 		tb_locals=False,
 		cfg: TestConfig,

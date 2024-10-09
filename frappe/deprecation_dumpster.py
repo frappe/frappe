@@ -33,6 +33,10 @@ class Color:
 	CYAN = 96
 
 
+class FrappeDeprecationWarning(Warning):
+	...
+
+
 try:
 	# since python 3.13, PEP 702
 	from warnings import deprecated as _deprecated
@@ -44,7 +48,7 @@ except ImportError:
 
 	T = TypeVar("T", bound=Callable)
 
-	def _deprecated(message: str, category=DeprecationWarning, stacklevel=1) -> Callable[[T], T]:
+	def _deprecated(message: str, category=FrappeDeprecationWarning, stacklevel=1) -> Callable[[T], T]:
 		def decorator(func: T) -> T:
 			@functools.wraps(func)
 			def wrapper(*args, **kwargs):
@@ -86,18 +90,14 @@ def deprecated(original: str, marked: str, graduation: str, msg: str, stacklevel
 				+ colorize(caller_filepath, Color.CYAN)
 			)
 
-		return functools.wraps(func)(
-			_deprecated(
-				colorize(f"`{original}`", Color.CYAN)
-				+ colorize(
-					f" was moved (DATE: {marked}) to frappe/deprecation_dumpster.py"
-					f" for removal (from {graduation} onwards); note:\n ",
-					Color.RED,
-				)
-				+ colorize(f"{msg}\n", Color.YELLOW),
-				stacklevel=stacklevel,
-			)
-		)(func)
+		func.__name__ = original
+		wrapper = _deprecated(
+			colorize(f"It was marked on {marked} for removal from {graduation} with note: ", Color.RED)
+			+ colorize(f"{msg}", Color.YELLOW),
+			stacklevel=stacklevel,
+		)
+
+		return functools.update_wrapper(wrapper, func)(func)
 
 	return decorator
 
