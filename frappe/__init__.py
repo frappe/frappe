@@ -2168,18 +2168,7 @@ def are_emails_muted():
 	return flags.mute_emails or cint(conf.get("mute_emails"))
 
 
-def get_test_records(doctype):
-	"""Return list of objects from `test_records.json` in the given doctype's folder."""
-	from frappe.modules import get_doctype_module, get_module_path
-
-	path = os.path.join(
-		get_module_path(get_doctype_module(doctype)), "doctype", scrub(doctype), "test_records.json"
-	)
-	if os.path.exists(path):
-		with open(path) as f:
-			return json.loads(f.read())
-	else:
-		return []
+from frappe.deprecation_dumpster import frappe_get_test_records as get_test_records
 
 
 def format_value(*args, **kwargs):

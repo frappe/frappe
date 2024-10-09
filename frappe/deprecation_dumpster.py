@@ -566,3 +566,31 @@ def tests_utils_get_dependencies(doctype):
 )
 def test_runner_get_dependencies(doctype):
 	return tests_utils_get_dependencies(doctype)
+
+
+@deprecated(
+	"frappe.get_test_records",
+	"2024-20-09",
+	"v17",
+	"""refactor to use frappe.tests.utils.load_test_records_for
+Returns a dict with doctypes as keys and records as list items
+Hint: your current doctype and all its dependencies are automatically loaded by the framework.
+	If you did this manually using test_dependencies = frappe.get_test_records("My Current Doc"),
+	just remove that line and it should work.
+	You have access to the global pool of test records via: cls.testRecords
+	This includes the current records under cls.testRecords["My Current Doc"] -> list
+""",
+)
+def frappe_get_test_records(doctype):
+	from frappe.tests.utils.generators import load_test_records_for
+
+	records = load_test_records_for(doctype)
+	if isinstance(records, dict):
+		_records = []
+		for doctype, docs in records.items():
+			for doc in docs:
+				_doc = doc.copy()
+				_doc["doctype"] = doctype
+				_records.append(_doc)
+		return _records
+	return records

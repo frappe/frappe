@@ -1,13 +1,17 @@
 import datetime
 import json
 import logging
+import os
 from functools import cache
 from importlib import reload
 from pathlib import Path
+from typing import Any
+
+import tomllib
 
 import frappe
 from frappe.model.naming import revert_series_if_last
-from frappe.modules import load_doctype_module
+from frappe.modules import get_doctype_module, get_module_path, load_doctype_module
 
 logger = logging.getLogger(__name__)
 testing_logger = logging.getLogger("frappe.testing.generators")
@@ -21,6 +25,7 @@ __all__ = [
 	"make_test_records",
 	"make_test_records_for_doctype",
 	"make_test_objects",
+	"load_test_records_for",
 ]
 
 
@@ -145,11 +150,38 @@ def _make_test_record(doctype, force=False, commit=False):
 	elif hasattr(test_module, "test_records"):
 		yield from _make_test_objects(doctype, test_module.test_records, force, commit=commit)
 	else:
-		test_records = frappe.get_test_records(doctype)
+		test_records = load_test_records_for(doctype)
 		if test_records:
 			yield from _make_test_objects(doctype, test_records, force, commit=commit)
 		else:
 			print_mandatory_fields(doctype)
+
+
+def load_test_records_for(doctype) -> dict[str, Any]:
+	module_path = get_module_path(get_doctype_module(doctype), "doctype", frappe.scrub(doctype))
+
+	json_path = os.path.join(module_path, "test_records.json")
+	if os.path.exists(json_path):
+		from frappe.deprecation_dumpster import deprecation_warning
+
+		deprecation_warning(
+			"2024-10-09",
+			"v17",
+			"""Test records have been tranformed from json to toml for better readability and devx.
+Please run the script from the PR description and remove the json file afterwards:
+https://github.com/frappe/frappe/pull/28065
+""",
+		)
+		with open(json_path) as f:
+			return json.load(f)
+
+	toml_path = os.path.join(module_path, "test_records.toml")
+	if os.path.exists(toml_path):
+		with open(toml_path, "rb") as f:
+			return tomllib.load(f)
+
+	else:
+		return {}
 
 
 def _make_test_objects(doctype, test_records=None, reset=False, commit=False):
@@ -160,68 +192,69 @@ def _make_test_objects(doctype, test_records=None, reset=False, commit=False):
 	if not reset and doctype in test_record_log_instance.get():
 		yield from test_record_log_instance.yield_names(doctype)
 
+	if test_records is None:
+		test_records = load_test_records_for(doctype)
+	for _doctype, records in test_records.items():
+		for record in records:
+			yield from _make_test_object(_doctype, record)
+		test_record_log_instance.add(_doctype, frappe.local.test_objects[doctype])
+
+
+def _make_test_object(doctype, record, reset=False, commit=False):
 	def revert_naming(d):
 		if getattr(d, "naming_series", None):
 			revert_series_if_last(d.naming_series, d.name)
 
-	if test_records is None:
-		test_records = frappe.get_test_records(doctype)
+	if not reset:
+		frappe.db.savepoint("creating_test_record")
 
-	for doc in test_records:
-		if not reset:
-			frappe.db.savepoint("creating_test_record")
+	if not record.get("doctype"):
+		record["doctype"] = doctype
 
-		if not doc.get("doctype"):
-			doc["doctype"] = doctype
+	d = frappe.copy_doc(record)
 
-		d = frappe.copy_doc(doc)
+	if d.meta.get_field("naming_series"):
+		if not d.naming_series:
+			d.naming_series = "_T-" + d.doctype + "-"
 
-		if d.meta.get_field("naming_series"):
-			if not d.naming_series:
-				d.naming_series = "_T-" + d.doctype + "-"
+	if record.get("name"):
+		d.name = record.get("name")
+	else:
+		d.set_new_name()
 
-		if doc.get("name"):
-			d.name = doc.get("name")
-		else:
-			d.set_new_name()
+	if frappe.db.exists(d.doctype, d.name) and not reset:
+		frappe.db.rollback(save_point="creating_test_record")
+		# do not create test records, if already exists
+		return
 
-		if frappe.db.exists(d.doctype, d.name) and not reset:
-			frappe.db.rollback(save_point="creating_test_record")
-			# do not create test records, if already exists
-			continue
+	# submit if docstatus is set to 1 for test record
+	docstatus = d.docstatus
 
-		# submit if docstatus is set to 1 for test record
-		docstatus = d.docstatus
+	d.docstatus = 0
 
-		d.docstatus = 0
+	try:
+		d.run_method("before_test_insert")
+		d.insert(ignore_if_duplicate=True)
 
-		try:
-			d.run_method("before_test_insert")
-			d.insert(ignore_if_duplicate=True)
+		if docstatus == 1:
+			d.submit()
 
-			if docstatus == 1:
-				d.submit()
+	except frappe.NameError:
+		revert_naming(d)
 
-		except frappe.NameError:
+	except Exception as e:
+		if d.flags.ignore_these_exceptions_in_test and e.__class__ in d.flags.ignore_these_exceptions_in_test:
 			revert_naming(d)
+		else:
+			logger.debug(f"Error in making test record for {d.doctype} {d.name}")
+			raise
 
-		except Exception as e:
-			if (
-				d.flags.ignore_these_exceptions_in_test
-				and e.__class__ in d.flags.ignore_these_exceptions_in_test
-			):
-				revert_naming(d)
-			else:
-				logger.debug(f"Error in making test record for {d.doctype} {d.name}")
-				raise
+	if commit:
+		frappe.db.commit()
 
-		if commit:
-			frappe.db.commit()
+	frappe.local.test_objects[doctype].append(d.name)
+	yield d.name
 
-		frappe.local.test_objects[doctype].append(d.name)
-		yield d.name
-
-	test_record_log_instance.add(doctype, frappe.local.test_objects[doctype])
 
 
 def print_mandatory_fields(doctype):
