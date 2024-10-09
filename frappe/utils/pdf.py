@@ -10,6 +10,8 @@ from urllib.parse import parse_qs, urlparse
 
 import cssutils
 import pdfkit
+
+pdfkit.source.unicode = str  # NOTE: upstream bug; PYTHONOPTIMIZE=1 optimized this away
 from bs4 import BeautifulSoup
 from packaging.version import Version
 from pypdf import PdfReader, PdfWriter

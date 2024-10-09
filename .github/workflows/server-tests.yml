@@ -46,6 +46,9 @@ jobs:
     timeout-minutes: 30
     env:
       NODE_ENV: "production"
+      PYTHONOPTIMIZE: 2
+      # noisy 3rd party library warnings
+      PYTHONWARNINGS: "module,ignore:::babel.messages.extract"
 
     strategy:
       fail-fast: false
