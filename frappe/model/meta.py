@@ -762,6 +762,9 @@ class Meta(Document):
 	def is_nested_set(self):
 		return self.has_field("lft") and self.has_field("rgt")
 
+	def get_radio_fields(self):
+		return self.get("fields", {"fieldtype": "Radio"})
+
 
 #######
 
