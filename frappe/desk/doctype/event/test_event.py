@@ -10,7 +10,7 @@ from frappe.desk.doctype.event.event import get_events
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.utils import make_test_objects
 
-test_records = frappe.tests.utils.load_test_records_for("Event")
+test_records = frappe.get_test_records("Event")
 
 
 class UnitTestEvent(UnitTestCase):
@@ -27,7 +27,7 @@ class TestEvent(IntegrationTestCase):
 		frappe.db.delete("Event")
 		make_test_objects("Event", reset=True)
 
-		self.test_records = frappe.tests.utils.load_test_records_for("Event")
+		self.test_records = frappe.get_test_records("Event")
 		self.test_user = "test1@example.com"
 
 	def tearDown(self):

@@ -5,7 +5,7 @@ import frappe
 from frappe.core.doctype.role.role import get_info_based_on_role
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
-test_records = frappe.tests.utils.load_test_records_for("Role")
+test_records = frappe.get_test_records("Role")
 
 
 class UnitTestRole(UnitTestCase):

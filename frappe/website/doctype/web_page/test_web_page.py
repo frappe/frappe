@@ -3,7 +3,7 @@ from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.website.path_resolver import PathResolver
 from frappe.website.serve import get_response_content
 
-test_records = frappe.tests.utils.load_test_records_for("Web Page")
+test_records = frappe.get_test_records("Web Page")
 
 
 class UnitTestWebPage(UnitTestCase):
