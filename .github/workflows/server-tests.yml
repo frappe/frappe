@@ -46,6 +46,7 @@ jobs:
     timeout-minutes: 30
     env:
       NODE_ENV: "production"
+      PYTHONOPTIMIZE: 2
 
     strategy:
       fail-fast: false
