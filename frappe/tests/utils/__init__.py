@@ -47,3 +47,6 @@ from frappe.deprecation_dumpster import (
 from frappe.deprecation_dumpster import (
 	tests_UnitTestCase as UnitTestCase,
 )
+from frappe.deprecation_dumpster import (
+	tests_utils_get_dependencies as get_dependencies,
+)
