@@ -3,7 +3,7 @@
 import frappe
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
-test_dependencies = ["Role"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["Role"]
 
 
 class UnitTestRoleProfile(UnitTestCase):

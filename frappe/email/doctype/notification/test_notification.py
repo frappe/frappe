@@ -12,7 +12,7 @@ from frappe.tests import IntegrationTestCase, UnitTestCase
 
 from .notification import trigger_notifications
 
-test_dependencies = ["User", "Notification"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["User", "Notification"]
 
 
 @contextmanager

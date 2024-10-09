@@ -6,7 +6,7 @@ from frappe.model.db_query import DatabaseQuery
 from frappe.permissions import add_permission, reset_perms
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
-test_dependencies = ["User"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
 
 
 class UnitTestTodo(UnitTestCase):

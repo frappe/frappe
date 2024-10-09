@@ -3,7 +3,7 @@
 import frappe
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
-test_dependencies = ["User", "Connected App", "Token Cache"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["User", "Connected App", "Token Cache"]
 
 
 class UnitTestTokenCache(UnitTestCase):

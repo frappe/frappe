@@ -48,12 +48,54 @@ def get_dependencies(doctype):
 	options_list = [df.options for df in link_fields]
 
 	if hasattr(test_module, "test_dependencies"):
+		from frappe.deprecation_dumpster import deprecation_warning
+
+		deprecation_warning(
+			"2024-10-09",
+			"v17",
+			"""test_dependencies was clarified to EXTRA_TEST_RECORD_DEPENDENCIES: run:
+```bash
+# Find Python files
+find . -name "*.py" | while read -r file; do
+    # Check if the file contains 'test_dependencies' at the module level
+    if grep -q "^test_dependencies" "$file"; then
+        # Replace 'test_dependencies' with 'EXTRA_TEST_RECORD_DEPENDENCIES'
+        sed -i 's/^test_dependencies/EXTRA_TEST_RECORD_DEPENDENCIES/' "$file"
+        echo "Updated $file"
+    fi
+done
+```""",
+		)
 		options_list += test_module.test_dependencies
+	if hasattr(test_module, "EXTRA_TEST_RECORD_DEPENDENCIES"):
+		options_list += test_module.EXTRA_TEST_RECORD_DEPENDENCIES
 
 	options_list = list(set(options_list))
 
 	if hasattr(test_module, "test_ignore"):
+		from frappe.deprecation_dumpster import deprecation_warning
+
+		deprecation_warning(
+			"2024-10-09",
+			"v17",
+			"""test_ignore was clarified to IGNORE_TEST_RECORD_DEPENDENCIES: run:
+```bash
+# Find Python files
+find . -name "*.py" | while read -r file; do
+    # Check if the file contains 'test_dependencies' at the module level
+    if grep -q "^test_ignore" "$file"; then
+        # Replace 'test_ignore' with 'IGNORE_TEST_RECORD_DEPENDENCIES'
+        sed -i 's/^test_ignore/IGNORE_TEST_RECORD_DEPENDENCIES/' "$file"
+        echo "Updated $file"
+    fi
+done
+```""",
+		)
 		for doctype_name in test_module.test_ignore:
+			if doctype_name in options_list:
+				options_list.remove(doctype_name)
+	if hasattr(test_module, "IGNORE_TEST_RECORD_DEPENDENCIES"):
+		for doctype_name in test_module.IGNORE_TEST_RECORD_DEPENDENCIES:
 			if doctype_name in options_list:
 				options_list.remove(doctype_name)
 
