@@ -32,8 +32,6 @@ class ParallelTestRunner:
 		self.total_tests = 0
 		self.test_result = None
 		self.setup_test_file_list()
-		warnings.simplefilter("module", DeprecationWarning)
-		warnings.simplefilter("module", PendingDeprecationWarning)
 
 	def setup_and_run(self):
 		self.setup_test_site()
