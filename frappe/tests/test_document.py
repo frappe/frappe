@@ -13,8 +13,6 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils import cint, now_datetime, set_request
 from frappe.website.serve import get_response
 
-from . import update_system_settings
-
 
 class CustomTestNote(Note):
 	@property
@@ -538,13 +536,13 @@ class TestDocumentWebView(IntegrationTestCase):
 		document_key = todo.get_document_share_key()
 
 		# with old-style signature key
-		update_system_settings({"allow_older_web_view_links": True}, True)
-		old_document_key = todo.get_signature()
-		url = f"/ToDo/{todo.name}?key={old_document_key}"
-		self.assertEqual(self.get(url).status, "200 OK")
+		with self.change_settings("System Settings", {"allow_older_web_view_links": True}):
+			old_document_key = todo.get_signature()
+			url = f"/ToDo/{todo.name}?key={old_document_key}"
+			self.assertEqual(self.get(url).status, "200 OK")
 
-		update_system_settings({"allow_older_web_view_links": False}, True)
-		self.assertEqual(self.get(url).status, "401 UNAUTHORIZED")
+		with self.change_settings("System Settings", {"allow_older_web_view_links": False}):
+			self.assertEqual(self.get(url).status, "401 UNAUTHORIZED")
 
 		# with valid key
 		url = f"/ToDo/{todo.name}?key={document_key}"

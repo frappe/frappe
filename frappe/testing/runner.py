@@ -32,6 +32,7 @@ from pathlib import Path
 import click
 
 import frappe
+from frappe.tests.classes.context_managers import debug_on
 
 from .config import TestConfig
 from .discovery import TestRunnerError
@@ -112,8 +113,11 @@ class TestRunner(unittest.TextTestRunner):
 	def _apply_debug_decorators(self, suite):
 		if self.cfg.pdb_on_exceptions:
 			for test in self._iterate_suite(suite):
-				if hasattr(test, "_apply_debug_decorator"):
-					test._apply_debug_decorator(self.cfg.pdb_on_exceptions)
+				setattr(
+					test,
+					test._testMethodName,
+					debug_on(*self.cfg.pdb_on_exceptions)(getattr(test, test._testMethodName)),
+				)
 
 	@contextlib.contextmanager
 	def _profile(self):

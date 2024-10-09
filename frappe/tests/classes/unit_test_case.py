@@ -4,26 +4,29 @@ import logging
 import os
 import unittest
 from collections.abc import Sequence
-from contextlib import AbstractContextManager, contextmanager
 from pathlib import Path
 from typing import Any
-from unittest.mock import patch
-
-import pytz
 
 import frappe
 from frappe.model.base_document import BaseDocument
 from frappe.utils import cint
-from frappe.utils.data import get_datetime, get_system_timezone
-
-from .context_managers import debug_on
 
 logger = logging.Logger(__file__)
 
 datetime_like_types = (datetime.datetime, datetime.date, datetime.time, datetime.timedelta)
 
 
-class UnitTestCase(unittest.TestCase):
+class BaseTestCase:
+	@classmethod
+	def registerAs(cls, _as):
+		def decorator(cm_func):
+			setattr(cls, cm_func.__name__, _as(cm_func))
+			return cm_func
+
+		return decorator
+
+
+class UnitTestCase(unittest.TestCase, BaseTestCase):
 	"""Unit test class for Frappe tests.
 
 	This class extends unittest.TestCase and provides additional utilities
@@ -41,27 +44,12 @@ class UnitTestCase(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(cls) -> None:
+		if getattr(cls, "_unit_test_case_class_setup_done", None):
+			return
 		super().setUpClass()
-		cls.doctype = cls._get_doctype_from_module()
+		cls.doctype = _get_doctype_from_module(cls)
 		cls.module = frappe.get_module(cls.__module__)
-
-	@classmethod
-	def _get_doctype_from_module(cls):
-		module_path = cls.__module__.split(".")
-		try:
-			doctype_index = module_path.index("doctype")
-			doctype_snake_case = module_path[doctype_index + 1]
-			json_file_path = Path(*module_path[:-1]).joinpath(f"{doctype_snake_case}.json")
-			if json_file_path.is_file():
-				doctype_data = json.loads(json_file_path.read_text())
-				return doctype_data.get("name")
-		except (ValueError, IndexError):
-			# 'doctype' not found in module_path
-			pass
-		return None
-
-	def _apply_debug_decorator(self, exceptions=()):
-		setattr(self, self._testMethodName, debug_on(*exceptions)(getattr(self, self._testMethodName)))
+		cls._unit_test_case_class_setup_done = True
 
 	def assertQueryEqual(self, first: str, second: str) -> None:
 		self.assertEqual(self.normalize_sql(first), self.normalize_sql(second))
@@ -101,65 +89,31 @@ class UnitTestCase(unittest.TestCase):
 		else:
 			self.assertEqual(expected, actual, msg=msg)
 
-	def normalize_html(self, code: str) -> str:
+	@staticmethod
+	def normalize_html(code: str) -> str:
 		"""Formats HTML consistently so simple string comparisons can work on them."""
 		from bs4 import BeautifulSoup
 
 		return BeautifulSoup(code, "html.parser").prettify(formatter=None)
 
-	@contextmanager
-	def set_user(self, user: str) -> AbstractContextManager[None]:
-		try:
-			old_user = frappe.session.user
-			frappe.set_user(user)
-			yield
-		finally:
-			frappe.set_user(old_user)
-
-	def normalize_sql(self, query: str) -> str:
+	@staticmethod
+	def normalize_sql(query: str) -> str:
 		"""Formats SQL consistently so simple string comparisons can work on them."""
 		import sqlparse
 
 		return sqlparse.format(query.strip(), keyword_case="upper", reindent=True, strip_comments=True)
 
-	@classmethod
-	def enable_safe_exec(cls) -> None:
-		"""Enable safe exec and disable them after test case is completed."""
-		from frappe.installer import update_site_config
-		from frappe.utils.safe_exec import SAFE_EXEC_CONFIG_KEY
 
-		cls._common_conf = os.path.join(frappe.local.sites_path, "common_site_config.json")
-		update_site_config(SAFE_EXEC_CONFIG_KEY, 1, validate=False, site_config_path=cls._common_conf)
-
-		cls.addClassCleanup(
-			lambda: update_site_config(
-				SAFE_EXEC_CONFIG_KEY, 0, validate=False, site_config_path=cls._common_conf
-			)
-		)
-
-	@staticmethod
-	@contextmanager
-	def patch_hooks(overridden_hooks: dict) -> AbstractContextManager[None]:
-		get_hooks = frappe.get_hooks
-
-		def patched_hooks(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
-			if hook in overridden_hooks:
-				return overridden_hooks[hook]
-			return get_hooks(hook, default, app_name)
-
-		with patch.object(frappe, "get_hooks", patched_hooks):
-			yield
-
-	@contextmanager
-	def freeze_time(
-		self, time_to_freeze: Any, is_utc: bool = False, *args: Any, **kwargs: Any
-	) -> AbstractContextManager[None]:
-		from freezegun import freeze_time
-
-		if not is_utc:
-			# Freeze time expects UTC or tzaware objects. We have neither, so convert to UTC.
-			timezone = pytz.timezone(get_system_timezone())
-			time_to_freeze = timezone.localize(get_datetime(time_to_freeze)).astimezone(pytz.utc)
-
-		with freeze_time(time_to_freeze, *args, **kwargs):
-			yield
+def _get_doctype_from_module(cls):
+	module_path = cls.__module__.split(".")
+	try:
+		doctype_index = module_path.index("doctype")
+		doctype_snake_case = module_path[doctype_index + 1]
+		json_file_path = Path(*module_path[:-1]).joinpath(f"{doctype_snake_case}.json")
+		if json_file_path.is_file():
+			doctype_data = json.loads(json_file_path.read_text())
+			return doctype_data.get("name")
+	except (ValueError, IndexError):
+		# 'doctype' not found in module_path
+		pass
+	return None

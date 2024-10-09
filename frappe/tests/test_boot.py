@@ -31,7 +31,7 @@ class TestBootData(IntegrationTestCase):
 class TestPermissionQueries(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
-		cls.enable_safe_exec()
+		cls.enterClassContext(cls.enable_safe_exec())
 		return super().setUpClass()
 
 	def test_get_user_pages_or_reports_with_permission_query(self):

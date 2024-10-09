@@ -127,7 +127,7 @@ class TestServerScript(IntegrationTestCase):
 			script_doc = frappe.get_doc(doctype="Server Script")
 			script_doc.update(script)
 			script_doc.insert()
-		cls.enable_safe_exec()
+		cls.enterClassContext(cls.enable_safe_exec())
 		frappe.db.commit()
 		return super().setUpClass()
 
