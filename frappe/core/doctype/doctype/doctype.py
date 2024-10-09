@@ -1594,6 +1594,17 @@ def validate_fields(meta: Meta):
 					options_list.append(_option)
 			field.options = "\n".join(options_list)
 
+	def scrub_options_in_radio(field):
+		"""Strip options for whitespaces and empty lines cannot"""
+
+		if field.fieldtype == "Radio" and field.options is not None:
+			options_list = []
+			for i, option in enumerate(field.options.split("\n")):
+				_option = option.strip()
+				if (i == 0 or _option)  and len(_option) > 0:
+					options_list.append(_option)
+			field.options = "\n".join(options_list)
+
 	def validate_fetch_from(field):
 		if not field.get("fetch_from"):
 			return
@@ -1682,6 +1693,7 @@ def validate_fields(meta: Meta):
 		check_unique_and_text(meta.get("name"), d)
 		check_table_multiselect_option(d)
 		scrub_options_in_select(d)
+		scrub_options_in_radio(d)
 		validate_fetch_from(d)
 		validate_data_field_type(d)
 
