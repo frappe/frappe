@@ -6,6 +6,7 @@ from collections import defaultdict
 from functools import cache
 from importlib import reload
 from pathlib import Path
+from types import MappingProxyType
 from typing import Any
 
 import tomli
@@ -261,7 +262,7 @@ def _make_test_object(doctype, record, reset=False, commit=False):
 	if commit:
 		frappe.db.commit()
 
-	frappe.local.test_objects[doctype].append(d.name)
+	frappe.local.test_objects[doctype].append(MappingProxyType(d.as_dict()))
 	yield d.name
 
 

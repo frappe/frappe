@@ -578,7 +578,8 @@ Hint: your current doctype and all its dependencies are automatically loaded by 
 	If you did this manually using test_dependencies = frappe.get_test_records("My Current Doc"),
 	just remove that line and it should work.
 	You have access to the global pool of test records via: cls.testRecords
-	This includes the current records under cls.testRecords["My Current Doc"] -> list
+	This includes the current records under cls.globalTestRecords["My Current Doc"] -> list
+	IMPORTANT: Migrate do TOML test records, first: https://github.com/frappe/frappe/pull/28065
 """,
 )
 def frappe_get_test_records(doctype):
