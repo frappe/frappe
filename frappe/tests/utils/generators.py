@@ -2,12 +2,13 @@ import datetime
 import json
 import logging
 import os
+from collections import defaultdict
 from functools import cache
 from importlib import reload
 from pathlib import Path
 from typing import Any
 
-import tomllib
+import tomli
 
 import frappe
 from frappe.model.naming import revert_series_if_last
@@ -157,7 +158,7 @@ def _make_test_record(doctype, force=False, commit=False):
 			print_mandatory_fields(doctype)
 
 
-def load_test_records_for(doctype) -> dict[str, Any]:
+def load_test_records_for(doctype) -> dict[str, Any] | list:
 	module_path = get_module_path(get_doctype_module(doctype), "doctype", frappe.scrub(doctype))
 
 	json_path = os.path.join(module_path, "test_records.json")
@@ -178,7 +179,7 @@ https://github.com/frappe/frappe/pull/28065
 	toml_path = os.path.join(module_path, "test_records.toml")
 	if os.path.exists(toml_path):
 		with open(toml_path, "rb") as f:
-			return tomllib.load(f)
+			return tomli.load(f)
 
 	else:
 		return {}
@@ -194,10 +195,18 @@ def _make_test_objects(doctype, test_records=None, reset=False, commit=False):
 
 	if test_records is None:
 		test_records = load_test_records_for(doctype)
+
+	# Deprecated JSON import - make it comply
+	if isinstance(test_records, list):
+		_test_records = defaultdict(list)
+		for _record in test_records:
+			_dt = _record.get("doctype", doctype)
+			_test_records[_dt].append(_record)
+		test_records = _test_records
+
 	for _doctype, records in test_records.items():
 		for record in records:
 			yield from _make_test_object(_doctype, record)
-		test_record_log_instance.add(_doctype, frappe.local.test_objects[doctype])
 
 
 def _make_test_object(doctype, record, reset=False, commit=False):
@@ -254,7 +263,6 @@ def _make_test_object(doctype, record, reset=False, commit=False):
 
 	frappe.local.test_objects[doctype].append(d.name)
 	yield d.name
-
 
 
 def print_mandatory_fields(doctype):
