@@ -22,7 +22,7 @@ function get_options() {
 	if (props.df.allow_others) {
 		options.push({ label: "Others", value: "others" });
 	}
-    
+
 	return options;
 }
 let radio_control = computed(() => {
@@ -79,10 +79,10 @@ watch(
 		<!-- radio inputs -->
 		<div class="radio-inputs">
 			<div v-for="option in get_options()" :key="option.value" class="form-check">
-				<input 
-					type="radio" 
-					:value="option.value" 
-					v-model="content" 
+				<input
+					type="radio"
+					:value="option.value"
+					v-model="content"
 					:disabled="true"
 					:checked="content === option.value"
 					:id="option.value"
