@@ -1,0 +1,27 @@
+[[Contact]]
+salutation = "Mr"
+first_name = "_Test Contact For _Test Customer"
+is_primary_contact = 1
+status = "Open"
+[[Contact.email_ids]]
+email_id = "test_contact@example.com"
+is_primary = 1
+
+[[Contact.phone_nos]]
+phone = "+91 0000000000"
+is_primary_phone = 1
+
+
+[[Contact]]
+first_name = "_Test Contact For _Test Supplier"
+is_primary_contact = 1
+status = "Open"
+[[Contact.email_ids]]
+email_id = "test_contact@example.com"
+is_primary = 1
+
+[[Contact.phone_nos]]
+phone = "+91 0000000001"
+is_primary_phone = 1
+
+
