@@ -14,6 +14,7 @@ class WebFormField(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		allow_others: DF.Check
 		allow_read_on_all_link_options: DF.Check
 		default: DF.Data | None
 		depends_on: DF.Code | None
@@ -37,6 +38,7 @@ class WebFormField(Document):
 			"Phone",
 			"Rating",
 			"Select",
+			"Radio",
 			"Signature",
 			"Small Text",
 			"Text",
