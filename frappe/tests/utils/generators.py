@@ -62,7 +62,10 @@ def get_missing_records_doctypes(doctype):
 	# Recursive depth-first traversal
 	result = []
 	for dep_doctype in doctype_set:
-		result.extend(get_missing_records_doctypes(dep_doctype))
+		seen = set()
+		result.extend(
+			[x for x in get_missing_records_doctypes(dep_doctype) if not (x in seen or seen.add(x))]
+		)
 
 	result.append(doctype)
 	return result
