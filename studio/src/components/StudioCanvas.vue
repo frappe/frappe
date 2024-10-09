@@ -127,7 +127,7 @@ const canvasProps = reactive({
 			device: "desktop",
 			displayName: "Desktop",
 			width: 1400,
-			visible: false,
+			visible: true,
 		},
 		{
 			icon: "tablet",
@@ -141,14 +141,14 @@ const canvasProps = reactive({
 			device: "mobile",
 			displayName: "Mobile",
 			width: 420,
-			visible: true,
+			visible: false,
 		},
 	],
 })
 provide("canvasProps", canvasProps)
 
 const visibleBreakpoints = computed(() => {
-	return canvasProps.breakpoints.filter((breakpoint) => breakpoint.visible || breakpoint.device === "mobile")
+	return canvasProps.breakpoints.filter((breakpoint) => breakpoint.visible || breakpoint.device === "desktop")
 })
 
 const rootComponent = ref(getBlockCopy(props.componentTree, true))
