@@ -14,7 +14,8 @@ datetime_like_types = (datetime.datetime, datetime.date, datetime.time, datetime
 
 __all__ = [
 	"get_modules",
-	"get_dependencies",
+	"get_missing_records_doctypes",
+	"get_missing_records_module_overrides",
 	"make_test_records",
 	"make_test_records_for_doctype",
 	"make_test_objects",
@@ -36,8 +37,15 @@ def get_modules(doctype):
 
 
 @cache
-def get_dependencies(doctype):
-	"""Get the dependencies for the specified doctype"""
+def get_missing_records_doctypes(doctype):
+	"""Get the dependencies for the specified doctype in a depth-first manner"""
+	# If already visited in a prior run
+	if doctype in frappe.local.test_objects:
+		return []
+	else:
+		# Infinite recrusion guard (depth-first discovery)
+		frappe.local.test_objects[doctype] = []
+
 	module, test_module = get_modules(doctype)
 	meta = frappe.get_meta(doctype)
 	link_fields = meta.get_link_fields()
@@ -45,9 +53,25 @@ def get_dependencies(doctype):
 	for df in meta.get_table_fields():
 		link_fields.extend(frappe.get_meta(df.options).get_link_fields())
 
-	options_list = [df.options for df in link_fields]
+	doctype_set = {df.options for df in link_fields if df.options != "[Select]"}
 
-	if hasattr(test_module, "test_dependencies"):
+	to_add, to_remove = get_missing_records_module_overrides(test_module)
+	doctype_set.update(to_add)
+	doctype_set.difference_update(to_remove)
+
+	# Recursive depth-first traversal
+	result = []
+	for dep_doctype in doctype_set:
+		result.extend(get_missing_records_doctypes(dep_doctype))
+
+	result.append(doctype)
+	return result
+
+
+def get_missing_records_module_overrides(module) -> [set, set]:
+	to_add = set()
+	to_remove = set()
+	if hasattr(module, "test_dependencies"):
 		from frappe.deprecation_dumpster import deprecation_warning
 
 		deprecation_warning(
@@ -66,13 +90,12 @@ find . -name "*.py" | while read -r file; do
 done
 ```""",
 		)
-		options_list += test_module.test_dependencies
-	if hasattr(test_module, "EXTRA_TEST_RECORD_DEPENDENCIES"):
-		options_list += test_module.EXTRA_TEST_RECORD_DEPENDENCIES
+		to_add.update(set(module.test_dependencies))
 
-	options_list = list(set(options_list))
+	if hasattr(module, "EXTRA_TEST_RECORD_DEPENDENCIES"):
+		to_add.update(set(module.EXTRA_TEST_RECORD_DEPENDENCIES))
 
-	if hasattr(test_module, "test_ignore"):
+	if hasattr(module, "test_ignore"):
 		from frappe.deprecation_dumpster import deprecation_warning
 
 		deprecation_warning(
@@ -91,17 +114,12 @@ find . -name "*.py" | while read -r file; do
 done
 ```""",
 		)
-		for doctype_name in test_module.test_ignore:
-			if doctype_name in options_list:
-				options_list.remove(doctype_name)
-	if hasattr(test_module, "IGNORE_TEST_RECORD_DEPENDENCIES"):
-		for doctype_name in test_module.IGNORE_TEST_RECORD_DEPENDENCIES:
-			if doctype_name in options_list:
-				options_list.remove(doctype_name)
+		to_remove.difference_update(set(module.test_ignore))
 
-	options_list.sort()
+	if hasattr(module, "IGNORE_TEST_RECORD_DEPENDENCIES"):
+		to_remove.difference_update(set(module.IGNORE_TEST_RECORD_DEPENDENCIES))
 
-	return options_list
+	return to_add, to_remove
 
 
 # Test record generation
@@ -112,7 +130,7 @@ def make_test_records(doctype, force=False, commit=False):
 
 
 def make_test_records_for_doctype(doctype, force=False, commit=False):
-	return list(_make_test_records_for_doctype(doctype, force, commit))
+	return list(_make_test_record(doctype, force, commit))
 
 
 def make_test_objects(doctype, test_records=None, reset=False, commit=False):
@@ -121,31 +139,12 @@ def make_test_objects(doctype, test_records=None, reset=False, commit=False):
 
 def _make_test_records(doctype, force=False, commit=False):
 	"""Make test records for the specified doctype"""
-
-	loadme = False
-
-	if doctype not in frappe.local.test_objects:
-		loadme = True
-		frappe.local.test_objects[doctype] = []  # infinite recursion guard, here
-
-	# First, create test records for dependencies
-	for dependency in get_dependencies(doctype):
-		if dependency != "[Select]" and dependency not in frappe.local.test_objects:
-			yield from _make_test_records(dependency, force, commit)
-
-	# Then, create test records for the doctype itself
-	if loadme:
-		# Yield the doctype and record length
-		yield (
-			doctype,
-			len(
-				# Create all test records
-				list(_make_test_records_for_doctype(doctype, force, commit))
-			),
-		)
+	for _doctype in get_missing_records_doctypes(doctype):
+		# Create all test records and yield
+		yield (_doctype, len(list(_make_test_record(_doctype, force, commit))))
 
 
-def _make_test_records_for_doctype(doctype, force=False, commit=False):
+def _make_test_record(doctype, force=False, commit=False):
 	"""Make test records for the specified doctype"""
 
 	test_record_log_instance = TestRecordLog()
