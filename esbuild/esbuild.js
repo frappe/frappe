@@ -122,6 +122,62 @@ async function execute() {
 	for (const result of results) {
 		await write_assets_json(result.metafile);
 	}
+<<<<<<< HEAD
+=======
+	RUN_BUILD_COMMAND && run_build_command_for_apps(APPS);
+	if (!WATCH_MODE) {
+		process.exit(0);
+	}
+}
+
+async function update_assets_json_from_built_assets(apps) {
+	const assets = await get_assets_json_path_and_obj(false);
+	const assets_rtl = await get_assets_json_path_and_obj(true);
+
+	for (const app in apps) {
+		await update_assets_obj(app, assets.obj, assets_rtl.obj);
+	}
+
+	for (const { obj, path } of [assets, assets_rtl]) {
+		const data = JSON.stringify(obj, null, 4);
+		await fs.promises.writeFile(path, data);
+	}
+}
+
+async function update_assets_obj(app, assets, assets_rtl) {
+	const app_path = path.join(apps_path, app, app);
+	const dist_path = path.join(app_path, "public", "dist");
+	const files = await glob("**/*.bundle.*.{js,css}", { cwd: dist_path });
+	const assets_dist = path.join("assets", app, "dist");
+	const prefix = path.join("/", assets_dist);
+
+	// eg: "js/marketplace.bundle.6SCSPSGQ.js"
+	for (const file of files) {
+		const source_path = path.join(dist_path, file);
+		const dest_path = path.join(sites_path, assets_dist, file);
+
+		// Copy asset file from app/public to sites/assets
+		if (!fs.existsSync(dest_path)) {
+			const dest_dir = path.dirname(dest_path);
+			fs.mkdirSync(dest_dir, { recursive: true });
+			fs.copyFileSync(source_path, dest_path);
+		}
+
+		// eg: [ "marketplace", "bundle", "6SCSPSGQ", "js" ]
+		const parts = path.basename(file).split(".");
+
+		// eg: "marketplace.bundle.js"
+		const key = [...parts.slice(0, -2), parts.at(-1)].join(".");
+
+		// eg: "js/marketplace.bundle.6SCSPSGQ.js"
+		const value = path.join(prefix, file);
+		if (file.includes("-rtl")) {
+			assets_rtl[`rtl_${key}`] = value;
+		} else {
+			assets[key] = value;
+		}
+	}
+>>>>>>> cd2dabc4d9 (fix: copy file if it does not exist)
 }
 
 function build_assets_for_apps(apps, files) {
