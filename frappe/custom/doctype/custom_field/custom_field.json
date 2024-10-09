@@ -24,6 +24,7 @@
   "hide_days",
   "options",
   "sort_options",
+  "allow_others",
   "fetch_from",
   "fetch_if_empty",
   "options_help",
@@ -129,7 +130,7 @@
    "label": "Field Type",
    "oldfieldname": "fieldtype",
    "oldfieldtype": "Select",
-   "options": "Autocomplete\nAttach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nIcon\nImage\nInt\nJSON\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nPhone\nRead Only\nRating\nSection Break\nSelect\nSignature\nSmall Text\nTab Break\nTable\nTable MultiSelect\nText\nText Editor\nTime",
+   "options": "Autocomplete\nAttach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nIcon\nImage\nInt\nJSON\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nPhone\nRead Only\nRating\nSection Break\nSelect\nRadio\nSignature\nSmall Text\nTab Break\nTable\nTable MultiSelect\nText\nText Editor\nTime",
    "reqd": 1,
    "sort_options": 1
   },
@@ -466,7 +467,14 @@
    "fieldname": "placeholder",
    "fieldtype": "Data",
    "label": "Placeholder"
-  }
+  },
+  {
+    "default": "0",
+    "depends_on": "eval: doc.fieldtype === 'Radio'",
+    "fieldname": "allow_others",
+    "fieldtype": "Check",
+    "label": "Allow others"
+   }
  ],
  "icon": "fa fa-glass",
  "idx": 1,

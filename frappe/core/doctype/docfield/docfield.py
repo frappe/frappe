@@ -17,6 +17,7 @@ class DocField(Document):
 		allow_bulk_edit: DF.Check
 		allow_in_quick_entry: DF.Check
 		allow_on_submit: DF.Check
+		allow_others: DF.Check
 		bold: DF.Check
 		collapsible: DF.Check
 		collapsible_depends_on: DF.Code | None
@@ -64,6 +65,7 @@ class DocField(Document):
 			"Rating",
 			"Section Break",
 			"Select",
+			"Radio",
 			"Signature",
 			"Small Text",
 			"Tab Break",
