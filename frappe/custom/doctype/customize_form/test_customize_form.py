@@ -9,7 +9,7 @@ from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.utils import make_test_records_for_doctype
 
-test_dependencies = ["Custom Field", "Property Setter"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["Custom Field", "Property Setter"]
 
 
 class UnitTestCustomizeForm(UnitTestCase):

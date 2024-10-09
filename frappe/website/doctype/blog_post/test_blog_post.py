@@ -13,7 +13,7 @@ from frappe.website.serve import get_response
 from frappe.website.utils import clear_website_cache
 from frappe.website.website_generator import WebsiteGenerator
 
-test_dependencies = ["Blog Post"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["Blog Post"]
 
 
 class UnitTestBlogPost(UnitTestCase):

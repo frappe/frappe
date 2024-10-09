@@ -6,7 +6,7 @@ import frappe.share
 from frappe.automation.doctype.auto_repeat.test_auto_repeat import create_submittable_doctype
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
-test_dependencies = ["User"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
 
 
 class UnitTestDocshare(UnitTestCase):

@@ -18,7 +18,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import db_type_is, run_only_if
 from frappe.utils.testutils import add_custom_field, clear_custom_fields
 
-test_dependencies = ["User", "Blog Post", "Blog Category", "Blogger"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["User", "Blog Post", "Blog Category", "Blogger"]
 
 
 @contextmanager

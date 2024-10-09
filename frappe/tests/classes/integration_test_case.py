@@ -5,7 +5,7 @@ from contextlib import AbstractContextManager, contextmanager
 import frappe
 from frappe.utils import cint
 
-from ..utils.generators import make_test_records
+from ..utils.generators import get_missing_records_module_overrides, make_test_records
 from .unit_test_case import UnitTestCase
 
 logger = logging.Logger(__file__)
@@ -47,10 +47,11 @@ class IntegrationTestCase(UnitTestCase):
 		cls._newly_created_test_records = []
 		if cls.doctype and cls.doctype not in frappe.local.test_objects:
 			cls._newly_created_test_records += make_test_records(cls.doctype)
-		for doctype in getattr(cls.module, "test_dependencies", []):
-			if doctype not in frappe.local.test_objects:
+		elif not cls.doctype:
+			to_add, to_remove = get_missing_records_module_overrides(cls.module)
+			to_add.difference_update(to_remove)
+			for doctype in to_add:
 				cls._newly_created_test_records += make_test_records(doctype)
-
 		# flush changes done so far to avoid flake
 		frappe.db.commit()
 		if cls.SHOW_TRANSACTION_COMMIT_WARNINGS:

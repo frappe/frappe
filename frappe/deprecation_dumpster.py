@@ -290,15 +290,6 @@ def validate_roles(self):
 	self.populate_role_profile_roles()
 
 
-@deprecated(
-	"frappe.tests_runner.get_dependencies", "2024-20-08", "v17", "use frappe.tests.utils.get_dependencies"
-)
-def test_runner_get_dependencies(doctype):
-	from frappe.tests.utils import get_dependencies
-
-	return get_dependencies(doctype)
-
-
 @deprecated("frappe.tests_runner.get_modules", "2024-20-08", "v17", "use frappe.tests.utils.get_modules")
 def test_runner_get_modules(doctype):
 	from frappe.tests.utils import get_modules
@@ -530,3 +521,48 @@ def model_trace_traced_field_context(*args, **kwargs):
 	from frappe.tests.classes.context_managers import trace_fields
 
 	return trace_fields(*args, **kwargs)
+
+
+@deprecated(
+	"frappe.tests.utils.get_dependencies",
+	"2024-20-09",
+	"v17",
+	"refactor to use frappe.tests.utils.get_missing_records_doctypes",
+)
+def tests_utils_get_dependencies(doctype):
+	"""Get the dependencies for the specified doctype"""
+	import frappe
+	from frappe.tests.utils.generators import get_modules
+
+	module, test_module = get_modules(doctype)
+	meta = frappe.get_meta(doctype)
+	link_fields = meta.get_link_fields()
+
+	for df in meta.get_table_fields():
+		link_fields.extend(frappe.get_meta(df.options).get_link_fields())
+
+	options_list = [df.options for df in link_fields]
+
+	if hasattr(test_module, "test_dependencies"):
+		options_list += test_module.test_dependencies
+
+	options_list = list(set(options_list))
+
+	if hasattr(test_module, "test_ignore"):
+		for doctype_name in test_module.test_ignore:
+			if doctype_name in options_list:
+				options_list.remove(doctype_name)
+
+	options_list.sort()
+
+	return options_list
+
+
+@deprecated(
+	"frappe.tests_runner.get_dependencies",
+	"2024-20-08",
+	"v17",
+	"refactor to use frappe.tests.utils.get_missing_record_doctypes",
+)
+def test_runner_get_dependencies(doctype):
+	return tests_utils_get_dependencies(doctype)
