@@ -48,8 +48,9 @@ def after_install():
 			frappe.db.set_single_value("System Settings", "setup_complete", 0)
 
 	# clear test log
-	with open(frappe.get_site_path(".test_log"), "w") as f:
-		f.write("")
+	from frappe.tests.utils.generators import _after_install_clear_test_log
+
+	_after_install_clear_test_log()
 
 	add_standard_navbar_items()
 
