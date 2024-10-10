@@ -36,7 +36,7 @@ def get_modules(doctype):
 	return module, test_module
 
 
-@cache
+# @cache - don't cache the recursion, code depends on its recurn value declining
 def get_missing_records_doctypes(doctype):
 	"""Get the dependencies for the specified doctype in a depth-first manner"""
 	# If already visited in a prior run
