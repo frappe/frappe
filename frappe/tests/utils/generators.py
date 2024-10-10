@@ -1,4 +1,5 @@
 import datetime
+import json
 import logging
 from functools import cache
 from importlib import reload
@@ -126,31 +127,16 @@ done
 # Test record generation
 
 
-def make_test_records(doctype, force=False, commit=False):
-	return list(_make_test_records(doctype, force, commit))
-
-
-def make_test_records_for_doctype(doctype, force=False, commit=False):
-	return list(_make_test_record(doctype, force, commit))
-
-
-def make_test_objects(doctype, test_records=None, reset=False, commit=False):
-	return list(_make_test_objects(doctype, test_records, reset, commit))
-
-
 def _make_test_records(doctype, force=False, commit=False):
 	"""Make test records for the specified doctype"""
 	for _doctype in get_missing_records_doctypes(doctype):
 		# Create all test records and yield
-		yield (_doctype, len(list(_make_test_record(_doctype, force, commit))))
+		res = list(_make_test_record(_doctype, force, commit))
+		yield (_doctype, len(res))
 
 
 def _make_test_record(doctype, force=False, commit=False):
 	"""Make test records for the specified doctype"""
-
-	test_record_log_instance = TestRecordLog()
-	if not force and doctype in frappe.local.test_objects:
-		yield
 
 	module, test_module = get_modules(doctype)
 	if hasattr(test_module, "_make_test_records"):
@@ -164,11 +150,14 @@ def _make_test_record(doctype, force=False, commit=False):
 		else:
 			print_mandatory_fields(doctype)
 
-	test_record_log_instance.add(doctype)
-
 
 def _make_test_objects(doctype, test_records=None, reset=False, commit=False):
 	"""Generator function to make test objects"""
+	# NOTE: We use file-based, per-site persistence visited log in order to not
+	# create same records twice for on multiple test runs
+	test_record_log_instance = TestRecordLog()
+	if not reset and doctype in test_record_log_instance.get():
+		yield from test_record_log_instance.yield_names(doctype)
 
 	def revert_naming(d):
 		if getattr(d, "naming_series", None):
@@ -228,8 +217,10 @@ def _make_test_objects(doctype, test_records=None, reset=False, commit=False):
 		if commit:
 			frappe.db.commit()
 
-		frappe.local.test_objects[doctype] += d.name
+		frappe.local.test_objects[doctype].append(d.name)
 		yield d.name
+
+	test_record_log_instance.add(doctype, frappe.local.test_objects[doctype])
 
 
 def print_mandatory_fields(doctype):
@@ -254,18 +245,39 @@ class TestRecordLog:
 			self._log = self._read_log()
 		return self._log
 
-	def add(self, doctype):
+	def yield_names(self, doctype):
+		log = self.get()
+		yield from log[doctype]
+
+	def add(self, doctype, names):
 		log = self.get()
 		if doctype not in log:
-			log.append(doctype)
+			log[doctype] = names
 			self._write_log(log)
 
 	def _read_log(self):
 		if self.log_file.exists():
 			with self.log_file.open() as f:
-				return f.read().splitlines()
-		return []
+				return json.load(f)
+		return {}
 
 	def _write_log(self, log):
 		with self.log_file.open("w") as f:
-			f.write("\n".join(l for l in log if l is not None))
+			json.dump(log, f)
+
+
+def _after_install_clear_test_log():
+	with open(frappe.get_site_path(".test_log"), "w") as f:
+		f.write("{}")
+
+
+def make_test_records(doctype, force=False, commit=False):
+	return list(_make_test_records(doctype, force, commit))
+
+
+def make_test_records_for_doctype(doctype, force=False, commit=False):
+	return list(_make_test_record(doctype, force, commit))
+
+
+def make_test_objects(doctype, test_records=None, reset=False, commit=False):
+	return list(_make_test_objects(doctype, test_records, reset, commit))
