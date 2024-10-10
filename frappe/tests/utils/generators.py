@@ -53,24 +53,25 @@ def get_missing_records_doctypes(doctype):
 	for df in meta.get_table_fields():
 		link_fields.extend(frappe.get_meta(df.options).get_link_fields())
 
-	doctype_set = {df.options for df in link_fields if df.options != "[Select]"}
+	unique_doctypes = dict.fromkeys(df.options for df in link_fields if df.options != "[Select]")
 
 	to_add, to_remove = get_missing_records_module_overrides(test_module)
-	doctype_set.update(to_add)
-	doctype_set.difference_update(to_remove)
+	unique_doctypes.update(dict.fromkeys(to_add))
+	if to_remove:
+		unique_doctypes = {k: v for k, v in unique_doctypes.items() if k not in to_remove}
 
 	# Recursive depth-first traversal
 	result = []
-	for dep_doctype in doctype_set:
+	for dep_doctype in unique_doctypes:
 		result.extend(get_missing_records_doctypes(dep_doctype))
 
 	result.append(doctype)
 	return result
 
 
-def get_missing_records_module_overrides(module) -> [set, set]:
-	to_add = set()
-	to_remove = set()
+def get_missing_records_module_overrides(module) -> [list, list]:
+	to_add = []
+	to_remove = []
 	if hasattr(module, "test_dependencies"):
 		from frappe.deprecation_dumpster import deprecation_warning
 
@@ -90,10 +91,10 @@ find . -name "*.py" | while read -r file; do
 done
 ```""",
 		)
-		to_add.update(set(module.test_dependencies))
+		to_add += module.test_dependencies
 
 	if hasattr(module, "EXTRA_TEST_RECORD_DEPENDENCIES"):
-		to_add.update(set(module.EXTRA_TEST_RECORD_DEPENDENCIES))
+		to_add += module.EXTRA_TEST_RECORD_DEPENDENCIES
 
 	if hasattr(module, "test_ignore"):
 		from frappe.deprecation_dumpster import deprecation_warning
@@ -105,7 +106,7 @@ done
 ```bash
 # Find Python files
 find . -name "*.py" | while read -r file; do
-    # Check if the file contains 'test_dependencies' at the module level
+    # Check if the file contains 'test_ignore' at the module level
     if grep -q "^test_ignore" "$file"; then
         # Replace 'test_ignore' with 'IGNORE_TEST_RECORD_DEPENDENCIES'
         sed -i 's/^test_ignore/IGNORE_TEST_RECORD_DEPENDENCIES/' "$file"
@@ -114,10 +115,10 @@ find . -name "*.py" | while read -r file; do
 done
 ```""",
 		)
-		to_remove.difference_update(set(module.test_ignore))
+		to_remove += module.test_ignore
 
 	if hasattr(module, "IGNORE_TEST_RECORD_DEPENDENCIES"):
-		to_remove.difference_update(set(module.IGNORE_TEST_RECORD_DEPENDENCIES))
+		to_remove += module.IGNORE_TEST_RECORD_DEPENDENCIES
 
 	return to_add, to_remove
 

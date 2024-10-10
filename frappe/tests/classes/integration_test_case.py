@@ -48,8 +48,11 @@ class IntegrationTestCase(UnitTestCase):
 		if cls.doctype and cls.doctype not in frappe.local.test_objects:
 			cls._newly_created_test_records += make_test_records(cls.doctype)
 		elif not cls.doctype:
-			to_add, to_remove = get_missing_records_module_overrides(cls.module)
-			to_add.difference_update(to_remove)
+			to_add, ignore = get_missing_records_module_overrides(cls.module)
+			if ignore:
+				raise NotImplementedError(
+					f"IGNORE_TEST_RECORD_DEPENDENCIES is only implement for test modules within a doctype folder {cls.module} {cls.doctype}"
+				)
 			for doctype in to_add:
 				cls._newly_created_test_records += make_test_records(doctype)
 		# flush changes done so far to avoid flake
