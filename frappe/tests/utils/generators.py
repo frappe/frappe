@@ -3,6 +3,7 @@ import json
 import logging
 import os
 from collections import defaultdict
+from collections.abc import Generator
 from functools import cache
 from importlib import reload
 from pathlib import Path
@@ -208,6 +209,7 @@ def _make_test_objects(doctype, test_records=None, reset=False, commit=False):
 	for _doctype, records in test_records.items():
 		for record in records:
 			yield from _make_test_object(_doctype, record)
+		test_record_log_instance.add(_doctype, (dict(rec) for rec in frappe.local.test_objects[_doctype]))
 
 
 def _make_test_object(doctype, record, reset=False, commit=False):
@@ -287,7 +289,7 @@ def print_mandatory_fields(doctype):
 
 class TestRecordLog:
 	def __init__(self):
-		self.log_file = Path(frappe.get_site_path(".test_log"))
+		self.log_file = Path(frappe.get_site_path(".test_log.jsonl"))
 		self._log = None
 
 	def get(self):
@@ -297,24 +299,31 @@ class TestRecordLog:
 
 	def yield_names(self, doctype):
 		log = self.get()
-		yield from log[doctype]
+		yield from log.get(doctype, [])
 
-	def add(self, doctype, names):
-		log = self.get()
-		if doctype not in log:
-			log[doctype] = names
-			testing_logger.debug(f"{self.log_file}: test record creation persisted for {doctype}")
-			self._write_log(log)
+	def add(self, doctype, records: Generator[dict, None, None]):
+		new_records = list(records)
+		if new_records:
+			self._append_to_log(doctype, new_records)
+			testing_logger.debug(f"{self.log_file}: test records for {doctype} added")
+			if self._log is not None:
+				self._log.setdefault(doctype, []).extend(new_records)
+
+	def _append_to_log(self, doctype, records):
+		entry = {"doctype": doctype, "records": records}
+		with self.log_file.open("a") as f:
+			f.write(frappe.as_json(entry, indent=None) + "\n")
 
 	def _read_log(self):
+		log = {}
 		if self.log_file.exists():
 			with self.log_file.open() as f:
-				return json.load(f)
-		return {}
-
-	def _write_log(self, log):
-		with self.log_file.open("w") as f:
-			json.dump(log, f)
+				for line in f:
+					entry = json.loads(line)
+					doctype = entry["doctype"]
+					records = entry["records"]
+					log.setdefault(doctype, []).extend(records)
+		return log
 
 
 def _after_install_clear_test_log():
