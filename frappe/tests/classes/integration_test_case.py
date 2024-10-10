@@ -1,6 +1,7 @@
 import copy
 import logging
 from contextlib import AbstractContextManager, contextmanager
+from types import MappingProxyType
 
 import frappe
 from frappe.utils import cint
@@ -57,6 +58,7 @@ class IntegrationTestCase(UnitTestCase):
 				cls._newly_created_test_records += make_test_records(doctype)
 		# flush changes done so far to avoid flake
 		frappe.db.commit()
+		cls.globalTestRecords = MappingProxyType(frappe.local.test_objects)
 		if cls.SHOW_TRANSACTION_COMMIT_WARNINGS:
 			frappe.db.before_commit.add(_commit_watcher)
 

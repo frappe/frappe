@@ -3,4 +3,4 @@
 
 import frappe
 
-test_records = frappe.get_test_records("Blogger")
+test_records = frappe.tests.utils.load_test_records_for("Blogger")

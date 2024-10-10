@@ -8,8 +8,6 @@ import frappe
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils.error import _is_ldap_exception, guess_exception_source
 
-# test_records = frappe.get_test_records('Error Log')
-
 
 class UnitTestErrorLog(UnitTestCase):
 	"""

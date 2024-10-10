@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 	from frappe.contacts.doctype.contact.contact import Contact
 	from frappe.email.doctype.email_account.email_account import EmailAccount
 
-test_records = frappe.get_test_records("Communication")
+test_records = frappe.tests.utils.load_test_records_for("Communication")
 
 
 class UnitTestCommunication(UnitTestCase):

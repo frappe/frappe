@@ -4,8 +4,6 @@ import frappe
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils import validate_url
 
-# test_records = frappe.get_test_records('Email Group')
-
 
 class UnitTestEmailGroup(UnitTestCase):
 	"""
