@@ -313,6 +313,7 @@ class TestUser(IntegrationTestCase):
 				"enabled": 1,
 				"first_name": "_Test",
 				"new_password": "Eastern_43A1W",
+				"send_welcome_email": 0,
 				"roles": [{"doctype": "Has Role", "parentfield": "roles", "role": "System Manager"}],
 			}
 		).insert(ignore_permissions=True, ignore_if_duplicate=True)

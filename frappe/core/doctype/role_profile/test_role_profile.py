@@ -40,6 +40,7 @@ class TestRoleProfile(IntegrationTestCase):
 				"enabled": 1,
 				"first_name": random_user_name,
 				"new_password": "Eastern_43A1W",
+				"send_welcome_email": 0,
 				"role_profiles": user_role_profile,
 			}
 		).insert(ignore_permissions=True, ignore_if_duplicate=True)
@@ -94,6 +95,7 @@ class TestRoleProfile(IntegrationTestCase):
 				"enabled": 1,
 				"first_name": frappe.mock("name"),
 				"new_password": "Eastern_43A1W",
+				"send_welcome_email": 0,
 				"role_profiles": [
 					{"role_profile": "_Test Role Profile 1"},
 					{"role_profile": "_Test Role Profile 2"},
@@ -108,6 +110,7 @@ class TestRoleProfile(IntegrationTestCase):
 				"enabled": 1,
 				"first_name": frappe.mock("name"),
 				"new_password": "Eastern_43A1W",
+				"send_welcome_email": 0,
 				"role_profiles": [{"role_profile": "_Test Role Profile 2"}],
 			}
 		).insert(ignore_permissions=True, ignore_if_duplicate=True)
@@ -129,6 +132,7 @@ class TestRoleProfile(IntegrationTestCase):
 				"enabled": 1,
 				"first_name": frappe.mock("name"),
 				"new_password": "Eastern_43A1W",
+				"send_welcome_email": 0,
 				"role_profiles": [{"role_profile": "_Test Role Profile 1"}],
 			}
 		).insert(ignore_permissions=True, ignore_if_duplicate=True)

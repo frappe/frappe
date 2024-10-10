@@ -27,7 +27,12 @@ class TestModuleProfile(IntegrationTestCase):
 		# add to user and check
 		if not frappe.db.get_value("User", "test-for-module_profile@example.com"):
 			new_user = frappe.get_doc(
-				{"doctype": "User", "email": "test-for-module_profile@example.com", "first_name": "Test User"}
+				{
+					"doctype": "User",
+					"email": "test-for-module_profile@example.com",
+					"first_name": "Test User",
+					"send_welcome_email": 0,
+				}
 			).insert()
 		else:
 			new_user = frappe.get_doc("User", "test-for-module_profile@example.com")
