@@ -10,6 +10,7 @@ from frappe.model.naming import revert_series_if_last
 from frappe.modules import load_doctype_module
 
 logger = logging.getLogger(__name__)
+testing_logger = logging.getLogger("frappe.testing.generators")
 
 datetime_like_types = (datetime.datetime, datetime.date, datetime.time, datetime.timedelta)
 
@@ -226,13 +227,20 @@ def _make_test_objects(doctype, test_records=None, reset=False, commit=False):
 def print_mandatory_fields(doctype):
 	"""Print mandatory fields for the specified doctype"""
 	meta = frappe.get_meta(doctype)
-	logger.warning(f"Please setup make_test_records for: {doctype}")
-	logger.warning("-" * 60)
-	logger.warning(f"Autoname: {meta.autoname or ''}")
-	logger.warning("Mandatory Fields:")
-	for d in meta.get("fields", {"reqd": 1}):
-		logger.warning(f" - {d.parent}:{d.fieldname} | {d.fieldtype} | {d.options or ''}")
-	logger.warning("")
+	msg = f"Setup test records for: {doctype}\n"
+	msg += f"Autoname '{meta.autoname or ''}'\n"
+	mandatory_fields = meta.get("fields", {"reqd": 1})
+	if mandatory_fields:
+		msg += "Mandatory Fields\n"
+		for d in mandatory_fields:
+			msg += f" {d.parent} {d.fieldname} ({d.fieldtype})"
+			if d.options:
+				opts = d.options.splitlines()
+				msg += f" opts: {','.join(opts)} \n"
+			else:
+				msg += "\n"
+	logger.warning("-" * 60 + "\n" + msg)
+	testing_logger.warning(" | ".join(msg.strip().splitlines()))
 
 
 class TestRecordLog:
@@ -253,6 +261,7 @@ class TestRecordLog:
 		log = self.get()
 		if doctype not in log:
 			log[doctype] = names
+			testing_logger.debug(f"{self.log_file}: test record creation persisted for {doctype}")
 			self._write_log(log)
 
 	def _read_log(self):
