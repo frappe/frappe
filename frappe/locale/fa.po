@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-06 09:33+0000\n"
-"PO-Revision-Date: 2024-10-09 02:18\n"
+"PO-Revision-Date: 2024-10-10 02:57\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -1805,7 +1805,7 @@ msgstr "اجازه شکستن صفحه در داخل جداول"
 #. Label of the allow_print (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Allow print"
-msgstr ""
+msgstr "اجازه چاپ"
 
 #. Description of the 'Allow incomplete forms' (Check) field in DocType 'Web
 #. Form'
@@ -4306,12 +4306,12 @@ msgstr ""
 #. Label of the changed_at (Datetime) field in DocType 'Permission Log'
 #: frappe/core/doctype/permission_log/permission_log.json
 msgid "Changed at"
-msgstr ""
+msgstr "تغییر در"
 
 #. Label of the changed_by (Link) field in DocType 'Permission Log'
 #: frappe/core/doctype/permission_log/permission_log.json
 msgid "Changed by"
-msgstr ""
+msgstr "تغییر توسط"
 
 #. Name of a DocType
 #: frappe/desk/doctype/changelog_feed/changelog_feed.json
@@ -9579,7 +9579,7 @@ msgstr "بیان، اختیاری"
 #: frappe/desk/doctype/workspace/workspace.json
 #: frappe/public/js/frappe/views/workspace/workspace.js:424
 msgid "External Link"
-msgstr ""
+msgstr "لینک خارجی"
 
 #. Label of the section_break_18 (Section Break) field in DocType 'Connected
 #. App'
@@ -10555,7 +10555,7 @@ msgstr "پاورقی فقط در PDF به درستی نمایش داده می ش
 #. Label of the for_doctype (Link) field in DocType 'Permission Log'
 #: frappe/core/doctype/permission_log/permission_log.json
 msgid "For DocType"
-msgstr ""
+msgstr "برای DocType"
 
 #. Description of the 'Row Name' (Data) field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
@@ -10565,7 +10565,7 @@ msgstr "برای DocType Link / DocType Action"
 #. Label of the for_document (Dynamic Link) field in DocType 'Permission Log'
 #: frappe/core/doctype/permission_log/permission_log.json
 msgid "For Document"
-msgstr ""
+msgstr "برای سند"
 
 #. Label of the for_doc_event (Select) field in DocType 'Energy Point Rule'
 #: frappe/social/doctype/energy_point_rule/energy_point_rule.json
@@ -11827,7 +11827,7 @@ msgstr "پنهان کردن خطا"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:488
 msgid "Hide Label"
-msgstr ""
+msgstr "پنهان کردن برچسب"
 
 #. Label of the hide_login (Check) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -18639,7 +18639,7 @@ msgstr "سطوح مجوز"
 #. Name of a DocType
 #: frappe/core/doctype/permission_log/permission_log.json
 msgid "Permission Log"
-msgstr ""
+msgstr "لاگ مجوز"
 
 #. Label of a shortcut in the Users Workspace
 #: frappe/core/workspace/users/users.json
@@ -20975,7 +20975,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Permission Log'
 #: frappe/core/doctype/permission_log/permission_log.json
 msgid "Removed"
-msgstr ""
+msgstr "حذف شد"
 
 #: frappe/core/doctype/file/file.py:156
 msgid "Removed {0}"
@@ -29680,7 +29680,7 @@ msgstr "امتیاز بررسی کافی ندارید"
 
 #: frappe/desk/query_report.py:799
 msgid "You do not have permission to access {0}: {1}."
-msgstr ""
+msgstr "شما اجازه دسترسی به {0}: {1} را ندارید."
 
 #: frappe/www/printview.py:375
 msgid "You do not have permission to view this document"
