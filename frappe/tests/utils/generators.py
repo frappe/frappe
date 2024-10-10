@@ -289,7 +289,7 @@ def print_mandatory_fields(doctype):
 
 class TestRecordLog:
 	def __init__(self):
-		self.log_file = Path(frappe.get_site_path(".test_log"))
+		self.log_file = Path(frappe.get_site_path(".test_log.jsonl"))
 		self._log = None
 
 	def get(self):
@@ -302,22 +302,28 @@ class TestRecordLog:
 		yield from log.get(doctype, [])
 
 	def add(self, doctype, records: Generator[dict, None, None]):
-		log = self.get()
-		if doctype not in log:
-			log[doctype] = list(records)
-			testing_logger.debug(f"{self.log_file}: test record creation persisted for {doctype}")
-			self._write_log(log)
-			self._log = log
+		new_records = list(records)
+		if new_records:
+			self._append_to_log(doctype, new_records)
+			testing_logger.debug(f"{self.log_file}: test records for {doctype} added")
+			if self._log is not None:
+				self._log.setdefault(doctype, []).extend(new_records)
+
+	def _append_to_log(self, doctype, records):
+		entry = {"doctype": doctype, "records": records}
+		with self.log_file.open("a") as f:
+			f.write(frappe.as_json(entry, indent=None) + "\n")
 
 	def _read_log(self):
+		log = {}
 		if self.log_file.exists():
 			with self.log_file.open() as f:
-				return json.load(f)
-		return {}
-
-	def _write_log(self, log):
-		with self.log_file.open("w") as f:
-			f.write(frappe.as_json(log, indent=0))
+				for line in f:
+					entry = json.loads(line)
+					doctype = entry["doctype"]
+					records = entry["records"]
+					log.setdefault(doctype, []).extend(records)
+		return log
 
 
 def _after_install_clear_test_log():
