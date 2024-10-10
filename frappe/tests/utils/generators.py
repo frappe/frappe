@@ -88,18 +88,7 @@ def get_missing_records_module_overrides(module) -> [list, list]:
 		deprecation_warning(
 			"2024-10-09",
 			"v17",
-			"""test_dependencies was clarified to EXTRA_TEST_RECORD_DEPENDENCIES: run:
-```bash
-# Find Python files
-find . -name "*.py" | while read -r file; do
-    # Check if the file contains 'test_dependencies' at the module level
-    if grep -q "^test_dependencies" "$file"; then
-        # Replace 'test_dependencies' with 'EXTRA_TEST_RECORD_DEPENDENCIES'
-        sed -i 's/^test_dependencies/EXTRA_TEST_RECORD_DEPENDENCIES/' "$file"
-        echo "Updated $file"
-    fi
-done
-```""",
+			"""test_dependencies was clarified to EXTRA_TEST_RECORD_DEPENDENCIES; migration script: https://github.com/frappe/frappe/pull/28060""",
 		)
 		to_add += module.test_dependencies
 
@@ -112,18 +101,7 @@ done
 		deprecation_warning(
 			"2024-10-09",
 			"v17",
-			"""test_ignore was clarified to IGNORE_TEST_RECORD_DEPENDENCIES: run:
-```bash
-# Find Python files
-find . -name "*.py" | while read -r file; do
-    # Check if the file contains 'test_ignore' at the module level
-    if grep -q "^test_ignore" "$file"; then
-        # Replace 'test_ignore' with 'IGNORE_TEST_RECORD_DEPENDENCIES'
-        sed -i 's/^test_ignore/IGNORE_TEST_RECORD_DEPENDENCIES/' "$file"
-        echo "Updated $file"
-    fi
-done
-```""",
+			"""test_ignore was clarified to IGNORE_TEST_RECORD_DEPENDENCIES; migration script: https://github.com/frappe/frappe/pull/28060""",
 		)
 		to_remove += module.test_ignore
 
@@ -165,16 +143,14 @@ def load_test_records_for(doctype) -> dict[str, Any] | list:
 
 	json_path = os.path.join(module_path, "test_records.json")
 	if os.path.exists(json_path):
-		from frappe.deprecation_dumpster import deprecation_warning
+		if not frappe.flags.deprecation_dumpster_invoked:
+			from frappe.deprecation_dumpster import deprecation_warning
 
-		deprecation_warning(
-			"2024-10-09",
-			"v17",
-			"""Test records have been tranformed from json to toml for better readability and devx.
-Please run the script from the PR description and remove the json file afterwards:
-https://github.com/frappe/frappe/pull/28065
-""",
-		)
+			deprecation_warning(
+				"2024-10-09",
+				"v18",
+				"Use TOML files for test records; migration script: https://github.com/frappe/frappe/pull/28065",
+			)
 		with open(json_path) as f:
 			return json.load(f)
 
