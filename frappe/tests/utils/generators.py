@@ -149,8 +149,8 @@ def _make_test_record(doctype, force=False, commit=False):
 	"""Make test records for the specified doctype"""
 
 	test_record_log_instance = TestRecordLog()
-	if not force and doctype in test_record_log_instance.get():
-		return
+	if not force and doctype in frappe.local.test_objects:
+		yield
 
 	module, test_module = get_modules(doctype)
 	if hasattr(test_module, "_make_test_records"):
