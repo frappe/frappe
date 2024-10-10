@@ -271,9 +271,9 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 			`tabContact`.`{searchfield}` like %(txt)s
 			{get_match_cond(doctype)}
 		order by
-			if(locate(%(_txt)s, `tabContact`.full_name), locate(%(_txt)s, `tabContact`.company_name), 99999),
+			(case when position(%(_txt)s in `tabContact`.full_name) > 0 then position(%(_txt)s in `tabContact`.full_name) when position(%(_txt)s in `tabContact`.company_name) > 0 then position(%(_txt)s in `tabContact`.company_name) else 99999 end),
 			`tabContact`.idx desc, `tabContact`.full_name
-		limit %(start)s, %(page_len)s """,
+		limit %(page_len)s offset %(start)s""",
 		{
 			"txt": "%" + txt + "%",
 			"_txt": txt.replace("%", ""),

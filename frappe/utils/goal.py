@@ -28,7 +28,7 @@ def get_monthly_results(
 			table=goal_doctype,
 			fields=[
 				DateFormat(Table[date_col], date_format).as_("month_year"),
-				Function(aggregation, goal_field),
+				Function(aggregation, Table[goal_field]),
 			],
 			filters=filters,
 			validate_filters=True,
