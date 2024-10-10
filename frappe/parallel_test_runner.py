@@ -102,6 +102,9 @@ class ParallelTestRunner:
 		if hasattr(module, "test_dependencies"):
 			for doctype in module.test_dependencies:
 				make_test_records(doctype, commit=True)
+		if hasattr(module, "EXTRA_TEST_RECORD_DEPENDENCIES"):
+			for doctype in module.EXTRA_TEST_RECORD_DEPENDENCIES:
+				make_test_records(doctype, commit=True)
 
 		if os.path.basename(os.path.dirname(path)) == "doctype":
 			# test_data_migration_connector.py > data_migration_connector.json
