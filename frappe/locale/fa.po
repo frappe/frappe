@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-06 09:33+0000\n"
-"PO-Revision-Date: 2024-10-10 02:57\n"
+"PO-Revision-Date: 2024-10-11 03:05\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -527,7 +527,7 @@ msgstr "<span class=\"h2\">سلام،</span>"
 #. Header text in the Integrations Workspace
 #: frappe/integrations/workspace/integrations/integrations.json
 msgid "<span class=\"h4\"><b>Reports &amp; Masters</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>گزارش ها و مستندات</b></span>"
 
 #: frappe/custom/doctype/custom_field/custom_field.js:39
 msgid "<strong>Warning:</strong> This field is system generated and may be overwritten by a future update. Modify it using {0} instead."
@@ -3064,7 +3064,7 @@ msgstr "تصویر پس زمینه"
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:189
 msgid "Background Jobs"
-msgstr "مشاغل پس زمینه"
+msgstr "کارهای پس زمینه"
 
 #. Label of the background_jobs_check (Data) field in DocType 'System Health
 #. Report'
@@ -19805,7 +19805,7 @@ msgstr "مشخصات"
 
 #: frappe/public/js/frappe/socketio_client.js:78
 msgid "Progress"
-msgstr "پیش رفتن"
+msgstr "پیشرفت"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:410
 msgid "Project"
@@ -21299,7 +21299,7 @@ msgstr "گزارش ها"
 
 #: frappe/patches/v14_0/update_workspace2.py:50
 msgid "Reports & Masters"
-msgstr "گزارش ها و کارشناسی ارشد"
+msgstr "گزارش ها و مستندات"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:857
 msgid "Reports already in Queue"
@@ -27541,7 +27541,7 @@ msgstr "فیلد به روز رسانی"
 #: frappe/core/doctype/installed_applications/installed_applications.js:6
 #: frappe/core/doctype/installed_applications/installed_applications.js:13
 msgid "Update Hooks Resolution Order"
-msgstr "به‌روزرسانی سفارش وضوح هوک"
+msgstr "به‌روزرسانی ترتیب حل هوک‌ها"
 
 #: frappe/core/doctype/installed_applications/installed_applications.js:45
 msgid "Update Order"
