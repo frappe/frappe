@@ -50,14 +50,18 @@ def get_modules(doctype) -> (str, ModuleType):
 
 
 # @cache - don't cache the recursion, code depends on its recurn value declining
-def get_missing_records_doctypes(doctype) -> list[str]:
+def get_missing_records_doctypes(doctype, visited=None) -> list[str]:
 	"""Get the dependencies for the specified doctype in a depth-first manner"""
-	# If already visited in a prior run
-	if doctype in frappe.local.test_objects:
+
+	if visited is None:
+		visited = set()
+
+	# If already visited in this or a prior run
+	if doctype in visited:
 		return []
-	else:
-		# Infinite recrusion guard (depth-first discovery)
-		frappe.local.test_objects[doctype] = []
+
+	# Mark as visited
+	visited.add(doctype)
 
 	module, test_module = get_modules(doctype)
 	meta = frappe.get_meta(doctype)
@@ -76,7 +80,7 @@ def get_missing_records_doctypes(doctype) -> list[str]:
 	# Recursive depth-first traversal
 	result = []
 	for dep_doctype in unique_doctypes:
-		result.extend(get_missing_records_doctypes(dep_doctype))
+		result.extend(get_missing_records_doctypes(dep_doctype, visited))
 
 	result.append(doctype)
 	return result
@@ -114,8 +118,8 @@ def get_missing_records_module_overrides(module) -> [list, list]:
 	return to_add, to_remove
 
 
-def load_test_records_for(doctype) -> dict[str, Any] | list:
-	module_path = get_module_path(get_doctype_module(doctype), "doctype", frappe.scrub(doctype))
+def load_test_records_for(index_doctype) -> dict[str, Any] | list:
+	module_path = get_module_path(get_doctype_module(index_doctype), "doctype", frappe.scrub(index_doctype))
 
 	json_path = os.path.join(module_path, "test_records.json")
 	if os.path.exists(json_path):
@@ -142,24 +146,30 @@ def load_test_records_for(doctype) -> dict[str, Any] | list:
 # Test record generation
 
 
-def _generate_all_records_towards(doctype, force=False, commit=False):
+def _generate_all_records_towards(
+	index_doctype, force=False, commit=False
+) -> Generator[tuple[str, int], None, None]:
 	"""Generate test records for the given doctype and its dependencies."""
-	for _doctype in get_missing_records_doctypes(doctype):
+
+	# NOTE: visited excludes dependency discovery of any index doctype which
+	# which had already been loaded into memory prior
+	visited = set(frappe.local.test_objects.keys())
+	for _index_doctype in get_missing_records_doctypes(index_doctype, visited):
 		# Create all test records and yield
-		res = list(_generate_records_for(_doctype, force, commit, initial_doctype=doctype))
-		yield (_doctype, len(res))
+		res = list(_generate_records_for(_index_doctype, force, commit, initial_doctype=index_doctype))
+		yield (_index_doctype, len(res))
 
 
 def _generate_records_for(
-	doctype: str, force: bool = False, commit: bool = False, initial_doctype: str | None = None
-) -> Generator["Document", None, None]:
+	index_doctype: str, force: bool = False, commit: bool = False, initial_doctype: str | None = None
+) -> Generator[tuple[str, "Document"], None, None]:
 	"""Create and yield test records for a specific doctype."""
 	module: str
 	test_module: ModuleType
 
-	logstr = f" {doctype} via {initial_doctype}"
+	logstr = f" {index_doctype} via {initial_doctype}"
 
-	module, test_module = get_modules(doctype)
+	module, test_module = get_modules(index_doctype)
 
 	# First prioriry: module's _make_test_records as an escape hatch
 	# to completely bypass the standard loading and create test records
@@ -167,7 +177,7 @@ def _generate_records_for(
 	if hasattr(test_module, "_make_test_records"):
 		logger.warning("↺" + logstr)
 		testing_logger.info(
-			f" Made  + {doctype:<30} via {initial_doctype} through {test_module._make_test_records}"
+			f" Made  + {index_doctype:<30} via {initial_doctype} through {test_module._make_test_records}"
 		)
 		yield from test_module._make_test_records()
 
@@ -180,63 +190,92 @@ def _generate_records_for(
 
 		# Third priority: module's test_records.toml
 		else:
-			test_records = load_test_records_for(doctype)
+			test_records = load_test_records_for(index_doctype)
 
 		if not test_records:
 			logger.warning("➛ " + logstr + " (missing)")
-			print_mandatory_fields(doctype, initial_doctype)
+			print_mandatory_fields(index_doctype, initial_doctype)
 			return
 
 		if isinstance(test_records, list):
-			test_records = _transform_legacy_json_records(test_records, doctype)
+			test_records = _transform_legacy_json_records(test_records, index_doctype)
 
 		logger.warning("↺ " + logstr)
-		testing_logger.info(f" Synced  + {doctype:<30} via {initial_doctype}")
+		testing_logger.info(f" Synced  + {index_doctype:<30} via {initial_doctype}")
 
-		yield from _sync_records(doctype, test_records, force, commit=commit)
+		yield from _sync_records(index_doctype, test_records, force, commit=commit)
 
 
 def _sync_records(
-	doctype: str, test_records: dict[str, list], reset: bool = False, commit: bool = False
-) -> Generator["Document", None, None]:
-	"""Generate test objects from provided records, with caching and persistence."""
-	# NOTE: We use file-based, per-site persistence visited log in order to not
-	# create same records twice for on multiple test runs
+	index_doctype: str, test_records: dict[str, list], reset: bool = False, commit: bool = False
+) -> Generator[tuple[str, "Document"], None, None]:
+	"""Generate test objects for a register doctype from provided records, with caching and persistence."""
+	# NOTE: This method is called in roughly these situations:
+	# 1. First sync of a index doctype's records
+	# 2. Manual sync, e.g. by a secondary call to make_test_records / make_test_objects
+	# 3. Manual sync with reset, e.g. simlar secondary call with force=True
+	# 4. Re-execution of a test on the same database
+
+	# To keep track of creation across re-execution, we use a file-based, per-site
+	# persistence log indexed by the register doctype. It also serves as proof of
+	# records at the time of creation and contains the db values
 	test_record_log_instance = TestRecordLog()
-	if not reset and doctype in test_record_log_instance.get():
-		yield from test_record_log_instance.get_records(doctype)
 
-	for _sub_doctype, records in test_records.items():
-		# one test record file / source may have entires for different doctypes
-		created = []
-		for record in records:
-			# Fix the input; better late than never
-			if "doctype" not in record:
-				record["doctype"] = _sub_doctype
-			_rec = _try_create(record)
-			# no_nulls: some buidness logic might check absence of an attribute, closer to the raw records
-			# no_default_fields: we want to keep especially name, doctype
-			# convert_dates_to_str: same as when loaded from log file above
-			# no_child_table_fields: we don't neer prent{,field,type} et al fields
-			# no_private_properties: these are internal to the document lifecycle and not a property of data records
-			_rec = _rec.as_dict(
-				no_nulls=True,
-				no_default_fields=False,
-				convert_dates_to_str=True,
-				no_child_table_fields=True,
-				no_private_properties=True,
-			)
-			created.append(_rec)
-			frappe.local.test_objects[_sub_doctype].append(MappingProxyType(record))
+	def _load():
+		created, loaded = [], []
+		# one test record file / source under a single register doctype may have entires for different doctypes
+		for _sub_doctype, records in test_records.items():
+			for record in records:
+				# Fix the input; better late than never
+				if "doctype" not in record:
+					record["doctype"] = _sub_doctype
 
-		_logstr = f"{_sub_doctype} ({len(created)})"
+				doc, was_created = _try_create(record, reset, commit)
+				if was_created:
+					created.append(doc)
+				else:
+					loaded.append(doc)
 
-		test_record_log_instance.add(_sub_doctype, created)
-		testing_logger.info(f"         > {_logstr:<30} via {doctype} to DB and journal")
-		yield from created
+				# Important: we load the raw data records into globalTestRecords
+				# which best suites the test engineers intentions and expectations
+				frappe.local.test_objects[index_doctype].append(MappingProxyType(record))
+
+		# we keep an empty created = [] on purpose to persist proof of prior processing of the index doctype
+		test_record_log_instance.add(index_doctype, created)
+		_logstr = f"{index_doctype} ({len(created)} / {len(loaded) + len(created)})"
+		testing_logger.info(f"         > {_logstr:<30} into Database & Journal / cls.globalTestRecords")
+
+		for item in created:
+			yield ("created", item)
+		for item in loaded:
+			yield ("loaded", item)
+
+	# Please keep the decision tree intact, even if branches may seem redundant
+	# this is for clarity, documentation and future modifications or enhancements
+	# of this critical loading api
+	if index_doctype in test_record_log_instance.get():
+		# Scenario: secondary call or re-execution
+		if reset:
+			# Scenario: secondary call with force
+			frappe.local.test_objects[index_doctype] = []
+			test_record_log_instance.remove(index_doctype)
+			yield from _load()
+
+		else:
+			# Scenario: secondary call without force or re-execution
+			if index_doctype not in frappe.local.test_objects:
+				# Scenario: re-execution; not yet loaded into memory
+				yield from _load()
+			else:
+				# Scenario: secondary call on the same index doctype; may add more records
+				yield from _load()
+
+	else:
+		# Scenario: primary call, first load; baseline
+		yield from _load()
 
 
-def _try_create(record, reset=False, commit=False) -> "Document":
+def _try_create(record, reset=False, commit=False) -> tuple["Document", bool]:
 	"""Create a single test document from the given record data."""
 
 	def revert_naming(d):
@@ -260,7 +299,7 @@ def _try_create(record, reset=False, commit=False) -> "Document":
 	if frappe.db.exists(d.doctype, d.name) and not reset:
 		frappe.db.rollback(save_point="creating_test_record")
 		# do not create test records, if already exists
-		return frappe.get_doc(d.doctype, d.name)
+		return frappe.get_doc(d.doctype, d.name), False
 
 	# submit if docstatus is set to 1 for test record
 	docstatus = d.docstatus
@@ -287,7 +326,7 @@ def _try_create(record, reset=False, commit=False) -> "Document":
 	if commit:
 		frappe.db.commit()
 
-	return d
+	return d, True
 
 
 def print_mandatory_fields(doctype, initial_doctype):
@@ -334,7 +373,16 @@ class TestRecordLog:
 			if self._log is None:
 				self.get()
 			self._log.setdefault(doctype, []).extend(records)
-			testing_logger.debug(f"        > {doctype:<30} to {self.log_file}")
+			testing_logger.debug(f"        > {doctype:<30} ({len(records)}) added to {self.log_file}")
+
+	def remove(self, doctype):
+		"""
+		Remove all records for the specified doctype from the log.
+		"""
+		if self._log is not None and doctype in self._log:
+			del self._log[doctype]
+			self._remove_from_log(doctype)
+			testing_logger.debug(f"        > {doctype:<30} deleted from {self.log_file}")
 
 	def _append_to_log(self, doctype, records):
 		entry = {"doctype": doctype, "records": records}
@@ -352,6 +400,15 @@ class TestRecordLog:
 					log.setdefault(doctype, []).extend(records)
 		return log
 
+	def _remove_from_log(self, doctype):
+		temp_file = self.log_file.with_suffix(".temp")
+		with self.log_file.open("r") as input_file, temp_file.open("w") as output_file:
+			for line in input_file:
+				entry = json.loads(line)
+				if entry["doctype"] != doctype:
+					output_file.write(line)
+		temp_file.replace(self.log_file)
+
 
 def _after_install_clear_test_log():
 	log_file_path = frappe.get_site_path(PERSISTENT_TEST_LOG_FILE)
@@ -366,7 +423,7 @@ def make_test_records(doctype, force=False, commit=False):
 
 def make_test_records_for_doctype(doctype, force=False, commit=False):
 	"""Create test records for a specific doctype."""
-	return list(r["name"] for r in _generate_records_for(doctype, force, commit))
+	return list(r.name for tag, r in _generate_records_for(doctype, force, commit))
 
 
 def make_test_objects(doctype=None, test_records=None, reset=False, commit=False):
@@ -377,7 +434,7 @@ def make_test_objects(doctype=None, test_records=None, reset=False, commit=False
 	# Deprecated JSON import - make it comply
 	if isinstance(test_records, list):
 		test_records = _transform_legacy_json_records(test_records, doctype)
-	return list(r["name"] for r in _sync_records(doctype, test_records, reset, commit))
+	return list(r.name for tag, r in _sync_records(doctype, test_records, reset, commit))
 
 
 def _transform_legacy_json_records(test_records, doctype):
