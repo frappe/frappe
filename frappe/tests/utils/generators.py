@@ -165,7 +165,7 @@ def _generate_records_for(
 	# to completely bypass the standard loading and create test records
 	# according to custom logic.
 	if hasattr(test_module, "_make_test_records"):
-		logger.warning("    ↺" + logstr)
+		logger.warning("↺" + logstr)
 		testing_logger.info(
 			f" Made  + {doctype:<30} via {initial_doctype} through {test_module._make_test_records}"
 		)
@@ -183,14 +183,14 @@ def _generate_records_for(
 			test_records = load_test_records_for(doctype)
 
 		if not test_records:
-			logger.warning("    ➛ " + logstr + " (missing)")
+			logger.warning("➛ " + logstr + " (missing)")
 			print_mandatory_fields(doctype, initial_doctype)
 			return
 
 		if isinstance(test_records, list):
 			test_records = _transform_legacy_json_records(test_records, doctype)
 
-		logger.warning("    ↺ " + logstr)
+		logger.warning("↺ " + logstr)
 		testing_logger.info(f" Synced  + {doctype:<30} via {initial_doctype}")
 
 		yield from _sync_records(doctype, test_records, force, commit=commit)

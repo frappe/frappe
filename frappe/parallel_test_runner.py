@@ -93,7 +93,9 @@ class ParallelTestRunner:
 		test_suite = unittest.TestSuite()
 		module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
 		test_suite.addTest(module_test_cases)
+		self.test_result.startTestRun()
 		test_suite(self.test_result)
+		self.test_result.stopTestRun()
 
 	# If an app depends on pre-creation, its tests should be revised to
 	# manage state in such a way that created during IntegrationTestCase.setUpClass
