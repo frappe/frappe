@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-06 09:33+0000\n"
-"PO-Revision-Date: 2024-10-09 02:18\n"
+"PO-Revision-Date: 2024-10-11 03:05\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -20230,7 +20230,7 @@ msgstr ""
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 #: frappe/public/js/frappe/utils/common.js:401
 msgid "Quarterly"
-msgstr "Üç ayda bir"
+msgstr "3 ayda bir"
 
 #. Label of the query (Data) field in DocType 'Recorder Query'
 #. Label of the query (Code) field in DocType 'Report'
@@ -21138,7 +21138,7 @@ msgstr "Sütundaki tüm alanları kaldır"
 #: frappe/public/js/frappe/utils/datatable.js:9
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:120
 msgid "Remove column"
-msgstr "Sütunu kaldır"
+msgstr "Sütunu Kaldır"
 
 #: frappe/public/js/form_builder/components/Field.vue:260
 msgid "Remove field"
@@ -21661,7 +21661,7 @@ msgstr "Varsayılanlara Sıfırla"
 
 #: frappe/public/js/frappe/utils/datatable.js:8
 msgid "Reset sorting"
-msgstr "Sıralamayı sıfırla"
+msgstr "Sıralamayı Sıfırla"
 
 #: frappe/public/js/frappe/form/grid_row.js:410
 msgid "Reset to default"
