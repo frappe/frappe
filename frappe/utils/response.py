@@ -272,8 +272,12 @@ def download_backup(path):
 def download_private_file(path: str) -> Response:
 	"""Checks permissions and sends back private file"""
 	from frappe.core.doctype.file.utils import find_file_by_url
-
-	if frappe.session.user == "Guest":
+	
+	""" (checks if the user has permission to access the document in at least one document containing the attached file)"""
+	doctypes = frappe.get_all("File", filters={"file_url":path}, fields="attached_to_doctype", pluck="attached_to_doctype")
+	has_permission_allowed = any([frappe.has_permission(doctype, "read") for doctype in doctypes ])
+	
+	if frappe.session.user == "Guest" or not has_permission_allowed:
 		raise Forbidden(_("You don't have permission to access this file"))
 
 	file = find_file_by_url(path, name=frappe.form_dict.fid)
