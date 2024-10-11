@@ -306,8 +306,9 @@ class TestRecordLog:
 
 
 def _after_install_clear_test_log():
-	with open(frappe.get_site_path(PERSISTENT_TEST_LOG_FILE), "w") as f:
-		f.write("{}")
+	log_file_path = frappe.get_site_path(PERSISTENT_TEST_LOG_FILE)
+	if os.path.exists(log_file_path):
+		os.remove(log_file_path)
 
 
 def make_test_records(doctype, force=False, commit=False):
