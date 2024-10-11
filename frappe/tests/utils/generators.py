@@ -263,9 +263,12 @@ def print_mandatory_fields(doctype):
 	testing_logger.warning(" | ".join(msg.strip().splitlines()))
 
 
+PERSISTENT_TEST_LOG_FILE = ".test_records.jsonl"
+
+
 class TestRecordLog:
 	def __init__(self):
-		self.log_file = Path(frappe.get_site_path(".test_log.jsonl"))
+		self.log_file = Path(frappe.get_site_path(PERSISTENT_TEST_LOG_FILE))
 		self._log = None
 
 	def get(self):
@@ -303,8 +306,9 @@ class TestRecordLog:
 
 
 def _after_install_clear_test_log():
-	with open(frappe.get_site_path(".test_log"), "w") as f:
-		f.write("{}")
+	log_file_path = frappe.get_site_path(PERSISTENT_TEST_LOG_FILE)
+	if os.path.exists(log_file_path):
+		os.remove(log_file_path)
 
 
 def make_test_records(doctype, force=False, commit=False):
