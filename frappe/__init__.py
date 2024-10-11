@@ -1932,6 +1932,9 @@ def import_doc(path):
 def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
 	"""No_copy fields also get copied."""
 	import copy
+	from types import MappingProxyType
+
+	from frappe.model.base_document import BaseDocument
 
 	def remove_no_copy_fields(d):
 		for df in d.meta.get("fields", {"no_copy": 1}):
@@ -1943,8 +1946,10 @@ def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
 	if not local.flags.in_test:
 		fields_to_clear.append("docstatus")
 
-	if not isinstance(doc, dict):
+	if isinstance(doc, BaseDocument) or hasattr(doc, "as_dict"):
 		d = doc.as_dict()
+	elif isinstance(doc, MappingProxyType):  # global test record
+		d = dict(doc)
 	else:
 		d = doc
 
