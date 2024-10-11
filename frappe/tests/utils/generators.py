@@ -206,21 +206,22 @@ def _sync_records(
 	if not reset and doctype in test_record_log_instance.get():
 		yield from test_record_log_instance.get_records(doctype)
 
-	for _doctype, records in test_records.items():
+	for _sub_doctype, records in test_records.items():
+		# one test record file / source may have entires for different doctypes
 		created = []
 		for record in records:
 			# Fix the input; better late than never
 			if "doctype" not in record:
-				record["doctype"] = _doctype
+				record["doctype"] = _sub_doctype
 			_rec = _try_create(record)
 			# convert_dates_to_str: same as when loaded from log file above
 			_rec = _rec.as_dict(convert_dates_to_str=True)
 			created.append(_rec)
-			frappe.local.test_objects[_doctype].append(MappingProxyType(_rec))
+			frappe.local.test_objects[_sub_doctype].append(MappingProxyType(_rec))
 
-		_logstr = f"{_doctype} ({len(created)})"
+		_logstr = f"{_sub_doctype} ({len(created)})"
 
-		test_record_log_instance.add(_doctype, created)
+		test_record_log_instance.add(_sub_doctype, created)
 		testing_logger.info(f"         > {_logstr:<30} via {doctype} to DB and journal")
 		yield from created
 
