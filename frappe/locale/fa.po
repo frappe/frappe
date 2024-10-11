@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-24 15:33+0000\n"
-"PO-Revision-Date: 2024-10-08 02:10\n"
+"PO-Revision-Date: 2024-10-11 03:05\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -532,14 +532,14 @@ msgstr ""
 #. Header text in the Website Workspace
 #: frappe/website/workspace/website/website.json
 msgid "<span class=\"h4\"><b>Reports & Masters</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>گزارش ها و مستندات</b></span>"
 
 #. Header text in the Users Workspace
 #. Header text in the Integrations Workspace
 #: frappe/core/workspace/users/users.json
 #: frappe/integrations/workspace/integrations/integrations.json
 msgid "<span class=\"h4\"><b>Reports &amp; Masters</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>گزارش ها و مستندات</b></span>"
 
 #. Header text in the Tools Workspace
 #. Header text in the Users Workspace
@@ -553,7 +553,7 @@ msgstr "<span class=\"h4\"><b>میانبرهای شما</b></span>"
 #. Header text in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Components to build your app</b></span>"
-msgstr ""
+msgstr "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>اجزای ساخت برنامه شما</b></span>"
 
 #. Header text in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -3009,7 +3009,7 @@ msgstr "تصویر پس زمینه"
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:168
 msgid "Background Jobs"
-msgstr "مشاغل پس زمینه"
+msgstr "کارهای پس زمینه"
 
 #. Label of a Data field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -19256,7 +19256,7 @@ msgstr "مشخصات"
 
 #: frappe/public/js/frappe/socketio_client.js:78
 msgid "Progress"
-msgstr "پیش رفتن"
+msgstr "پیشرفت"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:408
 msgid "Project"
@@ -20674,7 +20674,7 @@ msgstr "گزارش ها"
 
 #: frappe/patches/v14_0/update_workspace2.py:50
 msgid "Reports & Masters"
-msgstr "گزارش ها و کارشناسی ارشد"
+msgstr "گزارش ها و مستندات"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:856
 msgid "Reports already in Queue"
@@ -26771,7 +26771,7 @@ msgstr "فیلد به روز رسانی"
 #: frappe/core/doctype/installed_applications/installed_applications.js:6
 #: frappe/core/doctype/installed_applications/installed_applications.js:13
 msgid "Update Hooks Resolution Order"
-msgstr "به‌روزرسانی سفارش وضوح هوک"
+msgstr "به‌روزرسانی ترتیب حل هوک‌ها"
 
 #: frappe/core/doctype/installed_applications/installed_applications.js:45
 msgid "Update Order"
