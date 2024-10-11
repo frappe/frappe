@@ -7,14 +7,17 @@ from collections.abc import Generator
 from functools import cache
 from importlib import reload
 from pathlib import Path
-from types import MappingProxyType
-from typing import Any
+from types import MappingProxyType, ModuleType
+from typing import TYPE_CHECKING, Any
 
 import tomli
 
 import frappe
 from frappe.model.naming import revert_series_if_last
 from frappe.modules import get_doctype_module, get_module_path, load_doctype_module
+
+if TYPE_CHECKING:
+	from frappe.model.document import Document
 
 logger = logging.getLogger(__name__)
 testing_logger = logging.getLogger("frappe.testing.generators")
@@ -33,7 +36,7 @@ __all__ = [
 
 
 @cache
-def get_modules(doctype):
+def get_modules(doctype) -> (str, ModuleType):
 	"""Get the modules for the specified doctype"""
 	module = frappe.db.get_value("DocType", doctype, "module")
 	try:
@@ -47,7 +50,7 @@ def get_modules(doctype):
 
 
 # @cache - don't cache the recursion, code depends on its recurn value declining
-def get_missing_records_doctypes(doctype):
+def get_missing_records_doctypes(doctype) -> list[str]:
 	"""Get the dependencies for the specified doctype in a depth-first manner"""
 	# If already visited in a prior run
 	if doctype in frappe.local.test_objects:
@@ -111,33 +114,6 @@ def get_missing_records_module_overrides(module) -> [list, list]:
 	return to_add, to_remove
 
 
-# Test record generation
-
-
-def _make_test_records(doctype, force=False, commit=False):
-	"""Make test records for the specified doctype"""
-	for _doctype in get_missing_records_doctypes(doctype):
-		# Create all test records and yield
-		res = list(_make_test_record(_doctype, force, commit))
-		yield (_doctype, len(res))
-
-
-def _make_test_record(doctype, force=False, commit=False):
-	"""Make test records for the specified doctype"""
-
-	module, test_module = get_modules(doctype)
-	if hasattr(test_module, "_make_test_records"):
-		yield from test_module._make_test_records()
-	elif hasattr(test_module, "test_records"):
-		yield from _make_test_objects(doctype, test_module.test_records, force, commit=commit)
-	else:
-		test_records = load_test_records_for(doctype)
-		if test_records:
-			yield from _make_test_objects(doctype, test_records, force, commit=commit)
-		else:
-			print_mandatory_fields(doctype)
-
-
 def load_test_records_for(doctype) -> dict[str, Any] | list:
 	module_path = get_module_path(get_doctype_module(doctype), "doctype", frappe.scrub(doctype))
 
@@ -163,41 +139,86 @@ def load_test_records_for(doctype) -> dict[str, Any] | list:
 		return {}
 
 
-def _make_test_objects(doctype, test_records=None, reset=False, commit=False):
-	"""Generator function to make test objects"""
+# Test record generation
+
+
+def _make_test_records(doctype, force=False, commit=False):
+	"""Generate test records for the given doctype and its dependencies."""
+	for _doctype in get_missing_records_doctypes(doctype):
+		# Create all test records and yield
+		res = list(_make_test_record(_doctype, force, commit, initial_doctype=doctype))
+		yield (_doctype, len(res))
+
+
+def _make_test_record(
+	doctype: str, force: bool = False, commit: bool = False, initial_doctype: str | None = None
+) -> Generator["Document", None, None]:
+	"""Create and yield test records for a specific doctype."""
+	module: str
+	test_module: ModuleType
+
+	module, test_module = get_modules(doctype)
+
+	# First prioriry: module's _make_test_records as an escape hatch
+	# to completely bypass the standard loading and create test records
+	# according to custom logic.
+	if hasattr(test_module, "_make_test_records"):
+		logger.warning("+" * 3 + f" {doctype} via {initial_doctype}")
+		testing_logger.debug(f"Adding  + {doctype:<30} via {initial_doctype}")
+		yield from test_module._make_test_records()
+
+	else:
+		test_records: list
+
+		# Second Priority: module's test_records attribute
+		if hasattr(test_module, "test_records"):
+			test_records = test_module.test_records
+
+		# Third priority: module's test_records.toml
+		else:
+			test_records = load_test_records_for(doctype)
+
+		if not test_records:
+			logger.warning("-" * 3 + f" {doctype} via {initial_doctype} (missing)")
+			print_mandatory_fields(doctype, initial_doctype)
+			return
+
+		if isinstance(test_records, list):
+			test_records = _transform_legacy_json_records(test_records, doctype)
+
+		logger.warning("+" * 3 + f" {doctype} via {initial_doctype}")
+		testing_logger.debug(f"Adding  + {doctype:<30} via {initial_doctype}")
+		yield from _make_test_objects(doctype, test_records, force, commit=commit)
+
+
+def _make_test_objects(
+	doctype: str, test_records: dict[str, list], reset: bool = False, commit: bool = False
+) -> Generator["Document", None, None]:
+	"""Generate test objects from provided records, with caching and persistence."""
 	# NOTE: We use file-based, per-site persistence visited log in order to not
 	# create same records twice for on multiple test runs
 	test_record_log_instance = TestRecordLog()
 	if not reset and doctype in test_record_log_instance.get():
-		yield from test_record_log_instance.yield_names(doctype)
-
-	if test_records is None:
-		test_records = load_test_records_for(doctype)
-
-	# Deprecated JSON import - make it comply
-	if isinstance(test_records, list):
-		_test_records = defaultdict(list)
-		for _record in test_records:
-			_dt = _record.get("doctype", doctype)
-			_test_records[_dt].append(_record)
-		test_records = _test_records
+		yield from test_record_log_instance.get_records(doctype)
 
 	for _doctype, records in test_records.items():
 		for record in records:
-			yield from _make_test_object(_doctype, record)
+			# Fix the input; better late than never
+			if "doctype" not in record:
+				record["doctype"] = _doctype
+			yield from _make_test_object(record)
 		test_record_log_instance.add(_doctype, (dict(rec) for rec in frappe.local.test_objects[_doctype]))
 
 
-def _make_test_object(doctype, record, reset=False, commit=False):
+def _make_test_object(record, reset=False, commit=False) -> "Document":
+	"""Create a single test document from the given record data."""
+
 	def revert_naming(d):
 		if getattr(d, "naming_series", None):
 			revert_series_if_last(d.naming_series, d.name)
 
 	if not reset:
 		frappe.db.savepoint("creating_test_record")
-
-	if not record.get("doctype"):
-		record["doctype"] = doctype
 
 	d = frappe.copy_doc(record)
 
@@ -240,27 +261,29 @@ def _make_test_object(doctype, record, reset=False, commit=False):
 	if commit:
 		frappe.db.commit()
 
-	frappe.local.test_objects[doctype].append(MappingProxyType(d.as_dict()))
+	frappe.local.test_objects[d.doctype].append(MappingProxyType(d.as_dict()))
 	yield d.name
 
 
-def print_mandatory_fields(doctype):
+def print_mandatory_fields(doctype, initial_doctype):
 	"""Print mandatory fields for the specified doctype"""
 	meta = frappe.get_meta(doctype)
-	msg = f"Setup test records for: {doctype}\n"
-	msg += f"Autoname '{meta.autoname or ''}'\n"
+	msg = []
+	head = f"Missing - {doctype:<30}"
+	if initial_doctype:
+		head += f" via {initial_doctype}"
+	msg.append(head)
+	msg.append(f"Autoname {meta.autoname or '':<30}")
 	mandatory_fields = meta.get("fields", {"reqd": 1})
 	if mandatory_fields:
-		msg += "Mandatory Fields\n"
+		msg.append("Mandatory Fields")
 		for d in mandatory_fields:
-			msg += f" {d.parent} {d.fieldname} ({d.fieldtype})"
+			field = f"{d.parent} {d.fieldname} ({d.fieldtype})"
 			if d.options:
 				opts = d.options.splitlines()
-				msg += f" opts: {','.join(opts)} \n"
-			else:
-				msg += "\n"
-	logger.warning("-" * 60 + "\n" + msg)
-	testing_logger.warning(" | ".join(msg.strip().splitlines()))
+				field += f" opts: {','.join(opts)}"
+			msg.append(field)
+	testing_logger.debug(" | ".join(msg))
 
 
 PERSISTENT_TEST_LOG_FILE = ".test_records.jsonl"
@@ -276,17 +299,17 @@ class TestRecordLog:
 			self._log = self._read_log()
 		return self._log
 
-	def yield_names(self, doctype):
+	def get_records(self, doctype):
 		log = self.get()
-		yield from log.get(doctype, [])
+		return log.get(doctype, [])
 
 	def add(self, doctype, records: Generator[dict, None, None]):
 		new_records = list(records)
 		if new_records:
 			self._append_to_log(doctype, new_records)
-			testing_logger.debug(f"{self.log_file}: test records for {doctype} added")
 			if self._log is not None:
 				self._log.setdefault(doctype, []).extend(new_records)
+			testing_logger.debug(f"Logged  + {doctype:<30} to {self.log_file}")
 
 	def _append_to_log(self, doctype, records):
 		entry = {"doctype": doctype, "records": records}
@@ -312,12 +335,30 @@ def _after_install_clear_test_log():
 
 
 def make_test_records(doctype, force=False, commit=False):
+	"""Generate test records for the given doctype and its dependencies."""
 	return list(_make_test_records(doctype, force, commit))
 
 
 def make_test_records_for_doctype(doctype, force=False, commit=False):
+	"""Create test records for a specific doctype."""
 	return list(_make_test_record(doctype, force, commit))
 
 
-def make_test_objects(doctype, test_records=None, reset=False, commit=False):
+def make_test_objects(doctype=None, test_records=None, reset=False, commit=False):
+	"""Generate test objects from provided records, with caching and persistence."""
+	if test_records is None:
+		test_records = load_test_records_for(doctype)
+
+	# Deprecated JSON import - make it comply
+	if isinstance(test_records, list):
+		test_records = _transform_legacy_json_records(test_records, doctype)
 	return list(_make_test_objects(doctype, test_records, reset, commit))
+
+
+def _transform_legacy_json_records(test_records, doctype):
+	_test_records = defaultdict(list)
+	for _record in test_records:
+		_dt = _record.get("doctype", doctype)
+		_record["doctype"] = _dt
+		_test_records[_dt].append(_record)
+	return _test_records
