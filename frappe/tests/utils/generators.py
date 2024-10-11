@@ -142,20 +142,22 @@ def load_test_records_for(doctype) -> dict[str, Any] | list:
 # Test record generation
 
 
-def _make_test_records(doctype, force=False, commit=False):
+def _generate_all_records_towards(doctype, force=False, commit=False):
 	"""Generate test records for the given doctype and its dependencies."""
 	for _doctype in get_missing_records_doctypes(doctype):
 		# Create all test records and yield
-		res = list(_make_test_record(_doctype, force, commit, initial_doctype=doctype))
+		res = list(_generate_records_for(_doctype, force, commit, initial_doctype=doctype))
 		yield (_doctype, len(res))
 
 
-def _make_test_record(
+def _generate_records_for(
 	doctype: str, force: bool = False, commit: bool = False, initial_doctype: str | None = None
 ) -> Generator["Document", None, None]:
 	"""Create and yield test records for a specific doctype."""
 	module: str
 	test_module: ModuleType
+
+	logstr = f" {doctype} via {initial_doctype}"
 
 	module, test_module = get_modules(doctype)
 
@@ -163,8 +165,10 @@ def _make_test_record(
 	# to completely bypass the standard loading and create test records
 	# according to custom logic.
 	if hasattr(test_module, "_make_test_records"):
-		logger.warning("+" * 3 + f" {doctype} via {initial_doctype}")
-		testing_logger.debug(f"Adding  + {doctype:<30} via {initial_doctype}")
+		logger.warning("    ↺" + logstr)
+		testing_logger.info(
+			f" Made  + {doctype:<30} via {initial_doctype} through {test_module._make_test_records}"
+		)
 		yield from test_module._make_test_records()
 
 	else:
@@ -179,19 +183,20 @@ def _make_test_record(
 			test_records = load_test_records_for(doctype)
 
 		if not test_records:
-			logger.warning("-" * 3 + f" {doctype} via {initial_doctype} (missing)")
+			logger.warning("    ➛ " + logstr + " (missing)")
 			print_mandatory_fields(doctype, initial_doctype)
 			return
 
 		if isinstance(test_records, list):
 			test_records = _transform_legacy_json_records(test_records, doctype)
 
-		logger.warning("+" * 3 + f" {doctype} via {initial_doctype}")
-		testing_logger.debug(f"Adding  + {doctype:<30} via {initial_doctype}")
-		yield from _make_test_objects(doctype, test_records, force, commit=commit)
+		logger.warning("    ↺ " + logstr)
+		testing_logger.info(f" Synced  + {doctype:<30} via {initial_doctype}")
+
+		yield from _sync_records(doctype, test_records, force, commit=commit)
 
 
-def _make_test_objects(
+def _sync_records(
 	doctype: str, test_records: dict[str, list], reset: bool = False, commit: bool = False
 ) -> Generator["Document", None, None]:
 	"""Generate test objects from provided records, with caching and persistence."""
@@ -202,15 +207,25 @@ def _make_test_objects(
 		yield from test_record_log_instance.get_records(doctype)
 
 	for _doctype, records in test_records.items():
+		created = []
 		for record in records:
 			# Fix the input; better late than never
 			if "doctype" not in record:
 				record["doctype"] = _doctype
-			yield from _make_test_object(record)
-		test_record_log_instance.add(_doctype, (dict(rec) for rec in frappe.local.test_objects[_doctype]))
+			_rec = _try_create(record)
+			# convert_dates_to_str: same as when loaded from log file above
+			_rec = _rec.as_dict(convert_dates_to_str=True)
+			created.append(_rec)
+			frappe.local.test_objects[_doctype].append(MappingProxyType(_rec))
+
+		_logstr = f"{_doctype} ({len(created)})"
+
+		test_record_log_instance.add(_doctype, created)
+		testing_logger.info(f"         > {_logstr:<30} via {doctype} to DB and journal")
+		yield from created
 
 
-def _make_test_object(record, reset=False, commit=False) -> "Document":
+def _try_create(record, reset=False, commit=False) -> "Document":
 	"""Create a single test document from the given record data."""
 
 	def revert_naming(d):
@@ -234,7 +249,7 @@ def _make_test_object(record, reset=False, commit=False) -> "Document":
 	if frappe.db.exists(d.doctype, d.name) and not reset:
 		frappe.db.rollback(save_point="creating_test_record")
 		# do not create test records, if already exists
-		return
+		return frappe.get_doc(d.doctype, d.name)
 
 	# submit if docstatus is set to 1 for test record
 	docstatus = d.docstatus
@@ -261,8 +276,7 @@ def _make_test_object(record, reset=False, commit=False) -> "Document":
 	if commit:
 		frappe.db.commit()
 
-	frappe.local.test_objects[d.doctype].append(MappingProxyType(d.as_dict()))
-	yield d.name
+	return d
 
 
 def print_mandatory_fields(doctype, initial_doctype):
@@ -303,13 +317,13 @@ class TestRecordLog:
 		log = self.get()
 		return log.get(doctype, [])
 
-	def add(self, doctype, records: Generator[dict, None, None]):
-		new_records = list(records)
-		if new_records:
-			self._append_to_log(doctype, new_records)
-			if self._log is not None:
-				self._log.setdefault(doctype, []).extend(new_records)
-			testing_logger.debug(f"Logged  + {doctype:<30} to {self.log_file}")
+	def add(self, doctype, records: list):
+		if records:
+			self._append_to_log(doctype, records)
+			if self._log is None:
+				self.get()
+			self._log.setdefault(doctype, []).extend(records)
+			testing_logger.debug(f"        > {doctype:<30} to {self.log_file}")
 
 	def _append_to_log(self, doctype, records):
 		entry = {"doctype": doctype, "records": records}
@@ -336,12 +350,12 @@ def _after_install_clear_test_log():
 
 def make_test_records(doctype, force=False, commit=False):
 	"""Generate test records for the given doctype and its dependencies."""
-	return list(_make_test_records(doctype, force, commit))
+	return list(_generate_all_records_towards(doctype, force, commit))
 
 
 def make_test_records_for_doctype(doctype, force=False, commit=False):
 	"""Create test records for a specific doctype."""
-	return list(_make_test_record(doctype, force, commit))
+	return list(r["name"] for r in _generate_records_for(doctype, force, commit))
 
 
 def make_test_objects(doctype=None, test_records=None, reset=False, commit=False):
@@ -352,7 +366,7 @@ def make_test_objects(doctype=None, test_records=None, reset=False, commit=False
 	# Deprecated JSON import - make it comply
 	if isinstance(test_records, list):
 		test_records = _transform_legacy_json_records(test_records, doctype)
-	return list(_make_test_objects(doctype, test_records, reset, commit))
+	return list(r["name"] for r in _sync_records(doctype, test_records, reset, commit))
 
 
 def _transform_legacy_json_records(test_records, doctype):
