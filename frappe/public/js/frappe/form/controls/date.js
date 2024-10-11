@@ -142,12 +142,84 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			}
 		});
 	}
+
+	eval_expression(value, type) {
+		if (!value || !type) {
+			return value;
+		}
+		const parsed_components = value.match(/[\+\-]\s*\d*\.?\d+\s*[a-zA-Z]/g);
+
+		let system_fmt;
+		switch (type) {
+			case "date":
+				system_fmt = "YYYY-MM-DD";
+				value = frappe.datetime.user_to_str(value, false);
+				break;
+
+			case "time":
+				system_fmt = "HH:mm:ss";
+				value = frappe.datetime.user_to_str(value, true);
+				break;
+
+			case "datetime":
+				system_fmt = "YYYY-MM-DD HH:mm:ss";
+				value = frappe.datetime.user_to_str(value, false);
+				break;
+		}
+
+		if (!parsed_components) {
+			return value;
+		}
+
+		let time_to_add = {};
+		parsed_components.forEach((component) => {
+			let operator = component.match(/[\+\-]/)[0];
+			let number = flt(component.match(/\d*\.?\d+/)[0]);
+			let unit = component.match(/[a-zA-Z]+/)[0];
+			let period;
+
+			if (operator === "-") {
+				number = -number;
+			}
+
+			if (["datetime", "date"].includes(type)) {
+				if (unit.toLowerCase() === "d") {
+					period = "days";
+				} else if (unit === "M") {
+					period = "months";
+				} else if (unit.toLowerCase() === "y") {
+					period = "years";
+				}
+			}
+
+			if (["datetime", "time"].includes(type)) {
+				if (unit.toLowerCase() === "h") {
+					period = "hours";
+				} else if (unit === "m") {
+					period = "minutes";
+				} else if (unit.toLowerCase() === "s") {
+					period = "seconds";
+				}
+			}
+
+			if (period) {
+				time_to_add[period] = (time_to_add[period] || 0) + number;
+			}
+		});
+
+		if (Object.keys(time_to_add).length) {
+			value = moment(value, system_fmt).add(time_to_add).format(system_fmt);
+		}
+
+		return value;
+	}
+
 	parse(value) {
 		if (value) {
 			if (value == "Invalid date") {
 				return "";
 			}
-			return frappe.datetime.user_to_str(value, false, true);
+			return this.eval_expression(value, "date");
 		}
 	}
 	format_for_input(value) {
