@@ -819,9 +819,9 @@ class User(Document):
 
 @frappe.whitelist()
 def get_timezones():
-	import pytz
+	import zoneinfo
 
-	return {"timezones": pytz.all_timezones}
+	return {"timezones": zoneinfo.available_timezones()}
 
 
 @frappe.whitelist()
