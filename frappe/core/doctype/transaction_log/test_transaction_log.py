@@ -5,8 +5,6 @@ import hashlib
 import frappe
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
-test_records = []
-
 
 class UnitTestTransactionLog(UnitTestCase):
 	"""
