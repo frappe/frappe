@@ -35,6 +35,7 @@
   "track_changes",
   "track_seen",
   "track_views",
+  "trace_flow",
   "custom",
   "beta",
   "is_virtual",
@@ -672,6 +673,14 @@
    "fieldname": "fields_tab",
    "fieldtype": "Tab Break",
    "label": "Fields"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.istable && !doc.issingle",
+   "description": "If enabled, and this document is traced across an end-to-end business flow.",
+   "fieldname": "trace_flow",
+   "fieldtype": "Check",
+   "label": "Trace Flow"
   }
  ],
  "icon": "fa fa-bolt",
@@ -754,7 +763,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2024-08-14 17:04:47.278892",
+ "modified": "2024-09-30 21:24:18.185989",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

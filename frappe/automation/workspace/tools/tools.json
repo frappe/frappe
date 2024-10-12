@@ -1,6 +1,7 @@
 {
+ "app": "frappe",
  "charts": [],
- "content": "[{\"id\":\"sR-UFcO7II\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Import Data\",\"col\":3}},{\"id\":\"IkcVmgWb3z\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ToDo\",\"col\":3}},{\"id\":\"6wir-jZFRE\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"File\",\"col\":3}},{\"id\":\"45a1jzQkTm\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Assignment Rule\",\"col\":3}},{\"id\":\"EgtURZsoiF\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"0yceBIfhHM\",\"type\":\"card\",\"data\":{\"card_name\":\"Data\",\"col\":4}},{\"id\":\"42WbBA9rpj\",\"type\":\"card\",\"data\":{\"card_name\":\"Tools\",\"col\":4}},{\"id\":\"wE9n7TIrAc\",\"type\":\"card\",\"data\":{\"card_name\":\"Alerts and Notifications\",\"col\":4}},{\"id\":\"7_U7_xCOos\",\"type\":\"card\",\"data\":{\"card_name\":\"Email\",\"col\":4}},{\"id\":\"3imoh2oqsJ\",\"type\":\"card\",\"data\":{\"card_name\":\"Printing\",\"col\":4}},{\"id\":\"SlYKJZj5r3\",\"type\":\"card\",\"data\":{\"card_name\":\"Automation\",\"col\":4}},{\"id\":\"O7jrc2YQTN\",\"type\":\"card\",\"data\":{\"card_name\":\"Newsletter\",\"col\":4}}]",
+ "content": "[{\"id\":\"sR-UFcO7II\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Import Data\",\"col\":3}},{\"id\":\"IkcVmgWb3z\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ToDo\",\"col\":3}},{\"id\":\"6wir-jZFRE\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"File\",\"col\":3}},{\"id\":\"45a1jzQkTm\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Assignment Rule\",\"col\":3}},{\"id\":\"EgtURZsoiF\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"0yceBIfhHM\",\"type\":\"card\",\"data\":{\"card_name\":\"Data\",\"col\":4}},{\"id\":\"42WbBA9rpj\",\"type\":\"card\",\"data\":{\"card_name\":\"Tools\",\"col\":4}},{\"id\":\"wE9n7TIrAc\",\"type\":\"card\",\"data\":{\"card_name\":\"Alerts and Notifications\",\"col\":4}},{\"id\":\"7_U7_xCOos\",\"type\":\"card\",\"data\":{\"card_name\":\"Email\",\"col\":4}},{\"id\":\"3imoh2oqsJ\",\"type\":\"card\",\"data\":{\"card_name\":\"Printing\",\"col\":4}},{\"id\":\"SlYKJZj5r3\",\"type\":\"card\",\"data\":{\"card_name\":\"Automation\",\"col\":4}},{\"id\":\"O7jrc2YQTN\",\"type\":\"card\",\"data\":{\"card_name\":\"Newsletter\",\"col\":4}},{\"id\":\"vjTBvMu1rU\",\"type\":\"card\",\"data\":{\"card_name\":\"Flows\",\"col\":4}}]",
  "creation": "2020-03-02 14:53:24.980279",
  "custom_blocks": [],
  "docstatus": 0,
@@ -320,9 +321,39 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "description": "Organize transactions and automations into business flows and trace individual transactions.",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Flows",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Business Flow",
+   "link_count": 0,
+   "link_to": "Business Flow",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Flow Tracer",
+   "link_count": 0,
+   "link_to": "Flow Tracer",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2024-09-03 21:54:05.403066",
+ "modified": "2024-09-30 20:11:32.244959",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Tools",
@@ -360,5 +391,6 @@
    "type": "DocType"
   }
  ],
- "title": "Tools"
+ "title": "Tools",
+ "type": "Workspace"
 }

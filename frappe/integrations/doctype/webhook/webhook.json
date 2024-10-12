@@ -8,6 +8,7 @@
  "field_order": [
   "sb_doc_events",
   "webhook_doctype",
+  "business_flow",
   "cb_doc_events",
   "webhook_docevent",
   "enabled",
@@ -181,6 +182,12 @@
    "fieldname": "background_jobs_queue",
    "fieldtype": "Autocomplete",
    "label": "Background Jobs Queue"
+  },
+  {
+   "fieldname": "business_flow",
+   "fieldtype": "Link",
+   "label": "Business Flow",
+   "options": "Business Flow"
   }
  ],
  "links": [
@@ -189,7 +196,7 @@
    "link_fieldname": "webhook"
   }
  ],
- "modified": "2024-07-22 09:23:32.642172",
+ "modified": "2024-09-30 18:05:36.093870",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",

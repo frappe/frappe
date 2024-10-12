@@ -73,6 +73,7 @@ $.extend(frappe.model, {
 		"_liked_by",
 		"docstatus",
 		"idx",
+		"tracer",
 	],
 
 	child_table_field_list: ["parent", "parenttype", "parentfield"],
@@ -93,6 +94,7 @@ $.extend(frappe.model, {
 		"Property Setter",
 		"Custom Field",
 		"Client Script",
+		"Flow Tracer",
 	],
 
 	restricted_fields: [
@@ -106,6 +108,7 @@ $.extend(frappe.model, {
 		"file_list",
 		"flags",
 		"docstatus",
+		"tracer",
 	],
 
 	html_fieldtypes: [
@@ -134,6 +137,12 @@ $.extend(frappe.model, {
 		{ fieldname: "_liked_by", fieldtype: "Data", label: __("Liked By") },
 		{ fieldname: "_comments", fieldtype: "Text", label: __("Comments") },
 		{ fieldname: "_assign", fieldtype: "Text", label: __("Assigned To") },
+		{
+			fieldname: "tracer",
+			fieldtype: "Link",
+			label: __("Flow Tracer"),
+			option: "Flow Tracer",
+		},
 		{ fieldname: "docstatus", fieldtype: "Int", label: __("Document Status") },
 	],
 

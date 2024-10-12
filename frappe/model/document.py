@@ -364,6 +364,7 @@ class Document(BaseDocument):
 		self.run_before_save_methods()
 		self._validate()
 		self.set_docstatus()
+		self.set_tracer()
 		self.flags.in_insert = False
 
 		# run validate, on update etc.
@@ -656,6 +657,17 @@ class Document(BaseDocument):
 
 		for d in self.get_all_children():
 			d.docstatus = self.docstatus
+
+	def set_tracer(self):
+		if (
+			getattr(self.meta, "trace_flow", False)
+			and not getattr(self.meta, "issingle", False)
+			and self.is_new()
+			and self.tracer is None
+		):
+			tracer = frappe.new_doc("Flow Tracer")
+			tracer.db_insert()
+			self.tracer = tracer.name
 
 	def _validate(self):
 		self._validate_mandatory()

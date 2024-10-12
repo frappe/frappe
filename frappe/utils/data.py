@@ -2013,7 +2013,7 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 	}
 	"""
 	from frappe.database.utils import NestedSetHierarchy
-	from frappe.model import child_table_fields, default_fields, optional_fields
+	from frappe.model import child_table_fields, default_fields, optional_fields, tracer_fields
 
 	if isinstance(f, dict):
 		key, value = next(iter(f.items()))
@@ -2065,7 +2065,9 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 	if f.operator.lower() not in valid_operators:
 		frappe.throw(frappe._("Operator must be one of {0}").format(", ".join(valid_operators)))
 
-	if f.doctype and (f.fieldname not in default_fields + optional_fields + child_table_fields):
+	if f.doctype and (
+		f.fieldname not in default_fields + optional_fields + child_table_fields + tracer_fields
+	):
 		# verify fieldname belongs to the doctype
 		meta = frappe.get_meta(f.doctype)
 		if not meta.has_field(f.fieldname):

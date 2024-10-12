@@ -32,6 +32,7 @@ class Webhook(Document):
 		from frappe.types import DF
 
 		background_jobs_queue: DF.Autocomplete | None
+		business_flow: DF.Link | None
 		condition: DF.SmallText | None
 		enable_security: DF.Check
 		enabled: DF.Check

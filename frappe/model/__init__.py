@@ -89,6 +89,8 @@ default_fields = (
 	"idx",
 )
 
+tracer_fields = ("tracer",)
+
 child_table_fields = ("parent", "parentfield", "parenttype")
 
 optional_fields = ("_user_tags", "_comments", "_assign", "_liked_by", "_seen")
@@ -114,6 +116,7 @@ core_doctypes_list = (
 	"Property Setter",
 	"Custom Field",
 	"Client Script",
+	"Flow Tracer",
 )
 
 log_types = (
@@ -149,6 +152,7 @@ std_fields = [
 	{"fieldname": "_liked_by", "fieldtype": "Data", "label": "Liked By"},
 	{"fieldname": "_comments", "fieldtype": "Text", "label": "Comments"},
 	{"fieldname": "_assign", "fieldtype": "Text", "label": "Assigned To"},
+	{"fieldname": "tracer", "fieldtype": "Link", "label": "Flow Tracer", "options": "Flow Tracer"},
 	{"fieldname": "docstatus", "fieldtype": "Int", "label": "Document Status"},
 ]
 
@@ -224,14 +228,14 @@ def get_permitted_fields(
 		return valid_columns
 
 	# DocType has only fields of type Table (Table, Table MultiSelect)
-	if set(valid_columns).issubset(default_fields):
+	if set(valid_columns).issubset(default_fields + tracer_fields):
 		return valid_columns
 
 	if permission_type is None:
 		permission_type = "select" if frappe.only_has_select_perm(doctype, user=user) else "read"
 
 	meta_fields = meta.default_fields.copy()
-	optional_meta_fields = [x for x in optional_fields if x in valid_columns]
+	optional_meta_fields = [x for x in (*optional_fields, *tracer_fields) if x in valid_columns]
 
 	if permitted_fields := meta.get_permitted_fieldnames(
 		parenttype=parenttype,

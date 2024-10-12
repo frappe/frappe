@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "enabled",
+  "business_flow",
   "is_standard",
   "module",
   "column_break_2",
@@ -311,12 +312,19 @@
    "fieldtype": "Datetime",
    "label": "Last Run",
    "read_only": 1
+  },
+  {
+   "description": "In which this notification participates.",
+   "fieldname": "business_flow",
+   "fieldtype": "Link",
+   "label": "Business Flow",
+   "options": "Business Flow"
   }
  ],
  "icon": "fa fa-envelope",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-12 10:28:35.077180",
+ "modified": "2024-09-30 17:56:05.339425",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

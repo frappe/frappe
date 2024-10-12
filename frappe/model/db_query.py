@@ -16,7 +16,7 @@ import frappe.share
 from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.database.utils import DefaultOrderBy, FallBackDateTimeStr, NestedSetHierarchy
-from frappe.model import get_permitted_fields, optional_fields
+from frappe.model import get_permitted_fields, optional_fields, tracer_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
@@ -557,7 +557,9 @@ class DatabaseQuery:
 		# remove from fields
 		to_remove = []
 		for fld in self.fields:
-			to_remove.extend(fld for f in optional_fields if f in fld and f not in self.columns)
+			to_remove.extend(
+				fld for f in (*optional_fields, *tracer_fields) if f in fld and f not in self.columns
+			)
 		for fld in to_remove:
 			del self.fields[self.fields.index(fld)]
 
@@ -568,7 +570,9 @@ class DatabaseQuery:
 				each = [each]
 
 			to_remove.extend(
-				each for element in each if element in optional_fields and element not in self.columns
+				each
+				for element in each
+				if element in (*optional_fields, *tracer_fields) and element not in self.columns
 			)
 		for each in to_remove:
 			if isinstance(self.filters, dict):
@@ -654,7 +658,7 @@ class DatabaseQuery:
 				continue
 
 			# labels / pseudo columns or frappe internals
-			elif column[0] in {"'", '"'} or column in optional_fields:
+			elif column[0] in {"'", '"'} or column in optional_fields + tracer_fields:
 				continue
 
 			# handle child / joined table fields
