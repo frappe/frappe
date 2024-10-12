@@ -194,6 +194,7 @@ def _generate_records_for(
 
 		if not test_records:
 			logger.warning("➛ " + logstr + " (missing)")
+			frappe.local.test_objects[index_doctype] = []  # avoid noisy retries on multiple invocations
 			print_mandatory_fields(index_doctype, initial_doctype)
 			return
 
