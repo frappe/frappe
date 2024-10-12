@@ -227,7 +227,7 @@ def _sync_records(
 				no_private_properties=True,
 			)
 			created.append(_rec)
-			frappe.local.test_objects[_sub_doctype].append(MappingProxyType(_rec))
+			frappe.local.test_objects[_sub_doctype].append(MappingProxyType(record))
 
 		_logstr = f"{_sub_doctype} ({len(created)})"
 
