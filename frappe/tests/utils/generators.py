@@ -214,8 +214,18 @@ def _sync_records(
 			if "doctype" not in record:
 				record["doctype"] = _sub_doctype
 			_rec = _try_create(record)
+			# no_nulls: some buidness logic might check absence of an attribute, closer to the raw records
+			# no_default_fields: we want to keep especially name, doctype
 			# convert_dates_to_str: same as when loaded from log file above
-			_rec = _rec.as_dict(convert_dates_to_str=True)
+			# no_child_table_fields: we don't neer prent{,field,type} et al fields
+			# no_private_properties: these are internal to the document lifecycle and not a property of data records
+			_rec = _rec.as_dict(
+				no_nulls=True,
+				no_default_fields=False,
+				convert_dates_to_str=True,
+				no_child_table_fields=True,
+				no_private_properties=True,
+			)
 			created.append(_rec)
 			frappe.local.test_objects[_sub_doctype].append(MappingProxyType(_rec))
 
