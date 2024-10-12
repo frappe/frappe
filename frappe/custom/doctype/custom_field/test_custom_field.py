@@ -9,8 +9,6 @@ from frappe.custom.doctype.custom_field.custom_field import (
 )
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
-test_records = frappe.tests.utils.load_test_records_for("Custom Field")
-
 
 class UnitTestCustomField(UnitTestCase):
 	"""
