@@ -25,46 +25,61 @@ function open_web_template_values_editor(template, current_values = {}) {
 	});
 
 	function get_fields(doc) {
-		let normal_fields = [];
-		let table_fields = [];
-
+		let fields_to_return = [];  // Used to maintain the order of fields
 		let current_table = null;
+	
 		for (let df of doc.fields) {
-			if (current_table) {
-				if (df.fieldtype != "Table Break") {
-					current_table.fields.push(df);
+			// When encountering a Table Break field
+			if (df.fieldtype === "Table Break") {
+				// Check if a table with the same label is already being processed
+				if (current_table && current_table.label === df.label) {
+					// If it's the same table, consider the table's range as ended
+					fields_to_return.push({
+						label: current_table.label,
+						fieldname: current_table.fieldname,
+						fieldtype: "Table",
+						fields: current_table.fields.map((df, i) => ({
+							...df,
+							in_list_view: i <= 1,
+							columns: current_table.fields.length === 1 ? 10 : 5,
+						})),
+						data: current_values[current_table.fieldname] || [],
+						get_data: () => current_values[current_table.fieldname] || [],
+					});
+					current_table = null;
 				} else {
-					table_fields.push(df);
-					current_table = df;
+					// If it's a new table, start a new table
+					current_table = {
+						label: df.label,
+						fieldname: df.fieldname,
+						fields: [],
+					};
 				}
-			} else if (df.fieldtype != "Table Break") {
-				normal_fields.push(df);
+			} else if (current_table) {
+				// If currently processing a table, add the field to the table's fields
+				current_table.fields.push(df);
 			} else {
-				table_fields.push(df);
-				current_table = df;
-
-				// start capturing fields in current_table till the next table break
-				current_table.fields = [];
+				// If not in a table range, add the field directly to fields_to_return
+				fields_to_return.push(df);
 			}
 		}
-
-		return [
-			...normal_fields,
-			...table_fields.map((tf) => {
-				let data = current_values[tf.fieldname] || [];
-				return {
-					label: tf.label,
-					fieldname: tf.fieldname,
-					fieldtype: "Table",
-					fields: tf.fields.map((df, i) => ({
-						...df,
-						in_list_view: i <= 1,
-						columns: tf.fields.length == 1 ? 10 : 5,
-					})),
-					data,
-					get_data: () => data,
-				};
-			}),
-		];
+	
+		// Handle the last unfinished table
+		if (current_table) {
+			fields_to_return.push({
+				label: current_table.label,
+				fieldname: current_table.fieldname,
+				fieldtype: "Table",
+				fields: current_table.fields.map((df, i) => ({
+					...df,
+					in_list_view: i <= 1,
+					columns: current_table.fields.length === 1 ? 10 : 5,
+				})),
+				data: current_values[current_table.fieldname] || [],
+				get_data: () => current_values[current_table.fieldname] || [],
+			});
+		}
+	
+		return fields_to_return;
 	}
 }
