@@ -35,6 +35,10 @@ __all__ = [
 ]
 
 
+global TEST_RECORD_MANAGER_INSTANCE
+TEST_RECORD_MANAGER_INSTANCE = None
+
+
 @cache
 def get_modules(doctype) -> (str, ModuleType):
 	"""Get the modules for the specified doctype"""
@@ -151,9 +155,13 @@ def _generate_all_records_towards(
 ) -> Generator[tuple[str, int], None, None]:
 	"""Generate test records for the given doctype and its dependencies."""
 
+	global TEST_RECORD_MANAGER_INSTANCE
+	if TEST_RECORD_MANAGER_INSTANCE is None:
+		TEST_RECORD_MANAGER_INSTANCE = TestRecordManager()
+
 	# NOTE: visited excludes dependency discovery of any index doctype which
 	# which had already been loaded into memory prior
-	visited = set(frappe.local.test_objects.keys())
+	visited = set(TEST_RECORD_MANAGER_INSTANCE.get().keys())
 	for _index_doctype in get_missing_records_doctypes(index_doctype, visited):
 		# Create all test records and yield
 		res = list(
@@ -172,6 +180,10 @@ def _generate_records_for(
 	logstr = f" {index_doctype} via {initial_doctype}"
 
 	module, test_module = get_modules(index_doctype)
+
+	global TEST_RECORD_MANAGER_INSTANCE
+	if TEST_RECORD_MANAGER_INSTANCE is None:
+		TEST_RECORD_MANAGER_INSTANCE = TestRecordManager()
 
 	# First prioriry: module's _make_test_records as an escape hatch
 	# to completely bypass the standard loading and create test records
@@ -196,7 +208,7 @@ def _generate_records_for(
 
 		if not test_records:
 			logger.warning("➛ " + logstr + " (missing)")
-			frappe.local.test_objects[index_doctype] = []  # avoid noisy retries on multiple invocations
+			TEST_RECORD_MANAGER_INSTANCE.add(index_doctype, [])  # avoid noisy retries on multiple invocations
 			print_mandatory_fields(index_doctype, initial_doctype)
 			return
 
@@ -207,10 +219,6 @@ def _generate_records_for(
 		testing_logger.info(f" Synced  + {index_doctype:<30} via {initial_doctype}")
 
 		yield from _sync_records(index_doctype, test_records, reset=reset, commit=commit)
-
-
-global test_record_manager_instance
-test_record_manager_instance = None
 
 
 def _sync_records(
@@ -227,9 +235,9 @@ def _sync_records(
 	# persistence log indexed by the register doctype. It also serves as proof of
 	# records at the time of creation and contains the db values
 
-	global test_record_manager_instance
-	if test_record_manager_instance is None:
-		test_record_manager_instance = TestRecordManager()
+	global TEST_RECORD_MANAGER_INSTANCE
+	if TEST_RECORD_MANAGER_INSTANCE is None:
+		TEST_RECORD_MANAGER_INSTANCE = TestRecordManager()
 
 	def _load(do_create=True):
 		created, loaded = [], []
@@ -240,26 +248,16 @@ def _sync_records(
 				if "doctype" not in record:
 					record["doctype"] = _sub_doctype
 
-				if do_create:
-					doc, was_created = _try_create(record, reset, commit)
-					if was_created:
-						created.append(doc)
-					else:
-						loaded.append(doc)
+				doc, was_created = _try_create(record, reset, commit)
+				if was_created:
+					created.append(doc)
+				else:
+					loaded.append(doc)
 
-				# Important: we load the raw data records into globalTestRecords
-				# which best suites the test engineers intentions and expectations
-				frappe.local.test_objects[index_doctype].append(MappingProxyType(record))
-
-		if not do_create:
-			loaded.extend(test_record_manager_instance.get_records(index_doctype))
-			_logstr = f"{index_doctype} ({len(loaded)})"
-			testing_logger.info(f"         > {_logstr:<30} into cls.globalTestRecords, only")
-		else:
-			# we keep an mpty created = [] on purpose to persist proof of prior processing of the index doctype
-			test_record_manager_instance.add(index_doctype, created)
-			_logstr = f"{index_doctype} ({len(created)} / {len(loaded) + len(created)})"
-			testing_logger.info(f"         > {_logstr:<30} into Database & Journal / cls.globalTestRecords")
+		# we keep an empty created = [] on purpose to persist proof of prior processing of the index doctype
+		TEST_RECORD_MANAGER_INSTANCE.add(index_doctype, created)
+		_logstr = f"{index_doctype} ({len(created)} / {len(loaded) + len(created)})"
+		testing_logger.info(f"         > {_logstr:<30} into Database & Journal / cls.globalTestRecords")
 
 		for item in created:
 			yield ("created", item)
@@ -269,23 +267,20 @@ def _sync_records(
 	# Please keep the decision tree intact, even if some branches may seem redundant
 	# this is for clarity, documentation and future modifications or enhancements
 	# of this critical loading api
-	if index_doctype in test_record_manager_instance.get():
+	if index_doctype in TEST_RECORD_MANAGER_INSTANCE.get():
 		# Scenario: secondary call or re-execution
 		if reset:
 			# Scenario: secondary call with force
-			frappe.local.test_objects[index_doctype] = []
-			test_record_manager_instance.remove(index_doctype)
+			TEST_RECORD_MANAGER_INSTANCE.remove(index_doctype)
 			testing_logger.info(f"         > {index_doctype:<30} removed from journal")
 			yield from _load()
 
 		else:
 			# Scenario: secondary call without force or re-execution
-			if index_doctype not in frappe.local.test_objects:
-				# Scenario: re-execution; not yet loaded into memory
-				yield from _load(do_create=False)
-			else:
-				# Scenario: secondary call on the same index doctype; may add more records
-				yield from _load()
+			docs = TEST_RECORD_MANAGER_INSTANCE.get_documents(index_doctype)
+			_logstr = f"{index_doctype} ({len(docs)})"
+			testing_logger.info(f"         > {_logstr:<30} into cls.globalTestRecords, only")
+			yield from (("loaded", doc) for doc in docs)
 
 	else:
 		# Scenario: primary call, first load; baseline
@@ -370,17 +365,17 @@ class TestRecordManager:
 			self._log = self._read_log()
 		return self._log
 
-	def get_records(self, index_doctype) -> list["Document"]:
+	def get_documents(self, index_doctype) -> list["Document"]:
 		log = self.get()
 		return log.get(index_doctype, [])
 
-	def add(self, index_doctype, records: list["Document"]):
-		if records:
-			self._append_to_log(index_doctype, records)
+	def add(self, index_doctype, documents: list["Document"]):
+		if documents:
+			self._append_to_log(index_doctype, documents)
 			if self._log is None:
 				self.get()
-			self._log.setdefault(index_doctype, []).extend(records)
-			testing_logger.debug(f"        > {index_doctype:<30} ({len(records)}) added to {self.log_file}")
+			self._log.setdefault(index_doctype, []).extend(documents)
+			testing_logger.debug(f"        > {index_doctype:<30} ({len(documents)}) added to {self.log_file}")
 
 	def remove(self, index_doctype):
 		"""
@@ -391,8 +386,8 @@ class TestRecordManager:
 			self._remove_from_log(index_doctype)
 			testing_logger.debug(f"        > {index_doctype:<30} deleted from {self.log_file}")
 
-	def _append_to_log(self, index_doctype, records: list["Document"]):
-		entry = {"doctype": index_doctype, "records": records}
+	def _append_to_log(self, index_doctype, documents: list["Document"]):
+		entry = {"doctype": index_doctype, "documents": documents}
 		with self.log_file.open("a") as f:
 			f.write(frappe.as_json(entry, indent=None) + "\n")
 

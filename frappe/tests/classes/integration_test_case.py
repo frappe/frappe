@@ -6,7 +6,11 @@ from types import MappingProxyType
 import frappe
 from frappe.utils import cint
 
-from ..utils.generators import get_missing_records_module_overrides, make_test_records
+from ..utils.generators import (
+	TEST_RECORD_MANAGER_INSTANCE,
+	get_missing_records_module_overrides,
+	make_test_records,
+)
 from .unit_test_case import UnitTestCase
 
 logger = logging.Logger(__file__)
@@ -58,7 +62,7 @@ class IntegrationTestCase(UnitTestCase):
 				cls._newly_created_test_records += make_test_records(doctype)
 		# flush changes done so far to avoid flake
 		frappe.db.commit()
-		cls.globalTestRecords = MappingProxyType(frappe.local.test_objects)
+		cls.globalTestRecords = MappingProxyType(TEST_RECORD_MANAGER_INSTANCE.get())
 		if cls.SHOW_TRANSACTION_COMMIT_WARNINGS:
 			frappe.db.before_commit.add(_commit_watcher)
 
