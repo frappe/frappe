@@ -207,6 +207,10 @@ def _generate_records_for(
 		yield from _sync_records(index_doctype, test_records, force, commit=commit)
 
 
+global test_record_log_instance
+test_record_log_instance = None
+
+
 def _sync_records(
 	index_doctype: str, test_records: dict[str, list], reset: bool = False, commit: bool = False
 ) -> Generator[tuple[str, "Document"], None, None]:
@@ -220,7 +224,10 @@ def _sync_records(
 	# To keep track of creation across re-execution, we use a file-based, per-site
 	# persistence log indexed by the register doctype. It also serves as proof of
 	# records at the time of creation and contains the db values
-	test_record_log_instance = TestRecordLog()
+
+	global test_record_log_instance
+	if test_record_log_instance is None:
+		test_record_log_instance = TestRecordLog()
 
 	def _load():
 		created, loaded = [], []
