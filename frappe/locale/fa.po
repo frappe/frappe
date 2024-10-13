@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-24 15:33+0000\n"
-"PO-Revision-Date: 2024-10-11 03:05\n"
+"PO-Revision-Date: 2024-10-13 03:50\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -11430,7 +11430,7 @@ msgstr "سلام {0}"
 #: frappe/printing/page/print_format_builder/print_format_builder_field.html:3
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Hidden"
-msgstr "پنهان شده است"
+msgstr "پنهان شده"
 
 #. Label of a Section Break field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -11906,7 +11906,7 @@ msgstr "اگر کاربر هر نقشی را علامت زده باشد، کار
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:38
 msgid "If these instructions where not helpful, please add in your suggestions on GitHub Issues."
-msgstr "اگر این دستورالعمل ها مفید نیستند، لطفاً پیشنهادات خود را در مورد مشکلات GitHub اضافه کنید."
+msgstr "اگر این دستورالعمل ها مفید نیستند، لطفاً پیشنهادها خود را در مورد مشکلات GitHub اضافه کنید."
 
 #. Description of the 'Fetch on Save if Empty' (Check) field in DocType
 #. 'DocField'
@@ -14570,7 +14570,7 @@ msgstr "به نظر می رسد هیچ اعلانی دریافت نکرده ای
 
 #: frappe/core/doctype/server_script/server_script_list.js:18
 msgid "Loving Frappe Framework?"
-msgstr ""
+msgstr "آیا چارچوب Frappe را دوست دارید؟"
 
 #. Option for the 'Priority' (Select) field in DocType 'ToDo'
 #: frappe/desk/doctype/todo/todo.json
@@ -24526,7 +24526,7 @@ msgstr ""
 #. Label of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "System Logs"
-msgstr "گزارش های سیستم"
+msgstr "لاگ‌های سیستم"
 
 #. Name of a role
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
