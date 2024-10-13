@@ -540,9 +540,13 @@ frappe.views.Workspace = class Workspace {
 								indicator: "green",
 							});
 						}
-
 						frappe.boot.sidebar_pages = r.message;
 						this.sidebar.setup_pages();
+
+						if (!frappe.boot.app_data_map["private"] && new_page.public === 0) {
+							let app_switcher_menu = $(".app-switcher-menu");
+							this.sidebar.add_private_app(app_switcher_menu);
+						}
 						resolve();
 					}
 				},
