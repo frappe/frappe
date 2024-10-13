@@ -346,9 +346,9 @@ def test_runner_print_mandatory_fields(*args, **kwargs):
 	"no public api anymore",
 )
 def test_runner_get_test_record_log(doctype):
-	from frappe.tests.utils.generators import TestRecordLog
+	from frappe.tests.utils.generators import TestRecordManager
 
-	return TestRecordLog().get(doctype)
+	return TestRecordManager().get(doctype)
 
 
 @deprecated(
@@ -358,9 +358,9 @@ def test_runner_get_test_record_log(doctype):
 	"no public api anymore",
 )
 def test_runner_add_to_test_record_log(doctype):
-	from frappe.tests.utils.generators import TestRecordLog
+	from frappe.tests.utils.generators import TestRecordManager
 
-	return TestRecordLog().add(doctype)
+	return TestRecordManager().add(doctype)
 
 
 @deprecated(
