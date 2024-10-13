@@ -229,7 +229,7 @@ def _sync_records(
 	if test_record_log_instance is None:
 		test_record_log_instance = TestRecordLog()
 
-	def _load():
+	def _load(do_create=True):
 		created, loaded = [], []
 		# one test record file / source under a single register doctype may have entires for different doctypes
 		for _sub_doctype, records in test_records.items():
@@ -238,27 +238,33 @@ def _sync_records(
 				if "doctype" not in record:
 					record["doctype"] = _sub_doctype
 
-				doc, was_created = _try_create(record, reset, commit)
-				if was_created:
-					created.append(doc)
-				else:
-					loaded.append(doc)
+				if do_create:
+					doc, was_created = _try_create(record, reset, commit)
+					if was_created:
+						created.append(doc)
+					else:
+						loaded.append(doc)
 
 				# Important: we load the raw data records into globalTestRecords
 				# which best suites the test engineers intentions and expectations
 				frappe.local.test_objects[index_doctype].append(MappingProxyType(record))
 
-		# we keep an empty created = [] on purpose to persist proof of prior processing of the index doctype
-		test_record_log_instance.add(index_doctype, created)
-		_logstr = f"{index_doctype} ({len(created)} / {len(loaded) + len(created)})"
-		testing_logger.info(f"         > {_logstr:<30} into Database & Journal / cls.globalTestRecords")
+		if not do_create:
+			loaded.extend(test_record_log_instance.get_records(index_doctype))
+			_logstr = f"{index_doctype} ({len(loaded)})"
+			testing_logger.info(f"         > {_logstr:<30} into cls.globalTestRecords, only")
+		else:
+			# we keep an mpty created = [] on purpose to persist proof of prior processing of the index doctype
+			test_record_log_instance.add(index_doctype, created)
+			_logstr = f"{index_doctype} ({len(created)} / {len(loaded) + len(created)})"
+			testing_logger.info(f"         > {_logstr:<30} into Database & Journal / cls.globalTestRecords")
 
 		for item in created:
 			yield ("created", item)
 		for item in loaded:
 			yield ("loaded", item)
 
-	# Please keep the decision tree intact, even if branches may seem redundant
+	# Please keep the decision tree intact, even if some branches may seem redundant
 	# this is for clarity, documentation and future modifications or enhancements
 	# of this critical loading api
 	if index_doctype in test_record_log_instance.get():
@@ -273,7 +279,7 @@ def _sync_records(
 			# Scenario: secondary call without force or re-execution
 			if index_doctype not in frappe.local.test_objects:
 				# Scenario: re-execution; not yet loaded into memory
-				yield from _load()
+				yield from _load(do_create=False)
 			else:
 				# Scenario: secondary call on the same index doctype; may add more records
 				yield from _load()
@@ -371,11 +377,11 @@ class TestRecordLog:
 			self._log = self._read_log()
 		return self._log
 
-	def get_records(self, doctype):
+	def get_records(self, doctype) -> list["Document"]:
 		log = self.get()
 		return log.get(doctype, [])
 
-	def add(self, doctype, records: list):
+	def add(self, doctype, records: list["Document"]):
 		if records:
 			self._append_to_log(doctype, records)
 			if self._log is None:
@@ -392,7 +398,7 @@ class TestRecordLog:
 			self._remove_from_log(doctype)
 			testing_logger.debug(f"        > {doctype:<30} deleted from {self.log_file}")
 
-	def _append_to_log(self, doctype, records):
+	def _append_to_log(self, doctype, records: list["Document"]):
 		entry = {"doctype": doctype, "records": records}
 		with self.log_file.open("a") as f:
 			f.write(frappe.as_json(entry, indent=None) + "\n")
@@ -405,7 +411,9 @@ class TestRecordLog:
 					entry = json.loads(line)
 					doctype = entry["doctype"]
 					records = entry["records"]
-					log.setdefault(doctype, []).extend(records)
+					log.setdefault(doctype, []).extend(
+						frappe.get_doc(r["doctype"], r["name"]) for r in records
+					)
 		return log
 
 	def _remove_from_log(self, doctype):
