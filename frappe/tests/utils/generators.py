@@ -208,7 +208,9 @@ def _generate_records_for(
 
 		if not test_records:
 			logger.warning("➛ " + logstr + " (missing)")
-			TEST_RECORD_MANAGER_INSTANCE.add(index_doctype, [])  # avoid noisy retries on multiple invocations
+			TEST_RECORD_MANAGER_INSTANCE.add(
+				index_doctype, [], []
+			)  # avoid noisy retries on multiple invocations
 			print_mandatory_fields(index_doctype, initial_doctype)
 			return
 
@@ -240,9 +242,10 @@ def _sync_records(
 		TEST_RECORD_MANAGER_INSTANCE = TestRecordManager()
 
 	def _load(do_create=True):
-		created, loaded = [], []
+		created, loaded, flat_records = [], [], []
 		# one test record file / source under a single register doctype may have entires for different doctypes
 		for _sub_doctype, records in test_records.items():
+			flat_records.extend(records)
 			for record in records:
 				# Fix the input; better late than never
 				if "doctype" not in record:
@@ -255,8 +258,8 @@ def _sync_records(
 					loaded.append(doc)
 
 		# we keep an empty created = [] on purpose to persist proof of prior processing of the index doctype
-		TEST_RECORD_MANAGER_INSTANCE.add(index_doctype, created)
-		_logstr = f"{index_doctype} ({len(created)} / {len(loaded) + len(created)})"
+		TEST_RECORD_MANAGER_INSTANCE.add(index_doctype, created, flat_records)
+		_logstr = f"{index_doctype} ({len(created)} / {len(flat_records)})"
 		testing_logger.info(f"         > {_logstr:<30} into Database & Journal / cls.globalTestRecords")
 
 		for item in created:
@@ -365,16 +368,41 @@ class TestRecordManager:
 			self._log = self._read_log()
 		return self._log
 
+	def get_all_documents(self) -> dict[str, list["Document"]]:
+		log = self.get()
+		all_documents = {}
+		for index_doctype in log:
+			docs = log[index_doctype].get("docs", [])
+			if docs:
+				all_documents[index_doctype] = docs
+		return all_documents
+
 	def get_documents(self, index_doctype) -> list["Document"]:
 		log = self.get()
-		return log.get(index_doctype, [])
+		return log.get(index_doctype, {}).get("docs", [])
 
-	def add(self, index_doctype, documents: list["Document"]):
+	def get_all_records(self) -> dict[str, list[dict]]:
+		log = self.get()
+		all_records = {}
+		for index_doctype in log:
+			recs = log[index_doctype].get("recs", [])
+			if recs:
+				all_records[index_doctype] = recs
+		return all_records
+
+	def get_records(self, index_doctype) -> list[dict]:
+		log = self.get()
+		return log.get(index_doctype, {}).get("recs", [])
+
+	def add(self, index_doctype, documents: list["Document"], records: list[dict]):
 		if documents:
-			self._append_to_log(index_doctype, documents)
+			self._append_to_log(index_doctype, documents, records)
 			if self._log is None:
 				self.get()
-			self._log.setdefault(index_doctype, []).extend(documents)
+			self._log.setdefault(index_doctype, {}).setdefault("docs", []).extend(documents)
+			self._log.setdefault(index_doctype, {}).setdefault("recs", []).extend(
+				MappingProxyType(r) for r in records
+			)
 			testing_logger.debug(f"        > {index_doctype:<30} ({len(documents)}) added to {self.log_file}")
 
 	def remove(self, index_doctype):
@@ -386,8 +414,8 @@ class TestRecordManager:
 			self._remove_from_log(index_doctype)
 			testing_logger.debug(f"        > {index_doctype:<30} deleted from {self.log_file}")
 
-	def _append_to_log(self, index_doctype, documents: list["Document"]):
-		entry = {"doctype": index_doctype, "documents": documents}
+	def _append_to_log(self, index_doctype, documents: list["Document"], records: list[dict]):
+		entry = {"doctype": index_doctype, "documents": documents, "records": records}
 		with self.log_file.open("a") as f:
 			f.write(frappe.as_json(entry, indent=None) + "\n")
 
@@ -397,14 +425,18 @@ class TestRecordManager:
 			with self.log_file.open() as f:
 				for line in f:
 					entry = json.loads(line)
-					index_doctype = entry["doctype"]
-					records = entry["records"]
+					index_doctype, documents, records = entry["doctype"], entry["documents"], entry["records"]
+					log.setdefault(index_doctype, {}).setdefault("recs", []).extend(
+						MappingProxyType(r) for r in records
+					)
 					try:
-						for r in records:
-							log.setdefault(index_doctype, []).append(frappe.get_doc(r["doctype"], r["name"]))
+						for d in documents:
+							log.setdefault(index_doctype, {}).setdefault("docs", []).append(
+								frappe.get_doc(d["doctype"], d["name"])
+							)
 					except frappe.DoesNotExistError as e:
 						raise ValueError(
-							f"Global test record '{r['name']}' ({r['doctype']}) had been deleted resulting in inconsistent global state."
+							f"Global test record '{d['name']}' ({d['doctype']}) had been deleted resulting in inconsistent global state."
 						) from e
 		return log
 
