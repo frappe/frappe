@@ -118,11 +118,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
-      - name: Install
-        run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
+      - name: Install Dependencies
+        run: |
+          bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
+
+      - name: Init Bench
+        run: |
+          bash ${GITHUB_WORKSPACE}/.github/helper/install_bench.sh
         env:
-          DB: mariadb
           TYPE: server
+      - name: Init Test Site
+        run: |
+          bash ${GITHUB_WORKSPACE}/.github/helper/install_site.sh
+        env:
+          TYPE: server
+          DB: mariadb
 
       - name: Run Tests
         run: 'cd ~/frappe-bench/ && bench --site test_site run-tests --app frappe --module ${{ matrix.test }}'
