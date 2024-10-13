@@ -85,16 +85,11 @@ frappe.ui.Sidebar = class Sidebar {
 		});
 
 		frappe.boot.app_data_map = {};
-		frappe.boot.app_data.push({
-			app_name: "private",
-			app_title: __("Private"),
-			app_route: "/app/private",
-			app_logo_url: "/assets/frappe/images/frappe-framework-logo.svg",
-			workspaces: this.all_pages.filter((p) => p.public === 0),
-		});
+		this.add_private_app(app_switcher_menu);
+
 		for (var app of frappe.boot.app_data) {
 			frappe.boot.app_data_map[app.app_name] = app;
-			if (app.workspaces?.length || app.app_name === "private") {
+			if (app.workspaces?.length) {
 				this.add_app_item(app, app_switcher_menu);
 			}
 		}
@@ -116,6 +111,35 @@ frappe.ui.Sidebar = class Sidebar {
 				<span class="app-item-title">${app.app_title}</span>
 			</a>
 		</div>`).appendTo(app_switcher_menu);
+	}
+
+	add_private_app(app_switcher_menu) {
+		let private_pages = this.all_pages.filter((p) => p.public === 0);
+		if (private_pages.length === 0) return;
+
+		const app = {
+			app_name: "private",
+			app_title: __("My Workspaces"),
+			app_route: "/app/private",
+			app_logo_url: "/assets/frappe/images/frappe-framework-logo.svg",
+			workspaces: private_pages,
+		};
+
+		frappe.boot.app_data_map["private"] = app;
+		$(`<div class="divider"></div>`).prependTo(app_switcher_menu);
+		$(`<div class="app-item" data-app-name="${app.app_name}"
+			data-app-route="${app.app_route}">
+			<a>
+				<div class="sidebar-item-icon">
+					<img
+						class="app-logo"
+						src="${app.app_logo_url}"
+						alt="${__("App Logo")}"
+					>
+				</div>
+				<span class="app-item-title">${app.app_title}</span>
+			</a>
+		</div>`).prependTo(app_switcher_menu);
 	}
 
 	setup_select_app(app_switcher_menu) {
