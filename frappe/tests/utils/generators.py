@@ -53,7 +53,7 @@ def get_modules(doctype) -> (str, ModuleType):
 	return module, test_module
 
 
-# @cache - don't cache the recursion, code depends on its recurn value declining
+# @cache - don't cache the recursion, code depends on its return value declining
 def get_missing_records_doctypes(doctype, visited=None) -> list[str]:
 	"""Get the dependencies for the specified doctype in a depth-first manner"""
 
@@ -90,7 +90,7 @@ def get_missing_records_doctypes(doctype, visited=None) -> list[str]:
 	return result
 
 
-def get_missing_records_module_overrides(module) -> [list, list]:
+def get_missing_records_module_overrides(module) -> tuple[list, list]:
 	to_add = []
 	to_remove = []
 	if hasattr(module, "test_dependencies"):
@@ -185,7 +185,7 @@ def _generate_records_for(
 	if TEST_RECORD_MANAGER_INSTANCE is None:
 		TEST_RECORD_MANAGER_INSTANCE = TestRecordManager()
 
-	# First prioriry: module's _make_test_records as an escape hatch
+	# First priority: module's _make_test_records as an escape hatch
 	# to completely bypass the standard loading and create test records
 	# according to custom logic.
 	if hasattr(test_module, "_make_test_records"):
@@ -290,7 +290,7 @@ def _sync_records(
 		yield from _load()
 
 
-def _try_create(record, reset=False, commit=False) -> tuple["Document", bool]:
+def _try_create(record: dict, reset: bool = False, commit: bool = False) -> tuple["Document", bool]:
 	"""Create a single test document from the given record data."""
 
 	def revert_naming(d):
@@ -363,7 +363,7 @@ class TestRecordManager:
 		self.log_file = Path(frappe.get_site_path(PERSISTENT_TEST_LOG_FILE))
 		self._log = None
 
-	def get(self):
+	def get(self) -> dict:
 		if self._log is None:
 			self._log = self._read_log()
 		return self._log
@@ -394,7 +394,7 @@ class TestRecordManager:
 		log = self.get()
 		return log.get(index_doctype, {}).get("recs", [])
 
-	def add(self, index_doctype, documents: list["Document"], records: list[dict]):
+	def add(self, index_doctype: str, documents: list["Document"], records: list[dict]) -> None:
 		if documents:
 			self._append_to_log(index_doctype, documents, records)
 			if self._log is None:
@@ -405,7 +405,7 @@ class TestRecordManager:
 			)
 			testing_logger.debug(f"        > {index_doctype:<30} ({len(documents)}) added to {self.log_file}")
 
-	def remove(self, index_doctype):
+	def remove(self, index_doctype: str) -> None:
 		"""
 		Remove all records for the specified doctype from the log.
 		"""
