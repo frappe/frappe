@@ -387,7 +387,7 @@ class TestRecordLog:
 		"""
 		Remove all records for the specified doctype from the log.
 		"""
-		if self._log is not None and doctype in self._log:
+		if doctype in self.get():
 			del self._log[doctype]
 			self._remove_from_log(doctype)
 			testing_logger.debug(f"        > {doctype:<30} deleted from {self.log_file}")
