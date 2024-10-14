@@ -185,6 +185,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			"Dynamic Link": ("varchar", self.VARCHAR_LEN),
 			"Password": ("text", ""),
 			"Select": ("varchar", self.VARCHAR_LEN),
+			"Radio": ("varchar", self.VARCHAR_LEN),
 			"Rating": ("decimal", "3,2"),
 			"Read Only": ("varchar", self.VARCHAR_LEN),
 			"Attach": ("text", ""),

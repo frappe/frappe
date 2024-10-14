@@ -15,6 +15,7 @@
   "hidden",
   "column_break_4",
   "options",
+  "allow_others",
   "max_length",
   "max_value",
   "precision",
@@ -40,7 +41,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Fieldtype",
-   "options": "Attach\nAttach Image\nCheck\nCurrency\nColor\nData\nDate\nDatetime\nDuration\nFloat\nHTML\nInt\nLink\nPassword\nPhone\nRating\nSelect\nSignature\nSmall Text\nText\nText Editor\nTable\nTime\nSection Break\nColumn Break\nPage Break"
+   "options": "Attach\nAttach Image\nCheck\nCurrency\nColor\nData\nDate\nDatetime\nDuration\nFloat\nHTML\nInt\nLink\nPassword\nPhone\nRating\nSelect\nRadio\nSignature\nSmall Text\nText\nText Editor\nTable\nTime\nSection Break\nColumn Break\nPage Break"
   },
   {
    "fieldname": "label",
@@ -152,11 +153,18 @@
    "fieldtype": "Select",
    "label": "Precision",
    "options": "\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9"
-  }
+  },
+  {
+    "default": "0",
+    "depends_on": "eval: doc.fieldtype === 'Radio'",
+    "fieldname": "allow_others",
+    "fieldtype": "Check",
+    "label": "Allow others"
+   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2024-04-15 16:11:58.469820",
+ "modified": "2024-10-07 16:11:58.469820",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form Field",

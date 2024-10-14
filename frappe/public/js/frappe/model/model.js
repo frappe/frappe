@@ -37,6 +37,7 @@ $.extend(frappe.model, {
 		"Read Only",
 		"Rating",
 		"Select",
+		"Radio",
 		"Signature",
 		"Small Text",
 		"Table",

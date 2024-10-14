@@ -27,6 +27,7 @@ data_fieldtypes = (
 	"Dynamic Link",
 	"Password",
 	"Select",
+	"Radio",
 	"Rating",
 	"Read Only",
 	"Attach",

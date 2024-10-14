@@ -667,6 +667,7 @@ class Document(BaseDocument):
 		self._validate_mandatory()
 		self._validate_data_fields()
 		self._validate_selects()
+		self._validate_radios()
 		self._validate_non_negative()
 		self._validate_length()
 		self._fix_rating_value()
@@ -680,6 +681,7 @@ class Document(BaseDocument):
 		for d in self.get_all_children():
 			d._validate_data_fields()
 			d._validate_selects()
+			d._validate_radios()
 			d._validate_non_negative()
 			d._validate_length()
 			d._fix_rating_value()

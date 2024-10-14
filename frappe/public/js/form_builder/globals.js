@@ -8,6 +8,7 @@ import ImageControl from "./components/controls/ImageControl.vue";
 import LinkControl from "./components/controls/LinkControl.vue";
 import RatingControl from "./components/controls/RatingControl.vue";
 import SelectControl from "./components/controls/SelectControl.vue";
+import RadioControl from "./components/controls/RadioControl.vue";
 import SignatureControl from "./components/controls/SignatureControl.vue";
 import TableControl from "./components/controls/TableControl.vue";
 import TextControl from "./components/controls/TextControl.vue";
@@ -47,6 +48,7 @@ export function registerGlobalComponents(app) {
 		.component("ReadOnlyControl", DataControl)
 		.component("RatingControl", RatingControl)
 		.component("SelectControl", SelectControl)
+		.component("RadioControl", RadioControl)
 		.component("SignatureControl", SignatureControl)
 		.component("SmallTextControl", TextControl)
 		.component("TableControl", TableControl)
