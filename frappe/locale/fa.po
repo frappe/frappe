@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-06 09:33+0000\n"
-"PO-Revision-Date: 2024-10-11 03:05\n"
+"PO-Revision-Date: 2024-10-14 04:11\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -2150,7 +2150,7 @@ msgstr "اعمال شد"
 
 #: frappe/public/js/form_builder/components/Field.vue:103
 msgid "Apply"
-msgstr ""
+msgstr "درخواست دادن"
 
 #: frappe/public/js/frappe/list/list_view.js:1940
 msgctxt "Button in list view actions menu"
@@ -5186,7 +5186,7 @@ msgstr "ضبط کننده را پیکربندی کنید"
 
 #: frappe/public/js/print_format_builder/Field.vue:103
 msgid "Configure columns for {0}"
-msgstr ""
+msgstr "پیکربندی ستون‌ها برای {0}"
 
 #. Description of the 'Amended Documents' (Section Break) field in DocType
 #. 'Document Naming Settings'
@@ -9236,7 +9236,7 @@ msgstr "خطا: مقدار از دست رفته برای {0}: {1}"
 
 #: frappe/www/error.html:36
 msgid "Error: {0}"
-msgstr ""
+msgstr "خطا: {0}"
 
 #: frappe/model/base_document.py:750
 msgid "Error: {0} Row #{1}: Value missing for: {2}"
@@ -12240,7 +12240,7 @@ msgstr "اگر کاربر هر نقشی را علامت زده باشد، کار
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:38
 msgid "If these instructions where not helpful, please add in your suggestions on GitHub Issues."
-msgstr "اگر این دستورالعمل ها مفید نیستند، لطفاً پیشنهادات خود را در مورد مشکلات GitHub اضافه کنید."
+msgstr "اگر این دستورالعمل ها مفید نیستند، لطفاً پیشنهادها خود را در مورد مشکلات GitHub اضافه کنید."
 
 #. Description of the 'Fetch on Save if Empty' (Check) field in DocType
 #. 'DocField'
@@ -23465,7 +23465,7 @@ msgstr "تنظیم نقش برای"
 #: frappe/core/doctype/user/user.js:131
 #: frappe/core/page/permission_manager/permission_manager.js:65
 msgid "Set User Permissions"
-msgstr ""
+msgstr "تنظیم مجوزهای کاربر"
 
 #. Label of the value (Small Text) field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
@@ -29549,7 +29549,7 @@ msgstr "پس از کاوش در این صفحه می‌توانید به نصب 
 
 #: frappe/model/delete_doc.py:136
 msgid "You can disable this {0} instead of deleting it."
-msgstr ""
+msgstr "می توانید به جای حذف این {0} آن را غیرفعال کنید."
 
 #: frappe/core/doctype/file/file.py:697
 msgid "You can increase the limit from System Settings."
