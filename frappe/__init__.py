@@ -425,12 +425,16 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 
 	# Generalized env variable overrides and defaults
 	def db_default_ports(db_type):
-		from frappe.database.mariadb.database import MariaDBDatabase
+		if db_type == "mariadb":
+			from frappe.database.mariadb.database import MariaDBDatabase
 
-		return {
-			"mariadb": MariaDBDatabase.default_port,
-			"postgres": 5432,
-		}[db_type]
+			return MariaDBDatabase.default_port
+		elif db_type == "postgres":
+			from frappe.database.postgres.database import PostgresDatabase
+
+			return PostgresDatabase.default_port
+
+		raise ValueError(f"Unsupported db_type={db_type}")
 
 	config["redis_queue"] = (
 		os.environ.get("FRAPPE_REDIS_QUEUE") or config.get("redis_queue") or "redis://127.0.0.1:11311"
