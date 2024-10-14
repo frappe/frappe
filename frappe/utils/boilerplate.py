@@ -632,13 +632,62 @@ app_license = "{app_license}"
 
 """
 
-gitignore_template = """.DS_Store
+gitignore_template = """# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
 *.pyc
-*.egg-info
-*.swp
+*.py~
+
+# Distribution / packaging
+.Python
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 tags
-node_modules
-__pycache__"""
+MANIFEST
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# IDEs and editors
+.vscode/
+.vs/
+.idea/
+.kdev4/
+*.kdev4
+*.DS_Store
+*.swp
+*.comp.js
+.wnf-lang-status
+*debug.log
+
+# Helix Editor
+.helix/
+
+# Aider AI Chat
+.aider*
+"""
 
 github_workflow_template = """
 name: CI
