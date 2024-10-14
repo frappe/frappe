@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-24 15:33+0000\n"
-"PO-Revision-Date: 2024-10-13 03:50\n"
+"PO-Revision-Date: 2024-10-14 04:11\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -2126,7 +2126,7 @@ msgstr "اعمال شد"
 
 #: frappe/public/js/form_builder/components/Field.vue:103
 msgid "Apply"
-msgstr ""
+msgstr "درخواست دادن"
 
 #: frappe/public/js/frappe/list/list_view.js:1880
 msgctxt "Button in list view actions menu"
@@ -5103,7 +5103,7 @@ msgstr "ضبط کننده را پیکربندی کنید"
 
 #: frappe/public/js/print_format_builder/Field.vue:103
 msgid "Configure columns for {0}"
-msgstr ""
+msgstr "پیکربندی ستون‌ها برای {0}"
 
 #. Description of the 'Amended Documents' (Section Break) field in DocType
 #. 'Document Naming Settings'
