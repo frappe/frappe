@@ -689,8 +689,7 @@ jspm_packages/
 .aider*
 """
 
-github_workflow_template = """
-name: CI
+github_workflow_template = """name: CI
 
 on:
   push:
@@ -876,8 +875,7 @@ ci:
     submodules: false
 """
 
-linter_workflow_template = """
-name: Linters
+linter_workflow_template = """name: Linters
 
 on:
   pull_request:
@@ -974,8 +972,7 @@ Pre-commit is configured to use the following tools for checking and formatting 
 {app_license}
 """
 
-readme_ci_section = """
-### CI
+readme_ci_section = """### CI
 
 This app can use GitHub Actions for CI. The following workflows are configured:
 
