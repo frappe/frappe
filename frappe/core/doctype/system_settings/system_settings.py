@@ -17,6 +17,7 @@ class SystemSettings(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		add_custom_prefix: DF.Check
 		allow_consecutive_login_attempts: DF.Int
 		allow_error_traceback: DF.Check
 		allow_guests_to_upload_files: DF.Check

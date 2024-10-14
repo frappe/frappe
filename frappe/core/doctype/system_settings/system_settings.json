@@ -14,6 +14,7 @@
   "enable_onboarding",
   "setup_complete",
   "disable_document_sharing",
+  "add_custom_prefix",
   "date_and_number_format",
   "date_format",
   "time_format",
@@ -684,12 +685,18 @@
    "fieldname": "use_number_format_from_currency",
    "fieldtype": "Check",
    "label": "Use Number Format from Currency"
+  },
+  {
+   "default": "1",
+   "fieldname": "add_custom_prefix",
+   "fieldtype": "Check",
+   "label": "Add \"custom\" Prefix to Custom Fields"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2024-09-26 16:20:59.417151",
+ "modified": "2024-10-14 11:07:40.795263",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

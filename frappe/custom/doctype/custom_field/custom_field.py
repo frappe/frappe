@@ -148,7 +148,9 @@ class CustomField(Document):
 			self.fieldname = "".join(
 				[c for c in cstr(label).replace(" ", "_") if c.isdigit() or c.isalpha() or c == "_"]
 			)
-			self.fieldname = f"custom_{self.fieldname}"
+			add_custom_prefix = frappe.get_value("System Settings", None, "add_custom_prefix")
+			if add_custom_prefix == 1:
+				self.fieldname = f"custom_{self.fieldname}"
 
 		# fieldnames should be lowercase
 		self.fieldname = self.fieldname.lower()
