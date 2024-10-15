@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-24 15:33+0000\n"
-"PO-Revision-Date: 2024-10-11 03:05\n"
+"PO-Revision-Date: 2024-10-15 04:37\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -9056,7 +9056,7 @@ msgstr ""
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:93
 msgid "Enter Client Id and Client Secret in Google Settings."
-msgstr ""
+msgstr "Google Ayarları'na İstemci Kimliği ve İstemci Gizli Anahtarını girin."
 
 #: frappe/templates/includes/login/login.js:359
 msgid "Enter Code displayed in OTP App."
@@ -13109,11 +13109,11 @@ msgstr "Alanlar için geçersiz değerler:"
 
 #: frappe/printing/page/print/print.js:614
 msgid "Invalid wkhtmltopdf version"
-msgstr ""
+msgstr "Geçersiz wkhtmltopdf sürümü"
 
 #: frappe/core/doctype/doctype/doctype.py:1526
 msgid "Invalid {0} condition"
-msgstr ""
+msgstr "Geçersiz {0} koşulu"
 
 #. Option for the 'Style' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
@@ -14485,7 +14485,7 @@ msgstr "Daha Fazla Yükle"
 #: frappe/public/js/frappe/form/footer/form_timeline.js:216
 msgctxt "Form timeline"
 msgid "Load More Communications"
-msgstr ""
+msgstr "Daha Fazla İletişim Yükle"
 
 #: frappe/public/js/frappe/file_uploader/TreeNode.vue:45
 msgid "Load more"
@@ -17146,7 +17146,7 @@ msgstr "OAuth İstemcisi"
 #. Label of a Section Break field in DocType 'Google Settings'
 #: frappe/integrations/doctype/google_settings/google_settings.json
 msgid "OAuth Client ID"
-msgstr ""
+msgstr "OAuth İstemci Kimliği"
 
 #. Name of a DocType
 #: frappe/integrations/doctype/oauth_client_role/oauth_client_role.json
@@ -18629,7 +18629,7 @@ msgstr ""
 
 #: frappe/integrations/doctype/social_login_key/social_login_key.py:86
 msgid "Please enter Client ID before social login is enabled"
-msgstr ""
+msgstr "Sosyal medya ile oturum açma etkinleştirilmeden önce lütfen İstemci Kimliğini girin"
 
 #: frappe/integrations/doctype/social_login_key/social_login_key.py:89
 msgid "Please enter Client Secret before social login is enabled"
@@ -18774,7 +18774,7 @@ msgstr "Lütfen önce ön eki seçin"
 
 #: frappe/core/doctype/data_export/data_export.js:42
 msgid "Please select the Document Type."
-msgstr ""
+msgstr "Lütfen Belge Türünü seçin."
 
 #. Description of the 'Directory Server' (Select) field in DocType 'LDAP
 #. Settings'
@@ -22114,7 +22114,7 @@ msgstr "Arama Yapılıyor..."
 #: frappe/public/js/form_builder/components/Section.vue:263
 #: frappe/website/doctype/web_template/web_template.json
 msgid "Section"
-msgstr ""
+msgstr "Bölüm"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -25213,7 +25213,9 @@ msgstr "CSV formatı büyük/küçük harfe duyarlıdır"
 msgid "The Client ID obtained from the Google Cloud Console under <a href=\"https://console.cloud.google.com/apis/credentials\">\n"
 "\"APIs &amp; Services\" &gt; \"Credentials\"\n"
 "</a>"
-msgstr ""
+msgstr "Google Cloud Konsolundan <a href=\"https://console.cloud.google.com/apis/credentials\">\n"
+"\"API'ler &amp; Hizmetler\" &gt; \"Kimlik Bilgileri\"\n"
+"</a>altında elde edilen İstemci Kimliği"
 
 #: frappe/email/doctype/notification/notification.py:131
 msgid "The Condition '{0}' is invalid"
@@ -25250,7 +25252,9 @@ msgstr "Ekler yeni belgeye doğru şekilde bağlanamadı"
 msgid "The browser API key obtained from the Google Cloud Console under <a href=\"https://console.cloud.google.com/apis/credentials\">\n"
 "\"APIs &amp; Services\" &gt; \"Credentials\"\n"
 "</a>"
-msgstr ""
+msgstr "Google Cloud Konsolu'ndan <a href=\"https://console.cloud.google.com/apis/credentials\">\n"
+"\"API'ler &amp; Hizmetler\" &gt; \"Kimlik Bilgileri\"\n"
+"</a>altında elde edilen tarayıcı API anahtarı"
 
 #: frappe/database/database.py:428
 msgid "The changes have been reverted."
@@ -26165,7 +26169,7 @@ msgstr ""
 
 #: frappe/integrations/doctype/google_drive/google_drive.js:8
 msgid "To use Google Drive, enable {0}."
-msgstr ""
+msgstr "Google Drive'ı kullanmak için {0} öğesini etkinleştirin."
 
 #. Description of the 'Enable Google indexing' (Check) field in DocType
 #. 'Website Settings'
@@ -31638,7 +31642,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/utils/datatable.js:12
 msgid "{count} cell copied"
-msgstr ""
+msgstr "{count} hücre kopyalandı"
 
 #: frappe/public/js/frappe/utils/datatable.js:13
 msgid "{count} cells copied"
@@ -31650,7 +31654,7 @@ msgstr "{count} satır seçildi"
 
 #: frappe/public/js/frappe/utils/datatable.js:17
 msgid "{count} rows selected"
-msgstr ""
+msgstr "{count} satır seçildi"
 
 #: frappe/core/doctype/doctype/doctype.py:1450
 msgid "{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}."
