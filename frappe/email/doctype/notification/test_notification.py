@@ -478,6 +478,47 @@ class TestNotification(IntegrationTestCase):
 		frappe.delete_doc_if_exists("Notification", "ToDo Status Update")
 		frappe.delete_doc_if_exists("Notification", "Contact Status Update")
 
+	def test_notification_jinja_template(self):
+		"""Test Notification with Jinja Template"""
+		notification = frappe.get_doc(
+			{
+				"doctype": "Notification",
+				"name": "Notification with Jinja Template",
+				"subject": "{{ doc.name }}",
+				"document_type": "ToDo",
+				"event": "Save",
+				"condition": "doc.status == 'Open'",
+				"message": "Today Date: {{ frappe.utils.today() }}",
+				"channel": "Email",
+				"recipients": [{"receiver_by_document_field": "allocated_to"}],
+			}
+		).insert()
+		frappe.db.commit()
+
+		todo = frappe.new_doc("ToDo")
+		todo.description = "Test Notification"
+		todo.save()
+
+		assign_to.add(
+			{
+				"assign_to": ["test1@example.com"],
+				"doctype": todo.doctype,
+				"name": todo.name,
+				"description": "Check Email notification with Jinja template",
+			}
+		)
+		todo.status = "Closed"
+		todo.save()
+
+		email_queue = frappe.get_doc(
+			"Email Queue", {"reference_doctype": "ToDo", "reference_name": todo.name}
+		)
+		self.assertTrue(email_queue)
+
+		recipients = [d.recipient for d in email_queue.recipients]
+		self.assertTrue("test1@example.com" in recipients)
+		self.assertEqual(notification.enabled, 1)
+
 
 """
 PROOF OF TEST for TestNotificationOffsetRange below.
