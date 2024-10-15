@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-24 15:33+0000\n"
-"PO-Revision-Date: 2024-09-24 23:32\n"
+"PO-Revision-Date: 2024-10-03 01:14\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -573,7 +573,7 @@ msgstr ""
 
 #: frappe/custom/doctype/custom_field/custom_field.js:39
 msgid "<strong>Warning:</strong> This field is system generated and may be overwritten by a future update. Modify it using {0} instead."
-msgstr ""
+msgstr "<strong>Advertencia:</strong> Este campo es generado por el sistema y puede ser sobrescrito por una futura actualización. Modifíquelo utilizando {0} en su lugar."
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
 #. Condition'
@@ -600,7 +600,7 @@ msgstr "Un DocType (Tipo de documento) se utiliza para insertar formularios en E
 
 #: frappe/core/doctype/doctype/doctype.py:1010
 msgid "A DocType's name should start with a letter and can only consist of letters, numbers, spaces, underscores and hyphens"
-msgstr ""
+msgstr "El nombre de un DocType debe empezar por una letra y sólo puede estar formado por letras, números, espacios, guiones bajos y guiones"
 
 #: frappe/website/doctype/blog_post/blog_post.py:93
 msgid "A featured post must have a cover image"
@@ -1238,7 +1238,7 @@ msgstr "Agregar nueva pestaña"
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:125
 msgid "Add page break"
-msgstr ""
+msgstr "Añadir salto de página"
 
 #: frappe/custom/doctype/client_script/client_script.js:16
 msgid "Add script for Child Table"
@@ -1246,11 +1246,11 @@ msgstr "Agregar script para tabla secundaria"
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:111
 msgid "Add section above"
-msgstr ""
+msgstr "Añadir sección arriba"
 
 #: frappe/public/js/form_builder/components/Section.vue:265
 msgid "Add section below"
-msgstr ""
+msgstr "Añadir sección debajo"
 
 #: frappe/public/js/form_builder/components/Sidebar.vue:52
 #: frappe/public/js/form_builder/components/Tabs.vue:157
@@ -2218,7 +2218,7 @@ msgstr "Aprobación requerida"
 #: frappe/hooks.py frappe/templates/includes/navbar/navbar_login.html:18
 #: frappe/website/js/website.js:617
 msgid "Apps"
-msgstr ""
+msgstr "Apps"
 
 #: frappe/public/js/frappe/utils/number_systems.js:41
 msgctxt "Number system"
@@ -4224,7 +4224,7 @@ msgstr "Cambio"
 
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:38
 msgid "Change Image"
-msgstr ""
+msgstr "Cambia Imagen"
 
 #. Label of a Data field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
@@ -6691,7 +6691,7 @@ msgstr "Borrar Todo"
 #: frappe/public/js/form_builder/components/Section.vue:196
 msgctxt "Title of confirmation dialog"
 msgid "Delete Column"
-msgstr ""
+msgstr "Eliminar columna"
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.js:10
 msgid "Delete Data"
@@ -6709,7 +6709,7 @@ msgstr ""
 #: frappe/public/js/form_builder/components/Tabs.vue:64
 msgctxt "Title of confirmation dialog"
 msgid "Delete Tab"
-msgstr ""
+msgstr "Eliminar pestaña"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:869
 msgid "Delete Workspace"
@@ -6751,7 +6751,7 @@ msgstr "Eliminar sección"
 #: frappe/public/js/form_builder/components/Tabs.vue:71
 msgctxt "Button text"
 msgid "Delete tab"
-msgstr ""
+msgstr "Eliminar pestaña"
 
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.py:29
 msgid "Delete this record to allow sending to this email address"
@@ -8528,7 +8528,7 @@ msgstr "Código integrado copiado"
 
 #: frappe/public/js/form_builder/components/Section.vue:285
 msgid "Empty column"
-msgstr ""
+msgstr "Columna vacía"
 
 #. Label of a Check field in DocType 'Google Calendar'
 #. Label of a Check field in DocType 'Google Contacts'
@@ -13296,7 +13296,7 @@ msgstr "El trabajo no se está ejecutando."
 
 #: frappe/desk/doctype/event/event.js:55
 msgid "Join video conference with {0}"
-msgstr ""
+msgstr "Únase a la videoconferencia con {0}"
 
 #: frappe/public/js/frappe/form/toolbar.js:356
 #: frappe/public/js/frappe/form/toolbar.js:745
@@ -13382,7 +13382,7 @@ msgstr "Atajos de teclado"
 #. Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Keycloak"
-msgstr ""
+msgstr "Keycloak"
 
 #: frappe/public/js/frappe/utils/number_systems.js:37
 msgctxt "Number system"
@@ -14523,7 +14523,7 @@ msgstr "Inicio de sesión con nombre de usuario y contraseña no está permitido
 
 #: frappe/www/login.html:97
 msgid "Login with {0}"
-msgstr ""
+msgstr "Iniciar sesión con {0}"
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json frappe/www/apps.html:59
@@ -24750,7 +24750,7 @@ msgstr "Salto de Pestaña"
 
 #: frappe/public/js/form_builder/components/Tabs.vue:135
 msgid "Tab Label"
-msgstr ""
+msgstr "Etiqueta de pestaña"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of a Data field in DocType 'Recorder Suggested Index'
@@ -26369,7 +26369,7 @@ msgstr "Árbol"
 
 #: frappe/public/js/frappe/list/base_list.js:210
 msgid "Tree View"
-msgstr ""
+msgstr "Vista en árbol"
 
 #. Description of the 'Is Tree' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -26891,7 +26891,7 @@ msgstr "Actualizando configuración global"
 
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.js:59
 msgid "Updating naming series options"
-msgstr ""
+msgstr "Actualizando opciones de la serie de nombres"
 
 #: frappe/public/js/frappe/form/toolbar.js:127
 msgid "Updating related fields..."
@@ -26914,15 +26914,15 @@ msgstr "Subir"
 
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:93
 msgid "Upload Image"
-msgstr ""
+msgstr "Cargar Imagen"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:193
 msgid "Upload file"
-msgstr ""
+msgstr "Cargar archivo"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:196
 msgid "Upload {0} files"
-msgstr ""
+msgstr "Cargar archivos {0}"
 
 #. Label of a Check field in DocType 'File'
 #: frappe/core/doctype/file/file.json
