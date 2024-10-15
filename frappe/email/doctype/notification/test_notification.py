@@ -478,7 +478,7 @@ class TestNotification(IntegrationTestCase):
 		frappe.delete_doc_if_exists("Notification", "ToDo Status Update")
 		frappe.delete_doc_if_exists("Notification", "Contact Status Update")
 
-	def test_notification_jinja_template(self):
+	def test_notification_with_jinja_template(self):
 		"""Test Notification with Jinja Template"""
 		notification = frappe.get_doc(
 			{
@@ -488,7 +488,7 @@ class TestNotification(IntegrationTestCase):
 				"document_type": "ToDo",
 				"event": "Save",
 				"condition": "doc.status == 'Open'",
-				"message": "Today Date: {{ frappe.utils.today() }}",
+				"message": "{% set val = frappe.get_doc('ToDo', doc.name) %} ToDo allocated to {{ doc.allocated_to }}",
 				"channel": "Email",
 				"recipients": [{"receiver_by_document_field": "allocated_to"}],
 			}
@@ -496,18 +496,8 @@ class TestNotification(IntegrationTestCase):
 		frappe.db.commit()
 
 		todo = frappe.new_doc("ToDo")
-		todo.description = "Test Notification"
-		todo.save()
-
-		assign_to.add(
-			{
-				"assign_to": ["test1@example.com"],
-				"doctype": todo.doctype,
-				"name": todo.name,
-				"description": "Check Email notification with Jinja template",
-			}
-		)
-		todo.status = "Closed"
+		todo.description = "Checking email notification with jinja template"
+		todo.allocated_to = "test1@example.com"
 		todo.save()
 
 		email_queue = frappe.get_doc(
