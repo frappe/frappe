@@ -3,8 +3,6 @@ from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.website.path_resolver import PathResolver
 from frappe.website.serve import get_response_content
 
-test_records = frappe.get_test_records("Web Page")
-
 
 class UnitTestWebPage(UnitTestCase):
 	"""
@@ -18,7 +16,7 @@ class UnitTestWebPage(UnitTestCase):
 class TestWebPage(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.delete("Web Page")
-		for t in test_records:
+		for t in self.globalTestRecords["Web Page"]:
 			frappe.get_doc(t).insert()
 
 	def test_path_resolver(self):

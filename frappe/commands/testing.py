@@ -61,7 +61,24 @@ def main(
 
 	# Prepare debug log message
 	debug_params = []
-	for param_name in ["site", "app", "module", "doctype", "module_def", "doctype_list_path"]:
+	for param_name in [
+		"site",
+		"app",
+		"module",
+		"doctype",
+		"module_def",
+		"verbose",
+		"tests",
+		"force",
+		"profile",
+		"junit_xml_output",
+		"doctype_list_path",
+		"failfast",
+		"case",
+		"skip_before_tests",
+		"pdb_on_exceptions",
+		"selected_categories",
+	]:
 		param_value = locals()[param_name]
 		if param_value is not None:
 			debug_params.append(f"{param_name}={param_value}")

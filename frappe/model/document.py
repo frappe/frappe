@@ -6,6 +6,7 @@ import time
 from collections.abc import Generator, Iterable
 from contextlib import contextmanager
 from functools import singledispatchmethod, wraps
+from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, Union, overload
 
 from werkzeug.exceptions import NotFound
@@ -84,6 +85,11 @@ def get_doc_str(doctype: str, name: str | None = None, **kwargs) -> "Document":
 		return controller(doctype, name, **kwargs)
 
 	raise ImportError(doctype)
+
+
+@get_doc.register(MappingProxyType)  # global test record
+def get_doc_from_mapping_proxy(data: MappingProxyType, **kwargs) -> "Document":
+	return get_doc_from_dict(dict(data), **kwargs)
 
 
 @get_doc.register(dict)

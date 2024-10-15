@@ -2,5 +2,3 @@
 # License: MIT. See LICENSE
 
 import frappe
-
-test_records = frappe.tests.utils.load_test_records_for("Blogger")

@@ -7,8 +7,6 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
-test_records = frappe.tests.utils.load_test_records_for("Page")
-
 
 class UnitTestPage(UnitTestCase):
 	"""
