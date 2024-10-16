@@ -6,10 +6,18 @@ from types import MappingProxyType
 import frappe
 from frappe.utils import cint
 
-from ..utils.generators import get_missing_records_module_overrides, make_test_records
+from ..utils.generators import (
+	TestRecordManager,
+	get_missing_records_module_overrides,
+	make_test_records,
+)
 from .unit_test_case import UnitTestCase
 
 logger = logging.Logger(__file__)
+
+
+global TEST_RECORD_MANAGER_INSTANCE
+TEST_RECORD_MANAGER_INSTANCE = None
 
 
 class IntegrationTestCase(UnitTestCase):
@@ -45,8 +53,14 @@ class IntegrationTestCase(UnitTestCase):
 		cls._secondary_connection = None
 
 		# Create test record dependencies
+		global TEST_RECORD_MANAGER_INSTANCE
+		if TEST_RECORD_MANAGER_INSTANCE is None:
+			from ..utils.generators import TEST_RECORD_MANAGER_INSTANCE
+
+			if not TEST_RECORD_MANAGER_INSTANCE:
+				TEST_RECORD_MANAGER_INSTANCE = TestRecordManager()
 		cls._newly_created_test_records = []
-		if cls.doctype and cls.doctype not in frappe.local.test_objects:
+		if cls.doctype and cls.doctype not in TEST_RECORD_MANAGER_INSTANCE.get():
 			cls._newly_created_test_records += make_test_records(cls.doctype)
 		elif not cls.doctype:
 			to_add, ignore = get_missing_records_module_overrides(cls.module)
@@ -58,7 +72,7 @@ class IntegrationTestCase(UnitTestCase):
 				cls._newly_created_test_records += make_test_records(doctype)
 		# flush changes done so far to avoid flake
 		frappe.db.commit()
-		cls.globalTestRecords = MappingProxyType(frappe.local.test_objects)
+		cls.globalTestRecords = MappingProxyType(TEST_RECORD_MANAGER_INSTANCE.get_all_records())
 		if cls.SHOW_TRANSACTION_COMMIT_WARNINGS:
 			frappe.db.before_commit.add(_commit_watcher)
 
