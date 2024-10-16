@@ -190,10 +190,10 @@ let fields = computed(() => {
 				return false;
 			}
 			if (search_text.value) {
-				if (df.fieldname.includes(search_text.value)) {
+				if (df.fieldname.toLowerCase().includes(search_text.value.toLowerCase())) {
 					return true;
 				}
-				if (df.label && df.label.includes(search_text.value)) {
+				if (df.label && df.label.toLowerCase().includes(search_text.value.toLowerCase())) {
 					return true;
 				}
 				return false;
