@@ -404,9 +404,13 @@ class TestRecordManager:
 					entry = json.loads(line)
 					index_doctype = entry["doctype"]
 					records = entry["records"]
-					log.setdefault(index_doctype, []).extend(
-						frappe.get_doc(r["doctype"], r["name"]) for r in records
-					)
+					try:
+						for r in records:
+							log.setdefault(index_doctype, []).append(frappe.get_doc(r["doctype"], r["name"]))
+					except frappe.DoesNotExistError as e:
+						raise ValueError(
+							f"Global test record '{r['name']}' ({r['doctype']}) had been deleted resulting in inconsistent global state."
+						) from e
 		return log
 
 	def _remove_from_log(self, index_doctype):
