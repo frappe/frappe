@@ -157,7 +157,34 @@ let margins = computed(() => {
 	];
 });
 let fields = computed(() => {
-	let fields = meta.value.fields
+	let fields = [
+		{
+			label: __("Custom HTML"),
+			fieldname: "custom_html",
+			fieldtype: "HTML",
+			html: "",
+			custom: 1,
+		},
+		{
+			label: __("ID (name)"),
+			fieldname: "name",
+			fieldtype: "Data",
+		},
+		{
+			label: __("Spacer"),
+			fieldname: "spacer",
+			fieldtype: "Spacer",
+			custom: 1,
+		},
+		{
+			label: __("Divider"),
+			fieldname: "divider",
+			fieldtype: "Divider",
+			custom: 1,
+		},
+		...print_templates.value,
+		...meta.value.fields,
+	]
 		.filter((df) => {
 			if (["Section Break", "Column Break"].includes(df.fieldtype)) {
 				return false;
@@ -187,34 +214,7 @@ let fields = computed(() => {
 			return out;
 		});
 
-	return [
-		{
-			label: __("Custom HTML"),
-			fieldname: "custom_html",
-			fieldtype: "HTML",
-			html: "",
-			custom: 1,
-		},
-		{
-			label: __("ID (name)"),
-			fieldname: "name",
-			fieldtype: "Data",
-		},
-		{
-			label: __("Spacer"),
-			fieldname: "spacer",
-			fieldtype: "Spacer",
-			custom: 1,
-		},
-		{
-			label: __("Divider"),
-			fieldname: "divider",
-			fieldtype: "Divider",
-			custom: 1,
-		},
-		...print_templates.value,
-		...fields,
-	];
+	return fields;
 });
 let print_templates = computed(() => {
 	let templates = print_format.value.__onload.print_templates || {};
