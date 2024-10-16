@@ -323,17 +323,11 @@ def _try_create(record, reset=False, commit=False) -> tuple["Document", bool]:
 
 	d.docstatus = 0
 
-	tolerated_errors = (frappe.NameError, *(d.flags.ignore_these_exceptions_in_test or []))
-	try:
-		d.run_method("before_test_insert")
-		d.insert(ignore_if_duplicate=True)
+	d.run_method("before_test_insert")
+	d.insert(ignore_if_duplicate=True)
 
-		if docstatus == 1:
-			d.submit()
-
-	except tolerated_errors as e:
-		logger.warning(f"Error during test record creation for {d.name} ({d.doctype}): {e!s}")
-		revert_naming(d)
+	if docstatus == 1:
+		d.submit()
 
 	if commit:
 		frappe.db.commit()
