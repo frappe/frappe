@@ -323,6 +323,7 @@ def _try_create(record, reset=False, commit=False) -> tuple["Document", bool]:
 
 	d.docstatus = 0
 
+	tolerated_errors = (frappe.NameError, *(d.flags.ignore_these_exceptions_in_test or []))
 	try:
 		d.run_method("before_test_insert")
 		d.insert(ignore_if_duplicate=True)
@@ -330,15 +331,9 @@ def _try_create(record, reset=False, commit=False) -> tuple["Document", bool]:
 		if docstatus == 1:
 			d.submit()
 
-	except frappe.NameError:
+	except tolerated_errors as e:
+		logger.warning(f"Error during test record creation for {d.name} ({d.doctype}): {e!s}")
 		revert_naming(d)
-
-	except Exception as e:
-		if d.flags.ignore_these_exceptions_in_test and e.__class__ in d.flags.ignore_these_exceptions_in_test:
-			revert_naming(d)
-		else:
-			logger.debug(f"Error in making test record for {d.doctype} {d.name}")
-			raise
 
 	if commit:
 		frappe.db.commit()
