@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-06 09:33+0000\n"
-"PO-Revision-Date: 2024-10-15 04:38\n"
+"PO-Revision-Date: 2024-10-16 05:12\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -11296,7 +11296,7 @@ msgstr "Github markdown sözdizimi"
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.js:7
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.js:14
 msgid "Give Review Points"
-msgstr "İnceleme Puanları Verin"
+msgstr "Puanları Dağıt"
 
 #. Name of a DocType
 #: frappe/desk/doctype/global_search_doctype/global_search_doctype.json
@@ -14258,7 +14258,7 @@ msgstr ""
 #. Point Settings'
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.json
 msgid "Last Point Allocation Date"
-msgstr "Son Puan Tahsis Tarihi"
+msgstr "Son Puan Dağıtım Tarihi"
 
 #. Option for the 'Timespan' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -19422,7 +19422,7 @@ msgstr "Daha fazla bilgi için lütfen https://frappecloud.com/docs/sites/migrat
 #. Point Settings'
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.json
 msgid "Point Allocation Periodicity"
-msgstr "Puan Tahsis Periyodu"
+msgstr "Puan Dağıtım Periyodu"
 
 #. Label of the points (Int) field in DocType 'Energy Point Log'
 #. Label of the points (Int) field in DocType 'Energy Point Rule'
@@ -21811,7 +21811,7 @@ msgstr "Gözden geçir"
 #. Name of a DocType
 #: frappe/social/doctype/review_level/review_level.json
 msgid "Review Level"
-msgstr ""
+msgstr "Katkı Düzeyleri"
 
 #. Label of the review_levels (Table) field in DocType 'Energy Point Settings'
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.json
@@ -25708,7 +25708,7 @@ msgstr "Tablo Çoklu Seçim"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:229
 msgid "Table Trimmed"
-msgstr ""
+msgstr "Tablo Temizlendi"
 
 #: frappe/public/js/frappe/form/grid.js:1142
 msgid "Table updated"
@@ -26322,7 +26322,7 @@ msgstr "Bu ayar seçilirse, tüm Kullanıcılar tarafından kullanılabilir olac
 
 #: frappe/custom/doctype/customize_form/customize_form.js:212
 msgid "This doctype has no orphan fields to trim"
-msgstr ""
+msgstr "Bu dcotype için temizlenecek artık alan yok"
 
 #: frappe/core/doctype/doctype/doctype.py:1055
 msgid "This doctype has pending migrations, run 'bench migrate' before modifying the doctype to avoid losing changes."
@@ -27331,7 +27331,7 @@ msgstr "\"before_insert\", \"after_update\", vb. gibi geçerli yöntemlerde teti
 
 #: frappe/custom/doctype/customize_form/customize_form.js:144
 msgid "Trim Table"
-msgstr ""
+msgstr "Tabloyu Temizle"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:318
 msgid "Try Again"
@@ -28691,7 +28691,7 @@ msgstr "Özellikleri Görüntüle (Formu Özelleştir)"
 
 #: frappe/social/doctype/energy_point_log/energy_point_log_list.js:20
 msgid "View Ref"
-msgstr ""
+msgstr "Referansı Görüntüle"
 
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
@@ -30866,7 +30866,7 @@ msgstr "Bildirim aracılığıyla"
 
 #: frappe/public/js/frappe/utils/energy_point_utils.js:46
 msgid "via automatic rule {0} on {1}"
-msgstr ""
+msgstr "{1} üzerinden otomatik kural {0} aracılığıyla"
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:17
 msgid "via {0}"
