@@ -11,7 +11,6 @@
  ],
  "fields": [
   {
-   "columns": 255,
    "fieldname": "parameter",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -21,6 +20,7 @@
    "width": "150px"
   },
   {
+   "columns": 255,
    "fieldname": "value",
    "fieldtype": "Data",
    "in_list_view": 1,
