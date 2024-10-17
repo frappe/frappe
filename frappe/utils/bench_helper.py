@@ -139,7 +139,7 @@ def app_group(ctx, site=None, force=False, verbose=False, profile=False):
 	bench = frappe.bench.Bench()
 	try:
 		bench.scope(site)
-	except frappe.exceptions.BenchSiteNotLoadedError:
+	except (frappe.exceptions.BenchSiteNotLoadedError, frappe.exceptions.BenchNotScopedError):
 		if bench.sites.config.get("developer_mode"):
 			bench.scope(frappe.bench.Sites.ALL_SITES)
 			print("\n", bench.sites, "\n")
