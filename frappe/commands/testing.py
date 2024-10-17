@@ -115,6 +115,7 @@ def main(
 			verbosity=2 if testing_module_logger.getEffectiveLevel() < logging.INFO else 1,
 			tb_locals=testing_module_logger.getEffectiveLevel() <= logging.INFO,
 			cfg=test_config,
+			buffer=not bool(pdb_on_exceptions),
 		)
 
 		if doctype or doctype_list_path:
