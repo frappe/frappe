@@ -52,7 +52,7 @@ class TestRunner(unittest.TextTestRunner):
 		descriptions=True,
 		verbosity=1,
 		failfast=False,
-		buffer=False,
+		buffer=True,
 		resultclass=None,
 		warnings="module",
 		*,
