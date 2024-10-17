@@ -132,6 +132,30 @@ def get_messages_for_boot():
 	return get_all_translations(frappe.local.lang)
 
 
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+def load_all_translations(lang: str, hash: str | None = None):
+	from werkzeug.wrappers import Response
+
+	response = Response()
+	response.data = json.dumps(
+		get_all_translations(lang or frappe.local.lang),
+		ensure_ascii=False,
+		separators=(",", ":"),
+	)
+	response.status_code = 200
+	response.headers["Content-Type"] = "application/json"
+
+	# Cache (private: browser only, public: proxy caching)
+	response.headers["Cache-Control"] = "private, max-age=31536000"
+
+	return response
+
+
+def get_translations_hash(lang: str) -> str:
+	"""Return hash of all translations for a language"""
+	return get_all_translations(lang).get("translations_hash__") or ""
+
+
 def get_all_translations(lang: str) -> dict[str, str]:
 	"""Load and return the entire translations dictionary for a language from apps + user translations.
 
@@ -157,6 +181,15 @@ def get_all_translations(lang: str) -> dict[str, str]:
 			# Update with child language translations (overriding parent translations)
 			all_translations.update(get_user_translations(lang))
 			all_translations.update(get_translated_countries())
+
+		if "translations_hash__" not in all_translations:
+			import hashlib
+			import json
+
+			# Compute stable hash
+			t_hash = json.dumps(all_translations, sort_keys=True)
+			t_hash = hashlib.md5(t_hash.encode(), usedforsecurity=False).hexdigest()
+			all_translations["translations_hash__"] = t_hash
 
 		return all_translations
 
