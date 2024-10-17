@@ -60,6 +60,13 @@ class ConfigHandler:
 			env_key = f"FRAPPE_{key.upper()}"
 			if env_value := os.environ.get(env_key):
 				self._config[key] = env_value
+				continue
+			# TODO: rmove legacy env variable
+			if key == "live_reload":
+				env_key = "LIVE_RELOAD"
+				if env_value := os.environ.get(env_key):
+					self._config[key] = env_value
+					continue
 
 	def _apply_extra_config(self):
 		extra_config = self._config.get("extra_config")
