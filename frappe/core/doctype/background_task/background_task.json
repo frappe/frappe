@@ -1,0 +1,115 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:task_id",
+ "beta": 1,
+ "creation": "2024-02-23 13:12:36.222147",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "task_id",
+  "status",
+  "method",
+  "queue",
+  "timeout",
+  "kwargs",
+  "result",
+  "task_start",
+  "task_end",
+  "task_runtime"
+ ],
+ "fields": [
+  {
+   "fieldname": "task_id",
+   "fieldtype": "Data",
+   "label": "Task ID",
+   "not_nullable": 1,
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Queued\nIn Progress\nCompleted\nFailed\nStopped",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "result",
+   "fieldtype": "Code",
+   "label": "Result",
+   "read_only": 1
+  },
+  {
+   "fieldname": "method",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Method",
+   "read_only": 1
+  },
+  {
+   "fieldname": "queue",
+   "fieldtype": "Data",
+   "label": "Queue",
+   "read_only": 1
+  },
+  {
+   "fieldname": "timeout",
+   "fieldtype": "Int",
+   "label": "Timeout",
+   "read_only": 1
+  },
+  {
+   "fieldname": "kwargs",
+   "fieldtype": "Code",
+   "label": "Miscellaneous Keyword Arguments",
+   "read_only": 1
+  },
+  {
+   "fieldname": "task_start",
+   "fieldtype": "Datetime",
+   "label": "Start",
+   "read_only": 1
+  },
+  {
+   "fieldname": "task_end",
+   "fieldtype": "Datetime",
+   "label": "End",
+   "read_only": 1
+  },
+  {
+   "fieldname": "task_runtime",
+   "fieldtype": "Duration",
+   "is_virtual": 1,
+   "label": "Task Runtime",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-10-08 18:28:11.338446",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Background Task",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
