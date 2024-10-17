@@ -1001,3 +1001,17 @@ def get_number_format_info(format: str) -> tuple[str, str, int]:
 	from frappe.utils.number_format import NUMBER_FORMAT_MAP
 
 	return NUMBER_FORMAT_MAP.get(format) or (".", ",", 2)
+
+
+@deprecated(
+	"modules.txt",
+	"2024-11-12",
+	"yet unknown",
+	"""It has been added for compatibility in addition to the new .frappe sentinel file inside the module. This is for your info: you don't have to do anything.
+""",
+)
+def boilerplate_modules_txt(dest, app_name, app_title):
+	import frappe
+
+	with open(os.path.join(dest, app_name, app_name, "modules.txt"), "w") as f:
+		f.write(frappe.as_unicode(app_title))

@@ -166,8 +166,14 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 	with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
 		f.write(frappe.as_unicode(license_body))
 
-	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "modules.txt"), "w") as f:
-		f.write(frappe.as_unicode(hooks.app_title))
+	with open(
+		os.path.join(dest, hooks.app_name, hooks.app_name, frappe.scrub(hooks.app_title), ".frappe"), "w"
+	) as f:
+		f.write("")
+
+	from frappe.deprecation_dumpster import boilerplate_modules_txt
+
+	boilerplate_modules_txt(dest, hooks.app_name, hooks.app_title)
 
 	# These values could contain quotes and can break string declarations
 	# So escaping them before setting variables in setup.py and hooks.py

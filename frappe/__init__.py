@@ -51,6 +51,8 @@ from frappe.query_builder.utils import (
 from frappe.utils.caching import request_cache
 from frappe.utils.data import cint, cstr, sbool
 
+from .bencher import Bench
+
 # Local application imports
 from .exceptions import *
 from .types import Filters, FilterSignature, FilterTuple, _dict
@@ -81,6 +83,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 controllers: dict[str, "Document"] = {}
 local = Local()
+bench = Bench()
 cache: Optional["RedisWrapper"] = None
 STANDARD_USERS = ("Guest", "Administrator")
 
@@ -245,6 +248,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 	local.test_objects = defaultdict(list)
 
 	local.site = site
+	local.site_name = site  # implicitly scopes bench
 	local.sites_path = sites_path
 	local.site_path = os.path.join(sites_path, site)
 	local.all_apps = None
