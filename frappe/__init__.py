@@ -41,6 +41,8 @@ from frappe.query_builder import (
 from frappe.utils.caching import request_cache
 from frappe.utils.data import cint, cstr, sbool
 
+from .bencher import Bench
+
 # Local application imports
 from .exceptions import *
 from .utils.jinja import (
@@ -56,6 +58,7 @@ __title__ = "Frappe Framework"
 
 controllers = {}
 local = Local()
+bench = Bench()
 cache = None
 STANDARD_USERS = ("Guest", "Administrator")
 
