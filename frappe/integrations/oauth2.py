@@ -115,7 +115,7 @@ def authorize(**kwargs):
 				resp_html = frappe.render_template(
 					"templates/includes/oauth_confirmation.html", response_html_params
 				)
-				frappe.respond_as_web_page("Confirm Access", resp_html, primary_action=None)
+				frappe.respond_as_web_page(frappe._("Confirm Access"), resp_html, primary_action=None)
 		except (FatalClientError, OAuth2Error) as e:
 			return generate_json_error_response(e)
 
