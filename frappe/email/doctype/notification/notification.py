@@ -734,11 +734,12 @@ def evaluate_alert(doc: Document, alert, event=None):
 
 
 def get_context(doc):
-	Frappe = namedtuple("frappe", ["utils"])
+	Frappe = namedtuple("frappe", ["frappe"])
+	frappe = Frappe(frappe=get_safe_globals().get("frappe"))
 	return {
 		"doc": doc,
 		"nowdate": nowdate,
-		"frappe": Frappe(utils=get_safe_globals().get("frappe").get("utils")),
+		"frappe": frappe.frappe,
 	}
 
 
