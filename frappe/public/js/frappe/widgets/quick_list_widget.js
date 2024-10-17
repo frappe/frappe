@@ -203,6 +203,12 @@ export default class QuickListWidget extends Widget {
 			workflow_fieldname && fields.push(workflow_fieldname);
 			fields.push("modified");
 
+			let add_fields = frappe.listview_settings?.[this.document_type]?.add_fields;
+			if (Array.isArray(add_fields)) {
+				fields.push(...add_fields);
+				fields = [...new Set(fields)];
+			}
+
 			let quick_list_filter = frappe.utils.process_filter_expression(this.quick_list_filter);
 
 			let args = {
