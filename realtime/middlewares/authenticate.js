@@ -18,11 +18,6 @@ function authenticate_with_frappe(socket, next) {
 		return;
 	}
 
-	if (!socket.request.headers.cookie) {
-		next(new Error("No cookie transmitted."));
-		return;
-	}
-
 	let cookies = cookie.parse(socket.request.headers.cookie || "");
 	let authorization_header = socket.request.headers.authorization;
 
