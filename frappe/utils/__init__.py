@@ -493,41 +493,19 @@ def execute_in_shell(cmd, verbose=False, low_priority=False, check_exit_code=Fal
 	return err, out
 
 
-def get_path(*path, **kwargs):
-	base = kwargs.get("base")
-	if not base:
-		base = frappe.local.site_path
-	return os.path.join(base, *path)
-
-
-def get_site_base_path():
-	return frappe.local.site_path
-
-
-def get_site_path(*path):
-	return get_path(*path, base=get_site_base_path())
-
-
-def get_files_path(*path, **kwargs):
-	return get_site_path("private" if kwargs.get("is_private") else "public", "files", *path)
-
-
-def get_bench_path():
-	return os.environ.get("FRAPPE_BENCH_ROOT") or os.path.realpath(
-		os.path.join(os.path.dirname(frappe.__file__), "..", "..", "..")
-	)
-
-
-def get_bench_id():
-	return frappe.get_conf().get("bench_id", get_bench_path().strip("/").replace("/", "-"))
-
-
-def get_site_id(site=None):
-	return f"{site or frappe.local.site}@{get_bench_id()}"
-
-
-def get_backups_path():
-	return get_site_path("private", "backups")
+from frappe.deprecation_dumpster import (
+	get_backups_path,
+	get_bench_id,
+	get_bench_path,
+	get_files_path,
+	get_path,
+	get_site_base_path,
+	get_site_id,
+	get_sites,
+)
+from frappe.deprecation_dumpster import (
+	utils_get_site_path as get_site_path,
+)
 
 
 def get_request_site_address(full_address=False):
@@ -667,25 +645,6 @@ def is_markdown(text):
 def is_a_property(x) -> bool:
 	"""Get properties (@property, @cached_property) in a controller class"""
 	return isinstance(x, property | functools.cached_property)
-
-
-def get_sites(sites_path=None):
-	if not sites_path:
-		sites_path = getattr(frappe.local, "sites_path", None) or "."
-
-	sites = []
-	for site in os.listdir(sites_path):
-		path = os.path.join(sites_path, site)
-
-		if (
-			os.path.isdir(path)
-			and not os.path.islink(path)
-			and os.path.exists(os.path.join(path, "site_config.json"))
-		):
-			# is a dir and has site_config.json
-			sites.append(site)
-
-	return sorted(sites)
 
 
 def get_request_session(max_retries=5):
@@ -944,7 +903,7 @@ def get_file_size(path, format=False):
 
 def get_build_version():
 	try:
-		return str(os.path.getmtime(os.path.join(frappe.local.sites_path, "assets/assets.json")))
+		return str(os.path.getmtime(frappe.site.bench.sites.path.joinpath("assets", "assets.json")))
 	except OSError:
 		# .build can sometimes not exist
 		# this is not a major problem so send fallback

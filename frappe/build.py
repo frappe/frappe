@@ -48,7 +48,7 @@ def build_missing_files():
 	current_asset_files = []
 
 	for type in ["css", "js"]:
-		folder = os.path.join(sites_path, "assets", "frappe", "dist", type)
+		folder = frappe.site.bench.sites.path.joinpath("assets", "frappe", "dist", type)
 		current_asset_files.extend(os.listdir(folder))
 
 	development = frappe.local.conf.developer_mode or frappe.local.dev_server
@@ -137,7 +137,8 @@ def download_frappe_assets(verbose=True) -> bool:
 	"""Download and set up Frappe assets if they exist based on the current commit HEAD.
 	Return True if correctly setup else return False.
 	"""
-	frappe_head = getoutput("cd ../apps/frappe && git rev-parse HEAD")
+	frappe_path = frappe.site.bench.apps["frappe"].path
+	frappe_head = getoutput(f"cd {frappe_path} && git rev-parse HEAD")
 
 	if not frappe_head:
 		return False
@@ -207,15 +208,9 @@ def symlink(target, link_name, overwrite=False):
 
 def setup():
 	global app_paths, assets_path
-
-	pymodules = []
-	for app in frappe.get_all_apps(True):
-		try:
-			pymodules.append(frappe.get_module(app))
-		except ImportError:
-			pass
-	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
-	assets_path = os.path.join(frappe.local.sites_path, "assets")
+	# for app in frappe.get_all_apps(True):
+	app_paths = [app.python_path for app in frappe.site.bench.apps]
+	assets_path = frappe.site.bench.sites.path.joinpath("assets")
 
 
 def bundle(
