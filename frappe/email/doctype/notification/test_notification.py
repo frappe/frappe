@@ -493,7 +493,6 @@ class TestNotification(IntegrationTestCase):
 				"recipients": [{"receiver_by_document_field": "allocated_to"}],
 			}
 		).insert()
-		frappe.db.commit()
 
 		todo = frappe.new_doc("ToDo")
 		todo.description = "Checking email notification with jinja template"
