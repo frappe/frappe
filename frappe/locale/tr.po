@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-06 09:33+0000\n"
-"PO-Revision-Date: 2024-10-11 03:05\n"
+"PO-Revision-Date: 2024-10-16 05:12\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -9256,7 +9256,7 @@ msgstr ""
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:93
 msgid "Enter Client Id and Client Secret in Google Settings."
-msgstr ""
+msgstr "Google Ayarları'na İstemci Kimliği ve İstemci Gizli Anahtarını girin."
 
 #: frappe/templates/includes/login/login.js:351
 msgid "Enter Code displayed in OTP App."
@@ -11296,7 +11296,7 @@ msgstr "Github markdown sözdizimi"
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.js:7
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.js:14
 msgid "Give Review Points"
-msgstr "İnceleme Puanları Verin"
+msgstr "Puanları Dağıt"
 
 #. Name of a DocType
 #: frappe/desk/doctype/global_search_doctype/global_search_doctype.json
@@ -13067,7 +13067,7 @@ msgstr "Yeni Kayıt Ekle"
 #. Label of the insert_style (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Insert Style"
-msgstr ""
+msgstr "Stil Ekle"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:662
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:663
@@ -13460,11 +13460,11 @@ msgstr "Alanlar için geçersiz değerler:"
 
 #: frappe/printing/page/print/print.js:614
 msgid "Invalid wkhtmltopdf version"
-msgstr ""
+msgstr "Geçersiz wkhtmltopdf sürümü"
 
 #: frappe/core/doctype/doctype/doctype.py:1567
 msgid "Invalid {0} condition"
-msgstr ""
+msgstr "Geçersiz {0} koşulu"
 
 #. Option for the 'Style' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
@@ -14258,7 +14258,7 @@ msgstr ""
 #. Point Settings'
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.json
 msgid "Last Point Allocation Date"
-msgstr "Son Puan Tahsis Tarihi"
+msgstr "Son Puan Dağıtım Tarihi"
 
 #. Option for the 'Timespan' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -14860,7 +14860,7 @@ msgstr "Daha Fazla Yükle"
 #: frappe/public/js/frappe/form/footer/form_timeline.js:216
 msgctxt "Form timeline"
 msgid "Load More Communications"
-msgstr ""
+msgstr "Daha Fazla İletişim Yükle"
 
 #: frappe/public/js/frappe/file_uploader/TreeNode.vue:45
 msgid "Load more"
@@ -15029,7 +15029,7 @@ msgstr "Şu anda oturum açmaya izin verilmiyor"
 #. Label of the login_required (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Login required"
-msgstr ""
+msgstr "Kullanıcı Girişi Gerekli"
 
 #: frappe/twofactor.py:164
 msgid "Login session expired, refresh page to retry"
@@ -15646,12 +15646,12 @@ msgstr "Mesaj kimliği"
 #. Label of the messages (Code) field in DocType 'Data Import Log'
 #: frappe/core/doctype/data_import_log/data_import_log.json
 msgid "Messages"
-msgstr ""
+msgstr "Mesajlar"
 
 #. Label of the meta_section (Section Break) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Meta"
-msgstr ""
+msgstr "Meta"
 
 #. Label of the meta_description (Small Text) field in DocType 'Blog Post'
 #. Label of the meta_description (Small Text) field in DocType 'Web Form'
@@ -19168,7 +19168,7 @@ msgstr ""
 
 #: frappe/integrations/doctype/social_login_key/social_login_key.py:86
 msgid "Please enter Client ID before social login is enabled"
-msgstr ""
+msgstr "Sosyal medya ile oturum açma etkinleştirilmeden önce lütfen İstemci Kimliğini girin"
 
 #: frappe/integrations/doctype/social_login_key/social_login_key.py:89
 msgid "Please enter Client Secret before social login is enabled"
@@ -19309,7 +19309,7 @@ msgstr "Lütfen önce ön eki seçin"
 
 #: frappe/core/doctype/data_export/data_export.js:42
 msgid "Please select the Document Type."
-msgstr ""
+msgstr "Lütfen Belge Türünü seçin."
 
 #. Description of the 'Directory Server' (Select) field in DocType 'LDAP
 #. Settings'
@@ -19422,7 +19422,7 @@ msgstr "Daha fazla bilgi için lütfen https://frappecloud.com/docs/sites/migrat
 #. Point Settings'
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.json
 msgid "Point Allocation Periodicity"
-msgstr "Puan Tahsis Periyodu"
+msgstr "Puan Dağıtım Periyodu"
 
 #. Label of the points (Int) field in DocType 'Energy Point Log'
 #. Label of the points (Int) field in DocType 'Energy Point Rule'
@@ -21811,7 +21811,7 @@ msgstr "Gözden geçir"
 #. Name of a DocType
 #: frappe/social/doctype/review_level/review_level.json
 msgid "Review Level"
-msgstr ""
+msgstr "Katkı Düzeyleri"
 
 #. Label of the review_levels (Table) field in DocType 'Energy Point Settings'
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.json
@@ -25708,7 +25708,7 @@ msgstr "Tablo Çoklu Seçim"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:229
 msgid "Table Trimmed"
-msgstr ""
+msgstr "Tablo Temizlendi"
 
 #: frappe/public/js/frappe/form/grid.js:1142
 msgid "Table updated"
@@ -26322,7 +26322,7 @@ msgstr "Bu ayar seçilirse, tüm Kullanıcılar tarafından kullanılabilir olac
 
 #: frappe/custom/doctype/customize_form/customize_form.js:212
 msgid "This doctype has no orphan fields to trim"
-msgstr ""
+msgstr "Bu dcotype için temizlenecek artık alan yok"
 
 #: frappe/core/doctype/doctype/doctype.py:1055
 msgid "This doctype has pending migrations, run 'bench migrate' before modifying the doctype to avoid losing changes."
@@ -26905,7 +26905,7 @@ msgstr ""
 
 #: frappe/integrations/doctype/google_drive/google_drive.js:8
 msgid "To use Google Drive, enable {0}."
-msgstr ""
+msgstr "Google Drive'ı kullanmak için {0} öğesini etkinleştirin."
 
 #. Description of the 'Enable Google indexing' (Check) field in DocType
 #. 'Website Settings'
@@ -27331,7 +27331,7 @@ msgstr "\"before_insert\", \"after_update\", vb. gibi geçerli yöntemlerde teti
 
 #: frappe/custom/doctype/customize_form/customize_form.js:144
 msgid "Trim Table"
-msgstr ""
+msgstr "Tabloyu Temizle"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:318
 msgid "Try Again"
@@ -28691,7 +28691,7 @@ msgstr "Özellikleri Görüntüle (Formu Özelleştir)"
 
 #: frappe/social/doctype/energy_point_log/energy_point_log_list.js:20
 msgid "View Ref"
-msgstr ""
+msgstr "Referansı Görüntüle"
 
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
@@ -30866,7 +30866,7 @@ msgstr "Bildirim aracılığıyla"
 
 #: frappe/public/js/frappe/utils/energy_point_utils.js:46
 msgid "via automatic rule {0} on {1}"
-msgstr ""
+msgstr "{1} üzerinden otomatik kural {0} aracılığıyla"
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:17
 msgid "via {0}"
@@ -30875,7 +30875,7 @@ msgstr "{0} ile"
 #. Option for the 'Code Editor Type' (Select) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "vim"
-msgstr ""
+msgstr "vim"
 
 #. Option for the 'Code Editor Type' (Select) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -31800,7 +31800,7 @@ msgstr "{1} kaydedildi"
 
 #: frappe/public/js/frappe/utils/datatable.js:12
 msgid "{count} cell copied"
-msgstr ""
+msgstr "{count} hücre kopyalandı"
 
 #: frappe/public/js/frappe/utils/datatable.js:13
 msgid "{count} cells copied"
@@ -31812,7 +31812,7 @@ msgstr "{count} satır seçildi"
 
 #: frappe/public/js/frappe/utils/datatable.js:17
 msgid "{count} rows selected"
-msgstr ""
+msgstr "{count} satır seçildi"
 
 #: frappe/core/doctype/doctype/doctype.py:1491
 msgid "{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}."
