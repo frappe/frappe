@@ -44,7 +44,7 @@ function open_web_template_values_editor(template, current_values = {}) {
 							columns: current_table.fields.length === 1 ? 10 : 5,
 						})),
 						data: current_values[current_table.fieldname] || [],
-						get_data: () => current_values[current_table.fieldname] || [],
+						get_data: () => current_table && current_table.fieldname ? current_values[current_table.fieldname] || [] : [],
 					});
 					current_table = null;
 				} else {
