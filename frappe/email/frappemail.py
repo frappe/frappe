@@ -120,7 +120,7 @@ def add_or_update_tzinfo(date_time: datetime | str, timezone: str | None = None)
 	target_tz = ZoneInfo(timezone or get_system_timezone())
 
 	if date_time.tzinfo is None:
-		date_time = target_tz.localize(date_time)
+		date_time = date_time.replace(tzinfo=target_tz)
 	else:
 		date_time = date_time.astimezone(target_tz)
 
