@@ -72,6 +72,8 @@
   "smtp_port",
   "column_break_38",
   "no_smtp_authentication",
+  "smtp_local_hostname",
+  "smtp_source_address",
   "signature_section",
   "add_signature",
   "signature",
@@ -159,7 +161,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Domain",
-   "options": "Email Domain"
+   "options": "Email Domain",
+   "search_index": 1
   },
   {
    "depends_on": "eval:!doc.domain",
@@ -692,12 +695,26 @@
    "fieldname": "backend_app_flow",
    "fieldtype": "Check",
    "label": "Authenticate as Service Principal"
+  },
+  {
+   "description": "Fully qualified domain name or IP in square brackets",
+   "fetch_from": "domain.smtp_local_hostname",
+   "fieldname": "smtp_local_hostname",
+   "fieldtype": "Data",
+   "label": "Local Hostname (SMTP)"
+  },
+  {
+   "description": "Preferred outgoing network interface IP",
+   "fetch_from": "domain.smtp_source_address",
+   "fieldname": "smtp_source_address",
+   "fieldtype": "Data",
+   "label": "Source Address (SMTP)"
   }
  ],
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-07-18 11:05:57.193762",
+ "modified": "2024-10-10 16:00:13.417591",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

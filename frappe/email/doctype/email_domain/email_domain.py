@@ -24,6 +24,8 @@ EMAIL_DOMAIN_FIELDS = [
 	"use_ssl_for_outgoing",
 	"append_emails_to_sent_folder",
 	"incoming_port",
+	"smtp_local_hostname",
+	"smtp_source_address",
 ]
 
 
@@ -66,8 +68,10 @@ class EmailDomain(Document):
 		domain_name: DF.Data
 		email_server: DF.Data
 		incoming_port: DF.Data | None
+		smtp_local_hostname: DF.Data | None
 		smtp_port: DF.Data | None
 		smtp_server: DF.Data
+		smtp_source_address: DF.Data | None
 		use_imap: DF.Check
 		use_ssl: DF.Check
 		use_ssl_for_outgoing: DF.Check
@@ -123,4 +127,10 @@ class EmailDomain(Document):
 		elif self.use_tls:
 			self.smtp_port = self.smtp_port or 587
 
-		conn_method((self.smtp_server or ""), cint(self.smtp_port), timeout=30).quit()
+		conn_method(
+			(self.smtp_server or ""),
+			cint(self.smtp_port),
+			timeout=30,
+			source_address=(self.smtp_source_address, 0) if self.smtp_source_address else None,
+			local_hostname=self.smtp_local_hostname,
+		).quit()
