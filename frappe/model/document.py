@@ -1793,12 +1793,6 @@ class Document(BaseDocument, DocRef):
 
 		return f"<{doctype}: {name}{docstatus}{parent}>"
 
-	def __str__(self):
-		name = self.name or "unsaved"
-		doctype = self.__class__.__name__
-
-		return f"{doctype}({name})"
-
 
 def execute_action(__doctype, __name, __action, **kwargs):
 	"""Execute an action on a document (called by background worker)"""
