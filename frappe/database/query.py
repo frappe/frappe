@@ -1,7 +1,7 @@
 import re
 from ast import literal_eval
 from types import BuiltinFunctionType
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeAlias
 
 import sqlparse
 from pypika.queries import QueryBuilder, Table
@@ -11,6 +11,7 @@ from frappe import _
 from frappe.database.operator_map import OPERATOR_MAP
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.database.utils import DefaultOrderBy, get_doctype_name
+from frappe.model.document import DocRef
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.functions import Function, SqlFunctions
 from frappe.query_builder.utils import PseudoColumnMapper
@@ -29,13 +30,15 @@ COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
 # to allow table names like __Auth
 TABLE_NAME_PATTERN = re.compile(r"^[\w -]*$", flags=re.ASCII)
 
+FilterValue: TypeAlias = DocRef | str | int
+
 
 class Engine:
 	def get_query(
 		self,
 		table: str | Table,
 		fields: list | tuple | None = None,
-		filters: dict[str, str | int] | str | int | list[list | str | int] | None = None,
+		filters: dict[str, FilterValue] | FilterValue | list[list | FilterValue] | None = None,
 		order_by: str | None = None,
 		group_by: str | None = None,
 		limit: int | None = None,
@@ -113,12 +116,12 @@ class Engine:
 
 	def apply_filters(
 		self,
-		filters: dict[str, str | int] | str | int | list[list | str | int] | None = None,
+		filters: dict[str, FilterValue] | FilterValue | list[list | FilterValue] | None = None,
 	):
 		if filters is None:
 			return
 
-		if isinstance(filters, str | int):
+		if isinstance(filters, FilterValue):
 			filters = {"name": str(filters)}
 
 		if isinstance(filters, Criterion):
@@ -128,11 +131,11 @@ class Engine:
 			self.apply_dict_filters(filters)
 
 		elif isinstance(filters, list | tuple):
-			if all(isinstance(d, str | int) for d in filters) and len(filters) > 0:
+			if all(isinstance(d, FilterValue) for d in filters) and len(filters) > 0:
 				self.apply_dict_filters({"name": ("in", filters)})
 			else:
 				for filter in filters:
-					if isinstance(filter, str | int | Criterion | dict):
+					if isinstance(filter, FilterValue | Criterion | dict):
 						self.apply_filters(filter)
 					elif isinstance(filter, list | tuple):
 						self.apply_list_filters(filter)
@@ -148,7 +151,7 @@ class Engine:
 			doctype, field, operator, value = filter
 			self._apply_filter(field, value, operator, doctype)
 
-	def apply_dict_filters(self, filters: dict[str, str | int | list]):
+	def apply_dict_filters(self, filters: dict[str, FilterValue | list]):
 		for field, value in filters.items():
 			operator = "="
 			if isinstance(value, list | tuple):
@@ -157,7 +160,11 @@ class Engine:
 			self._apply_filter(field, value, operator)
 
 	def _apply_filter(
-		self, field: str, value: str | int | list | None, operator: str = "=", doctype: str | None = None
+		self,
+		field: str,
+		value: FilterValue | list | None,
+		operator: str = "=",
+		doctype: str | None = None,
 	):
 		_field = field
 		_value = value
@@ -187,6 +194,9 @@ class Engine:
 
 		if isinstance(_value, bool):
 			_value = int(_value)
+
+		if isinstance(_value, DocRef):
+			_value = str(_value)
 
 		elif not _value and isinstance(_value, list | tuple):
 			_value = ("",)
