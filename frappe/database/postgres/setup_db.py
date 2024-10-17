@@ -25,10 +25,10 @@ def setup_database():
 	root_conn.close()
 
 
-def bootstrap_database(db_name, verbose, source_sql=None):
-	frappe.connect(db_name=db_name)
+def bootstrap_database(verbose, source_sql=None):
+	frappe.connect()
 	import_db_from_sql(source_sql, verbose)
-	frappe.connect(db_name=db_name)
+	frappe.connect()
 
 	if "tabDefaultValue" not in frappe.db.get_tables():
 		import sys

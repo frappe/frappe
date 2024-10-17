@@ -59,14 +59,14 @@ def drop_user_and_database(db_name, root_login, root_password):
 	dbman.delete_user(db_name)
 
 
-def bootstrap_database(db_name, verbose, source_sql=None):
+def bootstrap_database(verbose, source_sql=None):
 	import sys
 
-	frappe.connect(db_name=db_name)
+	frappe.connect()
 	check_compatible_versions()
 
 	import_db_from_sql(source_sql, verbose)
-	frappe.connect(db_name=db_name)
+	frappe.connect()
 
 	if "tabDefaultValue" not in frappe.db.get_tables(cached=False):
 		from click import secho
