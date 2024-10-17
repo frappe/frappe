@@ -350,8 +350,7 @@ def time_diff_in_hours(string_ed_date: DateTimeLikeObject, string_st_date: DateT
 
 def now_datetime() -> datetime.datetime:
 	"""Return the current datetime in system timezone."""
-	dt = convert_utc_to_system_timezone(datetime.datetime.now(datetime.timezone.utc))
-	return dt.replace(tzinfo=None)
+	return datetime.datetime.now(ZoneInfo(get_system_timezone())).replace(tzinfo=None)
 
 
 def get_timestamp(date: Optional["DateTimeLikeObject"] = None) -> float:
@@ -373,7 +372,9 @@ def get_system_timezone() -> str:
 
 def convert_utc_to_timezone(utc_timestamp: datetime.datetime, time_zone: str) -> datetime.datetime:
 	if utc_timestamp.tzinfo is None:
-		utc_timestamp = datetime.datetime.now(ZoneInfo(time_zone))
+		utc_timestamp = utc_timestamp.replace(tzinfo=ZoneInfo(time_zone))
+	else:
+		utc_timestamp = utc_timestamp.astimezone(ZoneInfo(time_zone))
 
 	return utc_timestamp
 
