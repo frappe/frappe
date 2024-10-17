@@ -28,6 +28,7 @@ def handle(request: Request):
 	Different versions have different specification but broadly following things are supported:
 
 	- `/api/method/{methodname}` will call a whitelisted method
+	- `/api/secure/{methodname}` will call a secure method with nginx mtls
 	- `/api/resource/{doctype}` will query a table
 	        examples:
 	        - `?fields=["name", "owner"]`
