@@ -143,10 +143,8 @@ def get_sites(site_arg: str) -> list[str]:
 		return frappe.utils.get_sites()
 	elif site_arg:
 		return [site_arg]
-	elif os.environ.get("FRAPPE_SITE"):
-		return [os.environ.get("FRAPPE_SITE")]
-	elif default_site := frappe.get_conf().default_site:
-		return [default_site]
+	elif frappe.bench.scoped:
+		return [frappe.bench.sites.site]
 	# This is not supported, just added here for warning.
 	elif (site := frappe.read_file("currentsite.txt")) and site.strip():
 		click.secho(
