@@ -541,26 +541,13 @@ def init_singles():
 
 from frappe.deprecation_dumpster import (
 	_update_config_file,
+	get_conf_params,
 	get_site_config_path,
 	make_conf,
 	make_site_config,
 	make_site_dirs,
 	update_site_config,
 )
-
-
-def get_conf_params(db_name=None, db_password=None):
-	if not db_name:
-		db_name = input("Database Name: ")
-		if not db_name:
-			raise Exception("Database Name Required")
-
-	if not db_password:
-		from frappe.utils import random_string
-
-		db_password = random_string(16)
-
-	return {"db_name": db_name, "db_password": db_password}
 
 
 def add_module_defs(app, ignore_if_duplicate=False):

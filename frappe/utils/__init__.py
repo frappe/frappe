@@ -501,8 +501,10 @@ from frappe.deprecation_dumpster import (
 	get_path,
 	get_site_base_path,
 	get_site_id,
-	get_site_path,
 	get_sites,
+)
+from frappe.deprecation_dumpster import (
+	utils_get_site_path as get_site_path,
 )
 
 

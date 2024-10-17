@@ -2,7 +2,7 @@ import os
 import subprocess
 import sys
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import click
 
@@ -13,12 +13,12 @@ from frappe.utils.bench_helper import CliCtxObj
 if TYPE_CHECKING:
 	import unittest
 
-	from frappe.testing import TestRunner
 	from frappe.bench import Sites
+	from frappe.testing import TestRunner
 
 
 def main(
-	site: "Sites.Site" | None = None,
+	site: Optional["Sites.Site"] = None,
 	app: str | None = None,
 	module: str | None = None,
 	doctype: str | None = None,

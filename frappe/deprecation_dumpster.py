@@ -637,13 +637,20 @@ def frappe_get_test_records(doctype):
 	return records
 
 
-def get_site_config(sites_path: str | None = None, site_path: str | None = None) -> dict[str, Any]:
+def get_site_config(sites_path: str | None = None, site_path: str | None = None):
 	"""Return `site_config.json` combined with `sites/common_site_config.json`.
 	`site_config` is a set of site wide settings like database name, password, email etc."""
-	config = _dict()
+	import importlib
+	import traceback
 
-	sites_path = sites_path or getattr(local, "sites_path", None)
-	site_path = site_path or getattr(local, "site_path", None)
+	import click
+
+	import frappe
+
+	config = frappe._dict()
+
+	sites_path = sites_path or getattr(frappe.local, "sites_path", None)
+	site_path = site_path or getattr(frappe.local, "site_path", None)
 
 	common_config = get_common_site_config(sites_path)
 
@@ -654,12 +661,12 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 		site_config = os.path.join(site_path, "site_config.json")
 		if os.path.exists(site_config):
 			try:
-				config.update(get_file_json(site_config))
+				config.update(frappe.get_file_json(site_config))
 			except Exception as error:
-				click.secho(f"{local.site}/site_config.json is invalid", fg="red")
+				click.secho(f"{frappe.local.site}/site_config.json is invalid", fg="red")
 				print(error)
-		elif local.site and not local.flags.new_site:
-			error_msg = f"{local.site} does not exist."
+		elif frappe.local.site and not frappe.local.flags.new_site:
+			error_msg = f"{frappe.local.site} does not exist."
 			if common_config.developer_mode:
 				from frappe.utils import get_sites
 
@@ -667,7 +674,7 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 				error_msg += "\n\nSites on this bench:\n"
 				error_msg += "\n".join(f"* {site}" for site in all_sites)
 
-			raise IncorrectSitePath(error_msg)
+			raise frappe.IncorrectSitePath(error_msg)
 
 	# Generalized env variable overrides and defaults
 	def db_default_ports(db_type):
@@ -719,32 +726,38 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	return config
 
 
-def get_common_site_config(sites_path: str | None = None) -> dict[str, Any]:
+def get_common_site_config(sites_path: str | None = None):
 	"""Return common site config as dictionary.
 
 	This is useful for:
 	- checking configuration which should only be allowed in common site config
 	- When no site context is present and fallback is required.
 	"""
-	sites_path = sites_path or getattr(local, "sites_path", None)
+	import click
+
+	import frappe
+
+	sites_path = sites_path or getattr(frappe.local, "sites_path", None)
 
 	common_site_config = os.path.join(sites_path, "common_site_config.json")
 	if os.path.exists(common_site_config):
 		try:
-			return _dict(get_file_json(common_site_config))
+			return frappe._dict(frappe.get_file_json(common_site_config))
 		except Exception as error:
 			click.secho("common_site_config.json is invalid", fg="red")
 			print(error)
-	return _dict()
+	return frappe._dict()
 
 
-def get_conf(site: str | None = None) -> dict[str, Any]:
-	if hasattr(local, "conf"):
-		return local.conf
+def get_conf(site: str | None = None):
+	import frappe
+
+	if hasattr(frappe.local, "conf"):
+		return frappe.local.conf
 
 	# if no site, get from common_site_config.json
 	with init_site(site):
-		return local.conf
+		return frappe.local.conf
 
 
 class init_site:
@@ -753,11 +766,15 @@ class init_site:
 		self.site = site
 
 	def __enter__(self):
-		init(self.site)
-		return local
+		import frappe
+
+		frappe.init(self.site)
+		return frappe.local
 
 	def __exit__(self, type, value, traceback):
-		destroy()
+		import frappe
+
+		frappe.destroy()
 
 
 def get_module_path(module, *joins):
@@ -765,10 +782,11 @@ def get_module_path(module, *joins):
 
 	:param module: Module name.
 	:param *joins: Join additional path elements using `os.path.join`."""
+	import frappe
 	from frappe.modules.utils import get_module_app
 
 	app = get_module_app(module)
-	return get_pymodule_path(app + "." + scrub(module), *joins)
+	return frappe.get_pymodule_path(app + "." + frappe.scrub(module), *joins)
 
 
 def get_app_path(app_name, *joins):
@@ -776,7 +794,9 @@ def get_app_path(app_name, *joins):
 
 	:param app: App name.
 	:param *joins: Join additional path elements using `os.path.join`."""
-	return get_pymodule_path(app_name, *joins)
+	import frappe
+
+	return frappe.get_pymodule_path(app_name, *joins)
 
 
 def get_app_source_path(app_name, *joins):
@@ -793,23 +813,30 @@ def get_site_path(*joins):
 	:param *joins: Join additional path elements using `os.path.join`."""
 	from os.path import join
 
-	return join(local.site_path, *joins)
+	import frappe
+
+	return join(frappe.local.site_path, *joins)
 
 
 def get_module_list(app_name):
 	"""Get list of modules for given all via `app/modules.txt`."""
+	from frappe import get_file_items
+
 	return get_file_items(get_app_path(app_name, "modules.txt"))
 
 
 def get_all_apps(with_internal_apps=True, sites_path=None):
 	"""Get list of all apps via `sites/apps.txt`."""
+	import frappe
+	from frappe import get_file_items
+
 	if not sites_path:
-		sites_path = local.sites_path
+		sites_path = frappe.local.sites_path
 
 	apps = get_file_items(os.path.join(sites_path, "apps.txt"), raise_not_found=True)
 
 	if with_internal_apps:
-		for app in get_file_items(os.path.join(local.site_path, "apps.txt")):
+		for app in get_file_items(os.path.join(frappe.local.site_path, "apps.txt")):
 			if app not in apps:
 				apps.append(app)
 
@@ -822,6 +849,8 @@ def get_all_apps(with_internal_apps=True, sites_path=None):
 
 # frappe.utils
 def get_path(*path, **kwargs):
+	import frappe
+
 	base = kwargs.get("base")
 	if not base:
 		base = frappe.local.site_path
@@ -829,24 +858,30 @@ def get_path(*path, **kwargs):
 
 
 def get_site_base_path():
+	import frappe
+
 	return frappe.local.site_path
 
 
-def get_site_path(*path):
+def utils_get_site_path(*path):
 	return get_path(*path, base=get_site_base_path())
 
 
 def get_bench_path():
+	import frappe
+
 	return os.environ.get("FRAPPE_BENCH_ROOT") or os.path.realpath(
 		os.path.join(os.path.dirname(frappe.__file__), "..", "..", "..")
 	)
 
 
 def get_bench_id():
-	return frappe.get_conf().get("bench_id", get_bench_path().strip("/").replace("/", "-"))
+	return get_conf().get("bench_id", get_bench_path().strip("/").replace("/", "-"))
 
 
 def get_site_id(site=None):
+	import frappe
+
 	return f"{site or frappe.local.site}@{get_bench_id()}"
 
 
@@ -859,6 +894,8 @@ def get_backups_path():
 
 
 def get_sites(sites_path=None):
+	import frappe
+
 	if not sites_path:
 		sites_path = getattr(frappe.local, "sites_path", None) or "."
 
@@ -888,6 +925,8 @@ def make_conf(
 	db_port=None,
 	db_user=None,
 ):
+	import frappe
+
 	site = frappe.site
 	make_site_config(
 		db_name,
@@ -903,6 +942,20 @@ def make_conf(
 	frappe.init(site)
 
 
+def get_conf_params(db_name=None, db_password=None):
+	if not db_name:
+		db_name = input("Database Name: ")
+		if not db_name:
+			raise Exception("Database Name Required")
+
+	if not db_password:
+		from frappe.utils import random_string
+
+		db_password = random_string(16)
+
+	return {"db_name": db_name, "db_password": db_password}
+
+
 def make_site_config(
 	db_name=None,
 	db_password=None,
@@ -913,6 +966,10 @@ def make_site_config(
 	db_port=None,
 	db_user=None,
 ):
+	import json
+
+	import frappe
+
 	frappe.create_folder(os.path.join(frappe.local.site_path))
 	site_file = get_site_config_path()
 
@@ -953,6 +1010,10 @@ def update_site_config(key, value, validate=True, site_config_path=None):
 
 
 def _update_config_file(key: str, value, config_file: str):
+	import json
+
+	import frappe
+
 	"""Updates site or common config"""
 	with open(config_file) as f:
 		site_config = json.loads(f.read())
@@ -982,10 +1043,14 @@ def _update_config_file(key: str, value, config_file: str):
 
 
 def get_site_config_path():
+	import frappe
+
 	return os.path.join(frappe.local.site_path, "site_config.json")
 
 
 def make_site_dirs():
+	import frappe
+
 	for dir_path in [
 		os.path.join("public", "files"),
 		os.path.join("private", "backups"),
