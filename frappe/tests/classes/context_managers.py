@@ -36,7 +36,9 @@ def freeze_time(time_to_freeze: Any, is_utc: bool = False, *args: Any, **kwargs:
 
 	if not is_utc:
 		# Freeze time expects UTC or tzaware objects. We have neither, so convert to UTC.
-		time_to_freeze = get_datetime(time_to_freeze).replace(tzinfo=ZoneInfo(get_system_timezone())).astimezone(UTC)
+		time_to_freeze = (
+			get_datetime(time_to_freeze).replace(tzinfo=ZoneInfo(get_system_timezone())).astimezone(UTC)
+		)
 
 	with freezegun_freeze_time(time_to_freeze, *args, **kwargs):
 		yield
