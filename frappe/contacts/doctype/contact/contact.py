@@ -293,9 +293,13 @@ def get_contact_with_phone_number(number):
 	return contacts[0].parent if contacts else None
 
 
-def get_contact_name(email_id):
-	contact = frappe.get_all("Contact Email", filters={"email_id": email_id}, fields=["parent"], limit=1)
-	return contact[0].parent if contact else None
+def get_contact_name(email_id: str) -> str | None:
+	"""Return the contact ID for the given email ID."""
+	for contact_id in frappe.get_all(
+		"Contact Email", filters={"email_id": email_id, "parenttype": "Contact"}, pluck="parent"
+	):
+		if frappe.db.exists("Contact", contact_id):
+			return contact_id
 
 
 def get_contacts_linking_to(doctype, docname, fields=None):
