@@ -484,7 +484,7 @@ frappe.ui.filter_utils = {
 		df.ignore_link_validation = true;
 
 		// given
-		if (fieldtype) {																 
+		if (fieldtype) {
 			df.fieldtype = fieldtype;
 			if (df.original_type == "Select" && df.fieldtype == "MultiSelect") {
 				const formattedOptions = [];
