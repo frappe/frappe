@@ -6,7 +6,6 @@ from http import cookies
 from urllib.parse import unquote, urljoin, urlparse
 
 import jwt
-import pytz
 from oauthlib.openid import RequestValidator
 
 import frappe
