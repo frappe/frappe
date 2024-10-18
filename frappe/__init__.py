@@ -400,7 +400,7 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	`site_config` is a set of site wide settings like database name, password, email etc."""
 	config = _dict()
 
-	sites_path = sites_path or getattr(local, "sites_path", None)
+	sites_path = sites_path or frappe.bench.sites.path
 	site_path = site_path or getattr(local, "site_path", None)
 
 	common_config = get_common_site_config(sites_path)
@@ -484,7 +484,7 @@ def get_common_site_config(sites_path: str | None = None) -> dict[str, Any]:
 	- checking configuration which should only be allowed in common site config
 	- When no site context is present and fallback is required.
 	"""
-	sites_path = sites_path or getattr(local, "sites_path", None)
+	sites_path = sites_path or frappe.bench.sites.path
 
 	common_site_config = os.path.join(sites_path, "common_site_config.json")
 	if os.path.exists(common_site_config):
@@ -501,8 +501,7 @@ def get_conf(site: str | None = None) -> dict[str, Any]:
 		return local.conf
 
 	# if no site, get from common_site_config.json
-	with init_site(site):
-		return local.conf
+	return frappe._dict(frappe.bench.sites.config)
 
 
 class init_site:
@@ -1613,11 +1612,11 @@ def get_module_list(app_name):
 def get_all_apps(with_internal_apps=True, sites_path=None):
 	"""Get list of all apps via `sites/apps.txt`."""
 	if not sites_path:
-		sites_path = local.sites_path
+		sites_path = frappe.bench.sites.path
 
 	apps = get_file_items(os.path.join(sites_path, "apps.txt"), raise_not_found=True)
 
-	if with_internal_apps:
+	if with_internal_apps and local("site_path"):
 		for app in get_file_items(os.path.join(local.site_path, "apps.txt")):
 			if app not in apps:
 				apps.append(app)

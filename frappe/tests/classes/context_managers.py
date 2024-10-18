@@ -120,7 +120,7 @@ def enable_safe_exec() -> None:
 	from frappe.installer import update_site_config
 	from frappe.utils.safe_exec import SAFE_EXEC_CONFIG_KEY
 
-	conf = os.path.join(frappe.local.sites_path, "common_site_config.json")
+	conf = frappe.bench.sites.path.joinpath("common_site_config.json")
 	update_site_config(SAFE_EXEC_CONFIG_KEY, 1, validate=False, site_config_path=conf)
 	yield
 	update_site_config(SAFE_EXEC_CONFIG_KEY, 0, validate=False, site_config_path=conf)

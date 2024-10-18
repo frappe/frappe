@@ -234,7 +234,7 @@ PATCH_TEMPLATE = textwrap.dedent(
 
 class PatchCreator:
 	def __init__(self):
-		self.all_apps = frappe.get_all_apps(sites_path=".", with_internal_apps=False)
+		self.all_apps = frappe.get_all_apps(with_internal_apps=False)
 
 		self.app = None
 		self.app_dir = None
