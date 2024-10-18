@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-09-24 15:33+0000\n"
-"PO-Revision-Date: 2024-10-08 02:10\n"
+"PO-Revision-Date: 2024-10-14 04:11\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -532,14 +532,14 @@ msgstr ""
 #. Header text in the Website Workspace
 #: frappe/website/workspace/website/website.json
 msgid "<span class=\"h4\"><b>Reports & Masters</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>گزارش ها و مستندات</b></span>"
 
 #. Header text in the Users Workspace
 #. Header text in the Integrations Workspace
 #: frappe/core/workspace/users/users.json
 #: frappe/integrations/workspace/integrations/integrations.json
 msgid "<span class=\"h4\"><b>Reports &amp; Masters</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>گزارش ها و مستندات</b></span>"
 
 #. Header text in the Tools Workspace
 #. Header text in the Users Workspace
@@ -553,7 +553,7 @@ msgstr "<span class=\"h4\"><b>میانبرهای شما</b></span>"
 #. Header text in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Components to build your app</b></span>"
-msgstr ""
+msgstr "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>اجزای ساخت برنامه شما</b></span>"
 
 #. Header text in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -2126,7 +2126,7 @@ msgstr "اعمال شد"
 
 #: frappe/public/js/form_builder/components/Field.vue:103
 msgid "Apply"
-msgstr ""
+msgstr "درخواست دادن"
 
 #: frappe/public/js/frappe/list/list_view.js:1880
 msgctxt "Button in list view actions menu"
@@ -3009,7 +3009,7 @@ msgstr "تصویر پس زمینه"
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:168
 msgid "Background Jobs"
-msgstr "مشاغل پس زمینه"
+msgstr "کارهای پس زمینه"
 
 #. Label of a Data field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -5103,7 +5103,7 @@ msgstr "ضبط کننده را پیکربندی کنید"
 
 #: frappe/public/js/print_format_builder/Field.vue:103
 msgid "Configure columns for {0}"
-msgstr ""
+msgstr "پیکربندی ستون‌ها برای {0}"
 
 #. Description of the 'Amended Documents' (Section Break) field in DocType
 #. 'Document Naming Settings'
@@ -11430,7 +11430,7 @@ msgstr "سلام {0}"
 #: frappe/printing/page/print_format_builder/print_format_builder_field.html:3
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Hidden"
-msgstr "پنهان شده است"
+msgstr "پنهان شده"
 
 #. Label of a Section Break field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -11906,7 +11906,7 @@ msgstr "اگر کاربر هر نقشی را علامت زده باشد، کار
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:38
 msgid "If these instructions where not helpful, please add in your suggestions on GitHub Issues."
-msgstr "اگر این دستورالعمل ها مفید نیستند، لطفاً پیشنهادات خود را در مورد مشکلات GitHub اضافه کنید."
+msgstr "اگر این دستورالعمل ها مفید نیستند، لطفاً پیشنهادها خود را در مورد مشکلات GitHub اضافه کنید."
 
 #. Description of the 'Fetch on Save if Empty' (Check) field in DocType
 #. 'DocField'
@@ -14570,7 +14570,7 @@ msgstr "به نظر می رسد هیچ اعلانی دریافت نکرده ای
 
 #: frappe/core/doctype/server_script/server_script_list.js:18
 msgid "Loving Frappe Framework?"
-msgstr ""
+msgstr "آیا چارچوب Frappe را دوست دارید؟"
 
 #. Option for the 'Priority' (Select) field in DocType 'ToDo'
 #: frappe/desk/doctype/todo/todo.json
@@ -19256,7 +19256,7 @@ msgstr "مشخصات"
 
 #: frappe/public/js/frappe/socketio_client.js:78
 msgid "Progress"
-msgstr "پیش رفتن"
+msgstr "پیشرفت"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:408
 msgid "Project"
@@ -20674,7 +20674,7 @@ msgstr "گزارش ها"
 
 #: frappe/patches/v14_0/update_workspace2.py:50
 msgid "Reports & Masters"
-msgstr "گزارش ها و کارشناسی ارشد"
+msgstr "گزارش ها و مستندات"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:856
 msgid "Reports already in Queue"
@@ -24526,7 +24526,7 @@ msgstr ""
 #. Label of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "System Logs"
-msgstr "گزارش های سیستم"
+msgstr "لاگ‌های سیستم"
 
 #. Name of a role
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
@@ -26771,7 +26771,7 @@ msgstr "فیلد به روز رسانی"
 #: frappe/core/doctype/installed_applications/installed_applications.js:6
 #: frappe/core/doctype/installed_applications/installed_applications.js:13
 msgid "Update Hooks Resolution Order"
-msgstr "به‌روزرسانی سفارش وضوح هوک"
+msgstr "به‌روزرسانی ترتیب حل هوک‌ها"
 
 #: frappe/core/doctype/installed_applications/installed_applications.js:45
 msgid "Update Order"
