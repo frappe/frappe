@@ -133,6 +133,9 @@ frappe.request.call = function (opts) {
 		200: function (data, xhr) {
 			opts.success_callback && opts.success_callback(data, xhr.responseText);
 		},
+		201: function (data, xhr) {
+			opts.success_callback && opts.success_callback(data, xhr.responseText);
+		},
 		401: function (xhr) {
 			if (frappe.app.session_expired_dialog && frappe.app.session_expired_dialog.display) {
 				frappe.app.redirect_to_login();
