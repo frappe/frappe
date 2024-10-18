@@ -33,7 +33,7 @@ class LinkSearchResults(TypedDict):
 
 
 # this is called by the Link Field
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def search_link(
 	doctype: str,
 	txt: str,
@@ -44,6 +44,8 @@ def search_link(
 	reference_doctype: str | None = None,
 	ignore_user_permissions: bool = False,
 ) -> list[LinkSearchResults]:
+	if frappe.session.user == 'Guest':
+		ignore_user_permissions = 0
 	results = search_widget(
 		doctype,
 		txt.strip(),
