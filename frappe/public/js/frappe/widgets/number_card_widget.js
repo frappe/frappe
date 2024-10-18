@@ -206,14 +206,19 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	get_number_for_report_card(res) {
-		const field = this.card_doc.report_field;
-		const vals = res.result.reduce((acc, col) => {
-			col[field] && acc.push(col[field]);
-			return acc;
-		}, []);
-		const col = res.columns.find((col) => col.fieldname == field);
-		this.number = frappe.report_utils.get_result_of_fn(this.card_doc.report_function, vals);
-		this.set_formatted_number(col, this._generate_common_doc(res.result));
+        if (this.card_doc.report_function !== "Count"){
+    		const field = this.card_doc.report_field;
+    		const vals = res.result.reduce((acc, col) => {
+    			col[field] && acc.push(col[field]);
+    			return acc;
+    		}, []);
+    		const col = res.columns.find((col) => col.fieldname == field);
+    		this.number = frappe.report_utils.get_result_of_fn(this.card_doc.report_function, vals);        
+    		this.set_formatted_number(col, this._generate_common_doc(res.result));
+        } else {
+            let records = res.result.filter(element => !Array.isArray(element))
+            this.formatted_number = String(records.length)
+        }
 	}
 
 	set_formatted_number(df, doc) {

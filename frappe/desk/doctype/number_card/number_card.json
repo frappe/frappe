@@ -158,11 +158,11 @@
    "options": "Report"
   },
   {
-   "depends_on": "eval: doc.type == 'Report'",
+   "depends_on": "eval: doc.type == 'Report' && doc.report_function !== 'Count'",
    "fieldname": "report_field",
    "fieldtype": "Select",
    "label": "Field",
-   "mandatory_depends_on": "eval: doc.type == 'Report'"
+   "mandatory_depends_on": "eval: doc.type == 'Report' && doc.report_function !== 'Count'"
   },
   {
    "depends_on": "eval: doc.type == 'Custom'",
@@ -191,7 +191,7 @@
    "fieldtype": "Select",
    "label": "Function",
    "mandatory_depends_on": "eval: doc.type == 'Report'",
-   "options": "Sum\nAverage\nMinimum\nMaximum"
+   "options": "Count\nSum\nAverage\nMinimum\nMaximum"
   },
   {
    "depends_on": "eval: doc.type === 'Document Type'",
