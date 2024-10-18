@@ -32,7 +32,6 @@ class Comment(Document):
 			"Submitted",
 			"Cancelled",
 			"Updated",
-			"Deleted",
 			"Assigned",
 			"Assignment Completed",
 			"Attachment",
@@ -52,8 +51,6 @@ class Comment(Document):
 		seen: DF.Check
 		subject: DF.Text | None
 	# end: auto-generated types
-
-	no_feed_on_delete = True
 
 	def after_insert(self):
 		notify_mentions(self.reference_doctype, self.reference_name, self.content)

@@ -26,8 +26,6 @@ class DeletedDocument(Document):
 		restored: DF.Check
 	# end: auto-generated types
 
-	no_feed_on_delete = True
-
 	@staticmethod
 	def clear_old_logs(days=180):
 		from frappe.query_builder import Interval
