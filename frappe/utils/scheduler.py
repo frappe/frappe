@@ -242,5 +242,4 @@ def get_scheduler_status():
 
 
 def get_scheduler_tick() -> int:
-	conf = frappe.get_conf()
-	return cint(conf.scheduler_tick_interval) or DEFAULT_SCHEDULER_TICK
+	return cint(frappe.bench.sites.config.get("scheduler_tick_interval")) or DEFAULT_SCHEDULER_TICK
