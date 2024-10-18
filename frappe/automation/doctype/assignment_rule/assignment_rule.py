@@ -51,7 +51,9 @@ class AssignmentRule(Document):
 
 	def validate_document_types(self):
 		if self.document_type == "ToDo":
-			frappe.throw(_("Assignment Rule is not allowed on {0} document type").format(frappe.bold("ToDo")))
+			frappe.throw(
+				_("Assignment Rule is not allowed on document type {0}").format(frappe.bold(_("ToDo")))
+			)
 
 	def validate_assignment_days(self):
 		assignment_days = self.get_assignment_days()
