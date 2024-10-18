@@ -142,7 +142,7 @@ def install_db(
 	if not db_type:
 		db_type = frappe.conf.db_type
 
-	if not root_login and db_type == "mariadb":
+	if not root_login and db_type == "mariadb" and not db_socket:
 		root_login = "root"
 	elif not root_login and db_type == "postgres":
 		root_login = "postgres"
