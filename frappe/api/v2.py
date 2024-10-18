@@ -53,6 +53,11 @@ def handle_rpc_call(method: str, doctype: str | None = None):
 	return frappe.call(method, **frappe.form_dict)
 
 
+def handle_secure_rpc_call(method: str):
+	frappe.form_dict.url_secure_mtls = 1
+	return handle_rpc_call(method)
+
+
 def login():
 	"""Login happens implicitly, this function doesn't do anything."""
 	pass
@@ -181,6 +186,7 @@ url_rules = [
 		endpoint=lambda: frappe.call(run_doc_method, **frappe.form_dict),
 	),
 	Rule("/method/<doctype>/<method>", endpoint=handle_rpc_call),
+	Rule("/secure/<method>", endpoint=handle_secure_rpc_call),
 	# Document level APIs
 	Rule("/document/<doctype>", methods=["GET"], endpoint=document_list),
 	Rule("/document/<doctype>", methods=["POST"], endpoint=create_doc),

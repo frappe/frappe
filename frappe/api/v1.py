@@ -36,6 +36,11 @@ def handle_rpc_call(method: str):
 	return frappe.handler.handle()
 
 
+def handle_secure_rpc_call(method: str):
+	frappe.form_dict.url_secure_mtls = 1
+	return handle_rpc_call(method)
+
+
 def create_doc(doctype: str):
 	data = get_request_form_data()
 	data.pop("doctype", None)
@@ -109,6 +114,7 @@ def get_request_form_data():
 
 url_rules = [
 	Rule("/method/<path:method>", endpoint=handle_rpc_call),
+	Rule("/secure/<path:method>", endpoint=handle_secure_rpc_call),
 	Rule("/resource/<doctype>", methods=["GET"], endpoint=document_list),
 	Rule("/resource/<doctype>", methods=["POST"], endpoint=create_doc),
 	Rule("/resource/<doctype>/<path:name>/", methods=["GET"], endpoint=read_doc),
