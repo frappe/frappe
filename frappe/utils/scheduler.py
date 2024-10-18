@@ -82,8 +82,7 @@ def sleep_duration(tick):
 def enqueue_events_for_all_sites() -> None:
 	"""Loop through sites and enqueue events that are not already queued"""
 
-	with frappe.init_site():
-		sites = get_sites()
+	sites = get_sites()
 
 	# Sites are sorted in alphabetical order, shuffle to randomize priorities
 	random.shuffle(sites)

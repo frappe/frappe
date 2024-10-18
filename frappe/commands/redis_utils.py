@@ -30,8 +30,7 @@ def create_rq_users(set_admin_password=False, use_rq_auth=False):
 	with open(acl_file_path, "w") as f:
 		f.writelines([acl + "\n" for acl in acl_list])
 
-	sites_path = os.getcwd()
-	common_site_config_path = os.path.join(sites_path, "common_site_config.json")
+	common_site_config_path = frappe.bench.sites.path / "common_site_config.json"
 	update_site_config(
 		"rq_username",
 		user_credentials["bench"][0],
