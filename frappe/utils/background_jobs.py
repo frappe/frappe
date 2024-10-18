@@ -300,13 +300,12 @@ def start_worker(
 	_start_sentry()
 	_freeze_gc()
 
-	with frappe.init_site():
-		# empty init is required to get redis_queue from common_site_config.json
-		redis_connection = get_redis_conn(username=rq_username, password=rq_password)
+	# empty init is required to get redis_queue from common_site_config.json
+	redis_connection = get_redis_conn(username=rq_username, password=rq_password)
 
-		if queue:
-			queue = [q.strip() for q in queue.split(",")]
-		queues = get_queue_list(queue, build_queue_name=True)
+	if queue:
+		queue = [q.strip() for q in queue.split(",")]
+	queues = get_queue_list(queue, build_queue_name=True)
 
 	if os.environ.get("CI"):
 		setup_loghandlers("ERROR")
@@ -370,12 +369,11 @@ def start_worker_pool(
 
 	_freeze_gc()
 
-	with frappe.init_site():
-		redis_connection = get_redis_conn()
+	redis_connection = get_redis_conn()
 
-		if queue:
-			queue = [q.strip() for q in queue.split(",")]
-		queues = get_queue_list(queue, build_queue_name=True)
+	if queue:
+		queue = [q.strip() for q in queue.split(",")]
+	queues = get_queue_list(queue, build_queue_name=True)
 
 	if os.environ.get("CI"):
 		setup_loghandlers("ERROR")
@@ -504,9 +502,6 @@ def validate_queue(queue: str, default_queue_list: list | None = None) -> None:
 	reraise=True,
 )
 def get_redis_conn(username=None, password=None):
-	if not hasattr(frappe.local, "conf"):
-		raise Exception("You need to call frappe.init")
-
 	conf = frappe.get_site_config()
 	if not conf.redis_queue:
 		raise Exception("redis_queue missing in common_site_config.json")

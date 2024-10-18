@@ -215,7 +215,7 @@ def setup():
 		except ImportError:
 			pass
 	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
-	assets_path = os.path.join(frappe.local.sites_path, "assets")
+	assets_path = frappe.bench.sites.path / "assets"
 
 
 def bundle(
@@ -265,7 +265,7 @@ def watch(apps=None):
 	if apps:
 		command += f" --apps {apps}"
 
-	live_reload = frappe.utils.cint(os.environ.get("LIVE_RELOAD", frappe.conf.live_reload))
+	live_reload = frappe.utils.cint(frappe.bench.sites.config.get("live_reload"))
 
 	if live_reload:
 		command += " --live-reload"

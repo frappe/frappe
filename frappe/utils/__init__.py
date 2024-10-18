@@ -671,7 +671,7 @@ def is_a_property(x) -> bool:
 
 def get_sites(sites_path=None):
 	if not sites_path:
-		sites_path = getattr(frappe.local, "sites_path", None) or "."
+		sites_path = frappe.bench.sites.path
 
 	sites = []
 	for site in os.listdir(sites_path):

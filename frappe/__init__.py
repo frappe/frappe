@@ -26,6 +26,7 @@ import traceback
 import warnings
 from collections import defaultdict
 from collections.abc import Callable
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, overload
 
 import click
@@ -41,6 +42,8 @@ from frappe.query_builder import (
 from frappe.utils.caching import request_cache
 from frappe.utils.data import cint, cstr, sbool
 
+from .bencher import Bench, Sites
+
 # Local application imports
 from .exceptions import *
 from .utils.jinja import (
@@ -55,6 +58,7 @@ __version__ = "16.0.0-dev"
 __title__ = "Frappe Framework"
 
 controllers = {}
+bench = Bench()
 local = Local()
 cache = None
 STANDARD_USERS = ("Guest", "Administrator")
@@ -199,6 +203,7 @@ def set_user_lang(user: str, user_language: str | None = None) -> None:
 
 
 # local-globals
+site = local("site")
 
 db = local("db")
 qb = local("qb")
@@ -241,13 +246,29 @@ if TYPE_CHECKING:  # pragma: no cover
 	user: str
 	flags: _dict
 	lang: str
+	site: Sites.Site
 
 
 # end: static analysis hack
+@functools.singledispatch
+def init(*args, **kwargs) -> None:
+	raise NotImplementedError(
+		f"Unsupported type of first argument to frappe.init(): {type(args[0])}; pass a {Sites.Site}"
+	)
 
 
-def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) -> None:
-	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
+@init.register
+def old_init(site: str, sites_path: str = ".", new_site: bool = False, force=False) -> None:
+	from frappe.deprecation_dumpster import old_init
+
+	local.flags = _dict(new_site=new_site)
+
+	return old_init(site, sites_path, new_site, force)
+
+
+@init.register
+def _init(site: Sites.Site, force: bool = False) -> None:
+	"""Initialize frappe for the current bench. Reset thread locals `frappe.local`"""
 	if getattr(local, "initialised", None) and not force:
 		return
 
@@ -266,23 +287,24 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 			"ignore_links": False,
 			"mute_emails": False,
 			"has_dataurl": False,
-			"new_site": new_site,
 			"read_only": False,
 		}
+		# extra from old_init
+		| (flags if flags else {})
 	)
 	local.locked_documents = []
 	local.test_objects = defaultdict(list)
 
-	local.site = site
-	local.sites_path = sites_path
-	local.site_path = os.path.join(sites_path, site)
+	local.site = str(site)
+	local.sites_path = str(site.bench.sites.path)
+	local.site_path = str(site.path)
 	local.all_apps = None
 
 	local.request_ip = None
 	local.response = _dict({"docs": []})
 	local.task_id = None
 
-	local.conf = _dict(get_site_config())
+	local.conf = _dict(site.config)
 	local.lang = local.conf.lang or "en"
 
 	local.module_app = None
@@ -396,7 +418,7 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	`site_config` is a set of site wide settings like database name, password, email etc."""
 	config = _dict()
 
-	sites_path = sites_path or getattr(local, "sites_path", None)
+	sites_path = sites_path or frappe.bench.sites.path
 	site_path = site_path or getattr(local, "site_path", None)
 
 	common_config = get_common_site_config(sites_path)
@@ -497,14 +519,13 @@ def get_conf(site: str | None = None) -> dict[str, Any]:
 		return local.conf
 
 	# if no site, get from common_site_config.json
-	with init_site(site):
-		return local.conf
+	return frappe._dict(frappe.bench.sites.config)
 
 
 class init_site:
 	def __init__(self, site=None):
 		"""If site is None, initialize it for empty site ('') to load common_site_config.json"""
-		self.site = site or ""
+		self.site = site
 
 	def __enter__(self):
 		init(self.site)
@@ -1609,11 +1630,11 @@ def get_module_list(app_name):
 def get_all_apps(with_internal_apps=True, sites_path=None):
 	"""Get list of all apps via `sites/apps.txt`."""
 	if not sites_path:
-		sites_path = local.sites_path
+		sites_path = frappe.bench.sites.path
 
 	apps = get_file_items(os.path.join(sites_path, "apps.txt"), raise_not_found=True)
 
-	if with_internal_apps:
+	if with_internal_apps and local("site_path"):
 		for app in get_file_items(os.path.join(local.site_path, "apps.txt")):
 			if app not in apps:
 				apps.append(app)

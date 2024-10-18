@@ -63,8 +63,6 @@ def build(
 	from frappe.gettext.translate import compile_translations
 	from frappe.utils.synchronization import filelock
 
-	frappe.init("")
-
 	if not apps and app:
 		apps = app
 
@@ -77,7 +75,7 @@ def build(
 			skip_frappe = False
 
 		# don't minify in developer_mode for faster builds
-		development = frappe.local.conf.developer_mode or frappe.local.dev_server
+		development = frappe.bench.sites.config.get("developer_mode") or frappe._dev_server
 		mode = "development" if development else "production"
 		if production:
 			mode = "production"
@@ -112,7 +110,6 @@ def watch(apps=None):
 	"Watch and compile JS and CSS files as and when they change"
 	from frappe.build import watch
 
-	frappe.init("")
 	watch(apps)
 
 
@@ -900,7 +897,6 @@ def get_version(output):
 	from frappe.utils.change_log import get_app_branch
 	from frappe.utils.commands import render_table
 
-	frappe.init("")
 	data = []
 
 	for app in sorted(frappe.get_all_apps()):
