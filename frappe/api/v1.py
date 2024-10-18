@@ -38,8 +38,8 @@ def handle_rpc_call(method: str):
 
 def create_doc(doctype: str):
 	data = get_request_form_data()
-	data.pop("doctype", None)
-	return frappe.new_doc(doctype, **data).insert()
+	data.update(doctype=doctype)
+	return frappe.client.insert(data)
 
 
 def update_doc(doctype: str, name: str):
@@ -61,7 +61,7 @@ def update_doc(doctype: str, name: str):
 
 def delete_doc(doctype: str, name: str):
 	# TODO: child doc handling
-	frappe.delete_doc(doctype, name, ignore_missing=False)
+	frappe.client.delete_doc(doctype, name)
 	frappe.response.http_status_code = 202
 	return "ok"
 
