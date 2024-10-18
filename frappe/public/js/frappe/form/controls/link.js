@@ -38,6 +38,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					me.$link_clear.on("click", function () {
 						me.$input.val("").trigger("input");
 						me.$link.toggle(false);
+						me.validate();
 					});
 				}
 
