@@ -16,6 +16,7 @@ import faulthandler
 import functools
 import gc
 import importlib
+import importlib.metadata
 import inspect
 import json
 import os
@@ -51,8 +52,7 @@ from .utils.jinja import (
 	render_template,
 )
 
-__version__ = "16.0.0-dev"
-__title__ = "Frappe Framework"
+__version__ = importlib.metadata.version(__name__)
 
 controllers = {}
 local = Local()
