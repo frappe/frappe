@@ -3,6 +3,8 @@ import os
 import click
 
 import frappe
+from frappe.commands import pass_context
+from frappe.utils.bench_helper import CliCtxObj
 
 
 @click.command("create-rq-users")
@@ -13,7 +15,8 @@ import frappe
 	help="Set new Redis admin(default user) password",
 )
 @click.option("--use-rq-auth", is_flag=True, default=False, help="Enable Redis authentication for sites")
-def create_rq_users(set_admin_password=False, use_rq_auth=False):
+@pass_context
+def create_rq_users(context: CliCtxObj, set_admin_password=False, use_rq_auth=False):
 	"""Create Redis Queue users and add to acl and app configs.
 
 	acl config file will be used by redis server while starting the server
@@ -22,29 +25,24 @@ def create_rq_users(set_admin_password=False, use_rq_auth=False):
 	from frappe.installer import update_site_config
 	from frappe.utils.redis_queue import RedisQueue
 
-	acl_file_path = os.path.abspath("../config/redis_queue.acl")
+	run = context.bench.run
+	sites = context.bench.sites
 
-	with frappe.init_site():
-		acl_list, user_credentials = RedisQueue.gen_acl_list(set_admin_password=set_admin_password)
+	acl_file_path = run.path.joinpath("redis_queue.acl")
 
-	with open(acl_file_path, "w") as f:
-		f.writelines([acl + "\n" for acl in acl_list])
+	# with frappe.init_site():
+	frappe.init(sites.site)
+	acl_list, user_credentials = RedisQueue.gen_acl_list(set_admin_password=set_admin_password)
 
-	sites_path = os.getcwd()
-	common_site_config_path = os.path.join(sites_path, "common_site_config.json")
-	update_site_config(
-		"rq_username",
-		user_credentials["bench"][0],
-		validate=False,
-		site_config_path=common_site_config_path,
+	acl_file_path.write_text("\n".join(acl_list))
+
+	sites.update_config(
+		{
+			"rq_username": user_credentials["bench"][0],
+			"rq_password": user_credentials["bench"][1],
+			"use_rq_auth": use_rq_auth,
+		}
 	)
-	update_site_config(
-		"rq_password",
-		user_credentials["bench"][1],
-		validate=False,
-		site_config_path=common_site_config_path,
-	)
-	update_site_config("use_rq_auth", use_rq_auth, validate=False, site_config_path=common_site_config_path)
 
 	click.secho(
 		"* ACL and site configs are updated with new user credentials. "

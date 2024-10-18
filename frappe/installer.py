@@ -539,138 +539,15 @@ def init_singles():
 			continue
 
 
-def make_conf(
-	db_name=None,
-	db_password=None,
-	site_config=None,
-	db_type=None,
-	db_socket=None,
-	db_host=None,
-	db_port=None,
-	db_user=None,
-):
-	site = frappe.local.site
-	make_site_config(
-		db_name,
-		db_password,
-		site_config,
-		db_type=db_type,
-		db_socket=db_socket,
-		db_host=db_host,
-		db_port=db_port,
-		db_user=db_user,
-	)
-	sites_path = frappe.local.sites_path
-	frappe.destroy()
-	frappe.init(site, sites_path=sites_path)
-
-
-def make_site_config(
-	db_name=None,
-	db_password=None,
-	site_config=None,
-	db_type=None,
-	db_socket=None,
-	db_host=None,
-	db_port=None,
-	db_user=None,
-):
-	frappe.create_folder(os.path.join(frappe.local.site_path))
-	site_file = get_site_config_path()
-
-	if not os.path.exists(site_file):
-		if not (site_config and isinstance(site_config, dict)):
-			site_config = get_conf_params(db_name, db_password)
-
-			if db_type:
-				site_config["db_type"] = db_type
-
-			if db_socket:
-				site_config["db_socket"] = db_socket
-
-			if db_host:
-				site_config["db_host"] = db_host
-
-			if db_port:
-				site_config["db_port"] = db_port
-
-			site_config["db_user"] = db_user or db_name
-
-		with open(site_file, "w") as f:
-			f.write(json.dumps(site_config, indent=1, sort_keys=True))
-
-
-def update_site_config(key, value, validate=True, site_config_path=None):
-	"""Update a value in site_config"""
-	from frappe.utils.synchronization import filelock
-
-	if not site_config_path:
-		site_config_path = get_site_config_path()
-
-	# Sometimes global config file is passed directly to this function
-	_is_global_conf = "common_site_config" in site_config_path
-
-	with filelock("site_config", is_global=_is_global_conf):
-		_update_config_file(key=key, value=value, config_file=site_config_path)
-
-
-def _update_config_file(key: str, value, config_file: str):
-	"""Updates site or common config"""
-	with open(config_file) as f:
-		site_config = json.loads(f.read())
-
-	# In case of non-int value
-	if value in ("0", "1"):
-		value = int(value)
-
-	# boolean
-	if value == "false":
-		value = False
-	if value == "true":
-		value = True
-
-	# remove key if value is None
-	if value == "None":
-		if key in site_config:
-			del site_config[key]
-	else:
-		site_config[key] = value
-
-	with open(config_file, "w") as f:
-		f.write(json.dumps(site_config, indent=1, sort_keys=True))
-
-	if hasattr(frappe.local, "conf"):
-		frappe.local.conf[key] = value
-
-
-def get_site_config_path():
-	return os.path.join(frappe.local.site_path, "site_config.json")
-
-
-def get_conf_params(db_name=None, db_password=None):
-	if not db_name:
-		db_name = input("Database Name: ")
-		if not db_name:
-			raise Exception("Database Name Required")
-
-	if not db_password:
-		from frappe.utils import random_string
-
-		db_password = random_string(16)
-
-	return {"db_name": db_name, "db_password": db_password}
-
-
-def make_site_dirs():
-	for dir_path in [
-		os.path.join("public", "files"),
-		os.path.join("private", "backups"),
-		os.path.join("private", "files"),
-		"locks",
-		"logs",
-	]:
-		path = frappe.get_site_path(dir_path)
-		os.makedirs(path, exist_ok=True)
+from frappe.deprecation_dumpster import (
+	_update_config_file,
+	get_conf_params,
+	get_site_config_path,
+	make_conf,
+	make_site_config,
+	make_site_dirs,
+	update_site_config,
+)
 
 
 def add_module_defs(app, ignore_if_duplicate=False):
@@ -744,7 +621,7 @@ def _guess_mariadb_version() -> tuple[int] | None:
 		return tuple(int(v) for v in version.split("."))
 
 
-def extract_files(site_name, file_path):
+def extract_files(site, file_path):
 	import shutil
 	import subprocess
 
@@ -753,7 +630,7 @@ def extract_files(site_name, file_path):
 	file_path = get_bench_relative_path(file_path)
 
 	# Need to do frappe.init to maintain the site locals
-	frappe.init(site_name)
+	frappe.init(site)
 	abs_site_path = os.path.abspath(frappe.get_site_path())
 
 	# Copy the files to the parent directory and extract

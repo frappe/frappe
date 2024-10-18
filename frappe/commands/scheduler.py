@@ -3,8 +3,7 @@ import sys
 import click
 
 import frappe
-from frappe.commands import get_site, pass_context
-from frappe.exceptions import SiteNotSpecifiedError
+from frappe.commands import pass_context
 from frappe.utils.bench_helper import CliCtxObj
 
 
@@ -16,7 +15,7 @@ def trigger_scheduler_event(context: CliCtxObj, event):
 
 	exit_code = 0
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
@@ -28,9 +27,6 @@ def trigger_scheduler_event(context: CliCtxObj, event):
 		finally:
 			frappe.destroy()
 
-	if not context.sites:
-		raise SiteNotSpecifiedError
-
 	sys.exit(exit_code)
 
 
@@ -40,7 +36,7 @@ def enable_scheduler(context: CliCtxObj):
 	"Enable scheduler"
 	import frappe.utils.scheduler
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
@@ -49,8 +45,6 @@ def enable_scheduler(context: CliCtxObj):
 			print("Enabled for", site)
 		finally:
 			frappe.destroy()
-	if not context.sites:
-		raise SiteNotSpecifiedError
 
 
 @click.command("disable-scheduler")
@@ -59,7 +53,7 @@ def disable_scheduler(context: CliCtxObj):
 	"Disable scheduler"
 	import frappe.utils.scheduler
 
-	for site in context.sites:
+	for site in context.bench.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
@@ -68,8 +62,6 @@ def disable_scheduler(context: CliCtxObj):
 			print("Disabled for", site)
 		finally:
 			frappe.destroy()
-	if not context.sites:
-		raise SiteNotSpecifiedError
 
 
 @click.command("scheduler")
@@ -83,29 +75,32 @@ def scheduler(context: CliCtxObj, state: str, format: str, verbose: bool = False
 	import frappe
 	from frappe.utils.scheduler import is_scheduler_inactive, toggle_scheduler
 
-	site = site or get_site(context)
+	site = context.bench.scope(site)
 
 	output = {
 		"text": "Scheduler is {status} for site {site}",
 		"json": '{{"status": "{status}", "site": "{site}"}}',
 	}
 
-	with frappe.init_site(site=site):
-		match state:
-			case "status":
-				frappe.connect()
-				status = "disabled" if is_scheduler_inactive(verbose=verbose) else "enabled"
-				return print(output[format].format(status=status, site=site))
-			case "pause" | "resume":
-				from frappe.installer import update_site_config
+	frappe.init(context.bench.sites.site)
 
-				update_site_config("pause_scheduler", state == "pause")
-			case "enable" | "disable":
-				frappe.connect()
-				toggle_scheduler(state == "enable")
-				frappe.db.commit()
+	match state:
+		case "status":
+			frappe.connect()
+			status = "disabled" if is_scheduler_inactive(verbose=verbose) else "enabled"
+			return print(output[format].format(status=status, site=site))
+		case "pause" | "resume":
+			from frappe.installer import update_site_config
 
-		print(output[format].format(status=f"{state}d", site=site))
+			update_site_config("pause_scheduler", state == "pause")
+		case "enable" | "disable":
+			frappe.connect()
+			toggle_scheduler(state == "enable")
+			frappe.db.commit()
+
+	print(output[format].format(status=f"{state}d", site=site))
+
+	frappe.destroy()
 
 
 @click.command("set-maintenance-mode")
@@ -116,8 +111,7 @@ def set_maintenance_mode(context: CliCtxObj, state, site=None):
 	"""Put the site in maintenance mode for upgrades."""
 	from frappe.installer import update_site_config
 
-	if not site:
-		site = get_site(context)
+	site = context.bench.scope(site)
 
 	try:
 		frappe.init(site)
@@ -134,8 +128,7 @@ def doctor(context: CliCtxObj, site=None):
 	"Get diagnostic info about background workers"
 	from frappe.utils.doctor import doctor as _doctor
 
-	if not site:
-		site = get_site(context, raise_err=False)
+	site = context.bench.scope(site)
 	return _doctor(site=site)
 
 
@@ -146,11 +139,13 @@ def show_pending_jobs(context: CliCtxObj, site=None):
 	"Get diagnostic info about background jobs"
 	from frappe.utils.doctor import pending_jobs as _pending_jobs
 
-	if not site:
-		site = get_site(context)
+	site = context.bench.scope(site)
 
-	with frappe.init_site(site):
-		pending_jobs = _pending_jobs(site=site)
+	frappe.init(context.bench.sites.site)
+
+	pending_jobs = _pending_jobs(site=site)
+
+	frappe.destroy()
 
 	return pending_jobs
 
@@ -163,11 +158,12 @@ def show_pending_jobs(context: CliCtxObj, site=None):
 	default=None,
 	help='one of "all", "weekly", "monthly", "hourly", "daily", "weekly_long", "daily_long"',
 )
-def purge_jobs(site=None, queue=None, event=None):
+def purge_jobs(context: CliCtxObj, site=None, queue=None, event=None):
 	"Purge any pending periodic tasks, if event option is not given, it will purge everything for the site"
 	from frappe.utils.doctor import purge_pending_jobs
 
-	frappe.init(site or "")
+	site = context.bench.scope(site)
+	frappe.init(context.bench.sites.site)
 	count = purge_pending_jobs(event=event, site=site, queue=queue)
 	print(f"Purged {count} jobs")
 
@@ -235,8 +231,7 @@ def start_worker_pool(queue, quiet=False, num_workers=2, burst=False):
 def ready_for_migration(context: CliCtxObj, site=None):
 	from frappe.utils.doctor import any_job_pending
 
-	if not site:
-		site = get_site(context)
+	site = context.bench.scope(site)
 
 	try:
 		frappe.init(site)
