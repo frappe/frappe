@@ -184,7 +184,7 @@ class Sites(Benched, ConfigHandler):
 		ConfigHandler.__init__(self, self.path.joinpath("common_site_config.json"))
 		self.__sites = None
 		self.bench = bench
-		# security: self.site_name attribute scopes access
+		# security: site_name is now stored in thread-local storage
 		self.site_name = os.environ.get("FRAPPE_SITE") or self.config.get("default_site")
 		self._iterator = None
 
@@ -195,6 +195,18 @@ class Sites(Benched, ConfigHandler):
 			+ ("\n * Scoped Site: " + (self.site_name or "n/a"))
 			+ ("\n * Loaded Sites:\n\t" + ("\n\t".join([str(site) for site in self]) or "n/a"))
 		)
+
+	@property
+	def site_name(self):
+		import frappe
+
+		return getattr(frappe.local, "site_name", None)
+
+	@site_name.setter
+	def site_name(self, value):
+		import frappe
+
+		frappe.local.site_name = value
 
 	class Site(ConfigHandler, PathLike, Serializable):
 		def __init__(self, name: str, path: str, bench: "super.Bench"):
@@ -270,7 +282,7 @@ class Sites(Benched, ConfigHandler):
 
 	@property
 	def site(self) -> Site:
-		# security: self.site_name attribute scopes access
+		# security: site_name is now stored in thread-local storage
 		if not self.site_name or self.site_name == self.ALL_SITES:
 			raise BenchNotScopedError("Sites was not scoped to a single site, yet.")
 		return self[self.site_name]
@@ -284,7 +296,7 @@ class Sites(Benched, ConfigHandler):
 				if path.is_dir() and path.joinpath("site_config.json").exists():
 					self.__sites[path.name] = self.Site(path.name, path, self.bench)
 
-			# security: self.site_name attribute scopes access
+			# security: site_name is now stored in thread-local storage
 			if self.site_name and self.site_name != self.ALL_SITES:
 				_process(self.path.joinpath(self.site_name))
 			elif self.site_name == self.ALL_SITES:

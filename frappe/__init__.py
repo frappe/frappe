@@ -277,6 +277,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.test_objects = defaultdict(list)
 
 	local.site = site
+	local.site_name = site  # implicitly scopes bench
 	local.sites_path = sites_path
 	local.site_path = os.path.join(sites_path, site)
 	local.all_apps = None
