@@ -560,9 +560,8 @@ def make_conf(
 		db_port=db_port,
 		db_user=db_user,
 	)
-	sites_path = frappe.local.sites_path
 	frappe.destroy()
-	frappe.init(site, sites_path=sites_path)
+	frappe.init(site)
 
 
 def make_site_config(
@@ -608,10 +607,11 @@ def update_site_config(key, value, validate=True, site_config_path=None):
 		site_config_path = get_site_config_path()
 
 	# Sometimes global config file is passed directly to this function
-	_is_global_conf = "common_site_config" in site_config_path
-
-	with filelock("site_config", is_global=_is_global_conf):
-		_update_config_file(key=key, value=value, config_file=site_config_path)
+	if "common_site_config" in str(site_config_path):
+		frappe.bench.sites.update_config({key: value})
+	else:
+		with filelock("site_config"):
+			_update_config_file(key=key, value=value, config_file=site_config_path)
 
 
 def _update_config_file(key: str, value, config_file: str):

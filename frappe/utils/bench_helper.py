@@ -196,7 +196,7 @@ def get_frappe_help():
 
 
 def get_apps():
-	return frappe.get_all_apps(with_internal_apps=False, sites_path=".")
+	return frappe.get_all_apps(with_internal_apps=False)
 
 
 if __name__ == "__main__":

@@ -299,7 +299,7 @@ def prepare_header_footer(soup: BeautifulSoup):
 	styles = soup.find_all("style")
 
 	print_css = bundled_asset("print.bundle.css").lstrip("/")
-	css = frappe.read_file(os.path.join(frappe.local.sites_path, print_css))
+	css = frappe.read_file(frappe.bench.sites.path.joinpath(print_css))
 
 	# extract header and footer
 	for html_id in ("header-html", "footer-html"):
