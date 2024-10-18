@@ -137,8 +137,9 @@
   },
   {
    "fieldname": "attached_to_name",
-   "fieldtype": "Data",
+   "fieldtype": "Dynamic Link",
    "label": "Attached To Name",
+   "options": "attached_to_doctype",
    "read_only": 1
   },
   {
@@ -190,7 +191,7 @@
  "icon": "fa fa-file",
  "idx": 1,
  "links": [],
- "modified": "2024-05-09 11:46:42.917146",
+ "modified": "2024-08-04 23:55:17.575893",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "File",

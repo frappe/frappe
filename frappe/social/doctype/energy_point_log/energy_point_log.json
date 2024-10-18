@@ -57,8 +57,9 @@
   },
   {
    "fieldname": "reference_name",
-   "fieldtype": "Data",
+   "fieldtype": "Dynamic Link",
    "label": "Reference Name",
+   "options": "reference_doctype",
    "read_only": 1,
    "search_index": 1
   },
@@ -110,7 +111,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-03-23 16:03:25.006938",
+ "modified": "2024-08-04 23:50:41.142741",
  "modified_by": "Administrator",
  "module": "Social",
  "name": "Energy Point Log",

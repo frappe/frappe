@@ -23,9 +23,10 @@
   },
   {
    "fieldname": "reference_name",
-   "fieldtype": "Data",
+   "fieldtype": "Dynamic Link",
    "in_list_view": 1,
    "label": "Document",
+   "options": "reference_type",
    "read_only": 1,
    "reqd": 1
   },
@@ -53,7 +54,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2024-03-23 16:03:29.694506",
+ "modified": "2024-08-05 00:04:12.946710",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Milestone",
