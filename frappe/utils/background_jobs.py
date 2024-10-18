@@ -44,8 +44,7 @@ def get_queues_timeout() -> dict[str, int]:
 
 	:return: Dictionary of queue name to timeout
 	"""
-	common_site_config = frappe.get_conf()
-	custom_workers_config = common_site_config.get("workers", {})
+	custom_workers_config = frappe.bench.sites.config.get("workers", {})
 	default_timeout = 300
 
 	# Note: Order matters here

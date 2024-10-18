@@ -856,7 +856,6 @@ def create_patch():
 @pass_context
 def set_config(context: CliCtxObj, key, value, global_=False, parse=False):
 	"Insert/Update a value in site_config.json"
-	from frappe.installer import update_site_config
 
 	if parse:
 		import ast
@@ -864,12 +863,13 @@ def set_config(context: CliCtxObj, key, value, global_=False, parse=False):
 		value = ast.literal_eval(value)
 
 	if global_:
-		common_site_config_path = frappe.bench.sites.path / "common_site_config.json"
-		update_site_config(key, value, validate=False, site_config_path=common_site_config_path)
+		frappe.bench.sites.update_config({key: value})
 	else:
 		if not context.sites:
 			raise SiteNotSpecifiedError
 		for site in context.sites:
+			from frappe.installer import update_site_config
+
 			frappe.init(site)
 			update_site_config(key, value, validate=False)
 			frappe.destroy()
@@ -967,20 +967,11 @@ def rebuild_global_search(context: CliCtxObj, static_pages=False):
 @pass_context
 def list_sites(context: CliCtxObj, output_json=False):
 	"List all the sites in current bench"
-	site_dir = os.getcwd()
-	# Get the current site from common_site_config.json
-	common_site_config_path = os.path.join(site_dir, "common_site_config.json")
-	default_site = None
-	if os.path.exists(common_site_config_path):
-		with open(common_site_config_path) as f:
-			config = json.load(f)
-			default_site = config.get("default_site")
+	default_site = frappe.bench.sites.config.get("default_site")
 	sites = [
-		site
-		for site in os.listdir(site_dir)
-		if os.path.isdir(os.path.join(site_dir, site))
-		and not site.startswith(".")
-		and os.path.exists(os.path.join(site_dir, site, "site_config.json"))
+		site.name
+		for site in frappe.bench.sites.path.iterdir()
+		if site.is_dir() and (site / "site_config.json").exists()
 	]
 	if output_json:
 		click.echo(json.dumps(sites))
