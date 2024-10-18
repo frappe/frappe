@@ -1,7 +1,5 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-import hljs from "./syntax_highlight";
-
 frappe.provide("website");
 frappe.provide("frappe.awesome_bar_path");
 window.cur_frm = null;
@@ -284,7 +282,7 @@ $.extend(frappe, {
 	},
 
 	highlight_code_blocks: function () {
-		hljs.initHighlighting();
+		window.hljs?.initHighlighting();
 	},
 	bind_filters: function () {
 		// set in select
@@ -653,7 +651,7 @@ $(document).on("page-change", function () {
 	$.extend(frappe, frappe.get_cookies());
 	frappe.session = { user: frappe.user_id };
 
-	frappe.datetime.refresh_when();
+	frappe.datetime?.refresh_when();
 	frappe.trigger_ready();
 	frappe.bind_filters();
 	frappe.highlight_code_blocks();
@@ -669,5 +667,5 @@ $(document).on("page-change", function () {
 frappe.ready(function () {
 	frappe.show_language_picker();
 	frappe.setup_videos();
-	frappe.realtime.init(window.socketio_port, true); // lazy connection
+	frappe.realtime?.init(window.socketio_port, true); // lazy connection
 });
