@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-09-24 15:33+0000\n"
-"PO-Revision-Date: 2024-10-16 05:12\n"
+"POT-Creation-Date: 2024-10-08 17:02+0000\n"
+"PO-Revision-Date: 2024-10-19 05:44\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -122,7 +122,7 @@ msgstr "0 - Taslak; 1 - Gönderildi; 2 -İptal Edildi"
 msgid "0 is highest"
 msgstr "0 en yüksek seviyedir"
 
-#: frappe/public/js/frappe/form/grid_row.js:807
+#: frappe/public/js/frappe/form/grid_row.js:808
 msgid "1 = True & 0 = False"
 msgstr "1 = Doğru & 0 = Yanlış"
 
@@ -778,7 +778,7 @@ msgstr "Bir DocType'ın adı bir harfle başlamalıdır ve yalnızca harfler, sa
 msgid "A featured post must have a cover image"
 msgstr "Öne çıkan bir gönderinin kapak resmi olmalıdır"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:173
+#: frappe/custom/doctype/custom_field/custom_field.py:174
 msgid "A field with the name {0} already exists in {1}"
 msgstr "{0} adlı bir alan {1} içinde zaten mevcut"
 
@@ -1290,7 +1290,7 @@ msgstr "Sorgu Parametreleri Ekle"
 msgid "Add Review"
 msgstr "Yorum Ekle"
 
-#: frappe/core/doctype/user/user.py:790
+#: frappe/core/doctype/user/user.py:809
 msgid "Add Roles"
 msgstr "Rol Ekle"
 
@@ -1469,7 +1469,7 @@ msgstr "{0} Eklendi"
 msgid "Added {0} ({1})"
 msgstr "Eklenen {0} ({1})"
 
-#: frappe/core/doctype/user/user.py:272
+#: frappe/core/doctype/user/user.py:291
 msgid "Adding System Manager to this User as there must be atleast one System Manager"
 msgstr "En az bir Sistem Yöneticisi olması gerektiğinden bu Kullanıcıya Sistem Yöneticisi yetkisi veriliyor"
 
@@ -1579,11 +1579,11 @@ msgstr "Yönetim"
 msgid "Administrator"
 msgstr "Yönetici"
 
-#: frappe/core/doctype/user/user.py:1195
+#: frappe/core/doctype/user/user.py:1214
 msgid "Administrator Logged In"
 msgstr "Yönetici Giriş Yaptı"
 
-#: frappe/core/doctype/user/user.py:1189
+#: frappe/core/doctype/user/user.py:1208
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr "Yönetici, IP Adresi {2} üzerinden {1} yoluyla {0} adresine erişim sağladı."
 
@@ -1599,8 +1599,8 @@ msgstr "Gelişmiş"
 msgid "Advanced Control"
 msgstr "Gelişmiş Kontrol"
 
-#: frappe/public/js/frappe/form/controls/link.js:319
-#: frappe/public/js/frappe/form/controls/link.js:321
+#: frappe/public/js/frappe/form/controls/link.js:326
+#: frappe/public/js/frappe/form/controls/link.js:328
 msgid "Advanced Search"
 msgstr "Gelişmiş Arama"
 
@@ -2037,7 +2037,7 @@ msgstr "İzin Verilen Roller"
 msgid "Allowing DocType, DocType. Be careful!"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:999
+#: frappe/core/doctype/user/user.py:1018
 msgid "Already Registered"
 msgstr "Zaten kayıltı"
 
@@ -2410,7 +2410,7 @@ msgstr "Arşivlendi"
 msgid "Archived Columns"
 msgstr "Arşivlenmiş Sütunlar"
 
-#: frappe/public/js/frappe/form/grid.js:269
+#: frappe/public/js/frappe/form/grid.js:281
 msgid "Are you sure you want to delete all rows?"
 msgstr "Tüm satırları silmek istediğinizden emin misiniz?"
 
@@ -3709,8 +3709,8 @@ msgstr "Derle {0}"
 msgid "Built on {0}"
 msgstr ""
 
-#. Label of a Check field in DocType 'Role'
-#: frappe/core/doctype/role/role.json
+#. Label of a Check field in DocType 'User'
+#: frappe/core/doctype/user/user.json
 msgid "Bulk Actions"
 msgstr "Çoklu İşlemler"
 
@@ -3722,7 +3722,7 @@ msgstr "Toplu Silme"
 msgid "Bulk Edit"
 msgstr "Toplu Düzenleme"
 
-#: frappe/public/js/frappe/form/grid.js:1155
+#: frappe/public/js/frappe/form/grid.js:1161
 msgid "Bulk Edit {0}"
 msgstr "Toplu {0} Düzenleme"
 
@@ -4000,7 +4000,7 @@ msgstr "Gönderme"
 msgid "Can Write"
 msgstr "Yazma"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:360
+#: frappe/custom/doctype/custom_field/custom_field.py:361
 msgid "Can not rename as column {0} is already present on DocType."
 msgstr ""
 
@@ -5185,7 +5185,7 @@ msgstr "Tamamla"
 msgid "Complete By"
 msgstr "Tamamlayan"
 
-#: frappe/core/doctype/user/user.py:443
+#: frappe/core/doctype/user/user.py:462
 #: frappe/templates/emails/new_user.html:10
 msgid "Complete Registration"
 msgstr "Kaydı Tamamla"
@@ -5782,8 +5782,8 @@ msgstr "Yeni Oluştur ..."
 msgid "Create a new record"
 msgstr "Yeni Kayıt Oluştur"
 
-#: frappe/public/js/frappe/form/controls/link.js:295
-#: frappe/public/js/frappe/form/controls/link.js:297
+#: frappe/public/js/frappe/form/controls/link.js:302
+#: frappe/public/js/frappe/form/controls/link.js:304
 #: frappe/public/js/frappe/form/link_selector.js:139
 #: frappe/public/js/frappe/list/list_view.js:475
 #: frappe/public/js/frappe/web_form/web_form_list.js:225
@@ -6053,7 +6053,7 @@ msgstr "Özel Belgeler"
 msgid "Custom Field"
 msgstr "Özel Alan"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:218
+#: frappe/custom/doctype/custom_field/custom_field.py:219
 msgid "Custom Field {0} is created by the Administrator and can only be deleted through the Administrator account."
 msgstr "Özel Alan {0} Yönetici tarafından oluşturulur ve yalnızca Yönetici hesabı aracılığıyla silinebilir."
 
@@ -6062,11 +6062,11 @@ msgstr "Özel Alan {0} Yönetici tarafından oluşturulur ve yalnızca Yönetici
 msgid "Custom Field, Custom Doctype, Naming Series, Role Permission, Workflow, Print Formats, Reports"
 msgstr "Özel Alan, Özel Belge Tipi, Adlandırma Serisi, Rol İzni, İş Akışı, Baskı Formatları, Raporlar"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:260
+#: frappe/custom/doctype/custom_field/custom_field.py:261
 msgid "Custom Fields can only be added to a standard DocType."
 msgstr ""
 
-#: frappe/custom/doctype/custom_field/custom_field.py:257
+#: frappe/custom/doctype/custom_field/custom_field.py:258
 msgid "Custom Fields cannot be added to core DocTypes."
 msgstr "Özel Alanlar çekirdek DocType'lara eklenemez."
 
@@ -6160,7 +6160,7 @@ msgstr "Özel Kenar Çubuğu Menüsü"
 msgid "Custom Translation"
 msgstr "Özel Çeviri"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:373
+#: frappe/custom/doctype/custom_field/custom_field.py:374
 msgid "Custom field renamed to {0} successfully."
 msgstr "Özel alan başarıyla {0} olarak yeniden adlandırıldı."
 
@@ -6352,13 +6352,13 @@ msgstr "Koyu Renk"
 msgid "Dark Theme"
 msgstr "Koyu Tema"
 
-#. Label of a Check field in DocType 'Role'
+#. Label of a Check field in DocType 'User'
 #. Label of a Link in the Build Workspace
 #. Name of a DocType
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
 #. Option for the 'Type' (Select) field in DocType 'Workspace Shortcut'
 #. Option for the 'DocType View' (Select) field in DocType 'Workspace Shortcut'
-#: frappe/core/doctype/role/role.json
+#: frappe/core/doctype/user/user.json
 #: frappe/core/page/dashboard_view/dashboard_view.js:10
 #: frappe/core/workspace/build/build.json
 #: frappe/desk/doctype/dashboard/dashboard.json
@@ -7374,7 +7374,7 @@ msgstr "Yeni Kullanıcı Oluşturmayın "
 msgid "Do not create new user if user with email does not exist in the system"
 msgstr "E-postası olan kullanıcı sistemde mevcut değilse yeni kullanıcı oluşturmayın"
 
-#: frappe/public/js/frappe/form/grid.js:1160
+#: frappe/public/js/frappe/form/grid.js:1166
 msgid "Do not edit headers which are preset in the template"
 msgstr "Şablonda önceden ayarlanmış başlıkları düzenlemeyin"
 
@@ -8439,7 +8439,7 @@ msgstr "Element Seçici"
 #: frappe/templates/includes/comments/comments.html:25
 #: frappe/templates/signup.html:9
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
-#: frappe/www/login.html:7 frappe/www/login.py:98
+#: frappe/www/login.html:7 frappe/www/login.py:99
 msgid "Email"
 msgstr "E-posta"
 
@@ -8472,7 +8472,7 @@ msgstr "E-posta Hesabı Devre Dışı Bırakıldı."
 msgid "Email Account Name"
 msgstr "E-posta Hesap Adı"
 
-#: frappe/core/doctype/user/user.py:719
+#: frappe/core/doctype/user/user.py:738
 msgid "Email Account added multiple times"
 msgstr "E-posta Hesabı birden fazla kez eklendi"
 
@@ -9900,7 +9900,7 @@ msgstr "Otomatik adlandırmayı etkinleştirmek için {0} adlı bir alan bulunma
 msgid "Fieldname is limited to 64 characters ({0})"
 msgstr "Alan ismi 64 karakterle sınırılıdır ({0})"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:195
+#: frappe/custom/doctype/custom_field/custom_field.py:196
 msgid "Fieldname not set for Custom Field"
 msgstr ""
 
@@ -9977,7 +9977,7 @@ msgstr "Virgülle ayrılmış alanlar, arama çubuğunda \"Arama Ölçütü\" li
 msgid "Fieldtype"
 msgstr "AlanTipi"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:191
+#: frappe/custom/doctype/custom_field/custom_field.py:192
 msgid "Fieldtype cannot be changed from {0} to {1}"
 msgstr ""
 
@@ -10195,7 +10195,7 @@ msgstr "JSON Filtreleri"
 msgid "Filters Section"
 msgstr "Filtre Seçimi"
 
-#: frappe/public/js/frappe/form/controls/link.js:491
+#: frappe/public/js/frappe/form/controls/link.js:501
 msgid "Filters applied for {0}"
 msgstr "Filtreler {0} için Uygulandı"
 
@@ -10636,9 +10636,9 @@ msgid "Form Dict"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'DocType'
-#. Label of a Section Break field in DocType 'Role'
+#. Label of a Section Break field in DocType 'User'
 #. Label of a Section Break field in DocType 'Customize Form'
-#: frappe/core/doctype/doctype/doctype.json frappe/core/doctype/role/role.json
+#: frappe/core/doctype/doctype/doctype.json frappe/core/doctype/user/user.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Form Settings"
 msgstr "Form Ayarları"
@@ -10695,8 +10695,8 @@ msgstr "Kesir Birimleri"
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
-#: frappe/www/login.html:61 frappe/www/login.html:142 frappe/www/login.py:49
-#: frappe/www/login.py:138
+#: frappe/www/login.html:61 frappe/www/login.html:142 frappe/www/login.py:50
+#: frappe/www/login.py:139
 msgid "Frappe"
 msgstr "ERP"
 
@@ -12690,11 +12690,11 @@ msgstr "Yukarı Ekle"
 msgid "Insert After"
 msgstr "Sonrasına Ekle"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:249
+#: frappe/custom/doctype/custom_field/custom_field.py:250
 msgid "Insert After cannot be set as {0}"
 msgstr ""
 
-#: frappe/custom/doctype/custom_field/custom_field.py:242
+#: frappe/custom/doctype/custom_field/custom_field.py:243
 msgid "Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist"
 msgstr ""
 
@@ -12879,7 +12879,7 @@ msgid "Invalid"
 msgstr "Geçersiz"
 
 #: frappe/public/js/form_builder/utils.js:221
-#: frappe/public/js/frappe/form/grid_row.js:769
+#: frappe/public/js/frappe/form/grid_row.js:770
 #: frappe/public/js/frappe/form/layout.js:785
 msgid "Invalid \"depends_on\" expression"
 msgstr "Geçersiz \"depends_on\" ifadesi"
@@ -12944,7 +12944,7 @@ msgstr "Geçersiz Ana Sayfa"
 msgid "Invalid Link"
 msgstr "Geçersiz Bağlantı"
 
-#: frappe/www/login.py:117
+#: frappe/www/login.py:118
 msgid "Invalid Login Token"
 msgstr ""
 
@@ -12981,7 +12981,7 @@ msgstr "Geçersiz Çıktı Formatı"
 msgid "Invalid Parameters."
 msgstr "Geçersiz Parametreler."
 
-#: frappe/core/doctype/user/user.py:1210 frappe/www/update-password.html:121
+#: frappe/core/doctype/user/user.py:1229 frappe/www/update-password.html:121
 #: frappe/www/update-password.html:142 frappe/www/update-password.html:144
 #: frappe/www/update-password.html:245
 msgid "Invalid Password"
@@ -12992,7 +12992,7 @@ msgid "Invalid Phone Number"
 msgstr "Geçersiz Telefon Numarası"
 
 #: frappe/auth.py:94 frappe/utils/oauth.py:185 frappe/utils/oauth.py:192
-#: frappe/www/login.py:117
+#: frappe/www/login.py:118
 msgid "Invalid Request"
 msgstr "Geçersiz İşlem. Lütfen Sayfayı Yenileyin."
 
@@ -13784,7 +13784,7 @@ msgstr "Etiket Yardımı"
 msgid "Label and Type"
 msgstr "Etiket ve Tür"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:143
+#: frappe/custom/doctype/custom_field/custom_field.py:144
 msgid "Label is mandatory"
 msgstr "Etiket zorunludur"
 
@@ -14429,10 +14429,10 @@ msgstr "Filtreyi Listele"
 msgid "List Setting Message"
 msgstr "Liste Ayarı Mesajı"
 
-#. Label of a Section Break field in DocType 'Role'
+#. Label of a Section Break field in DocType 'User'
 #. Label of a Section Break field in DocType 'Customize Form'
 #. Label of a Section Break field in DocType 'Web Form'
-#: frappe/core/doctype/role/role.json
+#: frappe/core/doctype/user/user.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 #: frappe/website/doctype/web_form/web_form.json
 msgid "List Settings"
@@ -14630,7 +14630,7 @@ msgstr "Giriş Sayfası"
 msgid "Login Required"
 msgstr "Giriş Gerekli"
 
-#: frappe/www/login.py:141
+#: frappe/www/login.py:142
 msgid "Login To {0}"
 msgstr "{0} Giriş Yapın"
 
@@ -14815,6 +14815,11 @@ msgstr "Ana Sürüm"
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Make \"name\" searchable in Global Search"
 msgstr "Genel Aramada \"İsim\" Alanı Aranabilir"
+
+#. Label of a Check field in DocType 'DocField'
+#: frappe/core/doctype/docfield/docfield.json
+msgid "Make Attachment Public (by default)"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocType'
 #. Label of a Check field in DocType 'Customize Form'
@@ -15407,7 +15412,7 @@ msgstr "Eksik Değer"
 msgid "Missing Values Required"
 msgstr "Gerekli Eksik Değerler"
 
-#: frappe/www/login.py:101
+#: frappe/www/login.py:102
 msgid "Mobile"
 msgstr "Cep Telefonu"
 
@@ -15948,8 +15953,8 @@ msgstr "Listede Yukarı git"
 msgid "Navigate to main content"
 msgstr "Ana içeriğe git"
 
-#. Label of a Section Break field in DocType 'Role'
-#: frappe/core/doctype/role/role.json
+#. Label of a Section Break field in DocType 'User'
+#: frappe/core/doctype/user/user.json
 msgid "Navigation Settings"
 msgstr "Gezinme Ayarları"
 
@@ -16154,7 +16159,7 @@ msgstr "Yeni {0}: {1}"
 msgid "New {} releases for the following apps are available"
 msgstr "Aşağıdaki uygulamalar için yeni {} sürümler kullanıma sunuldu"
 
-#: frappe/core/doctype/user/user.py:786
+#: frappe/core/doctype/user/user.py:805
 msgid "Newly created user {0} has no roles enabled."
 msgstr "{0} kullanıcısı için rol belirlenmedi."
 
@@ -16283,7 +16288,7 @@ msgstr "Sonraki Tıklamada"
 #: frappe/integrations/doctype/webhook/webhook.py:140
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/public/js/form_builder/utils.js:341
-#: frappe/public/js/frappe/form/controls/link.js:475
+#: frappe/public/js/frappe/form/controls/link.js:485
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:223
 #: frappe/public/js/frappe/views/reports/query_report.js:1529
 #: frappe/website/doctype/help_article/templates/help_article.html:26
@@ -16437,7 +16442,7 @@ msgstr "Sonuç Yok"
 msgid "No Results found"
 msgstr "Uygun Sonuç Bulunamadı"
 
-#: frappe/core/doctype/user/user.py:787
+#: frappe/core/doctype/user/user.py:806
 msgid "No Roles Specified"
 msgstr "Rol Belirlenmedi"
 
@@ -16682,7 +16687,7 @@ msgstr ""
 msgid "Normalized Query"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:994
+#: frappe/core/doctype/user/user.py:1013
 #: frappe/templates/includes/login/login.js:258 frappe/utils/oauth.py:271
 msgid "Not Allowed"
 msgstr "İzin verilmedi"
@@ -16729,7 +16734,7 @@ msgstr "Herhangi bir kayıtla bağlantılı değil"
 #: frappe/public/js/frappe/web_form/webform_script.js:15
 #: frappe/website/doctype/web_form/web_form.py:601
 #: frappe/website/page_renderers/not_permitted_page.py:20
-#: frappe/www/login.py:182 frappe/www/qrcode.py:22 frappe/www/qrcode.py:25
+#: frappe/www/login.py:183 frappe/www/qrcode.py:22 frappe/www/qrcode.py:25
 #: frappe/www/qrcode.py:37
 msgid "Not Permitted"
 msgstr "İzin yok"
@@ -16779,7 +16784,7 @@ msgstr "Yok"
 msgid "Not a valid Comma Separated Value (CSV File)"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:199
+#: frappe/core/doctype/user/user.py:218
 msgid "Not a valid User Image."
 msgstr "Geçerli bir Kullanıcı Resmi değil."
 
@@ -16832,7 +16837,7 @@ msgid "Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."
 msgstr "Geliştirici Modunda değil! site_config.json dosyasına ayarlayın veya 'Özel' DocType yapın."
 
 #: frappe/api/v1.py:88 frappe/api/v1.py:93
-#: frappe/core/doctype/system_settings/system_settings.py:210
+#: frappe/core/doctype/system_settings/system_settings.py:211
 #: frappe/handler.py:109 frappe/public/js/frappe/request.js:157
 #: frappe/public/js/frappe/request.js:167
 #: frappe/public/js/frappe/request.js:172
@@ -16973,8 +16978,8 @@ msgstr ""
 msgid "Notification sent to"
 msgstr ""
 
-#. Label of a Check field in DocType 'Role'
-#: frappe/core/doctype/role/role.json
+#. Label of a Check field in DocType 'User'
+#: frappe/core/doctype/user/user.json
 #: frappe/public/js/frappe/ui/notifications/notifications.js:50
 #: frappe/public/js/frappe/ui/notifications/notifications.js:187
 msgid "Notifications"
@@ -17089,7 +17094,7 @@ msgstr "Sorgu Sayısı"
 msgid "Number of attachment fields are more than {}, limit updated to {}."
 msgstr ""
 
-#: frappe/core/doctype/system_settings/system_settings.py:163
+#: frappe/core/doctype/system_settings/system_settings.py:164
 msgid "Number of backups must be greater than zero."
 msgstr ""
 
@@ -17248,7 +17253,7 @@ msgstr "Y Ekseni"
 msgid "Old Password"
 msgstr "Eski Şifre"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:362
+#: frappe/custom/doctype/custom_field/custom_field.py:363
 msgid "Old and new fieldnames are same."
 msgstr "Eski ve yeni alan adları aynıdır."
 
@@ -18095,11 +18100,11 @@ msgstr "Pasif"
 msgid "Password"
 msgstr "Şifre"
 
-#: frappe/core/doctype/user/user.py:1057
+#: frappe/core/doctype/user/user.py:1076
 msgid "Password Email Sent"
 msgstr "Şifre E-postası Gönderildi"
 
-#: frappe/core/doctype/user/user.py:423
+#: frappe/core/doctype/user/user.py:442
 msgid "Password Reset"
 msgstr "Şifre Sıfırlama"
 
@@ -18108,7 +18113,7 @@ msgstr "Şifre Sıfırlama"
 msgid "Password Reset Link Generation Limit"
 msgstr "Şifre Resetleme için Bağlantı Oluşturma Limiti"
 
-#: frappe/public/js/frappe/form/grid_row.js:811
+#: frappe/public/js/frappe/form/grid_row.js:812
 msgid "Password cannot be filtered"
 msgstr "Şifre filtrelenemiyor"
 
@@ -18133,7 +18138,7 @@ msgstr "E-posta Hesabında Şifre Eksik"
 msgid "Password not found for {0} {1} {2}"
 msgstr "{0} {1} {2} için şifre bulunamadı"
 
-#: frappe/core/doctype/user/user.py:1056
+#: frappe/core/doctype/user/user.py:1075
 msgid "Password reset instructions have been sent to your email"
 msgstr "Şifre sıfırlama talimatları e-postanıza gönderildi"
 
@@ -18145,7 +18150,7 @@ msgstr "Şifre ayarlandı"
 msgid "Password size exceeded the maximum allowed size"
 msgstr "Şifre boyutu izin verilen maksimum boyutu aştı"
 
-#: frappe/core/doctype/user/user.py:850
+#: frappe/core/doctype/user/user.py:869
 msgid "Password size exceeded the maximum allowed size."
 msgstr "Şifre boyutu izin verilen maksimum boyutu aştı."
 
@@ -18467,6 +18472,15 @@ msgstr ""
 msgid "Pink"
 msgstr "Pembe"
 
+#. Label of a Data field in DocType 'DocField'
+#. Label of a Data field in DocType 'Custom Field'
+#. Label of a Data field in DocType 'Customize Form Field'
+#: frappe/core/doctype/docfield/docfield.json
+#: frappe/custom/doctype/custom_field/custom_field.json
+#: frappe/custom/doctype/customize_form_field/customize_form_field.json
+msgid "Placeholder"
+msgstr ""
+
 #. Option for the 'Message Type' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Plain Text"
@@ -18505,7 +18519,7 @@ msgstr "Lütfen e-postanıza bir konu ekleyin"
 msgid "Please add a valid comment."
 msgstr "Lütfen geçerli bir yorum ekleyin."
 
-#: frappe/core/doctype/user/user.py:1039
+#: frappe/core/doctype/user/user.py:1058
 msgid "Please ask your administrator to verify your sign-up"
 msgstr "Lütfen yöneticinizden kayıt işleminizin doğrulamasını isteyin"
 
@@ -18537,7 +18551,7 @@ msgstr "Lütfen Gösterge Tablosu Grafiği için ayarlanan filtre değerlerini k
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1037
+#: frappe/core/doctype/user/user.py:1056
 msgid "Please check your email for verification"
 msgstr "Doğrulama için lütfen e-postanızı kontrol edin"
 
@@ -18589,7 +18603,7 @@ msgstr "Lütfen şablon başlıklarını değiştirmeyin."
 msgid "Please duplicate this to make changes"
 msgstr "Lütfen değişiklik yapmak için bunu çoğaltın"
 
-#: frappe/core/doctype/system_settings/system_settings.py:156
+#: frappe/core/doctype/system_settings/system_settings.py:157
 msgid "Please enable atleast one Social Login Key or LDAP or Login With Email Link before disabling username/password based login."
 msgstr "Kullanıcı adı/şifre tabanlı girişi devre dışı bırakmadan önce lütfen en az bir Sosyal Giriş Anahtarını veya LDAP'yi veya E-posta Bağlantısıyla Giriş Yapın'ı etkinleştirin."
 
@@ -18732,7 +18746,7 @@ msgstr "Lütfen önce DocType'ı seçin"
 msgid "Please select Entity Type first"
 msgstr ""
 
-#: frappe/core/doctype/system_settings/system_settings.py:106
+#: frappe/core/doctype/system_settings/system_settings.py:107
 msgid "Please select Minimum Password Score"
 msgstr "Lütfen Minimum Şifre Puanını seçin"
 
@@ -18818,7 +18832,7 @@ msgstr "Lütfen öncelikle bu Gösterge Tablosundaki aşağıdaki belgeleri stan
 msgid "Please set the series to be used."
 msgstr "Lütfen kullanılacak seriyi ayarlayın."
 
-#: frappe/core/doctype/system_settings/system_settings.py:119
+#: frappe/core/doctype/system_settings/system_settings.py:120
 msgid "Please setup SMS before setting it as an authentication method, via SMS Settings"
 msgstr ""
 
@@ -18830,7 +18844,7 @@ msgstr "Lütfen önce bir mesaj ayarlayın"
 msgid "Please setup default Email Account from Settings > Email Account"
 msgstr "Lütfen Ayarlar > E-posta Hesabı bölümünden varsayılan E-posta Hesabını ayarlayın"
 
-#: frappe/core/doctype/user/user.py:374
+#: frappe/core/doctype/user/user.py:393
 msgid "Please setup default outgoing Email Account from Settings > Email Account"
 msgstr "Lütfen Ayarlar > E-posta Hesabı bölümünden varsayılan giden E-posta Hesabını ayarlayın"
 
@@ -20415,7 +20429,7 @@ msgstr "Yenileniyor"
 msgid "Refreshing..."
 msgstr "Yenileniyor..."
 
-#: frappe/core/doctype/user/user.py:1001
+#: frappe/core/doctype/user/user.py:1020
 msgid "Registered but disabled"
 msgstr "Kayıtlı ancak devre dışı"
 
@@ -21346,7 +21360,7 @@ msgstr "Rol Profili"
 msgid "Role and Level"
 msgstr "Rol ve Seviye"
 
-#: frappe/core/doctype/user/user.py:315
+#: frappe/core/doctype/user/user.py:334
 msgid "Role has been set as per the user type {0}"
 msgstr "Rol, kullanıcı türüne göre ayarlandı {0}"
 
@@ -22029,8 +22043,8 @@ msgstr ""
 msgid "Search"
 msgstr "arama"
 
-#. Label of a Check field in DocType 'Role'
-#: frappe/core/doctype/role/role.json
+#. Label of a Check field in DocType 'User'
+#: frappe/core/doctype/user/user.json
 msgid "Search Bar"
 msgstr "Arama Çubuğu"
 
@@ -22496,7 +22510,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/link_selector.js:24
 #: frappe/public/js/frappe/form/multi_select_dialog.js:81
-#: frappe/public/js/frappe/form/multi_select_dialog.js:281
+#: frappe/public/js/frappe/form/multi_select_dialog.js:283
 #: frappe/public/js/frappe/list/list_view_select.js:153
 #: frappe/public/js/print_format_builder/Preview.vue:90
 msgid "Select {0}"
@@ -22887,7 +22901,7 @@ msgstr "Oturum Sonlandırıldı"
 msgid "Session Expiry (idle timeout)"
 msgstr "Oturum Sonlanma Süresi"
 
-#: frappe/core/doctype/system_settings/system_settings.py:113
+#: frappe/core/doctype/system_settings/system_settings.py:114
 msgid "Session Expiry must be in format {0}"
 msgstr "Oturum Süresi {0} formatında olmalıdır"
 
@@ -23536,8 +23550,8 @@ msgstr "Rapordan yalnızca Sayısal alanlar gösteriliyor"
 msgid "Showing only first {0} rows out of {1}"
 msgstr "{1} satırdan yalnızca ilk {0} satır gösteriliyor"
 
-#. Label of a Check field in DocType 'Role'
-#: frappe/core/doctype/role/role.json
+#. Label of a Check field in DocType 'User'
+#: frappe/core/doctype/user/user.json
 msgid "Sidebar"
 msgstr "Kenar Çubuğu"
 
@@ -23561,7 +23575,7 @@ msgstr "Kenar Çubuğu ve Yorumlar"
 msgid "Sign Up and Confirmation"
 msgstr "Kayıt ve Doğrulama"
 
-#: frappe/core/doctype/user/user.py:994
+#: frappe/core/doctype/user/user.py:1013
 msgid "Sign Up is disabled"
 msgstr "Kaydolma devre dışı bırakıldı"
 
@@ -23988,11 +24002,11 @@ msgstr ""
 msgid "Standard rich text editor with controls"
 msgstr "Kontrollere sahip standart zengin metin editörü"
 
-#: frappe/core/doctype/role/role.py:65
+#: frappe/core/doctype/role/role.py:46
 msgid "Standard roles cannot be disabled"
 msgstr "Standart roller devre dışı bırakılamaz"
 
-#: frappe/core/doctype/role/role.py:51
+#: frappe/core/doctype/role/role.py:32
 msgid "Standard roles cannot be renamed"
 msgstr "Standart roller yeniden adlandırılamaz."
 
@@ -24474,7 +24488,7 @@ msgstr "Alt Başlık"
 #: frappe/core/doctype/data_import_log/data_import_log.json
 #: frappe/desk/doctype/bulk_update/bulk_update.js:31
 #: frappe/desk/doctype/desktop_icon/desktop_icon.py:446
-#: frappe/public/js/frappe/form/grid.js:1137
+#: frappe/public/js/frappe/form/grid.js:1143
 #: frappe/public/js/frappe/views/translation_manager.js:21
 #: frappe/templates/includes/login/login.js:231
 #: frappe/templates/includes/login/login.js:237
@@ -24580,7 +24594,7 @@ msgstr ""
 msgid "Suggested Indexes"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:703
+#: frappe/core/doctype/user/user.py:722
 msgid "Suggested Username: {0}"
 msgstr ""
 
@@ -24705,7 +24719,7 @@ msgstr "Sistem"
 msgid "System Console"
 msgstr "Sistem Konsolu"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:358
+#: frappe/custom/doctype/custom_field/custom_field.py:359
 msgid "System Generated Fields can not be renamed"
 msgstr "Sistem Tarafından Oluşturulan Alanlar yeniden adlandırılamaz"
 
@@ -24992,7 +25006,7 @@ msgstr "Tablo Çoklu Seçim"
 msgid "Table Trimmed"
 msgstr "Tablo Temizlendi"
 
-#: frappe/public/js/frappe/form/grid.js:1136
+#: frappe/public/js/frappe/form/grid.js:1142
 msgid "Table updated"
 msgstr ""
 
@@ -25108,7 +25122,7 @@ msgstr "Şablon Uyarıları"
 msgid "Templates"
 msgstr "Şablonlar"
 
-#: frappe/core/doctype/user/user.py:1005
+#: frappe/core/doctype/user/user.py:1024
 msgid "Temporarily Disabled"
 msgstr "Geçici Olarak Devre Dışı"
 
@@ -25204,7 +25218,7 @@ msgstr "Teşekkürler"
 msgid "The Auto Repeat for this document has been disabled."
 msgstr "Bu belge için Otomatik Tekrarlama devre dışı bırakıldı."
 
-#: frappe/public/js/frappe/form/grid.js:1159
+#: frappe/public/js/frappe/form/grid.js:1165
 msgid "The CSV format is case sensitive"
 msgstr "CSV formatı büyük/küçük harfe duyarlıdır"
 
@@ -25325,7 +25339,7 @@ msgstr ""
 msgid "The link will expire in {0} minutes"
 msgstr "Bağlantının süresi {0} dakika içinde dolacak."
 
-#: frappe/www/login.py:183
+#: frappe/www/login.py:184
 msgid "The link you trying to login is invalid or expired."
 msgstr "Giriş yapmaya çalıştığınız bağlantı geçersiz veya süresi dolmuş."
 
@@ -25371,11 +25385,11 @@ msgid "The project number obtained from Google Cloud Console under <a href=\"htt
 "</a>"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:965
+#: frappe/core/doctype/user/user.py:984
 msgid "The reset password link has been expired"
 msgstr "Şifre sıfırlama bağlantısının süresi doldu"
 
-#: frappe/core/doctype/user/user.py:967
+#: frappe/core/doctype/user/user.py:986
 msgid "The reset password link has either been used before or is invalid"
 msgstr "Şifre sıfırlama bağlantısı daha önce kullanılmış veya geçersiz"
 
@@ -25493,7 +25507,7 @@ msgstr "Aynı filtrelere sahip {0} kuyrukta zaten mevcut:"
 msgid "There must be atleast one permission rule."
 msgstr "En az bir izin kuralı olmalıdır."
 
-#: frappe/core/doctype/user/user.py:504
+#: frappe/core/doctype/user/user.py:523
 msgid "There should remain at least one System Manager"
 msgstr "En az bir Sistem Yöneticisi olmalıdır"
 
@@ -25804,7 +25818,7 @@ msgstr ""
 msgid "This will terminate the job immediately and might be dangerous, are you sure? "
 msgstr "Bu işi hemen sonlandırmak tehlikeli olabilir, emin misiniz? "
 
-#: frappe/core/doctype/user/user.py:1224
+#: frappe/core/doctype/user/user.py:1243
 msgid "Throttled"
 msgstr ""
 
@@ -25923,8 +25937,8 @@ msgstr ""
 msgid "Timeless Night"
 msgstr "Koyu Tema"
 
-#. Label of a Check field in DocType 'Role'
-#: frappe/core/doctype/role/role.json
+#. Label of a Check field in DocType 'User'
+#: frappe/core/doctype/user/user.json
 msgid "Timeline"
 msgstr "Zaman cetveli"
 
@@ -26277,7 +26291,7 @@ msgstr "Çok Fazla İstek"
 msgid "Too many changes to database in single action."
 msgstr "Tek bir işlemde veritabanında çok fazla değişiklik yapıldı."
 
-#: frappe/core/doctype/user/user.py:1006
+#: frappe/core/doctype/user/user.py:1025
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr "Son zamanlarda çok fazla kullanıcı kaydoldu, bu yüzden kayıt devre dışı bırakıldı. Lütfen bir saat sonra tekrar deneyin"
 
@@ -27171,6 +27185,11 @@ msgstr "HTML Kullan"
 msgid "Use IMAP"
 msgstr "IMAP Kullan"
 
+#. Label of a Check field in DocType 'System Settings'
+#: frappe/core/doctype/system_settings/system_settings.json
+msgid "Use Number Format from Currency"
+msgstr ""
+
 #. Label of a Check field in DocType 'SMS Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
 msgid "Use POST"
@@ -27542,7 +27561,7 @@ msgstr "Kullanıcının {0} silmesine izin verilmiyor: {1}"
 msgid "User permission already exists"
 msgstr "Kullanıcı izni zaten mevcut"
 
-#: frappe/www/login.py:156
+#: frappe/www/login.py:157
 msgid "User with email address {0} does not exist"
 msgstr "{0} e-posta adresine sahip kullanıcı mevcut değil"
 
@@ -27550,15 +27569,15 @@ msgstr "{0} e-posta adresine sahip kullanıcı mevcut değil"
 msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
 msgstr "E-posta adresi: {0} olan kullanıcı sistemde mevcut değil. Lütfen 'Sistem Yöneticisi'nden kullanıcıyı sizin için oluşturmasını isteyin."
 
-#: frappe/core/doctype/user/user.py:509
+#: frappe/core/doctype/user/user.py:528
 msgid "User {0} cannot be deleted"
 msgstr "Kullanıcı {0} silinemez"
 
-#: frappe/core/doctype/user/user.py:244
+#: frappe/core/doctype/user/user.py:263
 msgid "User {0} cannot be disabled"
 msgstr "Kullanıcı {0} devre dışı bırakılamaz"
 
-#: frappe/core/doctype/user/user.py:591
+#: frappe/core/doctype/user/user.py:610
 msgid "User {0} cannot be renamed"
 msgstr "Kullanıcı {0} yeniden adlandırılamaz"
 
@@ -27579,7 +27598,7 @@ msgstr "Kullanıcı {0} bir Çalışma Alanı oluşturma iznine sahip değil."
 msgid "User {0} has requested for data deletion"
 msgstr "{0} isimli Kullanıcı veri silme talebinde bulundu"
 
-#: frappe/core/doctype/user/user.py:1358
+#: frappe/core/doctype/user/user.py:1377
 msgid "User {0} impersonated as {1}"
 msgstr ""
 
@@ -27604,11 +27623,11 @@ msgstr ""
 #. Label of a Data field in DocType 'User Social Login'
 #: frappe/core/doctype/user/user.json
 #: frappe/core/doctype/user_social_login/user_social_login.json
-#: frappe/www/login.py:104
+#: frappe/www/login.py:105
 msgid "Username"
 msgstr "Kullanıcı Adı"
 
-#: frappe/core/doctype/user/user.py:670
+#: frappe/core/doctype/user/user.py:689
 msgid "Username {0} already exists"
 msgstr ""
 
@@ -27907,8 +27926,8 @@ msgstr "Raporu Göster"
 msgid "View Settings"
 msgstr "Görüntüleme Ayarları"
 
-#. Label of a Check field in DocType 'Role'
-#: frappe/core/doctype/role/role.json
+#. Label of a Check field in DocType 'User'
+#: frappe/core/doctype/user/user.json
 msgid "View Switcher"
 msgstr "Tema Değiştirici"
 
@@ -28415,11 +28434,11 @@ msgstr "Hoş Geldiniz Bağlantısı"
 msgid "Welcome Workspace"
 msgstr "Çalışma Alanına Hoşgeldiniz"
 
-#: frappe/core/doctype/user/user.py:366
+#: frappe/core/doctype/user/user.py:385
 msgid "Welcome email sent"
 msgstr "Hoşgeldiniz e-posta gönderimi yapılır"
 
-#: frappe/core/doctype/user/user.py:441
+#: frappe/core/doctype/user/user.py:460
 msgid "Welcome to {0}"
 msgstr "Hoşgeldiniz {0}"
 
@@ -28815,7 +28834,7 @@ msgstr "Sarı"
 #: frappe/integrations/doctype/webhook/webhook.py:140
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/public/js/form_builder/utils.js:336
-#: frappe/public/js/frappe/form/controls/link.js:475
+#: frappe/public/js/frappe/form/controls/link.js:485
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:223
 #: frappe/public/js/frappe/views/reports/query_report.js:1529
 #: frappe/website/doctype/help_article/templates/help_article.html:25
@@ -29755,7 +29774,7 @@ msgid "email inbox"
 msgstr "e-posta gelen kutusu"
 
 #: frappe/permissions.py:397 frappe/permissions.py:408
-#: frappe/public/js/frappe/form/controls/link.js:484
+#: frappe/public/js/frappe/form/controls/link.js:494
 msgid "empty"
 msgstr "boş"
 
@@ -30219,7 +30238,7 @@ msgid "only."
 msgstr ""
 
 #: frappe/public/js/frappe/utils/utils.js:407 frappe/www/login.html:87
-#: frappe/www/login.py:106
+#: frappe/www/login.py:107
 msgid "or"
 msgstr "veya"
 
@@ -30952,7 +30971,7 @@ msgctxt "Form timeline"
 msgid "{0} attached {1}"
 msgstr "{0} {1} dosyasını ekledi."
 
-#: frappe/core/doctype/system_settings/system_settings.py:143
+#: frappe/core/doctype/system_settings/system_settings.py:144
 msgid "{0} can not be more than {1}"
 msgstr "{0} değeri {1} değerinden fazla olamaz"
 
@@ -31260,7 +31279,7 @@ msgstr ""
 msgid "{0} items selected"
 msgstr "{0} Kayıt Seçildi"
 
-#: frappe/core/doctype/user/user.py:1367
+#: frappe/core/doctype/user/user.py:1386
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr ""
 
