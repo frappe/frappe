@@ -38,7 +38,7 @@ from frappe.model.base_document import (
 	TABLE_DOCTYPES_FOR_DOCTYPE,
 	BaseDocument,
 )
-from frappe.model.document import Document
+from frappe.model.document import DocRef, Document
 from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
 from frappe.utils import cast, cint, cstr
@@ -58,11 +58,11 @@ DEFAULT_FIELD_LABELS = {
 }
 
 
-def get_meta(doctype: str | Document, cached=True) -> "_Meta":
+def get_meta(doctype: str | DocRef | Document, cached=True) -> "_Meta":
 	"""Get metadata for a doctype.
 
 	Args:
-	    doctype: The doctype as a string or Document object.
+	    doctype: The doctype as a string, DocRef, or Document object.
 	    cached: Whether to use cached metadata (default: True).
 
 	Returns:
@@ -130,6 +130,11 @@ class Meta(Document):
 	@__init__.register(str)
 	def _(self, doctype):
 		super().__init__("DocType", doctype)
+		self.process()
+
+	@__init__.register(DocRef)
+	def _(self, doc_ref):
+		super().__init__("DocType", doc_ref.doctype)
 		self.process()
 
 	@__init__.register(Document)

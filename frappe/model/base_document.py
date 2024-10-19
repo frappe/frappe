@@ -365,6 +365,8 @@ class BaseDocument:
 	def get_valid_dict(
 		self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False
 	) -> _dict:
+		from frappe.model.document import DocRef
+
 		d = _dict()
 		field_values = self.__dict__
 
@@ -430,6 +432,9 @@ class BaseDocument:
 					value = df.default
 				else:
 					value = get_not_null_defaults(df.fieldtype)
+
+			if isinstance(value, DocRef):
+				value = str(value)
 
 			d[fieldname] = value
 
