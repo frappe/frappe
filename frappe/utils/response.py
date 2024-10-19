@@ -221,6 +221,10 @@ def json_handler(obj):
 
 	elif isinstance(obj, frappe.model.document.BaseDocument):
 		return obj.as_dict(no_nulls=True)
+
+	elif isinstance(obj, frappe.model.document.DocRef):  # if not BaseDocument, but DocRef
+		return str(obj)
+
 	elif isinstance(obj, Iterable):
 		return list(obj)
 
