@@ -45,10 +45,15 @@ class DocRef:
 		self.doctype = doctype
 		self.name = name
 
-	def __str__(self):
-		# ! Used in frappe's query engine in frappe/database/query.py
-		# ! Keep it stable
+	def __value__(self):
+		# Used when requiring its value representation for db interactions, serializations, etc
 		return self.name
+
+	def __str__(self):
+		return f"{self.doctype} ({self.name or 'n/a'})"
+
+	def __repr__(self):
+		return f"<{self.__class__.__name__}: doctype={self.doctype} name={self.name or 'n/a'}>"
 
 
 @simple_singledispatch
@@ -1789,14 +1794,16 @@ class Document(BaseDocument, DocRef):
 		doc = self.get_valid_dict(convert_dates_to_str=True, ignore_virtual=True)
 		deferred_insert(doctype=self.doctype, records=doc)
 
-	def __repr__(self):
-		name = self.name or "unsaved"
-		doctype = self.__class__.__name__
+	def __str__(self):
+		return f"{self.doctype} ({self.name or 'unsaved'})"
 
+	def __repr__(self):
+		doctype = f"doctype={self.doctype}"
+		name = self.name or "unsaved"
 		docstatus = f" docstatus={self.docstatus}" if self.docstatus else ""
 		parent = f" parent={self.parent}" if getattr(self, "parent", None) else ""
 
-		return f"<{doctype}: {name}{docstatus}{parent}>"
+		return f"<{self.__class__.__name__}: {doctype} {name}{docstatus}{parent}>"
 
 
 def execute_action(__doctype, __name, __action, **kwargs):

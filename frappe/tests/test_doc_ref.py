@@ -60,10 +60,10 @@ class TestDocRef(IntegrationTestCase):
 		self.assertTrue("first_name" in [f.fieldname for f in meta.fields])
 		self.assertTrue("last_name" in [f.fieldname for f in meta.fields])
 
-	def test_doc_ref_str_representation(self):
-		# Test the string representation of DocRef
+	def test_doc_ref_value_representation(self):
+		# Test the value representation of DocRef
 		doc_ref = DocRef("User", "test@example.com")
-		self.assertEqual(str(doc_ref), "test@example.com")
+		self.assertEqual(doc_ref.__value__(), "test@example.com")
 
 	def test_doc_ref_attributes(self):
 		# Test DocRef attributes

@@ -10,8 +10,7 @@ import frappe
 from frappe import _
 from frappe.database.operator_map import OPERATOR_MAP
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
-from frappe.database.utils import DefaultOrderBy, get_doctype_name
-from frappe.model.document import DocRef
+from frappe.database.utils import DefaultOrderBy, FilterValue, convert_to_value, get_doctype_name
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.functions import Function, SqlFunctions
 from frappe.query_builder.utils import PseudoColumnMapper
@@ -29,8 +28,6 @@ COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
 # less restrictive version of frappe.core.doctype.doctype.doctype.START_WITH_LETTERS_PATTERN
 # to allow table names like __Auth
 TABLE_NAME_PATTERN = re.compile(r"^[\w -]*$", flags=re.ASCII)
-
-FilterValue: TypeAlias = DocRef | str | int
 
 
 class Engine:
@@ -122,7 +119,7 @@ class Engine:
 			return
 
 		if isinstance(filters, FilterValue):
-			filters = {"name": str(filters)}
+			filters = {"name": convert_to_value(filters)}
 
 		if isinstance(filters, Criterion):
 			self.query = self.query.where(filters)
@@ -132,7 +129,7 @@ class Engine:
 
 		elif isinstance(filters, list | tuple):
 			if all(isinstance(d, FilterValue) for d in filters) and len(filters) > 0:
-				self.apply_dict_filters({"name": ("in", filters)})
+				self.apply_dict_filters({"name": ("in", tuple(convert_to_value(f) for f in filters))})
 			else:
 				for filter in filters:
 					if isinstance(filter, FilterValue | Criterion | dict):
@@ -162,7 +159,7 @@ class Engine:
 	def _apply_filter(
 		self,
 		field: str,
-		value: FilterValue | list | None,
+		value: FilterValue | list | set | None,
 		operator: str = "=",
 		doctype: str | None = None,
 	):
@@ -192,13 +189,9 @@ class Engine:
 					(table.parent == self.table.name) & (table.parenttype == self.doctype)
 				)
 
-		if isinstance(_value, bool):
-			_value = int(_value)
+		_value = convert_to_value(_value)
 
-		if isinstance(_value, DocRef):
-			_value = str(_value)
-
-		elif not _value and isinstance(_value, list | tuple):
+		if not _value and isinstance(_value, list | tuple | set):
 			_value = ("",)
 
 		# Nested set

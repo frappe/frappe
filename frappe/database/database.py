@@ -11,7 +11,7 @@ import warnings
 from collections.abc import Iterable, Sequence
 from contextlib import contextmanager, suppress
 from time import time
-from typing import TYPE_CHECKING, Any, TypeAlias
+from typing import TYPE_CHECKING, Any
 
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 
@@ -22,13 +22,14 @@ from frappe.database.utils import (
 	DefaultOrderBy,
 	EmptyQueryValues,
 	FallBackDateTimeStr,
+	FilterValue,
 	LazyMogrify,
 	Query,
 	QueryValues,
+	convert_to_value,
 	is_query_type,
 )
 from frappe.exceptions import DoesNotExistError, ImplicitCommitError
-from frappe.model.document import DocRef
 from frappe.monitor import get_trace_id
 from frappe.query_builder.functions import Count
 from frappe.utils import CallbackManager, cint, get_datetime, get_table_name, getdate, now, sbool
@@ -51,9 +52,6 @@ SQL_ITERATOR_BATCH_SIZE = 100
 TRANSACTION_DISABLED_MSG = """Commit/rollback are disabled during certain events. This command will
 be ignored. Commit/Rollback from here WILL CAUSE very hard to debug problems with atomicity and
 concurrent data update bugs."""
-
-
-Stringable: TypeAlias = str | DocRef
 
 
 class Database:
@@ -479,7 +477,7 @@ class Database:
 	def get_value(
 		self,
 		doctype: str,
-		filters: Stringable | dict | list | None = None,
+		filters: FilterValue | dict | list | None = None,
 		fieldname: str | list[str] = "name",
 		ignore: bool = False,
 		as_dict: bool = False,
@@ -558,7 +556,7 @@ class Database:
 	def get_values(
 		self,
 		doctype: str,
-		filters: Stringable | dict | list | None = None,
+		filters: FilterValue | dict | list | None = None,
 		fieldname: str | list[str] = "name",
 		ignore: bool = False,
 		as_dict: bool = False,
@@ -596,8 +594,8 @@ class Database:
 		"""
 		out = None
 		cache_key = None
-		if cache and isinstance(filters, Stringable):
-			cache_key = (doctype, str(filters), fieldname)
+		if cache and isinstance(filters, FilterValue):
+			cache_key = (doctype, convert_to_value(filters), fieldname)
 			if cache_key in self.value_cache:
 				return self.value_cache[cache_key]
 
@@ -941,7 +939,7 @@ class Database:
 	def set_value(
 		self,
 		dt: str,
-		dn: Stringable | dict,
+		dn: FilterValue | dict,
 		field: str,
 		val=None,
 		modified=None,
@@ -997,8 +995,8 @@ class Database:
 			validate_filters=True,
 		)
 
-		if isinstance(dn, Stringable):
-			frappe.clear_document_cache(dt, str(dn))
+		if isinstance(dn, FilterValue):
+			frappe.clear_document_cache(dt, convert_to_value(dn))
 		else:
 			# No way to guess which documents are modified, clear all of them
 			frappe.clear_document_cache(dt)

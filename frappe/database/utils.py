@@ -4,11 +4,13 @@
 from functools import cached_property, wraps
 
 import frappe
+from frappe.model.document import DocRef
 from frappe.query_builder.builder import MariaDB, Postgres
 from frappe.query_builder.functions import Function
 
 Query = str | MariaDB | Postgres
 QueryValues = tuple | list | dict | None
+FilterValue = DocRef | str | int | bool
 
 EmptyQueryValues = object()
 FallBackDateTimeStr = "0001-01-01 00:00:00.000000"
@@ -20,6 +22,14 @@ NestedSetHierarchy = (
 	"not descendants of",
 	"descendants of (inclusive)",
 )
+
+
+def convert_to_value(o: FilterValue):
+	if hasattr(o, "__value__"):
+		return o.__value__()
+	if isinstance(o, bool):
+		return int(o)
+	return o
 
 
 def is_query_type(query: str, query_type: str | tuple[str, ...]) -> bool:
