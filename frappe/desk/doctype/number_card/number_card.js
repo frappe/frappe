@@ -181,7 +181,7 @@ frappe.ui.form.on("Number Card", {
 						"options",
 						frm.field_options.numeric_fields
 					);
-					if (!frm.field_options.numeric_fields.length) {
+					if ((frm.doc.report_function !== "Count") && (!frm.field_options.numeric_fields.length)) {
 						frappe.msgprint(
 							__("Report has no numeric fields, please change the Report Name")
 						);
