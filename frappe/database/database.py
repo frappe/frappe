@@ -8,7 +8,7 @@ import re
 import string
 import traceback
 import warnings
-from collections.abc import Iterable, Sequence
+from collections.abc import Hashable, Iterable, Sequence
 from contextlib import contextmanager, suppress
 from time import time
 from typing import TYPE_CHECKING, Any
@@ -594,8 +594,8 @@ class Database:
 		"""
 		out = None
 		cache_key = None
-		if cache and isinstance(filters, FilterValue):
-			cache_key = (doctype, convert_to_value(filters), fieldname)
+		if cache and isinstance(filters, Hashable):
+			cache_key = (doctype, filters, fieldname)
 			if cache_key in self.value_cache:
 				return self.value_cache[cache_key]
 
