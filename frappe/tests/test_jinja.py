@@ -723,10 +723,11 @@ class TestRenderTemplateWithGlobals(IntegrationTestCase):
 
 		result = render_template("frappe/tests/test_template_globals.html", context)
 
+		self.assertIn("Proxy: <DocumentProxy: doctype=Language name=n/a>", result)
+
 		# Test JSON
-		self.assertIn(
-			'JSON Dumps: {\n "lang": "DocumentProxy(Language, None)",\n "user": "Administrator"\n}', result
-		)
+		# a n/a document proxy becomes null via the json_handler's evaluation of __value__()
+		self.assertIn('JSON Dumps: {\n "lang": null,\n "user": "Administrator"\n}', result)
 
 		# Test frappe.bold
 		self.assertIn("<strong>Administrator</strong>", result)
