@@ -49,6 +49,9 @@ class DocRef:
 		# Used when requiring its value representation for db interactions, serializations, etc
 		return self.name
 
+	def __hash__(self):
+		return hash(self.doctype + self.name or "")
+
 	def __str__(self):
 		return f"{self.doctype} ({self.name or 'n/a'})"
 
