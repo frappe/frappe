@@ -221,10 +221,14 @@ class DocumentProxy(DocRef):
 		return key in self._fieldnames
 
 	def __repr__(self):
-		return f"{self.__class__.__name__}({self.doctype}, {self.name})"
+		return f"<{self.__class__.__name__}: doctype={self.doctype} name={self.name or 'n/a'}>"
 
 	def __str__(self):
-		return self.name or self.__repr__()
+		# we explictly deviate from the DocRef stringer as
+		# we need to render the value in jinja environments
+		# in caes of no value and the user not guarding the snippet against it,
+		# we want to "soft error" by printing the full object representation
+		return self.__value__() or self.__repr__()
 
 	def __bool__(self):
 		return bool(self.name)
@@ -246,10 +250,10 @@ class DocumentProxyList:
 		return len(self.values)
 
 	def __str__(self):
-		return f"{self.__class__.__name__}({self.doctype}, {len(self)} items)"
+		return f"{self.doctype}, {len(self)} items"
 
 	def __repr__(self):
-		return self.__str__()
+		return f"<{self.__class__.__name__}: {self.doctype} {len(self)} items>"
 
 
 class Document(BaseDocument, DocRef):

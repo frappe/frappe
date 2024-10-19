@@ -10,6 +10,9 @@
   <h2>Escape the DocumentProxy using frappe.get_doc</h2>
   <p>User dict name: {{ frappe.get_doc(user).as_dict()["name"] }}</p>
 
+  <h2>Null value DocumentProxy</h2>
+  <p>Proxy: {{ user.language }}</p>
+
   <h2>JSON</h2>
   <p>JSON Dumps: {{ as_json({"user": user, "lang": user.language}) }}</p>
 
