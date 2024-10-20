@@ -163,7 +163,7 @@ nixpkgs-deps = [
     "gzip",
     "bash",
     "redis",
-    "nodejs_22",
+    "nodejs_20",
     "python312",
 ]
 
