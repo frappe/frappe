@@ -144,3 +144,20 @@ quote-style = "double"
 indent-style = "tab"
 docstring-code-format = true
 
+<<<<<<< HEAD
+=======
+[tool.frappix]
+# use identifier from https://search.nixos.org/packages
+nixpkgs-deps = [
+    "mariadb",
+    "restic",
+    "wkhtmltopdf-bin",
+    "which",
+    "gzip",
+    "bash",
+    "redis",
+    "nodejs_22",
+    "python312",
+]
+
+>>>>>>> 085d2b7803 (feat: declare system dependencies for frappix (#28197))
