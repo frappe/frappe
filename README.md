@@ -30,6 +30,9 @@
 	<a href="https://codecov.io/gh/frappe/frappe">
 		<img src="https://codecov.io/gh/frappe/frappe/branch/develop/graph/badge.svg?token=XoTa679hIj"/>
 	</a>
+	<a href="https://gurubase.io/g/frappe">
+		<img src="https://img.shields.io/badge/Gurubase-Ask%20Frappe%20Guru-006BFF"/>
+	</a>
 </div>
 
 
