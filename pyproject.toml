@@ -222,6 +222,8 @@ exclude = [
     "^frappe/parallel_test_runner.py",
     "^frappe/deprecation_dumpster.py",
 ]
+disable_error_code = [
+]
 
 [[tool.mypy.overrides]]
 module = "frappe"
