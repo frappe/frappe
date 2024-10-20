@@ -2,22 +2,23 @@ import os
 import subprocess
 import sys
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import click
 
 import frappe
-from frappe.commands import get_site, pass_context
+from frappe.commands import pass_context
 from frappe.utils.bench_helper import CliCtxObj
 
 if TYPE_CHECKING:
 	import unittest
 
+	from frappe.bench import Sites
 	from frappe.testing import TestRunner
 
 
 def main(
-	site: str | None = None,
+	site: Optional["Sites.Site"] = None,
 	app: str | None = None,
 	module: str | None = None,
 	doctype: str | None = None,
@@ -298,15 +299,14 @@ def run_tests(
 		import frappe
 
 		tests = test
-		site = get_site(context)
 
-		frappe.init(site)
+		frappe.init(context.bench.sites.site)
 		allow_tests = frappe.get_conf().allow_tests
 
 		if not (allow_tests or os.environ.get("CI")):
 			click.secho("Testing is disabled for the site!", bold=True)
 			click.secho("You can enable tests by entering following command:")
-			click.secho(f"bench --site {site} set-config allow_tests true", fg="green")
+			click.secho(f"bench --site {context.bench.sites.site} set-config allow_tests true", fg="green")
 			return
 
 		if skip_test_records:
@@ -316,7 +316,7 @@ def run_tests(
 			return
 
 		main(
-			site,
+			context.bench.sites.site,
 			app,
 			module,
 			doctype,
@@ -362,17 +362,16 @@ def run_parallel_tests(
 	from frappe.coverage import CodeCoverage
 
 	with CodeCoverage(with_coverage, app):
-		site = get_site(context)
 		if use_orchestrator:
 			from frappe.parallel_test_runner import ParallelTestWithOrchestrator
 
-			ParallelTestWithOrchestrator(app, site=site)
+			ParallelTestWithOrchestrator(app, site=context.bench.sites.site)
 		else:
 			from frappe.parallel_test_runner import ParallelTestRunner
 
 			runner = ParallelTestRunner(
 				app,
-				site=site,
+				site=context.bench.sites.site,
 				build_number=build_number,
 				total_builds=total_builds,
 				dry_run=dry_run,
@@ -405,10 +404,9 @@ def run_ui_tests(
 	cypressargs=None,
 ):
 	"Run UI tests"
-	site = get_site(context)
-	frappe.init(site)
+	frappe.init(context.bench.sites.site)
 	app_base_path = frappe.get_app_source_path(app)
-	site_url = frappe.utils.get_site_url(site)
+	site_url = frappe.utils.get_site_url(context.bench.sites.site)
 	admin_password = frappe.get_conf().admin_password
 
 	# override baseUrl using env variable

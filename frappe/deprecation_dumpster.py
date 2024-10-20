@@ -123,6 +123,28 @@ def deprecation_warning(marked: str, graduation: str, msg: str):
 
 
 ### Party starts here
+
+
+@deprecated(
+	"frappe.init (old calling signature)",
+	"2024-09-13",
+	"v17",
+	"Use the new calling signature: frappe.init(bench: frappe.bench.Bench, force: bool = False) 🎉🗑️",
+	stacklevel=3,  # get past functools.dispatch
+)
+def old_init(site, sites_path, new_site, force) -> None:
+	from pathlib import Path
+
+	from frappe import _init
+	from frappe.bench import Bench
+
+	implied_bench_path = Path(sites_path).resolve().parent
+	bench = Bench(implied_bench_path)
+	bench.scope(site)
+
+	return _init(bench.sites.site, force)
+
+
 def _old_deprecated(func):
 	return deprecated(
 		"frappe.deprecations.deprecated",
@@ -613,3 +635,428 @@ def frappe_get_test_records(doctype):
 				_records.append(_doc)
 		return _records
 	return records
+
+
+def get_site_config(sites_path: str | None = None, site_path: str | None = None):
+	"""Return `site_config.json` combined with `sites/common_site_config.json`.
+	`site_config` is a set of site wide settings like database name, password, email etc."""
+	import importlib
+	import traceback
+
+	import click
+
+	import frappe
+
+	config = frappe._dict()
+
+	sites_path = sites_path or getattr(frappe.local, "sites_path", None)
+	site_path = site_path or getattr(frappe.local, "site_path", None)
+
+	common_config = get_common_site_config(sites_path)
+
+	if sites_path:
+		config.update(common_config)
+
+	if site_path:
+		site_config = os.path.join(site_path, "site_config.json")
+		if os.path.exists(site_config):
+			try:
+				config.update(frappe.get_file_json(site_config))
+			except Exception as error:
+				click.secho(f"{frappe.local.site}/site_config.json is invalid", fg="red")
+				print(error)
+		elif frappe.local.site and not frappe.local.flags.new_site:
+			error_msg = f"{frappe.local.site} does not exist."
+			if common_config.developer_mode:
+				from frappe.utils import get_sites
+
+				all_sites = get_sites()
+				error_msg += "\n\nSites on this bench:\n"
+				error_msg += "\n".join(f"* {site}" for site in all_sites)
+
+			raise frappe.IncorrectSitePath(error_msg)
+
+	# Generalized env variable overrides and defaults
+	def db_default_ports(db_type):
+		if db_type == "mariadb":
+			from frappe.database.mariadb.database import MariaDBDatabase
+
+			return MariaDBDatabase.default_port
+		elif db_type == "postgres":
+			from frappe.database.postgres.database import PostgresDatabase
+
+			return PostgresDatabase.default_port
+
+		raise ValueError(f"Unsupported db_type={db_type}")
+
+	config["redis_queue"] = (
+		os.environ.get("FRAPPE_REDIS_QUEUE") or config.get("redis_queue") or "redis://127.0.0.1:11311"
+	)
+	config["redis_cache"] = (
+		os.environ.get("FRAPPE_REDIS_CACHE") or config.get("redis_cache") or "redis://127.0.0.1:13311"
+	)
+	config["db_type"] = os.environ.get("FRAPPE_DB_TYPE") or config.get("db_type") or "mariadb"
+	config["db_socket"] = os.environ.get("FRAPPE_DB_SOCKET") or config.get("db_socket")
+	config["db_host"] = os.environ.get("FRAPPE_DB_HOST") or config.get("db_host") or "127.0.0.1"
+	config["db_port"] = int(
+		os.environ.get("FRAPPE_DB_PORT") or config.get("db_port") or db_default_ports(config["db_type"])
+	)
+
+	# Set the user as database name if not set in config
+	config["db_user"] = os.environ.get("FRAPPE_DB_USER") or config.get("db_user") or config.get("db_name")
+
+	# vice versa for dbname if not defined
+	config["db_name"] = os.environ.get("FRAPPE_DB_NAME") or config.get("db_name") or config["db_user"]
+
+	# read password
+	config["db_password"] = os.environ.get("FRAPPE_DB_PASSWORD") or config.get("db_password")
+
+	# Allow externally extending the config with hooks
+	if extra_config := config.get("extra_config"):
+		if isinstance(extra_config, str):
+			extra_config = [extra_config]
+		for hook in extra_config:
+			try:
+				module, method = hook.rsplit(".", 1)
+				config |= getattr(importlib.import_module(module), method)()
+			except Exception:
+				print(f"Config hook {hook} failed")
+				traceback.print_exc()
+
+	return config
+
+
+def get_common_site_config(sites_path: str | None = None):
+	"""Return common site config as dictionary.
+
+	This is useful for:
+	- checking configuration which should only be allowed in common site config
+	- When no site context is present and fallback is required.
+	"""
+	import click
+
+	import frappe
+
+	sites_path = sites_path or getattr(frappe.local, "sites_path", None)
+
+	common_site_config = os.path.join(sites_path, "common_site_config.json")
+	if os.path.exists(common_site_config):
+		try:
+			return frappe._dict(frappe.get_file_json(common_site_config))
+		except Exception as error:
+			click.secho("common_site_config.json is invalid", fg="red")
+			print(error)
+	return frappe._dict()
+
+
+def get_conf(site: str | None = None):
+	import frappe
+
+	if hasattr(frappe.local, "conf"):
+		return frappe.local.conf
+
+	# if no site, get from common_site_config.json
+	with init_site(site):
+		return frappe.local.conf
+
+
+class init_site:
+	def __init__(self, site=None):
+		"""If site is None, initialize it for empty site ('') to load common_site_config.json"""
+		self.site = site
+
+	def __enter__(self):
+		import frappe
+
+		frappe.init(self.site)
+		return frappe.local
+
+	def __exit__(self, type, value, traceback):
+		import frappe
+
+		frappe.destroy()
+
+
+def get_module_path(module, *joins):
+	"""Get the path of the given module name.
+
+	:param module: Module name.
+	:param *joins: Join additional path elements using `os.path.join`."""
+	import frappe
+	from frappe.modules.utils import get_module_app
+
+	app = get_module_app(module)
+	return frappe.get_pymodule_path(app + "." + frappe.scrub(module), *joins)
+
+
+def get_app_path(app_name, *joins):
+	"""Return path of given app.
+
+	:param app: App name.
+	:param *joins: Join additional path elements using `os.path.join`."""
+	import frappe
+
+	return frappe.get_pymodule_path(app_name, *joins)
+
+
+def get_app_source_path(app_name, *joins):
+	"""Return source path of given app.
+
+	:param app: App name.
+	:param *joins: Join additional path elements using `os.path.join`."""
+	return get_app_path(app_name, "..", *joins)
+
+
+def get_site_path(*joins):
+	"""Return path of current site.
+
+	:param *joins: Join additional path elements using `os.path.join`."""
+	from os.path import join
+
+	import frappe
+
+	return join(frappe.local.site_path, *joins)
+
+
+def get_module_list(app_name):
+	"""Get list of modules for given all via `app/modules.txt`."""
+	from frappe import get_file_items
+
+	return get_file_items(get_app_path(app_name, "modules.txt"))
+
+
+def get_all_apps(with_internal_apps=True, sites_path=None):
+	"""Get list of all apps via `sites/apps.txt`."""
+	import frappe
+	from frappe import get_file_items
+
+	if not sites_path:
+		sites_path = frappe.local.sites_path
+
+	apps = get_file_items(os.path.join(sites_path, "apps.txt"), raise_not_found=True)
+
+	if with_internal_apps:
+		for app in get_file_items(os.path.join(frappe.local.site_path, "apps.txt")):
+			if app not in apps:
+				apps.append(app)
+
+	if "frappe" in apps:
+		apps.remove("frappe")
+	apps.insert(0, "frappe")
+
+	return apps
+
+
+# frappe.utils
+def get_path(*path, **kwargs):
+	import frappe
+
+	base = kwargs.get("base")
+	if not base:
+		base = frappe.local.site_path
+	return os.path.join(base, *path)
+
+
+def get_site_base_path():
+	import frappe
+
+	return frappe.local.site_path
+
+
+def utils_get_site_path(*path):
+	return get_path(*path, base=get_site_base_path())
+
+
+def get_bench_path():
+	import frappe
+
+	return os.environ.get("FRAPPE_BENCH_ROOT") or os.path.realpath(
+		os.path.join(os.path.dirname(frappe.__file__), "..", "..", "..")
+	)
+
+
+def get_bench_id():
+	return get_conf().get("bench_id", get_bench_path().strip("/").replace("/", "-"))
+
+
+def get_site_id(site=None):
+	import frappe
+
+	return f"{site or frappe.local.site}@{get_bench_id()}"
+
+
+def get_files_path(*path, **kwargs):
+	return get_site_path("private" if kwargs.get("is_private") else "public", "files", *path)
+
+
+def get_backups_path():
+	return get_site_path("private", "backups")
+
+
+def get_sites(sites_path=None):
+	import frappe
+
+	if not sites_path:
+		sites_path = getattr(frappe.local, "sites_path", None) or "."
+
+	sites = []
+	for site in os.listdir(sites_path):
+		path = os.path.join(sites_path, site)
+
+		if (
+			os.path.isdir(path)
+			and not os.path.islink(path)
+			and os.path.exists(os.path.join(path, "site_config.json"))
+		):
+			# is a dir and has site_config.json
+			sites.append(site)
+
+	return sorted(sites)
+
+
+# frappe.installer
+def make_conf(
+	db_name=None,
+	db_password=None,
+	site_config=None,
+	db_type=None,
+	db_socket=None,
+	db_host=None,
+	db_port=None,
+	db_user=None,
+):
+	import frappe
+
+	site = frappe.site
+	make_site_config(
+		db_name,
+		db_password,
+		site_config,
+		db_type=db_type,
+		db_socket=db_socket,
+		db_host=db_host,
+		db_port=db_port,
+		db_user=db_user,
+	)
+	frappe.destroy()
+	frappe.init(site)
+
+
+def get_conf_params(db_name=None, db_password=None):
+	if not db_name:
+		db_name = input("Database Name: ")
+		if not db_name:
+			raise Exception("Database Name Required")
+
+	if not db_password:
+		from frappe.utils import random_string
+
+		db_password = random_string(16)
+
+	return {"db_name": db_name, "db_password": db_password}
+
+
+def make_site_config(
+	db_name=None,
+	db_password=None,
+	site_config=None,
+	db_type=None,
+	db_socket=None,
+	db_host=None,
+	db_port=None,
+	db_user=None,
+):
+	import json
+
+	import frappe
+
+	frappe.create_folder(os.path.join(frappe.local.site_path))
+	site_file = get_site_config_path()
+
+	if not os.path.exists(site_file):
+		if not (site_config and isinstance(site_config, dict)):
+			site_config = get_conf_params(db_name, db_password)
+
+			if db_type:
+				site_config["db_type"] = db_type
+
+			if db_socket:
+				site_config["db_socket"] = db_socket
+
+			if db_host:
+				site_config["db_host"] = db_host
+
+			if db_port:
+				site_config["db_port"] = db_port
+
+			site_config["db_user"] = db_user or db_name
+
+		with open(site_file, "w") as f:
+			f.write(json.dumps(site_config, indent=1, sort_keys=True))
+
+
+def update_site_config(key, value, validate=True, site_config_path=None):
+	"""Update a value in site_config"""
+	from frappe.utils.synchronization import filelock
+
+	if not site_config_path:
+		site_config_path = get_site_config_path()
+
+	# Sometimes global config file is passed directly to this function
+	_is_global_conf = "common_site_config" in site_config_path
+
+	with filelock("site_config", is_global=_is_global_conf):
+		_update_config_file(key=key, value=value, config_file=site_config_path)
+
+
+def _update_config_file(key: str, value, config_file: str):
+	import json
+
+	import frappe
+
+	"""Updates site or common config"""
+	with open(config_file) as f:
+		site_config = json.loads(f.read())
+
+	# In case of non-int value
+	if value in ("0", "1"):
+		value = int(value)
+
+	# boolean
+	if value == "false":
+		value = False
+	if value == "true":
+		value = True
+
+	# remove key if value is None
+	if value == "None":
+		if key in site_config:
+			del site_config[key]
+	else:
+		site_config[key] = value
+
+	with open(config_file, "w") as f:
+		f.write(json.dumps(site_config, indent=1, sort_keys=True))
+
+	if hasattr(frappe.local, "conf"):
+		frappe.local.conf[key] = value
+
+
+def get_site_config_path():
+	import frappe
+
+	return os.path.join(frappe.local.site_path, "site_config.json")
+
+
+def make_site_dirs():
+	import frappe
+
+	for dir_path in [
+		os.path.join("public", "files"),
+		os.path.join("private", "backups"),
+		os.path.join("private", "files"),
+		"locks",
+		"logs",
+	]:
+		path = frappe.get_site_path(dir_path)
+		os.makedirs(path, exist_ok=True)
