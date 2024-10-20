@@ -48,7 +48,7 @@ def get_doctype_name(table_name: str) -> str:
 
 
 class LazyString:
-	def _setup(self) -> None:
+	def _setup(self) -> str:
 		raise NotImplementedError
 
 	@cached_property
@@ -68,7 +68,7 @@ class LazyDecode(LazyString):
 	def __init__(self, value: str) -> None:
 		self._value = value
 
-	def _setup(self) -> None:
+	def _setup(self) -> str:
 		return self._value.decode()
 
 
