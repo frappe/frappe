@@ -560,9 +560,8 @@ def make_conf(
 		db_port=db_port,
 		db_user=db_user,
 	)
-	sites_path = frappe.local.sites_path
 	frappe.destroy()
-	frappe.init(site, sites_path=sites_path)
+	frappe.init(site)
 
 
 def make_site_config(
