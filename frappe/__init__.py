@@ -839,18 +839,21 @@ def sendmail(
 
 
 whitelisted = set()
+secure_methods = set()
 guest_methods = set()
 xss_safe_methods = set()
 allowed_http_methods_for_whitelisted_func = {}
 
 
-def whitelist(allow_guest=False, xss_safe=False, methods=None):
+def whitelist(allow_guest=False, xss_safe=False, methods=None, secure=None):
 	"""
 	Decorator for whitelisting a function and making it accessible via HTTP.
 	Standard request will be `/api/method/[path.to.method]`
 
 	:param allow_guest: Allow non logged-in user to access this method.
 	:param methods: Allowed http method to access the method.
+	:param secure: Allowed method to be acessed only with mTLS validated path with nginx.
+					Request will be `/api/secure/[path.to.method]`
 
 	Use as:
 
@@ -865,7 +868,7 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 	def innerfn(fn):
 		from frappe.utils.typing_validations import validate_argument_types
 
-		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func
+		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func, secure_methods
 
 		# validate argument types only if request is present
 		in_request_or_test = lambda: getattr(local, "request", None) or local.flags.in_test  # noqa: E731
@@ -879,7 +882,11 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 		else:
 			fn = validate_argument_types(fn, apply_condition=in_request_or_test)
 
-		whitelisted.add(fn)
+		if secure:
+			secure_methods.add(fn)
+		else:
+			whitelisted.add(fn)
+
 		allowed_http_methods_for_whitelisted_func[fn] = methods
 
 		if allow_guest:
@@ -896,12 +903,19 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 def is_whitelisted(method):
 	from frappe.utils import sanitize_html
 
-	is_guest = session["user"] == "Guest"
-	if method not in whitelisted or is_guest and method not in guest_methods:
+	def _raise_exception(method):
 		summary = _("You are not permitted to access this resource.")
 		detail = _("Function {0} is not whitelisted.").format(bold(f"{method.__module__}.{method.__name__}"))
 		msg = f"<details><summary>{summary}</summary>{detail}</details>"
 		throw(msg, PermissionError, title=_("Method Not Allowed"))
+
+	is_guest = session["user"] == "Guest"
+	if form_dict.url_secure_mtls:
+		if method not in secure_methods or is_guest and method not in guest_methods:
+			_raise_exception(method)
+	elif method not in whitelisted or is_guest and method not in guest_methods:
+		_raise_exception(method)
+
 
 	if is_guest and method not in xss_safe_methods:
 		# strictly sanitize form_dict
