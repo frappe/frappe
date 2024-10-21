@@ -19,10 +19,7 @@
   "settings_tab",
   "access_control_section",
   "anonymous",
-<<<<<<< HEAD
-=======
   "login_required",
->>>>>>> 84f4a76290 (refactor: Re-organize fields)
   "column_break_2",
   "apply_document_permissions",
   "allow_edit",
@@ -374,11 +371,7 @@
   },
   {
    "default": "0",
-<<<<<<< HEAD
-   "description": "Receive anonymous response",
-=======
    "description": "If enabled, all responses on the web form will be submitted anonymously",
->>>>>>> 84f4a76290 (refactor: Re-organize fields)
    "fieldname": "anonymous",
    "fieldtype": "Check",
    "label": "Anonymous responses"
@@ -397,8 +390,6 @@
    "fieldname": "condition_json",
    "fieldtype": "JSON",
    "label": "Condition JSON"
-<<<<<<< HEAD
-=======
   },
   {
    "default": "0",
@@ -416,14 +407,7 @@
    "description": "Specify the domains or origins that are permitted to embed this form. Enter one domain per line (e.g., https://example.com). If no domains are specified, the form can only be embedded on the same origin.",
    "fieldname": "allowed_embedding_domains",
    "fieldtype": "Small Text",
-<<<<<<< HEAD
-   "label": "Allowed Embedding Domains"
-<<<<<<< HEAD
->>>>>>> d35518639b (feat: Add a field to accept allowed embedding domains)
-=======
-=======
    "label": "Allowed embedding domains"
->>>>>>> a63f902648 (refactor: Use sentence case for fieldnames)
   },
   {
    "fieldname": "access_control_section",
@@ -438,26 +422,13 @@
   {
    "fieldname": "column_break_hhec",
    "fieldtype": "Column Break"
->>>>>>> 84f4a76290 (refactor: Re-organize fields)
   }
  ],
  "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
- "modified": "2024-07-27 20:32:06.331745",
-=======
- "modified": "2024-10-18 11:19:53.969109",
->>>>>>> d35518639b (feat: Add a field to accept allowed embedding domains)
-=======
- "modified": "2024-10-21 11:49:54.025258",
->>>>>>> 84f4a76290 (refactor: Re-organize fields)
-=======
  "modified": "2024-10-21 12:04:47.314849",
->>>>>>> a63f902648 (refactor: Use sentence case for fieldnames)
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
