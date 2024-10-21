@@ -53,7 +53,7 @@ from frappe.utils.data import cint, cstr, sbool
 
 # Local application imports
 from .exceptions import *
-from .types.frappedict import _dict
+from .types import Filters, FilterSignature, FilterTuple, _dict
 from .utils.jinja import (
 	get_email_from_template,
 	get_jenv,
@@ -1378,7 +1378,13 @@ def get_doc(*args: Any, **kwargs: Any) -> "Document":
 	return doc
 
 
-def get_last_doc(doctype, filters=None, order_by="creation desc", *, for_update=False):
+def get_last_doc(
+	doctype,
+	filters: FilterSignature | None = None,
+	order_by="creation desc",
+	*,
+	for_update=False,
+):
 	"""Get last created document of this type."""
 	d = get_all(doctype, filters=filters, limit_page_length=1, order_by=order_by, pluck="name")
 	if d:
