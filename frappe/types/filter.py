@@ -12,7 +12,7 @@ from .docref import DocRef
 Doct: TypeAlias = str
 Fld: TypeAlias = str
 Op: TypeAlias = str
-_Val: TypeAlias = str | int | DocRef
+_Val: TypeAlias = bool | int | str | DocRef
 Val: TypeAlias = _Val | Sequence[_Val]
 
 FilterTupleSpec: TypeAlias = tuple[Fld, Val] | tuple[Fld, Op, Val] | tuple[Doct, Fld, Op, Val]
@@ -60,13 +60,13 @@ class FilterTuple(_FilterTuple):
 					doctype, fieldname, operator, value = s
 				else:
 					raise ValueError(f"Invalid sequence length: {len(s)}. Expected 2, 3, or 4 elements.")
-			if not doctype:
+			if doctype is None:
 				raise ValueError("doctype is required")
-			if not fieldname:
+			if fieldname is None:
 				raise ValueError("fieldname is required")
-			if not operator:
+			if operator is None:
 				raise ValueError("operator is required")
-			if not value:
+			if value is None:
 				raise ValueError("value is required")
 			return super().__new__(cls, doctype=doctype, fieldname=fieldname, operator=operator, value=value)
 		except Exception as e:
