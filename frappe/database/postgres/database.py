@@ -173,10 +173,12 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		conn_settings = {
 			"user": self.user,
 			"dbname": self.cur_db_name,
-			"host": self.host,
-			"password": self.password,
+			# libpg defaults to default socket if not specified
+			"host": self.host or self.socket,
 		}
-		if self.port:
+		if self.password:
+			conn_settings["password"] = self.password
+		if not self.socket and self.port:
 			conn_settings["port"] = self.port
 
 		conn = psycopg2.connect(**conn_settings)

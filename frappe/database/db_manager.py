@@ -83,6 +83,7 @@ class DbManager:
 
 		# Generate the restore command
 		bin, args, bin_name = get_command(
+			socket=frappe.conf.db_socket,
 			host=frappe.conf.db_host,
 			port=frappe.conf.db_port,
 			user=user,
