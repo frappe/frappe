@@ -65,7 +65,7 @@ def get_bootinfo():
 	]
 	add_home_page(bootinfo, doclist)
 	bootinfo.page_info = get_allowed_pages()
-	load_translations(bootinfo)
+	load_translations(bootinfo, only_hash=True)
 	add_timezone_info(bootinfo)
 	load_conf_settings(bootinfo)
 	load_print(bootinfo, doclist)
@@ -321,10 +321,15 @@ def get_user_pages_or_reports(parent, cache=False):
 	return has_role
 
 
-def load_translations(bootinfo):
-	from frappe.translate import get_messages_for_boot
+def load_translations(bootinfo, only_hash=False):
+	from frappe.translate import get_messages_for_boot, get_translations_hash
 
 	bootinfo["lang"] = frappe.lang
+
+	if only_hash:
+		bootinfo["translations_hash"] = get_translations_hash(lang=frappe.local.lang)
+		return
+
 	bootinfo["__messages"] = get_messages_for_boot()
 
 
