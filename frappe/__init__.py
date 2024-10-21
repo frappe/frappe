@@ -25,14 +25,24 @@ import sys
 import traceback
 import warnings
 from collections import defaultdict
-from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, overload
+from collections.abc import Callable, Iterable
+from typing import (
+	TYPE_CHECKING,
+	Any,
+	Generic,
+	Literal,
+	Optional,
+	TypeAlias,
+	TypeVar,
+	Union,
+	overload,
+)
 
 import click
-from werkzeug.local import Local, release_local
+from werkzeug.local import Local, LocalProxy, release_local
 
 import frappe
-from frappe.query_builder import (
+from frappe.query_builder.utils import (
 	get_query,
 	get_query_builder,
 	patch_query_aggregation,
@@ -55,9 +65,10 @@ from .utils.jinja import (
 __version__ = "16.0.0-dev"
 __title__ = "Frappe Framework"
 
-# This if block is never executed when running the code. It is only used for
-# telling static code analyzer where to find dynamically defined attributes.
 if TYPE_CHECKING:  # pragma: no cover
+	from logging import Logger
+	from types import ModuleType
+
 	from werkzeug.wrappers import Request
 
 	from frappe.database.mariadb.database import MariaDBDatabase
@@ -65,31 +76,15 @@ if TYPE_CHECKING:  # pragma: no cover
 	from frappe.email.doctype.email_queue.email_queue import EmailQueue
 	from frappe.model.document import Document
 	from frappe.query_builder.builder import MariaDB, Postgres
+	from frappe.types.lazytranslatedstring import _LazyTranslate
 	from frappe.utils.redis_wrapper import RedisWrapper
 
-	db: MariaDBDatabase | PostgresDatabase
-	qb: MariaDB | Postgres
-	cache: RedisWrapper
-	response: _dict
-	conf: _dict
-	form_dict: _dict
-	flags: _dict
-	request: Request
-	session: _dict
-	user: str
-	flags: _dict
-	lang: str
-
-
-# end: static analysis hack
-
-
-controllers = {}
+controllers: dict[str, "Document"] = {}
 local = Local()
-cache = None
+cache: Optional["RedisWrapper"] = None
 STANDARD_USERS = ("Guest", "Administrator")
 
-_qb_patched = {}
+_qb_patched: dict[str, bool] = {}
 _dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
 _tune_gc = bool(sbool(os.environ.get("FRAPPE_TUNE_GC", True)))
 
@@ -134,7 +129,7 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 	return translated_string or non_translated_string
 
 
-def _lt(msg: str, lang: str | None = None, context: str | None = None):
+def _lt(msg: str, lang: str | None = None, context: str | None = None) -> "_LazyTranslate":
 	"""Lazily translate a string.
 
 
@@ -171,26 +166,30 @@ def set_user_lang(user: str, user_language: str | None = None) -> None:
 
 
 # local-globals
-
-db = local("db")
-qb = local("qb")
-conf = local("conf")
-form = form_dict = local("form_dict")
-request = local("request")
+db: LocalProxy[Union["MariaDBDatabase", "PostgresDatabase"]] = local("db")
+qb: LocalProxy[Union["MariaDB", "Postgres"]] = local("qb")
+conf: LocalProxy[_dict[str, Any]] = local("conf")  # type: ignore[no-any-explicit]
+form_dict: LocalProxy[_dict[str, str]] = local("form_dict")
+form = form_dict
+request: LocalProxy["Request"] = local("request")
 job = local("job")
-response = local("response")
-session = local("session")
-user = local("user")
-flags = local("flags")
+response: LocalProxy[_dict[str, Any]] = local("response")  # type: ignore[no-any-explicit]
+# TODO: make session a dataclass instead of undtyped _dict
+SettionType = _dict[str, Any]
+session: LocalProxy[SettionType] = local("session")  # type: ignore[no-any-explicit]
+user: LocalProxy[str] = local("user")
+flags: LocalProxy[_dict[str, Any]] = local("flags")  # type: ignore[no-any-explicit]
 
-error_log = local("error_log")
-debug_log = local("debug_log")
-message_log = local("message_log")
+error_log: LocalProxy[list[dict[str, str]]] = local("error_log")
+debug_log: LocalProxy[list[str]] = local("debug_log")
+# TODO: implement dataclass
+LogMessageType = _dict[str, Any]
+message_log: LocalProxy[list[LogMessageType]] = local("message_log")
 
-lang = local("lang")
+lang: LocalProxy[str] = local("lang")
 
 
-def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) -> None:
+def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool = False) -> None:
 	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
 	if getattr(local, "initialised", None) and not force:
 		return
@@ -214,7 +213,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 			"read_only": False,
 		}
 	)
-	local.locked_documents = []
+	local.locked_documents: list["Document"] = []
 	local.test_objects = defaultdict(list)
 
 	local.site = site
@@ -308,7 +307,7 @@ def connect(site: str | None = None, db_name: str | None = None, set_admin_as_us
 def connect_replica() -> bool:
 	from frappe.database import get_db
 
-	if local and hasattr(local, "replica_db") and hasattr(local, "primary_db"):
+	if hasattr(local, "replica_db") and hasattr(local, "primary_db"):
 		return False
 
 	user = local.conf.db_user
@@ -335,10 +334,10 @@ def connect_replica() -> bool:
 	return True
 
 
-def get_site_config(sites_path: str | None = None, site_path: str | None = None) -> dict[str, Any]:
+def get_site_config(sites_path: str | None = None, site_path: str | None = None) -> _dict[str, Any]:
 	"""Return `site_config.json` combined with `sites/common_site_config.json`.
 	`site_config` is a set of site wide settings like database name, password, email etc."""
-	config = _dict()
+	config: _dict[str, Any] = _dict()
 
 	sites_path = sites_path or getattr(local, "sites_path", None)
 	site_path = site_path or getattr(local, "site_path", None)
@@ -417,7 +416,7 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	return config
 
 
-def get_common_site_config(sites_path: str | None = None) -> dict[str, Any]:
+def get_common_site_config(sites_path: str | None = None) -> _dict[str, Any]:
 	"""Return common site config as dictionary.
 
 	This is useful for:
@@ -436,7 +435,7 @@ def get_common_site_config(sites_path: str | None = None) -> dict[str, Any]:
 	return _dict()
 
 
-def get_conf(site: str | None = None) -> dict[str, Any]:
+def get_conf(site: str | None = None) -> _dict[str, Any]:
 	if hasattr(local, "conf"):
 		return local.conf
 
@@ -838,10 +837,10 @@ def sendmail(
 	return builder.process(send_now=now)
 
 
-whitelisted = set()
-guest_methods = set()
-xss_safe_methods = set()
-allowed_http_methods_for_whitelisted_func = {}
+whitelisted: set[Callable] = set()
+guest_methods: set[Callable] = set()
+xss_safe_methods: set[Callable] = set()
+allowed_http_methods_for_whitelisted_func: dict[Callable, list[str]] = {}
 
 
 def whitelist(allow_guest=False, xss_safe=False, methods=None):
@@ -924,7 +923,7 @@ def read_only():
 			try:
 				retval = fn(*args, **get_newargs(fn, kwargs))
 			finally:
-				if switched_connection and local and hasattr(local, "primary_db"):
+				if switched_connection and hasattr(local, "primary_db"):
 					local.db.close()
 					local.db = local.primary_db
 
@@ -1208,7 +1207,7 @@ def set_value(doctype, docname, fieldname, value=None):
 	return frappe.client.set_value(doctype, docname, fieldname, value)
 
 
-def get_cached_doc(*args, **kwargs) -> "Document":
+def get_cached_doc(*args: Any, **kwargs: Any) -> "Document":
 	"""Identical to `frappe.get_doc`, but return from cache if available."""
 	if (key := can_cache_doc(args)) and (doc := cache.get_value(key)):
 		return doc
@@ -1269,7 +1268,9 @@ def clear_document_cache(doctype: str, name: str | None = None) -> None:
 		delattr(local, "website_settings")
 
 
-def get_cached_value(doctype: str, name: str, fieldname: str = "name", as_dict: bool = False) -> Any:
+def get_cached_value(
+	doctype: str, name: str, fieldname: str | Iterable[str] = "name", as_dict: bool = False
+) -> Any:
 	try:
 		doc = get_cached_doc(doctype, name)
 	except DoesNotExistError:
@@ -1322,7 +1323,7 @@ def get_doc(documentdict: dict) -> "_NewDocument":
 	pass
 
 
-def get_doc(*args, **kwargs):
+def get_doc(*args: Any, **kwargs: Any) -> "Document":
 	"""Return a `frappe.model.document.Document` object of the given type and name.
 
 	:param arg1: DocType name as string **or** document JSON.
@@ -1481,7 +1482,7 @@ def rename_doc(
 	)
 
 
-def get_module(modulename):
+def get_module(modulename: str) -> "ModuleType":
 	"""Return a module object for given Python module name using `importlib.import_module`."""
 	return importlib.import_module(modulename)
 
@@ -1570,7 +1571,7 @@ def get_all_apps(with_internal_apps=True, sites_path=None):
 
 
 @request_cache
-def get_installed_apps(*, _ensure_on_bench=False) -> list[str]:
+def get_installed_apps(*, _ensure_on_bench: bool = False) -> list[str]:
 	"""
 	Get list of installed apps in current site.
 
@@ -2342,8 +2343,8 @@ def get_doctype_app(doctype):
 	return local_cache("doctype_app", doctype, generator=_get_doctype_app)
 
 
-loggers = {}
-log_level = None
+loggers: dict[str, "Logger"] = {}
+log_level: int | None = None
 
 
 def logger(module=None, with_more_info=False, allow_site=True, filter=None, max_size=100_000, file_count=20):
