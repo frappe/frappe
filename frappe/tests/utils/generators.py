@@ -36,7 +36,7 @@ __all__ = [
 
 
 @cache
-def get_modules(doctype) -> (str, ModuleType):
+def get_modules(doctype) -> tuple[str, ModuleType]:
 	"""Get the modules for the specified doctype"""
 	module = frappe.db.get_value("DocType", doctype, "module")
 	try:

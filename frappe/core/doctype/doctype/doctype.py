@@ -402,9 +402,9 @@ class DocType(Document):
 				frappe.db.sql(query)
 
 	def validate_document_type(self):
-		if self.document_type == "Transaction":
+		if self.document_type == "Transaction":  # type: ignore[comparison-overlap]
 			self.document_type = "Document"
-		if self.document_type == "Master":
+		if self.document_type == "Master":  # type: ignore[comparison-overlap]
 			self.document_type = "Setup"
 
 	def validate_website(self):

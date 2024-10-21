@@ -266,15 +266,15 @@ class PersonalDataDeletionRequest(Document):
 		self.add_deletion_steps()
 
 		self.full_match_doctypes = (
-			x
-			for x in self.full_match_privacy_docs
-			if filter(lambda x: x.document_type == x and x.status == "Pending", self.deletion_steps)
+			doc
+			for doc in self.full_match_privacy_docs
+			if filter(lambda x: x.document_type == doc and x.status == "Pending", self.deletion_steps)
 		)
 
 		self.partial_match_doctypes = (
-			x
-			for x in self.partial_privacy_docs
-			if filter(lambda x: x.document_type == x and x.status == "Pending", self.deletion_steps)
+			doc
+			for doc in self.partial_privacy_docs
+			if filter(lambda x: x.document_type == doc and x.status == "Pending", self.deletion_steps)
 		)
 
 		for doctype in self.full_match_doctypes:

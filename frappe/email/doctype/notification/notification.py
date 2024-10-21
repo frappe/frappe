@@ -734,7 +734,7 @@ def evaluate_alert(doc: Document, alert, event=None):
 
 
 def get_context(doc):
-	Frappe = namedtuple("frappe", ["frappe"])
+	Frappe = namedtuple("Frappe", ["frappe"])
 	frappe = Frappe(frappe=get_safe_globals().get("frappe"))
 	return {
 		"doc": doc,

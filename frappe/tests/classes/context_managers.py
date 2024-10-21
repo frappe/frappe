@@ -198,7 +198,7 @@ def trace_fields(
 	field_name: str | None = None,
 	forbidden_values: list | None = None,
 	custom_validation: Callable | None = None,
-	**field_configs: dict[str, dict[str, list | Callable]],
+	**field_configs: dict[str, list | Callable | None],
 ) -> "Document":
 	"""
 	A context manager for temporarily tracing fields in a DocType.
