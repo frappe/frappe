@@ -554,27 +554,11 @@ class DatabaseQuery:
 
 	def set_optional_columns(self):
 		"""Removes optional columns like `_user_tags`, `_comments` etc. if not in table"""
-		# remove from fields
-		to_remove = []
-		for fld in self.fields:
-			to_remove.extend(fld for f in optional_fields if f in fld and f not in self.columns)
-		for fld in to_remove:
-			del self.fields[self.fields.index(fld)]
 
-		# remove from filters
-		to_remove = []
-		for each in self.filters:
-			if isinstance(each, str):
-				each = [each]
-
-			to_remove.extend(
-				each for element in each if element in optional_fields and element not in self.columns
-			)
-		for each in to_remove:
-			if isinstance(self.filters, dict):
-				del self.filters[each]
-			else:
-				self.filters.remove(each)
+		self.fields[:] = [f for f in self.fields if f not in optional_fields or f in self.columns]
+		self.filters[:] = [
+			f for f in self.filters if f.fieldname not in optional_fields or f.fieldname in self.columns
+		]
 
 	def build_conditions(self):
 		self.conditions = []
