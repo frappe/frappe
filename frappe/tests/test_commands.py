@@ -910,7 +910,7 @@ class TestBenchBuild(BaseTestCommands):
 		default_bundle_size = 0.0
 
 		for chunk in default_bundle:
-			abs_path = Path.cwd() / frappe.local.sites_path / bundled_asset(chunk)[1:]
+			abs_path = (frappe.bench.sites.path / bundled_asset(chunk)[1:]).resolve()
 			default_bundle_size += abs_path.stat().st_size
 
 		self.assertLessEqual(

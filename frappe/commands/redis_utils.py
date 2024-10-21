@@ -19,7 +19,6 @@ def create_rq_users(set_admin_password=False, use_rq_auth=False):
 	acl config file will be used by redis server while starting the server
 	and app config is used by app while connecting to redis server.
 	"""
-	from frappe.installer import update_site_config
 	from frappe.utils.redis_queue import RedisQueue
 
 	acl_file_path = os.path.abspath("../config/redis_queue.acl")
@@ -30,21 +29,13 @@ def create_rq_users(set_admin_password=False, use_rq_auth=False):
 	with open(acl_file_path, "w") as f:
 		f.writelines([acl + "\n" for acl in acl_list])
 
-	sites_path = os.getcwd()
-	common_site_config_path = os.path.join(sites_path, "common_site_config.json")
-	update_site_config(
-		"rq_username",
-		user_credentials["bench"][0],
-		validate=False,
-		site_config_path=common_site_config_path,
+	frappe.bench.sites.update_config(
+		{
+			"rq_username": user_credentials["bench"][0],
+			"rq_password": user_credentials["bench"][1],
+			"use_rq_auth": use_rq_auth,
+		}
 	)
-	update_site_config(
-		"rq_password",
-		user_credentials["bench"][1],
-		validate=False,
-		site_config_path=common_site_config_path,
-	)
-	update_site_config("use_rq_auth", use_rq_auth, validate=False, site_config_path=common_site_config_path)
 
 	click.secho(
 		"* ACL and site configs are updated with new user credentials. "
