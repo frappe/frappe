@@ -124,6 +124,7 @@ dev = [
     "types-six",
     "types-vobject",
     "types-zxcvbn",
+    "pypika-stubs",  # contributed
 ]
 test = [
     "unittest-xml-reporting~=3.2.0",
