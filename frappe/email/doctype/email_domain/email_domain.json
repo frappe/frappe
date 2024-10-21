@@ -24,7 +24,9 @@
   "validate_ssl_certificate_for_outgoing",
   "column_break_18",
   "smtp_port",
-  "append_emails_to_sent_folder"
+  "append_emails_to_sent_folder",
+  "smtp_local_hostname",
+  "smtp_source_address"
  ],
  "fields": [
   {
@@ -141,6 +143,18 @@
    "fieldname": "validate_ssl_certificate_for_outgoing",
    "fieldtype": "Check",
    "label": "Validate SSL Certificate"
+  },
+  {
+   "description": "Fully qualified domain name or IP in square brackets",
+   "fieldname": "smtp_local_hostname",
+   "fieldtype": "Data",
+   "label": "Local Hostname (SMTP)"
+  },
+  {
+   "description": "Preferred outgoing network interface IP",
+   "fieldname": "smtp_source_address",
+   "fieldtype": "Data",
+   "label": "Source Address (SMTP)"
   }
  ],
  "icon": "icon-inbox",
@@ -150,7 +164,7 @@
    "link_fieldname": "domain"
   }
  ],
- "modified": "2024-03-23 16:03:23.836849",
+ "modified": "2024-10-10 15:56:01.121667",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Domain",
