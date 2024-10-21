@@ -38,9 +38,10 @@ from frappe.model.base_document import (
 	TABLE_DOCTYPES_FOR_DOCTYPE,
 	BaseDocument,
 )
-from frappe.model.document import DocRef, Document
+from frappe.model.document import Document
 from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
+from frappe.types import DocRef
 from frappe.utils import cast, cint, cstr
 
 DEFAULT_FIELD_LABELS = {
