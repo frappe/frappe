@@ -7,7 +7,7 @@ from typing import Any, NamedTuple, TypeAlias
 
 from typing_extensions import Self, override
 
-from frappe.model.document import DocRef
+from .docref import DocRef
 
 Doct: TypeAlias = str
 Fld: TypeAlias = str
