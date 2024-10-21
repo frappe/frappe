@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-08 17:02+0000\n"
-"PO-Revision-Date: 2024-10-19 05:44\n"
+"PO-Revision-Date: 2024-10-21 06:17\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -1573,7 +1573,7 @@ msgstr "Se eliminarán todas las personalizaciones. Por favor confirmar."
 
 #: frappe/templates/includes/comments/comments.html:158
 msgid "All fields are necessary to submit the comment."
-msgstr ""
+msgstr "Todos los campos son necesarios para validar el comentario."
 
 #. Description of the 'Document States' (Table) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
@@ -3944,7 +3944,7 @@ msgstr "No se puede acceder a la ruta del archivo {0}"
 
 #: frappe/public/js/workflow_builder/utils.js:183
 msgid "Cannot cancel before submitting while transitioning from <b>{0} State</b> to <b>{1} State</b>"
-msgstr ""
+msgstr "No se puede cancelar antes de validar durante la transición del estado <b>{0}</b> al estado <b>{1}</b>"
 
 #: frappe/workflow/doctype/workflow/workflow.py:110
 msgid "Cannot cancel before submitting. See Transition {0}"
@@ -4068,7 +4068,7 @@ msgstr "No se pueden editar los campos estándar"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:125
 msgid "Cannot enable {0} for a non-submittable doctype"
-msgstr ""
+msgstr "No se puede habilitar {0} para un tipo de documento que puede ser validado"
 
 #: frappe/core/doctype/file/file.py:248
 msgid "Cannot find file {} on disk"
@@ -4112,7 +4112,7 @@ msgstr ""
 
 #: frappe/core/doctype/docshare/docshare.py:66
 msgid "Cannot share {0} with submit permission as the doctype {1} is not submittable"
-msgstr ""
+msgstr "No se puede compartir {0} con permiso de validación, ya que el tipo de documento {1} no puede ser validado"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:291
 msgid "Cannot submit {0}."
@@ -4201,7 +4201,7 @@ msgstr "Centro"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:16
 msgid "Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit."
-msgstr ""
+msgstr "Ciertos documentos, como una factura, no deben ser modificados una vez que están en su estado final. El estado final para estos documentos se llama 'Validado'. Puedes restringir qué roles pueden validar."
 
 #: frappe/core/report/transaction_log_report/transaction_log_report.py:82
 msgid "Chain Integrity"
@@ -5143,7 +5143,7 @@ msgstr "Confirmar"
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:92
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:100
 msgid "Confirm Deletion of Account"
-msgstr ""
+msgstr "Confirmar la eliminación de la cuenta"
 
 #: frappe/core/doctype/user/user.js:189
 msgid "Confirm New Password"
@@ -8758,7 +8758,7 @@ msgstr "Habilita las vistas Calendario y Gantt."
 
 #: frappe/email/doctype/email_account/email_account.js:223
 msgid "Enabling auto reply on an incoming email account will send automated replies to all the synchronized emails. Do you wish to continue?"
-msgstr ""
+msgstr "Si activa la respuesta automática en una cuenta de correo electrónico entrante, se enviarán respuestas automáticas a todos los correos electrónicos sincronizados. ¿Desea continuar?"
 
 #. Description of a DocType
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.json
@@ -24232,7 +24232,7 @@ msgstr "Enviar un Problema"
 #: frappe/website/doctype/web_form/templates/web_form.html:153
 msgctxt "Button in web form"
 msgid "Submit another response"
-msgstr ""
+msgstr "Enviar otra respuesta"
 
 #. Label of a Check field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
@@ -24268,7 +24268,7 @@ msgstr "El documento validado no se puede revertir a borrador, en la línea de t
 
 #: frappe/public/js/workflow_builder/utils.js:176
 msgid "Submitted document cannot be converted back to draft while transitioning from <b>{0} State</b> to <b>{1} State</b>"
-msgstr ""
+msgstr "El documento validado no puede convertirse de nuevo en borrador mientras se pasa del <b>estado {0} </b> al <b>estado {1} </b>"
 
 #: frappe/public/js/frappe/form/save.js:10
 msgctxt "Freeze message while submitting a document"
@@ -28767,7 +28767,7 @@ msgstr "También puedes copiar y pegar este {0} en tu navegador"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:17
 msgid "You can change Submitted documents by cancelling them and then, amending them."
-msgstr ""
+msgstr "Puede cambiar los documentos validados cancelándolos y luego modificándolos."
 
 #: frappe/public/js/frappe/logtypes.js:21
 msgid "You can change the retention policy from {0}."
