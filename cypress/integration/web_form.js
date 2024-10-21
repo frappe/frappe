@@ -87,6 +87,10 @@ context("Web Form", () => {
 		cy.visit("/app/web-form/note");
 
 		cy.findByRole("tab", { name: "Settings" }).click();
+
+		cy.wait(100);
+		cy.get(".section-head").contains("List Settings").scrollIntoView();
+
 		cy.fill_field("list_title", "Note List");
 
 		cy.save();
