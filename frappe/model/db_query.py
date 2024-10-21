@@ -216,7 +216,9 @@ class DatabaseQuery:
 			args.conditions = "where " + args.conditions
 
 		if self.distinct:
-			args.fields = "distinct " + args.fields
+			if not args.fields.startswith("distinct"):
+				#Avoiding distinct twice in query
+				args.fields = "distinct " + args.fields
 			args.order_by = ""  # TODO: recheck for alternative
 
 		# Postgres requires any field that appears in the select clause to also
