@@ -33,8 +33,6 @@
   "max_attachment_size",
   "show_attachments",
   "column_break_hhec",
-  "hide_navbar",
-  "hide_footer",
   "allowed_embedding_domains",
   "condition_section",
   "condition_description",
@@ -390,18 +388,6 @@
    "fieldname": "condition_json",
    "fieldtype": "JSON",
    "label": "Condition JSON"
-  },
-  {
-   "default": "0",
-   "fieldname": "hide_navbar",
-   "fieldtype": "Check",
-   "label": "Hide navbar"
-  },
-  {
-   "default": "0",
-   "fieldname": "hide_footer",
-   "fieldtype": "Check",
-   "label": "Hide footer"
   },
   {
    "description": "Specify the domains or origins that are permitted to embed this form. Enter one domain per line (e.g., https://example.com). If no domains are specified, the form can only be embedded on the same origin.",
