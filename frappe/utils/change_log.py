@@ -6,7 +6,8 @@ import os
 import subprocess  # nosec
 from contextlib import suppress
 
-from semantic_version import SimpleSpec, Version
+from packaging.version import Version
+from semantic_version import SimpleSpec
 
 import frappe
 from frappe import _, safe_decode
@@ -64,8 +65,6 @@ def get_change_log_for_app(app, from_version, to_version):
 
 	from_version = Version(from_version)
 	to_version = Version(to_version)
-	# remove pre-release part
-	to_version.prerelease = None
 
 	major_version_folders = [f"v{i}" for i in range(from_version.major, to_version.major + 1)]
 	app_change_log = []
@@ -75,7 +74,7 @@ def get_change_log_for_app(app, from_version, to_version):
 			for file in os.listdir(os.path.join(change_log_folder, folder)):
 				version = Version(os.path.splitext(file)[0][1:].replace("_", "."))
 
-				if from_version < version <= to_version:
+				if from_version.major < version.major <= to_version.major:
 					file_path = os.path.join(change_log_folder, folder, file)
 					content = frappe.read_file(file_path)
 					app_change_log.append([version, content])
@@ -192,7 +191,7 @@ def check_for_update():
 
 		# Compare and popup update message
 		for update_type in updates:
-			if github_version.__dict__[update_type] > instance_version.__dict__[update_type]:
+			if getattr(github_version, update_type) > getattr(instance_version, update_type):
 				updates[update_type].append(
 					frappe._dict(
 						current_version=str(instance_version),
