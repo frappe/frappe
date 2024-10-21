@@ -23,7 +23,7 @@ from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name, validate_name
 from frappe.model.utils import is_virtual_doctype, simple_singledispatch
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
-from frappe.types import DF
+from frappe.types import DF, DocRef
 from frappe.utils import compare, cstr, date_diff, file_lock, flt, now
 from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
 from frappe.utils.global_search import update_global_search
@@ -36,27 +36,6 @@ if TYPE_CHECKING:
 
 DOCUMENT_LOCK_EXPIRTY = 12 * 60 * 60  # All locks expire in 12 hours automatically
 DOCUMENT_LOCK_SOFT_EXPIRY = 60 * 60  # Let users force-unlock after 60 minutes
-
-
-class DocRef:
-	"""A lightweight reference to a document, containing just the doctype and name."""
-
-	def __init__(self, doctype: str, name: str):
-		self.doctype = doctype
-		self.name = name
-
-	def __value__(self):
-		# Used when requiring its value representation for db interactions, serializations, etc
-		return self.name
-
-	def __hash__(self):
-		return hash(self.doctype + self.name or "")
-
-	def __str__(self):
-		return f"{self.doctype} ({self.name or 'n/a'})"
-
-	def __repr__(self):
-		return f"<{self.__class__.__name__}: doctype={self.doctype} name={self.name or 'n/a'}>"
 
 
 @simple_singledispatch

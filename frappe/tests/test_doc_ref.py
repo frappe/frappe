@@ -1,6 +1,7 @@
 import frappe
-from frappe.model.document import DocRef, Document, get_doc
+from frappe.model.document import Document, get_doc
 from frappe.tests import IntegrationTestCase
+from frappe.types import DocRef
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
 
