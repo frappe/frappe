@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+  <h1>Testing DocumentProxy with Global Context Items</h1>
+
+  <h2>Assert the DocumentProxy via the implicit calling signature of frappe.get_meta</h2>
+  <p>Meta name: {{ frappe.get_meta(user).name }}</p>
+
+  <h2>Escape the DocumentProxy using frappe.get_doc</h2>
+  <p>User dict name: {{ frappe.get_doc(user).as_dict()["name"] }}</p>
+
+  <h2>Null value DocumentProxy</h2>
+  <p>Proxy: {{ user.language }}</p>
+
+  <h2>JSON</h2>
+  <p>JSON Dumps: {{ as_json({"user": user, "lang": user.language}) }}</p>
+
+  <h2>dict</h2>
+  <p>{{ dict(key=user).key }}</p>
+
+  <h2>_dict</h2>
+  <p>{{ _dict(key=user).key }}</p>
+
+  <h2>frappe.format_value</h2>
+  <p>{{ frappe.format_value(1000, {"fieldtype": "Currency"}) }}</p>
+
+  <h2>frappe.bold</h2>
+  <p>{{ frappe.bold(user) }}</p>
+
+  <h2>frappe.utils.get_url</h2>
+  <p>{{ frappe.utils.get_url("lang/" ~ user) }}</p>
+
+  <h2>frappe.render_template</h2>
+  <p>{{ frappe.render_template("Hello {{ name }} in {{ lang }}", {"name": user, "lang": user}) }}</p>
+
+  <h2>frappe.db.get_value</h2>
+  <p>User email: {{ frappe.db.get_value("User", user, "email") }}</p>
+
+  <h2>frappe.get_fullname</h2>
+  <p>{{ frappe.get_fullname() }}</p>
+
+  <h2>_</h2>
+  <p>{{ _(user) }} speaks {{ _(user) }}</p>
+
+  <h2>scrub</h2>
+  <p>{{ scrub(user) }}</p>
+</body>
+
+</html>

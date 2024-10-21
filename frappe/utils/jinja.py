@@ -1,5 +1,47 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+	from frappe.model.document import DocumentProxy
+
+
+def process_context(
+	context: dict[Any],
+	for_code_completion: bool = False,
+	document_proxy_class: type["DocumentProxy"] | None = None,
+):
+	from frappe.model.document import Document, DocumentProxy
+
+	if not document_proxy_class:  # lazy import
+		document_proxy_class = DocumentProxy
+
+	if meta := for_code_completion:
+		meta = isinstance(meta, str) and meta or "ctx"
+		from frappe.utils.safe_exec import get_keys_for_autocomplete
+
+		def generate_completion_list(context):
+			for key, value in context.items():
+				if isinstance(value, Document):
+					value = document_proxy_class(value.doctype, value.name)
+				yield from get_keys_for_autocomplete(
+					key, value, meta=meta, max_depth=2, document_proxy_class=document_proxy_class
+				)
+
+		return list(generate_completion_list(context))
+
+	else:
+
+		def process_value(value, depth=0):
+			if isinstance(value, Document):
+				return document_proxy_class(value.doctype, value.name)
+			elif isinstance(value, dict) and not depth >= 2:
+				return {k: process_value(v, depth + 1) for k, v in value.items()}
+			return value
+
+		return {key: process_value(value) for key, value in context.items()}
+
+
 def get_jenv():
 	import frappe
 
@@ -69,7 +111,13 @@ def validate_template(html):
 		frappe.throw(f"Syntax error in template as line {e.lineno}: {e.message}")
 
 
-def render_template(template, context=None, is_path=None, safe_render=True):
+def render_template(
+	template,
+	context=None,
+	is_path=None,
+	safe_render=True,
+	document_proxy_class: type["DocumentProxy"] | None = None,
+):
 	"""Render a template using Jinja
 
 	:param template: path or HTML containing the jinja template
@@ -88,13 +136,15 @@ def render_template(template, context=None, is_path=None, safe_render=True):
 	if context is None:
 		context = {}
 
+	processed_context = process_context(context, document_proxy_class=document_proxy_class)
+
 	if is_path or guess_is_path(template):
-		return get_jenv().get_template(template).render(context)
+		return get_jenv().get_template(template).render(processed_context)
 	else:
 		if safe_render and ".__" in template:
 			throw(_("Illegal template"))
 		try:
-			return get_jenv().from_string(template).render(context)
+			return get_jenv().from_string(template).render(processed_context)
 		except TemplateError:
 			throw(
 				title="Jinja Template Error",
