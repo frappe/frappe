@@ -9,7 +9,7 @@ from typing import Any, NamedTuple, TypeAlias, TypeGuard, TypeVar, cast
 from pypika import Column
 from typing_extensions import Self, override
 
-from frappe.model.document import DocRef
+from .docref import DocRef
 
 Doct: TypeAlias = str
 Fld: TypeAlias = str
