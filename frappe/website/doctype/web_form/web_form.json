@@ -17,21 +17,28 @@
   "introduction_text",
   "web_form_fields",
   "settings_tab",
-  "login_required",
-  "allow_multiple",
-  "allow_edit",
-  "allow_delete",
+  "access_control_section",
   "anonymous",
+<<<<<<< HEAD
+=======
+  "login_required",
+>>>>>>> 84f4a76290 (refactor: Re-organize fields)
   "column_break_2",
   "apply_document_permissions",
+  "allow_edit",
+  "allow_multiple",
+  "allow_delete",
+  "form_settings_section",
+  "allow_incomplete",
+  "allow_comments",
   "allow_print",
   "print_format",
-  "allow_comments",
-  "show_attachments",
-  "allow_incomplete",
-  "allowed_embedding_domains",
-  "section_break_2",
   "max_attachment_size",
+  "show_attachments",
+  "column_break_hhec",
+  "hide_navbar",
+  "hide_footer",
+  "allowed_embedding_domains",
   "condition_section",
   "condition_description",
   "condition_json",
@@ -180,9 +187,10 @@
    "options": "Web Form Field"
   },
   {
+   "description": "Set size in MB",
    "fieldname": "max_attachment_size",
    "fieldtype": "Int",
-   "label": "Max Attachment Size (in MB)"
+   "label": "Max Attachment Size"
   },
   {
    "description": "For help see <a href=\"https://frappeframework.com/docs/user/en/guides/portal-development/web-forms\" target=\"_blank\">Client Script API and Examples</a>",
@@ -298,10 +306,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "section_break_2",
-   "fieldtype": "Section Break"
-  },
-  {
    "collapsible": 1,
    "collapsible_depends_on": "show_list",
    "depends_on": "eval:!doc.anonymous",
@@ -370,10 +374,14 @@
   },
   {
    "default": "0",
+<<<<<<< HEAD
    "description": "Receive anonymous response",
+=======
+   "description": "If enabled, all responses on the web form will be submitted anonymously",
+>>>>>>> 84f4a76290 (refactor: Re-organize fields)
    "fieldname": "anonymous",
    "fieldtype": "Check",
-   "label": "Anonymous"
+   "label": "Anonymous Responses"
   },
   {
    "fieldname": "condition_description",
@@ -409,7 +417,24 @@
    "fieldname": "allowed_embedding_domains",
    "fieldtype": "Small Text",
    "label": "Allowed Embedding Domains"
+<<<<<<< HEAD
 >>>>>>> d35518639b (feat: Add a field to accept allowed embedding domains)
+=======
+  },
+  {
+   "fieldname": "access_control_section",
+   "fieldtype": "Section Break",
+   "label": "Access Control"
+  },
+  {
+   "fieldname": "form_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Form Settings"
+  },
+  {
+   "fieldname": "column_break_hhec",
+   "fieldtype": "Column Break"
+>>>>>>> 84f4a76290 (refactor: Re-organize fields)
   }
  ],
  "has_web_view": 1,
@@ -417,10 +442,14 @@
  "is_published_field": "published",
  "links": [],
 <<<<<<< HEAD
+<<<<<<< HEAD
  "modified": "2024-07-27 20:32:06.331745",
 =======
  "modified": "2024-10-18 11:19:53.969109",
 >>>>>>> d35518639b (feat: Add a field to accept allowed embedding domains)
+=======
+ "modified": "2024-10-21 11:49:54.025258",
+>>>>>>> 84f4a76290 (refactor: Re-organize fields)
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
