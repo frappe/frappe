@@ -116,33 +116,34 @@ def update_password(user, pwd, doctype="User", fieldname="password", logout_all_
 	:param fieldname: fieldname (in given doctype) (for encryption)
 	:param logout_all_session: delete all other session
 	"""
-	hashPwd = passlibctx.hash(pwd)
-
-	query = (
-		frappe.qb.into(Auth)
-		.columns(Auth.doctype, Auth.name, Auth.fieldname, Auth.password, Auth.encrypted)
-		.insert(doctype, user, fieldname, hashPwd, 0)
-	)
-
-	# TODO: Simplify this via aliasing methods in `frappe.qb`
-	if frappe.db.db_type == "mariadb":
-		query = query.on_duplicate_key_update(Auth.password, hashPwd).on_duplicate_key_update(
-			Auth.encrypted, 0
-		)
-	elif frappe.db.db_type == "postgres":
+	if validate_new_password(user, pwd):
+		hashPwd = passlibctx.hash(pwd)
+	
 		query = (
-			query.on_conflict(Auth.doctype, Auth.name, Auth.fieldname)
-			.do_update(Auth.password, hashPwd)
-			.do_update(Auth.encrypted, 0)
+			frappe.qb.into(Auth)
+			.columns(Auth.doctype, Auth.name, Auth.fieldname, Auth.password, Auth.encrypted)
+			.insert(doctype, user, fieldname, hashPwd, 0)
 		)
-
-	query.run()
-
-	# clear all the sessions except current
-	if logout_all_sessions:
-		from frappe.sessions import clear_sessions
-
-		clear_sessions(user=user, keep_current=True, force=True)
+	
+		# TODO: Simplify this via aliasing methods in `frappe.qb`
+		if frappe.db.db_type == "mariadb":
+			query = query.on_duplicate_key_update(Auth.password, hashPwd).on_duplicate_key_update(
+				Auth.encrypted, 0
+			)
+		elif frappe.db.db_type == "postgres":
+			query = (
+				query.on_conflict(Auth.doctype, Auth.name, Auth.fieldname)
+				.do_update(Auth.password, hashPwd)
+				.do_update(Auth.encrypted, 0)
+			)
+	
+		query.run()
+	
+		# clear all the sessions except current
+		if logout_all_sessions:
+			from frappe.sessions import clear_sessions
+	
+			clear_sessions(user=user, keep_current=True, force=True)
 
 
 def delete_all_passwords_for(doctype, name):
@@ -208,6 +209,43 @@ def decrypt(txt, encryption_key=None, key: str | None = None):
 def get_encryption_key():
 	if "encryption_key" not in frappe.local.conf:
 		from frappe.installer import update_site_config
+		
+def validate_new_password(user, new_password, doctype='User', fieldname='password'):
+    """
+    Validate that the new password is not the same as the old password.
+
+    :param user: The username of the user whose password is being updated.
+    :param new_password: The new password input from the user for validation.
+    :param doctype: The document type from which to retrieve the old password (default is 'User').
+    :param fieldname: The field name for the password in the DocType (default is 'password').
+    :raises frappe.ValidationError: If the user is not found or the new password is the same as the old password.
+    """
+    # Reference the __Auth DocType to access password records
+    auth = frappe.qb.DocType("__Auth")
+
+    # Retrieve the old hashed password for the specified user
+    result = (
+        frappe.qb.from_(auth)
+        .select(auth.name, auth.password)
+        .where(
+            (auth.doctype == doctype) &
+            (auth.name == user) &
+            (auth.fieldname == fieldname) &
+            (auth.encrypted == 0)
+        )
+        .limit(1)
+        .run(as_dict=True)
+    )
+
+    # Check if we retrieved any results; if not, raise an error
+    if not result:
+        frappe.throw(_("User not found or no valid password record."))
+
+    # Verify that the new password is not the same as the old password
+    if passlibctx.verify(new_password, result[0]['password']):
+        frappe.throw(_("Your new password cannot be the same as your previous password. Please choose a different password."))
+
+    return True
 
 		encryption_key = Fernet.generate_key().decode()
 		update_site_config("encryption_key", encryption_key)
