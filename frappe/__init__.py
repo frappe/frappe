@@ -166,27 +166,55 @@ def set_user_lang(user: str, user_language: str | None = None) -> None:
 
 
 # local-globals
+ConfType: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
+# TODO: make session a dataclass instead of undtyped _dict
+SessionType: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
+# TODO: implement dataclass
+LogMessageType: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
+# TODO: implement dataclass
+# holds job metadata if the code is run in a background job context
+JobMetaType: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
+ResponseDict: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
+FlagsDict: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
+FormDict: TypeAlias = _dict[str, str]
+
 db: LocalProxy[Union["MariaDBDatabase", "PostgresDatabase"]] = local("db")
 qb: LocalProxy[Union["MariaDB", "Postgres"]] = local("qb")
-conf: LocalProxy[_dict[str, Any]] = local("conf")  # type: ignore[no-any-explicit]
-form_dict: LocalProxy[_dict[str, str]] = local("form_dict")
+conf: LocalProxy[ConfType] = local("conf")
+form_dict: LocalProxy[FormDict] = local("form_dict")
 form = form_dict
 request: LocalProxy["Request"] = local("request")
-job = local("job")
-response: LocalProxy[_dict[str, Any]] = local("response")  # type: ignore[no-any-explicit]
-# TODO: make session a dataclass instead of undtyped _dict
-SettionType = _dict[str, Any]
-session: LocalProxy[SettionType] = local("session")  # type: ignore[no-any-explicit]
+job: LocalProxy[JobMetaType] = local("job")
+response: LocalProxy[ResponseDict] = local("response")
+session: LocalProxy[SessionType] = local("session")
 user: LocalProxy[str] = local("user")
-flags: LocalProxy[_dict[str, Any]] = local("flags")  # type: ignore[no-any-explicit]
+flags: LocalProxy[FlagsDict] = local("flags")
 
 error_log: LocalProxy[list[dict[str, str]]] = local("error_log")
 debug_log: LocalProxy[list[str]] = local("debug_log")
-# TODO: implement dataclass
-LogMessageType = _dict[str, Any]
 message_log: LocalProxy[list[LogMessageType]] = local("message_log")
 
 lang: LocalProxy[str] = local("lang")
+
+if TYPE_CHECKING:  # pragma: no cover
+	# trick because some type checkers fail to follow "RedisWrapper", etc (written as string literal)
+	# trough a generic wrapper; seems to be a bug
+	db: MariaDBDatabase | PostgresDatabase
+	qb: MariaDB | Postgres
+	conf: ConfType
+	form_dict: FormDict
+	request: Request
+	session: SessionType
+	user: str
+	flags: FlagsDict
+	session: JobMetaType
+	response: ResponseDict
+
+	error_log: list[dict[str, str]]
+	debug_log: list[str]
+	message_log: list[LogMessageType]
+
+	lang: str
 
 
 def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool = False) -> None:
