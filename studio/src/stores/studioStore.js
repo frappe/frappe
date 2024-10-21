@@ -94,6 +94,10 @@ const useStudioStore = defineStore("store", () => {
 		}
 	}
 
+	function getAppPageRoute(pageName) {
+		return Object.values(appPages.value).find((page) => page.page_name === pageName)?.route
+	}
+
 	// studio pages
 	const activePage = ref(null)
 	const pageBlocks = ref([])
@@ -179,9 +183,21 @@ const useStudioStore = defineStore("store", () => {
 		await studioPageResources.reload()
 		resources.value = {}
 
-		studioPageResources.data.map((resource) => {
-			resources.value[resource.resource_name] = getNewResource(resource)
-			resources.value[resource.resource_name].docname = resource.name
+		const resourcePromises = studioPageResources.data.map(async (resource) => {
+			const newResource = await getNewResource(resource)
+			return {
+				name: resource.resource_name,
+				value: newResource,
+				docname: resource.name,
+			}
+		})
+
+		const resolvedResources = await Promise.all(resourcePromises)
+
+		resolvedResources.forEach((item) => {
+			resources.value[item.name] = item.value
+			if (!item.value) return
+			resources.value[item.name].docname = item.docname
 		})
 	}
 
@@ -205,6 +221,7 @@ const useStudioStore = defineStore("store", () => {
 		deleteAppPage,
 		appPages,
 		setAppPages,
+		getAppPageRoute,
 		// studio pages
 		selectedPage,
 		settingPage,

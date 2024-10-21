@@ -2,8 +2,8 @@
 	<Dialog
 		v-model="showDialog"
 		:options="{
-			title: 'Add Resource',
-			size: 'lg',
+			title: 'Add Data Source',
+			size: '2xl',
 			actions: [
 				{
 					label: 'Add',
@@ -21,23 +21,24 @@
 				<FormControl
 					label="New or Existing"
 					type="select"
-					:options="['New Resource', 'Existing Resource']"
+					:options="['New Data Source', 'Existing Data Source']"
 					autocomplete="off"
 					v-model="newResource.source"
 				/>
 				<Link
-					v-if="newResource.source === 'Existing Resource'"
+					v-if="newResource.source === 'Existing Data Source'"
 					doctype="Studio Resource"
-					label="Resource"
+					label="Data Source"
+					placeholder="Select Data Source"
 					v-model="newResource.name"
 				/>
 
 				<template v-else>
-					<FormControl label="Resource Name" v-model="newResource.name" autocomplete="off" />
+					<FormControl label="Name" v-model="newResource.name" autocomplete="off" />
 					<FormControl
-						label="Resource Type"
+						label="Type"
 						type="select"
-						:options="['List Resource', 'Document Resource', 'API Resource']"
+						:options="['Document List', 'Document', 'API Resource']"
 						autocomplete="off"
 						v-model="newResource.resource_type"
 					/>
@@ -52,14 +53,8 @@
 					</template>
 					<template v-else>
 						<Link doctype="DocType" label="Document Type" v-model="newResource.document_type" />
-						<Link
-							v-if="newResource.resource_type === 'Document Resource' && newResource.document_type"
-							:doctype="newResource.document_type"
-							label="Document Name"
-							v-model="newResource.document_name"
-						/>
 						<FormControl
-							v-if="newResource.resource_type === 'List Resource' && newResource.document_type"
+							v-if="newResource.resource_type === 'Document List' && newResource.document_type"
 							type="autocomplete"
 							label="Fields"
 							:placeholder="`Select fields from ${newResource.document_type}`"
@@ -67,7 +62,38 @@
 							:options="doctypeFields"
 							:multiple="true"
 						/>
+						<Link
+							v-if="newResource.resource_type === 'Document' && newResource.document_type"
+							:doctype="newResource.document_type"
+							label="Document Name"
+							v-model="newResource.document_name"
+						/>
+						<FormControl
+							v-if="newResource.resource_type === 'Document' && newResource.document_type"
+							type="autocomplete"
+							label="Whitelisted Methods"
+							v-model="newResource.whitelisted_methods"
+							:options="whitelistedMethods"
+							:multiple="true"
+						/>
+						<Filters
+							v-if="newResource.document_type"
+							v-model="newResource.filters"
+							:docfields="filterFields"
+							label="Filters"
+						/>
 					</template>
+
+					<div class="flex flex-row gap-1.5">
+						<FormControl size="sm" type="checkbox" v-model="newResource.transform_results" />
+						<InputLabel>Transform Results</InputLabel>
+					</div>
+					<InlineInput
+						v-if="newResource.transform_results"
+						v-model="newResource.transform"
+						type="code"
+						height="150px"
+					/>
 				</template>
 			</div>
 		</template>
@@ -78,14 +104,16 @@
 import { ref, watch } from "vue"
 import { createResource } from "frappe-ui"
 import Link from "@/components/Link.vue"
-import FormControl from "frappe-ui/src/components/FormControl.vue"
+import InlineInput from "@/components/InlineInput.vue"
+import InputLabel from "@/components/InputLabel.vue"
+import Filters from "@/components/Filters.vue"
 
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 const emit = defineEmits(["addResource"])
 
 const emptyResource = {
 	// source
-	source: "New Resource",
+	source: "New Data Source",
 	// config
 	name: "",
 	resource_type: "",
@@ -94,25 +122,51 @@ const emptyResource = {
 	document_type: "",
 	document_name: "",
 	fields: [],
+	filters: {},
+	whitelisted_methods: [],
+	transform_results: false,
+	transform: "",
 }
 
 const newResource = ref({ ...emptyResource })
 const doctypeFields = ref([])
+const filterFields = ref([])
+const whitelistedMethods = ref([])
+
+const getTransformFnBoilerplate = (resource_type) => {
+	if (resource_type == "Document") {
+		return "function transform(doc) { \n\treturn doc; \n}"
+	} else {
+		return "function transform(data) { \n\treturn data; \n}"
+	}
+}
 
 watch(
 	() => newResource.value.document_type,
 	async () => {
 		if (newResource.value.document_type) {
-			doctypeFields.value = await getDoctypeFields()
+			setDoctypeFields()
+		}
+
+		if (newResource.value.resource_type === "Document") {
+			setWhitelistedMethods()
 		}
 	},
 )
 
-async function getDoctypeFields() {
-	const doctypeFields = createResource({
+watch(
+	() => newResource.value.resource_type,
+	() => {
+		newResource.value.transform = getTransformFnBoilerplate(newResource.value.resource_type)
+	},
+)
+
+async function setDoctypeFields() {
+	const fields = createResource({
 		url: "studio.api.get_doctype_fields",
 		params: { doctype: newResource.value.document_type },
 		transform: (data) => {
+			filterFields.value = data
 			return data.map((field) => {
 				return {
 					label: field.fieldname,
@@ -121,7 +175,24 @@ async function getDoctypeFields() {
 			})
 		},
 	})
-	await doctypeFields.reload()
-	return doctypeFields.data
+	await fields.reload()
+	doctypeFields.value = fields.data
+}
+
+async function setWhitelistedMethods() {
+	const methods = createResource({
+		url: "studio.api.get_whitelisted_methods",
+		params: { doctype: newResource.value.document_type },
+		transform: (data) => {
+			return data.map((method) => {
+				return {
+					label: method,
+					value: method,
+				}
+			})
+		},
+	})
+	await methods.reload()
+	whitelistedMethods.value = methods.data
 }
 </script>

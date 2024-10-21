@@ -92,7 +92,7 @@ interface StudioApp {
 type SelectOption = { value: string, label: string }
 
 // data
-type ResourceType = "Resource" | "List Resource" | "Document Resource"
+type ResourceType = "API Resource" | "Document List" | "Document"
 interface ResourceOptions {
 	type?: ResourceType
 	url?: string
@@ -101,3 +101,5 @@ interface ResourceOptions {
 	filters?: Record<string, any>
 	[key: string]: any
 }
+
+type Filters = Record<string, string | Array<string>>

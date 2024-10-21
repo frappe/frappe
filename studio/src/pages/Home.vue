@@ -1,7 +1,8 @@
 <template>
 	<div class="h-screen flex-col overflow-hidden bg-white">
 		<div class="toolbar sticky top-0 z-10 flex h-14 items-center justify-center bg-white p-2 shadow-sm">
-			<div class="absolute left-3 flex items-center">
+			<div class="absolute left-3 flex items-center justify-center gap-2">
+				<StudioLogo class="h-7 w-7"></StudioLogo>
 				<router-link class="flex items-center gap-2" :to="{ name: 'Home' }">
 					<h1 class="text-md mt-[2px] font-semibold leading-5 text-gray-800">Studio</h1>
 				</router-link>
@@ -79,6 +80,7 @@ import { useRouter } from "vue-router"
 import { studioApps } from "@/data/studioApps"
 import { UseTimeAgo } from "@vueuse/components"
 import Input from "@/components/Input.vue"
+import StudioLogo from "@/components/Icons/StudioLogo.vue"
 
 const showDialog = ref(false)
 const emptyAppState = {

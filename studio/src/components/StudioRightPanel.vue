@@ -9,7 +9,7 @@
 				class="dark:border-zinc-800 dark:bg-zinc-900 sticky top-0 z-[12] flex w-full border-gray-200 bg-white px-2 text-base"
 			>
 				<button
-					v-for="tab of ['Props', 'Styles']"
+					v-for="tab of ['Props', 'Events', 'Styles']"
 					:key="tab"
 					class="mx-2 flex-1 p-2 py-3"
 					@click="setActiveTab(tab)"
@@ -23,6 +23,7 @@
 			</div>
 
 			<ComponentProps v-show="activeTab === 'Props'" class="p-4" :block="store.selectedBlocks[0]" />
+			<ComponentEvents v-show="activeTab === 'Events'" class="p-4" :block="store.selectedBlocks[0]" />
 			<ComponentStyles v-show="activeTab === 'Styles'" class="p-4" :block="store.selectedBlocks[0]" />
 		</div>
 	</div>
@@ -33,6 +34,7 @@ import { ref } from "vue"
 import useStudioStore from "@/stores/studioStore"
 
 import ComponentProps from "@/components/ComponentProps.vue"
+import ComponentEvents from "@/components/ComponentEvents.vue"
 import ComponentStyles from "@/components/ComponentStyles.vue"
 
 const store = useStudioStore()

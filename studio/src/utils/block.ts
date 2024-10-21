@@ -11,6 +11,7 @@ class Block implements BlockOptions {
 	componentId: string
 	componentName: string
 	componentProps: Record<string, any>
+	componentEvents: Record<string, any>
 	blockName: string
 	originalElement?: string | undefined
 	children: BlockOptions[]
@@ -40,6 +41,7 @@ class Block implements BlockOptions {
 		} else {
 			this.componentProps = options.componentProps
 		}
+		this.componentEvents = options.componentEvents || {}
 
 		// set up hierarchy
 		this.parentBlock = options.parentBlock || null
@@ -323,6 +325,20 @@ class Block implements BlockOptions {
 	// component props
 	setProp(propName: string, value: any) {
 		this.componentProps[propName] = value
+	}
+
+	// events
+	addEvent(event: any) {
+		const pageName = event.page?.value
+		if (pageName) {
+			const store = useStudioStore()
+			event.page = store.getAppPageRoute(pageName)
+		}
+		this.componentEvents[event.event] = event
+	}
+
+	removeEvent(event: any) {
+		delete this.componentEvents[event.event]
 	}
 }
 

@@ -2,6 +2,13 @@ import { defineAsyncComponent, h } from "vue"
 import * as frappeUI from "frappe-ui"
 import Header from "@/components/AppLayout/Header.vue"
 import Sidebar from "@/components/AppLayout/Sidebar.vue"
+import CardList from "@/components/AppLayout/CardList.vue"
+import AvatarCard from "@/components/AppLayout/AvatarCard.vue"
+import Audio from "@/components/AppLayout/Audio.vue"
+import ImageView from "@/components/AppLayout/ImageView.vue"
+import TextBlock from "@/components/AppLayout/TextBlock.vue"
+import AppHeader from "@/components/AppLayout/AppHeader.vue"
+import BottomTabs from "@/components/AppLayout/BottomTabs.vue"
 
 export const COMPONENTS = {
 	Alert: {
@@ -543,6 +550,96 @@ export const COMPONENTS = {
 			],
 		},
 	},
+	AvatarCard: {
+		name: "AvatarCard",
+		title: "Avatar Card",
+		icon: "Image",
+		props: AvatarCard.props,
+		initialState: {
+			title: "Up&Up",
+			subtitle: "Coldplay",
+			imageURL: "https://upload.wikimedia.org/wikipedia/en/e/e9/Coldplay%2C_Up%26Up%2C_Artwork.jpg",
+		},
+	},
+	CardList: {
+		name: "CardList",
+		title: "Card List",
+		icon: "List",
+		props: CardList.props,
+		emits: CardList.emits,
+		initialState: {
+			title: "Card List",
+			cards: [
+				{
+					title: "Card Title",
+					subtitle: "Subtitle",
+					imageURL: "https://avatars.githubusercontent.com/u/499550",
+				},
+				{
+					title: "Card Title",
+					subtitle: "Subtitle",
+					imageURL: "https://avatars.githubusercontent.com/u/499120",
+				},
+			],
+		},
+	},
+	Audio: {
+		name: "Audio",
+		title: "Audio",
+		icon: "Music",
+		props: Audio.props,
+		initialState: {
+			file: "https://cdn.uppbeat.io/audio-output/208/3691/main-version/streaming-previews/STREAMING-achievement-philip-anderson-main-version-01-31-13804.mp3",
+		},
+	},
+	ImageView: {
+		name: "ImageView",
+		title: "Image View",
+		icon: "Image",
+		props: ImageView.props,
+		initialState: {
+			image: "https://upload.wikimedia.org/wikipedia/en/e/e9/Coldplay%2C_Up%26Up%2C_Artwork.jpg",
+		},
+	},
+	TextBlock: {
+		name: "TextBlock",
+		title: "Text Block",
+		icon: "Type",
+		props: TextBlock.props,
+		initialState: {
+			fontSize: "text-md",
+			fontWeight: "font-normal",
+		},
+	},
+	AppHeader: {
+		name: "AppHeader",
+		title: "App Header",
+		icon: "Frame",
+		props: AppHeader.props,
+		initialState: {
+			title: "Frappe",
+		},
+	},
+	BottomTabs: {
+		name: "BottomTabs",
+		title: "Bottom Tabs",
+		icon: "ArrowRightLeft",
+		props: BottomTabs.props,
+		initialState: {
+			tabs: [
+				{
+					label: "Home",
+					icon: "home",
+					route: "/",
+				},
+				{
+					label: "Settings",
+					icon: "settings",
+					route: "/settings",
+				},
+			],
+		},
+	},
 }
 
 function get(name) {
@@ -573,11 +670,20 @@ function getProps(name) {
 	}
 }
 
+function getEmits(name) {
+	if (name in frappeUI) {
+		return frappeUI[name]?.emits
+	} else {
+		return COMPONENTS[name]?.emits
+	}
+}
+
 export default {
 	...COMPONENTS,
 	list: Object.values(COMPONENTS),
 	get,
 	getComponent,
 	getProps,
+	getEmits,
 	isFrappeUIComponent,
 }

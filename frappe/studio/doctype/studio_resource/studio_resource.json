@@ -8,14 +8,20 @@
  "field_order": [
   "resource_type",
   "fields",
+  "filters",
   "document_resource_section",
   "document_type",
   "column_break_kkyr",
   "document_name",
+  "section_break_jlam",
+  "whitelisted_methods",
   "api_resource_section",
   "url",
   "column_break_cvbv",
-  "method"
+  "method",
+  "transform_section",
+  "transform_results",
+  "transform"
  ],
  "fields": [
   {
@@ -23,7 +29,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Resource Type",
-   "options": "List Resource\nDocument Resource\nAPI Resource",
+   "options": "Document List\nDocument\nAPI Resource",
    "reqd": 1
   },
   {
@@ -72,11 +78,46 @@
    "fieldtype": "Select",
    "label": "API Method",
    "options": "GET\nPOST\nPUT\nDELETE"
+  },
+  {
+   "fieldname": "transform_section",
+   "fieldtype": "Section Break",
+   "label": "Transform"
+  },
+  {
+   "depends_on": "transform_results",
+   "fieldname": "transform",
+   "fieldtype": "Code",
+   "label": "Transform Function",
+   "options": "JavaScript"
+  },
+  {
+   "default": "0",
+   "fieldname": "transform_results",
+   "fieldtype": "Check",
+   "label": "Transform Results"
+  },
+  {
+   "fieldname": "filters",
+   "fieldtype": "JSON",
+   "label": "Filters",
+   "max_height": "100px"
+  },
+  {
+   "fieldname": "section_break_jlam",
+   "fieldtype": "Section Break",
+   "hide_border": 1
+  },
+  {
+   "fieldname": "whitelisted_methods",
+   "fieldtype": "JSON",
+   "label": "Whitelisted Methods",
+   "max_height": "100px"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-23 12:52:00.527697",
+ "modified": "2024-10-21 13:40:11.669654",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Resource",

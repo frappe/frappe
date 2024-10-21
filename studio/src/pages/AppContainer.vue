@@ -18,17 +18,30 @@ const page = ref(null)
 const rootBlock = ref(null)
 
 watch(
-	[() => route.params?.appRoute, () => route.params?.pageRoute],
-	async ([appRoute, pageRoute]) => {
+	() => route.path,
+	async () => {
+		let { appRoute, pageRoute } = route.params
+		const isDynamic = route.meta?.isDynamic
 		if (appRoute === "studio") return
 
-		if (pageRoute) {
-			page.value = await findPageWithRoute(appRoute, pageRoute)
-			const blocks = jsonToJs(page.value.blocks)
+		let currentPath = ""
+		if (isDynamic) {
+			currentPath = route.matched?.[0]?.path
+		} else if (pageRoute) {
+			currentPath = pageRoute[0]
+		}
+
+		if (currentPath) {
+			page.value = await findPageWithRoute(appRoute, currentPath)
+			if (!page.value) return
+			const blocks = jsonToJs(page.value?.blocks)
 			if (blocks) {
 				rootBlock.value = getBlockInstance(blocks[0])
 			}
+			await store.setLocalState({ route: route })
 			await store.setPageResources(page.value)
+		} else {
+			rootBlock.value = null
 		}
 	},
 	{ immediate: true },

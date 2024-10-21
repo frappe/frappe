@@ -116,6 +116,7 @@ function areObjectsEqual(obj1: any, obj2: any): boolean {
 }
 
 function isObjectEmpty(obj: any) {
+	if (!obj) return true
 	return Object.keys(obj).length === 0
 }
 
@@ -187,14 +188,30 @@ async function fetchPage(pageName: string) {
 }
 
 async function findPageWithRoute(appRoute: string, pageRoute: string) {
+	let route = `studio-app`
+	if (appRoute) {
+		route += `/${appRoute}/`
+	}
+	route += pageRoute
+
 	let pageName = createResource({
 		url: "studio.studio.doctype.studio_page.studio_page.find_page_with_route",
 		method: "GET",
-		params: { route: `studio-app/${appRoute}/${pageRoute}` },
+		params: { route: route },
 	})
 	await pageName.fetch()
 	pageName = pageName.data
 	return fetchPage(pageName)
+}
+
+async function fetchAppPages(appRoute: string) {
+	let appRoutes = createResource({
+		url: "studio.studio.doctype.studio_app.studio_app.get_app_pages",
+		method: "GET",
+		params: { app_route: appRoute },
+	})
+	await appRoutes.fetch()
+	return appRoutes.data
 }
 
 // data
@@ -208,12 +225,12 @@ const isDynamicValue = (value: any) => {
 	return value && value.includes("{{") && value.includes("}}")
 }
 
-function getDynamicPropValue(propValue: any, context: any) {
+function getDynamicValue(value: any, context: any) {
 	let result = ""
 	let lastIndex = 0
 
 	// Find all dynamic expressions in the prop value
-	const matches = propValue.matchAll(/\{\{(.*?)\}\}/g)
+	const matches = value.matchAll(/\{\{(.*?)\}\}/g)
 
 	// Evaluate each dynamic expression and add it to the result
 	for (const match of matches) {
@@ -227,7 +244,7 @@ function getDynamicPropValue(propValue: any, context: any) {
 		}
 
 		// Append the static part of the string
-		result += propValue.slice(lastIndex, match.index)
+		result += value.slice(lastIndex, match.index)
 		// Append the evaluated dynamic value
 		result += dynamicValue !== undefined ? String(dynamicValue) : ''
 		// update lastIndex to the end of the current match
@@ -235,48 +252,131 @@ function getDynamicPropValue(propValue: any, context: any) {
 	}
 
 	// Append the final static part of the string
-	result += propValue.slice(lastIndex)
+	result += value.slice(lastIndex)
 	return result || undefined
+}
+
+function getEvaluatedFilters(filters: any, context: any) {
+	filters = JSON.parse(filters)
+	if (!filters) return undefined
+	const evaluatedFilters: Filters = {}
+
+	for (const key in filters) {
+		let value = Array.isArray(filters[key]) ? filters[key][1] : filters[key]
+
+		if (isDynamicValue(value)) {
+			evaluatedFilters[key] = getDynamicValue(value, context)
+		} else {
+			evaluatedFilters[key] = value
+		}
+	}
+
+	return evaluatedFilters
 }
 
 function evaluateExpression(expression: string, context: any) {
 	try {
-		// Split the expression into individual properties and evaluate them one by one
-		const properties = expression.split('.')
-		let value = context
-		for (const prop of properties) {
-			value = value?.[prop]
-			if (value === undefined) {
-				return undefined
+		// Replace dot notation with optional chaining
+		const safeExpression = expression.replace(/(\w+)(?:\.(\w+))+/g, (match) => {
+			return match.split('.').join('?.')
+		})
+
+		// Create a function that takes the context as an argument
+		const func = new Function('context', `
+			with (context || {}) {
+				try {
+					return ${safeExpression};
+				} catch (e) {
+					return undefined;
+				}
 			}
-		}
-		return value
+		`)
+
+		return func(context)
 	} catch (error) {
 		console.error(`Error evaluating expression: ${expression}`, error)
 		return undefined
 	}
 }
 
-function getNewResource(resource) {
+function getTransforms(resource) {
+	/**
+	 * Create a function that includes the user's transform function
+	 * Invoke the transform function with data/doc
+	 */
+	if (resource.transform_results) {
+		if (resource.resource_type === "Document") {
+			return {
+				transform: (doc) => {
+					const transformFn = new Function(resource.transform + "\nreturn transform")()
+					return transformFn.call(null, doc);
+				}
+			}
+		} else {
+			return {
+				transform: (data) => {
+					const transformFn = new Function(resource.transform + "\nreturn transform")()
+					return transformFn.call(null, data);
+				}
+			}
+		}
+	}
+	return {}
+}
+
+function getWhitelistedMethods(resource) {
+	if (resource.whitelisted_methods) {
+		const whitelisted_methods = JSON.parse(resource.whitelisted_methods || [])
+		const methods: Record<string, string> = {}
+		whitelisted_methods.forEach((method: string) => methods[method] = method)
+		return { whitelistedMethods: methods }
+	}
+	return {}
+}
+
+async function getDocumentResource(resource, context: undefined | any = undefined) {
+	let docname = resource.document_name
+	if (!docname && resource.filters) {
+		// fetch the docname based on filters
+		const docList = createListResource({
+			doctype: resource.document_type,
+			fields: ["name"],
+			filters: getEvaluatedFilters(resource.filters, context),
+			auto: true
+		})
+		await docList.list?.promise
+		docname = docList.data?.[0]?.name
+	}
+
+	return createDocumentResource({
+		doctype: resource.document_type,
+		name: docname,
+		auto: true,
+		...getTransforms(resource),
+		...getWhitelistedMethods(resource),
+	})
+}
+
+function getNewResource(resource, context: undefined | any = undefined) {
 	const fields = JSON.parse(resource.fields || "[]")
+
 	switch (resource.resource_type) {
-		case "Document Resource":
-			return createDocumentResource({
-				doctype: resource.document_type,
-				name: resource.document_name,
-				auto: true,
-			})
-		case "List Resource":
+		case "Document":
+			return getDocumentResource(resource, context)
+		case "Document List":
 			return createListResource({
 				doctype: resource.document_type,
 				fields: fields.length ? fields : "*",
+				filters: getEvaluatedFilters(resource.filters, context),
 				auto: true,
+				...getTransforms(resource),
 			})
 		case "API Resource":
 			return createResource({
 				url: resource.url,
 				method: resource.method,
 				auto: true,
+				...getTransforms(resource),
 			})
 	}
 }
@@ -315,13 +415,14 @@ export {
 	replaceMapKey,
 	// app
 	fetchApp,
+	fetchAppPages,
 	// page
 	fetchPage,
 	findPageWithRoute,
 	// data
 	getAutocompleteValues,
 	isDynamicValue,
-	getDynamicPropValue,
+	getDynamicValue,
 	getNewResource,
 	// dialog
 	confirm,
