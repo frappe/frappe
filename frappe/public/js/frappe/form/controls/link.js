@@ -328,7 +328,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 						me.$input.cache[doctype][term] = r.results;
 						me.awesomplete.list = me.$input.cache[doctype][term];
 						me.toggle_href(doctype);
-						r.message.forEach((item) => {
+						r.results.forEach((item) => {
 							frappe.utils.add_link_title(doctype, item.value, item.label);
 						});
 					},
