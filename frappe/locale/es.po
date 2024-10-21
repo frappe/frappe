@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-13 09:33+0000\n"
-"PO-Revision-Date: 2024-10-19 05:44\n"
+"PO-Revision-Date: 2024-10-21 06:17\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -115,7 +115,7 @@ msgstr "+ Añadir / Eliminar campos"
 #. State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "0 - Draft; 1 - Submitted; 2 - Cancelled"
-msgstr "0 - Borrador; 1 - Enviado; 2 - Cancelado"
+msgstr "0 - Borrador; 1 - Validado; 2 - Cancelado"
 
 #. Description of the 'Priority' (Int) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -1465,17 +1465,17 @@ msgstr "Después de Guardar"
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "After Save (Submitted Document)"
-msgstr "Después de Guardar (Documento Enviado)"
+msgstr "Después de Guardar (Documento Validado)"
 
 #. Label of the section_break_5 (Section Break) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "After Submission"
-msgstr ""
+msgstr "Después de validar"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "After Submit"
-msgstr "Después de enviar"
+msgstr "Después de validar"
 
 #: frappe/desk/doctype/number_card/number_card.py:59
 msgid "Aggregate Field is required to create a number card"
@@ -1576,12 +1576,12 @@ msgstr "Se eliminarán todas las personalizaciones. Por favor confirmar."
 
 #: frappe/templates/includes/comments/comments.html:158
 msgid "All fields are necessary to submit the comment."
-msgstr ""
+msgstr "Todos los campos son necesarios para validar el comentario."
 
 #. Description of the 'Document States' (Table) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "All possible Workflow States and roles of the workflow. Docstatus Options: 0 is \"Saved\", 1 is \"Submitted\" and 2 is \"Cancelled\""
-msgstr ""
+msgstr "Todos los estados y roles posibles del flujo de trabajo. Opciones de estado del documento: 0 es \"Guardado\", 1 es \"Validado\" y 2 es \"Cancelado\""
 
 #: frappe/utils/password_strength.py:183
 msgid "All-uppercase is almost as easy to guess as all-lowercase."
@@ -1773,7 +1773,7 @@ msgstr "Permitir la creación de documentos por correo electrónico"
 #. Label of the allow_edit (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Allow editing after submit"
-msgstr ""
+msgstr "Permitir edición después de validar"
 
 #. Label of the allow_events_in_timeline (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -3309,12 +3309,12 @@ msgstr "Antes de guardar"
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Before Save (Submitted Document)"
-msgstr "Antes de guardar (documento enviado)"
+msgstr "Antes de guardar (documento validado)"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Before Submit"
-msgstr "Antes de enviar"
+msgstr "Antes de validar"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -3896,7 +3896,7 @@ msgstr "Puede Compartir"
 #: frappe/public/js/frappe/form/templates/set_sharing.html:6
 #: frappe/public/js/frappe/form/templates/set_sharing.html:52
 msgid "Can Submit"
-msgstr "Puede Enviar"
+msgstr "Puede validar"
 
 #: frappe/public/js/frappe/form/templates/set_sharing.html:5
 #: frappe/public/js/frappe/form/templates/set_sharing.html:51
@@ -4014,7 +4014,7 @@ msgstr "No se puede quitar"
 
 #: frappe/model/base_document.py:1094
 msgid "Cannot Update After Submit"
-msgstr "No se puede Actualizar Después de Enviar"
+msgstr "No se puede Actualizar Después de Validar"
 
 #: frappe/core/doctype/file/file.py:586
 msgid "Cannot access file path {0}"
@@ -4022,11 +4022,11 @@ msgstr "No se puede acceder a la ruta del archivo {0}"
 
 #: frappe/public/js/workflow_builder/utils.js:183
 msgid "Cannot cancel before submitting while transitioning from <b>{0} State</b> to <b>{1} State</b>"
-msgstr ""
+msgstr "No se puede cancelar antes de validar durante la transición del estado <b>{0}</b> al estado <b>{1}</b>"
 
 #: frappe/workflow/doctype/workflow/workflow.py:110
 msgid "Cannot cancel before submitting. See Transition {0}"
-msgstr "No se puede cancelar antes de enviar. Ver transmisión {0}"
+msgstr "No se puede cancelar antes de validar. Ver Transición {0}"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:294
 msgid "Cannot cancel {0}."
@@ -4038,7 +4038,7 @@ msgstr "No se puede cambiar el estado del documento de 0 (Borrador) a 2 (Cancela
 
 #: frappe/model/document.py:954
 msgid "Cannot change docstatus from 1 (Submitted) to 0 (Draft)"
-msgstr "No se puede cambiar el estado del documento de 1 (Enviado) a 0 (Borrador)"
+msgstr "No se puede cambiar el estado del documento de 1 (Validado) a 0 (Borrador)"
 
 #: frappe/public/js/workflow_builder/utils.js:170
 msgid "Cannot change state of Cancelled Document <b>({0} State)</b>"
@@ -4138,7 +4138,7 @@ msgstr "No se pueden editar los campos estándar"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:125
 msgid "Cannot enable {0} for a non-submittable doctype"
-msgstr ""
+msgstr "No se puede habilitar {0} para un tipo de documento que puede ser validado"
 
 #: frappe/core/doctype/file/file.py:250
 msgid "Cannot find file {} on disk"
@@ -4182,11 +4182,11 @@ msgstr ""
 
 #: frappe/core/doctype/docshare/docshare.py:67
 msgid "Cannot share {0} with submit permission as the doctype {1} is not submittable"
-msgstr ""
+msgstr "No se puede compartir {0} con permiso de validación, ya que el tipo de documento {1} no puede ser validado"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:291
 msgid "Cannot submit {0}."
-msgstr "No se puede enviar {0}."
+msgstr "No se puede validar {0}."
 
 #: frappe/desk/doctype/bulk_update/bulk_update.js:26
 #: frappe/public/js/frappe/list/bulk_operations.js:366
@@ -4267,7 +4267,7 @@ msgstr "Centro"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:16
 msgid "Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit."
-msgstr ""
+msgstr "Ciertos documentos, como una factura, no deben ser modificados una vez que están en su estado final. El estado final para estos documentos se llama 'Validado'. Puedes restringir qué roles pueden validar."
 
 #: frappe/core/report/transaction_log_report/transaction_log_report.py:82
 msgid "Chain Integrity"
@@ -5234,7 +5234,7 @@ msgstr "Confirmar"
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:93
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:101
 msgid "Confirm Deletion of Account"
-msgstr ""
+msgstr "Confirmar la eliminación de la cuenta"
 
 #: frappe/core/doctype/user/user.js:191
 msgid "Confirm New Password"
@@ -7504,7 +7504,7 @@ msgstr "DocType es una Tabla/ Formulario en la aplicación."
 
 #: frappe/integrations/doctype/webhook/webhook.py:79
 msgid "DocType must be Submittable for the selected Doc Event"
-msgstr "DocType debe ser Enviable para el evento de Documento Seleccionado"
+msgstr "El tipo de documento se debe poder Validar para el evento de Documento Seleccionado"
 
 #: frappe/client.py:401
 msgid "DocType must be a string"
@@ -7793,7 +7793,7 @@ msgstr "El tipo de documento no es importable"
 
 #: frappe/permissions.py:143
 msgid "Document Type is not submittable"
-msgstr "El tipo de documento no se puede enviar"
+msgstr "El tipo de documento no se puede ser validado"
 
 #. Label of the document_type (Link) field in DocType 'Milestone Tracker'
 #: frappe/automation/doctype/milestone_tracker/milestone_tracker.json
@@ -7817,7 +7817,7 @@ msgstr ""
 #. Label of the section_break_2 (Section Break) field in DocType 'User Type'
 #: frappe/core/doctype/user_type/user_type.json
 msgid "Document Types and Permissions"
-msgstr ""
+msgstr "Tipos de documentos y permisos"
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:163
 #: frappe/model/document.py:1860
@@ -7834,7 +7834,7 @@ msgstr "El documento ha sido cancelado"
 
 #: frappe/public/js/frappe/list/list_view.js:1115
 msgid "Document has been submitted"
-msgstr "El documento ha sido enviado"
+msgstr "El documento ha sido validado"
 
 #: frappe/public/js/frappe/list/list_view.js:1114
 msgid "Document is in draft state"
@@ -8696,7 +8696,7 @@ msgstr "Correo Electrónico no verificado con {0}"
 
 #: frappe/email/doctype/email_queue/email_queue.js:18
 msgid "Email queue is currently suspended. Resume to automatically send emails."
-msgstr ""
+msgstr "La cola de correo electrónico está actualmente suspendida. Reanúdela para enviar automáticamente los correos electrónicos."
 
 #. Label of the section_break_udjs (Section Break) field in DocType 'System
 #. Health Report'
@@ -8962,7 +8962,7 @@ msgstr "Habilita las vistas Calendario y Gantt."
 
 #: frappe/email/doctype/email_account/email_account.js:266
 msgid "Enabling auto reply on an incoming email account will send automated replies to all the synchronized emails. Do you wish to continue?"
-msgstr ""
+msgstr "Si activa la respuesta automática en una cuenta de correo electrónico entrante, se enviarán respuestas automáticas a todos los correos electrónicos sincronizados. ¿Desea continuar?"
 
 #. Description of a DocType
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.json
@@ -8982,7 +8982,7 @@ msgstr ""
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Enabling this will submit documents in background"
-msgstr ""
+msgstr "Al habilitar esta opción se validarán los documentos en segundo plano"
 
 #. Label of the encrypt_backup (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -15325,7 +15325,7 @@ msgstr "Yo"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:14
 msgid "Meaning of Submit, Cancel, Amend"
-msgstr "Significado de Enviar, Cancelar, Modificar"
+msgstr "Significado de Validar, Cancelar, Rectificar"
 
 #. Option for the 'Priority' (Select) field in DocType 'ToDo'
 #. Label of the medium (Data) field in DocType 'Web Page View'
@@ -17658,7 +17658,7 @@ msgstr ""
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/core/doctype/doctype/doctype_list.js:42
 msgid "Once submitted, submittable documents cannot be changed. They can only be Cancelled and Amended."
-msgstr "Una vez enviados, los documentos que se pueden enviar no se pueden cambiar. Solo pueden cancelarse y modificarse."
+msgstr "Una vez validados, los documentos que se pueden validar no se pueden cambiar. Solo pueden cancelarse y rectificarse."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:35
 msgid "Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger)."
@@ -18721,7 +18721,7 @@ msgstr "Los permisos se aplican automáticamente a los Informes estándar y a la
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:5
 msgid "Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions."
-msgstr "Los permisos son configurados en Roles y Tipos de Documento (llamados DocTypes) configurando derechos como Leer, Escribir, Eliminar, Enviar, Cancelar, Modificar, Reportar, Importar, Exportar, Imprimir, Email y Configurar Permisos de Usuarios."
+msgstr "Los permisos son configurados en Roles y Tipos de Documento (llamados DocTypes) configurando derechos como Leer, Escribir, Eliminar, Validar, Cancelar, Rectificar, Reportar, Importar, Exportar, Imprimir, Email y Configurar Permisos de Usuarios."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:26
 msgid "Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles."
@@ -21989,7 +21989,7 @@ msgstr "Fila {0}: No se permite deshabilitar Obligatorio para Campos Estándar"
 
 #: frappe/custom/doctype/customize_form/customize_form.py:338
 msgid "Row {0}: Not allowed to enable Allow on Submit for standard fields"
-msgstr "Línea {0}: No es permitido 'habilitar' en ' ' para los campos estandar"
+msgstr "Fila {0}: No se permite activar 'Permitir al validar' para los campos estándar"
 
 #. Label of the rows_added_section (Section Break) field in DocType 'Audit
 #. Trail'
@@ -24932,12 +24932,12 @@ msgstr "Validar"
 #. Label of the submit_after_import (Check) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Submit After Import"
-msgstr "Enviar después de la importación"
+msgstr "Validar después de importar"
 
 #. Label of the button_label (Data) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Submit Button Label"
-msgstr ""
+msgstr "Etiqueta del botón Validar"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:39
 msgid "Submit an Issue"
@@ -24946,25 +24946,25 @@ msgstr "Enviar un Problema"
 #: frappe/website/doctype/web_form/templates/web_form.html:156
 msgctxt "Button in web form"
 msgid "Submit another response"
-msgstr ""
+msgstr "Enviar otra respuesta"
 
 #. Label of the submit_on_creation (Check) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Submit on Creation"
-msgstr ""
+msgstr "Validar al crear"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:395
 msgid "Submit this document to complete this step."
-msgstr "Envíe este documento para completar este paso."
+msgstr "Valide este documento para completar este paso."
 
 #: frappe/public/js/frappe/form/form.js:1229
 msgid "Submit this document to confirm"
-msgstr "Presentar este documento para confirmar"
+msgstr "Valide este documento para confirmar"
 
 #: frappe/public/js/frappe/list/list_view.js:2042
 msgctxt "Title of confirmation dialog"
 msgid "Submit {0} documents?"
-msgstr "¿Presentar {0} documentos?"
+msgstr "¿Validar {0} documentos?"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
@@ -24978,11 +24978,11 @@ msgstr "Validado"
 
 #: frappe/workflow/doctype/workflow/workflow.py:104
 msgid "Submitted Document cannot be converted back to draft. Transition row {0}"
-msgstr "El documento validado no se puede revertir a borrador, en la línea de transición {0}."
+msgstr "El documento validado no puede convertirse de nuevo en borrador. Línea de transición {0}"
 
 #: frappe/public/js/workflow_builder/utils.js:176
 msgid "Submitted document cannot be converted back to draft while transitioning from <b>{0} State</b> to <b>{1} State</b>"
-msgstr ""
+msgstr "El documento validado no puede convertirse de nuevo en borrador mientras se pasa del <b>estado {0} </b> al <b>estado {1} </b>"
 
 #: frappe/public/js/frappe/form/save.js:10
 msgctxt "Freeze message while submitting a document"
@@ -29584,7 +29584,7 @@ msgstr "También puedes copiar y pegar este {0} en tu navegador"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:17
 msgid "You can change Submitted documents by cancelling them and then, amending them."
-msgstr ""
+msgstr "Puede cambiar los documentos validados cancelándolos y luego modificándolos."
 
 #: frappe/public/js/frappe/logtypes.js:21
 msgid "You can change the retention policy from {0}."
