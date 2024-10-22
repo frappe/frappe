@@ -15,7 +15,7 @@ from frappe.database.utils import DefaultOrderBy, get_doctype_name
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.functions import Function, SqlFunctions
 from frappe.query_builder.utils import PseudoColumnMapper
-from frappe.types.filter import Filters, FilterSignature, FilterTuple
+from frappe.types.filter import FilterMappingSpec, Filters, FilterSignature, FilterTuple, FilterTupleSpec
 from frappe.types.filter import _InVal as SimpleInputValue
 from frappe.utils.data import MARIADB_SPECIFIC_COMMENT
 
@@ -38,7 +38,11 @@ class Engine:
 		self,
 		table: str | Table,
 		fields: str | list | tuple | None = None,
-		filters: FilterSignature | SimpleInputValue | Criterion | Sequence[Criterion] | None = None,
+		filters: FilterSignature
+		| SimpleInputValue
+		| Criterion
+		| Sequence[Criterion | FilterTuple | FilterMappingSpec | FilterTupleSpec]
+		| None = None,
 		order_by: str | None = None,
 		group_by: str | None = None,
 		limit: int | None = None,
@@ -75,18 +79,26 @@ class Engine:
 			self.query = frappe.qb.from_(self.table)
 			self.apply_fields(fields)
 
-		if filters is not None:
-			if not isinstance(filters, Sequence):
-				filters = [filters]
+		if isinstance(filters, SimpleInputValue):
+			self._apply_filter(FilterTuple(doctype=self.doctype, fieldname="name", value=filters))
+			filters = None
+		elif isinstance(filters, Criterion):
+			self.query = self.query.where(filters)
+			filters = None
 
+		if filters is not None:
+			_filter_signature = []
 			for filter in filters:
 				if isinstance(filter, Criterion):
 					self.query = self.query.where(filter)
 				elif isinstance(filter, SimpleInputValue):
-					self._apply_filter(FilterTuple(doctype=self.doctype, fieldname="name", value=filters))
+					_filter_signature.append(
+						FilterTuple(doctype=self.doctype, fieldname="name", value=filter)
+					)
 				else:
-					for _filter in Filters(filters, doctype=self.doctype):
-						self._apply_filter(_filter)
+					_filter_signature.append(filter)
+			for ft in Filters(_filter_signature, doctype=self.doctype):
+				self._apply_filter(ft)
 
 		self.apply_order_by(order_by)
 
