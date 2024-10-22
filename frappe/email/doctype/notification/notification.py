@@ -13,7 +13,7 @@ from frappe.desk.doctype.notification_log.notification_log import enqueue_create
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 from frappe.model.document import Document
 from frappe.modules.utils import export_module_json, get_doc_module
-from frappe.utils import add_to_date, cast, nowdate, validate_email_address
+from frappe.utils import add_to_date, cast, nowdate, validate_email_address, validate_phone_number
 from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
 
@@ -366,9 +366,17 @@ def get_context(context):
 			# For sending messages to the owner's mobile phone number
 			if recipient.receiver_by_document_field == "owner":
 				receiver_list += get_user_info([dict(user_name=doc.get("owner"))], "mobile_no")
-			# For sending messages to the number specified in the receiver field
+			# For sending messages to the number specified in the receiver field or in the user field
 			elif recipient.receiver_by_document_field:
-				receiver_list.append(doc.get(recipient.receiver_by_document_field))
+				field_value = doc.get(recipient.receiver_by_document_field)
+
+				# Check if it's not a valid phone number
+				if not validate_phone_number(field_value):
+					user_info = get_user_info([dict(user_name=field_value)], "mobile_no")
+					if user_info:
+						receiver_list += user_info
+				else:
+					receiver_list.append(field_value)
 
 			# For sending messages to specified role
 			if recipient.receiver_by_role:
