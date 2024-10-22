@@ -34,7 +34,7 @@ class Engine:
 	def get_query(
 		self,
 		table: str | Table,
-		fields: list | tuple | None = None,
+		fields: str | list | tuple | None = None,
 		filters: dict[str, FilterValue] | FilterValue | list[list | FilterValue] | None = None,
 		order_by: str | None = None,
 		group_by: str | None = None,
