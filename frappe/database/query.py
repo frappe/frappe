@@ -87,17 +87,17 @@ class Engine:
 			filters = None
 
 		if filters is not None:
-			_filter_signature = []
+			_filters = Filters()
 			for filter in filters:
 				if isinstance(filter, Criterion):
 					self.query = self.query.where(filter)
 				elif isinstance(filter, SimpleInputValue):
-					_filter_signature.append(
-						FilterTuple(doctype=self.doctype, fieldname="name", value=filter)
-					)
+					# don't process directly for Filters optimization
+					_filters.append(FilterTuple(doctype=self.doctype, fieldname="name", value=filter))
 				else:
-					_filter_signature.append(filter)
-			for ft in Filters(_filter_signature, doctype=self.doctype):
+					_filters.append(filter, doctype=self.doctype)
+			_filters.optimize()
+			for ft in _filters:
 				self._apply_filter(ft)
 
 		self.apply_order_by(order_by)
