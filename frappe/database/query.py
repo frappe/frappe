@@ -83,9 +83,7 @@ class Engine:
 				if isinstance(filter, Criterion):
 					self.query = self.query.where(filter)
 				elif isinstance(filter, SimpleInputValue):
-					self._apply_filter(
-						FilterTuple(doctype=self.doctype, fieldname="name", operator="=", value=filters)
-					)
+					self._apply_filter(FilterTuple(doctype=self.doctype, fieldname="name", value=filters))
 				else:
 					for _filter in Filters(filters, doctype=self.doctype):
 						self._apply_filter(_filter)
