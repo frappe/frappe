@@ -72,10 +72,11 @@ def get_controller(doctype):
 
 	return site_controllers[doctype]
 
+
 def get_vanilla_controller(doctype):
 	from frappe.model.document import Document
 	from frappe.utils.nestedset import NestedSet
-    
+
 	module_name = "Core"
 	if doctype not in DOCTYPES_FOR_DOCTYPE:
 		doctype_info = frappe.db.get_value("DocType", doctype, fieldname="*")
@@ -100,6 +101,7 @@ def get_vanilla_controller(doctype):
 		raise ImportError(f"{doctype}: {classname} is not a subclass of BaseDocument")
 
 	return class_
+
 
 def import_controller(doctype):
 	from frappe.model.document import Document
