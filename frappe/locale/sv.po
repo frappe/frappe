@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-13 09:33+0000\n"
-"PO-Revision-Date: 2024-10-19 05:44\n"
+"PO-Revision-Date: 2024-10-22 06:44\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -3218,7 +3218,7 @@ msgstr "Tillbaka till Skrivbord"
 
 #: frappe/www/404.html:26
 msgid "Back to Home"
-msgstr "Tillbaka till Hem"
+msgstr "Hem"
 
 #: frappe/www/login.html:181 frappe/www/login.html:212
 msgid "Back to Login"
@@ -6784,7 +6784,7 @@ msgstr "Standard Utgående"
 #. Label of the default_portal_home (Data) field in DocType 'Portal Settings'
 #: frappe/website/doctype/portal_settings/portal_settings.json
 msgid "Default Portal Home"
-msgstr "Standard Portal Webblats"
+msgstr "Standard Portal Webbplats"
 
 #. Label of the default_print_format (Data) field in DocType 'DocType'
 #. Label of the default_print_format (Link) field in DocType 'Customize Form'
@@ -12129,7 +12129,7 @@ msgstr "Tips: Inkludera symboler, siffror och stora bokstäver i lösenord"
 #: frappe/www/contact.py:22 frappe/www/login.html:150 frappe/www/me.html:76
 #: frappe/www/message.html:27
 msgid "Home"
-msgstr "Start"
+msgstr "Hem"
 
 #. Label of the home_page (Data) field in DocType 'Role'
 #. Label of the home_page (Data) field in DocType 'Website Settings'
@@ -12147,7 +12147,7 @@ msgstr "Webbplats Inställningar"
 #: frappe/core/doctype/file/test_file.py:332
 #: frappe/core/doctype/file/test_file.py:396
 msgid "Home/Test Folder 1"
-msgstr "Start/Test Mapp 1"
+msgstr "Hem/Test Mapp 1"
 
 #: frappe/core/doctype/file/test_file.py:385
 msgid "Home/Test Folder 1/Test Folder 3"
@@ -12155,7 +12155,7 @@ msgstr "Start/Testa Mapp 1 / Test Mapp 3"
 
 #: frappe/core/doctype/file/test_file.py:341
 msgid "Home/Test Folder 2"
-msgstr "Start/Test Mapp 2"
+msgstr "Hem/Test Mapp 2"
 
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #. Option for the 'Event Frequency' (Select) field in DocType 'Server Script'
@@ -13562,7 +13562,7 @@ msgstr "Är Dold"
 #. Label of the is_home_folder (Check) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Is Home Folder"
-msgstr "Är Start Mapp"
+msgstr "Är Hem Mapp"
 
 #. Label of the reqd (Check) field in DocType 'Custom Field'
 #: frappe/custom/doctype/custom_field/custom_field.json
@@ -14733,7 +14733,7 @@ msgstr "Länken till sidan Om oss är \"/about\"."
 #. Description of the 'Home Page' (Data) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Link that is the website home page. Standard Links (home, login, products, blog, about, contact)"
-msgstr "Länk Webbplatst start sida . Standard länkar (hem, logga in, produkter, blogg, om, kontakt)"
+msgstr "Länk Webbplats start sida. Standard länkar (hem, logga in, produkter, blogg, om, kontakt)"
 
 #. Description of the 'URL' (Data) field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
@@ -16331,7 +16331,7 @@ msgstr "Toppfält Mall Värden"
 
 #: frappe/public/js/frappe/ui/keyboard.js:225
 msgid "Navigate Home"
-msgstr "Till Start"
+msgstr "Navigera Hem"
 
 #: frappe/public/js/frappe/list/list_view.js:1196
 msgctxt "Description of a list view shortcut"
@@ -22103,7 +22103,7 @@ msgstr "Sökväg Omdirigeringar"
 #. Description of the 'Home Page' (Data) field in DocType 'Role'
 #: frappe/core/doctype/role/role.json
 msgid "Route: Example \"/app\""
-msgstr "Sökväg: Exempel '/app'"
+msgstr "Sökväg: Exempel \"/app\""
 
 #: frappe/model/base_document.py:791 frappe/model/document.py:703
 msgid "Row"
