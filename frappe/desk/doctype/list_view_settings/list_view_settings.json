@@ -9,6 +9,7 @@
   "disable_count",
   "disable_sidebar_stats",
   "disable_auto_refresh",
+  "allow_edit",
   "total_fields",
   "fields_html",
   "fields"
@@ -49,10 +50,17 @@
    "hidden": 1,
    "label": "Fields",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "Allow editing even if the doctype has a workflow set up.\n\nDoes nothing if a workflow isn't set up.",
+   "fieldname": "allow_edit",
+   "fieldtype": "Check",
+   "label": "Allow Bulk Editing"
   }
  ],
  "links": [],
- "modified": "2020-05-12 18:27:15.568199",
+ "modified": "2024-08-21 18:17:24.889783",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List View Settings",

@@ -120,6 +120,7 @@ def get_context(doc):
 
 
 def enqueue_webhook(doc, webhook) -> None:
+	headers = data = None
 	try:
 		webhook: Webhook = frappe.get_doc("Webhook", webhook.get("name"))
 		headers = get_webhook_headers(doc, webhook)
