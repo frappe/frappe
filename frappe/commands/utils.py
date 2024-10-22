@@ -782,6 +782,7 @@ def run_tests(
 			click.secho(f"bench --site {site} set-config allow_tests true", fg="green")
 			return
 
+		frappe.init(site)  # init frappe.flags
 		frappe.flags.skip_before_tests = skip_before_tests
 		frappe.flags.skip_test_records = skip_test_records
 
