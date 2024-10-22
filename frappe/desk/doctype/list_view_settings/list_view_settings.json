@@ -10,6 +10,7 @@
   "disable_comment_count",
   "disable_sidebar_stats",
   "disable_auto_refresh",
+  "allow_edit",
   "total_fields",
   "fields_html",
   "fields"
@@ -56,10 +57,17 @@
    "fieldname": "disable_comment_count",
    "fieldtype": "Check",
    "label": "Disable Comment Count"
+  },
+  {
+   "default": "0",
+   "description": "Allow editing even if the doctype has a workflow set up.\n\nDoes nothing if a workflow isn't set up.",
+   "fieldname": "allow_edit",
+   "fieldtype": "Check",
+   "label": "Allow Bulk Editing"
   }
  ],
  "links": [],
- "modified": "2023-02-14 14:46:43.764229",
+ "modified": "2024-08-21 18:17:24.889783",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List View Settings",

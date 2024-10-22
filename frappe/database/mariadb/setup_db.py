@@ -59,24 +59,22 @@ def drop_user_and_database(db_name, root_login, root_password):
 	dbman.delete_user(db_name)
 
 
-def bootstrap_database(db_name, verbose, source_sql=None):
+def bootstrap_database(verbose, source_sql=None):
 	import sys
 
-	frappe.connect(db_name=db_name)
+	frappe.connect()
 	check_compatible_versions()
 
 	import_db_from_sql(source_sql, verbose)
-	frappe.connect(db_name=db_name)
+	frappe.connect()
 
 	if "tabDefaultValue" not in frappe.db.get_tables(cached=False):
 		from click import secho
 
 		secho(
 			"Table 'tabDefaultValue' missing in the restored site. "
-			"Database not installed correctly, this can due to lack of "
-			"permission, or that the database name exists. Check your mysql"
-			" root password, validity of the backup file or use --force to"
-			" reinstall",
+			"This happens when the backup fails to restore. Please check that the file is valid\n"
+			"Do go through the above output to check the exact error message from MariaDB",
 			fg="red",
 		)
 		sys.exit(1)
