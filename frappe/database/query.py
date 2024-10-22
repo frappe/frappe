@@ -11,11 +11,11 @@ import frappe
 from frappe import _
 from frappe.database.operator_map import OPERATOR_MAP
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
-from frappe.database.utils import DefaultOrderBy, convert_to_value, get_doctype_name
+from frappe.database.utils import DefaultOrderBy, get_doctype_name
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.functions import Function, SqlFunctions
 from frappe.query_builder.utils import PseudoColumnMapper
-from frappe.types.filter import Filters, FilterSignature, FilterTuple, _type_narrow, _Val
+from frappe.types.filter import Filters, FilterSignature, FilterTuple
 from frappe.types.filter import _InVal as SimpleInputValue
 from frappe.utils.data import MARIADB_SPECIFIC_COMMENT
 
@@ -75,19 +75,20 @@ class Engine:
 			self.query = frappe.qb.from_(self.table)
 			self.apply_fields(fields)
 
-		if not isinstance(filters, Sequence) and filters is not None:
-			filters = [filters]
+		if filters is not None:
+			if not isinstance(filters, Sequence):
+				filters = [filters]
 
-		for filter in filters:
-			if isinstance(filter, Criterion):
-				self.query = self.query.where(filter)
-			if isinstance(filters, SimpleInputValue):
-				self._apply_filter(
-					FilterTuple(doctype=self.doctype, fieldname="name", operator="=", value=filters)
-				)
-			else:
-				for _filter in Filters(filters, doctype=self.doctype):
-					self._apply_filter(_filter)
+			for filter in filters:
+				if isinstance(filter, Criterion):
+					self.query = self.query.where(filter)
+				elif isinstance(filters, SimpleInputValue):
+					self._apply_filter(
+						FilterTuple(doctype=self.doctype, fieldname="name", operator="=", value=filters)
+					)
+				else:
+					for _filter in Filters(filters, doctype=self.doctype):
+						self._apply_filter(_filter)
 
 		self.apply_order_by(order_by)
 
