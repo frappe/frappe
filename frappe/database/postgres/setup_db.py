@@ -30,8 +30,8 @@ def bootstrap_database(db_name, verbose, source_sql=None):
 
 		secho(
 			"Table 'tabDefaultValue' missing in the restored site. "
-			"This may be due to incorrect permissions or the result of a restore from a bad backup file. "
-			"Database not installed correctly.",
+			"This happens when the backup fails to restore. Please check that the file is valid\n"
+			"Do go through the above output to check the exact error message from MariaDB",
 			fg="red",
 		)
 		sys.exit(1)
