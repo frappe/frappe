@@ -63,8 +63,8 @@ body {
 }
 
 .body-sidebar {
-	width: 53px;
-	background: var(--subtle-fg);
+	width: 50px;
+	background: var(--subtle-accent);
 	border-right: 1px solid var(--dark-border-color);
 
 	display: flex;
@@ -82,7 +82,7 @@ body {
 		gap: 2px;
 		justify-content: flex-start;
 		overflow: hidden;
-		padding: 15px;
+		padding: 13px;
 		position: static;
 		font-size: var(--text-base);
 		// transition: width 200ms;
@@ -93,7 +93,7 @@ body {
 	}
 
 	.app-logo {
-		width: 21px;
+		width: 23px;
 	}
 
 	.sidebar-items {
