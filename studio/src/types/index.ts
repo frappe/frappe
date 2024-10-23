@@ -1,4 +1,5 @@
 import Block from "../utils/block"
+import { VuePropDefault } from "@/types/vue"
 
 export type StyleValue = string | number | null | undefined
 
@@ -53,21 +54,6 @@ export interface ComponentProps {
 		inputType: string
 	}
 }
-
-export type VuePropType = {
-	name: 'String' | 'Number' | 'Boolean' | 'Array' | 'Object' | 'Function'
-	[key: string]: any
-}
-
-type VuePropDefaultType = string | number | boolean | undefined
-type VuePropDefault = VuePropDefaultType | (() => VuePropDefaultType)
-
-export type VueProp = {
-	type: VuePropType | VuePropType[]
-	default: VuePropDefault
-	required: boolean
-}
-
 export interface StudioPage {
 	creation: string
 	name: string

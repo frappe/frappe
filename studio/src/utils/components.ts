@@ -1,5 +1,6 @@
 import components from "@/data/components"
-import { ComponentProps, VueProp, VuePropType } from "@/types"
+import { ComponentProps } from "@/types"
+import { VueProp, VuePropType } from "@/types/vue"
 
 function getComponentProps(componentName: string) {
 	const props = components.getProps(componentName)
