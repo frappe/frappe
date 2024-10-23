@@ -5,6 +5,9 @@ import * as frappeUI from "frappe-ui"
 
 import { createDocumentResource, createListResource, createResource, confirmDialog } from "frappe-ui"
 
+import { BlockOptions, StyleValue } from "@/types"
+import { DataResult, DocumentResource, DocumentResult, Filters, Resource } from "@/types/studioResource"
+
 function getBlockInstance(options: BlockOptions, retainId = true): Block {
 	if (typeof options === "string") {
 		options = jsonToJs(options)
@@ -69,8 +72,12 @@ function getComponentRoot(componentRef: Ref) {
 	}
 }
 
-function numberToPx(number: number, round: boolean = true): string {
+function numberToPx(number: StyleValue, round: boolean = true): string {
 	/* appends "px" to number with optional rounding */
+	if (number === null || number === undefined) return ""
+	if (typeof number === "string") {
+		number = parseFloat(number)
+	}
 	number = round ? Math.round(number) : number;
 	return `${number}px`;
 }
@@ -299,7 +306,7 @@ function evaluateExpression(expression: string, context: any) {
 	}
 }
 
-function getTransforms(resource) {
+function getTransforms(resource: Resource) {
 	/**
 	 * Create a function that includes the user's transform function
 	 * Invoke the transform function with data/doc
@@ -307,14 +314,14 @@ function getTransforms(resource) {
 	if (resource.transform_results) {
 		if (resource.resource_type === "Document") {
 			return {
-				transform: (doc) => {
+				transform: (doc: DocumentResult) => {
 					const transformFn = new Function(resource.transform + "\nreturn transform")()
 					return transformFn.call(null, doc);
 				}
 			}
 		} else {
 			return {
-				transform: (data) => {
+				transform: (data: DataResult) => {
 					const transformFn = new Function(resource.transform + "\nreturn transform")()
 					return transformFn.call(null, data);
 				}
@@ -324,9 +331,12 @@ function getTransforms(resource) {
 	return {}
 }
 
-function getWhitelistedMethods(resource) {
+function getWhitelistedMethods(resource: DocumentResource) {
 	if (resource.whitelisted_methods) {
-		const whitelisted_methods = JSON.parse(resource.whitelisted_methods || [])
+		let whitelisted_methods = resource.whitelisted_methods
+		if (typeof resource.whitelisted_methods === "string") {
+			whitelisted_methods = JSON.parse(resource.whitelisted_methods)
+		}
 		const methods: Record<string, string> = {}
 		whitelisted_methods.forEach((method: string) => methods[method] = method)
 		return { whitelistedMethods: methods }
@@ -334,7 +344,7 @@ function getWhitelistedMethods(resource) {
 	return {}
 }
 
-async function getDocumentResource(resource, context: undefined | any = undefined) {
+async function getDocumentResource(resource: DocumentResource, context: undefined | any = undefined) {
 	let docname = resource.document_name
 	if (!docname && resource.filters) {
 		// fetch the docname based on filters
@@ -357,8 +367,11 @@ async function getDocumentResource(resource, context: undefined | any = undefine
 	})
 }
 
-function getNewResource(resource, context: undefined | any = undefined) {
-	const fields = JSON.parse(resource.fields || "[]")
+function getNewResource(resource: Resource, context: undefined | any = undefined) {
+	let fields = []
+	if ('fields' in resource && typeof resource.fields === "string") {
+		fields = JSON.parse(resource.fields)
+	}
 
 	switch (resource.resource_type) {
 		case "Document":

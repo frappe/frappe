@@ -6,6 +6,8 @@ import useStudioStore from "@/stores/studioStore";
 import components from "@/data/components";
 import { copyObject, getBlockCopy, kebabToCamelCase, numberToPx } from "./helpers";
 
+import { StyleValue } from "@/types"
+
 export type styleProperty = keyof CSSProperties | `__${string}`;
 class Block implements BlockOptions {
 	componentId: string
@@ -304,7 +306,7 @@ class Block implements BlockOptions {
 
 		let child = null as Block | null;
 		if (parentBlock) {
-			child = parentBlock.addChildAfter(blockCopy, this);
+			child = parentBlock.addChildAfter(blockCopy, this) as Block;
 		} else {
 			child = store.canvas?.getRootBlock().addChild(blockCopy) as Block;
 		}

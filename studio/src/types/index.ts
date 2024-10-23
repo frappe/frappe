@@ -1,20 +1,26 @@
-type StyleValue = string | number | null | undefined
+import Block from "../utils/block"
 
-interface BlockStyleMap {
+export type StyleValue = string | number | null | undefined
+
+export interface BlockStyleMap {
 	[key: string]: StyleValue
 }
 
-interface BlockOptions {
+export interface BlockOptions {
 	componentId?: string
 	componentName: string
+	componentProps?: Record<string, any>
+	componentEvents?: Record<string, any>
 	children?: Array<BlockOptions>
 	baseStyles?: BlockStyleMap
 	mobileStyles?: BlockStyleMap
 	tabletStyles?: BlockStyleMap
+	blockName?: string
+	parentBlock?: Block | null
 	[key: string]: any
 }
 
-interface Breakpoint {
+export interface Breakpoint {
 	icon: string;
 	device: string;
 	displayName: string;
@@ -22,7 +28,7 @@ interface Breakpoint {
 	visible: boolean;
 }
 
-interface CanvasProps {
+export interface CanvasProps {
 	overlayElement: HTMLElement | null;
 	background: string;
 	scale: number;
@@ -34,20 +40,35 @@ interface CanvasProps {
 	breakpoints: Breakpoint[];
 }
 
-interface ContextMenuOption {
+export interface ContextMenuOption {
 	label: string
 	action: CallableFunction
 	condition?: () => boolean
 }
 
-interface ComponentProps {
+export interface ComponentProps {
 	[key: string]: {
 		type: string,
-		default: string,
+		default: VuePropDefault,
 		inputType: string
 	}
 }
-interface StudioPage {
+
+export type VuePropType = {
+	name: 'String' | 'Number' | 'Boolean' | 'Array' | 'Object' | 'Function'
+	[key: string]: any
+}
+
+type VuePropDefaultType = string | number | boolean | undefined
+type VuePropDefault = VuePropDefaultType | (() => VuePropDefaultType)
+
+export type VueProp = {
+	type: VuePropType | VuePropType[]
+	default: VuePropDefault
+	required: boolean
+}
+
+export interface StudioPage {
 	creation: string
 	name: string
 	modified: string
@@ -72,7 +93,7 @@ interface StudioPage {
 	page_title?: string
 }
 
-interface StudioApp {
+export interface StudioApp {
 	creation: string
 	name: string
 	modified: string
@@ -89,17 +110,4 @@ interface StudioApp {
 }
 
 // controls
-type SelectOption = { value: string, label: string }
-
-// data
-type ResourceType = "API Resource" | "Document List" | "Document"
-interface ResourceOptions {
-	type?: ResourceType
-	url?: string
-	doctype?: string
-	fields?: string[]
-	filters?: Record<string, any>
-	[key: string]: any
-}
-
-type Filters = Record<string, string | Array<string>>
+export type SelectOption = { value: string, label: string }

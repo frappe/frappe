@@ -2,7 +2,7 @@
 import { useElementBounding, useMutationObserver } from "@vueuse/core";
 import { nextTick, reactive, watch, watchEffect } from "vue";
 import { numberToPx } from "./helpers";
-import { CanvasProps } from "./types"
+import { CanvasProps } from "@/types"
 
 declare global {
 	interface Window {

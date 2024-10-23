@@ -1,4 +1,5 @@
 import components from "@/data/components"
+import { ComponentProps, VueProp, VuePropType } from "@/types"
 
 function getComponentProps(componentName: string) {
 	const props = components.getProps(componentName)
@@ -15,7 +16,7 @@ function getComponentProps(componentName: string) {
 		})
 		return propsConfig
 	} else {
-		Object.entries(props).forEach(([propName, config]) => {
+		Object.entries(props as Record<string, VueProp>).forEach(([propName, config]) => {
 			const propType = getPropType(config.type)
 			propsConfig[propName] = {
 				type: propType,
@@ -27,7 +28,7 @@ function getComponentProps(componentName: string) {
 	return propsConfig
 }
 
-function getPropType(propType: object) {
+function getPropType(propType: VuePropType | VuePropType[]) {
 	if (Array.isArray(propType)) {
 		const proptypes = propType.map(type => type.name)
 		const hasNonPrimitiveType = proptypes.find(type => ["Array", "Object", "Function"].includes(type))
