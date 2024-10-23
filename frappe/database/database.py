@@ -649,8 +649,9 @@ class Database:
 						out = None
 					elif (not ignore) and frappe.db.is_table_missing(e):
 						# table not found, look in singles
+						fields = [fieldname] if (isinstance(fieldname, str) and fieldname != "*") else fieldname
 						out = self.get_values_from_single(
-							"*" if fieldname == "*" else [fieldname],
+							fields,
 							filters,
 							doctype,
 							as_dict,
@@ -663,8 +664,9 @@ class Database:
 					else:
 						raise
 			else:
+				fields = [fieldname] if (isinstance(fieldname, str) and fieldname != "*") else fieldname
 				out = self.get_values_from_single(
-					"*" if fieldname == "*" else [fieldname],
+					fields,
 					filters,
 					doctype,
 					as_dict,
