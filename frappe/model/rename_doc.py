@@ -62,7 +62,7 @@ def update_document_title(
 	title_updated = updated_title and (title_field != "name") and (updated_title != doc.get(title_field))
 	name_updated = updated_name and (updated_name != doc.name)
 
-	queue = kwargs.get("queue") or "default"
+	queue = kwargs.get("queue") or "long"
 
 	if name_updated:
 		if enqueue and not is_scheduler_inactive():
