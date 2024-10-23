@@ -1,6 +1,6 @@
 import re
 from ast import literal_eval
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from types import BuiltinFunctionType
 from typing import TYPE_CHECKING, TypeAlias
 
@@ -85,6 +85,8 @@ class Engine:
 		elif isinstance(filters, Criterion):
 			self.query = self.query.where(filters)
 			filters = None
+		elif isinstance(filters, Mapping):
+			filters = [filters]
 
 		if filters is not None:
 			_filters = Filters()
