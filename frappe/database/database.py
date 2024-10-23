@@ -666,9 +666,7 @@ class Database:
 					else:
 						raise
 			else:
-				fields = (
-					[fieldname] if (isinstance(fieldname, str) and fieldname != "*") else fieldname
-				)
+				fields = [fieldname] if (isinstance(fieldname, str) and fieldname != "*") else fieldname
 				out = self.get_values_from_single(
 					fields,
 					filters,
