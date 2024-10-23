@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-08 17:02+0000\n"
-"PO-Revision-Date: 2024-10-19 05:44\n"
+"PO-Revision-Date: 2024-10-23 07:16\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -2035,7 +2035,7 @@ msgstr "İzin Verilen Roller"
 
 #: frappe/public/js/frappe/form/form.js:1187
 msgid "Allowing DocType, DocType. Be careful!"
-msgstr ""
+msgstr "DocType için izin veriliyor. Dikkatli olun!"
 
 #: frappe/core/doctype/user/user.py:1018
 msgid "Already Registered"
@@ -3655,7 +3655,7 @@ msgstr ""
 #: frappe/website/doctype/blog_post/templates/blog_post_list.html:21
 #: frappe/website/doctype/blog_settings/blog_settings.json
 msgid "Browse by category"
-msgstr ""
+msgstr "Kategoriye göre görüntüle"
 
 #. Label of a Data field in DocType 'Web Page View'
 #: frappe/website/doctype/web_page_view/web_page_view.json
@@ -4119,7 +4119,7 @@ msgstr "<b>{0} Durumundan</b> <b>{1} </b> <b> Durumuna</b> geçerken kaydetmeden
 
 #: frappe/workflow/doctype/workflow/workflow.py:110
 msgid "Cannot cancel before submitting. See Transition {0}"
-msgstr ""
+msgstr "Göndermeden önce iptal edilemez. Geçişe bakın {0}"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:294
 msgid "Cannot cancel {0}."
@@ -4127,15 +4127,15 @@ msgstr "{0} iptal edilemez."
 
 #: frappe/model/document.py:846
 msgid "Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"
-msgstr ""
+msgstr "Docstatus (Doctype Durumu) 0 değerinden (Taslak) 2 değerine (İptal Edildi) değiştirilemiyor"
 
 #: frappe/model/document.py:860
 msgid "Cannot change docstatus from 1 (Submitted) to 0 (Draft)"
-msgstr ""
+msgstr "Docstatus (Doctype Durumu) 1 değerinden (Gönderildi) 0 değerine (Taslak) değiştirilemiyor"
 
 #: frappe/public/js/workflow_builder/utils.js:170
 msgid "Cannot change state of Cancelled Document <b>({0} State)</b>"
-msgstr ""
+msgstr "İptal Edilen Belgenin durumu değiştirilemiyor <b>({0} Durumu)</b>"
 
 #: frappe/workflow/doctype/workflow/workflow.py:99
 msgid "Cannot change state of Cancelled Document. Transition row {0}"
@@ -4143,11 +4143,11 @@ msgstr "İptal Edilen Belgenin durumu değiştirilemiyor. Geçiş satırı {0}"
 
 #: frappe/core/doctype/doctype/doctype.py:1115
 msgid "Cannot change to/from autoincrement autoname in Customize Form"
-msgstr ""
+msgstr "Özelleştir Formunda otomatik artırma otomatik adı olarak değiştirilemiyor"
 
 #: frappe/core/doctype/communication/communication.py:192
 msgid "Cannot create a {0} against a child document: {1}"
-msgstr ""
+msgstr "Alt belgeye karşı {0} dosyası oluşturulamaz: {1}"
 
 #: frappe/desk/doctype/workspace/workspace.py:254
 msgid "Cannot create private workspace of other users"
@@ -7324,12 +7324,12 @@ msgstr "Sorumluluk Reddi: Bu dizinler, bu kayıt sırasında gerçekleştirilen 
 #. Name of a DocType
 #: frappe/website/doctype/discussion_reply/discussion_reply.json
 msgid "Discussion Reply"
-msgstr ""
+msgstr "Yanıt"
 
 #. Name of a DocType
 #: frappe/website/doctype/discussion_topic/discussion_topic.json
 msgid "Discussion Topic"
-msgstr ""
+msgstr "Tartışma Konusu"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:625
 #: frappe/templates/discussions/reply_card.html:16
@@ -9078,7 +9078,7 @@ msgstr "Değeri Girin"
 
 #: frappe/public/js/frappe/form/form_tour.js:58
 msgid "Enter a name for this {0}"
-msgstr ""
+msgstr "{0} için bir ad girin"
 
 #. Description of the 'User Defaults' (Table) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -13562,7 +13562,7 @@ msgstr ""
 #: frappe/public/js/frappe/utils/number_systems.js:37
 msgctxt "Number system"
 msgid "Kh"
-msgstr ""
+msgstr "Kh"
 
 #. Label of a Card Break in the Website Workspace
 #: frappe/website/doctype/help_article/help_article.py:81
@@ -17096,7 +17096,7 @@ msgstr ""
 
 #: frappe/core/doctype/system_settings/system_settings.py:164
 msgid "Number of backups must be greater than zero."
-msgstr ""
+msgstr "Yedekleme sayısı sıfırdan büyük olmalıdır."
 
 #. Description of the 'Columns' (Int) field in DocType 'Customize Form Field'
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
@@ -17940,7 +17940,7 @@ msgstr "Sayfa Genişliği (mm cinsinden)"
 
 #: frappe/www/qrcode.py:35
 msgid "Page has expired!"
-msgstr ""
+msgstr "Sayfa süresi doldu!"
 
 #: frappe/printing/doctype/print_settings/print_settings.py:70
 #: frappe/public/js/frappe/list/bulk_operations.js:106
@@ -18039,7 +18039,7 @@ msgstr "Gösterge tablosu grafiği oluşturmak için ana belge türü gereklidir
 
 #: frappe/core/doctype/data_export/exporter.py:253
 msgid "Parent is the name of the document to which the data will get added to."
-msgstr ""
+msgstr "Üst öğe, verilerin ekleneceği belgenin adıdır."
 
 #: frappe/permissions.py:797
 msgid "Parentfield not specified in {0}: {1}"
@@ -19171,7 +19171,7 @@ msgstr "Birincil E-Posta"
 
 #: frappe/public/js/frappe/form/templates/contact_list.html:43
 msgid "Primary Mobile"
-msgstr ""
+msgstr "Birincil Mobil Telefon"
 
 #: frappe/public/js/frappe/form/templates/contact_list.html:35
 msgid "Primary Phone"
@@ -24414,7 +24414,7 @@ msgstr ""
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:39
 msgid "Submit an Issue"
-msgstr ""
+msgstr "Hata Bildir"
 
 #: frappe/website/doctype/web_form/templates/web_form.html:153
 msgctxt "Button in web form"
@@ -24635,7 +24635,7 @@ msgstr "Gönderimi Askıya Al"
 
 #: frappe/public/js/frappe/ui/capture.js:268
 msgid "Switch Camera"
-msgstr ""
+msgstr "Kamerayı Değiştir"
 
 #: frappe/public/js/frappe/desk.js:51
 #: frappe/public/js/frappe/ui/theme_switcher.js:11
@@ -24648,7 +24648,7 @@ msgstr "Uygulamaya Git"
 
 #: frappe/public/js/frappe/ui/capture.js:273
 msgid "Switching Camera"
-msgstr ""
+msgstr "Kamerayı Değiştiriliyor"
 
 #. Label of a Data field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
@@ -25008,7 +25008,7 @@ msgstr "Tablo Temizlendi"
 
 #: frappe/public/js/frappe/form/grid.js:1142
 msgid "Table updated"
-msgstr ""
+msgstr "Tablo güncellendi"
 
 #: frappe/model/document.py:1370
 msgid "Table {0} cannot be empty"
@@ -25042,7 +25042,7 @@ msgstr "Etiketler"
 
 #: frappe/integrations/doctype/google_drive/google_drive.js:29
 msgid "Take Backup"
-msgstr ""
+msgstr "Yedekle"
 
 #: frappe/integrations/doctype/dropbox_settings/dropbox_settings.js:39
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.js:12
@@ -25137,7 +25137,7 @@ msgstr "Test e-postası {0} adresine gönderildi"
 
 #: frappe/core/doctype/file/test_file.py:361
 msgid "Test_Folder"
-msgstr ""
+msgstr "Test_Klasoru"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -26175,11 +26175,11 @@ msgstr ""
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.js:8
 msgid "To use Google Calendar, enable {0}."
-msgstr ""
+msgstr "Google Takvim'i kullanmak için {0} ayarını etkinleştirin."
 
 #: frappe/integrations/doctype/google_contacts/google_contacts.js:8
 msgid "To use Google Contacts, enable {0}."
-msgstr ""
+msgstr "Google Kişiler'i kullanmak için {0} ayarını etkinleştirin."
 
 #: frappe/integrations/doctype/google_drive/google_drive.js:8
 msgid "To use Google Drive, enable {0}."
@@ -26549,7 +26549,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/views/translation_manager.js:11
 msgid "Translate {0}"
-msgstr ""
+msgstr "Çevir {0}"
 
 #. Label of a Code field in DocType 'Translation'
 #: frappe/core/doctype/translation/translation.json
@@ -28169,12 +28169,12 @@ msgstr "Web Kancası"
 #: frappe/integrations/doctype/webhook/webhook.json
 #: frappe/integrations/doctype/webhook_data/webhook_data.json
 msgid "Webhook Data"
-msgstr ""
+msgstr "Webhook Verileri"
 
 #. Name of a DocType
 #: frappe/integrations/doctype/webhook_header/webhook_header.json
 msgid "Webhook Header"
-msgstr ""
+msgstr "Webhook Başlığı"
 
 #. Label of a Section Break field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -31488,7 +31488,7 @@ msgstr "{0} Güncellendi"
 
 #: frappe/public/js/frappe/form/controls/multiselect_list.js:162
 msgid "{0} values selected"
-msgstr ""
+msgstr "{0} değerler seçildi"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:185
 msgid "{0} viewed this"
@@ -31665,7 +31665,7 @@ msgstr "{count} hücre kopyalandı"
 
 #: frappe/public/js/frappe/utils/datatable.js:13
 msgid "{count} cells copied"
-msgstr ""
+msgstr "{count} hücre kopyalandı"
 
 #: frappe/public/js/frappe/utils/datatable.js:16
 msgid "{count} row selected"
