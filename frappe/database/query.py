@@ -33,6 +33,17 @@ COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
 TABLE_NAME_PATTERN = re.compile(r"^[\w -]*$", flags=re.ASCII)
 
 
+class Sentinel:
+	def __bool__(self) -> bool:
+		return False
+
+	def __str__(self) -> str:
+		return "UNSPECIFIED"
+
+
+UNSPECIFIED = Sentinel()
+
+
 class Engine:
 	def get_query(
 		self,
@@ -41,8 +52,7 @@ class Engine:
 		filters: FilterSignature
 		| SimpleInputValue
 		| Criterion
-		| Sequence[Criterion | FilterTuple | FilterMappingSpec | FilterTupleSpec]
-		| None = None,
+		| Sequence[Criterion | FilterTuple | FilterMappingSpec | FilterTupleSpec] = UNSPECIFIED,
 		order_by: str | None = None,
 		group_by: str | None = None,
 		limit: int | None = None,
@@ -81,14 +91,14 @@ class Engine:
 
 		if isinstance(filters, SimpleInputValue):
 			self._apply_filter(FilterTuple(doctype=self.doctype, fieldname="name", value=filters))
-			filters = None
+			filters = UNSPECIFIED
 		elif isinstance(filters, Criterion):
 			self.query = self.query.where(filters)
-			filters = None
+			filters = UNSPECIFIED
 		elif isinstance(filters, Mapping):
 			filters = [filters]
 
-		if filters is not None:
+		if filters != UNSPECIFIED:
 			_filters = Filters()
 			for filter in filters:
 				if isinstance(filter, Criterion):
