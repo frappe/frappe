@@ -13,7 +13,7 @@ from contextlib import suppress
 from shutil import which
 
 import click
-from semantic_version import Version
+from packaging.version import Version
 
 import frappe
 from frappe.defaults import _clear_cache
