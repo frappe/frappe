@@ -2273,6 +2273,17 @@ def publish_realtime(*args, **kwargs):
 	return frappe.realtime.publish_realtime(*args, **kwargs)
 
 
+def publish_task_progress(message: str, progress: float):
+	"""
+	Publish task progress to the user
+	:param message: Message for the user
+	:return: Nothing
+	"""
+	from frappe.utils.background_tasks import publish_task_progress
+
+	publish_task_progress(message, progress)
+
+
 def local_cache(namespace, key, generator, regenerate_if_none=False):
 	"""A key value store for caching within a request
 
@@ -2309,6 +2320,24 @@ def enqueue(*args, **kwargs):
 	import frappe.utils.background_jobs
 
 	return frappe.utils.background_jobs.enqueue(*args, **kwargs)
+
+
+def enqueue_task(*args, **kwargs):
+	"""
+	Enqueue method to be executed using a background worker
+
+	:param method: method string or method object
+	:param queue: should be either long, default or short
+	:param timeout: should be set according to the enqueued method's runtime
+	:param enqueue_after_commit: if True, enqueue after the current transaction is committed
+	:param at_front: Enqueue the job at the front of the queue or not
+	:param kwargs: keyword arguments to be passed to the method
+	:param original_task: Original task's name, if this is being re-tried
+	:return: Job object normally, if executing now then the result of the method, nothing if enqueueing after commit
+	"""
+	import frappe.utils.background_tasks
+
+	return frappe.utils.background_tasks.enqueue(*args, **kwargs)
 
 
 def task(**task_kwargs):

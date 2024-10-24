@@ -156,8 +156,9 @@ def enqueue(
 	else:
 		method_name = method
 
-	queue_args = {
-		"site": frappe.local.site,
+	meta = {"site": frappe.local.site}
+
+	queue_args = meta | {
 		"user": frappe.session.user,
 		"method": method,
 		"event": event,
@@ -175,6 +176,7 @@ def enqueue(
 			on_failure=Callback(func=on_failure),
 			timeout=timeout,
 			kwargs=queue_args,
+			meta=meta,
 			at_front=at_front,
 			failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
 			result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
@@ -206,8 +208,32 @@ def run_doc_method(doctype, name, doc_method, **kwargs):
 	getattr(frappe.get_doc(doctype, name), doc_method)(**kwargs)
 
 
-def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True, retry=0):
-	"""Executes job in a worker, performs commit/rollback and logs if there is any error"""
+def execute_job(
+	site: str,
+	method: str | Callable,
+	event: str | None = None,
+	job_name: str | None = None,
+	kwargs: dict | None = None,
+	user: str | None = None,
+	is_async: bool = True,
+	retry: int = 0,
+	task_id: str | None = None,
+):
+	"""
+	Executes job in a worker, performs commit/rollback and logs if there is any error
+
+	:param site: Site name
+	:param method: Method to be executed
+	:param event: Event name
+	:param job_name: Job name
+	:param kwargs: Keyword arguments to be passed to the method
+	:param user: User who triggered the job
+	:param is_async: If is_async=False, the method is executed immediately, else via a worker
+	:param retry: Number of times the job has been retried
+	:param task_id: Optional task ID
+
+	:return: Return value of the method
+	"""
 	retval = None
 
 	if is_async:
@@ -223,7 +249,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		method_name = method
 		method = frappe.get_attr(method)
 	else:
-		method_name = f"{method.__module__}.{method.__qualname__}"
+		method_name = frappe.utils.method_to_string(method)
 
 	actual_func_name = kwargs.get("job_type") if "run_scheduled_job" in method_name else method_name
 	setproctitle.setproctitle(f"rq: Started running {actual_func_name} at {time.time()}")
@@ -236,6 +262,16 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		user=user,
 		after_job=CallbackManager(),
 	)
+
+	# Set task to started
+	if task_id:
+		frappe.db.set_value(
+			"Background Task",
+			task_id,
+			{"status": "In Progress", "task_start": frappe.utils.now_datetime()},
+		)
+		frappe.db.commit()
+		frappe.job.task_id = task_id
 
 	for before_job_task in frappe.get_hooks("before_job"):
 		frappe.call(before_job_task, method=method_name, kwargs=kwargs, transaction_type="job")
