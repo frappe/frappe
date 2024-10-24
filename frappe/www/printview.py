@@ -586,7 +586,11 @@ def get_print_style(
 
 	css = frappe.get_template("templates/styles/standard.css").render(context)
 
-	if style and frappe.db.exists("Print Style", style):
+	if (
+		style
+	    and frappe.db.exists("Print Style", style)
+	    and not frappe.db.get_value("Print Style", style, "disabled")
+	):
 		css = css + "\n" + frappe.db.get_value("Print Style", style, "css")
 
 	# move @import to top
