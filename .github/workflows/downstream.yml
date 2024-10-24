@@ -5,6 +5,7 @@ on:
 
 jobs:
   dispatch:
+    runs-on: "ubuntu-latest"
     strategy:
       matrix:
         repo:
