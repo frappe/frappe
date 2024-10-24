@@ -1,8 +1,6 @@
 const cookie = require("cookie");
-const request = require("superagent");
-const { get_url } = require("../utils");
-
 const { get_conf } = require("../../node_utils");
+const { get_url } = require("../utils");
 const conf = get_conf();
 
 function authenticate_with_frappe(socket, next) {
@@ -30,21 +28,35 @@ function authenticate_with_frappe(socket, next) {
 		next(new Error("No authentication method used. Use cookie or authorization header."));
 		return;
 	}
+	socket.sid = cookies.sid;
+	socket.authorization_header = authorization_header;
 
-	let auth_req = request.get(get_url(socket, "/api/method/frappe.realtime.get_user_info"));
-	if (cookies.sid) {
-		auth_req = auth_req.query({ sid: cookies.sid });
-	} else {
-		auth_req = auth_req.set("Authorization", authorization_header);
-	}
+	socket.frappe_request = (path, args = {}, opts = {}) => {
+		let query_args = new URLSearchParams(args);
+		if (query_args.toString()) {
+			path = path + "?" + query_args.toString();
+		}
 
-	auth_req
-		.type("form")
-		.then((res) => {
-			socket.user = res.body.message.user;
-			socket.user_type = res.body.message.user_type;
-			socket.sid = cookies.sid;
-			socket.authorization_header = authorization_header;
+		let headers = {};
+		if (socket.authorization_header) {
+			headers["Authorization"] = socket.authorization_header;
+		} else if (socket.sid) {
+			headers["Cookie"] = `sid=${socket.sid}`;
+		}
+
+		return fetch(get_url(socket, path), {
+			...opts,
+			headers,
+		});
+	};
+
+	socket
+		.frappe_request("/api/method/frappe.realtime.get_user_info")
+		.then((res) => res.json())
+		.then(({ message }) => {
+			socket.user = message.user;
+			socket.user_type = message.user_type;
+			socket.installed_apps = message.installed_apps;
 			next();
 		})
 		.catch((e) => {
