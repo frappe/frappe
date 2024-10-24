@@ -23,6 +23,7 @@ class Contact(Document):
 		from frappe.types import DF
 
 		address: DF.Link | None
+		business_unit: DF.Data | None
 		company_name: DF.Data | None
 		department: DF.Data | None
 		designation: DF.Data | None
