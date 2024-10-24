@@ -590,6 +590,9 @@ class BaseDocument:
 		self.set("__islocal", False)
 
 	def db_update(self):
+		if frappe.db.db_type == "postgres":
+			self.show_unique_validation_message_for_postgress()
+			
 		if self.get("__islocal") or not self.name:
 			self.db_insert()
 			return
