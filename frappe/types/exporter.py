@@ -51,7 +51,7 @@ non_nullable_types = {
 
 class TypeExporter:
 	def __init__(self, doc):
-		from frappe.model.base_document import get_controller
+		from frappe.model.base_document import get_controller, get_vanilla_controller
 
 		self.doc = doc
 		self.doctype = doc.name
@@ -59,7 +59,7 @@ class TypeExporter:
 
 		self.imports = {"from frappe.types import DF"}
 		self.indent = "\t"
-		self.controller_path = Path(inspect.getfile(get_controller(self.doctype)))
+		self.controller_path = Path(inspect.getfile(get_vanilla_controller(self.doctype)))
 
 	def export_types(self):
 		self._guess_indentation()
