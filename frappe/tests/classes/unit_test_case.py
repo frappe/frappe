@@ -43,6 +43,19 @@ class UnitTestCase(unittest.TestCase, BaseTestCase):
 	"""
 
 	@classmethod
+	def __init_subclass__(cls, **kwargs):
+		"""Ensure to always run UnitTestCase.setUpClass (first)."""
+		super().__init_subclass__(**kwargs)
+		setUpClass = cls.setUpClass
+
+		@classmethod
+		def _setUpClass(new_cls):
+			UnitTestCase.setUpClass.__func__(new_cls)
+			_setUpClass.__func__(new_cls)
+
+		cls.setUpClass = setUpClass
+
+	@classmethod
 	def setUpClass(cls) -> None:
 		if getattr(cls, "_unit_test_case_class_setup_done", None):
 			return
