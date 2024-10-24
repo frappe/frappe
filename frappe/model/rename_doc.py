@@ -86,7 +86,7 @@ def update_document_title(
 				save_point=True,
 			)
 
-			doc.queue_action("rename", name=transformed_name, merge=merge, queue=queue)
+			doc.queue_action("rename", name=transformed_name, merge=merge, queue=queue, timeout=36000)
 		else:
 			doc.rename(updated_name, merge=merge)
 
