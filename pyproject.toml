@@ -212,7 +212,10 @@ incremental = true
 sqlite_cache = true
 files = [
     # start small, with a lot of multiplication potential
-    "frappe/__init__.py",
+    "frappe/types/__init__.py",
+    "frappe/types/DF.py",
+    "frappe/types/docref.py",
+    "frappe/types/frappedict.py",
 ]
 exclude = [
     # permanent excludes
