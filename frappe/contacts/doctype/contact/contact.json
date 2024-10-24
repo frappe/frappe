@@ -38,6 +38,7 @@
   "links",
   "is_primary_contact",
   "more_info",
+  "business_unit",
   "department",
   "unsubscribed"
  ],
@@ -250,6 +251,11 @@
    "hidden": 1,
    "label": "Full Name",
    "read_only": 1
+  },
+  {
+   "fieldname": "business_unit",
+   "fieldtype": "Data",
+   "label": "Business Unit"
   }
  ],
  "icon": "fa fa-user",
@@ -257,11 +263,10 @@
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-12-08 15:52:37.525003",
+ "modified": "2024-10-24 10:50:26.048371",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",
- "name_case": "Title Case",
  "naming_rule": "By script",
  "owner": "Administrator",
  "permissions": [
