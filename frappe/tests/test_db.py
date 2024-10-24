@@ -4,6 +4,7 @@
 import datetime
 from math import ceil
 from random import choice
+from types import TracebackType
 from unittest.mock import patch
 
 import frappe
@@ -1111,7 +1112,12 @@ class ExtIntegrationTestCase(IntegrationTestCase):
 			def __enter__(self):
 				return self
 
-			def __exit__(self, exc_type, exc_value, traceback) -> bool:
+			def __exit__(
+				self,
+				exc_type: type[BaseException] | None,
+				exc_value: BaseException | None,
+				traceback: TracebackType | None,
+			) -> bool:
 				if exc_type is None:
 					self.test_case.fail("Expected exception but none was raised")
 				else:

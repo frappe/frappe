@@ -22,6 +22,7 @@ It can be configured using environment variables such as SITE, ORCHESTRATOR_URL,
 import json
 import os
 from pathlib import Path
+from types import TracebackType
 
 # Define standard patterns for file inclusions and exclusions in coverage
 STANDARD_INCLUSIONS = ["*.py"]
@@ -91,6 +92,7 @@ class CodeCoverage:
 	def __enter__(self) -> None:
 		if self.with_coverage:
 			import os
+
 			from coverage import Coverage
 
 			# Set up coverage for the specific app
@@ -104,7 +106,7 @@ class CodeCoverage:
 			self.coverage = Coverage(source=[source_path], omit=omit, include=STANDARD_INCLUSIONS)
 			self.coverage.start()
 
-	def __exit__(self, exc_type, exc_value, traceback) -> None:
+	def __exit__(self, exc_type: type[BaseException] | None, exc_value: BaseException | None, traceback: TracebackType | None) -> None:
 		if self.with_coverage:
 			self.coverage.stop()
 			self.coverage.save()

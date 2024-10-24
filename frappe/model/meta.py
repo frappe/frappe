@@ -125,7 +125,7 @@ class Meta(Document):
 	)
 
 	@singledispatchmethod
-	def __init__(self, arg):
+	def __init__(self, arg) -> None:
 		raise TypeError(f"Unsupported argument type: {type(arg)}")
 
 	@__init__.register(str)

@@ -174,7 +174,7 @@ class Document(BaseDocument, DocRef):
 	modified_by: DF.Link
 	idx: DF.Int
 
-	def __init__(self, *args, **kwargs):
+	def __init__(self, *args, **kwargs) -> None:
 		"""Constructor.
 
 		:param arg1: DocType name as string, document **dict**, or DocRef object

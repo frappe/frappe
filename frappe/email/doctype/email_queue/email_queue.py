@@ -7,6 +7,7 @@ import traceback
 from contextlib import suppress
 from email.parser import Parser
 from email.policy import SMTP
+from types import TracebackType
 
 import frappe
 from frappe import _, safe_encode, task
@@ -255,7 +256,12 @@ class SendMailContext:
 		self.queue_doc.update_status(status="Sending", commit=True)
 		return self
 
-	def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+	def __exit__(
+		self,
+		exc_type: type[BaseException] | None,
+		exc_val: BaseException | None,
+		exc_tb: TracebackType | None,
+	) -> None:
 		if exc_type:
 			update_fields = {"error": frappe.get_traceback()}
 			if self.queue_doc.retry < get_email_retry_limit():

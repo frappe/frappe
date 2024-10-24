@@ -26,6 +26,7 @@ import traceback
 import warnings
 from collections import defaultdict
 from collections.abc import Callable, Iterable
+from types import TracebackType
 from typing import (
 	TYPE_CHECKING,
 	Any,
@@ -481,7 +482,12 @@ class init_site:
 		init(self.site)
 		return local
 
-	def __exit__(self, type, value, traceback) -> None:
+	def __exit__(
+		self,
+		type: type[BaseException] | None,
+		value: BaseException | None,
+		traceback: TracebackType | None,
+	) -> None:
 		destroy()
 
 
