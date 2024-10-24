@@ -28,6 +28,7 @@ from frappe.middlewares import StaticDataMiddleware
 from frappe.utils import CallbackManager, cint, get_site_name
 from frappe.utils.data import escape_html
 from frappe.utils.error import log_error_snapshot
+from frappe.website.page_renderers.error_page import ErrorPage
 from frappe.website.serve import get_response
 
 _site = None
@@ -339,15 +340,12 @@ def make_form_dict(request: Request):
 def handle_exception(e):
 	response = None
 	http_status_code = getattr(e, "http_status_code", 500)
-	return_as_message = False
 	accept_header = frappe.get_request_header("Accept") or ""
 	respond_as_json = (
 		frappe.get_request_header("Accept")
 		and (frappe.local.is_ajax or "application/json" in accept_header)
 		or (frappe.local.request.path.startswith("/api/") and not accept_header.startswith("text"))
 	)
-
-	allow_traceback = frappe.get_system_settings("allow_error_traceback") if frappe.db else False
 
 	if not frappe.session.user:
 		# If session creation fails then user won't be unset. This causes a lot of code that
@@ -371,45 +369,33 @@ def handle_exception(e):
 		http_status_code = 508
 
 	elif http_status_code == 401:
-		frappe.respond_as_web_page(
-			_("Session Expired"),
-			_("Your session has expired, please login again to continue."),
+		response = ErrorPage(
 			http_status_code=http_status_code,
-			indicator_color="red",
-		)
-		return_as_message = True
+			title=_("Session Expired"),
+			message=_("Your session has expired, please login again to continue."),
+		).render()
 
 	elif http_status_code == 403:
-		frappe.respond_as_web_page(
-			_("Not Permitted"),
-			_("You do not have enough permissions to complete the action"),
+		response = ErrorPage(
 			http_status_code=http_status_code,
-			indicator_color="red",
-		)
-		return_as_message = True
+			title=_("Not Permitted"),
+			message=_("You do not have enough permissions to complete the action"),
+		).render()
 
 	elif http_status_code == 404:
-		frappe.respond_as_web_page(
-			_("Not Found"),
-			_("The resource you are looking for is not available"),
+		response = ErrorPage(
 			http_status_code=http_status_code,
-			indicator_color="red",
-		)
-		return_as_message = True
+			title=_("Not Found"),
+			message=_("The resource you are looking for is not available"),
+		).render()
 
 	elif http_status_code == 429:
 		response = frappe.rate_limiter.respond()
 
 	else:
-		traceback = "<pre>" + escape_html(frappe.get_traceback()) + "</pre>"
-		# disable traceback in production if flag is set
-		if frappe.local.flags.disable_traceback or not allow_traceback and not frappe.local.dev_server:
-			traceback = ""
-
-		frappe.respond_as_web_page(
-			"Server Error", traceback, http_status_code=http_status_code, indicator_color="red", width=640
-		)
-		return_as_message = True
+		response = ErrorPage(
+			http_status_code=http_status_code, title=_("Server Error"), message=_("Uncaught Exception")
+		).render()
 
 	if e.__class__ == frappe.AuthenticationError:
 		if hasattr(frappe.local, "login_manager"):
@@ -417,9 +403,6 @@ def handle_exception(e):
 
 	if http_status_code >= 500:
 		log_error_snapshot(e)
-
-	if return_as_message:
-		response = get_response("message", http_status_code=http_status_code)
 
 	if frappe.conf.get("developer_mode") and not respond_as_json:
 		# don't fail silently for non-json response errors
