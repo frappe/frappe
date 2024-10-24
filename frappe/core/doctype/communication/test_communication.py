@@ -23,7 +23,7 @@ class UnitTestCommunication(UnitTestCase):
 
 
 class TestCommunication(IntegrationTestCase):
-	def test_email(self):
+	def test_email(self) -> None:
 		valid_email_list = [
 			"Full Name <full@example.com>",
 			'"Full Name with quotes and <weird@chars.com>" <weird@example.com>',
@@ -52,7 +52,7 @@ class TestCommunication(IntegrationTestCase):
 			with self.subTest(i=i, x=x):
 				self.assertFalse(frappe.utils.parse_addr(x)[0])
 
-	def test_name(self):
+	def test_name(self) -> None:
 		valid_email_list = [
 			"Full Name <full@example.com>",
 			'"Full Name with quotes and <weird@chars.com>" <weird@example.com>',
@@ -79,7 +79,7 @@ class TestCommunication(IntegrationTestCase):
 		for x in invalid_email_list:
 			self.assertFalse(frappe.utils.parse_addr(x)[0])
 
-	def test_circular_linking(self):
+	def test_circular_linking(self) -> None:
 		a = frappe.get_doc(
 			{
 				"doctype": "Communication",
@@ -114,7 +114,7 @@ class TestCommunication(IntegrationTestCase):
 
 		self.assertRaises(frappe.CircularLinkingError, a.save)
 
-	def test_deduplication_timeline_links(self):
+	def test_deduplication_timeline_links(self) -> None:
 		frappe.delete_doc_if_exists("Note", "deduplication timeline links")
 
 		note = frappe.get_doc(
@@ -142,7 +142,7 @@ class TestCommunication(IntegrationTestCase):
 
 		self.assertNotEqual(2, len(comm.timeline_links))
 
-	def test_contacts_attached(self):
+	def test_contacts_attached(self) -> None:
 		contact_sender: "Contact" = frappe.get_doc(
 			{
 				"doctype": "Contact",
@@ -188,7 +188,7 @@ class TestCommunication(IntegrationTestCase):
 		self.assertIn(contact_recipient.name, contact_links)
 		self.assertIn(contact_cc.name, contact_links)
 
-	def test_get_communication_data(self):
+	def test_get_communication_data(self) -> None:
 		from frappe.desk.form.load import get_communication_data
 
 		frappe.delete_doc_if_exists("Note", "get communication data")
@@ -225,7 +225,7 @@ class TestCommunication(IntegrationTestCase):
 		self.assertIn(comm_note_1.name, data)
 		self.assertIn(comm_note_2.name, data)
 
-	def test_parse_email(self):
+	def test_parse_email(self) -> None:
 		to = "Jon Doe <jon.doe@example.org>"
 		cc = """=?UTF-8?Q?Max_Mu=C3=9F?= <max.muss@examle.org>,
 	erp+Customer=Plus%2BCompany@example.org,
@@ -252,7 +252,7 @@ class TestCommunication(IntegrationTestCase):
 		results = list(parse_email([to, cc, bcc]))
 		self.assertEqual([("A", "Test"), ("Note", "Very important")], results)
 
-	def test_get_emails(self):
+	def test_get_emails(self) -> None:
 		emails = get_emails(
 			[
 				"comm_recipient+DocType+DocName@example.com",
@@ -265,7 +265,7 @@ class TestCommunication(IntegrationTestCase):
 		self.assertEqual(emails[1], "first.lastname@email.com")
 		self.assertEqual(emails[2], "test@user.com")
 
-	def test_signature_in_email_content(self):
+	def test_signature_in_email_content(self) -> None:
 		email_account = create_email_account()
 		signature = email_account.signature
 		base_communication = {
@@ -297,7 +297,7 @@ class TestCommunication(IntegrationTestCase):
 		self.assertEqual(comm_with_signature.content.count(signature), 1)
 		self.assertEqual(comm_without_signature.content.count(signature), 1)
 
-	def test_mark_as_spam(self):
+	def test_mark_as_spam(self) -> None:
 		frappe.get_doc(
 			{
 				"doctype": "Email Rule",
@@ -359,15 +359,17 @@ class TestCommunicationEmailMixin(IntegrationTestCase):
 		user.insert(ignore_permissions=True, ignore_if_duplicate=True)
 		return user
 
-	def test_recipients(self):
+	def test_recipients(self) -> None:
 		to_list = ["to@test.com", "receiver <to+1@test.com>", "to@test.com"]
 		comm = self.new_communication(recipients=to_list)
 		res = comm.get_mail_recipients_with_displayname()
 		self.assertCountEqual(res, ["to@test.com", "receiver <to+1@test.com>"])
 		comm.delete()
 
-	def test_cc(self):
-		def test(assertion, cc_list=None, set_user_as=None, include_sender=False, thread_notify=False):
+	def test_cc(self) -> None:
+		def test(
+			assertion, cc_list=None, set_user_as=None, include_sender=False, thread_notify=False
+		) -> None:
 			if set_user_as:
 				frappe.set_user(set_user_as)
 
@@ -388,7 +390,7 @@ class TestCommunicationEmailMixin(IntegrationTestCase):
 		test(["sender@test.com"], include_sender=True, thread_notify=True)
 		test(["cc+1@test.com"], include_sender=True, thread_notify=True, set_user_as="cc+1@test.com")
 
-	def test_bcc(self):
+	def test_bcc(self) -> None:
 		bcc_list = [
 			"bcc+1@test.com",
 			"cc <bcc+2@test.com>",
@@ -401,7 +403,7 @@ class TestCommunicationEmailMixin(IntegrationTestCase):
 		user.delete()
 		comm.delete()
 
-	def test_sendmail(self):
+	def test_sendmail(self) -> None:
 		to_list = ["to <to@test.com>"]
 		cc_list = ["cc <cc+1@test.com>", "cc <cc+2@test.com>"]
 
@@ -414,7 +416,7 @@ class TestCommunicationEmailMixin(IntegrationTestCase):
 		doc.delete()
 		comm.delete()
 
-	def test_add_attachments_by_filename(self):
+	def test_add_attachments_by_filename(self) -> None:
 		to_list = ["to <to@test.com>"]
 		comm = self.new_communication(recipients=to_list)
 
@@ -433,7 +435,7 @@ class TestCommunicationEmailMixin(IntegrationTestCase):
 		self.assertEqual(attached_content_hash, file.content_hash)
 		self.assertEqual(attached_file_name, file.file_name)
 
-	def test_add_attachments_by_file_content(self):
+	def test_add_attachments_by_file_content(self) -> None:
 		to_list = ["to <to@test.com>"]
 		comm = self.new_communication(recipients=to_list)
 		file_name = "test_add_attachments_by_file_content.txt"

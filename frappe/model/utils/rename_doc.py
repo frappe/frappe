@@ -9,7 +9,7 @@ from frappe.model.rename_doc import get_link_fields
 
 def update_linked_doctypes(
 	doctype: str, docname: str, linked_to: str, value: str, ignore_doctypes: list | None = None
-):
+) -> None:
 	"""
 	linked_doctype_info_list = list formed by get_fetch_fields() function
 	docname = Master DocType's name in which modification are made

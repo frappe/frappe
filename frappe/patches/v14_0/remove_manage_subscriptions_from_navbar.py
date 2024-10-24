@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	navbar_settings = frappe.get_single("Navbar Settings")
 	for i, l in enumerate(navbar_settings.settings_dropdown):
 		if l.item_label == "Manage Subscriptions":

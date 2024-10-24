@@ -49,11 +49,11 @@ def get_meta(doctype, cached=True) -> "FormMeta":
 
 
 class FormMeta(Meta):
-	def __init__(self, doctype, *, cached=True):
+	def __init__(self, doctype, *, cached=True) -> None:
 		self.__dict__.update(frappe.get_meta(doctype, cached=cached).__dict__)
 		self.load_assets()
 
-	def load_assets(self):
+	def load_assets(self) -> None:
 		if self.get("__assets_loaded", False):
 			return
 
@@ -86,7 +86,7 @@ class FormMeta(Meta):
 
 		return d
 
-	def add_code(self):
+	def add_code(self) -> None:
 		if self.custom:
 			return
 
@@ -119,7 +119,7 @@ class FormMeta(Meta):
 		self.add_code_via_hook("doctype_calendar_js", "__calendar_js")
 		self.add_html_templates(path)
 
-	def _add_code(self, path, fieldname):
+	def _add_code(self, path, fieldname) -> None:
 		js = get_js(path)
 		if js:
 			bench_path = get_bench_path() + "/"
@@ -128,7 +128,7 @@ class FormMeta(Meta):
 			sourceURL = f"\n\n//# sourceURL={scrub(self.name) + fieldname}"
 			self.set(fieldname, (self.get(fieldname) or "") + comment + js + sourceURL)
 
-	def add_html_templates(self, path):
+	def add_html_templates(self, path) -> None:
 		if self.custom:
 			return
 		templates = dict()
@@ -139,11 +139,11 @@ class FormMeta(Meta):
 
 		self.set("__templates", templates or None)
 
-	def add_code_via_hook(self, hook, fieldname):
+	def add_code_via_hook(self, hook, fieldname) -> None:
 		for path in get_code_files_via_hooks(hook, self.name):
 			self._add_code(path, fieldname)
 
-	def add_custom_script(self):
+	def add_custom_script(self) -> None:
 		"""embed all require files"""
 		# custom script
 		client_scripts = (
@@ -183,7 +183,7 @@ class FormMeta(Meta):
 		self.set("__custom_js", form_script)
 		self.set("__custom_list_js", list_script)
 
-	def add_search_fields(self):
+	def add_search_fields(self) -> None:
 		"""add search fields found in the doctypes indicated by link fields' options"""
 		for df in self.get("fields", {"fieldtype": "Link", "options": ["!=", "[Select]"]}):
 			if df.options:
@@ -196,7 +196,7 @@ class FormMeta(Meta):
 					search_fields = search_fields.split(",")
 					df.search_fields = [sf.strip() for sf in search_fields]
 
-	def _show_missing_doctype_msg(self, df):
+	def _show_missing_doctype_msg(self, df) -> None:
 		# A link field is referring to non-existing doctype, this usually happens when
 		# customizations are removed or some custom app is removed but hasn't cleaned
 		# up after itself.
@@ -214,7 +214,7 @@ class FormMeta(Meta):
 
 		frappe.throw(msg, title=_("Missing DocType"))
 
-	def add_linked_document_type(self):
+	def add_linked_document_type(self) -> None:
 		for df in self.get("fields", {"fieldtype": "Link"}):
 			if df.options:
 				try:
@@ -222,7 +222,7 @@ class FormMeta(Meta):
 				except frappe.DoesNotExistError:
 					self._show_missing_doctype_msg(df)
 
-	def load_print_formats(self):
+	def load_print_formats(self) -> None:
 		print_formats = frappe.db.sql(
 			"""select * FROM `tabPrint Format`
 			WHERE doc_type=%s AND docstatus<2 and disabled=0""",
@@ -233,7 +233,7 @@ class FormMeta(Meta):
 
 		self.set("__print_formats", print_formats)
 
-	def load_workflows(self):
+	def load_workflows(self) -> None:
 		# get active workflow
 		workflow_name = self.get_workflow()
 		workflow_docs = []
@@ -245,7 +245,7 @@ class FormMeta(Meta):
 			workflow_docs.extend(frappe.get_doc("Workflow State", d.state) for d in workflow.get("states"))
 		self.set("__workflow_docs", workflow_docs)
 
-	def load_templates(self):
+	def load_templates(self) -> None:
 		if not self.custom:
 			module = load_doctype_module(self.name)
 			app = module.__name__.split(".", 1)[0]
@@ -256,10 +256,10 @@ class FormMeta(Meta):
 
 				self.set("__form_grid_templates", templates)
 
-	def load_dashboard(self):
+	def load_dashboard(self) -> None:
 		self.set("__dashboard", self.get_dashboard_data())
 
-	def load_workspaces(self):
+	def load_workspaces(self) -> None:
 		Shortcut = frappe.qb.DocType("Workspace Shortcut")
 		Workspace = frappe.qb.DocType("Workspace")
 		shortcut = (
@@ -290,10 +290,10 @@ class FormMeta(Meta):
 			if link:
 				self.set("__workspaces", [link[0][0]])
 
-	def load_kanban_meta(self):
+	def load_kanban_meta(self) -> None:
 		self.load_kanban_column_fields()
 
-	def load_kanban_column_fields(self):
+	def load_kanban_column_fields(self) -> None:
 		try:
 			values = frappe.get_list(
 				"Kanban Board", fields=["field_name"], filters={"reference_doctype": self.name}

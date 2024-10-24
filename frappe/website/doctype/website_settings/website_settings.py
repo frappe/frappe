@@ -66,14 +66,14 @@ class WebsiteSettings(Document):
 		website_theme_image_link: DF.Code | None
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		self.validate_top_bar_items()
 		self.validate_footer_items()
 		self.validate_home_page()
 		self.validate_google_settings()
 		self.validate_redirects()
 
-	def validate_home_page(self):
+	def validate_home_page(self) -> None:
 		if frappe.flags.in_install:
 			return
 		from frappe.website.path_resolver import PathResolver
@@ -84,7 +84,7 @@ class WebsiteSettings(Document):
 			)
 			self.home_page = ""
 
-	def validate_top_bar_items(self):
+	def validate_top_bar_items(self) -> None:
 		"""validate url in top bar items"""
 		for top_bar_item in self.get("top_bar_items"):
 			if top_bar_item.parent_label:
@@ -104,7 +104,7 @@ class WebsiteSettings(Document):
 						)
 					)
 
-	def validate_footer_items(self):
+	def validate_footer_items(self) -> None:
 		"""validate url in top bar items"""
 		for footer_item in self.get("footer_items"):
 			if footer_item.parent_label:
@@ -124,11 +124,11 @@ class WebsiteSettings(Document):
 						)
 					)
 
-	def validate_google_settings(self):
+	def validate_google_settings(self) -> None:
 		if self.enable_google_indexing and not frappe.db.get_single_value("Google Settings", "enable"):
 			frappe.throw(_("Enable Google API in Google Settings."))
 
-	def validate_redirects(self):
+	def validate_redirects(self) -> None:
 		for idx, row in enumerate(self.route_redirects):
 			try:
 				source = row.source.strip("/ ") + "$"
@@ -138,10 +138,10 @@ class WebsiteSettings(Document):
 				if not frappe.flags.in_migrate:
 					frappe.throw(_("Invalid redirect regex in row #{}: {}").format(idx, str(e)))
 
-	def on_update(self):
+	def on_update(self) -> None:
 		self.clear_cache()
 
-	def clear_cache(self):
+	def clear_cache(self) -> None:
 		# make js and css
 		# clear web cache (for menus!)
 		frappe.clear_cache(user="Guest")

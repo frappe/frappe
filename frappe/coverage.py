@@ -47,11 +47,11 @@ FRAPPE_EXCLUSIONS = [
 
 
 class CodeCoverage:
-	def __init__(self, with_coverage, app):
+	def __init__(self, with_coverage, app) -> None:
 		self.with_coverage = with_coverage
 		self.app = app or "frappe"
 
-	def __enter__(self):
+	def __enter__(self) -> None:
 		if self.with_coverage:
 			import os
 
@@ -69,7 +69,7 @@ class CodeCoverage:
 			self.coverage = Coverage(source=[source_path], omit=omit, include=STANDARD_INCLUSIONS)
 			self.coverage.start()
 
-	def __exit__(self, exc_type, exc_value, traceback):
+	def __exit__(self, exc_type, exc_value, traceback) -> None:
 		if self.with_coverage:
 			self.coverage.stop()
 			self.coverage.save()

@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	"""
 	Deprecate Feedback Trigger and Rating. This feature was not customizable.
 	Now can be achieved via custom Web Forms

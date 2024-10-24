@@ -8,7 +8,7 @@ from frappe import _
 
 
 @frappe.whitelist()
-def update_event(args, field_map):
+def update_event(args, field_map) -> None:
 	"""Updates Event (called via calendar) based on passed `field_map`"""
 	args = frappe._dict(json.loads(args))
 	field_map = frappe._dict(json.loads(field_map))

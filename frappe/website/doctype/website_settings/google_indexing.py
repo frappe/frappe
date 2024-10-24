@@ -46,7 +46,7 @@ def get_google_indexing_object():
 	)
 
 
-def publish_site(url, operation_type="URL_UPDATED"):
+def publish_site(url, operation_type="URL_UPDATED") -> None:
 	"""Send an update/remove url request."""
 
 	google_indexing = get_google_indexing_object()

@@ -3,7 +3,7 @@ from frappe.core.doctype.log_settings.log_settings import clear_log_table
 from frappe.utils import add_to_date, today
 
 
-def execute():
+def execute() -> None:
 	"""Due to large size of log tables on old sites some table cleanups never finished during daily log clean up. This patch discards such data by using "big delete" code.
 
 	ref: https://github.com/frappe/frappe/issues/16971

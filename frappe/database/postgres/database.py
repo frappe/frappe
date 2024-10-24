@@ -127,7 +127,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	REGEX_CHARACTER = "~"
 	default_port = "5432"
 
-	def setup_type_map(self):
+	def setup_type_map(self) -> None:
 		self.db_type = "postgres"
 		self.type_map = {
 			"Currency": ("decimal", "21,9"),
@@ -174,7 +174,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def db_schema(self):
 		return frappe.conf.get("db_schema", "public").replace("'", "").replace('"', "")
 
-	def connect(self):
+	def connect(self) -> None:
 		super().connect()
 
 		self._cursor.execute("SET search_path TO %s", (self.db_schema,))
@@ -196,7 +196,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 		return conn
 
-	def set_execution_timeout(self, seconds: int):
+	def set_execution_timeout(self, seconds: int) -> None:
 		# Postgres expects milliseconds as input
 		self.sql("set local statement_timeout = %s", int(seconds) * 1000)
 
@@ -314,13 +314,13 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 				ALTER COLUMN "{column}" {null_constraint}"""
 		)
 
-	def rename_column(self, doctype: str, old_column_name: str, new_column_name: str):
+	def rename_column(self, doctype: str, old_column_name: str, new_column_name: str) -> None:
 		table_name = get_table_name(doctype)
 		frappe.db.sql_ddl(
 			f"ALTER TABLE `{table_name}` RENAME COLUMN `{old_column_name}` TO `{new_column_name}`"
 		)
 
-	def create_auth_table(self):
+	def create_auth_table(self) -> None:
 		self.sql_ddl(
 			"""create table if not exists "__Auth" (
 				"doctype" VARCHAR(140) NOT NULL,
@@ -332,7 +332,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			)"""
 		)
 
-	def create_global_search_table(self):
+	def create_global_search_table(self) -> None:
 		if "__global_search" not in self.get_tables():
 			self.sql(
 				f"""create table "__global_search"(
@@ -345,7 +345,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 				unique (doctype, name))"""
 			)
 
-	def create_user_settings_table(self):
+	def create_user_settings_table(self) -> None:
 		self.sql_ddl(
 			"""create table if not exists "__UserSettings" (
 			"user" VARCHAR(180) NOT NULL,
@@ -374,12 +374,12 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			self.commit()
 
 	@staticmethod
-	def get_on_duplicate_update(key="name"):
+	def get_on_duplicate_update(key="name") -> str:
 		if isinstance(key, list):
 			key = '", "'.join(key)
 		return f'ON CONFLICT ("{key}") DO UPDATE SET '
 
-	def check_implicit_commit(self, query):
+	def check_implicit_commit(self, query) -> None:
 		pass  # postgres can run DDL in transactions without implicit commits
 
 	def has_index(self, table_name, index_name):
@@ -390,7 +390,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			(table_name, self.db_schema, index_name),
 		)
 
-	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
+	def add_index(self, doctype: str, fields: list, index_name: str | None = None) -> None:
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
 		table_name = get_table_name(doctype)
@@ -401,7 +401,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			f'CREATE INDEX IF NOT EXISTS "{index_name}" ON "{self.db_schema}"."{table_name}" ("{fields_str}")'
 		)
 
-	def add_unique(self, doctype, fields, constraint_name=None):
+	def add_unique(self, doctype, fields, constraint_name=None) -> None:
 		if isinstance(fields, str):
 			fields = [fields]
 		if not constraint_name:

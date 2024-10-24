@@ -9,7 +9,7 @@ from frappe.utils import cint
 # see previous customization
 
 
-def execute():
+def execute() -> None:
 	custom_doctypes = frappe.get_all("DocType", filters={"custom": 1})
 
 	for doctype in custom_doctypes:

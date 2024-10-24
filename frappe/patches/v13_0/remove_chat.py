@@ -3,7 +3,7 @@ import click
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.delete_doc_if_exists("DocType", "Chat Message")
 	frappe.delete_doc_if_exists("DocType", "Chat Message Attachment")
 	frappe.delete_doc_if_exists("DocType", "Chat Profile")

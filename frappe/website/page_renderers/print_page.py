@@ -8,7 +8,7 @@ class PrintPage(TemplatePage):
 	/Quotation/Q-0001
 	"""
 
-	def can_render(self):
+	def can_render(self) -> bool:
 		parts = self.path.split("/", 1)
 		if len(parts) == 2:
 			if frappe.db.exists("DocType", parts[0], True) and frappe.db.exists(parts[0], parts[1], True):

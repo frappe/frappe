@@ -48,14 +48,14 @@ class InvalidUUIDValue(frappe.ValidationError):
 class NamingSeries:
 	__slots__ = ("series",)
 
-	def __init__(self, series: str):
+	def __init__(self, series: str) -> None:
 		self.series = series
 
 		# Add default number part if missing
 		if "#" not in self.series:
 			self.series += ".#####"
 
-	def validate(self):
+	def validate(self) -> None:
 		if "." not in self.series:
 			frappe.throw(
 				_("Invalid naming series {}: dot (.) missing").format(frappe.bold(self.series)),
@@ -131,7 +131,7 @@ class NamingSeries:
 		return cint(frappe.db.get_value("Series", prefix, "current", order_by="name"))
 
 
-def set_new_name(doc):
+def set_new_name(doc) -> None:
 	"""
 	Sets the `name` property for the document based on various rules.
 
@@ -200,7 +200,7 @@ def is_autoincremented(doctype: str, meta: Optional["Meta"] = None) -> bool:
 	return not getattr(meta, "issingle", False) and meta.autoname == "autoincrement"
 
 
-def set_name_from_naming_options(autoname, doc):
+def set_name_from_naming_options(autoname, doc) -> None:
 	"""
 	Get a name based on the autoname field option
 	"""
@@ -226,7 +226,7 @@ def set_name_from_naming_options(autoname, doc):
 		doc.name = make_autoname(autoname, doc=doc)
 
 
-def set_naming_from_document_naming_rule(doc):
+def set_naming_from_document_naming_rule(doc) -> None:
 	"""
 	Evaluate rules based on "Document Naming Series" doctype
 	"""
@@ -250,7 +250,7 @@ def set_naming_from_document_naming_rule(doc):
 			break
 
 
-def set_name_by_naming_series(doc):
+def set_name_by_naming_series(doc) -> None:
 	"""Sets name by the `naming_series` property"""
 	if not doc.naming_series:
 		doc.naming_series = get_default_naming_series(doc.doctype)
@@ -408,7 +408,7 @@ def getseries(key, digits):
 	return ("%0" + str(digits) + "d") % current
 
 
-def revert_series_if_last(key, name, doc=None):
+def revert_series_if_last(key, name, doc=None) -> None:
 	"""
 	Reverts the series for particular naming series:
 	* key is naming series		- SINV-.YYYY-.####
@@ -555,7 +555,7 @@ def _field_autoname(autoname, doc, skip_slicing=None):
 	return (cstr(doc.get(fieldname)) or "").strip()
 
 
-def _prompt_autoname(autoname, doc):
+def _prompt_autoname(autoname, doc) -> None:
 	"""
 	Generate a name using Prompt option. This simply means the user will have to set the name manually.
 	This is called when the doctype's `autoname` field starts with 'prompt'.

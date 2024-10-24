@@ -48,14 +48,14 @@ class WorkflowAction(Document):
 	pass
 
 
-def on_doctype_update():
+def on_doctype_update() -> None:
 	# The search order in any use case is no ["reference_name", "reference_doctype", "status"]
 	# The index scan would happen from left to right
 	# so even if status is not in the where clause the index will be used
 	frappe.db.add_index("Workflow Action", ["reference_name", "reference_doctype", "status"])
 
 
-def get_permission_query_conditions(user):
+def get_permission_query_conditions(user) -> str:
 	if not user:
 		user = frappe.session.user
 
@@ -80,7 +80,7 @@ def get_permission_query_conditions(user):
 	"""
 
 
-def has_permission(doc, user):
+def has_permission(doc, user) -> bool:
 	if user == "Administrator":
 		return True
 
@@ -88,7 +88,7 @@ def has_permission(doc, user):
 	return not permitted_roles.isdisjoint(frappe.get_roles(user))
 
 
-def process_workflow_actions(doc, state):
+def process_workflow_actions(doc, state) -> None:
 	workflow = get_workflow_name(doc.get("doctype"))
 	if not workflow:
 		return
@@ -123,7 +123,7 @@ def process_workflow_actions(doc, state):
 
 
 @frappe.whitelist(allow_guest=True)
-def apply_action(action, doctype, docname, current_state, user=None, last_modified=None):
+def apply_action(action, doctype, docname, current_state, user=None, last_modified=None) -> None:
 	if not verify_request():
 		return
 
@@ -143,7 +143,7 @@ def apply_action(action, doctype, docname, current_state, user=None, last_modifi
 
 
 @frappe.whitelist(allow_guest=True)
-def confirm_action(doctype, docname, user, action):
+def confirm_action(doctype, docname, user, action) -> None:
 	if not verify_request():
 		return
 
@@ -162,7 +162,7 @@ def confirm_action(doctype, docname, user, action):
 		frappe.set_user(logged_in_user)
 
 
-def return_success_page(doc):
+def return_success_page(doc) -> None:
 	frappe.respond_as_web_page(
 		_("Success"),
 		_("{0}: {1} is set to state {2}").format(
@@ -172,7 +172,7 @@ def return_success_page(doc):
 	)
 
 
-def return_action_confirmation_page(doc, action, action_link, alert_doc_change=False):
+def return_action_confirmation_page(doc, action, action_link, alert_doc_change=False) -> None:
 	template_params = {
 		"title": doc.get("name"),
 		"doctype": doc.get("doctype"),
@@ -193,7 +193,7 @@ def return_action_confirmation_page(doc, action, action_link, alert_doc_change=F
 	)
 
 
-def return_link_expired_page(doc, doc_workflow_state):
+def return_link_expired_page(doc, doc_workflow_state) -> None:
 	frappe.respond_as_web_page(
 		_("Link Expired"),
 		_("Document {0} has been set to state {1} by {2}").format(
@@ -205,7 +205,7 @@ def return_link_expired_page(doc, doc_workflow_state):
 	)
 
 
-def update_completed_workflow_actions(doc, user=None, workflow=None, workflow_state=None):
+def update_completed_workflow_actions(doc, user=None, workflow=None, workflow_state=None) -> None:
 	allowed_roles = get_allowed_roles(user, workflow, workflow_state)
 	# There is no transaction leading upto this state
 	# so no older actions to complete
@@ -248,7 +248,7 @@ def get_workflow_action_by_role(doc, allowed_roles):
 	).run(as_dict=True)
 
 
-def update_completed_workflow_actions_using_role(user=None, workflow_action=None):
+def update_completed_workflow_actions_using_role(user=None, workflow_action=None) -> None:
 	user = user if user else frappe.session.user
 	WorkflowAction = DocType("Workflow Action")
 
@@ -320,7 +320,7 @@ def get_users_next_action_data(transitions, doc):
 	return user_data_map
 
 
-def create_workflow_actions_for_roles(roles, doc):
+def create_workflow_actions_for_roles(roles, doc) -> None:
 	if not roles:
 		return
 	workflow_action = frappe.get_doc(
@@ -339,7 +339,7 @@ def create_workflow_actions_for_roles(roles, doc):
 	workflow_action.insert(ignore_permissions=True)
 
 
-def send_workflow_action_email(doc, transitions):
+def send_workflow_action_email(doc, transitions) -> None:
 	users_data = get_users_next_action_data(transitions, doc)
 	common_args = get_common_email_args(doc)
 	message = common_args.pop("message", None)
@@ -409,7 +409,7 @@ def is_workflow_action_already_created(doc):
 	)
 
 
-def clear_workflow_actions(doctype, name):
+def clear_workflow_actions(doctype, name) -> None:
 	if not (doctype and name):
 		return
 	frappe.db.delete(

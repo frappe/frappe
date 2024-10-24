@@ -101,7 +101,7 @@ def read_xls_file_from_attached_file(content):
 	return [sheet.row_values(i) for i in range(sheet.nrows)]
 
 
-def build_xlsx_response(data, filename):
+def build_xlsx_response(data, filename) -> None:
 	from frappe.desk.utils import provide_binary_file
 
 	provide_binary_file(filename, "xlsx", make_xlsx(data, filename).getvalue())

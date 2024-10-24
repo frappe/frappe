@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.db.auto_commit_on_many_writes = 1
 
 	# Strip everything except link to attachment and icon from comments of type "Attached"

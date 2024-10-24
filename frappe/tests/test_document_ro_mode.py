@@ -7,54 +7,54 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestReadOnlyDocument(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		# Create a test document
 		self.test_doc = frappe.get_doc({"doctype": "ToDo", "description": "Test ToDo"})
 		self.test_doc.insert()
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		# Delete the test document
 		frappe.delete_doc("ToDo", self.test_doc.name)
 
-	def test_read_only_save(self):
+	def test_read_only_save(self) -> None:
 		with read_only_document():
 			with self.assertRaises(frappe.DatabaseModificationError):
 				self.test_doc.save()
 
-	def test_read_only_insert(self):
+	def test_read_only_insert(self) -> None:
 		with read_only_document():
 			with self.assertRaises(frappe.DatabaseModificationError):
 				frappe.get_doc({"doctype": "ToDo", "description": "Another Test ToDo"}).insert()
 
-	def test_read_only_delete(self):
+	def test_read_only_delete(self) -> None:
 		with read_only_document():
 			with self.assertRaises(frappe.DatabaseModificationError):
 				self.test_doc.delete()
 
-	def test_read_only_submit(self):
+	def test_read_only_submit(self) -> None:
 		with read_only_document():
 			with self.assertRaises(frappe.DatabaseModificationError):
 				self.test_doc.submit()
 
-	def test_read_only_cancel(self):
+	def test_read_only_cancel(self) -> None:
 		with read_only_document():
 			with self.assertRaises(frappe.DatabaseModificationError):
 				self.test_doc.cancel()
 
-	def test_read_only_db_set(self):
+	def test_read_only_db_set(self) -> None:
 		with read_only_document():
 			with self.assertRaises(frappe.DatabaseModificationError):
 				self.test_doc.db_set("status", "Closed")
 
-	def test_read_only_nested_calls(self):
-		def nested_save():
+	def test_read_only_nested_calls(self) -> None:
+		def nested_save() -> None:
 			self.test_doc.save()
 
 		with read_only_document():
 			with self.assertRaises(frappe.DatabaseModificationError):
 				nested_save()
 
-	def test_read_only_context_manager_restoration(self):
+	def test_read_only_context_manager_restoration(self) -> None:
 		original_save = Document.save
 
 		with read_only_document():
@@ -62,7 +62,7 @@ class TestReadOnlyDocument(IntegrationTestCase):
 
 		self.assertEqual(Document.save, original_save)
 
-	def test_nested_read_only_document(self):
+	def test_nested_read_only_document(self) -> None:
 		# Check that read_only_depth is not set initially
 		self.assertFalse(hasattr(frappe.local, "read_only_depth"))
 
@@ -100,7 +100,7 @@ class TestReadOnlyDocument(IntegrationTestCase):
 		self.test_doc.save()
 		self.assertEqual(self.test_doc.description, "Modified outside read_only_document")
 
-	def test_error_log_exception_in_read_only(self):
+	def test_error_log_exception_in_read_only(self) -> None:
 		with read_only_document():
 			# Attempt to insert an Error Log
 			error_log = frappe.get_doc({"doctype": "Error Log", "error": "Test error in read-only mode"})
@@ -119,7 +119,7 @@ class TestReadOnlyDocument(IntegrationTestCase):
 		# Clean up the inserted Error Log
 		frappe.delete_doc("Error Log", error_log.name)
 
-	def test_read_only_multiple_documents(self):
+	def test_read_only_multiple_documents(self) -> None:
 		doc1 = frappe.get_doc({"doctype": "ToDo", "description": "Test ToDo 1"})
 		doc2 = frappe.get_doc({"doctype": "ToDo", "description": "Test ToDo 2"})
 
@@ -129,9 +129,9 @@ class TestReadOnlyDocument(IntegrationTestCase):
 			with self.assertRaises(frappe.DatabaseModificationError):
 				doc2.insert()
 
-	def test_read_only_custom_method(self):
+	def test_read_only_custom_method(self) -> None:
 		class CustomDocument(Document):
-			def custom_save(self):
+			def custom_save(self) -> None:
 				self.save()
 
 		custom_doc = CustomDocument({"doctype": "ToDo", "description": "Custom Test ToDo"})
@@ -140,7 +140,7 @@ class TestReadOnlyDocument(IntegrationTestCase):
 			with self.assertRaises(frappe.DatabaseModificationError):
 				custom_doc.custom_save()
 
-	def test_read_only_exception_handling(self):
+	def test_read_only_exception_handling(self) -> None:
 		@contextmanager
 		def exception_raiser():
 			raise Exception("Test exception")
@@ -155,7 +155,7 @@ class TestReadOnlyDocument(IntegrationTestCase):
 		# Ensure methods are restored even if an exception occurs
 		self.assertEqual(Document.save, self.test_doc.__class__.save)
 
-	def test_read_only_nested_context_managers(self):
+	def test_read_only_nested_context_managers(self) -> None:
 		original_save = Document.save
 
 		with read_only_document():
@@ -168,14 +168,14 @@ class TestReadOnlyDocument(IntegrationTestCase):
 
 		self.assertEqual(Document.save, original_save)
 
-	def test_read_only_method_call_details(self):
+	def test_read_only_method_call_details(self) -> None:
 		with read_only_document():
 			with self.assertRaises(frappe.DatabaseModificationError) as cm:
 				self.test_doc.save()
 
 			self.assertIn("Cannot call save in read-only document mode", str(cm.exception))
 
-	def test_read_only_does_not_affect_reads(self):
+	def test_read_only_does_not_affect_reads(self) -> None:
 		with read_only_document():
 			# These operations should not raise exceptions
 			doc = frappe.get_doc("ToDo", self.test_doc.name)
@@ -184,7 +184,7 @@ class TestReadOnlyDocument(IntegrationTestCase):
 			docs = frappe.get_all("ToDo", filters={"name": self.test_doc.name})
 			self.assertEqual(len(docs), 1)
 
-	def test_read_only_with_new_document_instance(self):
+	def test_read_only_with_new_document_instance(self) -> None:
 		with read_only_document():
 			new_doc = frappe.new_doc("ToDo")
 			with self.assertRaises(frappe.DatabaseModificationError):

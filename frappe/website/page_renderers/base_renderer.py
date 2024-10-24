@@ -3,7 +3,7 @@ from frappe.website.utils import build_response
 
 
 class BaseRenderer:
-	def __init__(self, path=None, http_status_code=None):
+	def __init__(self, path=None, http_status_code=None) -> None:
 		self.headers = None
 		self.http_status_code = http_status_code or 200
 		if not path:

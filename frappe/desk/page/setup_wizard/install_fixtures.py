@@ -15,7 +15,7 @@ def _(x, *args, **kwargs):
 	return x
 
 
-def install():
+def install() -> None:
 	update_genders()
 	update_salutations()
 	update_global_search_doctypes()
@@ -24,7 +24,7 @@ def install():
 	add_unsubscribe()
 
 
-def update_genders():
+def update_genders() -> None:
 	for gender in (
 		_("Male"),
 		_("Female"),
@@ -39,7 +39,7 @@ def update_genders():
 		doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 
-def update_salutations():
+def update_salutations() -> None:
 	for salutation in (
 		_("Mr"),
 		_("Ms"),
@@ -56,13 +56,13 @@ def update_salutations():
 		doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 
-def setup_email_linking():
+def setup_email_linking() -> None:
 	doc = frappe.new_doc("Email Account")
 	doc.email_id = "email_linking@example.com"
 	doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 
-def add_unsubscribe():
+def add_unsubscribe() -> None:
 	for unsubscribe in [
 		{"email": "admin@example.com", "global_unsubscribe": 1},
 		{"email": "guest@example.com", "global_unsubscribe": 1},

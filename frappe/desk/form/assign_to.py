@@ -139,7 +139,7 @@ def add(args=None, *, ignore_permissions=False):
 
 
 @frappe.whitelist()
-def add_multiple(args=None):
+def add_multiple(args=None) -> None:
 	if not args:
 		args = frappe.local.form_dict
 
@@ -150,7 +150,7 @@ def add_multiple(args=None):
 		add(args)
 
 
-def close_all_assignments(doctype, name, ignore_permissions=False):
+def close_all_assignments(doctype, name, ignore_permissions=False) -> bool:
 	assignments = frappe.get_all(
 		"ToDo",
 		fields=["allocated_to", "name"],
@@ -178,7 +178,7 @@ def remove(doctype, name, assign_to, ignore_permissions=False):
 
 
 @frappe.whitelist()
-def remove_multiple(doctype, names, ignore_permissions=False):
+def remove_multiple(doctype, names, ignore_permissions=False) -> None:
 	docname_list = json.loads(names)
 
 	for name in docname_list:
@@ -231,7 +231,7 @@ def set_status(doctype, name, todo=None, assign_to=None, status="Cancelled", ign
 	return get({"doctype": doctype, "name": name})
 
 
-def clear(doctype, name, ignore_permissions=False):
+def clear(doctype, name, ignore_permissions=False) -> bool:
 	"""
 	Clears assignments, return False if not assigned.
 	"""
@@ -256,7 +256,9 @@ def clear(doctype, name, ignore_permissions=False):
 	return True
 
 
-def notify_assignment(assigned_by, allocated_to, doc_type, doc_name, action="CLOSE", description=None):
+def notify_assignment(
+	assigned_by, allocated_to, doc_type, doc_name, action="CLOSE", description=None
+) -> None:
 	"""
 	Notify assignee that there is a change in assignment
 	"""

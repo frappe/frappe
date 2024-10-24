@@ -35,7 +35,7 @@ class UnitTestNotification(UnitTestCase):
 
 
 class TestNotification(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		frappe.db.delete("Email Queue")
 		frappe.set_user("test@example.com")
 
@@ -62,10 +62,10 @@ class TestNotification(IntegrationTestCase):
 			notification.append("recipients", {"receiver_by_document_field": "email_id,email_ids"})
 			notification.save()
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.set_user("Administrator")
 
-	def test_new_and_save(self):
+	def test_new_and_save(self) -> None:
 		"""Check creating a new communication triggers a notification."""
 		communication = frappe.new_doc("Communication")
 		communication.communication_type = "Comment"
@@ -102,7 +102,7 @@ class TestNotification(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.get_value("Communication", communication.name, "subject"), "__testing__")
 
-	def test_condition(self):
+	def test_condition(self) -> None:
 		"""Check notification is triggered based on a condition."""
 		event = frappe.new_doc("Event")
 		event.subject = "test"
@@ -139,7 +139,7 @@ class TestNotification(IntegrationTestCase):
 			)
 		)
 
-	def test_invalid_condition(self):
+	def test_invalid_condition(self) -> None:
 		frappe.set_user("Administrator")
 		notification = frappe.new_doc("Notification")
 		notification.subject = "test"
@@ -156,7 +156,7 @@ class TestNotification(IntegrationTestCase):
 		self.assertRaises(frappe.ValidationError, notification.save)
 		notification.delete()
 
-	def test_value_changed(self):
+	def test_value_changed(self) -> None:
 		event = frappe.new_doc("Event")
 		event.subject = "test"
 		event.event_type = "Private"
@@ -190,7 +190,7 @@ class TestNotification(IntegrationTestCase):
 			)
 		)
 
-	def test_minutes_positive_offset(self):
+	def test_minutes_positive_offset(self) -> None:
 		from frappe.utils import add_to_date, now_datetime
 
 		event = frappe.new_doc("Event")
@@ -220,7 +220,7 @@ class TestNotification(IntegrationTestCase):
 			# Check if the notification was triggered
 			self.assertEqual(1, frappe.db.count("Notification Log", {"subject": n.subject}))
 
-	def test_minutes_negative_offset(self):
+	def test_minutes_negative_offset(self) -> None:
 		from frappe.utils import add_to_date, now_datetime
 
 		event = frappe.new_doc("Event")
@@ -250,7 +250,7 @@ class TestNotification(IntegrationTestCase):
 			# Check if the notification was triggered
 			self.assertEqual(1, frappe.db.count("Notification Log", {"subject": n.subject}))
 
-	def test_minutes_offset_validation(self):
+	def test_minutes_offset_validation(self) -> None:
 		notification = frappe.new_doc("Notification")
 		notification.name = "Test Minutes Offset Validation"
 		notification.subject = "Test Minutes Offset Validation"
@@ -276,7 +276,7 @@ class TestNotification(IntegrationTestCase):
 		notification.insert()
 		notification.delete()
 
-	def test_alert_disabled_on_wrong_field(self):
+	def test_alert_disabled_on_wrong_field(self) -> None:
 		frappe.set_user("Administrator")
 		notification = frappe.get_doc(
 			{
@@ -306,7 +306,7 @@ class TestNotification(IntegrationTestCase):
 		notification.delete()
 		event.delete()
 
-	def test_date_changed(self):
+	def test_date_changed(self) -> None:
 		event = frappe.new_doc("Event")
 		event.subject = "test"
 		event.event_type = "Private"
@@ -359,7 +359,7 @@ class TestNotification(IntegrationTestCase):
 			)
 		)
 
-	def test_cc_jinja(self):
+	def test_cc_jinja(self) -> None:
 		frappe.db.delete("User", {"email": "test_jinja@example.com"})
 		frappe.db.delete("Email Queue")
 		frappe.db.delete("Email Queue Recipient")
@@ -384,7 +384,7 @@ class TestNotification(IntegrationTestCase):
 		frappe.db.delete("Email Queue")
 		frappe.db.delete("Email Queue Recipient")
 
-	def test_notification_to_assignee(self):
+	def test_notification_to_assignee(self) -> None:
 		todo = frappe.new_doc("ToDo")
 		todo.description = "Test Notification"
 		todo.save()
@@ -424,7 +424,7 @@ class TestNotification(IntegrationTestCase):
 		self.assertTrue("test2@example.com" in recipients)
 		self.assertTrue("test1@example.com" in recipients)
 
-	def test_notification_by_child_table_field(self):
+	def test_notification_by_child_table_field(self) -> None:
 		contact = frappe.new_doc("Contact")
 		contact.first_name = "John Doe"
 		contact.status = "Open"
@@ -448,7 +448,7 @@ class TestNotification(IntegrationTestCase):
 		self.assertTrue("test2@example.com" in recipients)
 		self.assertTrue("test1@example.com" in recipients)
 
-	def test_notification_value_change_casted_types(self):
+	def test_notification_value_change_casted_types(self) -> None:
 		"""Make sure value change event dont fire because of incorrect type comparisons."""
 		frappe.set_user("Administrator")
 
@@ -474,11 +474,11 @@ class TestNotification(IntegrationTestCase):
 			self.assertEqual(1, frappe.db.count("Notification Log", {"subject": n.subject}))
 
 	@classmethod
-	def tearDownClass(cls):
+	def tearDownClass(cls) -> None:
 		frappe.delete_doc_if_exists("Notification", "ToDo Status Update")
 		frappe.delete_doc_if_exists("Notification", "Contact Status Update")
 
-	def test_notification_with_jinja_template(self):
+	def test_notification_with_jinja_template(self) -> None:
 		"""Test Notification with Jinja Template"""
 		notification = frappe.get_doc(
 			{

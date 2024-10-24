@@ -848,7 +848,7 @@ def duration_to_seconds(duration):
 	return value
 
 
-def validate_duration_format(duration):
+def validate_duration_format(duration) -> None:
 	if not DURATION_PATTERN.match(duration):
 		frappe.throw(
 			frappe._("Value {0} must be in the valid duration format: d h m s").format(frappe.bold(duration))
@@ -1938,7 +1938,7 @@ def filter_operator_is(value: str, pattern: str) -> bool:
 	"""Operator `is` can have two values: 'set' or 'not set'."""
 	pattern = pattern.lower()
 
-	def is_set():
+	def is_set() -> bool:
 		if value is None:
 			return False
 		elif isinstance(value, str) and not value:
@@ -1974,7 +1974,7 @@ operator_map = {
 }
 
 
-def evaluate_filters(doc, filters: dict | list | tuple):
+def evaluate_filters(doc, filters: dict | list | tuple) -> bool:
 	"""Return True if doc matches filters."""
 	if isinstance(filters, dict):
 		for key, value in filters.items():
@@ -2126,7 +2126,7 @@ def sanitize_column(column_name: str) -> None:
 		"or",
 	]
 
-	def _raise_exception():
+	def _raise_exception() -> None:
 		frappe.throw(_("Invalid field name {0}").format(column_name), frappe.DataError)
 
 	regex = re.compile("^.*[,'();].*")
@@ -2437,7 +2437,7 @@ def validate_python_code(string: str, fieldname: str | None = None, is_expressio
 
 
 class UnicodeWithAttrs(str):
-	def __init__(self, text):
+	def __init__(self, text) -> None:
 		self.toc_html = text.toc_html
 		self.metadata = text.metadata
 

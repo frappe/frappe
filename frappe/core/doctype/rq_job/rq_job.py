@@ -102,11 +102,11 @@ class RQJob(Document):
 		return filter_current_site_jobs(matched_job_ids)
 
 	@check_permissions
-	def delete(self):
+	def delete(self) -> None:
 		self.job.delete()
 
 	@check_permissions
-	def stop_job(self):
+	def stop_job(self) -> None:
 		try:
 			send_stop_job_command(connection=get_redis_conn(), job_id=self.job_id)
 		except InvalidJobOperation:
@@ -121,10 +121,10 @@ class RQJob(Document):
 	def get_stats():
 		return {}
 
-	def db_insert(self, *args, **kwargs):
+	def db_insert(self, *args, **kwargs) -> None:
 		pass
 
-	def db_update(self, *args, **kwargs):
+	def db_update(self, *args, **kwargs) -> None:
 		pass
 
 
@@ -206,7 +206,7 @@ def fetch_job_ids(queue: Queue, status: str) -> list[str]:
 
 
 @frappe.whitelist()
-def remove_failed_jobs():
+def remove_failed_jobs() -> None:
 	frappe.only_for("System Manager")
 	for queue in get_queues():
 		fail_registry = queue.failed_job_registry
@@ -228,5 +228,5 @@ def get_all_queued_jobs():
 
 
 @frappe.whitelist()
-def stop_job(job_id):
+def stop_job(job_id) -> None:
 	frappe.get_doc("RQ Job", job_id).stop_job()

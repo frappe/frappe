@@ -21,7 +21,7 @@ def get_remote_script(remote_site):
 	return request.json()["message"]
 
 
-def frappecloud_migrator():
+def frappecloud_migrator() -> None:
 	remote_site_name = "frappecloud.com"
 	script_contents = get_remote_script(remote_site=remote_site_name)
 	import os

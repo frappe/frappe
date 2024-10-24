@@ -45,17 +45,17 @@ class DropboxSettings(Document):
 		send_notifications_to: DF.Data
 	# end: auto-generated types
 
-	def onload(self):
+	def onload(self) -> None:
 		if not self.app_access_key and frappe.conf.dropbox_access_key:
 			self.set_onload("dropbox_setup_via_site_config", 1)
 
-	def validate(self):
+	def validate(self) -> None:
 		if self.enabled and self.limit_no_of_backups and self.no_of_backups < 1:
 			frappe.throw(_("Number of DB backups cannot be less than 1"))
 
 
 @frappe.whitelist()
-def take_backup():
+def take_backup() -> None:
 	"""Enqueue longjob for taking backup to dropbox"""
 	enqueue(
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backup_to_dropbox",
@@ -65,15 +65,15 @@ def take_backup():
 	frappe.msgprint(_("Queued for backup. It may take a few minutes to an hour."))
 
 
-def take_backups_daily():
+def take_backups_daily() -> None:
 	take_backups_if("Daily")
 
 
-def take_backups_weekly():
+def take_backups_weekly() -> None:
 	take_backups_if("Weekly")
 
 
-def take_backups_if(freq):
+def take_backups_if(freq) -> None:
 	if frappe.db.get_single_value("Dropbox Settings", "backup_frequency") == freq:
 		take_backup_to_dropbox()
 
@@ -145,7 +145,7 @@ def backup_to_dropbox(upload_db_backup=True):
 	return did_not_upload, list(set(error_log))
 
 
-def upload_from_folder(path, is_private, dropbox_folder, dropbox_client, did_not_upload, error_log):
+def upload_from_folder(path, is_private, dropbox_folder, dropbox_client, did_not_upload, error_log) -> None:
 	if not os.path.exists(path):
 		return
 
@@ -243,11 +243,11 @@ def create_folder_if_not_exists(folder, dropbox_client):
 			raise
 
 
-def update_file_dropbox_status(file_name):
+def update_file_dropbox_status(file_name) -> None:
 	frappe.db.set_value("File", file_name, "uploaded_to_dropbox", 1, update_modified=False)
 
 
-def is_fresh_upload():
+def is_fresh_upload() -> bool:
 	file_name = frappe.db.get_value("File", {"uploaded_to_dropbox": 1}, "name")
 	return not file_name
 
@@ -307,7 +307,7 @@ def get_dropbox_settings(redirect_uri=False):
 	return app_details
 
 
-def delete_older_backups(dropbox_client, folder_path, to_keep):
+def delete_older_backups(dropbox_client, folder_path, to_keep) -> None:
 	res = dropbox_client.files_list_folder(path=folder_path)
 	files = [f for f in res.entries if isinstance(f, dropbox.files.FileMetadata) and "sql" in f.name]
 
@@ -337,7 +337,7 @@ def get_dropbox_authorize_url():
 
 
 @frappe.whitelist()
-def dropbox_auth_finish():
+def dropbox_auth_finish() -> None:
 	app_details = get_dropbox_settings(redirect_uri=True)
 	callback = frappe.form_dict
 	close = '<p class="text-muted">' + _("Please close this window") + "</p>"
@@ -366,7 +366,7 @@ def dropbox_auth_finish():
 	frappe.local.response["location"] = "/app/dropbox-settings"
 
 
-def set_dropbox_token(access_token, refresh_token=None):
+def set_dropbox_token(access_token, refresh_token=None) -> None:
 	# NOTE: used doc object instead of db.set_value so that password field is set properly
 	dropbox_settings = frappe.get_single("Dropbox Settings")
 	dropbox_settings.dropbox_access_token = access_token

@@ -21,28 +21,28 @@ class UnitTestEnergyPointLog(UnitTestCase):
 
 class TestEnergyPointLog(IntegrationTestCase):
 	@classmethod
-	def setUpClass(cls):
+	def setUpClass(cls) -> None:
 		super().setUpClass()
 		settings = frappe.get_single("Energy Point Settings")
 		settings.enabled = 1
 		settings.save()
 
 	@classmethod
-	def tearDownClass(cls):
+	def tearDownClass(cls) -> None:
 		settings = frappe.get_single("Energy Point Settings")
 		settings.enabled = 0
 		settings.save()
 
-	def setUp(self):
+	def setUp(self) -> None:
 		frappe.cache.delete_value("energy_point_rule_map")
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.set_user("Administrator")
 		frappe.db.delete("Energy Point Log")
 		frappe.db.delete("Energy Point Rule")
 		frappe.cache.delete_value("energy_point_rule_map")
 
-	def test_user_energy_point(self):
+	def test_user_energy_point(self) -> None:
 		frappe.set_user("test@example.com")
 		todo_point_rule = create_energy_point_rule_for_todo()
 		energy_point_of_user = get_points("test@example.com")
@@ -62,7 +62,7 @@ class TestEnergyPointLog(IntegrationTestCase):
 		# point should not be awarded more than once for same doc
 		self.assertEqual(points_after_double_save, energy_point_of_user + todo_point_rule.points)
 
-	def test_points_based_on_multiplier_field(self):
+	def test_points_based_on_multiplier_field(self) -> None:
 		frappe.set_user("test@example.com")
 		add_custom_field("ToDo", "multiplier", "Float")
 		multiplier_value = 0.51
@@ -84,7 +84,7 @@ class TestEnergyPointLog(IntegrationTestCase):
 
 		clear_custom_fields("ToDo")
 
-	def test_points_based_on_max_points(self):
+	def test_points_based_on_max_points(self) -> None:
 		frappe.set_user("test@example.com")
 		# here multiplier is high
 		# let see if points get capped to max_point limit
@@ -112,7 +112,7 @@ class TestEnergyPointLog(IntegrationTestCase):
 
 		clear_custom_fields("ToDo")
 
-	def test_disabled_energy_points(self):
+	def test_disabled_energy_points(self) -> None:
 		settings = frappe.get_single("Energy Point Settings")
 		settings.enabled = 0
 		settings.save()
@@ -134,7 +134,7 @@ class TestEnergyPointLog(IntegrationTestCase):
 		settings.enabled = 1
 		settings.save()
 
-	def test_review(self):
+	def test_review(self) -> None:
 		created_todo = create_a_todo()
 		review_points = 20
 		create_review_points_log("test2@example.com", review_points)
@@ -165,7 +165,7 @@ class TestEnergyPointLog(IntegrationTestCase):
 		self.assertEqual(energy_points_after_review, energy_points_before_review - criticism_points)
 		self.assertEqual(review_points_after_review, review_points_before_review - criticism_points)
 
-	def test_user_energy_point_as_admin(self):
+	def test_user_energy_point_as_admin(self) -> None:
 		frappe.set_user("Administrator")
 		create_energy_point_rule_for_todo()
 		created_todo = create_a_todo()
@@ -178,7 +178,7 @@ class TestEnergyPointLog(IntegrationTestCase):
 		# no points for admin
 		self.assertEqual(points_after_closing_todo, 0)
 
-	def test_revert_points_on_cancelled_doc(self):
+	def test_revert_points_on_cancelled_doc(self) -> None:
 		frappe.set_user("test@example.com")
 		create_energy_point_rule_for_todo()
 		created_todo = create_a_todo()
@@ -209,7 +209,7 @@ class TestEnergyPointLog(IntegrationTestCase):
 			],
 		)
 
-	def test_energy_point_for_new_document_creation(self):
+	def test_energy_point_for_new_document_creation(self) -> None:
 		frappe.set_user("test@example.com")
 		todo_point_rule = create_energy_point_rule_for_todo(for_doc_event="New")
 
@@ -219,7 +219,7 @@ class TestEnergyPointLog(IntegrationTestCase):
 
 		self.assertEqual(points_after_todo_creation, points_before_todo_creation + todo_point_rule.points)
 
-	def test_point_allocation_for_assigned_users(self):
+	def test_point_allocation_for_assigned_users(self) -> None:
 		todo = create_a_todo()
 
 		assign_users_to_todo(todo.name, ["test@example.com", "test2@example.com"])
@@ -239,11 +239,11 @@ class TestEnergyPointLog(IntegrationTestCase):
 
 		self.assertEqual(test2_user_after_points, test2_user_before_points + rule.points)
 
-	def test_eps_heatmap_query(self):
+	def test_eps_heatmap_query(self) -> None:
 		# Just asserts that query works, not correctness.
 		self.assertIsInstance(get_energy_points_heatmap_data(user="test@example.com", date=None), dict)
 
-	def test_points_on_field_value_change(self):
+	def test_points_on_field_value_change(self) -> None:
 		rule = create_energy_point_rule_for_todo(for_doc_event="Value Change", field_to_check="description")
 
 		frappe.set_user("test@example.com")
@@ -259,7 +259,7 @@ class TestEnergyPointLog(IntegrationTestCase):
 		points_after_changing_todo_description = get_points("test@example.com")
 		self.assertEqual(points_after_changing_todo_description, points_before_todo_creation + rule.points)
 
-	def test_apply_only_once(self):
+	def test_apply_only_once(self) -> None:
 		frappe.set_user("test@example.com")
 		todo_point_rule = create_energy_point_rule_for_todo(apply_once=True, user_field="modified_by")
 		first_user_points = get_points("test@example.com")
@@ -281,7 +281,7 @@ class TestEnergyPointLog(IntegrationTestCase):
 		# point should not be awarded more than once for same doc (irrespective of user)
 		self.assertEqual(second_user_points_after_closing_todo, second_user_points)
 
-	def test_allow_creation_of_new_log_if_the_previous_log_was_reverted(self):
+	def test_allow_creation_of_new_log_if_the_previous_log_was_reverted(self) -> None:
 		frappe.set_user("test@example.com")
 		todo_point_rule = create_energy_point_rule_for_todo()
 		energy_point_of_user = get_points("test@example.com")
@@ -303,7 +303,7 @@ class TestEnergyPointLog(IntegrationTestCase):
 		self.assertEqual(points_after_reverting_todo, points_after_closing_todo - rule_points)
 		self.assertEqual(points_after_saving_todo_again, points_after_reverting_todo + rule_points)
 
-	def test_energy_points_disabled_user(self):
+	def test_energy_points_disabled_user(self) -> None:
 		frappe.set_user("test@example.com")
 		user = frappe.get_doc("User", "test@example.com")
 		user.enabled = 0
@@ -377,6 +377,6 @@ def get_points(user, point_type="energy_points"):
 	return _get_energy_points(user).get(point_type, 0)
 
 
-def assign_users_to_todo(todo_name, users):
+def assign_users_to_todo(todo_name, users) -> None:
 	for user in users:
 		assign_to({"assign_to": [user], "doctype": "ToDo", "name": todo_name})

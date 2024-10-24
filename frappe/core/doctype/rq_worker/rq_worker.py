@@ -61,13 +61,13 @@ class RQWorker(Document):
 	def get_stats():
 		return {}
 
-	def db_insert(self, *args, **kwargs):
+	def db_insert(self, *args, **kwargs) -> None:
 		pass
 
-	def db_update(self, *args, **kwargs):
+	def db_update(self, *args, **kwargs) -> None:
 		pass
 
-	def delete(self):
+	def delete(self) -> None:
 		pass
 
 

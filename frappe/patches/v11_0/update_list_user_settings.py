@@ -4,7 +4,7 @@ import frappe
 from frappe.model.utils.user_settings import sync_user_settings, update_user_settings
 
 
-def execute():
+def execute() -> None:
 	"""Update list_view's order by property from __UserSettings"""
 
 	users = frappe.db.sql("select distinct(user) from `__UserSettings`", as_dict=True)

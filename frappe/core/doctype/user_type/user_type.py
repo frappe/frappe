@@ -34,17 +34,17 @@ class UserType(Document):
 		user_type_modules: DF.Table[UserTypeModule]
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		self.set_modules()
 		self.add_select_perm_doctypes()
 
-	def clear_cache(self):
+	def clear_cache(self) -> None:
 		super().clear_cache()
 
 		if not self.is_standard:
 			frappe.cache.delete_value("non_standard_user_types")
 
-	def on_update(self):
+	def on_update(self) -> None:
 		if self.is_standard:
 			return
 
@@ -56,11 +56,11 @@ class UserType(Document):
 		self.update_users()
 		self.remove_permission_for_deleted_doctypes()
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		if self.is_standard:
 			frappe.throw(_("Standard user type {0} can not be deleted.").format(frappe.bold(self.name)))
 
-	def set_modules(self):
+	def set_modules(self) -> None:
 		if not self.user_doctypes:
 			return
 
@@ -75,7 +75,7 @@ class UserType(Document):
 		for module in modules:
 			self.append("user_type_modules", {"module": module})
 
-	def validate_document_type_limit(self):
+	def validate_document_type_limit(self) -> None:
 		limit = frappe.conf.get("user_type_doctype_limit", {}).get(frappe.scrub(self.name))
 
 		if not limit and frappe.session.user != "Administrator":
@@ -105,7 +105,7 @@ class UserType(Document):
 				title=_("Custom Document Types Limit Exceeded"),
 			)
 
-	def validate_role(self):
+	def validate_role(self) -> None:
 		if not self.role:
 			frappe.throw(_("The field {0} is mandatory").format(frappe.bold(_("Role"))))
 
@@ -116,18 +116,18 @@ class UserType(Document):
 				)
 			)
 
-	def update_users(self):
+	def update_users(self) -> None:
 		for row in frappe.get_all("User", filters={"user_type": self.name}):
 			user = frappe.get_cached_doc("User", row.name)
 			self.update_roles_in_user(user)
 			self.update_modules_in_user(user)
 			user.update_children()
 
-	def update_roles_in_user(self, user):
+	def update_roles_in_user(self, user) -> None:
 		user.set("roles", [])
 		user.append("roles", {"role": self.role})
 
-	def update_modules_in_user(self, user):
+	def update_modules_in_user(self, user) -> None:
 		block_modules = frappe.get_all(
 			"Module Def",
 			fields=["name as module"],
@@ -137,7 +137,7 @@ class UserType(Document):
 		if block_modules:
 			user.set("block_modules", block_modules)
 
-	def add_role_permissions_for_user_doctypes(self):
+	def add_role_permissions_for_user_doctypes(self) -> None:
 		perms = ["read", "write", "create", "submit", "cancel", "amend", "delete", "print", "email", "share"]
 		for row in self.user_doctypes:
 			docperm = add_role_permissions(row.document_type, self.role)
@@ -145,7 +145,7 @@ class UserType(Document):
 
 			update_custom_docperm(docperm, values)
 
-	def add_select_perm_doctypes(self):
+	def add_select_perm_doctypes(self) -> None:
 		if frappe.flags.ignore_select_perm:
 			return
 
@@ -168,22 +168,22 @@ class UserType(Document):
 			for select_doctype in select_doctypes:
 				self.append("select_doctypes", {"document_type": select_doctype})
 
-	def prepare_select_perm_doctypes(self, doc, user_doctypes, select_doctypes):
+	def prepare_select_perm_doctypes(self, doc, user_doctypes, select_doctypes) -> None:
 		for field in doc.get_link_fields():
 			if field.options not in user_doctypes:
 				select_doctypes.append(field.options)
 
-	def add_role_permissions_for_select_doctypes(self):
+	def add_role_permissions_for_select_doctypes(self) -> None:
 		for doctype in ["select_doctypes", "custom_select_doctypes"]:
 			for row in self.get(doctype):
 				docperm = add_role_permissions(row.document_type, self.role)
 				update_custom_docperm(docperm, {"select": 1, "read": 0, "create": 0, "write": 0})
 
-	def add_role_permissions_for_file(self):
+	def add_role_permissions_for_file(self) -> None:
 		docperm = add_role_permissions("File", self.role)
 		update_custom_docperm(docperm, {"read": 1, "create": 1, "write": 1})
 
-	def remove_permission_for_deleted_doctypes(self):
+	def remove_permission_for_deleted_doctypes(self) -> None:
 		doctypes = [d.document_type for d in self.user_doctypes]
 
 		# Do not remove the doc permission for the file doctype
@@ -275,7 +275,7 @@ def get_user_id(parent):
 	return data
 
 
-def user_linked_with_permission_on_doctype(doc, user):
+def user_linked_with_permission_on_doctype(doc, user) -> bool:
 	if not doc.apply_user_permission_on:
 		return True
 
@@ -302,7 +302,7 @@ def user_linked_with_permission_on_doctype(doc, user):
 		return False
 
 
-def apply_permissions_for_non_standard_user_type(doc, method=None):
+def apply_permissions_for_non_standard_user_type(doc, method=None) -> None:
 	"""Create user permission for the non standard user type"""
 	if not frappe.db.table_exists("User Type") or frappe.flags.in_migrate:
 		return

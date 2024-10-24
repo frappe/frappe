@@ -39,19 +39,19 @@ class EnergyPointLog(Document):
 		user: DF.Link
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		self.map_milestone_reference()
 		if self.type in ["Appreciation", "Criticism"] and self.user == self.owner:
 			frappe.throw(_("You cannot give review points to yourself"))
 
-	def map_milestone_reference(self):
+	def map_milestone_reference(self) -> None:
 		# link energy point to the original reference, if set by milestone
 		if self.reference_doctype == "Milestone":
 			self.reference_doctype, self.reference_name = frappe.db.get_value(
 				"Milestone", self.reference_name, ["reference_type", "reference_name"]
 			)
 
-	def after_insert(self):
+	def after_insert(self) -> None:
 		alert_dict = get_alert_dict(self)
 		if alert_dict:
 			frappe.publish_realtime(
@@ -75,7 +75,7 @@ class EnergyPointLog(Document):
 
 			enqueue_create_notification(self.user, notification_doc)
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		if self.type == "Revert":
 			reference_log = frappe.get_doc("Energy Point Log", self.revert_of)
 			reference_log.reverted = 0
@@ -231,7 +231,7 @@ def create_review_points_log(user, points, reason=None, doctype=None, docname=No
 
 
 @frappe.whitelist()
-def add_review_points(user, points):
+def add_review_points(user, points) -> None:
 	frappe.only_for("System Manager")
 	create_review_points_log(user, points)
 
@@ -330,15 +330,15 @@ def get_reviews(doctype, docname):
 	)
 
 
-def send_weekly_summary():
+def send_weekly_summary() -> None:
 	send_summary("Weekly")
 
 
-def send_monthly_summary():
+def send_monthly_summary() -> None:
 	send_summary("Monthly")
 
 
-def send_summary(timespan):
+def send_summary(timespan) -> None:
 	from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 		is_energy_point_enabled,
 	)

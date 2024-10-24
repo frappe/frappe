@@ -4,7 +4,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	if not frappe.db.table_exists("Data Import"):
 		return
 

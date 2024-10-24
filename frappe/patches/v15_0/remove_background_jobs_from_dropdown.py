@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	item = frappe.db.exists("Navbar Item", {"item_label": "Background Jobs"})
 	if not item:
 		return

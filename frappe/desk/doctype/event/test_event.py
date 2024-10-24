@@ -21,25 +21,25 @@ class UnitTestEvent(UnitTestCase):
 
 
 class TestEvent(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		frappe.db.delete("Event")
 		make_test_objects("Event", reset=True)
 		self.test_user = "test1@example.com"
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.set_user("Administrator")
 
-	def test_allowed_public(self):
+	def test_allowed_public(self) -> None:
 		frappe.set_user(self.test_user)
 		doc = frappe.get_doc("Event", frappe.db.get_value("Event", {"subject": "_Test Event 1"}))
 		self.assertTrue(frappe.has_permission("Event", doc=doc))
 
-	def test_not_allowed_private(self):
+	def test_not_allowed_private(self) -> None:
 		frappe.set_user(self.test_user)
 		doc = frappe.get_doc("Event", frappe.db.get_value("Event", {"subject": "_Test Event 2"}))
 		self.assertFalse(frappe.has_permission("Event", doc=doc))
 
-	def test_allowed_private_if_in_event_user(self):
+	def test_allowed_private_if_in_event_user(self) -> None:
 		name = frappe.db.get_value("Event", {"subject": "_Test Event 3"})
 		frappe.share.add("Event", name, self.test_user, "read")
 		frappe.set_user(self.test_user)
@@ -48,7 +48,7 @@ class TestEvent(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		frappe.share.remove("Event", name, self.test_user)
 
-	def test_event_list(self):
+	def test_event_list(self) -> None:
 		frappe.set_user(self.test_user)
 		res = frappe.get_list(
 			"Event", filters=[["Event", "subject", "like", "_Test Event%"]], fields=["name", "subject"]
@@ -59,7 +59,7 @@ class TestEvent(IntegrationTestCase):
 		self.assertFalse("_Test Event 3" in subjects)
 		self.assertFalse("_Test Event 2" in subjects)
 
-	def test_revert_logic(self):
+	def test_revert_logic(self) -> None:
 		ev = frappe.get_doc(self.globalTestRecords["Event"][0]).insert()
 		name = ev.name
 
@@ -71,7 +71,7 @@ class TestEvent(IntegrationTestCase):
 		# the name should be same!
 		self.assertEqual(ev.name, name)
 
-	def test_assign(self):
+	def test_assign(self) -> None:
 		from frappe.desk.form.assign_to import add
 
 		ev = frappe.get_doc(self.globalTestRecords["Event"][0]).insert()
@@ -117,7 +117,7 @@ class TestEvent(IntegrationTestCase):
 		# cleanup
 		ev.delete()
 
-	def test_recurring(self):
+	def test_recurring(self) -> None:
 		ev = frappe.get_doc(
 			{
 				"doctype": "Event",
@@ -142,7 +142,7 @@ class TestEvent(IntegrationTestCase):
 		ev_list3 = get_events("2015-02-01", "2015-02-01", "Administrator", for_reminder=True)
 		self.assertTrue(bool(list(filter(lambda e: e.name == ev.name, ev_list3))))
 
-	def test_quaterly_repeat(self):
+	def test_quaterly_repeat(self) -> None:
 		ev = frappe.get_doc(
 			{
 				"doctype": "Event",
@@ -182,7 +182,7 @@ class TestEvent(IntegrationTestCase):
 		ev_list4 = get_events("2023-03-17", "2023-03-17", "Administrator", for_reminder=True)
 		self.assertFalse(bool(list(filter(lambda e: e.name == ev.name, ev_list4))))
 
-	def test_half_yearly_repeat(self):
+	def test_half_yearly_repeat(self) -> None:
 		ev = frappe.get_doc(
 			{
 				"doctype": "Event",

@@ -65,7 +65,7 @@ class LDAPSettings(Document):
 		ssl_tls_mode: DF.Literal["Off", "StartTLS"]
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		self.default_user_type = self.default_user_type or "Website User"
 
 		if not self.enabled:
@@ -177,14 +177,14 @@ class LDAPSettings(Document):
 		return result
 
 	@classmethod
-	def update_user_fields(cls, user: "User", user_data: dict):
+	def update_user_fields(cls, user: "User", user_data: dict) -> None:
 		updatable_data = {key: value for key, value in user_data.items() if key != "email"}
 
 		for key, value in updatable_data.items():
 			setattr(user, key, value)
 		user.save(ignore_permissions=True)
 
-	def sync_roles(self, user: "User", additional_groups: list | None = None):
+	def sync_roles(self, user: "User", additional_groups: list | None = None) -> None:
 		current_roles = {d.role for d in user.get("roles")}
 		if self.default_user_type == "System User":
 			needed_roles = {self.default_role}
@@ -335,7 +335,7 @@ class LDAPSettings(Document):
 		except LDAPInvalidCredentialsResult:
 			frappe.throw(_("Invalid username or password"))
 
-	def reset_password(self, user, password, logout_sessions=False):
+	def reset_password(self, user, password, logout_sessions=False) -> None:
 		search_filter = f"({self.ldap_email_field}={user})"
 
 		conn = self.connect_to_ldap(self.base_dn, self.get_password(raise_exception=False), read_only=False)
@@ -399,7 +399,7 @@ class LDAPSettings(Document):
 
 
 @frappe.whitelist(allow_guest=True)
-def login():
+def login() -> bool:
 	# LDAP LOGIN LOGIC
 	args = frappe.form_dict
 	ldap: LDAPSettings = frappe.get_doc("LDAP Settings")
@@ -420,7 +420,7 @@ def login():
 
 
 @frappe.whitelist()
-def reset_password(user, password, logout):
+def reset_password(user, password, logout) -> None:
 	ldap: LDAPSettings = frappe.get_doc("LDAP Settings")
 	if not ldap.enabled:
 		frappe.throw(_("LDAP is not enabled."))

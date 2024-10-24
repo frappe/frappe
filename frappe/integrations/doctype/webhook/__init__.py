@@ -30,7 +30,7 @@ def get_all_webhooks():
 	return webhooks
 
 
-def run_webhooks(doc, method):
+def run_webhooks(doc, method) -> None:
 	"""Run webhooks for this method"""
 	if method not in supported_events:
 		return
@@ -71,7 +71,7 @@ def run_webhooks(doc, method):
 			_add_webhook_to_queue(webhook, doc)
 
 
-def _add_webhook_to_queue(webhook, doc):
+def _add_webhook_to_queue(webhook, doc) -> None:
 	# Maintain a queue and flush on commit
 	if not getattr(frappe.local, "_webhook_queue", None):
 		frappe.local._webhook_queue = []
@@ -80,7 +80,7 @@ def _add_webhook_to_queue(webhook, doc):
 	frappe.local._webhook_queue.append(frappe._dict(doc=doc, webhook=webhook))
 
 
-def flush_webhook_execution_queue():
+def flush_webhook_execution_queue() -> None:
 	"""Enqueue all pending webhook executions.
 
 	Each webhook can trigger multiple times on same document or even different instance of same

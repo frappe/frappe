@@ -19,7 +19,7 @@ possible_log_types = (
 )
 
 
-def execute():
+def execute() -> None:
 	"""Few doctypes had int PKs even though schema didn't mention them, this requires detecting it
 	at runtime which is prone to bugs and adds unnecessary overhead.
 

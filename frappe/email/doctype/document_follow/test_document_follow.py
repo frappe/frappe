@@ -24,7 +24,7 @@ class UnitTestDocumentFollow(UnitTestCase):
 
 
 class TestDocumentFollow(IntegrationTestCase):
-	def test_document_follow_version(self):
+	def test_document_follow_version(self) -> None:
 		user = get_user()
 		event_doc = get_event()
 
@@ -39,7 +39,7 @@ class TestDocumentFollow(IntegrationTestCase):
 		emails = get_emails(event_doc, "%This is a test description for sending mail%")
 		self.assertIsNotNone(emails)
 
-	def test_document_follow_comment(self):
+	def test_document_follow_comment(self) -> None:
 		user = get_user()
 		event_doc = get_event()
 
@@ -55,7 +55,7 @@ class TestDocumentFollow(IntegrationTestCase):
 		emails = get_emails(event_doc, "%This is a test comment%")
 		self.assertIsNotNone(emails)
 
-	def test_follow_limit(self):
+	def test_follow_limit(self) -> None:
 		user = get_user()
 		for _ in range(25):
 			event_doc = get_event()
@@ -64,7 +64,7 @@ class TestDocumentFollow(IntegrationTestCase):
 			self.assertEqual(doc.user, user.name)
 		self.assertEqual(len(get_document_followed_by_user(user.name)), 20)
 
-	def test_follow_on_create(self):
+	def test_follow_on_create(self) -> None:
 		user = get_user(DocumentFollowConditions(1))
 		frappe.set_user(user.name)
 		event = get_event()
@@ -75,7 +75,7 @@ class TestDocumentFollow(IntegrationTestCase):
 		documents_followed = get_events_followed_by_user(event.name, user.name)
 		self.assertTrue(documents_followed)
 
-	def test_do_not_follow_on_create(self):
+	def test_do_not_follow_on_create(self) -> None:
 		user = get_user()
 		frappe.set_user(user.name)
 
@@ -84,7 +84,7 @@ class TestDocumentFollow(IntegrationTestCase):
 		documents_followed = get_events_followed_by_user(event.name, user.name)
 		self.assertFalse(documents_followed)
 
-	def test_do_not_follow_on_update(self):
+	def test_do_not_follow_on_update(self) -> None:
 		user = get_user()
 		frappe.set_user(user.name)
 		event = get_event()
@@ -95,7 +95,7 @@ class TestDocumentFollow(IntegrationTestCase):
 		documents_followed = get_events_followed_by_user(event.name, user.name)
 		self.assertFalse(documents_followed)
 
-	def test_follow_on_comment(self):
+	def test_follow_on_comment(self) -> None:
 		user = get_user(DocumentFollowConditions(0, 1))
 		frappe.set_user(user.name)
 		event = get_event()
@@ -105,7 +105,7 @@ class TestDocumentFollow(IntegrationTestCase):
 		documents_followed = get_events_followed_by_user(event.name, user.name)
 		self.assertTrue(documents_followed)
 
-	def test_do_not_follow_on_comment(self):
+	def test_do_not_follow_on_comment(self) -> None:
 		user = get_user()
 		frappe.set_user(user.name)
 		event = get_event()
@@ -115,7 +115,7 @@ class TestDocumentFollow(IntegrationTestCase):
 		documents_followed = get_events_followed_by_user(event.name, user.name)
 		self.assertFalse(documents_followed)
 
-	def test_follow_on_like(self):
+	def test_follow_on_like(self) -> None:
 		user = get_user(DocumentFollowConditions(0, 0, 1))
 		frappe.set_user(user.name)
 		event = get_event()
@@ -125,7 +125,7 @@ class TestDocumentFollow(IntegrationTestCase):
 		documents_followed = get_events_followed_by_user(event.name, user.name)
 		self.assertTrue(documents_followed)
 
-	def test_do_not_follow_on_like(self):
+	def test_do_not_follow_on_like(self) -> None:
 		user = get_user()
 		frappe.set_user(user.name)
 		event = get_event()
@@ -135,7 +135,7 @@ class TestDocumentFollow(IntegrationTestCase):
 		documents_followed = get_events_followed_by_user(event.name, user.name)
 		self.assertFalse(documents_followed)
 
-	def test_follow_on_assign(self):
+	def test_follow_on_assign(self) -> None:
 		user = get_user(DocumentFollowConditions(0, 0, 0, 1))
 		event = get_event()
 
@@ -144,7 +144,7 @@ class TestDocumentFollow(IntegrationTestCase):
 		documents_followed = get_events_followed_by_user(event.name, user.name)
 		self.assertTrue(documents_followed)
 
-	def test_do_not_follow_on_assign(self):
+	def test_do_not_follow_on_assign(self) -> None:
 		user = get_user()
 		frappe.set_user(user.name)
 		event = get_event()
@@ -154,7 +154,7 @@ class TestDocumentFollow(IntegrationTestCase):
 		documents_followed = get_events_followed_by_user(event.name, user.name)
 		self.assertFalse(documents_followed)
 
-	def test_follow_on_share(self):
+	def test_follow_on_share(self) -> None:
 		user = get_user(DocumentFollowConditions(0, 0, 0, 0, 1))
 		event = get_event()
 
@@ -163,7 +163,7 @@ class TestDocumentFollow(IntegrationTestCase):
 		documents_followed = get_events_followed_by_user(event.name, user.name)
 		self.assertTrue(documents_followed)
 
-	def test_do_not_follow_on_share(self):
+	def test_do_not_follow_on_share(self) -> None:
 		user = get_user()
 		event = get_event()
 
@@ -172,7 +172,7 @@ class TestDocumentFollow(IntegrationTestCase):
 		documents_followed = get_events_followed_by_user(event.name, user.name)
 		self.assertFalse(documents_followed)
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.db.rollback()
 		frappe.db.delete("Email Queue")
 		frappe.db.delete("Email Queue Recipient")

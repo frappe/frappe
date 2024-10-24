@@ -31,7 +31,7 @@ class TestReport(IntegrationTestCase):
 		cls.enterClassContext(cls.enable_safe_exec())
 		return super().setUpClass()
 
-	def test_report_builder(self):
+	def test_report_builder(self) -> None:
 		if frappe.db.exists("Report", "User Activity Report"):
 			frappe.delete_doc("Report", "User Activity Report")
 
@@ -44,14 +44,14 @@ class TestReport(IntegrationTestCase):
 		self.assertEqual(columns[1].get("label"), "User Type")
 		self.assertTrue("Administrator" in [d[0] for d in data])
 
-	def test_query_report(self):
+	def test_query_report(self) -> None:
 		report = frappe.get_doc("Report", "Permitted Documents For User")
 		columns, data = report.get_data(filters={"user": "Administrator", "doctype": "DocType"})
 		self.assertEqual(columns[0].get("label"), "Name")
 		self.assertEqual(columns[1].get("label"), "Module")
 		self.assertTrue("User" in [d.get("name") for d in data])
 
-	def test_save_or_delete_report(self):
+	def test_save_or_delete_report(self) -> None:
 		"""Test for validations when editing / deleting report of type Report Builder"""
 
 		try:
@@ -110,7 +110,7 @@ class TestReport(IntegrationTestCase):
 			frappe.set_user("Administrator")
 			frappe.db.rollback()
 
-	def test_custom_report(self):
+	def test_custom_report(self) -> None:
 		reset_customization("User")
 		custom_report_name = save_report(
 			"Permitted Documents For User",
@@ -147,7 +147,7 @@ class TestReport(IntegrationTestCase):
 			admin_dict,
 		)
 
-	def test_report_with_custom_column(self):
+	def test_report_with_custom_column(self) -> None:
 		reset_customization("User")
 		response = run(
 			"Permitted Documents For User",
@@ -183,7 +183,7 @@ class TestReport(IntegrationTestCase):
 			admin_dict,
 		)
 
-	def test_report_permissions(self):
+	def test_report_permissions(self) -> None:
 		frappe.set_user("test@example.com")
 		frappe.db.delete("Has Role", {"parent": frappe.session.user, "role": "Test Has Role"})
 		frappe.db.commit()
@@ -207,7 +207,7 @@ class TestReport(IntegrationTestCase):
 		self.assertNotEqual(report.is_permitted(), True)
 		frappe.set_user("Administrator")
 
-	def test_report_custom_permissions(self):
+	def test_report_custom_permissions(self) -> None:
 		frappe.set_user("test@example.com")
 		frappe.db.delete("Custom Role", {"report": "Test Custom Role Report"})
 		frappe.db.commit()  # nosemgrep
@@ -240,7 +240,7 @@ class TestReport(IntegrationTestCase):
 		frappe.set_user("Administrator")
 
 	# test for the `_format` method if report data doesn't have sort_by parameter
-	def test_format_method(self):
+	def test_format_method(self) -> None:
 		if frappe.db.exists("Report", "User Activity Report Without Sort"):
 			frappe.delete_doc("Report", "User Activity Report Without Sort")
 		with open(os.path.join(os.path.dirname(__file__), "user_activity_report_without_sort.json")) as f:
@@ -254,7 +254,7 @@ class TestReport(IntegrationTestCase):
 		self.assertTrue("Administrator" in [d[0] for d in data])
 		frappe.delete_doc("Report", "User Activity Report Without Sort")
 
-	def test_non_standard_script_report(self):
+	def test_non_standard_script_report(self) -> None:
 		report_name = "Test Non Standard Script Report"
 		if not frappe.db.exists("Report", report_name):
 			report = frappe.get_doc(
@@ -295,7 +295,7 @@ data = [
 		# check values
 		self.assertTrue("System User" in [d.get("type") for d in data[1]])
 
-	def test_script_report_with_columns(self):
+	def test_script_report_with_columns(self) -> None:
 		report_name = "Test Script Report With Columns"
 
 		if frappe.db.exists("Report", report_name):
@@ -336,7 +336,7 @@ result = [
 		# check values
 		self.assertTrue("System User" in [d.get("type") for d in data[1]])
 
-	def test_toggle_disabled(self):
+	def test_toggle_disabled(self) -> None:
 		"""Make sure that authorization is respected."""
 		# Assuming that there will be reports in the system.
 		reports = frappe.get_all(doctype="Report", limit=1)
@@ -359,7 +359,7 @@ result = [
 		# Set user back to administrator
 		frappe.set_user("Administrator")
 
-	def test_add_total_row_for_tree_reports(self):
+	def test_add_total_row_for_tree_reports(self) -> None:
 		report_settings = {"tree": True, "parent_field": "parent_value"}
 
 		columns = [
@@ -410,7 +410,7 @@ result = [
 		self.assertEqual(result[-1][1], 200)
 		self.assertEqual(result[-1][2], 150.50)
 
-	def test_cte_in_query_report(self):
+	def test_cte_in_query_report(self) -> None:
 		cte_query = textwrap.dedent(
 			"""
             with enabled_users as (

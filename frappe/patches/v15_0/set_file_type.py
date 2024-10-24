@@ -3,7 +3,7 @@ import mimetypes
 import frappe
 
 
-def execute():
+def execute() -> None:
 	"""Set 'File Type' for all files based on file extension."""
 	files = frappe.db.get_all(
 		"File",

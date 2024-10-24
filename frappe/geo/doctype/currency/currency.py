@@ -39,9 +39,9 @@ class Currency(Document):
 	# end: auto-generated types
 
 	# NOTE: During installation country docs are bulk inserted.
-	def validate(self):
+	def validate(self) -> None:
 		frappe.clear_cache()
 
 
-def enable_default_currencies():
+def enable_default_currencies() -> None:
 	frappe.db.set_value("Currency", {"name": ("in", DEFAULT_ENABLED_CURRENCIES)}, "enabled", 1)

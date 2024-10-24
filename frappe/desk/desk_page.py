@@ -23,7 +23,7 @@ def get(name):
 
 
 @frappe.whitelist(allow_guest=True)
-def getpage():
+def getpage() -> None:
 	"""
 	Load the page from `frappe.form` and send it via `frappe.response`
 	"""

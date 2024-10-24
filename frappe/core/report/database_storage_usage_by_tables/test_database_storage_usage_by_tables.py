@@ -9,7 +9,7 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestDBUsageReport(IntegrationTestCase):
-	def test_basic_query(self):
+	def test_basic_query(self) -> None:
 		_, data = execute()
 		tables = [d.table for d in data]
 		self.assertFalse({"tabUser", "tabDocField"}.difference(tables))

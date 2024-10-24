@@ -4,6 +4,6 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.reload_doc("core", "doctype", "system_settings")
 	frappe.db.set_single_value("System Settings", "allow_login_after_fail", 60)

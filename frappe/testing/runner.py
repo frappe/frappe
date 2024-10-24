@@ -58,7 +58,7 @@ class TestRunner(unittest.TextTestRunner):
 		*,
 		tb_locals=False,
 		cfg: TestConfig,
-	):
+	) -> None:
 		super().__init__(
 			stream=stream,
 			descriptions=descriptions,
@@ -91,10 +91,10 @@ class TestRunner(unittest.TextTestRunner):
 					logger.info(f"Starting tests for app: {app}, category: {category}")
 					yield app, category, suite
 
-	def _has_tests(self, suite):
+	def _has_tests(self, suite) -> bool:
 		return next(self._iterate_suite(suite), None) is not None
 
-	def _prepare_category(self, category, suite, app):
+	def _prepare_category(self, category, suite, app) -> None:
 		dispatcher = {
 			"integration": self.integration_preparation,
 			# Add other categories here as needed
@@ -105,7 +105,7 @@ class TestRunner(unittest.TextTestRunner):
 		else:
 			logger.debug(f"Unknown test category: {category}. No specific preparation performed.")
 
-	def _apply_debug_decorators(self, suite):
+	def _apply_debug_decorators(self, suite) -> None:
 		if self.cfg.pdb_on_exceptions:
 			for test in self._iterate_suite(suite):
 				setattr(

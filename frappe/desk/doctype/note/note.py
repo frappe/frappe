@@ -24,7 +24,7 @@ class Note(Document):
 		title: DF.Data
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		if self.notify_on_login and not self.expire_notification_on:
 			# expire this notification in a week (default)
 			self.expire_notification_on = frappe.utils.add_days(self.creation, 7)
@@ -35,7 +35,7 @@ class Note(Document):
 		if not self.content:
 			self.content = "<span></span>"
 
-	def before_print(self, settings=None):
+	def before_print(self, settings=None) -> None:
 		self.print_heading = self.name
 		self.sub_heading = ""
 
@@ -47,13 +47,13 @@ class Note(Document):
 
 
 @frappe.whitelist()
-def mark_as_seen(note: str):
+def mark_as_seen(note: str) -> None:
 	note: Note = frappe.get_doc("Note", note)
 	note.mark_seen_by(frappe.session.user)
 	note.save(ignore_permissions=True, ignore_version=True)
 
 
-def get_permission_query_conditions(user):
+def get_permission_query_conditions(user) -> str:
 	if not user:
 		user = frappe.session.user
 

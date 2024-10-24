@@ -111,7 +111,7 @@ def get_method_map(app: str):
 	return []
 
 
-def generate_pot(target_app: str | None = None):
+def generate_pot(target_app: str | None = None) -> None:
 	"""
 	Generate a POT (PO template) file. This file will contain only messages IDs.
 	https://en.wikipedia.org/wiki/Gettext
@@ -166,7 +166,7 @@ def get_is_gitignored_function_for_app(app: str | None):
 
 	repo = git.Repo(frappe.get_app_source_path(app), search_parent_directories=True)
 
-	def _check_gitignore(d: str):
+	def _check_gitignore(d: str) -> bool:
 		d = d.rstrip("/")
 		if repo.ignored([d]):  # type: ignore
 			return True
@@ -175,7 +175,7 @@ def get_is_gitignored_function_for_app(app: str | None):
 	return _check_gitignore
 
 
-def new_po(locale, target_app: str | None = None):
+def new_po(locale, target_app: str | None = None) -> None:
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
 
 	for app in apps:
@@ -194,7 +194,7 @@ def new_po(locale, target_app: str | None = None):
 		)
 
 
-def compile_translations(target_app: str | None = None, locale: str | None = None, force=False):
+def compile_translations(target_app: str | None = None, locale: str | None = None, force=False) -> None:
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
 	tasks = []
 	for app in apps:
@@ -211,7 +211,7 @@ def compile_translations(target_app: str | None = None, locale: str | None = Non
 	executer.join()
 
 
-def _compile_translation(app, locale, force=False):
+def _compile_translation(app, locale, force=False) -> None:
 	po_path = get_po_path(app, locale)
 	mo_path = get_mo_path(app, locale)
 	if not po_path.exists():
@@ -228,7 +228,7 @@ def _compile_translation(app, locale, force=False):
 	print(f"MO file created at {mo_path}")
 
 
-def update_po(target_app: str | None = None, locale: str | None = None):
+def update_po(target_app: str | None = None, locale: str | None = None) -> None:
 	"""
 	Add keys to available PO files, from POT file. This could be used to keep
 	track of available keys, and missing translations
@@ -246,7 +246,7 @@ def update_po(target_app: str | None = None, locale: str | None = None):
 			print(f"PO file modified at {po_path}")
 
 
-def migrate(app: str | None = None, locale: str | None = None):
+def migrate(app: str | None = None, locale: str | None = None) -> None:
 	apps = [app] if app else frappe.get_all_apps(True)
 
 	for app in apps:
@@ -260,7 +260,7 @@ def migrate(app: str | None = None, locale: str | None = None):
 				csv_to_po(app, filename.stem)
 
 
-def csv_to_po(app: str, locale: str):
+def csv_to_po(app: str, locale: str) -> None:
 	csv_file = Path(frappe.get_app_path(app)) / "translations" / f"{locale.replace('_', '-')}.csv"
 	locale = locale.replace("-", "_")
 	if not csv_file.exists():

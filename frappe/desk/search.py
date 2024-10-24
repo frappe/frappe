@@ -18,7 +18,7 @@ from frappe.utils import cint, cstr, unique
 from frappe.utils.data import make_filter_tuple
 
 
-def sanitize_searchfield(searchfield: str):
+def sanitize_searchfield(searchfield: str) -> None:
 	if not searchfield:
 		return
 

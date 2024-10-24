@@ -121,7 +121,7 @@ class EmailAccount(Document):
 
 	DOCTYPE = "Email Account"
 
-	def autoname(self):
+	def autoname(self) -> None:
 		"""Set name as `email_account_name` or make title from Email Address."""
 		if not self.email_account_name:
 			self.email_account_name = (
@@ -130,7 +130,7 @@ class EmailAccount(Document):
 
 		self.name = self.email_account_name
 
-	def validate(self):
+	def validate(self) -> None:
 		"""Validate Email Address and check POP3/IMAP and SMTP connections is enabled."""
 
 		if self.email_id:
@@ -196,7 +196,7 @@ class EmailAccount(Document):
 						frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
 
 	@frappe.whitelist()
-	def validate_frappe_mail_settings(self):
+	def validate_frappe_mail_settings(self) -> None:
 		if self.service == "Frappe Mail":
 			frappe_mail_client = self.get_frappe_mail_client()
 			frappe_mail_client.validate(for_inbound=self.enable_incoming, for_outbound=self.enable_outgoing)
@@ -208,7 +208,7 @@ class EmailAccount(Document):
 		server = self.get_smtp_server()
 		return server.session
 
-	def before_save(self):
+	def before_save(self) -> None:
 		messages = []
 		as_list = 1
 		if not self.enable_incoming and self.default_incoming:
@@ -237,7 +237,7 @@ class EmailAccount(Document):
 				title=_("Defaults Updated"),
 			)
 
-	def on_update(self):
+	def on_update(self) -> None:
 		"""Check there is only one default of each type."""
 		self.check_automatic_linking_email_account()
 		self.there_must_be_only_one_default()
@@ -249,7 +249,7 @@ class EmailAccount(Document):
 			used_oauth=self.auth_method == "OAuth",
 		)
 
-	def there_must_be_only_one_default(self):
+	def there_must_be_only_one_default(self) -> None:
 		"""If current Email Account is default, un-default all other accounts."""
 		for field in ("default_incoming", "default_outgoing"):
 			if not self.get(field):
@@ -543,18 +543,18 @@ class EmailAccount(Document):
 				self.frappe_mail_site, self.email_id, self.api_key, self.get_password("api_secret")
 			)
 
-	def remove_unpicklable_values(self, state):
+	def remove_unpicklable_values(self, state) -> None:
 		super().remove_unpicklable_values(state)
 		state.pop("_smtp_server_instance", None)
 
-	def handle_incoming_connect_error(self, description):
+	def handle_incoming_connect_error(self, description) -> None:
 		if self.get_failed_attempts_count() > 5:
 			# This is done in background to avoid committing here.
 			frappe.enqueue(self._disable_broken_incoming_account, description=description)
 		else:
 			self.set_failed_attempts_count(self.get_failed_attempts_count() + 1)
 
-	def _disable_broken_incoming_account(self, description):
+	def _disable_broken_incoming_account(self, description) -> None:
 		if frappe.flags.in_test:
 			return
 		self.db_set("enable_incoming", 0)
@@ -574,7 +574,7 @@ class EmailAccount(Document):
 			except assign_to.DuplicateToDoError:
 				pass
 
-	def set_failed_attempts_count(self, value):
+	def set_failed_attempts_count(self, value) -> None:
 		frappe.cache.set_value(f"{self.name}:email-account-failed-attempts", value)
 
 	def get_failed_attempts_count(self):
@@ -619,7 +619,7 @@ class EmailAccount(Document):
 		"""retrive and return inbound mails."""
 		mails = []
 
-		def process_mail(messages, append_to=None):
+		def process_mail(messages, append_to=None) -> None:
 			for index, message in enumerate(messages.get("latest_messages", [])):
 				uid = messages["uid_list"][index] if messages.get("uid_list") else None
 				seen_status = messages.get("seen_status", {}).get(uid)
@@ -667,7 +667,7 @@ class EmailAccount(Document):
 
 		return mails
 
-	def handle_bad_emails(self, uid, raw, reason):
+	def handle_bad_emails(self, uid, raw, reason) -> None:
 		"""Save the email in Unhandled Email doctype.
 
 		The excessive encoding and decoding is done to handle the case where the
@@ -703,7 +703,7 @@ class EmailAccount(Document):
 			unhandled_email.insert(ignore_permissions=True)
 			frappe.db.commit()
 
-	def send_auto_reply(self, communication, email):
+	def send_auto_reply(self, communication, email) -> None:
 		"""Send auto reply if set."""
 		from frappe.core.doctype.communication.email import (
 			set_incoming_outgoing_accounts,
@@ -732,7 +732,7 @@ class EmailAccount(Document):
 		self.send_notification_to = self.send_notification_to.replace(",", "\n")
 		return [e.strip() for e in self.send_notification_to.split("\n") if e.strip()]
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		"""Clear communications where email account is linked"""
 		Communication = frappe.qb.DocType("Communication")
 		frappe.qb.update(Communication).set(Communication.email_account, "").where(
@@ -741,7 +741,7 @@ class EmailAccount(Document):
 
 		remove_user_email_inbox(email_account=self.name)
 
-	def after_rename(self, old, new, merge=False):
+	def after_rename(self, old, new, merge=False) -> None:
 		frappe.db.set_value("Email Account", new, "email_account_name", new)
 
 	def build_email_sync_rule(self):
@@ -755,7 +755,7 @@ class EmailAccount(Document):
 		else:
 			return self.email_sync_option or "UNSEEN"
 
-	def check_automatic_linking_email_account(self):
+	def check_automatic_linking_email_account(self) -> None:
 		if self.enable_automatic_linking:
 			if not self.enable_incoming:
 				frappe.throw(_("Automatic Linking can be activated only if Incoming is enabled."))
@@ -766,7 +766,7 @@ class EmailAccount(Document):
 			):
 				frappe.throw(_("Automatic Linking can be activated only for one Email Account."))
 
-	def append_email_to_sent_folder(self, message):
+	def append_email_to_sent_folder(self, message) -> None:
 		if not (self.enable_incoming and self.use_imap):
 			# don't try appending if enable incoming and imap is not set
 			return
@@ -810,7 +810,7 @@ def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len
 	return [[d] for d in set(email_append_to_list) if txt in d]
 
 
-def notify_unreplied():
+def notify_unreplied() -> None:
 	"""Sends email notifications if there are unreplied Communications
 	and `notify_if_unreplied` is set as true."""
 	for email_account in frappe.get_all(
@@ -866,7 +866,7 @@ def notify_unreplied():
 				comm.db_set("unread_notification_sent", 1)
 
 
-def pull(now=False):
+def pull(now=False) -> None:
 	"""Will be called via scheduler, pull emails from all enabled Email accounts."""
 	from frappe.integrations.doctype.connected_app.connected_app import has_token
 
@@ -925,7 +925,7 @@ def pull_emails(email_account: str) -> None:
 		frappe.msgprint(_("Emails are already being pulled from this account."))
 
 
-def pull_from_email_account(email_account):
+def pull_from_email_account(email_account) -> None:
 	"""Runs within a worker process"""
 	email_account = frappe.get_doc("Email Account", email_account)
 	email_account.receive()
@@ -947,11 +947,11 @@ def get_max_email_uid(email_account):
 	return 1
 
 
-def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_outgoing, used_oauth):
+def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_outgoing, used_oauth) -> None:
 	"""setup email inbox for user"""
 	from frappe.core.doctype.user.user import ask_pass_update
 
-	def add_user_email(user):
+	def add_user_email(user) -> None:
 		user = frappe.get_doc("User", user)
 		row = user.append("user_emails", {})
 
@@ -1002,7 +1002,7 @@ def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_ou
 	ask_pass_update()
 
 
-def remove_user_email_inbox(email_account):
+def remove_user_email_inbox(email_account) -> None:
 	"""remove user email inbox settings if email account is deleted"""
 	if not email_account:
 		return
@@ -1022,7 +1022,7 @@ def remove_user_email_inbox(email_account):
 
 
 @frappe.whitelist()
-def set_email_password(email_account, password):
+def set_email_password(email_account, password) -> bool:
 	account = frappe.get_doc("Email Account", email_account)
 	if account.awaiting_password and account.auth_method != "OAuth":
 		account.awaiting_password = 0

@@ -14,7 +14,7 @@ class UnitTestDocumentNamingRule(UnitTestCase):
 
 
 class TestDocumentNamingRule(IntegrationTestCase):
-	def test_naming_rule_by_series(self):
+	def test_naming_rule_by_series(self) -> None:
 		naming_rule = frappe.get_doc(
 			doctype="Document Naming Rule", document_type="ToDo", prefix="test-todo-", prefix_digits=5
 		).insert()
@@ -28,7 +28,7 @@ class TestDocumentNamingRule(IntegrationTestCase):
 		naming_rule.delete()
 		todo.delete()
 
-	def test_naming_rule_by_condition(self):
+	def test_naming_rule_by_condition(self) -> None:
 		naming_rule = frappe.get_doc(
 			doctype="Document Naming Rule",
 			document_type="ToDo",

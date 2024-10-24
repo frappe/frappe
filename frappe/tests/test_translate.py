@@ -41,17 +41,17 @@ class TestTranslate(IntegrationTestCase):
 		"test_guest_request_language_resolution_with_request_header",
 	)
 
-	def setUp(self):
+	def setUp(self) -> None:
 		if self._testMethodName in self.guest_sessions_required:
 			frappe.set_user("Guest")
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.form_dict.pop("_lang", None)
 		if self._testMethodName in self.guest_sessions_required:
 			frappe.set_user("Administrator")
 		frappe.local.lang = "en"
 
-	def test_clear_cache(self):
+	def test_clear_cache(self) -> None:
 		_("Trigger caching")
 
 		self.assertIsNotNone(frappe.cache.hget(USER_TRANSLATION_KEY, frappe.local.lang))
@@ -62,7 +62,7 @@ class TestTranslate(IntegrationTestCase):
 		self.assertIsNone(frappe.cache.hget(USER_TRANSLATION_KEY, frappe.local.lang))
 		self.assertIsNone(frappe.cache.hget(MERGED_TRANSLATION_KEY, frappe.local.lang))
 
-	def test_extract_message_from_file(self):
+	def test_extract_message_from_file(self) -> None:
 		data = frappe.translate.get_messages_from_file(translation_string_file)
 		bench_path = get_bench_path()
 		file_path = frappe.get_app_path("frappe", "tests", "translation_test_file.txt")
@@ -82,7 +82,7 @@ class TestTranslate(IntegrationTestCase):
 			self.assertEqual(ext_context, exp_context)
 			self.assertEqual(ext_line, exp_line)
 
-	def test_read_language_variant(self):
+	def test_read_language_variant(self) -> None:
 		self.assertEqual(_("Mobile No"), "Mobile No")
 		try:
 			frappe.local.lang = "pt-BR"
@@ -93,12 +93,12 @@ class TestTranslate(IntegrationTestCase):
 			frappe.local.lang = "en"
 			self.assertEqual(_("Mobile No"), "Mobile No")
 
-	def test_translation_with_context(self):
+	def test_translation_with_context(self) -> None:
 		frappe.local.lang = "fr"
 		self.assertEqual(_("Change"), "Changement")
 		self.assertEqual(_("Change", context="Coins"), "la monnaie")
 
-	def test_lazy_translations(self):
+	def test_lazy_translations(self) -> None:
 		frappe.local.lang = "de"
 		eager_translation = _("Communication")
 		self.assertEqual(str(_lazy_translations), eager_translation)
@@ -113,7 +113,7 @@ class TestTranslate(IntegrationTestCase):
 		# f string usually auto-casts
 		self.assertEqual(f"{_lazy_translations}", eager_translation)
 
-	def test_request_language_resolution_with_form_dict(self):
+	def test_request_language_resolution_with_form_dict(self) -> None:
 		"""Test for frappe.translate.get_language
 
 		Case 1: frappe.form_dict._lang is set
@@ -126,7 +126,7 @@ class TestTranslate(IntegrationTestCase):
 
 		self.assertIn(return_val, [first_lang, get_parent_language(first_lang)])
 
-	def test_request_language_resolution_with_cookie(self):
+	def test_request_language_resolution_with_cookie(self) -> None:
 		"""Test for frappe.translate.get_language
 
 		Case 2: frappe.form_dict._lang is not set, but preferred_language cookie is
@@ -139,7 +139,7 @@ class TestTranslate(IntegrationTestCase):
 			self.assertEqual(return_val, "en")
 			self.assertNotIn(return_val, [second_lang, get_parent_language(second_lang)])
 
-	def test_guest_request_language_resolution_with_cookie(self):
+	def test_guest_request_language_resolution_with_cookie(self) -> None:
 		"""Test for frappe.translate.get_language
 
 		Case 3: frappe.form_dict._lang is not set, but preferred_language cookie is [Guest User]
@@ -151,7 +151,7 @@ class TestTranslate(IntegrationTestCase):
 
 		self.assertIn(return_val, [second_lang, get_parent_language(second_lang)])
 
-	def test_global_translations(self):
+	def test_global_translations(self) -> None:
 		""" """
 		site = frappe.local.site
 		frappe.destroy()
@@ -159,7 +159,7 @@ class TestTranslate(IntegrationTestCase):
 		frappe.init(site)
 		frappe.connect()
 
-	def test_guest_request_language_resolution_with_request_header(self):
+	def test_guest_request_language_resolution_with_request_header(self) -> None:
 		"""Test for frappe.translate.get_language
 
 		Case 4: frappe.form_dict._lang & preferred_language cookie is not set, but Accept-Language header is [Guest User]
@@ -169,7 +169,7 @@ class TestTranslate(IntegrationTestCase):
 		return_val = get_language()
 		self.assertIn(return_val, [third_lang, get_parent_language(third_lang)])
 
-	def test_request_language_resolution_with_request_header(self):
+	def test_request_language_resolution_with_request_header(self) -> None:
 		"""Test for frappe.translate.get_language
 
 		Case 5: frappe.form_dict._lang & preferred_language cookie is not set, but Accept-Language header is
@@ -179,11 +179,11 @@ class TestTranslate(IntegrationTestCase):
 		return_val = get_language()
 		self.assertNotIn(return_val, [third_lang, get_parent_language(third_lang)])
 
-	def test_load_all_translate_files(self):
+	def test_load_all_translate_files(self) -> None:
 		"""Load all CSV files to ensure they have correct format"""
 		verify_translation_files("frappe")
 
-	def test_python_extractor(self):
+	def test_python_extractor(self) -> None:
 		code = textwrap.dedent(
 			"""
 			frappe._("attr")
@@ -218,7 +218,7 @@ class TestTranslate(IntegrationTestCase):
 			with self.subTest():
 				self.assertEqual(expected, actual)
 
-	def test_js_extractor(self):
+	def test_js_extractor(self) -> None:
 		code = textwrap.dedent(
 			"""
 			__("attr")
@@ -255,7 +255,7 @@ class TestTranslate(IntegrationTestCase):
 			with self.subTest():
 				self.assertEqual(expected, actual)
 
-	def test_js_parser_arg_capturing(self):
+	def test_js_parser_arg_capturing(self) -> None:
 		"""Get non-flattened args in correct order so 3rd arg if present is always context."""
 
 		def get_args(code):
@@ -303,7 +303,7 @@ class TestTranslate(IntegrationTestCase):
 		)
 
 
-def verify_translation_files(app):
+def verify_translation_files(app) -> None:
 	"""Function to verify translation file syntax in app."""
 	# Do not remove/rename this, other apps depend on it to test their translations
 

@@ -13,7 +13,7 @@ from frappe.utils.telemetry import capture_doc
 
 
 @frappe.whitelist()
-def savedocs(doc, action):
+def savedocs(doc, action) -> None:
 	"""save / submit / update doclist"""
 	doc = frappe.get_doc(json.loads(doc))
 	capture_doc(doc, action)
@@ -47,7 +47,7 @@ def savedocs(doc, action):
 
 
 @frappe.whitelist()
-def cancel(doctype=None, name=None, workflow_state_fieldname=None, workflow_state=None):
+def cancel(doctype=None, name=None, workflow_state_fieldname=None, workflow_state=None) -> None:
 	"""cancel a doclist"""
 	doc = frappe.get_doc(doctype, name)
 	capture_doc(doc, "Cancel")
@@ -60,7 +60,7 @@ def cancel(doctype=None, name=None, workflow_state_fieldname=None, workflow_stat
 
 
 @frappe.whitelist()
-def discard(doctype: str, name: str | int):
+def discard(doctype: str, name: str | int) -> None:
 	"""discard a draft document"""
 	doc = frappe.get_doc(doctype, name)
 	capture_doc(doc, "Discard")
@@ -70,7 +70,7 @@ def discard(doctype: str, name: str | int):
 	frappe.msgprint(frappe._("Discarded"), indicator="red", alert=True)
 
 
-def send_updated_docs(doc):
+def send_updated_docs(doc) -> None:
 	from .load import get_docinfo
 
 	get_docinfo(doc)
@@ -82,8 +82,8 @@ def send_updated_docs(doc):
 	frappe.response.docs.append(d)
 
 
-def set_local_name(doc):
-	def _set_local_name(d):
+def set_local_name(doc) -> None:
+	def _set_local_name(d) -> None:
 		if doc.get("__islocal") or d.get("__islocal"):
 			d.localname = d.name
 			d.name = None

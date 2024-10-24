@@ -33,7 +33,7 @@ YWJjZGVmZ2hpamtsbW5vcF9hdHRhY2htZW50
 
 
 class TestEmailAttachments(IntegrationTestCase):
-	def test_email_attachment_percent_encoded(self):
+	def test_email_attachment_percent_encoded(self) -> None:
 		email_account = frappe._dict({"email_id": "receive@example.com"})
 		mail = InboundMail(EMAIL_CONTENT, email_account)
 		communication = mail.process()
@@ -48,8 +48,8 @@ class TestEmailAttachments(IntegrationTestCase):
 		file.save()
 		self.assertEqual(file.file_name, "tést%42.txt")
 
-	def test_file_with_percent_in_filename(self):
-		def make_and_check_file(index: int, literal_file_name: str, disk_file_name: str):
+	def test_file_with_percent_in_filename(self) -> None:
+		def make_and_check_file(index: int, literal_file_name: str, disk_file_name: str) -> None:
 			content = "abcdefghijklmnop_attachment"
 			file: "File" = frappe.new_doc("File")  # type: ignore
 			file.update(

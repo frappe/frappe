@@ -39,7 +39,7 @@ def patch_db(endpoints: list[str] | None = None):
 
 class TestRenameDoc(IntegrationTestCase):
 	@classmethod
-	def setUpClass(self):
+	def setUpClass(self) -> None:
 		"""Setting Up data for the tests defined under TestRenameDoc"""
 		# set developer_mode to rename doc controllers
 		super().setUpClass()
@@ -80,7 +80,7 @@ class TestRenameDoc(IntegrationTestCase):
 		).insert()
 
 	@classmethod
-	def tearDownClass(self):
+	def tearDownClass(self) -> None:
 		"""Deleting data generated for the tests defined under TestRenameDoc"""
 		# delete_doc doesnt drop tables
 		# this is done to bypass inconsistencies in the db
@@ -99,7 +99,7 @@ class TestRenameDoc(IntegrationTestCase):
 		# reset original value of developer_mode conf
 		frappe.conf.developer_mode = self._original_developer_flag
 
-	def setUp(self):
+	def setUp(self) -> None:
 		frappe.flags.link_fields = {}
 		if self._testMethodName == "test_doc_rename_method":
 			self.property_setter = frappe.get_doc(
@@ -120,7 +120,7 @@ class TestRenameDoc(IntegrationTestCase):
 			self.property_setter.delete()
 		return super().tearDown()
 
-	def test_rename_doc(self):
+	def test_rename_doc(self) -> None:
 		"""Rename an existing document via frappe.rename_doc"""
 		old_name = choice(self.available_documents)
 		new_name = old_name + ".new"
@@ -128,7 +128,7 @@ class TestRenameDoc(IntegrationTestCase):
 		self.available_documents.remove(old_name)
 		self.available_documents.append(new_name)
 
-	def test_merging_docs(self):
+	def test_merging_docs(self) -> None:
 		"""Merge two documents via frappe.rename_doc"""
 		first_todo, second_todo = sample(self.available_documents, 2)
 
@@ -145,7 +145,7 @@ class TestRenameDoc(IntegrationTestCase):
 
 		self.assertEqual(merged_todo_doc.priority, second_todo_doc.priority)
 
-	def test_rename_controllers(self):
+	def test_rename_controllers(self) -> None:
 		"""Rename doctypes with controller code paths"""
 		# check if module exists exists;
 		# if custom, get_controller will return Document class
@@ -162,7 +162,7 @@ class TestRenameDoc(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("DocType", self.doctype.old))
 		self.assertFalse(os.path.exists(old_doctype_path))
 
-	def test_rename_doctype(self):
+	def test_rename_doctype(self) -> None:
 		"""Rename DocType via frappe.rename_doc"""
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
@@ -199,7 +199,7 @@ class TestRenameDoc(IntegrationTestCase):
 		new_name = "ToDo"
 		self.assertEqual(new_name, frappe.rename_doc("Renamed Doc", old_name, new_name, force=True))
 
-	def test_update_document_title_api(self):
+	def test_update_document_title_api(self) -> None:
 		test_doctype = "Module Def"
 		test_doc = frappe.get_doc(
 			{
@@ -233,7 +233,7 @@ class TestRenameDoc(IntegrationTestCase):
 
 		test_doc.delete()
 
-	def test_bulk_rename(self):
+	def test_bulk_rename(self) -> None:
 		input_data = [[x, f"{x}-new"] for x in self.available_documents]
 
 		with patch_db(["commit", "rollback"]), patch("frappe.enqueue") as enqueue:
@@ -245,7 +245,7 @@ class TestRenameDoc(IntegrationTestCase):
 				doctype=self.test_doctype,
 			)
 
-	def test_doc_rename_method(self):
+	def test_doc_rename_method(self) -> None:
 		name = choice(self.available_documents)
 		new_name = f"{name}-{frappe.generate_hash(length=4)}"
 		doc = frappe.get_doc(self.test_doctype, name)
@@ -254,7 +254,7 @@ class TestRenameDoc(IntegrationTestCase):
 		self.available_documents.append(new_name)
 		self.available_documents.remove(name)
 
-	def test_parenttype(self):
+	def test_parenttype(self) -> None:
 		child = new_doctype(istable=1).insert()
 		table_field = {
 			"label": "Test Table",

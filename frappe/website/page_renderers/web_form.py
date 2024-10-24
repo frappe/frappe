@@ -4,7 +4,7 @@ from frappe.website.router import get_page_info_from_web_form
 
 
 class WebFormPage(DocumentPage):
-	def can_render(self):
+	def can_render(self) -> bool:
 		web_form = get_page_info_from_web_form(self.path)
 		if web_form:
 			self.doctype = "Web Form"
@@ -14,7 +14,7 @@ class WebFormPage(DocumentPage):
 		else:
 			return False
 
-	def set_headers(self):
+	def set_headers(self) -> None:
 		doc = frappe.get_cached_doc(self.doctype, self.docname)
 		allowed_embedding_domains = doc.allowed_embedding_domains
 		if allowed_embedding_domains:

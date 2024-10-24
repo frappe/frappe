@@ -16,11 +16,11 @@ class UnitTestAuditTrail(UnitTestCase):
 
 
 class TestAuditTrail(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		self.child_doctype = create_custom_child_doctype()
 		self.custom_doctype = create_custom_doctype()
 
-	def test_compare_changed_fields(self):
+	def test_compare_changed_fields(self) -> None:
 		doc = frappe.new_doc("Test Custom Doctype for Doc Comparator")
 		doc.test_field = "first value"
 		doc.submit()
@@ -39,7 +39,7 @@ class TestAuditTrail(IntegrationTestCase):
 		test_field_values = results["changed"]["Field"]
 		self.check_expected_values(test_field_values, ["first value", "second value", "third value"])
 
-	def test_compare_rows(self):
+	def test_compare_rows(self) -> None:
 		doc = frappe.new_doc("Test Custom Doctype for Doc Comparator")
 		doc.append("child_table_field", {"test_table_field": "old row 1 value"})
 		doc.submit()
@@ -56,24 +56,24 @@ class TestAuditTrail(IntegrationTestCase):
 		self.check_rows_updated(results.row_changed)
 		self.check_rows_added(results.added[amended_doc.name])
 
-	def check_rows_updated(self, row_changed):
+	def check_rows_updated(self, row_changed) -> None:
 		self.assertIn("Child Table Field", row_changed)
 		self.assertIn(0, row_changed["Child Table Field"])
 		self.assertIn("Table Field", row_changed["Child Table Field"][0])
 		table_field_values = row_changed["Child Table Field"][0]["Table Field"]
 		self.check_expected_values(table_field_values, ["old row 1 value", "new row 1 value"])
 
-	def check_rows_added(self, rows_added):
+	def check_rows_added(self, rows_added) -> None:
 		self.assertIn("Child Table Field", rows_added)
 		child_table = rows_added["Child Table Field"]
 		self.assertIn("Table Field", child_table[0])
 		self.check_expected_values(child_table[0]["Table Field"], "row 2 value")
 
-	def check_expected_values(self, values_to_check, expected_values):
+	def check_expected_values(self, values_to_check, expected_values) -> None:
 		for i in range(len(values_to_check)):
 			self.assertEqual(values_to_check[i], expected_values[i])
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		self.child_doctype.delete()
 		self.custom_doctype.delete()
 

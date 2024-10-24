@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.reload_doc("core", "doctype", "doctype_link")
 	frappe.reload_doc("core", "doctype", "doctype_action")
 	frappe.reload_doc("core", "doctype", "doctype")

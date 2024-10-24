@@ -38,7 +38,7 @@ class PermissionInspector(Document):
 	# end: auto-generated types
 
 	@frappe.whitelist()
-	def debug(self):
+	def debug(self) -> None:
 		if not (self.ref_doctype and self.user):
 			return
 
@@ -50,26 +50,26 @@ class PermissionInspector(Document):
 		self.output += "\n\n" + f"Ouput of has_permission: {result}"
 
 	# None of these apply, overriden for sanity.
-	def load_from_db(self):
+	def load_from_db(self) -> None:
 		super(Document, self).__init__({"modified": None, "permission_type": "read"})
 
-	def db_insert(self, *args, **kwargs):
+	def db_insert(self, *args, **kwargs) -> None:
 		...
 
-	def db_update(self):
-		...
-
-	@staticmethod
-	def get_list():
+	def db_update(self) -> None:
 		...
 
 	@staticmethod
-	def get_count():
+	def get_list() -> None:
 		...
 
 	@staticmethod
-	def get_stats():
+	def get_count() -> None:
 		...
 
-	def delete(self):
+	@staticmethod
+	def get_stats() -> None:
+		...
+
+	def delete(self) -> None:
 		...

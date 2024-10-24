@@ -24,5 +24,5 @@ class Milestone(Document):
 	pass
 
 
-def on_doctype_update():
+def on_doctype_update() -> None:
 	frappe.db.add_index("Milestone", ["reference_type", "reference_name"])

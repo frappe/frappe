@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	doctype = "Integration Request"
 
 	if not frappe.db.has_column(doctype, "integration_type"):

@@ -112,7 +112,7 @@ def get_lang_code(lang: str) -> str | None:
 	)
 
 
-def set_default_language(lang):
+def set_default_language(lang) -> None:
 	"""Set Global default language"""
 	if frappe.db.get_default("lang") != lang:
 		frappe.db.set_default("lang", lang)
@@ -232,7 +232,7 @@ def get_user_translations(lang):
 	return frappe.cache.hget(USER_TRANSLATION_KEY, lang, generator=_read_from_db)
 
 
-def clear_cache():
+def clear_cache() -> None:
 	"""Clear all translation assets from :meth:`frappe.cache`"""
 	frappe.cache.delete_value(
 		keys=["bootinfo", USER_TRANSLATION_KEY, MERGED_TRANSLATION_KEY],
@@ -668,7 +668,7 @@ def read_csv_file(path):
 	return newdata
 
 
-def write_csv_file(path, app_messages, lang_dict):
+def write_csv_file(path, app_messages, lang_dict) -> None:
 	"""Write translation CSV file.
 
 	:param path: File path, usually `[app]/translations`.
@@ -698,7 +698,7 @@ def write_csv_file(path, app_messages, lang_dict):
 				w.writerow([message, translated_string, context])
 
 
-def get_untranslated(lang, untranslated_file, get_all=False, app="_ALL_APPS"):
+def get_untranslated(lang, untranslated_file, get_all=False, app="_ALL_APPS") -> None:
 	"""Return all untranslated strings for a language and write in a file.
 
 	:param lang: Language code.
@@ -745,7 +745,7 @@ def get_untranslated(lang, untranslated_file, get_all=False, app="_ALL_APPS"):
 			print("all translated!")
 
 
-def update_translations(lang, untranslated_file, translated_file, app="_ALL_APPS"):
+def update_translations(lang, untranslated_file, translated_file, app="_ALL_APPS") -> None:
 	"""Update translations from a source and target file for a given language.
 
 	:param lang: Language code (e.g. `en`).
@@ -786,7 +786,7 @@ def update_translations(lang, untranslated_file, translated_file, app="_ALL_APPS
 		write_translations_file(app_name, lang, full_dict)
 
 
-def import_translations(lang, path):
+def import_translations(lang, path) -> None:
 	"""Import translations from file in standard format"""
 	clear_cache()
 	full_dict = get_all_translations(lang)
@@ -796,7 +796,7 @@ def import_translations(lang, path):
 		write_translations_file(app, lang, full_dict)
 
 
-def migrate_translations(source_app, target_app):
+def migrate_translations(source_app, target_app) -> None:
 	"""Migrate target-app-specific translations from source-app to target-app"""
 	strings_in_source_app = [m[1] for m in frappe.translate.get_messages_for_app(source_app)]
 	strings_in_target_app = [m[1] for m in frappe.translate.get_messages_for_app(target_app)]
@@ -839,14 +839,14 @@ def migrate_translations(source_app, target_app):
 		os.rename(temp_csv, source_csv)
 
 
-def rebuild_all_translation_files():
+def rebuild_all_translation_files() -> None:
 	"""Rebuild all translation files: `[app]/translations/[lang].csv`."""
 	for lang in get_all_languages():
 		for app in frappe.get_all_apps():
 			write_translations_file(app, lang)
 
 
-def write_translations_file(app, lang, full_dict=None, app_messages=None):
+def write_translations_file(app, lang, full_dict=None, app_messages=None) -> None:
 	"""Write a translation file for a given language.
 
 	:param app: `app` for which translations are to be written.
@@ -865,7 +865,7 @@ def write_translations_file(app, lang, full_dict=None, app_messages=None):
 	write_csv_file(os.path.join(tpath, lang + ".csv"), app_messages, full_dict or get_all_translations(lang))
 
 
-def send_translations(translation_dict):
+def send_translations(translation_dict) -> None:
 	"""Append translated dict in `frappe.local.response`"""
 	if "__messages" not in frappe.local.response:
 		frappe.local.response["__messages"] = {}

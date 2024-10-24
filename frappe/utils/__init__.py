@@ -363,7 +363,7 @@ def _get_traceback_sanitizer():
 	)
 
 
-def log(event, details):
+def log(event, details) -> None:
 	frappe.logger(event).info(details)
 
 
@@ -522,7 +522,7 @@ def get_bench_id():
 	return frappe.get_conf().get("bench_id", get_bench_path().strip("/").replace("/", "-"))
 
 
-def get_site_id(site=None):
+def get_site_id(site=None) -> str:
 	return f"{site or frappe.local.site}@{get_bench_id()}"
 
 
@@ -610,7 +610,7 @@ def is_cli() -> bool:
 	return invoked_from_terminal
 
 
-def update_progress_bar(txt, i, l, absolute=False):
+def update_progress_bar(txt, i, l, absolute=False) -> None:
 	if os.environ.get("CI"):
 		if i == 0:
 			sys.stdout.write(txt)
@@ -655,7 +655,7 @@ def get_html_format(print_path):
 	return html_format
 
 
-def is_markdown(text):
+def is_markdown(text) -> bool:
 	if "<!-- markdown -->" in text:
 		return True
 	elif "<!-- html -->" in text:
@@ -910,7 +910,7 @@ def create_batch(iterable: Iterable, size: int) -> Generator[Iterable, None, Non
 		yield iterable[i : min(i + size, total_count)]
 
 
-def set_request(**kwargs):
+def set_request(**kwargs) -> None:
 	from werkzeug.test import EnvironBuilder
 	from werkzeug.wrappers import Request
 
@@ -1138,11 +1138,11 @@ class CallbackManager:
 	def __call__(self, func: Callable) -> None:
 		self.add(func)
 
-	def run(self):
+	def run(self) -> None:
 		"""Run all functions in queue"""
 		while self._functions:
 			_func = self._functions.popleft()
 			_func()
 
-	def reset(self):
+	def reset(self) -> None:
 		self._functions.clear()

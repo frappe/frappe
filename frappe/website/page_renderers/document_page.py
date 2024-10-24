@@ -10,7 +10,7 @@ from frappe.website.utils import cache_html
 
 
 class DocumentPage(BaseTemplatePage):
-	def can_render(self):
+	def can_render(self) -> bool:
 		"""
 		Find a document with matching `route` from all doctypes with `has_web_view`=1
 		"""
@@ -28,7 +28,7 @@ class DocumentPage(BaseTemplatePage):
 			doc = frappe.get_cached_doc(self.doctype, self.docname)
 			return doc.meta.allow_guest_to_view or doc.has_permission() or frappe.has_website_permission(doc)
 
-	def search_web_page_dynamic_routes(self):
+	def search_web_page_dynamic_routes(self) -> bool:
 		d = get_page_info_from_web_page_with_dynamic_routes(self.path)
 		if d:
 			self.doctype = d.doctype
@@ -51,7 +51,7 @@ class DocumentPage(BaseTemplatePage):
 		self.post_process_context()
 		return frappe.get_template(self.template_path).render(self.context)
 
-	def update_context(self):
+	def update_context(self) -> None:
 		self.context.doc = self.doc
 		self.context.update(self.context.doc.as_dict())
 		self.context.update(self.context.doc.get_page_info())

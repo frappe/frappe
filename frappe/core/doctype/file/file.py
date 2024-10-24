@@ -64,7 +64,7 @@ class File(Document):
 
 	no_feed_on_delete = True
 
-	def __init__(self, *args, **kwargs):
+	def __init__(self, *args, **kwargs) -> None:
 		super().__init__(*args, **kwargs)
 		# if content is set, file_url will be generated
 		# decode comes in the picture if content passed has to be decoded before writing to disk
@@ -78,7 +78,7 @@ class File(Document):
 			return self.file_url.startswith(URL_PREFIXES)
 		return not self.content
 
-	def autoname(self):
+	def autoname(self) -> None:
 		"""Set name for folder"""
 		if self.is_folder:
 			if self.folder:
@@ -89,7 +89,7 @@ class File(Document):
 		else:
 			self.name = frappe.generate_hash(length=10)
 
-	def before_insert(self):
+	def before_insert(self) -> None:
 		# Ensure correct formatting and type
 		self.file_url = unquote(self.file_url) if self.file_url else ""
 
@@ -112,11 +112,11 @@ class File(Document):
 
 		self.validate_duplicate_entry()  # Hash is generated in save_file
 
-	def after_insert(self):
+	def after_insert(self) -> None:
 		if not self.is_folder:
 			self.create_attachment_record()
 
-	def validate(self):
+	def validate(self) -> None:
 		if self.is_folder:
 			return
 
@@ -133,7 +133,7 @@ class File(Document):
 
 		self.file_size = frappe.form_dict.file_size or self.file_size
 
-	def validate_attachment_references(self):
+	def validate_attachment_references(self) -> None:
 		if not self.attached_to_doctype:
 			return
 
@@ -143,11 +143,11 @@ class File(Document):
 		if self.attached_to_field and SPECIAL_CHAR_PATTERN.search(self.attached_to_field):
 			frappe.throw(_("The fieldname you've specified in Attached To Field is invalid"))
 
-	def after_rename(self, *args, **kwargs):
+	def after_rename(self, *args, **kwargs) -> None:
 		for successor in self.get_successors():
 			setup_folder_path(successor, self.name)
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		if self.is_home_folder or self.is_attachments_folder:
 			frappe.throw(_("Cannot delete Home and Attachments folders"))
 		self.validate_empty_folder()
@@ -155,10 +155,10 @@ class File(Document):
 		if not self.is_folder:
 			self.add_comment_in_reference_doc("Attachment Removed", _("Removed {0}").format(self.file_name))
 
-	def on_rollback(self):
+	def on_rollback(self) -> None:
 		rollback_flags = ("new_file", "original_content", "original_path")
 
-		def pop_rollback_flags():
+		def pop_rollback_flags() -> None:
 			for flag in rollback_flags:
 				self.flags.pop(flag, None)
 
@@ -196,7 +196,7 @@ class File(Document):
 	def get_successors(self):
 		return frappe.get_all("File", filters={"folder": self.name}, pluck="name")
 
-	def validate_file_path(self):
+	def validate_file_path(self) -> None:
 		if self.is_remote_file:
 			return
 
@@ -207,7 +207,7 @@ class File(Document):
 				title=_("Invalid File URL"),
 			)
 
-	def validate_file_url(self):
+	def validate_file_url(self) -> None:
 		if self.is_remote_file or not self.file_url:
 			return
 
@@ -218,7 +218,7 @@ class File(Document):
 				title=_("Invalid URL"),
 			)
 
-	def handle_is_private_changed(self):
+	def handle_is_private_changed(self) -> None:
 		if self.is_remote_file:
 			return
 
@@ -285,7 +285,7 @@ class File(Document):
 				self.file_url,
 			)
 
-	def fetch_attached_to_field(self, old_file_url):
+	def fetch_attached_to_field(self, old_file_url) -> bool:
 		if self.attached_to_field:
 			return True
 
@@ -296,7 +296,7 @@ class File(Document):
 				self.attached_to_field = key
 				return True
 
-	def validate_attachment_limit(self):
+	def validate_attachment_limit(self) -> None:
 		attachment_limit = 0
 		if self.attached_to_doctype and self.attached_to_name:
 			attachment_limit = cint(frappe.get_meta(self.attached_to_doctype).max_attachments)
@@ -322,13 +322,13 @@ class File(Document):
 					title=_("Attachment Limit Reached"),
 				)
 
-	def validate_remote_file(self):
+	def validate_remote_file(self) -> None:
 		"""Validates if file uploaded using URL already exist"""
 		site_url = get_url()
 		if self.file_url and "/files/" in self.file_url and self.file_url.startswith(site_url):
 			self.file_url = self.file_url.split(site_url, 1)[1]
 
-	def set_folder_name(self):
+	def set_folder_name(self) -> None:
 		"""Make parent folders if not exists based on reference doctype and name"""
 		if self.folder:
 			return
@@ -339,7 +339,7 @@ class File(Document):
 		elif not self.is_home_folder:
 			self.folder = "Home"
 
-	def set_file_type(self):
+	def set_file_type(self) -> None:
 		if self.is_folder:
 			return
 
@@ -350,7 +350,7 @@ class File(Document):
 		file_extension = mimetypes.guess_extension(file_type)
 		self.file_type = file_extension.lstrip(".").upper() if file_extension else None
 
-	def validate_file_on_disk(self):
+	def validate_file_on_disk(self) -> bool:
 		"""Validates existence file"""
 		full_path = self.get_full_path()
 
@@ -360,7 +360,7 @@ class File(Document):
 		if not os.path.exists(full_path):
 			frappe.throw(_("File {0} does not exist").format(self.file_url), IOError)
 
-	def validate_file_extension(self):
+	def validate_file_extension(self) -> None:
 		# Only validate uploaded files, not generated by code/integrations.
 		if not self.file_type or not frappe.request:
 			return
@@ -372,7 +372,7 @@ class File(Document):
 		if self.file_type not in allowed_extensions.splitlines():
 			frappe.throw(_("File type of {0} is not allowed").format(self.file_type), exc=FileTypeNotAllowed)
 
-	def validate_duplicate_entry(self):
+	def validate_duplicate_entry(self) -> None:
 		if not self.flags.ignore_duplicate_entry_error and not self.is_folder:
 			if not self.content_hash:
 				self.generate_content_hash()
@@ -399,7 +399,7 @@ class File(Document):
 					# just use the url, to avoid uploading a duplicate
 					self.file_url = duplicate_file.file_url
 
-	def set_file_name(self):
+	def set_file_name(self) -> None:
 		if not self.file_name and not self.file_url:
 			frappe.throw(
 				_("Fields `file_name` or `file_url` must be set for File"), exc=frappe.MandatoryError
@@ -409,7 +409,7 @@ class File(Document):
 		else:
 			self.file_name = re.sub(r"/", "", self.file_name)
 
-	def generate_content_hash(self):
+	def generate_content_hash(self) -> None:
 		if self.content_hash or not self.file_url or self.is_remote_file:
 			return
 		file_name = self.file_url.split("/")[-1]
@@ -461,12 +461,12 @@ class File(Document):
 
 		return thumbnail_url
 
-	def validate_empty_folder(self):
+	def validate_empty_folder(self) -> None:
 		"""Throw exception if folder is not empty"""
 		if self.is_folder and frappe.get_all("File", filters={"folder": self.name}, limit=1):
 			frappe.throw(_("Folder {0} is not empty").format(self.name), FolderNotEmpty)
 
-	def _delete_file_on_disk(self):
+	def _delete_file_on_disk(self) -> None:
 		"""If file not attached to any other record, delete it"""
 		on_disk_file_not_shared = self.content_hash and not frappe.get_all(
 			"File",
@@ -699,14 +699,14 @@ class File(Document):
 
 		return file_size
 
-	def delete_file_data_content(self, only_thumbnail=False):
+	def delete_file_data_content(self, only_thumbnail=False) -> None:
 		method = get_hook_method("delete_file_data_content")
 		if method:
 			method(self, only_thumbnail=only_thumbnail)
 		else:
 			self.delete_file_from_filesystem(only_thumbnail=only_thumbnail)
 
-	def delete_file_from_filesystem(self, only_thumbnail=False):
+	def delete_file_from_filesystem(self, only_thumbnail=False) -> None:
 		"""Delete file, thumbnail from File document"""
 		if only_thumbnail:
 			delete_file(self.thumbnail_url)
@@ -721,7 +721,7 @@ class File(Document):
 		"""Split and return filename and extension for the set `file_name`."""
 		return os.path.splitext(self.file_name)
 
-	def create_attachment_record(self):
+	def create_attachment_record(self) -> None:
 		icon = ' <i class="fa fa-lock text-warning"></i>' if self.is_private else ""
 		file_url = quote(frappe.safe_encode(self.file_url), safe="/:") if self.file_url else self.file_name
 		file_name = self.file_name or self.file_url
@@ -731,7 +731,7 @@ class File(Document):
 			_("Added {0}").format(f"<a href='{file_url}' target='_blank'>{file_name}</a>{icon}"),
 		)
 
-	def add_comment_in_reference_doc(self, comment_type, text):
+	def add_comment_in_reference_doc(self, comment_type, text) -> None:
 		if self.attached_to_doctype and self.attached_to_name:
 			try:
 				doc = frappe.get_doc(self.attached_to_doctype, self.attached_to_name)
@@ -739,7 +739,7 @@ class File(Document):
 			except frappe.DoesNotExistError:
 				frappe.clear_messages()
 
-	def set_is_private(self):
+	def set_is_private(self) -> None:
 		if self.file_url:
 			self.is_private = cint(self.file_url.startswith("/private"))
 
@@ -795,7 +795,7 @@ class File(Document):
 		return zip_file.getvalue()
 
 
-def on_doctype_update():
+def on_doctype_update() -> None:
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
 
 

@@ -23,7 +23,7 @@ class WebsiteSearch(FullTextSearch):
 	def get_fields_to_search(self):
 		return ["title", "content"]
 
-	def get_id(self):
+	def get_id(self) -> str:
 		return "path"
 
 	def get_items_to_index(self):

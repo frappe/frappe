@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	# remove all example.com email user accounts from notifications
 	frappe.db.sql(
 		"""UPDATE `tabUser`

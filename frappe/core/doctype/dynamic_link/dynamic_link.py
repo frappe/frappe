@@ -25,11 +25,11 @@ class DynamicLink(Document):
 	pass
 
 
-def on_doctype_update():
+def on_doctype_update() -> None:
 	frappe.db.add_index("Dynamic Link", ["link_doctype", "link_name"])
 
 
-def deduplicate_dynamic_links(doc):
+def deduplicate_dynamic_links(doc) -> None:
 	links, duplicate = [], False
 	for l in doc.links or []:
 		t = (l.link_doctype, l.link_name)

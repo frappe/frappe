@@ -4,7 +4,7 @@ import frappe
 # The patch only checks for indexes with UNIQUE constraints
 
 
-def execute():
+def execute() -> None:
 	if frappe.db.db_type != "mariadb":
 		return
 

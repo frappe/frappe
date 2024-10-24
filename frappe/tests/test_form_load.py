@@ -11,7 +11,7 @@ EXTRA_TEST_RECORD_DEPENDENCIES = ["Blog Category", "Blogger"]
 
 
 class TestFormLoad(IntegrationTestCase):
-	def test_load(self):
+	def test_load(self) -> None:
 		getdoctype("DocType")
 		meta = next(filter(lambda d: d.name == "DocType", frappe.response.docs))
 		self.assertEqual(meta.name, "DocType")
@@ -22,7 +22,7 @@ class TestFormLoad(IntegrationTestCase):
 		meta = next(filter(lambda d: d.name == "Event", frappe.response.docs))
 		self.assertTrue(meta.get("__calendar_js"))
 
-	def test_fieldlevel_permissions_in_load(self):
+	def test_fieldlevel_permissions_in_load(self) -> None:
 		blog = frappe.get_doc(
 			{
 				"doctype": "Blog Post",
@@ -104,7 +104,7 @@ class TestFormLoad(IntegrationTestCase):
 		blog_doc.delete()
 		frappe.delete_doc(blog_post_property_setter.doctype, blog_post_property_setter.name)
 
-	def test_fieldlevel_permissions_in_load_for_child_table(self):
+	def test_fieldlevel_permissions_in_load_for_child_table(self) -> None:
 		contact = frappe.new_doc("Contact")
 		contact.first_name = "_Test Contact 1"
 		contact.append("phone_nos", {"phone": "123456"})
@@ -148,7 +148,7 @@ class TestFormLoad(IntegrationTestCase):
 
 		contact.delete()
 
-	def test_get_doc_info(self):
+	def test_get_doc_info(self) -> None:
 		note = frappe.new_doc("Note")
 		note.content = "some content"
 		note.title = frappe.generate_hash(length=20)

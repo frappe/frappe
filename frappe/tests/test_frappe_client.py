@@ -16,7 +16,7 @@ from frappe.utils.data import get_url
 class TestFrappeClient(IntegrationTestCase):
 	PASSWORD = frappe.conf.admin_password or "admin"
 
-	def test_insert_many(self):
+	def test_insert_many(self) -> None:
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		server.insert_many(
 			[
@@ -36,7 +36,7 @@ class TestFrappeClient(IntegrationTestCase):
 		self.assertIn("of", records)
 		self.assertIn("sixpence", records)
 
-	def test_create_doc(self):
+	def test_create_doc(self) -> None:
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		response = server.insert({"doctype": "Note", "title": "test_create"})
 
@@ -46,13 +46,13 @@ class TestFrappeClient(IntegrationTestCase):
 		self.assertEqual(response.get("doctype"), "Note")
 		self.assertEqual(response.get("title"), "test_create")
 
-	def test_list_docs(self):
+	def test_list_docs(self) -> None:
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		doc_list = server.get_list("Note")
 
 		self.assertTrue(len(doc_list))
 
-	def test_get_doc(self):
+	def test_get_doc(self) -> None:
 		USER = "Administrator"
 		TITLE = "get_this"
 		DOCTYPE = "Note"
@@ -69,21 +69,21 @@ class TestFrappeClient(IntegrationTestCase):
 		self.assertEqual(doc.get("title"), TITLE)
 		self.assertEqual(doc.get("owner"), USER)
 
-	def test_get_value_by_filters(self):
+	def test_get_value_by_filters(self) -> None:
 		CONTENT = "test get value"
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		server.insert({"doctype": "Note", "title": "get_value", "content": CONTENT}).get("name")
 
 		self.assertEqual(server.get_value("Note", "content", {"title": "get_value"}).get("content"), CONTENT)
 
-	def test_get_value_by_name(self):
+	def test_get_value_by_name(self) -> None:
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		CONTENT = "test get value"
 		NAME = server.insert({"doctype": "Note", "title": "get_value", "content": CONTENT}).get("name")
 
 		self.assertEqual(server.get_value("Note", "content", NAME).get("content"), CONTENT)
 
-	def test_get_value_with_malicious_query(self):
+	def test_get_value_with_malicious_query(self) -> None:
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		server.insert({"doctype": "Note", "title": "get_value"})
 
@@ -95,7 +95,7 @@ class TestFrappeClient(IntegrationTestCase):
 			{"title": "get_value"},
 		)
 
-	def test_get_single(self):
+	def test_get_single(self) -> None:
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		server.set_value("Website Settings", "Website Settings", "title_prefix", "test-prefix")
 		self.assertEqual(
@@ -107,7 +107,7 @@ class TestFrappeClient(IntegrationTestCase):
 		)
 		frappe.db.set_single_value("Website Settings", "title_prefix", "")
 
-	def test_update_doc(self):
+	def test_update_doc(self) -> None:
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		resp = server.insert({"doctype": "Note", "title": "Sing"})
 		doc = server.get_doc("Note", resp.get("name"))
@@ -117,7 +117,7 @@ class TestFrappeClient(IntegrationTestCase):
 		doc = server.update(doc)
 		self.assertTrue(doc["content"] == CONTENT)
 
-	def test_update_child_doc(self):
+	def test_update_child_doc(self) -> None:
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		frappe.db.delete("Contact", {"first_name": "George", "last_name": "Steevens"})
 		frappe.db.delete("Contact", {"first_name": "William", "last_name": "Shakespeare"})
@@ -159,13 +159,13 @@ class TestFrappeClient(IntegrationTestCase):
 		# create a Communication record with the new contact
 		self.assertTrue(frappe.db.exists("Communication Link", {"link_name": "William Shakespeare"}))
 
-	def test_delete_doc(self):
+	def test_delete_doc(self) -> None:
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		NAME_TO_DELETE = server.insert({"doctype": "Note", "title": "Sing"}).get("name")
 		server.delete("Note", NAME_TO_DELETE)
 		self.assertFalse(frappe.db.get_value("Note", NAME_TO_DELETE))
 
-	def test_auth_via_api_key_secret(self):
+	def test_auth_via_api_key_secret(self) -> None:
 		# generate API key and API secret for administrator
 		keys = generate_keys("Administrator")
 		frappe.db.commit()

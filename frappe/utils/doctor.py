@@ -96,7 +96,7 @@ def get_running_tasks():
 		return worker.get_current_job()
 
 
-def doctor(site=None):
+def doctor(site=None) -> bool:
 	"""
 	Prints diagnostic information for the scheduler
 	"""
@@ -143,7 +143,7 @@ def doctor(site=None):
 	return True
 
 
-def pending_jobs(site=None):
+def pending_jobs(site=None) -> None:
 	print("-----Pending Jobs-----")
 	pending_jobs = get_pending_jobs(site)
 	for queue in get_queue_list():

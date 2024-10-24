@@ -8,7 +8,7 @@ import frappe
 
 
 class GROUP_CONCAT(DistinctOptionFunction):
-	def __init__(self, column: str, alias: str | None = None):
+	def __init__(self, column: str, alias: str | None = None) -> None:
 		"""[ Implements the group concat function read more about it at https://www.geeksforgeeks.org/mysql-group_concat-function ]
 		Args:
 		        column (str): [ name of the column you want to concat]
@@ -18,7 +18,7 @@ class GROUP_CONCAT(DistinctOptionFunction):
 
 
 class STRING_AGG(DistinctOptionFunction):
-	def __init__(self, column: str, separator: str = ",", alias: str | None = None):
+	def __init__(self, column: str, separator: str = ",", alias: str | None = None) -> None:
 		"""[ Implements the group concat function read more about it at https://docs.microsoft.com/en-us/sql/t-sql/functions/string-agg-transact-sql?view=sql-server-ver15 ]
 
 		Args:
@@ -30,7 +30,7 @@ class STRING_AGG(DistinctOptionFunction):
 
 
 class MATCH(DistinctOptionFunction):
-	def __init__(self, column: str, *args, **kwargs):
+	def __init__(self, column: str, *args, **kwargs) -> None:
 		"""[ Implementation of Match Against read more about it https://dev.mysql.com/doc/refman/8.0/en/fulltext-search.html#function_match ]
 
 		Args:
@@ -40,7 +40,7 @@ class MATCH(DistinctOptionFunction):
 		super().__init__(" MATCH", column, *args, alias=alias)
 		self._Against = False
 
-	def get_function_sql(self, **kwargs):
+	def get_function_sql(self, **kwargs) -> str:
 		s = super(DistinctOptionFunction, self).get_function_sql(**kwargs)
 
 		if self._Against:
@@ -48,7 +48,7 @@ class MATCH(DistinctOptionFunction):
 		raise Exception("Chain the `Against()` method with match to complete the query")
 
 	@builder
-	def Against(self, text: str):
+	def Against(self, text: str) -> None:
 		"""[ Text that has to be searched against ]
 
 		Args:
@@ -58,7 +58,7 @@ class MATCH(DistinctOptionFunction):
 
 
 class TO_TSVECTOR(DistinctOptionFunction):
-	def __init__(self, column: str, *args, **kwargs):
+	def __init__(self, column: str, *args, **kwargs) -> None:
 		"""[ Implementation of TO_TSVECTOR read more about it https://www.postgresql.org/docs/9.1/textsearch-controls.html]
 
 		Args:
@@ -75,7 +75,7 @@ class TO_TSVECTOR(DistinctOptionFunction):
 		return s
 
 	@builder
-	def Against(self, text: str):
+	def Against(self, text: str) -> None:
 		"""[ Text that has to be searched against ]
 
 		Args:

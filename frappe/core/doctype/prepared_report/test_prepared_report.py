@@ -22,14 +22,14 @@ class UnitTestPreparedReport(UnitTestCase):
 
 class TestPreparedReport(IntegrationTestCase):
 	@classmethod
-	def tearDownClass(cls):
+	def tearDownClass(cls) -> None:
 		for r in frappe.get_all("Prepared Report", pluck="name"):
 			frappe.delete_doc("Prepared Report", r, force=True, delete_permanently=True)
 
 		frappe.db.commit()
 
 	@timeout(seconds=20)
-	def wait_for_status(self, report, status):
+	def wait_for_status(self, report, status) -> None:
 		frappe.db.commit()  # Flush changes first
 		while True:
 			frappe.db.rollback()  # read new data
@@ -51,7 +51,7 @@ class TestPreparedReport(IntegrationTestCase):
 
 		return doc
 
-	def test_queueing(self):
+	def test_queueing(self) -> None:
 		doc = self.create_prepared_report()
 		self.assertEqual("Queued", doc.status)
 		self.assertTrue(doc.queued_at)
@@ -62,7 +62,7 @@ class TestPreparedReport(IntegrationTestCase):
 		self.assertTrue(doc.job_id)
 		self.assertTrue(doc.report_end_time)
 
-	def test_prepared_data(self):
+	def test_prepared_data(self) -> None:
 		doc = self.create_prepared_report()
 		self.wait_for_status(doc, "Completed")
 
@@ -73,7 +73,7 @@ class TestPreparedReport(IntegrationTestCase):
 		self.assertEqual(len(prepared_data), len(generated_data))
 
 	@run_only_if(db_type_is.MARIADB)
-	def test_start_status_and_kill_jobs(self):
+	def test_start_status_and_kill_jobs(self) -> None:
 		with test_report(report_type="Query Report", query="select sleep(10)") as report:
 			doc = self.create_prepared_report(report.name)
 			self.wait_for_status(doc, "Started")

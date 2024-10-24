@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.db.sql(
 		"""
 		UPDATE `tabPrint Format`

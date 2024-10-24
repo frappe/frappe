@@ -30,7 +30,7 @@ def is_energy_point_enabled():
 	return frappe.db.get_single_value("Energy Point Settings", "enabled", True)
 
 
-def allocate_review_points():
+def allocate_review_points() -> None:
 	settings = frappe.get_single("Energy Point Settings")
 
 	if not can_allocate_today(settings.last_point_allocation_date, settings.point_allocation_periodicity):

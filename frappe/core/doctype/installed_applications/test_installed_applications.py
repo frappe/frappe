@@ -19,7 +19,7 @@ class UnitTestInstalledApplications(UnitTestCase):
 
 
 class TestInstalledApplications(IntegrationTestCase):
-	def test_order_change(self):
+	def test_order_change(self) -> None:
 		update_installed_apps_order(["frappe"])
 		self.assertRaises(InvalidAppOrder, update_installed_apps_order, [])
 		self.assertRaises(InvalidAppOrder, update_installed_apps_order, ["frappe", "deepmind"])

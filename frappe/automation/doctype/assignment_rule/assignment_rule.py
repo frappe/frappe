@@ -40,20 +40,20 @@ class AssignmentRule(Document):
 		users: DF.TableMultiSelect[AssignmentRuleUser]
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		self.validate_document_types()
 		self.validate_assignment_days()
 
-	def clear_cache(self):
+	def clear_cache(self) -> None:
 		super().clear_cache()
 		clear_doctype_map(self.doctype, self.document_type)
 		clear_doctype_map(self.doctype, f"due_date_rules_for_{self.document_type}")
 
-	def validate_document_types(self):
+	def validate_document_types(self) -> None:
 		if self.document_type == "ToDo":
 			frappe.throw(_("Assignment Rule is not allowed on {0} document type").format(frappe.bold("ToDo")))
 
-	def validate_assignment_days(self):
+	def validate_assignment_days(self) -> None:
 		assignment_days = self.get_assignment_days()
 		if len(set(assignment_days)) != len(assignment_days):
 			frappe.throw(
@@ -72,7 +72,7 @@ class AssignmentRule(Document):
 		if self.safe_eval("assign_condition", doc):
 			return self.do_assignment(doc)
 
-	def do_assignment(self, doc):
+	def do_assignment(self, doc) -> bool:
 		# clear existing assignment, to reassign
 		assign_to.clear(doc.get("doctype"), doc.get("name"), ignore_permissions=True)
 
@@ -197,7 +197,7 @@ def get_assignments(doc) -> list[dict]:
 
 
 @frappe.whitelist()
-def bulk_apply(doctype, docnames):
+def bulk_apply(doctype, docnames) -> None:
 	docnames = frappe.parse_json(docnames)
 	background = len(docnames) > 5
 
@@ -232,7 +232,7 @@ def reopen_closed_assignment(doc):
 	return bool(todo_list)
 
 
-def apply(doc=None, method=None, doctype=None, name=None):
+def apply(doc=None, method=None, doctype=None, name=None) -> None:
 	doctype = doctype or doc.doctype
 
 	skip_assignment_rules = (
@@ -329,7 +329,7 @@ def apply(doc=None, method=None, doctype=None, name=None):
 			assignment_rule.close_assignments(doc)
 
 
-def update_due_date(doc, state=None):
+def update_due_date(doc, state=None) -> None:
 	"""Run on_update on every Document (via hooks.py)"""
 	skip_document_update = (
 		frappe.flags.in_migrate

@@ -50,7 +50,7 @@ non_nullable_types = {
 
 
 class TypeExporter:
-	def __init__(self, doc):
+	def __init__(self, doc) -> None:
 		from frappe.model.base_document import get_controller
 
 		self.doc = doc
@@ -61,12 +61,12 @@ class TypeExporter:
 		self.indent = "\t"
 		self.controller_path = Path(inspect.getfile(get_controller(self.doctype)))
 
-	def export_types(self):
+	def export_types(self) -> None:
 		self._guess_indentation()
 		new_code = self._generate_code()
 		self._replace_or_add_code(new_code)
 
-	def _replace_or_add_code(self, new_code: str):
+	def _replace_or_add_code(self, new_code: str) -> None:
 		despaced_name = self.doctype.replace(" ", "")
 
 		class_definition = f"class {despaced_name}("  # )

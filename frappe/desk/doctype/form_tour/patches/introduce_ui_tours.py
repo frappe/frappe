@@ -3,7 +3,7 @@ import json
 import frappe
 
 
-def execute():
+def execute() -> None:
 	"""Handle introduction of UI tours"""
 	completed = {}
 	for tour in frappe.get_all("Form Tour", {"ui_tour": 1}, pluck="name"):

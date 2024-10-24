@@ -5,7 +5,7 @@ from frappe.www.printview import get_html_and_style
 
 
 class PrintViewTest(IntegrationTestCase):
-	def test_print_view_without_errors(self):
+	def test_print_view_without_errors(self) -> None:
 		user = frappe.get_last_doc("User")
 
 		messages_before = frappe.get_message_log()
@@ -19,7 +19,7 @@ class PrintViewTest(IntegrationTestCase):
 		# html should exist
 		self.assertTrue(bool(ret["html"]))
 
-	def test_print_error(self):
+	def test_print_error(self) -> None:
 		"""Print failures shouldn't generate PDF with failure message but instead escalate the error"""
 		doctype = new_doctype(is_submittable=1).insert()
 

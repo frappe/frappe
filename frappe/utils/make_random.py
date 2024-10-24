@@ -13,7 +13,7 @@ settings = frappe._dict(
 )
 
 
-def add_random_children(doc: "Document", fieldname: str, rows, randomize: dict, unique=None):
+def add_random_children(doc: "Document", fieldname: str, rows, randomize: dict, unique=None) -> None:
 	nrows = rows
 	if rows > 1:
 		nrows = random.randrange(1, rows)

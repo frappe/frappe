@@ -27,21 +27,21 @@ def run_only_if(dbtype: db_type_is) -> Callable:
 
 @run_only_if(db_type_is.MARIADB)
 class TestCustomFunctionsMariaDB(IntegrationTestCase):
-	def test_concat(self):
+	def test_concat(self) -> None:
 		self.assertEqual("GROUP_CONCAT('Notes')", GroupConcat("Notes").get_sql())
 
-	def test_match(self):
+	def test_match(self) -> None:
 		query = Match("Notes")
 		with self.assertRaises(Exception):
 			query.get_sql()
 		query = query.Against("text")
 		self.assertEqual(" MATCH('Notes') AGAINST ('+text*' IN BOOLEAN MODE)", query.get_sql())
 
-	def test_constant_column(self):
+	def test_constant_column(self) -> None:
 		query = frappe.qb.from_("DocType").select("name", ConstantColumn("John").as_("User"))
 		self.assertEqual(query.get_sql(), "SELECT `name`,'John' `User` FROM `tabDocType`")
 
-	def test_timestamp(self):
+	def test_timestamp(self) -> None:
 		note = frappe.qb.DocType("Note")
 		self.assertEqual(
 			"TIMESTAMP(posting_date,posting_time)",
@@ -84,7 +84,7 @@ class TestCustomFunctionsMariaDB(IntegrationTestCase):
 			str(select_query).lower(),
 		)
 
-	def test_unix_ts_mariadb(self):
+	def test_unix_ts_mariadb(self) -> None:
 		# Simple Query
 		note = frappe.qb.DocType("Note")
 		self.assertEqual(
@@ -123,7 +123,7 @@ class TestCustomFunctionsMariaDB(IntegrationTestCase):
 			str(select_query).lower(),
 		)
 
-	def test_time(self):
+	def test_time(self) -> None:
 		note = frappe.qb.DocType("Note")
 		self.assertEqual(
 			"TIMESTAMP('2021-01-01','00:00:21')", CombineDatetime("2021-01-01", time(0, 0, 21)).get_sql()
@@ -141,7 +141,7 @@ class TestCustomFunctionsMariaDB(IntegrationTestCase):
 			str(select_query).lower(),
 		)
 
-	def test_cast(self):
+	def test_cast(self) -> None:
 		note = frappe.qb.DocType("Note")
 		self.assertEqual("CONCAT(name,'')", Cast_(note.name, "varchar").get_sql())
 		self.assertEqual("CAST(name AS INTEGER)", Cast_(note.name, "integer").get_sql())
@@ -150,7 +150,7 @@ class TestCustomFunctionsMariaDB(IntegrationTestCase):
 			"SELECT `tabred`.`other`,CONCAT(`tabNote`.`name`,'') FROM `tabred`,`tabNote`",
 		)
 
-	def test_round(self):
+	def test_round(self) -> None:
 		note = frappe.qb.DocType("Note")
 
 		query = frappe.qb.from_(note).select(Round(note.price))
@@ -159,7 +159,7 @@ class TestCustomFunctionsMariaDB(IntegrationTestCase):
 		query = frappe.qb.from_(note).select(Round(note.price, 3))
 		self.assertEqual("select round(`price`,3) from `tabnote`", str(query).lower())
 
-	def test_truncate(self):
+	def test_truncate(self) -> None:
 		note = frappe.qb.DocType("Note")
 		query = frappe.qb.from_(note).select(Truncate(note.price, 3))
 		self.assertEqual("select truncate(`price`,3) from `tabnote`", str(query).lower())
@@ -167,20 +167,20 @@ class TestCustomFunctionsMariaDB(IntegrationTestCase):
 
 @run_only_if(db_type_is.POSTGRES)
 class TestCustomFunctionsPostgres(IntegrationTestCase):
-	def test_concat(self):
+	def test_concat(self) -> None:
 		self.assertEqual("STRING_AGG('Notes',',')", GroupConcat("Notes").get_sql())
 
-	def test_match(self):
+	def test_match(self) -> None:
 		query = Match("Notes")
 		self.assertEqual("TO_TSVECTOR('Notes')", query.get_sql())
 		query = Match("Notes").Against("text")
 		self.assertEqual("TO_TSVECTOR('Notes') @@ PLAINTO_TSQUERY('text')", query.get_sql())
 
-	def test_constant_column(self):
+	def test_constant_column(self) -> None:
 		query = frappe.qb.from_("DocType").select("name", ConstantColumn("John").as_("User"))
 		self.assertEqual(query.get_sql(), 'SELECT "name",\'John\' "User" FROM "tabDocType"')
 
-	def test_timestamp(self):
+	def test_timestamp(self) -> None:
 		note = frappe.qb.DocType("Note")
 		self.assertEqual(
 			"posting_date+posting_time", CombineDatetime(note.posting_date, note.posting_time).get_sql()
@@ -217,7 +217,7 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 			'"tabnote"."posting_date"+"tabnote"."posting_time" "timestamp"', str(select_query).lower()
 		)
 
-	def test_unix_ts_postgres(self):
+	def test_unix_ts_postgres(self) -> None:
 		# Simple Query
 		note = frappe.qb.DocType("Note")
 		self.assertEqual(
@@ -258,7 +258,7 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 			str(select_query).lower(),
 		)
 
-	def test_time(self):
+	def test_time(self) -> None:
 		note = frappe.qb.DocType("Note")
 
 		self.assertEqual(
@@ -278,7 +278,7 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 			str(select_query).lower(),
 		)
 
-	def test_cast(self):
+	def test_cast(self) -> None:
 		note = frappe.qb.DocType("Note")
 		self.assertEqual("CAST(name AS VARCHAR)", Cast_(note.name, "varchar").get_sql())
 		self.assertEqual("CAST(name AS INTEGER)", Cast_(note.name, "integer").get_sql())
@@ -287,7 +287,7 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 			'SELECT "tabred"."other",CAST("tabNote"."name" AS VARCHAR) FROM "tabred","tabNote"',
 		)
 
-	def test_round(self):
+	def test_round(self) -> None:
 		note = frappe.qb.DocType("Note")
 
 		query = frappe.qb.from_(note).select(Round(note.price))
@@ -296,26 +296,26 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 		query = frappe.qb.from_(note).select(Round(note.price, 3))
 		self.assertEqual('select round("price",3) from "tabnote"', str(query).lower())
 
-	def test_truncate(self):
+	def test_truncate(self) -> None:
 		note = frappe.qb.DocType("Note")
 		query = frappe.qb.from_(note).select(Truncate(note.price, 3))
 		self.assertEqual('select truncate("price",3) from "tabnote"', str(query).lower())
 
 
 class TestBuilderBase:
-	def test_adding_tabs(self):
+	def test_adding_tabs(self) -> None:
 		self.assertEqual("tabNotes", frappe.qb.DocType("Notes").get_sql())
 		self.assertEqual("__Auth", frappe.qb.DocType("__Auth").get_sql())
 		self.assertEqual("Notes", frappe.qb.Table("Notes").get_sql())
 
-	def test_run_patcher(self):
+	def test_run_patcher(self) -> None:
 		query = frappe.qb.from_("ToDo").select("*").limit(1)
 		data = query.run(as_dict=True)
 		self.assertTrue("run" in dir(query))
 		self.assertIsInstance(query.run, Callable)
 		self.assertIsInstance(data, list)
 
-	def test_agg_funcs(self):
+	def test_agg_funcs(self) -> None:
 		frappe.db.truncate("Communication")
 		sample_data = {
 			"doctype": "Communication",
@@ -336,7 +336,7 @@ class TestBuilderBase:
 
 
 class TestParameterization(IntegrationTestCase):
-	def test_where_conditions(self):
+	def test_where_conditions(self) -> None:
 		DocType = frappe.qb.DocType("DocType")
 		query = frappe.qb.from_(DocType).select(DocType.name).where(DocType.owner == "Administrator' --")
 		self.assertTrue("walk" in dir(query))
@@ -346,7 +346,7 @@ class TestParameterization(IntegrationTestCase):
 		self.assertIn("param1", params)
 		self.assertEqual(params["param1"], "Administrator' --")
 
-	def test_set_conditions(self):
+	def test_set_conditions(self) -> None:
 		DocType = frappe.qb.DocType("DocType")
 		query = frappe.qb.update(DocType).set(DocType.value, "some_value")
 
@@ -357,7 +357,7 @@ class TestParameterization(IntegrationTestCase):
 		self.assertIn("param1", params)
 		self.assertEqual(params["param1"], "some_value")
 
-	def test_where_conditions_functions(self):
+	def test_where_conditions_functions(self) -> None:
 		DocType = frappe.qb.DocType("DocType")
 		query = (
 			frappe.qb.from_(DocType).select(DocType.name).where(Coalesce(DocType.search_fields == "subject"))
@@ -370,7 +370,7 @@ class TestParameterization(IntegrationTestCase):
 		self.assertIn("param1", params)
 		self.assertEqual(params["param1"], "subject")
 
-	def test_case(self):
+	def test_case(self) -> None:
 		DocType = frappe.qb.DocType("DocType")
 		query = frappe.qb.from_(DocType).select(
 			Case()
@@ -390,7 +390,7 @@ class TestParameterization(IntegrationTestCase):
 		self.assertEqual(params["param4"], "true_value")
 		self.assertEqual(params["param5"], "Overdue")
 
-	def test_case_in_update(self):
+	def test_case_in_update(self) -> None:
 		DocType = frappe.qb.DocType("DocType")
 		query = frappe.qb.update(DocType).set(
 			"parent",
@@ -411,7 +411,7 @@ class TestParameterization(IntegrationTestCase):
 		self.assertEqual(params["param4"], "true_value")
 		self.assertEqual(params["param5"], "Overdue")
 
-	def test_named_parameter_wrapper(self):
+	def test_named_parameter_wrapper(self) -> None:
 		from frappe.query_builder.terms import NamedParameterWrapper
 
 		test_npw = NamedParameterWrapper()
@@ -427,11 +427,11 @@ class TestParameterization(IntegrationTestCase):
 
 @run_only_if(db_type_is.MARIADB)
 class TestBuilderMaria(IntegrationTestCase, TestBuilderBase):
-	def test_adding_tabs_in_from(self):
+	def test_adding_tabs_in_from(self) -> None:
 		self.assertEqual("SELECT * FROM `tabNotes`", frappe.qb.from_("Notes").select("*").get_sql())
 		self.assertEqual("SELECT * FROM `__Auth`", frappe.qb.from_("__Auth").select("*").get_sql())
 
-	def test_get_qb_type(self):
+	def test_get_qb_type(self) -> None:
 		from frappe.query_builder import get_query_builder
 
 		qb = get_query_builder(frappe.db.db_type)
@@ -440,21 +440,21 @@ class TestBuilderMaria(IntegrationTestCase, TestBuilderBase):
 
 @run_only_if(db_type_is.POSTGRES)
 class TestBuilderPostgres(IntegrationTestCase, TestBuilderBase):
-	def test_adding_tabs_in_from(self):
+	def test_adding_tabs_in_from(self) -> None:
 		self.assertEqual('SELECT * FROM "tabNotes"', frappe.qb.from_("Notes").select("*").get_sql())
 		self.assertEqual('SELECT * FROM "__Auth"', frappe.qb.from_("__Auth").select("*").get_sql())
 
-	def test_replace_tables(self):
+	def test_replace_tables(self) -> None:
 		info_schema = frappe.qb.Schema("information_schema")
 		self.assertEqual(
 			'SELECT * FROM "pg_stat_all_tables"',
 			frappe.qb.from_(info_schema.tables).select("*").get_sql(),
 		)
 
-	def test_replace_fields_post(self):
+	def test_replace_fields_post(self) -> None:
 		self.assertEqual("relname", frappe.qb.Field("table_name").get_sql())
 
-	def test_get_qb_type(self):
+	def test_get_qb_type(self) -> None:
 		from frappe.query_builder import get_query_builder
 
 		qb = get_query_builder(frappe.db.db_type)
@@ -462,25 +462,25 @@ class TestBuilderPostgres(IntegrationTestCase, TestBuilderBase):
 
 
 class TestMisc(IntegrationTestCase):
-	def test_custom_func(self):
+	def test_custom_func(self) -> None:
 		rand_func = frappe.qb.functions("rand", "45")
 		self.assertIsInstance(rand_func, Function)
 		self.assertEqual(rand_func.get_sql(), "rand('45')")
 
-	def test_function_with_schema(self):
+	def test_function_with_schema(self) -> None:
 		from frappe.query_builder import ParameterizedFunction
 
 		x = ParameterizedFunction("rand", "45")
 		x.schema = frappe.qb.DocType("DocType")
 		self.assertEqual("tabDocType.rand('45')", x.get_sql())
 
-	def test_util_table(self):
+	def test_util_table(self) -> None:
 		from frappe.query_builder.utils import Table
 
 		DocType = Table("DocType")
 		self.assertEqual(DocType.get_sql(), "DocType")
 
-	def test_union(self):
+	def test_union(self) -> None:
 		user = frappe.qb.DocType("User")
 		role = frappe.qb.DocType("Role")
 		users = frappe.qb.from_(user).select(user.name)

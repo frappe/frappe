@@ -4,7 +4,7 @@
 import frappe
 
 
-def sendmail_to_system_managers(subject, content):
+def sendmail_to_system_managers(subject, content) -> None:
 	frappe.sendmail(recipients=get_system_managers(), subject=subject, content=content)
 
 
@@ -53,7 +53,7 @@ def get_system_managers():
 
 
 @frappe.whitelist()
-def relink(name, reference_doctype=None, reference_name=None):
+def relink(name, reference_doctype=None, reference_name=None) -> None:
 	frappe.db.sql(
 		"""update
 			`tabCommunication`

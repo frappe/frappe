@@ -21,13 +21,13 @@ class MilestoneTracker(Document):
 		track_field: DF.Literal[None]
 	# end: auto-generated types
 
-	def on_update(self):
+	def on_update(self) -> None:
 		frappe.cache_manager.clear_doctype_map("Milestone Tracker", self.document_type)
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		frappe.cache_manager.clear_doctype_map("Milestone Tracker", self.document_type)
 
-	def apply(self, doc):
+	def apply(self, doc) -> None:
 		before_save = doc.get_doc_before_save()
 		from_value = before_save and before_save.get(self.track_field) or None
 		if from_value != doc.get(self.track_field):
@@ -42,7 +42,7 @@ class MilestoneTracker(Document):
 			).insert(ignore_permissions=True)
 
 
-def evaluate_milestone(doc, event):
+def evaluate_milestone(doc, event) -> None:
 	if (
 		frappe.flags.in_install
 		or frappe.flags.in_migrate

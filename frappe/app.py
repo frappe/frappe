@@ -163,7 +163,7 @@ def application(request: Request):
 	return response
 
 
-def run_after_request_hooks(request, response):
+def run_after_request_hooks(request, response) -> None:
 	if not getattr(frappe.local, "initialised", False):
 		return
 
@@ -207,7 +207,7 @@ def init_request(request):
 		frappe.call(before_request_task)
 
 
-def setup_read_only_mode():
+def setup_read_only_mode() -> None:
 	"""During maintenance_mode reads to DB can still be performed to reduce downtime. This
 	function sets up read only mode
 
@@ -225,7 +225,7 @@ def setup_read_only_mode():
 		frappe.db.begin(read_only=True)
 
 
-def log_request(request, response):
+def log_request(request, response) -> None:
 	if hasattr(frappe.local, "conf") and frappe.local.conf.enable_frappe_logger:
 		frappe.logger("frappe.web", allow_site=frappe.local.site).info(
 			{
@@ -242,7 +242,7 @@ def log_request(request, response):
 		)
 
 
-def process_response(response):
+def process_response(response) -> None:
 	if not response:
 		return
 
@@ -280,7 +280,7 @@ def process_response(response):
 		set_cors_headers(response)
 
 
-def set_cors_headers(response):
+def set_cors_headers(response) -> None:
 	if not (
 		(allowed_origins := frappe.conf.allow_cors)
 		and (request := frappe.local.request)
@@ -315,7 +315,7 @@ def set_cors_headers(response):
 	response.headers.extend(cors_headers)
 
 
-def make_form_dict(request: Request):
+def make_form_dict(request: Request) -> None:
 	import json
 
 	request_data = request.get_data(as_text=True)
@@ -497,7 +497,7 @@ def serve(
 	site=None,
 	sites_path=".",
 	proxy=False,
-):
+) -> None:
 	global application, _site, _sites_path
 	_site = site
 	_sites_path = sites_path

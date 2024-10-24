@@ -32,7 +32,7 @@ class PersonalDataDeletionRequest(Document):
 		status: DF.Literal["Pending Verification", "Pending Approval", "On Hold", "Deleted"]
 	# end: auto-generated types
 
-	def __init__(self, *args, **kwargs):
+	def __init__(self, *args, **kwargs) -> None:
 		super().__init__(*args, **kwargs)
 
 		self.user_data_fields = frappe.get_hooks("user_data_fields")
@@ -49,7 +49,7 @@ class PersonalDataDeletionRequest(Document):
 			"Name": "REDACTED",
 		}
 
-	def autoname(self):
+	def autoname(self) -> None:
 		from frappe.model.naming import set_name_from_naming_options
 
 		pattern = re.compile(
@@ -64,7 +64,7 @@ class PersonalDataDeletionRequest(Document):
 		set_name_from_naming_options(autoname, self)
 		frappe.utils.validate_email_address(self.email, throw=True)
 
-	def after_insert(self):
+	def after_insert(self) -> None:
 		self.send_verification_mail()
 
 	def generate_url_for_confirmation(self):
@@ -80,12 +80,12 @@ class PersonalDataDeletionRequest(Document):
 
 		return url
 
-	def disable_user(self):
+	def disable_user(self) -> None:
 		user = frappe.get_doc("User", self.email)
 		user.enabled = False
 		user.save()
 
-	def send_verification_mail(self):
+	def send_verification_mail(self) -> None:
 		url = self.generate_url_for_confirmation()
 
 		frappe.sendmail(
@@ -101,7 +101,7 @@ class PersonalDataDeletionRequest(Document):
 			header=[_("Confirm Deletion of Account"), "green"],
 		)
 
-	def notify_system_managers(self):
+	def notify_system_managers(self) -> None:
 		recipients = []
 		for manager in get_system_managers(only_name=True):
 			if is_email_notifications_enabled(manager):
@@ -115,14 +115,14 @@ class PersonalDataDeletionRequest(Document):
 			header=[_("Approval Required"), "green"],
 		)
 
-	def validate_data_anonymization(self):
+	def validate_data_anonymization(self) -> None:
 		frappe.only_for("System Manager")
 
 		if self.status != "Pending Approval":
 			frappe.throw(_("This request has not yet been approved by the user."))
 
 	@frappe.whitelist()
-	def trigger_data_deletion(self):
+	def trigger_data_deletion(self) -> None:
 		"""Redact user data defined in current site's hooks under `user_data_fields`"""
 		self.validate_data_anonymization()
 		self.disable_user()
@@ -139,7 +139,7 @@ class PersonalDataDeletionRequest(Document):
 			now=frappe.flags.in_test,
 		)
 
-	def notify_user_after_deletion(self):
+	def notify_user_after_deletion(self) -> None:
 		frappe.sendmail(
 			recipients=self.email,
 			subject=_("Your account has been deleted"),
@@ -151,7 +151,7 @@ class PersonalDataDeletionRequest(Document):
 			header=[_("Your account has been deleted"), "green"],
 		)
 
-	def add_deletion_steps(self):
+	def add_deletion_steps(self) -> None:
 		if self.deletion_steps:
 			return
 
@@ -169,15 +169,15 @@ class PersonalDataDeletionRequest(Document):
 		self.save()
 		self.reload()
 
-	def redact_partial_match_data(self, doctype):
+	def redact_partial_match_data(self, doctype) -> None:
 		self.__redact_partial_match_data(doctype)
 		self.rename_documents(doctype)
 
-	def rename_documents(self, doctype):
+	def rename_documents(self, doctype) -> None:
 		if not doctype.get("rename"):
 			return
 
-		def new_name(email, number):
+		def new_name(email, number) -> str:
 			email_user, domain = email.split("@")
 			return f"{email_user}-{number}@{domain}"
 
@@ -192,7 +192,7 @@ class PersonalDataDeletionRequest(Document):
 				doctype["doctype"], name, new_name(self.anon, i + 1), force=True, show_alert=False
 			)
 
-	def redact_full_match_data(self, ref, email):
+	def redact_full_match_data(self, ref, email) -> None:
 		"""Replaces the entire field value by the values set in the anonymization_value_map"""
 		filter_by = ref.get("filter_by", "owner")
 
@@ -235,7 +235,7 @@ class PersonalDataDeletionRequest(Document):
 
 		return anonymize_fields_dict
 
-	def redact_doc(self, doc, ref):
+	def redact_doc(self, doc, ref) -> None:
 		filter_by = ref.get("filter_by", "owner")
 		meta = frappe.get_meta(ref["doctype"])
 		filter_by_meta = meta.get_field(filter_by)
@@ -256,7 +256,7 @@ class PersonalDataDeletionRequest(Document):
 		if ref.get("rename") and doc["name"] != self.anon:
 			frappe.rename_doc(ref["doctype"], doc["name"], self.anon, force=True, show_alert=False)
 
-	def _anonymize_data(self, email=None, anon=None, set_data=True, commit=False):
+	def _anonymize_data(self, email=None, anon=None, set_data=True, commit=False) -> None:
 		email = email or self.email
 		anon = anon or self.name
 
@@ -295,7 +295,7 @@ class PersonalDataDeletionRequest(Document):
 		if commit:
 			frappe.db.commit()
 
-	def set_step_status(self, step, status="Deleted"):
+	def set_step_status(self, step, status="Deleted") -> None:
 		del_step = find(self.deletion_steps, lambda x: x.document_type == step and x.status != status)
 
 		if not del_step:
@@ -305,7 +305,7 @@ class PersonalDataDeletionRequest(Document):
 		self.save()
 		self.reload()
 
-	def __set_anonymization_data(self, email, anon):
+	def __set_anonymization_data(self, email, anon) -> None:
 		self.anon = anon or self.name
 		self.full_name = get_fullname(email)
 		self.email_regex = get_pattern(email)
@@ -313,7 +313,7 @@ class PersonalDataDeletionRequest(Document):
 		self.is_full_name_set = email != self.full_name
 		self.anonymization_value_map["Email"] = self.anon
 
-	def __redact_partial_match_data(self, doctype):
+	def __redact_partial_match_data(self, doctype) -> None:
 		match_fields = []
 		editable_text_fields = {
 			"Small Text",
@@ -346,11 +346,11 @@ class PersonalDataDeletionRequest(Document):
 		)
 
 	@frappe.whitelist()
-	def put_on_hold(self):
+	def put_on_hold(self) -> None:
 		self.db_set("status", "On Hold")
 
 
-def process_data_deletion_request():
+def process_data_deletion_request() -> None:
 	auto_account_deletion = frappe.db.get_single_value("Website Settings", "auto_account_deletion")
 	if auto_account_deletion < 1:
 		return
@@ -371,7 +371,7 @@ def process_data_deletion_request():
 			doc.trigger_data_deletion()
 
 
-def remove_unverified_record():
+def remove_unverified_record() -> None:
 	frappe.db.sql(
 		"""
 		DELETE FROM `tabPersonal Data Deletion Request`
@@ -381,7 +381,7 @@ def remove_unverified_record():
 
 
 @frappe.whitelist(allow_guest=True)
-def confirm_deletion(email, name, host_name):
+def confirm_deletion(email, name, host_name) -> None:
 	if not verify_request():
 		return
 

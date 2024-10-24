@@ -20,13 +20,13 @@ class UnitTestDataImport(UnitTestCase):
 
 class TestImporter(IntegrationTestCase):
 	@classmethod
-	def setUpClass(cls):
+	def setUpClass(cls) -> None:
 		super().setUpClass()
 		create_doctype_if_not_exists(
 			doctype_name,
 		)
 
-	def test_data_import_from_file(self):
+	def test_data_import_from_file(self) -> None:
 		import_file = get_import_file("sample_import_file")
 		data_import = self.get_importer(doctype_name, import_file)
 		data_import.start_import()
@@ -59,7 +59,7 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(doc3.another_number, 5)
 		self.assertEqual(format_duration(doc3.duration), "5d 5h 45m")
 
-	def test_data_validation_semicolon_success(self):
+	def test_data_validation_semicolon_success(self) -> None:
 		import_file = get_import_file("sample_import_file_semicolon")
 		data_import = self.get_importer(doctype_name, import_file, update=True)
 
@@ -69,7 +69,7 @@ class TestImporter(IntegrationTestCase):
 		# Column count should be 14 (+1 ID)
 		self.assertEqual(len(doc[0]), 15)
 
-	def test_data_validation_semicolon_failure(self):
+	def test_data_validation_semicolon_failure(self) -> None:
 		import_file = get_import_file("sample_import_file_semicolon")
 
 		data_import = self.get_importer_semicolon(doctype_name, import_file)
@@ -78,7 +78,7 @@ class TestImporter(IntegrationTestCase):
 		# column number will be less than 15 -> 2 (+1 id)
 		self.assertLessEqual(len(doc[0]), 15)
 
-	def test_data_import_preview(self):
+	def test_data_import_preview(self) -> None:
 		import_file = get_import_file("sample_import_file")
 		data_import = self.get_importer(doctype_name, import_file)
 		preview = data_import.get_preview_from_template()
@@ -88,7 +88,7 @@ class TestImporter(IntegrationTestCase):
 
 	# ignored on postgres because myisam doesn't exist on pg
 	@run_only_if(db_type_is.MARIADB)
-	def test_data_import_without_mandatory_values(self):
+	def test_data_import_without_mandatory_values(self) -> None:
 		import_file = get_import_file("sample_import_file_without_mandatory")
 		data_import = self.get_importer(doctype_name, import_file)
 		frappe.clear_messages()
@@ -122,7 +122,7 @@ class TestImporter(IntegrationTestCase):
 			"Title is required",
 		)
 
-	def test_data_import_update(self):
+	def test_data_import_update(self) -> None:
 		existing_doc = frappe.get_doc(
 			doctype=doctype_name,
 			title=frappe.generate_hash(length=8),
@@ -179,7 +179,7 @@ class TestImporter(IntegrationTestCase):
 		return data_import
 
 
-def create_doctype_if_not_exists(doctype_name, force=False):
+def create_doctype_if_not_exists(doctype_name, force=False) -> None:
 	if force:
 		frappe.delete_doc_if_exists("DocType", doctype_name)
 		frappe.delete_doc_if_exists("DocType", "Child 1 of " + doctype_name)

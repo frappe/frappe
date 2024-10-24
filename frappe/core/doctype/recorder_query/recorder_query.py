@@ -29,26 +29,26 @@ class RecorderQuery(Document):
 
 	pass
 
-	def db_insert(self, *args, **kwargs):
+	def db_insert(self, *args, **kwargs) -> None:
 		pass
 
-	def load_from_db(self):
+	def load_from_db(self) -> None:
 		pass
 
-	def db_update(self):
-		pass
-
-	@staticmethod
-	def get_list():
+	def db_update(self) -> None:
 		pass
 
 	@staticmethod
-	def get_count():
+	def get_list() -> None:
 		pass
 
 	@staticmethod
-	def get_stats():
+	def get_count() -> None:
 		pass
 
-	def delete(self):
+	@staticmethod
+	def get_stats() -> None:
+		pass
+
+	def delete(self) -> None:
 		pass

@@ -20,7 +20,7 @@ class UnitTestCustomField(UnitTestCase):
 
 
 class TestCustomField(IntegrationTestCase):
-	def test_create_custom_fields(self):
+	def test_create_custom_fields(self) -> None:
 		create_custom_fields(
 			{
 				"Address": [
@@ -48,7 +48,7 @@ class TestCustomField(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("Custom Field", "Address-_test_custom_field_2"))
 		self.assertTrue(frappe.db.exists("Custom Field", "Contact-_test_custom_field_2"))
 
-	def test_custom_field_sorting(self):
+	def test_custom_field_sorting(self) -> None:
 		try:
 			custom_fields = {
 				"ToDo": [
@@ -93,7 +93,7 @@ class TestCustomField(IntegrationTestCase):
 			# nosemgrep
 			frappe.db.commit()
 
-	def test_custom_section_and_column_breaks_ordering(self):
+	def test_custom_section_and_column_breaks_ordering(self) -> None:
 		doc = frappe.get_doc(
 			{
 				"doctype": "DocType",
@@ -173,7 +173,7 @@ class TestCustomField(IntegrationTestCase):
 		]
 		self.assertEqual(field_names, expected_order)
 
-	def test_custom_field_renaming(self):
+	def test_custom_field_renaming(self) -> None:
 		def gen_fieldname():
 			return "test_" + frappe.generate_hash()
 

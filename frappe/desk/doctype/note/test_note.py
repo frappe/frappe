@@ -22,7 +22,7 @@ class TestNote(IntegrationTestCase):
 
 		return frappe.get_doc(doctype="Note", title="test note", content="test note content").insert()
 
-	def test_version(self):
+	def test_version(self) -> None:
 		note = self.insert_note()
 		note.title = "test note 1"
 		note.content = "1"
@@ -34,7 +34,7 @@ class TestNote(IntegrationTestCase):
 		self.assertTrue(("title", "test note", "test note 1"), data["changed"])
 		self.assertTrue(("content", "test note content", "1"), data["changed"])
 
-	def test_rows(self):
+	def test_rows(self) -> None:
 		note = self.insert_note()
 
 		# test add

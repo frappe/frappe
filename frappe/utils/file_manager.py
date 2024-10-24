@@ -289,12 +289,12 @@ def remove_file(
 	return comment
 
 
-def delete_file_data_content(doc, only_thumbnail=False):
+def delete_file_data_content(doc, only_thumbnail=False) -> None:
 	method = get_hook_method("delete_file_data_content", fallback=delete_file_from_filesystem)
 	method(doc, only_thumbnail=only_thumbnail)
 
 
-def delete_file_from_filesystem(doc, only_thumbnail=False):
+def delete_file_from_filesystem(doc, only_thumbnail=False) -> None:
 	"""Delete file, thumbnail from File document"""
 	if only_thumbnail:
 		delete_file(doc.thumbnail_url)
@@ -303,7 +303,7 @@ def delete_file_from_filesystem(doc, only_thumbnail=False):
 		delete_file(doc.thumbnail_url)
 
 
-def delete_file(path):
+def delete_file(path) -> None:
 	"""Delete file from `public folder`"""
 	if path:
 		if ".." in path.split("/"):

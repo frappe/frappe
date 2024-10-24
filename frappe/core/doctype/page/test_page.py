@@ -18,7 +18,7 @@ class UnitTestPage(UnitTestCase):
 
 
 class TestPage(IntegrationTestCase):
-	def test_naming(self):
+	def test_naming(self) -> None:
 		self.assertRaises(
 			frappe.NameError,
 			frappe.get_doc(doctype="Page", page_name="DocType", module="Core").insert,
@@ -28,7 +28,7 @@ class TestPage(IntegrationTestCase):
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
 	@patch.dict(frappe.conf, {"developer_mode": 1})
-	def test_trashing(self):
+	def test_trashing(self) -> None:
 		page = frappe.new_doc("Page", page_name=frappe.generate_hash(), module="Core").insert()
 
 		page.delete()

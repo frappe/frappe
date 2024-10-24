@@ -18,10 +18,10 @@ class UnitTestDataImport(UnitTestCase):
 
 
 class TestExporter(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		create_doctype_if_not_exists(doctype_name)
 
-	def test_exports_specified_fields(self):
+	def test_exports_specified_fields(self) -> None:
 		if not frappe.db.exists(doctype_name, "Test"):
 			doc = frappe.get_doc(
 				doctype=doctype_name,
@@ -95,7 +95,7 @@ class TestExporter(IntegrationTestCase):
 		# fmt: on
 		self.assertEqual(len(csv_array), 3)
 
-	def test_export_csv_response(self):
+	def test_export_csv_response(self) -> None:
 		e = Exporter(
 			doctype_name,
 			export_fields={doctype_name: ["title", "description"]},

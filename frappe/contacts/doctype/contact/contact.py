@@ -49,7 +49,7 @@ class Contact(Document):
 		user: DF.Link | None
 	# end: auto-generated types
 
-	def autoname(self):
+	def autoname(self) -> None:
 		self.name = self._get_full_name()
 
 		# concat party name if reqd
@@ -60,7 +60,7 @@ class Contact(Document):
 		if frappe.db.exists("Contact", self.name):
 			self.name = append_number_if_name_exists("Contact", self.name)
 
-	def validate(self):
+	def validate(self) -> None:
 		self.full_name = self._get_full_name()
 		self.set_primary_email()
 		self.set_primary("phone")
@@ -78,7 +78,7 @@ class Contact(Document):
 
 		deduplicate_dynamic_links(self)
 
-	def set_user(self):
+	def set_user(self) -> None:
 		if not self.user and self.email_id:
 			self.user = frappe.db.get_value("User", {"email": self.email_id})
 
@@ -90,25 +90,25 @@ class Contact(Document):
 
 		return None
 
-	def has_link(self, doctype, name):
+	def has_link(self, doctype, name) -> bool:
 		for link in self.links:
 			if link.link_doctype == doctype and link.link_name == name:
 				return True
 
-	def has_common_link(self, doc):
+	def has_common_link(self, doc) -> bool:
 		reference_links = [(link.link_doctype, link.link_name) for link in doc.links]
 		for link in self.links:
 			if (link.link_doctype, link.link_name) in reference_links:
 				return True
 
-	def add_email(self, email_id, is_primary=0, autosave=False):
+	def add_email(self, email_id, is_primary=0, autosave=False) -> None:
 		if not frappe.db.exists("Contact Email", {"email_id": email_id, "parent": self.name}):
 			self.append("email_ids", {"email_id": email_id, "is_primary": is_primary})
 
 			if autosave:
 				self.save(ignore_permissions=True)
 
-	def add_phone(self, phone, is_primary_phone=0, is_primary_mobile_no=0, autosave=False):
+	def add_phone(self, phone, is_primary_phone=0, is_primary_mobile_no=0, autosave=False) -> None:
 		if not frappe.db.exists("Contact Phone", {"phone": phone, "parent": self.name}):
 			self.append(
 				"phone_nos",
@@ -122,7 +122,7 @@ class Contact(Document):
 			if autosave:
 				self.save(ignore_permissions=True)
 
-	def set_primary_email(self):
+	def set_primary_email(self) -> None:
 		if not self.email_ids:
 			self.email_id = ""
 			return
@@ -143,7 +143,7 @@ class Contact(Document):
 		if not primary_email_exists:
 			self.email_id = ""
 
-	def set_primary(self, fieldname):
+	def set_primary(self, fieldname) -> None:
 		# Used to set primary mobile and phone no.
 		if len(self.phone_nos) == 0:
 			setattr(self, fieldname, "")
@@ -212,7 +212,7 @@ class Contact(Document):
 
 
 @frappe.whitelist()
-def download_vcard(contact: str):
+def download_vcard(contact: str) -> None:
 	"""Download vCard for the contact"""
 	contact = frappe.get_doc("Contact", contact)
 	contact.check_permission()
@@ -226,7 +226,7 @@ def download_vcard(contact: str):
 
 
 @frappe.whitelist()
-def download_vcards(contacts: str):
+def download_vcards(contacts: str) -> None:
 	"""Download vCard for the contact"""
 	import json
 
@@ -317,7 +317,7 @@ def get_contact_details(contact):
 	}
 
 
-def update_contact(doc, method):
+def update_contact(doc, method) -> None:
 	"""Update contact when user is updated, if contact is found. Called via hooks"""
 	contact_name = frappe.db.get_value("Contact", {"email_id": doc.name})
 	if contact_name:

@@ -9,7 +9,7 @@ from frappe.tests.test_query_builder import run_only_if
 
 
 class TestDefaults(IntegrationTestCase):
-	def test_global(self):
+	def test_global(self) -> None:
 		clear_user_default("key1")
 		set_global_default("key1", "value1")
 		self.assertEqual(get_global_default("key1"), "value1")
@@ -22,7 +22,7 @@ class TestDefaults(IntegrationTestCase):
 		self.assertEqual(get_defaults()["key1"], ["value2", "value3"])
 		self.assertEqual(get_user_default_as_list("key1"), ["value2", "value3"])
 
-	def test_user(self):
+	def test_user(self) -> None:
 		set_user_default("key1", "2value1")
 		self.assertEqual(get_user_default_as_list("key1"), ["2value1"])
 
@@ -33,24 +33,24 @@ class TestDefaults(IntegrationTestCase):
 		self.assertEqual(get_user_default("key1"), "2value2")
 		self.assertEqual(get_user_default_as_list("key1"), ["2value2", "3value3"])
 
-	def test_global_if_not_user(self):
+	def test_global_if_not_user(self) -> None:
 		set_global_default("key4", "value4")
 		self.assertEqual(get_user_default("key4"), "value4")
 
-	def test_clear(self):
+	def test_clear(self) -> None:
 		set_user_default("key5", "value5")
 		self.assertEqual(get_user_default("key5"), "value5")
 		clear_user_default("key5")
 		self.assertEqual(get_user_default("key5"), None)
 
-	def test_clear_global(self):
+	def test_clear_global(self) -> None:
 		set_global_default("key6", "value6")
 		self.assertEqual(get_user_default("key6"), "value6")
 
 		clear_default("key6", value="value6")
 		self.assertEqual(get_user_default("key6"), None)
 
-	def test_user_permission_on_defaults(self):
+	def test_user_permission_on_defaults(self) -> None:
 		self.assertEqual(get_global_default("language"), "en")
 		self.assertEqual(get_user_default("language"), "en")
 		self.assertEqual(get_user_default_as_list("language"), ["en"])
@@ -71,7 +71,7 @@ class TestDefaults(IntegrationTestCase):
 		frappe.set_user(old_user)
 
 	@run_only_if(db_type_is.MARIADB)
-	def test_user_permission_defaults(self):
+	def test_user_permission_defaults(self) -> None:
 		# Create user permission
 		create_user("user_default_test@example.com", "Blogger")
 		frappe.set_user("user_default_test@example.com")

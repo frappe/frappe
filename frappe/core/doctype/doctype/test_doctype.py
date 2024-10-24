@@ -37,10 +37,10 @@ class UnitTestDoctype(UnitTestCase):
 
 
 class TestDocType(IntegrationTestCase):
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.db.rollback()
 
-	def test_validate_name(self):
+	def test_validate_name(self) -> None:
 		self.assertRaises(frappe.NameError, new_doctype("_Some DocType").insert)
 		self.assertRaises(frappe.NameError, new_doctype("8Some DocType").insert)
 		self.assertRaises(frappe.NameError, new_doctype("Some (DocType)").insert)
@@ -55,7 +55,7 @@ class TestDocType(IntegrationTestCase):
 			doc = new_doctype(name).insert()
 			doc.delete()
 
-	def test_making_sequence_on_change(self):
+	def test_making_sequence_on_change(self) -> None:
 		frappe.delete_doc_if_exists("DocType", self._testMethodName)
 		dt = new_doctype(self._testMethodName).insert(ignore_permissions=True)
 		autoname = dt.autoname
@@ -101,7 +101,7 @@ class TestDocType(IntegrationTestCase):
 			"varchar" if frappe.db.db_type == "mariadb" else "character varying",
 		)
 
-	def test_doctype_unique_constraint_dropped(self):
+	def test_doctype_unique_constraint_dropped(self) -> None:
 		if frappe.db.exists("DocType", "With_Unique"):
 			frappe.delete_doc("DocType", "With_Unique")
 
@@ -126,7 +126,7 @@ class TestDocType(IntegrationTestCase):
 		doc1.delete()
 		doc2.delete()
 
-	def test_validate_search_fields(self):
+	def test_validate_search_fields(self) -> None:
 		doc = new_doctype("Test Search Fields")
 		doc.search_fields = "some_fieldname"
 		doc.insert()
@@ -144,7 +144,7 @@ class TestDocType(IntegrationTestCase):
 		doc.search_fields = "some_fieldname,some_html_field"
 		self.assertRaises(frappe.ValidationError, doc.save)
 
-	def test_depends_on_fields(self):
+	def test_depends_on_fields(self) -> None:
 		doc = new_doctype("Test Depends On", depends_on="eval:doc.__islocal == 0")
 		doc.insert()
 
@@ -153,7 +153,7 @@ class TestDocType(IntegrationTestCase):
 		field.depends_on = "eval:doc.__islocal = 0"
 		self.assertRaises(frappe.ValidationError, doc.save)
 
-	def test_all_depends_on_fields_conditions(self):
+	def test_all_depends_on_fields_conditions(self) -> None:
 		import re
 
 		docfields = frappe.get_all(
@@ -307,7 +307,7 @@ class TestDocType(IntegrationTestCase):
 		finally:
 			frappe.flags.allow_doctype_export = 0
 
-	def test_unique_field_name_for_two_fields(self):
+	def test_unique_field_name_for_two_fields(self) -> None:
 		doc = new_doctype("Test Unique Field")
 		field_1 = doc.append("fields", {})
 		field_1.fieldname = "some_fieldname_1"
@@ -319,7 +319,7 @@ class TestDocType(IntegrationTestCase):
 
 		self.assertRaises(UniqueFieldnameError, doc.insert)
 
-	def test_fieldname_is_not_name(self):
+	def test_fieldname_is_not_name(self) -> None:
 		doc = new_doctype("Test Name Field")
 		field_1 = doc.append("fields", {})
 		field_1.label = "Name"
@@ -329,7 +329,7 @@ class TestDocType(IntegrationTestCase):
 		doc.fields[1].fieldname = "name"
 		self.assertRaises(InvalidFieldNameError, doc.save)
 
-	def test_illegal_mandatory_validation(self):
+	def test_illegal_mandatory_validation(self) -> None:
 		doc = new_doctype("Test Illegal mandatory")
 		field_1 = doc.append("fields", {})
 		field_1.fieldname = "some_fieldname_1"
@@ -338,7 +338,7 @@ class TestDocType(IntegrationTestCase):
 
 		self.assertRaises(IllegalMandatoryError, doc.insert)
 
-	def test_link_with_wrong_and_no_options(self):
+	def test_link_with_wrong_and_no_options(self) -> None:
 		doc = new_doctype("Test link")
 		field_1 = doc.append("fields", {})
 		field_1.fieldname = "some_fieldname_1"
@@ -350,7 +350,7 @@ class TestDocType(IntegrationTestCase):
 
 		self.assertRaises(WrongOptionsDoctypeLinkError, doc.insert)
 
-	def test_hidden_and_mandatory_without_default(self):
+	def test_hidden_and_mandatory_without_default(self) -> None:
 		doc = new_doctype("Test hidden and mandatory")
 		field_1 = doc.append("fields", {})
 		field_1.fieldname = "some_fieldname_1"
@@ -360,7 +360,7 @@ class TestDocType(IntegrationTestCase):
 
 		self.assertRaises(HiddenAndMandatoryWithoutDefaultError, doc.insert)
 
-	def test_field_can_not_be_indexed_validation(self):
+	def test_field_can_not_be_indexed_validation(self) -> None:
 		doc = new_doctype("Test index")
 		field_1 = doc.append("fields", {})
 		field_1.fieldname = "some_fieldname_1"
@@ -369,7 +369,7 @@ class TestDocType(IntegrationTestCase):
 
 		self.assertRaises(CannotIndexedError, doc.insert)
 
-	def test_cancel_link_doctype(self):
+	def test_cancel_link_doctype(self) -> None:
 		import json
 
 		from frappe.desk.form.linked_with import cancel_all_linked_docs, get_submitted_linked_docs
@@ -425,7 +425,7 @@ class TestDocType(IntegrationTestCase):
 		doc.delete()
 		frappe.db.commit()
 
-	def test_ignore_cancelation_of_linked_doctype_during_cancel(self):
+	def test_ignore_cancelation_of_linked_doctype_during_cancel(self) -> None:
 		import json
 
 		from frappe.desk.form.linked_with import cancel_all_linked_docs, get_submitted_linked_docs
@@ -519,7 +519,7 @@ class TestDocType(IntegrationTestCase):
 		test_doc_1.delete()
 		frappe.db.commit()
 
-	def test_links_table_fieldname_validation(self):
+	def test_links_table_fieldname_validation(self) -> None:
 		doc = new_doctype("Test Links Table Validation")
 
 		# check valid data
@@ -537,7 +537,7 @@ class TestDocType(IntegrationTestCase):
 
 		self.assertRaises(InvalidFieldNameError, validate_links_table_fieldnames, doc)
 
-	def test_create_virtual_doctype(self):
+	def test_create_virtual_doctype(self) -> None:
 		"""Test virtual DocType."""
 		virtual_doc = new_doctype("Test Virtual Doctype")
 		virtual_doc.is_virtual = 1
@@ -549,7 +549,7 @@ class TestDocType(IntegrationTestCase):
 		self.assertEqual(doc.is_virtual, 1)
 		self.assertFalse(frappe.db.table_exists("Test Virtual Doctype"))
 
-	def test_create_virtual_doctype_as_child_table(self):
+	def test_create_virtual_doctype_as_child_table(self) -> None:
 		"""Test virtual DocType as Child Table below a normal DocType."""
 		frappe.delete_doc_if_exists("DocType", "Test Parent Virtual DocType", force=1)
 		frappe.delete_doc_if_exists("DocType", "Test Virtual DocType as Child Table", force=1)
@@ -579,7 +579,7 @@ class TestDocType(IntegrationTestCase):
 		parent_doc.insert(ignore_permissions=True)
 		self.assertFalse(frappe.db.table_exists("Test Parent Virtual DocType"))
 
-	def test_default_fieldname(self):
+	def test_default_fieldname(self) -> None:
 		fields = [
 			{"label": "title", "fieldname": "title", "fieldtype": "Data", "default": "{some_fieldname}"}
 		]
@@ -588,7 +588,7 @@ class TestDocType(IntegrationTestCase):
 
 		dt.delete()
 
-	def test_autoincremented_doctype_transition(self):
+	def test_autoincremented_doctype_transition(self) -> None:
 		frappe.delete_doc_if_exists("DocType", "testy_autoinc_dt")
 		dt = new_doctype("testy_autoinc_dt", autoname="autoincrement").insert(ignore_permissions=True)
 		dt.autoname = "hash"
@@ -618,7 +618,7 @@ class TestDocType(IntegrationTestCase):
 			dt_data.delete(ignore_permissions=True)
 			dt.delete(ignore_permissions=True)
 
-	def test_json_field(self):
+	def test_json_field(self) -> None:
 		"""Test json field."""
 		import json
 
@@ -647,20 +647,20 @@ class TestDocType(IntegrationTestCase):
 
 		self.assertEqual(test_json.test_json_field["hello"], "world")
 
-	def test_no_delete_doc(self):
+	def test_no_delete_doc(self) -> None:
 		self.assertRaises(frappe.ValidationError, frappe.delete_doc, "DocType", "Address")
 
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
 	@patch.dict(frappe.conf, {"developer_mode": 1})
-	def test_export_types(self):
+	def test_export_types(self) -> None:
 		"""Export python types."""
 		import ast
 
 		from frappe.types.exporter import TypeExporter
 
-		def validate(code):
+		def validate(code) -> None:
 			ast.parse(code)
 
 		doctype = new_doctype(custom=0).insert()
@@ -695,7 +695,7 @@ class TestDocType(IntegrationTestCase):
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
 	@patch.dict(frappe.conf, {"developer_mode": 1})
-	def test_custom_field_deletion(self):
+	def test_custom_field_deletion(self) -> None:
 		"""Custom child tables whose doctype doesn't exist should be auto deleted."""
 		doctype = new_doctype(custom=0).insert().name
 		child = new_doctype(custom=0, istable=1).insert().name
@@ -710,7 +710,7 @@ class TestDocType(IntegrationTestCase):
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
 	@patch.dict(frappe.conf, {"developer_mode": 1})
-	def test_delete_doctype_with_customization(self):
+	def test_delete_doctype_with_customization(self) -> None:
 		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 
 		custom_field = "customfield"
@@ -750,7 +750,7 @@ class TestDocType(IntegrationTestCase):
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
 	@patch.dict(frappe.conf, {"developer_mode": 1})
-	def test_delete_orphaned_doctypes(self):
+	def test_delete_orphaned_doctypes(self) -> None:
 		doctype = new_doctype(custom=0).insert()
 		frappe.db.commit()
 
@@ -761,7 +761,7 @@ class TestDocType(IntegrationTestCase):
 		frappe.db.rollback()
 		self.assertFalse(frappe.db.exists("DocType", doctype.name))
 
-	def test_not_in_list_view_for_not_allowed_mandatory_field(self):
+	def test_not_in_list_view_for_not_allowed_mandatory_field(self) -> None:
 		doctype = new_doctype(
 			fields=[
 				{
@@ -783,7 +783,7 @@ class TestDocType(IntegrationTestCase):
 		self.assertTrue(doctype.fields[1].in_list_view)
 		frappe.delete_doc("DocType", doctype.name)
 
-	def test_no_recursive_fetch(self):
+	def test_no_recursive_fetch(self) -> None:
 		recursive_dt = new_doctype(
 			fields=[
 				{

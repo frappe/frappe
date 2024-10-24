@@ -22,7 +22,7 @@ class UnitTestDocumentNamingSettings(UnitTestCase):
 
 class TestNamingSeries(IntegrationTestCase):
 	@classmethod
-	def setUpClass(cls):
+	def setUpClass(cls) -> None:
 		super().setUpClass()
 		cls.ns_doctype = (
 			new_doctype(
@@ -41,10 +41,10 @@ class TestNamingSeries(IntegrationTestCase):
 			.name
 		)
 
-	def setUp(self):
+	def setUp(self) -> None:
 		self.dns: DocumentNamingSettings = frappe.get_doc("Document Naming Settings")
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.db.rollback()
 
 	def get_valid_serieses(self):
@@ -52,7 +52,7 @@ class TestNamingSeries(IntegrationTestCase):
 		existing_series = self.dns.get_transactions_and_prefixes()["prefixes"]
 		return VALID_SERIES + existing_series
 
-	def test_naming_preview(self):
+	def test_naming_preview(self) -> None:
 		self.dns.transaction_type = self.ns_doctype
 
 		self.dns.try_naming_series = "AXBZ.####"
@@ -62,7 +62,7 @@ class TestNamingSeries(IntegrationTestCase):
 		self.dns.try_naming_series = "AXBZ-.{currency}.-"
 		serieses = self.dns.preview_series().split("\n")
 
-	def test_get_transactions(self):
+	def test_get_transactions(self) -> None:
 		naming_info = self.dns.get_transactions_and_prefixes()
 		self.assertIn(self.ns_doctype, naming_info["transactions"])
 
@@ -71,17 +71,17 @@ class TestNamingSeries(IntegrationTestCase):
 		for series in existing_naming_series.split("\n"):
 			self.assertIn(NamingSeries(series).get_prefix(), naming_info["prefixes"])
 
-	def test_default_naming_series(self):
+	def test_default_naming_series(self) -> None:
 		self.assertIsNone(get_default_naming_series("DocType"))
 
-	def test_updates_naming_options(self):
+	def test_updates_naming_options(self) -> None:
 		self.dns.transaction_type = self.ns_doctype
 		test_series = "KOOHBEW.###"
 		self.dns.naming_series_options = self.dns.get_options() + "\n" + test_series
 		self.dns.update_series()
 		self.assertIn(test_series, frappe.get_meta(self.ns_doctype).get_naming_series_options())
 
-	def test_update_series_counter(self):
+	def test_update_series_counter(self) -> None:
 		for series in self.get_valid_serieses():
 			if not series:
 				continue
@@ -92,7 +92,7 @@ class TestNamingSeries(IntegrationTestCase):
 
 			self.assertEqual(self.dns.get_current(), new_count, f"Incorrect update for {series}")
 
-	def test_amended_naming(self):
+	def test_amended_naming(self) -> None:
 		self.dns.amend_naming_override = []
 		self.dns.default_amend_naming = "Amend Counter"
 		self.dns.update_amendment_rule()

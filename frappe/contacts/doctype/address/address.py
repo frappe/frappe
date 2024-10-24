@@ -53,10 +53,10 @@ class Address(Document):
 		state: DF.Data | None
 	# end: auto-generated types
 
-	def __setup__(self):
+	def __setup__(self) -> None:
 		self.flags.linked = False
 
-	def autoname(self):
+	def autoname(self) -> None:
 		if not self.address_title:
 			if self.links:
 				self.address_title = self.links[0].link_name
@@ -71,13 +71,13 @@ class Address(Document):
 		else:
 			throw(_("Address Title is mandatory."))
 
-	def validate(self):
+	def validate(self) -> None:
 		self.link_address()
 		self.validate_preferred_address()
 		set_link_title(self)
 		deduplicate_dynamic_links(self)
 
-	def link_address(self):
+	def link_address(self) -> bool:
 		"""Link address based on owner"""
 		if not self.links:
 			contact_name = frappe.db.get_value("Contact", {"email_id": self.owner})
@@ -89,7 +89,7 @@ class Address(Document):
 
 		return False
 
-	def validate_preferred_address(self):
+	def validate_preferred_address(self) -> None:
 		preferred_fields = ["is_primary_address", "is_shipping_address"]
 
 		for field in preferred_fields:
@@ -103,12 +103,12 @@ class Address(Document):
 	def get_display(self):
 		return get_address_display(self.as_dict())
 
-	def has_link(self, doctype, name):
+	def has_link(self, doctype, name) -> bool:
 		for link in self.links:
 			if link.link_doctype == doctype and link.link_name == name:
 				return True
 
-	def has_common_link(self, doc):
+	def has_common_link(self, doc) -> bool:
 		reference_links = [(link.link_doctype, link.link_name) for link in doc.links]
 		for link in self.links:
 			if (link.link_doctype, link.link_name) in reference_links:
@@ -295,7 +295,7 @@ def get_condensed_address(doc, no_title=False):
 	return ", ".join(doc.get(d) for d in fields if doc.get(d))
 
 
-def update_preferred_address(address, field):
+def update_preferred_address(address, field) -> None:
 	frappe.db.set_value("Address", address, field, 0)
 
 

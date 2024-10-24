@@ -153,7 +153,7 @@ std_fields = [
 ]
 
 
-def delete_fields(args_dict, delete=0):
+def delete_fields(args_dict, delete=0) -> None:
 	"""
 	Delete a field.
 	* Deletes record from `tabDocField`

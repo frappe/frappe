@@ -3,7 +3,7 @@
 import frappe
 
 
-def add_custom_field(doctype, fieldname, fieldtype="Data", options=None):
+def add_custom_field(doctype, fieldname, fieldtype="Data", options=None) -> None:
 	frappe.get_doc(
 		{
 			"doctype": "Custom Field",
@@ -15,6 +15,6 @@ def add_custom_field(doctype, fieldname, fieldtype="Data", options=None):
 	).insert()
 
 
-def clear_custom_fields(doctype):
+def clear_custom_fields(doctype) -> None:
 	frappe.db.delete("Custom Field", {"dt": doctype})
 	frappe.clear_cache(doctype=doctype)

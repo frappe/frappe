@@ -11,7 +11,7 @@ from frappe.website.utils import cleanup_page_name, clear_cache
 class WebsiteGenerator(Document):
 	website = frappe._dict()
 
-	def __init__(self, *args, **kwargs):
+	def __init__(self, *args, **kwargs) -> None:
 		self.route = None
 		super().__init__(*args, **kwargs)
 
@@ -25,17 +25,17 @@ class WebsiteGenerator(Document):
 		else:
 			return out
 
-	def autoname(self):
+	def autoname(self) -> None:
 		if not self.name and self.meta.autoname != "hash":
 			self.name = self.scrubbed_title()
 
-	def onload(self):
+	def onload(self) -> None:
 		self.get("__onload").update({"is_website_generator": True, "published": self.is_website_published()})
 
-	def validate(self):
+	def validate(self) -> None:
 		self.set_route()
 
-	def set_route(self):
+	def set_route(self) -> None:
 		if self.is_website_published() and not self.route:
 			self.route = self.make_route()
 
@@ -66,27 +66,27 @@ class WebsiteGenerator(Document):
 
 		return title_field
 
-	def clear_cache(self):
+	def clear_cache(self) -> None:
 		super().clear_cache()
 		clear_cache(self.route)
 
 	def scrub(self, text):
 		return cleanup_page_name(text).replace("_", "-")
 
-	def get_parents(self, context):
+	def get_parents(self, context) -> None:
 		"""Return breadcrumbs"""
 		pass
 
-	def on_update(self):
+	def on_update(self) -> None:
 		self.send_indexing_request()
 		self.remove_old_route_from_index()
 
-	def on_change(self):
+	def on_change(self) -> None:
 		# Update the index on change
 		# On change is triggered last in the event lifecycle
 		self.update_website_search_index()
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		self.clear_cache()
 		self.send_indexing_request("URL_DELETED")
 		# On deleting the doc, remove the page from the web_routes index
@@ -130,7 +130,7 @@ class WebsiteGenerator(Document):
 
 		return route
 
-	def send_indexing_request(self, operation_type="URL_UPDATED"):
+	def send_indexing_request(self, operation_type="URL_UPDATED") -> None:
 		"""Send indexing request on update/trash operation."""
 
 		if (
@@ -150,7 +150,7 @@ class WebsiteGenerator(Document):
 	def allow_website_search_indexing(self):
 		return self.meta.index_web_pages_for_search
 
-	def remove_old_route_from_index(self):
+	def remove_old_route_from_index(self) -> None:
 		"""Remove page from the website index if the route has changed."""
 		if self.allow_website_search_indexing() or frappe.flags.in_test:
 			return
@@ -160,7 +160,7 @@ class WebsiteGenerator(Document):
 			# Remove the route from index if the route has changed
 			remove_document_from_index(old_doc.route)
 
-	def update_website_search_index(self):
+	def update_website_search_index(self) -> None:
 		"""
 		Update the full test index executed on document change event.
 		- remove document from index if document is unpublished

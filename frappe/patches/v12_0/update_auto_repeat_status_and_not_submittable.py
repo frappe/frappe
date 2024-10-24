@@ -2,7 +2,7 @@ import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 
 
-def execute():
+def execute() -> None:
 	# auto repeat is not submittable in v12
 	frappe.reload_doc("automation", "doctype", "Auto Repeat")
 	frappe.db.sql("update `tabDocPerm` set submit=0, cancel=0, amend=0 where parent='Auto Repeat'")

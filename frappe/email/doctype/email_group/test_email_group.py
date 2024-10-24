@@ -15,7 +15,7 @@ class UnitTestEmailGroup(UnitTestCase):
 
 
 class TestEmailGroup(IntegrationTestCase):
-	def test_welcome_url(self):
+	def test_welcome_url(self) -> None:
 		email_group = frappe.new_doc("Email Group")
 		email_group.title = "Test"
 		email_group.welcome_url = "http://example.com/welcome?hello=world"

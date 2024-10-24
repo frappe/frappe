@@ -32,7 +32,7 @@ class WebPageView(Document):
 	# end: auto-generated types
 
 	@staticmethod
-	def clear_old_logs(days=180):
+	def clear_old_logs(days=180) -> None:
 		from frappe.query_builder import Interval
 		from frappe.query_builder.functions import Now
 
@@ -51,7 +51,7 @@ def make_view_log(
 	medium=None,
 	content=None,
 	visitor_id=None,
-):
+) -> None:
 	if not is_tracking_enabled():
 		return
 

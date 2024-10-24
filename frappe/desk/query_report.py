@@ -306,7 +306,7 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 
 
 @frappe.whitelist()
-def export_query():
+def export_query() -> None:
 	"""export from query reports"""
 	from frappe.desk.utils import get_csv_bytes, pop_csv_params, provide_binary_file
 
@@ -788,7 +788,7 @@ def get_user_match_filters(doctypes, user):
 	return match_filters
 
 
-def validate_filters_permissions(report_name, filters=None, user=None):
+def validate_filters_permissions(report_name, filters=None, user=None) -> None:
 	if not filters:
 		return
 

@@ -10,12 +10,12 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestSearch(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		if self._testMethodName == "test_link_field_order":
 			setup_test_link_field_order(self)
 			self.addCleanup(teardown_test_link_field_order, self)
 
-	def test_search_field_sanitizer(self):
+	def test_search_field_sanitizer(self) -> None:
 		results = search_link("DocType", "User", query=None, filters=None, page_length=20, searchfield="name")
 		self.assertTrue("User" in results[0]["value"])
 
@@ -39,7 +39,7 @@ class TestSearch(IntegrationTestCase):
 				searchfield=searchfield,
 			)
 
-	def test_only_enabled_in_mention(self):
+	def test_only_enabled_in_mention(self) -> None:
 		email = "test_disabled_user_in_mentions@example.com"
 		frappe.delete_doc("User", email)
 		if not frappe.db.exists("User", email):
@@ -60,7 +60,7 @@ class TestSearch(IntegrationTestCase):
 		names_for_mention = [user.get("id") for user in get_names_for_mentions("")]
 		self.assertNotIn(email, names_for_mention)
 
-	def test_link_field_order(self):
+	def test_link_field_order(self) -> None:
 		# Making a request to the search_link with the tree doctype
 		results = search_link(
 			doctype=self.tree_doctype_name,
@@ -78,7 +78,7 @@ class TestSearch(IntegrationTestCase):
 		self.assertEqual(len(results), len(self.child_doctypes_names) + 1)
 
 	# Search for the word "pay", part of the word "pays" (country) in french.
-	def test_link_search_in_foreign_language(self):
+	def test_link_search_in_foreign_language(self) -> None:
 		try:
 			frappe.local.lang = "fr"
 			output = search_widget(doctype="DocType", txt="pay", page_length=20)
@@ -88,7 +88,7 @@ class TestSearch(IntegrationTestCase):
 		finally:
 			frappe.local.lang = "en"
 
-	def test_doctype_search_in_foreign_language(self):
+	def test_doctype_search_in_foreign_language(self) -> None:
 		def do_search(txt: str):
 			return search_link(
 				doctype="DocType",
@@ -114,7 +114,7 @@ class TestSearch(IntegrationTestCase):
 		finally:
 			frappe.local.lang = "en"
 
-	def test_validate_and_sanitize_search_inputs(self):
+	def test_validate_and_sanitize_search_inputs(self) -> None:
 		# should raise error if searchfield is injectable
 		self.assertRaises(
 			frappe.DataError,
@@ -149,7 +149,7 @@ class TestSearch(IntegrationTestCase):
 		results = search_link("User", "user@random", searchfield="name")
 		self.assertListEqual(results, [])
 
-	def test_reference_doctype(self):
+	def test_reference_doctype(self) -> None:
 		"""search query methods should get reference_doctype if they want"""
 		results = search_link(
 			doctype="User",
@@ -161,7 +161,7 @@ class TestSearch(IntegrationTestCase):
 		)
 		self.assertListEqual(results, [])
 
-	def test_search_relevance(self):
+	def test_search_relevance(self) -> None:
 		frappe.db.set_value("Language", {"name": ("like", "e%")}, "enabled", 1)
 
 		search = partial(search_link, doctype="Language", filters=None, page_length=10)
@@ -175,7 +175,7 @@ class TestSearch(IntegrationTestCase):
 		frappe.db.set_value("Language", "es", "idx", 10)
 		self.assertEqual("es", search(txt="es")[0]["value"])
 
-	def test_search_with_paren(self):
+	def test_search_with_paren(self) -> None:
 		search = partial(search_link, doctype="Language", filters=None, page_length=10)
 		result = search(txt="(txt)")
 		self.assertEqual(result, [])
@@ -192,7 +192,7 @@ def query_with_reference_doctype(doctype, txt, searchfield, start, page_len, fil
 	return []
 
 
-def setup_test_link_field_order(TestCase):
+def setup_test_link_field_order(TestCase) -> None:
 	TestCase.tree_doctype_name = "Test Tree Order"
 	TestCase.child_doctype_list = []
 	TestCase.child_doctypes_names = ["USA", "India", "Russia", "China"]
@@ -234,7 +234,7 @@ def setup_test_link_field_order(TestCase):
 		TestCase.child_doctype_list.append(temp)
 
 
-def teardown_test_link_field_order(TestCase):
+def teardown_test_link_field_order(TestCase) -> None:
 	# Deleting all the created doctype
 	for child_doctype in TestCase.child_doctype_list:
 		child_doctype.delete()

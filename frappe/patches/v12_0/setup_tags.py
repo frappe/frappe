@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.delete_doc_if_exists("DocType", "Tag Category")
 	frappe.delete_doc_if_exists("DocType", "Tag Doc Category")
 

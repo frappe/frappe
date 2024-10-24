@@ -295,7 +295,7 @@ def _sync_records(
 def _try_create(record, reset=False, commit=False) -> tuple["Document", bool]:
 	"""Create a single test document from the given record data."""
 
-	def revert_naming(d):
+	def revert_naming(d) -> None:
 		if getattr(d, "naming_series", None):
 			revert_series_if_last(d.naming_series, d.name)
 
@@ -335,7 +335,7 @@ def _try_create(record, reset=False, commit=False) -> tuple["Document", bool]:
 	return d, True
 
 
-def print_mandatory_fields(doctype, initial_doctype):
+def print_mandatory_fields(doctype, initial_doctype) -> None:
 	"""Print mandatory fields for the specified doctype"""
 	meta = frappe.get_meta(doctype)
 	msg = []
@@ -360,7 +360,7 @@ PERSISTENT_TEST_LOG_FILE = ".test_records.jsonl"
 
 
 class TestRecordManager:
-	def __init__(self):
+	def __init__(self) -> None:
 		testing_logger.debug(f"{self} initialized")
 		self.log_file = Path(frappe.get_site_path(PERSISTENT_TEST_LOG_FILE))
 		self._log = None
@@ -374,7 +374,7 @@ class TestRecordManager:
 		log = self.get()
 		return log.get(index_doctype, [])
 
-	def add(self, index_doctype, records: list["Document"]):
+	def add(self, index_doctype, records: list["Document"]) -> None:
 		if records:
 			self._append_to_log(index_doctype, records)
 			if self._log is None:
@@ -382,7 +382,7 @@ class TestRecordManager:
 			self._log.setdefault(index_doctype, []).extend(records)
 			testing_logger.debug(f"        > {index_doctype:<30} ({len(records)}) added to {self.log_file}")
 
-	def remove(self, index_doctype):
+	def remove(self, index_doctype) -> None:
 		"""
 		Remove all records for the specified doctype from the log.
 		"""
@@ -391,7 +391,7 @@ class TestRecordManager:
 			self._remove_from_log(index_doctype)
 			testing_logger.debug(f"        > {index_doctype:<30} deleted from {self.log_file}")
 
-	def _append_to_log(self, index_doctype, records: list["Document"]):
+	def _append_to_log(self, index_doctype, records: list["Document"]) -> None:
 		entry = {"doctype": index_doctype, "records": records}
 		with self.log_file.open("a") as f:
 			f.write(frappe.as_json(entry, indent=None) + "\n")
@@ -413,7 +413,7 @@ class TestRecordManager:
 						) from e
 		return log
 
-	def _remove_from_log(self, index_doctype):
+	def _remove_from_log(self, index_doctype) -> None:
 		temp_file = self.log_file.with_suffix(".temp")
 		with self.log_file.open("r") as input_file, temp_file.open("w") as output_file:
 			for line in input_file:
@@ -423,7 +423,7 @@ class TestRecordManager:
 		temp_file.replace(self.log_file)
 
 
-def _after_install_clear_test_log():
+def _after_install_clear_test_log() -> None:
 	log_file_path = frappe.get_site_path(PERSISTENT_TEST_LOG_FILE)
 	if os.path.exists(log_file_path):
 		os.remove(log_file_path)

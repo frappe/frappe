@@ -136,7 +136,7 @@ def parse_as_configfile(patches_file: str, patch_type: PatchType | None = None) 
 		frappe.throw(frappe._("Patch type {} not found in patches.txt").format(patch_type))
 
 
-def reload_doc(args):
+def reload_doc(args) -> None:
 	import frappe.modules
 
 	run_single(method=frappe.modules.reload_doc, methodargs=args)
@@ -154,7 +154,7 @@ def run_single(patchmodule=None, method=None, methodargs=None, force=False):
 		return True
 
 
-def execute_patch(patchmodule: str, method=None, methodargs=None):
+def execute_patch(patchmodule: str, method=None, methodargs=None) -> bool:
 	"""execute the patch"""
 	_patch_mode(True)
 
@@ -206,7 +206,7 @@ def execute_patch(patchmodule: str, method=None, methodargs=None):
 	return True
 
 
-def update_patch_log(patchmodule, skipped=False):
+def update_patch_log(patchmodule, skipped=False) -> None:
 	"""update patch_file in patch log"""
 
 	patch = frappe.get_doc({"doctype": "Patch Log", "patch": patchmodule})
@@ -228,7 +228,7 @@ def executed(patchmodule):
 	return frappe.db.get_value("Patch Log", {"patch": patchmodule, "skipped": 0})
 
 
-def _patch_mode(enable):
+def _patch_mode(enable) -> None:
 	"""stop/start execution till patch is run"""
 	frappe.local.flags.in_patch = enable
 	frappe.db.commit()

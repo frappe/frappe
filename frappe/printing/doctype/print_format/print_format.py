@@ -49,7 +49,7 @@ class PrintFormat(Document):
 		standard: DF.Literal["No", "Yes"]
 	# end: auto-generated types
 
-	def onload(self):
+	def onload(self) -> None:
 		templates = frappe.get_all(
 			"Print Format Field Template",
 			fields=["template", "field", "name"],
@@ -63,7 +63,7 @@ class PrintFormat(Document):
 	def download_pdf(self, docname, letterhead=None):
 		return download_pdf(self.doc_type, docname, self.name, letterhead)
 
-	def validate(self):
+	def validate(self) -> None:
 		if (
 			self.standard == "Yes"
 			and not frappe.local.conf.get("developer_mode")
@@ -90,7 +90,7 @@ class PrintFormat(Document):
 		if self.custom_format and not self.html and not self.raw_printing:
 			frappe.throw(_("{0} is required").format(frappe.bold(_("HTML"))), frappe.MandatoryError)
 
-	def extract_images(self):
+	def extract_images(self) -> None:
 		from frappe.core.doctype.file.utils import extract_images_from_html
 
 		if self.print_format_builder_beta:
@@ -103,7 +103,7 @@ class PrintFormat(Document):
 					df["options"] = extract_images_from_html(self, df["options"])
 			self.format_data = json.dumps(data)
 
-	def on_update(self):
+	def on_update(self) -> None:
 		if hasattr(self, "old_doc_type") and self.old_doc_type:
 			frappe.clear_cache(doctype=self.old_doc_type)
 		if self.doc_type:
@@ -111,7 +111,7 @@ class PrintFormat(Document):
 
 		self.export_doc()
 
-	def after_rename(self, old: str, new: str, *args, **kwargs):
+	def after_rename(self, old: str, new: str, *args, **kwargs) -> None:
 		if self.doc_type:
 			frappe.clear_cache(doctype=self.doc_type)
 
@@ -133,13 +133,13 @@ class PrintFormat(Document):
 
 		return export_module_json(self, self.standard == "Yes", self.module)
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		if self.doc_type:
 			frappe.clear_cache(doctype=self.doc_type)
 
 
 @frappe.whitelist()
-def make_default(name):
+def make_default(name) -> None:
 	"""Set print format as default"""
 	frappe.has_permission("Print Format", "write")
 

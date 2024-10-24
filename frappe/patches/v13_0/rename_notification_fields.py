@@ -5,7 +5,7 @@ import frappe
 from frappe.model.utils.rename_field import rename_field
 
 
-def execute():
+def execute() -> None:
 	"""
 	Change notification recipient fields from email to receiver fields
 	"""

@@ -25,17 +25,17 @@ class UnitTestWorkflow(UnitTestCase):
 
 class TestWorkflow(IntegrationTestCase):
 	@classmethod
-	def setUpClass(cls):
+	def setUpClass(cls) -> None:
 		super().setUpClass()
 		make_test_records("User")
 
-	def setUp(self):
+	def setUp(self) -> None:
 		self.patcher = patch("frappe.attach_print", return_value={})
 		self.patcher.start()
 		frappe.db.delete("Workflow Action")
 		self.workflow = create_todo_workflow()
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.set_user("Administrator")
 		self.patcher.stop()
 		frappe.delete_doc("Workflow", "Test ToDo")
@@ -60,13 +60,13 @@ class TestWorkflow(IntegrationTestCase):
 
 		return todo
 
-	def test_wrong_action(self):
+	def test_wrong_action(self) -> None:
 		"""Check illegal action (approve after reject)"""
 		todo = self.test_approve()
 
 		self.assertRaises(WorkflowTransitionError, apply_workflow, todo, "Reject")
 
-	def test_workflow_condition(self):
+	def test_workflow_condition(self) -> None:
 		"""Test condition in transition"""
 		self.workflow.transitions[0].condition = 'doc.status == "Closed"'
 		self.workflow.save()
@@ -77,7 +77,7 @@ class TestWorkflow(IntegrationTestCase):
 		self.workflow.transitions[0].condition = ""
 		self.workflow.save()
 
-	def test_get_common_transition_actions(self):
+	def test_get_common_transition_actions(self) -> None:
 		todo1 = create_new_todo()
 		todo2 = create_new_todo()
 		todo3 = create_new_todo()
@@ -96,7 +96,7 @@ class TestWorkflow(IntegrationTestCase):
 		actions = get_common_transition_actions([todo1, todo2], "ToDo")
 		self.assertListEqual(actions, ["Review"])
 
-	def test_if_workflow_actions_were_processed_using_role(self):
+	def test_if_workflow_actions_were_processed_using_role(self) -> None:
 		user = frappe.get_doc("User", "test2@example.com")
 		user.add_roles("Test Approver", "System Manager")
 		frappe.set_user("test2@example.com")
@@ -112,7 +112,7 @@ class TestWorkflow(IntegrationTestCase):
 		self.assertEqual(len(workflow_actions), 1)
 		self.assertEqual(workflow_actions[0].status, "Completed")
 
-	def test_if_workflow_set_on_action(self):
+	def test_if_workflow_set_on_action(self) -> None:
 		self.workflow._update_state_docstatus = True
 		self.workflow.states[1].doc_status = 1
 		self.workflow.save()
@@ -125,7 +125,7 @@ class TestWorkflow(IntegrationTestCase):
 		self.workflow.states[1].doc_status = 0
 		self.workflow.save()
 
-	def test_syntax_error_in_transition_rule(self):
+	def test_syntax_error_in_transition_rule(self) -> None:
 		self.workflow.transitions[0].condition = 'doc.status =! "Closed"'
 
 		with self.assertRaises(frappe.ValidationError) as se:

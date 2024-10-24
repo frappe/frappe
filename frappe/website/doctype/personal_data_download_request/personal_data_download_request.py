@@ -23,7 +23,7 @@ class PersonalDataDownloadRequest(Document):
 		user_name: DF.Data | None
 	# end: auto-generated types
 
-	def after_insert(self):
+	def after_insert(self) -> None:
 		personal_data = get_user_data(self.user)
 
 		frappe.enqueue_doc(
@@ -35,7 +35,7 @@ class PersonalDataDownloadRequest(Document):
 			now=frappe.flags.in_test,
 		)
 
-	def generate_file_and_send_mail(self, personal_data):
+	def generate_file_and_send_mail(self, personal_data) -> None:
 		"""generate the file link for download"""
 		user_name = self.user_name.replace(" ", "-")
 		f = frappe.get_doc(

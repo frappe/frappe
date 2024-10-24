@@ -27,11 +27,11 @@ class AuditTrail(Document):
 
 	pass
 
-	def validate(self):
+	def validate(self) -> None:
 		self.validate_fields()
 		self.validate_document()
 
-	def validate_fields(self):
+	def validate_fields(self) -> None:
 		fields_dict = {
 			"DocType": self.doctype_name,
 			"Document": self.document,
@@ -40,7 +40,7 @@ class AuditTrail(Document):
 			if not fields_dict[field]:
 				frappe.throw(_("{} field cannot be empty.").format(frappe.bold(field)))
 
-	def validate_document(self):
+	def validate_document(self) -> None:
 		if not frappe.db.exists(self.doctype_name, self.document):
 			frappe.throw(
 				_("The selected document {0} is not a {1}.").format(
@@ -87,7 +87,7 @@ class AuditTrail(Document):
 
 		return amended_document_names
 
-	def get_diff_grid(self, i, diff):
+	def get_diff_grid(self, i, diff) -> None:
 		for change in diff.changed:
 			fieldname = get_field_label(change[0], doctype=self.doctype_name)
 			value = change[-1]
@@ -99,7 +99,7 @@ class AuditTrail(Document):
 				value = change[1]
 				self.changed[fieldname][i - 1] = value or ""
 
-	def get_rows_added_removed_grid(self, i, diff, key, changed_dict):
+	def get_rows_added_removed_grid(self, i, diff, key, changed_dict) -> None:
 		doc_name = self.amended_docs[i].name
 		changed_dict[doc_name] = {}
 		for change in diff[key]:
@@ -107,7 +107,7 @@ class AuditTrail(Document):
 			value_dict = filter_fields_for_gridview(change[-1])
 			changed_dict[doc_name].setdefault(tablename, []).append(value_dict)
 
-	def get_rows_updated_grid(self, i, diff):
+	def get_rows_updated_grid(self, i, diff) -> None:
 		for change in diff.row_changed:
 			table_name = get_field_label(change[0], doctype=self.doctype_name)
 			index = change[1]

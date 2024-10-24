@@ -16,7 +16,7 @@ class UnitTestNotificationLog(UnitTestCase):
 
 
 class TestNotificationLog(IntegrationTestCase):
-	def test_assignment(self):
+	def test_assignment(self) -> None:
 		todo = get_todo()
 		user = get_user()
 
@@ -28,7 +28,7 @@ class TestNotificationLog(IntegrationTestCase):
 		)
 		self.assertEqual(log_type, "Assignment")
 
-	def test_share(self):
+	def test_share(self) -> None:
 		todo = get_todo()
 		user = get_user()
 

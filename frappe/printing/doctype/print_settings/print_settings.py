@@ -65,11 +65,11 @@ class PrintSettings(Document):
 		with_letterhead: DF.Check
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		if self.pdf_page_size == "Custom" and not (self.pdf_page_height and self.pdf_page_width):
 			frappe.throw(_("Page height and width cannot be zero"))
 
-	def on_update(self):
+	def on_update(self) -> None:
 		frappe.clear_cache()
 
 

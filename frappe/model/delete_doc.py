@@ -29,7 +29,7 @@ def delete_doc(
 	ignore_on_trash=False,
 	ignore_missing=True,
 	delete_permanently=False,
-):
+) -> bool:
 	"""
 	Deletes a doc(dt, dn) and validates if it is not submitted and not linked in a live record
 	"""
@@ -179,7 +179,7 @@ def delete_doc(
 					pass
 
 
-def add_to_deleted_document(doc):
+def add_to_deleted_document(doc) -> None:
 	"""Add this document to Deleted Document table. Called after delete"""
 	if doc.doctype != "Deleted Document" and frappe.flags.in_install != "frappe":
 		frappe.get_doc(
@@ -191,7 +191,7 @@ def add_to_deleted_document(doc):
 		).db_insert()
 
 
-def update_naming_series(doc):
+def update_naming_series(doc) -> None:
 	if doc.meta.autoname:
 		if doc.meta.autoname.startswith("naming_series:") and getattr(doc, "naming_series", None):
 			revert_series_if_last(doc.naming_series, doc.name, doc)
@@ -200,7 +200,7 @@ def update_naming_series(doc):
 			revert_series_if_last(doc.meta.autoname, doc.name, doc)
 
 
-def delete_from_table(doctype: str, name: str, ignore_doctypes: list[str], doc):
+def delete_from_table(doctype: str, name: str, ignore_doctypes: list[str], doc) -> None:
 	if doctype != "DocType" and doctype == name:
 		frappe.db.delete("Singles", {"doctype": name})
 	else:
@@ -223,7 +223,7 @@ def delete_from_table(doctype: str, name: str, ignore_doctypes: list[str], doc):
 		frappe.db.delete(child_doctype, {"parenttype": doctype, "parent": name})
 
 
-def update_flags(doc, flags=None, ignore_permissions=False):
+def update_flags(doc, flags=None, ignore_permissions=False) -> None:
 	if ignore_permissions:
 		if not flags:
 			flags = {}
@@ -233,7 +233,7 @@ def update_flags(doc, flags=None, ignore_permissions=False):
 		doc.flags.update(flags)
 
 
-def check_permission_and_not_submitted(doc):
+def check_permission_and_not_submitted(doc) -> None:
 	# permission
 	if (
 		not doc.flags.ignore_permissions
@@ -258,7 +258,7 @@ def check_permission_and_not_submitted(doc):
 		)
 
 
-def check_if_doc_is_linked(doc, method="Delete"):
+def check_if_doc_is_linked(doc, method="Delete") -> None:
 	"""
 	Raises excption if the given doc(dt, dn) is linked in another record.
 	"""
@@ -316,7 +316,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 				raise_link_exists_exception(doc, linked_parent_doctype, reference_docname)
 
 
-def check_if_doc_is_dynamically_linked(doc, method="Delete"):
+def check_if_doc_is_dynamically_linked(doc, method="Delete") -> None:
 	"""Raise `frappe.LinkExistsError` if the document is dynamically linked"""
 	for df in get_dynamic_link_map().get(doc.doctype, []):
 		ignore_linked_doctypes = doc.get("ignore_linked_doctypes") or []
@@ -370,7 +370,7 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 					raise_link_exists_exception(doc, reference_doctype, reference_docname, at_position)
 
 
-def raise_link_exists_exception(doc, reference_doctype, reference_docname, row=""):
+def raise_link_exists_exception(doc, reference_doctype, reference_docname, row="") -> None:
 	doc_link = f'<a href="/app/Form/{doc.doctype}/{doc.name}">{doc.name}</a>'
 	reference_link = f'<a href="/app/Form/{reference_doctype}/{reference_docname}">{reference_docname}</a>'
 
@@ -386,7 +386,7 @@ def raise_link_exists_exception(doc, reference_doctype, reference_docname, row="
 	)
 
 
-def delete_dynamic_links(doctype, name):
+def delete_dynamic_links(doctype, name) -> None:
 	delete_references("ToDo", doctype, name, "reference_type")
 	delete_references("Email Unsubscribe", doctype, name)
 	delete_references("DocShare", doctype, name, "share_doctype", "share_name")
@@ -410,7 +410,7 @@ def delete_references(
 	reference_name,
 	reference_doctype_field="reference_doctype",
 	reference_name_field="reference_name",
-):
+) -> None:
 	frappe.db.delete(
 		doctype, {reference_doctype_field: reference_doctype, reference_name_field: reference_name}
 	)
@@ -422,7 +422,7 @@ def clear_references(
 	reference_name,
 	reference_doctype_field="reference_doctype",
 	reference_name_field="reference_name",
-):
+) -> None:
 	frappe.db.sql(
 		f"""update
 			`tab{doctype}`
@@ -434,11 +434,11 @@ def clear_references(
 	)
 
 
-def clear_timeline_references(link_doctype, link_name):
+def clear_timeline_references(link_doctype, link_name) -> None:
 	frappe.db.delete("Communication Link", {"link_doctype": link_doctype, "link_name": link_name})
 
 
-def insert_feed(doc):
+def insert_feed(doc) -> None:
 	if (
 		frappe.flags.in_install
 		or frappe.flags.in_uninstall
@@ -460,7 +460,7 @@ def insert_feed(doc):
 	).insert(ignore_permissions=True)
 
 
-def delete_controllers(doctype, module):
+def delete_controllers(doctype, module) -> None:
 	"""
 	Delete controller code in the doctype folder
 	"""

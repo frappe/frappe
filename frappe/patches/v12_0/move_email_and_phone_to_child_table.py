@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.reload_doc("contacts", "doctype", "contact_email")
 	frappe.reload_doc("contacts", "doctype", "contact_phone")
 	frappe.reload_doc("contacts", "doctype", "contact")

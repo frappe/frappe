@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.reload_doctype("System Settings")
 	doc = frappe.get_single("System Settings")
 	doc.enable_chat = 1

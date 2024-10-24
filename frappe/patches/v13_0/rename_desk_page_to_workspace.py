@@ -2,7 +2,7 @@ import frappe
 from frappe.model.rename_doc import rename_doc
 
 
-def execute():
+def execute() -> None:
 	if frappe.db.exists("DocType", "Desk Page"):
 		if frappe.db.exists("DocType", "Workspace"):
 			# this patch was not added initially, so this page might still exist

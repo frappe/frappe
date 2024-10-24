@@ -14,10 +14,10 @@ class UnitTestWorkspace(UnitTestCase):
 
 
 class TestWorkspace(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		create_module("Test Module")
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.db.delete("Workspace", {"module": "Test Module"})
 		frappe.db.delete("DocType", {"module": "Test Module"})
 		frappe.delete_doc("Module Def", "Test Module")
@@ -58,7 +58,7 @@ def create_workspace(**args):
 	return workspace
 
 
-def insert_card(workspace, card_label, doctype1, doctype2, country=None):
+def insert_card(workspace, card_label, doctype1, doctype2, country=None) -> None:
 	workspace.append("links", {"type": "Card Break", "label": card_label, "only_for": country})
 
 	create_doctype(doctype1, "Test Module")
@@ -86,7 +86,7 @@ def insert_card(workspace, card_label, doctype1, doctype2, country=None):
 	)
 
 
-def create_doctype(doctype_name, module):
+def create_doctype(doctype_name, module) -> None:
 	frappe.get_doc(
 		{
 			"doctype": "DocType",

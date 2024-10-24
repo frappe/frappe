@@ -15,7 +15,7 @@ class TestPasswordStrength(TestCase):
 		wait=wait_fixed(0.5),
 		reraise=True,
 	)
-	def test_long_password(self):
+	def test_long_password(self) -> None:
 		password = "".join(random.choice(printable) for _ in range(600))
 
 		start_second = time()

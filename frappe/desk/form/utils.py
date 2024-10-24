@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 @frappe.whitelist(methods=["DELETE", "POST"])
-def remove_attach():
+def remove_attach() -> None:
 	"""remove attachment"""
 	fid = frappe.form_dict.get("fid")
 	frappe.delete_doc("File", fid)
@@ -50,7 +50,7 @@ def add_comment(
 
 
 @frappe.whitelist()
-def update_comment(name, content):
+def update_comment(name, content) -> None:
 	"""allow only owner to update comment"""
 	doc = frappe.get_doc("Comment", name)
 
@@ -104,5 +104,5 @@ def get_next(doctype, value, prev, filters=None, sort_order="desc", sort_field="
 		return res[0][0]
 
 
-def get_pdf_link(doctype, docname, print_format="Standard", no_letterhead=0):
+def get_pdf_link(doctype, docname, print_format="Standard", no_letterhead=0) -> str:
 	return f"/api/method/frappe.utils.print_format.download_pdf?doctype={doctype}&name={docname}&format={print_format}&no_letterhead={no_letterhead}"

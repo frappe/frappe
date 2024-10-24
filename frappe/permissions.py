@@ -60,7 +60,7 @@ def print_has_permission_check_logs(func):
 	return inner
 
 
-def _debug_log(log: str):
+def _debug_log(log: str) -> None:
 	if not hasattr(frappe.local, "permission_debug_log"):
 		frappe.local.permission_debug_log = []
 	frappe.local.permission_debug_log.append(log)
@@ -321,7 +321,7 @@ def get_user_permissions(user):
 	return get_user_permissions(user)
 
 
-def has_user_permission(doc, user=None, debug=False):
+def has_user_permission(doc, user=None, debug=False) -> bool:
 	"""Return True if User is allowed to view considering User Permissions."""
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 
@@ -364,7 +364,7 @@ def has_user_permission(doc, user=None, debug=False):
 	# STEP 2: ---------------------------------
 	# check user permissions in all link fields
 
-	def check_user_permission_on_link_fields(d):
+	def check_user_permission_on_link_fields(d) -> bool:
 		# check user permissions for all the link fields of the given
 		# document object d
 		#
@@ -548,7 +548,7 @@ def add_user_permission(
 	applicable_for=None,
 	is_default=0,
 	hide_descendants=0,
-):
+) -> None:
 	"""Add user permission"""
 	from frappe.core.doctype.user_permission.user_permission import user_permission_exists
 
@@ -568,14 +568,14 @@ def add_user_permission(
 		).insert(ignore_permissions=ignore_permissions)
 
 
-def remove_user_permission(doctype, name, user):
+def remove_user_permission(doctype, name, user) -> None:
 	user_permission_name = frappe.db.get_value(
 		"User Permission", dict(user=user, allow=doctype, for_value=name)
 	)
 	frappe.delete_doc("User Permission", user_permission_name)
 
 
-def clear_user_permissions_for_doctype(doctype, user=None):
+def clear_user_permissions_for_doctype(doctype, user=None) -> None:
 	filters = {"allow": doctype}
 	if user:
 		filters["user"] = user
@@ -584,7 +584,7 @@ def clear_user_permissions_for_doctype(doctype, user=None):
 		frappe.delete_doc("User Permission", d.name)
 
 
-def can_import(doctype, raise_exception=False):
+def can_import(doctype, raise_exception=False) -> bool:
 	if not ("System Manager" in frappe.get_roles() or has_permission(doctype, "import")):
 		if raise_exception:
 			raise frappe.PermissionError(f"You are not allowed to import: {doctype}")
@@ -631,7 +631,7 @@ def update_permission_property(
 	return out
 
 
-def setup_custom_perms(parent):
+def setup_custom_perms(parent) -> bool:
 	"""if custom permssions are not setup for the current doctype, set them up"""
 	if not frappe.db.exists("Custom DocPerm", dict(parent=parent)):
 		copy_perms(parent)
@@ -678,7 +678,7 @@ def add_permission(doctype, role, permlevel=0, ptype=None):
 	return custom_docperm.name
 
 
-def copy_perms(parent):
+def copy_perms(parent) -> None:
 	"""Copy all DocPerm in to Custom DocPerm for the given document"""
 	for d in frappe.get_all("DocPerm", fields="*", filters=dict(parent=parent)):
 		custom_perm = frappe.new_doc("Custom DocPerm")
@@ -686,7 +686,7 @@ def copy_perms(parent):
 		custom_perm.insert(ignore_permissions=True)
 
 
-def reset_perms(doctype):
+def reset_perms(doctype) -> None:
 	"""Reset permissions for given doctype."""
 	from frappe.desk.notifications import delete_notification_count_for
 
@@ -738,7 +738,7 @@ def filter_allowed_docs_for_doctype(user_permissions, doctype, with_default_doc=
 	return (allowed_doc, default_doc) if with_default_doc else allowed_doc
 
 
-def push_perm_check_log(log, debug=False):
+def push_perm_check_log(log, debug=False) -> None:
 	debug and _debug_log(log)
 	if frappe.flags.get("has_permission_check_logs") is None:
 		return

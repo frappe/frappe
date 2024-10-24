@@ -46,11 +46,11 @@ class WebsiteTheme(Document):
 		theme_url: DF.Data | None
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		self.validate_if_customizable()
 		self.generate_bootstrap_theme()
 
-	def on_update(self):
+	def on_update(self) -> None:
 		if (
 			not self.custom
 			and frappe.local.conf.get("developer_mode")
@@ -61,35 +61,35 @@ class WebsiteTheme(Document):
 
 		self.clear_cache_if_current_theme()
 
-	def is_standard_and_not_valid_user(self):
+	def is_standard_and_not_valid_user(self) -> bool:
 		return (
 			not self.custom
 			and not frappe.local.conf.get("developer_mode")
 			and not (frappe.flags.in_import or frappe.flags.in_test or frappe.flags.in_migrate)
 		)
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		if self.is_standard_and_not_valid_user():
 			frappe.throw(_("You are not allowed to delete a standard Website Theme"), frappe.PermissionError)
 
-	def validate_if_customizable(self):
+	def validate_if_customizable(self) -> None:
 		if self.is_standard_and_not_valid_user():
 			frappe.throw(_("Please Duplicate this Website Theme to customize."))
 
-	def export_doc(self):
+	def export_doc(self) -> None:
 		"""Export to standard folder `[module]/website_theme/[name]/[name].json`."""
 		from frappe.modules.export_file import export_to_files
 
 		export_to_files(record_list=[["Website Theme", self.name]], create_init=True)
 
-	def clear_cache_if_current_theme(self):
+	def clear_cache_if_current_theme(self) -> None:
 		if frappe.flags.in_install == "frappe":
 			return
 		website_settings = frappe.get_doc("Website Settings", "Website Settings")
 		if getattr(website_settings, "website_theme", None) == self.name:
 			website_settings.clear_cache()
 
-	def generate_bootstrap_theme(self):
+	def generate_bootstrap_theme(self) -> None:
 		from subprocess import PIPE, Popen
 
 		# create theme file in site public files folder
@@ -122,7 +122,7 @@ class WebsiteTheme(Document):
 
 		frappe.msgprint(_("Compiled Successfully"), alert=True)
 
-	def delete_old_theme_files(self, folder_path):
+	def delete_old_theme_files(self, folder_path) -> None:
 		import os
 
 		theme_files: list[Path] = []
@@ -136,7 +136,7 @@ class WebsiteTheme(Document):
 			old_file.unlink()
 
 	@frappe.whitelist()
-	def set_as_default(self):
+	def set_as_default(self) -> None:
 		self.save()
 		website_settings = frappe.get_doc("Website Settings")
 		website_settings.website_theme = self.name
@@ -195,7 +195,7 @@ def get_scss_paths():
 	return import_path_list
 
 
-def after_migrate():
+def after_migrate() -> None:
 	"""
 	Regenerate Active Theme CSS file after migration.
 

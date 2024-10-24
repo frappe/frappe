@@ -30,7 +30,7 @@ def get_change_log(user=None):
 
 	change_log = []
 
-	def set_in_change_log(app, opts, change_log):
+	def set_in_change_log(app, opts, change_log) -> None:
 		from_version = last_known_versions.get(app, {}).get("version") or "0.0.1"
 		to_version = opts["version"]
 
@@ -87,7 +87,7 @@ def get_change_log_for_app(app, from_version, to_version):
 
 
 @frappe.whitelist()
-def update_last_known_versions():
+def update_last_known_versions() -> None:
 	frappe.db.set_value(
 		"User",
 		frappe.session.user,
@@ -324,7 +324,7 @@ def get_source_url(app: str) -> str | None:
 		return remote_url.rstrip("/")
 
 
-def add_message_to_redis(update_json):
+def add_message_to_redis(update_json) -> None:
 	# "update-message" will store the update message string
 	# "changelog-update-user-set" will be a set of users
 	frappe.cache.set_value("changelog-update-info", json.dumps(update_json))
@@ -334,7 +334,7 @@ def add_message_to_redis(update_json):
 
 
 @frappe.whitelist()
-def show_update_popup():
+def show_update_popup() -> None:
 	if frappe.get_system_settings("disable_system_update_notification"):
 		return
 	user = frappe.session.user

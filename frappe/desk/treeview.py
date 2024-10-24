@@ -64,7 +64,7 @@ def _get_children(doctype, parent="", ignore_permissions=False, include_disabled
 
 
 @frappe.whitelist()
-def add_node():
+def add_node() -> None:
 	args = make_tree_args(**frappe.form_dict)
 	doc = frappe.get_doc(args)
 

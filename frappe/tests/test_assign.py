@@ -14,18 +14,18 @@ from frappe.tests import IntegrationTestCase
 
 class TestAssign(IntegrationTestCase):
 	@classmethod
-	def setUpClass(cls):
+	def setUpClass(cls) -> None:
 		super().setUpClass()
 		create_test_doctype(TEST_DOCTYPE)
 
-	def test_assign(self):
+	def test_assign(self) -> None:
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "test"}).insert()
 		if not frappe.db.exists("User", "test@example.com"):
 			frappe.get_doc({"doctype": "User", "email": "test@example.com", "first_name": "Test"}).insert()
 
 		self._test_basic_assign_on_document(todo)
 
-	def _test_basic_assign_on_document(self, doc):
+	def _test_basic_assign_on_document(self, doc) -> None:
 		added = assign(doc, "test@example.com")
 
 		self.assertTrue("test@example.com" in [d.owner for d in added])
@@ -36,11 +36,11 @@ class TestAssign(IntegrationTestCase):
 		assignments = frappe.desk.form.assign_to.get(dict(doctype=doc.doctype, name=doc.name))
 		self.assertEqual(len(assignments), 0)
 
-	def test_assign_single(self):
+	def test_assign_single(self) -> None:
 		c = frappe.get_doc("Contact Us Settings")
 		self._test_basic_assign_on_document(c)
 
-	def test_assignment_count(self):
+	def test_assignment_count(self) -> None:
 		frappe.db.delete("ToDo")
 
 		if not frappe.db.exists("User", "test_assign1@example.com"):
@@ -88,7 +88,7 @@ class TestAssign(IntegrationTestCase):
 
 		frappe.db.rollback()
 
-	def test_assignment_removal(self):
+	def test_assignment_removal(self) -> None:
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "test"}).insert()
 		if not frappe.db.exists("User", "test@example.com"):
 			frappe.get_doc({"doctype": "User", "email": "test@example.com", "first_name": "Test"}).insert()

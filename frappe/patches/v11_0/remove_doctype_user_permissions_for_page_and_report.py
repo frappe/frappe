@@ -4,5 +4,5 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.delete_doc_if_exists("DocType", "User Permission for Page and Report")

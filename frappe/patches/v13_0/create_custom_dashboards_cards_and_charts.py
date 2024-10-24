@@ -3,7 +3,7 @@ from frappe.model.naming import append_number_if_name_exists
 from frappe.utils.dashboard import get_dashboards_with_link
 
 
-def execute():
+def execute() -> None:
 	if (
 		not frappe.db.table_exists("Dashboard Chart")
 		or not frappe.db.table_exists("Number Card")
@@ -37,7 +37,7 @@ def get_modified_docs(doctype):
 	return frappe.get_all(doctype, filters={"owner": "Administrator", "modified_by": ["!=", "Administrator"]})
 
 
-def rename_modified_doc(docname, doctype):
+def rename_modified_doc(docname, doctype) -> None:
 	new_name = docname + " Custom"
 	try:
 		frappe.rename_doc(doctype, docname, new_name)

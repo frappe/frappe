@@ -31,26 +31,26 @@ class PropertySetter(Document):
 		value: DF.SmallText | None
 	# end: auto-generated types
 
-	def autoname(self):
+	def autoname(self) -> None:
 		self.name = "{doctype}-{field}-{property}".format(
 			doctype=self.doc_type, field=self.field_name or self.row_name or "main", property=self.property
 		)
 
-	def validate(self):
+	def validate(self) -> None:
 		self.validate_fieldtype_change()
 
 		if self.is_new():
 			delete_property_setter(self.doc_type, self.property, self.field_name, self.row_name)
 		frappe.clear_cache(doctype=self.doc_type)
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		frappe.clear_cache(doctype=self.doc_type)
 
-	def validate_fieldtype_change(self):
+	def validate_fieldtype_change(self) -> None:
 		if self.property == "fieldtype" and self.field_name in not_allowed_fieldtype_change:
 			frappe.throw(_("Field type cannot be changed for {0}").format(self.field_name))
 
-	def on_update(self):
+	def on_update(self) -> None:
 		if frappe.flags.in_patch:
 			self.flags.validate_fields_for_doctype = False
 
@@ -97,7 +97,7 @@ def make_property_setter(
 	return property_setter
 
 
-def delete_property_setter(doc_type, property=None, field_name=None, row_name=None):
+def delete_property_setter(doc_type, property=None, field_name=None, row_name=None) -> None:
 	"""delete other property setters on this, if this is new"""
 	filters = {"doc_type": doc_type}
 	if property:

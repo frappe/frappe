@@ -22,7 +22,7 @@ class Tag(Document):
 	pass
 
 
-def check_user_tags(dt):
+def check_user_tags(dt) -> None:
 	"if the user does not have a tags column, then it creates one"
 	try:
 		doctype = DocType(dt)
@@ -41,7 +41,7 @@ def add_tag(tag, dt, dn, color=None):
 
 
 @frappe.whitelist()
-def add_tags(tags, dt, docs, color=None):
+def add_tags(tags, dt, docs, color=None) -> None:
 	"adds a new tag to a record, and creates the Tag master"
 	tags = frappe.parse_json(tags)
 	docs = frappe.parse_json(docs)
@@ -51,7 +51,7 @@ def add_tags(tags, dt, docs, color=None):
 
 
 @frappe.whitelist()
-def remove_tag(tag, dt, dn):
+def remove_tag(tag, dt, dn) -> None:
 	"removes tag from the record"
 	DocTags(dt).remove(dn, tag)
 
@@ -74,7 +74,7 @@ def get_tags(doctype, txt):
 class DocTags:
 	"""Tags for a particular doctype"""
 
-	def __init__(self, dt):
+	def __init__(self, dt) -> None:
 		self.dt = dt
 
 	def get_tag_fields(self):
@@ -85,7 +85,7 @@ class DocTags:
 		"""Return tag for a particular item."""
 		return (frappe.db.get_value(self.dt, dn, "_user_tags", ignore=1) or "").strip()
 
-	def add(self, dn, tag):
+	def add(self, dn, tag) -> None:
 		"""Add a new user tag."""
 		tl = self.get_tags(dn).split(",")
 		if tag not in tl:
@@ -94,12 +94,12 @@ class DocTags:
 				frappe.get_doc({"doctype": "Tag", "name": tag}).insert(ignore_permissions=True)
 			self.update(dn, tl)
 
-	def remove(self, dn, tag):
+	def remove(self, dn, tag) -> None:
 		"""Remove a user tag."""
 		tl = self.get_tags(dn).split(",")
 		self.update(dn, filter(lambda x: x.lower() != tag.lower(), tl))
 
-	def remove_all(self, dn):
+	def remove_all(self, dn) -> None:
 		"""Remove all user tags (call before delete)."""
 		self.update(dn, [])
 
@@ -128,14 +128,14 @@ class DocTags:
 			else:
 				raise
 
-	def setup(self):
+	def setup(self) -> None:
 		"""Add the `_user_tags` column if not exists."""
 		from frappe.database.schema import add_column
 
 		add_column(self.dt, "_user_tags", "Data")
 
 
-def delete_tags_for_document(doc):
+def delete_tags_for_document(doc) -> None:
 	"""Delete the Tag Link entry of a document that has been deleted.
 
 	:param doc: Deleted document
@@ -146,7 +146,7 @@ def delete_tags_for_document(doc):
 	frappe.db.delete("Tag Link", {"document_type": doc.doctype, "document_name": doc.name})
 
 
-def update_tags(doc, tags):
+def update_tags(doc, tags) -> None:
 	"""Add tags for documents.
 
 	:param doc: Document to be added to global tags

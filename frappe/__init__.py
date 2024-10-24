@@ -473,7 +473,7 @@ def get_conf(site: str | None = None) -> _dict[str, Any]:
 
 
 class init_site:
-	def __init__(self, site=None):
+	def __init__(self, site=None) -> None:
 		"""If site is None, initialize it for empty site ('') to load common_site_config.json"""
 		self.site = site or ""
 
@@ -481,11 +481,11 @@ class init_site:
 		init(self.site)
 		return local
 
-	def __exit__(self, type, value, traceback):
+	def __exit__(self, type, value, traceback) -> None:
 		destroy()
 
 
-def destroy():
+def destroy() -> None:
 	"""Closes connection and releases werkzeug local."""
 	if db:
 		db.close()
@@ -493,7 +493,7 @@ def destroy():
 	release_local(local)
 
 
-def setup_redis_cache_connection():
+def setup_redis_cache_connection() -> None:
 	"""Defines `frappe.cache` as `RedisWrapper` instance"""
 	global cache
 
@@ -633,11 +633,11 @@ def msgprint(
 	_raise_exception()
 
 
-def toast(message: str, indicator: Literal["blue", "green", "orange", "red", "yellow"] | None = None):
+def toast(message: str, indicator: Literal["blue", "green", "orange", "red", "yellow"] | None = None) -> None:
 	frappe.msgprint(message, indicator=indicator, alert=True)
 
 
-def clear_messages():
+def clear_messages() -> None:
 	local.message_log = []
 
 
@@ -645,7 +645,7 @@ def get_message_log() -> list[dict]:
 	return [msg_out for msg_out in local.message_log]
 
 
-def clear_last_message():
+def clear_last_message() -> None:
 	if len(local.message_log) > 0:
 		local.message_log = local.message_log[:-1]
 
@@ -681,11 +681,11 @@ def throw(
 	)
 
 
-def throw_permission_error():
+def throw_permission_error() -> None:
 	throw(_("Not permitted"), PermissionError)
 
 
-def create_folder(path, with_init=False):
+def create_folder(path, with_init=False) -> None:
 	"""Create a folder in the given path and add an `__init__.py` file (optional).
 
 	:param path: Folder path.
@@ -699,7 +699,7 @@ def create_folder(path, with_init=False):
 			touch_file(os.path.join(path, "__init__.py"))
 
 
-def set_user(username: str):
+def set_user(username: str) -> None:
 	"""Set current user.
 
 	:param username: **User** name to set as current user."""
@@ -920,7 +920,7 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 	return innerfn
 
 
-def is_whitelisted(method):
+def is_whitelisted(method) -> None:
 	from frappe.utils import sanitize_html
 
 	is_guest = session["user"] == "Guest"
@@ -1028,7 +1028,7 @@ def get_domain_data(module):
 			raise
 
 
-def clear_cache(user: str | None = None, doctype: str | None = None):
+def clear_cache(user: str | None = None, doctype: str | None = None) -> None:
 	"""Clear **User**, **DocType** or global cache.
 
 	:param user: If user is given, only user cache is cleared.
@@ -1273,12 +1273,12 @@ def can_cache_doc(args) -> str | None:
 		return get_document_cache_key(doctype, name)
 
 
-def get_document_cache_key(doctype: str, name: str):
+def get_document_cache_key(doctype: str, name: str) -> str:
 	return f"document_cache::{doctype}::{name}"
 
 
 def clear_document_cache(doctype: str, name: str | None = None) -> None:
-	def clear_in_redis():
+	def clear_in_redis() -> None:
 		if name is not None:
 			cache.delete_value(get_document_cache_key(doctype, name))
 		else:
@@ -1442,12 +1442,12 @@ def delete_doc(
 	)
 
 
-def delete_doc_if_exists(doctype, name, force=0):
+def delete_doc_if_exists(doctype, name, force=0) -> None:
 	"""Delete document if exists."""
 	delete_doc(doctype, name, force=force, ignore_missing=True)
 
 
-def reload_doctype(doctype, force=False, reset_permissions=False):
+def reload_doctype(doctype, force=False, reset_permissions=False) -> None:
 	"""Reload DocType from model (`[module]/[doctype]/[name]/[name].json`) files."""
 	reload_doc(
 		scrub(db.get_value("DocType", doctype, "module")),
@@ -1655,7 +1655,7 @@ def _load_app_hooks(app_name: str | None = None):
 			print(f'Could not find app "{app}": \n{e}')
 			raise
 
-		def _is_valid_hook(obj):
+		def _is_valid_hook(obj) -> bool:
 			return not isinstance(obj, types.ModuleType | types.FunctionType | type)
 
 		for key, value in inspect.getmembers(app_hooks, predicate=_is_valid_hook):
@@ -1686,7 +1686,7 @@ def get_hooks(
 	return hooks
 
 
-def append_hook(target, key, value):
+def append_hook(target, key, value) -> None:
 	"""appends a hook to the the target dict.
 
 	If the hook key, exists, it will make it a key.
@@ -1845,7 +1845,7 @@ def get_newargs(fn: Callable, kwargs: dict[str, Any]) -> dict[str, Any]:
 
 def make_property_setter(
 	args, ignore_validate=False, validate_fields_for_doctype=True, is_system_generated=True
-):
+) -> None:
 	"""Create a new **Property Setter** (for overriding DocType and DocField properties).
 
 	If doctype is not specified, it will create a property setter for all fields with the
@@ -1898,7 +1898,7 @@ def make_property_setter(
 		ps.insert()
 
 
-def import_doc(path):
+def import_doc(path) -> None:
 	"""Import a file using Data Import."""
 	from frappe.core.doctype.data_import.data_import import import_doc
 
@@ -1912,7 +1912,7 @@ def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
 
 	from frappe.model.base_document import BaseDocument
 
-	def remove_no_copy_fields(d):
+	def remove_no_copy_fields(d) -> None:
 		for df in d.meta.get("fields", {"no_copy": 1}):
 			if hasattr(d, df.fieldname):
 				d.set(df.fieldname, None)
@@ -1961,7 +1961,7 @@ def respond_as_web_page(
 	fullpage=False,
 	width=None,
 	template="message",
-):
+) -> None:
 	"""Send response as a web page with a message rather than JSON. Used to show permission errors etc.
 
 	:param title: Page title and heading.
@@ -2490,7 +2490,7 @@ def get_version(doctype, name, limit=None, head=False, raise_err=True):
 
 
 @whitelist(allow_guest=True)
-def ping():
+def ping() -> str:
 	return "pong"
 
 
@@ -2564,7 +2564,7 @@ def validate_and_sanitize_search_inputs(fn):
 	return wrapper
 
 
-def _register_fault_handler():
+def _register_fault_handler() -> None:
 	import io
 
 	# Some libraries monkey patch stderr, we need actual fd

@@ -16,7 +16,7 @@ class UnitTestWebsiteSettings(UnitTestCase):
 
 
 class TestWebsiteSettings(IntegrationTestCase):
-	def test_child_items_in_top_bar(self):
+	def test_child_items_in_top_bar(self) -> None:
 		ws = frappe.get_doc("Website Settings")
 		ws.append(
 			"top_bar_items",
@@ -37,7 +37,7 @@ class TestWebsiteSettings(IntegrationTestCase):
 		else:
 			self.fail("Child items not found")
 
-	def test_redirect_setups(self):
+	def test_redirect_setups(self) -> None:
 		ws = frappe.get_doc("Website Settings")
 
 		ws.append("route_redirects", {"source": "/engineering/(*.)", "target": "/development/(*.)"})

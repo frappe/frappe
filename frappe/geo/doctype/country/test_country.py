@@ -30,8 +30,8 @@ class UnitTestCountry(UnitTestCase):
 
 
 class TestCountry(IntegrationTestCase):
-	def test_bulk_insert_correctness(self):
-		def clear_tables():
+	def test_bulk_insert_correctness(self) -> None:
+		def clear_tables() -> None:
 			frappe.db.delete("Currency")
 			frappe.db.delete("Country")
 

@@ -101,7 +101,7 @@ def read_csv_content(fcontent):
 
 
 @frappe.whitelist()
-def send_csv_to_client(args):
+def send_csv_to_client(args) -> None:
 	if isinstance(args, str):
 		args = json.loads(args)
 
@@ -120,26 +120,26 @@ def to_csv(data):
 	return writer.getvalue()
 
 
-def build_csv_response(data, filename):
+def build_csv_response(data, filename) -> None:
 	frappe.response["result"] = cstr(to_csv(data))
 	frappe.response["doctype"] = filename
 	frappe.response["type"] = "csv"
 
 
 class UnicodeWriter:
-	def __init__(self, encoding="utf-8", quoting=csv.QUOTE_NONNUMERIC):
+	def __init__(self, encoding="utf-8", quoting=csv.QUOTE_NONNUMERIC) -> None:
 		self.encoding = encoding
 		self.queue = StringIO()
 		self.writer = csv.writer(self.queue, quoting=quoting)
 
-	def writerow(self, row):
+	def writerow(self, row) -> None:
 		self.writer.writerow(row)
 
 	def getvalue(self):
 		return self.queue.getvalue()
 
 
-def check_record(d):
+def check_record(d) -> None:
 	"""check for mandatory, select options, dates. these should ideally be in doclist"""
 	from frappe.utils.dateutils import parse_date
 
@@ -168,7 +168,7 @@ def check_record(d):
 				d[key] = flt(val)
 
 
-def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False):
+def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False) -> str:
 	"""import main (non child) document"""
 	if d.get("name") and frappe.db.exists(doctype, d["name"]):
 		if overwrite:
@@ -195,7 +195,7 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False)
 		return "Inserted row (#%d) %s" % (row_idx + 1, getlink(doctype, doc.get("name")))
 
 
-def getlink(doctype, name):
+def getlink(doctype, name) -> str:
 	return '<a href="/app/Form/{doctype}/{name}">{name}</a>'.format(**locals())
 
 
@@ -234,7 +234,7 @@ def get_csv_content_from_google_sheets(url):
 		response.raise_for_status()
 
 
-def validate_google_sheets_url(url):
+def validate_google_sheets_url(url) -> None:
 	from urllib.parse import urlparse
 
 	u = urlparse(url)

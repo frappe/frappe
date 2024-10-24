@@ -18,6 +18,6 @@ class UTMMedium(Document):
 		slug: DF.Data | None
 	# end: auto-generated types
 
-	def before_save(self):
+	def before_save(self) -> None:
 		if self.slug:
 			self.slug = frappe.utils.slug(self.slug)

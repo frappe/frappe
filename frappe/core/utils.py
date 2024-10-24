@@ -16,7 +16,7 @@ def get_parent_doc(doc):
 	return doc.parent_doc
 
 
-def set_timeline_doc(doc):
+def set_timeline_doc(doc) -> None:
 	"""Set timeline_doctype and timeline_name"""
 	parent_doc = get_parent_doc(doc)
 	if (doc.timeline_doctype and doc.timeline_name) or not parent_doc:

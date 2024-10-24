@@ -9,7 +9,7 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestLinkedWith(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		parent_doctype = new_doctype("Parent DocType")
 		parent_doctype.is_submittable = 1
 		parent_doctype.insert()
@@ -62,12 +62,12 @@ class TestLinkedWith(IntegrationTestCase):
 		child_doctype2.is_submittable = 1
 		child_doctype2.insert()
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		for doctype in ["Parent DocType", "Child DocType1", "Child DocType2"]:
 			frappe.delete_doc("DocType", doctype)
 			frappe.db.commit()
 
-	def test_get_doctype_references_by_link_field(self):
+	def test_get_doctype_references_by_link_field(self) -> None:
 		references = linked_with.get_references_across_doctypes_by_link_field(to_doctypes=["Parent DocType"])
 		self.assertEqual(len(references["Parent DocType"]), 3)
 		self.assertIn(
@@ -92,7 +92,7 @@ class TestLinkedWith(IntegrationTestCase):
 			{"doctype": "Child DocType1", "fieldname": "parent_doctype"}, references["Parent DocType"]
 		)
 
-	def test_get_doctype_references_by_dlink_field(self):
+	def test_get_doctype_references_by_dlink_field(self) -> None:
 		references = linked_with.get_references_across_doctypes_by_dynamic_link_field(
 			to_doctypes=["Parent DocType"],
 			limit_link_doctypes=["Parent DocType", "Child DocType1", "Child DocType2"],
@@ -121,7 +121,7 @@ class TestLinkedWith(IntegrationTestCase):
 		child_record.delete()
 		parent_record.delete()
 
-	def test_get_submitted_linked_docs(self):
+	def test_get_submitted_linked_docs(self) -> None:
 		parent_record = frappe.get_doc({"doctype": "Parent DocType"}).insert()
 
 		child_record = frappe.get_doc(
@@ -139,7 +139,7 @@ class TestLinkedWith(IntegrationTestCase):
 		child_record.delete()
 		parent_record.delete()
 
-	def test_check_delete_integrity(self):
+	def test_check_delete_integrity(self) -> None:
 		"""Don't allow deleting cancelled document if amendment exists"""
 		doc = frappe.get_doc({"doctype": "Parent DocType"}).insert()
 		doc.submit()
@@ -153,7 +153,7 @@ class TestLinkedWith(IntegrationTestCase):
 
 		self.assertRaises(frappe.LinkExistsError, doc.delete)
 
-	def test_reserved_keywords(self):
+	def test_reserved_keywords(self) -> None:
 		dt_name = "Test " + "".join(random.sample(string.ascii_lowercase, 10))
 		new_doctype(
 			dt_name,

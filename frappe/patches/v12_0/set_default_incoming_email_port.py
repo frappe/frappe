@@ -2,7 +2,7 @@ import frappe
 from frappe.email.utils import get_port
 
 
-def execute():
+def execute() -> None:
 	"""
 	1. Set default incoming email port in email domain
 	2. Set default incoming email port in all email account (for those account where domain is missing)
@@ -14,7 +14,7 @@ def execute():
 	setup_incoming_email_port_in_email_accounts()
 
 
-def setup_incoming_email_port_in_email_domains():
+def setup_incoming_email_port_in_email_domains() -> None:
 	email_domains = frappe.get_all("Email Domain", ["incoming_port", "use_imap", "use_ssl", "name"])
 	for domain in email_domains:
 		if not domain.incoming_port:
@@ -30,7 +30,7 @@ def setup_incoming_email_port_in_email_domains():
 			)
 
 
-def setup_incoming_email_port_in_email_accounts():
+def setup_incoming_email_port_in_email_accounts() -> None:
 	email_accounts = frappe.get_all(
 		"Email Account", ["incoming_port", "use_imap", "use_ssl", "name", "enable_incoming"]
 	)

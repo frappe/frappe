@@ -36,13 +36,13 @@ class EnergyPointRule(Document):
 		user_field: DF.Literal[None]
 	# end: auto-generated types
 
-	def on_update(self):
+	def on_update(self) -> None:
 		frappe.cache_manager.clear_doctype_map("Energy Point Rule", self.reference_doctype)
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		frappe.cache_manager.clear_doctype_map("Energy Point Rule", self.reference_doctype)
 
-	def apply(self, doc):
+	def apply(self, doc) -> None:
 		if self.rule_condition_satisfied(doc):
 			multiplier = 1
 
@@ -135,7 +135,7 @@ def process_energy_points(doc, state):
 		frappe.get_doc("Energy Point Rule", d.get("name")).apply(doc)
 
 
-def revert_points_for_cancelled_doc(doc):
+def revert_points_for_cancelled_doc(doc) -> None:
 	energy_point_logs = frappe.get_all(
 		"Energy Point Log",
 		{"reference_doctype": doc.doctype, "reference_name": doc.name, "type": "Auto"},

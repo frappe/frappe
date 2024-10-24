@@ -462,7 +462,7 @@ def make_layout(doc: "Document", meta: "Meta", format_data=None) -> list:
 	def get_new_section():
 		return {"columns": [], "has_data": False}
 
-	def append_empty_field_dict_to_page_column(page):
+	def append_empty_field_dict_to_page_column(page) -> None:
 		"""append empty columns dict to page layout"""
 		if not page[-1]["columns"]:
 			page[-1]["columns"].append({"fields": []})

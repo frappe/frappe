@@ -28,7 +28,7 @@ class RedisearchWrapper(Search):
 class RedisWrapper(redis.Redis):
 	"""Redis client that will automatically prefix conf.db_name"""
 
-	def connected(self):
+	def connected(self) -> bool:
 		try:
 			self.ping()
 			return True
@@ -50,7 +50,7 @@ class RedisWrapper(redis.Redis):
 
 		return f"{frappe.conf.db_name}|{key}".encode()
 
-	def set_value(self, key, val, user=None, expires_in_sec=None, shared=False):
+	def set_value(self, key, val, user=None, expires_in_sec=None, shared=False) -> None:
 		"""Sets cache value.
 
 		:param key: Cache key
@@ -117,14 +117,14 @@ class RedisWrapper(redis.Redis):
 			regex = re.compile(cstr(key).replace("|", r"\|").replace("*", r"[\w]*"))
 			return [k for k in list(frappe.local.cache) if regex.match(cstr(k))]
 
-	def delete_keys(self, key):
+	def delete_keys(self, key) -> None:
 		"""Delete keys with wildcard `*`."""
 		self.delete_value(self.get_keys(key), make_keys=False)
 
-	def delete_key(self, *args, **kwargs):
+	def delete_key(self, *args, **kwargs) -> None:
 		self.delete_value(*args, **kwargs)
 
-	def delete_value(self, keys, user=None, make_keys=True, shared=False):
+	def delete_value(self, keys, user=None, make_keys=True, shared=False) -> None:
 		"""Delete value, list of values."""
 		if not keys:
 			return
@@ -172,7 +172,7 @@ class RedisWrapper(redis.Redis):
 		shared: bool = False,
 		*args,
 		**kwargs,
-	):
+	) -> None:
 		if key is None:
 			return
 
@@ -239,7 +239,7 @@ class RedisWrapper(redis.Redis):
 		keys: str | list | tuple,
 		shared=False,
 		pipeline: redis.client.Pipeline | None = None,
-	):
+	) -> None:
 		"""
 		A wrapper around redis' HDEL command
 
@@ -282,7 +282,7 @@ class RedisWrapper(redis.Redis):
 			except redis.exceptions.ConnectionError:
 				pass
 
-	def hdel_names(self, names: list | tuple, key: str):
+	def hdel_names(self, names: list | tuple, key: str) -> None:
 		"""
 		A function to call HDEL on multiple hash names with a common key, run in a single pipeline
 
@@ -297,7 +297,7 @@ class RedisWrapper(redis.Redis):
 		except redis.exceptions.ConnectionError:
 			pass
 
-	def hdel_keys(self, name_starts_with, key):
+	def hdel_keys(self, name_starts_with, key) -> None:
 		"""Delete hash names with wildcard `*` and key"""
 		pipeline = self.pipeline()
 		for name in self.get_keys(name_starts_with):
@@ -314,11 +314,11 @@ class RedisWrapper(redis.Redis):
 		except redis.exceptions.ConnectionError:
 			return []
 
-	def sadd(self, name, *values):
+	def sadd(self, name, *values) -> None:
 		"""Add a member/members to a given set"""
 		super().sadd(self.make_key(name), *values)
 
-	def srem(self, name, *values):
+	def srem(self, name, *values) -> None:
 		"""Remove a specific member/list of members from the set."""
 		super().srem(self.make_key(name), *values)
 

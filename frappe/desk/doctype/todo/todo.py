@@ -37,7 +37,7 @@ class ToDo(Document):
 
 	DocType = "ToDo"
 
-	def validate(self):
+	def validate(self) -> None:
 		self._assignment = None
 		if self.is_new():
 			if self.assigned_by == self.allocated_to:
@@ -65,17 +65,17 @@ class ToDo(Document):
 
 				self._assignment = {"text": removal_message, "comment_type": "Assignment Completed"}
 
-	def on_update(self):
+	def on_update(self) -> None:
 		if self._assignment:
 			self.add_assign_comment(**self._assignment)
 
 		self.update_in_reference()
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		self.delete_communication_links()
 		self.update_in_reference()
 
-	def add_assign_comment(self, text, comment_type):
+	def add_assign_comment(self, text, comment_type) -> None:
 		if not (self.reference_type and self.reference_name):
 			return
 
@@ -142,7 +142,7 @@ class ToDo(Document):
 
 
 # NOTE: todo is viewable if a user is an owner, or set as assigned_to value, or has any role that is allowed to access ToDo doctype.
-def on_doctype_update():
+def on_doctype_update() -> None:
 	frappe.db.add_index("ToDo", ["reference_type", "reference_name"])
 
 
@@ -173,5 +173,5 @@ def has_permission(doc, ptype="read", user=None):
 
 
 @frappe.whitelist()
-def new_todo(description):
+def new_todo(description) -> None:
 	frappe.get_doc({"doctype": "ToDo", "description": description}).insert()

@@ -20,7 +20,7 @@ class RoleReplication(Document):
 	# end: auto-generated types
 
 	@frappe.whitelist()
-	def replicate_role(self):
+	def replicate_role(self) -> None:
 		frappe.only_for("System Manager")
 
 		new_role = frappe.db.get_value("Role", self.new_role, "name")

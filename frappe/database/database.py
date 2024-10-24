@@ -82,7 +82,7 @@ class Database:
 		password=None,
 		port=None,
 		cur_db_name=None,
-	):
+	) -> None:
 		self.setup_type_map()
 		self.socket = socket
 		self.host = host
@@ -111,10 +111,10 @@ class Database:
 		# self.db_type: str
 		# self.last_query (lazy) attribute of last sql query executed
 
-	def setup_type_map(self):
+	def setup_type_map(self) -> None:
 		pass
 
-	def connect(self):
+	def connect(self) -> None:
 		"""Connects to a database as set in `site_config.json`."""
 		self._conn: "MariadbConnection" | "PostgresConnection" = self.get_connection()
 		self._cursor: "MariadbCursor" | "PostgresCursor" = self._conn.cursor()
@@ -130,7 +130,7 @@ class Database:
 		If any statement takes more time it will be killed along with entire transaction."""
 		raise NotImplementedError
 
-	def use(self, db_name):
+	def use(self, db_name) -> None:
 		"""`USE` db_name."""
 		self._conn.select_db(db_name)
 		self.cur_db_name = db_name
@@ -148,7 +148,7 @@ class Database:
 	def _transform_result(self, result: list[tuple] | tuple[tuple]) -> tuple[tuple]:
 		return result
 
-	def _clean_up(self):
+	def _clean_up(self) -> None:
 		pass
 
 	def sql(
@@ -392,7 +392,7 @@ class Database:
 		"""Wrap the object with str to generate mogrified query."""
 		return LazyMogrify(query, values)
 
-	def explain_query(self, query, values=EmptyQueryValues):
+	def explain_query(self, query, values=EmptyQueryValues) -> None:
 		"""Print `EXPLAIN` in error log."""
 		frappe.log("--- query explain ---")
 		try:
@@ -413,7 +413,7 @@ class Database:
 		"""
 		return self.sql(query, values, **kwargs, debug=debug, pluck=True)
 
-	def sql_ddl(self, query, debug=False):
+	def sql_ddl(self, query, debug=False) -> None:
 		"""Commit and execute a query. DDL (Data Definition Language) queries that alter schema
 		autocommit in MariaDB."""
 		transaction_control = self._disable_transaction_control
@@ -457,7 +457,7 @@ class Database:
 		return [frappe._dict(zip(keys, row, strict=False)) for row in result]
 
 	@staticmethod
-	def clear_db_table_cache(query):
+	def clear_db_table_cache(query) -> None:
 		if query and is_query_type(query, ("drop", "create")):
 			frappe.cache.delete_key("db_tables")
 
@@ -811,7 +811,7 @@ class Database:
 		modified_by=None,
 		update_modified=True,
 		debug=False,
-	):
+	) -> None:
 		"""Set field value of Single DocType.
 
 		:param doctype: DocType of the single object
@@ -893,7 +893,7 @@ class Database:
 		modified_by=None,
 		update_modified=True,
 		debug=False,
-	):
+	) -> None:
 		"""Set a single value in the database, do not call the ORM triggers
 		but update the modified timestamp (unless specified not to).
 
@@ -956,7 +956,7 @@ class Database:
 		if dt in self.value_cache:
 			del self.value_cache[dt]
 
-	def set_global(self, key, val, user="__global"):
+	def set_global(self, key, val, user="__global") -> None:
 		"""Save a global key value. Global values will be automatically set if they match fieldname."""
 		self.set_default(key, val, user)
 
@@ -970,12 +970,12 @@ class Database:
 		return isinstance(d, list) and d[0] or d
 
 	@staticmethod
-	def set_default(key, val, parent="__default", parenttype=None):
+	def set_default(key, val, parent="__default", parenttype=None) -> None:
 		"""Sets a global / user default value."""
 		frappe.defaults.set_default(key, val, parent, parenttype)
 
 	@staticmethod
-	def add_default(key, val, parent="__default", parenttype=None):
+	def add_default(key, val, parent="__default", parenttype=None) -> None:
 		"""Append a default value for a key, there can be multiple default values for a particular key."""
 		frappe.defaults.add_default(key, val, parent, parenttype)
 
@@ -991,12 +991,12 @@ class Database:
 
 		return defaults.get(frappe.scrub(key))
 
-	def begin(self, *, read_only=False):
+	def begin(self, *, read_only=False) -> None:
 		read_only = read_only or frappe.flags.read_only
 		mode = "READ ONLY" if read_only else ""
 		self.sql(f"START TRANSACTION {mode}")
 
-	def commit(self):
+	def commit(self) -> None:
 		"""Commit current transaction. Calls SQL `COMMIT`."""
 		if self._disable_transaction_control:
 			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)
@@ -1012,7 +1012,7 @@ class Database:
 
 		self.after_commit.run()
 
-	def rollback(self, *, save_point=None):
+	def rollback(self, *, save_point=None) -> None:
 		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
 		if save_point:
 			self.sql(f"rollback to savepoint {save_point}")
@@ -1029,7 +1029,7 @@ class Database:
 		else:
 			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)
 
-	def savepoint(self, save_point):
+	def savepoint(self, save_point) -> None:
 		"""Savepoints work as a nested transaction.
 
 		Changes can be undone to a save point by doing frappe.db.rollback(save_point)
@@ -1039,14 +1039,14 @@ class Database:
 		        Avoid using savepoints when writing to filesystem."""
 		self.sql(f"savepoint {save_point}")
 
-	def release_savepoint(self, save_point):
+	def release_savepoint(self, save_point) -> None:
 		self.sql(f"release savepoint {save_point}")
 
 	def field_exists(self, dt, fn):
 		"""Return true of field exists."""
 		return self.exists("DocField", {"fieldname": fn, "parent": dt})
 
-	def table_exists(self, doctype, cached=True):
+	def table_exists(self, doctype, cached=True) -> bool:
 		"""Return True if table for given doctype exists."""
 		return f"tab{doctype}" in self.get_tables(cached=cached)
 
@@ -1163,7 +1163,7 @@ class Database:
 			raise self.TableMissingError("DocType", doctype)
 		return columns
 
-	def has_column(self, doctype, column):
+	def has_column(self, doctype, column) -> bool:
 		"""Return True if column exists in database."""
 		return column in self.get_table_columns(doctype)
 
@@ -1185,7 +1185,7 @@ class Database:
 	def get_system_setting(self, key):
 		return frappe.get_system_settings(key)
 
-	def close(self):
+	def close(self) -> None:
 		"""Close database connection."""
 		if self._conn:
 			self._conn.close()
@@ -1252,7 +1252,7 @@ class Database:
 		else:
 			return None
 
-	def log_touched_tables(self, query):
+	def log_touched_tables(self, query) -> None:
 		if is_query_type(query, ("insert", "delete", "update", "alter", "drop", "rename")):
 			# single_word_regex is designed to match following patterns
 			# `tabXxx`, tabXxx and "tabXxx"
@@ -1284,7 +1284,7 @@ class Database:
 		ignore_duplicates=False,
 		*,
 		chunk_size=10_000,
-	):
+	) -> None:
 		"""
 		Insert multiple records at a time
 
@@ -1312,7 +1312,7 @@ class Database:
 
 		return create_sequence(*args, **kwargs)
 
-	def set_next_sequence_val(self, *args, **kwargs):
+	def set_next_sequence_val(self, *args, **kwargs) -> None:
 		from frappe.database.sequence import set_next_val
 
 		set_next_val(*args, **kwargs)

@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	if frappe.db.table_exists("Prepared Report"):
 		frappe.reload_doc("core", "doctype", "prepared_report")
 		prepared_reports = frappe.get_all("Prepared Report")

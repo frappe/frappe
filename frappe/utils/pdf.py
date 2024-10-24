@@ -339,13 +339,13 @@ def prepare_header_footer(soup: BeautifulSoup):
 	return options
 
 
-def cleanup(options):
+def cleanup(options) -> None:
 	for key in ("header-html", "footer-html", "cookie-jar"):
 		if options.get(key) and os.path.exists(options[key]):
 			os.remove(options[key])
 
 
-def toggle_visible_pdf(soup):
+def toggle_visible_pdf(soup) -> None:
 	for tag in soup.find_all(attrs={"class": "visible-pdf"}):
 		# remove visible-pdf class to unhide
 		tag.attrs["class"].remove("visible-pdf")
@@ -357,7 +357,7 @@ def toggle_visible_pdf(soup):
 
 @frappe.whitelist()
 @redis_cache(ttl=60 * 60)
-def is_wkhtmltopdf_valid():
+def is_wkhtmltopdf_valid() -> bool:
 	try:
 		output = subprocess.check_output(["wkhtmltopdf", "--version"])
 		return "qt" in output.decode("utf-8").lower()

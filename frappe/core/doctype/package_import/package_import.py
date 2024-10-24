@@ -28,11 +28,11 @@ class PackageImport(Document):
 		log: DF.Code | None
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		if self.activate:
 			self.import_package()
 
-	def import_package(self):
+	def import_package(self) -> None:
 		attachment = get_attachments(self.doctype, self.name)
 
 		if not attachment:

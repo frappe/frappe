@@ -42,7 +42,7 @@ class GoogleDrive(Document):
 		send_email_for_successful_backup: DF.Check
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		doc_before_save = self.get_doc_before_save()
 		if doc_before_save and doc_before_save.backup_folder_name != self.backup_folder_name:
 			self.backup_folder_id = ""
@@ -99,10 +99,10 @@ def get_google_drive_object():
 	return google_drive, account
 
 
-def check_for_folder_in_google_drive():
+def check_for_folder_in_google_drive() -> None:
 	"""Checks if folder exists in Google Drive else create it."""
 
-	def _create_folder_in_google_drive(google_drive, account):
+	def _create_folder_in_google_drive(google_drive, account) -> None:
 		file_metadata = {
 			"name": account.backup_folder_name,
 			"mimeType": "application/vnd.google-apps.folder",
@@ -143,7 +143,7 @@ def check_for_folder_in_google_drive():
 
 
 @frappe.whitelist()
-def take_backup():
+def take_backup() -> None:
 	"""Enqueue longjob for taking backup to Google Drive"""
 	enqueue(
 		"frappe.integrations.doctype.google_drive.google_drive.upload_system_backup_to_google_drive",
@@ -204,24 +204,24 @@ def upload_system_backup_to_google_drive():
 	return _("Google Drive Backup Successful.")
 
 
-def daily_backup():
+def daily_backup() -> None:
 	drive_settings = frappe.db.get_singles_dict("Google Drive", cast=True)
 	if drive_settings.enable and drive_settings.frequency == "Daily":
 		upload_system_backup_to_google_drive()
 
 
-def weekly_backup():
+def weekly_backup() -> None:
 	drive_settings = frappe.db.get_singles_dict("Google Drive", cast=True)
 	if drive_settings.enable and drive_settings.frequency == "Weekly":
 		upload_system_backup_to_google_drive()
 
 
-def get_absolute_path(filename):
+def get_absolute_path(filename) -> str:
 	file_path = os.path.join(get_backups_path()[2:], os.path.basename(filename))
 	return f"{get_bench_path()}/sites/{file_path}"
 
 
-def set_progress(progress, message):
+def set_progress(progress, message) -> None:
 	frappe.publish_realtime(
 		"upload_to_google_drive",
 		dict(progress=progress, total=3, message=message),

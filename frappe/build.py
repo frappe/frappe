@@ -41,7 +41,7 @@ def download_file(url, prefix):
 	return local_filename
 
 
-def build_missing_files():
+def build_missing_files() -> None:
 	"""Check which files dont exist yet from the assets.json and run build for those files"""
 
 	missing_assets = []
@@ -205,7 +205,7 @@ def symlink(target, link_name, overwrite=False):
 		raise
 
 
-def setup():
+def setup() -> None:
 	global app_paths, assets_path
 
 	pymodules = []
@@ -227,7 +227,7 @@ def bundle(
 	files=None,
 	save_metafiles=False,
 	using_cached=False,
-):
+) -> None:
 	"""concat / minify js files"""
 	setup()
 	make_asset_dirs(hard_link=hard_link)
@@ -257,7 +257,7 @@ def bundle(
 	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env(), raise_err=True)
 
 
-def watch(apps=None):
+def watch(apps=None) -> None:
 	"""watch and rebuild if necessary"""
 	setup()
 
@@ -275,7 +275,7 @@ def watch(apps=None):
 	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
 
 
-def check_node_executable():
+def check_node_executable() -> None:
 	node_version = Version(subprocess.getoutput("node -v")[1:])
 	warn = "⚠️ "
 	if node_version.major < 18:
@@ -341,12 +341,12 @@ def generate_assets_map():
 	return symlinks
 
 
-def setup_assets_dirs():
+def setup_assets_dirs() -> None:
 	for dir_path in (os.path.join(assets_path, x) for x in ("js", "css")):
 		os.makedirs(dir_path, exist_ok=True)
 
 
-def clear_broken_symlinks():
+def clear_broken_symlinks() -> None:
 	for path in os.listdir(assets_path):
 		path = os.path.join(assets_path, path)
 		if os.path.islink(path) and not os.path.exists(path):
@@ -369,7 +369,7 @@ def unstrip(message: str) -> str:
 	return f"{message}{' ' * _rem}"
 
 
-def make_asset_dirs(hard_link=False):
+def make_asset_dirs(hard_link=False) -> None:
 	setup_assets_dirs()
 	clear_broken_symlinks()
 	symlinks = generate_assets_map()
@@ -388,7 +388,7 @@ def make_asset_dirs(hard_link=False):
 	click.echo(unstrip(click.style("✔", fg="green") + " Application Assets Linked") + "\n")
 
 
-def link_assets_dir(source, target, hard_link=False):
+def link_assets_dir(source, target, hard_link=False) -> None:
 	if not os.path.exists(source):
 		return
 
@@ -415,7 +415,7 @@ def scrub_html_template(content):
 	return content.replace("'", "'")
 
 
-def html_to_js_template(path, content):
+def html_to_js_template(path, content) -> str:
 	"""Return HTML template content as Javascript code, by adding it to `frappe.templates`."""
 	return """frappe.templates["{key}"] = '{content}';\n""".format(
 		key=path.rsplit("/", 1)[-1][:-5], content=scrub_html_template(content)

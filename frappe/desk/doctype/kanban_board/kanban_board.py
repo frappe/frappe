@@ -28,24 +28,24 @@ class KanbanBoard(Document):
 		show_labels: DF.Check
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		self.validate_column_name()
 
-	def on_change(self):
+	def on_change(self) -> None:
 		frappe.clear_cache(doctype=self.reference_doctype)
 		frappe.cache.delete_keys("_user_settings")
 
-	def before_insert(self):
+	def before_insert(self) -> None:
 		for column in self.columns:
 			column.order = get_order_for_column(self, column.column_name)
 
-	def validate_column_name(self):
+	def validate_column_name(self) -> None:
 		for column in self.columns:
 			if not column.column_name:
 				frappe.msgprint(_("Column Name cannot be empty"), raise_exception=True)
 
 
-def get_permission_query_conditions(user):
+def get_permission_query_conditions(user) -> str:
 	if not user:
 		user = frappe.session.user
 
@@ -55,7 +55,7 @@ def get_permission_query_conditions(user):
 	return f"""(`tabKanban Board`.private=0 or `tabKanban Board`.owner={frappe.db.escape(user)})"""
 
 
-def has_permission(doc, ptype, user):
+def has_permission(doc, ptype, user) -> bool:
 	if doc.private == 0 or user == "Administrator":
 		return True
 

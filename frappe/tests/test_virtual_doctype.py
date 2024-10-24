@@ -44,7 +44,7 @@ class VirtualDoctypeTest(Document):
 		with open(VirtualDoctypeTest.DATA_FILE, "w+") as data_file:
 			json.dump(data, data_file)
 
-	def db_insert(self, *args, **kwargs):
+	def db_insert(self, *args, **kwargs) -> None:
 		d = self.get_valid_dict(convert_dates_to_str=True)
 
 		data = self.get_current_data()
@@ -52,17 +52,17 @@ class VirtualDoctypeTest(Document):
 
 		self.update_data(data)
 
-	def load_from_db(self):
+	def load_from_db(self) -> None:
 		data = self.get_current_data()
 		d = data.get(self.name)
 		super(Document, self).__init__(d)
 
-	def db_update(self, *args, **kwargs):
+	def db_update(self, *args, **kwargs) -> None:
 		# For this example insert and update are same operation,
 		# it might be  different for you
 		self.db_insert(*args, **kwargs)
 
-	def delete(self):
+	def delete(self) -> None:
 		data = self.get_current_data()
 		data.pop(self.name, None)
 		self.update_data(data)
@@ -84,7 +84,7 @@ class VirtualDoctypeTest(Document):
 
 class TestVirtualDoctypes(IntegrationTestCase):
 	@classmethod
-	def setUpClass(cls):
+	def setUpClass(cls) -> None:
 		frappe.flags.allow_doctype_export = True
 		cls.addClassCleanup(frappe.flags.pop, "allow_doctype_export", None)
 
@@ -111,11 +111,11 @@ class TestVirtualDoctypes(IntegrationTestCase):
 		patch_virtual_doc.start()
 		cls.addClassCleanup(patch_virtual_doc.stop)
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		if os.path.exists(VirtualDoctypeTest.DATA_FILE):
 			os.remove(VirtualDoctypeTest.DATA_FILE)
 
-	def test_insert_update_and_load_from_desk(self):
+	def test_insert_update_and_load_from_desk(self) -> None:
 		"""Insert, update, reload and assert changes"""
 
 		frappe.response.docs = []
@@ -142,7 +142,7 @@ class TestVirtualDoctypes(IntegrationTestCase):
 		doc.reload()
 		self.assertEqual(doc.child_table[0].some_fieldname, "child1-field-value")
 
-	def test_multiple_doc_insert_and_get_list(self):
+	def test_multiple_doc_insert_and_get_list(self) -> None:
 		doc1 = frappe.new_doc(doctype=TEST_DOCTYPE_NAME)
 		doc1.append("child_table", {"name": "first", "some_fieldname": "first-value"})
 		doc1.insert()
@@ -160,10 +160,10 @@ class TestVirtualDoctypes(IntegrationTestCase):
 		listed_docs = {d.name for d in VirtualDoctypeTest.get_list()}
 		self.assertEqual(docs, listed_docs)
 
-	def test_get_count(self):
+	def test_get_count(self) -> None:
 		self.assertIsInstance(VirtualDoctypeTest.get_count(), int)
 
-	def test_delete_doc(self):
+	def test_delete_doc(self) -> None:
 		doc = frappe.get_doc(doctype=TEST_DOCTYPE_NAME).insert()
 
 		frappe.delete_doc(doc.doctype, doc.name)
@@ -171,6 +171,6 @@ class TestVirtualDoctypes(IntegrationTestCase):
 		listed_docs = {d.name for d in VirtualDoctypeTest.get_list()}
 		self.assertNotIn(doc.name, listed_docs)
 
-	def test_controller_validity(self):
+	def test_controller_validity(self) -> None:
 		validate_controller(TEST_DOCTYPE_NAME)
 		validate_controller(TEST_CHILD_DOCTYPE_NAME)

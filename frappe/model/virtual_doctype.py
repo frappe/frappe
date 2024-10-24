@@ -31,7 +31,7 @@ class VirtualDoctype(Protocol):
 		...
 
 	@staticmethod
-	def get_stats(**kwargs):
+	def get_stats(**kwargs) -> None:
 		"""Similar to reportview.get_stats, return sidebar stats."""
 		...
 
@@ -63,7 +63,7 @@ def validate_controller(doctype: str) -> None:
 		frappe.msgprint(_("Failed to import virtual doctype {}, is controller file present?").format(doctype))
 		return
 
-	def _as_str(method):
+	def _as_str(method) -> str:
 		if hasattr(method, "__module__"):
 			return f"{method.__module__}.{method.__qualname__}"
 		return "None"

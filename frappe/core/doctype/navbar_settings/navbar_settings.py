@@ -38,14 +38,14 @@ def get_navbar_settings():
 	return frappe.get_single("Navbar Settings")
 
 
-def sync_standard_items():
+def sync_standard_items() -> None:
 	"""Syncs standard items from hooks. Called in migrate"""
 
 	sync_table("settings_dropdown", "standard_navbar_items")
 	sync_table("help_dropdown", "standard_help_items")
 
 
-def sync_table(key, hook):
+def sync_table(key, hook) -> None:
 	navbar_settings = NavbarSettings("Navbar Settings")
 	existing_items = {d.item_label: d for d in navbar_settings.get(key)}
 	new_standard_items = {}

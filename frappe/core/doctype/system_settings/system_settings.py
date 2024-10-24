@@ -98,7 +98,7 @@ class SystemSettings(Document):
 		welcome_email_template: DF.Link | None
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		from frappe.twofactor import toggle_two_factor_auth
 
 		enable_password_policy = cint(self.enable_password_policy)
@@ -144,7 +144,7 @@ class SystemSettings(Document):
 				_("{0} can not be more than {1}").format(label, 50), alert=True, indicator="yellow"
 			)
 
-	def validate_user_pass_login(self):
+	def validate_user_pass_login(self) -> None:
 		if not self.disable_user_pass_login:
 			return
 
@@ -159,12 +159,12 @@ class SystemSettings(Document):
 				)
 			)
 
-	def validate_backup_limit(self):
+	def validate_backup_limit(self) -> None:
 		if not self.backup_limit or self.backup_limit < 1:
 			frappe.msgprint(_("Number of backups must be greater than zero."), alert=True)
 			self.backup_limit = 1
 
-	def validate_file_extensions(self):
+	def validate_file_extensions(self) -> None:
 		if not self.allowed_file_extensions:
 			return
 
@@ -172,7 +172,7 @@ class SystemSettings(Document):
 			ext.strip().upper() for ext in self.allowed_file_extensions.strip().splitlines()
 		)
 
-	def on_update(self):
+	def on_update(self) -> None:
 		self.set_defaults()
 
 		frappe.cache.delete_value("system_settings")
@@ -181,7 +181,7 @@ class SystemSettings(Document):
 		if frappe.flags.update_last_reset_password_date:
 			update_last_reset_password_date()
 
-	def set_defaults(self):
+	def set_defaults(self) -> None:
 		from frappe.translate import set_default_language
 
 		for df in self.meta.get("fields"):
@@ -192,7 +192,7 @@ class SystemSettings(Document):
 			set_default_language(self.language)
 
 
-def update_last_reset_password_date():
+def update_last_reset_password_date() -> None:
 	frappe.db.sql(
 		""" UPDATE `tabUser`
 		SET

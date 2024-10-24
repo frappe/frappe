@@ -5,7 +5,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	indicator_map = {
 		"blue": "Blue",
 		"orange": "Orange",

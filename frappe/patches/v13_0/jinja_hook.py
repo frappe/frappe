@@ -6,7 +6,7 @@ from click import secho
 import frappe
 
 
-def execute():
+def execute() -> None:
 	if frappe.get_hooks("jenv"):
 		print()
 		secho(

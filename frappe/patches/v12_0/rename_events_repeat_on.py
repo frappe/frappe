@@ -2,7 +2,7 @@ import frappe
 from frappe.utils import get_datetime
 
 
-def execute():
+def execute() -> None:
 	weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
 	weekly_events = frappe.get_list(

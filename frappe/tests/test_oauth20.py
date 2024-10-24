@@ -55,7 +55,7 @@ class TestOAuth20(FrappeRequestTestCase):
 	site = frappe.local.site
 
 	@classmethod
-	def setUpClass(cls):
+	def setUpClass(cls) -> None:
 		super().setUpClass()
 		make_test_records("User")
 
@@ -71,7 +71,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		frappe_login_key.insert(ignore_if_duplicate=True)
 		frappe.db.commit()
 
-	def setUp(self):
+	def setUp(self) -> None:
 		self.TEST_CLIENT = get_test_client()
 		self.oauth_client = frappe.new_doc("OAuth Client")
 		self.oauth_client.update(
@@ -94,15 +94,15 @@ class TestOAuth20(FrappeRequestTestCase):
 		self.client_id = self.oauth_client.get("client_id")
 		self.client_secret = self.oauth_client.get("client_secret")
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		self.oauth_client.delete(force=True)
 		frappe.db.rollback()
 
-	def test_invalid_login(self):
+	def test_invalid_login(self) -> None:
 		with suppress_stdout():
 			self.assertFalse(check_valid_openid_response(client=self))
 
-	def test_login_using_authorization_code(self):
+	def test_login_using_authorization_code(self) -> None:
 		update_client_for_auth_code_grant(self.client_id)
 
 		# Go to Authorize url
@@ -149,7 +149,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		decoded_token = self.decode_id_token(bearer_token.get("id_token"))
 		self.assertEqual(decoded_token["email"], "test@example.com")
 
-	def test_login_using_authorization_code_with_pkce(self):
+	def test_login_using_authorization_code_with_pkce(self) -> None:
 		update_client_for_auth_code_grant(self.client_id)
 
 		# Go to Authorize url
@@ -194,7 +194,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		decoded_token = self.decode_id_token(bearer_token.get("id_token"))
 		self.assertEqual(decoded_token["email"], "test@example.com")
 
-	def test_revoke_token(self):
+	def test_revoke_token(self) -> None:
 		client = frappe.get_doc("OAuth Client", self.client_id)
 		client.grant_type = "Authorization Code"
 		client.response_type = "Code"
@@ -247,7 +247,7 @@ class TestOAuth20(FrappeRequestTestCase):
 			check_valid_openid_response(access_token=bearer_token.get("access_token"), client=self)
 		)
 
-	def test_resource_owner_password_credentials_grant(self):
+	def test_resource_owner_password_credentials_grant(self) -> None:
 		client = frappe.get_doc("OAuth Client", self.client_id)
 		client.grant_type = "Authorization Code"
 		client.response_type = "Code"
@@ -275,7 +275,7 @@ class TestOAuth20(FrappeRequestTestCase):
 			check_valid_openid_response(access_token=bearer_token.get("access_token"), client=self)
 		)
 
-	def test_login_using_implicit_token(self):
+	def test_login_using_implicit_token(self) -> None:
 		oauth_client = frappe.get_doc("OAuth Client", self.client_id)
 		oauth_client.grant_type = "Implicit"
 		oauth_client.response_type = "Token"
@@ -315,7 +315,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		oauth_client_before.insert()
 		frappe.db.commit()
 
-	def test_openid_code_id_token(self):
+	def test_openid_code_id_token(self) -> None:
 		update_client_for_auth_code_grant(self.client_id)
 		nonce = frappe.generate_hash()
 
@@ -390,7 +390,7 @@ def check_valid_openid_response(access_token=None, client: "FrappeRequestTestCas
 	return openid_response.status_code == 200
 
 
-def login(session):
+def login(session) -> None:
 	session.post(get_full_url("/api/method/login"), data={"usr": "test@example.com", "pwd": "Eastern_43A1W"})
 
 

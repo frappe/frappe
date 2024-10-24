@@ -9,7 +9,7 @@ from frappe.tests.test_query_builder import db_type_is, run_only_if
 from frappe.utils.nestedset import get_ancestors_of, get_descendants_of
 
 
-def create_tree_docs():
+def create_tree_docs() -> None:
 	records = [
 		{
 			"some_fieldname": "Root Node",
@@ -54,7 +54,7 @@ def create_tree_docs():
 
 class TestQuery(IntegrationTestCase):
 	@run_only_if(db_type_is.MARIADB)
-	def test_multiple_tables_in_filters(self):
+	def test_multiple_tables_in_filters(self) -> None:
 		self.assertEqual(
 			frappe.qb.get_query(
 				"DocType",
@@ -68,7 +68,7 @@ class TestQuery(IntegrationTestCase):
 		)
 
 	@run_only_if(db_type_is.MARIADB)
-	def test_string_fields(self):
+	def test_string_fields(self) -> None:
 		self.assertEqual(
 			frappe.qb.get_query("User", fields="name, email", filters={"name": "Administrator"}).get_sql(),
 			frappe.qb.from_("User")
@@ -140,7 +140,7 @@ class TestQuery(IntegrationTestCase):
 			.run(),
 		)
 
-	def test_functions_fields(self):
+	def test_functions_fields(self) -> None:
 		self.assertEqual(
 			frappe.qb.get_query("User", fields="Count(name)", filters={}).get_sql(),
 			frappe.qb.from_("User").select(Count(Field("name"))).get_sql(),
@@ -177,7 +177,7 @@ class TestQuery(IntegrationTestCase):
 			.get_sql(),
 		)
 
-	def test_qb_fields(self):
+	def test_qb_fields(self) -> None:
 		user_doctype = frappe.qb.DocType("User")
 		self.assertEqual(
 			frappe.qb.get_query(
@@ -191,7 +191,7 @@ class TestQuery(IntegrationTestCase):
 			frappe.qb.from_(user_doctype).select(user_doctype.email).get_sql(),
 		)
 
-	def test_aliasing(self):
+	def test_aliasing(self) -> None:
 		user_doctype = frappe.qb.DocType("User")
 		self.assertEqual(
 			frappe.qb.get_query("User", fields=["name as owner", "email as id"], filters={}).get_sql(),
@@ -217,7 +217,7 @@ class TestQuery(IntegrationTestCase):
 		)
 
 	@run_only_if(db_type_is.MARIADB)
-	def test_filters(self):
+	def test_filters(self) -> None:
 		self.assertEqual(
 			frappe.qb.get_query(
 				"DocType",
@@ -311,7 +311,7 @@ class TestQuery(IntegrationTestCase):
 			"SELECT `name` FROM `tabDocType`".replace("`", '"' if frappe.db.db_type == "postgres" else "`"),
 		)
 
-	def test_implicit_join_query(self):
+	def test_implicit_join_query(self) -> None:
 		self.maxDiff = None
 
 		self.assertEqual(
@@ -358,12 +358,12 @@ class TestQuery(IntegrationTestCase):
 		)
 
 	@run_only_if(db_type_is.MARIADB)
-	def test_comment_stripping(self):
+	def test_comment_stripping(self) -> None:
 		self.assertNotIn(
 			"email", frappe.qb.get_query("User", fields=["name", "#email"], filters={}).get_sql()
 		)
 
-	def test_nestedset(self):
+	def test_nestedset(self) -> None:
 		frappe.db.sql("delete from `tabDocType` where `name` = 'Test Tree DocType'")
 		frappe.db.sql_ddl("drop table if exists `tabTest Tree DocType`")
 		create_tree_docs()
@@ -424,7 +424,7 @@ class TestQuery(IntegrationTestCase):
 		frappe.db.sql("delete from `tabDocType` where `name` = 'Test Tree DocType'")
 		frappe.db.sql_ddl("drop table if exists `tabTest Tree DocType`")
 
-	def test_child_field_syntax(self):
+	def test_child_field_syntax(self) -> None:
 		note1 = frappe.get_doc(doctype="Note", title="Note 1", seen_by=[{"user": "Administrator"}]).insert()
 		note2 = frappe.get_doc(
 			doctype="Note", title="Note 2", seen_by=[{"user": "Administrator"}, {"user": "Guest"}]

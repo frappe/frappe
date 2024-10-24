@@ -19,7 +19,7 @@ class DiscussionReply(Document):
 		topic: DF.Link | None
 	# end: auto-generated types
 
-	def on_update(self):
+	def on_update(self) -> None:
 		frappe.publish_realtime(
 			event="update_message",
 			room=get_website_room(),
@@ -27,7 +27,7 @@ class DiscussionReply(Document):
 			after_commit=True,
 		)
 
-	def after_insert(self):
+	def after_insert(self) -> None:
 		replies = frappe.db.count("Discussion Reply", {"topic": self.topic})
 		topic_info = frappe.get_all(
 			"Discussion Topic",
@@ -66,7 +66,7 @@ class DiscussionReply(Document):
 			after_commit=True,
 		)
 
-	def after_delete(self):
+	def after_delete(self) -> None:
 		frappe.publish_realtime(
 			event="delete_message",
 			room=get_website_room(),
@@ -76,7 +76,7 @@ class DiscussionReply(Document):
 
 
 @frappe.whitelist()
-def delete_message(reply_name):
+def delete_message(reply_name) -> None:
 	owner = frappe.db.get_value("Discussion Reply", reply_name, "owner")
 	if owner == frappe.session.user:
 		frappe.delete_doc("Discussion Reply", reply_name)

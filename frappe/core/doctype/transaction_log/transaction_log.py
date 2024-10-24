@@ -30,7 +30,7 @@ class TransactionLog(Document):
 		transaction_hash: DF.SmallText | None
 	# end: auto-generated types
 
-	def before_insert(self):
+	def before_insert(self) -> None:
 		index = get_current_index()
 		self.row_index = index
 		self.timestamp = now_datetime()

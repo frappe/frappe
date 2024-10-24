@@ -31,7 +31,7 @@ class Dashboard(Document):
 		module: DF.Link | None
 	# end: auto-generated types
 
-	def on_update(self):
+	def on_update(self) -> None:
 		if self.is_default:
 			# make all other dashboards non-default
 			DashBoard = DocType("Dashboard")
@@ -43,7 +43,7 @@ class Dashboard(Document):
 				record_list=[["Dashboard", self.name, f"{self.module} Dashboard"]], record_module=self.module
 			)
 
-	def validate(self):
+	def validate(self) -> None:
 		if not frappe.conf.developer_mode and self.is_standard:
 			frappe.throw(_("Cannot edit Standard Dashboards"))
 
@@ -59,7 +59,7 @@ class Dashboard(Document):
 
 		self.validate_custom_options()
 
-	def validate_custom_options(self):
+	def validate_custom_options(self) -> None:
 		if self.chart_options:
 			try:
 				json.loads(self.chart_options)

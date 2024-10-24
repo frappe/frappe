@@ -17,6 +17,6 @@ class UnitTestCurrency(UnitTestCase):
 
 
 class TestUser(IntegrationTestCase):
-	def test_default_currency_on_setup(self):
+	def test_default_currency_on_setup(self) -> None:
 		usd = frappe.get_doc("Currency", "USD")
 		self.assertDocumentEqual({"enabled": 1, "fraction": "Cent"}, usd)

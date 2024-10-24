@@ -14,7 +14,7 @@ def load_address_and_contact(doc, key=None) -> None:
 	doc.set_onload("contact_list", get_contact_display_list(doc.doctype, doc.name))
 
 
-def has_permission(doc, ptype, user):
+def has_permission(doc, ptype, user) -> bool:
 	links = get_permitted_and_not_permitted_links(doc.doctype)
 	if not links.get("not_permitted_links"):
 		# optimization: don't determine permissions based on link fields
@@ -140,7 +140,7 @@ def filter_dynamic_link_doctypes(
 	return [[doctype] for doctype in valid_doctypes]
 
 
-def set_link_title(doc):
+def set_link_title(doc) -> None:
 	if not doc.links:
 		return
 	for link in doc.links:

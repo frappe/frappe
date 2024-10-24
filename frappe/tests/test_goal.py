@@ -9,13 +9,13 @@ from frappe.utils.goal import get_monthly_goal_graph_data, get_monthly_results
 
 
 class TestGoal(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		make_test_objects("Event", reset=True)
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.db.delete("Event")
 
-	def test_get_monthly_results(self):
+	def test_get_monthly_results(self) -> None:
 		"""Test monthly aggregation values of a field"""
 		result_dict = get_monthly_results(
 			"Event",
@@ -27,7 +27,7 @@ class TestGoal(IntegrationTestCase):
 
 		self.assertEqual(result_dict.get(format_date(today(), "MM-yyyy")), 2)
 
-	def test_get_monthly_goal_graph_data(self):
+	def test_get_monthly_goal_graph_data(self) -> None:
 		"""Test for accurate values in graph data (based on test_get_monthly_results)"""
 		docname = frappe.get_list("Event", filters={"subject": ["=", "_Test Event 1"]})[0]["name"]
 		frappe.db.set_value("Event", docname, "description", 1)

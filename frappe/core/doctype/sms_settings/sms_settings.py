@@ -62,7 +62,7 @@ def get_contact_number(contact_name, ref_doctype, ref_name):
 
 
 @frappe.whitelist()
-def send_sms(receiver_list, msg, sender_name="", success_msg=True):
+def send_sms(receiver_list, msg, sender_name="", success_msg=True) -> None:
 	import json
 
 	if isinstance(receiver_list, str):
@@ -84,7 +84,7 @@ def send_sms(receiver_list, msg, sender_name="", success_msg=True):
 		msgprint(_("Please Update SMS Settings"))
 
 
-def send_via_gateway(arg):
+def send_via_gateway(arg) -> None:
 	ss = frappe.get_doc("SMS Settings", "SMS Settings")
 	headers = get_headers(ss)
 	use_json = headers.get("Content-Type") == "application/json"
@@ -146,7 +146,7 @@ def send_request(gateway_url, params, headers=None, use_post=False, use_json=Fal
 
 # Create SMS Log
 # =========================================================
-def create_sms_log(args, sent_to):
+def create_sms_log(args, sent_to) -> None:
 	sl = frappe.new_doc("SMS Log")
 	sl.sent_on = nowdate()
 	sl.message = args["message"].decode("utf-8")

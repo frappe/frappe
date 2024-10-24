@@ -51,7 +51,7 @@ class LDAP_TestCase:
 
 		return wrapped
 
-	def clean_test_users():
+	def clean_test_users() -> None:
 		with contextlib.suppress(Exception):
 			frappe.get_doc("User", "posix.user1@unit.testing").delete()
 		with contextlib.suppress(Exception):
@@ -60,7 +60,7 @@ class LDAP_TestCase:
 			frappe.get_doc("User", "website_ldap_user@test.com").delete()
 
 	@classmethod
-	def setUpClass(cls):
+	def setUpClass(cls) -> None:
 		cls.clean_test_users()
 		# Save user data for restoration in tearDownClass()
 		cls.user_ldap_settings = frappe.get_doc("LDAP Settings")
@@ -145,7 +145,7 @@ class LDAP_TestCase:
 		cls.connection.bind()
 
 	@classmethod
-	def tearDownClass(cls):
+	def tearDownClass(cls) -> None:
 		with contextlib.suppress(Exception):
 			frappe.get_doc("LDAP Settings").delete()
 
@@ -160,7 +160,7 @@ class LDAP_TestCase:
 		cls.connection = None
 
 	@mock_ldap_connection
-	def test_mandatory_fields(self):
+	def test_mandatory_fields(self) -> None:
 		mandatory_fields = [
 			"ldap_server_url",
 			"ldap_directory_server",
@@ -196,7 +196,7 @@ class LDAP_TestCase:
 				self.fail(f"Document LDAP Settings field [{non_mandatory_field}] should not be mandatory")
 
 	@mock_ldap_connection
-	def test_validation_ldap_search_string(self):
+	def test_validation_ldap_search_string(self) -> None:
 		invalid_ldap_search_strings = [
 			"",
 			"uid={0}",
@@ -215,7 +215,7 @@ class LDAP_TestCase:
 				frappe.get_doc(localdoc).save()
 				self.fail(f"LDAP search string [{invalid_search_string}] should not validate")
 
-	def test_connect_to_ldap(self):
+	def test_connect_to_ldap(self) -> None:
 		# prevent these parameters for security or lack of the und user from being able to configure
 		prevent_connection_parameters = {
 			"mode": {
@@ -313,7 +313,7 @@ class LDAP_TestCase:
 					)
 
 	@mock_ldap_connection
-	def test_get_ldap_client_settings(self):
+	def test_get_ldap_client_settings(self) -> None:
 		result = self.test_class.get_ldap_client_settings()
 
 		self.assertIsInstance(result, dict)
@@ -327,7 +327,7 @@ class LDAP_TestCase:
 		self.assertFalse(result["enabled"])  # must match the edited doc
 
 	@mock_ldap_connection
-	def test_update_user_fields(self):
+	def test_update_user_fields(self) -> None:
 		test_user_data = {
 			"username": "posix.user",
 			"email": "posix.user1@unit.testing",
@@ -350,7 +350,7 @@ class LDAP_TestCase:
 		self.assertIn(self.test_class.default_role, frappe.get_roles(updated_user.name))
 
 	@mock_ldap_connection
-	def test_create_website_user(self):
+	def test_create_website_user(self) -> None:
 		new_test_user_data = {
 			"username": "website_ldap_user.test",
 			"email": "website_ldap_user@test.com",
@@ -362,7 +362,7 @@ class LDAP_TestCase:
 		self.assertEqual(new_user.user_type, "Website User")
 
 	@mock_ldap_connection
-	def test_sync_roles(self):
+	def test_sync_roles(self) -> None:
 		if self.TEST_LDAP_SERVER.lower() == "openldap":
 			test_user_data = {
 				"posix.user1": [
@@ -443,7 +443,7 @@ class LDAP_TestCase:
 				)
 
 	@mock_ldap_connection
-	def test_create_or_update_user(self):
+	def test_create_or_update_user(self) -> None:
 		test_user_data = {
 			"posix.user1": [
 				"Users",
@@ -488,12 +488,12 @@ class LDAP_TestCase:
 				)
 
 	@mock_ldap_connection
-	def test_get_ldap_attributes(self):
+	def test_get_ldap_attributes(self) -> None:
 		method_return = self.test_class.get_ldap_attributes()
 		self.assertTrue(isinstance(method_return, list))
 
 	@mock_ldap_connection
-	def test_fetch_ldap_groups(self):
+	def test_fetch_ldap_groups(self) -> None:
 		if self.TEST_LDAP_SERVER.lower() == "openldap":
 			test_users = {"posix.user": ["Users", "Administrators"], "posix.user2": ["Users", "Group3"]}
 		elif self.TEST_LDAP_SERVER.lower() == "active directory":
@@ -518,7 +518,7 @@ class LDAP_TestCase:
 				self.assertTrue(returned_group in test_users[test_user])
 
 	@mock_ldap_connection
-	def test_authenticate(self):
+	def test_authenticate(self) -> None:
 		with mock.patch(
 			"frappe.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.fetch_ldap_groups"
 		) as fetch_ldap_groups_function:
@@ -549,7 +549,7 @@ class LDAP_TestCase:
 			)
 
 	@mock_ldap_connection
-	def test_complex_ldap_search_filter(self):
+	def test_complex_ldap_search_filter(self) -> None:
 		ldap_search_filters = self.TEST_VALUES_LDAP_COMPLEX_SEARCH_STRING
 
 		for search_filter in ldap_search_filters:
@@ -566,7 +566,7 @@ class LDAP_TestCase:
 			else:
 				self.assertTrue(self.test_class.authenticate("posix.user", "posix_user_password"))
 
-	def test_reset_password(self):
+	def test_reset_password(self) -> None:
 		self.test_class = LDAPSettings(self.doc)
 
 		# Create a clean doc
@@ -591,7 +591,7 @@ class LDAP_TestCase:
 			connect_to_ldap.assert_called_with(self.base_dn, self.base_password, read_only=False)
 
 	@mock_ldap_connection
-	def test_convert_ldap_entry_to_dict(self):
+	def test_convert_ldap_entry_to_dict(self) -> None:
 		self.connection.search(
 			search_base=self.ldap_user_path,
 			search_filter=self.TEST_LDAP_SEARCH_STRING.format("posix.user"),

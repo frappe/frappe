@@ -72,7 +72,7 @@ class WebForm(WebsiteGenerator):
 
 	website = frappe._dict(no_cache=1)
 
-	def validate(self):
+	def validate(self) -> None:
 		super().validate()
 
 		if not self.module:
@@ -96,7 +96,7 @@ class WebForm(WebsiteGenerator):
 		if not frappe.flags.in_import:
 			self.validate_fields()
 
-	def validate_fields(self):
+	def validate_fields(self) -> None:
 		"""Validate all fields are present"""
 		from frappe.model import no_value_fields
 
@@ -110,13 +110,13 @@ class WebForm(WebsiteGenerator):
 		if missing:
 			frappe.throw(_("Following fields are missing:") + "<br>" + "<br>".join(missing))
 
-	def reset_field_parent(self):
+	def reset_field_parent(self) -> None:
 		"""Convert link fields to select with names as options."""
 		for df in self.web_form_fields:
 			df.parent = self.doc_type
 
 	# export
-	def on_update(self):
+	def on_update(self) -> None:
 		"""
 		Writes the .txt for this page and if write_content is checked,
 		it will write out a .html file
@@ -252,7 +252,7 @@ def get_context(context):
 		context.webform_banner_image = self.banner_image
 		context.pop("banner_image", None)
 
-	def add_metatags(self, context):
+	def add_metatags(self, context) -> None:
 		description = self.meta_description
 
 		if not description and self.introduction_text:
@@ -264,7 +264,7 @@ def get_context(context):
 			"image": self.meta_image,
 		}
 
-	def load_translations(self, context):
+	def load_translations(self, context) -> None:
 		messages = [
 			"Sr",
 			"Attach",
@@ -287,12 +287,12 @@ def get_context(context):
 
 		context.translated_messages = frappe.as_json({message: _(message) for message in messages if message})
 
-	def load_list_data(self, context):
+	def load_list_data(self, context) -> None:
 		if not self.list_columns:
 			self.list_columns = get_in_list_view_fields(self.doc_type)
 			context.web_form_doc.list_columns = self.list_columns
 
-	def load_form_data(self, context):
+	def load_form_data(self, context) -> None:
 		"""Load document `doc` and `layout` properties for template"""
 		context.parents = []
 		if self.show_list:
@@ -367,7 +367,7 @@ def get_context(context):
 
 			context.reference_doc = context.reference_doc.as_dict(no_nulls=True)
 
-	def add_custom_context_and_script(self, context):
+	def add_custom_context_and_script(self, context) -> None:
 		"""Update context from module if standard and append script"""
 		if self.is_standard:
 			web_form_module = get_web_form_module(self)
@@ -406,7 +406,7 @@ def get_context(context):
 
 		return parents
 
-	def validate_mandatory(self, doc):
+	def validate_mandatory(self, doc) -> None:
 		"""Validate mandatory web form fields"""
 		missing = [f for f in self.web_form_fields if f.reqd and doc.get(f.fieldname) in (None, [], "")]
 		if missing:
@@ -416,7 +416,7 @@ def get_context(context):
 				+ "<br>".join(f"{d.label} ({d.fieldtype})" for d in missing)
 			)
 
-	def allow_website_search_indexing(self):
+	def allow_website_search_indexing(self) -> bool:
 		return False
 
 	def has_web_form_permission(self, doctype, name, ptype="read"):
@@ -584,7 +584,7 @@ def delete_multiple(web_form_name, docnames):
 		)
 
 
-def check_webform_perm(doctype, name):
+def check_webform_perm(doctype, name) -> bool:
 	doc = frappe.get_doc(doctype, name)
 	if hasattr(doc, "has_webform_permission"):
 		if doc.has_webform_permission():

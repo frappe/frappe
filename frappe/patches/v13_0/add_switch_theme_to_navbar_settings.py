@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	navbar_settings = frappe.get_single("Navbar Settings")
 
 	if frappe.db.exists("Navbar Item", {"item_label": "Toggle Theme"}):

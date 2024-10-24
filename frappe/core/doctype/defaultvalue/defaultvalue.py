@@ -24,7 +24,7 @@ class DefaultValue(Document):
 	pass
 
 
-def on_doctype_update():
+def on_doctype_update() -> None:
 	"""Create indexes for `tabDefaultValue` on `(parent, defkey)`"""
 	frappe.db.commit()
 	frappe.db.add_index(

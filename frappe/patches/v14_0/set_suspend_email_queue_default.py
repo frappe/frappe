@@ -2,7 +2,7 @@ import frappe
 from frappe.cache_manager import clear_defaults_cache
 
 
-def execute():
+def execute() -> None:
 	frappe.db.set_default(
 		"suspend_email_queue",
 		frappe.db.get_default("hold_queue", "Administrator") or 0,

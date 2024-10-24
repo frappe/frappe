@@ -23,20 +23,20 @@ class UnitTestPersonalDataDeletionRequest(UnitTestCase):
 
 
 class TestPersonalDataDeletionRequest(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		create_user_if_not_exists(email="test_delete@example.com")
 		self.delete_request = frappe.get_doc(
 			{"doctype": "Personal Data Deletion Request", "email": "test_delete@example.com"}
 		)
 		self.delete_request.save(ignore_permissions=True)
 
-	def test_delete_request(self):
+	def test_delete_request(self) -> None:
 		email_queue = frappe.get_all("Email Queue", fields=["*"], order_by="creation desc", limit=1)
 
 		self.assertEqual(self.delete_request.status, "Pending Verification")
 		self.assertTrue("Subject: Confirm Deletion of Account" in email_queue[0].message)
 
-	def test_anonymized_data(self):
+	def test_anonymized_data(self) -> None:
 		self.delete_request.status = "Pending Approval"
 		self.delete_request.save()
 		self.delete_request.trigger_data_deletion()
@@ -57,7 +57,7 @@ class TestPersonalDataDeletionRequest(IntegrationTestCase):
 		)
 		self.assertEqual(self.delete_request.status, "Deleted")
 
-	def test_unverified_record_removal(self):
+	def test_unverified_record_removal(self) -> None:
 		date_time_obj = datetime.strptime(self.delete_request.creation, "%Y-%m-%d %H:%M:%S.%f") + timedelta(
 			days=-7
 		)
@@ -67,7 +67,7 @@ class TestPersonalDataDeletionRequest(IntegrationTestCase):
 		remove_unverified_record()
 		self.assertFalse(frappe.db.exists("Personal Data Deletion Request", self.delete_request.name))
 
-	def test_process_auto_request(self):
+	def test_process_auto_request(self) -> None:
 		frappe.db.set_single_value("Website Settings", "auto_account_deletion", "1")
 		date_time_obj = datetime.strptime(self.delete_request.creation, "%Y-%m-%d %H:%M:%S.%f") + timedelta(
 			hours=-2

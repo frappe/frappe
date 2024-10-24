@@ -4,7 +4,7 @@ import frappe
 from frappe.modules.utils import get_module_app
 
 
-def execute():
+def execute() -> None:
 	for module in frappe.get_all("Module Def", ["name", "app_name"], filters=dict(custom=0)):
 		if not module.app_name:
 			try:

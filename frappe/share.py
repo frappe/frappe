@@ -73,7 +73,7 @@ def add_docshare(
 	return doc
 
 
-def remove(doctype, name, user, flags=None):
+def remove(doctype, name, user, flags=None) -> None:
 	share_name = frappe.db.get_value("DocShare", {"user": user, "share_name": name, "share_doctype": doctype})
 
 	if share_name:
@@ -213,7 +213,7 @@ def get_share_name(doctype, name, user, everyone):
 	return share_name
 
 
-def check_share_permission(doctype, name):
+def check_share_permission(doctype, name) -> None:
 	"""Check if the user can share with other users"""
 	if not frappe.has_permission(doctype, ptype="share", doc=name):
 		frappe.throw(
@@ -221,7 +221,7 @@ def check_share_permission(doctype, name):
 		)
 
 
-def notify_assignment(shared_by, doctype, doc_name, everyone, notify=0):
+def notify_assignment(shared_by, doctype, doc_name, everyone, notify=0) -> None:
 	if not (shared_by and doctype and doc_name) or everyone or not notify:
 		return
 

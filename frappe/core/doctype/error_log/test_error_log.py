@@ -19,13 +19,13 @@ class UnitTestErrorLog(UnitTestCase):
 
 
 class TestErrorLog(IntegrationTestCase):
-	def test_error_log(self):
+	def test_error_log(self) -> None:
 		"""let's do an error log on error log?"""
 		doc = frappe.new_doc("Error Log")
 		error = doc.log_error("This is an error")
 		self.assertEqual(error.doctype, "Error Log")
 
-	def test_ldap_exceptions(self):
+	def test_ldap_exceptions(self) -> None:
 		exc = [LDAPException, LDAPInappropriateAuthenticationResult]
 
 		for e in exc:
@@ -73,7 +73,7 @@ TEST_EXCEPTIONS = (
 
 class TestExceptionSourceGuessing(IntegrationTestCase):
 	@patch.object(frappe, "get_installed_apps", return_value=["frappe", "erpnext", "3pa"])
-	def test_exc_source_guessing(self, _installed_apps):
+	def test_exc_source_guessing(self, _installed_apps) -> None:
 		for source, exc in TEST_EXCEPTIONS:
 			result = guess_exception_source(exc)
 			self.assertEqual(result, source)

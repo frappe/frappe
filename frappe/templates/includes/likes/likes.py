@@ -46,7 +46,7 @@ def like(reference_doctype, reference_name, like, route=""):
 	return liked
 
 
-def add_like(reference_doctype, reference_name):
+def add_like(reference_doctype, reference_name) -> bool:
 	user = frappe.session.user
 
 	like = frappe.new_doc("Comment")
@@ -61,7 +61,7 @@ def add_like(reference_doctype, reference_name):
 	return True
 
 
-def delete_like(reference_doctype, reference_name):
+def delete_like(reference_doctype, reference_name) -> bool:
 	user = frappe.session.user
 
 	filters = {

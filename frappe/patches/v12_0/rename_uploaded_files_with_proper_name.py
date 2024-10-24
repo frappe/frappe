@@ -3,7 +3,7 @@ import os
 import frappe
 
 
-def execute():
+def execute() -> None:
 	file_names_with_url = frappe.get_all(
 		"File",
 		filters={"is_folder": 0, "file_name": ["like", "%/%"]},

@@ -40,7 +40,7 @@ class UnitTestWebhook(UnitTestCase):
 
 class TestWebhook(IntegrationTestCase):
 	@classmethod
-	def setUpClass(cls):
+	def setUpClass(cls) -> None:
 		# delete any existing webhooks
 		frappe.db.delete("Webhook")
 		# Delete existing logs if any
@@ -50,7 +50,7 @@ class TestWebhook(IntegrationTestCase):
 		cls.create_sample_webhooks()
 
 	@classmethod
-	def create_sample_webhooks(cls):
+	def create_sample_webhooks(cls) -> None:
 		samples_webhooks_data = [
 			{
 				"name": frappe.generate_hash(),
@@ -78,13 +78,13 @@ class TestWebhook(IntegrationTestCase):
 			cls.sample_webhooks.append(wh)
 
 	@classmethod
-	def tearDownClass(cls):
+	def tearDownClass(cls) -> None:
 		# delete any existing webhooks
 		frappe.db.rollback()
 		frappe.db.delete("Webhook")
 		frappe.db.commit()
 
-	def setUp(self):
+	def setUp(self) -> None:
 		# retrieve or create a User webhook for `after_insert`
 		self.responses = responses.RequestsMock()
 		self.responses.start()
@@ -120,7 +120,7 @@ class TestWebhook(IntegrationTestCase):
 		self.responses.reset()
 		super().tearDown()
 
-	def test_webhook_trigger_with_enabled_webhooks(self):
+	def test_webhook_trigger_with_enabled_webhooks(self) -> None:
 		"""Test webhook trigger for enabled webhooks"""
 
 		frappe.cache.delete_value("webhooks")
@@ -138,19 +138,19 @@ class TestWebhook(IntegrationTestCase):
 		self.assertEqual(execution.webhook.name, self.sample_webhooks[0].name)
 		self.assertEqual(execution.doc.name, self.test_user.name)
 
-	def test_validate_doc_events(self):
+	def test_validate_doc_events(self) -> None:
 		"Test creating a submit-related webhook for a non-submittable DocType"
 
 		self.webhook.webhook_docevent = "on_submit"
 		self.assertRaises(frappe.ValidationError, self.webhook.save)
 
-	def test_validate_request_url(self):
+	def test_validate_request_url(self) -> None:
 		"Test validation for the webhook request URL"
 
 		self.webhook.request_url = "httpbin.org?post"
 		self.assertRaises(frappe.ValidationError, self.webhook.save)
 
-	def test_validate_headers(self):
+	def test_validate_headers(self) -> None:
 		"Test validation for request headers"
 
 		# test incomplete headers
@@ -165,7 +165,7 @@ class TestWebhook(IntegrationTestCase):
 		headers = get_webhook_headers(doc=None, webhook=self.webhook)
 		self.assertEqual(headers, {"Content-Type": "application/json"})
 
-	def test_validate_request_body_form(self):
+	def test_validate_request_body_form(self) -> None:
 		"Test validation of Form URL-Encoded request body"
 
 		self.webhook.request_structure = "Form URL-Encoded"
@@ -179,7 +179,7 @@ class TestWebhook(IntegrationTestCase):
 		data = get_webhook_data(doc=self.user, webhook=self.webhook)
 		self.assertEqual(data, {"name": self.user.name})
 
-	def test_validate_request_body_json(self):
+	def test_validate_request_body_json(self) -> None:
 		"Test validation of JSON request body"
 
 		self.webhook.request_structure = "JSON"
@@ -193,7 +193,7 @@ class TestWebhook(IntegrationTestCase):
 		data = get_webhook_data(doc=self.user, webhook=self.webhook)
 		self.assertEqual(data, {"name": self.user.name})
 
-	def test_webhook_req_log_creation(self):
+	def test_webhook_req_log_creation(self) -> None:
 		self.responses.add(
 			responses.POST,
 			"https://httpbin.org/post",
@@ -213,7 +213,7 @@ class TestWebhook(IntegrationTestCase):
 
 		self.assertTrue(frappe.get_all("Webhook Request Log", pluck="name"))
 
-	def test_webhook_with_array_body(self):
+	def test_webhook_with_array_body(self) -> None:
 		"""Check if array request body are supported."""
 		wh_config = {
 			"doctype": "Webhook",
@@ -258,7 +258,7 @@ class TestWebhook(IntegrationTestCase):
 			log = frappe.get_last_doc("Webhook Request Log")
 			self.assertEqual(len(json.loads(log.response)), 3)
 
-	def test_webhook_with_dynamic_url_enabled(self):
+	def test_webhook_with_dynamic_url_enabled(self) -> None:
 		wh_config = {
 			"doctype": "Webhook",
 			"webhook_doctype": "Note",
@@ -289,7 +289,7 @@ class TestWebhook(IntegrationTestCase):
 			doc.title = "Test Webhook Note"
 			enqueue_webhook(doc, wh)
 
-	def test_webhook_with_dynamic_url_disabled(self):
+	def test_webhook_with_dynamic_url_disabled(self) -> None:
 		wh_config = {
 			"doctype": "Webhook",
 			"webhook_doctype": "Note",

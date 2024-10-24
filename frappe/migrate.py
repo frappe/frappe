@@ -73,7 +73,7 @@ class SiteMigration:
 		self.skip_failing = skip_failing
 		self.skip_search_index = skip_search_index
 
-	def setUp(self):
+	def setUp(self) -> None:
 		"""Complete setup required for site migration"""
 		frappe.flags.touched_tables = set()
 		self.touched_tables_file = frappe.get_site_path("touched_tables.json")
@@ -86,7 +86,7 @@ class SiteMigration:
 
 		frappe.flags.in_migrate = True
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		"""Run operations that should be run post schema updation processes
 		This should be executed irrespective of outcome
 		"""
@@ -106,14 +106,14 @@ class SiteMigration:
 		frappe.flags.in_migrate = False
 
 	@atomic
-	def pre_schema_updates(self):
+	def pre_schema_updates(self) -> None:
 		"""Executes `before_migrate` hooks"""
 		for app in frappe.get_installed_apps():
 			for fn in frappe.get_hooks("before_migrate", app_name=app):
 				frappe.get_attr(fn)()
 
 	@atomic
-	def run_schema_updates(self):
+	def run_schema_updates(self) -> None:
 		"""Run patches as defined in patches.txt, sync schema changes as defined in the {doctype}.json files"""
 		frappe.modules.patch_handler.run_all(
 			skip_failing=self.skip_failing, patch_type=PatchType.pre_model_sync
@@ -124,7 +124,7 @@ class SiteMigration:
 		)
 
 	@atomic
-	def post_schema_updates(self):
+	def post_schema_updates(self) -> None:
 		"""Execute pending migration tasks post patches execution & schema sync
 		This includes:
 		* Sync `Scheduled Job Type` and scheduler events defined in hooks

@@ -6,7 +6,7 @@ import frappe
 from frappe.query_builder import DocType as _DocType
 
 
-def execute():
+def execute() -> None:
 	"""Resetting creation datetimes for DocTypes"""
 	DocType = _DocType("DocType")
 	doctype_jsons = glob.glob(os.path.join("..", "apps", "frappe", "frappe", "**", "doctype", "**", "*.json"))

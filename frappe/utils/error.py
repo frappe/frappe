@@ -20,7 +20,7 @@ EXCLUDE_EXCEPTIONS = (
 LDAP_BASE_EXCEPTION = "LDAPException"
 
 
-def _is_ldap_exception(e):
+def _is_ldap_exception(e) -> bool:
 	"""Check if exception is from LDAP library.
 
 	This is a hack but ensures that LDAP is not imported unless it's required. This is tested in
@@ -77,7 +77,7 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 		return error_log.insert(ignore_permissions=True)
 
 
-def log_error_snapshot(exception: Exception):
+def log_error_snapshot(exception: Exception) -> None:
 	if isinstance(exception, EXCLUDE_EXCEPTIONS) or _is_ldap_exception(exception):
 		return
 

@@ -33,7 +33,7 @@ class DashboardChartSource(Document):
 		timeseries: DF.Check
 	# end: auto-generated types
 
-	def on_update(self):
+	def on_update(self) -> None:
 		if not frappe.request:
 			return
 
@@ -42,7 +42,7 @@ class DashboardChartSource(Document):
 
 		export_to_files(record_list=[[self.doctype, self.name]], record_module=self.module, create_init=True)
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		if not frappe.conf.developer_mode and not frappe.flags.in_migrate:
 			frappe.throw(_("Deletion of this document is only permitted in developer mode."))
 
@@ -53,7 +53,7 @@ class DashboardChartSource(Document):
 		config_path = self.get_folder_path() / f"{scrub(self.name)}.js"
 		return config_path.read_text() if config_path.exists() else ""
 
-	def delete_folder(self):
+	def delete_folder(self) -> None:
 		"""Delete the folder for this dashboard chart source."""
 		path = self.get_folder_path()
 		if path.exists():

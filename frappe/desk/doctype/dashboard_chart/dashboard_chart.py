@@ -66,7 +66,7 @@ def get_permission_query_conditions(user):
 	"""
 
 
-def has_permission(doc, ptype, user):
+def has_permission(doc, ptype, user) -> bool:
 	roles = frappe.get_roles(user)
 	if "System Manager" in roles:
 		return True
@@ -156,7 +156,7 @@ def create_dashboard_chart(args):
 
 
 @frappe.whitelist()
-def create_report_chart(args):
+def create_report_chart(args) -> None:
 	doc = create_dashboard_chart(args)
 	args = frappe.parse_json(args)
 	args.chart_name = doc.chart_name
@@ -165,7 +165,7 @@ def create_report_chart(args):
 
 
 @frappe.whitelist()
-def add_chart_to_dashboard(args):
+def add_chart_to_dashboard(args) -> None:
 	args = frappe.parse_json(args)
 
 	dashboard = frappe.get_doc("Dashboard", args.dashboard)
@@ -377,12 +377,12 @@ class DashboardChart(Document):
 		y_axis: DF.Table[DashboardChartField]
 	# end: auto-generated types
 
-	def on_update(self):
+	def on_update(self) -> None:
 		frappe.cache.delete_key(f"chart-data:{self.name}")
 		if frappe.conf.developer_mode and self.is_standard:
 			export_to_files(record_list=[["Dashboard Chart", self.name]], record_module=self.module)
 
-	def validate(self):
+	def validate(self) -> None:
 		if not frappe.conf.developer_mode and self.is_standard:
 			frappe.throw(_("Cannot edit Standard charts"))
 		if self.chart_type != "Custom" and self.chart_type != "Report":
@@ -391,7 +391,7 @@ class DashboardChart(Document):
 
 		self.validate_custom_options()
 
-	def check_required_field(self):
+	def check_required_field(self) -> None:
 		if not self.document_type:
 			frappe.throw(_("Document type is required to create a dashboard chart"))
 
@@ -411,11 +411,11 @@ class DashboardChart(Document):
 			if not self.based_on:
 				frappe.throw(_("Time series based on is required to create a dashboard chart"))
 
-	def check_document_type(self):
+	def check_document_type(self) -> None:
 		if frappe.get_meta(self.document_type).issingle:
 			frappe.throw(_("You cannot create a dashboard chart from single DocTypes"))
 
-	def validate_custom_options(self):
+	def validate_custom_options(self) -> None:
 		if self.custom_options:
 			try:
 				json.loads(self.custom_options)

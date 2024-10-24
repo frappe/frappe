@@ -5,7 +5,7 @@ from frappe import _
 no_cache = 1
 
 
-def get_context(context):
+def get_context(context) -> None:
 	if frappe.session.user == "Guest":
 		frappe.throw(_("You need to be logged in to access this page"), frappe.PermissionError)
 
@@ -55,7 +55,7 @@ def get_first_login(client):
 
 
 @frappe.whitelist()
-def delete_client(client_id: str):
+def delete_client(client_id: str) -> None:
 	active_client_id_tokens = frappe.get_all(
 		"OAuth Bearer Token", filters=[["user", "=", frappe.session.user], ["client", "=", client_id]]
 	)

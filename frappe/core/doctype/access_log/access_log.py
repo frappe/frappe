@@ -29,7 +29,7 @@ class AccessLog(Document):
 	# end: auto-generated types
 
 	@staticmethod
-	def clear_old_logs(days=30):
+	def clear_old_logs(days=30) -> None:
 		from frappe.query_builder import Interval
 		from frappe.query_builder.functions import Now
 
@@ -47,7 +47,7 @@ def make_access_log(
 	filters=None,
 	page=None,
 	columns=None,
-):
+) -> None:
 	_make_access_log(
 		doctype,
 		document,
@@ -75,7 +75,7 @@ def _make_access_log(
 	filters=None,
 	page=None,
 	columns=None,
-):
+) -> None:
 	user = frappe.session.user
 	in_request = frappe.request and frappe.request.method == "GET"
 

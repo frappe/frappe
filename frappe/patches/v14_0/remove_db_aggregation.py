@@ -4,7 +4,7 @@ import frappe
 from frappe.query_builder import DocType
 
 
-def execute():
+def execute() -> None:
 	"""Replace temporarily available Database Aggregate APIs on frappe (develop)
 
 	APIs changed:

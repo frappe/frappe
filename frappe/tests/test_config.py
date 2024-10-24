@@ -6,7 +6,7 @@ from frappe.utils.modules import get_modules_from_all_apps_for_user
 
 
 class TestConfig(IntegrationTestCase):
-	def test_get_modules(self):
+	def test_get_modules(self) -> None:
 		frappe_modules = frappe.get_all("Module Def", filters={"app_name": "frappe"}, pluck="name")
 		all_modules_data = get_modules_from_all_apps_for_user()
 		all_modules = [x["module_name"] for x in all_modules_data]

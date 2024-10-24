@@ -42,7 +42,7 @@ class DataImport(Document):
 		template_warnings: DF.Code | None
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		doc_before_save = self.get_doc_before_save()
 		if (
 			not (self.import_file or self.google_sheets_url)
@@ -58,25 +58,25 @@ class DataImport(Document):
 		self.validate_google_sheets_url()
 		self.set_payload_count()
 
-	def set_delimiters_flag(self):
+	def set_delimiters_flag(self) -> None:
 		if self.import_file:
 			frappe.flags.delimiter_options = self.delimiter_options or ","
 
-	def validate_doctype(self):
+	def validate_doctype(self) -> None:
 		if self.reference_doctype in BLOCKED_DOCTYPES:
 			frappe.throw(_("Importing {0} is not allowed.").format(self.reference_doctype))
 
-	def validate_import_file(self):
+	def validate_import_file(self) -> None:
 		if self.import_file:
 			# validate template
 			self.get_importer()
 
-	def validate_google_sheets_url(self):
+	def validate_google_sheets_url(self) -> None:
 		if not self.google_sheets_url:
 			return
 		validate_google_sheets_url(self.google_sheets_url)
 
-	def set_payload_count(self):
+	def set_payload_count(self) -> None:
 		if self.import_file:
 			i = self.get_importer()
 			payloads = i.import_file.get_payloads_for_import()
@@ -97,7 +97,7 @@ class DataImport(Document):
 		i = self.get_importer()
 		return i.get_data_for_import_preview()
 
-	def start_import(self):
+	def start_import(self) -> bool:
 		from frappe.utils.scheduler import is_scheduler_inactive
 
 		run_now = frappe.flags.in_test or frappe.conf.developer_mode
@@ -142,7 +142,7 @@ def form_start_import(data_import: str):
 	return frappe.get_doc("Data Import", data_import).start_import()
 
 
-def start_import(data_import):
+def start_import(data_import) -> None:
 	"""This method runs in background job"""
 	data_import = frappe.get_doc("Data Import", data_import)
 	try:
@@ -162,7 +162,9 @@ def start_import(data_import):
 
 
 @frappe.whitelist()
-def download_template(doctype, export_fields=None, export_records=None, export_filters=None, file_type="CSV"):
+def download_template(
+	doctype, export_fields=None, export_records=None, export_filters=None, file_type="CSV"
+) -> None:
 	"""
 	Download template from Exporter
 	        :param doctype: Document Type
@@ -188,13 +190,13 @@ def download_template(doctype, export_fields=None, export_records=None, export_f
 
 
 @frappe.whitelist()
-def download_errored_template(data_import_name):
+def download_errored_template(data_import_name) -> None:
 	data_import = frappe.get_doc("Data Import", data_import_name)
 	data_import.export_errored_rows()
 
 
 @frappe.whitelist()
-def download_import_log(data_import_name):
+def download_import_log(data_import_name) -> None:
 	data_import = frappe.get_doc("Data Import", data_import_name)
 	data_import.download_import_log()
 
@@ -240,7 +242,7 @@ def get_import_logs(data_import: str):
 	)
 
 
-def import_file(doctype, file_path, import_type, submit_after_import=False, console=False):
+def import_file(doctype, file_path, import_type, submit_after_import=False, console=False) -> None:
 	"""
 	Import documents in from CSV or XLSX using data import.
 
@@ -281,8 +283,8 @@ def import_doc(path, pre_process=None, sort=False):
 			raise NotImplementedError("Only .json files can be imported")
 
 
-def export_json(doctype, path, filters=None, or_filters=None, name=None, order_by="creation asc"):
-	def post_process(out):
+def export_json(doctype, path, filters=None, or_filters=None, name=None, order_by="creation asc") -> None:
+	def post_process(out) -> None:
 		# Note on Tree DocTypes:
 		# The tree structure is maintained in the database via the fields "lft"
 		# and "rgt". They are automatically set and kept up-to-date. Importing
@@ -334,7 +336,7 @@ def export_json(doctype, path, filters=None, or_filters=None, name=None, order_b
 		outfile.write(frappe.as_json(out, ensure_ascii=False))
 
 
-def export_csv(doctype, path):
+def export_csv(doctype, path) -> None:
 	from frappe.core.doctype.data_export.exporter import export_data
 
 	with open(path, "wb") as csvfile:

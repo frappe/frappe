@@ -15,14 +15,14 @@ class UnitTestEmailDomain(UnitTestCase):
 
 
 class TestDomain(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		make_test_objects("Email Domain", reset=True)
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.delete_doc("Email Account", "Test")
 		frappe.delete_doc("Email Domain", "test.com")
 
-	def test_on_update(self):
+	def test_on_update(self) -> None:
 		mail_domain = frappe.get_doc("Email Domain", "test.com")
 		mail_account = frappe.get_doc("Email Account", "Test")
 

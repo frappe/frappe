@@ -53,12 +53,12 @@ def handle_rpc_call(method: str, doctype: str | None = None):
 	return frappe.call(method, **frappe.form_dict)
 
 
-def login():
+def login() -> None:
 	"""Login happens implicitly, this function doesn't do anything."""
 	pass
 
 
-def logout():
+def logout() -> None:
 	frappe.local.login_manager.logout()
 	frappe.db.commit()
 
@@ -109,7 +109,7 @@ def update_doc(doctype: str, name: str):
 	return doc
 
 
-def delete_doc(doctype: str, name: str):
+def delete_doc(doctype: str, name: str) -> str:
 	frappe.client.delete_doc(doctype, name)
 	frappe.response.http_status_code = 202
 	return "ok"

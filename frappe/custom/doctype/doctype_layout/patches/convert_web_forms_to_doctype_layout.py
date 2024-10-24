@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	for web_form_name in frappe.get_all("Web Form", pluck="name"):
 		web_form = frappe.get_doc("Web Form", web_form_name)
 		doctype_layout = frappe.get_doc(

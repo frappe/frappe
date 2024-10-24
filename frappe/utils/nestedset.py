@@ -38,7 +38,7 @@ class NestedSetInvalidMergeError(frappe.ValidationError):
 
 
 # called in the on_update method
-def update_nsm(doc):
+def update_nsm(doc) -> None:
 	# get fields, data from the DocType
 	old_parent_field = "old_parent"
 	parent_field = "parent_" + frappe.scrub(doc.doctype)
@@ -98,7 +98,7 @@ def update_add_node(doc, parent, parent_field):
 	return right
 
 
-def update_move_node(doc: Document, parent_field: str):
+def update_move_node(doc: Document, parent_field: str) -> None:
 	parent: str = doc.get(parent_field)
 	Table = DocType(doc.doctype)
 
@@ -223,13 +223,13 @@ def rebuild_node(doctype, parent, left, parent_field):
 	return right + 1
 
 
-def validate_loop(doctype, name, lft, rgt):
+def validate_loop(doctype, name, lft, rgt) -> None:
 	"""check if item not an ancestor (loop)"""
 	if name in frappe.get_all(doctype, filters={"lft": ["<=", lft], "rgt": [">=", rgt]}, pluck="name"):
 		frappe.throw(_("Item cannot be added to its own descendants"), NestedSetRecursionError)
 
 
-def remove_subtree(doctype: str, name: str, throw=True):
+def remove_subtree(doctype: str, name: str, throw=True) -> None:
 	"""Remove doc and all its children.
 
 	WARN: This does not run any controller hooks for deletion and deletes them with raw SQL query.
@@ -257,11 +257,11 @@ def remove_subtree(doctype: str, name: str, throw=True):
 
 
 class NestedSet(Document):
-	def __setup__(self):
+	def __setup__(self) -> None:
 		if self.meta.get("nsm_parent_field"):
 			self.nsm_parent_field = self.meta.nsm_parent_field
 
-	def on_update(self):
+	def on_update(self) -> None:
 		update_nsm(self)
 		self.validate_ledger()
 
@@ -292,14 +292,14 @@ class NestedSet(Document):
 			else:
 				raise
 
-	def validate_if_child_exists(self):
+	def validate_if_child_exists(self) -> None:
 		has_children = frappe.db.count(self.doctype, filters={self.nsm_parent_field: self.name})
 		if has_children:
 			frappe.throw(
 				_("Cannot delete {0} as it has child nodes").format(self.name), NestedSetChildExistsError
 			)
 
-	def before_rename(self, olddn, newdn, merge=False, group_fname="is_group"):
+	def before_rename(self, olddn, newdn, merge=False, group_fname="is_group") -> None:
 		if merge and hasattr(self, group_fname):
 			is_group = frappe.db.get_value(self.doctype, newdn, group_fname)
 			if self.get(group_fname) != is_group:
@@ -308,7 +308,7 @@ class NestedSet(Document):
 					NestedSetInvalidMergeError,
 				)
 
-	def after_rename(self, olddn, newdn, merge=False):
+	def after_rename(self, olddn, newdn, merge=False) -> None:
 		if not self.nsm_parent_field:
 			parent_field = "parent_" + self.doctype.replace(" ", "_").lower()
 		else:
@@ -325,7 +325,7 @@ class NestedSet(Document):
 		if merge:
 			rebuild_tree(self.doctype)
 
-	def validate_one_root(self):
+	def validate_one_root(self) -> None:
 		if not self.get(self.nsm_parent_field):
 			if self.get_root_node_count() > 1:
 				frappe.throw(_("""Multiple root nodes not allowed."""), NestedSetMultipleRootsError)
@@ -333,7 +333,7 @@ class NestedSet(Document):
 	def get_root_node_count(self):
 		return frappe.db.count(self.doctype, {self.nsm_parent_field: ""})
 
-	def validate_ledger(self, group_identifier="is_group"):
+	def validate_ledger(self, group_identifier="is_group") -> None:
 		if hasattr(self, group_identifier) and not bool(self.get(group_identifier)):
 			if frappe.get_all(self.doctype, {self.nsm_parent_field: self.name, "docstatus": ("!=", 2)}):
 				frappe.throw(

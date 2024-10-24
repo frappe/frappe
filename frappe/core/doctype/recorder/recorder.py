@@ -80,17 +80,17 @@ class Recorder(Document):
 		return [req for req in requests if evaluate_filters(req, filters)]
 
 	@staticmethod
-	def get_stats(args):
+	def get_stats(args) -> None:
 		pass
 
 	@staticmethod
-	def delete(self):
+	def delete(self) -> None:
 		pass
 
-	def db_insert(self, *args, **kwargs):
+	def db_insert(self, *args, **kwargs) -> None:
 		pass
 
-	def db_update(self):
+	def db_update(self) -> None:
 		pass
 
 
@@ -116,7 +116,7 @@ def serialize_request(request):
 
 
 @frappe.whitelist()
-def add_indexes(indexes):
+def add_indexes(indexes) -> None:
 	frappe.only_for("Administrator")
 	indexes = json.loads(indexes)
 
@@ -125,7 +125,7 @@ def add_indexes(indexes):
 	frappe.msgprint(_("Enqueued creation of indexes"), alert=True)
 
 
-def _add_index(table, column):
+def _add_index(table, column) -> None:
 	doctype = get_doctype_name(table)
 	frappe.db.add_index(doctype, [column])
 	make_property_setter(
@@ -144,12 +144,12 @@ def _add_index(table, column):
 
 
 @frappe.whitelist()
-def optimize(recorder_id: str):
+def optimize(recorder_id: str) -> None:
 	frappe.only_for("Administrator")
 	frappe.enqueue(_optimize, recorder_id=recorder_id, queue="long")
 
 
-def _optimize(recorder_id):
+def _optimize(recorder_id) -> None:
 	record: Recorder = frappe.get_doc("Recorder", recorder_id)
 	total_duration = record.time_in_queries
 
@@ -227,7 +227,7 @@ def _optimize_query(query):
 
 
 def _fetch_table_stats(doctype: str, columns: list[str]) -> dict | None:
-	def sql_bool(val):
+	def sql_bool(val) -> bool:
 		return cstr(val).lower() in ("yes", "1", "true")
 
 	if not frappe.db.table_exists(doctype):
@@ -246,7 +246,7 @@ def _fetch_table_stats(doctype: str, columns: list[str]) -> dict | None:
 			}
 		)
 
-	def update_cardinality(column, value):
+	def update_cardinality(column, value) -> None:
 		for col in schema:
 			if col["column"] == column:
 				col["cardinality"] = value

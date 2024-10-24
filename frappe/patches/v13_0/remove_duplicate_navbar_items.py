@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	navbar_settings = frappe.get_single("Navbar Settings")
 	duplicate_items = [
 		navbar_item

@@ -67,7 +67,7 @@ class Workspace:
 			frappe.cache.get_value("domain_restricted_pages") or build_domain_restriced_page_cache()
 		)
 
-	def is_permitted(self):
+	def is_permitted(self) -> bool:
 		"""Return true if `Has Role` is not set or the user is allowed."""
 		from frappe.utils import has_common
 
@@ -153,7 +153,7 @@ class Workspace:
 
 		return False
 
-	def build_workspace(self):
+	def build_workspace(self) -> None:
 		self.cards = {"items": self.get_links()}
 		self.charts = {"items": self.get_charts()}
 		self.shortcuts = {"items": self.get_shortcuts()}
@@ -201,7 +201,7 @@ class Workspace:
 
 		return item
 
-	def is_custom_block_permitted(self, custom_block_name):
+	def is_custom_block_permitted(self, custom_block_name) -> bool:
 		from frappe.utils import has_common
 
 		allowed = [
@@ -273,7 +273,7 @@ class Workspace:
 
 	@handle_not_exist
 	def get_shortcuts(self):
-		def _in_active_domains(item):
+		def _in_active_domains(item) -> bool:
 			if not item.restrict_to_domain:
 				return True
 			else:
@@ -570,7 +570,7 @@ def get_custom_report_list(module):
 	]
 
 
-def save_new_widget(doc, page, blocks, new_widgets):
+def save_new_widget(doc, page, blocks, new_widgets) -> bool:
 	if loads(new_widgets):
 		widgets = _dict(loads(new_widgets))
 
@@ -610,7 +610,7 @@ def save_new_widget(doc, page, blocks, new_widgets):
 	return True
 
 
-def clean_up(original_page, blocks):
+def clean_up(original_page, blocks) -> None:
 	page_widgets = {}
 
 	for wid in ["shortcut", "card", "chart", "quick_list", "number_card", "custom_block"]:
@@ -691,7 +691,7 @@ def prepare_widget(config, doctype, parentfield):
 
 
 @frappe.whitelist()
-def update_onboarding_step(name, field, value):
+def update_onboarding_step(name, field, value) -> None:
 	"""Update status of onboaridng step
 
 	Args:

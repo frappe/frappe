@@ -49,7 +49,7 @@ class PreparedReport(Document):
 		return self.creation
 
 	@staticmethod
-	def clear_old_logs(days=30):
+	def clear_old_logs(days=30) -> None:
 		prepared_reports_to_delete = frappe.get_all(
 			"Prepared Report",
 			filters={"creation": ["<", frappe.utils.add_days(frappe.utils.now(), -days)]},
@@ -58,10 +58,10 @@ class PreparedReport(Document):
 		for batch in frappe.utils.create_batch(prepared_reports_to_delete, 100):
 			enqueue(method=delete_prepared_reports, reports=batch)
 
-	def before_insert(self):
+	def before_insert(self) -> None:
 		self.status = "Queued"
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		"""Remove pending job from queue, if already running then kill the job."""
 		if self.status not in ("Started", "Queued"):
 			return
@@ -70,7 +70,7 @@ class PreparedReport(Document):
 			job = frappe.get_doc("RQ Job", self.job_id)
 			job.stop_job() if self.status == "Started" else job.delete()
 
-	def after_insert(self):
+	def after_insert(self) -> None:
 		timeout = frappe.get_value("Report", self.report_name, "timeout")
 		enqueue(
 			generate_report,
@@ -90,7 +90,7 @@ class PreparedReport(Document):
 			return gzip.decompress(attached_file.get_content())
 
 
-def generate_report(prepared_report):
+def generate_report(prepared_report) -> None:
 	update_job_id(prepared_report)
 
 	instance: PreparedReport = frappe.get_doc("Prepared Report", prepared_report)
@@ -129,14 +129,14 @@ def generate_report(prepared_report):
 
 
 @dangerously_reconnect_on_connection_abort
-def _save_error(instance, error):
+def _save_error(instance, error) -> None:
 	instance.reload()
 	instance.status = "Error"
 	instance.error_message = error
 	instance.save(ignore_permissions=True)
 
 
-def update_job_id(prepared_report):
+def update_job_id(prepared_report) -> None:
 	job = get_current_job()
 
 	frappe.db.set_value(
@@ -201,7 +201,7 @@ def get_completed_prepared_report(filters, user, report_name):
 	)
 
 
-def expire_stalled_report():
+def expire_stalled_report() -> None:
 	frappe.db.set_value(
 		"Prepared Report",
 		{
@@ -217,7 +217,7 @@ def expire_stalled_report():
 
 
 @frappe.whitelist()
-def delete_prepared_reports(reports):
+def delete_prepared_reports(reports) -> None:
 	reports = frappe.parse_json(reports)
 	for report in reports:
 		prepared_report = frappe.get_doc("Prepared Report", report["name"])
@@ -225,7 +225,7 @@ def delete_prepared_reports(reports):
 			prepared_report.delete(ignore_permissions=True, delete_permanently=True)
 
 
-def create_json_gz_file(data, dt, dn, report_name):
+def create_json_gz_file(data, dt, dn, report_name) -> None:
 	# Storing data in CSV file causes information loss
 	# Reports like P&L Statement were completely unsuable because of this
 	json_filename = "{}_{}.json.gz".format(
@@ -249,7 +249,7 @@ def create_json_gz_file(data, dt, dn, report_name):
 
 
 @frappe.whitelist()
-def download_attachment(dn):
+def download_attachment(dn) -> None:
 	pr = frappe.get_doc("Prepared Report", dn)
 	if not pr.has_permission("read"):
 		frappe.throw(frappe._("Cannot Download Report due to insufficient permissions"))
@@ -278,7 +278,7 @@ def get_permission_query_condition(user):
 	return """`tabPrepared Report`.report_name in ({reports})""".format(reports=",".join(reports))
 
 
-def has_permission(doc, user):
+def has_permission(doc, user) -> bool:
 	if not user:
 		user = frappe.session.user
 	if user == "Administrator":

@@ -2,7 +2,7 @@ import frappe
 from frappe.patches.v14_0.drop_unused_indexes import drop_index_if_exists
 
 
-def execute():
+def execute() -> None:
 	if frappe.db.db_type == "postgres":
 		return
 

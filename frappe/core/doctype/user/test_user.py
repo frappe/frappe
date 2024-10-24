@@ -39,7 +39,7 @@ class UnitTestUser(UnitTestCase):
 
 
 class TestUser(IntegrationTestCase):
-	def tearDown(self):
+	def tearDown(self) -> None:
 		# disable password strength test
 		frappe.db.set_single_value("System Settings", "enable_password_policy", 0)
 		frappe.db.set_single_value("System Settings", "minimum_password_score", "")
@@ -51,7 +51,7 @@ class TestUser(IntegrationTestCase):
 		link = user.reset_password()
 		return parse_qs(urlparse(link).query)["key"][0]
 
-	def test_user_type(self):
+	def test_user_type(self) -> None:
 		user_id = frappe.generate_hash() + "@example.com"
 		new_user = frappe.get_doc(doctype="User", email=user_id, first_name="Tester").insert()
 		self.assertEqual(new_user.user_type, "Website User")
@@ -78,7 +78,7 @@ class TestUser(IntegrationTestCase):
 		delete_contact(new_user.name)
 		frappe.delete_doc("User", new_user.name)
 
-	def test_delete(self):
+	def test_delete(self) -> None:
 		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
 		self.assertRaises(frappe.LinkExistsError, delete_doc, "Role", "_Test Role 2")
 		frappe.db.delete("Has Role", {"role": "_Test Role 2"})
@@ -103,7 +103,7 @@ class TestUser(IntegrationTestCase):
 
 		frappe.copy_doc(self.globalTestRecords["Role"][1]).insert()
 
-	def test_get_value(self):
+	def test_get_value(self) -> None:
 		self.assertEqual(frappe.db.get_value("User", "test@example.com"), "test@example.com")
 		self.assertEqual(frappe.db.get_value("User", {"email": "test@example.com"}), "test@example.com")
 		self.assertEqual(
@@ -131,7 +131,7 @@ class TestUser(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Website Settings", None, "_test"), "_test_val")
 		self.assertEqual(frappe.db.get_value("Website Settings", "Website Settings", "_test"), "_test_val")
 
-	def test_high_permlevel_validations(self):
+	def test_high_permlevel_validations(self) -> None:
 		user = frappe.get_meta("User")
 		self.assertTrue("roles" in [d.fieldname for d in user.get_high_permlevel_fields()])
 
@@ -165,7 +165,7 @@ class TestUser(IntegrationTestCase):
 		# system manager now added by Administrator
 		self.assertTrue("System Manager" in [d.role for d in me.get("roles")])
 
-	def test_delete_user(self):
+	def test_delete_user(self) -> None:
 		new_user = frappe.get_doc(
 			doctype="User", email="test-for-delete@example.com", first_name="Tester Delete User"
 		).insert(ignore_if_duplicate=True)
@@ -191,7 +191,7 @@ class TestUser(IntegrationTestCase):
 		frappe.delete_doc("User", new_user.name)
 		self.assertFalse(frappe.db.exists("User", new_user.name))
 
-	def test_password_strength(self):
+	def test_password_strength(self) -> None:
 		# Test Password without Password Strength Policy
 		frappe.db.set_single_value("System Settings", "enable_password_policy", 0)
 
@@ -225,7 +225,7 @@ class TestUser(IntegrationTestCase):
 		user.save()
 		frappe.flags.in_test = True
 
-	def test_comment_mentions(self):
+	def test_comment_mentions(self) -> None:
 		comment = """
 			<span class="mention" data-id="test.comment@example.com" data-value="Test" data-denotation-char="@">
 				<span><span class="ql-mention-denotation-char">@</span>Test</span>
@@ -286,7 +286,7 @@ class TestUser(IntegrationTestCase):
 		self.assertListEqual(extract_mentions(comment), ["test@example.com", "test1@example.com"])
 
 	@IntegrationTestCase.change_settings("System Settings", commit=True, password_reset_limit=1)
-	def test_rate_limiting_for_reset_password(self):
+	def test_rate_limiting_for_reset_password(self) -> None:
 		url = get_url()
 		data = {"cmd": "frappe.core.doctype.user.user.reset_password", "user": "test@test.com"}
 
@@ -300,7 +300,7 @@ class TestUser(IntegrationTestCase):
 		self.assertEqual(res1.status_code, 404)
 		self.assertEqual(res2.status_code, 429)
 
-	def test_user_rename(self):
+	def test_user_rename(self) -> None:
 		old_name = "test_user_rename@example.com"
 		new_name = "test_user_rename_new@example.com"
 		user = frappe.get_doc(
@@ -319,7 +319,7 @@ class TestUser(IntegrationTestCase):
 
 		frappe.delete_doc("User", new_name)
 
-	def test_signup(self):
+	def test_signup(self) -> None:
 		import frappe.website.utils
 
 		random_user = frappe.mock("email")
@@ -365,7 +365,7 @@ class TestUser(IntegrationTestCase):
 			)
 
 	@IntegrationTestCase.change_settings("System Settings", password_reset_limit=6)
-	def test_reset_password(self):
+	def test_reset_password(self) -> None:
 		from frappe.auth import CookieManager, LoginManager
 		from frappe.utils import set_request
 
@@ -438,7 +438,7 @@ class TestUser(IntegrationTestCase):
 		self.assertEqual(reset_password(user="Administrator"), "not allowed")
 		self.assertEqual(reset_password(user="random"), "not found")
 
-	def test_user_onload_modules(self):
+	def test_user_onload_modules(self) -> None:
 		from frappe.desk.form.load import getdoc
 		from frappe.utils.modules import get_modules_from_all_apps
 
@@ -451,7 +451,7 @@ class TestUser(IntegrationTestCase):
 		)
 
 	@IntegrationTestCase.change_settings("System Settings", reset_password_link_expiry_duration=1)
-	def test_reset_password_link_expiry(self):
+	def test_reset_password_link_expiry(self) -> None:
 		new_password = "new_password"
 		frappe.set_user("testpassword@example.com")
 		test_user = frappe.get_doc("User", "testpassword@example.com")
@@ -465,7 +465,7 @@ class TestUser(IntegrationTestCase):
 
 
 class TestImpersonation(FrappeAPITestCase):
-	def test_impersonation(self):
+	def test_impersonation(self) -> None:
 		with test_user(roles=["System Manager"], commit=True) as user:
 			self.post(
 				self.method("frappe.core.doctype.user.user.impersonate"),
@@ -497,6 +497,6 @@ def test_user(
 		commit and frappe.db.commit()
 
 
-def delete_contact(user):
+def delete_contact(user) -> None:
 	frappe.db.delete("Contact", {"email_id": user})
 	frappe.db.delete("Contact Email", {"email_id": user})

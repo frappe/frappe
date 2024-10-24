@@ -170,7 +170,7 @@ def sanitize_html(html, linkify=False, always_sanitize=False):
 		+ ["html", "head", "meta", "link", "body", "style", "o:p"]
 	)
 
-	def attributes_filter(tag, name, value):
+	def attributes_filter(tag, name, value) -> bool:
 		if name.startswith("data-"):
 			return True
 		return name in acceptable_attributes
@@ -191,7 +191,7 @@ def sanitize_html(html, linkify=False, always_sanitize=False):
 	return escaped_html
 
 
-def is_json(text):
+def is_json(text) -> bool:
 	try:
 		json.loads(text)
 	except ValueError:

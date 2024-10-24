@@ -39,15 +39,15 @@ class DesktopIcon(Document):
 		type: DF.Literal["module", "list", "link", "page", "query-report"]
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		if not self.label:
 			self.label = self.module_name
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		clear_desktop_icons_cache()
 
 
-def after_doctype_insert():
+def after_doctype_insert() -> None:
 	frappe.db.add_unique("Desktop Icon", ("module_name", "owner", "standard"))
 
 
@@ -230,7 +230,7 @@ def add_user_icon(_doctype, _report=None, label=None, link=None, type="link", st
 
 
 @frappe.whitelist()
-def set_order(new_order, user=None):
+def set_order(new_order, user=None) -> None:
 	"""set new order by duplicating user icons (if user is set) or set global order"""
 	if isinstance(new_order, str):
 		new_order = json.loads(new_order)
@@ -287,7 +287,7 @@ def set_desktop_icons(visible_list, ignore_duplicate=True):
 	clear_desktop_icons_cache()
 
 
-def set_hidden_list(hidden_list, user=None):
+def set_hidden_list(hidden_list, user=None) -> None:
 	"""Sets property `hidden`=1 in **Desktop Icon** for given user.
 	If user is None then it will set global values.
 	It will also set the rest of the icons as shown (`hidden` = 0)"""
@@ -308,7 +308,7 @@ def set_hidden_list(hidden_list, user=None):
 		frappe.clear_cache()
 
 
-def set_hidden(module_name, user=None, hidden=1):
+def set_hidden(module_name, user=None, hidden=1) -> None:
 	"""Set module hidden property for given user. If user is not specified,
 	hide/unhide it globally"""
 	if user:
@@ -333,7 +333,7 @@ def get_all_icons():
 	]
 
 
-def clear_desktop_icons_cache(user=None):
+def clear_desktop_icons_cache(user=None) -> None:
 	frappe.cache.hdel("desktop_icons", user or frappe.session.user)
 	frappe.cache.hdel("bootinfo", user or frappe.session.user)
 
@@ -391,7 +391,7 @@ def make_user_copy(module_name, user):
 	return desktop_icon
 
 
-def sync_desktop_icons():
+def sync_desktop_icons() -> None:
 	"""Sync desktop icons from all apps"""
 	for app in frappe.get_installed_apps():
 		sync_from_app(app)
@@ -437,7 +437,7 @@ def sync_from_app(app):
 
 
 @frappe.whitelist()
-def update_icons(hidden_list, user=None):
+def update_icons(hidden_list, user=None) -> None:
 	"""update modules"""
 	if not user:
 		frappe.only_for("System Manager")
@@ -446,7 +446,7 @@ def update_icons(hidden_list, user=None):
 	frappe.msgprint(frappe._("Updated"), indicator="green", title=_("Success"), alert=True)
 
 
-def get_context(context):
+def get_context(context) -> None:
 	context.icons = get_user_icons(frappe.session.user)
 	context.user = frappe.session.user
 
@@ -559,7 +559,7 @@ palette = (
 
 
 @frappe.whitelist()
-def hide(name, user=None):
+def hide(name, user=None) -> bool:
 	if not user:
 		user = frappe.session.user
 

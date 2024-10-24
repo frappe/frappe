@@ -132,15 +132,15 @@ class TestServerScript(IntegrationTestCase):
 		return super().setUpClass()
 
 	@classmethod
-	def tearDownClass(cls):
+	def tearDownClass(cls) -> None:
 		frappe.db.commit()
 		frappe.db.truncate("Server Script")
 		frappe.cache.delete_value("server_script_map")
 
-	def setUp(self):
+	def setUp(self) -> None:
 		frappe.cache.delete_value("server_script_map")
 
-	def test_doctype_event(self):
+	def test_doctype_event(self) -> None:
 		todo = frappe.get_doc(doctype="ToDo", description="hello").insert()
 		self.assertEqual(todo.status, "Open")
 
@@ -157,27 +157,27 @@ class TestServerScript(IntegrationTestCase):
 		self.assertEqual(role.disabled, 1)
 		self.assertEqual(role.desk_access, 0)
 
-	def test_api(self):
+	def test_api(self) -> None:
 		response = requests.post(get_site_url(frappe.local.site) + "/api/method/test_server_script")
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual("hello", response.json()["message"])
 
-	def test_api_return(self):
+	def test_api_return(self) -> None:
 		self.assertEqual(frappe.get_doc("Server Script", "test_return_value").execute_method(), "hello")
 
-	def test_permission_query(self):
+	def test_permission_query(self) -> None:
 		if frappe.conf.db_type == "mariadb":
 			self.assertTrue("where (1 = 1)" in frappe.db.get_list("ToDo", run=False))
 		else:
 			self.assertTrue("where (1 = '1')" in frappe.db.get_list("ToDo", run=False))
 		self.assertTrue(isinstance(frappe.db.get_list("ToDo"), list))
 
-	def test_attribute_error(self):
+	def test_attribute_error(self) -> None:
 		"""Raise AttributeError if method not found in Namespace"""
 		note = frappe.get_doc({"doctype": "Note", "title": "Test Note: Server Script"})
 		self.assertRaises(AttributeError, note.insert)
 
-	def test_syntax_validation(self):
+	def test_syntax_validation(self) -> None:
 		server_script = scripts[0]
 		server_script["script"] = "js || code.?"
 
@@ -188,7 +188,7 @@ class TestServerScript(IntegrationTestCase):
 			"invalid python code" in str(se.exception).lower(), msg="Python code validation not working"
 		)
 
-	def test_commit_in_doctype_event(self):
+	def test_commit_in_doctype_event(self) -> None:
 		server_script = frappe.get_doc("Server Script", "test_todo_commit")
 		server_script.disabled = 0
 		server_script.save()
@@ -198,7 +198,7 @@ class TestServerScript(IntegrationTestCase):
 		server_script.disabled = 1
 		server_script.save()
 
-	def test_add_index_in_doctype_event(self):
+	def test_add_index_in_doctype_event(self) -> None:
 		server_script = frappe.get_doc("Server Script", "test_add_index")
 		server_script.disabled = 0
 		server_script.save()
@@ -208,7 +208,7 @@ class TestServerScript(IntegrationTestCase):
 		server_script.disabled = 1
 		server_script.save()
 
-	def test_restricted_qb(self):
+	def test_restricted_qb(self) -> None:
 		todo = frappe.get_doc(doctype="ToDo", description="QbScriptTestNote")
 		todo.insert()
 
@@ -247,7 +247,7 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		script.save()
 		script.execute_method()
 
-	def test_scripts_all_the_way_down(self):
+	def test_scripts_all_the_way_down(self) -> None:
 		# why not
 		script = frappe.get_doc(
 			doctype="Server Script",
@@ -269,7 +269,7 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		script.insert()
 		script.execute_method()
 
-	def test_server_script_rate_limiting(self):
+	def test_server_script_rate_limiting(self) -> None:
 		script1 = frappe.get_doc(
 			doctype="Server Script",
 			name="rate_limited_server_script",
@@ -317,7 +317,7 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		script2.delete()
 		frappe.db.commit()
 
-	def test_server_script_scheduled(self):
+	def test_server_script_scheduled(self) -> None:
 		scheduled_script = frappe.get_doc(
 			doctype="Server Script",
 			name="scheduled_script_wo_cron",
@@ -353,7 +353,7 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		updated_cron_job = frappe.get_doc("Scheduled Job Type", updated_cron_job_name)
 		self.assertEqual(updated_cron_job.next_execution.day, 2)
 
-	def test_server_script_state_changes(self):
+	def test_server_script_state_changes(self) -> None:
 		script: ServerScript = frappe.get_doc(
 			doctype="Server Script",
 			name="scheduled_script_state_change",

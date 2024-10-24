@@ -9,7 +9,7 @@ import frappe
 from frappe.core.doctype.data_import.data_import import export_json, import_doc
 
 
-def sync_fixtures(app=None):
+def sync_fixtures(app=None) -> None:
 	"""Import, overwrite fixtures from `[app]/fixtures`"""
 	if app:
 		apps = [app]
@@ -25,7 +25,7 @@ def sync_fixtures(app=None):
 	frappe.flags.in_fixtures = False
 
 
-def import_fixtures(app):
+def import_fixtures(app) -> None:
 	fixtures_path = frappe.get_app_path(app, "fixtures")
 	if not os.path.exists(fixtures_path):
 		return
@@ -44,7 +44,7 @@ def import_fixtures(app):
 			print(f"Skipping fixture syncing from the file {fname}. Reason: {e}")
 
 
-def import_custom_scripts(app):
+def import_custom_scripts(app) -> None:
 	"""Import custom scripts from `[app]/fixtures/custom_scripts`"""
 	scripts_folder = frappe.get_app_path(app, "fixtures", "custom_scripts")
 	if not os.path.exists(scripts_folder):
@@ -60,7 +60,7 @@ def import_custom_scripts(app):
 		)
 
 
-def export_fixtures(app=None):
+def export_fixtures(app=None) -> None:
 	"""Export fixtures as JSON to `[app]/fixtures`"""
 	if app:
 		apps = [app]

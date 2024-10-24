@@ -31,7 +31,7 @@ class Version(Document):
 			return self.set_diff(old, new)
 
 	@staticmethod
-	def set_impersonator(data):
+	def set_impersonator(data) -> None:
 		if not frappe.session:
 			return
 		if impersonator := frappe.session.data.get("impersonated_by"):
@@ -189,5 +189,5 @@ def get_diff(old, new, for_child=False, compare_cancelled=False):
 		return None
 
 
-def on_doctype_update():
+def on_doctype_update() -> None:
 	frappe.db.add_index("Version", ["ref_doctype", "docname"])

@@ -28,7 +28,7 @@ class TestFixtureImport(IntegrationTestCase):
 
 		return path_to_exported_fixtures
 
-	def test_fixtures_import(self):
+	def test_fixtures_import(self) -> None:
 		self.assertFalse(frappe.db.exists("DocType", "temp_doctype"))
 
 		self.create_new_doctype("temp_doctype")
@@ -53,7 +53,7 @@ class TestFixtureImport(IntegrationTestCase):
 
 		self.assertEqual(set(dummy_name_list), imported_data)
 
-	def test_singles_fixtures_import(self):
+	def test_singles_fixtures_import(self) -> None:
 		self.assertFalse(frappe.db.exists("DocType", "temp_singles"))
 
 		self.create_new_doctype("temp_singles")

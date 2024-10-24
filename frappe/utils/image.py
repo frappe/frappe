@@ -8,7 +8,7 @@ from PIL import Image
 import frappe
 
 
-def resize_images(path, maxdim=700):
+def resize_images(path, maxdim=700) -> None:
 	size = (maxdim, maxdim)
 	for basepath, folders, files in os.walk(path):  # noqa: B007
 		for fname in files:

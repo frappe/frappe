@@ -32,7 +32,7 @@ class TestHelpArticle(IntegrationTestCase):
 			}
 		).insert()
 
-	def test_article_is_helpful(self):
+	def test_article_is_helpful(self) -> None:
 		from frappe.website.doctype.help_article.help_article import add_feedback
 
 		self.help_article.load_from_db()
@@ -46,7 +46,7 @@ class TestHelpArticle(IntegrationTestCase):
 		self.assertEqual(self.help_article.helpful, 1)
 		self.assertEqual(self.help_article.not_helpful, 1)
 
-	def test_category_disable(self):
+	def test_category_disable(self) -> None:
 		self.help_article.load_from_db()
 		self.help_article.published = 1
 		self.help_article.save()

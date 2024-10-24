@@ -18,7 +18,7 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestEmailBody(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		email_html = """
 <div>
 	<h3>Hey John Doe!</h3>
@@ -51,7 +51,7 @@ This is the text version of this email
 			.replace("\r\n", "\n")
 		)
 
-	def test_prepare_message_returns_already_encoded_string(self):
+	def test_prepare_message_returns_already_encoded_string(self) -> None:
 		uni_chr1 = chr(40960)
 		uni_chr2 = chr(1972)
 
@@ -67,7 +67,7 @@ This is the text version of this email
 		result = mail_ctx.build_message(recipient_email="test@test.com")
 		self.assertTrue(b"<h1>=EA=80=80abcd=DE=B4</h1>" in result)
 
-	def test_prepare_message_returns_cr_lf(self):
+	def test_prepare_message_returns_cr_lf(self) -> None:
 		QueueBuilder(
 			recipients=["test@example.com"],
 			sender="me@example.com",
@@ -81,7 +81,7 @@ This is the text version of this email
 
 		self.assertTrue(result.count("\n") == result.count("\r"))
 
-	def test_image(self):
+	def test_image(self) -> None:
 		img_signature = """
 Content-Type: image/svg+xml
 MIME-Version: 1.0
@@ -91,7 +91,7 @@ Content-Disposition: inline; filename="frappe-favicon.svg"
 		self.assertTrue(img_signature in self.email_string)
 		self.assertTrue(self.img_base64 in self.email_string)
 
-	def test_text_content(self):
+	def test_text_content(self) -> None:
 		text_content = """
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
@@ -103,7 +103,7 @@ This is the text version of this email
 """
 		self.assertTrue(text_content in self.email_string)
 
-	def test_email_content(self):
+	def test_email_content(self) -> None:
 		html_head = """
 Content-Type: text/html; charset="utf-8"
 MIME-Version: 1.0
@@ -119,7 +119,7 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 		self.assertTrue(html_head in self.email_string)
 		self.assertTrue(html in self.email_string)
 
-	def test_replace_filename_with_cid(self):
+	def test_replace_filename_with_cid(self) -> None:
 		original_message = """
 			<div>
 				<img embed="assets/frappe/images/frappe-favicon.svg" alt="test" />
@@ -136,7 +136,7 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 		""".format(inline_images[0].get("content_id"))
 		self.assertEqual(message, processed_message)
 
-	def test_inline_styling(self):
+	def test_inline_styling(self) -> None:
 		html = """
 <h3>Hi John</h3>
 <p>This is a test email</p>
@@ -147,7 +147,7 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 """
 		self.assertTrue(transformed_html in inline_style_in_html(html))
 
-	def test_email_header(self):
+	def test_email_header(self) -> None:
 		email_html = """
 <h3>Hey John Doe!</h3>
 <p>This is embedded image you asked for</p>
@@ -166,7 +166,7 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 			"Subject: Test Subject, with line break, and Line feed and carriage return.", email_string
 		)
 
-	def test_get_email_header(self):
+	def test_get_email_header(self) -> None:
 		html = get_header(["This is test", "orange"])
 		self.assertTrue('<span class="indicator indicator-orange"></span>' in html)
 		self.assertTrue("<span>This is test</span>" in html)
@@ -177,7 +177,7 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 		html = get_header("This is string")
 		self.assertTrue("<span>This is string</span>" in html)
 
-	def test_8bit_utf_8_decoding(self):
+	def test_8bit_utf_8_decoding(self) -> None:
 		text_content_bytes = b"\xed\x95\x9c\xea\xb8\x80\xe1\xa5\xa1\xe2\x95\xa5\xe0\xba\xaa\xe0\xa4\x8f"
 		text_content = text_content_bytes.decode("utf-8")
 
@@ -195,13 +195,13 @@ Reply-To: test2_@erpnext.com
 		mail = Email(content_bytes)
 		self.assertEqual(mail.text_content, text_content)
 
-	def test_poorly_encoded_messages(self):
+	def test_poorly_encoded_messages(self) -> None:
 		mail = Email.decode_email(
 			"=?iso-2022-jp?B?VEFLQVlBTUEgS2FvcnUgWxskQnxiOzMbKEIgGyRCNzAbKEJd?=\n\t<user@example.com>"
 		)
 		self.assertIn("user@example.com", mail)
 
-	def test_poorly_encoded_messages2(self):
+	def test_poorly_encoded_messages2(self) -> None:
 		mail = Email.decode_email(" =?UTF-8?B?X\xe0\xe0Y?=  <xy@example.com>")
 		self.assertIn("xy@example.com", mail)
 

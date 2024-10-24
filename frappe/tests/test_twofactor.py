@@ -22,31 +22,31 @@ from frappe.utils import cint, set_request
 
 
 class TestTwoFactor(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		self.http_requests = create_http_request()
 		self.login_manager = frappe.local.login_manager
 		self.user = self.login_manager.user
 		self.enterContext(self.change_settings("System Settings", {"allow_consecutive_login_attempts": 2}))
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.local.response["verification"] = None
 		frappe.local.response["tmp_id"] = None
 		disable_2fa()
 		frappe.clear_cache(user=self.user)
 
-	def test_should_run_2fa(self):
+	def test_should_run_2fa(self) -> None:
 		"""Should return true if enabled."""
 		toggle_2fa_all_role(state=True)
 		self.assertTrue(should_run_2fa(self.user))
 		toggle_2fa_all_role(state=False)
 		self.assertFalse(should_run_2fa(self.user))
 
-	def test_get_cached_user_pass(self):
+	def test_get_cached_user_pass(self) -> None:
 		"""Cached data should not contain user and pass before 2fa."""
 		user, pwd = get_cached_user_pass()
 		self.assertTrue(all([not user, not pwd]))
 
-	def test_authenticate_for_2factor(self):
+	def test_authenticate_for_2factor(self) -> None:
 		"""Verification obj and tmp_id should be set in frappe.local."""
 		authenticate_for_2factor(self.user)
 		verification_obj = frappe.local.response["verification"]
@@ -56,7 +56,7 @@ class TestTwoFactor(IntegrationTestCase):
 		for k in ["_usr", "_pwd", "_otp_secret"]:
 			self.assertTrue(frappe.cache.get(f"{tmp_id}{k}"), f"{k} not available")
 
-	def test_two_factor_is_enabled(self):
+	def test_two_factor_is_enabled(self) -> None:
 		"""
 		1. Should return true, if enabled and not bypass_2fa_for_retricted_ip_users
 		2. Should return false, if not enabled
@@ -94,7 +94,7 @@ class TestTwoFactor(IntegrationTestCase):
 		enable_2fa(1)
 		self.assertFalse(should_run_2fa(self.user))
 
-	def test_two_factor_is_enabled_for_user(self):
+	def test_two_factor_is_enabled_for_user(self) -> None:
 		"""Should return true if enabled for user."""
 		toggle_2fa_all_role(state=True)
 		self.assertTrue(two_factor_is_enabled_for_(self.user))
@@ -102,12 +102,12 @@ class TestTwoFactor(IntegrationTestCase):
 		toggle_2fa_all_role(state=False)
 		self.assertFalse(two_factor_is_enabled_for_(self.user))
 
-	def test_get_otpsecret_for_user(self):
+	def test_get_otpsecret_for_user(self) -> None:
 		"""OTP secret should be set for user."""
 		self.assertTrue(get_otpsecret_for_(self.user))
 		self.assertTrue(get_default(self.user + "_otpsecret"))
 
-	def test_confirm_otp_token(self):
+	def test_confirm_otp_token(self) -> None:
 		"""Ensure otp is confirmed"""
 		frappe.flags.otp_expiry = 2
 		authenticate_for_2factor(self.user)
@@ -124,20 +124,20 @@ class TestTwoFactor(IntegrationTestCase):
 		with self.assertRaises(ExpiredLoginException):
 			confirm_otp_token(self.login_manager, otp=otp, tmp_id=tmp_id)
 
-	def test_get_verification_obj(self):
+	def test_get_verification_obj(self) -> None:
 		"""Confirm verification object is returned."""
 		otp_secret = get_otpsecret_for_(self.user)
 		token = int(pyotp.TOTP(otp_secret).now())
 		self.assertTrue(get_verification_obj(self.user, token, otp_secret))
 
-	def test_render_string_template(self):
+	def test_render_string_template(self) -> None:
 		"""String template renders as expected with variables."""
 		args = {"issuer_name": "Frappe Technologies"}
 		_str = "Verification Code from {{issuer_name}}"
 		_str = frappe.render_template(_str, args)
 		self.assertEqual(_str, "Verification Code from Frappe Technologies")
 
-	def test_bypass_restict_ip(self):
+	def test_bypass_restict_ip(self) -> None:
 		"""
 		1. Raise error if user not login from one of the restrict_ip, Bypass restrict ip check disabled by default
 		2. Bypass restrict ip check enabled in System Settings
@@ -164,7 +164,7 @@ class TestTwoFactor(IntegrationTestCase):
 		enable_2fa()
 		self.assertIsNone(validate_ip_address(self.user))
 
-	def test_otp_attempt_tracker(self):
+	def test_otp_attempt_tracker(self) -> None:
 		"""Check that OTP login attempts are tracked."""
 		authenticate_for_2factor(self.user)
 		tmp_id = frappe.local.response["tmp_id"]
@@ -201,7 +201,7 @@ def create_http_request():
 	return HTTPRequest()
 
 
-def enable_2fa(bypass_two_factor_auth=0, bypass_restrict_ip_check=0):
+def enable_2fa(bypass_two_factor_auth=0, bypass_restrict_ip_check=0) -> None:
 	"""Enable Two factor in system settings."""
 	system_settings = frappe.get_doc("System Settings")
 	system_settings.enable_two_factor_auth = 1
@@ -213,7 +213,7 @@ def enable_2fa(bypass_two_factor_auth=0, bypass_restrict_ip_check=0):
 	frappe.db.commit()
 
 
-def disable_2fa():
+def disable_2fa() -> None:
 	system_settings = frappe.get_doc("System Settings")
 	system_settings.enable_two_factor_auth = 0
 	system_settings.flags.ignore_mandatory = True
@@ -221,7 +221,7 @@ def disable_2fa():
 	frappe.db.commit()
 
 
-def toggle_2fa_all_role(state=None):
+def toggle_2fa_all_role(state=None) -> None:
 	"""Enable or disable 2fa for 'all' role on the system."""
 	all_role = frappe.get_doc("Role", "All")
 	state = state if state is not None else False

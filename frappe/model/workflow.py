@@ -144,7 +144,7 @@ def apply_workflow(doc, action):
 
 
 @frappe.whitelist()
-def can_cancel_document(doctype):
+def can_cancel_document(doctype) -> bool:
 	workflow = get_workflow(doctype)
 	cancelling_states = [s.state for s in workflow.states if s.doc_status == "2"]
 	if not cancelling_states:
@@ -156,7 +156,7 @@ def can_cancel_document(doctype):
 	return True
 
 
-def validate_workflow(doc):
+def validate_workflow(doc) -> None:
 	"""Validate Workflow State and Transition for the current user.
 
 	- Check if user is allowed to edit in current state
@@ -228,7 +228,7 @@ def get_workflow_field_value(workflow_name, field):
 
 
 @frappe.whitelist()
-def bulk_workflow_approval(docnames, doctype, action):
+def bulk_workflow_approval(docnames, doctype, action) -> None:
 	docnames = json.loads(docnames)
 	if len(docnames) < 20:
 		_bulk_workflow_action(docnames, doctype, action)
@@ -246,7 +246,7 @@ def bulk_workflow_approval(docnames, doctype, action):
 		frappe.throw(_("Bulk approval only support up to 500 documents."), title=_("Too Many Documents"))
 
 
-def _bulk_workflow_action(docnames, doctype, action):
+def _bulk_workflow_action(docnames, doctype, action) -> None:
 	# dictionaries for logging
 	failed_transactions = defaultdict(list)
 	successful_transactions = defaultdict(list)
@@ -299,7 +299,7 @@ def _bulk_workflow_action(docnames, doctype, action):
 	print_workflow_log(successful_transactions, _("Successful Transactions"), doctype, indicator)
 
 
-def print_workflow_log(messages, title, doctype, indicator):
+def print_workflow_log(messages, title, doctype, indicator) -> None:
 	if messages.keys():
 		msg = f"<h4>{title}</h4>"
 
@@ -346,13 +346,13 @@ def get_common_transition_actions(docs, doctype):
 	return list(common_actions)
 
 
-def show_progress(docnames, message, i, description):
+def show_progress(docnames, message, i, description) -> None:
 	n = len(docnames)
 	if n >= 5:
 		frappe.publish_progress(float(i) * 100 / n, title=message, description=description)
 
 
-def set_workflow_state_on_action(doc, workflow_name, action):
+def set_workflow_state_on_action(doc, workflow_name, action) -> None:
 	workflow = frappe.get_doc("Workflow", workflow_name)
 	workflow_state_field = workflow.workflow_state_field
 

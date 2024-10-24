@@ -45,18 +45,18 @@ class Language(Document):
 		time_format: DF.Literal["", "HH:mm:ss", "HH:mm"]
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		validate_with_regex(self.language_code, "Language Code")
 
-	def before_rename(self, old, new, merge=False):
+	def before_rename(self, old, new, merge=False) -> None:
 		validate_with_regex(new, "Name")
 
-	def on_update(self):
+	def on_update(self) -> None:
 		frappe.cache.delete_value("languages_with_name")
 		frappe.cache.delete_value("languages")
 		self.update_user_defaults()
 
-	def update_user_defaults(self):
+	def update_user_defaults(self) -> None:
 		"""Update user defaults for date, time, number format and first day of the week.
 
 		When we change any settings of a language, the defaults for all users with that language
@@ -72,7 +72,7 @@ class Language(Document):
 						clear_default(key, parent=user)
 
 
-def validate_with_regex(name, label):
+def validate_with_regex(name, label) -> None:
 	pattern = re.compile("^[a-zA-Z]+[-_]*[a-zA-Z]+$")
 	if not pattern.match(name):
 		frappe.throw(
@@ -82,7 +82,7 @@ def validate_with_regex(name, label):
 		)
 
 
-def sync_languages():
+def sync_languages() -> None:
 	"""Create Language records from frappe/geo/languages.csv"""
 	from csv import DictReader
 

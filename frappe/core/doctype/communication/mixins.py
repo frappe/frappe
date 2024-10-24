@@ -318,7 +318,7 @@ class CommunicationEmailMixin:
 		is_inbound_mail_communcation=None,
 		print_language=None,
 		now=False,
-	):
+	) -> None:
 		if input_dict := self.sendmail_input_dict(
 			print_html=print_html,
 			print_format=print_format,

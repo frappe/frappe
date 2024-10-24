@@ -4,7 +4,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.reload_doc("email", "doctype", "Newsletter")
 	frappe.db.sql(
 		"""

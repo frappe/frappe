@@ -217,7 +217,7 @@ def validate_email(doc: "Communication") -> None:
 		validate_email_address(email, throw=True)
 
 
-def set_incoming_outgoing_accounts(doc):
+def set_incoming_outgoing_accounts(doc) -> None:
 	from frappe.email.doctype.email_account.email_account import EmailAccount
 
 	incoming_email_account = EmailAccount.find_incoming(
@@ -271,12 +271,12 @@ def add_attachments(name: str, attachments: Iterable[str | dict]) -> None:
 
 
 @frappe.whitelist(allow_guest=True, methods=("GET",))
-def mark_email_as_seen(name: str | None = None):
+def mark_email_as_seen(name: str | None = None) -> None:
 	frappe.request.after_response.add(lambda: _mark_email_as_seen(name))
 	frappe.response.update(frappe.utils.get_imaginary_pixel_response())
 
 
-def _mark_email_as_seen(name):
+def _mark_email_as_seen(name) -> None:
 	try:
 		update_communication_as_read(name)
 	except Exception:
@@ -285,7 +285,7 @@ def _mark_email_as_seen(name):
 	frappe.db.commit()  # nosemgrep: after_response requires explicit commit
 
 
-def update_communication_as_read(name):
+def update_communication_as_read(name) -> None:
 	if not name or not isinstance(name, str):
 		return
 

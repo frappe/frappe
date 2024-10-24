@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.reload_doc("website", "doctype", "website_theme_ignore_app")
 	frappe.reload_doc("website", "doctype", "color")
 	frappe.reload_doc("website", "doctype", "website_theme", force=True)
@@ -15,7 +15,7 @@ def execute():
 			doc.save()
 
 
-def setup_color_record(doc):
+def setup_color_record(doc) -> None:
 	color_fields = [
 		"primary_color",
 		"text_color",

@@ -20,7 +20,7 @@ class FrappeIntegration(Integration):
 	identifier = "frappe"
 
 	@staticmethod
-	def setup_once():
+	def setup_once() -> None:
 		real_connect = Database.connect
 		real_sql = Database.sql
 
@@ -47,7 +47,7 @@ class FrappeIntegration(Integration):
 		Database.sql = sql
 
 
-def set_scope(scope):
+def set_scope(scope) -> None:
 	if job := rq.get_current_job():
 		kwargs = job._kwargs
 		transaction_name = str(kwargs["method"])
@@ -82,7 +82,7 @@ def set_scope(scope):
 		scope.set_tag("frappe_trace_id", trace_id)
 
 
-def set_sentry_context():
+def set_sentry_context() -> None:
 	if not frappe.get_system_settings("enable_telemetry"):
 		return
 

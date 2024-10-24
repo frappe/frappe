@@ -7,7 +7,7 @@ from frappe.utils.defaults import get_not_null_defaults
 
 
 class MariaDBTable(DBTable):
-	def create(self):
+	def create(self) -> None:
 		additional_definitions = []
 		engine = self.meta.get("engine") or "InnoDB"
 		varchar_len = frappe.db.VARCHAR_LEN

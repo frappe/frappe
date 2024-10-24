@@ -13,7 +13,7 @@ from frappe.utils import get_link_to_form
 
 
 @frappe.whitelist()
-def toggle_like(doctype, name, add=False):
+def toggle_like(doctype, name, add=False) -> None:
 	"""Adds / removes the current user in the `__liked_by` property of the given document.
 	If column does not exist, will add it in the database.
 
@@ -65,7 +65,7 @@ def _toggle_like(doctype, name, add, user=None):
 			raise
 
 
-def remove_like(doctype, name):
+def remove_like(doctype, name) -> None:
 	"""Remove previous Like"""
 	# remove Comment
 	frappe.delete_doc(
@@ -86,6 +86,6 @@ def remove_like(doctype, name):
 	)
 
 
-def add_comment(doctype, name):
+def add_comment(doctype, name) -> None:
 	doc = frappe.get_doc(doctype, name)
 	doc.add_comment("Like", _("Liked"))

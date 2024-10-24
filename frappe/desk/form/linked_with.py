@@ -50,7 +50,7 @@ def get_submitted_linked_docs(doctype: str, name: str) -> list[tuple]:
 
 
 class SubmittableDocumentTree:
-	def __init__(self, doctype: str, name: str):
+	def __init__(self, doctype: str, name: str) -> None:
 		"""Construct a tree for the submitable linked documents.
 
 		* Node has properties like doctype and docnames. Represented as Node(doctype, docnames).
@@ -354,7 +354,7 @@ def get_referencing_documents(
 
 
 @frappe.whitelist()
-def cancel_all_linked_docs(docs, ignore_doctypes_on_cancel_all=None):
+def cancel_all_linked_docs(docs, ignore_doctypes_on_cancel_all=None) -> None:
 	"""
 	Cancel all linked doctype, optionally ignore doctypes specified in a list.
 
@@ -375,7 +375,7 @@ def cancel_all_linked_docs(docs, ignore_doctypes_on_cancel_all=None):
 		frappe.publish_progress(percent=i / len(docs) * 100, title=_("Cancelling documents"))
 
 
-def validate_linked_doc(docinfo, ignore_doctypes_on_cancel_all=None):
+def validate_linked_doc(docinfo, ignore_doctypes_on_cancel_all=None) -> bool:
 	"""
 	Validate a document to be submitted and non-exempted from auto-cancel.
 

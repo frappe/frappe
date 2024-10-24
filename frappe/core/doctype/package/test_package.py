@@ -18,7 +18,7 @@ class UnitTestPackage(UnitTestCase):
 
 
 class TestPackage(IntegrationTestCase):
-	def test_package_release(self):
+	def test_package_release(self) -> None:
 		make_test_package()
 		make_test_module()
 		make_test_doctype()
@@ -59,14 +59,14 @@ class TestPackage(IntegrationTestCase):
 			self.assertEqual(doctype["fields"][0]["fieldname"], "test_field")
 
 
-def make_test_package():
+def make_test_package() -> None:
 	if not frappe.db.exists("Package", "Test Package"):
 		frappe.get_doc(
 			doctype="Package", name="Test Package", package_name="test-package", readme="# Test Package"
 		).insert()
 
 
-def make_test_module():
+def make_test_module() -> None:
 	if not frappe.db.exists("Module Def", "Test Module for Package"):
 		frappe.get_doc(
 			doctype="Module Def",
@@ -77,7 +77,7 @@ def make_test_module():
 		).insert()
 
 
-def make_test_doctype():
+def make_test_doctype() -> None:
 	if not frappe.db.exists("DocType", "Test DocType for Package"):
 		frappe.get_doc(
 			doctype="DocType",
@@ -89,7 +89,7 @@ def make_test_doctype():
 		).insert()
 
 
-def make_test_server_script():
+def make_test_server_script() -> None:
 	if not frappe.db.exists("Server Script", "Test Script for Package"):
 		frappe.get_doc(
 			doctype="Server Script",
@@ -102,7 +102,7 @@ def make_test_server_script():
 		).insert()
 
 
-def make_test_web_page():
+def make_test_web_page() -> None:
 	if not frappe.db.exists("Web Page", "test-web-page-for-package"):
 		frappe.get_doc(
 			doctype="Web Page",

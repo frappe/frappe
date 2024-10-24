@@ -239,7 +239,7 @@ def trace_fields(
 		setattr(doc_class, f_name, traced_field(f_name, f_forbidden_values, f_custom_validation))
 
 	# Modify init method
-	def new_init(self, *args, **kwargs):
+	def new_init(self, *args, **kwargs) -> None:
 		original_init(self, *args, **kwargs)
 		for f_name in field_configs:
 			setattr(self, f"_{f_name}", getattr(self, f_name, None))

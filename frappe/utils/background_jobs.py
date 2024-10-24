@@ -202,7 +202,7 @@ def enqueue_doc(doctype, name=None, method=None, queue="default", timeout=300, n
 	)
 
 
-def run_doc_method(doctype, name, doc_method, **kwargs):
+def run_doc_method(doctype, name, doc_method, **kwargs) -> None:
 	getattr(frappe.get_doc(doctype, name), doc_method)(**kwargs)
 
 
@@ -338,7 +338,7 @@ class FrappeWorker(Worker):
 		self.start_frappe_scheduler()
 		return super().run_maintenance_tasks(*args, **kwargs)
 
-	def start_frappe_scheduler(self):
+	def start_frappe_scheduler(self) -> None:
 		from frappe.utils.scheduler import start_scheduler
 
 		Thread(target=start_scheduler, daemon=True).start()
@@ -394,7 +394,7 @@ def start_worker_pool(
 	pool.start(logging_level=logging_level, burst=burst)
 
 
-def _freeze_gc():
+def _freeze_gc() -> None:
 	if frappe._tune_gc:
 		gc.collect()
 		gc.freeze()
@@ -415,7 +415,7 @@ def get_jobs(site=None, queue=None, key="method"):
 	"""Gets jobs per queue or per site or both"""
 	jobs_per_site = defaultdict(list)
 
-	def add_to_dict(job):
+	def add_to_dict(job) -> None:
 		if key in job.kwargs:
 			jobs_per_site[job.kwargs["site"]].append(job.kwargs[key])
 
@@ -576,11 +576,11 @@ def is_queue_accessible(qobj: Queue) -> bool:
 	return qobj.name in accessible_queues
 
 
-def enqueue_test_job():
+def enqueue_test_job() -> None:
 	enqueue("frappe.utils.background_jobs.test_job", s=100)
 
 
-def test_job(s):
+def test_job(s) -> None:
 	import time
 
 	print("sleeping...")
@@ -620,7 +620,7 @@ def get_job(job_id: str) -> Job | None:
 BACKGROUND_PROCESS_NICENESS = 10
 
 
-def set_niceness():
+def set_niceness() -> None:
 	"""Background processes should have slightly lower priority than web processes.
 
 	Calling this function increments the niceness of process by configured value or default.
@@ -638,7 +638,7 @@ def set_niceness():
 	os.nice(nice_increment)
 
 
-def truncate_failed_registry(job, connection, type, value, traceback):
+def truncate_failed_registry(job, connection, type, value, traceback) -> None:
 	"""Ensures that number of failed jobs don't exceed specified limits."""
 	from frappe.utils import create_batch
 
@@ -653,7 +653,7 @@ def truncate_failed_registry(job, connection, type, value, traceback):
 				job_obj and fail_registry.remove(job_obj, delete_job=True)
 
 
-def flush_telemetry():
+def flush_telemetry() -> None:
 	"""Forcefully flush pending events.
 
 	This is required in context of background jobs where process might die before posthog gets time
@@ -663,7 +663,7 @@ def flush_telemetry():
 		ph and ph.flush()
 
 
-def _start_sentry():
+def _start_sentry() -> None:
 	sentry_dsn = os.getenv("FRAPPE_SENTRY_DSN")
 	if not sentry_dsn:
 		return

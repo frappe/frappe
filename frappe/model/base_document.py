@@ -135,7 +135,7 @@ class BaseDocument:
 		)
 	)
 
-	def __init__(self, d):
+	def __init__(self, d) -> None:
 		if d.get("doctype"):
 			self.doctype = d["doctype"]
 
@@ -170,7 +170,7 @@ class BaseDocument:
 
 		return state
 
-	def remove_unpicklable_values(self, state):
+	def remove_unpicklable_values(self, state) -> None:
 		"""Remove unpicklable values before pickling"""
 
 		state.pop("meta", None)
@@ -197,7 +197,7 @@ class BaseDocument:
 
 		return self
 
-	def update_if_missing(self, d):
+	def update_if_missing(self, d) -> None:
 		"""Set default values for fields without existing values"""
 		if isinstance(d, BaseDocument):
 			d = d.get_valid_dict()
@@ -236,7 +236,7 @@ class BaseDocument:
 	def getone(self, key, filters=None):
 		return self.get(key, filters=filters, limit=1)[0]
 
-	def set(self, key, value, as_value=False):
+	def set(self, key, value, as_value=False) -> None:
 		if key in self._reserved_keywords:
 			return
 
@@ -251,7 +251,7 @@ class BaseDocument:
 
 		self.__dict__[key] = value
 
-	def delete_key(self, key):
+	def delete_key(self, key) -> None:
 		if key in self.__dict__:
 			del self.__dict__[key]
 
@@ -298,11 +298,11 @@ class BaseDocument:
 			return parent_doc_ref()
 
 	@parent_doc.setter
-	def parent_doc(self, value):
+	def parent_doc(self, value) -> None:
 		self._parent_doc = value
 
 	@parent_doc.deleter
-	def parent_doc(self):
+	def parent_doc(self) -> None:
 		self._parent_doc = None
 
 	def extend(self, key, value):
@@ -314,7 +314,7 @@ class BaseDocument:
 		for v in value:
 			self.append(key, v)
 
-	def remove(self, doc):
+	def remove(self, doc) -> None:
 		# Usage: from the parent doc, pass the child table doc
 		# to remove that child doc from the child table, thus removing it from the parent doc
 		if doc.get("parentfield"):
@@ -441,7 +441,7 @@ class BaseDocument:
 
 		return d
 
-	def init_child_tables(self):
+	def init_child_tables(self) -> None:
 		"""
 		This is needed so that one can loop over child table properties
 		without worrying about whether or not they have values
@@ -451,7 +451,7 @@ class BaseDocument:
 			if self.__dict__.get(fieldname) is None:
 				self.__dict__[fieldname] = []
 
-	def init_valid_columns(self):
+	def init_valid_columns(self) -> None:
 		for key in default_fields:
 			if key not in self.__dict__:
 				self.__dict__[key] = None
@@ -487,7 +487,7 @@ class BaseDocument:
 		return DocStatus(cint(self.get("docstatus")))
 
 	@docstatus.setter
-	def docstatus(self, value):
+	def docstatus(self, value) -> None:
 		self.__dict__["docstatus"] = DocStatus(cint(value))
 
 	def as_dict(
@@ -654,7 +654,7 @@ class BaseDocument:
 			else:
 				raise
 
-	def db_update_all(self):
+	def db_update_all(self) -> None:
 		"""Raw update parent + children
 		DOES NOT VALIDATE AND CALL TRIGGERS"""
 		self.db_update()
@@ -721,7 +721,7 @@ class BaseDocument:
 		if df:
 			return _(df.label) if df.label else None
 
-	def update_modified(self):
+	def update_modified(self) -> None:
 		"""Update modified timestamp"""
 		self.set("modified", now())
 		if getattr(self.meta, "issingle", False):
@@ -729,7 +729,7 @@ class BaseDocument:
 		else:
 			frappe.db.set_value(self.doctype, self.name, "modified", self.modified, update_modified=False)
 
-	def _fix_numeric_types(self):
+	def _fix_numeric_types(self) -> None:
 		for df in self.meta.get("fields"):
 			if df.fieldtype == "Check":
 				self.set(df.fieldname, cint(self.get(df.fieldname)))
@@ -791,7 +791,7 @@ class BaseDocument:
 	def get_invalid_links(self, is_submittable=False):
 		"""Return list of invalid links and also update fetch values if not set."""
 
-		def get_msg(df, docname):
+		def get_msg(df, docname) -> str:
 			# check if parentfield exists (only applicable for child table doctype)
 			if self.get("parentfield"):
 				return "{} #{}: {}: {}".format(_("Row"), self.idx, _(df.label, context=df.parent), docname)
@@ -875,7 +875,7 @@ class BaseDocument:
 
 		return invalid_links, cancelled_links
 
-	def set_fetch_from_value(self, doctype, df, values):
+	def set_fetch_from_value(self, doctype, df, values) -> None:
 		fetch_from_fieldname = df.fetch_from.split(".")[-1]
 		value = values[fetch_from_fieldname]
 		if df.fieldtype in ["Small Text", "Text", "Data"]:
@@ -898,7 +898,7 @@ class BaseDocument:
 				value = unescape_html(strip_html(value))
 		setattr(self, df.fieldname, value)
 
-	def _validate_selects(self):
+	def _validate_selects(self) -> None:
 		if frappe.flags.in_import:
 			return
 
@@ -928,7 +928,7 @@ class BaseDocument:
 					)
 				)
 
-	def _validate_data_fields(self):
+	def _validate_data_fields(self) -> None:
 		from frappe.utils import (
 			split_emails,
 			validate_email_address,
@@ -970,7 +970,7 @@ class BaseDocument:
 			if data_field_options == "URL":
 				validate_url(data, throw=True)
 
-	def _validate_constants(self):
+	def _validate_constants(self) -> None:
 		if frappe.flags.in_import or self.is_new() or self.flags.ignore_validate_constants:
 			return
 
@@ -994,7 +994,7 @@ class BaseDocument:
 					frappe.CannotChangeConstantError,
 				)
 
-	def _validate_length(self):
+	def _validate_length(self) -> None:
 		if frappe.flags.in_install:
 			return
 
@@ -1029,7 +1029,7 @@ class BaseDocument:
 				if abs(cint(value)) > max_length:
 					self.throw_length_exceeded_error(df, max_length, value)
 
-	def _validate_code_fields(self):
+	def _validate_code_fields(self) -> None:
 		for field in self.meta.get_code_fields():
 			code_string = self.get(field.fieldname)
 			language = field.get("options")
@@ -1040,7 +1040,7 @@ class BaseDocument:
 			elif language == "PythonExpression":
 				frappe.utils.validate_python_code(code_string, fieldname=field.label)
 
-	def _sync_autoname_field(self):
+	def _sync_autoname_field(self) -> None:
 		"""Keep autoname field in sync with `name`"""
 		autoname = self.meta.autoname or ""
 		_empty, _field_specifier, fieldname = autoname.partition("field:")
@@ -1048,7 +1048,7 @@ class BaseDocument:
 		if fieldname and self.name and self.name != self.get(fieldname):
 			self.set(fieldname, self.name)
 
-	def throw_length_exceeded_error(self, df, max_length, value):
+	def throw_length_exceeded_error(self, df, max_length, value) -> None:
 		# check if parentfield exists (only applicable for child table doctype)
 		if self.get("parentfield"):
 			reference = _("{0}, Row {1}").format(_(self.doctype), self.idx)
@@ -1063,7 +1063,7 @@ class BaseDocument:
 			title=_("Value too big"),
 		)
 
-	def _validate_update_after_submit(self):
+	def _validate_update_after_submit(self) -> None:
 		# get the full doc with children
 		db_values = frappe.get_doc(self.doctype, self.name).as_dict()
 
@@ -1100,7 +1100,7 @@ class BaseDocument:
 						title=_("Cannot Update After Submit"),
 					)
 
-	def _sanitize_content(self):
+	def _sanitize_content(self) -> None:
 		"""Sanitize HTML and Email in field values. Used to prevent XSS.
 
 		- Ignore if 'Ignore XSS Filter' is checked or fieldtype is 'Code'
@@ -1142,7 +1142,7 @@ class BaseDocument:
 
 			self.set(fieldname, sanitized_value)
 
-	def _save_passwords(self):
+	def _save_passwords(self) -> None:
 		"""Save password field values in __Auth table"""
 		from frappe.utils.password import remove_encrypted_password, set_encrypted_password
 
@@ -1266,7 +1266,7 @@ class BaseDocument:
 
 		return print_hide
 
-	def in_format_data(self, fieldname):
+	def in_format_data(self, fieldname) -> bool:
 		"""Return True if shown via Print Format::`format_data` property.
 
 		Called from within standard print format."""
@@ -1277,7 +1277,7 @@ class BaseDocument:
 		else:
 			return True
 
-	def reset_values_if_no_permlevel_access(self, has_access_to, high_permlevel_fields):
+	def reset_values_if_no_permlevel_access(self, has_access_to, high_permlevel_fields) -> None:
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""
 		to_reset = [
 			df
@@ -1316,7 +1316,7 @@ class BaseDocument:
 	def cast(self, value, df):
 		return cast_fieldtype(df.fieldtype, value, show_warning=False)
 
-	def _extract_images_from_text_editor(self):
+	def _extract_images_from_text_editor(self) -> None:
 		from frappe.core.doctype.file.utils import extract_images_from_doc
 
 		if self.doctype != "DocType":

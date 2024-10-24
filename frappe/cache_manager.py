@@ -77,7 +77,7 @@ doctype_cache_keys = (
 )
 
 
-def clear_user_cache(user=None):
+def clear_user_cache(user=None) -> None:
 	from frappe.desk.notifications import clear_notifications
 
 	# this will automatically reload the global cache
@@ -94,12 +94,12 @@ def clear_user_cache(user=None):
 		clear_global_cache()
 
 
-def clear_domain_cache(user=None):
+def clear_domain_cache(user=None) -> None:
 	domain_cache_keys = ("domain_restricted_doctypes", "domain_restricted_pages")
 	frappe.cache.delete_value(domain_cache_keys)
 
 
-def clear_global_cache():
+def clear_global_cache() -> None:
 	from frappe.website.utils import clear_website_cache
 
 	clear_doctype_cache()
@@ -108,14 +108,14 @@ def clear_global_cache():
 	frappe.setup_module_map()
 
 
-def clear_defaults_cache(user=None):
+def clear_defaults_cache(user=None) -> None:
 	if user:
 		frappe.cache.hdel("defaults", [user, *common_default_keys])
 	elif frappe.flags.in_install != "frappe":
 		frappe.cache.delete_value("defaults")
 
 
-def clear_doctype_cache(doctype=None):
+def clear_doctype_cache(doctype=None) -> None:
 	clear_controller_cache(doctype)
 
 	_clear_doctype_cache_from_redis(doctype)
@@ -124,14 +124,14 @@ def clear_doctype_cache(doctype=None):
 		frappe.db.after_rollback.add(lambda: _clear_doctype_cache_from_redis(doctype))
 
 
-def _clear_doctype_cache_from_redis(doctype: str | None = None):
+def _clear_doctype_cache_from_redis(doctype: str | None = None) -> None:
 	from frappe.desk.notifications import delete_notification_count_for
 
 	to_del = ["is_table", "doctype_modules"]
 
 	if doctype:
 
-		def clear_single(dt):
+		def clear_single(dt) -> None:
 			frappe.clear_document_cache(dt)
 			frappe.cache.hdel_names(doctype_cache_keys, dt)
 
@@ -161,7 +161,7 @@ def _clear_doctype_cache_from_redis(doctype: str | None = None):
 	frappe.cache.delete_value(to_del)
 
 
-def clear_controller_cache(doctype=None):
+def clear_controller_cache(doctype=None) -> None:
 	if not doctype:
 		frappe.controllers.pop(frappe.local.site, None)
 		return
@@ -178,7 +178,7 @@ def get_doctype_map(doctype, name, filters=None, order_by=None):
 	)
 
 
-def clear_doctype_map(doctype, name):
+def clear_doctype_map(doctype, name) -> None:
 	frappe.cache.hdel(frappe.scrub(doctype) + "_map", name)
 
 

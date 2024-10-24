@@ -5,5 +5,5 @@
 no_cache = 1
 
 
-def get_context(context):
+def get_context(context) -> None:
 	context.show_sidebar = True

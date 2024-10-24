@@ -134,7 +134,7 @@ def is_server_side_code(file):
 	return file.endswith("py") or file.endswith(".po")
 
 
-def is_ci(file):
+def is_ci(file) -> bool:
 	"""Check if the file is related to CI configuration."""
 	return ".github" in file
 

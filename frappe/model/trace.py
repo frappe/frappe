@@ -44,7 +44,7 @@ class TracedValue:
 	        custom_validation (callable): A function for custom validation logic.
 	"""
 
-	def __init__(self, field_name, forbidden_values=None, custom_validation=None):
+	def __init__(self, field_name, forbidden_values=None, custom_validation=None) -> None:
 		"""
 		Initialize a TracedValue instance.
 
@@ -73,7 +73,7 @@ class TracedValue:
 
 		return getattr(obj, f"_{self.field_name}", None)
 
-	def __set__(self, obj, value):
+	def __set__(self, obj, value) -> None:
 		"""
 		Set the value of the traced field with validation.
 
@@ -118,7 +118,7 @@ class TracedDocument(Document):
 	        Inherits all attributes from frappe.model.document.Document
 	"""
 
-	def __init__(self, *args, **kwargs):
+	def __init__(self, *args, **kwargs) -> None:
 		"""
 		Initialize a TracedDocument instance.
 

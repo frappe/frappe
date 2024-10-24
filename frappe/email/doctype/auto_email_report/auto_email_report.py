@@ -65,12 +65,12 @@ class AutoEmailReport(Document):
 		user: DF.Link
 	# end: auto-generated types
 
-	def autoname(self):
+	def autoname(self) -> None:
 		self.name = _(self.report)
 		if frappe.db.exists("Auto Email Report", self.name):
 			self.name = append_number_if_name_exists("Auto Email Report", self.name)
 
-	def validate(self):
+	def validate(self) -> None:
 		self.validate_report_count()
 		self.validate_emails()
 		self.validate_report_format()
@@ -80,7 +80,7 @@ class AutoEmailReport(Document):
 	def sender_email(self):
 		return frappe.db.get_value("Email Account", self.sender, "email_id")
 
-	def validate_emails(self):
+	def validate_emails(self) -> None:
 		"""Cleanup list of emails"""
 		if "," in self.email_to:
 			self.email_to.replace(",", "\n")
@@ -93,7 +93,7 @@ class AutoEmailReport(Document):
 
 		self.email_to = "\n".join(valid)
 
-	def validate_report_count(self):
+	def validate_report_count(self) -> None:
 		count = frappe.db.count("Auto Email Report", {"user": self.user, "enabled": 1})
 
 		max_reports_per_user = (
@@ -107,7 +107,7 @@ class AutoEmailReport(Document):
 			msg += " " + _("To allow more reports update limit in System Settings.")
 			frappe.throw(msg, title=_("Report limit reached"))
 
-	def validate_report_format(self):
+	def validate_report_format(self) -> None:
 		"""check if user has select correct report format"""
 		valid_report_formats = ["HTML", "XLSX", "CSV"]
 		if self.format not in valid_report_formats:
@@ -117,7 +117,7 @@ class AutoEmailReport(Document):
 				)
 			)
 
-	def validate_mandatory_fields(self):
+	def validate_mandatory_fields(self) -> None:
 		# Check if all Mandatory Report Filters are filled by the User
 		filters = frappe.parse_json(self.filters) if self.filters else {}
 		filter_meta = frappe.parse_json(self.filter_meta) if self.filter_meta else {}
@@ -205,10 +205,10 @@ class AutoEmailReport(Document):
 			},
 		)
 
-	def get_file_name(self):
+	def get_file_name(self) -> str:
 		return "{}.{}".format(self.report.replace(" ", "-").replace("/", "-"), self.format.lower())
 
-	def prepare_dynamic_filters(self):
+	def prepare_dynamic_filters(self) -> None:
 		self.filters = frappe.parse_json(self.filters)
 
 		to_date = today()
@@ -242,11 +242,11 @@ class AutoEmailReport(Document):
 			from_date = add_to_date(to_date, **{from_date_value[0]: from_date_value[1]})
 			self.set_date_filters(from_date, to_date)
 
-	def set_date_filters(self, from_date, to_date):
+	def set_date_filters(self, from_date, to_date) -> None:
 		self.filters[self.from_date_field] = from_date
 		self.filters[self.to_date_field] = to_date
 
-	def send(self):
+	def send(self) -> None:
 		if self.filter_meta and not self.filters:
 			frappe.throw(_("Please set filters value in Report Filter table."))
 
@@ -278,7 +278,7 @@ class AutoEmailReport(Document):
 
 
 @frappe.whitelist()
-def download(name):
+def download(name) -> None:
 	"""Download report locally"""
 	auto_email_report = frappe.get_doc("Auto Email Report", name)
 	auto_email_report.check_permission()
@@ -294,14 +294,14 @@ def download(name):
 
 
 @frappe.whitelist()
-def send_now(name):
+def send_now(name) -> None:
 	"""Send Auto Email report now"""
 	auto_email_report = frappe.get_doc("Auto Email Report", name)
 	auto_email_report.check_permission()
 	auto_email_report.send()
 
 
-def send_daily():
+def send_daily() -> None:
 	"""Check reports to be sent daily"""
 
 	current_day = calendar.day_name[now_datetime().weekday()]
@@ -325,7 +325,7 @@ def send_daily():
 			auto_email_report.log_error(f"Failed to send {auto_email_report.name} Auto Email Report")
 
 
-def send_monthly():
+def send_monthly() -> None:
 	"""Check reports to be sent monthly"""
 	for report in frappe.get_all("Auto Email Report", {"enabled": 1, "frequency": "Monthly"}):
 		frappe.get_doc("Auto Email Report", report.name).send()

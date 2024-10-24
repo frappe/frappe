@@ -2,7 +2,7 @@ import frappe
 from frappe.utils import cstr
 
 
-def execute():
+def execute() -> None:
 	# Update Social Logins in User
 	run_patch()
 
@@ -57,7 +57,7 @@ def execute():
 	frappe.delete_doc("DocType", "Social Login Keys")
 
 
-def run_patch():
+def run_patch() -> None:
 	frappe.reload_doc("core", "doctype", "user", force=True)
 	frappe.reload_doc("core", "doctype", "user_social_login", force=True)
 
@@ -91,7 +91,7 @@ def run_patch():
 			idx += 1
 
 
-def insert_user_social_login(user, modified_by, provider, idx, userid=None, username=None):
+def insert_user_social_login(user, modified_by, provider, idx, userid=None, username=None) -> None:
 	source_cols = get_standard_cols()
 
 	creation_time = frappe.utils.get_datetime_str(frappe.utils.get_datetime())

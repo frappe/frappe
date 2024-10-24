@@ -2,7 +2,7 @@ import frappe
 from frappe.desk.doctype.notification_log.notification_log import make_notification_logs
 
 
-def execute():
+def execute() -> None:
 	if frappe.get_all("Email Account", {"auth_method": "OAuth", "connected_user": ["is", "set"]}, limit=1):
 		return
 

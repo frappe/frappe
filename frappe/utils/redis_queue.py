@@ -5,7 +5,7 @@ from frappe.utils import get_bench_id, random_string
 
 
 class RedisQueue:
-	def __init__(self, conn):
+	def __init__(self, conn) -> None:
 		self.conn = conn
 
 	def add_user(self, username, password=None):

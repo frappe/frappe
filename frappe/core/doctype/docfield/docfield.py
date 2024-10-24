@@ -149,7 +149,7 @@ class DocField(Document):
 			options = self.options or ""
 			return [d for d in options.split("\n") if d]
 
-	def __repr__(self):
+	def __repr__(self) -> str:
 		unsaved = "unsaved" if not self.name else ""
 		doctype = self.__class__.__name__
 

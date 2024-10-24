@@ -47,7 +47,7 @@ class ConnectedApp(Document):
 	in a Token Cache.
 	"""
 
-	def validate(self):
+	def validate(self) -> None:
 		base_url = frappe.utils.get_url()
 		callback_path = (
 			"/api/method/frappe.integrations.doctype.connected_app.connected_app.callback/" + self.name
@@ -173,7 +173,7 @@ class ConnectedApp(Document):
 
 
 @frappe.whitelist(methods=["GET"], allow_guest=True)
-def callback(code=None, state=None):
+def callback(code=None, state=None) -> None:
 	"""Handle client's code.
 
 	Called during the oauthorization flow by the remote oAuth2 server to

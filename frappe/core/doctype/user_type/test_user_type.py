@@ -15,10 +15,10 @@ class UnitTestUserType(UnitTestCase):
 
 
 class TestUserType(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		create_role()
 
-	def test_add_select_perm_doctypes(self):
+	def test_add_select_perm_doctypes(self) -> None:
 		user_type = create_user_type("Test User Type")
 
 		# select perms added for all link fields
@@ -40,7 +40,7 @@ class TestUserType(IntegrationTestCase):
 		for entry in link_fields:
 			self.assertTrue(entry.options in select_doctypes)
 
-	def test_print_share_email_default(self):
+	def test_print_share_email_default(self) -> None:
 		"""Test if print, share & email values default to 1. (for backward compatibility)"""
 		# create user type with read, write permissions
 		create_user_type("Test User Type")
@@ -52,7 +52,7 @@ class TestUserType(IntegrationTestCase):
 		self.assertTrue(perm.share == 1)
 		self.assertTrue(perm.email == 1)
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.db.rollback()
 
 
@@ -78,7 +78,7 @@ def create_user_type(user_type):
 	return doc.insert()
 
 
-def create_role():
+def create_role() -> None:
 	if not frappe.db.exists("Role", "_Test User Type"):
 		frappe.get_doc(
 			{"doctype": "Role", "role_name": "_Test User Type", "desk_access": 1, "is_custom": 1}

@@ -34,7 +34,7 @@ class Page(Document):
 		title: DF.Data | None
 	# end: auto-generated types
 
-	def autoname(self):
+	def autoname(self) -> None:
 		"""
 		Creates a url friendly name for this page.
 		Will restrict the name to 30 characters, if there exists a similar name,
@@ -56,7 +56,7 @@ class Page(Document):
 					cnt = 1
 				self.name += "-" + str(cnt)
 
-	def validate(self):
+	def validate(self) -> None:
 		validate_route_conflict(self.doctype, self.name)
 
 		if self.is_new() and not getattr(conf, "developer_mode", 0):
@@ -70,7 +70,7 @@ class Page(Document):
 		return {"fields": ["roles"]}
 
 	# export
-	def on_update(self):
+	def on_update(self) -> None:
 		"""
 		Writes the .json for this page and if write_content is checked,
 		it will write out a .html file
@@ -106,21 +106,21 @@ class Page(Document):
 			d[key] = self.get(key)
 		return d
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		if not frappe.conf.developer_mode and not frappe.flags.in_migrate:
 			frappe.throw(_("Deletion of this document is only permitted in developer mode."))
 
 		delete_custom_role("page", self.name)
 		frappe.db.after_commit(self.delete_folder_with_contents)
 
-	def delete_folder_with_contents(self):
+	def delete_folder_with_contents(self) -> None:
 		module_path = get_module_path(self.module)
 		dir_path = os.path.join(module_path, "page", frappe.scrub(self.name))
 
 		if os.path.exists(dir_path):
 			shutil.rmtree(dir_path, ignore_errors=True)
 
-	def is_permitted(self):
+	def is_permitted(self) -> bool:
 		"""Return True if `Has Role` is not set or the user is allowed."""
 		from frappe.utils import has_common
 
@@ -137,7 +137,7 @@ class Page(Document):
 		if has_common(roles, allowed):
 			return True
 
-	def load_assets(self):
+	def load_assets(self) -> None:
 		import os
 
 		from frappe.modules import get_module_path, scrub
@@ -194,7 +194,7 @@ class Page(Document):
 				self.script += "\n\n" + js
 
 
-def delete_custom_role(field, docname):
+def delete_custom_role(field, docname) -> None:
 	name = frappe.db.get_value("Custom Role", {field: docname}, "name")
 	if name:
 		frappe.delete_doc("Custom Role", name)

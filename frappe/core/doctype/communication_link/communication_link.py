@@ -25,5 +25,5 @@ class CommunicationLink(Document):
 	pass
 
 
-def on_doctype_update():
+def on_doctype_update() -> None:
 	frappe.db.add_index("Communication Link", ["link_doctype", "link_name"])

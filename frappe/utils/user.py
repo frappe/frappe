@@ -22,7 +22,7 @@ class UserPermissions:
 	A user permission object can be accessed as `frappe.get_user()`
 	"""
 
-	def __init__(self, name=""):
+	def __init__(self, name="") -> None:
 		self.defaults = None
 		self.name = name or frappe.session.get("user")
 		self.roles = []
@@ -45,7 +45,7 @@ class UserPermissions:
 		self.in_create = []
 		self.setup_user()
 
-	def setup_user(self):
+	def setup_user(self) -> None:
 		def get_user_doc():
 			user = None
 			try:
@@ -70,7 +70,7 @@ class UserPermissions:
 			self.roles = get_roles(self.name)
 		return self.roles
 
-	def build_doctype_map(self):
+	def build_doctype_map(self) -> None:
 		"""build map of special doctype properties"""
 		self.doctype_map = {}
 
@@ -92,7 +92,7 @@ class UserPermissions:
 			if not dt.restrict_to_domain or (dt.restrict_to_domain in active_domains):
 				self.doctype_map[dt["name"]] = dt
 
-	def build_perm_map(self):
+	def build_perm_map(self) -> None:
 		"""build map of permissions at level 0"""
 		self.perm_map = {}
 		for r in get_valid_perms():
@@ -105,7 +105,7 @@ class UserPermissions:
 				if not self.perm_map[dt].get(k):
 					self.perm_map[dt][k] = r.get(k)
 
-	def build_permissions(self):
+	def build_permissions(self) -> None:
 		"""build lists of what the user can read / write / create
 		quirks:
 		        read_only => Not in Search

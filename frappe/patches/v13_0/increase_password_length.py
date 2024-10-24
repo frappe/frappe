@@ -1,5 +1,5 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.db.change_column_type("__Auth", column="password", type="TEXT")

@@ -28,7 +28,7 @@ class ChangelogFeed(Document):
 	pass
 
 
-def fetch_changelog_feed():
+def fetch_changelog_feed() -> None:
 	"""Fetches changelog feed items from source using `get_changelog_feed` hook and stores in the db"""
 	since = frappe.db.get_value(
 		"Changelog Feed",

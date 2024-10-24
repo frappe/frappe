@@ -31,16 +31,16 @@ class Workflow(Document):
 		workflow_state_field: DF.Data
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		self.set_active()
 		self.create_custom_field_for_workflow_state()
 		self.update_default_workflow_status()
 		self.validate_docstatus()
 
-	def on_update(self):
+	def on_update(self) -> None:
 		frappe.clear_cache(doctype=self.document_type)
 
-	def create_custom_field_for_workflow_state(self):
+	def create_custom_field_for_workflow_state(self) -> None:
 		frappe.clear_cache(doctype=self.document_type)
 		meta = frappe.get_meta(self.document_type)
 		if not meta.get_field(self.workflow_state_field):
@@ -65,7 +65,7 @@ class Workflow(Document):
 				_("Created Custom Field {0} in {1}").format(self.workflow_state_field, self.document_type)
 			)
 
-	def update_default_workflow_status(self):
+	def update_default_workflow_status(self) -> None:
 		docstatus_map = {}
 		states = self.get("states")
 		for d in states:
@@ -82,7 +82,7 @@ class Workflow(Document):
 
 				docstatus_map[d.doc_status] = d.state
 
-	def validate_docstatus(self):
+	def validate_docstatus(self) -> None:
 		def get_state(state):
 			for s in self.states:
 				if s.state == state:
@@ -109,7 +109,7 @@ class Workflow(Document):
 			if state.doc_status == "0" and next_state.doc_status == "2":
 				frappe.throw(frappe._("Cannot cancel before submitting. See Transition {0}").format(t.idx))
 
-	def set_active(self):
+	def set_active(self) -> None:
 		if cint(self.is_active):
 			# clear all other
 			frappe.db.sql(

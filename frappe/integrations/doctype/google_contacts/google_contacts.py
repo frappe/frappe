@@ -31,7 +31,7 @@ class GoogleContacts(Document):
 		refresh_token: DF.Password | None
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		if not frappe.db.get_single_value("Google Settings", "enable"):
 			frappe.throw(_("Enable Google API in Google Settings."))
 
@@ -196,7 +196,7 @@ def sync_contacts_from_google_contacts(g_contact):
 	)
 
 
-def insert_contacts_to_google_contacts(doc, method=None):
+def insert_contacts_to_google_contacts(doc, method=None) -> None:
 	"""
 	Syncs Contacts from Google Contacts.
 	https://developers.google.com/people/api/rest/v1/people/createContact
@@ -235,7 +235,7 @@ def insert_contacts_to_google_contacts(doc, method=None):
 		)
 
 
-def update_contacts_to_google_contacts(doc, method=None):
+def update_contacts_to_google_contacts(doc, method=None) -> None:
 	"""
 	Syncs Contacts from Google Contacts.
 	https://developers.google.com/people/api/rest/v1/people/updateContact

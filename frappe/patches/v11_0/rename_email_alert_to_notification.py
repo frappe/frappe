@@ -2,7 +2,7 @@ import frappe
 from frappe.model.rename_doc import rename_doc
 
 
-def execute():
+def execute() -> None:
 	if frappe.db.table_exists("Email Alert Recipient") and not frappe.db.table_exists(
 		"Notification Recipient"
 	):

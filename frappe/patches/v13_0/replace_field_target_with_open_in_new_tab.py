@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	doctype = "Top Bar Item"
 	if not frappe.db.table_exists(doctype) or not frappe.db.has_column(doctype, "target"):
 		return

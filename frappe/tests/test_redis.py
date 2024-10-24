@@ -32,14 +32,14 @@ def skip_if_redis_version_lt(version):
 class TestRedisAuth(IntegrationTestCase):
 	@skip_if_redis_version_lt("6.0")
 	@patch.dict(frappe.conf, {"bench_id": "test_bench", "use_rq_auth": False})
-	def test_rq_gen_acllist(self):
+	def test_rq_gen_acllist(self) -> None:
 		"""Make sure that ACL list is genrated"""
 		acl_list = RedisQueue.gen_acl_list()
 		self.assertEqual(acl_list[1]["bench"][0], get_bench_id())
 
 	@skip_if_redis_version_lt("6.0")
 	@patch.dict(frappe.conf, {"bench_id": "test_bench", "use_rq_auth": False})
-	def test_adding_redis_user(self):
+	def test_adding_redis_user(self) -> None:
 		acl_list = RedisQueue.gen_acl_list()
 		username, password = acl_list[1]["bench"]
 		conn = get_redis_conn()
@@ -51,7 +51,7 @@ class TestRedisAuth(IntegrationTestCase):
 
 	@skip_if_redis_version_lt("6.0")
 	@patch.dict(frappe.conf, {"bench_id": "test_bench", "use_rq_auth": False})
-	def test_rq_namespace(self):
+	def test_rq_namespace(self) -> None:
 		"""Make sure that user can access only their respective namespace."""
 		# Current bench ID
 		bench_id = frappe.conf.get("bench_id")

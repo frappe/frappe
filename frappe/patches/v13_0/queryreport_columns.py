@@ -6,7 +6,7 @@ import json
 import frappe
 
 
-def execute():
+def execute() -> None:
 	"""Convert Query Report json to support other content."""
 	records = frappe.get_all("Report", filters={"json": ["!=", ""]}, fields=["name", "json"])
 	for record in records:

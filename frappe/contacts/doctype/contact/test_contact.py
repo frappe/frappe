@@ -18,7 +18,7 @@ class UnitTestContact(UnitTestCase):
 
 
 class TestContact(IntegrationTestCase):
-	def test_check_default_email(self):
+	def test_check_default_email(self) -> None:
 		emails = [
 			{"email": "test1@example.com", "is_primary": 0},
 			{"email": "test2@example.com", "is_primary": 0},
@@ -30,7 +30,7 @@ class TestContact(IntegrationTestCase):
 
 		self.assertEqual(contact.email_id, "test4@example.com")
 
-	def test_check_default_phone_and_mobile(self):
+	def test_check_default_phone_and_mobile(self) -> None:
 		phones = [
 			{"phone": "+91 0000000010", "is_primary_phone": 0, "is_primary_mobile_no": 0},
 			{"phone": "+91 0000000011", "is_primary_phone": 0, "is_primary_mobile_no": 0},
@@ -42,7 +42,7 @@ class TestContact(IntegrationTestCase):
 		self.assertEqual(contact.phone, "+91 0000000012")
 		self.assertEqual(contact.mobile_no, "+91 0000000013")
 
-	def test_get_full_name(self):
+	def test_get_full_name(self) -> None:
 		self.assertEqual(get_full_name(first="John"), "John")
 		self.assertEqual(get_full_name(last="Doe"), "Doe")
 		self.assertEqual(get_full_name(company="Doe Pvt Ltd"), "Doe Pvt Ltd")
@@ -54,7 +54,7 @@ class TestContact(IntegrationTestCase):
 			"John Jane Doe",
 		)
 
-	def test_get_contact_list(self):
+	def test_get_contact_list(self) -> None:
 		# First time from database
 		results = get_contact_list("_Test Supplier")
 		self.assertEqual(results[0].label, "test_contact@example.com")

@@ -23,6 +23,6 @@ class ScheduledJobLog(Document):
 	# end: auto-generated types
 
 	@staticmethod
-	def clear_old_logs(days=90):
+	def clear_old_logs(days=90) -> None:
 		table = frappe.qb.DocType("Scheduled Job Log")
 		frappe.db.delete(table, filters=(table.creation < (Now() - Interval(days=days))))

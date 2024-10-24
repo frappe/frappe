@@ -101,7 +101,7 @@ def validate_args(data):
 	return data
 
 
-def validate_fields(data):
+def validate_fields(data) -> None:
 	wildcard = update_wildcard_field_param(data)
 
 	for field in list(data.fields or []):
@@ -130,7 +130,7 @@ def validate_fields(data):
 				data.fields.remove(field)
 
 
-def validate_filters(data, filters):
+def validate_filters(data, filters) -> None:
 	if isinstance(filters, list):
 		# filters as list
 		for condition in filters:
@@ -160,7 +160,7 @@ def validate_filters(data, filters):
 				raise_invalid_field(fieldname)
 
 
-def setup_group_by(data):
+def setup_group_by(data) -> None:
 	"""Add columns for aggregated values e.g. count(name)"""
 	if data.group_by and data.aggregate_function:
 		if data.aggregate_function.lower() not in ("count", "sum", "avg"):
@@ -178,11 +178,11 @@ def setup_group_by(data):
 		data.pop("aggregate_function")
 
 
-def raise_invalid_field(fieldname):
+def raise_invalid_field(fieldname) -> None:
 	frappe.throw(_("Field not permitted in query") + f": {fieldname}", frappe.DataError)
 
 
-def is_standard(fieldname):
+def is_standard(fieldname) -> bool:
 	if "." in fieldname:
 		fieldname = fieldname.split(".")[1].strip("`")
 	return fieldname in default_fields or fieldname in optional_fields or fieldname in child_table_fields
@@ -212,7 +212,7 @@ def get_meta_and_docfield(fieldname, data):
 	return meta, df
 
 
-def update_wildcard_field_param(data):
+def update_wildcard_field_param(data) -> bool:
 	if (isinstance(data.fields, str) and data.fields == "*") or (
 		isinstance(data.fields, list | tuple) and len(data.fields) == 1 and data.fields[0] == "*"
 	):
@@ -223,12 +223,12 @@ def update_wildcard_field_param(data):
 	return False
 
 
-def clean_params(data):
+def clean_params(data) -> None:
 	for param in ("cmd", "data", "ignore_permissions", "view", "user", "csrf_token", "join"):
 		data.pop(param, None)
 
 
-def parse_json(data):
+def parse_json(data) -> None:
 	if (filters := data.get("filters")) and isinstance(filters, str):
 		data["filters"] = json.loads(filters)
 	if (applied_filters := data.get("applied_filters")) and isinstance(applied_filters, str):
@@ -326,7 +326,7 @@ def save_report(name, doctype, report_settings):
 
 
 @frappe.whitelist()
-def delete_report(name):
+def delete_report(name) -> None:
 	"""Delete reports of type Report Builder from Report View"""
 
 	report = frappe.get_doc("Report", name)
@@ -349,7 +349,7 @@ def delete_report(name):
 
 @frappe.whitelist()
 @frappe.read_only()
-def export_query():
+def export_query() -> None:
 	"""export from report builder"""
 	from frappe.desk.utils import get_csv_bytes, pop_csv_params, provide_binary_file
 
@@ -524,7 +524,7 @@ def parse_field(field: str) -> tuple[str | None, str]:
 
 
 @frappe.whitelist()
-def delete_items():
+def delete_items() -> None:
 	"""delete selected items"""
 	import json
 
@@ -537,7 +537,7 @@ def delete_items():
 		delete_bulk(doctype, items)
 
 
-def delete_bulk(doctype, items):
+def delete_bulk(doctype, items) -> None:
 	undeleted_items = []
 	for i, d in enumerate(items):
 		try:

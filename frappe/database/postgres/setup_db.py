@@ -6,7 +6,7 @@ from frappe.database.db_manager import DbManager
 from frappe.utils import cint
 
 
-def setup_database():
+def setup_database() -> None:
 	root_conn = get_root_connection()
 	root_conn.commit()
 	root_conn.sql("end")
@@ -26,7 +26,7 @@ def setup_database():
 	root_conn.close()
 
 
-def bootstrap_database(verbose, source_sql=None):
+def bootstrap_database(verbose, source_sql=None) -> None:
 	frappe.connect()
 	import_db_from_sql(source_sql, verbose)
 
@@ -45,7 +45,7 @@ def bootstrap_database(verbose, source_sql=None):
 		sys.exit(1)
 
 
-def import_db_from_sql(source_sql=None, verbose=False):
+def import_db_from_sql(source_sql=None, verbose=False) -> None:
 	if verbose:
 		print("Starting database import...")
 	db_name = frappe.conf.db_name
@@ -84,7 +84,7 @@ def get_root_connection():
 	return frappe.local.flags.root_connection
 
 
-def drop_user_and_database(db_name, db_user):
+def drop_user_and_database(db_name, db_user) -> None:
 	root_conn = get_root_connection()
 	root_conn.commit()
 	root_conn.sql(

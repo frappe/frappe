@@ -21,11 +21,11 @@ class RoleProfile(Document):
 		roles: DF.Table[HasRole]
 	# end: auto-generated types
 
-	def autoname(self):
+	def autoname(self) -> None:
 		"""set name as Role Profile name"""
 		self.name = self.role_profile
 
-	def on_update(self):
+	def on_update(self) -> None:
 		self.queue_action(
 			"update_all_users",
 			now=frappe.flags.in_test or frappe.flags.in_install,
@@ -33,7 +33,7 @@ class RoleProfile(Document):
 			queue="long",
 		)
 
-	def update_all_users(self):
+	def update_all_users(self) -> None:
 		"""Changes in role_profile reflected across all its user"""
 		users = frappe.get_all("User Role Profile", filters={"role_profile": self.name}, pluck="parent")
 		for user in users:

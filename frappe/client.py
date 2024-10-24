@@ -266,7 +266,7 @@ def cancel(doctype, name):
 
 
 @frappe.whitelist(methods=["DELETE", "POST"])
-def delete(doctype, name):
+def delete(doctype, name) -> None:
 	"""Delete a remote document
 
 	:param doctype: DocType of the document to be deleted

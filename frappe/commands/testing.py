@@ -139,7 +139,7 @@ def main(
 		success = all(r.wasSuccessful() for _, _, r in results)
 		click.secho("\nTest Results:", fg="cyan", bold=True)
 
-		def _print_result(app, category, result):
+		def _print_result(app, category, result) -> None:
 			tests_run = result.testsRun
 			failures = len(result.failures)
 			errors = len(result.errors)
@@ -285,7 +285,7 @@ def run_tests(
 	case=None,
 	test_category="all",
 	pdb=False,
-):
+) -> None:
 	"""Run python unit-tests"""
 
 	pdb_on_exceptions = None
@@ -356,7 +356,7 @@ def run_parallel_tests(
 	with_coverage=False,
 	use_orchestrator=False,
 	dry_run=False,
-):
+) -> None:
 	from traceback_with_variables import activate_by_import
 
 	from frappe.coverage import CodeCoverage
@@ -403,7 +403,7 @@ def run_ui_tests(
 	browser="chrome",
 	ci_build_id=None,
 	cypressargs=None,
-):
+) -> None:
 	"Run UI tests"
 	site = get_site(context)
 	frappe.init(site)

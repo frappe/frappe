@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.reload_doc("core", "doctype", "docfield", force=True)
 	frappe.reload_doc("custom", "doctype", "custom_field", force=True)
 	frappe.reload_doc("custom", "doctype", "customize_form_field", force=True)

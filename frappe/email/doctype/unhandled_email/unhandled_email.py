@@ -22,7 +22,7 @@ class UnhandledEmail(Document):
 	# end: auto-generated types
 
 	@staticmethod
-	def clear_old_logs(days=30):
+	def clear_old_logs(days=30) -> None:
 		frappe.db.delete(
 			"Unhandled Email",
 			{

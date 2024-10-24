@@ -7,7 +7,7 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestAuditSystemHooksReport(IntegrationTestCase):
-	def test_basic_query(self):
+	def test_basic_query(self) -> None:
 		_, data = execute()
 		for row in data:
 			if row.get("hook_name") == "app_name":

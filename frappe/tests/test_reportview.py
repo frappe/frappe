@@ -7,7 +7,7 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestReportview(IntegrationTestCase):
-	def test_csv(self):
+	def test_csv(self) -> None:
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader
 		from io import StringIO
 
@@ -33,7 +33,7 @@ class TestReportview(IntegrationTestCase):
 						self.assertEqual(int(row["Is Single"]), 1)
 						self.assertEqual(row["Module"], "Core")
 
-	def test_extract_fieldname(self):
+	def test_extract_fieldname(self) -> None:
 		self.assertEqual(
 			extract_fieldnames("count(distinct `tabPhoto`.name) as total_count")[0], "tabPhoto.name"
 		)

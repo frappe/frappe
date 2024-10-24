@@ -18,7 +18,7 @@ class UnitTestSessionDefaultSettings(UnitTestCase):
 
 
 class TestSessionDefaultSettings(IntegrationTestCase):
-	def test_set_session_default_settings(self):
+	def test_set_session_default_settings(self) -> None:
 		frappe.set_user("Administrator")
 		settings = frappe.get_single("Session Default Settings")
 		settings.session_defaults = []
@@ -32,7 +32,7 @@ class TestSessionDefaultSettings(IntegrationTestCase):
 		).insert()
 		self.assertEqual(todo.role, "Website Manager")
 
-	def test_clear_session_defaults(self):
+	def test_clear_session_defaults(self) -> None:
 		clear_session_defaults()
 		todo = frappe.get_doc(
 			doctype="ToDo", description="test session defaults cleared", assigned_by="Administrator"

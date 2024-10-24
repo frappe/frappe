@@ -34,7 +34,7 @@ class FrappeClient:
 		api_key=None,
 		api_secret=None,
 		frappe_authorization_source=None,
-	):
+	) -> None:
 		import requests
 
 		self.headers = {
@@ -57,7 +57,7 @@ class FrappeClient:
 	def __enter__(self):
 		return self
 
-	def __exit__(self, *args, **kwargs):
+	def __exit__(self, *args, **kwargs) -> None:
 		self.logout()
 
 	def _login(self, username, password):
@@ -83,7 +83,7 @@ class FrappeClient:
 				print(error)
 			raise AuthError
 
-	def setup_key_authentication_headers(self):
+	def setup_key_authentication_headers(self) -> None:
 		if self.api_key and self.api_secret:
 			token = base64.b64encode((f"{self.api_key}:{self.api_secret}").encode()).decode("utf-8")
 			auth_header = {
@@ -95,7 +95,7 @@ class FrappeClient:
 				auth_source = {"Frappe-Authorization-Source": self.frappe_authorization_source}
 				self.headers.update(auth_source)
 
-	def logout(self):
+	def logout(self) -> None:
 		"""Logout session"""
 		self.session.get(
 			self.url,
@@ -245,7 +245,9 @@ class FrappeClient:
 		}
 		return self.post_request(params)
 
-	def migrate_doctype(self, doctype, filters=None, update=None, verbose=1, exclude=None, preprocess=None):
+	def migrate_doctype(
+		self, doctype, filters=None, update=None, verbose=1, exclude=None, preprocess=None
+	) -> None:
 		"""Migrate records from another doctype"""
 		meta = frappe.get_meta(doctype)
 		tables = {}
@@ -315,7 +317,7 @@ class FrappeClient:
 						verbose=0,
 					)
 
-	def migrate_single(self, doctype):
+	def migrate_single(self, doctype) -> None:
 		doc = self.get_doc(doctype, doctype)
 		doc = frappe.get_doc(doc)
 
@@ -385,7 +387,7 @@ class FrappeClient:
 
 
 class FrappeOAuth2Client(FrappeClient):
-	def __init__(self, url, access_token, verify=True):
+	def __init__(self, url, access_token, verify=True) -> None:
 		import requests
 
 		self.access_token = access_token

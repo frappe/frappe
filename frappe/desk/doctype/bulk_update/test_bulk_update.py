@@ -28,14 +28,14 @@ class TestBulkUpdate(IntegrationTestCase):
 			frappe.new_doc(cls.doctype, some_fieldname=frappe.mock("name")).insert()
 
 	@timeout()
-	def wait_for_assertion(self, assertion):
+	def wait_for_assertion(self, assertion) -> None:
 		"""Wait till an assertion becomes True"""
 		while True:
 			if assertion():
 				break
 			time.sleep(0.2)
 
-	def test_bulk_submit_in_background(self):
+	def test_bulk_submit_in_background(self) -> None:
 		unsubmitted = frappe.get_all(self.doctype, {"docstatus": 0}, limit=5, pluck="name")
 		failed = submit_cancel_or_update_docs(self.doctype, unsubmitted, action="submit")
 		self.assertEqual(failed, [])

@@ -8,7 +8,7 @@ from frappe.utils.bench_helper import CliCtxObj
 @click.command("generate-pot-file", help="Translation: generate POT file")
 @click.option("--app", help="Only generate for this app. eg: frappe")
 @pass_context
-def generate_pot_file(context: CliCtxObj, app: str | None = None):
+def generate_pot_file(context: CliCtxObj, app: str | None = None) -> None:
 	from frappe.gettext.translate import generate_pot
 
 	if not app:
@@ -27,7 +27,9 @@ def generate_pot_file(context: CliCtxObj, app: str | None = None):
 )
 @click.option("--locale", help="Compile transaltions only for this locale. eg: de")
 @pass_context
-def compile_translations(context: CliCtxObj, app: str | None = None, locale: str | None = None, force=False):
+def compile_translations(
+	context: CliCtxObj, app: str | None = None, locale: str | None = None, force=False
+) -> None:
 	from frappe.gettext.translate import compile_translations as _compile_translations
 
 	if not app:
@@ -40,7 +42,7 @@ def compile_translations(context: CliCtxObj, app: str | None = None, locale: str
 @click.option("--app", help="Only migrate for this app. eg: frappe")
 @click.option("--locale", help="Compile translations only for this locale. eg: de")
 @pass_context
-def csv_to_po(context: CliCtxObj, app: str | None = None, locale: str | None = None):
+def csv_to_po(context: CliCtxObj, app: str | None = None, locale: str | None = None) -> None:
 	from frappe.gettext.translate import migrate
 
 	if not app:
@@ -57,7 +59,7 @@ You might want to run generate-pot-file first.""",
 @click.option("--app", help="Only update for this app. eg: frappe")
 @click.option("--locale", help="Update PO files only for this locale. eg: de")
 @pass_context
-def update_po_files(context: CliCtxObj, app: str | None = None, locale: str | None = None):
+def update_po_files(context: CliCtxObj, app: str | None = None, locale: str | None = None) -> None:
 	from frappe.gettext.translate import update_po
 
 	if not app:
@@ -70,7 +72,7 @@ def update_po_files(context: CliCtxObj, app: str | None = None, locale: str | No
 @click.argument("locale", nargs=1)
 @click.option("--app", help="Only create for this app. eg: frappe")
 @pass_context
-def create_po_file(context: CliCtxObj, locale: str, app: str | None = None):
+def create_po_file(context: CliCtxObj, locale: str, app: str | None = None) -> None:
 	"""Create PO file for lang code"""
 	from frappe.gettext.translate import new_po
 

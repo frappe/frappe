@@ -20,7 +20,7 @@ from frappe.website.utils import can_cache, get_home_page
 class PathResolver:
 	__slots__ = ("path", "http_status_code")
 
-	def __init__(self, path, http_status_code=None):
+	def __init__(self, path, http_status_code=None) -> None:
 		self.path = path.strip("/ ")
 		self.http_status_code = http_status_code
 
@@ -71,7 +71,7 @@ class PathResolver:
 
 		return endpoint, NotFoundPage(endpoint)
 
-	def is_valid_path(self):
+	def is_valid_path(self) -> bool:
 		_endpoint, renderer_instance = self.resolve()
 		return not isinstance(renderer_instance, NotFoundPage)
 
@@ -197,6 +197,6 @@ def get_website_rules():
 	return frappe.cache.get_value("website_route_rules", _get)
 
 
-def validate_path(path: str):
+def validate_path(path: str) -> None:
 	if not PathResolver(path).is_valid_path():
 		frappe.throw(frappe._("Path {0} it not a valid path").format(frappe.bold(path)))

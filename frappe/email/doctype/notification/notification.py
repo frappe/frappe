@@ -75,12 +75,12 @@ class Notification(Document):
 		value_changed: DF.Literal[None]
 	# end: auto-generated types
 
-	def onload(self):
+	def onload(self) -> None:
 		"""load message"""
 		if self.is_standard:
 			self.message = self.get_template()
 
-	def autoname(self):
+	def autoname(self) -> None:
 		if not self.name:
 			self.name = self.subject
 
@@ -135,7 +135,7 @@ class Notification(Document):
 
 	# END: PreviewRenderer API
 
-	def validate(self):
+	def validate(self) -> None:
 		if self.channel in ("Email", "Slack", "System Notification"):
 			validate_template(self.subject)
 
@@ -162,7 +162,7 @@ class Notification(Document):
 		self.validate_standard()
 		frappe.cache.hdel("notifications", self.document_type)
 
-	def on_update(self):
+	def on_update(self) -> None:
 		frappe.cache.hdel("notifications", self.document_type)
 		path = export_module_json(self, self.is_standard, self.module)
 		if path and self.message:
@@ -183,13 +183,13 @@ def get_context(context):
 """
 					)
 
-	def validate_standard(self):
+	def validate_standard(self) -> None:
 		if self.is_standard and self.enabled and not frappe.conf.developer_mode:
 			frappe.throw(
 				_("Cannot edit Standard Notification. To edit, please disable this and duplicate it")
 			)
 
-	def validate_condition(self):
+	def validate_condition(self) -> None:
 		temp_doc = frappe.new_doc(self.document_type)
 		if self.condition:
 			try:
@@ -197,7 +197,7 @@ def get_context(context):
 			except Exception:
 				frappe.throw(_("The Condition '{0}' is invalid").format(self.condition))
 
-	def validate_forbidden_document_types(self):
+	def validate_forbidden_document_types(self) -> None:
 		if self.document_type in FORBIDDEN_DOCUMENT_TYPES or (
 			frappe.get_meta(self.document_type).istable and self.event not in DATE_BASED_EVENTS
 		):
@@ -323,7 +323,7 @@ def get_context(context):
 			enqueue_after_commit=enqueue_after_commit,
 		)
 
-	def send(self, doc):
+	def send(self, doc) -> None:
 		"""Build recipients and send Notification"""
 
 		context = get_context(doc)
@@ -376,7 +376,7 @@ def get_context(context):
 			except Exception:
 				self.log_error("Document update failed")
 
-	def create_system_notification(self, doc, context):
+	def create_system_notification(self, doc, context) -> None:
 		subject = self.subject
 		if "{" in subject:
 			subject = frappe.render_template(self.subject, context)
@@ -401,7 +401,7 @@ def get_context(context):
 		}
 		enqueue_create_notification(users, notification_doc)
 
-	def send_an_email(self, doc, context):
+	def send_an_email(self, doc, context) -> None:
 		from email.utils import formataddr
 
 		from frappe.core.doctype.communication.email import _make as make_communication
@@ -457,7 +457,7 @@ def get_context(context):
 			communication=communication,
 		)
 
-	def send_a_slack_msg(self, doc, context):
+	def send_a_slack_msg(self, doc, context) -> None:
 		send_slack_message(
 			webhook_url=self.slack_webhook_url,
 			message=frappe.render_template(self.message, context),
@@ -465,7 +465,7 @@ def get_context(context):
 			reference_name=get_reference_name(doc),
 		)
 
-	def send_sms(self, doc, context):
+	def send_sms(self, doc, context) -> None:
 		send_sms(
 			receiver_list=self.get_receiver_list(doc, context, "mobile_no", self.get_mobile_no),
 			msg=frappe.utils.strip_html_tags(frappe.render_template(self.message, context)),
@@ -628,7 +628,7 @@ def get_context(context):
 
 		return template
 
-	def load_standard_properties(self, context):
+	def load_standard_properties(self, context) -> None:
 		"""load templates and run get_context"""
 		module = get_doc_module(self.module, self.doctype, self.name)
 		if module:
@@ -639,7 +639,7 @@ def get_context(context):
 
 		self.message = self.get_template(md_as_html=True)
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		frappe.cache.hdel("notifications", self.document_type)
 
 
@@ -650,15 +650,15 @@ def get_documents_for_today(notification):
 	return [d.name for d in notification.get_documents_for_today()]
 
 
-def trigger_offset_alerts():
+def trigger_offset_alerts() -> None:
 	trigger_notifications(None, "offset")
 
 
-def trigger_daily_alerts():
+def trigger_daily_alerts() -> None:
 	trigger_notifications(None, "daily")
 
 
-def trigger_notifications(doc, method=None):
+def trigger_notifications(doc, method=None) -> None:
 	if frappe.flags.in_import or frappe.flags.in_patch:
 		# don't send notifications while syncing or patching
 		return
@@ -688,7 +688,7 @@ def trigger_notifications(doc, method=None):
 				frappe.db.commit()  # nosemgrep
 
 
-def evaluate_alert(doc: Document, alert, event=None):
+def evaluate_alert(doc: Document, alert, event=None) -> None:
 	from jinja2 import TemplateError
 
 	try:

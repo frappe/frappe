@@ -23,23 +23,23 @@ class UnitTestRecorder(UnitTestCase):
 
 
 class TestRecorder(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		self.start_recoder()
 
 	def tearDown(self) -> None:
 		frappe.recorder.stop()
 
-	def start_recoder(self):
+	def start_recoder(self) -> None:
 		frappe.recorder.stop()
 		frappe.recorder.delete()
 		set_request(path="/api/method/ping")
 		frappe.recorder.start()
 		frappe.recorder.record()
 
-	def stop_recorder(self):
+	def stop_recorder(self) -> None:
 		frappe.recorder.dump()
 
-	def test_recorder_list(self):
+	def test_recorder_list(self) -> None:
 		frappe.get_all("User")  # trigger one query
 		self.stop_recorder()
 		requests = frappe.get_all("Recorder")
@@ -54,7 +54,7 @@ class TestRecorder(IntegrationTestCase):
 				break
 		self.assertEqual(match_flag, 1)
 
-	def test_recorder_list_filters(self):
+	def test_recorder_list_filters(self) -> None:
 		user = frappe.qb.DocType("User")
 		frappe.qb.from_(user).select("name").run()
 		self.stop_recorder()
@@ -80,7 +80,7 @@ class TestRecorder(IntegrationTestCase):
 		requests = frappe.get_list("Recorder", order_by="path desc")
 		self.assertEqual(requests[0].path, "/api/method/ping")
 
-	def test_recorder_serialization(self):
+	def test_recorder_serialization(self) -> None:
 		frappe.get_all("User")  # trigger one query
 		self.stop_recorder()
 		requests = frappe.get_all("Recorder")
@@ -90,7 +90,7 @@ class TestRecorder(IntegrationTestCase):
 
 class TestQueryOptimization(IntegrationTestCase):
 	@run_only_if(db_type_is.MARIADB)
-	def test_query_optimizer(self):
+	def test_query_optimizer(self) -> None:
 		suggested_index = _optimize_query(
 			"""select name from
 			`tabUser` u

@@ -3,7 +3,7 @@ import click
 import frappe
 
 
-def execute():
+def execute() -> None:
 	doctype = "Data Import Legacy"
 	table = frappe.utils.get_table_name(doctype)
 

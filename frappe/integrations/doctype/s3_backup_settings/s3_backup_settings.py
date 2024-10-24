@@ -40,7 +40,7 @@ class S3BackupSettings(Document):
 		send_email_for_successful_backup: DF.Check
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		if not self.enabled:
 			return
 
@@ -72,7 +72,7 @@ class S3BackupSettings(Document):
 
 
 @frappe.whitelist()
-def take_backup():
+def take_backup() -> None:
 	"""Enqueue longjob for taking backup to s3"""
 	enqueue(
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_s3",
@@ -82,26 +82,26 @@ def take_backup():
 	frappe.msgprint(_("Queued for backup. It may take a few minutes to an hour."))
 
 
-def take_backups_daily():
+def take_backups_daily() -> None:
 	take_backups_if("Daily")
 
 
-def take_backups_weekly():
+def take_backups_weekly() -> None:
 	take_backups_if("Weekly")
 
 
-def take_backups_monthly():
+def take_backups_monthly() -> None:
 	take_backups_if("Monthly")
 
 
-def take_backups_if(freq):
+def take_backups_if(freq) -> None:
 	if cint(frappe.db.get_single_value("S3 Backup Settings", "enabled")):
 		if frappe.db.get_single_value("S3 Backup Settings", "frequency") == freq:
 			take_backups_s3()
 
 
 @frappe.whitelist()
-def take_backups_s3(retry_count=0):
+def take_backups_s3(retry_count=0) -> None:
 	try:
 		validate_file_size()
 		backup_to_s3()
@@ -121,12 +121,12 @@ def take_backups_s3(retry_count=0):
 		notify()
 
 
-def notify():
+def notify() -> None:
 	error_message = frappe.get_traceback()
 	send_email(False, "Amazon S3", "S3 Backup Settings", "notify_email", error_message)
 
 
-def backup_to_s3():
+def backup_to_s3() -> None:
 	from frappe.utils import get_backups_path
 	from frappe.utils.backups import new_backup
 
@@ -185,7 +185,7 @@ def backup_to_s3():
 			upload_file_to_s3(files_filename, folder, conn, bucket)
 
 
-def upload_file_to_s3(filename, folder, conn, bucket):
+def upload_file_to_s3(filename, folder, conn, bucket) -> None:
 	destpath = os.path.join(folder, os.path.basename(filename))
 	print("Uploading file:", filename)
 	conn.upload_file(filename, bucket, destpath)  # Requires PutObject permission

@@ -4,7 +4,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	"""Set default module for standard Web Template, if none."""
 	frappe.reload_doc("website", "doctype", "Web Template Field")
 	frappe.reload_doc("website", "doctype", "web_template")

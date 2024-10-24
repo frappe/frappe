@@ -18,7 +18,7 @@ class TestTag(IntegrationTestCase):
 		frappe.db.delete("Tag")
 		frappe.db.sql("UPDATE `tabDocType` set _user_tags=''")
 
-	def test_tag_count_query(self):
+	def test_tag_count_query(self) -> None:
 		self.assertDictEqual(
 			get_stats('["_user_tags"]', "DocType"),
 			{"_user_tags": [["No Tags", frappe.db.count("DocType")]]},

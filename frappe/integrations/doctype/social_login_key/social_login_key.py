@@ -69,10 +69,10 @@ class SocialLoginKey(Document):
 		user_id_property: DF.Data | None
 	# end: auto-generated types
 
-	def autoname(self):
+	def autoname(self) -> None:
 		self.name = frappe.scrub(self.provider_name)
 
-	def validate(self):
+	def validate(self) -> None:
 		self.set_icon()
 		if self.custom_base_url and not self.base_url:
 			frappe.throw(_("Please enter Base URL"), exc=BaseUrlNotSetError)
@@ -89,7 +89,7 @@ class SocialLoginKey(Document):
 				_("Please enter Client Secret before social login is enabled"), exc=ClientSecretNotSetError
 			)
 
-	def set_icon(self):
+	def set_icon(self) -> None:
 		icon_map = {
 			"Google": "google.svg",
 			"Frappe": "frappe.svg",

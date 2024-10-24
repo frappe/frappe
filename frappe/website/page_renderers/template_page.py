@@ -40,11 +40,11 @@ COMMENT_PROPERTY_KEY_VALUE_MAP = {
 
 
 class TemplatePage(BaseTemplatePage):
-	def __init__(self, path, http_status_code=None):
+	def __init__(self, path, http_status_code=None) -> None:
 		super().__init__(path=path, http_status_code=http_status_code)
 		self.set_template_path()
 
-	def set_template_path(self):
+	def set_template_path(self) -> None:
 		"""
 		Searches for file matching the path in the /www
 		and /templates/pages folders and sets path if match is found
@@ -103,12 +103,12 @@ class TemplatePage(BaseTemplatePage):
 
 		return html
 
-	def post_process_context(self):
+	def post_process_context(self) -> None:
 		self.set_user_info()
 		self.add_sidebar_and_breadcrumbs()
 		super().post_process_context()
 
-	def add_sidebar_and_breadcrumbs(self):
+	def add_sidebar_and_breadcrumbs(self) -> None:
 		if not self.context.sidebar_items:
 			self.context.sidebar_items = get_sidebar_items(self.context.website_sidebar, self.basepath)
 
@@ -128,7 +128,7 @@ class TemplatePage(BaseTemplatePage):
 						]
 					break
 
-	def set_pymodule(self):
+	def set_pymodule(self) -> None:
 		"""
 		A template may have a python module with a `get_context` method along with it in the
 		same folder. Also the hyphens will be coverted to underscore for python module names.
@@ -146,13 +146,13 @@ class TemplatePage(BaseTemplatePage):
 		if os.path.exists(os.path.join(self.app_path, self.pymodule_path)):
 			self.pymodule_name = self.app + "." + self.pymodule_path.replace(os.path.sep, ".")[:-3]
 
-	def setup_template_source(self):
+	def setup_template_source(self) -> None:
 		"""Setup template source, frontmatter and markdown conversion"""
 		self.source = self.get_raw_template()
 		self.extract_frontmatter()
 		self.convert_from_markdown()
 
-	def update_context(self):
+	def update_context(self) -> None:
 		self.set_page_properties()
 		self.context.build_version = frappe.utils.get_build_version()
 
@@ -170,12 +170,12 @@ class TemplatePage(BaseTemplatePage):
 		if self.context.http_status_code:
 			self.http_status_code = self.context.http_status_code
 
-	def set_pymodule_properties(self):
+	def set_pymodule_properties(self) -> None:
 		for prop in WEBPAGE_PY_MODULE_PROPERTIES:
 			if hasattr(self.pymodule, prop):
 				self.context[prop] = getattr(self.pymodule, prop)
 
-	def set_page_properties(self):
+	def set_page_properties(self) -> None:
 		self.context.base_template = self.context.base_template or get_base_template(self.path)
 		self.context.basepath = self.basepath
 		self.context.basename = self.basename
@@ -184,7 +184,7 @@ class TemplatePage(BaseTemplatePage):
 		self.context.route = self.path
 		self.context.template = self.template_path
 
-	def set_properties_from_source(self):
+	def set_properties_from_source(self) -> None:
 		if not self.source:
 			return
 		context = self.context
@@ -206,7 +206,7 @@ class TemplatePage(BaseTemplatePage):
 
 		self.set_properties_via_comments()
 
-	def set_properties_via_comments(self):
+	def set_properties_via_comments(self) -> None:
 		for comment, (context_key, value) in COMMENT_PROPERTY_KEY_VALUE_MAP.items():
 			comment_tag = f"<!-- {comment} -->"
 			if comment_tag in self.source:
@@ -245,7 +245,7 @@ class TemplatePage(BaseTemplatePage):
 	def get_raw_template(self):
 		return frappe.get_jloader().get_source(frappe.get_jenv(), self.context.template)[0]
 
-	def load_colocated_files(self):
+	def load_colocated_files(self) -> None:
 		"""load co-located css/js files with the same name"""
 		js_path = self.basename + ".js"
 		if os.path.exists(js_path) and "{% block script %}" not in self.source:
@@ -259,7 +259,7 @@ class TemplatePage(BaseTemplatePage):
 		with open(path, encoding="utf-8") as f:
 			return f.read()
 
-	def extract_frontmatter(self):
+	def extract_frontmatter(self) -> None:
 		if not self.template_path.endswith((".md", ".html")):
 			return
 
@@ -272,7 +272,7 @@ class TemplatePage(BaseTemplatePage):
 		except Exception:
 			pass
 
-	def convert_from_markdown(self):
+	def convert_from_markdown(self) -> None:
 		if self.template_path.endswith(".md"):
 			self.source = frappe.utils.md_to_html(self.source)
 			self.context.page_toc_html = self.source.toc_html
@@ -289,18 +289,18 @@ class TemplatePage(BaseTemplatePage):
 
 		return html
 
-	def set_standard_path(self, path):
+	def set_standard_path(self, path) -> None:
 		self.app = "frappe"
 		self.app_path = frappe.get_app_path("frappe")
 		self.path = path
 		self.template_path = f"www/{path}.html"
 
-	def set_missing_values(self):
+	def set_missing_values(self) -> None:
 		super().set_missing_values()
 		# for backward compatibility
 		self.context.docs_base_url = "/docs"
 
-	def set_user_info(self):
+	def set_user_info(self) -> None:
 		from frappe.utils.user import get_fullname_and_avatar
 
 		info = get_fullname_and_avatar(frappe.session.user)

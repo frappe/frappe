@@ -31,7 +31,7 @@ class NotificationSettings(Document):
 		user: DF.Link | None
 	# end: auto-generated types
 
-	def on_update(self):
+	def on_update(self) -> None:
 		from frappe.desk.notifications import clear_notification_config
 
 		clear_notification_config(frappe.session.user)
@@ -66,14 +66,14 @@ def is_email_notifications_enabled_for_type(user, notification_type):
 	return enabled
 
 
-def create_notification_settings(user):
+def create_notification_settings(user) -> None:
 	if not frappe.db.exists("Notification Settings", user):
 		_doc = frappe.new_doc("Notification Settings")
 		_doc.name = user
 		_doc.insert(ignore_permissions=True)
 
 
-def toggle_notifications(user: str, enable: bool = False, ignore_permissions=False):
+def toggle_notifications(user: str, enable: bool = False, ignore_permissions=False) -> None:
 	try:
 		settings = frappe.get_doc("Notification Settings", user)
 	except frappe.DoesNotExistError:
@@ -132,7 +132,7 @@ def has_permission(doc, ptype="read", user=None):
 
 
 @frappe.whitelist()
-def set_seen_value(value, user):
+def set_seen_value(value, user) -> None:
 	if frappe.flags.read_only:
 		return
 

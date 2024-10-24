@@ -4,7 +4,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	if not frappe.db.table_exists("List View Setting"):
 		return
 	if not frappe.db.exists("DocType", "List View Setting"):

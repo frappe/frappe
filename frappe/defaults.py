@@ -8,11 +8,11 @@ from frappe.query_builder import DocType
 # Note: DefaultValue records are identified by parent (e.g. __default, __global)
 
 
-def set_user_default(key, value, user=None, parenttype=None):
+def set_user_default(key, value, user=None, parenttype=None) -> None:
 	set_default(key, value, user or frappe.session.user, parenttype)
 
 
-def add_user_default(key, value, user=None, parenttype=None):
+def add_user_default(key, value, user=None, parenttype=None) -> None:
 	add_default(key, value, user or frappe.session.user, parenttype)
 
 
@@ -117,18 +117,18 @@ def get_defaults(user=None):
 	return defaults
 
 
-def clear_user_default(key, user=None):
+def clear_user_default(key, user=None) -> None:
 	clear_default(key, parent=user or frappe.session.user)
 
 
 # Global
 
 
-def set_global_default(key, value):
+def set_global_default(key, value) -> None:
 	set_default(key, value, "__default")
 
 
-def add_global_default(key, value):
+def add_global_default(key, value) -> None:
 	add_default(key, value, "__default")
 
 
@@ -145,7 +145,7 @@ def get_global_default(key):
 # Common
 
 
-def set_default(key, value, parent, parenttype="__default"):
+def set_default(key, value, parent, parenttype="__default") -> None:
 	"""Override or add a default value.
 	Adds default value in table `tabDefaultValue`.
 
@@ -172,7 +172,7 @@ def set_default(key, value, parent, parenttype="__default"):
 		clear_defaults_cache(parent)
 
 
-def add_default(key, value, parent, parenttype=None):
+def add_default(key, value, parent, parenttype=None) -> None:
 	d = frappe.get_doc(
 		{
 			"doctype": "DefaultValue",
@@ -261,7 +261,7 @@ def get_defaults_for(parent="__default"):
 	return defaults
 
 
-def _clear_cache(parent):
+def _clear_cache(parent) -> None:
 	if frappe.flags.in_install:
 		return
 	frappe.clear_cache(user=parent if parent not in common_default_keys else None)

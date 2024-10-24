@@ -25,16 +25,16 @@ class WebsiteSlideshow(Document):
 		slideshow_name: DF.Data
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		self.validate_images()
 
-	def on_update(self):
+	def on_update(self) -> None:
 		# a slide show can be in use and any change in it should get reflected
 		from frappe.website.utils import clear_cache
 
 		clear_cache()
 
-	def validate_images(self):
+	def validate_images(self) -> None:
 		"""atleast one image file should be public for slideshow"""
 		files = map(lambda row: row.image, self.slideshow_items)
 		if files:

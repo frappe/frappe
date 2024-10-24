@@ -10,7 +10,7 @@ from frappe.utils import global_search, now_datetime
 
 
 class TestGlobalSearch(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		update_global_search_doctypes()
 		global_search.setup_global_search_table()
 		self.assertTrue("__global_search" in frappe.db.get_tables())
@@ -21,7 +21,7 @@ class TestGlobalSearch(IntegrationTestCase):
 		make_property_setter(doctype, "roles", "in_global_search", 1, "Int")
 		make_property_setter(doctype, "repeat_on", "in_global_search", 0, "Int")
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.db.delete("Property Setter", {"doc_type": "Event"})
 		frappe.clear_cache(doctype="Event")
 		frappe.db.delete("Event")
@@ -29,7 +29,7 @@ class TestGlobalSearch(IntegrationTestCase):
 		make_test_objects("Event")
 		frappe.db.commit()
 
-	def insert_test_events(self):
+	def insert_test_events(self) -> None:
 		frappe.db.delete("Event")
 		phrases = [
 			'"The Sixth Extinction II: Amor Fati" is the second episode of the seventh season of the American science fiction.',
@@ -45,7 +45,7 @@ class TestGlobalSearch(IntegrationTestCase):
 		global_search.sync_global_search()
 		frappe.db.commit()
 
-	def test_search(self):
+	def test_search(self) -> None:
 		self.insert_test_events()
 		results = global_search.search("awakens")
 		self.assertTrue(
@@ -64,7 +64,7 @@ class TestGlobalSearch(IntegrationTestCase):
 			in results[0].content
 		)
 
-	def test_update_doc(self):
+	def test_update_doc(self) -> None:
 		self.insert_test_events()
 		test_subject = "testing global search"
 		event = frappe.get_doc("Event", frappe.get_all("Event")[0].name)
@@ -76,7 +76,7 @@ class TestGlobalSearch(IntegrationTestCase):
 
 		self.assertTrue("testing global search" in results[0].content)
 
-	def test_update_fields(self):
+	def test_update_fields(self) -> None:
 		self.insert_test_events()
 		results = global_search.search("Monthly")
 		self.assertEqual(len(results), 0)
@@ -86,7 +86,7 @@ class TestGlobalSearch(IntegrationTestCase):
 		results = global_search.search("Monthly")
 		self.assertEqual(len(results), 3)
 
-	def test_delete_doc(self):
+	def test_delete_doc(self) -> None:
 		self.insert_test_events()
 		event_name = frappe.get_all("Event")[0].name
 		event = frappe.get_doc("Event", event_name)
@@ -106,7 +106,7 @@ class TestGlobalSearch(IntegrationTestCase):
 			msg="Deleted documents appearing in global search.",
 		)
 
-	def test_insert_child_table(self):
+	def test_insert_child_table(self) -> None:
 		frappe.db.delete("Event")
 		phrases = [
 			"Hydrus is a small constellation in the deep southern sky. ",
@@ -127,7 +127,7 @@ class TestGlobalSearch(IntegrationTestCase):
 		global_search.sync_global_search()
 		frappe.db.commit()
 
-	def test_get_field_value(self):
+	def test_get_field_value(self) -> None:
 		cases = [
 			{
 				"case_type": "generic",
@@ -195,7 +195,7 @@ class TestGlobalSearch(IntegrationTestCase):
 
 			self.assertEqual(case["result"], field_as_text)
 
-	def test_web_page_index(self):
+	def test_web_page_index(self) -> None:
 		global_search.update_global_search_for_all_web_pages()
 		global_search.sync_global_search()
 		frappe.db.commit()

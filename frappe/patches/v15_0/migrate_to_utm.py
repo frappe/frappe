@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	"""
 	Rename the Marketing Campaign table to UTM Campaign table
 	"""

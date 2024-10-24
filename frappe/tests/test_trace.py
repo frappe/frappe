@@ -14,14 +14,14 @@ def create_mock_meta(doctype):
 
 
 class TestDocument(Document):
-	def __init__(self, *args, **kwargs):
+	def __init__(self, *args, **kwargs) -> None:
 		kwargs["doctype"] = "TestDocument"
 		with patch("frappe.get_meta", return_value=create_mock_meta("TestDocument")):
 			super().__init__(*args, **kwargs)
 
 
 class TestTracedDocument(TracedDocument):
-	def __init__(self, *args, **kwargs):
+	def __init__(self, *args, **kwargs) -> None:
 		kwargs["doctype"] = "TestTracedDocument"
 		with patch("frappe.get_meta", return_value=create_mock_meta("TestTracedDocument")):
 			super().__init__(*args, **kwargs)
@@ -36,29 +36,29 @@ class TestTracedDocument(TracedDocument):
 
 
 class TestTrace(unittest.TestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		self.traced_doc = TestTracedDocument()
 
-	def test_traced_field_get(self):
+	def test_traced_field_get(self) -> None:
 		self.traced_doc._test_field = "test_value"
 		self.assertEqual(self.traced_doc.test_field, "test_value")
 
-	def test_traced_field_set(self):
+	def test_traced_field_set(self) -> None:
 		self.traced_doc.test_field = "new_value"
 		self.assertEqual(self.traced_doc._test_field, "new_value")
 
-	def test_traced_field_forbidden_value(self):
+	def test_traced_field_forbidden_value(self) -> None:
 		with self.assertRaises(AssertionError):
 			self.traced_doc.test_field = "forbidden"
 
-	def test_traced_field_custom_validation(self):
+	def test_traced_field_custom_validation(self) -> None:
 		self.traced_doc.positive_field = 10
 		self.assertEqual(self.traced_doc._positive_field, 10)
 
 		with self.assertRaises(AssertionError):
 			self.traced_doc.positive_field = -5
 
-	def test_get_valid_dict(self):
+	def test_get_valid_dict(self) -> None:
 		self.traced_doc.test_field = "valid_value"
 		self.traced_doc.positive_field = 15
 		valid_dict = self.traced_doc.get_valid_dict()
@@ -67,7 +67,7 @@ class TestTrace(unittest.TestCase):
 
 
 class TestTracedFieldContext(UnitTestCase):
-	def test_traced_field_context(self):
+	def test_traced_field_context(self) -> None:
 		doc = TestDocument()
 
 		# Before context
@@ -86,7 +86,7 @@ class TestTracedFieldContext(UnitTestCase):
 		doc.test_field = "forbidden"
 		self.assertEqual(doc.test_field, "forbidden")
 
-	def test_traced_field_context_custom_validation(self):
+	def test_traced_field_context_custom_validation(self) -> None:
 		doc = TestDocument()
 
 		def validate_even(obj, value):
@@ -104,7 +104,7 @@ class TestTracedFieldContext(UnitTestCase):
 		doc.number_field = 3
 		self.assertEqual(doc.number_field, 3)
 
-	def test_traced_field_context_not_in_test_mode(self):
+	def test_traced_field_context_not_in_test_mode(self) -> None:
 		doc = TestDocument()
 
 		# Temporarily set frappe.flags.in_test to False

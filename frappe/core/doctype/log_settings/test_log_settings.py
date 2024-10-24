@@ -20,7 +20,7 @@ class UnitTestLogSettings(UnitTestCase):
 
 class TestLogSettings(IntegrationTestCase):
 	@classmethod
-	def setUpClass(cls):
+	def setUpClass(cls) -> None:
 		super().setUpClass()
 
 		frappe.db.set_single_value(
@@ -43,7 +43,7 @@ class TestLogSettings(IntegrationTestCase):
 		if self._testMethodName == "test_delete_logs":
 			del self.datetime
 
-	def test_delete_logs(self):
+	def test_delete_logs(self) -> None:
 		# make sure test data is present
 		activity_log_count = frappe.db.count("Activity Log", {"creation": ("<=", self.datetime.past)})
 		error_log_count = frappe.db.count("Error Log", {"creation": ("<=", self.datetime.past)})
@@ -65,7 +65,7 @@ class TestLogSettings(IntegrationTestCase):
 		self.assertEqual(error_log_count, 0)
 		self.assertEqual(email_queue_count, 0)
 
-	def test_logtype_identification(self):
+	def test_logtype_identification(self) -> None:
 		supported_types = [
 			"Error Log",
 			"Activity Log",

@@ -57,7 +57,7 @@ def build(
 	force=False,
 	save_metafiles=False,
 	using_cached=False,
-):
+) -> None:
 	"Compile JS and CSS source files"
 	from frappe.build import bundle, download_frappe_assets
 	from frappe.gettext.translate import compile_translations
@@ -108,7 +108,7 @@ def build(
 
 @click.command("watch")
 @click.option("--apps", help="Watch assets for specific apps")
-def watch(apps=None):
+def watch(apps=None) -> None:
 	"Watch and compile JS and CSS files as and when they change"
 	from frappe.build import watch
 
@@ -313,7 +313,7 @@ def execute(context: CliCtxObj, method, args=None, kwargs=None, profile=False):
 @click.command("add-to-email-queue")
 @click.argument("email-path")
 @pass_context
-def add_to_email_queue(context: CliCtxObj, email_path):
+def add_to_email_queue(context: CliCtxObj, email_path) -> None:
 	"Add an email to the Email Queue"
 	site = get_site(context)
 
@@ -452,7 +452,7 @@ def import_doc(context: CliCtxObj, path, force=False):
 @pass_context
 def data_import(
 	context: CliCtxObj, file_path, doctype, import_type=None, submit_after_import=False, mute_emails=True
-):
+) -> None:
 	"Import documents in bulk from CSV or XLSX using data import"
 	from frappe.core.doctype.data_import.data_import import import_file
 
@@ -468,7 +468,7 @@ def data_import(
 @click.argument("doctype")
 @click.argument("path")
 @pass_context
-def bulk_rename(context: CliCtxObj, doctype, path):
+def bulk_rename(context: CliCtxObj, doctype, path) -> None:
 	"Rename multiple records via CSV file"
 	from frappe.model.rename_doc import bulk_rename
 	from frappe.utils.csvutils import read_csv_content
@@ -489,7 +489,7 @@ def bulk_rename(context: CliCtxObj, doctype, path):
 @click.command("db-console", context_settings=EXTRA_ARGS_CTX)
 @click.argument("extra_args", nargs=-1)
 @pass_context
-def database(context: CliCtxObj, extra_args):
+def database(context: CliCtxObj, extra_args) -> None:
 	"""
 	Enter into the Database console for given site.
 	"""
@@ -501,7 +501,7 @@ def database(context: CliCtxObj, extra_args):
 @click.command("mariadb", context_settings=EXTRA_ARGS_CTX)
 @click.argument("extra_args", nargs=-1)
 @pass_context
-def mariadb(context: CliCtxObj, extra_args):
+def mariadb(context: CliCtxObj, extra_args) -> None:
 	"""
 	Enter into mariadb console for a given site.
 	"""
@@ -514,7 +514,7 @@ def mariadb(context: CliCtxObj, extra_args):
 @click.command("postgres", context_settings=EXTRA_ARGS_CTX)
 @click.argument("extra_args", nargs=-1)
 @pass_context
-def postgres(context: CliCtxObj, extra_args):
+def postgres(context: CliCtxObj, extra_args) -> None:
 	"""
 	Enter into postgres console for a given site.
 	"""
@@ -524,7 +524,7 @@ def postgres(context: CliCtxObj, extra_args):
 	_enter_console(extra_args=extra_args)
 
 
-def _enter_console(extra_args=None):
+def _enter_console(extra_args=None) -> None:
 	from frappe.database import get_command
 	from frappe.utils import get_site_path
 
@@ -552,7 +552,7 @@ def _enter_console(extra_args=None):
 
 @click.command("jupyter")
 @pass_context
-def jupyter(context: CliCtxObj):
+def jupyter(context: CliCtxObj) -> None:
 	"""Start an interactive jupyter notebook"""
 	installed_packages = (
 		r.split("==", 1)[0]
@@ -597,7 +597,7 @@ frappe.db.connect()
 	)
 
 
-def _console_cleanup():
+def _console_cleanup() -> None:
 	# Execute after_rollback on console close
 	frappe.db.rollback()
 	frappe.destroy()
@@ -618,7 +618,7 @@ def store_logs(terminal: "InteractiveShellEmbed") -> None:
 @click.command("console")
 @click.option("--autoreload", is_flag=True, help="Reload changes to code automatically")
 @pass_context
-def console(context: CliCtxObj, autoreload=False):
+def console(context: CliCtxObj, autoreload=False) -> None:
 	"Start ipython console for a site"
 	site = get_site(context)
 	frappe.init(site)
@@ -684,7 +684,7 @@ def console(context: CliCtxObj, autoreload=False):
 )
 @click.option("--failfast", is_flag=True, default=False, help="Exit on first failure occurred")
 @pass_context
-def transform_database(context: CliCtxObj, table, engine, row_format, failfast):
+def transform_database(context: CliCtxObj, table, engine, row_format, failfast) -> None:
 	"Transform site database through given parameters"
 	site = get_site(context)
 	check_table = []
@@ -772,7 +772,7 @@ def serve(
 	sites_path=".",
 	site=None,
 	with_coverage=False,
-):
+) -> None:
 	"Start development web server"
 	import frappe.app
 
@@ -838,7 +838,7 @@ def request(context: CliCtxObj, args=None, path=None):
 @click.argument("destination")
 @click.argument("app_name")
 @click.option("--no-git", is_flag=True, default=False, help="Do not initialize git repository for the app")
-def make_app(destination, app_name, no_git=False):
+def make_app(destination, app_name, no_git=False) -> None:
 	"Creates a boilerplate app"
 	from frappe.utils.boilerplate import make_boilerplate
 
@@ -846,7 +846,7 @@ def make_app(destination, app_name, no_git=False):
 
 
 @click.command("create-patch")
-def create_patch():
+def create_patch() -> None:
 	"Creates a new patch interactively"
 	from frappe.utils.boilerplate import PatchCreator
 
@@ -892,7 +892,7 @@ def set_config(context: CliCtxObj, key, value, global_=False, parse=False):
 	help="Output format",
 	default="legacy",
 )
-def get_version(output):
+def get_version(output) -> None:
 	"""Show the versions of all the installed apps."""
 	from git import Repo
 	from git.exc import InvalidGitRepositoryError
@@ -974,7 +974,7 @@ def rebuild_global_search(context: CliCtxObj, static_pages=False):
 @click.command("list-sites")
 @click.option("--json", "output_json", is_flag=True, help="Output in JSON format")
 @pass_context
-def list_sites(context: CliCtxObj, output_json=False):
+def list_sites(context: CliCtxObj, output_json=False) -> None:
 	"List all the sites in current bench"
 	site_dir = os.getcwd()
 	# Get the current site from common_site_config.json

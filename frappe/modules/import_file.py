@@ -181,7 +181,7 @@ def read_doc_from_file(path):
 	return doc
 
 
-def update_modified(original_modified, doc):
+def update_modified(original_modified, doc) -> None:
 	# since there is a new timestamp on the file, update timestamp in
 	if doc["doctype"] == doc["name"] and doc["name"] != "DocType":
 		singles_table = DocType("Singles")
@@ -239,7 +239,7 @@ def import_doc(
 	return doc
 
 
-def load_code_properties(doc, path):
+def load_code_properties(doc, path) -> None:
 	"""Load code files stored in separate files with extensions"""
 	if path:
 		if hasattr(doc, "get_code_fields"):
@@ -251,7 +251,7 @@ def load_code_properties(doc, path):
 						doc.set(key, txtfile.read())
 
 
-def delete_old_doc(doc, reset_permissions):
+def delete_old_doc(doc, reset_permissions) -> None:
 	ignore = []
 	old_doc = frappe.get_doc(doc.doctype, doc.name)
 
@@ -272,7 +272,7 @@ def delete_old_doc(doc, reset_permissions):
 	doc.flags.ignore_children_type = ignore
 
 
-def reset_tree_properties(doc):
+def reset_tree_properties(doc) -> None:
 	# Note on Tree DocTypes:
 	# The tree structure is maintained in the database via the fields "lft" and
 	# "rgt". They are automatically set and kept up-to-date. Importing them

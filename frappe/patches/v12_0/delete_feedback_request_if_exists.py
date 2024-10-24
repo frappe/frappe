@@ -1,5 +1,5 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.db.delete("DocType", {"name": "Feedback Request"})

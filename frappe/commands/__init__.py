@@ -68,7 +68,7 @@ def popen(command, *args, **kwargs):
 	if env:
 		env = dict(environ, **env)
 
-	def set_low_prio():
+	def set_low_prio() -> None:
 		import psutil
 
 		if psutil.LINUX:

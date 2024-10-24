@@ -27,20 +27,20 @@ class Translation(Document):
 		translated_text: DF.Code
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		if is_html(self.source_text):
 			self.remove_html_from_source()
 
-	def remove_html_from_source(self):
+	def remove_html_from_source(self) -> None:
 		self.source_text = strip_html_tags(self.source_text).strip()
 
-	def on_update(self):
+	def on_update(self) -> None:
 		clear_user_translation_cache(self.language)
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		clear_user_translation_cache(self.language)
 
 
-def clear_user_translation_cache(lang):
+def clear_user_translation_cache(lang) -> None:
 	frappe.cache.hdel(USER_TRANSLATION_KEY, lang)
 	frappe.cache.hdel(MERGED_TRANSLATION_KEY, lang)

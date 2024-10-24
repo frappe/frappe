@@ -25,11 +25,11 @@ class RolePermissionforPageandReport(Document):
 	# end: auto-generated types
 
 	@frappe.whitelist()
-	def set_report_page_data(self):
+	def set_report_page_data(self) -> None:
 		self.set_custom_roles()
 		self.check_prepared_report_disabled()
 
-	def set_custom_roles(self):
+	def set_custom_roles(self) -> None:
 		args = self.get_args()
 		self.set("roles", [])
 
@@ -42,7 +42,7 @@ class RolePermissionforPageandReport(Document):
 
 		self.set("roles", roles)
 
-	def check_prepared_report_disabled(self):
+	def check_prepared_report_disabled(self) -> None:
 		if self.report:
 			self.enable_prepared_report = is_prepared_report_enabled(self.report)
 
@@ -53,18 +53,18 @@ class RolePermissionforPageandReport(Document):
 		return doc.roles
 
 	@frappe.whitelist()
-	def reset_roles(self):
+	def reset_roles(self) -> None:
 		roles = self.get_standard_roles()
 		self.set("roles", roles)
 		self.update_custom_roles()
 		self.update_disable_prepared_report()
 
 	@frappe.whitelist()
-	def update_report_page_data(self):
+	def update_report_page_data(self) -> None:
 		self.update_custom_roles()
 		self.update_disable_prepared_report()
 
-	def update_custom_roles(self):
+	def update_custom_roles(self) -> None:
 		args = self.get_args()
 		roles = self.get_roles()
 		name = frappe.db.get_value("Custom Role", args, "name")
@@ -81,7 +81,7 @@ class RolePermissionforPageandReport(Document):
 		else:
 			frappe.get_doc(args).insert()
 
-	def update_disable_prepared_report(self):
+	def update_disable_prepared_report(self) -> None:
 		if self.report:
 			# intentionally written update query in frappe.db.sql instead of frappe.db.set_value
 			frappe.db.sql(

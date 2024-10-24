@@ -2,7 +2,7 @@ import frappe
 from frappe.model.utils.rename_field import rename_field
 
 
-def execute():
+def execute() -> None:
 	if not frappe.db.table_exists("Dashboard Chart"):
 		return
 

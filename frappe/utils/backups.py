@@ -60,7 +60,7 @@ class BackupGenerator:
 		verbose=False,
 		old_backup_metadata=False,
 		rollback_callback=None,
-	):
+	) -> None:
 		global _verbose
 		self.compress_files = compress_files or compress
 		self.db_socket = db_socket
@@ -89,7 +89,7 @@ class BackupGenerator:
 		self.setup_backup_tables()
 		_verbose = verbose
 
-	def setup_backup_directory(self):
+	def setup_backup_directory(self) -> None:
 		specified = (
 			self.backup_path
 			or self.backup_path_db
@@ -116,12 +116,12 @@ class BackupGenerator:
 					dir = os.path.dirname(file_path)
 					os.makedirs(dir, exist_ok=True)
 
-	def _set_existing_tables(self):
+	def _set_existing_tables(self) -> None:
 		"""Ensure self._existing_tables is set."""
 		if not hasattr(self, "_existing_tables"):
 			self._existing_tables = frappe.db.get_tables()
 
-	def setup_backup_tables(self):
+	def setup_backup_tables(self) -> None:
 		"""Set self.backup_includes, self.backup_excludes based on include_doctypes, exclude_doctypes"""
 		self._set_existing_tables()
 
@@ -131,7 +131,7 @@ class BackupGenerator:
 		self.set_backup_tables_from_config()
 		self.partial = (self.backup_includes or self.backup_excludes) and not self.ignore_conf
 
-	def set_backup_tables_from_config(self):
+	def set_backup_tables_from_config(self) -> None:
 		"""Set self.backup_includes, self.backup_excludes based on site config"""
 		if self.ignore_conf:
 			return
@@ -157,7 +157,7 @@ class BackupGenerator:
 		)
 		return getattr(self, "backup_path_conf", None)
 
-	def get_backup(self, older_than=24, ignore_files=False, force=False):
+	def get_backup(self, older_than=24, ignore_files=False, force=False) -> None:
 		"""
 		Takes a new dump if existing file is old
 		and sends the link to the file as email
@@ -204,7 +204,7 @@ class BackupGenerator:
 			self.backup_path_private_files = last_private_file
 			self.backup_path_conf = site_config_backup_path
 
-	def set_backup_file_name(self):
+	def set_backup_file_name(self) -> None:
 		partial = "-partial" if self.partial else ""
 		ext = "tgz" if self.compress_files else "tar"
 		enc = "-enc" if frappe.get_system_settings("encrypt_backup") else ""
@@ -225,7 +225,7 @@ class BackupGenerator:
 		if not self.backup_path_private_files:
 			self.backup_path_private_files = os.path.join(backup_path, for_private_files)
 
-	def backup_encryption(self):
+	def backup_encryption(self) -> None:
 		"""
 		Encrypt all the backups created using gpg.
 		"""
@@ -331,7 +331,7 @@ class BackupGenerator:
 
 		return summary
 
-	def print_summary(self):
+	def print_summary(self) -> None:
 		backup_summary = self.get_summary()
 		print(f"Backup Summary for {frappe.local.site} at {now()}")
 
@@ -368,14 +368,14 @@ class BackupGenerator:
 				else:
 					raise e
 
-	def copy_site_config(self):
+	def copy_site_config(self) -> None:
 		site_config_backup_path = self.backup_path_conf
 		site_config_path = os.path.join(frappe.get_site_path(), "site_config.json")
 
 		with open(site_config_backup_path, "w") as n, open(site_config_path) as c:
 			n.write(c.read())
 
-	def take_dump(self):
+	def take_dump(self) -> None:
 		import shlex
 
 		import frappe.utils
@@ -636,7 +636,7 @@ def new_backup(
 	return odb
 
 
-def delete_temp_backups(older_than=24):
+def delete_temp_backups(older_than=24) -> None:
 	"""
 	Cleans up the backup_link_path directory by deleting older files
 	"""

@@ -13,15 +13,15 @@ from frappe.tests import IntegrationTestCase
 
 class TestDashboardConnections(IntegrationTestCase):
 	@patch.dict(frappe.conf, {"developer_mode": 1})
-	def setUp(self):
+	def setUp(self) -> None:
 		delete_test_data()
 		create_test_data()
 
 	@patch.dict(frappe.conf, {"developer_mode": 1})
-	def tearDown(self):
+	def tearDown(self) -> None:
 		delete_test_data()
 
-	def test_internal_link_count(self):
+	def test_internal_link_count(self) -> None:
 		earth = frappe.get_doc(
 			{
 				"doctype": "Test Doctype B With Child Table With Link To Doctype A",
@@ -72,7 +72,7 @@ class TestDashboardConnections(IntegrationTestCase):
 				expected_open_count,
 			)
 
-	def test_external_link_count(self):
+	def test_external_link_count(self) -> None:
 		saturn = frappe.get_doc(
 			{
 				"doctype": "Test Doctype A With Child Table With Link To Doctype B",
@@ -122,7 +122,7 @@ class TestDashboardConnections(IntegrationTestCase):
 				expected_open_count,
 			)
 
-	def test_external_doctype_link_with_dashboard_override(self):
+	def test_external_doctype_link_with_dashboard_override(self) -> None:
 		# add a custom links
 		todo = TestCustomizeForm().get_customize_form("ToDo")
 		todo.append("links", dict(link_doctype="Test Doctype D", link_fieldname="doclink", group="Test"))
@@ -154,7 +154,7 @@ class TestDashboardConnections(IntegrationTestCase):
 		todo.run_method("save_customization")
 
 
-def create_test_data():
+def create_test_data() -> None:
 	create_test_child_table_with_link_to_doctype_a()
 	create_test_child_table_with_link_to_doctype_b()
 	create_test_doctype_a_with_test_child_table_with_link_to_doctype_b()
@@ -163,7 +163,7 @@ def create_test_data():
 	add_links_in_child_tables()
 
 
-def delete_test_data():
+def delete_test_data() -> None:
 	doctypes = [
 		"Test Child Table With Link To Doctype A",
 		"Test Child Table With Link To Doctype B",
@@ -178,7 +178,7 @@ def delete_test_data():
 			frappe.delete_doc("DocType", doctype, force=True)
 
 
-def create_test_child_table_with_link_to_doctype_a():
+def create_test_child_table_with_link_to_doctype_a() -> None:
 	new_doctype(
 		"Test Child Table With Link To Doctype A",
 		istable=1,
@@ -189,7 +189,7 @@ def create_test_child_table_with_link_to_doctype_a():
 	).insert(ignore_if_duplicate=True)
 
 
-def create_test_child_table_with_link_to_doctype_b():
+def create_test_child_table_with_link_to_doctype_b() -> None:
 	new_doctype(
 		"Test Child Table With Link To Doctype B",
 		istable=1,
@@ -200,7 +200,7 @@ def create_test_child_table_with_link_to_doctype_b():
 	).insert(ignore_if_duplicate=True)
 
 
-def add_links_in_child_tables():
+def add_links_in_child_tables() -> None:
 	test_child_table_with_link_to_doctype_a = frappe.get_doc(
 		"DocType", "Test Child Table With Link To Doctype A"
 	)
@@ -234,7 +234,7 @@ def add_links_in_child_tables():
 		test_child_table_with_link_to_doctype_b.save()
 
 
-def create_test_doctype_a_with_test_child_table_with_link_to_doctype_b():
+def create_test_doctype_a_with_test_child_table_with_link_to_doctype_b() -> None:
 	new_doctype(
 		"Test Doctype A With Child Table With Link To Doctype B",
 		fields=[
@@ -258,7 +258,7 @@ def create_test_doctype_a_with_test_child_table_with_link_to_doctype_b():
 	).insert(ignore_if_duplicate=True)
 
 
-def create_test_doctype_b_with_test_child_table_with_link_to_doctype_a():
+def create_test_doctype_b_with_test_child_table_with_link_to_doctype_a() -> None:
 	new_doctype(
 		"Test Doctype B With Child Table With Link To Doctype A",
 		fields=[
@@ -305,7 +305,7 @@ def get_dashboard_for_test_doctype_a_with_test_child_table_with_link_to_doctype_
 	return dashboard
 
 
-def create_linked_doctypes():
+def create_linked_doctypes() -> None:
 	"""
 	Test Doctype D and Test Doctype E linked to "ToDo"
 	"""

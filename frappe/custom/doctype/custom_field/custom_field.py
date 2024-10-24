@@ -119,11 +119,11 @@ class CustomField(Document):
 		width: DF.Data | None
 	# end: auto-generated types
 
-	def autoname(self):
+	def autoname(self) -> None:
 		self.set_fieldname()
 		self.name = self.dt + "-" + self.fieldname
 
-	def set_fieldname(self):
+	def set_fieldname(self) -> None:
 		restricted = (
 			"name",
 			"parent",
@@ -156,10 +156,10 @@ class CustomField(Document):
 		if self.fieldname in restricted:
 			self.fieldname = self.fieldname + "1"
 
-	def before_insert(self):
+	def before_insert(self) -> None:
 		self.set_fieldname()
 
-	def validate(self):
+	def validate(self) -> None:
 		# these imports have been added to avoid cyclical import, should fix in future
 		from frappe.core.doctype.doctype.doctype import check_fieldname_conflicts
 		from frappe.custom.doctype.customize_form.customize_form import CustomizeForm
@@ -201,7 +201,7 @@ class CustomField(Document):
 
 		check_fieldname_conflicts(self)
 
-	def on_update(self):
+	def on_update(self) -> None:
 		# validate field
 		if not self.flags.ignore_validate:
 			from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
@@ -213,7 +213,7 @@ class CustomField(Document):
 			frappe.clear_cache(doctype=self.dt)
 			frappe.db.updatedb(self.dt)
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		# check if Admin owned field
 		if self.owner == "Administrator" and frappe.session.user != "Administrator":
 			frappe.throw(
@@ -238,7 +238,7 @@ class CustomField(Document):
 
 		frappe.clear_cache(doctype=self.dt)
 
-	def validate_insert_after(self, meta):
+	def validate_insert_after(self, meta) -> None:
 		if not meta.get_field(self.insert_after):
 			frappe.throw(
 				_(
@@ -282,7 +282,7 @@ def get_fields_label(doctype=None):
 	]
 
 
-def create_custom_field_if_values_exist(doctype, df):
+def create_custom_field_if_values_exist(doctype, df) -> None:
 	df = frappe._dict(df)
 	if df.fieldname in frappe.db.get_table_columns(doctype) and frappe.db.count(
 		dt=doctype, filters=IfNull(df.fieldname, "") != ""
@@ -311,7 +311,7 @@ def create_custom_field(doctype, df, ignore_validate=False, is_system_generated=
 		return custom_field
 
 
-def create_custom_fields(custom_fields: dict, ignore_validate=False, update=True):
+def create_custom_fields(custom_fields: dict, ignore_validate=False, update=True) -> None:
 	"""Add / update multiple custom fields
 
 	:param custom_fields: example `{'Sales Invoice': [dict(fieldname='test')]}`"""
@@ -361,7 +361,7 @@ def create_custom_fields(custom_fields: dict, ignore_validate=False, update=True
 
 
 @frappe.whitelist()
-def rename_fieldname(custom_field: str, fieldname: str):
+def rename_fieldname(custom_field: str, fieldname: str) -> None:
 	frappe.only_for("System Manager")
 
 	field: CustomField = frappe.get_doc("Custom Field", custom_field)

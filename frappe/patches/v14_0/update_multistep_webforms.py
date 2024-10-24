@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	if not frappe.db.has_column("Web Form", "is_multi_step_form"):
 		return
 

@@ -1,5 +1,5 @@
 # get data for moment.js
-def update(tz, out):
+def update(tz, out) -> None:
 	ltz = data["links"].get(tz, tz)
 	zone = data["zones"].get(ltz)
 	if not zone:

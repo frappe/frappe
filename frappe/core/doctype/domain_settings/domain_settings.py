@@ -18,7 +18,7 @@ class DomainSettings(Document):
 		active_domains: DF.Table[HasDomain]
 	# end: auto-generated types
 
-	def set_active_domains(self, domains):
+	def set_active_domains(self, domains) -> None:
 		active_domains = [d.domain for d in self.active_domains]
 		added = False
 		for d in domains:
@@ -29,7 +29,7 @@ class DomainSettings(Document):
 		if added:
 			self.save()
 
-	def on_update(self):
+	def on_update(self) -> None:
 		for i, d in enumerate(self.active_domains):
 			# set the flag to update the the desktop icons of all domains
 			if i >= 1:
@@ -40,12 +40,12 @@ class DomainSettings(Document):
 		self.restrict_roles_and_modules()
 		frappe.clear_cache()
 
-	def restrict_roles_and_modules(self):
+	def restrict_roles_and_modules(self) -> None:
 		"""Disable all restricted roles and set `restrict_to_domain` property in Module Def"""
 		active_domains = frappe.get_active_domains()
 		all_domains = list(frappe.get_hooks("domains") or {})
 
-		def remove_role(role):
+		def remove_role(role) -> None:
 			frappe.db.delete("Has Role", {"role": role})
 			frappe.set_value("Role", role, "disabled", 1)
 

@@ -19,7 +19,7 @@ class Exporter:
 		export_filters=None,
 		export_page_length=None,
 		file_type="CSV",
-	):
+	) -> None:
 		"""
 		Exports records of a DocType for use with Importer
 		        :param doctype: Document Type to export
@@ -149,7 +149,7 @@ class Exporter:
 		return rows
 
 	def get_data_as_docs(self):
-		def format_column_name(df):
+		def format_column_name(df) -> str:
 			return f"`tab{df.parent}`.`{df.fieldname}`"
 
 		filters = self.export_filters
@@ -202,7 +202,7 @@ class Exporter:
 			related_children_docs = grouped_children_data.get(str(doc.name), {})
 			yield {**doc, **related_children_docs}
 
-	def add_header(self):
+	def add_header(self) -> None:
 		header = []
 		for df in self.fields:
 			is_parent = not df.is_child_table_field
@@ -224,7 +224,7 @@ class Exporter:
 
 		self.csv_array.append(header)
 
-	def add_data(self):
+	def add_data(self) -> None:
 		self.csv_array += self.data
 
 	def get_csv_array(self):
@@ -239,7 +239,7 @@ class Exporter:
 
 		return csv_array
 
-	def build_response(self):
+	def build_response(self) -> None:
 		if self.file_type == "CSV":
 			build_csv_response(self.get_csv_array_for_export(), _(self.doctype))
 		elif self.file_type == "Excel":

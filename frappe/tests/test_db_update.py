@@ -9,7 +9,7 @@ from frappe.utils import cstr
 
 
 class TestDBUpdate(IntegrationTestCase):
-	def test_db_update(self):
+	def test_db_update(self) -> None:
 		doctype = "User"
 		frappe.reload_doctype("User", force=True)
 		frappe.model.meta.trim_tables("User")
@@ -38,7 +38,7 @@ class TestDBUpdate(IntegrationTestCase):
 			self.assertIn(fieldtype, table_column.type, msg=f"Types not matching for {fieldname}")
 			self.assertIn(cstr(table_column.default) or "NULL", [cstr(default), f"'{default}'"])
 
-	def test_index_and_unique_constraints(self):
+	def test_index_and_unique_constraints(self) -> None:
 		doctype = "User"
 		frappe.reload_doctype("User", force=True)
 		frappe.model.meta.trim_tables("User")
@@ -90,7 +90,7 @@ class TestDBUpdate(IntegrationTestCase):
 		email_sig_column = get_table_column("User", "email_signature")
 		self.assertEqual(email_sig_column.index, 1)
 
-	def check_unique_indexes(self, doctype: str, field: str):
+	def check_unique_indexes(self, doctype: str, field: str) -> None:
 		indexes = frappe.db.sql(
 			f"""show index from `tab{doctype}` where column_name = '{field}' and Non_unique = 0""",
 			as_dict=1,
@@ -99,7 +99,7 @@ class TestDBUpdate(IntegrationTestCase):
 			len(indexes), 1, msg=f"There should be 1 index on {doctype}.{field}, found {indexes}"
 		)
 
-	def test_bigint_conversion(self):
+	def test_bigint_conversion(self) -> None:
 		doctype = new_doctype(fields=[{"fieldname": "int_field", "fieldtype": "Int"}]).insert()
 
 		with self.assertRaises(frappe.CharacterLengthExceededError):
@@ -110,7 +110,7 @@ class TestDBUpdate(IntegrationTestCase):
 		frappe.get_doc(doctype=doctype.name, int_field=2**62 - 1).insert()
 
 	@run_only_if(db_type_is.MARIADB)
-	def test_unique_index_on_install(self):
+	def test_unique_index_on_install(self) -> None:
 		"""Only one unique index should be added"""
 		for dt in frappe.get_all("DocType", {"is_virtual": 0, "issingle": 0}, pluck="name"):
 			doctype = frappe.get_meta(dt)
@@ -120,7 +120,7 @@ class TestDBUpdate(IntegrationTestCase):
 					self.check_unique_indexes(doctype.name, field.fieldname)
 
 	@run_only_if(db_type_is.MARIADB)
-	def test_unique_index_on_alter(self):
+	def test_unique_index_on_alter(self) -> None:
 		"""Only one unique index should be added"""
 
 		doctype = new_doctype(unique=1).insert()
@@ -149,7 +149,7 @@ class TestDBUpdate(IntegrationTestCase):
 		doctype.delete()
 		frappe.db.commit()
 
-	def test_uuid_varchar_migration(self):
+	def test_uuid_varchar_migration(self) -> None:
 		doctype = new_doctype().insert()
 		doctype.autoname = "UUID"
 		doctype.save()
@@ -163,7 +163,7 @@ class TestDBUpdate(IntegrationTestCase):
 		self.assertIn(varchar, frappe.db.get_column_type(doctype.name, "name"))
 		doc.reload()  # ensure that docs are still accesible
 
-	def test_uuid_link_field(self):
+	def test_uuid_link_field(self) -> None:
 		uuid_doctype = new_doctype().update({"autoname": "UUID"}).insert()
 		self.assertEqual(frappe.db.get_column_type(uuid_doctype.name, "name"), "uuid")
 

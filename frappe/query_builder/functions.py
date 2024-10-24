@@ -12,12 +12,12 @@ from .utils import PseudoColumn
 
 
 class Concat_ws(Function):
-	def __init__(self, *terms, **kwargs):
+	def __init__(self, *terms, **kwargs) -> None:
 		super().__init__("CONCAT_WS", *terms, **kwargs)
 
 
 class Locate(Function):
-	def __init__(self, *terms, **kwargs):
+	def __init__(self, *terms, **kwargs) -> None:
 		terms = list(terms)
 		if not isinstance(terms[0], str):
 			terms[0] = terms[0].get_sql()
@@ -25,7 +25,7 @@ class Locate(Function):
 
 
 class Ifnull(IfNull):
-	def __init__(self, condition, term, **kwargs):
+	def __init__(self, condition, term, **kwargs) -> None:
 		if not isinstance(condition, str):
 			condition = condition.get_sql()
 		if not isinstance(term, str):
@@ -34,7 +34,7 @@ class Ifnull(IfNull):
 
 
 class Timestamp(Function):
-	def __init__(self, term: str, time=None, alias=None):
+	def __init__(self, term: str, time=None, alias=None) -> None:
 		if time:
 			super().__init__("TIMESTAMP", term, time, alias=alias)
 		else:
@@ -42,12 +42,12 @@ class Timestamp(Function):
 
 
 class Round(Function):
-	def __init__(self, term, decimal=0, **kwargs):
+	def __init__(self, term, decimal=0, **kwargs) -> None:
 		super().__init__("ROUND", term, decimal, **kwargs)
 
 
 class Truncate(Function):
-	def __init__(self, term, decimal, **kwargs):
+	def __init__(self, term, decimal, **kwargs) -> None:
 		super().__init__("TRUNCATE", term, decimal, **kwargs)
 
 
@@ -57,7 +57,7 @@ Match = ImportMapper({db_type_is.MARIADB: MATCH, db_type_is.POSTGRES: TO_TSVECTO
 
 
 class _PostgresTimestamp(ArithmeticExpression):
-	def __init__(self, datepart, timepart, alias=None):
+	def __init__(self, datepart, timepart, alias=None) -> None:
 		"""Postgres would need both datepart and timepart to be a string for concatenation"""
 		if isinstance(timepart, time) or isinstance(datepart, time):
 			timepart, datepart = str(timepart), str(datepart)
@@ -87,7 +87,7 @@ DateFormat = ImportMapper(
 class _PostgresUnixTimestamp(Extract):
 	# Note: this is just a special case of "Extract" function with "epoch" hardcoded.
 	# Check super definition to see how it works.
-	def __init__(self, field, alias=None):
+	def __init__(self, field, alias=None) -> None:
 		super().__init__("epoch", field=field, alias=alias)
 		self.field = field
 
@@ -101,7 +101,7 @@ UnixTimestamp = ImportMapper(
 
 
 class Cast_(Function):
-	def __init__(self, value, as_type, alias=None):
+	def __init__(self, value, as_type, alias=None) -> None:
 		if frappe.db.db_type == "mariadb" and (
 			(hasattr(as_type, "get_sql") and as_type.get_sql().lower() == "varchar")
 			or str(as_type).lower() == "varchar"
@@ -117,7 +117,7 @@ class Cast_(Function):
 			super().__init__("CAST", value, alias=alias)
 			self.as_type = as_type
 
-	def get_special_params_sql(self, **kwargs):
+	def get_special_params_sql(self, **kwargs) -> str:
 		if self.name.lower() == "cast":
 			type_sql = (
 				self.as_type.get_sql(**kwargs)

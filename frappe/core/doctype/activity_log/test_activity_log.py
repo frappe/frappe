@@ -20,7 +20,7 @@ class TestActivityLog(IntegrationTestCase):
 	def setUp(self) -> None:
 		frappe.set_user("Administrator")
 
-	def test_activity_log(self):
+	def test_activity_log(self) -> None:
 		# test user login log
 		frappe.local.form_dict = frappe._dict(
 			{
@@ -65,7 +65,7 @@ class TestActivityLog(IntegrationTestCase):
 		name = names[0]
 		return frappe.get_doc("Activity Log", name)
 
-	def test_brute_security(self):
+	def test_brute_security(self) -> None:
 		update_system_settings({"allow_consecutive_login_attempts": 3, "allow_login_after_fail": 5})
 
 		frappe.local.form_dict = frappe._dict(
@@ -100,7 +100,7 @@ class TestActivityLog(IntegrationTestCase):
 		frappe.local.form_dict = frappe._dict()
 
 
-def update_system_settings(args):
+def update_system_settings(args) -> None:
 	doc = frappe.get_doc("System Settings")
 	doc.update(args)
 	doc.flags.ignore_mandatory = 1

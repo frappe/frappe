@@ -14,7 +14,7 @@ from frappe.utils import update_progress_bar
 class FullTextSearch:
 	"""Frappe Wrapper for Whoosh"""
 
-	def __init__(self, index_name):
+	def __init__(self, index_name) -> None:
 		self.index_name = index_name
 		self.index_path = get_index_path(index_name)
 		self.schema = self.get_schema()
@@ -26,7 +26,7 @@ class FullTextSearch:
 	def get_fields_to_search(self):
 		return ["name", "content"]
 
-	def get_id(self):
+	def get_id(self) -> str:
 		return "name"
 
 	def get_items_to_index(self):
@@ -36,12 +36,12 @@ class FullTextSearch:
 	def get_document_to_index(self):
 		return {}
 
-	def build(self):
+	def build(self) -> None:
 		"""Build search index for all documents"""
 		self.documents = self.get_items_to_index()
 		self.build_index()
 
-	def update_index_by_name(self, doc_name):
+	def update_index_by_name(self, doc_name) -> None:
 		"""Wraps `update_index` method, gets the document from name
 		and updates the index. This function changes the current user
 		and should only be run as administrator or in a background job.
@@ -54,7 +54,7 @@ class FullTextSearch:
 		if document:
 			self.update_index(document)
 
-	def remove_document_from_index(self, doc_name):
+	def remove_document_from_index(self, doc_name) -> None:
 		"""Remove document from search index
 
 		Args:
@@ -70,7 +70,7 @@ class FullTextSearch:
 			writer.delete_by_term(self.id, doc_name)
 			writer.commit(optimize=True)
 
-	def update_index(self, document):
+	def update_index(self, document) -> None:
 		"""Update search index for a document
 
 		Args:
@@ -95,7 +95,7 @@ class FullTextSearch:
 		frappe.create_folder(self.index_path)
 		return create_in(self.index_path, self.schema)
 
-	def build_index(self):
+	def build_index(self) -> None:
 		"""Build index for all parsed documents"""
 		ix = self.create_index()
 		writer = AsyncWriter(ix)
@@ -143,7 +143,7 @@ class FullTextSearch:
 
 
 class FuzzyTermExtended(FuzzyTerm):
-	def __init__(self, fieldname, text, boost=1.0, maxdist=2, prefixlength=1, constantscore=True):
+	def __init__(self, fieldname, text, boost=1.0, maxdist=2, prefixlength=1, constantscore=True) -> None:
 		super().__init__(
 			fieldname,
 			text,

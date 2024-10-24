@@ -9,14 +9,14 @@ HOMEPAGE_PATHS = ("/", "/index", "index")
 
 
 class NotFoundPage(TemplatePage):
-	def __init__(self, path, http_status_code=None):
+	def __init__(self, path, http_status_code=None) -> None:
 		self.request_path = path
 		self.request_url = frappe.local.request.url if hasattr(frappe.local, "request") else ""
 		path = "404"
 		http_status_code = http_status_code or 404
 		super().__init__(path=path, http_status_code=http_status_code)
 
-	def can_render(self):
+	def can_render(self) -> bool:
 		return True
 
 	def render(self):
@@ -28,7 +28,7 @@ class NotFoundPage(TemplatePage):
 		# do not cache 404 for custom homepages
 		return can_cache() and self.request_url and not self.is_custom_home_page()
 
-	def is_custom_home_page(self):
+	def is_custom_home_page(self) -> bool:
 		url_parts = urlparse(self.request_url)
 		request_url = os.path.splitext(url_parts.path)[0]
 		request_path = os.path.splitext(self.request_path)[0]

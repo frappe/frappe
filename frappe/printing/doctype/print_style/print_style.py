@@ -21,7 +21,7 @@ class PrintStyle(Document):
 		standard: DF.Check
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		if (
 			self.standard == 1
 			and not frappe.local.conf.get("developer_mode")
@@ -30,10 +30,10 @@ class PrintStyle(Document):
 		):
 			frappe.throw(frappe._("Standard Print Style cannot be changed. Please duplicate to edit."))
 
-	def on_update(self):
+	def on_update(self) -> None:
 		self.export_doc()
 
-	def export_doc(self):
+	def export_doc(self) -> None:
 		# export
 		from frappe.modules.utils import export_module_json
 

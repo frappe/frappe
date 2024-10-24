@@ -8,7 +8,7 @@ DOCTYPE = "DefaultValue"
 OLD_PARENT = "__default"
 
 
-def execute():
+def execute() -> None:
 	table = frappe.qb.DocType(DOCTYPE)
 
 	# set parent for `*_otplogin`

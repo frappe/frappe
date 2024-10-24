@@ -95,7 +95,7 @@ def get_dom_id(seed=None):
 	return "id-" + generate_hash(12)
 
 
-def include_script(path, preload=True):
+def include_script(path, preload=True) -> str:
 	"""Get path of bundled script files.
 
 	If preload is specified the path will be added to preload headers so browsers can prefetch
@@ -129,7 +129,7 @@ def include_icons(path, preload=True):
 	)
 
 
-def include_style(path, rtl=None, preload=True):
+def include_style(path, rtl=None, preload=True) -> str:
 	"""Get path of bundled style files.
 
 	If preload is specified the path will be added to preload headers so browsers can prefetch

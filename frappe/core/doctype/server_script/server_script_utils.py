@@ -31,7 +31,7 @@ EVENT_MAP = {
 }
 
 
-def run_server_script_for_doc_event(doc, event):
+def run_server_script_for_doc_event(doc, event) -> None:
 	# run document event method
 	if event not in EVENT_MAP:
 		return

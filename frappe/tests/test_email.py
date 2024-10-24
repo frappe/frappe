@@ -20,12 +20,12 @@ EXTRA_TEST_RECORD_DEPENDENCIES = ["Email Account"]
 
 
 class TestEmail(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		frappe.db.delete("Email Unsubscribe")
 		frappe.db.delete("Email Queue")
 		frappe.db.delete("Email Queue Recipient")
 
-	def test_email_queue(self, send_after=None):
+	def test_email_queue(self, send_after=None) -> None:
 		frappe.sendmail(
 			recipients=["test@example.com", "test1@example.com"],
 			sender="admin@example.com",
@@ -54,7 +54,7 @@ class TestEmail(IntegrationTestCase):
 		self.assertEqual(len(queue_recipients), 2)
 		self.assertTrue("<!--unsubscribe_url-->" in email_queue[0]["message"])
 
-	def test_send_after(self):
+	def test_send_after(self) -> None:
 		self.test_email_queue(send_after=1)
 		from frappe.email.queue import flush
 
@@ -62,7 +62,7 @@ class TestEmail(IntegrationTestCase):
 		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
 		self.assertEqual(len(email_queue), 0)
 
-	def test_flush(self):
+	def test_flush(self) -> None:
 		self.test_email_queue()
 		from frappe.email.queue import flush
 
@@ -82,7 +82,7 @@ class TestEmail(IntegrationTestCase):
 		self.assertEqual(len(queue_recipients), 2)
 		self.assertTrue("Unsubscribe" in frappe.safe_decode(frappe.flags.sent_mail))
 
-	def test_cc_header(self):
+	def test_cc_header(self) -> None:
 		# test if sending with cc's makes it into header
 		frappe.sendmail(
 			recipients=["test@example.com"],
@@ -118,7 +118,7 @@ class TestEmail(IntegrationTestCase):
 		self.assertTrue("To: test@example.com" in message)
 		self.assertTrue("CC: test1@example.com" in message)
 
-	def test_cc_footer(self):
+	def test_cc_footer(self) -> None:
 		# test if sending with cc's makes it into header
 		frappe.sendmail(
 			recipients=["test@example.com"],
@@ -150,7 +150,7 @@ class TestEmail(IntegrationTestCase):
 			in frappe.safe_decode(frappe.flags.sent_mail)
 		)
 
-	def test_expose(self):
+	def test_expose(self) -> None:
 		from frappe.utils import set_request
 		from frappe.utils.verified_command import verify_request
 
@@ -200,8 +200,8 @@ class TestEmail(IntegrationTestCase):
 				self.assertTrue(verify_request())
 				break
 
-	def test_sender(self):
-		def _patched_assertion(email_account, assertion):
+	def test_sender(self) -> None:
+		def _patched_assertion(email_account, assertion) -> None:
 			with patch.object(QueueBuilder, "get_outgoing_email_account", return_value=email_account):
 				frappe.sendmail(
 					recipients=["test1@example.com"],
@@ -230,7 +230,7 @@ class TestEmail(IntegrationTestCase):
 		email_account.always_use_account_name_as_sender_name = 1
 		_patched_assertion(email_account, "_Test Email Account 1 <test@example.com>")
 
-	def test_unsubscribe(self):
+	def test_unsubscribe(self) -> None:
 		from frappe.email.queue import unsubscribe
 
 		unsubscribe(doctype="User", name="Administrator", email="test@example.com")
@@ -307,7 +307,7 @@ class TestEmail(IntegrationTestCase):
 
 
 class TestVerifiedRequests(IntegrationTestCase):
-	def test_round_trip(self):
+	def test_round_trip(self) -> None:
 		from frappe.utils import set_request
 		from frappe.utils.verified_command import get_signed_params, verify_request
 
@@ -349,7 +349,7 @@ class TestEmailIntegrationTest(IntegrationTestCase):
 	def get_message(cls, message_id):
 		return requests.get(f"{cls.SMTP4DEV_WEB}/api/Messages/{message_id}").json()
 
-	def test_send_email(self):
+	def test_send_email(self) -> None:
 		sender = "a@example.io"
 		recipients = "b@example.io,c@example.io"
 		subject = "checking if email works"
@@ -373,7 +373,7 @@ class TestEmailIntegrationTest(IntegrationTestCase):
 
 	@run_only_if(db_type_is.MARIADB)
 	@IntegrationTestCase.change_settings("System Settings", store_attached_pdf_document=1)
-	def test_store_attachments(self):
+	def test_store_attachments(self) -> None:
 		""" "attach print" feature just tells email queue which document to attach, this is not
 		actually stored unless system setting says so."""
 

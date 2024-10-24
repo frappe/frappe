@@ -58,7 +58,7 @@ def get_data(filters=None):
 	return result
 
 
-def check_data_integrity(chaining_hash, transaction_hash, registered_previous_hash, previous_hash):
+def check_data_integrity(chaining_hash, transaction_hash, registered_previous_hash, previous_hash) -> bool:
 	if registered_previous_hash != previous_hash:
 		return False
 

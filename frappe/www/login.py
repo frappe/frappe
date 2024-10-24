@@ -112,7 +112,7 @@ def get_context(context):
 
 
 @frappe.whitelist(allow_guest=True)
-def login_via_token(login_token: str):
+def login_via_token(login_token: str) -> None:
 	sid = frappe.cache.get_value(f"login_token:{login_token}", expires=True)
 	if not sid:
 		frappe.respond_as_web_page(_("Invalid Request"), _("Invalid Login Token"), http_status_code=417)
@@ -128,7 +128,7 @@ def login_via_token(login_token: str):
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(limit=5, seconds=60 * 60)
-def send_login_link(email: str):
+def send_login_link(email: str) -> None:
 	if not frappe.get_system_settings("login_with_email_link"):
 		return
 
@@ -167,7 +167,7 @@ def get_login_with_email_link_ratelimit() -> int:
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=get_login_with_email_link_ratelimit, seconds=60 * 60)
-def login_via_key(key: str):
+def login_via_key(key: str) -> None:
 	cache_key = f"one_time_login_key:{key}"
 	email = frappe.cache.get_value(cache_key)
 

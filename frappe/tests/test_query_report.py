@@ -14,10 +14,10 @@ class TestQueryReport(IntegrationTestCase):
 		cls.enterClassContext(cls.enable_safe_exec())
 		return super().setUpClass()
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.db.rollback()
 
-	def test_xlsx_data_with_multiple_datatypes(self):
+	def test_xlsx_data_with_multiple_datatypes(self) -> None:
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""
 
 		# Create mock data
@@ -42,7 +42,7 @@ class TestQueryReport(IntegrationTestCase):
 			for cell in row:
 				self.assertIsInstance(cell, (int, float))
 
-	def test_xlsx_data_with_filters(self):
+	def test_xlsx_data_with_filters(self) -> None:
 		"""Test building xlsx data along with filters"""
 
 		# Create mock data
@@ -63,7 +63,7 @@ class TestQueryReport(IntegrationTestCase):
 		# Check filter formatting
 		self.assertListEqual(xlsx_data[:2], [["Label 1", "Filter Value"], ["Label 3", "0, 1, 2, 3, 4"]])
 
-	def test_xlsx_export_with_composite_cell_value(self):
+	def test_xlsx_export_with_composite_cell_value(self) -> None:
 		"""Test excel export using rows with composite cell value"""
 
 		data = frappe._dict()
@@ -88,7 +88,7 @@ class TestQueryReport(IntegrationTestCase):
 			# column_b should be 'str' even with composite cell value
 			self.assertEqual(type(row[1]), str)
 
-	def test_csv(self):
+	def test_csv(self) -> None:
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader
 		from io import StringIO
 

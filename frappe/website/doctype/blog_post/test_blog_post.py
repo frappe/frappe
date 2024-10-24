@@ -26,14 +26,14 @@ class UnitTestBlogPost(UnitTestCase):
 
 
 class TestBlogPost(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		reset_customization("Blog Post")
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		if hasattr(frappe.local, "request"):
 			delattr(frappe.local, "request")
 
-	def test_generator_view(self):
+	def test_generator_view(self) -> None:
 		pages = frappe.get_all(
 			"Blog Post", fields=["name", "route"], filters={"published": 1, "route": ("!=", "")}, limit=1
 		)
@@ -48,7 +48,7 @@ class TestBlogPost(IntegrationTestCase):
 			'<article class="blog-content" itemscope itemtype="http://schema.org/BlogPosting">' in html
 		)
 
-	def test_generator_not_found(self):
+	def test_generator_not_found(self) -> None:
 		pages = frappe.get_all("Blog Post", fields=["name", "route"], filters={"published": 0}, limit=1)
 
 		route = f"test-route-{frappe.generate_hash(length=5)}"
@@ -60,7 +60,7 @@ class TestBlogPost(IntegrationTestCase):
 
 		self.assertTrue(response.status_code, 404)
 
-	def test_category_link(self):
+	def test_category_link(self) -> None:
 		# Make a temporary Blog Post (and a Blog Category)
 		blog = make_test_blog("Test Category Link")
 
@@ -89,7 +89,7 @@ class TestBlogPost(IntegrationTestCase):
 		frappe.delete_doc("Blog Post", blog.name)
 		frappe.delete_doc("Blog Category", blog.blog_category)
 
-	def test_blog_pagination(self):
+	def test_blog_pagination(self) -> None:
 		# Create some Blog Posts for a Blog Category
 		category_title, blogs, BLOG_COUNT = "List Category", [], 4
 
@@ -110,7 +110,7 @@ class TestBlogPost(IntegrationTestCase):
 			frappe.delete_doc(blog.doctype, blog.name)
 		frappe.delete_doc("Blog Category", blogs[0].blog_category)
 
-	def test_caching(self):
+	def test_caching(self) -> None:
 		# to enable caching
 		frappe.flags.force_website_cache = True
 		print(frappe.session.user)
@@ -137,7 +137,7 @@ class TestBlogPost(IntegrationTestCase):
 
 		frappe.flags.force_website_cache = True
 
-	def test_spam_comments(self):
+	def test_spam_comments(self) -> None:
 		# Make a temporary Blog Post (and a Blog Category)
 		blog = make_test_blog("Test Spam Comment")
 
@@ -165,7 +165,7 @@ class TestBlogPost(IntegrationTestCase):
 		frappe.delete_doc("Blog Post", blog.name)
 		frappe.delete_doc("Blog Category", blog.blog_category)
 
-	def test_like_dislike(self):
+	def test_like_dislike(self) -> None:
 		test_blog = make_test_blog()
 
 		frappe.db.delete("Comment", {"comment_type": "Like", "reference_doctype": "Blog Post"})

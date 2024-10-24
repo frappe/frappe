@@ -82,7 +82,7 @@ def get_dashboards_with_link(docname, doctype):
 	return [link.parent for link in links]
 
 
-def sync_dashboards(app=None):
+def sync_dashboards(app=None) -> None:
 	"""Import, overwrite dashboards from `[app]/[app]_dashboard`"""
 	apps = [app] if app else frappe.get_installed_apps()
 
@@ -94,7 +94,7 @@ def sync_dashboards(app=None):
 			frappe.flags.in_import = False
 
 
-def make_records_in_module(app, module):
+def make_records_in_module(app, module) -> None:
 	dashboards_path = frappe.get_module_path(module, f"{module}_dashboard")
 	charts_path = frappe.get_module_path(module, "dashboard chart")
 	cards_path = frappe.get_module_path(module, "number card")
@@ -104,7 +104,7 @@ def make_records_in_module(app, module):
 		make_records(path)
 
 
-def make_records(path, filters=None):
+def make_records(path, filters=None) -> None:
 	if os.path.isdir(path):
 		for fname in os.listdir(path):
 			if os.path.isdir(join(path, fname)):

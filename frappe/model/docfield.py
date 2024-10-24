@@ -6,5 +6,5 @@
 import frappe
 
 
-def supports_translation(fieldtype):
+def supports_translation(fieldtype) -> bool:
 	return fieldtype in ["Data", "Select", "Text", "Small Text", "Text Editor"]

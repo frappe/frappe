@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	Event = frappe.qb.DocType("Event")
 	query = (
 		frappe.qb.update(Event)

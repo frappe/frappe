@@ -53,7 +53,7 @@ def _initialize_test_environment(site, config):
 	frappe.flags.tests_verbose = logger.getEffectiveLevel() < logging.INFO
 
 
-def _cleanup_after_tests():
+def _cleanup_after_tests() -> None:
 	"""Perform cleanup operations after running tests"""
 	global scheduler_disabled_by_user
 	if not scheduler_disabled_by_user:
@@ -69,7 +69,7 @@ def _cleanup_after_tests():
 scheduler_disabled_by_user = False
 
 
-def _disable_scheduler_if_needed():
+def _disable_scheduler_if_needed() -> None:
 	"""Disable scheduler if it's not already disabled"""
 	global scheduler_disabled_by_user
 	scheduler_disabled_by_user = frappe.utils.scheduler.is_scheduler_disabled(verbose=False)
@@ -78,7 +78,7 @@ def _disable_scheduler_if_needed():
 
 
 class IntegrationTestPreparation:
-	def __init__(self, cfg):
+	def __init__(self, cfg) -> None:
 		self.cfg = cfg
 
 	def __call__(self, suite: unittest.TestSuite, app: str, category: str) -> None:
@@ -92,7 +92,7 @@ class IntegrationTestPreparation:
 
 	@staticmethod
 	@debug_timer
-	def _run_before_test_hooks(app: str, category: str):
+	def _run_before_test_hooks(app: str, category: str) -> None:
 		"""Run 'before_tests' hooks"""
 		logger.info(f'Running "before_tests" hooks for {category} tests on app: {app}')
 		for hook_function in frappe.get_hooks("before_tests", app_name=app):
@@ -101,7 +101,7 @@ class IntegrationTestPreparation:
 
 	@staticmethod
 	@debug_timer
-	def _create_global_test_record_dependencies(app: str, category: str):
+	def _create_global_test_record_dependencies(app: str, category: str) -> None:
 		"""Create global test record dependencies"""
 		test_module = frappe.get_module(f"{app}.tests")
 		if hasattr(test_module, "global_test_dependencies"):

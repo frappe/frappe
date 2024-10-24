@@ -34,13 +34,13 @@ class SystemHealthReportTables(Document):
 		raise NotImplementedError
 
 	@staticmethod
-	def get_list(filters=None, page_length=20, **kwargs):
+	def get_list(filters=None, page_length=20, **kwargs) -> None:
 		pass
 
 	@staticmethod
-	def get_count(filters=None, **kwargs):
+	def get_count(filters=None, **kwargs) -> None:
 		pass
 
 	@staticmethod
-	def get_stats(**kwargs):
+	def get_stats(**kwargs) -> None:
 		pass

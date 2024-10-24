@@ -14,7 +14,7 @@ def get_first_party_apps():
 	return apps
 
 
-def render_table(data):
+def render_table(data) -> None:
 	from terminaltables import AsciiTable
 
 	print(AsciiTable(data).table)
@@ -42,7 +42,7 @@ def add_line_before(function):
 	return empty_line
 
 
-def log(message, colour=""):
+def log(message, colour="") -> None:
 	"""Coloured log outputs to STDOUT"""
 	colours = {
 		"nc": "\033[0m",
@@ -57,7 +57,7 @@ def log(message, colour=""):
 	print(colour + message + end_line)
 
 
-def warn(message, category=None, stacklevel=3):
+def warn(message, category=None, stacklevel=3) -> None:
 	from warnings import warn
 
 	warn(message=message, category=category, stacklevel=stacklevel)

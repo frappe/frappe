@@ -12,7 +12,7 @@ from frappe.website.path_resolver import resolve_path
 no_cache = 1
 
 
-def get_context(context, **dict_params):
+def get_context(context, **dict_params) -> None:
 	"""Return context for a list standard list page.
 
 	Also update `get_list_context` from the doctype module file."""
@@ -123,7 +123,7 @@ def get_list_data(
 	return raw_result
 
 
-def set_route(context):
+def set_route(context) -> None:
 	"""Set link for the list item"""
 	if context.web_form_name:
 		context.route = f"{context.pathname}?name={quoted(context.doc.name)}"

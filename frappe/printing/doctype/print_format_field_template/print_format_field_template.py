@@ -23,18 +23,18 @@ class PrintFormatFieldTemplate(Document):
 		template_file: DF.Data | None
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		if self.standard and not frappe.conf.developer_mode and not frappe.flags.in_patch:
 			frappe.throw(_("Enable developer mode to create a standard Print Template"))
 
-	def before_insert(self):
+	def before_insert(self) -> None:
 		self.validate_duplicate()
 
-	def on_update(self):
+	def on_update(self) -> None:
 		self.validate_duplicate()
 		self.export_doc()
 
-	def validate_duplicate(self):
+	def validate_duplicate(self) -> None:
 		if not self.standard:
 			return
 		if not self.field:
@@ -53,7 +53,7 @@ class PrintFormatFieldTemplate(Document):
 				title=_("Duplicate Entry"),
 			)
 
-	def export_doc(self):
+	def export_doc(self) -> None:
 		from frappe.modules.utils import export_module_json
 
 		export_module_json(self, self.standard, self.module)

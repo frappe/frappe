@@ -23,7 +23,7 @@ from frappe.utils.boilerplate import (
 
 class TestBoilerPlate(unittest.TestCase):
 	@classmethod
-	def setUpClass(cls):
+	def setUpClass(cls) -> None:
 		super().setUpClass()
 		cls.default_hooks = frappe._dict(
 			{
@@ -71,12 +71,12 @@ class TestBoilerPlate(unittest.TestCase):
 			"public",
 		]
 
-	def create_app(self, hooks, no_git=False):
+	def create_app(self, hooks, no_git=False) -> None:
 		self.addCleanup(self.delete_test_app, hooks.app_name)
 		_create_app_boilerplate(self.apps_dir, hooks, no_git)
 
 	@classmethod
-	def delete_test_app(cls, app_name):
+	def delete_test_app(cls, app_name) -> None:
 		test_app_dir = os.path.join(cls.bench_path, "apps", app_name)
 		if os.path.exists(test_app_dir):
 			shutil.rmtree(test_app_dir)
@@ -91,12 +91,12 @@ class TestBoilerPlate(unittest.TestCase):
 				user_inputs.append(value)
 		return StringIO("\n".join(user_inputs))
 
-	def test_simple_input_to_boilerplate(self):
+	def test_simple_input_to_boilerplate(self) -> None:
 		with patch("sys.stdin", self.get_user_input_stream(self.default_user_input)):
 			hooks = _get_user_inputs(self.default_hooks.app_name)
 		self.assertDictEqual(hooks, self.default_hooks)
 
-	def test_invalid_inputs(self):
+	def test_invalid_inputs(self) -> None:
 		invalid_inputs = copy.copy(self.default_user_input)
 		invalid_inputs[0] = ["1nvalid Title", "valid title"]
 		invalid_inputs[3] = ["notavalidemail", "what@is@this.email", "example@example.org"]
@@ -107,13 +107,13 @@ class TestBoilerPlate(unittest.TestCase):
 		self.assertEqual(hooks.app_title, "valid title")
 		self.assertEqual(hooks.app_email, "example@example.org")
 
-	def test_valid_ci_yaml(self):
+	def test_valid_ci_yaml(self) -> None:
 		yaml.safe_load(github_workflow_template.format(**self.default_hooks))
 
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
-	def test_create_app(self):
+	def test_create_app(self) -> None:
 		app_name = "test_app"
 		hooks = self.default_hooks.copy()
 		hooks.app_name = app_name
@@ -139,7 +139,7 @@ class TestBoilerPlate(unittest.TestCase):
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
-	def test_create_app_without_git_init(self):
+	def test_create_app_without_git_init(self) -> None:
 		app_name = "test_app_no_git"
 		hooks = self.default_hooks.copy()
 		hooks.app_name = app_name
@@ -165,7 +165,7 @@ class TestBoilerPlate(unittest.TestCase):
 
 		return all_paths
 
-	def check_parsable_python_files(self, app_dir):
+	def check_parsable_python_files(self, app_dir) -> None:
 		# check if python files are parsable
 		python_files = glob.glob(app_dir + "**/*.py", recursive=True)
 
@@ -179,7 +179,7 @@ class TestBoilerPlate(unittest.TestCase):
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
-	def test_new_patch_util(self):
+	def test_new_patch_util(self) -> None:
 		user_inputs = [
 			"frappe",  # app name
 			"User",  # doctype

@@ -178,7 +178,7 @@ def get_authentication_url(client_id=None, redirect_uri=None):
 
 
 @frappe.whitelist()
-def google_callback(code=None):
+def google_callback(code=None) -> None:
 	"""
 	Authorization code is sent to callback as per the API configuration
 	"""
@@ -227,7 +227,7 @@ def get_google_calendar_object(g_calendar):
 	return google_calendar, account
 
 
-def check_google_calendar(account, google_calendar):
+def check_google_calendar(account, google_calendar) -> None:
 	"""
 	Checks if Google Calendar is present with the specified name.
 	If not, creates one.
@@ -361,7 +361,7 @@ def sync_events_from_google_calendar(g_calendar, method=None):
 		return _("{0} Google Calendar Events synced.").format(len(results))
 
 
-def insert_event_to_calendar(account, event, recurrence=None):
+def insert_event_to_calendar(account, event, recurrence=None) -> None:
 	"""
 	Inserts event in Frappe Calendar during Sync
 	"""
@@ -382,7 +382,7 @@ def insert_event_to_calendar(account, event, recurrence=None):
 	frappe.get_doc(calendar_event).insert(ignore_permissions=True)
 
 
-def update_event_in_calendar(account, event, recurrence=None):
+def update_event_in_calendar(account, event, recurrence=None) -> None:
 	"""
 	Updates Event in Frappe Calendar if any existing Google Calendar Event is updated
 	"""
@@ -396,7 +396,7 @@ def update_event_in_calendar(account, event, recurrence=None):
 	calendar_event.save(ignore_permissions=True)
 
 
-def insert_event_in_google_calendar(doc, method=None):
+def insert_event_in_google_calendar(doc, method=None) -> None:
 	"""
 	Insert Events in Google Calendar if sync_with_google_calendar is checked.
 	"""
@@ -458,7 +458,7 @@ def insert_event_in_google_calendar(doc, method=None):
 		)
 
 
-def update_event_in_google_calendar(doc, method=None):
+def update_event_in_google_calendar(doc, method=None) -> None:
 	"""
 	Updates Events in Google Calendar if any existing event is modified in Frappe Calendar
 	"""
@@ -542,7 +542,7 @@ def update_event_in_google_calendar(doc, method=None):
 		)
 
 
-def delete_event_from_google_calendar(doc, method=None):
+def delete_event_from_google_calendar(doc, method=None) -> None:
 	"""
 	Delete Events from Google Calendar if Frappe Event is deleted.
 	"""

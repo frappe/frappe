@@ -28,7 +28,7 @@ class ModuleOnboarding(Document):
 		title: DF.Data
 	# end: auto-generated types
 
-	def on_update(self):
+	def on_update(self) -> None:
 		if frappe.conf.developer_mode:
 			export_to_files(record_list=[["Module Onboarding", self.name]], record_module=self.module)
 
@@ -45,7 +45,7 @@ class ModuleOnboarding(Document):
 
 		return all_roles
 
-	def check_completion(self):
+	def check_completion(self) -> bool:
 		if self.is_complete:
 			return True
 
@@ -59,7 +59,7 @@ class ModuleOnboarding(Document):
 		return False
 
 	@frappe.whitelist()
-	def reset_progress(self):
+	def reset_progress(self) -> None:
 		self.db_set("is_complete", 0)
 
 		for step in self.get_steps():
@@ -68,10 +68,10 @@ class ModuleOnboarding(Document):
 
 		frappe.msgprint(_("Module onboarding progress reset"), alert=True)
 
-	def before_export(self, doc):
+	def before_export(self, doc) -> None:
 		doc.is_complete = 0
 
-	def reset_onboarding(self):
+	def reset_onboarding(self) -> None:
 		frappe.only_for("Administrator")
 
 		self.is_complete = 0

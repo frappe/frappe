@@ -30,30 +30,30 @@ class HelpArticle(WebsiteGenerator):
 		title: DF.Data
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		self.set_route()
 
-	def set_route(self):
+	def set_route(self) -> None:
 		"""Set route from category and title if missing"""
 		if not self.route:
 			self.route = "/".join(
 				[frappe.get_value("Help Category", self.category, "route"), self.scrub(self.title)]
 			)
 
-	def on_update(self):
+	def on_update(self) -> None:
 		self.update_category()
 
 	def clear_cache(self):
 		clear_knowledge_base_cache()
 		return super().clear_cache()
 
-	def update_category(self):
+	def update_category(self) -> None:
 		cnt = frappe.db.count("Help Article", filters={"category": self.category, "published": 1})
 		cat = frappe.get_doc("Help Category", self.category)
 		cat.help_articles = cnt
 		cat.save()
 
-	def get_context(self, context):
+	def get_context(self, context) -> None:
 		if is_markdown(context.content):
 			context.content = markdown(context.content)
 		context.login_required = True
@@ -116,14 +116,14 @@ def get_sidebar_items():
 	return frappe.cache.get_value("knowledge_base:category_sidebar", _get)
 
 
-def clear_knowledge_base_cache():
+def clear_knowledge_base_cache() -> None:
 	frappe.cache.delete_value("knowledge_base:category_sidebar")
 	frappe.cache.delete_value("knowledge_base:faq")
 
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(key="article", limit=5, seconds=60 * 60)
-def add_feedback(article: str, helpful: str):
+def add_feedback(article: str, helpful: str) -> None:
 	field = "not_helpful" if helpful == "No" else "helpful"
 
 	value = cint(frappe.db.get_value("Help Article", article, field))

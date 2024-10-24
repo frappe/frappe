@@ -15,5 +15,5 @@ class UnitTestSystemHealthReport(UnitTestCase):
 
 
 class TestSystemHealthReport(IntegrationTestCase):
-	def test_it_works(self):
+	def test_it_works(self) -> None:
 		frappe.get_doc("System Health Report")

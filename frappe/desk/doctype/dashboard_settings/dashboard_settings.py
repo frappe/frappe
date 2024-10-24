@@ -35,7 +35,7 @@ def create_dashboard_settings(user):
 		return doc
 
 
-def get_permission_query_conditions(user):
+def get_permission_query_conditions(user) -> str:
 	if not user:
 		user = frappe.session.user
 
@@ -43,7 +43,7 @@ def get_permission_query_conditions(user):
 
 
 @frappe.whitelist()
-def save_chart_config(reset, config, chart_name):
+def save_chart_config(reset, config, chart_name) -> None:
 	reset = frappe.parse_json(reset)
 	doc = frappe.get_doc("Dashboard Settings", frappe.session.user)
 	chart_config = frappe.parse_json(doc.chart_config) or {}

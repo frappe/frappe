@@ -6,7 +6,7 @@ from werkzeug.exceptions import NotFound
 
 
 class SiteNotSpecifiedError(Exception):
-	def __init__(self, *args, **kwargs):
+	def __init__(self, *args, **kwargs) -> None:
 		self.message = "Please specify --site sitename"
 		super(Exception, self).__init__(self.message)
 
@@ -70,7 +70,7 @@ class RequestToken(Exception):
 
 
 class Redirect(Exception):
-	def __init__(self, http_status_code: int = 301):
+	def __init__(self, http_status_code: int = 301) -> None:
 		self.http_status_code = http_status_code
 
 
@@ -88,7 +88,7 @@ class ImproperDBConfigurationError(Exception):
 	configured
 	"""
 
-	def __init__(self, reason, msg=None):
+	def __init__(self, reason, msg=None) -> None:
 		if not msg:
 			msg = "MariaDb is not properly configured"
 		super().__init__(msg)
@@ -309,7 +309,7 @@ class InvalidKeyError(ValidationError):
 
 
 class CommandFailedError(Exception):
-	def __init__(self, message: str, out: str, err: str):
+	def __init__(self, message: str, out: str, err: str) -> None:
 		super().__init__(message)
 		self.out = out
 		self.err = err

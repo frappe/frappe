@@ -76,7 +76,7 @@ def _download_multi_pdf(
 	letterhead: str | None = None,
 	options: str | None = None,
 	task_id: str | None = None,
-):
+) -> None:
 	"""Return a PDF compiled by concatenating multiple documents.
 
 	The documents can be from a single DocType or multiple DocTypes.
@@ -217,7 +217,9 @@ from frappe.deprecation_dumpster import read_multi_pdf
 
 
 @frappe.whitelist(allow_guest=True)
-def download_pdf(doctype, name, format=None, doc=None, no_letterhead=0, language=None, letterhead=None):
+def download_pdf(
+	doctype, name, format=None, doc=None, no_letterhead=0, language=None, letterhead=None
+) -> None:
 	doc = doc or frappe.get_doc(doctype, name)
 	validate_print_permission(doc)
 
@@ -232,7 +234,7 @@ def download_pdf(doctype, name, format=None, doc=None, no_letterhead=0, language
 
 
 @frappe.whitelist()
-def report_to_pdf(html, orientation="Landscape"):
+def report_to_pdf(html, orientation="Landscape") -> None:
 	make_access_log(file_type="PDF", method="PDF", page=html)
 	frappe.local.response.filename = "report.pdf"
 	frappe.local.response.filecontent = get_pdf(html, {"orientation": orientation})
@@ -242,7 +244,7 @@ def report_to_pdf(html, orientation="Landscape"):
 @frappe.whitelist()
 def print_by_server(
 	doctype, name, printer_setting, print_format=None, doc=None, no_letterhead=0, file_path=None
-):
+) -> None:
 	print_settings = frappe.get_doc("Network Printer Settings", printer_setting)
 	try:
 		import cups

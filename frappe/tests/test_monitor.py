@@ -10,15 +10,15 @@ from frappe.utils.response import build_response
 
 
 class TestMonitor(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		frappe.conf.monitor = 1
 		frappe.cache.delete_value(MONITOR_REDIS_KEY)
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.conf.monitor = 0
 		frappe.cache.delete_value(MONITOR_REDIS_KEY)
 
-	def test_enable_monitor(self):
+	def test_enable_monitor(self) -> None:
 		set_request(method="GET", path="/api/method/frappe.ping")
 		response = build_response("json")
 
@@ -37,7 +37,7 @@ class TestMonitor(IntegrationTestCase):
 		self.assertEqual(log.transaction_type, "request")
 		self.assertEqual(log.request["method"], "GET")
 
-	def test_no_response(self):
+	def test_no_response(self) -> None:
 		set_request(method="GET", path="/api/method/frappe.ping")
 
 		frappe.monitor.start()
@@ -51,7 +51,7 @@ class TestMonitor(IntegrationTestCase):
 		self.assertEqual(log.transaction_type, "request")
 		self.assertEqual(log.request["method"], "GET")
 
-	def test_job(self):
+	def test_job(self) -> None:
 		frappe.utils.background_jobs.execute_job(
 			frappe.local.site, "frappe.ping", None, None, {}, is_async=False
 		)
@@ -65,7 +65,7 @@ class TestMonitor(IntegrationTestCase):
 		self.assertEqual(log.job["scheduled"], False)
 		self.assertEqual(log.job["wait"], 0)
 
-	def test_flush(self):
+	def test_flush(self) -> None:
 		set_request(method="GET", path="/api/method/frappe.ping")
 		response = build_response("json")
 		frappe.monitor.start()
@@ -81,7 +81,7 @@ class TestMonitor(IntegrationTestCase):
 		log = frappe.parse_json(logs[0])
 		self.assertEqual(log.transaction_type, "request")
 
-	def test_trace_ids(self):
+	def test_trace_ids(self) -> None:
 		set_request(method="GET", path="/api/method/frappe.ping")
 		response = build_response("json")
 		frappe.monitor.start()

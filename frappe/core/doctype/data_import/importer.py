@@ -26,7 +26,7 @@ DURATION_PATTERN = re.compile(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s
 
 
 class Importer:
-	def __init__(self, doctype, data_import=None, file_path=None, import_type=None, console=False):
+	def __init__(self, doctype, data_import=None, file_path=None, import_type=None, console=False) -> None:
 		self.doctype = doctype
 		self.console = console
 
@@ -60,7 +60,7 @@ class Importer:
 
 		return out
 
-	def before_import(self):
+	def before_import(self) -> None:
 		# set user lang for translations
 		frappe.cache.hdel("lang", frappe.session.user)
 		frappe.set_user_lang(frappe.session.user)
@@ -242,7 +242,7 @@ class Importer:
 
 		return import_log
 
-	def after_import(self):
+	def after_import(self) -> None:
 		frappe.flags.in_import = False
 		frappe.flags.mute_emails = False
 
@@ -301,7 +301,7 @@ class Importer:
 			self.last_eta = eta
 		return self.last_eta
 
-	def export_errored_rows(self):
+	def export_errored_rows(self) -> None:
 		from frappe.utils.csvutils import build_csv_response
 
 		if not self.data_import:
@@ -332,7 +332,7 @@ class Importer:
 
 		build_csv_response(rows, _(self.doctype))
 
-	def export_import_log(self):
+	def export_import_log(self) -> None:
 		from frappe.utils.csvutils import build_csv_response
 
 		if not self.data_import:
@@ -362,7 +362,7 @@ class Importer:
 
 		build_csv_response(rows, self.doctype)
 
-	def print_import_log(self, import_log):
+	def print_import_log(self, import_log) -> None:
 		failed_records = [log for log in import_log if not log.success]
 		successful_records = [log for log in import_log if log.success]
 
@@ -383,7 +383,7 @@ class Importer:
 			with open(file_name, "w") as f:
 				f.write(text)
 
-	def print_grouped_warnings(self, warnings):
+	def print_grouped_warnings(self, warnings) -> None:
 		warnings_by_row = {}
 		other_warnings = []
 		for w in warnings:
@@ -402,7 +402,7 @@ class Importer:
 
 
 class ImportFile:
-	def __init__(self, doctype, file, template_options=None, import_type=None, *, console=False):
+	def __init__(self, doctype, file, template_options=None, import_type=None, *, console=False) -> None:
 		self.doctype = doctype
 		self.template_options = template_options or frappe._dict(column_to_field_map=frappe._dict())
 		self.column_to_field_map = self.template_options.column_to_field_map
@@ -451,7 +451,7 @@ class ImportFile:
 		if content:
 			return self.read_content(content, extension)
 
-	def parse_data_from_template(self):
+	def parse_data_from_template(self) -> None:
 		header = None
 		data = []
 
@@ -615,7 +615,7 @@ class ImportFile:
 
 
 class Row:
-	def __init__(self, index, row, doctype, header, import_type):
+	def __init__(self, index, row, doctype, header, import_type) -> None:
 		self.index = index
 		self.row_number = index + 1
 		self.doctype = doctype
@@ -808,7 +808,7 @@ class Row:
 
 
 class Header(Row):
-	def __init__(self, index, row, doctype, raw_data, column_to_field_map=None):
+	def __init__(self, index, row, doctype, raw_data, column_to_field_map=None) -> None:
 		self.index = index
 		self.row_number = index + 1
 		self.data = row
@@ -853,7 +853,7 @@ class Header(Row):
 
 
 class Column:
-	def __init__(self, index, header, doctype, column_values, map_to_field=None, seen=None):
+	def __init__(self, index, header, doctype, column_values, map_to_field=None, seen=None) -> None:
 		if seen is None:
 			seen = []
 		self.index = index
@@ -873,7 +873,7 @@ class Column:
 		self.parse()
 		self.validate_values()
 
-	def parse(self):
+	def parse(self) -> None:
 		header_title = self.header_title
 		column_number = str(self.column_number)
 		skip_import = False
@@ -985,7 +985,7 @@ class Column:
 
 		return max_occurred_date_format
 
-	def validate_values(self):
+	def validate_values(self) -> None:
 		if not self.df:
 			return
 
@@ -1266,7 +1266,7 @@ def get_select_options(df):
 	return [d for d in (df.options or "").split("\n") if d]
 
 
-def create_import_log(data_import, log_index, log_details):
+def create_import_log(data_import, log_index, log_details) -> None:
 	frappe.get_doc(
 		{
 			"doctype": "Data Import Log",

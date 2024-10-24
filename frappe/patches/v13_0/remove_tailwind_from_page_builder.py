@@ -4,7 +4,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.reload_doc("website", "doctype", "web_page_block")
 	# remove unused templates
 	frappe.delete_doc("Web Template", "Navbar with Links on Right", force=1)

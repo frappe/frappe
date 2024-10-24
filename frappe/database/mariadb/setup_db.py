@@ -19,7 +19,7 @@ def get_mariadb_version(version_string: str = ""):
 	return version.rsplit(".", 1)
 
 
-def setup_database(force, verbose, mariadb_user_host_login_scope=None):
+def setup_database(force, verbose, mariadb_user_host_login_scope=None) -> None:
 	frappe.local.session = frappe._dict({"user": "Administrator"})
 
 	db_user = frappe.conf.db_user
@@ -57,7 +57,7 @@ def setup_database(force, verbose, mariadb_user_host_login_scope=None):
 def drop_user_and_database(
 	db_name,
 	db_user,
-):
+) -> None:
 	frappe.local.db = get_root_connection()
 	dbman = DbManager(frappe.local.db)
 	dbman.drop_database(db_name)
@@ -65,7 +65,7 @@ def drop_user_and_database(
 	dbman.delete_user(db_user)
 
 
-def bootstrap_database(verbose, source_sql=None):
+def bootstrap_database(verbose, source_sql=None) -> None:
 	import sys
 
 	frappe.connect()
@@ -86,7 +86,7 @@ def bootstrap_database(verbose, source_sql=None):
 		sys.exit(1)
 
 
-def import_db_from_sql(source_sql=None, verbose=False):
+def import_db_from_sql(source_sql=None, verbose=False) -> None:
 	if verbose:
 		print("Starting database import...")
 	db_name = frappe.conf.db_name
@@ -99,7 +99,7 @@ def import_db_from_sql(source_sql=None, verbose=False):
 		print("Imported from database %s" % source_sql)
 
 
-def check_compatible_versions():
+def check_compatible_versions() -> None:
 	try:
 		version = get_mariadb_version()
 		version_tuple = tuple(int(v) for v in version[0].split("."))
