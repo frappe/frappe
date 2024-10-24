@@ -1,5 +1,6 @@
 import re
 from ast import literal_eval
+from collections.abc import Mapping, Sequence
 from types import BuiltinFunctionType
 from typing import TYPE_CHECKING, TypeAlias
 
@@ -10,10 +11,12 @@ import frappe
 from frappe import _
 from frappe.database.operator_map import OPERATOR_MAP
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
-from frappe.database.utils import DefaultOrderBy, FilterValue, convert_to_value, get_doctype_name
+from frappe.database.utils import DefaultOrderBy, get_doctype_name
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.functions import Function, SqlFunctions
 from frappe.query_builder.utils import PseudoColumnMapper
+from frappe.types.filter import FilterMappingSpec, Filters, FilterSignature, FilterTuple, FilterTupleSpec
+from frappe.types.filter import _InVal as SimpleInputValue
 from frappe.utils.data import MARIADB_SPECIFIC_COMMENT
 
 if TYPE_CHECKING:
@@ -30,12 +33,26 @@ COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
 TABLE_NAME_PATTERN = re.compile(r"^[\w -]*$", flags=re.ASCII)
 
 
+class Sentinel:
+	def __bool__(self) -> bool:
+		return False
+
+	def __str__(self) -> str:
+		return "UNSPECIFIED"
+
+
+UNSPECIFIED = Sentinel()
+
+
 class Engine:
 	def get_query(
 		self,
 		table: str | Table,
 		fields: str | list | tuple | None = None,
-		filters: dict[str, FilterValue] | FilterValue | list[list | FilterValue] | None = None,
+		filters: FilterSignature
+		| SimpleInputValue
+		| Criterion
+		| Sequence[Criterion | FilterTuple | FilterMappingSpec | FilterTupleSpec] = UNSPECIFIED,
 		order_by: str | None = None,
 		group_by: str | None = None,
 		limit: int | None = None,
@@ -72,7 +89,29 @@ class Engine:
 			self.query = frappe.qb.from_(self.table)
 			self.apply_fields(fields)
 
-		self.apply_filters(filters)
+		if isinstance(filters, SimpleInputValue):
+			self._apply_filter(FilterTuple(doctype=self.doctype, fieldname="name", value=filters))
+			filters = UNSPECIFIED
+		elif isinstance(filters, Criterion):
+			self.query = self.query.where(filters)
+			filters = UNSPECIFIED
+		elif isinstance(filters, Mapping):
+			filters = [filters]
+
+		if filters != UNSPECIFIED:
+			_filters = Filters()
+			for filter in filters:
+				if isinstance(filter, Criterion):
+					self.query = self.query.where(filter)
+				elif isinstance(filter, SimpleInputValue):
+					# don't process directly for Filters optimization
+					_filters.append(FilterTuple(doctype=self.doctype, fieldname="name", value=filter))
+				else:
+					_filters.append(filter, doctype=self.doctype)
+			_filters.optimize()
+			for ft in _filters:
+				self._apply_filter(ft)
+
 		self.apply_order_by(order_by)
 
 		if limit:
@@ -111,61 +150,11 @@ class Engine:
 			else:
 				self.query = self.query.select(field)
 
-	def apply_filters(
-		self,
-		filters: dict[str, FilterValue] | FilterValue | list[list | FilterValue] | None = None,
-	):
-		if filters is None:
-			return
-
-		if isinstance(filters, FilterValue):
-			filters = {"name": convert_to_value(filters)}
-
-		if isinstance(filters, Criterion):
-			self.query = self.query.where(filters)
-
-		elif isinstance(filters, dict):
-			self.apply_dict_filters(filters)
-
-		elif isinstance(filters, list | tuple):
-			if all(isinstance(d, FilterValue) for d in filters) and len(filters) > 0:
-				self.apply_dict_filters({"name": ("in", tuple(convert_to_value(f) for f in filters))})
-			else:
-				for filter in filters:
-					if isinstance(filter, FilterValue | Criterion | dict):
-						self.apply_filters(filter)
-					elif isinstance(filter, list | tuple):
-						self.apply_list_filters(filter)
-
-	def apply_list_filters(self, filter: list):
-		if len(filter) == 2:
-			field, value = filter
-			self._apply_filter(field, value)
-		elif len(filter) == 3:
-			field, operator, value = filter
-			self._apply_filter(field, value, operator)
-		elif len(filter) == 4:
-			doctype, field, operator, value = filter
-			self._apply_filter(field, value, operator, doctype)
-
-	def apply_dict_filters(self, filters: dict[str, FilterValue | list]):
-		for field, value in filters.items():
-			operator = "="
-			if isinstance(value, list | tuple):
-				operator, value = value
-
-			self._apply_filter(field, value, operator)
-
-	def _apply_filter(
-		self,
-		field: str,
-		value: FilterValue | list | set | None,
-		operator: str = "=",
-		doctype: str | None = None,
-	):
-		_field = field
-		_value = value
-		_operator = operator
+	def _apply_filter(self, ft: FilterTuple):
+		doctype = ft.doctype
+		field = _field = ft.fieldname
+		_value = ft.value
+		_operator = ft.operator
 
 		if not isinstance(_field, str):
 			pass
@@ -188,11 +177,6 @@ class Engine:
 				self.query = self.query.left_join(table).on(
 					(table.parent == self.table.name) & (table.parenttype == self.doctype)
 				)
-
-		_value = convert_to_value(_value)
-
-		if not _value and isinstance(_value, list | tuple | set):
-			_value = ("",)
 
 		# Nested set
 		if _operator in OPERATOR_MAP["nested_set"]:
