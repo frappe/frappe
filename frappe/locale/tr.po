@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-08 17:02+0000\n"
-"PO-Revision-Date: 2024-10-23 07:16\n"
+"PO-Revision-Date: 2024-10-24 07:20\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -5802,7 +5802,7 @@ msgstr "Belirli aralıklarla belirli bir abone grubuna e-posta oluşturun ve gö
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Create new forms and views with doctypes. Set up multi-level workflows for approval"
-msgstr ""
+msgstr "Doctype'lar için yeni formlar ve görünümler oluşturun. Onay için çok düzeyli iş akışları ayarlayın."
 
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:34
 msgid "Create or Edit Print Format"
