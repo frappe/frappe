@@ -15,10 +15,10 @@ class Exporter:
 		self,
 		doctype,
 		export_fields=None,
-		export_data=False,
+		export_data: bool = False,
 		export_filters=None,
 		export_page_length=None,
-		file_type="CSV",
+		file_type: str = "CSV",
 	) -> None:
 		"""
 		Exports records of a DocType for use with Importer

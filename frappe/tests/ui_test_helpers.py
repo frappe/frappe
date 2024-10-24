@@ -652,7 +652,7 @@ def publish_realtime(
 
 
 @whitelist_for_tests
-def publish_progress(duration=3, title=None, doctype=None, docname=None) -> None:
+def publish_progress(duration: int = 3, title=None, doctype=None, docname=None) -> None:
 	# This should consider session user and only show it to current user.
 	frappe.enqueue(slow_task, duration=duration, title=title, doctype=doctype, docname=docname)
 

@@ -28,9 +28,9 @@ EMBED_PATTERN = re.compile("""embed=["'](.*?)["']""")
 
 def get_email(
 	recipients,
-	sender="",
-	msg="",
-	subject="[No Subject]",
+	sender: str = "",
+	msg: str = "",
+	subject: str = "[No Subject]",
 	text_content=None,
 	footer=None,
 	print_html=None,
@@ -108,10 +108,10 @@ class EMail:
 
 	def __init__(
 		self,
-		sender="",
+		sender: str = "",
 		recipients=(),
-		subject="",
-		alternative=0,
+		subject: str = "",
+		alternative: int = 0,
 		reply_to=None,
 		cc=(),
 		bcc=(),
@@ -221,7 +221,7 @@ class EMail:
 		self.set_text(to_markdown(html))
 
 	def set_message(
-		self, message, mime_type="text/html", as_attachment=0, filename="attachment.html"
+		self, message, mime_type: str = "text/html", as_attachment: int = 0, filename: str = "attachment.html"
 	) -> None:
 		"""Append the message with MIME content to the root node (as attachment)"""
 		from email.mime.text import MIMEText
@@ -244,7 +244,7 @@ class EMail:
 		self.add_attachment(_file.file_name, content)
 
 	def add_attachment(
-		self, fname, fcontent, content_type=None, parent=None, content_id=None, inline=False
+		self, fname, fcontent, content_type=None, parent=None, content_id=None, inline: bool = False
 	) -> None:
 		"""add attachment"""
 
@@ -291,7 +291,7 @@ class EMail:
 				(str(Header(self.email_account.name, "utf-8")), sender_email)
 			)
 
-	def set_message_id(self, message_id, is_notification=False) -> None:
+	def set_message_id(self, message_id, is_notification: bool = False) -> None:
 		if message_id:
 			message_id = "<" + message_id + ">"
 		else:
@@ -353,7 +353,7 @@ def get_formatted_html(
 	header=None,
 	unsubscribe_link: frappe._dict | None = None,
 	sender=None,
-	with_container=False,
+	with_container: bool = False,
 ):
 	email_account = email_account or EmailAccount.find_outgoing(match_by_email=sender)
 
@@ -380,7 +380,7 @@ def get_formatted_html(
 
 
 @frappe.whitelist()
-def get_email_html(template, args, subject, header=None, with_container=False):
+def get_email_html(template, args, subject, header=None, with_container: bool = False):
 	import json
 
 	with_container = cint(with_container)
@@ -410,7 +410,9 @@ def inline_style_in_html(html):
 	return p.transform()
 
 
-def add_attachment(fname, fcontent, content_type=None, parent=None, content_id=None, inline=False) -> None:
+def add_attachment(
+	fname, fcontent, content_type=None, parent=None, content_id=None, inline: bool = False
+) -> None:
 	"""Add attachment to parent which must an email object"""
 	import mimetypes
 	from email.mime.audio import MIMEAudio

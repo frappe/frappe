@@ -37,7 +37,7 @@ class TestDomainification(IntegrationTestCase):
 		domain_settings.append("active_domains", {"domain": domain})
 		domain_settings.save()
 
-	def remove_from_active_domains(self, domain=None, remove_all=False) -> None:
+	def remove_from_active_domains(self, domain=None, remove_all: bool = False) -> None:
 		"""remove domain from domain settings"""
 		if not (domain or remove_all):
 			return

@@ -30,7 +30,7 @@ test_content1 = "Hello"
 test_content2 = "Hello World"
 
 
-def make_test_doc(ignore_permissions=False):
+def make_test_doc(ignore_permissions: bool = False):
 	d = frappe.new_doc("ToDo")
 	d.description = "Test"
 	d.assigned_by = frappe.session.user
@@ -39,7 +39,7 @@ def make_test_doc(ignore_permissions=False):
 
 
 @contextmanager
-def make_test_image_file(private=False):
+def make_test_image_file(private: bool = False):
 	file_path = frappe.get_app_path("frappe", "tests/data/sample_image_for_optimization.jpg")
 	with open(file_path, "rb") as f:
 		file_content = f.read()
@@ -321,7 +321,7 @@ class TestFile(IntegrationTestCase):
 		self.saved_name = _file.name
 		self.saved_filename = get_files_path(_file.file_name)
 
-	def get_folder(self, folder_name, parent_folder="Home"):
+	def get_folder(self, folder_name, parent_folder: str = "Home"):
 		return frappe.get_doc(
 			{"doctype": "File", "file_name": _(folder_name), "is_folder": 1, "folder": _(parent_folder)}
 		).insert()

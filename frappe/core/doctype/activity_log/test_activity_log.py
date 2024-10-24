@@ -52,7 +52,7 @@ class TestActivityLog(IntegrationTestCase):
 
 		frappe.local.form_dict = frappe._dict()
 
-	def get_auth_log(self, operation="Login"):
+	def get_auth_log(self, operation: str = "Login"):
 		names = frappe.get_all(
 			"Activity Log",
 			filters={

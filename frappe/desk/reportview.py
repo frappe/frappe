@@ -719,7 +719,7 @@ def scrub_user_tags(tagcount):
 
 
 # used in building query in queries.py
-def get_match_cond(doctype, as_condition=True):
+def get_match_cond(doctype, as_condition: bool = True):
 	cond = DatabaseQuery(doctype).build_match_conditions(as_condition=as_condition)
 	if not as_condition:
 		return cond
@@ -727,14 +727,16 @@ def get_match_cond(doctype, as_condition=True):
 	return ((" and " + cond) if cond else "").replace("%", "%%")
 
 
-def build_match_conditions(doctype, user=None, as_condition=True):
+def build_match_conditions(doctype, user=None, as_condition: bool = True):
 	match_conditions = DatabaseQuery(doctype, user=user).build_match_conditions(as_condition=as_condition)
 	if as_condition:
 		return match_conditions.replace("%", "%%")
 	return match_conditions
 
 
-def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with_match_conditions=False):
+def get_filters_cond(
+	doctype, filters, conditions, ignore_permissions=None, with_match_conditions: bool = False
+):
 	if isinstance(filters, str):
 		filters = json.loads(filters)
 

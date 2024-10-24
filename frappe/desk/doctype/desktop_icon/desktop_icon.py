@@ -151,7 +151,7 @@ def get_desktop_icons(user=None):
 
 
 @frappe.whitelist()
-def add_user_icon(_doctype, _report=None, label=None, link=None, type="link", standard=0):
+def add_user_icon(_doctype, _report=None, label=None, link=None, type: str = "link", standard: int = 0):
 	"""Add a new user desktop icon to the desktop"""
 
 	if not label:
@@ -252,7 +252,7 @@ def set_order(new_order, user=None) -> None:
 	clear_desktop_icons_cache()
 
 
-def set_desktop_icons(visible_list, ignore_duplicate=True):
+def set_desktop_icons(visible_list, ignore_duplicate: bool = True):
 	"""Resets all lists and makes only the given one standard,
 	if the desktop icon does not exist and the name is a DocType, then will create
 	an icon for the doctype"""
@@ -308,7 +308,7 @@ def set_hidden_list(hidden_list, user=None) -> None:
 		frappe.clear_cache()
 
 
-def set_hidden(module_name, user=None, hidden=1) -> None:
+def set_hidden(module_name, user=None, hidden: int = 1) -> None:
 	"""Set module hidden property for given user. If user is not specified,
 	hide/unhide it globally"""
 	if user:

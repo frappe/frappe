@@ -199,7 +199,7 @@ class DbColumn:
 		self.precision = precision
 		self.not_nullable = not_nullable
 
-	def get_definition(self, for_modification=False):
+	def get_definition(self, for_modification: bool = False):
 		column_def = get_definition(
 			self.fieldtype,
 			precision=self.precision,
@@ -407,7 +407,7 @@ def get_definition(fieldtype, precision=None, length=None, *, options=None):
 
 
 def add_column(
-	doctype, column_name, fieldtype, precision=None, length=None, default=None, not_null=False
+	doctype, column_name, fieldtype, precision=None, length=None, default=None, not_null: bool = False
 ) -> None:
 	frappe.db.commit()
 	query = "alter table `tab{}` add column if not exists {} {}".format(

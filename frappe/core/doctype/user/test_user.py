@@ -477,7 +477,12 @@ class TestImpersonation(FrappeAPITestCase):
 
 @contextmanager
 def test_user(
-	*, first_name: str | None = None, email: str | None = None, roles: list[str], commit=False, **kwargs
+	*,
+	first_name: str | None = None,
+	email: str | None = None,
+	roles: list[str],
+	commit: bool = False,
+	**kwargs,
 ):
 	try:
 		first_name = first_name or frappe.generate_hash()

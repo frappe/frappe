@@ -25,7 +25,7 @@ dynamic_link_queries = [
 ]
 
 
-def get_dynamic_link_map(for_delete=False):
+def get_dynamic_link_map(for_delete: bool = False):
 	"""Build a map of all dynamically linked tables. For example,
 	        if Note is dynamically linked to ToDo, the function will return
 	        `{"Note": ["ToDo"], "Sales Invoice": ["Journal Entry Detail"]}`

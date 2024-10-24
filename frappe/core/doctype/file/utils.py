@@ -216,7 +216,7 @@ def get_file_name(fname: str, optional_suffix: str | None = None) -> str:
 	return f"{partial}{suffix}{extn}"
 
 
-def extract_images_from_doc(doc: "Document", fieldname: str, is_private=True) -> None:
+def extract_images_from_doc(doc: "Document", fieldname: str, is_private: bool = True) -> None:
 	content = doc.get(fieldname)
 	if doc.meta.make_attachments_public:
 		is_private = False

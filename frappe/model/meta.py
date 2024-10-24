@@ -59,7 +59,7 @@ DEFAULT_FIELD_LABELS = {
 }
 
 
-def get_meta(doctype: str | DocRef | Document, cached=True) -> "_Meta":
+def get_meta(doctype: str | DocRef | Document, cached: bool = True) -> "_Meta":
 	"""Get metadata for a doctype.
 
 	Args:
@@ -167,7 +167,7 @@ class Meta(Document):
 		self.set_custom_permissions()
 		self.add_custom_links_and_actions()
 
-	def as_dict(self, no_nulls=False):
+	def as_dict(self, no_nulls: bool = False):
 		def serialize(doc):
 			out = {}
 			for key, value in doc.__dict__.items():
@@ -580,7 +580,7 @@ class Meta(Document):
 			if custom_perms:
 				self.permissions = [Document(d) for d in custom_perms]
 
-	def get_fieldnames_with_value(self, with_field_meta=False, with_virtual_fields=False):
+	def get_fieldnames_with_value(self, with_field_meta: bool = False, with_virtual_fields: bool = False):
 		def is_value_field(docfield) -> bool:
 			return not (
 				not with_virtual_fields
@@ -620,8 +620,8 @@ class Meta(Document):
 		parenttype=None,
 		*,
 		user=None,
-		permission_type="read",
-		with_virtual_fields=True,
+		permission_type: str = "read",
+		with_virtual_fields: bool = True,
 	):
 		"""Build list of `fieldname` with read perm level and all the higher perm levels defined.
 
@@ -658,7 +658,7 @@ class Meta(Document):
 		)
 		return permitted_fieldnames
 
-	def get_permlevel_access(self, permission_type="read", parenttype=None, *, user=None):
+	def get_permlevel_access(self, permission_type: str = "read", parenttype=None, *, user=None):
 		has_access_to = []
 		roles = frappe.get_roles(user)
 		for perm in self.get_permissions(parenttype):
@@ -754,7 +754,7 @@ class Meta(Document):
 	def get_list_template(self):
 		return self.get_web_template(suffix="_list")
 
-	def get_web_template(self, suffix=""):
+	def get_web_template(self, suffix: str = ""):
 		"""Return the relative path of the row template for this doctype."""
 		module_name = frappe.scrub(self.module)
 		doctype = frappe.scrub(self.name)
@@ -875,7 +875,7 @@ def get_default_df(fieldname):
 		return frappe._dict(fieldname=fieldname, fieldtype="Data")
 
 
-def trim_tables(doctype=None, dry_run=False, quiet=False):
+def trim_tables(doctype=None, dry_run: bool = False, quiet: bool = False):
 	"""
 	Removes database fields that don't exist in the doctype (json or custom field). This may be needed
 	as maintenance since removing a field in a DocType doesn't automatically
@@ -904,7 +904,7 @@ def trim_tables(doctype=None, dry_run=False, quiet=False):
 	return UPDATED_TABLES
 
 
-def trim_table(doctype, dry_run=True):
+def trim_table(doctype, dry_run: bool = True):
 	frappe.cache.hdel("table_columns", f"tab{doctype}")
 	ignore_fields = default_fields + optional_fields + child_table_fields
 	columns = frappe.db.get_table_columns(doctype)

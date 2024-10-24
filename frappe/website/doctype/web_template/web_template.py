@@ -104,7 +104,7 @@ class WebTemplate(Document):
 
 		return os.path.join(folder, file_name)
 
-	def get_template(self, standard=False):
+	def get_template(self, standard: bool = False):
 		"""Get the jinja template string.
 
 		Params:

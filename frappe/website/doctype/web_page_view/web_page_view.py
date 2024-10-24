@@ -32,7 +32,7 @@ class WebPageView(Document):
 	# end: auto-generated types
 
 	@staticmethod
-	def clear_old_logs(days=180) -> None:
+	def clear_old_logs(days: int = 180) -> None:
 		from frappe.query_builder import Interval
 		from frappe.query_builder.functions import Now
 

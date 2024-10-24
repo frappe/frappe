@@ -73,7 +73,7 @@ def create_notification_settings(user) -> None:
 		_doc.insert(ignore_permissions=True)
 
 
-def toggle_notifications(user: str, enable: bool = False, ignore_permissions=False) -> None:
+def toggle_notifications(user: str, enable: bool = False, ignore_permissions: bool = False) -> None:
 	try:
 		settings = frappe.get_doc("Notification Settings", user)
 	except frappe.DoesNotExistError:
@@ -116,7 +116,7 @@ def get_permission_query_conditions(user):
 	return f"""(`tabNotification Settings`.name = {frappe.db.escape(user)})"""
 
 
-def has_permission(doc, ptype="read", user=None):
+def has_permission(doc, ptype: str = "read", user=None):
 	# - Administrator can access everything.
 	# - System managers can access everything except admin.
 	# - Everyone else can only access their document.

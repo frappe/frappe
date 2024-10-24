@@ -24,7 +24,7 @@ class SMTPServer:
 		port=None,
 		use_tls=None,
 		use_ssl=None,
-		use_oauth=0,
+		use_oauth: int = 0,
 		access_token=None,
 	) -> None:
 		self.login = login

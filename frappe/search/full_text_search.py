@@ -143,7 +143,15 @@ class FullTextSearch:
 
 
 class FuzzyTermExtended(FuzzyTerm):
-	def __init__(self, fieldname, text, boost=1.0, maxdist=2, prefixlength=1, constantscore=True) -> None:
+	def __init__(
+		self,
+		fieldname,
+		text,
+		boost: float = 1.0,
+		maxdist: int = 2,
+		prefixlength: int = 1,
+		constantscore: bool = True,
+	) -> None:
 		super().__init__(
 			fieldname,
 			text,

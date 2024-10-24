@@ -41,7 +41,7 @@ class NotificationLog(Document):
 				self.log_error(_("Failed to send notification email"))
 
 	@staticmethod
-	def clear_old_logs(days=180) -> None:
+	def clear_old_logs(days: int = 180) -> None:
 		from frappe.query_builder import Interval
 		from frappe.query_builder.functions import Now
 
@@ -164,7 +164,7 @@ def get_email_header(doc, language: str | None = None):
 
 
 @frappe.whitelist()
-def get_notification_logs(limit=20):
+def get_notification_logs(limit: int = 20):
 	notification_logs = frappe.db.get_list(
 		"Notification Log", fields=["*"], limit=limit, order_by="creation desc"
 	)

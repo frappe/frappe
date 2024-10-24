@@ -366,7 +366,7 @@ def get_keys_for_autocomplete(
 		yield {"value": full_key, "score": score, "meta": meta}
 
 
-def is_job_queued(job_name, queue="default"):
+def is_job_queued(job_name, queue: str = "default"):
 	"""
 	:param job_name: used to identify a queued job, usually dotted path to function
 	:param queue: should be either long, default or short

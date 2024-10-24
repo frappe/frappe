@@ -227,7 +227,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		self._cursor.connection._result = None
 
 	@staticmethod
-	def escape(s, percent=True):
+	def escape(s, percent: bool = True):
 		"""Escape quotes and percent in given string."""
 		# Update: We've scrapped PyMySQL in favour of MariaDB's official Python client
 		# Also, given we're promoting use of the PyPika builder via frappe.qb, the use
@@ -453,7 +453,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	def get_database_list(self):
 		return self.sql("SHOW DATABASES", pluck=True)
 
-	def get_tables(self, cached=True):
+	def get_tables(self, cached: bool = True):
 		"""Return list of tables."""
 		to_query = not cached
 

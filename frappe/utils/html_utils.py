@@ -142,7 +142,7 @@ def clean_script_and_style(html):
 	return frappe.as_unicode(soup)
 
 
-def sanitize_html(html, linkify=False, always_sanitize=False):
+def sanitize_html(html, linkify: bool = False, always_sanitize: bool = False):
 	"""
 	Sanitize HTML tags, attributes and style to prevent XSS attacks
 	Based on bleach clean, bleach whitelist and html5lib's Sanitizer defaults
@@ -200,7 +200,7 @@ def is_json(text) -> bool:
 		return True
 
 
-def get_icon_html(icon, small=False):
+def get_icon_html(icon, small: bool = False):
 	from frappe.utils import is_image
 
 	icon = icon or ""

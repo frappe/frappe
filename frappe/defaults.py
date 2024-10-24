@@ -145,7 +145,7 @@ def get_global_default(key):
 # Common
 
 
-def set_default(key, value, parent, parenttype="__default") -> None:
+def set_default(key, value, parent, parenttype: str = "__default") -> None:
 	"""Override or add a default value.
 	Adds default value in table `tabDefaultValue`.
 
@@ -228,7 +228,7 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 	_clear_cache(parent)
 
 
-def get_defaults_for(parent="__default"):
+def get_defaults_for(parent: str = "__default"):
 	"""get all defaults"""
 	defaults = frappe.cache.hget("defaults", parent)
 

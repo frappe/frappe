@@ -101,14 +101,16 @@ class Contact(Document):
 			if (link.link_doctype, link.link_name) in reference_links:
 				return True
 
-	def add_email(self, email_id, is_primary=0, autosave=False) -> None:
+	def add_email(self, email_id, is_primary: int = 0, autosave: bool = False) -> None:
 		if not frappe.db.exists("Contact Email", {"email_id": email_id, "parent": self.name}):
 			self.append("email_ids", {"email_id": email_id, "is_primary": is_primary})
 
 			if autosave:
 				self.save(ignore_permissions=True)
 
-	def add_phone(self, phone, is_primary_phone=0, is_primary_mobile_no=0, autosave=False) -> None:
+	def add_phone(
+		self, phone, is_primary_phone: int = 0, is_primary_mobile_no: int = 0, autosave: bool = False
+	) -> None:
 		if not frappe.db.exists("Contact Phone", {"phone": phone, "parent": self.name}):
 			self.append(
 				"phone_nos",

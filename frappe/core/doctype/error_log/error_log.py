@@ -38,7 +38,7 @@ class ErrorLog(Document):
 			frappe.db.commit()
 
 	@staticmethod
-	def clear_old_logs(days=30) -> None:
+	def clear_old_logs(days: int = 30) -> None:
 		table = frappe.qb.DocType("Error Log")
 		frappe.db.delete(table, filters=(table.creation < (Now() - Interval(days=days))))
 

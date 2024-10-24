@@ -251,7 +251,7 @@ def make_auto_repeat(**args):
 	).insert(ignore_permissions=True)
 
 
-def create_submittable_doctype(doctype, submit_perms=1) -> None:
+def create_submittable_doctype(doctype, submit_perms: int = 1) -> None:
 	if frappe.db.exists("DocType", doctype):
 		return
 	else:

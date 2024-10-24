@@ -199,7 +199,9 @@ def start_scheduler() -> None:
 	type=click.Choice(["round_robin", "random"]),
 	help="Dequeuing strategy to use",
 )
-def start_worker(queue, quiet=False, rq_username=None, rq_password=None, burst=False, strategy=None) -> None:
+def start_worker(
+	queue, quiet: bool = False, rq_username=None, rq_password=None, burst: bool = False, strategy=None
+) -> None:
 	"""Start a background worker"""
 	from frappe.utils.background_jobs import start_worker
 
@@ -222,7 +224,7 @@ def start_worker(queue, quiet=False, rq_username=None, rq_password=None, burst=F
 @click.option("--num-workers", type=int, default=2, help="Number of workers to spawn in pool.")
 @click.option("--quiet", is_flag=True, default=False, help="Hide Log Outputs")
 @click.option("--burst", is_flag=True, default=False, help="Run Worker in Burst mode.")
-def start_worker_pool(queue, quiet=False, num_workers=2, burst=False) -> None:
+def start_worker_pool(queue, quiet: bool = False, num_workers: int = 2, burst: bool = False) -> None:
 	"""Start a pool of background workers"""
 	from frappe.utils.background_jobs import start_worker_pool
 

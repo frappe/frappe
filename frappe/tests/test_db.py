@@ -1126,7 +1126,7 @@ class ExtIntegrationTestCase(IntegrationTestCase):
 class TestPostgresSchemaQueryIndependence(ExtIntegrationTestCase):
 	test_table_name = "TestSchemaTable"
 
-	def setUp(self, rollback=False) -> None:
+	def setUp(self, rollback: bool = False) -> None:
 		if rollback:
 			frappe.db.rollback()
 

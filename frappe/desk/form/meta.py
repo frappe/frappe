@@ -33,7 +33,7 @@ ASSET_KEYS = (
 )
 
 
-def get_meta(doctype, cached=True) -> "FormMeta":
+def get_meta(doctype, cached: bool = True) -> "FormMeta":
 	# don't cache for developer mode as js files, templates may be edited
 	cached = cached and not frappe.conf.developer_mode
 	if cached:
@@ -49,7 +49,7 @@ def get_meta(doctype, cached=True) -> "FormMeta":
 
 
 class FormMeta(Meta):
-	def __init__(self, doctype, *, cached=True) -> None:
+	def __init__(self, doctype, *, cached: bool = True) -> None:
 		self.__dict__.update(frappe.get_meta(doctype, cached=cached).__dict__)
 		self.load_assets()
 
@@ -72,7 +72,7 @@ class FormMeta(Meta):
 
 		self.set("__assets_loaded", True)
 
-	def as_dict(self, no_nulls=False):
+	def as_dict(self, no_nulls: bool = False):
 		d = super().as_dict(no_nulls=no_nulls)
 
 		for k in ASSET_KEYS:

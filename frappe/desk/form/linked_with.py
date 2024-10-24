@@ -512,7 +512,7 @@ def get(doctype, docname):
 
 
 @frappe.whitelist()
-def get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False):
+def get_linked_doctypes(doctype, without_ignore_user_permissions_enabled: bool = False):
 	"""add list of doctypes this doctype is 'linked' with.
 
 	Example, for Customer:
@@ -529,7 +529,7 @@ def get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False):
 		return frappe.cache.hget("linked_doctypes", doctype, lambda: _get_linked_doctypes(doctype))
 
 
-def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False):
+def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled: bool = False):
 	ret = {}
 	# find fields where this doctype is linked
 	ret.update(get_linked_fields(doctype, without_ignore_user_permissions_enabled))
@@ -561,7 +561,7 @@ def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False)
 	return ret
 
 
-def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
+def get_linked_fields(doctype, without_ignore_user_permissions_enabled: bool = False):
 	filters = [["fieldtype", "=", "Link"], ["options", "=", doctype]]
 	if without_ignore_user_permissions_enabled:
 		filters.append(["ignore_user_permissions", "!=", 1])
@@ -606,7 +606,7 @@ def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
 	return ret
 
 
-def get_dynamic_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
+def get_dynamic_linked_fields(doctype, without_ignore_user_permissions_enabled: bool = False):
 	ret = {}
 
 	filters = [["fieldtype", "=", "Dynamic Link"]]

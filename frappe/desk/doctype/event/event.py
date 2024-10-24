@@ -263,7 +263,7 @@ def send_event_digest() -> None:
 
 
 @frappe.whitelist()
-def get_events(start, end, user=None, for_reminder=False, filters=None) -> list[frappe._dict]:
+def get_events(start, end, user=None, for_reminder: bool = False, filters=None) -> list[frappe._dict]:
 	if not user:
 		user = frappe.session.user
 
@@ -517,7 +517,7 @@ def get_events(start, end, user=None, for_reminder=False, filters=None) -> list[
 	return events
 
 
-def delete_events(ref_type, ref_name, delete_event=False) -> None:
+def delete_events(ref_type, ref_name, delete_event: bool = False) -> None:
 	participations = frappe.get_all(
 		"Event Participants",
 		filters={"reference_doctype": ref_type, "reference_docname": ref_name, "parenttype": "Event"},

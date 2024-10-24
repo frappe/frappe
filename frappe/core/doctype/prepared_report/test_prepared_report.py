@@ -38,7 +38,7 @@ class TestPreparedReport(IntegrationTestCase):
 				break
 			time.sleep(0.5)
 
-	def create_prepared_report(self, report=None, commit=True):
+	def create_prepared_report(self, report=None, commit: bool = True):
 		doc = frappe.get_doc(
 			{
 				"doctype": "Prepared Report",

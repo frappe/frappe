@@ -35,7 +35,7 @@ class UnitTestRqJob(UnitTestCase):
 class TestRQJob(IntegrationTestCase):
 	BG_JOB = "frappe.core.doctype.rq_job.test_rq_job.test_func"
 
-	def check_status(self, job: Job, status, wait=True) -> None:
+	def check_status(self, job: Job, status, wait: bool = True) -> None:
 		if wait:
 			wait_for_completion(job)
 		self.assertEqual(frappe.get_doc("RQ Job", job.id).status, status)
@@ -187,7 +187,7 @@ class TestRQJob(IntegrationTestCase):
 		self.assertLessEqual(RQJob.get_count(filters=[["RQ Job", "status", "=", "failed"]]), limit * 1.1)
 
 
-def test_func(fail=False, sleep=0) -> bool:
+def test_func(fail: bool = False, sleep: int = 0) -> bool:
 	if fail:
 		42 / 0
 	if sleep:

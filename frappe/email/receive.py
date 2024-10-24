@@ -166,7 +166,7 @@ class EmailServer:
 			self.pop.quit()
 		return
 
-	def get_messages(self, folder="INBOX"):
+	def get_messages(self, folder: str = "INBOX"):
 		"""Return new email messages."""
 
 		self.latest_messages = []
@@ -841,7 +841,7 @@ class InboundMail(Email):
 			return frappe.db.get_value(doctype, {email_fields.sender_field: self.from_email})
 
 	@staticmethod
-	def get_doc(doctype, docname, ignore_error=False):
+	def get_doc(doctype, docname, ignore_error: bool = False):
 		try:
 			return frappe.get_doc(doctype, docname)
 		except frappe.DoesNotExistError:

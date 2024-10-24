@@ -168,7 +168,7 @@ class TestResult(unittest.TextTestResult):
 	def __str__(self) -> str:
 		return f"Tests: {self.testsRun}, Failing: {len(self.failures)}, Errors: {len(self.errors)}"
 
-	def _write_result(self, test, status, color, suffix="") -> None:
+	def _write_result(self, test, status, color, suffix: str = "") -> None:
 		test_method = self.getTestMethodName(test)
 		result = f"   {click.style(status, fg=color)} {test_method}"
 		result += f" {suffix}" if suffix else ""

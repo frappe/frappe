@@ -194,7 +194,9 @@ def new_po(locale, target_app: str | None = None) -> None:
 		)
 
 
-def compile_translations(target_app: str | None = None, locale: str | None = None, force=False) -> None:
+def compile_translations(
+	target_app: str | None = None, locale: str | None = None, force: bool = False
+) -> None:
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
 	tasks = []
 	for app in apps:
@@ -211,7 +213,7 @@ def compile_translations(target_app: str | None = None, locale: str | None = Non
 	executer.join()
 
 
-def _compile_translation(app, locale, force=False) -> None:
+def _compile_translation(app, locale, force: bool = False) -> None:
 	po_path = get_po_path(app, locale)
 	mo_path = get_mo_path(app, locale)
 	if not po_path.exists():

@@ -30,7 +30,7 @@ class EmailQueueRecipient(Document):
 	def is_mail_sent(self):
 		return self.status == "Sent"
 
-	def update_db(self, commit=False, **kwargs) -> None:
+	def update_db(self, commit: bool = False, **kwargs) -> None:
 		frappe.db.set_value(self.DOCTYPE, self.name, kwargs)
 		if commit:
 			frappe.db.commit()

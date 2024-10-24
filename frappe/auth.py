@@ -168,7 +168,7 @@ class LoginManager:
 		frappe.cache_manager.build_domain_restriced_doctype_cache()
 		frappe.cache_manager.build_domain_restriced_page_cache()
 
-	def set_user_info(self, resume=False) -> None:
+	def set_user_info(self, resume: bool = False) -> None:
 		# set sid again
 		frappe.local.cookie_manager.init_cookies()
 
@@ -203,7 +203,7 @@ class LoginManager:
 	def clear_preferred_language(self) -> None:
 		frappe.local.cookie_manager.delete_cookie("preferred_language")
 
-	def make_session(self, resume=False) -> None:
+	def make_session(self, resume: bool = False) -> None:
 		# start session
 		frappe.local.session_obj = Session(
 			user=self.user, resume=resume, full_name=self.full_name, user_type=self.user_type
@@ -300,7 +300,7 @@ class LoginManager:
 		frappe.db.commit()
 		raise frappe.AuthenticationError
 
-	def run_trigger(self, event="on_login") -> None:
+	def run_trigger(self, event: str = "on_login") -> None:
 		for method in frappe.get_hooks().get(event, []):
 			frappe.call(frappe.get_attr(method), login_manager=self)
 
@@ -336,7 +336,7 @@ class LoginManager:
 		# Flag this session as impersonated session, so other code can log this.
 		frappe.local.session_obj.set_impersonsated(current_user)
 
-	def logout(self, arg="", user=None) -> None:
+	def logout(self, arg: str = "", user=None) -> None:
 		if not user:
 			user = frappe.session.user
 		self.run_trigger("on_logout")
@@ -370,9 +370,9 @@ class CookieManager:
 		key,
 		value,
 		expires=None,
-		secure=False,
-		httponly=False,
-		samesite="Lax",
+		secure: bool = False,
+		httponly: bool = False,
+		samesite: str = "Lax",
 		max_age=None,
 	) -> None:
 		if not secure and hasattr(frappe.local, "request"):

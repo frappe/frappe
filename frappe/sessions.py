@@ -33,7 +33,7 @@ def clear() -> None:
 	frappe.response["message"] = _("Cache Cleared")
 
 
-def clear_sessions(user=None, keep_current=False, force=False) -> None:
+def clear_sessions(user=None, keep_current: bool = False, force: bool = False) -> None:
 	"""Clear other sessions of the current user. Called at login / logout
 
 	:param user: user name (default: current user)
@@ -49,7 +49,7 @@ def clear_sessions(user=None, keep_current=False, force=False) -> None:
 		delete_session(sid, reason=reason)
 
 
-def get_sessions_to_clear(user=None, keep_current=False, force=False):
+def get_sessions_to_clear(user=None, keep_current: bool = False, force: bool = False):
 	"""Return sessions of the current user. Called at login / logout.
 
 	:param user: user name (default: current user)
@@ -78,7 +78,7 @@ def get_sessions_to_clear(user=None, keep_current=False, force=False):
 	return query.run(pluck=True)
 
 
-def delete_session(sid=None, user=None, reason="Session Expired") -> None:
+def delete_session(sid=None, user=None, reason: str = "Session Expired") -> None:
 	from frappe.core.doctype.activity_log.feed import logout_feed
 
 	if frappe.flags.read_only:
@@ -204,7 +204,7 @@ def generate_csrf_token() -> None:
 class Session:
 	__slots__ = ("user", "user_type", "full_name", "data", "time_diff", "sid", "_update_in_cache")
 
-	def __init__(self, user, resume=False, full_name=None, user_type=None) -> None:
+	def __init__(self, user, resume: bool = False, full_name=None, user_type=None) -> None:
 		self.sid = cstr(frappe.form_dict.get("sid") or unquote(frappe.request.cookies.get("sid", "Guest")))
 		self.user = user
 		self.user_type = user_type
@@ -379,7 +379,7 @@ class Session:
 		self.user = "Guest"
 		self.start()
 
-	def update(self, force=False):
+	def update(self, force: bool = False):
 		"""extend session expiry"""
 
 		if frappe.session.user == "Guest":

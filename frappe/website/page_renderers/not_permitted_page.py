@@ -5,7 +5,7 @@ from frappe.website.page_renderers.template_page import TemplatePage
 
 
 class NotPermittedPage(TemplatePage):
-	def __init__(self, path=None, http_status_code=None, exception="") -> None:
+	def __init__(self, path=None, http_status_code=None, exception: str = "") -> None:
 		frappe.local.message = cstr(exception)
 		super().__init__(path=path, http_status_code=http_status_code)
 		self.http_status_code = 403

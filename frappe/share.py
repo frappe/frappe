@@ -18,7 +18,17 @@ if TYPE_CHECKING:
 
 
 @frappe.whitelist()
-def add(doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0, notify=0):
+def add(
+	doctype,
+	name,
+	user=None,
+	read: int = 1,
+	write: int = 0,
+	submit: int = 0,
+	share: int = 0,
+	everyone: int = 0,
+	notify: int = 0,
+):
 	"""Expose function without flags to the client-side"""
 	return add_docshare(
 		doctype,
@@ -34,7 +44,16 @@ def add(doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0
 
 
 def add_docshare(
-	doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0, flags=None, notify=0
+	doctype,
+	name,
+	user=None,
+	read: int = 1,
+	write: int = 0,
+	submit: int = 0,
+	share: int = 0,
+	everyone: int = 0,
+	flags=None,
+	notify: int = 0,
 ):
 	"""Share the given document with a user."""
 	if not user:
@@ -81,12 +100,14 @@ def remove(doctype, name, user, flags=None) -> None:
 
 
 @frappe.whitelist()
-def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
+def set_permission(doctype, name, user, permission_to, value: int = 1, everyone: int = 0):
 	"""Expose function without flags to the client-side"""
 	return set_docshare_permission(doctype, name, user, permission_to, value=value, everyone=everyone)
 
 
-def set_docshare_permission(doctype, name, user, permission_to, value=1, everyone=0, flags=None):
+def set_docshare_permission(
+	doctype, name, user, permission_to, value: int = 1, everyone: int = 0, flags=None
+):
 	"""Set share permission."""
 	if not (flags or {}).get("ignore_share_permission"):
 		check_share_permission(doctype, name)
@@ -221,7 +242,7 @@ def check_share_permission(doctype, name) -> None:
 		)
 
 
-def notify_assignment(shared_by, doctype, doc_name, everyone, notify=0) -> None:
+def notify_assignment(shared_by, doctype, doc_name, everyone, notify: int = 0) -> None:
 	if not (shared_by and doctype and doc_name) or everyone or not notify:
 		return
 

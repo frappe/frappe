@@ -30,7 +30,7 @@ class FrappeClient:
 		url,
 		username=None,
 		password=None,
-		verify=True,
+		verify: bool = True,
 		api_key=None,
 		api_secret=None,
 		frappe_authorization_source=None,
@@ -106,7 +106,9 @@ class FrappeClient:
 			headers=self.headers,
 		)
 
-	def get_list(self, doctype, fields='["name"]', filters=None, limit_start=0, limit_page_length=None):
+	def get_list(
+		self, doctype, fields: str = '["name"]', filters=None, limit_start: int = 0, limit_page_length=None
+	):
 		"""Return list of records of a particular type."""
 		if not isinstance(fields, str):
 			fields = json.dumps(fields)
@@ -209,7 +211,7 @@ class FrappeClient:
 		:param name: name of the document to be cancelled"""
 		return self.post_request({"cmd": "frappe.client.cancel", "doctype": doctype, "name": name})
 
-	def get_doc(self, doctype, name="", filters=None, fields=None):
+	def get_doc(self, doctype, name: str = "", filters=None, fields=None):
 		"""Return a single remote document.
 
 		:param doctype: DocType of the document to be returned
@@ -246,7 +248,7 @@ class FrappeClient:
 		return self.post_request(params)
 
 	def migrate_doctype(
-		self, doctype, filters=None, update=None, verbose=1, exclude=None, preprocess=None
+		self, doctype, filters=None, update=None, verbose: int = 1, exclude=None, preprocess=None
 	) -> None:
 		"""Migrate records from another doctype"""
 		meta = frappe.get_meta(doctype)
@@ -387,7 +389,7 @@ class FrappeClient:
 
 
 class FrappeOAuth2Client(FrappeClient):
-	def __init__(self, url, access_token, verify=True) -> None:
+	def __init__(self, url, access_token, verify: bool = True) -> None:
 		import requests
 
 		self.access_token = access_token

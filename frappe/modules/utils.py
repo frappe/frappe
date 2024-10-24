@@ -237,7 +237,7 @@ def get_doctype_module(doctype: str) -> str:
 		frappe.throw(_("DocType {} not found").format(doctype), exc=frappe.DoesNotExistError)
 
 
-def load_doctype_module(doctype, module=None, prefix="", suffix=""):
+def load_doctype_module(doctype, module=None, prefix: str = "", suffix: str = ""):
 	"""Return the module object for given doctype.
 
 	Note: This will return the standard defined module object for the doctype irrespective

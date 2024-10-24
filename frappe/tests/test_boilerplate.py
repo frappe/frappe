@@ -71,7 +71,7 @@ class TestBoilerPlate(unittest.TestCase):
 			"public",
 		]
 
-	def create_app(self, hooks, no_git=False) -> None:
+	def create_app(self, hooks, no_git: bool = False) -> None:
 		self.addCleanup(self.delete_test_app, hooks.app_name)
 		_create_app_boilerplate(self.apps_dir, hooks, no_git)
 

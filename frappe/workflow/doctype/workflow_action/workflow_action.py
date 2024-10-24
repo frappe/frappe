@@ -172,7 +172,7 @@ def return_success_page(doc) -> None:
 	)
 
 
-def return_action_confirmation_page(doc, action, action_link, alert_doc_change=False) -> None:
+def return_action_confirmation_page(doc, action, action_link, alert_doc_change: bool = False) -> None:
 	template_params = {
 		"title": doc.get("name"),
 		"doctype": doc.get("doctype"),

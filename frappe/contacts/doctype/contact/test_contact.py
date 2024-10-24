@@ -68,7 +68,7 @@ class TestContact(IntegrationTestCase):
 		self.assertEqual(results[0].description, "_Test Contact For _Test Supplier")
 
 
-def create_contact(name, salutation, emails=None, phones=None, save=True):
+def create_contact(name, salutation, emails=None, phones=None, save: bool = True):
 	doc = frappe.get_doc(
 		{"doctype": "Contact", "first_name": name, "status": "Open", "salutation": salutation}
 	)

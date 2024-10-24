@@ -334,7 +334,7 @@ class SystemHealthReport(Document):
 		raise NotImplementedError
 
 	@staticmethod
-	def get_list(filters=None, page_length=20, **kwargs):
+	def get_list(filters=None, page_length: int = 20, **kwargs):
 		raise NotImplementedError
 
 	@staticmethod

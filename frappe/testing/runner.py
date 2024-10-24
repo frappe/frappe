@@ -49,14 +49,14 @@ class TestRunner(unittest.TextTestRunner):
 	def __init__(
 		self,
 		stream=None,
-		descriptions=True,
-		verbosity=1,
-		failfast=False,
-		buffer=True,
+		descriptions: bool = True,
+		verbosity: int = 1,
+		failfast: bool = False,
+		buffer: bool = True,
 		resultclass=None,
-		warnings="module",
+		warnings: str = "module",
 		*,
-		tb_locals=False,
+		tb_locals: bool = False,
 		cfg: TestConfig,
 	) -> None:
 		super().__init__(

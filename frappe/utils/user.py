@@ -22,7 +22,7 @@ class UserPermissions:
 	A user permission object can be accessed as `frappe.get_user()`
 	"""
 
-	def __init__(self, name="") -> None:
+	def __init__(self, name: str = "") -> None:
 		self.defaults = None
 		self.name = name or frappe.session.get("user")
 		self.roles = []

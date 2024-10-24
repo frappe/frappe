@@ -359,7 +359,7 @@ class TestDocument(IntegrationTestCase):
 			return patch("frappe.controllers", new={frappe.local.site: {"Note": class_ or CustomTestNote}})
 
 		@contextmanager
-		def customize_note(with_options=False):
+		def customize_note(with_options: bool = False):
 			options = (
 				"frappe.utils.now_datetime() - frappe.utils.get_datetime(doc.creation)"
 				if with_options
@@ -523,7 +523,7 @@ class TestDocument(IntegrationTestCase):
 
 
 class TestDocumentWebView(IntegrationTestCase):
-	def get(self, path, user="Guest"):
+	def get(self, path, user: str = "Guest"):
 		frappe.set_user(user)
 		set_request(method="GET", path=path)
 		make_form_dict(frappe.local.request)

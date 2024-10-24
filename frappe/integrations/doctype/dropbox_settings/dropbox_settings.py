@@ -78,7 +78,7 @@ def take_backups_if(freq) -> None:
 		take_backup_to_dropbox()
 
 
-def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
+def take_backup_to_dropbox(retry_count: int = 0, upload_db_backup: bool = True):
 	did_not_upload, error_log = [], []
 	try:
 		if cint(frappe.db.get_single_value("Dropbox Settings", "enabled")):
@@ -112,7 +112,7 @@ def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
 		send_email(False, "Dropbox", "Dropbox Settings", "send_notifications_to", error_message)
 
 
-def backup_to_dropbox(upload_db_backup=True):
+def backup_to_dropbox(upload_db_backup: bool = True):
 	# upload database
 	dropbox_settings = get_dropbox_settings()
 	dropbox_client = get_dropbox_client(dropbox_settings)
@@ -279,7 +279,7 @@ def get_dropbox_client(dropbox_settings):
 	return dropbox_client
 
 
-def get_dropbox_settings(redirect_uri=False):
+def get_dropbox_settings(redirect_uri: bool = False):
 	# NOTE: access token is kept for legacy dropbox apps
 	settings = frappe.get_doc("Dropbox Settings")
 	app_details = {

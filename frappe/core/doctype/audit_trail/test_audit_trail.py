@@ -126,7 +126,7 @@ def create_custom_doctype():
 	return custom_doctype
 
 
-def amend_document(amend_from, changed_fields, rows_updated, submit=False):
+def amend_document(amend_from, changed_fields, rows_updated, submit: bool = False):
 	amended_doc = frappe.copy_doc(amend_from)
 	amended_doc.amended_from = amend_from.name
 	amended_doc.update(changed_fields)

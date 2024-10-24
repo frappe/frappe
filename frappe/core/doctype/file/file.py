@@ -611,9 +611,9 @@ class File(Document):
 	def save_file(
 		self,
 		content: bytes | str | None = None,
-		decode=False,
-		ignore_existing_file_check=False,
-		overwrite=False,
+		decode: bool = False,
+		ignore_existing_file_check: bool = False,
+		overwrite: bool = False,
 	):
 		if self.is_remote_file:
 			return
@@ -699,14 +699,14 @@ class File(Document):
 
 		return file_size
 
-	def delete_file_data_content(self, only_thumbnail=False) -> None:
+	def delete_file_data_content(self, only_thumbnail: bool = False) -> None:
 		method = get_hook_method("delete_file_data_content")
 		if method:
 			method(self, only_thumbnail=only_thumbnail)
 		else:
 			self.delete_file_from_filesystem(only_thumbnail=only_thumbnail)
 
-	def delete_file_from_filesystem(self, only_thumbnail=False) -> None:
+	def delete_file_from_filesystem(self, only_thumbnail: bool = False) -> None:
 		"""Delete file, thumbnail from File document"""
 		if only_thumbnail:
 			delete_file(self.thumbnail_url)
@@ -799,7 +799,7 @@ def on_doctype_update() -> None:
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
 
 
-def has_permission(doc, ptype=None, user=None, debug=False):
+def has_permission(doc, ptype=None, user=None, debug: bool = False):
 	user = user or frappe.session.user
 
 	if user == "Administrator":

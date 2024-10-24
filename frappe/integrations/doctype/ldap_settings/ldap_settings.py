@@ -132,7 +132,7 @@ class LDAPSettings(Document):
 					)
 				)
 
-	def connect_to_ldap(self, base_dn, password, read_only=True) -> ldap3.Connection:
+	def connect_to_ldap(self, base_dn, password, read_only: bool = True) -> ldap3.Connection:
 		try:
 			if self.require_trusted_certificate == "Yes":
 				tls_configuration = ldap3.Tls(validate=ssl.CERT_REQUIRED, version=ssl.PROTOCOL_TLS_CLIENT)
@@ -335,7 +335,7 @@ class LDAPSettings(Document):
 		except LDAPInvalidCredentialsResult:
 			frappe.throw(_("Invalid username or password"))
 
-	def reset_password(self, user, password, logout_sessions=False) -> None:
+	def reset_password(self, user, password, logout_sessions: bool = False) -> None:
 		search_filter = f"({self.ldap_email_field}={user})"
 
 		conn = self.connect_to_ldap(self.base_dn, self.get_password(raise_exception=False), read_only=False)

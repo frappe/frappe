@@ -290,7 +290,7 @@ def create_custom_field_if_values_exist(doctype, df) -> None:
 		create_custom_field(doctype, df)
 
 
-def create_custom_field(doctype, df, ignore_validate=False, is_system_generated=True):
+def create_custom_field(doctype, df, ignore_validate: bool = False, is_system_generated: bool = True):
 	df = frappe._dict(df)
 	if not df.fieldname and df.label:
 		df.fieldname = frappe.scrub(df.label)
@@ -311,7 +311,7 @@ def create_custom_field(doctype, df, ignore_validate=False, is_system_generated=
 		return custom_field
 
 
-def create_custom_fields(custom_fields: dict, ignore_validate=False, update=True) -> None:
+def create_custom_fields(custom_fields: dict, ignore_validate: bool = False, update: bool = True) -> None:
 	"""Add / update multiple custom fields
 
 	:param custom_fields: example `{'Sales Invoice': [dict(fieldname='test')]}`"""

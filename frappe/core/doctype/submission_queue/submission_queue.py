@@ -46,7 +46,7 @@ class SubmissionQueue(Document):
 		return getattr(self, "to_be_queued_doc", frappe.get_doc(self.ref_doctype, self.ref_docname))
 
 	@staticmethod
-	def clear_old_logs(days=30) -> None:
+	def clear_old_logs(days: int = 30) -> None:
 		from frappe.query_builder import Interval
 		from frappe.query_builder.functions import Now
 

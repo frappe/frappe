@@ -64,7 +64,7 @@ class ScheduledJobType(Document):
 					title=_("Bad Cron Expression"),
 				)
 
-	def enqueue(self, force=False) -> bool:
+	def enqueue(self, force: bool = False) -> bool:
 		# enqueue event if last execution is done
 		if self.is_event_due() or force:
 			if not self.is_job_in_queue():

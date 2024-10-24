@@ -37,11 +37,11 @@ class RedisQueue:
 		return conn
 
 	@classmethod
-	def new(cls, username="default", password=None):
+	def new(cls, username: str = "default", password=None):
 		return cls(cls.get_connection(username, password))
 
 	@classmethod
-	def set_admin_password(cls, cur_password=None, new_password=None, reset_passwords=False):
+	def set_admin_password(cls, cur_password=None, new_password=None, reset_passwords: bool = False):
 		username = "default"
 		conn = cls.get_connection(username, cur_password)
 		password = "+" + (new_password or conn.acl_genpass())
@@ -60,7 +60,7 @@ class RedisQueue:
 		return d
 
 	@classmethod
-	def get_acl_key_rules(cls, include_key_prefix=False):
+	def get_acl_key_rules(cls, include_key_prefix: bool = False):
 		"""FIXME: Find better way"""
 		rules = ["rq:[^q]*", "rq:queues", f"rq:queue:{get_bench_id()}:*"]
 		if include_key_prefix:
@@ -72,7 +72,7 @@ class RedisQueue:
 		return ["+@all", "-@admin"]
 
 	@classmethod
-	def gen_acl_list(cls, set_admin_password=False):
+	def gen_acl_list(cls, set_admin_password: bool = False):
 		"""Generate list of ACL users needed for this branch.
 
 		This list contains default ACL user and the bench ACL user(used by all sites incase of ACL is enabled).

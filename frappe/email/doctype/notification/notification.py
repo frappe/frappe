@@ -288,7 +288,7 @@ def get_context(context):
 
 		return docs
 
-	def queue_send(self, doc, enqueue_after_commit=True):
+	def queue_send(self, doc, enqueue_after_commit: bool = True):
 		"""
 		Enqueue the process to build recipients and send notifications.
 
@@ -541,7 +541,9 @@ def get_context(context):
 
 		return list(set(recipients)), list(set(cc)), list(set(bcc))
 
-	def get_receiver_list(self, doc, context, field_on_user="mobile_no", recipient_extractor_func=None):
+	def get_receiver_list(
+		self, doc, context, field_on_user: str = "mobile_no", recipient_extractor_func=None
+	):
 		"""return receiver list based on the doc field and role specified"""
 		if not recipient_extractor_func:
 			recipient_extractor_func = self.get_mobile_no
@@ -607,7 +609,7 @@ def get_context(context):
 				}
 			]
 
-	def get_template(self, md_as_html=False):
+	def get_template(self, md_as_html: bool = False):
 		module = get_doc_module(self.module, self.doctype, self.name)
 
 		path = os.path.join(os.path.dirname(module.__file__), frappe.scrub(self.name))

@@ -16,7 +16,7 @@ def get_notification_config():
 	}
 
 
-def get_things_todo(as_list=False):
+def get_things_todo(as_list: bool = False):
 	"""Return a count of incomplete ToDos."""
 	data = frappe.get_list(
 		"ToDo",

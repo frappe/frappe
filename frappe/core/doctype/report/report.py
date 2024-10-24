@@ -196,9 +196,9 @@ class Report(Document):
 		filters=None,
 		limit=None,
 		user=None,
-		as_dict=False,
-		ignore_prepared_report=False,
-		are_default_filters=True,
+		as_dict: bool = False,
+		ignore_prepared_report: bool = False,
+		are_default_filters: bool = True,
 	):
 		if self.report_type in ("Query Report", "Script Report", "Custom Report"):
 			columns, result = self.run_query_report(
@@ -213,7 +213,7 @@ class Report(Document):
 		return columns, result
 
 	def run_query_report(
-		self, filters=None, user=None, ignore_prepared_report=False, are_default_filters=True
+		self, filters=None, user=None, ignore_prepared_report: bool = False, are_default_filters: bool = True
 	):
 		columns, result = [], []
 		data = frappe.desk.query_report.run(

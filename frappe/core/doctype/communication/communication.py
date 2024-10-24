@@ -297,7 +297,7 @@ class Communication(Document, CommunicationEmailMixin):
 		return parse_addr(self.sender)[1] if self.sender else ""
 
 	@staticmethod
-	def _get_emails_list(emails=None, exclude_displayname=False):
+	def _get_emails_list(emails=None, exclude_displayname: bool = False):
 		"""Return list of emails from given email string.
 
 		* Removes duplicate mailids
@@ -308,15 +308,15 @@ class Communication(Document, CommunicationEmailMixin):
 			return [email.lower() for email in {parse_addr(email)[1] for email in emails} if email]
 		return [email for email in set(emails) if email]
 
-	def to_list(self, exclude_displayname=True):
+	def to_list(self, exclude_displayname: bool = True):
 		"""Return `to` list."""
 		return self._get_emails_list(self.recipients, exclude_displayname=exclude_displayname)
 
-	def cc_list(self, exclude_displayname=True):
+	def cc_list(self, exclude_displayname: bool = True):
 		"""Return `cc` list."""
 		return self._get_emails_list(self.cc, exclude_displayname=exclude_displayname)
 
-	def bcc_list(self, exclude_displayname=True):
+	def bcc_list(self, exclude_displayname: bool = True):
 		"""Return `bcc` list."""
 		return self._get_emails_list(self.bcc, exclude_displayname=exclude_displayname)
 
@@ -360,7 +360,7 @@ class Communication(Document, CommunicationEmailMixin):
 			self.email_status = "Spam"
 
 	@classmethod
-	def find(cls, name, ignore_error=False):
+	def find(cls, name, ignore_error: bool = False):
 		try:
 			return frappe.get_doc(cls.DOCTYPE, name)
 		except frappe.DoesNotExistError:
@@ -406,7 +406,7 @@ class Communication(Document, CommunicationEmailMixin):
 				if not self.sender_full_name:
 					self.sender_full_name = sender_email
 
-	def set_delivery_status(self, commit=False) -> None:
+	def set_delivery_status(self, commit: bool = False) -> None:
 		"""Look into the status of Email Queue linked to this Communication and set the Delivery Status of this Communication"""
 		delivery_status = None
 		status_counts = Counter(
@@ -476,7 +476,7 @@ class Communication(Document, CommunicationEmailMixin):
 		for doctype, name in unique_links:
 			self.add_link(doctype, name)
 
-	def add_link(self, link_doctype, link_name, autosave=False) -> None:
+	def add_link(self, link_doctype, link_name, autosave: bool = False) -> None:
 		self.append("timeline_links", {"link_doctype": link_doctype, "link_name": link_name})
 
 		if autosave:
@@ -485,7 +485,9 @@ class Communication(Document, CommunicationEmailMixin):
 	def get_links(self):
 		return self.timeline_links
 
-	def remove_link(self, link_doctype, link_name, autosave=False, ignore_permissions=True) -> None:
+	def remove_link(
+		self, link_doctype, link_name, autosave: bool = False, ignore_permissions: bool = True
+	) -> None:
 		for l in list(self.timeline_links):
 			if l.link_doctype == link_doctype and l.link_name == link_name:
 				self.timeline_links.remove(l)
@@ -501,7 +503,7 @@ def on_doctype_update() -> None:
 	frappe.db.add_index("Communication", ["message_id(140)"])
 
 
-def has_permission(doc, ptype, user=None, debug=False):
+def has_permission(doc, ptype, user=None, debug: bool = False):
 	if ptype == "read":
 		if doc.reference_doctype == "Communication" and doc.reference_name == doc.name:
 			return True
@@ -536,7 +538,7 @@ def get_permission_query_conditions_for_communication(user):
 		)
 
 
-def get_contacts(email_strings: list[str], auto_create_contact=False) -> list[str]:
+def get_contacts(email_strings: list[str], auto_create_contact: bool = False) -> list[str]:
 	email_addrs = get_emails(email_strings)
 	contacts = []
 	for email in email_addrs:

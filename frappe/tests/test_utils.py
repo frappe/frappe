@@ -910,7 +910,7 @@ class TestIntrospectionMagic(IntegrationTestCase):
 
 	def test_get_newargs(self) -> None:
 		# `kwargs` is just convention any **varname should work.
-		def f(a, b=2, **args) -> None:
+		def f(a, b: int = 2, **args) -> None:
 			pass
 
 		safe_kwargs = {"company": "Wind Power", "b": 1}
@@ -921,7 +921,7 @@ class TestIntrospectionMagic(IntegrationTestCase):
 		self.assertEqual(frappe.get_newargs(f, unsafe_args), safe_kwargs)
 
 	def test_strip_off_kwargs_when_not_supported(self) -> None:
-		def f(a, b=2) -> None:
+		def f(a, b: int = 2) -> None:
 			pass
 
 		args = {"company": "Wind Power", "b": 1}

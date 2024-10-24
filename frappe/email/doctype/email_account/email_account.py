@@ -267,7 +267,7 @@ class EmailAccount(Document):
 	def get_domain_values(self, domain: str):
 		return frappe.db.get_value("Email Domain", domain, EMAIL_DOMAIN_FIELDS, as_dict=True)
 
-	def get_incoming_server(self, in_receive=False, email_sync_rule="UNSEEN"):
+	def get_incoming_server(self, in_receive: bool = False, email_sync_rule: str = "UNSEEN"):
 		"""Return logged in POP3/IMAP connection object."""
 		oauth_token = self.get_oauth_token()
 		args = frappe._dict(
@@ -397,7 +397,7 @@ class EmailAccount(Document):
 
 	@classmethod
 	@cache_email_account("outgoing_email_account")
-	def find_outgoing(cls, match_by_email=None, match_by_doctype=None, _raise_error=False):
+	def find_outgoing(cls, match_by_email=None, match_by_doctype=None, _raise_error: bool = False):
 		"""Find the outgoing Email account to use.
 
 		:param match_by_email: Find account using emailID
@@ -741,7 +741,7 @@ class EmailAccount(Document):
 
 		remove_user_email_inbox(email_account=self.name)
 
-	def after_rename(self, old, new, merge=False) -> None:
+	def after_rename(self, old, new, merge: bool = False) -> None:
 		frappe.db.set_value("Email Account", new, "email_account_name", new)
 
 	def build_email_sync_rule(self):
@@ -866,7 +866,7 @@ def notify_unreplied() -> None:
 				comm.db_set("unread_notification_sent", 1)
 
 
-def pull(now=False) -> None:
+def pull(now: bool = False) -> None:
 	"""Will be called via scheduler, pull emails from all enabled Email accounts."""
 	from frappe.integrations.doctype.connected_app.connected_app import has_token
 

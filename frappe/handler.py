@@ -58,7 +58,7 @@ def handle():
 		frappe.response["message"] = data
 
 
-def execute_cmd(cmd, from_async=False):
+def execute_cmd(cmd, from_async: bool = False):
 	"""execute a request as python module"""
 	for hook in reversed(frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, [])):
 		# override using the last hook

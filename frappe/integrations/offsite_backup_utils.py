@@ -42,7 +42,7 @@ def get_recipients(doctype, email_field):
 	return split_emails(frappe.db.get_value(doctype, None, email_field))
 
 
-def get_latest_backup_file(with_files=False):
+def get_latest_backup_file(with_files: bool = False):
 	from frappe.utils.backups import BackupGenerator
 
 	odb = BackupGenerator(
@@ -62,7 +62,7 @@ def get_latest_backup_file(with_files=False):
 	return database, config
 
 
-def get_file_size(file_path, unit="MB"):
+def get_file_size(file_path, unit: str = "MB"):
 	file_size = os.path.getsize(file_path)
 
 	memory_size_unit_mapper = {"KB": 1, "MB": 2, "GB": 3, "TB": 4}

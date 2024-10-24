@@ -21,14 +21,14 @@ from frappe.utils.password import delete_all_passwords_for
 def delete_doc(
 	doctype=None,
 	name=None,
-	force=0,
+	force: int = 0,
 	ignore_doctypes=None,
-	for_reload=False,
-	ignore_permissions=False,
+	for_reload: bool = False,
+	ignore_permissions: bool = False,
 	flags=None,
-	ignore_on_trash=False,
-	ignore_missing=True,
-	delete_permanently=False,
+	ignore_on_trash: bool = False,
+	ignore_missing: bool = True,
+	delete_permanently: bool = False,
 ) -> bool:
 	"""
 	Deletes a doc(dt, dn) and validates if it is not submitted and not linked in a live record
@@ -223,7 +223,7 @@ def delete_from_table(doctype: str, name: str, ignore_doctypes: list[str], doc) 
 		frappe.db.delete(child_doctype, {"parenttype": doctype, "parent": name})
 
 
-def update_flags(doc, flags=None, ignore_permissions=False) -> None:
+def update_flags(doc, flags=None, ignore_permissions: bool = False) -> None:
 	if ignore_permissions:
 		if not flags:
 			flags = {}
@@ -258,7 +258,7 @@ def check_permission_and_not_submitted(doc) -> None:
 		)
 
 
-def check_if_doc_is_linked(doc, method="Delete") -> None:
+def check_if_doc_is_linked(doc, method: str = "Delete") -> None:
 	"""
 	Raises excption if the given doc(dt, dn) is linked in another record.
 	"""
@@ -316,7 +316,7 @@ def check_if_doc_is_linked(doc, method="Delete") -> None:
 				raise_link_exists_exception(doc, linked_parent_doctype, reference_docname)
 
 
-def check_if_doc_is_dynamically_linked(doc, method="Delete") -> None:
+def check_if_doc_is_dynamically_linked(doc, method: str = "Delete") -> None:
 	"""Raise `frappe.LinkExistsError` if the document is dynamically linked"""
 	for df in get_dynamic_link_map().get(doc.doctype, []):
 		ignore_linked_doctypes = doc.get("ignore_linked_doctypes") or []
@@ -370,7 +370,7 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete") -> None:
 					raise_link_exists_exception(doc, reference_doctype, reference_docname, at_position)
 
 
-def raise_link_exists_exception(doc, reference_doctype, reference_docname, row="") -> None:
+def raise_link_exists_exception(doc, reference_doctype, reference_docname, row: str = "") -> None:
 	doc_link = f'<a href="/app/Form/{doc.doctype}/{doc.name}">{doc.name}</a>'
 	reference_link = f'<a href="/app/Form/{reference_doctype}/{reference_docname}">{reference_docname}</a>'
 
@@ -408,8 +408,8 @@ def delete_references(
 	doctype,
 	reference_doctype,
 	reference_name,
-	reference_doctype_field="reference_doctype",
-	reference_name_field="reference_name",
+	reference_doctype_field: str = "reference_doctype",
+	reference_name_field: str = "reference_name",
 ) -> None:
 	frappe.db.delete(
 		doctype, {reference_doctype_field: reference_doctype, reference_name_field: reference_name}
@@ -420,8 +420,8 @@ def clear_references(
 	doctype,
 	reference_doctype,
 	reference_name,
-	reference_doctype_field="reference_doctype",
-	reference_name_field="reference_name",
+	reference_doctype_field: str = "reference_doctype",
+	reference_name_field: str = "reference_name",
 ) -> None:
 	frappe.db.sql(
 		f"""update

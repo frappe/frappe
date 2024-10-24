@@ -47,7 +47,7 @@ def find_first_image(html):
 		return None
 
 
-def can_cache(no_cache=False) -> bool:
+def can_cache(no_cache: bool = False) -> bool:
 	if frappe.flags.force_website_cache:
 		return True
 	if frappe.conf.disable_website_cache or frappe.conf.developer_mode:
@@ -496,7 +496,7 @@ def get_sidebar_items_from_sidebar_file(basepath, look_for_sidebar_json):
 	return sidebar_items
 
 
-def get_sidebar_json_path(path, look_for=False):
+def get_sidebar_json_path(path, look_for: bool = False):
 	"""Get _sidebar.json path from directory path
 	:param path: path of the current diretory
 	:param look_for: if True, look for _sidebar.json going upwards from given path

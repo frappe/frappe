@@ -15,7 +15,7 @@ from frappe.permissions import filter_allowed_docs_for_doctype
 from frappe.utils import cstr, now_datetime, nowdate, nowtime
 
 
-def get_new_doc(doctype, parent_doc=None, parentfield=None, as_dict=False):
+def get_new_doc(doctype, parent_doc=None, parentfield=None, as_dict: bool = False):
 	if doctype not in frappe.local.new_doc_templates:
 		# cache a copy of new doc as it is called
 		# frequently for inserts

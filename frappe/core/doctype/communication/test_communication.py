@@ -368,7 +368,11 @@ class TestCommunicationEmailMixin(IntegrationTestCase):
 
 	def test_cc(self) -> None:
 		def test(
-			assertion, cc_list=None, set_user_as=None, include_sender=False, thread_notify=False
+			assertion,
+			cc_list=None,
+			set_user_as=None,
+			include_sender: bool = False,
+			thread_notify: bool = False,
 		) -> None:
 			if set_user_as:
 				frappe.set_user(set_user_as)

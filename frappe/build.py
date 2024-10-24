@@ -133,7 +133,7 @@ def setup_assets(assets_archive):
 	return directories_created
 
 
-def download_frappe_assets(verbose=True) -> bool:
+def download_frappe_assets(verbose: bool = True) -> bool:
 	"""Download and set up Frappe assets if they exist based on the current commit HEAD.
 	Return True if correctly setup else return False.
 	"""
@@ -165,7 +165,7 @@ def download_frappe_assets(verbose=True) -> bool:
 	return False
 
 
-def symlink(target, link_name, overwrite=False):
+def symlink(target, link_name, overwrite: bool = False):
 	"""
 	Create a symbolic link named link_name pointing to target.
 	If link_name exists then FileExistsError is raised, unless overwrite=True.
@@ -221,12 +221,12 @@ def setup() -> None:
 def bundle(
 	mode,
 	apps=None,
-	hard_link=False,
-	verbose=False,
-	skip_frappe=False,
+	hard_link: bool = False,
+	verbose: bool = False,
+	skip_frappe: bool = False,
 	files=None,
-	save_metafiles=False,
-	using_cached=False,
+	save_metafiles: bool = False,
+	using_cached: bool = False,
 ) -> None:
 	"""concat / minify js files"""
 	setup()
@@ -369,7 +369,7 @@ def unstrip(message: str) -> str:
 	return f"{message}{' ' * _rem}"
 
 
-def make_asset_dirs(hard_link=False) -> None:
+def make_asset_dirs(hard_link: bool = False) -> None:
 	setup_assets_dirs()
 	clear_broken_symlinks()
 	symlinks = generate_assets_map()
@@ -388,7 +388,7 @@ def make_asset_dirs(hard_link=False) -> None:
 	click.echo(unstrip(click.style("✔", fg="green") + " Application Assets Linked") + "\n")
 
 
-def link_assets_dir(source, target, hard_link=False) -> None:
+def link_assets_dir(source, target, hard_link: bool = False) -> None:
 	if not os.path.exists(source):
 		return
 

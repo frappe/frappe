@@ -130,7 +130,9 @@ def get_app_group(app: str) -> click.Group:
 @click.option("--verbose", is_flag=True, default=False, help="Verbose")
 @click.option("--force", is_flag=True, default=False, help="Force")
 @click.pass_context
-def app_group(ctx, site=False, force=False, verbose=False, profile=False) -> None:
+def app_group(
+	ctx, site: bool = False, force: bool = False, verbose: bool = False, profile: bool = False
+) -> None:
 	ctx.obj = CliCtxObj(sites=get_sites(site), force=force, verbose=verbose, profile=profile)
 	if ctx.info_name == "frappe":
 		ctx.info_name = ""

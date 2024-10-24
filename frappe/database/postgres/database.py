@@ -200,7 +200,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		# Postgres expects milliseconds as input
 		self.sql("set local statement_timeout = %s", int(seconds) * 1000)
 
-	def escape(self, s, percent=True):
+	def escape(self, s, percent: bool = True):
 		"""Escape quotes and percent in given string."""
 		if isinstance(s, bytes):
 			s = s.decode("utf-8")
@@ -235,7 +235,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def lazy_mogrify(self, *args, **kwargs) -> str:
 		return self.last_query
 
-	def get_tables(self, cached=True):
+	def get_tables(self, cached: bool = True):
 		return [
 			d[0]
 			for d in self.sql(
@@ -374,7 +374,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			self.commit()
 
 	@staticmethod
-	def get_on_duplicate_update(key="name") -> str:
+	def get_on_duplicate_update(key: str = "name") -> str:
 		if isinstance(key, list):
 			key = '", "'.join(key)
 		return f'ON CONFLICT ("{key}") DO UPDATE SET '

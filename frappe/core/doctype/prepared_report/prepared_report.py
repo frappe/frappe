@@ -49,7 +49,7 @@ class PreparedReport(Document):
 		return self.creation
 
 	@staticmethod
-	def clear_old_logs(days=30) -> None:
+	def clear_old_logs(days: int = 30) -> None:
 		prepared_reports_to_delete = frappe.get_all(
 			"Prepared Report",
 			filters={"creation": ["<", frappe.utils.add_days(frappe.utils.now(), -days)]},
@@ -80,7 +80,7 @@ class PreparedReport(Document):
 			enqueue_after_commit=True,
 		)
 
-	def get_prepared_data(self, with_file_name=False):
+	def get_prepared_data(self, with_file_name: bool = False):
 		if attachments := get_attachments(self.doctype, self.name):
 			attachment = attachments[0]
 			attached_file = frappe.get_doc("File", attachment.name)

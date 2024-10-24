@@ -256,7 +256,7 @@ class PersonalDataDeletionRequest(Document):
 		if ref.get("rename") and doc["name"] != self.anon:
 			frappe.rename_doc(ref["doctype"], doc["name"], self.anon, force=True, show_alert=False)
 
-	def _anonymize_data(self, email=None, anon=None, set_data=True, commit=False) -> None:
+	def _anonymize_data(self, email=None, anon=None, set_data: bool = True, commit: bool = False) -> None:
 		email = email or self.email
 		anon = anon or self.name
 
@@ -295,7 +295,7 @@ class PersonalDataDeletionRequest(Document):
 		if commit:
 			frappe.db.commit()
 
-	def set_step_status(self, step, status="Deleted") -> None:
+	def set_step_status(self, step, status: str = "Deleted") -> None:
 		del_step = find(self.deletion_steps, lambda x: x.document_type == step and x.status != status)
 
 		if not del_step:

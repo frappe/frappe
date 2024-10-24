@@ -39,7 +39,7 @@ class RedisWrapper(redis.Redis):
 		"""WARNING: Added for backward compatibility to support frappe.cache().method(...)"""
 		return self
 
-	def make_key(self, key, user=None, shared=False):
+	def make_key(self, key, user=None, shared: bool = False):
 		if shared:
 			return key
 		if user:
@@ -50,7 +50,7 @@ class RedisWrapper(redis.Redis):
 
 		return f"{frappe.conf.db_name}|{key}".encode()
 
-	def set_value(self, key, val, user=None, expires_in_sec=None, shared=False) -> None:
+	def set_value(self, key, val, user=None, expires_in_sec=None, shared: bool = False) -> None:
 		"""Sets cache value.
 
 		:param key: Cache key
@@ -66,7 +66,7 @@ class RedisWrapper(redis.Redis):
 		with suppress(redis.exceptions.ConnectionError):
 			self.set(name=key, value=pickle.dumps(val), ex=expires_in_sec)
 
-	def get_value(self, key, generator=None, user=None, expires=False, shared=False):
+	def get_value(self, key, generator=None, user=None, expires: bool = False, shared: bool = False):
 		"""Return cache value. If not found and generator function is
 		        given, call the generator.
 
@@ -124,7 +124,7 @@ class RedisWrapper(redis.Redis):
 	def delete_key(self, *args, **kwargs) -> None:
 		self.delete_value(*args, **kwargs)
 
-	def delete_value(self, keys, user=None, make_keys=True, shared=False) -> None:
+	def delete_value(self, keys, user=None, make_keys: bool = True, shared: bool = False) -> None:
 		"""Delete value, list of values."""
 		if not keys:
 			return
@@ -208,7 +208,7 @@ class RedisWrapper(redis.Redis):
 		value = super().hgetall(self.make_key(name))
 		return {key: pickle.loads(value) for key, value in value.items()}
 
-	def hget(self, name, key, generator=None, shared=False):
+	def hget(self, name, key, generator=None, shared: bool = False):
 		_name = self.make_key(name, shared=shared)
 		if _name not in frappe.local.cache:
 			frappe.local.cache[_name] = {}
@@ -237,7 +237,7 @@ class RedisWrapper(redis.Redis):
 		self,
 		name: str,
 		keys: str | list | tuple,
-		shared=False,
+		shared: bool = False,
 		pipeline: redis.client.Pipeline | None = None,
 	) -> None:
 		"""
@@ -338,7 +338,7 @@ class RedisWrapper(redis.Redis):
 		"""Return all members of the set."""
 		return super().smembers(self.make_key(name))
 
-	def ft(self, index_name="idx"):
+	def ft(self, index_name: str = "idx"):
 		return RedisearchWrapper(client=self, index_name=self.make_key(index_name))
 
 

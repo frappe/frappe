@@ -155,7 +155,7 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(updated_doc.table_field_1[0].child_description, "child description")
 		self.assertEqual(updated_doc.table_field_1_again[0].child_title, "child title again")
 
-	def get_importer(self, doctype, import_file, update=False):
+	def get_importer(self, doctype, import_file, update: bool = False):
 		data_import = frappe.new_doc("Data Import")
 		data_import.import_type = "Insert New Records" if not update else "Update Existing Records"
 		data_import.reference_doctype = doctype
@@ -166,7 +166,7 @@ class TestImporter(IntegrationTestCase):
 
 		return data_import
 
-	def get_importer_semicolon(self, doctype, import_file, update=False):
+	def get_importer_semicolon(self, doctype, import_file, update: bool = False):
 		data_import = frappe.new_doc("Data Import")
 		data_import.import_type = "Insert New Records" if not update else "Update Existing Records"
 		data_import.reference_doctype = doctype
@@ -179,7 +179,7 @@ class TestImporter(IntegrationTestCase):
 		return data_import
 
 
-def create_doctype_if_not_exists(doctype_name, force=False) -> None:
+def create_doctype_if_not_exists(doctype_name, force: bool = False) -> None:
 	if force:
 		frappe.delete_doc_if_exists("DocType", doctype_name)
 		frappe.delete_doc_if_exists("DocType", "Child 1 of " + doctype_name)
@@ -269,7 +269,7 @@ def create_doctype_if_not_exists(doctype_name, force=False) -> None:
 	).insert()
 
 
-def get_import_file(csv_file_name, force=False):
+def get_import_file(csv_file_name, force: bool = False):
 	file_name = csv_file_name + ".csv"
 	_file = frappe.db.exists("File", {"file_name": file_name})
 	if force and _file:

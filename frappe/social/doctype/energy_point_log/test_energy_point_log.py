@@ -331,12 +331,12 @@ class TestEnergyPointLog(IntegrationTestCase):
 
 def create_energy_point_rule_for_todo(
 	multiplier_field=None,
-	for_doc_event="Custom",
+	for_doc_event: str = "Custom",
 	max_points=None,
-	for_assigned_users=0,
+	for_assigned_users: int = 0,
 	field_to_check=None,
-	apply_once=False,
-	user_field="owner",
+	apply_once: bool = False,
+	user_field: str = "owner",
 ):
 	name = "ToDo Closed"
 	point_rule_exists = frappe.db.exists("Energy Point Rule", name)
@@ -373,7 +373,7 @@ def create_a_todo(description=None):
 	).insert(ignore_permissions=True)
 
 
-def get_points(user, point_type="energy_points"):
+def get_points(user, point_type: str = "energy_points"):
 	return _get_energy_points(user).get(point_type, 0)
 
 

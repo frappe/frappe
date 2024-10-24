@@ -366,7 +366,7 @@ def update_field_types(columns):
 DATE_FORMAT = "%Y-%m-%d"
 
 
-def get_half_year_start(as_str=False):
+def get_half_year_start(as_str: bool = False):
 	"""
 	Returns the first day of the current half-year based on the current date.
 	"""

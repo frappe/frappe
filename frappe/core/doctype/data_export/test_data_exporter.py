@@ -21,7 +21,7 @@ class TestDataExporter(IntegrationTestCase):
 		self.create_doctype_if_not_exists(doctype_name=self.doctype_name)
 		self.create_test_data()
 
-	def create_doctype_if_not_exists(self, doctype_name, force=False) -> None:
+	def create_doctype_if_not_exists(self, doctype_name, force: bool = False) -> None:
 		"""
 		Helper Function for setting up doctypes
 		"""
@@ -70,7 +70,7 @@ class TestDataExporter(IntegrationTestCase):
 			}
 		).insert()
 
-	def create_test_data(self, force=False) -> None:
+	def create_test_data(self, force: bool = False) -> None:
 		"""
 		Helper Function creating test data
 		"""

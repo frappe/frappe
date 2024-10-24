@@ -228,7 +228,7 @@ def process_2fa_for_otp_app(user, otp_secret, otp_issuer):
 	return {"method": "OTP App", "setup": otp_setup_completed}
 
 
-def process_2fa_for_email(user, token, otp_secret, otp_issuer, method="Email"):
+def process_2fa_for_email(user, token, otp_secret, otp_issuer, method: str = "Email"):
 	"""Process Email method for 2fa."""
 	subject = None
 	message = None
@@ -383,7 +383,7 @@ def create_barcode_folder():
 	return folder.name
 
 
-def delete_qrimage(user, check_expiry=False) -> None:
+def delete_qrimage(user, check_expiry: bool = False) -> None:
 	"""Delete Qrimage when user logs in."""
 	user_barcodes = frappe.get_all(
 		"File", {"attached_to_doctype": "User", "attached_to_name": user, "folder": "Home/Barcodes"}

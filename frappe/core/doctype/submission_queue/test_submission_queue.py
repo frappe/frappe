@@ -27,7 +27,7 @@ class TestSubmissionQueue(IntegrationTestCase):
 		cls.queue = get_queue(qtype="default")
 
 	@timeout(seconds=20)
-	def check_status(self, job: "Job", status, wait=True) -> None:
+	def check_status(self, job: "Job", status, wait: bool = True) -> None:
 		if wait:
 			while True:
 				if job.is_queued or job.is_started:

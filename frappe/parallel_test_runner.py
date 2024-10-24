@@ -22,7 +22,9 @@ if click_ctx:
 
 
 class ParallelTestRunner:
-	def __init__(self, app, site, build_number=1, total_builds=1, dry_run=False) -> None:
+	def __init__(
+		self, app, site, build_number: int = 1, total_builds: int = 1, dry_run: bool = False
+	) -> None:
 		self.app = app
 		self.site = site
 		self.build_number = frappe.utils.cint(build_number) or 1

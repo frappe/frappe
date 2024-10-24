@@ -127,7 +127,7 @@ def build_csv_response(data, filename) -> None:
 
 
 class UnicodeWriter:
-	def __init__(self, encoding="utf-8", quoting=csv.QUOTE_NONNUMERIC) -> None:
+	def __init__(self, encoding: str = "utf-8", quoting=csv.QUOTE_NONNUMERIC) -> None:
 		self.encoding = encoding
 		self.queue = StringIO()
 		self.writer = csv.writer(self.queue, quoting=quoting)
@@ -168,7 +168,7 @@ def check_record(d) -> None:
 				d[key] = flt(val)
 
 
-def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False) -> str:
+def import_doc(d, doctype, overwrite, row_idx, submit: bool = False, ignore_links: bool = False) -> str:
 	"""import main (non child) document"""
 	if d.get("name") and frappe.db.exists(doctype, d["name"]):
 		if overwrite:

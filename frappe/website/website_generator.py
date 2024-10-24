@@ -130,7 +130,7 @@ class WebsiteGenerator(Document):
 
 		return route
 
-	def send_indexing_request(self, operation_type="URL_UPDATED") -> None:
+	def send_indexing_request(self, operation_type: str = "URL_UPDATED") -> None:
 		"""Send indexing request on update/trash operation."""
 
 		if (

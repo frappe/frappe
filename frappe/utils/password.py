@@ -20,7 +20,7 @@ passlibctx = CryptContext(
 )
 
 
-def get_decrypted_password(doctype, name, fieldname="password", raise_exception=True):
+def get_decrypted_password(doctype, name, fieldname: str = "password", raise_exception: bool = True):
 	result = (
 		frappe.qb.from_(Auth)
 		.select(Auth.password)
@@ -43,7 +43,7 @@ def get_decrypted_password(doctype, name, fieldname="password", raise_exception=
 		)
 
 
-def set_encrypted_password(doctype, name, pwd, fieldname="password"):
+def set_encrypted_password(doctype, name, pwd, fieldname: str = "password"):
 	query = (
 		frappe.qb.into(Auth)
 		.columns(Auth.doctype, Auth.name, Auth.fieldname, Auth.password, Auth.encrypted)
@@ -65,11 +65,13 @@ def set_encrypted_password(doctype, name, pwd, fieldname="password"):
 		raise e
 
 
-def remove_encrypted_password(doctype, name, fieldname="password") -> None:
+def remove_encrypted_password(doctype, name, fieldname: str = "password") -> None:
 	frappe.db.delete("__Auth", {"doctype": doctype, "name": name, "fieldname": fieldname})
 
 
-def check_password(user, pwd, doctype="User", fieldname="password", delete_tracker_cache=True):
+def check_password(
+	user, pwd, doctype: str = "User", fieldname: str = "password", delete_tracker_cache: bool = True
+):
 	"""Checks if user and password are correct, else raises frappe.AuthenticationError"""
 
 	result = (
@@ -106,7 +108,9 @@ def delete_login_failed_cache(user) -> None:
 	frappe.cache.hdel("login_failed_count", user)
 
 
-def update_password(user, pwd, doctype="User", fieldname="password", logout_all_sessions=False) -> None:
+def update_password(
+	user, pwd, doctype: str = "User", fieldname: str = "password", logout_all_sessions: bool = False
+) -> None:
 	"""
 	Update the password for the User
 

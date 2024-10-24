@@ -26,7 +26,9 @@ DURATION_PATTERN = re.compile(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s
 
 
 class Importer:
-	def __init__(self, doctype, data_import=None, file_path=None, import_type=None, console=False) -> None:
+	def __init__(
+		self, doctype, data_import=None, file_path=None, import_type=None, console: bool = False
+	) -> None:
 		self.doctype = doctype
 		self.console = console
 
@@ -402,7 +404,9 @@ class Importer:
 
 
 class ImportFile:
-	def __init__(self, doctype, file, template_options=None, import_type=None, *, console=False) -> None:
+	def __init__(
+		self, doctype, file, template_options=None, import_type=None, *, console: bool = False
+	) -> None:
 		self.doctype = doctype
 		self.template_options = template_options or frappe._dict(column_to_field_map=frappe._dict())
 		self.column_to_field_map = self.template_options.column_to_field_map

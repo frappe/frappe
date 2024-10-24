@@ -645,7 +645,7 @@ class DocType(Document):
 		if hasattr(module, method):
 			getattr(module, method)()
 
-	def before_rename(self, old, new, merge=False) -> None:
+	def before_rename(self, old, new, merge: bool = False) -> None:
 		"""Throw exception if merge. DocTypes cannot be merged."""
 		if not self.custom and frappe.session.user != "Administrator":
 			frappe.throw(_("DocType can only be renamed by Administrator"))
@@ -656,7 +656,7 @@ class DocType(Document):
 		if merge:
 			frappe.throw(_("DocType can not be merged"))
 
-	def after_rename(self, old, new, merge=False) -> None:
+	def after_rename(self, old, new, merge: bool = False) -> None:
 		"""Change table name using `RENAME TABLE` if table exists. Or update
 		`doctype` property for Single type."""
 
@@ -1718,7 +1718,7 @@ def get_fields_not_allowed_in_list_view(meta) -> list[str]:
 	return not_allowed_in_list_view
 
 
-def validate_permissions_for_doctype(doctype, for_remove=False, alert=False) -> None:
+def validate_permissions_for_doctype(doctype, for_remove: bool = False, alert: bool = False) -> None:
 	"""Validates if permissions are set correctly."""
 	doctype = frappe.get_doc("DocType", doctype)
 	validate_permissions(doctype, for_remove, alert=alert)
@@ -1739,7 +1739,7 @@ def clear_permissions_cache(doctype) -> None:
 	clear_user_cache()
 
 
-def validate_permissions(doctype, for_remove=False, alert=False) -> None:
+def validate_permissions(doctype, for_remove: bool = False, alert: bool = False) -> None:
 	permissions = doctype.get("permissions")
 	# Some DocTypes may not have permissions by default, don't show alert for them
 	if not permissions and alert:
@@ -1861,7 +1861,7 @@ def validate_permissions(doctype, for_remove=False, alert=False) -> None:
 		validate_permission_for_all_role(d)
 
 
-def make_module_and_roles(doc, perm_fieldname="permissions"):
+def make_module_and_roles(doc, perm_fieldname: str = "permissions"):
 	"""Make `Module Def` and `Role` records if already not made. Called while installing."""
 	try:
 		if (

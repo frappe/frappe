@@ -78,7 +78,7 @@ class TestNewsletterMixin:
 
 			frappe.db.release_savepoint(savepoint)
 
-	def send_newsletter(self, published=0, schedule_send=None) -> str | None:
+	def send_newsletter(self, published: int = 0, schedule_send=None) -> str | None:
 		frappe.db.delete("Email Queue")
 		frappe.db.delete("Email Queue Recipient")
 		frappe.db.delete("Newsletter")

@@ -70,7 +70,7 @@ class NamingSeries:
 				exc=InvalidNamingSeriesError,
 			)
 
-	def generate_next_name(self, doc: "Document", *, ignore_validate=False) -> str:
+	def generate_next_name(self, doc: "Document", *, ignore_validate: bool = False) -> str:
 		if not ignore_validate:
 			self.validate()
 
@@ -261,7 +261,7 @@ def set_name_by_naming_series(doc) -> None:
 	doc.name = make_autoname(doc.naming_series + ".#####", "", doc)
 
 
-def make_autoname(key="", doctype="", doc="", *, ignore_validate=False):
+def make_autoname(key: str = "", doctype: str = "", doc: str = "", *, ignore_validate: bool = False):
 	"""
 	     Creates an autoname from the given key:
 
@@ -294,7 +294,7 @@ def _get_timestamp_prefix():
 	return base64.b32hexencode(ts.to_bytes(length=5, byteorder="big")).decode()[-4:].lower()
 
 
-def _generate_random_string(length=10):
+def _generate_random_string(length: int = 10):
 	"""Better version of frappe.generate_hash for naming.
 
 	This uses entire base32 instead of base16 used by generate_hash. So it has twice as many
@@ -497,7 +497,7 @@ def validate_name(doctype: str, name: int | str):
 	return name
 
 
-def append_number_if_name_exists(doctype, value, fieldname="name", separator="-", filters=None):
+def append_number_if_name_exists(doctype, value, fieldname: str = "name", separator: str = "-", filters=None):
 	if not filters:
 		filters = dict()
 	filters.update({fieldname: value})

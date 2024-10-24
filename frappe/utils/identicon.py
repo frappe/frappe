@@ -17,7 +17,7 @@ SQUARE_SIZE = 40
 
 
 class Identicon:
-	def __init__(self, str_, background="#fafbfc") -> None:
+	def __init__(self, str_, background: str = "#fafbfc") -> None:
 		"""
 		`str_` is the string used to generate the identicon.
 		`background` is the background of the identicon.
@@ -63,7 +63,7 @@ class Identicon:
 			self.image.save(out, "PNG")
 		self.image.show()
 
-	def base64(self, format="PNG") -> str:
+	def base64(self, format: str = "PNG") -> str:
 		"""
 		Return the identicon's base64
 

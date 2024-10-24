@@ -98,7 +98,7 @@ class LogSettings(Document):
 			func(**kwargs)
 			frappe.db.commit()
 
-	def register_doctype(self, doctype: str, days=30) -> None:
+	def register_doctype(self, doctype: str, days: int = 30) -> None:
 		existing_logtypes = {d.ref_doctype for d in self.logs_to_clear}
 
 		if doctype not in existing_logtypes and _supports_log_clearing(doctype):
@@ -158,7 +158,7 @@ LOG_DOCTYPES = [
 ]
 
 
-def clear_log_table(doctype, days=90):
+def clear_log_table(doctype, days: int = 90):
 	"""If any logtype table grows too large then clearing it with DELETE query
 	is not feasible in reasonable time. This command copies recent data to new
 	table and replaces current table with new smaller table.

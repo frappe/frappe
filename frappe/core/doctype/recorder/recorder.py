@@ -51,7 +51,7 @@ class Recorder(Document):
 		super(Document, self).__init__(request)
 
 	@staticmethod
-	def get_list(filters=None, start=0, page_length=20, order_by="duration desc"):
+	def get_list(filters=None, start: int = 0, page_length: int = 20, order_by: str = "duration desc"):
 		requests = Recorder.get_filtered_requests(filters)[start : start + page_length]
 
 		if order_by_statment := order_by:

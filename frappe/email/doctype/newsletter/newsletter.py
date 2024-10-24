@@ -241,7 +241,7 @@ class Newsletter(WebsiteGenerator):
 
 		return self.add_source(html, medium=medium)
 
-	def add_source(self, html: str, medium="None") -> str:
+	def add_source(self, html: str, medium: str = "None") -> str:
 		"""Add source to the site links in the newsletter content."""
 		from bs4 import BeautifulSoup
 

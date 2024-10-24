@@ -567,7 +567,7 @@ def get_userinfo(user):
 	)
 
 
-def get_url_delimiter(separator_character=" "):
+def get_url_delimiter(separator_character: str = " "):
 	return separator_character
 
 

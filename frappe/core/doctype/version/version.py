@@ -69,7 +69,7 @@ class Version(Document):
 		return json.loads(self.data)
 
 
-def get_diff(old, new, for_child=False, compare_cancelled=False):
+def get_diff(old, new, for_child: bool = False, compare_cancelled: bool = False):
 	"""Get diff between 2 document objects
 
 	If there is a change, then returns a dict like:

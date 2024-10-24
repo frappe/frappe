@@ -17,7 +17,7 @@ MONITOR_REDIS_KEY = "monitor-transactions"
 MONITOR_MAX_ENTRIES = 1000000
 
 
-def start(transaction_type="request", method=None, kwargs=None) -> None:
+def start(transaction_type: str = "request", method=None, kwargs=None) -> None:
 	if frappe.conf.monitor:
 		frappe.local.monitor = Monitor(transaction_type, method, kwargs)
 

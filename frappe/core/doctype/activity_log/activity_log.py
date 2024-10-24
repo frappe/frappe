@@ -69,7 +69,7 @@ def on_doctype_update() -> None:
 	frappe.db.add_index("Activity Log", ["timeline_doctype", "timeline_name"])
 
 
-def add_authentication_log(subject, user, operation="Login", status="Success") -> None:
+def add_authentication_log(subject, user, operation: str = "Login", status: str = "Success") -> None:
 	frappe.get_doc(
 		{
 			"doctype": "Activity Log",

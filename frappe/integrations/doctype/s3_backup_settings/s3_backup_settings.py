@@ -101,7 +101,7 @@ def take_backups_if(freq) -> None:
 
 
 @frappe.whitelist()
-def take_backups_s3(retry_count=0) -> None:
+def take_backups_s3(retry_count: int = 0) -> None:
 	try:
 		validate_file_size()
 		backup_to_s3()

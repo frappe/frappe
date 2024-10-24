@@ -229,7 +229,7 @@ def validate_loop(doctype, name, lft, rgt) -> None:
 		frappe.throw(_("Item cannot be added to its own descendants"), NestedSetRecursionError)
 
 
-def remove_subtree(doctype: str, name: str, throw=True) -> None:
+def remove_subtree(doctype: str, name: str, throw: bool = True) -> None:
 	"""Remove doc and all its children.
 
 	WARN: This does not run any controller hooks for deletion and deletes them with raw SQL query.
@@ -265,7 +265,7 @@ class NestedSet(Document):
 		update_nsm(self)
 		self.validate_ledger()
 
-	def on_trash(self, allow_root_deletion=False):
+	def on_trash(self, allow_root_deletion: bool = False):
 		"""
 		Runs on deletion of a document/node
 
@@ -299,7 +299,7 @@ class NestedSet(Document):
 				_("Cannot delete {0} as it has child nodes").format(self.name), NestedSetChildExistsError
 			)
 
-	def before_rename(self, olddn, newdn, merge=False, group_fname="is_group") -> None:
+	def before_rename(self, olddn, newdn, merge: bool = False, group_fname: str = "is_group") -> None:
 		if merge and hasattr(self, group_fname):
 			is_group = frappe.db.get_value(self.doctype, newdn, group_fname)
 			if self.get(group_fname) != is_group:
@@ -308,7 +308,7 @@ class NestedSet(Document):
 					NestedSetInvalidMergeError,
 				)
 
-	def after_rename(self, olddn, newdn, merge=False) -> None:
+	def after_rename(self, olddn, newdn, merge: bool = False) -> None:
 		if not self.nsm_parent_field:
 			parent_field = "parent_" + self.doctype.replace(" ", "_").lower()
 		else:
@@ -333,7 +333,7 @@ class NestedSet(Document):
 	def get_root_node_count(self):
 		return frappe.db.count(self.doctype, {self.nsm_parent_field: ""})
 
-	def validate_ledger(self, group_identifier="is_group") -> None:
+	def validate_ledger(self, group_identifier: str = "is_group") -> None:
 		if hasattr(self, group_identifier) and not bool(self.get(group_identifier)):
 			if frappe.get_all(self.doctype, {self.nsm_parent_field: self.name, "docstatus": ("!=", 2)}):
 				frappe.throw(
@@ -370,7 +370,7 @@ def get_root_of(doctype):
 	return result[0][0] if result else None
 
 
-def get_ancestors_of(doctype, name, order_by="lft desc", limit=None):
+def get_ancestors_of(doctype, name, order_by: str = "lft desc", limit=None):
 	"""Get ancestor elements of a DocType with a tree structure"""
 	lft, rgt = frappe.db.get_value(doctype, name, ["lft", "rgt"])
 
@@ -384,7 +384,9 @@ def get_ancestors_of(doctype, name, order_by="lft desc", limit=None):
 	)
 
 
-def get_descendants_of(doctype, name, order_by="lft desc", limit=None, ignore_permissions=False):
+def get_descendants_of(
+	doctype, name, order_by: str = "lft desc", limit=None, ignore_permissions: bool = False
+):
 	"""Return descendants of the current record"""
 	lft, rgt = frappe.db.get_value(doctype, name, ["lft", "rgt"])
 

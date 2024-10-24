@@ -307,12 +307,12 @@ class Document(BaseDocument, DocRef):
 
 		return self._doc_before_save
 
-	def check_permission(self, permtype="read", permlevel=None) -> None:
+	def check_permission(self, permtype: str = "read", permlevel=None) -> None:
 		"""Raise `frappe.PermissionError` if not permitted"""
 		if not self.has_permission(permtype):
 			self.raise_no_permission_to(permtype)
 
-	def has_permission(self, permtype="read", *, debug=False, user=None) -> bool:
+	def has_permission(self, permtype: str = "read", *, debug: bool = False, user=None) -> bool:
 		"""
 		Call `frappe.permissions.has_permission` if `ignore_permissions` flag isn't truthy
 
@@ -337,10 +337,10 @@ class Document(BaseDocument, DocRef):
 		self,
 		ignore_permissions=None,
 		ignore_links=None,
-		ignore_if_duplicate=False,
+		ignore_if_duplicate: bool = False,
 		ignore_mandatory=None,
 		set_name=None,
-		set_child_names=True,
+		set_child_names: bool = True,
 	) -> "Self":
 		"""Insert the document in the database (as a new document).
 		This will check for user permissions and execute `before_insert`,
@@ -583,7 +583,7 @@ class Document(BaseDocument, DocRef):
 			return
 		return previous.get(fieldname)
 
-	def set_new_name(self, force=False, set_name=None, set_child_names=True) -> None:
+	def set_new_name(self, force: bool = False, set_name=None, set_child_names: bool = True) -> None:
 		"""Calls `frappe.naming.set_new_name` for parent and child docs."""
 
 		if self.flags.name_set and not force:
@@ -857,7 +857,7 @@ class Document(BaseDocument, DocRef):
 				for d in self.get(df.fieldname):
 					d.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
 
-	def get_permlevel_access(self, permission_type="write"):
+	def get_permlevel_access(self, permission_type: str = "write"):
 		allowed_permlevels = []
 		roles = frappe.get_roles()
 
@@ -867,7 +867,7 @@ class Document(BaseDocument, DocRef):
 
 		return allowed_permlevels
 
-	def has_permlevel_access_to(self, fieldname, df=None, permission_type="read") -> bool:
+	def has_permlevel_access_to(self, fieldname, df=None, permission_type: str = "read") -> bool:
 		if not df:
 			df = self.meta.get_field(fieldname)
 
@@ -1182,11 +1182,13 @@ class Document(BaseDocument, DocRef):
 		self.run_method("on_discard")
 
 	@frappe.whitelist()
-	def rename(self, name: str, merge=False, force=False, validate_rename=True):
+	def rename(self, name: str, merge: bool = False, force: bool = False, validate_rename: bool = True):
 		"""Rename the document to `name`. This transforms the current object."""
 		return self._rename(name=name, merge=merge, force=force, validate_rename=validate_rename)
 
-	def delete(self, ignore_permissions=False, force=False, *, delete_permanently=False):
+	def delete(
+		self, ignore_permissions: bool = False, force: bool = False, *, delete_permanently: bool = False
+	):
 		"""Delete document."""
 		return frappe.delete_doc(
 			self.doctype,
@@ -1309,7 +1311,9 @@ class Document(BaseDocument, DocRef):
 			data = {"doctype": self.doctype, "name": self.name, "user": frappe.session.user}
 			frappe.publish_realtime("list_update", data, after_commit=True)
 
-	def db_set(self, fieldname, value=None, update_modified=True, notify=False, commit=False) -> None:
+	def db_set(
+		self, fieldname, value=None, update_modified: bool = True, notify: bool = False, commit: bool = False
+	) -> None:
 		"""Set a value in the document object, update the timestamp and update the database.
 
 		WARNING: This method does not trigger controller validations and should
@@ -1524,7 +1528,7 @@ class Document(BaseDocument, DocRef):
 	@frappe.whitelist()
 	def add_comment(
 		self,
-		comment_type="Comment",
+		comment_type: str = "Comment",
 		text=None,
 		comment_email=None,
 		comment_by=None,
@@ -1561,7 +1565,7 @@ class Document(BaseDocument, DocRef):
 				)
 				frappe.local.flags.commit = True
 
-	def add_viewed(self, user=None, force=False, unique_views=False):
+	def add_viewed(self, user=None, force: bool = False, unique_views: bool = False):
 		"""add log to communication when a user views a document"""
 		if not user:
 			user = frappe.session.user
@@ -1598,7 +1602,7 @@ class Document(BaseDocument, DocRef):
 		"""Return signature (hash) for private URL."""
 		return hashlib.sha224(f"{self.doctype}:{self.name}".encode(), usedforsecurity=False).hexdigest()
 
-	def get_document_share_key(self, expires_on=None, no_expiry=False):
+	def get_document_share_key(self, expires_on=None, no_expiry: bool = False):
 		if no_expiry:
 			expires_on = None
 
@@ -1813,7 +1817,7 @@ def bulk_insert(
 	doctype: str,
 	documents: Iterable["Document"],
 	ignore_duplicates: bool = False,
-	chunk_size=10_000,
+	chunk_size: int = 10_000,
 ) -> None:
 	"""Insert simple Documents objects to database in bulk.
 

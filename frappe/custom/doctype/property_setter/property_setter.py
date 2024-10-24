@@ -76,8 +76,8 @@ def make_property_setter(
 	property,
 	value,
 	property_type,
-	for_doctype=False,
-	validate_fields_for_doctype=True,
+	for_doctype: bool = False,
+	validate_fields_for_doctype: bool = True,
 ):
 	# WARNING: Ignores Permissions
 	property_setter = frappe.get_doc(

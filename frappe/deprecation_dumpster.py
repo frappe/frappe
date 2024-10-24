@@ -48,7 +48,7 @@ except ImportError:
 
 	T = TypeVar("T", bound=Callable)
 
-	def _deprecated(message: str, category=FrappeDeprecationWarning, stacklevel=1) -> Callable[[T], T]:
+	def _deprecated(message: str, category=FrappeDeprecationWarning, stacklevel: int = 1) -> Callable[[T], T]:
 		def decorator(func: T) -> T:
 			@functools.wraps(func)
 			def wrapper(*args, **kwargs):
@@ -139,7 +139,7 @@ def _old_deprecation_warning(msg):
 		"v17",
 		"Use frappe.deprecation_dumpster.deprecation_warning, instead. 🎉🗑️",
 	)
-	def deprecation_warning(message, category=DeprecationWarning, stacklevel=1) -> None:
+	def deprecation_warning(message, category=DeprecationWarning, stacklevel: int = 1) -> None:
 		warnings.warn(message=message, category=category, stacklevel=stacklevel + 2)
 
 	return deprecation_warning(msg)
@@ -226,7 +226,7 @@ def read_multi_pdf(output) -> bytes:
 
 
 @deprecated("frappe.gzip_compress", "unknown", "v17", "Use py3 methods directly (this was compat for py2).")
-def gzip_compress(data, compresslevel=9):
+def gzip_compress(data, compresslevel: int = 9):
 	"""Compress data in one shot and return the compressed string.
 	Optional argument is the compression level, in range of 0-9.
 	"""
@@ -403,7 +403,7 @@ def test_xmlrunner_wrapper(output):
 	"v17",
 	"use with `self.change_settings(...):` context manager",
 )
-def tests_update_system_settings(args, commit=False) -> None:
+def tests_update_system_settings(args, commit: bool = False) -> None:
 	import frappe
 
 	doc = frappe.get_doc("System Settings")

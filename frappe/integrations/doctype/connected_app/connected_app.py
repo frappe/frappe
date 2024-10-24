@@ -54,7 +54,7 @@ class ConnectedApp(Document):
 		)
 		self.redirect_uri = urljoin(base_url, callback_path)
 
-	def get_oauth2_session(self, user=None, init=False):
+	def get_oauth2_session(self, user=None, init: bool = False):
 		"""Return an auto-refreshing OAuth2 session which is an extension of a requests.Session()"""
 		token = None
 		token_updater = None

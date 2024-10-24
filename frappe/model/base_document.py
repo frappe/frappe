@@ -236,7 +236,7 @@ class BaseDocument:
 	def getone(self, key, filters=None):
 		return self.get(key, filters=filters, limit=1)[0]
 
-	def set(self, key, value, as_value=False) -> None:
+	def set(self, key, value, as_value: bool = False) -> None:
 		if key in self._reserved_keywords:
 			return
 
@@ -366,7 +366,11 @@ class BaseDocument:
 		return self.meta.get_table_fields()
 
 	def get_valid_dict(
-		self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False
+		self,
+		sanitize: bool = True,
+		convert_dates_to_str: bool = False,
+		ignore_nulls: bool = False,
+		ignore_virtual: bool = False,
 	) -> _dict:
 		d = _dict()
 		field_values = self.__dict__
@@ -492,11 +496,11 @@ class BaseDocument:
 
 	def as_dict(
 		self,
-		no_nulls=False,
-		no_default_fields=False,
-		convert_dates_to_str=False,
-		no_child_table_fields=False,
-		no_private_properties=False,
+		no_nulls: bool = False,
+		no_default_fields: bool = False,
+		convert_dates_to_str: bool = False,
+		no_child_table_fields: bool = False,
+		no_private_properties: bool = False,
 	) -> dict:
 		doc = self.get_valid_dict(convert_dates_to_str=convert_dates_to_str, ignore_nulls=no_nulls)
 		doc["doctype"] = self.doctype
@@ -554,7 +558,7 @@ class BaseDocument:
 		fieldname = [df.fieldname for df in self.meta.get_table_fields() if df.options == doctype]
 		return fieldname[0] if fieldname else None
 
-	def db_insert(self, ignore_if_duplicate=False):
+	def db_insert(self, ignore_if_duplicate: bool = False):
 		"""INSERT the document (with valid columns) in the database.
 
 		args:
@@ -788,7 +792,7 @@ class BaseDocument:
 
 		return missing
 
-	def get_invalid_links(self, is_submittable=False):
+	def get_invalid_links(self, is_submittable: bool = False):
 		"""Return list of invalid links and also update fetch values if not set."""
 
 		def get_msg(df, docname) -> str:
@@ -1164,7 +1168,7 @@ class BaseDocument:
 				# set dummy password like '*****'
 				self.set(df.fieldname, "*" * len(new_password))
 
-	def get_password(self, fieldname="password", raise_exception=True):
+	def get_password(self, fieldname: str = "password", raise_exception: bool = True):
 		from frappe.utils.password import get_decrypted_password
 
 		if self.get(fieldname) and not self.is_dummy_password(self.get(fieldname)):
@@ -1205,7 +1209,13 @@ class BaseDocument:
 		return self._precision[cache_key][fieldname]
 
 	def get_formatted(
-		self, fieldname, doc=None, currency=None, absolute_value=False, translated=False, format=None
+		self,
+		fieldname,
+		doc=None,
+		currency=None,
+		absolute_value: bool = False,
+		translated: bool = False,
+		format=None,
 	):
 		from frappe.utils.formatters import format_value
 
@@ -1237,7 +1247,7 @@ class BaseDocument:
 
 		return format_value(val, df=df, doc=doc, currency=currency, format=format)
 
-	def is_print_hide(self, fieldname, df=None, for_print=True):
+	def is_print_hide(self, fieldname, df=None, for_print: bool = True):
 		"""Return True if fieldname is to be hidden for print.
 
 		Print Hide can be set via the Print Format Builder or in the controller as a list

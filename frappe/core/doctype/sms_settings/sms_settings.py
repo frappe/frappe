@@ -62,7 +62,7 @@ def get_contact_number(contact_name, ref_doctype, ref_name):
 
 
 @frappe.whitelist()
-def send_sms(receiver_list, msg, sender_name="", success_msg=True) -> None:
+def send_sms(receiver_list, msg, sender_name: str = "", success_msg: bool = True) -> None:
 	import json
 
 	if isinstance(receiver_list, str):
@@ -122,7 +122,7 @@ def get_headers(sms_settings=None):
 	return headers
 
 
-def send_request(gateway_url, params, headers=None, use_post=False, use_json=False):
+def send_request(gateway_url, params, headers=None, use_post: bool = False, use_json: bool = False):
 	import requests
 
 	if not headers:

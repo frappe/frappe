@@ -3,7 +3,7 @@ from frappe.website.utils import build_response
 
 
 class RedirectPage:
-	def __init__(self, path, http_status_code=301) -> None:
+	def __init__(self, path, http_status_code: int = 301) -> None:
 		self.path = path
 		self.http_status_code = http_status_code
 

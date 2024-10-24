@@ -147,7 +147,7 @@ def load_test_records_for(index_doctype) -> dict[str, Any] | list:
 
 
 def _generate_all_records_towards(
-	index_doctype, reset=False, commit=False
+	index_doctype, reset: bool = False, commit: bool = False
 ) -> Generator[tuple[str, int], None, None]:
 	"""Generate test records for the given doctype and its dependencies."""
 
@@ -231,7 +231,7 @@ def _sync_records(
 	if test_record_manager_instance is None:
 		test_record_manager_instance = TestRecordManager()
 
-	def _load(do_create=True):
+	def _load(do_create: bool = True):
 		created, loaded = [], []
 		# one test record file / source under a single register doctype may have entires for different doctypes
 		for _sub_doctype, records in test_records.items():
@@ -292,7 +292,7 @@ def _sync_records(
 		yield from _load()
 
 
-def _try_create(record, reset=False, commit=False) -> tuple["Document", bool]:
+def _try_create(record, reset: bool = False, commit: bool = False) -> tuple["Document", bool]:
 	"""Create a single test document from the given record data."""
 
 	def revert_naming(d) -> None:
@@ -429,17 +429,17 @@ def _after_install_clear_test_log() -> None:
 		os.remove(log_file_path)
 
 
-def make_test_records(doctype, force=False, commit=False):
+def make_test_records(doctype, force: bool = False, commit: bool = False):
 	"""Generate test records for the given doctype and its dependencies."""
 	return list(_generate_all_records_towards(doctype, reset=force, commit=commit))
 
 
-def make_test_records_for_doctype(doctype, force=False, commit=False):
+def make_test_records_for_doctype(doctype, force: bool = False, commit: bool = False):
 	"""Create test records for a specific doctype."""
 	return list(r.name for tag, r in _generate_records_for(doctype, reset=force, commit=commit))
 
 
-def make_test_objects(doctype=None, test_records=None, reset=False, commit=False):
+def make_test_objects(doctype=None, test_records=None, reset: bool = False, commit: bool = False):
 	"""Generate test objects from provided records, with caching and persistence."""
 	if test_records is None:
 		test_records = load_test_records_for(doctype)

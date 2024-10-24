@@ -33,7 +33,7 @@ class TestPassword(IntegrationTestCase):
 
 		return doc, new_password
 
-	def make_email_account(self, name="Test Email Account Password"):
+	def make_email_account(self, name: str = "Test Email Account Password"):
 		if not frappe.db.exists("Email Account", name):
 			return frappe.get_doc(
 				{
@@ -51,7 +51,7 @@ class TestPassword(IntegrationTestCase):
 		else:
 			return frappe.get_doc("Email Account", name)
 
-	def test_hashed_password(self, user="test@example.com") -> None:
+	def test_hashed_password(self, user: str = "test@example.com") -> None:
 		old_password = "Eastern_43A1W"
 		new_password = "Eastern_43A1W-new"
 

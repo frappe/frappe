@@ -310,7 +310,7 @@ def create_user(email, *roles):
 	return user
 
 
-def get_params(user, doctype, docname, is_default=0, hide_descendants=0, applicable=None):
+def get_params(user, doctype, docname, is_default: int = 0, hide_descendants: int = 0, applicable=None):
 	"""Return param to insert"""
 	param = {
 		"user": user.name,

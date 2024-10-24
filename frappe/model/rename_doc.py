@@ -357,7 +357,7 @@ def validate_rename(
 	force: bool = False,
 	ignore_permissions: bool = False,
 	ignore_if_exists: bool = False,
-	save_point=False,
+	save_point: bool = False,
 	old_doc: Document | None = None,
 ) -> str:
 	# using for update so that it gets locked and someone else cannot edit it while this rename is going on!

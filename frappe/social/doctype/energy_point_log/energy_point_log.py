@@ -82,7 +82,7 @@ class EnergyPointLog(Document):
 			reference_log.save()
 
 	@frappe.whitelist()
-	def revert(self, reason, ignore_permissions=False):
+	def revert(self, reason, ignore_permissions: bool = False):
 		if not ignore_permissions:
 			frappe.only_for("System Manager")
 
@@ -187,7 +187,7 @@ def get_alert_dict(doc):
 	return alert_dict
 
 
-def create_energy_points_log(ref_doctype, ref_name, doc, apply_only_once=False):
+def create_energy_points_log(ref_doctype, ref_name, doc, apply_only_once: bool = False):
 	doc = frappe._dict(doc)
 	if doc.rule:
 		log_exists = check_if_log_exists(
@@ -243,7 +243,7 @@ def get_energy_points(user):
 
 
 @frappe.whitelist()
-def get_user_energy_and_review_points(user=None, from_date=None, as_dict=True):
+def get_user_energy_and_review_points(user=None, from_date=None, as_dict: bool = True):
 	conditions = ""
 	given_points_condition = ""
 	values = frappe._dict()
@@ -286,7 +286,7 @@ def get_user_energy_and_review_points(user=None, from_date=None, as_dict=True):
 
 
 @frappe.whitelist()
-def review(doc, points, to_user, reason, review_type="Appreciation"):
+def review(doc, points, to_user, reason, review_type: str = "Appreciation"):
 	current_review_points = get_energy_points(frappe.session.user).review_points
 	doc = doc.as_dict() if hasattr(doc, "as_dict") else frappe._dict(json.loads(doc))
 	points = abs(cint(points))

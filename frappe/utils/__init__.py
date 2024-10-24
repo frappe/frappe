@@ -134,7 +134,7 @@ def validate_phone_number_with_country_code(phone_number: str, fieldname: str) -
 			)
 
 
-def validate_phone_number(phone_number, throw=False):
+def validate_phone_number(phone_number, throw: bool = False):
 	"""Return True if valid phone number."""
 	if not phone_number:
 		return False
@@ -150,7 +150,7 @@ def validate_phone_number(phone_number, throw=False):
 	return bool(match)
 
 
-def validate_name(name, throw=False):
+def validate_name(name, throw: bool = False):
 	"""Return True if the name is valid
 
 	* valid names may have unicode and ascii characters, dash, quotes, numbers
@@ -170,7 +170,7 @@ def validate_name(name, throw=False):
 	return bool(match)
 
 
-def validate_email_address(email_str, throw=False):
+def validate_email_address(email_str, throw: bool = False):
 	"""Validates the email string"""
 	email = email_str = (email_str or "").strip()
 
@@ -302,7 +302,7 @@ def get_gravatar(email: str) -> str:
 	return has_gravatar(email) or Identicon(email).base64()
 
 
-def get_traceback(with_context=False) -> str:
+def get_traceback(with_context: bool = False) -> str:
 	"""Return the traceback of the Exception."""
 	from traceback_with_variables import iter_exc_lines
 
@@ -372,7 +372,7 @@ def dict_to_str(args: dict[str, Any], sep: str = "&") -> str:
 	return sep.join(f"{k!s}=" + quote(str(args[k] or "")) for k in list(args))
 
 
-def list_to_str(seq, sep=", "):
+def list_to_str(seq, sep: str = ", "):
 	"""Convert a sequence into a string using seperator.
 
 	Same as str.join, but does type conversion and strip extra spaces.
@@ -447,7 +447,7 @@ def unesc(s, esc_chars):
 	return s
 
 
-def execute_in_shell(cmd, verbose=False, low_priority=False, check_exit_code=False):
+def execute_in_shell(cmd, verbose: bool = False, low_priority: bool = False, check_exit_code: bool = False):
 	# using Popen instead of os.system - as recommended by python docs
 	import shlex
 	import tempfile
@@ -530,7 +530,7 @@ def get_backups_path():
 	return get_site_path("private", "backups")
 
 
-def get_request_site_address(full_address=False):
+def get_request_site_address(full_address: bool = False):
 	return get_url(full_address=full_address)
 
 
@@ -541,7 +541,7 @@ def get_site_url(site):
 	return f"http://{site}:{conf.webserver_port}"
 
 
-def encode_dict(d, encoding="utf-8"):
+def encode_dict(d, encoding: str = "utf-8"):
 	for key in d:
 		if isinstance(d[key], str) and isinstance(d[key], str):
 			d[key] = d[key].encode(encoding)
@@ -549,7 +549,7 @@ def encode_dict(d, encoding="utf-8"):
 	return d
 
 
-def decode_dict(d, encoding="utf-8"):
+def decode_dict(d, encoding: str = "utf-8"):
 	for key in d:
 		if isinstance(d[key], str) and not isinstance(d[key], str):
 			d[key] = d[key].decode(encoding, "ignore")
@@ -576,7 +576,7 @@ def touch_file(path):
 	return path
 
 
-def get_test_client(use_cookies=True) -> Client:
+def get_test_client(use_cookies: bool = True) -> Client:
 	"""Return an test instance of the Frappe WSGI."""
 	from frappe.app import application
 
@@ -610,7 +610,7 @@ def is_cli() -> bool:
 	return invoked_from_terminal
 
 
-def update_progress_bar(txt, i, l, absolute=False) -> None:
+def update_progress_bar(txt, i, l, absolute: bool = False) -> None:
 	if os.environ.get("CI"):
 		if i == 0:
 			sys.stdout.write(txt)
@@ -688,7 +688,7 @@ def get_sites(sites_path=None):
 	return sorted(sites)
 
 
-def get_request_session(max_retries=5):
+def get_request_session(max_retries: int = 5):
 	import requests
 	from requests.adapters import HTTPAdapter, Retry
 
@@ -701,7 +701,7 @@ def get_request_session(max_retries=5):
 	return session
 
 
-def markdown(text, sanitize=True, linkify=True):
+def markdown(text, sanitize: bool = True, linkify: bool = True):
 	html = text if is_html(text) else frappe.utils.md_to_html(text)
 
 	if sanitize:
@@ -926,7 +926,7 @@ def get_html_for_route(route):
 	return frappe.safe_decode(response.get_data())
 
 
-def get_file_size(path, format=False):
+def get_file_size(path, format: bool = False):
 	num = os.path.getsize(path)
 
 	if not format:

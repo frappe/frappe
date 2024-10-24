@@ -8,7 +8,7 @@ from frappe.model.utils.user_settings import sync_user_settings, update_user_set
 from frappe.utils.password import rename_password_field
 
 
-def rename_field(doctype, old_fieldname, new_fieldname, validate=True) -> None:
+def rename_field(doctype, old_fieldname, new_fieldname, validate: bool = True) -> None:
 	"""This functions assumes that doctype is already synced"""
 
 	meta = frappe.get_meta(doctype, cached=False)

@@ -50,7 +50,7 @@ def pass_context(f):
 	return click.pass_context(_func)
 
 
-def get_site(context, raise_err=True):
+def get_site(context, raise_err: bool = True):
 	try:
 		return context.sites[0]
 	except (IndexError, TypeError):

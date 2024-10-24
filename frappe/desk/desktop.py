@@ -29,7 +29,7 @@ def handle_not_exist(fn):
 
 
 class Workspace:
-	def __init__(self, page, minimal=False):
+	def __init__(self, page, minimal: bool = False):
 		self.page_name = page.get("name")
 		self.page_title = page.get("title")
 		self.public_page = page.get("public")

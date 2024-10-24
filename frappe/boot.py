@@ -203,19 +203,19 @@ def load_desktop_data(bootinfo) -> None:
 		)
 
 
-def get_allowed_pages(cache=False):
+def get_allowed_pages(cache: bool = False):
 	return get_user_pages_or_reports("Page", cache=cache)
 
 
-def get_allowed_reports(cache=False):
+def get_allowed_reports(cache: bool = False):
 	return get_user_pages_or_reports("Report", cache=cache)
 
 
-def get_allowed_report_names(cache=False) -> set[str]:
+def get_allowed_report_names(cache: bool = False) -> set[str]:
 	return {cstr(report) for report in get_allowed_reports(cache).keys() if report}
 
 
-def get_user_pages_or_reports(parent, cache=False):
+def get_user_pages_or_reports(parent, cache: bool = False):
 	if cache:
 		has_role = frappe.cache.get_value("has_role:" + parent, user=frappe.session.user)
 		if has_role:

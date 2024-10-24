@@ -20,7 +20,7 @@ from frappe.utils.change_log import get_app_branch
 APP_TITLE_PATTERN = re.compile(r"^(?![\W])[^\d_\s][\w -]+$", flags=re.UNICODE)
 
 
-def make_boilerplate(dest, app_name, no_git=False) -> None:
+def make_boilerplate(dest, app_name, no_git: bool = False) -> None:
 	if not os.path.exists(dest):
 		print("Destination directory does not exist")
 		return
@@ -133,7 +133,7 @@ def copy_from_frappe(rel_path: str, new_app_path: str) -> None:
 	Path(target).write_text(Path(src).read_text())
 
 
-def _create_app_boilerplate(dest, hooks, no_git=False) -> None:
+def _create_app_boilerplate(dest, hooks, no_git: bool = False) -> None:
 	frappe.create_folder(
 		os.path.join(dest, hooks.app_name, hooks.app_name, frappe.scrub(hooks.app_title)),
 		with_init=True,

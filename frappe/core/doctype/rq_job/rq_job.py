@@ -76,7 +76,7 @@ class RQJob(Document):
 		return self._job_obj
 
 	@staticmethod
-	def get_list(filters=None, start=0, page_length=20, order_by="creation desc"):
+	def get_list(filters=None, start: int = 0, page_length: int = 20, order_by: str = "creation desc"):
 		matched_job_ids = RQJob.get_matching_job_ids(filters=filters)[start : start + page_length]
 
 		conn = get_redis_conn()

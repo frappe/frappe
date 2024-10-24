@@ -48,7 +48,7 @@ class Language(Document):
 	def validate(self) -> None:
 		validate_with_regex(self.language_code, "Language Code")
 
-	def before_rename(self, old, new, merge=False) -> None:
+	def before_rename(self, old, new, merge: bool = False) -> None:
 		validate_with_regex(new, "Name")
 
 	def on_update(self) -> None:

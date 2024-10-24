@@ -136,7 +136,7 @@ def enqueue_events() -> list[str] | None:
 		return enqueued_jobs
 
 
-def is_scheduler_inactive(verbose=True) -> bool:
+def is_scheduler_inactive(verbose: bool = True) -> bool:
 	if frappe.local.conf.maintenance_mode:
 		if verbose:
 			cprint(f"{frappe.local.site}: Maintenance mode is ON")
@@ -153,7 +153,7 @@ def is_scheduler_inactive(verbose=True) -> bool:
 	return False
 
 
-def is_scheduler_disabled(verbose=True) -> bool:
+def is_scheduler_disabled(verbose: bool = True) -> bool:
 	if frappe.conf.disable_scheduler:
 		if verbose:
 			cprint(f"{frappe.local.site}: frappe.conf.disable_scheduler is SET")

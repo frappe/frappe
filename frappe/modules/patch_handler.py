@@ -142,7 +142,7 @@ def reload_doc(args) -> None:
 	run_single(method=frappe.modules.reload_doc, methodargs=args)
 
 
-def run_single(patchmodule=None, method=None, methodargs=None, force=False):
+def run_single(patchmodule=None, method=None, methodargs=None, force: bool = False):
 	from frappe import conf
 
 	# don't write txt files
@@ -206,7 +206,7 @@ def execute_patch(patchmodule: str, method=None, methodargs=None) -> bool:
 	return True
 
 
-def update_patch_log(patchmodule, skipped=False) -> None:
+def update_patch_log(patchmodule, skipped: bool = False) -> None:
 	"""update patch_file in patch log"""
 
 	patch = frappe.get_doc({"doctype": "Patch Log", "patch": patchmodule})

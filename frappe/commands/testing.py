@@ -275,16 +275,16 @@ def run_tests(
 	doctype=None,
 	module_def=None,
 	test=(),
-	profile=False,
-	coverage=False,
-	junit_xml_output=False,
+	profile: bool = False,
+	coverage: bool = False,
+	junit_xml_output: bool = False,
 	doctype_list_path=None,
-	skip_test_records=False,
-	skip_before_tests=False,
-	failfast=False,
+	skip_test_records: bool = False,
+	skip_before_tests: bool = False,
+	failfast: bool = False,
 	case=None,
-	test_category="all",
-	pdb=False,
+	test_category: str = "all",
+	pdb: bool = False,
 ) -> None:
 	"""Run python unit-tests"""
 
@@ -353,9 +353,9 @@ def run_parallel_tests(
 	app,
 	build_number,
 	total_builds,
-	with_coverage=False,
-	use_orchestrator=False,
-	dry_run=False,
+	with_coverage: bool = False,
+	use_orchestrator: bool = False,
+	dry_run: bool = False,
 ) -> None:
 	from traceback_with_variables import activate_by_import
 
@@ -397,10 +397,10 @@ def run_parallel_tests(
 def run_ui_tests(
 	context: CliCtxObj,
 	app,
-	headless=False,
-	parallel=True,
-	with_coverage=False,
-	browser="chrome",
+	headless: bool = False,
+	parallel: bool = True,
+	with_coverage: bool = False,
+	browser: str = "chrome",
 	ci_build_id=None,
 	cypressargs=None,
 ) -> None:

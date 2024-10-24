@@ -13,7 +13,7 @@ def export_doc(doc) -> None:
 	write_document_file(doc)
 
 
-def export_to_files(record_list=None, record_module=None, verbose=0, create_init=None) -> None:
+def export_to_files(record_list=None, record_module=None, verbose: int = 0, create_init=None) -> None:
 	"""
 	Export record_list to files. record_list is a list of lists ([doctype, docname, folder name],)  ,
 	"""
@@ -31,7 +31,7 @@ def export_to_files(record_list=None, record_module=None, verbose=0, create_init
 			)
 
 
-def write_document_file(doc, record_module=None, create_init=True, folder_name=None) -> None:
+def write_document_file(doc, record_module=None, create_init: bool = True, folder_name=None) -> None:
 	doc_export = doc.as_dict(no_nulls=True)
 	doc.run_method("before_export", doc_export)
 

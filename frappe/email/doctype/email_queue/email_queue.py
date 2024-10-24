@@ -88,7 +88,7 @@ class EmailQueue(Document):
 		return duplicate
 
 	@classmethod
-	def new(cls, doc_data, ignore_permissions=False) -> "EmailQueue":
+	def new(cls, doc_data, ignore_permissions: bool = False) -> "EmailQueue":
 		data = doc_data.copy()
 		if not data.get("recipients"):
 			return
@@ -109,12 +109,12 @@ class EmailQueue(Document):
 		name = frappe.db.get_value(cls.DOCTYPE, kwargs)
 		return cls.find(name) if name else None
 
-	def update_db(self, commit=False, **kwargs) -> None:
+	def update_db(self, commit: bool = False, **kwargs) -> None:
 		frappe.db.set_value(self.DOCTYPE, self.name, kwargs)
 		if commit:
 			frappe.db.commit()
 
-	def update_status(self, status, commit=False, **kwargs) -> None:
+	def update_status(self, status, commit: bool = False, **kwargs) -> None:
 		self.update_db(status=status, commit=commit, **kwargs)
 		if self.communication:
 			communication_doc = frappe.get_doc("Communication", self.communication)
@@ -132,7 +132,7 @@ class EmailQueue(Document):
 	def attachments_list(self):
 		return json.loads(self.attachments) if self.attachments else []
 
-	def get_email_account(self, raise_error=False):
+	def get_email_account(self, raise_error: bool = False):
 		if self.email_account:
 			return frappe.get_cached_doc("Email Account", self.email_account)
 
@@ -199,7 +199,7 @@ class EmailQueue(Document):
 				ctx.email_account_doc.append_email_to_sent_folder(message)
 
 	@staticmethod
-	def clear_old_logs(days=30) -> None:
+	def clear_old_logs(days: int = 30) -> None:
 		"""Remove low priority older than 31 days in Outbox or configured in Log Settings.
 		Note: Used separate query to avoid deadlock
 		"""
@@ -493,16 +493,16 @@ class QueueBuilder:
 		in_reply_to=None,
 		send_after=None,
 		expose_recipients=None,
-		send_priority=1,
+		send_priority: int = 1,
 		communication=None,
 		read_receipt=None,
-		queue_separately=False,
-		is_notification=False,
-		add_unsubscribe_link=1,
+		queue_separately: bool = False,
+		is_notification: bool = False,
+		add_unsubscribe_link: int = 1,
 		inline_images=None,
 		header=None,
-		print_letterhead=False,
-		with_container=False,
+		print_letterhead: bool = False,
+		with_container: bool = False,
 		email_read_tracker_url=None,
 	) -> None:
 		"""Add email to sending queue (Email Queue)
@@ -718,7 +718,7 @@ class QueueBuilder:
 			mail.set_in_reply_to(self.in_reply_to)
 		return mail
 
-	def process(self, send_now=False) -> EmailQueue | None:
+	def process(self, send_now: bool = False) -> EmailQueue | None:
 		"""Build and return the email queues those are created.
 
 		Sends email incase if it is requested to send now.
@@ -775,7 +775,7 @@ class QueueBuilder:
 		if smtp_server_instance:
 			smtp_server_instance.quit()
 
-	def as_dict(self, include_recipients=True):
+	def as_dict(self, include_recipients: bool = True):
 		email_account = self.get_outgoing_email_account()
 		email_account_name = email_account and email_account.is_exists_in_db() and email_account.name
 

@@ -109,7 +109,7 @@ def add(parent, role, permlevel) -> None:
 
 
 @frappe.whitelist()
-def update(doctype: str, role: str, permlevel: int, ptype: str, value=None, if_owner=0) -> str | None:
+def update(doctype: str, role: str, permlevel: int, ptype: str, value=None, if_owner: int = 0) -> str | None:
 	"""Update role permission params.
 
 	Args:
@@ -142,7 +142,7 @@ def update(doctype: str, role: str, permlevel: int, ptype: str, value=None, if_o
 
 
 @frappe.whitelist()
-def remove(doctype, role, permlevel, if_owner=0) -> None:
+def remove(doctype, role, permlevel, if_owner: int = 0) -> None:
 	frappe.only_for("System Manager")
 	setup_custom_perms(doctype)
 

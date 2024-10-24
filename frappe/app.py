@@ -490,13 +490,13 @@ if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
 
 
 def serve(
-	port=8000,
-	profile=False,
-	no_reload=False,
-	no_threading=False,
+	port: int = 8000,
+	profile: bool = False,
+	no_reload: bool = False,
+	no_threading: bool = False,
 	site=None,
-	sites_path=".",
-	proxy=False,
+	sites_path: str = ".",
+	proxy: bool = False,
 ) -> None:
 	global application, _site, _sites_path
 	_site = site

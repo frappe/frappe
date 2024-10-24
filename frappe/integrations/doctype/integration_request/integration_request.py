@@ -35,7 +35,7 @@ class IntegrationRequest(Document):
 		if self.flags._name:
 			self.name = self.flags._name
 
-	def clear_old_logs(days=30) -> None:
+	def clear_old_logs(days: int = 30) -> None:
 		from frappe.query_builder import Interval
 		from frappe.query_builder.functions import Now
 

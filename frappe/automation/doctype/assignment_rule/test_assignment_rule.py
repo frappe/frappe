@@ -394,7 +394,7 @@ def get_assignment_rule(days, assign=None):
 
 def _make_test_record(
 	*,
-	ignore_permissions=False,
+	ignore_permissions: bool = False,
 	**kwargs,
 ):
 	doc = frappe.new_doc(TEST_DOCTYPE)

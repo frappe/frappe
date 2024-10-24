@@ -53,12 +53,12 @@ class BackupGenerator:
 		db_port=None,
 		db_type=None,
 		backup_path_conf=None,
-		ignore_conf=False,
-		compress_files=False,
-		include_doctypes="",
-		exclude_doctypes="",
-		verbose=False,
-		old_backup_metadata=False,
+		ignore_conf: bool = False,
+		compress_files: bool = False,
+		include_doctypes: str = "",
+		exclude_doctypes: str = "",
+		verbose: bool = False,
+		old_backup_metadata: bool = False,
 		rollback_callback=None,
 	) -> None:
 		global _verbose
@@ -157,7 +157,7 @@ class BackupGenerator:
 		)
 		return getattr(self, "backup_path_conf", None)
 
-	def get_backup(self, older_than=24, ignore_files=False, force=False) -> None:
+	def get_backup(self, older_than: int = 24, ignore_files: bool = False, force: bool = False) -> None:
 		"""
 		Takes a new dump if existing file is old
 		and sends the link to the file as email
@@ -251,7 +251,7 @@ class BackupGenerator:
 						"Error occurred during encryption. Files are stored without encryption.", fg="red"
 					)
 
-	def get_recent_backup(self, older_than, partial=False):
+	def get_recent_backup(self, older_than, partial: bool = False):
 		backup_path = get_backup_path()
 		separator = suffix = ""
 		if partial:
@@ -531,7 +531,7 @@ def _get_tables(doctypes: list[str], existing_tables: list[str]) -> list[str]:
 
 
 @frappe.whitelist()
-def fetch_latest_backups(partial=False) -> dict:
+def fetch_latest_backups(partial: bool = False) -> dict:
 	"""Fetch paths of the latest backup taken in the last 30 days.
 
 	Note: Only for System Managers
@@ -555,20 +555,20 @@ def fetch_latest_backups(partial=False) -> dict:
 
 
 def scheduled_backup(
-	older_than=6,
-	ignore_files=False,
+	older_than: int = 6,
+	ignore_files: bool = False,
 	backup_path=None,
 	backup_path_db=None,
 	backup_path_files=None,
 	backup_path_private_files=None,
 	backup_path_conf=None,
-	ignore_conf=False,
-	include_doctypes="",
-	exclude_doctypes="",
-	compress=False,
-	force=False,
-	verbose=False,
-	old_backup_metadata=False,
+	ignore_conf: bool = False,
+	include_doctypes: str = "",
+	exclude_doctypes: str = "",
+	compress: bool = False,
+	force: bool = False,
+	verbose: bool = False,
+	old_backup_metadata: bool = False,
 	rollback_callback=None,
 ):
 	"""this function is called from scheduler
@@ -594,20 +594,20 @@ def scheduled_backup(
 
 
 def new_backup(
-	older_than=6,
-	ignore_files=False,
+	older_than: int = 6,
+	ignore_files: bool = False,
 	backup_path=None,
 	backup_path_db=None,
 	backup_path_files=None,
 	backup_path_private_files=None,
 	backup_path_conf=None,
-	ignore_conf=False,
-	include_doctypes="",
-	exclude_doctypes="",
-	compress=False,
-	force=False,
-	verbose=False,
-	old_backup_metadata=False,
+	ignore_conf: bool = False,
+	include_doctypes: str = "",
+	exclude_doctypes: str = "",
+	compress: bool = False,
+	force: bool = False,
+	verbose: bool = False,
+	old_backup_metadata: bool = False,
 	rollback_callback=None,
 ):
 	delete_temp_backups()
@@ -636,7 +636,7 @@ def new_backup(
 	return odb
 
 
-def delete_temp_backups(older_than=24) -> None:
+def delete_temp_backups(older_than: int = 24) -> None:
 	"""
 	Cleans up the backup_link_path directory by deleting older files
 	"""
@@ -650,7 +650,7 @@ def delete_temp_backups(older_than=24) -> None:
 				os.remove(this_file_path)
 
 
-def is_file_old(file_path, older_than=24) -> bool:
+def is_file_old(file_path, older_than: int = 24) -> bool:
 	"""Return True if file exists and is older than specified hours."""
 	if os.path.isfile(file_path):
 		from datetime import timedelta
@@ -725,7 +725,7 @@ def decrypt_backup(file_path: str, passphrase: str):
 
 
 def backup(
-	with_files=False,
+	with_files: bool = False,
 	backup_path_db=None,
 	backup_path_files=None,
 	backup_path_private_files=None,

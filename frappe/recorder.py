@@ -174,7 +174,7 @@ def normalize_query(query: str) -> str:
 	return query
 
 
-def record(force=False) -> None:
+def record(force: bool = False) -> None:
 	if frappe.cache.get_value(RECORDER_INTERCEPT_FLAG) or force:
 		frappe.local._recorder = Recorder(force=force)
 
@@ -185,7 +185,7 @@ def dump() -> None:
 
 
 class Recorder:
-	def __init__(self, force=False) -> None:
+	def __init__(self, force: bool = False) -> None:
 		self.config = RecorderConfig.retrieve()
 		self.calls = []
 		self._patched_sql = False

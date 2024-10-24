@@ -117,7 +117,7 @@ class Address(Document):
 		return False
 
 
-def get_preferred_address(doctype, name, preferred_key="is_primary_address"):
+def get_preferred_address(doctype, name, preferred_key: str = "is_primary_address"):
 	if preferred_key in ["is_shipping_address", "is_primary_address"]:
 		address = frappe.db.sql(
 			""" SELECT
@@ -165,7 +165,7 @@ def get_address_display(address_dict: dict | str | None) -> str | None:
 	return render_address(address_dict)
 
 
-def render_address(address: dict | str | None, check_permissions=True) -> str | None:
+def render_address(address: dict | str | None, check_permissions: bool = True) -> str | None:
 	if not address:
 		return
 
@@ -210,7 +210,7 @@ def get_list_context(context=None):
 	}
 
 
-def get_address_list(doctype, txt, filters, limit_start, limit_page_length=20, order_by=None):
+def get_address_list(doctype, txt, filters, limit_start, limit_page_length: int = 20, order_by=None):
 	from frappe.www.list import get_list
 
 	user = frappe.session.user
@@ -222,7 +222,7 @@ def get_address_list(doctype, txt, filters, limit_start, limit_page_length=20, o
 	return get_list(doctype, txt, filters, limit_start, limit_page_length)
 
 
-def has_website_permission(doc, ptype, user, verbose=False):
+def has_website_permission(doc, ptype, user, verbose: bool = False):
 	"""Return True if there is a related lead or contact related to this document."""
 	contact_name = frappe.db.get_value("Contact", {"email_id": frappe.session.user})
 
@@ -280,7 +280,7 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 	)
 
 
-def get_condensed_address(doc, no_title=False):
+def get_condensed_address(doc, no_title: bool = False):
 	fields = [
 		"address_title",
 		"address_line1",

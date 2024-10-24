@@ -419,7 +419,7 @@ def get_context(context):
 	def allow_website_search_indexing(self) -> bool:
 		return False
 
-	def has_web_form_permission(self, doctype, name, ptype="read"):
+	def has_web_form_permission(self, doctype, name, ptype: str = "read"):
 		if frappe.session.user == "Guest":
 			return False
 
@@ -655,7 +655,7 @@ def get_in_list_view_fields(doctype):
 	return [get_field_df(f) for f in fields]
 
 
-def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=False):
+def get_link_options(web_form_name, doctype, allow_read_on_all_link_options: bool = False):
 	web_form: WebForm = frappe.get_doc("Web Form", web_form_name)
 
 	if web_form.login_required and frappe.session.user == "Guest":

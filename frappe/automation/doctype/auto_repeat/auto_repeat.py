@@ -296,7 +296,7 @@ class AutoRepeat(Document):
 			new_doc.set("from_date", from_date)
 			new_doc.set("to_date", to_date)
 
-	def get_next_schedule_date(self, schedule_date, for_full_schedule=False):
+	def get_next_schedule_date(self, schedule_date, for_full_schedule: bool = False):
 		"""
 		Return the next schedule date for auto repeat after a recurring document has been created.
 		Add required offset to the schedule_date param and return the next schedule date.
@@ -513,7 +513,7 @@ def set_auto_repeat_as_completed() -> None:
 
 
 @frappe.whitelist()
-def make_auto_repeat(doctype, docname, frequency="Daily", start_date=None, end_date=None):
+def make_auto_repeat(doctype, docname, frequency: str = "Daily", start_date=None, end_date=None):
 	if not start_date:
 		start_date = getdate(today())
 	doc = frappe.new_doc("Auto Repeat")

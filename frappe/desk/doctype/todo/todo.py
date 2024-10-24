@@ -161,7 +161,7 @@ def get_permission_query_conditions(user):
 		)
 
 
-def has_permission(doc, ptype="read", user=None):
+def has_permission(doc, ptype: str = "read", user=None):
 	user = user or frappe.session.user
 	todo_roles = frappe.permissions.get_doctype_roles("ToDo", ptype)
 	todo_roles = set(todo_roles) - set(AUTOMATIC_ROLES)

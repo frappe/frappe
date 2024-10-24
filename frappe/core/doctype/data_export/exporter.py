@@ -32,13 +32,13 @@ def get_data_keys():
 def export_data(
 	doctype=None,
 	parent_doctype=None,
-	all_doctypes=True,
-	with_data=False,
+	all_doctypes: bool = True,
+	with_data: bool = False,
 	select_columns=None,
-	file_type="CSV",
-	template=False,
+	file_type: str = "CSV",
+	template: bool = False,
 	filters=None,
-	export_without_column_meta=False,
+	export_without_column_meta: bool = False,
 ) -> None:
 	_doctype = doctype
 	if isinstance(_doctype, list):
@@ -78,13 +78,13 @@ class DataExporter:
 		self,
 		doctype=None,
 		parent_doctype=None,
-		all_doctypes=True,
-		with_data=False,
+		all_doctypes: bool = True,
+		with_data: bool = False,
 		select_columns=None,
-		file_type="CSV",
-		template=False,
+		file_type: str = "CSV",
+		template: bool = False,
 		filters=None,
-		export_without_column_meta=False,
+		export_without_column_meta: bool = False,
 	) -> None:
 		self.doctype = doctype
 		self.parent_doctype = parent_doctype

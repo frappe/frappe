@@ -45,7 +45,7 @@ def bootstrap_database(verbose, source_sql=None) -> None:
 		sys.exit(1)
 
 
-def import_db_from_sql(source_sql=None, verbose=False) -> None:
+def import_db_from_sql(source_sql=None, verbose: bool = False) -> None:
 	if verbose:
 		print("Starting database import...")
 	db_name = frappe.conf.db_name

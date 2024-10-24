@@ -7,7 +7,7 @@ from frappe.exceptions import UrlSchemeNotSupported
 REDIS_KEYS = ("redis_cache", "redis_queue")
 
 
-def is_open(scheme, hostname, port, path, timeout=10) -> bool:
+def is_open(scheme, hostname, port, path, timeout: int = 10) -> bool:
 	if scheme in ["redis", "rediss", "postgres", "mariadb"]:
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		conn = (hostname, int(port))

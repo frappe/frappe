@@ -57,7 +57,7 @@ def getdoc(doctype, name, user=None):
 
 
 @frappe.whitelist()
-def getdoctype(doctype, with_parent=False, cached_timestamp=None) -> str:
+def getdoctype(doctype, with_parent: bool = False, cached_timestamp=None) -> str:
 	"""load doctype"""
 
 	docs = []
@@ -218,7 +218,7 @@ def get_webhook_request_log_exists(doc: "Document") -> bool:
 
 
 @frappe.whitelist()
-def get_communications(doctype, name, start=0, limit=20):
+def get_communications(doctype, name, start: int = 0, limit: int = 20):
 	from frappe.utils import cint
 
 	doc = frappe.get_doc(doctype, name)
@@ -270,7 +270,7 @@ def get_point_logs(doctype, docname):
 	)
 
 
-def _get_communications(doctype, name, start=0, limit=20):
+def _get_communications(doctype, name, start: int = 0, limit: int = 20):
 	communications = get_communication_data(doctype, name, start, limit)
 	for c in communications:
 		if c.communication_type in ("Communication", "Automated Message"):
@@ -286,7 +286,14 @@ def _get_communications(doctype, name, start=0, limit=20):
 
 
 def get_communication_data(
-	doctype, name, start=0, limit=20, after=None, fields=None, group_by=None, as_dict=True
+	doctype,
+	name,
+	start: int = 0,
+	limit: int = 20,
+	after=None,
+	fields=None,
+	group_by=None,
+	as_dict: bool = True,
 ):
 	"""Return list of communications for a given document."""
 	if not fields:

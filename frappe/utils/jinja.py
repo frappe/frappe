@@ -69,7 +69,7 @@ def validate_template(html) -> None:
 		frappe.throw(f"Syntax error in template as line {e.lineno}: {e.message}")
 
 
-def render_template(template, context=None, is_path=None, safe_render=True):
+def render_template(template, context=None, is_path=None, safe_render: bool = True):
 	"""Render a template using Jinja
 
 	:param template: path or HTML containing the jinja template

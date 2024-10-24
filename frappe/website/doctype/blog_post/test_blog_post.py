@@ -186,7 +186,7 @@ def scrub(text):
 	return WebsiteGenerator.scrub(None, text)
 
 
-def make_test_blog(category_title="Test Blog Category"):
+def make_test_blog(category_title: str = "Test Blog Category"):
 	category_name = scrub(category_title)
 	if not frappe.db.exists("Blog Category", category_name):
 		frappe.get_doc(doctype="Blog Category", title=category_title).insert()

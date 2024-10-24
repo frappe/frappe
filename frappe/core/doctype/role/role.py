@@ -27,7 +27,7 @@ class Role(Document):
 		two_factor_auth: DF.Check
 	# end: auto-generated types
 
-	def before_rename(self, old, new, merge=False) -> None:
+	def before_rename(self, old, new, merge: bool = False) -> None:
 		if old in STANDARD_ROLES:
 			frappe.throw(frappe._("Standard roles cannot be renamed"))
 
@@ -87,7 +87,7 @@ class Role(Document):
 				user.save()
 
 
-def get_info_based_on_role(role, field="email", ignore_permissions=False):
+def get_info_based_on_role(role, field: str = "email", ignore_permissions: bool = False):
 	"""Get information of all users that have been assigned this role"""
 	users = frappe.get_list(
 		"Has Role",
@@ -100,7 +100,7 @@ def get_info_based_on_role(role, field="email", ignore_permissions=False):
 	return get_user_info(users, field)
 
 
-def get_user_info(users, field="email"):
+def get_user_info(users, field: str = "email"):
 	"""Fetch details about users for the specified field"""
 	info_list = []
 	for user in users:

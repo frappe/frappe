@@ -291,7 +291,7 @@ def generate_admin_keys() -> None:
 
 
 @frappe.whitelist()
-def test(*, fail=False, handled=True, message="Failed") -> None:
+def test(*, fail: bool = False, handled: bool = True, message: str = "Failed") -> None:
 	if fail:
 		if handled:
 			frappe.throw(message)

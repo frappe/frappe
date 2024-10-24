@@ -163,7 +163,7 @@ def start_import(data_import) -> None:
 
 @frappe.whitelist()
 def download_template(
-	doctype, export_fields=None, export_records=None, export_filters=None, file_type="CSV"
+	doctype, export_fields=None, export_records=None, export_filters=None, file_type: str = "CSV"
 ) -> None:
 	"""
 	Download template from Exporter
@@ -242,7 +242,9 @@ def get_import_logs(data_import: str):
 	)
 
 
-def import_file(doctype, file_path, import_type, submit_after_import=False, console=False) -> None:
+def import_file(
+	doctype, file_path, import_type, submit_after_import: bool = False, console: bool = False
+) -> None:
 	"""
 	Import documents in from CSV or XLSX using data import.
 
@@ -263,7 +265,7 @@ def import_file(doctype, file_path, import_type, submit_after_import=False, cons
 	i.import_data()
 
 
-def import_doc(path, pre_process=None, sort=False):
+def import_doc(path, pre_process=None, sort: bool = False):
 	if os.path.isdir(path):
 		files = [os.path.join(path, f) for f in os.listdir(path)]
 		if sort:
@@ -283,7 +285,9 @@ def import_doc(path, pre_process=None, sort=False):
 			raise NotImplementedError("Only .json files can be imported")
 
 
-def export_json(doctype, path, filters=None, or_filters=None, name=None, order_by="creation asc") -> None:
+def export_json(
+	doctype, path, filters=None, or_filters=None, name=None, order_by: str = "creation asc"
+) -> None:
 	def post_process(out) -> None:
 		# Note on Tree DocTypes:
 		# The tree structure is maintained in the database via the fields "lft"

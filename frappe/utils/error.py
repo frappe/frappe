@@ -34,7 +34,9 @@ def _is_ldap_exception(e) -> bool:
 	return False
 
 
-def log_error(title=None, message=None, reference_doctype=None, reference_name=None, *, defer_insert=False):
+def log_error(
+	title=None, message=None, reference_doctype=None, reference_name=None, *, defer_insert: bool = False
+):
 	"""Log error to Error Log"""
 	from frappe.monitor import get_trace_id
 	from frappe.utils.sentry import capture_exception

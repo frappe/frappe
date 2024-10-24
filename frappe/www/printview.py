@@ -603,7 +603,7 @@ def get_print_style(
 
 
 def get_font(
-	print_settings: "PrintSettings", print_format: Optional["PrintFormat"] = None, for_legacy=False
+	print_settings: "PrintSettings", print_format: Optional["PrintFormat"] = None, for_legacy: bool = False
 ) -> str:
 	default = "var(--font-stack)"
 	if for_legacy:

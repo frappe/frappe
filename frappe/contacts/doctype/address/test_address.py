@@ -41,7 +41,14 @@ class TestAddress(IntegrationTestCase):
 		self.assertTrue(display)
 
 	def test_address_query(self) -> None:
-		def query(doctype="Address", txt="", searchfield="name", start=0, page_len=20, filters=None):
+		def query(
+			doctype: str = "Address",
+			txt: str = "",
+			searchfield: str = "name",
+			start: int = 0,
+			page_len: int = 20,
+			filters=None,
+		):
 			if filters is None:
 				filters = {"link_doctype": "User", "link_name": "Administrator"}
 			return address_query(doctype, txt, searchfield, start, page_len, filters)

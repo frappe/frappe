@@ -16,7 +16,7 @@ HEADERS = (
 
 
 class TestCORS(IntegrationTestCase):
-	def make_request_and_test(self, origin="http://example.com", absent=False) -> None:
+	def make_request_and_test(self, origin: str = "http://example.com", absent: bool = False) -> None:
 		self.origin = origin
 
 		headers = {}

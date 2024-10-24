@@ -3,7 +3,7 @@
 import frappe
 
 
-def add_custom_field(doctype, fieldname, fieldtype="Data", options=None) -> None:
+def add_custom_field(doctype, fieldname, fieldtype: str = "Data", options=None) -> None:
 	frappe.get_doc(
 		{
 			"doctype": "Custom Field",

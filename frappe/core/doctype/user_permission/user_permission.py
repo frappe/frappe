@@ -287,7 +287,7 @@ def add_user_permissions(data) -> int:
 
 
 def insert_user_perm(
-	user, doctype, docname, is_default=0, hide_descendants=0, apply_to_all=None, applicable=None
+	user, doctype, docname, is_default: int = 0, hide_descendants: int = 0, apply_to_all=None, applicable=None
 ) -> None:
 	user_perm = frappe.new_doc("User Permission")
 	user_perm.user = user

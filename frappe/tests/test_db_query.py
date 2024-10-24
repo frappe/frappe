@@ -22,7 +22,7 @@ EXTRA_TEST_RECORD_DEPENDENCIES = ["User", "Blog Post", "Blog Category", "Blogger
 
 
 @contextmanager
-def setup_test_user(set_user=False):
+def setup_test_user(set_user: bool = False):
 	test_user = frappe.get_doc("User", "test@example.com")
 	user_roles = frappe.get_roles()
 	test_user.remove_roles(*user_roles)
@@ -1081,7 +1081,7 @@ class TestDBQuery(IntegrationTestCase):
 
 		class VirtualDocType:
 			@staticmethod
-			def get_list(args=None, limit_page_length=0, doctype=None) -> None:
+			def get_list(args=None, limit_page_length: int = 0, doctype=None) -> None:
 				# Backward compatibility
 				self.assertEqual(args["filters"], [["Virtual DocType", "name", "=", "test"]])
 
@@ -1425,7 +1425,7 @@ def add_child_table_to_blog_post() -> None:
 	add_custom_field("Blog Post", "child_table", "Table", child_table.name)
 
 
-def create_event(subject="_Test Event", starts_on=None):
+def create_event(subject: str = "_Test Event", starts_on=None):
 	"""create a test event"""
 
 	from frappe.utils import get_datetime

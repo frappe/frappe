@@ -37,7 +37,9 @@ ignore_values = {
 ignore_doctypes = [""]
 
 
-def import_files(module, dt=None, dn=None, force=False, pre_process=None, reset_permissions=False):
+def import_files(
+	module, dt=None, dn=None, force: bool = False, pre_process=None, reset_permissions: bool = False
+):
 	if isinstance(module, list):
 		return [
 			import_file(
@@ -56,7 +58,7 @@ def import_files(module, dt=None, dn=None, force=False, pre_process=None, reset_
 		)
 
 
-def import_file(module, dt, dn, force=False, pre_process=None, reset_permissions=False):
+def import_file(module, dt, dn, force: bool = False, pre_process=None, reset_permissions: bool = False):
 	"""Sync a file from txt if modifed, return false if not updated"""
 	path = get_file_path(module, dt, dn)
 	return import_file_by_path(path, force, pre_process=pre_process, reset_permissions=reset_permissions)
@@ -199,10 +201,10 @@ def update_modified(original_modified, doc) -> None:
 
 def import_doc(
 	docdict,
-	data_import=False,
+	data_import: bool = False,
 	pre_process=None,
 	ignore_version=None,
-	reset_permissions=False,
+	reset_permissions: bool = False,
 	path=None,
 ):
 	frappe.flags.in_import = True

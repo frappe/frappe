@@ -84,29 +84,29 @@ class DatabaseQuery:
 		docstatus=None,
 		group_by=None,
 		order_by=DefaultOrderBy,
-		limit_start=False,
+		limit_start: bool = False,
 		limit_page_length=None,
-		as_list=False,
-		with_childnames=False,
-		debug=False,
-		ignore_permissions=False,
+		as_list: bool = False,
+		with_childnames: bool = False,
+		debug: bool = False,
+		ignore_permissions: bool = False,
 		user=None,
-		with_comment_count=False,
-		join="left join",
-		distinct=False,
+		with_comment_count: bool = False,
+		join: str = "left join",
+		distinct: bool = False,
 		start=None,
 		page_length=None,
 		limit=None,
-		ignore_ifnull=False,
-		save_user_settings=False,
-		save_user_settings_fields=False,
+		ignore_ifnull: bool = False,
+		save_user_settings: bool = False,
+		save_user_settings_fields: bool = False,
 		update=None,
 		user_settings=None,
 		reference_doctype=None,
-		run=True,
-		strict=True,
+		run: bool = True,
+		strict: bool = True,
 		pluck=None,
-		ignore_ddl=False,
+		ignore_ddl: bool = False,
 		*,
 		parent_doctype=None,
 	) -> list:
@@ -921,7 +921,7 @@ class DatabaseQuery:
 
 		return condition
 
-	def build_match_conditions(self, as_condition=True) -> str | list:
+	def build_match_conditions(self, as_condition: bool = True) -> str | list:
 		"""add match conditions if applicable"""
 		self.match_filters = []
 		self.match_conditions = []

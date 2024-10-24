@@ -42,7 +42,7 @@ class Timestamp(Function):
 
 
 class Round(Function):
-	def __init__(self, term, decimal=0, **kwargs) -> None:
+	def __init__(self, term, decimal: int = 0, **kwargs) -> None:
 		super().__init__("ROUND", term, decimal, **kwargs)
 
 

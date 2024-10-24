@@ -201,7 +201,7 @@ def create_http_request():
 	return HTTPRequest()
 
 
-def enable_2fa(bypass_two_factor_auth=0, bypass_restrict_ip_check=0) -> None:
+def enable_2fa(bypass_two_factor_auth: int = 0, bypass_restrict_ip_check: int = 0) -> None:
 	"""Enable Two factor in system settings."""
 	system_settings = frappe.get_doc("System Settings")
 	system_settings.enable_two_factor_auth = 1

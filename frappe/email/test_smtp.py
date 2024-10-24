@@ -64,7 +64,9 @@ class TestSMTP(IntegrationTestCase):
 			frappe.db.set_value("Email Account", email_account["name"], set_details)
 
 
-def create_email_account(email_id, password, enable_outgoing, default_outgoing=0, append_to=None) -> None:
+def create_email_account(
+	email_id, password, enable_outgoing, default_outgoing: int = 0, append_to=None
+) -> None:
 	email_dict = {
 		"email_id": email_id,
 		"passsword": password,

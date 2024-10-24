@@ -313,7 +313,9 @@ def clear_blog_cache() -> None:
 	clear_cache("writers")
 
 
-def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_length=20, order_by=None):
+def get_blog_list(
+	doctype, txt=None, filters=None, limit_start: int = 0, limit_page_length: int = 20, order_by=None
+):
 	conditions = []
 	if filters and filters.get("blog_category"):
 		category = filters.get("blog_category")

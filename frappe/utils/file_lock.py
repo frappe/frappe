@@ -47,7 +47,7 @@ def lock_age(name) -> float:
 	return time() - Path(get_lock_path(name)).stat().st_mtime
 
 
-def check_lock(path, timeout=600) -> bool:
+def check_lock(path, timeout: int = 600) -> bool:
 	if not os.path.exists(path):
 		return False
 	if time() - os.path.getmtime(path) > timeout:

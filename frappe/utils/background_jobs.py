@@ -74,7 +74,7 @@ def enqueue(
 	on_failure: Callable | None = None,
 	at_front: bool = False,
 	job_id: str | None = None,
-	deduplicate=False,
+	deduplicate: bool = False,
 	**kwargs,
 ) -> Job | Any:
 	"""
@@ -188,7 +188,9 @@ def enqueue(
 	return enqueue_call()
 
 
-def enqueue_doc(doctype, name=None, method=None, queue="default", timeout=300, now=False, **kwargs):
+def enqueue_doc(
+	doctype, name=None, method=None, queue: str = "default", timeout: int = 300, now: bool = False, **kwargs
+):
 	"""Enqueue a method to be run on a document"""
 	return enqueue(
 		"frappe.utils.background_jobs.run_doc_method",
@@ -206,7 +208,7 @@ def run_doc_method(doctype, name, doc_method, **kwargs) -> None:
 	getattr(frappe.get_doc(doctype, name), doc_method)(**kwargs)
 
 
-def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True, retry=0):
+def execute_job(site, method, event, job_name, kwargs, user=None, is_async: bool = True, retry: int = 0):
 	"""Executes job in a worker, performs commit/rollback and logs if there is any error"""
 	retval = None
 
@@ -411,7 +413,7 @@ def get_worker_name(queue):
 	return name
 
 
-def get_jobs(site=None, queue=None, key="method"):
+def get_jobs(site=None, queue=None, key: str = "method"):
 	"""Gets jobs per queue or per site or both"""
 	jobs_per_site = defaultdict(list)
 
@@ -437,7 +439,7 @@ def get_jobs(site=None, queue=None, key="method"):
 	return jobs_per_site
 
 
-def get_queue_list(queue_list=None, build_queue_name=False):
+def get_queue_list(queue_list=None, build_queue_name: bool = False):
 	"""Defines possible queues. Also wraps a given queue in a list after validating."""
 	default_queue_list = list(get_queues_timeout())
 	if queue_list:

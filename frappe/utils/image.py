@@ -8,7 +8,7 @@ from PIL import Image
 import frappe
 
 
-def resize_images(path, maxdim=700) -> None:
+def resize_images(path, maxdim: int = 700) -> None:
 	size = (maxdim, maxdim)
 	for basepath, folders, files in os.walk(path):  # noqa: B007
 		for fname in files:
@@ -46,7 +46,14 @@ def strip_exif_data(content, content_type) -> bytes:
 	return content
 
 
-def optimize_image(content, content_type, max_width=1024, max_height=768, optimize=True, quality=85):
+def optimize_image(
+	content,
+	content_type,
+	max_width: int = 1024,
+	max_height: int = 768,
+	optimize: bool = True,
+	quality: int = 85,
+):
 	if content_type == "image/svg+xml":
 		return content
 

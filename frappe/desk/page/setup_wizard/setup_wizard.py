@@ -62,7 +62,7 @@ def setup_complete(args):
 
 
 @frappe.task()
-def process_setup_stages(stages, user_input, is_background_task=False):
+def process_setup_stages(stages, user_input, is_background_task: bool = False):
 	from frappe.utils.telemetry import capture
 
 	capture("initated_server_side", "setup")
@@ -395,7 +395,7 @@ def enable_twofactor_all_roles() -> None:
 	all_role.save(ignore_permissions=True)
 
 
-def make_records(records, debug=False) -> None:
+def make_records(records, debug: bool = False) -> None:
 	from frappe import _dict
 	from frappe.modules import scrub
 

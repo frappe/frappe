@@ -28,7 +28,7 @@ def generate_pot_file(context: CliCtxObj, app: str | None = None) -> None:
 @click.option("--locale", help="Compile transaltions only for this locale. eg: de")
 @pass_context
 def compile_translations(
-	context: CliCtxObj, app: str | None = None, locale: str | None = None, force=False
+	context: CliCtxObj, app: str | None = None, locale: str | None = None, force: bool = False
 ) -> None:
 	from frappe.gettext.translate import compile_translations as _compile_translations
 

@@ -306,7 +306,7 @@ class User(Document):
 		elif self.has_value_changed("allow_in_mentions") or self.has_value_changed("user_type"):
 			frappe.cache.delete_key("users_for_mentions")
 
-	def has_website_permission(self, ptype, user, verbose=False):
+	def has_website_permission(self, ptype, user, verbose: bool = False):
 		"""Return True if current user is the session user."""
 		return self.name == frappe.session.user
 
@@ -421,7 +421,7 @@ class User(Document):
 	def validate_reset_password(self) -> None:
 		pass
 
-	def reset_password(self, send_email=False, password_expired=False):
+	def reset_password(self, send_email: bool = False, password_expired: bool = False):
 		from frappe.utils import get_url
 
 		key = frappe.generate_hash()
@@ -595,7 +595,7 @@ class User(Document):
 					note.remove(row)
 			note.save(ignore_permissions=True)
 
-	def before_rename(self, old_name, new_name, merge=False) -> None:
+	def before_rename(self, old_name, new_name, merge: bool = False) -> None:
 		# if merging, delete the old user notification settings
 		if merge:
 			frappe.delete_doc("Notification Settings", old_name, ignore_permissions=True)
@@ -615,7 +615,7 @@ class User(Document):
 
 		validate_email_address(email.strip(), True)
 
-	def after_rename(self, old_name, new_name, merge=False) -> None:
+	def after_rename(self, old_name, new_name, merge: bool = False) -> None:
 		tables = frappe.db.get_tables()
 		for tab in tables:
 			desc = frappe.db.get_table_columns_description(tab)
@@ -1255,7 +1255,7 @@ def get_module_profile(module_profile: str):
 	return module_profile.get("block_modules")
 
 
-def create_contact(user, ignore_links=False, ignore_mandatory=False):
+def create_contact(user, ignore_links: bool = False, ignore_mandatory: bool = False):
 	from frappe.contacts.doctype.contact.contact import get_contact_name
 
 	if user.name in ["Administrator", "Guest"]:
