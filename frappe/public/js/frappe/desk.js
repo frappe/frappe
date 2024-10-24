@@ -30,7 +30,9 @@ frappe.Application = class Application {
 		this.startup();
 	}
 
-	startup() {
+	async startup() {
+		await new TranslationsLoader().initSafe();
+
 		frappe.realtime.init();
 		frappe.model.init();
 
@@ -599,3 +601,48 @@ frappe.get_module = function (m, default_module) {
 
 	return module;
 };
+
+class TranslationsLoader {
+	async initSafe() {
+		try {
+			return await this.init();
+		} catch (e) {
+			console.error(e);
+		}
+	}
+
+	async init() {
+		this.setTranslations({});
+		const res = await this.download();
+		this.setTranslations(res);
+		return res;
+	}
+
+	/** @returns {Promise<Record<string, string>>} */
+	async download() {
+		const res = await fetch(this.url);
+		if (res.ok) {
+			return await res.json();
+		} else {
+			return [];
+		}
+	}
+
+	get url() {
+		const url = new URL(
+			"/api/method/frappe.translate.load_all_translations",
+			window.location.origin
+		);
+		url.searchParams.append("lang", frappe.boot.lang);
+		url.searchParams.append("hash", frappe.boot.translations_hash || window._version_number); // for cache busting
+		return url;
+	}
+
+	/** @param translations {Record<string, string>} */
+	setTranslations(translations) {
+		delete translations["translations_hash__"];
+		frappe._messages ??= {};
+		Object.assign(frappe._messages, translations);
+		frappe.boot.__messages = frappe._messages;
+	}
+}
