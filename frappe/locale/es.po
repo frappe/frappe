@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-08 17:02+0000\n"
-"PO-Revision-Date: 2024-10-21 06:17\n"
+"PO-Revision-Date: 2024-10-24 07:20\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -26,7 +26,7 @@ msgstr " a tu navegador"
 #. Condition'
 #: frappe/core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "!="
-msgstr ""
+msgstr "!="
 
 #. Description of the 'Org History Heading' (Data) field in DocType 'About Us
 #. Settings'
@@ -238,13 +238,13 @@ msgstr "; no permitido en condición"
 #. Condition'
 #: frappe/core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "<"
-msgstr ""
+msgstr "<"
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
 #. Condition'
 #: frappe/core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "<="
-msgstr ""
+msgstr "<="
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:569
 msgid "<b>{0}</b> is not a valid URL"
@@ -296,7 +296,44 @@ msgid "<div class=\"well\">\n"
 "    </ul>\n"
 "</div>\n"
 "<br>\n"
-msgstr ""
+msgstr "<div class=\"well\">\n"
+"    Edita la lista de Series en el recuadro. Reglas:\n"
+"    <ul>\n"
+"        <li>Cada prefijo de Serie en una nueva línea.</li>\n"
+"        <li>Los caracteres especiales permitidos son \"/\" y \"-\"</li>\n"
+"        <li>\n"
+"            Opcionalmente, establece el número de dígitos en la serie usando un punto (.)\n"
+"            seguido de almohadillas (#). Por ejemplo, \".####\" significa que la serie\n"
+"            tendrá cuatro dígitos. El valor predeterminado es cinco dígitos.\n"
+"        </li>\n"
+"        <li>\n"
+"            También puedes usar variables en el nombre de la serie colocándolas\n"
+"            entre puntos (.)\n"
+"            <br>\n"
+"            Variables admitidas:\n"
+"            <ul>\n"
+"                <li><code>.YYYY.</code> - Año en 4 dígitos</li>\n"
+"                <li><code>.YY.</code> - Año en 2 dígitos</li>\n"
+"                <li><code>.MM.</code> - Mes</li>\n"
+"                <li><code>.DD.</code> - Día del mes</li>\n"
+"                <li><code>.WW.</code> - Semana del año</li>\n"
+"                <li><code>.FY.</code> - Año fiscal</li>\n"
+"                <li>\n"
+"                    <code>.{fieldname}.</code> - nombre de campo en el documento p. ej.\n"
+"                    <code>branch</code>\n"
+"                </li>\n"
+"            </ul>\n"
+"        </li>\n"
+"    </ul>\n"
+"    Ejemplos:\n"
+"    <ul>\n"
+"        <li>INV-</li>\n"
+"        <li>INV-10-</li>\n"
+"        <li>INVK-</li>\n"
+"        <li>INV-.AAAA.-.{branch}.-.MM.-.####</li>\n"
+"    </ul>\n"
+"</div>\n"
+"<br>\n"
 
 #. Content of the 'Custom HTML Help' (HTML) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
