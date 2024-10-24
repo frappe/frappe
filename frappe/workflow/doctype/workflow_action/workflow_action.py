@@ -502,15 +502,8 @@ def get_common_email_args(doc):
 	}
 
 
-<<<<<<< HEAD
-def get_email_template(doc):
-	"""Returns next_action_email_template
-	for workflow state (if available) based on doc current workflow state
-	"""
-=======
 def get_email_template_from_workflow(doc):
 	"""Return next_action_email_template for workflow state (if available) based on doc current workflow state."""
->>>>>>> b335abb6aa (fix: use get_email_template to support html template in workflow email)
 	workflow_name = get_workflow_name(doc.get("doctype"))
 	doc_state = get_doc_workflow_state(doc)
 	template_name = frappe.db.get_value(
