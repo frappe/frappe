@@ -5,7 +5,6 @@ import datetime
 from collections.abc import Callable
 from functools import wraps
 
-import pytz
 from werkzeug.wrappers import Response
 
 import frappe
@@ -35,7 +34,7 @@ class RateLimiter:
 		self.limit = int(limit * 1000000)
 		self.window = window
 
-		self.start = datetime.datetime.now(pytz.UTC)
+		self.start = datetime.datetime.now(datetime.timezone.utc)
 		timestamp = int(frappe.utils.now_datetime().timestamp())
 
 		self.window_number, self.spent = divmod(timestamp, self.window)
@@ -80,7 +79,7 @@ class RateLimiter:
 	def record_request_end(self):
 		if self.end is not None:
 			return
-		self.end = datetime.datetime.now(pytz.UTC)
+		self.end = datetime.datetime.now(datetime.timezone.utc)
 		self.duration = int((self.end - self.start).total_seconds() * 1000000)
 
 	def respond(self):
