@@ -48,11 +48,11 @@ def _new_site(
 	reinstall=False,
 	db_password=None,
 	db_type=None,
-	db_socket=None,
 	db_host=None,
 	db_port=None,
 	setup_db=True,
 	mariadb_user_host_login_scope=None,
+	db_socket=None,
 ):
 	"""Install a new Frappe site"""
 
@@ -135,11 +135,11 @@ def install_db(
 	reinstall=False,
 	db_password=None,
 	db_type=None,
-	db_socket=None,
 	db_host=None,
 	db_port=None,
 	setup=True,
 	mariadb_user_host_login_scope=None,
+	db_socket=None,
 ):
 	import frappe.database
 	from frappe.database import bootstrap_database, setup_database
@@ -546,10 +546,9 @@ def make_conf(
 	db_password=None,
 	site_config=None,
 	db_type=None,
-	db_socket=None,
 	db_host=None,
 	db_port=None,
-	db_user=None,
+	db_socket=None,
 ):
 	site = frappe.local.site
 	make_site_config(
@@ -557,10 +556,9 @@ def make_conf(
 		db_password,
 		site_config,
 		db_type=db_type,
-		db_socket=db_socket,
 		db_host=db_host,
 		db_port=db_port,
-		db_user=db_user,
+		db_socket=db_socket,
 	)
 	sites_path = frappe.local.sites_path
 	frappe.destroy()
@@ -575,7 +573,6 @@ def make_site_config(
 	db_socket=None,
 	db_host=None,
 	db_port=None,
-	db_user=None,
 ):
 	frappe.create_folder(os.path.join(frappe.local.site_path))
 	site_file = get_site_config_path()
