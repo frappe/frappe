@@ -5,7 +5,7 @@ import json
 import time
 from collections.abc import Generator, Iterable
 from contextlib import contextmanager
-from functools import singledispatchmethod, wraps
+from functools import cache, singledispatchmethod, wraps
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, Union, overload
 
@@ -160,6 +160,100 @@ def read_only_document(context=None):
 
 			# Clean up the thread-local variable
 			del frappe.local.read_only_depth
+
+
+class DocumentProxy(DocRef):
+	def __init__(self, doctype, name):
+		super().__init__(doctype, name)
+		self._doc = None
+
+	@classmethod
+	@cache
+	def _get_fields(cls, doctype):
+		from frappe.model import data_fieldtypes, default_fields, table_fields
+		from frappe.model.meta import get_default_df
+
+		meta = frappe.get_meta(doctype)
+
+		return {
+			# all meta fields with values
+			f.fieldname: f
+			for f in meta.fields
+			if f.fieldtype in (*data_fieldtypes, *table_fields)
+		} | {
+			# all default fields
+			f.fieldname: f
+			for f in (get_default_df(n) for n in default_fields)
+		}
+
+	@property
+	def _fieldnames(self):
+		return self._get_fields(self.doctype).keys()
+
+	def _fields(self, fieldname):
+		return self._get_fields(self.doctype)[fieldname]
+
+	def __getattr__(self, attr):
+		if attr in self._fieldnames:
+			value = None
+			if self.name:
+				if self._doc is None:
+					self._doc = frappe.get_doc(self.doctype, self.name)
+				value = self._doc.get(attr)
+			field = self._fields(attr)
+			if field.fieldtype == "Link":
+				linked_doctype = field.options
+				return DocumentProxy(linked_doctype, value)
+			if field.fieldtype == "Dynamic Link":
+				linked_doctype = self._doc.get(field.options)
+				return DocumentProxy(linked_doctype, value)
+			if field.fieldtype in ("Table", "Table MultiSelect"):
+				linked_doctype = field.options
+				return DocumentProxyList(linked_doctype, value)
+
+			return value
+		raise AttributeError(f"'{self.doctype}' object proxy has no attribute '{attr}'")
+
+	def __getitem__(self, key):
+		return self.__getattr__(key)
+
+	def __contains__(self, key):
+		return key in self._fieldnames
+
+	def __repr__(self):
+		return f"<{self.__class__.__name__}: doctype={self.doctype} name={self.name or 'n/a'}>"
+
+	def __str__(self):
+		# we explictly deviate from the DocRef stringer as
+		# we need to render the value in jinja environments
+		# in caes of no value and the user not guarding the snippet against it,
+		# we want to "soft error" by printing the full object representation
+		return self.__value__() or self.__repr__()
+
+	def __bool__(self):
+		return bool(self.name)
+
+
+class DocumentProxyList:
+	def __init__(self, doctype, values):
+		self.doctype = doctype
+		self.values = values
+
+	def __iter__(self):
+		for value in self.values:
+			yield DocumentProxy(self.doctype, value.name)
+
+	def __getitem__(self, index):
+		return DocumentProxy(self.doctype, self.values[index].name)
+
+	def __len__(self):
+		return len(self.values)
+
+	def __str__(self):
+		return f"{self.doctype}, {len(self)} items"
+
+	def __repr__(self):
+		return f"<{self.__class__.__name__}: {self.doctype} {len(self)} items>"
 
 
 class Document(BaseDocument, DocRef):
