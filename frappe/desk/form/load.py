@@ -292,11 +292,11 @@ def get_communication_data(
 	if not fields:
 		fields = """
 			C.name, C.communication_type, C.communication_medium,
-			C.comment_type, C.communication_date, C.content,
+			C.communication_date, C.content,
 			C.sender, C.sender_full_name, C.cc, C.bcc,
 			C.creation AS creation, C.subject, C.delivery_status,
 			C._liked_by, C.reference_doctype, C.reference_name,
-			C.read_by_recipient, C.rating, C.recipients
+			C.read_by_recipient, C.recipients
 		"""
 
 	conditions = ""
@@ -315,7 +315,7 @@ def get_communication_data(
 	part1 = f"""
 		SELECT {fields}
 		FROM `tabCommunication` as C
-		WHERE C.communication_type IN ('Communication', 'Feedback', 'Automated Message')
+		WHERE C.communication_type IN ('Communication', 'Automated Message')
 		AND (C.reference_doctype = %(doctype)s AND C.reference_name = %(name)s)
 		{conditions}
 	"""
@@ -325,7 +325,7 @@ def get_communication_data(
 		SELECT {fields}
 		FROM `tabCommunication` as C
 		INNER JOIN `tabCommunication Link` ON C.name=`tabCommunication Link`.parent
-		WHERE C.communication_type IN ('Communication', 'Feedback', 'Automated Message')
+		WHERE C.communication_type IN ('Communication', 'Automated Message')
 		AND `tabCommunication Link`.link_doctype = %(doctype)s AND `tabCommunication Link`.link_name = %(name)s
 		{conditions}
 	"""
