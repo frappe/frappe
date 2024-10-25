@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-13 09:33+0000\n"
-"PO-Revision-Date: 2024-10-19 05:44\n"
+"PO-Revision-Date: 2024-10-25 08:19\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -18801,7 +18801,7 @@ msgstr "Berechtigungsstufen"
 #. Name of a DocType
 #: frappe/core/doctype/permission_log/permission_log.json
 msgid "Permission Log"
-msgstr ""
+msgstr "Berechtigungsprotokoll"
 
 #. Label of a shortcut in the Users Workspace
 #: frappe/core/workspace/users/users.json
@@ -27928,7 +27928,7 @@ msgstr "IMAP verwenden"
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Use Number Format from Currency"
-msgstr ""
+msgstr "Zahlenformat der jeweiligen Währung verwenden"
 
 #. Label of the use_post (Check) field in DocType 'SMS Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
@@ -28950,7 +28950,7 @@ msgstr "Webhook Header"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:140
 msgid "Webhook Logs"
-msgstr ""
+msgstr "Webhook-Protokolle"
 
 #. Label of the sb_webhook (Section Break) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -29414,7 +29414,7 @@ msgstr "Eine Veränderung des Workflow-Status von {0} nach {1} ist nicht zuläss
 
 #: frappe/workflow/doctype/workflow/workflow.js:140
 msgid "Workflow States Don't Exist"
-msgstr ""
+msgstr "Workflow-Zustände existieren nicht"
 
 #: frappe/model/workflow.py:320
 msgid "Workflow Status"
