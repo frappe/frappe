@@ -16,11 +16,11 @@ class UnitTestRqWorker(UnitTestCase):
 
 
 class TestRQWorker(IntegrationTestCase):
-	def test_get_worker_list(self):
+	def test_get_worker_list(self) -> None:
 		workers = RQWorker.get_list()
 		self.assertGreaterEqual(len(workers), 1)
 		self.assertTrue(any("short" in w.queue_type for w in workers))
 
-	def test_worker_serialization(self):
+	def test_worker_serialization(self) -> None:
 		workers = RQWorker.get_list()
 		frappe.get_doc("RQ Worker", workers[0].name)

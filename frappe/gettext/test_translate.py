@@ -14,13 +14,13 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestTranslate(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		pass
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		pass
 
-	def test_generate_pot(self):
+	def test_generate_pot(self) -> None:
 		pot_path = get_pot_path("frappe")
 		pot_path.unlink(missing_ok=True)
 
@@ -29,7 +29,7 @@ class TestTranslate(IntegrationTestCase):
 		self.assertTrue(pot_path.exists())
 		self.assertIn("msgid", pot_path.read_text())
 
-	def test_write_catalog(self):
+	def test_write_catalog(self) -> None:
 		po_path = get_po_path("frappe", "test")
 		po_path.unlink(missing_ok=True)
 
@@ -39,7 +39,7 @@ class TestTranslate(IntegrationTestCase):
 		self.assertTrue(po_path.exists())
 		self.assertIn("msgid", po_path.read_text())
 
-	def test_write_binary(self):
+	def test_write_binary(self) -> None:
 		mo_path = get_mo_path("frappe", "test")
 		mo_path.unlink(missing_ok=True)
 
@@ -48,14 +48,14 @@ class TestTranslate(IntegrationTestCase):
 
 		self.assertTrue(mo_path.exists())
 
-	def test_get_method_map(self):
+	def test_get_method_map(self) -> None:
 		method_map = get_method_map("frappe")
 		self.assertTrue(len(method_map) > 0)
 		self.assertTrue(len(method_map[0]) == 2)
 		self.assertTrue(isinstance(method_map[0][0], str))
 		self.assertTrue(isinstance(method_map[0][1], str))
 
-	def test_new_po(self):
+	def test_new_po(self) -> None:
 		po_path = get_po_path("frappe", "test")
 		po_path.unlink(missing_ok=True)
 
@@ -64,7 +64,7 @@ class TestTranslate(IntegrationTestCase):
 		self.assertTrue(po_path.exists())
 		self.assertIn("msgid", po_path.read_text())
 
-	def test_gitignore(self):
+	def test_gitignore(self) -> None:
 		import os
 
 		import frappe

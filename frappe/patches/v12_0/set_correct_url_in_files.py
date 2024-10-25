@@ -3,7 +3,7 @@ import os
 import frappe
 
 
-def execute():
+def execute() -> None:
 	files = frappe.get_all(
 		"File",
 		fields=["name", "file_name", "file_url"],

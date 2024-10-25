@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	providers = frappe.get_all("Social Login Key")
 
 	for provider in providers:

@@ -4,7 +4,7 @@ from frappe.utils import strip_html
 from frappe.utils.html_utils import unescape_html
 
 
-def execute():
+def execute() -> None:
 	workspaces_to_update = frappe.get_all(
 		"Workspace",
 		filters={"module": ("is", "not set")},

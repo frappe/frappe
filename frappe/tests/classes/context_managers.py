@@ -60,7 +60,7 @@ def patch_hooks(overridden_hooks: dict) -> None:
 
 	get_hooks = frappe.get_hooks
 
-	def patched_hooks(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
+	def patched_hooks(hook=None, default: str = "_KEEP_DEFAULT_LIST", app_name=None):
 		if hook in overridden_hooks:
 			return overridden_hooks[hook]
 		return get_hooks(hook, default, app_name)
@@ -71,7 +71,7 @@ def patch_hooks(overridden_hooks: dict) -> None:
 
 @IntegrationTestCase.registerAs(staticmethod)
 @contextmanager
-def change_settings(doctype, settings_dict=None, /, commit=False, **settings) -> None:
+def change_settings(doctype, settings_dict=None, /, commit: bool = False, **settings) -> None:
 	"""Temporarily: change settings in a settings doctype."""
 	import copy
 
@@ -161,7 +161,7 @@ def debug_on(*exceptions) -> None:
 
 @UnitTestCase.registerAs(staticmethod)
 @contextmanager
-def timeout_context(seconds=30, error_message="Operation timed out.") -> None:
+def timeout_context(seconds: int = 30, error_message: str = "Operation timed out.") -> None:
 	"""Temporarily: timeout an operation."""
 	import signal
 
@@ -174,7 +174,7 @@ def timeout_context(seconds=30, error_message="Operation timed out.") -> None:
 	signal.alarm(0)
 
 
-def timeout(seconds=30, error_message="Operation timed out."):
+def timeout(seconds: int = 30, error_message: str = "Operation timed out."):
 	"""Timeout decorator to ensure a test doesn't run for too long."""
 
 	def decorator(func=None):
@@ -239,7 +239,7 @@ def trace_fields(
 		setattr(doc_class, f_name, traced_field(f_name, f_forbidden_values, f_custom_validation))
 
 	# Modify init method
-	def new_init(self, *args, **kwargs):
+	def new_init(self, *args, **kwargs) -> None:
 		original_init(self, *args, **kwargs)
 		for f_name in field_configs:
 			setattr(self, f"_{f_name}", getattr(self, f_name, None))

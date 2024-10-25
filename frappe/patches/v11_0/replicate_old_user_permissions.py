@@ -5,7 +5,7 @@ from frappe.permissions import get_valid_perms
 from frappe.utils import cint
 
 
-def execute():
+def execute() -> None:
 	frappe.reload_doctype("User Permission")
 	user_permissions = frappe.get_all("User Permission", fields=["allow", "name", "user"])
 

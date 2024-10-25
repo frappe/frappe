@@ -26,13 +26,13 @@ class ModuleDef(Document):
 		restrict_to_domain: DF.Link | None
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		from frappe.modules.utils import get_module_app
 
 		if not self.app_name and not self.custom:
 			self.app_name = get_module_app(self.name)
 
-	def on_update(self):
+	def on_update(self) -> None:
 		"""If in `developer_mode`, create folder for module and
 		add in `modules.txt` of app if missing."""
 		frappe.clear_cache()
@@ -40,7 +40,7 @@ class ModuleDef(Document):
 			self.create_modules_folder()
 			self.add_to_modules_txt()
 
-	def create_modules_folder(self):
+	def create_modules_folder(self) -> None:
 		"""Creates a folder `[app]/[module]` and adds `__init__.py`"""
 		module_path = frappe.get_app_path(self.app_name, self.name)
 		if not os.path.exists(module_path):
@@ -48,7 +48,7 @@ class ModuleDef(Document):
 			with open(os.path.join(module_path, "__init__.py"), "w") as f:
 				f.write("")
 
-	def add_to_modules_txt(self):
+	def add_to_modules_txt(self) -> None:
 		"""Adds to `[app]/modules.txt`"""
 		modules = None
 		if not frappe.local.module_app.get(frappe.scrub(self.name)):
@@ -65,7 +65,7 @@ class ModuleDef(Document):
 				frappe.clear_cache()
 				frappe.setup_module_map()
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		"""Delete module name from modules.txt"""
 
 		if not frappe.conf.get("developer_mode") or frappe.flags.in_uninstall or self.custom:
@@ -74,7 +74,7 @@ class ModuleDef(Document):
 		if frappe.local.module_app.get(frappe.scrub(self.name)):
 			frappe.db.after_commit.add(self.delete_module_from_file)
 
-	def delete_module_from_file(self):
+	def delete_module_from_file(self) -> None:
 		delete_folder(self.module_name, "Module Def", self.name)
 		modules = []
 

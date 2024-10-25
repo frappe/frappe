@@ -46,7 +46,7 @@ class BulkUpdate(Document):
 
 
 @frappe.whitelist()
-def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None, task_id=None):
+def submit_cancel_or_update_docs(doctype, docnames, action: str = "submit", data=None, task_id=None):
 	if isinstance(docnames, str):
 		docnames = frappe.parse_json(docnames)
 

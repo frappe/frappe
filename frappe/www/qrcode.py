@@ -8,7 +8,7 @@ from frappe import _
 from frappe.twofactor import get_qr_svg_code
 
 
-def get_context(context):
+def get_context(context) -> None:
 	context.no_cache = 1
 	context.qr_code_user, context.qrcode_svg = get_user_svg_from_cache()
 

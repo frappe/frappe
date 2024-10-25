@@ -16,7 +16,7 @@ from frappe.utils.background_jobs import get_job_status, is_job_enqueued
 
 
 @timeout(seconds=60)
-def wait_for_completion(job: Job):
+def wait_for_completion(job: Job) -> None:
 	while True:
 		if not (job.is_queued or job.is_started):
 			break
@@ -35,12 +35,12 @@ class UnitTestRqJob(UnitTestCase):
 class TestRQJob(IntegrationTestCase):
 	BG_JOB = "frappe.core.doctype.rq_job.test_rq_job.test_func"
 
-	def check_status(self, job: Job, status, wait=True):
+	def check_status(self, job: Job, status, wait: bool = True) -> None:
 		if wait:
 			wait_for_completion(job)
 		self.assertEqual(frappe.get_doc("RQ Job", job.id).status, status)
 
-	def test_serialization(self):
+	def test_serialization(self) -> None:
 		job = frappe.enqueue(method=self.BG_JOB, queue="short")
 		rq_job = frappe.get_doc("RQ Job", job.id)
 
@@ -56,19 +56,19 @@ class TestRQJob(IntegrationTestCase):
 		)
 		self.check_status(job, "finished")
 
-	def test_configurable_ttl(self):
+	def test_configurable_ttl(self) -> None:
 		frappe.conf.rq_job_failure_ttl = 600
 		job = frappe.enqueue(method=self.BG_JOB, queue="short")
 
 		self.assertEqual(job.failure_ttl, 600)
 
-	def test_func_obj_serialization(self):
+	def test_func_obj_serialization(self) -> None:
 		job = frappe.enqueue(method=test_func, queue="short")
 		rq_job = frappe.get_doc("RQ Job", job.id)
 		self.assertEqual(rq_job.job_name, "frappe.core.doctype.rq_job.test_rq_job.test_func")
 
 	@timeout
-	def test_get_list_filtering(self):
+	def test_get_list_filtering(self) -> None:
 		# Check failed job clearning and filtering
 		remove_failed_jobs()
 		jobs = frappe.get_all("RQ Job", {"status": "failed"})
@@ -96,7 +96,7 @@ class TestRQJob(IntegrationTestCase):
 		stop_job(job_id=job.id)
 		self.check_status(job, "stopped")
 
-	def test_delete_doc(self):
+	def test_delete_doc(self) -> None:
 		job = frappe.enqueue(method=self.BG_JOB, queue="short")
 		frappe.get_doc("RQ Job", job.id).delete()
 
@@ -104,7 +104,7 @@ class TestRQJob(IntegrationTestCase):
 			job.refresh()
 
 	@timeout
-	def test_multi_queue_burst_consumption(self):
+	def test_multi_queue_burst_consumption(self) -> None:
 		for _ in range(3):
 			for q in ["default", "short"]:
 				frappe.enqueue(self.BG_JOB, sleep=1, queue=q)
@@ -113,7 +113,7 @@ class TestRQJob(IntegrationTestCase):
 		self.assertIn("quitting", cstr(stderr))
 
 	@timeout
-	def test_multi_queue_burst_consumption_worker_pool(self):
+	def test_multi_queue_burst_consumption_worker_pool(self) -> None:
 		for _ in range(3):
 			for q in ["default", "short"]:
 				frappe.enqueue(self.BG_JOB, sleep=1, queue=q)
@@ -123,14 +123,14 @@ class TestRQJob(IntegrationTestCase):
 		)
 		self.assertIn("quitting", cstr(stderr))
 
-	def test_job_id_manual_dedup(self):
+	def test_job_id_manual_dedup(self) -> None:
 		job_id = "test_dedup"
 		job = frappe.enqueue(self.BG_JOB, sleep=5, job_id=job_id)
 		self.assertTrue(is_job_enqueued(job_id))
 		self.check_status(job, "finished")
 		self.assertFalse(is_job_enqueued(job_id))
 
-	def test_auto_job_dedup(self):
+	def test_auto_job_dedup(self) -> None:
 		job_id = "test_dedup"
 		job1 = frappe.enqueue(self.BG_JOB, sleep=2, job_id=job_id, deduplicate=True)
 		job2 = frappe.enqueue(self.BG_JOB, sleep=5, job_id=job_id, deduplicate=True)
@@ -144,7 +144,7 @@ class TestRQJob(IntegrationTestCase):
 		self.check_status(job4, "finished")
 
 	@timeout
-	def test_enqueue_after_commit(self):
+	def test_enqueue_after_commit(self) -> None:
 		job_id = frappe.generate_hash()
 
 		frappe.enqueue(self.BG_JOB, enqueue_after_commit=True, job_id=job_id)
@@ -163,7 +163,7 @@ class TestRQJob(IntegrationTestCase):
 		frappe.db.commit()
 		self.assertIsNone(get_job_status(job_id))
 
-	def test_memory_usage(self):
+	def test_memory_usage(self) -> None:
 		if frappe.db.db_type != "mariadb":
 			return
 		job = frappe.enqueue("frappe.utils.data._get_rss_memory_usage")
@@ -178,7 +178,7 @@ class TestRQJob(IntegrationTestCase):
 		LAST_MEASURED_USAGE = 41
 		self.assertLessEqual(rss, LAST_MEASURED_USAGE * 1.05, msg)
 
-	def test_clear_failed_jobs(self):
+	def test_clear_failed_jobs(self) -> None:
 		limit = 10
 		update_site_config("rq_failed_jobs_limit", limit)
 
@@ -187,7 +187,7 @@ class TestRQJob(IntegrationTestCase):
 		self.assertLessEqual(RQJob.get_count(filters=[["RQ Job", "status", "=", "failed"]]), limit * 1.1)
 
 
-def test_func(fail=False, sleep=0):
+def test_func(fail: bool = False, sleep: int = 0) -> bool:
 	if fail:
 		42 / 0
 	if sleep:

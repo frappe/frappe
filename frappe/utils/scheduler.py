@@ -28,7 +28,7 @@ DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 DEFAULT_SCHEDULER_TICK = 4 * 60
 
 
-def cprint(*args, **kwargs):
+def cprint(*args, **kwargs) -> None:
 	"""Prints only if called from STDOUT"""
 	try:
 		os.get_terminal_size()
@@ -37,7 +37,7 @@ def cprint(*args, **kwargs):
 		pass
 
 
-def _proctitle(message):
+def _proctitle(message) -> None:
 	setproctitle.setthreadtitle(f"frappe-scheduler: {message}")
 
 
@@ -96,7 +96,7 @@ def enqueue_events_for_all_sites() -> None:
 
 
 def enqueue_events_for_site(site: str) -> None:
-	def log_exc():
+	def log_exc() -> None:
 		frappe.logger("scheduler").error(f"Exception in Enqueue Events for Site {site}", exc_info=True)
 
 	try:
@@ -136,7 +136,7 @@ def enqueue_events() -> list[str] | None:
 		return enqueued_jobs
 
 
-def is_scheduler_inactive(verbose=True) -> bool:
+def is_scheduler_inactive(verbose: bool = True) -> bool:
 	if frappe.local.conf.maintenance_mode:
 		if verbose:
 			cprint(f"{frappe.local.site}: Maintenance mode is ON")
@@ -153,7 +153,7 @@ def is_scheduler_inactive(verbose=True) -> bool:
 	return False
 
 
-def is_scheduler_disabled(verbose=True) -> bool:
+def is_scheduler_disabled(verbose: bool = True) -> bool:
 	if frappe.conf.disable_scheduler:
 		if verbose:
 			cprint(f"{frappe.local.site}: frappe.conf.disable_scheduler is SET")
@@ -168,20 +168,20 @@ def is_scheduler_disabled(verbose=True) -> bool:
 	return scheduler_disabled
 
 
-def toggle_scheduler(enable):
+def toggle_scheduler(enable) -> None:
 	frappe.db.set_single_value("System Settings", "enable_scheduler", int(enable))
 
 
-def enable_scheduler():
+def enable_scheduler() -> None:
 	toggle_scheduler(True)
 
 
-def disable_scheduler():
+def disable_scheduler() -> None:
 	toggle_scheduler(False)
 
 
 @redis_cache(ttl=60 * 60)
-def schedule_jobs_based_on_activity(check_time=None):
+def schedule_jobs_based_on_activity(check_time=None) -> bool:
 	"""Return True for active sites as defined by `Activity Log`.
 	Also return True for inactive sites once every 24 hours based on `Scheduled Job Log`."""
 	if is_dormant(check_time=check_time):
@@ -201,7 +201,7 @@ def schedule_jobs_based_on_activity(check_time=None):
 		return True
 
 
-def is_dormant(check_time=None):
+def is_dormant(check_time=None) -> bool:
 	# Assume never dormant if developer_mode is enabled
 	if frappe.conf.developer_mode:
 		return False
@@ -221,7 +221,7 @@ def _get_last_creation_timestamp(doctype):
 
 
 @frappe.whitelist()
-def activate_scheduler():
+def activate_scheduler() -> None:
 	from frappe.installer import update_site_config
 
 	frappe.only_for("Administrator")

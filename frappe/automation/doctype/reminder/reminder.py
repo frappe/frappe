@@ -26,19 +26,19 @@ class Reminder(Document):
 	# end: auto-generated types
 
 	@staticmethod
-	def clear_old_logs(days=30):
+	def clear_old_logs(days: int = 30) -> None:
 		from frappe.query_builder import Interval
 		from frappe.query_builder.functions import Now
 
 		table = frappe.qb.DocType("Reminder")
 		frappe.db.delete(table, filters=(table.remind_at < (Now() - Interval(days=days))))
 
-	def validate(self):
+	def validate(self) -> None:
 		self.user = frappe.session.user
 		if get_datetime(self.remind_at) < now_datetime():
 			frappe.throw(_("Reminder cannot be created in past."))
 
-	def send_reminder(self):
+	def send_reminder(self) -> None:
 		if self.notified:
 			return
 
@@ -73,7 +73,7 @@ def create_new_reminder(
 	return reminder.insert()
 
 
-def send_reminders():
+def send_reminders() -> None:
 	# Ensure that we send all reminders that might be before next job execution.
 	job_freq = cint(frappe.get_conf().scheduler_interval) or 240
 	upper_threshold = add_to_date(now_datetime(), seconds=job_freq, as_string=True, as_datetime=True)

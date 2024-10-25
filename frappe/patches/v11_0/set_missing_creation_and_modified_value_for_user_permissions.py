@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.db.sql(
 		"""UPDATE `tabUser Permission`
 		SET `modified`=NOW(), `creation`=NOW()

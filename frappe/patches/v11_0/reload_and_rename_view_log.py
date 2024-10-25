@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	if frappe.db.table_exists("View log"):
 		# for mac users direct renaming would not work since mysql for mac saves table name in lower case
 		# so while renaming `tabView log` to `tabView Log` we get "Table 'tabView Log' already exists" error

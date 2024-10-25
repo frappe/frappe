@@ -31,7 +31,7 @@ from urllib.error import HTTPError
 
 
 @cache
-def fetch_pr_data(pr_number, repo, endpoint=""):
+def fetch_pr_data(pr_number, repo, endpoint: str=""):
 	"""
 	Fetch pull request data from GitHub API.
 
@@ -72,7 +72,7 @@ def req(url):
 			raise
 
 
-def get_files_list(pr_number, repo="frappe/frappe"):
+def get_files_list(pr_number, repo: str="frappe/frappe"):
 	"""
 	Get list of files changed in the pull request.
 
@@ -83,7 +83,7 @@ def get_files_list(pr_number, repo="frappe/frappe"):
 	return [change["filename"] for change in fetch_pr_data(pr_number, repo, "files")]
 
 
-def get_output(command, shell=True):
+def get_output(command, shell: bool=True):
 	"""
 	Execute a shell command and return its output.
 
@@ -96,22 +96,22 @@ def get_output(command, shell=True):
 	return subprocess.check_output(command, shell=shell, encoding="utf8").strip()
 
 
-def has_skip_ci_label(pr_number, repo="frappe/frappe"):
+def has_skip_ci_label(pr_number, repo: str="frappe/frappe"):
 	"""Check if the PR has the 'Skip CI' label."""
 	return has_label(pr_number, "Skip CI", repo)
 
 
-def has_run_server_tests_label(pr_number, repo="frappe/frappe"):
+def has_run_server_tests_label(pr_number, repo: str="frappe/frappe"):
 	"""Check if the PR has the 'Run Server Tests' label."""
 	return has_label(pr_number, "Run Server Tests", repo)
 
 
-def has_run_ui_tests_label(pr_number, repo="frappe/frappe"):
+def has_run_ui_tests_label(pr_number, repo: str="frappe/frappe"):
 	"""Check if the PR has the 'Run UI Tests' label."""
 	return has_label(pr_number, "Run UI Tests", repo)
 
 
-def has_label(pr_number, label, repo="frappe/frappe"):
+def has_label(pr_number, label, repo: str="frappe/frappe"):
 	"""
 	Check if the pull request has a specific label.
 
@@ -134,7 +134,7 @@ def is_server_side_code(file):
 	return file.endswith("py") or file.endswith(".po")
 
 
-def is_ci(file):
+def is_ci(file) -> bool:
 	"""Check if the file is related to CI configuration."""
 	return ".github" in file
 

@@ -33,14 +33,14 @@ class CustomDocPerm(Document):
 		write: DF.Check
 	# end: auto-generated types
 
-	def on_update(self):
+	def on_update(self) -> None:
 		frappe.clear_cache(doctype=self.parent)
 
 	def get_permission_log_options(self, event=None):
 		return {"for_doctype": "DocType", "for_document": self.parent}
 
 
-def update_custom_docperm(docperm, values):
+def update_custom_docperm(docperm, values) -> None:
 	custom_docperm = frappe.get_doc("Custom DocPerm", docperm)
 	custom_docperm.update(values)
 	custom_docperm.save(ignore_permissions=True)

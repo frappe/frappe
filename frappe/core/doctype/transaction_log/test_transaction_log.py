@@ -16,7 +16,7 @@ class UnitTestTransactionLog(UnitTestCase):
 
 
 class TestTransactionLog(IntegrationTestCase):
-	def test_validate_chaining(self):
+	def test_validate_chaining(self) -> None:
 		frappe.get_doc(
 			{
 				"doctype": "Transaction Log",

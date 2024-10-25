@@ -7,7 +7,7 @@ from frappe.model.utils.user_settings import sync_user_settings
 from frappe.patches.v14_0.drop_unused_indexes import drop_index_if_exists
 
 
-def execute():
+def execute() -> None:
 	if frappe.db.db_type == "postgres":
 		return
 
@@ -33,7 +33,7 @@ def execute():
 	update_sort_order_in_user_settings()
 
 
-def update_sort_order_in_user_settings():
+def update_sort_order_in_user_settings() -> None:
 	frappe.db.auto_commit_on_many_writes = True
 	sync_user_settings()
 

@@ -462,7 +462,7 @@ def make_layout(doc: "Document", meta: "Meta", format_data=None) -> list:
 	def get_new_section():
 		return {"columns": [], "has_data": False}
 
-	def append_empty_field_dict_to_page_column(page):
+	def append_empty_field_dict_to_page_column(page) -> None:
 		"""append empty columns dict to page layout"""
 		if not page[-1]["columns"]:
 			page[-1]["columns"].append({"fields": []})
@@ -603,7 +603,7 @@ def get_print_style(
 
 
 def get_font(
-	print_settings: "PrintSettings", print_format: Optional["PrintFormat"] = None, for_legacy=False
+	print_settings: "PrintSettings", print_format: Optional["PrintFormat"] = None, for_legacy: bool = False
 ) -> str:
 	default = "var(--font-stack)"
 	if for_legacy:

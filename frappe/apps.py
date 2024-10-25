@@ -38,7 +38,7 @@ def get_route(app_name):
 	return app.get("route") if app and app.get("route") else "/apps"
 
 
-def is_desk_apps(apps):
+def is_desk_apps(apps) -> bool:
 	for app in apps:
 		# check if route is /app or /app/* and not /app1 or /app1/*
 		pattern = r"^/app(/.*)?$"
@@ -70,7 +70,7 @@ def get_default_path():
 
 
 @frappe.whitelist()
-def set_app_as_default(app_name):
+def set_app_as_default(app_name) -> None:
 	if frappe.db.get_value("User", frappe.session.user, "default_app") == app_name:
 		frappe.db.set_value("User", frappe.session.user, "default_app", "")
 	else:

@@ -3,7 +3,7 @@ import json
 import frappe
 
 
-def execute():
+def execute() -> None:
 	reports_data = frappe.get_all(
 		"Report",
 		filters={

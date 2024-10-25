@@ -49,7 +49,7 @@ class Newsletter(WebsiteGenerator):
 		total_views: DF.Int
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		self.route = f"newsletters/{self.name}"
 		self.validate_sender_address()
 		self.validate_publishing()
@@ -86,7 +86,7 @@ class Newsletter(WebsiteGenerator):
 		return {"sent": sent, "error": error, "total": total, "emails_queued": emails_queued}
 
 	@frappe.whitelist()
-	def send_test_email(self, email):
+	def send_test_email(self, email) -> None:
 		test_emails = frappe.utils.validate_email_address(email, throw=True)
 		self.send_newsletter(emails=test_emails, test_email=True)
 		frappe.msgprint(_("Test email sent to {0}").format(email), alert=True)
@@ -112,29 +112,29 @@ class Newsletter(WebsiteGenerator):
 		return broken_links
 
 	@frappe.whitelist()
-	def send_emails(self):
+	def send_emails(self) -> None:
 		"""queue sending emails to recipients"""
 		self.schedule_sending = False
 		self.schedule_send = None
 		self.queue_all()
 
-	def validate_send(self):
+	def validate_send(self) -> None:
 		"""Validate if Newsletter can be sent."""
 		self.validate_newsletter_status()
 		self.validate_newsletter_recipients()
 
-	def validate_newsletter_status(self):
+	def validate_newsletter_status(self) -> None:
 		if self.email_sent:
 			frappe.throw(_("Newsletter has already been sent"), exc=NewsletterAlreadySentError)
 
 		if self.get("__islocal"):
 			frappe.throw(_("Please save the Newsletter before sending"), exc=NewsletterNotSavedError)
 
-	def validate_newsletter_recipients(self):
+	def validate_newsletter_recipients(self) -> None:
 		if not self.newsletter_recipients:
 			frappe.throw(_("Newsletter should have atleast one recipient"), exc=NoRecipientFoundError)
 
-	def validate_sender_address(self):
+	def validate_sender_address(self) -> None:
 		"""Validate self.send_from is a valid email address or not."""
 		if self.sender_email:
 			frappe.utils.validate_email_address(self.sender_email, throw=True)
@@ -142,11 +142,11 @@ class Newsletter(WebsiteGenerator):
 				f"{self.sender_name} <{self.sender_email}>" if self.sender_name else self.sender_email
 			)
 
-	def validate_publishing(self):
+	def validate_publishing(self) -> None:
 		if self.send_webview_link and not self.published:
 			frappe.throw(_("Newsletter must be published to send webview link in email"))
 
-	def validate_scheduling_date(self):
+	def validate_scheduling_date(self) -> None:
 		if (
 			self.schedule_sending
 			and frappe.utils.get_datetime(self.schedule_send) < frappe.utils.now_datetime()
@@ -182,7 +182,7 @@ class Newsletter(WebsiteGenerator):
 		queued_recipients = set(self.get_queued_recipients())
 		return [x for x in self.newsletter_recipients if x not in queued_recipients]
 
-	def queue_all(self):
+	def queue_all(self) -> None:
 		"""Queue Newsletter to all the recipients generated from the `Email Group` table"""
 		self.validate()
 		self.validate_send()
@@ -199,7 +199,7 @@ class Newsletter(WebsiteGenerator):
 		"""Get list of attachments on current Newsletter"""
 		return [{"file_url": row.attachment} for row in self.attachments]
 
-	def send_newsletter(self, emails: list[str], test_email: bool = False):
+	def send_newsletter(self, emails: list[str], test_email: bool = False) -> None:
 		"""Trigger email generation for `emails` and add it in Email Queue."""
 		attachments = self.get_newsletter_attachments()
 		sender = self.send_from or frappe.utils.get_formatted_email(self.owner)
@@ -241,7 +241,7 @@ class Newsletter(WebsiteGenerator):
 
 		return self.add_source(html, medium=medium)
 
-	def add_source(self, html: str, medium="None") -> str:
+	def add_source(self, html: str, medium: str = "None") -> str:
 		"""Add source to the site links in the newsletter content."""
 		from bs4 import BeautifulSoup
 
@@ -289,7 +289,7 @@ class Newsletter(WebsiteGenerator):
 		)
 
 
-def confirmed_unsubscribe(email, group):
+def confirmed_unsubscribe(email, group) -> None:
 	"""unsubscribe the email(user) from the mailing list(email_group)"""
 	frappe.flags.ignore_permissions = True
 	doc = frappe.get_doc("Email Group Member", {"email": email, "email_group": group})
@@ -300,7 +300,7 @@ def confirmed_unsubscribe(email, group):
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(limit=10, seconds=60 * 60)
-def subscribe(email, email_group=None):
+def subscribe(email, email_group=None) -> None:
 	"""API endpoint to subscribe an email to a particular email group. Triggers a confirmation email."""
 
 	if email_group is None:
@@ -345,7 +345,7 @@ def subscribe(email, email_group=None):
 
 
 @frappe.whitelist(allow_guest=True)
-def confirm_subscription(email, email_group=None):
+def confirm_subscription(email, email_group=None) -> None:
 	"""API endpoint to confirm email subscription.
 	This endpoint is called when user clicks on the link sent to their mail.
 	"""
@@ -380,7 +380,7 @@ def confirm_subscription(email, email_group=None):
 		)
 
 
-def get_list_context(context=None):
+def get_list_context(context=None) -> None:
 	context.update(
 		{
 			"show_search": True,
@@ -392,7 +392,7 @@ def get_list_context(context=None):
 	)
 
 
-def send_scheduled_email():
+def send_scheduled_email() -> None:
 	"""Send scheduled newsletter to the recipients."""
 	scheduled_newsletter = frappe.get_all(
 		"Newsletter",
@@ -422,7 +422,7 @@ def send_scheduled_email():
 
 
 @frappe.whitelist(allow_guest=True)
-def newsletter_email_read(recipient_email=None, reference_doctype=None, reference_name=None):
+def newsletter_email_read(recipient_email=None, reference_doctype=None, reference_name=None) -> None:
 	if not (recipient_email and reference_name):
 		return
 	verify_request()

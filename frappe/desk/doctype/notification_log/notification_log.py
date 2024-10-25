@@ -31,7 +31,7 @@ class NotificationLog(Document):
 		type: DF.Literal["", "Mention", "Energy Point", "Assignment", "Share", "Alert"]
 	# end: auto-generated types
 
-	def after_insert(self):
+	def after_insert(self) -> None:
 		frappe.publish_realtime("notification", after_commit=True, user=self.for_user)
 		set_notifications_as_unseen(self.for_user)
 		if is_email_notifications_enabled_for_type(self.for_user, self.type):
@@ -41,7 +41,7 @@ class NotificationLog(Document):
 				self.log_error(_("Failed to send notification email"))
 
 	@staticmethod
-	def clear_old_logs(days=180):
+	def clear_old_logs(days: int = 180) -> None:
 		from frappe.query_builder import Interval
 		from frappe.query_builder.functions import Now
 
@@ -65,11 +65,11 @@ def get_title(doctype, docname, title_field=None):
 	return docname if title_field == "name" else frappe.db.get_value(doctype, docname, title_field)
 
 
-def get_title_html(title):
+def get_title_html(title) -> str:
 	return f'<b class="subject-title">{title}</b>'
 
 
-def enqueue_create_notification(users: list[str] | str, doc: dict):
+def enqueue_create_notification(users: list[str] | str, doc: dict) -> None:
 	"""Send notification to users.
 
 	users: list of user emails or string of users with comma separated emails
@@ -97,7 +97,7 @@ def enqueue_create_notification(users: list[str] | str, doc: dict):
 	)
 
 
-def make_notification_logs(doc, users):
+def make_notification_logs(doc, users) -> None:
 	for user in _get_user_ids(users):
 		notification = frappe.new_doc("Notification Log")
 		notification.update(doc)
@@ -117,7 +117,7 @@ def _get_user_ids(user_emails):
 	return [user for user in user_names if is_notifications_enabled(user)]
 
 
-def send_notification_email(doc: NotificationLog):
+def send_notification_email(doc: NotificationLog) -> None:
 	if doc.type == "Energy Point" and doc.email_content is None:
 		return
 
@@ -164,7 +164,7 @@ def get_email_header(doc, language: str | None = None):
 
 
 @frappe.whitelist()
-def get_notification_logs(limit=20):
+def get_notification_logs(limit: int = 20):
 	notification_logs = frappe.db.get_list(
 		"Notification Log", fields=["*"], limit=limit, order_by="creation desc"
 	)
@@ -180,7 +180,7 @@ def get_notification_logs(limit=20):
 
 
 @frappe.whitelist()
-def mark_all_as_read():
+def mark_all_as_read() -> None:
 	unread_docs_list = frappe.get_all(
 		"Notification Log", filters={"read": 0, "for_user": frappe.session.user}
 	)
@@ -191,7 +191,7 @@ def mark_all_as_read():
 
 
 @frappe.whitelist()
-def mark_as_read(docname: str):
+def mark_as_read(docname: str) -> None:
 	if frappe.flags.read_only:
 		return
 
@@ -200,11 +200,11 @@ def mark_as_read(docname: str):
 
 
 @frappe.whitelist()
-def trigger_indicator_hide():
+def trigger_indicator_hide() -> None:
 	frappe.publish_realtime("indicator_hide", user=frappe.session.user)
 
 
-def set_notifications_as_unseen(user):
+def set_notifications_as_unseen(user) -> None:
 	try:
 		frappe.db.set_value("Notification Settings", user, "seen", 0, update_modified=False)
 	except frappe.DoesNotExistError:

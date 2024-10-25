@@ -28,7 +28,7 @@ class AboutUsSettings(Document):
 		team_members_subtitle: DF.SmallText | None
 	# end: auto-generated types
 
-	def on_update(self):
+	def on_update(self) -> None:
 		from frappe.website.utils import clear_cache
 
 		clear_cache("about")

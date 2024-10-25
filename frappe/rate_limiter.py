@@ -13,14 +13,14 @@ from frappe import _
 from frappe.utils import cint
 
 
-def apply():
+def apply() -> None:
 	rate_limit = frappe.conf.rate_limit
 	if rate_limit:
 		frappe.local.rate_limiter = RateLimiter(rate_limit["limit"], rate_limit["window"])
 		frappe.local.rate_limiter.apply()
 
 
-def update():
+def update() -> None:
 	if hasattr(frappe.local, "rate_limiter"):
 		frappe.local.rate_limiter.update()
 
@@ -31,7 +31,7 @@ def respond():
 
 
 class RateLimiter:
-	def __init__(self, limit, window):
+	def __init__(self, limit, window) -> None:
 		self.limit = int(limit * 1000000)
 		self.window = window
 
@@ -48,7 +48,7 @@ class RateLimiter:
 		self.duration = None
 		self.rejected = False
 
-	def apply(self):
+	def apply(self) -> None:
 		if self.counter > self.limit:
 			self.rejected = True
 			self.reject()
@@ -56,7 +56,7 @@ class RateLimiter:
 	def reject(self):
 		raise frappe.TooManyRequestsError
 
-	def update(self):
+	def update(self) -> None:
 		self.record_request_end()
 		pipeline = frappe.cache.pipeline()
 		pipeline.incrby(self.key, self.duration)
@@ -77,7 +77,7 @@ class RateLimiter:
 
 		return headers
 
-	def record_request_end(self):
+	def record_request_end(self) -> None:
 		if self.end is not None:
 			return
 		self.end = datetime.datetime.now(pytz.UTC)

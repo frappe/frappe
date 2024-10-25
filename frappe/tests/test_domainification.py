@@ -12,7 +12,7 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestDomainification(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		# create test domain
 		self.new_domain("_Test Domain 1")
 		self.new_domain("_Test Domain 2")
@@ -20,14 +20,14 @@ class TestDomainification(IntegrationTestCase):
 		self.remove_from_active_domains(remove_all=True)
 		self.add_active_domain("_Test Domain 1")
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.db.delete("Role", {"name": "_Test Role"})
 		frappe.db.delete("Has Role", {"role": "_Test Role"})
 		frappe.db.delete("Domain", {"name": ("in", ("_Test Domain 1", "_Test Domain 2"))})
 		frappe.delete_doc("DocType", "Test Domainification")
 		self.remove_from_active_domains(remove_all=True)
 
-	def add_active_domain(self, domain):
+	def add_active_domain(self, domain) -> None:
 		"""add domain in active domain"""
 
 		if not domain:
@@ -37,7 +37,7 @@ class TestDomainification(IntegrationTestCase):
 		domain_settings.append("active_domains", {"domain": domain})
 		domain_settings.save()
 
-	def remove_from_active_domains(self, domain=None, remove_all=False):
+	def remove_from_active_domains(self, domain=None, remove_all: bool = False) -> None:
 		"""remove domain from domain settings"""
 		if not (domain or remove_all):
 			return
@@ -53,7 +53,7 @@ class TestDomainification(IntegrationTestCase):
 
 		domain_settings.save()
 
-	def new_domain(self, domain):
+	def new_domain(self, domain) -> None:
 		# create new domain
 		frappe.get_doc({"doctype": "Domain", "domain": domain}).insert()
 
@@ -69,7 +69,7 @@ class TestDomainification(IntegrationTestCase):
 			}
 		)
 
-	def test_active_domains(self):
+	def test_active_domains(self) -> None:
 		self.assertTrue("_Test Domain 1" in frappe.get_active_domains())
 		self.assertFalse("_Test Domain 2" in frappe.get_active_domains())
 
@@ -79,7 +79,7 @@ class TestDomainification(IntegrationTestCase):
 		self.remove_from_active_domains("_Test Domain 1")
 		self.assertTrue("_Test Domain 1" not in frappe.get_active_domains())
 
-	def test_doctype_and_role_domainification(self):
+	def test_doctype_and_role_domainification(self) -> None:
 		"""
 		test if doctype is hidden if the doctype's restrict to domain is not included
 		in active domains
@@ -112,7 +112,7 @@ class TestDomainification(IntegrationTestCase):
 		self.assertTrue("Test Domainification" not in [d.get("value") for d in results.get("doctypes")])
 		self.assertTrue("_Test Role" not in [d.get("value") for d in results.get("roles")])
 
-	def test_desktop_icon_for_domainification(self):
+	def test_desktop_icon_for_domainification(self) -> None:
 		"""desktop icon should be hidden if doctype's restrict to domain is not in active domains"""
 
 		test_doctype = self.new_doctype("Test Domainification")
@@ -143,7 +143,7 @@ class TestDomainification(IntegrationTestCase):
 		]
 		self.assertFalse("Test Domainification" in doctypes)
 
-	def test_module_def_for_domainification(self):
+	def test_module_def_for_domainification(self) -> None:
 		"""modules should be hidden if module def's restrict to domain is not in active domains"""
 
 		test_module_def = frappe.get_doc("Module Def", "Contacts")

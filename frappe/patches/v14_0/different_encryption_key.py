@@ -5,7 +5,7 @@ from frappe.installer import update_site_config
 from frappe.utils.backups import BACKUP_ENCRYPTION_CONFIG_KEY, get_backup_path
 
 
-def execute():
+def execute() -> None:
 	if frappe.conf.get(BACKUP_ENCRYPTION_CONFIG_KEY):
 		return
 

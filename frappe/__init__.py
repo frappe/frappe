@@ -26,6 +26,7 @@ import traceback
 import warnings
 from collections import defaultdict
 from collections.abc import Callable, Iterable
+from types import TracebackType
 from typing import (
 	TYPE_CHECKING,
 	Any,
@@ -473,7 +474,7 @@ def get_conf(site: str | None = None) -> _dict[str, Any]:
 
 
 class init_site:
-	def __init__(self, site=None):
+	def __init__(self, site=None) -> None:
 		"""If site is None, initialize it for empty site ('') to load common_site_config.json"""
 		self.site = site or ""
 
@@ -481,11 +482,16 @@ class init_site:
 		init(self.site)
 		return local
 
-	def __exit__(self, type, value, traceback):
+	def __exit__(
+		self,
+		type: type[BaseException] | None,
+		value: BaseException | None,
+		traceback: TracebackType | None,
+	) -> None:
 		destroy()
 
 
-def destroy():
+def destroy() -> None:
 	"""Closes connection and releases werkzeug local."""
 	if db:
 		db.close()
@@ -493,7 +499,7 @@ def destroy():
 	release_local(local)
 
 
-def setup_redis_cache_connection():
+def setup_redis_cache_connection() -> None:
 	"""Defines `frappe.cache` as `RedisWrapper` instance"""
 	global cache
 
@@ -552,7 +558,7 @@ def msgprint(
 	is_minimizable: bool = False,
 	wide: bool = False,
 	*,
-	realtime=False,
+	realtime: bool = False,
 ) -> None:
 	"""Print a message to the user (via HTTP response).
 	Messages are sent in the `__server_messages` property in the
@@ -633,11 +639,11 @@ def msgprint(
 	_raise_exception()
 
 
-def toast(message: str, indicator: Literal["blue", "green", "orange", "red", "yellow"] | None = None):
+def toast(message: str, indicator: Literal["blue", "green", "orange", "red", "yellow"] | None = None) -> None:
 	frappe.msgprint(message, indicator=indicator, alert=True)
 
 
-def clear_messages():
+def clear_messages() -> None:
 	local.message_log = []
 
 
@@ -645,7 +651,7 @@ def get_message_log() -> list[dict]:
 	return [msg_out for msg_out in local.message_log]
 
 
-def clear_last_message():
+def clear_last_message() -> None:
 	if len(local.message_log) > 0:
 		local.message_log = local.message_log[:-1]
 
@@ -681,11 +687,11 @@ def throw(
 	)
 
 
-def throw_permission_error():
+def throw_permission_error() -> None:
 	throw(_("Not permitted"), PermissionError)
 
 
-def create_folder(path, with_init=False):
+def create_folder(path, with_init: bool = False) -> None:
 	"""Create a folder in the given path and add an `__init__.py` file (optional).
 
 	:param path: Folder path.
@@ -699,7 +705,7 @@ def create_folder(path, with_init=False):
 			touch_file(os.path.join(path, "__init__.py"))
 
 
-def set_user(username: str):
+def set_user(username: str) -> None:
 	"""Set current user.
 
 	:param username: **User** name to set as current user."""
@@ -741,41 +747,41 @@ def get_request_header(key, default=None):
 
 def sendmail(
 	recipients=None,
-	sender="",
-	subject="No Subject",
-	message="No Message",
-	as_markdown=False,
-	delayed=True,
+	sender: str = "",
+	subject: str = "No Subject",
+	message: str = "No Message",
+	as_markdown: bool = False,
+	delayed: bool = True,
 	reference_doctype=None,
 	reference_name=None,
 	unsubscribe_method=None,
 	unsubscribe_params=None,
 	unsubscribe_message=None,
-	add_unsubscribe_link=1,
+	add_unsubscribe_link: int = 1,
 	attachments=None,
 	content=None,
 	doctype=None,
 	name=None,
 	reply_to=None,
-	queue_separately=False,
+	queue_separately: bool = False,
 	cc=None,
 	bcc=None,
 	message_id=None,
 	in_reply_to=None,
 	send_after=None,
 	expose_recipients=None,
-	send_priority=1,
+	send_priority: int = 1,
 	communication=None,
-	retry=1,
+	retry: int = 1,
 	now=None,
 	read_receipt=None,
-	is_notification=False,
+	is_notification: bool = False,
 	inline_images=None,
 	template=None,
 	args=None,
 	header=None,
-	print_letterhead=False,
-	with_container=False,
+	print_letterhead: bool = False,
+	with_container: bool = False,
 	email_read_tracker_url=None,
 ) -> Optional["EmailQueue"]:
 	"""Send email using user's default **Email Account** or global default **Email Account**.
@@ -871,7 +877,7 @@ xss_safe_methods: set[Callable] = set()
 allowed_http_methods_for_whitelisted_func: dict[Callable, list[str]] = {}
 
 
-def whitelist(allow_guest=False, xss_safe=False, methods=None):
+def whitelist(allow_guest: bool = False, xss_safe: bool = False, methods=None):
 	"""
 	Decorator for whitelisting a function and making it accessible via HTTP.
 	Standard request will be `/api/method/[path.to.method]`
@@ -920,7 +926,7 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 	return innerfn
 
 
-def is_whitelisted(method):
+def is_whitelisted(method) -> None:
 	from frappe.utils import sanitize_html
 
 	is_guest = session["user"] == "Guest"
@@ -988,7 +994,7 @@ def write_only():
 	return innfn
 
 
-def only_for(roles: list[str] | tuple[str] | str, message=False):
+def only_for(roles: list[str] | tuple[str] | str, message: bool = False):
 	"""
 	Raises `frappe.PermissionError` if the user does not have any of the permitted roles.
 
@@ -1028,7 +1034,7 @@ def get_domain_data(module):
 			raise
 
 
-def clear_cache(user: str | None = None, doctype: str | None = None):
+def clear_cache(user: str | None = None, doctype: str | None = None) -> None:
 	"""Clear **User**, **DocType** or global cache.
 
 	:param user: If user is given, only user cache is cleared.
@@ -1068,7 +1074,7 @@ def clear_cache(user: str | None = None, doctype: str | None = None):
 	clear_routing_cache()
 
 
-def only_has_select_perm(doctype, user=None, ignore_permissions=False):
+def only_has_select_perm(doctype, user=None, ignore_permissions: bool = False):
 	if ignore_permissions:
 		return False
 
@@ -1082,13 +1088,13 @@ def only_has_select_perm(doctype, user=None, ignore_permissions=False):
 
 def has_permission(
 	doctype=None,
-	ptype="read",
+	ptype: str = "read",
 	doc=None,
 	user=None,
-	throw=False,
+	throw: bool = False,
 	*,
 	parent_doctype=None,
-	debug=False,
+	debug: bool = False,
 ):
 	"""
 	Return True if the user has permission `ptype` for given `doctype` or `doc`.
@@ -1124,7 +1130,7 @@ def has_permission(
 	return out
 
 
-def has_website_permission(doc=None, ptype="read", user=None, verbose=False, doctype=None):
+def has_website_permission(doc=None, ptype: str = "read", user=None, verbose: bool = False, doctype=None):
 	"""Raises `frappe.PermissionError` if not permitted.
 
 	:param doctype: DocType for which permission is to be check.
@@ -1273,12 +1279,12 @@ def can_cache_doc(args) -> str | None:
 		return get_document_cache_key(doctype, name)
 
 
-def get_document_cache_key(doctype: str, name: str):
+def get_document_cache_key(doctype: str, name: str) -> str:
 	return f"document_cache::{doctype}::{name}"
 
 
 def clear_document_cache(doctype: str, name: str | None = None) -> None:
-	def clear_in_redis():
+	def clear_in_redis() -> None:
 		if name is not None:
 			cache.delete_value(get_document_cache_key(doctype, name))
 		else:
@@ -1378,7 +1384,7 @@ def get_doc(*args: Any, **kwargs: Any) -> "Document":
 	return doc
 
 
-def get_last_doc(doctype, filters=None, order_by="creation desc", *, for_update=False):
+def get_last_doc(doctype, filters=None, order_by: str = "creation desc", *, for_update: bool = False):
 	"""Get last created document of this type."""
 	d = get_all(doctype, filters=filters, limit_page_length=1, order_by=order_by, pluck="name")
 	if d:
@@ -1392,7 +1398,7 @@ def get_single(doctype):
 	return get_doc(doctype, doctype)
 
 
-def get_meta(doctype, cached=True):
+def get_meta(doctype, cached: bool = True):
 	"""Get `frappe.model.meta.Meta` instance of given doctype name."""
 	import frappe.model.meta
 
@@ -1442,12 +1448,12 @@ def delete_doc(
 	)
 
 
-def delete_doc_if_exists(doctype, name, force=0):
+def delete_doc_if_exists(doctype, name, force: int = 0) -> None:
 	"""Delete document if exists."""
 	delete_doc(doctype, name, force=force, ignore_missing=True)
 
 
-def reload_doctype(doctype, force=False, reset_permissions=False):
+def reload_doctype(doctype, force: bool = False, reset_permissions: bool = False) -> None:
 	"""Reload DocType from model (`[module]/[doctype]/[name]/[name].json`) files."""
 	reload_doc(
 		scrub(db.get_value("DocType", doctype, "module")),
@@ -1579,7 +1585,7 @@ def get_module_list(app_name):
 	return get_file_items(get_app_path(app_name, "modules.txt"))
 
 
-def get_all_apps(with_internal_apps=True, sites_path=None):
+def get_all_apps(with_internal_apps: bool = True, sites_path=None):
 	"""Get list of all apps via `sites/apps.txt`."""
 	if not sites_path:
 		sites_path = local.sites_path
@@ -1655,7 +1661,7 @@ def _load_app_hooks(app_name: str | None = None):
 			print(f'Could not find app "{app}": \n{e}')
 			raise
 
-		def _is_valid_hook(obj):
+		def _is_valid_hook(obj) -> bool:
 			return not isinstance(obj, types.ModuleType | types.FunctionType | type)
 
 		for key, value in inspect.getmembers(app_hooks, predicate=_is_valid_hook):
@@ -1686,7 +1692,7 @@ def get_hooks(
 	return hooks
 
 
-def append_hook(target, key, value):
+def append_hook(target, key, value) -> None:
 	"""appends a hook to the the target dict.
 
 	If the hook key, exists, it will make it a key.
@@ -1749,7 +1755,7 @@ def setup_module_map(include_all_apps: bool = True) -> None:
 			local.module_app[module] = app
 
 
-def get_file_items(path, raise_not_found=False, ignore_empty_lines=True):
+def get_file_items(path, raise_not_found: bool = False, ignore_empty_lines: bool = True):
 	"""Return items from text file as a list. Ignore empty lines."""
 	import frappe.utils
 
@@ -1772,7 +1778,7 @@ def get_file_json(path):
 		return json.load(f)
 
 
-def read_file(path, raise_not_found=False):
+def read_file(path, raise_not_found: bool = False):
 	"""Open a file and return its content as Unicode."""
 	if isinstance(path, str):
 		path = path.encode("utf-8")
@@ -1844,8 +1850,11 @@ def get_newargs(fn: Callable, kwargs: dict[str, Any]) -> dict[str, Any]:
 
 
 def make_property_setter(
-	args, ignore_validate=False, validate_fields_for_doctype=True, is_system_generated=True
-):
+	args,
+	ignore_validate: bool = False,
+	validate_fields_for_doctype: bool = True,
+	is_system_generated: bool = True,
+) -> None:
 	"""Create a new **Property Setter** (for overriding DocType and DocField properties).
 
 	If doctype is not specified, it will create a property setter for all fields with the
@@ -1898,7 +1907,7 @@ def make_property_setter(
 		ps.insert()
 
 
-def import_doc(path):
+def import_doc(path) -> None:
 	"""Import a file using Data Import."""
 	from frappe.core.doctype.data_import.data_import import import_doc
 
@@ -1912,7 +1921,7 @@ def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
 
 	from frappe.model.base_document import BaseDocument
 
-	def remove_no_copy_fields(d):
+	def remove_no_copy_fields(d) -> None:
 		for df in d.meta.get("fields", {"no_copy": 1}):
 			if hasattr(d, df.fieldname):
 				d.set(df.fieldname, None)
@@ -1956,12 +1965,12 @@ def respond_as_web_page(
 	http_status_code=None,
 	context=None,
 	indicator_color=None,
-	primary_action="/",
+	primary_action: str = "/",
 	primary_label=None,
-	fullpage=False,
+	fullpage: bool = False,
 	width=None,
-	template="message",
-):
+	template: str = "message",
+) -> None:
 	"""Send response as a web page with a message rather than JSON. Used to show permission errors etc.
 
 	:param title: Page title and heading.
@@ -2046,7 +2055,7 @@ def redirect_to_message(title, html, http_status_code=None, context=None, indica
 		return location
 
 
-def build_match_conditions(doctype, as_condition=True):
+def build_match_conditions(doctype, as_condition: bool = True):
 	"""Return match (User permissions) for given doctype as list or SQL."""
 	import frappe.desk.reportview
 
@@ -2116,7 +2125,7 @@ def get_value(*args, **kwargs):
 	return db.get_value(*args, **kwargs)
 
 
-def as_json(obj: dict | list, indent=1, separators=None, ensure_ascii=True) -> str:
+def as_json(obj: dict | list, indent: int = 1, separators=None, ensure_ascii: bool = True) -> str:
 	"""Return the JSON string representation of the given `obj`."""
 	from frappe.utils.response import json_handler
 
@@ -2177,10 +2186,10 @@ def get_print(
 	name=None,
 	print_format=None,
 	style=None,
-	as_pdf=False,
+	as_pdf: bool = False,
 	doc=None,
 	output=None,
-	no_letterhead=0,
+	no_letterhead: int = 0,
 	password=None,
 	pdf_options=None,
 	letterhead=None,
@@ -2227,7 +2236,7 @@ def attach_print(
 	html=None,
 	doc=None,
 	lang=None,
-	print_letterhead=True,
+	print_letterhead: bool = True,
 	password=None,
 	letterhead=None,
 ):
@@ -2301,7 +2310,7 @@ def publish_realtime(*args, **kwargs):
 	return frappe.realtime.publish_realtime(*args, **kwargs)
 
 
-def local_cache(namespace, key, generator, regenerate_if_none=False):
+def local_cache(namespace, key, generator, regenerate_if_none: bool = False):
 	"""A key value store for caching within a request
 
 	:param namespace: frappe.local.cache[namespace]
@@ -2375,7 +2384,14 @@ loggers: dict[str, "Logger"] = {}
 log_level: int | None = None
 
 
-def logger(module=None, with_more_info=False, allow_site=True, filter=None, max_size=100_000, file_count=20):
+def logger(
+	module=None,
+	with_more_info: bool = False,
+	allow_site: bool = True,
+	filter=None,
+	max_size: int = 100_000,
+	file_count: int = 20,
+):
 	"""Return a python logger that uses StreamHandler."""
 	from frappe.utils.logger import get_logger
 
@@ -2439,7 +2455,7 @@ def get_active_domains():
 	return get_active_domains()
 
 
-def get_version(doctype, name, limit=None, head=False, raise_err=True):
+def get_version(doctype, name, limit=None, head: bool = False, raise_err: bool = True):
 	"""
 	Return a list of version information for the given DocType.
 
@@ -2490,11 +2506,11 @@ def get_version(doctype, name, limit=None, head=False, raise_err=True):
 
 
 @whitelist(allow_guest=True)
-def ping():
+def ping() -> str:
 	return "pong"
 
 
-def safe_encode(param, encoding="utf-8"):
+def safe_encode(param, encoding: str = "utf-8"):
 	try:
 		param = param.encode(encoding)
 	except Exception:
@@ -2502,7 +2518,7 @@ def safe_encode(param, encoding="utf-8"):
 	return param
 
 
-def safe_decode(param, encoding="utf-8", fallback_map: dict | None = None):
+def safe_decode(param, encoding: str = "utf-8", fallback_map: dict | None = None):
 	"""
 	Method to safely decode data into a string
 
@@ -2529,7 +2545,7 @@ def parse_json(val):
 	return parse_json(val)
 
 
-def mock(type, size=1, locale="en"):
+def mock(type, size: int = 1, locale: str = "en"):
 	import faker
 
 	results = []
@@ -2564,7 +2580,7 @@ def validate_and_sanitize_search_inputs(fn):
 	return wrapper
 
 
-def _register_fault_handler():
+def _register_fault_handler() -> None:
 	import io
 
 	# Some libraries monkey patch stderr, we need actual fd

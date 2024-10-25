@@ -29,7 +29,7 @@ CLEANUP_PATTERN_2 = re.compile("[:/]")
 CLEANUP_PATTERN_3 = re.compile(r"(-)\1+")
 
 
-def delete_page_cache(path):
+def delete_page_cache(path) -> None:
 	groups = ["website_page", "page_context"]
 	if path:
 		frappe.cache.hdel_names(groups, path)
@@ -47,7 +47,7 @@ def find_first_image(html):
 		return None
 
 
-def can_cache(no_cache=False):
+def can_cache(no_cache: bool = False) -> bool:
 	if frappe.flags.force_website_cache:
 		return True
 	if frappe.conf.disable_website_cache or frappe.conf.developer_mode:
@@ -364,7 +364,7 @@ def get_html_content_based_on_type(doc, fieldname, content_type):
 	return content
 
 
-def clear_cache(path=None):
+def clear_cache(path=None) -> None:
 	"""Clear website caches
 	:param path: (optional) for the given path"""
 	from frappe.website.router import clear_routing_cache
@@ -402,11 +402,11 @@ def clear_cache(path=None):
 		frappe.get_attr(method)(path)
 
 
-def clear_website_cache(path=None):
+def clear_website_cache(path=None) -> None:
 	clear_cache(path)
 
 
-def clear_sitemap():
+def clear_sitemap() -> None:
 	delete_page_cache("*")
 
 
@@ -458,7 +458,7 @@ def get_portal_sidebar_items():
 		roles = frappe.get_roles()
 		portal_settings = frappe.get_doc("Portal Settings", "Portal Settings")
 
-		def add_items(sidebar_items, items):
+		def add_items(sidebar_items, items) -> None:
 			for d in items:
 				if d.get("enabled") and ((not d.get("role")) or d.get("role") in roles):
 					sidebar_items.append(d.as_dict() if isinstance(d, Document) else d)
@@ -496,7 +496,7 @@ def get_sidebar_items_from_sidebar_file(basepath, look_for_sidebar_json):
 	return sidebar_items
 
 
-def get_sidebar_json_path(path, look_for=False):
+def get_sidebar_json_path(path, look_for: bool = False):
 	"""Get _sidebar.json path from directory path
 	:param path: path of the current diretory
 	:param look_for: if True, look for _sidebar.json going upwards from given path
@@ -577,7 +577,7 @@ def set_content_type(response, data, path):
 	return data
 
 
-def add_preload_for_bundled_assets(response):
+def add_preload_for_bundled_assets(response) -> None:
 	links = [f"<{css}>; rel=preload; as=style" for css in frappe.local.preload_assets["style"]]
 	links.extend(f"<{js}>; rel=preload; as=script" for js in frappe.local.preload_assets["script"])
 

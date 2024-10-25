@@ -15,7 +15,7 @@ LOCKS_DIR = "locks"
 
 
 @contextmanager
-def filelock(lock_name: str, *, timeout=30, is_global=False):
+def filelock(lock_name: str, *, timeout: int = 30, is_global: bool = False):
 	"""Create a lockfile to prevent concurrent operations acrosss processes.
 
 	args:

@@ -5,7 +5,7 @@ from frappe.utils.verified_command import verify_request
 no_cache = True
 
 
-def get_context(context):
+def get_context(context) -> None:
 	frappe.flags.ignore_permissions = True
 	# Called for confirmation.
 	if "email" in frappe.form_dict and frappe.request.method == "GET":

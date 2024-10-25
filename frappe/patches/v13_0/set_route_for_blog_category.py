@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	categories = frappe.get_list("Blog Category")
 	for category in categories:
 		doc = frappe.get_doc("Blog Category", category["name"])

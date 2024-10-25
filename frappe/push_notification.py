@@ -9,7 +9,7 @@ from .frappeclient import FrappeClient
 
 
 class PushNotification:
-	def __init__(self, project_name: str):
+	def __init__(self, project_name: str) -> None:
 		"""
 		:param project_name: (str) The name of the project.
 		"""

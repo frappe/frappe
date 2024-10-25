@@ -49,7 +49,7 @@ SPECIAL_FIELD_CHARS = frozenset(("(", "`", ".", "'", '"', "*"))
 
 
 class DatabaseQuery:
-	def __init__(self, doctype, user=None):
+	def __init__(self, doctype, user=None) -> None:
 		self.doctype = doctype
 		self.tables = []
 		self.link_tables = []
@@ -84,29 +84,29 @@ class DatabaseQuery:
 		docstatus=None,
 		group_by=None,
 		order_by=DefaultOrderBy,
-		limit_start=False,
+		limit_start: bool = False,
 		limit_page_length=None,
-		as_list=False,
-		with_childnames=False,
-		debug=False,
-		ignore_permissions=False,
+		as_list: bool = False,
+		with_childnames: bool = False,
+		debug: bool = False,
+		ignore_permissions: bool = False,
 		user=None,
-		with_comment_count=False,
-		join="left join",
-		distinct=False,
+		with_comment_count: bool = False,
+		join: str = "left join",
+		distinct: bool = False,
 		start=None,
 		page_length=None,
 		limit=None,
-		ignore_ifnull=False,
-		save_user_settings=False,
-		save_user_settings_fields=False,
+		ignore_ifnull: bool = False,
+		save_user_settings: bool = False,
+		save_user_settings_fields: bool = False,
 		update=None,
 		user_settings=None,
 		reference_doctype=None,
-		run=True,
-		strict=True,
+		run: bool = True,
+		strict: bool = True,
 		pluck=None,
-		ignore_ddl=False,
+		ignore_ddl: bool = False,
 		*,
 		parent_doctype=None,
 	) -> list:
@@ -326,7 +326,7 @@ class DatabaseQuery:
 
 		return args
 
-	def parse_args(self):
+	def parse_args(self) -> None:
 		"""Convert fields and filters from strings to list, dicts."""
 		if isinstance(self.fields, str):
 			if self.fields == "*":
@@ -372,7 +372,7 @@ class DatabaseQuery:
 				filters = [make_filter_tuple(self.doctype, key, value) for key, value in fdict.items()]
 			setattr(self, filter_name, filters)
 
-	def sanitize_fields(self):
+	def sanitize_fields(self) -> None:
 		"""
 		regex : ^.*[,();].*
 		purpose : The regex will look for malicious patterns like `,`, '(', ')', '@', ;' in each
@@ -401,10 +401,10 @@ class DatabaseQuery:
 			"global",
 		]
 
-		def _raise_exception():
+		def _raise_exception() -> None:
 			frappe.throw(_("Use of sub-query or function is restricted"), frappe.DataError)
 
-		def _is_query(field):
+		def _is_query(field) -> None:
 			if IS_QUERY_PATTERN.match(field):
 				_raise_exception()
 
@@ -445,7 +445,7 @@ class DatabaseQuery:
 				if STRICT_UNION_PATTERN.match(lower_field):
 					frappe.throw(_("Illegal SQL Query"))
 
-	def extract_tables(self):
+	def extract_tables(self) -> None:
 		"""extract tables from fields"""
 		self.tables = [f"`tab{self.doctype}`"]
 		sql_functions = [
@@ -483,7 +483,7 @@ class DatabaseQuery:
 				):
 					self.append_table(table_name)
 
-	def append_table(self, table_name):
+	def append_table(self, table_name) -> None:
 		self.tables.append(table_name)
 		doctype = table_name[4:-1]
 		self.check_read_permission(doctype)
@@ -514,7 +514,7 @@ class DatabaseQuery:
 
 		return self.permission_map[doctype]
 
-	def _set_permission_map(self, doctype: str, parent_doctype: str | None = None):
+	def _set_permission_map(self, doctype: str, parent_doctype: str | None = None) -> None:
 		ptype = "select" if frappe.only_has_select_perm(doctype) else "read"
 		frappe.has_permission(
 			doctype,
@@ -525,7 +525,7 @@ class DatabaseQuery:
 		)
 		self.permission_map[doctype] = ptype
 
-	def set_field_tables(self):
+	def set_field_tables(self) -> None:
 		"""If there are more than one table, the fieldname must not be ambiguous.
 		If the fieldname is not explicitly mentioned, set the default table"""
 
@@ -538,7 +538,7 @@ class DatabaseQuery:
 				if field is not None and "." not in field and not _in_standard_sql_methods(field):
 					self.fields[idx] = f"{self.tables[0]}.{field}"
 
-	def cast_name_fields(self):
+	def cast_name_fields(self) -> None:
 		for i, field in enumerate(self.fields):
 			if field is not None:
 				self.fields[i] = cast_name(field)
@@ -552,7 +552,7 @@ class DatabaseQuery:
 			else:
 				raise
 
-	def set_optional_columns(self):
+	def set_optional_columns(self) -> None:
 		"""Removes optional columns like `_user_tags`, `_comments` etc. if not in table"""
 		# remove from fields
 		to_remove = []
@@ -576,7 +576,7 @@ class DatabaseQuery:
 			else:
 				self.filters.remove(each)
 
-	def build_conditions(self):
+	def build_conditions(self) -> None:
 		self.conditions = []
 		self.grouped_or_conditions = []
 		self.build_filter_conditions(self.filters, self.conditions)
@@ -588,7 +588,7 @@ class DatabaseQuery:
 			if match_conditions:
 				self.conditions.append(f"({match_conditions})")
 
-	def build_filter_conditions(self, filters, conditions: list, ignore_permissions=None):
+	def build_filter_conditions(self, filters, conditions: list, ignore_permissions=None) -> None:
 		"""build conditions from user filters"""
 		if ignore_permissions is not None:
 			self.flags.ignore_permissions = ignore_permissions
@@ -602,7 +602,7 @@ class DatabaseQuery:
 			else:
 				conditions.append(self.prepare_filter_condition(f))
 
-	def remove_field(self, idx: int):
+	def remove_field(self, idx: int) -> None:
 		if self.as_list:
 			self.fields[idx] = None
 		else:
@@ -921,7 +921,7 @@ class DatabaseQuery:
 
 		return condition
 
-	def build_match_conditions(self, as_condition=True) -> str | list:
+	def build_match_conditions(self, as_condition: bool = True) -> str | list:
 		"""add match conditions if applicable"""
 		self.match_filters = []
 		self.match_conditions = []
@@ -994,7 +994,7 @@ class DatabaseQuery:
 			+ f" in ({', '.join(frappe.db.escape(s, percent=False) for s in self.shared)})"
 		)
 
-	def add_user_permissions(self, user_permissions):
+	def add_user_permissions(self, user_permissions) -> None:
 		doctype_link_fields = self.doctype_meta.get_link_fields()
 
 		# append current doctype with fieldname as 'name' as first link field
@@ -1068,7 +1068,7 @@ class DatabaseQuery:
 
 		return " and ".join(conditions) if conditions else ""
 
-	def set_order_by(self, args):
+	def set_order_by(self, args) -> None:
 		if self.order_by and self.order_by != "KEEP_DEFAULT_ORDERING":
 			args.order_by = self.order_by
 		else:
@@ -1108,7 +1108,7 @@ class DatabaseQuery:
 							f"`tab{self.doctype}`.`{sort_field or 'creation'}` {sort_order or 'desc'}"
 						)
 
-	def validate_order_by_and_group_by(self, parameters: str):
+	def validate_order_by_and_group_by(self, parameters: str) -> None:
 		"""Check order by, group by so that atleast one column is selected and does not have subquery"""
 		if not parameters:
 			return
@@ -1139,13 +1139,13 @@ class DatabaseQuery:
 			if function in blacklisted_sql_functions:
 				frappe.throw(_("Cannot use {0} in order/group by").format(field))
 
-	def add_limit(self):
+	def add_limit(self) -> str:
 		if self.limit_page_length:
 			return f"limit {self.limit_page_length} offset {self.limit_start}"
 		else:
 			return ""
 
-	def add_comment_count(self, result):
+	def add_comment_count(self, result) -> None:
 		for r in result:
 			if not r.name:
 				continue
@@ -1154,7 +1154,7 @@ class DatabaseQuery:
 			if "_comments" in r:
 				r._comment_count = len(json.loads(r._comments or "[]"))
 
-	def update_user_settings(self):
+	def update_user_settings(self) -> None:
 		# update user settings if new search
 		user_settings = json.loads(get_user_settings(self.doctype))
 
@@ -1239,7 +1239,7 @@ def get_order_by(doctype, meta):
 	return order_by
 
 
-def has_any_user_permission_for_doctype(doctype, user, applicable_for):
+def has_any_user_permission_for_doctype(doctype, user, applicable_for) -> bool:
 	user_permissions = frappe.permissions.get_user_permissions(user=user)
 	doctype_user_permissions = user_permissions.get(doctype, [])
 

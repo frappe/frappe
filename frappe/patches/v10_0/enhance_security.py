@@ -2,7 +2,7 @@ import frappe
 from frappe.utils import cint
 
 
-def execute():
+def execute() -> None:
 	"""
 	The motive of this patch is to increase the overall security in frappe framework
 

@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.reload_doc("core", "doctype", "user")
 	frappe.db.sql(
 		"""

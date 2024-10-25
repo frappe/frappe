@@ -23,11 +23,11 @@ class UnitTestSubmissionQueue(UnitTestCase):
 
 class TestSubmissionQueue(IntegrationTestCase):
 	@classmethod
-	def setUpClass(cls):
+	def setUpClass(cls) -> None:
 		cls.queue = get_queue(qtype="default")
 
 	@timeout(seconds=20)
-	def check_status(self, job: "Job", status, wait=True):
+	def check_status(self, job: "Job", status, wait: bool = True) -> None:
 		if wait:
 			while True:
 				if job.is_queued or job.is_started:
@@ -36,7 +36,7 @@ class TestSubmissionQueue(IntegrationTestCase):
 					break
 		self.assertEqual(frappe.get_doc("RQ Job", job.id).status, status)
 
-	def test_queue_operation(self):
+	def test_queue_operation(self) -> None:
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 		from frappe.core.doctype.submission_queue.submission_queue import queue_submission
 

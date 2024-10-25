@@ -66,14 +66,14 @@ class SentEmailInInboxError(Exception):
 class EmailServer:
 	"""Wrapper for POP server to pull emails."""
 
-	def __init__(self, args=None):
+	def __init__(self, args=None) -> None:
 		self.settings = args or frappe._dict()
 
 	def connect(self):
 		"""Connect to **Email Account**."""
 		return self.connect_imap() if cint(self.settings.use_imap) else self.connect_pop()
 
-	def connect_imap(self):
+	def connect_imap(self) -> bool:
 		"""Connect to IMAP"""
 		try:
 			if cint(self.settings.use_ssl):
@@ -110,7 +110,7 @@ class EmailServer:
 			frappe.msgprint(_("Invalid Mail Server. Please rectify and try again."))
 			raise
 
-	def connect_pop(self):
+	def connect_pop(self) -> bool:
 		# this method return pop connection
 		try:
 			if cint(self.settings.use_ssl):
@@ -159,14 +159,14 @@ class EmailServer:
 		res = self.imap.select(f'"{folder}"')
 		return res[0] == "OK"  # The folder exists TODO: handle other responses too
 
-	def logout(self):
+	def logout(self) -> None:
 		if cint(self.settings.use_imap):
 			self.imap.logout()
 		else:
 			self.pop.quit()
 		return
 
-	def get_messages(self, folder="INBOX"):
+	def get_messages(self, folder: str = "INBOX"):
 		"""Return new email messages."""
 
 		self.latest_messages = []
@@ -207,7 +207,7 @@ class EmailServer:
 
 		return email_list
 
-	def check_imap_uidvalidity(self, folder):
+	def check_imap_uidvalidity(self, folder) -> None:
 		# compare the UIDVALIDITY of email account and imap server
 		uid_validity = self.settings.uid_validity
 
@@ -296,10 +296,10 @@ class EmailServer:
 		else:
 			self.seen_status.update({uid: "UNSEEN"})
 
-	def has_login_limit_exceeded(self, e):
+	def has_login_limit_exceeded(self, e) -> bool:
 		return "-ERR Exceeded the login limit" in strip(cstr(e))
 
-	def _post_retrieve_cleanup(self, uid, msg_num):
+	def _post_retrieve_cleanup(self, uid, msg_num) -> None:
 		with suppress(Exception):
 			if not cint(self.settings.use_imap):
 				self.pop.dele(msg_num)
@@ -341,7 +341,7 @@ Traceback:
 
 		return traceback
 
-	def update_flag(self, folder, uid_list=None):
+	def update_flag(self, folder, uid_list=None) -> None:
 		"""set all uids mails the flag as seen"""
 		if not uid_list:
 			return
@@ -364,7 +364,7 @@ Traceback:
 class Email:
 	"""Wrapper for an email."""
 
-	def __init__(self, content):
+	def __init__(self, content) -> None:
 		"""Parses headers, content, attachments from given raw message.
 
 		:param content: Raw message."""
@@ -403,12 +403,12 @@ class Email:
 		in_reply_to = self.mail.get("In-Reply-To") or ""
 		return get_string_between("<", in_reply_to, ">")
 
-	def parse(self):
+	def parse(self) -> None:
 		"""Walk and process multi-part email."""
 		for part in self.mail.walk():
 			self.process_part(part)
 
-	def set_subject(self):
+	def set_subject(self) -> None:
 		"""Parse and decode `Subject` header."""
 		_subject = decode_header(self.mail.get("Subject", "No Subject"))
 		self.subject = _subject[0][0] or ""
@@ -426,7 +426,7 @@ class Email:
 		# Truncate to 140 chars (can be used as a document name)
 		self.subject = str(self.subject).strip()[:140] or "No Subject"
 
-	def set_from(self):
+	def set_from(self) -> None:
 		# gmail mailing-list compatibility
 		# use X-Original-Sender if available, as gmail sometimes modifies the 'From'
 		_from_email = self.decode_email(self.mail.get("X-Original-From") or self.mail["From"])
@@ -462,7 +462,7 @@ class Email:
 				decoded += safe_decode(part)
 		return decoded
 
-	def set_content_and_type(self):
+	def set_content_and_type(self) -> None:
 		self.content, self.content_type = "[Blank Email]", "text/plain"
 		if self.html_content:
 			self.content, self.content_type = self.html_content, "text/html"
@@ -472,7 +472,7 @@ class Email:
 				"text/plain",
 			)
 
-	def process_part(self, part):
+	def process_part(self, part) -> None:
 		"""Parse email `part` and set it to `text_content`, `html_content` or `attachments`."""
 		content_type = part.get_content_type()
 		if content_type == "text/plain":
@@ -492,7 +492,7 @@ class Email:
 		elif part.get_filename() or "image" in content_type:
 			self.get_attachment(part)
 
-	def show_attached_email_headers_in_content(self, part):
+	def show_attached_email_headers_in_content(self, part) -> None:
 		# get the multipart/alternative message
 		from html import escape
 
@@ -527,7 +527,7 @@ class Email:
 			except Exception:
 				return part.get_payload()
 
-	def get_attachment(self, part):
+	def get_attachment(self, part) -> None:
 		# charset = self.get_charset(part)
 		fcontent = part.get_payload(decode=True)
 
@@ -603,7 +603,7 @@ class Email:
 class InboundMail(Email):
 	"""Class representation of incoming mail along with mail handlers."""
 
-	def __init__(self, content, email_account, uid=None, seen_status=None, append_to=None):
+	def __init__(self, content, email_account, uid=None, seen_status=None, append_to=None) -> None:
 		super().__init__(content)
 		self.email_account = email_account
 		self.uid = uid or -1
@@ -841,7 +841,7 @@ class InboundMail(Email):
 			return frappe.db.get_value(doctype, {email_fields.sender_field: self.from_email})
 
 	@staticmethod
-	def get_doc(doctype, docname, ignore_error=False):
+	def get_doc(doctype, docname, ignore_error: bool = False):
 		try:
 			return frappe.get_doc(doctype, docname)
 		except frappe.DoesNotExistError:

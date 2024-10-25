@@ -70,7 +70,7 @@ class FrappeTransformer(RestrictingNodeTransformer):
 class FrappePrintCollector(PrintCollector):
 	"""Collect written text, and return it when called."""
 
-	def _call_print(self, *objects, **kwargs):
+	def _call_print(self, *objects, **kwargs) -> None:
 		output = io.StringIO()
 		print(*objects, file=output, **kwargs)
 		frappe.log(output.getvalue().strip())
@@ -366,7 +366,7 @@ def get_keys_for_autocomplete(
 		yield {"value": full_key, "score": score, "meta": meta}
 
 
-def is_job_queued(job_name, queue="default"):
+def is_job_queued(job_name, queue: str = "default"):
 	"""
 	:param job_name: used to identify a queued job, usually dotted path to function
 	:param queue: should be either long, default or short
@@ -583,13 +583,13 @@ def _write(obj):
 	return obj
 
 
-def add_data_utils(data):
+def add_data_utils(data) -> None:
 	for key, obj in frappe.utils.data.__dict__.items():
 		if key in VALID_UTILS:
 			data[key] = obj
 
 
-def add_module_properties(module, data, filter_method):
+def add_module_properties(module, data, filter_method) -> None:
 	for key, obj in module.__dict__.items():
 		if key.startswith("_"):
 			# ignore

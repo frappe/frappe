@@ -21,11 +21,11 @@ def get_default(key):
 	return frappe.db.get_default(key, parent=PARENT_FOR_DEFAULTS)
 
 
-def set_default(key, value):
+def set_default(key, value) -> None:
 	frappe.db.set_default(key, value, parent=PARENT_FOR_DEFAULTS)
 
 
-def clear_default(key):
+def clear_default(key) -> None:
 	frappe.defaults.clear_default(key, parent=PARENT_FOR_DEFAULTS)
 
 
@@ -33,7 +33,7 @@ class ExpiredLoginException(Exception):
 	pass
 
 
-def toggle_two_factor_auth(state, roles=None):
+def toggle_two_factor_auth(state, roles=None) -> None:
 	"""Enable or disable 2FA in site_config and roles"""
 	for role in roles or []:
 		role = frappe.get_doc("Role", {"role_name": role})
@@ -77,7 +77,7 @@ def get_cached_user_pass():
 	return (user, pwd)
 
 
-def authenticate_for_2factor(user):
+def authenticate_for_2factor(user) -> None:
 	"""Authenticate two factor for enabled user before login."""
 	if frappe.form_dict.get("otp"):
 		return
@@ -91,7 +91,7 @@ def authenticate_for_2factor(user):
 	frappe.local.response["tmp_id"] = tmp_id
 
 
-def cache_2fa_data(user, token, otp_secret, tmp_id):
+def cache_2fa_data(user, token, otp_secret, tmp_id) -> None:
 	"""Cache and set expiry for data."""
 	pwd = frappe.form_dict.get("pwd")
 	verification_method = get_verification_method()
@@ -109,7 +109,7 @@ def cache_2fa_data(user, token, otp_secret, tmp_id):
 	pipeline.execute()
 
 
-def two_factor_is_enabled_for_(user):
+def two_factor_is_enabled_for_(user) -> bool:
 	"""Check if 2factor is enabled for user."""
 	if user == "Administrator":
 		return False
@@ -146,7 +146,7 @@ def get_verification_method():
 	return frappe.get_system_settings("two_factor_method")
 
 
-def confirm_otp_token(login_manager, otp=None, tmp_id=None):
+def confirm_otp_token(login_manager, otp=None, tmp_id=None) -> bool:
 	"""Confirm otp matches."""
 	from frappe.auth import get_login_attempt_tracker
 
@@ -228,7 +228,7 @@ def process_2fa_for_otp_app(user, otp_secret, otp_issuer):
 	return {"method": "OTP App", "setup": otp_setup_completed}
 
 
-def process_2fa_for_email(user, token, otp_secret, otp_issuer, method="Email"):
+def process_2fa_for_email(user, token, otp_secret, otp_issuer, method: str = "Email"):
 	"""Process Email method for 2fa."""
 	subject = None
 	message = None
@@ -300,7 +300,7 @@ def get_link_for_qrcode(user, totp_uri):
 	return get_url(f"/qrcode?k={key}")
 
 
-def send_token_via_sms(otpsecret, token=None, phone_no=None):
+def send_token_via_sms(otpsecret, token=None, phone_no=None) -> bool:
 	"""Send token as sms to user."""
 	try:
 		from frappe.core.doctype.sms_settings.sms_settings import send_request
@@ -336,7 +336,7 @@ def send_token_via_sms(otpsecret, token=None, phone_no=None):
 	return True
 
 
-def send_token_via_email(user, token, otp_secret, otp_issuer, subject=None, message=None):
+def send_token_via_email(user, token, otp_secret, otp_issuer, subject=None, message=None) -> bool:
 	"""Send token to user as email."""
 	user_email = frappe.db.get_value("User", user, "email")
 	if not user_email:
@@ -383,7 +383,7 @@ def create_barcode_folder():
 	return folder.name
 
 
-def delete_qrimage(user, check_expiry=False):
+def delete_qrimage(user, check_expiry: bool = False) -> None:
 	"""Delete Qrimage when user logs in."""
 	user_barcodes = frappe.get_all(
 		"File", {"attached_to_doctype": "User", "attached_to_name": user, "folder": "Home/Barcodes"}
@@ -396,7 +396,7 @@ def delete_qrimage(user, check_expiry=False):
 		frappe.delete_doc("File", barcode.name, ignore_permissions=True)
 
 
-def delete_all_barcodes_for_users():
+def delete_all_barcodes_for_users() -> None:
 	"""Task to delete all barcodes for user."""
 
 	users = frappe.get_all("User", {"enabled": 1})
@@ -406,7 +406,7 @@ def delete_all_barcodes_for_users():
 		delete_qrimage(user.name, check_expiry=True)
 
 
-def should_remove_barcode_image(barcode):
+def should_remove_barcode_image(barcode) -> bool:
 	"""Check if it's time to delete barcode image from server."""
 	if isinstance(barcode, str):
 		barcode = frappe.get_doc("File", barcode)
@@ -416,12 +416,12 @@ def should_remove_barcode_image(barcode):
 	return False
 
 
-def disable():
+def disable() -> None:
 	frappe.db.set_single_value("System Settings", "enable_two_factor_auth", 0)
 
 
 @frappe.whitelist()
-def reset_otp_secret(user: str):
+def reset_otp_secret(user: str) -> None:
 	if frappe.session.user != user:
 		frappe.only_for("System Manager", message=True)
 

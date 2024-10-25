@@ -28,7 +28,7 @@ class PackageRelease(Document):
 		release_notes: DF.MarkdownEditor | None
 	# end: auto-generated types
 
-	def set_version(self):
+	def set_version(self) -> None:
 		# set the next patch release by default
 		doctype = frappe.qb.DocType("Package Release")
 		if not self.major:
@@ -58,17 +58,17 @@ class PackageRelease(Document):
 			)
 			self.patch = value + 1
 
-	def autoname(self):
+	def autoname(self) -> None:
 		self.set_version()
 		self.name = "{}-{}.{}.{}".format(
 			frappe.db.get_value("Package", self.package, "package_name"), self.major, self.minor, self.patch
 		)
 
-	def validate(self):
+	def validate(self) -> None:
 		if self.publish:
 			self.export_files()
 
-	def export_files(self):
+	def export_files(self) -> None:
 		"""Export all the documents in this package to site/packages folder"""
 		package = frappe.get_doc("Package", self.package)
 
@@ -76,7 +76,7 @@ class PackageRelease(Document):
 		self.export_package_files(package)
 		self.make_tarfile(package)
 
-	def export_modules(self):
+	def export_modules(self) -> None:
 		for m in frappe.get_all("Module Def", dict(package=self.package)):
 			module = frappe.get_doc("Module Def", m.name)
 			for l in module.meta.links:
@@ -86,7 +86,7 @@ class PackageRelease(Document):
 				for d in frappe.get_all(l.link_doctype, dict(module=m.name)):
 					export_doc(frappe.get_doc(l.link_doctype, d.name))
 
-	def export_package_files(self, package):
+	def export_package_files(self, package) -> None:
 		# write readme
 		with open(frappe.get_site_path("packages", package.package_name, "README.md"), "w") as readme:
 			readme.write(package.readme)
@@ -102,7 +102,7 @@ class PackageRelease(Document):
 		) as packagefile:
 			packagefile.write(frappe.as_json(package.as_dict(no_nulls=True)))
 
-	def make_tarfile(self, package):
+	def make_tarfile(self, package) -> None:
 		# make tarfile
 		filename = f"{self.name}.tar.gz"
 		subprocess.check_output(

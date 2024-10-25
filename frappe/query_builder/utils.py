@@ -37,7 +37,7 @@ class ImportMapper:
 
 
 class BuilderIdentificationFailed(Exception):
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__("Couldn't guess builder")
 
 
@@ -85,7 +85,7 @@ def patch_query_execute():
 		execute_child_queries(child_queries, result)
 		return result
 
-	def execute_child_queries(queries, result):
+	def execute_child_queries(queries, result) -> None:
 		if not queries or not result or not isinstance(result[0], dict) or not result[0].name:
 			return
 		parent_names = [d.name for d in result]
@@ -140,7 +140,7 @@ def patch_query_execute():
 	_SetOperation.walk = prepare_query
 
 
-def patch_query_aggregation():
+def patch_query_aggregation() -> None:
 	"""Patch aggregation functions to frappe.qb"""
 	from frappe.query_builder.functions import _avg, _max, _min, _sum
 

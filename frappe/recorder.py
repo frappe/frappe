@@ -38,11 +38,11 @@ class RecorderConfig:
 	request_filter: str = "/"  # Filter request paths
 	jobs_filter: str = ""  # Filter background jobs
 
-	def __post_init__(self):
+	def __post_init__(self) -> None:
 		if not (self.record_jobs or self.record_requests):
 			frappe.throw("You must record one of jobs or requests")
 
-	def store(self):
+	def store(self) -> None:
 		frappe.cache.set_value(RECORDER_CONFIG_FLAG, self, expires_in_sec=RECORDER_AUTO_DISABLE)
 
 	@classmethod
@@ -50,7 +50,7 @@ class RecorderConfig:
 		return frappe.cache.get_value(RECORDER_CONFIG_FLAG) or cls()
 
 	@staticmethod
-	def delete():
+	def delete() -> None:
 		frappe.cache.delete_value(RECORDER_CONFIG_FLAG)
 
 
@@ -97,7 +97,7 @@ def get_current_stack_frames():
 		pass
 
 
-def post_process():
+def post_process() -> None:
 	"""post process all recorded values.
 
 	Any processing that can be done later should be done here to avoid overhead while
@@ -132,7 +132,7 @@ def post_process():
 	config.delete()
 
 
-def mark_duplicates(request):
+def mark_duplicates(request) -> None:
 	exact_duplicates = Counter([call["query"] for call in request["calls"]])
 
 	for sql_call in request["calls"]:
@@ -174,18 +174,18 @@ def normalize_query(query: str) -> str:
 	return query
 
 
-def record(force=False):
+def record(force: bool = False) -> None:
 	if frappe.cache.get_value(RECORDER_INTERCEPT_FLAG) or force:
 		frappe.local._recorder = Recorder(force=force)
 
 
-def dump():
+def dump() -> None:
 	if hasattr(frappe.local, "_recorder"):
 		frappe.local._recorder.dump()
 
 
 class Recorder:
-	def __init__(self, force=False):
+	def __init__(self, force: bool = False) -> None:
 		self.config = RecorderConfig.retrieve()
 		self.calls = []
 		self._patched_sql = False
@@ -232,10 +232,10 @@ class Recorder:
 			self.profiler = cProfile.Profile()
 			self.profiler.enable()
 
-	def register(self, data):
+	def register(self, data) -> None:
 		self.calls.append(data)
 
-	def cleanup(self):
+	def cleanup(self) -> None:
 		if self.profiler:
 			self.profiler.disable()
 		if self._patched_sql:
@@ -252,7 +252,7 @@ class Recorder:
 			profiler_output.close()
 			return profile
 
-	def dump(self):
+	def dump(self) -> None:
 		if not self._recording:
 			return
 		profiler_output = self.process_profiler()
@@ -280,12 +280,12 @@ class Recorder:
 			self._unpatch_sql()
 
 	@staticmethod
-	def _patch_sql():
+	def _patch_sql() -> None:
 		frappe.db._sql = frappe.db.sql
 		frappe.db.sql = record_sql
 
 	@staticmethod
-	def _unpatch_sql():
+	def _unpatch_sql() -> None:
 		frappe.db.sql = frappe.db._sql
 
 
@@ -331,7 +331,7 @@ def start(
 	jobs_filter: str = "",
 	*args,
 	**kwargs,
-):
+) -> None:
 	RecorderConfig(
 		record_requests=int(record_requests),
 		record_jobs=int(record_jobs),
@@ -348,7 +348,7 @@ def start(
 @frappe.whitelist()
 @do_not_record
 @administrator_only
-def stop(*args, **kwargs):
+def stop(*args, **kwargs) -> None:
 	frappe.cache.delete_value(RECORDER_INTERCEPT_FLAG)
 	frappe.enqueue(post_process, now=frappe.flags.in_test)
 
@@ -374,7 +374,7 @@ def export_data(*args, **kwargs):
 @frappe.whitelist()
 @do_not_record
 @administrator_only
-def delete(*args, **kwargs):
+def delete(*args, **kwargs) -> None:
 	frappe.cache.delete_value(RECORDER_REQUEST_SPARSE_HASH)
 	frappe.cache.delete_value(RECORDER_REQUEST_HASH)
 

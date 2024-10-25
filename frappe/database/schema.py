@@ -14,7 +14,7 @@ class InvalidColumnName(frappe.ValidationError):
 
 
 class DBTable:
-	def __init__(self, doctype, meta=None):
+	def __init__(self, doctype, meta=None) -> None:
 		self.doctype = doctype
 		self.table_name = f"tab{doctype}"
 		self.meta = meta or frappe.get_meta(doctype, False)
@@ -35,7 +35,7 @@ class DBTable:
 		# load
 		self.get_columns_from_docfields()
 
-	def sync(self):
+	def sync(self) -> None:
 		if self.meta.get("is_virtual"):
 			# no schema to sync for virtual doctypes
 			return
@@ -45,7 +45,7 @@ class DBTable:
 			frappe.cache.hdel("table_columns", self.table_name)
 			self.alter()
 
-	def create(self):
+	def create(self) -> None:
 		pass
 
 	def get_column_definitions(self):
@@ -71,7 +71,7 @@ class DBTable:
 			)
 		]
 
-	def get_columns_from_docfields(self):
+	def get_columns_from_docfields(self) -> None:
 		"""
 		get columns from docfields and custom fields
 		"""
@@ -161,15 +161,15 @@ class DBTable:
 						).format(current_length, col.fieldname, self.doctype, new_length)
 						frappe.msgprint(info_message)
 
-	def is_new(self):
+	def is_new(self) -> bool:
 		return self.table_name not in frappe.db.get_tables()
 
-	def setup_table_columns(self):
+	def setup_table_columns(self) -> None:
 		# TODO: figure out a way to get key data
 		for c in frappe.db.get_table_columns_description(self.table_name):
 			self.current_columns[c.name.lower()] = c
 
-	def alter(self):
+	def alter(self) -> None:
 		pass
 
 
@@ -187,7 +187,7 @@ class DbColumn:
 		unique,
 		precision,
 		not_nullable,
-	):
+	) -> None:
 		self.table = table
 		self.fieldname = fieldname
 		self.fieldtype = fieldtype
@@ -199,7 +199,7 @@ class DbColumn:
 		self.precision = precision
 		self.not_nullable = not_nullable
 
-	def get_definition(self, for_modification=False):
+	def get_definition(self, for_modification: bool = False):
 		column_def = get_definition(
 			self.fieldtype,
 			precision=self.precision,
@@ -249,7 +249,7 @@ class DbColumn:
 			column_def += " UNIQUE"
 		return column_def
 
-	def build_for_alter_table(self, current_def):
+	def build_for_alter_table(self, current_def) -> None:
 		column_type = get_definition(self.fieldtype, self.precision, self.length)
 
 		# no columns
@@ -356,7 +356,7 @@ def validate_column_name(n):
 	return n
 
 
-def validate_column_length(fieldname):
+def validate_column_length(fieldname) -> None:
 	if len(fieldname) > frappe.db.MAX_COLUMN_LENGTH:
 		frappe.throw(_("Fieldname is limited to 64 characters ({0})").format(fieldname))
 
@@ -406,7 +406,9 @@ def get_definition(fieldtype, precision=None, length=None, *, options=None):
 	return coltype
 
 
-def add_column(doctype, column_name, fieldtype, precision=None, length=None, default=None, not_null=False):
+def add_column(
+	doctype, column_name, fieldtype, precision=None, length=None, default=None, not_null: bool = False
+) -> None:
 	frappe.db.commit()
 	query = "alter table `tab{}` add column if not exists {} {}".format(
 		doctype,

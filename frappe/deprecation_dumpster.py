@@ -48,7 +48,7 @@ except ImportError:
 
 	T = TypeVar("T", bound=Callable)
 
-	def _deprecated(message: str, category=FrappeDeprecationWarning, stacklevel=1) -> Callable[[T], T]:
+	def _deprecated(message: str, category=FrappeDeprecationWarning, stacklevel: int = 1) -> Callable[[T], T]:
 		def decorator(func: T) -> T:
 			@functools.wraps(func)
 			def wrapper(*args, **kwargs):
@@ -102,7 +102,7 @@ def deprecated(original: str, marked: str, graduation: str, msg: str, stacklevel
 	return decorator
 
 
-def deprecation_warning(marked: str, graduation: str, msg: str):
+def deprecation_warning(marked: str, graduation: str, msg: str) -> None:
 	"""Warn in-place from a deprecated code path, for objects use `@deprecated` decorator from the deprectation_dumpster"
 
 	Arguments:
@@ -139,7 +139,7 @@ def _old_deprecation_warning(msg):
 		"v17",
 		"Use frappe.deprecation_dumpster.deprecation_warning, instead. 🎉🗑️",
 	)
-	def deprecation_warning(message, category=DeprecationWarning, stacklevel=1):
+	def deprecation_warning(message, category=DeprecationWarning, stacklevel: int = 1) -> None:
 		warnings.warn(message=message, category=category, stacklevel=stacklevel + 2)
 
 	return deprecation_warning(msg)
@@ -171,7 +171,7 @@ def is_column_missing(e):
 	"v17",
 	"Unknown.",
 )
-def show_progress(docnames, message, i, description):
+def show_progress(docnames, message, i, description) -> None:
 	import frappe
 
 	n = len(docnames)
@@ -226,7 +226,7 @@ def read_multi_pdf(output) -> bytes:
 
 
 @deprecated("frappe.gzip_compress", "unknown", "v17", "Use py3 methods directly (this was compat for py2).")
-def gzip_compress(data, compresslevel=9):
+def gzip_compress(data, compresslevel: int = 9):
 	"""Compress data in one shot and return the compressed string.
 	Optional argument is the compression level, in range of 0-9.
 	"""
@@ -257,7 +257,7 @@ def gzip_decompress(data):
 	"v17",
 	"Unknown.",
 )
-def send_mail(email_queue_name, smtp_server_instance=None):
+def send_mail(email_queue_name, smtp_server_instance=None) -> None:
 	"""This is equivalent to EmailQueue.send.
 
 	This provides a way to make sending mail as a background job.
@@ -286,7 +286,7 @@ def get_translated_dict():
 	"v17",
 	"Use User.populate_role_profile_roles, instead.",
 )
-def validate_roles(self):
+def validate_roles(self) -> None:
 	self.populate_role_profile_roles()
 
 
@@ -403,7 +403,7 @@ def test_xmlrunner_wrapper(output):
 	"v17",
 	"use with `self.change_settings(...):` context manager",
 )
-def tests_update_system_settings(args, commit=False):
+def tests_update_system_settings(args, commit: bool = False) -> None:
 	import frappe
 
 	doc = frappe.get_doc("System Settings")
@@ -481,7 +481,7 @@ def get_tests_FrappeTestCase():
 			from frappe.tests import IntegrationTestCase
 
 			class _CompatFrappeTestCase(IntegrationTestCase):
-				def __init__(self, *args, **kwargs):
+				def __init__(self, *args, **kwargs) -> None:
 					deprecation_warning(
 						"2024-20-08",
 						"v17",
@@ -500,7 +500,7 @@ def get_tests_IntegrationTestCase():
 			from frappe.tests import IntegrationTestCase
 
 			class _CompatIntegrationTestCase(IntegrationTestCase):
-				def __init__(self, *args, **kwargs):
+				def __init__(self, *args, **kwargs) -> None:
 					deprecation_warning(
 						"2024-20-08",
 						"v17",
@@ -519,7 +519,7 @@ def get_tests_UnitTestCase():
 			from frappe.tests import UnitTestCase
 
 			class _CompatUnitTestCase(UnitTestCase):
-				def __init__(self, *args, **kwargs):
+				def __init__(self, *args, **kwargs) -> None:
 					deprecation_warning(
 						"2024-20-08",
 						"v17",

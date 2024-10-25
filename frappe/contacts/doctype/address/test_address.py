@@ -17,7 +17,7 @@ class UnitTestAddress(UnitTestCase):
 
 
 class TestAddress(IntegrationTestCase):
-	def test_template_works(self):
+	def test_template_works(self) -> None:
 		if not frappe.db.exists("Address Template", "India"):
 			frappe.get_doc({"doctype": "Address Template", "country": "India", "is_default": 1}).insert()
 
@@ -40,8 +40,15 @@ class TestAddress(IntegrationTestCase):
 		display = get_address_display(frappe.get_doc("Address", address).as_dict())
 		self.assertTrue(display)
 
-	def test_address_query(self):
-		def query(doctype="Address", txt="", searchfield="name", start=0, page_len=20, filters=None):
+	def test_address_query(self) -> None:
+		def query(
+			doctype: str = "Address",
+			txt: str = "",
+			searchfield: str = "name",
+			start: int = 0,
+			page_len: int = 20,
+			filters=None,
+		):
 			if filters is None:
 				filters = {"link_doctype": "User", "link_name": "Administrator"}
 			return address_query(doctype, txt, searchfield, start, page_len, filters)

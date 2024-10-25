@@ -24,7 +24,7 @@ class SystemConsole(Document):
 		type: DF.Literal["Python", "SQL"]
 	# end: auto-generated types
 
-	def run(self):
+	def run(self) -> None:
 		frappe.only_for("System Manager")
 		try:
 			frappe.local.debug_log = []

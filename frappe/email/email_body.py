@@ -28,9 +28,9 @@ EMBED_PATTERN = re.compile("""embed=["'](.*?)["']""")
 
 def get_email(
 	recipients,
-	sender="",
-	msg="",
-	subject="[No Subject]",
+	sender: str = "",
+	msg: str = "",
+	subject: str = "[No Subject]",
 	text_content=None,
 	footer=None,
 	print_html=None,
@@ -108,16 +108,16 @@ class EMail:
 
 	def __init__(
 		self,
-		sender="",
+		sender: str = "",
 		recipients=(),
-		subject="",
-		alternative=0,
+		subject: str = "",
+		alternative: int = 0,
 		reply_to=None,
 		cc=(),
 		bcc=(),
 		email_account=None,
 		expose_recipients=None,
-	):
+	) -> None:
 		from email import charset as Charset
 
 		Charset.add_charset("utf-8", Charset.QP, Charset.QP, "utf-8")
@@ -155,7 +155,7 @@ class EMail:
 		formatted=None,
 		inline_images=None,
 		header=None,
-	):
+	) -> None:
 		"""Attach message in the html portion of multipart/alternative"""
 		if not formatted:
 			formatted = get_formatted_html(
@@ -179,7 +179,7 @@ class EMail:
 		self.set_part_html(formatted, inline_images)
 		self.html_set = True
 
-	def set_text(self, message):
+	def set_text(self, message) -> None:
 		"""
 		Attach message in the text portion of multipart/alternative
 		"""
@@ -188,7 +188,7 @@ class EMail:
 		part = MIMEText(message, "plain", "utf-8", policy=policy.SMTP)
 		self.msg_alternative.attach(part)
 
-	def set_part_html(self, message, inline_images):
+	def set_part_html(self, message, inline_images) -> None:
 		from email.mime.text import MIMEText
 
 		has_inline_images = EMBED_PATTERN.search(message)
@@ -216,11 +216,13 @@ class EMail:
 		else:
 			self.msg_alternative.attach(MIMEText(message, "html", "utf-8", policy=policy.SMTP))
 
-	def set_html_as_text(self, html):
+	def set_html_as_text(self, html) -> None:
 		"""Set plain text from HTML"""
 		self.set_text(to_markdown(html))
 
-	def set_message(self, message, mime_type="text/html", as_attachment=0, filename="attachment.html"):
+	def set_message(
+		self, message, mime_type: str = "text/html", as_attachment: int = 0, filename: str = "attachment.html"
+	) -> None:
 		"""Append the message with MIME content to the root node (as attachment)"""
 		from email.mime.text import MIMEText
 
@@ -232,7 +234,7 @@ class EMail:
 
 		self.msg_root.attach(part)
 
-	def attach_file(self, n):
+	def attach_file(self, n) -> None:
 		"""attach a file from the `FileData` table"""
 		_file = frappe.get_doc("File", {"file_name": n})
 		content = _file.get_content()
@@ -241,7 +243,9 @@ class EMail:
 
 		self.add_attachment(_file.file_name, content)
 
-	def add_attachment(self, fname, fcontent, content_type=None, parent=None, content_id=None, inline=False):
+	def add_attachment(
+		self, fname, fcontent, content_type=None, parent=None, content_id=None, inline: bool = False
+	) -> None:
 		"""add attachment"""
 
 		if not parent:
@@ -249,10 +253,10 @@ class EMail:
 
 		add_attachment(fname, fcontent, content_type, parent, content_id, inline)
 
-	def add_pdf_attachment(self, name, html, options=None):
+	def add_pdf_attachment(self, name, html, options=None) -> None:
 		self.add_attachment(name, get_pdf(html, options), "application/octet-stream")
 
-	def validate(self):
+	def validate(self) -> None:
 		"""validate the Email Addresses"""
 		from frappe.utils import validate_email_address
 
@@ -273,21 +277,21 @@ class EMail:
 		for e in self.recipients + (self.cc or []) + (self.bcc or []):
 			validate_email_address(e, True)
 
-	def replace_sender(self):
+	def replace_sender(self) -> None:
 		if cint(self.email_account.always_use_account_email_id_as_sender):
 			sender_name, _ = parse_addr(self.sender)
 			self.sender = email.utils.formataddr(
 				(str(Header(sender_name or self.email_account.name, "utf-8")), self.email_account.email_id)
 			)
 
-	def replace_sender_name(self):
+	def replace_sender_name(self) -> None:
 		if cint(self.email_account.always_use_account_name_as_sender_name):
 			_, sender_email = parse_addr(self.sender)
 			self.sender = email.utils.formataddr(
 				(str(Header(self.email_account.name, "utf-8")), sender_email)
 			)
 
-	def set_message_id(self, message_id, is_notification=False):
+	def set_message_id(self, message_id, is_notification: bool = False) -> None:
 		if message_id:
 			message_id = "<" + message_id + ">"
 		else:
@@ -299,11 +303,11 @@ class EMail:
 
 		self.set_header("Message-Id", message_id)
 
-	def set_in_reply_to(self, in_reply_to):
+	def set_in_reply_to(self, in_reply_to) -> None:
 		"""Used to send the Message-Id of a received email back as In-Reply-To"""
 		self.set_header("In-Reply-To", in_reply_to)
 
-	def make(self):
+	def make(self) -> None:
 		"""build into msg_root"""
 		headers = {
 			"Subject": strip(self.subject),
@@ -324,7 +328,7 @@ class EMail:
 		for hook in frappe.get_hooks("make_email_body_message"):
 			frappe.get_attr(hook)(self)
 
-	def set_header(self, key, value):
+	def set_header(self, key, value) -> None:
 		if key in self.msg_root:
 			# delete key if found
 			# this is done because adding the same key doesn't override
@@ -349,7 +353,7 @@ def get_formatted_html(
 	header=None,
 	unsubscribe_link: frappe._dict | None = None,
 	sender=None,
-	with_container=False,
+	with_container: bool = False,
 ):
 	email_account = email_account or EmailAccount.find_outgoing(match_by_email=sender)
 
@@ -376,7 +380,7 @@ def get_formatted_html(
 
 
 @frappe.whitelist()
-def get_email_html(template, args, subject, header=None, with_container=False):
+def get_email_html(template, args, subject, header=None, with_container: bool = False):
 	import json
 
 	with_container = cint(with_container)
@@ -406,7 +410,9 @@ def inline_style_in_html(html):
 	return p.transform()
 
 
-def add_attachment(fname, fcontent, content_type=None, parent=None, content_id=None, inline=False):
+def add_attachment(
+	fname, fcontent, content_type=None, parent=None, content_id=None, inline: bool = False
+) -> None:
 	"""Add attachment to parent which must an email object"""
 	import mimetypes
 	from email.mime.audio import MIMEAudio

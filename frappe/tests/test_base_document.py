@@ -3,7 +3,7 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestBaseDocument(IntegrationTestCase):
-	def test_docstatus(self):
+	def test_docstatus(self) -> None:
 		doc = BaseDocument({"docstatus": 0, "doctype": "ToDo"})
 		self.assertTrue(doc.docstatus.is_draft())
 		self.assertEqual(doc.docstatus, 0)

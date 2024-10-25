@@ -17,7 +17,7 @@ SQUARE_SIZE = 40
 
 
 class Identicon:
-	def __init__(self, str_, background="#fafbfc"):
+	def __init__(self, str_, background: str = "#fafbfc") -> None:
 		"""
 		`str_` is the string used to generate the identicon.
 		`background` is the background of the identicon.
@@ -31,7 +31,7 @@ class Identicon:
 		"""Return an MD5 numeric hash."""
 		return int(md5(str_.encode("utf-8"), usedforsecurity=False).hexdigest(), 16)
 
-	def calculate(self):
+	def calculate(self) -> None:
 		"""
 		Creates the identicon.
 		First three bytes are used to generate the color,
@@ -54,7 +54,7 @@ class Identicon:
 				square_y = 0
 				square_x += 1
 
-	def generate(self):
+	def generate(self) -> None:
 		"""
 		Save and show calculated identicon
 		"""
@@ -63,7 +63,7 @@ class Identicon:
 			self.image.save(out, "PNG")
 		self.image.show()
 
-	def base64(self, format="PNG"):
+	def base64(self, format: str = "PNG") -> str:
 		"""
 		Return the identicon's base64
 

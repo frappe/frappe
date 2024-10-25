@@ -28,7 +28,7 @@ class UnitTestAccessLog(UnitTestCase):
 
 
 class TestAccessLog(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		# generate keys for current user to send requests for the following tests
 		generate_keys(frappe.session.user)
 		frappe.db.commit()
@@ -122,7 +122,7 @@ class TestAccessLog(IntegrationTestCase):
 		self.file_name = frappe.utils.random_string(10) + ".txt"
 		self.test_content = frappe.utils.random_string(1024)
 
-	def test_make_full_access_log(self):
+	def test_make_full_access_log(self) -> None:
 		self.maxDiff = None
 
 		# test if all fields maintain data: html page and filters are converted?
@@ -141,7 +141,7 @@ class TestAccessLog(IntegrationTestCase):
 		self.assertEqual(self.test_doctype, last_doc.export_from)
 		self.assertEqual(self.test_document, last_doc.reference_document)
 
-	def test_make_export_log(self):
+	def test_make_export_log(self) -> None:
 		# export data and delete temp file generated on disk
 		export_csv(self.test_doctype, self.file_name)
 		os.remove(self.file_name)
@@ -150,7 +150,7 @@ class TestAccessLog(IntegrationTestCase):
 		last_doc = frappe.get_last_doc("Access Log")
 		self.assertEqual(self.test_doctype, last_doc.export_from)
 
-	def test_private_file_download(self):
+	def test_private_file_download(self) -> None:
 		# create new private file
 		new_private_file = frappe.get_doc(
 			{
@@ -180,5 +180,5 @@ class TestAccessLog(IntegrationTestCase):
 		# cleanup
 		new_private_file.delete()
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		pass

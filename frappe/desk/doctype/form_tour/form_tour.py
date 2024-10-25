@@ -41,7 +41,7 @@ class FormTour(Document):
 		workspace_name: DF.Link | None
 	# end: auto-generated types
 
-	def before_save(self):
+	def before_save(self) -> None:
 		if self.is_standard and not self.module:
 			if self.workspace_name:
 				self.module = frappe.db.get_value("Workspace", self.workspace_name, "module")
@@ -64,18 +64,18 @@ class FormTour(Document):
 					step.label = field_df.label
 					step.fieldtype = field_df.fieldtype
 
-	def on_update(self):
+	def on_update(self) -> None:
 		frappe.cache.delete_key("bootinfo")
 
 		if frappe.conf.developer_mode and self.is_standard:
 			export_to_files([["Form Tour", self.name]], self.module)
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		frappe.cache.delete_key("bootinfo")
 
 
 @frappe.whitelist()
-def reset_tour(tour_name):
+def reset_tour(tour_name) -> None:
 	for user in frappe.get_all("User", pluck="name"):
 		onboarding_status = frappe.parse_json(frappe.db.get_value("User", user, "onboarding_status"))
 		onboarding_status.pop(tour_name, None)
@@ -88,7 +88,7 @@ def reset_tour(tour_name):
 
 
 @frappe.whitelist()
-def update_user_status(value, step):
+def update_user_status(value, step) -> None:
 	from frappe.utils.telemetry import capture
 
 	step = frappe.parse_json(step)

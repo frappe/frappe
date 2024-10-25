@@ -22,7 +22,9 @@ if click_ctx:
 
 
 class ParallelTestRunner:
-	def __init__(self, app, site, build_number=1, total_builds=1, dry_run=False):
+	def __init__(
+		self, app, site, build_number: int = 1, total_builds: int = 1, dry_run: bool = False
+	) -> None:
 		self.app = app
 		self.site = site
 		self.build_number = frappe.utils.cint(build_number) or 1
@@ -33,12 +35,12 @@ class ParallelTestRunner:
 		self.test_result = None
 		self.setup_test_file_list()
 
-	def setup_and_run(self):
+	def setup_and_run(self) -> None:
 		self.setup_test_site()
 		self.run_tests()
 		self.print_result()
 
-	def setup_test_site(self):
+	def setup_test_site(self) -> None:
 		frappe.init(self.site)
 		if not frappe.db:
 			frappe.connect()
@@ -51,7 +53,7 @@ class ParallelTestRunner:
 		frappe.utils.scheduler.disable_scheduler()
 		self.before_test_setup()
 
-	def before_test_setup(self):
+	def before_test_setup(self) -> None:
 		start_time = time.monotonic()
 		for fn in frappe.get_hooks("before_tests", app_name=self.app):
 			frappe.get_attr(fn)()
@@ -66,18 +68,18 @@ class ParallelTestRunner:
 		elapsed = click.style(f" ({elapsed:.03}s)", fg="red")
 		click.echo(f"Before Test {elapsed}")
 
-	def setup_test_file_list(self):
+	def setup_test_file_list(self) -> None:
 		self.test_file_list = self.get_test_file_list()
 		self.total_tests = sum(self.get_test_count(test) for test in self.test_file_list)
 		click.echo(f"Estimated total tests for build {self.build_number}: {self.total_tests}")
 
-	def run_tests(self):
+	def run_tests(self) -> None:
 		self.test_result = TestResult(stream=sys.stderr, descriptions=True, verbosity=2)
 
 		for test_file_info in self.test_file_list:
 			self.run_tests_for_file(test_file_info)
 
-	def run_tests_for_file(self, file_info):
+	def run_tests_for_file(self, file_info) -> None:
 		if not file_info:
 			return
 
@@ -107,7 +109,7 @@ class ParallelTestRunner:
 
 		return frappe.get_module(module_name)
 
-	def print_result(self):
+	def print_result(self) -> None:
 		# XXX: Added to debug tests getting stuck AFTER completion
 		# the process should terminate before this, we don't need to reset the signal.
 		signal.alarm(60)
@@ -197,7 +199,7 @@ class ParallelTestWithOrchestrator(ParallelTestRunner):
 	- test-completed (<build_id>, <instance_id>)
 	"""
 
-	def __init__(self, app, site):
+	def __init__(self, app, site) -> None:
 		self.orchestrator_url = os.environ.get("ORCHESTRATOR_URL")
 		if not self.orchestrator_url:
 			click.echo("ORCHESTRATOR_URL environment variable not found!")
@@ -212,7 +214,7 @@ class ParallelTestWithOrchestrator(ParallelTestRunner):
 
 		ParallelTestRunner.__init__(self, app, site)
 
-	def run_tests(self):
+	def run_tests(self) -> None:
 		self.test_status = "ongoing"
 		self.register_instance()
 		super().run_tests()
@@ -221,7 +223,7 @@ class ParallelTestWithOrchestrator(ParallelTestRunner):
 		while self.test_status == "ongoing":
 			yield self.get_next_test()
 
-	def register_instance(self):
+	def register_instance(self) -> None:
 		test_spec_list = get_all_tests(self.app)
 		response_data = self.call_orchestrator("register-instance", data={"test_spec_list": test_spec_list})
 		self.is_master = response_data.get("is_master")

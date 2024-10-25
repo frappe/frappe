@@ -64,7 +64,7 @@ class BlogPost(WebsiteGenerator):
 				+ self.scrub(self.title)
 			)
 
-	def validate(self):
+	def validate(self) -> None:
 		super().validate()
 
 		if not self.blog_intro:
@@ -101,16 +101,16 @@ class BlogPost(WebsiteGenerator):
 			# Extract images first before the standard image extraction to ensure they are public.
 			extract_images_from_doc(self, "content", is_private=False)
 
-	def reset_featured_for_other_blogs(self):
+	def reset_featured_for_other_blogs(self) -> None:
 		all_posts = frappe.get_all("Blog Post", {"featured": 1})
 		for post in all_posts:
 			frappe.db.set_value("Blog Post", post.name, "featured", 0)
 
-	def on_update(self):
+	def on_update(self) -> None:
 		super().on_update()
 		clear_cache("writers")
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		super().on_trash()
 
 	def get_context(self, context):
@@ -201,7 +201,7 @@ class BlogPost(WebsiteGenerator):
 			},
 		]
 
-	def load_comments(self, context):
+	def load_comments(self, context) -> None:
 		context.comment_list = get_comment_list(self.doctype, self.name)
 
 		if not context.comment_list:
@@ -209,7 +209,7 @@ class BlogPost(WebsiteGenerator):
 		else:
 			context.comment_count = len(context.comment_list)
 
-	def load_likes(self, context):
+	def load_likes(self, context) -> None:
 		user = frappe.session.user
 
 		filters = {
@@ -227,7 +227,7 @@ class BlogPost(WebsiteGenerator):
 
 		context.like = frappe.db.count("Comment", filters)
 
-	def set_read_time(self):
+	def set_read_time(self) -> None:
 		content = self.content or self.content_html or ""
 		if self.content_type == "Markdown":
 			content = markdown(self.content_md)
@@ -306,14 +306,16 @@ def get_blog_categories():
 	)
 
 
-def clear_blog_cache():
+def clear_blog_cache() -> None:
 	for blog in frappe.db.get_list("Blog Post", fields=["route"], pluck="route", filters={"published": True}):
 		clear_cache(blog)
 
 	clear_cache("writers")
 
 
-def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_length=20, order_by=None):
+def get_blog_list(
+	doctype, txt=None, filters=None, limit_start: int = 0, limit_page_length: int = 20, order_by=None
+):
 	conditions = []
 	if filters and filters.get("blog_category"):
 		category = filters.get("blog_category")

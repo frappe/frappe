@@ -41,12 +41,12 @@ class TestFmtDatetime(IntegrationTestCase):
 
 	# Set up and tidy up routines
 
-	def setUp(self):
+	def setUp(self) -> None:
 		# create test domain
 		self.pre_test_date_format = frappe.db.get_default("date_format")
 		self.pre_test_time_format = frappe.db.get_default("time_format")
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.db.set_default("date_format", self.pre_test_date_format)
 		frappe.db.set_default("time_format", self.pre_test_time_format)
 		frappe.local.user_date_format = None
@@ -55,15 +55,15 @@ class TestFmtDatetime(IntegrationTestCase):
 
 	# Test utility functions
 
-	def test_set_default_date_format(self):
+	def test_set_default_date_format(self) -> None:
 		frappe.db.set_default("date_format", "ZYX321")
 		self.assertEqual(frappe.db.get_default("date_format"), "ZYX321")
 
-	def test_set_default_time_format(self):
+	def test_set_default_time_format(self) -> None:
 		frappe.db.set_default("time_format", "XYZ123")
 		self.assertEqual(frappe.db.get_default("time_format"), "XYZ123")
 
-	def test_get_functions(self):
+	def test_get_functions(self) -> None:
 		# Test round-trip through getdate, get_datetime and get_time
 		self.assertEqual(test_date_obj, get_datetime(test_datetime))
 		self.assertEqual(test_date_obj.date(), getdate(test_date))
@@ -71,12 +71,12 @@ class TestFmtDatetime(IntegrationTestCase):
 
 	# Test date formatters
 
-	def test_formatdate_forced(self):
+	def test_formatdate_forced(self) -> None:
 		# Test with forced date formats
 		self.assertEqual(formatdate(test_date, "dd-yyyy-mm"), test_date_obj.strftime("%d-%Y-%m"))
 		self.assertEqual(formatdate(test_date, "dd-yyyy-MM"), test_date_obj.strftime("%d-%Y-%m"))
 
-	def test_formatdate_forced_broken_locale(self):
+	def test_formatdate_forced_broken_locale(self) -> None:
 		# Test with forced date formats
 		lang = frappe.local.lang
 		# Force fallback from Babel
@@ -87,7 +87,7 @@ class TestFmtDatetime(IntegrationTestCase):
 		finally:
 			frappe.local.lang = lang
 
-	def test_format_date(self):
+	def test_format_date(self) -> None:
 		# Test formatdate with various default date formats set
 		for fmt, valid_fmt in test_date_formats.items():
 			frappe.db.set_default("date_format", fmt)
@@ -96,11 +96,11 @@ class TestFmtDatetime(IntegrationTestCase):
 			self.assertEqual(formatdate(test_date), valid_fmt)
 
 	# Test time formatters
-	def test_format_time_forced(self):
+	def test_format_time_forced(self) -> None:
 		# Test with forced time formats
 		self.assertEqual(format_time(test_time, "ss:mm:HH"), test_date_obj.strftime("%S:%M:%H"))
 
-	def test_format_time(self):
+	def test_format_time(self) -> None:
 		# Test format_time with various default time formats set
 		for fmt, valid_fmt in test_time_formats.items():
 			frappe.db.set_default("time_format", fmt)
@@ -110,14 +110,14 @@ class TestFmtDatetime(IntegrationTestCase):
 
 	# Test datetime formatters
 
-	def test_format_datetime_forced(self):
+	def test_format_datetime_forced(self) -> None:
 		# Test with forced date formats
 		self.assertEqual(
 			format_datetime(test_datetime, "dd-yyyy-MM ss:mm:HH"),
 			test_date_obj.strftime("%d-%Y-%m %S:%M:%H"),
 		)
 
-	def test_format_datetime(self):
+	def test_format_datetime(self) -> None:
 		# Test formatdate with various default date formats set
 		for date_fmt, valid_date in test_date_formats.items():
 			frappe.db.set_default("date_format", date_fmt)

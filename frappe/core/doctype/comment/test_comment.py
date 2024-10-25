@@ -19,7 +19,7 @@ class UnitTestComment(UnitTestCase):
 
 
 class TestComment(IntegrationTestCase):
-	def test_comment_creation(self):
+	def test_comment_creation(self) -> None:
 		test_doc = frappe.get_doc(doctype="ToDo", description="test")
 		test_doc.insert()
 		comment = test_doc.add_comment("Comment", "test comment")
@@ -41,7 +41,7 @@ class TestComment(IntegrationTestCase):
 		self.assertEqual(comment_1.content, "test comment")
 
 	# test via blog
-	def test_public_comment(self):
+	def test_public_comment(self) -> None:
 		test_blog = make_test_blog()
 
 		frappe.db.delete("Comment", {"reference_doctype": "Blog Post"})
@@ -97,7 +97,7 @@ class TestComment(IntegrationTestCase):
 		test_blog.delete()
 
 	@IntegrationTestCase.change_settings("Blog Settings", {"allow_guest_to_comment": 0})
-	def test_guest_cannot_comment(self):
+	def test_guest_cannot_comment(self) -> None:
 		test_blog = make_test_blog()
 		with set_user("Guest"):
 			self.assertEqual(
@@ -112,7 +112,7 @@ class TestComment(IntegrationTestCase):
 				None,
 			)
 
-	def test_user_not_logged_in(self):
+	def test_user_not_logged_in(self) -> None:
 		some_system_user = frappe.db.get_value("User", {"name": ("not in", frappe.STANDARD_USERS)})
 
 		test_blog = make_test_blog()

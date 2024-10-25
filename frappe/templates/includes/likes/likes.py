@@ -10,7 +10,7 @@ from frappe.website.utils import clear_cache
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(key="reference_name", limit=get_like_limit, seconds=60 * 60)
-def like(reference_doctype, reference_name, like, route=""):
+def like(reference_doctype, reference_name, like, route: str = ""):
 	like = frappe.parse_json(like)
 	ref_doc = frappe.get_doc(reference_doctype, reference_name)
 	if ref_doc.disable_likes == 1:
@@ -46,7 +46,7 @@ def like(reference_doctype, reference_name, like, route=""):
 	return liked
 
 
-def add_like(reference_doctype, reference_name):
+def add_like(reference_doctype, reference_name) -> bool:
 	user = frappe.session.user
 
 	like = frappe.new_doc("Comment")
@@ -61,7 +61,7 @@ def add_like(reference_doctype, reference_name):
 	return True
 
 
-def delete_like(reference_doctype, reference_name):
+def delete_like(reference_doctype, reference_name) -> bool:
 	user = frappe.session.user
 
 	filters = {

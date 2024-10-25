@@ -26,14 +26,14 @@ from frappe.utils.data import add_to_date
 
 
 @frappe.whitelist()
-def clear():
+def clear() -> None:
 	frappe.local.session_obj.update(force=True)
 	frappe.local.db.commit()
 	clear_user_cache(frappe.session.user)
 	frappe.response["message"] = _("Cache Cleared")
 
 
-def clear_sessions(user=None, keep_current=False, force=False):
+def clear_sessions(user=None, keep_current: bool = False, force: bool = False) -> None:
 	"""Clear other sessions of the current user. Called at login / logout
 
 	:param user: user name (default: current user)
@@ -49,7 +49,7 @@ def clear_sessions(user=None, keep_current=False, force=False):
 		delete_session(sid, reason=reason)
 
 
-def get_sessions_to_clear(user=None, keep_current=False, force=False):
+def get_sessions_to_clear(user=None, keep_current: bool = False, force: bool = False):
 	"""Return sessions of the current user. Called at login / logout.
 
 	:param user: user name (default: current user)
@@ -78,7 +78,7 @@ def get_sessions_to_clear(user=None, keep_current=False, force=False):
 	return query.run(pluck=True)
 
 
-def delete_session(sid=None, user=None, reason="Session Expired"):
+def delete_session(sid=None, user=None, reason: str = "Session Expired") -> None:
 	from frappe.core.doctype.activity_log.feed import logout_feed
 
 	if frappe.flags.read_only:
@@ -100,7 +100,7 @@ def delete_session(sid=None, user=None, reason="Session Expired"):
 	frappe.cache.hdel("last_db_session_update", sid)
 
 
-def clear_all_sessions(reason=None):
+def clear_all_sessions(reason=None) -> None:
 	"""This effectively logs out all users"""
 	frappe.only_for("Administrator")
 	if not reason:
@@ -118,7 +118,7 @@ def get_expired_sessions():
 	).run(pluck=True)
 
 
-def clear_expired_sessions():
+def clear_expired_sessions() -> None:
 	"""This function is meant to be called from scheduler"""
 	for sid in get_expired_sessions():
 		delete_session(sid, reason="Session Expired")
@@ -195,7 +195,7 @@ def get_csrf_token():
 	return frappe.local.session.data.csrf_token
 
 
-def generate_csrf_token():
+def generate_csrf_token() -> None:
 	frappe.local.session.data.csrf_token = frappe.generate_hash()
 	if not frappe.flags.in_test:
 		frappe.local.session_obj.update(force=True)
@@ -204,7 +204,7 @@ def generate_csrf_token():
 class Session:
 	__slots__ = ("user", "user_type", "full_name", "data", "time_diff", "sid", "_update_in_cache")
 
-	def __init__(self, user, resume=False, full_name=None, user_type=None):
+	def __init__(self, user, resume: bool = False, full_name=None, user_type=None) -> None:
 		self.sid = cstr(frappe.form_dict.get("sid") or unquote(frappe.request.cookies.get("sid", "Guest")))
 		self.user = user
 		self.user_type = user_type
@@ -224,14 +224,14 @@ class Session:
 				self.validate_user()
 				self.start()
 
-	def validate_user(self):
+	def validate_user(self) -> None:
 		if not frappe.get_cached_value("User", self.user, "enabled"):
 			frappe.throw(
 				_("User {0} is disabled. Please contact your System Manager.").format(self.user),
 				frappe.ValidationError,
 			)
 
-	def start(self):
+	def start(self) -> None:
 		"""start a new session"""
 		# generate sid
 		if self.user == "Guest":
@@ -272,7 +272,7 @@ class Session:
 			user.run_notifications("on_update")
 			frappe.db.commit()
 
-	def insert_session_record(self):
+	def insert_session_record(self) -> None:
 		Sessions = frappe.qb.DocType("Sessions")
 		now = frappe.utils.now()
 
@@ -291,7 +291,7 @@ class Session:
 		).run()
 		frappe.cache.hset("session", self.data.sid, self.data)
 
-	def resume(self):
+	def resume(self) -> None:
 		"""non-login request: load a session"""
 		import frappe
 		from frappe.auth import validate_ip_address
@@ -371,15 +371,15 @@ class Session:
 
 		return data
 
-	def _delete_session(self):
+	def _delete_session(self) -> None:
 		delete_session(self.sid, reason="Session Expired")
 
-	def start_as_guest(self):
+	def start_as_guest(self) -> None:
 		"""all guests share the same 'Guest' session"""
 		self.user = "Guest"
 		self.start()
 
-	def update(self, force=False):
+	def update(self, force: bool = False):
 		"""extend session expiry"""
 
 		if frappe.session.user == "Guest":
@@ -419,7 +419,7 @@ class Session:
 
 		return updated_in_db
 
-	def set_impersonsated(self, original_user):
+	def set_impersonsated(self, original_user) -> None:
 		self.data.data.impersonated_by = original_user
 		# Forcefully flush session
 		self.update(force=True)

@@ -29,19 +29,19 @@ class UserPermission(Document):
 		user: DF.Link
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		self.validate_user_permission()
 		self.validate_default_permission()
 
-	def on_update(self):
+	def on_update(self) -> None:
 		frappe.cache.hdel("user_permissions", self.user)
 		frappe.publish_realtime("update_user_permissions", user=self.user, after_commit=True)
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		frappe.cache.hdel("user_permissions", self.user)
 		frappe.publish_realtime("update_user_permissions", user=self.user, after_commit=True)
 
-	def validate_user_permission(self):
+	def validate_user_permission(self) -> None:
 		"""checks for duplicate user permission records"""
 
 		duplicate_exists = frappe.get_all(
@@ -59,7 +59,7 @@ class UserPermission(Document):
 		if duplicate_exists:
 			frappe.throw(_("User permission already exists"), frappe.DuplicateEntryError)
 
-	def validate_default_permission(self):
+	def validate_default_permission(self) -> None:
 		"""validate user permission overlap for default value of a particular doctype"""
 		overlap_exists = []
 		if self.is_default:
@@ -76,11 +76,11 @@ class UserPermission(Document):
 			ref_link = frappe.get_desk_link(self.doctype, overlap_exists[0].name)
 			frappe.throw(_("{0} has already assigned default value for {1}.").format(ref_link, self.allow))
 
-	def get_permission_log_options(self, event=None):
+	def get_permission_log_options(self, event=None) -> None:
 		pass
 
 
-def send_user_permissions(bootinfo):
+def send_user_permissions(bootinfo) -> None:
 	bootinfo.user["user_permissions"] = get_user_permissions()
 
 
@@ -105,7 +105,7 @@ def get_user_permissions(user=None):
 
 	out = {}
 
-	def add_doc_to_perm(perm, doc_name, is_default):
+	def add_doc_to_perm(perm, doc_name, is_default) -> None:
 		# group rules for each type
 		# for example if allow is "Customer", then build all allowed customers
 		# in a list
@@ -236,7 +236,7 @@ def clear_user_permissions(user, for_doctype):
 
 
 @frappe.whitelist()
-def add_user_permissions(data):
+def add_user_permissions(data) -> int:
 	"""Add and update the user permissions"""
 	frappe.only_for("System Manager")
 	if isinstance(data, str):
@@ -287,8 +287,8 @@ def add_user_permissions(data):
 
 
 def insert_user_perm(
-	user, doctype, docname, is_default=0, hide_descendants=0, apply_to_all=None, applicable=None
-):
+	user, doctype, docname, is_default: int = 0, hide_descendants: int = 0, apply_to_all=None, applicable=None
+) -> None:
 	user_perm = frappe.new_doc("User Permission")
 	user_perm.user = user
 	user_perm.allow = doctype
@@ -303,7 +303,7 @@ def insert_user_perm(
 	user_perm.insert()
 
 
-def remove_applicable(perm_applied_docs, user, doctype, docname):
+def remove_applicable(perm_applied_docs, user, doctype, docname) -> None:
 	for applicable_for in perm_applied_docs:
 		frappe.db.delete(
 			"User Permission",
@@ -316,7 +316,7 @@ def remove_applicable(perm_applied_docs, user, doctype, docname):
 		)
 
 
-def remove_apply_to_all(user, doctype, docname):
+def remove_apply_to_all(user, doctype, docname) -> None:
 	frappe.db.delete(
 		"User Permission",
 		{
@@ -328,7 +328,7 @@ def remove_apply_to_all(user, doctype, docname):
 	)
 
 
-def update_applicable(already_applied, to_apply, user, doctype, docname):
+def update_applicable(already_applied, to_apply, user, doctype, docname) -> None:
 	for applied in already_applied:
 		if applied not in to_apply:
 			frappe.db.delete(

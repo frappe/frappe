@@ -19,14 +19,14 @@ class EmailGroupMember(Document):
 		unsubscribed: DF.Check
 	# end: auto-generated types
 
-	def after_delete(self):
+	def after_delete(self) -> None:
 		email_group = frappe.get_doc("Email Group", self.email_group)
 		email_group.update_total_subscribers()
 
-	def after_insert(self):
+	def after_insert(self) -> None:
 		email_group = frappe.get_doc("Email Group", self.email_group)
 		email_group.update_total_subscribers()
 
 
-def after_doctype_insert():
+def after_doctype_insert() -> None:
 	frappe.db.add_unique("Email Group Member", ("email_group", "email"))

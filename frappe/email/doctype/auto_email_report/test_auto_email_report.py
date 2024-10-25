@@ -18,7 +18,7 @@ class UnitTestAutoEmailReport(UnitTestCase):
 
 
 class TestAutoEmailReport(IntegrationTestCase):
-	def test_auto_email(self):
+	def test_auto_email(self) -> None:
 		frappe.delete_doc("Auto Email Report", "Permitted Documents For User")
 
 		auto_email_report = get_auto_email_report()
@@ -37,7 +37,7 @@ class TestAutoEmailReport(IntegrationTestCase):
 
 		data = auto_email_report.get_report_content()
 
-	def test_dynamic_date_filters(self):
+	def test_dynamic_date_filters(self) -> None:
 		auto_email_report = get_auto_email_report()
 
 		auto_email_report.dynamic_date_period = "Weekly"

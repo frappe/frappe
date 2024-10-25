@@ -18,7 +18,7 @@ def get_list_settings(doctype):
 
 
 @frappe.whitelist()
-def set_list_settings(doctype, values):
+def set_list_settings(doctype, values) -> None:
 	try:
 		doc = frappe.get_doc("List View Settings", doctype)
 	except frappe.DoesNotExistError:

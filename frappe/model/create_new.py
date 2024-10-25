@@ -15,7 +15,7 @@ from frappe.permissions import filter_allowed_docs_for_doctype
 from frappe.utils import cstr, now_datetime, nowdate, nowtime
 
 
-def get_new_doc(doctype, parent_doc=None, parentfield=None, as_dict=False):
+def get_new_doc(doctype, parent_doc=None, parentfield=None, as_dict: bool = False):
 	if doctype not in frappe.local.new_doc_templates:
 		# cache a copy of new doc as it is called
 		# frequently for inserts
@@ -47,7 +47,7 @@ def make_new_doc(doctype):
 	return doc
 
 
-def set_user_and_static_default_values(doc):
+def set_user_and_static_default_values(doc) -> None:
 	user_permissions = get_user_permissions()
 	defaults = frappe.defaults.get_defaults()
 
@@ -132,7 +132,7 @@ def validate_value_via_user_permissions(df, doctype_user_permissions, allowed_re
 	return is_valid
 
 
-def set_dynamic_default_values(doc, parent_doc, parentfield):
+def set_dynamic_default_values(doc, parent_doc, parentfield) -> None:
 	# these values should not be cached
 	user_permissions = get_user_permissions()
 

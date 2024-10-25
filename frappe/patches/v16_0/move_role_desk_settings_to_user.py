@@ -5,7 +5,7 @@ import frappe
 from frappe.core.doctype.user.user import desk_properties
 
 
-def execute():
+def execute() -> None:
 	roles = {role.name: role for role in frappe.get_all("Role", fields=["*"])}
 
 	for user in frappe.get_list("User"):

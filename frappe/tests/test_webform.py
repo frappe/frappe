@@ -6,7 +6,7 @@ from frappe.www.list import get_list_context
 
 
 class TestWebform(IntegrationTestCase):
-	def test_webform_publish_functionality(self):
+	def test_webform_publish_functionality(self) -> None:
 		request_data = frappe.get_doc("Web Form", "request-data")
 		# publish webform
 		request_data.published = True
@@ -21,7 +21,7 @@ class TestWebform(IntegrationTestCase):
 		response = get_response()
 		self.assertEqual(response.status_code, 404)
 
-	def test_get_context_hook_of_webform(self):
+	def test_get_context_hook_of_webform(self) -> None:
 		create_custom_doctype()
 		create_webform()
 
@@ -39,7 +39,7 @@ class TestWebform(IntegrationTestCase):
 		self.assertTrue(context_list)
 
 
-def create_custom_doctype():
+def create_custom_doctype() -> None:
 	frappe.get_doc(
 		{
 			"doctype": "DocType",
@@ -51,7 +51,7 @@ def create_custom_doctype():
 	).insert(ignore_if_duplicate=True)
 
 
-def create_webform():
+def create_webform() -> None:
 	frappe.get_doc(
 		{
 			"doctype": "Web Form",
@@ -71,7 +71,7 @@ def create_webform():
 	).insert(ignore_if_duplicate=True)
 
 
-def set_webform_hook(key, value):
+def set_webform_hook(key, value) -> None:
 	from frappe import hooks
 
 	# reset hooks

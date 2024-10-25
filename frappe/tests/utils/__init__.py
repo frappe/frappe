@@ -7,7 +7,7 @@ logger = logging.Logger(__file__)
 from .generators import *
 
 
-def check_orpahned_doctypes():
+def check_orpahned_doctypes() -> None:
 	"""Check that all doctypes in DB actually exist after patch test"""
 	from frappe.model.base_document import get_controller
 

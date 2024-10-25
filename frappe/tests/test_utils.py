@@ -93,18 +93,18 @@ class Capturing(list):
 		sys.stdout = self._stringio = StringIO()
 		return self
 
-	def __exit__(self, *args):
+	def __exit__(self, *args) -> None:
 		self.extend(self._stringio.getvalue().splitlines())
 		del self._stringio
 		sys.stdout = self._stdout
 
 
 class TestFilters(IntegrationTestCase):
-	def test_simple_dict(self):
+	def test_simple_dict(self) -> None:
 		self.assertTrue(evaluate_filters({"doctype": "User", "status": "Open"}, {"status": "Open"}))
 		self.assertFalse(evaluate_filters({"doctype": "User", "status": "Open"}, {"status": "Closed"}))
 
-	def test_multiple_dict(self):
+	def test_multiple_dict(self) -> None:
 		self.assertTrue(
 			evaluate_filters(
 				{"doctype": "User", "status": "Open", "name": "Test 1"},
@@ -118,7 +118,7 @@ class TestFilters(IntegrationTestCase):
 			)
 		)
 
-	def test_list_filters(self):
+	def test_list_filters(self) -> None:
 		self.assertTrue(
 			evaluate_filters(
 				{"doctype": "User", "status": "Open", "name": "Test 1"},
@@ -132,7 +132,7 @@ class TestFilters(IntegrationTestCase):
 			)
 		)
 
-	def test_list_filters_as_list(self):
+	def test_list_filters_as_list(self) -> None:
 		self.assertTrue(
 			evaluate_filters(
 				{"doctype": "User", "status": "Open", "name": "Test 1"},
@@ -146,7 +146,7 @@ class TestFilters(IntegrationTestCase):
 			)
 		)
 
-	def test_lt_gt(self):
+	def test_lt_gt(self) -> None:
 		self.assertTrue(
 			evaluate_filters(
 				{"doctype": "User", "status": "Open", "age": 20},
@@ -160,7 +160,7 @@ class TestFilters(IntegrationTestCase):
 			)
 		)
 
-	def test_date_time(self):
+	def test_date_time(self) -> None:
 		# date fields
 		self.assertTrue(
 			evaluate_filters(
@@ -189,7 +189,7 @@ class TestFilters(IntegrationTestCase):
 			)
 		)
 
-	def test_filter_evaluation(self):
+	def test_filter_evaluation(self) -> None:
 		doc = {
 			"doctype": "User",
 			"username": "test_abc",
@@ -220,7 +220,7 @@ class TestFilters(IntegrationTestCase):
 
 
 class TestMoney(IntegrationTestCase):
-	def test_money_in_words(self):
+	def test_money_in_words(self) -> None:
 		test_cases = {
 			"BHD": [
 				(5000, "BHD Five Thousand only."),
@@ -257,7 +257,7 @@ class TestMoney(IntegrationTestCase):
 
 
 class TestDataManipulation(IntegrationTestCase):
-	def test_scrub_urls(self):
+	def test_scrub_urls(self) -> None:
 		html = """
 			<p>You have a new message from: <b>John</b></p>
 			<p>Hey, wassup!</p>
@@ -284,7 +284,7 @@ class TestDataManipulation(IntegrationTestCase):
 
 
 class TestFieldCasting(IntegrationTestCase):
-	def test_str_types(self):
+	def test_str_types(self) -> None:
 		STR_TYPES = (
 			"Data",
 			"Text",
@@ -302,14 +302,14 @@ class TestFieldCasting(IntegrationTestCase):
 			self.assertIsInstance(cast(fieldtype, value=[]), str)
 			self.assertIsInstance(cast(fieldtype, value=set()), str)
 
-	def test_float_types(self):
+	def test_float_types(self) -> None:
 		FLOAT_TYPES = ("Currency", "Float", "Percent")
 		for fieldtype in FLOAT_TYPES:
 			self.assertIsInstance(cast(fieldtype, value=None), float)
 			self.assertIsInstance(cast(fieldtype, value=1.12), float)
 			self.assertIsInstance(cast(fieldtype, value=112), float)
 
-	def test_int_types(self):
+	def test_int_types(self) -> None:
 		INT_TYPES = ("Int", "Check")
 
 		for fieldtype in INT_TYPES:
@@ -317,21 +317,21 @@ class TestFieldCasting(IntegrationTestCase):
 			self.assertIsInstance(cast(fieldtype, value=1.12), int)
 			self.assertIsInstance(cast(fieldtype, value=112), int)
 
-	def test_datetime_types(self):
+	def test_datetime_types(self) -> None:
 		self.assertIsInstance(cast("Datetime", value=None), datetime)
 		self.assertIsInstance(cast("Datetime", value="12-2-22"), datetime)
 
-	def test_date_types(self):
+	def test_date_types(self) -> None:
 		self.assertIsInstance(cast("Date", value=None), date)
 		self.assertIsInstance(cast("Date", value="12-12-2021"), date)
 
-	def test_time_types(self):
+	def test_time_types(self) -> None:
 		self.assertIsInstance(cast("Time", value=None), timedelta)
 		self.assertIsInstance(cast("Time", value="12:03:34"), timedelta)
 
 
 class TestMathUtils(IntegrationTestCase):
-	def test_floor(self):
+	def test_floor(self) -> None:
 		from decimal import Decimal
 
 		self.assertEqual(floor(2), 2)
@@ -341,7 +341,7 @@ class TestMathUtils(IntegrationTestCase):
 		self.assertEqual(floor("26.7"), 26)
 		self.assertEqual(floor(Decimal(29.45)), 29)
 
-	def test_ceil(self):
+	def test_ceil(self) -> None:
 		from decimal import Decimal
 
 		self.assertEqual(ceil(2), 2)
@@ -353,7 +353,7 @@ class TestMathUtils(IntegrationTestCase):
 
 
 class TestHTMLUtils(IntegrationTestCase):
-	def test_clean_email_html(self):
+	def test_clean_email_html(self) -> None:
 		from frappe.utils.html_utils import clean_email_html
 
 		sample = """<script>a=b</script><h1>Hello</h1><p>Para</p>"""
@@ -371,7 +371,7 @@ class TestHTMLUtils(IntegrationTestCase):
 		self.assertTrue("<h1>Hello</h1>" in clean)
 		self.assertTrue('<a href="http://test.com">text</a>' in clean)
 
-	def test_sanitize_html(self):
+	def test_sanitize_html(self) -> None:
 		from frappe.utils.html_utils import sanitize_html
 
 		clean = sanitize_html("<ol data-list='ordered' unknown_attr='xyz'></ol>")
@@ -380,7 +380,7 @@ class TestHTMLUtils(IntegrationTestCase):
 
 
 class TestValidationUtils(IntegrationTestCase):
-	def test_valid_url(self):
+	def test_valid_url(self) -> None:
 		# Edge cases
 		self.assertFalse(validate_url(""))
 		self.assertFalse(validate_url(None))
@@ -408,7 +408,7 @@ class TestValidationUtils(IntegrationTestCase):
 			throw=True,
 		)
 
-	def test_valid_email(self):
+	def test_valid_email(self) -> None:
 		# Edge cases
 		self.assertFalse(validate_email_address(""))
 		self.assertFalse(validate_email_address(None))
@@ -438,7 +438,7 @@ class TestValidationUtils(IntegrationTestCase):
 			"erp+Job%20Applicant=JA00004@frappe.com",
 		)
 
-	def test_valid_phone(self):
+	def test_valid_phone(self) -> None:
 		valid_phones = ["+91 1234567890", ""]
 
 		for phone in valid_phones:
@@ -450,7 +450,7 @@ class TestValidationUtils(IntegrationTestCase):
 			"field",
 		)
 
-	def test_validate_name(self):
+	def test_validate_name(self) -> None:
 		valid_names = ["", "abc", "asd a13", "asd-asd"]
 		for name in valid_names:
 			validate_name(name, True)
@@ -461,7 +461,7 @@ class TestValidationUtils(IntegrationTestCase):
 
 
 class TestImage(IntegrationTestCase):
-	def test_strip_exif_data(self):
+	def test_strip_exif_data(self) -> None:
 		original_image = Image.open(frappe.get_app_path("frappe", "tests", "data", "exif_sample_image.jpg"))
 		original_image_content = open(
 			frappe.get_app_path("frappe", "tests", "data", "exif_sample_image.jpg"),
@@ -474,7 +474,7 @@ class TestImage(IntegrationTestCase):
 		self.assertEqual(new_image._getexif(), None)
 		self.assertNotEqual(original_image._getexif(), new_image._getexif())
 
-	def test_optimize_image(self):
+	def test_optimize_image(self) -> None:
 		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
 		content_type = guess_type(image_file_path)[0]
 		original_content = open(image_file_path, mode="rb").read()
@@ -489,7 +489,7 @@ class TestImage(IntegrationTestCase):
 
 
 class TestPythonExpressions(IntegrationTestCase):
-	def test_validation_for_good_python_expression(self):
+	def test_validation_for_good_python_expression(self) -> None:
 		valid_expressions = [
 			"foo == bar",
 			"foo == 42",
@@ -504,7 +504,7 @@ class TestPythonExpressions(IntegrationTestCase):
 			except Exception as e:
 				self.fail(f"Invalid error thrown for valid expression: {expr}: {e!s}")
 
-	def test_validation_for_bad_python_expression(self):
+	def test_validation_for_bad_python_expression(self) -> None:
 		invalid_expressions = [
 			"these_are && js_conditions",
 			"more || js_conditions",
@@ -517,7 +517,7 @@ class TestPythonExpressions(IntegrationTestCase):
 
 class TestDiffUtils(IntegrationTestCase):
 	@classmethod
-	def setUpClass(cls):
+	def setUpClass(cls) -> None:
 		super().setUpClass()
 		cls.doc = frappe.get_doc(doctype="Client Script", dt="Client Script", name="test_client_script")
 		cls.doc.insert()
@@ -536,19 +536,19 @@ class TestDiffUtils(IntegrationTestCase):
 		)
 
 	@classmethod
-	def tearDownClass(cls):
+	def tearDownClass(cls) -> None:
 		cls.doc.delete()
 
-	def test_version_query(self):
+	def test_version_query(self) -> None:
 		self.assertGreaterEqual(len(self.versions), 2)
 
-	def test_get_field_value_from_version(self):
+	def test_get_field_value_from_version(self) -> None:
 		latest_version = self.versions[0][0]
 		self.assertEqual("42;", _get_value_from_version(latest_version, fieldname="script")[0])
 		old_version = self.versions[1][0]
 		self.assertEqual("2;", _get_value_from_version(old_version, fieldname="script")[0])
 
-	def test_get_version_diff(self):
+	def test_get_version_diff(self) -> None:
 		old_version = self.versions[1][0]
 		latest_version = self.versions[0][0]
 
@@ -558,7 +558,7 @@ class TestDiffUtils(IntegrationTestCase):
 
 
 class TestDateUtils(IntegrationTestCase):
-	def test_first_day_of_week(self):
+	def test_first_day_of_week(self) -> None:
 		# Monday as start of the week
 		with patch.object(frappe.utils.data, "get_first_day_of_the_week", return_value="Monday"):
 			self.assertEqual(
@@ -580,7 +580,7 @@ class TestDateUtils(IntegrationTestCase):
 			frappe.utils.getdate("2020-12-20"),
 		)
 
-	def test_last_day_of_week(self):
+	def test_last_day_of_week(self) -> None:
 		self.assertEqual(
 			frappe.utils.get_last_day_of_week("2020-12-24"),
 			frappe.utils.getdate("2020-12-26"),
@@ -590,11 +590,11 @@ class TestDateUtils(IntegrationTestCase):
 			frappe.utils.getdate("2021-01-02"),
 		)
 
-	def test_is_last_day_of_the_month(self):
+	def test_is_last_day_of_the_month(self) -> None:
 		self.assertEqual(frappe.utils.is_last_day_of_the_month("2020-12-24"), False)
 		self.assertEqual(frappe.utils.is_last_day_of_the_month("2020-12-31"), True)
 
-	def test_get_time(self):
+	def test_get_time(self) -> None:
 		datetime_input = now_datetime()
 		timedelta_input = get_timedelta()
 		time_input = nowtime()
@@ -607,7 +607,7 @@ class TestDateUtils(IntegrationTestCase):
 		self.assertIsInstance(get_time(str(timedelta_input)), time)
 		self.assertIsInstance(get_time(str(time_input)), time)
 
-	def test_get_timedelta(self):
+	def test_get_timedelta(self) -> None:
 		datetime_input = now_datetime()
 		timedelta_input = get_timedelta()
 		time_input = nowtime()
@@ -621,21 +621,21 @@ class TestDateUtils(IntegrationTestCase):
 		self.assertIsInstance(get_timedelta(str(time_input)), timedelta)
 		self.assertIsInstance(get_timedelta(get_timedelta("100:2:12")), timedelta)
 
-	def test_to_timedelta(self):
+	def test_to_timedelta(self) -> None:
 		self.assertEqual(to_timedelta("00:00:01"), timedelta(seconds=1))
 		self.assertEqual(to_timedelta("10:00:01"), timedelta(seconds=1, hours=10))
 		self.assertEqual(to_timedelta(time(hour=2)), timedelta(hours=2))
 
-	def test_add_date_utils(self):
+	def test_add_date_utils(self) -> None:
 		self.assertEqual(add_years(datetime(2020, 1, 1), 1), datetime(2021, 1, 1))
 
-	def test_duration_to_sec(self):
+	def test_duration_to_sec(self) -> None:
 		self.assertEqual(duration_to_seconds("3h 34m 45s"), 12885)
 		self.assertEqual(duration_to_seconds("1h"), 3600)
 		self.assertEqual(duration_to_seconds("110m"), 110 * 60)
 		self.assertEqual(duration_to_seconds("110m"), 110 * 60)
 
-	def test_get_timespan_date_range(self):
+	def test_get_timespan_date_range(self) -> None:
 		supported_timespans = [
 			"last week",
 			"last month",
@@ -664,11 +664,11 @@ class TestDateUtils(IntegrationTestCase):
 			self.assertIsInstance(res[0], date)
 			self.assertIsInstance(res[1], date)
 
-	def test_timesmap_utils(self):
+	def test_timesmap_utils(self) -> None:
 		self.assertEqual(get_year_ending(date(2021, 1, 1)), date(2021, 12, 31))
 		self.assertEqual(get_year_ending(date(2021, 1, 31)), date(2021, 12, 31))
 
-	def test_pretty_date(self):
+	def test_pretty_date(self) -> None:
 		from frappe import _
 
 		# differnt cases
@@ -693,7 +693,7 @@ class TestDateUtils(IntegrationTestCase):
 		for dt, exp_message in test_cases.items():
 			self.assertEqual(pretty_date(dt), exp_message)
 
-	def test_date_from_timegrain(self):
+	def test_date_from_timegrain(self) -> None:
 		start_date = getdate("2021-01-01")
 
 		daily = get_dates_from_timegrain(start_date, add_to_date(start_date, days=6), "Daily")
@@ -720,7 +720,7 @@ class TestDateUtils(IntegrationTestCase):
 
 
 class TestResponse(IntegrationTestCase):
-	def test_json_handler(self):
+	def test_json_handler(self) -> None:
 		class TEST(Enum):
 			ABC = "!@)@)!"
 			BCE = "ENJD"
@@ -768,7 +768,7 @@ class TestResponse(IntegrationTestCase):
 
 
 class TestTimeDeltaUtils(IntegrationTestCase):
-	def test_format_timedelta(self):
+	def test_format_timedelta(self) -> None:
 		self.assertEqual(format_timedelta(timedelta(seconds=0)), "0:00:00")
 		self.assertEqual(format_timedelta(timedelta(hours=10)), "10:00:00")
 		self.assertEqual(format_timedelta(timedelta(hours=100)), "100:00:00")
@@ -778,7 +778,7 @@ class TestTimeDeltaUtils(IntegrationTestCase):
 			"3:25:12.199129",
 		)
 
-	def test_parse_timedelta(self):
+	def test_parse_timedelta(self) -> None:
 		self.assertEqual(parse_timedelta("0:0:0"), timedelta(seconds=0))
 		self.assertEqual(parse_timedelta("10:0:0"), timedelta(hours=10))
 		self.assertEqual(
@@ -789,7 +789,7 @@ class TestTimeDeltaUtils(IntegrationTestCase):
 
 
 class TestXlsxUtils(IntegrationTestCase):
-	def test_unescape(self):
+	def test_unescape(self) -> None:
 		from frappe.utils.xlsxutils import handle_html
 
 		val = handle_html("<p>html data &gt;</p>")
@@ -798,7 +798,7 @@ class TestXlsxUtils(IntegrationTestCase):
 
 
 class TestLinkTitle(IntegrationTestCase):
-	def test_link_title_doctypes_in_boot_info(self):
+	def test_link_title_doctypes_in_boot_info(self) -> None:
 		"""
 		Test that doctypes are added to link_title_map in boot_info
 		"""
@@ -842,7 +842,7 @@ class TestLinkTitle(IntegrationTestCase):
 		prop_setter.delete()
 		custom_doctype.delete()
 
-	def test_link_titles_on_getdoc(self):
+	def test_link_titles_on_getdoc(self) -> None:
 		"""
 		Test that link titles are added to the doctype on getdoc
 		"""
@@ -889,7 +889,7 @@ class TestLinkTitle(IntegrationTestCase):
 
 
 class TestAppParser(MockedRequestTestCase):
-	def test_app_name_parser(self):
+	def test_app_name_parser(self) -> None:
 		self.responses.add(
 			"HEAD",
 			"https://api.github.com/repos/frappe/healthcare",
@@ -908,9 +908,9 @@ class TestAppParser(MockedRequestTestCase):
 class TestIntrospectionMagic(IntegrationTestCase):
 	"""Test utils that inspect live objects"""
 
-	def test_get_newargs(self):
+	def test_get_newargs(self) -> None:
 		# `kwargs` is just convention any **varname should work.
-		def f(a, b=2, **args):
+		def f(a, b: int = 2, **args) -> None:
 			pass
 
 		safe_kwargs = {"company": "Wind Power", "b": 1}
@@ -920,8 +920,8 @@ class TestIntrospectionMagic(IntegrationTestCase):
 		unsafe_args.update({"ignore_permissions": True, "flags": {"ignore_mandatory": True}})
 		self.assertEqual(frappe.get_newargs(f, unsafe_args), safe_kwargs)
 
-	def test_strip_off_kwargs_when_not_supported(self):
-		def f(a, b=2):
+	def test_strip_off_kwargs_when_not_supported(self) -> None:
+		def f(a, b: int = 2) -> None:
 			pass
 
 		args = {"company": "Wind Power", "b": 1}
@@ -932,19 +932,19 @@ class TestIntrospectionMagic(IntegrationTestCase):
 
 
 class TestMakeRandom(IntegrationTestCase):
-	def test_get_random(self):
+	def test_get_random(self) -> None:
 		self.assertIsInstance(get_random("DocType", doc=True), Document)
 		self.assertIsInstance(get_random("DocType"), str)
 
-	def test_can_make(self):
+	def test_can_make(self) -> None:
 		self.assertIsInstance(can_make("User"), bool)
 
-	def test_how_many(self):
+	def test_how_many(self) -> None:
 		self.assertIsInstance(how_many("User"), int)
 
 
 class TestLazyLoader(IntegrationTestCase):
-	def test_lazy_import_module(self):
+	def test_lazy_import_module(self) -> None:
 		from frappe.utils.lazy_loader import lazy_import
 
 		with Capturing() as output:
@@ -957,7 +957,7 @@ class TestLazyLoader(IntegrationTestCase):
 
 
 class TestIdenticon(IntegrationTestCase):
-	def test_get_gravatar(self):
+	def test_get_gravatar(self) -> None:
 		# developers@frappe.io has a gravatar linked so str URL will be returned
 		frappe.flags.in_test = False
 		gravatar_url = get_gravatar("developers@frappe.io")
@@ -970,7 +970,7 @@ class TestIdenticon(IntegrationTestCase):
 		self.assertIsInstance(gravatar_url, str)
 		self.assertTrue(gravatar_url.startswith("data:image/png;base64,"))
 
-	def test_generate_identicon(self):
+	def test_generate_identicon(self) -> None:
 		identicon = Identicon(random_string(6))
 		with patch.object(identicon.image, "show") as show:
 			identicon.generate()
@@ -982,10 +982,10 @@ class TestIdenticon(IntegrationTestCase):
 
 
 class TestContainerUtils(IntegrationTestCase):
-	def test_dict_to_str(self):
+	def test_dict_to_str(self) -> None:
 		self.assertEqual(dict_to_str({"a": "b"}), "a=b")
 
-	def test_remove_blanks(self):
+	def test_remove_blanks(self) -> None:
 		a = {"asd": "", "b": None, "c": "d"}
 		remove_blanks(a)
 		self.assertEqual(len(a), 1)
@@ -993,14 +993,14 @@ class TestContainerUtils(IntegrationTestCase):
 
 
 class TestLocks(IntegrationTestCase):
-	def test_locktimeout(self):
+	def test_locktimeout(self) -> None:
 		lock_name = "test_lock"
 		with filelock(lock_name):
 			with self.assertRaises(LockTimeoutError):
 				with filelock(lock_name, timeout=1):
 					self.fail("Locks not working")
 
-	def test_global_lock(self):
+	def test_global_lock(self) -> None:
 		lock_name = "test_global"
 		with filelock(lock_name, is_global=True):
 			with self.assertRaises(LockTimeoutError):
@@ -1009,33 +1009,33 @@ class TestLocks(IntegrationTestCase):
 
 
 class TestMiscUtils(IntegrationTestCase):
-	def test_get_file_timestamp(self):
+	def test_get_file_timestamp(self) -> None:
 		self.assertIsInstance(get_file_timestamp(__file__), str)
 
-	def test_execute_in_shell(self):
+	def test_execute_in_shell(self) -> None:
 		err, out = execute_in_shell("ls")
 		self.assertIn("apps", cstr(out))
 
-	def test_get_all_sites(self):
+	def test_get_all_sites(self) -> None:
 		self.assertIn(frappe.local.site, get_sites())
 
-	def test_get_site_info(self):
+	def test_get_site_info(self) -> None:
 		info = get_site_info()
 
 		installed_apps = [app["app_name"] for app in info["installed_apps"]]
 		self.assertIn("frappe", installed_apps)
 		self.assertGreaterEqual(len(info["users"]), 1)
 
-	def test_get_url_to_form(self):
+	def test_get_url_to_form(self) -> None:
 		self.assertTrue(get_url_to_form("System Settings").endswith("/app/system-settings"))
 		self.assertTrue(get_url_to_form("User", "Test User").endswith("/app/user/Test%20User"))
 
-	def test_safe_json_load(self):
+	def test_safe_json_load(self) -> None:
 		self.assertEqual(safe_json_loads("{}"), {})
 		self.assertEqual(safe_json_loads("{ /}"), "{ /}")
 		self.assertEqual(safe_json_loads("12"), 12)  # this is a quirk
 
-	def test_url_expansion(self):
+	def test_url_expansion(self) -> None:
 		unchanged_links = [
 			"<a href='tel:12345432'>My Phone</a>)",
 			"<a href='mailto:hello@example.com'>My Email</a>)",
@@ -1054,13 +1054,13 @@ class TestMiscUtils(IntegrationTestCase):
 class TestTypingValidations(IntegrationTestCase):
 	ERR_REGEX = "^Argument '.*' should be of type '.*' but got '.*' instead.$"
 
-	def test_validate_whitelisted_api(self):
+	def test_validate_whitelisted_api(self) -> None:
 		@frappe.whitelist()
-		def simple(string: str, number: int):
+		def simple(string: str, number: int) -> None:
 			return
 
 		@frappe.whitelist()
-		def varkw(string: str, **kwargs):
+		def varkw(string: str, **kwargs) -> None:
 			return
 
 		test_cases = [
@@ -1072,7 +1072,7 @@ class TestTypingValidations(IntegrationTestCase):
 			with self.assertRaisesRegex(frappe.FrappeTypeError, self.ERR_REGEX):
 				fn(*args, **kwargs)
 
-	def test_validate_whitelisted_doc_method(self):
+	def test_validate_whitelisted_doc_method(self) -> None:
 		report = frappe.get_last_doc("Report")
 
 		with self.assertRaisesRegex(frappe.FrappeTypeError, self.ERR_REGEX):
@@ -1102,7 +1102,7 @@ class TestTBSanitization(IntegrationTestCase):
 
 class TestRounding(IntegrationTestCase):
 	@IntegrationTestCase.change_settings("System Settings", {"rounding_method": "Commercial Rounding"})
-	def test_normal_rounding(self):
+	def test_normal_rounding(self) -> None:
 		self.assertEqual(flt("what"), 0)
 
 		self.assertEqual(flt("0.5", 0), 1)
@@ -1134,7 +1134,7 @@ class TestRounding(IntegrationTestCase):
 		self.assertEqual(flt(-1.25, 1), -1.3)
 		self.assertEqual(flt(-0.15, 1), -0.2)
 
-	def test_normal_rounding_as_argument(self):
+	def test_normal_rounding_as_argument(self) -> None:
 		rounding_method = "Commercial Rounding"
 
 		self.assertEqual(flt("0.5", 0, rounding_method=rounding_method), 1)
@@ -1183,12 +1183,12 @@ class TestRounding(IntegrationTestCase):
 		st.decimals(min_value=-1e8, max_value=1e8),
 		st.integers(min_value=-2, max_value=4),
 	)
-	def test_normal_rounding_property(self, number, precision):
+	def test_normal_rounding_property(self, number, precision) -> None:
 		with localcontext() as ctx:
 			ctx.rounding = ROUND_HALF_UP
 			self.assertEqual(Decimal(str(flt(float(number), precision))), round(number, precision))
 
-	def test_bankers_rounding(self):
+	def test_bankers_rounding(self) -> None:
 		rounding_method = "Banker's Rounding"
 
 		self.assertEqual(rounded(0, 0, rounding_method=rounding_method), 0)
@@ -1251,24 +1251,24 @@ class TestRounding(IntegrationTestCase):
 		st.decimals(min_value=-1e8, max_value=1e8),
 		st.integers(min_value=-2, max_value=4),
 	)
-	def test_bankers_rounding_property(self, number, precision):
+	def test_bankers_rounding_property(self, number, precision) -> None:
 		self.assertEqual(Decimal(str(flt(float(number), precision))), round(number, precision))
 
-	def test_default_rounding(self):
+	def test_default_rounding(self) -> None:
 		self.assertEqual(frappe.get_system_settings("rounding_method"), "Banker's Rounding")
 
 	@given(
 		st.floats(min_value=-(2**32) - 1, max_value=2**32 + 1),
 		st.integers(min_value=-(2**63) - 1, max_value=2**63 + 1),
 	)
-	def test_cint(self, floating_point, integer):
+	def test_cint(self, floating_point, integer) -> None:
 		self.assertEqual(cint(integer), integer)
 		self.assertEqual(cint(str(integer)), integer)
 		self.assertEqual(cint(str(floating_point)), int(floating_point))
 
 
 class TestArgumentTypingValidations(IntegrationTestCase):
-	def test_validate_argument_types(self):
+	def test_validate_argument_types(self) -> None:
 		from unittest.mock import AsyncMock, MagicMock, Mock
 
 		from frappe.core.doctype.doctype.doctype import DocType
@@ -1325,10 +1325,10 @@ class TestArgumentTypingValidations(IntegrationTestCase):
 
 
 class TestChangeLog(IntegrationTestCase):
-	def test_get_remote_url(self):
+	def test_get_remote_url(self) -> None:
 		self.assertIsInstance(get_source_url("frappe"), str)
 
-	def test_parse_github_url(self):
+	def test_parse_github_url(self) -> None:
 		# using erpnext as repo in order to be different from the owner
 		owner, repo = parse_github_url("https://github.com/frappe/erpnext.git")
 		self.assertEqual(owner, "frappe")
@@ -1350,7 +1350,7 @@ class TestChangeLog(IntegrationTestCase):
 
 
 class TestCrypto(IntegrationTestCase):
-	def test_hashing(self):
+	def test_hashing(self) -> None:
 		self.assertEqual(sha256_hash(""), "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
 		self.assertEqual(
 			sha256_hash(b"The quick brown fox jumps over the lazy dog"),
@@ -1359,7 +1359,7 @@ class TestCrypto(IntegrationTestCase):
 
 
 class TestURLTrackers(IntegrationTestCase):
-	def test_add_trackers_to_url(self):
+	def test_add_trackers_to_url(self) -> None:
 		url = "https://example.com"
 		source = "test_source"
 		campaign = "test_campaign"
@@ -1373,7 +1373,7 @@ class TestURLTrackers(IntegrationTestCase):
 		expected = "https://example.com?utm_source=test_source&utm_medium=test_medium&utm_campaign=test_campaign&utm_content=test_content"
 		self.assertEqual(result, expected)
 
-	def test_parse_and_map_trackers_from_url(self):
+	def test_parse_and_map_trackers_from_url(self) -> None:
 		url = "https://example.com?utm_source=test_source&utm_medium=test_medium&utm_campaign=test_campaign&utm_content=test_content"
 
 		with patch("frappe.db.get_value") as mock_get_value:
@@ -1388,7 +1388,7 @@ class TestURLTrackers(IntegrationTestCase):
 		}
 		self.assertEqual(result, expected)
 
-	def test_map_trackers(self):
+	def test_map_trackers(self) -> None:
 		url_trackers = {
 			"utm_source": "test_source",
 			"utm_medium": "test_medium",

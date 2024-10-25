@@ -56,7 +56,7 @@ class Webhook(Document):
 		webhook_secret: DF.Password | None
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		self.validate_docevent()
 		self.validate_condition()
 		self.validate_request_url()
@@ -65,10 +65,10 @@ class Webhook(Document):
 		self.validate_secret()
 		self.preview_document = None
 
-	def on_update(self):
+	def on_update(self) -> None:
 		frappe.cache.delete_value("webhooks")
 
-	def validate_docevent(self):
+	def validate_docevent(self) -> None:
 		if self.webhook_doctype:
 			is_submittable = frappe.get_value("DocType", self.webhook_doctype, "is_submittable")
 			if not is_submittable and self.webhook_docevent in [
@@ -78,7 +78,7 @@ class Webhook(Document):
 			]:
 				frappe.throw(_("DocType must be Submittable for the selected Doc Event"))
 
-	def validate_condition(self):
+	def validate_condition(self) -> None:
 		temp_doc = frappe.new_doc(self.webhook_doctype)
 		if self.condition:
 			try:
@@ -94,7 +94,7 @@ class Webhook(Document):
 		except Exception as e:
 			frappe.throw(_("Check Request URL"), exc=e)
 
-	def validate_request_body(self):
+	def validate_request_body(self) -> None:
 		if self.request_structure:
 			if self.request_structure == "Form URL-Encoded":
 				self.webhook_json = None
@@ -102,13 +102,13 @@ class Webhook(Document):
 				validate_template(self.webhook_json)
 				self.webhook_data = []
 
-	def validate_repeating_fields(self):
+	def validate_repeating_fields(self) -> None:
 		"""Error when Same Field is entered multiple times in webhook_data"""
 		webhook_data = [entry.fieldname for entry in self.webhook_data]
 		if len(webhook_data) != len(set(webhook_data)):
 			frappe.throw(_("Same Field is entered more than once"))
 
-	def validate_secret(self):
+	def validate_secret(self) -> None:
 		if self.enable_security:
 			try:
 				self.get_password("webhook_secret", False).encode("utf8")
@@ -190,7 +190,7 @@ def log_request(
 	headers: dict,
 	data: dict,
 	res: requests.Response | None = None,
-):
+) -> None:
 	request_log = frappe.get_doc(
 		{
 			"doctype": "Webhook Request Log",

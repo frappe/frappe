@@ -24,13 +24,13 @@ class HelpCategory(WebsiteGenerator):
 
 	website = frappe._dict(condition_field="published", page_title_field="category_name")
 
-	def before_insert(self):
+	def before_insert(self) -> None:
 		self.published = 1
 
-	def autoname(self):
+	def autoname(self) -> None:
 		self.name = self.category_name
 
-	def validate(self):
+	def validate(self) -> None:
 		self.set_route()
 
 		# disable help articles of this category
@@ -38,7 +38,7 @@ class HelpCategory(WebsiteGenerator):
 			for d in frappe.get_all("Help Article", dict(category=self.name)):
 				frappe.db.set_value("Help Article", d.name, "published", 0)
 
-	def set_route(self):
+	def set_route(self) -> None:
 		if not self.route:
 			self.route = "kb/" + self.scrub(self.category_name)
 

@@ -16,7 +16,7 @@ class UnitTestRole(UnitTestCase):
 
 
 class TestUser(IntegrationTestCase):
-	def test_disable_role(self):
+	def test_disable_role(self) -> None:
 		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 3")
 
 		role = frappe.get_doc("Role", "_Test Role 3")
@@ -32,7 +32,7 @@ class TestUser(IntegrationTestCase):
 		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 3")
 		self.assertTrue("_Test Role 3" in frappe.get_roles("test@example.com"))
 
-	def test_change_desk_access(self):
+	def test_change_desk_access(self) -> None:
 		"""if we change desk acecss from role, remove from user"""
 		frappe.delete_doc_if_exists("User", "test-user-for-desk-access@example.com")
 		frappe.delete_doc_if_exists("Role", "desk-access-test")
@@ -52,7 +52,7 @@ class TestUser(IntegrationTestCase):
 		user.reload()
 		self.assertTrue(user.user_type == "Website User")
 
-	def test_get_users_by_role(self):
+	def test_get_users_by_role(self) -> None:
 		role = "System Manager"
 		sys_managers = get_info_based_on_role(role, field="name")
 

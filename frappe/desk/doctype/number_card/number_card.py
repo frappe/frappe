@@ -43,14 +43,14 @@ class NumberCard(Document):
 		type: DF.Literal["Document Type", "Report", "Custom"]
 	# end: auto-generated types
 
-	def autoname(self):
+	def autoname(self) -> None:
 		if not self.name:
 			self.name = self.label
 
 		if frappe.db.exists("Number Card", self.name):
 			self.name = append_number_if_name_exists("Number Card", self.name)
 
-	def validate(self):
+	def validate(self) -> None:
 		if self.type == "Document Type":
 			if not (self.document_type and self.function):
 				frappe.throw(_("Document Type and Function are required to create a number card"))
@@ -69,7 +69,7 @@ class NumberCard(Document):
 			if not self.method:
 				frappe.throw(_("Method is required to create a number card"))
 
-	def on_update(self):
+	def on_update(self) -> None:
 		if frappe.conf.developer_mode and self.is_standard:
 			export_to_files(record_list=[["Number Card", self.name]], record_module=self.module)
 
@@ -108,7 +108,7 @@ def get_permission_query_conditions(user=None):
 	"""
 
 
-def has_permission(doc, ptype, user):
+def has_permission(doc, ptype, user) -> bool:
 	roles = frappe.get_roles(user)
 	if "System Manager" in roles:
 		return True
@@ -234,7 +234,7 @@ def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 
 
 @frappe.whitelist()
-def create_report_number_card(args):
+def create_report_number_card(args) -> None:
 	card = create_number_card(args)
 	args = frappe.parse_json(args)
 	args.name = card.name
@@ -243,7 +243,7 @@ def create_report_number_card(args):
 
 
 @frappe.whitelist()
-def add_card_to_dashboard(args):
+def add_card_to_dashboard(args) -> None:
 	args = frappe.parse_json(args)
 
 	dashboard = frappe.get_doc("Dashboard", args.dashboard)

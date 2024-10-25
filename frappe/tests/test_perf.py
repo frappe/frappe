@@ -38,7 +38,7 @@ TEST_USER = "test@example.com"
 
 @run_only_if(db_type_is.MARIADB)
 class TestPerformance(IntegrationTestCase):
-	def reset_request_specific_caches(self):
+	def reset_request_specific_caches(self) -> None:
 		# To simulate close to request level of handling
 		frappe.destroy()  # releases everything on frappe.local
 		frappe.init(self.TEST_SITE)
@@ -50,7 +50,7 @@ class TestPerformance(IntegrationTestCase):
 
 		self.reset_request_specific_caches()
 
-	def test_meta_caching(self):
+	def test_meta_caching(self) -> None:
 		frappe.clear_cache()
 		frappe.get_meta("User")
 		frappe.clear_cache(doctype="ToDo")
@@ -58,7 +58,7 @@ class TestPerformance(IntegrationTestCase):
 		with self.assertQueryCount(0):
 			frappe.get_meta("User")
 
-	def test_permitted_fieldnames(self):
+	def test_permitted_fieldnames(self) -> None:
 		frappe.clear_cache()
 
 		doc = frappe.new_doc("Prepared Report")
@@ -70,7 +70,7 @@ class TestPerformance(IntegrationTestCase):
 			# get_permitted_fields should not be called again
 			mocked.assert_not_called()
 
-	def test_set_value_query_count(self):
+	def test_set_value_query_count(self) -> None:
 		frappe.db.set_value("User", "Administrator", "interest", "Nothing")
 
 		with self.assertQueryCount(1):
@@ -84,12 +84,12 @@ class TestPerformance(IntegrationTestCase):
 				"User", {"user_type": "System User"}, {"interest": "Nothing", "bio": "boring person"}
 			)
 
-	def test_controller_caching(self):
+	def test_controller_caching(self) -> None:
 		get_controller("User")
 		with self.assertQueryCount(0):
 			get_controller("User")
 
-	def test_get_value_limits(self):
+	def test_get_value_limits(self) -> None:
 		# check both dict and list style filters
 		filters = [{"enabled": 1}, [["enabled", "=", 1]]]
 
@@ -111,7 +111,7 @@ class TestPerformance(IntegrationTestCase):
 			with self.assertRowsRead(1):
 				frappe.db.exists("User", filter)
 
-	def test_db_value_cache(self):
+	def test_db_value_cache(self) -> None:
 		"""Link validation if repeated should just use db.value_cache, hence no extra queries"""
 		doc = frappe.get_last_doc("User")
 		doc.get_invalid_links()
@@ -125,7 +125,7 @@ class TestPerformance(IntegrationTestCase):
 		wait=wait_fixed(0.5),
 		reraise=True,
 	)
-	def test_req_per_seconds_basic(self):
+	def test_req_per_seconds_basic(self) -> None:
 		"""Ideally should be ran against gunicorn worker, though I have not seen any difference
 		when using werkzeug's run_simple for synchronous requests."""
 
@@ -149,19 +149,19 @@ class TestPerformance(IntegrationTestCase):
 			"Possible performance regression in basic /api/Resource list  requests",
 		)
 
-	def test_homepage_resolver(self):
+	def test_homepage_resolver(self) -> None:
 		paths = ["/", "/app"]
 		for path in paths:
 			PathResolver(path).resolve()
 			with self.assertQueryCount(1):
 				PathResolver(path).resolve()
 
-	def test_consistent_build_version(self):
+	def test_consistent_build_version(self) -> None:
 		from frappe.utils import get_build_version
 
 		self.assertEqual(get_build_version(), get_build_version())
 
-	def test_get_list_single_query(self):
+	def test_get_list_single_query(self) -> None:
 		"""get_list should only perform single query."""
 
 		user = frappe.get_doc("User", TEST_USER)
@@ -174,12 +174,12 @@ class TestPerformance(IntegrationTestCase):
 		with self.assertQueryCount(1):
 			frappe.get_list("User")
 
-	def test_no_ifnull_checks(self):
+	def test_no_ifnull_checks(self) -> None:
 		query = frappe.get_all("DocType", {"autoname": ("is", "set")}, run=0).lower()
 		self.assertNotIn("coalesce", query)
 		self.assertNotIn("ifnull", query)
 
-	def test_no_stale_ref_sql(self):
+	def test_no_stale_ref_sql(self) -> None:
 		"""frappe.db.sql should not hold any internal references to result set.
 
 		pymysql stores results internally. If your code reads a lot and doesn't make another
@@ -194,11 +194,11 @@ class TestPerformance(IntegrationTestCase):
 			self.assertEqual(sys.getrefcount(result), 2)  # Note: This always returns +1
 			self.assertFalse(gc.get_referrers(result))
 
-	def test_no_cyclic_references(self):
+	def test_no_cyclic_references(self) -> None:
 		doc = frappe.get_doc("User", "Administrator")
 		self.assertEqual(sys.getrefcount(doc), 2)  # Note: This always returns +1
 
-	def test_get_doc_cache_calls(self):
+	def test_get_doc_cache_calls(self) -> None:
 		frappe.get_doc("User", "Administrator")
 		with self.assertRedisCallCounts(1):
 			frappe.get_doc("User", "Administrator")
@@ -215,19 +215,19 @@ class TestOverheadCalls(FrappeAPITestCase):
 
 	BASE_SQL_CALLS = 2  # rollback + begin
 
-	def test_ping_overheads(self):
+	def test_ping_overheads(self) -> None:
 		self.get(self.method("ping"), {"sid": "Guest"})
 		with self.assertRedisCallCounts(13), self.assertQueryCount(self.BASE_SQL_CALLS):
 			self.get(self.method("ping"), {"sid": "Guest"})
 
-	def test_list_view_overheads(self):
+	def test_list_view_overheads(self) -> None:
 		sid = self.sid
 		self.get(self.resource("ToDo"), {"sid": sid})
 		self.get(self.resource("ToDo"), {"sid": sid})
 		with self.assertRedisCallCounts(24), self.assertQueryCount(self.BASE_SQL_CALLS + 1):
 			self.get(self.resource("ToDo"), {"sid": sid})
 
-	def test_get_doc_overheads(self):
+	def test_get_doc_overheads(self) -> None:
 		sid = self.sid
 		tables = len(frappe.get_meta("User").get_table_fields())
 		self.get(self.resource("User", "Administrator"), {"sid": sid})

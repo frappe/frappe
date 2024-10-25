@@ -16,7 +16,7 @@ class UnitTestRoleProfile(UnitTestCase):
 
 
 class TestRoleProfile(IntegrationTestCase):
-	def test_make_new_role_profiles(self):
+	def test_make_new_role_profiles(self) -> None:
 		frappe.delete_doc_if_exists("Role Profile", "Test 1", force=1)
 		new_role_profile = frappe.get_doc(doctype="Role Profile", role_profile="Test 1").insert()
 
@@ -57,7 +57,7 @@ class TestRoleProfile(IntegrationTestCase):
 		random_user.reload()
 		self.assertListEqual(random_user.roles, [])
 
-	def test_multiple_role_profiles(self):
+	def test_multiple_role_profiles(self) -> None:
 		frappe.delete_doc_if_exists("Role Profile", "_Test Role Profile 1", force=1)
 		frappe.delete_doc_if_exists("Role Profile", "_Test Role Profile 2", force=1)
 
@@ -119,7 +119,7 @@ class TestRoleProfile(IntegrationTestCase):
 			{role.role for role in user_two.roles}, {role.role for role in role_profile_two.roles}
 		)
 
-	def test_update_role_profile(self):
+	def test_update_role_profile(self) -> None:
 		role_profile = frappe.get_doc("Role Profile", "_Test Role Profile 1")
 
 		user = frappe.get_doc(

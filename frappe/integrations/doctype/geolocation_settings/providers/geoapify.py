@@ -4,7 +4,7 @@ import requests
 
 
 class Geoapify:
-	def __init__(self, api_key: str, lang: str | None = None):
+	def __init__(self, api_key: str, lang: str | None = None) -> None:
 		self.api_key = api_key
 		self.lang = lang
 		self.base_url = "https://api.geoapify.com"

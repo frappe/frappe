@@ -12,7 +12,7 @@ from frappe.tests import IntegrationTestCase
 
 class TestPdf(IntegrationTestCase):
 	@property
-	def html(self):
+	def html(self) -> str:
 		return """<style>
 			.print-format {
 			 margin-top: 0mm;
@@ -31,10 +31,10 @@ class TestPdf(IntegrationTestCase):
 				Please mail us at <a href="mailto:test@example.com">email</a>
 			</div>"""
 
-	def runTest(self):
+	def runTest(self) -> None:
 		self.test_read_options_from_html()
 
-	def test_read_options_from_html(self):
+	def test_read_options_from_html(self) -> None:
 		_, html_options = pdfgen.read_options_from_html(self.html)
 		self.assertTrue(html_options["margin-top"] == "0")
 		self.assertTrue(html_options["margin-left"] == "10mm")
@@ -63,26 +63,26 @@ class TestPdf(IntegrationTestCase):
 		# so it should not be extracted into options
 		self.assertFalse(options.get("margin-right"))
 
-	def test_empty_style(self):
+	def test_empty_style(self) -> None:
 		html = """<style></style>
 			<div class="more-info">Hello</div>
 		"""
 		_, options = pdfgen.read_options_from_html(html)
 		self.assertTrue(options)
 
-	def test_pdf_encryption(self):
+	def test_pdf_encryption(self) -> None:
 		password = "qwe"
 		pdf = pdfgen.get_pdf(self.html, options={"password": password})
 		reader = PdfReader(io.BytesIO(pdf))
 		self.assertTrue(reader.is_encrypted)
 		self.assertTrue(reader.decrypt(password))
 
-	def test_pdf_generation_as_a_user(self):
+	def test_pdf_generation_as_a_user(self) -> None:
 		frappe.set_user("Administrator")
 		pdf = pdfgen.get_pdf(self.html)
 		self.assertTrue(pdf)
 
-	def test_private_images_in_pdf(self):
+	def test_private_images_in_pdf(self) -> None:
 		with make_test_image_file(private=True) as file:
 			html = f""" <div>
 				<img src="{file.file_url}" class='responsive'>

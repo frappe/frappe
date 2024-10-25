@@ -8,7 +8,7 @@ from frappe import _
 
 
 @frappe.whitelist()
-def download_pdf(doctype, name, print_format, letterhead=None):
+def download_pdf(doctype, name, print_format, letterhead=None) -> None:
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("print")
 	generator = PrintFormatGenerator(print_format, doc, letterhead)
@@ -34,7 +34,7 @@ class PrintFormatGenerator:
 	discussion in the library github issues: https://github.com/Kozea/WeasyPrint/issues/92
 	"""
 
-	def __init__(self, print_format, doc, letterhead=None):
+	def __init__(self, print_format, doc, letterhead=None) -> None:
 		"""
 		Parameters
 		----------
@@ -57,7 +57,7 @@ class PrintFormatGenerator:
 		self.layout = self.get_layout(self.print_format)
 		self.context.layout = self.layout
 
-	def build_context(self):
+	def build_context(self) -> None:
 		self.print_settings = frappe.get_doc("Print Settings")
 		page_width_map = {"A4": 210, "Letter": 216}
 		page_width = page_width_map.get(self.print_settings.pdf_page_size) or 210
@@ -147,7 +147,7 @@ class PrintFormatGenerator:
 
 		return element_body, element_height
 
-	def _apply_overlay_on_main(self, main_doc, header_body=None, footer_body=None):
+	def _apply_overlay_on_main(self, main_doc, header_body=None, footer_body=None) -> None:
 		"""
 		Insert the header and the footer in the main document.
 
@@ -168,7 +168,7 @@ class PrintFormatGenerator:
 			if footer_body:
 				page_body.children += footer_body.all_children()
 
-	def _make_header_footer(self):
+	def _make_header_footer(self) -> None:
 		self.header_html, self.footer_html = self.get_header_footer_html()
 
 		if self.header_html:

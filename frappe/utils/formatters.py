@@ -23,7 +23,7 @@ from frappe.utils import (
 BLOCK_TAGS_PATTERN = re.compile(r"(<br|<div|<p)")
 
 
-def format_value(value, df=None, doc=None, currency=None, translated=False, format=None):
+def format_value(value, df=None, doc=None, currency=None, translated: bool = False, format=None):
 	"""Format value based on given fieldtype, document reference, currency reference.
 	If docfield info (df) is not given, it will try and guess based on the datatype of the value"""
 	if isinstance(df, str):

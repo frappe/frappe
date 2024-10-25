@@ -29,18 +29,18 @@ logger = logging.getLogger(__name__)
 
 
 class TestResult(unittest.TextTestResult):
-	def __init__(self, stream, descriptions, verbosity):
+	def __init__(self, stream, descriptions, verbosity) -> None:
 		super().__init__(stream, descriptions, verbosity)
 		self._old_stdout = []
 		self._old_stderr = []
 
-	def _setupStdout(self):
+	def _setupStdout(self) -> None:
 		pass
 
-	def _restoreStdout(self):
+	def _restoreStdout(self) -> None:
 		pass
 
-	def startTestRun(self):
+	def startTestRun(self) -> None:
 		if not sys.warnoptions:
 			import warnings
 
@@ -58,12 +58,12 @@ class TestResult(unittest.TextTestResult):
 			sys.stdout = self._module_or_class_stdout_capture
 			sys.stderr = self._module_or_class_stderr_capture
 
-	def stopTestRun(self):
+	def stopTestRun(self) -> None:
 		if self.buffer:
 			sys.stdout = self._old_stdout.pop()
 			sys.stderr = self._old_stderr.pop()
 
-	def startTest(self, test):
+	def startTest(self, test) -> None:
 		self.tb_locals = True
 		self._started_at = time.monotonic()
 		super(unittest.TextTestResult, self).startTest(test)
@@ -103,7 +103,7 @@ class TestResult(unittest.TextTestResult):
 			sys.stdout = self._test_stdout_capture
 			sys.stderr = self._test_stderr_capture
 
-	def stopTest(self, test):
+	def stopTest(self, test) -> None:
 		super().stopTest(test)
 		if self.buffer:
 			sys.stdout = self._old_stderr.pop()
@@ -118,7 +118,7 @@ class TestResult(unittest.TextTestResult):
 	def getTestMethodName(self, test):
 		return test._testMethodName if hasattr(test, "_testMethodName") else str(test)
 
-	def addSuccess(self, test):
+	def addSuccess(self, test) -> None:
 		super(unittest.TextTestResult, self).addSuccess(test)
 		elapsed = time.monotonic() - self._started_at
 		threshold_passed = elapsed >= SLOW_TEST_THRESHOLD
@@ -126,49 +126,49 @@ class TestResult(unittest.TextTestResult):
 		self._write_result(test, " ✔ ", "green", long_elapsed)
 		logger.debug(f"{test!s:<200} {'[success]':>20} ⌛{elapsed}")
 
-	def addError(self, test, err):
+	def addError(self, test, err) -> None:
 		super(unittest.TextTestResult, self).addError(test, err)
 		self._write_result(test, " ✖ ", "red")
 		logger.debug(f"{test!s:<200} {'[error]':>20}")
 
-	def addFailure(self, test, err):
+	def addFailure(self, test, err) -> None:
 		super(unittest.TextTestResult, self).addFailure(test, err)
 		self._write_result(test, " ✖ ", "red")
 		logger.debug(f"{test!s:<200} {'[failure]':>20}")
 
-	def addSkip(self, test, reason):
+	def addSkip(self, test, reason) -> None:
 		super(unittest.TextTestResult, self).addSkip(test, reason)
 		self._write_result(test, " = ", "white")
 		logger.debug(f"{test!s:<200} {'[skipped]':>20}")
 
-	def addExpectedFailure(self, test, err):
+	def addExpectedFailure(self, test, err) -> None:
 		super(unittest.TextTestResult, self).addExpectedFailure(test, err)
 		self.stream.write("x")
 		self._write_result(test, "✔ ", "green")
 		logger.debug(f"{test!s:<200} {'[expected failure]':>20}")
 
-	def addUnexpectedSuccess(self, test):
+	def addUnexpectedSuccess(self, test) -> None:
 		super(unittest.TextTestResult, self).addUnexpectedSuccess(test)
 		self.stream.write("u")
 		self._write_result(test, "✖ ", "red")
 		logger.debug(f"{test!s:<200} {'[unexpected success]':>20}")
 
-	def printErrors(self):
+	def printErrors(self) -> None:
 		click.echo("\n")
 		self.printErrorList(" ERROR ", self.errors, "red")
 		self.printErrorList(" FAIL ", self.failures, "red")
 
-	def printErrorList(self, flavour, errors, color):
+	def printErrorList(self, flavour, errors, color) -> None:
 		for test, err in errors:
 			click.echo(self.separator1)
 			click.echo(f"{click.style(flavour, bg=color)} {self.getDescription(test)}")
 			click.echo(self.separator2)
 			click.echo(err)
 
-	def __str__(self):
+	def __str__(self) -> str:
 		return f"Tests: {self.testsRun}, Failing: {len(self.failures)}, Errors: {len(self.errors)}"
 
-	def _write_result(self, test, status, color, suffix=""):
+	def _write_result(self, test, status, color, suffix: str = "") -> None:
 		test_method = self.getTestMethodName(test)
 		result = f"   {click.style(status, fg=color)} {test_method}"
 		result += f" {suffix}" if suffix else ""

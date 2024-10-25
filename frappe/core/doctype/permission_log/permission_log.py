@@ -31,7 +31,7 @@ class PermissionLog(Document):
 		return self.creation
 
 
-def make_perm_log(doc, method=None):
+def make_perm_log(doc, method=None) -> None:
 	if not hasattr(doc, "get_permission_log_options"):
 		return
 
@@ -46,7 +46,7 @@ def insert_perm_log(
 	for_doctype: Optional["str"] = None,
 	for_document: Optional["str"] = None,
 	fields: Optional["list | tuple"] = None,
-):
+) -> None:
 	if frappe.flags.in_install or frappe.flags.in_migrate:
 		# no need to log changes when migrating or installing app/site
 		return

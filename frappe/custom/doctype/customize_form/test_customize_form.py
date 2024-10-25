@@ -22,7 +22,7 @@ class UnitTestCustomizeForm(UnitTestCase):
 
 
 class TestCustomizeForm(IntegrationTestCase):
-	def insert_custom_field(self):
+	def insert_custom_field(self) -> None:
 		frappe.delete_doc_if_exists("Custom Field", "Event-custom_test_field")
 		self.field = frappe.get_doc(
 			{
@@ -39,13 +39,13 @@ class TestCustomizeForm(IntegrationTestCase):
 			}
 		).insert()
 
-	def setUp(self):
+	def setUp(self) -> None:
 		self.insert_custom_field()
 		frappe.db.delete("Property Setter", dict(doc_type="Event"))
 		frappe.db.commit()
 		frappe.clear_cache(doctype="Event")
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.delete_doc("Custom Field", self.field.name)
 		frappe.db.commit()
 		frappe.clear_cache(doctype="Event")
@@ -75,7 +75,7 @@ class TestCustomizeForm(IntegrationTestCase):
 
 		return d
 
-	def test_save_customization_property(self):
+	def test_save_customization_property(self) -> None:
 		d = self.get_customize_form("Event")
 		self.assertEqual(
 			frappe.db.get_value("Property Setter", {"doc_type": "Event", "property": "allow_copy"}, "value"),
@@ -96,7 +96,7 @@ class TestCustomizeForm(IntegrationTestCase):
 			None,
 		)
 
-	def test_save_customization_field_property(self):
+	def test_save_customization_field_property(self) -> None:
 		d = self.get_customize_form("Event")
 		self.assertEqual(
 			frappe.db.get_value(
@@ -131,7 +131,7 @@ class TestCustomizeForm(IntegrationTestCase):
 			None,
 		)
 
-	def test_save_customization_custom_field_property(self):
+	def test_save_customization_custom_field_property(self) -> None:
 		d = self.get_customize_form("Event")
 		self.assertEqual(frappe.db.get_value("Custom Field", self.field.name, "reqd"), 0)
 
@@ -149,7 +149,7 @@ class TestCustomizeForm(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Custom Field", self.field.name, "reqd"), 0)
 		self.assertEqual(frappe.db.get_value("Custom Field", self.field.name, "no_copy"), 0)
 
-	def test_save_customization_new_field(self):
+	def test_save_customization_new_field(self) -> None:
 		d = self.get_customize_form("Event")
 		last_fieldname = d.fields[-1].fieldname
 		d.append(
@@ -176,7 +176,7 @@ class TestCustomizeForm(IntegrationTestCase):
 		frappe.delete_doc("Custom Field", custom_field_name)
 		self.assertEqual(frappe.db.get_value("Custom Field", custom_field_name), None)
 
-	def test_save_customization_remove_field(self):
+	def test_save_customization_remove_field(self) -> None:
 		d = self.get_customize_form("Event")
 		custom_field = d.get("fields", {"fieldname": self.field.fieldname})[0]
 		d.get("fields").remove(custom_field)
@@ -186,7 +186,7 @@ class TestCustomizeForm(IntegrationTestCase):
 
 		make_test_records_for_doctype("Custom Field")
 
-	def test_reset_to_defaults(self):
+	def test_reset_to_defaults(self) -> None:
 		d = frappe.get_doc("Customize Form")
 		d.doc_type = "Event"
 		d.run_method("reset_to_defaults")
@@ -195,7 +195,7 @@ class TestCustomizeForm(IntegrationTestCase):
 
 		make_test_records_for_doctype("Property Setter")
 
-	def test_set_allow_on_submit(self):
+	def test_set_allow_on_submit(self) -> None:
 		d = self.get_customize_form("Event")
 		d.get("fields", {"fieldname": "subject"})[0].allow_on_submit = 1
 		d.get("fields", {"fieldname": "custom_test_field"})[0].allow_on_submit = 1
@@ -209,7 +209,7 @@ class TestCustomizeForm(IntegrationTestCase):
 		# allow for custom field
 		self.assertEqual(d.get("fields", {"fieldname": "custom_test_field"})[0].allow_on_submit, 1)
 
-	def test_title_field_pattern(self):
+	def test_title_field_pattern(self) -> None:
 		d = self.get_customize_form("Web Form")
 
 		df = d.get("fields", {"fieldname": "title"})[0]
@@ -234,10 +234,10 @@ class TestCustomizeForm(IntegrationTestCase):
 		df.default = None
 		d.run_method("save_customization")
 
-	def test_core_doctype_customization(self):
+	def test_core_doctype_customization(self) -> None:
 		self.assertRaises(frappe.ValidationError, self.get_customize_form, "User")
 
-	def test_save_customization_length_field_property(self):
+	def test_save_customization_length_field_property(self) -> None:
 		# Using Notification Log doctype as it doesn't have any other custom fields
 		d = self.get_customize_form("Notification Log")
 
@@ -264,7 +264,7 @@ class TestCustomizeForm(IntegrationTestCase):
 
 		self.assertEqual(length, new_document_length)
 
-	def test_custom_link(self):
+	def test_custom_link(self) -> None:
 		try:
 			# create a dummy doctype linked to Event
 			testdt_name = "Test Link for Event"
@@ -308,7 +308,7 @@ class TestCustomizeForm(IntegrationTestCase):
 			testdt.delete()
 			testdt1.delete()
 
-	def test_custom_internal_links(self):
+	def test_custom_internal_links(self) -> None:
 		# add a custom internal link
 		frappe.clear_cache()
 		d = self.get_customize_form("User Group")
@@ -343,7 +343,7 @@ class TestCustomizeForm(IntegrationTestCase):
 		user_group = frappe.get_meta("Event")
 		self.assertFalse([d.name for d in (user_group.links or []) if d.link_doctype == "User Group Member"])
 
-	def test_custom_action(self):
+	def test_custom_action(self) -> None:
 		test_route = "/app/List/DocType"
 
 		# create a dummy action (route)
@@ -370,7 +370,7 @@ class TestCustomizeForm(IntegrationTestCase):
 		action = [d for d in event.actions if d.label == "Test Action"]
 		self.assertEqual(len(action), 0)
 
-	def test_custom_label(self):
+	def test_custom_label(self) -> None:
 		d = self.get_customize_form("Event")
 
 		# add label
@@ -392,14 +392,14 @@ class TestCustomizeForm(IntegrationTestCase):
 		d.run_method("save_customization")
 		self.assertEqual(d.label, "")
 
-	def test_change_to_autoincrement_autoname(self):
+	def test_change_to_autoincrement_autoname(self) -> None:
 		d = self.get_customize_form("Event")
 		d.autoname = "autoincrement"
 
 		with self.assertRaises(frappe.ValidationError):
 			d.run_method("save_customization")
 
-	def test_system_generated_fields(self):
+	def test_system_generated_fields(self) -> None:
 		doctype = "Event"
 		custom_field_name = "custom_test_field"
 
@@ -421,7 +421,7 @@ class TestCustomizeForm(IntegrationTestCase):
 			frappe.db.get_value("Property Setter", property_setter_filters, "value"), "Test Description"
 		)
 
-	def test_custom_field_order(self):
+	def test_custom_field_order(self) -> None:
 		# shuffle fields
 		customize_form = self.get_customize_form(doctype="ToDo")
 		customize_form.fields.insert(0, customize_form.fields.pop())

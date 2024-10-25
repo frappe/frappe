@@ -214,13 +214,13 @@ def to_timedelta(time_str: str | datetime.time) -> datetime.timedelta:
 @typing.overload
 def add_to_date(
 	date,
-	years=0,
-	months=0,
-	weeks=0,
-	days=0,
-	hours=0,
-	minutes=0,
-	seconds=0,
+	years: int = 0,
+	months: int = 0,
+	weeks: int = 0,
+	days: int = 0,
+	hours: int = 0,
+	minutes: int = 0,
+	seconds: int = 0,
 	as_string: Literal[False] = False,
 	as_datetime: Literal[False] = False,
 ) -> datetime.date:
@@ -230,13 +230,13 @@ def add_to_date(
 @typing.overload
 def add_to_date(
 	date,
-	years=0,
-	months=0,
-	weeks=0,
-	days=0,
-	hours=0,
-	minutes=0,
-	seconds=0,
+	years: int = 0,
+	months: int = 0,
+	weeks: int = 0,
+	days: int = 0,
+	hours: int = 0,
+	minutes: int = 0,
+	seconds: int = 0,
 	as_string: Literal[False] = False,
 	as_datetime: Literal[True] = True,
 ) -> datetime.datetime:
@@ -246,13 +246,13 @@ def add_to_date(
 @typing.overload
 def add_to_date(
 	date,
-	years=0,
-	months=0,
-	weeks=0,
-	days=0,
-	hours=0,
-	minutes=0,
-	seconds=0,
+	years: int = 0,
+	months: int = 0,
+	weeks: int = 0,
+	days: int = 0,
+	hours: int = 0,
+	minutes: int = 0,
+	seconds: int = 0,
 	as_string: Literal[True] = True,
 	as_datetime: bool = False,
 ) -> str:
@@ -261,15 +261,15 @@ def add_to_date(
 
 def add_to_date(
 	date: DateTimeLikeObject,
-	years=0,
-	months=0,
-	weeks=0,
-	days=0,
-	hours=0,
-	minutes=0,
-	seconds=0,
-	as_string=False,
-	as_datetime=False,
+	years: int = 0,
+	months: int = 0,
+	weeks: int = 0,
+	days: int = 0,
+	hours: int = 0,
+	minutes: int = 0,
+	seconds: int = 0,
+	as_string: bool = False,
+	as_datetime: bool = False,
 ) -> DateTimeLikeObject:
 	"""Adds `days` to the given date"""
 
@@ -441,12 +441,12 @@ def nowtime() -> str:
 
 
 @typing.overload
-def get_first_day(dt, d_years=0, d_months=0, as_str: Literal[False] = False) -> datetime.date:
+def get_first_day(dt, d_years: int = 0, d_months: int = 0, as_str: Literal[False] = False) -> datetime.date:
 	...
 
 
 @typing.overload
-def get_first_day(dt, d_years=0, d_months=0, as_str: Literal[True] = False) -> str:
+def get_first_day(dt, d_years: int = 0, d_months: int = 0, as_str: Literal[True] = False) -> str:
 	...
 
 
@@ -500,7 +500,7 @@ def get_first_day_of_week(dt: DateTimeLikeObject, as_str: Literal[True] = False)
 	...
 
 
-def get_first_day_of_week(dt: DateTimeLikeObject, as_str=False) -> datetime.date | str:
+def get_first_day_of_week(dt: DateTimeLikeObject, as_str: bool = False) -> datetime.date | str:
 	"""Return the first day of the week (as per System Settings or Sunday by default) for the given datetime like object (`dt`).
 
 	If `as_str` is True, the first day of the week is returned as a string in `yyyy-mm-dd` format.
@@ -535,7 +535,7 @@ def get_year_start(dt: DateTimeLikeObject, as_str: Literal[True] = False) -> str
 	...
 
 
-def get_year_start(dt: DateTimeLikeObject, as_str=False) -> str | datetime.date:
+def get_year_start(dt: DateTimeLikeObject, as_str: bool = False) -> str | datetime.date:
 	"""Return the start date of the year for the given date (`dt`)."""
 	dt = getdate(dt)
 	date = datetime.date(dt.year, 1, 1)
@@ -552,7 +552,7 @@ def get_last_day_of_week(dt: DateTimeLikeObject, as_str: Literal[True] = False) 
 	...
 
 
-def get_last_day_of_week(dt: DateTimeLikeObject, as_str=False) -> datetime.date | str:
+def get_last_day_of_week(dt: DateTimeLikeObject, as_str: bool = False) -> datetime.date | str:
 	"""Return the last day of the week (first day is taken from System Settings or Sunday by default) for the given datetime like object (`dt`).
 
 	If `as_str` is True, the last day of the week is returned as a string in `yyyy-mm-dd` format.
@@ -586,7 +586,7 @@ def get_quarter_ending(dt: DateTimeLikeObject | None = None, as_str: Literal[Tru
 	...
 
 
-def get_quarter_ending(date: DateTimeLikeObject | None = None, as_str=False) -> str | datetime.date:
+def get_quarter_ending(date: DateTimeLikeObject | None = None, as_str: bool = False) -> str | datetime.date:
 	"""Return the end date of the quarter for the given datetime like object (`date`).
 
 	If `date` is None, the current quarter end date is returned.
@@ -616,7 +616,7 @@ def get_year_ending(dt: DateTimeLikeObject | None = None, as_str: Literal[True] 
 	...
 
 
-def get_year_ending(date: DateTimeLikeObject | None = None, as_str=False) -> datetime.date | str:
+def get_year_ending(date: DateTimeLikeObject | None = None, as_str: bool = False) -> datetime.date | str:
 	"""Return the end date of the year for the given datetime like object (`date`).
 
 	If `date` is None, the current year end date is returned.
@@ -782,7 +782,7 @@ def format_datetime(datetime_string: DateTimeLikeObject, format_string: str | No
 	return formatted_datetime
 
 
-def format_duration(seconds, hide_days=False):
+def format_duration(seconds, hide_days: bool = False):
 	"""Convert the given duration value in float(seconds) to duration format.
 
 	example: convert 12885 to '3h 34m 45s' where 12885 = seconds in float
@@ -848,7 +848,7 @@ def duration_to_seconds(duration):
 	return value
 
 
-def validate_duration_format(duration):
+def validate_duration_format(duration) -> None:
 	if not DURATION_PATTERN.match(duration):
 		frappe.throw(
 			frappe._("Value {0} must be in the valid duration format: d h m s").format(frappe.bold(duration))
@@ -968,7 +968,7 @@ def get_timespan_date_range(
 			return
 
 
-def global_date_format(date: DateTimeLikeObject, format="long") -> str:
+def global_date_format(date: DateTimeLikeObject, format: str = "long") -> str:
 	"""Return localized date in the form of 'January 1, 2012'."""
 	import babel.dates
 
@@ -981,7 +981,7 @@ def has_common(l1: typing.Hashable, l2: typing.Hashable) -> bool:
 	return set(l1) & set(l2)
 
 
-def cast_fieldtype(fieldtype, value, show_warning=True):
+def cast_fieldtype(fieldtype, value, show_warning: bool = True):
 	if show_warning:
 		message = (
 			"Function `frappe.utils.data.cast_fieldtype` has been deprecated in favour"
@@ -1155,7 +1155,7 @@ def ceil(s: NumericType | str) -> int:
 	return num
 
 
-def cstr(s, encoding="utf-8") -> str:
+def cstr(s, encoding: str = "utf-8") -> str:
 	"""Convert the given argument to string."""
 	return frappe.as_unicode(s, encoding)
 
@@ -1184,7 +1184,7 @@ def sbool(x: str | Any) -> bool | str | Any:
 		return x
 
 
-def rounded(num, precision=0, rounding_method=None):
+def rounded(num, precision: int = 0, rounding_method=None):
 	"""Round according to method set in system setting, defaults to banker's rounding"""
 	precision = cint(precision)
 
@@ -1296,7 +1296,7 @@ def safe_div(numerator: NumericType, denominator: NumericType, precision: int = 
 	return flt(_res, precision)
 
 
-def round_based_on_smallest_currency_fraction(value, currency, precision=2):
+def round_based_on_smallest_currency_fraction(value, currency, precision: int = 2):
 	smallest_currency_fraction_value = flt(
 		frappe.db.get_value("Currency", currency, "smallest_currency_fraction_value", cache=True)
 	)
@@ -1313,7 +1313,7 @@ def round_based_on_smallest_currency_fraction(value, currency, precision=2):
 	return flt(value, precision)
 
 
-def encode(obj, encoding="utf-8"):
+def encode(obj, encoding: str = "utf-8"):
 	if isinstance(obj, list):
 		out = []
 		for o in obj:
@@ -1511,7 +1511,7 @@ def money_in_words(
 #
 # convert number to words
 #
-def in_words(integer: int, in_million=True) -> str:
+def in_words(integer: int, in_million: bool = True) -> str:
 	"""Return string in words for the given integer."""
 	from num2words import num2words
 
@@ -1668,7 +1668,7 @@ def pretty_date(iso_datetime: datetime.datetime | str) -> str:
 	return format_timedelta(iso_datetime - now_dt, add_direction=True, locale=locale)
 
 
-def comma_or(some_list: list | tuple, add_quotes=True) -> str:
+def comma_or(some_list: list | tuple, add_quotes: bool = True) -> str:
 	"""Return the given list or tuple as a comma separated string with the last item joined by 'or'.
 	e.g. ['a', 'b', 'c'] -> 'a, b or c'
 
@@ -1678,7 +1678,7 @@ def comma_or(some_list: list | tuple, add_quotes=True) -> str:
 	return comma_sep(some_list, frappe._("{0} or {1}"), add_quotes)
 
 
-def comma_and(some_list: list | tuple, add_quotes=True) -> str:
+def comma_and(some_list: list | tuple, add_quotes: bool = True) -> str:
 	"""Return the given list or tuple as a comma separated string with the last item joined by 'and'.
 	e.g. ['a', 'b', 'c'] -> 'a, b and c'
 
@@ -1688,7 +1688,7 @@ def comma_and(some_list: list | tuple, add_quotes=True) -> str:
 	return comma_sep(some_list, frappe._("{0} and {1}"), add_quotes)
 
 
-def comma_sep(some_list: list | tuple, pattern: str, add_quotes=True) -> str:
+def comma_sep(some_list: list | tuple, pattern: str, add_quotes: bool = True) -> str:
 	"""Return the given list or tuple as a comma separated string, with the last item joined by the given string format pattern.
 
 	If `add_quotes` is True, each item in the list will be wrapped in single quotes.
@@ -1938,7 +1938,7 @@ def filter_operator_is(value: str, pattern: str) -> bool:
 	"""Operator `is` can have two values: 'set' or 'not set'."""
 	pattern = pattern.lower()
 
-	def is_set():
+	def is_set() -> bool:
 		if value is None:
 			return False
 		elif isinstance(value, str) and not value:
@@ -1974,7 +1974,7 @@ operator_map = {
 }
 
 
-def evaluate_filters(doc, filters: dict | list | tuple):
+def evaluate_filters(doc, filters: dict | list | tuple) -> bool:
 	"""Return True if doc matches filters."""
 	if isinstance(filters, dict):
 		for key, value in filters.items():
@@ -2126,7 +2126,7 @@ def sanitize_column(column_name: str) -> None:
 		"or",
 	]
 
-	def _raise_exception():
+	def _raise_exception() -> None:
 		frappe.throw(_("Invalid field name {0}").format(column_name), frappe.DataError)
 
 	regex = re.compile("^.*[,'();].*")
@@ -2437,7 +2437,7 @@ def validate_python_code(string: str, fieldname: str | None = None, is_expressio
 
 
 class UnicodeWithAttrs(str):
-	def __init__(self, text):
+	def __init__(self, text) -> None:
 		self.toc_html = text.toc_html
 		self.metadata = text.metadata
 

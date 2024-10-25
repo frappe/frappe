@@ -3,7 +3,7 @@ import os
 import frappe
 
 
-def execute():
+def execute() -> None:
 	site = frappe.local.site
 
 	log_folder = os.path.join(site, "logs")

@@ -37,7 +37,9 @@ ignore_values = {
 ignore_doctypes = [""]
 
 
-def import_files(module, dt=None, dn=None, force=False, pre_process=None, reset_permissions=False):
+def import_files(
+	module, dt=None, dn=None, force: bool = False, pre_process=None, reset_permissions: bool = False
+):
 	if isinstance(module, list):
 		return [
 			import_file(
@@ -56,7 +58,7 @@ def import_files(module, dt=None, dn=None, force=False, pre_process=None, reset_
 		)
 
 
-def import_file(module, dt, dn, force=False, pre_process=None, reset_permissions=False):
+def import_file(module, dt, dn, force: bool = False, pre_process=None, reset_permissions: bool = False):
 	"""Sync a file from txt if modifed, return false if not updated"""
 	path = get_file_path(module, dt, dn)
 	return import_file_by_path(path, force, pre_process=pre_process, reset_permissions=reset_permissions)
@@ -181,7 +183,7 @@ def read_doc_from_file(path):
 	return doc
 
 
-def update_modified(original_modified, doc):
+def update_modified(original_modified, doc) -> None:
 	# since there is a new timestamp on the file, update timestamp in
 	if doc["doctype"] == doc["name"] and doc["name"] != "DocType":
 		singles_table = DocType("Singles")
@@ -199,10 +201,10 @@ def update_modified(original_modified, doc):
 
 def import_doc(
 	docdict,
-	data_import=False,
+	data_import: bool = False,
 	pre_process=None,
 	ignore_version=None,
-	reset_permissions=False,
+	reset_permissions: bool = False,
 	path=None,
 ):
 	frappe.flags.in_import = True
@@ -239,7 +241,7 @@ def import_doc(
 	return doc
 
 
-def load_code_properties(doc, path):
+def load_code_properties(doc, path) -> None:
 	"""Load code files stored in separate files with extensions"""
 	if path:
 		if hasattr(doc, "get_code_fields"):
@@ -251,7 +253,7 @@ def load_code_properties(doc, path):
 						doc.set(key, txtfile.read())
 
 
-def delete_old_doc(doc, reset_permissions):
+def delete_old_doc(doc, reset_permissions) -> None:
 	ignore = []
 	old_doc = frappe.get_doc(doc.doctype, doc.name)
 
@@ -272,7 +274,7 @@ def delete_old_doc(doc, reset_permissions):
 	doc.flags.ignore_children_type = ignore
 
 
-def reset_tree_properties(doc):
+def reset_tree_properties(doc) -> None:
 	# Note on Tree DocTypes:
 	# The tree structure is maintained in the database via the fields "lft" and
 	# "rgt". They are automatically set and kept up-to-date. Importing them

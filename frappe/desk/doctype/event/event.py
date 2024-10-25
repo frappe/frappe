@@ -79,7 +79,7 @@ class Event(Document):
 		wednesday: DF.Check
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		if not self.starts_on:
 			self.starts_on = now_datetime()
 
@@ -98,13 +98,13 @@ class Event(Document):
 		if not self.sync_with_google_calendar:
 			self.add_video_conferencing = 0
 
-	def before_save(self):
+	def before_save(self) -> None:
 		self.set_participants_email()
 
-	def on_update(self):
+	def on_update(self) -> None:
 		self.sync_communication()
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		communications = frappe.get_all(
 			"Communication", dict(reference_doctype=self.doctype, reference_name=self.name)
 		)
@@ -112,7 +112,7 @@ class Event(Document):
 			for communication in communications:
 				frappe.delete_doc_if_exists("Communication", communication.name)
 
-	def sync_communication(self):
+	def sync_communication(self) -> None:
 		if self.event_participants:
 			for participant in self.event_participants:
 				filters = [
@@ -130,12 +130,12 @@ class Event(Document):
 					if hasattr(meta, "allow_events_in_timeline") and meta.allow_events_in_timeline == 1:
 						self.create_communication(participant)
 
-	def create_communication(self, participant):
+	def create_communication(self, participant) -> None:
 		communication = frappe.new_doc("Communication")
 		self.update_communication(participant, communication)
 		self.communication = communication.name
 
-	def update_communication(self, participant, communication):
+	def update_communication(self, participant, communication) -> None:
 		communication.communication_medium = "Event"
 		communication.subject = self.subject
 		communication.content = self.description if self.description else self.subject
@@ -151,7 +151,7 @@ class Event(Document):
 		communication.add_link(participant.reference_doctype, participant.reference_docname)
 		communication.save(ignore_permissions=True)
 
-	def add_participant(self, doctype, docname):
+	def add_participant(self, doctype, docname) -> None:
 		"""Add a single participant to event participants
 
 		Args:
@@ -166,7 +166,7 @@ class Event(Document):
 			},
 		)
 
-	def add_participants(self, participants):
+	def add_participants(self, participants) -> None:
 		"""Add participant entry
 
 		Args:
@@ -175,7 +175,7 @@ class Event(Document):
 		for participant in participants:
 			self.add_participant(participant["doctype"], participant["docname"])
 
-	def set_participants_email(self):
+	def set_participants_email(self) -> None:
 		for participant in self.event_participants:
 			if participant.email:
 				continue
@@ -218,20 +218,20 @@ def delete_communication(event, reference_doctype, reference_docname):
 	return {}
 
 
-def get_permission_query_conditions(user):
+def get_permission_query_conditions(user) -> str:
 	if not user:
 		user = frappe.session.user
 	return f"""(`tabEvent`.`event_type`='Public' or `tabEvent`.`owner`={frappe.db.escape(user)})"""
 
 
-def has_permission(doc, user):
+def has_permission(doc, user) -> bool:
 	if doc.event_type == "Public" or doc.owner == user:
 		return True
 
 	return False
 
 
-def send_event_digest():
+def send_event_digest() -> None:
 	today = nowdate()
 
 	# select only those users that have event reminder email notifications enabled
@@ -263,7 +263,7 @@ def send_event_digest():
 
 
 @frappe.whitelist()
-def get_events(start, end, user=None, for_reminder=False, filters=None) -> list[frappe._dict]:
+def get_events(start, end, user=None, for_reminder: bool = False, filters=None) -> list[frappe._dict]:
 	if not user:
 		user = frappe.session.user
 
@@ -346,7 +346,7 @@ def get_events(start, end, user=None, for_reminder=False, filters=None) -> list[
 	add_events = []
 	remove_events = []
 
-	def add_event(e, date):
+	def add_event(e, date) -> None:
 		new_event = e.copy()
 
 		enddate = (
@@ -517,7 +517,7 @@ def get_events(start, end, user=None, for_reminder=False, filters=None) -> list[
 	return events
 
 
-def delete_events(ref_type, ref_name, delete_event=False):
+def delete_events(ref_type, ref_name, delete_event: bool = False) -> None:
 	participations = frappe.get_all(
 		"Event Participants",
 		filters={"reference_doctype": ref_type, "reference_docname": ref_name, "parenttype": "Event"},
@@ -539,7 +539,7 @@ def delete_events(ref_type, ref_name, delete_event=False):
 
 
 # Close events if ends_on or repeat_till is less than now_datetime
-def set_status_of_events():
+def set_status_of_events() -> None:
 	events = frappe.get_list("Event", filters={"status": "Open"}, fields=["name", "ends_on", "repeat_till"])
 	for event in events:
 		if (event.ends_on and getdate(event.ends_on) < getdate(nowdate())) or (

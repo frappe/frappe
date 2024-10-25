@@ -93,7 +93,7 @@ def get_unsubcribed_url(reference_doctype, reference_name, email, unsubscribe_me
 
 
 @frappe.whitelist(allow_guest=True)
-def unsubscribe(doctype, name, email):
+def unsubscribe(doctype, name, email) -> None:
 	# unsubsribe from comments and communications
 	if not frappe.flags.in_test and not verify_request():
 		return
@@ -117,7 +117,7 @@ def unsubscribe(doctype, name, email):
 	return_unsubscribed_page(email, doctype, name)
 
 
-def return_unsubscribed_page(email, doctype, name):
+def return_unsubscribed_page(email, doctype, name) -> None:
 	frappe.respond_as_web_page(
 		_("Unsubscribed"),
 		_("{0} has left the conversation in {1} {2}").format(email, _(doctype), name),
@@ -125,7 +125,7 @@ def return_unsubscribed_page(email, doctype, name):
 	)
 
 
-def flush():
+def flush() -> None:
 	"""flush email queue, every time: called from scheduler.
 
 	This should not be called outside of background jobs.

@@ -65,7 +65,7 @@ def get_db(socket=None, host=None, user=None, password=None, port=None, cur_db_n
 
 
 def get_command(
-	socket=None, host=None, port=None, user=None, password=None, db_name=None, extra=None, dump=False
+	socket=None, host=None, port=None, user=None, password=None, db_name=None, extra=None, dump: bool = False
 ):
 	import frappe
 

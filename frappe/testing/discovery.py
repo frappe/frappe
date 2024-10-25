@@ -118,7 +118,7 @@ def discover_module_tests(modules: list[str], runner, app: str) -> "TestRunner":
 	return runner
 
 
-def _add_module_tests(runner, app: str, module: str):
+def _add_module_tests(runner, app: str, module: str) -> None:
 	module = importlib.import_module(module)
 	if runner.cfg.case:
 		test_suite = unittest.TestLoader().loadTestsFromTestCase(getattr(module, runner.cfg.case))

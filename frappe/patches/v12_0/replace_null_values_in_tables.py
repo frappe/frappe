@@ -3,7 +3,7 @@ import re
 import frappe
 
 
-def execute():
+def execute() -> None:
 	fields = frappe.db.sql(
 		"""
 			SELECT COLUMN_NAME , TABLE_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS

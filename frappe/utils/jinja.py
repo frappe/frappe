@@ -54,7 +54,7 @@ def get_email_from_template(name, args):
 	return (message, text_content)
 
 
-def validate_template(html):
+def validate_template(html) -> None:
 	"""Throws exception if there is a syntax error in the Jinja Template"""
 	from jinja2 import TemplateSyntaxError
 
@@ -69,7 +69,7 @@ def validate_template(html):
 		frappe.throw(f"Syntax error in template as line {e.lineno}: {e.message}")
 
 
-def render_template(template, context=None, is_path=None, safe_render=True):
+def render_template(template, context=None, is_path=None, safe_render: bool = True):
 	"""Render a template using Jinja
 
 	:param template: path or HTML containing the jinja template
@@ -102,7 +102,7 @@ def render_template(template, context=None, is_path=None, safe_render=True):
 			)
 
 
-def guess_is_path(template):
+def guess_is_path(template) -> bool:
 	# template can be passed as a path or content
 	# if its single line and ends with a html, then its probably a path
 	if "\n" not in template and "." in template:
@@ -140,7 +140,7 @@ def get_jloader():
 	return frappe.local.jloader
 
 
-def set_filters(jenv):
+def set_filters(jenv) -> None:
 	import frappe
 	from frappe.utils import cint, cstr, flt
 

@@ -105,7 +105,7 @@ class DocumentNamingSettings(Document):
 		return [op.strip() for op in options.split("\n") if op.strip()]
 
 	@frappe.whitelist()
-	def update_series(self):
+	def update_series(self) -> None:
 		"""update series list"""
 		self.validate_set_series()
 		self.check_duplicate()
@@ -115,7 +115,7 @@ class DocumentNamingSettings(Document):
 			_("Series Updated for {}").format(self.transaction_type), alert=True, indicator="green"
 		)
 
-	def validate_set_series(self):
+	def validate_set_series(self) -> None:
 		if self.transaction_type and not self.naming_series_options:
 			frappe.throw(_("Please set the series to be used."))
 
@@ -142,12 +142,12 @@ class DocumentNamingSettings(Document):
 
 		frappe.clear_cache(doctype=doctype)
 
-	def update_naming_series_property_setter(self, doctype, property, value):
+	def update_naming_series_property_setter(self, doctype, property, value) -> None:
 		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 
 		make_property_setter(doctype, "naming_series", property, value, "Text")
 
-	def check_duplicate(self):
+	def check_duplicate(self) -> None:
 		def stripped_series(s: str) -> str:
 			return s.strip().rstrip("#")
 
@@ -170,7 +170,7 @@ class DocumentNamingSettings(Document):
 				frappe.throw(_("Series {0} already used in {1}").format(series, existing_series[series]))
 			validate_series(dt, series)
 
-	def validate_series_name(self, series):
+	def validate_series_name(self, series) -> None:
 		NamingSeries(series).validate()
 
 	@frappe.whitelist()
@@ -190,7 +190,7 @@ class DocumentNamingSettings(Document):
 		return self.current_value
 
 	@frappe.whitelist()
-	def update_amendment_rule(self):
+	def update_amendment_rule(self) -> None:
 		self.db_set("default_amend_naming", self.default_amend_naming)
 
 		existing_overrides = frappe.db.get_all(
@@ -207,7 +207,7 @@ class DocumentNamingSettings(Document):
 		frappe.msgprint(_("Amendment naming rules updated."), indicator="green", alert=True)
 
 	@frappe.whitelist()
-	def update_series_start(self):
+	def update_series_start(self) -> None:
 		frappe.only_for("System Manager")
 
 		if self.prefix is None:
@@ -225,7 +225,7 @@ class DocumentNamingSettings(Document):
 			indicator="green",
 		)
 
-	def create_version_log_for_change(self, series, old, new):
+	def create_version_log_for_change(self, series, old, new) -> None:
 		version = frappe.new_doc("Version")
 		version.ref_doctype = "Series"
 		version.docname = series or ".#"

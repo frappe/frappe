@@ -8,7 +8,7 @@ from frappe.utils import cint
 from frappe.utils.password import update_password
 
 
-def before_install():
+def before_install() -> None:
 	frappe.reload_doc("core", "doctype", "doctype_state")
 	frappe.reload_doc("core", "doctype", "docfield")
 	frappe.reload_doc("core", "doctype", "docperm")
@@ -20,7 +20,7 @@ def before_install():
 	frappe.clear_cache()
 
 
-def after_install():
+def after_install() -> None:
 	create_user_type()
 	install_basic_docs()
 
@@ -57,7 +57,7 @@ def after_install():
 	frappe.db.commit()
 
 
-def create_user_type():
+def create_user_type() -> None:
 	for user_type in ["System User", "Website User"]:
 		if not frappe.db.exists("User Type", user_type):
 			frappe.get_doc({"doctype": "User Type", "name": user_type, "is_standard": 1}).insert(
@@ -65,7 +65,7 @@ def create_user_type():
 			)
 
 
-def install_basic_docs():
+def install_basic_docs() -> None:
 	# core users / roles
 	install_docs = [
 		{
@@ -147,7 +147,7 @@ def get_admin_password():
 	return frappe.conf.get("admin_password") or getpass.getpass("Set Administrator password: ")
 
 
-def before_tests():
+def before_tests() -> None:
 	if len(frappe.get_installed_apps()) > 1:
 		# don't run before tests if any other app is installed
 		return
@@ -166,7 +166,7 @@ def before_tests():
 	frappe.clear_cache()
 
 
-def complete_setup_wizard():
+def complete_setup_wizard() -> None:
 	from frappe.desk.page.setup_wizard.setup_wizard import setup_complete
 
 	setup_complete(
@@ -183,7 +183,7 @@ def complete_setup_wizard():
 	)
 
 
-def add_standard_navbar_items():
+def add_standard_navbar_items() -> None:
 	navbar_settings = frappe.get_single("Navbar Settings")
 
 	# don't add settings/help options if they're already present

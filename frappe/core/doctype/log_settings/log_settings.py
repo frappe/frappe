@@ -42,12 +42,12 @@ class LogSettings(Document):
 		logs_to_clear: DF.Table[LogsToClear]
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		self.remove_unsupported_doctypes()
 		self._deduplicate_entries()
 		self.add_default_logtypes()
 
-	def remove_unsupported_doctypes(self):
+	def remove_unsupported_doctypes(self) -> None:
 		for entry in list(self.logs_to_clear):
 			if _supports_log_clearing(entry.ref_doctype):
 				continue
@@ -58,14 +58,14 @@ class LogSettings(Document):
 			frappe.msgprint(msg, title=_("DocType not supported by Log Settings."))
 			self.remove(entry)
 
-	def _deduplicate_entries(self):
+	def _deduplicate_entries(self) -> None:
 		seen = set()
 		for entry in list(self.logs_to_clear):
 			if entry.ref_doctype in seen:
 				self.remove(entry)
 			seen.add(entry.ref_doctype)
 
-	def add_default_logtypes(self):
+	def add_default_logtypes(self) -> None:
 		existing_logtypes = {d.ref_doctype for d in self.logs_to_clear}
 		added_logtypes = set()
 		default_logtypes_retention = frappe.get_hooks("default_log_clearing_doctypes", {})
@@ -81,7 +81,7 @@ class LogSettings(Document):
 		if added_logtypes:
 			frappe.msgprint(_("Added default log doctypes: {}").format(",".join(added_logtypes)), alert=True)
 
-	def clear_logs(self):
+	def clear_logs(self) -> None:
 		"""
 		Log settings can clear any log type that's registered to it and provides a method to delete old logs.
 
@@ -98,7 +98,7 @@ class LogSettings(Document):
 			func(**kwargs)
 			frappe.db.commit()
 
-	def register_doctype(self, doctype: str, days=30):
+	def register_doctype(self, doctype: str, days: int = 30) -> None:
 		existing_logtypes = {d.ref_doctype for d in self.logs_to_clear}
 
 		if doctype not in existing_logtypes and _supports_log_clearing(doctype):
@@ -110,7 +110,7 @@ class LogSettings(Document):
 					break
 
 
-def run_log_clean_up():
+def run_log_clean_up() -> None:
 	doc = frappe.get_doc("Log Settings")
 	doc.remove_unsupported_doctypes()
 	doc.add_default_logtypes()
@@ -158,7 +158,7 @@ LOG_DOCTYPES = [
 ]
 
 
-def clear_log_table(doctype, days=90):
+def clear_log_table(doctype, days: int = 90):
 	"""If any logtype table grows too large then clearing it with DELETE query
 	is not feasible in reasonable time. This command copies recent data to new
 	table and replaces current table with new smaller table.

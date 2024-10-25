@@ -8,7 +8,7 @@ from frappe.model.utils.user_settings import sync_user_settings, update_user_set
 from frappe.utils.password import rename_password_field
 
 
-def rename_field(doctype, old_fieldname, new_fieldname, validate=True):
+def rename_field(doctype, old_fieldname, new_fieldname, validate: bool = True) -> None:
 	"""This functions assumes that doctype is already synced"""
 
 	meta = frappe.get_meta(doctype, cached=False)
@@ -56,7 +56,7 @@ def rename_field(doctype, old_fieldname, new_fieldname, validate=True):
 	update_user_settings(doctype, old_fieldname, new_fieldname)
 
 
-def update_reports(doctype, old_fieldname, new_fieldname):
+def update_reports(doctype, old_fieldname, new_fieldname) -> None:
 	def _get_new_sort_by(report_dict, report, key):
 		sort_by = report_dict.get(key) or ""
 		if sort_by:
@@ -124,7 +124,7 @@ def update_reports(doctype, old_fieldname, new_fieldname):
 			frappe.db.sql("""update `tabReport` set `json`=%s where name=%s""", (new_val, r.name))
 
 
-def update_users_report_view_settings(doctype, ref_fieldname, new_fieldname):
+def update_users_report_view_settings(doctype, ref_fieldname, new_fieldname) -> None:
 	user_report_cols = frappe.db.sql(
 		"""select defkey, defvalue from `tabDefaultValue` where
 		defkey like '_list_settings:%'"""
@@ -147,7 +147,7 @@ def update_users_report_view_settings(doctype, ref_fieldname, new_fieldname):
 			)
 
 
-def update_property_setters(doctype, old_fieldname, new_fieldname):
+def update_property_setters(doctype, old_fieldname, new_fieldname) -> None:
 	frappe.db.sql(
 		"""update `tabProperty Setter` set field_name = %s
 		where doc_type=%s and field_name=%s""",
@@ -161,7 +161,7 @@ def update_property_setters(doctype, old_fieldname, new_fieldname):
 	)
 
 
-def update_user_settings(doctype, old_fieldname, new_fieldname):
+def update_user_settings(doctype, old_fieldname, new_fieldname) -> None:
 	# store the user settings data from the redis to db
 	sync_user_settings()
 

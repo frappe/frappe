@@ -4,7 +4,7 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestRating(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		doc = new_doctype(
 			fields=[
 				{
@@ -18,12 +18,12 @@ class TestRating(IntegrationTestCase):
 		doc.insert()
 		self.doctype_name = doc.name
 
-	def test_negative_rating(self):
+	def test_negative_rating(self) -> None:
 		doc = frappe.new_doc(doctype=self.doctype_name, rating=-1)
 		doc.insert()
 		self.assertEqual(doc.rating, 0)
 
-	def test_positive_rating(self):
+	def test_positive_rating(self) -> None:
 		doc = frappe.new_doc(doctype=self.doctype_name, rating=5)
 		doc.insert()
 		self.assertEqual(doc.rating, 1)

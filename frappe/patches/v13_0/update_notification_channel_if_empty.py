@@ -4,7 +4,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.reload_doc("Email", "doctype", "Notification")
 
 	notifications = frappe.get_all("Notification", {"is_standard": 1}, {"name", "channel"})

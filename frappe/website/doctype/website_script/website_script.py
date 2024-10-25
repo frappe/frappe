@@ -19,7 +19,7 @@ class WebsiteScript(Document):
 		javascript: DF.Code | None
 	# end: auto-generated types
 
-	def on_update(self):
+	def on_update(self) -> None:
 		"""clear cache"""
 		frappe.clear_cache(user="Guest")
 

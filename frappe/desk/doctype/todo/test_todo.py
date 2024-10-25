@@ -19,7 +19,7 @@ class UnitTestTodo(UnitTestCase):
 
 
 class TestToDo(IntegrationTestCase):
-	def test_delete(self):
+	def test_delete(self) -> None:
 		todo = frappe.get_doc(doctype="ToDo", description="test todo", assigned_by="Administrator").insert()
 
 		frappe.db.delete("Deleted Document")
@@ -30,13 +30,13 @@ class TestToDo(IntegrationTestCase):
 		)
 		self.assertEqual(todo.as_json(), deleted.data)
 
-	def test_fetch(self):
+	def test_fetch(self) -> None:
 		todo = frappe.get_doc(doctype="ToDo", description="test todo", assigned_by="Administrator").insert()
 		self.assertEqual(
 			todo.assigned_by_full_name, frappe.db.get_value("User", todo.assigned_by, "full_name")
 		)
 
-	def test_fetch_setup(self):
+	def test_fetch_setup(self) -> None:
 		frappe.db.delete("ToDo")
 
 		todo_meta = frappe.get_doc("DocType", "ToDo")
@@ -60,7 +60,7 @@ class TestToDo(IntegrationTestCase):
 			todo.assigned_by_full_name, frappe.db.get_value("User", todo.assigned_by, "full_name")
 		)
 
-	def test_todo_list_access(self):
+	def test_todo_list_access(self) -> None:
 		create_new_todo("Test1", "testperm@example.com")
 
 		frappe.set_user("test4@example.com")
@@ -75,7 +75,7 @@ class TestToDo(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
 
-	def test_doc_read_access(self):
+	def test_doc_read_access(self) -> None:
 		# owner and assigned_by is testperm
 		todo1 = create_new_todo("Test1", "testperm@example.com")
 		test_user = frappe.get_doc("User", "test4@example.com")
@@ -116,7 +116,7 @@ class TestToDo(IntegrationTestCase):
 		clear_permissions_cache("ToDo")
 		frappe.db.rollback()
 
-	def test_fetch_if_empty(self):
+	def test_fetch_if_empty(self) -> None:
 		frappe.db.delete("ToDo")
 
 		# Allow user changes

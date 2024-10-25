@@ -6,7 +6,7 @@ import frappe
 
 
 class Nomatim:
-	def __init__(self, base_url: str, referer: str, lang: str | None = None):
+	def __init__(self, base_url: str, referer: str, lang: str | None = None) -> None:
 		self.lang = lang
 		self.referer = referer
 		self.base_url = base_url

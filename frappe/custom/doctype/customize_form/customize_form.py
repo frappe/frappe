@@ -86,12 +86,12 @@ class CustomizeForm(Document):
 		translated_doctype: DF.Check
 	# end: auto-generated types
 
-	def on_update(self):
+	def on_update(self) -> None:
 		frappe.db.delete("Singles", {"doctype": "Customize Form"})
 		frappe.db.delete("Customize Form Field")
 
 	@frappe.whitelist()
-	def fetch_to_customize(self):
+	def fetch_to_customize(self) -> None:
 		self.clear_existing_doc()
 		if not self.doc_type:
 			return
@@ -111,7 +111,7 @@ class CustomizeForm(Document):
 
 		# NOTE doc (self) is sent to clientside by run_method
 
-	def validate_doctype(self, meta):
+	def validate_doctype(self, meta) -> None:
 		"""
 		Check if the doctype is allowed to be customized.
 		"""
@@ -124,7 +124,7 @@ class CustomizeForm(Document):
 		if meta.custom:
 			frappe.throw(_("Only standard DocTypes are allowed to be customized from Customize Form."))
 
-	def load_properties(self, meta):
+	def load_properties(self, meta) -> None:
 		"""
 		Load the customize object (this) with the metadata properties
 		"""
@@ -147,7 +147,7 @@ class CustomizeForm(Document):
 			for d in meta.get(fieldname):
 				self.append(fieldname, d)
 
-	def create_auto_repeat_custom_field_if_required(self, meta):
+	def create_auto_repeat_custom_field_if_required(self, meta) -> None:
 		"""
 		Create auto repeat custom field if it's not already present
 		"""
@@ -181,7 +181,7 @@ class CustomizeForm(Document):
 			as_dict=True,
 		)
 
-	def set_name_translation(self):
+	def set_name_translation(self) -> None:
 		"""Create, update custom translation for this doctype"""
 		current = self.get_name_translation()
 		if not self.label:
@@ -205,7 +205,7 @@ class CustomizeForm(Document):
 			frappe.db.set_value("Translation", current.name, "translated_text", self.label)
 			frappe.translate.clear_cache()
 
-	def clear_existing_doc(self):
+	def clear_existing_doc(self) -> None:
 		doc_type = self.doc_type
 
 		for fieldname in self.meta.get_valid_columns():
@@ -258,7 +258,7 @@ class CustomizeForm(Document):
 				enqueue_after_commit=True,
 			)
 
-	def set_property_setters(self):
+	def set_property_setters(self) -> None:
 		meta = frappe.get_meta(self.doc_type)
 
 		# doctype
@@ -275,7 +275,7 @@ class CustomizeForm(Document):
 		# action and links
 		self.set_property_setters_for_actions_and_links(meta)
 
-	def set_property_setter_for_field_order(self, meta):
+	def set_property_setter_for_field_order(self, meta) -> None:
 		new_order = [df.fieldname for df in self.fields]
 		existing_order = getattr(meta, "field_order", None)
 		default_order = [
@@ -301,14 +301,14 @@ class CustomizeForm(Document):
 			is_system_generated=False,
 		)
 
-	def set_property_setters_for_doctype(self, meta):
+	def set_property_setters_for_doctype(self, meta) -> None:
 		for prop, prop_type in doctype_properties.items():
 			if self.get(prop) != meta.get(prop):
 				self.make_property_setter(prop, self.get(prop), prop_type)
 
 		self.set_property_setter_for_field_order(meta)
 
-	def set_property_setters_for_docfield(self, meta, df, meta_df):
+	def set_property_setters_for_docfield(self, meta, df, meta_df) -> None:
 		for prop, prop_type in docfield_properties.items():
 			if prop != "idx" and (df.get(prop) or "") != (meta_df[0].get(prop) or ""):
 				if not self.allow_property_change(prop, meta_df, df):
@@ -316,7 +316,7 @@ class CustomizeForm(Document):
 
 				self.make_property_setter(prop, df.get(prop), prop_type, fieldname=df.fieldname)
 
-	def allow_property_change(self, prop, meta_df, df):
+	def allow_property_change(self, prop, meta_df, df) -> bool:
 		if prop == "fieldtype":
 			self.validate_fieldtype_change(df, meta_df[0].get(prop), df.get(prop))
 
@@ -395,7 +395,7 @@ class CustomizeForm(Document):
 
 		return True
 
-	def set_property_setters_for_actions_and_links(self, meta):
+	def set_property_setters_for_actions_and_links(self, meta) -> None:
 		"""
 		Apply property setters or create custom records for DocType Action and DocType Link
 		"""
@@ -428,7 +428,7 @@ class CustomizeForm(Document):
 			self.update_order_property_setter(has_custom, fieldname)
 			self.clear_removed_items(doctype, items)
 
-	def update_order_property_setter(self, has_custom, fieldname):
+	def update_order_property_setter(self, has_custom, fieldname) -> None:
 		"""
 		We need to maintain the order of the link/actions if the user has shuffled them.
 		So we create a new property (ex `links_order`) to keep a list of items.
@@ -442,7 +442,7 @@ class CustomizeForm(Document):
 		else:
 			delete_property_setter(self.doc_type, property=property_name)
 
-	def clear_removed_items(self, doctype, items):
+	def clear_removed_items(self, doctype, items) -> None:
 		"""
 		Clear rows that do not appear in `items`. These have been removed by the user.
 		"""
@@ -451,7 +451,7 @@ class CustomizeForm(Document):
 		else:
 			frappe.db.delete(doctype, dict(parent=self.doc_type, custom=1))
 
-	def update_custom_fields(self):
+	def update_custom_fields(self) -> None:
 		for i, df in enumerate(self.get("fields")):
 			if is_standard_or_system_generated_field(df):
 				continue
@@ -464,7 +464,7 @@ class CustomizeForm(Document):
 
 		self.delete_custom_fields()
 
-	def add_custom_field(self, df, i):
+	def add_custom_field(self, df, i) -> None:
 		d = frappe.new_doc("Custom Field")
 
 		d.dt = self.doc_type
@@ -482,7 +482,7 @@ class CustomizeForm(Document):
 		if df.get("in_global_search"):
 			self.flags.rebuild_doctype_for_global_search = True
 
-	def update_in_custom_field(self, df, i):
+	def update_in_custom_field(self, df, i) -> None:
 		meta = frappe.get_meta(self.doc_type)
 		meta_df = meta.get("fields", {"fieldname": df.fieldname})
 		if not meta_df or is_standard_or_system_generated_field(meta_df[0]):
@@ -514,7 +514,7 @@ class CustomizeForm(Document):
 			self.flags.update_db = True
 			# custom_field.save()
 
-	def delete_custom_fields(self):
+	def delete_custom_fields(self) -> None:
 		meta = frappe.get_meta(self.doc_type)
 		fields_to_remove = {df.fieldname for df in meta.get("fields")} - {
 			df.fieldname for df in self.get("fields")
@@ -524,7 +524,9 @@ class CustomizeForm(Document):
 			if not is_standard_or_system_generated_field(df):
 				frappe.delete_doc("Custom Field", df.name)
 
-	def make_property_setter(self, prop, value, property_type, fieldname=None, apply_on=None, row_name=None):
+	def make_property_setter(
+		self, prop, value, property_type, fieldname=None, apply_on=None, row_name=None
+	) -> None:
 		delete_property_setter(self.doc_type, prop, fieldname, row_name)
 
 		property_value = self.get_existing_property_value(prop, fieldname)
@@ -563,7 +565,7 @@ class CustomizeForm(Document):
 
 		return property_value
 
-	def validate_fieldtype_change(self, df, old_value, new_value):
+	def validate_fieldtype_change(self, df, old_value, new_value) -> None:
 		if df.is_virtual:
 			return
 
@@ -587,7 +589,7 @@ class CustomizeForm(Document):
 				)
 			)
 
-	def validate_fieldtype_length(self):
+	def validate_fieldtype_length(self) -> None:
 		for field in self.check_length_for_fieldtypes:
 			df = field.get("df")
 			max_length = cint(frappe.db.type_map.get(df.fieldtype)[1])
@@ -615,7 +617,7 @@ class CustomizeForm(Document):
 		self.flags.update_db = True
 
 	@frappe.whitelist()
-	def reset_to_defaults(self):
+	def reset_to_defaults(self) -> None:
 		if not self.doc_type:
 			return
 
@@ -623,7 +625,7 @@ class CustomizeForm(Document):
 		self.fetch_to_customize()
 
 	@frappe.whitelist()
-	def reset_layout(self):
+	def reset_layout(self) -> None:
 		if not self.doc_type:
 			return
 
@@ -641,7 +643,7 @@ class CustomizeForm(Document):
 		self.fetch_to_customize()
 
 	@frappe.whitelist()
-	def trim_table(self):
+	def trim_table(self) -> None:
 		"""Removes database fields that don't exist in the doctype.
 
 		This may be needed as maintenance since removing a field in a DocType
@@ -659,7 +661,7 @@ class CustomizeForm(Document):
 		field groups are defined in ALLOWED_FIELDTYPE_CHANGE variables.
 		"""
 
-		def in_field_group(group):
+		def in_field_group(group) -> bool:
 			return (old_type in group) and (new_type in group)
 
 		return any(map(in_field_group, ALLOWED_FIELDTYPE_CHANGE))
@@ -672,7 +674,7 @@ def get_orphaned_columns(doctype: str):
 	return trim_table(doctype, dry_run=True)
 
 
-def reset_customization(doctype):
+def reset_customization(doctype) -> None:
 	setters = frappe.get_all(
 		"Property Setter",
 		filters={

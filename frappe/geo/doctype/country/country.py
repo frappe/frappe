@@ -25,7 +25,7 @@ class Country(Document):
 	pass
 
 
-def import_country_and_currency():
+def import_country_and_currency() -> None:
 	from frappe.geo.doctype.currency.currency import enable_default_currencies
 
 	countries, currencies = get_countries_and_currencies()

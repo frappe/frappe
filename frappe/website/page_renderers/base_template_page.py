@@ -5,12 +5,12 @@ from frappe.website.website_components.metatags import MetaTags
 
 
 class BaseTemplatePage(BaseRenderer):
-	def __init__(self, path, http_status_code=None):
+	def __init__(self, path, http_status_code=None) -> None:
 		super().__init__(path=path, http_status_code=http_status_code)
 		self.template_path = ""
 		self.source = ""
 
-	def init_context(self):
+	def init_context(self) -> None:
 		self.context = frappe._dict()
 		self.context.update(get_website_settings())
 		self.context.update(frappe.local.conf.get("website_context") or {})
@@ -24,7 +24,7 @@ class BaseTemplatePage(BaseRenderer):
 
 		return html
 
-	def post_process_context(self):
+	def post_process_context(self) -> None:
 		self.tags = MetaTags(self.path, self.context).tags
 		self.context.metatags = self.tags
 		self.set_base_template_if_missing()
@@ -35,12 +35,12 @@ class BaseTemplatePage(BaseRenderer):
 		self.context._context_dict = self.context
 		self.set_missing_values()
 
-	def set_base_template_if_missing(self):
+	def set_base_template_if_missing(self) -> None:
 		if not self.context.base_template_path:
 			app_base = frappe.get_hooks("base_template")
 			self.context.base_template_path = app_base[-1] if app_base else "templates/base.html"
 
-	def set_title_with_prefix(self):
+	def set_title_with_prefix(self) -> None:
 		if (
 			self.context.title_prefix
 			and self.context.title
@@ -48,7 +48,7 @@ class BaseTemplatePage(BaseRenderer):
 		):
 			self.context.title = f"{self.context.title_prefix} - {self.context.title}"
 
-	def set_missing_values(self):
+	def set_missing_values(self) -> None:
 		# set using frappe.respond_as_web_page
 		if hasattr(frappe.local, "response") and frappe.local.response.get("context"):
 			self.context.update(frappe.local.response.context)
@@ -66,7 +66,7 @@ class BaseTemplatePage(BaseRenderer):
 		self.context.path = self.path
 		self.context.pathname = getattr(frappe.local, "path", None) if hasattr(frappe, "local") else self.path
 
-	def update_website_context(self):
+	def update_website_context(self) -> None:
 		# apply context from hooks
 		update_website_context = frappe.get_hooks("update_website_context")
 		for method in update_website_context:

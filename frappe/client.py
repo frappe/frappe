@@ -31,7 +31,7 @@ def get_list(
 	group_by=None,
 	order_by=None,
 	limit_start=None,
-	limit_page_length=20,
+	limit_page_length: int = 20,
 	parent=None,
 	debug: bool = False,
 	as_dict: bool = True,
@@ -67,7 +67,7 @@ def get_list(
 
 
 @frappe.whitelist()
-def get_count(doctype, filters=None, debug=False, cache=False):
+def get_count(doctype, filters=None, debug: bool = False, cache: bool = False):
 	return frappe.db.count(doctype, get_safe_filters(filters), debug, cache)
 
 
@@ -95,7 +95,7 @@ def get(doctype, name=None, filters=None, parent=None):
 
 
 @frappe.whitelist()
-def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, parent=None):
+def get_value(doctype, fieldname, filters=None, as_dict: bool = True, debug: bool = False, parent=None):
 	"""Return a value from a document.
 
 	:param doctype: DocType to be queried
@@ -229,7 +229,7 @@ def save(doc):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def rename_doc(doctype, old_name, new_name, merge=False):
+def rename_doc(doctype, old_name, new_name, merge: bool = False):
 	"""Rename document
 
 	:param doctype: DocType of the document to be renamed
@@ -266,7 +266,7 @@ def cancel(doctype, name):
 
 
 @frappe.whitelist(methods=["DELETE", "POST"])
-def delete(doctype, name):
+def delete(doctype, name) -> None:
 	"""Delete a remote document
 
 	:param doctype: DocType of the document to be deleted
@@ -294,7 +294,7 @@ def bulk_update(docs):
 
 
 @frappe.whitelist()
-def has_permission(doctype, docname, perm_type="read"):
+def has_permission(doctype, docname, perm_type: str = "read"):
 	"""Return a JSON with data whether the document has the requested permission.
 
 	:param doctype: DocType of the document to be checked
@@ -345,7 +345,7 @@ def attach_file(
 	doctype=None,
 	docname=None,
 	folder=None,
-	decode_base64=False,
+	decode_base64: bool = False,
 	is_private=None,
 	docfield=None,
 ):

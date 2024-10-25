@@ -3,7 +3,7 @@ from frappe import _
 
 
 class DbManager:
-	def __init__(self, db):
+	def __init__(self, db) -> None:
 		"""
 		Pass root_conn here for access to all databases.
 		"""
@@ -13,24 +13,24 @@ class DbManager:
 	def get_current_host(self):
 		return self.db.sql("select user()")[0][0].split("@")[1]
 
-	def create_user(self, user, password, host=None):
+	def create_user(self, user, password, host=None) -> None:
 		host = host or self.get_current_host()
 		password_predicate = f" IDENTIFIED BY '{password}'" if password else ""
 		self.db.sql(f"CREATE USER IF NOT EXISTS '{user}'@'{host}'{password_predicate}")
 
-	def delete_user(self, target, host=None):
+	def delete_user(self, target, host=None) -> None:
 		host = host or self.get_current_host()
 		self.db.sql(f"DROP USER IF EXISTS '{target}'@'{host}'")
 
-	def create_database(self, target):
+	def create_database(self, target) -> None:
 		if target in self.get_database_list():
 			self.drop_database(target)
 		self.db.sql(f"CREATE DATABASE `{target}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
 
-	def drop_database(self, target):
+	def drop_database(self, target) -> None:
 		self.db.sql_ddl(f"DROP DATABASE IF EXISTS `{target}`")
 
-	def grant_all_privileges(self, target, user, host=None):
+	def grant_all_privileges(self, target, user, host=None) -> None:
 		host = host or self.get_current_host()
 		permissions = (
 			(
@@ -43,7 +43,7 @@ class DbManager:
 		)
 		self.db.sql(f"GRANT {permissions} ON `{target}`.* TO '{user}'@'{host}'")
 
-	def flush_privileges(self):
+	def flush_privileges(self) -> None:
 		self.db.sql("FLUSH PRIVILEGES")
 
 	def get_database_list(self):

@@ -1,13 +1,13 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	fix_communications()
 	fix_show_as_cc_email_queue()
 	fix_email_queue_recipients()
 
 
-def fix_communications():
+def fix_communications() -> None:
 	for communication in frappe.db.sql(
 		"""select name, recipients, cc, bcc from tabCommunication
 		where creation > '2020-06-01'
@@ -28,7 +28,7 @@ def fix_communications():
 		)
 
 
-def fix_show_as_cc_email_queue():
+def fix_show_as_cc_email_queue() -> None:
 	for queue in frappe.get_all(
 		"Email Queue",
 		{"creation": [">", "2020-06-01"], "status": "Not Sent", "show_as_cc": ["like", "%&lt;%"]},
@@ -37,7 +37,7 @@ def fix_show_as_cc_email_queue():
 		frappe.db.set_value("Email Queue", queue["name"], "show_as_cc", format_email_id(queue["show_as_cc"]))
 
 
-def fix_email_queue_recipients():
+def fix_email_queue_recipients() -> None:
 	for recipient in frappe.db.sql(
 		"""select recipient, name from
 		`tabEmail Queue Recipient` where recipient like '%&lt;%'

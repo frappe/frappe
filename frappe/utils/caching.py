@@ -90,7 +90,7 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 	def time_cache_wrapper(func: Callable | None = None) -> Callable:
 		func_key = f"{func.__module__}.{func.__name__}"
 
-		def clear_cache():
+		def clear_cache() -> None:
 			"""Clear cache for this function for all sites if not specified."""
 			_SITE_CACHE[func_key].clear()
 
@@ -144,7 +144,7 @@ def redis_cache(ttl: int | None = 3600, user: str | bool | None = None, shared: 
 	def wrapper(func: Callable | None = None) -> Callable:
 		func_key = f"{func.__module__}.{func.__qualname__}"
 
-		def clear_cache():
+		def clear_cache() -> None:
 			frappe.cache.delete_keys(func_key)
 
 		func.clear_cache = clear_cache

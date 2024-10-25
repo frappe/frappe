@@ -62,9 +62,9 @@ def get_mapped_doc(
 	table_maps,
 	target_doc=None,
 	postprocess=None,
-	ignore_permissions=False,
-	ignore_child_tables=False,
-	cached=False,
+	ignore_permissions: bool = False,
+	ignore_child_tables: bool = False,
+	cached: bool = False,
 ):
 	apply_strict_user_permissions = frappe.get_system_settings("apply_strict_user_permissions")
 
@@ -184,7 +184,7 @@ def get_mapped_doc(
 	return ret_doc
 
 
-def map_doc(source_doc, target_doc, table_map, source_parent=None):
+def map_doc(source_doc, target_doc, table_map, source_parent=None) -> None:
 	if table_map.get("validation"):
 		for key, condition in table_map["validation"].items():
 			if condition[0] == "=" and source_doc.get(key) != condition[1]:
@@ -198,7 +198,7 @@ def map_doc(source_doc, target_doc, table_map, source_parent=None):
 		table_map["postprocess"](source_doc, target_doc, source_parent)
 
 
-def map_fields(source_doc, target_doc, table_map, source_parent):
+def map_fields(source_doc, target_doc, table_map, source_parent) -> None:
 	no_copy_fields = set(
 		[
 			d.fieldname
@@ -252,7 +252,7 @@ def map_fields(source_doc, target_doc, table_map, source_parent):
 			map_fetch_fields(target_doc, df, no_copy_fields)
 
 
-def map_fetch_fields(target_doc, df, no_copy_fields):
+def map_fetch_fields(target_doc, df, no_copy_fields) -> None:
 	linked_doc = None
 
 	# options should be like "link_fieldname.fieldname_in_liked_doc"

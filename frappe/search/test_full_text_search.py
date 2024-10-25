@@ -5,12 +5,12 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestFullTextSearch(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		index = get_index()
 		index.build()
 		self.index = index
 
-	def test_search_term(self):
+	def test_search_term(self) -> None:
 		# Search Wikipedia
 		res = self.index.search("multilingual online encyclopedia")
 		self.assertEqual(res[0], "site/wikipedia")
@@ -21,7 +21,7 @@ class TestFullTextSearch(IntegrationTestCase):
 		res = self.index.search("Enterprise Resource Planning")
 		self.assertEqual(res[0], "sw/erpnext")
 
-	def test_search_limit(self):
+	def test_search_limit(self) -> None:
 		res = self.index.search("CommonSearchTerm")
 		self.assertEqual(len(res), 5)
 
@@ -31,7 +31,7 @@ class TestFullTextSearch(IntegrationTestCase):
 		res = self.index.search("CommonSearchTerm", limit=20)
 		self.assertEqual(len(res), 5)
 
-	def test_search_scope(self):
+	def test_search_scope(self) -> None:
 		# Search outside scope
 		res = self.index.search("multilingual online encyclopedia", scope=["os"])
 		self.assertEqual(len(res), 0)
@@ -42,12 +42,12 @@ class TestFullTextSearch(IntegrationTestCase):
 		self.assertTrue("os/linux" in res)
 		self.assertTrue("os/gnu" in res)
 
-	def test_remove_document_from_index(self):
+	def test_remove_document_from_index(self) -> None:
 		self.index.remove_document_from_index("os/gnu")
 		res = self.index.search("GNU")
 		self.assertEqual(len(res), 0)
 
-	def test_update_index(self):
+	def test_update_index(self) -> None:
 		# Update existing index
 		self.index.update_index({"name": "sw/erpnext", "content": """AwesomeERPNext"""})
 

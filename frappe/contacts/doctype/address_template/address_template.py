@@ -21,7 +21,7 @@ class AddressTemplate(Document):
 		template: DF.Code | None
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		validate_template(self.template)
 
 		if not self.template:
@@ -32,11 +32,11 @@ class AddressTemplate(Document):
 			if frappe.get_system_settings("setup_complete"):
 				frappe.msgprint(_("Setting this Address Template as default as there is no other default"))
 
-	def on_update(self):
+	def on_update(self) -> None:
 		if self.is_default and (previous_default := self._get_previous_default()):
 			frappe.db.set_value("Address Template", previous_default, "is_default", 0)
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		if self.is_default:
 			frappe.throw(_("Default Address Template cannot be deleted"))
 

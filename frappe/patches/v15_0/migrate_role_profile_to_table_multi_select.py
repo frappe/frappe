@@ -2,7 +2,7 @@ import frappe
 from frappe.model.document import bulk_insert
 
 
-def execute():
+def execute() -> None:
 	users = frappe.get_all(
 		"User", filters={"role_profile_name": ["is", "set"]}, fields=["name", "role_profile_name"]
 	)

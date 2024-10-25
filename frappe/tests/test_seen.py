@@ -7,10 +7,10 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestSeen(IntegrationTestCase):
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.set_user("Administrator")
 
-	def test_if_user_is_added(self):
+	def test_if_user_is_added(self) -> None:
 		ev = frappe.get_doc(
 			{
 				"doctype": "Event",

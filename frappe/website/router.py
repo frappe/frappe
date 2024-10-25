@@ -182,7 +182,7 @@ def get_page_info(path, app, start, basepath=None, app_path=None, fname=None):
 	return page_info
 
 
-def setup_source(page_info):
+def setup_source(page_info) -> None:
 	"""Get the HTML source of the template"""
 	jenv = frappe.get_jenv()
 	source = jenv.loader.get_source(jenv, page_info.template)[0]
@@ -263,7 +263,7 @@ def get_base_template(path=None):
 			return templates[-1]
 
 
-def setup_index(page_info):
+def setup_index(page_info) -> None:
 	"""Build page sequence from index.txt"""
 	if page_info.basename == "":
 		# load index.txt if loading all pages
@@ -273,7 +273,7 @@ def setup_index(page_info):
 				page_info.index = f.read().splitlines()
 
 
-def load_properties_from_controller(page_info):
+def load_properties_from_controller(page_info) -> None:
 	if not page_info.controller:
 		return
 
@@ -310,7 +310,7 @@ def get_start_folders():
 	return frappe.local.flags.web_pages_folders or ("www", "templates/pages")
 
 
-def clear_routing_cache():
+def clear_routing_cache() -> None:
 	from frappe.website.doctype.web_form.web_form import get_published_web_forms
 	from frappe.website.doctype.web_page.web_page import get_dynamic_web_pages
 	from frappe.website.page_renderers.document_page import _find_matching_document_webview

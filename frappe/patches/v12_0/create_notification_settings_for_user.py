@@ -4,7 +4,7 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 )
 
 
-def execute():
+def execute() -> None:
 	frappe.reload_doc("desk", "doctype", "notification_settings")
 	frappe.reload_doc("desk", "doctype", "notification_subscribed_document")
 

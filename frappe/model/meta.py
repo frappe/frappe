@@ -59,7 +59,7 @@ DEFAULT_FIELD_LABELS = {
 }
 
 
-def get_meta(doctype: str | DocRef | Document, cached=True) -> "_Meta":
+def get_meta(doctype: str | DocRef | Document, cached: bool = True) -> "_Meta":
 	"""Get metadata for a doctype.
 
 	Args:
@@ -125,21 +125,21 @@ class Meta(Document):
 	)
 
 	@singledispatchmethod
-	def __init__(self, arg):
+	def __init__(self, arg) -> None:
 		raise TypeError(f"Unsupported argument type: {type(arg)}")
 
 	@__init__.register(str)
-	def _(self, doctype):
+	def _(self, doctype) -> None:
 		super().__init__("DocType", doctype)
 		self.process()
 
 	@__init__.register(DocRef)
-	def _(self, doc_ref):
+	def _(self, doc_ref) -> None:
 		super().__init__("DocType", doc_ref.doctype)
 		self.process()
 
 	@__init__.register(Document)
-	def _(self, doc):
+	def _(self, doc) -> None:
 		super().__init__(doc.as_dict())
 		self.process()
 
@@ -152,7 +152,7 @@ class Meta(Document):
 			else:
 				raise
 
-	def process(self):
+	def process(self) -> None:
 		# don't process for special doctypes
 		# prevents circular dependency
 		if self.name in self.special_doctypes:
@@ -167,7 +167,7 @@ class Meta(Document):
 		self.set_custom_permissions()
 		self.add_custom_links_and_actions()
 
-	def as_dict(self, no_nulls=False):
+	def as_dict(self, no_nulls: bool = False):
 		def serialize(doc):
 			out = {}
 			for key, value in doc.__dict__.items():
@@ -275,7 +275,7 @@ class Meta(Document):
 
 		return self._fields.get(fieldname)
 
-	def has_field(self, fieldname):
+	def has_field(self, fieldname) -> bool:
 		"""Return True if fieldname exists."""
 
 		return fieldname in self._fields
@@ -379,7 +379,7 @@ class Meta(Document):
 
 		return []
 
-	def add_custom_fields(self):
+	def add_custom_fields(self) -> None:
 		if not frappe.db.table_exists("Custom Field"):
 			return
 
@@ -397,7 +397,7 @@ class Meta(Document):
 
 		self.extend("fields", custom_fields)
 
-	def apply_property_setters(self):
+	def apply_property_setters(self) -> None:
 		"""
 		Property Setters are set via Customize Form. They override standard properties
 		of the doctype or its child properties like fields, links etc. This method
@@ -444,7 +444,7 @@ class Meta(Document):
 						d.set(ps.property, cast(ps.property_type, ps.value))
 						break
 
-	def add_custom_links_and_actions(self):
+	def add_custom_links_and_actions(self) -> None:
 		for doctype, fieldname in (
 			("DocType Link", "links"),
 			("DocType Action", "actions"),
@@ -471,7 +471,7 @@ class Meta(Document):
 
 				self.set(fieldname, new_list)
 
-	def init_field_caches(self):
+	def init_field_caches(self) -> None:
 		# field map
 		self._fields = {field.fieldname: field for field in self.fields}
 
@@ -481,7 +481,7 @@ class Meta(Document):
 		else:
 			self._table_fields = self.get("fields", {"fieldtype": ["in", table_fields]})
 
-	def sort_fields(self):
+	def sort_fields(self) -> None:
 		"""
 		Sort fields on the basis of following rules (priority descending):
 		- `field_order` property setter
@@ -555,7 +555,7 @@ class Meta(Document):
 
 		self._update_fields_based_on_order(field_order)
 
-	def _update_fields_based_on_order(self, field_order):
+	def _update_fields_based_on_order(self, field_order) -> None:
 		sorted_fields = []
 
 		for idx, fieldname in enumerate(field_order, 1):
@@ -565,7 +565,7 @@ class Meta(Document):
 
 		self.fields = sorted_fields
 
-	def set_custom_permissions(self):
+	def set_custom_permissions(self) -> None:
 		"""Reset `permissions` with Custom DocPerm if exists"""
 		if frappe.flags.in_patch or frappe.flags.in_install:
 			return
@@ -580,8 +580,8 @@ class Meta(Document):
 			if custom_perms:
 				self.permissions = [Document(d) for d in custom_perms]
 
-	def get_fieldnames_with_value(self, with_field_meta=False, with_virtual_fields=False):
-		def is_value_field(docfield):
+	def get_fieldnames_with_value(self, with_field_meta: bool = False, with_virtual_fields: bool = False):
+		def is_value_field(docfield) -> bool:
 			return not (
 				not with_virtual_fields
 				and docfield.get("is_virtual")
@@ -620,8 +620,8 @@ class Meta(Document):
 		parenttype=None,
 		*,
 		user=None,
-		permission_type="read",
-		with_virtual_fields=True,
+		permission_type: str = "read",
+		with_virtual_fields: bool = True,
 	):
 		"""Build list of `fieldname` with read perm level and all the higher perm levels defined.
 
@@ -658,7 +658,7 @@ class Meta(Document):
 		)
 		return permitted_fieldnames
 
-	def get_permlevel_access(self, permission_type="read", parenttype=None, *, user=None):
+	def get_permlevel_access(self, permission_type: str = "read", parenttype=None, *, user=None):
 		has_access_to = []
 		roles = frappe.get_roles(user)
 		for perm in self.get_permissions(parenttype):
@@ -701,7 +701,7 @@ class Meta(Document):
 
 		return data
 
-	def add_doctype_links(self, data):
+	def add_doctype_links(self, data) -> None:
 		"""add `links` child table in standard link dashboard format"""
 		dashboard_links = []
 
@@ -754,7 +754,7 @@ class Meta(Document):
 	def get_list_template(self):
 		return self.get_web_template(suffix="_list")
 
-	def get_web_template(self, suffix=""):
+	def get_web_template(self, suffix: str = ""):
 		"""Return the relative path of the row template for this doctype."""
 		module_name = frappe.scrub(self.module)
 		doctype = frappe.scrub(self.name)
@@ -793,7 +793,7 @@ def get_parent_dt(dt):
 	)
 
 
-def set_fieldname(field_id, fieldname):
+def set_fieldname(field_id, fieldname) -> None:
 	frappe.db.set_value("DocField", field_id, "fieldname", fieldname)
 
 
@@ -875,7 +875,7 @@ def get_default_df(fieldname):
 		return frappe._dict(fieldname=fieldname, fieldtype="Data")
 
 
-def trim_tables(doctype=None, dry_run=False, quiet=False):
+def trim_tables(doctype=None, dry_run: bool = False, quiet: bool = False):
 	"""
 	Removes database fields that don't exist in the doctype (json or custom field). This may be needed
 	as maintenance since removing a field in a DocType doesn't automatically
@@ -904,13 +904,13 @@ def trim_tables(doctype=None, dry_run=False, quiet=False):
 	return UPDATED_TABLES
 
 
-def trim_table(doctype, dry_run=True):
+def trim_table(doctype, dry_run: bool = True):
 	frappe.cache.hdel("table_columns", f"tab{doctype}")
 	ignore_fields = default_fields + optional_fields + child_table_fields
 	columns = frappe.db.get_table_columns(doctype)
 	fields = frappe.get_meta(doctype, cached=False).get_fieldnames_with_value()
 
-	def is_internal(field):
+	def is_internal(field) -> bool:
 		return field not in ignore_fields and not field.startswith("_")
 
 	columns_to_remove = [f for f in list(set(columns) - set(fields)) if is_internal(f)]
@@ -923,7 +923,7 @@ def trim_table(doctype, dry_run=True):
 	return DROPPED_COLUMNS
 
 
-def _update_field_order_based_on_insert_after(field_order, insert_after_map):
+def _update_field_order_based_on_insert_after(field_order, insert_after_map) -> None:
 	"""Update the field order based on insert_after_map"""
 
 	retry_field_insertion = True

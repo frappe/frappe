@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	if not frappe.db.exists("Desk Page"):
 		return
 

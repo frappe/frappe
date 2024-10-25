@@ -1,3 +1,3 @@
-def get_context(context):
+def get_context(context) -> None:
 	# do your magic here
 	pass

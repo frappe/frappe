@@ -13,7 +13,9 @@ default_log_level = logging.WARNING if frappe._dev_server else logging.ERROR
 stream_logging = os.environ.get("FRAPPE_STREAM_LOGGING")
 
 
-def create_handler(module, site=None, max_size=100_000, file_count=20, stream_only=False):
+def create_handler(
+	module, site=None, max_size: int = 100_000, file_count: int = 20, stream_only: bool = False
+):
 	"""Create and return a Frappe-specific logging handler."""
 	formatter = logging.Formatter(f"%(asctime)s %(levelname)s {module} %(message)s")
 
@@ -37,11 +39,11 @@ def create_handler(module, site=None, max_size=100_000, file_count=20, stream_on
 
 def get_logger(
 	module=None,
-	with_more_info=False,
-	allow_site=True,
+	with_more_info: bool = False,
+	allow_site: bool = True,
 	filter=None,
-	max_size=100_000,
-	file_count=20,
+	max_size: int = 100_000,
+	file_count: int = 20,
 	stream_only=stream_logging,
 ) -> "logging.Logger":
 	"""Return Application Logger for your given module.

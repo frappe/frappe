@@ -144,7 +144,7 @@ def get_uploaded_content():
 		return None, None
 
 
-def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, df=None):
+def save_file(fname, content, dt, dn, folder=None, decode: bool = False, is_private: int = 0, df=None):
 	if decode:
 		if isinstance(content, str):
 			content = content.encode("utf-8")
@@ -188,7 +188,7 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 	return f
 
 
-def get_file_data_from_hash(content_hash, is_private=0):
+def get_file_data_from_hash(content_hash, is_private: int = 0):
 	for name in frappe.get_all(
 		"File", {"content_hash": content_hash, "is_private": is_private}, pluck="name"
 	):
@@ -197,7 +197,7 @@ def get_file_data_from_hash(content_hash, is_private=0):
 	return False
 
 
-def save_file_on_filesystem(fname, content, content_type=None, is_private=0):
+def save_file_on_filesystem(fname, content, content_type=None, is_private: int = 0):
 	fpath = write_file(content, fname, is_private)
 
 	if is_private:
@@ -225,7 +225,7 @@ def check_max_file_size(content):
 	return file_size
 
 
-def write_file(content, fname, is_private=0):
+def write_file(content, fname, is_private: int = 0):
 	"""write file to disk with a random name (to compare)"""
 	file_path = get_files_path(is_private=is_private)
 
@@ -240,7 +240,7 @@ def write_file(content, fname, is_private=0):
 	return get_files_path(fname, is_private=is_private)
 
 
-def remove_all(dt, dn, from_delete=False, delete_permanently=False):
+def remove_all(dt, dn, from_delete: bool = False, delete_permanently: bool = False):
 	"""remove all files in a transaction"""
 	try:
 		for fid in frappe.get_all("File", {"attached_to_doctype": dt, "attached_to_name": dn}, pluck="name"):
@@ -265,8 +265,8 @@ def remove_file(
 	fid=None,
 	attached_to_doctype=None,
 	attached_to_name=None,
-	from_delete=False,
-	delete_permanently=False,
+	from_delete: bool = False,
+	delete_permanently: bool = False,
 ):
 	"""Remove file and File entry"""
 	file_name = None
@@ -289,12 +289,12 @@ def remove_file(
 	return comment
 
 
-def delete_file_data_content(doc, only_thumbnail=False):
+def delete_file_data_content(doc, only_thumbnail: bool = False) -> None:
 	method = get_hook_method("delete_file_data_content", fallback=delete_file_from_filesystem)
 	method(doc, only_thumbnail=only_thumbnail)
 
 
-def delete_file_from_filesystem(doc, only_thumbnail=False):
+def delete_file_from_filesystem(doc, only_thumbnail: bool = False) -> None:
 	"""Delete file, thumbnail from File document"""
 	if only_thumbnail:
 		delete_file(doc.thumbnail_url)
@@ -303,7 +303,7 @@ def delete_file_from_filesystem(doc, only_thumbnail=False):
 		delete_file(doc.thumbnail_url)
 
 
-def delete_file(path):
+def delete_file(path) -> None:
 	"""Delete file from `public folder`"""
 	if path:
 		if ".." in path.split("/"):

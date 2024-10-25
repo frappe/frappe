@@ -12,7 +12,7 @@ from frappe.website.path_resolver import resolve_path
 no_cache = 1
 
 
-def get_context(context, **dict_params):
+def get_context(context, **dict_params) -> None:
 	"""Return context for a list standard list page.
 
 	Also update `get_list_context` from the doctype module file."""
@@ -27,7 +27,7 @@ def get_context(context, **dict_params):
 
 
 @frappe.whitelist(allow_guest=True)
-def get(doctype, txt=None, limit_start=0, limit=20, pathname=None, **kwargs):
+def get(doctype, txt=None, limit_start: int = 0, limit: int = 20, pathname=None, **kwargs):
 	"""Return processed HTML page for a standard listing."""
 	limit_start = cint(limit_start)
 	raw_result = get_list_data(doctype, txt, limit_start, limit=limit + 1, **kwargs)
@@ -76,7 +76,14 @@ def get(doctype, txt=None, limit_start=0, limit=20, pathname=None, **kwargs):
 
 @frappe.whitelist(allow_guest=True)
 def get_list_data(
-	doctype, txt=None, limit_start=0, fields=None, cmd=None, limit=20, web_form_name=None, **kwargs
+	doctype,
+	txt=None,
+	limit_start: int = 0,
+	fields=None,
+	cmd=None,
+	limit: int = 20,
+	web_form_name=None,
+	**kwargs,
 ):
 	"""Return processed HTML page for a standard listing."""
 	limit_start = cint(limit_start)
@@ -123,7 +130,7 @@ def get_list_data(
 	return raw_result
 
 
-def set_route(context):
+def set_route(context) -> None:
 	"""Set link for the list item"""
 	if context.web_form_name:
 		context.route = f"{context.pathname}?name={quoted(context.doc.name)}"
@@ -212,8 +219,8 @@ def get_list(
 	txt,
 	filters,
 	limit_start,
-	limit_page_length=20,
-	ignore_permissions=False,
+	limit_page_length: int = 20,
+	ignore_permissions: bool = False,
 	fields=None,
 	order_by=None,
 ):

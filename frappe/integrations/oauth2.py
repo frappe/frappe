@@ -142,7 +142,7 @@ def get_token(*args, **kwargs):
 
 
 @frappe.whitelist(allow_guest=True)
-def revoke_token(*args, **kwargs):
+def revoke_token(*args, **kwargs) -> None:
 	try:
 		r = frappe.request
 		headers, body, status = get_oauth_server().create_revocation_response(
@@ -178,7 +178,7 @@ def openid_profile(*args, **kwargs):
 
 
 @frappe.whitelist(allow_guest=True)
-def openid_configuration():
+def openid_configuration() -> None:
 	frappe_server_url = get_server_url()
 	frappe.local.response = frappe._dict(
 		{
@@ -203,7 +203,7 @@ def openid_configuration():
 
 
 @frappe.whitelist(allow_guest=True)
-def introspect_token(token=None, token_type_hint=None):
+def introspect_token(token=None, token_type_hint=None) -> None:
 	if token_type_hint not in ["access_token", "refresh_token"]:
 		token_type_hint = "access_token"
 	try:

@@ -5,7 +5,7 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestNonNullableDocfield(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		doc = new_doctype(
 			fields=[
 				{
@@ -31,13 +31,13 @@ class TestNonNullableDocfield(IntegrationTestCase):
 		nullable_doc.insert()
 		self.nullable_doctype_name = nullable_doc.name
 
-	def test_non_nullable_field(self):
+	def test_non_nullable_field(self) -> None:
 		doc = frappe.new_doc(doctype=self.doctype_name)
 		doc.insert()
 		inserted_doc = frappe.db.get(self.doctype_name, {"name": doc.name})
 		self.assertEqual(inserted_doc.test_field, "")
 
-	def test_edit_field_nullable_status(self):
+	def test_edit_field_nullable_status(self) -> None:
 		doc = frappe.new_doc(doctype=self.nullable_doctype_name)
 		doc.insert()
 		inserted_doc = frappe.db.get(self.nullable_doctype_name, {"name": doc.name})

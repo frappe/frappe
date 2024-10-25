@@ -21,20 +21,20 @@ class UnitTestPersonalDataDownloadRequest(UnitTestCase):
 
 
 class TestRequestPersonalData(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		create_user_if_not_exists(email="test_privacy@example.com")
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.db.delete("Personal Data Download Request")
 
-	def test_user_data_creation(self):
+	def test_user_data_creation(self) -> None:
 		user_data = json.loads(get_user_data("test_privacy@example.com"))
 		contact_name = get_contact_name("test_privacy@example.com")
 		expected_data = {"Contact": frappe.get_all("Contact", {"name": contact_name}, ["*"])}
 		expected_data = json.loads(json.dumps(expected_data, default=str))
 		self.assertEqual({"Contact": user_data["Contact"]}, expected_data)
 
-	def test_file_and_email_creation(self):
+	def test_file_and_email_creation(self) -> None:
 		frappe.set_user("test_privacy@example.com")
 		download_request = frappe.get_doc(
 			{"doctype": "Personal Data Download Request", "user": "test_privacy@example.com"}
@@ -59,7 +59,7 @@ class TestRequestPersonalData(IntegrationTestCase):
 		frappe.db.delete("Email Queue")
 
 
-def create_user_if_not_exists(email, first_name=None):
+def create_user_if_not_exists(email, first_name=None) -> None:
 	frappe.delete_doc_if_exists("User", email)
 
 	user = frappe.get_doc(

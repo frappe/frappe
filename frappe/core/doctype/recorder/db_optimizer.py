@@ -54,7 +54,7 @@ class DBIndex:
 	def __eq__(self, other: "DBIndex") -> bool:
 		return self.column == other.column and self.sequence == other.sequence and self.table == other.table
 
-	def __repr__(self):
+	def __repr__(self) -> str:
 		return f"DBIndex(`{self.table}`.`{self.column}`)"
 
 	@classmethod
@@ -79,7 +79,7 @@ class ColumnStat:
 	nulls_ratio: float | None = None
 	histogram: list[float] = None
 
-	def __post_init__(self):
+	def __post_init__(self) -> None:
 		if not self.histogram:
 			self.histogram = []
 
@@ -101,7 +101,7 @@ class DBTable:
 	schema: list[DBColumn] | None = None
 	indexes: list[DBIndex] | None = None
 
-	def __post_init__(self):
+	def __post_init__(self) -> None:
 		if not self.schema:
 			self.schema = []
 		if not self.indexes:
@@ -140,7 +140,7 @@ class DBOptimizer:
 	tables: dict[str, DBTable] = None
 	parsed_query: Parser = None
 
-	def __post_init__(self):
+	def __post_init__(self) -> None:
 		if not self.tables:
 			self.tables = {}
 		self.parsed_query = Parser(self.query)
@@ -148,7 +148,7 @@ class DBOptimizer:
 	def tables_examined(self) -> list[str]:
 		return self.parsed_query.tables
 
-	def update_table_data(self, table: DBTable):
+	def update_table_data(self, table: DBTable) -> None:
 		self.tables[table.name] = table
 
 	def _convert_to_db_index(self, column: str) -> DBIndex:

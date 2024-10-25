@@ -92,11 +92,11 @@ class Engine:
 
 		return self.query
 
-	def validate_doctype(self):
+	def validate_doctype(self) -> None:
 		if not TABLE_NAME_PATTERN.match(self.doctype):
 			frappe.throw(_("Invalid DocType: {0}").format(self.doctype))
 
-	def apply_fields(self, fields):
+	def apply_fields(self, fields) -> None:
 		# add fields
 		self.fields = self.parse_fields(fields)
 		if not self.fields:
@@ -114,7 +114,7 @@ class Engine:
 	def apply_filters(
 		self,
 		filters: dict[str, FilterValue] | FilterValue | list[list | FilterValue] | None = None,
-	):
+	) -> None:
 		if filters is None:
 			return
 
@@ -137,7 +137,7 @@ class Engine:
 					elif isinstance(filter, list | tuple):
 						self.apply_list_filters(filter)
 
-	def apply_list_filters(self, filter: list):
+	def apply_list_filters(self, filter: list) -> None:
 		if len(filter) == 2:
 			field, value = filter
 			self._apply_filter(field, value)
@@ -148,7 +148,7 @@ class Engine:
 			doctype, field, operator, value = filter
 			self._apply_filter(field, value, operator, doctype)
 
-	def apply_dict_filters(self, filters: dict[str, FilterValue | list]):
+	def apply_dict_filters(self, filters: dict[str, FilterValue | list]) -> None:
 		for field, value in filters.items():
 			operator = "="
 			if isinstance(value, list | tuple):
@@ -162,7 +162,7 @@ class Engine:
 		value: FilterValue | list | set | None,
 		operator: str = "=",
 		doctype: str | None = None,
-	):
+	) -> None:
 		_field = field
 		_value = value
 		_operator = operator
@@ -341,7 +341,7 @@ class Engine:
 
 		return _fields
 
-	def apply_order_by(self, order_by: str | None):
+	def apply_order_by(self, order_by: str | None) -> None:
 		if not order_by or order_by == DefaultOrderBy:
 			return
 		for declaration in order_by.split(","):
@@ -354,7 +354,7 @@ class Engine:
 
 class Permission:
 	@classmethod
-	def check_permissions(cls, query, **kwargs):
+	def check_permissions(cls, query, **kwargs) -> None:
 		if not isinstance(query, str):
 			query = query.get_sql()
 
@@ -521,7 +521,7 @@ def literal_eval_(literal):
 		return literal
 
 
-def has_function(field):
+def has_function(field) -> bool:
 	_field = field.casefold() if (isinstance(field, str) and "`" not in field) else field
 	if not issubclass(type(_field), Criterion):
 		if any([f"{func}(" in _field for func in SQL_FUNCTIONS]):

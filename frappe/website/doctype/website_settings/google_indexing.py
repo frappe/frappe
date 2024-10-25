@@ -12,7 +12,7 @@ from frappe.integrations.google_oauth import GoogleOAuth
 
 
 @frappe.whitelist(methods=["POST"])
-def authorize_access(reauthorize=False, code=None):
+def authorize_access(reauthorize: bool = False, code=None):
 	"""If no Authorization code get it from Google and then request for Refresh Token."""
 
 	oauth_code = (
@@ -46,7 +46,7 @@ def get_google_indexing_object():
 	)
 
 
-def publish_site(url, operation_type="URL_UPDATED"):
+def publish_site(url, operation_type: str = "URL_UPDATED") -> None:
 	"""Send an update/remove url request."""
 
 	google_indexing = get_google_indexing_object()

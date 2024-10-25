@@ -20,10 +20,10 @@ class TestAddressTemplate(IntegrationTestCase):
 		frappe.db.delete("Address Template", {"country": "India"})
 		frappe.db.delete("Address Template", {"country": "Brazil"})
 
-	def test_default_address_template(self):
+	def test_default_address_template(self) -> None:
 		validate_template(get_default_address_template())
 
-	def test_default_is_unset(self):
+	def test_default_is_unset(self) -> None:
 		frappe.get_doc({"doctype": "Address Template", "country": "India", "is_default": 1}).insert()
 
 		self.assertEqual(frappe.db.get_value("Address Template", "India", "is_default"), 1)
@@ -33,7 +33,7 @@ class TestAddressTemplate(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Address Template", "India", "is_default"), 0)
 		self.assertEqual(frappe.db.get_value("Address Template", "Brazil", "is_default"), 1)
 
-	def test_delete_address_template(self):
+	def test_delete_address_template(self) -> None:
 		india = frappe.get_doc({"doctype": "Address Template", "country": "India", "is_default": 0}).insert()
 
 		brazil = frappe.get_doc(

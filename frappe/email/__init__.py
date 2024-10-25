@@ -4,12 +4,12 @@
 import frappe
 
 
-def sendmail_to_system_managers(subject, content):
+def sendmail_to_system_managers(subject, content) -> None:
 	frappe.sendmail(recipients=get_system_managers(), subject=subject, content=content)
 
 
 @frappe.whitelist()
-def get_contact_list(txt, page_length=20, extra_filters: str | None = None) -> list[dict]:
+def get_contact_list(txt, page_length: int = 20, extra_filters: str | None = None) -> list[dict]:
 	"""Return email ids for a multiselect field."""
 	if extra_filters:
 		extra_filters = frappe.parse_json(extra_filters)
@@ -53,7 +53,7 @@ def get_system_managers():
 
 
 @frappe.whitelist()
-def relink(name, reference_doctype=None, reference_name=None):
+def relink(name, reference_doctype=None, reference_name=None) -> None:
 	frappe.db.sql(
 		"""update
 			`tabCommunication`

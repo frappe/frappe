@@ -23,7 +23,7 @@ class UnitTestDashboardChart(UnitTestCase):
 
 
 class TestDashboardChart(IntegrationTestCase):
-	def test_period_ending(self):
+	def test_period_ending(self) -> None:
 		self.assertEqual(get_period_ending("2019-04-10", "Daily"), getdate("2019-04-10"))
 
 		# week starts on monday
@@ -38,7 +38,7 @@ class TestDashboardChart(IntegrationTestCase):
 		self.assertEqual(get_period_ending("2019-06-30", "Quarterly"), getdate("2019-06-30"))
 		self.assertEqual(get_period_ending("2019-10-01", "Quarterly"), getdate("2019-12-31"))
 
-	def test_dashboard_chart(self):
+	def test_dashboard_chart(self) -> None:
 		if frappe.db.exists("Dashboard Chart", "Test Dashboard Chart"):
 			frappe.delete_doc("Dashboard Chart", "Test Dashboard Chart")
 
@@ -64,7 +64,7 @@ class TestDashboardChart(IntegrationTestCase):
 			self.assertEqual(result.get("labels")[idx], get_period(month))
 			cur_date += relativedelta(months=1)
 
-	def test_empty_dashboard_chart(self):
+	def test_empty_dashboard_chart(self) -> None:
 		if frappe.db.exists("Dashboard Chart", "Test Empty Dashboard Chart"):
 			frappe.delete_doc("Dashboard Chart", "Test Empty Dashboard Chart")
 
@@ -92,7 +92,7 @@ class TestDashboardChart(IntegrationTestCase):
 			self.assertEqual(result.get("labels")[idx], get_period(month))
 			cur_date += relativedelta(months=1)
 
-	def test_chart_wih_one_value(self):
+	def test_chart_wih_one_value(self) -> None:
 		if frappe.db.exists("Dashboard Chart", "Test Empty Dashboard Chart 2"):
 			frappe.delete_doc("Dashboard Chart", "Test Empty Dashboard Chart 2")
 
@@ -126,7 +126,7 @@ class TestDashboardChart(IntegrationTestCase):
 		# only 1 data point with value
 		self.assertEqual(result.get("datasets")[0].get("values")[2], 0)
 
-	def test_group_by_chart_type(self):
+	def test_group_by_chart_type(self) -> None:
 		if frappe.db.exists("Dashboard Chart", "Test Group By Dashboard Chart"):
 			frappe.delete_doc("Dashboard Chart", "Test Group By Dashboard Chart")
 
@@ -146,7 +146,7 @@ class TestDashboardChart(IntegrationTestCase):
 
 		self.assertEqual(result.get("datasets")[0].get("values")[0], todo_status_count)
 
-	def test_daily_dashboard_chart(self):
+	def test_daily_dashboard_chart(self) -> None:
 		insert_test_records()
 
 		if frappe.db.exists("Dashboard Chart", "Test Daily Dashboard Chart"):
@@ -175,7 +175,7 @@ class TestDashboardChart(IntegrationTestCase):
 			["01-06-2019", "01-07-2019", "01-08-2019", "01-09-2019", "01-10-2019", "01-11-2019"],
 		)
 
-	def test_weekly_dashboard_chart(self):
+	def test_weekly_dashboard_chart(self) -> None:
 		insert_test_records()
 
 		if frappe.db.exists("Dashboard Chart", "Test Weekly Dashboard Chart"):
@@ -202,7 +202,7 @@ class TestDashboardChart(IntegrationTestCase):
 			self.assertEqual(result.get("datasets")[0].get("values"), [50.0, 300.0, 800.0, 0.0])
 			self.assertEqual(result.get("labels"), ["12-30-2018", "01-06-2019", "01-13-2019", "01-20-2019"])
 
-	def test_avg_dashboard_chart(self):
+	def test_avg_dashboard_chart(self) -> None:
 		insert_test_records()
 
 		if frappe.db.exists("Dashboard Chart", "Test Average Dashboard Chart"):
@@ -228,7 +228,7 @@ class TestDashboardChart(IntegrationTestCase):
 			self.assertEqual(result.get("labels"), ["12-30-2018", "01-06-2019", "01-13-2019", "01-20-2019"])
 			self.assertEqual(result.get("datasets")[0].get("values"), [50.0, 150.0, 266.6666666666667, 0.0])
 
-	def test_user_date_label_dashboard_chart(self):
+	def test_user_date_label_dashboard_chart(self) -> None:
 		frappe.delete_doc_if_exists("Dashboard Chart", "Test Dashboard Chart Date Label")
 
 		frappe.get_doc(
@@ -254,7 +254,7 @@ class TestDashboardChart(IntegrationTestCase):
 			self.assertEqual(sorted(result.get("labels")), sorted(["01-19-2019", "01-05-2019", "01-12-2019"]))
 
 
-def insert_test_records():
+def insert_test_records() -> None:
 	create_new_communication("Communication 1", datetime(2018, 12, 30), 50)
 	create_new_communication("Communication 2", datetime(2019, 1, 4), 100)
 	create_new_communication("Communication 3", datetime(2019, 1, 6), 200)
@@ -263,7 +263,7 @@ def insert_test_records():
 	create_new_communication("Communication 6", datetime(2019, 1, 10), 100)
 
 
-def create_new_communication(subject, date, rating):
+def create_new_communication(subject, date, rating) -> None:
 	communication = {
 		"doctype": "Communication",
 		"subject": subject,

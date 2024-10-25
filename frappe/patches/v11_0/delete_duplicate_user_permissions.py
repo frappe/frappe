@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	duplicateRecords = frappe.db.sql(
 		"""select count(name) as `count`, allow, user, for_value
 		from `tabUser Permission`

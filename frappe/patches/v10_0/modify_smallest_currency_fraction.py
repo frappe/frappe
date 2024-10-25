@@ -4,5 +4,5 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.db.set_value("Currency", "USD", "smallest_currency_fraction_value", "0.01")

@@ -26,11 +26,11 @@ class CustomNoteWithoutProperty(Note):
 
 
 class TestDocument(IntegrationTestCase):
-	def test_get_return_empty_list_for_table_field_if_none(self):
+	def test_get_return_empty_list_for_table_field_if_none(self) -> None:
 		d = frappe.get_doc({"doctype": "User"})
 		self.assertEqual(d.get("roles"), [])
 
-	def test_load(self):
+	def test_load(self) -> None:
 		d = frappe.get_doc("DocType", "User")
 		self.assertEqual(d.doctype, "DocType")
 		self.assertEqual(d.name, "User")
@@ -39,7 +39,7 @@ class TestDocument(IntegrationTestCase):
 		self.assertTrue(isinstance(d.permissions, list))
 		self.assertTrue(filter(lambda d: d.fieldname == "email", d.fields))
 
-	def test_load_single(self):
+	def test_load_single(self) -> None:
 		d = frappe.get_doc("Website Settings", "Website Settings")
 		self.assertEqual(d.name, "Website Settings")
 		self.assertEqual(d.doctype, "Website Settings")
@@ -62,7 +62,7 @@ class TestDocument(IntegrationTestCase):
 		self.assertEqual(d.send_reminder, 1)
 		return d
 
-	def test_website_route_default(self):
+	def test_website_route_default(self) -> None:
 		default = frappe.generate_hash()
 		child_table = new_doctype(default=default, istable=1).insert().name
 		parent = (
@@ -76,7 +76,7 @@ class TestDocument(IntegrationTestCase):
 		doc.save()
 		self.assertEqual(doc.child_table[-1].some_fieldname, default)
 
-	def test_insert_with_child(self):
+	def test_insert_with_child(self) -> None:
 		d = frappe.get_doc(
 			{
 				"doctype": "Event",
@@ -89,14 +89,14 @@ class TestDocument(IntegrationTestCase):
 		self.assertTrue(d.name.startswith("EV"))
 		self.assertEqual(frappe.db.get_value("Event", d.name, "subject"), "test-doc-test-event 2")
 
-	def test_update(self):
+	def test_update(self) -> None:
 		d = self.test_insert()
 		d.subject = "subject changed"
 		d.save()
 
 		self.assertEqual(frappe.db.get_value(d.doctype, d.name, "subject"), "subject changed")
 
-	def test_discard_transitions(self):
+	def test_discard_transitions(self) -> None:
 		d = self.test_insert()
 		self.assertEqual(d.docstatus, 0)
 
@@ -113,12 +113,12 @@ class TestDocument(IntegrationTestCase):
 		d2.discard()
 		self.assertEqual(d2.docstatus, 2)
 
-	def test_save_on_discard_throws(self):
+	def test_save_on_discard_throws(self) -> None:
 		from frappe.desk.doctype.event.event import Event
 
 		d3 = self.test_insert()
 
-		def test_on_discard(d3):
+		def test_on_discard(d3) -> None:
 			d3.subject = d3.subject + "update"
 			d3.save()
 
@@ -127,7 +127,7 @@ class TestDocument(IntegrationTestCase):
 
 		self.assertRaises(frappe.ValidationError, d3.discard)
 
-	def test_value_changed(self):
+	def test_value_changed(self) -> None:
 		d = self.test_insert()
 		d.subject = "subject changed again"
 		d.load_doc_before_save()
@@ -139,7 +139,7 @@ class TestDocument(IntegrationTestCase):
 		self.assertFalse(d.has_value_changed("creation"))
 		self.assertFalse(d.has_value_changed("event_type"))
 
-	def test_mandatory(self):
+	def test_mandatory(self) -> None:
 		# TODO: recheck if it is OK to force delete
 		frappe.delete_doc_if_exists("User", "test_mandatory@example.com", 1)
 
@@ -155,19 +155,19 @@ class TestDocument(IntegrationTestCase):
 		d.insert()
 		self.assertEqual(frappe.db.get_value("User", d.name), d.name)
 
-	def test_text_editor_field(self):
+	def test_text_editor_field(self) -> None:
 		try:
 			frappe.get_doc(doctype="Activity Log", subject="test", message='<img src="test.png" />').insert()
 		except frappe.MandatoryError:
 			self.fail("Text Editor false positive mandatory error")
 
-	def test_conflict_validation(self):
+	def test_conflict_validation(self) -> None:
 		d1 = self.test_insert()
 		d2 = frappe.get_doc(d1.doctype, d1.name)
 		d1.save()
 		self.assertRaises(frappe.TimestampMismatchError, d2.save)
 
-	def test_conflict_validation_single(self):
+	def test_conflict_validation_single(self) -> None:
 		d1 = frappe.get_doc("Website Settings", "Website Settings")
 		d1.home_page = "test-web-page-1"
 
@@ -177,18 +177,18 @@ class TestDocument(IntegrationTestCase):
 		d1.save()
 		self.assertRaises(frappe.TimestampMismatchError, d2.save)
 
-	def test_permission(self):
+	def test_permission(self) -> None:
 		frappe.set_user("Guest")
 		self.assertRaises(frappe.PermissionError, self.test_insert)
 		frappe.set_user("Administrator")
 
-	def test_permission_single(self):
+	def test_permission_single(self) -> None:
 		frappe.set_user("Guest")
 		d = frappe.get_doc("Website Settings", "Website Settings")
 		self.assertRaises(frappe.PermissionError, d.save)
 		frappe.set_user("Administrator")
 
-	def test_link_validation(self):
+	def test_link_validation(self) -> None:
 		frappe.delete_doc_if_exists("User", "test_link_validation@example.com", 1)
 
 		d = frappe.get_doc(
@@ -207,7 +207,7 @@ class TestDocument(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.get_value("User", d.name), d.name)
 
-	def test_validate(self):
+	def test_validate(self) -> None:
 		d = self.test_insert()
 		d.starts_on = "2014-01-01"
 		d.ends_on = "2013-01-01"
@@ -215,17 +215,17 @@ class TestDocument(IntegrationTestCase):
 		self.assertRaises(frappe.ValidationError, d.run_method, "validate")
 		self.assertRaises(frappe.ValidationError, d.save)
 
-	def test_db_set_no_query_on_new_docs(self):
+	def test_db_set_no_query_on_new_docs(self) -> None:
 		user = frappe.new_doc("User")
 		user.db_set("user_type", "Magical Wizard")
 		with self.assertQueryCount(0):
 			user.db_set("user_type", "Magical Wizard")
 
-	def test_new_doc_with_fields(self):
+	def test_new_doc_with_fields(self) -> None:
 		user = frappe.new_doc("User", first_name="wizard")
 		self.assertEqual(user.first_name, "wizard")
 
-	def test_update_after_submit(self):
+	def test_update_after_submit(self) -> None:
 		d = self.test_insert()
 		d.starts_on = "2014-09-09"
 		self.assertRaises(frappe.UpdateAfterSubmitError, d.validate_update_after_submit)
@@ -238,12 +238,12 @@ class TestDocument(IntegrationTestCase):
 		d.starts_on = "2014-01-01"
 		d.validate_update_after_submit()
 
-	def test_varchar_length(self):
+	def test_varchar_length(self) -> None:
 		d = self.test_insert()
 		d.sender = "abcde" * 100 + "@user.com"
 		self.assertRaises(frappe.CharacterLengthExceededError, d.save)
 
-	def test_xss_filter(self):
+	def test_xss_filter(self) -> None:
 		d = self.test_insert()
 
 		# script
@@ -276,7 +276,7 @@ class TestDocument(IntegrationTestCase):
 		self.assertTrue(xss not in d.subject)
 		self.assertTrue(escaped_xss in d.subject)
 
-	def test_naming_series(self):
+	def test_naming_series(self) -> None:
 		data = ["TEST-", "TEST/17-18/.test_data./.####", "TEST.YYYY.MM.####"]
 
 		for series in data:
@@ -294,7 +294,7 @@ class TestDocument(IntegrationTestCase):
 
 			self.assertEqual(cint(old_current) - 1, new_current)
 
-	def test_non_negative_check(self):
+	def test_non_negative_check(self) -> None:
 		frappe.delete_doc_if_exists("Currency", "Frappe Coin", 1)
 
 		d = frappe.get_doc(
@@ -309,7 +309,7 @@ class TestDocument(IntegrationTestCase):
 
 		frappe.delete_doc_if_exists("Currency", "Frappe Coin", 1)
 
-	def test_get_formatted(self):
+	def test_get_formatted(self) -> None:
 		frappe.get_doc(
 			{
 				"doctype": "DocType",
@@ -339,7 +339,7 @@ class TestDocument(IntegrationTestCase):
 		# and currency param is not passed
 		self.assertIn("0", d.get_formatted("currency"))
 
-	def test_limit_for_get(self):
+	def test_limit_for_get(self) -> None:
 		doc = frappe.get_doc("DocType", "DocType")
 		# assuming DocType has more than 3 Data fields
 		self.assertEqual(len(doc.get("fields", limit=3)), 3)
@@ -347,7 +347,7 @@ class TestDocument(IntegrationTestCase):
 		# limit with filters
 		self.assertEqual(len(doc.get("fields", filters={"fieldtype": "Data"}, limit=3)), 3)
 
-	def test_virtual_fields(self):
+	def test_virtual_fields(self) -> None:
 		"""Virtual fields are accessible via API and Form views, whenever .as_dict is invoked"""
 		frappe.db.delete("Custom Field", {"dt": "Note", "fieldname": "age"})
 		note = frappe.new_doc("Note")
@@ -359,7 +359,7 @@ class TestDocument(IntegrationTestCase):
 			return patch("frappe.controllers", new={frappe.local.site: {"Note": class_ or CustomTestNote}})
 
 		@contextmanager
-		def customize_note(with_options=False):
+		def customize_note(with_options: bool = False):
 			options = (
 				"frappe.utils.now_datetime() - frappe.utils.get_datetime(doc.creation)"
 				if with_options
@@ -413,7 +413,7 @@ class TestDocument(IntegrationTestCase):
 			self.assertIsInstance(doc.as_dict().get("age"), timedelta)
 			self.assertIsInstance(doc.get_valid_dict().get("age"), timedelta)
 
-	def test_run_method(self):
+	def test_run_method(self) -> None:
 		doc = frappe.get_last_doc("User")
 
 		# Case 1: Override with a string
@@ -423,7 +423,7 @@ class TestDocument(IntegrationTestCase):
 		self.assertRaisesRegex(TypeError, "not callable", doc.run_method, "as_dict")
 
 		# Case 2: Override with a function
-		def my_as_dict(*args, **kwargs):
+		def my_as_dict(*args, **kwargs) -> str:
 			return "success"
 
 		doc.as_dict = my_as_dict
@@ -431,7 +431,7 @@ class TestDocument(IntegrationTestCase):
 		# run_method should get overridden
 		self.assertEqual(doc.run_method("as_dict"), "success")
 
-	def test_extend(self):
+	def test_extend(self) -> None:
 		doc = frappe.get_last_doc("User")
 		self.assertRaises(ValueError, doc.extend, "user_emails", None)
 
@@ -440,7 +440,7 @@ class TestDocument(IntegrationTestCase):
 		doc.extend("user_emails", [])
 		doc.extend("user_emails", (x for x in ()))
 
-	def test_set(self):
+	def test_set(self) -> None:
 		doc = frappe.get_last_doc("User")
 
 		# setting None should init a table field to empty list
@@ -453,7 +453,7 @@ class TestDocument(IntegrationTestCase):
 		doc.flags.ignore_children = True
 		doc.update({"user_emails": "ok"})
 
-	def test_doc_events(self):
+	def test_doc_events(self) -> None:
 		"""validate that all present doc events are correct methods"""
 
 		for doctype, doc_hooks in frappe.get_doc_hooks().items():
@@ -464,7 +464,7 @@ class TestDocument(IntegrationTestCase):
 					except Exception as e:
 						self.fail(f"Invalid doc hook: {doctype}:{hook}\n{e}")
 
-	def test_realtime_notify(self):
+	def test_realtime_notify(self) -> None:
 		todo = frappe.new_doc("ToDo")
 		todo.description = "this will trigger realtime update"
 		todo.notify_update = Mock()
@@ -477,7 +477,7 @@ class TestDocument(IntegrationTestCase):
 		todo.save()
 		self.assertEqual(todo.notify_update.call_count, 1)
 
-	def test_error_on_saving_new_doc_with_name(self):
+	def test_error_on_saving_new_doc_with_name(self) -> None:
 		"""Trying to save a new doc with name should raise DoesNotExistError"""
 
 		doc = frappe.get_doc(
@@ -490,7 +490,7 @@ class TestDocument(IntegrationTestCase):
 
 		self.assertRaises(frappe.DoesNotExistError, doc.save)
 
-	def test_validate_from_to_dates(self):
+	def test_validate_from_to_dates(self) -> None:
 		doc = frappe.new_doc("Web Page")
 		doc.start_date = None
 		doc.end_date = None
@@ -514,7 +514,7 @@ class TestDocument(IntegrationTestCase):
 			frappe.exceptions.InvalidDates, doc.validate_from_to_dates, "start_date", "end_date"
 		)
 
-	def test_db_set_singles(self):
+	def test_db_set_singles(self) -> None:
 		c = frappe.get_doc("Contact Us Settings")
 		key, val = "email_id", "admin1@example.com"
 		c.db_set(key, val)
@@ -523,7 +523,7 @@ class TestDocument(IntegrationTestCase):
 
 
 class TestDocumentWebView(IntegrationTestCase):
-	def get(self, path, user="Guest"):
+	def get(self, path, user: str = "Guest"):
 		frappe.set_user(user)
 		set_request(method="GET", path=path)
 		make_form_dict(frappe.local.request)
@@ -531,7 +531,7 @@ class TestDocumentWebView(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		return response
 
-	def test_web_view_link_authentication(self):
+	def test_web_view_link_authentication(self) -> None:
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "Test"}).insert()
 		document_key = todo.get_document_share_key()
 
@@ -567,7 +567,7 @@ class TestDocumentWebView(IntegrationTestCase):
 		# Logged-in user can access the page without key
 		self.assertEqual(self.get(url_without_key, "Administrator").status, "200 OK")
 
-	def test_base_class_set_correctly_on_has_web_view_change(self):
+	def test_base_class_set_correctly_on_has_web_view_change(self) -> None:
 		from pathlib import Path
 
 		from frappe.modules.utils import get_doc_path, scrub
@@ -624,7 +624,7 @@ class TestDocumentWebView(IntegrationTestCase):
 				"`WebsiteGenerator` class not replaced with `Document` when web view is disabled!",
 			)
 
-	def test_bulk_inserts(self):
+	def test_bulk_inserts(self) -> None:
 		from frappe.model.document import bulk_insert
 
 		doctype = "Role Profile"

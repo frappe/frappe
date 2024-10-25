@@ -28,7 +28,7 @@ class WebTemplate(Document):
 		type: DF.Literal["Component", "Section", "Navbar", "Footer"]
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		if self.standard and not frappe.conf.developer_mode and not frappe.flags.in_patch:
 			frappe.throw(_("Enable developer mode to create a standard Web Template"))
 
@@ -36,7 +36,7 @@ class WebTemplate(Document):
 			if not field.fieldname:
 				field.fieldname = frappe.scrub(field.label)
 
-	def before_save(self):
+	def before_save(self) -> None:
 		if frappe.conf.developer_mode:
 			# custom to standard
 			if self.standard:
@@ -47,7 +47,7 @@ class WebTemplate(Document):
 			if was_standard and not self.standard:
 				self.import_from_files()
 
-	def on_update(self):
+	def on_update(self) -> None:
 		"""Clear cache for all Web Pages in which this template is used"""
 		routes = frappe.get_all(
 			"Web Page",
@@ -60,12 +60,12 @@ class WebTemplate(Document):
 		for route in routes:
 			clear_cache(route)
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		if frappe.conf.developer_mode and self.standard:
 			# delete template html and json files
 			rmtree(self.get_template_folder())
 
-	def export_to_files(self):
+	def export_to_files(self) -> None:
 		"""Export Web Template to a new folder.
 
 		Doc is exported as JSON. The content of the `template` field gets
@@ -76,11 +76,11 @@ class WebTemplate(Document):
 		write_document_file(self, create_init=True)
 		self.create_template_file(html)
 
-	def import_from_files(self):
+	def import_from_files(self) -> None:
 		self.template = self.get_template(standard=True)
 		rmtree(self.get_template_folder())
 
-	def create_template_file(self, html=None):
+	def create_template_file(self, html=None) -> None:
 		"""Touch a HTML file for the Web Template and add existing content, if any."""
 		if self.standard:
 			path = self.get_template_path()
@@ -104,7 +104,7 @@ class WebTemplate(Document):
 
 		return os.path.join(folder, file_name)
 
-	def get_template(self, standard=False):
+	def get_template(self, standard: bool = False):
 		"""Get the jinja template string.
 
 		Params:

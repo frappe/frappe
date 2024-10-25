@@ -4,7 +4,7 @@ import frappe
 from frappe import _
 
 
-def execute():
+def execute() -> None:
 	for seq, workspace in enumerate(frappe.get_all("Workspace")):
 		doc = frappe.get_doc("Workspace", workspace.name)
 		content = create_content(doc)
@@ -60,7 +60,7 @@ def create_content(doc):
 	return content
 
 
-def update_workspace(doc, seq, content):
+def update_workspace(doc, seq, content) -> None:
 	if (
 		not doc.title
 		and (not doc.content or doc.content == "[]")

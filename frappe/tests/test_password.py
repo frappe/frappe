@@ -8,7 +8,7 @@ from frappe.utils.password import check_password, decrypt, encrypt, passlibctx, 
 
 
 class TestPassword(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		frappe.delete_doc("Email Account", "Test Email Account Password")
 		frappe.delete_doc("Email Account", "Test Email Account Password-new")
 
@@ -33,7 +33,7 @@ class TestPassword(IntegrationTestCase):
 
 		return doc, new_password
 
-	def make_email_account(self, name="Test Email Account Password"):
+	def make_email_account(self, name: str = "Test Email Account Password"):
 		if not frappe.db.exists("Email Account", name):
 			return frappe.get_doc(
 				{
@@ -51,7 +51,7 @@ class TestPassword(IntegrationTestCase):
 		else:
 			return frappe.get_doc("Email Account", name)
 
-	def test_hashed_password(self, user="test@example.com"):
+	def test_hashed_password(self, user: str = "test@example.com") -> None:
 		old_password = "Eastern_43A1W"
 		new_password = "Eastern_43A1W-new"
 
@@ -74,7 +74,7 @@ class TestPassword(IntegrationTestCase):
 		# shouldn't work with old password
 		self.assertRaises(frappe.AuthenticationError, check_password, user, new_password)
 
-	def test_password_on_rename_user(self):
+	def test_password_on_rename_user(self) -> None:
 		password = "test-rename-password"
 
 		doc = self.make_email_account()
@@ -92,13 +92,13 @@ class TestPassword(IntegrationTestCase):
 		frappe.rename_doc(doc.doctype, new_name, old_name)
 		self.assertTrue(get_password_list(doc))
 
-	def test_password_on_delete(self):
+	def test_password_on_delete(self) -> None:
 		doc = self.make_email_account()
 		doc.delete()
 
 		self.assertTrue(not get_password_list(doc))
 
-	def test_password_unset(self):
+	def test_password_unset(self) -> None:
 		doc = self.make_email_account()
 
 		doc.password = "asdf"
@@ -109,7 +109,7 @@ class TestPassword(IntegrationTestCase):
 		doc.save()
 		self.assertEqual(doc.get_password(raise_exception=False), None)
 
-	def test_custom_encryption_key(self):
+	def test_custom_encryption_key(self) -> None:
 		text = "Frappe Framework"
 		custom_encryption_key = Fernet.generate_key().decode()
 

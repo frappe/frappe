@@ -66,7 +66,7 @@ class WebPage(WebsiteGenerator):
 		website_sidebar: DF.Link | None
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		self.validate_dates()
 		self.set_route()
 		if not self.dynamic_route:
@@ -134,7 +134,7 @@ class WebPage(WebsiteGenerator):
 				frappe.flags.web_block_scripts = {}
 				frappe.flags.web_block_styles = {}
 
-	def set_breadcrumbs(self, context):
+	def set_breadcrumbs(self, context) -> None:
 		"""Build breadcrumbs template"""
 		if self.breadcrumbs:
 			context.parents = frappe.safe_eval(self.breadcrumbs, {"_": _})
@@ -142,7 +142,7 @@ class WebPage(WebsiteGenerator):
 			if "<!-- no-breadcrumbs -->" in context.main_section:
 				context.no_breadcrumbs = 1
 
-	def set_title_and_header(self, context):
+	def set_title_and_header(self, context) -> None:
 		"""Extract and set title and header from content or context."""
 		if "no_header" not in context:
 			if "<!-- no-header -->" in context.main_section:
@@ -168,7 +168,7 @@ class WebPage(WebsiteGenerator):
 		if not context.title and context.header:
 			context.title = strip_html(context.header)
 
-	def set_page_blocks(self, context):
+	def set_page_blocks(self, context) -> None:
 		if self.content_type != "Page Builder":
 			return
 		out = get_web_blocks_html(self.page_blocks)
@@ -176,7 +176,7 @@ class WebPage(WebsiteGenerator):
 		context.page_builder_scripts = out.scripts
 		context.page_builder_styles = out.styles
 
-	def add_hero(self, context):
+	def add_hero(self, context) -> None:
 		"""Add a hero element if specified in content or hooks.
 		Hero elements get full page width."""
 		context.hero = ""
@@ -193,7 +193,7 @@ class WebPage(WebsiteGenerator):
 			)
 			raise frappe.Redirect
 
-	def set_metatags(self, context):
+	def set_metatags(self, context) -> None:
 		if not context.metatags:
 			context.metatags = {
 				"name": self.meta_title or self.title,
@@ -202,7 +202,7 @@ class WebPage(WebsiteGenerator):
 				"og:type": "website",
 			}
 
-	def validate_dates(self):
+	def validate_dates(self) -> None:
 		if self.end_date:
 			if self.start_date and get_datetime(self.end_date) < get_datetime(self.start_date):
 				frappe.throw(_("End Date cannot be before Start Date!"))
@@ -215,7 +215,7 @@ class WebPage(WebsiteGenerator):
 				frappe.msgprint(_("Clearing end date, as it cannot be in the past for published pages."))
 
 
-def check_publish_status():
+def check_publish_status() -> None:
 	# called via daily scheduler
 	web_pages = frappe.get_all("Web Page", fields=["name", "published", "start_date", "end_date"])
 	now_date = get_datetime(now())

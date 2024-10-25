@@ -27,7 +27,7 @@ def get_context(context):
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(limit=1000, seconds=60 * 60)
-def send_message(sender, message, subject="Website Query"):
+def send_message(sender, message, subject: str = "Website Query") -> None:
 	sender = validate_email_address(sender, throw=True)
 
 	with suppress(frappe.OutgoingEmailError):

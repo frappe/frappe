@@ -357,7 +357,7 @@ def validate_rename(
 	force: bool = False,
 	ignore_permissions: bool = False,
 	ignore_if_exists: bool = False,
-	save_point=False,
+	save_point: bool = False,
 	old_doc: Document | None = None,
 ) -> str:
 	# using for update so that it gets locked and someone else cannot edit it while this rename is going on!
@@ -596,7 +596,7 @@ def get_select_fields(old: str, new: str) -> list[dict]:
 	return standard_fields + custom_select_fields + property_setter_select_fields
 
 
-def update_select_field_values(old: str, new: str):
+def update_select_field_values(old: str, new: str) -> None:
 	from frappe.query_builder.functions import Replace
 
 	DocField = frappe.qb.DocType("DocField")
@@ -623,7 +623,7 @@ def update_select_field_values(old: str, new: str):
 	).run()
 
 
-def update_parenttype_values(old: str, new: str):
+def update_parenttype_values(old: str, new: str) -> None:
 	child_doctypes = frappe.get_all(
 		"DocField",
 		fields=["options", "fieldname"],
@@ -652,7 +652,7 @@ def update_parenttype_values(old: str, new: str):
 		frappe.qb.update(table).set(table.parenttype, new).where(table.parenttype == old).run()
 
 
-def rename_dynamic_links(doctype: str, old: str, new: str):
+def rename_dynamic_links(doctype: str, old: str, new: str) -> None:
 	Singles = frappe.qb.DocType("Singles")
 	for df in get_dynamic_link_map().get(doctype, []):
 		# dynamic link in single, just one value to check

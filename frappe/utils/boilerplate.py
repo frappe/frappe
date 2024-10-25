@@ -20,7 +20,7 @@ from frappe.utils.change_log import get_app_branch
 APP_TITLE_PATTERN = re.compile(r"^(?![\W])[^\d_\s][\w -]+$", flags=re.UNICODE)
 
 
-def make_boilerplate(dest, app_name, no_git=False):
+def make_boilerplate(dest, app_name, no_git: bool = False) -> None:
 	if not os.path.exists(dest):
 		print("Destination directory does not exist")
 		return
@@ -126,14 +126,14 @@ def get_license_text(license_name: str) -> str:
 	return license_name
 
 
-def copy_from_frappe(rel_path: str, new_app_path: str):
+def copy_from_frappe(rel_path: str, new_app_path: str) -> None:
 	"""Copy files from frappe app to new app."""
 	src = Path(frappe.get_app_path("frappe", "..")) / rel_path
 	target = Path(new_app_path) / rel_path
 	Path(target).write_text(Path(src).read_text())
 
 
-def _create_app_boilerplate(dest, hooks, no_git=False):
+def _create_app_boilerplate(dest, hooks, no_git: bool = False) -> None:
 	frappe.create_folder(
 		os.path.join(dest, hooks.app_name, hooks.app_name, frappe.scrub(hooks.app_title)),
 		with_init=True,
@@ -206,7 +206,7 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 	print(f"'{hooks.app_name}' created at {app_directory}")
 
 
-def _create_github_workflow_files(dest, hooks):
+def _create_github_workflow_files(dest, hooks) -> None:
 	workflows_path = pathlib.Path(dest) / hooks.app_name / ".github" / "workflows"
 	workflows_path.mkdir(parents=True, exist_ok=True)
 
@@ -233,7 +233,7 @@ PATCH_TEMPLATE = textwrap.dedent(
 
 
 class PatchCreator:
-	def __init__(self):
+	def __init__(self) -> None:
 		self.all_apps = frappe.get_all_apps(sites_path=".", with_internal_apps=False)
 
 		self.app = None
@@ -243,16 +243,16 @@ class PatchCreator:
 		self.docstring = None
 		self.patch_file = None
 
-	def fetch_user_inputs(self):
+	def fetch_user_inputs(self) -> None:
 		self._ask_app_name()
 		self._ask_doctype_name()
 		self._ask_patch_meta_info()
 
-	def _ask_app_name(self):
+	def _ask_app_name(self) -> None:
 		self.app = click.prompt("Select app for new patch", type=click.Choice(self.all_apps))
 		self.app_dir = pathlib.Path(frappe.get_app_path(self.app))
 
-	def _ask_doctype_name(self):
+	def _ask_doctype_name(self) -> None:
 		def _doctype_name(filename):
 			with contextlib.suppress(Exception):
 				with open(filename) as f:
@@ -269,7 +269,7 @@ class PatchCreator:
 		)
 		self.patch_dir = pathlib.Path(doctype_map[doctype]).parents[0] / "patches"
 
-	def _ask_patch_meta_info(self):
+	def _ask_patch_meta_info(self) -> None:
 		self.docstring = click.prompt("Describe what this patch does", type=str)
 		default_filename = frappe.scrub(self.docstring) + ".py"
 
@@ -313,7 +313,7 @@ class PatchCreator:
 			f.write(dotted_path + "\n")
 		click.echo(f"Created {self.patch_file} and updated patches.txt")
 
-	def _create_parent_folder_if_not_exists(self):
+	def _create_parent_folder_if_not_exists(self) -> None:
 		if not self.patch_dir.exists():
 			click.confirm(
 				f"Patch folder '{self.patch_dir}' doesn't exist, create it?",

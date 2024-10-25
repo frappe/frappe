@@ -5,7 +5,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.reload_doc("website", "doctype", "web_form_list_column")
 	frappe.reload_doctype("Web Form")
 

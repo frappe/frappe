@@ -14,7 +14,7 @@ class UnitTestModuleProfile(UnitTestCase):
 
 
 class TestModuleProfile(IntegrationTestCase):
-	def test_make_new_module_profile(self):
+	def test_make_new_module_profile(self) -> None:
 		if not frappe.db.get_value("Module Profile", "_Test Module Profile"):
 			frappe.get_doc(
 				{

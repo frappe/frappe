@@ -115,7 +115,7 @@ class MariaDBConnectionUtil:
 	def create_connection(self):
 		return pymysql.connect(**self.get_connection_settings())
 
-	def set_execution_timeout(self, seconds: int):
+	def set_execution_timeout(self, seconds: int) -> None:
 		self.sql("set session max_statement_time = %s", int(seconds))
 
 	def get_connection_settings(self) -> dict:
@@ -161,7 +161,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	default_port = "3306"
 	MAX_ROW_SIZE_LIMIT = 65_535  # bytes
 
-	def setup_type_map(self):
+	def setup_type_map(self) -> None:
 		self.db_type = "mariadb"
 		self.type_map = {
 			"Currency": ("decimal", "21,9"),
@@ -219,7 +219,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		self._log_query(self.last_query, debug, explain, query)
 		return self.last_query
 
-	def _clean_up(self):
+	def _clean_up(self) -> None:
 		# PERF: Erase internal references of pymysql to trigger GC as soon as
 		# results are consumed.
 		self._cursor._result = None
@@ -227,7 +227,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		self._cursor.connection._result = None
 
 	@staticmethod
-	def escape(s, percent=True):
+	def escape(s, percent: bool = True):
 		"""Escape quotes and percent in given string."""
 		# Update: We've scrapped PyMySQL in favour of MariaDB's official Python client
 		# Also, given we're promoting use of the PyPika builder via frappe.qb, the use
@@ -271,7 +271,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		null_constraint = "NOT NULL" if not nullable else ""
 		return self.sql_ddl(f"ALTER TABLE `{table_name}` MODIFY `{column}` {type} {null_constraint}")
 
-	def rename_column(self, doctype: str, old_column_name, new_column_name):
+	def rename_column(self, doctype: str, old_column_name, new_column_name) -> None:
 		current_data_type = self.get_column_type(doctype, old_column_name)
 
 		table_name = get_table_name(doctype)
@@ -285,7 +285,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			# This requirement is gone from v10.5
 		)
 
-	def create_auth_table(self):
+	def create_auth_table(self) -> None:
 		self.sql_ddl(
 			"""create table if not exists `__Auth` (
 				`doctype` VARCHAR(140) NOT NULL,
@@ -297,7 +297,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			) ENGINE=InnoDB ROW_FORMAT=DYNAMIC CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci"""
 		)
 
-	def create_global_search_table(self):
+	def create_global_search_table(self) -> None:
 		if "__global_search" not in self.get_tables():
 			self.sql(
 				f"""create table __global_search(
@@ -314,7 +314,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 				CHARACTER SET=utf8mb4"""
 			)
 
-	def create_user_settings_table(self):
+	def create_user_settings_table(self) -> None:
 		self.sql_ddl(
 			"""create table if not exists __UserSettings (
 			`user` VARCHAR(180) NOT NULL,
@@ -325,7 +325,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		)
 
 	@staticmethod
-	def get_on_duplicate_update():
+	def get_on_duplicate_update() -> str:
 		return "ON DUPLICATE key UPDATE "
 
 	def get_table_columns_description(self, table_name):
@@ -403,7 +403,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			if not clustered_index:
 				return index
 
-	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
+	def add_index(self, doctype: str, fields: list, index_name: str | None = None) -> None:
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
 		index_name = index_name or self.get_index_name(fields)
@@ -415,7 +415,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 				ADD INDEX `{}`({})""".format(table_name, index_name, ", ".join(fields))
 			)
 
-	def add_unique(self, doctype, fields, constraint_name=None):
+	def add_unique(self, doctype, fields, constraint_name=None) -> None:
 		if isinstance(fields, str):
 			fields = [fields]
 		if not constraint_name:
@@ -453,7 +453,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	def get_database_list(self):
 		return self.sql("SHOW DATABASES", pluck=True)
 
-	def get_tables(self, cached=True):
+	def get_tables(self, cached: bool = True):
 		"""Return list of tables."""
 		to_query = not cached
 

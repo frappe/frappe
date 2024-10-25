@@ -18,7 +18,7 @@ class UnitTestVersion(UnitTestCase):
 
 
 class TestVersion(IntegrationTestCase):
-	def test_get_diff(self):
+	def test_get_diff(self) -> None:
 		frappe.set_user("Administrator")
 		test_records = make_test_objects("Event", reset=True)
 		old_doc = frappe.get_doc("Event", test_records[0])
@@ -41,7 +41,7 @@ class TestVersion(IntegrationTestCase):
 		self.assertEqual(get_old_values(diff)[1], "01-01-2014 00:00:00")
 		self.assertEqual(get_new_values(diff)[1], "07-20-2017 00:00:00")
 
-	def test_no_version_on_new_doc(self):
+	def test_no_version_on_new_doc(self) -> None:
 		from frappe.desk.form.load import get_versions
 
 		t = frappe.get_doc(doctype="ToDo", description="something")

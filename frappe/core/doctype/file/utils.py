@@ -216,7 +216,7 @@ def get_file_name(fname: str, optional_suffix: str | None = None) -> str:
 	return f"{partial}{suffix}{extn}"
 
 
-def extract_images_from_doc(doc: "Document", fieldname: str, is_private=True):
+def extract_images_from_doc(doc: "Document", fieldname: str, is_private: bool = True) -> None:
 	content = doc.get(fieldname)
 	if doc.meta.make_attachments_public:
 		is_private = False
@@ -228,7 +228,7 @@ def extract_images_from_doc(doc: "Document", fieldname: str, is_private=True):
 def extract_images_from_html(doc: "Document", content: str, is_private: bool = False):
 	frappe.flags.has_dataurl = False
 
-	def _save_file(match):
+	def _save_file(match) -> str:
 		data = match.group(1).split("data:")[1]
 		headers, content = data.split(",")
 		mtype = headers.split(";", 1)[0]
@@ -369,7 +369,7 @@ def attach_files_to_document(doc: "Document", event) -> None:
 			doc.log_error("Error Attaching File")
 
 
-def relink_files(doc, fieldname, temp_doc_name):
+def relink_files(doc, fieldname, temp_doc_name) -> None:
 	"""
 	Relink files attached to incorrect document name to the new document name
 	by check if file with temp name exists that was created in last 60 minutes

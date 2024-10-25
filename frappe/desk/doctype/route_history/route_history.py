@@ -20,7 +20,7 @@ class RouteHistory(Document):
 	# end: auto-generated types
 
 	@staticmethod
-	def clear_old_logs(days=30):
+	def clear_old_logs(days: int = 30) -> None:
 		from frappe.query_builder import Interval
 		from frappe.query_builder.functions import Now
 
@@ -29,7 +29,7 @@ class RouteHistory(Document):
 
 
 @frappe.whitelist()
-def deferred_insert(routes):
+def deferred_insert(routes) -> None:
 	routes = [
 		{
 			"user": frappe.session.user,

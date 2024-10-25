@@ -47,7 +47,7 @@ def submit_discussion(doctype, docname, reply, title, topic_name=None, reply_nam
 	return topic.name
 
 
-def save_message(reply, topic):
+def save_message(reply, topic) -> None:
 	frappe.get_doc({"doctype": "Discussion Reply", "reply": reply, "topic": topic}).save(
 		ignore_permissions=True
 	)

@@ -12,7 +12,7 @@ UNUSED_INDEXES = [
 ]
 
 
-def execute():
+def execute() -> None:
 	if frappe.db.db_type == "postgres":
 		return
 
@@ -41,7 +41,7 @@ def execute():
 		drop_index_if_exists(table, index_name)
 
 
-def drop_index_if_exists(table: str, index: str):
+def drop_index_if_exists(table: str, index: str) -> None:
 	if not frappe.db.has_index(table, index):
 		click.echo(f"- Skipped {index} index for {table} because it doesn't exist")
 		return

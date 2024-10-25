@@ -16,7 +16,7 @@ class UnitTestDashboard(UnitTestCase):
 
 
 class TestDashboard(IntegrationTestCase):
-	def test_permission_query(self):
+	def test_permission_query(self) -> None:
 		for user in ["Administrator", "test@example.com"]:
 			with self.set_user(user):
 				frappe.get_list("Dashboard")

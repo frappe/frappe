@@ -15,7 +15,7 @@ from frappe.website.serve import get_response_content
 
 
 class TestRecorder(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		self.wait_for_background_jobs()
 		frappe.recorder.stop()
 		frappe.recorder.delete()
@@ -24,26 +24,26 @@ class TestRecorder(IntegrationTestCase):
 		frappe.recorder.record()
 
 	@timeout
-	def wait_for_background_jobs(self):
+	def wait_for_background_jobs(self) -> None:
 		while any_job_pending(frappe.local.site):
 			time.sleep(1)
 
-	def stop_recording(self):
+	def stop_recording(self) -> None:
 		frappe.recorder.dump()
 		frappe.recorder.stop()
 
-	def test_start(self):
+	def test_start(self) -> None:
 		self.stop_recording()
 		requests = frappe.recorder.get()
 		self.assertEqual(len(requests), 1)
 
-	def test_do_not_record(self):
+	def test_do_not_record(self) -> None:
 		frappe.recorder.do_not_record(frappe.get_all)("DocType")
 		self.stop_recording()
 		requests = frappe.recorder.get()
 		self.assertEqual(len(requests), 0)
 
-	def test_get(self):
+	def test_get(self) -> None:
 		self.stop_recording()
 
 		requests = frappe.recorder.get()
@@ -52,7 +52,7 @@ class TestRecorder(IntegrationTestCase):
 		request = frappe.recorder.get(requests[0]["uuid"])
 		self.assertTrue(request)
 
-	def test_delete(self):
+	def test_delete(self) -> None:
 		self.stop_recording()
 
 		requests = frappe.recorder.get()
@@ -63,7 +63,7 @@ class TestRecorder(IntegrationTestCase):
 		requests = frappe.recorder.get()
 		self.assertEqual(len(requests), 0)
 
-	def test_record_without_sql_queries(self):
+	def test_record_without_sql_queries(self) -> None:
 		self.stop_recording()
 
 		requests = frappe.recorder.get()
@@ -71,7 +71,7 @@ class TestRecorder(IntegrationTestCase):
 
 		self.assertEqual(len(request["calls"]), 0)
 
-	def test_record_with_sql_queries(self):
+	def test_record_with_sql_queries(self) -> None:
 		frappe.get_all("DocType")
 		self.stop_recording()
 
@@ -80,7 +80,7 @@ class TestRecorder(IntegrationTestCase):
 
 		self.assertNotEqual(len(request["calls"]), 0)
 
-	def test_explain(self):
+	def test_explain(self) -> None:
 		frappe.db.sql("SELECT * FROM tabDocType")
 		frappe.db.sql("COMMIT")
 		frappe.db.sql("select 1", run=0)
@@ -92,7 +92,7 @@ class TestRecorder(IntegrationTestCase):
 		self.assertEqual(len(request["calls"][0]["explain_result"]), 1)
 		self.assertEqual(len(request["calls"][1]["explain_result"]), 0)
 
-	def test_multiple_queries(self):
+	def test_multiple_queries(self) -> None:
 		queries = [
 			{"mariadb": "SELECT * FROM tabDocType", "postgres": 'SELECT * FROM "tabDocType"'},
 			{"mariadb": "SELECT COUNT(*) FROM tabDocType", "postgres": 'SELECT COUNT(*) FROM "tabDocType"'},
@@ -118,7 +118,7 @@ class TestRecorder(IntegrationTestCase):
 				),
 			)
 
-	def test_duplicate_queries(self):
+	def test_duplicate_queries(self) -> None:
 		queries = [
 			("SELECT * FROM tabDocType", 2),
 			("SELECT COUNT(*) FROM tabDocType", 1),
@@ -138,17 +138,17 @@ class TestRecorder(IntegrationTestCase):
 		for query, call in zip(queries, request["calls"], strict=False):
 			self.assertEqual(call["exact_copies"], query[1])
 
-	def test_error_page_rendering(self):
+	def test_error_page_rendering(self) -> None:
 		content = get_response_content("error")
 		self.assertIn("Error", content)
 
 
 class TestRecorderDeco(IntegrationTestCase):
-	def test_recorder_flag(self):
+	def test_recorder_flag(self) -> None:
 		frappe.recorder.delete()
 
 		@frappe.recorder.record_queries
-		def test():
+		def test() -> None:
 			frappe.get_all("User")
 
 		test()
@@ -156,7 +156,7 @@ class TestRecorderDeco(IntegrationTestCase):
 
 
 class TestQueryNormalization(IntegrationTestCase):
-	def test_query_normalization(self):
+	def test_query_normalization(self) -> None:
 		test_cases = {
 			"select * from user where name = 'x'": "select * from user where name = ?",
 			"select * from user where a > 5": "select * from user where a > ?",

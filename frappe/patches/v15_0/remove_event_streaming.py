@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	if "event_streaming" in frappe.get_installed_apps():
 		return
 

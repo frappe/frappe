@@ -94,14 +94,14 @@ class Workspace(Document):
 
 			self.app = get_module_app(self.module)
 
-	def clear_cache(self):
+	def clear_cache(self) -> None:
 		super().clear_cache()
 		if self.for_user:
 			frappe.cache.hdel("bootinfo", self.for_user)
 		else:
 			frappe.cache.delete_key("bootinfo")
 
-	def on_update(self):
+	def on_update(self) -> None:
 		if disable_saving_as_public():
 			return
 
@@ -114,11 +114,11 @@ class Workspace(Document):
 				if previous and previous.get("module") and previous.get("title"):
 					delete_folder(previous.get("module"), "Workspace", previous.get("title"))
 
-	def before_export(self, doc):
+	def before_export(self, doc) -> None:
 		if doc.title != doc.label and doc.label == doc.name:
 			self.name = doc.name = doc.label = doc.title
 
-	def after_delete(self):
+	def after_delete(self) -> None:
 		if disable_saving_as_public():
 			return
 
@@ -176,7 +176,7 @@ class Workspace(Document):
 
 		return cards
 
-	def build_links_table_from_card(self, config):
+	def build_links_table_from_card(self, config) -> None:
 		for idx, card in enumerate(config):
 			links = loads(card.get("links"))
 
@@ -244,7 +244,7 @@ def get_link_type(key):
 	return "DocType"
 
 
-def get_report_type(report):
+def get_report_type(report) -> bool:
 	report_type = frappe.get_value("Report", report, "report_type")
 	return report_type in ["Query Report", "Script Report", "Custom Report"]
 
@@ -365,5 +365,5 @@ def get_page_list(fields, filters):
 	return frappe.get_all("Workspace", fields=fields, filters=filters, order_by="sequence_id asc")
 
 
-def is_workspace_manager():
+def is_workspace_manager() -> bool:
 	return "Workspace Manager" in frappe.get_roles()

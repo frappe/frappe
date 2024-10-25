@@ -67,7 +67,7 @@ def follow_document(doctype, doc_name, user):
 
 
 @frappe.whitelist()
-def unfollow_document(doctype, doc_name, user):
+def unfollow_document(doctype, doc_name, user) -> bool:
 	doc = frappe.get_all(
 		"Document Follow",
 		filters={"ref_doctype": doctype, "ref_docname": doc_name, "user": user},
@@ -88,7 +88,7 @@ def get_message(doc_name, doctype, frequency, user):
 	return sorted(activity_list, key=lambda k: k["time"], reverse=True)
 
 
-def send_email_alert(receiver, docinfo, timeline):
+def send_email_alert(receiver, docinfo, timeline) -> None:
 	if receiver:
 		frappe.sendmail(
 			subject=_("Document Follow Notification"),
@@ -101,7 +101,7 @@ def send_email_alert(receiver, docinfo, timeline):
 		)
 
 
-def send_document_follow_mails(frequency):
+def send_document_follow_mails(frequency) -> None:
 	"""
 	param:
 	frequency for sanding mails
@@ -314,15 +314,15 @@ def get_field_changed(changed, time, doctype, doc_name, v):
 	return items
 
 
-def send_hourly_updates():
+def send_hourly_updates() -> None:
 	send_document_follow_mails("Hourly")
 
 
-def send_daily_updates():
+def send_daily_updates() -> None:
 	send_document_follow_mails("Daily")
 
 
-def send_weekly_updates():
+def send_weekly_updates() -> None:
 	send_document_follow_mails("Weekly")
 
 

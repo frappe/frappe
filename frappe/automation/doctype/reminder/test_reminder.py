@@ -18,7 +18,7 @@ class UnitTestReminder(UnitTestCase):
 
 
 class TestReminder(IntegrationTestCase):
-	def test_reminder(self):
+	def test_reminder(self) -> None:
 		description = "TEST_REMINDER"
 
 		create_new_reminder(

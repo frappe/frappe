@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	"""
 	Remove the doctype "Custom Link" that was used to add Custom Links to the
 	Dashboard since this is now managed by Customize Form.

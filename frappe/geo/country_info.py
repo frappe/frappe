@@ -56,7 +56,7 @@ def get_translated_countries():
 	return translated_dict
 
 
-def update():
+def update() -> None:
 	with open(os.path.join(os.path.dirname(__file__), "currency_info.json")) as nformats:
 		nformats = json.loads(nformats.read())
 

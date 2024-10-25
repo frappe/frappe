@@ -4,7 +4,7 @@ import frappe
 from frappe.core.doctype.user.user import create_contact
 
 
-def execute():
+def execute() -> None:
 	"""Create Contact for each User if not present"""
 	frappe.reload_doc("integrations", "doctype", "google_contacts")
 	frappe.reload_doc("contacts", "doctype", "contact")

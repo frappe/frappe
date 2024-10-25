@@ -18,7 +18,7 @@ class UnitTestWebsiteRouteMeta(UnitTestCase):
 
 
 class TestWebsiteRouteMeta(IntegrationTestCase):
-	def test_meta_tag_generation(self):
+	def test_meta_tag_generation(self) -> None:
 		blogs = frappe.get_all(
 			"Blog Post", fields=["name", "route"], filters={"published": 1, "route": ("!=", "")}, limit=1
 		)
@@ -43,5 +43,5 @@ class TestWebsiteRouteMeta(IntegrationTestCase):
 		self.assertIn(self.normalize_html("""<meta name="type" content="blog_post">"""), html)
 		self.assertIn(self.normalize_html("""<meta property="og:title" content="My Blog">"""), html)
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.db.rollback()

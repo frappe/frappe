@@ -14,18 +14,18 @@ class UnitTestWebPage(UnitTestCase):
 
 
 class TestWebPage(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		frappe.db.delete("Web Page")
 		for t in self.globalTestRecords["Web Page"]:
 			frappe.get_doc(t).insert()
 
-	def test_path_resolver(self):
+	def test_path_resolver(self) -> None:
 		self.assertTrue(PathResolver("test-web-page-1").is_valid_path())
 		self.assertTrue(PathResolver("test-web-page-1/test-web-page-2").is_valid_path())
 		self.assertTrue(PathResolver("test-web-page-1/test-web-page-3").is_valid_path())
 		self.assertFalse(PathResolver("test-web-page-1/test-web-page-Random").is_valid_path())
 
-	def test_content_type(self):
+	def test_content_type(self) -> None:
 		web_page = frappe.get_doc(
 			doctype="Web Page",
 			title="Test Content Type",
@@ -48,7 +48,7 @@ class TestWebPage(IntegrationTestCase):
 
 		web_page.delete()
 
-	def test_dynamic_route(self):
+	def test_dynamic_route(self) -> None:
 		web_page = frappe.get_doc(
 			doctype="Web Page",
 			title="Test Dynamic Route",

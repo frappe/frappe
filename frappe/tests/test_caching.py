@@ -36,7 +36,7 @@ def ping_with_ttl() -> str:
 
 
 class TestCachingUtils(IntegrationTestCase):
-	def test_request_cache(self):
+	def test_request_cache(self) -> None:
 		retval = []
 		acceptable_args = [
 			[1, 2, 3, 4],
@@ -79,7 +79,7 @@ class TestCachingUtils(IntegrationTestCase):
 
 
 class TestSiteCache(FrappeAPITestCase):
-	def test_site_cache(self):
+	def test_site_cache(self) -> None:
 		module = __name__
 		api_with_ttl = f"{module}.ping_with_ttl"
 		api_without_ttl = f"{module}.ping"
@@ -95,7 +95,7 @@ class TestSiteCache(FrappeAPITestCase):
 
 
 class TestRedisCache(FrappeAPITestCase):
-	def test_redis_cache(self):
+	def test_redis_cache(self) -> None:
 		function_call_count = 0
 
 		@redis_cache(ttl=CACHE_TTL)
@@ -118,7 +118,7 @@ class TestRedisCache(FrappeAPITestCase):
 		self.assertEqual(function_call_count, 3)
 		calculate_area.clear_cache()
 
-	def test_redis_cache_without_params(self):
+	def test_redis_cache_without_params(self) -> None:
 		function_call_count = 0
 
 		@redis_cache
@@ -137,7 +137,7 @@ class TestRedisCache(FrappeAPITestCase):
 
 		calculate_area.clear_cache()
 
-	def test_redis_cache_diff_args(self):
+	def test_redis_cache_diff_args(self) -> None:
 		function_call_count = 0
 
 		@redis_cache(ttl=CACHE_TTL)
@@ -166,7 +166,7 @@ class TestRedisCache(FrappeAPITestCase):
 		# kwargs should hit cache too
 		self.assertEqual(function_call_count, 4)
 
-	def test_global_clear_cache(self):
+	def test_global_clear_cache(self) -> None:
 		function_call_count = 0
 
 		@redis_cache()
@@ -185,7 +185,7 @@ class TestRedisCache(FrappeAPITestCase):
 		calculate_area(10)
 		self.assertEqual(function_call_count, 2)
 
-	def test_user_cache(self):
+	def test_user_cache(self) -> None:
 		function_call_count = 0
 		PI = 3.1415
 		ENGINEERING_PI = _E = 3
@@ -222,7 +222,7 @@ class TestDocumentCache(FrappeAPITestCase):
 	def setUp(self) -> None:
 		self.test_value = frappe.generate_hash()
 
-	def test_caching(self):
+	def test_caching(self) -> None:
 		frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
 
 		with self.assertQueryCount(0):
@@ -243,7 +243,7 @@ class TestDocumentCache(FrappeAPITestCase):
 		with self.assertQueryCount(0):
 			frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
 
-	def test_cache_invalidation_set_value(self):
+	def test_cache_invalidation_set_value(self) -> None:
 		doc = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
 
 		frappe.db.set_value(
@@ -262,7 +262,7 @@ class TestDocumentCache(FrappeAPITestCase):
 
 
 class TestRedisWrapper(FrappeAPITestCase):
-	def test_delete_keys(self):
+	def test_delete_keys(self) -> None:
 		prefix = "test_del_"
 
 		for i in range(5):
@@ -272,7 +272,7 @@ class TestRedisWrapper(FrappeAPITestCase):
 		frappe.cache.delete_keys(prefix)
 		self.assertEqual(len(frappe.cache.get_keys(prefix)), 0)
 
-	def test_hash(self):
+	def test_hash(self) -> None:
 		key = "test_hash"
 
 		# Confirm that there's no data initially
@@ -312,7 +312,7 @@ class TestRedisWrapper(FrappeAPITestCase):
 		exists = frappe.cache.exists(key)
 		self.assertFalse(exists)
 
-	def test_user_cache_clear(self):
+	def test_user_cache_clear(self) -> None:
 		from frappe.cache_manager import user_cache_keys
 
 		# Set some keys that a user's cache would usually have
@@ -329,7 +329,7 @@ class TestRedisWrapper(FrappeAPITestCase):
 			self.assertFalse(frappe.cache.hexists(key, user1))
 			self.assertTrue(frappe.cache.hexists(key, user2))
 
-	def test_doctype_cache_clear(self):
+	def test_doctype_cache_clear(self) -> None:
 		from frappe.cache_manager import doctype_cache_keys
 
 		# Set some keys that a user's cache would usually have
@@ -346,5 +346,5 @@ class TestRedisWrapper(FrappeAPITestCase):
 			self.assertFalse(frappe.cache.hexists(key, doctype1.name))
 			self.assertTrue(frappe.cache.hexists(key, doctype2.name))
 
-	def test_backward_compat_cache(self):
+	def test_backward_compat_cache(self) -> None:
 		self.assertEqual(frappe.cache, frappe.cache())

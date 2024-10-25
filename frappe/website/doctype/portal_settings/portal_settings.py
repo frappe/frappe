@@ -23,7 +23,7 @@ class PortalSettings(Document):
 		menu: DF.Table[PortalMenuItem]
 	# end: auto-generated types
 
-	def add_item(self, item):
+	def add_item(self, item) -> bool:
 		"""insert new portal menu item if route is not set, or role is different"""
 		exists = [d for d in self.get("menu", []) if d.get("route") == item.get("route")]
 		if exists and item.get("role"):
@@ -36,12 +36,12 @@ class PortalSettings(Document):
 			return True
 
 	@frappe.whitelist()
-	def reset(self):
+	def reset(self) -> None:
 		"""Restore defaults"""
 		self.menu = []
 		self.sync_menu()
 
-	def sync_menu(self):
+	def sync_menu(self) -> None:
 		"""Sync portal menu items"""
 		dirty = False
 		for item in frappe.get_hooks("standard_portal_menu_items"):
@@ -54,10 +54,10 @@ class PortalSettings(Document):
 		if dirty:
 			self.save()
 
-	def on_update(self):
+	def on_update(self) -> None:
 		self.clear_cache()
 
-	def clear_cache(self):
+	def clear_cache(self) -> None:
 		# make js and css
 		# clear web cache (for menus!)
 		frappe.clear_cache(user="Guest")
@@ -69,12 +69,12 @@ class PortalSettings(Document):
 		# clears role based home pages
 		frappe.clear_cache()
 
-	def remove_deleted_doctype_items(self):
+	def remove_deleted_doctype_items(self) -> None:
 		existing_doctypes = set(frappe.get_list("DocType", pluck="name"))
 		for menu_item in list(self.get("menu") + self.get("custom_menu")):
 			if menu_item.reference_doctype not in existing_doctypes:
 				self.remove(menu_item)
 
-	def validate(self):
+	def validate(self) -> None:
 		if frappe.request and self.default_portal_home:
 			validate_path(self.default_portal_home)

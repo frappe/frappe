@@ -35,15 +35,15 @@ class LetterHead(Document):
 		source: DF.Literal["Image", "HTML"]
 	# end: auto-generated types
 
-	def before_insert(self):
+	def before_insert(self) -> None:
 		# for better UX, let user set from attachment
 		self.source = "Image"
 
-	def validate(self):
+	def validate(self) -> None:
 		self.set_image()
 		self.validate_disabled_and_default()
 
-	def validate_disabled_and_default(self):
+	def validate_disabled_and_default(self) -> None:
 		if self.disabled and self.is_default:
 			frappe.throw(_("Letter Head cannot be both disabled and default"))
 
@@ -51,7 +51,7 @@ class LetterHead(Document):
 			if not frappe.db.exists("Letter Head", dict(is_default=1)):
 				self.is_default = 1
 
-	def set_image(self):
+	def set_image(self) -> None:
 		if self.source == "Image":
 			self.set_image_as_html(
 				field="image",
@@ -78,7 +78,7 @@ class LetterHead(Document):
 
 	def set_image_as_html(
 		self, field, width, height, dimension_prefix, align, html_field, success_msg, failure_msg
-	):
+	) -> None:
 		if not self.get(field) or not is_image(self.get(field)):
 			frappe.msgprint(failure_msg, alert=True, indicator="orange")
 			return
@@ -104,13 +104,13 @@ class LetterHead(Document):
 
 		frappe.msgprint(success_msg, alert=True)
 
-	def on_update(self):
+	def on_update(self) -> None:
 		self.set_as_default()
 
 		# clear the cache so that the new letter head is uploaded
 		frappe.clear_cache()
 
-	def set_as_default(self):
+	def set_as_default(self) -> None:
 		from frappe.utils import set_default
 
 		if self.is_default:

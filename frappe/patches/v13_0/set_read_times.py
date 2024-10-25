@@ -4,7 +4,7 @@ import frappe
 from frappe.utils import markdown, strip_html_tags
 
 
-def execute():
+def execute() -> None:
 	frappe.reload_doc("website", "doctype", "blog_post")
 
 	for blog in frappe.get_all("Blog Post"):

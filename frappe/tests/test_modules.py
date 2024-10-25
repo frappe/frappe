@@ -16,32 +16,32 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils import now_datetime
 
 
-def write_file(path, content):
+def write_file(path, content) -> None:
 	with open(path, "w") as f:
 		f.write(content)
 
 
-def delete_file(path):
+def delete_file(path) -> None:
 	if path:
 		os.remove(path)
 
 
-def delete_path(path):
+def delete_path(path) -> None:
 	if path:
 		shutil.rmtree(path, ignore_errors=True)
 
 
 class TestUtils(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		self._dev_mode = frappe.local.conf.developer_mode
 		frappe.local.conf.developer_mode = True
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.db.rollback()
 		frappe.local.conf.developer_mode = self._dev_mode
 		frappe.local.flags.pop("in_import", None)
 
-	def test_export_module_json_no_export(self):
+	def test_export_module_json_no_export(self) -> None:
 		frappe.local.flags.in_import = True
 		doc = frappe.get_last_doc("DocType")
 		self.assertIsNone(export_module_json(doc=doc, is_standard=True, module=doc.module))
@@ -49,7 +49,7 @@ class TestUtils(IntegrationTestCase):
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
-	def test_export_module_json(self):
+	def test_export_module_json(self) -> None:
 		doc = frappe.get_last_doc("DocType", {"issingle": 0, "custom": 0})
 		export_doc_path = os.path.join(
 			get_module_path(doc.module),
@@ -77,7 +77,7 @@ class TestUtils(IntegrationTestCase):
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
-	def test_export_customizations(self):
+	def test_export_customizations(self) -> None:
 		with note_customizations():
 			file_path = export_customizations(module="Custom", doctype="Note")
 			self.addCleanup(delete_file, path=file_path)
@@ -87,7 +87,7 @@ class TestUtils(IntegrationTestCase):
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
-	def test_sync_customizations(self):
+	def test_sync_customizations(self) -> None:
 		with note_customizations() as (custom_field, property_setter):
 			file_path = export_customizations(module="Custom", doctype="Note", sync_on_migrate=True)
 			custom_field.db_set("modified", now_datetime())
@@ -114,7 +114,7 @@ class TestUtils(IntegrationTestCase):
 			self.assertNotEqual(last_modified_after, last_modified_before)
 			self.addCleanup(delete_file, path=file_path)
 
-	def test_reload_doc(self):
+	def test_reload_doc(self) -> None:
 		frappe.db.set_value("DocType", "Note", "migration_hash", "", update_modified=False)
 		self.assertFalse(frappe.db.get_value("DocType", "Note", "migration_hash"))
 		frappe.db.set_value(
@@ -138,7 +138,7 @@ class TestUtils(IntegrationTestCase):
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
-	def test_export_doc(self):
+	def test_export_doc(self) -> None:
 		note = frappe.new_doc("Note")
 		note.title = frappe.generate_hash(length=10)
 		note.save()
@@ -152,7 +152,7 @@ class TestUtils(IntegrationTestCase):
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
-	def test_make_boilerplate(self):
+	def test_make_boilerplate(self) -> None:
 		with temp_doctype() as doctype:
 			scrubbed = frappe.scrub(doctype.name)
 			path = frappe.get_app_path("frappe", "core", "doctype", scrubbed, f"{scrubbed}.json")

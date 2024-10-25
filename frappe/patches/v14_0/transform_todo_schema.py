@@ -2,7 +2,7 @@ import frappe
 from frappe.query_builder.utils import DocType
 
 
-def execute():
+def execute() -> None:
 	# Email Template & Help Article have owner field that doesn't have any additional functionality
 	# Only ToDo has to be updated.
 

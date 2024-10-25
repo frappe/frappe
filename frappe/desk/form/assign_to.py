@@ -40,7 +40,7 @@ def get(args=None):
 
 
 @frappe.whitelist()
-def add(args=None, *, ignore_permissions=False):
+def add(args=None, *, ignore_permissions: bool = False):
 	"""add in someone's to do list
 	args = {
 	        "assign_to": [],
@@ -139,7 +139,7 @@ def add(args=None, *, ignore_permissions=False):
 
 
 @frappe.whitelist()
-def add_multiple(args=None):
+def add_multiple(args=None) -> None:
 	if not args:
 		args = frappe.local.form_dict
 
@@ -150,7 +150,7 @@ def add_multiple(args=None):
 		add(args)
 
 
-def close_all_assignments(doctype, name, ignore_permissions=False):
+def close_all_assignments(doctype, name, ignore_permissions: bool = False) -> bool:
 	assignments = frappe.get_all(
 		"ToDo",
 		fields=["allocated_to", "name"],
@@ -173,12 +173,12 @@ def close_all_assignments(doctype, name, ignore_permissions=False):
 
 
 @frappe.whitelist()
-def remove(doctype, name, assign_to, ignore_permissions=False):
+def remove(doctype, name, assign_to, ignore_permissions: bool = False):
 	return set_status(doctype, name, "", assign_to, status="Cancelled", ignore_permissions=ignore_permissions)
 
 
 @frappe.whitelist()
-def remove_multiple(doctype, names, ignore_permissions=False):
+def remove_multiple(doctype, names, ignore_permissions: bool = False) -> None:
 	docname_list = json.loads(names)
 
 	for name in docname_list:
@@ -192,14 +192,16 @@ def remove_multiple(doctype, names, ignore_permissions=False):
 
 
 @frappe.whitelist()
-def close(doctype: str, name: str, assign_to: str, ignore_permissions=False):
+def close(doctype: str, name: str, assign_to: str, ignore_permissions: bool = False):
 	if assign_to != frappe.session.user:
 		frappe.throw(_("Only the assignee can complete this to-do."))
 
 	return set_status(doctype, name, "", assign_to, status="Closed", ignore_permissions=ignore_permissions)
 
 
-def set_status(doctype, name, todo=None, assign_to=None, status="Cancelled", ignore_permissions=False):
+def set_status(
+	doctype, name, todo=None, assign_to=None, status: str = "Cancelled", ignore_permissions: bool = False
+):
 	"""remove from todo"""
 
 	if not ignore_permissions:
@@ -231,7 +233,7 @@ def set_status(doctype, name, todo=None, assign_to=None, status="Cancelled", ign
 	return get({"doctype": doctype, "name": name})
 
 
-def clear(doctype, name, ignore_permissions=False):
+def clear(doctype, name, ignore_permissions: bool = False) -> bool:
 	"""
 	Clears assignments, return False if not assigned.
 	"""
@@ -256,7 +258,9 @@ def clear(doctype, name, ignore_permissions=False):
 	return True
 
 
-def notify_assignment(assigned_by, allocated_to, doc_type, doc_name, action="CLOSE", description=None):
+def notify_assignment(
+	assigned_by, allocated_to, doc_type, doc_name, action: str = "CLOSE", description=None
+) -> None:
 	"""
 	Notify assignee that there is a change in assignment
 	"""

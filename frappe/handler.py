@@ -58,7 +58,7 @@ def handle():
 		frappe.response["message"] = data
 
 
-def execute_cmd(cmd, from_async=False):
+def execute_cmd(cmd, from_async: bool = False):
 	"""execute a request as python module"""
 	for hook in reversed(frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, [])):
 		# override using the last hook
@@ -95,7 +95,7 @@ def run_server_script(server_script):
 		return response
 
 
-def is_valid_http_method(method):
+def is_valid_http_method(method) -> None:
 	if frappe.flags.in_safe_exec:
 		return
 
@@ -106,13 +106,13 @@ def is_valid_http_method(method):
 
 
 @frappe.whitelist(allow_guest=True)
-def logout():
+def logout() -> None:
 	frappe.local.login_manager.logout()
 	frappe.db.commit()
 
 
 @frappe.whitelist(allow_guest=True)
-def web_logout():
+def web_logout() -> None:
 	frappe.local.login_manager.logout()
 	frappe.db.commit()
 	frappe.respond_as_web_page(
@@ -202,7 +202,7 @@ def upload_file():
 		).save(ignore_permissions=ignore_permissions)
 
 
-def check_write_permission(doctype: str | None = None, name: str | None = None):
+def check_write_permission(doctype: str | None = None, name: str | None = None) -> None:
 	check_doctype = doctype and not name
 	if doctype and name:
 		try:
@@ -252,7 +252,7 @@ def get_attr(cmd):
 	return method
 
 
-def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
+def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None) -> None:
 	"""run a whitelisted controller method"""
 	from inspect import signature
 

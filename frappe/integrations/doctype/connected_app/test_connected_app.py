@@ -58,7 +58,7 @@ class UnitTestConnectedApp(UnitTestCase):
 
 
 class TestConnectedApp(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		"""Set up a Connected App that connects to our own oAuth provider.
 
 		Frappe comes with it's own oAuth2 provider that we can test against. The
@@ -101,7 +101,7 @@ class TestConnectedApp(IntegrationTestCase):
 		self.connected_app.reload()
 		self.oauth_client.reload()
 
-	def test_web_application_flow(self):
+	def test_web_application_flow(self) -> None:
 		"""Simulate a logged in user who opens the authorization URL."""
 
 		def login():
@@ -131,8 +131,8 @@ class TestConnectedApp(IntegrationTestCase):
 		resp = oauth2_session.get(urljoin(self.base_url, "/api/method/frappe.auth.get_logged_user"))
 		self.assertEqual(resp.json().get("message"), self.user_name)
 
-	def tearDown(self):
-		def delete_if_exists(attribute):
+	def tearDown(self) -> None:
+		def delete_if_exists(attribute) -> None:
 			doc = getattr(self, attribute, None)
 			if doc:
 				doc.delete(force=True)

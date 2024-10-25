@@ -15,7 +15,7 @@ POSTHOG_PROJECT_FIELD = "posthog_project_id"
 POSTHOG_HOST_FIELD = "posthog_host"
 
 
-def add_bootinfo(bootinfo):
+def add_bootinfo(bootinfo) -> None:
 	bootinfo.telemetry_site_age = site_age()
 
 	if not frappe.get_system_settings("enable_telemetry"):
@@ -35,7 +35,7 @@ def site_age():
 		pass
 
 
-def init_telemetry():
+def init_telemetry() -> None:
 	"""Init posthog for server side telemetry."""
 	if hasattr(frappe.local, "posthog"):
 		return
@@ -53,14 +53,14 @@ def init_telemetry():
 		frappe.local.posthog = Posthog(posthog_project_id, host=posthog_host)
 
 
-def capture(event, app, **kwargs):
+def capture(event, app, **kwargs) -> None:
 	init_telemetry()
 	ph: Posthog = getattr(frappe.local, "posthog", None)
 	with suppress(Exception):
 		ph and ph.capture(distinct_id=frappe.local.site, event=f"{app}_{event}", **kwargs)
 
 
-def capture_doc(doc, action):
+def capture_doc(doc, action) -> None:
 	with suppress(Exception):
 		age = site_age()
 		if not age or age > 15:

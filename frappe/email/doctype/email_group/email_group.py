@@ -26,7 +26,7 @@ class EmailGroup(Document):
 		welcome_url: DF.Data | None
 	# end: auto-generated types
 
-	def onload(self):
+	def onload(self) -> None:
 		singles = [d.name for d in frappe.get_all("DocType", "name", {"issingle": 1})]
 		self.get("__onload").import_types = [
 			{"value": d.parent, "label": f"{d.parent} ({d.label})"}
@@ -91,7 +91,7 @@ class EmailGroup(Document):
 			else self.welcome_url
 		)
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		for d in frappe.get_all("Email Group Member", "name", {"email_group": self.name}):
 			frappe.delete_doc("Email Group Member", d.name)
 
@@ -135,7 +135,7 @@ def add_subscribers(name, email_list):
 	return frappe.get_doc("Email Group", name).update_total_subscribers()
 
 
-def send_welcome_email(welcome_email, email, email_group):
+def send_welcome_email(welcome_email, email, email_group) -> None:
 	"""Send welcome email for the subscribers of a given email group."""
 	if not welcome_email:
 		return

@@ -19,7 +19,7 @@ class TestSystemConsole(IntegrationTestCase):
 		cls.enterClassContext(cls.enable_safe_exec())
 		return super().setUpClass()
 
-	def test_system_console(self):
+	def test_system_console(self) -> None:
 		system_console = frappe.get_doc("System Console")
 		system_console.console = 'log("hello")'
 		system_console.run()
@@ -31,7 +31,7 @@ class TestSystemConsole(IntegrationTestCase):
 
 		self.assertEqual(system_console.output, "Core")
 
-	def test_system_console_sql(self):
+	def test_system_console_sql(self) -> None:
 		system_console = frappe.get_doc("System Console")
 		system_console.type = "SQL"
 		system_console.console = "select 'test'"

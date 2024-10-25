@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	# if current = 0, simply delete the key as it'll be recreated on first entry
 	frappe.db.delete("Series", {"current": 0})
 

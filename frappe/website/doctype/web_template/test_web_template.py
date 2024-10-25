@@ -18,7 +18,7 @@ class UnitTestWebTemplate(UnitTestCase):
 
 
 class TestWebTemplate(IntegrationTestCase):
-	def test_render_web_template_with_values(self):
+	def test_render_web_template_with_values(self) -> None:
 		doc = frappe.get_doc("Web Template", "Hero with Right Image")
 		values = {
 			"title": "Test Hero",
@@ -39,7 +39,7 @@ class TestWebTemplate(IntegrationTestCase):
 		self.assertTrue("Test Button" in button.text)
 		self.assertTrue("/test" == button.attrs["href"])
 
-	def test_web_page_with_page_builder(self):
+	def test_web_page_with_page_builder(self) -> None:
 		self.create_web_page()
 
 		set_request(method="GET", path="test-web-template")
@@ -57,7 +57,7 @@ class TestWebTemplate(IntegrationTestCase):
 		self.assertEqual(sections[0].find("p").text, "test lorem ipsum")
 		self.assertEqual(len(sections[1].find_all("a")), 3)
 
-	def test_custom_stylesheet(self):
+	def test_custom_stylesheet(self) -> None:
 		self.create_web_page()
 		theme = self.create_website_theme()
 		theme.set_as_default()
@@ -76,7 +76,7 @@ class TestWebTemplate(IntegrationTestCase):
 
 		frappe.get_doc("Website Theme", "Standard").set_as_default()
 
-	def create_web_page(self):
+	def create_web_page(self) -> None:
 		if not frappe.db.exists("Web Page", "test-web-template"):
 			frappe.get_doc(
 				{

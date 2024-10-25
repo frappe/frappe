@@ -5,7 +5,7 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestBootData(IntegrationTestCase):
-	def test_get_unseen_notes(self):
+	def test_get_unseen_notes(self) -> None:
 		frappe.db.delete("Note")
 		frappe.db.delete("Note Seen By")
 		note = frappe.get_doc(
@@ -34,7 +34,7 @@ class TestPermissionQueries(IntegrationTestCase):
 		cls.enterClassContext(cls.enable_safe_exec())
 		return super().setUpClass()
 
-	def test_get_user_pages_or_reports_with_permission_query(self):
+	def test_get_user_pages_or_reports_with_permission_query(self) -> None:
 		# Create a ToDo custom report with admin user
 		frappe.set_user("Administrator")
 		frappe.get_doc(

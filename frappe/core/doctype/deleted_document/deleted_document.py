@@ -29,7 +29,7 @@ class DeletedDocument(Document):
 	no_feed_on_delete = True
 
 	@staticmethod
-	def clear_old_logs(days=180):
+	def clear_old_logs(days: int = 180) -> None:
 		from frappe.query_builder import Interval
 		from frappe.query_builder.functions import Now
 
@@ -38,7 +38,7 @@ class DeletedDocument(Document):
 
 
 @frappe.whitelist()
-def restore(name, alert=True):
+def restore(name, alert: bool = True) -> None:
 	deleted = frappe.get_doc("Deleted Document", name)
 
 	if deleted.restored:

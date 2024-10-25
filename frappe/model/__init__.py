@@ -153,7 +153,7 @@ std_fields = [
 ]
 
 
-def delete_fields(args_dict, delete=0):
+def delete_fields(args_dict, delete: int = 0) -> None:
 	"""
 	Delete a field.
 	* Deletes record from `tabDocField`
@@ -215,7 +215,7 @@ def get_permitted_fields(
 	user: str | None = None,
 	permission_type: str | None = None,
 	*,
-	ignore_virtual=False,
+	ignore_virtual: bool = False,
 ) -> list[str]:
 	meta = frappe.get_meta(doctype)
 	valid_columns = meta.get_valid_columns()

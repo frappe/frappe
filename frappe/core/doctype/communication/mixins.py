@@ -20,7 +20,7 @@ class CommunicationEmailMixin:
 		parent_doc = get_parent_doc(self)
 		return parent_doc.owner if parent_doc else None
 
-	def get_all_email_addresses(self, exclude_displayname=False):
+	def get_all_email_addresses(self, exclude_displayname: bool = False):
 		"""Get all Email addresses mentioned in the doc along with display name."""
 		return (
 			self.to_list(exclude_displayname=exclude_displayname)
@@ -38,7 +38,7 @@ class CommunicationEmailMixin:
 		email_map = {parse_addr(email)[1]: email for email in self.get_all_email_addresses()}
 		return email_map.get(email, email)
 
-	def mail_recipients(self, is_inbound_mail_communcation=False):
+	def mail_recipients(self, is_inbound_mail_communcation: bool = False):
 		"""Build to(recipient) list to send an email."""
 		# Incase of inbound mail, recipients already received the mail, no need to send again.
 		if is_inbound_mail_communcation:
@@ -51,12 +51,12 @@ class CommunicationEmailMixin:
 		self._final_recipients = list(filter(lambda id: id != "Administrator", to))
 		return self._final_recipients
 
-	def get_mail_recipients_with_displayname(self, is_inbound_mail_communcation=False):
+	def get_mail_recipients_with_displayname(self, is_inbound_mail_communcation: bool = False):
 		"""Build to(recipient) list to send an email including displayname in email."""
 		to_list = self.mail_recipients(is_inbound_mail_communcation=is_inbound_mail_communcation)
 		return [self.get_email_with_displayname(email) for email in to_list]
 
-	def mail_cc(self, is_inbound_mail_communcation=False, include_sender=False):
+	def mail_cc(self, is_inbound_mail_communcation: bool = False, include_sender: bool = False):
 		"""Build cc list to send an email.
 
 		* if email copy is requested by sender, then add sender to CC.
@@ -98,13 +98,15 @@ class CommunicationEmailMixin:
 		self._final_cc = [m for m in cc if m and m not in frappe.STANDARD_USERS]
 		return self._final_cc
 
-	def get_mail_cc_with_displayname(self, is_inbound_mail_communcation=False, include_sender=False):
+	def get_mail_cc_with_displayname(
+		self, is_inbound_mail_communcation: bool = False, include_sender: bool = False
+	):
 		cc_list = self.mail_cc(
 			is_inbound_mail_communcation=is_inbound_mail_communcation, include_sender=include_sender
 		)
 		return [self.get_email_with_displayname(email) for email in cc_list if email]
 
-	def mail_bcc(self, is_inbound_mail_communcation=False):
+	def mail_bcc(self, is_inbound_mail_communcation: bool = False):
 		"""
 		* Thread_notify check
 		* Email unsubscribe list
@@ -126,7 +128,7 @@ class CommunicationEmailMixin:
 		self._final_bcc = [m for m in bcc if m not in frappe.STANDARD_USERS]
 		return self._final_bcc
 
-	def get_mail_bcc_with_displayname(self, is_inbound_mail_communcation=False):
+	def get_mail_bcc_with_displayname(self, is_inbound_mail_communcation: bool = False):
 		bcc_list = self.mail_bcc(is_inbound_mail_communcation=is_inbound_mail_communcation)
 		return [self.get_email_with_displayname(email) for email in bcc_list if email]
 
@@ -207,7 +209,9 @@ class CommunicationEmailMixin:
 			return _("Leave this conversation")
 		return ""
 
-	def exclude_emails_list(self, is_inbound_mail_communcation=False, include_sender=False) -> list:
+	def exclude_emails_list(
+		self, is_inbound_mail_communcation: bool = False, include_sender: bool = False
+	) -> list:
 		"""List of mail id's excluded while sending mail."""
 		all_ids = self.get_all_email_addresses(exclude_displayname=True)
 
@@ -317,8 +321,8 @@ class CommunicationEmailMixin:
 		print_letterhead=None,
 		is_inbound_mail_communcation=None,
 		print_language=None,
-		now=False,
-	):
+		now: bool = False,
+	) -> None:
 		if input_dict := self.sendmail_input_dict(
 			print_html=print_html,
 			print_format=print_format,

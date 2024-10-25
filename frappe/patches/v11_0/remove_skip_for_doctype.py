@@ -13,7 +13,7 @@ from frappe.query_builder import Field
 # one record is created
 
 
-def execute():
+def execute() -> None:
 	frappe.reload_doctype("User Permission")
 
 	# to check if we need to migrate from skip_for_doctype

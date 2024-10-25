@@ -7,7 +7,7 @@ EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
 
 
 class TestDocRef(IntegrationTestCase):
-	def test_doc_ref_get_doc(self):
+	def test_doc_ref_get_doc(self) -> None:
 		# Test using DocRef with get_doc
 		doc_ref = DocRef("User", "test@example.com")
 		user = get_doc(doc_ref)
@@ -22,7 +22,7 @@ class TestDocRef(IntegrationTestCase):
 		self.assertEqual(user.email, "test@example.com")
 		self.assertEqual(user.first_name, "_Test")
 
-	def test_doc_ref_in_query(self):
+	def test_doc_ref_in_query(self) -> None:
 		# Test using DocRef in a database query
 		user = frappe.get_doc("User", "test@example.com")
 
@@ -49,7 +49,7 @@ class TestDocRef(IntegrationTestCase):
 		test_doc.reload()
 		self.assertEqual(test_doc.description, "Revised Test ToDo")
 
-	def test_get_meta_with_doc_ref(self):
+	def test_get_meta_with_doc_ref(self) -> None:
 		# Test get_meta with DocRef
 		doc_ref = DocRef("User", "test@example.com")
 		meta = frappe.get_meta(doc_ref)
@@ -61,12 +61,12 @@ class TestDocRef(IntegrationTestCase):
 		self.assertTrue("first_name" in [f.fieldname for f in meta.fields])
 		self.assertTrue("last_name" in [f.fieldname for f in meta.fields])
 
-	def test_doc_ref_value_representation(self):
+	def test_doc_ref_value_representation(self) -> None:
 		# Test the value representation of DocRef
 		doc_ref = DocRef("User", "test@example.com")
 		self.assertEqual(doc_ref.__value__(), "test@example.com")
 
-	def test_doc_ref_attributes(self):
+	def test_doc_ref_attributes(self) -> None:
 		# Test DocRef attributes
 		doc_ref = DocRef("User", "test@example.com")
 		self.assertEqual(doc_ref.doctype, "User")

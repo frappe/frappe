@@ -17,6 +17,6 @@ class WebsiteRouteMeta(Document):
 		meta_tags: DF.Table[WebsiteMetaTag]
 	# end: auto-generated types
 
-	def autoname(self):
+	def autoname(self) -> None:
 		if self.name and self.name.startswith("/"):
 			self.name = self.name[1:]

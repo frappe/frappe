@@ -9,7 +9,7 @@ import frappe
 from frappe.utils.data import cstr
 
 
-def publish_progress(percent, title=None, doctype=None, docname=None, description=None, task_id=None):
+def publish_progress(percent, title=None, doctype=None, docname=None, description=None, task_id=None) -> None:
 	publish_realtime(
 		"progress",
 		{"percent": percent, "title": title, "description": description},
@@ -29,7 +29,7 @@ def publish_realtime(
 	docname: str | None = None,
 	task_id: str | None = None,
 	after_commit: bool = False,
-):
+) -> None:
 	"""Publish real-time updates
 
 	:param event: Event name, like `task_progress` etc. that will be handled by the client (default is `task_progress` if within task or `global`)
@@ -83,19 +83,19 @@ def publish_realtime(
 		emit_via_redis(event, message, room)
 
 
-def flush_realtime_log():
+def flush_realtime_log() -> None:
 	for args in frappe.local._realtime_log:
 		frappe.realtime.emit_via_redis(*args)
 
 	clear_realtime_log()
 
 
-def clear_realtime_log():
+def clear_realtime_log() -> None:
 	if hasattr(frappe.local, "_realtime_log"):
 		del frappe.local._realtime_log
 
 
-def emit_via_redis(event, message, room):
+def emit_via_redis(event, message, room) -> None:
 	"""Publish real-time updates via redis
 
 	:param event: Event name, like `task_progress` etc.
@@ -130,25 +130,25 @@ def get_user_info():
 	}
 
 
-def get_doctype_room(doctype):
+def get_doctype_room(doctype) -> str:
 	return f"doctype:{doctype}"
 
 
-def get_doc_room(doctype, docname):
+def get_doc_room(doctype, docname) -> str:
 	return f"doc:{doctype}/{cstr(docname)}"
 
 
-def get_user_room(user):
+def get_user_room(user) -> str:
 	return f"user:{user}"
 
 
-def get_site_room():
+def get_site_room() -> str:
 	return "all"
 
 
-def get_task_progress_room(task_id):
+def get_task_progress_room(task_id) -> str:
 	return f"task_progress:{task_id}"
 
 
-def get_website_room():
+def get_website_room() -> str:
 	return "website"

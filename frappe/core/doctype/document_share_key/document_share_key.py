@@ -22,7 +22,7 @@ class DocumentShareKey(Document):
 		reference_doctype: DF.Link | None
 	# end: auto-generated types
 
-	def before_insert(self):
+	def before_insert(self) -> None:
 		self.key = frappe.generate_hash(length=randrange(25, 35))
 		if not self.expires_on and not self.flags.no_expiry:
 			self.expires_on = frappe.utils.add_days(

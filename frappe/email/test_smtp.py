@@ -8,15 +8,15 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestSMTP(IntegrationTestCase):
-	def test_smtp_ssl_session(self):
+	def test_smtp_ssl_session(self) -> None:
 		for port in [None, 0, 465, "465"]:
 			make_server(port, 1, 0)
 
-	def test_smtp_tls_session(self):
+	def test_smtp_tls_session(self) -> None:
 		for port in [None, 0, 587, "587"]:
 			make_server(port, 0, 1)
 
-	def test_get_email_account(self):
+	def test_get_email_account(self) -> None:
 		existing_email_accounts = frappe.get_all(
 			"Email Account", fields=["name", "enable_outgoing", "default_outgoing", "append_to", "use_imap"]
 		)
@@ -64,7 +64,9 @@ class TestSMTP(IntegrationTestCase):
 			frappe.db.set_value("Email Account", email_account["name"], set_details)
 
 
-def create_email_account(email_id, password, enable_outgoing, default_outgoing=0, append_to=None):
+def create_email_account(
+	email_id, password, enable_outgoing, default_outgoing: int = 0, append_to=None
+) -> None:
 	email_dict = {
 		"email_id": email_id,
 		"passsword": password,
@@ -82,7 +84,7 @@ def create_email_account(email_id, password, enable_outgoing, default_outgoing=0
 	email_account.save()
 
 
-def make_server(port, ssl, tls):
+def make_server(port, ssl, tls) -> None:
 	server = SMTPServer(server="smtp.gmail.com", port=port, use_ssl=ssl, use_tls=tls)
 
 	server.session

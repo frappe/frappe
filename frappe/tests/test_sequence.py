@@ -6,7 +6,7 @@ class TestSequence(IntegrationTestCase):
 	def generate_sequence_name(self) -> str:
 		return self._testMethodName + "_" + frappe.generate_hash(length=5)
 
-	def test_set_next_val(self):
+	def test_set_next_val(self) -> None:
 		seq_name = self.generate_sequence_name()
 		frappe.db.create_sequence(seq_name, check_not_exists=True, temporary=True)
 
@@ -18,7 +18,7 @@ class TestSequence(IntegrationTestCase):
 		frappe.db.set_next_sequence_val(seq_name, next_val + 1, is_val_used=True)
 		self.assertEqual(next_val + 2, frappe.db.get_next_sequence_val(seq_name))
 
-	def test_create_sequence(self):
+	def test_create_sequence(self) -> None:
 		seq_name = self.generate_sequence_name()
 		frappe.db.create_sequence(seq_name, max_value=2, cycle=True, temporary=True)
 		frappe.db.get_next_sequence_val(seq_name)

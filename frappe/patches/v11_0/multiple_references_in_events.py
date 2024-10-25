@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.reload_doctype("Event")
 	# Rename "Cancel" to "Cancelled"
 	frappe.db.sql("""UPDATE tabEvent set event_type='Cancelled' where event_type='Cancel'""")

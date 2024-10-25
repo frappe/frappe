@@ -126,7 +126,7 @@ class SystemHealthReport(Document):
 	def db_insert(self, *args, **kwargs):
 		raise NotImplementedError
 
-	def load_from_db(self):
+	def load_from_db(self) -> None:
 		super(Document, self).__init__({})
 		frappe.only_for("System Manager")
 
@@ -146,7 +146,7 @@ class SystemHealthReport(Document):
 
 	@health_check("Background Jobs")
 	@no_wait(get_redis_conn)
-	def fetch_background_jobs(self):
+	def fetch_background_jobs(self) -> None:
 		self.background_jobs_check = "failed"
 		# This just checks connection life
 		self.test_job_id = frappe.enqueue("frappe.ping", at_front=True).id
@@ -181,7 +181,7 @@ class SystemHealthReport(Document):
 			)
 
 	@health_check("Scheduler")
-	def fetch_scheduler(self):
+	def fetch_scheduler(self) -> None:
 		lower_threshold = add_to_date(None, days=-7, as_datetime=True)
 		# Exclude "maybe" curently executing job
 		upper_threshold = add_to_date(None, minutes=-30, as_datetime=True)
@@ -240,7 +240,7 @@ class SystemHealthReport(Document):
 				break
 
 	@health_check("Emails")
-	def fetch_email_stats(self):
+	def fetch_email_stats(self) -> None:
 		threshold = add_to_date(None, days=-7, as_datetime=True)
 		filters = {"creation": (">", threshold), "modified": (">", threshold)}
 		self.total_outgoing_emails = frappe.db.count("Email Queue", filters)
@@ -253,7 +253,7 @@ class SystemHealthReport(Document):
 		)
 
 	@health_check("Errors")
-	def fetch_errors(self):
+	def fetch_errors(self) -> None:
 		threshold = add_to_date(None, days=-1, as_datetime=True)
 		filters = {"creation": (">", threshold), "modified": (">", threshold)}
 		self.total_errors = frappe.db.count("Error Log", filters)
@@ -272,7 +272,7 @@ class SystemHealthReport(Document):
 			self.append("top_errors", row)
 
 	@health_check("Database")
-	def fetch_database_details(self):
+	def fetch_database_details(self) -> None:
 		from frappe.core.report.database_storage_usage_by_tables.database_storage_usage_by_tables import (
 			execute as db_report,
 		)
@@ -289,12 +289,12 @@ class SystemHealthReport(Document):
 			self.binary_logging = frappe.db.sql("show variables like 'log_bin'")[0][1]
 
 	@health_check("Cache")
-	def fetch_cache_details(self):
+	def fetch_cache_details(self) -> None:
 		self.cache_keys = len(frappe.cache.get_keys(""))
 		self.cache_memory_usage = frappe.cache.execute_command("INFO", "MEMORY").get("used_memory_human")
 
 	@health_check("Storage")
-	def fetch_storage_details(self):
+	def fetch_storage_details(self) -> None:
 		from frappe.desk.page.backups.backups import get_context
 
 		self.backups_size = get_directory_size("private", "backups") / (1024 * 1024)
@@ -303,7 +303,7 @@ class SystemHealthReport(Document):
 		self.onsite_backups = len(get_context({}).get("files", []))
 
 	@health_check("Users")
-	def fetch_user_stats(self):
+	def fetch_user_stats(self) -> None:
 		threshold = add_to_date(None, days=-30, as_datetime=True)
 		self.total_users = frappe.db.count("User", {"enabled": 1})
 		self.new_users = frappe.db.count("User", {"enabled": 1, "creation": (">", threshold)})
@@ -334,7 +334,7 @@ class SystemHealthReport(Document):
 		raise NotImplementedError
 
 	@staticmethod
-	def get_list(filters=None, page_length=20, **kwargs):
+	def get_list(filters=None, page_length: int = 20, **kwargs):
 		raise NotImplementedError
 
 	@staticmethod

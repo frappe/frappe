@@ -4,7 +4,7 @@ import frappe
 from frappe.model.utils.user_settings import sync_user_settings, update_user_settings
 
 
-def execute():
+def execute() -> None:
 	users = frappe.db.sql("select distinct(user) from `__UserSettings`", as_dict=True)
 
 	for user in users:
@@ -27,7 +27,7 @@ def execute():
 	sync_user_settings()
 
 
-def update_user_setting_filters(data, key, user_setting):
+def update_user_setting_filters(data, key, user_setting) -> None:
 	timespan_map = {
 		"1 week": "week",
 		"1 month": "month",

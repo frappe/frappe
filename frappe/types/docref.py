@@ -4,7 +4,7 @@ from typing_extensions import override
 class DocRef:
 	"""A lightweight reference to a document, containing just the doctype and name."""
 
-	def __init__(self, doctype: str, name: str):
+	def __init__(self, doctype: str, name: str) -> None:
 		self.doctype = doctype
 		self.name = name
 

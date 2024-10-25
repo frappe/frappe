@@ -24,7 +24,7 @@ STANDARD_FIELD_CONVERSION_MAP = {
 INCLUDE_DIRECTIVE_PATTERN = re.compile(r"""{% include\s['"](.*)['"]\s%}""")
 
 
-def set_default(doc, key):
+def set_default(doc, key) -> None:
 	"""Set is_default property of given doc and unset all others filtered by given key."""
 	if not doc.is_default:
 		frappe.db.set(doc, "is_default", 1)
@@ -36,7 +36,7 @@ def set_default(doc, key):
 	)
 
 
-def set_field_property(filters, key, value):
+def set_field_property(filters, key, value) -> None:
 	"""utility set a property in all fields of a particular type"""
 	docs = [
 		frappe.get_doc("DocType", d.parent)

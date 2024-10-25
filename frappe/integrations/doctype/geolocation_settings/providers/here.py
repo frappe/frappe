@@ -7,7 +7,7 @@ import frappe
 
 
 class Here:
-	def __init__(self, api_key: str, lang: str | None = None):
+	def __init__(self, api_key: str, lang: str | None = None) -> None:
 		self.lang = lang
 		self.api_key = api_key
 		self.base_url = "https://autocomplete.search.hereapi.com/v1"

@@ -39,7 +39,7 @@ class UnitTestWebsiteTheme(UnitTestCase):
 
 
 class TestWebsiteTheme(IntegrationTestCase):
-	def test_website_theme(self):
+	def test_website_theme(self) -> None:
 		with website_theme_fixture(
 			google_font="Inter",
 			custom_scss="body { font-size: 16.5px; }",  # this will get minified!
@@ -51,14 +51,14 @@ class TestWebsiteTheme(IntegrationTestCase):
 			self.assertTrue("body{font-size:16.5px}" in css)
 			self.assertTrue("fonts.googleapis.com" in css)
 
-	def test_get_scss_paths(self):
+	def test_get_scss_paths(self) -> None:
 		self.assertIn("frappe/public/scss/website.bundle", get_scss_paths())
 
-	def test_imports_to_ignore(self):
+	def test_imports_to_ignore(self) -> None:
 		with website_theme_fixture(ignored_apps=[{"app": "frappe"}]) as theme:
 			self.assertTrue('@import "frappe/public/scss/website"' not in theme.theme_scss)
 
-	def test_backup_files(self):
+	def test_backup_files(self) -> None:
 		with website_theme_fixture(custom_scss="body { font-size: 16.5px; }") as theme:
 			first = get_theme_file(theme)
 			second = get_theme_file(theme.save())
@@ -69,7 +69,7 @@ class TestWebsiteTheme(IntegrationTestCase):
 			self.assertFalse(first.exists())
 			self.assertTrue(second.exists() and third.exists() and fourth.exists())
 
-	def test_after_migrate_hook(self):
+	def test_after_migrate_hook(self) -> None:
 		with website_theme_fixture(google_font="Inter") as theme:
 			theme.set_as_default()
 			before = get_active_theme().theme_url

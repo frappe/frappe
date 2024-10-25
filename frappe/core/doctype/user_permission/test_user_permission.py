@@ -21,7 +21,7 @@ class UnitTestUserPermission(UnitTestCase):
 
 
 class TestUserPermission(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		test_users = (
 			"test_bulk_creation_update@example.com",
 			"test_user_perm1@example.com",
@@ -33,7 +33,7 @@ class TestUserPermission(IntegrationTestCase):
 		frappe.delete_doc_if_exists("DocType", "Doc A")
 		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabDoc A`")
 
-	def test_default_user_permission_validation(self):
+	def test_default_user_permission_validation(self) -> None:
 		user = create_user("test_default_permission@example.com")
 		param = get_params(user, "User", user.name, is_default=1)
 		add_user_permissions(param)
@@ -42,7 +42,7 @@ class TestUserPermission(IntegrationTestCase):
 		param = get_params(user, "User", perm_user.name, is_default=1)
 		self.assertRaises(frappe.ValidationError, add_user_permissions, param)
 
-	def test_default_user_permission_corectness(self):
+	def test_default_user_permission_corectness(self) -> None:
 		user = create_user("test_default_corectness_permission_1@example.com")
 		param = get_params(user, "User", user.name, is_default=1, hide_descendants=1)
 		add_user_permissions(param)
@@ -54,7 +54,7 @@ class TestUserPermission(IntegrationTestCase):
 		frappe.db.delete("User Permission", filters={"for_value": test_blog.name})
 		frappe.delete_doc("Blog Post", test_blog.name)
 
-	def test_default_user_permission(self):
+	def test_default_user_permission(self) -> None:
 		frappe.set_user("Administrator")
 		user = create_user("test_user_perm1@example.com", "Website Manager")
 		for category in ["general", "public"]:
@@ -73,14 +73,14 @@ class TestUserPermission(IntegrationTestCase):
 		self.assertEqual(doc.blog_category, "general")
 		frappe.set_user("Administrator")
 
-	def test_apply_to_all(self):
+	def test_apply_to_all(self) -> None:
 		"""Create User permission for User having access to all applicable Doctypes"""
 		user = create_user("test_bulk_creation_update@example.com")
 		param = get_params(user, "User", user.name)
 		is_created = add_user_permissions(param)
 		self.assertEqual(is_created, 1)
 
-	def test_for_apply_to_all_on_update_from_apply_all(self):
+	def test_for_apply_to_all_on_update_from_apply_all(self) -> None:
 		user = create_user("test_bulk_creation_update@example.com")
 		param = get_params(user, "User", user.name)
 
@@ -93,7 +93,7 @@ class TestUserPermission(IntegrationTestCase):
 		# User Permission should not be changed
 		self.assertEqual(is_created, 0)
 
-	def test_for_applicable_on_update_from_apply_to_all(self):
+	def test_for_applicable_on_update_from_apply_to_all(self) -> None:
 		"""Update User Permission from all to some applicable Doctypes"""
 		user = create_user("test_bulk_creation_update@example.com")
 		param = get_params(user, "User", user.name, applicable=["Comment", "Contact"])
@@ -122,7 +122,7 @@ class TestUserPermission(IntegrationTestCase):
 		self.assertIsNotNone(is_created_applicable_second)
 		self.assertEqual(is_created, 1)
 
-	def test_for_apply_to_all_on_update_from_applicable(self):
+	def test_for_apply_to_all_on_update_from_applicable(self) -> None:
 		"""Update User Permission from some to all applicable Doctypes"""
 		user = create_user("test_bulk_creation_update@example.com")
 		param = get_params(user, "User", user.name)
@@ -151,7 +151,7 @@ class TestUserPermission(IntegrationTestCase):
 		self.assertIsNone(removed_applicable_second)
 		self.assertEqual(is_created, 1)
 
-	def test_user_perm_for_nested_doctype(self):
+	def test_user_perm_for_nested_doctype(self) -> None:
 		"""Test if descendants' visibility is controlled for a nested DocType."""
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
@@ -209,7 +209,7 @@ class TestUserPermission(IntegrationTestCase):
 		self.assertEqual(visible_names_after_hide_descendants, ["Parent"])
 		frappe.set_user("Administrator")
 
-	def test_user_perm_on_new_doc_with_field_default(self):
+	def test_user_perm_on_new_doc_with_field_default(self) -> None:
 		"""Test User Perm impact on frappe.new_doc. with *field* default value"""
 		frappe.set_user("Administrator")
 		user = create_user("new_doc_test@example.com", "Blogger")
@@ -244,7 +244,7 @@ class TestUserPermission(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		remove_applicable(["Assignment Rule"], "new_doc_test@example.com", "DocType", "ToDo")
 
-	def test_user_perm_on_new_doc_with_user_default(self):
+	def test_user_perm_on_new_doc_with_user_default(self) -> None:
 		"""Test User Perm impact on frappe.new_doc. with *user* default value"""
 		from frappe.core.doctype.session_default_settings.session_default_settings import (
 			clear_session_defaults,
@@ -310,7 +310,7 @@ def create_user(email, *roles):
 	return user
 
 
-def get_params(user, doctype, docname, is_default=0, hide_descendants=0, applicable=None):
+def get_params(user, doctype, docname, is_default: int = 0, hide_descendants: int = 0, applicable=None):
 	"""Return param to insert"""
 	param = {
 		"user": user.name,

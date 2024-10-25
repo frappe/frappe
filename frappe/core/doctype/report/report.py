@@ -48,7 +48,7 @@ class Report(Document):
 		timeout: DF.Int
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		"""only administrator can save standard report"""
 		if not self.module:
 			self.module = frappe.db.get_value("DocType", self.ref_doctype, "module")
@@ -75,17 +75,17 @@ class Report(Document):
 		if self.report_type == "Report Builder":
 			self.update_report_json()
 
-	def before_insert(self):
+	def before_insert(self) -> None:
 		self.set_doctype_roles()
 
-	def on_update(self):
+	def on_update(self) -> None:
 		self.export_doc()
 
-	def before_export(self, doc):
+	def before_export(self, doc) -> None:
 		doc.letterhead = None
 		doc.prepared_report = 0
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		if (
 			self.is_standard == "Yes"
 			and not cint(getattr(frappe.local.conf, "developer_mode", 0))
@@ -102,14 +102,14 @@ class Report(Document):
 		return [d.as_dict(no_default_fields=True, no_child_table_fields=True) for d in self.columns]
 
 	@frappe.whitelist()
-	def set_doctype_roles(self):
+	def set_doctype_roles(self) -> None:
 		if not self.get("roles") and self.is_standard == "No":
 			meta = frappe.get_meta(self.ref_doctype)
 			if not meta.istable:
 				roles = [{"role": d.role} for d in meta.permissions if d.permlevel == 0]
 				self.set("roles", roles)
 
-	def is_permitted(self):
+	def is_permitted(self) -> bool:
 		"""Return True if `Has Role` is not set or the user is allowed."""
 		from frappe.utils import has_common
 
@@ -126,11 +126,11 @@ class Report(Document):
 		if has_common(frappe.get_roles(), allowed):
 			return True
 
-	def update_report_json(self):
+	def update_report_json(self) -> None:
 		if not self.json:
 			self.json = "{}"
 
-	def export_doc(self):
+	def export_doc(self) -> None:
 		if frappe.flags.in_import:
 			return
 
@@ -139,7 +139,7 @@ class Report(Document):
 
 			self.create_report_py()
 
-	def create_report_py(self):
+	def create_report_py(self) -> None:
 		if self.report_type == "Script Report":
 			make_boilerplate("controller.py", self, {"name": self.name})
 			make_boilerplate("controller.js", self, {"name": self.name})
@@ -196,9 +196,9 @@ class Report(Document):
 		filters=None,
 		limit=None,
 		user=None,
-		as_dict=False,
-		ignore_prepared_report=False,
-		are_default_filters=True,
+		as_dict: bool = False,
+		ignore_prepared_report: bool = False,
+		are_default_filters: bool = True,
 	):
 		if self.report_type in ("Query Report", "Script Report", "Custom Report"):
 			columns, result = self.run_query_report(
@@ -213,7 +213,7 @@ class Report(Document):
 		return columns, result
 
 	def run_query_report(
-		self, filters=None, user=None, ignore_prepared_report=False, are_default_filters=True
+		self, filters=None, user=None, ignore_prepared_report: bool = False, are_default_filters: bool = True
 	):
 		columns, result = [], []
 		data = frappe.desk.query_report.run(
@@ -279,7 +279,7 @@ class Report(Document):
 		return columns, result
 
 	@staticmethod
-	def _format(parts):
+	def _format(parts) -> str:
 		# sort by is saved as DocType.fieldname, covert it to sql
 		return "`tab{}`.`{}`".format(*parts)
 
@@ -376,7 +376,7 @@ class Report(Document):
 		return data
 
 	@frappe.whitelist()
-	def toggle_disable(self, disable: bool):
+	def toggle_disable(self, disable: bool) -> None:
 		if not self.has_permission("write"):
 			frappe.throw(_("You are not allowed to edit the report."))
 
@@ -418,5 +418,5 @@ def get_group_by_column_label(args, meta):
 	return label
 
 
-def enable_prepared_report(report: str):
+def enable_prepared_report(report: str) -> None:
 	frappe.db.set_value("Report", report, "prepared_report", 1)

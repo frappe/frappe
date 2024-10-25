@@ -23,7 +23,7 @@ class Domain(Document):
 	with "Restricted" domains are imported during
 	installation or migration"""
 
-	def setup_domain(self):
+	def setup_domain(self) -> None:
 		"""Setup domain icons, permissions, custom fields etc."""
 		self.setup_data()
 		self.setup_roles()
@@ -42,7 +42,7 @@ class Domain(Document):
 			# custom on_setup method
 			frappe.get_attr(self.data.on_setup)()
 
-	def remove_domain(self):
+	def remove_domain(self) -> None:
 		"""Unset domain settings"""
 		self.setup_data()
 
@@ -55,7 +55,7 @@ class Domain(Document):
 
 		self.remove_custom_field()
 
-	def remove_custom_field(self):
+	def remove_custom_field(self) -> None:
 		"""Remove custom_fields when disabling domain"""
 		if self.data.custom_fields:
 			for doctype in self.data.custom_fields:
@@ -72,7 +72,7 @@ class Domain(Document):
 					if custom_field_name:
 						frappe.delete_doc("Custom Field", custom_field_name)
 
-	def setup_roles(self):
+	def setup_roles(self) -> None:
 		"""Enable roles that are restricted to this domain"""
 		if self.data.restricted_roles:
 			user = frappe.get_doc("User", frappe.session.user)
@@ -87,26 +87,26 @@ class Domain(Document):
 				role.save()
 			user.save()
 
-	def setup_data(self, domain=None):
+	def setup_data(self, domain=None) -> None:
 		"""Load domain info via hooks"""
 		self.data = frappe.get_domain_data(self.name)
 
 	def get_domain_data(self, module):
 		return frappe.get_attr(frappe.get_hooks("domains")[self.name] + ".data")
 
-	def set_default_portal_role(self):
+	def set_default_portal_role(self) -> None:
 		"""Set default portal role based on domain"""
 		if self.data.get("default_portal_role"):
 			frappe.db.set_single_value(
 				"Portal Settings", "default_role", self.data.get("default_portal_role")
 			)
 
-	def setup_properties(self):
+	def setup_properties(self) -> None:
 		if self.data.properties:
 			for args in self.data.properties:
 				frappe.make_property_setter(args)
 
-	def set_values(self):
+	def set_values(self) -> None:
 		"""set values based on `data.set_value`"""
 		if self.data.set_value:
 			for args in self.data.set_value:
@@ -115,7 +115,7 @@ class Domain(Document):
 				doc.set(args[2], args[3])
 				doc.save()
 
-	def setup_sidebar_items(self):
+	def setup_sidebar_items(self) -> None:
 		"""Enable / disable sidebar items"""
 		if self.data.allow_sidebar_items:
 			# disable all

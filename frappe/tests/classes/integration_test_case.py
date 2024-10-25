@@ -171,19 +171,19 @@ class IntegrationTestCase(UnitTestCase):
 			frappe.db.sql = orig_sql
 
 
-def _commit_watcher():
+def _commit_watcher() -> None:
 	import traceback
 
 	logger.warning("Transaction committed during tests.")
 	traceback.print_stack(limit=10)
 
 
-def _rollback_db():
+def _rollback_db() -> None:
 	frappe.db.value_cache = {}
 	frappe.db.rollback()
 
 
-def _restore_thread_locals(flags):
+def _restore_thread_locals(flags) -> None:
 	frappe.local.flags = flags
 	frappe.local.error_log = []
 	frappe.local.message_log = []

@@ -25,7 +25,7 @@ class InstalledApplications(Document):
 		installed_applications: DF.Table[InstalledApplication]
 	# end: auto-generated types
 
-	def update_versions(self):
+	def update_versions(self) -> None:
 		self.delete_key("installed_applications")
 		for app in frappe.utils.get_installed_apps_info():
 			self.append(
@@ -40,7 +40,7 @@ class InstalledApplications(Document):
 
 
 @frappe.whitelist()
-def update_installed_apps_order(new_order: list[str] | str):
+def update_installed_apps_order(new_order: list[str] | str) -> None:
 	"""Change the ordering of `installed_apps` global
 
 	This list is used to resolve hooks and by default it's order of installation on site.
@@ -70,7 +70,7 @@ def update_installed_apps_order(new_order: list[str] | str):
 	_create_version_log_for_change(existing_order, new_order)
 
 
-def _create_version_log_for_change(old, new):
+def _create_version_log_for_change(old, new) -> None:
 	version = frappe.new_doc("Version")
 	version.ref_doctype = "DefaultValue"
 	version.docname = "installed_apps"

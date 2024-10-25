@@ -24,5 +24,5 @@ class PatchLog(Document):
 	pass
 
 
-def before_migrate():
+def before_migrate() -> None:
 	frappe.reload_doc("core", "doctype", "patch_log")

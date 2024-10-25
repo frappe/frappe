@@ -16,7 +16,7 @@ def get_parent_doc(doc):
 	return doc.parent_doc
 
 
-def set_timeline_doc(doc):
+def set_timeline_doc(doc) -> None:
 	"""Set timeline_doctype and timeline_name"""
 	parent_doc = get_parent_doc(doc)
 	if (doc.timeline_doctype and doc.timeline_name) or not parent_doc:
@@ -84,7 +84,7 @@ def ljust_list(_list, length, fill_word=None):
 	return _list
 
 
-def html2text(html: str, strip_links=False, wrap=True) -> str:
+def html2text(html: str, strip_links: bool = False, wrap: bool = True) -> str:
 	"""Return the given `html` as markdown text."""
 	strip = ["a"] if strip_links else None
 	return md(html, heading_style="ATX", strip=strip, wrap=wrap)

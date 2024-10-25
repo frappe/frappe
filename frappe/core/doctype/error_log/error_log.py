@@ -24,7 +24,7 @@ class ErrorLog(Document):
 		trace_id: DF.Data | None
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		self.method = str(self.method)
 		self.error = str(self.error)
 
@@ -32,19 +32,19 @@ class ErrorLog(Document):
 			self.error = f"{self.method}\n{self.error}"
 			self.method = self.method[:140]
 
-	def onload(self):
+	def onload(self) -> None:
 		if not self.seen and not frappe.flags.read_only:
 			self.db_set("seen", 1, update_modified=0)
 			frappe.db.commit()
 
 	@staticmethod
-	def clear_old_logs(days=30):
+	def clear_old_logs(days: int = 30) -> None:
 		table = frappe.qb.DocType("Error Log")
 		frappe.db.delete(table, filters=(table.creation < (Now() - Interval(days=days))))
 
 
 @frappe.whitelist()
-def clear_error_logs():
+def clear_error_logs() -> None:
 	"""Flush all Error Logs"""
 	frappe.only_for("System Manager")
 	frappe.db.truncate("Error Log")

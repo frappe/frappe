@@ -16,7 +16,7 @@ HEADERS = (
 
 
 class TestCORS(IntegrationTestCase):
-	def make_request_and_test(self, origin="http://example.com", absent=False):
+	def make_request_and_test(self, origin: str = "http://example.com", absent: bool = False) -> None:
 		self.origin = origin
 
 		headers = {}
@@ -41,15 +41,15 @@ class TestCORS(IntegrationTestCase):
 				else:
 					self.assertIn(header, self.response.headers)
 
-	def test_cors_disabled(self):
+	def test_cors_disabled(self) -> None:
 		frappe.conf.allow_cors = None
 		self.make_request_and_test("http://example.com", True)
 
-	def test_request_without_origin(self):
+	def test_request_without_origin(self) -> None:
 		frappe.conf.allow_cors = "http://example.com"
 		self.make_request_and_test(None, True)
 
-	def test_valid_origin(self):
+	def test_valid_origin(self) -> None:
 		frappe.conf.allow_cors = "http://example.com"
 		self.make_request_and_test()
 
@@ -59,7 +59,7 @@ class TestCORS(IntegrationTestCase):
 		frappe.conf.allow_cors = ["http://example.com", "https://example.com"]
 		self.make_request_and_test()
 
-	def test_invalid_origin(self):
+	def test_invalid_origin(self) -> None:
 		frappe.conf.allow_cors = "http://example1.com"
 		self.make_request_and_test(absent=True)
 

@@ -62,7 +62,7 @@ def setup_complete(args):
 
 
 @frappe.task()
-def process_setup_stages(stages, user_input, is_background_task=False):
+def process_setup_stages(stages, user_input, is_background_task: bool = False):
 	from frappe.utils.telemetry import capture
 
 	capture("initated_server_side", "setup")
@@ -101,7 +101,7 @@ def process_setup_stages(stages, user_input, is_background_task=False):
 		frappe.flags.in_setup_wizard = False
 
 
-def update_global_settings(args):  # nosemgrep
+def update_global_settings(args) -> None:  # nosemgrep
 	if args.language and args.language != "English":
 		set_default_language(get_language_code(args.lang))
 		frappe.db.commit()
@@ -112,7 +112,7 @@ def update_global_settings(args):  # nosemgrep
 	set_timezone(args)
 
 
-def run_post_setup_complete(args):  # nosemgrep
+def run_post_setup_complete(args) -> None:  # nosemgrep
 	disable_future_access()
 	frappe.db.commit()
 	frappe.clear_cache()
@@ -121,7 +121,7 @@ def run_post_setup_complete(args):  # nosemgrep
 	frappe.get_cached_doc("System Settings") and frappe.get_doc("System Settings")
 
 
-def run_setup_success(args):  # nosemgrep
+def run_setup_success(args) -> None:  # nosemgrep
 	for hook in frappe.get_hooks("setup_wizard_success"):
 		frappe.get_attr(hook)(args)
 	install_fixtures.install()
@@ -151,7 +151,7 @@ def get_setup_complete_hooks(args):  # nosemgrep
 	]
 
 
-def handle_setup_exception(args):  # nosemgrep
+def handle_setup_exception(args) -> None:  # nosemgrep
 	frappe.db.rollback()
 	if args:
 		traceback = frappe.get_traceback(with_context=True)
@@ -160,7 +160,7 @@ def handle_setup_exception(args):  # nosemgrep
 			frappe.get_attr(hook)(traceback, args)
 
 
-def update_system_settings(args):  # nosemgrep
+def update_system_settings(args) -> None:  # nosemgrep
 	number_format = get_country_info(args.get("country")).get("number_format", "#,###.##")
 
 	# replace these as float number formats, as they have 0 precision
@@ -191,7 +191,7 @@ def update_system_settings(args):  # nosemgrep
 		frappe.db.set_default("session_recording_start", now())
 
 
-def create_or_update_user(args):  # nosemgrep
+def create_or_update_user(args) -> None:  # nosemgrep
 	email = args.get("email")
 	if not email:
 		return
@@ -230,7 +230,7 @@ def create_or_update_user(args):  # nosemgrep
 		update_password(email, args.get("password"))
 
 
-def set_timezone(args):  # nosemgrep
+def set_timezone(args) -> None:  # nosemgrep
 	if args.get("timezone"):
 		for name in frappe.STANDARD_USERS:
 			frappe.db.set_value("User", name, "time_zone", args.get("timezone"))
@@ -252,7 +252,7 @@ def parse_args(args):  # nosemgrep
 	return args
 
 
-def add_all_roles_to(name):
+def add_all_roles_to(name) -> None:
 	user = frappe.get_doc("User", name)
 	user.append_roles(*_get_default_roles())
 	user.save()
@@ -269,7 +269,7 @@ def _get_default_roles() -> set[str]:
 	return set(frappe.get_all("Role", pluck="name")) - skip_roles
 
 
-def disable_future_access():
+def disable_future_access() -> None:
 	frappe.db.set_default("desktop:home_page", "workspace")
 	# Enable onboarding after install
 	frappe.db.set_single_value("System Settings", "enable_onboarding", 1)
@@ -334,7 +334,7 @@ def prettify_args(args):  # nosemgrep
 	return pretty_args
 
 
-def email_setup_wizard_exception(traceback, args):  # nosemgrep
+def email_setup_wizard_exception(traceback, args) -> None:  # nosemgrep
 	if not frappe.conf.setup_wizard_exception_email:
 		return
 
@@ -379,7 +379,7 @@ def email_setup_wizard_exception(traceback, args):  # nosemgrep
 	)
 
 
-def log_setup_wizard_exception(traceback, args):  # nosemgrep
+def log_setup_wizard_exception(traceback, args) -> None:  # nosemgrep
 	with open("../logs/setup-wizard.log", "w+") as setup_log:
 		setup_log.write(traceback)
 		setup_log.write(json.dumps(args))
@@ -389,13 +389,13 @@ def get_language_code(lang):
 	return frappe.db.get_value("Language", {"language_name": lang})
 
 
-def enable_twofactor_all_roles():
+def enable_twofactor_all_roles() -> None:
 	all_role = frappe.get_doc("Role", {"role_name": "All"})
 	all_role.two_factor_auth = True
 	all_role.save(ignore_permissions=True)
 
 
-def make_records(records, debug=False):
+def make_records(records, debug: bool = False) -> None:
 	from frappe import _dict
 	from frappe.modules import scrub
 
@@ -436,7 +436,7 @@ def make_records(records, debug=False):
 				show_document_insert_error()
 
 
-def show_document_insert_error():
+def show_document_insert_error() -> None:
 	print("Document Insert Error")
 	print(frappe.get_traceback())
 	frappe.log_error("Exception during Setup")

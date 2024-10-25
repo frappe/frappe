@@ -57,7 +57,7 @@ def getdoc(doctype, name, user=None):
 
 
 @frappe.whitelist()
-def getdoctype(doctype, with_parent=False, cached_timestamp=None):
+def getdoctype(doctype, with_parent: bool = False, cached_timestamp=None) -> str:
 	"""load doctype"""
 
 	docs = []
@@ -218,7 +218,7 @@ def get_webhook_request_log_exists(doc: "Document") -> bool:
 
 
 @frappe.whitelist()
-def get_communications(doctype, name, start=0, limit=20):
+def get_communications(doctype, name, start: int = 0, limit: int = 20):
 	from frappe.utils import cint
 
 	doc = frappe.get_doc(doctype, name)
@@ -270,7 +270,7 @@ def get_point_logs(doctype, docname):
 	)
 
 
-def _get_communications(doctype, name, start=0, limit=20):
+def _get_communications(doctype, name, start: int = 0, limit: int = 20):
 	communications = get_communication_data(doctype, name, start, limit)
 	for c in communications:
 		if c.communication_type in ("Communication", "Automated Message"):
@@ -286,7 +286,14 @@ def _get_communications(doctype, name, start=0, limit=20):
 
 
 def get_communication_data(
-	doctype, name, start=0, limit=20, after=None, fields=None, group_by=None, as_dict=True
+	doctype,
+	name,
+	start: int = 0,
+	limit: int = 20,
+	after=None,
+	fields=None,
+	group_by=None,
+	as_dict: bool = True,
 ):
 	"""Return list of communications for a given document."""
 	if not fields:
@@ -362,7 +369,7 @@ def get_assignments(dt, dn):
 	)
 
 
-def run_onload(doc):
+def run_onload(doc) -> None:
 	doc.set("__onload", frappe._dict())
 	doc.run_method("onload")
 
@@ -421,7 +428,7 @@ def get_additional_timeline_content(doctype, docname):
 	return contents
 
 
-def set_link_titles(doc):
+def set_link_titles(doc) -> None:
 	link_titles = {}
 	link_titles.update(get_title_values_for_link_and_dynamic_link_fields(doc))
 	link_titles.update(get_title_values_for_table_and_multiselect_fields(doc))
@@ -469,7 +476,7 @@ def get_title_values_for_table_and_multiselect_fields(doc, table_fields=None):
 	return link_titles
 
 
-def send_link_titles(link_titles):
+def send_link_titles(link_titles) -> None:
 	"""Append link titles dict in `frappe.local.response`."""
 	if "_link_titles" not in frappe.local.response:
 		frappe.local.response["_link_titles"] = {}
@@ -477,7 +484,7 @@ def send_link_titles(link_titles):
 	frappe.local.response["_link_titles"].update(link_titles)
 
 
-def update_user_info(docinfo):
+def update_user_info(docinfo) -> None:
 	users = set()
 
 	users.update(d.sender for d in docinfo.communications)

@@ -30,7 +30,7 @@ ignore_doctypes = {
 }
 
 
-def notify_link_count(doctype, name):
+def notify_link_count(doctype, name) -> None:
 	"""updates link count for given document"""
 
 	if doctype in ignore_doctypes or not frappe.request:
@@ -43,7 +43,7 @@ def notify_link_count(doctype, name):
 	frappe.local._link_count[(doctype, name)] += 1
 
 
-def flush_local_link_count():
+def flush_local_link_count() -> None:
 	"""flush from local before ending request"""
 	new_links = getattr(frappe.local, "_link_count", None)
 	if not new_links:

@@ -19,13 +19,13 @@ class UnitTestScheduledJobType(UnitTestCase):
 
 
 class TestScheduledJobType(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		frappe.db.rollback()
 		frappe.db.truncate("Scheduled Job Type")
 		sync_jobs()
 		frappe.db.commit()
 
-	def test_throws_on_duplicate_job(self):
+	def test_throws_on_duplicate_job(self) -> None:
 		job_config = dict(
 			doctype="Scheduled Job Type",
 			method="frappe.desk.notifications.clear_notifications",
@@ -38,7 +38,7 @@ class TestScheduledJobType(IntegrationTestCase):
 		self.assertRaises(Exception, duplicate_job.insert)
 		frappe.db.rollback()
 
-	def test_throws_on_duplicate_job_with_cron_format(self):
+	def test_throws_on_duplicate_job_with_cron_format(self) -> None:
 		job_config = dict(
 			doctype="Scheduled Job Type",
 			method="frappe.desk.notifications.clear_notifications",
@@ -52,7 +52,7 @@ class TestScheduledJobType(IntegrationTestCase):
 		self.assertRaises(Exception, duplicate_job.insert)
 		frappe.db.rollback()
 
-	def test_sync_jobs(self):
+	def test_sync_jobs(self) -> None:
 		all_job = frappe.get_doc("Scheduled Job Type", dict(method="frappe.email.queue.flush"))
 		self.assertEqual(all_job.frequency, "All")
 
@@ -72,7 +72,7 @@ class TestScheduledJobType(IntegrationTestCase):
 		updated_scheduled_job = frappe.get_doc("Scheduled Job Type", {"method": "frappe.email.queue.flush"})
 		self.assertEqual(updated_scheduled_job.frequency, "Hourly")
 
-	def test_daily_job(self):
+	def test_daily_job(self) -> None:
 		job = frappe.get_doc(
 			"Scheduled Job Type", dict(method="frappe.desk.notifications.clear_notifications")
 		)
@@ -81,7 +81,7 @@ class TestScheduledJobType(IntegrationTestCase):
 		self.assertFalse(job.is_event_due(get_datetime("2019-01-01 00:00:06")))
 		self.assertFalse(job.is_event_due(get_datetime("2019-01-01 23:59:59")))
 
-	def test_weekly_job(self):
+	def test_weekly_job(self) -> None:
 		job = frappe.get_doc(
 			"Scheduled Job Type",
 			dict(method="frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_summary"),
@@ -91,7 +91,7 @@ class TestScheduledJobType(IntegrationTestCase):
 		self.assertFalse(job.is_event_due(get_datetime("2019-01-02 00:00:06")))
 		self.assertFalse(job.is_event_due(get_datetime("2019-01-05 23:59:59")))
 
-	def test_monthly_job(self):
+	def test_monthly_job(self) -> None:
 		job = frappe.get_doc(
 			"Scheduled Job Type",
 			dict(method="frappe.email.doctype.auto_email_report.auto_email_report.send_monthly"),
@@ -101,7 +101,7 @@ class TestScheduledJobType(IntegrationTestCase):
 		self.assertFalse(job.is_event_due(get_datetime("2019-01-15 00:00:06")))
 		self.assertFalse(job.is_event_due(get_datetime("2019-01-31 23:59:59")))
 
-	def test_cron_job(self):
+	def test_cron_job(self) -> None:
 		# runs every 15 mins
 		job = frappe.get_doc("Scheduled Job Type", dict(method="frappe.oauth.delete_oauth2_data"))
 		job.db_set("last_execution", "2019-01-01 00:00:00")
@@ -110,7 +110,7 @@ class TestScheduledJobType(IntegrationTestCase):
 		self.assertFalse(job.is_event_due(get_datetime("2019-01-01 00:05:06")))
 		self.assertFalse(job.is_event_due(get_datetime("2019-01-01 00:14:59")))
 
-	def test_cold_start(self):
+	def test_cold_start(self) -> None:
 		now = now_datetime()
 		just_before_12_am = now.replace(hour=11, minute=59, second=30)
 		just_after_12_am = now.replace(hour=0, minute=0, second=30) + timedelta(days=1)

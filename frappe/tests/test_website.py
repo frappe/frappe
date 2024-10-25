@@ -10,20 +10,20 @@ from frappe.website.utils import build_response, clear_website_cache, get_home_p
 
 
 class TestWebsite(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		frappe.set_user("Guest")
 		self._clearRequest()
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.db.delete("Access Log")
 		frappe.set_user("Administrator")
 		self._clearRequest()
 
-	def _clearRequest(self):
+	def _clearRequest(self) -> None:
 		if hasattr(frappe.local, "request"):
 			delattr(frappe.local, "request")
 
-	def test_home_page(self):
+	def test_home_page(self) -> None:
 		frappe.set_user("Administrator")
 		# test home page via role
 		user = frappe.get_doc(
@@ -95,7 +95,7 @@ class TestWebsite(IntegrationTestCase):
 		):
 			self.assertEqual(get_home_page(), "home-page-test")
 
-	def test_page_load(self):
+	def test_page_load(self) -> None:
 		set_request(method="POST", path="login")
 		response = get_response()
 
@@ -106,7 +106,7 @@ class TestWebsite(IntegrationTestCase):
 		self.assertTrue("// login.js" in html)
 		self.assertTrue("<!-- login.html -->" in html)
 
-	def test_static_page(self):
+	def test_static_page(self) -> None:
 		set_request(method="GET", path="/_test/static-file-test.png")
 		response = get_response()
 		self.assertEqual(response.status_code, 200)
@@ -124,12 +124,12 @@ class TestWebsite(IntegrationTestCase):
 			response = get_response()
 			static_render.assert_called()
 
-	def test_error_page(self):
+	def test_error_page(self) -> None:
 		set_request(method="GET", path="/_test/problematic_page")
 		response = get_response()
 		self.assertEqual(response.status_code, 417)
 
-	def test_login(self):
+	def test_login(self) -> None:
 		set_request(method="GET", path="/login")
 		response = get_response()
 		self.assertEqual(response.status_code, 200)
@@ -139,7 +139,7 @@ class TestWebsite(IntegrationTestCase):
 		self.assertTrue("// login.js" in html)
 		self.assertTrue("<!-- login.html -->" in html)
 
-	def test_app(self):
+	def test_app(self) -> None:
 		frappe.set_user("Administrator")
 		set_request(method="GET", path="/app")
 		response = get_response()
@@ -149,12 +149,12 @@ class TestWebsite(IntegrationTestCase):
 		self.assertTrue("window.app = true;" in html)
 		frappe.local.session_obj = None
 
-	def test_not_found(self):
+	def test_not_found(self) -> None:
 		set_request(method="GET", path="/_test/missing")
 		response = get_response()
 		self.assertEqual(response.status_code, 404)
 
-	def test_redirect(self):
+	def test_redirect(self) -> None:
 		import frappe.hooks
 
 		frappe.set_user("Administrator")
@@ -229,7 +229,7 @@ class TestWebsite(IntegrationTestCase):
 		delattr(frappe.hooks, "website_redirects")
 		frappe.cache.delete_key("app_hooks")
 
-	def test_custom_page_renderer(self):
+	def test_custom_page_renderer(self) -> None:
 		from frappe import get_hooks
 
 		def patched_get_hooks(*args, **kwargs):
@@ -251,14 +251,14 @@ class TestWebsite(IntegrationTestCase):
 			response = get_response()
 			self.assertEqual(response.status_code, 404)
 
-	def test_printview_page(self):
+	def test_printview_page(self) -> None:
 		frappe.db.value_cache[("DocType", "Language", "name")] = (("Language",),)
 		frappe.set_user("Administrator")
 		content = get_response_content("/Language/ru")
 		self.assertIn('<div class="print-format">', content)
 		self.assertIn("<div>Language</div>", content)
 
-	def test_custom_base_template_path(self):
+	def test_custom_base_template_path(self) -> None:
 		content = get_response_content("/_test/_test_folder/_test_page")
 		# assert the text in base template is rendered
 		self.assertIn("<h1>This is for testing</h1>", content)
@@ -266,7 +266,7 @@ class TestWebsite(IntegrationTestCase):
 		# assert template block rendered
 		self.assertIn("<p>Test content</p>", content)
 
-	def test_json_sidebar_data(self):
+	def test_json_sidebar_data(self) -> None:
 		frappe.flags.look_for_sidebar = False
 		content = get_response_content("/_test/_test_folder/_test_page")
 		self.assertNotIn("Test Sidebar", content)
@@ -276,7 +276,7 @@ class TestWebsite(IntegrationTestCase):
 		self.assertIn("Test Sidebar", content)
 		frappe.flags.look_for_sidebar = False
 
-	def test_base_template(self):
+	def test_base_template(self) -> None:
 		content = get_response_content("/_test/_test_custom_base.html")
 
 		# assert the text in base template is rendered
@@ -285,7 +285,7 @@ class TestWebsite(IntegrationTestCase):
 		# assert template block rendered
 		self.assertIn("<p>Test content</p>", content)
 
-	def test_index_and_next_comment(self):
+	def test_index_and_next_comment(self) -> None:
 		content = get_response_content("/_test/_test_folder")
 		# test if {index} was rendered
 		self.assertIn('<a href="/_test/_test_folder/_test_page"> Test Page</a>', content)
@@ -296,12 +296,12 @@ class TestWebsite(IntegrationTestCase):
 		# test if {next} was rendered
 		self.assertIn('Next: <a class="btn-next" href="/_test/_test_folder/_test_toc">Test TOC</a>', content)
 
-	def test_colocated_assets(self):
+	def test_colocated_assets(self) -> None:
 		content = get_response_content("/_test/_test_folder/_test_page")
 		self.assertIn("""<script>console.log("test data");\n</script>""", content)
 		self.assertIn("background-color: var(--bg-color);", content)
 
-	def test_raw_assets_are_loaded(self):
+	def test_raw_assets_are_loaded(self) -> None:
 		content = get_response_content("/_test/assets/js_asset.min.js")
 		# minified js files should not be passed through jinja renderer
 		self.assertEqual("""//{% if title %} {{title}} {% endif %}\nconsole.log("in");\n""", content)
@@ -309,7 +309,7 @@ class TestWebsite(IntegrationTestCase):
 		content = get_response_content("/_test/assets/css_asset.css")
 		self.assertEqual("""body{color:red}""", content)
 
-	def test_breadcrumbs(self):
+	def test_breadcrumbs(self) -> None:
 		content = get_response_content("/_test/_test_folder/_test_page")
 		self.assertIn('<span itemprop="name">Test Folder</span>', content)
 		self.assertIn('<span itemprop="name"> Test Page</span>', content)
@@ -318,11 +318,11 @@ class TestWebsite(IntegrationTestCase):
 		self.assertIn('<span itemprop="name"> Test</span>', content)
 		self.assertIn('<span itemprop="name">Test Folder</span>', content)
 
-	def test_get_context_without_context_object(self):
+	def test_get_context_without_context_object(self) -> None:
 		content = get_response_content("/_test/_test_no_context")
 		self.assertIn("Custom Content", content)
 
-	def test_caching(self):
+	def test_caching(self) -> None:
 		# to enable caching
 		frappe.flags.force_website_cache = True
 
@@ -337,7 +337,7 @@ class TestWebsite(IntegrationTestCase):
 
 		frappe.flags.force_website_cache = False
 
-	def test_safe_render(self):
+	def test_safe_render(self) -> None:
 		content = get_response_content("/_test/_test_safe_render_on")
 		self.assertNotIn("Safe Render On", content)
 		self.assertIn("frappe.exceptions.ValidationError: Illegal template", content)
@@ -347,7 +347,7 @@ class TestWebsite(IntegrationTestCase):
 		self.assertIn("test.__test", content)
 		self.assertNotIn("frappe.exceptions.ValidationError: Illegal template", content)
 
-	def test_never_render(self):
+	def test_never_render(self) -> None:
 		from pathlib import Path
 		from random import choices
 
@@ -359,12 +359,12 @@ class TestWebsite(IntegrationTestCase):
 			content = get_response_content(path)
 			self.assertIn("<title>Not Found</title>", content)
 
-	def test_metatags(self):
+	def test_metatags(self) -> None:
 		content = get_response_content("/_test/_test_metatags")
 		self.assertIn('<meta name="title" content="Test Title Metatag">', content)
 		self.assertIn('<meta name="description" content="Test Description for Metatag">', content)
 
-	def test_resolve_class(self):
+	def test_resolve_class(self) -> None:
 		from frappe.utils.jinja_globals import resolve_class
 
 		context = frappe._dict(primary=True)
@@ -380,7 +380,7 @@ class TestWebsite(IntegrationTestCase):
 			frappe.render_template(content, context), '<a class="btn btn-default btn-primary">Test</a>'
 		)
 
-	def test_app_include(self):
+	def test_app_include(self) -> None:
 		from frappe import get_hooks
 
 		def patched_get_hooks(*args, **kwargs):
@@ -423,12 +423,12 @@ def patched_get_hooks(hook, value):
 
 
 class CustomPageRenderer:
-	def __init__(self, path, status_code=None):
+	def __init__(self, path, status_code=None) -> None:
 		self.path = path
 		# custom status code
 		self.status_code = 3984
 
-	def can_render(self):
+	def can_render(self) -> bool:
 		if self.path in ("new", "custom"):
 			return True
 

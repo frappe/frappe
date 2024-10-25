@@ -24,7 +24,7 @@ class _dict(dict[_KT, _VT]):
 		return super().__setitem__(k, v)  # type: ignore[index]
 
 	@override
-	def __delattr__(self, k: str):
+	def __delattr__(self, k: str) -> None:
 		return super().__delitem__(k)  # type: ignore[arg-type]
 
 	def __setstate__(self, m: Mapping[_KT, _VT]) -> None:

@@ -27,50 +27,50 @@ class Role(Document):
 		two_factor_auth: DF.Check
 	# end: auto-generated types
 
-	def before_rename(self, old, new, merge=False):
+	def before_rename(self, old, new, merge: bool = False) -> None:
 		if old in STANDARD_ROLES:
 			frappe.throw(frappe._("Standard roles cannot be renamed"))
 
-	def after_insert(self):
+	def after_insert(self) -> None:
 		frappe.cache.hdel("roles", "Administrator")
 
-	def validate(self):
+	def validate(self) -> None:
 		if self.disabled:
 			self.disable_role()
 		else:
 			self.set_desk_properties()
 		self.validate_homepage()
 
-	def disable_role(self):
+	def disable_role(self) -> None:
 		if self.name in STANDARD_ROLES:
 			frappe.throw(frappe._("Standard roles cannot be disabled"))
 		else:
 			self.remove_roles()
 
-	def validate_homepage(self):
+	def validate_homepage(self) -> None:
 		if frappe.request and self.home_page:
 			validate_path(self.home_page)
 
 		if self.has_value_changed("home_page"):
 			clear_routing_cache()
 
-	def set_desk_properties(self):
+	def set_desk_properties(self) -> None:
 		# set if desk_access is not allowed, unset all desk properties
 		if self.name == "Guest":
 			self.desk_access = 0
 
-	def remove_roles(self):
+	def remove_roles(self) -> None:
 		frappe.db.delete("Has Role", {"role": self.name})
 		frappe.clear_cache()
 
-	def on_update(self):
+	def on_update(self) -> None:
 		"""update system user desk access if this has changed in this update"""
 		if frappe.flags.in_install:
 			return
 		if self.has_value_changed("desk_access"):
 			self.update_user_type_on_change()
 
-	def update_user_type_on_change(self):
+	def update_user_type_on_change(self) -> None:
 		"""When desk access changes, all the users that have this role need to be re-evaluated"""
 
 		users_with_role = get_users(self.name)
@@ -87,7 +87,7 @@ class Role(Document):
 				user.save()
 
 
-def get_info_based_on_role(role, field="email", ignore_permissions=False):
+def get_info_based_on_role(role, field: str = "email", ignore_permissions: bool = False):
 	"""Get information of all users that have been assigned this role"""
 	users = frappe.get_list(
 		"Has Role",
@@ -100,7 +100,7 @@ def get_info_based_on_role(role, field="email", ignore_permissions=False):
 	return get_user_info(users, field)
 
 
-def get_user_info(users, field="email"):
+def get_user_info(users, field: str = "email"):
 	"""Fetch details about users for the specified field"""
 	info_list = []
 	for user in users:

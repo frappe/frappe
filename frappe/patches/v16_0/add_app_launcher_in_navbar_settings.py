@@ -4,7 +4,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	if frappe.db.exists("Navbar Item", {"item_label": "Apps"}):
 		return
 

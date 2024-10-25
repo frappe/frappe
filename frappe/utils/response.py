@@ -62,7 +62,7 @@ def report_error(status_code):
 	return response
 
 
-def _link_error_with_message_log(error_log, exception, message_logs):
+def _link_error_with_message_log(error_log, exception, message_logs) -> None:
 	for message in list(message_logs):
 		if message.get("__frappe_exc_id") == getattr(exception, "__frappe_exc_id", None):
 			error_log.update(message)
@@ -159,7 +159,7 @@ def as_binary():
 	return response
 
 
-def make_logs():
+def make_logs() -> None:
 	"""make strings for msgprint and errprint"""
 
 	from frappe.api import ApiVersion, get_api_version
@@ -171,7 +171,7 @@ def make_logs():
 			_make_logs_v2()
 
 
-def _make_logs_v1():
+def _make_logs_v1() -> None:
 	from frappe.utils.error import guess_exception_source
 
 	response = frappe.local.response
@@ -192,7 +192,7 @@ def _make_logs_v1():
 		response["_error_message"] = frappe.flags.error_message
 
 
-def _make_logs_v2():
+def _make_logs_v2() -> None:
 	response = frappe.local.response
 
 	if frappe.local.message_log:

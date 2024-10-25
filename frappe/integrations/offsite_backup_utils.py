@@ -8,7 +8,7 @@ import frappe
 from frappe.utils import cint, split_emails
 
 
-def send_email(success, service_name, doctype, email_field, error_status=None):
+def send_email(success, service_name, doctype, email_field, error_status=None) -> None:
 	recipients = get_recipients(doctype, email_field)
 	if not recipients:
 		frappe.log_error(
@@ -42,7 +42,7 @@ def get_recipients(doctype, email_field):
 	return split_emails(frappe.db.get_value(doctype, None, email_field))
 
 
-def get_latest_backup_file(with_files=False):
+def get_latest_backup_file(with_files: bool = False):
 	from frappe.utils.backups import BackupGenerator
 
 	odb = BackupGenerator(
@@ -62,7 +62,7 @@ def get_latest_backup_file(with_files=False):
 	return database, config
 
 
-def get_file_size(file_path, unit="MB"):
+def get_file_size(file_path, unit: str = "MB"):
 	file_size = os.path.getsize(file_path)
 
 	memory_size_unit_mapper = {"KB": 1, "MB": 2, "GB": 3, "TB": 4}
@@ -92,7 +92,7 @@ def get_chunk_site(file_size):
 		return 15 * MB
 
 
-def validate_file_size():
+def validate_file_size() -> None:
 	frappe.flags.create_new_backup = True
 	latest_file, site_config = get_latest_backup_file()
 	file_size = get_file_size(latest_file, unit="GB") if latest_file else 0
@@ -101,7 +101,7 @@ def validate_file_size():
 		frappe.flags.create_new_backup = False
 
 
-def generate_files_backup():
+def generate_files_backup() -> None:
 	from frappe.utils.backups import BackupGenerator
 
 	backup = BackupGenerator(

@@ -2,7 +2,7 @@ import frappe
 from frappe.utils.install import create_user_type
 
 
-def execute():
+def execute() -> None:
 	frappe.reload_doc("core", "doctype", "role")
 	frappe.reload_doc("core", "doctype", "user_document_type")
 	frappe.reload_doc("core", "doctype", "user_type_module")

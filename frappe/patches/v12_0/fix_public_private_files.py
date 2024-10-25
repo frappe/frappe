@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	files = frappe.get_all("File", fields=["is_private", "file_url", "name"], filters={"is_folder": 0})
 
 	for file in files:
@@ -14,7 +14,7 @@ def execute():
 				generate_file(file.name)
 
 
-def generate_file(file_name):
+def generate_file(file_name) -> None:
 	try:
 		file_doc = frappe.get_doc("File", file_name)
 		# private

@@ -9,11 +9,11 @@ import frappe.model
 from frappe.modules import get_module_path, scrub, scrub_dt_dn
 
 
-def export_doc(doc):
+def export_doc(doc) -> None:
 	write_document_file(doc)
 
 
-def export_to_files(record_list=None, record_module=None, verbose=0, create_init=None):
+def export_to_files(record_list=None, record_module=None, verbose: int = 0, create_init=None) -> None:
 	"""
 	Export record_list to files. record_list is a list of lists ([doctype, docname, folder name],)  ,
 	"""
@@ -31,7 +31,7 @@ def export_to_files(record_list=None, record_module=None, verbose=0, create_init
 			)
 
 
-def write_document_file(doc, record_module=None, create_init=True, folder_name=None):
+def write_document_file(doc, record_module=None, create_init: bool = True, folder_name=None) -> None:
 	doc_export = doc.as_dict(no_nulls=True)
 	doc.run_method("before_export", doc_export)
 
@@ -68,7 +68,7 @@ def strip_default_fields(doc, doc_export):
 	return doc_export
 
 
-def write_code_files(folder, fname, doc, doc_export):
+def write_code_files(folder, fname, doc, doc_export) -> None:
 	"""Export code files and strip from values"""
 	if hasattr(doc, "get_code_fields"):
 		for key, extn in doc.get_code_fields().items():
@@ -93,7 +93,7 @@ def get_module_name(doc):
 	return module
 
 
-def delete_folder(module, dt, dn):
+def delete_folder(module, dt, dn) -> None:
 	if frappe.db.get_value("Module Def", module, "custom"):
 		module_path = get_custom_module_path(module)
 	else:
@@ -149,8 +149,8 @@ def get_package_path(package):
 	return path
 
 
-def create_init_py(module_path, dt, dn):
-	def create_if_not_exists(path):
+def create_init_py(module_path, dt, dn) -> None:
+	def create_if_not_exists(path) -> None:
 		initpy = os.path.join(path, "__init__.py")
 		if not os.path.exists(initpy):
 			open(initpy, "w").close()

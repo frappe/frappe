@@ -3,7 +3,7 @@ from contextlib import suppress
 import frappe
 
 
-def execute():
+def execute() -> None:
 	"""Remove invalid fetch from expressions"""
 	with suppress(Exception):
 		property_setters = frappe.get_all(

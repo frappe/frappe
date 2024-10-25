@@ -15,7 +15,7 @@ class UnitTestMilestoneTracker(UnitTestCase):
 
 
 class TestMilestoneTracker(IntegrationTestCase):
-	def test_milestone(self):
+	def test_milestone(self) -> None:
 		frappe.db.delete("Milestone Tracker")
 
 		frappe.cache.delete_key("milestone_tracker_map")

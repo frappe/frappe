@@ -4,7 +4,7 @@ from frappe.utils import get_html_for_route
 
 
 class TestSitemap(IntegrationTestCase):
-	def test_sitemap(self):
+	def test_sitemap(self) -> None:
 		from frappe.tests.utils import make_test_records
 
 		make_test_records("Blog Post")

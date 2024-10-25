@@ -6,5 +6,5 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.db.sql(""" ALTER TABLE `tabSeries` MODIFY current BIGINT """)

@@ -7,6 +7,7 @@ import traceback
 from contextlib import suppress
 from email.parser import Parser
 from email.policy import SMTP
+from types import TracebackType
 
 import frappe
 from frappe import _, safe_encode, task
@@ -68,15 +69,15 @@ class EmailQueue(Document):
 
 	DOCTYPE = "Email Queue"
 
-	def set_recipients(self, recipients):
+	def set_recipients(self, recipients) -> None:
 		self.set("recipients", [])
 		for r in recipients:
 			self.append("recipients", {"recipient": r.strip(), "status": "Not Sent"})
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		self.prevent_email_queue_delete()
 
-	def prevent_email_queue_delete(self):
+	def prevent_email_queue_delete(self) -> None:
 		if frappe.session.user != "Administrator":
 			frappe.throw(_("Only Administrator can delete Email Queue"))
 
@@ -88,7 +89,7 @@ class EmailQueue(Document):
 		return duplicate
 
 	@classmethod
-	def new(cls, doc_data, ignore_permissions=False) -> "EmailQueue":
+	def new(cls, doc_data, ignore_permissions: bool = False) -> "EmailQueue":
 		data = doc_data.copy()
 		if not data.get("recipients"):
 			return
@@ -109,12 +110,12 @@ class EmailQueue(Document):
 		name = frappe.db.get_value(cls.DOCTYPE, kwargs)
 		return cls.find(name) if name else None
 
-	def update_db(self, commit=False, **kwargs):
+	def update_db(self, commit: bool = False, **kwargs) -> None:
 		frappe.db.set_value(self.DOCTYPE, self.name, kwargs)
 		if commit:
 			frappe.db.commit()
 
-	def update_status(self, status, commit=False, **kwargs):
+	def update_status(self, status, commit: bool = False, **kwargs) -> None:
 		self.update_db(status=status, commit=commit, **kwargs)
 		if self.communication:
 			communication_doc = frappe.get_doc("Communication", self.communication)
@@ -132,7 +133,7 @@ class EmailQueue(Document):
 	def attachments_list(self):
 		return json.loads(self.attachments) if self.attachments else []
 
-	def get_email_account(self, raise_error=False):
+	def get_email_account(self, raise_error: bool = False):
 		if self.email_account:
 			return frappe.get_cached_doc("Email Account", self.email_account)
 
@@ -140,10 +141,10 @@ class EmailQueue(Document):
 			match_by_email=self.sender, match_by_doctype=self.reference_doctype, _raise_error=raise_error
 		)
 
-	def is_to_be_sent(self):
+	def is_to_be_sent(self) -> bool:
 		return self.status in ["Not Sent", "Partially Sent"]
 
-	def can_send_now(self):
+	def can_send_now(self) -> bool:
 		if (
 			frappe.are_emails_muted()
 			or not self.is_to_be_sent()
@@ -153,7 +154,7 @@ class EmailQueue(Document):
 
 		return True
 
-	def send(self, smtp_server_instance: SMTPServer = None, frappe_mail_client: FrappeMail = None):
+	def send(self, smtp_server_instance: SMTPServer = None, frappe_mail_client: FrappeMail = None) -> None:
 		"""Send emails to recipients."""
 		if not self.can_send_now():
 			return
@@ -199,7 +200,7 @@ class EmailQueue(Document):
 				ctx.email_account_doc.append_email_to_sent_folder(message)
 
 	@staticmethod
-	def clear_old_logs(days=30):
+	def clear_old_logs(days: int = 30) -> None:
 		"""Remove low priority older than 31 days in Outbox or configured in Log Settings.
 		Note: Used separate query to avoid deadlock
 		"""
@@ -233,7 +234,7 @@ class SendMailContext:
 		queue_doc: Document,
 		smtp_server_instance: SMTPServer = None,
 		frappe_mail_client: FrappeMail = None,
-	):
+	) -> None:
 		self.queue_doc: EmailQueue = queue_doc
 		self.smtp_server: SMTPServer = smtp_server_instance
 		self.frappe_mail_client: FrappeMail = frappe_mail_client
@@ -242,7 +243,7 @@ class SendMailContext:
 		)
 		self.email_account_doc = None
 
-	def fetch_outgoing_server(self):
+	def fetch_outgoing_server(self) -> None:
 		self.email_account_doc = self.queue_doc.get_email_account(raise_error=True)
 
 		if self.email_account_doc.service == "Frappe Mail":
@@ -255,7 +256,12 @@ class SendMailContext:
 		self.queue_doc.update_status(status="Sending", commit=True)
 		return self
 
-	def __exit__(self, exc_type, exc_val, exc_tb):
+	def __exit__(
+		self,
+		exc_type: type[BaseException] | None,
+		exc_val: BaseException | None,
+		exc_tb: TracebackType | None,
+	) -> None:
 		if exc_type:
 			update_fields = {"error": frappe.get_traceback()}
 			if self.queue_doc.retry < get_email_retry_limit():
@@ -274,7 +280,7 @@ class SendMailContext:
 		self.queue_doc.update_status(**update_fields, commit=True)
 
 	@savepoint(catch=Exception)
-	def notify_failed_email(self):
+	def notify_failed_email(self) -> None:
 		# Parse the email body to extract the subject
 		subject = Parser(policy=SMTP).parsestr(self.queue_doc.message)["Subject"]
 
@@ -288,7 +294,7 @@ class SendMailContext:
 		notification.subject = _("Failed to send email with subject:") + f" {subject}"
 		notification.insert()
 
-	def update_recipient_status_to_sent(self, recipient):
+	def update_recipient_status_to_sent(self, recipient) -> None:
 		self.sent_to_atleast_one_recipient = True
 		recipient.update_db(status="Sent", commit=True)
 
@@ -404,7 +410,7 @@ class SendMailContext:
 
 		return safe_encode(message_obj.as_string())
 
-	def _store_file(self, file_name, content):
+	def _store_file(self, file_name, content) -> None:
 		if not frappe.get_system_settings("store_attached_pdf_document"):
 			return
 
@@ -427,7 +433,7 @@ class SendMailContext:
 
 
 @frappe.whitelist()
-def retry_sending(queues: str | list[str]):
+def retry_sending(queues: str | list[str]) -> None:
 	if not frappe.has_permission("Email Queue", throw=True):
 		return
 
@@ -446,7 +452,7 @@ def retry_sending(queues: str | list[str]):
 
 
 @frappe.whitelist()
-def send_now(name):
+def send_now(name) -> None:
 	record = EmailQueue.find(name)
 	if record:
 		record.check_permission()
@@ -454,12 +460,12 @@ def send_now(name):
 
 
 @frappe.whitelist()
-def toggle_sending(enable):
+def toggle_sending(enable) -> None:
 	frappe.only_for("System Manager")
 	frappe.db.set_default("suspend_email_queue", 0 if sbool(enable) else 1)
 
 
-def on_doctype_update():
+def on_doctype_update() -> None:
 	"""Add index in `tabCommunication` for `(reference_doctype, reference_name)`"""
 	frappe.db.add_index("Email Queue", ("status", "send_after", "priority", "creation"), "index_bulk_flush")
 
@@ -493,18 +499,18 @@ class QueueBuilder:
 		in_reply_to=None,
 		send_after=None,
 		expose_recipients=None,
-		send_priority=1,
+		send_priority: int = 1,
 		communication=None,
 		read_receipt=None,
-		queue_separately=False,
-		is_notification=False,
-		add_unsubscribe_link=1,
+		queue_separately: bool = False,
+		is_notification: bool = False,
+		add_unsubscribe_link: int = 1,
 		inline_images=None,
 		header=None,
-		print_letterhead=False,
-		with_container=False,
+		print_letterhead: bool = False,
+		with_container: bool = False,
 		email_read_tracker_url=None,
-	):
+	) -> None:
 		"""Add email to sending queue (Email Queue)
 
 		:param recipients: List of recipients.
@@ -718,7 +724,7 @@ class QueueBuilder:
 			mail.set_in_reply_to(self.in_reply_to)
 		return mail
 
-	def process(self, send_now=False) -> EmailQueue | None:
+	def process(self, send_now: bool = False) -> EmailQueue | None:
 		"""Build and return the email queues those are created.
 
 		Sends email incase if it is requested to send now.
@@ -753,7 +759,7 @@ class QueueBuilder:
 					queue="long",
 				)
 
-	def send_emails(self, queue_data, final_recipients):
+	def send_emails(self, queue_data, final_recipients) -> None:
 		# This is used to bulk send emails from same sender to multiple recipients separately
 		# This re-uses smtp server instance to minimize the cost of new session creation
 		frappe_mail_client = None
@@ -775,7 +781,7 @@ class QueueBuilder:
 		if smtp_server_instance:
 			smtp_server_instance.quit()
 
-	def as_dict(self, include_recipients=True):
+	def as_dict(self, include_recipients: bool = True):
 		email_account = self.get_outgoing_email_account()
 		email_account_name = email_account and email_account.is_exists_in_db() and email_account.name
 

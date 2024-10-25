@@ -55,25 +55,25 @@ class Comment(Document):
 
 	no_feed_on_delete = True
 
-	def after_insert(self):
+	def after_insert(self) -> None:
 		notify_mentions(self.reference_doctype, self.reference_name, self.content)
 		self.notify_change("add")
 
-	def validate(self):
+	def validate(self) -> None:
 		if not self.comment_email:
 			self.comment_email = frappe.session.user
 		self.content = frappe.utils.sanitize_html(self.content, always_sanitize=True)
 
-	def on_update(self):
+	def on_update(self) -> None:
 		update_comment_in_doc(self)
 		if self.is_new():
 			self.notify_change("update")
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		self.remove_comment_from_cache()
 		self.notify_change("delete")
 
-	def notify_change(self, action):
+	def notify_change(self, action) -> None:
 		key_map = {
 			"Like": "like_logs",
 			"Assigned": "assignment_logs",
@@ -94,7 +94,7 @@ class Comment(Document):
 			after_commit=True,
 		)
 
-	def remove_comment_from_cache(self):
+	def remove_comment_from_cache(self) -> None:
 		_comments = get_comments_from_parent(self)
 		for c in list(_comments):
 			if c.get("name") == self.name:
@@ -103,11 +103,11 @@ class Comment(Document):
 		update_comments_in_parent(self.reference_doctype, self.reference_name, _comments)
 
 
-def on_doctype_update():
+def on_doctype_update() -> None:
 	frappe.db.add_index("Comment", ["reference_doctype", "reference_name"])
 
 
-def update_comment_in_doc(doc):
+def update_comment_in_doc(doc) -> None:
 	"""Updates `_comments` (JSON) property in parent Document.
 	Creates a column `_comments` if property does not exist.
 

@@ -20,8 +20,8 @@ class ClientScript(Document):
 		view: DF.Literal["List", "Form"]
 	# end: auto-generated types
 
-	def on_update(self):
+	def on_update(self) -> None:
 		frappe.clear_cache(doctype=self.dt)
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		frappe.clear_cache(doctype=self.dt)

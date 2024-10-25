@@ -6,7 +6,7 @@ from frappe.utils.data import add_to_date, today
 
 
 class TestDocumentLocks(IntegrationTestCase):
-	def test_locking(self):
+	def test_locking(self) -> None:
 		todo = frappe.get_doc(doctype="ToDo", description="test").insert()
 		todo_1 = frappe.get_doc("ToDo", todo.name)
 
@@ -18,7 +18,7 @@ class TestDocumentLocks(IntegrationTestCase):
 		self.assertRaises(frappe.DocumentLockedError, todo.lock)
 		todo_1.unlock()
 
-	def test_operations_on_locked_documents(self):
+	def test_operations_on_locked_documents(self) -> None:
 		todo = frappe.get_doc(doctype="ToDo", description="testing operations").insert()
 		todo.lock()
 
@@ -38,7 +38,7 @@ class TestDocumentLocks(IntegrationTestCase):
 		self.assertEqual(doc.is_locked, False)
 		self.assertEqual(todo.is_locked, False)
 
-	def test_locks_auto_expiry(self):
+	def test_locks_auto_expiry(self) -> None:
 		todo = frappe.get_doc(doctype="ToDo", description=frappe.generate_hash()).insert()
 		todo.lock()
 

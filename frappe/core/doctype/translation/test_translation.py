@@ -15,16 +15,16 @@ class UnitTestTranslation(UnitTestCase):
 
 
 class TestTranslation(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		frappe.db.delete("Translation")
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.local.lang = "en"
 		from frappe.translate import clear_cache
 
 		clear_cache()
 
-	def test_doctype(self):
+	def test_doctype(self) -> None:
 		translation_data = get_translation_data()
 		for key, val in translation_data.items():
 			frappe.local.lang = key
@@ -35,7 +35,7 @@ class TestTranslation(IntegrationTestCase):
 			frappe.delete_doc("Translation", translation.name)
 			self.assertEqual(_(val[0]), val[0])
 
-	def test_parent_language(self):
+	def test_parent_language(self) -> None:
 		data = {
 			"Test Data": {
 				"es": "datos de prueba",
@@ -64,11 +64,11 @@ class TestTranslation(IntegrationTestCase):
 		# from spanish (general)
 		self.assertEqual(_("Test Spanish"), data["Test Spanish"]["es"])
 
-	def test_multi_language_translations(self):
+	def test_multi_language_translations(self) -> None:
 		source = "User"
 		self.assertNotEqual(_(source, lang="de"), _(source, lang="es"))
 
-	def test_html_content_data_translation(self):
+	def test_html_content_data_translation(self) -> None:
 		source = """
 			<span style="color: rgb(51, 51, 51); font-family: &quot;Amazon Ember&quot;, Arial, sans-serif; font-size:
 			small;">MacBook Air lasts up to an incredible 12 hours between charges. So from your morning coffee to

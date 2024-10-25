@@ -134,7 +134,7 @@ def get_letter_heads():
 	return letter_heads
 
 
-def load_conf_settings(bootinfo):
+def load_conf_settings(bootinfo) -> None:
 	from frappe.core.api.file import get_max_file_size
 
 	bootinfo.max_file_size = get_max_file_size()
@@ -143,7 +143,7 @@ def load_conf_settings(bootinfo):
 			bootinfo[key] = frappe.conf.get(key)
 
 
-def load_desktop_data(bootinfo):
+def load_desktop_data(bootinfo) -> None:
 	from frappe.desk.desktop import get_workspace_sidebar_items
 
 	bootinfo.sidebar_pages = get_workspace_sidebar_items()
@@ -203,19 +203,19 @@ def load_desktop_data(bootinfo):
 		)
 
 
-def get_allowed_pages(cache=False):
+def get_allowed_pages(cache: bool = False):
 	return get_user_pages_or_reports("Page", cache=cache)
 
 
-def get_allowed_reports(cache=False):
+def get_allowed_reports(cache: bool = False):
 	return get_user_pages_or_reports("Report", cache=cache)
 
 
-def get_allowed_report_names(cache=False) -> set[str]:
+def get_allowed_report_names(cache: bool = False) -> set[str]:
 	return {cstr(report) for report in get_allowed_reports(cache).keys() if report}
 
 
-def get_user_pages_or_reports(parent, cache=False):
+def get_user_pages_or_reports(parent, cache: bool = False):
 	if cache:
 		has_role = frappe.cache.get_value("has_role:" + parent, user=frappe.session.user)
 		if has_role:
@@ -321,7 +321,7 @@ def get_user_pages_or_reports(parent, cache=False):
 	return has_role
 
 
-def load_translations(bootinfo):
+def load_translations(bootinfo) -> None:
 	from frappe.translate import get_messages_for_boot
 
 	bootinfo["lang"] = frappe.lang
@@ -336,12 +336,12 @@ def get_user_info():
 	return user_info
 
 
-def get_user(bootinfo):
+def get_user(bootinfo) -> None:
 	"""get user info"""
 	bootinfo.user = frappe.get_user().load_user()
 
 
-def add_home_page(bootinfo, docs):
+def add_home_page(bootinfo, docs) -> None:
 	"""load home page"""
 	if frappe.session.user == "Guest":
 		return
@@ -359,7 +359,7 @@ def add_home_page(bootinfo, docs):
 		bootinfo["home_page"] = "Workspaces"
 
 
-def add_timezone_info(bootinfo):
+def add_timezone_info(bootinfo) -> None:
 	system = bootinfo.sysdefaults.get("time_zone")
 	import frappe.utils.momentjs
 
@@ -367,14 +367,14 @@ def add_timezone_info(bootinfo):
 	frappe.utils.momentjs.update(system, bootinfo.timezone_info)
 
 
-def load_print(bootinfo, doclist):
+def load_print(bootinfo, doclist) -> None:
 	print_settings = frappe.db.get_singles_dict("Print Settings")
 	print_settings.doctype = ":Print Settings"
 	doclist.append(print_settings)
 	load_print_css(bootinfo, print_settings)
 
 
-def load_print_css(bootinfo, print_settings):
+def load_print_css(bootinfo, print_settings) -> None:
 	import frappe.www.printview
 
 	bootinfo.print_css = frappe.www.printview.get_print_style(
@@ -431,7 +431,7 @@ def get_additional_filters_from_hooks():
 	return filter_config
 
 
-def add_layouts(bootinfo):
+def add_layouts(bootinfo) -> None:
 	# add routes for readable doctypes
 	bootinfo.doctype_layouts = frappe.get_all("DocType Layout", ["name", "route", "document_type"])
 
@@ -456,7 +456,7 @@ def get_link_title_doctypes():
 	return [d.name for d in dts + custom_dts if d]
 
 
-def set_time_zone(bootinfo):
+def set_time_zone(bootinfo) -> None:
 	bootinfo.time_zone = {
 		"system": get_system_timezone(),
 		"user": bootinfo.get("user_info", {}).get(frappe.session.user, {}).get("time_zone", None)
@@ -464,7 +464,7 @@ def set_time_zone(bootinfo):
 	}
 
 
-def load_country_doc(bootinfo):
+def load_country_doc(bootinfo) -> None:
 	country = frappe.db.get_default("country")
 	if not country:
 		return
@@ -474,7 +474,7 @@ def load_country_doc(bootinfo):
 		pass
 
 
-def load_currency_docs(bootinfo):
+def load_currency_docs(bootinfo) -> None:
 	currency = frappe.qb.DocType("Currency")
 
 	currency_docs = (

@@ -116,12 +116,12 @@ def get_redirect_uri(provider: str) -> str:
 	return frappe.utils.get_url(redirect_uri)
 
 
-def login_via_oauth2(provider: str, code: str, state: str, decoder: Callable | None = None):
+def login_via_oauth2(provider: str, code: str, state: str, decoder: Callable | None = None) -> None:
 	info = get_info_via_oauth(provider, code, decoder)
 	login_oauth_user(info, provider=provider, state=state)
 
 
-def login_via_oauth2_id_token(provider: str, code: str, state: str, decoder: Callable | None = None):
+def login_via_oauth2_id_token(provider: str, code: str, state: str, decoder: Callable | None = None) -> None:
 	info = get_info_via_oauth(provider, code, decoder, id_token=True)
 	login_oauth_user(info, provider=provider, state=state)
 
@@ -260,7 +260,7 @@ def get_user_record(user: str, data: dict, provider: str) -> "User":
 	return user
 
 
-def update_oauth_user(user: str, data: dict, provider: str):
+def update_oauth_user(user: str, data: dict, provider: str) -> bool:
 	if isinstance(data.get("location"), dict):
 		data["location"] = data["location"].get("name")
 
@@ -313,7 +313,7 @@ def get_email(data: dict) -> str:
 	return data.get("email") or data.get("upn") or data.get("unique_name")
 
 
-def redirect_post_login(desk_user: bool, redirect_to: str | None = None, provider: str | None = None):
+def redirect_post_login(desk_user: bool, redirect_to: str | None = None, provider: str | None = None) -> None:
 	frappe.local.response["type"] = "redirect"
 
 	if not redirect_to:

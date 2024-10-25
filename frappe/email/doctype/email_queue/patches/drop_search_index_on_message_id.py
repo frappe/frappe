@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	"""Drop search index on message_id"""
 
 	if frappe.db.get_column_type("Email Queue", "message_id") == "text":

@@ -8,13 +8,13 @@ from frappe.core.doctype.activity_log.activity_log import add_authentication_log
 from frappe.utils import get_fullname
 
 
-def login_feed(login_manager):
+def login_feed(login_manager) -> None:
 	if login_manager.user != "Guest":
 		subject = _("{0} logged in").format(get_fullname(login_manager.user))
 		add_authentication_log(subject, login_manager.user)
 
 
-def logout_feed(user, reason):
+def logout_feed(user, reason) -> None:
 	if user and user != "Guest":
 		subject = _("{0} logged out: {1}").format(get_fullname(user), frappe.bold(reason))
 		add_authentication_log(subject, user, operation="Logout")

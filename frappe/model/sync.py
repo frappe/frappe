@@ -36,7 +36,7 @@ IMPORTABLE_DOCTYPES = [
 ]
 
 
-def sync_all(force=0, reset_permissions=False):
+def sync_all(force: int = 0, reset_permissions: bool = False) -> None:
 	_patch_mode(True)
 
 	for app in frappe.get_installed_apps():
@@ -47,7 +47,7 @@ def sync_all(force=0, reset_permissions=False):
 	frappe.clear_cache()
 
 
-def sync_for(app_name, force=0, reset_permissions=False):
+def sync_for(app_name, force: int = 0, reset_permissions: bool = False) -> None:
 	files = []
 
 	if app_name == "frappe":
@@ -139,7 +139,7 @@ def get_doc_files(files, start_path):
 	return files
 
 
-def remove_orphan_doctypes():
+def remove_orphan_doctypes() -> None:
 	"""Find and remove any orphaned doctypes.
 
 	These are doctypes for which code and schema file is

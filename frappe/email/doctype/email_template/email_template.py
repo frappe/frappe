@@ -27,7 +27,7 @@ class EmailTemplate(Document):
 	def response_(self):
 		return self.response_html if self.use_html else self.response
 
-	def validate(self):
+	def validate(self) -> None:
 		validate_template(self.subject)
 		validate_template(self.response_)
 

@@ -103,13 +103,13 @@ def get_permissions(doctype: str | None = None, role: str | None = None):
 
 
 @frappe.whitelist()
-def add(parent, role, permlevel):
+def add(parent, role, permlevel) -> None:
 	frappe.only_for("System Manager")
 	add_permission(parent, role, permlevel)
 
 
 @frappe.whitelist()
-def update(doctype: str, role: str, permlevel: int, ptype: str, value=None, if_owner=0) -> str | None:
+def update(doctype: str, role: str, permlevel: int, ptype: str, value=None, if_owner: int = 0) -> str | None:
 	"""Update role permission params.
 
 	Args:
@@ -123,7 +123,7 @@ def update(doctype: str, role: str, permlevel: int, ptype: str, value=None, if_o
 	        str: Refresh flag if permission is updated successfully
 	"""
 
-	def clear_cache():
+	def clear_cache() -> None:
 		frappe.clear_cache(doctype=doctype)
 
 	frappe.only_for("System Manager")
@@ -142,7 +142,7 @@ def update(doctype: str, role: str, permlevel: int, ptype: str, value=None, if_o
 
 
 @frappe.whitelist()
-def remove(doctype, role, permlevel, if_owner=0):
+def remove(doctype, role, permlevel, if_owner: int = 0) -> None:
 	frappe.only_for("System Manager")
 	setup_custom_perms(doctype)
 
@@ -159,7 +159,7 @@ def remove(doctype, role, permlevel, if_owner=0):
 
 
 @frappe.whitelist()
-def reset(doctype):
+def reset(doctype) -> None:
 	frappe.only_for("System Manager")
 	reset_perms(doctype)
 	clear_permissions_cache(doctype)

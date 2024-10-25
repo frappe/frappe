@@ -8,7 +8,7 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestModelUtils(IntegrationTestCase):
-	def test_get_fetch_values(self):
+	def test_get_fetch_values(self) -> None:
 		doctype = "ToDo"
 
 		# no fields to fetch
@@ -28,7 +28,7 @@ class TestModelUtils(IntegrationTestCase):
 
 		self.assertEqual(get_fetch_values(doctype, "assigned_by", user), {"assigned_by_full_name": full_name})
 
-	def test_get_permitted_fields(self):
+	def test_get_permitted_fields(self) -> None:
 		# Administrator should have access to all fields in ToDo
 		todo_all_fields = get_permitted_fields("ToDo", user="Administrator")
 		todo_all_columns = frappe.get_meta("ToDo").get_valid_columns()
@@ -63,7 +63,7 @@ class TestModelUtils(IntegrationTestCase):
 				"app_name", get_permitted_fields("Installed Application", parenttype="Installed Applications")
 			)
 
-	def test_is_default_field(self):
+	def test_is_default_field(self) -> None:
 		self.assertTrue(is_default_field("doctype"))
 		self.assertTrue(is_default_field("name"))
 		self.assertTrue(is_default_field("owner"))

@@ -24,7 +24,7 @@ class OAuthBearerToken(Document):
 		user: DF.Link | None
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		if not self.expiration_time:
 			self.expiration_time = frappe.utils.datetime.datetime.strptime(
 				self.creation, "%Y-%m-%d %H:%M:%S.%f"

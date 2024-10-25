@@ -30,14 +30,14 @@ class TestSocialLoginKey(IntegrationTestCase):
 		super().setUp()
 		frappe.set_user("Guest")
 
-	def test_adding_frappe_social_login_provider(self):
+	def test_adding_frappe_social_login_provider(self) -> None:
 		frappe.set_user("Administrator")
 		provider_name = "Frappe"
 		social_login_key = make_social_login_key(social_login_provider=provider_name)
 		social_login_key.get_social_login_provider(provider_name, initialize=True)
 		self.assertRaises(BaseUrlNotSetError, social_login_key.insert)
 
-	def test_github_login_with_private_email(self):
+	def test_github_login_with_private_email(self) -> None:
 		github_social_login_setup()
 
 		mock_session = MagicMock()
@@ -46,7 +46,7 @@ class TestSocialLoginKey(IntegrationTestCase):
 		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
 			login_via_oauth2("github", "iwriu", {"token": "ewrwerwer"})  # Dummy code and state token
 
-	def test_github_login_with_public_email(self):
+	def test_github_login_with_public_email(self) -> None:
 		github_social_login_setup()
 
 		mock_session = MagicMock()
@@ -55,7 +55,7 @@ class TestSocialLoginKey(IntegrationTestCase):
 		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
 			login_via_oauth2("github", "iwriu", {"token": "ewrwerwer"})  # Dummy code and state token
 
-	def test_normal_signup_and_github_login(self):
+	def test_normal_signup_and_github_login(self) -> None:
 		github_social_login_setup()
 
 		if not frappe.db.exists("User", TEST_GITHUB_USER):
@@ -69,7 +69,7 @@ class TestSocialLoginKey(IntegrationTestCase):
 			login_via_oauth2("github", "iwriu", {"token": "ewrwerwer"})
 		self.assertEqual(frappe.session.user, TEST_GITHUB_USER)
 
-	def test_force_disabled_signups(self):
+	def test_force_disabled_signups(self) -> None:
 		key = github_social_login_setup()
 		key.sign_ups = "Deny"
 		key.save(ignore_permissions=True)
@@ -82,7 +82,7 @@ class TestSocialLoginKey(IntegrationTestCase):
 		self.assertEqual(frappe.session.user, "Guest")
 
 	@IntegrationTestCase.change_settings("Website Settings", disable_signup=1)
-	def test_force_enabled_signups(self):
+	def test_force_enabled_signups(self) -> None:
 		"""Social login key can override website settings for disabled signups."""
 		key = github_social_login_setup()
 		key.sign_ups = "Allow"

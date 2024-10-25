@@ -91,7 +91,7 @@ def datetime_in_user_format(date_time):
 	return formatdate(date_time.date()) + " " + date_time.strftime("%H:%M")
 
 
-def get_dates_from_timegrain(from_date, to_date, timegrain="Daily"):
+def get_dates_from_timegrain(from_date, to_date, timegrain: str = "Daily"):
 	from_date = getdate(from_date)
 	to_date = getdate(to_date)
 
@@ -133,7 +133,7 @@ def get_from_date_from_timespan(to_date, timespan):
 	return add_to_date(to_date, years=years, months=months, days=days, as_datetime=True)
 
 
-def get_period(date, interval="Monthly"):
+def get_period(date, interval: str = "Monthly"):
 	date = getdate(date)
 	months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 	return {
@@ -145,7 +145,7 @@ def get_period(date, interval="Monthly"):
 	}[interval]
 
 
-def get_period_beginning(date, timegrain, as_str=True):
+def get_period_beginning(date, timegrain, as_str: bool = True):
 	return getdate(
 		{
 			"Daily": date,

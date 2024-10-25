@@ -10,7 +10,7 @@ from frappe import safe_decode
 filter_dict = {"doctype": 0, "docfield": 1, "operator": 2, "value": 3}
 
 
-def get_user_settings(doctype, for_update=False):
+def get_user_settings(doctype, for_update: bool = False):
 	user_settings = frappe.cache.hget("_user_settings", f"{doctype}::{frappe.session.user}")
 
 	if user_settings is None:
@@ -27,7 +27,7 @@ def get_user_settings(doctype, for_update=False):
 	return user_settings or "{}"
 
 
-def update_user_settings(doctype, user_settings, for_update=False):
+def update_user_settings(doctype, user_settings, for_update: bool = False) -> None:
 	"""update user settings in cache"""
 
 	if for_update:
@@ -44,7 +44,7 @@ def update_user_settings(doctype, user_settings, for_update=False):
 	frappe.cache.hset("_user_settings", f"{doctype}::{frappe.session.user}", json.dumps(current))
 
 
-def sync_user_settings():
+def sync_user_settings() -> None:
 	"""Sync from cache to database (called asynchronously via the browser)"""
 	for key, data in frappe.cache.hgetall("_user_settings").items():
 		key = safe_decode(key)
@@ -77,7 +77,7 @@ def get(doctype):
 
 def update_user_settings_data(
 	user_setting, fieldname, old, new, condition_fieldname=None, condition_values=None
-):
+) -> None:
 	data = user_setting.get("data")
 	if data:
 		update = False

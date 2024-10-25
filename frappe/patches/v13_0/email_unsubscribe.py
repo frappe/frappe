@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	email_unsubscribe = [
 		{"email": "admin@example.com", "global_unsubscribe": 1},
 		{"email": "guest@example.com", "global_unsubscribe": 1},

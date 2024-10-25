@@ -21,13 +21,13 @@ class UnitTestWebForm(UnitTestCase):
 
 
 class TestWebForm(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		frappe.conf.disable_website_cache = True
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.conf.disable_website_cache = False
 
-	def test_accept(self):
+	def test_accept(self) -> None:
 		frappe.set_user("Administrator")
 
 		doc = {
@@ -42,7 +42,7 @@ class TestWebForm(IntegrationTestCase):
 		self.event_name = frappe.db.get_value("Event", {"subject": "_Test Event Web Form"})
 		self.assertTrue(self.event_name)
 
-	def test_edit(self):
+	def test_edit(self) -> None:
 		self.test_accept()
 
 		doc = {
@@ -61,7 +61,7 @@ class TestWebForm(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.get_value("Event", self.event_name, "description"), doc.get("description"))
 
-	def test_webform_render(self):
+	def test_webform_render(self) -> None:
 		set_request(method="GET", path="manage-events/new")
 		content = get_response_content("manage-events/new")
 		self.assertIn('<h1 class="ellipsis">New Manage Events</h1>', content)
@@ -69,7 +69,7 @@ class TestWebForm(IntegrationTestCase):
 		self.assertIn('data-path="manage-events/new"', content)
 		self.assertIn('source-type="Generator"', content)
 
-	def test_webform_html_meta_is_added(self):
+	def test_webform_html_meta_is_added(self) -> None:
 		set_request(method="GET", path="manage-events/new")
 		content = self.normalize_html(get_response_content("manage-events/new"))
 

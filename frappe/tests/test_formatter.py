@@ -4,7 +4,7 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestFormatter(IntegrationTestCase):
-	def test_currency_formatting(self):
+	def test_currency_formatting(self) -> None:
 		df = frappe._dict({"fieldname": "amount", "fieldtype": "Currency", "options": "currency"})
 
 		doc = frappe._dict({"amount": 5})

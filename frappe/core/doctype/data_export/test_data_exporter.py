@@ -15,13 +15,13 @@ class UnitTestDataExport(UnitTestCase):
 
 
 class TestDataExporter(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		self.doctype_name = "Test DocType for Export Tool"
 		self.doc_name = "Test Data for Export Tool"
 		self.create_doctype_if_not_exists(doctype_name=self.doctype_name)
 		self.create_test_data()
 
-	def create_doctype_if_not_exists(self, doctype_name, force=False):
+	def create_doctype_if_not_exists(self, doctype_name, force: bool = False) -> None:
 		"""
 		Helper Function for setting up doctypes
 		"""
@@ -70,7 +70,7 @@ class TestDataExporter(IntegrationTestCase):
 			}
 		).insert()
 
-	def create_test_data(self, force=False):
+	def create_test_data(self, force: bool = False) -> None:
 		"""
 		Helper Function creating test data
 		"""
@@ -90,7 +90,7 @@ class TestDataExporter(IntegrationTestCase):
 		else:
 			self.doc = frappe.get_doc(self.doctype_name, self.doc_name)
 
-	def test_export_content(self):
+	def test_export_content(self) -> None:
 		exp = DataExporter(doctype=self.doctype_name, file_type="CSV")
 		exp.build_response()
 
@@ -100,7 +100,7 @@ class TestDataExporter(IntegrationTestCase):
 		self.assertRegex(frappe.response["result"], r"Child Title 1.*?,50")
 		self.assertRegex(frappe.response["result"], r"Child Title 2.*?,51")
 
-	def test_export_type(self):
+	def test_export_type(self) -> None:
 		for type in ["csv", "Excel"]:
 			with self.subTest(type=type):
 				exp = DataExporter(doctype=self.doctype_name, file_type=type)
@@ -118,5 +118,5 @@ class TestDataExporter(IntegrationTestCase):
 					)  # 'Test DocType for Export Tool.xlsx')
 					self.assertTrue(frappe.response["filecontent"])
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		pass

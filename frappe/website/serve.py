@@ -8,7 +8,7 @@ from frappe.website.page_renderers.redirect_page import RedirectPage
 from frappe.website.path_resolver import PathResolver
 
 
-def get_response(path=None, http_status_code=200) -> Response:
+def get_response(path=None, http_status_code: int = 200) -> Response:
 	"""Resolves path and renders page"""
 	response = None
 	path = path or frappe.local.request.path
@@ -30,12 +30,12 @@ def get_response(path=None, http_status_code=200) -> Response:
 	return response
 
 
-def get_response_content(path=None, http_status_code=200) -> str:
+def get_response_content(path=None, http_status_code: int = 200) -> str:
 	response = get_response(path, http_status_code)
 	return str(response.data, "utf-8")
 
 
-def get_response_without_exception_handling(path=None, http_status_code=200) -> Response:
+def get_response_without_exception_handling(path=None, http_status_code: int = 200) -> Response:
 	"""Resolves path and renders page.
 
 	Note: This doesn't do any exception handling and assumes you'll implement the exception

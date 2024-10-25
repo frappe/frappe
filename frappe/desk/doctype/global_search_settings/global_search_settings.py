@@ -19,7 +19,7 @@ class GlobalSearchSettings(Document):
 		allowed_in_global_search: DF.Table[GlobalSearchDocType]
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		dts, core_dts, repeated_dts = [], [], []
 
 		for dt in self.allowed_in_global_search:
@@ -52,11 +52,11 @@ def get_doctypes_for_global_search():
 
 
 @frappe.whitelist()
-def reset_global_search_settings_doctypes():
+def reset_global_search_settings_doctypes() -> None:
 	update_global_search_doctypes()
 
 
-def update_global_search_doctypes():
+def update_global_search_doctypes() -> None:
 	global_search_doctypes = []
 	show_message(1, _("Fetching default Global Search documents."))
 
@@ -95,7 +95,7 @@ def update_global_search_doctypes():
 	show_message(3, "Global Search Documents have been reset.")
 
 
-def show_message(progress, msg):
+def show_message(progress, msg) -> None:
 	frappe.publish_realtime(
 		"global_search_settings",
 		{"progress": progress, "total": 3, "msg": msg},

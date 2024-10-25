@@ -22,12 +22,12 @@ class WorkspaceSettings(Document):
 
 	pass
 
-	def on_update(self):
+	def on_update(self) -> None:
 		frappe.clear_cache()
 
 
 @frappe.whitelist()
-def set_sequence(sidebar_items):
+def set_sequence(sidebar_items) -> None:
 	if not WorkspaceSettings("Workspace Settings").has_permission():
 		frappe.throw_permission_error()
 

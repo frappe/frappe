@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	communications = frappe.db.sql(
 		"""
 		SELECT

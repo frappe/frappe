@@ -21,7 +21,7 @@ class EmailUnsubscribe(Document):
 		reference_name: DF.DynamicLink | None
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		if not self.global_unsubscribe and not (self.reference_doctype and self.reference_name):
 			frappe.throw(_("Reference DocType and Reference Name are required"), frappe.MandatoryError)
 
@@ -52,7 +52,7 @@ class EmailUnsubscribe(Document):
 					frappe.DuplicateEntryError,
 				)
 
-	def on_update(self):
+	def on_update(self) -> None:
 		if self.reference_doctype and self.reference_name:
 			doc = frappe.get_doc(self.reference_doctype, self.reference_name)
 			doc.add_comment("Label", _("Left this conversation"), comment_email=self.email)

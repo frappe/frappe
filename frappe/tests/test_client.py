@@ -8,7 +8,7 @@ from frappe.utils import get_site_url
 
 
 class TestClient(IntegrationTestCase):
-	def test_set_value(self):
+	def test_set_value(self) -> None:
 		todo = frappe.get_doc(doctype="ToDo", description="test").insert()
 		frappe.set_value("ToDo", todo.name, "description", "test 1")
 		self.assertEqual(frappe.get_value("ToDo", todo.name, "description"), "test 1")
@@ -16,7 +16,7 @@ class TestClient(IntegrationTestCase):
 		frappe.set_value("ToDo", todo.name, {"description": "test 2"})
 		self.assertEqual(frappe.get_value("ToDo", todo.name, "description"), "test 2")
 
-	def test_delete(self):
+	def test_delete(self) -> None:
 		from frappe.client import delete
 		from frappe.desk.doctype.note.note import Note
 
@@ -39,7 +39,7 @@ class TestClient(IntegrationTestCase):
 		self.assertRaises(frappe.DoesNotExistError, delete, "Note", note.name)
 		self.assertRaises(frappe.DoesNotExistError, delete, "Note Seen By", child_row_name)
 
-	def test_http_valid_method_access(self):
+	def test_http_valid_method_access(self) -> None:
 		from frappe.client import delete
 		from frappe.handler import execute_cmd
 
@@ -57,7 +57,7 @@ class TestClient(IntegrationTestCase):
 
 		delete("ToDo", todo.name)
 
-	def test_http_invalid_method_access(self):
+	def test_http_invalid_method_access(self) -> None:
 		from frappe.handler import execute_cmd
 
 		frappe.set_user("Administrator")
@@ -71,7 +71,7 @@ class TestClient(IntegrationTestCase):
 
 		self.assertRaises(frappe.PermissionError, execute_cmd, "frappe.client.save")
 
-	def test_run_doc_method(self):
+	def test_run_doc_method(self) -> None:
 		from frappe.handler import execute_cmd
 
 		if not frappe.db.exists("Report", "Test Run Doc Method"):
@@ -117,7 +117,7 @@ class TestClient(IntegrationTestCase):
 
 		self.assertRaises(frappe.PermissionError, execute_cmd, frappe.local.form_dict.cmd)
 
-	def test_array_values_in_request_args(self):
+	def test_array_values_in_request_args(self) -> None:
 		import requests
 
 		from frappe.auth import CookieManager, LoginManager
@@ -145,7 +145,7 @@ class TestClient(IntegrationTestCase):
 		self.assertTrue("name" in first_item)
 		self.assertTrue("modified" in first_item)
 
-	def test_client_get(self):
+	def test_client_get(self) -> None:
 		from frappe.client import get
 
 		todo = frappe.get_doc(doctype="ToDo", description="test").insert()
@@ -158,10 +158,10 @@ class TestClient(IntegrationTestCase):
 		self.assertEqual(get("ToDo", filters={}), get("ToDo", filters="{}"))
 		todo.delete()
 
-	def test_client_insert(self):
+	def test_client_insert(self) -> None:
 		from frappe.client import insert
 
-		def get_random_title():
+		def get_random_title() -> str:
 			return f"test-{frappe.generate_hash()}"
 
 		# test insert dict
@@ -195,10 +195,10 @@ class TestClient(IntegrationTestCase):
 		frappe.delete_doc("Note", note1.name)
 		frappe.delete_doc("Note", note2.name)
 
-	def test_client_insert_many(self):
+	def test_client_insert_many(self) -> None:
 		from frappe.client import insert, insert_many
 
-		def get_random_title():
+		def get_random_title() -> str:
 			return f"test-{frappe.generate_hash(length=5)}"
 
 		# insert a (parent) doc

@@ -20,7 +20,7 @@ def resolve_class(*classes):
 	return classes
 
 
-def inspect(var, render=True):
+def inspect(var, render: bool = True):
 	from frappe.utils.jinja import get_jenv
 
 	context = {"var": var}
@@ -95,7 +95,7 @@ def get_dom_id(seed=None):
 	return "id-" + generate_hash(12)
 
 
-def include_script(path, preload=True):
+def include_script(path, preload: bool = True) -> str:
 	"""Get path of bundled script files.
 
 	If preload is specified the path will be added to preload headers so browsers can prefetch
@@ -110,7 +110,7 @@ def include_script(path, preload=True):
 	return f'<script type="text/javascript" src="{path}"></script>'
 
 
-def include_icons(path, preload=True):
+def include_icons(path, preload: bool = True):
 	"""Get path of bundled svg icons files.
 
 	If preload is specified the path will be added to preload headers so browsers can prefetch
@@ -129,7 +129,7 @@ def include_icons(path, preload=True):
 	)
 
 
-def include_style(path, rtl=None, preload=True):
+def include_style(path, rtl=None, preload: bool = True) -> str:
 	"""Get path of bundled style files.
 
 	If preload is specified the path will be added to preload headers so browsers can prefetch

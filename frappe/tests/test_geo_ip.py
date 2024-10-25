@@ -4,7 +4,7 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestGeoIP(IntegrationTestCase):
-	def test_geo_ip(self):
+	def test_geo_ip(self) -> None:
 		return
 		from frappe.sessions import get_geo_ip_country
 

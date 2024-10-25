@@ -4,7 +4,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.reload_doc("core", "doctype", "DocField")
 
 	if frappe.db.has_column("DocField", "show_days"):

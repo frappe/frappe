@@ -4,7 +4,7 @@ METATAGS = ("title", "description", "image", "author", "published_on")
 
 
 class MetaTags:
-	def __init__(self, path, context):
+	def __init__(self, path, context) -> None:
 		self.path = path
 		self.context = context
 		self.tags = frappe._dict(self.context.get("metatags") or {})
@@ -14,7 +14,7 @@ class MetaTags:
 		self.set_meta_published_on()
 		self.set_metatags_from_website_route_meta()
 
-	def init_metatags_from_context(self):
+	def init_metatags_from_context(self) -> None:
 		for key in METATAGS:
 			if not self.tags.get(key) and self.context.get(key):
 				self.tags[key] = self.context[key]
@@ -27,7 +27,7 @@ class MetaTags:
 
 		self.tags["language"] = frappe.local.lang or "en"
 
-	def set_opengraph_tags(self):
+	def set_opengraph_tags(self) -> None:
 		if "og:type" not in self.tags:
 			self.tags["og:type"] = "article"
 
@@ -35,7 +35,7 @@ class MetaTags:
 			if self.tags.get(key):
 				self.tags["og:" + key] = self.tags.get(key)
 
-	def set_twitter_tags(self):
+	def set_twitter_tags(self) -> None:
 		for key in METATAGS:
 			if self.tags.get(key):
 				self.tags["twitter:" + key] = self.tags.get(key)
@@ -45,12 +45,12 @@ class MetaTags:
 		else:
 			self.tags["twitter:card"] = "summary"
 
-	def set_meta_published_on(self):
+	def set_meta_published_on(self) -> None:
 		if "published_on" in self.tags:
 			self.tags["datePublished"] = self.tags["published_on"]
 			del self.tags["published_on"]
 
-	def set_metatags_from_website_route_meta(self):
+	def set_metatags_from_website_route_meta(self) -> None:
 		"""
 		Get meta tags from Website Route meta
 		they can override the defaults set above

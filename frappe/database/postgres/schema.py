@@ -6,7 +6,7 @@ from frappe.utils.defaults import get_not_null_defaults
 
 
 class PostgresTable(DBTable):
-	def create(self):
+	def create(self) -> None:
 		varchar_len = frappe.db.VARCHAR_LEN
 		name_column = f"name varchar({varchar_len}) primary key"
 
@@ -55,7 +55,7 @@ class PostgresTable(DBTable):
 		self.create_indexes()
 		frappe.db.commit()
 
-	def create_indexes(self):
+	def create_indexes(self) -> None:
 		create_index_query = ""
 		for col in self.columns.values():
 			if (

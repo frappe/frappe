@@ -47,7 +47,7 @@ def lock_age(name) -> float:
 	return time() - Path(get_lock_path(name)).stat().st_mtime
 
 
-def check_lock(path, timeout=600):
+def check_lock(path, timeout: int = 600) -> bool:
 	if not os.path.exists(path):
 		return False
 	if time() - os.path.getmtime(path) > timeout:
@@ -55,7 +55,7 @@ def check_lock(path, timeout=600):
 	return True
 
 
-def delete_lock(name):
+def delete_lock(name) -> bool:
 	lock_path = get_lock_path(name)
 	try:
 		os.remove(lock_path)
@@ -68,7 +68,7 @@ def get_lock_path(name):
 	return get_site_path(LOCKS_DIR, f"{name.lower()}.lock")
 
 
-def release_document_locks():
+def release_document_locks() -> None:
 	"""Unlocks all documents that were locked by the current context."""
 	for doc in frappe.local.locked_documents:
 		doc.unlock()

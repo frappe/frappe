@@ -17,7 +17,7 @@ class UnitTestEmailQueue(UnitTestCase):
 
 
 class TestEmailQueue(IntegrationTestCase):
-	def test_email_queue_deletion_based_on_modified_date(self):
+	def test_email_queue_deletion_based_on_modified_date(self) -> None:
 		from frappe.email.doctype.email_queue.email_queue import EmailQueue
 
 		old_record = frappe.get_doc(
@@ -88,7 +88,7 @@ class TestEmailQueue(IntegrationTestCase):
 		)
 		self.assertTrue(notification_log)
 
-	def test_perf_reusing_smtp_server(self):
+	def test_perf_reusing_smtp_server(self) -> None:
 		"""Ensure that same smtpserver instance is being returned when retrieved multiple times."""
 
 		self.assertTrue(frappe.new_doc("Email Queue").get_email_account()._from_site_config)

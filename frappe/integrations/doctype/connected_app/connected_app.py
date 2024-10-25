@@ -47,14 +47,14 @@ class ConnectedApp(Document):
 	in a Token Cache.
 	"""
 
-	def validate(self):
+	def validate(self) -> None:
 		base_url = frappe.utils.get_url()
 		callback_path = (
 			"/api/method/frappe.integrations.doctype.connected_app.connected_app.callback/" + self.name
 		)
 		self.redirect_uri = urljoin(base_url, callback_path)
 
-	def get_oauth2_session(self, user=None, init=False):
+	def get_oauth2_session(self, user=None, init: bool = False):
 		"""Return an auto-refreshing OAuth2 session which is an extension of a requests.Session()"""
 		token = None
 		token_updater = None
@@ -173,7 +173,7 @@ class ConnectedApp(Document):
 
 
 @frappe.whitelist(methods=["GET"], allow_guest=True)
-def callback(code=None, state=None):
+def callback(code=None, state=None) -> None:
 	"""Handle client's code.
 
 	Called during the oauthorization flow by the remote oAuth2 server to

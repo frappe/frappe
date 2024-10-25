@@ -7,7 +7,7 @@ import frappe
 
 
 @frappe.whitelist()
-def update_task(args, field_map):
+def update_task(args, field_map) -> None:
 	"""Updates Doc (called via gantt) based on passed `field_map`"""
 	args = frappe._dict(json.loads(args))
 	field_map = frappe._dict(json.loads(field_map))

@@ -137,7 +137,7 @@ def get_notifications_for_targets(config, notification_percent):
 	return doc_target_percents
 
 
-def clear_notifications(user=None):
+def clear_notifications(user=None) -> None:
 	if frappe.flags.in_install:
 		return
 	config = get_notification_config()
@@ -155,15 +155,15 @@ def clear_notifications(user=None):
 		frappe.cache.delete_value([f"notification_count:{name}" for name in groups])
 
 
-def clear_notification_config(user):
+def clear_notification_config(user) -> None:
 	frappe.cache.hdel("notification_config", user)
 
 
-def delete_notification_count_for(doctype):
+def delete_notification_count_for(doctype) -> None:
 	frappe.cache.delete_key("notification_count:" + doctype)
 
 
-def clear_doctype_notifications(doc, method=None, *args, **kwargs):
+def clear_doctype_notifications(doc, method=None, *args, **kwargs) -> None:
 	config = get_notification_config()
 	if not config:
 		return
@@ -374,7 +374,7 @@ def get_dynamic_link_filters(doctype, links, fieldname):
 	return {doctype_fieldname: doctype_value}
 
 
-def notify_mentions(ref_doctype, ref_name, content):
+def notify_mentions(ref_doctype, ref_name, content) -> None:
 	if ref_doctype and ref_name and content:
 		mentions = extract_mentions(content)
 

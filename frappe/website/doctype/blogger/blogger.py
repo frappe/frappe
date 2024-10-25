@@ -25,14 +25,14 @@ class Blogger(Document):
 		user: DF.Link | None
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		if self.user and not frappe.db.exists("User", self.user):
 			# for data import
 			frappe.get_doc(
 				{"doctype": "User", "email": self.user, "first_name": self.user.split("@", 1)[0]}
 			).insert()
 
-	def on_update(self):
+	def on_update(self) -> None:
 		"if user is set, then update all older blogs"
 
 		from frappe.website.doctype.blog_post.blog_post import clear_blog_cache

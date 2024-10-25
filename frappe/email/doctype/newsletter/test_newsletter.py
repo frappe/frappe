@@ -36,11 +36,11 @@ def get_dotted_path(obj: type) -> str:
 
 
 class TestNewsletterMixin:
-	def setUp(self):
+	def setUp(self) -> None:
 		frappe.set_user("Administrator")
 		self.setup_email_group()
 
-	def tearDown(self):
+	def tearDown(self) -> None:
 		frappe.set_user("Administrator")
 		for newsletter in newsletters:
 			frappe.db.delete(
@@ -54,7 +54,7 @@ class TestNewsletterMixin:
 			frappe.db.delete("Newsletter Email Group", {"parent": newsletter})
 			newsletters.remove(newsletter)
 
-	def setup_email_group(self):
+	def setup_email_group(self) -> None:
 		if not frappe.db.exists("Email Group", "_Test Email Group"):
 			frappe.get_doc({"doctype": "Email Group", "title": "_Test Email Group"}).insert()
 
@@ -78,7 +78,7 @@ class TestNewsletterMixin:
 
 			frappe.db.release_savepoint(savepoint)
 
-	def send_newsletter(self, published=0, schedule_send=None) -> str | None:
+	def send_newsletter(self, published: int = 0, schedule_send=None) -> str | None:
 		frappe.db.delete("Email Queue")
 		frappe.db.delete("Email Queue Recipient")
 		frappe.db.delete("Newsletter")
@@ -135,7 +135,7 @@ class TestNewsletterMixin:
 
 
 class TestNewsletter(TestNewsletterMixin, IntegrationTestCase):
-	def test_send(self):
+	def test_send(self) -> None:
 		self.send_newsletter()
 
 		email_queue_list = [frappe.get_doc("Email Queue", e.name) for e in frappe.get_all("Email Queue")]
@@ -144,7 +144,7 @@ class TestNewsletter(TestNewsletterMixin, IntegrationTestCase):
 		recipients = {e.recipients[0].recipient for e in email_queue_list}
 		self.assertTrue(set(emails).issubset(recipients))
 
-	def test_unsubscribe(self):
+	def test_unsubscribe(self) -> None:
 		name = self.send_newsletter()
 		to_unsubscribe = choice(emails)
 		group = frappe.get_all("Newsletter Email Group", filters={"parent": name}, fields=["email_group"])
@@ -161,7 +161,7 @@ class TestNewsletter(TestNewsletterMixin, IntegrationTestCase):
 			if email != to_unsubscribe:
 				self.assertTrue(email in recipients)
 
-	def test_schedule_send(self):
+	def test_schedule_send(self) -> None:
 		newsletter = self.send_newsletter(schedule_send=add_days(getdate(), 1))
 		newsletter.db_set("schedule_send", add_days(getdate(), -1))  # Set date in past
 		send_scheduled_email()
@@ -172,7 +172,7 @@ class TestNewsletter(TestNewsletterMixin, IntegrationTestCase):
 		for email in emails:
 			self.assertTrue(email in recipients)
 
-	def test_newsletter_send_test_email(self):
+	def test_newsletter_send_test_email(self) -> None:
 		"""Test "Send Test Email" functionality of Newsletter"""
 		newsletter = self.get_newsletter()
 		test_email = choice(emails)
@@ -192,7 +192,7 @@ class TestNewsletter(TestNewsletterMixin, IntegrationTestCase):
 		)
 		self.assertTrue(email_queue)
 
-	def test_newsletter_status(self):
+	def test_newsletter_status(self) -> None:
 		"""Test for Newsletter's stats on onload event"""
 		newsletter = self.get_newsletter()
 		newsletter.email_sent = True
@@ -200,14 +200,14 @@ class TestNewsletter(TestNewsletterMixin, IntegrationTestCase):
 		self.assertTrue("total" in result)
 		self.assertTrue("sent" in result)
 
-	def test_already_sent_newsletter(self):
+	def test_already_sent_newsletter(self) -> None:
 		newsletter = self.get_newsletter()
 		newsletter.send_emails()
 
 		with self.assertRaises(NewsletterAlreadySentError):
 			newsletter.send_emails()
 
-	def test_newsletter_with_no_recipient(self):
+	def test_newsletter_with_no_recipient(self) -> None:
 		newsletter = self.get_newsletter()
 		property_path = f"{get_dotted_path(newsletter)}.newsletter_recipients"
 
@@ -216,7 +216,7 @@ class TestNewsletter(TestNewsletterMixin, IntegrationTestCase):
 			with self.assertRaises(NoRecipientFoundError):
 				newsletter.send_emails()
 
-	def test_send_scheduled_email_error_handling(self):
+	def test_send_scheduled_email_error_handling(self) -> None:
 		newsletter = self.get_newsletter(schedule_send=add_days(getdate(), -1))
 		job_path = "frappe.email.doctype.newsletter.newsletter.Newsletter.queue_all"
 		m = MagicMock(side_effect=frappe.OutgoingEmailError)
@@ -228,7 +228,7 @@ class TestNewsletter(TestNewsletterMixin, IntegrationTestCase):
 		newsletter.reload()
 		self.assertEqual(newsletter.email_sent, 0)
 
-	def test_retry_partially_sent_newsletter(self):
+	def test_retry_partially_sent_newsletter(self) -> None:
 		frappe.db.delete("Email Queue")
 		frappe.db.delete("Email Queue Recipient")
 		frappe.db.delete("Newsletter")

@@ -22,7 +22,7 @@ def extract(fileobj: BufferedReader, keywords: str, comment_tags: tuple, options
 		yield lineno, funcname, messages, []
 
 
-def extract_javascript(code, keywords=None, options=None, lineno=1):
+def extract_javascript(code, keywords=None, options=None, lineno: int = 1):
 	"""Extract messages from JavaScript source code.
 
 	This is a modified version of babel's JS parser. Reused under BSD license.
@@ -173,7 +173,7 @@ def parse_template_string(
 	template_string,
 	keywords,
 	options,
-	lineno=1,
+	lineno: int = 1,
 ):
 	"""Parse JavaScript template string.
 

@@ -19,16 +19,16 @@ class UnitTestAssignmentRule(UnitTestCase):
 
 class TestAutoAssign(IntegrationTestCase):
 	@classmethod
-	def setUpClass(cls):
+	def setUpClass(cls) -> None:
 		super().setUpClass()
 		frappe.db.delete("Assignment Rule")
 		create_test_doctype(TEST_DOCTYPE)
 
 	@classmethod
-	def tearDownClass(cls):
+	def tearDownClass(cls) -> None:
 		frappe.db.rollback()
 
-	def setUp(self):
+	def setUp(self) -> None:
 		frappe.set_user("Administrator")
 		make_test_records("User")
 		days = [
@@ -44,7 +44,7 @@ class TestAutoAssign(IntegrationTestCase):
 		self.assignment_rule = get_assignment_rule([days, days])
 		clear_assignments()
 
-	def test_round_robin(self):
+	def test_round_robin(self) -> None:
 		# check if auto assigned to first user
 		record = _make_test_record(public=1)
 		self.assertEqual(
@@ -92,7 +92,7 @@ class TestAutoAssign(IntegrationTestCase):
 			"test@example.com",
 		)
 
-	def test_load_balancing(self):
+	def test_load_balancing(self) -> None:
 		self.assignment_rule.rule = "Load Balancing"
 		self.assignment_rule.save()
 
@@ -122,7 +122,7 @@ class TestAutoAssign(IntegrationTestCase):
 				len(frappe.get_all("ToDo", dict(allocated_to=user, reference_type=TEST_DOCTYPE))), 10
 			)
 
-	def test_assingment_on_guest_submissions(self):
+	def test_assingment_on_guest_submissions(self) -> None:
 		"""Sometimes documents are inserted as guest, check if assignment rules run on them. Use case: Web Forms"""
 		with self.set_user("Guest"):
 			doc = _make_test_record(ignore_permissions=True, public=1)
@@ -136,7 +136,7 @@ class TestAutoAssign(IntegrationTestCase):
 			),
 		)
 
-	def test_based_on_field(self):
+	def test_based_on_field(self) -> None:
 		self.assignment_rule.rule = "Based on Field"
 		self.assignment_rule.field = "owner"
 		self.assignment_rule.save()
@@ -154,7 +154,7 @@ class TestAutoAssign(IntegrationTestCase):
 				test_user,
 			)
 
-	def test_assign_condition(self):
+	def test_assign_condition(self) -> None:
 		# check condition
 		note = _make_test_record(public=0)
 
@@ -167,7 +167,7 @@ class TestAutoAssign(IntegrationTestCase):
 			None,
 		)
 
-	def test_clear_assignment(self):
+	def test_clear_assignment(self) -> None:
 		note = _make_test_record(public=1)
 
 		# check if auto assigned to first user
@@ -187,7 +187,7 @@ class TestAutoAssign(IntegrationTestCase):
 		# check if todo is cancelled
 		self.assertEqual(todo.status, "Cancelled")
 
-	def test_close_assignment(self):
+	def test_close_assignment(self) -> None:
 		note = _make_test_record(public=1, content="valid")
 
 		# check if auto assigned
@@ -208,7 +208,7 @@ class TestAutoAssign(IntegrationTestCase):
 		# check if closed todo retained assignment
 		self.assertEqual(todo.allocated_to, "test@example.com")
 
-	def check_multiple_rules(self):
+	def check_multiple_rules(self) -> None:
 		note = _make_test_record(public=1, notify_on_login=1)
 
 		# check if auto assigned to test3 (2nd rule is applied, as it has higher priority)
@@ -221,7 +221,7 @@ class TestAutoAssign(IntegrationTestCase):
 			"test@example.com",
 		)
 
-	def check_assignment_rule_scheduling(self):
+	def check_assignment_rule_scheduling(self) -> None:
 		frappe.db.delete("Assignment Rule")
 
 		days_1 = [dict(day="Sunday"), dict(day="Monday"), dict(day="Tuesday")]
@@ -254,7 +254,7 @@ class TestAutoAssign(IntegrationTestCase):
 			["test3@example.com"],
 		)
 
-	def test_assignment_rule_condition(self):
+	def test_assignment_rule_condition(self) -> None:
 		frappe.db.delete("Assignment Rule")
 
 		assignment_rule = frappe.get_doc(
@@ -297,7 +297,7 @@ class TestAutoAssign(IntegrationTestCase):
 		assignment_rule.delete()
 		frappe.db.commit()  # undo changes commited by DDL
 
-	def test_submittable_assignment(self):
+	def test_submittable_assignment(self) -> None:
 		# create a submittable doctype
 		submittable_doctype = "Assignment Test Submittable"
 		create_test_doctype(submittable_doctype)
@@ -347,7 +347,7 @@ class TestAutoAssign(IntegrationTestCase):
 		self.assertEqual(len(todos), 1)
 
 
-def clear_assignments():
+def clear_assignments() -> None:
 	frappe.db.delete("ToDo", {"reference_type": TEST_DOCTYPE})
 
 
@@ -394,7 +394,7 @@ def get_assignment_rule(days, assign=None):
 
 def _make_test_record(
 	*,
-	ignore_permissions=False,
+	ignore_permissions: bool = False,
 	**kwargs,
 ):
 	doc = frappe.new_doc(TEST_DOCTYPE)
@@ -405,7 +405,7 @@ def _make_test_record(
 	return doc.insert(ignore_permissions=ignore_permissions)
 
 
-def create_test_doctype(doctype: str):
+def create_test_doctype(doctype: str) -> None:
 	"""Create custom doctype."""
 	frappe.delete_doc("DocType", doctype)
 

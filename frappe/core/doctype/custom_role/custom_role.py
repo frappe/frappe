@@ -21,7 +21,7 @@ class CustomRole(Document):
 		roles: DF.Table[HasRole]
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		if self.report and not self.ref_doctype:
 			self.ref_doctype = frappe.db.get_value("Report", self.report, "ref_doctype")
 

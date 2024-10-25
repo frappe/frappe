@@ -16,7 +16,7 @@ class _LazyTranslate:
 	def value(self) -> str:
 		return _(str(self.msg), self.lang, self.context)
 
-	def __str__(self):
+	def __str__(self) -> str:
 		return self.value
 
 	def __add__(self, other):

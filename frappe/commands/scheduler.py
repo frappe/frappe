@@ -112,7 +112,7 @@ def scheduler(context: CliCtxObj, state: str, format: str, verbose: bool = False
 @click.option("--site", help="site name")
 @click.argument("state", type=click.Choice(["on", "off"]))
 @pass_context
-def set_maintenance_mode(context: CliCtxObj, state, site=None):
+def set_maintenance_mode(context: CliCtxObj, state, site=None) -> None:
 	"""Put the site in maintenance mode for upgrades."""
 	from frappe.installer import update_site_config
 
@@ -163,7 +163,7 @@ def show_pending_jobs(context: CliCtxObj, site=None):
 	default=None,
 	help='one of "all", "weekly", "monthly", "hourly", "daily", "weekly_long", "daily_long"',
 )
-def purge_jobs(site=None, queue=None, event=None):
+def purge_jobs(site=None, queue=None, event=None) -> None:
 	"Purge any pending periodic tasks, if event option is not given, it will purge everything for the site"
 	from frappe.utils.doctor import purge_pending_jobs
 
@@ -173,7 +173,7 @@ def purge_jobs(site=None, queue=None, event=None):
 
 
 @click.command("schedule")
-def start_scheduler():
+def start_scheduler() -> None:
 	"""Start scheduler process which is responsible for enqueueing the scheduled job types."""
 	import time
 
@@ -199,7 +199,9 @@ def start_scheduler():
 	type=click.Choice(["round_robin", "random"]),
 	help="Dequeuing strategy to use",
 )
-def start_worker(queue, quiet=False, rq_username=None, rq_password=None, burst=False, strategy=None):
+def start_worker(
+	queue, quiet: bool = False, rq_username=None, rq_password=None, burst: bool = False, strategy=None
+) -> None:
 	"""Start a background worker"""
 	from frappe.utils.background_jobs import start_worker
 
@@ -222,7 +224,7 @@ def start_worker(queue, quiet=False, rq_username=None, rq_password=None, burst=F
 @click.option("--num-workers", type=int, default=2, help="Number of workers to spawn in pool.")
 @click.option("--quiet", is_flag=True, default=False, help="Hide Log Outputs")
 @click.option("--burst", is_flag=True, default=False, help="Run Worker in Burst mode.")
-def start_worker_pool(queue, quiet=False, num_workers=2, burst=False):
+def start_worker_pool(queue, quiet: bool = False, num_workers: int = 2, burst: bool = False) -> None:
 	"""Start a pool of background workers"""
 	from frappe.utils.background_jobs import start_worker_pool
 
@@ -232,7 +234,7 @@ def start_worker_pool(queue, quiet=False, num_workers=2, burst=False):
 @click.command("ready-for-migration")
 @click.option("--site", help="site name")
 @pass_context
-def ready_for_migration(context: CliCtxObj, site=None):
+def ready_for_migration(context: CliCtxObj, site=None) -> int:
 	from frappe.utils.doctor import any_job_pending
 
 	if not site:

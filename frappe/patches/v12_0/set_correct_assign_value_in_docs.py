@@ -2,7 +2,7 @@ import frappe
 from frappe.query_builder.functions import Coalesce, GroupConcat
 
 
-def execute():
+def execute() -> None:
 	frappe.reload_doc("desk", "doctype", "todo")
 
 	ToDo = frappe.qb.DocType("ToDo")

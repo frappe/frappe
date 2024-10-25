@@ -37,7 +37,7 @@ def get_error_message(event):
 def handle_error(event):
 	def decorator(fn):
 		@wraps(fn)
-		def wrapper(*args, **kwargs):
+		def wrapper(*args, **kwargs) -> None:
 			err_title, err_message = get_error_message(event)
 			try:
 				fn(*args, **kwargs)
@@ -77,7 +77,7 @@ class EmailDomain(Document):
 		validate_ssl_certificate_for_outgoing: DF.Check
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		"""Validate POP3/IMAP and SMTP connections."""
 
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test or frappe.local.flags.in_install:
@@ -86,7 +86,7 @@ class EmailDomain(Document):
 		self.validate_incoming_server_conn()
 		self.validate_outgoing_server_conn()
 
-	def on_update(self):
+	def on_update(self) -> None:
 		"""update all email accounts using this domain"""
 		for email_account in frappe.get_all("Email Account", filters={"domain": self.name}):
 			try:
@@ -101,7 +101,7 @@ class EmailDomain(Document):
 				)
 
 	@handle_error("incoming")
-	def validate_incoming_server_conn(self):
+	def validate_incoming_server_conn(self) -> None:
 		self.incoming_port = get_port(self)
 
 		if self.use_imap:
@@ -114,7 +114,7 @@ class EmailDomain(Document):
 		incoming_conn.logout() if self.use_imap else incoming_conn.quit()
 
 	@handle_error("outgoing")
-	def validate_outgoing_server_conn(self):
+	def validate_outgoing_server_conn(self) -> None:
 		conn_method = smtplib.SMTP
 
 		if self.use_ssl_for_outgoing:

@@ -27,7 +27,7 @@ class DocTypeLayout(Document):
 		route: DF.Data
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		if not self.route:
 			self.route = slug(self.name)
 

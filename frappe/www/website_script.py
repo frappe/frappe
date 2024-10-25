@@ -8,7 +8,7 @@ from frappe.website.doctype.website_theme.website_theme import get_active_theme
 base_template_path = "www/website_script.js"
 
 
-def get_context(context):
+def get_context(context) -> None:
 	context.javascript = frappe.db.get_single_value("Website Script", "javascript") or ""
 
 	theme = get_active_theme()

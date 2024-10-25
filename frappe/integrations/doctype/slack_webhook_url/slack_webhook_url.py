@@ -36,7 +36,7 @@ class SlackWebhookURL(Document):
 	pass
 
 
-def send_slack_message(webhook_url, message, reference_doctype, reference_name):
+def send_slack_message(webhook_url, message, reference_doctype, reference_name) -> str:
 	data = {"text": message, "attachments": []}
 
 	slack_url, show_link = frappe.db.get_value(

@@ -140,11 +140,11 @@ class User(Document):
 
 	__new_password = None
 
-	def __setup__(self):
+	def __setup__(self) -> None:
 		# because it is handled separately
 		self.flags.ignore_save_passwords = ["new_password"]
 
-	def autoname(self):
+	def autoname(self) -> None:
 		"""set name as Email Address"""
 		if self.get("is_admin") or self.get("is_guest"):
 			self.name = self.first_name
@@ -152,21 +152,21 @@ class User(Document):
 			self.email = self.email.strip().lower()
 			self.name = self.email
 
-	def onload(self):
+	def onload(self) -> None:
 		from frappe.utils.modules import get_modules_from_all_apps
 
 		self.set_onload("all_modules", sorted(m.get("module_name") for m in get_modules_from_all_apps()))
 
-	def before_insert(self):
+	def before_insert(self) -> None:
 		self.flags.in_insert = True
 		throttle_user_creation()
 
-	def after_insert(self):
+	def after_insert(self) -> None:
 		create_notification_settings(self.name)
 		frappe.cache.delete_key("users_for_mentions")
 		frappe.cache.delete_key("enabled_users")
 
-	def validate(self):
+	def validate(self) -> None:
 		# clear new password
 		self.__new_password = self.new_password
 		self.new_password = ""
@@ -202,14 +202,14 @@ class User(Document):
 		if (self.name not in ["Administrator", "Guest"]) and (not self.get_social_login_userid("frappe")):
 			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
 
-	def disable_email_fields_if_user_disabled(self):
+	def disable_email_fields_if_user_disabled(self) -> None:
 		if not self.enabled:
 			self.thread_notify = 0
 			self.send_me_a_copy = 0
 			self.allowed_in_mentions = 0
 
 	@frappe.whitelist()
-	def populate_role_profile_roles(self):
+	def populate_role_profile_roles(self) -> None:
 		if not self.role_profiles:
 			return
 
@@ -228,7 +228,7 @@ class User(Document):
 
 	from frappe.deprecation_dumpster import validate_roles
 
-	def move_role_profile_name_to_role_profiles(self):
+	def move_role_profile_name_to_role_profiles(self) -> None:
 		"""This handles old role_profile_name field if programatically set.
 
 		This behaviour will be remoed in future versions."""
@@ -250,18 +250,18 @@ class User(Document):
 		self.append("role_profiles", {"role_profile": self.role_profile_name})
 		self.role_profile_name = None
 
-	def validate_allowed_modules(self):
+	def validate_allowed_modules(self) -> None:
 		if self.module_profile:
 			module_profile = frappe.get_doc("Module Profile", self.module_profile)
 			self.set("block_modules", [])
 			for d in module_profile.get("block_modules"):
 				self.append("block_modules", {"module": d.module})
 
-	def validate_user_image(self):
+	def validate_user_image(self) -> None:
 		if self.user_image and len(self.user_image) > 2000:
 			frappe.throw(_("Not a valid User Image."))
 
-	def on_update(self):
+	def on_update(self) -> None:
 		# clear new password
 		self.share_with_self()
 		clear_notifications(user=self.name)
@@ -306,14 +306,14 @@ class User(Document):
 		elif self.has_value_changed("allow_in_mentions") or self.has_value_changed("user_type"):
 			frappe.cache.delete_key("users_for_mentions")
 
-	def has_website_permission(self, ptype, user, verbose=False):
+	def has_website_permission(self, ptype, user, verbose: bool = False):
 		"""Return True if current user is the session user."""
 		return self.name == frappe.session.user
 
-	def set_full_name(self):
+	def set_full_name(self) -> None:
 		self.full_name = " ".join(filter(None, [self.first_name, self.last_name]))
 
-	def check_enable_disable(self):
+	def check_enable_disable(self) -> None:
 		# do not allow disabling administrator/guest
 		if not cint(self.enabled) and self.name in STANDARD_USERS:
 			frappe.throw(_("User {0} cannot be disabled").format(self.name))
@@ -326,11 +326,11 @@ class User(Document):
 		toggle_notifications(self.name, enable=cint(self.enabled), ignore_permissions=True)
 		self.disable_email_fields_if_user_disabled()
 
-	def email_new_password(self, new_password=None):
+	def email_new_password(self, new_password=None) -> None:
 		if new_password and not self.flags.in_insert:
 			_update_password(user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions)
 
-	def set_system_user(self):
+	def set_system_user(self) -> None:
 		"""For the standard users like admin and guest, the user type is fixed."""
 		user_type_mapper = {"Administrator": "System User", "Guest": "Website User"}
 
@@ -343,7 +343,7 @@ class User(Document):
 			"""Set as System User if any of the given roles has desk_access"""
 			self.user_type = "System User" if self.has_desk_access() else "Website User"
 
-	def set_roles_and_modules_based_on_user_type(self):
+	def set_roles_and_modules_based_on_user_type(self) -> None:
 		user_type_doc = frappe.get_cached_doc("User Type", self.user_type)
 		if user_type_doc.role:
 			self.roles = []
@@ -369,7 +369,7 @@ class User(Document):
 			((role_table.desk_access == 1) & (role_table.name.isin([d.role for d in self.roles]))),
 		)
 
-	def share_with_self(self):
+	def share_with_self(self) -> None:
 		if self.name in STANDARD_USERS:
 			return
 
@@ -377,7 +377,7 @@ class User(Document):
 			self.doctype, self.name, self.name, write=1, share=1, flags={"ignore_share_permission": True}
 		)
 
-	def validate_share(self, docshare):
+	def validate_share(self, docshare) -> None:
 		pass
 		# if docshare.user == self.name:
 		# 	if self.user_type=="System User":
@@ -386,7 +386,7 @@ class User(Document):
 		# 	else:
 		# 		frappe.throw(_("Sorry! Sharing with Website User is prohibited."))
 
-	def send_password_notification(self, new_password):
+	def send_password_notification(self, new_password) -> None:
 		try:
 			if self.flags.in_insert:
 				if self.name not in STANDARD_USERS:
@@ -418,10 +418,10 @@ class User(Document):
 			self.log_error("Unable to send new password notification")
 
 	@Document.hook
-	def validate_reset_password(self):
+	def validate_reset_password(self) -> None:
 		pass
 
-	def reset_password(self, send_email=False, password_expired=False):
+	def reset_password(self, send_email: bool = False, password_expired: bool = False):
 		from frappe.utils import get_url
 
 		key = frappe.generate_hash()
@@ -443,7 +443,7 @@ class User(Document):
 		"""get first_name space last_name"""
 		return (self.first_name or "") + (self.first_name and " " or "") + (self.last_name or "")
 
-	def password_reset_mail(self, link):
+	def password_reset_mail(self, link) -> None:
 		reset_password_template = frappe.db.get_system_setting("reset_password_template")
 
 		self.send_login_mail(
@@ -454,7 +454,7 @@ class User(Document):
 			custom_template=reset_password_template,
 		)
 
-	def send_welcome_mail_to_user(self):
+	def send_welcome_mail_to_user(self) -> None:
 		from frappe.utils import get_url
 
 		link = self.reset_password()
@@ -481,7 +481,7 @@ class User(Document):
 			custom_template=welcome_email_template,
 		)
 
-	def send_login_mail(self, subject, template, add_args, now=None, custom_template=None):
+	def send_login_mail(self, subject, template, add_args, now=None, custom_template=None) -> None:
 		"""send mail with login details"""
 		from frappe.utils import get_url
 		from frappe.utils.user import get_user_fullname
@@ -523,7 +523,7 @@ class User(Document):
 			retry=3,
 		)
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		frappe.clear_cache(user=self.name)
 		if self.name in STANDARD_USERS:
 			throw(_("User {0} cannot be deleted").format(self.name))
@@ -595,7 +595,7 @@ class User(Document):
 					note.remove(row)
 			note.save(ignore_permissions=True)
 
-	def before_rename(self, old_name, new_name, merge=False):
+	def before_rename(self, old_name, new_name, merge: bool = False) -> None:
 		# if merging, delete the old user notification settings
 		if merge:
 			frappe.delete_doc("Notification Settings", old_name, ignore_permissions=True)
@@ -603,19 +603,19 @@ class User(Document):
 		frappe.clear_cache(user=old_name)
 		self.validate_rename(old_name, new_name)
 
-	def validate_rename(self, old_name, new_name):
+	def validate_rename(self, old_name, new_name) -> None:
 		# do not allow renaming administrator and guest
 		if old_name in STANDARD_USERS:
 			throw(_("User {0} cannot be renamed").format(self.name))
 
 		self.validate_email_type(new_name)
 
-	def validate_email_type(self, email):
+	def validate_email_type(self, email) -> None:
 		from frappe.utils import validate_email_address
 
 		validate_email_address(email.strip(), True)
 
-	def after_rename(self, old_name, new_name, merge=False):
+	def after_rename(self, old_name, new_name, merge: bool = False) -> None:
 		tables = frappe.db.get_tables()
 		for tab in tables:
 			desc = frappe.db.get_table_columns_description(tab)
@@ -634,7 +634,7 @@ class User(Document):
 		# set email
 		frappe.db.set_value("User", new_name, "email", new_name)
 
-	def append_roles(self, *roles):
+	def append_roles(self, *roles) -> None:
 		"""Add roles to user"""
 		current_roles = {d.role for d in self.get("roles")}
 		for role in roles:
@@ -642,12 +642,12 @@ class User(Document):
 				continue
 			self.append("roles", {"role": role})
 
-	def add_roles(self, *roles):
+	def add_roles(self, *roles) -> None:
 		"""Add roles to user and save"""
 		self.append_roles(*roles)
 		self.save()
 
-	def remove_roles(self, *roles):
+	def remove_roles(self, *roles) -> None:
 		existing_roles = {d.role: d for d in self.get("roles")}
 		for role in roles:
 			if role in existing_roles:
@@ -655,31 +655,31 @@ class User(Document):
 
 		self.save()
 
-	def remove_all_roles_for_guest(self):
+	def remove_all_roles_for_guest(self) -> None:
 		if self.name == "Guest":
 			self.set("roles", list({d for d in self.get("roles") if d.role == "Guest"}))
 
-	def remove_disabled_roles(self):
+	def remove_disabled_roles(self) -> None:
 		disabled_roles = [d.name for d in frappe.get_all("Role", filters={"disabled": 1})]
 		for role in list(self.get("roles")):
 			if role.role in disabled_roles:
 				self.get("roles").remove(role)
 
-	def ensure_unique_roles(self):
+	def ensure_unique_roles(self) -> None:
 		exists = set()
 		for d in list(self.roles):
 			if (not d.role) or (d.role in exists):
 				self.roles.remove(d)
 			exists.add(d.role)
 
-	def ensure_unique_role_profiles(self):
+	def ensure_unique_role_profiles(self) -> None:
 		seen = set()
 		for rp in list(self.role_profiles):
 			if rp.role_profile in seen:
 				self.role_profiles.remove(rp)
 			seen.add(rp.role_profile)
 
-	def validate_username(self):
+	def validate_username(self) -> None:
 		if not self.username and self.is_new() and self.first_name:
 			self.username = frappe.scrub(self.first_name)
 
@@ -696,7 +696,7 @@ class User(Document):
 
 			self.username = ""
 
-	def password_strength_test(self):
+	def password_strength_test(self) -> None:
 		"""test password strength"""
 		if self.flags.ignore_password_policy:
 			return
@@ -735,7 +735,7 @@ class User(Document):
 		"""Return list of modules blocked for that user."""
 		return [d.module for d in self.block_modules] if self.block_modules else []
 
-	def validate_user_email_inbox(self):
+	def validate_user_email_inbox(self) -> None:
 		"""check if same email account added in User Emails twice"""
 
 		email_accounts = [user_email.email_account for user_email in self.user_emails]
@@ -750,7 +750,7 @@ class User(Document):
 		except Exception:
 			return None
 
-	def set_social_login_userid(self, provider, userid, username=None):
+	def set_social_login_userid(self, provider, userid, username=None) -> None:
 		social_logins = {"provider": provider, "userid": userid}
 
 		if username:
@@ -794,14 +794,14 @@ class User(Document):
 
 		return user
 
-	def set_time_zone(self):
+	def set_time_zone(self) -> None:
 		if not self.time_zone:
 			self.time_zone = get_system_timezone()
 
 	def get_permission_log_options(self, event=None):
 		return {"fields": ("role_profile_name", "roles", "module_profile", "block_modules")}
 
-	def check_roles_added(self):
+	def check_roles_added(self) -> None:
 		if self.user_type != "System User" or self.roles or not self.is_new():
 			return
 
@@ -958,7 +958,7 @@ def get_email_awaiting(user):
 	)
 
 
-def ask_pass_update():
+def ask_pass_update() -> None:
 	# update the sys defaults as to awaiting users
 	from frappe.utils import set_default
 
@@ -1008,7 +1008,7 @@ def reset_user_data(user):
 
 
 @frappe.whitelist(methods=["POST"])
-def verify_password(password):
+def verify_password(password) -> None:
 	frappe.local.login_manager.check_password(frappe.session.user, password)
 
 
@@ -1185,7 +1185,7 @@ def get_active_website_users():
 	)[0][0]
 
 
-def get_permission_query_conditions(user):
+def get_permission_query_conditions(user) -> str:
 	if user == "Administrator":
 		return ""
 	else:
@@ -1194,14 +1194,14 @@ def get_permission_query_conditions(user):
 		)
 
 
-def has_permission(doc, user):
+def has_permission(doc, user) -> bool:
 	if (user != "Administrator") and (doc.name in STANDARD_USERS):
 		# dont allow non Administrator user to view / edit Administrator user
 		return False
 	return True
 
 
-def notify_admin_access_to_system_manager(login_manager=None):
+def notify_admin_access_to_system_manager(login_manager=None) -> None:
 	if (
 		login_manager
 		and login_manager.user == "Administrator"
@@ -1224,7 +1224,7 @@ def notify_admin_access_to_system_manager(login_manager=None):
 		)
 
 
-def handle_password_test_fail(feedback: dict):
+def handle_password_test_fail(feedback: dict) -> None:
 	# Backward compatibility
 	if "feedback" in feedback:
 		feedback = feedback["feedback"]
@@ -1235,13 +1235,13 @@ def handle_password_test_fail(feedback: dict):
 	frappe.throw(msg=" ".join([warning, *suggestions]), title=_("Invalid Password"))
 
 
-def update_gravatar(name):
+def update_gravatar(name) -> None:
 	gravatar = has_gravatar(name)
 	if gravatar:
 		frappe.db.set_value("User", name, "user_image", gravatar)
 
 
-def throttle_user_creation():
+def throttle_user_creation() -> None:
 	if frappe.flags.in_import:
 		return
 
@@ -1255,7 +1255,7 @@ def get_module_profile(module_profile: str):
 	return module_profile.get("block_modules")
 
 
-def create_contact(user, ignore_links=False, ignore_mandatory=False):
+def create_contact(user, ignore_links: bool = False, ignore_mandatory: bool = False):
 	from frappe.contacts.doctype.contact.contact import get_contact_name
 
 	if user.name in ["Administrator", "Guest"]:
@@ -1350,7 +1350,7 @@ def generate_keys(user: str):
 
 
 @frappe.whitelist()
-def switch_theme(theme):
+def switch_theme(theme) -> None:
 	if theme in ["Dark", "Light", "Automatic"]:
 		frappe.db.set_value("User", frappe.session.user, "desk_theme", theme)
 
@@ -1364,7 +1364,7 @@ def get_enabled_users():
 
 
 @frappe.whitelist(methods=["POST"])
-def impersonate(user: str, reason: str):
+def impersonate(user: str, reason: str) -> None:
 	# Note: For now we only allow admins, we MIGHT allow system manager in future.
 	# All the impersonation code doesn't assume anything about user.
 	frappe.only_for("Administrator")

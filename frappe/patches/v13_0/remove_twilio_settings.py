@@ -4,7 +4,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	"""Add missing Twilio patch.
 
 	While making Twilio as a standaone app, we missed to delete Twilio records from DB through migration. Adding the missing patch.

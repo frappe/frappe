@@ -16,7 +16,7 @@ from frappe.utils.html_utils import unescape_html
 HTML_TAGS_PATTERN = re.compile(r"(?s)<[\s]*(script|style).*?</\1>")
 
 
-def setup_global_search_table():
+def setup_global_search_table() -> None:
 	"""
 	Creates __global_search table
 	:return:
@@ -24,7 +24,7 @@ def setup_global_search_table():
 	frappe.db.create_global_search_table()
 
 
-def reset():
+def reset() -> None:
 	"""
 	Deletes all data in __global_search
 	:return:
@@ -32,7 +32,7 @@ def reset():
 	frappe.db.delete("__global_search")
 
 
-def get_doctypes_with_global_search(with_child_tables=True):
+def get_doctypes_with_global_search(with_child_tables: bool = True):
 	"""
 	Return doctypes with global search fields
 	:param with_child_tables:
@@ -63,7 +63,7 @@ def get_doctypes_with_global_search(with_child_tables=True):
 	return frappe.cache.get_value("doctypes_with_global_search", _get)
 
 
-def rebuild_for_doctype(doctype):
+def rebuild_for_doctype(doctype) -> None:
 	"""
 	Rebuild entries of doctype's documents in __global_search on change of
 	searchable fields
@@ -152,7 +152,7 @@ def rebuild_for_doctype(doctype):
 		insert_values_for_multiple_docs(all_contents)
 
 
-def delete_global_search_records_for_doctype(doctype):
+def delete_global_search_records_for_doctype(doctype) -> None:
 	frappe.db.delete("__global_search", {"doctype": doctype})
 
 
@@ -208,7 +208,7 @@ def get_children_data(doctype, meta):
 	return all_children, child_search_fields
 
 
-def insert_values_for_multiple_docs(all_contents):
+def insert_values_for_multiple_docs(all_contents) -> None:
 	values = [
 		"({doctype}, {name}, {content}, {published}, {title}, {route})".format(**content)
 		for content in all_contents
@@ -230,7 +230,7 @@ def insert_values_for_multiple_docs(all_contents):
 		)
 
 
-def update_global_search(doc):
+def update_global_search(doc) -> None:
 	"""
 	Add values marked with `in_global_search` to
 	`global_search_queue` from given doc
@@ -277,7 +277,7 @@ def update_global_search(doc):
 		sync_value_in_queue(value)
 
 
-def update_global_search_for_all_web_pages():
+def update_global_search_for_all_web_pages() -> None:
 	if frappe.conf.get("disable_global_search"):
 		return
 
@@ -312,7 +312,7 @@ def get_routes_to_index():
 	return routes_to_index
 
 
-def add_route_to_global_search(route):
+def add_route_to_global_search(route) -> None:
 	from bs4 import BeautifulSoup
 
 	from frappe.utils import set_request
@@ -359,7 +359,7 @@ def get_formatted_value(value, field):
 	return field.label + " : " + strip_html_tags(str(value))
 
 
-def sync_global_search():
+def sync_global_search() -> None:
 	"""
 	Inserts / updates values from `global_search_queue` to __global_search.
 	This is called via job scheduler
@@ -413,7 +413,7 @@ def sync_values(values: list):
 	query.run()
 
 
-def sync_value_in_queue(value):
+def sync_value_in_queue(value) -> None:
 	try:
 		# append to search queue if connected
 		frappe.cache.lpush("global_search_queue", json.dumps(value))
@@ -422,7 +422,7 @@ def sync_value_in_queue(value):
 		sync_value(value)
 
 
-def sync_value(value: dict):
+def sync_value(value: dict) -> None:
 	"""
 	Sync a given document to global search
 	:param value: dict of { doctype, name, content, published, title, route }
@@ -453,7 +453,7 @@ def sync_value(value: dict):
 	)
 
 
-def delete_for_document(doc):
+def delete_for_document(doc) -> None:
 	"""
 	Delete the __global_search entry of a document that has
 	been deleted
@@ -463,7 +463,7 @@ def delete_for_document(doc):
 
 
 @frappe.whitelist()
-def search(text, start=0, limit=20, doctype=""):
+def search(text, start: int = 0, limit: int = 20, doctype: str = ""):
 	"""
 	Search for given text in __global_search
 	:param text: phrase to be searched

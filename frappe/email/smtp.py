@@ -24,9 +24,9 @@ class SMTPServer:
 		port=None,
 		use_tls=None,
 		use_ssl=None,
-		use_oauth=0,
+		use_oauth: int = 0,
 		access_token=None,
-	):
+	) -> None:
 		self.login = login
 		self.email_account = email_account
 		self.password = password
@@ -53,7 +53,7 @@ class SMTPServer:
 	def server(self):
 		return cstr(self._server or "")
 
-	def secure_session(self, conn):
+	def secure_session(self, conn) -> None:
 		"""Secure the connection incase of TLS."""
 		if self.use_tls:
 			conn.ehlo()
@@ -104,7 +104,7 @@ class SMTPServer:
 				title=_("Incorrect Configuration"),
 			)
 
-	def _enqueue_connection_closure(self):
+	def _enqueue_connection_closure(self) -> None:
 		if frappe.request and hasattr(frappe.request, "after_response"):
 			frappe.request.after_response.add(self.quit)
 		elif frappe.job:
@@ -122,13 +122,13 @@ class SMTPServer:
 			except Exception:
 				return False
 
-	def quit(self):
+	def quit(self) -> None:
 		with suppress(TimeoutError):
 			if self.is_session_active():
 				self._session.quit()
 
 	@classmethod
-	def throw_invalid_credentials_exception(cls):
+	def throw_invalid_credentials_exception(cls) -> None:
 		original_exception = get_traceback() or "\n"
 		frappe.throw(
 			_("Please check your email login credentials.") + " " + original_exception.splitlines()[-1],

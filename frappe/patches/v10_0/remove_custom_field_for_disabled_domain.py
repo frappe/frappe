@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.reload_doc("core", "doctype", "domain")
 	frappe.reload_doc("core", "doctype", "has_domain")
 	active_domains = frappe.get_active_domains()

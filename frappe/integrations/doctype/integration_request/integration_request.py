@@ -31,18 +31,18 @@ class IntegrationRequest(Document):
 		url: DF.SmallText | None
 	# end: auto-generated types
 
-	def autoname(self):
+	def autoname(self) -> None:
 		if self.flags._name:
 			self.name = self.flags._name
 
-	def clear_old_logs(days=30):
+	def clear_old_logs(days: int = 30) -> None:
 		from frappe.query_builder import Interval
 		from frappe.query_builder.functions import Now
 
 		table = frappe.qb.DocType("Integration Request")
 		frappe.db.delete(table, filters=(table.creation < (Now() - Interval(days=days))))
 
-	def update_status(self, params, status):
+	def update_status(self, params, status) -> None:
 		data = json.loads(self.data)
 		data.update(params)
 
@@ -51,14 +51,14 @@ class IntegrationRequest(Document):
 		self.save(ignore_permissions=True)
 		frappe.db.commit()
 
-	def handle_success(self, response):
+	def handle_success(self, response) -> None:
 		"""update the output field with the response along with the relevant status"""
 		if isinstance(response, str):
 			response = json.loads(response)
 		self.db_set("status", "Completed")
 		self.db_set("output", json.dumps(response, default=json_handler))
 
-	def handle_failure(self, response):
+	def handle_failure(self, response) -> None:
 		"""update the error field with the response along with the relevant status"""
 		if isinstance(response, str):
 			response = json.loads(response)

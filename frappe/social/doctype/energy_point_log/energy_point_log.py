@@ -39,19 +39,19 @@ class EnergyPointLog(Document):
 		user: DF.Link
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		self.map_milestone_reference()
 		if self.type in ["Appreciation", "Criticism"] and self.user == self.owner:
 			frappe.throw(_("You cannot give review points to yourself"))
 
-	def map_milestone_reference(self):
+	def map_milestone_reference(self) -> None:
 		# link energy point to the original reference, if set by milestone
 		if self.reference_doctype == "Milestone":
 			self.reference_doctype, self.reference_name = frappe.db.get_value(
 				"Milestone", self.reference_name, ["reference_type", "reference_name"]
 			)
 
-	def after_insert(self):
+	def after_insert(self) -> None:
 		alert_dict = get_alert_dict(self)
 		if alert_dict:
 			frappe.publish_realtime(
@@ -75,14 +75,14 @@ class EnergyPointLog(Document):
 
 			enqueue_create_notification(self.user, notification_doc)
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		if self.type == "Revert":
 			reference_log = frappe.get_doc("Energy Point Log", self.revert_of)
 			reference_log.reverted = 0
 			reference_log.save()
 
 	@frappe.whitelist()
-	def revert(self, reason, ignore_permissions=False):
+	def revert(self, reason, ignore_permissions: bool = False):
 		if not ignore_permissions:
 			frappe.only_for("System Manager")
 
@@ -187,7 +187,7 @@ def get_alert_dict(doc):
 	return alert_dict
 
 
-def create_energy_points_log(ref_doctype, ref_name, doc, apply_only_once=False):
+def create_energy_points_log(ref_doctype, ref_name, doc, apply_only_once: bool = False):
 	doc = frappe._dict(doc)
 	if doc.rule:
 		log_exists = check_if_log_exists(
@@ -231,7 +231,7 @@ def create_review_points_log(user, points, reason=None, doctype=None, docname=No
 
 
 @frappe.whitelist()
-def add_review_points(user, points):
+def add_review_points(user, points) -> None:
 	frappe.only_for("System Manager")
 	create_review_points_log(user, points)
 
@@ -243,7 +243,7 @@ def get_energy_points(user):
 
 
 @frappe.whitelist()
-def get_user_energy_and_review_points(user=None, from_date=None, as_dict=True):
+def get_user_energy_and_review_points(user=None, from_date=None, as_dict: bool = True):
 	conditions = ""
 	given_points_condition = ""
 	values = frappe._dict()
@@ -286,7 +286,7 @@ def get_user_energy_and_review_points(user=None, from_date=None, as_dict=True):
 
 
 @frappe.whitelist()
-def review(doc, points, to_user, reason, review_type="Appreciation"):
+def review(doc, points, to_user, reason, review_type: str = "Appreciation"):
 	current_review_points = get_energy_points(frappe.session.user).review_points
 	doc = doc.as_dict() if hasattr(doc, "as_dict") else frappe._dict(json.loads(doc))
 	points = abs(cint(points))
@@ -330,15 +330,15 @@ def get_reviews(doctype, docname):
 	)
 
 
-def send_weekly_summary():
+def send_weekly_summary() -> None:
 	send_summary("Weekly")
 
 
-def send_monthly_summary():
+def send_monthly_summary() -> None:
 	send_summary("Monthly")
 
 
-def send_summary(timespan):
+def send_summary(timespan) -> None:
 	from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 		is_energy_point_enabled,
 	)

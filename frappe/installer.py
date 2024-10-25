@@ -42,20 +42,20 @@ def _new_site(
 	db_root_username=None,
 	db_root_password=None,
 	admin_password=None,
-	verbose=False,
+	verbose: bool = False,
 	install_apps=None,
 	source_sql=None,
-	force=False,
+	force: bool = False,
 	db_password=None,
 	db_type=None,
 	db_socket=None,
 	db_host=None,
 	db_port=None,
 	db_user=None,
-	setup_db=True,
+	setup_db: bool = True,
 	rollback_callback=None,
 	mariadb_user_host_login_scope=None,
-):
+) -> None:
 	"""Install a new Frappe site"""
 
 	from frappe.utils import scheduler
@@ -123,8 +123,8 @@ def install_db(
 	db_name=None,
 	source_sql=None,
 	admin_password=None,
-	verbose=True,
-	force=0,
+	verbose: bool = True,
+	force: int = 0,
 	site_config=None,
 	db_password=None,
 	db_type=None,
@@ -132,10 +132,10 @@ def install_db(
 	db_host=None,
 	db_port=None,
 	db_user=None,
-	setup=True,
+	setup: bool = True,
 	rollback_callback=None,
 	mariadb_user_host_login_scope=None,
-):
+) -> None:
 	import frappe.database
 	from frappe.database import bootstrap_database, drop_user_and_database, setup_database
 
@@ -266,7 +266,7 @@ def parse_app_name(name: str) -> str:
 	return repo
 
 
-def install_app(name, verbose=False, set_as_patched=True, force=False):
+def install_app(name, verbose: bool = False, set_as_patched: bool = True, force: bool = False):
 	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 	from frappe.model.sync import sync_for
 	from frappe.modules.utils import sync_customizations
@@ -337,7 +337,7 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 	frappe.flags.in_install = False
 
 
-def add_to_installed_apps(app_name, rebuild_website=True):
+def add_to_installed_apps(app_name, rebuild_website: bool = True) -> None:
 	installed_apps = frappe.get_installed_apps()
 	if app_name not in installed_apps:
 		installed_apps.append(app_name)
@@ -347,7 +347,7 @@ def add_to_installed_apps(app_name, rebuild_website=True):
 			post_install(rebuild_website)
 
 
-def remove_from_installed_apps(app_name):
+def remove_from_installed_apps(app_name) -> None:
 	installed_apps = frappe.get_installed_apps()
 	if app_name in installed_apps:
 		installed_apps.remove(app_name)
@@ -360,7 +360,9 @@ def remove_from_installed_apps(app_name):
 			post_install()
 
 
-def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False):
+def remove_app(
+	app_name, dry_run: bool = False, yes: bool = False, no_backup: bool = False, force: bool = False
+) -> None:
 	"""Remove app and all linked to the app's module with the app from a site."""
 
 	site = frappe.local.site
@@ -502,7 +504,7 @@ def _delete_doctypes(doctypes: list[str], dry_run: bool) -> None:
 			frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `tab{doctype}`")
 
 
-def post_install(rebuild_website=False):
+def post_install(rebuild_website: bool = False) -> None:
 	from frappe.website.utils import clear_website_cache
 
 	if rebuild_website:
@@ -513,7 +515,7 @@ def post_install(rebuild_website=False):
 	frappe.clear_cache()
 
 
-def set_all_patches_as_completed(app):
+def set_all_patches_as_completed(app) -> None:
 	from frappe.modules.patch_handler import get_patches_from_app
 
 	patches = get_patches_from_app(app)
@@ -522,7 +524,7 @@ def set_all_patches_as_completed(app):
 	frappe.db.commit()
 
 
-def init_singles():
+def init_singles() -> None:
 	singles = frappe.get_all("DocType", filters={"issingle": True}, pluck="name")
 	for single in singles:
 		if frappe.db.get_singles_dict(single):
@@ -548,7 +550,7 @@ def make_conf(
 	db_host=None,
 	db_port=None,
 	db_user=None,
-):
+) -> None:
 	site = frappe.local.site
 	make_site_config(
 		db_name,
@@ -574,7 +576,7 @@ def make_site_config(
 	db_host=None,
 	db_port=None,
 	db_user=None,
-):
+) -> None:
 	frappe.create_folder(os.path.join(frappe.local.site_path))
 	site_file = get_site_config_path()
 
@@ -600,7 +602,7 @@ def make_site_config(
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
 
 
-def update_site_config(key, value, validate=True, site_config_path=None):
+def update_site_config(key, value, validate: bool = True, site_config_path=None) -> None:
 	"""Update a value in site_config"""
 	from frappe.utils.synchronization import filelock
 
@@ -614,7 +616,7 @@ def update_site_config(key, value, validate=True, site_config_path=None):
 		_update_config_file(key=key, value=value, config_file=site_config_path)
 
 
-def _update_config_file(key: str, value, config_file: str):
+def _update_config_file(key: str, value, config_file: str) -> None:
 	"""Updates site or common config"""
 	with open(config_file) as f:
 		site_config = json.loads(f.read())
@@ -661,7 +663,7 @@ def get_conf_params(db_name=None, db_password=None):
 	return {"db_name": db_name, "db_password": db_password}
 
 
-def make_site_dirs():
+def make_site_dirs() -> None:
 	for dir_path in [
 		os.path.join("public", "files"),
 		os.path.join("private", "backups"),
@@ -673,7 +675,7 @@ def make_site_dirs():
 		os.makedirs(path, exist_ok=True)
 
 
-def add_module_defs(app, ignore_if_duplicate=False):
+def add_module_defs(app, ignore_if_duplicate: bool = False) -> None:
 	modules = frappe.get_module_list(app)
 	for module in modules:
 		d = frappe.new_doc("Module Def")
@@ -682,7 +684,7 @@ def add_module_defs(app, ignore_if_duplicate=False):
 		d.insert(ignore_permissions=True, ignore_if_duplicate=ignore_if_duplicate)
 
 
-def remove_missing_apps():
+def remove_missing_apps() -> None:
 	import importlib
 
 	apps = ("frappe_subscription", "shopping_cart")
@@ -697,7 +699,7 @@ def remove_missing_apps():
 				frappe.db.set_global("installed_apps", json.dumps(installed_apps))
 
 
-def convert_archive_content(sql_file_path):
+def convert_archive_content(sql_file_path) -> None:
 	if frappe.conf.db_type == "mariadb":
 		# ever since mariaDB 10.6, row_format COMPRESSED has been deprecated and removed
 		# this step is added to ease restoring sites depending on older mariaDB servers
@@ -776,7 +778,7 @@ def extract_files(site_name, file_path):
 	return tar_path
 
 
-def is_downgrade(sql_file_path, verbose=False):
+def is_downgrade(sql_file_path, verbose: bool = False):
 	"""Check if input db backup will get downgraded on current bench
 
 	This function is only tested with mariadb.
@@ -838,7 +840,7 @@ def is_partial(sql_file_path: str) -> bool:
 	return "Partial Backup" in header
 
 
-def partial_restore(sql_file_path, verbose=False):
+def partial_restore(sql_file_path, verbose: bool = False) -> None:
 	if frappe.conf.db_type == "mariadb":
 		from frappe.database.mariadb.setup_db import import_db_from_sql
 	elif frappe.conf.db_type == "postgres":

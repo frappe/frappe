@@ -19,6 +19,6 @@ class ConsoleLog(Document):
 		type: DF.Data | None
 	# end: auto-generated types
 
-	def after_delete(self):
+	def after_delete(self) -> None:
 		# because on_trash can be bypassed
 		frappe.throw(frappe._("Console Logs can not be deleted"))

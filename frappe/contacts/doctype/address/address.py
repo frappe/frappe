@@ -53,10 +53,10 @@ class Address(Document):
 		state: DF.Data | None
 	# end: auto-generated types
 
-	def __setup__(self):
+	def __setup__(self) -> None:
 		self.flags.linked = False
 
-	def autoname(self):
+	def autoname(self) -> None:
 		if not self.address_title:
 			if self.links:
 				self.address_title = self.links[0].link_name
@@ -71,13 +71,13 @@ class Address(Document):
 		else:
 			throw(_("Address Title is mandatory."))
 
-	def validate(self):
+	def validate(self) -> None:
 		self.link_address()
 		self.validate_preferred_address()
 		set_link_title(self)
 		deduplicate_dynamic_links(self)
 
-	def link_address(self):
+	def link_address(self) -> bool:
 		"""Link address based on owner"""
 		if not self.links:
 			contact_name = frappe.db.get_value("Contact", {"email_id": self.owner})
@@ -89,7 +89,7 @@ class Address(Document):
 
 		return False
 
-	def validate_preferred_address(self):
+	def validate_preferred_address(self) -> None:
 		preferred_fields = ["is_primary_address", "is_shipping_address"]
 
 		for field in preferred_fields:
@@ -103,12 +103,12 @@ class Address(Document):
 	def get_display(self):
 		return get_address_display(self.as_dict())
 
-	def has_link(self, doctype, name):
+	def has_link(self, doctype, name) -> bool:
 		for link in self.links:
 			if link.link_doctype == doctype and link.link_name == name:
 				return True
 
-	def has_common_link(self, doc):
+	def has_common_link(self, doc) -> bool:
 		reference_links = [(link.link_doctype, link.link_name) for link in doc.links]
 		for link in self.links:
 			if (link.link_doctype, link.link_name) in reference_links:
@@ -117,7 +117,7 @@ class Address(Document):
 		return False
 
 
-def get_preferred_address(doctype, name, preferred_key="is_primary_address"):
+def get_preferred_address(doctype, name, preferred_key: str = "is_primary_address"):
 	if preferred_key in ["is_shipping_address", "is_primary_address"]:
 		address = frappe.db.sql(
 			""" SELECT
@@ -165,7 +165,7 @@ def get_address_display(address_dict: dict | str | None) -> str | None:
 	return render_address(address_dict)
 
 
-def render_address(address: dict | str | None, check_permissions=True) -> str | None:
+def render_address(address: dict | str | None, check_permissions: bool = True) -> str | None:
 	if not address:
 		return
 
@@ -210,7 +210,7 @@ def get_list_context(context=None):
 	}
 
 
-def get_address_list(doctype, txt, filters, limit_start, limit_page_length=20, order_by=None):
+def get_address_list(doctype, txt, filters, limit_start, limit_page_length: int = 20, order_by=None):
 	from frappe.www.list import get_list
 
 	user = frappe.session.user
@@ -222,7 +222,7 @@ def get_address_list(doctype, txt, filters, limit_start, limit_page_length=20, o
 	return get_list(doctype, txt, filters, limit_start, limit_page_length)
 
 
-def has_website_permission(doc, ptype, user, verbose=False):
+def has_website_permission(doc, ptype, user, verbose: bool = False):
 	"""Return True if there is a related lead or contact related to this document."""
 	contact_name = frappe.db.get_value("Contact", {"email_id": frappe.session.user})
 
@@ -280,7 +280,7 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 	)
 
 
-def get_condensed_address(doc, no_title=False):
+def get_condensed_address(doc, no_title: bool = False):
 	fields = [
 		"address_title",
 		"address_line1",
@@ -295,7 +295,7 @@ def get_condensed_address(doc, no_title=False):
 	return ", ".join(doc.get(d) for d in fields if doc.get(d))
 
 
-def update_preferred_address(address, field):
+def update_preferred_address(address, field) -> None:
 	frappe.db.set_value("Address", address, field, 0)
 
 

@@ -8,7 +8,7 @@ from frappe.tests.test_api import FrappeAPITestCase
 
 
 class TestHooks(IntegrationTestCase):
-	def test_hooks(self):
+	def test_hooks(self) -> None:
 		hooks = frappe.get_hooks()
 		self.assertTrue(isinstance(hooks.get("app_name"), list))
 		self.assertTrue(isinstance(hooks.get("doc_events"), dict))
@@ -19,7 +19,7 @@ class TestHooks(IntegrationTestCase):
 			in hooks.get("doc_events").get("*").get("on_update")
 		)
 
-	def test_override_doctype_class(self):
+	def test_override_doctype_class(self) -> None:
 		from frappe import hooks
 
 		# Set hook
@@ -32,7 +32,7 @@ class TestHooks(IntegrationTestCase):
 		todo = frappe.get_doc(doctype="ToDo", description="asdf")
 		self.assertTrue(isinstance(todo, CustomToDo))
 
-	def test_has_permission(self):
+	def test_has_permission(self) -> None:
 		from frappe import hooks
 
 		# Set hook
@@ -75,7 +75,7 @@ class TestHooks(IntegrationTestCase):
 		note.flags.dont_touch_me = True
 		self.assertFalse(frappe.has_permission("Note", doc=note, user=username))
 
-	def test_ignore_links_on_delete(self):
+	def test_ignore_links_on_delete(self) -> None:
 		email_unsubscribe = frappe.get_doc(
 			{"doctype": "Email Unsubscribe", "email": "test@example.com", "global_unsubscribe": 1}
 		).insert()
@@ -111,7 +111,7 @@ class TestHooks(IntegrationTestCase):
 
 		event.delete()
 
-	def test_fixture_prefix(self):
+	def test_fixture_prefix(self) -> None:
 		import os
 		import shutil
 
@@ -187,7 +187,7 @@ class TestHooks(IntegrationTestCase):
 
 
 class TestAPIHooks(FrappeAPITestCase):
-	def test_auth_hook(self):
+	def test_auth_hook(self) -> None:
 		with self.patch_hooks({"auth_hooks": ["frappe.tests.test_hooks.custom_auth"]}):
 			site_url = frappe.utils.get_site_url(frappe.local.site)
 			response = self.get(
@@ -198,13 +198,13 @@ class TestAPIHooks(FrappeAPITestCase):
 			self.assertTrue(response.json.get("message") == "test@example.com")
 
 
-def custom_has_permission(doc, ptype, user):
+def custom_has_permission(doc, ptype, user) -> bool:
 	if doc.flags.dont_touch_me:
 		return False
 	return True
 
 
-def custom_auth():
+def custom_auth() -> None:
 	auth_type, token = frappe.get_request_header("Authorization", "Bearer ").split(" ")
 	if token == "set_test_example_user":
 		frappe.set_user("test@example.com")

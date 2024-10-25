@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	column = "apply_user_permissions"
 	to_remove = ["DocPerm", "Custom DocPerm"]
 

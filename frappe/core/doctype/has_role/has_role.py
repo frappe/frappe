@@ -20,6 +20,6 @@ class HasRole(Document):
 		role: DF.Link | None
 	# end: auto-generated types
 
-	def before_insert(self):
+	def before_insert(self) -> None:
 		if frappe.db.exists("Has Role", {"parent": self.parent, "role": self.role}):
 			frappe.throw(frappe._("User '{0}' already has the role '{1}'").format(self.parent, self.role))

@@ -64,7 +64,7 @@ class CliCtxObj:
 	verbose: bool
 
 
-def handle_exception(cmd, info_name, exc):
+def handle_exception(cmd, info_name, exc) -> None:
 	tb = sys.exc_info()[2]
 	while tb.tb_next:
 		tb = tb.tb_next
@@ -98,7 +98,7 @@ def handle_exception(cmd, info_name, exc):
 		click.echo(exc)
 
 
-def main():
+def main() -> None:
 	commands = get_app_groups()
 	commands.update({"get-frappe-commands": get_frappe_commands, "get-frappe-help": get_frappe_help})
 	FrappeClickWrapper(click.Group, handle_exception)(commands=commands)(prog_name="bench")
@@ -130,7 +130,9 @@ def get_app_group(app: str) -> click.Group:
 @click.option("--verbose", is_flag=True, default=False, help="Verbose")
 @click.option("--force", is_flag=True, default=False, help="Force")
 @click.pass_context
-def app_group(ctx, site=False, force=False, verbose=False, profile=False):
+def app_group(
+	ctx, site: bool = False, force: bool = False, verbose: bool = False, profile: bool = False
+) -> None:
 	ctx.obj = CliCtxObj(sites=get_sites(site), force=force, verbose=verbose, profile=profile)
 	if ctx.info_name == "frappe":
 		ctx.info_name = ""
@@ -177,7 +179,7 @@ def get_app_commands(app: str) -> dict:
 
 
 @click.command("get-frappe-commands")
-def get_frappe_commands():
+def get_frappe_commands() -> None:
 	commands = list(get_app_commands("frappe"))
 
 	for app in get_apps():
@@ -189,7 +191,7 @@ def get_frappe_commands():
 
 
 @click.command("get-frappe-help")
-def get_frappe_help():
+def get_frappe_help() -> None:
 	print(click.Context(get_app_groups()["frappe"]).get_help())
 
 

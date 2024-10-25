@@ -2,7 +2,7 @@ import frappe
 from frappe.utils import update_progress_bar
 
 
-def execute():
+def execute() -> None:
 	frappe.db.auto_commit_on_many_writes = True
 
 	Sessions = frappe.qb.DocType("Sessions")

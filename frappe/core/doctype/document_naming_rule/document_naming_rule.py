@@ -29,19 +29,19 @@ class DocumentNamingRule(Document):
 		priority: DF.Int
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		self.validate_fields_in_conditions()
 
-	def clear_doctype_map(self):
+	def clear_doctype_map(self) -> None:
 		frappe.cache_manager.clear_doctype_map(self.doctype, self.document_type)
 
-	def on_update(self):
+	def on_update(self) -> None:
 		self.clear_doctype_map()
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		self.clear_doctype_map()
 
-	def validate_fields_in_conditions(self):
+	def validate_fields_in_conditions(self) -> None:
 		if self.has_value_changed("document_type"):
 			docfields = [x.fieldname for x in frappe.get_meta(self.document_type).fields]
 			for condition in self.conditions:
@@ -52,7 +52,7 @@ class DocumentNamingRule(Document):
 						)
 					)
 
-	def apply(self, doc):
+	def apply(self, doc) -> None:
 		"""
 		Apply naming rules for the given document. Will set `name` if the rule is matched.
 		"""

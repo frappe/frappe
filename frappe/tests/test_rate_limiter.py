@@ -13,7 +13,7 @@ from frappe.utils import cint
 
 
 class TestRateLimiter(IntegrationTestCase):
-	def test_apply_with_limit(self):
+	def test_apply_with_limit(self) -> None:
 		frappe.conf.rate_limit = {"window": 86400, "limit": 1}
 		frappe.rate_limiter.apply()
 
@@ -23,13 +23,13 @@ class TestRateLimiter(IntegrationTestCase):
 		frappe.cache.delete(frappe.local.rate_limiter.key)
 		delattr(frappe.local, "rate_limiter")
 
-	def test_apply_without_limit(self):
+	def test_apply_without_limit(self) -> None:
 		frappe.conf.rate_limit = None
 		frappe.rate_limiter.apply()
 
 		self.assertFalse(hasattr(frappe.local, "rate_limiter"))
 
-	def test_respond_over_limit(self):
+	def test_respond_over_limit(self) -> None:
 		limiter = RateLimiter(0.01, 86400)
 		time.sleep(0.01)
 		limiter.update()
@@ -57,7 +57,7 @@ class TestRateLimiter(IntegrationTestCase):
 		frappe.cache.delete(frappe.local.rate_limiter.key)
 		delattr(frappe.local, "rate_limiter")
 
-	def test_respond_under_limit(self):
+	def test_respond_under_limit(self) -> None:
 		frappe.conf.rate_limit = {"window": 86400, "limit": 0.01}
 		frappe.rate_limiter.apply()
 		frappe.rate_limiter.update()
@@ -67,7 +67,7 @@ class TestRateLimiter(IntegrationTestCase):
 		frappe.cache.delete(frappe.local.rate_limiter.key)
 		delattr(frappe.local, "rate_limiter")
 
-	def test_headers_under_limit(self):
+	def test_headers_under_limit(self) -> None:
 		frappe.conf.rate_limit = {"window": 86400, "limit": 0.01}
 		frappe.rate_limiter.apply()
 		frappe.rate_limiter.update()
@@ -82,7 +82,7 @@ class TestRateLimiter(IntegrationTestCase):
 		frappe.cache.delete(frappe.local.rate_limiter.key)
 		delattr(frappe.local, "rate_limiter")
 
-	def test_reject_over_limit(self):
+	def test_reject_over_limit(self) -> None:
 		limiter = RateLimiter(0.01, 86400)
 		time.sleep(0.01)
 		limiter.update()
@@ -92,7 +92,7 @@ class TestRateLimiter(IntegrationTestCase):
 
 		frappe.cache.delete(limiter.key)
 
-	def test_do_not_reject_under_limit(self):
+	def test_do_not_reject_under_limit(self) -> None:
 		limiter = RateLimiter(0.01, 86400)
 		time.sleep(0.01)
 		limiter.update()
@@ -102,7 +102,7 @@ class TestRateLimiter(IntegrationTestCase):
 
 		frappe.cache.delete(limiter.key)
 
-	def test_update_method(self):
+	def test_update_method(self) -> None:
 		limiter = RateLimiter(0.01, 86400)
 		time.sleep(0.01)
 		limiter.update()

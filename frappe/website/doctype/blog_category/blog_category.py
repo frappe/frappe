@@ -21,13 +21,13 @@ class BlogCategory(WebsiteGenerator):
 		title: DF.Data
 	# end: auto-generated types
 
-	def autoname(self):
+	def autoname(self) -> None:
 		# to override autoname of WebsiteGenerator
 		self.name = self.scrub(self.title)
 
-	def on_update(self):
+	def on_update(self) -> None:
 		clear_cache()
 
-	def set_route(self):
+	def set_route(self) -> None:
 		# Override blog route since it has to been templated
 		self.route = "blog/" + self.name

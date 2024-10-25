@@ -1,2 +1,2 @@
-def get_context(context):
+def get_context(context) -> None:
 	pass

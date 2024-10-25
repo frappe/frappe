@@ -49,7 +49,7 @@ def new_language(context: CliCtxObj, lang_code, app):
 @click.argument("untranslated_file")
 @click.option("--all", default=False, is_flag=True, help="Get all message strings")
 @pass_context
-def get_untranslated(context: CliCtxObj, lang, untranslated_file, app="_ALL_APPS", all=None):
+def get_untranslated(context: CliCtxObj, lang, untranslated_file, app: str = "_ALL_APPS", all=None) -> None:
 	"Get untranslated strings for language"
 	import frappe.translate
 
@@ -68,7 +68,9 @@ def get_untranslated(context: CliCtxObj, lang, untranslated_file, app="_ALL_APPS
 @click.argument("untranslated_file")
 @click.argument("translated-file")
 @pass_context
-def update_translations(context: CliCtxObj, lang, untranslated_file, translated_file, app="_ALL_APPS"):
+def update_translations(
+	context: CliCtxObj, lang, untranslated_file, translated_file, app: str = "_ALL_APPS"
+) -> None:
 	"Update translated strings"
 	import frappe.translate
 
@@ -85,7 +87,7 @@ def update_translations(context: CliCtxObj, lang, untranslated_file, translated_
 @click.argument("lang")
 @click.argument("path")
 @pass_context
-def import_translations(context: CliCtxObj, lang, path):
+def import_translations(context: CliCtxObj, lang, path) -> None:
 	"Update translated strings"
 	import frappe.translate
 
@@ -102,7 +104,7 @@ def import_translations(context: CliCtxObj, lang, path):
 @click.argument("source-app")
 @click.argument("target-app")
 @pass_context
-def migrate_translations(context: CliCtxObj, source_app, target_app):
+def migrate_translations(context: CliCtxObj, source_app, target_app) -> None:
 	"Migrate target-app-specific translations from source-app to target-app"
 	import frappe.translate
 

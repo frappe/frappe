@@ -4,7 +4,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	"""Enable all the existing Client script"""
 
 	frappe.db.sql(

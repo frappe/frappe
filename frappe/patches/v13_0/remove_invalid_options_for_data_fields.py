@@ -6,7 +6,7 @@ import frappe
 from frappe.model import data_field_options
 
 
-def execute():
+def execute() -> None:
 	custom_field = frappe.qb.DocType("Custom Field")
 	(
 		frappe.qb.update(custom_field)

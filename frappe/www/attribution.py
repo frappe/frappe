@@ -9,7 +9,7 @@ from frappe import _
 from frappe.permissions import is_system_user
 
 
-def get_context(context):
+def get_context(context) -> None:
 	if not is_system_user():
 		frappe.throw(_("You need to be a system user to access this page."), frappe.PermissionError)
 

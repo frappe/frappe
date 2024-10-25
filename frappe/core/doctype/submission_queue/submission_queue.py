@@ -46,26 +46,26 @@ class SubmissionQueue(Document):
 		return getattr(self, "to_be_queued_doc", frappe.get_doc(self.ref_doctype, self.ref_docname))
 
 	@staticmethod
-	def clear_old_logs(days=30):
+	def clear_old_logs(days: int = 30) -> None:
 		from frappe.query_builder import Interval
 		from frappe.query_builder.functions import Now
 
 		table = frappe.qb.DocType("Submission Queue")
 		frappe.db.delete(table, filters=(table.creation < (Now() - Interval(days=days))))
 
-	def insert(self, to_be_queued_doc: Document, action: str):
+	def insert(self, to_be_queued_doc: Document, action: str) -> None:
 		self.status = "Queued"
 		self.to_be_queued_doc = to_be_queued_doc
 		self.action_for_queuing = action
 		super().insert(ignore_permissions=True)
 
-	def lock(self):
+	def lock(self) -> None:
 		self.queued_doc.lock()
 
-	def unlock(self):
+	def unlock(self) -> None:
 		self.queued_doc.unlock()
 
-	def update_job_id(self, job_id):
+	def update_job_id(self, job_id) -> None:
 		frappe.db.set_value(
 			self.doctype,
 			self.name,
@@ -74,7 +74,7 @@ class SubmissionQueue(Document):
 		)
 		frappe.db.commit()
 
-	def after_insert(self):
+	def after_insert(self) -> None:
 		self.queue_action(
 			"background_submission",
 			to_be_queued_doc=self.queued_doc,
@@ -83,7 +83,7 @@ class SubmissionQueue(Document):
 			enqueue_after_commit=True,
 		)
 
-	def background_submission(self, to_be_queued_doc: Document, action_for_queuing: str):
+	def background_submission(self, to_be_queued_doc: Document, action_for_queuing: str) -> None:
 		# Set the job id for that submission doctype
 		self.update_job_id(get_current_job().id)
 
@@ -109,7 +109,7 @@ class SubmissionQueue(Document):
 		frappe.db.set_value(self.doctype, self.name, values, update_modified=False)
 		self.notify(values["status"], action_for_queuing)
 
-	def notify(self, submission_status: str, action: str):
+	def notify(self, submission_status: str, action: str) -> None:
 		if submission_status == "Failed":
 			doctype = self.doctype
 			docname = self.name
@@ -151,7 +151,7 @@ class SubmissionQueue(Document):
 			enqueue_create_notification([notify_to], notification_doc)
 
 	@frappe.whitelist()
-	def unlock_doc(self):
+	def unlock_doc(self) -> None:
 		# NOTE: this can lead to some weird unlocking/locking behaviours.
 		# for example: hitting unlock on a submission could lead to unlocking of another submission
 		# of the same reference document.
@@ -163,7 +163,7 @@ class SubmissionQueue(Document):
 		frappe.msgprint(_("Document Unlocked"))
 
 
-def queue_submission(doc: Document, action: str, alert: bool = True):
+def queue_submission(doc: Document, action: str, alert: bool = True) -> None:
 	queue = frappe.new_doc("Submission Queue")
 	queue.ref_doctype = doc.doctype
 	queue.ref_docname = doc.name

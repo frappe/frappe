@@ -1,7 +1,7 @@
 import frappe
 
 
-def execute():
+def execute() -> None:
 	frappe.reload_doctype("Comment")
 
 	if frappe.db.count("Communication", filters=dict(communication_type="Comment")) > 20000:

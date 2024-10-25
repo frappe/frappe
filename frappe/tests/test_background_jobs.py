@@ -18,7 +18,7 @@ from frappe.utils.background_jobs import (
 
 
 class TestBackgroundJobs(IntegrationTestCase):
-	def test_remove_failed_jobs(self):
+	def test_remove_failed_jobs(self) -> None:
 		frappe.enqueue(method="frappe.tests.test_background_jobs.fail_function", queue="short")
 		# wait for enqueued job to execute
 		time.sleep(2)
@@ -37,7 +37,7 @@ class TestBackgroundJobs(IntegrationTestCase):
 				fail_registry = queue.failed_job_registry
 				self.assertEqual(fail_registry.count, 0)
 
-	def test_enqueue_at_front(self):
+	def test_enqueue_at_front(self) -> None:
 		kwargs = {
 			"method": "frappe.handler.ping",
 			"queue": "short",
@@ -53,7 +53,7 @@ class TestBackgroundJobs(IntegrationTestCase):
 		# lesser is earlier
 		self.assertTrue(high_priority_job.get_position() < low_priority_job.get_position())
 
-	def test_job_hooks(self):
+	def test_job_hooks(self) -> None:
 		self.addCleanup(lambda: _test_JOB_HOOK.clear())
 		with freeze_local() as locals, frappe.init_site(locals.site), patch(
 			"frappe.get_hooks", patch_job_hooks
@@ -80,11 +80,11 @@ def fail_function():
 _test_JOB_HOOK = {}
 
 
-def before_job(*args, **kwargs):
+def before_job(*args, **kwargs) -> None:
 	_test_JOB_HOOK["before_job"] = time.time()
 
 
-def after_job(*args, **kwargs):
+def after_job(*args, **kwargs) -> None:
 	_test_JOB_HOOK["after_job"] = time.time()
 
 

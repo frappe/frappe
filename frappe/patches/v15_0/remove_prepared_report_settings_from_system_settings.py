@@ -2,7 +2,7 @@ import frappe
 from frappe.utils import cint
 
 
-def execute():
+def execute() -> None:
 	expiry_period = (
 		cint(frappe.db.get_singles_dict("System Settings").get("prepared_report_expiry_period")) or 30
 	)

@@ -3,7 +3,7 @@ import json
 import frappe
 
 
-def execute():
+def execute() -> None:
 	"""
 	Migrate JSON field of Report according to changes in New ListView
 	Rename key columns to fields

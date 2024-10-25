@@ -17,12 +17,12 @@ MONITOR_REDIS_KEY = "monitor-transactions"
 MONITOR_MAX_ENTRIES = 1000000
 
 
-def start(transaction_type="request", method=None, kwargs=None):
+def start(transaction_type: str = "request", method=None, kwargs=None) -> None:
 	if frappe.conf.monitor:
 		frappe.local.monitor = Monitor(transaction_type, method, kwargs)
 
 
-def stop(response=None):
+def stop(response=None) -> None:
 	if hasattr(frappe.local, "monitor"):
 		frappe.local.monitor.dump(response)
 
@@ -47,7 +47,7 @@ def log_file():
 class Monitor:
 	__slots__ = ("data",)
 
-	def __init__(self, transaction_type, method, kwargs):
+	def __init__(self, transaction_type, method, kwargs) -> None:
 		try:
 			self.data = frappe._dict(
 				{
@@ -65,7 +65,7 @@ class Monitor:
 		except Exception:
 			traceback.print_exc()
 
-	def collect_request_meta(self):
+	def collect_request_meta(self) -> None:
 		self.data.request = frappe._dict(
 			{
 				"ip": frappe.local.request_ip,
@@ -77,7 +77,7 @@ class Monitor:
 		if request_id := frappe.request.headers.get("X-Frappe-Request-Id"):
 			self.data.uuid = request_id
 
-	def collect_job_meta(self, method, kwargs):
+	def collect_job_meta(self, method, kwargs) -> None:
 		self.data.job = frappe._dict({"method": method, "scheduled": False, "wait": 0})
 		if "run_scheduled_job" in method:
 			self.data.job.method = kwargs["job_type"]
@@ -88,11 +88,11 @@ class Monitor:
 			waitdiff = self.data.timestamp - job.enqueued_at.replace(tzinfo=pytz.UTC)
 			self.data.job.wait = int(waitdiff.total_seconds() * 1000000)
 
-	def add_custom_data(self, **kwargs):
+	def add_custom_data(self, **kwargs) -> None:
 		if self.data:
 			self.data.update(kwargs)
 
-	def dump(self, response=None):
+	def dump(self, response=None) -> None:
 		try:
 			timediff = datetime.datetime.now(pytz.UTC) - self.data.timestamp
 			# Obtain duration in microseconds
@@ -115,14 +115,14 @@ class Monitor:
 		except Exception:
 			traceback.print_exc()
 
-	def store(self):
+	def store(self) -> None:
 		serialized = json.dumps(self.data, sort_keys=True, default=str, separators=(",", ":"))
 		length = frappe.cache.rpush(MONITOR_REDIS_KEY, serialized)
 		if cint(length) > MONITOR_MAX_ENTRIES:
 			frappe.cache.ltrim(MONITOR_REDIS_KEY, 1, -1)
 
 
-def flush():
+def flush() -> None:
 	try:
 		# Fetch all the logs without removing from cache
 		logs = frappe.cache.lrange(MONITOR_REDIS_KEY, 0, -1)

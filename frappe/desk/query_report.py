@@ -73,7 +73,7 @@ def get_report_result(report, filters):
 
 @frappe.read_only()
 def generate_report_result(
-	report, filters=None, user=None, custom_columns=None, is_tree=False, parent_field=None
+	report, filters=None, user=None, custom_columns=None, is_tree: bool = False, parent_field=None
 ):
 	user = user or frappe.session.user
 	filters = filters or []
@@ -189,11 +189,11 @@ def run(
 	report_name,
 	filters=None,
 	user=None,
-	ignore_prepared_report=False,
+	ignore_prepared_report: bool = False,
 	custom_columns=None,
-	is_tree=False,
+	is_tree: bool = False,
 	parent_field=None,
-	are_default_filters=True,
+	are_default_filters: bool = True,
 ):
 	validate_filters_permissions(report_name, filters, user)
 	report = get_report_doc(report_name)
@@ -268,7 +268,7 @@ def add_custom_column_data(custom_columns, result):
 	return result
 
 
-def get_prepared_report_result(report, filters, dn="", user=None):
+def get_prepared_report_result(report, filters, dn: str = "", user=None):
 	from frappe.core.doctype.prepared_report.prepared_report import get_completed_prepared_report
 
 	def get_report_data(doc, data):
@@ -306,7 +306,7 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 
 
 @frappe.whitelist()
-def export_query():
+def export_query() -> None:
 	"""export from query reports"""
 	from frappe.desk.utils import get_csv_bytes, pop_csv_params, provide_binary_file
 
@@ -369,7 +369,9 @@ def format_duration_fields(data: frappe._dict) -> None:
 				row[index] = format_duration(row[index])
 
 
-def build_xlsx_data(data, visible_idx, include_indentation, include_filters=False, ignore_visible_idx=False):
+def build_xlsx_data(
+	data, visible_idx, include_indentation, include_filters: bool = False, ignore_visible_idx: bool = False
+):
 	EXCEL_TYPES = (
 		str,
 		bool,
@@ -444,7 +446,7 @@ def build_xlsx_data(data, visible_idx, include_indentation, include_filters=Fals
 	return result, column_widths
 
 
-def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):
+def add_total_row(result, columns, meta=None, is_tree: bool = False, parent_field=None):
 	total_row = [""] * len(columns)
 	has_percent = []
 
@@ -788,7 +790,7 @@ def get_user_match_filters(doctypes, user):
 	return match_filters
 
 
-def validate_filters_permissions(report_name, filters=None, user=None):
+def validate_filters_permissions(report_name, filters=None, user=None) -> None:
 	if not filters:
 		return
 

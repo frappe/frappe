@@ -41,7 +41,7 @@ def execute(filters=None):
 
 
 @frappe.whitelist()
-def optimize_doctype(doctype_name: str):
+def optimize_doctype(doctype_name: str) -> None:
 	frappe.only_for("System Manager")
 	frappe.enqueue(
 		optimize_doctype_job,
@@ -52,7 +52,7 @@ def optimize_doctype(doctype_name: str):
 	)
 
 
-def optimize_doctype_job(doctype_name: str):
+def optimize_doctype_job(doctype_name: str) -> None:
 	from frappe.utils import get_table_name
 
 	doctype_table = get_table_name(doctype_name, wrap_in_backticks=True)

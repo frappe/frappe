@@ -32,14 +32,14 @@ def get_data_keys():
 def export_data(
 	doctype=None,
 	parent_doctype=None,
-	all_doctypes=True,
-	with_data=False,
+	all_doctypes: bool = True,
+	with_data: bool = False,
 	select_columns=None,
-	file_type="CSV",
-	template=False,
+	file_type: str = "CSV",
+	template: bool = False,
 	filters=None,
-	export_without_column_meta=False,
-):
+	export_without_column_meta: bool = False,
+) -> None:
 	_doctype = doctype
 	if isinstance(_doctype, list):
 		_doctype = _doctype[0]
@@ -78,14 +78,14 @@ class DataExporter:
 		self,
 		doctype=None,
 		parent_doctype=None,
-		all_doctypes=True,
-		with_data=False,
+		all_doctypes: bool = True,
+		with_data: bool = False,
 		select_columns=None,
-		file_type="CSV",
-		template=False,
+		file_type: str = "CSV",
+		template: bool = False,
 		filters=None,
-		export_without_column_meta=False,
-	):
+		export_without_column_meta: bool = False,
+	) -> None:
 		self.doctype = doctype
 		self.parent_doctype = parent_doctype
 		self.all_doctypes = all_doctypes
@@ -99,7 +99,7 @@ class DataExporter:
 
 		self.prepare_args()
 
-	def prepare_args(self):
+	def prepare_args(self) -> None:
 		if self.select_columns:
 			self.select_columns = parse_json(self.select_columns)
 		if self.filters:
@@ -125,7 +125,7 @@ class DataExporter:
 				for df in frappe.get_meta(self.doctype).get_table_fields()
 			]
 
-	def build_response(self):
+	def build_response(self) -> None:
 		self.writer = UnicodeWriter()
 		self.name_field = "parent" if self.parent_doctype != self.doctype else "name"
 
@@ -170,7 +170,7 @@ class DataExporter:
 			frappe.response["type"] = "csv"
 			frappe.response["doctype"] = self.doctype
 
-	def add_main_header(self):
+	def add_main_header(self) -> None:
 		self.writer.writerow([_("Data Import Template")])
 		self.writer.writerow([self.data_keys.main_table, self.doctype])
 
@@ -204,7 +204,7 @@ class DataExporter:
 				[_('If you are updating, please select "Overwrite" else existing rows will not be deleted.')]
 			)
 
-	def build_field_columns(self, dt, parentfield=None):
+	def build_field_columns(self, dt, parentfield=None) -> None:
 		meta = frappe.get_meta(dt)
 
 		# build list of valid docfields
@@ -286,7 +286,7 @@ class DataExporter:
 
 		self.column_start_end[(dt, parentfield)] = _column_start_end
 
-	def append_field_column(self, docfield, for_mandatory):
+	def append_field_column(self, docfield, for_mandatory) -> None:
 		if not docfield:
 			return
 		if for_mandatory and not docfield.reqd:
@@ -312,7 +312,7 @@ class DataExporter:
 		self.inforow.append(self.getinforow(docfield))
 		self.columns.append(docfield.fieldname)
 
-	def append_empty_field_column(self):
+	def append_empty_field_column(self) -> None:
 		self.tablerow.append("~")
 		self.fieldrow.append("~")
 		self.labelrow.append("")
@@ -342,7 +342,7 @@ class DataExporter:
 		else:
 			return ""
 
-	def add_field_headings(self):
+	def add_field_headings(self) -> None:
 		if not self.export_without_column_meta:
 			self.writer.writerow(self.tablerow)
 
@@ -358,7 +358,7 @@ class DataExporter:
 		if self.template:
 			self.writer.writerow([self.data_keys.data_separator])
 
-	def add_data(self):
+	def add_data(self) -> None:
 		from frappe.query_builder import DocType
 
 		if self.template and not self.with_data:
@@ -422,7 +422,7 @@ class DataExporter:
 			for row in rows:
 				self.writer.writerow(row)
 
-	def add_data_row(self, rows, dt, parentfield, doc, rowidx):
+	def add_data_row(self, rows, dt, parentfield, doc, rowidx) -> None:
 		d = doc.copy()
 		meta = frappe.get_meta(dt)
 		if self.all_doctypes:
@@ -449,7 +449,7 @@ class DataExporter:
 
 				row[_column_start_end.start + i + 1] = value
 
-	def build_response_as_excel(self):
+	def build_response_as_excel(self) -> None:
 		from frappe.desk.utils import provide_binary_file
 		from frappe.utils.xlsxutils import make_xlsx
 
@@ -465,7 +465,7 @@ class DataExporter:
 
 		provide_binary_file(self.doctype, "xlsx", xlsx_file.getvalue())
 
-	def _append_name_column(self, dt=None):
+	def _append_name_column(self, dt=None) -> None:
 		self.append_field_column(
 			frappe._dict(
 				{

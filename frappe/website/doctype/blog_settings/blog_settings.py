@@ -31,7 +31,7 @@ class BlogSettings(Document):
 		title: DF.Data | None
 	# end: auto-generated types
 
-	def on_update(self):
+	def on_update(self) -> None:
 		from frappe.website.utils import clear_cache
 
 		clear_cache("blog")

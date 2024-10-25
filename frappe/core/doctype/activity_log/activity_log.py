@@ -35,41 +35,41 @@ class ActivityLog(Document):
 		user: DF.Link | None
 	# end: auto-generated types
 
-	def before_insert(self):
+	def before_insert(self) -> None:
 		self.full_name = get_fullname(self.user)
 		self.date = now()
 
-	def validate(self):
+	def validate(self) -> None:
 		self.set_status()
 		set_timeline_doc(self)
 		self.set_ip_address()
 
-	def set_status(self):
+	def set_status(self) -> None:
 		if not self.is_new():
 			return
 
 		if self.reference_doctype and self.reference_name:
 			self.status = "Linked"
 
-	def set_ip_address(self):
+	def set_ip_address(self) -> None:
 		if self.operation in ("Login", "Logout"):
 			self.ip_address = frappe.local.request_ip
 
 	@staticmethod
-	def clear_old_logs(days=None):
+	def clear_old_logs(days=None) -> None:
 		if not days:
 			days = 90
 		doctype = DocType("Activity Log")
 		frappe.db.delete(doctype, filters=(doctype.creation < (Now() - Interval(days=days))))
 
 
-def on_doctype_update():
+def on_doctype_update() -> None:
 	"""Add indexes in `tabActivity Log`"""
 	frappe.db.add_index("Activity Log", ["reference_doctype", "reference_name"])
 	frappe.db.add_index("Activity Log", ["timeline_doctype", "timeline_name"])
 
 
-def add_authentication_log(subject, user, operation="Login", status="Success"):
+def add_authentication_log(subject, user, operation: str = "Login", status: str = "Success") -> None:
 	frappe.get_doc(
 		{
 			"doctype": "Activity Log",

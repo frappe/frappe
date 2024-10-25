@@ -82,18 +82,18 @@ class ServerScript(Document):
 		script_type: DF.Literal["DocType Event", "Scheduler Event", "Permission Query", "API"]
 	# end: auto-generated types
 
-	def validate(self):
+	def validate(self) -> None:
 		frappe.only_for("Script Manager", True)
 		self.check_if_compilable_in_restricted_context()
 
-	def on_update(self):
+	def on_update(self) -> None:
 		self.sync_scheduled_job_type()
 
 	def clear_cache(self):
 		frappe.cache.delete_value("server_script_map")
 		return super().clear_cache()
 
-	def on_trash(self):
+	def on_trash(self) -> None:
 		frappe.cache.delete_value("server_script_map")
 		if self.script_type == "Scheduler Event":
 			for job in self.scheduled_jobs:
@@ -113,7 +113,7 @@ class ServerScript(Document):
 			fields=["name", "stopped"],
 		)
 
-	def sync_scheduled_job_type(self):
+	def sync_scheduled_job_type(self) -> None:
 		"""Create or update Scheduled Job Type documents for Scheduler Event Server Scripts"""
 
 		def get_scheduled_job() -> "ScheduledJobType":
@@ -146,7 +146,7 @@ class ServerScript(Document):
 
 		frappe.msgprint(_("Scheduled execution for script {0} has updated").format(self.name), alert=True)
 
-	def check_if_compilable_in_restricted_context(self):
+	def check_if_compilable_in_restricted_context(self) -> None:
 		"""Check compilation errors and send them back as warnings."""
 		from RestrictedPython import compile_restricted
 
@@ -177,7 +177,7 @@ class ServerScript(Document):
 		else:
 			return execute_api_server_script(self)
 
-	def execute_doc(self, doc: Document):
+	def execute_doc(self, doc: Document) -> None:
 		"""Specific to Document Event triggered Server Scripts
 
 		Args:

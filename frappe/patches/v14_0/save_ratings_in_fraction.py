@@ -2,7 +2,7 @@ import frappe
 from frappe.query_builder import DocType
 
 
-def execute():
+def execute() -> None:
 	RATING_FIELD_TYPE = "decimal(3,2)"
 	rating_fields = frappe.get_all(
 		"DocField", fields=["parent", "fieldname"], filters={"fieldtype": "Rating"}

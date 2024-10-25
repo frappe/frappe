@@ -5,10 +5,10 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestDynamicLinks(IntegrationTestCase):
-	def setUp(self):
+	def setUp(self) -> None:
 		frappe.db.delete("Email Unsubscribe")
 
-	def test_delete_normal(self):
+	def test_delete_normal(self) -> None:
 		event = frappe.get_doc(
 			{
 				"doctype": "Event",
@@ -31,7 +31,7 @@ class TestDynamicLinks(IntegrationTestCase):
 
 		self.assertFalse(frappe.db.exists("Email Unsubscribe", unsub.name))
 
-	def test_delete_with_comment(self):
+	def test_delete_with_comment(self) -> None:
 		event = frappe.get_doc(
 			{
 				"doctype": "Event",
@@ -50,7 +50,7 @@ class TestDynamicLinks(IntegrationTestCase):
 			frappe.get_all("Comment", filters={"reference_doctype": "Event", "reference_name": event.name})
 		)
 
-	def test_custom_fields(self):
+	def test_custom_fields(self) -> None:
 		from frappe.utils.testutils import add_custom_field, clear_custom_fields
 
 		add_custom_field("Event", "test_ref_doc", "Link", "DocType")

@@ -16,7 +16,7 @@ from frappe.utils.data import cstr, get_system_timezone, now_datetime
 
 class OAuthWebRequestValidator(RequestValidator):
 	# Pre- and post-authorization.
-	def validate_client_id(self, client_id, request, *args, **kwargs):
+	def validate_client_id(self, client_id, request, *args, **kwargs) -> bool:
 		# Simple validity check, does client exist? Not banned?
 		cli_id = frappe.db.get_value("OAuth Client", {"name": client_id})
 		if cli_id:
@@ -26,7 +26,7 @@ class OAuthWebRequestValidator(RequestValidator):
 				return True
 		return False
 
-	def validate_redirect_uri(self, client_id, redirect_uri, request, *args, **kwargs):
+	def validate_redirect_uri(self, client_id, redirect_uri, request, *args, **kwargs) -> bool:
 		# Is the client allowed to use the supplied redirect_uri? i.e. has
 		# the client previously registered this EXACT redirect uri.
 
@@ -59,7 +59,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		request.scopes = scopes  # Apparently this is possible.
 		return scopes
 
-	def validate_response_type(self, client_id, response_type, client, request, *args, **kwargs):
+	def validate_response_type(self, client_id, response_type, client, request, *args, **kwargs) -> bool:
 		allowed_response_types = [
 			# From OAuth Client response_type field
 			client.response_type.lower(),
@@ -74,7 +74,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 	# Post-authorization
 
-	def save_authorization_code(self, client_id, code, request, *args, **kwargs):
+	def save_authorization_code(self, client_id, code, request, *args, **kwargs) -> None:
 		cookie_dict = get_cookie_dict_from_headers(request)
 
 		oac = frappe.new_doc("OAuth Authorization Code")
@@ -132,7 +132,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		user_id = unquote(cookie_dict.get("user_id").value) if "user_id" in cookie_dict else "Guest"
 		return frappe.session.user == user_id
 
-	def authenticate_client_id(self, client_id, request, *args, **kwargs):
+	def authenticate_client_id(self, client_id, request, *args, **kwargs) -> bool:
 		cli_id = frappe.db.get_value("OAuth Client", client_id, "name")
 		if not cli_id:
 			# Don't allow public (non-authenticated) clients
@@ -193,7 +193,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 		return saved_redirect_uri == redirect_uri
 
-	def validate_grant_type(self, client_id, grant_type, client, request, *args, **kwargs):
+	def validate_grant_type(self, client_id, grant_type, client, request, *args, **kwargs) -> bool:
 		# Clients should only be allowed to use one type of grant.
 		# In this case, it must be "authorization_code" or "refresh_token"
 		return grant_type in ["authorization_code", "refresh_token", "password"]
@@ -229,7 +229,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 		return frappe.db.get_value("OAuth Client", request.client["name"], "default_redirect_uri")
 
-	def invalidate_authorization_code(self, client_id, code, request, *args, **kwargs):
+	def invalidate_authorization_code(self, client_id, code, request, *args, **kwargs) -> None:
 		# Authorization codes are use once, invalidate it when a Bearer token
 		# has been acquired.
 
@@ -258,7 +258,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		obearer_token = frappe.get_doc("OAuth Bearer Token", {"refresh_token": refresh_token})
 		return obearer_token.scopes
 
-	def revoke_token(self, token, token_type_hint, request, *args, **kwargs):
+	def revoke_token(self, token, token_type_hint, request, *args, **kwargs) -> None:
 		"""Revoke an access or refresh token.
 
 		:param token: The token string.
@@ -276,7 +276,7 @@ class OAuthWebRequestValidator(RequestValidator):
 			frappe.db.set_value("OAuth Bearer Token", token, "status", "Revoked")
 		frappe.db.commit()
 
-	def validate_refresh_token(self, refresh_token, client, request, *args, **kwargs):
+	def validate_refresh_token(self, refresh_token, client, request, *args, **kwargs) -> bool:
 		"""Ensure the Bearer token is valid and authorized access to scopes.
 
 		OBS! The request.user attribute should be set to the resource owner
@@ -359,7 +359,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		user = frappe.get_doc("User", frappe.session.user)
 		return get_userinfo(user)
 
-	def validate_id_token(self, token, scopes, request):
+	def validate_id_token(self, token, scopes, request) -> bool:
 		try:
 			id_token = frappe.get_doc("OAuth Bearer Token", token)
 			if id_token.status == "Active":
@@ -369,7 +369,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 		return False
 
-	def validate_jwt_bearer_token(self, token, scopes, request):
+	def validate_jwt_bearer_token(self, token, scopes, request) -> bool:
 		try:
 			jwt = frappe.get_doc("OAuth Bearer Token", token)
 			if jwt.status == "Active":
@@ -379,7 +379,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 		return False
 
-	def validate_silent_authorization(self, request):
+	def validate_silent_authorization(self, request) -> bool:
 		"""Ensure the logged in user has authorized silent OpenID authorization.
 
 		Silent OpenID authorization allows access tokens and id tokens to be
@@ -398,7 +398,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		else:
 			return True
 
-	def validate_silent_login(self, request):
+	def validate_silent_login(self, request) -> bool:
 		"""Ensure session user has authorized silent OpenID login.
 
 		If no user is logged in or has not authorized silent login, this
@@ -483,7 +483,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 		return False
 
-	def validate_user(self, username, password, client, request, *args, **kwargs):
+	def validate_user(self, username, password, client, request, *args, **kwargs) -> bool:
 		"""Ensure the username and password is valid.
 
 		Method is used by:
@@ -528,7 +528,7 @@ def calculate_at_hash(access_token, hash_alg):
 	return at_hash.decode("utf-8")
 
 
-def delete_oauth2_data():
+def delete_oauth2_data() -> None:
 	frappe.db.delete("OAuth Authorization Code", {"validity": "Invalid"})
 	frappe.db.delete("OAuth Bearer Token", {"status": "Revoked"})
 
@@ -567,11 +567,11 @@ def get_userinfo(user):
 	)
 
 
-def get_url_delimiter(separator_character=" "):
+def get_url_delimiter(separator_character: str = " "):
 	return separator_character
 
 
-def generate_json_error_response(e):
+def generate_json_error_response(e) -> None:
 	if not e:
 		e = frappe._dict({})
 

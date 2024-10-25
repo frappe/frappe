@@ -96,7 +96,7 @@ def export_customizations(
 		return path
 
 
-def sync_customizations(app=None):
+def sync_customizations(app=None) -> None:
 	"""Sync custom fields and property setters from custom folder in each app module"""
 
 	if app:
@@ -118,19 +118,19 @@ def sync_customizations(app=None):
 							sync_customizations_for_doctype(data, folder, fname)
 
 
-def sync_customizations_for_doctype(data: dict, folder: str, filename: str = ""):
+def sync_customizations_for_doctype(data: dict, folder: str, filename: str = "") -> None:
 	"""Sync doctype customzations for a particular data set"""
 	from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 
 	doctype = data["doctype"]
 	update_schema = False
 
-	def sync(key, custom_doctype, doctype_fieldname):
+	def sync(key, custom_doctype, doctype_fieldname) -> None:
 		doctypes = list(set(map(lambda row: row.get(doctype_fieldname), data[key])))
 
 		# sync single doctype exculding the child doctype
-		def sync_single_doctype(doc_type):
-			def _insert(data):
+		def sync_single_doctype(doc_type) -> None:
+			def _insert(data) -> None:
 				if data.get(doctype_fieldname) == doc_type:
 					data["doctype"] = custom_doctype
 					doc = frappe.get_doc(data)
@@ -215,7 +215,7 @@ def reload_doc(
 	return import_files(module, dt, dn, force=force, reset_permissions=reset_permissions)
 
 
-def export_doc(doctype, name, module=None):
+def export_doc(doctype, name, module=None) -> None:
 	"""Write a doc to standard path."""
 	from frappe.modules.export_file import write_document_file
 
@@ -237,7 +237,7 @@ def get_doctype_module(doctype: str) -> str:
 		frappe.throw(_("DocType {} not found").format(doctype), exc=frappe.DoesNotExistError)
 
 
-def load_doctype_module(doctype, module=None, prefix="", suffix=""):
+def load_doctype_module(doctype, module=None, prefix: str = "", suffix: str = ""):
 	"""Return the module object for given doctype.
 
 	Note: This will return the standard defined module object for the doctype irrespective
@@ -259,7 +259,9 @@ def load_doctype_module(doctype, module=None, prefix="", suffix=""):
 	return doctype_python_modules[key]
 
 
-def get_module_name(doctype: str, module: str, prefix: str = "", suffix: str = "", app: str | None = None):
+def get_module_name(
+	doctype: str, module: str, prefix: str = "", suffix: str = "", app: str | None = None
+) -> str:
 	app = scrub(app or get_module_app(module))
 	module = scrub(module)
 	doctype = scrub(doctype)
@@ -282,7 +284,7 @@ def get_app_publisher(module: str) -> str:
 
 def make_boilerplate(
 	template: str, doc: Union["Document", "frappe._dict"], opts: Union[dict, "frappe._dict"] = None
-):
+) -> None:
 	target_path = get_doc_path(doc.module, doc.doctype, doc.name)
 	template_name = template.replace("controller", scrub(doc.name))
 	if template_name.endswith("._py"):
