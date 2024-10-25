@@ -1030,7 +1030,7 @@ const zoomLevels = {
 			// }
 
 			if (card.conversation) {
-				html += '<img src="/assets/frappe/icons/jobcard/whatsapp.svg" style="height:0.938; color: #0cc144;" />'
+				html += '<img src="/assets/frappe/icons/jobcard/whatsapp.svg" style="height:0.938rem; color: #0cc144;" />'
 			}
 
 			html += getPartsIcons()
