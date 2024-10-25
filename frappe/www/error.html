@@ -33,10 +33,10 @@
 <div class="error-page">
 	<div>
 		<h4>
-			{{ _("Error: {0}").format(http_status_code) }}
+			{{ title or _("Server Error") }}
 		</h4>
 		<div class="details">
-			<p>{{ error_message }}</p>
+			<p>{{ http_status_code }}: {{ message }}</p>
 
 			<button class="btn btn-xs btn-secondary text-muted small view-error" >
 				{{ _("Show Error") }}
