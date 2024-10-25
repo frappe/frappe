@@ -941,22 +941,22 @@ const zoomLevels = {
 			let fields = [];
 			let render_fields = [...cur_list.board.fields];
 			const icon_map = {
-				'Project': '<i class="fa-light fa-rectangle-history-circle-user" style="color: black;"></i>',
-				'ID': '<i class="fa-light fa-rectangle-history-circle-user" style="color: black;"></i>',
-				'Queue position': '<i class="fa-light fa-map-pin" style="color: black;"></i>',
-				'Customer': '<i class="fa-regular fa-user" style="color: black;"></i>',
-				'Appointment date': '<i class="fa-regular fa-calendar" style="color: black;"></i>',
-				'Bring Car Date': '<i class="fa-regular fa-automobile" style="color: black;"></i>',
-				'Parking Date': '<i class="fa-regular fa-car-building" style="color: black;"></i>',
-				'Model': '<i class="fa-regular fa-car" style="color: black;"></i>',
-				'VIN': '<i class="fa-regular fa-info" style="color: black;"></i>',
-				'Licence plate': '<i class="fa-regular fa-address-card" style="color: black;"></i>',
-				'Status': '<i class="fa-regular fa-wrench" style="color: black;"></i>',
-				'Created By': '<i class="fa-regular fa-user" style="color: black;"></i>',
-				'R.D Date': '<i class="fa-regular fa-calendar" style="color: black;"></i>',
-				'R.D Time': '<i class="fa-regular fa-clock-o" style="color: black;"></i>',
-				'Callback date': '<i class="fa-regular fa-calendar" style="color: black;"></i>',
-				'Calback time': '<i class="fa-regular fa-clock-o" style="color: black;"></i>',
+				'Project': 'rectangle_history_circle_user.svg',
+				'ID': 'rectangle_history_circle_user.svg',
+				'Queue position': 'map_pin_icon.svg',
+				'Customer': 'user.svg',
+				'Appointment date': 'calendar.svg',
+				'Bring Car Date': 'car.svg',
+				'Parking Date': 'car_building.svg',
+				'Model': 'map_pin_icon.svg',
+				'VIN': 'circle_info.svg',
+				'Licence plate': 'address_card.svg',
+				'Status': 'wrench.svg',
+				'Created By': 'user.svg',
+				'R.D Date': 'calendar.svg',
+				'R.D Time': 'clock.svg',
+				'Callback date': 'calendar.svg',
+				'Calback time': 'clock.svg',
 			};
 
 			if (card.column === ProjectStatusOptions.RequestCallback) {
@@ -975,8 +975,8 @@ const zoomLevels = {
 				let field =
 					frappe.meta.docfield_map[card.doctype]?.[field_name] ||
 					frappe.model.get_std_field(field_name);
-				let icon = icon_map[field.label] || __(field.label);
-				let label = cur_list.board.show_labels ? `<span title="${__(field.label)}">${icon} </span>` : "";
+				let icon = icon_map[field.label];
+				let label = cur_list.board.show_labels && icon ? `<img title="${__(field.label)}" src="/assets/frappe/icons/jobcard/${icon}" style="height:12px;">` : "";
 				let value = frappe.format(card.doc[field_name], field);
 				fields.push(`
 					<div class="text-muted text-truncate">
@@ -1030,7 +1030,7 @@ const zoomLevels = {
 			// }
 
 			if (card.conversation) {
-				html += '<i class="fa-brands fa-whatsapp" style="width: 15px; color: #0cc144"></i>'
+				html += '<img src="/assets/frappe/icons/jobcard/whatsapp.svg" style="height:15px; color: #0cc144;" />'
 			}
 
 			html += getPartsIcons()
