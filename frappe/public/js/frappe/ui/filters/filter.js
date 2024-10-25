@@ -522,6 +522,19 @@ frappe.ui.filter_utils = {
 		// given
 		if (fieldtype) {
 			df.fieldtype = fieldtype;
+			if (df.original_type == "Select" && df.fieldtype == "MultiSelect") {
+				const formattedOptions = [];
+				df.options.split('\n').forEach(line => {
+					const option = line.trim();
+					if (option) {
+						formattedOptions.push({
+							value: option,
+							label: option
+						});
+					}
+				});
+				df.options = formattedOptions;
+			}
 			return;
 		}
 
