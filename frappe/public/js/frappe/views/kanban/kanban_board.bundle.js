@@ -976,7 +976,7 @@ const zoomLevels = {
 					frappe.meta.docfield_map[card.doctype]?.[field_name] ||
 					frappe.model.get_std_field(field_name);
 				let icon = icon_map[field.label];
-				let label = cur_list.board.show_labels && icon ? `<img title="${__(field.label)}" src="/assets/frappe/icons/jobcard/${icon}" style="height:12px;">` : "";
+				let label = cur_list.board.show_labels && icon ? `<img title="${__(field.label)}" src="/assets/frappe/icons/jobcard/${icon}" style="height:0.75rem;">` : "";
 				let value = frappe.format(card.doc[field_name], field);
 				fields.push(`
 					<div class="text-muted text-truncate">
@@ -1030,7 +1030,7 @@ const zoomLevels = {
 			// }
 
 			if (card.conversation) {
-				html += '<img src="/assets/frappe/icons/jobcard/whatsapp.svg" style="height:15px; color: #0cc144;" />'
+				html += '<img src="/assets/frappe/icons/jobcard/whatsapp.svg" style="height:0.938; color: #0cc144;" />'
 			}
 
 			html += getPartsIcons()
