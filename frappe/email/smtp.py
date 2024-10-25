@@ -26,6 +26,8 @@ class SMTPServer:
 		use_ssl=None,
 		use_oauth=0,
 		access_token=None,
+		source_address: tuple[str, int] | None = None,
+		local_hostname: str | None = None,
 	):
 		self.login = login
 		self.email_account = email_account
@@ -36,6 +38,8 @@ class SMTPServer:
 		self.use_ssl = use_ssl
 		self.use_oauth = use_oauth
 		self.access_token = access_token
+		self.local_hostname = local_hostname
+		self.source_address = source_address
 		self._session = None
 
 		if not self.server:
@@ -72,7 +76,13 @@ class SMTPServer:
 		SMTP = smtplib.SMTP_SSL if self.use_ssl else smtplib.SMTP
 
 		try:
-			_session = SMTP(self.server, self.port, timeout=2 * 60)
+			_session = SMTP(
+				self.server,
+				self.port,
+				timeout=2 * 60,
+				source_address=self.source_address,
+				local_hostname=self.local_hostname,
+			)
 			if not _session:
 				frappe.msgprint(
 					_("Could not connect to outgoing email server"), raise_exception=frappe.OutgoingEmailError

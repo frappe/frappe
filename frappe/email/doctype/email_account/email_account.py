@@ -105,8 +105,10 @@ class EmailAccount(Document):
 			"", "Frappe Mail", "GMail", "Sendgrid", "SparkPost", "Yahoo Mail", "Outlook.com", "Yandex.Mail"
 		]
 		signature: DF.TextEditor | None
+		smtp_local_hostname: DF.Data | None
 		smtp_port: DF.Data | None
 		smtp_server: DF.Data | None
+		smtp_source_address: DF.Data | None
 		track_email_status: DF.Check
 		uidnext: DF.Int
 		uidvalidity: DF.Data | None
@@ -498,6 +500,7 @@ class EmailAccount(Document):
 		return oauth_token.get_password("access_token") if oauth_token else None
 
 	def sendmail_config(self):
+		# Select a specific outbound IP when multiple network interfaces are available
 		return {
 			"email_account": self.name,
 			"server": self.smtp_server,
@@ -508,6 +511,8 @@ class EmailAccount(Document):
 			"use_tls": cint(self.use_tls),
 			"use_oauth": self.auth_method == "OAuth",
 			"access_token": self.get_access_token(),
+			"local_hostname": self.smtp_local_hostname,
+			"source_address": (self.smtp_source_address, 0) if self.smtp_source_address else None,
 		}
 
 	def get_smtp_server(self):
