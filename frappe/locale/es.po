@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-08 17:02+0000\n"
-"PO-Revision-Date: 2024-10-24 07:20\n"
+"PO-Revision-Date: 2024-10-26 08:29\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -31523,7 +31523,7 @@ msgstr "{{{0}}} no es un formato válido de nombre de campo. Debe ser {{field_na
 #. Count format of shortcut in the Website Workspace
 #: frappe/website/workspace/website/website.json
 msgid "{} Active"
-msgstr "{} Activo"
+msgstr ""
 
 #: frappe/public/js/frappe/form/form.js:511
 msgid "{} Complete"
