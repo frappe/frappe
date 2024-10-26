@@ -11,7 +11,7 @@ import traceback
 from collections.abc import Iterable, Sequence
 from contextlib import contextmanager, suppress
 from time import time
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Any, TypeAlias
 
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 from pypika.terms import Criterion, NullValue
@@ -29,6 +29,7 @@ from frappe.database.utils import (
 	is_query_type,
 )
 from frappe.exceptions import DoesNotExistError, ImplicitCommitError
+from frappe.model.document import DocRef
 from frappe.monitor import get_trace_id
 from frappe.query_builder.functions import Count
 from frappe.utils import CallbackManager, cint, get_datetime, get_table_name, getdate, now, sbool
@@ -48,6 +49,9 @@ SINGLE_WORD_PATTERN = re.compile(r'([`"]?)(tab([A-Z]\w+))\1')
 MULTI_WORD_PATTERN = re.compile(r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1')
 
 SQL_ITERATOR_BATCH_SIZE = 100
+
+
+Stringable: TypeAlias = str | DocRef
 
 
 class Database:
@@ -465,21 +469,21 @@ class Database:
 
 	def get_value(
 		self,
-		doctype,
-		filters=None,
-		fieldname="name",
-		ignore=None,
-		as_dict=False,
-		debug=False,
-		order_by=DefaultOrderBy,
-		cache=False,
-		for_update=False,
+		doctype: str,
+		filters: Stringable | dict | list | None = None,
+		fieldname: str | list[str] = "name",
+		ignore: bool = False,
+		as_dict: bool = False,
+		debug: bool = False,
+		order_by: str = DefaultOrderBy,
+		cache: bool = False,
+		for_update: bool = False,
 		*,
-		run=True,
-		pluck=False,
-		distinct=False,
-		skip_locked=False,
-		wait=True,
+		run: bool = True,
+		pluck: bool = False,
+		distinct: bool = False,
+		skip_locked: bool = False,
+		wait: bool = True,
 	):
 		"""Returns a document property or list of properties.
 
@@ -544,23 +548,23 @@ class Database:
 
 	def get_values(
 		self,
-		doctype,
-		filters=None,
-		fieldname="name",
-		ignore=None,
-		as_dict=False,
-		debug=False,
-		order_by=DefaultOrderBy,
-		update=None,
-		cache=False,
-		for_update=False,
+		doctype: str,
+		filters: Stringable | dict | list | None = None,
+		fieldname: str | list[str] = "name",
+		ignore: bool = False,
+		as_dict: bool = False,
+		debug: bool = False,
+		order_by: str = DefaultOrderBy,
+		update: dict | None = None,
+		cache: bool = False,
+		for_update: bool = False,
 		*,
-		run=True,
-		pluck=False,
-		distinct=False,
-		limit=None,
-		skip_locked=False,
-		wait=True,
+		run: bool = True,
+		pluck: bool = False,
+		distinct: bool = False,
+		limit: int | None = None,
+		skip_locked: bool = False,
+		wait: bool = True,
 	):
 		"""Returns multiple document properties.
 
@@ -582,8 +586,11 @@ class Database:
 		        user = frappe.db.get_values("User", "test@example.com", "*")[0]
 		"""
 		out = None
-		if cache and isinstance(filters, str) and (doctype, filters, fieldname) in self.value_cache:
-			return self.value_cache[(doctype, filters, fieldname)]
+		cache_key = None
+		if cache and isinstance(filters, Stringable):
+			cache_key = (doctype, str(filters), fieldname)
+			if cache_key in self.value_cache:
+				return self.value_cache[cache_key]
 
 		if distinct:
 			order_by = None
@@ -651,8 +658,8 @@ class Database:
 					fields, filters, doctype, as_dict, debug, update, run=run, pluck=pluck, distinct=distinct
 				)
 
-		if cache and isinstance(filters, str):
-			self.value_cache[(doctype, filters, fieldname)] = out
+		if cache and cache_key:
+			self.value_cache[cache_key] = out
 
 		return out
 
@@ -811,7 +818,7 @@ class Database:
 		if doctype in self.value_cache:
 			del self.value_cache[doctype]
 
-	def get_single_value(self, doctype, fieldname, cache=True):
+	def get_single_value(self, doctype: str, fieldname: str, cache: bool = True):
 		"""Get property of Single DocType. Cache locally by default
 
 		:param doctype: DocType of the single object whose value is requested
@@ -924,9 +931,9 @@ class Database:
 
 	def set_value(
 		self,
-		dt,
-		dn,
-		field,
+		dt: str,
+		dn: Stringable | dict,
+		field: str,
 		val=None,
 		modified=None,
 		modified_by=None,
@@ -977,8 +984,8 @@ class Database:
 			validate_filters=True,
 		)
 
-		if isinstance(dn, str):
-			frappe.clear_document_cache(dt, dn)
+		if isinstance(dn, Stringable):
+			frappe.clear_document_cache(dt, str(dn))
 		else:
 			# No way to guess which documents are modified, clear all of them
 			frappe.clear_document_cache(dt)

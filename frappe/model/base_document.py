@@ -347,6 +347,8 @@ class BaseDocument:
 	def get_valid_dict(
 		self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False
 	) -> _dict:
+		from frappe.model.document import DocRef
+
 		d = _dict()
 		field_values = self.__dict__
 
@@ -405,6 +407,9 @@ class BaseDocument:
 
 			if ignore_nulls and not is_virtual_field and value is None:
 				continue
+
+			if isinstance(value, DocRef):
+				value = str(value)
 
 			d[fieldname] = value
 

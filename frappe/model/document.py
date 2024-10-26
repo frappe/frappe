@@ -34,6 +34,19 @@ DOCUMENT_LOCK_EXPIRTY = 12 * 60 * 60  # All locks expire in 12 hours automatical
 DOCUMENT_LOCK_SOFT_EXPIRY = 60 * 60  # Let users force-unlock after 60 minutes
 
 
+class DocRef:
+	"""A lightweight reference to a document, containing just the doctype and name."""
+
+	def __init__(self, doctype: str, name: str):
+		self.doctype = doctype
+		self.name = name
+
+	def __str__(self):
+		# ! Used in frappe's query engine in frappe/database/query.py
+		# ! Keep it stable
+		return self.name
+
+
 @simple_singledispatch
 def get_doc(*args, **kwargs) -> "Document":
 	"""Return a `frappe.model.Document` object.
@@ -73,6 +86,11 @@ def _basedoc(doc: BaseDocument, *args, **kwargs) -> "Document":
 	return doc
 
 
+@get_doc.register(DocRef)
+def _docref(doc_ref: DocRef, **kwargs) -> "Document":
+	return get_doc(doc_ref.doctype, doc_ref.name, **kwargs)
+
+
 @get_doc.register(str)
 def get_doc_str(doctype: str, name: str | None = None, **kwargs) -> "Document":
 	# if no name: it's a single
@@ -93,7 +111,7 @@ def get_doc_from_dict(data: dict[str, Any], **kwargs) -> "Document":
 	raise ImportError(data["doctype"])
 
 
-class Document(BaseDocument):
+class Document(BaseDocument, DocRef):
 	"""All controllers inherit from `Document`."""
 
 	doctype: DF.Data
@@ -108,7 +126,7 @@ class Document(BaseDocument):
 	def __init__(self, *args, **kwargs):
 		"""Constructor.
 
-		:param arg1: DocType name as string or document **dict**
+		:param arg1: DocType name as string, document **dict**, or DocRef object
 		:param arg2: Document name, if `arg1` is DocType name.
 
 		If DocType name and document name are passed, the object will load
@@ -149,6 +167,10 @@ class Document(BaseDocument):
 		# use doctype as name for single
 		name = doctype if not args else args[0]
 		self._init_known_doc(doctype, name, **kwargs)
+
+	@_init_dispatch.register(DocRef)
+	def _init_docref(self, doc_ref, **kwargs):
+		self._init_known_doc(doc_ref.doctype, doc_ref.name, **kwargs)
 
 	@_init_dispatch.register(dict)
 	def _init_dict(self, arg_dict, **kwargs):
@@ -1668,12 +1690,6 @@ class Document(BaseDocument):
 		parent = f" parent={self.parent}" if getattr(self, "parent", None) else ""
 
 		return f"<{doctype}: {name}{docstatus}{parent}>"
-
-	def __str__(self):
-		name = self.name or "unsaved"
-		doctype = self.__class__.__name__
-
-		return f"{doctype}({name})"
 
 
 def execute_action(__doctype, __name, __action, **kwargs):
