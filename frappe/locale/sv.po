@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-08 17:02+0000\n"
-"PO-Revision-Date: 2024-10-19 05:44\n"
+"PO-Revision-Date: 2024-10-26 08:29\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -3165,7 +3165,7 @@ msgstr "Tillbaka till Skrivbord"
 
 #: frappe/www/404.html:20
 msgid "Back to Home"
-msgstr "Tillbaka till Hem"
+msgstr "Hem"
 
 #: frappe/www/login.html:181 frappe/www/login.html:212
 msgid "Back to Login"
@@ -11814,7 +11814,7 @@ msgstr "Webbplats Inställningar"
 #: frappe/core/doctype/file/test_file.py:305
 #: frappe/core/doctype/file/test_file.py:369
 msgid "Home/Test Folder 1"
-msgstr "Start/Test Mapp 1"
+msgstr "Hem/Test Mapp 1"
 
 #: frappe/core/doctype/file/test_file.py:358
 msgid "Home/Test Folder 1/Test Folder 3"
@@ -11822,7 +11822,7 @@ msgstr "Start/Testa Mapp 1 / Test Mapp 3"
 
 #: frappe/core/doctype/file/test_file.py:314
 msgid "Home/Test Folder 2"
-msgstr "Start/Test Mapp 2"
+msgstr "Hem/Test Mapp 2"
 
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #. Option for the 'Event Frequency' (Select) field in DocType 'Server Script'
@@ -15937,7 +15937,7 @@ msgstr "Toppfält Mall Värden"
 
 #: frappe/public/js/frappe/ui/keyboard.js:214
 msgid "Navigate Home"
-msgstr "Till Start"
+msgstr "Navigera Hem"
 
 #: frappe/public/js/frappe/list/list_view.js:1153
 msgctxt "Description of a list view shortcut"
@@ -31687,7 +31687,7 @@ msgstr "{{{0}}} är inte giltigt fältnamn mönster. Det borde vara {{field_name
 #. Count format of shortcut in the Website Workspace
 #: frappe/website/workspace/website/website.json
 msgid "{} Active"
-msgstr "{} Aktiv"
+msgstr "{} Aktiva"
 
 #: frappe/public/js/frappe/form/form.js:511
 msgid "{} Complete"
