@@ -361,12 +361,12 @@ def run_parallel_tests(
 
 	from frappe.coverage import CodeCoverage
 
-	with CodeCoverage(with_coverage, app):
+	with CodeCoverage(with_coverage, app) as cc:
 		site = get_site(context)
 		if use_orchestrator:
 			from frappe.parallel_test_runner import ParallelTestWithOrchestrator
 
-			ParallelTestWithOrchestrator(app, site=site)
+			runner = ParallelTestWithOrchestrator(app, site=site)
 		else:
 			from frappe.parallel_test_runner import ParallelTestRunner
 
@@ -377,7 +377,25 @@ def run_parallel_tests(
 				total_builds=total_builds,
 				dry_run=dry_run,
 			)
-			runner.setup_and_run()
+		mode = "Orchestrator" if use_orchestrator else "Parallel"
+		banner = f"""
+		╔════════════════════════════════════════════╗
+		║   Parallel Test Runner Execution Summary   ║
+		╠════════════════════════════════════════════╣
+		║ Mode:           {mode:<26} ║
+		║ App:            {app:<26} ║
+		║ Site:           {site:<26} ║
+		║ Build Number:   {build_number:<26} ║
+		║ Total Builds:   {total_builds:<26} ║
+		║ Tests in Build: ~{runner.total_tests:<25} ║"""
+		if cc.with_coverage:
+			banner += """
+			║ Coverage Rep.:  {cc.outfile:<26} ║"""
+		banner += """
+		╚════════════════════════════════════════════╝
+		"""
+		print(banner)
+		runner.setup_and_run()
 
 
 @click.command(

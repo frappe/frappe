@@ -231,7 +231,10 @@ jobs:
           DB: ${{ matrix.db }}
 
       - name: Run Tests
-        run: ../env/bin/python3 ../apps/frappe/.github/helper/ci.py
+        run: |
+          bench --site test_site \
+            run-parallel-tests --app frappe \
+            --total-builds 2 --build-number ${{ matrix.container }}
         working-directory: /home/runner/frappe-bench/sites
         env:
           SITE: test_site
