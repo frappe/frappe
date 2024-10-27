@@ -1,0 +1,268 @@
+name: 'Setup Environment'
+description: 'Sets up the environment for Frappe development'
+inputs:
+  python-version:
+    description: 'Python version to use'
+    required: false
+    default: '3.12.6'
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '20'
+  build-assets:
+    required: false
+    description: 'Wether to build assets'
+    default: true
+  enable-coverage:
+    required: false
+    default: false
+  enable-watch:
+    required: false
+    default: false
+  enable-schedule:
+    required: false
+    default: false
+  disable-web:
+    required: false
+    default: false
+  disable-socketio:
+    required: false
+    default: false
+  disable-redis-socketio:
+    required: false
+    default: false
+  db:
+    required: false
+    default: mariadb
+  db-root-password:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+  - name: Clone
+    uses: actions/checkout@v4
+    with:
+      path: ${{ github.event.repository.name }}
+
+  - name: Checkout Frappe
+    uses: actions/checkout@v4
+    with:
+      repository: ${{ env.GH_ORG || github.repository_owner }}/frappe
+      ref: ${{ env.FRAPPE_BRANCH || github.base_ref || github.ref_name }}
+      path: frappe
+    if: github.event.repository.name != 'frappe'
+
+  - name: Setup Python
+    uses: actions/setup-python@v5
+    with:
+      python-version: ${{ inputs.python-version }}
+
+  - shell: bash -e {0}
+    run: |
+      # Check for valid Python & Merge Conflicts
+      python -m compileall -q -f "${GITHUB_WORKSPACE}/${{ github.event.repository.name }}"
+      if grep -lr --exclude-dir=node_modules "^<<<<<<< " "${GITHUB_WORKSPACE}/${{ github.event.repository.name }}"
+          then echo "Found merge conflicts"
+          exit 1
+      fi
+
+  - uses: actions/setup-node@v4
+    with:
+      node-version: ${{ inputs.node-version }}
+      check-latest: true
+
+  - shell: bash -e {0}
+    run: |
+      # Add 'test_site' to /etc/hosts
+      echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
+      git config --global init.defaultBranch main
+      git config --global advice.detachedHead false
+
+  - name: Cache pip
+    uses: actions/cache@v4
+    with:
+      path: ~/.cache/pip
+      key: ${{ runner.os }}-pip-${{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py') }}
+      restore-keys: |
+        ${{ runner.os }}-pip-
+        ${{ runner.os }}-
+
+  - id: yarn-cache-dir-path
+    shell: bash -e {0}
+    run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+  - uses: actions/cache@v4
+    id: yarn-cache
+    with:
+      path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+      key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+      restore-keys: |
+        ${{ runner.os }}-yarn-
+
+  - shell: bash -e {0}
+    run: |
+      # Install System Dependencies
+      start_time=$(date +%s)
+
+      sudo apt -qq update
+      sudo apt -qq remove mysql-server mysql-client
+      sudo apt -qq install libcups2-dev redis-server mariadb-client-10.6
+
+      if [ "$(lsb_release -rs)" = "22.04" ]; then
+          wget -q -O /tmp/wkhtmltox.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+          sudo apt install /tmp/wkhtmltox.deb
+      else
+          echo "Please update frappe/.github/lib/tests.yml to support wkhtmltopdf for $(lsb_release -ds)"
+          exit 1
+      fi
+
+      end_time=$(date +%s)
+      echo -e "\033[33mInstall System Dependencies: $((end_time - start_time)) seconds\033[0m"
+
+  - shell: bash -e {0}
+    run: |
+      # Install Bench
+      start_time=$(date +%s)
+
+      cd ~ || exit
+      pip install frappe-bench
+
+      end_time=$(date +%s)
+      echo -e "\033[33mInstall Bench: $((end_time - start_time)) seconds\033[0m"
+
+  - shell: bash -e {0}
+    run: |
+      # Init Bench
+      start_time=$(date +%s)
+
+      cd ~ || exit
+      verbosity="${BENCH_INIT_VERBOSITY_FLAG:-}"
+      bench $verbosity init frappe-bench --skip-assets --python "$(which python)" --frappe-path "${GITHUB_WORKSPACE}/frappe"
+
+      end_time=$(date +%s)
+      echo -e "\033[33mInit Bench: $((end_time - start_time)) seconds\033[0m"
+
+  - shell: bash -e {0}
+    run: |
+      # Install App(s)
+      start_time=$(date +%s)
+
+      cd ~/frappe-bench || exit
+      verbosity="${BENCH_INIT_VERBOSITY_FLAG:-}"
+
+      for app in ${GITHUB_WORKSPACE}/*/; do
+        if [ -f "${app}setup.py" ] || [ -f "${app}pyproject.toml" ]; then
+          start_time=$(date +%s)
+          echo "Installing app in ${app}"
+          pip install --upgrade -e "${app}[dev,test]"
+          end_time=$(date +%s)
+          echo "Time taken to Install ${app} requirements: $((end_time - start_time)) seconds"
+        fi
+      done
+      # collect old style tools.bench.dev-dependencies
+      bench $verbosity setup requirements --dev;
+      if [ "$TYPE" == "ui" ]
+      then
+        bench $verbosity setup requirements --node;
+      fi
+
+      end_time=$(date +%s)
+      echo -e "\033[33mInstall App(s): $((end_time - start_time)) seconds\033[0m"
+    env:
+      TYPE: server
+
+  - shell: bash -e {0}
+    run: |
+      # Setup Test Site
+      start_time=$(date +%s)
+
+      cd ~/frappe-bench || exit
+
+      mkdir ~/frappe-bench/sites/test_site
+
+      # Attempt to copy the configuration file
+      if cp "${GITHUB_WORKSPACE}/${{ github.event.repository.name }}/.github/helper/db/$DB.json" ~/frappe-bench/sites/test_site/site_config.json; then
+          echo "Successfully copied ${DB}.json to site_config.json."
+      else
+          echo "Error: The configuration file ${GITHUB_WORKSPACE}/${{ github.event.repository.name }}/.github/helper/db/$DB.json does not exist."
+          echo "Please ensure that the database JSON file is correctly named and located in the helper/db directory."
+          exit 1  # Exit with a non-zero status to indicate failure
+      fi
+
+      if [ "$DB" == "mariadb" ]; then
+        mariadb --host 127.0.0.1 --port 3306 -u root -p${{ inputs.db-root-password }} -e "SET GLOBAL character_set_server = 'utf8mb4'";
+        mariadb --host 127.0.0.1 --port 3306 -u root -p${{ inputs.db-root-password }} -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'";
+
+        mariadb --host 127.0.0.1 --port 3306 -u root -p${{ inputs.db-root-password }} -e "CREATE DATABASE test_frappe";
+        mariadb --host 127.0.0.1 --port 3306 -u root -p${{ inputs.db-root-password }} -e "CREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe'";
+        mariadb --host 127.0.0.1 --port 3306 -u root -p${{ inputs.db-root-password }} -e "GRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost'";
+
+        mariadb --host 127.0.0.1 --port 3306 -u root -p${{ inputs.db-root-password }} -e "FLUSH PRIVILEGES";
+      elif [ "$DB" == "postgres" ]; then
+        echo "${{ inputs.db-root-password }}" | psql -h 127.0.0.1 -p 5432 -c "CREATE DATABASE test_frappe" -U postgres;
+        echo "${{ inputs.db-root-password }}" | psql -h 127.0.0.1 -p 5432 -c "CREATE USER test_frappe WITH PASSWORD 'test_frappe'" -U postgres;
+      fi
+
+      end_time=$(date +%s)
+      echo -e "\033[33mSetup Test Site: $((end_time - start_time)) seconds\033[0m"
+    env:
+      DB: ${{ inputs.db }}
+
+  - shell: bash -e {0}
+    run: |
+      # Modify Procfile
+      cd ~/frappe-bench || exit
+      if ${{ inputs.enable-watch != 'true' }}; then
+        sed -i 's/^watch:/# watch:/g' Procfile
+      fi
+      if ${{ inputs.enable-schedule != 'true'}}; then
+        sed -i 's/^schedule:/# schedule:/g' Procfile
+      fi
+      if ${{ inputs.disable-socketio }}; then
+        sed -i 's/^socketio:/# socketio:/g' Procfile
+      fi
+      if ${{ inputs.disable-redis-socketio }}; then
+        sed -i 's/^redis_socketio:/# redis_socketio:/g' Procfile
+      fi
+      if ${{ inputs.enable-coverage }}; then
+        sed -i 's/^web: bench serve/web: bench serve --with-coverage/g' Procfile
+      fi
+      if ${{ inputs.disable-web }}; then
+        sed -i 's/^web:/# web:/g' Procfile
+      fi
+
+  - shell: bash -e {0}
+    run: |
+      # Display modified Procfile
+      cd ~/frappe-bench || exit
+      cat Procfile | awk '{print "\033[0;34m" $0 "\033[0m"}'
+
+  - shell: bash -e {0}
+    run: |
+      # Start Bench
+      cd ~/frappe-bench || exit
+      bench start &> ~/frappe-bench/bench_start.log &
+
+  - shell: bash -e {0}
+    if: ${{ inputs.build-assets == 'true' }}
+    run: |
+      # Build Assets
+      start_time=$(date +%s)
+
+      cd ~/frappe-bench || exit
+      CI=Yes bench build --app frappe
+
+      end_time=$(date +%s)
+      echo -e "\033[33mBuild Assets: $((end_time - start_time)) seconds\033[0m"
+
+  - shell: bash -e {0}
+    run: |
+      # Reinstall Test Site
+      start_time=$(date +%s)
+
+      cd ~/frappe-bench || exit
+      bench --site test_site reinstall --yes
+
+      end_time=$(date +%s)
+      echo -e "\033[33mReinstall Test Site: $((end_time - start_time)) seconds\033[0m"
+
