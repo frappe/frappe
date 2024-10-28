@@ -235,15 +235,11 @@ def update_flags(doc, flags=None, ignore_permissions=False):
 
 def check_permission_and_not_submitted(doc):
 	# permission
-	if (
-		not doc.flags.ignore_permissions
-		and frappe.session.user != "Administrator"
-		and (not doc.has_permission("delete") or (doc.doctype == "DocType" and not doc.custom))
-	):
-		frappe.msgprint(
-			_("User not allowed to delete {0}: {1}").format(doc.doctype, doc.name),
-			raise_exception=frappe.PermissionError,
-		)
+	if not doc.flags.ignore_permissions and frappe.session.user != "Administrator":
+		if doc.doctype == "DocType" and not doc.custom:
+			frappe.throw(_("Only the Administrator can delete a standard DocType."))
+		else:
+			doc.check_permission("delete")
 
 	# check if submitted
 	if doc.meta.is_submittable and doc.docstatus.is_submitted():
