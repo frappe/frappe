@@ -948,7 +948,7 @@ const zoomLevels = {
 				'Appointment date': 'calendar.svg',
 				'Bring Car Date': 'car.svg',
 				'Parking Date': 'car_building.svg',
-				'Model': 'map_pin_icon.svg',
+				'Model': 'car.svg',
 				'VIN': 'circle_info.svg',
 				'Licence plate': 'address_card.svg',
 				'Status': 'wrench.svg',
@@ -957,6 +957,7 @@ const zoomLevels = {
 				'R.D Time': 'clock.svg',
 				'Callback date': 'calendar.svg',
 				'Calback time': 'clock.svg',
+				'Type of job': 'ballot_check_sharp.svg'
 			};
 
 			if (card.column === ProjectStatusOptions.RequestCallback) {
@@ -1007,21 +1008,6 @@ const zoomLevels = {
 
 		function render_card_meta() {
 			let html = `<div class="center_elements"> ${get_tags_html(card)}`;
-
-			if (kanban_size === "small") {
-				if (card.comment_count > 0) {
-					html += `<span class="list-comment-count small text-muted">
-								${frappe.utils.icon("small-message")}
-							</span>`;
-				}
-			} else {
-				html += `<span class="list-comment-count small text-muted">
-							${frappe.utils.icon("small-message")}
-							${card.comment_count}
-						</span>`;
-			}
-			
-
 
 			const $assignees_group = get_assignees_group();
 
