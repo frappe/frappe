@@ -65,35 +65,40 @@ class DbManager:
 
 	@staticmethod
 	def restore_database(target, source, user, password):
-		from frappe.utils import make_esc
+		from shutil import which
+
+		from frappe import _
+		from frappe.utils import execute_in_shell, make_esc
 
 		esc = make_esc("$ ")
 
-		from distutils.spawn import find_executable
+		# Ensure that the entire process fails if any part of the pipeline fails
+		command = ["set -o pipefail;"]
 
-		pv = find_executable("pv")
-		if pv:
-			pipe = "{pv} {source} |".format(pv=pv, source=source)
-			source = ""
+		# Handle gzipped backups
+		if source.endswith(".gz"):
+			if gzip := which("gzip"):
+				command.extend([gzip, "-cd", source, "|"])
+			else:
+				raise Exception("`gzip` not installed")
 		else:
-			pipe = ""
-			source = "< {source}".format(source=source)
+			command.extend(["cat", source, "|"])
 
-		if pipe:
-			print("Restoring Database file...")
+		# Newer versions of MariaDB add in a line that'll break on older versions, so remove it
+		command.extend(["sed", r"'/\/\*M\{0,1\}!999999\\- enable the sandbox mode \*\//d'", "|"])
 
-		command = (
-			"{pipe} mysql -u {user} -p{password} -h{host} "
-			+ ("-P{port}" if frappe.db.port else "")
-			+ " {target} {source}"
+		# Generate the restore command
+		bin = (
+			"mysql -u {user} -p{password} -h{host} " + ("-P{port}" if frappe.db.port else "") + " {target}"
 		)
-		command = command.format(
-			pipe=pipe,
+		bin = bin.format(
 			user=esc(user),
 			password=esc(password),
 			host=esc(frappe.db.host),
 			target=esc(target),
-			source=source,
 			port=frappe.db.port,
 		)
-		os.system(command)
+
+		command.append(bin)
+
+		execute_in_shell(" ".join(command), check_exit_code=True, verbose=False)

@@ -394,11 +394,17 @@ def unesc(s, esc_chars):
 def execute_in_shell(cmd, verbose=False, low_priority=False, check_exit_code=False):
 	# using Popen instead of os.system - as recommended by python docs
 	import tempfile
+	from shutil import which
 	from subprocess import Popen
 
 	with tempfile.TemporaryFile() as stdout:
 		with tempfile.TemporaryFile() as stderr:
-			kwargs = {"shell": True, "stdout": stdout, "stderr": stderr}
+			kwargs = {
+				"shell": True,
+				"stdout": stdout,
+				"stderr": stderr,
+				"executable": which("bash") or "/bin/bash",
+			}
 
 			if low_priority:
 				kwargs["preexec_fn"] = lambda: os.nice(10)
