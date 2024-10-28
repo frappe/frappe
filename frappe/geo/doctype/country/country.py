@@ -1,6 +1,8 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import pycountry
+
 import frappe
 from frappe.model.document import Document, bulk_insert
 
@@ -22,7 +24,15 @@ class Country(Document):
 	# end: auto-generated types
 
 	# NOTE: During installation country docs are bulk inserted.
-	pass
+
+	def validate(self):
+		try:
+			country = pycountry.countries.lookup(self.code)
+		except LookupError:
+			frappe.throw(f"Invalid Country Code: {self.code}")
+
+		if country.alpha_2 != self.code.upper():
+			frappe.throw(f"Invalid Country Code: {self.code}")
 
 
 def import_country_and_currency():
