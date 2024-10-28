@@ -441,7 +441,11 @@ def validate_link(doctype: str, docname: str, fields=None, args=None):
 			return values
 		filters = {'name' : docname}
 	else:
-		filters.update({'name' : docname})
+		if isinstance(filters, list):
+			filters.append(["name", "=", docname])
+		else:	
+			filters.update({'name' : docname})
+			
 	if is_virtual_doctype(doctype):
 		try:
 			frappe.get_doc(doctype, docname)
