@@ -154,9 +154,15 @@ def application(request: Request):
 
 	log_request(request, response)
 	# return 304 if unmodified
-	if not response.direct_passthrough:
+	if not response.direct_passthrough and any(
+		request.environ.get("HTTP_RANGE"),
+		request.environ.get("HTTP_IF_RANGE"),
+		request.environ.get("HTTP_IF_MODIFIED_SINCE"),
+		request.environ.get("HTTP_IF_NONE_MATCH"),
+		request.environ.get("HTTP_IF_MATCH"),
+	):
 		etag = generate_etag(response.data)
-		if not is_resource_modified(request.environ, etag):
+		if not is_resource_modified(request.environ, etag=etag):
 			return Response(status=304, headers={"ETag": quote_etag(etag)})
 	process_response(response)
 
