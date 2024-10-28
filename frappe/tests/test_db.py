@@ -654,6 +654,10 @@ class TestDB(IntegrationTestCase):
 	def test_db_explain(self):
 		frappe.db.sql("select 1", debug=1, explain=1)
 
+	def test_unique(self):
+		frappe.db.add_unique("User", ["email", "first_name"])
+		frappe.db.remove_unique("User", ["email", "first_name"])
+
 
 @run_only_if(db_type_is.MARIADB)
 class TestDDLCommandsMaria(IntegrationTestCase):

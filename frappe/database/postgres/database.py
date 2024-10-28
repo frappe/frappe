@@ -433,6 +433,37 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 				.as_string(self._conn)
 			)
 
+	def remove_unique(self, doctype, fields, constraint_name=None):
+		if isinstance(fields, str):
+			fields = [fields]
+		if not constraint_name:
+			constraint_name = "unique_" + "_".join(fields)
+
+		if self.sql(
+			"""
+			SELECT CONSTRAINT_NAME
+			FROM information_schema.TABLE_CONSTRAINTS
+			WHERE table_name=%s
+			AND constraint_type='UNIQUE'
+			AND constraint_schema=%s
+			AND CONSTRAINT_NAME=%s""",
+			("tab" + doctype, self.db_schema, constraint_name),
+		):
+			self.commit()
+
+			self.sql(
+				sql.SQL(
+					"""ALTER TABLE {schema}.{table}
+					DROP CONSTRAINT {constraint}"""
+				)
+				.format(
+					schema=sql.Identifier(self.db_schema),
+					table=sql.Identifier("tab" + doctype),
+					constraint=sql.Identifier(constraint_name),
+				)
+				.as_string(self._conn)
+			)
+
 	def get_table_columns_description(self, table_name):
 		"""Return list of columns with description."""
 		# pylint: disable=W1401

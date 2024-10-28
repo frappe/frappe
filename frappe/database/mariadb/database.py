@@ -432,6 +432,23 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 					add unique `{}`({})""".format(doctype, constraint_name, ", ".join(fields))
 			)
 
+	def remove_unique(self, doctype, fields, constraint_name=None):
+		if isinstance(fields, str):
+			fields = [fields]
+		if not constraint_name:
+			constraint_name = "unique_" + "_".join(fields)
+
+		if self.sql(
+			"""select CONSTRAINT_NAME from information_schema.TABLE_CONSTRAINTS
+			where table_name=%s and constraint_type='UNIQUE' and CONSTRAINT_NAME=%s""",
+			("tab" + doctype, constraint_name),
+		):
+			self.commit()
+			self.sql(
+				"""alter table `tab{}`
+					drop index `{}`""".format(doctype, constraint_name)
+			)
+
 	def updatedb(self, doctype, meta=None):
 		"""
 		Syncs a `DocType` to the table
