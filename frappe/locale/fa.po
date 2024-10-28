@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-20 09:33+0000\n"
-"PO-Revision-Date: 2024-10-27 08:42\n"
+"PO-Revision-Date: 2024-10-28 09:08\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -12845,7 +12845,7 @@ msgstr ""
 
 #: frappe/core/doctype/data_import/data_import_list.js:35
 msgid "Insert"
-msgstr "درج کنید"
+msgstr "درج"
 
 #: frappe/public/js/frappe/form/grid_row_form.js:42
 msgid "Insert Above"
