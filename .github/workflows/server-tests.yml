@@ -58,7 +58,7 @@ jobs:
 
     - name: Set up Python
       if: steps.check-changes.outputs.result == 'true'
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.12.6'
 
