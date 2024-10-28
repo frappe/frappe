@@ -270,8 +270,10 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 		doc._original_modified = doc.modified
 		doc.check_if_latest()
 
-	if not doc or not doc.has_permission("read"):
+	if not doc:
 		frappe.throw_permission_error()
+
+	doc.check_permission("read")
 
 	try:
 		args = frappe.parse_json(args)

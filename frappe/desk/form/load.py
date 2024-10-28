@@ -36,11 +36,7 @@ def getdoc(doctype, name, user=None):
 		frappe.clear_last_message()
 		return []
 
-	if not doc.has_permission("read"):
-		frappe.flags.error_message = _("Insufficient Permission for {0}").format(
-			frappe.bold(_(doctype) + " " + name)
-		)
-		raise frappe.PermissionError(("read", doctype, name))
+	doc.check_permission("read")
 
 	run_onload(doc)
 	doc.apply_fieldlevel_read_permissions()
@@ -95,8 +91,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 
 	if not doc:
 		doc = frappe.get_doc(doctype, name)
-		if not doc.has_permission("read"):
-			raise frappe.PermissionError
+		doc.check_permission("read")
 
 	all_communications = _get_communications(doc.doctype, doc.name, limit=21)
 	automated_messages = [
@@ -222,8 +217,7 @@ def get_communications(doctype, name, start=0, limit=20):
 	from frappe.utils import cint
 
 	doc = frappe.get_doc(doctype, name)
-	if not doc.has_permission("read"):
-		raise frappe.PermissionError
+	doc.check_permission("read")
 
 	return _get_communications(doctype, name, cint(start), cint(limit))
 
