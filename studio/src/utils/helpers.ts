@@ -179,6 +179,7 @@ async function fetchApp(appName: string) {
 	const appResource = createDocumentResource({
 		doctype: "Studio App",
 		name: appName,
+		auto: true,
 	})
 	await appResource.get.promise
 	return appResource.doc

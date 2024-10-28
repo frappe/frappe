@@ -312,7 +312,7 @@ class Block implements BlockOptions {
 		}
 		nextTick(() => {
 			if (child) {
-				store.selectBlock(child);
+				store.selectBlock(child, null);
 			}
 		});
 	}

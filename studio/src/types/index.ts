@@ -54,46 +54,6 @@ export interface ComponentProps {
 		inputType: string
 	}
 }
-export interface StudioPage {
-	creation: string
-	name: string
-	modified: string
-	owner: string
-	modified_by: string
-	docstatus: 0 | 1 | 2
-	parent?: string
-	parentfield?: string
-	parenttype?: string
-	idx?: number
-	/**	Published : Check	*/
-	published?: 0 | 1
-	/**	Page Name : Data	*/
-	page_name?: string
-	/**	Route : Data	*/
-	route?: string
-	/**	Blocks : JSON	*/
-	blocks?: any
-	/**	Draft Blocks : JSON	*/
-	draft_blocks?: any
-	/**	Title : Data	*/
-	page_title?: string
-}
-
-export interface StudioApp {
-	creation: string
-	name: string
-	modified: string
-	owner: string
-	modified_by: string
-	docstatus: 0 | 1 | 2
-	parent?: string
-	parentfield?: string
-	parenttype?: string
-	idx?: number
-	app_name?: string
-	app_title?: string
-	route?: string
-}
 
 // controls
 export type SelectOption = { value: string, label: string }

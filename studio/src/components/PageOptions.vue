@@ -41,7 +41,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
 import useStudioStore from "@/stores/studioStore"
-import { StudioPage, StudioApp } from "@/types"
+import type { StudioPage } from "@/types/Studio/StudioPage"
+import type { StudioApp } from "@/types/Studio/StudioApp"
 import Input from "@/components/Input.vue"
 
 const store = useStudioStore()

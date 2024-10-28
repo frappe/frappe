@@ -2,6 +2,12 @@ export type ResourceType = "API Resource" | "Document List" | "Document"
 export type Filters = Record<string, string | string[]>
 
 interface BaseResource {
+	/**	Child Table record name linked to page */
+	name: string
+	/**	Child Table record name linked to page */
+	docname: string
+	/**	Resource Docname */
+	resource_name: string
 	resource_type: ResourceType
 	transform_results?: boolean
 	transform?: string
