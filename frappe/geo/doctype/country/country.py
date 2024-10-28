@@ -14,7 +14,7 @@ class Country(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		code: DF.Data | None
+		code: DF.Data
 		country_name: DF.Data
 		date_format: DF.Data | None
 		time_format: DF.Data | None
