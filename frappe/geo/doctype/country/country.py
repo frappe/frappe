@@ -27,7 +27,7 @@ class Country(Document):
 	# NOTE: During installation country docs are bulk inserted.
 
 	def validate(self):
-		error_msg = _("{0} is not a valid ISO 3166 ALPHA-2 code").format(self.code)
+		error_msg = _("{0} is not a valid ISO 3166 ALPHA-2 code.").format(self.code)
 		try:
 			country = pycountry.countries.lookup(self.code)
 		except LookupError:
