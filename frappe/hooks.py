@@ -434,7 +434,9 @@ before_job = [
 ]
 
 if os.getenv("FRAPPE_SENTRY_DSN") and (
-	os.getenv("ENABLE_SENTRY_DB_MONITORING") or os.getenv("SENTRY_TRACING_SAMPLE_RATE")
+	os.getenv("ENABLE_SENTRY_DB_MONITORING")
+	or os.getenv("SENTRY_TRACING_SAMPLE_RATE")
+	or os.getenv("SENTRY_PROFILING_SAMPLE_RATE")
 ):
 	before_request.append("frappe.utils.sentry.set_sentry_context")
 	before_job.append("frappe.utils.sentry.set_sentry_context")

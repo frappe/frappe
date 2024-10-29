@@ -77,8 +77,10 @@ class Database:
 		password=None,
 		port=None,
 		cur_db_name=None,
+		socket=None,
 	):
 		self.setup_type_map()
+		self.socket = socket
 		self.host = host
 		self.port = port
 		self.user = user

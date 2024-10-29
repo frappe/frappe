@@ -449,6 +449,9 @@ if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
 		kwargs["traces_sample_rate"] = float(tracing_sample_rate)
 		application = SentryWsgiMiddleware(application)
 
+	if profiling_sample_rate := os.getenv("SENTRY_PROFILING_SAMPLE_RATE"):
+		kwargs["profiles_sample_rate"] = float(profiling_sample_rate)
+
 	sentry_sdk.init(
 		dsn=sentry_dsn,
 		before_send=before_send,
