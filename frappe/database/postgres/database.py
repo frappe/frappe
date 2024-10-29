@@ -269,7 +269,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		}
 		if self.port:
 			conn_settings["port"] = self.port
-		if frappe.flags.in_install_db:
+		if frappe.flags.in_install_db or frappe.flags.in_test:
 			conn = psycopg2.connect(**conn_settings)
 		else:
 			conn = ConnectionPool.get_connection(conn_settings)
