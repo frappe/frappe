@@ -195,7 +195,6 @@ def download_pdf(
     doctype, name, format=None, doc=None, no_letterhead=0, language=None, letterhead=None
 ):
     doc = doc or frappe.get_doc(doctype, name)
-    
     original_customer_name  = ""
     if doc.get("customer_name"):
         original_customer_name = doc.get("original_customer_name")
