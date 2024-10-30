@@ -106,6 +106,9 @@ def move_file(file_list: list[File | dict] | str, new_parent: str, old_parent: s
 	if isinstance(file_list, str):
 		file_list = json.loads(file_list)
 
+	if not frappe.db.exists("File", old_parent) or not frappe.db.exists("File", new_parent):
+		raise ValueError("One or both of the specified parent folders do not exist.")
+
 	# will check for permission on each file & update parent
 	for file_obj in file_list:
 		setup_folder_path(file_obj.get("name"), new_parent)
