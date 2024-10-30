@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-27 09:33+0000\n"
-"PO-Revision-Date: 2024-10-29 09:26\n"
+"PO-Revision-Date: 2024-10-30 09:43\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -1402,7 +1402,7 @@ msgstr "Eklendi"
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO"
-msgstr "Web sayfasının &lt;head&gt; bölümüne HTML eklendi, öncelikle web sitesi doğrulama ve SEO için kullanılır"
+msgstr "Web sayfasının <head> bölümüne HTML eklemek, web sitesi doğrulaması ve SEO için kullanılır. Bu bölüm, arama motoru doğrulama kodları, başlık ve meta açıklama etiketleri içerir ve site sıralamasını iyileştirmeye yardımcı olur."
 
 #: frappe/core/doctype/log_settings/log_settings.py:82
 msgid "Added default log doctypes: {}"
@@ -11809,7 +11809,7 @@ msgstr ""
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Header, Robots"
-msgstr ""
+msgstr "Üst Bilgi Alanı"
 
 #: frappe/printing/doctype/letter_head/letter_head.js:30
 msgid "Header/Footer scripts can be used to add dynamic behaviours."
@@ -20706,7 +20706,7 @@ msgstr "Kırmızı"
 #. Redirect'
 #: frappe/website/doctype/website_route_redirect/website_route_redirect.json
 msgid "Redirect HTTP Status"
-msgstr ""
+msgstr "HTTP Yönlendirme Durumu"
 
 #. Label of the redirect_uri (Data) field in DocType 'Connected App'
 #: frappe/integrations/doctype/connected_app/connected_app.json
@@ -20746,7 +20746,7 @@ msgstr "Başarılı onaylamadan sonra bu bağlantıya yönlendirin."
 #. Label of the redirects_tab (Tab Break) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Redirects"
-msgstr ""
+msgstr "Yönlendirmeler"
 
 #: frappe/sessions.py:147
 msgid "Redis cache server not running. Please contact Administrator / Tech support"
@@ -22113,7 +22113,7 @@ msgstr "Dolaşım Geçmişi"
 #. Label of the route_redirects (Table) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Route Redirects"
-msgstr ""
+msgstr "Rota Yönlendirmeleri"
 
 #. Description of the 'Home Page' (Data) field in DocType 'Role'
 #: frappe/core/doctype/role/role.json
@@ -29812,7 +29812,7 @@ msgstr ""
 
 #: frappe/model/delete_doc.py:136
 msgid "You can disable this {0} instead of deleting it."
-msgstr ""
+msgstr "Bu {0} öğesini silmek yerine devre dışı bırakabilirsiniz."
 
 #: frappe/core/doctype/file/file.py:697
 msgid "You can increase the limit from System Settings."
