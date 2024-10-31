@@ -14,7 +14,10 @@ class DocRef:
 
 	@override
 	def __hash__(self) -> int:
-		return hash(self.doctype + self.name or "")
+		if self.name:
+			return hash(self.doctype + self.name)
+		else:
+			raise ValueError("Only named documents can be hashed; maybe the document is unsaved.")
 
 	@override
 	def __str__(self) -> str:
