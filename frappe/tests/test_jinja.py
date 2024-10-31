@@ -6,7 +6,7 @@ from unittest.mock import Mock, call, patch
 import frappe
 from frappe import _dict, scrub
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
-from frappe.model.document import Document, DocumentProxy
+from frappe.model.document import Document, DocumentProxy, DocumentProxyList
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils.jinja import process_context, render_template
 
@@ -749,6 +749,84 @@ class TestRenderTemplateWithGlobals(IntegrationTestCase):
 
 		# Test scrub
 		self.assertIn("administrator", result)
+
+
+class TestComplexCustomDocumentProxy(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		# Create test data
+		cls.test_user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"name": "test.dian@example.com",
+				"email": "test.dian@example.com",
+				"first_name": "Test",
+				"last_name": "DIAN",
+				"user_type": "System User",
+				"send_welcome_email": 0,
+				"language": "de",
+			}
+		).insert(ignore_permissions=True)
+		cls.test_user.add_tag("IVA @ 19")
+		cls.test_user.add_tag("Discount")
+
+	def setUp(self):
+		class TestCustomDocumentProxy(DocumentProxy):
+			def __init__(self, *args, **kwargs):
+				super().__init__(*args, **kwargs)
+				# eager attr overlay
+				if self.doctype == "User":
+					if self.last_name == "DIAN":
+						self.dian_id_no = "123456789"
+						self.dian_id_dv = "0"
+
+			def __getattr__(self, attr):
+				match (self.doctype, attr):
+					# lazy attr addition
+					case ("User", "dian_role"):
+						return frappe._dict(
+							{
+								"role_name": "Test DIAN Role",
+								"country_code": "CO",
+							}
+						)
+					case ("User", "tags"):
+						tags = self._doc.get("_user_tags").split(",")
+						return DocumentProxyList("Tag", [t for t in tags if t in ["Discount"]], self)
+					case ("User", "taxes"):
+						tags = self._doc.get("_user_tags").split(",")
+						return DocumentProxyList("Tag", [t for t in tags if t in ["IVA @ 19"]], self)
+				return super().__getattr__(attr)
+
+		self.CustomDocumentProxy = TestCustomDocumentProxy
+
+	def test_custom_proxy_nesting(self):
+		proxy = self.CustomDocumentProxy("User", self.test_user.name)
+		self.assertIsInstance(proxy.language, self.CustomDocumentProxy)
+
+	def test_eager_attr_overlay(self):
+		proxy = self.CustomDocumentProxy("User", self.test_user.name)
+		self.assertEqual(proxy.dian_id_no, "123456789")
+		self.assertEqual(proxy.dian_id_dv, "0")
+
+	def test_lazy_attr_overlay(self):
+		proxy = self.CustomDocumentProxy("User", self.test_user.name)
+		dian_role = proxy.dian_role
+		self.assertEqual(dian_role.role_name, "Test DIAN Role")
+		self.assertEqual(dian_role.country_code, "CO")
+
+	def test_attr_partition(self):
+		proxy = self.CustomDocumentProxy("User", self.test_user.name)
+
+		# Test partitions
+		self.assertEqual(len(proxy.tags), 1)
+		self.assertEqual(proxy.tags[0].name, "Discount")
+		self.assertEqual(len(proxy.taxes), 1)
+		self.assertEqual(proxy.taxes[0].name, "IVA @ 19")
+
+		# Test proxy class propagation
+		self.assertIsInstance(proxy.tags[0], self.CustomDocumentProxy)
 
 
 class TestDocumentProxyRendering(IntegrationTestCase):

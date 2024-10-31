@@ -163,9 +163,10 @@ def read_only_document(context=None):
 
 
 class DocumentProxy(DocRef):
-	def __init__(self, doctype, name):
+	def __init__(self, doctype, name, parent=None):
 		super().__init__(doctype, name)
 		self._doc = None
+		self._super = parent or self
 
 	@classmethod
 	@cache
@@ -203,13 +204,13 @@ class DocumentProxy(DocRef):
 			field = self._fields(attr)
 			if field.fieldtype == "Link":
 				linked_doctype = field.options
-				return DocumentProxy(linked_doctype, value)
+				return type(self)(linked_doctype, value, self)
 			if field.fieldtype == "Dynamic Link":
 				linked_doctype = self._doc.get(field.options)
-				return DocumentProxy(linked_doctype, value)
+				return type(self)(linked_doctype, value, self)
 			if field.fieldtype in ("Table", "Table MultiSelect"):
 				linked_doctype = field.options
-				return DocumentProxyList(linked_doctype, value)
+				return DocumentProxyList(linked_doctype, [v.name for v in value], self)
 
 			return value
 		raise AttributeError(f"'{self.doctype}' object proxy has no attribute '{attr}'")
@@ -226,7 +227,7 @@ class DocumentProxy(DocRef):
 	def __str__(self):
 		# we explictly deviate from the DocRef stringer as
 		# we need to render the value in jinja environments
-		# in caes of no value and the user not guarding the snippet against it,
+		# in case of no value and the user not guarding the snippet against it,
 		# we want to "soft error" by printing the full object representation
 		return self.__value__() or self.__repr__()
 
@@ -235,16 +236,18 @@ class DocumentProxy(DocRef):
 
 
 class DocumentProxyList:
-	def __init__(self, doctype, values):
+	def __init__(self, doctype: str, values: list[str], parent):
 		self.doctype = doctype
 		self.values = values
+		self._super = parent
 
 	def __iter__(self):
 		for value in self.values:
-			yield DocumentProxy(self.doctype, value.name)
+			yield type(self._super)(self.doctype, value, self._super)
 
 	def __getitem__(self, index):
-		return DocumentProxy(self.doctype, self.values[index].name)
+		value = self.values[index]
+		return type(self._super)(self.doctype, value, self._super)
 
 	def __len__(self):
 		return len(self.values)
