@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-27 09:33+0000\n"
-"PO-Revision-Date: 2024-10-30 09:43\n"
+"PO-Revision-Date: 2024-10-31 10:12\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -1493,7 +1493,7 @@ msgstr "Adres ve Kişiler"
 #. Description of a DocType
 #: frappe/custom/doctype/client_script/client_script.json
 msgid "Adds a custom client script to a DocType"
-msgstr ""
+msgstr "DocType'a özel bir istemci komut dosyası ekler"
 
 #. Description of a DocType
 #: frappe/custom/doctype/custom_field/custom_field.json
@@ -1760,7 +1760,7 @@ msgstr "Toplu Düzenlemeye İzin Ver"
 #. Label of the allow_edit (Check) field in DocType 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Allow Bulk Editing"
-msgstr ""
+msgstr "Toplu Düzenlemeye İzin Ver"
 
 #. Label of the allow_consecutive_login_attempts (Int) field in DocType 'System
 #. Settings'
@@ -1919,7 +1919,8 @@ msgstr ""
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Allow editing even if the doctype has a workflow set up.\n\n"
 "Does nothing if a workflow isn't set up."
-msgstr ""
+msgstr "Belge türünde bir iş akışı ayarlanmış olsa bile düzenlemeye izin verir.\n\n"
+"Bir iş akışı ayarlanmamışsa hiçbir şey yapmaz."
 
 #. Label of the allow_events_in_timeline (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -2050,7 +2051,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/views/reports/report_view.js:878
 msgid "Also adding the status dependency field {0}"
-msgstr ""
+msgstr "Durum bağımlılığı alanı da ekleniyor {0}"
 
 #. Label of the login_id (Data) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -12618,7 +12619,7 @@ msgstr "Resimler"
 #: frappe/core/doctype/activity_log/activity_log.json
 #: frappe/core/doctype/user/user.js:370
 msgid "Impersonate"
-msgstr ""
+msgstr "Yerine Geçir"
 
 #: frappe/core/doctype/user/user.js:397
 msgid "Impersonate as {0}"
@@ -17848,7 +17849,7 @@ msgstr "Gönderildikten sonra, gönderilebilir belgeler değiştirilemez. Sadece
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:35
 msgid "Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger)."
-msgstr ""
+msgstr "Bunu ayarladıktan sonra kullanıcılar yalnızca bağlantının bulunduğu belgeler erişebilecektir."
 
 #: frappe/www/complete_signup.html:7
 msgid "One Last Step"
