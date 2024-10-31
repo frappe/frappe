@@ -655,8 +655,33 @@ class TestDB(IntegrationTestCase):
 		frappe.db.sql("select 1", debug=1, explain=1)
 
 	def test_unique(self):
+		def insert_user(name):
+			frappe.db.multisql(
+				sql_dict={
+					"mariadb": "insert into `tabUser` (`name`, `email`, `first_name`) values (%(name)s, %(email)s, %(email)s)",
+					"postgres": 'insert into "tabUser" ("name", "email", "first_name") values (%(name)s, %(email)s, %(email)s)',
+				},
+				values={"email": "test_unique@example.org", "name": name},
+			)
+
 		frappe.db.add_unique("User", ["email", "first_name"])
+
+		# Add first record, should not raise error
+		insert_user(1)
+
+		# Add second record, should raise error
+		try:
+			insert_user(2)
+		except Exception as e:
+			self.assertTrue(frappe.db.is_unique_key_violation(e))
+
 		frappe.db.remove_unique("User", ["email", "first_name"])
+
+		# Add record after removing unique, should not raise error
+		insert_user(3)
+
+		# Cleanup
+		frappe.db.delete("User", {"email": "test_unique@example.org"})
 
 
 @run_only_if(db_type_is.MARIADB)
