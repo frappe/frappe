@@ -197,7 +197,8 @@ def validate_workflow(doc):
 				_("Workflow State transition not allowed from {0} to {1}").format(bold_current, bold_next),
 				WorkflowPermissionError,
 			)
-
+			
+		doc._doc_before_save.flags = doc.flags
 		transitions = get_transitions(doc._doc_before_save)
 		transition = [d for d in transitions if d.next_state == next_state]
 		if not transition:
