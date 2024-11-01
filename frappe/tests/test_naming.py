@@ -2,11 +2,7 @@
 # License: MIT. See LICENSE
 
 import time
-<<<<<<< HEAD
-=======
 import unittest
-from uuid import UUID
->>>>>>> 16407a50ec (fix: Excessive gap locking from hash naming (#28349))
 
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_full_jitter
 
