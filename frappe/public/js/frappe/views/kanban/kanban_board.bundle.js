@@ -358,6 +358,19 @@ const zoomLevels = {
 				},
 				update_kanban_size_range: function(context, value){
 					context.state.kanban_size_range = value
+				},
+				validate_project_quotations: async function(context, card) {
+					const quotations = await frappe.db.get_list("Quotation", {
+						filters: [
+							['project_name', '=', card.name],
+							['status', "!=", "Approved"]
+						],
+						fields: ["name", "status"]
+					})
+			
+					if(!quotations?.length) return
+
+					showConfirmationDialog(card, quotations)
 				}
 
 			},
@@ -803,7 +816,13 @@ const zoomLevels = {
 						old_index: e.oldIndex,
 						new_index: e.newIndex,
 					};
-					store.dispatch("update_order_for_single_card", args);
+					// validate if project has quotations qaiting for approval.
+					if(args.to_colname === "Quality check approved"){
+						store.dispatch("validate_project_quotations", args)
+					}
+
+					store.dispatch("update_order_for_single_card", args);	
+					
 					console.log("end to render kanban ")
 				},
 				onAdd: function () { },
@@ -1452,8 +1471,6 @@ const zoomLevels = {
 			}
 		});
 	}
-	
-	
 
 	function applyZoom(value) {
 		let zoomState = zoomLevels[value];
@@ -1477,6 +1494,44 @@ const zoomLevels = {
 		return zoomState;
 	}
 	
-	
+	function showConfirmationDialog(card, quotations) {
+		const dialog = new frappe.ui.Dialog({
+			title: 'Confirm',
+			fields: [
+				{
+					fieldtype: 'HTML',
+					options: `Project <strong>${card.name}</strong> has the following quotation pending approval:</p> `
+				},
+				{
+					fieldtype: 'HTML',
+					options: `
+						<ul>
+						${quotations.map(quotation => `<li><strong>Quotation:</strong> <a href="/app/quotation/${quotation.name}" target="__blank">${quotation.name}</a>, <strong>Status:</strong> ${quotation.status}.</li>\n`)}
+						</ul> 
+					`
+				},
+				{
+					fieldtype: 'HTML',
+					options: `
+						<p>Are you sure you want to proceed? The invoice will be created without these quotations.</p>
+					`
+				}
+			],
+			primary_action_label: 'Confirm',
+			primary_action: function() {
+				dialog.hide();
+			},
+			secondary_action_label: 'Cancel',
+			secondary_action: function() {
+				frappe.db.set_value("Project", card.name, "status", card.from_colname)
+				dialog.hide();
+			}
+		});
+
+		dialog.$wrapper.find('.modal-header .modal-actions').hide();
+		dialog.$wrapper.modal({ backdrop: 'static', keyboard: false })
+
+		dialog.show();
+	}
 })();
 
