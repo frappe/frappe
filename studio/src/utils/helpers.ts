@@ -5,7 +5,7 @@ import * as frappeUI from "frappe-ui"
 
 import { createDocumentResource, createListResource, createResource, confirmDialog } from "frappe-ui"
 
-import { BlockOptions, StyleValue } from "@/types"
+import { ObjectLiteral, BlockOptions, StyleValue, ExpressionEvaluationContext, SelectOption } from "@/types"
 import { DataResult, DocumentResource, DocumentResult, Filters, Resource } from "@/types/studioResource"
 
 function getBlockInstance(options: BlockOptions, retainId = true): Block {
@@ -103,7 +103,7 @@ function copyObject<T>(obj: T) {
 	return jsonToJs(jsToJson(obj))
 }
 
-function areObjectsEqual(obj1: any, obj2: any): boolean {
+function areObjectsEqual(obj1: ObjectLiteral, obj2: ObjectLiteral): boolean {
 	const keys1 = Object.keys(obj1)
 	const keys2 = Object.keys(obj2)
 
@@ -122,13 +122,13 @@ function areObjectsEqual(obj1: any, obj2: any): boolean {
 	return true
 }
 
-function isObjectEmpty(obj: any) {
+function isObjectEmpty(obj: ObjectLiteral) {
 	if (!obj) return true
 	return Object.keys(obj).length === 0
 }
 
-function jsToJson(obj: any): string {
-	const replacer = (key: string, value: any) => {
+function jsToJson(obj: ObjectLiteral): string {
+	const replacer = (_key: string, value: any) => {
 		// Preserve functions by converting them to strings
 		if (typeof value === "function") {
 			return value.toString()
@@ -148,7 +148,7 @@ function jsToJson(obj: any): string {
 }
 
 function jsonToJs(json: string): any {
-	const reviver = (key: string, value: any) => {
+	const reviver = (_key: string, value: any) => {
 		// Convert functions back to functions
 		if (typeof value === "string" && value.startsWith("function")) {
 			// provide access to render function & frappeUI lib for editing props
@@ -223,17 +223,17 @@ async function fetchAppPages(appRoute: string) {
 }
 
 // data
-function getAutocompleteValues(data: any[]) {
+function getAutocompleteValues(data: SelectOption[]) {
 	return (data || []).map((d) => d["value"])
 }
 
-const isDynamicValue = (value: any) => {
+const isDynamicValue = (value: string) => {
 	// Check if the prop value is a string and contains a dynamic expression
 	if (typeof value !== "string") return false
 	return value && value.includes("{{") && value.includes("}}")
 }
 
-function getDynamicValue(value: any, context: any) {
+function getDynamicValue(value: string, context: ExpressionEvaluationContext) {
 	let result = ""
 	let lastIndex = 0
 
@@ -264,8 +264,11 @@ function getDynamicValue(value: any, context: any) {
 	return result || undefined
 }
 
-function getEvaluatedFilters(filters: any, context: any) {
-	filters = JSON.parse(filters)
+function getEvaluatedFilters(filters: Filters, context: ExpressionEvaluationContext) {
+	if (typeof filters === "string") {
+		filters = JSON.parse(filters)
+	}
+
 	if (!filters) return undefined
 	const evaluatedFilters: Filters = {}
 
@@ -282,7 +285,7 @@ function getEvaluatedFilters(filters: any, context: any) {
 	return evaluatedFilters
 }
 
-function evaluateExpression(expression: string, context: any) {
+function evaluateExpression(expression: string, context: ExpressionEvaluationContext) {
 	try {
 		// Replace dot notation with optional chaining
 		const safeExpression = expression.replace(/(\w+)(?:\.(\w+))+/g, (match) => {
@@ -345,7 +348,7 @@ function getWhitelistedMethods(resource: DocumentResource) {
 	return {}
 }
 
-async function getDocumentResource(resource: DocumentResource, context: undefined | any = undefined) {
+async function getDocumentResource(resource: DocumentResource, context: ExpressionEvaluationContext) {
 	let docname = resource.document_name
 	if (!docname && resource.filters) {
 		// fetch the docname based on filters
@@ -368,7 +371,7 @@ async function getDocumentResource(resource: DocumentResource, context: undefine
 	})
 }
 
-function getNewResource(resource: Resource, context: undefined | any = undefined) {
+function getNewResource(resource: Resource, context: ExpressionEvaluationContext) {
 	let fields = []
 	if ('fields' in resource && typeof resource.fields === "string") {
 		fields = JSON.parse(resource.fields)

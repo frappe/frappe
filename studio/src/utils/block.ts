@@ -7,6 +7,7 @@ import components from "@/data/components";
 import { copyObject, getBlockCopy, kebabToCamelCase, numberToPx } from "./helpers";
 
 import { StyleValue } from "@/types"
+import { ComponentEvent } from "@/types/ComponentEvent"
 
 export type styleProperty = keyof CSSProperties | `__${string}`;
 class Block implements BlockOptions {
@@ -330,8 +331,8 @@ class Block implements BlockOptions {
 	}
 
 	// events
-	addEvent(event: any) {
-		const pageName = event.page?.value
+	addEvent(event: ComponentEvent) {
+		const pageName = event.page
 		if (pageName) {
 			const store = useStudioStore()
 			event.page = store.getAppPageRoute(pageName)
@@ -339,7 +340,7 @@ class Block implements BlockOptions {
 		this.componentEvents[event.event] = event
 	}
 
-	removeEvent(event: any) {
+	removeEvent(event: ComponentEvent) {
 		delete this.componentEvents[event.event]
 	}
 }

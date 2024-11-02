@@ -1,6 +1,8 @@
 import Block from "../utils/block"
 import { VuePropDefault } from "@/types/vue"
 
+export type ObjectLiteral = Record<string, any>
+
 export type StyleValue = string | number | null | undefined
 
 export interface BlockStyleMap {
@@ -57,3 +59,6 @@ export interface ComponentProps {
 
 // controls
 export type SelectOption = { value: string, label: string }
+
+// dynamic data
+export type ExpressionEvaluationContext = Record<string, any> | undefined

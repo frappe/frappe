@@ -52,6 +52,8 @@ import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import { getComponentRoot, isDynamicValue, getDynamicValue } from "@/utils/helpers"
 
+import { CanvasProps } from "@/types"
+
 const props = defineProps({
 	block: {
 		type: Block,

@@ -83,6 +83,8 @@ import EmptyState from "@/components/EmptyState.vue"
 import { isObjectEmpty } from "@/utils/helpers"
 import { getComponentEvents } from "@/utils/components"
 
+import { SelectOption } from "@/types"
+
 const props = defineProps({
 	block: {
 		type: Block,
@@ -134,7 +136,7 @@ const actions = {
 			},
 			events: {
 				"update:modelValue": (val: SelectOption) => {
-					newEvent.value.page = val
+					newEvent.value.page = val.value
 				},
 			},
 		},
