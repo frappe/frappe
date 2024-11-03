@@ -8,7 +8,6 @@ import os
 import re
 
 from werkzeug.exceptions import HTTPException, NotFound
-from werkzeug.http import generate_etag, is_resource_modified, quote_etag
 from werkzeug.middleware.profiler import ProfilerMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.middleware.shared_data import SharedDataMiddleware
@@ -153,11 +152,6 @@ def application(request: Request):
 			frappe.logger().error("Failed to run after request hook", exc_info=True)
 
 	log_request(request, response)
-	# return 304 if unmodified
-	if not response.direct_passthrough:
-		etag = generate_etag(response.data)
-		if not is_resource_modified(request.environ, etag):
-			return Response(status=304, headers={"ETag": quote_etag(etag)})
 	process_response(response)
 
 	return response
@@ -253,8 +247,6 @@ def process_response(response):
 			{
 				# default: 5m (proxy), 5m (client), 3h (allow stale resources for this long if upstream is down)
 				"Cache-Control": "public,s-maxage=300,max-age=300,stale-while-revalidate=10800",
-				# for revalidation of a stale resource
-				"ETag": quote_etag(generate_etag(response.data)),
 			}
 		)
 	else:
