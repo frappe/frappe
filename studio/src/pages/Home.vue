@@ -74,13 +74,14 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue"
 import { useRouter } from "vue-router"
 import { studioApps } from "@/data/studioApps"
 import { UseTimeAgo } from "@vueuse/components"
 import Input from "@/components/Input.vue"
 import StudioLogo from "@/components/Icons/StudioLogo.vue"
+import { NewStudioApp, StudioApp } from "@/types/Studio/StudioApp"
 
 const showDialog = ref(false)
 const emptyAppState = {
@@ -90,13 +91,13 @@ const emptyAppState = {
 const newApp = ref({ ...emptyAppState })
 const router = useRouter()
 
-const createStudioApp = (app) => {
+const createStudioApp = (app: NewStudioApp) => {
 	studioApps.insert
 		.submit({
 			app_title: app.app_title,
 			route: `studio-app/${app.route}`,
 		})
-		.then((res) => {
+		.then((res: StudioApp) => {
 			showDialog.value = false
 			newApp.value = { ...emptyAppState }
 			router.push({ name: "StudioApp", params: { appID: res.name } })

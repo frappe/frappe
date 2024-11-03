@@ -25,7 +25,7 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { onActivated, watchEffect, watch, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useDebounceFn } from "@vueuse/core"
@@ -40,12 +40,13 @@ import useStudioStore from "@/stores/studioStore"
 import { studioPages } from "@/data/studioPages"
 import { getRootBlock } from "@/utils/helpers"
 import { studioAppPages } from "@/data/studioApps"
+import { StudioPage } from "@/types/Studio/StudioPage"
 
 const route = useRoute()
 const router = useRouter()
 const store = useStudioStore()
 
-const canvas = ref(null)
+const canvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
 watchEffect(() => {
 	if (canvas.value) {
 		store.canvas = canvas.value
@@ -73,8 +74,8 @@ async function setPage() {
 				page_title: "My Page",
 				draft_blocks: [getRootBlock()],
 			})
-			.then(async (data) => {
-				const appID = route.params.appID
+			.then(async (data: StudioPage) => {
+				const appID = route.params.appID as string
 				// add the newly created page to the app's pages child table
 				await studioAppPages.insert.submit({
 					studio_page: data.name,
@@ -88,8 +89,8 @@ async function setPage() {
 				store.setPage(data.name)
 			})
 	} else {
-		store.setApp(route.params.appID)
-		await store.setPage(route.params.pageID)
+		store.setApp(route.params.appID as string)
+		await store.setPage(route.params.pageID as string)
 	}
 }
 

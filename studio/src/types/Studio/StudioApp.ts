@@ -5,11 +5,32 @@ export interface StudioApp {
 	owner: string
 	modified_by: string
 	docstatus: 0 | 1 | 2
-	parent?: string
-	parentfield?: string
-	parenttype?: string
 	idx?: number
-	app_name?: string
-	app_title?: string
-	route?: string
+	/**	App Name : Data	*/
+	app_name: string
+	/**	App Title : Data */
+	app_title: string
+	/**	Route : Data */
+	route: string
+	/**	App Home : Link to the Studio Page */
+	app_home: string
+	/**	Pages : pages */
+	pages: StudioAppPage[]
 }
+
+export interface StudioAppPage {
+	creation: string
+	name: string
+	modified: string
+	owner: string
+	modified_by: string
+	docstatus: 0
+	parent?: string
+	parentfield: "pages"
+	parenttype: "Studio App"
+	idx?: number
+	/**	Studio Page : Link to Studio Page */
+	studio_page: string
+}
+
+export type NewStudioApp = Pick<StudioApp, "app_title" | "route">
