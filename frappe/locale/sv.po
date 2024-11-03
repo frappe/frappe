@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-27 09:33+0000\n"
-"PO-Revision-Date: 2024-10-29 09:26\n"
+"PO-Revision-Date: 2024-11-03 11:38\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -1479,14 +1479,14 @@ msgstr "Adress"
 #: frappe/contacts/doctype/address/address.json
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Address Line 1"
-msgstr "Co/Box"
+msgstr "Adress Linje 1"
 
 #. Label of the address_line2 (Data) field in DocType 'Address'
 #. Label of the address_line2 (Data) field in DocType 'Contact Us Settings'
 #: frappe/contacts/doctype/address/address.json
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Address Line 2"
-msgstr "Gata och Nummer"
+msgstr "Adress Linje 2"
 
 #. Name of a DocType
 #: frappe/contacts/doctype/address_template/address_template.json
@@ -27018,7 +27018,7 @@ msgstr "Växla Diagram"
 #. Type: Action
 #: frappe/hooks.py
 msgid "Toggle Full Width"
-msgstr "Ändra Full Bredd"
+msgstr "Växla Full Bredd"
 
 #: frappe/public/js/frappe/views/file/file_view.js:33
 msgid "Toggle Grid View"
@@ -27033,13 +27033,13 @@ msgstr "Växla Sidofält"
 #: frappe/public/js/frappe/list/list_view.js:1778
 msgctxt "Button in list view menu"
 msgid "Toggle Sidebar"
-msgstr "Visa/dölj Sidofält"
+msgstr "Växla Sidofält"
 
 #. Label of a standard navbar item
 #. Type: Action
 #: frappe/hooks.py
 msgid "Toggle Theme"
-msgstr "Ändra Tema"
+msgstr "Växla Tema"
 
 #. Option for the 'Response Type' (Select) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
