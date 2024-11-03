@@ -10,7 +10,9 @@ import TextBlock from "@/components/AppLayout/TextBlock.vue"
 import AppHeader from "@/components/AppLayout/AppHeader.vue"
 import BottomTabs from "@/components/AppLayout/BottomTabs.vue"
 
-export const COMPONENTS = {
+import { FrappeUIComponents } from "@/types"
+
+export const COMPONENTS: FrappeUIComponents = {
 	Alert: {
 		name: "Alert",
 		title: "Alert",
@@ -303,10 +305,10 @@ export const COMPONENTS = {
 					label: "Name",
 					key: "name",
 					width: 3,
-					getLabel: function ({ row }) {
+					getLabel: function ({ row }: { row: any }) {
 						return row.name
 					},
-					prefix: function ({ row }) {
+					prefix: function ({ row }: { row: any }) {
 						return h(frappeUI.Avatar, {
 							shape: "circle",
 							image: row.user_image,
@@ -642,15 +644,15 @@ export const COMPONENTS = {
 	},
 }
 
-function get(name) {
+function get(name: string) {
 	return COMPONENTS[name]
 }
 
-function isFrappeUIComponent(name) {
+function isFrappeUIComponent(name: string) {
 	return name in frappeUI
 }
 
-function getComponent(name) {
+function getComponent(name: string) {
 	// TODO: A better way to load components for rendering the actual app without compromising the performance
 	if (name === "div") {
 		// root element
@@ -662,7 +664,7 @@ function getComponent(name) {
 	}
 }
 
-function getProps(name) {
+function getProps(name: string) {
 	if (name in frappeUI) {
 		return frappeUI[name]?.props
 	} else {
@@ -670,7 +672,7 @@ function getProps(name) {
 	}
 }
 
-function getEmits(name) {
+function getEmits(name: string) {
 	if (name in frappeUI) {
 		return frappeUI[name]?.emits
 	} else {

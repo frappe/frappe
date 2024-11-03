@@ -1,5 +1,5 @@
 import Block from "../utils/block"
-import { VuePropDefault } from "@/types/vue"
+import { VuePropDefault, VuePropType } from "@/types/vue"
 
 export type ObjectLiteral = Record<string, any>
 
@@ -62,3 +62,14 @@ export type SelectOption = { value: string, label: string }
 
 // dynamic data
 export type ExpressionEvaluationContext = Record<string, any> | undefined
+
+export interface FrappeUIComponents {
+	[key: string]: {
+		name: string,
+		title: string,
+		icon: string,
+		initialState?: Record<string, any>,
+		props?: Array<Record<string, any>>,
+		emits?: Array<string> | Record<string, any>,
+	}
+}
