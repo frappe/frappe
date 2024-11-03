@@ -7,6 +7,7 @@ import { createDocumentResource, createListResource, createResource, confirmDial
 
 import { ObjectLiteral, BlockOptions, StyleValue, ExpressionEvaluationContext, SelectOption } from "@/types"
 import { DataResult, DocumentResource, DocumentResult, Filters, Resource } from "@/types/studioResource"
+import { StudioPage } from "@/types/Studio/StudioPage"
 
 function getBlockInstance(options: BlockOptions, retainId = true): Block {
 	if (typeof options === "string") {
@@ -212,7 +213,7 @@ async function findPageWithRoute(appRoute: string, pageRoute: string) {
 	return fetchPage(pageName)
 }
 
-async function fetchAppPages(appRoute: string) {
+async function fetchAppPages(appRoute: string): Promise<StudioPage[]> {
 	let appRoutes = createResource({
 		url: "studio.studio.doctype.studio_app.studio_app.get_app_pages",
 		method: "GET",

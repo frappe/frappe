@@ -14,7 +14,7 @@ export interface StudioPage {
 	/**	Published : Check	*/
 	published?: 0 | 1
 	/**	Route : Data	*/
-	route?: string
+	route: string
 	/**	Blocks : JSON	*/
 	blocks?: any
 	/**	Draft Blocks : JSON	*/

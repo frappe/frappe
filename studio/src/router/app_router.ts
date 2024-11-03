@@ -15,7 +15,7 @@ let router = createRouter({
 	routes,
 })
 
-const addDynamicRoutes = async (appRoute) => {
+const addDynamicRoutes = async (appRoute: string) => {
 	const pages = await fetchAppPages(appRoute)
 
 	pages.forEach((page) => {
@@ -36,7 +36,7 @@ router.beforeEach(async (to, _, next) => {
 	// TODO: find a performant way to handle adding dynamic routes
 	if (to.params.appRoute && to.params.appRoute !== "studio") {
 		try {
-			await addDynamicRoutes(to.params.appRoute)
+			await addDynamicRoutes(to.params.appRoute as string)
 
 			// Redirect to the same route to trigger re-evaluation with new routes
 			return next(to.fullPath)
