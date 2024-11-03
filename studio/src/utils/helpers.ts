@@ -264,12 +264,12 @@ function getDynamicValue(value: string, context: ExpressionEvaluationContext) {
 	return result || undefined
 }
 
-function getEvaluatedFilters(filters: Filters, context: ExpressionEvaluationContext) {
+function getEvaluatedFilters(filters: Filters | null = null, context: ExpressionEvaluationContext) {
 	if (typeof filters === "string") {
 		filters = JSON.parse(filters)
 	}
 
-	if (!filters) return undefined
+	if (!filters) return null
 	const evaluatedFilters: Filters = {}
 
 	for (const key in filters) {
