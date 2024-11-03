@@ -54,14 +54,6 @@ class TestReadOnlyDocument(IntegrationTestCase):
 			with self.assertRaises(frappe.DatabaseModificationError):
 				nested_save()
 
-	def test_read_only_context_manager_restoration(self):
-		original_save = Document.save
-
-		with read_only_document():
-			self.assertNotEqual(Document.save, original_save)
-
-		self.assertEqual(Document.save, original_save)
-
 	def test_nested_read_only_document(self):
 		# Check that read_only_depth is not set initially
 		self.assertFalse(hasattr(frappe.local, "read_only_depth"))
@@ -156,17 +148,18 @@ class TestReadOnlyDocument(IntegrationTestCase):
 		self.assertEqual(Document.save, self.test_doc.__class__.save)
 
 	def test_read_only_nested_context_managers(self):
-		original_save = Document.save
+		"""Test that read_only_depth is properly managed in nested contexts"""
+		self.assertFalse(hasattr(frappe.local, "read_only_depth"))
 
 		with read_only_document():
-			self.assertNotEqual(Document.save, original_save)
+			self.assertEqual(frappe.local.read_only_depth, 1)
 
 			with read_only_document():
-				self.assertNotEqual(Document.save, original_save)
+				self.assertEqual(frappe.local.read_only_depth, 2)
 
-			self.assertNotEqual(Document.save, original_save)
+			self.assertEqual(frappe.local.read_only_depth, 1)
 
-		self.assertEqual(Document.save, original_save)
+		self.assertFalse(hasattr(frappe.local, "read_only_depth"))
 
 	def test_read_only_method_call_details(self):
 		with read_only_document():
