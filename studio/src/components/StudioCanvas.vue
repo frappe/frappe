@@ -83,12 +83,13 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive, computed, onMounted, nextTick, provide } from "vue"
 import { useDropZone, useElementBounding } from "@vueuse/core"
 import { LoadingIndicator } from "frappe-ui"
 import StudioComponent from "@/components/StudioComponent.vue"
 import FitScreenIcon from "@/components/Icons/FitScreenIcon.vue"
+import StudioCanvas from "@/components/StudioCanvas.vue"
 
 import useStudioStore from "@/stores/studioStore"
 import { getBlockCopy, getComponentBlock } from "@/utils/helpers"
@@ -108,7 +109,7 @@ const props = defineProps({
 const store = useStudioStore()
 
 const canvasContainer = ref(null)
-const canvas = ref(null)
+const canvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
 const overlay = ref(null)
 const showBlocks = ref(false)
 
@@ -156,7 +157,7 @@ const rootComponent = ref(getBlockCopy(props.componentTree, true))
 // handle dropping components
 const { isOverDropZone } = useDropZone(canvasContainer, {
 	onDrop: (_files, ev) => {
-		let element = document.elementFromPoint(ev.x, ev.y)
+		let element = document.elementFromPoint(ev.x, ev.y) as HTMLElement
 		let parentComponent = rootComponent.value
 
 		if (element) {
@@ -173,7 +174,7 @@ const { isOverDropZone } = useDropZone(canvasContainer, {
 	},
 })
 
-const findBlock = (componentId, blocks = null) => {
+const findBlock = (componentId: string, blocks?: Block[]): Block | null => {
 	if (!blocks) {
 		blocks = [getRootBlock()]
 	}
@@ -186,11 +187,12 @@ const findBlock = (componentId, blocks = null) => {
 			if (found) return found
 		}
 	}
+	return null
 }
 
 const getRootBlock = () => rootComponent.value
 
-const setRootBlock = (newBlock, resetCanvas = false) => {
+const setRootBlock = (newBlock: Block, resetCanvas = false) => {
 	rootComponent.value = newBlock
 	if (resetCanvas) {
 		nextTick(() => {
@@ -234,8 +236,8 @@ const setScaleAndTranslate = async () => {
 onMounted(() => {
 	canvasProps.overlayElement = overlay.value
 	setScaleAndTranslate()
-	const canvasContainerEl = canvasContainer.value
-	const canvasEl = canvas.value
+	const canvasContainerEl = canvasContainer.value as unknown as HTMLElement
+	const canvasEl = canvas.value as unknown as HTMLElement
 	setPanAndZoom(canvasProps, canvasEl, canvasContainerEl)
 	showBlocks.value = true
 })

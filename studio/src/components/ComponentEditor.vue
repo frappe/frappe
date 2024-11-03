@@ -10,7 +10,7 @@
 			@click.stop="handleClick"
 		>
 			<PaddingHandler
-				:data-block-id="block.blockId"
+				:data-block-id="block.componentId"
 				v-if="showMarginPaddingHandlers"
 				:target-block="block"
 				:target="target"
@@ -31,8 +31,8 @@
 	</ComponentContextMenu>
 </template>
 
-<script setup>
-import { ref, computed, onMounted } from "vue"
+<script setup lang="ts">
+import { ref, computed, onMounted, Ref } from "vue"
 
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import BoxResizer from "@/components/BoxResizer.vue"
@@ -42,6 +42,8 @@ import MarginHandler from "@/components/MarginHandler.vue"
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import trackTarget from "@/utils/trackTarget"
+
+import { CanvasProps } from "@/types"
 
 const props = defineProps({
 	block: {
@@ -63,7 +65,7 @@ const props = defineProps({
 })
 
 const store = useStudioStore()
-const editor = ref(null)
+const editor = ref(null) as unknown as Ref<HTMLElement>
 const resizing = ref(false)
 const updateTracker = ref(() => {})
 
@@ -92,19 +94,18 @@ const getStyleClasses = computed(() => {
 })
 
 const preventCLick = ref(false)
-const handleClick = (ev) => {
-	if (props.editable) return
+const handleClick = (ev: MouseEvent) => {
 	if (preventCLick.value) {
 		preventCLick.value = false
 		return
 	}
 	const editorWrapper = editor.value
 	editorWrapper.classList.add("pointer-events-none")
-	let element = document.elementFromPoint(ev.x, ev.y)
+	let element = document.elementFromPoint(ev.x, ev.y) as HTMLElement
 	if (element.classList.contains("editor")) {
 		element.classList.remove("pointer-events-auto")
 		element.classList.add("pointer-events-none")
-		element = document.elementFromPoint(ev.x, ev.y)
+		element = document.elementFromPoint(ev.x, ev.y) as HTMLElement
 	}
 	if (element.classList.contains("__studio_component__")) {
 		element.dispatchEvent(new MouseEvent("click", ev))
@@ -112,7 +113,7 @@ const handleClick = (ev) => {
 }
 
 onMounted(() => {
-	updateTracker.value = trackTarget(props.target, editor.value, store.canvas.canvasProps)
+	updateTracker.value = trackTarget(props.target, editor.value, store.canvas?.canvasProps as CanvasProps)
 })
 
 defineExpose({

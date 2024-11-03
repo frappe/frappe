@@ -372,7 +372,7 @@ async function getDocumentResource(resource: DocumentResource, context: Expressi
 	})
 }
 
-function getNewResource(resource: Resource, context: ExpressionEvaluationContext) {
+function getNewResource(resource: Resource, context: ExpressionEvaluationContext | null = null) {
 	let fields = []
 	if ('fields' in resource && typeof resource.fields === "string") {
 		fields = JSON.parse(resource.fields)

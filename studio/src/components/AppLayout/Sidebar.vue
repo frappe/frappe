@@ -31,7 +31,7 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import AppLogo from "../Icons/AppLogo.vue"
 
 defineProps({

@@ -40,8 +40,8 @@ const useStudioStore = defineStore("store", () => {
 	})
 
 	// block hover & selection
-	const hoveredBlock = ref(null)
-	const hoveredBreakpoint = ref(null)
+	const hoveredBlock = ref<string | null>(null)
+	const hoveredBreakpoint = ref<string | null>(null)
 	const selectedBlockIds = ref<string[]>([])
 	const selectedBlocks = computed(() => {
 		return (
@@ -50,7 +50,7 @@ const useStudioStore = defineStore("store", () => {
 				// filter out missing blocks/null values
 				.filter((b) => b)
 		)
-	})
+	}) as Ref<Block[]>
 
 	function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false) {
 		if (multiSelect) {

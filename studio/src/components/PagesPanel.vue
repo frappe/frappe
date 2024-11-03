@@ -88,7 +88,7 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import useStudioStore from "@/stores/studioStore"
 import { useRouter } from "vue-router"
 

@@ -17,7 +17,7 @@ class Block implements BlockOptions {
 	componentEvents: Record<string, any>
 	blockName: string
 	originalElement?: string | undefined
-	children: BlockOptions[]
+	children: Block[]
 	parentBlock: Block | null
 	baseStyles: BlockStyleMap
 	mobileStyles: BlockStyleMap
@@ -65,9 +65,10 @@ class Block implements BlockOptions {
 		}
 		index = clamp(index, 0, this.children.length)
 
-		this.children.splice(index, 0, child)
-		child.selectBlock()
-		return child
+		const childBlock = reactive(new Block(child))
+		this.children.splice(index, 0, childBlock)
+		childBlock.selectBlock()
+		return childBlock
 	}
 
 	removeChild(child: Block) {

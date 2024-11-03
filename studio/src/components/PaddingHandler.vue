@@ -124,6 +124,8 @@ import { computed, inject, ref, watchEffect } from "vue"
 import Block from "../utils/block"
 import { pxToNumber } from "../utils/helpers"
 
+import { CanvasProps } from "@/types"
+
 const canvasProps = inject("canvasProps") as CanvasProps
 
 const props = defineProps({

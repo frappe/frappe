@@ -2,7 +2,7 @@
 	<component :is="icon" />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from "vue"
 // NOTE: Find a better way than importing the entire icon library -> increased bundle size
 // Timeless icons will replace these most likely

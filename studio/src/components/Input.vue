@@ -30,7 +30,8 @@
 		</div>
 	</div>
 </template>
-<script lang="ts" setup>
+
+<script setup lang="ts">
 import { useVModel } from "@vueuse/core"
 import { useAttrs } from "vue"
 import CrossIcon from "./Icons/Cross.vue"

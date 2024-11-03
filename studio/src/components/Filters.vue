@@ -83,7 +83,7 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { Autocomplete, FeatherIcon, FormControl } from "frappe-ui"
 import { computed, h, ref, watch } from "vue"
 import Link from "@/components/Link.vue"

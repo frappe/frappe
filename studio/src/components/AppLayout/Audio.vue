@@ -43,7 +43,7 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 import { ref, onMounted, watch } from "vue"
 

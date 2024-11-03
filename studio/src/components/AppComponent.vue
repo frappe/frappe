@@ -11,7 +11,7 @@
 	</component>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Block from "@/utils/block"
 import { computed, onMounted, ref, useAttrs } from "vue"
 import { useRouter, useRoute } from "vue-router"
