@@ -20,6 +20,7 @@ export interface BlockOptions {
 	tabletStyles?: BlockStyleMap
 	blockName?: string
 	parentBlock?: Block | null
+	classes?: string[]
 	[key: string]: any
 }
 

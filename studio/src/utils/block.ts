@@ -22,6 +22,7 @@ class Block implements BlockOptions {
 	baseStyles: BlockStyleMap
 	mobileStyles: BlockStyleMap
 	tabletStyles: BlockStyleMap
+	classes?: string[]
 
 	constructor(options: BlockOptions) {
 		this.componentName = options.componentName
