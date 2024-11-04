@@ -37,6 +37,11 @@ export interface APIResource extends BaseResource {
 
 export type Resource = DocumentResource | DocumentListResource | APIResource
 
+export type NewResource = Omit<Resource, "name" | "docname"> & {
+	source: "New Data Source" | "Existing Data Source"
+	[key: string]: any
+}
+
 
 // result
 export type DocumentResult = Record<string, any>

@@ -73,3 +73,9 @@ export interface FrappeUIComponents {
 		emits?: Array<string> | Record<string, any>,
 	}
 }
+
+export type DocTypeField = {
+	fieldname: string
+	fieldtype: string
+	label: string
+}
