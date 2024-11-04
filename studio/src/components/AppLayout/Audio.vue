@@ -44,7 +44,7 @@
 </template>
 
 <script setup lang="ts">
-import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+import { FeatherIcon } from "frappe-ui"
 import { ref, onMounted, watch } from "vue"
 
 const props = defineProps({

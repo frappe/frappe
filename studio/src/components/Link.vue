@@ -18,6 +18,7 @@
 <script setup lang="ts">
 import { createResource, Autocomplete, debounce } from "frappe-ui"
 import { ref, computed, watch } from "vue"
+import { SelectOption } from "@/types"
 
 const props = withDefaults(
 	defineProps<{

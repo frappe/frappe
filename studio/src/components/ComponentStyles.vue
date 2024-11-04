@@ -10,8 +10,8 @@
 				placeholder="Search properties"
 				v-model="store.stylePropertyFilter"
 				@input="
-					(e) => {
-						store.stylePropertyFilter = e.target.value
+					(e: Event) => {
+						store.stylePropertyFilter = (e.target as HTMLInputElement).value
 					}
 				"
 			/>
@@ -49,6 +49,8 @@ import CollapsibleSection from "@/components/CollapsibleSection.vue"
 import DimensionInput from "@/components/DimensionInput.vue"
 import InlineInput from "@/components/InlineInput.vue"
 import EmptyState from "@/components/EmptyState.vue"
+
+import { StyleValue } from "@/types"
 
 const props = defineProps({
 	block: {

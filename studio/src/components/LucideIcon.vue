@@ -15,5 +15,5 @@ const props = defineProps({
 	},
 })
 
-const icon = computed(() => icons[props.name])
+const icon = computed(() => (icons as Record<string, any>)[props.name])
 </script>

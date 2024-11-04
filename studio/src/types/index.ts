@@ -55,6 +55,7 @@ export interface ComponentProps {
 		type: string,
 		default: VuePropDefault,
 		inputType: string
+		modelValue?: any
 	}
 }
 
@@ -64,15 +65,17 @@ export type SelectOption = { value: string, label: string }
 // dynamic data
 export type ExpressionEvaluationContext = Record<string, any> | undefined
 
+export interface FrappeUIComponent {
+	name: string,
+	title: string,
+	icon: string,
+	initialState?: Record<string, any>,
+	props?: Array<Record<string, any>>,
+	emits?: Array<string> | Record<string, any>,
+}
+
 export interface FrappeUIComponents {
-	[key: string]: {
-		name: string,
-		title: string,
-		icon: string,
-		initialState?: Record<string, any>,
-		props?: Array<Record<string, any>>,
-		emits?: Array<string> | Record<string, any>,
-	}
+	[key: string]: FrappeUIComponent
 }
 
 export type DocTypeField = {

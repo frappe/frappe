@@ -185,7 +185,7 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	// styles
-	const stylePropertyFilter = ref(null)
+	const stylePropertyFilter = ref<string | null>(null)
 
 	// data
 	const resources = ref<Record<string, Resource>>({})

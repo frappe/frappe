@@ -9,7 +9,7 @@
 				variant="outline"
 				placeholder="Search component"
 				v-model="componentFilter"
-				@input="(e) => (componentFilter = e.target.value)"
+				@input="(e: Event) => (componentFilter = (e.target as HTMLInputElement).value)"
 			/>
 		</div>
 
@@ -37,6 +37,7 @@ import { TextInput } from "frappe-ui"
 import components from "@/data/components"
 
 import LucideIcon from "@/components/LucideIcon.vue"
+import { FrappeUIComponent } from "@/types"
 
 const componentFilter = ref("")
 const componentList = computed(() => {
@@ -49,7 +50,9 @@ const componentList = computed(() => {
 	}
 })
 
-const setComponentData = (ev, component) => {
-	ev.dataTransfer.setData("componentName", component.name)
+const setComponentData = (ev: DragEvent, component: FrappeUIComponent) => {
+	if (ev.dataTransfer) {
+		ev.dataTransfer.setData("componentName", component.name)
+	}
 }
 </script>

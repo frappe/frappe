@@ -37,7 +37,7 @@ const componentProps = computed(() => {
 	if (!propConfig) return []
 
 	Object.entries(propConfig).forEach(([propName, config]) => {
-		if (props.block.componentProps[propName] === undefined) {
+		if (props.block?.componentProps[propName] === undefined) {
 			const defaultValue = typeof config.default === "function" ? config.default() : config.default
 			config.modelValue = defaultValue
 		} else {
@@ -48,7 +48,7 @@ const componentProps = computed(() => {
 	return propConfig
 })
 
-const updateComponentProp = (propName, newValue) => {
-	props.block.setProp(propName, newValue)
+const updateComponentProp = (propName: string, newValue: any) => {
+	props.block?.setProp(propName, newValue)
 }
 </script>
