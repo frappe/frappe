@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-27 09:33+0000\n"
-"PO-Revision-Date: 2024-11-03 11:38\n"
+"PO-Revision-Date: 2024-11-04 11:44\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -9017,7 +9017,7 @@ msgstr "Aktivera Utgående"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Enable Password Policy"
-msgstr "Aktivera Lösenord Princip"
+msgstr "Aktivera Lösenord Regel"
 
 #. Label of the enable_prepared_report (Check) field in DocType 'Role
 #. Permission for Page and Report'
@@ -29845,7 +29845,7 @@ msgstr "Du kan ändra godkännda dokument genom att avbryta dem och sedan ändra
 
 #: frappe/public/js/frappe/logtypes.js:21
 msgid "You can change the retention policy from {0}."
-msgstr "Du kan ändra lagring princip från {0}."
+msgstr "Ändra lagring regel från {0}."
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:194
 msgid "You can continue with the onboarding after exploring this page"
