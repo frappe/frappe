@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-08 17:02+0000\n"
-"PO-Revision-Date: 2024-10-26 08:29\n"
+"PO-Revision-Date: 2024-11-04 11:43\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -12177,7 +12177,7 @@ msgstr "Importar / Exportar"
 #. Label of a shortcut in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
 msgid "Import Data"
-msgstr "Datos de Importación"
+msgstr "Importación de datos"
 
 #: frappe/email/doctype/email_group/email_group.js:14
 msgid "Import Email From"
