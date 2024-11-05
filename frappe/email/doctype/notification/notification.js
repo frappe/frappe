@@ -48,45 +48,34 @@ frappe.notification = {
 			// set date changed options
 			frm.set_df_property("date_changed", "options", get_date_change_options());
 
+			// Function to fetch receiver fields based on field type
+			let get_receiver_fields = function (field_type) {
+				return $.map(fields, function (d) {
+					// Add specified fields from child into select dropdown
+					if (frappe.model.table_fields.includes(d.fieldtype)) {
+						let child_fields = frappe.get_doc("DocType", d.options).fields;
+						return $.map(child_fields, function (df) {
+							return df.options == field_type ||
+								(df.options == "User" && df.fieldtype == "Link")
+								? get_select_options(df, d.fieldname)
+								: null;
+						});
+					} else {
+						// Add specified fields from parent into select dropdown
+						return d.options == field_type ||
+							(d.options == "User" && d.fieldtype == "Link")
+							? get_select_options(d)
+							: null;
+					}
+				});
+			};
+			
+			// Set receiver fields based on channel type
 			let receiver_fields = [];
 			if (frm.doc.channel === "Email") {
-				receiver_fields = $.map(fields, function (d) {
-					// Add User and Email fields from child into select dropdown
-					if (frappe.model.table_fields.includes(d.fieldtype)) {
-						let child_fields = frappe.get_doc("DocType", d.options).fields;
-						return $.map(child_fields, function (df) {
-							return df.options == "Email" ||
-								(df.options == "User" && df.fieldtype == "Link")
-								? get_select_options(df, d.fieldname)
-								: null;
-						});
-						// Add User and Email fields from parent into select dropdown
-					} else {
-						return d.options == "Email" ||
-							(d.options == "User" && d.fieldtype == "Link")
-							? get_select_options(d)
-							: null;
-					}
-				});
+				receiver_fields = get_receiver_fields("Email");
 			} else if (["WhatsApp", "SMS"].includes(frm.doc.channel)) {
-				receiver_fields = $.map(fields, function (d) {
-					// Add User and Phone fields from child into select dropdown
-					if (frappe.model.table_fields.includes(d.fieldtype)) {
-						let child_fields = frappe.get_doc("DocType", d.options).fields;
-						return $.map(child_fields, function (df) {
-							return df.options == "Phone" ||
-								(df.options == "User" && df.fieldtype == "Link")
-								? get_select_options(df, d.fieldname)
-								: null;
-						});
-						// Add User and Phone fields from parent into select dropdown
-					} else {
-						return d.options == "Phone" ||
-							(d.options == "User" && d.fieldtype == "Link")
-							? get_select_options(d)
-							: null;
-					}
-				});
+				receiver_fields = get_receiver_fields("Phone");
 			}
 
 			// set email recipient options
