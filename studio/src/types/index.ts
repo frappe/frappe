@@ -78,9 +78,20 @@ export interface FrappeUIComponents {
 	[key: string]: FrappeUIComponent
 }
 
+export type Fieldtype = "Check" | "Link" | "Float" | "Int" | "Select" | "Data" | "Long Text" | "Small Text" | "Text Editor" | "Text" | "JSON" | "Code"
 export type DocTypeField = {
 	fieldname: string
-	fieldtype: string
+	fieldtype: Fieldtype
 	label: string
 	is_virtual?: boolean
+	options?: string
+	value?: any
+}
+export type Operators = "=" | "!=" | ">" | "<" | ">=" | "<=" | "like" | "not like" | "in" | "not in" | "between" | "not between" | "is" | "is not"
+
+export type Filter = {
+	fieldname: string
+	operator: Operators
+	value: string
+	field: DocTypeField
 }
