@@ -26,7 +26,7 @@ const props = withDefaults(
 		label?: string
 		placeholder?: string
 		modelValue?: string
-		filters?: Record<string, any>
+		filters?: Record<string, string | [string, string]>
 	}>(),
 	{
 		label: "",

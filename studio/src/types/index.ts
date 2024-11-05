@@ -82,4 +82,5 @@ export type DocTypeField = {
 	fieldname: string
 	fieldtype: string
 	label: string
+	is_virtual?: boolean
 }

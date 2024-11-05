@@ -88,6 +88,8 @@ import { Autocomplete, FeatherIcon, FormControl } from "frappe-ui"
 import { computed, h, ref, watch } from "vue"
 import Link from "@/components/Link.vue"
 
+import { DocTypeField } from "@/types"
+
 const typeCheck = ["Check"]
 const typeLink = ["Link"]
 const typeNumber = ["Float", "Int"]
@@ -95,19 +97,19 @@ const typeSelect = ["Select"]
 const typeString = ["Data", "Long Text", "Small Text", "Text Editor", "Text", "JSON", "Code"]
 
 const emits = defineEmits(["update:modelValue"])
-const props = defineProps({
-	label: {
-		type: String,
+
+const props = withDefaults(
+	defineProps<{
+		label: string
+		modelValue: Record<string, any>
+		docfields: DocTypeField[]
+	}>(),
+	{
+		label: "",
+		modelValue: () => ({}),
+		docfields: () => [],
 	},
-	modelValue: {
-		type: Object,
-		default: () => ({}),
-	},
-	docfields: {
-		type: Array,
-		default: () => [],
-	},
-})
+)
 
 const fields = computed(() => {
 	const fields = props.docfields
@@ -123,7 +125,6 @@ const fields = computed(() => {
 		})
 		.map((field) => {
 			return {
-				label: field.label,
 				value: field.fieldname,
 				description: field.fieldtype,
 				...field,
@@ -157,7 +158,7 @@ function makeFiltersList(filtersDict) {
 	})
 }
 
-function getField(fieldname) {
+function getField(fieldname: string) {
 	return fields.value.find((f) => f.fieldname === fieldname)
 }
 
@@ -245,7 +246,7 @@ function getSelectOptions(options) {
 	return options.split("\n")
 }
 
-function addFilter(fieldname) {
+function addFilter(fieldname: string) {
 	const field = getField(fieldname)
 	const filter = {
 		fieldname,

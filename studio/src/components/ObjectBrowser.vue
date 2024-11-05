@@ -36,16 +36,10 @@
 <script setup lang="ts">
 import { ref } from "vue"
 
-defineProps({
-	object: {
-		type: Object,
-		required: true,
-	},
-	name: {
-		type: String,
-		default: "",
-	},
-})
+defineProps<{
+	object: object
+	name?: string
+}>()
 
 const expandedKeys = ref(new Set<string>())
 

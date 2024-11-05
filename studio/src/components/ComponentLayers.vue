@@ -71,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { PropType, ref, watch } from "vue"
+import { ref, watch } from "vue"
 import { FeatherIcon } from "frappe-ui"
 import Draggable from "vuedraggable"
 
@@ -82,16 +82,16 @@ import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
 import LucideIcon from "./LucideIcon.vue"
 
-const props = defineProps({
-	blocks: {
-		type: Array as PropType<Block[]>,
-		default: () => [],
+const props = withDefaults(
+	defineProps<{
+		blocks: Block[]
+		indent: number
+	}>(),
+	{
+		blocks: () => [],
+		indent: 10,
 	},
-	indent: {
-		type: Number,
-		default: 10,
-	},
-})
+)
 
 const store = useStudioStore()
 const childLayer = ref<InstanceType<typeof ComponentLayers> | null>(null)
@@ -131,6 +131,7 @@ const canShowChildLayer = (block: Block) => {
 	return isExpanded(block) && block.hasChildren()
 }
 
+// @ts-ignore
 const updateParent = (event) => {
 	// update parent block reference when a block is moved inside it
 	event.item.__draggable_context.element.parentBlock = store.canvas?.findBlock(
@@ -155,4 +156,8 @@ watch(
 		}
 	},
 )
+
+defineExpose({
+	toggleExpanded,
+})
 </script>

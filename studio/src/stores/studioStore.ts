@@ -111,7 +111,7 @@ const useStudioStore = defineStore("store", () => {
 	// studio pages
 	const activePage = ref<StudioPage | null>(null)
 	const pageBlocks = ref<Block[]>([])
-	const selectedPage = ref(null)
+	const selectedPage = ref<string | null>(null)
 	const savingPage = ref(false)
 	const settingPage = ref(false)
 

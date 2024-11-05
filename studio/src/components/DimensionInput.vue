@@ -28,16 +28,9 @@
 import InlineInput from "@/components/InlineInput.vue"
 import { styleProperty } from "@/utils/block"
 import blockController from "@/utils/blockController"
-import { PropType } from "vue"
 
-const props = defineProps({
-	property: {
-		type: String as PropType<styleProperty>,
-		required: true,
-	},
-	label: {
-		type: String,
-		required: true,
-	},
-})
+const props = defineProps<{
+	property: styleProperty
+	label: string
+}>()
 </script>

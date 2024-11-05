@@ -24,12 +24,9 @@ import { isObjectEmpty } from "@/utils/helpers"
 import InlineInput from "@/components/InlineInput.vue"
 import EmptyState from "@/components/EmptyState.vue"
 
-const props = defineProps({
-	block: {
-		type: Block,
-		required: false,
-	},
-})
+const props = defineProps<{
+	block?: Block
+}>()
 
 const componentProps = computed(() => {
 	if (!props.block || props.block.isRoot()) return []

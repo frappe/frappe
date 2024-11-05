@@ -20,17 +20,7 @@
 					autocomplete="off"
 					@change="query = $event.target.value"
 					@focus="() => open"
-					:displayValue="
-						(option: Option) => {
-							if (Array.isArray(option)) {
-								return option.map((o) => o.label).join(', ')
-							} else if (option) {
-								return option.label || option.value || ''
-							} else {
-								return ''
-							}
-						}
-					"
+					:displayValue="getDisplayValue"
 					:placeholder="!modelValue ? placeholder : null"
 					class="h-full w-full border-none bg-transparent p-0 text-base focus:border-none focus:ring-0"
 				/>
@@ -71,31 +61,24 @@
 
 <script setup lang="ts">
 import { Combobox, ComboboxInput, ComboboxOption, ComboboxOptions } from "@headlessui/vue"
-import { ComputedRef, PropType, computed, ref } from "vue"
+import { ComputedRef, computed, ref } from "vue"
 import CrossIcon from "@/components/Icons/Cross.vue"
 
-type Option = {
-	label: string
-	value: string
-}
+import { SelectOption } from "@/types"
 
 const emit = defineEmits(["update:modelValue"])
 
-const props = defineProps({
-	options: {
-		type: Array as PropType<Option[]>,
-		default: () => [],
+const props = withDefaults(
+	defineProps<{
+		options: SelectOption[]
+		modelValue: string | string[]
+		placeholder?: string
+		showInputAsOption?: boolean
+	}>(),
+	{
+		placeholder: "Search",
 	},
-	modelValue: {},
-	placeholder: {
-		type: String,
-		default: "Search",
-	},
-	showInputAsOption: {
-		type: Boolean,
-		default: false,
-	},
-})
+)
 
 const query = ref("")
 
@@ -109,7 +92,7 @@ const value = computed(() => {
 			value: props.modelValue,
 		}
 	)
-}) as ComputedRef<Option>
+}) as ComputedRef<SelectOption>
 
 const filteredOptions = computed(() => {
 	if (query.value === "") {
@@ -132,4 +115,14 @@ const filteredOptions = computed(() => {
 })
 
 const clearValue = () => emit("update:modelValue", null)
+
+const getDisplayValue = (option: SelectOption | SelectOption[]) => {
+	if (Array.isArray(option)) {
+		return option.map((o) => o.label).join(", ")
+	} else if (option) {
+		return option.label || option.value || ""
+	} else {
+		return ""
+	}
+}
 </script>

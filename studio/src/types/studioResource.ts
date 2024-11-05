@@ -11,6 +11,8 @@ interface BaseResource {
 	resource_type: ResourceType
 	transform_results?: boolean
 	transform?: string
+	/** for Whitelisted methods */
+	[key: string]: any
 }
 
 export interface DocumentResource extends BaseResource {
