@@ -532,6 +532,9 @@ class BaseDocument:
 			# name will be set by document class in most cases
 			set_new_name(self)
 
+		if frappe.db.db_type == "postgres":
+			self.show_unique_validation_message_for_postgress()
+			
 		conflict_handler = ""
 		# On postgres we can't implcitly ignore PK collision
 		# So instruct pg to ignore `name` field conflicts
@@ -589,7 +592,51 @@ class BaseDocument:
 
 		self.set("__islocal", False)
 
+	def show_unique_validation_message_for_postgress(self):
+		# Prepare to check for duplicates based on unique columns
+		unique_column = self.get_unique_columns()  # Custom method to retrieve unique columns
+		if unique_column:	
+			# Prepare the WHERE clause for checking duplicates
+			where_clause = " AND ".join([f"LOWER({col}) = LOWER(%s)" for col in unique_column])
+			values_to_check = [self.get_value(col).lower() for col in unique_column]  # Get values from the document and convert to lower case
+
+			# Check if any record with the same unique column values exists (case-insensitive)
+			existing_record = frappe.db.sql(
+				f"""SELECT COUNT(*) FROM "tab{self.doctype}" WHERE {where_clause}""",
+				values_to_check
+			)[0][0]
+			
+			unique_column = unique_column[0].title()
+			if '_' in unique_column:
+				unique_column = unique_column.replace('_', ' ')
+
+			if existing_record > 0:
+				frappe.msgprint(
+					_("{0} must be unique").format(unique_column),
+					title=_("Message"),
+					indicator="blue",
+				)
+				raise frappe.DuplicateEntryError(self.doctype, self.name)
+
+	def get_unique_columns(self):
+		"""Retrieve the list of unique columns for the doctype."""
+		unique_columns = []
+		
+		# Fetch the meta information for the current doctype
+		meta = frappe.get_meta(self.doctype)
+
+		# Iterate through the fields in the doctype's meta
+		for field in meta.fields:
+			# Check if the field has a unique constraint
+			if field.unique:
+				unique_columns.append(field.fieldname)
+
+		return unique_columns
+
 	def db_update(self):
+		if frappe.db.db_type == "postgres":
+			self.show_unique_validation_message_for_postgress()
+			
 		if self.get("__islocal") or not self.name:
 			self.db_insert()
 			return
