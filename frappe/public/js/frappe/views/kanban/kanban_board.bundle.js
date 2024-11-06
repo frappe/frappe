@@ -1513,7 +1513,7 @@ const zoomLevels = {
 				{
 					fieldtype: 'HTML',
 					options: `
-						<p>Are you sure you want to proceed? The invoice will be created without these quotations.</p>
+						<p>Are you sure you want to proceed? The quotations listed will not be included in the invoice</p>
 					`
 				}
 			],
