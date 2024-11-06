@@ -250,7 +250,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def close(self):
 		"""Close database connection."""
 		if self._conn:
-			if ConnectionPool._connection_pool:
+			if ConnectionPool._connection_pool and not (frappe.flags.in_install_db or frappe.flags.in_test  or frappe.flags.in_drop_site):
 				ConnectionPool.put_connection(self._conn)
 			else:
 				self._conn.close()
