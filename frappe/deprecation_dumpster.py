@@ -753,6 +753,45 @@ def get_tests_CompatFrappeTestCase():
 	return FrappeTestCase
 
 
+# remove alongside get_tests_CompatFrappeTestCase
+def get_compat_frappe_test_case_preparation(cfg):
+	import unittest
+
+	import frappe
+	from frappe.testing.environment import IntegrationTestPreparation
+
+	class FrappeTestCasePreparation(IntegrationTestPreparation):
+		def __call__(self, suite: unittest.TestSuite, app: str, category: str) -> None:
+			super().__call__(suite, app, category)
+			candidates = []
+			app_path = frappe.get_app_path(app)
+			for path, folders, files in os.walk(frappe.get_app_path(app)):
+				for dontwalk in ("locals", ".git", "public", "__pycache__"):
+					if dontwalk in folders:
+						folders.remove(dontwalk)
+
+				# for predictability
+				folders.sort()
+				files.sort()
+
+				# print path
+				for filename in files:
+					if filename.startswith("test_") and filename.endswith(".py"):
+						relative_path = os.path.relpath(path, app_path)
+						if relative_path == ".":
+							module_name = app
+						else:
+							relative_path = relative_path.replace("/", ".")
+							module_name = os.path.splitext(filename)[0]
+							module_name = f"{app}.{relative_path}.{module_name}"
+
+						module = frappe.get_module(module_name)
+						candidates.append((module, path, filename))
+			compat_preload_test_records_upfront(candidates)
+
+	return FrappeTestCasePreparation(cfg)
+
+
 @deprecated(
 	"frappe.model.trace.traced_field_context",
 	"2024-20-08",
@@ -832,3 +871,36 @@ def frappe_get_test_records(doctype):
 				_records.append(_doc)
 		return _records
 	return records
+
+
+def compat_preload_test_records_upfront(candidates: list):
+	import os
+
+	if os.environ.get("OLD_FRAPPE_TEST_CLASS_RECORDS_PRELOAD"):
+		deprecation_warning(
+			"2024-11-06",
+			"v17",
+			"Please fully declare test record dependencies for each test individually; you can assert compliance of your test suite with the following GH action: https://github.com/frappe/frappe/blob/develop/.github/workflows/run-indinvidual-tests.yml",
+		)
+		import json
+		import re
+
+		from frappe.tests.utils import make_test_records
+
+		for module, path, filename in candidates:
+			if hasattr(module, "test_dependencies"):
+				for doctype in module.test_dependencies:
+					make_test_records(doctype, commit=True)
+			if hasattr(module, "EXTRA_TEST_RECORD_DEPENDENCIES"):
+				for doctype in module.EXTRA_TEST_RECORD_DEPENDENCIES:
+					make_test_records(doctype, commit=True)
+
+			if os.path.basename(os.path.dirname(path)) == "doctype":
+				# test_data_migration_connector.py > data_migration_connector.json
+				test_record_filename = re.sub("^test_", "", filename).replace(".py", ".json")
+				test_record_file_path = os.path.join(path, test_record_filename)
+				if os.path.exists(test_record_file_path):
+					with open(test_record_file_path) as f:
+						doc = json.loads(f.read())
+						doctype = doc["name"]
+						make_test_records(doctype, commit=True)

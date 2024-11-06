@@ -88,6 +88,9 @@ class ParallelTestRunner:
 		frappe.set_user("Administrator")
 		path, filename = file_info
 		module = self.get_module(path, filename)
+		from frappe.deprecation_dumpster import compat_preload_test_records_upfront
+
+		compat_preload_test_records_upfront([(module, path, filename)])
 		test_suite = unittest.TestSuite()
 		module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
 		test_suite.addTest(module_test_cases)
