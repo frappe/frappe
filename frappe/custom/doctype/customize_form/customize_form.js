@@ -15,13 +15,16 @@ frappe.ui.form.on("Customize Form", {
 
 	onload: function (frm) {
 		frm.set_query("doc_type", function () {
+			let filters = [
+				["DocType", "issingle", "=", 0],
+				["DocType", "custom", "=", 0],
+				["DocType", "name", "not in", frappe.model.core_doctypes_list]
+			]
+			if (Array.isArray(frappe.boot.active_domains) && frappe.boot.active_domains.some(domain => domain)) {
+				filters.push(["DocType", "restrict_to_domain", "in", frappe.boot.active_domains]);
+			}
 			return {
-				filters: [
-					["DocType", "issingle", "=", 0],
-					["DocType", "custom", "=", 0],
-					["DocType", "name", "not in", frappe.model.core_doctypes_list],
-					["DocType", "restrict_to_domain", "in", frappe.boot.active_domains],
-				],
+				filters: filters,
 			};
 		});
 
