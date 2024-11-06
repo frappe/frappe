@@ -948,7 +948,7 @@ const zoomLevels = {
 			}
 			self.$card = $(frappe.render_template("kanban_card", opts)).appendTo(wrapper);
 			if (card.conversation) {
-				self.$card.find(".kanban-card.content").css("border", "1px solid #0cc144");
+				self.$card.find(".kanban-card.content").css("border", "2px solid #0cc144");
 			}
 			if (!frappe.model.can_write(card.doctype)) {
 				// Undraggable card without 'write' access to reference doctype
@@ -1035,7 +1035,7 @@ const zoomLevels = {
 			// }
 
 			if (card.conversation) {
-				html += '<img src="/assets/frappe/icons/jobcard/whatsapp.svg" style="height:0.938rem; color: #0cc144;" />'
+				html += '<img src="/assets/frappe/icons/jobcard/square-whatsapp.svg" style="height:1.2rem;margin-top:2px;" />'
 			}
 
 			html += getPartsIcons()
