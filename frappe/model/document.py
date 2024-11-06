@@ -213,7 +213,8 @@ class DocumentProxy(DocRef):
 				return DocumentProxyList(linked_doctype, [v.name for v in value], self)
 
 			return value
-		raise AttributeError(f"'{self.doctype}' object proxy has no attribute '{attr}'")
+		else:
+			return getattr(self._doc, attr, None)
 
 	def __getitem__(self, key):
 		return self.__getattr__(key)
