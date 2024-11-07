@@ -359,20 +359,6 @@ const zoomLevels = {
 				update_kanban_size_range: function(context, value){
 					context.state.kanban_size_range = value
 				},
-				validate_project_quotations: async function(context, card) {
-					const quotations = await frappe.db.get_list("Quotation", {
-						filters: [
-							['project_name', '=', card.name],
-							['status', "!=", "Approved"]
-						],
-						fields: ["name", "status"]
-					})
-			
-					if(!quotations?.length) return
-
-					showConfirmationDialog(card, quotations)
-				}
-
 			},
 		});
 
@@ -803,7 +789,7 @@ const zoomLevels = {
 					console.log("position ", window.screenX)
 					
 				},
-				onEnd: function (e) {
+				onEnd: async function (e) {
 					wrapper.find(".kanban-card.add-card").fadeIn(100);
 					wrapper.find(".kanban-cards").height("auto");
 					// update order
@@ -816,12 +802,15 @@ const zoomLevels = {
 						old_index: e.oldIndex,
 						new_index: e.newIndex,
 					};
-					// validate if project has quotations qaiting for approval.
+					// validate if project has quotations waiting for approval or has client requirement incompleted.
 					if(args.to_colname === "Quality check approved"){
-						store.dispatch("validate_project_quotations", args)
+						await validate_project_quotations_and_requirements(args)
+						.then(res => {
+							store.dispatch("update_order_for_single_card", args)
+						}).catch(e => console.log("dont update jobcard status"))
+					}else{	
+						store.dispatch("update_order_for_single_card", args);	
 					}
-
-					store.dispatch("update_order_for_single_card", args);	
 					
 					console.log("end to render kanban ")
 				},
@@ -1493,37 +1482,38 @@ const zoomLevels = {
 		
 		return zoomState;
 	}
+
+	function validate_project_quotations_and_requirements(args){
+		return new Promise(async (resolve, reject) => {
+			const project = await frappe.db.get_doc('Project', args.name)
+			const incomplete_requirements = project.requirements.filter(requirement => !requirement.completed)
+			const quotations = await frappe.db.get_list("Quotation", {
+				filters: [
+					['project_name', '=', args.name],
+					['status', "!=", "Approved"]
+				],
+				fields: ["name", "status"]
+			})
+			
+			if(!quotations?.length && !incomplete_requirements.length) return
+
+			showConfirmationDialog(args, quotations, incomplete_requirements, resolve, reject)
+		})
+	}
 	
-	function showConfirmationDialog(card, quotations) {
+	function showConfirmationDialog(args, quotations, incomplete_requirements, resolve, reject) {
 		const dialog = new frappe.ui.Dialog({
 			title: 'Confirm',
-			fields: [
-				{
-					fieldtype: 'HTML',
-					options: `Project <strong>${card.name}</strong> has the following quotation pending approval:</p> `
-				},
-				{
-					fieldtype: 'HTML',
-					options: `
-						<ul>
-						${quotations.map(quotation => `<li><strong>Quotation:</strong> <a href="/app/quotation/${quotation.name}" target="__blank">${quotation.name}</a>, <strong>Status:</strong> ${quotation.status}.</li>\n`)}
-						</ul> 
-					`
-				},
-				{
-					fieldtype: 'HTML',
-					options: `
-						<p>Are you sure you want to proceed? The quotations listed will not be included in the invoice</p>
-					`
-				}
-			],
+			fields: buildFields(args, quotations, incomplete_requirements),
 			primary_action_label: 'Confirm',
 			primary_action: function() {
 				dialog.hide();
+				resolve()
 			},
 			secondary_action_label: 'Cancel',
 			secondary_action: function() {
-				frappe.db.set_value("Project", card.name, "status", card.from_colname)
+				frappe.db.set_value("Project", args.name, "status", args.from_colname)
+				reject()
 				dialog.hide();
 			}
 		});
@@ -1531,7 +1521,62 @@ const zoomLevels = {
 		dialog.$wrapper.find('.modal-header .modal-actions').hide();
 		dialog.$wrapper.modal({ backdrop: 'static', keyboard: false })
 
-		dialog.show();
+		dialog.show();			
+	}
+
+	function buildFields(args, quotations, incomplete_requirements){
+		const quotation_fields = [
+			{
+				fieldtype: 'HTML',
+				options: `<h3>Pending Quotations</h3> `
+			},
+			{
+				fieldtype: 'HTML',
+				options: `<p>Project <strong>${args.name}</strong> has the following quotation pending approval:</p> `
+			},
+			{
+				fieldtype: 'HTML',
+				options: `
+					<ul style="border-bottom: 1px solid black;padding-bottom:1rem;">
+					${quotations.map(quotation => `<li><strong>Quotation:</strong> <a href="/app/quotation/${quotation.name}" target="__blank">${quotation.name}</a>, <strong>Status:</strong> ${quotation.status}.</li>\n`)}
+					</ul> 
+				`
+			}
+		]
+		const requirements_fields = [	
+			{
+				fieldtype: 'HTML',
+				options: `<h3>Incomplete Client Requirements</h3> `
+			},
+			{
+				fieldtype: 'HTML',
+				options: `
+					<ul>
+					${incomplete_requirements.map(item => `<li><strong>Requirement:</strong> ${item.requirement}</li>\n`)}
+					</ul> 
+				`
+			},
+		]
+		const question_field = {
+			fieldtype: 'HTML',
+			options: `
+				<p>Are you sure you want to proceed? ${quotations.length ? "The quotations listed will not be included in the invoice" : ""}</p>
+			`
+		}
+	
+		let fields = []
+	
+		if(quotations.length){
+			fields.push(...quotation_fields)
+		}
+	
+		if(incomplete_requirements.length){
+			fields.push(...requirements_fields)
+		}
+	
+		fields.push(question_field)
+	
+		return fields
 	}
 })();
 
