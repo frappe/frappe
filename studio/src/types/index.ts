@@ -1,5 +1,5 @@
 import Block from "../utils/block"
-import { VuePropDefault, VuePropType } from "@/types/vue"
+import { VuePropDefault } from "@/types/vue"
 
 export type ObjectLiteral = Record<string, any>
 

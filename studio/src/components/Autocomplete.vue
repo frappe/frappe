@@ -15,7 +15,6 @@
 			<div
 				class="dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:focus:bg-zinc-700 form-input flex h-7 w-full items-center justify-between gap-2 rounded px-2 py-1 pr-5 text-sm transition-colors"
 			>
-				<!-- {{ displayValue }} -->
 				<ComboboxInput
 					autocomplete="off"
 					@change="query = $event.target.value"

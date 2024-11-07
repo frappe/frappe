@@ -3,35 +3,17 @@
 		<div class="flex flex-col space-y-1">
 			<div class="w-full" v-for="page in store.appPages" :key="page.name">
 				<div
-					@click="
-						() => {
-							router.push({
-								name: 'StudioPage',
-								params: { appID: store.activeApp?.name, pageID: page.page_name },
-							})
-						}
-					"
+					@click="openPage(page)"
 					class="group flex cursor-pointer items-center gap-2 truncate rounded px-2 py-2 transition duration-300 ease-in-out"
-					:class="[
-						store.activePage?.name === page.page_name ? 'border-[1px] border-gray-300' : 'hover:bg-gray-50',
-					]"
+					:class="[isPageActive(page) ? 'border-[1px] border-gray-300' : 'hover:bg-gray-50']"
 				>
 					<div
 						class="flex items-center gap-1 truncate text-base"
-						:class="[
-							store.activePage?.name === page.page_name ? 'font-medium text-gray-700' : 'text-gray-500',
-						]"
+						:class="[isPageActive(page) ? 'font-medium text-gray-700' : 'text-gray-500']"
 					>
-						{{ page.page_title }} -
-						<span class="text-xs">{{ page.route.replace(store.activeApp.route, "") }}</span>
+						{{ page.page_title }} - <span class="text-xs">{{ getPageRoute(page) }}</span>
 					</div>
-					<Badge
-						v-if="store.activeApp?.app_home === page.page_name"
-						variant="outline"
-						size="sm"
-						class="text-xs"
-						theme="blue"
-					>
+					<Badge v-if="isAppHome(page)" variant="outline" size="sm" class="text-xs" theme="blue">
 						App Home
 					</Badge>
 
@@ -39,32 +21,7 @@
 					<div
 						class="invisible ml-auto flex items-center gap-1.5 text-gray-600 group-hover:visible has-[.active-item]:visible"
 					>
-						<Dropdown
-							:options="[
-								{
-									label: 'Set as App Home',
-									icon: 'home',
-									condition: () => store.activeApp?.app_home !== page.page_name,
-									onClick: () => {
-										store.setAppHome(store.activeApp?.name, page.page_name)
-									},
-								},
-								{
-									label: 'Delete',
-									icon: 'trash',
-									onClick: async () => {
-										await store.deleteAppPage(store.activeApp?.name, page)
-										if (page.page_name === store.activePage.name) {
-											router.push({
-												name: 'StudioPage',
-												params: { appID: store.activeApp.name, pageID: store.activeApp.app_home },
-												replace: true,
-											})
-										}
-									},
-								},
-							]"
-						>
+						<Dropdown :options="getPageMenu(page)" trigger="click">
 							<template v-slot="{ open }">
 								<button
 									class="flex cursor-pointer items-center rounded-sm p-0.5 text-gray-700 hover:bg-gray-300"
@@ -90,8 +47,56 @@
 
 <script setup lang="ts">
 import useStudioStore from "@/stores/studioStore"
+import { StudioPage } from "@/types/Studio/StudioPage"
+import { isObjectEmpty } from "@/utils/helpers"
 import { useRouter } from "vue-router"
 
 const store = useStudioStore()
 const router = useRouter()
+
+const isPageActive = (page: StudioPage) => store.activePage?.name === page.page_name
+const isAppHome = (page: StudioPage) => store.activeApp?.app_home === page.page_name
+
+const getPageRoute = (page: StudioPage) => {
+	if (!store.activeApp) return ""
+	return page.route.replace(store.activeApp.route, "")
+}
+
+const getPageMenu = (page: StudioPage) => {
+	if (isObjectEmpty(store.activeApp)) return []
+
+	const app = store.activeApp!
+
+	return [
+		{
+			label: "Set as App Home",
+			icon: "home",
+			condition: () => !isAppHome(page),
+			onClick: () => {
+				store.setAppHome(app.name, page.page_name)
+			},
+		},
+		{
+			label: "Delete",
+			icon: "trash",
+			onClick: async () => {
+				await store.deleteAppPage(app.name, page)
+				if (isPageActive(page)) {
+					router.push({
+						name: "StudioPage",
+						params: { appID: app.name, pageID: app.app_home },
+						replace: true,
+					})
+				}
+			},
+		},
+	]
+}
+
+const openPage = (page: StudioPage) => {
+	router.push({
+		name: "StudioPage",
+		params: { appID: store.activeApp?.name, pageID: page.page_name },
+	})
+}
 </script>
