@@ -8,6 +8,8 @@
 	  "moduleResolution": "node",
 	  "experimentalDecorators": true,
 	  "skipLibCheck": true,
+	  "noErrorTruncation": true,
+	  "noEmit": true,
 	  "esModuleInterop": true,
 	  "allowSyntheticDefaultImports": true,
 	  "forceConsistentCasingInFileNames": true,
