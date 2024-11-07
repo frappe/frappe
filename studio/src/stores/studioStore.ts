@@ -151,31 +151,29 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	function updateActivePage(key: string, value: string) {
-		if (!activePage.value) {
-			return
-		}
 		return studioPages.setValue.submit(
 			{ name: activePage.value?.name, [key]: value },
 			{
 				onSuccess() {
-					if (activePage.value) {
-						activePage.value[key] = value
-					}
-					setAppPages(activeApp?.value?.name)
+					activePage.value![key] = value
+					setAppPages(activeApp.value!.name)
 				},
 			},
 		)
 	}
 
 	async function publishPage() {
+		if (!selectedPage.value) return
 		return studioPages.runDocMethod
 			.submit({
 				name: selectedPage.value,
 				method: "publish",
 			})
 			.then(async () => {
-				activePage.value = await fetchPage(selectedPage.value)
-				openPageInBrowser(activePage.value)
+				activePage.value = await fetchPage(selectedPage.value!)
+				if (activePage.value) {
+					openPageInBrowser(activePage.value)
+				}
 			})
 	}
 
