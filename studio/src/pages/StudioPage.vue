@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import { onActivated, watchEffect, watch, ref } from "vue"
+import { onActivated, watchEffect, watch, ref, onDeactivated } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useDebounceFn } from "@vueuse/core"
 import { usePageMeta } from "frappe-ui"
@@ -95,6 +95,11 @@ async function setPage() {
 }
 
 onActivated(() => setPage())
+
+onDeactivated(() => {
+	store.selectedPage = null
+	store.activePage = null
+})
 
 watch(
 	() => route.params.pageID,
