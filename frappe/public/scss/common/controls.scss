@@ -145,6 +145,7 @@ select.form-control {
 	.control-label.reqd:after {
 		content: " *";
 		color: var(--red-400);
+		white-space: nowrap;
 	}
 	.help:empty {
 		display: none;

@@ -8,10 +8,10 @@ import re
 import string
 import traceback
 import warnings
-from collections.abc import Iterable, Sequence
+from collections.abc import Hashable, Iterable, Sequence
 from contextlib import contextmanager, suppress
 from time import time
-from typing import TYPE_CHECKING, Any, TypeAlias
+from typing import TYPE_CHECKING, Any
 
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 
@@ -22,13 +22,14 @@ from frappe.database.utils import (
 	DefaultOrderBy,
 	EmptyQueryValues,
 	FallBackDateTimeStr,
+	FilterValue,
 	LazyMogrify,
 	Query,
 	QueryValues,
+	convert_to_value,
 	is_query_type,
 )
 from frappe.exceptions import DoesNotExistError, ImplicitCommitError
-from frappe.model.document import DocRef
 from frappe.monitor import get_trace_id
 from frappe.query_builder.functions import Count
 from frappe.utils import CallbackManager, cint, get_datetime, get_table_name, getdate, now, sbool
@@ -51,9 +52,6 @@ SQL_ITERATOR_BATCH_SIZE = 100
 TRANSACTION_DISABLED_MSG = """Commit/rollback are disabled during certain events. This command will
 be ignored. Commit/Rollback from here WILL CAUSE very hard to debug problems with atomicity and
 concurrent data update bugs."""
-
-
-Stringable: TypeAlias = str | DocRef
 
 
 class Database:
@@ -479,7 +477,7 @@ class Database:
 	def get_value(
 		self,
 		doctype: str,
-		filters: Stringable | dict | list | None = None,
+		filters: FilterValue | dict | list | None = None,
 		fieldname: str | list[str] = "name",
 		ignore: bool = False,
 		as_dict: bool = False,
@@ -558,7 +556,7 @@ class Database:
 	def get_values(
 		self,
 		doctype: str,
-		filters: Stringable | dict | list | None = None,
+		filters: FilterValue | dict | list | None = None,
 		fieldname: str | list[str] = "name",
 		ignore: bool = False,
 		as_dict: bool = False,
@@ -596,8 +594,8 @@ class Database:
 		"""
 		out = None
 		cache_key = None
-		if cache and isinstance(filters, Stringable):
-			cache_key = (doctype, str(filters), fieldname)
+		if cache and isinstance(filters, Hashable):
+			cache_key = (doctype, filters, fieldname)
 			if cache_key in self.value_cache:
 				return self.value_cache[cache_key]
 
@@ -605,48 +603,43 @@ class Database:
 			order_by = None
 
 		if isinstance(filters, list):
-			out = self._get_value_for_many_names(
-				doctype=doctype,
-				names=filters,
-				field=fieldname,
-				order_by=order_by,
-				debug=debug,
-				run=run,
-				pluck=pluck,
-				distinct=distinct,
-				limit=limit,
-				as_dict=as_dict,
-				skip_locked=skip_locked,
-				wait=True,
-				for_update=for_update,
-			)
-
+			if filters := list(f for f in filters if f is not None):
+				out = frappe.qb.get_query(
+					table=doctype,
+					fields=fieldname,
+					filters=filters,
+					order_by=order_by,
+					distinct=distinct,
+					limit=limit,
+					validate_filters=True,
+					for_update=for_update,
+					skip_locked=skip_locked,
+					wait=True,
+				).run(debug=debug, run=run, as_dict=as_dict, pluck=pluck)
+			else:
+				out = {}
 		else:
-			fields = fieldname
-			if fieldname != "*":
-				if isinstance(fieldname, str):
-					fields = [fieldname]
-
 			if (filters is not None) and (filters != doctype or doctype == "DocType"):
 				try:
 					if order_by:
 						order_by = "creation" if order_by == DefaultOrderBy else order_by
-					out = self._get_values_from_table(
-						fields=fields,
+
+					query = frappe.qb.get_query(
+						table=doctype,
 						filters=filters,
-						doctype=doctype,
-						as_dict=as_dict,
-						debug=debug,
 						order_by=order_by,
-						update=update,
-						run=run,
-						pluck=pluck,
-						distinct=distinct,
-						limit=limit,
 						for_update=for_update,
 						skip_locked=skip_locked,
 						wait=wait,
+						fields=fieldname,
+						distinct=distinct,
+						limit=limit,
+						validate_filters=True,
 					)
+					if isinstance(fieldname, str) and fieldname == "*":
+						as_dict = True
+					out = query.run(as_dict=as_dict, debug=debug, update=update, run=run, pluck=pluck)
+
 				except Exception as e:
 					if ignore and (
 						frappe.db.is_missing_column(e)
@@ -656,15 +649,34 @@ class Database:
 						out = None
 					elif (not ignore) and frappe.db.is_table_missing(e):
 						# table not found, look in singles
+						fields = (
+							[fieldname] if (isinstance(fieldname, str) and fieldname != "*") else fieldname
+						)
 						out = self.get_values_from_single(
-							fields, filters, doctype, as_dict, debug, update, run=run, distinct=distinct
+							fields,
+							filters,
+							doctype,
+							as_dict,
+							debug,
+							update,
+							run=run,
+							distinct=distinct,
 						)
 
 					else:
 						raise
 			else:
+				fields = [fieldname] if (isinstance(fieldname, str) and fieldname != "*") else fieldname
 				out = self.get_values_from_single(
-					fields, filters, doctype, as_dict, debug, update, run=run, pluck=pluck, distinct=distinct
+					fields,
+					filters,
+					doctype,
+					as_dict,
+					debug,
+					update,
+					run=run,
+					pluck=pluck,
+					distinct=distinct,
 				)
 
 		if cache and cache_key:
@@ -871,77 +883,10 @@ class Database:
 		"""Alias for get_single_value"""
 		return self.get_single_value(*args, **kwargs)
 
-	def _get_values_from_table(
-		self,
-		fields,
-		filters,
-		doctype,
-		as_dict,
-		*,
-		debug=False,
-		order_by=None,
-		update=None,
-		for_update=False,
-		skip_locked=False,
-		wait=True,
-		run=True,
-		pluck=False,
-		distinct=False,
-		limit=None,
-	):
-		query = frappe.qb.get_query(
-			table=doctype,
-			filters=filters,
-			order_by=order_by,
-			for_update=for_update,
-			skip_locked=skip_locked,
-			wait=wait,
-			fields=fields,
-			distinct=distinct,
-			limit=limit,
-			validate_filters=True,
-		)
-		if isinstance(fields, str) and fields == "*":
-			as_dict = True
-
-		return query.run(as_dict=as_dict, debug=debug, update=update, run=run, pluck=pluck)
-
-	def _get_value_for_many_names(
-		self,
-		doctype,
-		names,
-		field,
-		order_by,
-		*,
-		debug=False,
-		run=True,
-		pluck=False,
-		distinct=False,
-		limit=None,
-		as_dict=False,
-		for_update=False,
-		skip_locked=False,
-		wait=True,
-	):
-		if names := list(filter(None, names)):
-			return frappe.qb.get_query(
-				doctype,
-				fields=field,
-				filters=names,
-				order_by=order_by,
-				distinct=distinct,
-				limit=limit,
-				validate_filters=True,
-				for_update=for_update,
-				skip_locked=skip_locked,
-				wait=wait,
-			).run(debug=debug, run=run, as_dict=as_dict, pluck=pluck)
-		return {}
-
 	def set_value(
 		self,
 		dt: str,
-		dn: Stringable | dict,
+		dn: FilterValue | dict,
 		field: str,
 		val=None,
 		modified=None,
@@ -997,8 +942,8 @@ class Database:
 			validate_filters=True,
 		)
 
-		if isinstance(dn, Stringable):
-			frappe.clear_document_cache(dt, str(dn))
+		if isinstance(dn, FilterValue):
+			frappe.clear_document_cache(dt, convert_to_value(dn))
 		else:
 			# No way to guess which documents are modified, clear all of them
 			frappe.clear_document_cache(dt)

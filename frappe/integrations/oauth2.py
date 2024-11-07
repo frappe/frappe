@@ -74,7 +74,7 @@ def approve(*args, **kwargs):
 @frappe.whitelist(allow_guest=True)
 def authorize(**kwargs):
 	success_url = "/api/method/frappe.integrations.oauth2.approve?" + encode_params(sanitize_kwargs(kwargs))
-	failure_url = frappe.form_dict["redirect_uri"] + "?error=access_denied"
+	failure_url = frappe.form_dict.get("redirect_uri", "") + "?error=access_denied"
 
 	if frappe.session.user == "Guest":
 		# Force login, redirect to preauth again.

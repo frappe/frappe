@@ -172,7 +172,7 @@ def enqueue(
 		return q.enqueue_call(
 			"frappe.utils.background_jobs.execute_job",
 			on_success=Callback(func=on_success) if on_success else None,
-			on_failure=Callback(func=on_failure) if on_failure else None,
+			on_failure=Callback(func=on_failure),
 			timeout=timeout,
 			kwargs=queue_args,
 			at_front=at_front,
@@ -694,6 +694,9 @@ def _start_sentry():
 
 	if tracing_sample_rate := os.getenv("SENTRY_TRACING_SAMPLE_RATE"):
 		kwargs["traces_sample_rate"] = float(tracing_sample_rate)
+
+	if profiling_sample_rate := os.getenv("SENTRY_PROFILING_SAMPLE_RATE"):
+		kwargs["profiles_sample_rate"] = float(profiling_sample_rate)
 
 	sentry_sdk.init(
 		dsn=sentry_dsn,

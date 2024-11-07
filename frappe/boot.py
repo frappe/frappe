@@ -100,6 +100,7 @@ def get_bootinfo():
 	bootinfo.update(get_email_accounts(user=frappe.session.user))
 	bootinfo.energy_points_enabled = is_energy_point_enabled()
 	bootinfo.website_tracking_enabled = is_tracking_enabled()
+	bootinfo.sms_gateway_enabled = bool(frappe.db.get_single_value("SMS Settings", "sms_gateway_url"))
 	bootinfo.points = get_energy_points(frappe.session.user)
 	bootinfo.frequently_visited_links = frequently_visited_links()
 	bootinfo.link_preview_doctypes = get_link_preview_doctypes()

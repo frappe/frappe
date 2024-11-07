@@ -27,7 +27,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 from .utils import debug_timer
 
@@ -128,7 +128,20 @@ def _add_module_tests(runner, app: str, module: str):
 	for test in runner._iterate_suite(test_suite):
 		if runner.cfg.tests and test._testMethodName not in runner.cfg.tests:
 			continue
-		category = "integration" if isinstance(test, IntegrationTestCase) else "unit"
+		match test:
+			case IntegrationTestCase():
+				category = "integration"
+			case UnitTestCase():
+				category = "unit"
+			case _:
+				from frappe.deprecation_dumpster import deprecation_warning
+
+				deprecation_warning(
+					"2024-20-08",
+					"v17",
+					"discovery and categorization of FrappeTestCase will be removed from this runner",
+				)
+				category = "deprecated-old-style-unspecified"
 		if runner.cfg.selected_categories and category not in runner.cfg.selected_categories:
 			continue
 		runner.per_app_categories[app][category].addTest(test)

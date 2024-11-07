@@ -16,7 +16,7 @@ repos:
       - id: check-ast
       - id: check-json
       - id: check-toml
-      # - id: check-yaml
+      - id: check-yaml
       - id: debug-statements
         exclude: ^frappe/tests/classes/context_managers\.py$
 

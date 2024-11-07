@@ -23,7 +23,7 @@ from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name, validate_name
 from frappe.model.utils import is_virtual_doctype, simple_singledispatch
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
-from frappe.types import DF
+from frappe.types import DF, DocRef
 from frappe.utils import compare, cstr, date_diff, file_lock, flt, now
 from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
 from frappe.utils.global_search import update_global_search
@@ -36,19 +36,6 @@ if TYPE_CHECKING:
 
 DOCUMENT_LOCK_EXPIRTY = 12 * 60 * 60  # All locks expire in 12 hours automatically
 DOCUMENT_LOCK_SOFT_EXPIRY = 60 * 60  # Let users force-unlock after 60 minutes
-
-
-class DocRef:
-	"""A lightweight reference to a document, containing just the doctype and name."""
-
-	def __init__(self, doctype: str, name: str):
-		self.doctype = doctype
-		self.name = name
-
-	def __str__(self):
-		# ! Used in frappe's query engine in frappe/database/query.py
-		# ! Keep it stable
-		return self.name
 
 
 @simple_singledispatch
@@ -341,8 +328,12 @@ class Document(BaseDocument, DocRef):
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
-		frappe.flags.error_message = (
-			_("Insufficient Permission for {0}").format(_(self.doctype)) + f" ({frappe.bold(_(perm_type))})"
+		frappe.flags.error_message = _(
+			"You need the '{0}' permission on {1} {2} to perform this action."
+		).format(
+			_(perm_type),
+			frappe.bold(_(self.doctype)),
+			self.name or "",
 		)
 		raise frappe.PermissionError
 
@@ -1789,14 +1780,16 @@ class Document(BaseDocument, DocRef):
 		doc = self.get_valid_dict(convert_dates_to_str=True, ignore_virtual=True)
 		deferred_insert(doctype=self.doctype, records=doc)
 
-	def __repr__(self):
-		name = self.name or "unsaved"
-		doctype = self.__class__.__name__
+	def __str__(self):
+		return f"{self.doctype} ({self.name or 'unsaved'})"
 
+	def __repr__(self):
+		doctype = f"doctype={self.doctype}"
+		name = self.name or "unsaved"
 		docstatus = f" docstatus={self.docstatus}" if self.docstatus else ""
 		parent = f" parent={self.parent}" if getattr(self, "parent", None) else ""
 
-		return f"<{doctype}: {name}{docstatus}{parent}>"
+		return f"<{self.__class__.__name__}: {doctype} {name}{docstatus}{parent}>"
 
 
 def execute_action(__doctype, __name, __action, **kwargs):

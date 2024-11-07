@@ -1,0 +1,131 @@
+name: Patch Base
+on:
+  workflow_call:
+    inputs:
+      fake-success:
+        required: false
+        type: boolean
+        default: false
+      python-version:
+        required: false
+        type: string
+        default: '3.12'
+      node-version:
+        required: false
+        type: number
+        default: 20
+jobs:
+  # This satisfies the required checks on pull requests if tests are intentionally skipped
+  migration-test-fake:
+    name: Migrate
+    runs-on: ubuntu-latest
+    if: ${{ inputs.fake-success != false }}
+    steps:
+      - name: Pass skipped tests unconditionally
+        run: "echo Skipped"
+
+  migration-test:
+    name: Migrate
+    runs-on: ubuntu-latest
+    if: ${{ inputs.fake-success == false }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+    env:
+      PYTHONWARNINGS: "ignore"
+      DB_ROOT_PASSWORD: db_root
+    services:
+      mariadb:
+        image: mariadb:11.3
+        ports:
+          - 3306:3306
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3
+        env:
+          MARIADB_ROOT_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
+    steps:
+    - uses: frappe/frappe/.github/actions/setup@develop
+      name: Environment Setup
+      with:
+        python-version: '3.10'
+        node-version: 20
+        build-assets: false
+        disable-socketio: true
+        disable-web: true
+        db-root-password: ${{ env.DB_ROOT_PASSWORD }}
+
+    - name: Recover v13 database artifact
+      run: |
+        cd ~/frappe-bench/
+        wget https://frappeframework.com/files/v13-frappe.sql.gz
+        bench --site test_site --force restore ~/frappe-bench/v13-frappe.sql.gz
+
+        source env/bin/activate
+        cd apps/frappe/
+        git remote set-url upstream https://github.com/frappe/frappe.git
+
+    - name: Update to v14
+      run: |
+        cd ~/frappe-bench/apps/frappe/
+        function update_to_version() {
+          version=$1
+
+          branch_name="version-$version-hotfix"
+          echo "Updating to v$version"
+          git fetch --depth 1 upstream $branch_name:$branch_name
+          git checkout -q -f $branch_name
+
+          pgrep honcho | xargs kill
+          sleep 3
+          rm -rf ~/frappe-bench/env
+          bench -v setup env
+          bench start &>> ~/frappe-bench/bench_start.log &
+
+          bench --site test_site migrate
+        }
+
+        update_to_version 14
+
+    - name: Update to v15
+      run: |
+        cd ~/frappe-bench/apps/frappe/
+        function update_to_version() {
+          version=$1
+
+          branch_name="version-$version-hotfix"
+          echo "Updating to v$version"
+          git fetch --depth 1 upstream $branch_name:$branch_name
+          git checkout -q -f $branch_name
+
+          pgrep honcho | xargs kill
+          sleep 3
+          rm -rf ~/frappe-bench/env
+          bench -v setup env
+          bench start &>> ~/frappe-bench/bench_start.log &
+
+          bench --site test_site migrate
+        }
+        update_to_version 15
+
+    - name: Update to last commit
+      run: |
+        cd ~/frappe-bench/apps/frappe/
+        echo "Updating to last commit"
+        pgrep honcho | xargs kill
+        sleep 3
+        rm -rf ~/frappe-bench/env
+        git checkout -q -f "$GITHUB_SHA"
+        bench -v setup env
+        bench start &>> ~/frappe-bench/bench_start.log &
+        bench --site test_site migrate
+        bench --site test_site execute frappe.tests.utils.check_orpahned_doctypes
+
+    - name: Show bench output
+      if: ${{ always() }}
+      run: |
+        cd ~/frappe-bench
+        cat bench_start.log || true
+        cd logs
+        for f in ./*.log*; do
+          echo "Printing log: $f";
+          cat $f
+        done
