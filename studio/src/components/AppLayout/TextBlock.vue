@@ -40,7 +40,7 @@ interface Props {
 	text?: string
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
 	tag: "span",
 	fontSize: "text-base",
 	fontWeight: "font-normal",

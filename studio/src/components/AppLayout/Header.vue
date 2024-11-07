@@ -29,24 +29,21 @@
 <script setup lang="ts">
 import AppLogo from "../Icons/AppLogo.vue"
 
-defineProps({
-	title: {
-		type: String,
+interface MenuItem {
+	label: string
+	action: () => void
+}
+
+withDefaults(
+	defineProps<{
+		title?: string
+		logoSVG?: string
+		hideLogo?: boolean
+		menuItems?: MenuItem[]
+		hideMenu?: boolean
+	}>(),
+	{
+		menuItems: () => [],
 	},
-	logoSVG: {
-		type: String,
-	},
-	hideLogo: {
-		type: Boolean,
-		default: false,
-	},
-	menuItems: {
-		type: Array,
-		default: () => [],
-	},
-	hideMenu: {
-		type: Boolean,
-		default: false,
-	},
-})
+)
 </script>

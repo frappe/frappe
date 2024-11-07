@@ -5,7 +5,7 @@
 			<AvatarCard
 				v-for="card in cards"
 				class="cursor-pointer"
-				:key="card[rowKey]"
+				:key="card[rowKey as keyof IAvatarCard]"
 				:imageURL="card.imageURL"
 				:title="card.title"
 				:subtitle="card.subtitle"
