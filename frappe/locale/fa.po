@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-11-03 09:33+0000\n"
-"PO-Revision-Date: 2024-11-05 11:49\n"
+"PO-Revision-Date: 2024-11-10 12:45\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -16219,7 +16219,7 @@ msgstr "برای ویرایش محیط کار خصوصی سایر کاربران
 
 #: frappe/model/document.py:732
 msgid "Negative Value"
-msgstr "ارزش منفی"
+msgstr "مقدار منفی"
 
 #: frappe/utils/nestedset.py:94
 msgid "Nested set error. Please contact the Administrator."
@@ -16380,7 +16380,7 @@ msgstr "کاربران جدید (30 روز گذشته)"
 #: frappe/core/doctype/version/version_view.html:14
 #: frappe/core/doctype/version/version_view.html:76
 msgid "New Value"
-msgstr "ارزش جدید"
+msgstr "مقدار جدید"
 
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:61
 msgid "New Workflow Name"
@@ -18035,7 +18035,7 @@ msgstr "گرایش"
 #: frappe/core/doctype/version/version_view.html:13
 #: frappe/core/doctype/version/version_view.html:75
 msgid "Original Value"
-msgstr "ارزش اصلی"
+msgstr "مقدار اصلی"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #. Option for the 'Type' (Select) field in DocType 'Communication'
