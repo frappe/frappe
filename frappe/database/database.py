@@ -226,6 +226,9 @@ class Database:
 		try:
 			self._cursor.execute(query, values)
 		except Exception as e:
+			if self.db_type == "postgres":
+				frappe.db.rollback()
+
 			if self.is_syntax_error(e):
 				frappe.log(f"Syntax error in query:\n{query} {values or ''}")
 
