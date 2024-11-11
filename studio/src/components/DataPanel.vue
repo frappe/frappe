@@ -57,7 +57,9 @@ const attachResource = async (resource: Resource) => {
 			parentfield: "resources",
 		})
 		.then(async () => {
-			await store.setPageResources(store.activePage)
+			if (store.activePage) {
+				await store.setPageResources(store.activePage)
+			}
 			showAddResourceDialog.value = false
 		})
 }
@@ -92,7 +94,9 @@ const deleteResource = async (docname: string, resource_name: string) => {
 	const confirmed = await confirm(`Are you sure you want to delete the resource ${resource_name}?`)
 	if (confirmed) {
 		studioPageResources.delete.submit(docname).then(() => {
-			store.setPageResources(store.activePage)
+			if (store.activePage) {
+				store.setPageResources(store.activePage)
+			}
 		})
 	}
 }
