@@ -5,6 +5,10 @@ import * as frappeUI from "frappe-ui"
 
 import { createDocumentResource, createListResource, createResource, confirmDialog } from "frappe-ui"
 
+import { ObjectLiteral, BlockOptions, StyleValue, ExpressionEvaluationContext, SelectOption } from "@/types"
+import { DataResult, DocumentResource, DocumentResult, Filters, Resource } from "@/types/Studio/StudioResource"
+import { StudioPage } from "@/types/Studio/StudioPage"
+
 function getBlockInstance(options: BlockOptions, retainId = true): Block {
 	if (typeof options === "string") {
 		options = jsonToJs(options)
@@ -69,8 +73,12 @@ function getComponentRoot(componentRef: Ref) {
 	}
 }
 
-function numberToPx(number: number, round: boolean = true): string {
+function numberToPx(number: StyleValue, round: boolean = true): string {
 	/* appends "px" to number with optional rounding */
+	if (number === null || number === undefined) return ""
+	if (typeof number === "string") {
+		number = parseFloat(number)
+	}
 	number = round ? Math.round(number) : number;
 	return `${number}px`;
 }
@@ -96,7 +104,7 @@ function copyObject<T>(obj: T) {
 	return jsonToJs(jsToJson(obj))
 }
 
-function areObjectsEqual(obj1: any, obj2: any): boolean {
+function areObjectsEqual(obj1: ObjectLiteral, obj2: ObjectLiteral): boolean {
 	const keys1 = Object.keys(obj1)
 	const keys2 = Object.keys(obj2)
 
@@ -115,13 +123,13 @@ function areObjectsEqual(obj1: any, obj2: any): boolean {
 	return true
 }
 
-function isObjectEmpty(obj: any) {
+function isObjectEmpty(obj: object | null) {
 	if (!obj) return true
 	return Object.keys(obj).length === 0
 }
 
-function jsToJson(obj: any): string {
-	const replacer = (key: string, value: any) => {
+function jsToJson(obj: ObjectLiteral): string {
+	const replacer = (_key: string, value: any) => {
 		// Preserve functions by converting them to strings
 		if (typeof value === "function") {
 			return value.toString()
@@ -141,7 +149,7 @@ function jsToJson(obj: any): string {
 }
 
 function jsonToJs(json: string): any {
-	const reviver = (key: string, value: any) => {
+	const reviver = (_key: string, value: any) => {
 		// Convert functions back to functions
 		if (typeof value === "string" && value.startsWith("function")) {
 			// provide access to render function & frappeUI lib for editing props
@@ -172,6 +180,7 @@ async function fetchApp(appName: string) {
 	const appResource = createDocumentResource({
 		doctype: "Studio App",
 		name: appName,
+		auto: true,
 	})
 	await appResource.get.promise
 	return appResource.doc
@@ -204,7 +213,7 @@ async function findPageWithRoute(appRoute: string, pageRoute: string) {
 	return fetchPage(pageName)
 }
 
-async function fetchAppPages(appRoute: string) {
+async function fetchAppPages(appRoute: string): Promise<StudioPage[]> {
 	let appRoutes = createResource({
 		url: "studio.studio.doctype.studio_app.studio_app.get_app_pages",
 		method: "GET",
@@ -215,17 +224,17 @@ async function fetchAppPages(appRoute: string) {
 }
 
 // data
-function getAutocompleteValues(data: any[]) {
+function getAutocompleteValues(data: SelectOption[]) {
 	return (data || []).map((d) => d["value"])
 }
 
-const isDynamicValue = (value: any) => {
+const isDynamicValue = (value: string) => {
 	// Check if the prop value is a string and contains a dynamic expression
 	if (typeof value !== "string") return false
 	return value && value.includes("{{") && value.includes("}}")
 }
 
-function getDynamicValue(value: any, context: any) {
+function getDynamicValue(value: string, context: ExpressionEvaluationContext) {
 	let result = ""
 	let lastIndex = 0
 
@@ -256,9 +265,12 @@ function getDynamicValue(value: any, context: any) {
 	return result || undefined
 }
 
-function getEvaluatedFilters(filters: any, context: any) {
-	filters = JSON.parse(filters)
-	if (!filters) return undefined
+function getEvaluatedFilters(filters: Filters | null = null, context: ExpressionEvaluationContext) {
+	if (typeof filters === "string") {
+		filters = JSON.parse(filters)
+	}
+
+	if (!filters) return null
 	const evaluatedFilters: Filters = {}
 
 	for (const key in filters) {
@@ -274,7 +286,7 @@ function getEvaluatedFilters(filters: any, context: any) {
 	return evaluatedFilters
 }
 
-function evaluateExpression(expression: string, context: any) {
+function evaluateExpression(expression: string, context: ExpressionEvaluationContext) {
 	try {
 		// Replace dot notation with optional chaining
 		const safeExpression = expression.replace(/(\w+)(?:\.(\w+))+/g, (match) => {
@@ -299,7 +311,7 @@ function evaluateExpression(expression: string, context: any) {
 	}
 }
 
-function getTransforms(resource) {
+function getTransforms(resource: Resource) {
 	/**
 	 * Create a function that includes the user's transform function
 	 * Invoke the transform function with data/doc
@@ -307,14 +319,14 @@ function getTransforms(resource) {
 	if (resource.transform_results) {
 		if (resource.resource_type === "Document") {
 			return {
-				transform: (doc) => {
+				transform: (doc: DocumentResult) => {
 					const transformFn = new Function(resource.transform + "\nreturn transform")()
 					return transformFn.call(null, doc);
 				}
 			}
 		} else {
 			return {
-				transform: (data) => {
+				transform: (data: DataResult) => {
 					const transformFn = new Function(resource.transform + "\nreturn transform")()
 					return transformFn.call(null, data);
 				}
@@ -324,9 +336,12 @@ function getTransforms(resource) {
 	return {}
 }
 
-function getWhitelistedMethods(resource) {
+function getWhitelistedMethods(resource: DocumentResource) {
 	if (resource.whitelisted_methods) {
-		const whitelisted_methods = JSON.parse(resource.whitelisted_methods || [])
+		let whitelisted_methods = resource.whitelisted_methods
+		if (typeof resource.whitelisted_methods === "string") {
+			whitelisted_methods = JSON.parse(resource.whitelisted_methods)
+		}
 		const methods: Record<string, string> = {}
 		whitelisted_methods.forEach((method: string) => methods[method] = method)
 		return { whitelistedMethods: methods }
@@ -334,7 +349,7 @@ function getWhitelistedMethods(resource) {
 	return {}
 }
 
-async function getDocumentResource(resource, context: undefined | any = undefined) {
+async function getDocumentResource(resource: DocumentResource, context: ExpressionEvaluationContext) {
 	let docname = resource.document_name
 	if (!docname && resource.filters) {
 		// fetch the docname based on filters
@@ -357,8 +372,11 @@ async function getDocumentResource(resource, context: undefined | any = undefine
 	})
 }
 
-function getNewResource(resource, context: undefined | any = undefined) {
-	const fields = JSON.parse(resource.fields || "[]")
+function getNewResource(resource: Resource, context?: ExpressionEvaluationContext) {
+	let fields = []
+	if ('fields' in resource && typeof resource.fields === "string") {
+		fields = JSON.parse(resource.fields)
+	}
 
 	switch (resource.resource_type) {
 		case "Document":

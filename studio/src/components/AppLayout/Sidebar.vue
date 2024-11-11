@@ -31,19 +31,24 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import AppLogo from "../Icons/AppLogo.vue"
 
-defineProps({
-	title: {
-		type: String,
+interface MenuItem {
+	label: string
+	route_to?: string
+	selected?: boolean
+	featherIcon?: string
+}
+
+withDefaults(
+	defineProps<{
+		title: string
+		logoSVG: string
+		menuItems: MenuItem[]
+	}>(),
+	{
+		menuItems: () => [],
 	},
-	logoSVG: {
-		type: String,
-	},
-	menuItems: {
-		type: Array,
-		default: () => [],
-	},
-})
+)
 </script>

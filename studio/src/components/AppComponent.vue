@@ -11,7 +11,7 @@
 	</component>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Block from "@/utils/block"
 import { computed, onMounted, ref, useAttrs } from "vue"
 import { useRouter, useRoute } from "vue-router"
@@ -21,12 +21,9 @@ import { getComponentRoot, isDynamicValue, getDynamicValue } from "@/utils/helpe
 
 import useAppStore from "@/stores/appStore"
 
-const props = defineProps({
-	block: {
-		type: Block,
-		required: true,
-	},
-})
+const props = defineProps<{
+	block: Block
+}>()
 
 const componentRef = ref(null)
 const styles = computed(() => props.block.getStyles())
@@ -56,7 +53,7 @@ const componentProps = computed(() => {
 const router = useRouter()
 const route = useRoute()
 const componentEvents = computed(() => {
-	const events = {}
+	const events: Record<string, Function | undefined> = {}
 	Object.entries(props.block.componentEvents).forEach(([eventName, event]) => {
 		const getEventFn = () => {
 			if (event.action === "Switch App Page") {
@@ -65,16 +62,18 @@ const componentEvents = computed(() => {
 						name: "AppContainer",
 						params: {
 							appRoute: route.params.appRoute,
-							pageRoute: getPageRoute(route.params.appRoute, event.page),
+							pageRoute: getPageRoute(route.params.appRoute as string, event.page),
 						},
 					})
 				}
 			} else if (event.action === "Call API") {
 				return () => {
-					const path = event.api_endpoint.split(".")
+					const path: string[] = event.api_endpoint.split(".")
+					// get resource
 					const resource = store.resources[path[0]]
 
 					if (resource) {
+						// access and call whitelisted method
 						resource[path[1]].submit()
 					} else {
 						createResource({
@@ -91,7 +90,7 @@ const componentEvents = computed(() => {
 	return events
 })
 
-function getPageRoute(appRoute, page) {
+function getPageRoute(appRoute: string, page: string) {
 	// extract page route from full page route
 	return page.replace(`studio-app/${appRoute}/`, "")
 }

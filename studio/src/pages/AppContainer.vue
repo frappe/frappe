@@ -12,15 +12,19 @@ import AppComponent from "@/components/AppComponent.vue"
 
 import useAppStore from "@/stores/appStore"
 
+import { StudioPage } from "@/types/Studio/StudioPage"
+import Block from "@/utils/block"
+
 const store = useAppStore()
 const route = useRoute()
-const page = ref(null)
-const rootBlock = ref(null)
+const page = ref<StudioPage | null>(null)
+
+const rootBlock = ref<Block | null>(null)
 
 watch(
 	() => route.path,
 	async () => {
-		let { appRoute, pageRoute } = route.params
+		let { appRoute, pageRoute } = route.params as { appRoute: string; pageRoute: string[] }
 		const isDynamic = route.meta?.isDynamic
 		if (appRoute === "studio") return
 

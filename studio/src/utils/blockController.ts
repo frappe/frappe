@@ -2,6 +2,8 @@ import useStudioStore from "@/stores/studioStore"
 import { CSSProperties } from "vue"
 import Block from "./block"
 
+import { StyleValue } from "@/types"
+
 const store = useStudioStore()
 
 type styleProperty = keyof CSSProperties

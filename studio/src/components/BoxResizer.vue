@@ -37,6 +37,8 @@ import { computed, onMounted, ref, watch, inject } from "vue"
 import Block from "@/utils/block"
 import guidesTracker from "@/utils/guidesTracker"
 
+import { CanvasProps } from "@/types"
+
 const props = defineProps({
 	targetBlock: {
 		type: Block,

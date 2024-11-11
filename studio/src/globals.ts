@@ -1,3 +1,4 @@
+import { App } from "vue"
 import {
 	Alert,
 	Autocomplete,
@@ -54,7 +55,7 @@ import TextBlock from "@/components/AppLayout/TextBlock.vue"
 import AppHeader from "@/components/AppLayout/AppHeader.vue"
 import BottomTabs from "@/components/AppLayout/BottomTabs.vue"
 
-export function registerGlobalComponents(app) {
+export function registerGlobalComponents(app: App) {
 	app.component("Alert", Alert)
 	app.component("Autocomplete", Autocomplete)
 	app.component("Avatar", Avatar)

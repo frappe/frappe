@@ -7,10 +7,5 @@
 </template>
 
 <script setup lang="ts">
-defineProps({
-	message: {
-		type: String,
-		required: true,
-	},
-})
+defineProps<{ message: string }>()
 </script>

@@ -33,7 +33,7 @@
 							label: 'Add',
 							variant: 'solid',
 							onClick: () => {
-								block.addEvent(newEvent)
+								block?.addEvent(newEvent)
 								showAddEventDialog = false
 							},
 						},
@@ -55,7 +55,7 @@
 							:options="Object.keys(actions)"
 							label="Action"
 							:modelValue="newEvent.action"
-							@update:modelValue="(val: SelectOption) => (newEvent.action = val.value)"
+							@update:modelValue="(val: SelectOption) => (newEvent.action = val.value as Actions)"
 						/>
 						<component
 							v-for="control in actionControls"
@@ -83,25 +83,26 @@ import EmptyState from "@/components/EmptyState.vue"
 import { isObjectEmpty } from "@/utils/helpers"
 import { getComponentEvents } from "@/utils/components"
 
-const props = defineProps({
-	block: {
-		type: Block,
-		required: false,
-	},
-})
+import { SelectOption } from "@/types"
+import { Actions, ActionConfigurations, ComponentEvent } from "@/types/ComponentEvent"
+
+const props = defineProps<{
+	block?: Block
+}>()
 const store = useStudioStore()
 
 const showAddEventDialog = ref(false)
-const emptyEvent = {
+const emptyEvent: ComponentEvent = {
 	event: "",
-	action: "",
-	page: {},
+	action: "Call API",
+	page: "",
 	url: "",
 	api_endpoint: "",
 }
-const newEvent = ref({ ...emptyEvent })
+const newEvent = ref<ComponentEvent>({ ...emptyEvent })
 
 const eventOptions = computed(() => {
+	if (!props.block) return []
 	return [
 		...getComponentEvents(props.block?.componentName),
 		"click",
@@ -115,7 +116,7 @@ const eventOptions = computed(() => {
 	]
 })
 
-const actions = {
+const actions: ActionConfigurations = {
 	"Switch App Page": [
 		{
 			component: FormControl,
@@ -134,7 +135,7 @@ const actions = {
 			},
 			events: {
 				"update:modelValue": (val: SelectOption) => {
-					newEvent.value.page = val
+					newEvent.value.page = val.value
 				},
 			},
 		},

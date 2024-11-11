@@ -33,7 +33,10 @@
 					</div>
 				</template>
 				<template #body="{ isOpen }">
-					<div class="flex w-96 flex-col gap-3 rounded bg-white p-4 shadow-lg" v-if="store.activePage">
+					<div
+						class="flex w-96 flex-col gap-3 rounded bg-white p-4 shadow-lg"
+						v-if="store.activePage && store.activeApp"
+					>
 						<PageOptions
 							v-if="store.activePage"
 							:page="store.activePage"

@@ -26,7 +26,7 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue"
 import useStudioStore from "@/stores/studioStore"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
@@ -36,6 +36,7 @@ import ResourceDialog from "@/components/ResourceDialog.vue"
 
 import { isObjectEmpty, getAutocompleteValues, confirm } from "@/utils/helpers"
 import { studioResources, studioPageResources } from "@/data/studioResources"
+import { NewResource, Resource } from "@/types/Studio/StudioResource"
 
 /**
  * Insert resource into DB
@@ -47,7 +48,7 @@ import { studioResources, studioPageResources } from "@/data/studioResources"
 const store = useStudioStore()
 const showAddResourceDialog = ref(false)
 
-const attachResource = async (resource) => {
+const attachResource = async (resource: Resource) => {
 	studioPageResources.insert
 		.submit({
 			studio_resource: resource.name,
@@ -56,20 +57,22 @@ const attachResource = async (resource) => {
 			parentfield: "resources",
 		})
 		.then(async () => {
-			await store.setPageResources(store.activePage)
+			if (store.activePage) {
+				await store.setPageResources(store.activePage)
+			}
 			showAddResourceDialog.value = false
 		})
 }
 
-const addResource = (resource) => {
+const addResource = (resource: NewResource) => {
 	if (resource.source === "Existing Data Source") {
-		attachResource(resource)
+		attachResource(resource as unknown as Resource)
 		return
 	}
 
 	studioResources.insert
 		.submit({
-			name: resource.name,
+			name: resource.resource_name,
 			resource_type: resource.resource_type,
 			document_type: resource.document_type,
 			document_name: resource.document_name,
@@ -81,17 +84,19 @@ const addResource = (resource) => {
 			transform_results: resource.transform_results,
 			transform: resource.transform,
 		})
-		.then((res) => {
+		.then((res: Resource) => {
 			studioPageResources.filters = { parent: store.activePage?.name }
 			attachResource(res)
 		})
 }
 
-const deleteResource = async (docname, resource_name) => {
+const deleteResource = async (docname: string, resource_name: string) => {
 	const confirmed = await confirm(`Are you sure you want to delete the resource ${resource_name}?`)
 	if (confirmed) {
 		studioPageResources.delete.submit(docname).then(() => {
-			store.setPageResources(store.activePage)
+			if (store.activePage) {
+				store.setPageResources(store.activePage)
+			}
 		})
 	}
 }

@@ -85,7 +85,7 @@ const sidebarMenu = [
 const store = useStudioStore()
 
 const activeTab = ref("Add Component")
-const setActiveTab = (tab) => {
+const setActiveTab = (tab: string) => {
 	activeTab.value = tab
 }
 

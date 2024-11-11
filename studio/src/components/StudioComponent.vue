@@ -52,6 +52,8 @@ import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import { getComponentRoot, isDynamicValue, getDynamicValue } from "@/utils/helpers"
 
+import { CanvasProps } from "@/types"
+
 const props = defineProps({
 	block: {
 		type: Block,
@@ -67,7 +69,7 @@ defineOptions({
 })
 
 const isComponentReady = ref(false)
-const editor = ref(null)
+const editor = ref<InstanceType<typeof ComponentEditor> | null>(null)
 const store = useStudioStore()
 const classes = ["__studio_component__", "outline-none", "select-none"]
 
@@ -98,7 +100,7 @@ const componentProps = computed(() => {
 	}
 })
 
-const componentRef = ref<ComponentPublicInstance | HTMLElement | SVGElement | null>(null)
+const componentRef = ref<ComponentPublicInstance | null>(null)
 const target = computed(() => getComponentRoot(componentRef))
 
 // block hovering and selection
@@ -134,7 +136,7 @@ const getClickedComponent = (e: MouseEvent) => {
 	const targetElement = e.target as HTMLElement
 	const componentId = targetElement.closest("[data-component-id]")?.getAttribute("data-component-id")
 	if (componentId) {
-		return store.canvas.findBlock(componentId)
+		return store.canvas?.findBlock(componentId)
 	}
 }
 
@@ -150,6 +152,7 @@ const handleClick = (e: MouseEvent) => {
 }
 
 const triggerContextMenu = (e: MouseEvent) => {
+	if (props.block.isRoot()) return
 	e.stopPropagation()
 	e.preventDefault()
 

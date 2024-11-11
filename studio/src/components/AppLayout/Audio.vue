@@ -43,25 +43,23 @@
 	</div>
 </template>
 
-<script setup>
-import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+<script setup lang="ts">
+import { FeatherIcon } from "frappe-ui"
 import { ref, onMounted, watch } from "vue"
 
-const props = defineProps({
-	file: {
-		type: String,
-		required: true,
-	},
-})
+const props = defineProps<{
+	file: string
+}>()
 
 const emit = defineEmits(["previous", "next"])
 
-const audioElement = ref(null)
+const audioElement = ref<HTMLAudioElement | null>(null)
 const isPlaying = ref(false)
 const currentTime = ref(0)
 const duration = ref(0)
 
 const togglePlay = () => {
+	if (!audioElement.value) return
 	if (audioElement.value.paused) {
 		audioElement.value.play()
 	} else {
@@ -71,14 +69,14 @@ const togglePlay = () => {
 }
 
 const onTimeUpdate = () => {
-	currentTime.value = audioElement.value.currentTime
+	currentTime.value = audioElement.value?.currentTime || 0
 }
 
 const onLoadedMetadata = () => {
-	duration.value = audioElement.value.duration
+	duration.value = audioElement.value?.duration || 0
 }
 
-const formatTime = (time) => {
+const formatTime = (time: number) => {
 	const minutes = Math.floor(time / 60)
 	const seconds = Math.floor(time % 60)
 	return `${minutes}:${seconds.toString().padStart(2, "0")}`
@@ -92,8 +90,9 @@ const nextTrack = () => {
 	emit("next")
 }
 
-const seek = (event) => {
-	const newTime = parseFloat(event.target.value)
+const seek = (event: Event) => {
+	if (!audioElement.value) return
+	const newTime = parseFloat((event.target as HTMLInputElement).value)
 	audioElement.value.currentTime = newTime
 	currentTime.value = newTime
 }
@@ -101,7 +100,7 @@ const seek = (event) => {
 watch(
 	() => props.file,
 	() => {
-		// Reset player when audio URL changes
+		// Reset player when audio file changes
 		currentTime.value = 0
 		isPlaying.value = false
 	},

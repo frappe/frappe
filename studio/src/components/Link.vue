@@ -18,6 +18,7 @@
 <script setup lang="ts">
 import { createResource, Autocomplete, debounce } from "frappe-ui"
 import { ref, computed, watch } from "vue"
+import { SelectOption } from "@/types"
 
 const props = withDefaults(
 	defineProps<{
@@ -25,7 +26,7 @@ const props = withDefaults(
 		label?: string
 		placeholder?: string
 		modelValue?: string
-		filters?: Record<string, any>
+		filters?: Record<string, string | [string, string]>
 	}>(),
 	{
 		label: "",

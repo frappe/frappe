@@ -122,11 +122,14 @@
 		</div>
 	</div>
 </template>
+
 <script setup lang="ts">
 import { clamp } from "@vueuse/core"
 import { computed, inject, ref, watchEffect } from "vue"
 import Block from "@/utils/block"
 import { pxToNumber } from "@/utils/helpers"
+
+import { CanvasProps } from "@/types"
 
 const props = defineProps({
 	targetBlock: {

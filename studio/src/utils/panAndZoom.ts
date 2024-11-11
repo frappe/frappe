@@ -1,9 +1,10 @@
 // Extracted from Builder
-import { useElementBounding } from "@vueuse/core";
-import { nextTick, reactive } from "vue";
+import { useElementBounding } from "@vueuse/core"
+import { nextTick, reactive } from "vue"
+import { CanvasProps } from "@/types"
 
 function setPanAndZoom(
-	props,
+	props: CanvasProps,
 	target: HTMLElement,
 	panAndZoomAreaElement: HTMLElement,
 	zoomLimits = { min: 0.1, max: 10 }
@@ -14,7 +15,7 @@ function setPanAndZoom(
 	let startX = 0;
 	let startY = 0;
 	let pinchPointSet = false;
-	let wheeling: undefined | number;
+	let wheeling: undefined | NodeJS.Timeout;
 
 	const updatePanAndZoom = (e: WheelEvent) => {
 		clearTimeout(wheeling);

@@ -3,16 +3,19 @@ import { reactive, ref } from "vue"
 import { studioPageResources } from "@/data/studioResources"
 import { getNewResource } from "@/utils/helpers"
 
+import type { Resource } from "@/types/Studio/StudioResource"
+import type { StudioPage } from "@/types/Studio/StudioPage"
+
 const useAppStore = defineStore("appStore", () => {
-	const resources = reactive({})
+	const resources: Record<string, Resource> = reactive({})
 	const localState = ref({})
 
 	// TODO: deduplicate with studioStore later, if possible
-	async function setPageResources(page) {
+	async function setPageResources(page: StudioPage) {
 		studioPageResources.filters = { parent: page.name }
 		await studioPageResources.reload()
 
-		const resourcePromises = studioPageResources.data.map(async (resource) => {
+		const resourcePromises = studioPageResources.data.map(async (resource: Resource) => {
 			const newResource = await getNewResource(resource, localState.value)
 			return {
 				resource_name: resource.resource_name,
@@ -27,7 +30,7 @@ const useAppStore = defineStore("appStore", () => {
 		})
 	}
 
-	async function setLocalState(params) {
+	async function setLocalState(params: object) {
 		localState.value = params
 	}
 

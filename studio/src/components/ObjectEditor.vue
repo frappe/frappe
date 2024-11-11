@@ -35,6 +35,7 @@
 		</p>
 	</div>
 </template>
+
 <script setup lang="ts">
 import { mapToObject, replaceMapKey } from "@/utils/helpers"
 import { ref } from "vue"

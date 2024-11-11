@@ -34,7 +34,7 @@
 						<div id="value" class="!min-w-[140px] flex-1">
 							<Link
 								v-if="typeLink.includes(filter.field.fieldtype) && ['=', '!='].includes(filter.operator)"
-								:doctype="filter.field.options"
+								:doctype="filter.field.options as string"
 								:modelValue="filter.value"
 								@update:modelValue="filter.value = $event"
 								placeholder="Value"
@@ -59,7 +59,7 @@
 					<Autocomplete
 						:modelValue="''"
 						:options="fields"
-						@update:modelValue="(field) => addFilter(field.value)"
+						@update:modelValue="(field: DocTypeField) => addFilter(field.value)"
 						placeholder="Filter by..."
 					>
 						<template #target="{ togglePopover }">
@@ -83,10 +83,12 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { Autocomplete, FeatherIcon, FormControl } from "frappe-ui"
 import { computed, h, ref, watch } from "vue"
 import Link from "@/components/Link.vue"
+
+import { DocTypeField, Fieldtype, Filter, Operators } from "@/types"
 
 const typeCheck = ["Check"]
 const typeLink = ["Link"]
@@ -95,19 +97,19 @@ const typeSelect = ["Select"]
 const typeString = ["Data", "Long Text", "Small Text", "Text Editor", "Text", "JSON", "Code"]
 
 const emits = defineEmits(["update:modelValue"])
-const props = defineProps({
-	label: {
-		type: String,
+
+const props = withDefaults(
+	defineProps<{
+		label: string
+		modelValue: Record<string, any>
+		docfields: DocTypeField[]
+	}>(),
+	{
+		label: "",
+		modelValue: () => ({}),
+		docfields: () => [],
 	},
-	modelValue: {
-		type: Object,
-		default: () => ({}),
-	},
-	docfields: {
-		type: Array,
-		default: () => [],
-	},
-})
+)
 
 const fields = computed(() => {
 	const fields = props.docfields
@@ -123,7 +125,6 @@ const fields = computed(() => {
 		})
 		.map((field) => {
 			return {
-				label: field.label,
 				value: field.fieldname,
 				description: field.fieldtype,
 				...field,
@@ -132,7 +133,7 @@ const fields = computed(() => {
 	return fields
 })
 
-const filters = ref(makeFiltersList(props.modelValue))
+const filters = ref<Filter[]>(makeFiltersList(props.modelValue))
 watch(filters, (value) => emits("update:modelValue", makeFiltersDict(value)), { deep: true })
 watch(
 	() => props.modelValue,
@@ -145,9 +146,13 @@ watch(
 	{ deep: true },
 )
 
-function makeFiltersList(filtersDict) {
+function makeFiltersList(filtersDict: Record<string, [Operators, any]>) {
+	if (!Object.keys(filtersDict).length) return []
 	return Object.entries(filtersDict).map(([fieldname, [operator, value]]) => {
 		const field = getField(fieldname)
+		if (!field) {
+			throw new Error(`Field not found: ${fieldname}`)
+		}
 		return {
 			fieldname,
 			operator,
@@ -157,19 +162,20 @@ function makeFiltersList(filtersDict) {
 	})
 }
 
-function getField(fieldname) {
+function getField(fieldname: string): DocTypeField | undefined {
 	return fields.value.find((f) => f.fieldname === fieldname)
 }
 
-function makeFiltersDict(filtersList) {
-	return filtersList.reduce((acc, filter) => {
+function makeFiltersDict(filtersList: Filter[]) {
+	if (!filtersList.length) return {}
+	return filtersList.reduce((acc: Record<string, any>, filter) => {
 		const { fieldname, operator, value } = filter
 		acc[fieldname] = [operator, value]
 		return acc
 	}, {})
 }
 
-function getOperators(fieldtype) {
+function getOperators(fieldtype: Fieldtype) {
 	let options = []
 	if (typeString.includes(fieldtype) || typeLink.includes(fieldtype)) {
 		options.push(
@@ -207,7 +213,7 @@ function getOperators(fieldtype) {
 	return options
 }
 
-function getDefaultOperator(fieldtype) {
+function getDefaultOperator(fieldtype: Fieldtype): Operators {
 	if (
 		typeSelect.includes(fieldtype) ||
 		typeLink.includes(fieldtype) ||
@@ -219,7 +225,7 @@ function getDefaultOperator(fieldtype) {
 	return "like"
 }
 
-function getValueSelector(fieldtype, options) {
+function getValueSelector(fieldtype: Fieldtype, options: string = "") {
 	if (typeSelect.includes(fieldtype) || typeCheck.includes(fieldtype)) {
 		const _options = fieldtype == "Check" ? ["Yes", "No"] : getSelectOptions(options)
 		return h(FormControl, {
@@ -231,7 +237,7 @@ function getValueSelector(fieldtype, options) {
 	}
 }
 
-function getDefaultValue(field) {
+function getDefaultValue(field: DocTypeField) {
 	if (typeSelect.includes(field.fieldtype)) {
 		return getSelectOptions(field.options)[0]
 	}
@@ -241,12 +247,13 @@ function getDefaultValue(field) {
 	return ""
 }
 
-function getSelectOptions(options) {
+function getSelectOptions(options: string = "") {
 	return options.split("\n")
 }
 
-function addFilter(fieldname) {
+function addFilter(fieldname: string) {
 	const field = getField(fieldname)
+	if (!field) return
 	const filter = {
 		fieldname,
 		operator: getDefaultOperator(field.fieldtype),
@@ -256,7 +263,7 @@ function addFilter(fieldname) {
 	filters.value = [...filters.value, filter]
 }
 
-function removeFilter(index) {
+function removeFilter(index: number) {
 	filters.value = filters.value.filter((_, i) => i !== index)
 }
 </script>

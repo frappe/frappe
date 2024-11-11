@@ -39,17 +39,11 @@ interface ContextMenuOption {
 	condition?: () => boolean
 }
 
-const props = defineProps({
-	posX: {
-		type: Number,
-		required: true,
-	},
-	posY: {
-		type: Number,
-		required: true,
-	},
-	options: Array as () => ContextMenuOption[],
-})
+const props = defineProps<{
+	posX: number
+	posY: number
+	options: ContextMenuOption[]
+}>()
 
 const x = computed(() => {
 	const menuWidth = menu.value?.$el.clientWidth

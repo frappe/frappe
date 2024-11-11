@@ -6,6 +6,9 @@ import useStudioStore from "@/stores/studioStore";
 import components from "@/data/components";
 import { copyObject, getBlockCopy, kebabToCamelCase, numberToPx } from "./helpers";
 
+import { StyleValue } from "@/types"
+import { ComponentEvent } from "@/types/ComponentEvent"
+
 export type styleProperty = keyof CSSProperties | `__${string}`;
 class Block implements BlockOptions {
 	componentId: string
@@ -14,11 +17,12 @@ class Block implements BlockOptions {
 	componentEvents: Record<string, any>
 	blockName: string
 	originalElement?: string | undefined
-	children: BlockOptions[]
+	children: Block[]
 	parentBlock: Block | null
 	baseStyles: BlockStyleMap
 	mobileStyles: BlockStyleMap
 	tabletStyles: BlockStyleMap
+	classes?: string[]
 
 	constructor(options: BlockOptions) {
 		this.componentName = options.componentName
@@ -62,9 +66,10 @@ class Block implements BlockOptions {
 		}
 		index = clamp(index, 0, this.children.length)
 
-		this.children.splice(index, 0, child)
-		child.selectBlock()
-		return child
+		const childBlock = reactive(new Block(child))
+		this.children.splice(index, 0, childBlock)
+		childBlock.selectBlock()
+		return childBlock
 	}
 
 	removeChild(child: Block) {
@@ -304,13 +309,13 @@ class Block implements BlockOptions {
 
 		let child = null as Block | null;
 		if (parentBlock) {
-			child = parentBlock.addChildAfter(blockCopy, this);
+			child = parentBlock.addChildAfter(blockCopy, this) as Block;
 		} else {
 			child = store.canvas?.getRootBlock().addChild(blockCopy) as Block;
 		}
 		nextTick(() => {
 			if (child) {
-				store.selectBlock(child);
+				store.selectBlock(child, null);
 			}
 		});
 	}
@@ -328,8 +333,8 @@ class Block implements BlockOptions {
 	}
 
 	// events
-	addEvent(event: any) {
-		const pageName = event.page?.value
+	addEvent(event: ComponentEvent) {
+		const pageName = event.page
 		if (pageName) {
 			const store = useStudioStore()
 			event.page = store.getAppPageRoute(pageName)
@@ -337,7 +342,7 @@ class Block implements BlockOptions {
 		this.componentEvents[event.event] = event
 	}
 
-	removeEvent(event: any) {
+	removeEvent(event: ComponentEvent) {
 		delete this.componentEvents[event.event]
 	}
 }

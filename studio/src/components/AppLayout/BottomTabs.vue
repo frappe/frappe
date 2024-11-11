@@ -16,13 +16,12 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps } from "vue"
 import { FeatherIcon } from "frappe-ui"
 
 interface Tab {
 	label: string
 	route: string
-	icon: any
+	icon: string
 }
 
 defineProps<{

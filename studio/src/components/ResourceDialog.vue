@@ -100,7 +100,7 @@
 	</Dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from "vue"
 import { createResource } from "frappe-ui"
 import Link from "@/components/Link.vue"
@@ -108,15 +108,18 @@ import InlineInput from "@/components/InlineInput.vue"
 import InputLabel from "@/components/InputLabel.vue"
 import Filters from "@/components/Filters.vue"
 
+import { DocTypeField } from "@/types"
+import { NewResource, ResourceType } from "@/types/Studio/StudioResource"
+
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 const emit = defineEmits(["addResource"])
 
-const emptyResource = {
+const emptyResource: NewResource = {
 	// source
 	source: "New Data Source",
 	// config
-	name: "",
-	resource_type: "",
+	resource_name: "",
+	resource_type: "Document List",
 	url: "",
 	method: "GET",
 	document_type: "",
@@ -128,12 +131,12 @@ const emptyResource = {
 	transform: "",
 }
 
-const newResource = ref({ ...emptyResource })
+const newResource = ref<NewResource>({ ...emptyResource })
 const doctypeFields = ref([])
-const filterFields = ref([])
+const filterFields = ref<DocTypeField[]>([])
 const whitelistedMethods = ref([])
 
-const getTransformFnBoilerplate = (resource_type) => {
+const getTransformFnBoilerplate = (resource_type: ResourceType) => {
 	if (resource_type == "Document") {
 		return "function transform(doc) { \n\treturn doc; \n}"
 	} else {
@@ -165,7 +168,7 @@ async function setDoctypeFields() {
 	const fields = createResource({
 		url: "studio.api.get_doctype_fields",
 		params: { doctype: newResource.value.document_type },
-		transform: (data) => {
+		transform: (data: DocTypeField[]) => {
 			filterFields.value = data
 			return data.map((field) => {
 				return {
@@ -183,7 +186,7 @@ async function setWhitelistedMethods() {
 	const methods = createResource({
 		url: "studio.api.get_whitelisted_methods",
 		params: { doctype: newResource.value.document_type },
-		transform: (data) => {
+		transform: (data: string[]) => {
 			return data.map((method) => {
 				return {
 					label: method,

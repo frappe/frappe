@@ -15,7 +15,7 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from "vue"
 import Block from "@/utils/block"
 
@@ -24,12 +24,9 @@ import { isObjectEmpty } from "@/utils/helpers"
 import InlineInput from "@/components/InlineInput.vue"
 import EmptyState from "@/components/EmptyState.vue"
 
-const props = defineProps({
-	block: {
-		type: Block,
-		required: false,
-	},
-})
+const props = defineProps<{
+	block?: Block
+}>()
 
 const componentProps = computed(() => {
 	if (!props.block || props.block.isRoot()) return []
@@ -37,7 +34,7 @@ const componentProps = computed(() => {
 	if (!propConfig) return []
 
 	Object.entries(propConfig).forEach(([propName, config]) => {
-		if (props.block.componentProps[propName] === undefined) {
+		if (props.block?.componentProps[propName] === undefined) {
 			const defaultValue = typeof config.default === "function" ? config.default() : config.default
 			config.modelValue = defaultValue
 		} else {
@@ -48,7 +45,7 @@ const componentProps = computed(() => {
 	return propConfig
 })
 
-const updateComponentProp = (propName, newValue) => {
-	props.block.setProp(propName, newValue)
+const updateComponentProp = (propName: string, newValue: any) => {
+	props.block?.setProp(propName, newValue)
 }
 </script>

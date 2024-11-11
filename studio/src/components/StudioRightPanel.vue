@@ -29,7 +29,7 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue"
 import useStudioStore from "@/stores/studioStore"
 
@@ -40,5 +40,5 @@ import ComponentStyles from "@/components/ComponentStyles.vue"
 const store = useStudioStore()
 
 const activeTab = ref("Props")
-const setActiveTab = (tab) => (activeTab.value = tab)
+const setActiveTab = (tab: string) => (activeTab.value = tab)
 </script>

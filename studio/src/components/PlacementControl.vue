@@ -91,6 +91,7 @@
 		</div>
 	</div>
 </template>
+
 <script setup lang="ts">
 import InputLabel from "@/components/InputLabel.vue"
 import blockController from "@/utils/blockController"
