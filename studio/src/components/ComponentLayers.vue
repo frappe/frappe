@@ -85,7 +85,7 @@ import LucideIcon from "./LucideIcon.vue"
 const props = withDefaults(
 	defineProps<{
 		blocks: Block[]
-		indent: number
+		indent?: number
 	}>(),
 	{
 		blocks: () => [],
