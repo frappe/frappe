@@ -95,3 +95,6 @@ export type Filter = {
 	value: string
 	field: DocTypeField
 }
+
+export type LeftPanelOptions = "Pages" | "Add Component" | "Layers" | "Data" | "Code"
+export type RightPanelOptions = "Props" | "Events" | "Styles"

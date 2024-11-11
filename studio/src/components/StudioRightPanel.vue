@@ -12,7 +12,7 @@
 					v-for="tab of ['Props', 'Events', 'Styles']"
 					:key="tab"
 					class="mx-2 flex-1 p-2 py-3"
-					@click="setActiveTab(tab)"
+					@click="store.studioLayout.rightPanelActiveTab = tab"
 					:class="{
 						'dark:border-zinc-500 dark:text-zinc-300 border-b-[1px] border-gray-900': activeTab === tab,
 						'dark:text-zinc-500 text-gray-700': activeTab !== tab,
@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref, computed } from "vue"
 import useStudioStore from "@/stores/studioStore"
 
 import ComponentProps from "@/components/ComponentProps.vue"
@@ -38,7 +38,5 @@ import ComponentEvents from "@/components/ComponentEvents.vue"
 import ComponentStyles from "@/components/ComponentStyles.vue"
 
 const store = useStudioStore()
-
-const activeTab = ref("Props")
-const setActiveTab = (tab: string) => (activeTab.value = tab)
+const activeTab = computed(() => store.studioLayout.rightPanelActiveTab)
 </script>

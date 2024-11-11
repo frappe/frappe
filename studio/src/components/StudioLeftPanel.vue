@@ -6,7 +6,7 @@
 				class="flex items-center"
 				v-for="tab in sidebarMenu"
 				:key="tab.label"
-				@click="setActiveTab(tab.label)"
+				@click="store.studioLayout.leftPanelActiveTab = tab.label"
 			>
 				<Tooltip placement="right" :text="tab.label" :hover-delay="0.1">
 					<div
@@ -49,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue"
+import { ref, watch, computed } from "vue"
 import { Tooltip, FeatherIcon } from "frappe-ui"
 
 import PagesPanel from "@/components/PagesPanel.vue"
@@ -84,10 +84,7 @@ const sidebarMenu = [
 ]
 const store = useStudioStore()
 
-const activeTab = ref("Add Component")
-const setActiveTab = (tab: string) => {
-	activeTab.value = tab
-}
+const activeTab = computed(() => store.studioLayout.leftPanelActiveTab)
 
 // moved out of ComponentLayers for performance
 // TODO: Find a better way to do this

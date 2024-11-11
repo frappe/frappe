@@ -22,6 +22,7 @@ import Block from "@/utils/block"
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Resource } from "@/types/Studio/StudioResource"
+import { LeftPanelOptions, RightPanelOptions } from "@/types"
 
 const useStudioStore = defineStore("store", () => {
 	const canvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
@@ -30,6 +31,8 @@ const useStudioStore = defineStore("store", () => {
 		rightPanelWidth: 275,
 		showLeftPanel: true,
 		showRightPanel: true,
+		leftPanelActiveTab: <LeftPanelOptions>"Add Component",
+		rightPanelActiveTab: <RightPanelOptions>"Props",
 	})
 	const activeBreakpoint = ref("desktop")
 	const guides = reactive({
