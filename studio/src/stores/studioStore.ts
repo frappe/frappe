@@ -21,7 +21,7 @@ import Block from "@/utils/block"
 
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
-import type { Resource } from "@/types/studioResource"
+import type { Resource } from "@/types/Studio/StudioResource"
 
 const useStudioStore = defineStore("store", () => {
 	const canvas = ref<InstanceType<typeof StudioCanvas> | null>(null)

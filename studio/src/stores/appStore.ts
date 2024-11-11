@@ -3,7 +3,7 @@ import { reactive, ref } from "vue"
 import { studioPageResources } from "@/data/studioResources"
 import { getNewResource } from "@/utils/helpers"
 
-import type { Resource } from "@/types/studioResource"
+import type { Resource } from "@/types/Studio/StudioResource"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 
 const useAppStore = defineStore("appStore", () => {

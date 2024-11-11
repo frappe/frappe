@@ -36,7 +36,7 @@ import ResourceDialog from "@/components/ResourceDialog.vue"
 
 import { isObjectEmpty, getAutocompleteValues, confirm } from "@/utils/helpers"
 import { studioResources, studioPageResources } from "@/data/studioResources"
-import { NewResource, Resource } from "@/types/studioResource"
+import { NewResource, Resource } from "@/types/Studio/StudioResource"
 
 /**
  * Insert resource into DB

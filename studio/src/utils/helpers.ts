@@ -6,7 +6,7 @@ import * as frappeUI from "frappe-ui"
 import { createDocumentResource, createListResource, createResource, confirmDialog } from "frappe-ui"
 
 import { ObjectLiteral, BlockOptions, StyleValue, ExpressionEvaluationContext, SelectOption } from "@/types"
-import { DataResult, DocumentResource, DocumentResult, Filters, Resource } from "@/types/studioResource"
+import { DataResult, DocumentResource, DocumentResult, Filters, Resource } from "@/types/Studio/StudioResource"
 import { StudioPage } from "@/types/Studio/StudioPage"
 
 function getBlockInstance(options: BlockOptions, retainId = true): Block {

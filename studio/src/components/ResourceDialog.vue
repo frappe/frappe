@@ -109,7 +109,7 @@ import InputLabel from "@/components/InputLabel.vue"
 import Filters from "@/components/Filters.vue"
 
 import { DocTypeField } from "@/types"
-import { NewResource, ResourceType } from "@/types/studioResource"
+import { NewResource, ResourceType } from "@/types/Studio/StudioResource"
 
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 const emit = defineEmits(["addResource"])
