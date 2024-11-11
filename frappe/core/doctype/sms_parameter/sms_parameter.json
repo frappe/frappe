@@ -20,7 +20,7 @@
    "width": "150px"
   },
   {
-   "columns": 255,
+   "length": 255,
    "fieldname": "value",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -40,7 +40,7 @@
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-10-17 22:33:18.635659",
+ "modified": "2024-11-11 16:01:12.234639",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "SMS Parameter",
