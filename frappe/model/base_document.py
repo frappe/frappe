@@ -634,10 +634,9 @@ class BaseDocument:
 		return unique_columns
 
 	def db_update(self):
-		if frappe.db.db_type == "postgres":
-			self.show_unique_validation_message_for_postgress()
-			
 		if self.get("__islocal") or not self.name:
+			if frappe.db.db_type == "postgres":
+				self.show_unique_validation_message_for_postgress()
 			self.db_insert()
 			return
 
