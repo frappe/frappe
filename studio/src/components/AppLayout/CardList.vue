@@ -38,6 +38,7 @@ const props = defineProps({
 	cards: {
 		type: Array as PropType<IAvatarCard[]>,
 		required: true,
+		default: () => [],
 	},
 	rowKey: {
 		type: String,
