@@ -28,7 +28,7 @@ jobs:
           const content = Buffer.from(pyprojectContent.content, 'base64').toString();
           const toml = require('toml');
           const parsed = toml.parse(content);
-          const mypyFiles = parsed.tool.mypy.files;
+          const mypyFiles = parsed.tool?.mypy?.files ?? [];
           return { mypyFiles, content };
 
     - name: Check for changes in mypy files
