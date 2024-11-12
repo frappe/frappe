@@ -46,7 +46,8 @@ class ConfigHandler:
 			self._update_from_env()
 			self._apply_extra_config()
 			self._apply_dynamic_defaults()
-			self._config_stale = False
+			# TODO: enable in-memory caching only once we have identified a mechanism to hot-reload on external config changes
+			# self._config_stale = False
 		return self._config
 
 	def update_config(self, updates: dict[str, Any]):
