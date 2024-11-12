@@ -26,6 +26,12 @@
 			:style="{ width: `${store.studioLayout.leftPanelWidth - 48}px` }"
 			class="overflow-auto pb-5 hide-scrollbar"
 		>
+			<PanelResizer
+				:dimension="store.studioLayout.leftPanelWidth"
+				side="right"
+				:maxDimension="500"
+				@resize="(width) => (store.studioLayout.leftPanelWidth = width)"
+			/>
 			<div
 				class="sticky top-0 z-[12] border-b-[1px] border-gray-200 bg-white p-3 text-base font-semibold text-gray-800"
 			>
@@ -53,6 +59,7 @@ import { ref, watch, computed } from "vue"
 import { Tooltip, FeatherIcon } from "frappe-ui"
 
 import PagesPanel from "@/components/PagesPanel.vue"
+import PanelResizer from "@/components/PanelResizer.vue"
 import ComponentPanel from "@/components/ComponentPanel.vue"
 import ComponentLayers from "@/components/ComponentLayers.vue"
 

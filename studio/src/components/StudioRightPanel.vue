@@ -5,6 +5,14 @@
 		}"
 	>
 		<div class="relative min-h-full">
+			<PanelResizer
+				:dimension="store.studioLayout.rightPanelWidth"
+				side="left"
+				@resize="(width) => (store.studioLayout.rightPanelWidth = width)"
+				:min-dimension="275"
+				:max-dimension="400"
+			/>
+
 			<div
 				class="dark:border-zinc-800 dark:bg-zinc-900 sticky top-0 z-[12] flex w-full border-gray-200 bg-white px-2 text-base"
 			>
@@ -36,6 +44,7 @@ import useStudioStore from "@/stores/studioStore"
 import ComponentProps from "@/components/ComponentProps.vue"
 import ComponentEvents from "@/components/ComponentEvents.vue"
 import ComponentStyles from "@/components/ComponentStyles.vue"
+import PanelResizer from "@/components/PanelResizer.vue"
 
 const store = useStudioStore()
 const activeTab = computed(() => store.studioLayout.rightPanelActiveTab)
