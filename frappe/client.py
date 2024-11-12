@@ -436,6 +436,11 @@ def validate_link(doctype: str, docname: str, fields=None, args=None):
 	args = frappe.parse_json(args)
 	filters = args.filters or frappe._dict()
 
+	standard_queries = frappe.get_hooks().standard_queries or {}
+
+	if not args.get("query") and doctype in standard_queries:
+		args.update({"query" : standard_queries[doctype][-1]})
+
 	if args.get("query"):
 		if not search_link(doctype, docname, args.get("query"), filters):
 			return values
