@@ -219,6 +219,9 @@ def json_handler(obj):
 	elif isinstance(obj, LocalProxy):
 		return str(obj)
 
+	elif hasattr(obj, "__json__"):
+		return obj.__json__()
+
 	elif isinstance(obj, Iterable):
 		return list(obj)
 
@@ -236,9 +239,6 @@ def json_handler(obj):
 
 	elif isinstance(obj, Path):
 		return str(obj)
-
-	elif hasattr(obj, "__json__"):
-		return obj.__json__()
 
 	elif hasattr(obj, "__value__"):  # order imporant: defer to __json__ if implemented
 		return obj.__value__()
