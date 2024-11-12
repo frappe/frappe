@@ -356,6 +356,7 @@ def get_doc_count(doctype, filters):
 			)
 		)
 	except:
+		frappe.db.rollback() 
 		return 0
 
 
