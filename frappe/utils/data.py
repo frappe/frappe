@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import base64
+import calendar
 import datetime
 import hashlib
 import json
@@ -713,6 +714,19 @@ def get_weekday(datetime: datetime.datetime | None = None) -> str:
 		datetime = now_datetime()
 	weekdays = get_weekdays()
 	return weekdays[datetime.weekday()]
+
+
+def get_month(datetime: DateTimeLikeObject | None = None) -> str:
+	"""Return the month name (e.g. 'January') for the given datetime like object (datetime.date, datetime.datetime, string).
+	If `datetime` argument is not provided, the current month name is returned.
+	"""
+	if not datetime:
+		datetime = now_datetime()
+
+	if isinstance(datetime, str):
+		datetime = get_datetime(datetime)
+
+	return calendar.month_name[datetime.month]
 
 
 def get_timespan_date_range(timespan: str) -> tuple[datetime.datetime, datetime.datetime] | None:

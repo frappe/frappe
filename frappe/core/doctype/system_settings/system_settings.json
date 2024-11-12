@@ -11,6 +11,7 @@
   "language",
   "column_break_3",
   "time_zone",
+  "currency",
   "enable_onboarding",
   "setup_complete",
   "disable_document_sharing",
@@ -684,12 +685,19 @@
    "fieldname": "use_number_format_from_currency",
    "fieldtype": "Check",
    "label": "Use Number Format from Currency"
+  },
+  {
+   "description": "Default display currency",
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2024-09-26 16:20:59.417151",
+ "modified": "2024-11-04 15:51:39.954876",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

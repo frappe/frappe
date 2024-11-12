@@ -5,6 +5,7 @@ import frappe
 from frappe import _
 from frappe.desk.form.utils import get_pdf_link
 from frappe.desk.notifications import clear_doctype_notifications
+from frappe.email.doctype.email_template.email_template import get_email_template
 from frappe.model.document import Document
 from frappe.model.workflow import (
 	apply_workflow,
@@ -468,10 +469,10 @@ def get_common_email_args(doc):
 	doctype = doc.get("doctype")
 	docname = doc.get("name")
 
-	email_template = get_email_template(doc)
+	email_template = get_email_template_from_workflow(doc)
 	if email_template:
-		subject = frappe.render_template(email_template.subject, vars(doc))
-		response = frappe.render_template(email_template.response, vars(doc))
+		subject = email_template.get("subject")
+		response = email_template.get("message")
 	else:
 		subject = _("Workflow Action") + f" on {doctype}: {docname}"
 		response = get_link_to_form(doctype, docname, f"{doctype}: {docname}")
@@ -501,10 +502,8 @@ def get_common_email_args(doc):
 	}
 
 
-def get_email_template(doc):
-	"""Returns next_action_email_template
-	for workflow state (if available) based on doc current workflow state
-	"""
+def get_email_template_from_workflow(doc):
+	"""Return next_action_email_template for workflow state (if available) based on doc current workflow state."""
 	workflow_name = get_workflow_name(doc.get("doctype"))
 	doc_state = get_doc_workflow_state(doc)
 	template_name = frappe.db.get_value(
@@ -515,7 +514,7 @@ def get_email_template(doc):
 
 	if not template_name:
 		return
-	return frappe.get_doc("Email Template", template_name)
+	return get_email_template(template_name, doc)
 
 
 def get_state_optional_field_value(workflow_name, state):

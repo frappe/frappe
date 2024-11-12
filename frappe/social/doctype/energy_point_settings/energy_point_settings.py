@@ -22,7 +22,10 @@ class EnergyPointSettings(Document):
 		point_allocation_periodicity: DF.Literal["Daily", "Weekly", "Monthly"]
 		review_levels: DF.Table[ReviewLevel]
 	# end: auto-generated types
-	pass
+
+	def on_update(self):
+		if self.has_value_changed("enabled"):
+			frappe.cache.delete_key("bootinfo")
 
 
 def is_energy_point_enabled():

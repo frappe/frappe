@@ -169,10 +169,11 @@ def get():
 	bootinfo["disable_async"] = frappe.conf.disable_async
 
 	bootinfo["setup_complete"] = cint(frappe.get_system_settings("setup_complete"))
+	apps = get_apps() or []
 	bootinfo["apps_data"] = {
-		"apps": get_apps() or [],
-		"is_desk_apps": 1 if bool(is_desk_apps(get_apps())) else 0,
-		"default_path": get_default_path() or "",
+		"apps": apps,
+		"is_desk_apps": 1 if bool(is_desk_apps(apps)) else 0,
+		"default_path": get_default_path(apps) or "",
 	}
 
 	bootinfo["desk_theme"] = frappe.db.get_value("User", frappe.session.user, "desk_theme") or "Light"

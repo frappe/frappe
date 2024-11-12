@@ -108,6 +108,10 @@ class Workspace(Document):
 		if doc.title != doc.label and doc.label == doc.name:
 			self.name = doc.name = doc.label = doc.title
 
+	def on_trash(self):
+		if self.public and not is_workspace_manager():
+			frappe.throw(_("You need to be Workspace Manager to delete a public workspace."))
+
 	def after_delete(self):
 		if disable_saving_as_public():
 			return

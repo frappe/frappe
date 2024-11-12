@@ -5,14 +5,18 @@ import re
 
 import frappe
 from frappe import _
-from frappe.boot import get_bootinfo
 from frappe.desk.utils import slug
 
 
 @frappe.whitelist()
 def get_apps():
+	from frappe.desk.desktop import get_workspace_sidebar_items
+
+	allowed_workspaces = get_workspace_sidebar_items().get("pages")
+
 	apps = frappe.get_installed_apps()
 	app_list = []
+
 	for app in apps:
 		if app == "frappe":
 			continue
@@ -28,13 +32,16 @@ def get_apps():
 					"name": app,
 					"logo": app_detail.get("logo"),
 					"title": _(app_detail.get("title")),
-					"route": get_route(app),
+					"route": get_route(app, allowed_workspaces),
 				}
 			)
 	return app_list
 
 
-def get_route(app_name):
+def get_route(app_name, allowed_workspaces=None):
+	if not allowed_workspaces:
+		return "/app"
+
 	apps = frappe.get_hooks("add_to_apps_screen", app_name=app_name)
 	app = next((app for app in apps if app.get("name") == app_name), None)
 	route = app.get("route") if app and app.get("route") else "/apps"
@@ -42,16 +49,12 @@ def get_route(app_name):
 	# Check if user has access to default workspace, if not, pick first workspace user has access to
 	if route.startswith("/app/"):
 		ws = route.split("/")[2]
-		bootinfo = get_bootinfo()
-		allowed_workspaces = bootinfo.get("allowed_workspaces")
-		if not allowed_workspaces:
-			return "/app"
 
 		for allowed_ws in allowed_workspaces:
 			if allowed_ws.get("name").lower() == ws.lower():
 				return route
 
-		module_app = bootinfo.get("module_app")
+		module_app = frappe.local.module_app
 		for allowed_ws in allowed_workspaces:
 			module = allowed_ws.get("module")
 			if module and module_app.get(module.lower()) == app_name:
@@ -71,8 +74,9 @@ def is_desk_apps(apps):
 	return True
 
 
-def get_default_path():
-	apps = get_apps()
+def get_default_path(apps=None):
+	if not apps:
+		apps = get_apps()
 	_apps = [app for app in apps if app.get("name") != "frappe"]
 
 	if len(_apps) == 0:
@@ -80,10 +84,13 @@ def get_default_path():
 
 	system_default_app = frappe.get_system_settings("default_app")
 	user_default_app = frappe.db.get_value("User", frappe.session.user, "default_app")
+
 	if system_default_app and not user_default_app:
-		return get_route(system_default_app)
+		app = next((app for app in apps if app.get("name") == system_default_app), None)
+		return app.get("route") if app else None
 	elif user_default_app:
-		return get_route(user_default_app)
+		app = next((app for app in apps if app.get("name") == user_default_app), None)
+		return app.get("route") if app else None
 
 	if len(_apps) == 1:
 		return _apps[0].get("route") or "/apps"
