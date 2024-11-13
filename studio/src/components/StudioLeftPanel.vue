@@ -23,7 +23,7 @@
 
 		<!-- Secondary Menu -->
 		<div
-			v-show="!isPanelCollapsed"
+			v-show="store.studioLayout.showLeftPanel"
 			:style="{ width: `${store.studioLayout.leftPanelWidth - 48}px` }"
 			class="overflow-auto pb-5 transition-all duration-300 ease-in-out hide-scrollbar"
 		>
@@ -37,7 +37,7 @@
 				class="sticky top-0 z-[12] flex justify-between border-b-[1px] border-gray-200 bg-white p-3 text-base font-semibold text-gray-800"
 			>
 				{{ activeTab }}
-				<IconButton icon="chevrons-left" label="Collapse" @click="isPanelCollapsed = true" />
+				<IconButton icon="chevrons-left" label="Collapse" @click="store.studioLayout.showLeftPanel = false" />
 			</div>
 
 			<PagesPanel v-show="activeTab === 'Pages'" class="mx-2 my-3" />
@@ -57,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from "vue"
+import { watch, computed } from "vue"
 import { Tooltip, FeatherIcon } from "frappe-ui"
 
 import PagesPanel from "@/components/PagesPanel.vue"
@@ -95,12 +95,11 @@ const sidebarMenu = [
 ]
 const store = useStudioStore()
 
-const isPanelCollapsed = ref(false)
 const activeTab = computed(() => store.studioLayout.leftPanelActiveTab)
 
 const setActiveTab = (tab: LeftPanelOptions) => {
-	if (isPanelCollapsed.value) {
-		isPanelCollapsed.value = false
+	if (!store.studioLayout.showLeftPanel) {
+		store.studioLayout.showLeftPanel = true
 	}
 	store.studioLayout.leftPanelActiveTab = tab
 }
