@@ -6,7 +6,7 @@
 				class="flex items-center"
 				v-for="tab in sidebarMenu"
 				:key="tab.label"
-				@click="store.studioLayout.leftPanelActiveTab = tab.label"
+				@click="setActiveTab(tab.label as LeftPanelOptions)"
 			>
 				<Tooltip placement="right" :text="tab.label" :hover-delay="0.1">
 					<div
@@ -23,8 +23,9 @@
 
 		<!-- Secondary Menu -->
 		<div
+			v-show="!isPanelCollapsed"
 			:style="{ width: `${store.studioLayout.leftPanelWidth - 48}px` }"
-			class="overflow-auto pb-5 hide-scrollbar"
+			class="overflow-auto pb-5 transition-all duration-300 ease-in-out hide-scrollbar"
 		>
 			<PanelResizer
 				:dimension="store.studioLayout.leftPanelWidth"
@@ -33,9 +34,10 @@
 				@resize="(width) => (store.studioLayout.leftPanelWidth = width)"
 			/>
 			<div
-				class="sticky top-0 z-[12] border-b-[1px] border-gray-200 bg-white p-3 text-base font-semibold text-gray-800"
+				class="sticky top-0 z-[12] flex justify-between border-b-[1px] border-gray-200 bg-white p-3 text-base font-semibold text-gray-800"
 			>
 				{{ activeTab }}
+				<IconButton icon="chevrons-left" label="Collapse" @click="isPanelCollapsed = true" />
 			</div>
 
 			<PagesPanel v-show="activeTab === 'Pages'" class="mx-2 my-3" />
@@ -62,10 +64,12 @@ import PagesPanel from "@/components/PagesPanel.vue"
 import PanelResizer from "@/components/PanelResizer.vue"
 import ComponentPanel from "@/components/ComponentPanel.vue"
 import ComponentLayers from "@/components/ComponentLayers.vue"
+import DataPanel from "@/components/DataPanel.vue"
+import IconButton from "@/components/IconButton.vue"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
-import DataPanel from "./DataPanel.vue"
+import { LeftPanelOptions } from "@/types"
 
 const sidebarMenu = [
 	{
@@ -91,7 +95,15 @@ const sidebarMenu = [
 ]
 const store = useStudioStore()
 
+const isPanelCollapsed = ref(false)
 const activeTab = computed(() => store.studioLayout.leftPanelActiveTab)
+
+const setActiveTab = (tab: LeftPanelOptions) => {
+	if (isPanelCollapsed.value) {
+		isPanelCollapsed.value = false
+	}
+	store.studioLayout.leftPanelActiveTab = tab
+}
 
 // moved out of ComponentLayers for performance
 // TODO: Find a better way to do this
