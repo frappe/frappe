@@ -22,37 +22,47 @@
 		</div>
 
 		<!-- Secondary Menu -->
-		<div
-			v-show="store.studioLayout.showLeftPanel"
-			:style="{ width: `${store.studioLayout.leftPanelWidth - 48}px` }"
-			class="overflow-auto pb-5 transition-all duration-300 ease-in-out hide-scrollbar"
+		<transition
+			enter-active-class="transition-all duration-300 ease-out"
+			enter-from-class="-translate-x-3 opacity-0"
+			enter-to-class="translate-x-0 opacity-100"
 		>
-			<PanelResizer
-				:dimension="store.studioLayout.leftPanelWidth"
-				side="right"
-				:maxDimension="500"
-				@resize="(width) => (store.studioLayout.leftPanelWidth = width)"
-			/>
 			<div
-				class="sticky top-0 z-[12] flex justify-between border-b-[1px] border-gray-200 bg-white p-3 text-base font-semibold text-gray-800"
+				v-show="store.studioLayout.showLeftPanel"
+				:style="{ width: `${store.studioLayout.leftPanelWidth - 48}px` }"
+				class="overflow-auto pb-5 hide-scrollbar"
 			>
-				{{ activeTab }}
-				<IconButton icon="chevrons-left" label="Collapse" @click="store.studioLayout.showLeftPanel = false" />
-			</div>
-
-			<PagesPanel v-show="activeTab === 'Pages'" class="mx-2 my-3" />
-			<ComponentPanel v-show="activeTab === 'Add Component'" class="mx-2 my-3" />
-			<div v-show="activeTab === 'Layers'" class="p-4 pt-3">
-				<ComponentLayers
-					v-if="store.canvas"
-					class="no-scrollbar overflow-auto"
-					ref="pageLayers"
-					:blocks="[store.canvas?.getRootBlock() as Block]"
+				<PanelResizer
+					:dimension="store.studioLayout.leftPanelWidth"
+					side="right"
+					:maxDimension="500"
+					@resize="(width) => (store.studioLayout.leftPanelWidth = width)"
 				/>
-			</div>
+				<div
+					class="sticky top-0 z-[12] flex justify-between border-b-[1px] border-gray-200 bg-white p-3 text-base font-semibold text-gray-800"
+				>
+					{{ activeTab }}
+					<IconButton
+						icon="chevrons-left"
+						label="Collapse"
+						@click="store.studioLayout.showLeftPanel = false"
+					/>
+				</div>
 
-			<DataPanel v-show="activeTab === 'Data'" />
-		</div>
+				<PagesPanel v-show="activeTab === 'Pages'" class="mx-2 my-3" />
+				<ComponentPanel v-show="activeTab === 'Add Component'" class="mx-2 my-3" />
+				<div v-show="activeTab === 'Layers'" class="p-4 pt-3">
+					<ComponentLayers
+						v-if="store.canvas"
+						class="no-scrollbar overflow-auto"
+						ref="pageLayers"
+						:blocks="[store.canvas?.getRootBlock() as Block]"
+					/>
+				</div>
+
+				<DataPanel v-show="activeTab === 'Data'" />
+			</div>
+		</transition>
 	</div>
 </template>
 
