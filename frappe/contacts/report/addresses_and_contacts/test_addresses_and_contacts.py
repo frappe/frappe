@@ -1,7 +1,7 @@
 import frappe
 import frappe.defaults
 from frappe.contacts.report.addresses_and_contacts.addresses_and_contacts import get_data
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
 def get_custom_linked_doctype():
@@ -85,7 +85,7 @@ def create_linked_contact(link_list, address):
 	frappe.flags.test_contact_created = True
 
 
-class TestAddressesAndContacts(FrappeTestCase):
+class TestAddressesAndContacts(IntegrationTestCase):
 	def test_get_data(self):
 		linked_docs = [get_custom_doc_for_address_and_contacts()]
 		links_list = [item.name for item in linked_docs]

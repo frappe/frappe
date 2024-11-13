@@ -1,15 +1,22 @@
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.website.path_resolver import PathResolver
 from frappe.website.serve import get_response_content
 
-test_records = frappe.get_test_records("Web Page")
+
+class UnitTestWebPage(UnitTestCase):
+	"""
+	Unit tests for WebPage.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
-class TestWebPage(FrappeTestCase):
+class TestWebPage(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.delete("Web Page")
-		for t in test_records:
+		for t in self.globalTestRecords["Web Page"]:
 			frappe.get_doc(t).insert()
 
 	def test_path_resolver(self):

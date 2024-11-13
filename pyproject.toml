@@ -96,6 +96,44 @@ Homepage = "https://frappeframework.com/"
 Repository = "https://github.com/frappe/frappe.git"
 "Bug Reports" = "https://github.com/frappe/frappe/issues"
 
+[project.optional-dependencies]
+dev = [
+    "pyngrok~=6.0.0",
+    "watchdog~=3.0.0",
+    "responses==0.23.1",
+    # typechecking
+    "basedmypy",
+    "types-PyMySQL",  
+    "types-PyYAML",  
+    "types-Pygments",  
+    "types-beautifulsoup4",  
+    "types-bleach",  
+    "types-cffi",  
+    "types-colorama",  
+    "types-croniter",  
+    "types-decorator",  
+    "types-ldap3",  
+    "types-oauthlib",  
+    "types-openpyxl",  
+    "types-passlib",  
+    "types-psutil",  
+    "types-psycopg2",  
+    "types-python-dateutil",  
+    "types-pytz",  
+    "types-requests",  
+    "types-six",  
+    "types-vobject",  
+    "types-zxcvbn",  
+]
+test = [
+    "unittest-xml-reporting~=3.2.0",
+    "coverage~=6.5.0",
+    "Faker~=18.10.1",
+    "hypothesis~=6.77.0",
+    "freezegun~=1.2.2",
+    "pdbpp~=0.10.3",
+]
+
 [build-system]
 requires = ["flit_core >=3.4,<4"]
 build-backend = "flit_core.buildapi"
@@ -152,3 +190,102 @@ typing-modules = ["frappe.types.DF"]
 quote-style = "double"
 indent-style = "tab"
 docstring-code-format = true
+
+[tool.frappix]
+# use identifier from https://search.nixos.org/packages
+nixpkgs-deps = [
+    "mariadb",
+    "restic",
+    "wkhtmltopdf-bin",
+    "which",
+    "gzip",
+    "bash",
+    "redis",
+    "nodejs_20",
+    "python312",
+]
+
+[tool.mypy]
+strict = false
+pretty = true
+incremental = true
+sqlite_cache = true
+files = [
+    # start small, with a lot of multiplication potential
+    "frappe/types/__init__.py",
+    "frappe/types/DF.py",
+    "frappe/types/docref.py",
+    "frappe/types/frappedict.py",
+]
+exclude = [
+    # permanent excludes
+    "^frappe/patches",
+    '/test_.+\.py$',
+    "^frappe/tests/ui_test_helpers.py",
+    "^frappe/parallel_test_runner.py",
+    "^frappe/deprecation_dumpster.py",
+]
+disable_error_code = [
+]
+
+[[tool.mypy.overrides]]
+module = "frappe"
+# Too many for a start
+disable_error_code = [
+    "no-any-expr",
+    "no-untyped-def",
+    "no-untyped-call",
+    "no-untyped-usage",
+]
+
+# External libraries without types
+[[tool.mypy.overrides]]
+module = [
+    "apiclient.http",
+    "bleach_allowlist",
+    "boto3",
+    "botocore.exceptions",
+    "cssutils",
+    "cups",
+    "dropbox",
+    "email_reply_parser",
+    "filetype",
+    "geolite2",
+    "google",
+    "googleapiclient.discovery",
+    "googleapiclient.errors",
+    "google.oauth2",
+    "google.oauth2.credentials",
+    "markdown2",
+    "markdownify",
+    "num2words",
+    "pdfkit",
+    "premailer",
+    "pyngrok",
+    "pypika",
+    "pypika.dialects",
+    "pypika.functions",
+    "pypika.queries",
+    "pypika.terms",
+    "pypika.utils",
+    "pyqrcode",
+    "rauth",
+    "requests_oauthlib",
+    "RestrictedPython",
+    "RestrictedPython.Guards",
+    "RestrictedPython.transformer",
+    "semantic_version",
+    "sql_metadata",
+    "sqlparse",
+    "terminaltables",
+    "traceback_with_variables",
+    "weasyprint",
+    "whoosh.fields",
+    "whoosh.index",
+    "whoosh.qparser",
+    "whoosh.query",
+    "whoosh.writing",
+    "xlrd",
+    "xmlrunner",
+]
+ignore_missing_imports = true

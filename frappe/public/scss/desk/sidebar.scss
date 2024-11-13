@@ -57,15 +57,15 @@ body {
 
 	.body-sidebar-placeholder {
 		display: none;
-		width: 53px;
+		width: 50px;
 		height: 100vh;
 	}
 }
 
 .body-sidebar {
-	width: 53px;
-	background: var(--subtle-fg);
-	border-right: 1px solid var(--border-color);
+	width: 50px;
+	background: var(--subtle-accent);
+	border-right: 1px solid var(--dark-border-color);
 
 	display: flex;
 	flex-direction: column;
@@ -82,7 +82,7 @@ body {
 		gap: 2px;
 		justify-content: flex-start;
 		overflow: hidden;
-		padding: 15px;
+		padding: 13px;
 		position: static;
 		font-size: var(--text-base);
 		// transition: width 200ms;
@@ -93,7 +93,7 @@ body {
 	}
 
 	.app-logo {
-		width: 21px;
+		width: 23px;
 	}
 
 	.sidebar-items {
@@ -635,7 +635,6 @@ body {
 		@include get_textstyle("sm", "regular");
 		justify-content: space-between;
 		box-shadow: none;
-		line-height: 1;
 	}
 }
 .attachment-row {
@@ -648,6 +647,7 @@ body {
 			width: 94px;
 			display: block;
 			margin-left: var(--margin-xs);
+			text-align: left;
 		}
 	}
 }

@@ -76,6 +76,9 @@ class UserPermission(Document):
 			ref_link = frappe.get_desk_link(self.doctype, overlap_exists[0].name)
 			frappe.throw(_("{0} has already assigned default value for {1}.").format(ref_link, self.allow))
 
+	def get_permission_log_options(self, event=None):
+		pass
+
 
 def send_user_permissions(bootinfo):
 	bootinfo.user["user_permissions"] = get_user_permissions()

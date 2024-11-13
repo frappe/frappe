@@ -4,12 +4,21 @@ import frappe
 from frappe.core.doctype.doctype.doctype import clear_permissions_cache
 from frappe.model.db_query import DatabaseQuery
 from frappe.permissions import add_permission, reset_perms
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
-test_dependencies = ["User"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
 
 
-class TestToDo(FrappeTestCase):
+class UnitTestTodo(UnitTestCase):
+	"""
+	Unit tests for Todo.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestToDo(IntegrationTestCase):
 	def test_delete(self):
 		todo = frappe.get_doc(doctype="ToDo", description="test todo", assigned_by="Administrator").insert()
 

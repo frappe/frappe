@@ -1,10 +1,19 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 
-class TestDocumentNamingRule(FrappeTestCase):
+class UnitTestDocumentNamingRule(UnitTestCase):
+	"""
+	Unit tests for DocumentNamingRule.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestDocumentNamingRule(IntegrationTestCase):
 	def test_naming_rule_by_series(self):
 		naming_rule = frappe.get_doc(
 			doctype="Document Naming Rule", document_type="ToDo", prefix="test-todo-", prefix_digits=5

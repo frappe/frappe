@@ -479,7 +479,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		// copy doc to clipboard
 		this.page.add_menu_item(
 			__("Copy to Clipboard"),
-			function () {
+			() => {
 				frappe.utils.copy_to_clipboard(JSON.stringify(this.frm.doc));
 			},
 			true

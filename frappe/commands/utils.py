@@ -260,16 +260,16 @@ def execute(context: CliCtxObj, method, args=None, kwargs=None, profile=False):
 
 			if args:
 				try:
-					args = eval(args)
+					fn_args = eval(args)
 				except NameError:
-					args = [args]
+					fn_args = [args]
 			else:
-				args = ()
+				fn_args = ()
 
 			if kwargs:
-				kwargs = eval(kwargs)
+				fn_kwargs = eval(kwargs)
 			else:
-				kwargs = {}
+				fn_kwargs = {}
 
 			if profile:
 				import cProfile
@@ -278,13 +278,13 @@ def execute(context: CliCtxObj, method, args=None, kwargs=None, profile=False):
 				pr.enable()
 
 			try:
-				ret = frappe.get_attr(method)(*args, **kwargs)
+				ret = frappe.get_attr(method)(*fn_args, **fn_kwargs)
 			except Exception:
 				# eval is safe here because input is from console
 				code = compile(method, "<bench execute>", "eval")
 				ret = eval(code, globals(), locals())  # nosemgrep
 				if callable(ret):
-					suffix = "(*args, **kwargs)"
+					suffix = "(*fn_args, **fn_kwargs)"
 					code = compile(method + suffix, "<bench execute>", "eval")
 					ret = eval(code, globals(), locals())  # nosemgrep
 
@@ -749,221 +749,6 @@ def transform_database(context: CliCtxObj, table, engine, row_format, failfast):
 	frappe.destroy()
 
 
-@click.command("run-tests")
-@click.option("--app", help="For App")
-@click.option("--doctype", help="For DocType")
-@click.option("--module-def", help="For all Doctypes in Module Def")
-@click.option("--case", help="Select particular TestCase")
-@click.option(
-	"--doctype-list-path",
-	help="Path to .txt file for list of doctypes. Example erpnext/tests/server/agriculture.txt",
-)
-@click.option("--test", multiple=True, help="Specific test")
-@click.option("--module", help="Run tests in a module")
-@click.option("--pdb", is_flag=True, default=False, help="Open pdb on AssertionError")
-@click.option("--profile", is_flag=True, default=False)
-@click.option("--coverage", is_flag=True, default=False)
-@click.option("--skip-test-records", is_flag=True, default=False, help="Don't create test records")
-@click.option("--skip-before-tests", is_flag=True, default=False, help="Don't run before tests hook")
-@click.option("--junit-xml-output", help="Destination file path for junit xml report")
-@click.option(
-	"--failfast", is_flag=True, default=False, help="Stop the test run on the first error or failure"
-)
-@pass_context
-def run_tests(
-	context: CliCtxObj,
-	app=None,
-	module=None,
-	doctype=None,
-	module_def=None,
-	test=(),
-	profile=False,
-	coverage=False,
-	junit_xml_output=False,
-	doctype_list_path=None,
-	skip_test_records=False,
-	skip_before_tests=False,
-	failfast=False,
-	case=None,
-	pdb=False,
-):
-	"""Run python unit-tests"""
-
-	pdb_on_exceptions = None
-	if pdb:
-		pdb_on_exceptions = (AssertionError,)
-
-	with CodeCoverage(coverage, app):
-		import frappe
-		import frappe.test_runner
-
-		tests = test
-		site = get_site(context)
-
-		frappe.init(site)
-		allow_tests = frappe.get_conf().allow_tests
-
-		if not (allow_tests or os.environ.get("CI")):
-			click.secho("Testing is disabled for the site!", bold=True)
-			click.secho("You can enable tests by entering following command:")
-			click.secho(f"bench --site {site} set-config allow_tests true", fg="green")
-			return
-
-		ret = frappe.test_runner.main(
-			site,
-			app,
-			module,
-			doctype,
-			module_def,
-			context.verbose,
-			tests=tests,
-			force=context.force,
-			profile=profile,
-			junit_xml_output=junit_xml_output,
-			doctype_list_path=doctype_list_path,
-			failfast=failfast,
-			case=case,
-			skip_test_records=skip_test_records,
-			skip_before_tests=skip_before_tests,
-			pdb_on_exceptions=pdb_on_exceptions,
-		)
-
-		if len(ret.failures) == 0 and len(ret.errors) == 0:
-			ret = 0
-
-		if os.environ.get("CI"):
-			sys.exit(ret)
-
-
-@click.command("run-parallel-tests")
-@click.option("--app", help="For App", default="frappe")
-@click.option("--build-number", help="Build number", default=1)
-@click.option("--total-builds", help="Total number of builds", default=1)
-@click.option(
-	"--with-coverage",
-	is_flag=True,
-	help="Build coverage file",
-	envvar="CAPTURE_COVERAGE",
-)
-@click.option("--use-orchestrator", is_flag=True, help="Use orchestrator to run parallel tests")
-@click.option("--dry-run", is_flag=True, default=False, help="Dont actually run tests")
-@pass_context
-def run_parallel_tests(
-	context: CliCtxObj,
-	app,
-	build_number,
-	total_builds,
-	with_coverage=False,
-	use_orchestrator=False,
-	dry_run=False,
-):
-	from traceback_with_variables import activate_by_import
-
-	with CodeCoverage(with_coverage, app):
-		site = get_site(context)
-		if use_orchestrator:
-			from frappe.parallel_test_runner import ParallelTestWithOrchestrator
-
-			ParallelTestWithOrchestrator(app, site=site)
-		else:
-			from frappe.parallel_test_runner import ParallelTestRunner
-
-			ParallelTestRunner(
-				app,
-				site=site,
-				build_number=build_number,
-				total_builds=total_builds,
-				dry_run=dry_run,
-			)
-
-
-@click.command(
-	"run-ui-tests",
-	context_settings=dict(
-		ignore_unknown_options=True,
-	),
-)
-@click.argument("app")
-@click.argument("cypressargs", nargs=-1, type=click.UNPROCESSED)
-@click.option("--headless", is_flag=True, help="Run UI Test in headless mode")
-@click.option("--parallel", is_flag=True, help="Run UI Test in parallel mode")
-@click.option("--with-coverage", is_flag=True, help="Generate coverage report")
-@click.option("--browser", default="chrome", help="Browser to run tests in")
-@click.option("--ci-build-id")
-@pass_context
-def run_ui_tests(
-	context: CliCtxObj,
-	app,
-	headless=False,
-	parallel=True,
-	with_coverage=False,
-	browser="chrome",
-	ci_build_id=None,
-	cypressargs=None,
-):
-	"Run UI tests"
-	site = get_site(context)
-	frappe.init(site)
-	app_base_path = frappe.get_app_source_path(app)
-	site_url = frappe.utils.get_site_url(site)
-	admin_password = frappe.get_conf().admin_password
-
-	# override baseUrl using env variable
-	site_env = f"CYPRESS_baseUrl={site_url}"
-	password_env = f"CYPRESS_adminPassword={admin_password}" if admin_password else ""
-	coverage_env = f"CYPRESS_coverage={str(with_coverage).lower()}"
-
-	os.chdir(app_base_path)
-
-	node_bin = subprocess.getoutput("(cd ../frappe && yarn bin)")
-	cypress_path = f"{node_bin}/cypress"
-	drag_drop_plugin_path = f"{node_bin}/../@4tw/cypress-drag-drop"
-	real_events_plugin_path = f"{node_bin}/../cypress-real-events"
-	testing_library_path = f"{node_bin}/../@testing-library"
-	coverage_plugin_path = f"{node_bin}/../@cypress/code-coverage"
-
-	# check if cypress in path...if not, install it.
-	if not (
-		os.path.exists(cypress_path)
-		and os.path.exists(drag_drop_plugin_path)
-		and os.path.exists(real_events_plugin_path)
-		and os.path.exists(testing_library_path)
-		and os.path.exists(coverage_plugin_path)
-	):
-		# install cypress & dependent plugins
-		click.secho("Installing Cypress...", fg="yellow")
-		packages = " ".join(
-			[
-				"cypress@^13",
-				"@4tw/cypress-drag-drop@^2",
-				"cypress-real-events",
-				"@testing-library/cypress@^10",
-				"@testing-library/dom@8.17.1",
-				"@cypress/code-coverage@^3",
-			]
-		)
-		frappe.commands.popen(f"(cd ../frappe && yarn add {packages} --no-lockfile)")
-
-	# run for headless mode
-	run_or_open = f"run --browser {browser}" if headless else "open"
-	formatted_command = f"{site_env} {password_env} {coverage_env} {cypress_path} {run_or_open}"
-
-	if os.environ.get("CYPRESS_RECORD_KEY"):
-		formatted_command += " --record"
-
-	if parallel:
-		formatted_command += " --parallel"
-
-	if ci_build_id:
-		formatted_command += f" --ci-build-id {ci_build_id}"
-
-	if cypressargs:
-		formatted_command += " " + " ".join(cypressargs)
-
-	click.secho("Running Cypress...", fg="yellow")
-	frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)
-
-
 @click.command("serve")
 @click.option("--port", default=8000)
 @click.option("--profile", is_flag=True, default=False)
@@ -1192,6 +977,13 @@ def rebuild_global_search(context: CliCtxObj, static_pages=False):
 def list_sites(context: CliCtxObj, output_json=False):
 	"List all the sites in current bench"
 	site_dir = os.getcwd()
+	# Get the current site from common_site_config.json
+	common_site_config_path = os.path.join(site_dir, "common_site_config.json")
+	default_site = None
+	if os.path.exists(common_site_config_path):
+		with open(common_site_config_path) as f:
+			config = json.load(f)
+			default_site = config.get("default_site")
 	sites = [
 		site
 		for site in os.listdir(site_dir)
@@ -1204,7 +996,10 @@ def list_sites(context: CliCtxObj, output_json=False):
 	elif sites:
 		click.echo("Available sites:")
 		for site in sites:
-			click.echo(f"  {site}")
+			if site == default_site:
+				click.echo(f"* {site}")
+			else:
+				click.echo(f"  {site}")
 	else:
 		click.echo("No sites found")
 
@@ -1232,8 +1027,6 @@ commands = [
 	postgres,
 	request,
 	reset_perms,
-	run_tests,
-	run_ui_tests,
 	serve,
 	set_config,
 	show_config,
@@ -1241,6 +1034,5 @@ commands = [
 	bulk_rename,
 	add_to_email_queue,
 	rebuild_global_search,
-	run_parallel_tests,
 	list_sites,
 ]

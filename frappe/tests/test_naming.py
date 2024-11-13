@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import time
+import unittest
 from uuid import UUID
 
 import uuid_utils
@@ -21,12 +22,12 @@ from frappe.model.naming import (
 	revert_series_if_last,
 )
 from frappe.query_builder.utils import db_type_is
+from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import run_only_if
-from frappe.tests.utils import FrappeTestCase, patch_hooks
 from frappe.utils import now_datetime, nowdate, nowtime
 
 
-class TestNaming(FrappeTestCase):
+class TestNaming(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.delete("Note")
 
@@ -396,7 +397,7 @@ class TestNaming(FrappeTestCase):
 		series = "TODO-.PM.-.####"
 
 		frappe.clear_cache()
-		with patch_hooks(
+		with self.patch_hooks(
 			{
 				"naming_series_variables": {
 					"PM": ["frappe.tests.test_naming.parse_naming_series_variable"],
@@ -407,6 +408,7 @@ class TestNaming(FrappeTestCase):
 			expected_name = "TODO-" + nowdate().split("-")[1] + "-" + "0001"
 			self.assertEqual(name, expected_name)
 
+	@unittest.skip("This is not supported anymore, see #28349.")
 	@retry(
 		retry=retry_if_exception_type(AssertionError),
 		stop=stop_after_attempt(3),

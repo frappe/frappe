@@ -22,3 +22,6 @@ class ModuleProfile(Document):
 		from frappe.utils.modules import get_modules_from_all_apps
 
 		self.set_onload("all_modules", sorted(m.get("module_name") for m in get_modules_from_all_apps()))
+
+	def get_permission_log_options(self, event=None):
+		return {"fields": ["block_modules"]}

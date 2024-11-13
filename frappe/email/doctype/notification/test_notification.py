@@ -8,11 +8,11 @@ import frappe
 import frappe.utils
 import frappe.utils.scheduler
 from frappe.desk.form import assign_to
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 from .notification import trigger_notifications
 
-test_dependencies = ["User", "Notification"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["User", "Notification"]
 
 
 @contextmanager
@@ -25,7 +25,16 @@ def get_test_notification(config):
 		frappe.db.commit()
 
 
-class TestNotification(FrappeTestCase):
+class UnitTestNotification(UnitTestCase):
+	"""
+	Unit tests for Notification.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestNotification(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.delete("Email Queue")
 		frappe.set_user("test@example.com")
@@ -469,6 +478,36 @@ class TestNotification(FrappeTestCase):
 		frappe.delete_doc_if_exists("Notification", "ToDo Status Update")
 		frappe.delete_doc_if_exists("Notification", "Contact Status Update")
 
+	def test_notification_with_jinja_template(self):
+		"""Test Notification with Jinja Template"""
+		notification = frappe.get_doc(
+			{
+				"doctype": "Notification",
+				"name": "Notification with Jinja Template",
+				"subject": "{{ doc.name }}",
+				"document_type": "ToDo",
+				"event": "Save",
+				"condition": "doc.status == 'Open'",
+				"message": "{% set val = frappe.get_doc('ToDo', doc.name) %} ToDo allocated to {{ doc.allocated_to }}",
+				"channel": "Email",
+				"recipients": [{"receiver_by_document_field": "allocated_to"}],
+			}
+		).insert()
+
+		todo = frappe.new_doc("ToDo")
+		todo.description = "Checking email notification with jinja template"
+		todo.allocated_to = "test1@example.com"
+		todo.save()
+
+		email_queue = frappe.get_doc(
+			"Email Queue", {"reference_doctype": "ToDo", "reference_name": todo.name}
+		)
+		self.assertTrue(email_queue)
+
+		recipients = [d.recipient for d in email_queue.recipients]
+		self.assertTrue("test1@example.com" in recipients)
+		self.assertEqual(notification.enabled, 1)
+
 
 """
 PROOF OF TEST for TestNotificationOffsetRange below.
@@ -490,7 +529,7 @@ OK
 
 
 # from frappe.utils import add_to_date, now_datetime
-# class TestNotificationOffsetRange(FrappeTestCase):
+# class TestNotificationOffsetRange(IntegrationTestCase):
 # 	def setUp(self):
 # 		frappe.set_user("test@example.com")
 # 		# Create an event and notification before each test

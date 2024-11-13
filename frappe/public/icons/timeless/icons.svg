@@ -258,6 +258,10 @@ Tip: use lucide.svg in /icons for all downloaded icons
 		fill="#E24C4C"></path>
 	</symbol>
 
+	<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="icon-ban">
+		<circle cx="12" cy="12" r="10" />  <path d="m4.9 4.9 14.2 14.2" />
+	</symbol>
+
 	<symbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="icon-lock">
 		<circle cx="12" cy="16" r="1"/><rect x="3" y="10" width="18" height="12" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/>
 	</symbol>

@@ -2,8 +2,17 @@
 # See license.txt
 
 # import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 
-class TestPrintFormatFieldTemplate(FrappeTestCase):
+class UnitTestPrintFormatFieldTemplate(UnitTestCase):
+	"""
+	Unit tests for PrintFormatFieldTemplate.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestPrintFormatFieldTemplate(IntegrationTestCase):
 	pass

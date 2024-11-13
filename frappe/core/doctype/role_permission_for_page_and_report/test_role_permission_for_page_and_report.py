@@ -2,8 +2,17 @@
 # See license.txt
 
 # import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 
-class TestRolePermissionforPageandReport(FrappeTestCase):
+class UnitTestRolePermissionForPageAndReport(UnitTestCase):
+	"""
+	Unit tests for RolePermissionForPageAndReport.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestRolePermissionforPageandReport(IntegrationTestCase):
 	pass

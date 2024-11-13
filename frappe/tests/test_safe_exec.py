@@ -1,14 +1,14 @@
 import types
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils.safe_exec import ServerScriptNotEnabled, get_safe_globals, safe_exec
 
 
-class TestSafeExec(FrappeTestCase):
+class TestSafeExec(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
-		cls.enable_safe_exec()
+		cls.enterClassContext(cls.enable_safe_exec())
 		return super().setUpClass()
 
 	def test_import_fails(self):
@@ -124,6 +124,6 @@ class TestSafeExec(FrappeTestCase):
 		self.assertEqual(frappe.local.debug_log[-1], test_str)
 
 
-class TestNoSafeExec(FrappeTestCase):
+class TestNoSafeExec(IntegrationTestCase):
 	def test_safe_exec_disabled_by_default(self):
 		self.assertRaises(ServerScriptNotEnabled, safe_exec, "pass")

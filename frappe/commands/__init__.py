@@ -1,8 +1,5 @@
 # Copyright (c) 2015, Web Notes Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-
-import cProfile
-import pstats
 import subprocess  # nosec
 import sys
 from functools import wraps
@@ -22,6 +19,8 @@ def pass_context(f):
 	def _func(ctx, *args, **kwargs):
 		profile = ctx.obj.profile
 		if profile:
+			import cProfile
+
 			pr = cProfile.Profile()
 			pr.enable()
 
@@ -37,6 +36,8 @@ def pass_context(f):
 		if profile:
 			pr.disable()
 			s = StringIO()
+			import pstats
+
 			ps = pstats.Stats(pr, stream=s).sort_stats("cumtime", "tottime", "ncalls")
 			ps.print_stats()
 
@@ -108,6 +109,7 @@ def get_commands():
 	from .redis_utils import commands as redis_commands
 	from .scheduler import commands as scheduler_commands
 	from .site import commands as site_commands
+	from .testing import commands as testing_commands
 	from .translate import commands as translate_commands
 	from .utils import commands as utils_commands
 
@@ -115,6 +117,7 @@ def get_commands():
 	all_commands = (
 		scheduler_commands
 		+ site_commands
+		+ testing_commands
 		+ translate_commands
 		+ gettext_commands
 		+ utils_commands

@@ -66,6 +66,9 @@ class Page(Document):
 		if frappe.session.user != "Administrator" and not self.flags.ignore_permissions:
 			frappe.throw(_("Only Administrator can edit"))
 
+	def get_permission_log_options(self, event=None):
+		return {"fields": ["roles"]}
+
 	# export
 	def on_update(self):
 		"""
@@ -97,8 +100,8 @@ class Page(Document):
 }}"""
 					)
 
-	def as_dict(self, no_nulls=False):
-		d = super().as_dict(no_nulls=no_nulls)
+	def as_dict(self, **kwargs):
+		d = super().as_dict(**kwargs)
 		for key in ("script", "style", "content"):
 			d[key] = self.get(key)
 		return d

@@ -11,6 +11,7 @@
   "language",
   "column_break_3",
   "time_zone",
+  "currency",
   "enable_onboarding",
   "setup_complete",
   "disable_document_sharing",
@@ -18,6 +19,7 @@
   "date_format",
   "time_format",
   "number_format",
+  "use_number_format_from_currency",
   "first_day_of_the_week",
   "column_break_7",
   "float_precision",
@@ -677,12 +679,25 @@
    "fieldname": "rate_limit_email_link_login",
    "fieldtype": "Int",
    "label": "Rate limit for email link login"
+  },
+  {
+   "default": "0",
+   "fieldname": "use_number_format_from_currency",
+   "fieldtype": "Check",
+   "label": "Use Number Format from Currency"
+  },
+  {
+   "description": "Default display currency",
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2024-08-20 13:50:49.711427",
+ "modified": "2024-11-04 15:51:39.954876",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "webhook",
+  "reference_doctype",
   "reference_document",
   "headers",
   "data",
@@ -74,12 +75,20 @@
    "fieldtype": "Link",
    "label": "Webhook",
    "options": "Webhook"
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Reference Doctype",
+   "read_only": 1
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-03-23 16:04:03.509383",
+ "modified": "2024-09-14 05:52:41.583612",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook Request Log",

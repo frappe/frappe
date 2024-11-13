@@ -12,7 +12,6 @@ from frappe.desk.reportview import validate_args
 from frappe.model.db_query import check_parent_permission
 from frappe.model.utils import is_virtual_doctype
 from frappe.utils import get_safe_filters
-from frappe.utils.deprecations import deprecated
 
 if TYPE_CHECKING:
 	from frappe.model.document import Document
@@ -328,28 +327,9 @@ def get_password(doctype, name, fieldname):
 	return frappe.get_doc(doctype, name).get_password(fieldname)
 
 
-@frappe.whitelist()
-@deprecated
-def get_js(items):
-	"""Load JS code files.  Will also append translations
-	and extend `frappe._messages`
+from frappe.deprecation_dumpster import get_js as _get_js
 
-	:param items: JSON list of paths of the js files to be loaded."""
-	items = json.loads(items)
-	out = []
-	for src in items:
-		src = src.strip("/").split("/")
-
-		if ".." in src or src[0] != "assets":
-			frappe.throw(_("Invalid file path: {0}").format("/".join(src)))
-
-		contentpath = os.path.join(frappe.local.sites_path, *src)
-		with open(contentpath) as srcfile:
-			code = frappe.utils.cstr(srcfile.read())
-
-		out.append(code)
-
-	return out
+get_js = frappe.whitelist()(_get_js)
 
 
 @frappe.whitelist(allow_guest=True)

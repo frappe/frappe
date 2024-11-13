@@ -4,10 +4,19 @@ import textwrap
 
 import frappe
 from frappe.email.doctype.email_queue.email_queue import SendMailContext, get_email_retry_limit
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 
-class TestEmailQueue(FrappeTestCase):
+class UnitTestEmailQueue(UnitTestCase):
+	"""
+	Unit tests for EmailQueue.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestEmailQueue(IntegrationTestCase):
 	def test_email_queue_deletion_based_on_modified_date(self):
 		from frappe.email.doctype.email_queue.email_queue import EmailQueue
 

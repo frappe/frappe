@@ -1,9 +1,16 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-from frappe.tests.utils import FrappeTestCase
-
-# test_records = frappe.get_test_records('Property Setter')
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 
-class TestPropertySetter(FrappeTestCase):
+class UnitTestPropertySetter(UnitTestCase):
+	"""
+	Unit tests for PropertySetter.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestPropertySetter(IntegrationTestCase):
 	pass

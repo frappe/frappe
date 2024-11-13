@@ -85,6 +85,8 @@ frappe.ui.Sidebar = class Sidebar {
 		});
 
 		frappe.boot.app_data_map = {};
+		this.add_private_app(app_switcher_menu);
+
 		for (var app of frappe.boot.app_data) {
 			frappe.boot.app_data_map[app.app_name] = app;
 			if (app.workspaces?.length) {
@@ -111,13 +113,47 @@ frappe.ui.Sidebar = class Sidebar {
 		</div>`).appendTo(app_switcher_menu);
 	}
 
+	add_private_app(app_switcher_menu) {
+		let private_pages = this.all_pages.filter((p) => p.public === 0);
+		if (private_pages.length === 0) return;
+
+		const app = {
+			app_name: "private",
+			app_title: __("My Workspaces"),
+			app_route: "/app/private",
+			app_logo_url: "/assets/frappe/images/frappe-framework-logo.svg",
+			workspaces: private_pages,
+		};
+
+		frappe.boot.app_data_map["private"] = app;
+		$(`<div class="divider"></div>`).prependTo(app_switcher_menu);
+		$(`<div class="app-item" data-app-name="${app.app_name}"
+			data-app-route="${app.app_route}">
+			<a>
+				<div class="sidebar-item-icon">
+					<img
+						class="app-logo"
+						src="${app.app_logo_url}"
+						alt="${__("App Logo")}"
+					>
+				</div>
+				<span class="app-item-title">${app.app_title}</span>
+			</a>
+		</div>`).prependTo(app_switcher_menu);
+	}
+
 	setup_select_app(app_switcher_menu) {
 		app_switcher_menu.find(".app-item").on("click", (e) => {
 			let item = $(e.delegateTarget);
 			let route = item.attr("data-app-route");
 			app_switcher_menu.toggleClass("hidden");
 
-			if (route.startsWith("/app")) {
+			if (route.startsWith("/app/private")) {
+				this.set_current_app("private");
+				let ws = Object.values(frappe.workspace_map).find((ws) => ws.public === 0);
+				route += "/" + frappe.router.slug(ws.title);
+				frappe.set_route(route);
+			} else if (route.startsWith("/app")) {
 				frappe.set_route(route);
 				this.set_current_app(item.attr("data-app-name"));
 			} else {
@@ -132,7 +168,7 @@ frappe.ui.Sidebar = class Sidebar {
 			console.warn("set_current_app: app not defined");
 			return;
 		}
-		let app_data = frappe.boot.app_data_map[app];
+		let app_data = frappe.boot.app_data_map[app] || frappe.boot.app_data_map["frappe"];
 
 		this.wrapper
 			.find(".app-switcher-dropdown .sidebar-item-icon img")
@@ -154,7 +190,7 @@ frappe.ui.Sidebar = class Sidebar {
 			{
 				app_name: "website",
 				app_title: __("Website"),
-				app_home: "/",
+				app_route: "/",
 				app_logo_url: "/assets/frappe/images/web.svg",
 			},
 			app_switcher_menu
@@ -198,14 +234,11 @@ frappe.ui.Sidebar = class Sidebar {
 		let app_workspaces = frappe.boot.app_data_map[frappe.current_app || "frappe"].workspaces;
 
 		let parent_pages = this.all_pages.filter((p) => !p.parent_page).uniqBy((p) => p.name);
-		parent_pages = [
-			...parent_pages.filter(
-				(p) =>
-					!p.public &&
-					(app_workspaces.includes(p.name) || p.app === frappe.current_app || !p.app)
-			),
-			...parent_pages.filter((p) => p.public && app_workspaces.includes(p.name)),
-		];
+		if (frappe.current_app === "private") {
+			parent_pages = parent_pages.filter((p) => !p.public);
+		} else {
+			parent_pages = parent_pages.filter((p) => p.public && app_workspaces.includes(p.name));
+		}
 
 		this.build_sidebar_section("All", parent_pages);
 
@@ -296,6 +329,27 @@ frappe.ui.Sidebar = class Sidebar {
 	sidebar_item_container(item) {
 		item.indicator_color =
 			item.indicator_color || this.indicator_colors[Math.floor(Math.random() * 12)];
+		let path;
+		if (item.type === "Link") {
+			if (item.link_type === "Report") {
+				path = frappe.utils.generate_route({
+					type: item.link_type,
+					name: item.link_to,
+					is_query_report: item.report.report_type === "Query Report",
+					report_ref_doctype: item.report.ref_doctype,
+				});
+			} else {
+				path = frappe.utils.generate_route({ type: item.link_type, name: item.link_to });
+			}
+		} else if (item.type === "URL") {
+			path = item.external_link;
+		} else {
+			if (item.public) {
+				path = "/app/" + frappe.router.slug(item.name);
+			} else {
+				path = "/app/private/" + frappe.router.slug(item.name.split("-")[0]);
+			}
+		}
 
 		return $(`
 			<div
@@ -308,11 +362,8 @@ frappe.ui.Sidebar = class Sidebar {
 			>
 				<div class="standard-sidebar-item ${item.selected ? "selected" : ""}">
 					<a
-						href="/app/${
-							item.public
-								? frappe.router.slug(item.name)
-								: "private/" + frappe.router.slug(item.name.split("-")[0])
-						}"
+						href="${path}"
+						target="${item.type === "URL" ? "_blank" : ""}"
 						class="item-anchor ${item.is_editable ? "" : "block-click"}" title="${__(item.title)}"
 					>
 						<span class="sidebar-item-icon" item-icon=${item.icon || "folder-normal"}>

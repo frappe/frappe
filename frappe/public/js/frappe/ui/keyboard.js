@@ -187,6 +187,7 @@ frappe.ui.keys.off = function (key, page) {
 frappe.ui.keys.add_shortcut({
 	shortcut: "ctrl+s",
 	action: function (e) {
+		document.activeElement?.blur();
 		frappe.app.trigger_primary_action();
 		e.preventDefault();
 		return false;
@@ -197,6 +198,16 @@ frappe.ui.keys.add_shortcut({
 
 frappe.ui.keys.add_shortcut({
 	shortcut: "ctrl+g",
+	action: function (e) {
+		$("#navbar-search").focus();
+		e.preventDefault();
+		return false;
+	},
+	description: __("Open Awesomebar"),
+});
+
+frappe.ui.keys.add_shortcut({
+	shortcut: "ctrl+k",
 	action: function (e) {
 		$("#navbar-search").focus();
 		e.preventDefault();

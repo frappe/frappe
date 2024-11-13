@@ -4,14 +4,14 @@
 import frappe
 import frappe.utils
 from frappe.desk.query_report import build_xlsx_data, export_query, run
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils.xlsxutils import make_xlsx
 
 
-class TestQueryReport(FrappeTestCase):
+class TestQueryReport(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
-		cls.enable_safe_exec()
+		cls.enterClassContext(cls.enable_safe_exec())
 		return super().setUpClass()
 
 	def tearDown(self):

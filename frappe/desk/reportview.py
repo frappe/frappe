@@ -541,6 +541,7 @@ def delete_bulk(doctype, items):
 	undeleted_items = []
 	for i, d in enumerate(items):
 		try:
+			frappe.flags.in_bulk_delete = True
 			frappe.delete_doc(doctype, d)
 			if len(items) >= 5:
 				frappe.publish_realtime(

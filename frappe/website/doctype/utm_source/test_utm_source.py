@@ -2,8 +2,17 @@
 # See license.txt
 
 # import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 
-class TestUTMSource(FrappeTestCase):
+class UnitTestUtmSource(UnitTestCase):
+	"""
+	Unit tests for UtmSource.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestUTMSource(IntegrationTestCase):
 	pass

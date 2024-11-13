@@ -33,8 +33,8 @@ import frappe.commands.utils
 import frappe.recorder
 from frappe.installer import add_to_installed_apps, remove_app
 from frappe.query_builder.utils import db_type_is
+from frappe.tests import IntegrationTestCase, timeout
 from frappe.tests.test_query_builder import run_only_if
-from frappe.tests.utils import FrappeTestCase, timeout
 from frappe.utils import add_to_date, get_bench_path, get_bench_relative_path, now
 from frappe.utils.backups import BackupGenerator, fetch_latest_backups
 from frappe.utils.jinja_globals import bundled_asset
@@ -133,7 +133,7 @@ def cli(cmd: Command, args: list | None = None):
 			importlib.invalidate_caches()
 
 
-class BaseTestCommands(FrappeTestCase):
+class BaseTestCommands(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
 		super().setUpClass()
@@ -825,7 +825,7 @@ class TestBackups(BaseTestCommands):
 		self.assertEqual([], missing_in_backup(self.backup_map["excludes"]["excludes"], database))
 
 
-class TestRemoveApp(FrappeTestCase):
+class TestRemoveApp(IntegrationTestCase):
 	def test_delete_modules(self):
 		from frappe.installer import (
 			_delete_doctypes,
@@ -944,7 +944,7 @@ class TestSchedulerUtils(BaseTestCommands):
 			self.assertEqual(result.exit_code, 0)
 
 
-class TestCommandUtils(FrappeTestCase):
+class TestCommandUtils(IntegrationTestCase):
 	def test_bench_helper(self):
 		from frappe.utils.bench_helper import get_app_groups
 

@@ -7,11 +7,20 @@ from frappe.core.doctype.user_permission.user_permission import (
 	remove_applicable,
 )
 from frappe.permissions import add_permission, has_user_permission
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.website.doctype.blog_post.test_blog_post import make_test_blog
 
 
-class TestUserPermission(FrappeTestCase):
+class UnitTestUserPermission(UnitTestCase):
+	"""
+	Unit tests for UserPermission.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestUserPermission(IntegrationTestCase):
 	def setUp(self):
 		test_users = (
 			"test_bulk_creation_update@example.com",

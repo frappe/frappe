@@ -20,6 +20,7 @@ context("Workspace 2.0", () => {
 		cy.get(".codex-editor__redactor .ce-block");
 		cy.get(".btn-new-workspace").click();
 		cy.fill_field("title", "Test Private Page", "Data");
+		cy.fill_field("type", "Workspace", "Select");
 		cy.wait(300);
 
 		cy.get_open_dialog().find(".modal-header").click();
@@ -53,6 +54,7 @@ context("Workspace 2.0", () => {
 		cy.get(".btn-new-workspace").click();
 		cy.fill_field("title", "Test Child Page", "Data");
 		cy.fill_field("parent", "Test Private Page", "Select");
+		cy.fill_field("type", "Workspace", "Select");
 		cy.get_open_dialog().find(".modal-header").click();
 		cy.wait(300);
 		cy.get_open_dialog().find(".btn-primary").click();

@@ -82,28 +82,28 @@ class FrappeMail:
 	def validate(self, for_outbound: bool = False, for_inbound: bool = False) -> None:
 		"""Validates the mailbox for inbound and outbound emails."""
 
-		endpoint = "/api/method/mail.api.auth.validate"
+		endpoint = "/api/method/mail_client.api.auth.validate"
 		data = {"mailbox": self.mailbox, "for_outbound": for_outbound, "for_inbound": for_inbound}
 		self.request("POST", endpoint=endpoint, data=data)
 
 	def send_raw(self, sender: str, recipients: str | list, message: str) -> None:
 		"""Sends an email using the Frappe Mail API."""
 
-		endpoint = "/api/method/mail.api.outbound.send_raw"
+		endpoint = "/api/method/mail_client.api.outbound.send_raw"
 		data = {"from_": sender, "to": recipients, "raw_message": message}
 		self.request("POST", endpoint=endpoint, data=data)
 
 	def send_newsletter(self, sender: str, recipients: str | list, message: str) -> None:
 		"""Sends an newsletter using the Frappe Mail API."""
 
-		endpoint = "/api/method/mail.api.outbound.send_newsletter"
+		endpoint = "/api/method/mail_client.api.outbound.send_newsletter"
 		data = {"from_": sender, "to": recipients, "raw_message": message}
 		self.request("POST", endpoint=endpoint, json=data)
 
 	def pull_raw(self, limit: int = 50, last_synced_at: str | None = None) -> dict[str, list[str] | str]:
 		"""Pulls emails from the mailbox using the Frappe Mail API."""
 
-		endpoint = "/api/method/mail.api.inbound.pull_raw"
+		endpoint = "/api/method/mail_client.api.inbound.pull_raw"
 		if last_synced_at:
 			last_synced_at = add_or_update_tzinfo(last_synced_at)
 

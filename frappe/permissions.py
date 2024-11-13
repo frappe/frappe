@@ -388,7 +388,7 @@ def has_user_permission(doc, user=None, debug=False):
 			# get the list of all allowed values for this link
 			allowed_docs = get_allowed_docs_for_doctype(user_permissions.get(field.options, []), doctype)
 
-			if allowed_docs and d.get(field.fieldname) not in allowed_docs:
+			if allowed_docs and str(d.get(field.fieldname)) not in allowed_docs:
 				# restricted for this link field, and no matching values found
 				# make the right message and exit
 				if d.get("parentfield"):
@@ -614,15 +614,16 @@ def update_permission_property(
 	if_owner=0,
 ):
 	"""Update a property in Custom Perm"""
+	from frappe.core.doctype.custom_docperm.custom_docperm import update_custom_docperm
 	from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
 
 	out = setup_custom_perms(doctype)
 
-	name = frappe.db.get_value(
-		"Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel, if_owner=if_owner)
+	custom_docperm = frappe.db.get_value(
+		"Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel)
 	)
-	table = DocType("Custom DocPerm")
-	frappe.qb.update(table).set(ptype, value).where(table.name == name).run()
+	if custom_docperm:
+		update_custom_docperm(custom_docperm, {ptype: value})
 
 	if validate:
 		validate_permissions_for_doctype(doctype)
@@ -690,7 +691,8 @@ def reset_perms(doctype):
 	from frappe.desk.notifications import delete_notification_count_for
 
 	delete_notification_count_for(doctype)
-	frappe.db.delete("Custom DocPerm", {"parent": doctype})
+	for custom_docperm in frappe.get_all("Custom DocPerm", filters={"parent": doctype}, pluck="name"):
+		frappe.delete_doc("Custom DocPerm", custom_docperm, ignore_permissions=True)
 
 
 def get_linked_doctypes(dt: str) -> list:

@@ -51,15 +51,12 @@ frappe.ui.form.on("DocType", {
 		}
 
 		if (!frm.is_new() && !frm.doc.istable) {
-			if (frm.doc.issingle) {
-				frm.add_custom_button(__("Go to {0}", [__(frm.doc.name)]), () => {
-					window.open(`/app/${frappe.router.slug(frm.doc.name)}`);
-				});
-			} else {
-				frm.add_custom_button(__("Go to {0} List", [__(frm.doc.name)]), () => {
-					window.open(`/app/${frappe.router.slug(frm.doc.name)}`);
-				});
-			}
+			const button_text = frm.doc.issingle
+				? __("Go to {0}", [__(frm.doc.name)])
+				: __("Go to {0} List", [__(frm.doc.name)]);
+			frm.add_custom_button(button_text, () => {
+				window.open(`/app/${frappe.router.slug(frm.doc.name)}`);
+			});
 		}
 
 		const customize_form_link = `<a href="/app/customize-form">${__("Customize Form")}</a>`;

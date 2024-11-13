@@ -6,16 +6,23 @@ import frappe
 from frappe.core.doctype.communication.communication import Communication, get_emails, parse_email
 from frappe.core.doctype.communication.email import add_attachments, make
 from frappe.email.doctype.email_queue.email_queue import EmailQueue
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 if TYPE_CHECKING:
 	from frappe.contacts.doctype.contact.contact import Contact
 	from frappe.email.doctype.email_account.email_account import EmailAccount
 
-test_records = frappe.get_test_records("Communication")
+
+class UnitTestCommunication(UnitTestCase):
+	"""
+	Unit tests for Communication.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
-class TestCommunication(FrappeTestCase):
+class TestCommunication(IntegrationTestCase):
 	def test_email(self):
 		valid_email_list = [
 			"Full Name <full@example.com>",
@@ -325,7 +332,7 @@ class TestCommunication(FrappeTestCase):
 		self.assertNotEqual(normal_comm.email_status, "Spam")
 
 
-class TestCommunicationEmailMixin(FrappeTestCase):
+class TestCommunicationEmailMixin(IntegrationTestCase):
 	def new_communication(self, recipients=None, cc=None, bcc=None) -> Communication:
 		recipients = ", ".join(recipients or [])
 		cc = ", ".join(cc or [])

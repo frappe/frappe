@@ -63,7 +63,7 @@ def update_document_title(
 	title_updated = updated_title and (title_field != "name") and (updated_title != doc.get(title_field))
 	name_updated = updated_name and (updated_name != doc.name)
 
-	queue = kwargs.get("queue") or "default"
+	queue = kwargs.get("queue") or "long"
 
 	if name_updated:
 		if action_enqueued:
@@ -86,7 +86,7 @@ def update_document_title(
 				save_point=True,
 			)
 
-			doc.queue_action("rename", name=transformed_name, merge=merge, queue=queue)
+			doc.queue_action("rename", name=transformed_name, merge=merge, queue=queue, timeout=36000)
 		else:
 			doc.rename(updated_name, merge=merge)
 
@@ -228,6 +228,15 @@ def rename_doc(
 			alert=True,
 			indicator="green",
 		)
+
+	# let people watching the old form know that it has been renamed
+	frappe.publish_realtime(
+		event="doc_rename",
+		message={"doctype": doctype, "old": old, "new": new},
+		doctype=doctype,
+		docname=old,
+		after_commit=True,
+	)
 
 	return new
 

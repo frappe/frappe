@@ -1,4 +1,5 @@
 {% extends "templates/web.html" %}
+{% block navbar %}{% endblock %}
 
 {% macro email_login_body() -%}
 {% if not disable_user_pass_login or (ldap_settings and ldap_settings.enabled) %}

@@ -9,11 +9,11 @@ import frappe
 from frappe.core.doctype.user.user import generate_keys
 from frappe.frappeclient import FrappeClient, FrappeException
 from frappe.model import default_fields
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils.data import get_url
 
 
-class TestFrappeClient(FrappeTestCase):
+class TestFrappeClient(IntegrationTestCase):
 	PASSWORD = frappe.conf.admin_password or "admin"
 
 	def test_insert_many(self):

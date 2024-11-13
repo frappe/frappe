@@ -2,8 +2,17 @@
 # See license.txt
 
 # import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 
-class TestPermissionInspector(FrappeTestCase):
+class UnitTestPermissionInspector(UnitTestCase):
+	"""
+	Unit tests for PermissionInspector.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestPermissionInspector(IntegrationTestCase):
 	pass

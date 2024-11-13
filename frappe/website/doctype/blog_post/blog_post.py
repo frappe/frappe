@@ -95,6 +95,12 @@ class BlogPost(WebsiteGenerator):
 
 		self.set_read_time()
 
+		if self.is_website_published():
+			from frappe.core.doctype.file.utils import extract_images_from_doc
+
+			# Extract images first before the standard image extraction to ensure they are public.
+			extract_images_from_doc(self, "content", is_private=False)
+
 	def reset_featured_for_other_blogs(self):
 		all_posts = frappe.get_all("Blog Post", {"featured": 1})
 		for post in all_posts:

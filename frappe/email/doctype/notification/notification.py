@@ -333,21 +333,8 @@ def get_context(context):
 
 		if self.is_standard:
 			self.load_standard_properties(context)
-		try:
-			if self.channel == "Email":
-				self.send_an_email(doc, context)
 
-			if self.channel == "Slack":
-				self.send_a_slack_msg(doc, context)
-
-			if self.channel == "SMS":
-				self.send_sms(doc, context)
-
-			if self.channel == "System Notification" or self.send_system_notification:
-				self.create_system_notification(doc, context)
-
-		except Exception:
-			self.log_error("Failed to send Notification")
+		self.send_notification_by_channel(doc, context)
 
 		if self.set_property_after_alert:
 			allow_update = True
@@ -375,6 +362,20 @@ def get_context(context):
 					doc.flags.in_notification_update = False
 			except Exception:
 				self.log_error("Document update failed")
+
+	def send_notification_by_channel(self, doc, context):
+		"""Send notification based on the specified channel."""
+		try:
+			if self.channel == "Email":
+				self.send_an_email(doc, context)
+			elif self.channel == "Slack":
+				self.send_a_slack_msg(doc, context)
+			elif self.channel == "SMS":
+				self.send_sms(doc, context)
+			elif self.channel == "System Notification" or self.send_system_notification:
+				self.create_system_notification(doc, context)
+		except Exception:
+			self.log_error("Failed to send Notification")
 
 	def create_system_notification(self, doc, context):
 		subject = self.subject
@@ -734,11 +735,12 @@ def evaluate_alert(doc: Document, alert, event=None):
 
 
 def get_context(doc):
-	Frappe = namedtuple("frappe", ["utils"])
+	Frappe = namedtuple("Frappe", ["frappe"])
+	frappe = Frappe(frappe=get_safe_globals().get("frappe"))
 	return {
 		"doc": doc,
 		"nowdate": nowdate,
-		"frappe": Frappe(utils=get_safe_globals().get("frappe").get("utils")),
+		"frappe": frappe.frappe,
 	}
 
 

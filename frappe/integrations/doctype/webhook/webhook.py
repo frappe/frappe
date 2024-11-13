@@ -153,7 +153,7 @@ def enqueue_webhook(doc, webhook) -> None:
 
 	except Exception as e:
 		frappe.logger().debug({"enqueue_webhook_error": e})
-		log_request(webhook.name, doc.name, request_url, headers, data)
+		log_request(webhook.name, doc.doctype, doc.name, request_url, headers, data)
 		return
 
 	for i in range(3):
@@ -167,16 +167,16 @@ def enqueue_webhook(doc, webhook) -> None:
 			)
 			r.raise_for_status()
 			frappe.logger().debug({"webhook_success": r.text})
-			log_request(webhook.name, doc.name, request_url, headers, data, r)
+			log_request(webhook.name, doc.doctype, doc.name, request_url, headers, data, r)
 			break
 
 		except requests.exceptions.ReadTimeout as e:
 			frappe.logger().debug({"webhook_error": e, "try": i + 1})
-			log_request(webhook.name, doc.name, request_url, headers, data)
+			log_request(webhook.name, doc.doctype, doc.name, request_url, headers, data)
 
 		except Exception as e:
 			frappe.logger().debug({"webhook_error": e, "try": i + 1})
-			log_request(webhook.name, doc.name, request_url, headers, data, r)
+			log_request(webhook.name, doc.doctype, doc.name, request_url, headers, data, r)
 			sleep(3 * i + 1)
 			if i != 2:
 				continue
@@ -184,6 +184,7 @@ def enqueue_webhook(doc, webhook) -> None:
 
 def log_request(
 	webhook: str,
+	doctype: str,
 	docname: str,
 	url: str,
 	headers: dict,
@@ -194,6 +195,7 @@ def log_request(
 		{
 			"doctype": "Webhook Request Log",
 			"webhook": webhook,
+			"reference_doctype": doctype,
 			"reference_document": docname,
 			"user": frappe.session.user if frappe.session.user else None,
 			"url": url,

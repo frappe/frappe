@@ -15,7 +15,7 @@ from frappe.core.doctype.server_script.server_script_utils import get_server_scr
 from frappe.monitor import add_data_to_monitor
 from frappe.utils import cint
 from frappe.utils.csvutils import build_csv_response
-from frappe.utils.deprecations import deprecated, deprecation_warning
+from frappe.utils.deprecations import deprecated
 from frappe.utils.image import optimize_image
 from frappe.utils.response import build_response
 
@@ -173,6 +173,7 @@ def upload_file():
 				args["max_height"] = int(frappe.form_dict.max_height)
 			content = optimize_image(**args)
 
+	frappe.local.uploaded_file_url = file_url
 	frappe.local.uploaded_file = content
 	frappe.local.uploaded_filename = filename
 
@@ -240,8 +241,12 @@ def get_attr(cmd):
 	if "." in cmd:
 		method = frappe.get_attr(cmd)
 	else:
+		from frappe.deprecation_dumpster import deprecation_warning
+
 		deprecation_warning(
-			f"Calling shorthand for {cmd} is deprecated, please specify full path in RPC call."
+			"unknown",
+			"v17",
+			f"Calling shorthand for {cmd} is deprecated, please specify full path in RPC call.",
 		)
 		method = globals()[cmd]
 	return method

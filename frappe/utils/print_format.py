@@ -10,7 +10,6 @@ import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.translate import print_language
-from frappe.utils.deprecations import deprecated
 from frappe.utils.pdf import get_pdf
 
 no_cache = 1
@@ -144,8 +143,8 @@ def _download_multi_pdf(
 				frappe.publish_progress(
 					percent=(idx + 1) / total_docs * 100,
 					title=_("PDF Generation in Progress"),
-					description=_(
-						f"{idx + 1}/{total_docs} complete | Please leave this tab open until completion."
+					description=_("{0}/{1} complete | Please leave this tab open until completion.").format(
+						idx + 1, total_docs
 					),
 					task_id=task_id,
 				)
@@ -189,8 +188,8 @@ def _download_multi_pdf(
 						percent=count / total_docs * 100,
 						title=_("PDF Generation in Progress"),
 						description=_(
-							f"{count}/{total_docs} complete | Please leave this tab open until completion."
-						),
+							"{0}/{1} complete | Please leave this tab open until completion."
+						).format(count, total_docs),
 						task_id=task_id,
 					)
 		if task_id is None:
@@ -214,11 +213,7 @@ def _download_multi_pdf(
 			frappe.local.response.type = "pdf"
 
 
-@deprecated
-def read_multi_pdf(output: PdfWriter) -> bytes:
-	with BytesIO() as merged_pdf:
-		output.write(merged_pdf)
-		return merged_pdf.getvalue()
+from frappe.deprecation_dumpster import read_multi_pdf
 
 
 @frappe.whitelist(allow_guest=True)

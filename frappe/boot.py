@@ -100,6 +100,7 @@ def get_bootinfo():
 	bootinfo.update(get_email_accounts(user=frappe.session.user))
 	bootinfo.energy_points_enabled = is_energy_point_enabled()
 	bootinfo.website_tracking_enabled = is_tracking_enabled()
+	bootinfo.sms_gateway_enabled = bool(frappe.db.get_single_value("SMS Settings", "sms_gateway_url"))
 	bootinfo.points = get_energy_points(frappe.session.user)
 	bootinfo.frequently_visited_links = frequently_visited_links()
 	bootinfo.link_preview_doctypes = get_link_preview_doctypes()
@@ -437,16 +438,9 @@ def add_layouts(bootinfo):
 
 
 def get_desk_settings():
-	role_list = frappe.get_all("Role", fields=["*"], filters=dict(name=["in", frappe.get_roles()]))
-	desk_settings = {}
+	from frappe.core.doctype.user.user import desk_properties
 
-	from frappe.core.doctype.role.role import desk_properties
-
-	for role in role_list:
-		for key in desk_properties:
-			desk_settings[key] = desk_settings.get(key) or role.get(key)
-
-	return desk_settings
+	return frappe.get_value("User", frappe.session.user, desk_properties, as_dict=True)
 
 
 def get_notification_settings():

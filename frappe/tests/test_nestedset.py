@@ -8,7 +8,7 @@ from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.treeview import get_children
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Max
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import random_string
 from frappe.utils.nestedset import (
 	NestedSetChildExistsError,
@@ -83,7 +83,7 @@ class NestedSetTestUtil:
 		return len(get_descendants_of(TEST_DOCTYPE, record_name, ignore_permissions=True))
 
 
-class TestNestedSet(FrappeTestCase):
+class TestNestedSet(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
 		cls.nsu = NestedSetTestUtil()

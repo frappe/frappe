@@ -6,7 +6,7 @@ from rq import Queue
 
 import frappe
 from frappe.core.doctype.rq_job.rq_job import remove_failed_jobs
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils.background_jobs import (
 	RQ_JOB_FAILURE_TTL,
 	RQ_RESULTS_TTL,
@@ -17,7 +17,7 @@ from frappe.utils.background_jobs import (
 )
 
 
-class TestBackgroundJobs(FrappeTestCase):
+class TestBackgroundJobs(IntegrationTestCase):
 	def test_remove_failed_jobs(self):
 		frappe.enqueue(method="frappe.tests.test_background_jobs.fail_function", queue="short")
 		# wait for enqueued job to execute

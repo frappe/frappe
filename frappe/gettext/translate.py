@@ -134,7 +134,7 @@ def generate_pot(target_app: str | None = None):
 	keywords["_lt"] = None
 
 	for app in apps:
-		app_path = frappe.get_pymodule_path(app)
+		app_path = frappe.get_pymodule_path(app, "..")
 		catalog = new_catalog(app)
 
 		# Each file will only be processed by the first method that matches,
