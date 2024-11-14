@@ -462,7 +462,8 @@ def validate_link(doctype: str, docname: str, fields=None, args=None):
 			)
 		return values
 
-	values.name = frappe.db.get_value(doctype, filters, cache=True)
+	result = frappe.db.get_list(doctype, filters = filters,pluck = 'name')
+	if result: values.name = result[0]
 
 	fields = frappe.parse_json(fields)
 	if not values.name or not fields:
