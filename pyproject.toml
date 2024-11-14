@@ -225,6 +225,7 @@ files = [
     "frappe/types/DF.py",
     "frappe/types/docref.py",
     "frappe/types/frappedict.py",
+    "frappe/types/filter.py",
 ]
 exclude = [
     # permanent excludes
