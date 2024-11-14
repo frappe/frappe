@@ -1091,13 +1091,20 @@ const zoomLevels = {
 		}
 
 		function getQuotationIcon() {
+			const QuotationStatus = {
+				Declined: 'Quotation Declined',
+				AwaitingApproval: 'Awaiting approval quotation',
+				Approved: 'Quotation approved',
+				AwaitingPayment: 'Invoice send awaiting payment',
+				PaymentReady: 'Payment ready.'
+			}
 			const status = card.doc.payment_status
 			const opts = {
-				'Quotation Declined': { class: 'blink-red' },
-				'Awaiting approval quotation': { color: '#949418' },
-				'Quotation approved': { color: 'green' },
-				'Invoice send awaiting payment': { color: '#4287f5' },
-				'Payment ready.': { color: '#005bed' }
+				[QuotationStatus.Declined]: { class: 'blink-red' },
+				[QuotationStatus.AwaitingApproval]: { color: '#949418' },
+				[QuotationStatus.Approved]: { color: 'green' },
+				[QuotationStatus.AwaitingPayment]: { color: '#4287f5' },
+				[QuotationStatus.PaymentReady]: { color: '#005bed' }
 			}
 
 			if(status === "No") return ''
