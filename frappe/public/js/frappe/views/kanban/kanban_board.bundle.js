@@ -1030,6 +1030,7 @@ const zoomLevels = {
 			html += getPartsIcons()
 			html += getSoftwareIcons()
 			html += getLoanCarIcons()
+			html += getPickupIcon()
 			html += getQuotationIcon()
 
 			if (card.color && frappe.ui.color.validate_hex(card.color)) {
@@ -1092,9 +1093,16 @@ const zoomLevels = {
 		function getQuotationIcon() {
 			const status = card.doc.payment_status
 			const opts = {
-				'Quotation Declined': { class: 'blink-red' }
+				'Quotation Declined': { class: 'blink-red' },
+				'Awaiting approval quotation': { color: '#949418' },
+				'Quotation approved': { color: 'green' },
+				'Invoice send awaiting payment': { color: '#4287f5' },
+				'Payment ready.': { color: '#005bed' }
 			}
-			return `<i class="fa-light fa-file-invoice ${opts[status]?.class ?? ''}" title="${status}"></i>`;
+
+			if(status === "No") return ''
+
+			return `<i class="fa fa-file ${opts[status]?.class ?? ''}" style="color:${opts[status]?.color ?? 'red'}" title="${status}"></i>`;
 		}
 
 		function getSoftwareIcons() {
@@ -1122,6 +1130,13 @@ const zoomLevels = {
 				html = `<svg xmlns="http://www.w3.org/2000/svg" height="14" width="14" viewBox="0 0 512 512"><path class="fa-secondary" opacity=".4" fill="#33ad53" d="M303.1 348.9l.1 .1-24 27a24 24 0 0 1 -17.9 8H224v40a24 24 0 0 1 -24 24h-40v40a24 24 0 0 1 -24 24H24a24 24 0 0 1 -24-24v-78a24 24 0 0 1 7-17l161.8-161.8-.1-.4a176.2 176.2 0 0 0 134.3 118.1z"/><path class="fa-primary" fill="#33ad53" d="M336 0a176 176 0 1 0 176 176A176 176 0 0 0 336 0zm48 176a48 48 0 1 1 48-48 48 48 0 0 1 -48 48z"/></svg>`;
 			}
 			return html
+		}
+
+		function getPickupIcon() {
+			const status = card.doc.pickup
+			if(!status) return ''
+
+			return `<i class="fa fa-taxi" style="color:green;" title="Pickup"></i>`;
 		}
 
 		function show_assign_to_dialog(e) {
