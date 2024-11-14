@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, Ref } from "vue"
+import { ref, computed, onMounted, Ref, watchEffect, nextTick } from "vue"
 
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import BoxResizer from "@/components/BoxResizer.vue"
@@ -111,6 +111,25 @@ const handleClick = (ev: MouseEvent) => {
 		element.dispatchEvent(new MouseEvent("click", ev))
 	}
 }
+
+watchEffect(() => {
+	const parentBlock = props.block.getParentBlock()
+	// on rearranging blocks
+	parentBlock?.getChildIndex(props.block)
+
+	// on changing panel states
+	store.studioLayout.leftPanelWidth
+	store.studioLayout.rightPanelWidth
+	store.studioLayout.showLeftPanel
+	store.studioLayout.showRightPanel
+
+	store.activeBreakpoint
+	store.canvas?.canvasProps.breakpoints.map((breakpoint) => breakpoint.visible)
+
+	nextTick(() => {
+		updateTracker.value()
+	})
+})
 
 onMounted(() => {
 	updateTracker.value = trackTarget(props.target, editor.value, store.canvas?.canvasProps as CanvasProps)
