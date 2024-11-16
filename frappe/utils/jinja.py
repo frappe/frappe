@@ -6,11 +6,15 @@ if TYPE_CHECKING:
 	from frappe.model.document import DocumentProxy
 
 
+class ProcessedContext(dict):
+	"""A simple wrapper class to indicate that the context has been processed"""
+
+
 def process_context(
 	context: dict[Any],
 	for_code_completion: bool = False,
 	document_proxy_class: type["DocumentProxy"] | None = None,
-):
+) -> ProcessedContext:
 	from frappe.model.document import Document, DocumentProxy
 
 	if not document_proxy_class:  # lazy import
@@ -39,7 +43,7 @@ def process_context(
 				return {k: process_value(v, depth + 1) for k, v in value.items()}
 			return value
 
-		return {key: process_value(value) for key, value in context.items()}
+		return ProcessedContext({key: process_value(value) for key, value in context.items()})
 
 
 def get_jenv():
@@ -113,9 +117,9 @@ def validate_template(html):
 
 def render_template(
 	template,
-	context=None,
-	is_path=None,
-	safe_render=True,
+	context: dict[str, Any] | ProcessedContext | None = None,
+	is_path: bool = False,
+	safe_render: bool = True,
 	document_proxy_class: type["DocumentProxy"] | None = None,
 ):
 	"""Render a template using Jinja
@@ -136,7 +140,8 @@ def render_template(
 	if context is None:
 		context = {}
 
-	context = process_context(context, document_proxy_class=document_proxy_class)
+	if not isinstance(context, ProcessedContext):
+		context = process_context(context, document_proxy_class=document_proxy_class)
 
 	jenv: SandboxedEnvironment = get_jenv()
 	if is_path or guess_is_path(template):
