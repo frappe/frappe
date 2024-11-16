@@ -32,7 +32,8 @@
 	  "src/**/*.tsx",
 	  "src/**/*.vue",
 	  "tests/**/*.ts",
-	  "tests/**/*.tsx"
+	  "tests/**/*.tsx",
+	  "src/scripts/tsToJSONGenerator.mjs"
 	],
 	"exclude": [
 	  "node_modules"

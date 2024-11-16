@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "TreeNode": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TreeNode"
+          }
+        }
+      },
+      "required": [
+        "label",
+        "children"
+      ],
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/TreeNode"
+            }
+          }
+        ]
+      }
+    },
+    "TreeOptions": {
+      "type": "object",
+      "properties": {
+        "rowHeight": {
+          "type": "string"
+        },
+        "indentWidth": {
+          "type": "string"
+        },
+        "showIndentationGuides": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

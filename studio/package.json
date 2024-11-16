@@ -6,7 +6,8 @@
 		"dev": "vite",
 		"build": "vite build --base=/assets/studio/frontend/ && yarn copy-html-entry",
 		"copy-html-entry": "cp ../studio/public/frontend/index.html ../studio/www/studio.html",
-		"serve": "vite preview"
+		"serve": "vite preview",
+		"extract-frappeui-types": "node src/scripts/tsToJSONGenerator.mjs"
 	},
 	"dependencies": {
 		"@vitejs/plugin-vue": "^4.2.3",
@@ -18,6 +19,7 @@
 		"frappe-ui": "^0.1.69",
 		"lucide-vue-next": "^0.427.0",
 		"pinia": "^2.2.1",
+		"ts-json-schema-generator": "^2.3.0",
 		"vite": "^4.4.9",
 		"vue": "^3.4.12",
 		"vue-router": "^4.2.2",
