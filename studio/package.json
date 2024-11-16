@@ -7,7 +7,8 @@
 		"build": "vite build --base=/assets/studio/frontend/ && yarn copy-html-entry",
 		"copy-html-entry": "cp ../studio/public/frontend/index.html ../studio/www/studio.html",
 		"serve": "vite preview",
-		"extract-frappeui-types": "node src/scripts/tsToJSONGenerator.mjs"
+		"extract-frappeui-types": "node src/scripts/tsToJSONGenerator.mjs frappe-ui",
+		"extract-studio-types": "node src/scripts/tsToJSONGenerator.mjs studio"
 	},
 	"dependencies": {
 		"@vitejs/plugin-vue": "^4.2.3",
