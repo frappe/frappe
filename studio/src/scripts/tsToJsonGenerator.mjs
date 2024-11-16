@@ -22,10 +22,10 @@ for (const file of componentFiles) {
 	})
 
 	const schema = generator.createSchema()
-	const outputDirPath = path.join(root, "src", "frappeui_types")
+	const outputDirPath = path.join(root, "src", "json_types", "frappeui")
 
 	if (!fs.existsSync(outputDirPath)) {
-		fs.mkdirSync(outputDirPath)
+		fs.mkdirSync(outputDirPath, { recursive: true })
 	}
 
 	const outputFilePath = path.resolve(outputDirPath, `${file.replace(".ts", "")}.json`)
