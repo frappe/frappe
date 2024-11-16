@@ -22,9 +22,9 @@
 import { Avatar, FeatherIcon } from "frappe-ui"
 import { ref } from "vue"
 
-import { AvatarCard } from "@/types/studioComponents"
+import { AvatarCardProps } from "@/types/studio_components/AvatarCard"
 
-defineProps<AvatarCard>()
+defineProps<AvatarCardProps>()
 
 const isLiked = ref(false)
 

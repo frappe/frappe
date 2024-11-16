@@ -28,22 +28,9 @@
 
 <script setup lang="ts">
 import AppLogo from "../Icons/AppLogo.vue"
+import { HeaderProps } from "@/types/studio_components/Header"
 
-interface MenuItem {
-	label: string
-	action: () => void
-}
-
-withDefaults(
-	defineProps<{
-		title?: string
-		logoSVG?: string
-		hideLogo?: boolean
-		menuItems?: MenuItem[]
-		hideMenu?: boolean
-	}>(),
-	{
-		menuItems: () => [],
-	},
-)
+withDefaults(defineProps<HeaderProps>(), {
+	menuItems: () => [],
+})
 </script>

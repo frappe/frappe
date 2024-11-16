@@ -5,7 +5,7 @@
 			<AvatarCard
 				v-for="card in cards"
 				class="cursor-pointer"
-				:key="card[rowKey as keyof IAvatarCard]"
+				:key="card[rowKey as keyof AvatarCardProps]"
 				:imageURL="card.imageURL"
 				:title="card.title"
 				:subtitle="card.subtitle"
@@ -23,30 +23,17 @@
 
 <script setup lang="ts">
 import { ref } from "vue"
-import type { PropType } from "vue"
 import AvatarCard from "@/components/AppLayout/AvatarCard.vue"
-import { AvatarCard as IAvatarCard } from "@/types/studioComponents"
+import { AvatarCardProps } from "@/types/studio_components/AvatarCard"
+import { CardListProps, CardListEmits } from "@/types/studio_components/CardList"
 
-const emit = defineEmits<{
-	onRowClick: [card: IAvatarCard]
-}>()
-
-const props = defineProps({
-	title: {
-		type: String,
-	},
-	cards: {
-		type: Array as PropType<IAvatarCard[]>,
-		required: true,
-		default: () => [],
-	},
-	rowKey: {
-		type: String,
-		default: "name",
-	},
+const emit = defineEmits<CardListEmits>()
+withDefaults(defineProps<CardListProps>(), {
+	cards: () => [],
+	rowKey: "name",
 })
 
-const selectedCard = ref<IAvatarCard | null>(null)
+const selectedCard = ref<AvatarCardProps | null>(null)
 defineExpose({
 	selectedCard,
 })

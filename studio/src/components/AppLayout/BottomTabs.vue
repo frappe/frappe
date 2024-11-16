@@ -17,14 +17,7 @@
 
 <script setup lang="ts">
 import { FeatherIcon } from "frappe-ui"
+import { BottomTabsProps } from "@/types/studio_components/BottomTabs"
 
-interface Tab {
-	label: string
-	route: string
-	icon: string
-}
-
-defineProps<{
-	tabs: [Tab, Tab]
-}>()
+defineProps<{ tabs: BottomTabsProps }>()
 </script>

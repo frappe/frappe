@@ -29,21 +29,7 @@
 <script setup lang="ts">
 import AppLogo from "../Icons/AppLogo.vue"
 import LucideIcon from "../LucideIcon.vue"
+import { AppHeaderProps } from "@/types/studio_components/AppHeader"
 
-defineProps({
-	title: {
-		type: String,
-	},
-	logoSVG: {
-		type: String,
-	},
-	hideLogo: {
-		type: Boolean,
-		default: false,
-	},
-	hideBackButton: {
-		type: Boolean,
-		default: false,
-	},
-})
+defineProps<AppHeaderProps>()
 </script>

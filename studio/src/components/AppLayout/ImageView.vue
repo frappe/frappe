@@ -6,15 +6,9 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
+import { ImageViewProps } from "@/types/studio_components/ImageView"
 
-interface ImageProps {
-	image?: string
-	alt?: string
-	size?: "xs" | "sm" | "md" | "lg"
-	shape?: "circle" | "square"
-}
-
-const props = withDefaults(defineProps<ImageProps>(), {
+const props = withDefaults(defineProps<ImageViewProps>(), {
 	size: "lg",
 	shape: "square",
 })
