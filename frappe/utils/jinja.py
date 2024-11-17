@@ -79,6 +79,7 @@ def render_template(template, context=None, is_path=None, safe_render=True):
 	"""
 
 	from jinja2 import TemplateError
+	from jinja2.sandbox import SandboxedEnvironment
 
 	from frappe import _, get_traceback, throw
 
@@ -88,18 +89,28 @@ def render_template(template, context=None, is_path=None, safe_render=True):
 	if context is None:
 		context = {}
 
+	jenv: SandboxedEnvironment = get_jenv()
 	if is_path or guess_is_path(template):
-		return get_jenv().get_template(template).render(context)
+		compiled_template = jenv.get_template(template)
 	else:
 		if safe_render and ".__" in template:
 			throw(_("Illegal template"))
 		try:
-			return get_jenv().from_string(template).render(context)
+			compiled_template = jenv.from_string(template)
 		except TemplateError:
+			import html
+
 			throw(
 				title="Jinja Template Error",
-				msg=f"<pre>{template}</pre><pre>{get_traceback()}</pre>",
+				msg=f"<pre>{template}</pre><pre>{html.escape(get_traceback())}</pre>",
 			)
+
+	try:
+		return compiled_template.render(context)
+	except Exception as e:
+		import html
+
+		throw(title="Context Error", msg=f"<pre>{html.escape(get_traceback())}</pre>", exc=e)
 
 
 def guess_is_path(template):
