@@ -16,6 +16,7 @@ def process_context(
 	document_proxy_class: type["DocumentProxy"] | None = None,
 ) -> ProcessedContext:
 	from frappe.model.document import Document, DocumentProxy
+	from frappe.types import _dict
 
 	if not document_proxy_class:  # lazy import
 		document_proxy_class = DocumentProxy
@@ -40,7 +41,7 @@ def process_context(
 			if isinstance(value, Document):
 				return document_proxy_class(value.doctype, value.name)
 			elif isinstance(value, dict) and not depth >= 2:
-				return {k: process_value(v, depth + 1) for k, v in value.items()}
+				return _dict({k: process_value(v, depth + 1) for k, v in value.items()})
 			return value
 
 		return ProcessedContext({key: process_value(value) for key, value in context.items()})
