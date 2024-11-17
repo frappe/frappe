@@ -78,7 +78,10 @@ def _basedoc(doc: BaseDocument, *args, **kwargs) -> "Document":
 
 
 @get_doc.register(DocRef)
-def _docref(doc_ref: DocRef, **kwargs) -> "Document":
+def _docref(doc_ref: DocRef, *args, **kwargs) -> "Document":
+	if args:
+		# compat with frappe.get_doc(d.ref_doctype, d.ref_docname)
+		return _docref(args[0], **kwargs)
 	return get_doc(doc_ref.doctype, doc_ref.name, **kwargs)
 
 
