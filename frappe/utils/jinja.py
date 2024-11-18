@@ -39,7 +39,7 @@ def process_context(
 
 		def process_value(value, depth=0):
 			if isinstance(value, Document):
-				return document_proxy_class(value.doctype, value.name)
+				return document_proxy_class(value.doctype, value.name, doc=value)
 			elif isinstance(value, dict) and not depth >= 2:
 				return _dict({k: process_value(v, depth + 1) for k, v in value.items()})
 			return value

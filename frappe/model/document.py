@@ -166,9 +166,9 @@ def read_only_document(context=None):
 
 
 class DocumentProxy(DocRef):
-	def __init__(self, doctype, name, parent=None):
+	def __init__(self, doctype, name, parent=None, doc=None):
 		super().__init__(doctype, name)
-		self._doc = None
+		self.__dict__["_doc"] = doc
 		self._super = parent or self
 
 	@classmethod
@@ -191,6 +191,20 @@ class DocumentProxy(DocRef):
 		}
 
 	@property
+	def _doc(self):
+		if self.__dict__["_doc"] is None:
+			# print("Last 3 frames of the traceback:")
+			# import traceback
+
+			# for frame in traceback.extract_stack()[-4:-1]:  # Get the last 3 frames, excluding this line
+			# 	filename, line_number, function_name, text = frame
+			# 	print(f"  File '{filename}', line {line_number}, in {function_name}")
+			# 	if text:
+			# 		print(f"    {text.strip()}")
+			self.__dict__["_doc"] = frappe.get_doc(self.doctype, self.name)
+		return self.__dict__["_doc"]
+
+	@property
 	def _fieldnames(self):
 		return self._get_fields(self.doctype).keys()
 
@@ -201,8 +215,6 @@ class DocumentProxy(DocRef):
 		if attr in self._fieldnames:
 			value = None
 			if self.name:
-				if self._doc is None:
-					self._doc = frappe.get_doc(self.doctype, self.name)
 				value = self._doc.get(attr)
 			field = self._fields(attr)
 			if field.fieldtype == "Link":
