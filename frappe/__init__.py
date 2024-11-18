@@ -1058,7 +1058,8 @@ def clear_cache(user: str | None = None, doctype: str | None = None):
 			get_attr(fn)()
 
 	frappe.utils.caching._SITE_CACHE.clear()
-	DocumentProxy._get_fields.cache_clear()
+	DocumentProxy._fields_cache.clear()
+	DocumentProxy._values_cache.clear()
 	local.role_permissions = {}
 	if hasattr(local, "request_cache"):
 		local.request_cache.clear()

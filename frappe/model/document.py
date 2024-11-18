@@ -3,11 +3,12 @@
 import hashlib
 import json
 import time
+from collections import defaultdict
 from collections.abc import Generator, Iterable
 from contextlib import contextmanager
-from functools import cache, singledispatchmethod, wraps
+from functools import singledispatchmethod, wraps
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, Union, overload
+from typing import TYPE_CHECKING, Any, ClassVar, Literal, Optional, TypeAlias, Union, overload
 
 from werkzeug.exceptions import NotFound
 
@@ -166,29 +167,35 @@ def read_only_document(context=None):
 
 
 class DocumentProxy(DocRef):
+	_fields_cache: ClassVar = {}
+	_values_cache: ClassVar = defaultdict(dict)
+	_undefined = object()
+
 	def __init__(self, doctype, name, parent=None, doc=None):
 		super().__init__(doctype, name)
 		self.__dict__["_doc"] = doc
 		self._super = parent or self
 
 	@classmethod
-	@cache
 	def _get_fields(cls, doctype):
-		from frappe.model import data_fieldtypes, default_fields, table_fields
-		from frappe.model.meta import get_default_df
+		cache_key = (frappe.local.site, doctype)
+		if cache_key not in cls._fields_cache:
+			from frappe.model import data_fieldtypes, default_fields, table_fields
+			from frappe.model.meta import get_default_df
 
-		meta = frappe.get_meta(doctype)
+			meta = frappe.get_meta(doctype)
 
-		return {
-			# all meta fields with values
-			f.fieldname: f
-			for f in meta.fields
-			if f.fieldtype in (*data_fieldtypes, *table_fields)
-		} | {
-			# all default fields
-			f.fieldname: f
-			for f in (get_default_df(n) for n in default_fields)
-		}
+			cls._fields_cache[cache_key] = {
+				# all meta fields with values
+				f.fieldname: f
+				for f in meta.fields
+				if f.fieldtype in (*data_fieldtypes, *table_fields)
+			} | {
+				# all default fields
+				f.fieldname: f
+				for f in (get_default_df(n) for n in default_fields)
+			}
+		return cls._fields_cache[cache_key]
 
 	@property
 	def _doc(self):
@@ -211,7 +218,7 @@ class DocumentProxy(DocRef):
 	def _fields(self, fieldname):
 		return self._get_fields(self.doctype)[fieldname]
 
-	def __getattr__(self, attr):
+	def __getattr_value__(self, attr):
 		if attr in self._fieldnames:
 			value = None
 			if self.name:
@@ -226,10 +233,17 @@ class DocumentProxy(DocRef):
 			if field.fieldtype in ("Table", "Table MultiSelect"):
 				linked_doctype = field.options
 				return DocumentProxyList(linked_doctype, [v.name for v in value], self)
-
 			return value
-		else:
-			return getattr(self._doc, attr, None)
+		return self._undefined
+
+	def __getattr__(self, attr):
+		cache_key = (self.doctype, str(self.name), attr)
+		if cache_key not in self._values_cache[frappe.local.site]:
+			value = self.__getattr_value__(attr)
+			if value is self._undefined:
+				return getattr(self._doc, attr, None)
+			self._values_cache[frappe.local.site][cache_key] = value
+		return self._values_cache[frappe.local.site][cache_key]
 
 	def __getitem__(self, key):
 		return self.__getattr__(key)
@@ -250,20 +264,30 @@ class DocumentProxy(DocRef):
 	def __bool__(self):
 		return bool(self.name)
 
+	# def __del__(self) -> None:
+	# 	print(f"deleting {self.doctype} {self}")
+
 
 class DocumentProxyList:
 	def __init__(self, doctype: str, values: list[str], parent):
 		self.doctype = doctype
 		self.values = values
 		self._super = parent
+		self._cached_items = None
 
 	def __iter__(self):
-		for value in self.values:
-			yield type(self._super)(self.doctype, value, self._super)
+		if self._cached_items is None:
+			self._cached_items = [
+				type(self._super)(self.doctype, value, self._super) for value in self.values
+			]
+		yield from self._cached_items
 
 	def __getitem__(self, index):
-		value = self.values[index]
-		return type(self._super)(self.doctype, value, self._super)
+		if self._cached_items is None:
+			self._cached_items = [
+				type(self._super)(self.doctype, value, self._super) for value in self.values
+			]
+		return self._cached_items[index]
 
 	def __len__(self):
 		return len(self.values)

@@ -136,7 +136,9 @@ def render_template(
 	from jinja2 import TemplateError
 	from jinja2.sandbox import SandboxedEnvironment
 
-	from frappe import _, get_traceback, throw
+	import frappe
+	from frappe import _
+	from frappe.model.document import DocumentProxy
 
 	if context is None:
 		context = {}
@@ -150,15 +152,15 @@ def render_template(
 		compiled_template = jenv.get_template(template)
 	else:
 		if safe_render and ".__" in template:
-			throw(_("Illegal template"))
+			frappe.throw(_("Illegal template"))
 		try:
 			compiled_template = jenv.from_string(template)
 		except TemplateError:
 			import html
 
-			throw(
+			frappe.throw(
 				title="Jinja Template Error",
-				msg=f"<pre>{template}</pre><pre>{html.escape(get_traceback())}</pre>",
+				msg=f"<pre>{template}</pre><pre>{html.escape(frappe.get_traceback())}</pre>",
 			)
 
 	import time
@@ -172,8 +174,10 @@ def render_template(
 	except Exception as e:
 		import html
 
-		throw(title="Context Error", msg=f"<pre>{html.escape(get_traceback())}</pre>", exc=e)
+		frappe.throw(title="Context Error", msg=f"<pre>{html.escape(frappe.get_traceback())}</pre>", exc=e)
 	finally:
+		if site := getattr(frappe.local, "site", None):
+			DocumentProxy._values_cache[site].clear()
 		if is_path:
 			logger.debug(f"Rendering time: {time.monotonic() - start_time:.6f} seconds ({template})")
 		else:
