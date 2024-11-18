@@ -77,20 +77,20 @@ def render_template(template, context=None, is_path=None, safe_render=True):
 	:param is_path: (optional) assert that the `template` parameter is a path
 	:param safe_render: (optional) prevent server side scripting via jinja templating
 	"""
+	if not template:
+		return ""
 
 	from jinja2 import TemplateError
 	from jinja2.sandbox import SandboxedEnvironment
 
 	from frappe import _, get_traceback, throw
 
-	if not template:
-		return ""
-
 	if context is None:
 		context = {}
 
 	jenv: SandboxedEnvironment = get_jenv()
 	if is_path or guess_is_path(template):
+		is_path = True
 		compiled_template = jenv.get_template(template)
 	else:
 		if safe_render and ".__" in template:
@@ -105,12 +105,23 @@ def render_template(template, context=None, is_path=None, safe_render=True):
 				msg=f"<pre>{template}</pre><pre>{html.escape(get_traceback())}</pre>",
 			)
 
+	import time
+
+	from frappe.utils.logger import get_logger
+
+	logger = get_logger("render-template")
 	try:
+		start_time = time.monotonic()
 		return compiled_template.render(context)
 	except Exception as e:
 		import html
 
 		throw(title="Context Error", msg=f"<pre>{html.escape(get_traceback())}</pre>", exc=e)
+	finally:
+		if is_path:
+			logger.debug(f"Rendering time: {time.monotonic() - start_time:.6f} seconds ({template})")
+		else:
+			logger.debug(f"Rendering time: {time.monotonic() - start_time:.6f} seconds")
 
 
 def guess_is_path(template):
