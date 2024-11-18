@@ -553,7 +553,7 @@ def msgprint(
 	wide: bool = False,
 	*,
 	realtime=False,
-	__frappe_exc_id: str | None = None,
+	_frappe_exc_id: str | None = None,
 ) -> None:
 	"""Print a message to the user (via HTTP response).
 	Messages are sent in the `__server_messages` property in the
@@ -580,8 +580,8 @@ def msgprint(
 				exc = raise_exception(msg)
 			else:
 				exc = ValidationError(msg)
-			if out.__frappe_exc_id:
-				exc.__frappe_exc_id = out.__frappe_exc_id
+			if out._frappe_exc_id:
+				exc._frappe_exc_id = out._frappe_exc_id
 			raise exc
 
 	if flags.mute_messages:
@@ -617,9 +617,9 @@ def msgprint(
 	if alert:
 		out.alert = 1
 
-	if raise_exception or __frappe_exc_id:
+	if raise_exception or _frappe_exc_id:
 		out.raise_exception = 1
-		out.__frappe_exc_id = __frappe_exc_id or generate_hash()
+		out._frappe_exc_id = _frappe_exc_id or generate_hash()
 
 	if primary_action:
 		out.primary_action = primary_action
@@ -654,7 +654,7 @@ def clear_last_message():
 class Throw(Exception):
 	def __init__(self, msg, title=None, is_minimizable=False, wide=False, as_list=False, primary_action=None):
 		super().__init__(msg)
-		self.__frappe_exc_id = generate_hash()
+		self._frappe_exc_id = generate_hash()
 		msgprint(
 			msg,
 			title=title,
@@ -663,7 +663,7 @@ class Throw(Exception):
 			wide=wide,
 			as_list=as_list,
 			primary_action=primary_action,
-			__frappe_exc_id=self.__frappe_exc_id,
+			_frappe_exc_id=self._frappe_exc_id,
 		)
 
 
@@ -697,7 +697,7 @@ def throw(
 	)
 	# Raise the specified exception
 	exception = exc(str(throw_instance))
-	exception.__frappe_exc_id = throw_instance.__frappe_exc_id
+	exception._frappe_exc_id = throw_instance._frappe_exc_id
 	raise exception
 
 

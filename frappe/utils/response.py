@@ -64,11 +64,11 @@ def report_error(status_code):
 
 def _link_error_with_message_log(error_log, exception, message_logs):
 	for message in list(message_logs):
-		if message.get("__frappe_exc_id") == getattr(exception, "__frappe_exc_id", None):
+		if message.get("_frappe_exc_id") == getattr(exception, "_frappe_exc_id", None):
 			error_log.update(message)
 			message_logs.remove(message)
 			error_log.pop("raise_exception", None)
-			error_log.pop("__frappe_exc_id", None)
+			error_log.pop("_frappe_exc_id", None)
 			return
 
 
