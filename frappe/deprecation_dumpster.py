@@ -33,8 +33,7 @@ class Color:
 	CYAN = 96
 
 
-class FrappeDeprecationWarning(Warning):
-	...
+class FrappeDeprecationWarning(Warning): ...
 
 
 try:
@@ -904,3 +903,52 @@ def compat_preload_test_records_upfront(candidates: list):
 						doc = json.loads(f.read())
 						doctype = doc["name"]
 						make_test_records(doctype, commit=True)
+
+
+sentinel = object()
+
+
+@deprecated(
+	"frappe.throw",
+	"2024-11-18",
+	"v17",
+	"Instead, use with same arguments the more pythonic `raise frappe.Throw(...) from e` for re-raise or `raise frappe.Throw(...)` otherwise",
+)
+def throw(
+	msg: str,
+	exc: type[Exception] = sentinel,
+	title: str | None = None,
+	is_minimizable: bool = False,
+	wide: bool = False,
+	as_list: bool = False,
+	primary_action=None,
+) -> None:
+	"""Throw execption and show message (`msgprint`).
+
+	:param msg: Message.
+	:param exc: Exception class. Default `frappe.ValidationError`
+	:param title: [optional] Message title. Default: "Message".
+	:param is_minimizable: [optional] Allow users to minimize the modal
+	:param wide: [optional] Show wide modal
+	:param as_list: [optional] If `msg` is a list, render as un-ordered list.
+	:param primary_action: [optional] Bind a primary server/client side action.
+	"""
+	import frappe
+
+	if exc is sentinel:
+		exc = frappe.ValidationError
+	# Create and raise the Throw instance
+	throw_instance = frappe.Throw(
+		msg,
+		title=title,
+		is_minimizable=is_minimizable,
+		wide=wide,
+		as_list=as_list,
+		primary_action=primary_action,
+	)
+	# Raise the specified exception
+	if isinstance(exc, Exception):
+		raise frappe.ValidationError(msg) from exc
+	exception = exc(str(throw_instance))
+	exception._frappe_exc_id = throw_instance._frappe_exc_id
+	raise exception

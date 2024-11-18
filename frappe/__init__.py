@@ -576,6 +576,13 @@ def msgprint(
 
 	def _raise_exception():
 		if raise_exception:
+			from frappe.deprecation_dumpster import deprecation_warning
+
+			deprecation_warning(
+				"2024-11-18",
+				"v17",
+				"To raise an exception, use `raise frappe.Throw(...) from e` to re-raise or `raise frappe.Throw(...)` otherwise",
+			)
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
 				exc = raise_exception(msg)
 			else:
@@ -667,40 +674,7 @@ class Throw(Exception):
 		)
 
 
-def throw(
-	msg: str,
-	exc: type[Exception] = ValidationError,
-	title: str | None = None,
-	is_minimizable: bool = False,
-	wide: bool = False,
-	as_list: bool = False,
-	primary_action=None,
-) -> None:
-	"""Throw execption and show message (`msgprint`).
-
-	:param msg: Message.
-	:param exc: Exception class. Default `frappe.ValidationError`
-	:param title: [optional] Message title. Default: "Message".
-	:param is_minimizable: [optional] Allow users to minimize the modal
-	:param wide: [optional] Show wide modal
-	:param as_list: [optional] If `msg` is a list, render as un-ordered list.
-	:param primary_action: [optional] Bind a primary server/client side action.
-	"""
-	# Create and raise the Throw instance
-	throw_instance = Throw(
-		msg,
-		title=title,
-		is_minimizable=is_minimizable,
-		wide=wide,
-		as_list=as_list,
-		primary_action=primary_action,
-	)
-	# Raise the specified exception
-	if isinstance(exc, Exception):
-		raise ValidationError(msg) from exc
-	exception = exc(str(throw_instance))
-	exception._frappe_exc_id = throw_instance._frappe_exc_id
-	raise exception
+from frappe.deprecation_dumpster import throw
 
 
 def throw_permission_error():
