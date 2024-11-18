@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-11-10 09:33+0000\n"
-"PO-Revision-Date: 2024-11-16 13:52\n"
+"POT-Creation-Date: 2024-11-17 09:34+0000\n"
+"PO-Revision-Date: 2024-11-18 15:41\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -789,7 +789,7 @@ msgstr "توکن دسترسی"
 msgid "Access Token URL"
 msgstr "URL توکن دسترسی"
 
-#: frappe/auth.py:470
+#: frappe/auth.py:486
 msgid "Access not allowed from this IP Address"
 msgstr "دسترسی از این آدرس IP مجاز نیست"
 
@@ -1082,7 +1082,7 @@ msgstr "افزودن پارامترهای پرس و جو"
 msgid "Add Review"
 msgstr "افزودن نظر"
 
-#: frappe/core/doctype/user/user.py:813
+#: frappe/core/doctype/user/user.py:802
 msgid "Add Roles"
 msgstr "اضافه کردن نقش ها"
 
@@ -1380,11 +1380,11 @@ msgstr "مدیریت"
 msgid "Administrator"
 msgstr "مدیر"
 
-#: frappe/core/doctype/user/user.py:1220
+#: frappe/core/doctype/user/user.py:1209
 msgid "Administrator Logged In"
 msgstr "مدیر وارد شده است"
 
-#: frappe/core/doctype/user/user.py:1214
+#: frappe/core/doctype/user/user.py:1203
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr "سرپرست از طریق آدرس IP {2} به {0} در {1} دسترسی پیدا کرد."
 
@@ -1890,7 +1890,7 @@ msgstr ""
 msgid "Allowing DocType, DocType. Be careful!"
 msgstr "اجازه دادن به DocType، DocType. مراقب باش!"
 
-#: frappe/core/doctype/user/user.py:1023
+#: frappe/core/doctype/user/user.py:1012
 msgid "Already Registered"
 msgstr "قبلا ثبت شده است"
 
@@ -2421,9 +2421,7 @@ msgid "Assign to the user set in this field"
 msgstr "به مجموعه کاربری در این قسمت اختصاص دهید"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
-#. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/comment/comment.json
-#: frappe/core/doctype/communication/communication.json
 msgid "Assigned"
 msgstr "اختصاص داده"
 
@@ -2460,9 +2458,7 @@ msgid "Assignment"
 msgstr "تخصیص"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
-#. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/comment/comment.json
-#: frappe/core/doctype/communication/communication.json
 msgid "Assignment Completed"
 msgstr "تخصیص انجام شد"
 
@@ -2606,10 +2602,8 @@ msgid "Attached To Name must be a string or an integer"
 msgstr "پیوست به نام باید یک رشته یا یک عدد صحیح باشد"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
-#. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #. Label of the attachment (Attach) field in DocType 'Newsletter Attachment'
 #: frappe/core/doctype/comment/comment.json
-#: frappe/core/doctype/communication/communication.json
 #: frappe/email/doctype/newsletter_attachment/newsletter_attachment.json
 msgid "Attachment"
 msgstr "پیوست"
@@ -2632,9 +2626,7 @@ msgid "Attachment Link"
 msgstr "لینک پیوست"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
-#. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/comment/comment.json
-#: frappe/core/doctype/communication/communication.json
 msgid "Attachment Removed"
 msgstr "پیوست حذف شد"
 
@@ -3974,12 +3966,10 @@ msgid "Cancel {0} documents?"
 msgstr "{0} سند لغو شود؟"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
-#. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #. Option for the 'Status' (Select) field in DocType 'Event'
 #. Option for the 'Status' (Select) field in DocType 'ToDo'
 #. Option for the 'Status' (Select) field in DocType 'Integration Request'
 #: frappe/core/doctype/comment/comment.json
-#: frappe/core/doctype/communication/communication.json
 #: frappe/desk/doctype/event/event.json frappe/desk/doctype/todo/todo.json
 #: frappe/desk/form/save.py:59
 #: frappe/integrations/doctype/integration_request/integration_request.json
@@ -4057,7 +4047,7 @@ msgstr "نمی توان وضعیت سند لغو شده را تغییر داد. 
 msgid "Cannot change to/from autoincrement autoname in Customize Form"
 msgstr "در سفارشی کردن فرم نمی توان به / از autoincrement autoname تغییر داد"
 
-#: frappe/core/doctype/communication/communication.py:193
+#: frappe/core/doctype/communication/communication.py:169
 msgid "Cannot create a {0} against a child document: {1}"
 msgstr "نمی توان یک {0} در برابر سند فرزند ایجاد کرد: {1}"
 
@@ -4407,8 +4397,6 @@ msgid "Charts"
 msgstr "نمودار"
 
 #. Option for the 'Type' (Select) field in DocType 'Communication'
-#. Option for the 'Communication Type' (Select) field in DocType
-#. 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Chat"
 msgstr "چت کنید"
@@ -4959,11 +4947,7 @@ msgstr "Comm10E"
 
 #. Name of a DocType
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
-#. Option for the 'Communication Type' (Select) field in DocType
-#. 'Communication'
-#. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/comment/comment.json
-#: frappe/core/doctype/communication/communication.json
 #: frappe/core/doctype/version/version_view.html:3
 #: frappe/public/js/frappe/form/controls/comment.js:9
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:236
@@ -4982,9 +4966,7 @@ msgid "Comment Email"
 msgstr "ایمیل نظر"
 
 #. Label of the comment_type (Select) field in DocType 'Comment'
-#. Label of the comment_type (Select) field in DocType 'Communication'
 #: frappe/core/doctype/comment/comment.json
-#: frappe/core/doctype/communication/communication.json
 msgid "Comment Type"
 msgstr "نوع نظر"
 
@@ -5063,6 +5045,10 @@ msgstr "لاگ های ارتباطی"
 #: frappe/core/doctype/communication/communication.json
 msgid "Communication Type"
 msgstr "نوع ارتباط"
+
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:28
+msgid "Communication secret not set"
+msgstr ""
 
 #: frappe/desk/page/leaderboard/leaderboard.js:112
 msgid "Company"
@@ -5229,7 +5215,7 @@ msgstr ""
 msgid "Configure various aspects of how document naming works like naming series, current counter."
 msgstr ""
 
-#: frappe/core/doctype/user/user.js:398 frappe/public/js/frappe/dom.js:345
+#: frappe/core/doctype/user/user.js:406 frappe/public/js/frappe/dom.js:345
 #: frappe/www/update-password.html:40
 msgid "Confirm"
 msgstr "تایید"
@@ -5391,11 +5377,11 @@ msgstr "تنظیمات تماس با ما"
 msgid "Contact options, like \"Sales Query, Support Query\" etc each on a new line or separated by commas."
 msgstr "گزینه‌های تماس، مانند «پرسمان فروش، درخواست پشتیبانی» و غیره هر کدام در یک خط جدید یا با کاما از هم جدا شده‌اند."
 
-#: frappe/utils/change_log.py:360
+#: frappe/utils/change_log.py:363
 msgid "Contains {0} security fix"
 msgstr "حاوی {0} اصلاح امنیتی است"
 
-#: frappe/utils/change_log.py:358
+#: frappe/utils/change_log.py:361
 msgid "Contains {0} security fixes"
 msgstr "حاوی {0} اصلاحات امنیتی است"
 
@@ -5745,9 +5731,7 @@ msgid "Create your workflow visually using the Workflow Builder."
 msgstr "گردش کار خود را به صورت بصری با استفاده از Workflow Builder ایجاد کنید."
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
-#. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/comment/comment.json
-#: frappe/core/doctype/communication/communication.json
 #: frappe/public/js/frappe/views/file/file_view.js:337
 msgid "Created"
 msgstr "ایجاد شده"
@@ -6872,13 +6856,11 @@ msgid "Delete {0} items permanently?"
 msgstr "{0} مورد برای همیشه حذف شود؟"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
-#. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #. Option for the 'Status' (Select) field in DocType 'Personal Data Deletion
 #. Request'
 #. Option for the 'Status' (Select) field in DocType 'Personal Data Deletion
 #. Step'
 #: frappe/core/doctype/comment/comment.json
-#: frappe/core/doctype/communication/communication.json
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 msgid "Deleted"
@@ -8310,7 +8292,7 @@ msgstr ""
 msgid "Edit Format"
 msgstr "ویرایش فرمت"
 
-#: frappe/public/js/frappe/form/quick_entry.js:324
+#: frappe/public/js/frappe/form/quick_entry.js:325
 msgid "Edit Full Form"
 msgstr "ویرایش فرم کامل"
 
@@ -8472,7 +8454,7 @@ msgstr "انتخابگر عنصر"
 #: frappe/templates/includes/comments/comments.html:25
 #: frappe/templates/signup.html:9
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
-#: frappe/www/login.html:8 frappe/www/login.py:99
+#: frappe/www/login.html:8 frappe/www/login.py:101
 msgid "Email"
 msgstr "پست الکترونیک"
 
@@ -8503,7 +8485,7 @@ msgstr "حساب ایمیل غیرفعال شد."
 msgid "Email Account Name"
 msgstr "نام حساب ایمیل"
 
-#: frappe/core/doctype/user/user.py:743
+#: frappe/core/doctype/user/user.py:732
 msgid "Email Account added multiple times"
 msgstr "حساب ایمیل چندین بار اضافه شده است"
 
@@ -8701,6 +8683,10 @@ msgstr "ایمیل به عنوان هرزنامه علامت گذاری شده �
 #: frappe/core/doctype/communication/communication.js:355
 msgid "Email has been moved to trash"
 msgstr "ایمیل به سطل زباله منتقل شد"
+
+#: frappe/core/doctype/user/user.js:272
+msgid "Email is mandatory to create User Email"
+msgstr ""
 
 #: frappe/public/js/frappe/views/communication.js:807
 msgid "Email not sent to {0} (unsubscribed / disabled)"
@@ -9004,11 +8990,11 @@ msgstr "با فعال کردن این، اسناد در پس‌زمینه ارس
 msgid "Encrypt Backups"
 msgstr "رمزگذاری پشتیبان گیری"
 
-#: frappe/utils/password.py:181
+#: frappe/utils/password.py:187
 msgid "Encryption key is in invalid format!"
 msgstr "کلید رمزگذاری در قالب نامعتبر است!"
 
-#: frappe/utils/password.py:196
+#: frappe/utils/password.py:202
 msgid "Encryption key is invalid! Please check site_config.json"
 msgstr "کلید رمزگذاری نامعتبر است! لطفا site_config.json را بررسی کنید"
 
@@ -9690,11 +9676,11 @@ msgstr "محاسبه بدنه درخواست ناموفق بود: {}"
 msgid "Failed to connect to server"
 msgstr "اتصال به سرور ممکن نشد"
 
-#: frappe/auth.py:675
+#: frappe/auth.py:691
 msgid "Failed to decode token, please provide a valid base64-encoded token."
 msgstr "رمزگشایی توکن انجام نشد، لطفاً یک توکن رمزگذاری شده معتبر base64 ارائه دهید."
 
-#: frappe/utils/password.py:195
+#: frappe/utils/password.py:201
 msgid "Failed to decrypt key {0}"
 msgstr "رمزگشایی کلید {0} انجام نشد"
 
@@ -9715,6 +9701,10 @@ msgstr "شرایط ارزیابی نشد: {}"
 msgid "Failed to export python type hints"
 msgstr "پیام‌های نوع پایتون صادر نشد"
 
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:48
+msgid "Failed to generate access token"
+msgstr ""
+
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.py:249
 msgid "Failed to generate names from the series"
 msgstr "نام‌هایی از سریال ایجاد نشد"
@@ -9730,6 +9720,10 @@ msgstr "Failed to get method for command {0} with {1}"
 #: frappe/api/v2.py:48
 msgid "Failed to get method {0} with {1}"
 msgstr "روش {0} با {1} دریافت نشد"
+
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:68
+msgid "Failed to get site info"
+msgstr ""
 
 #: frappe/model/virtual_doctype.py:63
 msgid "Failed to import virtual doctype {}, is controller file present?"
@@ -9747,7 +9741,7 @@ msgstr ""
 msgid "Failed to render subject: {}"
 msgstr ""
 
-#: frappe/email/doctype/email_queue/email_queue.py:288
+#: frappe/email/doctype/email_queue/email_queue.py:283
 msgid "Failed to send email with subject:"
 msgstr "ایمیل با موضوع ارسال نشد:"
 
@@ -9758,6 +9752,10 @@ msgstr "ایمیل اعلان ارسال نشد"
 #: frappe/desk/page/setup_wizard/setup_wizard.py:23
 msgid "Failed to update global settings"
 msgstr "تنظیمات جهانی به روز نشد"
+
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:83
+msgid "Failed while calling API {0}"
+msgstr ""
 
 #. Label of the failing_scheduled_jobs (Table) field in DocType 'System Health
 #. Report'
@@ -9791,19 +9789,9 @@ msgstr "فکس"
 msgid "Featured"
 msgstr "ویژه"
 
-#. Option for the 'Communication Type' (Select) field in DocType
-#. 'Communication'
-#. Label of the feedback_section (Section Break) field in DocType
-#. 'Communication'
-#: frappe/core/doctype/communication/communication.json
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:33
 msgid "Feedback"
 msgstr "بازخورد"
-
-#. Label of the feedback_request (Data) field in DocType 'Communication'
-#: frappe/core/doctype/communication/communication.json
-msgid "Feedback Request"
-msgstr "درخواست بازخورد"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:30
 msgid "Female"
@@ -10823,7 +10811,7 @@ msgstr "واحدهای کسری"
 #. Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 #: frappe/www/login.html:62 frappe/www/login.html:143 frappe/www/login.py:50
-#: frappe/www/login.py:139
+#: frappe/www/login.py:141
 msgid "Frappe"
 msgstr "Frappe"
 
@@ -12314,7 +12302,7 @@ msgstr "اگر رکوردهای جدیدی را آپلود می کنید، در 
 msgid "If you are uploading new records, leave the \"name\" (ID) column blank."
 msgstr "اگر رکوردهای جدیدی را آپلود می کنید، ستون \"نام\" (ID) را خالی بگذارید."
 
-#: frappe/utils/password.py:198
+#: frappe/utils/password.py:204
 msgid "If you have recently restored the site you may need to copy the site config contaning original Encryption Key."
 msgstr "اگر اخیراً سایت را بازیابی کرده اید، ممکن است لازم باشد پیکربندی سایت حاوی کلید رمزگذاری اصلی را کپی کنید."
 
@@ -12467,11 +12455,11 @@ msgstr "تصاویر"
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json
-#: frappe/core/doctype/user/user.js:370
+#: frappe/core/doctype/user/user.js:378
 msgid "Impersonate"
 msgstr "جعل هویت"
 
-#: frappe/core/doctype/user/user.js:397
+#: frappe/core/doctype/user/user.js:405
 msgid "Impersonate as {0}"
 msgstr "جعل هویت به عنوان {0}"
 
@@ -12776,7 +12764,7 @@ msgstr "حساب ایمیل ورودی صحیح نیست"
 msgid "Incomplete Virtual Doctype Implementation"
 msgstr "پیاده سازی Virtual Doctype ناقص"
 
-#: frappe/auth.py:236
+#: frappe/auth.py:252
 msgid "Incomplete login details"
 msgstr "جزئیات ورود ناقص"
 
@@ -12788,7 +12776,7 @@ msgstr "پیکربندی نادرست"
 msgid "Incorrect URL"
 msgstr "URL نادرست است"
 
-#: frappe/utils/password.py:89
+#: frappe/utils/password.py:95
 msgid "Incorrect User or Password"
 msgstr "کاربر یا رمز عبور نادرست"
 
@@ -12852,10 +12840,8 @@ msgid "Indicator color"
 msgstr "رنگ نشانگر"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
-#. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #. Option for the 'Style' (Select) field in DocType 'Workflow State'
 #: frappe/core/doctype/comment/comment.json
-#: frappe/core/doctype/communication/communication.json
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Info"
 msgstr "اطلاعات"
@@ -13145,7 +13131,7 @@ msgstr "صفحه اصلی نامعتبر است"
 msgid "Invalid Link"
 msgstr "پیوند نامعتبر"
 
-#: frappe/www/login.py:118
+#: frappe/www/login.py:120
 msgid "Invalid Login Token"
 msgstr "توکن ورود نامعتبر"
 
@@ -13186,7 +13172,7 @@ msgstr ""
 msgid "Invalid Parameters."
 msgstr "پارامترهای نامعتبر"
 
-#: frappe/core/doctype/user/user.py:1235 frappe/www/update-password.html:110
+#: frappe/core/doctype/user/user.py:1224 frappe/www/update-password.html:110
 #: frappe/www/update-password.html:131 frappe/www/update-password.html:133
 #: frappe/www/update-password.html:234
 msgid "Invalid Password"
@@ -13196,8 +13182,8 @@ msgstr "رمز عبور نامعتبر"
 msgid "Invalid Phone Number"
 msgstr "شماره تلفن نامعتبر"
 
-#: frappe/auth.py:93 frappe/utils/oauth.py:185 frappe/utils/oauth.py:192
-#: frappe/www/login.py:118
+#: frappe/auth.py:94 frappe/utils/oauth.py:185 frappe/utils/oauth.py:192
+#: frappe/www/login.py:120
 msgid "Invalid Request"
 msgstr "درخواست نامعتبر"
 
@@ -13943,7 +13929,6 @@ msgid "LDAP settings incorrect. validation response was: {0}"
 msgstr "تنظیمات LDAP نادرست است. پاسخ اعتبارسنجی این بود: {0}"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
-#. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #. Label of the label (Data) field in DocType 'DocField'
 #. Label of the label (Data) field in DocType 'DocType Action'
 #. Label of the label (Data) field in DocType 'Report Column'
@@ -13963,7 +13948,6 @@ msgstr "تنظیمات LDAP نادرست است. پاسخ اعتبارسنجی �
 #. Label of the label (Data) field in DocType 'Top Bar Item'
 #. Label of the label (Data) field in DocType 'Web Template Field'
 #: frappe/core/doctype/comment/comment.json
-#: frappe/core/doctype/communication/communication.json
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/core/doctype/doctype_action/doctype_action.json
 #: frappe/core/doctype/report_column/report_column.json
@@ -14398,9 +14382,7 @@ msgid "Light Theme"
 msgstr "تم روشن"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
-#. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/comment/comment.json
-#: frappe/core/doctype/communication/communication.json
 #: frappe/public/js/frappe/ui/filters/filter.js:18
 msgid "Like"
 msgstr "پسندیدن"
@@ -14856,7 +14838,7 @@ msgstr "روش های ورود"
 msgid "Login Page"
 msgstr "صفحه ورود"
 
-#: frappe/www/login.py:142
+#: frappe/www/login.py:144
 msgid "Login To {0}"
 msgstr "ورود به {0}"
 
@@ -14876,7 +14858,7 @@ msgstr "ورود به سیستم برای مشاهده لیست فرم وب مو
 msgid "Login link sent to your email"
 msgstr "لینک ورود به ایمیل شما ارسال شد"
 
-#: frappe/auth.py:320 frappe/auth.py:323
+#: frappe/auth.py:336 frappe/auth.py:339
 msgid "Login not allowed at this time"
 msgstr "ورود به سیستم در حال حاضر مجاز نیست"
 
@@ -14925,7 +14907,7 @@ msgstr "با لینک ایمیل وارد شوید"
 msgid "Login with email link expiry (in minutes)"
 msgstr "ورود با انقضای لینک ایمیل (به دقیقه)"
 
-#: frappe/auth.py:131
+#: frappe/auth.py:147
 msgid "Login with username and password is not allowed."
 msgstr "ورود با نام کاربری و رمز عبور مجاز نمی باشد."
 
@@ -15681,7 +15663,7 @@ msgstr "مقدار از دست رفته"
 msgid "Missing Values Required"
 msgstr "مقادیر از دست رفته الزامی است"
 
-#: frappe/www/login.py:102
+#: frappe/www/login.py:104
 msgid "Mobile"
 msgstr "تلفن همراه"
 
@@ -15932,7 +15914,7 @@ msgstr "مطالب بیشتر برای پایین صفحه."
 msgid "Most Used"
 msgstr "بیشترین استفاده شده"
 
-#: frappe/utils/password.py:64
+#: frappe/utils/password.py:70
 msgid "Most probably your password is too long."
 msgstr "به احتمال زیاد رمز عبور شما خیلی طولانی است."
 
@@ -16399,7 +16381,7 @@ msgstr "محیط کار جدید"
 msgid "New password cannot be same as old password"
 msgstr "رمز عبور جدید نمی تواند مشابه رمز عبور قدیمی باشد"
 
-#: frappe/utils/change_log.py:391
+#: frappe/utils/change_log.py:394
 msgid "New updates are available"
 msgstr "به روز رسانی های جدید در دسترس هستند"
 
@@ -16447,11 +16429,11 @@ msgstr "{0} {1} جدید ایجاد شد"
 msgid "New {0}: {1}"
 msgstr "{0} جدید: {1}"
 
-#: frappe/utils/change_log.py:373
+#: frappe/utils/change_log.py:376
 msgid "New {} releases for the following apps are available"
 msgstr "نسخه‌های جدید {} برای برنامه‌های زیر در دسترس هستند"
 
-#: frappe/core/doctype/user/user.py:809
+#: frappe/core/doctype/user/user.py:798
 msgid "Newly created user {0} has no roles enabled."
 msgstr "کاربر تازه ایجاد شده {0} هیچ نقشی فعال ندارد."
 
@@ -16732,7 +16714,7 @@ msgstr "هیچ نتیجه ای"
 msgid "No Results found"
 msgstr "نتیجه ای پیدا نشد"
 
-#: frappe/core/doctype/user/user.py:810
+#: frappe/core/doctype/user/user.py:799
 msgid "No Roles Specified"
 msgstr "هیچ نقشی مشخص نشده است"
 
@@ -16928,7 +16910,7 @@ msgstr "بدون ردیف"
 msgid "No subject"
 msgstr ""
 
-#: frappe/www/printview.py:449
+#: frappe/www/printview.py:452
 msgid "No template found at path: {0}"
 msgstr "هیچ الگوی در مسیر یافت نشد: {0}"
 
@@ -17000,7 +16982,7 @@ msgstr "کپی های عادی شده"
 msgid "Normalized Query"
 msgstr "پرس و جو عادی شده"
 
-#: frappe/core/doctype/user/user.py:1018
+#: frappe/core/doctype/user/user.py:1007
 #: frappe/templates/includes/login/login.js:257 frappe/utils/oauth.py:271
 msgid "Not Allowed"
 msgstr "مجاز نیست"
@@ -17051,7 +17033,7 @@ msgstr "غیرقابل تهی"
 #: frappe/geo/utils.py:97 frappe/public/js/frappe/web_form/webform_script.js:15
 #: frappe/website/doctype/web_form/web_form.py:605
 #: frappe/website/page_renderers/not_permitted_page.py:20
-#: frappe/www/login.py:183 frappe/www/qrcode.py:22 frappe/www/qrcode.py:25
+#: frappe/www/login.py:185 frappe/www/qrcode.py:22 frappe/www/qrcode.py:25
 #: frappe/www/qrcode.py:37
 msgid "Not Permitted"
 msgstr "غیر مجاز"
@@ -17129,11 +17111,11 @@ msgstr "مجاز به پیوست کردن سند {0} نیست، لطفاً Allow
 msgid "Not allowed to create custom Virtual DocType."
 msgstr "مجاز به ایجاد Virtual DocType سفارشی نیست."
 
-#: frappe/www/printview.py:147
+#: frappe/www/printview.py:150
 msgid "Not allowed to print cancelled documents"
 msgstr "چاپ اسناد لغو شده مجاز نیست"
 
-#: frappe/www/printview.py:144
+#: frappe/www/printview.py:147
 msgid "Not allowed to print draft documents"
 msgstr "چاپ اسناد پیش نویس مجاز نیست"
 
@@ -17214,7 +17196,7 @@ msgstr "توجه: برای بهترین نتیجه، تصاویر باید از 
 msgid "Note: Multiple sessions will be allowed in case of mobile device"
 msgstr "توجه: جلسات متعدد در مورد دستگاه تلفن همراه مجاز خواهد بود"
 
-#: frappe/core/doctype/user/user.js:385
+#: frappe/core/doctype/user/user.js:393
 msgid "Note: This will be shared with user."
 msgstr "توجه: این با کاربر به اشتراک گذاشته خواهد شد."
 
@@ -17252,14 +17234,11 @@ msgstr "چیزی برای به روز رسانی نیست"
 
 #. Label of the notification (Section Break) field in DocType 'Auto Repeat'
 #. Label of a Link in the Tools Workspace
-#. Option for the 'Communication Type' (Select) field in DocType
-#. 'Communication'
 #. Name of a DocType
 #. Label of the notification_section (Section Break) field in DocType 'S3
 #. Backup Settings'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 #: frappe/automation/workspace/tools/tools.json
-#: frappe/core/doctype/communication/communication.json
 #: frappe/core/doctype/communication/mixins.py:142
 #: frappe/email/doctype/notification/notification.json
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
@@ -18469,7 +18448,7 @@ msgstr "منفعل"
 msgid "Password"
 msgstr "کلمه عبور"
 
-#: frappe/core/doctype/user/user.py:1081
+#: frappe/core/doctype/user/user.py:1070
 msgid "Password Email Sent"
 msgstr "رمز عبور ایمیل ارسال شد"
 
@@ -18503,11 +18482,11 @@ msgstr "رمز عبور لازم است یا در انتظار رمز عبور �
 msgid "Password missing in Email Account"
 msgstr "رمز عبور در حساب ایمیل جا افتاده است"
 
-#: frappe/utils/password.py:41
+#: frappe/utils/password.py:47
 msgid "Password not found for {0} {1} {2}"
 msgstr "رمز عبور برای {0} {1} {2} یافت نشد"
 
-#: frappe/core/doctype/user/user.py:1080
+#: frappe/core/doctype/user/user.py:1069
 msgid "Password reset instructions have been sent to {}'s email"
 msgstr ""
 
@@ -18515,11 +18494,11 @@ msgstr ""
 msgid "Password set"
 msgstr "مجموعه رمز عبور"
 
-#: frappe/auth.py:239
+#: frappe/auth.py:255
 msgid "Password size exceeded the maximum allowed size"
 msgstr "اندازه رمز عبور از حداکثر اندازه مجاز بیشتر است"
 
-#: frappe/core/doctype/user/user.py:873
+#: frappe/core/doctype/user/user.py:862
 msgid "Password size exceeded the maximum allowed size."
 msgstr "اندازه رمز عبور از حداکثر اندازه مجاز بیشتر است."
 
@@ -18903,7 +18882,7 @@ msgstr "لطفا یک موضوع به ایمیل خود اضافه کنید"
 msgid "Please add a valid comment."
 msgstr "لطفا یک نظر معتبر اضافه کنید."
 
-#: frappe/core/doctype/user/user.py:1063
+#: frappe/core/doctype/user/user.py:1052
 msgid "Please ask your administrator to verify your sign-up"
 msgstr "لطفاً از سرپرست خود بخواهید ثبت نام شما را تأیید کند"
 
@@ -18935,7 +18914,7 @@ msgstr "لطفاً مقادیر فیلتر تنظیم شده برای نمودا
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr "لطفاً مقدار تنظیم شده \"Fetch From\" را برای فیلد {0} بررسی کنید"
 
-#: frappe/core/doctype/user/user.py:1061
+#: frappe/core/doctype/user/user.py:1050
 msgid "Please check your email for verification"
 msgstr "لطفا ایمیل خود را برای تایید بررسی کنید"
 
@@ -19086,7 +19065,7 @@ msgstr "لطفاً پیوست شده را پیدا کنید {0}: {1}"
 msgid "Please login to post a comment."
 msgstr "لطفا برای ارسال نظر وارد شوید."
 
-#: frappe/core/doctype/communication/communication.py:210
+#: frappe/core/doctype/communication/communication.py:186
 msgid "Please make sure the Reference Communication Docs are not circularly linked."
 msgstr "لطفاً مطمئن شوید که اسناد ارتباطی مرجع به صورت دایره ای پیوند داده نشده اند."
 
@@ -19281,7 +19260,7 @@ msgstr "لطفاً از یک فیلتر جستجوی معتبر LDAP استفا�
 msgid "Please verify your Email Address"
 msgstr "لطفا آدرس ایمیل خود را تایید کنید"
 
-#: frappe/utils/password.py:202
+#: frappe/utils/password.py:208
 msgid "Please visit https://frappecloud.com/docs/sites/migrate-an-existing-site#encryption-key for more information."
 msgstr "لطفاً برای اطلاعات بیشتر به https://frappecloud.com/docs/sites/migrate-an-existing-site#encryption-key مراجعه کنید."
 
@@ -19664,7 +19643,7 @@ msgstr "راهنما قالب چاپ"
 msgid "Print Format Type"
 msgstr "نوع فرمت چاپ"
 
-#: frappe/www/printview.py:431
+#: frappe/www/printview.py:434
 msgid "Print Format {0} is disabled"
 msgstr "قالب چاپ {0} غیرفعال است"
 
@@ -20297,12 +20276,10 @@ msgstr "محدودیت های نرخ"
 msgid "Rate limit for email link login"
 msgstr ""
 
-#. Label of the rating (Int) field in DocType 'Communication'
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
-#: frappe/core/doctype/communication/communication.json
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
@@ -20866,12 +20843,12 @@ msgid "Refreshing"
 msgstr "تازه کردن"
 
 #: frappe/core/doctype/system_settings/system_settings.js:57
-#: frappe/core/doctype/user/user.js:364
+#: frappe/core/doctype/user/user.js:368
 #: frappe/desk/page/setup_wizard/setup_wizard.js:204
 msgid "Refreshing..."
 msgstr "تازه کردن..."
 
-#: frappe/core/doctype/user/user.py:1025
+#: frappe/core/doctype/user/user.py:1014
 msgid "Registered but disabled"
 msgstr "ثبت شده اما غیرفعال است"
 
@@ -20913,9 +20890,7 @@ msgid "Relink Communication"
 msgstr "پیوند مجدد ارتباط"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
-#. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/comment/comment.json
-#: frappe/core/doctype/communication/communication.json
 msgid "Relinked"
 msgstr "دوباره پیوند داده شد"
 
@@ -22267,7 +22242,7 @@ msgstr "شنبه"
 msgid "Save"
 msgstr "ذخیره"
 
-#: frappe/core/doctype/user/user.js:335
+#: frappe/core/doctype/user/user.js:339
 msgid "Save API Secret: {0}"
 msgstr "Save Secret API: {0}"
 
@@ -23725,9 +23700,7 @@ msgid "Share {0} with"
 msgstr "اشتراک گذاری {0} با"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
-#. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/comment/comment.json
-#: frappe/core/doctype/communication/communication.json
 msgid "Shared"
 msgstr "به اشتراک گذاشته شده است"
 
@@ -24090,7 +24063,7 @@ msgstr "نوار کناری و نظرات"
 msgid "Sign Up and Confirmation"
 msgstr "ثبت نام و تایید"
 
-#: frappe/core/doctype/user/user.py:1018
+#: frappe/core/doctype/user/user.py:1007
 msgid "Sign Up is disabled"
 msgstr "ثبت نام غیرفعال است"
 
@@ -24994,9 +24967,7 @@ msgid "Submit {0} documents?"
 msgstr "{0} سند ارسال شود؟"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
-#. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/comment/comment.json
-#: frappe/core/doctype/communication/communication.json
 #: frappe/public/js/frappe/model/indicator.js:95
 #: frappe/public/js/frappe/ui/filters/filter.js:533
 #: frappe/website/doctype/web_form/templates/web_form.html:136
@@ -25143,7 +25114,7 @@ msgstr "پیشنهاد بهینه‌سازی"
 msgid "Suggested Indexes"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:727
+#: frappe/core/doctype/user/user.py:716
 msgid "Suggested Username: {0}"
 msgstr "نام کاربری پیشنهادی: {0}"
 
@@ -25690,7 +25661,7 @@ msgstr "هشدارهای الگو"
 msgid "Templates"
 msgstr "قالب ها"
 
-#: frappe/core/doctype/user/user.py:1029
+#: frappe/core/doctype/user/user.py:1018
 msgid "Temporarily Disabled"
 msgstr "موقتا غیر فعال می باشد"
 
@@ -25911,7 +25882,7 @@ msgstr "محدودیت برای نوع کاربری {0} در فایل پیکرب
 msgid "The link will expire in {0} minutes"
 msgstr "پیوند تا {0} دقیقه دیگر منقضی می‌شود"
 
-#: frappe/www/login.py:184
+#: frappe/www/login.py:186
 msgid "The link you trying to login is invalid or expired."
 msgstr "پیوندی که می‌خواهید وارد شوید نامعتبر است یا منقضی شده است."
 
@@ -25953,11 +25924,11 @@ msgid "The project number obtained from Google Cloud Console under <a href=\"htt
 "</a>"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:989
+#: frappe/core/doctype/user/user.py:978
 msgid "The reset password link has been expired"
 msgstr "پیوند بازنشانی رمز عبور منقضی شده است"
 
-#: frappe/core/doctype/user/user.py:991
+#: frappe/core/doctype/user/user.py:980
 msgid "The reset password link has either been used before or is invalid"
 msgstr "پیوند بازنشانی رمز عبور یا قبلا استفاده شده است یا نامعتبر است"
 
@@ -26388,7 +26359,7 @@ msgstr "با این کار این تور بازنشانی می شود و به ه
 msgid "This will terminate the job immediately and might be dangerous, are you sure? "
 msgstr " این کار بلافاصله کار را خاتمه می دهد و ممکن است خطرناک باشد، مطمئن هستید؟"
 
-#: frappe/core/doctype/user/user.py:1249
+#: frappe/core/doctype/user/user.py:1238
 msgid "Throttled"
 msgstr "گاز گرفت"
 
@@ -26854,7 +26825,7 @@ msgstr "درخواست های خیلی زیاد"
 msgid "Too many changes to database in single action."
 msgstr "تغییرات بسیار زیادی در پایگاه داده در یک اقدام واحد."
 
-#: frappe/core/doctype/user/user.py:1030
+#: frappe/core/doctype/user/user.py:1019
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr "کاربران زیادی اخیرا ثبت نام کرده اند، بنابراین ثبت نام غیرفعال است. لطفا یک ساعت دیگر دوباره امتحان کنید"
 
@@ -27492,7 +27463,7 @@ msgstr "ستون ناشناخته: {0}"
 msgid "Unknown Rounding Method: {}"
 msgstr "روش گرد کردن نامشخص: {}"
 
-#: frappe/auth.py:297
+#: frappe/auth.py:313
 msgid "Unknown User"
 msgstr "کاربر ناشناس"
 
@@ -27530,9 +27501,7 @@ msgid "Unselect All"
 msgstr "همه را لغو انتخاب کنید"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
-#. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/comment/comment.json
-#: frappe/core/doctype/communication/communication.json
 msgid "Unshared"
 msgstr "اشتراک گذاری نشده است"
 
@@ -27652,7 +27621,7 @@ msgstr "به روز رسانی ترجمه ها"
 msgid "Update Value"
 msgstr "به روز رسانی مقدار"
 
-#: frappe/utils/change_log.py:383
+#: frappe/utils/change_log.py:386
 msgid "Update from Frappe Cloud"
 msgstr "به روز رسانی از Frappe Cloud"
 
@@ -27661,10 +27630,8 @@ msgid "Update {0} records"
 msgstr "به‌روزرسانی {0} رکورد"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
-#. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #. Option for the 'Status' (Select) field in DocType 'Permission Log'
 #: frappe/core/doctype/comment/comment.json
-#: frappe/core/doctype/communication/communication.json
 #: frappe/core/doctype/permission_log/permission_log.json
 #: frappe/desk/doctype/desktop_icon/desktop_icon.py:446
 #: frappe/desk/doctype/workspace_settings/workspace_settings.py:41
@@ -28174,7 +28141,7 @@ msgstr "کاربر مجاز به حذف {0} نیست: {1}"
 msgid "User permission already exists"
 msgstr "مجوز کاربر از قبل وجود دارد"
 
-#: frappe/www/login.py:157
+#: frappe/www/login.py:159
 msgid "User with email address {0} does not exist"
 msgstr "کاربری با آدرس ایمیل {0} وجود ندارد"
 
@@ -28190,7 +28157,7 @@ msgstr "کاربر {0} قابل حذف نیست"
 msgid "User {0} cannot be disabled"
 msgstr "کاربر {0} را نمی توان غیرفعال کرد"
 
-#: frappe/core/doctype/user/user.py:609
+#: frappe/core/doctype/user/user.py:598
 msgid "User {0} cannot be renamed"
 msgstr "کاربر {0} را نمی توان تغییر نام داد"
 
@@ -28211,7 +28178,7 @@ msgstr ""
 msgid "User {0} has requested for data deletion"
 msgstr "کاربر {0} درخواست حذف داده ها را داده است"
 
-#: frappe/core/doctype/user/user.py:1378
+#: frappe/core/doctype/user/user.py:1367
 msgid "User {0} impersonated as {1}"
 msgstr "کاربر {0} جعل هویت به عنوان {1}"
 
@@ -28236,11 +28203,11 @@ msgstr "URI اطلاعات کاربر"
 #. Label of the username (Data) field in DocType 'User Social Login'
 #: frappe/core/doctype/user/user.json
 #: frappe/core/doctype/user_social_login/user_social_login.json
-#: frappe/www/login.py:105
+#: frappe/www/login.py:107
 msgid "Username"
 msgstr "نام کاربری"
 
-#: frappe/core/doctype/user/user.py:694
+#: frappe/core/doctype/user/user.py:683
 msgid "Username {0} already exists"
 msgstr "نام کاربری {0} از قبل وجود دارد"
 
@@ -29182,11 +29149,9 @@ msgid "Worker Name"
 msgstr "نام کارگر"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
-#. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #. Group in DocType's connections
 #. Name of a DocType
 #: frappe/core/doctype/comment/comment.json
-#: frappe/core/doctype/communication/communication.json
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/public/js/workflow_builder/store.js:129
 #: frappe/workflow/doctype/workflow/workflow.json
@@ -29521,6 +29486,10 @@ msgstr "شما به اینترنت متصل هستید."
 msgid "You are impersonating as another user."
 msgstr "شما در حال جعل هویت به عنوان کاربر دیگری هستید."
 
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:24
+msgid "You are not allowed to access this resource"
+msgstr ""
+
 #: frappe/permissions.py:408
 msgid "You are not allowed to access this {0} record because it is linked to {1} '{2}' in field {3}"
 msgstr "شما مجاز به دسترسی به این رکورد {0} نیستید زیرا به {1} '{2}' در فیلد {3} پیوند داده شده است."
@@ -29757,11 +29726,11 @@ msgstr "امتیاز کافی ندارید"
 msgid "You do not have enough review points"
 msgstr "امتیاز بررسی کافی ندارید"
 
-#: frappe/desk/query_report.py:804
+#: frappe/desk/query_report.py:806
 msgid "You do not have permission to access {0}: {1}."
 msgstr "شما اجازه دسترسی به {0}: {1} را ندارید."
 
-#: frappe/www/printview.py:383
+#: frappe/www/printview.py:386
 msgid "You do not have permission to view this document"
 msgstr "شما اجازه مشاهده این سند را ندارید"
 
@@ -29990,7 +29959,7 @@ msgstr "میانبرهای شما"
 msgid "Your account has been deleted"
 msgstr "حساب شما حذف شده است"
 
-#: frappe/auth.py:491
+#: frappe/auth.py:507
 msgid "Your account has been locked and will resume after {0} seconds"
 msgstr "حساب شما قفل شده است و پس از {0} ثانیه از سر گرفته می شود"
 
@@ -30502,7 +30471,7 @@ msgid "on_update_after_submit"
 msgstr "on_update_after_submit"
 
 #: frappe/public/js/frappe/utils/utils.js:396 frappe/www/login.html:88
-#: frappe/www/login.py:107
+#: frappe/www/login.py:109
 msgid "or"
 msgstr "یا"
 
@@ -31183,7 +31152,7 @@ msgstr "{0} اجباری است"
 msgid "{0} is not a field of doctype {1}"
 msgstr "{0} یک فیلد از نوع doctype نیست {1}"
 
-#: frappe/www/printview.py:366
+#: frappe/www/printview.py:369
 msgid "{0} is not a raw printing format."
 msgstr "{0} یک قالب چاپ خام نیست."
 
@@ -31275,7 +31244,7 @@ msgstr "{0} در محدوده {1} است"
 msgid "{0} items selected"
 msgstr "{0} مورد انتخاب شد"
 
-#: frappe/core/doctype/user/user.py:1387
+#: frappe/core/doctype/user/user.py:1376
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr "{0} به عنوان شما جعل شده است. این دلیل را آوردند: {1}"
 
