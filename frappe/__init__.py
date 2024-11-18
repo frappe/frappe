@@ -696,6 +696,8 @@ def throw(
 		primary_action=primary_action,
 	)
 	# Raise the specified exception
+	if isinstance(exc, Exception):
+		raise ValidationError(msg) from exc
 	exception = exc(str(throw_instance))
 	exception._frappe_exc_id = throw_instance._frappe_exc_id
 	raise exception
