@@ -553,6 +553,7 @@ def msgprint(
 	wide: bool = False,
 	*,
 	realtime=False,
+	__frappe_exc_id: str | None = None,
 ) -> None:
 	"""Print a message to the user (via HTTP response).
 	Messages are sent in the `__server_messages` property in the
@@ -616,9 +617,9 @@ def msgprint(
 	if alert:
 		out.alert = 1
 
-	if raise_exception:
+	if raise_exception or __frappe_exc_id:
 		out.raise_exception = 1
-		out.__frappe_exc_id = generate_hash()
+		out.__frappe_exc_id = __frappe_exc_id or generate_hash()
 
 	if primary_action:
 		out.primary_action = primary_action
@@ -650,6 +651,22 @@ def clear_last_message():
 		local.message_log = local.message_log[:-1]
 
 
+class Throw(Exception):
+	def __init__(self, msg, title=None, is_minimizable=False, wide=False, as_list=False, primary_action=None):
+		super().__init__(msg)
+		self.__frappe_exc_id = generate_hash()
+		msgprint(
+			msg,
+			title=title,
+			indicator="red",
+			is_minimizable=is_minimizable,
+			wide=wide,
+			as_list=as_list,
+			primary_action=primary_action,
+			__frappe_exc_id=self.__frappe_exc_id,
+		)
+
+
 def throw(
 	msg: str,
 	exc: type[Exception] = ValidationError,
@@ -669,16 +686,19 @@ def throw(
 	:param as_list: [optional] If `msg` is a list, render as un-ordered list.
 	:param primary_action: [optional] Bind a primary server/client side action.
 	"""
-	msgprint(
+	# Create and raise the Throw instance
+	throw_instance = Throw(
 		msg,
-		raise_exception=exc,
 		title=title,
-		indicator="red",
 		is_minimizable=is_minimizable,
 		wide=wide,
 		as_list=as_list,
 		primary_action=primary_action,
 	)
+	# Raise the specified exception
+	exception = exc(str(throw_instance))
+	exception.__frappe_exc_id = throw_instance.__frappe_exc_id
+	raise exception
 
 
 def throw_permission_error():
