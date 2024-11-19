@@ -9,7 +9,7 @@ on:
       python-version:
         required: false
         type: string
-        default: '3.12'
+        default: '3.10'
       node-version:
         required: false
         type: number
@@ -46,8 +46,8 @@ jobs:
     - uses: frappe/frappe/.github/actions/setup@develop
       name: Environment Setup
       with:
-        python-version: '3.10'
-        node-version: 20
+        python-version: ${{ inputs.python-version }}
+        node-version: ${{ inputs.node-version }}
         build-assets: false
         disable-socketio: true
         disable-web: true

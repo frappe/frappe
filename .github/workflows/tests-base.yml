@@ -18,31 +18,11 @@ on:
         required: false
         type: number
         default: 2
-      build-assets:
-        required: false
-        type: boolean
-        default: true
       enable-postgres:
         required: false
         type: boolean
         default: false
       enable-coverage:
-        required: false
-        type: boolean
-        default: false
-      enable-watch:
-        required: false
-        type: boolean
-        default: false
-      enable-schedule:
-        required: false
-        type: boolean
-        default: false
-      disable-socketio:
-        required: false
-        type: boolean
-        default: false
-      disable-redis-socketio:
         required: false
         type: boolean
         default: false
@@ -128,9 +108,10 @@ jobs:
       - uses: frappe/frappe/.github/actions/setup@develop
         name: Environment Setup
         with:
-          python-version: '3.12'
-          node-version: 20
+          python-version: ${{ inputs.python-version }}
+          node-version: ${{ inputs.node-version }}
           disable-socketio: true
+          disable-redis-socketio: true
           db-root-password: ${{ env.DB_ROOT_PASSWORD }}
           db: ${{ matrix.db }}
         env:
@@ -168,6 +149,7 @@ jobs:
           DB: ${{ matrix.db }}
           # consumed by bench run-parallel-tests
           CAPTURE_COVERAGE: ${{ inputs.enable-coverage }}
+          FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN || '' }}
 
       - name: Upload coverage data
         uses: actions/upload-artifact@v3
