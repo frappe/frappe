@@ -839,7 +839,7 @@ def parse_json(val):
 	"""
 	if isinstance(val, str):
 		val = json.loads(val)
-	if isinstance(val, dict):
+	if not isinstance(frappe._dict) and isinstance(val, dict):
 		val = frappe._dict(val)
 	return val
 
