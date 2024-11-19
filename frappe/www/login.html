@@ -101,6 +101,17 @@
 							</div>
 							{% endfor %}
 						</div>
+						<!-- login.html -->
+						<div class="saml-login-buttons">
+							{% for provider in saml_logins %}
+							<div class="login-button-wrapper">
+								<a href="{{ provider.auth_url }}" 
+								   class="btn btn-block btn-default btn-sm btn-login-option btn-{{ provider.name }}">
+									{{ _("Login with {0}").format(provider.provider_name) }}
+								</a>
+							</div>
+							{% endfor %}
+						</div>
 						{% if login_with_email_link %}
 						<div class="login-with-email-link">
 							<div class="login-button-wrapper">

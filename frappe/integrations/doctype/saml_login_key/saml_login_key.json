@@ -1,0 +1,78 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-11-13 12:16:56.878339",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enable_saml_login",
+  "provider_name",
+  "sp_entity_id",
+  "sso_url",
+  "certificate",
+  "audience_uri",
+  "acs_url"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "enable_saml_login",
+   "fieldtype": "Check",
+   "label": "Enable Saml Login"
+  },
+  {
+   "fieldname": "provider_name",
+   "fieldtype": "Data",
+   "label": "Provider Name"
+  },
+  {
+   "fieldname": "sp_entity_id",
+   "fieldtype": "Data",
+   "label": "SP Entity ID"
+  },
+  {
+   "fieldname": "sso_url",
+   "fieldtype": "Data",
+   "label": "SSO Url"
+  },
+  {
+   "fieldname": "certificate",
+   "fieldtype": "Text",
+   "label": "SP Public Certificate"
+  },
+  {
+   "fieldname": "audience_uri",
+   "fieldtype": "Data",
+   "label": "audience_uri"
+  },
+  {
+   "fieldname": "acs_url",
+   "fieldtype": "Data",
+   "label": "acs_url"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-11-14 12:18:41.056918",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Saml Login Key",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

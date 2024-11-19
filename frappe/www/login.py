@@ -37,6 +37,7 @@ def get_context(context):
 	context["title"] = "Login"
 	context["hide_login"] = True  # dont show login link on login page again.
 	context["provider_logins"] = []
+	context["saml_logins"] = []
 	context["disable_signup"] = cint(frappe.get_website_settings("disable_signup"))
 	context["disable_user_pass_login"] = cint(frappe.get_system_settings("disable_user_pass_login"))
 	context["logo"] = frappe.get_website_settings("app_logo") or frappe.get_hooks("app_logo_url")[-1]
@@ -61,6 +62,41 @@ def get_context(context):
 		fields=["name", "client_id", "base_url", "provider_name", "icon"],
 		order_by="name",
 	)
+	# Fetch the SAML login providers
+	saml_logins = frappe.get_all(
+		"Saml Login Key",
+		filters={"enable_saml_login": 1},
+		fields=["name", "provider_name", "sp_entity_id", "sso_url", "certificate", "audience_uri", "acs_url"],
+		order_by="name",
+	)
+
+	# Prepare the context for rendering SAML login options
+	for provider in saml_logins:
+		icon = None
+		# You can optionally add an icon here if you have one for SAML providers
+		if provider.provider_name == "Custom":
+			icon = get_icon_html(provider.icon, small=True)  # Assuming this function handles custom icons
+		elif provider.icon:
+			icon = f"<img src={escape_html(provider.icon)!r} alt={escape_html(provider.provider_name)!r}>"
+
+		# Generate the SAML login initiation URL using saml_login_initiate
+		auth_url = frappe.utils.get_url(f"/api/method/frappe.utils.saml.saml_login_initiate?provider={provider.name}")
+
+		# Prepare the context for rendering the button
+		context.provider_logins.append(
+			{
+				"name": provider.name,
+				"provider_name": provider.provider_name,
+				"auth_url": auth_url,  # URL to initiate the SAML login
+				"icon": icon,
+				"sp_entity_id": provider.sp_entity_id,  # Service Provider Entity ID
+				"acs_url": provider.acs_url,  # Assertion Consumer Service URL
+				"audience_uri": provider.audience_uri,  # Audience URI
+				"certificate": provider.certificate,  # Certificate (optional)
+			}
+		)
+		context["saml_login"] = True
+
 
 	for provider in providers:
 		client_secret = get_decrypted_password("Social Login Key", provider.name, "client_secret")
