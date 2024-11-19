@@ -46,19 +46,22 @@ class FrappeDeprecationError(Warning):
 	# see PYTHONWARNINGS implementation further down below
 
 
-warnings.simplefilter("error", FrappeDeprecationError)
-
-
 class FrappeDeprecationWarning(Warning):
 	"""Deprecated feature in next version"""
 
 
 class PendingFrappeDeprecationWarning(FrappeDeprecationWarning):
-	"""Deprecated feature in develop beyond next version
+	"""Deprecated feature in develop beyond next version.
+
+	Warning ignored by default.
 
 	The deprecation decision may still be reverted or deferred at this stage.
 	Regardless, using the new variant is encouraged and stable.
 	"""
+
+
+warnings.simplefilter("error", FrappeDeprecationError)
+warnings.simplefilter("ignore", PendingFrappeDeprecationWarning)
 
 
 class V15FrappeDeprecationWarning(FrappeDeprecationError):
