@@ -30,10 +30,10 @@ class TestTranslation(IntegrationTestCase):
 			frappe.local.lang = lang
 			original_translation = _(source_string)
 
-			doc = create_translation(lang, source_string, new_translation)
+			docname = create_translation(lang, source_string, new_translation)
 			self.assertEqual(_(source_string), new_translation)
 
-			frappe.delete_doc("Translation", doc.name)
+			frappe.delete_doc("Translation", docname)
 			self.assertEqual(_(source_string), original_translation)
 
 	def test_parent_language(self):
@@ -117,10 +117,11 @@ def get_translation_data():
 	}
 
 
-def create_translation(lang, source_string, new_translation):
+def create_translation(lang, source_string, new_translation) -> str:
 	doc = frappe.new_doc("Translation")
 	doc.language = lang
 	doc.source_text = source_string
 	doc.translated_text = new_translation
 	doc.save()
-	return doc
+
+	return doc.name
