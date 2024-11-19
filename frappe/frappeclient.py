@@ -215,7 +215,7 @@ class FrappeClient:
 		:param doctype: DocType of the document to be returned
 		:param name: (optional) `name` of the document to be returned
 		:param filters: (optional) Filter by this dict if name is not set
-		:param fields: (optional) Fields to be returned, will return everythign if not set"""
+		:param fields: (optional) Fields to be returned, will return everything if not set"""
 		params = {}
 		if filters:
 			params["filters"] = json.dumps(filters)
