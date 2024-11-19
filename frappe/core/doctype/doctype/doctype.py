@@ -367,7 +367,7 @@ class DocType(Document):
 							SET `{fieldname}` = source.`{source_fieldname}`
 							FROM `tab{link_doctype}` AS source
 							WHERE `target`.`{link_fieldname}` = `source`.`name`
-							AND ifnull(`target`.`{fieldname}`, '')=''
+							AND (`target`.`{fieldname}` IS NULL OR `target`.`{fieldname}` = 0)
 						"""
 					else:
 						update_query = """
