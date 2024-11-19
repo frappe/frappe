@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-11-17 09:34+0000\n"
-"PO-Revision-Date: 2024-11-18 15:41\n"
+"PO-Revision-Date: 2024-11-19 16:30\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -12175,7 +12175,7 @@ msgstr "Hem/Test Mapp 1"
 
 #: frappe/core/doctype/file/test_file.py:385
 msgid "Home/Test Folder 1/Test Folder 3"
-msgstr "Start/Testa Mapp 1 / Test Mapp 3"
+msgstr "Hem/Test Mapp 1 / Test Mapp 3"
 
 #: frappe/core/doctype/file/test_file.py:341
 msgid "Home/Test Folder 2"
@@ -12610,7 +12610,7 @@ msgstr "Bild Länk"
 
 #: frappe/public/js/frappe/list/base_list.js:209
 msgid "Image View"
-msgstr "Visa Bild"
+msgstr "Bild Vy"
 
 #. Label of the image_width (Float) field in DocType 'Letter Head'
 #. Label of the footer_image_width (Float) field in DocType 'Letter Head'
@@ -17315,7 +17315,7 @@ msgstr "Ej Tillåtet via kontroll behörighet koll"
 
 #: frappe/public/js/frappe/request.js:146 frappe/website/js/website.js:94
 msgid "Not found"
-msgstr "Ej Hittad"
+msgstr "Hittade inte"
 
 #: frappe/core/doctype/page/page.py:63
 msgid "Not in Developer Mode"
