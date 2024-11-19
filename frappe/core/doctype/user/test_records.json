@@ -5,6 +5,7 @@
   "enabled": 1,
   "first_name": "_Test",
   "new_password": "Eastern_43A1W",
+  "send_welcome_email": 0,
   "roles": [
    {
     "doctype": "Has Role",
@@ -22,13 +23,15 @@
   "doctype": "User",
   "email": "test1@example.com",
   "first_name": "_Test1",
-  "new_password": "Eastern_43A1W"
+  "new_password": "Eastern_43A1W",
+  "send_welcome_email": 0
  },
  {
   "doctype": "User",
   "email": "test2@example.com",
   "first_name": "_Test2",
   "new_password": "Eastern_43A1W",
+  "send_welcome_email": 0,
   "enabled": 1
  },
  {
@@ -36,6 +39,7 @@
   "email": "test3@example.com",
   "first_name": "_Test3",
   "new_password": "Eastern_43A1W",
+  "send_welcome_email": 0,
   "enabled": 1
  },
  {
@@ -43,6 +47,7 @@
   "email": "test4@example.com",
   "first_name": "_Test4",
   "new_password": "Eastern_43A1W",
+  "send_welcome_email": 0,
   "enabled": 1
  },
  {
@@ -50,6 +55,7 @@
   "email": "test'5@example.com",
   "first_name": "_Test'5",
   "new_password": "Eastern_43A1W",
+  "send_welcome_email": 0,
   "enabled": 1
  },
  {
@@ -57,6 +63,7 @@
   "email": "testperm@example.com",
   "first_name": "_Test Perm",
   "new_password": "Eastern_43A1W",
+  "send_welcome_email": 0,
   "enabled": 1
  },
  {
@@ -65,6 +72,7 @@
   "enabled": 1,
   "first_name": "_Test",
   "new_password": "Eastern_43A1W",
+  "send_welcome_email": 0,
   "roles": [
    {
     "doctype": "Has Role",
@@ -81,6 +89,7 @@
  {
     "doctype": "User",
     "email": "testpassword@example.com",
+    "send_welcome_email": 0,
     "enabled": 1,
     "first_name": "_Test",
     "new_password": "Eastern_43A1W",
