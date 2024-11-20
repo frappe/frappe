@@ -1,8 +1,9 @@
 import fs from "fs"
 import path from "path"
-import { createGenerator } from "ts-json-schema-generator"
+import { CompletedConfig, createFormatter, createParser, createProgram, SchemaGenerator } from "ts-json-schema-generator"
+import { SVGElementParser } from "./customParser.js"
 
-function tsToJSON(typesFolder, destFolder, tsconfig = "") {
+function tsToJSON(typesFolder: string, destFolder: string, tsconfig = "") {
 	// Get project root (where package.json is)
 	const root = process.cwd()
 
@@ -14,19 +15,23 @@ function tsToJSON(typesFolder, destFolder, tsconfig = "") {
 	// Get a list of all the component type files
 	const componentFiles = fs.readdirSync(inputDirPath).filter((file) => file.endsWith(".ts"))
 
-	let config = { type: "*", skipTypeCheck: true }
+	let config = { type: "*", skipTypeCheck: true } as CompletedConfig
 	if (tsconfigPath) {
 		config["tsconfig"] = tsconfigPath
 	}
 
 	// Generate a schema for each component type file
 	for (const file of componentFiles) {
-		const generator = createGenerator({
-			path: path.join(inputDirPath, file),
-			...config,
-		})
+		config["path"] = path.join(inputDirPath, file)
 
-		const schema = generator.createSchema()
+		const program = createProgram(config)
+		const parser = createParser(program, config, (prs) => {
+			prs.addNodeParser(new SVGElementParser())
+		})
+		const formatter = createFormatter(config)
+
+		const generator = new SchemaGenerator(program, parser, formatter, config)
+		const schema = generator.createSchema(config.type)
 		if (!fs.existsSync(outputDirPath)) {
 			fs.mkdirSync(outputDirPath, { recursive: true })
 		}

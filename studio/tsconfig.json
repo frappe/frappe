@@ -33,8 +33,9 @@
 	  "src/**/*.vue",
 	  "tests/**/*.ts",
 	  "tests/**/*.tsx",
-	  "src/scripts/tsToJSONGenerator.mjs",
-	  "src/utils/tsToJSON.mjs"
+	  "src/scripts/tsToJSONGenerator.ts",
+	  "src/utils/tsToJSON/index.ts",
+	  "src/utils/tsToJSON/customParser.ts"
 	],
 	"exclude": [
 	  "node_modules"

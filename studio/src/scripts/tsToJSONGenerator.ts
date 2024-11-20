@@ -1,6 +1,6 @@
-import tsToJSON from "../utils/tsToJSON.mjs"
+import tsToJSON from "../utils/tsToJSON"
 
-const configMap = {
+const configMap: Record<string, any> = {
 	"frappe-ui": {
 		typesFolder: "../node_modules/frappe-ui/src/components/types",
 		destFolder: "src/json_types/frappeui",
