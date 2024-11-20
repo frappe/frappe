@@ -676,7 +676,6 @@ function getEmits(name: string) {
 	if (name in frappeUI) {
 		return frappeUI[name]?.emits
 	} else {
-		console.log(COMPONENTS[name])
 		return COMPONENTS[name]?.emits
 	}
 }

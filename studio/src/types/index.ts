@@ -50,14 +50,15 @@ export interface ContextMenuOption {
 	condition?: () => boolean
 }
 
-export interface ComponentProps {
-	[key: string]: {
-		type: string,
-		default: VuePropDefault,
-		inputType: string
-		modelValue?: any
-	}
+export type ComponentProp = {
+	type: string
+	default: VuePropDefault
+	inputType: string
+	modelValue?: any
+	options?: Array<SelectOption> | Array<string>
 }
+
+export type ComponentProps = Record<string, ComponentProp>
 
 // controls
 export type SelectOption = { value: string, label: string }

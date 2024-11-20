@@ -1,6 +1,8 @@
 import components from "@/data/components"
-import { ComponentProps } from "@/types"
+import { ComponentProp, ComponentProps } from "@/types"
 import { VueProp, VuePropType } from "@/types/vue"
+
+import * as componentTypes from "@/json_types"
 
 function getComponentProps(componentName: string) {
 	const props = components.getProps(componentName)
@@ -17,13 +19,24 @@ function getComponentProps(componentName: string) {
 		})
 		return propsConfig
 	} else {
-		Object.entries(props as Record<string, VueProp>).forEach(([propName, config]) => {
-			const propType = getPropType(config.type)
-			propsConfig[propName] = {
+		Object.entries(props as Record<string, VueProp>).forEach(([propName, prop]) => {
+			const propType = getPropType(prop.type)
+			const config: ComponentProp = {
 				type: propType,
-				default: config.default,
+				default: prop.default,
 				inputType: getPropInputType(propType),
 			}
+
+			if (propType === "String") {
+				const enums = getPropEnums(componentName, propName)
+				if (enums) {
+					// prop has predefined options
+					config.inputType = "select"
+					config.options = enums
+				}
+			}
+
+			propsConfig[propName] = config
 		})
 	}
 	return propsConfig
@@ -56,6 +69,10 @@ function getPropInputType(propType: string) {
 		default:
 			return "text"
 	}
+}
+
+function getPropEnums(componentName: string, propName: string) {
+	return componentTypes[componentName]?.properties?.[propName]?.enum
 }
 
 // events

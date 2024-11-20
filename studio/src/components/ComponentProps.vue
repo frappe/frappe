@@ -6,6 +6,7 @@
 					:label="propName"
 					:type="config.inputType"
 					:modelValue="config.modelValue"
+					:options="config.options"
 					@update:modelValue="(val) => updateComponentProp(propName, val)"
 				/>
 			</div>
