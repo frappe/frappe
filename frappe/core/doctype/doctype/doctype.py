@@ -520,7 +520,7 @@ class DocType(Document):
 			self.setup_autoincrement_and_sequence()
 
 		try:
-			frappe.db.updatedb(self.name, Meta(self))
+			frappe.db.updatedb(self.name, Meta(None, bootstrap=self))
 		except Exception as e:
 			print(f"\n\nThere was an issue while migrating the DocType: {self.name}\n")
 			raise e

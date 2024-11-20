@@ -126,7 +126,9 @@ def get_doc_files(files, start_path):
 
 	files = files or []
 
-	for _module, doctype in IMPORTABLE_DOCTYPES:
+	for _module, doctype in IMPORTABLE_DOCTYPES + [
+		(None, frappe.scrub(dt)) for dt in frappe.get_hooks("importable_doctypes")
+	]:
 		doctype_path = os.path.join(start_path, doctype)
 		if os.path.exists(doctype_path):
 			for docname in os.listdir(doctype_path):

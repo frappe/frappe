@@ -170,18 +170,13 @@ class EmailQueue(Document):
 					method(self, self.sender, recipient.recipient, message)
 				elif not frappe.flags.in_test or frappe.flags.testing_email:
 					if ctx.email_account_doc.service == "Frappe Mail":
-						if self.reference_doctype == "Newsletter":
-							ctx.frappe_mail_client.send_newsletter(
-								sender=self.sender,
-								recipients=recipient.recipient,
-								message=message.decode("utf-8"),
-							)
-						else:
-							ctx.frappe_mail_client.send_raw(
-								sender=self.sender,
-								recipients=recipient.recipient,
-								message=message.decode("utf-8"),
-							)
+						is_newsletter = self.reference_doctype == "Newsletter"
+						ctx.frappe_mail_client.send_raw(
+							sender=self.sender,
+							recipients=recipient.recipient,
+							message=message,
+							is_newsletter=is_newsletter,
+						)
 					else:
 						ctx.smtp_server.session.sendmail(
 							from_addr=self.sender,

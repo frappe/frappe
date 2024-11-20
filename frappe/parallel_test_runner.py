@@ -85,9 +85,19 @@ class ParallelTestRunner:
 			print("running tests from", "/".join(file_info))
 			return
 
+		from frappe.deprecation_dumpster import deprecation_warning
+
+		deprecation_warning(
+			"2024-11-13",
+			"v17",
+			"Setting the test environment user to 'Administrator' by the test runner is deprecated. The UnitTestCase now ensures a consistent user environment on set up and tear down at the class level. ",
+		)
 		frappe.set_user("Administrator")
 		path, filename = file_info
 		module = self.get_module(path, filename)
+		from frappe.deprecation_dumpster import compat_preload_test_records_upfront
+
+		compat_preload_test_records_upfront([(module, path, filename)])
 		test_suite = unittest.TestSuite()
 		module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
 		test_suite.addTest(module_test_cases)

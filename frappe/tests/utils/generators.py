@@ -118,21 +118,13 @@ def get_missing_records_module_overrides(module) -> [list, list]:
 	return to_add, to_remove
 
 
-def load_test_records_for(index_doctype) -> dict[str, Any] | list:
+def load_test_records_for(index_doctype) -> dict[str, Any]:
 	module_path = get_module_path(get_doctype_module(index_doctype), "doctype", frappe.scrub(index_doctype))
 
 	json_path = os.path.join(module_path, "test_records.json")
 	if os.path.exists(json_path):
-		if not frappe.flags.deprecation_dumpster_invoked:
-			from frappe.deprecation_dumpster import deprecation_warning
-
-			deprecation_warning(
-				"2024-10-09",
-				"v18",
-				"Use TOML files for test records; migration script: https://github.com/frappe/frappe/pull/28065",
-			)
 		with open(json_path) as f:
-			return json.load(f)
+			return _transform_legacy_json_records(json.load(f), index_doctype)
 
 	toml_path = os.path.join(module_path, "test_records.toml")
 	if os.path.exists(toml_path):
@@ -189,6 +181,8 @@ def _generate_records_for(
 		# Second Priority: module's test_records attribute
 		if hasattr(test_module, "test_records"):
 			test_records = test_module.test_records
+			if isinstance(test_records, list):
+				test_records = _transform_legacy_json_records(test_records, index_doctype)
 
 		# Third priority: module's test_records.toml
 		else:
@@ -199,9 +193,6 @@ def _generate_records_for(
 			frappe.local.test_objects[index_doctype] = []  # avoid noisy retries on multiple invocations
 			print_mandatory_fields(index_doctype, initial_doctype)
 			return
-
-		if isinstance(test_records, list):
-			test_records = _transform_legacy_json_records(test_records, index_doctype)
 
 		logger.warning("↺ " + logstr)
 		testing_logger.info(f" Synced  + {index_doctype:<30} via {initial_doctype}")
@@ -441,12 +432,12 @@ def make_test_records_for_doctype(doctype, force=False, commit=False):
 
 def make_test_objects(doctype=None, test_records=None, reset=False, commit=False):
 	"""Generate test objects from provided records, with caching and persistence."""
-	if test_records is None:
-		test_records = load_test_records_for(doctype)
-
-	# Deprecated JSON import - make it comply
+	# Legacy JSON import - make it comply
 	if isinstance(test_records, list):
 		test_records = _transform_legacy_json_records(test_records, doctype)
+
+	if test_records is None:
+		test_records = load_test_records_for(doctype)
 	return list(r.name for tag, r in _sync_records(doctype, test_records, reset, commit))
 
 

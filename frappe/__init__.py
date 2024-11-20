@@ -204,11 +204,11 @@ if TYPE_CHECKING:  # pragma: no cover
 	conf: ConfType
 	form_dict: FormDict
 	request: Request
+	job: JobMetaType
+	response: ResponseDict
 	session: SessionType
 	user: str
 	flags: FlagsDict
-	session: JobMetaType
-	response: ResponseDict
 
 	error_log: list[dict[str, str]]
 	debug_log: list[str]

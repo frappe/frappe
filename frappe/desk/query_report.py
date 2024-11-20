@@ -195,10 +195,10 @@ def run(
 	parent_field=None,
 	are_default_filters=True,
 ):
-	validate_filters_permissions(report_name, filters, user)
-	report = get_report_doc(report_name)
 	if not user:
 		user = frappe.session.user
+	validate_filters_permissions(report_name, filters, user)
+	report = get_report_doc(report_name)
 	if not frappe.has_permission(report.ref_doctype, "report"):
 		frappe.msgprint(
 			_("Must have report permission to access this report."),
@@ -799,7 +799,9 @@ def validate_filters_permissions(report_name, filters=None, user=None):
 	for field in report.filters:
 		if field.fieldname in filters and field.fieldtype == "Link":
 			linked_doctype = field.options
-			if not has_permission(doctype=linked_doctype, doc=filters[field.fieldname], user=user):
+			if not has_permission(
+				doctype=linked_doctype, ptype="select", doc=filters[field.fieldname], user=user
+			):
 				frappe.throw(
 					_("You do not have permission to access {0}: {1}.").format(
 						linked_doctype, filters[field.fieldname]

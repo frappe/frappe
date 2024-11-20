@@ -105,7 +105,6 @@ function is_frappe_app(app_name, app_path) {
 	/**
 	 * Same as the is_frappe_app check in frappe/bench
 	 */
-	if (!fs.lstatSync(app_path).isDirectory()) return false;
 
 	const files_in_app = ["hooks.py", "modules.txt", "patches.txt"];
 

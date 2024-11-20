@@ -3,8 +3,8 @@ subject = "_Test Notification 1"
 document_type = "Communication"
 event = "New"
 attach_print = 0
-message = "New comment {{ doc.content }} created"
-condition = "doc.communication_type=='Comment'"
+message = "New communication {{ doc.content }} created"
+condition = "doc.communication_type=='Communication' and doc.sender_full_name=='__test_notification_sender__'"
 [[Notification.recipients]]
 receiver_by_document_field = "owner"
 
@@ -14,8 +14,9 @@ subject = "_Test Notification 2"
 document_type = "Communication"
 event = "Save"
 attach_print = 0
-message = "New comment {{ doc.content }} saved"
-condition = "doc.communication_type=='Comment'"
+sender_full_name = "__testsender__"
+message = "New communication {{ doc.content }} saved"
+condition = "doc.communication_type=='Communication' and doc.sender_full_name=='__test_notification_sender__'"
 set_property_after_alert = "subject"
 property_value = "__testing__"
 [[Notification.recipients]]

@@ -5,7 +5,7 @@ This file is the final resting place (or should we say, "retirement home"?) for 
 
 Each function or method that checks in here comes with its own personalized decorator, complete with:
 1. The date it was marked for deprecation (its "over the hill" birthday)
-2. The Frappe version in which it will be removed (its "graduation" to the great codebase in the sky)
+2. The Frappe version at the beginning of which it becomes an error and at the end of which it will be removed (its "graduation" to the great codebase in the sky)
 3. A user-facing note on alternative solutions (its "parting wisdom")
 
 Warning: The global namespace herein is more patched up than a sailor's favorite pair of jeans. Proceed with caution and a sense of humor!
@@ -17,8 +17,10 @@ Enjoy your stay in the Deprecation Dumpster, where every function gets a second 
 
 import inspect
 import os
+import re
 import sys
 import warnings
+from importlib.metadata import version
 
 
 def colorize(text, color_code):
@@ -33,8 +35,82 @@ class Color:
 	CYAN = 96
 
 
+# we use Warning because DeprecationWarning has python default filters which would exclude them from showing
+# see also frappe.__init__ enabling them when a dev_server
+class FrappeDeprecationError(Warning):
+	"""Deprecated feature in current version.
+
+	Raises an error by default but can be configured via PYTHONWARNINGS in an emergency.
+	"""
+
+	# see PYTHONWARNINGS implementation further down below
+
+
 class FrappeDeprecationWarning(Warning):
-	...
+	"""Deprecated feature in next version"""
+
+
+class PendingFrappeDeprecationWarning(FrappeDeprecationWarning):
+	"""Deprecated feature in develop beyond next version.
+
+	Warning ignored by default.
+
+	The deprecation decision may still be reverted or deferred at this stage.
+	Regardless, using the new variant is encouraged and stable.
+	"""
+
+
+warnings.simplefilter("error", FrappeDeprecationError)
+warnings.simplefilter("ignore", PendingFrappeDeprecationWarning)
+
+
+class V15FrappeDeprecationWarning(FrappeDeprecationError):
+	pass
+
+
+class V16FrappeDeprecationWarning(FrappeDeprecationWarning):
+	pass
+
+
+class V17FrappeDeprecationWarning(PendingFrappeDeprecationWarning):
+	pass
+
+
+def __get_deprecation_class(graduation: str | None = None, class_name: str | None = None) -> type:
+	if graduation:
+		# Scrub the graduation string to ensure it's a valid class name
+		cleaned_graduation = re.sub(r"\W|^(?=\d)", "_", graduation.upper())
+		class_name = f"{cleaned_graduation}FrappeDeprecationWarning"
+		current_module = sys.modules[__name__]
+	try:
+		return getattr(current_module, class_name)
+	except AttributeError:
+		return PendingDeprecationWarning
+
+
+# Parse PYTHONWARNINGS environment variable
+# see: https://github.com/python/cpython/issues/66733
+pythonwarnings = os.environ.get("PYTHONWARNINGS", "")
+for warning_filter in pythonwarnings.split(","):
+	parts = warning_filter.strip().split(":")
+	if len(parts) >= 3 and (
+		parts[2] in ("FrappeDeprecationError", "FrappeDeprecationWarning", "PendingFrappeDeprecationWarning")
+		or parts[2].endswith("FrappeDeprecationWarning")
+	):
+		try:
+			# Import the warning class dynamically
+			_, class_name = parts[2].rsplit(".", 1)
+			warning_class = __get_deprecation_class(class_name=class_name)
+
+			# Add the filter
+			action = parts[0] if parts[0] else "default"
+			message = parts[1] if len(parts) > 1 else ""
+			module = parts[3] if len(parts) > 3 else ""
+			lineno = int(parts[4]) if len(parts) > 4 and parts[4].isdigit() else 0
+
+			warnings.filterwarnings(action, message, warning_class, module, lineno)
+		except (ImportError, AttributeError):
+			print(f"Warning: Unable to import {parts[2]}")
 
 
 try:
@@ -94,6 +170,7 @@ def deprecated(original: str, marked: str, graduation: str, msg: str, stacklevel
 		wrapper = _deprecated(
 			colorize(f"It was marked on {marked} for removal from {graduation} with note: ", Color.RED)
 			+ colorize(f"{msg}", Color.YELLOW),
+			category=__get_deprecation_class(graduation),
 			stacklevel=stacklevel,
 		)
 
@@ -117,7 +194,7 @@ def deprecation_warning(marked: str, graduation: str, msg: str):
 			Color.RED,
 		)
 		+ colorize(f"{msg}\n", Color.YELLOW),
-		category=FrappeDeprecationWarning,
+		category=__get_deprecation_class(graduation),
 		stacklevel=2,
 	)
 
@@ -753,6 +830,45 @@ def get_tests_CompatFrappeTestCase():
 	return FrappeTestCase
 
 
+# remove alongside get_tests_CompatFrappeTestCase
+def get_compat_frappe_test_case_preparation(cfg):
+	import unittest
+
+	import frappe
+	from frappe.testing.environment import IntegrationTestPreparation
+
+	class FrappeTestCasePreparation(IntegrationTestPreparation):
+		def __call__(self, suite: unittest.TestSuite, app: str, category: str) -> None:
+			super().__call__(suite, app, category)
+			candidates = []
+			app_path = frappe.get_app_path(app)
+			for path, folders, files in os.walk(frappe.get_app_path(app)):
+				for dontwalk in ("locals", ".git", "public", "__pycache__"):
+					if dontwalk in folders:
+						folders.remove(dontwalk)
+
+				# for predictability
+				folders.sort()
+				files.sort()
+
+				# print path
+				for filename in files:
+					if filename.startswith("test_") and filename.endswith(".py"):
+						relative_path = os.path.relpath(path, app_path)
+						if relative_path == ".":
+							module_name = app
+						else:
+							relative_path = relative_path.replace("/", ".")
+							module_name = os.path.splitext(filename)[0]
+							module_name = f"{app}.{relative_path}.{module_name}"
+
+						module = frappe.get_module(module_name)
+						candidates.append((module, path, filename))
+			compat_preload_test_records_upfront(candidates)
+
+	return FrappeTestCasePreparation(cfg)
+
+
 @deprecated(
 	"frappe.model.trace.traced_field_context",
 	"2024-20-08",
@@ -822,8 +938,6 @@ def frappe_get_test_records(doctype):
 	import frappe
 	from frappe.tests.utils.generators import load_test_records_for
 
-	frappe.flags.deprecation_dumpster_invoked = True
-
 	records = load_test_records_for(doctype)
 	if isinstance(records, dict):
 		_records = []
@@ -834,3 +948,36 @@ def frappe_get_test_records(doctype):
 				_records.append(_doc)
 		return _records
 	return records
+
+
+def compat_preload_test_records_upfront(candidates: list):
+	import os
+
+	if os.environ.get("OLD_FRAPPE_TEST_CLASS_RECORDS_PRELOAD"):
+		deprecation_warning(
+			"2024-11-06",
+			"v17",
+			"Please fully declare test record dependencies for each test individually; you can assert compliance of your test suite with the following GH action: https://github.com/frappe/frappe/blob/develop/.github/workflows/run-indinvidual-tests.yml",
+		)
+		import json
+		import re
+
+		from frappe.tests.utils import make_test_records
+
+		for module, path, filename in candidates:
+			if hasattr(module, "test_dependencies"):
+				for doctype in module.test_dependencies:
+					make_test_records(doctype, commit=True)
+			if hasattr(module, "EXTRA_TEST_RECORD_DEPENDENCIES"):
+				for doctype in module.EXTRA_TEST_RECORD_DEPENDENCIES:
+					make_test_records(doctype, commit=True)
+
+			if os.path.basename(os.path.dirname(path)) == "doctype":
+				# test_data_migration_connector.py > data_migration_connector.json
+				test_record_filename = re.sub("^test_", "", filename).replace(".py", ".json")
+				test_record_file_path = os.path.join(path, test_record_filename)
+				if os.path.exists(test_record_file_path):
+					with open(test_record_file_path) as f:
+						doc = json.loads(f.read())
+						doctype = doc["name"]
+						make_test_records(doctype, commit=True)

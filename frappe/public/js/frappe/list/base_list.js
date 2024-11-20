@@ -791,7 +791,7 @@ class FilterArea {
 		});
 	}
 
-	make_standard_filters() {
+	async make_standard_filters() {
 		this.standard_filters_wrapper = this.list_view.page.page_form.find(
 			".standard-filter-section"
 		);
@@ -807,12 +807,24 @@ class FilterArea {
 			});
 		}
 
-		if (this.list_view.custom_filter_configs) {
-			this.list_view.custom_filter_configs.forEach((config) => {
-				config.onchange = () => this.debounced_refresh_list_view();
-			});
+		if (
+			this.list_view.custom_filter_configs ||
+			this.list_view.settings.custom_filter_configs
+		) {
+			const custom_filter_configs =
+				this.list_view.custom_filter_configs ||
+				this.list_view.settings.custom_filter_configs;
+			await Promise.resolve(
+				typeof custom_filter_configs === "function"
+					? custom_filter_configs()
+					: custom_filter_configs
+			).then((configs) => {
+				configs.forEach((config) => {
+					config.onchange = () => this.debounced_refresh_list_view();
+				});
 
-			fields = fields.concat(this.list_view.custom_filter_configs);
+				fields = fields.concat(configs);
+			});
 		}
 
 		const doctype_fields = this.list_view.meta.fields;

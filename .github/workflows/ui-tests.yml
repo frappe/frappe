@@ -215,7 +215,7 @@ jobs:
         uses: actions/download-artifact@v4.1.8
 
       - name: Upload python coverage data
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           name: UIBackend
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -225,7 +225,7 @@ jobs:
           flags: server-ui
 
       - name: Upload JS coverage data
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           name: Cypress
           token: ${{ secrets.CODECOV_TOKEN }}

@@ -20,13 +20,14 @@ page_js = {"setup-wizard": "public/js/frappe/setup_wizard.js"}
 
 # website
 app_include_js = [
-    "libs.bundle.js",
-    "desk.bundle.js",
-    "list.bundle.js",
-    "form.bundle.js",
-    "controls.bundle.js",
-    "report.bundle.js",
-    "telemetry.bundle.js",
+	"libs.bundle.js",
+	"desk.bundle.js",
+	"list.bundle.js",
+	"form.bundle.js",
+	"controls.bundle.js",
+	"report.bundle.js",
+	"telemetry.bundle.js",
+	# "billing.bundle.js",
 ]
 
 app_include_css = [
@@ -54,11 +55,12 @@ web_include_icons = [
 email_css = ["email.bundle.css"]
 
 website_route_rules = [
-    {"from_route": "/blog/<category>", "to_route": "Blog Post"},
-    {"from_route": "/kb/<category>", "to_route": "Help Article"},
-    {"from_route": "/newsletters", "to_route": "Newsletter"},
-    {"from_route": "/profile", "to_route": "me"},
-    {"from_route": "/app/<path:app_path>", "to_route": "app"},
+	{"from_route": "/blog/<category>", "to_route": "Blog Post"},
+	{"from_route": "/kb/<category>", "to_route": "Help Article"},
+	{"from_route": "/newsletters", "to_route": "Newsletter"},
+	{"from_route": "/profile", "to_route": "me"},
+	{"from_route": "/app/<path:app_path>", "to_route": "app"},
+	# {"from_route": "/billing/<path:app_path>", "to_route": "billing"},
 ]
 
 website_redirects = [
@@ -472,65 +474,72 @@ get_changelog_feed = "frappe.desk.doctype.changelog_feed.changelog_feed.get_feed
 export_python_type_annotations = True
 
 standard_navbar_items = [
-    {
-        "item_label": "User Settings",
-        "item_type": "Action",
-        "action": "frappe.ui.toolbar.route_to_user()",
-        "is_standard": 1,
-    },
-    {
-        "item_label": "Workspace Settings",
-        "item_type": "Action",
-        "action": "frappe.quick_edit('Workspace Settings')",
-        "is_standard": 1,
-    },
-    {
-        "item_label": "Session Defaults",
-        "item_type": "Action",
-        "action": "frappe.ui.toolbar.setup_session_defaults()",
-        "is_standard": 1,
-    },
-    {
-        "item_label": "Reload",
-        "item_type": "Action",
-        "action": "frappe.ui.toolbar.clear_cache()",
-        "is_standard": 1,
-    },
-    {
-        "item_label": "View Website",
-        "item_type": "Action",
-        "action": "frappe.ui.toolbar.view_website()",
-        "is_standard": 1,
-    },
-    {
-        "item_label": "Apps",
-        "item_type": "Route",
-        "route": "/apps",
-        "is_standard": 1,
-    },
-    {
-        "item_label": "Toggle Full Width",
-        "item_type": "Action",
-        "action": "frappe.ui.toolbar.toggle_full_width()",
-        "is_standard": 1,
-    },
-    {
-        "item_label": "Toggle Theme",
-        "item_type": "Action",
-        "action": "new frappe.ui.ThemeSwitcher().show()",
-        "is_standard": 1,
-    },
-    {
-        "item_type": "Separator",
-        "is_standard": 1,
-        "item_label": "",
-    },
-    {
-        "item_label": "Log out",
-        "item_type": "Action",
-        "action": "frappe.app.logout()",
-        "is_standard": 1,
-    },
+	{
+		"item_label": "User Settings",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.route_to_user()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Workspace Settings",
+		"item_type": "Action",
+		"action": "frappe.quick_edit('Workspace Settings')",
+		"is_standard": 1,
+	},
+	# {
+	# 	"item_label": "Manage Billing",
+	# 	"item_type": "Route",
+	# 	"route": "/billing",
+	# 	"is_standard": 1,
+	# 	"condition": "frappe.boot.fc_communication_secret && frappe.boot.setup_complete && !frappe.is_mobile() && frappe.user.has_role('System Manager')",
+	# },
+	{
+		"item_label": "Session Defaults",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.setup_session_defaults()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Reload",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.clear_cache()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "View Website",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.view_website()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Apps",
+		"item_type": "Route",
+		"route": "/apps",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Toggle Full Width",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.toggle_full_width()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Toggle Theme",
+		"item_type": "Action",
+		"action": "new frappe.ui.ThemeSwitcher().show()",
+		"is_standard": 1,
+	},
+	{
+		"item_type": "Separator",
+		"is_standard": 1,
+		"item_label": "",
+	},
+	{
+		"item_label": "Log out",
+		"item_type": "Action",
+		"action": "frappe.app.logout()",
+		"is_standard": 1,
+	},
 ]
 
 standard_help_items = [

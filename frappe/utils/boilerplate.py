@@ -458,6 +458,9 @@ app_license = "{app_license}"
 # automatically create page for each record of this doctype
 # website_generators = ["Web Page"]
 
+# automatically load and sync documents of this doctype from downstream apps
+# importable_doctypes = [doctype_1]
+
 # Jinja
 # ----------
 

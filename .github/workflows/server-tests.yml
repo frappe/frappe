@@ -297,7 +297,7 @@ jobs:
         uses: actions/download-artifact@v4.1.8
 
       - name: Upload coverage data
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           name: Server
           token: ${{ secrets.CODECOV_TOKEN }}

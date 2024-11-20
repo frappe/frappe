@@ -80,8 +80,8 @@ jobs:
       - uses: frappe/frappe/.github/actions/setup@develop
         name: Environment Setup
         with:
-          python-version: '3.12'
-          node-version: 20
+          python-version: ${{ inputs.python-version }}
+          node-version: ${{ inputs.node-version }}
           build-assets: false
           enable-coverage: ${{ inputs.enable-coverage }}
           db-root-password: ${{ env.DB_ROOT_PASSWORD }}
