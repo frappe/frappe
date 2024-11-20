@@ -35,19 +35,19 @@
 				class="grid-col-3 dark:bg-zinc-800 grid h-16 w-16 grid-rows-3 gap-1 self-center justify-self-center rounded bg-gray-50 p-2"
 			>
 				<div
-					class="bg-surface-gray-2 col-span-3 row-start-1 h-2 w-[2px] self-center justify-self-center rounded"
+					class="col-span-3 row-start-1 h-2 w-[2px] self-center justify-self-center rounded bg-surface-gray-2"
 				></div>
 				<div
-					class="bg-surface-gray-2 col-span-3 row-start-3 h-2 w-[2px] self-center justify-self-center rounded"
+					class="col-span-3 row-start-3 h-2 w-[2px] self-center justify-self-center rounded bg-surface-gray-2"
 				></div>
 				<div
 					class="surface-grabg-surface-gray-2 h-5 w-5 self-center justify-self-center rounded bg-gray-400"
 				></div>
 				<div
-					class="bg-surface-gray-2 col-span-1 col-start-1 row-start-2 h-[2px] w-2 self-center justify-self-center rounded"
+					class="col-span-1 col-start-1 row-start-2 h-[2px] w-2 self-center justify-self-center rounded bg-surface-gray-2"
 				></div>
 				<div
-					class="bg-surface-gray-2 col-span-1 col-start-3 row-start-2 h-[2px] w-2 self-center justify-self-center rounded"
+					class="col-span-1 col-start-3 row-start-2 h-[2px] w-2 self-center justify-self-center rounded bg-surface-gray-2"
 				></div>
 			</div>
 			<div class="col-span-1 col-start-3 w-16 self-center">
