@@ -34,21 +34,6 @@
           }
         ]
       }
-    },
-    "TreeOptions": {
-      "type": "object",
-      "properties": {
-        "rowHeight": {
-          "type": "string"
-        },
-        "indentWidth": {
-          "type": "string"
-        },
-        "showIndentationGuides": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false
     }
   }
 }
