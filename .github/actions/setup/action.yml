@@ -48,8 +48,8 @@ runs:
   - name: Checkout Frappe
     uses: actions/checkout@v4
     with:
-      repository: ${{ env.GH_ORG || github.repository_owner }}/frappe
-      ref: ${{ env.FRAPPE_BRANCH || github.base_ref || github.ref_name }}
+      repository: ${{ env.FRAPPE_GH_ORG || github.repository_owner }}/frappe
+      ref: ${{ github.event.client_payload.frappe_sha || github.base_ref || github.ref_name }}
       path: frappe
     if: github.event.repository.name != 'frappe'
 

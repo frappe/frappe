@@ -5,7 +5,7 @@ This file is the final resting place (or should we say, "retirement home"?) for 
 
 Each function or method that checks in here comes with its own personalized decorator, complete with:
 1. The date it was marked for deprecation (its "over the hill" birthday)
-2. The Frappe version in which it will be removed (its "graduation" to the great codebase in the sky)
+2. The Frappe version at the beginning of which it becomes an error and at the end of which it will be removed (its "graduation" to the great codebase in the sky)
 3. A user-facing note on alternative solutions (its "parting wisdom")
 
 Warning: The global namespace herein is more patched up than a sailor's favorite pair of jeans. Proceed with caution and a sense of humor!
@@ -17,8 +17,10 @@ Enjoy your stay in the Deprecation Dumpster, where every function gets a second 
 
 import inspect
 import os
+import re
 import sys
 import warnings
+from importlib.metadata import version
 
 
 def colorize(text, color_code):
@@ -33,8 +35,82 @@ class Color:
 	CYAN = 96
 
 
+# we use Warning because DeprecationWarning has python default filters which would exclude them from showing
+# see also frappe.__init__ enabling them when a dev_server
+class FrappeDeprecationError(Warning):
+	"""Deprecated feature in current version.
+
+	Raises an error by default but can be configured via PYTHONWARNINGS in an emergency.
+	"""
+
+	# see PYTHONWARNINGS implementation further down below
+
+
 class FrappeDeprecationWarning(Warning):
-	...
+	"""Deprecated feature in next version"""
+
+
+class PendingFrappeDeprecationWarning(FrappeDeprecationWarning):
+	"""Deprecated feature in develop beyond next version.
+
+	Warning ignored by default.
+
+	The deprecation decision may still be reverted or deferred at this stage.
+	Regardless, using the new variant is encouraged and stable.
+	"""
+
+
+warnings.simplefilter("error", FrappeDeprecationError)
+warnings.simplefilter("ignore", PendingFrappeDeprecationWarning)
+
+
+class V15FrappeDeprecationWarning(FrappeDeprecationError):
+	pass
+
+
+class V16FrappeDeprecationWarning(FrappeDeprecationWarning):
+	pass
+
+
+class V17FrappeDeprecationWarning(PendingFrappeDeprecationWarning):
+	pass
+
+
+def __get_deprecation_class(graduation: str | None = None, class_name: str | None = None) -> type:
+	if graduation:
+		# Scrub the graduation string to ensure it's a valid class name
+		cleaned_graduation = re.sub(r"\W|^(?=\d)", "_", graduation.upper())
+		class_name = f"{cleaned_graduation}FrappeDeprecationWarning"
+		current_module = sys.modules[__name__]
+	try:
+		return getattr(current_module, class_name)
+	except AttributeError:
+		return PendingDeprecationWarning
+
+
+# Parse PYTHONWARNINGS environment variable
+# see: https://github.com/python/cpython/issues/66733
+pythonwarnings = os.environ.get("PYTHONWARNINGS", "")
+for warning_filter in pythonwarnings.split(","):
+	parts = warning_filter.strip().split(":")
+	if len(parts) >= 3 and (
+		parts[2] in ("FrappeDeprecationError", "FrappeDeprecationWarning", "PendingFrappeDeprecationWarning")
+		or parts[2].endswith("FrappeDeprecationWarning")
+	):
+		try:
+			# Import the warning class dynamically
+			_, class_name = parts[2].rsplit(".", 1)
+			warning_class = __get_deprecation_class(class_name=class_name)
+
+			# Add the filter
+			action = parts[0] if parts[0] else "default"
+			message = parts[1] if len(parts) > 1 else ""
+			module = parts[3] if len(parts) > 3 else ""
+			lineno = int(parts[4]) if len(parts) > 4 and parts[4].isdigit() else 0
+
+			warnings.filterwarnings(action, message, warning_class, module, lineno)
+		except (ImportError, AttributeError):
+			print(f"Warning: Unable to import {parts[2]}")
 
 
 try:
@@ -94,6 +170,7 @@ def deprecated(original: str, marked: str, graduation: str, msg: str, stacklevel
 		wrapper = _deprecated(
 			colorize(f"It was marked on {marked} for removal from {graduation} with note: ", Color.RED)
 			+ colorize(f"{msg}", Color.YELLOW),
+			category=__get_deprecation_class(graduation),
 			stacklevel=stacklevel,
 		)
 
@@ -117,7 +194,7 @@ def deprecation_warning(marked: str, graduation: str, msg: str):
 			Color.RED,
 		)
 		+ colorize(f"{msg}\n", Color.YELLOW),
-		category=FrappeDeprecationWarning,
+		category=__get_deprecation_class(graduation),
 		stacklevel=2,
 	)
 
