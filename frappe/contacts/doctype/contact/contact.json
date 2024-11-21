@@ -53,7 +53,8 @@
    "in_global_search": 1,
    "label": "First Name",
    "oldfieldname": "first_name",
-   "oldfieldtype": "Data"
+   "oldfieldtype": "Data",
+   "reqd": 1
   },
   {
    "bold": 1,
