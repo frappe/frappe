@@ -7,7 +7,7 @@
 		"build": "vite build --base=/assets/studio/frontend/ && yarn copy-html-entry",
 		"copy-html-entry": "cp ../studio/public/frontend/index.html ../studio/www/studio.html",
 		"serve": "vite preview",
-		"extract-frappeui-types": "tsx src/scripts/tsToJSONGenerator.ts frappe-ui",
+		"extract-frappeui-types": "tsx src/scripts/tsToJSONGenerator.ts frappeui",
 		"extract-studio-types": "tsx src/scripts/tsToJSONGenerator.ts studio"
 	},
 	"dependencies": {
