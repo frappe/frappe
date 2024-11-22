@@ -9,13 +9,20 @@ function tsToJSON(typesFolder: string, destFolder: string, tsconfig = "") {
 
 	const inputDirPath = path.resolve(root, typesFolder)
 	const outputDirPath = path.resolve(root, destFolder)
-
 	const tsconfigPath = tsconfig ? path.resolve(root, tsconfig) : ""
 
 	// Get a list of all the component type files
 	const componentFiles = fs.readdirSync(inputDirPath).filter((file) => file.endsWith(".ts"))
 
-	let config = { type: "*", skipTypeCheck: true } as CompletedConfig
+	let config = {
+		type: "*", // Generate schema for all types
+		skipTypeCheck: true,
+		expose: "export", // only include exported types
+		topRef: true, // add top-level $ref
+		jsDoc: "extended", // include JSDoc annotations
+		additionalProperties: false,
+	} as CompletedConfig
+
 	if (tsconfigPath) {
 		config["tsconfig"] = tsconfigPath
 	}
