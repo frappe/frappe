@@ -290,7 +290,7 @@ def execute_job(
 	)
 
 	# Set task to started
-	if task_id:
+	if task_id and retry == 0:
 		frappe.db.set_value(
 			"Background Task",
 			task_id,
