@@ -19,7 +19,30 @@
       },
       "required": [
         "label"
-      ]
+      ],
+      "additionalProperties": false
+    },
+    "SidebarProps": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "logoSVG": {
+          "type": "string"
+        },
+        "menuItems": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MenuItem"
+          }
+        }
+      },
+      "required": [
+        "title",
+        "menuItems"
+      ],
+      "additionalProperties": false
     }
   }
 }

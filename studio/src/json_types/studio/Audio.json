@@ -1,13 +1,18 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
-  "properties": {
-    "file": {
-      "type": "string"
+  "$ref": "#/definitions/AudioProps",
+  "definitions": {
+    "AudioProps": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "file"
+      ],
+      "additionalProperties": false
     }
-  },
-  "required": [
-    "file"
-  ],
-  "definitions": {}
+  }
 }
