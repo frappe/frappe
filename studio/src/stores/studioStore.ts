@@ -61,6 +61,8 @@ const useStudioStore = defineStore("store", () => {
 		} else {
 			selectedBlockIds.value.splice(0, selectedBlockIds.value.length, block.componentId)
 		}
+
+		studioLayout.leftPanelActiveTab = "Layers"
 	}
 
 	// studio apps
