@@ -116,6 +116,7 @@ class DataImport(Document):
 				job_id=job_id,
 				data_import=self.name,
 				now=run_now,
+				track_job=True,
 			)
 			return True
 

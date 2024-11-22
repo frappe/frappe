@@ -63,6 +63,7 @@ def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None, 
 			task_id=task_id,
 			queue="short",
 			timeout=1000,
+			track_job=True,
 		)
 	else:
 		frappe.throw(_("Bulk operations only support up to 500 documents."), title=_("Too Many Documents"))

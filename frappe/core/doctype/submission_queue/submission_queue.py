@@ -81,6 +81,7 @@ class SubmissionQueue(Document):
 			action_for_queuing=self.action_for_queuing,
 			timeout=600,
 			enqueue_after_commit=True,
+			track_job=True,
 		)
 
 	def background_submission(self, to_be_queued_doc: Document, action_for_queuing: str):

@@ -76,7 +76,7 @@ def enqueue(
 	at_front: bool = False,
 	job_id: str | None = None,
 	deduplicate: bool = False,
-	track_job: bool = True,
+	track_job: bool = False,
 	**kwargs,
 ) -> Job | Any:
 	"""

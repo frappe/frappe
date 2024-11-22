@@ -98,6 +98,7 @@ def update_document_title(
 				name=updated_name,
 				fieldname=title_field,
 				value=updated_title,
+				track_job=True,
 			)
 		else:
 			try:
