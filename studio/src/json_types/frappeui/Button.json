@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/ButtonProps",
+  "definitions": {
+    "ButtonProps": {
+      "type": "object",
+      "properties": {
+        "theme": {
+          "type": "string",
+          "enum": [
+            "gray",
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl"
+          ]
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "solid",
+            "subtle",
+            "outline",
+            "ghost"
+          ]
+        },
+        "label": {
+          "type": "string"
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ]
+        },
+        "iconLeft": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ]
+        },
+        "iconRight": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ]
+        },
+        "loading": {
+          "type": "boolean"
+        },
+        "loadingText": {
+          "type": "string"
+        },
+        "disabled": {
+          "type": "boolean"
+        },
+        "route": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ]
+        },
+        "link": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

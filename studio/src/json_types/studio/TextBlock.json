@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/TextBlockProps",
+  "definitions": {
+    "TextBlockProps": {
+      "type": "object",
+      "properties": {
+        "tag": {
+          "type": "string"
+        },
+        "fontSize": {
+          "type": "string",
+          "enum": [
+            "text-xs",
+            "text-sm",
+            "text-base",
+            "text-lg",
+            "text-xl",
+            "text-2xl",
+            "text-3xl"
+          ]
+        },
+        "fontWeight": {
+          "type": "string",
+          "enum": [
+            "font-normal",
+            "font-medium",
+            "font-semibold",
+            "font-bold"
+          ]
+        },
+        "lineHeight": {
+          "type": "string",
+          "enum": [
+            "leading-none",
+            "leading-tight",
+            "leading-snug",
+            "leading-normal",
+            "leading-relaxed",
+            "leading-loose"
+          ]
+        },
+        "textColor": {
+          "type": "string",
+          "enum": [
+            "text-gray-900",
+            "text-gray-800",
+            "text-gray-700",
+            "text-gray-600",
+            "text-gray-500",
+            "text-gray-400"
+          ]
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

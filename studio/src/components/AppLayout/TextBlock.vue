@@ -5,42 +5,9 @@
 </template>
 
 <script setup lang="ts">
-type FontSize =
-	| "text-xs"
-	| "text-sm"
-	| "text-base"
-	| "text-lg"
-	| "text-xl"
-	| "text-2xl"
-	| "text-3xl"
-	| "text-4xl"
-	| "text-5xl"
-type FontWeight = "font-normal" | "font-medium" | "font-semibold" | "font-bold"
-type LineHeight =
-	| "leading-none"
-	| "leading-tight"
-	| "leading-snug"
-	| "leading-normal"
-	| "leading-relaxed"
-	| "leading-loose"
-type TextColor =
-	| "text-gray-900"
-	| "text-gray-800"
-	| "text-gray-700"
-	| "text-gray-600"
-	| "text-gray-500"
-	| "text-gray-400"
+import { TextBlockProps } from "@/types/studio_components/TextBlock"
 
-interface Props {
-	tag?: string
-	fontSize?: FontSize
-	fontWeight?: FontWeight
-	lineHeight?: LineHeight
-	textColor?: TextColor
-	text?: string
-}
-
-withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<TextBlockProps>(), {
 	tag: "span",
 	fontSize: "text-base",
 	fontWeight: "font-normal",

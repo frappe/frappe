@@ -47,10 +47,9 @@
 import { FeatherIcon } from "frappe-ui"
 import { ref, onMounted, watch } from "vue"
 
-const props = defineProps<{
-	file: string
-}>()
+import { AudioProps } from "@/types/studio_components/Audio"
 
+const props = defineProps<AudioProps>()
 const emit = defineEmits(["previous", "next"])
 
 const audioElement = ref<HTMLAudioElement | null>(null)

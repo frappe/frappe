@@ -1,4 +1,4 @@
-export interface AvatarCard {
+export interface AvatarCardProps {
 	imageURL: string
 	title: string
 	subtitle: string

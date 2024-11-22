@@ -33,22 +33,9 @@
 
 <script setup lang="ts">
 import AppLogo from "../Icons/AppLogo.vue"
+import { SidebarProps } from "@/types/studio_components/Sidebar"
 
-interface MenuItem {
-	label: string
-	route_to?: string
-	selected?: boolean
-	featherIcon?: string
-}
-
-withDefaults(
-	defineProps<{
-		title: string
-		logoSVG: string
-		menuItems: MenuItem[]
-	}>(),
-	{
-		menuItems: () => [],
-	},
-)
+withDefaults(defineProps<SidebarProps>(), {
+	menuItems: () => [],
+})
 </script>
