@@ -6,8 +6,6 @@ type FontSize =
 	| "text-xl"
 	| "text-2xl"
 	| "text-3xl"
-	| "text-4xl"
-	| "text-5xl"
 type FontWeight = "font-normal" | "font-medium" | "font-semibold" | "font-bold"
 type LineHeight =
 	| "leading-none"
