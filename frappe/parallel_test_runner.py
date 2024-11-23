@@ -14,6 +14,7 @@ import requests
 import frappe
 from frappe.tests.utils import make_test_records
 
+from .testing.environment import _decorate_all_methods_and_functions_with_type_checker
 from .testing.result import TestResult
 
 click_ctx = click.get_current_context(True)
@@ -49,6 +50,7 @@ class ParallelTestRunner:
 		frappe.flags.in_test = True
 		frappe.clear_cache()
 		frappe.utils.scheduler.disable_scheduler()
+		_decorate_all_methods_and_functions_with_type_checker()
 		self.before_test_setup()
 
 	def before_test_setup(self):

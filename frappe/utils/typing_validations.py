@@ -69,9 +69,18 @@ def raise_type_error(
 
 @lru_cache(maxsize=2048)
 def TypeAdapter(type_):
+	from pydantic import PydanticUserError
 	from pydantic import TypeAdapter as PyTypeAdapter
 
-	return PyTypeAdapter(type_, config=FrappePydanticConfig)
+	try:
+		return PyTypeAdapter(type_, config=FrappePydanticConfig)
+	except PydanticUserError as e:
+		match e.code:
+			case "type-adapter-config-unused":
+				# Unless they set their custom __pydantic_config__, this will be the case on BaseModule, TypedDict and dataclass - ignore
+				return PyTypeAdapter(type_)
+			case _:
+				raise e
 
 
 def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):

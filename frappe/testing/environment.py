@@ -19,6 +19,8 @@ These functions and classes are typically used by the test runner to set up
 and tear down the test environment before and after test execution.
 """
 
+import functools
+import inspect
 import logging
 import unittest
 
@@ -52,6 +54,8 @@ def _initialize_test_environment(site, config):
 	frappe.flags.print_messages = logger.getEffectiveLevel() < logging.INFO
 	frappe.flags.tests_verbose = logger.getEffectiveLevel() < logging.INFO
 
+	_decorate_all_methods_and_functions_with_type_checker()
+
 
 def _cleanup_after_tests():
 	"""Perform cleanup operations after running tests"""
@@ -75,6 +79,74 @@ def _disable_scheduler_if_needed():
 	scheduler_disabled_by_user = frappe.utils.scheduler.is_scheduler_disabled(verbose=False)
 	if not scheduler_disabled_by_user:
 		frappe.utils.scheduler.disable_scheduler()
+
+
+@debug_timer
+def _decorate_all_methods_and_functions_with_type_checker():
+	from frappe.utils.typing_validations import validate_argument_types
+
+	# TODO: dial this up slowly and fix errors along the way
+	max_depth = 1
+	skip_namespaces = ["frappe.deprecation_dumpster", "frappe.utils.typing_validations"]
+
+	def _decorate_callable(obj, apps, parent_module):
+		# whitelisted methods are already checked, see frappe.whitelist
+		if getattr(obj, "__func__", obj) in frappe.whitelisted:
+			return obj
+		# Check if the function is already decorated
+		elif hasattr(obj, "_is_decorated_for_validate_argument_types"):
+			return obj
+		elif module := getattr(obj, "__module__", ""):
+			if (app := module.split(".", 1)[0]) and app not in apps:
+				return obj
+			elif any(module.startswith(n) for n in skip_namespaces):
+				return obj
+
+		@functools.wraps(obj)
+		def wrapper(*args, **kwargs):
+			try:
+				return validate_argument_types(obj)(*args, **kwargs)
+			except TypeError as e:
+				# breakpoint()
+				raise e
+
+		wrapper._is_decorated_for_validate_argument_types = True
+
+		logger.debug(f"... patching {obj.__module__}.{obj.__name__} in {parent_module.__name__}")
+
+		return wrapper
+
+	def _decorate_module(module, apps, current_depth=0):
+		if current_depth >= max_depth:
+			return
+		elif name := module.__name__:
+			if name.split(".", 1)[0] not in apps:
+				return
+			elif "deprecation_dumpster" in name:
+				return
+			elif "typing_validations" in name:
+				return
+		if (app := module.__name__.split(".", 1)[0]) and app not in apps:
+			return
+		for name in dir(module):
+			obj = getattr(module, name)
+			if inspect.isfunction(obj):
+				if not hasattr(obj, "__annotations__"):
+					continue
+				setattr(module, name, _decorate_callable(obj, apps, module))
+			elif inspect.ismodule(obj):
+				_decorate_module(obj, apps, current_depth + 1)
+
+	for app in (apps := frappe.get_installed_apps()):
+		logger.info(
+			f"Decorating callables with type validator up to module depth {max_depth+1} in {app!r} ..."
+		)
+		for module_name in frappe.local.app_modules.get(app) or []:
+			try:
+				module = frappe.get_module(f"{app}.{module_name}")
+				_decorate_module(module, apps)
+			except ImportError:
+				logger.error(f"Error importing module {app}.{module_name}")
 
 
 class IntegrationTestPreparation:
