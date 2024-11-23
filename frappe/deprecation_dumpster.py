@@ -981,3 +981,23 @@ def compat_preload_test_records_upfront(candidates: list):
 						doc = json.loads(f.read())
 						doctype = doc["name"]
 						make_test_records(doctype, commit=True)
+
+
+@deprecated(
+	"frappe.utils.data.get_number_format_info",
+	"unknown",
+	"v16",
+	"Use `NumberFormat.from_string()` from `frappe.utils.number_format` instead",
+)
+def get_number_format_info(format: str) -> tuple[str, str, int]:
+	"""DEPRECATED: use `NumberFormat.from_string()` from `frappe.utils.number_format` instead.
+
+	Return the decimal separator, thousands separator and precision for the given number `format` string.
+
+	e.g. get_number_format_info('#,##,###.##') -> ('.', ',', 2)
+
+	Will return ('.', ',', 2) for format strings which can't be guessed.
+	"""
+	from frappe.utils.number_format import NUMBER_FORMAT_MAP
+
+	return NUMBER_FORMAT_MAP.get(format) or (".", ",", 2)
