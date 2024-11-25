@@ -779,3 +779,29 @@ def get_user_match_filters(doctypes, user):
 			match_filters[dt] = filter_list
 
 	return match_filters
+<<<<<<< HEAD
+=======
+
+
+def validate_filters_permissions(report_name, filters=None, user=None):
+	if not filters:
+		return
+
+	if isinstance(filters, str):
+		filters = json.loads(filters)
+
+	report = frappe.get_doc("Report", report_name)
+	for field in report.filters:
+		if field.fieldname in filters and field.fieldtype == "Link":
+			linked_doctype = field.options
+			if not has_permission(
+				doctype=linked_doctype, ptype="read", doc=filters[field.fieldname], user=user
+			) and not has_permission(
+				doctype=linked_doctype, ptype="select", doc=filters[field.fieldname], user=user
+			):
+				frappe.throw(
+					_("You do not have permission to access {0}: {1}.").format(
+						linked_doctype, filters[field.fieldname]
+					)
+				)
+>>>>>>> e1bfc1bedc (fix(query_report): Check both read and select perms)
