@@ -28,6 +28,7 @@ jobs:
   gen-idx-integration:
     name: Gen Integration Test Matrix
     runs-on: ubuntu-latest
+    if: ${{ inputs.fake-success == false }}
     outputs:
       indices: ${{ steps.set-indices.outputs.indices }}
     steps:
