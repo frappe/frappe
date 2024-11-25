@@ -40,6 +40,13 @@ inputs:
 runs:
   using: "composite"
   steps:
+  - shell: bash -e {0}
+    run: |
+      # Add 'test_site' to /etc/hosts & setup git config
+      echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
+      git config --global init.defaultBranch main
+      git config --global advice.detachedHead false
+
   - name: Clone
     uses: actions/checkout@v4
     with:
@@ -71,13 +78,6 @@ runs:
     with:
       node-version: ${{ inputs.node-version }}
       check-latest: true
-
-  - shell: bash -e {0}
-    run: |
-      # Add 'test_site' to /etc/hosts
-      echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
-      git config --global init.defaultBranch main
-      git config --global advice.detachedHead false
 
   - name: Cache pip
     uses: actions/cache@v4
@@ -230,11 +230,6 @@ runs:
       if ${{ inputs.disable-web }}; then
         sed -i 's/^web:/# web:/g' Procfile
       fi
-
-  - shell: bash -e {0}
-    run: |
-      # Display modified Procfile
-      cd ~/frappe-bench || exit
       cat Procfile | awk '{print "\033[0;34m" $0 "\033[0m"}'
 
   - shell: bash -e {0}
