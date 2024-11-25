@@ -18,10 +18,6 @@ jobs:
   migration-test:
     name: Migrate
     runs-on: ubuntu-latest
-    if: ${{ inputs.fake-success != false }}
-  migration-test:
-    name: Migrate
-    runs-on: ubuntu-latest
     if: ${{ inputs.fake-success == false }}
     timeout-minutes: 60
     strategy:
@@ -128,18 +124,8 @@ jobs:
   # TIP: Use these for checks, e.g. Server / Migration / Success
   success:
     name: Success
-    if: ${{ inputs.fake-success == false }}
     needs: [migration-test]
     runs-on: ubuntu-latest
     steps:
-      - name: Pass skipped tests unconditionally
-        if: ${{ inputs.fake-success != false }}
-        run: "echo Skipped"
-  success:
-    name: Success
-    if: ${{ inputs.fake-success != false }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Pass skipped tests unconditionally
-        if: ${{ inputs.fake-success != false }}
+      - name: Passed
         run: "echo Skipped"

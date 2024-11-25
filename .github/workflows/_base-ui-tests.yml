@@ -147,34 +147,12 @@ jobs:
             cat $f
           done
 
+  # TIP: Use these for checks, e.g. UI / Tests (Cypress) / Success
   success:
     name: Success
     needs: [ui-test]
     runs-on: ubuntu-latest
     steps:
       - name: Passed
-        if: ${{ inputs.fake-success == false }}
-        run: "echo Passed"
-      - name: Pass skipped tests unconditionally
-        if: ${{ inputs.fake-success != false }}
-        run: "echo Skipped"
-
-  # TIP: Use these for checks, e.g. UI / Tests (Cypress) / Success
-  success:
-    name: Success
-    if: ${{ inputs.fake-success == false }}
-    needs: [unit-test, integration-test]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Pass skipped tests unconditionally
-        if: ${{ inputs.fake-success != false }}
-        run: "echo Skipped"
-  success:
-    name: Success
-    if: ${{ inputs.fake-success != false }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Pass skipped tests unconditionally
-        if: ${{ inputs.fake-success != false }}
         run: "echo Skipped"
 

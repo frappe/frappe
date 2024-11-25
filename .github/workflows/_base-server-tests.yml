@@ -163,19 +163,9 @@ jobs:
   # TIP: Use these for checks, e.g. Server / Tests / Success
   success:
     name: Success
-    if: ${{ inputs.fake-success == false }}
     needs: [unit-test, integration-test]
     runs-on: ubuntu-latest
     steps:
-      - name: Pass skipped tests unconditionally
-        if: ${{ inputs.fake-success != false }}
-        run: "echo Skipped"
-  success:
-    name: Success
-    if: ${{ inputs.fake-success != false }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Pass skipped tests unconditionally
-        if: ${{ inputs.fake-success != false }}
+      - name: Passed
         run: "echo Skipped"
 
