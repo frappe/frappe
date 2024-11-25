@@ -151,8 +151,20 @@ jobs:
   success:
     name: Success
     needs: [ui-test]
+    if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Passed
-        run: "echo Skipped"
+      - name: UI Test '${{ needs.ui-test.result }}'
+        shell: python
+        run: |
+          stati = [
+            '${{ needs.ui-test.result }}',
+          ]
 
+          nopass = ["failure", "cancelled"]
+          dopass = ["success", "skipped"]
+          if any(r in nopass for r in stati):
+            exit(1)
+          if all(r in dopass for r in stati):
+            exit(0)
+          exit(1)

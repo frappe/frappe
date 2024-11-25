@@ -37,7 +37,6 @@ jobs:
         run: |
           echo "Evolution towards a set of (fast) unit tests which run without a DB connection is being planned"
   gen-idx-integration:
-    needs: unit-test
     name: Gen Integration Test Matrix
     runs-on: ubuntu-latest
     outputs:
@@ -164,8 +163,22 @@ jobs:
   success:
     name: Success
     needs: [unit-test, integration-test]
+    if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Passed
-        run: "echo Skipped"
+      - name: Unit '${{ needs.unit-test.result }}' / Integration '${{ needs.integration-test.result }}'
+        shell: python
+        run: |
+          stati = [
+            '${{ needs.unit-test.result }}',
+            '${{ needs.integration-test.result }}',
+          ]
+
+          nopass = ["failure", "cancelled"]
+          dopass = ["success", "skipped"]
+          if any(r in nopass for r in stati):
+            exit(1)
+          if all(r in dopass for r in stati):
+            exit(0)
+          exit(1)
 
