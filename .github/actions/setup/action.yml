@@ -250,7 +250,7 @@ runs:
       start_time=$(date +%s)
 
       cd ~/frappe-bench || exit
-      CI=Yes bench build --app frappe
+      CI=Yes bench build
 
       end_time=$(date +%s)
       echo -e "\033[33mBuild Assets: $((end_time - start_time)) seconds\033[0m"
