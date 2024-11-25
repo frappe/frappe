@@ -147,20 +147,34 @@ jobs:
             cat $f
           done
 
-  ui-test-success:
-    needs: ui-test
+  success:
     name: Success
+    needs: [ui-test]
     runs-on: ubuntu-latest
-    if: ${{ inputs.fake-success == false }}
     steps:
       - name: Passed
+        if: ${{ inputs.fake-success == false }}
         run: "echo Passed"
-  # This satisfies the required checks on pull requests if tests are intentionally skipped
-  ui-test-success-fake:
+      - name: Pass skipped tests unconditionally
+        if: ${{ inputs.fake-success != false }}
+        run: "echo Skipped"
+
+  # TIP: Use these for checks, e.g. UI / Tests (Cypress) / Success
+  success:
     name: Success
+    if: ${{ inputs.fake-success == false }}
+    needs: [unit-test, integration-test]
     runs-on: ubuntu-latest
-    if: ${{ inputs.fake-success != false }}
     steps:
       - name: Pass skipped tests unconditionally
+        if: ${{ inputs.fake-success != false }}
+        run: "echo Skipped"
+  success:
+    name: Success
+    if: ${{ inputs.fake-success != false }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pass skipped tests unconditionally
+        if: ${{ inputs.fake-success != false }}
         run: "echo Skipped"
 

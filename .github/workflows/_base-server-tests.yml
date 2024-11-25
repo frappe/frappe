@@ -159,21 +159,23 @@ jobs:
             cat $f
           done
 
-  integration-test-success:
-    needs: [unit-test, integration-test]
-    name: Success
-    runs-on: ubuntu-latest
-    if: ${{ inputs.fake-success == false }}
-    steps:
-      - name: Passed
-        run: "echo Passed"
 
-  # This satisfies the required checks on pull requests if tests are intentionally skipped
-  integration-test-success-fake:
+  # TIP: Use these for checks, e.g. Server / Tests / Success
+  success:
     name: Success
+    if: ${{ inputs.fake-success == false }}
+    needs: [unit-test, integration-test]
     runs-on: ubuntu-latest
-    if: ${{ inputs.fake-success != false }}
     steps:
       - name: Pass skipped tests unconditionally
+        if: ${{ inputs.fake-success != false }}
+        run: "echo Skipped"
+  success:
+    name: Success
+    if: ${{ inputs.fake-success != false }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pass skipped tests unconditionally
+        if: ${{ inputs.fake-success != false }}
         run: "echo Skipped"
 
