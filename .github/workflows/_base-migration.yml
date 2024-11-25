@@ -121,11 +121,24 @@ jobs:
           cat $f
         done
 
-  # TIP: Use these for checks, e.g. Server / Migration / Success
+  # TIP: Use these for checks, e.g. Migration / Success
   success:
     name: Success
     needs: [migration-test]
+    if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Passed
-        run: "echo Skipped"
+      - name: Migration '${{ needs.migration-test.result }}'
+        shell: python
+        run: |
+          stati = [
+            '${{ needs.migration-test.result }}',
+          ]
+
+          nopass = ["failure", "cancelled"]
+          dopass = ["success", "skipped"]
+          if any(r in nopass for r in stati):
+            exit(1)
+          if all(r in dopass for r in stati):
+            exit(0)
+          exit(1)
