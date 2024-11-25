@@ -15,15 +15,6 @@ on:
         type: number
         default: 20
 jobs:
-  # This satisfies the required checks on pull requests if tests are intentionally skipped
-  migration-test-fake:
-    name: Migrate
-    runs-on: ubuntu-latest
-    if: ${{ inputs.fake-success != false }}
-    steps:
-      - name: Pass skipped tests unconditionally
-        run: "echo Skipped"
-
   migration-test:
     name: Migrate
     runs-on: ubuntu-latest
@@ -129,3 +120,22 @@ jobs:
           echo "Printing log: $f";
           cat $f
         done
+
+  migration-test-success:
+    name: Success
+    needs: migration-test
+    runs-on: ubuntu-latest
+    if: ${{ inputs.fake-success == false }}
+    steps:
+      - name: Passed
+        run: "echo Passed"
+
+  # This satisfies the required checks on pull requests if tests are intentionally skipped
+  migration-test-success-fake:
+    name: Success
+    runs-on: ubuntu-latest
+    if: ${{ inputs.fake-success != false }}
+    steps:
+      - name: Pass skipped tests unconditionally
+        run: "echo Skipped"
+

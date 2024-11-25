@@ -47,20 +47,6 @@ jobs:
         run: |
           indices=$(seq -s ',' 1 ${{ inputs.parallel-runs }}); echo "indices=[${indices}]" >> $GITHUB_OUTPUT
 
-  # This satisfies the required checks on pull requests if tests are intentionally skipped
-  integration-test-fake:
-    needs: gen-idx-integration
-    name: Integration
-    runs-on: ubuntu-latest
-    if: ${{ inputs.fake-success != false }}
-    strategy:
-      matrix:
-        db: ${{ fromJson(inputs.enable-postgres && '["mariadb", "postgres"]' || '["mariadb"]') }}
-        index: ${{ fromJson(needs.gen-idx-integration.outputs.indices) }}
-    steps:
-      - name: Pass skipped tests unconditionally
-        run: "echo Skipped"
-
   integration-test:
     needs: gen-idx-integration
     name: Integration
@@ -172,3 +158,22 @@ jobs:
             echo "Printing log: $f";
             cat $f
           done
+
+  integration-test-success:
+    needs: [unit-test, integration-test]
+    name: Success
+    runs-on: ubuntu-latest
+    if: ${{ inputs.fake-success == false }}
+    steps:
+      - name: Passed
+        run: "echo Passed"
+
+  # This satisfies the required checks on pull requests if tests are intentionally skipped
+  integration-test-success-fake:
+    name: Success
+    runs-on: ubuntu-latest
+    if: ${{ inputs.fake-success != false }}
+    steps:
+      - name: Pass skipped tests unconditionally
+        run: "echo Skipped"
+
