@@ -53,9 +53,6 @@ jobs:
         ${{ inputs.pre }}
 
     - name: Download database artifact
-      env:
-        current-base-ref: ${{ github.base_ref || github.ref_name }}
-        current-head-ref: ${{ github.head_ref || github.ref_name }}
       run: |
         eval "$(tombl -e MIGRATION_DB=tool.frappe-ci.setup.migration-db ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/pyproject.toml)" || exit 0
         source ${GITHUB_WORKSPACE}/env/bin/activate
@@ -66,8 +63,8 @@ jobs:
             eval "$(tombl -e FRAPPE_DEPENDENCIES=tool.bench.frappe-dependencies ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/pyproject.toml)" || true
             version="$1"
             if [ -z "$version" ]; then
-                base_ref="${{ env.current-base-ref }}"
-                head_ref="${{ env.current-head-ref }}"
+                base_ref="${{ github.base_ref || github.ref_name }}"
+                head_ref="${{ github.sha }}"
             else
                 base_ref="version-$version-hotfix"
                 head_ref="version-$version-hotfix"
