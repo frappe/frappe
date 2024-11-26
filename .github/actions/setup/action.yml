@@ -172,9 +172,7 @@ runs:
       source ${GITHUB_WORKSPACE}/env/bin/activate
       pip install --quiet --upgrade pip
 
-      # pip install --quiet frappe-bench
-      # revert after merge: https://github.com/frappe/bench/pull/1600
-      pip install --quiet git+https://github.com/blaggacao/bench.git@feat/add-direct-config-module-calling
+      pip install --quiet frappe-bench
 
       python -m bench.config.common_site_config ${GITHUB_WORKSPACE}
       python -m bench.config.redis ${GITHUB_WORKSPACE}
