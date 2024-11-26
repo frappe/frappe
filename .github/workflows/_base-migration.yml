@@ -2,6 +2,9 @@ name: Migration Base
 on:
   workflow_call:
     inputs:
+      pre:
+        required: false
+        type: string
       fake-success:
         required: false
         type: boolean
@@ -44,6 +47,11 @@ jobs:
         disable-web: true
         db-root-password: ${{ env.DB_ROOT_PASSWORD }}
 
+    - name: Execute pre-migration tasks
+      if: inputs.pre
+      run: |
+        ${{ inputs.pre }}
+
     - name: Download database artifact
       env:
         current-base-ref: ${{ github.base_ref || github.ref_name }}
@@ -73,27 +81,22 @@ jobs:
                 app_name=$(basename "$app")
                 echo "Processing app: $app_name"
 
-                if [[ ! " ${FRAPPE_DEPENDENCIES[@]} " =~ " $app_name " &&  "$app_name" != "${{ github.event.repository.name }}" ]]; then
-                  rm -rf $app
-                  echo "Removed $app_name as it's not part of tool.bench.frappe-dependencies"
+                if [[ "$app_name" == "${{ github.event.repository.name }}" ]]; then
+                  git -C "$app" fetch --depth 1 origin $head_ref:$head_ref
+                  if git -C "$app" checkout --quiet --force $head_ref; then
+                      echo "Checked out $head_ref successfully for $app"
+                  else
+                      echo "Failed to checkout $ref for $app" >&2
+                      return 1
+                  fi
                 else
-                  if [[ "$app_name" == "${{ github.event.repository.name }}" ]]; then
-                    git -C "$app" fetch --depth 1 origin $head_ref:$head_ref
-                    if git -C "$app" checkout --quiet --force $head_ref; then
-                        echo "Checked out $head_ref successfully for $app"
+                  git -C "$app" fetch --depth 1 origin $base_ref:$base_ref
+                    if git -C "$app" checkout --quiet --force $base_ref; then
+                        echo "Checked out $base_ref successfully for $app"
                     else
-                        echo "Failed to checkout $ref for $app" >&2
+                        echo "Failed to checkout $base_ref for $app" >&2
                         return 1
                     fi
-                  else
-                    git -C "$app" fetch --depth 1 origin $base_ref:$base_ref
-                      if git -C "$app" checkout --quiet --force $base_ref; then
-                          echo "Checked out $base_ref successfully for $app"
-                      else
-                          echo "Failed to checkout $base_ref for $app" >&2
-                          return 1
-                      fi
-                  fi
                 fi
             done
 
