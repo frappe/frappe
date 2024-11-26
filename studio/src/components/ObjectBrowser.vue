@@ -18,7 +18,7 @@
 						@click="toggleExpanded(key)"
 						v-if="isExpandable(value)"
 						:name="isExpanded(key) ? 'chevron-down' : 'chevron-right'"
-						class="h-3 w-3 cursor-pointer"
+						class="-ml-0.5 h-3 w-3 cursor-pointer"
 					/>
 					<span class="text-pink-700">{{ key }}:</span>
 					<span class="truncate text-violet-700"> {{ formatValue(value) }} </span>
