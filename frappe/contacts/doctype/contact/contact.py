@@ -137,7 +137,7 @@ class Contact(Document):
 		for d in self.email_ids:
 			if d.is_primary == 1:
 				primary_email_exists = True
-				self.email_id = d.email_id.strip()
+				self.email_id = cstr(d.email_id).strip()
 				break
 
 		if not primary_email_exists:
