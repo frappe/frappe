@@ -413,8 +413,23 @@ async function confirm(message: string, title: string = "Confirm"): Promise<bool
 	});
 }
 
+// general utils
+function copyToClipboard(text: string | object) {
+	if (typeof text !== "string") {
+		text = JSON.stringify(text)
+	}
+
+	let textField = document.createElement('textarea')
+	textField.value = text
+	document.body.appendChild(textField)
+	textField.select()
+	document.execCommand('copy')
+	textField.remove()
+}
+
 
 export {
+	copyToClipboard,
 	getBlockInstance,
 	getComponentBlock,
 	getRootBlock,

@@ -8,11 +8,20 @@
 					class="group/resource flex flex-row justify-between"
 				>
 					<ObjectBrowser :object="resource" :name="name" class="overflow-hidden" />
-					<FeatherIcon
-						name="trash"
-						class="invisible h-3 w-3 cursor-pointer group-hover/resource:visible"
-						@click="deleteResource(resource.docname, name)"
-					/>
+					<div
+						class="invisible -mt-1 ml-auto self-start text-gray-600 group-hover/resource:visible has-[.active-item]:visible"
+					>
+						<Dropdown :options="getResourceMenu(resource, name)" trigger="click">
+							<template v-slot="{ open }">
+								<button
+									class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
+									:class="open ? 'active-item' : ''"
+								>
+									<FeatherIcon name="more-horizontal" class="h-3 w-3" />
+								</button>
+							</template>
+						</Dropdown>
+					</div>
 				</div>
 			</div>
 
@@ -34,7 +43,7 @@ import ObjectBrowser from "@/components/ObjectBrowser.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import ResourceDialog from "@/components/ResourceDialog.vue"
 
-import { isObjectEmpty, getAutocompleteValues, confirm } from "@/utils/helpers"
+import { isObjectEmpty, getAutocompleteValues, confirm, copyToClipboard } from "@/utils/helpers"
 import { studioResources, studioPageResources } from "@/data/studioResources"
 import { NewResource, Resource } from "@/types/Studio/StudioResource"
 
@@ -99,5 +108,27 @@ const deleteResource = async (docname: string, resource_name: string) => {
 			}
 		})
 	}
+}
+
+const getResourceMenu = (resource: Resource, name: string) => {
+	return [
+		{
+			label: "Edit",
+			icon: "edit",
+			onClick: () => {},
+		},
+		{
+			label: "Delete",
+			icon: "trash",
+			onClick: () => deleteResource(resource.docname, name),
+		},
+		{
+			label: "Copy Object",
+			icon: "copy",
+			onClick: () => {
+				copyToClipboard(resource)
+			},
+		},
+	]
 }
 </script>
