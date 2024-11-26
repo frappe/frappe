@@ -986,7 +986,7 @@ const zoomLevels = {
 					frappe.model.get_std_field(field_name);
 				let icon = icon_map[field.label];
 				let label = cur_list.board.show_labels && icon ? `<img title="${__(field.label)}" src="/assets/frappe/icons/jobcard/${icon}" style="height:0.75rem;">` : "";
-				let value = frappe.format(card.doc[field_name], field);
+				let value = frappe.format(field_name === "model" ? `${card.doc[field_name]} - ${card.doc.dsg_model}` : card.doc[field_name], field)
 				fields.push(`
 					<div class="text-muted text-truncate">
 						${label}
