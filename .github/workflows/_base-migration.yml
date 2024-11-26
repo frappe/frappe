@@ -74,7 +74,7 @@ jobs:
                 echo "Processing app: $app_name"
 
                 if [[ ! " ${FRAPPE_DEPENDENCIES[@]} " =~ " $app_name " &&  "$app_name" != "${{ github.event.repository.name }}" ]]; then
-                  bench remove-app "$app_name" --force
+                  rm -rf $app
                   echo "Removed $app_name as it's not part of tool.bench.frappe-dependencies"
                 else
                   if [[ "$app_name" == "${{ github.event.repository.name }}" ]]; then
