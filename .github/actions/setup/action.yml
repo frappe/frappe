@@ -57,8 +57,8 @@ runs:
   - shell: bash -e {0}
     run: |
       # Check for valid Python & Merge Conflicts
-      python -m compileall -q -f "${GITHUB_WORKSPACE}/${{ github.event.repository.name }}"
-      if grep -lr --exclude-dir=node_modules "^<<<<<<< " "${GITHUB_WORKSPACE}/${{ github.event.repository.name }}"
+      python -m compileall -q -f "${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}"
+      if grep -lr --exclude-dir=node_modules "^<<<<<<< " "${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}"
           then echo "Found merge conflicts"
           exit 1
       fi
@@ -91,7 +91,7 @@ runs:
       ref: ${{ github.event.client_payload.frappe_sha || github.base_ref || github.ref_name }}
     run: |
       # Maybe clone additional apps
-      eval "$(tombl -e CHECKOUTS=tool.frappe-ci.setup.app-checkouts ${{ github.event.repository.name }}/pyproject.toml)" || exit 0
+      eval "$(tombl -e CHECKOUTS=tool.frappe-ci.setup.app-checkouts ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/pyproject.toml)" || exit 0
       start_time=$(date +%s)
 
       for spec in "${CHECKOUTS[@]}"; do
@@ -206,7 +206,7 @@ runs:
       if cp "${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/.github/helper/db/$DB.json" ${GITHUB_WORKSPACE}/sites/test_site/site_config.json; then
           echo "Successfully copied ${DB}.json to site_config.json."
       else
-          echo "Error: The configuration file ${GITHUB_WORKSPACE}/${{ github.event.repository.name }}/.github/helper/db/$DB.json does not exist."
+          echo "Error: The configuration file ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/.github/helper/db/$DB.json does not exist."
           echo "Please ensure that the database JSON file is correctly named and located in the helper/db directory."
           exit 1  # Exit with a non-zero status to indicate failure
       fi
