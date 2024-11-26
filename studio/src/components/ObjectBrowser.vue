@@ -13,19 +13,26 @@
 		<!-- object properties -->
 		<div v-if="!name || isExpanded('root')" class="ml-4">
 			<div v-for="(value, key) in object" :key="key">
-				<div class="my-[7px] flex items-center gap-0.5">
+				<div class="my-[7px] flex cursor-pointer items-start gap-0.5" @click="toggleExpanded(key)">
 					<FeatherIcon
-						@click="toggleExpanded(key)"
-						v-if="isExpandable(value)"
+						v-if="isObject(value)"
 						:name="isExpanded(key) ? 'chevron-down' : 'chevron-right'"
-						class="-ml-0.5 h-3 w-3 cursor-pointer"
+						class="-ml-0.5 h-3 w-3"
 					/>
 					<span class="text-pink-700">{{ key }}:</span>
-					<span class="truncate text-violet-700"> {{ formatValue(value) }} </span>
+					<span
+						:class="[
+							// wrap truncated text on expansion to display the entire value
+							!isObject(value) && isExpanded(key) ? 'whitespace-normal text-wrap break-all' : 'truncate',
+							'text-violet-700',
+						]"
+					>
+						{{ formatValue(value) }}
+					</span>
 				</div>
 
 				<!-- nested object properties -->
-				<div v-if="isExpanded(key)" class="ml-2">
+				<div v-if="isObject(value) && isExpanded(key)" class="ml-2">
 					<ObjectBrowser :object="value" />
 				</div>
 			</div>
@@ -43,7 +50,7 @@ defineProps<{
 
 const expandedKeys = ref(new Set<string>())
 
-const isExpandable = (value: string | Function | object) => {
+const isObject = (value: string | Function | object) => {
 	return typeof value === "object" && value !== null
 }
 
@@ -68,11 +75,11 @@ const formatFunctionPreview = (fn: Function) => {
 const formatValue = (value: string | Function | object) => {
 	if (typeof value === "function") {
 		return formatFunctionPreview(value)
-	} else if (!isExpandable(value)) {
+	} else if (isObject(value)) {
+		return "Object"
+	} else {
 		if (typeof value === "string") return `"${value}"`
 		return String(value)
-	} else {
-		return "Object"
 	}
 }
 </script>

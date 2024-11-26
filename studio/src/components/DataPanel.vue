@@ -7,7 +7,7 @@
 					:key="name"
 					class="group/resource flex flex-row justify-between"
 				>
-					<ObjectBrowser :object="resource" :name="name" />
+					<ObjectBrowser :object="resource" :name="name" class="overflow-hidden" />
 					<FeatherIcon
 						name="trash"
 						class="invisible h-3 w-3 cursor-pointer group-hover/resource:visible"
