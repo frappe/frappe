@@ -7,6 +7,7 @@
 					:type="config.inputType"
 					:modelValue="config.modelValue"
 					:options="config.options"
+					:required="config.required"
 					@update:modelValue="(val) => updateComponentProp(propName, val)"
 				/>
 			</div>

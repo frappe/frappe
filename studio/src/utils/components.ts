@@ -25,6 +25,7 @@ function getComponentProps(componentName: string) {
 				type: propType,
 				default: prop.default,
 				inputType: getPropInputType(propType),
+				required: prop.required,
 			}
 
 			if (propType === "String") {

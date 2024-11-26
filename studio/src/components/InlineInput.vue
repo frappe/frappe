@@ -4,9 +4,10 @@
 		:class="type === 'code' ? 'flex-col gap-1.5' : 'flex-row items-center justify-between'"
 	>
 		<InputLabel
-			:class="{
-				'cursor-ns-resize': enableSlider,
-			}"
+			:class="[
+				enableSlider ? 'cursor-ns-resize' : '',
+				required ? `after:text-red-600 after:content-['_*']` : '',
+			]"
 			@mousedown="handleMouseDown"
 		>
 			{{ label }}
@@ -110,6 +111,9 @@ const props = defineProps({
 	},
 	height: {
 		type: String,
+	},
+	required: {
+		type: Boolean,
 	},
 })
 

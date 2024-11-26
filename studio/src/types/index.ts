@@ -55,6 +55,7 @@ export type ComponentProp = {
 	default: VuePropDefault
 	inputType: string
 	modelValue?: any
+	required?: boolean
 	options?: Array<SelectOption> | Array<string>
 }
 
