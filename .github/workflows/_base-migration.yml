@@ -67,14 +67,14 @@ jobs:
             version="$1"
             if [ -z "$version" ]; then
                 base_ref="${{ env.current-base-ref }}"
-                base_ref="${{ env.current-head-ref }}"
+                head_ref="${{ env.current-head-ref }}"
             else
                 base_ref="version-$version-hotfix"
                 head_ref="version-$version-hotfix"
             fi
 
             source ${GITHUB_WORKSPACE}/env/bin/activate
-            echo "Updating to version ${version:-$base_ref}"
+            echo "Updating to version ${version:-$head_ref}"
     
             # Fetch and checkout branches
             for app in ${GITHUB_WORKSPACE}/apps/*/; do
@@ -84,17 +84,17 @@ jobs:
                 if [[ "$app_name" == "${{ github.event.repository.name }}" ]]; then
                   git -C "$app" fetch --depth 1 origin $head_ref:$head_ref
                   if git -C "$app" checkout --quiet --force $head_ref; then
-                      echo "Checked out $head_ref successfully for $app"
+                      echo "Checked out $head_ref successfully at $app"
                   else
-                      echo "Failed to checkout $ref for $app" >&2
+                      echo "Failed to checkout $ref at $app" >&2
                       return 1
                   fi
                 else
                   git -C "$app" fetch --depth 1 origin $base_ref:$base_ref
                     if git -C "$app" checkout --quiet --force $base_ref; then
-                        echo "Checked out $base_ref successfully for $app"
+                        echo "Checked out $base_ref successfully at $app"
                     else
-                        echo "Failed to checkout $base_ref for $app" >&2
+                        echo "Failed to checkout $base_ref at $app" >&2
                         return 1
                     fi
                 fi
