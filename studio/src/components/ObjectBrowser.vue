@@ -44,7 +44,7 @@ defineProps<{
 const expandedKeys = ref(new Set<string>())
 
 const isExpandable = (value: string | Function | object) => {
-	return ["function", "object"].includes(typeof value) && value !== null
+	return typeof value === "object" && value !== null
 }
 
 const isExpanded = (key: string) => {
@@ -66,13 +66,13 @@ const formatFunctionPreview = (fn: Function) => {
 }
 
 const formatValue = (value: string | Function | object) => {
-	if (!isExpandable(value)) {
+	if (typeof value === "function") {
+		return formatFunctionPreview(value)
+	} else if (!isExpandable(value)) {
 		if (typeof value === "string") return `"${value}"`
 		return String(value)
 	} else {
-		if (typeof value === "function") {
-			return formatFunctionPreview(value)
-		} else return "Object"
+		return "Object"
 	}
 }
 </script>
