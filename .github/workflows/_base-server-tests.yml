@@ -59,7 +59,7 @@ jobs:
       # noisy 3rd party library warnings
       PYTHONWARNINGS: "module,ignore:::babel.messages.extract"
       DB_ROOT_PASSWORD: db_root
-      COVERAGE_RCFILE: ~/frappe-bench/apps/frappe/.coveragerc
+      COVERAGE_RCFILE: ./apps/frappe/.coveragerc
 
     strategy:
       fail-fast: false
@@ -97,7 +97,6 @@ jobs:
           python-version: ${{ inputs.python-version }}
           node-version: ${{ inputs.node-version }}
           disable-socketio: true
-          disable-redis-socketio: true
           db-root-password: ${{ env.DB_ROOT_PASSWORD }}
           db: ${{ matrix.db }}
         env:
@@ -105,7 +104,7 @@ jobs:
 
       - name: Run Tests
         run: |
-          cd ~/frappe-bench || exit
+          source ${GITHUB_WORKSPACE}/env/bin/activate
           bench --site test_site \
             run-parallel-tests \
             --app "${{ github.event.repository.name }}" \
@@ -142,7 +141,7 @@ jobs:
         if: inputs.enable-coverage
         with:
           name: coverage-${{ matrix.db }}-${{ matrix.index }}
-          path: ~/frappe-bench/sites/*-coverage*.xml
+          path: ./sites/*-coverage*.xml
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
@@ -151,10 +150,9 @@ jobs:
       - name: Show bench output
         if: ${{ always() }}
         run: |
-          cd ~/frappe-bench || exit
           cat bench_start.log || true
           cd logs
-          for f in ./*.log*; do
+          for f in ${GITHUB_WORKSPACE}/*.log*; do
             echo "Printing log: $f";
             cat $f
           done

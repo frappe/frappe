@@ -149,6 +149,9 @@ responses = "==0.23.1"
 freezegun = "~=1.2.2"
 pdbpp = "~=0.10.3"
 
+[tool.frappe-ci.setup]
+migration-db = "https://frappeframework.com/files/v13-frappe.sql.gz"
+
 [tool.ruff]
 line-length = 110
 target-version = "py310"

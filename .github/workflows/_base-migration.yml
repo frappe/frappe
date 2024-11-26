@@ -44,79 +44,135 @@ jobs:
         disable-web: true
         db-root-password: ${{ env.DB_ROOT_PASSWORD }}
 
-    - name: Recover v13 database artifact
+    - name: Download database artifact
+      env:
+        current-base-ref: ${{ github.base_ref || github.ref_name }}
+        current-head-ref: ${{ github.head_ref || github.ref_name }}
       run: |
-        cd ~/frappe-bench/
-        wget https://frappeframework.com/files/v13-frappe.sql.gz
-        bench --site test_site --force restore ~/frappe-bench/v13-frappe.sql.gz
+        eval "$(tombl -e MIGRATION_DB=tool.frappe-ci.setup.migration-db ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/pyproject.toml)" || exit 0
+        source ${GITHUB_WORKSPACE}/env/bin/activate
+        wget "$MIGRATION_DB"
+        bench --site test_site --force restore ${GITHUB_WORKSPACE}/$(basename "$MIGRATION_DB")
 
-        source env/bin/activate
-        cd apps/frappe/
-        git remote set-url upstream https://github.com/frappe/frappe.git
+        function update_to_version() {
+            eval "$(tombl -e FRAPPE_DEPENDENCIES=tool.bench.frappe-dependencies ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/pyproject.toml)" || true
+            version="$1"
+            if [ -z "$version" ]; then
+                base_ref="${{ env.current-base-ref }}"
+                base_ref="${{ env.current-head-ref }}"
+            else
+                base_ref="version-$version-hotfix"
+                head_ref="version-$version-hotfix"
+            fi
+
+            source ${GITHUB_WORKSPACE}/env/bin/activate
+            echo "Updating to version ${version:-$base_ref}"
+    
+            # Fetch and checkout branches
+            for app in ${GITHUB_WORKSPACE}/apps/*/; do
+                app_name=$(basename "$app")
+                echo "Processing app: $app_name"
+
+                if [[ ! " ${FRAPPE_DEPENDENCIES[@]} " =~ " $app_name " &&  "$app_name" != "${{ github.event.repository.name }}" ]]; then
+                  bench remove-app "$app_name" --force
+                  echo "Removed $app_name as it's not part of tool.bench.frappe-dependencies"
+                else
+                  if [[ "$app_name" == "${{ github.event.repository.name }}" ]]; then
+                    git -C "$app" fetch --depth 1 origin $head_ref:$head_ref
+                    if git -C "$app" checkout --quiet --force $head_ref; then
+                        echo "Checked out $head_ref successfully for $app"
+                    else
+                        echo "Failed to checkout $ref for $app" >&2
+                        return 1
+                    fi
+                  else
+                    git -C "$app" fetch --depth 1 origin $base_ref:$base_ref
+                      if git -C "$app" checkout --quiet --force $base_ref; then
+                          echo "Checked out $base_ref successfully for $app"
+                      else
+                          echo "Failed to checkout $base_ref for $app" >&2
+                          return 1
+                      fi
+                  fi
+                fi
+            done
+
+            # Resetup env and install apps
+            if pgrep honcho > /dev/null; then
+                echo "Stopping honcho process..."
+                pgrep honcho | xargs kill
+                sleep 3
+            fi
+
+            echo "Setting up environment..."
+            if rm -rf ${GITHUB_WORKSPACE}/env && python -m venv ${GITHUB_WORKSPACE}/env; then
+                source ${GITHUB_WORKSPACE}/env/bin/activate
+                pip install --quiet --upgrade pip
+                # pip install --quiet frappe-bench
+                # revert after merge: https://github.com/frappe/bench/pull/1600
+                pip install --quiet git+https://github.com/blaggacao/bench.git@feat/add-direct-config-module-calling
+                echo "Environment setup completed."
+            else
+                echo "Environment setup failed." >&2
+                return 1
+            fi
+
+            echo "Installing apps..."
+            for app in ${GITHUB_WORKSPACE}/apps/*/; do
+                if pip install --upgrade -e "$app"; then
+                    echo "Installed $app successfully."
+                else
+                    echo "Failed to install $app." >&2
+                    return 1
+                fi
+            done
+
+            echo "Starting bench..."
+            bench start &>> ${GITHUB_WORKSPACE}/bench_start.log &
+
+            echo "Running migrations on test_site..."
+            if bench --site test_site migrate; then
+                echo "Migration completed successfully."
+            else
+                echo "Migration failed." >&2
+                return 1
+            fi
+
+            echo "Update to version ${version:-$base_ref} completed."
+        }
+
+        # Save this script into a file for later use.
+        declare -f update_to_version > "$RUNNER_TEMP/migrate"
 
     - name: Update to v14
       run: |
-        cd ~/frappe-bench/apps/frappe/
-        function update_to_version() {
-          version=$1
-
-          branch_name="version-$version-hotfix"
-          echo "Updating to v$version"
-          git fetch --depth 1 upstream $branch_name:$branch_name
-          git checkout -q -f $branch_name
-
-          pgrep honcho | xargs kill
-          sleep 3
-          rm -rf ~/frappe-bench/env
-          bench -v setup env
-          bench start &>> ~/frappe-bench/bench_start.log &
-
-          bench --site test_site migrate
-        }
-
+        source $RUNNER_TEMP/migrate
         update_to_version 14
+        exit $?
 
     - name: Update to v15
       run: |
-        cd ~/frappe-bench/apps/frappe/
-        function update_to_version() {
-          version=$1
-
-          branch_name="version-$version-hotfix"
-          echo "Updating to v$version"
-          git fetch --depth 1 upstream $branch_name:$branch_name
-          git checkout -q -f $branch_name
-
-          pgrep honcho | xargs kill
-          sleep 3
-          rm -rf ~/frappe-bench/env
-          bench -v setup env
-          bench start &>> ~/frappe-bench/bench_start.log &
-
-          bench --site test_site migrate
-        }
+        source $RUNNER_TEMP/migrate
         update_to_version 15
+        exit $?
 
     - name: Update to last commit
       run: |
-        cd ~/frappe-bench/apps/frappe/
-        echo "Updating to last commit"
-        pgrep honcho | xargs kill
-        sleep 3
-        rm -rf ~/frappe-bench/env
-        git checkout -q -f "$GITHUB_SHA"
-        bench -v setup env
-        bench start &>> ~/frappe-bench/bench_start.log &
-        bench --site test_site migrate
+        source $RUNNER_TEMP/migrate
+        update_to_version
+        exit $?
         bench --site test_site execute frappe.tests.utils.check_orpahned_doctypes
+
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ failure() && contains( github.event.pull_request.labels.*.name, 'debug-gha') }}
 
     - name: Show bench output
       if: ${{ always() }}
       run: |
-        cd ~/frappe-bench
         cat bench_start.log || true
         cd logs
-        for f in ./*.log*; do
+        for f in ${GITHUB_WORKSPACE}/*.log*; do
           echo "Printing log: $f";
           cat $f
         done

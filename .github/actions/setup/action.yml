@@ -28,9 +28,6 @@ inputs:
   disable-socketio:
     required: false
     default: false
-  disable-redis-socketio:
-    required: false
-    default: false
   db:
     required: false
     default: mariadb
@@ -50,15 +47,7 @@ runs:
   - name: Clone
     uses: actions/checkout@v4
     with:
-      path: ${{ github.event.repository.name }}
-
-  - name: Checkout Frappe
-    uses: actions/checkout@v4
-    with:
-      repository: ${{ env.FRAPPE_GH_ORG || github.repository_owner }}/frappe
-      ref: ${{ github.event.client_payload.frappe_sha || github.base_ref || github.ref_name }}
-      path: frappe
-    if: github.event.repository.name != 'frappe'
+      path: apps/${{ github.event.repository.name }}
 
   - name: Setup Python
     uses: actions/setup-python@v5
@@ -73,6 +62,59 @@ runs:
           then echo "Found merge conflicts"
           exit 1
       fi
+
+  - name: Fetch tombl util
+    shell: bash -e {0}
+    run: |
+      # Fetch tombl util
+      pushd $RUNNER_TEMP
+        curl -LO https://github.com/snyball/tombl/releases/download/v0.2.3/tombl-v0.2.3.tar.gz
+        curl -LO https://github.com/snyball/tombl/releases/download/v0.2.3/tombl-v0.2.3.sha256sum
+        sha256sum -c tombl-v0.2.3.sha256sum
+        tar -xzf tombl-v0.2.3.tar.gz
+        chmod +x tombl-v0.2.3/tombl
+      popd
+      echo "$RUNNER_TEMP/tombl-v0.2.3" >> $GITHUB_PATH
+
+  - name: Checkout Frappe
+    uses: actions/checkout@v4
+    with:
+      repository: ${{ env.FRAPPE_GH_ORG || github.repository_owner }}/frappe
+      ref: ${{ github.event.client_payload.frappe_sha || github.base_ref || github.ref_name }}
+      path: apps/frappe
+    if: github.event.repository.name != 'frappe'
+
+  - name: Maybe clone additional apps
+    shell: bash -e {0}
+    env: 
+      org: ${{ env.FRAPPE_GH_ORG || github.repository_owner }}
+      ref: ${{ github.event.client_payload.frappe_sha || github.base_ref || github.ref_name }}
+    run: |
+      # Maybe clone additional apps
+      eval "$(tombl -e CHECKOUTS=tool.frappe-ci.setup.app-checkouts ${{ github.event.repository.name }}/pyproject.toml)" || exit 0
+      start_time=$(date +%s)
+
+      for spec in "${CHECKOUTS[@]}"; do
+        spec_basename=$(basename "$spec")
+        if [[ "$spec" == *"/"* ]] || [[ "$spec" == http* ]]; then
+          remote_url="$spec"
+        else
+          remote_url="$org/$spec_basename"
+        fi
+        if [[ "$remote_url" != http* ]]; then
+          remote_url="https://github.com/$remote_url"
+        fi
+        mkdir "apps/$spec_basename"
+        pushd "apps/$spec_basename"
+          git init
+          git remote add origin "$remote_url"
+          git fetch origin "$ref" --depth 1
+          git checkout FETCH_HEAD --quiet
+        popd
+      done
+      end_time=$(date +%s)
+      echo -e "\033[33mClone additional apps: $((end_time - start_time)) seconds\033[0m"
+
 
   - uses: actions/setup-node@v4
     with:
@@ -120,68 +162,48 @@ runs:
       echo -e "\033[33mInstall System Dependencies: $((end_time - start_time)) seconds\033[0m"
 
   - shell: bash -e {0}
+    env:
+      DB: ${{ inputs.db }}
     run: |
-      # Install Bench
+      # Init Bench & test_site
       start_time=$(date +%s)
+      mkdir ${GITHUB_WORKSPACE}/{sites,config,logs,config/pids,sites/test_site}
+      python -m venv ${GITHUB_WORKSPACE}/env
+      source ${GITHUB_WORKSPACE}/env/bin/activate
+      pip install --quiet --upgrade pip
 
-      cd ~ || exit
-      pip install frappe-bench
+      # pip install --quiet frappe-bench
+      # revert after merge: https://github.com/frappe/bench/pull/1600
+      pip install --quiet git+https://github.com/blaggacao/bench.git@feat/add-direct-config-module-calling
 
-      end_time=$(date +%s)
-      echo -e "\033[33mInstall Bench: $((end_time - start_time)) seconds\033[0m"
-
-  - shell: bash -e {0}
-    run: |
-      # Init Bench
-      start_time=$(date +%s)
-
-      cd ~ || exit
-      verbosity="${BENCH_INIT_VERBOSITY_FLAG:-}"
-      bench $verbosity init frappe-bench --skip-assets --python "$(which python)" --frappe-path "${GITHUB_WORKSPACE}/frappe"
-
-      end_time=$(date +%s)
-      echo -e "\033[33mInit Bench: $((end_time - start_time)) seconds\033[0m"
-
-  - shell: bash -e {0}
-    run: |
-      # Install App(s)
-      start_time=$(date +%s)
-
-      cd ~/frappe-bench || exit
-      verbosity="${BENCH_INIT_VERBOSITY_FLAG:-}"
-
-      for app in ${GITHUB_WORKSPACE}/*/; do
-        if [ -f "${app}setup.py" ] || [ -f "${app}pyproject.toml" ]; then
-          start_time=$(date +%s)
-          echo "Installing app in ${app}"
-          pip install --upgrade -e "${app}[dev,test]"
-          end_time=$(date +%s)
-          echo "Time taken to Install ${app} requirements: $((end_time - start_time)) seconds"
-        fi
-      done
-      # collect old style tools.bench.dev-dependencies
-      bench $verbosity setup requirements --dev;
-      if [ "$TYPE" == "ui" ]
-      then
-        bench $verbosity setup requirements --node;
+      python -m bench.config.common_site_config ${GITHUB_WORKSPACE}
+      python -m bench.config.redis ${GITHUB_WORKSPACE}
+      args=()
+      if [[ "${{ inputs.enable-watch }}" != "true" ]]; then
+          args+=("--skip-watch")
       fi
 
+      if [[ "${{ inputs.enable-schedule }}" != "true" ]]; then
+          args+=("--skip-schedule")
+      fi
+
+      if [[ "${{ inputs.disable-socketio }}" == "true" ]]; then
+          args+=("--skip-socketio")
+      fi
+
+      if [[ "${{ inputs.disable-web }}" == "true" ]]; then
+          args+=("--skip-web")
+      fi
+
+      if [[ "${{ inputs.enable-coverage }}" == "true" ]]; then
+          args+=("--with-coverage")
+      fi
+      python -m bench.config.procfile ${GITHUB_WORKSPACE} "${args[@]}"
       end_time=$(date +%s)
-      echo -e "\033[33mInstall App(s): $((end_time - start_time)) seconds\033[0m"
-    env:
-      TYPE: server
-
-  - shell: bash -e {0}
-    run: |
-      # Setup Test Site
-      start_time=$(date +%s)
-
-      cd ~/frappe-bench || exit
-
-      mkdir ~/frappe-bench/sites/test_site
-
+      echo -e "\033[33mInit Bench: $((end_time - start_time)) seconds\033[0m"
+      cat ${GITHUB_WORKSPACE}/Procfile | awk '{print "\033[0;34m" $0 "\033[0m"}'
       # Attempt to copy the configuration file
-      if cp "${GITHUB_WORKSPACE}/${{ github.event.repository.name }}/.github/helper/db/$DB.json" ~/frappe-bench/sites/test_site/site_config.json; then
+      if cp "${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/.github/helper/db/$DB.json" ${GITHUB_WORKSPACE}/sites/test_site/site_config.json; then
           echo "Successfully copied ${DB}.json to site_config.json."
       else
           echo "Error: The configuration file ${GITHUB_WORKSPACE}/${{ github.event.repository.name }}/.github/helper/db/$DB.json does not exist."
@@ -203,40 +225,43 @@ runs:
         echo "${{ inputs.db-root-password }}" | psql -h 127.0.0.1 -p 5432 -c "CREATE USER test_frappe WITH PASSWORD 'test_frappe'" -U postgres;
       fi
 
-      end_time=$(date +%s)
-      echo -e "\033[33mSetup Test Site: $((end_time - start_time)) seconds\033[0m"
-    env:
-      DB: ${{ inputs.db }}
-
   - shell: bash -e {0}
     run: |
-      # Modify Procfile
-      cd ~/frappe-bench || exit
-      if ${{ inputs.enable-watch != 'true' }}; then
-        sed -i 's/^watch:/# watch:/g' Procfile
-      fi
-      if ${{ inputs.enable-schedule != 'true'}}; then
-        sed -i 's/^schedule:/# schedule:/g' Procfile
-      fi
-      if ${{ inputs.disable-socketio }}; then
-        sed -i 's/^socketio:/# socketio:/g' Procfile
-      fi
-      if ${{ inputs.disable-redis-socketio }}; then
-        sed -i 's/^redis_socketio:/# redis_socketio:/g' Procfile
-      fi
-      if ${{ inputs.enable-coverage }}; then
-        sed -i 's/^web: bench serve/web: bench serve --with-coverage/g' Procfile
-      fi
-      if ${{ inputs.disable-web }}; then
-        sed -i 's/^web:/# web:/g' Procfile
-      fi
-      cat Procfile | awk '{print "\033[0;34m" $0 "\033[0m"}'
+      # Install App(s)
+      step_start_time=$(date +%s)
+      source ${GITHUB_WORKSPACE}/env/bin/activate
+
+      for app in ${GITHUB_WORKSPACE}/apps/*/; do
+        app_name="$(basename $app)"
+        if [ -f "${app}setup.py" ] || [ -f "${app}pyproject.toml" ]; then
+          start_time=$(date +%s)
+          echo -e "\033[36mInstalling python app from ${app}\033[0m"
+          pip install --upgrade -e "${app}[dev,test]"
+          end_time=$(date +%s)
+          echo -e "\033[36mTime taken to Install python ${app}: $((end_time - start_time)) seconds\033[0m"
+        fi
+        if  [ "${{ inputs.build-assets }}" == "true" ] && [ -f "${app}package.json" ]; then
+          start_time=$(date +%s)
+          echo -e "\033[36mInstalling js app dependencies from ${app}\033[0m"
+          pushd "$app"
+            yarn --check-files
+          popd
+          end_time=$(date +%s)
+          echo -e "\033[36mTime taken to Install js ${app}: $((end_time - start_time)) seconds\033[0m"
+        fi
+        echo "$app_name" >> sites/apps.txt
+        echo -e "\033[32mAdded $app_name to $PWD/sites/apps.txt\033[0m"
+      done
+      step_end_time=$(date +%s)
+      echo -e "\033[33mInstall App(s): $((step_end_time - step_start_time)) seconds\033[0m"
+    env:
+      TYPE: server
 
   - shell: bash -e {0}
     run: |
       # Start Bench
-      cd ~/frappe-bench || exit
-      bench start &> ~/frappe-bench/bench_start.log &
+      source ${GITHUB_WORKSPACE}/env/bin/activate
+      bench start &> ${GITHUB_WORKSPACE}/bench_start.log &
 
   - shell: bash -e {0}
     if: ${{ inputs.build-assets == 'true' }}
@@ -244,7 +269,7 @@ runs:
       # Build Assets
       start_time=$(date +%s)
 
-      cd ~/frappe-bench || exit
+      source ${GITHUB_WORKSPACE}/env/bin/activate
       CI=Yes bench build
 
       end_time=$(date +%s)
@@ -255,7 +280,7 @@ runs:
       # Reinstall Test Site
       start_time=$(date +%s)
 
-      cd ~/frappe-bench || exit
+      source ${GITHUB_WORKSPACE}/env/bin/activate
       bench --site test_site reinstall --yes
 
       end_time=$(date +%s)
