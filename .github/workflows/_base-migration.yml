@@ -17,6 +17,9 @@ on:
         required: false
         type: number
         default: 20
+      db-artifact-url:
+        required: false
+        type: string
 jobs:
   migration-test:
     name: Migrate
@@ -52,11 +55,12 @@ jobs:
         ${{ inputs.pre }}
 
     - name: Download database artifact
+      env:
+        DB_ARTIFACT_URL: ${{ inputs.db-artifact-url }}
       run: |
-        eval "$(tombl -e MIGRATION_DB=tool.frappe-ci.setup.migration-db ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/pyproject.toml)" || exit 0
         source ${GITHUB_WORKSPACE}/env/bin/activate
-        wget "$MIGRATION_DB"
-        bench --site test_site --force restore ${GITHUB_WORKSPACE}/$(basename "$MIGRATION_DB")
+        wget "$DB_ARTIFACT_URL"
+        bench --site test_site --force restore ${GITHUB_WORKSPACE}/$(basename "$DB_ARTIFACT_URL")
 
         function update_to_version() {
             eval "$(tombl -e FRAPPE_DEPENDENCIES=tool.bench.frappe-dependencies ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/pyproject.toml)" || true
