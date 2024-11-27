@@ -56,7 +56,7 @@ jobs:
     needs: checkrun
     uses: frappe/frappe/.github/workflows/_base-migration.yml@develop
     with:
-      # db-artifact-url: https://frappeframework.com/files/v13-frappe.sql.gz
+      db-artifact-url: https://frappeframework.com/files/v13-frappe.sql.gz
       python-version: '3.10'
       node-version: 20
       fake-success: ${{ needs.checkrun.outputs.build != 'strawberry' }}
