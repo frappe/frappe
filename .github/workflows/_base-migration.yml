@@ -42,7 +42,6 @@ jobs:
       with:
         python-version: ${{ inputs.python-version }}
         node-version: ${{ inputs.node-version }}
-        build-assets: false
         disable-socketio: true
         disable-web: true
         db-root-password: ${{ env.DB_ROOT_PASSWORD }}

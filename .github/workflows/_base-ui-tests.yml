@@ -69,7 +69,7 @@ jobs:
         with:
           python-version: ${{ inputs.python-version }}
           node-version: ${{ inputs.node-version }}
-          build-assets: false
+          build-assets: true
           enable-coverage: ${{ inputs.enable-coverage }}
           db-root-password: ${{ env.DB_ROOT_PASSWORD }}
           db: ${{ matrix.db }}
@@ -92,11 +92,6 @@ jobs:
             -x '${{ github.event.repository.name }}/public/dist/**' \
             -x '${{ github.event.repository.name }}/public/js/lib/**' \
             -x '**/*.bundle.js' --compact=false --in-place ${{ github.event.repository.name }}
-
-      - name: Build
-        run: |
-          source ${GITHUB_WORKSPACE}/env/bin/activate
-          bench build --apps ${{ github.event.repository.name }}
 
       - name: Site Setup
         run: |
