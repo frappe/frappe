@@ -63,7 +63,6 @@ jobs:
         bench --site test_site --force restore ${GITHUB_WORKSPACE}/$(basename "$DB_ARTIFACT_URL")
 
         function update_to_version() {
-            eval "$(tombl -e FRAPPE_DEPENDENCIES=tool.bench.frappe-dependencies ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/pyproject.toml)" || true
             version="$1"
             if [ -z "$version" ]; then
                 base_ref="${{ github.base_ref || github.ref_name }}"
