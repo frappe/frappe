@@ -48,7 +48,6 @@ jobs:
       # noisy 3rd party library warnings
       PYTHONWARNINGS: "ignore"
       DB_ROOT_PASSWORD: db_root
-      COVERAGE_RCFILE: ./apps/frappe/.coveragerc
 
     strategy:
       fail-fast: false

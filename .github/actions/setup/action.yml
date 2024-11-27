@@ -194,7 +194,7 @@ runs:
         skip_watch=is_not_true("${{ inputs.enable-watch }}"),
         skip_socketio=is_true("${{ inputs.disable-socketio }}"),
         skip_schedule=is_not_true("${{ inputs.enable-schedule }}"),
-        with_coverage=is_not_true("${{ inputs.enable-coverage }}"),
+        with_coverage=is_true("${{ inputs.enable-coverage }}"),
       )
       EOF
       end_time=$(date +%s)
