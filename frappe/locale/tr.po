@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-11-24 09:34+0000\n"
-"PO-Revision-Date: 2024-11-26 17:48\n"
+"PO-Revision-Date: 2024-11-27 17:54\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -1912,7 +1912,7 @@ msgstr "E-posta yoluyla belge oluşturmaya izin ver"
 #. Label of the allow_edit (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Allow editing after submit"
-msgstr ""
+msgstr "Gönderdikten sonra düzenlemeye izin ver"
 
 #. Description of the 'Allow Bulk Editing' (Check) field in DocType 'List View
 #. Settings'
@@ -2031,7 +2031,7 @@ msgstr "İzin Verilen Roller"
 #. Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Allowed embedding domains"
-msgstr ""
+msgstr "İzin verilen gömülü alan adları"
 
 #: frappe/public/js/frappe/form/form.js:1264
 msgid "Allowing DocType, DocType. Be careful!"
@@ -2047,7 +2047,7 @@ msgstr "Zaten şu Kullanıcıların Yapılacaklar listesinde:{0}"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:865
 msgid "Also adding the dependent currency field {0}"
-msgstr ""
+msgstr "Bağımlı para birimi alanı da ekleniyor {0}"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:878
 msgid "Also adding the status dependency field {0}"
@@ -2176,7 +2176,7 @@ msgstr "Anonimleştirme Matrisi"
 #. Label of the anonymous (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Anonymous responses"
-msgstr ""
+msgstr "İsimsiz Yanıtlar"
 
 #: frappe/public/js/frappe/request.js:187
 msgid "Another transaction is blocking this one. Please try again in a few seconds."
@@ -5315,7 +5315,7 @@ msgstr "Koşul"
 #. Label of the condition_json (JSON) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Condition JSON"
-msgstr ""
+msgstr "Koşul JSON"
 
 #. Label of the condition_description (HTML) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -5644,7 +5644,7 @@ msgstr "Bağlantıyı Kopyala"
 
 #: frappe/website/doctype/web_form/web_form.js:29
 msgid "Copy embed code"
-msgstr ""
+msgstr "Gömülü Kodu Kopyala"
 
 #: frappe/public/js/frappe/request.js:616
 msgid "Copy error to clipboard"
@@ -5669,7 +5669,7 @@ msgstr "Çekirdek Modüller {0} Genel Aramada aranamaz."
 
 #: frappe/printing/page/print/print.js:620
 msgid "Correct version :"
-msgstr ""
+msgstr "Doğru versiyon:"
 
 #: frappe/email/smtp.py:78
 msgid "Could not connect to outgoing email server"
@@ -5803,7 +5803,7 @@ msgstr "Giriş Oluştur"
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:59
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:195
 msgid "Create Letter Head"
-msgstr ""
+msgstr "Antetli Kağıt Başlığı Oluştur"
 
 #. Label of the create_log (Check) field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
@@ -7472,12 +7472,12 @@ msgstr "Görünüm"
 #. Label of the depends_on (Code) field in DocType 'Web Form Field'
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Display Depends On"
-msgstr ""
+msgstr "Görünürlük Koşulu"
 
 #. Label of the depends_on (Code) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
 msgid "Display Depends On (JS)"
-msgstr ""
+msgstr "Görünürlük Koşulu (JS)"
 
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:180
 msgid "Divider"
@@ -9895,7 +9895,7 @@ msgstr "Konu işlenemedi: {}"
 
 #: frappe/integrations/frappe_providers/frappecloud_billing.py:104
 msgid "Failed to request login to Frappe Cloud"
-msgstr ""
+msgstr "Frappe Cloud'da oturum açma isteği başarısız oldu"
 
 #: frappe/email/doctype/email_queue/email_queue.py:283
 msgid "Failed to send email with subject:"
@@ -10992,7 +10992,7 @@ msgstr "Frappe Mail OAuth Hatası"
 #. Label of the frappe_mail_site (Data) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Frappe Mail Site"
-msgstr ""
+msgstr "Frappe Mail Sitesi"
 
 #. Label of a standard help item
 #. Type: Action
@@ -12008,7 +12008,7 @@ msgstr "Hatayı Gizle"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:488
 msgid "Hide Label"
-msgstr ""
+msgstr "Etiketi Gizle"
 
 #. Label of the hide_login (Check) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -15233,7 +15233,7 @@ msgstr "Üçüncü Parti Uygulamaları Yönet"
 #. Type: Route
 #: frappe/hooks.py
 msgid "Manage Billing"
-msgstr ""
+msgstr "Faturalandırmayı Yönet"
 
 #. Description of a Card Break in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
@@ -15691,7 +15691,7 @@ msgstr "Meta Başlık"
 #. Label of the meta_description (Small Text) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Meta description"
-msgstr ""
+msgstr "Meta Açıklama"
 
 #. Label of the meta_image (Attach Image) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
