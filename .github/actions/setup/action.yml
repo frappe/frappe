@@ -176,29 +176,27 @@ runs:
       # revert after merge: https://github.com/frappe/bench/pull/1600
       pip install --quiet git+https://github.com/blaggacao/bench.git@feat/add-direct-config-module-calling
 
-      python -m bench.config.common_site_config ${GITHUB_WORKSPACE}
-      python -m bench.config.redis ${GITHUB_WORKSPACE}
-      args=()
-      if [[ "${{ inputs.enable-watch }}" != "true" ]]; then
-          args+=("--skip-watch")
-      fi
+      python <<EOF
+      from bench.config.common_site_config import setup_config
+      from bench.config.redis import generate_config
+      from bench.config.procfile import setup_procfile
 
-      if [[ "${{ inputs.enable-schedule }}" != "true" ]]; then
-          args+=("--skip-schedule")
-      fi
+      bench_path = "${{ github.workspace }}"
+      is_true = lambda str: True if str == "true" else False
+      is_not_true = lambda str: True if str != "true" else False
 
-      if [[ "${{ inputs.disable-socketio }}" == "true" ]]; then
-          args+=("--skip-socketio")
-      fi
-
-      if [[ "${{ inputs.disable-web }}" == "true" ]]; then
-          args+=("--skip-web")
-      fi
-
-      if [[ "${{ inputs.enable-coverage }}" == "true" ]]; then
-          args+=("--with-coverage")
-      fi
-      python -m bench.config.procfile ${GITHUB_WORKSPACE} "${args[@]}"
+      setup_config(bench_path)
+      generate_config(bench_path)
+      setup_procfile(
+        bench_path,
+        skip_redis=False,
+        skip_web=is_true("${{ inputs.disable-web }}"),
+        skip_watch=is_not_true("${{ inputs.enable-watch }}"),
+        skip_socketio=is_true("${{ inputs.disable-socketio }}"),
+        skip_schedule=is_not_true("${{ inputs.enable-schedule }}"),
+        with_coverage=is_not_true("${{ inputs.enable-coverage }}"),
+      )
+      EOF
       end_time=$(date +%s)
       echo -e "\033[33mInit Bench: $((end_time - start_time)) seconds\033[0m"
       cat ${GITHUB_WORKSPACE}/Procfile | awk '{print "\033[0;34m" $0 "\033[0m"}'
