@@ -80,6 +80,7 @@ jobs:
           flags: server
 
   dispatch:
+    name: Downstream
     runs-on: "ubuntu-latest"
     needs: [test, migrate]
     if: ${{ contains( github.event.pull_request.labels.*.name, 'trigger-downstream-ci') }}
