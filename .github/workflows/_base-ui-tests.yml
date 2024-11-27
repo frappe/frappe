@@ -132,6 +132,10 @@ jobs:
           name: coverage-py-${{ matrix.index }}
           path: ./sites/*-coverage*.xml
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ failure() && contains( github.event.pull_request.labels.*.name, 'debug-gha') }}
+
       - name: Show bench output
         if: ${{ always() }}
         run: |
