@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-11-10 17:35+0000\n"
-"PO-Revision-Date: 2024-11-16 13:52\n"
+"PO-Revision-Date: 2024-11-27 17:54\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -9155,7 +9155,7 @@ msgstr "Introduzca el parámetro url para los números de los receptores"
 
 #: frappe/public/js/frappe/ui/messages.js:334
 msgid "Enter your password"
-msgstr "Ingrese su contraseña"
+msgstr "Introduzca su contraseña"
 
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.js:22
 msgid "Entity Name"
