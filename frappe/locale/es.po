@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-11-24 09:34+0000\n"
-"PO-Revision-Date: 2024-11-25 17:49\n"
+"PO-Revision-Date: 2024-11-27 17:54\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -6222,7 +6222,7 @@ msgstr "Campo personalizado renombrado a {0} exitosamente."
 #: frappe/core/doctype/doctype/doctype_list.js:82
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Custom?"
-msgstr "¿Personalizado?"
+msgstr "¿Es personalizado? (Solo para esta web)"
 
 #. Group in DocType's connections
 #. Group in Module Def's connections
@@ -9257,7 +9257,7 @@ msgstr "Seleccione el Tipo de Formulario"
 #: frappe/public/js/frappe/ui/messages.js:94
 msgctxt "Title of prompt dialog"
 msgid "Enter Value"
-msgstr "Ingrese el Valor"
+msgstr "Introduzca valor"
 
 #: frappe/public/js/frappe/form/form_tour.js:60
 msgid "Enter a name for this {0}"
@@ -9292,7 +9292,7 @@ msgstr "Introduzca el parámetro url para los números de los receptores"
 
 #: frappe/public/js/frappe/ui/messages.js:334
 msgid "Enter your password"
-msgstr "Ingrese su contraseña"
+msgstr "Introduzca su contraseña"
 
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.js:22
 msgid "Entity Name"
