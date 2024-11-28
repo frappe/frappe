@@ -540,6 +540,11 @@ def _strip_html_tags(message):
 	return strip_html_tags(message)
 
 
+ServerAction: TypeAlias = dict
+ClientAction: TypeAlias = dict
+Action: TypeAlias = ServerAction | ClientAction
+
+
 def msgprint(
 	msg: str,
 	title: str | None = None,
@@ -548,7 +553,7 @@ def msgprint(
 	as_list: bool = False,
 	indicator: Literal["blue", "green", "orange", "red", "yellow"] | None = None,
 	alert: bool = False,
-	primary_action: str | None = None,
+	primary_action: Action | None = None,
 	is_minimizable: bool = False,
 	wide: bool = False,
 	*,
@@ -1297,7 +1302,7 @@ def clear_document_cache(doctype: str, name: str | None = None) -> None:
 
 
 def get_cached_value(
-	doctype: str, name: str, fieldname: str | Iterable[str] = "name", as_dict: bool = False
+	doctype: str, name: str | dict, fieldname: str | Iterable[str] = "name", as_dict: bool = False
 ) -> Any:
 	try:
 		doc = get_cached_doc(doctype, name)
@@ -1407,12 +1412,12 @@ def get_meta_module(doctype):
 
 def delete_doc(
 	doctype: str | None = None,
-	name: str | None = None,
+	name: str | dict | None = None,
 	force: bool = False,
 	ignore_doctypes: list[str] | None = None,
 	for_reload: bool = False,
 	ignore_permissions: bool = False,
-	flags: None = None,
+	flags: _dict | None = None,
 	ignore_on_trash: bool = False,
 	ignore_missing: bool = True,
 	delete_permanently: bool = False,
@@ -2146,7 +2151,7 @@ def as_json(obj: dict | list, indent=1, separators=None, ensure_ascii=True) -> s
 
 
 def are_emails_muted():
-	return flags.mute_emails or cint(conf.get("mute_emails"))
+	return flags.mute_emails or cint(conf.get("mute_emails", 0))
 
 
 from frappe.deprecation_dumpster import frappe_get_test_records as get_test_records
@@ -2397,7 +2402,7 @@ def get_desk_link(doctype, name):
 	return html.format(doctype=doctype, name=name, doctype_local=_(doctype), title_local=_(title))
 
 
-def bold(text: str) -> str:
+def bold(text: str | int | float) -> str:
 	"""Return `text` wrapped in `<strong>` tags."""
 	return f"<strong>{text}</strong>"
 
