@@ -122,11 +122,7 @@ def _decorate_all_methods_and_functions_with_type_checker():
 
 		@functools.wraps(obj)
 		def wrapper(*args, **kwargs):
-			try:
-				return validate_argument_types(obj)(*args, **kwargs)
-			except TypeError as e:
-				# breakpoint()
-				raise e
+			return validate_argument_types(obj)(*args, **kwargs)
 
 		wrapper._is_decorated_for_validate_argument_types = True
 
