@@ -7,10 +7,10 @@
 		</router-view>
 
 		<Dialogs></Dialogs>
-		<Toasts />
+		<Toaster :visible-toasts="2" position="bottom-right" richColors />
 	</div>
 </template>
 
 <script setup lang="ts">
-import { Dialogs, Toasts } from "frappe-ui"
+import { Toaster } from "vue-sonner"
 </script>

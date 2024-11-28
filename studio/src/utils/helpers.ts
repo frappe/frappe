@@ -2,9 +2,8 @@ import { reactive, toRaw, h, Ref } from "vue"
 import Block from "./block"
 import getBlockTemplate from "./blockTemplate"
 import * as frappeUI from "frappe-ui"
-import { toast } from "frappe-ui"
-
 import { createDocumentResource, createListResource, createResource, confirmDialog } from "frappe-ui"
+import { toast } from "vue-sonner"
 
 import { ObjectLiteral, BlockOptions, StyleValue, ExpressionEvaluationContext, SelectOption } from "@/types"
 import { DataResult, DocumentResource, DocumentResult, Filters, Resource } from "@/types/Studio/StudioResource"
@@ -422,12 +421,7 @@ function copyToClipboard(text: string | object) {
 
 	if (navigator.clipboard) {
 		navigator.clipboard.writeText(text)
-		toast({
-			text: "Copied object path to clipboard",
-			icon: "check-circle",
-			position: "bottom-right",
-			iconClasses: "text-green-500",
-		})
+		toast.success("Copied object path to clipboard")
 	} else {
 		const textArea = document.createElement("textarea")
 		textArea.value = text
@@ -436,19 +430,9 @@ function copyToClipboard(text: string | object) {
 		textArea.select()
 		try {
 			document.execCommand("copy")
-			toast({
-				text: "Copied object path to clipboard",
-				icon: "check-circle",
-				position: "bottom-right",
-				iconClasses: "text-green-500",
-			})
+			toast.success("Copied object path to clipboard")
 		} catch (error) {
-			toast({
-				text: "Copy to clipboard not supported",
-				icon: "alert-circle",
-				position: "bottom-right",
-				iconClasses: "text-red-500",
-			})
+			toast.error("Copy to clipboard not supported")
 		} finally {
 			textArea.remove()
 		}
