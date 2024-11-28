@@ -2,6 +2,7 @@ import { reactive, toRaw, h, Ref } from "vue"
 import Block from "./block"
 import getBlockTemplate from "./blockTemplate"
 import * as frappeUI from "frappe-ui"
+import { toast } from "frappe-ui"
 
 import { createDocumentResource, createListResource, createResource, confirmDialog } from "frappe-ui"
 
@@ -419,12 +420,39 @@ function copyToClipboard(text: string | object) {
 		text = JSON.stringify(text)
 	}
 
-	let textField = document.createElement('textarea')
-	textField.value = text
-	document.body.appendChild(textField)
-	textField.select()
-	document.execCommand('copy')
-	textField.remove()
+	if (navigator.clipboard) {
+		navigator.clipboard.writeText(text)
+		toast({
+			text: "Copied object path to clipboard",
+			icon: "check-circle",
+			position: "bottom-right",
+			iconClasses: "text-green-500",
+		})
+	} else {
+		const textArea = document.createElement("textarea")
+		textArea.value = text
+		textArea.style.position = "fixed"
+		document.body.appendChild(textArea)
+		textArea.select()
+		try {
+			document.execCommand("copy")
+			toast({
+				text: "Copied object path to clipboard",
+				icon: "check-circle",
+				position: "bottom-right",
+				iconClasses: "text-green-500",
+			})
+		} catch (error) {
+			toast({
+				text: "Copy to clipboard not supported",
+				icon: "alert-circle",
+				position: "bottom-right",
+				iconClasses: "text-red-500",
+			})
+		} finally {
+			textArea.remove()
+		}
+	}
 }
 
 

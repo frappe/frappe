@@ -13,7 +13,7 @@
 		<!-- object properties -->
 		<div v-if="!name || isExpanded('root')" class="ml-4">
 			<div v-for="(value, key) in object" :key="key">
-				<div class="my-[7px] flex cursor-pointer items-start gap-0.5" @click="toggleExpanded(key)">
+				<div class="group/key my-[7px] flex cursor-pointer items-start gap-0.5" @click="toggleExpanded(key)">
 					<FeatherIcon
 						v-if="isObject(value)"
 						:name="isExpanded(key) ? 'chevron-down' : 'chevron-right'"
@@ -29,11 +29,17 @@
 					>
 						{{ formatValue(value) }}
 					</span>
+					<button
+						class="invisible ml-auto px-2 hover:visible group-hover/key:visible"
+						@click.prevent="copyToClipboard(`{{ getObjectPath(key) }}`)"
+					>
+						<FeatherIcon name="copy" class="h-3 w-3" />
+					</button>
 				</div>
 
 				<!-- nested object properties -->
 				<div v-if="isObject(value) && isExpanded(key)" class="ml-2">
-					<ObjectBrowser :object="value" />
+					<ObjectBrowser :object="value" :parentPath="getObjectPath(key)" />
 				</div>
 			</div>
 		</div>
@@ -41,12 +47,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { copyToClipboard } from "@/utils/helpers"
+import { ref, computed } from "vue"
 
-defineProps<{
-	object: object
-	name?: string
-}>()
+const props = withDefaults(
+	defineProps<{
+		object: object
+		name?: string
+		parentPath?: string
+	}>(),
+	{
+		name: "",
+		parentPath: "",
+	},
+)
 
 const expandedKeys = ref(new Set<string>())
 
@@ -81,5 +95,10 @@ const formatValue = (value: string | Function | object) => {
 		if (typeof value === "string") return `"${value}"`
 		return String(value)
 	}
+}
+
+const objectParentPath = computed(() => props.parentPath || props.name)
+const getObjectPath = (key: string) => {
+	return `${objectParentPath}.${key}`
 }
 </script>

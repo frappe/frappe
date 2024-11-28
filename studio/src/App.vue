@@ -7,9 +7,10 @@
 		</router-view>
 
 		<Dialogs></Dialogs>
+		<Toasts />
 	</div>
 </template>
 
 <script setup lang="ts">
-import { Dialogs } from "frappe-ui"
+import { Dialogs, Toasts } from "frappe-ui"
 </script>
