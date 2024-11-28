@@ -22,6 +22,7 @@ and tear down the test environment before and after test execution.
 import functools
 import inspect
 import logging
+import pkgutil
 import unittest
 
 import tomllib
@@ -103,7 +104,7 @@ def _decorate_all_methods_and_functions_with_type_checker():
 			logger.warning(f"Failed to parse pyproject.toml for app {app_path}")
 			return {}
 
-	def _decorate_callable(obj, apps, parent_module):
+	def _decorate_callable(obj, parent_module):
 		# whitelisted methods are already checked, see frappe.whitelist
 		if getattr(obj, "__func__", obj) in frappe.whitelisted:
 			return obj
@@ -111,8 +112,9 @@ def _decorate_all_methods_and_functions_with_type_checker():
 		elif hasattr(obj, "_is_decorated_for_validate_argument_types"):
 			return obj
 		elif module := getattr(obj, "__module__", ""):
-			if (app := module.split(".", 1)[0]) and app not in apps:
-				return obj
+			# ensure that the origin skip list is honored on imports; but not the origin
+			# max_depth because they are reimported thus attached to a different namespace
+			app = module.split(".", 1)[0]
 			config = _get_config_from_pyproject(frappe.get_app_source_path(app))
 			skip_namespaces = config.get("skip_namespaces", [])
 			if any(module.startswith(n) for n in skip_namespaces):
@@ -128,39 +130,51 @@ def _decorate_all_methods_and_functions_with_type_checker():
 
 		wrapper._is_decorated_for_validate_argument_types = True
 
-		logger.debug(f"... patching {obj.__module__}.{obj.__name__} in {parent_module.__name__}")
+		if obj.__module__ != parent_module.__name__:
+			logger.debug(f"... patching {obj.__module__}.{obj.__name__} (inside {parent_module.__name__})")
+		else:
+			logger.debug(f"... patching {obj.__module__}.{obj.__name__}")
 
 		return wrapper
 
-	def _decorate_module(module, apps, current_depth, max_depth):
-		if current_depth >= max_depth:
-			return
-		if (app := module.__name__.split(".", 1)[0]) and app not in apps:
+	def _decorate_module(app, module, apps, current_depth, max_depth):
+		if current_depth > max_depth:
 			return
 		for name in dir(module):
 			obj = getattr(module, name)
 			if inspect.isfunction(obj):
-				if not hasattr(obj, "__annotations__"):
+				if not getattr(obj, "__annotations__", None):
 					continue
-				setattr(module, name, _decorate_callable(obj, apps, module))
+				# never cross the apps (plural!) boundary for functions
+				if obj.__module__.split(".", 1)[0] not in apps:
+					continue
+				setattr(module, name, _decorate_callable(obj, module))
 			elif inspect.ismodule(obj):
+				# never cross the app (singular!) boundary for modules
+				if obj.__name__.split(".", 1)[0] != app:
+					continue
 				if hasattr(obj, "_is_decorated_for_validate_argument_types"):
 					continue
 				obj._is_decorated_for_validate_argument_types = True
-				_decorate_module(obj, apps, current_depth + 1, max_depth)
+				_decorate_module(app, obj, apps, current_depth + 1, max_depth)
 
 	for app in (apps := frappe.get_installed_apps()):
 		config = _get_config_from_pyproject(frappe.get_app_source_path(app))
 		max_depth = config.get("max_module_depth", float("inf"))
-		logger.info(
-			f"Decorating callables with type validator up to module depth {max_depth+1} in {app!r} ..."
-		)
-		for module_name in frappe.local.app_modules.get(app) or []:
-			try:
-				module = frappe.get_module(f"{app}.{module_name}")
-				_decorate_module(module, apps, 0, max_depth)
-			except ImportError:
-				logger.error(f"Error importing module {app}.{module_name}")
+		skip_namespaces = config.get("skip_namespaces", [])
+		logger.info(f"Adding type validator in {app!r} (up to level {max_depth})...")
+		pkg = frappe.get_module(app)
+		_decorate_module(app, pkg, apps, 1, max_depth)
+
+		for _, submodule_name, _ in pkgutil.walk_packages(path=pkg.__path__, prefix=pkg.__name__ + "."):
+			current_depth = len(submodule_name.split("."))
+			if current_depth > max_depth:
+				continue
+			if any(submodule_name.startswith(n) for n in skip_namespaces):
+				continue
+
+			submodule = frappe.get_module(submodule_name)
+			_decorate_module(app, submodule, apps, current_depth, max_depth)
 
 
 class IntegrationTestPreparation:
