@@ -138,6 +138,13 @@ test = [
 requires = ["flit_core >=3.4,<4"]
 build-backend = "flit_core.buildapi"
 
+[tool.frappe.testing.function_type_validation]
+max_module_depth = 1
+skip_namespaces = [
+    "frappe.deprecation_dumpster",
+    "frappe.utils.typing_validations",
+]
+
 [tool.bench.dev-dependencies]
 coverage = "~=6.5.0"
 Faker = "~=18.10.1"

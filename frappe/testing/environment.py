@@ -24,6 +24,8 @@ import inspect
 import logging
 import unittest
 
+import tomllib
+
 import frappe
 import frappe.utils.scheduler
 from frappe.tests.utils import make_test_records
@@ -85,9 +87,21 @@ def _disable_scheduler_if_needed():
 def _decorate_all_methods_and_functions_with_type_checker():
 	from frappe.utils.typing_validations import validate_argument_types
 
-	# TODO: dial this up slowly and fix errors along the way
-	max_depth = 1
-	skip_namespaces = ["frappe.deprecation_dumpster", "frappe.utils.typing_validations"]
+	def _get_config_from_pyproject(app_path):
+		try:
+			with open(f"{app_path}/pyproject.toml", "rb") as f:
+				config = tomllib.load(f)
+				return (
+					config.get("tool", {})
+					.get("frappe", {})
+					.get("testing", {})
+					.get("function_type_validation", {})
+				)
+		except FileNotFoundError:
+			return {}
+		except tomllib.TOMLDecodeError:
+			logger.warning(f"Failed to parse pyproject.toml for app {app_path}")
+			return {}
 
 	def _decorate_callable(obj, apps, parent_module):
 		# whitelisted methods are already checked, see frappe.whitelist
@@ -99,7 +113,9 @@ def _decorate_all_methods_and_functions_with_type_checker():
 		elif module := getattr(obj, "__module__", ""):
 			if (app := module.split(".", 1)[0]) and app not in apps:
 				return obj
-			elif any(module.startswith(n) for n in skip_namespaces):
+			config = _get_config_from_pyproject(frappe.get_app_source_path(app))
+			skip_namespaces = config.get("skip_namespaces", [])
+			if any(module.startswith(n) for n in skip_namespaces):
 				return obj
 
 		@functools.wraps(obj)
@@ -116,16 +132,9 @@ def _decorate_all_methods_and_functions_with_type_checker():
 
 		return wrapper
 
-	def _decorate_module(module, apps, current_depth=0):
+	def _decorate_module(module, apps, current_depth, max_depth):
 		if current_depth >= max_depth:
 			return
-		elif name := module.__name__:
-			if name.split(".", 1)[0] not in apps:
-				return
-			elif "deprecation_dumpster" in name:
-				return
-			elif "typing_validations" in name:
-				return
 		if (app := module.__name__.split(".", 1)[0]) and app not in apps:
 			return
 		for name in dir(module):
@@ -135,16 +144,21 @@ def _decorate_all_methods_and_functions_with_type_checker():
 					continue
 				setattr(module, name, _decorate_callable(obj, apps, module))
 			elif inspect.ismodule(obj):
-				_decorate_module(obj, apps, current_depth + 1)
+				if hasattr(obj, "_is_decorated_for_validate_argument_types"):
+					continue
+				obj._is_decorated_for_validate_argument_types = True
+				_decorate_module(obj, apps, current_depth + 1, max_depth)
 
 	for app in (apps := frappe.get_installed_apps()):
+		config = _get_config_from_pyproject(frappe.get_app_source_path(app))
+		max_depth = config.get("max_module_depth", float("inf"))
 		logger.info(
 			f"Decorating callables with type validator up to module depth {max_depth+1} in {app!r} ..."
 		)
 		for module_name in frappe.local.app_modules.get(app) or []:
 			try:
 				module = frappe.get_module(f"{app}.{module_name}")
-				_decorate_module(module, apps)
+				_decorate_module(module, apps, 0, max_depth)
 			except ImportError:
 				logger.error(f"Error importing module {app}.{module_name}")
 
