@@ -1140,10 +1140,21 @@ const zoomLevels = {
 		}
 
 		function getPickupIcon() {
+			const pickupStatus = {
+				dropoff: 'Dropoff service',
+				pickup: 'Pickup service',
+				dropoffArranged: 'Dropoff service arranged',
+				pickupArranged: 'Pickup service arranged',
+			}
 			const status = card.doc.pickup
-			if(!status) return ''
+			const opts = {
+				[pickupStatus.dropoff]: { class: 'blink-red' },
+				[pickupStatus.dropoffArranged]: { color: 'green' },
+				[pickupStatus.pickup]: { class: 'blink-red' },
+				[pickupStatus.pickupArranged]: { color: 'green' }
+			}
 
-			return `<i class="fa fa-taxi" style="color:green;" title="Pickup"></i>`;
+			return `<i class="fa fa-taxi  ${opts[status]?.class ?? ''}" style="color:${opts[status]?.color ?? '#d1d1d1'};" title="${status}"></i>`;
 		}
 
 		function show_assign_to_dialog(e) {
