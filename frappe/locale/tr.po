@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-11-10 17:35+0000\n"
-"PO-Revision-Date: 2024-11-27 17:54\n"
+"PO-Revision-Date: 2024-11-28 17:55\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -3013,7 +3013,7 @@ msgstr "Oluşturduğunuz belgeleri otomatik takip edin"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Autocomplete"
-msgstr ""
+msgstr "Otomatik Tamamlama"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -22312,7 +22312,7 @@ msgstr "Görüntüleyenler Tablosu"
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Select"
-msgstr "Seç"
+msgstr "Seçim"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:149
 #: frappe/public/js/frappe/form/controls/multicheck.js:166
@@ -30565,7 +30565,7 @@ msgstr "arama"
 #. Inspector'
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 msgid "select"
-msgstr "seç"
+msgstr "Seç"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
