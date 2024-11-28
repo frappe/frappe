@@ -29,12 +29,15 @@
 					>
 						{{ formatValue(value) }}
 					</span>
-					<button
+
+					<IconButton
+						icon="copy"
+						label="Copy object path"
 						class="invisible ml-auto px-2 hover:visible group-hover/key:visible"
+						size="sm"
+						:hoverDelay="1"
 						@click.prevent="copyToClipboard(`{{ getObjectPath(key) }}`)"
-					>
-						<FeatherIcon name="copy" class="h-3 w-3" />
-					</button>
+					/>
 				</div>
 
 				<!-- nested object properties -->
@@ -49,6 +52,7 @@
 <script setup lang="ts">
 import { copyToClipboard } from "@/utils/helpers"
 import { ref, computed } from "vue"
+import IconButton from "@/components/IconButton.vue"
 
 const props = withDefaults(
 	defineProps<{
