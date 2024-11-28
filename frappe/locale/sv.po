@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-11-10 17:35+0000\n"
-"PO-Revision-Date: 2024-11-25 17:49\n"
+"PO-Revision-Date: 2024-11-28 17:55\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -2480,7 +2480,7 @@ msgstr "Är du säker på att du vill återaktivera schemaläggare?"
 
 #: frappe/core/doctype/communication/communication.js:163
 msgid "Are you sure you want to relink this communication to {0}?"
-msgstr "Är du säker att du vill länka om kommunikation till {0}?"
+msgstr "Är du säker att du vill länka om konversation till {0}?"
 
 #: frappe/core/doctype/rq_job/rq_job_list.js:10
 msgid "Are you sure you want to remove all failed jobs?"
@@ -4413,12 +4413,12 @@ msgstr "Kedjehash"
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:11
 #: frappe/tests/test_translate.py:98
 msgid "Change"
-msgstr "Ändra"
+msgstr "Växel"
 
 #: frappe/tests/test_translate.py:99
 msgctxt "Coins"
 msgid "Change"
-msgstr "Ändra"
+msgstr "Växel"
 
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:38
 msgid "Change Image"
@@ -5159,12 +5159,12 @@ msgstr "Konversation"
 #. Name of a DocType
 #: frappe/core/doctype/communication_link/communication_link.json
 msgid "Communication Link"
-msgstr "Kommunikation Länk"
+msgstr "Konversation Länk"
 
 #. Label of a Link in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Communication Logs"
-msgstr "Kommunikation Logg"
+msgstr "Konversation Logg"
 
 #. Label of a Select field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
@@ -7346,16 +7346,16 @@ msgstr "Inaktiverad Autosvar"
 #: frappe/public/js/frappe/views/workspace/workspace.js:547
 #: frappe/public/js/frappe/web_form/web_form.js:187
 msgid "Discard"
-msgstr "Avvisa"
+msgstr "Förkasta"
 
 #: frappe/website/doctype/web_form/templates/web_form.html:41
 msgctxt "Button in web form"
 msgid "Discard"
-msgstr "Avvisa"
+msgstr "Förkasta"
 
 #: frappe/public/js/frappe/web_form/web_form.js:184
 msgid "Discard?"
-msgstr "Avvisa?"
+msgstr "Förkasta?"
 
 #. Description of the 'Suggested Indexes' (Table) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
@@ -13587,7 +13587,7 @@ msgstr "Håll koll på alla uppdatering flöde"
 #. Description of a DocType
 #: frappe/core/doctype/communication/communication.json
 msgid "Keeps track of all communications"
-msgstr "Kommunikation Övervakning"
+msgstr "Konversation Översikt"
 
 #. Label of a Data field in DocType 'DefaultValue'
 #. Label of a Data field in DocType 'Document Share Key'
@@ -14550,7 +14550,7 @@ msgstr "Ladda Mer"
 #: frappe/public/js/frappe/form/footer/form_timeline.js:216
 msgctxt "Form timeline"
 msgid "Load More Communications"
-msgstr "Ladda Mer Kommunikation"
+msgstr "Ladda mer Konversation"
 
 #: frappe/public/js/frappe/file_uploader/TreeNode.vue:45
 msgid "Load more"
@@ -15647,7 +15647,7 @@ msgstr "Måndag"
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Monitor logs for errors, background jobs, communications, and user activity"
-msgstr "Övervaka loggar för fel, bakgrundsjobb, kommunikation och användaraktivitet"
+msgstr "Övervaka loggar för fel, bakgrundsjobb, konversation och användaraktivitet"
 
 #. Option for the 'Font' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -17554,7 +17554,7 @@ msgstr "Öppna Awesomebar"
 
 #: frappe/public/js/frappe/form/templates/timeline_message_box.html:67
 msgid "Open Communication"
-msgstr "Öppna Kommunikation"
+msgstr "Öppna Konversation"
 
 #: frappe/templates/emails/new_notification.html:10
 msgid "Open Document"
@@ -18784,7 +18784,7 @@ msgstr "Logga in för att lämna kommentar."
 
 #: frappe/core/doctype/communication/communication.py:209
 msgid "Please make sure the Reference Communication Docs are not circularly linked."
-msgstr "Kontrollera att Referens Dokument för Kommunikation inte är cirkulärt länkade."
+msgstr "Kontrollera att Referens Dokument för Konversation inte är cirkulärt länkade."
 
 #: frappe/model/document.py:818
 msgid "Please refresh to get the latest document."
@@ -20545,7 +20545,7 @@ msgstr "Länka om"
 
 #: frappe/core/doctype/communication/communication.js:138
 msgid "Relink Communication"
-msgstr "Länka om Kommunikation"
+msgstr "Länka om Konversation"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
@@ -22689,7 +22689,7 @@ msgstr "Skicka Utskrift som PDF"
 
 #: frappe/public/js/frappe/views/communication.js:138
 msgid "Send Read Receipt"
-msgstr "Skicka Läsbekräftelse"
+msgstr "Skicka Läskvitto"
 
 #. Label of a Check field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -22765,7 +22765,7 @@ msgstr "Skicka Inloggning Länk"
 
 #: frappe/public/js/frappe/views/communication.js:132
 msgid "Send me a copy"
-msgstr "Skicka Kopia"
+msgstr "Skicka mig kopia"
 
 #: frappe/email/doctype/newsletter/newsletter.js:46
 msgid "Send now"
@@ -29030,7 +29030,7 @@ msgstr "Du får bara uppdatera ordning, inte ta bort eller lägga till appar."
 
 #: frappe/email/doctype/email_account/email_account.js:212
 msgid "You are selecting Sync Option as ALL, It will resync all read as well as unread message from server. This may also cause the duplication of Communication (emails)."
-msgstr "Du väljer Synkronisering Alternativ som ALLA. Det kommer att synkronisera alla lästa såväl som olästa meddelanden från server. Detta kan också orsaka kopior av kommunikation (e-post)."
+msgstr "Du väljer Synkronisering Alternativ som ALLA. Det kommer att synkronisera alla lästa såväl som olästa meddelanden från server. Detta kan också orsaka kopior av konversation (e-post)."
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:415
 msgctxt "Form timeline"
