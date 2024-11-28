@@ -46,6 +46,7 @@ import ResourceDialog from "@/components/ResourceDialog.vue"
 import { isObjectEmpty, getAutocompleteValues, confirm, copyToClipboard } from "@/utils/helpers"
 import { studioResources, studioPageResources } from "@/data/studioResources"
 import { NewResource, Resource } from "@/types/Studio/StudioResource"
+import { toast } from "vue-sonner"
 
 /**
  * Insert resource into DB
@@ -100,13 +101,19 @@ const addResource = (resource: NewResource) => {
 }
 
 const deleteResource = async (docname: string, resource_name: string) => {
-	const confirmed = await confirm(`Are you sure you want to delete the resource ${resource_name}?`)
+	const confirmed = await confirm(`Are you sure you want to delete the data source ${resource_name}?`)
 	if (confirmed) {
-		studioPageResources.delete.submit(docname).then(() => {
-			if (store.activePage) {
-				store.setPageResources(store.activePage)
-			}
-		})
+		studioPageResources.delete
+			.submit(docname)
+			.then(() => {
+				if (store.activePage) {
+					store.setPageResources(store.activePage)
+				}
+				toast.success(`Data Source <b>${resource_name}</b> deleted successfully`)
+			})
+			.catch(() => {
+				toast.error(`Failed to delete data source ${resource_name}`)
+			})
 	}
 }
 
