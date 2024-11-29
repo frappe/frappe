@@ -89,6 +89,7 @@ import { computed, h, ref, watch } from "vue"
 import Link from "@/components/Link.vue"
 
 import { DocTypeField, Fieldtype, Filter, Operators } from "@/types"
+import { isObjectEmpty } from "@/utils/helpers"
 
 const typeCheck = ["Check"]
 const typeLink = ["Link"]
@@ -112,7 +113,7 @@ const props = withDefaults(
 )
 
 const fields = computed(() => {
-	const fields = props.docfields
+	return props.docfields
 		.filter((field) => {
 			return (
 				!field.is_virtual &&
@@ -130,7 +131,6 @@ const fields = computed(() => {
 				...field,
 			}
 		})
-	return fields
 })
 
 const filters = ref<Filter[]>(makeFiltersList(props.modelValue))
@@ -147,7 +147,8 @@ watch(
 )
 
 function makeFiltersList(filtersDict: Record<string, [Operators, any]>) {
-	if (!Object.keys(filtersDict).length) return []
+	if (!fields.value.length || isObjectEmpty(filtersDict)) return []
+
 	return Object.entries(filtersDict).map(([fieldname, [operator, value]]) => {
 		const field = getField(fieldname)
 		if (!field) {
