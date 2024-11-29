@@ -460,8 +460,13 @@ def get_html_and_style(
     document.base_total_taxes_and_charges = "{:.2f}".format(parse_doc.get("base_total_taxes_and_charges"))
     document.grand_total = "{:.2f}".format(parse_doc.get("grand_total"))
 
-    document.transaction_date_custom = format_dates(parse_doc.get("transaction_date"))
-    document.valid_till_custom = format_dates(parse_doc.get("valid_till"))
+    if(parse_doc.get("doctype") == "Quotation"):
+        document.transaction_date_custom = format_dates(parse_doc.get("transaction_date"))
+        document.valid_till_custom = format_dates(parse_doc.get("valid_till"))
+        
+    if(parse_doc.get("doctype") == "Sales Invoice"):
+        document.posting_date_custom = format_dates(parse_doc.get("posting_date"))
+        document.due_date_custom = format_dates(parse_doc.get("due_date"))
     
     document.check_permission()
 

@@ -262,8 +262,13 @@ def download_pdf(
     doc.base_total_taxes_and_charges = "{:.2f}".format(doc.get("base_total_taxes_and_charges"))
     doc.grand_total = "{:.2f}".format(doc.get("grand_total"))
     
-    # doc.transaction_date_custom = format_dates(doc.transaction_date)
-    # doc.valid_till_custom = format_dates(doc.valid_till)
+    if(doc.get("doctype") == "Sales Invoice"):
+        doc.posting_date_custom = format_dates(doc.get("posting_date"))
+        doc.due_date_custom = format_dates(parse_doc.get("due_date"))
+        
+    if(doc.get("doctype") == "Quotation"):
+        doc.transaction_date_custom = format_dates(doc.get("transaction_date"))
+        doc.valid_till_custom = format_dates(doc.get("valid_till"))
     
     validate_print_permission(doc)
 
