@@ -74,7 +74,7 @@ jobs:
 
             source ${GITHUB_WORKSPACE}/env/bin/activate
             echo "Updating to version ${version:-$head_ref}"
-    
+
             # Fetch and checkout branches
             for app in ${GITHUB_WORKSPACE}/apps/*/; do
                 app_name=$(basename "$app")

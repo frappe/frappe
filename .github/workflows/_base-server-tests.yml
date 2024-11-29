@@ -9,7 +9,7 @@ on:
       python-version:
         required: false
         type: string
-        default: '3.12'
+        default: '3.13'
       node-version:
         required: false
         type: number
