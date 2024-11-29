@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-11-10 17:35+0000\n"
-"PO-Revision-Date: 2024-11-28 17:55\n"
+"PO-Revision-Date: 2024-11-29 18:39\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -4652,7 +4652,7 @@ msgstr "Şehir"
 #. Label of a Data field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "City/Town"
-msgstr "İl / İlçe"
+msgstr "Şehir"
 
 #: frappe/core/doctype/recorder/recorder_list.js:12
 #: frappe/public/js/frappe/form/controls/attach.js:16
@@ -7453,7 +7453,7 @@ msgstr "Belge Durumu"
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "DocField"
-msgstr ""
+msgstr "DocType Alanı"
 
 #. Name of a DocType
 #: frappe/core/doctype/docperm/docperm.json
@@ -24202,7 +24202,7 @@ msgstr ""
 #. Label of a Data field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "State/Province"
-msgstr "İlçe"
+msgstr "Mahalle"
 
 #. Label of a Table field in DocType 'DocType'
 #. Label of a Table field in DocType 'Customize Form'
