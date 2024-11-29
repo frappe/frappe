@@ -15,6 +15,7 @@ Remember, deprecated doesn't mean useless - it just means these functions are en
 Enjoy your stay in the Deprecation Dumpster, where every function gets a second chance to shine (or at least, to not break everything).
 """
 
+import functools
 import inspect
 import os
 import re
@@ -117,7 +118,6 @@ try:
 	# since python 3.13, PEP 702
 	from warnings import deprecated as _deprecated
 except ImportError:
-	import functools
 	import warnings
 	from collections.abc import Callable
 	from typing import Optional, TypeVar, Union, overload
