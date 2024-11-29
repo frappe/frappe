@@ -258,9 +258,15 @@ def download_pdf(
                     })
         doc.items_custom = items_custom
         
-    doc.base_total = "{:.2f}".format(doc.get("base_total"))
-    doc.base_total_taxes_and_charges = "{:.2f}".format(doc.get("base_total_taxes_and_charges"))
-    doc.grand_total = "{:.2f}".format(doc.get("grand_total"))
+    if doc.get("base_total") is not None:
+        doc.base_total = "{:.2f}".format(doc.get("base_total"))
+
+    if doc.get("base_total_taxes_and_charges") is not None:
+        doc.base_total_taxes_and_charges = "{:.2f}".format(doc.get("base_total_taxes_and_charges"))
+
+    if doc.get("grand_total") is not None:
+        doc.grand_total = "{:.2f}".format(doc.get("grand_total"))
+
     
     if(doc.get("doctype") == "Sales Invoice"):
         doc.posting_date_custom = format_dates(doc.get("posting_date"))

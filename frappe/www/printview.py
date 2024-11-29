@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import copy
-from datetime import datetime
+from datetime import date, datetime
 import json
 import os
 import re
@@ -169,6 +169,8 @@ def convert_to_float(value):
 
 def format_dates(value):
     if value:
+        if isinstance(value, date):
+            value = value.strftime('%Y-%m-%d')
         x = datetime.strptime(value, '%Y-%m-%d')
         return x.strftime('%d-%m-%Y')
 
@@ -455,10 +457,15 @@ def get_html_and_style(
         document.address_display = parse_doc.get("address_display")
         document.items_custom = parse_doc.get("items_custom")
 
+    if parse_doc.get("base_total") is not None:
+        document.base_total = "{:.2f}".format(parse_doc.get("base_total"))
 
-    document.base_total = "{:.2f}".format(parse_doc.get("base_total"))
-    document.base_total_taxes_and_charges = "{:.2f}".format(parse_doc.get("base_total_taxes_and_charges"))
-    document.grand_total = "{:.2f}".format(parse_doc.get("grand_total"))
+    if parse_doc.get("base_total_taxes_and_charges") is not None:
+        document.base_total_taxes_and_charges = "{:.2f}".format(parse_doc.get("base_total_taxes_and_charges"))
+
+    if parse_doc.get("grand_total") is not None:
+        document.grand_total = "{:.2f}".format(parse_doc.get("grand_total"))
+
 
     if(parse_doc.get("doctype") == "Quotation"):
         document.transaction_date_custom = format_dates(parse_doc.get("transaction_date"))
