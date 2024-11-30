@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-11-24 09:34+0000\n"
-"PO-Revision-Date: 2024-11-28 17:55\n"
+"PO-Revision-Date: 2024-11-30 18:39\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -14503,7 +14503,7 @@ msgstr "Sidhuvud Baserad På"
 #. 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Letter Head Image"
-msgstr "Sidhuvud Bild"
+msgstr "Brevhuvud Bild"
 
 #. Label of the letter_head_name (Data) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
@@ -14513,17 +14513,17 @@ msgstr "Brevhuvud Namn"
 
 #: frappe/printing/doctype/letter_head/letter_head.js:30
 msgid "Letter Head Scripts"
-msgstr "Sidhuvud Skript"
+msgstr "Brevhuvud Skript"
 
 #: frappe/printing/doctype/letter_head/letter_head.py:48
 msgid "Letter Head cannot be both disabled and default"
-msgstr "Sidhuvud kan inte vara både Inaktiverad och Standard"
+msgstr "Brevhuvud kan inte vara både Inaktiverad och Standard"
 
 #. Description of the 'Header HTML' (HTML Editor) field in DocType 'Letter
 #. Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Letter Head in HTML"
-msgstr "Sidhuvud i HTML"
+msgstr "Brevhuvud i HTML"
 
 #. Label of the permlevel (Int) field in DocType 'Custom DocPerm'
 #. Label of the permlevel (Int) field in DocType 'DocPerm'
@@ -19107,7 +19107,7 @@ msgstr "Bifoga bild för att ange HTML för sidfot."
 
 #: frappe/printing/doctype/letter_head/letter_head.py:64
 msgid "Please attach an image file to set HTML for Letter Head."
-msgstr "Bifoga bild för att ange HTML för Sidhuvud."
+msgstr "Bifoga bild för att ange HTML för Brevhuvud."
 
 #: frappe/core/doctype/package_import/package_import.py:39
 msgid "Please attach the package"
@@ -29382,7 +29382,7 @@ msgstr "Schemalagda jobb körs endast 1 gång/dag för inaktiva webbplatser. Sta
 
 #: frappe/public/js/frappe/form/print_utils.js:15
 msgid "With Letter head"
-msgstr "Med Sidhuvud"
+msgstr "Med Brevhuvud"
 
 #. Label of the worker_information_section (Section Break) field in DocType 'RQ
 #. Worker'
