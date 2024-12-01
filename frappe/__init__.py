@@ -25,14 +25,24 @@ import sys
 import traceback
 import warnings
 from collections import defaultdict
-from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, overload
+from collections.abc import Callable, Iterable
+from typing import (
+	TYPE_CHECKING,
+	Any,
+	Generic,
+	Literal,
+	Optional,
+	TypeAlias,
+	TypeVar,
+	Union,
+	overload,
+)
 
 import click
-from werkzeug.local import Local, release_local
+from werkzeug.local import Local, LocalProxy, release_local
 
 import frappe
-from frappe.query_builder import (
+from frappe.query_builder.utils import (
 	get_query,
 	get_query_builder,
 	patch_query_aggregation,
@@ -43,6 +53,7 @@ from frappe.utils.data import cint, cstr, sbool
 
 # Local application imports
 from .exceptions import *
+from .types.frappedict import _dict
 from .utils.jinja import (
 	get_email_from_template,
 	get_jenv,
@@ -54,40 +65,32 @@ from .utils.jinja import (
 __version__ = "16.0.0-dev"
 __title__ = "Frappe Framework"
 
-controllers = {}
+if TYPE_CHECKING:  # pragma: no cover
+	from logging import Logger
+	from types import ModuleType
+
+	from werkzeug.wrappers import Request
+
+	from frappe.database.mariadb.database import MariaDBDatabase
+	from frappe.database.postgres.database import PostgresDatabase
+	from frappe.email.doctype.email_queue.email_queue import EmailQueue
+	from frappe.model.document import Document
+	from frappe.query_builder.builder import MariaDB, Postgres
+	from frappe.types.lazytranslatedstring import _LazyTranslate
+	from frappe.utils.redis_wrapper import RedisWrapper
+
+controllers: dict[str, "Document"] = {}
 local = Local()
-cache = None
+cache: Optional["RedisWrapper"] = None
 STANDARD_USERS = ("Guest", "Administrator")
 
-_qb_patched = {}
+_qb_patched: dict[str, bool] = {}
 _dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
 _tune_gc = bool(sbool(os.environ.get("FRAPPE_TUNE_GC", True)))
 
 if _dev_server:
 	warnings.simplefilter("always", DeprecationWarning)
 	warnings.simplefilter("always", PendingDeprecationWarning)
-
-
-class _dict(dict):
-	"""dict like object that exposes keys as attributes"""
-
-	__slots__ = ()
-	__getattr__ = dict.get
-	__setattr__ = dict.__setitem__
-	__delattr__ = dict.__delitem__
-	__setstate__ = dict.update
-
-	def __getstate__(self):
-		return self
-
-	def update(self, *args, **kwargs):
-		"""update and return self -- the missing dict feature in python"""
-
-		super().update(*args, **kwargs)
-		return self
-
-	def copy(self):
-		return _dict(self)
 
 
 def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
@@ -126,7 +129,7 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 	return translated_string or non_translated_string
 
 
-def _lt(msg: str, lang: str | None = None, context: str | None = None):
+def _lt(msg: str, lang: str | None = None, context: str | None = None) -> "_LazyTranslate":
 	"""Lazily translate a string.
 
 
@@ -138,45 +141,9 @@ def _lt(msg: str, lang: str | None = None, context: str | None = None):
 
 	Note: Result is not guaranteed to equivalent to pure strings for all operations.
 	"""
+	from .types.lazytranslatedstring import _LazyTranslate
+
 	return _LazyTranslate(msg, lang, context)
-
-
-@functools.total_ordering
-class _LazyTranslate:
-	__slots__ = ("msg", "lang", "context")
-
-	def __init__(self, msg: str, lang: str | None = None, context: str | None = None) -> None:
-		self.msg = msg
-		self.lang = lang
-		self.context = context
-
-	@property
-	def value(self) -> str:
-		return _(str(self.msg), self.lang, self.context)
-
-	def __str__(self):
-		return self.value
-
-	def __add__(self, other):
-		if isinstance(other, str | _LazyTranslate):
-			return self.value + str(other)
-		raise NotImplementedError
-
-	def __radd__(self, other):
-		if isinstance(other, str | _LazyTranslate):
-			return str(other) + self.value
-		return NotImplementedError
-
-	def __repr__(self) -> str:
-		return f"'{self.value}'"
-
-	# NOTE: it's required to override these methods and raise error as default behaviour will
-	# return `False` in all cases.
-	def __eq__(self, other):
-		raise NotImplementedError
-
-	def __lt__(self, other):
-		raise NotImplementedError
 
 
 def as_unicode(text, encoding: str = "utf-8") -> str:
@@ -199,54 +166,58 @@ def set_user_lang(user: str, user_language: str | None = None) -> None:
 
 
 # local-globals
+ConfType: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
+# TODO: make session a dataclass instead of undtyped _dict
+SessionType: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
+# TODO: implement dataclass
+LogMessageType: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
+# TODO: implement dataclass
+# holds job metadata if the code is run in a background job context
+JobMetaType: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
+ResponseDict: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
+FlagsDict: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
+FormDict: TypeAlias = _dict[str, str]
 
-db = local("db")
-qb = local("qb")
-conf = local("conf")
-form = form_dict = local("form_dict")
-request = local("request")
-job = local("job")
-response = local("response")
-session = local("session")
-user = local("user")
-flags = local("flags")
+db: LocalProxy[Union["MariaDBDatabase", "PostgresDatabase"]] = local("db")
+qb: LocalProxy[Union["MariaDB", "Postgres"]] = local("qb")
+conf: LocalProxy[ConfType] = local("conf")
+form_dict: LocalProxy[FormDict] = local("form_dict")
+form = form_dict
+request: LocalProxy["Request"] = local("request")
+job: LocalProxy[JobMetaType] = local("job")
+response: LocalProxy[ResponseDict] = local("response")
+session: LocalProxy[SessionType] = local("session")
+user: LocalProxy[str] = local("user")
+flags: LocalProxy[FlagsDict] = local("flags")
 
-error_log = local("error_log")
-debug_log = local("debug_log")
-message_log = local("message_log")
+error_log: LocalProxy[list[dict[str, str]]] = local("error_log")
+debug_log: LocalProxy[list[str]] = local("debug_log")
+message_log: LocalProxy[list[LogMessageType]] = local("message_log")
 
-lang = local("lang")
+lang: LocalProxy[str] = local("lang")
 
-# This if block is never executed when running the code. It is only used for
-# telling static code analyzer where to find dynamically defined attributes.
 if TYPE_CHECKING:  # pragma: no cover
-	from werkzeug.wrappers import Request
-
-	from frappe.database.mariadb.database import MariaDBDatabase
-	from frappe.database.postgres.database import PostgresDatabase
-	from frappe.email.doctype.email_queue.email_queue import EmailQueue
-	from frappe.model.document import Document
-	from frappe.query_builder.builder import MariaDB, Postgres
-	from frappe.utils.redis_wrapper import RedisWrapper
-
+	# trick because some type checkers fail to follow "RedisWrapper", etc (written as string literal)
+	# trough a generic wrapper; seems to be a bug
 	db: MariaDBDatabase | PostgresDatabase
 	qb: MariaDB | Postgres
-	cache: RedisWrapper
-	response: _dict
-	conf: _dict
-	form_dict: _dict
-	flags: _dict
+	conf: ConfType
+	form_dict: FormDict
 	request: Request
-	session: _dict
+	job: JobMetaType
+	response: ResponseDict
+	session: SessionType
 	user: str
-	flags: _dict
+	flags: FlagsDict
+
+	error_log: list[dict[str, str]]
+	debug_log: list[str]
+	message_log: list[LogMessageType]
+
 	lang: str
 
 
-# end: static analysis hack
-
-
-def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) -> None:
+def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool = False) -> None:
 	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
 	if getattr(local, "initialised", None) and not force:
 		return
@@ -270,7 +241,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 			"read_only": False,
 		}
 	)
-	local.locked_documents = []
+	local.locked_documents: list["Document"] = []
 	local.test_objects = defaultdict(list)
 
 	local.site = site
@@ -364,7 +335,7 @@ def connect(site: str | None = None, db_name: str | None = None, set_admin_as_us
 def connect_replica() -> bool:
 	from frappe.database import get_db
 
-	if local and hasattr(local, "replica_db") and hasattr(local, "primary_db"):
+	if hasattr(local, "replica_db") and hasattr(local, "primary_db"):
 		return False
 
 	user = local.conf.db_user
@@ -391,10 +362,10 @@ def connect_replica() -> bool:
 	return True
 
 
-def get_site_config(sites_path: str | None = None, site_path: str | None = None) -> dict[str, Any]:
+def get_site_config(sites_path: str | None = None, site_path: str | None = None) -> _dict[str, Any]:
 	"""Return `site_config.json` combined with `sites/common_site_config.json`.
 	`site_config` is a set of site wide settings like database name, password, email etc."""
-	config = _dict()
+	config: _dict[str, Any] = _dict()
 
 	sites_path = sites_path or getattr(local, "sites_path", None)
 	site_path = site_path or getattr(local, "site_path", None)
@@ -425,13 +396,16 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 
 	# Generalized env variable overrides and defaults
 	def db_default_ports(db_type):
-		from frappe.database.mariadb.database import MariaDBDatabase
-		from frappe.database.postgres.database import PostgresDatabase
+		if db_type == "mariadb":
+			from frappe.database.mariadb.database import MariaDBDatabase
 
-		return {
-			"mariadb": MariaDBDatabase.default_port,
-			"postgres": PostgresDatabase.default_port,
-		}[db_type]
+			return MariaDBDatabase.default_port
+		elif db_type == "postgres":
+			from frappe.database.postgres.database import PostgresDatabase
+
+			return PostgresDatabase.default_port
+
+		raise ValueError(f"Unsupported db_type={db_type}")
 
 	config["redis_queue"] = (
 		os.environ.get("FRAPPE_REDIS_QUEUE") or config.get("redis_queue") or "redis://127.0.0.1:11311"
@@ -470,7 +444,7 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	return config
 
 
-def get_common_site_config(sites_path: str | None = None) -> dict[str, Any]:
+def get_common_site_config(sites_path: str | None = None) -> _dict[str, Any]:
 	"""Return common site config as dictionary.
 
 	This is useful for:
@@ -489,7 +463,7 @@ def get_common_site_config(sites_path: str | None = None) -> dict[str, Any]:
 	return _dict()
 
 
-def get_conf(site: str | None = None) -> dict[str, Any]:
+def get_conf(site: str | None = None) -> _dict[str, Any]:
 	if hasattr(local, "conf"):
 		return local.conf
 
@@ -566,6 +540,11 @@ def _strip_html_tags(message):
 	return strip_html_tags(message)
 
 
+ServerAction: TypeAlias = dict
+ClientAction: TypeAlias = dict
+Action: TypeAlias = ServerAction | ClientAction
+
+
 def msgprint(
 	msg: str,
 	title: str | None = None,
@@ -574,7 +553,7 @@ def msgprint(
 	as_list: bool = False,
 	indicator: Literal["blue", "green", "orange", "red", "yellow"] | None = None,
 	alert: bool = False,
-	primary_action: str | None = None,
+	primary_action: Action | None = None,
 	is_minimizable: bool = False,
 	wide: bool = False,
 	*,
@@ -891,10 +870,10 @@ def sendmail(
 	return builder.process(send_now=now)
 
 
-whitelisted = set()
-guest_methods = set()
-xss_safe_methods = set()
-allowed_http_methods_for_whitelisted_func = {}
+whitelisted: set[Callable] = set()
+guest_methods: set[Callable] = set()
+xss_safe_methods: set[Callable] = set()
+allowed_http_methods_for_whitelisted_func: dict[Callable, list[str]] = {}
 
 
 def whitelist(allow_guest=False, xss_safe=False, methods=None):
@@ -977,7 +956,7 @@ def read_only():
 			try:
 				retval = fn(*args, **get_newargs(fn, kwargs))
 			finally:
-				if switched_connection and local and hasattr(local, "primary_db"):
+				if switched_connection and hasattr(local, "primary_db"):
 					local.db.close()
 					local.db = local.primary_db
 
@@ -1261,7 +1240,7 @@ def set_value(doctype, docname, fieldname, value=None):
 	return frappe.client.set_value(doctype, docname, fieldname, value)
 
 
-def get_cached_doc(*args, **kwargs) -> "Document":
+def get_cached_doc(*args: Any, **kwargs: Any) -> "Document":
 	"""Identical to `frappe.get_doc`, but return from cache if available."""
 	if (key := can_cache_doc(args)) and (doc := cache.get_value(key)):
 		return doc
@@ -1322,7 +1301,9 @@ def clear_document_cache(doctype: str, name: str | None = None) -> None:
 		delattr(local, "website_settings")
 
 
-def get_cached_value(doctype: str, name: str, fieldname: str = "name", as_dict: bool = False) -> Any:
+def get_cached_value(
+	doctype: str, name: str | dict, fieldname: str | Iterable[str] = "name", as_dict: bool = False
+) -> Any:
 	try:
 		doc = get_cached_doc(doctype, name)
 	except DoesNotExistError:
@@ -1375,7 +1356,7 @@ def get_doc(documentdict: dict) -> "_NewDocument":
 	pass
 
 
-def get_doc(*args, **kwargs):
+def get_doc(*args: Any, **kwargs: Any) -> "Document":
 	"""Return a `frappe.model.document.Document` object of the given type and name.
 
 	:param arg1: DocType name as string **or** document JSON.
@@ -1431,12 +1412,12 @@ def get_meta_module(doctype):
 
 def delete_doc(
 	doctype: str | None = None,
-	name: str | None = None,
+	name: str | dict | None = None,
 	force: bool = False,
 	ignore_doctypes: list[str] | None = None,
 	for_reload: bool = False,
 	ignore_permissions: bool = False,
-	flags: None = None,
+	flags: _dict | None = None,
 	ignore_on_trash: bool = False,
 	ignore_missing: bool = True,
 	delete_permanently: bool = False,
@@ -1534,7 +1515,7 @@ def rename_doc(
 	)
 
 
-def get_module(modulename):
+def get_module(modulename: str) -> "ModuleType":
 	"""Return a module object for given Python module name using `importlib.import_module`."""
 	return importlib.import_module(modulename)
 
@@ -1623,7 +1604,7 @@ def get_all_apps(with_internal_apps=True, sites_path=None):
 
 
 @request_cache
-def get_installed_apps(*, _ensure_on_bench=False) -> list[str]:
+def get_installed_apps(*, _ensure_on_bench: bool = False) -> list[str]:
 	"""
 	Get list of installed apps in current site.
 
@@ -1932,6 +1913,9 @@ def import_doc(path):
 def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
 	"""No_copy fields also get copied."""
 	import copy
+	from types import MappingProxyType
+
+	from frappe.model.base_document import BaseDocument
 
 	def remove_no_copy_fields(d):
 		for df in d.meta.get("fields", {"no_copy": 1}):
@@ -1943,8 +1927,10 @@ def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
 	if not local.flags.in_test:
 		fields_to_clear.append("docstatus")
 
-	if not isinstance(doc, dict):
+	if isinstance(doc, BaseDocument) or hasattr(doc, "as_dict"):
 		d = doc.as_dict()
+	elif isinstance(doc, MappingProxyType):  # global test record
+		d = dict(doc)
 	else:
 		d = doc
 
@@ -2165,21 +2151,10 @@ def as_json(obj: dict | list, indent=1, separators=None, ensure_ascii=True) -> s
 
 
 def are_emails_muted():
-	return flags.mute_emails or cint(conf.get("mute_emails"))
+	return flags.mute_emails or cint(conf.get("mute_emails", 0))
 
 
-def get_test_records(doctype):
-	"""Return list of objects from `test_records.json` in the given doctype's folder."""
-	from frappe.modules import get_doctype_module, get_module_path
-
-	path = os.path.join(
-		get_module_path(get_doctype_module(doctype)), "doctype", scrub(doctype), "test_records.json"
-	)
-	if os.path.exists(path):
-		with open(path) as f:
-			return json.loads(f.read())
-	else:
-		return []
+from frappe.deprecation_dumpster import frappe_get_test_records as get_test_records
 
 
 def format_value(*args, **kwargs):
@@ -2401,8 +2376,8 @@ def get_doctype_app(doctype):
 	return local_cache("doctype_app", doctype, generator=_get_doctype_app)
 
 
-loggers = {}
-log_level = None
+loggers: dict[str, "Logger"] = {}
+log_level: int | None = None
 
 
 def logger(module=None, with_more_info=False, allow_site=True, filter=None, max_size=100_000, file_count=20):
@@ -2427,7 +2402,7 @@ def get_desk_link(doctype, name):
 	return html.format(doctype=doctype, name=name, doctype_local=_(doctype), title_local=_(title))
 
 
-def bold(text: str) -> str:
+def bold(text: str | int | float) -> str:
 	"""Return `text` wrapped in `<strong>` tags."""
 	return f"<strong>{text}</strong>"
 

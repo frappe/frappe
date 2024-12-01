@@ -1,0 +1,183 @@
+name: Server Base
+on:
+  workflow_call:
+    inputs:
+      fake-success:
+        required: false
+        type: boolean
+        default: false
+      python-version:
+        required: false
+        type: string
+        default: '3.12'
+      node-version:
+        required: false
+        type: number
+        default: 20
+      parallel-runs:
+        required: false
+        type: number
+        default: 2
+      enable-postgres:
+        required: false
+        type: boolean
+        default: false
+      enable-coverage:
+        required: false
+        type: boolean
+        default: false
+
+
+jobs:
+  unit-test:
+    name: Unit
+    runs-on: ubuntu-latest
+    steps:
+      - id: placeholder
+        run: |
+          echo "Evolution towards a set of (fast) unit tests which run without a DB connection is being planned"
+  gen-idx-integration:
+    name: Gen Integration Test Matrix
+    runs-on: ubuntu-latest
+    if: ${{ inputs.fake-success == false }}
+    outputs:
+      indices: ${{ steps.set-indices.outputs.indices }}
+    steps:
+      - id: set-indices
+        run: |
+          indices=$(seq -s ',' 1 ${{ inputs.parallel-runs }}); echo "indices=[${indices}]" >> $GITHUB_OUTPUT
+
+  integration-test:
+    needs: gen-idx-integration
+    name: Integration
+    runs-on: ubuntu-latest
+    if: ${{ inputs.fake-success == false }}
+    timeout-minutes: 30
+    env:
+      NODE_ENV: "production"
+      PYTHONOPTIMIZE: 2
+      # noisy 3rd party library warnings
+      PYTHONWARNINGS: "module,ignore:::babel.messages.extract"
+      DB_ROOT_PASSWORD: db_root
+
+    strategy:
+      fail-fast: false
+      matrix:
+        db: ${{ fromJson(inputs.enable-postgres && '["mariadb", "postgres"]' || '["mariadb"]') }}
+        index: ${{ fromJson(needs.gen-idx-integration.outputs.indices) }}
+    services:
+      mariadb:
+        image: mariadb:11.3
+        ports:
+          - 3306:3306
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3
+        env:
+          MARIADB_ROOT_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
+      postgres:
+        image: postgres:12.4
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
+      smtp_server:
+        image: rnwood/smtp4dev
+        ports:
+          - 2525:25
+          - 3000:80
+    steps:
+      - uses: frappe/frappe/.github/actions/setup@develop
+        name: Environment Setup
+        with:
+          python-version: ${{ inputs.python-version }}
+          node-version: ${{ inputs.node-version }}
+          disable-socketio: true
+          enable-coverage: ${{ inputs.enable-coverage }}
+          db-root-password: ${{ env.DB_ROOT_PASSWORD }}
+          db: ${{ matrix.db }}
+        env:
+          PYTHONWARNINGS: "ignore:Unimplemented abstract methods {'locate_file'}:DeprecationWarning"
+
+      - name: Run Tests
+        run: |
+          source ${GITHUB_WORKSPACE}/env/bin/activate
+          bench --site test_site \
+            run-parallel-tests \
+            --app "${{ github.event.repository.name }}" \
+            --total-builds ${{ inputs.parallel-runs }} \
+            --build-number ${{ matrix.index }} 2> >(tee -a stderr.log >&2)
+
+          # Process warnings and create annotations
+          if [ -s stderr.log ] && [ "$DB" == "mariadb" ]; then
+            echo "Processing deprecation warnings..."
+            grep -E "DeprecationWarning" stderr.log | sort -u | while read -r warning; do
+              # Extract file path, line number, and warning type
+              file_info=$(echo "$warning" | grep -oP '^.*?:\d+:')
+              file_path=$(echo "$file_info" | cut -d':' -f1)
+              line_number=$(echo "$file_info" | cut -d':' -f2)
+              warning_type=$(echo "$warning" | grep -oP '\w+Warning')
+  
+              # Extract the actual warning message
+              message=$(echo "$warning" | sed -E "s/^.*$warning_type: //")
+  
+              # Create the annotation
+              echo "::warning file=${file_path},line=${line_number}::${warning_type}: ${message}"
+            done
+          else
+            echo "No deprecation warnings found."
+          fi
+        env:
+          DB: ${{ matrix.db }}
+          # consumed by bench run-parallel-tests
+          CAPTURE_COVERAGE: ${{ inputs.enable-coverage }}
+          FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN || '' }}
+
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v3
+        if: inputs.enable-coverage
+        with:
+          name: coverage-${{ matrix.db }}-${{ matrix.index }}
+          path: ./sites/*-coverage*.xml
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ failure() && contains( github.event.pull_request.labels.*.name, 'debug-gha') }}
+
+      - name: Show bench output
+        if: ${{ always() }}
+        run: |
+          cat bench_start.log || true
+          cd logs
+          for f in ${GITHUB_WORKSPACE}/*.log*; do
+            echo "Printing log: $f";
+            cat $f
+          done
+
+
+  # TIP: Use these for checks, e.g. Server / Tests / Success
+  success:
+    name: Success
+    needs: [unit-test, integration-test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Unit '${{ needs.unit-test.result }}' / Integration '${{ needs.integration-test.result }}'
+        shell: python
+        run: |
+          stati = [
+            '${{ needs.unit-test.result }}',
+            '${{ needs.integration-test.result }}',
+          ]
+
+          nopass = ["failure", "cancelled"]
+          dopass = ["success", "skipped"]
+          if any(r in nopass for r in stati):
+            exit(1)
+          if all(r in dopass for r in stati):
+            exit(0)
+          exit(1)
+

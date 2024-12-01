@@ -94,7 +94,6 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 		this.last_value = this.value;
 		this.value = value;
 		if (this.value) {
-			this.$input.toggle(false);
 			// value can also be using this format: FILENAME,DATA_URL
 			// Important: We have to be careful because normal filenames may also contain ","
 			let file_url_parts = this.value.match(/^([^:]+),(.+):(.+)$/);
@@ -103,11 +102,22 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 				filename = file_url_parts[1];
 				dataurl = file_url_parts[2] + ":" + file_url_parts[3];
 			}
-			this.$value
-				.toggle(true)
-				.find(".attached-file-link")
-				.html(filename || this.value)
-				.attr("href", dataurl || this.value);
+			if (this.$input && this.$value) {
+				this.$input.toggle(false);
+				this.$value
+					.toggle(true)
+					.find(".attached-file-link")
+					.html(filename || this.value)
+					.attr("href", dataurl || this.value);
+			} else {
+				this.$wrapper.html(`
+					  <div class="attached-file flex justify-between align-center">
+						<div class="ellipsis">
+						  <a href="${dataurl || this.value}" target="_blank">${filename || this.value}</a>
+						</div>
+					  </div>
+				`);
+			}
 		} else {
 			this.$input.toggle(true);
 			this.$value.toggle(false);

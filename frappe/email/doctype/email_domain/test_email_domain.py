@@ -4,8 +4,6 @@ import frappe
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.utils import make_test_objects
 
-test_records = frappe.get_test_records("Email Domain")
-
 
 class UnitTestEmailDomain(UnitTestCase):
 	"""

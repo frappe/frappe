@@ -3,8 +3,6 @@
 import frappe
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
-# test_records = frappe.get_test_records('OAuth Authorization Code')
-
 
 class UnitTestOauthAuthorizationCode(UnitTestCase):
 	"""

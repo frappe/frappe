@@ -1,0 +1,8 @@
+[["Connected App"]]
+provider_name = "frappe"
+client_id = "test_client_id"
+client_secret = "test_client_secret"
+[["Connected App".scopes]]
+scope = "all"
+
+

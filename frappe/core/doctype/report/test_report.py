@@ -13,8 +13,7 @@ from frappe.desk.reportview import delete_report
 from frappe.desk.reportview import save_report as _save_report
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
-test_records = frappe.get_test_records("Report")
-test_dependencies = ["User"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
 
 
 class UnitTestReport(UnitTestCase):

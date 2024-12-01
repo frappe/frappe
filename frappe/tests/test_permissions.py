@@ -26,7 +26,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_records_for_doctype
 from frappe.utils.data import now_datetime
 
-test_dependencies = ["Blogger", "Blog Post", "User", "Contact", "Salutation"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["Blogger", "Blog Post", "User", "Contact", "Salutation"]
 
 
 class TestPermissions(IntegrationTestCase):

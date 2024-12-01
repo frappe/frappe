@@ -4,8 +4,6 @@
 import frappe
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
-test_records = frappe.get_test_records("Note")
-
 
 class UnitTestNote(UnitTestCase):
 	"""

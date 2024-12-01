@@ -1,11 +1,12 @@
 import copy
 import logging
 from contextlib import AbstractContextManager, contextmanager
+from types import MappingProxyType
 
 import frappe
 from frappe.utils import cint
 
-from ..utils.generators import make_test_records
+from ..utils.generators import get_missing_records_module_overrides, make_test_records
 from .unit_test_case import UnitTestCase
 
 logger = logging.Logger(__file__)
@@ -47,12 +48,17 @@ class IntegrationTestCase(UnitTestCase):
 		cls._newly_created_test_records = []
 		if cls.doctype and cls.doctype not in frappe.local.test_objects:
 			cls._newly_created_test_records += make_test_records(cls.doctype)
-		for doctype in getattr(cls.module, "test_dependencies", []):
-			if doctype not in frappe.local.test_objects:
+		elif not cls.doctype:
+			to_add, ignore = get_missing_records_module_overrides(cls.module)
+			if ignore:
+				raise NotImplementedError(
+					f"IGNORE_TEST_RECORD_DEPENDENCIES is only implement for test modules within a doctype folder {cls.module} {cls.doctype}"
+				)
+			for doctype in to_add:
 				cls._newly_created_test_records += make_test_records(doctype)
-
 		# flush changes done so far to avoid flake
 		frappe.db.commit()
+		cls.globalTestRecords = MappingProxyType(frappe.local.test_objects)
 		if cls.SHOW_TRANSACTION_COMMIT_WARNINGS:
 			frappe.db.before_commit.add(_commit_watcher)
 

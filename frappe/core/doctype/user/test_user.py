@@ -27,7 +27,6 @@ from frappe.tests.test_api import FrappeAPITestCase
 from frappe.utils import get_url
 
 user_module = frappe.core.doctype.user.user
-test_records = frappe.get_test_records("User")
 
 
 class UnitTestUser(UnitTestCase):
@@ -89,7 +88,7 @@ class TestUser(IntegrationTestCase):
 			delete_contact("_test@example.com")
 			delete_doc("User", "_test@example.com")
 
-		user = frappe.copy_doc(test_records[1])
+		user = frappe.copy_doc(self.globalTestRecords["User"][1])
 		user.email = "_test@example.com"
 		user.insert()
 
@@ -102,9 +101,7 @@ class TestUser(IntegrationTestCase):
 			not frappe.db.sql("""select * from `tabToDo` where allocated_to=%s""", ("_test@example.com",))
 		)
 
-		from frappe.core.doctype.role.test_role import test_records as role_records
-
-		frappe.copy_doc(role_records[1]).insert()
+		frappe.copy_doc(self.globalTestRecords["Role"][1]).insert()
 
 	def test_get_value(self):
 		self.assertEqual(frappe.db.get_value("User", "test@example.com"), "test@example.com")

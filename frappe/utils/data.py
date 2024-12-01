@@ -1160,7 +1160,7 @@ def cstr(s, encoding="utf-8") -> str:
 	return frappe.as_unicode(s, encoding)
 
 
-def sbool(x: str) -> bool | Any:
+def sbool(x: str | Any) -> bool | str | Any:
 	"""Convert str object to Boolean if possible.
 
 	Example:
@@ -1425,21 +1425,24 @@ def fmt_money(
 	return amount
 
 
-# keep for backwards compatibility
-number_format_info = NUMBER_FORMAT_MAP
+from frappe.deprecation_dumpster import get_number_format_info
 
 
-@deprecated
-def get_number_format_info(format: str) -> tuple[str, str, int]:
-	"""DEPRECATED: use `NumberFormat.from_string()` from `frappe.utils.number_format` instead.
+def __getattr__(name):
+	if name == "number_format_info":
+		from frappe.deprecation_dumpster import deprecation_warning
+		from frappe.utils.number_format import NUMBER_FORMAT_MAP
 
-	Return the decimal separator, thousands separator and precision for the given number `format` string.
-
-	e.g. get_number_format_info('#,##,###.##') -> ('.', ',', 2)
-
-	Will return ('.', ',', 2) for format strings which can't be guessed.
-	"""
-	return NUMBER_FORMAT_MAP.get(format) or (".", ",", 2)
+		deprecation_warning(
+			"unkown",
+			"v16",
+			"use frappe.utils.number_format.NUMBER_FORMAT_MAP instead of frappe.utils.data.number_format_info",
+		)
+	else:
+		try:
+			globals()[name]
+		except KeyError:
+			raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 #

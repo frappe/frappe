@@ -54,24 +54,38 @@ def qualified_name(obj) -> str:
 
 
 def raise_type_error(
-	arg_name: str, arg_type: type, arg_value: object, current_exception: Exception | None = None
+	func: callable,
+	arg_name: str,
+	arg_type: type,
+	arg_value: object,
+	current_exception: Exception | None = None,
 ):
 	"""
 	Raise a TypeError with a message that includes the name of the argument, the expected type
 	and the actual type of the value passed.
 
 	"""
+	module, qualname = func.__module__, func.__qualname__
 	raise FrappeTypeError(
-		f"Argument '{arg_name}' should be of type '{qualified_name(arg_type)}' but got "
+		f"Argument '{arg_name}' in '{module}.{qualname}' should be of type '{qualified_name(arg_type)}' but got "
 		f"'{qualified_name(arg_value)}' instead."
 	) from current_exception
 
 
 @lru_cache(maxsize=2048)
 def TypeAdapter(type_):
+	from pydantic import PydanticUserError
 	from pydantic import TypeAdapter as PyTypeAdapter
 
-	return PyTypeAdapter(type_, config=FrappePydanticConfig)
+	try:
+		return PyTypeAdapter(type_, config=FrappePydanticConfig)
+	except PydanticUserError as e:
+		match e.code:
+			case "type-adapter-config-unused":
+				# Unless they set their custom __pydantic_config__, this will be the case on BaseModule, TypedDict and dataclass - ignore
+				return PyTypeAdapter(type_)
+			case _:
+				raise e
 
 
 def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
@@ -144,10 +158,10 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 		try:
 			current_arg_value_after = TypeAdapter(current_arg_type).validate_python(current_arg_value)
 		except (TypeError, PyValidationError) as e:
-			raise_type_error(current_arg, current_arg_type, current_arg_value, current_exception=e)
+			raise_type_error(func, current_arg, current_arg_type, current_arg_value, current_exception=e)
 
 		if isinstance(current_arg_value_after, EllipsisType):
-			raise_type_error(current_arg, current_arg_type, current_arg_value)
+			raise_type_error(func, current_arg, current_arg_type, current_arg_value)
 
 		# update the args and kwargs with possibly casted value
 		if current_arg in kwargs:

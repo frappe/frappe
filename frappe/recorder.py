@@ -175,15 +175,13 @@ def normalize_query(query: str) -> str:
 
 
 def record(force=False):
-	if __debug__:
-		if frappe.cache.get_value(RECORDER_INTERCEPT_FLAG) or force:
-			frappe.local._recorder = Recorder(force=force)
+	if frappe.cache.get_value(RECORDER_INTERCEPT_FLAG) or force:
+		frappe.local._recorder = Recorder(force=force)
 
 
 def dump():
-	if __debug__:
-		if hasattr(frappe.local, "_recorder"):
-			frappe.local._recorder.dump()
+	if hasattr(frappe.local, "_recorder"):
+		frappe.local._recorder.dump()
 
 
 class Recorder:

@@ -49,6 +49,10 @@ class UnitTestCase(unittest.TestCase, BaseTestCase):
 		super().setUpClass()
 		cls.doctype = _get_doctype_from_module(cls)
 		cls.module = frappe.get_module(cls.__module__)
+		# Test Environment
+		frappe.set_user("Administrator")
+		# Test Environment (cleanup)
+		cls.addClassCleanup(frappe.set_user, "Administrator")
 		cls._unit_test_case_class_setup_done = True
 
 	def assertQueryEqual(self, first: str, second: str) -> None:
@@ -105,11 +109,13 @@ class UnitTestCase(unittest.TestCase, BaseTestCase):
 
 
 def _get_doctype_from_module(cls):
-	module_path = cls.__module__.split(".")
+	namespace = cls.__module__.split(".")
+	path = frappe.get_pymodule_path(cls.__module__)
 	try:
-		doctype_index = module_path.index("doctype")
-		doctype_snake_case = module_path[doctype_index + 1]
-		json_file_path = Path(*module_path[:-1]).joinpath(f"{doctype_snake_case}.json")
+		doctype_index = namespace.index("doctype")
+		doctype_snake_case = namespace[doctype_index + 1]
+		# need to check json spec: todo -> ToDo (not Todo); not inferable
+		json_file_path = Path(path).joinpath(f"{doctype_snake_case}.json")
 		if json_file_path.is_file():
 			doctype_data = json.loads(json_file_path.read_text())
 			return doctype_data.get("name")

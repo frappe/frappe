@@ -21,17 +21,12 @@ It can be customized through the TestConfig object passed during initialization.
 import contextlib
 import cProfile
 import logging
-import os
 import pstats
 import unittest
 from collections import defaultdict
 from collections.abc import Iterator
 from io import StringIO
-from pathlib import Path
 
-import click
-
-import frappe
 from frappe.tests.classes.context_managers import debug_on
 
 from .config import TestConfig
@@ -57,9 +52,9 @@ class TestRunner(unittest.TextTestRunner):
 		descriptions=True,
 		verbosity=1,
 		failfast=False,
-		buffer=False,
+		buffer=True,
 		resultclass=None,
-		warnings=None,
+		warnings="module",
 		*,
 		tb_locals=False,
 		cfg: TestConfig,
@@ -100,8 +95,11 @@ class TestRunner(unittest.TextTestRunner):
 		return next(self._iterate_suite(suite), None) is not None
 
 	def _prepare_category(self, category, suite, app):
+		from frappe.deprecation_dumpster import get_compat_frappe_test_case_preparation
+
 		dispatcher = {
 			"integration": self.integration_preparation,
+			"old-frappe-test-class-category": get_compat_frappe_test_case_preparation(self.cfg),
 			# Add other categories here as needed
 		}
 		prepare_method = dispatcher.get(category.lower())

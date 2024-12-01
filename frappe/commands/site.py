@@ -91,8 +91,6 @@ def new_site(
 
 	frappe.init(site, new_site=True)
 
-	mariadb_user_host_login_scope = None
-
 	if no_mariadb_socket:
 		click.secho(
 			"--no-mariadb-socket is DEPRECATED; "
@@ -101,8 +99,6 @@ def new_site(
 			fg="yellow",
 		)
 		mariadb_user_host_login_scope = "%"
-	if mariadb_user_host_login_scope:
-		mariadb_user_host_login_scope = mariadb_user_host_login_scope
 
 	rollback_callback = CallbackManager()
 

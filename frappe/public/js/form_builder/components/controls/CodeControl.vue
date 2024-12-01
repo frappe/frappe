@@ -43,7 +43,7 @@ watch(
 	() => content.value,
 	(value) => {
 		update_control.value = false;
-		code_control.value?.set_value(value);
+		code_control.value?.set_value(value ?? "");
 	}
 );
 

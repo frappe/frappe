@@ -1034,3 +1034,11 @@ def set_email_password(email_account, password):
 			return False
 
 	return True
+
+
+def on_doctype_update() -> None:
+	frappe.db.add_unique(
+		"Email Account",
+		["email_id", "enable_incoming", "enable_outgoing"],
+		constraint_name="unique_email_account_type",
+	)

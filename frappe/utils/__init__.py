@@ -406,7 +406,7 @@ def remove_blanks(d: dict) -> dict:
 	return d
 
 
-def strip_html_tags(text):
+def strip_html_tags(text: str) -> str:
 	"""Remove html tags from the given `text`."""
 	return HTML_TAGS_PATTERN.sub("", text)
 
@@ -833,7 +833,7 @@ def get_site_info():
 	return json.loads(frappe.as_json(site_info))
 
 
-def parse_json(val):
+def parse_json(val: str):
 	"""
 	Parses json if string else return
 	"""

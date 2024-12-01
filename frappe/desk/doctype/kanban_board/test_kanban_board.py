@@ -2,8 +2,6 @@
 # License: MIT. See LICENSE
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
-# test_records = frappe.get_test_records('Kanban Board')
-
 
 class UnitTestKanbanBoard(UnitTestCase):
 	"""

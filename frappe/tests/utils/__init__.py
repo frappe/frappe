@@ -27,17 +27,17 @@ def check_orpahned_doctypes():
 
 
 from frappe.deprecation_dumpster import (
+	get_tests_CompatFrappeTestCase,
+)
+from frappe.deprecation_dumpster import (
 	tests_change_settings as change_settings,
 )
 from frappe.deprecation_dumpster import (
 	tests_debug_on as debug_on,
 )
-from frappe.deprecation_dumpster import (
-	tests_FrappeTestCase as FrappeTestCase,
-)
-from frappe.deprecation_dumpster import (
-	tests_IntegrationTestCase as IntegrationTestCase,
-)
+
+FrappeTestCase = get_tests_CompatFrappeTestCase()
+
 from frappe.deprecation_dumpster import (
 	tests_patch_hooks as patch_hooks,
 )
@@ -45,5 +45,5 @@ from frappe.deprecation_dumpster import (
 	tests_timeout as timeout,
 )
 from frappe.deprecation_dumpster import (
-	tests_UnitTestCase as UnitTestCase,
+	tests_utils_get_dependencies as get_dependencies,
 )

@@ -381,7 +381,7 @@ class BackupGenerator:
 		import frappe.utils
 		from frappe.utils.change_log import get_app_branch
 
-		gzip_exc = which("gzip")
+		gzip_exc: str = which("gzip")
 		if not gzip_exc:
 			frappe.throw(
 				_("gzip not found in PATH! This is required to take a backup."), exc=frappe.ExecutableNotFound

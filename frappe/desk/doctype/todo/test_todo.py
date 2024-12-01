@@ -6,7 +6,7 @@ from frappe.model.db_query import DatabaseQuery
 from frappe.permissions import add_permission, reset_perms
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
-test_dependencies = ["User"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
 
 
 class UnitTestTodo(UnitTestCase):
@@ -39,7 +39,7 @@ class TestToDo(IntegrationTestCase):
 	def test_fetch_setup(self):
 		frappe.db.delete("ToDo")
 
-		todo_meta = frappe.get_doc("DocType", "ToDo")
+		todo_meta = frappe.get_meta("ToDo")
 		todo_meta.get("fields", dict(fieldname="assigned_by_full_name"))[0].fetch_from = ""
 		todo_meta.save()
 
@@ -48,13 +48,14 @@ class TestToDo(IntegrationTestCase):
 		todo = frappe.get_doc(doctype="ToDo", description="test todo", assigned_by="Administrator").insert()
 		self.assertFalse(todo.assigned_by_full_name)
 
-		todo_meta = frappe.get_doc("DocType", "ToDo")
+		todo_meta = frappe.get_meta("ToDo")
 		todo_meta.get("fields", dict(fieldname="assigned_by_full_name"))[
 			0
 		].fetch_from = "assigned_by.full_name"
 		todo_meta.save()
 
 		todo.reload()
+		todo.save()
 
 		self.assertEqual(
 			todo.assigned_by_full_name, frappe.db.get_value("User", todo.assigned_by, "full_name")
@@ -120,7 +121,7 @@ class TestToDo(IntegrationTestCase):
 		frappe.db.delete("ToDo")
 
 		# Allow user changes
-		todo_meta = frappe.get_doc("DocType", "ToDo")
+		todo_meta = frappe.get_meta("ToDo")
 		field = todo_meta.get("fields", dict(fieldname="assigned_by_full_name"))[0]
 		field.fetch_from = "assigned_by.full_name"
 		field.fetch_if_empty = 1

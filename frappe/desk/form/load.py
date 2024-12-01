@@ -36,11 +36,7 @@ def getdoc(doctype, name, user=None):
 		frappe.clear_last_message()
 		return []
 
-	if not doc.has_permission("read"):
-		frappe.flags.error_message = _("Insufficient Permission for {0}").format(
-			frappe.bold(_(doctype) + " " + name)
-		)
-		raise frappe.PermissionError(("read", doctype, name))
+	doc.check_permission("read")
 
 	run_onload(doc)
 	doc.apply_fieldlevel_read_permissions()
@@ -95,8 +91,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 
 	if not doc:
 		doc = frappe.get_doc(doctype, name)
-		if not doc.has_permission("read"):
-			raise frappe.PermissionError
+		doc.check_permission("read")
 
 	all_communications = _get_communications(doc.doctype, doc.name, limit=21)
 	automated_messages = [
@@ -222,8 +217,7 @@ def get_communications(doctype, name, start=0, limit=20):
 	from frappe.utils import cint
 
 	doc = frappe.get_doc(doctype, name)
-	if not doc.has_permission("read"):
-		raise frappe.PermissionError
+	doc.check_permission("read")
 
 	return _get_communications(doctype, name, cint(start), cint(limit))
 
@@ -292,11 +286,11 @@ def get_communication_data(
 	if not fields:
 		fields = """
 			C.name, C.communication_type, C.communication_medium,
-			C.comment_type, C.communication_date, C.content,
+			C.communication_date, C.content,
 			C.sender, C.sender_full_name, C.cc, C.bcc,
 			C.creation AS creation, C.subject, C.delivery_status,
 			C._liked_by, C.reference_doctype, C.reference_name,
-			C.read_by_recipient, C.rating, C.recipients
+			C.read_by_recipient, C.recipients
 		"""
 
 	conditions = ""
@@ -315,7 +309,7 @@ def get_communication_data(
 	part1 = f"""
 		SELECT {fields}
 		FROM `tabCommunication` as C
-		WHERE C.communication_type IN ('Communication', 'Feedback', 'Automated Message')
+		WHERE C.communication_type IN ('Communication', 'Automated Message')
 		AND (C.reference_doctype = %(doctype)s AND C.reference_name = %(name)s)
 		{conditions}
 	"""
@@ -325,7 +319,7 @@ def get_communication_data(
 		SELECT {fields}
 		FROM `tabCommunication` as C
 		INNER JOIN `tabCommunication Link` ON C.name=`tabCommunication Link`.parent
-		WHERE C.communication_type IN ('Communication', 'Feedback', 'Automated Message')
+		WHERE C.communication_type IN ('Communication', 'Automated Message')
 		AND `tabCommunication Link`.link_doctype = %(doctype)s AND `tabCommunication Link`.link_name = %(name)s
 		{conditions}
 	"""

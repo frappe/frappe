@@ -5,7 +5,7 @@ from frappe.contacts.doctype.contact.contact import get_full_name
 from frappe.email import get_contact_list
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
-test_dependencies = ["Contact", "Salutation"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["Contact", "Salutation"]
 
 
 class UnitTestContact(UnitTestCase):

@@ -688,7 +688,6 @@ export default class GridRow {
 		this.grid.visible_columns.forEach((col, ci) => {
 			// to get update df for the row
 			let df = fields.find((field) => field?.fieldname === col[0].fieldname);
-			if (!df) return;
 
 			this.set_dependant_property(df);
 
@@ -1123,7 +1122,7 @@ export default class GridRow {
 		if (!field.df.onchange_modified) {
 			var field_on_change_function = field.df.onchange;
 			field.df.onchange = (e) => {
-				field_on_change_function && field_on_change_function(e);
+				field_on_change_function && field_on_change_function.bind(field)(e);
 				this.refresh_field(field.df.fieldname);
 			};
 

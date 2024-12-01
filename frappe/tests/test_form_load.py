@@ -7,7 +7,7 @@ from frappe.desk.form.load import get_docinfo, getdoc, getdoctype
 from frappe.tests import IntegrationTestCase
 from frappe.utils.file_manager import save_file
 
-test_dependencies = ["Blog Category", "Blogger"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["Blog Category", "Blogger"]
 
 
 class TestFormLoad(IntegrationTestCase):

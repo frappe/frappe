@@ -195,10 +195,10 @@ def run(
 	parent_field=None,
 	are_default_filters=True,
 ):
-	validate_filters_permissions(report_name, filters, user)
-	report = get_report_doc(report_name)
 	if not user:
 		user = frappe.session.user
+	validate_filters_permissions(report_name, filters, user)
+	report = get_report_doc(report_name)
 	if not frappe.has_permission(report.ref_doctype, "report"):
 		frappe.msgprint(
 			_("Must have report permission to access this report."),
@@ -475,6 +475,11 @@ def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):
 			if i >= len(row):
 				continue
 			cell = row.get(fieldname) if isinstance(row, dict) else row[i]
+			if fieldtype is None:
+				if isinstance(cell, int):
+					fieldtype = "Int"
+				elif isinstance(cell, float):
+					fieldtype = "Float"
 			if fieldtype in ["Currency", "Int", "Float", "Percent", "Duration"] and flt(cell):
 				if not (is_tree and row.get(parent_field)):
 					total_row[i] = flt(total_row[i]) + flt(cell)
@@ -794,7 +799,11 @@ def validate_filters_permissions(report_name, filters=None, user=None):
 	for field in report.filters:
 		if field.fieldname in filters and field.fieldtype == "Link":
 			linked_doctype = field.options
-			if not has_permission(doctype=linked_doctype, doc=filters[field.fieldname], user=user):
+			if not has_permission(
+				doctype=linked_doctype, ptype="read", doc=filters[field.fieldname], user=user
+			) and not has_permission(
+				doctype=linked_doctype, ptype="select", doc=filters[field.fieldname], user=user
+			):
 				frappe.throw(
 					_("You do not have permission to access {0}: {1}.").format(
 						linked_doctype, filters[field.fieldname]

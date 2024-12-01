@@ -5,7 +5,7 @@ from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils import set_request
 from frappe.website.serve import get_response
 
-test_dependencies = ["Blog Post"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["Blog Post"]
 
 
 class UnitTestWebsiteRouteMeta(UnitTestCase):

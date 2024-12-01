@@ -9,8 +9,6 @@ from frappe.geo.doctype.country.country import (
 from frappe.geo.doctype.currency.currency import enable_default_currencies
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
-test_records = frappe.get_test_records("Country")
-
 
 def get_table_snapshot(doctype):
 	data = frappe.db.sql(f"select * from `tab{doctype}` order by name", as_dict=True)

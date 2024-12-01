@@ -1,0 +1,13 @@
+[["Token Cache"]]
+user = "test@example.com"
+access_token = "test-access-token"
+refresh_token = "test-refresh-token"
+token_type = "Bearer"
+expires_in = 1000
+[["Token Cache".scopes]]
+scope = "all"
+
+[["Token Cache".scopes]]
+scope = "openid"
+
+

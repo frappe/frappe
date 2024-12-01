@@ -8,7 +8,7 @@ from frappe.utils import set_request
 from frappe.website.doctype.web_form.web_form import accept
 from frappe.website.serve import get_response_content
 
-test_dependencies = ["Web Form"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["Web Form"]
 
 
 class UnitTestWebForm(UnitTestCase):

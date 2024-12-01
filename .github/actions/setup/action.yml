@@ -1,0 +1,284 @@
+name: 'Setup Environment'
+description: 'Sets up the environment for Frappe development'
+inputs:
+  python-version:
+    description: 'Python version to use'
+    required: false
+    default: '3.12.6'
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '20'
+  build-assets:
+    required: false
+    description: 'Wether to build assets'
+    default: true
+  enable-coverage:
+    required: false
+    default: false
+  enable-watch:
+    required: false
+    default: false
+  enable-schedule:
+    required: false
+    default: false
+  disable-web:
+    required: false
+    default: false
+  disable-socketio:
+    required: false
+    default: false
+  db:
+    required: false
+    default: mariadb
+  db-root-password:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+  - shell: bash -e {0}
+    run: |
+      # Add 'test_site' to /etc/hosts & setup git config
+      echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
+      git config --global init.defaultBranch main
+      git config --global advice.detachedHead false
+
+  - name: Clone
+    uses: actions/checkout@v4
+    with:
+      path: apps/${{ github.event.repository.name }}
+
+  - name: Setup Python
+    uses: actions/setup-python@v5
+    with:
+      python-version: ${{ inputs.python-version }}
+
+  - shell: bash -e {0}
+    run: |
+      # Check for valid Python & Merge Conflicts
+      python -m compileall -q -f "${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}"
+      if grep -lr --exclude-dir=node_modules "^<<<<<<< " "${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}"
+          then echo "Found merge conflicts"
+          exit 1
+      fi
+
+  - name: Fetch tombl util
+    shell: bash -e {0}
+    run: |
+      # Fetch tombl util
+      pushd $RUNNER_TEMP
+        curl -LO https://github.com/snyball/tombl/releases/download/v0.2.3/tombl-v0.2.3.tar.gz
+        curl -LO https://github.com/snyball/tombl/releases/download/v0.2.3/tombl-v0.2.3.sha256sum
+        sha256sum -c tombl-v0.2.3.sha256sum
+        tar -xzf tombl-v0.2.3.tar.gz
+        chmod +x tombl-v0.2.3/tombl
+      popd
+      echo "$RUNNER_TEMP/tombl-v0.2.3" >> $GITHUB_PATH
+
+  - name: Checkout Frappe
+    uses: actions/checkout@v4
+    with:
+      repository: ${{ env.FRAPPE_GH_ORG || github.repository_owner }}/frappe
+      ref: ${{ github.event.client_payload.frappe_sha || github.base_ref || github.ref_name }}
+      path: apps/frappe
+    if: github.event.repository.name != 'frappe'
+
+  - name: Maybe clone additional apps
+    shell: bash -e {0}
+    env: 
+      org: ${{ env.FRAPPE_GH_ORG || github.repository_owner }}
+      ref: ${{ github.event.client_payload.frappe_sha || github.base_ref || github.ref_name }}
+    run: |
+      # Maybe clone additional apps
+      eval "$(tombl -e CHECKOUTS=tool.frappe-ci.setup.app-checkouts ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/pyproject.toml)" || exit 0
+      start_time=$(date +%s)
+
+      for spec in "${CHECKOUTS[@]}"; do
+        spec_basename=$(basename "$spec")
+        if [[ "$spec" == *"/"* ]] || [[ "$spec" == http* ]]; then
+          remote_url="$spec"
+        else
+          remote_url="$org/$spec_basename"
+        fi
+        if [[ "$remote_url" != http* ]]; then
+          remote_url="https://github.com/$remote_url"
+        fi
+        mkdir "apps/$spec_basename"
+        pushd "apps/$spec_basename"
+          git init
+          git remote add origin "$remote_url"
+          git fetch origin "$ref" --depth 1
+          git checkout FETCH_HEAD --quiet
+        popd
+      done
+      end_time=$(date +%s)
+      echo -e "\033[33mClone additional apps: $((end_time - start_time)) seconds\033[0m"
+
+
+  - uses: actions/setup-node@v4
+    with:
+      node-version: ${{ inputs.node-version }}
+      check-latest: true
+
+  - name: Cache pip
+    uses: actions/cache@v4
+    with:
+      path: ~/.cache/pip
+      key: ${{ runner.os }}-pip-${{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py') }}
+      restore-keys: |
+        ${{ runner.os }}-pip-
+        ${{ runner.os }}-
+
+  - id: yarn-cache-dir-path
+    shell: bash -e {0}
+    run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+  - uses: actions/cache@v4
+    id: yarn-cache
+    with:
+      path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+      key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+      restore-keys: |
+        ${{ runner.os }}-yarn-
+
+  - shell: bash -e {0}
+    run: |
+      # Install System Dependencies
+      start_time=$(date +%s)
+
+      sudo apt -qq update
+      sudo apt -qq remove mysql-server mysql-client
+      sudo apt -qq install libcups2-dev redis-server mariadb-client-10.6
+
+      if [ "$(lsb_release -rs)" = "22.04" ]; then
+          wget -q -O /tmp/wkhtmltox.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+          sudo apt install /tmp/wkhtmltox.deb
+      else
+          echo "Please update frappe/.github/lib/tests.yml to support wkhtmltopdf for $(lsb_release -ds)"
+          exit 1
+      fi
+
+      end_time=$(date +%s)
+      echo -e "\033[33mInstall System Dependencies: $((end_time - start_time)) seconds\033[0m"
+
+  - shell: bash -e {0}
+    env:
+      DB: ${{ inputs.db }}
+    run: |
+      # Init Bench & test_site
+      start_time=$(date +%s)
+      mkdir ${GITHUB_WORKSPACE}/{sites,config,logs,config/pids,sites/test_site}
+      python -m venv ${GITHUB_WORKSPACE}/env
+      source ${GITHUB_WORKSPACE}/env/bin/activate
+      pip install --quiet --upgrade pip
+
+      pip install --quiet frappe-bench
+
+      python <<EOF
+      from bench.config.common_site_config import setup_config
+      from bench.config.redis import generate_config
+      from bench.config.procfile import setup_procfile
+
+      bench_path = "${{ github.workspace }}"
+      is_true = lambda str: True if str == "true" else False
+      is_not_true = lambda str: True if str != "true" else False
+
+      setup_config(bench_path)
+      generate_config(bench_path)
+      setup_procfile(
+        bench_path,
+        skip_redis=False,
+        skip_web=is_true("${{ inputs.disable-web }}"),
+        skip_watch=is_not_true("${{ inputs.enable-watch }}"),
+        skip_socketio=is_true("${{ inputs.disable-socketio }}"),
+        skip_schedule=is_not_true("${{ inputs.enable-schedule }}"),
+        with_coverage=is_true("${{ inputs.enable-coverage }}"),
+      )
+      EOF
+      end_time=$(date +%s)
+      echo -e "\033[33mInit Bench: $((end_time - start_time)) seconds\033[0m"
+      cat ${GITHUB_WORKSPACE}/Procfile | awk '{print "\033[0;34m" $0 "\033[0m"}'
+      # Attempt to copy the configuration file
+      if cp "${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/.github/helper/db/$DB.json" ${GITHUB_WORKSPACE}/sites/test_site/site_config.json; then
+          echo "Successfully copied ${DB}.json to site_config.json."
+      else
+          echo "Error: The configuration file ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/.github/helper/db/$DB.json does not exist."
+          echo "Please ensure that the database JSON file is correctly named and located in the helper/db directory."
+          exit 1  # Exit with a non-zero status to indicate failure
+      fi
+
+      if [ "$DB" == "mariadb" ]; then
+        mariadb --host 127.0.0.1 --port 3306 -u root -p${{ inputs.db-root-password }} -e "SET GLOBAL character_set_server = 'utf8mb4'";
+        mariadb --host 127.0.0.1 --port 3306 -u root -p${{ inputs.db-root-password }} -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'";
+
+        mariadb --host 127.0.0.1 --port 3306 -u root -p${{ inputs.db-root-password }} -e "CREATE DATABASE test_frappe";
+        mariadb --host 127.0.0.1 --port 3306 -u root -p${{ inputs.db-root-password }} -e "CREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe'";
+        mariadb --host 127.0.0.1 --port 3306 -u root -p${{ inputs.db-root-password }} -e "GRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost'";
+
+        mariadb --host 127.0.0.1 --port 3306 -u root -p${{ inputs.db-root-password }} -e "FLUSH PRIVILEGES";
+      elif [ "$DB" == "postgres" ]; then
+        echo "${{ inputs.db-root-password }}" | psql -h 127.0.0.1 -p 5432 -c "CREATE DATABASE test_frappe" -U postgres;
+        echo "${{ inputs.db-root-password }}" | psql -h 127.0.0.1 -p 5432 -c "CREATE USER test_frappe WITH PASSWORD 'test_frappe'" -U postgres;
+      fi
+
+  - shell: bash -e {0}
+    run: |
+      # Install App(s)
+      step_start_time=$(date +%s)
+      source ${GITHUB_WORKSPACE}/env/bin/activate
+
+      for app in ${GITHUB_WORKSPACE}/apps/*/; do
+        app_name="$(basename $app)"
+        if [ -f "${app}setup.py" ] || [ -f "${app}pyproject.toml" ]; then
+          start_time=$(date +%s)
+          echo -e "\033[36mInstalling python app from ${app}\033[0m"
+          pip install --upgrade -e "${app}[dev,test]"
+          end_time=$(date +%s)
+          echo -e "\033[36mTime taken to Install python ${app}: $((end_time - start_time)) seconds\033[0m"
+        fi
+        if  [ "${{ inputs.build-assets }}" == "true" ] && [ -f "${app}package.json" ]; then
+          start_time=$(date +%s)
+          echo -e "\033[36mInstalling js app dependencies from ${app}\033[0m"
+          pushd "$app"
+            yarn --check-files
+          popd
+          end_time=$(date +%s)
+          echo -e "\033[36mTime taken to Install js ${app}: $((end_time - start_time)) seconds\033[0m"
+        fi
+        echo "$app_name" >> sites/apps.txt
+        echo -e "\033[32mAdded $app_name to $PWD/sites/apps.txt\033[0m"
+      done
+      step_end_time=$(date +%s)
+      echo -e "\033[33mInstall App(s): $((step_end_time - step_start_time)) seconds\033[0m"
+    env:
+      TYPE: server
+
+  - shell: bash -e {0}
+    run: |
+      # Start Bench
+      source ${GITHUB_WORKSPACE}/env/bin/activate
+      bench start &> ${GITHUB_WORKSPACE}/bench_start.log &
+
+  - shell: bash -e {0}
+    if: ${{ inputs.build-assets == 'true' }}
+    run: |
+      # Build Assets
+      start_time=$(date +%s)
+
+      source ${GITHUB_WORKSPACE}/env/bin/activate
+      CI=Yes bench build
+
+      end_time=$(date +%s)
+      echo -e "\033[33mBuild Assets: $((end_time - start_time)) seconds\033[0m"
+
+  - shell: bash -e {0}
+    run: |
+      # Reinstall Test Site
+      start_time=$(date +%s)
+
+      source ${GITHUB_WORKSPACE}/env/bin/activate
+      bench --site test_site reinstall --yes
+
+      end_time=$(date +%s)
+      echo -e "\033[33mReinstall Test Site: $((end_time - start_time)) seconds\033[0m"
+

@@ -10,8 +10,6 @@ from frappe.desk.doctype.event.event import get_events
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.utils import make_test_objects
 
-test_records = frappe.get_test_records("Event")
-
 
 class UnitTestEvent(UnitTestCase):
 	"""
@@ -26,8 +24,6 @@ class TestEvent(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.delete("Event")
 		make_test_objects("Event", reset=True)
-
-		self.test_records = frappe.get_test_records("Event")
 		self.test_user = "test1@example.com"
 
 	def tearDown(self):
@@ -64,13 +60,13 @@ class TestEvent(IntegrationTestCase):
 		self.assertFalse("_Test Event 2" in subjects)
 
 	def test_revert_logic(self):
-		ev = frappe.get_doc(self.test_records[0]).insert()
+		ev = frappe.get_doc(self.globalTestRecords["Event"][0]).insert()
 		name = ev.name
 
 		frappe.delete_doc("Event", ev.name)
 
 		# insert again
-		ev = frappe.get_doc(self.test_records[0]).insert()
+		ev = frappe.get_doc(self.globalTestRecords["Event"][0]).insert()
 
 		# the name should be same!
 		self.assertEqual(ev.name, name)
@@ -78,7 +74,7 @@ class TestEvent(IntegrationTestCase):
 	def test_assign(self):
 		from frappe.desk.form.assign_to import add
 
-		ev = frappe.get_doc(self.test_records[0]).insert()
+		ev = frappe.get_doc(self.globalTestRecords["Event"][0]).insert()
 
 		add(
 			{
