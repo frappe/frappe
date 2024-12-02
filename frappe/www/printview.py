@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import copy
+from datetime import date, datetime
 import json
 import os
 import re
@@ -87,6 +88,7 @@ def get_context(context):
     
     items_custom = []
     if((doc.get("doctype") == "Quotation" or doc.get("doctype") == "Sales Invoice")):
+        
         for item in doc.get("items"):
             if(doc.get("doctype") == "Sales Invoice"):
                 value = frappe.get_doc("Sales Invoice Item", item.name)
@@ -164,6 +166,13 @@ def convert_to_float(value):
     except ValueError:
         # Si el valor no se puede convertir a float, lanzar un error
         raise ValueError("The input value is not a number or a numeric string")
+
+def format_dates(value):
+    if value:
+        if isinstance(value, date):
+            value = value.strftime('%Y-%m-%d')
+        x = datetime.strptime(value, '%Y-%m-%d')
+        return x.strftime('%d-%m-%Y')
 
 def get_print_format_doc(print_format_name, meta):
     """Returns print format document"""
@@ -448,10 +457,23 @@ def get_html_and_style(
         document.address_display = parse_doc.get("address_display")
         document.items_custom = parse_doc.get("items_custom")
 
+    if parse_doc.get("base_total") is not None:
+        document.base_total = "{:.2f}".format(parse_doc.get("base_total"))
 
-    document.base_total = "{:.2f}".format(parse_doc.get("base_total"))
-    document.base_total_taxes_and_charges = "{:.2f}".format(parse_doc.get("base_total_taxes_and_charges"))
-    document.grand_total = "{:.2f}".format(parse_doc.get("grand_total"))
+    if parse_doc.get("base_total_taxes_and_charges") is not None:
+        document.base_total_taxes_and_charges = "{:.2f}".format(parse_doc.get("base_total_taxes_and_charges"))
+
+    if parse_doc.get("grand_total") is not None:
+        document.grand_total = "{:.2f}".format(parse_doc.get("grand_total"))
+
+
+    if(parse_doc.get("doctype") == "Quotation"):
+        document.transaction_date_custom = format_dates(parse_doc.get("transaction_date"))
+        document.valid_till_custom = format_dates(parse_doc.get("valid_till"))
+        
+    if(parse_doc.get("doctype") == "Sales Invoice"):
+        document.posting_date_custom = format_dates(parse_doc.get("posting_date"))
+        document.due_date_custom = format_dates(parse_doc.get("due_date"))
     
     document.check_permission()
 
@@ -501,6 +523,9 @@ def format_address_detail_to_print(text):
         address_parts.append(address)
     if address2:
         address_parts.append(address2)
+    
+    if(address or address2):
+        address_parts.append("\n")    
 
     # Concatenar zip_code y city en una sola línea
     zip_city = ""
@@ -508,7 +533,7 @@ def format_address_detail_to_print(text):
         zip_city += zip_code
     if city:
         if zip_code:
-            zip_city += ", "  # Agregar coma solo si zip_code ya existe
+            zip_city += " "
         zip_city += city
 
     if zip_city:  # Solo agregar si no está vacío

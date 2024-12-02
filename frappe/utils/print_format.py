@@ -18,7 +18,7 @@ no_cache = 1
 base_template_path = "www/printview.html"
 standard_format = "templates/print_formats/standard.html"
 
-from frappe.www.printview import capitalize_first_letter, filter_customer, validate_print_permission
+from frappe.www.printview import capitalize_first_letter, filter_customer, format_dates, validate_print_permission
 
 
 @frappe.whitelist()
@@ -148,6 +148,9 @@ def format_address_detail_to_print(text):
         address_parts.append(address)
     if address2:
         address_parts.append(address2)
+        
+    if(address or address2):
+        address_parts.append("<br>")
 
     # Concatenar zip_code y city en una sola línea
     zip_city = ""
@@ -155,7 +158,7 @@ def format_address_detail_to_print(text):
         zip_city += zip_code
     if city:
         if zip_code:
-            zip_city += ", "  # Agregar coma solo si zip_code ya existe
+            zip_city += " "  # Agregar coma solo si zip_code ya existe
         zip_city += city
 
     if zip_city:  # Solo agregar si no está vacío
@@ -255,9 +258,23 @@ def download_pdf(
                     })
         doc.items_custom = items_custom
         
-    doc.base_total = "{:.2f}".format(doc.get("base_total"))
-    doc.base_total_taxes_and_charges = "{:.2f}".format(doc.get("base_total_taxes_and_charges"))
-    doc.grand_total = "{:.2f}".format(doc.get("grand_total"))
+    if doc.get("base_total") is not None:
+        doc.base_total = "{:.2f}".format(doc.get("base_total"))
+
+    if doc.get("base_total_taxes_and_charges") is not None:
+        doc.base_total_taxes_and_charges = "{:.2f}".format(doc.get("base_total_taxes_and_charges"))
+
+    if doc.get("grand_total") is not None:
+        doc.grand_total = "{:.2f}".format(doc.get("grand_total"))
+
+    
+    if(doc.get("doctype") == "Sales Invoice"):
+        doc.posting_date_custom = format_dates(doc.get("posting_date"))
+        doc.due_date_custom = format_dates(parse_doc.get("due_date"))
+        
+    if(doc.get("doctype") == "Quotation"):
+        doc.transaction_date_custom = format_dates(doc.get("transaction_date"))
+        doc.valid_till_custom = format_dates(doc.get("valid_till"))
     
     validate_print_permission(doc)
 
