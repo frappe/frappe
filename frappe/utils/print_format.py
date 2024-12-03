@@ -270,7 +270,7 @@ def download_pdf(
     
     if(doc.get("doctype") == "Sales Invoice"):
         doc.posting_date_custom = format_dates(doc.get("posting_date"))
-        doc.due_date_custom = format_dates(parse_doc.get("due_date"))
+        doc.due_date_custom = format_dates(doc.get("due_date"))
         
     if(doc.get("doctype") == "Quotation"):
         doc.transaction_date_custom = format_dates(doc.get("transaction_date"))
