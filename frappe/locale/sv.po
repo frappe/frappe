@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-12-01 09:33+0000\n"
-"PO-Revision-Date: 2024-12-02 19:38\n"
+"PO-Revision-Date: 2024-12-03 19:36\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -3400,7 +3400,7 @@ msgstr "Banderoll är ovanför Toppfält Meny rad."
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Bar"
-msgstr "Bar"
+msgstr "Stapel"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -30575,7 +30575,7 @@ msgstr "i minuter"
 
 #: frappe/templates/signup.html:11 frappe/www/login.html:11
 msgid "jane@example.com"
-msgstr "användare@bolag.se"
+msgstr "användare@bolag"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:46
 msgid "just now"
