@@ -15,7 +15,7 @@ Doct: TypeAlias = str
 Fld: TypeAlias = str
 Op: TypeAlias = str
 DateTime: TypeAlias = datetime | date
-_Val: TypeAlias = str | int | None | DateTime | Column
+_Val: TypeAlias = str | int | float | None | DateTime | Column
 _InVal: TypeAlias = _Val | DocRef | bool
 Val: TypeAlias = _Val | Sequence[_Val]
 InVal: TypeAlias = _InVal | Sequence[_InVal]
@@ -187,15 +187,15 @@ class Filters(list[FilterTuple]):
 			error_lines = str(e).split("\n")
 			indented_error = error_lines[0] + "\n" + textwrap.indent("\n".join(error_lines[1:]), "       ")
 			error_context = (
-				f"Error creating Filters:\n"
+				f"\nError creating Filters:\n"
 				f"Input: {s}, doctype={doctype}\n"
-				f"Error: {indented_error}\n"
 				f"Usage: Filters( FilterTuple(...), ...                                    )\n"
 				f"       Filters( (fieldnam, value), ...                        doctype=dt )\n"
 				f"       Filters( (fieldname, operator, value), ...             doctype=dt )\n"
 				f"       Filters( (doctype, fieldname, operator, value), ...               )\n"
 				f"       Filters( {{'fieldname': value, ...}}, ...                doctype=dt )\n"
-				f"       Filters( {{'fieldname': (operator, value), ...}}, ...    doctype=dt )"
+				f"       Filters( {{'fieldname': (operator, value), ...}}, ...    doctype=dt )\n\n"
+				f"Cause:\n{indented_error}"
 			)
 			raise ValueError(error_context) from e
 
