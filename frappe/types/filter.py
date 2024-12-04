@@ -15,14 +15,16 @@ Doct: TypeAlias = str
 Fld: TypeAlias = str
 Op: TypeAlias = str
 DateTime: TypeAlias = datetime | date
-_Val: TypeAlias = str | int | float | None | DateTime | Column
-_InVal: TypeAlias = _Val | DocRef | bool
-Val: TypeAlias = _Val | Sequence[_Val]
-InVal: TypeAlias = _InVal | Sequence[_InVal]
+_Value: TypeAlias = str | int | float | None | DateTime | Column
+_InputValue: TypeAlias = _Value | DocRef | bool
+Value: TypeAlias = _Value | Sequence[_Value]
+InputValue: TypeAlias = _InputValue | Sequence[_InputValue]
 
 
-FilterTupleSpec: TypeAlias = tuple[Fld, InVal] | tuple[Fld, Op, InVal] | tuple[Doct, Fld, Op, InVal]
-FilterMappingSpec: TypeAlias = Mapping[Fld, _InVal | tuple[Op, InVal]]
+FilterTupleSpec: TypeAlias = (
+	tuple[Fld, InputValue] | tuple[Fld, Op, InputValue] | tuple[Doct, Fld, Op, InputValue]
+)
+FilterMappingSpec: TypeAlias = Mapping[Fld, _InputValue | tuple[Op, InputValue]]
 
 
 class Sentinel:
@@ -47,19 +49,19 @@ class _FilterTuple(NamedTuple):
 	doctype: Doct
 	fieldname: Fld
 	operator: Op
-	value: Val
+	value: Value
 
 
-def _type_narrow(v: _InVal) -> _Val:
-	if isinstance(v, bool):  # beware: bool derives int in _Val
+def _type_narrow(v: _InputValue) -> _Value:
+	if isinstance(v, bool):  # beware: bool derives int in _Value
 		return int(v)
-	elif isinstance(v, _Val):
+	elif isinstance(v, _Value):
 		return v
 	elif isinstance(v, DocRef):  # type: ignore[redundant-expr]
 		return v.__value__()
 	else:
 		raise ValueError(
-			f"Value must be one of types: {', '.join(str(t.__name__) for t in _InVal.__args__)}; found {type(v)}"
+			f"Value must be one of types: {', '.join(str(t.__name__) for t in _InputValue.__args__)}; found {type(v)}"
 		)
 
 
@@ -74,7 +76,7 @@ class FilterTuple(_FilterTuple):
 		doctype: Doct | Sentinel = UNSPECIFIED,
 		fieldname: Fld | Sentinel = UNSPECIFIED,
 		operator: Op = "=",
-		value: InVal | Sentinel = UNSPECIFIED,
+		value: InputValue | Sentinel = UNSPECIFIED,
 	) -> Self:
 		"""
 		Create a new FilterTuple instance.
@@ -108,8 +110,8 @@ class FilterTuple(_FilterTuple):
 			if operator in ("in", "not in") and isinstance(value, str):
 				value = value.split(",")
 
-			_value: Val
-			if isinstance(value, _InVal):
+			_value: Value
+			if isinstance(value, _InputValue):
 				_value = _type_narrow(value)
 			else:
 				_value = tuple(_type_narrow(v) for v in value)
@@ -228,7 +230,7 @@ class Filters(list[FilterTuple]):
 
 	def _init_from_mapping(self, s: FilterMappingSpec, doctype: Doct) -> None:
 		for k, v in s.items():
-			if isinstance(v, _InVal):
+			if isinstance(v, _InputValue):
 				self.append(FilterTuple(doctype=doctype, fieldname=k, value=v))
 			elif isinstance(v, Sequence):  # type: ignore[redundant-expr]
 				self.append(FilterTuple(doctype=doctype, fieldname=k, operator=v[0], value=v[1]))
@@ -247,10 +249,10 @@ class Filters(list[FilterTuple]):
 				optimized.extend(filters)
 			else:
 
-				def _values() -> Generator[_Val, None, None]:
+				def _values() -> Generator[_Value, None, None]:
 					for f in filters:
 						# f.value is already narrowed to Val when we optimize over fully initialized FilterTuple
-						yield cast(_Val, f.value)  # = operator only is allowed to have _Val
+						yield cast(_Value, f.value)  # = operator only is allowed to have _Value
 
 				values = tuple(_values())
 
