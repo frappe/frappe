@@ -363,6 +363,9 @@ frappe.ui.form.PrintView = class {
 		let print_format = this.get_print_format();
 		this.lang_code =
 			this.frm.doc.language || print_format.default_print_language || frappe.boot.lang;
+		if (!this.lang_code || this.lang_code === "en") {
+			this.lang_code = "en-US";
+		}
 		this.language_selector.val(this.lang_code);
 	}
 
@@ -562,7 +565,7 @@ frappe.ui.form.PrintView = class {
 					no_letterhead: me.with_letterhead(),
 					letterhead: me.get_letterhead(),
 				},
-				callback: function () {},
+				callback: function () { },
 			});
 		}
 	}
@@ -620,20 +623,20 @@ frappe.ui.form.PrintView = class {
 		let w = window.open(
 			frappe.urllib.get_full_url(
 				method +
-					"doctype=" +
-					encodeURIComponent(this.frm.doc.doctype) +
-					"&name=" +
-					encodeURIComponent(this.frm.doc.name) +
-					(printit ? "&trigger_print=1" : "") +
-					"&format=" +
-					encodeURIComponent(this.selected_format()) +
-					"&no_letterhead=" +
-					(this.with_letterhead() ? "0" : "1") +
-					"&letterhead=" +
-					encodeURIComponent(this.get_letterhead()) +
-					"&settings=" +
-					encodeURIComponent(JSON.stringify(this.additional_settings)) +
-					(this.lang_code ? "&_lang=" + this.lang_code : "")
+				"doctype=" +
+				encodeURIComponent(this.frm.doc.doctype) +
+				"&name=" +
+				encodeURIComponent(this.frm.doc.name) +
+				(printit ? "&trigger_print=1" : "") +
+				"&format=" +
+				encodeURIComponent(this.selected_format()) +
+				"&no_letterhead=" +
+				(this.with_letterhead() ? "0" : "1") +
+				"&letterhead=" +
+				encodeURIComponent(this.get_letterhead()) +
+				"&settings=" +
+				encodeURIComponent(JSON.stringify(this.additional_settings)) +
+				(this.lang_code ? "&_lang=" + this.lang_code : "")
 			)
 		);
 		if (!w) {
