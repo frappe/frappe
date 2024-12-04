@@ -202,9 +202,6 @@ class Filters(list[FilterTuple]):
 		if self:  # only optimize non-empty; avoid infinit recursion
 			self.optimize()
 
-		if __debug__:
-			print(self)
-
 	@override
 	def extend(
 		self,
