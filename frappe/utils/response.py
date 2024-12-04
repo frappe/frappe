@@ -228,7 +228,7 @@ def json_handler(obj):
 	elif isinstance(obj, Match):
 		return obj.string
 
-	elif type(obj) == type or isinstance(obj, Exception):
+	elif type(obj) is type or isinstance(obj, Exception):
 		return repr(obj)
 
 	elif callable(obj):

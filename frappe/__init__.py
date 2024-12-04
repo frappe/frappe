@@ -213,8 +213,13 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 			"read_only": False,
 		}
 	)
+<<<<<<< HEAD
 	local.locked_documents = []
 	local.test_objects = {}
+=======
+	local.locked_documents: list[Document] = []
+	local.test_objects = defaultdict(list)
+>>>>>>> 84ef6ec677 (refactor: fixup with ruff 0.8.1)
 
 	local.site = site
 	local.sites_path = sites_path
@@ -863,8 +868,13 @@ def is_whitelisted(method):
 	from frappe.utils import sanitize_html
 
 	is_guest = session["user"] == "Guest"
+<<<<<<< HEAD
 	if method not in whitelisted or is_guest and method not in guest_methods:
 		summary = _("You are not permitted to access this resource. Login to access")
+=======
+	if method not in whitelisted or (is_guest and method not in guest_methods):
+		summary = _("You are not permitted to access this resource.")
+>>>>>>> 84ef6ec677 (refactor: fixup with ruff 0.8.1)
 		detail = _("Function {0} is not whitelisted.").format(bold(f"{method.__module__}.{method.__name__}"))
 		msg = f"<details><summary>{summary}</summary>{detail}</details>"
 		throw(msg, PermissionError, title=_("Method Not Allowed"))

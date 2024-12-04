@@ -88,7 +88,14 @@ class ServerScript(Document):
 		frappe.cache.delete_value("server_script_map")
 		if self.script_type == "Scheduler Event":
 			for job in self.scheduled_jobs:
+<<<<<<< HEAD
 				frappe.delete_doc("Scheduled Job Type", job.name)
+=======
+				scheduled_job_type: ScheduledJobType = frappe.get_doc("Scheduled Job Type", job.name)
+				scheduled_job_type.stopped = True
+				scheduled_job_type.server_script = None
+				scheduled_job_type.save()
+>>>>>>> 84ef6ec677 (refactor: fixup with ruff 0.8.1)
 
 	def get_code_fields(self):
 		return {"script": "py"}

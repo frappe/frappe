@@ -136,7 +136,7 @@ class TestCommunication(FrappeTestCase):
 		self.assertNotEqual(2, len(comm.timeline_links))
 
 	def test_contacts_attached(self):
-		contact_sender: "Contact" = frappe.get_doc(
+		contact_sender: Contact = frappe.get_doc(
 			{
 				"doctype": "Contact",
 				"first_name": "contact_sender",
@@ -145,7 +145,7 @@ class TestCommunication(FrappeTestCase):
 		contact_sender.add_email("comm_sender@example.com")
 		contact_sender.insert(ignore_permissions=True)
 
-		contact_recipient: "Contact" = frappe.get_doc(
+		contact_recipient: Contact = frappe.get_doc(
 			{
 				"doctype": "Contact",
 				"first_name": "contact_recipient",
@@ -154,7 +154,7 @@ class TestCommunication(FrappeTestCase):
 		contact_recipient.add_email("comm_recipient@example.com")
 		contact_recipient.insert(ignore_permissions=True)
 
-		contact_cc: "Contact" = frappe.get_doc(
+		contact_cc: Contact = frappe.get_doc(
 			{
 				"doctype": "Contact",
 				"first_name": "contact_cc",

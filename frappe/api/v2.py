@@ -7,6 +7,7 @@ Note:
 	- None of the functions present here should be called from python code, their location and
 	  internal implementation can change without treating it as "breaking change".
 """
+
 import json
 from typing import Any
 

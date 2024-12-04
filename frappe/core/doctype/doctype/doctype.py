@@ -987,7 +987,7 @@ class DocType(Document):
 	def get_max_idx(self):
 		"""Returns the highest `idx`"""
 		max_idx = frappe.db.sql("""select max(idx) from `tabDocField` where parent = %s""", self.name)
-		return max_idx and max_idx[0][0] or 0
+		return (max_idx and max_idx[0][0]) or 0
 
 	def validate_name(self, name=None):
 		if not name:
@@ -1110,10 +1110,8 @@ def validate_autoincrement_autoname(dt: Union[DocType, "CustomizeForm"]) -> bool
 		autoname_before_save = get_autoname_before_save(dt)
 		is_autoname_autoincrement = dt.autoname == "autoincrement"
 
-		if (
-			is_autoname_autoincrement
-			and autoname_before_save != "autoincrement"
-			or (not is_autoname_autoincrement and autoname_before_save == "autoincrement")
+		if (is_autoname_autoincrement and autoname_before_save != "autoincrement") or (
+			not is_autoname_autoincrement and autoname_before_save == "autoincrement"
 		):
 			if dt.doctype == "Customize Form":
 				frappe.throw(_("Cannot change to/from autoincrement autoname in Customize Form"))
@@ -1240,7 +1238,7 @@ def validate_fields(meta: Meta):
 
 	def check_unique_fieldname(docname, fieldname):
 		duplicates = list(
-			filter(None, map(lambda df: df.fieldname == fieldname and str(df.idx) or None, fields))
+			filter(None, map(lambda df: (df.fieldname == fieldname and str(df.idx)) or None, fields))
 		)
 		if len(duplicates) > 1:
 			frappe.throw(
