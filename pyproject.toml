@@ -94,6 +94,47 @@ Homepage = "https://frappeframework.com/"
 Repository = "https://github.com/frappe/frappe.git"
 "Bug Reports" = "https://github.com/frappe/frappe/issues"
 
+<<<<<<< HEAD
+=======
+[project.optional-dependencies]
+dev = [
+    "pyngrok~=6.0.0",
+    "watchdog~=3.0.0",
+    "responses==0.23.1",
+    # typechecking
+    "basedmypy",
+    "types-PyMySQL",
+    "types-PyYAML",
+    "types-Pygments",
+    "types-beautifulsoup4",
+    "types-bleach",
+    "types-cffi",
+    "types-colorama",
+    "types-croniter",
+    "types-decorator",
+    "types-ldap3",
+    "types-oauthlib",
+    "types-openpyxl",
+    "types-passlib",
+    "types-psutil",
+    "types-psycopg2",
+    "types-python-dateutil",
+    "types-pytz",
+    "types-requests",
+    "types-six",
+    "types-vobject",
+    "types-zxcvbn",
+]
+test = [
+    "unittest-xml-reporting~=3.2.0",
+    "coverage~=6.5.0",
+    "Faker~=18.10.1",
+    "hypothesis~=6.77.0",
+    "freezegun~=1.2.2",
+    "pdbpp~=0.10.3",
+]
+
+>>>>>>> df584ab891 (chore: bump ruff)
 [build-system]
 requires = ["flit_core >=3.4,<4"]
 build-backend = "flit_core.buildapi"
@@ -136,6 +177,10 @@ ignore = [
     "F405", # can't detect undefined names from * import
     "F722", # syntax error in forward type annotation
     "W191", # indentation contains tabs
+<<<<<<< HEAD
+=======
+    "RUF001", # string contains ambiguous unicode character
+>>>>>>> df584ab891 (chore: bump ruff)
     "UP030", # Use implicit references for positional format fields (translations)
     "UP031", # Use format specifiers instead of percent format
     "UP032", # Use f-string instead of `format` call (translations)

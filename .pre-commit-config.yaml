@@ -21,7 +21,7 @@ repos:
       - id: debug-statements
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.2.0
+    rev: v0.8.1
     hooks:
       - id: ruff
         name: "Run ruff linter and apply fixes"
