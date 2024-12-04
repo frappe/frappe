@@ -130,7 +130,7 @@ test = [
     "coverage~=6.5.0",
     "Faker~=18.10.1",
     "hypothesis~=6.77.0",
-    "freezegun~=1.2.2",
+    "freezegun~=1.5.1",
     "pdbpp~=0.10.3",
 ]
 
