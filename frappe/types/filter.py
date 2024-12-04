@@ -39,8 +39,8 @@ UNSPECIFIED = Sentinel()
 T = TypeVar("T")
 
 
-def is_not_unspecified(value: T | Sentinel) -> TypeGuard[T]:
-	return value is not UNSPECIFIED
+def is_unspecified(value: T | Sentinel) -> TypeGuard[Sentinel]:
+	return value is UNSPECIFIED
 
 
 class _FilterTuple(NamedTuple):
@@ -97,11 +97,11 @@ class FilterTuple(_FilterTuple):
 					doctype, fieldname, operator, value = s
 				else:
 					raise ValueError(f"Invalid sequence length: {len(s)}. Expected 2, 3, or 4 elements.")
-			if not is_not_unspecified(doctype) or doctype is None:
+			if is_unspecified(doctype) or doctype is None:
 				raise ValueError("doctype is required")
-			if not is_not_unspecified(fieldname) or fieldname is None:
+			if is_unspecified(fieldname) or fieldname is None:
 				raise ValueError("fieldname is required")
-			if not is_not_unspecified(value):
+			if is_unspecified(value):
 				raise ValueError("value is required; can be None")
 
 			# soundness
@@ -218,7 +218,7 @@ class Filters(list[FilterTuple]):
 		if isinstance(value, FilterTuple):
 			super().append(value)
 		elif isinstance(value, Mapping):
-			if not is_not_unspecified(doctype) or doctype is None:
+			if is_unspecified(doctype) or doctype is None:
 				raise ValueError("When initiated with a mapping, doctype keyword argument is required")
 			self._init_from_mapping(value, doctype)
 		elif isinstance(value, Sequence):  # type: ignore[redundant-expr]
