@@ -103,7 +103,7 @@ jobs:
             if pgrep honcho > /dev/null; then
                 echo "Stopping honcho process..."
                 pgrep honcho | xargs kill
-                sleep 3
+                sleep 5
             fi
 
             echo "Setting up environment..."
