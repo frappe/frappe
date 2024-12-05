@@ -97,6 +97,15 @@ class FilterTuple(_FilterTuple):
 					fieldname, operator, value = s
 				elif len(s) == 4:  # type: ignore[redundant-expr]
 					doctype, fieldname, operator, value = s
+				elif len(s) == 5:  # type: ignore[unreachable]
+					from frappe.deprecation_dumpster import deprecation_warning
+
+					deprecation_warning(
+						"2024-12-05",
+						"v16",
+						f"List type filters now should have 2, 3 or 4 elements: got 5 (Input: {s!r}). Hint: you probably need to remove the last filter element, a no-op from history.",
+					)
+					doctype, fieldname, operator, value, _noop = s
 				else:
 					raise ValueError(f"Invalid sequence length: {len(s)}. Expected 2, 3, or 4 elements.")
 			if is_unspecified(doctype) or doctype is None:
