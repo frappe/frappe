@@ -80,9 +80,6 @@ def get_pdf(html, options=None, output: PdfWriter | None = None):
 
     html = scrub_urls(html)
     html, options = prepare_options(html, options)
-    options.update({"disable-javascript": "", "disable-local-file-access": ""})
-    options.update({"enable-external-links": "", "enable-internal-links": ""})  # Add this line
-    print(html)
     filedata = ""
     if Version(get_wkhtmltopdf_version()) > Version("0.12.3"):
         options.update({"disable-smart-shrinking": ""})
@@ -95,7 +92,6 @@ def get_pdf(html, options=None, output: PdfWriter | None = None):
         # defaults to redirecting stdout
         with pipe_to_log(logger.info):
             filedata = pdfkit.from_string(html, False, options=options or {}, verbose=True)
-
         # create in-memory binary streams from filedata and create a PdfReader object
         reader = PdfReader(io.BytesIO(filedata))
     except OSError as e:
