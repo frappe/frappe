@@ -6,7 +6,7 @@ from frappe.model.document import Document
 
 
 class StudioResource(Document):
-	def before_insert(self):
+	def before_save(self):
 		if isinstance(self.fields, list):
 			self.fields = frappe.as_json(self.fields, indent=None)
 

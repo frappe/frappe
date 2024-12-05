@@ -2,14 +2,18 @@
 	<Dialog
 		v-model="showDialog"
 		:options="{
-			title: 'Add Data Source',
+			title: resource?.name ? 'Edit Data Source' : 'Add Data Source',
 			size: '2xl',
 			actions: [
 				{
-					label: 'Add',
+					label: resource?.name ? 'Save' : 'Add',
 					variant: 'solid',
 					onClick: () => {
-						emit('addResource', newResource)
+						if (resource?.name) {
+							emit('editResource', newResource)
+						} else {
+							emit('addResource', newResource)
+						}
 					},
 				},
 			],
@@ -19,6 +23,7 @@
 		<template #body-content>
 			<div class="flex flex-col gap-3">
 				<FormControl
+					v-if="!resource?.name"
 					label="New or Existing"
 					type="select"
 					:options="['New Data Source', 'Existing Data Source']"
@@ -34,7 +39,7 @@
 				/>
 
 				<template v-else>
-					<FormControl label="Name" v-model="newResource.name" autocomplete="off" />
+					<FormControl label="Name" v-model="newResource.resource_name" autocomplete="off" />
 					<FormControl
 						label="Type"
 						type="select"
@@ -109,10 +114,14 @@ import InputLabel from "@/components/InputLabel.vue"
 import Filters from "@/components/Filters.vue"
 
 import { DocTypeField } from "@/types"
-import { NewResource, ResourceType } from "@/types/Studio/StudioResource"
+import { NewResource, ResourceType, Resource } from "@/types/Studio/StudioResource"
+import { isObjectEmpty } from "@/utils/helpers"
 
+const props = defineProps<{
+	resource?: Resource | null
+}>()
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
-const emit = defineEmits(["addResource"])
+const emit = defineEmits(["addResource", "editResource"])
 
 const emptyResource: NewResource = {
 	// source
@@ -131,7 +140,47 @@ const emptyResource: NewResource = {
 	transform: "",
 }
 
-const newResource = ref<NewResource>({ ...emptyResource })
+const newResource = ref<NewResource | Resource>({ ...emptyResource })
+watch(
+	() => props.resource?.name,
+	async () => {
+		if (props.resource?.name) {
+			newResource.value = await getResourceToEdit()
+		} else {
+			newResource.value = { ...emptyResource }
+		}
+	},
+	{ immediate: true },
+)
+
+async function getResourceToEdit() {
+	const filters = getParsedFilters(props.resource?.filters)
+	if (props.resource?.document_type) {
+		await setDoctypeFields(props.resource.document_type)
+		await setWhitelistedMethods(props.resource.document_type)
+	}
+
+	return {
+		...props.resource,
+		source: "",
+		name: props.resource?.name,
+		resource_name: props.resource?.resource_name,
+		filters: filters,
+		fields: JSON.parse(props.resource?.fields || "[]"),
+		whitelisted_methods: JSON.parse(props.resource?.whitelisted_methods || "[]"),
+	} as Resource
+}
+
+function getParsedFilters(filters: string | object | undefined) {
+	if (filters && typeof filters === "string") {
+		filters = JSON.parse(filters)
+		if (isObjectEmpty(filters as object)) {
+			return {}
+		}
+	}
+	return filters
+}
+
 const doctypeFields = ref([])
 const filterFields = ref<DocTypeField[]>([])
 const whitelistedMethods = ref([])
@@ -145,29 +194,26 @@ const getTransformFnBoilerplate = (resource_type: ResourceType) => {
 }
 
 watch(
-	() => newResource.value.document_type,
-	async () => {
-		if (newResource.value.document_type) {
-			setDoctypeFields()
-		}
-
-		if (newResource.value.resource_type === "Document") {
-			setWhitelistedMethods()
-		}
+	() => newResource.value?.document_type,
+	(doctype) => {
+		if (!doctype) return
+		setDoctypeFields(doctype)
+		setWhitelistedMethods(doctype)
 	},
 )
 
 watch(
-	() => newResource.value.resource_type,
-	() => {
-		newResource.value.transform = getTransformFnBoilerplate(newResource.value.resource_type)
+	() => newResource.value?.resource_type,
+	(resource_type) => {
+		if (!resource_type) return
+		newResource.value.transform = getTransformFnBoilerplate(resource_type)
 	},
 )
 
-async function setDoctypeFields() {
+async function setDoctypeFields(doctype: string) {
 	const fields = createResource({
 		url: "studio.api.get_doctype_fields",
-		params: { doctype: newResource.value.document_type },
+		params: { doctype: doctype },
 		transform: (data: DocTypeField[]) => {
 			filterFields.value = data
 			return data.map((field) => {
@@ -182,10 +228,10 @@ async function setDoctypeFields() {
 	doctypeFields.value = fields.data
 }
 
-async function setWhitelistedMethods() {
+async function setWhitelistedMethods(doctype: string) {
 	const methods = createResource({
 		url: "studio.api.get_whitelisted_methods",
-		params: { doctype: newResource.value.document_type },
+		params: { doctype: doctype },
 		transform: (data: string[]) => {
 			return data.map((method) => {
 				return {

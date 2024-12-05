@@ -28,8 +28,13 @@
 			<EmptyState v-else message="No resources added" />
 
 			<div class="mt-2 flex flex-col" v-if="store.activePage">
-				<Button icon-left="plus" @click="showAddResourceDialog = true">Add Data Source</Button>
-				<ResourceDialog v-model:showDialog="showAddResourceDialog" @addResource="addResource" />
+				<Button icon-left="plus" @click="showResourceDialog = true">Add Data Source</Button>
+				<ResourceDialog
+					v-model:showDialog="showResourceDialog"
+					:resource="existingResource"
+					@addResource="addResource"
+					@editResource="editResource"
+				/>
 			</div>
 		</CollapsibleSection>
 	</div>
@@ -56,7 +61,7 @@ import { toast } from "vue-sonner"
  */
 
 const store = useStudioStore()
-const showAddResourceDialog = ref(false)
+const showResourceDialog = ref(false)
 
 const attachResource = async (resource: Resource) => {
 	studioPageResources.insert
@@ -70,7 +75,7 @@ const attachResource = async (resource: Resource) => {
 			if (store.activePage) {
 				await store.setPageResources(store.activePage)
 			}
-			showAddResourceDialog.value = false
+			showResourceDialog.value = false
 		})
 }
 
@@ -80,24 +85,10 @@ const addResource = (resource: NewResource) => {
 		return
 	}
 
-	studioResources.insert
-		.submit({
-			name: resource.resource_name,
-			resource_type: resource.resource_type,
-			document_type: resource.document_type,
-			document_name: resource.document_name,
-			url: resource.url,
-			method: resource.method,
-			fields: getAutocompleteValues(resource.fields),
-			filters: resource.filters,
-			whitelisted_methods: getAutocompleteValues(resource.whitelisted_methods),
-			transform_results: resource.transform_results,
-			transform: resource.transform,
-		})
-		.then((res: Resource) => {
-			studioPageResources.filters = { parent: store.activePage?.name }
-			attachResource(res)
-		})
+	studioResources.insert.submit(getResourceValues(resource)).then((res: Resource) => {
+		studioPageResources.filters = { parent: store.activePage?.name }
+		attachResource(res)
+	})
 }
 
 const deleteResource = async (docname: string, resource_name: string) => {
@@ -117,12 +108,43 @@ const deleteResource = async (docname: string, resource_name: string) => {
 	}
 }
 
+const existingResource = ref<Resource | null>()
+const editResource = async (resource: Resource) => {
+	return studioResources.setValue
+		.submit(getResourceValues(resource))
+		.then(async () => {
+			if (store.activePage) {
+				await store.setPageResources(store.activePage)
+			}
+			toast.success(`Data Source ${resource.resource_name} updated successfully`)
+			showResourceDialog.value = false
+		})
+		.catch(() => {
+			toast.error(`Failed to update data source ${resource.resource_name}`)
+		})
+}
+
+const getResourceValues = (resource: Resource | NewResource) => {
+	return {
+		...resource,
+		name: resource.resource_name,
+		fields: getAutocompleteValues(resource.fields),
+		whitelisted_methods: getAutocompleteValues(resource.whitelisted_methods),
+	}
+}
+
 const getResourceMenu = (resource: Resource, name: string) => {
 	return [
 		{
 			label: "Edit",
 			icon: "edit",
-			onClick: () => {},
+			onClick: async () => {
+				studioPageResources.filters = { parent: store.activePage?.name, name: resource.docname }
+				await studioPageResources.reload()
+
+				existingResource.value = studioPageResources.data[0]
+				showResourceDialog.value = true
+			},
 		},
 		{
 			label: "Delete",
