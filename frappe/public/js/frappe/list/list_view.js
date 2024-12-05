@@ -1009,7 +1009,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		return frappe.db
 			.count(this.doctype, {
-				filters: this.get_filters_for_args(),
+				filters: this.filter_area?.get() || [],
 				limit: this.count_upper_bound,
 			})
 			.then((total_count) => {
@@ -1706,7 +1706,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_search_params() {
 		let search_params = new URLSearchParams();
 
-		this.get_filters_for_args().forEach((filter) => {
+		(this.filter_area?.get() || []).forEach((filter) => {
 			if (filter[2] === "=") {
 				search_params.append(filter[1], filter[3]);
 			} else {

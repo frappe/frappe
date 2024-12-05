@@ -103,7 +103,7 @@ class FilterTuple(_FilterTuple):
 					deprecation_warning(
 						"2024-12-05",
 						"v16",
-						f"List type filters now should have 2, 3 or 4 elements: got 5 (Input: {s!r}). Hint: you probably need to remove the last filter element, a no-op from history.",
+						f"List type filters now should have 2, 3 or 4 elements: got 5 (Input: {s!r}). Hint: you probably need to remove the last filter element, a no-op from history. See also: https://github.com/frappe/frappe/pull/28682",
 					)
 					doctype, fieldname, operator, value, _noop = s
 				else:

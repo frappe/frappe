@@ -225,7 +225,7 @@ frappe.views.ListSidebar = class ListSidebar {
 				// wait for list filter area to be generated before getting filters, or fallback to default filters
 				filters:
 					(me.list_view.filter_area
-						? me.list_view.get_filters_for_args()
+						? me.list_view.filter_area.get()
 						: me.default_filters) || [],
 			},
 			callback: function (r) {

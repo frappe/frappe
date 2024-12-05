@@ -467,21 +467,15 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	get_filter_value(fieldname) {
-		const filter = this.get_filters_for_args().filter((f) => f[1] == fieldname)[0];
+		const filter = (this.filter_area?.get() || []).filter((f) => f[1] == fieldname)[0];
 		if (!filter) return;
 		if (filter[2] === "like") return filter[3]?.replace(/^%?|%$/g, "");
 		else if (filter[2] === "not set") return null;
 		else return filter[3];
 	}
 
-	get_filters_for_args() {
-		// filters might have a fifth param called hidden,
-		// we don't want to pass that server side
-		return this.filter_area ? this.filter_area.get().map((filter) => filter.slice(0, 4)) : [];
-	}
-
 	get_args() {
-		let filters = this.get_filters_for_args();
+		let filters = this.filter_area?.get() || [];
 		let group_by = this.get_group_by();
 		let group_by_required =
 			Array.isArray(filters) &&
