@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-12-01 17:58+0000\n"
-"PO-Revision-Date: 2024-12-04 19:52\n"
+"PO-Revision-Date: 2024-12-05 19:58\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -10745,7 +10745,7 @@ msgstr ""
 
 #: frappe/core/doctype/communication/communication.js:70
 msgid "Forward"
-msgstr ""
+msgstr "İlet"
 
 #. Label of a Data field in DocType 'Contact Us Settings'
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
@@ -10790,7 +10790,7 @@ msgstr "Frappe Desteği"
 
 #: frappe/website/doctype/web_page/web_page.js:92
 msgid "Frappe page builder using components"
-msgstr ""
+msgstr "Frappe sayfa oluşturucunun kullandığı bileşenşer"
 
 #: frappe/public/js/frappe/file_uploader/ImageCropper.vue:112
 msgctxt "Image Cropper"
@@ -11346,11 +11346,11 @@ msgstr "Gri"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:23
 msgid "Greater Than"
-msgstr ""
+msgstr "Büyüktür"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:25
 msgid "Greater Than Or Equal To"
-msgstr ""
+msgstr "Büyüktür ve Eşittir"
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #. Option for the 'Indicator' (Select) field in DocType 'Kanban Board Column'
@@ -18759,7 +18759,7 @@ msgstr "Lütfen Yetkilendirme URL'sini girin"
 
 #: frappe/integrations/doctype/social_login_key/social_login_key.py:78
 msgid "Please enter Base URL"
-msgstr ""
+msgstr "Lütfen geçerli bir URL girin"
 
 #: frappe/integrations/doctype/social_login_key/social_login_key.py:86
 msgid "Please enter Client ID before social login is enabled"
