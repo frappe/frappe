@@ -142,7 +142,7 @@ class ConfigHandler:
 		"Get current configuration, reloading if stale"
 		if not hasattr(self, "_config") or self._config_stale:
 			if self.config_path.exists():
-				self.__config = json.load(self.config_path.open())
+				self.__config = json.loads(self.config_path.read_bytes())
 			self._config = ConfigType(**self.__config)
 			self._update_from_env()
 			self._apply_extra_config()
@@ -164,12 +164,13 @@ class ConfigHandler:
 			with FileLock(f"{self.config_path}.lock", timeout=5):
 				from frappe.utils.response import json_handler
 
-				json.dump(
-					self.__config,
-					self.config_path.open("w"),
-					indent=2,
-					default=json_handler,  # type: ignore[no-any-expr]
-					sort_keys=True,
+				self.config_path.write_text(
+					json.dumps(
+						self.__config,
+						indent=2,
+						default=json_handler,  # type: ignore[no-any-expr]
+						sort_keys=True,
+					)
 				)
 
 		except Timeout as e:

@@ -34,19 +34,23 @@ class Serializable:
 
 class BenchPathResolver(PathLike, Serializable):
 	def __init__(self, path: str | Path | None = None, parent_path: Path | None = None) -> None:
-		path = (
-			path
-			or os.environ.get(f"FRAPPE_{self.__class__.__name__.upper()}_PATH")
-			or (parent_path.joinpath(self.__class__.__name__.lower()) if parent_path else None)
-		)
+		if isinstance(self, Sites) and (env_path := os.environ.get("SITES_PATH")):
+			path = Path(env_path).resolve()
 
-		if not path and isinstance(self, Bench):
+		if path is None:
+			path = os.environ.get(f"FRAPPE_{self.__class__.__name__.upper()}_PATH") or (
+				parent_path.joinpath(self.__class__.__name__.lower()) if parent_path else None
+			)
+
+		if path is None and isinstance(self, Bench):
+			env_path = os.environ.get("FRAPPE_BENCH_ROOT")
+			sites_env_path = os.environ.get("SITES_PATH")
 			path = (
-				# TODO: legacy, remove
-				os.environ.get("FRAPPE_BENCH_ROOT")
-				or
+				env_path
+				# TODO: legacy unsave relative reference, remove
+				or (Path(sites_env_path).resolve().parent if sites_env_path else None)
 				# TODO: unsave relative reference, remove:
-				Path(__file__).resolve().parents[3]  # bench folder in standard layout
+				or Path(__file__).resolve().parents[3]  # bench folder in standard layout
 				# TODO: when above line removed, enable:
 				# or (Path("~/frappe-bench").expanduser())
 			)
@@ -54,7 +58,7 @@ class BenchPathResolver(PathLike, Serializable):
 		if path is None:
 			raise ValueError(f"Unable to determine path for {self.__class__.__name__}")
 
-		self.path = Path(path)
+		self.path = Path(path).resolve()
 
 
 class FrappeComponent:
@@ -361,16 +365,17 @@ class Sites(BenchPathResolver, ConfigHandler):
 		if not hasattr(self, "__sites"):
 			self.__sites = {}
 
-			def _process(path: Path):
-				if path.is_dir() and path.joinpath("site_config.json").exists():
-					self.__sites[path.name] = self.Site(bench=self.bench, name=path.name, path=path)
-
 			# security & thread-safety: site_name is stored in thread-local storage
-			if self.site_name and self.site_name != self.SCOPE_ALL_SITES:
-				_process(self.path.joinpath(self.site_name))
-			elif self.site_name == self.SCOPE_ALL_SITES:
-				for site_path in self.path.iterdir():
-					_process(site_path)
+			if self.site_name == self.SCOPE_ALL_SITES:
+				for path in self.path.iterdir():
+					if path.is_dir() and path.joinpath("site_config.json").exists():
+						self.__sites[path.name] = self.Site(bench=self.bench, name=path.name, path=path)
+			elif self.site_name:
+				# init scoped site even if it doesn't exist for use during site creation
+				# all file access must reamin lazy and only happen after completed setup
+				self.__sites[self.site_name] = self.Site(
+					bench=self.bench, name=self.site_name, path=(self.path / self.site_name)
+				)
 		return self.__sites
 
 	def __iter__(self) -> Iterator[Site]:
@@ -388,7 +393,7 @@ class Sites(BenchPathResolver, ConfigHandler):
 		try:
 			return self._sites[key]
 		except KeyError:
-			raise BenchSiteNotLoadedError(f"Site '{key}' was not loaded")
+			raise BenchSiteNotLoadedError(f"Site '{key}' was not found")
 
 
 class Bench(BenchPathResolver):
@@ -400,6 +405,10 @@ class Bench(BenchPathResolver):
 		global _current_bench
 		_current_bench = self
 		self.apps = Apps(parent_path=self.path)
+
+	@property
+	def site(self) -> Sites.Site:
+		return self.sites.site
 
 	def scope(self, site_name: str) -> Sites.Site:
 		return self.sites.scope(site_name)
