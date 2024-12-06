@@ -2,6 +2,7 @@
 	<div class="flex flex-col gap-1.5">
 		<span v-if="props.label" class="block text-xs text-gray-600">
 			{{ props.label }}
+			<span class="text-ink-red-3" v-if="required">*</span>
 		</span>
 		<Autocomplete
 			ref="autocompleteRef"
@@ -27,6 +28,7 @@ const props = withDefaults(
 		placeholder?: string
 		modelValue?: string
 		filters?: Record<string, string | [string, string]>
+		required?: boolean
 	}>(),
 	{
 		label: "",
