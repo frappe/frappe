@@ -184,7 +184,13 @@ def show_config(context: CliCtxObj, format):
 	sites_config = {}
 	if Path(os.getcwd()).resolve() != frappe.bench.sites.path:
 		from frappe.bencher import Sites
+		from frappe.deprecation_dumpster import deprecation_warning
 
+		deprecation_warning(
+			"2024-12-06",
+			"v17",
+			"Calling frappe.commands.utils.show_config from the current working directory distinct of the sites directory is deprecated, use FRAPPE_SITES_PATH env variable to specify a distinct sites directory, instead.",
+		)
 		frappe.bench.sites = Sites(frappe.bench, os.getcwd())
 
 	from frappe.utils.commands import render_table
@@ -878,7 +884,13 @@ def set_config(context: CliCtxObj, key, value, global_=False, parse=False):
 	if global_:
 		if Path(os.getcwd()).resolve() != frappe.bench.sites.path:
 			from frappe.bencher import Sites
+			from frappe.deprecation_dumpster import deprecation_warning
 
+			deprecation_warning(
+				"2024-12-06",
+				"v17",
+				"Calling frappe.commands.utils.set_config from the current working directory distinct of the sites directory is deprecated, use FRAPPE_SITES_PATH env variable to specify a distinct sites directory, instead.",
+			)
 			frappe.bench.sites = Sites(frappe.bench, os.getcwd())
 		common_site_config_path = frappe.bench.sites.path / "common_site_config.json"
 		update_site_config(key, value, validate=False, site_config_path=str(common_site_config_path))

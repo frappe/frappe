@@ -479,7 +479,13 @@ def serve(
 
 	if Path(sites_path).resolve() != frappe.bench.sites.path:
 		from frappe.bencher import Sites
+		from frappe.deprecation_dumpster import deprecation_warning
 
+		deprecation_warning(
+			"2024-12-06",
+			"v17",
+			"Specifying a distinct 'sites_path' to 'frappe.app.serve' as an argument is deprecated, use FRAPPE_SITES_PATH env variable, instead.",
+		)
 		frappe.bench.sites = Sites(frappe.bench, sites_path)
 
 	from werkzeug.serving import run_simple
