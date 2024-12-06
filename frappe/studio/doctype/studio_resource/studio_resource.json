@@ -1,11 +1,12 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "prompt",
+ "autoname": "format:RES-{####}",
  "creation": "2024-09-23 09:50:16.776464",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "resource_name",
   "resource_type",
   "fields",
   "filters",
@@ -120,15 +121,23 @@
   {
    "fieldname": "column_break_mkdu",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "resource_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Resource Name",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-06 16:32:57.247233",
+ "modified": "2024-12-06 19:34:52.170836",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Resource",
- "naming_rule": "Set by user",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
@@ -144,7 +153,9 @@
    "write": 1
   }
  ],
+ "show_title_field_in_link": 1,
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "resource_name"
 }

@@ -3,10 +3,11 @@ export type Filters = Record<string, string | string[]>
 
 interface BaseResource {
 	/**	Child Table record name linked to page */
-	name: string
-	/**	Child Table record name linked to page */
-	docname: string
-	/**	Resource Docname */
+	name?: string
+	resource_child_table_id?: string
+	/**	Resource ID */
+	resource_id: string
+	/**	Resource Name */
 	resource_name: string
 	resource_type: ResourceType
 	transform_results?: boolean
@@ -40,7 +41,7 @@ export interface APIResource extends BaseResource {
 
 export type Resource = DocumentResource | DocumentListResource | APIResource
 
-export type NewResource = Omit<Resource, "name" | "docname"> & {
+export type NewResource = Omit<Resource, "resource_child_table_id"> & {
 	source: "New Data Source" | "Existing Data Source"
 	[key: string]: any
 }

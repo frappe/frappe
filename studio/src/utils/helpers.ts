@@ -225,6 +225,7 @@ async function fetchAppPages(appRoute: string): Promise<StudioPage[]> {
 
 // data
 function getAutocompleteValues(data: SelectOption[]) {
+	if (!data.length || typeof data[0] === "string") return data
 	return (data || []).map((d) => d["value"])
 }
 

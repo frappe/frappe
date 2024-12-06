@@ -201,18 +201,20 @@ const useStudioStore = defineStore("store", () => {
 		const resourcePromises = studioPageResources.data.map(async (resource: Resource) => {
 			const newResource = await getNewResource(resource)
 			return {
-				name: resource.resource_name,
+				resource_name: resource.resource_name,
 				value: newResource,
-				docname: resource.name,
+				resource_id: resource.resource_id,
+				resource_child_table_id: resource.name,
 			}
 		})
 
 		const resolvedResources = await Promise.all(resourcePromises)
 
 		resolvedResources.forEach((item) => {
-			resources.value[item.name] = item.value
+			resources.value[item.resource_name] = item.value
 			if (!item.value) return
-			resources.value[item.name].docname = item.docname
+			resources.value[item.resource_name].resource_id = item.resource_id
+			resources.value[item.resource_name].resource_child_table_id = item.resource_child_table_id
 		})
 	}
 

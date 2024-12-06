@@ -3,15 +3,15 @@
 		<CollapsibleSection sectionName="Data Sources">
 			<div class="flex flex-col gap-2" v-if="!isObjectEmpty(store.resources)">
 				<div
-					v-for="(resource, name) in store.resources"
-					:key="name"
+					v-for="(resource, resource_name) in store.resources"
+					:key="resource_name"
 					class="group/resource flex flex-row justify-between"
 				>
-					<ObjectBrowser :object="resource" :name="name" class="overflow-hidden" />
+					<ObjectBrowser :object="resource" :name="resource_name" class="overflow-hidden" />
 					<div
 						class="invisible -mt-1 ml-auto self-start text-gray-600 group-hover/resource:visible has-[.active-item]:visible"
 					>
-						<Dropdown :options="getResourceMenu(resource, name)" trigger="click">
+						<Dropdown :options="getResourceMenu(resource, resource_name)" trigger="click">
 							<template v-slot="{ open }">
 								<button
 									class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
@@ -102,12 +102,19 @@ const addResource = (resource: NewResource) => {
 	})
 }
 
-const deleteResource = async (docname: string, resource_name: string) => {
+const deleteResource = async (resource: Resource, resource_name: string) => {
 	const confirmed = await confirm(`Are you sure you want to delete the data source ${resource_name}?`)
 	if (confirmed) {
 		studioPageResources.delete
-			.submit(docname)
-			.then(() => {
+			.submit(resource.resource_child_table_id)
+			.then(async () => {
+				try {
+					// try deleting the main resource - will fail if linked to other pages
+					await studioResources.delete.submit(resource.resource_id)
+				} catch (error) {
+					console.log(`Failed to delete the main resource doc ${resource.resource_id}: ${error}`)
+				}
+
 				if (store.activePage) {
 					store.setPageResources(store.activePage)
 				}
@@ -137,19 +144,22 @@ const editResource = async (resource: Resource) => {
 const getResourceValues = (resource: Resource | NewResource) => {
 	return {
 		...resource,
-		name: resource.resource_name,
+		name: resource.resource_id,
 		fields: getAutocompleteValues(resource.fields),
 		whitelisted_methods: getAutocompleteValues(resource.whitelisted_methods),
 	}
 }
 
-const getResourceMenu = (resource: Resource, name: string) => {
+const getResourceMenu = (resource: Resource, resource_name: string) => {
 	return [
 		{
 			label: "Edit",
 			icon: "edit",
 			onClick: async () => {
-				studioPageResources.filters = { parent: store.activePage?.name, name: resource.docname }
+				studioPageResources.filters = {
+					parent: store.activePage?.name,
+					name: resource.resource_child_table_id,
+				}
 				await studioPageResources.reload()
 
 				existingResource.value = studioPageResources.data[0]
@@ -159,7 +169,7 @@ const getResourceMenu = (resource: Resource, name: string) => {
 		{
 			label: "Delete",
 			icon: "trash",
-			onClick: () => deleteResource(resource.docname, name),
+			onClick: () => deleteResource(resource, resource_name),
 		},
 		{
 			label: "Copy Object",
