@@ -26,6 +26,7 @@ import traceback
 import warnings
 from collections import defaultdict
 from collections.abc import Callable, Iterable
+from pathlib import Path
 from typing import (
 	TYPE_CHECKING,
 	Any,
@@ -51,7 +52,7 @@ from frappe.query_builder.utils import (
 from frappe.utils.caching import request_cache
 from frappe.utils.data import cint, cstr, sbool
 
-from .bench_interface import Bench
+from .bench_interface import Bench, Sites
 
 # Local application imports
 from .exceptions import *
@@ -220,7 +221,7 @@ if TYPE_CHECKING:  # pragma: no cover
 	lang: str
 
 
-def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool = False) -> None:
+def init(site: str, sites_path: str | Path = ".", new_site: bool = False, force: bool = False) -> None:
 	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
 	if getattr(local, "initialised", None) and not force:
 		return
@@ -247,10 +248,12 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 	local.locked_documents: list[Document] = []
 	local.test_objects = defaultdict(list)
 
+	if Path(sites_path).resolve() != bench.sites.path:
+		bench.sites = Sites(frappe.bench, sites_path)
 	local.site = site
-	local.site_name = site  # implicitly scopes bench
-	local.sites_path = sites_path
-	local.site_path = os.path.join(sites_path, site)
+	bench.sites.site_name = site
+	local.sites_path = str(bench.sites.path)
+	local.site_path = str(bench.site.path) if bench.scoped else ""
 	local.all_apps = None
 
 	local.request_ip = None
@@ -366,13 +369,15 @@ def connect_replica() -> bool:
 	return True
 
 
-def get_site_config(sites_path: str | None = None, site_path: str | None = None) -> _dict[str, Any]:
+def get_site_config(
+	sites_path: str | Path | None = None, site_path: str | Path | None = None
+) -> _dict[str, Any]:
 	"""Return `site_config.json` combined with `sites/common_site_config.json`.
 	`site_config` is a set of site wide settings like database name, password, email etc."""
 	config: _dict[str, Any] = _dict()
 
-	sites_path = sites_path or getattr(local, "sites_path", None)
-	site_path = site_path or getattr(local, "site_path", None)
+	sites_path = str(sites_path) if sites_path else str(bench.sites.path)
+	site_path = str(site_path) if site_path else str(bench.site.path) if bench.scoped else None
 
 	common_config = get_common_site_config(sites_path)
 
@@ -448,14 +453,14 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	return config
 
 
-def get_common_site_config(sites_path: str | None = None) -> _dict[str, Any]:
+def get_common_site_config(sites_path: str | Path | None = None) -> _dict[str, Any]:
 	"""Return common site config as dictionary.
 
 	This is useful for:
 	- checking configuration which should only be allowed in common site config
 	- When no site context is present and fallback is required.
 	"""
-	sites_path = sites_path or getattr(local, "sites_path", None)
+	sites_path = str(sites_path) if sites_path else str(bench.sites.path)
 
 	common_site_config = os.path.join(sites_path, "common_site_config.json")
 	if os.path.exists(common_site_config):
@@ -1571,9 +1576,8 @@ def get_site_path(*joins):
 	"""Return path of current site.
 
 	:param *joins: Join additional path elements using `os.path.join`."""
-	from os.path import join
 
-	return join(local.site_path, *joins)
+	return bench.site.path.joinpath(*joins)
 
 
 def get_pymodule_path(modulename, *joins):
@@ -1597,12 +1601,12 @@ def get_module_list(app_name):
 def get_all_apps(with_internal_apps=True, sites_path=None):
 	"""Get list of all apps via `sites/apps.txt`."""
 	if not sites_path:
-		sites_path = local.sites_path
+		sites_path = str(bench.sites.path)
 
 	apps = get_file_items(os.path.join(sites_path, "apps.txt"), raise_not_found=True)
 
 	if with_internal_apps:
-		for app in get_file_items(os.path.join(local.site_path, "apps.txt")):
+		for app in get_file_items(os.path.join(bench.site.path, "apps.txt")):
 			if app not in apps:
 				apps.append(app)
 

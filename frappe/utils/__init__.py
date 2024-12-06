@@ -19,6 +19,7 @@ from collections.abc import (
 )
 from email.header import decode_header, make_header
 from email.utils import formataddr, parseaddr
+from pathlib import Path
 from typing import TypedDict
 
 from werkzeug.test import Client
@@ -496,12 +497,12 @@ def execute_in_shell(cmd, verbose=False, low_priority=False, check_exit_code=Fal
 def get_path(*path, **kwargs):
 	base = kwargs.get("base")
 	if not base:
-		base = frappe.local.site_path
-	return os.path.join(base, *path)
+		base = frappe.bench.site.path
+	return str(os.path.join(base, *path))
 
 
 def get_site_base_path():
-	return frappe.local.site_path
+	return str(frappe.bench.site.path)
 
 
 def get_site_path(*path):
@@ -671,7 +672,11 @@ def is_a_property(x) -> bool:
 
 def get_sites(sites_path=None):
 	if not sites_path:
-		sites_path = getattr(frappe.local, "sites_path", None) or "."
+		if Path(os.getcwd()).resolve() != frappe.bench.sites.path:
+			from frappe.bencher import Sites
+
+			frappe.bench.sites = Sites(frappe.bench, os.getcwd())
+		sites_path = frappe.bench.sites.path
 
 	sites = []
 	for site in os.listdir(sites_path):
@@ -944,7 +949,7 @@ def get_file_size(path, format=False):
 
 def get_build_version():
 	try:
-		return str(os.path.getmtime(os.path.join(frappe.local.sites_path, "assets/assets.json")))
+		return str(os.path.getmtime(frappe.bench.sites.path / "assets" / "assets.json"))
 	except OSError:
 		# .build can sometimes not exist
 		# this is not a major problem so send fallback

@@ -4,6 +4,7 @@ import os
 import re
 import shutil
 import subprocess
+from pathlib import Path
 from subprocess import getoutput
 from tempfile import mkdtemp
 from urllib.parse import urlparse
@@ -15,7 +16,6 @@ import frappe
 
 timestamps = {}
 app_paths = None
-sites_path = os.path.abspath(os.getcwd())
 WHITESPACE_PATTERN = re.compile(r"\s+")
 HTML_COMMENT_PATTERN = re.compile(r"(<!--.*?-->)")
 
@@ -43,12 +43,16 @@ def download_file(url, prefix):
 
 def build_missing_files():
 	"""Check which files dont exist yet from the assets.json and run build for those files"""
+	if Path(os.path.abspath(os.getcwd())).resolve() != frappe.bench.sites.path:
+		from frappe.bencher import Sites
+
+		frappe.bench.sites = Sites(frappe.bench, os.path.abspath(os.getcwd()))
 
 	missing_assets = []
 	current_asset_files = []
 
 	for type in ["css", "js"]:
-		folder = os.path.join(sites_path, "assets", "frappe", "dist", type)
+		folder = frappe.bench.sites.path / "assets" / "frappe" / "dist" / type
 		current_asset_files.extend(os.listdir(folder))
 
 	development = frappe.local.conf.developer_mode or frappe.local.dev_server
@@ -137,7 +141,8 @@ def download_frappe_assets(verbose=True) -> bool:
 	"""Download and set up Frappe assets if they exist based on the current commit HEAD.
 	Return True if correctly setup else return False.
 	"""
-	frappe_head = getoutput("cd ../apps/frappe && git rev-parse HEAD")
+	frappe_path = frappe.bench.apps["frappe"].path
+	frappe_head = getoutput(f"cd {frappe_path} && git rev-parse HEAD")
 
 	if not frappe_head:
 		return False
@@ -215,7 +220,7 @@ def setup():
 		except ImportError:
 			pass
 	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
-	assets_path = os.path.join(frappe.local.sites_path, "assets")
+	assets_path = frappe.bench.sites.path / "assets"
 
 
 def bundle(
