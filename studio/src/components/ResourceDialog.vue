@@ -4,21 +4,8 @@
 		:options="{
 			title: resource?.name ? 'Edit Data Source' : 'Add Data Source',
 			size: '2xl',
-			actions: [
-				{
-					label: resource?.name ? 'Save' : 'Add',
-					variant: 'solid',
-					onClick: () => {
-						if (resource?.name) {
-							emit('editResource', newResource)
-						} else {
-							emit('addResource', newResource)
-						}
-					},
-				},
-			],
 		}"
-		@after-leave="newResource = { ...emptyResource }"
+		@after-leave="reset"
 	>
 		<template #body-content>
 			<div class="flex flex-col space-y-4">
@@ -133,11 +120,33 @@
 				</template>
 			</div>
 		</template>
+
+		<template #actions>
+			<div class="space-y-1">
+				<ErrorMessage class="mb-2" :message="errorMessage" />
+				<Button
+					variant="solid"
+					:label="resource?.name ? 'Save' : 'Add'"
+					@click="
+						() => {
+							if (!areRequiredFieldsFilled()) return
+
+							if (resource?.name) {
+								emit('editResource', newResource)
+							} else {
+								emit('addResource', newResource)
+							}
+						}
+					"
+					class="w-full"
+				/>
+			</div>
+		</template>
 	</Dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue"
+import { computed, ref, watch } from "vue"
 import { createResource } from "frappe-ui"
 import Link from "@/components/Link.vue"
 import CodeEditor from "@/components/CodeEditor.vue"
@@ -215,7 +224,43 @@ function getParsedFilters(filters: string | object | undefined) {
 
 const doctypeFields = ref([])
 const filterFields = ref<DocTypeField[]>([])
+
+async function setDoctypeFields(doctype: string) {
+	const fields = createResource({
+		url: "studio.api.get_doctype_fields",
+		params: { doctype: doctype },
+		transform: (data: DocTypeField[]) => {
+			filterFields.value = data
+			return data.map((field) => {
+				return {
+					label: field.fieldname,
+					value: field.fieldname,
+				}
+			})
+		},
+	})
+	await fields.reload()
+	doctypeFields.value = fields.data
+}
+
 const whitelistedMethods = ref([])
+
+async function setWhitelistedMethods(doctype: string) {
+	const methods = createResource({
+		url: "studio.api.get_whitelisted_methods",
+		params: { doctype: doctype },
+		transform: (data: string[]) => {
+			return data.map((method) => {
+				return {
+					label: method,
+					value: method,
+				}
+			})
+		},
+	})
+	await methods.reload()
+	whitelistedMethods.value = methods.data
+}
 
 const getTransformFnBoilerplate = (resource_type: ResourceType) => {
 	if (resource_type == "Document") {
@@ -242,38 +287,44 @@ watch(
 	},
 )
 
-async function setDoctypeFields(doctype: string) {
-	const fields = createResource({
-		url: "studio.api.get_doctype_fields",
-		params: { doctype: doctype },
-		transform: (data: DocTypeField[]) => {
-			filterFields.value = data
-			return data.map((field) => {
-				return {
-					label: field.fieldname,
-					value: field.fieldname,
-				}
-			})
-		},
-	})
-	await fields.reload()
-	doctypeFields.value = fields.data
+const requiredFields = computed(() => {
+	if (newResource.value.source === "Existing Data Source") {
+		return { name: "Data Source" }
+	}
+
+	const reqd: Record<string, string> = { resource_name: "Data Source Name" }
+	if (newResource.value.resource_type === "API Resource") {
+		reqd["url"] = "URL"
+		reqd["method"] = "Method"
+	} else {
+		reqd["document_type"] = "Document Type"
+		if (newResource.value.resource_type === "Document List") {
+			reqd["fields"] = "Fields"
+		} else {
+			if (newResource.value.fetch_document_using_filters) {
+				reqd["filters"] = "Filters"
+			} else {
+				reqd["document_name"] = "Document Name"
+			}
+		}
+	}
+	return reqd
+})
+
+const errorMessage = ref("")
+const areRequiredFieldsFilled = () => {
+	const missingFields = Object.keys(requiredFields.value).filter((field) => !newResource.value[field])
+	if (missingFields.length) {
+		errorMessage.value = `Please set ${missingFields.map((field) => requiredFields.value[field]).join(", ")}`
+		return false
+	} else {
+		errorMessage.value = ""
+		return true
+	}
 }
 
-async function setWhitelistedMethods(doctype: string) {
-	const methods = createResource({
-		url: "studio.api.get_whitelisted_methods",
-		params: { doctype: doctype },
-		transform: (data: string[]) => {
-			return data.map((method) => {
-				return {
-					label: method,
-					value: method,
-				}
-			})
-		},
-	})
-	await methods.reload()
-	whitelistedMethods.value = methods.data
+const reset = () => {
+	newResource.value = { ...emptyResource }
+	errorMessage.value = ""
 }
 </script>
