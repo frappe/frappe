@@ -221,7 +221,7 @@ if TYPE_CHECKING:  # pragma: no cover
 	lang: str
 
 
-def init(site: str, sites_path: str | Path = ".", new_site: bool = False, force: bool = False) -> None:
+def init(site: str, new_site: bool = False, force: bool = False) -> None:
 	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
 	if getattr(local, "initialised", None) and not force:
 		return
@@ -248,15 +248,6 @@ def init(site: str, sites_path: str | Path = ".", new_site: bool = False, force:
 	local.locked_documents: list[Document] = []
 	local.test_objects = defaultdict(list)
 
-	if Path(sites_path).resolve() != bench.sites.path:
-		from frappe.deprecation_dumpster import deprecation_warning
-
-		deprecation_warning(
-			"2024-12-06",
-			"v17",
-			"Specifying a distinct 'sites_path' to 'frappe.init' as an argument is deprecated, use FRAPPE_SITES_PATH env variable, instead.",
-		)
-		bench.sites = Sites(frappe.bench, sites_path)
 	local.site = site
 	local.site_name = site  # implicitly scopes bench
 	local.all_apps = None
@@ -374,24 +365,16 @@ def connect_replica() -> bool:
 	return True
 
 
-def get_site_config(
-	sites_path: str | Path | None = None, site_path: str | Path | None = None
-) -> _dict[str, Any]:
+def get_site_config() -> _dict[str, Any]:
 	"""Return `site_config.json` combined with `sites/common_site_config.json`.
 	`site_config` is a set of site wide settings like database name, password, email etc."""
 	config: _dict[str, Any] = _dict()
 
-	sites_path = str(sites_path) if sites_path else str(bench.sites.path)
-	site_path = str(site_path) if site_path else str(bench.site.path) if bench.scoped else None
+	config.update(get_common_site_config())
 
-	common_config = get_common_site_config(sites_path)
-
-	if sites_path:
-		config.update(common_config)
-
-	if site_path:
-		site_config = os.path.join(site_path, "site_config.json")
-		if os.path.exists(site_config):
+	if bench.scoped:
+		site_config = bench.site.path / "site_config.json"
+		if site_config.exists():
 			try:
 				config.update(get_file_json(site_config))
 			except Exception as error:
@@ -458,17 +441,15 @@ def get_site_config(
 	return config
 
 
-def get_common_site_config(sites_path: str | Path | None = None) -> _dict[str, Any]:
+def get_common_site_config() -> _dict[str, Any]:
 	"""Return common site config as dictionary.
 
 	This is useful for:
 	- checking configuration which should only be allowed in common site config
 	- When no site context is present and fallback is required.
 	"""
-	sites_path = str(sites_path) if sites_path else str(bench.sites.path)
-
-	common_site_config = os.path.join(sites_path, "common_site_config.json")
-	if os.path.exists(common_site_config):
+	common_site_config = bench.sites.path / "common_site_config.json"
+	if common_site_config.exists():
 		try:
 			return _dict(get_file_json(common_site_config))
 		except Exception as error:
@@ -1582,7 +1563,7 @@ def get_site_path(*joins):
 
 	:param *joins: Join additional path elements using `os.path.join`."""
 
-	return bench.site.path.joinpath(*joins)
+	return frappe.bench.site.path.joinpath(*joins)
 
 
 def get_pymodule_path(modulename, *joins):
@@ -1603,12 +1584,10 @@ def get_module_list(app_name):
 	return get_file_items(get_app_path(app_name, "modules.txt"))
 
 
-def get_all_apps(sites_path=None):
+def get_all_apps():
 	"""Get list of all apps via `sites/apps.txt`."""
-	if not sites_path:
-		sites_path = str(bench.sites.path)
 
-	apps = get_file_items(os.path.join(sites_path, "apps.txt"), raise_not_found=True)
+	apps = get_file_items(bench.sites.path / "apps.txt", raise_not_found=True)
 
 	if bench.scoped:
 		for app in get_file_items(os.path.join(bench.site.path, "apps.txt")):

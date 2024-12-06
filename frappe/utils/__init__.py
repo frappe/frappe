@@ -670,13 +670,10 @@ def is_a_property(x) -> bool:
 	return isinstance(x, property | functools.cached_property)
 
 
-def get_sites(sites_path=None):
-	if not sites_path:
-		sites_path = frappe.bench.sites.path
-
+def get_sites():
 	sites = []
-	for site in os.listdir(sites_path):
-		path = os.path.join(sites_path, site)
+	for site in os.listdir(frappe.bench.sites.path):
+		path = os.path.join(frappe.bench.sites.path, site)
 
 		if (
 			os.path.isdir(path)

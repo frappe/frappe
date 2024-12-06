@@ -172,7 +172,7 @@ def init_request(request):
 	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With") == "XMLHttpRequest"
 
 	site = _site or request.headers.get("X-Frappe-Site-Name") or get_site_name(request.host)
-	frappe.init(site, sites_path=frappe.bench.sites.path, force=True)
+	frappe.init(site, force=True)
 
 	if not (frappe.local.conf and frappe.local.conf.db_name):
 		# site does not exist
@@ -470,24 +470,10 @@ def serve(
 	no_reload=False,
 	no_threading=False,
 	site=None,
-	sites_path=".",
 	proxy=False,
 ):
 	global application, _site
 	_site = site
-	from pathlib import Path
-
-	if Path(sites_path).resolve() != frappe.bench.sites.path:
-		from frappe.bencher import Sites
-		from frappe.deprecation_dumpster import deprecation_warning
-
-		deprecation_warning(
-			"2024-12-06",
-			"v17",
-			"Specifying a distinct 'sites_path' to 'frappe.app.serve' as an argument is deprecated, use FRAPPE_SITES_PATH env variable, instead.",
-		)
-		frappe.bench.sites = Sites(frappe.bench, sites_path)
-
 	from werkzeug.serving import run_simple
 
 	if profile or os.environ.get("USE_PROFILER"):

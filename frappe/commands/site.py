@@ -785,12 +785,8 @@ def add_to_hosts(context: CliCtxObj):
 
 @click.command("use")
 @click.argument("site")
-def _use(site, sites_path="."):
+def use(site):
 	"Set a default site"
-	use(site, sites_path=sites_path)
-
-
-def use(site, sites_path="."):
 	from frappe.installer import update_site_config
 
 	if (frappe.bench.sites.path / site).exists():
@@ -1591,7 +1587,7 @@ commands = [
 	set_admin_password,
 	uninstall,
 	disable_user,
-	_use,
+	use,
 	set_last_active_for_user,
 	publish_realtime,
 	browse,

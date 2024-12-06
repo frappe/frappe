@@ -559,7 +559,7 @@ def make_conf(
 		db_user=db_user,
 	)
 	frappe.destroy()
-	frappe.init(site, sites_path=frappe.bench.sites.path)
+	frappe.init(site)
 
 
 def make_site_config(

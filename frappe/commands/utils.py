@@ -205,9 +205,7 @@ def show_config(context: CliCtxObj, format):
 				click.echo()
 			click.secho(f"Site {site}", fg="yellow")
 
-		configuration = frappe.get_site_config(
-			sites_path=frappe.bench.sites.path, site_path=frappe.bench.site.path
-		)
+		configuration = frappe.get_site_config()
 
 		if format == "text":
 			data = transform_config(configuration)
@@ -580,7 +578,7 @@ Starting Jupyter notebook
 Run the following in your first cell to connect notebook to frappe
 ```
 import frappe
-frappe.init('{site}', sites_path='{frappe.bench.sites.path}')
+frappe.init('{site}')
 frappe.connect()
 frappe.local.lang = frappe.db.get_default('lang')
 frappe.db.connect()
@@ -769,7 +767,6 @@ def serve(
 	proxy=False,
 	no_reload=False,
 	no_threading=False,
-	sites_path=".",
 	site=None,
 	with_coverage=False,
 ):
@@ -792,7 +789,6 @@ def serve(
 			no_reload=no_reload,
 			no_threading=no_threading,
 			site=site,
-			sites_path=".",
 		)
 
 
