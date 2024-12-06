@@ -39,7 +39,7 @@
 				/>
 
 				<template v-else>
-					<FormControl label="Name" v-model="newResource.resource_name" autocomplete="off" />
+					<FormControl label="Data Source Name" v-model="newResource.resource_name" autocomplete="off" />
 					<FormControl
 						label="Type"
 						type="select"
@@ -93,11 +93,12 @@
 						<FormControl size="sm" type="checkbox" v-model="newResource.transform_results" />
 						<InputLabel>Transform Results</InputLabel>
 					</div>
-					<InlineInput
+					<CodeEditor
 						v-if="newResource.transform_results"
 						v-model="newResource.transform"
-						type="code"
+						type="JavaScript"
 						height="150px"
+						:showLineNumbers="true"
 					/>
 				</template>
 			</div>
@@ -109,7 +110,7 @@
 import { ref, watch } from "vue"
 import { createResource } from "frappe-ui"
 import Link from "@/components/Link.vue"
-import InlineInput from "@/components/InlineInput.vue"
+import CodeEditor from "@/components/CodeEditor.vue"
 import InputLabel from "@/components/InputLabel.vue"
 import Filters from "@/components/Filters.vue"
 
@@ -142,7 +143,7 @@ const emptyResource: NewResource = {
 
 const newResource = ref<NewResource | Resource>({ ...emptyResource })
 watch(
-	() => props.resource?.name,
+	() => props.resource,
 	async () => {
 		if (props.resource?.name) {
 			newResource.value = await getResourceToEdit()

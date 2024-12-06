@@ -41,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref, watch } from "vue"
 import useStudioStore from "@/stores/studioStore"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
 import ObjectBrowser from "@/components/ObjectBrowser.vue"
@@ -62,6 +62,13 @@ import { toast } from "vue-sonner"
 
 const store = useStudioStore()
 const showResourceDialog = ref(false)
+const existingResource = ref<Resource | null>()
+
+watch(showResourceDialog, (show) => {
+	if (!show) {
+		existingResource.value = null
+	}
+})
 
 const attachResource = async (resource: Resource) => {
 	studioPageResources.insert
@@ -80,6 +87,10 @@ const attachResource = async (resource: Resource) => {
 }
 
 const addResource = (resource: NewResource) => {
+	if (!resource.resource_name) {
+		toast.error("Data Source Name is required")
+		return
+	}
 	if (resource.source === "Existing Data Source") {
 		attachResource(resource as unknown as Resource)
 		return
@@ -108,7 +119,6 @@ const deleteResource = async (docname: string, resource_name: string) => {
 	}
 }
 
-const existingResource = ref<Resource | null>()
 const editResource = async (resource: Resource) => {
 	return studioResources.setValue
 		.submit(getResourceValues(resource))
