@@ -252,6 +252,13 @@ def init(site: str, sites_path: str | Path = ".", new_site: bool = False, force:
 	local.test_objects = defaultdict(list)
 
 	if Path(sites_path).resolve() != bench.sites.path:
+		from frappe.deprecation_dumpster import deprecation_warning
+
+		deprecation_warning(
+			"2024-12-06",
+			"v17",
+			"Specifying a distinct 'sites_path' to 'frappe.init' as an argument is deprecated, use FRAPPE_SITES_PATH env variable, instead.",
+		)
 		bench.sites = Sites(frappe.bench, sites_path)
 	local.site = site
 	local.site_name = site  # implicitly scopes bench

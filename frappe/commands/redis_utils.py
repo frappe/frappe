@@ -22,7 +22,13 @@ def create_rq_users(set_admin_password=False, use_rq_auth=False):
 	"""
 	if Path(os.getcwd()).resolve() != frappe.bench.sites.path:
 		from frappe.bencher import Sites
+		from frappe.deprecation_dumpster import deprecation_warning
 
+		deprecation_warning(
+			"2024-12-06",
+			"v17",
+			"Calling frappe.commands.redis_utils.create_rq_user from the current working directory distinct of the sites directory is deprecated, use FRAPPE_SITES_PATH env variable to specify a distinct sites directory, instead.",
+		)
 		frappe.bench.sites = Sites(frappe.bench, os.getcwd())
 
 	from frappe.installer import update_site_config
