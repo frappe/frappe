@@ -7,10 +7,10 @@ import traceback
 import warnings
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, NotRequired, TypeAlias, TypedDict, cast
+from typing import Any, TypeAlias, TypedDict, cast
 
 from filelock import FileLock, Timeout
-from typing_extensions import override
+from typing_extensions import NotRequired, override
 
 
 class FrappeUnregisteredConfigOptionWarning(Warning):
