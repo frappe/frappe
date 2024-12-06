@@ -61,6 +61,8 @@ __all__ = [
 # used to implement legacy code paths to keep the main path clean
 _current_bench: "Bench"
 
+from frappe.deprecation_dumpster import deprecation_warning
+
 
 class BenchNotScopedError(NotImplementedError):
 	pass
@@ -331,6 +333,11 @@ class Sites(_PathResolvable, ConfigHandler, _Serializable):
 	__env_variable = "FRAPPE_SITES_PATH"
 
 	if legacy_env_path := os.environ.get("SITES_PATH"):
+		deprecation_warning(
+			"2024-12-06",
+			"v17",
+			"Specifying sites path via SITES_PATH env variable is deprecated, use the canonical FRAPPE_SITES_PATH, instead.",
+		)
 		os.environ["FRAPPE_SITES_PATH"] = legacy_env_path
 
 	def __init__(self, *, bench: "Bench", path: str | Path | None = None, parent_path: Path | None = None):
@@ -446,6 +453,11 @@ class Sites(_PathResolvable, ConfigHandler, _Serializable):
 class Bench(_PathResolvable, _Serializable):
 	__env_variable = "FRAPPE_BENCH_PATH"
 	if legacy_env_path := os.environ.get("FRAPPE_BENCH_ROOT"):
+		deprecation_warning(
+			"2024-12-06",
+			"v17",
+			"Specifying sites path via FRAPPE_BENCH_ROOT env variable is deprecated, use the canonical FRAPPE_BENCH_PATH, instead.",
+		)
 		os.environ["FRAPPE_BENCH_PATH"] = legacy_env_path
 	if not os.environ.get("FRAPPE_BENCH_PATH") and (legacy_env_path_sites := os.environ.get("SITES_PATH")):
 		os.environ["FRAPPE_BENCH_PATH"] = str(Path(legacy_env_path_sites).resolve().parent)
