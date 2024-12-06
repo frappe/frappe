@@ -31,7 +31,6 @@ from frappe.website.page_renderers.error_page import ErrorPage
 from frappe.website.serve import get_response
 
 _site = None
-_sites_path = os.environ.get("SITES_PATH", ".")
 
 
 # If gc.freeze is done then importing modules before forking allows us to share the memory
@@ -173,7 +172,7 @@ def init_request(request):
 	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With") == "XMLHttpRequest"
 
 	site = _site or request.headers.get("X-Frappe-Site-Name") or get_site_name(request.host)
-	frappe.init(site, sites_path=_sites_path, force=True)
+	frappe.init(site, sites_path=frappe.bench.sites.path, force=True)
 
 	if not (frappe.local.conf and frappe.local.conf.db_name):
 		# site does not exist
@@ -474,9 +473,14 @@ def serve(
 	sites_path=".",
 	proxy=False,
 ):
-	global application, _site, _sites_path
+	global application, _site
 	_site = site
-	_sites_path = sites_path
+	from pathlib import Path
+
+	if Path(sites_path).resolve() != frappe.bench.sites.path:
+		from frappe.bencher import Sites
+
+		frappe.bench.sites = Sites(frappe.bench, sites_path)
 
 	from werkzeug.serving import run_simple
 
@@ -512,11 +516,10 @@ def serve(
 
 
 def application_with_statics():
-	global application, _sites_path
+	global application
 
-	application = SharedDataMiddleware(application, {"/assets": str(os.path.join(_sites_path, "assets"))})
-
-	application = StaticDataMiddleware(application, {"/files": str(os.path.abspath(_sites_path))})
+	application = SharedDataMiddleware(application, {"/assets": str(frappe.bench.sites.path / "assets")})
+	application = StaticDataMiddleware(application, {"/files": str(frappe.bench.sites.path)})
 
 	return application
 

@@ -318,7 +318,7 @@ def get_js(items):
 		if ".." in src or src[0] != "assets":
 			frappe.throw(_("Invalid file path: {0}").format("/".join(src)))
 
-		contentpath = os.path.join(frappe.local.sites_path, *src)
+		contentpath = frappe.bench.sites.path.joinpath(*src)
 		with open(contentpath) as srcfile:
 			code = frappe.utils.cstr(srcfile.read())
 
@@ -819,12 +819,14 @@ def get_tests_CompatFrappeTestCase():
 			from frappe.installer import update_site_config
 			from frappe.utils.safe_exec import SAFE_EXEC_CONFIG_KEY
 
-			cls._common_conf = os.path.join(frappe.local.sites_path, "common_site_config.json")
-			update_site_config(SAFE_EXEC_CONFIG_KEY, 1, validate=False, site_config_path=cls._common_conf)
+			cls._common_conf = frappe.bench.sites.path / "common_site_config.json"
+			update_site_config(
+				SAFE_EXEC_CONFIG_KEY, 1, validate=False, site_config_path=str(cls._common_conf)
+			)
 
 			cls.addClassCleanup(
 				lambda: update_site_config(
-					SAFE_EXEC_CONFIG_KEY, 0, validate=False, site_config_path=cls._common_conf
+					SAFE_EXEC_CONFIG_KEY, 0, validate=False, site_config_path=str(cls._common_conf)
 				)
 			)
 

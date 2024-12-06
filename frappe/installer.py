@@ -558,9 +558,8 @@ def make_conf(
 		db_port=db_port,
 		db_user=db_user,
 	)
-	sites_path = frappe.local.sites_path
 	frappe.destroy()
-	frappe.init(site, sites_path=sites_path)
+	frappe.init(site, sites_path=frappe.bench.sites.path)
 
 
 def make_site_config(
@@ -573,7 +572,7 @@ def make_site_config(
 	db_port=None,
 	db_user=None,
 ):
-	frappe.create_folder(os.path.join(frappe.local.site_path))
+	frappe.create_folder(str(frappe.bench.site.path))
 	site_file = get_site_config_path()
 
 	if not os.path.exists(site_file):
@@ -642,7 +641,7 @@ def _update_config_file(key: str, value, config_file: str):
 
 
 def get_site_config_path():
-	return os.path.join(frappe.local.site_path, "site_config.json")
+	return str(frappe.bench.site.path / "site_config.json")
 
 
 def get_conf_params(db_name=None, db_password=None):

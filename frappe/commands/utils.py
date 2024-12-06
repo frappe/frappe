@@ -3,6 +3,7 @@ import os
 import subprocess
 import sys
 import typing
+from pathlib import Path
 
 import click
 
@@ -181,7 +182,10 @@ def show_config(context: CliCtxObj, format):
 		raise SiteNotSpecifiedError
 
 	sites_config = {}
-	sites_path = os.getcwd()
+	if Path(os.getcwd()).resolve() != frappe.bench.sites.path:
+		from frappe.bencher import Sites
+
+		frappe.bench.sites = Sites(frappe.bench, os.getcwd())
 
 	from frappe.utils.commands import render_table
 
@@ -206,7 +210,9 @@ def show_config(context: CliCtxObj, format):
 				click.echo()
 			click.secho(f"Site {site}", fg="yellow")
 
-		configuration = frappe.get_site_config(sites_path=sites_path, site_path=site)
+		configuration = frappe.get_site_config(
+			sites_path=frappe.bench.sites.path, site_path=frappe.bench.site.path
+		)
 
 		if format == "text":
 			data = transform_config(configuration)
@@ -566,7 +572,6 @@ def jupyter(context: CliCtxObj):
 	frappe.init(site)
 
 	jupyter_notebooks_path = os.path.abspath(frappe.get_site_path("jupyter_notebooks"))
-	sites_path = os.path.abspath(frappe.get_site_path(".."))
 
 	try:
 		os.stat(jupyter_notebooks_path)
@@ -580,7 +585,7 @@ Starting Jupyter notebook
 Run the following in your first cell to connect notebook to frappe
 ```
 import frappe
-frappe.init('{site}', sites_path='{sites_path}')
+frappe.init('{site}', sites_path='{frappe.bench.sites.path}')
 frappe.connect()
 frappe.local.lang = frappe.db.get_default('lang')
 frappe.db.connect()
@@ -871,9 +876,12 @@ def set_config(context: CliCtxObj, key, value, global_=False, parse=False):
 		value = ast.literal_eval(value)
 
 	if global_:
-		sites_path = os.getcwd()
-		common_site_config_path = os.path.join(sites_path, "common_site_config.json")
-		update_site_config(key, value, validate=False, site_config_path=common_site_config_path)
+		if Path(os.getcwd()).resolve() != frappe.bench.sites.path:
+			from frappe.bencher import Sites
+
+			frappe.bench.sites = Sites(frappe.bench, os.getcwd())
+		common_site_config_path = frappe.bench.sites.path / "common_site_config.json"
+		update_site_config(key, value, validate=False, site_config_path=str(common_site_config_path))
 	else:
 		if not context.sites:
 			raise SiteNotSpecifiedError
