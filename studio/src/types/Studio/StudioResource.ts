@@ -20,6 +20,7 @@ export interface DocumentResource extends BaseResource {
 	document_type: string
 	document_name?: string
 	whitelisted_methods?: string[]
+	fetch_document_using_filters?: boolean
 	filters?: Filters
 }
 

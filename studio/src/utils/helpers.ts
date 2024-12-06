@@ -351,7 +351,7 @@ function getWhitelistedMethods(resource: DocumentResource) {
 
 async function getDocumentResource(resource: DocumentResource, context: ExpressionEvaluationContext) {
 	let docname = resource.document_name
-	if (!docname && resource.filters) {
+	if (resource.fetch_document_using_filters && resource.filters) {
 		// fetch the docname based on filters
 		const docList = createListResource({
 			doctype: resource.document_type,
@@ -439,6 +439,18 @@ function copyToClipboard(text: string | object) {
 	}
 }
 
+function getErrorMessage(err: any) {
+	const lastLine = err.exc
+		?.split('\n')
+		.filter(Boolean)
+		.at(-1)
+		?.trim()
+		.split(': ')
+		.slice(1)
+		.join(': ')
+	return lastLine || err.message || err.toString()
+}
+
 
 export {
 	copyToClipboard,
@@ -471,4 +483,5 @@ export {
 	getNewResource,
 	// dialog
 	confirm,
+	getErrorMessage,
 }

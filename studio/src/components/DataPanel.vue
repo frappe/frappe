@@ -111,7 +111,7 @@ const deleteResource = async (docname: string, resource_name: string) => {
 				if (store.activePage) {
 					store.setPageResources(store.activePage)
 				}
-				toast.success(`Data Source <b>${resource_name}</b> deleted successfully`)
+				toast.success(`Data Source ${resource_name} deleted successfully`)
 			})
 			.catch(() => {
 				toast.error(`Failed to delete data source ${resource_name}`)

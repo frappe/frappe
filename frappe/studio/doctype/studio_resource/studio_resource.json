@@ -11,8 +11,9 @@
   "filters",
   "document_resource_section",
   "document_type",
-  "column_break_kkyr",
+  "column_break_mkdu",
   "document_name",
+  "fetch_document_using_filters",
   "section_break_jlam",
   "whitelisted_methods",
   "api_resource_section",
@@ -50,10 +51,7 @@
    "options": "DocType"
   },
   {
-   "fieldname": "column_break_kkyr",
-   "fieldtype": "Column Break"
-  },
-  {
+   "depends_on": "eval:!doc.fetch_document_using_filters",
    "fieldname": "document_name",
    "fieldtype": "Data",
    "label": "Document Name"
@@ -105,19 +103,28 @@
   },
   {
    "fieldname": "section_break_jlam",
-   "fieldtype": "Section Break",
-   "hide_border": 1
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "whitelisted_methods",
    "fieldtype": "JSON",
    "label": "Whitelisted Methods",
    "max_height": "100px"
+  },
+  {
+   "default": "0",
+   "fieldname": "fetch_document_using_filters",
+   "fieldtype": "Check",
+   "label": "Dynamically fetch document using filters"
+  },
+  {
+   "fieldname": "column_break_mkdu",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-10-21 13:40:11.669654",
+ "modified": "2024-12-06 16:32:57.247233",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Resource",

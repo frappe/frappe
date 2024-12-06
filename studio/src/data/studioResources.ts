@@ -19,6 +19,7 @@ const studioPageResources = createListResource({
 		"studio_resource.filters",
 		"studio_resource.document_type",
 		"studio_resource.document_name",
+		"studio_resource.fetch_document_using_filters",
 		"studio_resource.url",
 		"studio_resource.method",
 		"studio_resource.whitelisted_methods",

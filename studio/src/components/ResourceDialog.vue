@@ -21,25 +21,31 @@
 		@after-leave="newResource = { ...emptyResource }"
 	>
 		<template #body-content>
-			<div class="flex flex-col gap-3">
+			<div class="flex flex-col space-y-4">
 				<FormControl
-					v-if="!resource?.name"
 					label="New or Existing"
+					v-if="!resource?.name"
 					type="select"
 					:options="['New Data Source', 'Existing Data Source']"
 					autocomplete="off"
 					v-model="newResource.source"
 				/>
 				<Link
-					v-if="newResource.source === 'Existing Data Source'"
-					doctype="Studio Resource"
 					label="Data Source"
+					v-if="newResource.source === 'Existing Data Source'"
+					:required="true"
+					doctype="Studio Resource"
 					placeholder="Select Data Source"
 					v-model="newResource.name"
 				/>
 
 				<template v-else>
-					<FormControl label="Data Source Name" v-model="newResource.resource_name" autocomplete="off" />
+					<FormControl
+						label="Data Source Name"
+						:required="true"
+						v-model="newResource.resource_name"
+						autocomplete="off"
+					/>
 					<FormControl
 						label="Type"
 						type="select"
@@ -47,8 +53,10 @@
 						autocomplete="off"
 						v-model="newResource.resource_type"
 					/>
+
+					<!-- API Resource -->
 					<template v-if="newResource.resource_type === 'API Resource'">
-						<FormControl label="URL" v-model="newResource.url" />
+						<FormControl label="URL" v-model="newResource.url" :required="true" />
 						<FormControl
 							label="Method"
 							type="select"
@@ -56,43 +64,65 @@
 							v-model="newResource.method"
 						/>
 					</template>
-					<template v-else>
-						<Link doctype="DocType" label="Document Type" v-model="newResource.document_type" />
+
+					<Link
+						v-else
+						label="Document Type"
+						:required="true"
+						doctype="DocType"
+						v-model="newResource.document_type"
+					/>
+
+					<!-- Document List -->
+					<template v-if="newResource.resource_type === 'Document List' && newResource.document_type">
 						<FormControl
-							v-if="newResource.resource_type === 'Document List' && newResource.document_type"
-							type="autocomplete"
 							label="Fields"
+							:required="true"
+							type="autocomplete"
 							:placeholder="`Select fields from ${newResource.document_type}`"
 							v-model="newResource.fields"
 							:options="doctypeFields"
 							:multiple="true"
 						/>
+						<Filters label="Filters" v-model="newResource.filters" :docfields="filterFields" />
+					</template>
+
+					<!-- Document -->
+					<template v-if="newResource.resource_type === 'Document' && newResource.document_type">
 						<Link
-							v-if="newResource.resource_type === 'Document' && newResource.document_type"
-							:doctype="newResource.document_type"
 							label="Document Name"
+							v-if="!newResource.fetch_document_using_filters"
+							:required="true"
+							:doctype="newResource.document_type"
 							v-model="newResource.document_name"
 						/>
+
+						<div class="flex w-full flex-row gap-1.5">
+							<FormControl size="sm" type="checkbox" v-model="newResource.fetch_document_using_filters" />
+							<InputLabel class="max-w-full">Dynamically fetch document using filters</InputLabel>
+						</div>
+
+						<Filters
+							v-if="newResource.fetch_document_using_filters"
+							v-model="newResource.filters"
+							:docfields="filterFields"
+						/>
+
 						<FormControl
-							v-if="newResource.resource_type === 'Document' && newResource.document_type"
-							type="autocomplete"
 							label="Whitelisted Methods"
+							type="autocomplete"
 							v-model="newResource.whitelisted_methods"
 							:options="whitelistedMethods"
 							:multiple="true"
 						/>
-						<Filters
-							v-if="newResource.document_type"
-							v-model="newResource.filters"
-							:docfields="filterFields"
-							label="Filters"
-						/>
 					</template>
 
+					<!-- Transform Results for any Resource Type -->
 					<div class="flex flex-row gap-1.5">
 						<FormControl size="sm" type="checkbox" v-model="newResource.transform_results" />
 						<InputLabel>Transform Results</InputLabel>
 					</div>
+
 					<CodeEditor
 						v-if="newResource.transform_results"
 						v-model="newResource.transform"
@@ -134,6 +164,7 @@ const emptyResource: NewResource = {
 	method: "GET",
 	document_type: "",
 	document_name: "",
+	fetch_document_using_filters: false,
 	fields: [],
 	filters: {},
 	whitelisted_methods: [],
