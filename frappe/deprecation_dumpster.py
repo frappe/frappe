@@ -235,6 +235,22 @@ def get_local_with_deprecations() -> "Local":
 		# 		"'local.sites_path' will be deprecated: use 'frappe.bench.sites.path instead'",
 		# 	),
 		# )
+		sites_path = DeprecatedLocalAttribute(
+			"sites_path",
+			lambda: deprecation_warning(
+				"2024-12-06",
+				"v17",
+				"'local.sites_path' will be deprecated: use 'frappe.bench.sites.path instead'",
+			),
+		)
+		site_path = DeprecatedLocalAttribute(
+			"site_path",
+			lambda: deprecation_warning(
+				"2024-12-06",
+				"v17",
+				"'local.site_path' will be deprecated: use 'frappe.bench.site.path instead'",
+			),
+		)
 
 	return LocalWithDeprecations()
 
