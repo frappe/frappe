@@ -83,10 +83,7 @@ if TYPE_CHECKING:  # pragma: no cover
 	from frappe.utils.redis_wrapper import RedisWrapper
 
 controllers: dict[str, "Document"] = {}
-
-from frappe.deprecation_dumpster import get_local_with_deprecations
-
-local = get_local_with_deprecations()
+local = Local()
 bench = Bench()
 cache: Optional["RedisWrapper"] = None
 STANDARD_USERS = ("Guest", "Administrator")
@@ -262,10 +259,6 @@ def init(site: str, sites_path: str | Path = ".", new_site: bool = False, force:
 		bench.sites = Sites(frappe.bench, sites_path)
 	local.site = site
 	local.site_name = site  # implicitly scopes bench
-	# TODO: START instrumented by deprecation dumpster - remove from v18
-	local.sites_path = str(bench.sites.path)
-	local.site_path = str(bench.site.path) if bench.scoped else ""
-	# TODO: END  instrumented by deprecation dumpster - remove from v18
 	local.all_apps = None
 
 	local.request_ip = None
