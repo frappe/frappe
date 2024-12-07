@@ -43,17 +43,6 @@ def download_file(url, prefix):
 
 def build_missing_files():
 	"""Check which files dont exist yet from the assets.json and run build for those files"""
-	if Path(os.path.abspath(os.getcwd())).resolve() != frappe.bench.sites.path:
-		from frappe.bencher import Sites
-		from frappe.deprecation_dumpster import deprecation_warning
-
-		deprecation_warning(
-			"2024-12-06",
-			"v17",
-			"Calling frappe.build.build_missing_files from the current working directory distinct of the sites directory is deprecated, use FRAPPE_SITES_PATH env variable, instead.",
-		)
-		frappe.bench.sites = Sites(frappe.bench, os.path.abspath(os.getcwd()))
-
 	missing_assets = []
 	current_asset_files = []
 
