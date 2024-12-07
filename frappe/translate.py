@@ -715,7 +715,7 @@ def get_untranslated(lang, untranslated_file, get_all=False, app="_ALL_APPS"):
 	:param untranslated_file: Output file path.
 	:param get_all: Return all strings, translated or not."""
 	clear_cache()
-	apps = frappe.get_all_apps(True)
+	apps = frappe.get_all_apps()
 	if app != "_ALL_APPS":
 		if app not in apps:
 			print(f"Application {app} not found!")
@@ -784,7 +784,7 @@ def update_translations(lang, untranslated_file, translated_file, app="_ALL_APPS
 		translation_dict[restore_newlines(key)] = restore_newlines(value)
 
 	full_dict.update(translation_dict)
-	apps = frappe.get_all_apps(True)
+	apps = frappe.get_all_apps()
 
 	if app != "_ALL_APPS":
 		if app not in apps:
@@ -802,7 +802,7 @@ def import_translations(lang, path):
 	full_dict = get_all_translations(lang)
 	full_dict.update(get_translation_dict_from_file(path, lang, "import"))
 
-	for app in frappe.get_all_apps(True):
+	for app in frappe.get_all_apps():
 		write_translations_file(app, lang, full_dict)
 
 

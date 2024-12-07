@@ -1603,14 +1603,14 @@ def get_module_list(app_name):
 	return get_file_items(get_app_path(app_name, "modules.txt"))
 
 
-def get_all_apps(with_internal_apps=True, sites_path=None):
+def get_all_apps(sites_path=None):
 	"""Get list of all apps via `sites/apps.txt`."""
 	if not sites_path:
 		sites_path = str(bench.sites.path)
 
 	apps = get_file_items(os.path.join(sites_path, "apps.txt"), raise_not_found=True)
 
-	if with_internal_apps:
+	if bench.scoped:
 		for app in get_file_items(os.path.join(bench.site.path, "apps.txt")):
 			if app not in apps:
 				apps.append(app)
@@ -1746,7 +1746,7 @@ def setup_module_map(include_all_apps: bool = True) -> None:
 	if not local.app_modules:
 		local.app_modules = {}
 		if include_all_apps:
-			apps = get_all_apps(with_internal_apps=True)
+			apps = get_all_apps()
 		else:
 			apps = get_installed_apps(_ensure_on_bench=True)
 

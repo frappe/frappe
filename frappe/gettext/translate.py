@@ -127,7 +127,7 @@ def generate_pot(target_app: str | None = None):
 		subdir = os.path.basename(dirpath)
 		return not (subdir.startswith(".") or subdir.startswith("_"))
 
-	apps = [target_app] if target_app else frappe.get_all_apps(True)
+	apps = [target_app] if target_app else frappe.get_all_apps()
 	default_method_map = get_method_map("frappe")
 
 	keywords = DEFAULT_KEYWORDS.copy()
@@ -176,7 +176,7 @@ def get_is_gitignored_function_for_app(app: str | None):
 
 
 def new_po(locale, target_app: str | None = None):
-	apps = [target_app] if target_app else frappe.get_all_apps(True)
+	apps = [target_app] if target_app else frappe.get_all_apps()
 
 	for app in apps:
 		po_path = get_po_path(app, locale)
@@ -195,7 +195,7 @@ def new_po(locale, target_app: str | None = None):
 
 
 def compile_translations(target_app: str | None = None, locale: str | None = None, force=False):
-	apps = [target_app] if target_app else frappe.get_all_apps(True)
+	apps = [target_app] if target_app else frappe.get_all_apps()
 	tasks = []
 	for app in apps:
 		locales = [locale] if locale else get_locales(app)
@@ -234,7 +234,7 @@ def update_po(target_app: str | None = None, locale: str | None = None):
 	track of available keys, and missing translations
 	:param target_app: Limit operation to `app`, if specified
 	"""
-	apps = [target_app] if target_app else frappe.get_all_apps(True)
+	apps = [target_app] if target_app else frappe.get_all_apps()
 
 	for app in apps:
 		locales = [locale] if locale else get_locales(app)
@@ -247,7 +247,7 @@ def update_po(target_app: str | None = None, locale: str | None = None):
 
 
 def migrate(app: str | None = None, locale: str | None = None):
-	apps = [app] if app else frappe.get_all_apps(True)
+	apps = [app] if app else frappe.get_all_apps()
 
 	for app in apps:
 		if locale:
