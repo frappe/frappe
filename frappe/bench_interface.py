@@ -39,6 +39,7 @@ print(scoped_site.name)
 ### Notes
 - This module uses environment variables and default paths to locate bench and its compontents.
 - It ensures thread-safety and security by storing site names in thread-local storage.
+- Mangled attributes ensure that no accidential api surface is construed.
 """
 
 import json
@@ -52,11 +53,9 @@ from typing_extensions import override
 from frappe.config import ConfigHandler, ConfigType
 
 __all__ = [
-	"Apps",
 	"Bench",
-	"Logs",
-	"Run",
-	"Sites",
+	"BenchNotScopedError",
+	"BenchSiteNotLoadedError",
 ]
 
 # used to implement legacy code paths to keep the main path clean
@@ -71,50 +70,38 @@ class BenchSiteNotLoadedError(ValueError):
 	pass
 
 
-class PathLike:
-	path: Path
-
-	def __fspath__(self) -> str:
-		return str(self.path)
-
-
-class Serializable:
+class _Serializable:
 	def __json__(self) -> dict[str, Any]:  # type: ignore[no-any-explicit]
 		return {k: v for k, v in self.__dict__.items()}  # type: ignore[no-any-expr]
 
 
-class BenchPathResolver(PathLike, Serializable):
+class _PathResolvable:
+	path: Path
+	__path_name: str
+	__env_variable: str
+
 	def __init__(self, path: str | Path | None = None, parent_path: Path | None = None) -> None:
-		if isinstance(self, Sites) and (env_path := os.environ.get("SITES_PATH")):
-			path = Path(env_path).resolve()
-
 		if path is None:
-			path = os.environ.get(f"FRAPPE_{self.__class__.__name__.upper()}_PATH") or (
-				parent_path.joinpath(self.__class__.__name__.lower()) if parent_path else None
-			)
-
-		if path is None and isinstance(self, Bench):
-			env_path = os.environ.get("FRAPPE_BENCH_ROOT")
-			sites_env_path = os.environ.get("SITES_PATH")
-			path = (
-				env_path
-				# TODO: legacy unsave relative reference, remove
-				or (Path(sites_env_path).resolve().parent if sites_env_path else None)
-				# TODO: unsave relative reference, remove:
-				or Path(__file__).resolve().parents[3]  # bench folder in standard layout
-				# TODO: when above line removed, enable:
-				# or (Path("~/frappe-bench").expanduser())
-			)
+			path = os.environ.get(cast(str, getattr(self, f"_{self.__class__.__name__}__env_variable")))
+			if path is None and parent_path:
+				path = parent_path.joinpath(
+					cast(str, getattr(self, f"_{self.__class__.__name__}__path_name"))
+				)
 
 		if path is None:
 			raise ValueError(f"Unable to determine path for {self.__class__.__name__}")
 
 		self.path = Path(path).resolve()
 
+	# os.PathLike
+	def __fspath__(self) -> str:
+		return str(self.path)
 
-class FrappeComponent:
-	python_path: Path
+
+class _FrappeComponent:
 	name: str
+	path: Path
+	python_path: Path
 	app: "App"
 
 	def __bool__(self) -> bool:
@@ -154,13 +141,17 @@ class FrappeComponent:
 			return res
 		return False
 
+	# os.PathLike
+	def __fspath__(self) -> str:
+		return str(self.path)
 
-class Module(FrappeComponent, PathLike, Serializable):
+
+class Module(_FrappeComponent, _Serializable):
 	def __init__(self, *, name: str, path: Path, app: "App") -> None:
-		self.app = app
 		self.name = name
 		self.path = path
 		self.python_path = self.path
+		self.app = app
 
 	@override
 	def __repr__(self) -> str:
@@ -178,13 +169,22 @@ class Module(FrappeComponent, PathLike, Serializable):
 		return {k: v for k, v in self.__dict__.items() if k not in excluded}  # type: ignore[no-any-expr]
 
 
-class App(FrappeComponent, PathLike, Serializable):
+class App(_FrappeComponent, _Serializable):
 	__modules: dict[str, Module]
 
 	def __init__(self, *, name: str, path: Path):
 		self.name = name
 		self.path = path
 		self.python_path = self.path.joinpath(self.name)
+
+	def __iter__(self) -> Iterator[Module]:
+		return iter(self.modules.values())
+
+	def __len__(self) -> int:
+		return len(self.modules)
+
+	def __getitem__(self, key: str) -> Module:
+		return self.modules[key]
 
 	@override
 	def __repr__(self) -> str:
@@ -213,21 +213,23 @@ class App(FrappeComponent, PathLike, Serializable):
 			}
 		return self.__modules
 
-	def __iter__(self) -> Iterator[Module]:
-		return iter(self.modules.values())
 
-	def __len__(self) -> int:
-		return len(self.modules)
-
-	def __getitem__(self, key: str) -> Module:
-		return self.modules[key]
-
-
-class Apps(BenchPathResolver):
+class Apps(_PathResolvable, _Serializable):
 	__apps: dict[str, App]
+	__path_name = "apps"
+	__env_variable = "FRAPPE_APPS_PATH"
 
 	def __init__(self, path: str | Path | None = None, parent_path: Path | None = None) -> None:
 		super().__init__(path, parent_path)
+
+	def __iter__(self) -> Iterator[App]:
+		return iter(self.apps.values())
+
+	def __len__(self) -> int:
+		return len(self.apps)
+
+	def __getitem__(self, key: str) -> App:
+		return self.apps[key]
 
 	@override
 	def __repr__(self) -> str:
@@ -249,17 +251,11 @@ class Apps(BenchPathResolver):
 			}
 		return self.__apps
 
-	def __iter__(self) -> Iterator[App]:
-		return iter(self.apps.values())
 
-	def __len__(self) -> int:
-		return len(self.apps)
+class Logs(_PathResolvable, _Serializable):
+	__path_name = "logs"
+	__env_variable = "FRAPPE_LOGS_PATH"
 
-	def __getitem__(self, key: str) -> App:
-		return self.apps[key]
-
-
-class Logs(BenchPathResolver):
 	def __init__(self, *, path: str | Path | None = None, parent_path: Path | None = None):
 		super().__init__(path, parent_path)
 
@@ -267,17 +263,16 @@ class Logs(BenchPathResolver):
 		return self.path.joinpath(f"{log_type}.log")
 
 
-class Run(BenchPathResolver):
-	def __init__(self, *, path: str | Path | None = None, parent_path: Path | None = None):
-		super().__init__(
-			path
-			# config is the legacy naming of this folder; a misnomer
-			or (parent_path.joinpath("config") if parent_path else None),
-			parent_path,
-		)
+class Run(_PathResolvable, _Serializable):
+	# config is the legacy naming of this folder; a misnomer
+	__path_name = "config"
+	__env_variable = "FRAPPE_RUN_PATH"
 
 
-class Site(ConfigHandler, PathLike, Serializable):
+class Site(ConfigHandler, _Serializable):
+	name: str
+	path: Path
+	bench: "Bench"
 	_combined_config: ConfigType
 
 	def __init__(self, *, bench: "Bench", name: str, path: str | Path):
@@ -285,6 +280,20 @@ class Site(ConfigHandler, PathLike, Serializable):
 		self.path = Path(path)
 		self.bench: Bench = bench
 		ConfigHandler.__init__(self, self.path.joinpath("site_config.json"))
+
+	@property
+	@override
+	def config(self) -> ConfigType:
+		if not hasattr(self, "_combined_config") or self._config_stale or self.bench.sites._config_stale:
+			site_config = super().config.copy()
+			config = self.bench.sites.config.copy()
+			config.update(site_config)
+			self._combined_config = ConfigType(**config)
+		return self._combined_config
+
+	# os.PathLike
+	def __fspath__(self) -> str:
+		return str(self.path)
 
 	@override
 	def __repr__(self) -> str:
@@ -314,47 +323,22 @@ class Site(ConfigHandler, PathLike, Serializable):
 		self.config  # ensure config is loaded
 		return {naming.get(k, k): v for k, v in self.__dict__.items() if k not in excluded}  # type: ignore[no-any-expr]
 
-	@property
-	@override
-	def config(self) -> ConfigType:
-		if not hasattr(self, "_combined_config") or self._config_stale or self.bench.sites._config_stale:
-			site_config = super().config.copy()
-			config = self.bench.sites.config.copy()
-			config.update(site_config)
-			self._combined_config = ConfigType(**config)
-		return self._combined_config
 
-
-class Sites(BenchPathResolver, ConfigHandler):
+class Sites(_PathResolvable, ConfigHandler, _Serializable):
 	SCOPE_ALL_SITES: Final = "__scope-all-sites__"
 	__sites: dict[str, Site]
+	__path_name = "sites"
+	__env_variable = "FRAPPE_SITES_PATH"
+
+	if legacy_env_path := os.environ.get("SITES_PATH"):
+		os.environ["FRAPPE_SITES_PATH"] = legacy_env_path
 
 	def __init__(self, *, bench: "Bench", path: str | Path | None = None, parent_path: Path | None = None):
-		BenchPathResolver.__init__(self, path, parent_path)
+		_PathResolvable.__init__(self, path, parent_path)
 		ConfigHandler.__init__(self, self.path.joinpath("common_site_config.json"))
 		self.bench = bench
 		# security & thread-safety: site_name is stored in thread-local storage
 		self.site_name = os.environ.get("FRAPPE_SITE") or cast(str | None, self.config.get("default_site"))
-
-	@override
-	def __repr__(self) -> str:
-		return (
-			super().__repr__()
-			+ ("\n * Sites Path: " + str(self.path))
-			+ ("\n * Scoped Site: " + (self.site_name or "n/a"))
-			+ ("\n * Loaded Sites:\n\t" + ("\n\t".join([str(site) for site in self]) or "n/a"))
-		)
-
-	@override
-	def __json__(self) -> dict[str, Any]:  # type: ignore[no-any-explicit,no-any-decorated]
-		excluded = (
-			"bench",  # prevent circular deps
-			"_ConfigHandler__config",  # holds file contents
-			"_config_stale",  # never stale after accessored
-		)
-		naming = {"_config": "config", "_Sites__sites": "_sites"}
-		self._sites  # ensure sites are loaded
-		return {naming.get(k, k): v for k, v in self.__dict__.items() if k not in excluded}  # type: ignore[no-any-expr]
 
 	@property
 	def site_name(self) -> str | None:
@@ -445,8 +429,37 @@ class Sites(BenchPathResolver, ConfigHandler):
 		except KeyError:
 			raise BenchSiteNotLoadedError(f"Site '{key}' was not found")
 
+	@override
+	def __repr__(self) -> str:
+		return (
+			super().__repr__()
+			+ ("\n * Sites Path: " + str(self.path))
+			+ ("\n * Scoped Site: " + (self.site_name or "n/a"))
+			+ ("\n * Loaded Sites:\n\t" + ("\n\t".join([str(site) for site in self]) or "n/a"))
+		)
 
-class Bench(BenchPathResolver):
+	@override
+	def __json__(self) -> dict[str, Any]:  # type: ignore[no-any-explicit,no-any-decorated]
+		excluded = (
+			"bench",  # prevent circular deps
+			"_ConfigHandler__config",  # holds file contents
+			"_config_stale",  # never stale after accessored
+		)
+		naming = {"_config": "config", "_Sites__sites": "_sites"}
+		self._sites  # ensure sites are loaded
+		return {naming.get(k, k): v for k, v in self.__dict__.items() if k not in excluded}  # type: ignore[no-any-expr]
+
+
+class Bench(_PathResolvable, _Serializable):
+	__env_variable = "FRAPPE_BENCH_PATH"
+	if legacy_env_path := os.environ.get("FRAPPE_BENCH_ROOT"):
+		os.environ["FRAPPE_BENCH_PATH"] = legacy_env_path
+	if not os.environ.get("FRAPPE_BENCH_PATH") and (legacy_env_path_sites := os.environ.get("SITES_PATH")):
+		os.environ["FRAPPE_BENCH_PATH"] = str(Path(legacy_env_path_sites).resolve().parent)
+	if not os.environ.get("FRAPPE_BENCH_PATH"):
+		# bench folder in standard layout
+		os.environ["FRAPPE_BENCH_PATH"] = str(Path(__file__).resolve().parents[3])
+
 	def __init__(self, path: str | Path | None = None):
 		super().__init__(path)
 		self.logs = Logs(parent_path=self.path)
