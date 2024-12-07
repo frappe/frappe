@@ -8,6 +8,14 @@ from typing_extensions import override
 
 from frappe.config import ConfigHandler, ConfigType
 
+__all__ = [
+	"Apps",
+	"Bench",
+	"Logs",
+	"Run",
+	"Sites",
+]
+
 # used to implement legacy code paths to keep the main path clean
 _current_bench: "Bench"
 
@@ -64,13 +72,13 @@ class BenchPathResolver(PathLike, Serializable):
 class FrappeComponent:
 	python_path: Path
 	name: str
-	app: "Apps.App"
+	app: "App"
 
 	def __bool__(self) -> bool:
 		return (
 			self._is_frappe_component()
-			or (isinstance(self, Apps.App) and self._is_app_installed())
-			or (isinstance(self, Apps.App.Module) and self._is_module_registered())
+			or (isinstance(self, App) and self._is_app_installed())
+			or (isinstance(self, Module) and self._is_module_registered())
 		)
 
 	def _is_frappe_component(self) -> bool:
@@ -104,74 +112,76 @@ class FrappeComponent:
 		return False
 
 
+class Module(FrappeComponent, PathLike, Serializable):
+	def __init__(self, *, name: str, path: Path, app: "App") -> None:
+		self.app = app
+		self.name = name
+		self.path = path
+		self.python_path = self.path
+
+	@override
+	def __repr__(self) -> str:
+		return (
+			super().__repr__()
+			+ ("\n * Path: " + str(self.path))
+			+ ("\n * Python Path: " + str(self.python_path))
+		)
+
+	@override
+	def __json__(self) -> dict[str, Any]:  # type: ignore[no-any-explicit,no-any-decorated]
+		excluded = (
+			"app",  # prevent circular deps
+		)
+		return {k: v for k, v in self.__dict__.items() if k not in excluded}  # type: ignore[no-any-expr]
+
+
+class App(FrappeComponent, PathLike, Serializable):
+	__modules: dict[str, Module]
+
+	def __init__(self, *, name: str, path: Path):
+		self.name = name
+		self.path = path
+		self.python_path = self.path.joinpath(self.name)
+
+	@override
+	def __repr__(self) -> str:
+		return (
+			super().__repr__()
+			+ ("\n * Path: " + str(self.path))
+			+ ("\n * Python Path: " + str(self.python_path))
+			+ ("\n * Modules:\n\t" + ("\n\t".join([str(module) for module in self.modules]) or "n/a"))
+		)
+
+	@override
+	def __str__(self) -> str:
+		return self.name
+
+	@override
+	def __json__(self) -> dict[str, Module]:
+		return self.modules
+
+	@property
+	def modules(self) -> dict[str, Module]:
+		if not hasattr(self, "__modules"):
+			self.__modules = {
+				d.name: module
+				for d in self.python_path.iterdir()
+				if d.is_dir() and (module := Module(name=d.name, path=d, app=self))
+			}
+		return self.__modules
+
+	def __iter__(self) -> Iterator[Module]:
+		return iter(self.modules.values())
+
+	def __len__(self) -> int:
+		return len(self.modules)
+
+	def __getitem__(self, key: str) -> Module:
+		return self.modules[key]
+
+
 class Apps(BenchPathResolver):
-	__apps: dict[str, "Apps.App"]
-
-	class App(FrappeComponent, PathLike, Serializable):
-		__modules: dict[str, "Apps.App.Module"]
-
-		class Module(FrappeComponent, PathLike, Serializable):
-			def __init__(self, *, name: str, path: Path, app: "Apps.App") -> None:
-				self.app = app
-				self.name = name
-				self.path = path
-				self.python_path = self.path
-
-			@override
-			def __repr__(self) -> str:
-				return (
-					super().__repr__()
-					+ ("\n * Path: " + str(self.path))
-					+ ("\n * Python Path: " + str(self.python_path))
-				)
-
-			@override
-			def __json__(self) -> dict[str, Any]:  # type: ignore[no-any-explicit,no-any-decorated]
-				excluded = (
-					"app",  # prevent circular deps
-				)
-				return {k: v for k, v in self.__dict__.items() if k not in excluded}  # type: ignore[no-any-expr]
-
-		def __init__(self, *, name: str, path: Path):
-			self.name = name
-			self.path = path
-			self.python_path = self.path.joinpath(self.name)
-
-		@override
-		def __repr__(self) -> str:
-			return (
-				super().__repr__()
-				+ ("\n * Path: " + str(self.path))
-				+ ("\n * Python Path: " + str(self.python_path))
-				+ ("\n * Modules:\n\t" + ("\n\t".join([str(module) for module in self.modules]) or "n/a"))
-			)
-
-		@override
-		def __str__(self) -> str:
-			return self.name
-
-		@override
-		def __json__(self) -> dict[str, Module]:
-			return self.modules
-
-		@property
-		def modules(self) -> dict[str, Module]:
-			if not hasattr(self, "__modules"):
-				self.__modules = {
-					d.name: module
-					for d in self.python_path.iterdir()
-					if d.is_dir() and (module := self.Module(name=d.name, path=d, app=self))
-				}
-			return self.__modules
-
-		def __iter__(self) -> Iterator[Module]:
-			return iter(self.modules.values())
-
-		def __len__(self) -> int:
-			return len(self.modules)
-
-		def __getitem__(self, key: str) -> Module:
-			return self.modules[key]
+	__apps: dict[str, App]
 
 	def __init__(self, path: str | Path | None = None, parent_path: Path | None = None) -> None:
 		super().__init__(path, parent_path)
@@ -192,9 +202,7 @@ class Apps(BenchPathResolver):
 	def apps(self) -> dict[str, App]:
 		if not hasattr(self, "__apps"):
 			self.__apps = {
-				d.name: app
-				for d in self.path.iterdir()
-				if d.is_dir() and (app := self.App(name=d.name, path=d))
+				d.name: app for d in self.path.iterdir() if d.is_dir() and (app := App(name=d.name, path=d))
 			}
 		return self.__apps
 
@@ -226,58 +234,57 @@ class Run(BenchPathResolver):
 		)
 
 
+class Site(ConfigHandler, PathLike, Serializable):
+	_combined_config: ConfigType
+
+	def __init__(self, *, bench: "Bench", name: str, path: str | Path):
+		self.name = name
+		self.path = Path(path)
+		self.bench: Bench = bench
+		ConfigHandler.__init__(self, self.path.joinpath("site_config.json"))
+
+	@override
+	def __repr__(self) -> str:
+		return super().__repr__() + ("\n * Site Path: " + str(self.path)) + ("\n * Site Name: " + self.name)
+
+	@override
+	def __eq__(self, o: Any) -> bool:  # type: ignore[no-any-explicit,no-any-decorated]
+		return self.name == str(o)  # type: ignore[no-any-expr]
+
+	@override
+	def __hash__(self) -> int:
+		return hash(self.name)
+
+	@override
+	def __str__(self) -> str:
+		return self.name
+
+	@override
+	def __json__(self) -> dict[str, Any]:  # type: ignore[no-any-explicit,no-any-decorated]
+		excluded = (
+			"bench",  # prevent circular deps
+			"_ConfigHandler__config",  # holds file contents
+			"_config_stale",  # never stale after accessored
+			"_config",
+		)
+		naming = {"_combined_config": "config"}
+		self.config  # ensure config is loaded
+		return {naming.get(k, k): v for k, v in self.__dict__.items() if k not in excluded}  # type: ignore[no-any-expr]
+
+	@property
+	@override
+	def config(self) -> ConfigType:
+		if not hasattr(self, "_combined_config") or self._config_stale or self.bench.sites._config_stale:
+			site_config = super().config.copy()
+			config = self.bench.sites.config.copy()
+			config.update(site_config)
+			self._combined_config = ConfigType(**config)
+		return self._combined_config
+
+
 class Sites(BenchPathResolver, ConfigHandler):
 	SCOPE_ALL_SITES: Final = "__scope-all-sites__"
-	__sites: dict[str, "Sites.Site"]
-
-	class Site(ConfigHandler, PathLike, Serializable):
-		_combined_config: ConfigType
-
-		def __init__(self, *, bench: "Bench", name: str, path: str | Path):
-			self.name = name
-			self.path = Path(path)
-			self.bench: Bench = bench
-			ConfigHandler.__init__(self, self.path.joinpath("site_config.json"))
-
-		@override
-		def __repr__(self) -> str:
-			return (
-				super().__repr__() + ("\n * Site Path: " + str(self.path)) + ("\n * Site Name: " + self.name)
-			)
-
-		@override
-		def __eq__(self, o: Any) -> bool:  # type: ignore[no-any-explicit,no-any-decorated]
-			return self.name == str(o)  # type: ignore[no-any-expr]
-
-		@override
-		def __hash__(self) -> int:
-			return hash(self.name)
-
-		@override
-		def __str__(self) -> str:
-			return self.name
-
-		@override
-		def __json__(self) -> dict[str, Any]:  # type: ignore[no-any-explicit,no-any-decorated]
-			excluded = (
-				"bench",  # prevent circular deps
-				"_ConfigHandler__config",  # holds file contents
-				"_config_stale",  # never stale after accessored
-				"_config",
-			)
-			naming = {"_combined_config": "config"}
-			self.config  # ensure config is loaded
-			return {naming.get(k, k): v for k, v in self.__dict__.items() if k not in excluded}  # type: ignore[no-any-expr]
-
-		@property
-		@override
-		def config(self) -> ConfigType:
-			if not hasattr(self, "_combined_config") or self._config_stale or self.bench.sites._config_stale:
-				site_config = super().config.copy()
-				config = self.bench.sites.config.copy()
-				config.update(site_config)
-				self._combined_config = ConfigType(**config)
-			return self._combined_config
+	__sites: dict[str, Site]
 
 	def __init__(self, *, bench: "Bench", path: str | Path | None = None, parent_path: Path | None = None):
 		BenchPathResolver.__init__(self, path, parent_path)
@@ -328,7 +335,7 @@ class Sites(BenchPathResolver, ConfigHandler):
 			site_path.joinpath("logs"),
 		]:
 			dir_path.mkdir(parents=True, exist_ok=True)
-		self.__sites[site_name] = self.Site(bench=self.bench, name=site_name, path=site_path)
+		self.__sites[site_name] = Site(bench=self.bench, name=site_name, path=site_path)
 
 	def remove_site(self, site_name: str) -> None:
 		if site_name in self.__sites:
@@ -337,7 +344,7 @@ class Sites(BenchPathResolver, ConfigHandler):
 			# Note: This doesn't actually delete the site directory, just removes it from the sites dict
 			# Actual deletion should be handled separately with proper safeguards
 
-	def scope(self, site_name: str | None = None) -> "Sites.Site":
+	def scope(self, site_name: str | None = None) -> Site:
 		if site_name is None:
 			return self.site
 
@@ -369,11 +376,11 @@ class Sites(BenchPathResolver, ConfigHandler):
 			if self.site_name == self.SCOPE_ALL_SITES:
 				for path in self.path.iterdir():
 					if path.is_dir() and path.joinpath("site_config.json").exists():
-						self.__sites[path.name] = self.Site(bench=self.bench, name=path.name, path=path)
+						self.__sites[path.name] = Site(bench=self.bench, name=path.name, path=path)
 			elif self.site_name:
 				# init scoped site even if it doesn't exist for use during site creation
 				# all file access must reamin lazy and only happen after completed setup
-				self.__sites[self.site_name] = self.Site(
+				self.__sites[self.site_name] = Site(
 					bench=self.bench, name=self.site_name, path=(self.path / self.site_name)
 				)
 		return self.__sites
@@ -407,10 +414,10 @@ class Bench(BenchPathResolver):
 		self.apps = Apps(parent_path=self.path)
 
 	@property
-	def site(self) -> Sites.Site:
+	def site(self) -> Site:
 		return self.sites.site
 
-	def scope(self, site_name: str) -> Sites.Site:
+	def scope(self, site_name: str) -> Site:
 		return self.sites.scope(site_name)
 
 	@property
