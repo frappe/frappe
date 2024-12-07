@@ -326,7 +326,7 @@ class Site(ConfigHandler, _Serializable):
 		return {naming.get(k, k): v for k, v in self.__dict__.items() if k not in excluded}  # type: ignore[no-any-expr]
 
 
-class Sites(_PathResolvable, ConfigHandler, _Serializable):
+class Sites(ConfigHandler, _PathResolvable, _Serializable):
 	SCOPE_ALL_SITES: Final = "__scope-all-sites__"
 	__sites: dict[str, Site]
 	__path_name = "sites"
