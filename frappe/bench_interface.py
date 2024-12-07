@@ -1,3 +1,46 @@
+"""
+This module provides a consolidated API for interacting with the Frappe bench environment.
+It includes classes and utilities to manage and access various components of the bench,
+such as applications, sites, logs, and configuration.
+
+### Key Classes
+- `Bench`: The central class representing the Frappe bench environment.
+- `Apps`: Manages applications within the bench.
+- `Sites`: Manages sites within the bench, including site configuration and scoping to a single site.
+- `Logs`: Handles log files for the bench.
+- `Run`: Manages the run/config directory of the bench.
+
+### Usage
+This module is designed to be used as the **only** interface to the Frappe bench, allowing for
+well-specified and central interaction with its components.
+
+### Example
+```python
+from bench_interface import Bench
+
+# Initialize the bench
+bench = Bench()
+
+# Access applications
+apps = bench.apps
+for app in apps:
+    print(app.name)
+
+# Access sites
+sites = bench.sites
+for site in sites:
+    print(site.name)
+
+# Scope to a specific site
+scoped_site = bench.sites.scope("site_name")
+print(scoped_site.name)
+```
+
+### Notes
+- This module uses environment variables and default paths to locate bench and its compontents.
+- It ensures thread-safety and security by storing site names in thread-local storage.
+"""
+
 import json
 import os
 from collections.abc import Iterator

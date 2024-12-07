@@ -1,3 +1,42 @@
+"""
+This module provides a comprehensive configuration management system for the Frappe framework.
+It includes classes and functions to register, load, store, and update configuration options
+from various sources such as files, environment variables.
+
+### Key Classes
+- `ConfigType`: A dictionary subclass that provides attribute-style access to configuration options
+  and warns when accessing unregistered configuration options.
+- `ConfigRegistry`: A registry for configuration options with their documentation and default values.
+- `ConfigHandler`: Handles loading, storing, and updating configuration values from files and environment.
+  Supports hot reloading of configuration upon changes.
+
+### Configuration Registry
+The `ConfigRegistry` class allows registering configuration options with their documentation and default values.
+This registry is used to manage and document all available configuration options.
+
+### Configuration Handling
+The `ConfigHandler` class is responsible for loading configuration from files, updating it from environment variables,
+and applying additional configuration from external modules. It also supports hot reloading of the configuration.
+
+### Example Usage
+```python
+from config_manager import register
+
+# Register a new configuration option
+register("new_option", "Documentation for the new option", "default_value")
+```
+
+### Notes
+- Configuration options can be registered with default values that can be either static or dynamic (callable).
+- Environment variables are used to override configuration values.
+- Additional configuration can be applied from external modules using the `extra_config` option.
+- The module uses file locking to ensure safe updates to the configuration file.
+
+### Global Configuration
+The module includes global default configurations for common Frappe settings such as Redis URLs, database connections,
+and more. These can be overridden using environment variables or by updating the configuration file.
+"""
+
 import importlib
 import json
 import os
