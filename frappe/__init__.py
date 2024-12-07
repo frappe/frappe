@@ -51,7 +51,7 @@ from frappe.query_builder.utils import (
 from frappe.utils.caching import request_cache
 from frappe.utils.data import cint, cstr, sbool
 
-from .bencher import Bench
+from .bench_interface import Bench
 
 # Local application imports
 from .exceptions import *

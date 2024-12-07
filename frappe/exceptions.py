@@ -4,7 +4,7 @@
 # BEWARE don't put anything in this file except exceptions
 from werkzeug.exceptions import NotFound
 
-from .bencher import (
+from .bench_interface import (
 	BenchNotScopedError,
 	BenchSiteNotLoadedError,
 )
