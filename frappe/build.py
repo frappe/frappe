@@ -209,7 +209,7 @@ def setup():
 	global app_paths, assets_path
 
 	pymodules = []
-	for app in frappe.get_all_apps(True):
+	for app in frappe.get_all_apps():
 		try:
 			pymodules.append(frappe.get_module(app))
 		except ImportError:
