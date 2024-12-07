@@ -672,16 +672,6 @@ def is_a_property(x) -> bool:
 
 def get_sites(sites_path=None):
 	if not sites_path:
-		if Path(os.getcwd()).resolve() != frappe.bench.sites.path:
-			from frappe.bencher import Sites
-			from frappe.deprecation_dumpster import deprecation_warning
-
-			deprecation_warning(
-				"2024-12-06",
-				"v17",
-				"Relying on '.' to establishin  'sites_path' in 'frappe.utils.get_sites' is deprecated, pass sites_path= argument, instead.",
-			)
-			frappe.bench.sites = Sites(frappe.bench, os.getcwd())
 		sites_path = frappe.bench.sites.path
 
 	sites = []
