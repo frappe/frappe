@@ -2390,7 +2390,9 @@ loggers: dict[str, "Logger"] = {}
 log_level: int | None = None
 
 
-def logger(module=None, with_more_info=False, allow_site=True, filter=None, max_size=100_000, file_count=20):
+def logger(
+	module=None, with_more_info=False, allow_site=True, filter=None, max_size=100_000, file_count=20
+) -> "Logger":
 	"""Return a python logger that uses StreamHandler."""
 	from frappe.utils.logger import get_logger
 
