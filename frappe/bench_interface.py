@@ -376,18 +376,6 @@ class Sites(_PathResolvable, ConfigHandler, _Serializable):
 			# Note: This doesn't actually delete the site directory, just removes it from the sites dict
 			# Actual deletion should be handled separately with proper safeguards
 
-	def scope(self, site_name: str | None = None) -> Site:
-		if site_name is None:
-			return self.site
-
-		del self.__sites  # trigger re-scan after scope
-		self.site_name = site_name
-
-		if self.site_name != self.SCOPE_ALL_SITES:
-			return self.site
-
-		raise BenchNotScopedError("Cannot scope to ALL_SITES")
-
 	@property
 	def scoped(self) -> bool:
 		return bool(self.site_name) and self.site_name != self.SCOPE_ALL_SITES
@@ -477,9 +465,6 @@ class Bench(_PathResolvable, _Serializable):
 	@property
 	def site(self) -> Site:
 		return self.sites.site
-
-	def scope(self, site_name: str) -> Site:
-		return self.sites.scope(site_name)
 
 	@property
 	def scoped(self) -> bool:
