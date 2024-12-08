@@ -19,7 +19,7 @@ jobs:
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
         script: |
-          const ref = context.payload.pull_request ? context.payload.pull_request.head.sha : github.context.sha;
+          const ref = context.payload.pull_request ? context.payload.pull_request.head.sha : context.sha;
           const { data: pyprojectContent } = await github.rest.repos.getContent({
             owner: context.repo.owner,
             repo: context.repo.repo,
