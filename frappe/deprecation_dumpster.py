@@ -87,7 +87,7 @@ def __get_deprecation_class(graduation: str | None = None, class_name: str | Non
 	try:
 		return getattr(current_module, class_name)
 	except AttributeError:
-		return PendingDeprecationWarning
+		return PendingFrappeDeprecationWarning
 
 
 # Parse PYTHONWARNINGS environment variable
