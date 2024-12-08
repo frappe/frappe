@@ -351,6 +351,8 @@ class Sites(_PathResolvable, ConfigHandler, _Serializable):
 		import frappe
 
 		frappe.local.site_name = value
+		if hasattr(self, "_Sites__sites"):
+			del self.__sites
 
 	def add_site(self, site_name: str) -> None:
 		site_path = self.path.joinpath(site_name)
@@ -396,7 +398,7 @@ class Sites(_PathResolvable, ConfigHandler, _Serializable):
 
 	@property
 	def _sites(self) -> dict[str, Site]:
-		if not hasattr(self, "__sites"):
+		if not hasattr(self, "_Sites__sites"):
 			self.__sites = {}
 
 			# security & thread-safety: site_name is stored in thread-local storage
