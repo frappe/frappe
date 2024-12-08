@@ -348,6 +348,9 @@ class Sites(_PathResolvable, ConfigHandler, _Serializable):
 
 	@site_name.setter
 	def site_name(self, value):
+		if self.site_name is not None and value == self.SCOPE_ALL_SITES:
+			raise BenchNotScopedError("Cannot scope back to SCOPE_ALL_SITES when already scoped")
+
 		import frappe
 
 		frappe.local.site_name = value
