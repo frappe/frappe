@@ -343,30 +343,26 @@ class BackupGenerator:
 			print(template.format(_type.title(), os.path.abspath(info["path"]), info["size"]))
 
 	def backup_files(self):
+		import shutil
+		import tempfile
+		from pathlib import Path
+
 		for folder in ("public", "private"):
-			files_path = frappe.get_site_path(folder, "files")
-			backup_path = self.backup_path_files if folder == "public" else self.backup_path_private_files
+			sentinel = frappe.bench.site.path / folder / "files" / ".bkp_relative_to_site_root"
+			sentinel.touch()
 
-			if self.compress_files:
-				cmd_string = "set -o pipefail; tar cf - {1} | gzip > {0}"
-			else:
-				cmd_string = "tar -cf {0} {1}"
-
-			try:
-				frappe.utils.execute_in_shell(
-					cmd_string.format(backup_path, files_path),
-					verbose=self.verbose,
-					low_priority=True,
-					check_exit_code=True,
+			with tempfile.TemporaryDirectory() as temp_dir:
+				shutil.move(
+					shutil.make_archive(
+						Path(temp_dir) / "archive",
+						"tar" if not self.compress_files else "xztar",
+						frappe.bench.site.path,
+						f"{folder}/files",
+					),
+					# fix to the contstant extension which may well be a public contract
+					self.backup_path_files if folder == "public" else self.backup_path_private_files,
 				)
-			except frappe.CommandFailedError as e:
-				if e.err and "file changed as we read it" in e.err:
-					click.secho(
-						"Ignoring `tar: file changed as we read it` to prevent backup failure",
-						fg="red",
-					)
-				else:
-					raise e
+			sentinel.unlink()
 
 	def copy_site_config(self):
 		site_config_backup_path = self.backup_path_conf

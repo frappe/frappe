@@ -10,6 +10,7 @@ import subprocess
 import sys
 from collections import OrderedDict
 from contextlib import suppress
+from pathlib import Path
 from shutil import which
 
 import click
@@ -744,33 +745,49 @@ def _guess_mariadb_version() -> tuple[int] | None:
 def extract_files(site_name, file_path):
 	import shutil
 	import subprocess
+	import tempfile
 
 	from frappe.utils import get_bench_relative_path
 
-	file_path = get_bench_relative_path(file_path)
+	file_path = Path(get_bench_relative_path(file_path)).resolve()
 
-	# Need to do frappe.init to maintain the site locals
+	# Need to do frappe.init to scope bench
 	frappe.init(site_name)
-	abs_site_path = os.path.abspath(frappe.get_site_path())
 
 	# Copy the files to the parent directory and extract
-	shutil.copy2(os.path.abspath(file_path), abs_site_path)
+	shutil.copy2(file_path, frappe.bench.site.path)
+	archive_path = frappe.bench.site.path / file_path.name
 
 	# Get the file name splitting the file path on
-	tar_name = os.path.split(file_path)[1]
-	tar_path = os.path.join(abs_site_path, tar_name)
-
+	folders = ("public", "private")
 	try:
-		if file_path.endswith(".tar"):
-			subprocess.check_output(["tar", "xvf", tar_path, "--strip", "2"], cwd=abs_site_path)
-		elif file_path.endswith(".tgz"):
-			subprocess.check_output(["tar", "zxvf", tar_path, "--strip", "2"], cwd=abs_site_path)
+		with tempfile.TemporaryDirectory() as temp_dir:
+			shutil.unpack_archive(archive_path, extract_dir=temp_dir)
+			for folder in folders:
+				if (
+					sentinel := (Path(temp_dir) / folder / "files" / ".bkp_relative_to_site_root")
+				) and sentinel.exists():
+					sentinel.unlink()
+					shutil.copytree(temp_dir, frappe.bench.site.path, dirs_exist_ok=True)
+					break
+			else:
+				# requiring tar on old style backups in order to strip parent dirs
+				subprocess.check_output(
+					[
+						"tar",
+						"xvf" if file_path.suffix == ".tar" else "zxvf",
+						archive_path,
+						"--strip",
+						"2",
+					],
+					cwd=frappe.bench.site.path,
+				)
 	except Exception:
 		raise
 	finally:
 		frappe.destroy()
 
-	return tar_path
+	return archive_path
 
 
 def is_downgrade(sql_file_path, verbose=False):

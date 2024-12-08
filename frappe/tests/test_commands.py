@@ -258,10 +258,16 @@ class TestCommands(BaseTestCommands):
 
 		with self.switch_site(TEST_SITE):
 			public_file = frappe.new_doc(
-				"File", file_name=f"test_{frappe.generate_hash()}", content=frappe.generate_hash()
+				"File",
+				file_name=f"test_{frappe.generate_hash()}",
+				content=frappe.generate_hash(),
+				is_private=False,
 			).insert()
 			private_file = frappe.new_doc(
-				"File", file_name=f"test_{frappe.generate_hash()}", content=frappe.generate_hash()
+				"File",
+				file_name=f"test_{frappe.generate_hash()}",
+				content=frappe.generate_hash(),
+				is_private=True,
 			).insert()
 
 		# test 1: bench restore from full backup
