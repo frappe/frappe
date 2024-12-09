@@ -5,8 +5,8 @@
 		"document_type": "Communication",
 		"event": "New",
 		"attach_print": 0,
-		"message": "New comment {{ doc.content }} created",
-		"condition": "doc.communication_type=='Comment'",
+		"message": "New communication {{ doc.content }} created",
+		"condition": "doc.communication_type=='Communication' and doc.sender_full_name=='__test_notification_sender__'",
 		"recipients": [
 			{ "receiver_by_document_field": "owner" }
 		]
@@ -17,8 +17,9 @@
 		"document_type": "Communication",
 		"event": "Save",
 		"attach_print": 0,
-		"message": "New comment {{ doc.content }} saved",
-		"condition": "doc.communication_type=='Comment'",
+		"sender_full_name": "__testsender__",
+		"message": "New communication {{ doc.content }} saved",
+		"condition": "doc.communication_type=='Communication' and doc.sender_full_name=='__test_notification_sender__'",
 		"recipients": [
 			{ "receiver_by_document_field": "owner" }
 		],
