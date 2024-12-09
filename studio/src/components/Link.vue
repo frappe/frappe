@@ -29,10 +29,12 @@ const props = withDefaults(
 		modelValue?: string
 		filters?: Record<string, string | [string, string]>
 		required?: boolean
+		showTitleFieldAsOption?: boolean
 	}>(),
 	{
 		label: "",
 		filters: () => ({}),
+		showFieldTitleAsOption: true,
 	},
 )
 
@@ -63,7 +65,7 @@ const options = createResource({
 	transform: (data: SelectOption[]) => {
 		return data.map((doc) => {
 			return {
-				label: doc.value,
+				label: props.showTitleFieldAsOption && doc.label ? doc.label : doc.value,
 				value: doc.value,
 			}
 		})
