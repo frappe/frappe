@@ -3,7 +3,6 @@ import { ComponentProp, ComponentProps } from "@/types"
 import { VueProp, VuePropType } from "@/types/vue"
 
 import * as componentTypes from "@/json_types"
-import { parse } from '@vue/compiler-sfc'
 
 function getComponentProps(componentName: string) {
 	const props = components.getProps(componentName)
@@ -11,7 +10,7 @@ function getComponentProps(componentName: string) {
 	const propsConfig: ComponentProps = {}
 
 	if (Array.isArray(props)) {
-		props.forEach(prop => {
+		props.forEach((prop) => {
 			propsConfig[prop] = {
 				type: "string",
 				default: "",
@@ -46,8 +45,8 @@ function getComponentProps(componentName: string) {
 
 function getPropType(propType: VuePropType | VuePropType[]) {
 	if (Array.isArray(propType)) {
-		const proptypes = propType.map(type => type.name)
-		const hasNonPrimitiveType = proptypes.find(type => ["Array", "Object", "Function"].includes(type))
+		const proptypes = propType.map((type) => type.name)
+		const hasNonPrimitiveType = proptypes.find((type) => ["Array", "Object", "Function"].includes(type))
 		if (hasNonPrimitiveType) {
 			return "Object"
 		}
@@ -85,17 +84,19 @@ function getComponentEvents(componentName: string) {
 	return components.getEmits(componentName) || []
 }
 
-async function getComponentTemplate(componentName: string) {
+async function getComponentTemplate(componentName: string): Promise<string> {
 	let rawTemplate = null
 
 	if (components.isFrappeUIComponent(componentName)) {
 		try {
 			// ?raw to get raw content of a file as string
 			rawTemplate = await import(`../../../node_modules/frappe-ui/src/components/${componentName}.vue?raw`)
-		} catch(error) {
+		} catch (error) {
 			try {
 				// try finding the vue file inside component folder
-				rawTemplate = await import(`../../../node_modules/frappe-ui/src/components/${componentName}/${componentName}.vue?raw`)
+				rawTemplate = await import(
+					`../../../node_modules/frappe-ui/src/components/${componentName}/${componentName}.vue?raw`
+				)
 			} catch (error) {
 				console.error(`Error loading component template ${componentName}:`, error)
 				return ""
@@ -113,30 +114,33 @@ async function getComponentTemplate(componentName: string) {
 	return rawTemplate?.default || ""
 }
 
-
 async function getComponentSlots(componentName: string) {
-	const rawTemplate = await getComponentTemplate(componentName)
+	const template = await getComponentTemplate(componentName)
+	const slotRegex = /<slot\s*(?:name=["']([^"']*)?["'])?(?:\s*\/>|\s*>(.*?)<\/slot>)?/gi
+	const slots = []
+	let match
 
-	// Extract the template content
-	const { descriptor } = parse(rawTemplate)
-	const templateContent = descriptor.template?.content || ''
+	while ((match = slotRegex.exec(template)) !== null) {
+		// Named slot with name attribute
+		const namedSlot = match[1]
+		// Default/unnamed slot or slot content
+		const defaultSlotContent = match[2]
 
-	// Use a DOM parser to help extract slot information
-	const tempDiv = document.createElement('div')
-	tempDiv.innerHTML = templateContent
-
-	// Find all slot elements
-	const slots = Array.from(tempDiv.querySelectorAll('[v-slot], slot, template[v-slot]')).map(el => ({
-		name: el.getAttribute('v-slot') || el.getAttribute('name') || 'default',
-		content: el.innerHTML.trim()
-	}))
+		if (namedSlot) {
+			slots.push({
+				name: namedSlot,
+				type: "named",
+				hasDefaultContent: !!defaultSlotContent,
+			})
+		} else if (defaultSlotContent || match[0].includes("<slot")) {
+			slots.push({
+				name: "default",
+				type: "default",
+				hasDefaultContent: !!defaultSlotContent,
+			})
+		}
+	}
 	return slots
 }
 
-
-export {
-	getComponentProps,
-	getComponentEvents,
-	getComponentTemplate,
-	getComponentSlots,
-}
+export { getComponentProps, getComponentEvents, getComponentTemplate, getComponentSlots }
