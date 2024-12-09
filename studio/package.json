@@ -11,7 +11,7 @@
 		"extract-studio-types": "tsx src/scripts/tsToJSONGenerator.ts studio"
 	},
 	"dependencies": {
-		"@vitejs/plugin-vue": "^4.2.3",
+		"@vitejs/plugin-vue": "^5.2.0",
 		"@vueuse/components": "^10.11.1",
 		"@vueuse/core": "^10.11.1",
 		"ace-builds": "^1.36.2",
@@ -20,7 +20,7 @@
 		"frappe-ui": "0.1.87",
 		"lucide-vue-next": "^0.427.0",
 		"pinia": "^2.2.1",
-		"vite": "^4.4.9",
+		"vite": "^5.4.11",
 		"vue": "^3.4.12",
 		"vue-router": "^4.2.2",
 		"vuedraggable": "^4.1.0",

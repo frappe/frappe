@@ -3,6 +3,7 @@ import { ComponentProp, ComponentProps } from "@/types"
 import { VueProp, VuePropType } from "@/types/vue"
 
 import * as componentTypes from "@/json_types"
+import { parse } from '@vue/compiler-sfc'
 
 function getComponentProps(componentName: string) {
 	const props = components.getProps(componentName)
@@ -84,7 +85,58 @@ function getComponentEvents(componentName: string) {
 	return components.getEmits(componentName) || []
 }
 
+async function getComponentTemplate(componentName: string) {
+	let rawTemplate = null
+
+	if (components.isFrappeUIComponent(componentName)) {
+		try {
+			// ?raw to get raw content of a file as string
+			rawTemplate = await import(`../../../node_modules/frappe-ui/src/components/${componentName}.vue?raw`)
+		} catch(error) {
+			try {
+				// try finding the vue file inside component folder
+				rawTemplate = await import(`../../../node_modules/frappe-ui/src/components/${componentName}/${componentName}.vue?raw`)
+			} catch (error) {
+				console.error(`Error loading component template ${componentName}:`, error)
+				return ""
+			}
+		}
+	} else {
+		try {
+			// extract studio component template
+			rawTemplate = await import(`../components/AppLayout/${componentName}.vue?raw`)
+		} catch (error) {
+			console.error(`Error loading component template ${componentName}:`, error)
+			return ""
+		}
+	}
+	return rawTemplate?.default || ""
+}
+
+
+async function getComponentSlots(componentName: string) {
+	const rawTemplate = await getComponentTemplate(componentName)
+
+	// Extract the template content
+	const { descriptor } = parse(rawTemplate)
+	const templateContent = descriptor.template?.content || ''
+
+	// Use a DOM parser to help extract slot information
+	const tempDiv = document.createElement('div')
+	tempDiv.innerHTML = templateContent
+
+	// Find all slot elements
+	const slots = Array.from(tempDiv.querySelectorAll('[v-slot], slot, template[v-slot]')).map(el => ({
+		name: el.getAttribute('v-slot') || el.getAttribute('name') || 'default',
+		content: el.innerHTML.trim()
+	}))
+	return slots
+}
+
+
 export {
 	getComponentProps,
 	getComponentEvents,
+	getComponentTemplate,
+	getComponentSlots,
 }
