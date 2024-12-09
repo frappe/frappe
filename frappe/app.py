@@ -246,8 +246,8 @@ def process_response(response):
 	if frappe.local.response.can_cache:
 		response.headers.extend(
 			{
-				# default: 5m (proxy), 5m (client), 3h (allow stale resources for this long if upstream is down)
-				"Cache-Control": "public,s-maxage=300,max-age=300,stale-while-revalidate=10800",
+				# default: 5m (client), 3h (allow stale resources for this long if upstream is down)
+				"Cache-Control": "private,max-age=300,stale-while-revalidate=10800",
 			}
 		)
 	else:
