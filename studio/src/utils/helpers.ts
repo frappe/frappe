@@ -2,8 +2,8 @@ import { reactive, toRaw, h, Ref } from "vue"
 import Block from "./block"
 import getBlockTemplate from "./blockTemplate"
 import * as frappeUI from "frappe-ui"
-
 import { createDocumentResource, createListResource, createResource, confirmDialog } from "frappe-ui"
+import { toast } from "vue-sonner"
 
 import { ObjectLiteral, BlockOptions, StyleValue, ExpressionEvaluationContext, SelectOption } from "@/types"
 import { DataResult, DocumentResource, DocumentResult, Filters, Resource } from "@/types/Studio/StudioResource"
@@ -225,6 +225,7 @@ async function fetchAppPages(appRoute: string): Promise<StudioPage[]> {
 
 // data
 function getAutocompleteValues(data: SelectOption[]) {
+	if (!data.length || typeof data[0] === "string") return data
 	return (data || []).map((d) => d["value"])
 }
 
@@ -351,7 +352,7 @@ function getWhitelistedMethods(resource: DocumentResource) {
 
 async function getDocumentResource(resource: DocumentResource, context: ExpressionEvaluationContext) {
 	let docname = resource.document_name
-	if (!docname && resource.filters) {
+	if (resource.fetch_document_using_filters && resource.filters) {
 		// fetch the docname based on filters
 		const docList = createListResource({
 			doctype: resource.document_type,
@@ -413,8 +414,47 @@ async function confirm(message: string, title: string = "Confirm"): Promise<bool
 	});
 }
 
+// general utils
+function copyToClipboard(text: string | object) {
+	if (typeof text !== "string") {
+		text = JSON.stringify(text)
+	}
+
+	if (navigator.clipboard) {
+		navigator.clipboard.writeText(text)
+		toast.success("Copied object path to clipboard")
+	} else {
+		const textArea = document.createElement("textarea")
+		textArea.value = text
+		textArea.style.position = "fixed"
+		document.body.appendChild(textArea)
+		textArea.select()
+		try {
+			document.execCommand("copy")
+			toast.success("Copied object path to clipboard")
+		} catch (error) {
+			toast.error("Copy to clipboard not supported")
+		} finally {
+			textArea.remove()
+		}
+	}
+}
+
+function getErrorMessage(err: any) {
+	const lastLine = err.exc
+		?.split('\n')
+		.filter(Boolean)
+		.at(-1)
+		?.trim()
+		.split(': ')
+		.slice(1)
+		.join(': ')
+	return lastLine || err.message || err.toString()
+}
+
 
 export {
+	copyToClipboard,
 	getBlockInstance,
 	getComponentBlock,
 	getRootBlock,
@@ -444,4 +484,5 @@ export {
 	getNewResource,
 	// dialog
 	confirm,
+	getErrorMessage,
 }

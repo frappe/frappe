@@ -1,18 +1,20 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "prompt",
+ "autoname": "format:RES-{####}",
  "creation": "2024-09-23 09:50:16.776464",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "resource_name",
   "resource_type",
   "fields",
   "filters",
   "document_resource_section",
   "document_type",
-  "column_break_kkyr",
+  "column_break_mkdu",
   "document_name",
+  "fetch_document_using_filters",
   "section_break_jlam",
   "whitelisted_methods",
   "api_resource_section",
@@ -50,10 +52,7 @@
    "options": "DocType"
   },
   {
-   "fieldname": "column_break_kkyr",
-   "fieldtype": "Column Break"
-  },
-  {
+   "depends_on": "eval:!doc.fetch_document_using_filters",
    "fieldname": "document_name",
    "fieldtype": "Data",
    "label": "Document Name"
@@ -105,23 +104,40 @@
   },
   {
    "fieldname": "section_break_jlam",
-   "fieldtype": "Section Break",
-   "hide_border": 1
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "whitelisted_methods",
    "fieldtype": "JSON",
    "label": "Whitelisted Methods",
    "max_height": "100px"
+  },
+  {
+   "default": "0",
+   "fieldname": "fetch_document_using_filters",
+   "fieldtype": "Check",
+   "label": "Dynamically fetch document using filters"
+  },
+  {
+   "fieldname": "column_break_mkdu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "resource_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Resource Name",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-10-21 13:40:11.669654",
+ "modified": "2024-12-06 19:34:52.170836",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Resource",
- "naming_rule": "Set by user",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
@@ -137,7 +153,9 @@
    "write": 1
   }
  ],
+ "show_title_field_in_link": 1,
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "resource_name"
 }

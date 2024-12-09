@@ -3,40 +3,55 @@
 		<CollapsibleSection sectionName="Data Sources">
 			<div class="flex flex-col gap-2" v-if="!isObjectEmpty(store.resources)">
 				<div
-					v-for="(resource, name) in store.resources"
-					:key="name"
+					v-for="(resource, resource_name) in store.resources"
+					:key="resource_name"
 					class="group/resource flex flex-row justify-between"
 				>
-					<ObjectBrowser :object="resource" :name="name" />
-					<FeatherIcon
-						name="trash"
-						class="invisible h-3 w-3 cursor-pointer group-hover/resource:visible"
-						@click="deleteResource(resource.docname, name)"
-					/>
+					<ObjectBrowser :object="resource" :name="resource_name" class="overflow-hidden" />
+					<div
+						class="invisible -mt-1 ml-auto self-start text-gray-600 group-hover/resource:visible has-[.active-item]:visible"
+					>
+						<Dropdown :options="getResourceMenu(resource, resource_name)" trigger="click">
+							<template v-slot="{ open }">
+								<button
+									class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
+									:class="open ? 'active-item' : ''"
+								>
+									<FeatherIcon name="more-horizontal" class="h-3 w-3" />
+								</button>
+							</template>
+						</Dropdown>
+					</div>
 				</div>
 			</div>
 
 			<EmptyState v-else message="No resources added" />
 
 			<div class="mt-2 flex flex-col" v-if="store.activePage">
-				<Button icon-left="plus" @click="showAddResourceDialog = true">Add Data Source</Button>
-				<ResourceDialog v-model:showDialog="showAddResourceDialog" @addResource="addResource" />
+				<Button icon-left="plus" @click="showResourceDialog = true">Add Data Source</Button>
+				<ResourceDialog
+					v-model:showDialog="showResourceDialog"
+					:resource="existingResource"
+					@addResource="addResource"
+					@editResource="editResource"
+				/>
 			</div>
 		</CollapsibleSection>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref, watch } from "vue"
 import useStudioStore from "@/stores/studioStore"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
 import ObjectBrowser from "@/components/ObjectBrowser.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import ResourceDialog from "@/components/ResourceDialog.vue"
 
-import { isObjectEmpty, getAutocompleteValues, confirm } from "@/utils/helpers"
+import { isObjectEmpty, getAutocompleteValues, confirm, copyToClipboard } from "@/utils/helpers"
 import { studioResources, studioPageResources } from "@/data/studioResources"
 import { NewResource, Resource } from "@/types/Studio/StudioResource"
+import { toast } from "vue-sonner"
 
 /**
  * Insert resource into DB
@@ -46,7 +61,14 @@ import { NewResource, Resource } from "@/types/Studio/StudioResource"
  */
 
 const store = useStudioStore()
-const showAddResourceDialog = ref(false)
+const showResourceDialog = ref(false)
+const existingResource = ref<Resource | null>()
+
+watch(showResourceDialog, (show) => {
+	if (!show) {
+		existingResource.value = null
+	}
+})
 
 const attachResource = async (resource: Resource) => {
 	studioPageResources.insert
@@ -60,44 +82,102 @@ const attachResource = async (resource: Resource) => {
 			if (store.activePage) {
 				await store.setPageResources(store.activePage)
 			}
-			showAddResourceDialog.value = false
+			showResourceDialog.value = false
 		})
 }
 
 const addResource = (resource: NewResource) => {
+	if (!resource.resource_name) {
+		toast.error("Data Source Name is required")
+		return
+	}
 	if (resource.source === "Existing Data Source") {
 		attachResource(resource as unknown as Resource)
 		return
 	}
 
-	studioResources.insert
-		.submit({
-			name: resource.resource_name,
-			resource_type: resource.resource_type,
-			document_type: resource.document_type,
-			document_name: resource.document_name,
-			url: resource.url,
-			method: resource.method,
-			fields: getAutocompleteValues(resource.fields),
-			filters: resource.filters,
-			whitelisted_methods: getAutocompleteValues(resource.whitelisted_methods),
-			transform_results: resource.transform_results,
-			transform: resource.transform,
+	studioResources.insert.submit(getResourceValues(resource)).then((res: Resource) => {
+		studioPageResources.filters = { parent: store.activePage?.name }
+		attachResource(res)
+	})
+}
+
+const deleteResource = async (resource: Resource, resource_name: string) => {
+	const confirmed = await confirm(`Are you sure you want to delete the data source ${resource_name}?`)
+	if (confirmed) {
+		studioPageResources.delete
+			.submit(resource.resource_child_table_id)
+			.then(async () => {
+				try {
+					// try deleting the main resource - will fail if linked to other pages
+					await studioResources.delete.submit(resource.resource_id)
+				} catch (error) {
+					console.log(`Failed to delete the main resource doc ${resource.resource_id}: ${error}`)
+				}
+
+				if (store.activePage) {
+					store.setPageResources(store.activePage)
+				}
+				toast.success(`Data Source ${resource_name} deleted successfully`)
+			})
+			.catch(() => {
+				toast.error(`Failed to delete data source ${resource_name}`)
+			})
+	}
+}
+
+const editResource = async (resource: Resource) => {
+	return studioResources.setValue
+		.submit(getResourceValues(resource))
+		.then(async () => {
+			if (store.activePage) {
+				await store.setPageResources(store.activePage)
+			}
+			toast.success(`Data Source ${resource.resource_name} updated successfully`)
+			showResourceDialog.value = false
 		})
-		.then((res: Resource) => {
-			studioPageResources.filters = { parent: store.activePage?.name }
-			attachResource(res)
+		.catch(() => {
+			toast.error(`Failed to update data source ${resource.resource_name}`)
 		})
 }
 
-const deleteResource = async (docname: string, resource_name: string) => {
-	const confirmed = await confirm(`Are you sure you want to delete the resource ${resource_name}?`)
-	if (confirmed) {
-		studioPageResources.delete.submit(docname).then(() => {
-			if (store.activePage) {
-				store.setPageResources(store.activePage)
-			}
-		})
+const getResourceValues = (resource: Resource | NewResource) => {
+	return {
+		...resource,
+		name: resource.resource_id,
+		fields: getAutocompleteValues(resource.fields),
+		whitelisted_methods: getAutocompleteValues(resource.whitelisted_methods),
 	}
+}
+
+const getResourceMenu = (resource: Resource, resource_name: string) => {
+	return [
+		{
+			label: "Edit",
+			icon: "edit",
+			onClick: async () => {
+				studioPageResources.filters = {
+					parent: store.activePage?.name,
+					name: resource.resource_child_table_id,
+				}
+				await studioPageResources.reload()
+
+				existingResource.value = studioPageResources.data[0]
+				showResourceDialog.value = true
+			},
+		},
+		{
+			label: "Delete",
+			icon: "trash",
+			onClick: () => deleteResource(resource, resource_name),
+		},
+		{
+			label: "Copy Object",
+			icon: "copy",
+			onClick: () => {
+				copyToClipboard(resource)
+			},
+		},
+	]
 }
 </script>
