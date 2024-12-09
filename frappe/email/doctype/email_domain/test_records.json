@@ -1,0 +1,32 @@
+[
+ {
+  "doctype": "Email Domain",
+  "domain_name": "test.com",
+  "email_id": "_test@test.com",
+  "email_server": "imap.test.com",
+  "use_imap": "imap.test.com",
+  "use_ssl": 1,
+  "use_tls": 1,
+  "incoming_port": "993",
+  "attachment_limit": "1",
+  "smtp_server": "smtp.test.com",
+  "smtp_port": "587",
+  "password": "password"
+ },
+ {
+  "doctype": "Email Account",
+  "name": "_Test Email Account 1",
+  "enable_incoming": 1,
+  "email_id": "_test@test.com",
+  "domain": "test.com",
+  "email_server": "imap.test.com",
+  "use_imap": 1,
+  "use_ssl": 0,
+  "use_tls": 1,
+  "incoming_port": "143",
+  "attachment_limit": "1",
+  "smtp_server": "smtp.test.com",
+  "smtp_port": "587",
+  "password": "password"
+ }
+]
