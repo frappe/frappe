@@ -36,7 +36,7 @@
 						class="invisible ml-auto px-2 hover:visible group-hover/key:visible"
 						size="sm"
 						:hoverDelay="1"
-						@click.prevent="copyToClipboard(`{{ getObjectPath(key) }}`)"
+						@click.prevent="copyToClipboard('{{ ' + getObjectPath(key) + ' }}')"
 					/>
 				</div>
 
@@ -103,6 +103,6 @@ const formatValue = (value: string | Function | object) => {
 
 const objectParentPath = computed(() => props.parentPath || props.name)
 const getObjectPath = (key: string) => {
-	return `${objectParentPath}.${key}`
+	return `${objectParentPath.value}.${key}`
 }
 </script>
