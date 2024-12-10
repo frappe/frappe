@@ -14,6 +14,7 @@ class Block implements BlockOptions {
 	componentId: string
 	componentName: string
 	componentProps: Record<string, any>
+	componentSlots: Record<string, any>
 	componentEvents: Record<string, any>
 	blockName: string
 	originalElement?: string | undefined
@@ -45,6 +46,7 @@ class Block implements BlockOptions {
 		} else {
 			this.componentProps = options.componentProps
 		}
+		this.componentSlots = options.componentSlots || {}
 		this.componentEvents = options.componentEvents || {}
 
 		// set up hierarchy
@@ -330,6 +332,19 @@ class Block implements BlockOptions {
 	// component props
 	setProp(propName: string, value: any) {
 		this.componentProps[propName] = value
+	}
+
+	// component slots
+	addSlot(slot: string) {
+		this.componentSlots[slot] = `${slot} Slot`
+	}
+
+	updateSlot(slot: string, content: string) {
+		this.componentSlots[slot] = content
+	}
+
+	removeSlot(slot: string) {
+		delete this.componentSlots[slot]
 	}
 
 	// events

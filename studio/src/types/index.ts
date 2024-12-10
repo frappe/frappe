@@ -13,6 +13,7 @@ export interface BlockOptions {
 	componentId?: string
 	componentName: string
 	componentProps?: Record<string, any>
+	componentSlots?: Record<string, any>
 	componentEvents?: Record<string, any>
 	children?: Array<BlockOptions>
 	baseStyles?: BlockStyleMap
@@ -99,4 +100,4 @@ export type Filter = {
 }
 
 export type LeftPanelOptions = "Pages" | "Add Component" | "Layers" | "Data" | "Code"
-export type RightPanelOptions = "Props" | "Events" | "Styles"
+export type RightPanelOptions = "Properties" | "Events" | "Styles"

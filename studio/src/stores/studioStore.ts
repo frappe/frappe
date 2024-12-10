@@ -32,7 +32,7 @@ const useStudioStore = defineStore("store", () => {
 		showLeftPanel: true,
 		showRightPanel: true,
 		leftPanelActiveTab: <LeftPanelOptions>"Add Component",
-		rightPanelActiveTab: <RightPanelOptions>"Props",
+		rightPanelActiveTab: <RightPanelOptions>"Properties",
 	})
 	const activeBreakpoint = ref("desktop")
 	const guides = reactive({

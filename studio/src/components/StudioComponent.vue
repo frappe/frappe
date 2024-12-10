@@ -12,6 +12,11 @@
 		@contextmenu="triggerContextMenu($event)"
 		ref="componentRef"
 	>
+		<!-- Dynamically render named slots -->
+		<template v-for="(slotContent, slotName) in block.componentSlots" :key="slotName" v-slot:[slotName]>
+			{{ slotContent }}
+		</template>
+
 		<StudioComponent v-for="child in block?.children" :key="child.componentId" :block="child" />
 	</component>
 
