@@ -34,6 +34,7 @@ class WebForm(WebsiteGenerator):
 		allow_incomplete: DF.Check
 		allow_multiple: DF.Check
 		allow_print: DF.Check
+		allowed_embedding_domains: DF.SmallText | None
 		anonymous: DF.Check
 		apply_document_permissions: DF.Check
 		banner_image: DF.AttachImage | None

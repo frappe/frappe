@@ -646,7 +646,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_count_element() {
-		return this.$result.find(".list-count");
+		return this.$result?.find(".list-count");
 	}
 
 	get_header_html() {
@@ -1835,6 +1835,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return frappe.perm.has_perm(doctype, 0, "submit");
 		};
 
+		const is_bulk_edit_allowed = (doctype) => {
+			// Check settings if there is a workflow defined, otherwise directly allow
+			if (frappe.model.has_workflow(doctype)) {
+				return !!this.list_view_settings?.allow_edit;
+			}
+			return true;
+		};
+
 		// utility
 		const bulk_assignment = () => {
 			return {
@@ -1846,6 +1854,30 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						this.clear_checked_items();
 						this.refresh();
 					});
+				},
+				standard: true,
+			};
+		};
+
+		const bulk_assignment_clear = () => {
+			return {
+				label: __("Clear Assignment", null, "Button in list view actions menu"),
+				action: () => {
+					frappe.confirm(
+						"Are you sure you want to clear the assignments?",
+						() => {
+							this.disable_list_update = true;
+							bulk_operations.clear_assignment(this.get_checked_items(true), () => {
+								this.disable_list_update = false;
+								this.clear_checked_items();
+								this.refresh();
+							});
+						},
+						() => {
+							this.clear_checked_items();
+							this.refresh();
+						}
+					);
 				},
 				standard: true,
 			};
@@ -2010,7 +2042,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		};
 
 		// bulk edit
-		if (has_editable_fields(doctype) && !frappe.model.has_workflow(doctype)) {
+		if (has_editable_fields(doctype) && is_bulk_edit_allowed(doctype)) {
 			actions_menu_items.push(bulk_edit());
 		}
 
@@ -2018,6 +2050,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		// bulk assignment
 		actions_menu_items.push(bulk_assignment());
+
+		actions_menu_items.push(bulk_assignment_clear());
 
 		actions_menu_items.push(bulk_assignment_rule());
 
