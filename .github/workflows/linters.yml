@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+# When updating this file, please also update the linter_workflow_template in frappe/utils/boilerplate.py
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 name: Linters
 
 on:
@@ -21,9 +25,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 200
+<<<<<<< HEAD
       - uses: actions/setup-node@v3
         with:
           node-version: 18
+=======
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
           check-latest: true
 
       - name: Check commit titles
@@ -31,6 +41,28 @@ jobs:
           npm install @commitlint/cli @commitlint/config-conventional
           npx commitlint --verbose --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }}
 
+<<<<<<< HEAD
+=======
+  docs-required:
+    name: 'Documentation Required'
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: 'Setup Environment'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/checkout@v4
+
+      - name: Validate Docs
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          pip install requests --quiet
+          python $GITHUB_WORKSPACE/.github/helper/documentation.py $PR_NUMBER
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   linter:
     name: 'Semgrep Rules'
     runs-on: ubuntu-latest
@@ -38,9 +70,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+<<<<<<< HEAD
       - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
+=======
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
           cache: pip
 
       - name: Download Semgrep rules
@@ -56,14 +94,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+<<<<<<< HEAD
       - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
+=======
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
       - uses: actions/checkout@v4
 
       - name: Cache pip
+<<<<<<< HEAD
         uses: actions/cache@v3
+=======
+        uses: actions/cache@v4
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py') }}
@@ -75,4 +123,21 @@ jobs:
         run: |
           pip install pip-audit
           cd ${GITHUB_WORKSPACE}
+<<<<<<< HEAD
           pip-audit --desc on --ignore-vuln GHSA-4xqq-73wg-5mjp .
+=======
+          pip-audit --desc on .
+
+  precommit:
+    name: 'Pre-Commit'
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - uses: pre-commit/action@v3.0.1
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

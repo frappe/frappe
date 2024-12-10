@@ -26,6 +26,7 @@ frappe.ui.form.on("Email Queue", {
 		} else if (frm.doc.status == "Error") {
 			frm.add_custom_button("Retry Sending", function () {
 				frm.call({
+<<<<<<< HEAD
 					method: "retry_sending",
 					doc: frm.doc,
 					args: {
@@ -33,6 +34,20 @@ frappe.ui.form.on("Email Queue", {
 					},
 					callback: function () {
 						frm.reload_doc();
+=======
+					method: "frappe.email.doctype.email_queue.email_queue.retry_sending",
+					args: {
+						queues: [frm.doc.name],
+					},
+					callback: function () {
+						frm.reload_doc();
+						frappe.show_alert({
+							message: __(
+								"Status Updated. The email will be picked up in the next scheduled run."
+							),
+							indicator: "green",
+						});
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					},
 				});
 			});

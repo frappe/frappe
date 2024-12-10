@@ -23,8 +23,13 @@ class WebsiteSlideshow(Document):
 		header: DF.HTMLEditor | None
 		slideshow_items: DF.Table[WebsiteSlideshowItem]
 		slideshow_name: DF.Data
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def validate(self):
 		self.validate_images()
 

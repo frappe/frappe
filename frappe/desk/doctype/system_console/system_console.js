@@ -41,6 +41,13 @@ frappe.ui.form.on("System Console", {
 				frm.get_field("sql_output").html("");
 			}
 		}
+<<<<<<< HEAD
+=======
+
+		const field = frm.get_field("console");
+		field.df.options = frm.doc.type;
+		field.set_language();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	},
 
 	render_sql_output: function (frm) {

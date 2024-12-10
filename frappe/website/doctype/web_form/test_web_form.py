@@ -3,15 +3,35 @@
 import json
 
 import frappe
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
+=======
+from frappe.tests import IntegrationTestCase, UnitTestCase
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.utils import set_request
 from frappe.website.doctype.web_form.web_form import accept
 from frappe.website.serve import get_response_content
 
+<<<<<<< HEAD
 test_dependencies = ["Web Form"]
 
 
 class TestWebForm(FrappeTestCase):
+=======
+EXTRA_TEST_RECORD_DEPENDENCIES = ["Web Form"]
+
+
+class UnitTestWebForm(UnitTestCase):
+	"""
+	Unit tests for WebForm.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestWebForm(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def setUp(self):
 		frappe.conf.disable_website_cache = True
 

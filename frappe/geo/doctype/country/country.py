@@ -20,6 +20,10 @@ class Country(Document):
 		time_format: DF.Data | None
 		time_zones: DF.Text | None
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	# NOTE: During installation country docs are bulk inserted.
 	pass
 

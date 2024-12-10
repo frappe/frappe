@@ -15,7 +15,11 @@ from frappe.email.doctype.newsletter.newsletter import (
 	send_scheduled_email,
 )
 from frappe.email.queue import flush
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
+=======
+from frappe.tests import IntegrationTestCase
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.utils import add_days, getdate
 
 emails = [
@@ -134,7 +138,11 @@ class TestNewsletterMixin:
 		return newsletter
 
 
+<<<<<<< HEAD
 class TestNewsletter(TestNewsletterMixin, FrappeTestCase):
+=======
+class TestNewsletter(TestNewsletterMixin, IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_send(self):
 		self.send_newsletter()
 

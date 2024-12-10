@@ -6,7 +6,13 @@ import gzip
 import importlib
 import json
 import os
+<<<<<<< HEAD
 import shlex
+=======
+import secrets
+import shlex
+import string
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 import subprocess
 import types
 import unittest
@@ -31,8 +37,13 @@ import frappe.commands.utils
 import frappe.recorder
 from frappe.installer import add_to_installed_apps, remove_app
 from frappe.query_builder.utils import db_type_is
+<<<<<<< HEAD
 from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils import FrappeTestCase, timeout
+=======
+from frappe.tests import IntegrationTestCase, timeout
+from frappe.tests.test_query_builder import run_only_if
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.utils import add_to_date, get_bench_path, get_bench_relative_path, now
 from frappe.utils.backups import BackupGenerator, fetch_latest_backups
 from frappe.utils.jinja_globals import bundled_asset
@@ -44,6 +55,7 @@ CLI_CONTEXT = frappe._dict(sites=[TEST_SITE])
 
 
 def clean(value) -> str:
+<<<<<<< HEAD
 	"""Strips and converts bytes to str
 
 	Args:
@@ -52,6 +64,9 @@ def clean(value) -> str:
 	Returns:
 	        [type]: [description]
 	"""
+=======
+	"""Strip and convert bytes to str."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if isinstance(value, bytes):
 		value = value.decode()
 	if isinstance(value, str):
@@ -60,13 +75,21 @@ def clean(value) -> str:
 
 
 def missing_in_backup(doctypes: list, file: os.PathLike) -> list:
+<<<<<<< HEAD
 	"""Returns list of missing doctypes in the backup.
+=======
+	"""Return list of missing doctypes in the backup.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	Args:
 	        doctypes (list): List of DocTypes to be checked
 	        file (str): Path of the database file
 
+<<<<<<< HEAD
 	Returns:
+=======
+	Return:
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	        doctypes(list): doctypes that are missing in backup
 	"""
 	predicate = 'COPY public."tab{}"' if frappe.conf.db_type == "postgres" else "CREATE TABLE `tab{}`"
@@ -77,14 +100,22 @@ def missing_in_backup(doctypes: list, file: os.PathLike) -> list:
 
 
 def exists_in_backup(doctypes: list, file: os.PathLike) -> bool:
+<<<<<<< HEAD
 	"""Checks if the list of doctypes exist in the database.sql.gz file supplied
+=======
+	"""Check if the list of doctypes exist in the database.sql.gz file supplied.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	Args:
 	        doctypes (list): List of DocTypes to be checked
 	        file (str): Path of the database file
 
+<<<<<<< HEAD
 	Returns:
 	        bool: True if all tables exist
+=======
+	Return True if all tables exist.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	"""
 	missing_doctypes = missing_in_backup(doctypes, file)
 	return len(missing_doctypes) == 0
@@ -101,7 +132,11 @@ def maintain_locals():
 	finally:
 		post_site = getattr(frappe.local, "site", None)
 		if not post_site or post_site != pre_site:
+<<<<<<< HEAD
 			frappe.init(site=pre_site)
+=======
+			frappe.init(pre_site)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			frappe.local.db = pre_db
 			frappe.local.flags.update(pre_flags)
 
@@ -139,7 +174,11 @@ def cli(cmd: Command, args: list | None = None):
 			importlib.invalidate_caches()
 
 
+<<<<<<< HEAD
 class BaseTestCommands(FrappeTestCase):
+=======
+class BaseTestCommands(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	@classmethod
 	def setUpClass(cls) -> None:
 		super().setUpClass()
@@ -230,6 +269,7 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 		self.assertIsInstance(float(self.stdout), float)
 
+<<<<<<< HEAD
 		# test 2: execute a command expecting an errored output as local won't exist
 		self.execute("bench --site {site} execute frappe.local.site")
 		self.assertEqual(self.returncode, 1)
@@ -242,6 +282,25 @@ class TestCommands(BaseTestCommands):
 		self.execute("""bench --site {site} execute frappe.bold --kwargs '{{"text": "DocType"}}'""")
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(self.stdout[1:-1], frappe.bold(text="DocType"))
+=======
+		# test 2: execute a command accessing a normal attribute
+		self.execute("bench --site {site} execute frappe.local.site")
+		self.assertEqual(self.returncode, 0)
+		self.assertIsNotNone(self.stderr)
+
+		# test 3: execute a command expecting an errored output as lacol won't exist
+		self.execute("bench --site {site} execute frappe.lacol.site")
+		self.assertEqual(self.returncode, 1)
+		self.assertIsNotNone(self.stderr)
+
+		# test 4: execute a command with kwargs
+		self.execute(
+			"bench --site {site} execute frappe.bold --kwargs '{put_here}'",
+			{"put_here": '{"text": "DocType"}'},  # avoid escaping errors
+		)
+		self.assertEqual(self.returncode, 0)
+		self.assertEqual(self.stdout, frappe.bold(text="DocType"))
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	@run_only_if(db_type_is.MARIADB)
 	def test_restore(self):
@@ -249,7 +308,11 @@ class TestCommands(BaseTestCommands):
 		global_config = {
 			"admin_password": frappe.conf.admin_password,
 			"root_login": frappe.conf.root_login,
+<<<<<<< HEAD
 			"root_password": frappe.conf.root_password,
+=======
+			"root_password": frappe.conf.mariadb_root_password or frappe.conf.root_password,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			"db_type": frappe.conf.db_type,
 		}
 		site_data = {"test_site": TEST_SITE, **global_config}
@@ -455,7 +518,11 @@ class TestCommands(BaseTestCommands):
 
 		# Reset it back to original password
 		original_password = frappe.conf.admin_password or "admin"
+<<<<<<< HEAD
 		self.execute("bench --site {site} set-admin-password %s" % original_password)
+=======
+		self.execute("bench --site {{site}} set-admin-password {}".format(original_password))
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(check_password("Administrator", original_password), "Administrator")
 
@@ -470,12 +537,25 @@ class TestCommands(BaseTestCommands):
 		self.execute(
 			f"bench new-site {site} --force --verbose "
 			f"--admin-password {frappe.conf.admin_password} "
+<<<<<<< HEAD
 			f"--mariadb-root-password {frappe.conf.root_password} "
+=======
+			f"--db-root-username {frappe.conf.root_login} "
+			f"--db-root-password {frappe.conf.root_password} "
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			f"--db-type {frappe.conf.db_type} "
 		)
 		self.assertEqual(self.returncode, 0)
 
+<<<<<<< HEAD
 		self.execute(f"bench drop-site {site} --force --root-password {frappe.conf.root_password}")
+=======
+		self.execute(
+			f"bench drop-site {site} --force "
+			f"--db-root-username {frappe.conf.root_login} "
+			f"--db-root-password {frappe.conf.root_password} "
+		)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		self.assertEqual(self.returncode, 0)
 
 		bench_path = get_bench_path()
@@ -493,7 +573,12 @@ class TestCommands(BaseTestCommands):
 			self.execute(
 				f"bench new-site {TEST_SITE} --verbose "
 				f"--admin-password {frappe.conf.admin_password} "
+<<<<<<< HEAD
 				f"--mariadb-root-password {frappe.conf.root_password} "
+=======
+				f"--db-root-username {frappe.conf.root_login} "
+				f"--db-root-password {frappe.conf.root_password} "
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				f"--db-type {frappe.conf.db_type} "
 			)
 
@@ -520,6 +605,93 @@ class TestCommands(BaseTestCommands):
 
 		self.assertEqual(conf[key], value)
 
+<<<<<<< HEAD
+=======
+	def test_different_db_username(self):
+		site = frappe.generate_hash()
+		user = "".join(secrets.choice(string.ascii_letters) for _ in range(8))
+		password = frappe.generate_hash()
+		kwargs = {
+			"new_site": site,
+			"admin_password": frappe.conf.admin_password,
+			"db_type": frappe.conf.db_type,
+			"db_user": user,
+			"db_password": password,
+			"db_root_username": frappe.conf.root_login,
+			"db_root_password": frappe.conf.root_password or "",
+		}
+		self.execute(
+			"bench new-site {new_site} --force --verbose "
+			"--admin-password {admin_password} "
+			"--db-root-username {db_root_username} "
+			"--db-root-password {db_root_password} "
+			"--db-type {db_type} "
+			"--db-user {db_user} "
+			"--db-password {db_password}",
+			kwargs,
+		)
+		self.assertEqual(self.returncode, 0)
+		self.execute("bench --site {new_site} show-config --format json", kwargs)
+		self.assertEqual(self.returncode, 0)
+		config = json.loads(self.stdout)
+		self.assertEqual(config[site]["db_user"], user)
+		self.assertEqual(config[site]["db_password"], password)
+		self.execute(
+			"bench drop-site {new_site} --force "
+			"--db-root-username {db_root_username} "
+			"--db-root-password {db_root_password} ",
+			kwargs,
+		)
+		self.assertEqual(self.returncode, 0)
+
+	def test_existing_db_username(self):
+		site = frappe.generate_hash()
+		user = "".join(secrets.choice(string.ascii_letters) for _ in range(8))
+		if frappe.conf.db_type == "mariadb":
+			from frappe.database.mariadb.setup_db import get_root_connection
+
+			root_conn = get_root_connection()
+			root_conn.sql(f"CREATE USER '{user}'@'localhost'")
+		else:
+			from frappe.database.postgres.setup_db import get_root_connection
+
+			root_conn = get_root_connection()
+			root_conn.sql(f"CREATE USER {user}")
+		password = frappe.generate_hash()
+		kwargs = {
+			"new_site": site,
+			"admin_password": frappe.conf.admin_password,
+			"db_type": frappe.conf.db_type,
+			"db_user": user,
+			"db_password": password,
+			"db_root_username": frappe.conf.root_login,
+			"db_root_password": frappe.conf.root_password,
+		}
+		self.execute(
+			"bench new-site {new_site} --force --verbose "
+			"--admin-password {admin_password} "
+			"--db-type {db_type} "
+			"--db-user {db_user} "
+			"--db-password {db_password} "
+			"--db-root-username {db_root_username} "
+			"--db-root-password {db_root_password} ",
+			kwargs,
+		)
+		self.assertEqual(self.returncode, 0)
+		self.execute("bench --site {new_site} show-config --format json", kwargs)
+		self.assertEqual(self.returncode, 0)
+		config = json.loads(self.stdout)
+		self.assertEqual(config[site]["db_user"], user)
+		self.assertEqual(config[site]["db_password"], password)
+		self.execute(
+			"bench drop-site {new_site} --force "
+			"--db-root-username {db_root_username} "
+			"--db-root-password {db_root_password} ",
+			kwargs,
+		)
+		self.assertEqual(self.returncode, 0)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 class TestBackups(BaseTestCommands):
 	backup_map = types.MappingProxyType(
@@ -624,7 +796,11 @@ class TestBackups(BaseTestCommands):
 	@run_only_if(db_type_is.MARIADB)
 	def test_clear_log_table(self):
 		d = frappe.get_doc(doctype="Error Log", title="Something").insert()
+<<<<<<< HEAD
 		d.db_set("modified", "2010-01-01", update_modified=False)
+=======
+		d.db_set("creation", "2010-01-01", update_modified=False)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		frappe.db.commit()
 
 		tables_before = frappe.db.get_tables(cached=False)
@@ -736,7 +912,11 @@ class TestBackups(BaseTestCommands):
 		self.assertEqual([], missing_in_backup(self.backup_map["excludes"]["excludes"], database))
 
 
+<<<<<<< HEAD
 class TestRemoveApp(FrappeTestCase):
+=======
+class TestRemoveApp(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_delete_modules(self):
 		from frappe.installer import (
 			_delete_doctypes,
@@ -808,12 +988,21 @@ class TestAddNewUser(BaseTestCommands):
 
 class TestBenchBuild(BaseTestCommands):
 	def test_build_assets_size_check(self):
+<<<<<<< HEAD
 		with cli(frappe.commands.utils.build, "--force --production") as result:
 			self.assertEqual(result.exit_code, 0)
 			self.assertEqual(result.exception, None)
 
 		CURRENT_SIZE = 3.5  # MB
 		JS_ASSET_THRESHOLD = 0.1
+=======
+		with cli(frappe.commands.utils.build, "--force --production --app frappe") as result:
+			self.assertEqual(result.exit_code, 0)
+			self.assertEqual(result.exception, None)
+
+		CURRENT_SIZE = 3.3  # MB
+		JS_ASSET_THRESHOLD = 0.01
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		hooks = frappe.get_hooks()
 		default_bundle = hooks["app_include_js"]
@@ -855,7 +1044,11 @@ class TestSchedulerUtils(BaseTestCommands):
 			self.assertEqual(result.exit_code, 0)
 
 
+<<<<<<< HEAD
 class TestCommandUtils(FrappeTestCase):
+=======
+class TestCommandUtils(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_bench_helper(self):
 		from frappe.utils.bench_helper import get_app_groups
 
@@ -918,3 +1111,13 @@ class TestSchedulerCLI(BaseTestCommands):
 		self.execute("bench --site {site} scheduler resume")
 		self.assertEqual(self.returncode, 0)
 		self.assertRegex(self.stdout, r"Scheduler is resumed for site .*")
+<<<<<<< HEAD
+=======
+
+
+class TestCLIImplementation(BaseTestCommands):
+	def test_missing_commands(self):
+		self.execute("bench --site {site} migrat")
+		self.assertNotEqual(self.returncode, 0)
+		self.assertRegex(self.stderr, r"No such.*migrat.*migrate")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

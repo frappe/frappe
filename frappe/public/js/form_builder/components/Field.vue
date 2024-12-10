@@ -177,6 +177,14 @@ function is_filter_applied() {
 	}
 }
 
+<<<<<<< HEAD
+=======
+function open_child_doctype() {
+	if (!props.field?.df?.options) return;
+	window.open(`/app/doctype/${props.field.df.options}`, "_blank");
+}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 onMounted(() => selected.value && label_input.value.focus_on_label());
 </script>
 
@@ -191,6 +199,10 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 		<component
 			:is="component"
 			:df="field.df"
+<<<<<<< HEAD
+=======
+			:is-customize-form="store.is_customize_form"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			:data-fieldname="field.df.fieldname"
 			:data-fieldtype="field.df.fieldtype"
 		>
@@ -208,7 +220,11 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 						class="help-icon"
 						v-if="field.df.documentation_url"
 						v-html="frappe.utils.icon('help', 'sm')"
+<<<<<<< HEAD
 					></div>
+=======
+					/>
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				</div>
 			</template>
 			<template #actions>
@@ -219,7 +235,11 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 						:class="is_filter_applied()"
 						@click="edit_filters"
 					>
+<<<<<<< HEAD
 						<div v-html="frappe.utils.icon('filter', 'sm')"></div>
+=======
+						<div v-html="frappe.utils.icon('filter', 'sm')" />
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					</button>
 					<AddFieldButton ref="add_field_ref" :column="column" :field="field">
 						<div v-html="frappe.utils.icon('add', 'sm')" />
@@ -232,21 +252,41 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 						"
 						@click="move_fields_to_column"
 					>
+<<<<<<< HEAD
 						<div v-html="frappe.utils.icon('move', 'sm')"></div>
+=======
+						<div v-html="frappe.utils.icon('move', 'sm')" />
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					</button>
 					<button
 						class="btn btn-xs btn-icon"
 						:title="__('Duplicate field')"
 						@click.stop="duplicate_field"
 					>
+<<<<<<< HEAD
 						<div v-html="frappe.utils.icon('duplicate', 'sm')"></div>
+=======
+						<div v-html="frappe.utils.icon('duplicate', 'sm')" />
+					</button>
+					<button
+						v-if="field.df.fieldtype === 'Table' && field.df.options"
+						class="btn btn-xs btn-icon"
+						@click="open_child_doctype"
+						:title="__('Edit the {0} Doctype', [field.df.options])"
+					>
+						<div v-html="frappe.utils.icon('external-link', 'sm')" />
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					</button>
 					<button
 						class="btn btn-xs btn-icon"
 						:title="__('Remove field')"
 						@click.stop="remove_field"
 					>
+<<<<<<< HEAD
 						<div v-html="frappe.utils.icon('remove', 'sm')"></div>
+=======
+						<div v-html="frappe.utils.icon('remove', 'sm')" />
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					</button>
 				</div>
 			</template>

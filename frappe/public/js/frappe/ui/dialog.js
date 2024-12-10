@@ -13,8 +13,15 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.display = false;
 		this.is_dialog = true;
 
+<<<<<<< HEAD
 		$.extend(this, { animate: true, size: null }, opts);
 		this.make();
+=======
+		$.extend(this, { animate: true, size: null, auto_make: true }, opts);
+		if (this.auto_make) {
+			this.make();
+		}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 
 	make() {
@@ -160,6 +167,23 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		return this.$wrapper.find(".modal-header .btn-modal-minimize");
 	}
 
+<<<<<<< HEAD
+=======
+	set_alert(text, alert_class = "info") {
+		this.clear_alert();
+		this.$alert = $(`<div class="alert alert-${alert_class}">${text}</div>`).prependTo(
+			this.body
+		);
+		this.$message.text(text);
+	}
+
+	clear_alert() {
+		if (this.$alert) {
+			this.$alert.remove();
+		}
+	}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	set_message(text) {
 		this.$message.removeClass("hide");
 		this.$body.addClass("hide");
@@ -301,6 +325,11 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 
 		action && action_button.click(action);
 	}
+<<<<<<< HEAD
+=======
+
+	add_custom_button() {}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 };
 
 frappe.ui.hide_open_dialog = () => {

@@ -12,7 +12,10 @@ from frappe.desk.reportview import validate_args
 from frappe.model.db_query import check_parent_permission
 from frappe.model.utils import is_virtual_doctype
 from frappe.utils import get_safe_filters
+<<<<<<< HEAD
 from frappe.utils.deprecations import deprecated
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 if TYPE_CHECKING:
 	from frappe.model.document import Document
@@ -38,7 +41,11 @@ def get_list(
 	as_dict: bool = True,
 	or_filters=None,
 ):
+<<<<<<< HEAD
 	"""Returns a list of records by filters, fields, ordering and limit
+=======
+	"""Return a list of records by filters, fields, ordering and limit.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	:param doctype: DocType of the data to be queried
 	:param fields: fields to be returned. Default is `name`
@@ -74,7 +81,11 @@ def get_count(doctype, filters=None, debug=False, cache=False):
 
 @frappe.whitelist()
 def get(doctype, name=None, filters=None, parent=None):
+<<<<<<< HEAD
 	"""Returns a document by name or filters
+=======
+	"""Return a document by name or filters.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	:param doctype: DocType of the document to be returned
 	:param name: return document of this `name`
@@ -97,7 +108,11 @@ def get(doctype, name=None, filters=None, parent=None):
 
 @frappe.whitelist()
 def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, parent=None):
+<<<<<<< HEAD
 	"""Returns a value form a document
+=======
+	"""Return a value from a document.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	:param doctype: DocType to be queried
 	:param fieldname: Field to be returned (default `name`)
@@ -296,7 +311,11 @@ def bulk_update(docs):
 
 @frappe.whitelist()
 def has_permission(doctype, docname, perm_type="read"):
+<<<<<<< HEAD
 	"""Returns a JSON with data whether the document has the requested permission
+=======
+	"""Return a JSON with data whether the document has the requested permission.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	:param doctype: DocType of the document to be checked
 	:param docname: `name` of the document to be checked
@@ -307,7 +326,11 @@ def has_permission(doctype, docname, perm_type="read"):
 
 @frappe.whitelist()
 def get_doc_permissions(doctype, docname):
+<<<<<<< HEAD
 	"""Returns an evaluated document permissions dict like `{"read":1, "write":1}`
+=======
+	"""Return an evaluated document permissions dict like `{"read":1, "write":1}`.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	:param doctype: DocType of the document to be evaluated
 	:param docname: `name` of the document to be evaluated
@@ -328,6 +351,7 @@ def get_password(doctype, name, fieldname):
 	return frappe.get_doc(doctype, name).get_password(fieldname)
 
 
+<<<<<<< HEAD
 @frappe.whitelist()
 @deprecated
 def get_js(items):
@@ -350,11 +374,20 @@ def get_js(items):
 		out.append(code)
 
 	return out
+=======
+from frappe.deprecation_dumpster import get_js as _get_js
+
+get_js = frappe.whitelist()(_get_js)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 @frappe.whitelist(allow_guest=True)
 def get_time_zone():
+<<<<<<< HEAD
 	"""Returns default time zone"""
+=======
+	"""Return the default time zone."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return {"time_zone": frappe.defaults.get_defaults().get("time_zone")}
 
 
@@ -466,8 +499,12 @@ def validate_link(doctype: str, docname: str, fields=None):
 
 
 def insert_doc(doc) -> "Document":
+<<<<<<< HEAD
 	"""Inserts document and returns parent document object with appended child document
 	if `doc` is child document else returns the inserted document object
+=======
+	"""Insert document and return parent document object with appended child document if `doc` is child document else return the inserted document object.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	:param doc: doc to insert (dict)"""
 

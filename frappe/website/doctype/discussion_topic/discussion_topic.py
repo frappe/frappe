@@ -18,6 +18,10 @@ class DiscussionTopic(Document):
 		reference_doctype: DF.Link | None
 		title: DF.Data | None
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass
 
 

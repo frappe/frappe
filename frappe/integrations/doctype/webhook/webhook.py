@@ -36,9 +36,12 @@ class Webhook(Document):
 		enable_security: DF.Check
 		enabled: DF.Check
 		is_dynamic_url: DF.Check
+<<<<<<< HEAD
 		meets_condition: DF.Data | None
 		preview_document: DF.DynamicLink | None
 		preview_request_body: DF.Code | None
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		request_method: DF.Literal["POST", "PUT", "DELETE"]
 		request_structure: DF.Literal["", "Form URL-Encoded", "JSON"]
 		request_url: DF.SmallText
@@ -119,6 +122,7 @@ class Webhook(Document):
 				frappe.throw(_("Invalid Webhook Secret"))
 
 	@frappe.whitelist()
+<<<<<<< HEAD
 	def generate_preview(self):
 		# This function doesn't need to do anything specific as virtual fields
 		# get evaluated automatically.
@@ -148,6 +152,26 @@ class Webhook(Document):
 			doc = frappe.get_cached_doc(self.webhook_doctype, self.preview_document)
 			return frappe.as_json(get_webhook_data(doc, self))
 		except Exception as e:
+=======
+	def preview_meets_condition(self, preview_document):
+		if not self.condition:
+			return _("Yes")
+		try:
+			doc = frappe.get_cached_doc(self.webhook_doctype, preview_document)
+			met_condition = frappe.safe_eval(self.condition, eval_locals=get_context(doc))
+		except Exception as e:
+			frappe.local.message_log = []
+			return _("Failed to evaluate conditions: {}").format(e)
+		return _("Yes") if met_condition else _("No")
+
+	@frappe.whitelist()
+	def preview_request_body(self, preview_document):
+		try:
+			doc = frappe.get_cached_doc(self.webhook_doctype, preview_document)
+			return frappe.as_json(get_webhook_data(doc, self))
+		except Exception as e:
+			frappe.local.message_log = []
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			return _("Failed to compute request body: {}").format(e)
 
 
@@ -167,7 +191,11 @@ def enqueue_webhook(doc, webhook) -> None:
 
 	except Exception as e:
 		frappe.logger().debug({"enqueue_webhook_error": e})
+<<<<<<< HEAD
 		log_request(webhook.name, doc.name, request_url, headers, data)
+=======
+		log_request(webhook.name, doc.doctype, doc.name, request_url, headers, data)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		return
 
 	for i in range(3):
@@ -181,16 +209,28 @@ def enqueue_webhook(doc, webhook) -> None:
 			)
 			r.raise_for_status()
 			frappe.logger().debug({"webhook_success": r.text})
+<<<<<<< HEAD
 			log_request(webhook.name, doc.name, request_url, headers, data, r)
+=======
+			log_request(webhook.name, doc.doctype, doc.name, request_url, headers, data, r)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			break
 
 		except requests.exceptions.ReadTimeout as e:
 			frappe.logger().debug({"webhook_error": e, "try": i + 1})
+<<<<<<< HEAD
 			log_request(webhook.name, doc.name, request_url, headers, data)
 
 		except Exception as e:
 			frappe.logger().debug({"webhook_error": e, "try": i + 1})
 			log_request(webhook.name, doc.name, request_url, headers, data, r)
+=======
+			log_request(webhook.name, doc.doctype, doc.name, request_url, headers, data)
+
+		except Exception as e:
+			frappe.logger().debug({"webhook_error": e, "try": i + 1})
+			log_request(webhook.name, doc.doctype, doc.name, request_url, headers, data, r)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			sleep(3 * i + 1)
 			if i != 2:
 				continue
@@ -198,6 +238,10 @@ def enqueue_webhook(doc, webhook) -> None:
 
 def log_request(
 	webhook: str,
+<<<<<<< HEAD
+=======
+	doctype: str,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	docname: str,
 	url: str,
 	headers: dict,
@@ -208,6 +252,10 @@ def log_request(
 		{
 			"doctype": "Webhook Request Log",
 			"webhook": webhook,
+<<<<<<< HEAD
+=======
+			"reference_doctype": doctype,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			"reference_document": docname,
 			"user": frappe.session.user if frappe.session.user else None,
 			"url": url,

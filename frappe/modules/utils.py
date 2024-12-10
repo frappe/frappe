@@ -1,8 +1,14 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 """
+<<<<<<< HEAD
 	Utilities for using modules
 """
+=======
+Utilities for using modules
+"""
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 import json
 import os
 from textwrap import dedent, indent
@@ -22,10 +28,16 @@ doctype_python_modules = {}
 
 
 def export_module_json(doc: "Document", is_standard: bool, module: str) -> str | None:
+<<<<<<< HEAD
 	"""Make a folder for the given doc and add its json file (make it a standard
 	object that will be synced)
 
 	Returns the absolute file_path without the extension.
+=======
+	"""Make a folder for the given doc and add its json file (make it a standard object that will be synced).
+
+	Return the absolute file_path without the extension.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	Eg: For exporting a Print Format "_Test Print Format 1", the return value will be
 	`/home/gavin/frappe-bench/apps/frappe/frappe/core/print_format/_test_print_format_1/_test_print_format_1`
 	"""
@@ -194,12 +206,20 @@ def sync_customizations_for_doctype(data: dict, folder: str, filename: str = "")
 
 
 def scrub_dt_dn(dt: str, dn: str) -> tuple[str, str]:
+<<<<<<< HEAD
 	"""Returns in lowercase and code friendly names of doctype and name for certain types"""
+=======
+	"""Return in lowercase and code friendly names of doctype and name for certain types."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return scrub(dt), scrub(dn)
 
 
 def get_doc_path(module: str, doctype: str, name: str) -> str:
+<<<<<<< HEAD
 	"""Returns path of a doc in a module"""
+=======
+	"""Return path of a doc in a module."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return os.path.join(get_module_path(module), *scrub_dt_dn(doctype, name))
 
 
@@ -226,7 +246,11 @@ def export_doc(doctype, name, module=None):
 
 
 def get_doctype_module(doctype: str) -> str:
+<<<<<<< HEAD
 	"""Returns **Module Def** name of given doctype."""
+=======
+	"""Return **Module Def** name of given doctype."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	doctype_module_map = frappe.cache.get_value(
 		"doctype_modules",
 		generator=lambda: dict(frappe.qb.from_("DocType").select("name", "module").run()),
@@ -239,7 +263,11 @@ def get_doctype_module(doctype: str) -> str:
 
 
 def load_doctype_module(doctype, module=None, prefix="", suffix=""):
+<<<<<<< HEAD
 	"""Returns the module object for given doctype.
+=======
+	"""Return the module object for given doctype.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	Note: This will return the standard defined module object for the doctype irrespective
 	of the `override_doctype_class` hook.
@@ -313,6 +341,7 @@ def make_boilerplate(
 			dedent(
 				"""
 			def db_insert(self, *args, **kwargs):
+<<<<<<< HEAD
 				pass
 
 			def load_from_db(self):
@@ -331,6 +360,29 @@ def make_boilerplate(
 
 			@staticmethod
 			def get_stats(args):
+=======
+				raise NotImplementedError
+
+			def load_from_db(self):
+				raise NotImplementedError
+
+			def db_update(self):
+				raise NotImplementedError
+
+			def delete(self):
+				raise NotImplementedError
+
+			@staticmethod
+			def get_list(filters=None, page_length=20, **kwargs):
+				pass
+
+			@staticmethod
+			def get_count(filters=None, **kwargs):
+				pass
+
+			@staticmethod
+			def get_stats(**kwargs):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				pass
 			"""
 			),

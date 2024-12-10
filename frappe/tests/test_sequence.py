@@ -1,8 +1,15 @@
 import frappe
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestSequence(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase
+
+
+class TestSequence(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def generate_sequence_name(self) -> str:
 		return self._testMethodName + "_" + frappe.generate_hash(length=5)
 

@@ -78,7 +78,11 @@ def update_reports(doctype, old_fieldname, new_fieldname):
 		"""select name, ref_doctype, json from tabReport
 		where report_type = 'Report Builder' and ifnull(is_standard, 'No') = 'No'
 		and json like %s and json like %s""",
+<<<<<<< HEAD
 		("%%%s%%" % old_fieldname, "%%%s%%" % doctype),
+=======
+		("%{}%".format(old_fieldname), "%{}%".format(doctype)),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		as_dict=True,
 	)
 

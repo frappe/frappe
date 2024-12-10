@@ -26,6 +26,10 @@
   "roles_permissions_tab",
   "sb1",
   "role_profile_name",
+<<<<<<< HEAD
+=======
+  "role_profiles",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   "roles_html",
   "roles",
   "sb_allow_modules",
@@ -47,6 +51,10 @@
   "desk_settings_section",
   "mute_sounds",
   "desk_theme",
+<<<<<<< HEAD
+=======
+  "code_editor_type",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   "banner_image",
   "navigation_settings_section",
   "search_bar",
@@ -227,9 +235,15 @@
    "read_only": 1
   },
   {
+<<<<<<< HEAD
    "allow_in_quick_entry": 1,
    "fieldname": "role_profile_name",
    "fieldtype": "Link",
+=======
+   "fieldname": "role_profile_name",
+   "fieldtype": "Link",
+   "hidden": 1,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "label": "Role Profile",
    "options": "Role Profile",
    "permlevel": 1
@@ -409,7 +423,11 @@
   },
   {
    "fieldname": "email_signature",
+<<<<<<< HEAD
    "fieldtype": "Small Text",
+=======
+   "fieldtype": "Text Editor",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "label": "Email Signature",
    "no_copy": 1
   },
@@ -719,6 +737,17 @@
    "label": "Onboarding Status"
   },
   {
+<<<<<<< HEAD
+=======
+   "allow_in_quick_entry": 1,
+   "fieldname": "role_profiles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Role Profiles",
+   "options": "User Role Profile",
+   "permlevel": 1
+  },
+  {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "description": "If left empty, the default workspace will be the last visited workspace",
    "fieldname": "default_workspace",
    "fieldtype": "Link",
@@ -732,6 +761,16 @@
    "label": "Workspace"
   },
   {
+<<<<<<< HEAD
+=======
+   "default": "vscode",
+   "fieldname": "code_editor_type",
+   "fieldtype": "Select",
+   "label": "Code Editor Type",
+   "options": "vscode\nvim\nemacs"
+  },
+  {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "collapsible": 1,
    "fieldname": "app_section",
    "fieldtype": "Section Break",
@@ -741,8 +780,12 @@
    "description": "Redirect to the selected app after login",
    "fieldname": "default_app",
    "fieldtype": "Select",
+<<<<<<< HEAD
    "label": "Default App",
    "options": ""
+=======
+   "label": "Default App"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   },
   {
    "collapsible": 1,
@@ -905,9 +948,17 @@
  "route": "user",
  "search_fields": "full_name",
  "show_name_in_global_search": 1,
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "sort_field": "creation",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "sort_order": "DESC",
  "states": [],
  "title_field": "full_name",
  "track_changes": 1
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

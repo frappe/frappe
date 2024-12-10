@@ -51,6 +51,7 @@ frappe.ui.form.on("DocType", {
 		}
 
 		if (!frm.is_new() && !frm.doc.istable) {
+<<<<<<< HEAD
 			if (frm.doc.issingle) {
 				frm.add_custom_button(__("Go to {0}", [__(frm.doc.name)]), () => {
 					window.open(`/app/${frappe.router.slug(frm.doc.name)}`);
@@ -63,12 +64,27 @@ frappe.ui.form.on("DocType", {
 		}
 
 		const customize_form_link = "<a href='/app/customize-form'>Customize Form</a>";
+=======
+			const button_text = frm.doc.issingle
+				? __("Go to {0}", [__(frm.doc.name)])
+				: __("Go to {0} List", [__(frm.doc.name)]);
+			frm.add_custom_button(button_text, () => {
+				window.open(`/app/${frappe.router.slug(frm.doc.name)}`);
+			});
+		}
+
+		const customize_form_link = `<a href="/app/customize-form">${__("Customize Form")}</a>`;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		if (!frappe.boot.developer_mode && !frm.doc.custom) {
 			// make the document read-only
 			frm.set_read_only();
 			frm.dashboard.clear_comment();
 			frm.dashboard.add_comment(
+<<<<<<< HEAD
 				__("DocTypes can not be modified, please use {0} instead", [customize_form_link]),
+=======
+				__("DocTypes cannot be modified, please use {0} instead", [customize_form_link]),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				"blue",
 				true
 			);
@@ -77,10 +93,13 @@ frappe.ui.form.on("DocType", {
 			let msg = __(
 				"This site is running in developer mode. Any change made here will be updated in code."
 			);
+<<<<<<< HEAD
 			msg += "<br>";
 			msg += __("If you just want to customize for your site, use {0} instead.", [
 				customize_form_link,
 			]);
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			frm.dashboard.add_comment(msg, "yellow", true);
 		}
 

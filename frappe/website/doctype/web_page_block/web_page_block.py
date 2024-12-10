@@ -31,4 +31,8 @@ class WebPageBlock(Document):
 		web_template: DF.Link | None
 		web_template_values: DF.Code | None
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass

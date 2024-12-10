@@ -17,8 +17,13 @@ class WebsiteSidebar(Document):
 
 		sidebar_items: DF.Table[WebsiteSidebarItem]
 		title: DF.Data
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def get_items(self):
 		items = frappe.get_all(
 			"Website Sidebar Item",

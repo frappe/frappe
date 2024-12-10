@@ -8,12 +8,30 @@ import frappe.recorder
 from frappe.core.doctype.recorder.recorder import _optimize_query, serialize_request
 from frappe.query_builder.utils import db_type_is
 from frappe.recorder import get as get_recorder_data
+<<<<<<< HEAD
 from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import set_request
 
 
 class TestRecorder(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests.test_query_builder import run_only_if
+from frappe.utils import set_request
+
+
+class UnitTestRecorder(UnitTestCase):
+	"""
+	Unit tests for Recorder.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestRecorder(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def setUp(self):
 		self.start_recoder()
 
@@ -79,7 +97,11 @@ class TestRecorder(FrappeTestCase):
 		self.assertIsInstance(serialize_request(request_doc), dict)
 
 
+<<<<<<< HEAD
 class TestQueryOptimization(FrappeTestCase):
+=======
+class TestQueryOptimization(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	@run_only_if(db_type_is.MARIADB)
 	def test_query_optimizer(self):
 		suggested_index = _optimize_query(
@@ -88,7 +110,11 @@ class TestQueryOptimization(FrappeTestCase):
 			join `tabHas Role` r
 			on r.parent = u.name
 			where email='xyz'
+<<<<<<< HEAD
 			and modified > '2023'
+=======
+			and creation > '2023'
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			and bio like '%xyz%'
 			"""
 		)

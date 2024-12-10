@@ -1,5 +1,9 @@
 frappe.ui.form.ControlInt = class ControlInt extends frappe.ui.form.ControlData {
 	static trigger_change_on_input_event = false;
+<<<<<<< HEAD
+=======
+	static input_mode = "numeric";
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	make() {
 		super.make();
 	}

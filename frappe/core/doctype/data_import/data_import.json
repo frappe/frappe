@@ -16,6 +16,11 @@
   "google_sheets_url",
   "refresh_google_sheet",
   "column_break_5",
+<<<<<<< HEAD
+=======
+  "custom_delimiters",
+  "delimiter_options",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   "status",
   "submit_after_import",
   "mute_emails",
@@ -167,11 +172,32 @@
    "hidden": 1,
    "label": "Payload Count",
    "read_only": 1
+<<<<<<< HEAD
+=======
+  },
+  {
+   "default": ",;\\t|",
+   "depends_on": "custom_delimiters",
+   "description": "If your CSV uses a different delimiter, add that character here, ensuring no spaces or additional characters are included.",
+   "fieldname": "delimiter_options",
+   "fieldtype": "Data",
+   "label": "Delimiter Options"
+  },
+  {
+   "default": "0",
+   "fieldname": "custom_delimiters",
+   "fieldtype": "Check",
+   "label": "Custom Delimiters"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   }
  ],
  "hide_toolbar": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2024-01-30 17:08:05.566686",
+=======
+ "modified": "2024-04-27 20:42:35.843158",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Import",
@@ -191,8 +217,16 @@
    "write": 1
   }
  ],
+<<<<<<< HEAD
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1
 }
+=======
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

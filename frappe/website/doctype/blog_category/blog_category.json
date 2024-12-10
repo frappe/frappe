@@ -10,10 +10,16 @@
  "field_order": [
   "published",
   "title",
+<<<<<<< HEAD
   "description",
   "column_break_4",
   "route",
   "preview_image"
+=======
+  "route",
+  "preview_image",
+  "description"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  ],
  "fields": [
   {
@@ -45,10 +51,13 @@
    "label": "Description"
   },
   {
+<<<<<<< HEAD
    "fieldname": "column_break_4",
    "fieldtype": "Column Break"
   },
   {
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "fieldname": "preview_image",
    "fieldtype": "Attach Image",
    "label": "Preview Image"
@@ -61,13 +70,20 @@
  "is_published_field": "published",
  "links": [
   {
+<<<<<<< HEAD
    "group": "Posts",
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "link_doctype": "Blog Post",
    "link_fieldname": "blog_category"
   }
  ],
  "make_attachments_public": 1,
+<<<<<<< HEAD
  "modified": "2022-10-18 15:43:39.789982",
+=======
+ "modified": "2024-08-15 19:03:00.345431",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Category",
@@ -92,9 +108,17 @@
   }
  ],
  "quick_entry": 1,
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "sort_field": "creation",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "sort_order": "DESC",
  "states": [],
  "title_field": "title",
  "track_changes": 1
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

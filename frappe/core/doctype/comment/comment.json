@@ -99,7 +99,11 @@
   }
  ],
  "links": [],
+<<<<<<< HEAD
  "modified": "2023-07-24 13:52:55.651462",
+=======
+ "modified": "2024-08-14 16:10:15.413830",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Comment",
@@ -131,7 +135,11 @@
   }
  ],
  "quick_entry": 1,
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "sort_field": "creation",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "sort_order": "DESC",
  "states": [],
  "title_field": "comment_type",

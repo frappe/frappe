@@ -23,8 +23,13 @@ class Reminder(Document):
 		reminder_docname: DF.DynamicLink | None
 		reminder_doctype: DF.Link | None
 		user: DF.Link
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	@staticmethod
 	def clear_old_logs(days=30):
 		from frappe.query_builder import Interval

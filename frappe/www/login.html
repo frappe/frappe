@@ -1,4 +1,8 @@
 {% extends "templates/web.html" %}
+<<<<<<< HEAD
+=======
+{% block navbar %}{% endblock %}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 {% macro email_login_body() -%}
 {% if not disable_user_pass_login or (ldap_settings and ldap_settings.enabled) %}

@@ -32,8 +32,27 @@ frappe.dom = {
 		// execute the script globally
 		document.getElementsByTagName("head")[0].appendChild(el);
 	},
+<<<<<<< HEAD
 	remove_script_and_style: function (txt) {
 		const evil_tags = ["script", "style", "noscript", "title", "meta", "base", "head"];
+=======
+
+	remove_script_and_style: function (txt) {
+		const evil_tags = ["script", "style", "noscript", "title", "meta", "base", "head"];
+		const unsafe_tags = ["link"];
+
+		if (!this.unsafe_tags_regex) {
+			const evil_and_unsafe_tags = evil_tags.concat(unsafe_tags);
+			const regex_str = evil_and_unsafe_tags.map((t) => `<([\\s]*)${t}`).join("|");
+			this.unsafe_tags_regex = new RegExp(regex_str, "im");
+		}
+
+		// if no unsafe tags are present return as is to prevent unncessary expensive parsing
+		if (!txt || !this.unsafe_tags_regex.test(txt)) {
+			return txt;
+		}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		const parser = new DOMParser();
 		const doc = parser.parseFromString(txt, "text/html");
 		const body = doc.body;
@@ -282,7 +301,11 @@ frappe.timeout = (seconds) => {
 	});
 };
 
+<<<<<<< HEAD
 frappe.scrub = function (text, spacer = "_") {
+=======
+frappe.scrub = frappe.slug = function (text, spacer = "_") {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return text.replace(/ /g, spacer).toLowerCase();
 };
 
@@ -314,7 +337,11 @@ frappe.get_data_pill = (
 	if (remove_action) {
 		let remove_btn = $(`
 			<span class="remove-btn cursor-pointer">
+<<<<<<< HEAD
 				${frappe.utils.icon("close", "sm")}
+=======
+				${frappe.utils.icon("close", "sm", "es-icon")}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			</span>
 		`);
 		if (typeof remove_action === "function") {

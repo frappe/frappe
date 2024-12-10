@@ -4,12 +4,21 @@
 import frappe
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.page.setup_wizard.install_fixtures import update_global_search_doctypes
+<<<<<<< HEAD
 from frappe.test_runner import make_test_objects
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import global_search, now_datetime
 
 
 class TestGlobalSearch(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import make_test_objects
+from frappe.utils import global_search, now_datetime
+
+
+class TestGlobalSearch(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def setUp(self):
 		update_global_search_doctypes()
 		global_search.setup_global_search_table()
@@ -39,7 +48,11 @@ class TestGlobalSearch(FrappeTestCase):
 
 		for text in phrases:
 			frappe.get_doc(
+<<<<<<< HEAD
 				dict(doctype="Event", subject=text, repeat_on="Monthly", starts_on=now_datetime())
+=======
+				doctype="Event", subject=text, repeat_on="Monthly", starts_on=now_datetime()
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			).insert()
 
 		global_search.sync_global_search()

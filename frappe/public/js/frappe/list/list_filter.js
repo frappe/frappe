@@ -13,10 +13,17 @@ export default class ListFilter {
 	make() {
 		// init dom
 		this.wrapper.html(`
+<<<<<<< HEAD
 			<li class="input-area"></li>
 			<li class="sidebar-action">
 				<a class="saved-filters-preview">${__("Show Saved")}</a>
 			</li>
+=======
+			<div class="input-area"></div>
+			<div class="sidebar-action">
+				<a class="saved-filters-preview">${__("Show Saved")}</a>
+			</div>
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			<div class="saved-filters"></div>
 		`);
 
@@ -56,9 +63,22 @@ export default class ListFilter {
 
 	refresh() {
 		this.get_list_filters().then(() => {
+<<<<<<< HEAD
 			this.filters.length
 				? this.$saved_filters_preview.show()
 				: this.$saved_filters_preview.hide();
+=======
+			if (this.filters.length) {
+				// expand collapsible sections
+				this.wrapper.hasClass("hide") && this.section_title.trigger("click");
+				this.$saved_filters_preview.show();
+			} else {
+				// hide collapsible sections
+				!this.wrapper.hasClass("hide") && this.section_title.trigger("click");
+				this.$saved_filters_preview.hide();
+			}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			const html = this.filters.map((filter) => this.filter_template(filter));
 			this.wrapper.find(".filter-pill").remove();
 			this.$saved_filters.append(html);

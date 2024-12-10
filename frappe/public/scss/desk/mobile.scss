@@ -116,7 +116,11 @@ body {
 
 	.sidebar .user-menu {
 		padding: 9px 14px;
+<<<<<<< HEAD
 		background-color: var(--navbar-bg);
+=======
+		background-color: var(--subtle-accent);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		position: absolute;
 		left: 0;
@@ -127,6 +131,7 @@ body {
 	.sidebar .user-menu img {
 		margin-top: -1px;
 	}
+<<<<<<< HEAD
 
 	// body[data-route=""],
 	// body[data-route="desktop"] {
@@ -150,6 +155,8 @@ body {
 	// 		display: none !important;
 	// 	}
 	// }
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 }
 
 @media (max-width: 767px) {
@@ -198,6 +205,13 @@ body {
 		border-right-color: transparent !important;
 	}
 
+<<<<<<< HEAD
+=======
+	.layout-side-section {
+		max-width: 0px;
+	}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	// listviews
 	.select-like {
 		margin-right: unset !important;
@@ -264,6 +278,7 @@ body {
 		}
 	}
 
+<<<<<<< HEAD
 	#page-chat {
 		.layout-side-section {
 			position: relative;
@@ -306,6 +321,8 @@ body {
 		}
 	}
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	.timeline {
 		&::before {
 			content: none;

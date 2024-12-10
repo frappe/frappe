@@ -1,4 +1,27 @@
 frappe.email_defaults = {
+<<<<<<< HEAD
+=======
+	"Frappe Mail": {
+		domain: null,
+		password: null,
+		awaiting_password: 0,
+		ascii_encode_password: 0,
+		login_id_is_different: 0,
+		login_id: null,
+		use_imap: 0,
+		use_ssl: 0,
+		validate_ssl_certificate: 0,
+		use_starttls: 0,
+		email_server: null,
+		incoming_port: 0,
+		always_use_account_email_id_as_sender: 1,
+		use_tls: 0,
+		use_ssl_for_outgoing: 0,
+		smtp_server: null,
+		smtp_port: null,
+		no_smtp_authentication: 0,
+	},
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	GMail: {
 		email_server: "imap.gmail.com",
 		incoming_port: 993,
@@ -128,10 +151,13 @@ frappe.ui.form.on("Email Account", {
 		frm.trigger("warn_autoreply_on_incoming");
 	},
 
+<<<<<<< HEAD
 	notify_if_unreplied: function (frm) {
 		frm.set_df_property("send_notification_to", "reqd", frm.doc.notify_if_unreplied);
 	},
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	onload: function (frm) {
 		frm.set_df_property("append_to", "only_select", true);
 		frm.set_query(
@@ -148,23 +174,60 @@ frappe.ui.form.on("Email Account", {
 			frm.refresh_field("imap_folder");
 		}
 		set_default_max_attachment_size(frm);
+<<<<<<< HEAD
 		frm.events.show_oauth_authorization_message(frm);
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	},
 
 	refresh: function (frm) {
 		frm.events.enable_incoming(frm);
+<<<<<<< HEAD
 		frm.events.notify_if_unreplied(frm);
+=======
+		frm.events.show_oauth_authorization_message(frm);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		if (frappe.route_flags.delete_user_from_locals && frappe.route_flags.linked_user) {
 			delete frappe.route_flags.delete_user_from_locals;
 			delete locals["User"][frappe.route_flags.linked_user];
 		}
+<<<<<<< HEAD
+=======
+
+		if (!frm.is_dirty() && frm.doc.enable_incoming) {
+			frm.add_custom_button(__("Pull Emails"), () => {
+				frappe.dom.freeze(__("Pulling emails..."));
+				frm.call({
+					method: "pull_emails",
+					args: { email_account: frm.doc.name },
+				}).then((r) => {
+					frappe.dom.unfreeze();
+					if (!(r._server_messages && r._server_messages.length)) {
+						frappe.show_alert({ message: __("Emails Pulled"), indicator: "green" });
+					}
+				});
+			});
+		}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	},
 
 	authorize_api_access: function (frm) {
 		oauth_access(frm);
 	},
 
+<<<<<<< HEAD
+=======
+	validate_frappe_mail_settings: function (frm) {
+		if (frm.doc.service == "Frappe Mail") {
+			frappe.call({
+				doc: frm.doc,
+				method: "validate_frappe_mail_settings",
+			});
+		}
+	},
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	show_oauth_authorization_message(frm) {
 		if (
 			frm.doc.auth_method === "OAuth" &&

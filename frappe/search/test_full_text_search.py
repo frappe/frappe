@@ -1,10 +1,17 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 from frappe.search.full_text_search import FullTextSearch
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestFullTextSearch(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase
+
+
+class TestFullTextSearch(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def setUp(self):
 		index = get_index()
 		index.build()

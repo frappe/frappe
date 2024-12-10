@@ -1,9 +1,16 @@
 import frappe
 from frappe.deferred_insert import deferred_insert, save_to_db
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestDeferredInsert(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase
+
+
+class TestDeferredInsert(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_deferred_insert(self):
 		route_history = {"route": frappe.generate_hash(), "user": "Administrator"}
 		deferred_insert("Route History", [route_history])

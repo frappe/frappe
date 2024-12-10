@@ -26,6 +26,10 @@ class UnhandledEmail(Document):
 		frappe.db.delete(
 			"Unhandled Email",
 			{
+<<<<<<< HEAD
 				"modified": ("<", frappe.utils.add_days(frappe.utils.nowdate(), -1 * days)),
+=======
+				"creation": ("<", frappe.utils.add_days(frappe.utils.nowdate(), -1 * days)),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			},
 		)

@@ -7,6 +7,7 @@ body {
 	}
 }
 
+<<<<<<< HEAD
 .desk-sidebar {
 	@extend .standard-sidebar;
 
@@ -30,6 +31,8 @@ body {
 	}
 }
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 .widget-group {
 	@include get_textstyle("base", "regular");
 	margin-bottom: var(--margin-2xl);
@@ -266,6 +269,11 @@ body {
 			display: flex;
 			justify-content: center;
 			align-items: center;
+<<<<<<< HEAD
+=======
+			border-radius: 7px;
+			background-color: var(--subtle-accent);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		}
 
 		.report-summary {
@@ -347,7 +355,13 @@ body {
 	}
 
 	&.onboarding-widget-box {
+<<<<<<< HEAD
 		margin-bottom: var(--margin-2xl);
+=======
+		margin: 0 -15px;
+		padding: 0 15px;
+		padding-bottom: 30px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		background-color: var(--bg-color);
 		border-bottom: 1px solid var(--border-color);
 		border-radius: 0;
@@ -421,7 +435,13 @@ body {
 				.onboarding-step-body {
 					color: var(--text-muted);
 
+<<<<<<< HEAD
 					p {
+=======
+					p,
+					li {
+						line-height: 1.6;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 						@include get_textstyle("base", "regular");
 					}
 				}
@@ -455,7 +475,11 @@ body {
 					}
 
 					span {
+<<<<<<< HEAD
 						color: var(--gray-700);
+=======
+						color: var(--text-color);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					}
 				}
 
@@ -550,6 +574,7 @@ body {
 
 	&.shortcut-widget-box {
 		cursor: pointer;
+<<<<<<< HEAD
 		padding: 2px 7px;
 		align-items: flex-start;
 
@@ -569,6 +594,34 @@ body {
 			font-weight: 500;
 			@extend .ellipsis;
 		}
+=======
+		padding: 10px;
+		border: 1px solid var(--border-color);
+
+		&:hover {
+			--icon-stroke: var(--invert-neutral);
+			.widget-label .widget-title {
+				color: var(--invert-neutral);
+			}
+			border-color: var(--invert-neutral);
+		}
+
+		.widget-label .widget-title {
+			cursor: pointer;
+			font-size: var(--text-lg);
+		}
+
+		.indicator-pill {
+			font-size: var(--text-xs);
+			@extend .ellipsis;
+		}
+
+		&:focus-visible {
+			text-decoration: underline;
+			background-color: var(--highlight-color);
+			outline: 0;
+		}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 
 	&.links-widget-box {
@@ -578,11 +631,19 @@ body {
 		}
 
 		padding: 10px;
+<<<<<<< HEAD
+=======
+		border: 1px solid var(--border-color);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		.link-item {
 			display: flex;
 			text-decoration: none;
+<<<<<<< HEAD
 			@include get_textstyle("base", "regular");
+=======
+			@include get_textstyle("sm", "regular");
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			color: var(--text-color);
 			padding: 4px;
 			margin-left: -4px;
@@ -618,11 +679,33 @@ body {
 					left: 20%;
 				}
 			}
+<<<<<<< HEAD
 		}
 
 		.widget-head .widget-label .widget-title {
 			@include get_textstyle("lg", "semibold");
 			color: var(--text-color) !important;
+=======
+
+			&:focus-visible {
+				text-decoration: underline;
+				background-color: var(--highlight-color);
+				outline: 0;
+			}
+		}
+
+		.widget-head .widget-label .widget-title {
+			font-size: var(--text-base);
+			font-weight: var(--weight-bold);
+		}
+
+		@include media-breakpoint-down(md) {
+			.link-item {
+				&:first-child {
+					margin-top: 5px;
+				}
+			}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		}
 	}
 
@@ -896,6 +979,10 @@ body {
 }
 
 .workspace-skeleton {
+<<<<<<< HEAD
+=======
+	width: 100%;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	transition: ease;
 	.widget-group-title {
 		height: 15px;
@@ -914,6 +1001,7 @@ body {
 	}
 }
 
+<<<<<<< HEAD
 .workspace-sidebar-skeleton {
 	transition: ease;
 	.sidebar-box {
@@ -933,10 +1021,13 @@ body {
 	}
 }
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 [data-page-route="Workspaces"] {
 	@media (min-width: map-get($grid-breakpoints, "lg")) {
 		.layout-main {
 			height: calc(100vh - var(--navbar-height) - var(--page-head-height) - 5px);
+<<<<<<< HEAD
 			.layout-side-section,
 			.layout-main-section-wrapper {
 				height: 100%;
@@ -966,6 +1057,13 @@ body {
 				border: 1px solid var(--border-color);
 				padding: var(--padding-md);
 				margin-bottom: var(--margin-sm);
+=======
+			max-width: var(--page-max-width);
+			margin: auto;
+
+			.layout-main-section {
+				border: 0px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 				&.edit-mode {
 					background-color: var(--subtle-fg) !important;
@@ -978,6 +1076,7 @@ body {
 					}
 				}
 			}
+<<<<<<< HEAD
 
 			.desk-sidebar {
 				margin-bottom: var(--margin-2xl);
@@ -985,6 +1084,16 @@ body {
 		}
 	}
 
+=======
+		}
+	}
+
+	.page-head .container {
+		max-width: var(--page-max-width);
+		margin: auto;
+	}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	.layout-main-section-wrapper {
 		margin-top: -5px;
 		padding-top: 5px;
@@ -993,14 +1102,22 @@ body {
 	.layout-main-section {
 		background-color: var(--fg-color);
 		box-shadow: none;
+<<<<<<< HEAD
 		border-radius: var(--border-radius-lg);
 		padding: var(--padding-sm);
+=======
+		padding: var(--padding-sm) var(--padding-md);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 
 	.workspace-footer {
 		height: 30px;
 		display: flex;
 		flex-direction: row-reverse;
+<<<<<<< HEAD
+=======
+		margin-bottom: var(--margin-xs);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 
 	.block-menu-item-icon svg {
@@ -1009,6 +1126,7 @@ body {
 		margin-right: 5px;
 	}
 
+<<<<<<< HEAD
 	.standard-sidebar-item {
 		justify-content: space-between;
 		padding: 0px;
@@ -1141,6 +1259,8 @@ body {
 		}
 	}
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	// widgets
 	.widget.number-widget-box {
 		border: 1px solid var(--border-color);
@@ -1151,14 +1271,23 @@ body {
 	}
 
 	.codex-editor {
+<<<<<<< HEAD
 		min-height: 630px;
+=======
+		min-height: calc(100vh - 165px);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		.codex-editor__redactor {
 			display: flex;
 			flex-wrap: wrap;
 			flex-direction: row;
+<<<<<<< HEAD
 			margin: 0px -7px;
 			padding-bottom: 20px !important;
+=======
+			padding-bottom: 20px !important;
+			margin: 0 -4px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 			.ce-block {
 				width: 100%;
@@ -1174,13 +1303,21 @@ body {
 				}
 
 				.ce-header b {
+<<<<<<< HEAD
 					font-weight: 600 !important;
+=======
+					font-weight: var(--weight-regular) !important;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				}
 
 				.new-block-button {
 					position: absolute;
 					top: 14px;
+<<<<<<< HEAD
 					left: -22px;
+=======
+					left: -5px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					cursor: pointer;
 					visibility: hidden;
 					opacity: 0;
@@ -1286,12 +1423,20 @@ body {
 					}
 
 					.ce-header {
+<<<<<<< HEAD
 						padding-left: 7px !important;
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 						margin-bottom: 0 !important;
 						flex: 1;
 
 						.h4 {
+<<<<<<< HEAD
 							@include get_textstyle("xl", "semibold");
+=======
+							font-size: var(--text-lg);
+							color: var(--text-light);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 						}
 
 						.h5 {
@@ -1326,6 +1471,11 @@ body {
 
 							.widget-head {
 								justify-content: space-between;
+<<<<<<< HEAD
+=======
+								height: 100%;
+								padding: 0 10px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 							}
 
 							&:hover {
@@ -1337,6 +1487,10 @@ body {
 								align-items: inherit;
 								color: var(--text-muted);
 								border: 1px dashed var(--gray-400);
+<<<<<<< HEAD
+=======
+								margin: 0px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 								cursor: pointer;
 
 								.widget-control > * {
@@ -1350,11 +1504,23 @@ body {
 						}
 
 						&.spacer {
+<<<<<<< HEAD
 							height: 18px !important;
+=======
+							margin: 0px -15px;
+							height: 0px;
+							padding: 0px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 						}
 
 						&.ce-paragraph {
 							display: block;
+<<<<<<< HEAD
+=======
+							padding: 0px;
+							// paragraphs should not get much focus
+							color: var(--text-light);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 						}
 
 						&.paragraph {
@@ -1388,7 +1554,10 @@ body {
 							min-height: 40px;
 							box-shadow: none;
 							background-color: var(--bg-color);
+<<<<<<< HEAD
 							color: var(--text-muted);
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 							cursor: text;
 
 							.ce-header {
@@ -1403,15 +1572,28 @@ body {
 						&:focus {
 							outline: none;
 						}
+<<<<<<< HEAD
+=======
+
+						@include media-breakpoint-down(md) {
+							&.spacer {
+								height: 0 !important;
+								padding: 0 7px;
+							}
+						}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					}
 				}
 			}
 		}
 
+<<<<<<< HEAD
 		svg {
 			fill: none;
 		}
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		.ce-toolbar {
 			&.ce-toolbar--opened {
 				display: none;
@@ -1483,7 +1665,11 @@ body {
 				max-width: 930px;
 			}
 		}
+<<<<<<< HEAD
 		@media (max-width: 995px) {
+=======
+		@include media-breakpoint-down(md) {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			.ce-toolbar__content {
 				max-width: 760px;
 			}

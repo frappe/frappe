@@ -4,11 +4,28 @@ import copy
 
 import frappe
 from frappe.core.doctype.version.version import get_diff
+<<<<<<< HEAD
 from frappe.test_runner import make_test_objects
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestVersion(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests.utils import make_test_objects
+
+
+class UnitTestVersion(UnitTestCase):
+	"""
+	Unit tests for Version.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestVersion(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_get_diff(self):
 		frappe.set_user("Administrator")
 		test_records = make_test_objects("Event", reset=True)

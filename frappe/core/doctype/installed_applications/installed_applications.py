@@ -23,8 +23,13 @@ class InstalledApplications(Document):
 		from frappe.types import DF
 
 		installed_applications: DF.Table[InstalledApplication]
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def update_versions(self):
 		self.delete_key("installed_applications")
 		for app in frappe.utils.get_installed_apps_info():

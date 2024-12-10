@@ -12,7 +12,11 @@ def get_context(context):
 	context.javascript = frappe.db.get_single_value("Website Script", "javascript") or ""
 
 	theme = get_active_theme()
+<<<<<<< HEAD
 	js = strip(theme and theme.js or "")
+=======
+	js = strip((theme and theme.js) or "")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if js:
 		context.javascript += "\n" + js
 

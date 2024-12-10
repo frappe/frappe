@@ -12,7 +12,10 @@ from frappe.utils import cstr, encode
 
 Auth = Table("__Auth")
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 passlibctx = CryptContext(
 	schemes=[
 		"pbkdf2_sha256",
@@ -35,7 +38,17 @@ def get_decrypted_password(doctype, name, fieldname="password", raise_exception=
 	).run()
 
 	if result and result[0][0]:
+<<<<<<< HEAD
 		return decrypt(result[0][0], key=f"{doctype}.{name}.{fieldname}")
+=======
+		try:
+			return decrypt(result[0][0], key=f"{doctype}.{name}.{fieldname}")
+		except frappe.ValidationError as e:
+			if raise_exception:
+				raise e
+
+			return None
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	elif raise_exception:
 		frappe.throw(
@@ -104,9 +117,13 @@ def check_password(user, pwd, doctype="User", fieldname="password", delete_track
 
 
 def delete_login_failed_cache(user):
+<<<<<<< HEAD
 	frappe.cache.hdel("last_login_tried", user)
 	frappe.cache.hdel("login_failed_count", user)
 	frappe.cache.hdel("locked_account_time", user)
+=======
+	frappe.cache.hdel("login_failed_count", user)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 def update_password(user, pwd, doctype="User", fieldname="password", logout_all_sessions=False):

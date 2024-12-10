@@ -20,7 +20,11 @@
 	--error-border: var(--red-400);
 
 	// page
+<<<<<<< HEAD
 	--page-head-height: 60px;
+=======
+	--page-head-height: 45px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	--page-bottom-margin: 60px;
 
 	// checkbox
@@ -50,4 +54,15 @@
 
 	// progress bar
 	--progress-bar-bg: var(--primary);
+<<<<<<< HEAD
+=======
+
+	// list
+	--list-row-height: 30px;
+	--list-checkbox-padding: calc((var(--list-row-height) - var(--checkbox-size)) / 2);
+
+	@include media-breakpoint-down(md) {
+		--checkbox-size: 18px;
+	}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 }

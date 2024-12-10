@@ -3,10 +3,17 @@
 
 import frappe
 from frappe.desk.form.linked_with import get_linked_docs, get_linked_doctypes
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestForm(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase
+
+
+class TestForm(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_linked_with(self):
 		results = get_linked_docs("Role", "System Manager", linkinfo=get_linked_doctypes("Role"))
 		self.assertTrue("User" in results)

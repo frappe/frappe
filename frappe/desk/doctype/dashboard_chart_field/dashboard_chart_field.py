@@ -20,4 +20,8 @@ class DashboardChartField(Document):
 		parenttype: DF.Data
 		y_field: DF.Literal[None]
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass

@@ -28,8 +28,13 @@ class Package(Document):
 		]
 		package_name: DF.Data
 		readme: DF.MarkdownEditor | None
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def validate(self):
 		if not self.package_name:
 			self.package_name = self.name.lower().replace(" ", "-")

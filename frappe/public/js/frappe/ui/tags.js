@@ -14,7 +14,11 @@ frappe.ui.Tags = class {
 
 	setup(parent, placeholder) {
 		this.$ul = parent;
+<<<<<<< HEAD
 		this.$input = $(`<input class="tags-input form-control"></input>`);
+=======
+		this.$input = $(`<input class="tags-input form-control mt-2"></input>`);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		this.$inputWrapper = this.get_list_element(this.$input);
 		this.$placeholder =
@@ -94,7 +98,11 @@ frappe.ui.Tags = class {
 	}
 
 	get_list_element($element, class_name = "") {
+<<<<<<< HEAD
 		let $li = $(`<li class="${class_name}"></li>`);
+=======
+		let $li = $(`<div class="${class_name}"></div>`);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		$element.appendTo($li);
 		return $li;
 	}

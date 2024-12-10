@@ -183,6 +183,7 @@ def add_to_deleted_document(doc):
 	"""Add this document to Deleted Document table. Called after delete"""
 	if doc.doctype != "Deleted Document" and frappe.flags.in_install != "frappe":
 		frappe.get_doc(
+<<<<<<< HEAD
 			dict(
 				doctype="Deleted Document",
 				deleted_doctype=doc.doctype,
@@ -190,6 +191,13 @@ def add_to_deleted_document(doc):
 				data=doc.as_json(),
 				owner=frappe.session.user,
 			)
+=======
+			doctype="Deleted Document",
+			deleted_doctype=doc.doctype,
+			deleted_name=doc.name,
+			data=doc.as_json(),
+			owner=frappe.session.user,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).db_insert()
 
 
@@ -237,6 +245,7 @@ def update_flags(doc, flags=None, ignore_permissions=False):
 
 def check_permission_and_not_submitted(doc):
 	# permission
+<<<<<<< HEAD
 	if (
 		not doc.flags.ignore_permissions
 		and frappe.session.user != "Administrator"
@@ -246,6 +255,13 @@ def check_permission_and_not_submitted(doc):
 			_("User not allowed to delete {0}: {1}").format(doc.doctype, doc.name),
 			raise_exception=frappe.PermissionError,
 		)
+=======
+	if not doc.flags.ignore_permissions and frappe.session.user != "Administrator":
+		if doc.doctype == "DocType" and not doc.custom:
+			frappe.throw(_("Only the Administrator can delete a standard DocType."))
+		else:
+			doc.check_permission("delete")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	# check if submitted
 	if doc.meta.is_submittable and doc.docstatus.is_submitted():

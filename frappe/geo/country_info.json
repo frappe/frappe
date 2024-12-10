@@ -2731,6 +2731,7 @@
   ],
   "isd": "+216"
  },
+<<<<<<< HEAD
  "Turkey": {
   "code": "tr",
   "currency": "TRY",
@@ -2743,6 +2744,8 @@
   ],
   "isd": "+90"
  },
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "Turkmenistan": {
   "code": "tm",
   "currency": "TMM",
@@ -2775,6 +2778,21 @@
   ],
   "isd": "+688"
  },
+<<<<<<< HEAD
+=======
+  "T\u00fcrkiye": {
+  "code": "tr",
+  "currency": "TRY",
+  "currency_fraction": "Kuru\u015f",
+  "currency_fraction_units": 100,
+  "currency_symbol": "\u20ba",
+  "number_format": "#.###,##",
+  "timezones": [
+   "Europe/Istanbul"
+  ],
+  "isd": "+90"
+ },
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "Uganda": {
   "code": "ug",
   "currency": "UGX",

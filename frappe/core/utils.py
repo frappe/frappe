@@ -38,8 +38,12 @@ def set_timeline_doc(doc):
 
 
 def find(list_of_dict, match_function):
+<<<<<<< HEAD
 	"""Returns a dict in a list of dicts on matching the conditions
 	        provided in match function
+=======
+	"""Return a dict in a list of dicts on matching the conditions provided in match function.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	Usage:
 	        list_of_dict = [{'name': 'Suraj'}, {'name': 'Aditya'}]
@@ -54,8 +58,12 @@ def find(list_of_dict, match_function):
 
 
 def find_all(list_of_dict, match_function):
+<<<<<<< HEAD
 	"""Returns all matching dicts in a list of dicts.
 	        Uses matching function to filter out the dicts
+=======
+	"""Return all matching dicts in a list of dicts. Uses matching function to filter out the dicts.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	Usage:
 	        colored_shapes = [
@@ -86,6 +94,11 @@ def ljust_list(_list, length, fill_word=None):
 	return _list
 
 
+<<<<<<< HEAD
 def html2text(html, strip_links=False, wrap=True):
+=======
+def html2text(html: str, strip_links=False, wrap=True) -> str:
+	"""Return the given `html` as markdown text."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	strip = ["a"] if strip_links else None
 	return md(html, heading_style="ATX", strip=strip, wrap=wrap)

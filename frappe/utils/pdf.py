@@ -10,6 +10,11 @@ from urllib.parse import parse_qs, urlparse
 
 import cssutils
 import pdfkit
+<<<<<<< HEAD
+=======
+
+pdfkit.source.unicode = str  # NOTE: upstream bug; PYTHONOPTIMIZE=1 optimized this away
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from bs4 import BeautifulSoup
 from packaging.version import Version
 from pypdf import PdfReader, PdfWriter
@@ -21,6 +26,11 @@ from frappe.utils import cstr, scrub_urls
 from frappe.utils.caching import redis_cache
 from frappe.utils.jinja_globals import bundled_asset, is_rtl
 
+<<<<<<< HEAD
+=======
+cssutils.log.setLog(frappe.logger("cssutils"))
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 PDF_CONTENT_ERRORS = [
 	"ContentNotFoundError",
 	"ContentOperationNotPermittedError",
@@ -59,7 +69,11 @@ def pdf_body_html(template, args, **kwargs):
 
 
 def _guess_template_error_line_number(template) -> int | None:
+<<<<<<< HEAD
 	"""Guess line on which exception occured from current traceback."""
+=======
+	"""Guess line on which exception occurred from current traceback."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	with contextlib.suppress(Exception):
 		import sys
 		import traceback
@@ -279,7 +293,11 @@ def _get_base64_image(src):
 		mime_type = mimetypes.guess_type(path)[0]
 		if mime_type is None or not mime_type.startswith("image/"):
 			return
+<<<<<<< HEAD
 		filename = query.get("fid") and query["fid"][0] or None
+=======
+		filename = (query.get("fid") and query["fid"][0]) or None
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		file = find_file_by_url(path, name=filename)
 		if not file or not file.is_private:
 			return

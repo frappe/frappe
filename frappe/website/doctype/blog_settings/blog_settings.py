@@ -29,8 +29,13 @@ class BlogSettings(Document):
 		show_cta_in_blog: DF.Check
 		subtitle: DF.Data | None
 		title: DF.Data | None
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def on_update(self):
 		from frappe.website.utils import clear_cache
 

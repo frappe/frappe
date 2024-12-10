@@ -16,8 +16,11 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 	var freeze_message = working_label ? __(working_label) : "";
 
 	var save = function () {
+<<<<<<< HEAD
 		remove_empty_rows();
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		$(frm.wrapper).addClass("validated-form");
 		if ((action !== "Save" || frm.is_dirty()) && check_mandatory()) {
 			_call({
@@ -40,6 +43,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 		}
 	};
 
+<<<<<<< HEAD
 	var remove_empty_rows = function () {
 		/*
 			This function removes empty rows. Note that in this function, a row is considered
@@ -85,6 +89,8 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 		});
 	};
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	var cancel = function () {
 		var args = {
 			doctype: frm.doc.doctype,

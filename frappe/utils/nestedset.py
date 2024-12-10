@@ -165,12 +165,17 @@ def update_move_node(doc: Document, parent_field: str):
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def rebuild_tree(doctype, parent_field=None):
 	"""Call rebuild_node for all root nodes.
 
 	The `parent_field` parameter is ignored and will be removed in v16+ (kept for backward compatibility).
 	"""
 
+=======
+def rebuild_tree(doctype: str) -> None:
+	"""Call rebuild_node for all root nodes."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	# Check for perm if called from client-side
 	if frappe.request and frappe.local.form_dict.cmd == "rebuild_tree":
 		frappe.only_for("System Manager")
@@ -327,7 +332,11 @@ class NestedSet(Document):
 		)
 
 		if merge:
+<<<<<<< HEAD
 			rebuild_tree(self.doctype, parent_field)
+=======
+			rebuild_tree(self.doctype)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	def validate_one_root(self):
 		if not self.get(self.nsm_parent_field):

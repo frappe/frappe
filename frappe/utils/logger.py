@@ -13,6 +13,31 @@ default_log_level = logging.WARNING if frappe._dev_server else logging.ERROR
 stream_logging = os.environ.get("FRAPPE_STREAM_LOGGING")
 
 
+<<<<<<< HEAD
+=======
+def create_handler(module, site=None, max_size=100_000, file_count=20, stream_only=False):
+	"""Create and return a Frappe-specific logging handler."""
+	formatter = logging.Formatter(f"%(asctime)s %(levelname)s {module} %(message)s")
+
+	if stream_only:
+		handler = logging.StreamHandler()
+	else:
+		logfile = f"{module}.log"
+		log_filename = os.path.join("..", "logs", logfile)
+		handler = RotatingFileHandler(log_filename, maxBytes=max_size, backupCount=file_count)
+
+	handler.setFormatter(formatter)
+
+	if site and not stream_only:
+		sitelog_filename = os.path.join(site, "logs", logfile)
+		site_handler = RotatingFileHandler(sitelog_filename, maxBytes=max_size, backupCount=file_count)
+		site_handler.setFormatter(formatter)
+		return [handler, site_handler]
+
+	return [handler]
+
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 def get_logger(
 	module=None,
 	with_more_info=False,
@@ -22,7 +47,11 @@ def get_logger(
 	file_count=20,
 	stream_only=stream_logging,
 ) -> "logging.Logger":
+<<<<<<< HEAD
 	"""Application Logger for your given module
+=======
+	"""Return Application Logger for your given module.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	Args:
 	        module (str, optional): Name of your logger and consequently your log file. Defaults to None.
@@ -33,8 +62,12 @@ def get_logger(
 	        file_count (int, optional): Max count of log files to be retained via Log Rotation. Defaults to 20.
 	        stream_only (bool, optional): Whether to stream logs only to stderr (True) or use log files (False). Defaults to False.
 
+<<<<<<< HEAD
 	Returns:
 	        <class 'logging.Logger'>: Returns a Python logger object with Site and Bench level logging capabilities.
+=======
+	Return a Python logger object with Site and Bench level logging capabilities.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	"""
 
 	if allow_site is True:
@@ -55,13 +88,17 @@ def get_logger(
 		module = "frappe"
 		with_more_info = True
 
+<<<<<<< HEAD
 	logfile = module + ".log"
 	log_filename = os.path.join("..", "logs", logfile)
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	logger = logging.getLogger(logger_name)
 	logger.setLevel(frappe.log_level or default_log_level)
 	logger.propagate = False
 
+<<<<<<< HEAD
 	formatter = logging.Formatter(f"%(asctime)s %(levelname)s {module} %(message)s")
 	if stream_only:
 		handler = logging.StreamHandler()
@@ -78,6 +115,14 @@ def get_logger(
 
 	if with_more_info:
 		handler.addFilter(SiteContextFilter())
+=======
+	handlers = create_handler(module, site, max_size, file_count, stream_only)
+	for handler in handlers:
+		logger.addHandler(handler)
+
+	if with_more_info:
+		handlers[0].addFilter(SiteContextFilter())
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	if filter:
 		logger.addFilter(filter)

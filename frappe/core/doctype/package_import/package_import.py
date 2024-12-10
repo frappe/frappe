@@ -26,8 +26,13 @@ class PackageImport(Document):
 		attach_package: DF.Attach | None
 		force: DF.Check
 		log: DF.Code | None
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def validate(self):
 		if self.activate:
 			self.import_package()

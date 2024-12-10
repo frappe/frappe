@@ -2,7 +2,11 @@
 import { get_table_columns, load_doctype_model } from "../../utils";
 import { computedAsync } from "@vueuse/core";
 
+<<<<<<< HEAD
 const props = defineProps(["df"]);
+=======
+const props = defineProps(["df", "is-customize-form"]);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 let table_columns = computedAsync(async () => {
 	let doctype = props.df.options;
@@ -13,6 +17,16 @@ let table_columns = computedAsync(async () => {
 	let child_doctype = frappe.get_meta(doctype);
 	return get_table_columns(props.df, child_doctype);
 }, []);
+<<<<<<< HEAD
+=======
+
+function open_new_child_doctype_dialog() {
+	let is_custom = props.isCustomizeForm;
+	frappe.model.with_doctype("DocType").then(() => {
+		frappe.listview_settings["DocType"].new_doctype_dialog({ is_child: 1, is_custom });
+	});
+}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 </script>
 
 <template>
@@ -46,7 +60,19 @@ let table_columns = computedAsync(async () => {
 				:alt="__('Grid Empty State')"
 				class="grid-empty-illustration"
 			/>
+<<<<<<< HEAD
 			{{ __("No Data") }}
+=======
+			<!-- render this button when there are no columns, which means that options is not added for the table -->
+			<button
+				class="btn btn-xs btn-secondary"
+				@click="open_new_child_doctype_dialog"
+				v-if="!table_columns.length"
+			>
+				{{ __("Create Child Doctype") }}
+			</button>
+			<p v-else>{{ __("No Data") }}</p>
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		</div>
 
 		<!-- description -->

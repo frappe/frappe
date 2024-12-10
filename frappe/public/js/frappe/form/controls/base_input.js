@@ -7,6 +7,14 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 
 		// set description
 		this.set_max_width();
+<<<<<<< HEAD
+=======
+
+		// set initial value if set
+		if (this.df.initial_value) {
+			this.set_value(this.df.initial_value);
+		}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 	make_wrapper() {
 		if (this.only_input) {
@@ -22,11 +30,22 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 					<div class="control-input-wrapper">
 						<div class="control-input"></div>
 						<div class="control-value like-disabled-input" style="display: none;"></div>
+<<<<<<< HEAD
 						<p class="help-box small text-muted"></p>
+=======
+						<div class="help-box small text-extra-muted hide"></div>
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					</div>
 				</div>
 			</div>`
 			).appendTo(this.parent);
+<<<<<<< HEAD
+=======
+
+			if (this.constructor.horizontal) {
+				this.$wrapper.find(".form-group").addClass("horizontal");
+			}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		}
 	}
 	toggle_label(show) {
@@ -146,11 +165,19 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		} else {
 			value = this.value || value;
 		}
+<<<<<<< HEAD
 		if (this.df.fieldtype === "Data") {
+=======
+		if (["Data", "Long Text", "Small Text", "Text", "Password"].includes(this.df.fieldtype)) {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			value = frappe.utils.escape_html(value);
 		}
 		let doc = this.doc || (this.frm && this.frm.doc);
 		let display_value = frappe.format(value, this.df, { no_icon: true, inline: true }, doc);
+<<<<<<< HEAD
+=======
+		// This is used to display formatted output AND showing values in read only fields
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		this.disp_area && $(this.disp_area).html(display_value);
 	}
 	set_label(label) {
@@ -193,6 +220,10 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		}
 		if (this.df.description) {
 			this.$wrapper.find(".help-box").html(__(this.df.description));
+<<<<<<< HEAD
+=======
+			this.toggle_description(true);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		} else {
 			this.set_empty_description();
 		}
@@ -200,9 +231,17 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 	}
 	set_new_description(description) {
 		this.$wrapper.find(".help-box").html(description);
+<<<<<<< HEAD
 	}
 	set_empty_description() {
 		this.$wrapper.find(".help-box").html("");
+=======
+		this.toggle_description(true);
+	}
+	set_empty_description() {
+		this.$wrapper.find(".help-box").html("");
+		this.toggle_description(false);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 	set_mandatory(value) {
 		// do not set has-error class on form load

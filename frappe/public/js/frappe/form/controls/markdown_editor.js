@@ -8,7 +8,11 @@ frappe.ui.form.ControlMarkdownEditor = class ControlMarkdownEditor extends (
 
 		let editor_class = this.constructor.editor_class;
 		this.ace_editor_target.wrap(`<div class="${editor_class}-container">`);
+<<<<<<< HEAD
 		this.markdown_container = this.$input_wrapper.find(`.${editor_class}-container`);
+=======
+		this.markdown_container = this.$input_wrapper?.find(`.${editor_class}-container`);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		this.editor.getSession().setUseWrapMode(true);
 
@@ -30,10 +34,17 @@ frappe.ui.form.ControlMarkdownEditor = class ControlMarkdownEditor extends (
 
 			$btn.text(this.showing_preview ? __("Edit") : __("Preview"));
 		});
+<<<<<<< HEAD
 		this.markdown_container.prepend(this.preview_toggle_btn);
 
 		this.markdown_preview = $(`<div class="${editor_class}-preview border rounded">`).hide();
 		this.markdown_container.append(this.markdown_preview);
+=======
+		this.markdown_container?.prepend(this.preview_toggle_btn);
+
+		this.markdown_preview = $(`<div class="${editor_class}-preview border rounded">`).hide();
+		this.markdown_container?.append(this.markdown_preview);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		this.setup_image_drop();
 	}

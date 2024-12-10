@@ -106,7 +106,11 @@ frappe.PermissionEngine = class PermissionEngine {
 
 	reset_std_permissions(data) {
 		let doctype = this.get_doctype();
+<<<<<<< HEAD
 		let d = frappe.confirm(__("Reset Permissions for {0}?", [doctype]), () => {
+=======
+		let d = frappe.confirm(__("Reset Permissions for {0}?", [__(doctype)]), () => {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			return frappe
 				.call({
 					module: "frappe.core",
@@ -122,7 +126,11 @@ frappe.PermissionEngine = class PermissionEngine {
 		// show standard permissions
 		let $d = $(d.wrapper)
 			.find(".frappe-confirm-message")
+<<<<<<< HEAD
 			.append("<hr><h5>Standard Permissions:</h5><br>");
+=======
+			.append(`<hr><h5>${__("Standard Permissions")}:</h5><br>`);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		let $wrapper = $("<p></p>").appendTo($d);
 		data.message.forEach((d) => {
 			let rights = this.rights
@@ -134,7 +142,11 @@ frappe.PermissionEngine = class PermissionEngine {
 			d.rights = rights.join(", ");
 
 			$wrapper.append(`<div class="row">\
+<<<<<<< HEAD
 				<div class="col-xs-5"><b>${d.role}</b>, Level ${d.permlevel || 0}</div>\
+=======
+				<div class="col-xs-5"><b>${__(d.role)}</b>, ${__("Level")} ${d.permlevel || 0}</div>\
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				<div class="col-xs-7">${d.rights}</div>\
 			</div><br>`);
 		});

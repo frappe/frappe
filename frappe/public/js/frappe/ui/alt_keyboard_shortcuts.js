@@ -152,6 +152,14 @@ frappe.ui.keys.AltShortcutGroup = class AltShortcutGroup {
 	}
 
 	underline_text(shortcut) {
+<<<<<<< HEAD
+=======
+		if (frappe.boot.lang === "eo") {
+			// The language code "eo" is used to trigger the In-Context Translation feature.
+			// In this case we don't want shortcuts to rip apart the ID of the translatable text.
+			return;
+		}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		shortcut.$text_el.attr("data-label", encodeURIComponent(shortcut.text));
 		let underline_el_found = false;
 		let text_html = shortcut.text

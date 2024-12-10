@@ -31,7 +31,11 @@ body {
 .frappe-card {
 	@include card();
 	box-shadow: none;
+<<<<<<< HEAD
 	border: 1px solid var(--gray-300);
+=======
+	border: 1px solid var(--border-color);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 }
 
 .frappe-control[data-fieldtype="Select"].frappe-control[data-fieldname="color"] {

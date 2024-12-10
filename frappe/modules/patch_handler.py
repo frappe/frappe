@@ -1,6 +1,10 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+<<<<<<< HEAD
 """ Patch Handler.
+=======
+"""Patch Handler.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 This file manages execution of manaully written patches. Patches are script
 that apply changes in database schema or data to accomodate for changes in the

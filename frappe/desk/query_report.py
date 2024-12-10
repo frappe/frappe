@@ -124,7 +124,11 @@ def generate_report_result(
 
 
 def normalize_result(result, columns):
+<<<<<<< HEAD
 	# Converts to list of dicts from list of lists/tuples
+=======
+	# Convert to list of dicts from list of lists/tuples
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	data = []
 	column_names = [column["fieldname"] for column in columns]
 	if result and isinstance(result[0], list | tuple):
@@ -165,7 +169,11 @@ def get_script(report_name):
 		script += f"\n\n//# sourceURL={scrub(report.name)}__custom"
 
 	if not script:
+<<<<<<< HEAD
 		script = "frappe.query_reports['%s']={}" % report_name
+=======
+		script = "frappe.query_reports['{}']={{}}".format(report_name)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	return {
 		"script": render_include(script),
@@ -635,11 +643,19 @@ def has_match(
 	columns_dict,
 	user,
 ):
+<<<<<<< HEAD
 	"""Returns True if after evaluating permissions for each linked doctype
 	- There is an owner match for the ref_doctype
 	- `and` There is a user permission match for all linked doctypes
 
 	Returns True if the row is empty
+=======
+	"""Return True if after evaluating permissions for each linked doctype:
+	        - There is an owner match for the ref_doctype
+	        - `and` There is a user permission match for all linked doctypes
+
+	Return True if the row is empty.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	Note:
 	Each doctype could have multiple conflicting user permission doctypes.
@@ -737,9 +753,16 @@ def get_linked_doctypes(columns, data):
 
 
 def get_columns_dict(columns):
+<<<<<<< HEAD
 	"""Returns a dict with column docfield values as dict
 	The keys for the dict are both idx and fieldname,
 	so either index or fieldname can be used to search for a column's docfield properties
+=======
+	"""Return a dict with column docfield values as dict.
+
+	The keys for the dict are both idx and fieldname,
+	so either index or fieldname can be used to search for a column's docfield properties.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	"""
 	columns_dict = frappe._dict()
 	for idx, col in enumerate(columns):

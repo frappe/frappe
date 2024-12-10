@@ -22,4 +22,8 @@ class WebFormListColumn(Document):
 		parentfield: DF.Data
 		parenttype: DF.Data
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass

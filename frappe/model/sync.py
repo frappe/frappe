@@ -1,9 +1,16 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 """
+<<<<<<< HEAD
 	Sync's doctype and docfields from txt files to database
 	perms will get synced only if none exist
 """
+=======
+Sync's doctype and docfields from txt files to database
+perms will get synced only if none exist
+"""
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 import os
 
 import frappe
@@ -126,7 +133,13 @@ def get_doc_files(files, start_path):
 
 	files = files or []
 
+<<<<<<< HEAD
 	for _module, doctype in IMPORTABLE_DOCTYPES:
+=======
+	for _module, doctype in IMPORTABLE_DOCTYPES + [
+		(None, frappe.scrub(dt)) for dt in frappe.get_hooks("importable_doctypes")
+	]:
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		doctype_path = os.path.join(start_path, doctype)
 		if os.path.exists(doctype_path):
 			for docname in os.listdir(doctype_path):

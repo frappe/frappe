@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <!-- Built on Frappe. https://frappeframework.com/ -->
+<<<<<<< HEAD
 <html lang="{{boot.lang}}">
+=======
+<html lang="{{boot.lang}}" dir="{{ 'rtl' if is_rtl() else 'ltr' }}">
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -44,6 +48,10 @@
 
 	<script>
 		window.frappe = {};
+<<<<<<< HEAD
+=======
+		window._version_number = "{{ build_version }}";
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		frappe.ready_events = [];
 		frappe.ready = function(fn) {
 			frappe.ready_events.push(fn);
@@ -54,8 +62,11 @@
 	</script>
 </head>
 <body frappe-session-status="{{ 'logged-in' if frappe.session.user != 'Guest' else 'logged-out'}}" data-path="{{ path | e }}" {%- if template and template.endswith('.md') %} frappe-content-type="markdown" {%- endif %} class="{{ body_class or ''}}">
+<<<<<<< HEAD
 	{% include "public/icons/timeless/icons.svg" %}
 	{% include "public/icons/espresso/icons.svg" %}
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	{%- block banner -%}
 		{% include "templates/includes/banner_extension.html" ignore missing %}
 
@@ -88,6 +99,14 @@
 		) }}
 	{%- endblock -%}
 
+<<<<<<< HEAD
+=======
+	<div id="all-symbols" style="display:none"></div>
+	{%- for path in web_include_icons -%}
+	{{ include_icons(path) }}
+	{%- endfor -%}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	{% block base_scripts %}
 	<!-- js should be loaded in body! -->
 	<script>

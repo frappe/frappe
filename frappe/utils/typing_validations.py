@@ -3,6 +3,10 @@ from functools import lru_cache, wraps
 from inspect import _empty, isclass, signature
 from types import EllipsisType
 from typing import ForwardRef, TypeVar, Union
+<<<<<<< HEAD
+=======
+from unittest import mock
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 from pydantic import ConfigDict
 
@@ -53,32 +57,66 @@ def qualified_name(obj) -> str:
 
 
 def raise_type_error(
+<<<<<<< HEAD
 	arg_name: str, arg_type: type, arg_value: object, current_exception: Exception | None = None
+=======
+	func: callable,
+	arg_name: str,
+	arg_type: type,
+	arg_value: object,
+	current_exception: Exception | None = None,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 ):
 	"""
 	Raise a TypeError with a message that includes the name of the argument, the expected type
 	and the actual type of the value passed.
 
 	"""
+<<<<<<< HEAD
 	raise FrappeTypeError(
 		f"Argument '{arg_name}' should be of type '{qualified_name(arg_type)}' but got "
+=======
+	module, qualname = func.__module__, func.__qualname__
+	raise FrappeTypeError(
+		f"Argument '{arg_name}' in '{module}.{qualname}' should be of type '{qualified_name(arg_type)}' but got "
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		f"'{qualified_name(arg_value)}' instead."
 	) from current_exception
 
 
 @lru_cache(maxsize=2048)
 def TypeAdapter(type_):
+<<<<<<< HEAD
 	from pydantic import TypeAdapter as PyTypeAdapter
 
 	return PyTypeAdapter(type_, config=FrappePydanticConfig)
+=======
+	from pydantic import PydanticUserError
+	from pydantic import TypeAdapter as PyTypeAdapter
+
+	try:
+		return PyTypeAdapter(type_, config=FrappePydanticConfig)
+	except PydanticUserError as e:
+		match e.code:
+			case "type-adapter-config-unused":
+				# Unless they set their custom __pydantic_config__, this will be the case on BaseModule, TypedDict and dataclass - ignore
+				return PyTypeAdapter(type_)
+			case _:
+				raise e
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 	"""
 	Validate the types of the arguments passed to a function with the type annotations
 	defined on the function.
+<<<<<<< HEAD
 
 	"""
+=======
+	"""
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if not (args or kwargs) or not func.__annotations__:
 		return args, kwargs
 
@@ -117,6 +155,12 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 			continue
 		elif any(isinstance(x, ForwardRef | str) for x in getattr(current_arg_type, "__args__", [])):
 			continue
+<<<<<<< HEAD
+=======
+		# ignore unittest.mock objects
+		elif isinstance(current_arg_value, mock.Mock):
+			continue
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		# allow slack for Frappe types
 		if current_arg_type in SLACK_DICT:
@@ -140,10 +184,17 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 		try:
 			current_arg_value_after = TypeAdapter(current_arg_type).validate_python(current_arg_value)
 		except (TypeError, PyValidationError) as e:
+<<<<<<< HEAD
 			raise_type_error(current_arg, current_arg_type, current_arg_value, current_exception=e)
 
 		if isinstance(current_arg_value_after, EllipsisType):
 			raise_type_error(current_arg, current_arg_type, current_arg_value)
+=======
+			raise_type_error(func, current_arg, current_arg_type, current_arg_value, current_exception=e)
+
+		if isinstance(current_arg_value_after, EllipsisType):
+			raise_type_error(func, current_arg, current_arg_type, current_arg_value)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		# update the args and kwargs with possibly casted value
 		if current_arg in kwargs:

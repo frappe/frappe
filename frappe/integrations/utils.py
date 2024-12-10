@@ -9,7 +9,11 @@ import frappe
 from frappe.utils import get_request_session
 
 
+<<<<<<< HEAD
 def make_request(method, url, auth=None, headers=None, data=None, json=None, params=None):
+=======
+def make_request(method: str, url: str, auth=None, headers=None, data=None, json=None, params=None):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	auth = auth or ""
 	data = data or {}
 	headers = headers or {}
@@ -31,6 +35,7 @@ def make_request(method, url, auth=None, headers=None, data=None, json=None, par
 				return response.text
 		return
 	except Exception as exc:
+<<<<<<< HEAD
 		frappe.log_error()
 		raise exc
 
@@ -52,6 +57,80 @@ def make_patch_request(url, **kwargs):
 
 
 def make_delete_request(url, **kwargs):
+=======
+		if frappe.flags.integration_request_doc:
+			frappe.flags.integration_request_doc.log_error()
+		else:
+			frappe.log_error()
+		raise exc
+
+
+def make_get_request(url: str, **kwargs):
+	"""Make a 'GET' HTTP request to the given `url` and return processed response.
+
+	You can optionally pass the below parameters:
+
+	* `headers`: Headers to be set in the request.
+	* `params`: Query parameters to be passed in the request.
+	* `auth`: Auth credentials.
+	"""
+	return make_request("GET", url, **kwargs)
+
+
+def make_post_request(url: str, **kwargs):
+	"""Make a 'POST' HTTP request to the given `url` and return processed response.
+
+	You can optionally pass the below parameters:
+
+	* `headers`: Headers to be set in the request.
+	* `data`: Data to be passed in body of the request.
+	* `json`: JSON to be passed in the request.
+	* `params`: Query parameters to be passed in the request.
+	* `auth`: Auth credentials.
+	"""
+	return make_request("POST", url, **kwargs)
+
+
+def make_put_request(url: str, **kwargs):
+	"""Make a 'PUT' HTTP request to the given `url` and return processed response.
+
+	You can optionally pass the below parameters:
+
+	* `headers`: Headers to be set in the request.
+	* `data`: Data to be passed in body of the request.
+	* `json`: JSON to be passed in the request.
+	* `params`: Query parameters to be passed in the request.
+	* `auth`: Auth credentials.
+	"""
+	return make_request("PUT", url, **kwargs)
+
+
+def make_patch_request(url: str, **kwargs):
+	"""Make a 'PATCH' HTTP request to the given `url` and return processed response.
+
+	You can optionally pass the below parameters:
+
+	* `headers`: Headers to be set in the request.
+	* `data`: Data to be passed in body of the request.
+	* `json`: JSON to be passed in the request.
+	* `params`: Query parameters to be passed in the request.
+	* `auth`: Auth credentials.
+	"""
+	return make_request("PATCH", url, **kwargs)
+
+
+def make_delete_request(url: str, **kwargs):
+	"""Make a 'DELETE' HTTP request to the given `url` and return processed response.
+
+	You can optionally pass the below parameters:
+
+	* `headers`: Headers to be set in the request.
+	* `data`: Data to be passed in body of the request.
+	* `json`: JSON to be passed in the request.
+	* `params`: Query parameters to be passed in the request.
+	* `auth`: Auth credentials.
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return make_request("DELETE", url, **kwargs)
 
 

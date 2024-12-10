@@ -8,6 +8,10 @@ import mimetypes
 import os
 import sys
 import uuid
+<<<<<<< HEAD
+=======
+from pathlib import Path
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from typing import TYPE_CHECKING
 from urllib.parse import quote
 
@@ -218,15 +222,25 @@ def json_handler(obj):
 	elif isinstance(obj, LocalProxy):
 		return str(obj)
 
+<<<<<<< HEAD
 	elif isinstance(obj, frappe.model.document.BaseDocument):
 		return obj.as_dict(no_nulls=True)
+=======
+	elif hasattr(obj, "__json__"):
+		return obj.__json__()
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	elif isinstance(obj, Iterable):
 		return list(obj)
 
 	elif isinstance(obj, Match):
 		return obj.string
 
+<<<<<<< HEAD
 	elif type(obj) == type or isinstance(obj, Exception):
+=======
+	elif type(obj) is type or isinstance(obj, Exception):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		return repr(obj)
 
 	elif callable(obj):
@@ -235,6 +249,15 @@ def json_handler(obj):
 	elif isinstance(obj, uuid.UUID):
 		return str(obj)
 
+<<<<<<< HEAD
+=======
+	elif isinstance(obj, Path):
+		return str(obj)
+
+	elif hasattr(obj, "__value__"):  # order imporant: defer to __json__ if implemented
+		return obj.__value__()
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	else:
 		raise TypeError(f"""Object of type {type(obj)} with value of {obj!r} is not JSON serializable""")
 

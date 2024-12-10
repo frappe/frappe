@@ -53,6 +53,7 @@ class PermissionInspector(Document):
 	def load_from_db(self):
 		super(Document, self).__init__({"modified": None, "permission_type": "read"})
 
+<<<<<<< HEAD
 	def db_insert(self, *args, **kwargs):
 		...
 
@@ -73,3 +74,19 @@ class PermissionInspector(Document):
 
 	def delete(self):
 		...
+=======
+	def db_insert(self, *args, **kwargs): ...
+
+	def db_update(self): ...
+
+	@staticmethod
+	def get_list(): ...
+
+	@staticmethod
+	def get_count(): ...
+
+	@staticmethod
+	def get_stats(): ...
+
+	def delete(self): ...
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

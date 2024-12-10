@@ -14,6 +14,14 @@
   "for_user",
   "parent_page",
   "module",
+<<<<<<< HEAD
+=======
+  "app",
+  "type",
+  "link_type",
+  "link_to",
+  "external_link",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   "column_break_3",
   "icon",
   "indicator_color",
@@ -48,6 +56,10 @@
   {
    "collapsible": 1,
    "collapsible_depends_on": "charts",
+<<<<<<< HEAD
+=======
+   "depends_on": "eval:doc.type===\"Workspace\"",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "fieldname": "tab_break_2",
    "fieldtype": "Tab Break",
    "label": "Dashboards"
@@ -77,8 +89,12 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Module",
+<<<<<<< HEAD
    "options": "Module Def",
    "read_only": 1
+=======
+   "options": "Module Def"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   },
   {
    "fieldname": "column_break_3",
@@ -87,6 +103,10 @@
   {
    "collapsible": 1,
    "collapsible_depends_on": "shortcuts",
+<<<<<<< HEAD
+=======
+   "depends_on": "eval:doc.type===\"Workspace\"",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "fieldname": "tab_break_15",
    "fieldtype": "Tab Break",
    "label": "Shortcuts"
@@ -94,6 +114,10 @@
   {
    "collapsible": 1,
    "collapsible_depends_on": "links",
+<<<<<<< HEAD
+=======
+   "depends_on": "eval:doc.type===\"Workspace\"",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "fieldname": "tab_break_18",
    "fieldtype": "Tab Break",
    "label": "Link Cards"
@@ -101,8 +125,12 @@
   {
    "fieldname": "for_user",
    "fieldtype": "Data",
+<<<<<<< HEAD
    "label": "For User",
    "read_only": 1
+=======
+   "label": "For User"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   },
   {
    "default": "0",
@@ -114,8 +142,12 @@
   {
    "fieldname": "icon",
    "fieldtype": "Icon",
+<<<<<<< HEAD
    "label": "Icon",
    "read_only": 1
+=======
+   "label": "Icon"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   },
   {
    "fieldname": "links",
@@ -137,14 +169,23 @@
    "fieldname": "title",
    "fieldtype": "Data",
    "label": "Title",
+<<<<<<< HEAD
    "read_only": 1,
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "reqd": 1
   },
   {
    "fieldname": "parent_page",
+<<<<<<< HEAD
    "fieldtype": "Data",
    "label": "Parent Page",
    "read_only": 1
+=======
+   "fieldtype": "Link",
+   "label": "Parent Page",
+   "options": "Workspace"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   },
   {
    "default": "[]",
@@ -156,8 +197,12 @@
   {
    "fieldname": "sequence_id",
    "fieldtype": "Float",
+<<<<<<< HEAD
    "label": "Sequence Id",
    "read_only": 1
+=======
+   "label": "Sequence Id"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   },
   {
    "fieldname": "roles",
@@ -171,6 +216,10 @@
    "label": "Roles"
   },
   {
+<<<<<<< HEAD
+=======
+   "depends_on": "eval:doc.type===\"Workspace\"",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "fieldname": "quick_lists_tab",
    "fieldtype": "Tab Break",
    "label": "Quick Lists"
@@ -188,6 +237,10 @@
    "label": "Is Hidden"
   },
   {
+<<<<<<< HEAD
+=======
+   "depends_on": "eval:doc.type===\"Workspace\"",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "fieldname": "number_cards_tab",
    "fieldtype": "Tab Break",
    "label": "Number Cards"
@@ -199,6 +252,10 @@
    "options": "Workspace Number Card"
   },
   {
+<<<<<<< HEAD
+=======
+   "depends_on": "eval:doc.type===\"Workspace\"",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "fieldname": "custom_blocks_tab",
    "fieldtype": "Tab Break",
    "label": "Custom Blocks"
@@ -215,11 +272,55 @@
    "fieldtype": "Select",
    "label": "Indicator Color",
    "options": "green\ncyan\nblue\norange\nyellow\ngray\ngrey\nred\npink\ndarkgrey\npurple\nlight-blue"
+<<<<<<< HEAD
+=======
+  },
+  {
+   "fieldname": "app",
+   "fieldtype": "Data",
+   "label": "App"
+  },
+  {
+   "default": "Workspace",
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Workspace\nLink\nURL",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.type==\"Link\"",
+   "fieldname": "link_type",
+   "fieldtype": "Select",
+   "label": "Link Type",
+   "mandatory_depends_on": "eval:doc.type==\"Link\"",
+   "options": "DocType\nPage\nReport"
+  },
+  {
+   "depends_on": "eval:doc.type==\"Link\"",
+   "fieldname": "link_to",
+   "fieldtype": "Dynamic Link",
+   "label": "Link To",
+   "mandatory_depends_on": "eval:doc.type==\"Link\"",
+   "options": "link_type"
+  },
+  {
+   "depends_on": "eval:doc.type==\"URL\"",
+   "fieldname": "external_link",
+   "fieldtype": "Data",
+   "label": "External Link",
+   "mandatory_depends_on": "eval:doc.type==\"URL\"",
+   "options": "URL"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   }
  ],
  "in_create": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2024-05-30 17:30:36.791171",
+=======
+ "modified": "2024-09-26 15:47:24.710881",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",
@@ -251,8 +352,16 @@
    "write": 1
   }
  ],
+<<<<<<< HEAD
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1
 }
+=======
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

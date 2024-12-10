@@ -29,6 +29,13 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		this.has_input = true;
 		this.$list_wrapper.prependTo(this.input_area);
 		this.$filter_input = this.$list_wrapper.find("input");
+<<<<<<< HEAD
+=======
+		this.values = [];
+		this._options = [];
+		this._selected_values = [];
+		this.highlighted = -1;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		this.$list_wrapper.on("click", ".dropdown-menu", (e) => {
 			e.stopPropagation();
 		});
@@ -88,15 +95,27 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 
 		this.$list_wrapper.on("show.bs.dropdown", () => {
 			this.set_options().then(() => {
+<<<<<<< HEAD
+=======
+				if (!this._selected_values || !this._selected_values.length) {
+					this._selected_values = this.process_options(this.values);
+				}
+				this._options = this._selected_values
+					.concat(this._options)
+					.uniqBy((opt) => opt.value);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				this.set_selectable_items(this._options);
 			});
 		});
 
 		this.set_input_attributes();
+<<<<<<< HEAD
 		this.values = [];
 		this._options = [];
 		this._selected_values = [];
 		this.highlighted = -1;
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 
 	set_input_attributes() {
@@ -142,12 +161,32 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 
 	set_value(value) {
 		if (!value) return Promise.resolve();
+<<<<<<< HEAD
 		if (typeof value === "string") {
 			value = [value];
 		}
 		this.values = value;
 		this.values.forEach((value) => {
 			this.update_selected_values(value);
+=======
+		this._selected_values = [];
+		if (typeof value === "string") {
+			value = [value];
+		}
+		//Unselect old values
+		this.values.forEach((value) => {
+			this.$list_wrapper
+				.find(`.selectable-item[data-value=${CSS.escape(value)}]`)
+				.toggleClass("selected");
+		});
+		this.values = value;
+		this.values.forEach((value) => {
+			this.update_selected_values(value);
+			//Select new values
+			this.$list_wrapper
+				.find(`.selectable-item[data-value=${CSS.escape(value)}]`)
+				.toggleClass("selected");
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		});
 		this.parse_validate_and_set_in_model("");
 		this.update_status();
@@ -156,7 +195,14 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 
 	update_selected_values(value) {
 		this._selected_values = this._selected_values || [];
+<<<<<<< HEAD
 		let option = this._options.find((opt) => opt.value === value);
+=======
+		let option = this._options
+			.concat(this._selected_values)
+			.uniqBy((opt) => opt.value)
+			.find((opt) => opt.value === value);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		if (option) {
 			if (this.values.includes(value)) {
 				this._selected_values.push(option);
@@ -188,6 +234,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		this.$list_wrapper.find(".status-text").html(text);
 	}
 
+<<<<<<< HEAD
 	set_options() {
 		let promise = Promise.resolve();
 
@@ -206,6 +253,26 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 			});
 		}
 
+=======
+	process_options(options) {
+		return options.map((option) => {
+			if (typeof option === "string") {
+				return {
+					label: option,
+					value: option,
+					description: "",
+				};
+			}
+			if (!option.label) {
+				option.label = option.value;
+			}
+			return option;
+		});
+	}
+
+	set_options() {
+		let promise = Promise.resolve();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		if (this.df.get_data) {
 			let txt = this.$filter_input.val();
 			let value = this.df.get_data(txt);
@@ -213,6 +280,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 				this._options = [];
 			} else if (value.then) {
 				promise = value.then((options) => {
+<<<<<<< HEAD
 					this._options = process_options(options);
 				});
 			} else {
@@ -220,6 +288,15 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 			}
 		} else {
 			this._options = process_options(this.df.options);
+=======
+					this._options = this.process_options(options);
+				});
+			} else {
+				this._options = this.process_options(value);
+			}
+		} else {
+			this._options = this.process_options(this.df.options);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		}
 		return promise;
 	}

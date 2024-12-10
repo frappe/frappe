@@ -32,12 +32,54 @@ class WidgetDialog {
 	}
 
 	get_title() {
+<<<<<<< HEAD
 		// DO NOT REMOVE: Comment to load translation
 		// __("New Chart") __("New Shortcut") __("Edit Chart") __("Edit Shortcut")
 
 		let action = this.editing ? "Edit" : "Add";
 		let label = (action = action + " " + frappe.model.unscrub(this.type));
 		return __(label);
+=======
+		if (this.editing) {
+			switch (this.type) {
+				case "chart":
+					return __("Edit Chart");
+				case "shortcut":
+					return __("Edit Shortcut");
+				case "links":
+					return __("Edit Links");
+				case "number_card":
+					return __("Edit Number Card");
+				case "onboarding":
+					return __("Edit Onboarding");
+				case "quick_list":
+					return __("Edit Quick List");
+				case "custom_block":
+					return __("Edit Custom Block");
+				default:
+					return __("Edit {0}", [__(frappe.model.unscrub(this.type))]);
+			}
+		}
+
+		switch (this.type) {
+			case "chart":
+				return __("New Chart");
+			case "shortcut":
+				return __("New Shortcut");
+			case "links":
+				return __("New Links");
+			case "number_card":
+				return __("New Number Card");
+			case "onboarding":
+				return __("New Onboarding");
+			case "quick_list":
+				return __("New Quick List");
+			case "custom_block":
+				return __("New Custom Block");
+			default:
+				return __("New {0}", [__(frappe.model.unscrub(this.type))]);
+		}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 
 	get_fields() {
@@ -145,10 +187,13 @@ class QuickListDialog extends WidgetDialog {
 				},
 			},
 			{
+<<<<<<< HEAD
 				fieldtype: "Column Break",
 				fieldname: "column_break_4",
 			},
 			{
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				fieldtype: "Data",
 				fieldname: "label",
 				label: __("Label"),
@@ -276,10 +321,13 @@ class CardDialog extends WidgetDialog {
 						label: "Icon",
 					},
 					{
+<<<<<<< HEAD
 						fieldname: "column_break_7",
 						fieldtype: "Column Break",
 					},
 					{
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 						fieldname: "dependencies",
 						fieldtype: "Data",
 						label: __("Dependencies"),
@@ -366,6 +414,10 @@ class ShortcutDialog extends WidgetDialog {
 				label: __("Type"),
 				reqd: 1,
 				options: "DocType\nReport\nPage\nDashboard\nURL",
+<<<<<<< HEAD
+=======
+				initial_value: "DocType",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				onchange: () => {
 					if (this.dialog.get_value("type") == "DocType") {
 						this.dialog.fields_dict.link_to.get_query = () => {
@@ -383,6 +435,7 @@ class ShortcutDialog extends WidgetDialog {
 				},
 			},
 			{
+<<<<<<< HEAD
 				fieldtype: "Data",
 				fieldname: "label",
 				label: __("Label"),
@@ -392,6 +445,8 @@ class ShortcutDialog extends WidgetDialog {
 				fieldname: "column_break_4",
 			},
 			{
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				fieldtype: "Dynamic Link",
 				fieldname: "link_to",
 				label: __("Link To"),
@@ -411,6 +466,10 @@ class ShortcutDialog extends WidgetDialog {
 
 							const views = ["List", "Report Builder", "Dashboard", "New"];
 							if (meta.is_tree === 1) views.push("Tree");
+<<<<<<< HEAD
+=======
+							if (meta.image_field) views.push("Image");
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 							if (frappe.boot.calendars.includes(doctype)) views.push("Calendar");
 
 							const response = await frappe.db.get_value(
@@ -431,6 +490,14 @@ class ShortcutDialog extends WidgetDialog {
 			},
 			{
 				fieldtype: "Data",
+<<<<<<< HEAD
+=======
+				fieldname: "label",
+				label: __("Label"),
+			},
+			{
+				fieldtype: "Data",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				fieldname: "url",
 				label: __("URL"),
 				default: "",
@@ -441,7 +508,11 @@ class ShortcutDialog extends WidgetDialog {
 				fieldtype: "Select",
 				fieldname: "doc_view",
 				label: __("DocType View"),
+<<<<<<< HEAD
 				options: "List\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban",
+=======
+				options: "List\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban\nImage",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				description: __(
 					"Which view of the associated DocType should this shortcut take you to?"
 				),
@@ -524,10 +595,13 @@ class ShortcutDialog extends WidgetDialog {
 				},
 			},
 			{
+<<<<<<< HEAD
 				fieldtype: "Column Break",
 				fieldname: "column_break_3",
 			},
 			{
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				fieldtype: "Data",
 				fieldname: "format",
 				label: __("Format"),
@@ -664,10 +738,13 @@ class NumberCardDialog extends WidgetDialog {
 				fieldtype: "Color",
 			},
 			{
+<<<<<<< HEAD
 				fieldtype: "Column Break",
 				fieldname: "cb_1",
 			},
 			{
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				label: __("Function"),
 				fieldname: "function",
 				fieldtype: "Select",

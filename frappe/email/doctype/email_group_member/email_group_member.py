@@ -17,8 +17,13 @@ class EmailGroupMember(Document):
 		email: DF.Data
 		email_group: DF.Link
 		unsubscribed: DF.Check
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def after_delete(self):
 		email_group = frappe.get_doc("Email Group", self.email_group)
 		email_group.update_total_subscribers()

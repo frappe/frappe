@@ -27,8 +27,13 @@ class UserPermission(Document):
 		hide_descendants: DF.Check
 		is_default: DF.Check
 		user: DF.Link
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def validate(self):
 		self.validate_user_permission()
 		self.validate_default_permission()
@@ -76,6 +81,12 @@ class UserPermission(Document):
 			ref_link = frappe.get_desk_link(self.doctype, overlap_exists[0].name)
 			frappe.throw(_("{0} has already assigned default value for {1}.").format(ref_link, self.allow))
 
+<<<<<<< HEAD
+=======
+	def get_permission_log_options(self, event=None):
+		pass
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 def send_user_permissions(bootinfo):
 	bootinfo.user["user_permissions"] = get_user_permissions()
@@ -173,7 +184,11 @@ def get_applicable_for_doctype_list(doctype, txt, searchfield, start, page_len, 
 
 
 def get_permitted_documents(doctype):
+<<<<<<< HEAD
 	"""Returns permitted documents from the given doctype for the session user"""
+=======
+	"""Return permitted documents from the given doctype for the session user."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	# sort permissions in a way to make the first permission in the list to be default
 	user_perm_list = sorted(
 		get_user_permissions().get(doctype, []), key=lambda x: x.get("is_default"), reverse=True

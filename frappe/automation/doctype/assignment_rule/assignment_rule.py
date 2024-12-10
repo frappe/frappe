@@ -38,8 +38,13 @@ class AssignmentRule(Document):
 		rule: DF.Literal["Round Robin", "Load Balancing", "Based on Field"]
 		unassign_condition: DF.Code | None
 		users: DF.TableMultiSelect[AssignmentRuleUser]
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def validate(self):
 		self.validate_document_types()
 		self.validate_assignment_days()

@@ -22,4 +22,8 @@ class UserEmail(Document):
 		parenttype: DF.Data
 		used_oauth: DF.Check
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass

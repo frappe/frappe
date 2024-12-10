@@ -77,6 +77,7 @@ def render_template(template, context=None, is_path=None, safe_render=True):
 	:param is_path: (optional) assert that the `template` parameter is a path
 	:param safe_render: (optional) prevent server side scripting via jinja templating
 	"""
+<<<<<<< HEAD
 
 	from jinja2 import TemplateError
 
@@ -90,10 +91,28 @@ def render_template(template, context=None, is_path=None, safe_render=True):
 
 	if is_path or guess_is_path(template):
 		return get_jenv().get_template(template).render(context)
+=======
+	if not template:
+		return ""
+
+	from jinja2 import TemplateError
+	from jinja2.sandbox import SandboxedEnvironment
+
+	from frappe import _, get_traceback, throw
+
+	if context is None:
+		context = {}
+
+	jenv: SandboxedEnvironment = get_jenv()
+	if is_path or guess_is_path(template):
+		is_path = True
+		compiled_template = jenv.get_template(template)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	else:
 		if safe_render and ".__" in template:
 			throw(_("Illegal template"))
 		try:
+<<<<<<< HEAD
 			return get_jenv().from_string(template).render(context)
 		except TemplateError:
 			throw(
@@ -101,6 +120,35 @@ def render_template(template, context=None, is_path=None, safe_render=True):
 				msg=f"<pre>{template}</pre><pre>{get_traceback()}</pre>",
 			)
 
+=======
+			compiled_template = jenv.from_string(template)
+		except TemplateError:
+			import html
+
+			throw(
+				title="Jinja Template Error",
+				msg=f"<pre>{template}</pre><pre>{html.escape(get_traceback())}</pre>",
+			)
+
+	import time
+
+	from frappe.utils.logger import get_logger
+
+	logger = get_logger("render-template")
+	try:
+		start_time = time.monotonic()
+		return compiled_template.render(context)
+	except Exception as e:
+		import html
+
+		throw(title="Context Error", msg=f"<pre>{html.escape(get_traceback())}</pre>", exc=e)
+	finally:
+		if is_path:
+			logger.debug(f"Rendering time: {time.monotonic() - start_time:.6f} seconds ({template})")
+		else:
+			logger.debug(f"Rendering time: {time.monotonic() - start_time:.6f} seconds")
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 def guess_is_path(template):
 	# template can be passed as a path or content
@@ -156,7 +204,11 @@ def set_filters(jenv):
 
 
 def get_jinja_hooks():
+<<<<<<< HEAD
 	"""Returns a tuple of (methods, filters) each containing a dict of method name and method definition pair."""
+=======
+	"""Return a tuple of (methods, filters) each containing a dict of method name and method definition pair."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	import frappe
 
 	if not getattr(frappe.local, "site", None):

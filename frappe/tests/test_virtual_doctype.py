@@ -8,7 +8,11 @@ from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.form.save import savedocs
 from frappe.model.document import Document
 from frappe.model.virtual_doctype import validate_controller
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
+=======
+from frappe.tests import IntegrationTestCase
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 TEST_DOCTYPE_NAME = "VirtualDoctypeTest"
 TEST_CHILD_DOCTYPE_NAME = "VirtualDoctypeTestChild"
@@ -68,21 +72,37 @@ class VirtualDoctypeTest(Document):
 		self.update_data(data)
 
 	@staticmethod
+<<<<<<< HEAD
 	def get_list(args):
+=======
+	def get_list():
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		data = VirtualDoctypeTest.get_current_data()
 		return [frappe._dict(doc) for name, doc in data.items()]
 
 	@staticmethod
+<<<<<<< HEAD
 	def get_count(args):
+=======
+	def get_count():
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		data = VirtualDoctypeTest.get_current_data()
 		return len(data)
 
 	@staticmethod
+<<<<<<< HEAD
 	def get_stats(args):
 		return {}
 
 
 class TestVirtualDoctypes(FrappeTestCase):
+=======
+	def get_stats():
+		return {}
+
+
+class TestVirtualDoctypes(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	@classmethod
 	def setUpClass(cls):
 		frappe.flags.allow_doctype_export = True
@@ -157,19 +177,31 @@ class TestVirtualDoctypes(FrappeTestCase):
 		updated_docs = {doc1.name, doc2.name}
 		self.assertEqual(docs, updated_docs)
 
+<<<<<<< HEAD
 		listed_docs = {d.name for d in VirtualDoctypeTest.get_list({})}
 		self.assertEqual(docs, listed_docs)
 
 	def test_get_count(self):
 		args = {"doctype": TEST_DOCTYPE_NAME, "filters": [], "fields": []}
 		self.assertIsInstance(VirtualDoctypeTest.get_count(args), int)
+=======
+		listed_docs = {d.name for d in VirtualDoctypeTest.get_list()}
+		self.assertEqual(docs, listed_docs)
+
+	def test_get_count(self):
+		self.assertIsInstance(VirtualDoctypeTest.get_count(), int)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	def test_delete_doc(self):
 		doc = frappe.get_doc(doctype=TEST_DOCTYPE_NAME).insert()
 
 		frappe.delete_doc(doc.doctype, doc.name)
 
+<<<<<<< HEAD
 		listed_docs = {d.name for d in VirtualDoctypeTest.get_list({})}
+=======
+		listed_docs = {d.name for d in VirtualDoctypeTest.get_list()}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		self.assertNotIn(doc.name, listed_docs)
 
 	def test_controller_validity(self):

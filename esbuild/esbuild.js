@@ -63,6 +63,14 @@ const argv = yargs
 		description:
 			"Saves esbuild metafiles for built assets. Useful for analyzing bundle size. More info: https://esbuild.github.io/api/#metafile",
 	})
+<<<<<<< HEAD
+=======
+	.option("using-cached", {
+		type: "boolean",
+		description:
+			"Skips build and uses cached build artifacts to update assets.json (used by Bench)",
+	})
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	.example("node esbuild --apps frappe,erpnext", "Run build only for frappe and erpnext")
 	.example(
 		"node esbuild --files frappe/website.bundle.js,frappe/desk.bundle.js",
@@ -85,6 +93,10 @@ const NODE_PATHS = [].concat(
 	// import js file of any app if you provide the full path
 	app_list.map((app) => path.resolve(apps_path, app)).filter(fs.existsSync)
 );
+<<<<<<< HEAD
+=======
+const USING_CACHED = Boolean(argv["using-cached"]);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 execute().catch((e) => {
 	console.error(e);
@@ -98,6 +110,15 @@ if (WATCH_MODE) {
 
 async function execute() {
 	console.time(TOTAL_BUILD_TIME);
+<<<<<<< HEAD
+=======
+	if (USING_CACHED) {
+		await update_assets_json_from_built_assets(APPS);
+		await update_assets_json_in_cache();
+		console.timeEnd(TOTAL_BUILD_TIME);
+		process.exit(0);
+	}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	let results;
 	try {
@@ -128,6 +149,58 @@ async function execute() {
 	}
 }
 
+<<<<<<< HEAD
+=======
+async function update_assets_json_from_built_assets(apps) {
+	const assets = await get_assets_json_path_and_obj(false);
+	const assets_rtl = await get_assets_json_path_and_obj(true);
+
+	for (const app in apps) {
+		await update_assets_obj(app, assets.obj, assets_rtl.obj);
+	}
+
+	for (const { obj, path } of [assets, assets_rtl]) {
+		const data = JSON.stringify(obj, null, 4);
+		await fs.promises.writeFile(path, data);
+	}
+}
+
+async function update_assets_obj(app, assets, assets_rtl) {
+	const app_path = path.join(apps_path, app, app);
+	const dist_path = path.join(app_path, "public", "dist");
+	const files = await glob("**/*.bundle.*.{js,css}", { cwd: dist_path });
+	const assets_dist = path.join("assets", app, "dist");
+	const prefix = path.join("/", assets_dist);
+
+	// eg: "js/marketplace.bundle.6SCSPSGQ.js"
+	for (const file of files) {
+		const source_path = path.join(dist_path, file);
+		const dest_path = path.join(sites_path, assets_dist, file);
+
+		// Copy asset file from app/public to sites/assets
+		if (!fs.existsSync(dest_path)) {
+			const dest_dir = path.dirname(dest_path);
+			fs.mkdirSync(dest_dir, { recursive: true });
+			fs.copyFileSync(source_path, dest_path);
+		}
+
+		// eg: [ "marketplace", "bundle", "6SCSPSGQ", "js" ]
+		const parts = path.basename(file).split(".");
+
+		// eg: "marketplace.bundle.js"
+		const key = [...parts.slice(0, -2), parts.at(-1)].join(".");
+
+		// eg: "js/marketplace.bundle.6SCSPSGQ.js"
+		const value = path.join(prefix, file);
+		if (file.includes("-rtl")) {
+			assets_rtl[`rtl_${key}`] = value;
+		} else {
+			assets[key] = value;
+		}
+	}
+}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 function build_assets_for_apps(apps, files) {
 	let { include_patterns, ignore_patterns } = files.length
 		? get_files_to_build(files)
@@ -390,6 +463,7 @@ async function write_assets_json(metafile) {
 		}
 	}
 
+<<<<<<< HEAD
 	let assets_json_path = path.resolve(assets_path, `assets${rtl ? "-rtl" : ""}.json`);
 	let assets_json;
 	try {
@@ -398,6 +472,9 @@ async function write_assets_json(metafile) {
 		assets_json = "{}";
 	}
 	assets_json = JSON.parse(assets_json);
+=======
+	let { obj: assets_json, path: assets_json_path } = await get_assets_json_path_and_obj(rtl);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	// update with new values
 	let new_assets_json = Object.assign({}, assets_json, out);
 	curr_assets_json = new_assets_json;
@@ -431,6 +508,22 @@ async function update_assets_json_in_cache() {
 	});
 }
 
+<<<<<<< HEAD
+=======
+async function get_assets_json_path_and_obj(is_rtl) {
+	const file_name = is_rtl ? "assets-rtl.json" : "assets.json";
+	const assets_json_path = path.resolve(assets_path, file_name);
+	let assets_json;
+	try {
+		assets_json = await fs.promises.readFile(assets_json_path, "utf-8");
+	} catch (error) {
+		assets_json = "{}";
+	}
+	assets_json = JSON.parse(assets_json);
+	return { obj: assets_json, path: assets_json_path };
+}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 function run_build_command_for_apps(apps) {
 	let cwd = process.cwd();
 	let { execSync } = require("child_process");
@@ -440,6 +533,7 @@ function run_build_command_for_apps(apps) {
 
 		let root_app_path = path.resolve(apps_path, app);
 		let package_json = path.resolve(root_app_path, "package.json");
+<<<<<<< HEAD
 		if (fs.existsSync(package_json)) {
 			let { scripts } = require(package_json);
 			if (scripts && scripts.build) {
@@ -448,6 +542,29 @@ function run_build_command_for_apps(apps) {
 				execSync("yarn build", { encoding: "utf8", stdio: "inherit" });
 			}
 		}
+=======
+		let node_modules = path.resolve(root_app_path, "node_modules");
+
+		if (!fs.existsSync(package_json)) {
+			continue;
+		}
+
+		let { scripts } = require(package_json);
+		if (!scripts?.build) {
+			continue;
+		}
+
+		process.chdir(root_app_path);
+		if (!fs.existsSync(node_modules)) {
+			log(
+				`\nInstalling dependencies for ${chalk.bold(app)} (because node_modules not found)`
+			);
+			execSync("yarn install", { encoding: "utf8", stdio: "inherit" });
+		}
+
+		log("\nRunning build command for", chalk.bold(app));
+		execSync("yarn build", { encoding: "utf8", stdio: "inherit" });
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 
 	process.chdir(cwd);

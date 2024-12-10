@@ -140,7 +140,11 @@ export default class ListSettings {
 				<div class="control-input-wrapper">
 				${fields}
 				</div>
+<<<<<<< HEAD
 				<p class="help-box small text-muted">
+=======
+				<p class="help-box small text-extra-muted">
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					<a class="add-new-fields text-muted">
 						${__("+ Add / Remove Fields")}
 					</a>

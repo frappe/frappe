@@ -4,6 +4,14 @@
 # BEWARE don't put anything in this file except exceptions
 from werkzeug.exceptions import NotFound
 
+<<<<<<< HEAD
+=======
+from .bench_interface import (
+	BenchNotScopedError,
+	BenchSiteNotLoadedError,
+)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 class SiteNotSpecifiedError(Exception):
 	def __init__(self, *args, **kwargs):
@@ -11,6 +19,15 @@ class SiteNotSpecifiedError(Exception):
 		super(Exception, self).__init__(self.message)
 
 
+<<<<<<< HEAD
+=======
+class DatabaseModificationError(Exception):
+	"""Error raised when attempting to modify the database in a read-only document context."""
+
+	pass
+
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 class UrlSchemeNotSupported(Exception):
 	pass
 

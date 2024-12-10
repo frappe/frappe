@@ -43,8 +43,12 @@ class WebsiteGenerator(Document):
 			self.route = self.route.strip("/.")[:139]
 
 	def make_route(self):
+<<<<<<< HEAD
 		"""Returns the default route. If `route` is specified in DocType it will be
 		route/title"""
+=======
+		"""Return the default route. If `route` is specified in DocType it will be route/title."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		from_title = self.scrubbed_title()
 		if self.meta.route:
 			return self.meta.route + "/" + from_title
@@ -96,8 +100,13 @@ class WebsiteGenerator(Document):
 
 	def is_website_published(self):
 		"""Return true if published in website"""
+<<<<<<< HEAD
 		if self.get_condition_field():
 			return self.get(self.get_condition_field()) and True or False
+=======
+		if condition_field := self.get_condition_field():
+			return self.get(condition_field) or False
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		else:
 			return True
 

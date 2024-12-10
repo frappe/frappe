@@ -51,6 +51,10 @@ class CustomizeFormField(Document):
 			"Icon",
 			"Image",
 			"Int",
+<<<<<<< HEAD
+=======
+			"JSON",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			"Link",
 			"Long Text",
 			"Markdown Editor",

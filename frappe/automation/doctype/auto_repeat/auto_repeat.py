@@ -69,8 +69,13 @@ class AutoRepeat(Document):
 		subject: DF.Data | None
 		submit_on_creation: DF.Check
 		template: DF.Link | None
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def validate(self):
 		self.update_status()
 		self.validate_reference_doctype()
@@ -92,7 +97,11 @@ class AutoRepeat(Document):
 			if start_date <= today_date:
 				self.start_date = today_date
 
+<<<<<<< HEAD
 	def after_save(self):
+=======
+	def on_update(self):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		frappe.get_doc(self.reference_doctype, self.reference_document).notify_update()
 
 	def on_trash(self):
@@ -155,7 +164,11 @@ class AutoRepeat(Document):
 
 	def validate_auto_repeat_days(self):
 		auto_repeat_days = self.get_auto_repeat_days()
+<<<<<<< HEAD
 		if not len(set(auto_repeat_days)) == len(auto_repeat_days):
+=======
+		if len(set(auto_repeat_days)) != len(auto_repeat_days):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			repeated_days = get_repeated(auto_repeat_days)
 			plural = "s" if len(repeated_days) > 1 else ""
 
@@ -302,11 +315,19 @@ class AutoRepeat(Document):
 
 	def get_next_schedule_date(self, schedule_date, for_full_schedule=False):
 		"""
+<<<<<<< HEAD
 		Returns the next schedule date for auto repeat after a recurring document has been created.
 		Adds required offset to the schedule_date param and returns the next schedule date.
 
 		:param schedule_date: The date when the last recurring document was created.
 		:param for_full_schedule: If True, returns the immediate next schedule date, else the full schedule.
+=======
+		Return the next schedule date for auto repeat after a recurring document has been created.
+		Add required offset to the schedule_date param and return the next schedule date.
+
+		:param schedule_date: The date when the last recurring document was created.
+		:param for_full_schedule: If True, return the immediate next schedule date, else the full schedule.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		"""
 		if month_map.get(self.frequency):
 			month_count = month_map.get(self.frequency) + month_diff(schedule_date, self.start_date) - 1
@@ -555,7 +576,11 @@ def get_auto_repeat_doctypes(doctype, txt, searchfield, start, page_len, filters
 	docs += [r.name for r in res]
 	docs = set(list(docs))
 
+<<<<<<< HEAD
 	return [[d] for d in docs]
+=======
+	return [[d] for d in docs if txt in d]
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 @frappe.whitelist()

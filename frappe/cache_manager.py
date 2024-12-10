@@ -85,6 +85,7 @@ def clear_user_cache(user=None):
 	clear_notifications(user)
 
 	if user:
+<<<<<<< HEAD
 		for name in user_cache_keys:
 			frappe.cache.hdel(name, user)
 		frappe.cache.delete_keys("user:" + user)
@@ -92,6 +93,13 @@ def clear_user_cache(user=None):
 	else:
 		for name in user_cache_keys:
 			frappe.cache.delete_key(name)
+=======
+		frappe.cache.hdel_names(user_cache_keys, user)
+		frappe.cache.delete_keys("user:" + user)
+		clear_defaults_cache(user)
+	else:
+		frappe.cache.delete_key(user_cache_keys)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		clear_defaults_cache()
 		clear_global_cache()
 
@@ -106,17 +114,27 @@ def clear_global_cache():
 
 	clear_doctype_cache()
 	clear_website_cache()
+<<<<<<< HEAD
 	frappe.cache.delete_value(global_cache_keys)
 	frappe.cache.delete_value(bench_cache_keys)
+=======
+	frappe.cache.delete_value(global_cache_keys + bench_cache_keys)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	frappe.setup_module_map()
 
 
 def clear_defaults_cache(user=None):
 	if user:
+<<<<<<< HEAD
 		for p in [user, *common_default_keys]:
 			frappe.cache.hdel("defaults", p)
 	elif frappe.flags.in_install != "frappe":
 		frappe.cache.delete_key("defaults")
+=======
+		frappe.cache.hdel("defaults", [user, *common_default_keys])
+	elif frappe.flags.in_install != "frappe":
+		frappe.cache.delete_value("defaults")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 def clear_doctype_cache(doctype=None):
@@ -131,6 +149,7 @@ def clear_doctype_cache(doctype=None):
 def _clear_doctype_cache_from_redis(doctype: str | None = None):
 	from frappe.desk.notifications import delete_notification_count_for
 
+<<<<<<< HEAD
 	for key in ("is_table", "doctype_modules"):
 		frappe.cache.delete_value(key)
 
@@ -140,6 +159,16 @@ def _clear_doctype_cache_from_redis(doctype: str | None = None):
 			frappe.cache.hdel(name, dt)
 
 	if doctype:
+=======
+	to_del = ["is_table", "doctype_modules"]
+
+	if doctype:
+
+		def clear_single(dt):
+			frappe.clear_document_cache(dt)
+			frappe.cache.hdel_names(doctype_cache_keys, dt)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		clear_single(doctype)
 
 		# clear all parent doctypes
@@ -160,9 +189,16 @@ def _clear_doctype_cache_from_redis(doctype: str | None = None):
 
 	else:
 		# clear all
+<<<<<<< HEAD
 		for name in doctype_cache_keys:
 			frappe.cache.delete_value(name)
 		frappe.cache.delete_keys("document_cache::")
+=======
+		to_del += doctype_cache_keys
+		to_del += frappe.cache.get_keys("document_cache::")
+
+	frappe.cache.delete_value(to_del)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 def clear_controller_cache(doctype=None):
@@ -207,7 +243,11 @@ def build_table_count_cache():
 	return counts
 
 
+<<<<<<< HEAD
 def build_domain_restriced_doctype_cache(*args, **kwargs):
+=======
+def build_domain_restricted_doctype_cache(*args, **kwargs):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if (
 		frappe.flags.in_patch
 		or frappe.flags.in_install
@@ -224,7 +264,11 @@ def build_domain_restriced_doctype_cache(*args, **kwargs):
 	return doctypes
 
 
+<<<<<<< HEAD
 def build_domain_restriced_page_cache(*args, **kwargs):
+=======
+def build_domain_restricted_page_cache(*args, **kwargs):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if (
 		frappe.flags.in_patch
 		or frappe.flags.in_install

@@ -3,10 +3,17 @@
 import json
 
 import frappe
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestSeen(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase
+
+
+class TestSeen(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def tearDown(self):
 		frappe.set_user("Administrator")
 

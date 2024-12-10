@@ -7,7 +7,11 @@ import frappe
 
 
 def execute():
+<<<<<<< HEAD
 	"""Convert Query Report json to support other content"""
+=======
+	"""Convert Query Report json to support other content."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	records = frappe.get_all("Report", filters={"json": ["!=", ""]}, fields=["name", "json"])
 	for record in records:
 		jstr = record["json"]

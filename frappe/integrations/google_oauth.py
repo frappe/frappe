@@ -56,7 +56,11 @@ class GoogleOAuth:
 			frappe.throw(frappe._("Please update {} before continuing.").format(google_settings))
 
 	def authorize(self, oauth_code: str) -> dict[str, str | int]:
+<<<<<<< HEAD
 		"""Returns a dict with access and refresh token.
+=======
+		"""Return a dict with access and refresh token.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		:param oauth_code: code got back from google upon successful auhtorization
 		"""
@@ -99,7 +103,11 @@ class GoogleOAuth:
 		)
 
 	def get_authentication_url(self, state: dict[str, str]) -> dict[str, str]:
+<<<<<<< HEAD
 		"""Returns google authentication url.
+=======
+		"""Return Google authentication url.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		:param state: dict of values which you need on callback (for calling methods, redirection back to the form, doc name, etc)
 		"""
@@ -117,7 +125,11 @@ class GoogleOAuth:
 		}
 
 	def get_google_service_object(self, access_token: str, refresh_token: str):
+<<<<<<< HEAD
 		"""Returns google service object"""
+=======
+		"""Return Google service object."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		credentials_dict = {
 			"token": access_token,

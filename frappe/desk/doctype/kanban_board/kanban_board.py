@@ -26,8 +26,13 @@ class KanbanBoard(Document):
 		private: DF.Check
 		reference_doctype: DF.Link
 		show_labels: DF.Check
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def validate(self):
 		self.validate_column_name()
 

@@ -22,6 +22,10 @@ class CustomHTMLBlock(Document):
 		script: DF.Code | None
 		style: DF.Code | None
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass
 
 

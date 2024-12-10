@@ -20,9 +20,13 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Item Label",
+<<<<<<< HEAD
    "mandatory_depends_on": "eval:doc.item_type == 'Route' || doc.item_type == 'Action'",
    "show_days": 1,
    "show_seconds": 1
+=======
+   "mandatory_depends_on": "eval:doc.item_type == 'Route' || doc.item_type == 'Action'"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   },
   {
    "columns": 2,
@@ -31,27 +35,39 @@
    "in_list_view": 1,
    "label": "Item Type",
    "options": "Route\nAction\nSeparator",
+<<<<<<< HEAD
    "read_only_depends_on": "eval:doc.is_standard",
    "show_days": 1,
    "show_seconds": 1
+=======
+   "read_only_depends_on": "eval:doc.is_standard"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   },
   {
    "default": "0",
    "fieldname": "hidden",
    "fieldtype": "Check",
    "in_list_view": 1,
+<<<<<<< HEAD
    "label": "Hidden",
    "show_days": 1,
    "show_seconds": 1
+=======
+   "label": "Hidden"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   },
   {
    "default": "0",
    "fieldname": "is_standard",
    "fieldtype": "Check",
    "label": "Is Standard",
+<<<<<<< HEAD
    "read_only": 1,
    "show_days": 1,
    "show_seconds": 1
+=======
+   "read_only": 1
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   },
   {
    "columns": 4,
@@ -61,9 +77,13 @@
    "in_list_view": 1,
    "label": "Route",
    "mandatory_depends_on": "eval:doc.item_type == 'Route'",
+<<<<<<< HEAD
    "read_only_depends_on": "eval:doc.is_standard",
    "show_days": 1,
    "show_seconds": 1
+=======
+   "read_only_depends_on": "eval:doc.is_standard"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   },
   {
    "depends_on": "eval:doc.item_type == 'Action'",
@@ -71,9 +91,13 @@
    "fieldtype": "Data",
    "label": "Action",
    "mandatory_depends_on": "eval:doc.item_type == 'Action'",
+<<<<<<< HEAD
    "read_only_depends_on": "eval:doc.is_standard",
    "show_days": 1,
    "show_seconds": 1
+=======
+   "read_only_depends_on": "eval:doc.is_standard"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   },
   {
    "fieldname": "condition",
@@ -95,7 +119,13 @@
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,
+<<<<<<< HEAD
  "sort_field": "modified",
  "sort_order": "DESC",
+=======
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "track_changes": 1
 }

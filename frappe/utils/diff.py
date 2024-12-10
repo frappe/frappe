@@ -60,6 +60,10 @@ def version_query(doctype, txt, searchfield, start, page_len, filters):
 		filters=version_filters,
 		limit_start=start,
 		limit_page_length=page_len,
+<<<<<<< HEAD
 		order_by="modified desc",
+=======
+		order_by="creation desc",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	)
 	return [(d.name, pretty_date(d.modified), d.modified, d.owner) for d in results]

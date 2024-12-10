@@ -15,7 +15,11 @@ from frappe.core.doctype.server_script.server_script_utils import get_server_scr
 from frappe.monitor import add_data_to_monitor
 from frappe.utils import cint
 from frappe.utils.csvutils import build_csv_response
+<<<<<<< HEAD
 from frappe.utils.deprecations import deprecation_warning
+=======
+from frappe.utils.deprecations import deprecated
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.utils.image import optimize_image
 from frappe.utils.response import build_response
 
@@ -102,11 +106,15 @@ def is_valid_http_method(method):
 	http_method = frappe.local.request.method
 
 	if http_method not in frappe.allowed_http_methods_for_whitelisted_func[method]:
+<<<<<<< HEAD
 		throw_permission_error()
 
 
 def throw_permission_error():
 	frappe.throw(_("Not permitted"), frappe.PermissionError)
+=======
+		frappe.throw_permission_error()
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 @frappe.whitelist(allow_guest=True)
@@ -124,6 +132,7 @@ def web_logout():
 	)
 
 
+<<<<<<< HEAD
 @frappe.whitelist()
 def uploadfile():
 	deprecation_warning(
@@ -166,6 +175,8 @@ def uploadfile():
 	return ret
 
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 @frappe.whitelist(allow_guest=True)
 def upload_file():
 	user = None
@@ -175,7 +186,11 @@ def upload_file():
 		else:
 			raise frappe.PermissionError
 	else:
+<<<<<<< HEAD
 		user: "User" = frappe.get_doc("User", frappe.session.user)
+=======
+		user: User = frappe.get_doc("User", frappe.session.user)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		ignore_permissions = False
 
 	files = frappe.request.files
@@ -273,7 +288,11 @@ def download_file(file_url: str):
 	Endpoints : download_file, frappe.core.doctype.file.file.download_file
 	URL Params : file_name = /path/to/file relative to site path
 	"""
+<<<<<<< HEAD
 	file: "File" = frappe.get_doc("File", {"file_url": file_url})
+=======
+	file: File = frappe.get_doc("File", {"file_url": file_url})
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if not file.is_downloadable():
 		raise frappe.PermissionError
 
@@ -287,8 +306,17 @@ def get_attr(cmd):
 	if "." in cmd:
 		method = frappe.get_attr(cmd)
 	else:
+<<<<<<< HEAD
 		deprecation_warning(
 			f"Calling shorthand for {cmd} is deprecated, please specify full path in RPC call."
+=======
+		from frappe.deprecation_dumpster import deprecation_warning
+
+		deprecation_warning(
+			"unknown",
+			"v17",
+			f"Calling shorthand for {cmd} is deprecated, please specify full path in RPC call.",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		)
 		method = globals()[cmd]
 	return method
@@ -312,8 +340,15 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 		doc._original_modified = doc.modified
 		doc.check_if_latest()
 
+<<<<<<< HEAD
 	if not doc or not doc.has_permission("read"):
 		throw_permission_error()
+=======
+	if not doc:
+		frappe.throw_permission_error()
+
+	doc.check_permission("read")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	try:
 		args = frappe.parse_json(args)
@@ -350,5 +385,9 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 	add_data_to_monitor(methodname=method)
 
 
+<<<<<<< HEAD
 # for backwards compatibility
 runserverobj = run_doc_method
+=======
+runserverobj = deprecated(run_doc_method)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

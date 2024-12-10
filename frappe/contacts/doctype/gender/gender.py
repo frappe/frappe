@@ -15,4 +15,8 @@ class Gender(Document):
 
 		gender: DF.Data | None
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass

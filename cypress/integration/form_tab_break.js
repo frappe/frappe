@@ -25,6 +25,10 @@ context("Form Tab Break", () => {
 
 		// After save, first tab should have dashboard
 		cy.get(".form-tabs > .nav-item").eq(0).click();
+<<<<<<< HEAD
 		cy.findByText("Connections");
+=======
+		cy.findByText("Profile");
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	});
 });

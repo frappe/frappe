@@ -17,7 +17,11 @@ frappe.ui.form.on("Client Script", {
 				frappe.model.with_doctype(frm.doc.dt, () => {
 					const child_tables = frappe.meta
 						.get_docfields(frm.doc.dt, null, {
+<<<<<<< HEAD
 							fieldtype: "Table",
+=======
+							fieldtype: ["in", ["Table", "Table MultiSelect"]],
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 						})
 						.map((df) => df.options);
 

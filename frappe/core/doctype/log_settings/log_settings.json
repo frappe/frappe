@@ -1,6 +1,10 @@
 {
  "actions": [],
+<<<<<<< HEAD
  "creation": "2020-10-08 12:12:21.694424",
+=======
+ "creation": "2023-02-22 16:18:29.749940",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -18,7 +22,11 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2022-06-11 02:17:30.803721",
+=======
+ "modified": "2024-03-23 16:03:29.392292",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Log Settings",
@@ -36,7 +44,11 @@
   }
  ],
  "quick_entry": 1,
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "sort_field": "creation",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

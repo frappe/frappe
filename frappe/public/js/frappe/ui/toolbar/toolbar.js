@@ -20,6 +20,10 @@ frappe.ui.toolbar.Toolbar = class {
 		this.setup_awesomebar();
 		this.setup_notifications();
 		this.setup_help();
+<<<<<<< HEAD
+=======
+		this.setup_read_only_mode();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		this.setup_announcement_widget();
 		this.make();
 	}
@@ -27,6 +31,23 @@ frappe.ui.toolbar.Toolbar = class {
 	make() {
 		this.bind_events();
 		$(document).trigger("toolbar_setup");
+<<<<<<< HEAD
+=======
+		$(".navbar-brand .app-logo").on("click", () => {
+			$(".body-sidebar-container")
+				.toggleClass("expanded")
+				.find(".edit-sidebar-link")
+				.addClass("hidden");
+
+			// show close link
+			$(".body-sidebar-container")
+				.find(".close-sidebar-link")
+				.removeClass("hidden")
+				.on("click", () => {
+					$(".body-sidebar-container").removeClass("expanded");
+				});
+		});
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 
 	bind_events() {
@@ -42,8 +63,19 @@ frappe.ui.toolbar.Toolbar = class {
 				search_modal.find("#modal-search").focus();
 			}, 300);
 		});
+<<<<<<< HEAD
 		$(".navbar-toggle-full-width").click(() => {
 			frappe.ui.toolbar.toggle_full_width();
+=======
+	}
+
+	setup_read_only_mode() {
+		if (!frappe.boot.read_only) return;
+
+		$("header .read-only-banner").tooltip({
+			delay: { show: 600, hide: 100 },
+			trigger: "hover",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		});
 	}
 

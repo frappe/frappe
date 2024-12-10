@@ -52,7 +52,10 @@
 
 			.layout-main-section-wrapper {
 				flex: 1;
+<<<<<<< HEAD
 				max-width: 100%;
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			}
 		}
 	}
@@ -61,8 +64,13 @@
 .list-row-container {
 	display: flex;
 	flex-direction: column;
+<<<<<<< HEAD
 	outline: none;
 	padding: 0 var(--padding-xs);
+=======
+	padding: var(--padding-xs) var(--padding-md);
+	border-bottom: 1px solid $border-color;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	&:focus {
 		.list-row {
@@ -70,6 +78,7 @@
 		}
 	}
 
+<<<<<<< HEAD
 	.list-row-border {
 		border-bottom: 1px solid $border-color;
 		margin: 0 10px;
@@ -77,17 +86,35 @@
 
 	&:last-child .list-row-border {
 		display: none;
+=======
+	&:first-child {
+		padding-top: 0;
+		border-bottom: none;
+	}
+
+	&:last-child {
+		border-bottom: none;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 }
 
 .list-row {
+<<<<<<< HEAD
 	padding: 15px 15px 15px 0px;
 	height: 40px;
+=======
+	padding-right: 15px;
+	height: var(--list-row-height);
+	border-radius: var(--border-radius);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	cursor: pointer;
 	transition: color 0.2s;
 	-webkit-transition: color 0.2s;
 	@include get_textstyle("base", "regular");
+<<<<<<< HEAD
 	border-radius: var(--border-radius-md);
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	&:hover:not(.list-row-head) {
 		background-color: var(--highlight-color);
@@ -160,16 +187,25 @@
 	.file-select {
 		padding-left: 11px;
 	}
+<<<<<<< HEAD
 
 	.select-like {
 		padding: 10px 0 10px 11px;
 	}
+=======
+}
+
+.select-like {
+	padding: var(--list-checkbox-padding);
+	cursor: default;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 }
 
 .list-row-head {
 	@extend .list-row;
 	cursor: default;
 	background-color: var(--subtle-fg);
+<<<<<<< HEAD
 	height: 30px;
 	margin: 0.5rem var(--padding-xs);
 	border-radius: var(--border-radius-md);
@@ -177,6 +213,11 @@
 	.list-check-all {
 		margin-left: 11px;
 	}
+=======
+	border-radius: var(--border-radius);
+	height: var(--list-row-height);
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	.list-subject {
 		font-weight: normal;
 	}
@@ -232,6 +273,7 @@ $level-margin-right: 8px;
 		}
 	}
 	.btn-paging {
+<<<<<<< HEAD
 		background-color: var(--gray-50);
 	}
 }
@@ -240,6 +282,16 @@ $level-margin-right: 8px;
 	.list-paging-area,
 	.footnote-area {
 		padding: var(--padding-md);
+=======
+		background-color: var(--control-bg);
+	}
+}
+
+.layout-main-list {
+	.list-paging-area,
+	.footnote-area {
+		padding: var(--padding-sm) var(--padding-md);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 }
 
@@ -251,6 +303,7 @@ $level-margin-right: 8px;
 	margin-bottom: 1px;
 }
 
+<<<<<<< HEAD
 input.list-check-all,
 input.list-row-checkbox {
 	margin-top: 0px;
@@ -261,6 +314,24 @@ input.list-row-checkbox {
 
 input.list-check-all {
 	margin-left: 15px;
+=======
+input.list-row-checkbox,
+input.list-header-checkbox {
+	margin-top: 0;
+	margin-bottom: 0;
+	--checkbox-right-margin: 0;
+	background-color: var(--card-bg);
+	z-index: 1;
+
+	&::after {
+		// Extend the checkbox's clickable area
+		display: block;
+		content: "";
+		inset: calc(-1 * var(--list-checkbox-padding));
+		position: absolute;
+		opacity: 0;
+	}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 }
 
 .render-list-checkbox {
@@ -306,7 +377,11 @@ input.list-check-all {
 	align-items: center;
 	cursor: pointer;
 
+<<<<<<< HEAD
 	height: 40px;
+=======
+	height: var(--list-row-height);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	padding-left: 15px;
 
 	@include get_textstyle("base", "regular");
@@ -325,7 +400,11 @@ input.list-check-all {
 
 	&--head {
 		background-color: var(--highlight-color);
+<<<<<<< HEAD
 		border-bottom: 1px solid $border-color;
+=======
+		// border-bottom: 1px solid $border-color;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		cursor: auto;
 	}
 

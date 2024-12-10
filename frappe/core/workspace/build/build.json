@@ -1,13 +1,23 @@
 {
+<<<<<<< HEAD
  "charts": [],
  "content": "[{\"id\":\"5nnLaQeoFa\",\"type\":\"header\",\"data\":{\"text\":\"<span style=\\\"font-size: 18px; letter-spacing: 0.18px;\\\"><b>Get started</b><br></span>\",\"col\":12}},{\"id\":\"HXRmktXYHy\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"DocType\",\"col\":3}},{\"id\":\"pYALX3MwBW\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customize Form\",\"col\":3}},{\"id\":\"XC78DuYB65\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Report\",\"col\":3}},{\"id\":\"XPm50Ppq3J\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Client Script\",\"col\":3}},{\"id\":\"yoU6nWiT83\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Server Script\",\"col\":3}},{\"id\":\"5UgFESBY0N\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Print Format Builder\",\"col\":3}},{\"id\":\"0gE0s-S70E\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"System Settings\",\"col\":3}},{\"id\":\"62hseENHbd\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"tOCrOgLW1G\",\"type\":\"header\",\"data\":{\"text\":\"<span style=\\\"font-size: 18px; letter-spacing: 0.18px;\\\"><b>Components to build your app</b></span>\",\"col\":12}},{\"id\":\"cJ6CVsa8qW\",\"type\":\"card\",\"data\":{\"card_name\":\"Models\",\"col\":4}},{\"id\":\"MmEJpjEdGR\",\"type\":\"card\",\"data\":{\"card_name\":\"Views\",\"col\":4}},{\"id\":\"2ZdtgxQZqq\",\"type\":\"card\",\"data\":{\"card_name\":\"Customization\",\"col\":4}},{\"id\":\"NPFolijIcb\",\"type\":\"card\",\"data\":{\"card_name\":\"Scripting\",\"col\":4}},{\"id\":\"BIHjudL0T_\",\"type\":\"card\",\"data\":{\"card_name\":\"Modules\",\"col\":4}},{\"id\":\"iK3JQ9RXJE\",\"type\":\"card\",\"data\":{\"card_name\":\"Packages\",\"col\":4}},{\"id\":\"TiO9FCUUeC\",\"type\":\"card\",\"data\":{\"card_name\":\"System Logs\",\"col\":4}}]",
+=======
+ "app": "frappe",
+ "charts": [],
+ "content": "[{\"id\":\"HXRmktXYHy\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"DocType\",\"col\":3}},{\"id\":\"NosD6wA0vD\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Module Def\",\"col\":3}},{\"id\":\"62hseENHbd\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"MmEJpjEdGR\",\"type\":\"card\",\"data\":{\"card_name\":\"Views\",\"col\":4}},{\"id\":\"2ZdtgxQZqq\",\"type\":\"card\",\"data\":{\"card_name\":\"Customization\",\"col\":4}},{\"id\":\"NPFolijIcb\",\"type\":\"card\",\"data\":{\"card_name\":\"Scripting\",\"col\":4}},{\"id\":\"BIHjudL0T_\",\"type\":\"card\",\"data\":{\"card_name\":\"Modules\",\"col\":4}},{\"id\":\"iK3JQ9RXJE\",\"type\":\"card\",\"data\":{\"card_name\":\"Packages\",\"col\":4}},{\"id\":\"TiO9FCUUeC\",\"type\":\"card\",\"data\":{\"card_name\":\"System Logs\",\"col\":4}}]",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "creation": "2021-01-02 10:51:16.579957",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
  "hide_custom": 0,
+<<<<<<< HEAD
  "icon": "tool",
+=======
+ "icon": "hammer",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "idx": 1,
  "is_hidden": 0,
  "label": "Build",
@@ -95,6 +105,7 @@
    "type": "Link"
   },
   {
+<<<<<<< HEAD
    "description": "Monitor logs for errors, background jobs, communications, and user activity",
    "hidden": 0,
    "is_query_report": 0,
@@ -155,6 +166,8 @@
    "type": "Link"
   },
   {
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "description": "Packages are lightweight apps (collection of Module Defs) that can be created, imported, or released right from the UI",
    "hidden": 0,
    "is_query_report": 0,
@@ -232,7 +245,11 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Views",
+<<<<<<< HEAD
    "link_count": 5,
+=======
+   "link_count": 6,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -251,6 +268,20 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+<<<<<<< HEAD
+=======
+   "label": "Dashboard",
+   "link_count": 0,
+   "link_to": "Dashboard",
+   "link_type": "DocType",
+   "onboard": 0,
+   "only_for": "",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "label": "Print Format",
    "link_count": 0,
    "link_to": "Print Format",
@@ -262,9 +293,15 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+<<<<<<< HEAD
    "label": "Workspace",
    "link_count": 0,
    "link_to": "Workspace",
+=======
+   "label": "Page",
+   "link_count": 0,
+   "link_to": "Page",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -272,12 +309,20 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+<<<<<<< HEAD
    "label": "Dashboard",
    "link_count": 0,
    "link_to": "Dashboard",
    "link_type": "DocType",
    "onboard": 0,
    "only_for": "",
+=======
+   "label": "Workspace",
+   "link_count": 0,
+   "link_to": "Workspace",
+   "link_type": "DocType",
+   "onboard": 0,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "type": "Link"
   },
   {
@@ -291,11 +336,19 @@
    "type": "Link"
   },
   {
+<<<<<<< HEAD
    "description": "Create new forms and views with doctypes. Set up multi-level workflows for approval",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Models",
    "link_count": 2,
+=======
+   "description": "Monitor logs for errors, background jobs, communications, and user activity",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "System Logs",
+   "link_count": 6,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -303,17 +356,26 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+<<<<<<< HEAD
    "label": "DocType",
    "link_count": 0,
    "link_to": "DocType",
    "link_type": "DocType",
    "onboard": 0,
    "only_for": "",
+=======
+   "label": "Background Jobs",
+   "link_count": 0,
+   "link_to": "RQ Job",
+   "link_type": "DocType",
+   "onboard": 0,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "type": "Link"
   },
   {
    "hidden": 0,
    "is_query_report": 0,
+<<<<<<< HEAD
    "label": "Workflow",
    "link_count": 0,
    "link_to": "Workflow",
@@ -324,6 +386,57 @@
   }
  ],
  "modified": "2024-01-24 12:27:44.769958",
+=======
+   "label": "Scheduled Jobs Logs",
+   "link_count": 0,
+   "link_to": "Scheduled Job Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Error Logs",
+   "link_count": 0,
+   "link_to": "Error Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Activity Log",
+   "link_count": 0,
+   "link_to": "Activity Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Communication Logs",
+   "link_count": 0,
+   "link_to": "Communication",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Webhook Request Log",
+   "link_count": 0,
+   "link_to": "Webhook Request Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2024-09-30 17:39:36.060170",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Build",
@@ -334,11 +447,16 @@
  "quick_lists": [],
  "restrict_to_domain": "",
  "roles": [],
+<<<<<<< HEAD
  "sequence_id": 27.0,
+=======
+ "sequence_id": 1.0,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "shortcuts": [
   {
    "color": "Grey",
    "doc_view": "List",
+<<<<<<< HEAD
    "label": "Print Format Builder",
    "link_to": "print-format-builder",
    "type": "Page"
@@ -385,4 +503,21 @@
   }
  ],
  "title": "Build"
+=======
+   "label": "Module Def",
+   "link_to": "Module Def",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "doc_view": "List",
+   "label": "DocType",
+   "link_to": "DocType",
+   "stats_filter": "[]",
+   "type": "DocType"
+  }
+ ],
+ "title": "Build",
+ "type": "Workspace"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 }

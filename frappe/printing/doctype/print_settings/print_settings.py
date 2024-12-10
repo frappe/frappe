@@ -63,8 +63,13 @@ class PrintSettings(Document):
 		repeat_header_footer: DF.Check
 		send_print_as_pdf: DF.Check
 		with_letterhead: DF.Check
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def validate(self):
 		if self.pdf_page_size == "Custom" and not (self.pdf_page_height and self.pdf_page_width):
 			frappe.throw(_("Page height and width cannot be zero"))

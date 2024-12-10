@@ -25,7 +25,11 @@ def get_notifications():
 		"open_count_doctype": {},
 		"targets": {},
 	}
+<<<<<<< HEAD
 	if frappe.flags.in_install or not frappe.db.get_single_value("System Settings", "setup_complete"):
+=======
+	if frappe.flags.in_install or not frappe.get_system_settings("setup_complete"):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		return out
 
 	config = get_notification_config()
@@ -72,7 +76,11 @@ def get_notifications_for_doctypes(config, notification_count):
 				except frappe.PermissionError:
 					frappe.clear_messages()
 					pass
+<<<<<<< HEAD
 					# frappe.msgprint("Permission Error in notifications for {0}".format(d))
+=======
+				# frappe.msgprint("Permission Error in notifications for {0}".format(d))
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 				except Exception as e:
 					# OperationalError: (1412, 'Table definition has changed, please retry transaction')
@@ -149,11 +157,18 @@ def clear_notifications(user=None):
 	for_module = list(config.get("for_module")) if config.get("for_module") else []
 	groups = for_doctype + for_module
 
+<<<<<<< HEAD
 	for name in groups:
 		if user:
 			frappe.cache.hdel("notification_count:" + name, user)
 		else:
 			frappe.cache.delete_key("notification_count:" + name)
+=======
+	if user:
+		frappe.cache.hdel_names([f"notification_count:{name}" for name in groups], user)
+	else:
+		frappe.cache.delete_value([f"notification_count:{name}" for name in groups])
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 def clear_notification_config(user):

@@ -6,12 +6,24 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+<<<<<<< HEAD
   "module_name",
   "custom",
   "package",
   "app_name",
   "restrict_to_domain",
   "connections_tab"
+=======
+  "connections_tab",
+  "details_tab",
+  "section_break_dnma",
+  "module_name",
+  "app_name",
+  "restrict_to_domain",
+  "package",
+  "column_break_giia",
+  "custom"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  ],
  "fields": [
   {
@@ -57,6 +69,22 @@
    "fieldtype": "Tab Break",
    "label": "Connections",
    "show_dashboard": 1
+<<<<<<< HEAD
+=======
+  },
+  {
+   "fieldname": "details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "column_break_giia",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_dnma",
+   "fieldtype": "Section Break"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   }
  ],
  "icon": "fa fa-sitemap",
@@ -123,7 +151,11 @@
    "link_fieldname": "module"
   }
  ],
+<<<<<<< HEAD
  "modified": "2023-12-08 15:52:37.525003",
+=======
+ "modified": "2024-09-18 12:39:19.512528",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Module Def",
@@ -159,7 +191,11 @@
   }
  ],
  "show_name_in_global_search": 1,
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "sort_field": "creation",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

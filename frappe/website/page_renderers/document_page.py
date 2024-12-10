@@ -45,7 +45,11 @@ class DocumentPage(BaseTemplatePage):
 
 	@cache_html
 	def get_html(self):
+<<<<<<< HEAD
 		self.doc = frappe.get_doc(self.doctype, self.docname)
+=======
+		self.doc = frappe.get_cached_doc(self.doctype, self.docname)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		self.init_context()
 		self.update_context()
 		self.post_process_context()

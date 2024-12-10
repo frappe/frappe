@@ -37,6 +37,7 @@ Cypress.Commands.add("login", (email, password) => {
 	// cy.session clears all localStorage on new login, so we need to retain the last route
 	const session_last_route = window.localStorage.getItem("session_last_route");
 	return cy
+<<<<<<< HEAD
 		.session(
 			[email, password] || "",
 			() => {
@@ -53,6 +54,18 @@ Cypress.Commands.add("login", (email, password) => {
 				cacheAcrossSpecs: true,
 			}
 		)
+=======
+		.session([email, password] || "", () => {
+			return cy.request({
+				url: "/api/method/login",
+				method: "POST",
+				body: {
+					usr: email,
+					pwd: password,
+				},
+			});
+		})
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		.then(() => {
 			if (session_last_route) {
 				window.localStorage.setItem("session_last_route", session_last_route);

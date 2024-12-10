@@ -117,12 +117,17 @@ def search_widget(
 	meta = frappe.get_meta(doctype)
 
 	if isinstance(filters, dict):
+<<<<<<< HEAD
 		filters_items = filters.items()
 		filters = []
 		for key, value in filters_items:
 			filters.append(make_filter_tuple(doctype, key, value))
 
 	if filters is None:
+=======
+		filters = [make_filter_tuple(doctype, key, value) for key, value in filters.items()]
+	elif filters is None:
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		filters = []
 	or_filters = []
 
@@ -264,10 +269,23 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 				item = [item[0], item[0]]
 			label = item[1]  # use title as label
 			item[1] = item[0]  # show name in description instead of title
+<<<<<<< HEAD
 			if len(item) >= 3 and item[2] == label:
 				# remove redundant title ("label") value
 				del item[2]
 			results.append({"value": item[0], "label": label, "description": to_string(item[1:])})
+=======
+
+			if len(item) >= 3 and item[2] == label:
+				# remove redundant title ("label") value
+				del item[2]
+
+			autosuggest_row = {"value": item[0], "description": to_string(item[1:])}
+			if label:
+				autosuggest_row["label"] = label
+
+			results.append(autosuggest_row)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	else:
 		results.extend({"value": item[0], "description": to_string(item[1:])} for item in res)
 

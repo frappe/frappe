@@ -4,6 +4,10 @@
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.model.document import Document
+<<<<<<< HEAD
+=======
+from frappe.utils import cint
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 class Domain(Document):
@@ -17,6 +21,10 @@ class Domain(Document):
 
 		domain: DF.Data
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	"""Domain documents are created automatically when DocTypes
 	with "Restricted" domains are imported during
 	installation or migration"""
@@ -28,7 +36,11 @@ class Domain(Document):
 		self.setup_properties()
 		self.set_values()
 
+<<<<<<< HEAD
 		if not int(frappe.defaults.get_defaults().setup_complete or 0):
+=======
+		if not cint(frappe.defaults.get_defaults().setup_complete):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			# if setup not complete, setup desktop etc.
 			self.setup_sidebar_items()
 			self.set_default_portal_role()
@@ -77,7 +89,11 @@ class Domain(Document):
 			for role_name in self.data.restricted_roles:
 				user.append("roles", {"role": role_name})
 				if not frappe.db.get_value("Role", role_name):
+<<<<<<< HEAD
 					frappe.get_doc(dict(doctype="Role", role_name=role_name)).insert()
+=======
+					frappe.get_doc(doctype="Role", role_name=role_name).insert()
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					continue
 
 				role = frappe.get_doc("Role", role_name)

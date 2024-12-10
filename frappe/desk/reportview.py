@@ -27,7 +27,11 @@ def get():
 	# If virtual doctype, get data from controller get_list method
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
+<<<<<<< HEAD
 		data = compress(controller.get_list(args))
+=======
+		data = compress(frappe.call(controller.get_list, args=args, **args))
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	else:
 		data = compress(execute(**args), args=args)
 	return data
@@ -40,7 +44,11 @@ def get_list():
 
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
+<<<<<<< HEAD
 		data = controller.get_list(args)
+=======
+		data = frappe.call(controller.get_list, args=args, **args)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	else:
 		# uncompressed (refactored from frappe.model.db_query.get_list)
 		data = execute(**args)
@@ -55,7 +63,11 @@ def get_count() -> int:
 
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
+<<<<<<< HEAD
 		count = controller.get_count(args)
+=======
+		count = frappe.call(controller.get_count, args=args, **args)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	else:
 		args.distinct = sbool(args.distinct)
 		distinct = "distinct " if args.distinct else ""
@@ -243,6 +255,13 @@ def parse_json(data):
 		data["save_user_settings"] = json.loads(data["save_user_settings"])
 	else:
 		data["save_user_settings"] = True
+<<<<<<< HEAD
+=======
+	if isinstance(data.get("start"), str):
+		data["start"] = cint(data.get("start"))
+	if isinstance(data.get("page_length"), str):
+		data["page_length"] = cint(data.get("page_length"))
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 def get_parenttype_and_fieldname(field, data):
@@ -549,6 +568,10 @@ def delete_bulk(doctype, items):
 	undeleted_items = []
 	for i, d in enumerate(items):
 		try:
+<<<<<<< HEAD
+=======
+			frappe.flags.in_bulk_delete = True
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			frappe.delete_doc(doctype, d)
 			if len(items) >= 5:
 				frappe.publish_realtime(
@@ -589,7 +612,11 @@ def get_sidebar_stats(stats, doctype, filters=None):
 	if is_virtual_doctype(doctype):
 		controller = get_controller(doctype)
 		args = {"stats": stats, "filters": filters}
+<<<<<<< HEAD
 		data = controller.get_stats(args)
+=======
+		data = frappe.call(controller.get_stats, args=args, **args)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	else:
 		data = get_stats(stats, doctype, filters)
 
@@ -673,7 +700,11 @@ def get_filter_dashboard_data(stats, doctype, filters=None):
 			tagcount = frappe.get_list(
 				doctype,
 				fields=[tag["name"], "count(*)"],
+<<<<<<< HEAD
 				filters=[*filters, "ifnull(`%s`,'')!=''" % tag["name"]],
+=======
+				filters=[*filters, "ifnull(`{}`,'')!=''".format(tag["name"])],
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				group_by=tag["name"],
 				as_list=True,
 			)

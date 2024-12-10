@@ -36,8 +36,13 @@ class Currency(Document):
 		smallest_currency_fraction_value: DF.Currency
 		symbol: DF.Data | None
 		symbol_on_right: DF.Check
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	# NOTE: During installation country docs are bulk inserted.
 	def validate(self):
 		frappe.clear_cache()

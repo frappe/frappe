@@ -69,7 +69,13 @@ def get_context(context):
 	)
 
 	for provider in providers:
+<<<<<<< HEAD
 		client_secret = get_decrypted_password("Social Login Key", provider.name, "client_secret")
+=======
+		client_secret = get_decrypted_password(
+			"Social Login Key", provider.name, "client_secret", raise_exception=False
+		)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		if not client_secret:
 			continue
 

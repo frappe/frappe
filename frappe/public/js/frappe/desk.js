@@ -37,6 +37,10 @@ frappe.Application = class Application {
 		this.load_bootinfo();
 		this.load_user_permissions();
 		this.make_nav_bar();
+<<<<<<< HEAD
+=======
+		this.make_sidebar();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		this.set_favicon();
 		this.set_fullwidth_if_enabled();
 		this.add_browser_class();
@@ -46,6 +50,54 @@ frappe.Application = class Application {
 
 		frappe.ui.keys.setup();
 
+<<<<<<< HEAD
+=======
+		this.setup_theme();
+
+		// page container
+		this.make_page_container();
+		this.setup_tours();
+		this.set_route();
+
+		// trigger app startup
+		$(document).trigger("startup");
+		$(document).trigger("app_ready");
+
+		this.show_notices();
+		this.show_notes();
+
+		if (frappe.ui.startup_setup_dialog && !frappe.boot.setup_complete) {
+			frappe.ui.startup_setup_dialog.pre_show();
+			frappe.ui.startup_setup_dialog.show();
+		}
+
+		// listen to build errors
+		this.setup_build_events();
+
+		if (frappe.sys_defaults.email_user_password) {
+			var email_list = frappe.sys_defaults.email_user_password.split(",");
+			for (var u in email_list) {
+				if (email_list[u] === frappe.user.name) {
+					this.set_password(email_list[u]);
+				}
+			}
+		}
+
+		// REDESIGN-TODO: Fix preview popovers
+		this.link_preview = new frappe.ui.LinkPreview();
+
+		frappe.broadcast.emit("boot", {
+			csrf_token: frappe.csrf_token,
+			user: frappe.session.user,
+		});
+	}
+
+	make_sidebar() {
+		this.sidebar = new frappe.ui.Sidebar({});
+	}
+
+	setup_theme() {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		frappe.ui.keys.add_shortcut({
 			shortcut: "shift+ctrl+g",
 			description: __("Switch Theme"),
@@ -71,9 +123,15 @@ frappe.Application = class Application {
 		});
 
 		frappe.ui.set_theme();
+<<<<<<< HEAD
 
 		// page container
 		this.make_page_container();
+=======
+	}
+
+	setup_tours() {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		if (
 			!window.Cypress &&
 			frappe.boot.onboarding_tours &&
@@ -90,6 +148,7 @@ frappe.Application = class Application {
 				});
 			}
 		}
+<<<<<<< HEAD
 		this.set_route();
 
 		// trigger app startup
@@ -97,6 +156,11 @@ frappe.Application = class Application {
 
 		$(document).trigger("app_ready");
 
+=======
+	}
+
+	show_notices() {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		if (frappe.boot.messages) {
 			frappe.msgprint(frappe.boot.messages);
 		}
@@ -116,6 +180,7 @@ frappe.Application = class Application {
 			console.log(`%c${console_security_message}`, "font-size: large");
 		}
 
+<<<<<<< HEAD
 		this.show_notes();
 
 		if (frappe.ui.startup_setup_dialog && !frappe.boot.setup_complete) {
@@ -123,6 +188,8 @@ frappe.Application = class Application {
 			frappe.ui.startup_setup_dialog.show();
 		}
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		frappe.realtime.on("version-update", function () {
 			var dialog = frappe.msgprint({
 				message: __(
@@ -136,6 +203,7 @@ frappe.Application = class Application {
 			});
 			dialog.get_close_btn().toggle(false);
 		});
+<<<<<<< HEAD
 
 		// listen to build errors
 		this.setup_build_events();
@@ -156,6 +224,8 @@ frappe.Application = class Application {
 			csrf_token: frappe.csrf_token,
 			user: frappe.session.user,
 		});
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 
 	set_route() {
@@ -275,6 +345,11 @@ frappe.Application = class Application {
 	setup_workspaces() {
 		frappe.modules = {};
 		frappe.workspaces = {};
+<<<<<<< HEAD
+=======
+		frappe.boot.allowed_workspaces = frappe.boot.sidebar_pages.pages;
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		for (let page of frappe.boot.allowed_workspaces || []) {
 			frappe.modules[page.module] = page;
 			frappe.workspaces[frappe.router.slug(page.name)] = page;

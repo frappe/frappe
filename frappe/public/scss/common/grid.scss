@@ -2,6 +2,11 @@
 	border: 1px solid var(--table-border-color);
 	border-radius: var(--border-radius-md);
 	color: var(--text-color);
+<<<<<<< HEAD
+=======
+	min-height: 150px;
+	background-color: var(--subtle-accent);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 }
 
 .form-grid.error {
@@ -11,13 +16,25 @@
 .grid-heading-row {
 	border-bottom: 1px solid var(--table-border-color);
 	color: var(--gray-600);
+<<<<<<< HEAD
 	background-color: var(--subtle-fg);
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	@include get_textstyle("sm", "regular");
 	height: 32px;
 	padding: 0 !important;
 	border-top-left-radius: var(--border-radius-md);
 	border-top-right-radius: var(--border-radius-md);
 
+<<<<<<< HEAD
+=======
+	.grid-row {
+		background-color: var(--subtle-fg);
+		border-top-left-radius: var(--border-radius-md);
+		border-top-right-radius: var(--border-radius-md);
+	}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	&.with-filter {
 		height: 64px;
 	}
@@ -109,9 +126,22 @@
 	}
 }
 
+<<<<<<< HEAD
 .grid-static-col,
 .row-index {
 	height: 38px;
+=======
+.grid-empty {
+	height: 110px;
+	background-color: var(--subtle-accent);
+	display: flex;
+	vertical-align: middle;
+}
+
+.grid-static-col,
+.row-index {
+	// height: 38px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	max-height: 200px;
 
 	&.search {
@@ -125,11 +155,19 @@
 }
 
 .row-check {
+<<<<<<< HEAD
 	height: 38px;
+=======
+	// height: 38px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	text-align: center;
 
 	input {
 		margin-right: 0 !important;
+<<<<<<< HEAD
+=======
+		margin-bottom: -3px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 
 	&.search {
@@ -138,7 +176,11 @@
 }
 
 .grid-row-check {
+<<<<<<< HEAD
 	margin-top: 2px;
+=======
+	margin-top: 3px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	&::after {
 		// Extend the checkbox's clickable area
@@ -181,6 +223,11 @@
 	.col:last-child {
 		border-right: none;
 		min-width: 0;
+<<<<<<< HEAD
+=======
+		display: flex;
+		justify-content: center;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 
 	.col {
@@ -191,17 +238,27 @@
 }
 
 .grid-body {
+<<<<<<< HEAD
 	background-color: var(--fg-color);
 	border-bottom-left-radius: var(--border-radius);
 	border-bottom-right-radius: var(--border-radius);
+=======
+	background-color: var(--subtle-accent);
+	border-bottom-left-radius: var(--border-radius);
+	border-bottom-right-radius: var(--border-radius);
+	margin-bottom: -1px; // double bottom border
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	.col:last-child {
 		border: none;
 	}
 
 	.btn-open-row {
+<<<<<<< HEAD
 		display: flex;
 		justify-content: center;
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		line-height: unset;
 		div {
 			margin-left: var(--margin-xs);
@@ -214,6 +271,10 @@
 		--input-disabled-bg: var(--gray-50);
 		.grid-static-col {
 			padding: 0px !important;
+<<<<<<< HEAD
+=======
+			height: 32px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		}
 
 		.frappe-control[data-fieldtype="Select"].form-group .select-icon {
@@ -227,7 +288,11 @@
 		}
 
 		textarea {
+<<<<<<< HEAD
 			height: 46px !important;
+=======
+			height: 39px !important;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		}
 
 		.form-control,
@@ -277,7 +342,12 @@
 	}
 
 	.grid-static-col[data-fieldtype="Check"] .static-area {
+<<<<<<< HEAD
 		padding-top: 2px;
+=======
+		padding-top: 4px;
+		margin-bottom: -4px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 
 	.grid-static-col[data-fieldtype="Rating"] .field-area {
@@ -329,12 +399,20 @@
 .grid-row {
 	padding: 0px var(--padding-md);
 	border-bottom: 1px solid var(--table-border-color);
+<<<<<<< HEAD
+=======
+	background-color: var(--fg-color);
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	@include transition(0.2s);
 	// REDESIGN TODO: Fix border bottom for last item
 	&:last-child {
 		border-bottom-left-radius: var(--border-radius);
 		border-bottom-right-radius: var(--border-radius);
+<<<<<<< HEAD
 		border: none;
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 
 	td {
@@ -346,7 +424,11 @@
 	}
 
 	.frappe-control {
+<<<<<<< HEAD
 		margin-bottom: 0px;
+=======
+		margin-bottom: 0px !important;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		position: relative;
 	}
 
@@ -430,6 +512,10 @@
 	overflow: visible;
 	margin: 0px calc(-1 * var(--margin-md));
 	padding: var(--padding-sm) var(--padding-md);
+<<<<<<< HEAD
+=======
+	max-width: 865px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 }
 
 .grid-form-heading {
@@ -555,10 +641,114 @@
 	margin-bottom: 4px;
 }
 
+<<<<<<< HEAD
 @media (max-width: map-get($grid-breakpoints, "md")) {
 	.form-grid-container {
 		overflow-x: clip;
 
+=======
+.form-grid-container:has(.grid-row.grid-row-open) {
+	overflow-x: clip;
+	white-space: normal;
+	overflow-y: unset;
+	.form-grid {
+		left: 0px !important;
+	}
+}
+.data-row.row {
+	flex-wrap: nowrap;
+}
+.sortable-handle span {
+	width: 31px;
+	display: block;
+}
+
+.form-grid-container {
+	overflow-x: clip;
+}
+.data-row.row {
+	flex-wrap: nowrap;
+}
+.column-limit-reached {
+	background-color: var(--subtle-accent);
+	border-top-left-radius: var(--border-radius-md);
+	border-top-right-radius: var(--border-radius-md);
+	.form-grid {
+		display: grid;
+		grid-auto-rows: min-content;
+		.grid-static-col.col-xs-1 {
+			flex: 0 0 60px;
+			max-width: 60px;
+		}
+		.grid-static-col.col-xs-2 {
+			flex: 0 0 90px;
+			max-width: 90px;
+		}
+		.grid-static-col.col-xs-3 {
+			flex: 0 0 120px;
+			max-width: 120px;
+		}
+		.grid-static-col.col-xs-4 {
+			flex: 0 0 150px;
+			max-width: 150px;
+		}
+		.grid-static-col.col-xs-5 {
+			flex: 0 0 200px;
+			max-width: 200px;
+		}
+		.grid-static-col.col-xs-6 {
+			flex: 0 0 250px;
+			max-width: 250px;
+		}
+		.grid-static-col.col-xs-7 {
+			flex: 0 0 300px;
+			max-width: 300px;
+		}
+		.grid-static-col.col-xs-8 {
+			flex: 0 0 350px;
+			max-width: 350px;
+		}
+		.grid-static-col.col-xs-9 {
+			flex: 0 0 400px;
+			max-width: 400px;
+		}
+		.grid-static-col.col-xs-10 {
+			flex: 0 0 450px;
+			max-width: 450px;
+		}
+		.grid-static-col.col-xs-11 {
+			flex: 0 0 500px;
+			max-width: 500px;
+		}
+		.grid-static-col.col-xs-12 {
+			flex: 0 0 550px;
+			max-width: 550px;
+		}
+		.grid-row > .row .col:last-child,
+		.grid-row > .dialog-assignment-row .col:last-child {
+			min-width: 40px;
+		}
+	}
+}
+.grid-scroll-bar {
+	overflow-x: auto;
+	height: 12px;
+	position: relative;
+	scrollbar-width: auto;
+	scrollbar-color: auto;
+}
+
+.grid-scroll-bar::-webkit-scrollbar {
+	height: 11px !important;
+}
+
+.grid-scroll-bar-rows {
+	height: 100%;
+}
+
+@media (max-width: map-get($grid-breakpoints, "md")) {
+	.form-grid-container {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		.form-grid {
 			min-width: 738px;
 		}
@@ -571,6 +761,7 @@
 	}
 }
 
+<<<<<<< HEAD
 @media (min-width: map-get($grid-breakpoints, "md")) {
 	.form-grid-container {
 		overflow-x: unset !important;
@@ -581,6 +772,8 @@
 	}
 }
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 @media (max-width: map-get($grid-breakpoints, "sm")) {
 	.form-in-grid .form-section .form-column {
 		padding-left: 0 !important;

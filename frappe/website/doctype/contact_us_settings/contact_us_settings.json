@@ -5,6 +5,10 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+<<<<<<< HEAD
+=======
+  "disable_contact_us",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   "introduction_section",
   "forward_to_email",
   "heading",
@@ -55,6 +59,10 @@
    "label": "Query Options"
   },
   {
+<<<<<<< HEAD
+=======
+   "collapsible": 1,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "fieldname": "address",
    "fieldtype": "Section Break",
    "label": "Address"
@@ -115,13 +123,26 @@
    "fieldname": "skype",
    "fieldtype": "Data",
    "label": "Skype"
+<<<<<<< HEAD
+=======
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_contact_us",
+   "fieldtype": "Check",
+   "label": "Disable Contact Us Page"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2021-03-02 17:42:32.947404",
+=======
+ "modified": "2024-03-23 16:01:31.401053",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Contact Us Settings",
@@ -137,7 +158,15 @@
    "write": 1
   }
  ],
+<<<<<<< HEAD
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1
+=======
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 }

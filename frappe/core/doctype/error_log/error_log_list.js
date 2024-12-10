@@ -7,7 +7,11 @@ frappe.listview_settings["Error Log"] = {
 			return [__("Not Seen"), "red", "seen,=,0"];
 		}
 	},
+<<<<<<< HEAD
 	order_by: "seen asc, modified desc",
+=======
+	order_by: "creation desc",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	onload: function (listview) {
 		listview.page.add_menu_item(__("Clear Error Logs"), function () {
 			frappe.call({

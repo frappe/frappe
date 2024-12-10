@@ -7,8 +7,11 @@ from collections import defaultdict
 from collections.abc import Callable
 from functools import wraps
 
+<<<<<<< HEAD
 import pytz
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 import frappe
 
 _SITE_CACHE = defaultdict(lambda: defaultdict(dict))
@@ -22,16 +25,32 @@ def __generate_request_cache_key(args: tuple, kwargs: dict):
 
 
 def request_cache(func: Callable) -> Callable:
+<<<<<<< HEAD
 	"""Decorator to cache function calls mid-request. Cache is stored in
 	frappe.local.request_cache. The cache only persists for the current request
 	and is cleared when the request is over. The function is called just once
 	per request with the same set of (kw)arguments.
 
 	Usage:
+=======
+	"""
+	Decorator to cache function calls mid-request.
+
+	Cache is stored in `frappe.local.request_cache`.
+
+	The cache only persists for the current request and is cleared when the request is over.
+
+	The function is called just once per request with the same set of (kw)arguments.
+
+	---
+	Usage:
+	```
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	        from frappe.utils.caching import request_cache
 
 	        @request_cache
 	        def calculate_pi(num_terms=0):
+<<<<<<< HEAD
 	                import math, time
 	                print(f"{num_terms = }")
 	                time.sleep(10)
@@ -39,6 +58,17 @@ def request_cache(func: Callable) -> Callable:
 
 	        calculate_pi(10) # will calculate value
 	        calculate_pi(10) # will return value from cache
+=======
+	            import math, time
+
+	            print(f"{num_terms = }")
+	            time.sleep(10)
+	            return math.pi
+
+	        calculate_pi(10)  # will calculate value
+	        calculate_pi(10)  # will return value from cache
+	```
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	"""
 
 	@wraps(func)
@@ -64,27 +94,54 @@ def request_cache(func: Callable) -> Callable:
 
 
 def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
+<<<<<<< HEAD
 	"""Decorator to cache method calls across requests. The cache is stored in
 	frappe.utils.caching._SITE_CACHE. The cache persists on the parent process.
+=======
+	"""
+	Decorator to cache method calls across requests.
+
+	The cache is stored in `frappe.utils.caching._SITE_CACHE`.
+
+	The cache persists on the parent process.
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	It offers a light-weight cache for the current process without the additional
 	overhead of serializing / deserializing Python objects.
 
 	Note: This cache isn't shared among workers. If you need to share data across
 	workers, use redis (frappe.cache API) instead.
 
+<<<<<<< HEAD
 	Usage:
+=======
+	---
+	Usage:
+	```
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	        from frappe.utils.caching import site_cache
 
 	        @site_cache
 	        def calculate_pi():
+<<<<<<< HEAD
 	                import math, time
 	                precision = get_precision("Math Constant", "Pi") # depends on site data
 	                return round(math.pi, precision)
+=======
+	            import math, time
+
+	            precision = get_precision("Math Constant", "Pi") # depends on site data
+	            return round(math.pi, precision)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	        calculate_pi(10) # will calculate value
 	        calculate_pi(10) # will return value from cache
 	        calculate_pi.clear_cache() # clear this function's cache for all sites
 	        calculate_pi(10) # will calculate value
+<<<<<<< HEAD
+=======
+	```
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	"""
 
 	def time_cache_wrapper(func: Callable | None = None) -> Callable:
@@ -98,7 +155,13 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 
 		if ttl is not None and not callable(ttl):
 			func.ttl = ttl
+<<<<<<< HEAD
 			func.expiration = datetime.datetime.now(pytz.UTC) + datetime.timedelta(seconds=func.ttl)
+=======
+			func.expiration = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
+				seconds=func.ttl
+			)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		if maxsize is not None and not callable(maxsize):
 			func.maxsize = maxsize
@@ -108,9 +171,17 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 			if getattr(frappe.local, "initialised", None):
 				func_call_key = json.dumps((args, kwargs))
 
+<<<<<<< HEAD
 				if hasattr(func, "ttl") and datetime.datetime.now(pytz.UTC) >= func.expiration:
 					func.clear_cache()
 					func.expiration = datetime.datetime.now(pytz.UTC) + datetime.timedelta(seconds=func.ttl)
+=======
+				if hasattr(func, "ttl") and datetime.datetime.now(datetime.timezone.utc) >= func.expiration:
+					func.clear_cache()
+					func.expiration = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
+						seconds=func.ttl
+					)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 				if hasattr(func, "maxsize") and len(_SITE_CACHE[func_key][frappe.local.site]) >= func.maxsize:
 					_SITE_CACHE[func_key][frappe.local.site].pop(

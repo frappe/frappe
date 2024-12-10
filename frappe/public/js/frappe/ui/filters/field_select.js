@@ -94,7 +94,11 @@ frappe.ui.FieldSelect = class FieldSelect {
 		});
 
 		// add parenttype column
+<<<<<<< HEAD
 		var doctype_obj = locals["DocType"][me.doctype];
+=======
+		var doctype_obj = frappe.get_meta(me.doctype);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		if (doctype_obj && cint(doctype_obj.istable)) {
 			std_filters = std_filters.concat([
 				{

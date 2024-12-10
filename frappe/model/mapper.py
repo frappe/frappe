@@ -5,25 +5,42 @@ import json
 import frappe
 from frappe import _
 from frappe.model import child_table_fields, default_fields, table_fields
+<<<<<<< HEAD
+=======
+from frappe.model.document import read_only_document
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.utils import cstr
 
 
 @frappe.whitelist()
 def make_mapped_doc(method, source_name, selected_children=None, args=None):
+<<<<<<< HEAD
 	"""Returns the mapped document calling the given mapper method.
 	Sets selected_children as flags for the `get_mapped_doc` method.
+=======
+	"""Return the mapped document calling the given mapper method.
+	Set `selected_children` as flags for the `get_mapped_doc` method.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	Called from `open_mapped_doc` from create_new.js"""
 
 	for hook in reversed(frappe.get_hooks("override_whitelisted_methods", {}).get(method, [])):
+<<<<<<< HEAD
 		# override using the first hook
+=======
+		# override using the last hook
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		method = hook
 		break
 
 	method = frappe.get_attr(method)
 
+<<<<<<< HEAD
 	if method not in frappe.whitelisted:
 		raise frappe.PermissionError
+=======
+	frappe.is_whitelisted(method)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	if selected_children:
 		selected_children = json.loads(selected_children)
@@ -33,11 +50,17 @@ def make_mapped_doc(method, source_name, selected_children=None, args=None):
 
 	frappe.flags.selected_children = selected_children or None
 
+<<<<<<< HEAD
 	return method(source_name)
+=======
+	with read_only_document("doc-mapper"):
+		return method(source_name)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 @frappe.whitelist()
 def map_docs(method, source_names, target_doc, args=None):
+<<<<<<< HEAD
 	'''Returns the mapped document calling the given mapper method
 	with each of the given source docs on the target doc
 
@@ -51,6 +74,22 @@ def map_docs(method, source_names, target_doc, args=None):
 	for src in json.loads(source_names):
 		_args = (src, target_doc, json.loads(args)) if args else (src, target_doc)
 		target_doc = method(*_args)
+=======
+	"""Return the mapped document calling the given mapper method with each of the given source docs on the target doc.
+
+	:param args: Args as string to pass to the mapper method
+
+	e.g. args: "{ 'supplier': 'XYZ' }"
+	"""
+
+	method = frappe.get_attr(method)
+	frappe.is_whitelisted(method)
+
+	for src in json.loads(source_names):
+		_args = (src, target_doc, json.loads(args)) if args else (src, target_doc)
+		with read_only_document("doc-mapper"):
+			target_doc = method(*_args)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return target_doc
 
 
@@ -68,6 +107,7 @@ def get_mapped_doc(
 
 	# main
 	if not target_doc:
+<<<<<<< HEAD
 		target_doc = frappe.new_doc(table_maps[from_doctype]["doctype"])
 	elif isinstance(target_doc, str):
 		target_doc = frappe.get_doc(json.loads(target_doc))
@@ -78,6 +118,30 @@ def get_mapped_doc(
 		and not target_doc.has_permission("create")
 	):
 		target_doc.raise_no_permission_to("create")
+=======
+		target_doctype = table_maps[from_doctype]["doctype"]
+		if table_maps[from_doctype].get("on_parent"):
+			target_parent = table_maps[from_doctype].get("on_parent")
+			if isinstance(target_parent, str):
+				target_parent = frappe.get_doc(json.loads(target_parent))
+			target_parentfield = target_parent.get_parentfield_of_doctype(target_doctype)
+			target_doc = frappe.new_doc(
+				target_doctype, parent_doc=target_parent, parentfield=target_parentfield
+			)
+			target_parent.append(target_parentfield, target_doc)
+			ret_doc = target_parent
+		else:
+			target_doc = frappe.new_doc(target_doctype)
+			ret_doc = target_doc
+	elif isinstance(target_doc, str):
+		target_doc = frappe.get_doc(json.loads(target_doc))
+		ret_doc = target_doc
+	else:
+		ret_doc = target_doc
+
+	if not apply_strict_user_permissions and not ignore_permissions:
+		target_doc.check_permission("create")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	if cached:
 		source_doc = frappe.get_cached_doc(from_doctype, from_docname)
@@ -85,12 +149,21 @@ def get_mapped_doc(
 		source_doc = frappe.get_doc(from_doctype, from_docname)
 
 	if not ignore_permissions:
+<<<<<<< HEAD
 		if not source_doc.has_permission("read"):
 			source_doc.raise_no_permission_to("read")
 
 	target_doc.run_method("before_mapping", source_doc, table_maps)
 
 	map_doc(source_doc, target_doc, table_maps[source_doc.doctype])
+=======
+		source_doc.check_permission("read")
+
+	ret_doc.run_method("before_mapping", source_doc, table_maps)
+
+	with read_only_document("doc-mapper"):
+		map_doc(source_doc, target_doc, table_maps[source_doc.doctype])
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	row_exists_for_parentfield = {}
 
@@ -149,6 +222,7 @@ def get_mapped_doc(
 					if table_map.get("filter") and table_map.get("filter")(source_d):
 						continue
 
+<<<<<<< HEAD
 					map_child_doc(source_d, target_doc, table_map, source_doc)
 
 	if postprocess:
@@ -161,6 +235,22 @@ def get_mapped_doc(
 		target_doc.raise_no_permission_to("create")
 
 	return target_doc
+=======
+					with read_only_document("doc-mapper"):
+						map_child_doc(source_d, target_doc, table_map, source_doc)
+
+	if postprocess:
+		with read_only_document("doc-mapper"):
+			postprocess(source_doc, target_doc)
+
+	ret_doc.run_method("after_mapping", source_doc)
+	ret_doc.set_onload("load_after_mapping", True)
+
+	if apply_strict_user_permissions and not ignore_permissions:
+		ret_doc.check_permission("create")
+
+	return ret_doc
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 def map_doc(source_doc, target_doc, table_map, source_parent=None):
@@ -184,11 +274,15 @@ def map_fields(source_doc, target_doc, table_map, source_parent):
 			for d in source_doc.meta.get("fields")
 			if (d.no_copy == 1 or d.fieldtype in table_fields)
 		]
+<<<<<<< HEAD
 		+ [
 			d.fieldname
 			for d in target_doc.meta.get("fields")
 			if (d.no_copy == 1 or d.fieldtype in table_fields)
 		]
+=======
+		+ [d.fieldname for d in target_doc.meta.get("fields") if (d.fieldtype in table_fields)]
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		+ list(default_fields)
 		+ list(child_table_fields)
 		+ list(table_map.get("field_no_map", []))

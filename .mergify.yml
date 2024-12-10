@@ -9,6 +9,10 @@ pull_request_rules:
           - author!=frappe-pr-bot
           - author!=mergify[bot]
         - or:
+<<<<<<< HEAD
+=======
+          - base=version-16
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
           - base=version-15
           - base=version-14
           - base=version-13
@@ -20,6 +24,7 @@ pull_request_rules:
             @{{author}}, thanks for the contribution, but we do not accept pull requests on a stable branch. Please raise PR on an appropriate hotfix branch.
             https://github.com/frappe/erpnext/wiki/Pull-Request-Checklist#which-branch
 
+<<<<<<< HEAD
   - name: Automatic merge on CI success and review
     conditions:
       - label!=dont-merge
@@ -41,6 +46,8 @@ pull_request_rules:
 
             {{ body }}
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   - name: backport to develop
     conditions:
       - label="backport develop"
@@ -71,3 +78,16 @@ pull_request_rules:
         assignees:
           - "{{ author }}"
 
+<<<<<<< HEAD
+=======
+  - name: backport to version-15-hotfix
+    conditions:
+      - label="backport version-15-hotfix"
+    actions:
+      backport:
+        branches:
+          - version-15-hotfix
+        assignees:
+          - "{{ author }}"
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

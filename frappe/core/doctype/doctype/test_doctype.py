@@ -24,10 +24,26 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.desk.form.load import getdoc
 from frappe.model.delete_doc import delete_controllers
 from frappe.model.sync import remove_orphan_doctypes
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestDocType(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase, UnitTestCase
+
+
+class UnitTestDoctype(UnitTestCase):
+	"""
+	Unit tests for Doctype.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestDocType(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def tearDown(self):
 		frappe.db.rollback()
 

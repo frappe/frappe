@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import frappe
+<<<<<<< HEAD
 from frappe.test_runner import make_test_objects
 from frappe.tests.utils import FrappeTestCase
 
@@ -8,6 +9,22 @@ test_records = frappe.get_test_records("Email Domain")
 
 
 class TestDomain(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests.utils import make_test_objects
+
+
+class UnitTestEmailDomain(UnitTestCase):
+	"""
+	Unit tests for EmailDomain.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestDomain(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def setUp(self):
 		make_test_objects("Email Domain", reset=True)
 

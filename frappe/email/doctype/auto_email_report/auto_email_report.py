@@ -98,7 +98,11 @@ class AutoEmailReport(Document):
 
 		max_reports_per_user = (
 			cint(frappe.local.conf.max_reports_per_user)  # kept for backward compatibilty
+<<<<<<< HEAD
 			or cint(frappe.db.get_single_value("System Settings", "max_auto_email_report_per_user"))
+=======
+			or cint(frappe.get_system_settings("max_auto_email_report_per_user"))
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			or 20
 		)
 
@@ -134,7 +138,11 @@ class AutoEmailReport(Document):
 			)
 
 	def get_report_content(self):
+<<<<<<< HEAD
 		"""Returns file in for the report in given format"""
+=======
+		"""Return file for the report in given format."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		report = frappe.get_doc("Report", self.report)
 
 		self.filters = frappe.parse_json(self.filters) if self.filters else {}
@@ -260,7 +268,11 @@ class AutoEmailReport(Document):
 		else:
 			message = self.get_html_table()
 
+<<<<<<< HEAD
 		if not self.format == "HTML":
+=======
+		if self.format != "HTML":
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			attachments = [{"fname": self.get_file_name(), "fcontent": data}]
 
 		frappe.sendmail(

@@ -21,17 +21,29 @@ class VirtualDoctype(Protocol):
 	# ============ class/static methods ============
 
 	@staticmethod
+<<<<<<< HEAD
 	def get_list(args) -> list[frappe._dict]:
+=======
+	def get_list(**kwargs) -> list[frappe._dict]:
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		"""Similar to reportview.get_list"""
 		...
 
 	@staticmethod
+<<<<<<< HEAD
 	def get_count(args) -> int:
+=======
+	def get_count(**kwargs) -> int:
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		"""Similar to reportview.get_count, return total count of documents on listview."""
 		...
 
 	@staticmethod
+<<<<<<< HEAD
 	def get_stats(args):
+=======
+	def get_stats(**kwargs):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		"""Similar to reportview.get_stats, return sidebar stats."""
 		...
 

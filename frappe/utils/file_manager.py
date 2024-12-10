@@ -3,7 +3,10 @@
 
 import base64
 import hashlib
+<<<<<<< HEAD
 import io
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 import json
 import mimetypes
 import os
@@ -72,7 +75,11 @@ def upload():
 
 
 def get_file_doc(dt=None, dn=None, folder=None, is_private=None, df=None):
+<<<<<<< HEAD
 	"""returns File object (Document) from given parameters or form_dict"""
+=======
+	"""Return File object (Document) from given parameters or `form_dict`."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	r = frappe.form_dict
 
 	if dt is None:
@@ -279,9 +286,13 @@ def remove_file(
 	ignore_permissions, comment = False, None
 	if attached_to_doctype and attached_to_name and not from_delete:
 		doc = frappe.get_doc(attached_to_doctype, attached_to_name)
+<<<<<<< HEAD
 		ignore_permissions = doc.has_permission("write") or False
 		if frappe.flags.in_web_form:
 			ignore_permissions = True
+=======
+		ignore_permissions = frappe.flags.in_web_form or doc.has_permission("write")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		if not file_name:
 			file_name = frappe.db.get_value("File", fid, "file_name")
 		comment = doc.add_comment("Attachment Removed", file_name)
@@ -327,7 +338,11 @@ def delete_file(path):
 
 
 def get_file(fname):
+<<<<<<< HEAD
 	"""Returns [`file_name`, `content`] for given file name `fname`"""
+=======
+	"""Return [`file_name`, `content`] for given file name `fname`."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	file_path = get_file_path(fname)
 
 	# read the file
@@ -344,7 +359,11 @@ def get_file(fname):
 
 
 def get_file_path(file_name):
+<<<<<<< HEAD
 	"""Returns file path from given file name"""
+=======
+	"""Return file path from given file name."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if "../" in file_name:
 		return
 

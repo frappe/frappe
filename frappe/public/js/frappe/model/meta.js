@@ -8,6 +8,12 @@ frappe.provide("frappe.meta.doctypes");
 frappe.provide("frappe.meta.precision_map");
 
 frappe.get_meta = function (doctype) {
+<<<<<<< HEAD
+=======
+	if (doctype === "DocType" && frappe.meta.__doctype_meta) {
+		return frappe.meta.__doctype_meta;
+	}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return locals["DocType"] ? locals["DocType"][doctype] : null;
 };
 
@@ -16,9 +22,15 @@ $.extend(frappe.meta, {
 		$.each(doc.fields, function (i, df) {
 			frappe.meta.add_field(df);
 		});
+<<<<<<< HEAD
 		frappe.meta.sync_messages(doc);
 		if (doc.__print_formats) frappe.model.sync(doc.__print_formats);
 		if (doc.__workflow_docs) frappe.model.sync(doc.__workflow_docs);
+=======
+
+		if (doc.__print_formats?.length) frappe.model.sync(doc.__print_formats);
+		if (doc.__workflow_docs?.length) frappe.model.sync(doc.__workflow_docs);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	},
 
 	// build docfield_map and docfield_list
@@ -185,7 +197,11 @@ $.extend(frappe.meta, {
 	},
 
 	get_parentfield: function (parent_dt, child_dt) {
+<<<<<<< HEAD
 		var df = (frappe.get_doc("DocType", parent_dt).fields || []).filter(
+=======
+		var df = (frappe.get_meta(parent_dt).fields || []).filter(
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			(df) => frappe.model.table_fields.includes(df.fieldtype) && df.options === child_dt
 		);
 		if (!df.length) throw "parentfield not found for " + parent_dt + ", " + child_dt;
@@ -281,12 +297,15 @@ $.extend(frappe.meta, {
 		return print_format_list;
 	},
 
+<<<<<<< HEAD
 	sync_messages: function (doc) {
 		if (doc.__messages) {
 			$.extend(frappe._messages, doc.__messages);
 		}
 	},
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	get_field_currency: function (df, doc) {
 		var currency = frappe.boot.sysdefaults.currency || "USD";
 		if (!doc && cur_frm) doc = cur_frm.doc;

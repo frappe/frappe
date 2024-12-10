@@ -48,7 +48,11 @@ export default {
 	],
 	quick_entry: 1,
 	autoname: "format: Test-{####}",
+<<<<<<< HEAD
 	sort_field: "modified",
+=======
+	sort_field: "creation",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	sort_order: "ASC",
 	track_changes: 1,
 };

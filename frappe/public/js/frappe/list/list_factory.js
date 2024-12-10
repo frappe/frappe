@@ -29,7 +29,11 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 
 		frappe.views.list_view[me.page_name] = new view_class({
 			doctype: doctype,
+<<<<<<< HEAD
 			parent: me.make_page(true, me.page_name),
+=======
+			parent: me.make_page(true, me.page_name, "Right"),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		});
 
 		me.set_cur_list();

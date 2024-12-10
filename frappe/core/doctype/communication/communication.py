@@ -3,7 +3,11 @@
 
 from collections import Counter
 from email.utils import getaddresses
+<<<<<<< HEAD
 from urllib.parse import unquote
+=======
+from urllib.parse import unquote_plus
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 from bs4 import BeautifulSoup
 
@@ -44,6 +48,7 @@ class Communication(Document, CommunicationEmailMixin):
 		_user_tags: DF.Data | None
 		bcc: DF.Code | None
 		cc: DF.Code | None
+<<<<<<< HEAD
 		comment_type: DF.Literal[
 			"",
 			"Comment",
@@ -64,13 +69,19 @@ class Communication(Document, CommunicationEmailMixin):
 			"Unshared",
 			"Relinked",
 		]
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		communication_date: DF.Datetime | None
 		communication_medium: DF.Literal[
 			"", "Email", "Chat", "Phone", "SMS", "Event", "Meeting", "Visit", "Other"
 		]
+<<<<<<< HEAD
 		communication_type: DF.Literal[
 			"Communication", "Comment", "Chat", "Notification", "Feedback", "Automated Message"
 		]
+=======
+		communication_type: DF.Literal["Communication", "Automated Message"]
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		content: DF.TextEditor | None
 		delivery_status: DF.Literal[
 			"",
@@ -92,13 +103,19 @@ class Communication(Document, CommunicationEmailMixin):
 		email_account: DF.Link | None
 		email_status: DF.Literal["Open", "Spam", "Trash"]
 		email_template: DF.Link | None
+<<<<<<< HEAD
 		feedback_request: DF.Data | None
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		has_attachment: DF.Check
 		imap_folder: DF.Data | None
 		in_reply_to: DF.Link | None
 		message_id: DF.SmallText | None
 		phone_no: DF.Data | None
+<<<<<<< HEAD
 		rating: DF.Int
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		read_by_recipient: DF.Check
 		read_by_recipient_on: DF.Datetime | None
 		read_receipt: DF.Check
@@ -119,6 +136,10 @@ class Communication(Document, CommunicationEmailMixin):
 		unread_notification_sent: DF.Check
 		user: DF.Link | None
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	"""Communication represents an external communication like Email."""
 
 	no_feed_on_delete = True
@@ -217,6 +238,7 @@ class Communication(Document, CommunicationEmailMixin):
 		if self.reference_doctype == "Communication" and self.sent_or_received == "Sent":
 			frappe.db.set_value("Communication", self.reference_name, "status", "Replied")
 
+<<<<<<< HEAD
 		if self.communication_type == "Communication":
 			self.notify_change("add")
 
@@ -230,6 +252,9 @@ class Communication(Document, CommunicationEmailMixin):
 				frappe.publish_realtime(
 					"new_message", self.as_dict(), user=self.reference_name, after_commit=True
 				)
+=======
+		self.notify_change("add")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	def set_signature_in_email_content(self):
 		"""Set sender's User.email_signature or default outgoing's EmailAccount.signature to the email"""
@@ -283,6 +308,7 @@ class Communication(Document, CommunicationEmailMixin):
 		if (method := getattr(parent, "on_communication_update", None)) and callable(method):
 			parent.on_communication_update(self)
 			return
+<<<<<<< HEAD
 
 		if self.comment_type != "Updated":
 			update_parent_document_on_communication(self)
@@ -290,6 +316,12 @@ class Communication(Document, CommunicationEmailMixin):
 	def on_trash(self):
 		if self.communication_type == "Communication":
 			self.notify_change("delete")
+=======
+		update_parent_document_on_communication(self)
+
+	def on_trash(self):
+		self.notify_change("delete")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	@property
 	def sender_mailid(self):
@@ -297,7 +329,11 @@ class Communication(Document, CommunicationEmailMixin):
 
 	@staticmethod
 	def _get_emails_list(emails=None, exclude_displayname=False):
+<<<<<<< HEAD
 		"""Returns list of emails from given email string.
+=======
+		"""Return list of emails from given email string.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		* Removes duplicate mailids
 		* Removes display name from email address if exclude_displayname is True
@@ -308,6 +344,7 @@ class Communication(Document, CommunicationEmailMixin):
 		return [email for email in set(emails) if email]
 
 	def to_list(self, exclude_displayname=True):
+<<<<<<< HEAD
 		"""Returns to list."""
 		return self._get_emails_list(self.recipients, exclude_displayname=exclude_displayname)
 
@@ -317,6 +354,17 @@ class Communication(Document, CommunicationEmailMixin):
 
 	def bcc_list(self, exclude_displayname=True):
 		"""Returns bcc list."""
+=======
+		"""Return `to` list."""
+		return self._get_emails_list(self.recipients, exclude_displayname=exclude_displayname)
+
+	def cc_list(self, exclude_displayname=True):
+		"""Return `cc` list."""
+		return self._get_emails_list(self.cc, exclude_displayname=exclude_displayname)
+
+	def bcc_list(self, exclude_displayname=True):
+		"""Return `bcc` list."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		return self._get_emails_list(self.bcc, exclude_displayname=exclude_displayname)
 
 	def get_attachments(self):
@@ -341,10 +389,15 @@ class Communication(Document, CommunicationEmailMixin):
 	def set_status(self):
 		if self.reference_doctype and self.reference_name:
 			self.status = "Linked"
+<<<<<<< HEAD
 		elif self.communication_type == "Communication":
 			self.status = "Open"
 		else:
 			self.status = "Closed"
+=======
+		else:
+			self.status = "Open"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		if self.send_after and self.is_new():
 			self.delivery_status = "Scheduled"
@@ -503,13 +556,22 @@ def on_doctype_update():
 def has_permission(doc, ptype, user=None, debug=False):
 	if ptype == "read":
 		if doc.reference_doctype == "Communication" and doc.reference_name == doc.name:
+<<<<<<< HEAD
 			return
+=======
+			return True
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		if doc.reference_doctype and doc.reference_name:
 			return frappe.has_permission(
 				doc.reference_doctype, ptype="read", doc=doc.reference_name, user=user, debug=debug
 			)
 
+<<<<<<< HEAD
+=======
+	return True
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 def get_permission_query_conditions_for_communication(user):
 	if not user:
@@ -527,7 +589,11 @@ def get_permission_query_conditions_for_communication(user):
 		if not accounts:
 			return """`tabCommunication`.communication_medium!='Email'"""
 
+<<<<<<< HEAD
 		email_accounts = ['"%s"' % account.get("email_account") for account in accounts]
+=======
+		email_accounts = ['"{}"'.format(account.get("email_account")) for account in accounts]
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		return """`tabCommunication`.email_account in ({email_accounts})""".format(
 			email_accounts=",".join(email_accounts)
 		)
@@ -590,12 +656,18 @@ def parse_email(email_strings):
 	When automatic email linking is enabled, an email from email_strings can contain
 	a doctype and docname ie in the format `admin+doctype+docname@example.com` or `admin+doctype=docname@example.com`,
 	the email is parsed and doctype and docname is extracted.
+<<<<<<< HEAD
+=======
+
+	see: RFC5233
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	"""
 	for email_string in email_strings:
 		if not email_string:
 			continue
 
 		for email in email_string.split(","):
+<<<<<<< HEAD
 			email_username = email.split("@", 1)[0]
 			email_local_parts = email_username.split("+")
 			docname = doctype = None
@@ -619,18 +691,65 @@ def get_email_without_link(email):
 	"""
 	returns email address without doctype links
 	returns admin@example.com for email admin+doctype+docname@example.com
+=======
+			local_part = email.split("@", 1)[0].strip('"')
+			user, detail = None, None
+			if "+" in local_part:
+				user, detail = local_part.split("+", 1)
+			elif "--" in local_part:
+				detail, user = local_part.rsplit("--", 1)
+
+			if not detail:
+				continue
+
+			document_parts = None
+			if "=" in detail:
+				document_parts = detail.split("=", 1)
+			elif "+" in detail:
+				document_parts = detail.split("+", 1)
+
+			if not document_parts or len(document_parts) != 2:
+				continue
+
+			doctype = unquote_plus(document_parts[0])
+			docname = unquote_plus(document_parts[1])
+			yield doctype, docname
+
+
+def get_email_without_link(email):
+	"""Return email address without doctype links.
+
+	e.g. 'admin@example.com' is returned for email 'admin+doctype+docname@example.com'
+
+	see: RFC5233
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	"""
 	if not frappe.get_all("Email Account", filters={"enable_automatic_linking": 1}):
 		return email
 
 	try:
 		_email = email.split("@")
+<<<<<<< HEAD
 		email_id = _email[0].split("+", 1)[0]
 		email_host = _email[1]
 	except IndexError:
 		return email
 
 	return f"{email_id}@{email_host}"
+=======
+		_local_part = _email[0].strip('"')
+		if "+" in _local_part:
+			user = _local_part.split("+", 1)[0]
+		elif "--" in _local_part:
+			user = _local_part.split("--", 1)[1]
+		else:
+			user = _local_part
+		domain = _email[1]
+	except IndexError:
+		return email
+
+	return f"{user}@{domain}"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 def update_parent_document_on_communication(doc):
@@ -640,20 +759,27 @@ def update_parent_document_on_communication(doc):
 	if not parent:
 		return
 
+<<<<<<< HEAD
 	# update parent mins_to_first_communication only if we create the Email communication
 	# ignore in case of only Comment is added
 	if doc.communication_type == "Comment":
 		return
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	status_field = parent.meta.get_field("status")
 	if status_field:
 		options = (status_field.options or "").splitlines()
 
 		# if status has a "Open" option and status is "Replied", then update the status for received communication
 		if (
+<<<<<<< HEAD
 			("Open" in options)
 			and parent.status == "Replied"
 			and doc.sent_or_received == "Received"
+=======
+			(("Open" in options) and parent.status == "Replied" and doc.sent_or_received == "Received")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			or (
 				parent.doctype == "Issue" and ("Open" in options) and doc.sent_or_received == "Received"
 			)  # For 'Issue', current status is not considered.

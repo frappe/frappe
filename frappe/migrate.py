@@ -13,6 +13,10 @@ import frappe.modules.patch_handler
 import frappe.translate
 from frappe.cache_manager import clear_global_cache
 from frappe.core.doctype.language.language import sync_languages
+<<<<<<< HEAD
+=======
+from frappe.core.doctype.navbar_settings.navbar_settings import sync_standard_items
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 from frappe.database.schema import add_column
 from frappe.deferred_insert import save_to_db as flush_deferred_inserts
@@ -136,6 +140,7 @@ class SiteMigration:
 		* Sync Installed Applications Version History
 		* Execute `after_migrate` hooks
 		"""
+<<<<<<< HEAD
 		sync_jobs()
 		sync_fixtures()
 		sync_dashboards()
@@ -147,12 +152,47 @@ class SiteMigration:
 		frappe.get_single("Portal Settings").sync_menu()
 		frappe.get_single("Installed Applications").update_versions()
 
+=======
+		print("Syncing jobs...")
+		sync_jobs()
+
+		print("Syncing fixtures...")
+		sync_fixtures()
+		sync_standard_items()
+
+		print("Syncing dashboards...")
+		sync_dashboards()
+
+		print("Syncing customizations...")
+		sync_customizations()
+
+		print("Syncing languages...")
+		sync_languages()
+
+		print("Flushing deferred inserts...")
+		flush_deferred_inserts()
+
+		print("Removing orphan doctypes...")
+		frappe.model.sync.remove_orphan_doctypes()
+
+		print("Syncing portal menu...")
+		frappe.get_single("Portal Settings").sync_menu()
+
+		print("Updating installed applications...")
+		frappe.get_single("Installed Applications").update_versions()
+
+		print("Executing `after_migrate` hooks...")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		for app in frappe.get_installed_apps():
 			for fn in frappe.get_hooks("after_migrate", app_name=app):
 				frappe.get_attr(fn)()
 
 	def required_services_running(self) -> bool:
+<<<<<<< HEAD
 		"""Returns True if all required services are running. Returns False and prints
+=======
+		"""Return True if all required services are running. Return False and print
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		instructions to stdout when required services are not available.
 		"""
 		service_status = check_connection(redis_services=["redis_cache"])
@@ -173,7 +213,11 @@ class SiteMigration:
 		from frappe.utils.synchronization import filelock
 
 		if site:
+<<<<<<< HEAD
 			frappe.init(site=site)
+=======
+			frappe.init(site)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			frappe.connect()
 
 		if not self.required_services_running():

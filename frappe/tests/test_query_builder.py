@@ -3,6 +3,10 @@ from collections.abc import Callable
 from datetime import time
 
 import frappe
+<<<<<<< HEAD
+=======
+from frappe.core.doctype.doctype.test_doctype import new_doctype
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.query_builder import Case
 from frappe.query_builder.builder import Function
 from frappe.query_builder.custom import ConstantColumn
@@ -18,7 +22,11 @@ from frappe.query_builder.functions import (
 	UnixTimestamp,
 )
 from frappe.query_builder.utils import db_type_is
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
+=======
+from frappe.tests import IntegrationTestCase
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 def run_only_if(dbtype: db_type_is) -> Callable:
@@ -26,7 +34,11 @@ def run_only_if(dbtype: db_type_is) -> Callable:
 
 
 @run_only_if(db_type_is.MARIADB)
+<<<<<<< HEAD
 class TestCustomFunctionsMariaDB(FrappeTestCase):
+=======
+class TestCustomFunctionsMariaDB(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_concat(self):
 		self.assertEqual("GROUP_CONCAT('Notes')", GroupConcat("Notes").get_sql())
 
@@ -166,7 +178,11 @@ class TestCustomFunctionsMariaDB(FrappeTestCase):
 
 
 @run_only_if(db_type_is.POSTGRES)
+<<<<<<< HEAD
 class TestCustomFunctionsPostgres(FrappeTestCase):
+=======
+class TestCustomFunctionsPostgres(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_concat(self):
 		self.assertEqual("STRING_AGG('Notes',',')", GroupConcat("Notes").get_sql())
 
@@ -316,6 +332,7 @@ class TestBuilderBase:
 		self.assertIsInstance(data, list)
 
 	def test_agg_funcs(self):
+<<<<<<< HEAD
 		frappe.db.truncate("Communication")
 		sample_data = {
 			"doctype": "Communication",
@@ -336,6 +353,38 @@ class TestBuilderBase:
 
 
 class TestParameterization(FrappeTestCase):
+=======
+		doc = new_doctype(
+			fields=[
+				{
+					"fieldname": "number",
+					"fieldtype": "Int",
+					"label": "Number",
+					"reqd": 1,  # mandatory
+				},
+			],
+		)
+		doc.insert()
+		self.doctype_name = doc.name
+		frappe.db.truncate(self.doctype_name)
+		sample_data = {
+			"doctype": self.doctype_name,
+			"number": 1,
+		}
+		frappe.get_doc(sample_data).insert(ignore_mandatory=True)
+		sample_data["number"] = 3
+		frappe.get_doc(sample_data).insert(ignore_mandatory=True)
+		sample_data["number"] = 4
+		frappe.get_doc(sample_data).insert(ignore_mandatory=True)
+		self.assertEqual(frappe.qb.max(self.doctype_name, "number"), 4)
+		self.assertEqual(frappe.qb.min(self.doctype_name, "number"), 1)
+		self.assertAlmostEqual(frappe.qb.avg(self.doctype_name, "number"), 2.666, places=2)
+		self.assertEqual(frappe.qb.sum(self.doctype_name, "number"), 8.0)
+		frappe.db.rollback()
+
+
+class TestParameterization(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_where_conditions(self):
 		DocType = frappe.qb.DocType("DocType")
 		query = frappe.qb.from_(DocType).select(DocType.name).where(DocType.owner == "Administrator' --")
@@ -426,7 +475,11 @@ class TestParameterization(FrappeTestCase):
 
 
 @run_only_if(db_type_is.MARIADB)
+<<<<<<< HEAD
 class TestBuilderMaria(FrappeTestCase, TestBuilderBase):
+=======
+class TestBuilderMaria(IntegrationTestCase, TestBuilderBase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_adding_tabs_in_from(self):
 		self.assertEqual("SELECT * FROM `tabNotes`", frappe.qb.from_("Notes").select("*").get_sql())
 		self.assertEqual("SELECT * FROM `__Auth`", frappe.qb.from_("__Auth").select("*").get_sql())
@@ -439,7 +492,11 @@ class TestBuilderMaria(FrappeTestCase, TestBuilderBase):
 
 
 @run_only_if(db_type_is.POSTGRES)
+<<<<<<< HEAD
 class TestBuilderPostgres(FrappeTestCase, TestBuilderBase):
+=======
+class TestBuilderPostgres(IntegrationTestCase, TestBuilderBase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_adding_tabs_in_from(self):
 		self.assertEqual('SELECT * FROM "tabNotes"', frappe.qb.from_("Notes").select("*").get_sql())
 		self.assertEqual('SELECT * FROM "__Auth"', frappe.qb.from_("__Auth").select("*").get_sql())
@@ -461,7 +518,11 @@ class TestBuilderPostgres(FrappeTestCase, TestBuilderBase):
 		self.assertEqual('SELECT * FROM "tabDocType"', qb().from_("DocType").select("*").get_sql())
 
 
+<<<<<<< HEAD
 class TestMisc(FrappeTestCase):
+=======
+class TestMisc(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_custom_func(self):
 		rand_func = frappe.qb.functions("rand", "45")
 		self.assertIsInstance(rand_func, Function)

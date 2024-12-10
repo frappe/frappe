@@ -11,8 +11,15 @@ frappe.ui.form.FormTour = class FormTour {
 			padding: 10,
 			overlayClickNext: true,
 			keyboardControl: true,
+<<<<<<< HEAD
 			nextBtnText: "Next",
 			prevBtnText: "Previous",
+=======
+			nextBtnText: __("Next"),
+			prevBtnText: __("Previous"),
+			doneBtnText: __("Done"),
+			closeBtnText: __("Close"),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			opacity: 0.25,
 			onHighlighted: (step) => {
 				// if last step is to save, then attach a listener to save button
@@ -135,7 +142,15 @@ frappe.ui.form.FormTour = class FormTour {
 		return {
 			element,
 			name,
+<<<<<<< HEAD
 			popover: { title, description, position: frappe.router.slug(position || "Bottom") },
+=======
+			popover: {
+				title: __(title),
+				description: __(description),
+				position: frappe.router.slug(position || "Bottom"),
+			},
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			onNext: on_next,
 			onPrevious: on_prev,
 		};

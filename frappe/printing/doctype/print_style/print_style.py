@@ -19,13 +19,23 @@ class PrintStyle(Document):
 		preview: DF.AttachImage | None
 		print_style_name: DF.Data
 		standard: DF.Check
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def validate(self):
 		if (
 			self.standard == 1
 			and not frappe.local.conf.get("developer_mode")
+<<<<<<< HEAD
 			and not (frappe.flags.in_import or frappe.flags.in_test)
+=======
+			and not frappe.flags.in_import
+			and not frappe.flags.in_test
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		):
 			frappe.throw(frappe._("Standard Print Style cannot be changed. Please duplicate to edit."))
 

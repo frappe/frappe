@@ -9,6 +9,7 @@ body {
 	font-weight: var(--weight-regular);
 	letter-spacing: 0.02em;
 	background-color: var(--bg-color);
+<<<<<<< HEAD
 
 	&.full-width {
 		@include media-breakpoint-up(md) {
@@ -18,6 +19,8 @@ body {
 			}
 		}
 	}
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 }
 
 a {
@@ -96,6 +99,13 @@ pre {
 	white-space: pre-wrap;
 }
 
+<<<<<<< HEAD
+=======
+.container {
+	max-width: 100%;
+}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 .col-xs-1 {
 	@extend .col-1;
 }
@@ -176,11 +186,14 @@ footer {
 	float: right;
 }
 
+<<<<<<< HEAD
 img {
 	max-width: 100%;
 	height: auto;
 }
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 .missing-image {
 	background-color: var(--bg-light-gray);
 	line-height: 140px;
@@ -519,7 +532,11 @@ kbd {
 
 // freeze backdrop text
 #freeze {
+<<<<<<< HEAD
 	z-index: 1055;
+=======
+	z-index: 2000;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	bottom: 0;
 	opacity: 0;
 	background-color: var(--bg-color);
@@ -585,10 +602,13 @@ body.no-sidebar {
 		.layout-side-section {
 			display: none;
 		}
+<<<<<<< HEAD
 
 		.layout-main-section-wrapper {
 			width: 100% !important;
 		}
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 }
 

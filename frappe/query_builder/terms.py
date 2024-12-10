@@ -1,10 +1,18 @@
+<<<<<<< HEAD
 from datetime import time, timedelta
+=======
+from datetime import datetime, time, timedelta
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from typing import Any
 
 from pypika.queries import QueryBuilder
 from pypika.terms import Criterion, Function, ValueWrapper
 from pypika.utils import format_alias_sql
 
+<<<<<<< HEAD
+=======
+import frappe
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.utils.data import format_time, format_timedelta
 
 
@@ -15,6 +23,7 @@ class NamedParameterWrapper:
 		self.parameters = {}
 
 	def get_sql(self, param_value: Any, **kwargs) -> str:
+<<<<<<< HEAD
 		"""returns SQL for a parameter, while adding the real value in a dict
 
 		Args:
@@ -22,17 +31,30 @@ class NamedParameterWrapper:
 
 		Returns:
 		                str: parameter used in the SQL query
+=======
+		"""Return SQL for a parameter, while adding the real value in a dict.
+
+		Args:
+		        param_value (Any): Value of the parameter
+
+		Return:
+		        str: parameter used in the SQL query
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		"""
 		param_key = f"%(param{len(self.parameters) + 1})s"
 		self.parameters[param_key[2:-2]] = param_value
 		return param_key
 
 	def get_parameters(self) -> dict[str, Any]:
+<<<<<<< HEAD
 		"""get dict with parameters and values
 
 		Returns:
 		                Dict[str, Any]: parameter dict
 		"""
+=======
+		"""Get dict with parameters and values."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		return self.parameters
 
 
@@ -60,6 +82,11 @@ class ParameterizedValueWrapper(ValueWrapper):
 				self.value = format_timedelta(self.value)
 			elif isinstance(self.value, time):
 				self.value = format_time(self.value)
+<<<<<<< HEAD
+=======
+			elif isinstance(self.value, datetime):
+				self.value = frappe.db.format_datetime(self.value)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 			sql = self.get_value_sql(
 				quote_char=quote_char,

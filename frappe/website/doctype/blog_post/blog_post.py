@@ -53,8 +53,13 @@ class BlogPost(WebsiteGenerator):
 		read_time: DF.Int
 		route: DF.Data | None
 		title: DF.Data
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	@frappe.whitelist()
 	def make_route(self):
 		if not self.route:
@@ -95,6 +100,15 @@ class BlogPost(WebsiteGenerator):
 
 		self.set_read_time()
 
+<<<<<<< HEAD
+=======
+		if self.is_website_published():
+			from frappe.core.doctype.file.utils import extract_images_from_doc
+
+			# Extract images first before the standard image extraction to ensure they are public.
+			extract_images_from_doc(self, "content", is_private=False)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def reset_featured_for_other_blogs(self):
 		all_posts = frappe.get_all("Blog Post", {"featured": 1})
 		for post in all_posts:
@@ -212,14 +226,22 @@ class BlogPost(WebsiteGenerator):
 			"reference_name": self.name,
 		}
 
+<<<<<<< HEAD
 		context.like_count = frappe.db.count("Comment", filters) or 0
+=======
+		context.like_count = frappe.db.count("Comment", filters)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		filters["comment_email"] = user
 
 		if user == "Guest":
 			filters["ip_address"] = frappe.local.request_ip
 
+<<<<<<< HEAD
 		context.like = frappe.db.count("Comment", filters) or 0
+=======
+		context.like = frappe.db.count("Comment", filters)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	def set_read_time(self):
 		content = self.content or self.content_html or ""
@@ -317,10 +339,17 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 		)
 
 	if filters and filters.get("blogger"):
+<<<<<<< HEAD
 		conditions.append("t1.blogger=%s" % frappe.db.escape(filters.get("blogger")))
 
 	if category:
 		conditions.append("t1.blog_category=%s" % frappe.db.escape(category))
+=======
+		conditions.append("t1.blogger={}".format(frappe.db.escape(filters.get("blogger"))))
+
+	if category:
+		conditions.append("t1.blog_category={}".format(frappe.db.escape(category)))
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	if txt:
 		conditions.append(

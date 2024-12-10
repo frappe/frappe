@@ -2,7 +2,11 @@
  "actions": [],
  "allow_guest_to_view": 1,
  "allow_import": 1,
+<<<<<<< HEAD
  "creation": "2013-03-28 10:35:30",
+=======
+ "creation": "2023-08-03 19:53:03.782490",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "doctype": "DocType",
  "document_type": "Setup",
  "engine": "InnoDB",
@@ -216,7 +220,11 @@
  "is_published_field": "published",
  "links": [],
  "make_attachments_public": 1,
+<<<<<<< HEAD
  "modified": "2023-02-17 11:31:32.223524",
+=======
+ "modified": "2024-03-23 16:01:29.148911",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Post",
@@ -245,9 +253,17 @@
   }
  ],
  "route": "blog",
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "sort_field": "creation",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "sort_order": "ASC",
  "states": [],
  "title_field": "title",
  "track_changes": 1
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

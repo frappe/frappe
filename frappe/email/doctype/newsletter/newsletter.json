@@ -1,5 +1,9 @@
 {
  "actions": [],
+<<<<<<< HEAD
+=======
+ "allow_guest_to_view": 1,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "allow_rename": 1,
  "creation": "2013-01-10 16:34:31",
  "description": "Create and send emails to a specific group of subscribers periodically.",
@@ -243,7 +247,11 @@
    "fieldname": "campaign",
    "fieldtype": "Link",
    "label": "Campaign",
+<<<<<<< HEAD
    "options": "Marketing Campaign"
+=======
+   "options": "UTM Campaign"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   }
  ],
  "has_web_view": 1,
@@ -273,9 +281,17 @@
   }
  ],
  "route": "newsletters",
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "sort_field": "creation",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "sort_order": "ASC",
  "states": [],
  "title_field": "subject",
  "track_changes": 1
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

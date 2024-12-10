@@ -29,8 +29,13 @@ class GoogleContacts(Document):
 		pull_from_google_contacts: DF.Check
 		push_to_google_contacts: DF.Check
 		refresh_token: DF.Password | None
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def validate(self):
 		if not frappe.db.get_single_value("Google Settings", "enable"):
 			frappe.throw(_("Enable Google API in Google Settings."))
@@ -75,9 +80,13 @@ def authorize_access(g_contact, reauthorize=False, code=None):
 
 
 def get_google_contacts_object(g_contact):
+<<<<<<< HEAD
 	"""
 	Returns an object of Google Calendar along with Google Calendar doc.
 	"""
+=======
+	"""Return an object of Google Calendar along with Google Calendar doc."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	account = frappe.get_doc("Google Contacts", g_contact)
 	oauth_obj = GoogleOAuth("contacts")
 

@@ -12,6 +12,10 @@
   "email_server",
   "use_imap",
   "use_ssl",
+<<<<<<< HEAD
+=======
+  "validate_ssl_certificate",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   "use_starttls",
   "column_break_9",
   "incoming_port",
@@ -20,6 +24,10 @@
   "smtp_server",
   "use_tls",
   "use_ssl_for_outgoing",
+<<<<<<< HEAD
+=======
+  "validate_ssl_certificate_for_outgoing",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   "column_break_18",
   "smtp_port",
   "append_emails_to_sent_folder",
@@ -128,6 +136,23 @@
    "fieldtype": "Column Break"
   },
   {
+<<<<<<< HEAD
+=======
+   "default": "1",
+   "depends_on": "eval:doc.use_ssl",
+   "fieldname": "validate_ssl_certificate",
+   "fieldtype": "Check",
+   "label": "Validate SSL Certificate"
+  },
+  {
+   "default": "1",
+   "depends_on": "eval:doc.use_ssl",
+   "fieldname": "validate_ssl_certificate_for_outgoing",
+   "fieldtype": "Check",
+   "label": "Validate SSL Certificate"
+  },
+  {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "default": "Sent",
    "depends_on": "eval: doc.append_emails_to_sent_folder",
    "description": "Some mailboxes require a different Sent Folder Name e.g. \"INBOX.Sent\"",
@@ -143,7 +168,11 @@
    "link_fieldname": "domain"
   }
  ],
+<<<<<<< HEAD
  "modified": "2024-12-05 12:41:16.753751",
+=======
+ "modified": "2024-12-04 23:26:20.993971",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Domain",
@@ -159,7 +188,11 @@
    "write": 1
   }
  ],
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "sort_field": "creation",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

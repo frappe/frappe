@@ -10,10 +10,17 @@ from frappe.gettext.translate import (
 	write_binary,
 	write_catalog,
 )
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestTranslate(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase
+
+
+class TestTranslate(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def setUp(self):
 		pass
 

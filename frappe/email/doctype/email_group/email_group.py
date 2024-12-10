@@ -24,8 +24,13 @@ class EmailGroup(Document):
 		total_subscribers: DF.Int
 		welcome_email_template: DF.Link | None
 		welcome_url: DF.Data | None
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def onload(self):
 		singles = [d.name for d in frappe.get_all("DocType", "name", {"issingle": 1})]
 		self.get("__onload").import_types = [

@@ -3,6 +3,10 @@ import re
 import frappe
 from frappe import _
 from frappe.utils import cint, cstr, flt
+<<<<<<< HEAD
+=======
+from frappe.utils.defaults import get_not_null_defaults
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 SPECIAL_CHAR_PATTERN = re.compile(r"[\W]", flags=re.UNICODE)
 VARCHAR_CAST_PATTERN = re.compile(r"varchar\(([\d]+)\)")
@@ -24,6 +28,10 @@ class DBTable:
 		self.add_column: list[DbColumn] = []
 		self.change_type: list[DbColumn] = []
 		self.change_name: list[DbColumn] = []
+<<<<<<< HEAD
+=======
+		self.change_nullability: list[DbColumn] = []
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		self.add_unique: list[DbColumn] = []
 		self.add_index: list[DbColumn] = []
 		self.drop_unique: list[DbColumn] = []
@@ -89,6 +97,7 @@ class DBTable:
 				continue
 
 			self.columns[field.get("fieldname")] = DbColumn(
+<<<<<<< HEAD
 				self,
 				field.get("fieldname"),
 				field.get("fieldtype"),
@@ -98,6 +107,18 @@ class DBTable:
 				field.get("options"),
 				field.get("unique"),
 				field.get("precision"),
+=======
+				table=self,
+				fieldname=field.get("fieldname"),
+				fieldtype=field.get("fieldtype"),
+				length=field.get("length"),
+				default=field.get("default"),
+				set_index=field.get("search_index"),
+				options=field.get("options"),
+				unique=field.get("unique"),
+				precision=field.get("precision"),
+				not_nullable=field.get("not_nullable"),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			)
 
 	def validate(self):
@@ -171,7 +192,24 @@ class DBTable:
 
 
 class DbColumn:
+<<<<<<< HEAD
 	def __init__(self, table, fieldname, fieldtype, length, default, set_index, options, unique, precision):
+=======
+	def __init__(
+		self,
+		*,
+		table,
+		fieldname,
+		fieldtype,
+		length,
+		default,
+		set_index,
+		options,
+		unique,
+		precision,
+		not_nullable,
+	):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		self.table = table
 		self.fieldname = fieldname
 		self.fieldtype = fieldtype
@@ -181,13 +219,26 @@ class DbColumn:
 		self.options = options
 		self.unique = unique
 		self.precision = precision
+<<<<<<< HEAD
 
 	def get_definition(self, for_modification=False):
 		column_def = get_definition(self.fieldtype, precision=self.precision, length=self.length)
+=======
+		self.not_nullable = not_nullable
+
+	def get_definition(self, for_modification=False):
+		column_def = get_definition(
+			self.fieldtype,
+			precision=self.precision,
+			length=self.length,
+			options=self.options,
+		)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		if not column_def:
 			return column_def
 
+<<<<<<< HEAD
 		if self.fieldtype in ("Check", "Int"):
 			default_value = cint(self.default) or 0
 			column_def += f" not null default {default_value}"
@@ -195,17 +246,53 @@ class DbColumn:
 		elif self.fieldtype in ("Currency", "Float", "Percent"):
 			default_value = flt(self.default) or 0
 			column_def += f" not null default {default_value}"
+=======
+		null = True
+		default = None
+		unique = False
+
+		if self.fieldtype in ("Check", "Int"):
+			default = cint(self.default)
+			null = False
+
+		elif self.fieldtype in ("Currency", "Float", "Percent"):
+			default = flt(self.default)
+			null = False
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		elif (
 			self.default
 			and (self.default not in frappe.db.DEFAULT_SHORTCUTS)
 			and not cstr(self.default).startswith(":")
 		):
+<<<<<<< HEAD
 			column_def += f" default {frappe.db.escape(self.default)}"
 
 		if self.unique and not for_modification and (column_def not in ("text", "longtext")):
 			column_def += " unique"
 
+=======
+			default = frappe.db.escape(self.default)
+
+		if self.not_nullable and null:
+			if default is None:
+				default = get_not_null_defaults(self.fieldtype)
+				if isinstance(default, str):
+					default = frappe.db.escape(default)
+			null = False
+
+		if self.unique and not for_modification and (column_def not in ("text", "longtext")):
+			unique = True
+
+		if not null:
+			column_def += " NOT NULL"
+
+		if default is not None:
+			column_def += f" DEFAULT {default}"
+
+		if unique:
+			column_def += " UNIQUE"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		return column_def
 
 	def build_for_alter_table(self, current_def):
@@ -245,6 +332,13 @@ class DbColumn:
 		):
 			self.table.set_default.append(self)
 
+<<<<<<< HEAD
+=======
+		# nullability
+		if self.not_nullable is not None and (self.not_nullable != current_def["not_nullable"]):
+			self.table.change_nullability.append(self)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		# index should be applied or dropped irrespective of type change
 		if (current_def["index"] and not self.set_index) and column_type not in ("text", "longtext"):
 			self.table.drop_index.append(self)
@@ -316,9 +410,26 @@ def validate_column_length(fieldname):
 		frappe.throw(_("Fieldname is limited to 64 characters ({0})").format(fieldname))
 
 
+<<<<<<< HEAD
 def get_definition(fieldtype, precision=None, length=None):
 	d = frappe.db.type_map.get(fieldtype)
 
+=======
+def get_definition(fieldtype, precision=None, length=None, *, options=None):
+	d = frappe.db.type_map.get(fieldtype)
+
+	if (
+		fieldtype == "Link"
+		and options
+		# XXX: This might not trigger if referred doctype is not yet created
+		# This is largely limitation of how migration happens though.
+		# Maybe we can sort by creation and then modified?
+		and frappe.db.exists("DocType", options)
+		and frappe.get_meta(options).autoname == "UUID"
+	):
+		d = ("uuid", None)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if not d:
 		return
 

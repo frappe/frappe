@@ -9,10 +9,17 @@ from frappe.automation.doctype.assignment_rule.test_assignment_rule import (
 )
 from frappe.desk.form.load import get_assignments
 from frappe.desk.listview import get_group_by_count
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestAssign(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase
+
+
+class TestAssign(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()

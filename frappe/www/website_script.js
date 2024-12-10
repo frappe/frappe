@@ -23,7 +23,11 @@ ga('send', 'pageview');
 			let query_params = frappe.utils.get_query_params();
 
 			// Get visitor ID based on browser uniqueness
+<<<<<<< HEAD
 			import('https://openfpcdn.io/fingerprintjs/v3')
+=======
+			import('/assets/frappe/js/lib/fingerprintjs.js')
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				.then(fingerprint_js => fingerprint_js.load())
 				.then(fp => fp.get())
 				.then(result => {
@@ -32,12 +36,23 @@ ga('send', 'pageview');
 						browser: browser.name,
 						version: browser.version,
 						user_tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+<<<<<<< HEAD
 						source: query_params.source,
 						medium: query_params.medium,
 						campaign: query_params.campaign,
+=======
+						source: query_params.source || query_params.utm_source,
+						medium: query_params.medium || query_params.utm_medium,
+						campaign: query_params.campaign || query_params.utm_campaign,
+						content: query_params.content || query_params.utm_content,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 						visitor_id: result.visitorId
 					})
 			})
 		})
 	}
+<<<<<<< HEAD
 {% endif %}
+=======
+{% endif %}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

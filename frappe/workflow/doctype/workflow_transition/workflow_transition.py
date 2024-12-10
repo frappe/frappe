@@ -23,5 +23,11 @@ class WorkflowTransition(Document):
 		parentfield: DF.Data
 		parenttype: DF.Data
 		state: DF.Link
+<<<<<<< HEAD
 	# end: auto-generated types
+=======
+		workflow_builder_id: DF.Data | None
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass

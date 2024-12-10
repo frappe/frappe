@@ -1,0 +1,66 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-08-02 14:20:30.177818",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "select_workspaces_section",
+  "workspace_visibility_json",
+  "workspace_setup_completed"
+ ],
+ "fields": [
+  {
+   "fieldname": "select_workspaces_section",
+   "fieldtype": "Section Break",
+   "label": "Select Workspaces"
+  },
+  {
+   "fieldname": "workspace_visibility_json",
+   "fieldtype": "JSON",
+   "in_list_view": 1,
+   "label": "Workspace Visibility",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "workspace_setup_completed",
+   "fieldtype": "Check",
+   "label": "Workspace Setup Completed"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-09-03 21:29:54.127014",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Workspace Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Workspace Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

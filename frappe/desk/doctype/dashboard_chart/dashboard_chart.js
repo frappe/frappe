@@ -397,7 +397,11 @@ frappe.ui.form.on("Dashboard Chart", {
 						}
 					}
 				},
+<<<<<<< HEAD
 				primary_action_label: "Set",
+=======
+				primary_action_label: __("Set"),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			});
 			frappe.dashboards.filters_dialog = dialog;
 
@@ -484,7 +488,11 @@ frappe.ui.form.on("Dashboard Chart", {
 					}
 					frm.trigger("set_dynamic_filters_in_table");
 				},
+<<<<<<< HEAD
 				primary_action_label: "Set",
+=======
+				primary_action_label: __("Set"),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			});
 
 			dialog.show();

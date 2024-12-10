@@ -9,12 +9,30 @@ from frappe.model.workflow import (
 	get_common_transition_actions,
 )
 from frappe.query_builder import DocType
+<<<<<<< HEAD
 from frappe.test_runner import make_test_records
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import random_string
 
 
 class TestWorkflow(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests.utils import make_test_records
+from frappe.utils import random_string
+
+
+class UnitTestWorkflow(UnitTestCase):
+	"""
+	Unit tests for Workflow.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestWorkflow(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
@@ -103,6 +121,7 @@ class TestWorkflow(FrappeTestCase):
 		self.assertEqual(len(workflow_actions), 1)
 		self.assertEqual(workflow_actions[0].status, "Completed")
 
+<<<<<<< HEAD
 	def test_if_workflow_actions_were_processed_using_user(self):
 		user = frappe.get_doc("User", "test2@example.com")
 		user.add_roles("Test Approver", "System Manager")
@@ -126,6 +145,8 @@ class TestWorkflow(FrappeTestCase):
 		self.assertEqual(workflow_actions[0].status, "Completed")
 		frappe.set_user("Administrator")
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_if_workflow_set_on_action(self):
 		self.workflow._update_state_docstatus = True
 		self.workflow.states[1].doc_status = 1
@@ -159,7 +180,11 @@ def create_todo_workflow():
 	TEST_ROLE = "Test Approver"
 
 	if not frappe.db.exists("Role", TEST_ROLE):
+<<<<<<< HEAD
 		frappe.get_doc(dict(doctype="Role", role_name=TEST_ROLE)).insert(ignore_if_duplicate=True)
+=======
+		frappe.get_doc(doctype="Role", role_name=TEST_ROLE).insert(ignore_if_duplicate=True)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		if frappe.db.exists("User", UI_TEST_USER):
 			frappe.get_doc("User", UI_TEST_USER).add_roles(TEST_ROLE)
 
@@ -205,4 +230,8 @@ def create_todo_workflow():
 
 
 def create_new_todo():
+<<<<<<< HEAD
 	return frappe.get_doc(dict(doctype="ToDo", description="workflow " + random_string(10))).insert()
+=======
+	return frappe.get_doc(doctype="ToDo", description="workflow " + random_string(10)).insert()
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

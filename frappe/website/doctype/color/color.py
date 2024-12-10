@@ -16,4 +16,8 @@ class Color(Document):
 
 		color: DF.Color
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass

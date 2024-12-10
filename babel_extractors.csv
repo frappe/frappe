@@ -9,3 +9,8 @@
 **.js,frappe.gettext.extractors.javascript.extract
 **.html,frappe.gettext.extractors.html_template.extract
 **.vue,frappe.gettext.extractors.html_template.extract
+<<<<<<< HEAD
+=======
+**/custom/*.json,frappe.gettext.extractors.customization.extract
+**/fixtures/custom_field.json,frappe.gettext.extractors.custom_field.extract
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

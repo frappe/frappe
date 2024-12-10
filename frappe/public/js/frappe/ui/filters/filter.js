@@ -52,7 +52,13 @@ frappe.ui.Filter = class {
 			"Markdown Editor": ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
 			Password: ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
 			Rating: ["like", "not like", "Between", "in", "not in", "Timespan"],
+<<<<<<< HEAD
 			Float: ["like", "not like", "Between", "in", "not in", "Timespan"],
+=======
+			Int: ["like", "not like", "Between", "in", "not in", "Timespan"],
+			Float: ["like", "not like", "Between", "in", "not in", "Timespan"],
+			Percent: ["like", "not like", "Between", "in", "not in", "Timespan"],
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		};
 
 		this.special_condition_labels = {

@@ -1,7 +1,11 @@
 import re
 from ast import literal_eval
 from types import BuiltinFunctionType
+<<<<<<< HEAD
 from typing import TYPE_CHECKING
+=======
+from typing import TYPE_CHECKING, TypeAlias
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 import sqlparse
 from pypika.queries import QueryBuilder, Table
@@ -10,7 +14,11 @@ import frappe
 from frappe import _
 from frappe.database.operator_map import OPERATOR_MAP
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
+<<<<<<< HEAD
 from frappe.database.utils import DefaultOrderBy, get_doctype_name
+=======
+from frappe.database.utils import DefaultOrderBy, FilterValue, convert_to_value, get_doctype_name
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.functions import Function, SqlFunctions
 from frappe.query_builder.utils import PseudoColumnMapper
@@ -34,8 +42,13 @@ class Engine:
 	def get_query(
 		self,
 		table: str | Table,
+<<<<<<< HEAD
 		fields: list | tuple | None = None,
 		filters: dict[str, str | int] | str | int | list[list | str | int] | None = None,
+=======
+		fields: str | list | tuple | None = None,
+		filters: dict[str, FilterValue] | FilterValue | list[list | FilterValue] | None = None,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		order_by: str | None = None,
 		group_by: str | None = None,
 		limit: int | None = None,
@@ -113,13 +126,22 @@ class Engine:
 
 	def apply_filters(
 		self,
+<<<<<<< HEAD
 		filters: dict[str, str | int] | str | int | list[list | str | int] | None = None,
+=======
+		filters: dict[str, FilterValue] | FilterValue | list[list | FilterValue] | None = None,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	):
 		if filters is None:
 			return
 
+<<<<<<< HEAD
 		if isinstance(filters, str | int):
 			filters = {"name": str(filters)}
+=======
+		if isinstance(filters, FilterValue):
+			filters = {"name": convert_to_value(filters)}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		if isinstance(filters, Criterion):
 			self.query = self.query.where(filters)
@@ -128,11 +150,19 @@ class Engine:
 			self.apply_dict_filters(filters)
 
 		elif isinstance(filters, list | tuple):
+<<<<<<< HEAD
 			if all(isinstance(d, str | int) for d in filters) and len(filters) > 0:
 				self.apply_dict_filters({"name": ("in", filters)})
 			else:
 				for filter in filters:
 					if isinstance(filter, str | int | Criterion | dict):
+=======
+			if all(isinstance(d, FilterValue) for d in filters) and len(filters) > 0:
+				self.apply_dict_filters({"name": ("in", tuple(convert_to_value(f) for f in filters))})
+			else:
+				for filter in filters:
+					if isinstance(filter, FilterValue | Criterion | dict):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 						self.apply_filters(filter)
 					elif isinstance(filter, list | tuple):
 						self.apply_list_filters(filter)
@@ -148,7 +178,11 @@ class Engine:
 			doctype, field, operator, value = filter
 			self._apply_filter(field, value, operator, doctype)
 
+<<<<<<< HEAD
 	def apply_dict_filters(self, filters: dict[str, str | int | list]):
+=======
+	def apply_dict_filters(self, filters: dict[str, FilterValue | list]):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		for field, value in filters.items():
 			operator = "="
 			if isinstance(value, list | tuple):
@@ -157,7 +191,15 @@ class Engine:
 			self._apply_filter(field, value, operator)
 
 	def _apply_filter(
+<<<<<<< HEAD
 		self, field: str, value: str | int | list | None, operator: str = "=", doctype: str | None = None
+=======
+		self,
+		field: str,
+		value: FilterValue | list | set | None,
+		operator: str = "=",
+		doctype: str | None = None,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	):
 		_field = field
 		_value = value
@@ -185,10 +227,16 @@ class Engine:
 					(table.parent == self.table.name) & (table.parenttype == self.doctype)
 				)
 
+<<<<<<< HEAD
 		if isinstance(_value, bool):
 			_value = int(_value)
 
 		elif not _value and isinstance(_value, list | tuple):
+=======
+		_value = convert_to_value(_value)
+
+		if not _value and isinstance(_value, list | tuple | set):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			_value = ("",)
 
 		# Nested set
@@ -218,7 +266,11 @@ class Engine:
 			self.query = self.query.where(operator_fn(_field, _value))
 
 	def get_function_object(self, field: str) -> "Function":
+<<<<<<< HEAD
 		"""Expects field to look like 'SUM(*)' or 'name' or something similar. Returns PyPika Function object"""
+=======
+		"""Return PyPika Function object. Expect field to look like 'SUM(*)' or 'name' or something similar."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		func = field.split("(", maxsplit=1)[0].capitalize()
 		args_start, args_end = len(func) + 1, field.index(")")
 		args = field[args_start:args_end].split(",")

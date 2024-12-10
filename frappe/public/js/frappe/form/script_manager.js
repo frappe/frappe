@@ -140,6 +140,16 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 		// run them serially
 		return frappe.run_serially(tasks);
 	}
+<<<<<<< HEAD
+=======
+	has_handler(event_name) {
+		// return true if there exist an event handler (new style only)
+		return (
+			frappe.ui.form.handlers[this.frm.doctype] &&
+			frappe.ui.form.handlers[this.frm.doctype][event_name]
+		);
+	}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	has_handlers(event_name, doctype) {
 		let handlers = this.get_handlers(event_name, doctype);
 		return handlers && (handlers.old_style.length || handlers.new_style.length);
@@ -156,10 +166,17 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 				handlers.new_style.push(fn);
 			});
 		}
+<<<<<<< HEAD
 		if (this.frm.cscript[event_name]) {
 			handlers.old_style.push(event_name);
 		}
 		if (this.frm.cscript["custom_" + event_name]) {
+=======
+		if (this.frm.cscript && this.frm.cscript[event_name]) {
+			handlers.old_style.push(event_name);
+		}
+		if (this.frm.cscript && this.frm.cscript["custom_" + event_name]) {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			handlers.old_style.push("custom_" + event_name);
 		}
 		return handlers;
@@ -239,6 +256,10 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 
 		this.trigger("setup");
 	}
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	log_error(caller, e) {
 		frappe.show_alert({ message: __("Error in Client Script."), indicator: "error" });
 		console.group && console.group();

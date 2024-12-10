@@ -42,6 +42,7 @@ class HelpArticle(WebsiteGenerator):
 
 	def on_update(self):
 		self.update_category()
+<<<<<<< HEAD
 		clear_cache()
 
 	def update_category(self):
@@ -50,6 +51,15 @@ class HelpArticle(WebsiteGenerator):
 			where category=%s and ifnull(published,0)=1""",
 			self.category,
 		)[0][0]
+=======
+
+	def clear_cache(self):
+		clear_knowledge_base_cache()
+		return super().clear_cache()
+
+	def update_category(self):
+		cnt = frappe.db.count("Help Article", filters={"category": self.category, "published": 1})
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		cat = frappe.get_doc("Help Category", self.category)
 		cat.help_articles = cnt
 		cat.save()
@@ -108,7 +118,11 @@ def get_sidebar_items():
 			from
 				`tabHelp Category`
 			where
+<<<<<<< HEAD
 				ifnull(published,0)=1 and help_articles > 0
+=======
+				published = 1 and help_articles > 0
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			order by
 				help_articles desc""",
 			as_dict=True,
@@ -117,6 +131,7 @@ def get_sidebar_items():
 	return frappe.cache.get_value("knowledge_base:category_sidebar", _get)
 
 
+<<<<<<< HEAD
 def clear_cache():
 	clear_website_cache()
 
@@ -126,6 +141,9 @@ def clear_cache():
 
 
 def clear_website_cache(path=None):
+=======
+def clear_knowledge_base_cache():
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	frappe.cache.delete_value("knowledge_base:category_sidebar")
 	frappe.cache.delete_value("knowledge_base:faq")
 

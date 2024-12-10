@@ -12,7 +12,11 @@
 			active ? $('.like-icon').addClass('liked') : $('.like-icon').removeClass('liked');
 		}
 
+<<<<<<< HEAD
 		$('.like-icon').append(frappe.utils.icon('es-solid-heart', 'md'))
+=======
+		$('.like-icon').append(`<svg class="icon icon-sm"><use href="#icon-heart"></use></svg>`)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		toggle_like_icon(like);
 
 		$('.like-count').text(like_count);
@@ -38,4 +42,8 @@
 			});
 		}
 	});
+<<<<<<< HEAD
 </script>
+=======
+</script>
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

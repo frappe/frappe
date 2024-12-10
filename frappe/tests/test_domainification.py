@@ -8,10 +8,17 @@ from frappe.desk.doctype.desktop_icon.desktop_icon import (
 	clear_desktop_icons_cache,
 	get_desktop_icons,
 )
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestDomainification(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase
+
+
+class TestDomainification(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def setUp(self):
 		# create test domain
 		self.new_domain("_Test Domain 1")

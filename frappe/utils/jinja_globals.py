@@ -110,6 +110,28 @@ def include_script(path, preload=True):
 	return f'<script type="text/javascript" src="{path}"></script>'
 
 
+<<<<<<< HEAD
+=======
+def include_icons(path, preload=True):
+	"""Get path of bundled svg icons files.
+
+	If preload is specified the path will be added to preload headers so browsers can prefetch
+	assets."""
+	path = bundled_asset(path)
+
+	if preload:
+		import frappe
+
+		frappe.local.preload_assets["icons"].append(path)
+
+	return (
+		'<script type="text/javascript">fetch(`'
+		+ path
+		+ '?v=${window._version_number}`, {credentials: "same-origin"}).then((r) => r.text()).then((svg) => {let c = document.getElementById("all-symbols"); c.insertAdjacentHTML("beforeend", svg);});</script>'
+	)
+
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 def include_style(path, rtl=None, preload=True):
 	"""Get path of bundled style files.
 

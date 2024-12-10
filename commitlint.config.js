@@ -19,6 +19,10 @@ module.exports = {
 				"revert",
 				"style",
 				"test",
+<<<<<<< HEAD
+=======
+				"deprecate", // deprecation decision
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			],
 		],
 	},

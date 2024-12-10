@@ -21,6 +21,10 @@ class EmailQueueRecipient(Document):
 		recipient: DF.Data | None
 		status: DF.Literal["", "Not Sent", "Sent"]
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	DOCTYPE = "Email Queue Recipient"
 
 	def is_mail_to_be_sent(self):

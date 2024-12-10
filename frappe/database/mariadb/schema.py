@@ -3,6 +3,10 @@ from pymysql.constants.ER import DUP_ENTRY
 import frappe
 from frappe import _
 from frappe.database.schema import DBTable
+<<<<<<< HEAD
+=======
+from frappe.utils.defaults import get_not_null_defaults
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 class MariaDBTable(DBTable):
@@ -23,7 +27,11 @@ class MariaDBTable(DBTable):
 			additional_definitions += index_defs
 
 		# child table columns
+<<<<<<< HEAD
 		if self.meta.get("istable") or 0:
+=======
+		if self.meta.get("istable", default=0):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			additional_definitions += [
 				f"parent varchar({varchar_len})",
 				f"parentfield varchar({varchar_len})",
@@ -32,7 +40,14 @@ class MariaDBTable(DBTable):
 			]
 		else:
 			# parent types
+<<<<<<< HEAD
 			additional_definitions.append("index modified(modified)")
+=======
+			additional_definitions.append("index creation(creation)")
+			if self.meta.sort_field == "modified":
+				# Support old doctype default by indexing it, also 2nd popular choice.
+				additional_definitions.append("index modified(modified)")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		# creating sequence(s)
 		if not self.meta.issingle and self.meta.autoname == "autoincrement":
@@ -43,6 +58,12 @@ class MariaDBTable(DBTable):
 			# issue link: https://jira.mariadb.org/browse/MDEV-20070
 			name_column = "name bigint primary key"
 
+<<<<<<< HEAD
+=======
+		elif not self.meta.issingle and self.meta.autoname == "UUID":
+			name_column = "name uuid primary key"
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		additional_definitions = ",\n".join(additional_definitions)
 
 		# create table
@@ -52,8 +73,13 @@ class MariaDBTable(DBTable):
 			modified datetime(6),
 			modified_by varchar({varchar_len}),
 			owner varchar({varchar_len}),
+<<<<<<< HEAD
 			docstatus int(1) not null default '0',
 			idx int(8) not null default '0',
+=======
+			docstatus tinyint not null default '0',
+			idx int not null default '0',
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			{additional_definitions})
 			ENGINE={engine}
 			ROW_FORMAT=DYNAMIC
@@ -67,11 +93,21 @@ class MariaDBTable(DBTable):
 			col.build_for_alter_table(self.current_columns.get(col.fieldname.lower()))
 
 		add_column_query = [f"ADD COLUMN `{col.fieldname}` {col.get_definition()}" for col in self.add_column]
+<<<<<<< HEAD
 		columns_to_modify = set(self.change_type + self.set_default)
+=======
+		columns_to_modify = set(self.change_type + self.set_default + self.change_nullability)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		modify_column_query = [
 			f"MODIFY `{col.fieldname}` {col.get_definition(for_modification=True)}"
 			for col in columns_to_modify
 		]
+<<<<<<< HEAD
+=======
+		if alter_pk := self.alter_primary_key():
+			modify_column_query.append(alter_pk)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		modify_column_query.extend(
 			[f"ADD UNIQUE INDEX IF NOT EXISTS {col.fieldname} (`{col.fieldname}`)" for col in self.add_unique]
 		)
@@ -81,10 +117,17 @@ class MariaDBTable(DBTable):
 			if not frappe.db.get_column_index(self.table_name, col.fieldname, unique=False)
 		]
 
+<<<<<<< HEAD
 		if self.meta.sort_field == "creation" and not frappe.db.get_column_index(
 			self.table_name, "creation", unique=False
 		):
 			add_index_query.append("ADD INDEX `creation`(`creation`)")
+=======
+		if self.meta.sort_field == "modified" and not frappe.db.get_column_index(
+			self.table_name, "modified", unique=False
+		):
+			add_index_query.append("ADD INDEX `modified`(`modified`)")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		drop_index_query = []
 
@@ -103,11 +146,28 @@ class MariaDBTable(DBTable):
 				if index_record := frappe.db.get_column_index(self.table_name, col.fieldname, unique=False):
 					drop_index_query.append(f"DROP INDEX `{index_record.Key_name}`")
 
+<<<<<<< HEAD
+=======
+		for col in self.change_nullability:
+			if col.not_nullable:
+				try:
+					table = frappe.qb.DocType(self.doctype)
+					frappe.qb.update(table).set(
+						col.fieldname, col.default or get_not_null_defaults(col.fieldtype)
+					).where(table[col.fieldname].isnull()).run()
+				except Exception:
+					print(f"Failed to update data in {self.table_name} for {col.fieldname}")
+					raise
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		try:
 			for query_parts in [add_column_query, modify_column_query, add_index_query, drop_index_query]:
 				if query_parts:
 					query_body = ", ".join(query_parts)
 					query = f"ALTER TABLE `{self.table_name}` {query_body}"
+<<<<<<< HEAD
+=======
+					# nosemgrep
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					frappe.db.sql_ddl(query)
 
 		except Exception as e:
@@ -123,3 +183,23 @@ class MariaDBTable(DBTable):
 				)
 
 			raise
+<<<<<<< HEAD
+=======
+
+	def alter_primary_key(self) -> str | None:
+		# If there are no values in table allow migrating to UUID from varchar
+		autoname = self.meta.autoname
+		if autoname == "UUID" and frappe.db.get_column_type(self.doctype, "name") != "uuid":
+			if not frappe.db.get_value(self.doctype, {}, order_by=None):
+				return "modify name uuid"
+			else:
+				frappe.throw(
+					_("Primary key of doctype {0} can not be changed as there are existing values.").format(
+						self.doctype
+					)
+				)
+
+		# Reverting from UUID to VARCHAR
+		if autoname != "UUID" and frappe.db.get_column_type(self.doctype, "name") == "uuid":
+			return f"modify name varchar({frappe.db.VARCHAR_LEN})"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

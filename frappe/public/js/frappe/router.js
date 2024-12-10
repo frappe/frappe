@@ -15,6 +15,7 @@ frappe.route_options = null;
 frappe.open_in_new_tab = false;
 frappe.route_hooks = {};
 
+<<<<<<< HEAD
 $(window).on("hashchange", function (e) {
 	// v1 style routing, route is in hash
 	if (window.location.hash && !frappe.router.is_app_route(e.currentTarget.pathname)) {
@@ -24,6 +25,8 @@ $(window).on("hashchange", function (e) {
 	}
 });
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 window.addEventListener("popstate", (e) => {
 	// forward-back button, just re-render based on current route
 	frappe.router.route();
@@ -58,11 +61,14 @@ $("body").on("click", "a", function (e) {
 		return;
 	}
 
+<<<<<<< HEAD
 	if (href && href.startsWith("#")) {
 		// target startswith "#", this is a v1 style route, so remake it.
 		return override(target_element.hash);
 	}
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if (frappe.router.is_app_route(target_element.pathname)) {
 		// target has "/app, this is a v2 style route.
 		if (target_element.search) {
@@ -179,6 +185,7 @@ frappe.router = {
 
 		if (frappe.workspaces[route[0]]) {
 			// public workspace
+<<<<<<< HEAD
 			route = ["Workspaces", frappe.workspaces[route[0]].title];
 		} else if (route[0] == "private") {
 			// private workspace
@@ -189,11 +196,21 @@ frappe.router = {
 					frappe.workspaces[private_workspace] = new_workspace;
 				}
 			}
+=======
+			route = ["Workspaces", frappe.workspaces[route[0]].name];
+		} else if (route[0] == "private") {
+			// private workspace
+			let private_workspace = route[1] && `${route[1]}-${frappe.user.name.toLowerCase()}`;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			if (!frappe.workspaces[private_workspace]) {
 				frappe.msgprint(__("Workspace <b>{0}</b> does not exist", [route[1]]));
 				return ["Workspaces"];
 			}
+<<<<<<< HEAD
 			route = ["Workspaces", "private", frappe.workspaces[private_workspace].title];
+=======
+			route = ["Workspaces", "private", frappe.workspaces[private_workspace].name];
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		} else if (this.routes[route[0]]) {
 			// route
 			route = await this.set_doctype_route(route);
@@ -376,7 +393,21 @@ frappe.router = {
 				window.open(sub_path, "_blank");
 				frappe.open_in_new_tab = false;
 			} else {
+<<<<<<< HEAD
 				this.push_state(sub_path);
+=======
+				try {
+					const route_options = frappe.route_options || {};
+					const query_params = Object.entries(route_options)
+						.map(
+							([key, value]) => `${key}=` + encodeURIComponent(JSON.stringify(value))
+						)
+						.join("&");
+					this.push_state(sub_path, query_params ? `?${query_params}` : "");
+				} catch (e) {
+					this.push_state(sub_path);
+				}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			}
 			setTimeout(() => {
 				frappe.after_ajax &&
@@ -471,7 +502,12 @@ frappe.router = {
 		// 1. User's default workspace in user doctype
 		// 2. Private home
 		// 3. Public home
+<<<<<<< HEAD
 		// 4. First workspace in list
+=======
+		// 4. First workspace in list of current app
+		// 5. First workspace in list
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		let private_home = `home-${frappe.user.name.toLowerCase()}`;
 		let default_workspace = frappe.router.slug(frappe.boot.user.default_workspace?.name || "");
 
@@ -479,25 +515,49 @@ frappe.router = {
 			frappe.workspaces[default_workspace] ||
 			frappe.workspaces[private_home] ||
 			frappe.workspaces["home"] ||
+<<<<<<< HEAD
+=======
+			Object.values(frappe.workspace_map).find((w) => w.app === frappe.current_app) ||
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			Object.values(frappe.workspaces)[0];
 
 		if (workspace) {
 			return (
+<<<<<<< HEAD
 				"/app/" +
 				(workspace.public ? "" : "private/") +
 				frappe.router.slug(workspace.title)
+=======
+				"/app/" + (workspace.public ? "" : "private/") + frappe.router.slug(workspace.name)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			);
 		}
 
 		return "/app";
 	},
 
+<<<<<<< HEAD
 	push_state(url) {
 		// change the URL and call the router
 		if (window.location.pathname !== url) {
 			// push/replace state so the browser looks fine
 			const method = frappe.route_flags.replace_route ? "replaceState" : "pushState";
 			history[method](null, null, url);
+=======
+	/**
+	 * Changes the URL and calls the router.
+	 *
+	 * @param {string} path - The desired URI path to replace or push,
+	 *    without query string. Example: "/app/todo"
+	 * @param {string} query_params - The desired query parameter string.
+	 * @returns {void}
+	 */
+	push_state(path, query_params = "") {
+		if (window.location.pathname !== path || window.location.search !== query_params) {
+			// push/replace state so the browser looks fine
+			const method = frappe.route_flags.replace_route ? "replaceState" : "pushState";
+			history[method](null, null, path);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 			// now process the route
 			this.route();
@@ -506,6 +566,7 @@ frappe.router = {
 
 	get_sub_path_string(route) {
 		// return clean sub_path from hash or url
+<<<<<<< HEAD
 		// supports both v1 and v2 routing
 		if (!route) {
 			route = window.location.pathname;
@@ -513,6 +574,10 @@ frappe.router = {
 				// to support v1
 				route = window.location.hash;
 			}
+=======
+		if (!route) {
+			route = window.location.pathname;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		}
 
 		return this.strip_prefix(route);

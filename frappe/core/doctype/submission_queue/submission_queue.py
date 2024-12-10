@@ -31,8 +31,13 @@ class SubmissionQueue(Document):
 		ref_docname: DF.DynamicLink | None
 		ref_doctype: DF.Link | None
 		status: DF.Literal["Queued", "Finished", "Failed"]
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	@property
 	def created_at(self):
 		return self.creation
@@ -51,7 +56,11 @@ class SubmissionQueue(Document):
 		from frappe.query_builder.functions import Now
 
 		table = frappe.qb.DocType("Submission Queue")
+<<<<<<< HEAD
 		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
+=======
+		frappe.db.delete(table, filters=(table.creation < (Now() - Interval(days=days))))
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	def insert(self, to_be_queued_doc: Document, action: str):
 		self.status = "Queued"

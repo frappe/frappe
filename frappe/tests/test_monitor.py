@@ -4,12 +4,20 @@
 import frappe
 import frappe.monitor
 from frappe.monitor import MONITOR_REDIS_KEY, get_trace_id
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
+=======
+from frappe.tests import IntegrationTestCase
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.utils import set_request
 from frappe.utils.response import build_response
 
 
+<<<<<<< HEAD
 class TestMonitor(FrappeTestCase):
+=======
+class TestMonitor(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def setUp(self):
 		frappe.conf.monitor = 1
 		frappe.cache.delete_value(MONITOR_REDIS_KEY)

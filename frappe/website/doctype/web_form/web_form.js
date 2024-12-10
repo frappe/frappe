@@ -26,7 +26,11 @@ frappe.ui.form.on("Web Form", {
 	refresh: function (frm) {
 		// get iframe url for web form
 		frm.sidebar
+<<<<<<< HEAD
 			.add_user_action(__("Copy Embed Code"))
+=======
+			.add_user_action(__("Copy embed code"))
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			.attr("href", "#")
 			.on("click", () => {
 				const url = frappe.urllib.get_full_url(frm.doc.route);
@@ -70,7 +74,11 @@ frappe.ui.form.on("Web Form", {
 
 		if (!frm.doc.web_form_fields) {
 			frm.scroll_to_field("web_form_fields");
+<<<<<<< HEAD
 			frappe.throw(__("Atleast one field is required in Web Form Fields Table"));
+=======
+			frappe.throw(__("At least one field is required in Web Form Fields Table"));
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		}
 
 		let page_break_count = frm.doc.web_form_fields.filter(

@@ -135,7 +135,13 @@
  "name": "User Document Type",
  "owner": "Administrator",
  "permissions": [],
+<<<<<<< HEAD
  "sort_field": "modified",
  "sort_order": "DESC",
+=======
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "track_changes": 1
 }

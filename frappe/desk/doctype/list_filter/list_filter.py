@@ -18,4 +18,8 @@ class ListFilter(Document):
 		for_user: DF.Link | None
 		reference_doctype: DF.Link | None
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass

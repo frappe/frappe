@@ -17,8 +17,13 @@ class WebsiteScript(Document):
 		from frappe.types import DF
 
 		javascript: DF.Code | None
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def on_update(self):
 		"""clear cache"""
 		frappe.clear_cache(user="Guest")

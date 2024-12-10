@@ -3,10 +3,17 @@
 
 import frappe
 from frappe.desk.reportview import export_query, extract_fieldnames
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestReportview(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase
+
+
+class TestReportview(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_csv(self):
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader
 		from io import StringIO

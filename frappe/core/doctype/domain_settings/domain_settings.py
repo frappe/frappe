@@ -16,8 +16,13 @@ class DomainSettings(Document):
 		from frappe.types import DF
 
 		active_domains: DF.Table[HasDomain]
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def set_active_domains(self, domains):
 		active_domains = [d.domain for d in self.active_domains]
 		added = False
@@ -52,7 +57,11 @@ class DomainSettings(Document):
 		for domain in all_domains:
 			data = frappe.get_domain_data(domain)
 			if not frappe.db.get_value("Domain", domain):
+<<<<<<< HEAD
 				frappe.get_doc(dict(doctype="Domain", domain=domain)).insert()
+=======
+				frappe.get_doc(doctype="Domain", domain=domain).insert()
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			if "modules" in data:
 				for module in data.get("modules"):
 					frappe.db.set_value("Module Def", module, "restrict_to_domain", domain)
@@ -60,7 +69,11 @@ class DomainSettings(Document):
 			if "restricted_roles" in data:
 				for role in data["restricted_roles"]:
 					if not frappe.db.get_value("Role", role):
+<<<<<<< HEAD
 						frappe.get_doc(dict(doctype="Role", role_name=role)).insert()
+=======
+						frappe.get_doc(doctype="Role", role_name=role).insert()
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					frappe.db.set_value("Role", role, "restrict_to_domain", domain)
 
 					if domain not in active_domains:

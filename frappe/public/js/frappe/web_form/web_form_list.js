@@ -233,12 +233,18 @@ export default class WebFormList {
 		let empty_state = $(`
 			<div class="no-result text-muted flex justify-center align-center">
 				<div class="text-center">
+<<<<<<< HEAD
 					<div>
 						<img
 							src="/assets/frappe/images/ui-states/list-empty-state.svg"
 							alt="Generic Empty State"
 							class="null-state">
 					</div>
+=======
+					<svg class="mb-4 icon icon-xl" style="stroke: var(--text-light);">
+						<use href="#icon-small-file"></use>
+					</svg>
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					<p class="small mb-2">${__("No {0} found", [__(this.doctype)])}</p>
 					${new_button}
 				</div>

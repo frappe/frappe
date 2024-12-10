@@ -28,4 +28,8 @@ class WorkflowDocumentState(Document):
 		update_value: DF.Data | None
 		workflow_builder_id: DF.Data | None
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass

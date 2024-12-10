@@ -43,7 +43,11 @@ watch(
 	() => content.value,
 	(value) => {
 		update_control.value = false;
+<<<<<<< HEAD
 		code_control.value?.set_value(value);
+=======
+		code_control.value?.set_value(value ?? "");
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 );
 

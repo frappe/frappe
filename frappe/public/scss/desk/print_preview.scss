@@ -7,7 +7,10 @@
 .print-preview-wrapper {
 	padding: 80px 0;
 	background-color: var(--gray-200);
+<<<<<<< HEAD
 	border-radius: var(--border-radius);
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	@include media-breakpoint-down(md) {
 		padding: 0;
@@ -43,7 +46,12 @@
 }
 
 .layout-side-section.print-preview-sidebar {
+<<<<<<< HEAD
 	padding-right: var(--padding-md);
+=======
+	padding: var(--padding-md);
+	border-left: 0px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	.checkbox label {
 		align-items: unset;

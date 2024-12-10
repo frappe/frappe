@@ -184,7 +184,11 @@
 			opacity: 0;
 			font-size: $font-size-lg;
 			position: absolute;
+<<<<<<< HEAD
 			background: var(--gray-300);
+=======
+			background: var(--gray-400);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			border-radius: $border-radius;
 
 			.icon {
@@ -192,11 +196,14 @@
 					stroke: $text-color;
 				}
 			}
+<<<<<<< HEAD
 
 			// show zoom button on mobile devices
 			// @media (max-width: $screen-xs) {
 			// 	opacity: 0.5
 			// }
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		}
 	}
 }
@@ -211,10 +218,13 @@
 	background: none !important;
 }
 
+<<<<<<< HEAD
 .pswp__bg {
 	background-color: #fff !important;
 }
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 .pswp__more-items {
 	display: flex;
 	position: absolute;

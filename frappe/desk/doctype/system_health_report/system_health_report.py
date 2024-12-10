@@ -13,10 +13,13 @@ Metrics:
 - Storage - files usage
 - Backups
 - User - new users, sessions stats, failed login attempts
+<<<<<<< HEAD
 
 
 
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 """
 
 import functools
@@ -190,6 +193,7 @@ class SystemHealthReport(Document):
 		# Exclude "maybe" curently executing job
 		upper_threshold = add_to_date(None, minutes=-30, as_datetime=True)
 		self.scheduler_status = get_scheduler_status().get("status")
+<<<<<<< HEAD
 		failing_jobs = frappe.db.sql(
 			"""
 			select scheduled_job_type,
@@ -203,6 +207,42 @@ class SystemHealthReport(Document):
 			having failure_rate > 0
 			order by failure_rate desc
 			limit 5""",
+=======
+
+		mariadb_query = """
+  				SELECT scheduled_job_type,
+					AVG(CASE WHEN status != 'Complete' THEN 1 ELSE 0 END) * 100 AS failure_rate
+				FROM `tabScheduled Job Log`
+				WHERE
+					creation > %(lower_threshold)s
+					AND modified > %(lower_threshold)s
+					AND creation < %(upper_threshold)s
+				GROUP BY scheduled_job_type
+				HAVING failure_rate > 0
+				ORDER BY failure_rate DESC
+				LIMIT 5
+		"""
+
+		postgres_query = """
+  				SELECT scheduled_job_type,
+					AVG(CASE WHEN status != 'Complete' THEN 1 ELSE 0 END) * 100 AS "failure_rate"
+				FROM "tabScheduled Job Log"
+				WHERE
+					creation > %(lower_threshold)s
+					AND modified > %(lower_threshold)s
+					AND creation < %(upper_threshold)s
+				GROUP BY scheduled_job_type
+				HAVING AVG(CASE WHEN status != 'Complete' THEN 1 ELSE 0 END) * 100 > 0
+				ORDER BY "failure_rate" DESC
+				LIMIT 5
+    	"""
+
+		failing_jobs = frappe.db.multisql(
+			{
+				"mariadb": mariadb_query,
+				"postgres": postgres_query,
+			},
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			{"lower_threshold": lower_threshold, "upper_threshold": upper_threshold},
 			as_dict=True,
 		)

@@ -7,7 +7,11 @@ const jump_to_field = (field_label) => {
 		.type("{enter}")
 		.wait(200)
 		.type("{enter}")
+<<<<<<< HEAD
 		.wait(500);
+=======
+		.wait(1000);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 };
 
 const type_value = (value) => {
@@ -59,6 +63,7 @@ context("Form", () => {
 			.blur();
 		cy.click_listview_row_item_with_text("Test Form Contact 3");
 
+<<<<<<< HEAD
 		cy.scrollTo(0);
 		cy.get("#page-Contact .page-head").findByTitle("Test Form Contact 3").should("exist");
 		cy.get(".prev-doc").should("be.visible").click();
@@ -73,6 +78,8 @@ context("Form", () => {
 
 		cy.get("#page-Contact .page-head").findByTitle("Test Form Contact 3").should("exist");
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		// clear filters
 		cy.visit("/app/contact");
 		cy.clear_filters();
@@ -85,6 +92,11 @@ context("Form", () => {
 		let expectBackgroundColor = "rgb(255, 245, 245)";
 
 		cy.visit("/app/contact/new");
+<<<<<<< HEAD
+=======
+		cy.fill_field("company_name", "Test Company");
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		cy.get('.frappe-control[data-fieldname="email_ids"]').as("table");
 		cy.get("@table").find("button.grid-add-row").click();
 		cy.get("@table").find("button.grid-add-row").click();
@@ -94,7 +106,10 @@ context("Form", () => {
 		cy.get("@row1").find("input.input-with-feedback.form-control").as("email_input1");
 
 		cy.get("@email_input1").type(website_input, { waitForAnimations: false });
+<<<<<<< HEAD
 		cy.fill_field("company_name", "Test Company");
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		cy.get("@row2").click();
 		cy.get("@row2").find("input.input-with-feedback.form-control").as("email_input2");

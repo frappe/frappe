@@ -139,7 +139,11 @@
    "link_fieldname": "connected_app"
   }
  ],
+<<<<<<< HEAD
  "modified": "2022-01-07 05:28:45.073041",
+=======
+ "modified": "2024-07-05 08:24:50.182706",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Connected App",
@@ -162,8 +166,15 @@
    "role": "All"
   }
  ],
+<<<<<<< HEAD
  "sort_field": "modified",
  "sort_order": "DESC",
+=======
+ "show_title_field_in_link": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "title_field": "provider_name",
  "track_changes": 1
 }

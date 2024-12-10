@@ -19,6 +19,10 @@
   "reqd",
   "is_virtual",
   "search_index",
+<<<<<<< HEAD
+=======
+  "not_nullable",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   "column_break_18",
   "options",
   "sort_options",
@@ -188,6 +192,10 @@
   },
   {
    "default": "0",
+<<<<<<< HEAD
+=======
+   "depends_on": "eval:!in_list(['Tab Break', 'Table'], doc.fieldtype)",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "fieldname": "allow_in_quick_entry",
    "fieldtype": "Check",
    "label": "Allow in Quick Entry"
@@ -229,6 +237,10 @@
    "description": "For Links, enter the DocType as range.\nFor Select, enter list of Options, each on a new line.",
    "fieldname": "options",
    "fieldtype": "Small Text",
+<<<<<<< HEAD
+=======
+   "ignore_xss_filter": 1,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "in_list_view": 1,
    "label": "Options",
    "oldfieldname": "options",
@@ -237,6 +249,10 @@
   {
    "fieldname": "default",
    "fieldtype": "Small Text",
+<<<<<<< HEAD
+=======
+   "ignore_xss_filter": 1,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "label": "Default",
    "max_height": "3rem",
    "oldfieldname": "default",
@@ -316,6 +332,10 @@
    "fieldname": "permlevel",
    "fieldtype": "Int",
    "label": "Perm Level",
+<<<<<<< HEAD
+=======
+   "non_negative": 1,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "oldfieldname": "permlevel",
    "oldfieldtype": "Int",
    "print_width": "50px",
@@ -573,6 +593,16 @@
   },
   {
    "default": "0",
+<<<<<<< HEAD
+=======
+   "depends_on": "eval:!in_list([\"Check\", \"Currency\", \"Float\", \"Int\", \"Percent\", \"Rating\", \"Select\", \"Table\", \"Table MultiSelect\"], doc.fieldtype)",
+   "fieldname": "not_nullable",
+   "fieldtype": "Check",
+   "label": "Not Nullable"
+  },
+  {
+   "default": "0",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "depends_on": "eval: doc.hidden",
    "fieldname": "show_on_timeline",
    "fieldtype": "Check",
@@ -595,14 +625,25 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2024-10-01 07:26:16.380090",
+=======
+ "modified": "2024-10-15 23:33:03.926033",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [],
+<<<<<<< HEAD
  "sort_field": "modified",
  "sort_order": "ASC",
  "states": []
 }
+=======
+ "sort_field": "creation",
+ "sort_order": "ASC",
+ "states": []
+}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

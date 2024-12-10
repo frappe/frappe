@@ -16,7 +16,11 @@ export default class GridRow {
 		let render_row = true;
 
 		this.wrapper = $('<div class="grid-row"></div>');
+<<<<<<< HEAD
 		this.row = $('<div class="data-row row"></div>')
+=======
+		this.row = $('<div class="data-row row m-0"></div>')
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			.appendTo(this.wrapper)
 			.on("click", function (e) {
 				if (
@@ -90,7 +94,11 @@ export default class GridRow {
 		this.wrapper
 			.find(".grid-row-check")
 			.prop("checked", this.doc ? !!this.doc.__checked : false);
+<<<<<<< HEAD
 		this.grid.refresh_remove_rows_button();
+=======
+		this.grid.debounced_refresh_remove_rows_button();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 	remove() {
 		var me = this;
@@ -362,7 +370,11 @@ export default class GridRow {
 
 		if (this.configure_columns && this.frm) {
 			this.configure_columns_button = $(`
+<<<<<<< HEAD
 				<div class="col grid-static-col d-flex justify-content-center" style="cursor: pointer;">
+=======
+				<div class="col grid-static-col pointer">
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					<a>${frappe.utils.icon("setting-gear", "sm", "", "filter: opacity(0.5)")}</a>
 				</div>
 			`)
@@ -401,7 +413,10 @@ export default class GridRow {
 			});
 
 		this.grid_settings_dialog.set_primary_action(__("Update"), () => {
+<<<<<<< HEAD
 			this.validate_columns_width();
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			this.columns = {};
 			this.update_user_settings_for_grid();
 			this.grid_settings_dialog.hide();
@@ -636,6 +651,7 @@ export default class GridRow {
 			});
 	}
 
+<<<<<<< HEAD
 	validate_columns_width() {
 		let total_column_width = 0.0;
 
@@ -650,6 +666,8 @@ export default class GridRow {
 		}
 	}
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	remove_selected_column() {
 		$(this.fields_html_wrapper)
 			.find(".remove-field")
@@ -698,6 +716,11 @@ export default class GridRow {
 				? this.grid.user_defined_columns
 				: this.docfields;
 
+<<<<<<< HEAD
+=======
+		let total_colsize = 0;
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		this.grid.visible_columns.forEach((col, ci) => {
 			// to get update df for the row
 			let df = fields.find((field) => field?.fieldname === col[0].fieldname);
@@ -706,6 +729,10 @@ export default class GridRow {
 
 			let colsize = col[1];
 
+<<<<<<< HEAD
+=======
+			total_colsize += colsize;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			let txt = this.doc
 				? frappe.format(this.doc[df.fieldname], df, null, this.doc)
 				: __(df.label, null, df.parent);
@@ -736,6 +763,26 @@ export default class GridRow {
 			}
 		});
 
+<<<<<<< HEAD
+=======
+		let current_grid = $(
+			`div[data-fieldname="${this.grid.df.fieldname}"] .form-grid-container`
+		);
+		if (total_colsize > 10) {
+			current_grid.addClass("column-limit-reached");
+		} else if (current_grid.hasClass("column-limit-reached")) {
+			if (Number($(current_grid).children(".form-grid").css("left")) != 0) {
+				$(current_grid).children(".form-grid").css("left", 0);
+				$(current_grid).children().find(".grid-scroll-bar").css({
+					width: "auto",
+					"margin-left": "0px",
+				});
+				$(current_grid).children().find(".grid-scroll-bar-rows").css("width", "auto");
+			}
+			current_grid.removeClass("column-limit-reached");
+		}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		if (this.show_search) {
 			// last empty column
 			$(`<div class="col grid-static-col search"></div>`).appendTo(this.row);
@@ -886,6 +933,7 @@ export default class GridRow {
 
 		let grid;
 		let grid_container;
+<<<<<<< HEAD
 
 		let inital_position_x = 0;
 		let start_x = 0;
@@ -896,6 +944,10 @@ export default class GridRow {
 		let vertical = false;
 		let horizontal = false;
 
+=======
+		let input_in_focus = false;
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		// prevent random layout shifts caused by widgets and on click position elements inside view (UX).
 		function on_input_focus(el) {
 			input_in_focus = true;
@@ -953,6 +1005,7 @@ export default class GridRow {
 			.attr("data-fieldtype", df.fieldtype)
 			.data("df", df)
 			.appendTo(this.row)
+<<<<<<< HEAD
 			// initialize grid for horizontal scroll on mobile devices.
 			.on("touchstart", function (event) {
 				grid_container = $(event.currentTarget).closest(".form-grid-container")[0];
@@ -1006,6 +1059,8 @@ export default class GridRow {
 				vertical = false;
 				horizontal = false;
 			})
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			.on("click", function (event) {
 				if (frappe.ui.form.editable_row !== me) {
 					var out = me.toggle_editable_row();
@@ -1038,6 +1093,33 @@ export default class GridRow {
 		$col.field_area = $('<div class="field-area"></div>').appendTo($col).toggle(false);
 		$col.static_area = $('<div class="static-area ellipsis"></div>').appendTo($col).html(txt);
 
+<<<<<<< HEAD
+=======
+		$(document).ready(function () {
+			let $scrollBar = $(".grid-scroll-bar");
+			let form_grid = $(".form-grid");
+			let grid_container = $(".form-grid-container");
+			let grid_scroll_bar_rows = $(".grid-scroll-bar-rows");
+			// Make sure the grid container is scrollable
+			$scrollBar.on("scroll", function (event) {
+				grid_container = $(event.currentTarget).closest(".form-grid-container");
+				form_grid = $(event.currentTarget).closest(".form-grid");
+				grid_scroll_bar_rows = $(event.currentTarget).closest(".grid-scroll-bar-rows");
+
+				var scroll_left = $(this).scrollLeft();
+
+				// Sync the form grid's left position with the scroll bar
+				form_grid.css("position", "relative");
+				form_grid.css("left", -scroll_left + "px");
+				$(this).css("margin-left", scroll_left + "px");
+			});
+
+			$scrollBar.css("width", grid_container.width());
+
+			grid_scroll_bar_rows.css("width", form_grid[0].scrollWidth);
+		});
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		// set title attribute to see full label for columns in the heading row
 		if (!this.doc) {
 			$col.attr("title", txt);
@@ -1165,8 +1247,13 @@ export default class GridRow {
 		let ignore_fieldtypes = ["Text", "Small Text", "Code", "Text Editor", "HTML Editor"];
 		if (field.$input) {
 			field.$input.on("keydown", function (e) {
+<<<<<<< HEAD
 				var { TAB, UP: UP_ARROW, DOWN: DOWN_ARROW } = frappe.ui.keyCode;
 				if (![TAB, UP_ARROW, DOWN_ARROW].includes(e.which)) {
+=======
+				var { ESCAPE, TAB, UP: UP_ARROW, DOWN: DOWN_ARROW } = frappe.ui.keyCode;
+				if (![TAB, UP_ARROW, DOWN_ARROW, ESCAPE].includes(e.which)) {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					return;
 				}
 
@@ -1201,6 +1288,17 @@ export default class GridRow {
 					return true;
 				};
 
+<<<<<<< HEAD
+=======
+				// ESC
+				if (e.which === ESCAPE && !e.shiftKey) {
+					if (me.doc.__unedited) {
+						me.grid.grid_rows[me.doc.idx - 1].remove();
+					}
+					return false;
+				}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				// TAB
 				if (e.which === TAB && !e.shiftKey) {
 					var last_column = me.wrapper.find(":input:enabled:last").get(0);
@@ -1379,16 +1477,32 @@ export default class GridRow {
 		if (cur_frm) cur_frm.cur_grid = null;
 		this.wrapper.removeClass("grid-row-open");
 	}
+<<<<<<< HEAD
+=======
+	has_prev() {
+		return this.doc.idx > 1;
+	}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	open_prev() {
 		if (!this.doc) return;
 		this.open_row_at_index(this.doc.idx - 2);
 	}
+<<<<<<< HEAD
 	open_next() {
 		if (!this.doc) return;
 
 		if (!this.open_row_at_index(this.doc.idx)) {
 			this.grid.add_new_row(null, null, true);
 		}
+=======
+	has_next() {
+		return this.doc.idx < this.grid.data.length;
+	}
+	open_next() {
+		if (!this.doc) return;
+
+		this.open_row_at_index(this.doc.idx);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 	open_row_at_index(row_index) {
 		if (!this.grid.data[row_index]) return;

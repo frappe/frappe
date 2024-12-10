@@ -24,7 +24,10 @@
   "status_section",
   "text_content",
   "communication_type",
+<<<<<<< HEAD
   "comment_type",
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   "column_break_5",
   "status",
   "sent_or_received",
@@ -55,10 +58,14 @@
   "uid",
   "imap_folder",
   "email_status",
+<<<<<<< HEAD
   "has_attachment",
   "feedback_section",
   "rating",
   "feedback_request"
+=======
+  "has_attachment"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  ],
  "fields": [
   {
@@ -75,9 +82,16 @@
    "label": "To and CC"
   },
   {
+<<<<<<< HEAD
    "depends_on": "eval:doc.communication_type===\"Communication\"",
    "fieldname": "communication_medium",
    "fieldtype": "Select",
+=======
+   "fieldname": "communication_medium",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "label": "Type",
    "options": "\nEmail\nChat\nPhone\nSMS\nEvent\nMeeting\nVisit\nOther"
   },
@@ -154,6 +168,7 @@
    "default": "Communication",
    "fieldname": "communication_type",
    "fieldtype": "Select",
+<<<<<<< HEAD
    "label": "Communication Type",
    "options": "Communication\nComment\nChat\nNotification\nFeedback\nAutomated Message",
    "read_only": 1,
@@ -168,6 +183,14 @@
    "label": "Comment Type",
    "options": "\nComment\nLike\nInfo\nLabel\nWorkflow\nCreated\nSubmitted\nCancelled\nUpdated\nDeleted\nAssigned\nAssignment Completed\nAttachment\nAttachment Removed\nShared\nUnshared\nRelinked",
    "read_only": 1
+=======
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Communication Type",
+   "options": "Communication\nAutomated Message",
+   "read_only": 1,
+   "reqd": 1
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   },
   {
    "fieldname": "column_break_5",
@@ -347,6 +370,7 @@
    "label": "Has  Attachment"
   },
   {
+<<<<<<< HEAD
    "collapsible": 1,
    "depends_on": "eval: doc.rating > 0",
    "fieldname": "feedback_section",
@@ -366,6 +390,8 @@
    "read_only": 1
   },
   {
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "fieldname": "email_template",
    "fieldtype": "Link",
    "label": "Email Template",
@@ -402,7 +428,11 @@
  "idx": 1,
  "links": [],
  "make_attachments_public": 1,
+<<<<<<< HEAD
  "modified": "2024-02-09 12:10:01.200845",
+=======
+ "modified": "2024-03-23 16:01:30.219380",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Communication",
@@ -459,11 +489,19 @@
  ],
  "search_fields": "subject",
  "sender_field": "sender",
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "sort_field": "creation",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "sort_order": "DESC",
  "states": [],
  "subject_field": "subject",
  "title_field": "subject",
  "track_changes": 1,
  "track_seen": 1
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

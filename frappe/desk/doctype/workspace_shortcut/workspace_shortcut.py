@@ -15,7 +15,13 @@ class WorkspaceShortcut(Document):
 		from frappe.types import DF
 
 		color: DF.Color | None
+<<<<<<< HEAD
 		doc_view: DF.Literal["", "List", "Report Builder", "Dashboard", "Tree", "New", "Calendar", "Kanban"]
+=======
+		doc_view: DF.Literal[
+			"", "List", "Report Builder", "Dashboard", "Tree", "New", "Calendar", "Kanban", "Image"
+		]
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		format: DF.Data | None
 		icon: DF.Data | None
 		kanban_board: DF.Link | None
@@ -29,4 +35,8 @@ class WorkspaceShortcut(Document):
 		type: DF.Literal["DocType", "Report", "Page", "Dashboard", "URL"]
 		url: DF.Data | None
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass

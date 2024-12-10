@@ -2,13 +2,27 @@
 
 {%- block title -%}{{_("Not Found")}}{%- endblock -%}
 
+<<<<<<< HEAD
 {% block page_content %}
+=======
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block page_content %}
+<style>
+	body {
+		background-color: var(--subtle-accent);
+		font-size: var(--text-base);
+	}
+</style>
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 <script>
 	window.is_404 = true;
 </script>
 
 <div class="error-page">
+<<<<<<< HEAD
 	<img class="img-404" src="/assets/frappe/images/ui-states/404.png" />
 	<div>
 		<h2 class="mb-1 mt-4">
@@ -18,6 +32,15 @@
 			{{ _("The page you are looking for has gone missing.") }}
 		</div>
 		<div class="mt-6 back-to-home"><a href='/' class='btn btn-primary'>{{ _("Back to Home") }}</a></div>
+=======
+	<div>
+		<h4>
+			{{ _("Page not found") }}
+		</h4>
+		<div class="details">
+			<a href='/' class="text-muted">{{ _("Back to Home") }}</a>
+		</div>
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	</div>
 </div>
 

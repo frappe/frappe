@@ -8,6 +8,10 @@
  *
  * @param {string} opts.parent [HTMLElement] Parent element
  * @param {boolean} opts.single_column Whether to include sidebar
+<<<<<<< HEAD
+=======
+ * @param {string} [opts.sidebar_position] Position of sidebar (default None, "Left" or "Right")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  * @param {string} [opts.title] Page title
  * @param {Object} [opts.make_page]
  *
@@ -47,7 +51,11 @@ frappe.ui.Page = class Page {
 
 	setup_scroll_handler() {
 		let last_scroll = 0;
+<<<<<<< HEAD
 		$(window).scroll(
+=======
+		$(".main-section").scroll(
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			frappe.utils.throttle(() => {
 				$(".page-head").toggleClass("drop-shadow", !!document.documentElement.scrollTop);
 				let current_scroll = document.documentElement.scrollTop;
@@ -86,8 +94,13 @@ frappe.ui.Page = class Page {
 			// nesting under col-sm-12 for consistency
 			this.add_view(
 				"main",
+<<<<<<< HEAD
 				'<div class="row layout-main">\
 					<div class="col-md-12 layout-main-section-wrapper">\
+=======
+				'<div class="layout-main">\
+					<div class="layout-main-section-wrapper">\
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 						<div class="layout-main-section"></div>\
 						<div class="layout-footer hide"></div>\
 					</div>\
@@ -97,15 +110,31 @@ frappe.ui.Page = class Page {
 			this.add_view(
 				"main",
 				`
+<<<<<<< HEAD
 				<div class="row layout-main">
 					<div class="col-lg-2 layout-side-section"></div>
 					<div class="col layout-main-section-wrapper">
+=======
+				<div class="layout-main">
+					<div class="layout-side-section"></div>
+					<div class="layout-main-section-wrapper">
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 						<div class="layout-main-section"></div>
 						<div class="layout-footer hide"></div>
 					</div>
 				</div>
 			`
 			);
+<<<<<<< HEAD
+=======
+
+			if (this.sidebar_position === "Right") {
+				this.wrapper
+					.find(".layout-main-section-wrapper")
+					.insertBefore(this.wrapper.find(".layout-side-section"));
+				this.wrapper.find(".layout-side-section").addClass("right");
+			}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		}
 
 		this.setup_page();
@@ -148,8 +177,11 @@ frappe.ui.Page = class Page {
 			this.make_page();
 		}
 
+<<<<<<< HEAD
 		this.card_layout && this.main.addClass("frappe-card");
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		// keyboard shortcuts
 		let menu_btn = this.menu_btn_group.find("button");
 		menu_btn.attr("title", __("Menu")).tooltip({ delay: { show: 600, hide: 100 } });
@@ -509,7 +541,11 @@ frappe.ui.Page = class Page {
 		if (standard) {
 			$li.appendTo(parent);
 		} else {
+<<<<<<< HEAD
 			this.divider = parent.find(".dropdown-divider");
+=======
+			this.divider = parent.find(".dropdown-divider.user-action");
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			if (!this.divider.length) {
 				this.divider = $('<li class="dropdown-divider user-action"></li>').prependTo(
 					parent
@@ -647,6 +683,10 @@ frappe.ui.Page = class Page {
 			let response = action();
 			me.btn_disable_enable(btn, response);
 		};
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		// Add actions as menu item in Mobile View
 		let menu_item_label = group ? `${group} > ${label}` : label;
 		let menu_item = this.add_menu_item(menu_item_label, _action, false, false, false);

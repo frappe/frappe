@@ -25,8 +25,13 @@ class DocTypeLayout(Document):
 		document_type: DF.Link
 		fields: DF.Table[DocTypeLayoutField]
 		route: DF.Data
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def validate(self):
 		if not self.route:
 			self.route = slug(self.name)

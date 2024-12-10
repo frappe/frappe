@@ -60,6 +60,10 @@ class SystemSettings(Document):
 		float_precision: DF.Literal["", "2", "3", "4", "5", "6", "7", "8", "9"]
 		force_user_to_reset_password: DF.Int
 		force_web_capture_mode_for_uploads: DF.Check
+<<<<<<< HEAD
+=======
+		hide_empty_read_only_fields: DF.Check
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		hide_footer_in_auto_email_reports: DF.Check
 		language: DF.Link
 		lifespan_qrcode_image: DF.Int
@@ -102,8 +106,13 @@ class SystemSettings(Document):
 	def validate(self):
 		from frappe.twofactor import toggle_two_factor_auth
 
+<<<<<<< HEAD
 		enable_password_policy = cint(self.enable_password_policy) and True or False
 		minimum_password_score = cint(getattr(self, "minimum_password_score", 0)) or 0
+=======
+		enable_password_policy = cint(self.enable_password_policy)
+		minimum_password_score = cint(getattr(self, "minimum_password_score", 0))
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		if enable_password_policy and minimum_password_score <= 0:
 			frappe.throw(_("Please select Minimum Password Score"))
 		elif not enable_password_policy:

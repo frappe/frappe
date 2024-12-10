@@ -42,12 +42,19 @@ def toggle_two_factor_auth(state, roles=None):
 
 
 def two_factor_is_enabled(user=None):
+<<<<<<< HEAD
 	"""Returns True if 2FA is enabled."""
 	enabled = int(frappe.db.get_single_value("System Settings", "enable_two_factor_auth") or 0)
 	if enabled:
 		bypass_two_factor_auth = int(
 			frappe.db.get_single_value("System Settings", "bypass_2fa_for_retricted_ip_users") or 0
 		)
+=======
+	"""Return True if 2FA is enabled."""
+	enabled = cint(frappe.get_system_settings("enable_two_factor_auth"))
+	if enabled:
+		bypass_two_factor_auth = cint(frappe.get_system_settings("bypass_2fa_for_retricted_ip_users"))
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		if bypass_two_factor_auth and user:
 			user_doc = frappe.get_doc("User", user)
 			restrict_ip_list = (
@@ -98,6 +105,7 @@ def cache_2fa_data(user, token, otp_secret, tmp_id):
 	pwd = frappe.form_dict.get("pwd")
 	verification_method = get_verification_method()
 
+<<<<<<< HEAD
 	# set increased expiry time for SMS and Email
 	if verification_method in ["SMS", "Email"]:
 		expiry_time = frappe.flags.token_expiry or 300
@@ -108,6 +116,19 @@ def cache_2fa_data(user, token, otp_secret, tmp_id):
 	for k, v in {"_usr": user, "_pwd": pwd, "_otp_secret": otp_secret}.items():
 		frappe.cache.set(f"{tmp_id}{k}", v)
 		frappe.cache.expire(f"{tmp_id}{k}", expiry_time)
+=======
+	pipeline = frappe.cache.pipeline()
+
+	# set increased expiry time for SMS and Email
+	if verification_method in ["SMS", "Email"]:
+		expiry_time = frappe.flags.token_expiry or 300
+		pipeline.set(tmp_id + "_token", token, expiry_time)
+	else:
+		expiry_time = frappe.flags.otp_expiry or 180
+	for k, v in {"_usr": user, "_pwd": pwd, "_otp_secret": otp_secret}.items():
+		pipeline.set(f"{tmp_id}{k}", v, expiry_time)
+	pipeline.execute()
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 def two_factor_is_enabled_for_(user):
@@ -144,7 +165,11 @@ def get_otpsecret_for_(user):
 
 
 def get_verification_method():
+<<<<<<< HEAD
 	return frappe.db.get_single_value("System Settings", "two_factor_method")
+=======
+	return frappe.get_system_settings("two_factor_method")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 def confirm_otp_token(login_manager, otp=None, tmp_id=None):
@@ -190,7 +215,11 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 
 
 def get_verification_obj(user, token, otp_secret):
+<<<<<<< HEAD
 	otp_issuer = frappe.db.get_single_value("System Settings", "otp_issuer_name")
+=======
+	otp_issuer = frappe.get_system_settings("otp_issuer_name")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	verification_method = get_verification_method()
 	verification_obj = None
 	if verification_method == "SMS":
@@ -259,7 +288,11 @@ def process_2fa_for_email(user, token, otp_secret, otp_issuer, method="Email"):
 def get_email_subject_for_2fa(kwargs_dict):
 	"""Get email subject for 2fa."""
 	subject_template = _("Login Verification Code from {}").format(
+<<<<<<< HEAD
 		frappe.db.get_single_value("System Settings", "otp_issuer_name")
+=======
+		frappe.get_system_settings("otp_issuer_name")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	)
 	return frappe.render_template(subject_template, kwargs_dict)
 
@@ -277,7 +310,11 @@ def get_email_body_for_2fa(kwargs_dict):
 def get_email_subject_for_qr_code(kwargs_dict):
 	"""Get QRCode email subject."""
 	subject_template = _("One Time Password (OTP) Registration Code from {}").format(
+<<<<<<< HEAD
 		frappe.db.get_single_value("System Settings", "otp_issuer_name")
+=======
+		frappe.get_system_settings("otp_issuer_name")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	)
 	return frappe.render_template(subject_template, kwargs_dict)
 
@@ -295,7 +332,11 @@ def get_link_for_qrcode(user, totp_uri):
 	key = frappe.generate_hash(length=20)
 	key_user = f"{key}_user"
 	key_uri = f"{key}_uri"
+<<<<<<< HEAD
 	lifespan = int(frappe.db.get_single_value("System Settings", "lifespan_qrcode_image")) or 240
+=======
+	lifespan = int(frappe.get_system_settings("lifespan_qrcode_image")) or 240
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	frappe.cache.set_value(key_uri, totp_uri, expires_in_sec=lifespan)
 	frappe.cache.set_value(key_user, user, expires_in_sec=lifespan)
 	return get_url(f"/qrcode?k={key}")
@@ -411,7 +452,11 @@ def should_remove_barcode_image(barcode):
 	"""Check if it's time to delete barcode image from server."""
 	if isinstance(barcode, str):
 		barcode = frappe.get_doc("File", barcode)
+<<<<<<< HEAD
 	lifespan = frappe.db.get_single_value("System Settings", "lifespan_qrcode_image") or 240
+=======
+	lifespan = frappe.get_system_settings("lifespan_qrcode_image") or 240
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if time_diff_in_seconds(get_datetime(), barcode.creation) > int(lifespan):
 		return True
 	return False

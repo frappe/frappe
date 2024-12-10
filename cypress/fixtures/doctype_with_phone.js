@@ -40,7 +40,11 @@ export default {
 			cancel: 1,
 		},
 	],
+<<<<<<< HEAD
 	sort_field: "modified",
+=======
+	sort_field: "creation",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	sort_order: "ASC",
 	track_changes: 1,
 };

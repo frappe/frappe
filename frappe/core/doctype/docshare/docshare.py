@@ -28,6 +28,10 @@ class DocShare(Document):
 		user: DF.Link | None
 		write: DF.Check
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	no_feed_on_delete = True
 
 	def validate(self):

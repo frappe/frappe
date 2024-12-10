@@ -17,7 +17,11 @@
 	--dt-selection-highlight-color: var(--highlight-color);
 
 	background-color: var(--bg-color);
+<<<<<<< HEAD
 	margin-left: -5px;
+=======
+	margin-left: -1px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	margin-top: 0px;
 	@include get_textstyle("base", "regular");
 

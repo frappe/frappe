@@ -38,7 +38,11 @@ frappe.ui.form.Form = class FrappeForm {
 		this.events = {};
 		this.fetch_dict = {};
 		this.parent = parent;
+<<<<<<< HEAD
 		this.doctype_layout = frappe.get_doc("DocType Layout", doctype_layout_name);
+=======
+		this.doctype_layout = frappe.get_meta(doctype_layout_name);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		this.undo_manager = new UndoManager({ frm: this });
 		this.setup_meta(doctype);
 		this.debounced_reload_doc = frappe.utils.debounce(this.reload_doc.bind(this), 1000);
@@ -52,7 +56,11 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	setup_meta() {
+<<<<<<< HEAD
 		this.meta = frappe.get_doc("DocType", this.doctype);
+=======
+		this.meta = frappe.get_meta(this.doctype);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		if (this.meta.istable) {
 			this.meta.in_dialog = 1;
@@ -84,6 +92,10 @@ frappe.ui.form.Form = class FrappeForm {
 		frappe.ui.make_app_page({
 			parent: this.wrapper,
 			single_column: is_single_column,
+<<<<<<< HEAD
+=======
+			sidebar_position: "Right",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		});
 		this.page = this.wrapper.page;
 		this.layout_main = this.page.main.get(0);
@@ -311,6 +323,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		// using $.each to preserve df via closure
 		$.each(table_fields, function (i, df) {
+<<<<<<< HEAD
 			frappe.model.on(df.options, "*", function (fieldname, value, doc) {
 				if (doc.parent == me.docname && doc.parentfield === df.fieldname) {
 					me.dirty();
@@ -318,6 +331,22 @@ frappe.ui.form.Form = class FrappeForm {
 					return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
 				}
 			});
+=======
+			frappe.model.on(
+				df.options,
+				"*",
+				function (fieldname, value, doc, skip_dirty_trigger = false) {
+					if (doc.parent == me.docname && doc.parentfield === df.fieldname) {
+						if (!skip_dirty_trigger) {
+							me.dirty();
+						}
+
+						me.fields_dict[df.fieldname].grid.set_value(fieldname, value, doc);
+						return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
+					}
+				}
+			);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		});
 	}
 
@@ -325,6 +354,17 @@ frappe.ui.form.Form = class FrappeForm {
 		$(document).on("rename", (ev, dt, old_name, new_name) => {
 			if (dt == this.doctype) this.rename_notify(dt, old_name, new_name);
 		});
+<<<<<<< HEAD
+=======
+
+		frappe.realtime.on("doc_rename", (data) => {
+			// the current form has been renamed by some backend process
+			if (data.doctype == this.doctype && data.old == this.docname) {
+				// the current form does not exist anymore, route to the new one
+				frappe.set_route("Form", this.doctype, data.new);
+			}
+		});
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 
 	setup_file_drop() {
@@ -411,7 +451,11 @@ frappe.ui.form.Form = class FrappeForm {
 			// read only (workflow)
 			this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
 			if (this.read_only) {
+<<<<<<< HEAD
 				this.set_read_only(true);
+=======
+				this.set_read_only();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				frappe.show_alert(__("This form is not editable due to a Workflow."));
 			}
 
@@ -543,7 +587,10 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	trigger_onload(switched) {
+<<<<<<< HEAD
 		this.cscript.is_onload = false;
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		if (!this.opendocs[this.docname]) {
 			var me = this;
 			this.cscript.is_onload = true;
@@ -621,6 +668,10 @@ frappe.ui.form.Form = class FrappeForm {
 				() => this.cscript.is_onload && this.is_new() && this.focus_on_first_input(),
 				() => this.run_after_load_hook(),
 				() => this.dashboard.after_refresh(),
+<<<<<<< HEAD
+=======
+				() => (this.cscript.is_onload = false),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			]);
 		} else {
 			this.refresh_header(switched);
@@ -664,6 +715,13 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	refresh_fields() {
+<<<<<<< HEAD
+=======
+		if (this.layout === undefined) {
+			return;
+		}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		this.layout.refresh(this.doc);
 		this.layout.primary_button = this.$wrapper.find(".btn-primary");
 
@@ -827,6 +885,20 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 	}
 
+<<<<<<< HEAD
+=======
+	discard(btn, callback, on_error) {
+		const me = this;
+		return new Promise((resolve) => {
+			frappe.confirm(__("Discard {0}", [this.docname]), function () {
+				me.script_manager.trigger("before_discard").then(function () {
+					return me._discard(btn, callback, on_error, false); // ?
+				});
+			});
+		});
+	}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	savesubmit(btn, callback, on_error) {
 		var me = this;
 		return new Promise((resolve) => {
@@ -1009,6 +1081,55 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 	}
 
+<<<<<<< HEAD
+=======
+	_discard(btn, on_error, skip_confirm) {
+		const me = this;
+		const discard_doc = () => {
+			frappe.validated = true;
+			me.script_manager.trigger("before_discard").then(() => {
+				if (!frappe.validated) {
+					return me.handle_save_fail(btn, on_error);
+				}
+
+				var after_discard = function (r) {
+					if (r.exc) {
+						me.handle_save_fail(btn, on_error);
+					} else {
+						frappe.utils.play_sound("cancel");
+						me.refresh();
+						me.script_manager.trigger("after_discard");
+					}
+					me.reload_doc();
+				};
+				//frappe.ui.form.discard(me, after_discard, btn);
+				frappe.call({
+					freeze: true,
+					method: "frappe.desk.form.save.discard",
+					args: {
+						doctype: me.doc.doctype,
+						name: me.doc.name,
+					},
+					btn: btn,
+					callback: function (r) {
+						after_discard(r);
+					},
+				});
+			});
+		};
+
+		if (skip_confirm) {
+			discard_doc();
+		} else {
+			frappe.confirm(
+				__("Permanently Discard {0}?", [this.docname]),
+				discard_doc,
+				me.handle_save_fail(btn, on_error)
+			);
+		}
+	}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	savetrash() {
 		this.validate_form_action("Delete");
 		frappe.model.delete_doc(this.doctype, this.docname, function () {
@@ -1402,6 +1523,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		let btn = this.page.add_inner_button(label, fn, group);
 
+<<<<<<< HEAD
 		if (btn) {
 			// Add actions as menu item in Mobile View
 			let menu_item_label = group ? `${group} > ${label}` : label;
@@ -1410,6 +1532,8 @@ frappe.ui.form.Form = class FrappeForm {
 
 			this.custom_buttons[label] = btn;
 		}
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		return btn;
 	}
 
@@ -1423,9 +1547,34 @@ frappe.ui.form.Form = class FrappeForm {
 		this.custom_buttons = {};
 	}
 
+<<<<<<< HEAD
 	//Remove specific custom button by button Label
 	remove_custom_button(label, group) {
 		this.page.remove_inner_button(label, group);
+=======
+	// Remove specific custom button by button Label
+	remove_custom_button(label, group) {
+		this.page.remove_inner_button(label, group);
+
+		// Remove actions from menu
+		delete this.custom_buttons[label];
+		let menu_item_label = group ? `${group} > ${label}` : label;
+		let $btn = this.page.is_in_group_button_dropdown(
+			this.page.menu,
+			"li > a.grey-link > span",
+			menu_item_label
+		);
+
+		if ($btn) {
+			let $linkBody = $btn.parent().parent();
+			if ($linkBody) {
+				// If last button, remove divider too
+				let $divider = $linkBody.next(".dropdown-divider");
+				if ($divider) $divider.remove();
+				$linkBody.remove();
+			}
+		}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 
 	scroll_to_element() {
@@ -1760,6 +1909,10 @@ frappe.ui.form.Form = class FrappeForm {
 				email: p.email,
 			};
 		});
+<<<<<<< HEAD
+=======
+		this.refresh_fields();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 
 	trigger(event, doctype, docname) {
@@ -2049,6 +2202,7 @@ frappe.ui.form.Form = class FrappeForm {
 			});
 		});
 	}
+<<<<<<< HEAD
 	set_active_tab(tab) {
 		if (!this.active_tab_map) {
 			this.active_tab_map = {};
@@ -2057,6 +2211,47 @@ frappe.ui.form.Form = class FrappeForm {
 
 		this.script_manager.trigger("on_tab_change");
 	}
+=======
+
+	set_active_tab(tab) {
+		const previous_tab_name = this.active_tab_map?.[this.docname]?.df?.fieldname || "";
+		const next_tab_name = tab?.df?.fieldname || "";
+		const has_changed = previous_tab_name !== next_tab_name;
+
+		// A change is always detected on first render, because next_tab_name is always set (= fieldname)
+		// but the previous_tab_name is always empty.
+
+		if (!has_changed) {
+			return; // No change in tab, don't trigger on_tab_change, don't update URL hash
+		}
+
+		this.active_tab_map ??= {};
+		this.active_tab_map[this.docname] = tab;
+
+		// Update URL hash to reflect the active tab
+		const new_hash = next_tab_name.replace("__details", "");
+		const url = new URL(window.location.href);
+		url.hash = new_hash;
+		if (url.href !== window.location.href) {
+			history.replaceState(null, null, url);
+		}
+
+		this.script_manager.trigger("on_tab_change");
+
+		// When switching tabs, we should tell fields to update their display if needed (e.g. Geolocation and Signature fields).
+		// This is done using the already existing on_section_collapse optional method.
+		let in_tab = false;
+		for (const df of this.layout.fields) {
+			const field = this.get_field(df.fieldname);
+			if (df?.fieldtype == "Tab Break") {
+				in_tab = df === tab?.df;
+			} else if (typeof field?.on_section_collapse == "function") {
+				field.on_section_collapse(!in_tab); // hide = !in_tab
+			}
+		}
+	}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	get_active_tab() {
 		return this.active_tab_map && this.active_tab_map[this.docname];
 	}

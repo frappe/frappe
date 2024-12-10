@@ -17,6 +17,10 @@ frappe.ui.form.Toolbar = class Toolbar {
 		this.page.clear_user_actions();
 		this.show_title_as_dirty();
 		this.set_primary_action();
+<<<<<<< HEAD
+=======
+		this.refresh_follow();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		if (this.frm.meta.hide_toolbar) {
 			this.page.hide_menu();
@@ -273,11 +277,16 @@ frappe.ui.form.Toolbar = class Toolbar {
 		this.page.clear_menu();
 
 		if (frappe.boot.desk_settings.form_sidebar) {
+<<<<<<< HEAD
 			this.make_navigation();
+=======
+			// this.make_navigation();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			this.make_menu_items();
 		}
 	}
 
+<<<<<<< HEAD
 	make_navigation() {
 		// Navigate
 		if (!this.frm.is_new() && !this.frm.meta.issingle) {
@@ -307,11 +316,54 @@ frappe.ui.form.Toolbar = class Toolbar {
 		const docstatus = cint(this.frm.doc.docstatus);
 		const is_submittable = frappe.model.is_submittable(this.frm.doc.doctype);
 
+=======
+	make_menu_items() {
+		// Print
+		this.add_discard();
+		this.add_print();
+		this.add_email();
+		this.add_rename();
+		this.add_reload();
+		this.add_delete();
+		this.add_duplicate();
+		this.add_new();
+		this.page.add_divider();
+		this.add_audit_trail();
+		this.add_jump_to_field();
+		this.add_show_links();
+		this.add_copy_to_clipboard();
+		this.add_remind_me();
+		this.add_follow();
+		this.add_undo_redo();
+		this.add_auto_repeat();
+		this.page.add_divider();
+		this.make_customize_buttons();
+	}
+
+	add_discard() {
+		if (
+			frappe.model.is_submittable(this.frm.doc.doctype) &&
+			this.frm.doc.docstatus == 0 &&
+			!this.has_workflow()
+		) {
+			this.page.add_menu_item(
+				__("Discard"),
+				function () {
+					this.frm._discard();
+				},
+				true
+			);
+		}
+	}
+
+	add_print() {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings");
 		const allow_print_for_draft = cint(print_settings.allow_print_for_draft);
 		const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
 
 		if (
+<<<<<<< HEAD
 			!is_submittable ||
 			docstatus == 1 ||
 			(allow_print_for_cancelled && docstatus == 2) ||
@@ -322,19 +374,37 @@ frappe.ui.form.Toolbar = class Toolbar {
 					__("Print"),
 					function () {
 						me.frm.print_doc();
+=======
+			!frappe.model.is_submittable(this.frm.doc.doctype) ||
+			this.frm.doc.docstatus == 1 ||
+			(allow_print_for_cancelled && this.frm.doc.docstatus == 2) ||
+			(allow_print_for_draft && this.frm.doc.docstatus == 0)
+		) {
+			if (frappe.model.can_print(null, this.frm) && !this.frm.meta.issingle) {
+				this.page.add_menu_item(
+					__("Print"),
+					() => {
+						this.frm.print_doc();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					},
 					true
 				);
 				this.print_icon = this.page.add_action_icon(
 					"printer",
+<<<<<<< HEAD
 					function () {
 						me.frm.print_doc();
+=======
+					() => {
+						this.frm.print_doc();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					},
 					"",
 					__("Print")
 				);
 			}
 		}
+<<<<<<< HEAD
 
 		// email
 		if (frappe.model.can_email(null, me.frm) && me.frm.doc.docstatus < 2) {
@@ -342,6 +412,17 @@ frappe.ui.form.Toolbar = class Toolbar {
 				__("Email"),
 				function () {
 					me.frm.email_doc();
+=======
+	}
+
+	add_email() {
+		// email
+		if (frappe.model.can_email(null, this.frm) && this.frm.doc.docstatus < 2) {
+			this.page.add_menu_item(
+				__("Email"),
+				() => {
+					this.frm.email_doc();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				},
 				true,
 				{
@@ -350,16 +431,28 @@ frappe.ui.form.Toolbar = class Toolbar {
 				}
 			);
 		}
+<<<<<<< HEAD
 
 		// go to field modal
 		this.page.add_menu_item(
 			__("Jump to field"),
 			function () {
 				me.show_jump_to_field_dialog();
+=======
+	}
+
+	add_jump_to_field() {
+		// go to field modal
+		this.page.add_menu_item(
+			__("Jump to field"),
+			() => {
+				this.show_jump_to_field_dialog();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			},
 			true,
 			"Ctrl+J"
 		);
+<<<<<<< HEAD
 
 		// Linked With
 		if (!me.frm.meta.issingle) {
@@ -367,10 +460,21 @@ frappe.ui.form.Toolbar = class Toolbar {
 				__("Links"),
 				function () {
 					me.show_linked_with();
+=======
+	}
+
+	add_show_links() {
+		if (!this.frm.meta.issingle) {
+			this.page.add_menu_item(
+				__("Show Links"),
+				() => {
+					this.show_linked_with();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				},
 				true
 			);
 		}
+<<<<<<< HEAD
 
 		// duplicate
 		if (frappe.boot.user.can_create.includes(me.frm.doctype) && !me.frm.meta.allow_copy) {
@@ -378,11 +482,22 @@ frappe.ui.form.Toolbar = class Toolbar {
 				__("Duplicate"),
 				function () {
 					me.frm.copy_doc();
+=======
+	}
+
+	add_duplicate() {
+		if (frappe.boot.user.can_create.includes(this.frm.doctype) && !this.frm.meta.allow_copy) {
+			this.page.add_menu_item(
+				__("Duplicate"),
+				() => {
+					this.frm.copy_doc();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				},
 				true,
 				"Shift+D"
 			);
 		}
+<<<<<<< HEAD
 
 		// copy doc to clipboard
 		this.page.add_menu_item(
@@ -399,10 +514,21 @@ frappe.ui.form.Toolbar = class Toolbar {
 				__("Rename"),
 				function () {
 					me.frm.rename_doc();
+=======
+	}
+
+	add_rename() {
+		if (this.can_rename()) {
+			this.page.add_menu_item(
+				__("Rename"),
+				() => {
+					this.frm.rename_doc();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				},
 				true
 			);
 		}
+<<<<<<< HEAD
 
 		// reload
 		this.page.add_menu_item(
@@ -424,6 +550,33 @@ frappe.ui.form.Toolbar = class Toolbar {
 				__("Delete"),
 				function () {
 					me.frm.savetrash();
+=======
+	}
+
+	add_reload() {
+		// reload
+		this.page.add_menu_item(
+			__("Reload"),
+			() => {
+				this.frm.reload_doc();
+			},
+			true
+		);
+	}
+
+	add_delete() {
+		// delete
+		if (
+			cint(this.frm.doc.docstatus) != 1 &&
+			!this.frm.doc.__islocal &&
+			!frappe.model.is_single(this.frm.doctype) &&
+			frappe.model.can_delete(this.frm.doctype)
+		) {
+			this.page.add_menu_item(
+				__("Delete"),
+				() => {
+					this.frm.savetrash();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				},
 				true,
 				{
@@ -432,7 +585,13 @@ frappe.ui.form.Toolbar = class Toolbar {
 				}
 			);
 		}
+<<<<<<< HEAD
 
+=======
+	}
+
+	add_remind_me() {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		this.page.add_menu_item(
 			__("Remind Me"),
 			() => {
@@ -445,7 +604,36 @@ frappe.ui.form.Toolbar = class Toolbar {
 				condition: () => !this.frm.is_new(),
 			}
 		);
+<<<<<<< HEAD
 		//
+=======
+	}
+
+	add_follow() {
+		if (this.frm.meta.track_changes && frappe.boot.user.document_follow_notify) {
+			this.follow_menu_item = this.page.add_menu_item(
+				__(this.get_follow_text()),
+				() => {
+					this.follow();
+				},
+				true
+			);
+		}
+	}
+
+	add_copy_to_clipboard() {
+		// copy doc to clipboard
+		this.page.add_menu_item(
+			__("Copy to Clipboard"),
+			() => {
+				frappe.utils.copy_to_clipboard(JSON.stringify(this.frm.doc));
+			},
+			true
+		);
+	}
+
+	add_undo_redo() {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		// Undo and redo
 		this.page.add_menu_item(
 			__("Undo"),
@@ -471,19 +659,31 @@ frappe.ui.form.Toolbar = class Toolbar {
 				description: __("Redo last action"),
 			}
 		);
+<<<<<<< HEAD
 
 		this.make_customize_buttons();
 
+=======
+	}
+
+	add_auto_repeat() {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		// Auto Repeat
 		if (this.can_repeat()) {
 			this.page.add_menu_item(
 				__("Repeat"),
+<<<<<<< HEAD
 				function () {
 					frappe.utils.new_auto_repeat_prompt(me.frm);
+=======
+				() => {
+					frappe.utils.new_auto_repeat_prompt(this.frm);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				},
 				true
 			);
 		}
+<<<<<<< HEAD
 
 		// New
 		if (p[CREATE] && !this.frm.meta.issingle && !this.frm.meta.in_create) {
@@ -491,6 +691,18 @@ frappe.ui.form.Toolbar = class Toolbar {
 				__("New {0}", [__(me.frm.doctype)]),
 				function () {
 					frappe.new_doc(me.frm.doctype, true);
+=======
+	}
+
+	add_new() {
+		let p = this.frm.perm[0];
+		// New
+		if (p[CREATE] && !this.frm.meta.issingle && !this.frm.meta.in_create) {
+			this.page.add_menu_item(
+				__("New {0}", [__(this.frm.doctype)]),
+				() => {
+					frappe.new_doc(this.frm.doctype, true);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				},
 				true,
 				{
@@ -501,6 +713,24 @@ frappe.ui.form.Toolbar = class Toolbar {
 		}
 	}
 
+<<<<<<< HEAD
+=======
+	add_audit_trail() {
+		if (
+			this.frm.doc.amended_from &&
+			frappe.model.get_value("DocType", this.frm.doc.doctype, "track_changes")
+		) {
+			this.page.add_menu_item(
+				__("View Audit Trail"),
+				() => {
+					frappe.set_route("audit-trail");
+				},
+				true
+			);
+		}
+	}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	make_customize_buttons() {
 		let is_doctype_form = this.frm.doctype === "DocType";
 		if (
@@ -528,7 +758,11 @@ frappe.ui.form.Toolbar = class Toolbar {
 		}
 
 		if (frappe.model.can_create("DocType")) {
+<<<<<<< HEAD
 			if (frappe.boot.developer_mode === 1 && !is_doctype_form) {
+=======
+			if (frappe.boot.developer_mode && !is_doctype_form) {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				// edit doctype
 				this.page.add_menu_item(
 					__("Edit DocType"),
@@ -572,9 +806,13 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 	has_workflow() {
 		if (this._has_workflow === undefined)
+<<<<<<< HEAD
 			this._has_workflow = frappe.get_list("Workflow", {
 				document_type: this.frm.doctype,
 			}).length;
+=======
+			this._has_workflow = frappe.model.has_workflow(this.frm.doctype);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		return this._has_workflow;
 	}
 	get_docstatus() {
@@ -762,4 +1000,39 @@ frappe.ui.form.Toolbar = class Toolbar {
 
 		dialog.show();
 	}
+<<<<<<< HEAD
+=======
+
+	follow() {
+		let is_followed = this.frm.get_docinfo().is_document_followed;
+		frappe
+			.call("frappe.desk.form.document_follow.update_follow", {
+				doctype: this.frm.doctype,
+				doc_name: this.frm.doc.name,
+				following: !is_followed,
+			})
+			.then((r) => {
+				is_followed = r.message ? true : false;
+
+				frappe.model.set_docinfo(
+					this.frm.doctype,
+					this.frm.doc.name,
+					"is_document_followed",
+					is_followed
+				);
+				this.refresh_follow(is_followed);
+			});
+	}
+
+	get_follow_text(follow) {
+		if (follow === null) {
+			follow = this.frm.get_docinfo().is_document_followed;
+		}
+		return follow ? __("Unfollow") : __("Follow");
+	}
+
+	refresh_follow(follow) {
+		this.follow_menu_item?.text(this.get_follow_text(follow));
+	}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 };

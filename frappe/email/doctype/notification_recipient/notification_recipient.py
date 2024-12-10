@@ -22,4 +22,8 @@ class NotificationRecipient(Document):
 		receiver_by_document_field: DF.Literal[None]
 		receiver_by_role: DF.Link | None
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass

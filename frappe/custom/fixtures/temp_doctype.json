@@ -24,7 +24,11 @@
   "allow_import": 0,
   "allow_events_in_timeline": 0,
   "allow_auto_repeat": 0,
+<<<<<<< HEAD
   "sort_field": "modified",
+=======
+  "sort_field": "creation",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   "sort_order": "DESC",
   "document_type": "",
   "show_preview_popup": 0,

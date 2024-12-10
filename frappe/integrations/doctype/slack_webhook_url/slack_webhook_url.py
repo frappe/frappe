@@ -32,6 +32,10 @@ class SlackWebhookURL(Document):
 		webhook_name: DF.Data
 		webhook_url: DF.Data
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass
 
 

@@ -5,7 +5,11 @@ from frappe import _
 
 @functools.total_ordering
 class _LazyTranslate:
+<<<<<<< HEAD
 	__slots__ = ("msg", "lang", "context")
+=======
+	__slots__ = ("context", "lang", "msg")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	def __init__(self, msg: str, lang: str | None = None, context: str | None = None) -> None:
 		self.msg = msg

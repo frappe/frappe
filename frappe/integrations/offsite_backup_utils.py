@@ -47,7 +47,11 @@ def get_latest_backup_file(with_files=False):
 
 	odb = BackupGenerator(
 		frappe.conf.db_name,
+<<<<<<< HEAD
 		frappe.conf.db_name,
+=======
+		frappe.conf.db_user,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		frappe.conf.db_password,
 		db_socket=frappe.conf.db_socket,
 		db_host=frappe.conf.db_host,
@@ -106,7 +110,11 @@ def generate_files_backup():
 
 	backup = BackupGenerator(
 		frappe.conf.db_name,
+<<<<<<< HEAD
 		frappe.conf.db_name,
+=======
+		frappe.conf.db_user,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		frappe.conf.db_password,
 		db_socket=frappe.conf.db_socket,
 		db_host=frappe.conf.db_host,

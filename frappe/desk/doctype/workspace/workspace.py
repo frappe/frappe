@@ -6,7 +6,11 @@ from json import loads
 
 import frappe
 from frappe import _
+<<<<<<< HEAD
 from frappe.desk.desktop import save_new_widget
+=======
+from frappe.desk.desktop import get_workspace_sidebar_items, save_new_widget
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.desk.utils import validate_route_conflict
 from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
@@ -30,9 +34,17 @@ class Workspace(Document):
 		from frappe.desk.doctype.workspace_shortcut.workspace_shortcut import WorkspaceShortcut
 		from frappe.types import DF
 
+<<<<<<< HEAD
 		charts: DF.Table[WorkspaceChart]
 		content: DF.LongText | None
 		custom_blocks: DF.Table[WorkspaceCustomBlock]
+=======
+		app: DF.Data | None
+		charts: DF.Table[WorkspaceChart]
+		content: DF.LongText | None
+		custom_blocks: DF.Table[WorkspaceCustomBlock]
+		external_link: DF.Data | None
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		for_user: DF.Data | None
 		hide_custom: DF.Check
 		indicator_color: DF.Literal[
@@ -51,10 +63,19 @@ class Workspace(Document):
 		]
 		is_hidden: DF.Check
 		label: DF.Data
+<<<<<<< HEAD
 		links: DF.Table[WorkspaceLink]
 		module: DF.Link | None
 		number_cards: DF.Table[WorkspaceNumberCard]
 		parent_page: DF.Data | None
+=======
+		link_to: DF.DynamicLink | None
+		link_type: DF.Literal["DocType", "Page", "Report"]
+		links: DF.Table[WorkspaceLink]
+		module: DF.Link | None
+		number_cards: DF.Table[WorkspaceNumberCard]
+		parent_page: DF.Link | None
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		public: DF.Check
 		quick_lists: DF.Table[WorkspaceQuickList]
 		restrict_to_domain: DF.Link | None
@@ -62,8 +83,14 @@ class Workspace(Document):
 		sequence_id: DF.Float
 		shortcuts: DF.Table[WorkspaceShortcut]
 		title: DF.Data
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+		type: DF.Literal["Workspace", "Link", "URL"]
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def validate(self):
 		self.title = strip_html(self.title)
 
@@ -84,6 +111,14 @@ class Workspace(Document):
 			if d.link_type == "Report" and d.is_query_report != 1:
 				d.report_ref_doctype = frappe.get_value("Report", d.link_to, "ref_doctype")
 
+<<<<<<< HEAD
+=======
+		if not self.app and self.module:
+			from frappe.modules.utils import get_module_app
+
+			self.app = get_module_app(self.module)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def clear_cache(self):
 		super().clear_cache()
 		if self.for_user:
@@ -265,13 +300,18 @@ def new_page(new_page):
 
 	doc = frappe.new_doc("Workspace")
 	doc.title = page.get("title")
+<<<<<<< HEAD
 	doc.icon = page.get("icon")
+=======
+	doc.icon = page.get("icon") or "grid"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	doc.indicator_color = page.get("indicator_color")
 	doc.content = page.get("content")
 	doc.parent_page = page.get("parent_page")
 	doc.label = page.get("label")
 	doc.for_user = page.get("for_user")
 	doc.public = page.get("public")
+<<<<<<< HEAD
 	doc.sequence_id = last_sequence_id(doc) + 1
 	doc.save(ignore_permissions=True)
 
@@ -298,6 +338,29 @@ def save_page(title, public, new_widgets, blocks):
 	save_new_widget(doc, title, blocks, new_widgets)
 
 	return {"name": title, "public": public, "label": doc.label}
+=======
+	doc.app = page.get("app")
+	doc.type = page.get("type")
+	doc.link_to = page.get("link_to")
+	doc.link_type = page.get("link_type")
+	doc.external_link = page.get("external_link")
+	doc.sequence_id = last_sequence_id(doc) + 1
+	doc.save(ignore_permissions=True)
+
+	return get_workspace_sidebar_items()
+
+
+@frappe.whitelist()
+def save_page(name, public, new_widgets, blocks):
+	public = frappe.parse_json(public)
+
+	doc = frappe.get_doc("Workspace", name)
+	doc.content = blocks
+
+	save_new_widget(doc, name, blocks, new_widgets)
+
+	return {"name": name, "public": public, "label": doc.label}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 @frappe.whitelist()
@@ -346,6 +409,7 @@ def update_page(name, title, icon, indicator_color, parent, public):
 	return {"name": title, "public": public, "label": new_name}
 
 
+<<<<<<< HEAD
 def hide_unhide_page(page_name: str, is_hidden: bool):
 	page = frappe.get_doc("Workspace", page_name)
 
@@ -465,6 +529,8 @@ def sort_page(workspace_pages, pages):
 	return True
 
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 def last_sequence_id(doc):
 	doc_exists = frappe.db.exists({"doctype": "Workspace", "public": doc.public, "for_user": doc.for_user})
 

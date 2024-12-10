@@ -20,6 +20,10 @@ class WebPageView(Document):
 		browser: DF.Data | None
 		browser_version: DF.Data | None
 		campaign: DF.Data | None
+<<<<<<< HEAD
+=======
+		content: DF.Data | None
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		is_unique: DF.Data | None
 		medium: DF.Data | None
 		path: DF.Data | None
@@ -28,15 +32,24 @@ class WebPageView(Document):
 		time_zone: DF.Data | None
 		user_agent: DF.Data | None
 		visitor_id: DF.Data | None
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	@staticmethod
 	def clear_old_logs(days=180):
 		from frappe.query_builder import Interval
 		from frappe.query_builder.functions import Now
 
 		table = frappe.qb.DocType("Web Page View")
+<<<<<<< HEAD
 		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
+=======
+		frappe.db.delete(table, filters=(table.creation < (Now() - Interval(days=days))))
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 @frappe.whitelist(allow_guest=True)
@@ -48,6 +61,10 @@ def make_view_log(
 	source=None,
 	campaign=None,
 	medium=None,
+<<<<<<< HEAD
+=======
+	content=None,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	visitor_id=None,
 ):
 	if not is_tracking_enabled():
@@ -86,6 +103,10 @@ def make_view_log(
 	view.source = source
 	view.campaign = campaign
 	view.medium = (medium or "").lower()
+<<<<<<< HEAD
+=======
+	view.content = content
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	view.visitor_id = visitor_id
 
 	try:

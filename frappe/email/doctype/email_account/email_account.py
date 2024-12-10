@@ -12,6 +12,10 @@ import frappe
 from frappe import _, are_emails_muted, safe_encode
 from frappe.desk.form import assign_to
 from frappe.email.doctype.email_domain.email_domain import EMAIL_DOMAIN_FIELDS
+<<<<<<< HEAD
+=======
+from frappe.email.frappemail import FrappeMail
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.email.receive import EmailServer, InboundMail, SentEmailInInboxError
 from frappe.email.smtp import SMTPServer
 from frappe.email.utils import get_port
@@ -61,6 +65,11 @@ class EmailAccount(Document):
 		add_signature: DF.Check
 		always_use_account_email_id_as_sender: DF.Check
 		always_use_account_name_as_sender_name: DF.Check
+<<<<<<< HEAD
+=======
+		api_key: DF.Data | None
+		api_secret: DF.Password | None
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		append_emails_to_sent_folder: DF.Check
 		append_to: DF.Link | None
 		ascii_encode_password: DF.Check
@@ -85,9 +94,17 @@ class EmailAccount(Document):
 		enable_incoming: DF.Check
 		enable_outgoing: DF.Check
 		footer: DF.TextEditor | None
+<<<<<<< HEAD
 		imap_folder: DF.Table[IMAPFolder]
 		incoming_port: DF.Data | None
 		initial_sync_count: DF.Literal["100", "250", "500"]
+=======
+		frappe_mail_site: DF.Data | None
+		imap_folder: DF.Table[IMAPFolder]
+		incoming_port: DF.Data | None
+		initial_sync_count: DF.Literal["100", "250", "500"]
+		last_synced_at: DF.Datetime | None
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		login_id: DF.Data | None
 		login_id_is_different: DF.Check
 		no_failed: DF.Int
@@ -97,7 +114,13 @@ class EmailAccount(Document):
 		send_notification_to: DF.SmallText | None
 		send_unsubscribe_message: DF.Check
 		sent_folder_name: DF.Data | None
+<<<<<<< HEAD
 		service: DF.Literal["", "GMail", "Sendgrid", "SparkPost", "Yahoo Mail", "Outlook.com", "Yandex.Mail"]
+=======
+		service: DF.Literal[
+			"", "Frappe Mail", "GMail", "Sendgrid", "SparkPost", "Yahoo Mail", "Outlook.com", "Yandex.Mail"
+		]
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		signature: DF.TextEditor | None
 		smtp_port: DF.Data | None
 		smtp_server: DF.Data | None
@@ -110,7 +133,13 @@ class EmailAccount(Document):
 		use_ssl_for_outgoing: DF.Check
 		use_starttls: DF.Check
 		use_tls: DF.Check
+<<<<<<< HEAD
 	# end: auto-generated types
+=======
+		validate_ssl_certificate: DF.Check
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	DOCTYPE = "Email Account"
 
 	def autoname(self):
@@ -134,6 +163,16 @@ class EmailAccount(Document):
 		else:
 			self.login_id = None
 
+<<<<<<< HEAD
+=======
+		if self.service == "Frappe Mail":
+			self.use_imap = 0
+			self.always_use_account_email_id_as_sender = 1
+
+			if self.auth_method == "Basic" or self.get_oauth_token():
+				self.validate_frappe_mail_settings()
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		# validate the imap settings
 		if self.enable_incoming and self.use_imap and len(self.imap_folder) <= 0:
 			frappe.throw(_("You need to set one IMAP folder for {0}").format(frappe.bold(self.email_id)))
@@ -150,7 +189,15 @@ class EmailAccount(Document):
 			self.awaiting_password = 0
 			self.password = None
 
+<<<<<<< HEAD
 		if not frappe.local.flags.in_install and not self.awaiting_password:
+=======
+		if (
+			not frappe.local.flags.in_install
+			and not self.awaiting_password
+			and not self.service == "Frappe Mail"
+		):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			if validate_oauth or self.password or self.smtp_server in ("127.0.0.1", "localhost"):
 				if self.enable_incoming:
 					self.get_incoming_server()
@@ -176,6 +223,15 @@ class EmailAccount(Document):
 					if folder.append_to not in valid_doctypes:
 						frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
 
+<<<<<<< HEAD
+=======
+	@frappe.whitelist()
+	def validate_frappe_mail_settings(self):
+		if self.service == "Frappe Mail":
+			frappe_mail_client = self.get_frappe_mail_client()
+			frappe_mail_client.validate(for_inbound=self.enable_incoming, for_outbound=self.enable_outgoing)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def validate_smtp_conn(self):
 		if not self.smtp_server:
 			frappe.throw(_("SMTP Server is required"))
@@ -243,7 +299,11 @@ class EmailAccount(Document):
 		return frappe.db.get_value("Email Domain", domain, EMAIL_DOMAIN_FIELDS, as_dict=True)
 
 	def get_incoming_server(self, in_receive=False, email_sync_rule="UNSEEN"):
+<<<<<<< HEAD
 		"""Returns logged in POP3/IMAP connection object."""
+=======
+		"""Return logged in POP3/IMAP connection object."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		oauth_token = self.get_oauth_token()
 		args = frappe._dict(
 			{
@@ -468,9 +528,17 @@ class EmailAccount(Document):
 
 		return account_details
 
+<<<<<<< HEAD
 	def sendmail_config(self):
 		oauth_token = self.get_oauth_token()
 
+=======
+	def get_access_token(self) -> str | None:
+		oauth_token = self.get_oauth_token()
+		return oauth_token.get_password("access_token") if oauth_token else None
+
+	def sendmail_config(self):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		return {
 			"email_account": self.name,
 			"server": self.smtp_server,
@@ -480,7 +548,11 @@ class EmailAccount(Document):
 			"use_ssl": cint(self.use_ssl_for_outgoing),
 			"use_tls": cint(self.use_tls),
 			"use_oauth": self.auth_method == "OAuth",
+<<<<<<< HEAD
 			"access_token": oauth_token.get_password("access_token") if oauth_token else None,
+=======
+			"access_token": self.get_access_token(),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		}
 
 	def get_smtp_server(self):
@@ -496,6 +568,29 @@ class EmailAccount(Document):
 		config = self.sendmail_config()
 		return SMTPServer(**config)
 
+<<<<<<< HEAD
+=======
+	def get_frappe_mail_client(self):
+		return self._frappe_mail_client
+
+	@functools.cached_property
+	def _frappe_mail_client(self):
+		if self.auth_method == "OAuth":
+			if access_token := self.get_access_token():
+				return FrappeMail(self.frappe_mail_site, self.email_id, access_token=access_token)
+
+			frappe.throw(
+				_("Please Authorize OAuth for Email Account {0}").format(
+					frappe.bold(self.email_account_name)
+				),
+				title=_("Frappe Mail OAuth Error"),
+			)
+		else:
+			return FrappeMail(
+				self.frappe_mail_site, self.email_id, self.api_key, self.get_password("api_secret")
+			)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def remove_unpicklable_values(self, state):
 		super().remove_unpicklable_values(state)
 		state.pop("_smtp_server_instance", None)
@@ -591,6 +686,7 @@ class EmailAccount(Document):
 		if not self.enable_incoming:
 			return []
 
+<<<<<<< HEAD
 		email_sync_rule = self.build_email_sync_rule()
 		try:
 			email_server = self.get_incoming_server(in_receive=True, email_sync_rule=email_sync_rule)
@@ -610,6 +706,35 @@ class EmailAccount(Document):
 		except Exception:
 			self.log_error(title=_("Error while connecting to email account {0}").format(self.name))
 			return []
+=======
+		try:
+			if self.service == "Frappe Mail":
+				frappe_mail_client = self.get_frappe_mail_client()
+				messages = frappe_mail_client.pull_raw(last_synced_at=self.last_synced_at)
+				process_mail(messages)
+				self.db_set("last_synced_at", messages["last_synced_at"], update_modified=False)
+			else:
+				email_sync_rule = self.build_email_sync_rule()
+				email_server = self.get_incoming_server(in_receive=True, email_sync_rule=email_sync_rule)
+				if self.use_imap:
+					# process all given imap folder
+					for folder in self.imap_folder:
+						if email_server.select_imap_folder(folder.folder_name):
+							email_server.settings["uid_validity"] = folder.uidvalidity
+							messages = email_server.get_messages(folder=f'"{folder.folder_name}"') or {}
+							process_mail(messages, folder.append_to)
+				else:
+					# process the pop3 account
+					messages = email_server.get_messages() or {}
+					process_mail(messages)
+
+				# close connection to mailserver
+				email_server.logout()
+		except Exception:
+			self.log_error(title=_("Error while connecting to email account {0}").format(self.name))
+			return []
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		return mails
 
 	def handle_bad_emails(self, uid, raw, reason):
@@ -859,6 +984,23 @@ def pull(now=False):
 				)
 
 
+<<<<<<< HEAD
+=======
+@frappe.whitelist()
+def pull_emails(email_account: str) -> None:
+	"""Pull emails from given email account."""
+	frappe.has_permission("Email Account", "read", throw=True)
+
+	job_name = f"pull_from_email_account|{email_account}"
+	queued_jobs = get_jobs(site=frappe.local.site, key="job_name")[frappe.local.site]
+
+	if job_name not in queued_jobs:
+		pull_from_email_account(email_account)
+	else:
+		frappe.msgprint(_("Emails are already being pulled from this account."))
+
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 def pull_from_email_account(email_account):
 	"""Runs within a worker process"""
 	email_account = frappe.get_doc("Email Account", email_account)
@@ -968,3 +1110,14 @@ def set_email_password(email_account, password):
 			return False
 
 	return True
+<<<<<<< HEAD
+=======
+
+
+def on_doctype_update() -> None:
+	frappe.db.add_unique(
+		"Email Account",
+		["email_id", "enable_incoming", "enable_outgoing"],
+		constraint_name="unique_email_account_type",
+	)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

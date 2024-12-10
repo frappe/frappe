@@ -19,8 +19,13 @@ class WebsiteMetaTag(Document):
 		parentfield: DF.Data
 		parenttype: DF.Data
 		value: DF.Text
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def get_content(self):
 		# can't have new lines in meta content
 		return (self.value or "").replace("\n", " ")

@@ -1,30 +1,57 @@
+<<<<<<< HEAD
 .fc-unthemed {
 	padding: 20px;
+=======
+.fc-theme-standard {
+	padding: 20px;
+	color: var(--text-light) !important;
+}
+
+.fc-theme-standard a {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	color: var(--text-light);
 }
 
 .fc-toolbar {
+<<<<<<< HEAD
 	// padding-top: 30px;
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	padding-bottom: 15px;
 	margin-bottom: 0px !important;
 }
 
+<<<<<<< HEAD
+=======
+.fc-toolbar-chunk div {
+	display: flex;
+}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 .fc-view-container {
 	margin-left: -1px;
 	margin-right: -1px;
 }
 
 .fc-head-container {
+<<<<<<< HEAD
 	// border-top: 0 !important;
 	border: none !important;
 }
 
 th.fc-widget-header {
 	border: none !important;
+=======
+	border: none !important;
+}
+
+th.fc-col-header-cell {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	color: var(--gray-500);
 	font-weight: 600;
 }
 
+<<<<<<< HEAD
 // th {
 // 	border: none !important;
 // }
@@ -47,6 +74,26 @@ th.fc-widget-header {
 
 	.fc-day-number {
 		background-color: var(--blue-500);
+=======
+.fc-theme-standard td,
+.fc-theme-standard hr,
+.fc-theme-standard thead,
+.fc-theme-standard tbody,
+.fc-theme-standard .fc-row,
+.fc-theme-standard .fc-popover {
+	border-color: var(--gray-300) !important;
+}
+
+.fc-theme-standard td.fc-day-sun {
+	background: var(--highlight-color);
+}
+
+.fc-theme-standard .fc-day-today {
+	background-color: var(--fg-color) !important;
+
+	.fc-daygrid-day-number {
+		background-color: var(--gray-700);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		border-radius: 50%;
 		color: $white;
 		height: 22px;
@@ -55,6 +102,7 @@ th.fc-widget-header {
 		display: flex;
 		justify-content: center;
 		text-align: center;
+<<<<<<< HEAD
 	}
 }
 
@@ -65,44 +113,83 @@ th.fc-widget-header {
 .fc-event {
 	// border: 1px solid #E8DDFF; /* default BORDER color */
 	background-color: #e8ddff;
+=======
+		padding: 0;
+	}
+}
+
+.fc-event {
+	background-color: rgb(237, 246, 253);
+	border: none !important;
+}
+
+.fc-event-main .fc-event-time {
+	display: none;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 }
 
 .fc-time-grid-event {
 	border: none !important;
 }
+<<<<<<< HEAD
 // @media (max-width: $screen-xs) {
 // 	.fc-scroller {
 // 		height: auto !important;
 // 	}
 // }
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 .fc-day-top {
 	padding: 5px 10px 0 0 !important;
 }
 
+<<<<<<< HEAD
 .fc-day {
 	margin-left: 10px;
 	.fc-day-number {
+=======
+.fc-daygrid-day-top {
+	margin: 5px 0 0 10px;
+	flex-direction: row !important;
+	.fc-daygrid-day-number {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		float: left !important;
 	}
 }
 
+<<<<<<< HEAD
 th.fc-day-header {
+=======
+th.fc-col-header-cell {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	padding: 10px 12px 10px 0 !important;
 	text-transform: uppercase;
 	font-size: 12px;
 }
 
+<<<<<<< HEAD
 .fc-event-container .fc-content {
 	padding: 3px;
 	display: flex;
 	flex-direction: column-reverse;
 
 	.fc-time {
+=======
+.fc-daygrid-dot-event {
+	padding: 3px;
+	display: flex;
+	flex-direction: column-reverse;
+	align-items: normal;
+	color: rgb(0, 112, 204) !important;
+
+	.fc-event-time {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		font-weight: normal;
 		margin-top: 2px;
 	}
 
+<<<<<<< HEAD
 	.fc-title {
 		font-weight: 600;
 	}
@@ -110,6 +197,19 @@ th.fc-day-header {
 
 .fc-left h2 {
 	font-size: $font-size-lg;
+=======
+	.fc-event-title {
+		font-weight: 600;
+	}
+
+	.fc-daygrid-event-dot {
+		display: none;
+	}
+}
+
+.fc-toolbar-title {
+	font-size: $font-size-lg !important;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	font-weight: 500;
 	line-height: 28px;
 	height: 28px;
@@ -120,9 +220,12 @@ th.fc-day-header {
 	font-size: var(--text-md) !important;
 	outline: none !important;
 	text-transform: capitalize;
+<<<<<<< HEAD
 	// .fc-icon {
 	// 	top: -1px !important;
 	// }
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 }
 
 .fc-right button {
@@ -131,6 +234,7 @@ th.fc-day-header {
 
 .fc-left button {
 	width: 80px;
+<<<<<<< HEAD
 
 	// svg {
 	// 	margin-right: 5px;
@@ -138,22 +242,64 @@ th.fc-day-header {
 }
 
 .fc-state-active {
+=======
+}
+
+.fc-button-active {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	box-shadow: none !important;
 	background: var(--gray-500) !important;
 	color: var(--fg-color) !important;
 	z-index: 0 !important;
 }
 
+<<<<<<< HEAD
 .fc-day-grid-event {
+=======
+//override default and fc-button styles
+.fc-dayGridMonth-button,
+.fc-dayGridWeek-button,
+.fc-dayGridDay-button {
+	border: none !important;
+	border-radius: 0;
+	background-color: var(--control-bg);
+	color: var(--text-color);
+}
+
+.fc-dayGridMonth-button {
+	border-top-left-radius: var(--border-radius) !important;
+	border-bottom-left-radius: var(--border-radius) !important;
+}
+.fc-dayGridDay-button {
+	border-top-right-radius: var(--border-radius) !important;
+	border-bottom-right-radius: var(--border-radius) !important;
+}
+
+.fc-prev-button {
+	margin-right: 10px !important;
+}
+.fc-next-button {
+	margin-left: 10px;
+}
+.fc-today-button {
+	margin-right: 10px;
+	border-radius: var(--border-radius) !important;
+}
+
+.fc-daygrid-event {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	border: none !important;
 	margin: 5px 4px 0 !important;
 	padding: 1px 5px !important;
 }
 
+<<<<<<< HEAD
 // .result .footnote-area {
 // 	padding: 15px 10px 0 30px;
 // }
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 .fc-time-grid .fc-slats .fc-minor td {
 	border-top-style: none !important;
 }
@@ -185,7 +331,10 @@ th.fc-day-header {
 
 .fc-day-grid {
 	border-bottom: 1px solid var(--gray-300);
+<<<<<<< HEAD
 	// height: 2em !important;
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 }
 
 .fc-divider {

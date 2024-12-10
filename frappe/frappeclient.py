@@ -1,6 +1,10 @@
 """
 FrappeClient is a library that helps you connect with other frappe systems
 """
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 import base64
 import json
 
@@ -61,7 +65,11 @@ class FrappeClient:
 		self.logout()
 
 	def _login(self, username, password):
+<<<<<<< HEAD
 		"""Login/start a sesion. Called internally on init"""
+=======
+		"""Login/start a session. Called internally on init"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		r = self.session.post(
 			self.url,
 			params={"cmd": "login", "usr": username, "pwd": password},
@@ -107,7 +115,11 @@ class FrappeClient:
 		)
 
 	def get_list(self, doctype, fields='["name"]', filters=None, limit_start=0, limit_page_length=None):
+<<<<<<< HEAD
 		"""Returns list of records of a particular type"""
+=======
+		"""Return list of records of a particular type."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		if not isinstance(fields, str):
 			fields = json.dumps(fields)
 		params = {
@@ -171,7 +183,11 @@ class FrappeClient:
 		return self.post_request({"cmd": "frappe.client.submit", "doc": frappe.as_json(doc)})
 
 	def get_value(self, doctype, fieldname=None, filters=None):
+<<<<<<< HEAD
 		"""Returns a value form a document
+=======
+		"""Return a value from a document.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		:param doctype: DocType to be queried
 		:param fieldname: Field to be returned (default `name`)
@@ -210,12 +226,20 @@ class FrappeClient:
 		return self.post_request({"cmd": "frappe.client.cancel", "doctype": doctype, "name": name})
 
 	def get_doc(self, doctype, name="", filters=None, fields=None):
+<<<<<<< HEAD
 		"""Returns a single remote document
+=======
+		"""Return a single remote document.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		:param doctype: DocType of the document to be returned
 		:param name: (optional) `name` of the document to be returned
 		:param filters: (optional) Filter by this dict if name is not set
+<<<<<<< HEAD
 		:param fields: (optional) Fields to be returned, will return everythign if not set"""
+=======
+		:param fields: (optional) Fields to be returned, will return everything if not set"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		params = {}
 		if filters:
 			params["filters"] = json.dumps(filters)

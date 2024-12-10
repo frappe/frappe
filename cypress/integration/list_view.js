@@ -13,7 +13,11 @@ context("List View", () => {
 	it("Keep checkbox checked after Refresh", { scrollBehavior: false }, () => {
 		cy.go_to_list("ToDo");
 		cy.clear_filters();
+<<<<<<< HEAD
 		cy.get(".list-header-subject > .list-subject > .list-check-all").click();
+=======
+		cy.get(".list-header-subject .list-subject .list-check-all").click();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		cy.get("button[data-original-title='Reload List']").click();
 		cy.get(".list-row-container .list-row-checkbox:checked").should("be.visible");
 	});
@@ -31,7 +35,11 @@ context("List View", () => {
 		];
 		cy.go_to_list("ToDo");
 		cy.clear_filters();
+<<<<<<< HEAD
 		cy.get(".list-header-subject > .list-subject > .list-check-all").click();
+=======
+		cy.get(".list-header-subject .list-subject .list-check-all").click();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		cy.findByRole("button", { name: "Actions" }).click();
 		cy.get(".dropdown-menu li:visible .dropdown-item")
 			.should("have.length", 8)

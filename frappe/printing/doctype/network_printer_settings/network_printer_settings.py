@@ -18,8 +18,13 @@ class NetworkPrinterSettings(Document):
 		port: DF.Int
 		printer_name: DF.Literal[None]
 		server_ip: DF.Data
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	@frappe.whitelist()
 	def get_printers_list(self, ip="127.0.0.1", port=631):
 		printer_list = []

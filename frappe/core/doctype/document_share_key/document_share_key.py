@@ -20,8 +20,13 @@ class DocumentShareKey(Document):
 		key: DF.Data | None
 		reference_docname: DF.DynamicLink | None
 		reference_doctype: DF.Link | None
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def before_insert(self):
 		self.key = frappe.generate_hash(length=randrange(25, 35))
 		if not self.expires_on and not self.flags.no_expiry:

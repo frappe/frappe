@@ -10,7 +10,16 @@
   "language_code",
   "language_name",
   "flag",
+<<<<<<< HEAD
   "based_on"
+=======
+  "based_on",
+  "section_break_rtth",
+  "date_format",
+  "time_format",
+  "number_format",
+  "first_day_of_the_week"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  ],
  "fields": [
   {
@@ -46,12 +55,47 @@
    "fieldname": "enabled",
    "fieldtype": "Check",
    "label": "Enabled"
+<<<<<<< HEAD
+=======
+  },
+  {
+   "fieldname": "section_break_rtth",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "date_format",
+   "fieldtype": "Select",
+   "label": "Date Format",
+   "options": "\nyyyy-mm-dd\ndd-mm-yyyy\ndd/mm/yyyy\ndd.mm.yyyy\nmm/dd/yyyy\nmm-dd-yyyy"
+  },
+  {
+   "fieldname": "time_format",
+   "fieldtype": "Select",
+   "label": "Time Format",
+   "options": "\nHH:mm:ss\nHH:mm"
+  },
+  {
+   "fieldname": "number_format",
+   "fieldtype": "Select",
+   "label": "Number Format",
+   "options": "\n#,###.##\n#.###,##\n# ###.##\n# ###,##\n#'###.##\n#, ###.##\n#,##,###.##\n#,###.###\n#.###\n#,###"
+  },
+  {
+   "fieldname": "first_day_of_the_week",
+   "fieldtype": "Select",
+   "label": "First Day of the Week",
+   "options": "\nSunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   }
  ],
  "icon": "fa fa-globe",
  "in_create": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2024-06-06 18:25:01.010821",
+=======
+ "modified": "2024-07-21 08:25:25.130166",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Language",
@@ -66,15 +110,28 @@
    "write": 1
   },
   {
+<<<<<<< HEAD
    "role": "All",
    "read": 1
+=======
+   "read": 1,
+   "role": "All"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   }
  ],
  "search_fields": "language_name",
  "show_title_field_in_link": 1,
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "sort_field": "creation",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "sort_order": "DESC",
  "states": [],
  "title_field": "language_name",
  "track_changes": 1
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

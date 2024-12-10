@@ -1,6 +1,7 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 
 
@@ -8,6 +9,24 @@ class TestSystemConsole(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
 		cls.enable_safe_exec()
+=======
+from frappe.tests import IntegrationTestCase, UnitTestCase
+
+
+class UnitTestSystemConsole(UnitTestCase):
+	"""
+	Unit tests for SystemConsole.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestSystemConsole(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls) -> None:
+		cls.enterClassContext(cls.enable_safe_exec())
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		return super().setUpClass()
 
 	def test_system_console(self):

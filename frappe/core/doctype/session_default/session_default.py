@@ -19,4 +19,8 @@ class SessionDefault(Document):
 		parenttype: DF.Data
 		ref_doctype: DF.Link | None
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass

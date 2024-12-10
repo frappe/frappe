@@ -37,6 +37,7 @@ frappe.ui.form.on("User", {
 		}
 	},
 
+<<<<<<< HEAD
 	role_profile_name: function (frm) {
 		if (frm.doc.role_profile_name) {
 			frappe.call({
@@ -53,6 +54,17 @@ frappe.ui.form.on("User", {
 					frm.roles_editor.show();
 				},
 			});
+=======
+	role_profiles: function (frm) {
+		if (frm.doc.role_profiles && frm.doc.role_profiles.length) {
+			frm.roles_editor.disable = 1;
+			frm.call("populate_role_profile_roles").then(() => {
+				frm.roles_editor.show();
+			});
+		} else {
+			frm.roles_editor.disable = 0;
+			frm.roles_editor.show();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		}
 	},
 
@@ -95,7 +107,11 @@ frappe.ui.form.on("User", {
 				frm.roles_editor = new frappe.RoleEditor(
 					role_area,
 					frm,
+<<<<<<< HEAD
 					frm.doc.role_profile_name ? 1 : 0
+=======
+					frm.doc.role_profiles && frm.doc.role_profiles.length ? 1 : 0
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				);
 
 				if (frm.doc.user_type == "System User") {
@@ -154,6 +170,18 @@ frappe.ui.form.on("User", {
 					__("Permissions")
 				);
 
+<<<<<<< HEAD
+=======
+				frm.add_custom_button(
+					__("View Doctype Permissions"),
+					() =>
+						frappe.set_route("query-report", "User Doctype Permissions", {
+							user: frm.doc.name,
+						}),
+					__("Permissions")
+				);
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				frm.toggle_display(["sb1", "sb3", "modules_access"], true);
 			}
 
@@ -241,7 +269,12 @@ frappe.ui.form.on("User", {
 			frm.trigger("enabled");
 
 			if (frm.roles_editor && frm.can_edit_roles) {
+<<<<<<< HEAD
 				frm.roles_editor.disable = frm.doc.role_profile_name ? 1 : 0;
+=======
+				frm.roles_editor.disable =
+					frm.doc.role_profiles && frm.doc.role_profiles.length ? 1 : 0;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				frm.roles_editor.show();
 			}
 
@@ -265,6 +298,13 @@ frappe.ui.form.on("User", {
 			}
 			if (!found) {
 				frm.add_custom_button(__("Create User Email"), function () {
+<<<<<<< HEAD
+=======
+					if (!frm.doc.email) {
+						frappe.msgprint(__("Email is mandatory to create User Email"));
+						return;
+					}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					frm.events.create_user_email(frm);
 				});
 			}
@@ -363,7 +403,15 @@ frappe.ui.form.on("User", {
 		}
 	},
 	setup_impersonation: function (frm) {
+<<<<<<< HEAD
 		if (frappe.session.user === "Administrator" && frm.doc.name != "Administrator") {
+=======
+		if (
+			frappe.session.user === "Administrator" &&
+			frm.doc.name != "Administrator" &&
+			!frm.is_new()
+		) {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			frm.add_custom_button(__("Impersonate"), () => {
 				if (frm.doc.restrict_ip) {
 					frappe.msgprint({

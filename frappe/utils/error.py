@@ -8,6 +8,10 @@ from collections import Counter
 from contextlib import suppress
 
 import frappe
+<<<<<<< HEAD
+=======
+from frappe.monitor import add_data_to_monitor
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 EXCLUDE_EXCEPTIONS = (
 	frappe.AuthenticationError,
@@ -85,6 +89,10 @@ def log_error_snapshot(exception: Exception):
 	try:
 		log_error(title=str(exception), defer_insert=True)
 		logger.error("New Exception collected in error log")
+<<<<<<< HEAD
+=======
+		add_data_to_monitor(exception=exception.__class__.__name__)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	except Exception as e:
 		logger.error(f"Could not take error snapshot: {e}", exc_info=True)
 

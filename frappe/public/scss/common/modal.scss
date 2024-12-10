@@ -37,7 +37,11 @@ body.modal-open[style^="padding-right"] {
 		top: 0;
 		z-index: 3;
 		background: inherit;
+<<<<<<< HEAD
 		padding: var(--padding-md) var(--padding-lg);
+=======
+		padding: var(--padding-sm) var(--padding-lg);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		// padding-bottom: 0;
 		border-bottom: 1px solid var(--border-color);
 
@@ -48,11 +52,19 @@ body.modal-open[style^="padding-right"] {
 			max-width: calc(100% - 80px);
 		}
 
+<<<<<<< HEAD
 		.modal-actions {
 			position: absolute;
 			top: 10px;
 			right: 5px;
 
+=======
+		.btn-modal-close {
+			padding: 4px 0;
+		}
+
+		.modal-actions {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			.btn-modal-minimize {
 				padding-right: 0;
 
@@ -96,7 +108,10 @@ body.modal-open[style^="padding-right"] {
 		z-index: 1;
 		background: inherit;
 		padding: var(--padding-md) var(--padding-lg);
+<<<<<<< HEAD
 		border-top: 1px solid var(--border-color);
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		justify-content: space-between;
 
 		button {
@@ -154,6 +169,27 @@ body.modal-open[style^="padding-right"] {
 	opacity: 0.8;
 }
 
+<<<<<<< HEAD
+=======
+.fade.slow {
+	transition: opacity 0.4s linear;
+}
+
+.modal.fade .modal-dialog {
+	transition: transform 0.2s ease;
+	transform: translateY(-15%);
+}
+
+.modal.fade.slow .modal-dialog {
+	transition: transform 0.4s ease;
+	transform: translateY(-25%);
+}
+
+.modal.show .modal-dialog {
+	transform: none;
+}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 .modal-minimize {
 	position: initial;
 	height: 0;
@@ -200,6 +236,10 @@ body.modal-open[style^="padding-right"] {
 
 .msgprint {
 	word-wrap: break-word;
+<<<<<<< HEAD
+=======
+	padding: var(--padding-sm) 0;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	pre {
 		text-align: left;
@@ -220,11 +260,22 @@ body.modal-open[style^="padding-right"] {
 			&[data-fieldname="sender"] {
 				margin-right: 10px;
 			}
+<<<<<<< HEAD
 			flex: 1;
 		}
 		.frappe-control:last-child {
 			margin-left: 10px;
 			margin-bottom: -24px;
+=======
+
+			flex: 1;
+			.control-input-wrapper {
+				width: 60%;
+			}
+		}
+		.frappe-control:last-child {
+			margin-left: 10px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			button {
 				// same as form-control input
 				height: calc(1.5em + 0.7rem);
@@ -243,10 +294,21 @@ body.modal-open[style^="padding-right"] {
 				margin-right: 10px;
 			}
 			flex: 1;
+<<<<<<< HEAD
 		}
 
 		.frappe-control:last-child {
 			margin-bottom: -8px;
+=======
+
+			.control-input-wrapper {
+				width: 53%.6;
+			}
+		}
+
+		.frappe-control:last-child {
+			margin-top: -14px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		}
 	}
 }
@@ -288,3 +350,27 @@ body.modal-open[style^="padding-right"] {
 		margin-right: var(--margin-md);
 	}
 }
+<<<<<<< HEAD
+=======
+
+// Stack minimized modals
+@for $i from 1 through 5 {
+	// 5n + 1, 5n + 2, ...
+	body > .modal:nth-child(5n + #{$i} of .show.modal-minimize) {
+		--minimized-modal-index: #{$i};
+	}
+}
+.modal-minimize ~ .modal-minimize {
+	.modal-dialog {
+		bottom: calc(44px * (var(--minimized-modal-index) - 1));
+	}
+	.modal-header {
+		border-bottom: 0px;
+	}
+	.modal-content {
+		// Rounded chip style
+		border-radius: var(--border-radius-md);
+		overflow: hidden;
+	}
+}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

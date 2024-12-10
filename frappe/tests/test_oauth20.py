@@ -9,15 +9,25 @@ from werkzeug.test import TestResponse
 
 import frappe
 from frappe.integrations.oauth2 import encode_params
+<<<<<<< HEAD
 from frappe.test_runner import make_test_records
 from frappe.tests.test_api import get_test_client, make_request, suppress_stdout
 from frappe.tests.utils import FrappeTestCase
+=======
+from frappe.tests import IntegrationTestCase
+from frappe.tests.test_api import get_test_client, make_request, suppress_stdout
+from frappe.tests.utils import make_test_records
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 if TYPE_CHECKING:
 	from frappe.integrations.doctype.social_login_key.social_login_key import SocialLoginKey
 
 
+<<<<<<< HEAD
 class FrappeRequestTestCase(FrappeTestCase):
+=======
+class FrappeRequestTestCase(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	@property
 	def sid(self) -> str:
 		if not getattr(self, "_sid", None):
@@ -64,7 +74,11 @@ class TestOAuth20(FrappeRequestTestCase):
 		cls.redirect_uri = "http://localhost"
 
 		# Set Frappe server URL reqired for id_token generation
+<<<<<<< HEAD
 		frappe_login_key: "SocialLoginKey" = frappe.new_doc("Social Login Key")
+=======
+		frappe_login_key: SocialLoginKey = frappe.new_doc("Social Login Key")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		frappe_login_key.get_social_login_provider("Frappe", initialize=True)
 		frappe_login_key.base_url = frappe.utils.get_url()
 		frappe_login_key.enable_social_login = 0

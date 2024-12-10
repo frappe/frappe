@@ -4,11 +4,19 @@ import frappe
 from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.defaults import *
 from frappe.query_builder.utils import db_type_is
+<<<<<<< HEAD
 from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestDefaults(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase
+from frappe.tests.test_query_builder import run_only_if
+
+
+class TestDefaults(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_global(self):
 		clear_user_default("key1")
 		set_global_default("key1", "value1")
@@ -60,12 +68,16 @@ class TestDefaults(FrappeTestCase):
 		frappe.set_user(user)
 
 		perm_doc = frappe.get_doc(
+<<<<<<< HEAD
 			dict(
 				doctype="User Permission",
 				user=frappe.session.user,
 				allow="Language",
 				for_value="en-GB",
 			)
+=======
+			doctype="User Permission", user=frappe.session.user, allow="Language", for_value="en-GB"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert(ignore_permissions=True)
 
 		self.assertEqual(get_global_default("language"), None)
@@ -84,12 +96,16 @@ class TestDefaults(FrappeTestCase):
 		clear_user_default("Country")
 
 		perm_doc = frappe.get_doc(
+<<<<<<< HEAD
 			dict(
 				doctype="User Permission",
 				user=frappe.session.user,
 				allow="Country",
 				for_value="India",
 			)
+=======
+			doctype="User Permission", user=frappe.session.user, allow="Country", for_value="India"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert(ignore_permissions=True)
 
 		frappe.db.set_value("User Permission", perm_doc.name, "is_default", 1)
@@ -101,12 +117,16 @@ class TestDefaults(FrappeTestCase):
 		self.assertEqual(get_user_default("Country"), None)
 
 		perm_doc = frappe.get_doc(
+<<<<<<< HEAD
 			dict(
 				doctype="User Permission",
 				user=frappe.session.user,
 				allow="Country",
 				for_value="United States",
 			)
+=======
+			doctype="User Permission", user=frappe.session.user, allow="Country", for_value="United States"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert(ignore_permissions=True)
 
 		self.assertEqual(get_user_default("Country"), "United States")

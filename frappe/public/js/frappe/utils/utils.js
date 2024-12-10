@@ -54,6 +54,16 @@ String.prototype.plural = function (revert) {
 		"(octop)us$": "$1i",
 		"(ax|test)is$": "$1es",
 		"(us)$": "$1es",
+<<<<<<< HEAD
+=======
+		"(f)oot$": "$1eet",
+		"(g)oose$": "$1eese",
+		"(sex)$": "$1es",
+		"(child)$": "$1ren",
+		"(m)an$": "$1en",
+		"(t)ooth$": "$1eeth",
+		"(pe)rson$": "$1ople",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		"([^s]+)$": "$1s",
 	};
 
@@ -85,6 +95,7 @@ String.prototype.plural = function (revert) {
 		"(h|bl)ouses$": "$1ouse",
 		"(corpse)s$": "$1",
 		"(us)es$": "$1",
+<<<<<<< HEAD
 		s$: "",
 	};
 
@@ -99,6 +110,18 @@ String.prototype.plural = function (revert) {
 		person: "people",
 	};
 
+=======
+		"(f)eet$": "$1oot",
+		"(g)eese$": "$1oose",
+		"(sex)es$": "$1",
+		"(child)ren$": "$1",
+		"(m)en$": "$1an",
+		"(t)eeth$": "$1ooth",
+		"(pe)ople$": "$1rson",
+		s$: "",
+	};
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	const uncountable = [
 		"sheep",
 		"fish",
@@ -115,6 +138,7 @@ String.prototype.plural = function (revert) {
 	// save some time in the case that singular and plural are the same
 	if (uncountable.indexOf(this.toLowerCase()) >= 0) return this;
 
+<<<<<<< HEAD
 	// check for irregular forms
 	let word;
 	let pattern;
@@ -138,6 +162,14 @@ String.prototype.plural = function (revert) {
 	let reg;
 	for (reg in array) {
 		pattern = new RegExp(reg, "i");
+=======
+	// check for matches using regular expressions
+	const array = revert ? singular : plural;
+
+	let reg;
+	for (reg in array) {
+		const pattern = new RegExp(reg, "i");
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		if (pattern.test(this)) return this.replace(pattern, array[reg]);
 	}
@@ -313,6 +345,12 @@ Object.assign(frappe.utils, {
 			);
 		return content.html();
 	},
+<<<<<<< HEAD
+=======
+	scroll_page_to_top() {
+		$(".main-section").scrollTop(0);
+	},
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	scroll_to: function (
 		element,
 		animate = true,
@@ -932,6 +970,7 @@ Object.assign(frappe.utils, {
 		let route = route_str.split("/");
 
 		if (route[2] === "Report" || route[0] === "query-report") {
+<<<<<<< HEAD
 			return __("{0} Report", [__(route[3]) || __(route[1])]);
 		}
 		if (route[0] === "List") {
@@ -942,6 +981,21 @@ Object.assign(frappe.utils, {
 		}
 		if (route[0] === "dashboard") {
 			return __("{0} Dashboard", [__(route[1])]);
+=======
+			return (__(route[3]) || __(route[1])).bold() + " " + __("Report");
+		}
+		if (route[0] === "List") {
+			return __(route[1]).bold() + " " + __("List");
+		}
+		if (route[0] === "modules") {
+			return __(route[1]).bold() + " " + __("Module");
+		}
+		if (route[0] === "Workspaces") {
+			return __(route[1]).bold() + " " + __("Workspace");
+		}
+		if (route[0] === "dashboard") {
+			return __(route[1]).bold() + " " + __("Dashboard");
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		}
 		return __(frappe.utils.to_title_case(__(route[0]), true));
 	},
@@ -1227,9 +1281,13 @@ Object.assign(frappe.utils, {
 	},
 
 	flag(country_code) {
+<<<<<<< HEAD
 		return `<img
 		src="https://flagcdn.com/${country_code}.svg"
 		width="20" height="15">`;
+=======
+		return `<img loading="lazy" src="https://flagcdn.com/${country_code}.svg" width="20" height="15">`;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	},
 
 	make_chart(wrapper, custom_options = {}) {
@@ -1303,6 +1361,12 @@ Object.assign(frappe.utils, {
 								route += `/${item.kanban_board}`;
 							}
 							break;
+<<<<<<< HEAD
+=======
+						case "Image":
+							route = `${doctype_slug}/view/image`;
+							break;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 						default:
 							route = doctype_slug;
 					}
@@ -1314,7 +1378,11 @@ Object.assign(frappe.utils, {
 					route =
 						frappe.router.slug(item.report_ref_doctype) + "/view/report/" + item.name;
 				} else {
+<<<<<<< HEAD
 					route = "/report/" + item.name;
+=======
+					route = "report/" + item.name;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				}
 			} else if (type === "page") {
 				route = item.name;
@@ -1725,7 +1793,14 @@ Object.assign(frappe.utils, {
 				{
 					fieldname: "source",
 					label: __("Source"),
+<<<<<<< HEAD
 					fieldtype: "Data",
+=======
+					fieldtype: "Link",
+					reqd: 1,
+					options: "UTM Source",
+					description: "The referrer (e.g. google, newsletter)",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					default: localStorage.getItem("tracker_url:source"),
 				},
 				{
@@ -1733,12 +1808,17 @@ Object.assign(frappe.utils, {
 					label: __("Campaign"),
 					fieldtype: "Link",
 					ignore_link_validation: 1,
+<<<<<<< HEAD
 					options: "Marketing Campaign",
+=======
+					options: "UTM Campaign",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					default: localStorage.getItem("tracker_url:campaign"),
 				},
 				{
 					fieldname: "medium",
 					label: __("Medium"),
+<<<<<<< HEAD
 					fieldtype: "Data",
 					default: localStorage.getItem("tracker_url:medium"),
 				},
@@ -1759,6 +1839,50 @@ Object.assign(frappe.utils, {
 					url += "&medium=" + data.medium.toLowerCase();
 					localStorage.setItem("tracker_url:medium", data.medium);
 				}
+=======
+					fieldtype: "Link",
+					options: "UTM Medium",
+					description: "Marketing medium (e.g. cpc, banner, email)",
+					default: localStorage.getItem("tracker_url:medium"),
+				},
+				{
+					fieldname: "content",
+					label: __("Content"),
+					fieldtype: "Data",
+					description: "Use to differentiate ad variants (e.g. A/B testing)",
+					default: localStorage.getItem("tracker_url:content"),
+				},
+			],
+			async function (data) {
+				let url = data.url;
+				localStorage.setItem("tracker_url:url", data.url);
+
+				const { message } = await frappe.db.get_value("UTM Source", data.source, "slug");
+				url += "?utm_source=" + encodeURIComponent(message.slug || data.source);
+				localStorage.setItem("tracker_url:source", data.source);
+				if (data.campaign) {
+					const { message } = await frappe.db.get_value(
+						"UTM Campaign",
+						data.campaign,
+						"slug"
+					);
+					url += "&utm_campaign=" + encodeURIComponent(message.slug || data.campaign);
+					localStorage.setItem("tracker_url:campaign", data.campaign);
+				}
+				if (data.medium) {
+					const { message } = await frappe.db.get_value(
+						"UTM Medium",
+						data.medium,
+						"slug"
+					);
+					url += "&utm_medium=" + encodeURIComponent(message.slug || data.medium);
+					localStorage.setItem("tracker_url:medium", data.medium);
+				}
+				if (data.content) {
+					url += "&utm_content=" + encodeURIComponent(data.content);
+					localStorage.setItem("tracker_url:content", data.content);
+				}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 				frappe.utils.copy_to_clipboard(url);
 
@@ -1772,4 +1896,25 @@ Object.assign(frappe.utils, {
 			__("Generate Tracking URL")
 		);
 	},
+<<<<<<< HEAD
+=======
+
+	/**
+	 * Checks if a value is empty.
+	 *
+	 * Returns false for: "hello", 0, 1, 3.1415, {"a": 1}, [1, 2, 3]
+	 * Returns true for: "", null, undefined, {}, []
+	 *
+	 * @param {*} value - The value to check.
+	 * @returns {boolean} - Returns `true` if the value is empty, `false` otherwise.
+	 */
+	is_empty(value) {
+		if (!value && value !== 0) return true;
+
+		if (typeof value === "object")
+			return (Array.isArray(value) ? value : Object.keys(value)).length === 0;
+
+		return false;
+	},
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 });

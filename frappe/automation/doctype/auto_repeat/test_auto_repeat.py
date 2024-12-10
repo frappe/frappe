@@ -9,7 +9,11 @@ from frappe.automation.doctype.auto_repeat.auto_repeat import (
 	week_map,
 )
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
+=======
+from frappe.tests import IntegrationTestCase, UnitTestCase
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.utils import add_days, add_months, getdate, today
 
 if TYPE_CHECKING:
@@ -32,7 +36,20 @@ def add_custom_fields() -> "CustomField":
 	)
 
 
+<<<<<<< HEAD
 class TestAutoRepeat(FrappeTestCase):
+=======
+class UnitTestAutoRepeat(UnitTestCase):
+	"""
+	Unit tests for AutoRepeat.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestAutoRepeat(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	@classmethod
 	def setUpClass(cls):
 		cls.custom_field = add_custom_fields()
@@ -41,7 +58,11 @@ class TestAutoRepeat(FrappeTestCase):
 
 	def test_daily_auto_repeat(self):
 		todo = frappe.get_doc(
+<<<<<<< HEAD
 			dict(doctype="ToDo", description="test recurring todo", assigned_by="Administrator")
+=======
+			doctype="ToDo", description="test recurring todo", assigned_by="Administrator"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert()
 
 		doc = make_auto_repeat(reference_document=todo.name)
@@ -61,7 +82,11 @@ class TestAutoRepeat(FrappeTestCase):
 
 	def test_weekly_auto_repeat(self):
 		todo = frappe.get_doc(
+<<<<<<< HEAD
 			dict(doctype="ToDo", description="test weekly todo", assigned_by="Administrator")
+=======
+			doctype="ToDo", description="test weekly todo", assigned_by="Administrator"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert()
 
 		doc = make_auto_repeat(
@@ -87,7 +112,11 @@ class TestAutoRepeat(FrappeTestCase):
 
 	def test_weekly_auto_repeat_with_weekdays(self):
 		todo = frappe.get_doc(
+<<<<<<< HEAD
 			dict(doctype="ToDo", description="test auto repeat with weekdays", assigned_by="Administrator")
+=======
+			doctype="ToDo", description="test auto repeat with weekdays", assigned_by="Administrator"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert()
 
 		weekdays = list(week_map.keys())
@@ -117,17 +146,25 @@ class TestAutoRepeat(FrappeTestCase):
 		end_date = add_months(start_date, 12)
 
 		todo = frappe.get_doc(
+<<<<<<< HEAD
 			dict(doctype="ToDo", description="test recurring todo", assigned_by="Administrator")
+=======
+			doctype="ToDo", description="test recurring todo", assigned_by="Administrator"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert()
 
 		self.monthly_auto_repeat("ToDo", todo.name, start_date, end_date)
 		# test without end_date
 		todo = frappe.get_doc(
+<<<<<<< HEAD
 			dict(
 				doctype="ToDo",
 				description="test recurring todo without end_date",
 				assigned_by="Administrator",
 			)
+=======
+			doctype="ToDo", description="test recurring todo without end_date", assigned_by="Administrator"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert()
 		self.monthly_auto_repeat("ToDo", todo.name, start_date)
 
@@ -163,11 +200,15 @@ class TestAutoRepeat(FrappeTestCase):
 
 	def test_email_notification(self):
 		todo = frappe.get_doc(
+<<<<<<< HEAD
 			dict(
 				doctype="ToDo",
 				description="Test recurring notification attachment",
 				assigned_by="Administrator",
 			)
+=======
+			doctype="ToDo", description="Test recurring notification attachment", assigned_by="Administrator"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert()
 
 		doc = make_auto_repeat(
@@ -189,9 +230,13 @@ class TestAutoRepeat(FrappeTestCase):
 	def test_next_schedule_date(self):
 		current_date = getdate(today())
 		todo = frappe.get_doc(
+<<<<<<< HEAD
 			dict(
 				doctype="ToDo", description="test next schedule date for monthly", assigned_by="Administrator"
 			)
+=======
+			doctype="ToDo", description="test next schedule date for monthly", assigned_by="Administrator"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert()
 		doc = make_auto_repeat(
 			frequency="Monthly", reference_document=todo.name, start_date=add_months(today(), -2)
@@ -202,7 +247,11 @@ class TestAutoRepeat(FrappeTestCase):
 		self.assertTrue(doc.next_schedule_date >= current_date)
 
 		todo = frappe.get_doc(
+<<<<<<< HEAD
 			dict(doctype="ToDo", description="test next schedule date for daily", assigned_by="Administrator")
+=======
+			doctype="ToDo", description="test next schedule date for daily", assigned_by="Administrator"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert()
 		doc = make_auto_repeat(
 			frequency="Daily", reference_document=todo.name, start_date=add_days(today(), -2)
@@ -214,7 +263,11 @@ class TestAutoRepeat(FrappeTestCase):
 		create_submittable_doctype(doctype)
 
 		current_date = getdate()
+<<<<<<< HEAD
 		submittable_doc = frappe.get_doc(dict(doctype=doctype, test="test submit on creation")).insert()
+=======
+		submittable_doc = frappe.get_doc(doctype=doctype, test="test submit on creation").insert()
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		submittable_doc.submit()
 		doc = make_auto_repeat(
 			frequency="Daily",

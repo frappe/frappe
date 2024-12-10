@@ -4,13 +4,21 @@ from types import NoneType
 from typing import TYPE_CHECKING
 
 import frappe
+<<<<<<< HEAD
+=======
+import frappe.permissions
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe import _, bold
 from frappe.model.document import Document
 from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.model.naming import validate_name
 from frappe.model.utils.user_settings import sync_user_settings, update_user_settings_data
 from frappe.query_builder import Field
+<<<<<<< HEAD
 from frappe.utils.data import sbool
+=======
+from frappe.utils.data import cint, cstr, sbool
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.utils.password import rename_password
 from frappe.utils.scheduler import is_scheduler_inactive
 
@@ -30,8 +38,12 @@ def update_document_title(
 	**kwargs,
 ) -> str:
 	"""
+<<<<<<< HEAD
 	Update the name or title of a document. Returns `name` if document was renamed,
 	`docname` if renaming operation was queued.
+=======
+	Update the name or title of a document. Return `name` if document was renamed, `docname` if renaming operation was queued.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	:param doctype: DocType of the document
 	:param docname: Name of the document
@@ -118,8 +130,13 @@ def update_document_title(
 
 def rename_doc(
 	doctype: str | None = None,
+<<<<<<< HEAD
 	old: str | None = None,
 	new: str | None = None,
+=======
+	old: str | int | None = None,
+	new: str | int | None = None,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	force: bool = False,
 	merge: bool = False,
 	ignore_permissions: bool = False,
@@ -157,6 +174,13 @@ def rename_doc(
 	merge = sbool(merge)
 	meta = frappe.get_meta(doctype)
 
+<<<<<<< HEAD
+=======
+	if meta.naming_rule == "Autoincrement":
+		old = cint(old)
+		new = cint(new)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if validate:
 		old_doc = doc or frappe.get_doc(doctype, old)
 		out = old_doc.run_method("before_rename", old, new, merge) or {}
@@ -229,6 +253,18 @@ def rename_doc(
 			indicator="green",
 		)
 
+<<<<<<< HEAD
+=======
+	# let people watching the old form know that it has been renamed
+	frappe.publish_realtime(
+		event="doc_rename",
+		message={"doctype": doctype, "old": old, "new": new},
+		doctype=doctype,
+		docname=old,
+		after_commit=True,
+	)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return new
 
 
@@ -274,7 +310,11 @@ def update_user_settings(old: str, new: str, link_fields: list[dict]) -> None:
 	user_settings_details = (
 		frappe.qb.from_(UserSettings)
 		.select("user", "doctype", "data")
+<<<<<<< HEAD
 		.where(UserSettings.data.like(old) & UserSettings.doctype.isin(linked_doctypes))
+=======
+		.where(UserSettings.data.like(cstr(old)) & UserSettings.doctype.isin(linked_doctypes))
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		.run(as_dict=True)
 	)
 
@@ -341,8 +381,13 @@ def update_autoname_field(doctype: str, new: str, meta: "Meta") -> None:
 
 def validate_rename(
 	doctype: str,
+<<<<<<< HEAD
 	old: str,
 	new: str,
+=======
+	old: str | int,
+	new: str | int,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	meta: "Meta",
 	merge: bool,
 	force: bool = False,
@@ -375,7 +420,11 @@ def validate_rename(
 	if not merge and exists and not ignore_if_exists:
 		frappe.throw(_("Another {0} with name {1} exists, select another name").format(doctype, new))
 
+<<<<<<< HEAD
 	kwargs = {"doctype": doctype, "ptype": "write", "raise_exception": False}
+=======
+	kwargs = {"doctype": doctype, "ptype": "write", "print_logs": False}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if old_doc:
 		kwargs["doc"] = old_doc
 
@@ -387,7 +436,11 @@ def validate_rename(
 		if not (ignore_permissions or frappe.permissions.has_permission(**kwargs)):
 			frappe.throw(_("You need write permission on {0} {1} to merge").format(doctype, new))
 
+<<<<<<< HEAD
 	if not (force or ignore_permissions) and not meta.allow_rename:
+=======
+	if not force and not ignore_permissions and not meta.allow_rename:
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		frappe.throw(_("{0} not allowed to be renamed").format(_(doctype)))
 
 	# validate naming like it's done in doc.py
@@ -450,7 +503,13 @@ def update_link_field_values(link_fields: list[dict], old: str, new: str, doctyp
 			if parent == new and doctype == "DocType":
 				parent = old
 
+<<<<<<< HEAD
 			frappe.db.set_value(parent, {docfield: old}, docfield, new, update_modified=False)
+=======
+			# when a document with autoincrement naming is renamed, the old and new values are int
+			# but link field values are always stored as varchar, so casting the values to string
+			frappe.db.set_value(parent, {docfield: cstr(old)}, docfield, cstr(new), update_modified=False)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		# update cached link_fields as per new
 		if doctype == "DocType" and field["parent"] == old:

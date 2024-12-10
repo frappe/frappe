@@ -26,8 +26,13 @@ class ModuleOnboarding(Document):
 		subtitle: DF.Data
 		success_message: DF.Data
 		title: DF.Data
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def on_update(self):
 		if frappe.conf.developer_mode:
 			export_to_files(record_list=[["Module Onboarding", self.name]], record_module=self.module)

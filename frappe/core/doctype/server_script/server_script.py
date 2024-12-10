@@ -3,6 +3,10 @@
 
 from functools import partial
 from itertools import chain
+<<<<<<< HEAD
+=======
+from typing import TYPE_CHECKING
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 import frappe
 from frappe import _
@@ -16,6 +20,12 @@ from frappe.utils.safe_exec import (
 	safe_exec,
 )
 
+<<<<<<< HEAD
+=======
+if TYPE_CHECKING:
+	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 class ServerScript(Document):
 	# begin: auto-generated types
@@ -42,12 +52,25 @@ class ServerScript(Document):
 			"After Submit",
 			"Before Cancel",
 			"After Cancel",
+<<<<<<< HEAD
+=======
+			"Before Discard",
+			"After Discard",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			"Before Delete",
 			"After Delete",
 			"Before Save (Submitted Document)",
 			"After Save (Submitted Document)",
 			"Before Print",
 			"On Payment Authorization",
+<<<<<<< HEAD
+=======
+			"On Payment Paid",
+			"On Payment Failed",
+			"On Payment Charge Processed",
+			"On Payment Mandate Charge Processed",
+			"On Payment Mandate Acquisition Processed",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		]
 		enable_rate_limit: DF.Check
 		event_frequency: DF.Literal[
@@ -69,6 +92,7 @@ class ServerScript(Document):
 		reference_doctype: DF.Link | None
 		script: DF.Code
 		script_type: DF.Literal["DocType Event", "Scheduler Event", "Permission Query", "API"]
+<<<<<<< HEAD
 
 	# end: auto-generated types
 	def validate(self):
@@ -79,6 +103,16 @@ class ServerScript(Document):
 
 	def on_update(self):
 		self.sync_scheduler_events()
+=======
+	# end: auto-generated types
+
+	def validate(self):
+		frappe.only_for("Script Manager", True)
+		self.check_if_compilable_in_restricted_context()
+
+	def on_update(self):
+		self.sync_scheduled_job_type()
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	def clear_cache(self):
 		frappe.cache.delete_value("server_script_map")
@@ -88,7 +122,14 @@ class ServerScript(Document):
 		frappe.cache.delete_value("server_script_map")
 		if self.script_type == "Scheduler Event":
 			for job in self.scheduled_jobs:
+<<<<<<< HEAD
 				frappe.delete_doc("Scheduled Job Type", job.name)
+=======
+				scheduled_job_type: ScheduledJobType = frappe.get_doc("Scheduled Job Type", job.name)
+				scheduled_job_type.stopped = True
+				scheduled_job_type.server_script = None
+				scheduled_job_type.save()
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	def get_code_fields(self):
 		return {"script": "py"}
@@ -101,6 +142,7 @@ class ServerScript(Document):
 			fields=["name", "stopped"],
 		)
 
+<<<<<<< HEAD
 	def sync_scheduled_jobs(self):
 		"""Sync Scheduled Job Type statuses if Server Script's disabled status is changed"""
 		if self.script_type != "Scheduler Event" or not self.has_value_changed("disabled"):
@@ -128,6 +170,40 @@ class ServerScript(Document):
 		) or (self.has_value_changed("script_type") and self.script_type != "Scheduler Event"):
 			for scheduled_job in self.scheduled_jobs:
 				frappe.delete_doc("Scheduled Job Type", scheduled_job.name, delete_permanently=1)
+=======
+	def sync_scheduled_job_type(self):
+		"""Create or update Scheduled Job Type documents for Scheduler Event Server Scripts"""
+
+		def get_scheduled_job() -> "ScheduledJobType":
+			if scheduled_script := frappe.db.get_value("Scheduled Job Type", {"server_script": self.name}):
+				return frappe.get_doc("Scheduled Job Type", scheduled_script)
+			else:
+				return frappe.get_doc({"doctype": "Scheduled Job Type", "server_script": self.name})
+
+		previous_script_type = self.get_value_before_save("script_type")
+		if previous_script_type != self.script_type and previous_script_type == "Scheduler Event":
+			get_scheduled_job().update({"stopped": 1}).save()
+			return
+
+		if self.script_type != "Scheduler Event" or not (
+			self.has_value_changed("event_frequency")
+			or self.has_value_changed("cron_format")
+			or self.has_value_changed("disabled")
+			or self.has_value_changed("script_type")
+		):
+			return
+
+		get_scheduled_job().update(
+			{
+				"method": frappe.scrub(f"{self.name}-{self.event_frequency}"),
+				"frequency": self.event_frequency,
+				"cron_format": self.cron_format,
+				"stopped": self.disabled,
+			}
+		).save()
+
+		frappe.msgprint(_("Scheduled execution for script {0} has updated").format(self.name), alert=True)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	def check_if_compilable_in_restricted_context(self):
 		"""Check compilation errors and send them back as warnings."""
@@ -139,6 +215,7 @@ class ServerScript(Document):
 			frappe.msgprint(str(e), title=_("Compilation warning"))
 
 	def execute_method(self) -> dict:
+<<<<<<< HEAD
 		"""Specific to API endpoint Server Scripts
 
 		Raises:
@@ -147,6 +224,16 @@ class ServerScript(Document):
 
 		Returns:
 		        dict: Evaluates self.script with frappe.utils.safe_exec.safe_exec and returns the flags set in it's safe globals
+=======
+		"""Specific to API endpoint Server Scripts.
+
+		Raise:
+		        frappe.DoesNotExistError: If self.script_type is not API.
+		        frappe.PermissionError: If self.allow_guest is unset for API accessed by Guest user.
+
+		Return:
+		        dict: Evaluate self.script with frappe.utils.safe_exec.safe_exec and return the flags set in its safe globals.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		"""
 
 		if self.enable_rate_limit:
@@ -185,6 +272,7 @@ class ServerScript(Document):
 		safe_exec(self.script, script_filename=self.name)
 
 	def get_permission_query_conditions(self, user: str) -> list[str]:
+<<<<<<< HEAD
 		"""Specific to Permission Query Server Scripts
 
 		Args:
@@ -192,12 +280,22 @@ class ServerScript(Document):
 
 		Returns:
 		        list: Returns list of conditions defined by rules in self.script
+=======
+		"""Specific to Permission Query Server Scripts.
+
+		Args:
+		        user (str): Take user email to execute script and return list of conditions.
+
+		Return:
+		        list: Return list of conditions defined by rules in self.script.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		"""
 		locals = {"user": user, "conditions": ""}
 		safe_exec(self.script, None, locals, script_filename=self.name)
 		if locals["conditions"]:
 			return locals["conditions"]
 
+<<<<<<< HEAD
 	@frappe.whitelist()
 	def get_autocompletion_items(self):
 		"""Generates a list of a autocompletion strings from the context dict
@@ -256,6 +354,29 @@ def setup_scheduler_events(script_name: str, frequency: str, cron_format: str | 
 
 
 def execute_api_server_script(script=None, *args, **kwargs):
+=======
+
+@frappe.whitelist()
+def get_autocompletion_items():
+	"""Generate a list of autocompletion strings from the context dict
+	that is used while executing a Server Script.
+
+	e.g., ["frappe.utils.cint", "frappe.get_all", ...]
+	"""
+
+	return frappe.cache.get_value(
+		"server_script_autocompletion_items",
+		generator=lambda: list(
+			chain.from_iterable(
+				get_keys_for_autocomplete(key, value, meta="utils")
+				for key, value in get_safe_globals().items()
+			),
+		),
+	)
+
+
+def execute_api_server_script(script: ServerScript, *args, **kwargs):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	# These are only added for compatibility with rate limiter.
 	del args
 	del kwargs

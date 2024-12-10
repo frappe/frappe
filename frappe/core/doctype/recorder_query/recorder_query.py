@@ -23,9 +23,16 @@ class RecorderQuery(Document):
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
+<<<<<<< HEAD
 		query: DF.Data
 		stack: DF.Text | None
 	# end: auto-generated types
+=======
+		query: DF.Data | None
+		stack: DF.Text | None
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass
 
 	def db_insert(self, *args, **kwargs):
@@ -38,6 +45,7 @@ class RecorderQuery(Document):
 		pass
 
 	@staticmethod
+<<<<<<< HEAD
 	def get_list(args):
 		pass
 
@@ -47,6 +55,17 @@ class RecorderQuery(Document):
 
 	@staticmethod
 	def get_stats(args):
+=======
+	def get_list():
+		pass
+
+	@staticmethod
+	def get_count():
+		pass
+
+	@staticmethod
+	def get_stats():
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		pass
 
 	def delete(self):

@@ -1,4 +1,8 @@
 {
+<<<<<<< HEAD
+=======
+ "actions": [],
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "allow_rename": 1,
  "autoname": "Prompt",
  "creation": "2016-05-25 09:43:44.767581",
@@ -15,7 +19,12 @@
    "label": "Description"
   }
  ],
+<<<<<<< HEAD
  "modified": "2019-09-25 17:47:41.712237",
+=======
+ "links": [],
+ "modified": "2024-03-23 16:03:39.682626",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Tag",
@@ -45,6 +54,13 @@
    "write": 1
   }
  ],
+<<<<<<< HEAD
  "sort_field": "modified",
  "sort_order": "DESC"
 }
+=======
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

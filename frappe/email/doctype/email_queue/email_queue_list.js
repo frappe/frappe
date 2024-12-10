@@ -45,8 +45,20 @@ function show_toggle_sending_button(list_view) {
 
 function add_bulk_retry_button_to_actions(list_view) {
 	list_view.page.add_actions_menu_item(__("Retry Sending"), () => {
+<<<<<<< HEAD
 		frappe.call({
 			method: "frappe.email.doctype.email_queue.email_queue.bulk_retry",
+=======
+		frappe.msgprint(
+			__(
+				"Updating Email Queue Statuses. The emails will be picked up in the next scheduled run."
+			),
+			__("Processing...")
+		);
+
+		frappe.call({
+			method: "frappe.email.doctype.email_queue.email_queue.retry_sending",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			args: {
 				queues: list_view.get_checked_items(true),
 			},

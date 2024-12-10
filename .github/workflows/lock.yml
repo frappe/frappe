@@ -14,8 +14,16 @@ jobs:
   lock:
     runs-on: ubuntu-latest
     steps:
+<<<<<<< HEAD
       - uses: dessant/lock-threads@v4
         with:
           github-token: ${{ github.token }}
           issue-inactive-days: 14
           pr-inactive-days: 14
+=======
+      - uses: dessant/lock-threads@v5
+        with:
+          github-token: ${{ github.token }}
+          issue-inactive-days: 14
+          pr-inactive-days: 14
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

@@ -29,8 +29,13 @@ class PropertySetter(Document):
 		property_type: DF.Data | None
 		row_name: DF.Data | None
 		value: DF.SmallText | None
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def autoname(self):
 		self.name = "{doctype}-{field}-{property}".format(
 			doctype=self.doc_type, field=self.field_name or self.row_name or "main", property=self.property
@@ -59,6 +64,19 @@ class PropertySetter(Document):
 
 			validate_fields_for_doctype(self.doc_type)
 
+<<<<<<< HEAD
+=======
+	def get_permission_log_options(self, event=None):
+		if self.property in ("ignore_user_permissions", "permlevel"):
+			return {
+				"for_doctype": "DocType",
+				"for_document": self.doc_type,
+				"fields": ("value", "property", "field_name"),
+			}
+
+		self._no_perm_log = True
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 def make_property_setter(
 	doctype,
@@ -73,7 +91,11 @@ def make_property_setter(
 	property_setter = frappe.get_doc(
 		{
 			"doctype": "Property Setter",
+<<<<<<< HEAD
 			"doctype_or_field": for_doctype and "DocType" or "DocField",
+=======
+			"doctype_or_field": (for_doctype and "DocType") or "DocField",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			"doc_type": doctype,
 			"field_name": fieldname,
 			"property": property,
@@ -87,12 +109,27 @@ def make_property_setter(
 	return property_setter
 
 
+<<<<<<< HEAD
 def delete_property_setter(doc_type, property, field_name=None, row_name=None):
 	"""delete other property setters on this, if this is new"""
 	filters = dict(doc_type=doc_type, property=property)
+=======
+def delete_property_setter(doc_type, property=None, field_name=None, row_name=None):
+	"""delete other property setters on this, if this is new"""
+	filters = {"doc_type": doc_type}
+	if property:
+		filters["property"] = property
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if field_name:
 		filters["field_name"] = field_name
 	if row_name:
 		filters["row_name"] = row_name
 
+<<<<<<< HEAD
 	frappe.db.delete("Property Setter", filters)
+=======
+	property_setters = frappe.db.get_values("Property Setter", filters)
+	for ps in property_setters:
+		frappe.get_doc("Property Setter", ps).delete(ignore_permissions=True)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

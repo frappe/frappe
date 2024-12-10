@@ -32,6 +32,10 @@ from frappe.utils import (
 	sanitize_html,
 	strip_html,
 )
+<<<<<<< HEAD
+=======
+from frappe.utils.defaults import get_not_null_defaults
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.utils.html_utils import unescape_html
 
 if TYPE_CHECKING:
@@ -55,9 +59,15 @@ DOCTYPES_FOR_DOCTYPE = {"DocType", *TABLE_DOCTYPES_FOR_DOCTYPE.values()}
 
 
 def get_controller(doctype):
+<<<<<<< HEAD
 	"""
 	Returns the locally cached **class** object of the given DocType.
 	For `custom` type, returns `frappe.model.document.Document`.
+=======
+	"""Return the locally cached **class** object of the given DocType.
+
+	For `custom` type, return `frappe.model.document.Document`.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	:param doctype: DocType name as string.
 	"""
@@ -86,6 +96,7 @@ def import_controller(doctype):
 
 	module_path = None
 	class_overrides = frappe.get_hooks("override_doctype_class")
+<<<<<<< HEAD
 	if class_overrides and class_overrides.get(doctype):
 		import_path = class_overrides[doctype][-1]
 		module_path, classname = import_path.rsplit(".", 1)
@@ -96,6 +107,26 @@ def import_controller(doctype):
 		classname = doctype.replace(" ", "").replace("-", "")
 
 	class_ = getattr(module, classname, None)
+=======
+
+	module = load_doctype_module(doctype, module_name)
+	classname = doctype.replace(" ", "").replace("-", "")
+	class_ = getattr(module, classname, None)
+
+	if class_overrides and class_overrides.get(doctype):
+		import_path = class_overrides[doctype][-1]
+		module_path, custom_classname = import_path.rsplit(".", 1)
+		custom_module = frappe.get_module(module_path)
+		custom_class_ = getattr(custom_module, custom_classname, None)
+		if not issubclass(custom_class_, class_):
+			original_class_path = frappe.bold(f"{class_.__module__}.{class_.__name__}")
+			frappe.throw(
+				f"{doctype}: {frappe.bold(import_path)} must be a subclass of {original_class_path}",
+				title=_("Invalid Override"),
+			)
+		class_ = custom_class_
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if class_ is None:
 		raise ImportError(
 			doctype
@@ -137,6 +168,12 @@ class BaseDocument:
 		if hasattr(self, "__setup__"):
 			self.__setup__()
 
+<<<<<<< HEAD
+=======
+	def __json__(self):
+		return self.as_dict(no_nulls=True)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	@cached_property
 	def meta(self):
 		return frappe.get_meta(self.doctype)
@@ -146,9 +183,15 @@ class BaseDocument:
 		return get_permitted_fields(doctype=self.doctype, parenttype=getattr(self, "parenttype", None))
 
 	def __getstate__(self):
+<<<<<<< HEAD
 		"""
 		Called when pickling.
 		Returns a copy of `__dict__` excluding unpicklable values like `meta`.
+=======
+		"""Return a copy of `__dict__` excluding unpicklable values like `meta`.
+
+		Called when pickling.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		More info: https://docs.python.org/3/library/pickle.html#handling-stateful-objects
 		"""
 
@@ -243,7 +286,11 @@ class BaseDocument:
 		if key in self.__dict__:
 			del self.__dict__[key]
 
+<<<<<<< HEAD
 	def append(self, key: str, value: D | dict | None = None) -> D:
+=======
+	def append(self, key: str, value: D | dict | None = None, position: int = -1) -> D:
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		"""Append an item to a child table.
 
 		Example:
@@ -259,6 +306,7 @@ class BaseDocument:
 		if (table := self.__dict__.get(key)) is None:
 			self.__dict__[key] = table = []
 
+<<<<<<< HEAD
 		ret_value = self._init_child(value, key)
 		table.append(ret_value)
 
@@ -266,6 +314,24 @@ class BaseDocument:
 		ret_value.parent_doc = weakref.ref(self)
 
 		return ret_value
+=======
+		d = self._init_child(value, key)
+
+		if position == -1:
+			table.append(d)
+		else:
+			# insert at specific position
+			table.insert(position, d)
+
+			# re number idx
+			for i, _d in enumerate(table):
+				_d.idx = i + 1
+
+		# reference parent document but with weak reference, parent_doc will be deleted if self is garbage collected.
+		d.parent_doc = weakref.ref(self)
+
+		return d
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	@property
 	def parent_doc(self):
@@ -350,7 +416,11 @@ class BaseDocument:
 		d = _dict()
 		field_values = self.__dict__
 
+<<<<<<< HEAD
 		for fieldname in self.meta.get_valid_columns():
+=======
+		for fieldname in self.meta.get_valid_fields():
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			value = field_values.get(fieldname)
 
 			# if no need for sanitization and value is None, continue
@@ -406,6 +476,19 @@ class BaseDocument:
 			if ignore_nulls and not is_virtual_field and value is None:
 				continue
 
+<<<<<<< HEAD
+=======
+			# If the docfield is not nullable - set a default non-null value
+			if value is None and getattr(df, "not_nullable", False):
+				if df.default:
+					value = df.default
+				else:
+					value = get_not_null_defaults(df.fieldtype)
+
+			if hasattr(value, "__value__"):
+				value = value.__value__()
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			d[fieldname] = value
 
 		return d
@@ -465,6 +548,10 @@ class BaseDocument:
 		no_default_fields=False,
 		convert_dates_to_str=False,
 		no_child_table_fields=False,
+<<<<<<< HEAD
+=======
+		no_private_properties=False,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	) -> dict:
 		doc = self.get_valid_dict(convert_dates_to_str=convert_dates_to_str, ignore_nulls=no_nulls)
 		doc["doctype"] = self.doctype
@@ -477,6 +564,10 @@ class BaseDocument:
 					no_nulls=no_nulls,
 					no_default_fields=no_default_fields,
 					no_child_table_fields=no_child_table_fields,
+<<<<<<< HEAD
+=======
+					no_private_properties=no_private_properties,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				)
 				for d in children
 			]
@@ -491,6 +582,7 @@ class BaseDocument:
 				if key in doc:
 					del doc[key]
 
+<<<<<<< HEAD
 		for key in (
 			"_user_tags",
 			"__islocal",
@@ -501,6 +593,19 @@ class BaseDocument:
 		):
 			if value := getattr(self, key, None):
 				doc[key] = value
+=======
+		if not no_private_properties:
+			for key in (
+				"_user_tags",
+				"__islocal",
+				"__onload",
+				"_liked_by",
+				"__run_link_triggers",
+				"__unsaved",
+			):
+				if value := getattr(self, key, None):
+					doc[key] = value
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		return doc
 
@@ -648,7 +753,11 @@ class BaseDocument:
 
 	def get_field_name_by_key_name(self, key_name):
 		"""MariaDB stores a mapping between `key_name` and `column_name`.
+<<<<<<< HEAD
 		This function returns the `column_name` associated with the `key_name` passed
+=======
+		Return the `column_name` associated with the `key_name` passed.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		Args:
 		        key_name (str): The name of the database index.
@@ -656,7 +765,11 @@ class BaseDocument:
 		Raises:
 		        IndexError: If the key is not found in the table.
 
+<<<<<<< HEAD
 		Returns:
+=======
+		Return:
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		        str: The column name associated with the key.
 		"""
 		return frappe.db.sql(
@@ -675,17 +788,29 @@ class BaseDocument:
 		)[0].get("Column_name")
 
 	def get_label_from_fieldname(self, fieldname):
+<<<<<<< HEAD
 		"""Returns the associated label for fieldname
+=======
+		"""Return the associated label for fieldname.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		Args:
 		        fieldname (str): The fieldname in the DocType to use to pull the label.
 
+<<<<<<< HEAD
 		Returns:
+=======
+		Return:
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		        str: The label associated with the fieldname, if found, otherwise `None`.
 		"""
 		df = self.meta.get_field(fieldname)
 		if df:
+<<<<<<< HEAD
 			return df.label
+=======
+			return _(df.label) if df.label else None
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	def update_modified(self):
 		"""Update modified timestamp"""
@@ -715,6 +840,7 @@ class BaseDocument:
 
 		def get_msg(df):
 			if df.fieldtype in table_fields:
+<<<<<<< HEAD
 				return "{}: {}: {}".format(
 					_("Error"), _("Data missing in table"), _(df.label, context=df.parent)
 				)
@@ -727,6 +853,15 @@ class BaseDocument:
 					_("Row"),
 					self.idx,
 					_("Value missing for"),
+=======
+				return _("Error: Data missing in table {0}").format(_(df.label, context=df.parent))
+
+			# check if parentfield exists (only applicable for child table doctype)
+			elif self.get("parentfield"):
+				return _("Error: {0} Row #{1}: Value missing for: {2}").format(
+					frappe.bold(_(self.doctype)),
+					self.idx,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					_(df.label, context=df.parent),
 				)
 
@@ -760,7 +895,11 @@ class BaseDocument:
 		return missing
 
 	def get_invalid_links(self, is_submittable=False):
+<<<<<<< HEAD
 		"""Returns list of invalid links and also updates fetch values if not set"""
+=======
+		"""Return list of invalid links and also update fetch values if not set."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		def get_msg(df, docname):
 			# check if parentfield exists (only applicable for child table doctype)
@@ -807,8 +946,19 @@ class BaseDocument:
 							_df.fetch_from.split(".")[-1] for _df in fields_to_fetch
 						]
 
+<<<<<<< HEAD
 						# don't cache if fetching other values too
 						values = frappe.db.get_value(doctype, docname, values_to_fetch, as_dict=True)
+=======
+						# fallback to dict with field_to_fetch=None if link field value is not found
+						# (for compatibility, `values` must have same data type)
+						empty_values = _dict({value: None for value in values_to_fetch})
+						# don't cache if fetching other values too
+						values = (
+							frappe.db.get_value(doctype, docname, values_to_fetch, as_dict=True)
+							or empty_values
+						)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 				if getattr(meta, "issingle", 0):
 					values.name = doctype
@@ -868,7 +1018,11 @@ class BaseDocument:
 			return
 
 		for df in self.meta.get_select_fields():
+<<<<<<< HEAD
 			if df.fieldname == "naming_series" or not (self.get(df.fieldname) and df.options):
+=======
+			if df.fieldname == "naming_series" or not self.get(df.fieldname) or not df.options:
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				continue
 
 			options = (df.options or "").split("\n")
@@ -894,6 +1048,7 @@ class BaseDocument:
 				)
 
 	def _validate_data_fields(self):
+<<<<<<< HEAD
 		# data_field options defined in frappe.model.data_field_options
 		for phone_field in self.meta.get_phone_fields():
 			phone = self.get(phone_field.fieldname)
@@ -901,6 +1056,27 @@ class BaseDocument:
 
 		for data_field in self.meta.get_data_fields():
 			data = self.get(data_field.fieldname)
+=======
+		from frappe.utils import (
+			split_emails,
+			validate_email_address,
+			validate_name,
+			validate_phone_number,
+			validate_phone_number_with_country_code,
+			validate_url,
+		)
+
+		for phone_field in self.meta.get_phone_fields():
+			phone = self.get(phone_field.fieldname)
+			validate_phone_number_with_country_code(phone, phone_field.fieldname)
+
+		# data_field options defined in frappe.model.data_field_options
+		for data_field in self.meta.get_data_fields():
+			data = self.get(data_field.fieldname)
+			if not data:
+				continue
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			data_field_options = data_field.get("options")
 			old_fieldtype = data_field.get("oldfieldtype")
 
@@ -910,6 +1086,7 @@ class BaseDocument:
 			if data_field_options == "Email":
 				if (self.owner in frappe.STANDARD_USERS) and (data in frappe.STANDARD_USERS):
 					continue
+<<<<<<< HEAD
 				for email_address in frappe.utils.split_emails(data):
 					frappe.utils.validate_email_address(email_address, throw=True)
 
@@ -924,6 +1101,20 @@ class BaseDocument:
 					continue
 
 				frappe.utils.validate_url(data, throw=True)
+=======
+
+				for email_address in split_emails(data):
+					validate_email_address(email_address, throw=True)
+
+			if data_field_options == "Name":
+				validate_name(data, throw=True)
+
+			if data_field_options == "Phone":
+				validate_phone_number(data, throw=True)
+
+			if data_field_options == "URL":
+				validate_url(data, throw=True)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	def _validate_constants(self):
 		if frappe.flags.in_import or self.is_new() or self.flags.ignore_validate_constants:
@@ -1131,7 +1322,11 @@ class BaseDocument:
 		return "".join(set(pwd)) == "*"
 
 	def precision(self, fieldname, parentfield=None) -> int | None:
+<<<<<<< HEAD
 		"""Returns float precision for a particular field (or get global default).
+=======
+		"""Return float precision for a particular field (or get global default).
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		:param fieldname: Fieldname for which precision is required.
 		:param parentfield: If fieldname is in child table."""
@@ -1193,7 +1388,11 @@ class BaseDocument:
 		return format_value(val, df=df, doc=doc, currency=currency, format=format)
 
 	def is_print_hide(self, fieldname, df=None, for_print=True):
+<<<<<<< HEAD
 		"""Returns true if fieldname is to be hidden for print.
+=======
+		"""Return True if fieldname is to be hidden for print.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		Print Hide can be set via the Print Format Builder or in the controller as a list
 		of hidden fields. Example
@@ -1222,7 +1421,12 @@ class BaseDocument:
 		return print_hide
 
 	def in_format_data(self, fieldname):
+<<<<<<< HEAD
 		"""Returns True if shown via Print Format::`format_data` property.
+=======
+		"""Return True if shown via Print Format::`format_data` property.
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		Called from within standard print format."""
 		doc = getattr(self, "parent_doc", self)
 

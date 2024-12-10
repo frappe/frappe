@@ -3,7 +3,13 @@
 {% endif %}
 {% if not result -%}
 	<div class="empty-apps-state">
+<<<<<<< HEAD
 		<img class="empty-list-icon" src="/assets/frappe/images/ui-states/list-empty-state.svg"/>
+=======
+		<svg class="icon icon-xl" style="stroke: var(--text-light);">
+			<use href="#icon-small-file"></use>
+		</svg>
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		<div class="mt-4">{{ no_result_message or _("Nothing to show") }}</div>
 	</div>
 {% else %}

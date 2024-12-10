@@ -43,7 +43,10 @@ execute:frappe.db.sql("delete from tabSessions where user is null")
 execute:frappe.delete_doc("DocType", "Backup Manager")
 execute:frappe.permissions.reset_perms("Web Page")
 execute:frappe.db.sql("delete from `tabWeb Page` where ifnull(template_path, '')!=''")
+<<<<<<< HEAD
 execute:frappe.core.doctype.language.language.update_language_names() # 2017-04-12
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 execute:frappe.db.set_value("Print Settings", "Print Settings", "add_draft_heading", 1)
 execute:frappe.db.set_default('language', '')
 execute:frappe.db.sql("update tabCommunication set communication_date = creation where time(communication_date) = 0")
@@ -196,6 +199,10 @@ frappe.patches.v15_0.copy_disable_prepared_report_to_prepared_report
 execute:frappe.reload_doc("desk", "doctype", "Form Tour")
 execute:frappe.delete_doc('Page', 'recorder', ignore_missing=True, force=True)
 frappe.patches.v14_0.modify_value_column_size_for_singles
+<<<<<<< HEAD
+=======
+frappe.patches.v15_0.migrate_to_utm
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 [post_model_sync]
 execute:frappe.get_doc('Role', 'Guest').save() # remove desk access
@@ -233,8 +240,21 @@ frappe.patches.v15_0.set_file_type
 frappe.core.doctype.data_import.patches.remove_stale_docfields_from_legacy_version
 frappe.patches.v15_0.validate_newsletter_recipients
 frappe.patches.v15_0.sanitize_workspace_titles
+<<<<<<< HEAD
 frappe.custom.doctype.property_setter.patches.remove_invalid_fetch_from_expressions
 frappe.integrations.doctype.oauth_client.patches.set_default_allowed_role_in_oauth_client
 frappe.patches.v16_0.add_app_launcher_in_navbar_settings
 frappe.patches.v15_0.remove_workspace_settings_navbar_items
 frappe.patches.v16_0.move_role_desk_settings_to_user
+=======
+frappe.patches.v15_0.migrate_role_profile_to_table_multi_select
+frappe.patches.v15_0.migrate_session_data
+frappe.custom.doctype.property_setter.patches.remove_invalid_fetch_from_expressions
+frappe.patches.v16_0.switch_default_sort_order
+frappe.integrations.doctype.oauth_client.patches.set_default_allowed_role_in_oauth_client
+execute:frappe.db.set_single_value("Workspace Settings", "workspace_setup_completed", 1)
+frappe.patches.v16_0.add_app_launcher_in_navbar_settings
+frappe.desk.doctype.workspace.patches.update_app
+frappe.patches.v16_0.move_role_desk_settings_to_user
+frappe.patches.v16_0.update_expression_series
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

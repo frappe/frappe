@@ -24,11 +24,26 @@
 			}
 		}
 	}
+<<<<<<< HEAD
+=======
+
+	@include media-breakpoint-up(md) {
+		// only for small screens
+		.sidebar-toggle-btn {
+			display: none;
+		}
+	}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	.title-area {
 		display: inline-flex;
 		align-items: center;
 		.title-text {
+<<<<<<< HEAD
 			@include get_textstyle("2xl", "bold");
+=======
+			@include get_textstyle("xl", "semibold");
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			cursor: pointer;
 			margin-bottom: 0px;
 			margin-right: var(--margin-sm);
@@ -46,9 +61,15 @@
 .page-container {
 	background-color: var(--bg-color);
 
+<<<<<<< HEAD
 	.page-body.full-width {
 		width: 100%;
 		max-width: 100%;
+=======
+	.page-body {
+		width: 100%;
+		padding: 0px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 }
 
@@ -85,14 +106,22 @@
 }
 
 .layout-main-section-wrapper {
+<<<<<<< HEAD
 	min-width: 0;
+=======
+	width: 100%;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 }
 
 .layout-main-section.frappe-card {
 	overflow: hidden;
 	@include card($padding: 0px);
 	box-shadow: none;
+<<<<<<< HEAD
 	border: 1px solid var(--border-color);
+=======
+	border: none;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 }
 
 .page-head {
@@ -100,8 +129,14 @@
 	position: sticky;
 	top: var(--navbar-height);
 	background: var(--bg-color);
+<<<<<<< HEAD
 	margin-bottom: 5px;
 	transition: 0.5s top;
+=======
+	border-bottom: 1px solid var(--border-color);
+	transition: 0.5s top;
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	.page-head-content {
 		height: var(--page-head-height);
 		padding: 8px 0px;
@@ -110,6 +145,7 @@
 
 .page-form {
 	margin: 0;
+<<<<<<< HEAD
 	padding: var(--padding-xs);
 	display: flex;
 	flex-wrap: wrap;
@@ -119,6 +155,16 @@
 	.form-group {
 		padding: 0px 5px;
 		margin: 5px 0px;
+=======
+	padding: var(--padding-xs) var(--padding-md);
+	display: flex;
+	flex-wrap: wrap;
+	background-color: var(--card-bg);
+
+	.form-group {
+		padding: 0 10px 0 0;
+		margin: 5px 0;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 	.checkbox {
 		margin-top: 4px;
@@ -162,17 +208,37 @@
 		margin-right: var(--margin-sm);
 	}
 }
+<<<<<<< HEAD
+=======
+
+.layout-main {
+	display: flex;
+	flex-direction: row;
+}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 .layout-main-section {
 	scroll-margin-top: var(--navbar-height);
 
 	.frappe-list,
 	.report-wrapper {
+<<<<<<< HEAD
 		padding: 0 var(--padding-xs);
 
 		.result,
 		.no-result,
 		.freeze {
 			min-height: #{"calc(100vh - 284px)"};
+=======
+		.result,
+		.no-result,
+		.freeze {
+			min-height: "200px";
+		}
+
+		.result {
+			overflow: auto;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		}
 	}
 

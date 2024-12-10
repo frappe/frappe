@@ -229,7 +229,11 @@ frappe.ui.GroupBy = class {
 		this.page.wrapper.find(".sort-selector").before(
 			$(`<div class="group-by-selector">
 				<button class="btn btn-default btn-sm group-by-button ellipsis">
+<<<<<<< HEAD
 					<span class="group-by-icon">
+=======
+					<span class="group-by-icon button-icon">
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 						${frappe.utils.icon("es-line-folder-alt")}
 					</span>
 					<span class="button-label hidden-xs">

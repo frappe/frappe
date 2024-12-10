@@ -25,8 +25,13 @@ class Role(Document):
 		restrict_to_domain: DF.Link | None
 		role_name: DF.Data
 		two_factor_auth: DF.Check
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def before_rename(self, old, new, merge=False):
 		if old in STANDARD_ROLES:
 			frappe.throw(frappe._("Standard roles cannot be renamed"))

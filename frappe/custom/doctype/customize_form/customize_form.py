@@ -2,9 +2,16 @@
 # MIT License. See LICENSE
 
 """
+<<<<<<< HEAD
 	Customize Form is a Single DocType used to mask the Property Setter
 	Thus providing a better UI from user perspective
 """
+=======
+Customize Form is a Single DocType used to mask the Property Setter
+Thus providing a better UI from user perspective
+"""
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 import json
 
 import frappe
@@ -226,8 +233,13 @@ class CustomizeForm(Document):
 		validate_autoincrement_autoname(self)
 		self.flags.update_db = False
 		self.flags.rebuild_doctype_for_global_search = False
+<<<<<<< HEAD
 		self.set_property_setters()
 		self.update_custom_fields()
+=======
+		self.update_custom_fields()
+		self.set_property_setters()
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		self.set_name_translation()
 		validate_fields_for_doctype(self.doc_type)
 		check_email_append_to(self)
@@ -440,7 +452,11 @@ class CustomizeForm(Document):
 				property_name, json.dumps([d.name for d in self.get(fieldname)]), "Small Text"
 			)
 		else:
+<<<<<<< HEAD
 			frappe.db.delete("Property Setter", dict(property=property_name, doc_type=self.doc_type))
+=======
+			delete_property_setter(self.doc_type, property=property_name)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	def clear_removed_items(self, doctype, items):
 		"""

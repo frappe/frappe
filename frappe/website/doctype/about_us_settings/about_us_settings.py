@@ -26,8 +26,13 @@ class AboutUsSettings(Document):
 		team_members: DF.Table[AboutUsTeamMember]
 		team_members_heading: DF.Data | None
 		team_members_subtitle: DF.SmallText | None
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def on_update(self):
 		from frappe.website.utils import clear_cache
 

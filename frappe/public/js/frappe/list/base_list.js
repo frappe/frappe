@@ -45,6 +45,10 @@ frappe.views.BaseList = class BaseList {
 
 		this.start = 0;
 		this.page_length = frappe.is_large_screen() ? 100 : 20;
+<<<<<<< HEAD
+=======
+		this.selected_page_count = this.page_length;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		this.data = [];
 		this.method = "frappe.desk.reportview.get";
 
@@ -53,7 +57,11 @@ frappe.views.BaseList = class BaseList {
 
 		this.fields = [];
 		this.filters = [];
+<<<<<<< HEAD
 		this.sort_by = this.meta.sort_field || "modified";
+=======
+		this.sort_by = this.meta.sort_field || "creation";
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		this.sort_order = this.meta.sort_order || "desc";
 
 		// Setup buttons
@@ -168,7 +176,11 @@ frappe.views.BaseList = class BaseList {
 	setup_page() {
 		this.page = this.parent.page;
 		this.$page = $(this.parent);
+<<<<<<< HEAD
 		!this.hide_card_layout && this.page.main.addClass("frappe-card");
+=======
+		this.page.main.addClass("layout-main-list");
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		this.page.page_form.removeClass("row").addClass("flex");
 		this.hide_page_form && this.page.page_form.hide();
 		this.hide_sidebar && this.$page.addClass("no-list-sidebar");
@@ -399,6 +411,7 @@ frappe.views.BaseList = class BaseList {
 		// set default paging btn active
 		this.$paging_area
 			.find(`.btn-paging[data-value="${this.page_length}"]`)
+<<<<<<< HEAD
 			.addClass("btn-info");
 
 		this.$paging_area.on("click", ".btn-paging", (e) => {
@@ -417,10 +430,60 @@ frappe.views.BaseList = class BaseList {
 		this.$paging_area.on("click", ".btn-more", (e) => {
 			this.start += this.page_length;
 			this.page_length = this.selected_page_count || 20;
+=======
+			.addClass("btn-info")
+			.prop("disabled", true);
+
+		this.$paging_area.on("click", ".btn-paging", (e) => {
+			const $this = $(e.currentTarget);
+			// Set the active button
+			// This is always necessary because the current page length might
+			// have resulted from a previous "load more".
+			this.$paging_area.find(".btn-paging").removeClass("btn-info").prop("disabled", false);
+			$this.addClass("btn-info").prop("disabled", true);
+
+			const old_page_length = this.page_length;
+			const new_page_length = $this.data().value;
+
+			this.selected_page_count = new_page_length;
+			if (this.page_length > new_page_length) {
+				this.start = 0;
+				this.page_length = new_page_length;
+			} else {
+				this.start = this.page_length;
+				this.page_length = new_page_length - this.page_length;
+			}
+
+			if (old_page_length !== new_page_length) {
+				this.refresh();
+			}
+		});
+
+		this.$paging_area.on("click", ".btn-more", (e) => {
+			this.start = this.data.length;
+			this.page_length = this.selected_page_count;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			this.refresh();
 		});
 	}
 
+<<<<<<< HEAD
+=======
+	set_result_height() {
+		// place it at the footer of the page
+		this.$result.css({
+			height:
+				window.innerHeight -
+				this.$result.get(0).offsetTop -
+				this.$paging_area.get(0).offsetHeight +
+				"px",
+		});
+		this.$no_result.css({
+			height: window.innerHeight - this.$no_result.get(0).offsetTop + "px",
+		});
+	}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	get_fields() {
 		// convert [fieldname, Doctype] => tabDoctype.fieldname
 		return this.fields.map((f) => frappe.model.get_full_column_name(f[0], f[1]));
@@ -441,12 +504,18 @@ frappe.views.BaseList = class BaseList {
 	get_filter_value(fieldname) {
 		const filter = this.get_filters_for_args().filter((f) => f[1] == fieldname)[0];
 		if (!filter) return;
+<<<<<<< HEAD
 		return (
 			{
 				like: filter[3]?.replace(/^%?|%$/g, ""),
 				"not set": null,
 			}[filter[2]] || filter[3]
 		);
+=======
+		if (filter[2] === "like") return filter[3]?.replace(/^%?|%$/g, "");
+		else if (filter[2] === "not set") return null;
+		else return filter[3];
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 
 	get_filters_for_args() {
@@ -505,6 +574,10 @@ frappe.views.BaseList = class BaseList {
 			this.before_render();
 			this.render();
 			this.after_render();
+<<<<<<< HEAD
+=======
+			this.set_result_height();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			this.freeze(false);
 			this.reset_defaults();
 			if (this.settings.refresh) {
@@ -570,8 +643,15 @@ frappe.views.BaseList = class BaseList {
 		this.$paging_area.toggle(this.data.length > 0);
 		this.$no_result.toggle(this.data.length == 0);
 
+<<<<<<< HEAD
 		const show_more = this.start + this.page_length <= this.data.length;
 		this.$paging_area.find(".btn-more").toggle(show_more);
+=======
+		if (this.data.length) {
+			const show_more = this.start + this.page_length <= this.data.length;
+			this.$paging_area.find(".btn-more").toggle(show_more);
+		}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 
 	call_for_selected_items(method, args = {}) {
@@ -763,7 +843,11 @@ class FilterArea {
 		});
 	}
 
+<<<<<<< HEAD
 	make_standard_filters() {
+=======
+	async make_standard_filters() {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		this.standard_filters_wrapper = this.list_view.page.page_form.find(
 			".standard-filter-section"
 		);
@@ -779,12 +863,33 @@ class FilterArea {
 			});
 		}
 
+<<<<<<< HEAD
 		if (this.list_view.custom_filter_configs) {
 			this.list_view.custom_filter_configs.forEach((config) => {
 				config.onchange = () => this.debounced_refresh_list_view();
 			});
 
 			fields = fields.concat(this.list_view.custom_filter_configs);
+=======
+		if (
+			this.list_view.custom_filter_configs ||
+			this.list_view.settings.custom_filter_configs
+		) {
+			const custom_filter_configs =
+				this.list_view.custom_filter_configs ||
+				this.list_view.settings.custom_filter_configs;
+			await Promise.resolve(
+				typeof custom_filter_configs === "function"
+					? custom_filter_configs()
+					: custom_filter_configs
+			).then((configs) => {
+				configs.forEach((config) => {
+					config.onchange = () => this.debounced_refresh_list_view();
+				});
+
+				fields = fields.concat(configs);
+			});
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		}
 
 		const doctype_fields = this.list_view.meta.fields;
@@ -876,7 +981,11 @@ class FilterArea {
 		$(`<div class="filter-selector">
 			<div class="btn-group">
 				<button class="btn btn-default btn-sm filter-button">
+<<<<<<< HEAD
 					<span class="filter-icon">
+=======
+					<span class="filter-icon button-icon">
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 						${frappe.utils.icon("es-line-filter")}
 					</span>
 					<span class="button-label hidden-xs">
@@ -884,7 +993,11 @@ class FilterArea {
 					<span>
 				</button>
 				<button class="btn btn-default btn-sm filter-x-button" title="${__("Clear all filters")}">
+<<<<<<< HEAD
 					<span class="filter-icon">
+=======
+					<span class="filter-icon button-icon">
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 						${frappe.utils.icon("es-small-close")}
 					</span>
 				</button>

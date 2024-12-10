@@ -124,7 +124,11 @@ frappe.ui.form.Attachments = class Attachments {
 
 		let file_label = `
 			<a href="${file_url}" target="_blank" title="${frappe.utils.escape_html(file_name)}"
+<<<<<<< HEAD
 				class="ellipsis" style="max-width: calc(100% - 43px);"
+=======
+				class="ellipsis attachment-file-label"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			>
 				<span>${file_name}</span>
 			</a>`;
@@ -151,7 +155,11 @@ frappe.ui.form.Attachments = class Attachments {
 				${frappe.utils.icon(attachment.is_private ? "es-line-lock" : "es-line-unlock", "sm ml-0")}
 			</a>`;
 
+<<<<<<< HEAD
 		$(`<li class="attachment-row">`)
+=======
+		$(`<div class="attachment-row"></div>`)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			.append(frappe.get_data_pill(file_label, fileid, remove_action, icon))
 			.insertAfter(this.add_attachment_wrapper);
 	}

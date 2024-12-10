@@ -62,7 +62,11 @@ frappe.ui.FilterGroup = class {
 	}
 
 	set_popover_events() {
+<<<<<<< HEAD
 		$(document.body).on("click", (e) => {
+=======
+		$(document.body).on("mousedown", (e) => {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			if (this.wrapper && this.wrapper.is(":visible")) {
 				const in_datepicker =
 					$(e.target).is(".datepicker--cell") ||

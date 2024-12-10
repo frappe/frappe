@@ -17,6 +17,10 @@
 	display: flex;
 	gap: 0.5em;
 	overflow-y: hidden;
+<<<<<<< HEAD
+=======
+	margin: var(--margin-sm);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	-ms-overflow-style: none; /* IE and Edge */
 	scrollbar-width: none; /* Firefox */
@@ -31,7 +35,13 @@
 		flex: 1 0 260px;
 		border-radius: var(--border-radius);
 		padding: var(--padding-md);
+<<<<<<< HEAD
 		min-height: calc(100vh - 150px);
+=======
+		min-height: calc(
+			100vh - var(--navbar-height) - var(--page-head-height) - var(--margin-sm) * 2
+		);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		.add-card {
 			@include flex(flex, center, center, null);

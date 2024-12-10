@@ -3,12 +3,30 @@
 import frappe
 from frappe.contacts.doctype.contact.contact import get_full_name
 from frappe.email import get_contact_list
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 
 test_dependencies = ["Contact", "Salutation"]
 
 
 class TestContact(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase, UnitTestCase
+
+EXTRA_TEST_RECORD_DEPENDENCIES = ["Contact", "Salutation"]
+
+
+class UnitTestContact(UnitTestCase):
+	"""
+	Unit tests for Contact.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestContact(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_check_default_email(self):
 		emails = [
 			{"email": "test1@example.com", "is_primary": 0},
@@ -23,6 +41,7 @@ class TestContact(FrappeTestCase):
 
 	def test_check_default_phone_and_mobile(self):
 		phones = [
+<<<<<<< HEAD
 			{"phone": "+91 0000000000", "is_primary_phone": 0, "is_primary_mobile_no": 0},
 			{"phone": "+91 0000000001", "is_primary_phone": 0, "is_primary_mobile_no": 0},
 			{"phone": "+91 0000000002", "is_primary_phone": 1, "is_primary_mobile_no": 0},
@@ -32,6 +51,17 @@ class TestContact(FrappeTestCase):
 
 		self.assertEqual(contact.phone, "+91 0000000002")
 		self.assertEqual(contact.mobile_no, "+91 0000000003")
+=======
+			{"phone": "+91 0000000010", "is_primary_phone": 0, "is_primary_mobile_no": 0},
+			{"phone": "+91 0000000011", "is_primary_phone": 0, "is_primary_mobile_no": 0},
+			{"phone": "+91 0000000012", "is_primary_phone": 1, "is_primary_mobile_no": 0},
+			{"phone": "+91 0000000013", "is_primary_phone": 0, "is_primary_mobile_no": 1},
+		]
+		contact = create_contact("Phone", "Mr", phones=phones)
+
+		self.assertEqual(contact.phone, "+91 0000000012")
+		self.assertEqual(contact.mobile_no, "+91 0000000013")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	def test_get_full_name(self):
 		self.assertEqual(get_full_name(first="John"), "John")

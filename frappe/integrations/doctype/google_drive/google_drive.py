@@ -40,8 +40,13 @@ class GoogleDrive(Document):
 		last_backup_on: DF.Datetime | None
 		refresh_token: DF.Data | None
 		send_email_for_successful_backup: DF.Check
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def validate(self):
 		doc_before_save = self.get_doc_before_save()
 		if doc_before_save and doc_before_save.backup_folder_name != self.backup_folder_name:
@@ -87,9 +92,13 @@ def authorize_access(reauthorize=False, code=None):
 
 
 def get_google_drive_object():
+<<<<<<< HEAD
 	"""
 	Returns an object of Google Drive.
 	"""
+=======
+	"""Return an object of Google Drive."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	account = frappe.get_doc("Google Drive")
 	oauth_obj = GoogleOAuth("drive")
 

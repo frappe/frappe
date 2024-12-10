@@ -17,4 +17,8 @@ class PrintHeading(Document):
 		description: DF.SmallText | None
 		print_heading: DF.Data
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass

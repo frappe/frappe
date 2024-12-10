@@ -388,7 +388,11 @@ def get_email_html(template, args, subject, header=None, with_container=False):
 
 
 def inline_style_in_html(html):
+<<<<<<< HEAD
 	"""Convert email.css and html to inline-styled html"""
+=======
+	"""Convert email.css and html to inline-styled html."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	from premailer import Premailer
 
 	from frappe.utils.jinja_globals import bundled_asset
@@ -454,7 +458,11 @@ def add_attachment(fname, fcontent, content_type=None, parent=None, content_id=N
 
 
 def get_message_id():
+<<<<<<< HEAD
 	"""Returns Message ID created from doctype and name"""
+=======
+	"""Return Message ID created from doctype and name."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return email.utils.make_msgid(domain=frappe.local.site)
 
 

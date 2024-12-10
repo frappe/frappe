@@ -26,7 +26,11 @@ let docfield_df = computed(() => {
 		}
 
 		if (
+<<<<<<< HEAD
 			in_list(["fetch_from", "fetch_if_empty"], df.fieldname) &&
+=======
+			["fetch_from", "fetch_if_empty"].includes(df.fieldname) &&
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			in_list(frappe.model.no_value_type, store.form.selected_field.fieldtype)
 		) {
 			return false;
@@ -41,7 +45,11 @@ let docfield_df = computed(() => {
 			df.options = "";
 			args.value = {};
 
+<<<<<<< HEAD
 			if (in_list(["Table", "Link"], store.form.selected_field.fieldtype)) {
+=======
+			if (["Table", "Link"].includes(store.form.selected_field.fieldtype)) {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				df.fieldtype = "Link";
 				df.options = "DocType";
 

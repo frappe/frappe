@@ -1,10 +1,26 @@
 # Copyright (c) 2018, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestViewLog(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase, UnitTestCase
+
+
+class UnitTestViewLog(UnitTestCase):
+	"""
+	Unit tests for ViewLog.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestViewLog(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def tearDown(self):
 		frappe.set_user("Administrator")
 

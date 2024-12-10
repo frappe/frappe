@@ -21,8 +21,13 @@ class PortalSettings(Document):
 		default_role: DF.Link | None
 		hide_standard_menu: DF.Check
 		menu: DF.Table[PortalMenuItem]
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def add_item(self, item):
 		"""insert new portal menu item if route is not set, or role is different"""
 		exists = [d for d in self.get("menu", []) if d.get("route") == item.get("route")]

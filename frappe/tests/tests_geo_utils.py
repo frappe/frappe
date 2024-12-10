@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.geo.utils import get_coords
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 
 
@@ -10,6 +11,15 @@ class TestGeoUtils(FrappeTestCase):
 	def setUp(self):
 		self.todo = frappe.get_doc(
 			dict(doctype="ToDo", description="Test description", assigned_by="Administrator")
+=======
+from frappe.tests import IntegrationTestCase
+
+
+class TestGeoUtils(IntegrationTestCase):
+	def setUp(self):
+		self.todo = frappe.get_doc(
+			doctype="ToDo", description="Test description", assigned_by="Administrator"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert()
 
 		self.test_location_dict = {

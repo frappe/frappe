@@ -1,6 +1,7 @@
 frappe.provide("frappe.data_import");
 
 frappe.data_import.DataExporter = class DataExporter {
+<<<<<<< HEAD
 	constructor(doctype, exporting_for) {
 		this.doctype = doctype;
 		this.exporting_for = exporting_for;
@@ -10,6 +11,17 @@ frappe.data_import.DataExporter = class DataExporter {
 	}
 
 	make_dialog() {
+=======
+	constructor(doctype, exporting_for, filetype = "CSV") {
+		this.doctype = doctype;
+		this.exporting_for = exporting_for;
+		frappe.model.with_doctype(doctype, () => {
+			this.make_dialog(filetype);
+		});
+	}
+
+	make_dialog(filetype = "CSV") {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		this.dialog = new frappe.ui.Dialog({
 			title: __("Export Data"),
 			fields: [
@@ -18,7 +30,11 @@ frappe.data_import.DataExporter = class DataExporter {
 					fieldname: "file_type",
 					label: __("File Type"),
 					options: ["Excel", "CSV"],
+<<<<<<< HEAD
 					default: "CSV",
+=======
+					default: filetype,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				},
 				{
 					fieldtype: "Select",

@@ -88,6 +88,10 @@
   "system_updates_section",
   "disable_system_update_notification",
   "disable_change_log_notification",
+<<<<<<< HEAD
+=======
+  "hide_empty_read_only_fields",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   "backups_tab",
   "sec_backup_limit",
   "backup_limit",
@@ -613,7 +617,11 @@
   {
    "fieldname": "updates_tab",
    "fieldtype": "Tab Break",
+<<<<<<< HEAD
    "label": "Updates"
+=======
+   "label": "Display"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   },
   {
    "fieldname": "backups_tab",
@@ -663,6 +671,7 @@
    "label": "Store Attached PDF Document"
   },
   {
+<<<<<<< HEAD
    "depends_on": "login_with_email_link",
    "description": "You can set a high value here if multiple users will be logging in from the same network.",
    "fieldname": "rate_limit_email_link_login",
@@ -670,6 +679,8 @@
    "label": "Rate limit for email link login"
   },
   {
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "fieldname": "app_tab",
    "fieldtype": "Tab Break",
    "label": "App"
@@ -681,6 +692,16 @@
    "label": "Default App"
   },
   {
+<<<<<<< HEAD
+=======
+   "depends_on": "login_with_email_link",
+   "description": "You can set a high value here if multiple users will be logging in from the same network.",
+   "fieldname": "rate_limit_email_link_login",
+   "fieldtype": "Int",
+   "label": "Rate limit for email link login"
+  },
+  {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "default": "0",
    "fieldname": "use_number_format_from_currency",
    "fieldtype": "Check",
@@ -692,12 +713,25 @@
    "fieldtype": "Link",
    "label": "Currency",
    "options": "Currency"
+<<<<<<< HEAD
+=======
+  },
+  {
+   "default": "1",
+   "fieldname": "hide_empty_read_only_fields",
+   "fieldtype": "Check",
+   "label": "Hide Empty Read-Only Fields"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2024-11-04 15:51:39.954876",
+=======
+ "modified": "2024-12-03 16:23:09.410614",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
@@ -712,7 +746,11 @@
   }
  ],
  "quick_entry": 1,
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "sort_field": "creation",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

@@ -7,6 +7,10 @@
  "engine": "InnoDB",
  "field_order": [
   "webhook",
+<<<<<<< HEAD
+=======
+  "reference_doctype",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   "reference_document",
   "headers",
   "data",
@@ -74,12 +78,27 @@
    "fieldtype": "Link",
    "label": "Webhook",
    "options": "Webhook"
+<<<<<<< HEAD
+=======
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Reference Doctype",
+   "read_only": 1
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2023-05-21 15:50:10.414002",
+=======
+ "modified": "2024-09-14 05:52:41.583612",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook Request Log",
@@ -99,7 +118,14 @@
    "write": 1
   }
  ],
+<<<<<<< HEAD
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []
 }
+=======
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

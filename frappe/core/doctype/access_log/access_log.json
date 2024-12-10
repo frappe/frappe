@@ -131,7 +131,11 @@
   }
  ],
  "links": [],
+<<<<<<< HEAD
  "modified": "2022-06-13 05:59:26.866004",
+=======
+ "modified": "2024-03-23 16:01:26.702078",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Access Log",
@@ -149,7 +153,11 @@
    "share": 1
   }
  ],
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "sort_field": "creation",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "sort_order": "DESC",
  "states": [],
  "track_seen": 1

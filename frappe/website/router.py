@@ -33,14 +33,23 @@ def get_page_info_from_web_form(path):
 	"""Query published web forms and evaluate if the route matches"""
 	from frappe.website.doctype.web_form.web_form import get_published_web_forms
 
+<<<<<<< HEAD
 	rules, page_info = [], {}
 	for d in get_published_web_forms():
+=======
+	for d in get_published_web_forms():
+		if not (path.startswith(f"{d.route}") or path.startswith(f"/{d.route}")):
+			continue
+
+		rules = []
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		rules.append(Rule(f"/{d.route}", endpoint=d.name))
 		rules.append(Rule(f"/{d.route}/list", endpoint=d.name))
 		rules.append(Rule(f"/{d.route}/new", endpoint=d.name))
 		rules.append(Rule(f"/{d.route}/<name>", endpoint=d.name))
 		rules.append(Rule(f"/{d.route}/<name>/edit", endpoint=d.name))
 		d.doctype = "Web Form"
+<<<<<<< HEAD
 		page_info[d.name] = d
 
 	end_point = evaluate_dynamic_routes(rules, path)
@@ -54,6 +63,20 @@ def get_page_info_from_web_form(path):
 		else:
 			frappe.form_dict.is_read = True
 		return page_info[end_point]
+=======
+		end_point = evaluate_dynamic_routes(rules, path)
+
+		if end_point:
+			if path.endswith("/list"):
+				frappe.form_dict.is_list = True
+			elif path.endswith("/new"):
+				frappe.form_dict.is_new = True
+			elif path.endswith("/edit"):
+				frappe.form_dict.is_edit = True
+			else:
+				frappe.form_dict.is_read = True
+			return d
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 def evaluate_dynamic_routes(rules, path):
@@ -244,8 +267,13 @@ def setup_source(page_info):
 
 
 def get_base_template(path=None):
+<<<<<<< HEAD
 	"""
 	Returns the `base_template` for given `path`.
+=======
+	"""Return the `base_template` for given `path`.
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	The default `base_template` for any web route is `templates/web.html` defined in `hooks.py`.
 	This can be overridden for certain routes in `custom_app/hooks.py` based on regex pattern.
 	"""

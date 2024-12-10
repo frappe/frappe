@@ -5,7 +5,10 @@ import frappe
 from frappe.core.doctype.report.report import is_prepared_report_enabled
 from frappe.model.document import Document
 from frappe.permissions import ALL_USER_ROLE
+<<<<<<< HEAD
 from frappe.utils import cint
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 class RolePermissionforPageandReport(Document):
@@ -23,8 +26,13 @@ class RolePermissionforPageandReport(Document):
 		report: DF.Link | None
 		roles: DF.Table[HasRole]
 		set_role_for: DF.Literal["", "Page", "Report"]
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	@frappe.whitelist()
 	def set_report_page_data(self):
 		self.set_custom_roles()
@@ -67,16 +75,27 @@ class RolePermissionforPageandReport(Document):
 
 	def update_custom_roles(self):
 		args = self.get_args()
+<<<<<<< HEAD
 		name = frappe.db.get_value("Custom Role", args, "name")
 
 		args.update({"doctype": "Custom Role", "roles": self.get_roles()})
+=======
+		roles = self.get_roles()
+		name = frappe.db.get_value("Custom Role", args, "name")
+
+		args.update({"doctype": "Custom Role", "roles": roles})
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		if self.report:
 			args.update({"ref_doctype": frappe.db.get_value("Report", self.report, "ref_doctype")})
 
 		if name:
 			custom_role = frappe.get_doc("Custom Role", name)
+<<<<<<< HEAD
 			custom_role.set("roles", self.get_roles())
+=======
+			custom_role.set("roles", roles)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			custom_role.save()
 		else:
 			frappe.get_doc(args).insert()

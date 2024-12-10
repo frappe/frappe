@@ -18,6 +18,10 @@ class Tag(Document):
 
 		description: DF.SmallText | None
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass
 
 
@@ -77,6 +81,7 @@ class DocTags:
 		self.dt = dt
 
 	def get_tag_fields(self):
+<<<<<<< HEAD
 		"""returns tag_fields property"""
 		return frappe.db.get_value("DocType", self.dt, "tag_fields")
 
@@ -86,6 +91,17 @@ class DocTags:
 
 	def add(self, dn, tag):
 		"""add a new user tag"""
+=======
+		"""Return `tag_fields` property."""
+		return frappe.db.get_value("DocType", self.dt, "tag_fields")
+
+	def get_tags(self, dn):
+		"""Return tag for a particular item."""
+		return (frappe.db.get_value(self.dt, dn, "_user_tags", ignore=1) or "").strip()
+
+	def add(self, dn, tag):
+		"""Add a new user tag."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		tl = self.get_tags(dn).split(",")
 		if tag not in tl:
 			tl.append(tag)
@@ -94,22 +110,38 @@ class DocTags:
 			self.update(dn, tl)
 
 	def remove(self, dn, tag):
+<<<<<<< HEAD
 		"""remove a user tag"""
+=======
+		"""Remove a user tag."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		tl = self.get_tags(dn).split(",")
 		self.update(dn, filter(lambda x: x.lower() != tag.lower(), tl))
 
 	def remove_all(self, dn):
+<<<<<<< HEAD
 		"""remove all user tags (call before delete)"""
 		self.update(dn, [])
 
 	def update(self, dn, tl):
 		"""updates the _user_tag column in the table"""
+=======
+		"""Remove all user tags (call before delete)."""
+		self.update(dn, [])
+
+	def update(self, dn, tl):
+		"""Update the `_user_tag` column in the table."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		if not tl:
 			tags = ""
 		else:
 			tl = unique(filter(lambda x: x, tl))
+<<<<<<< HEAD
 			tags = "," + ",".join(tl)
+=======
+			tags = ",".join(tl)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		try:
 			frappe.db.sql(
 				"update `tab{}` set _user_tags={} where name={}".format(self.dt, "%s", "%s"), (tags, dn)
@@ -128,16 +160,25 @@ class DocTags:
 				raise
 
 	def setup(self):
+<<<<<<< HEAD
 		"""adds the _user_tags column if not exists"""
+=======
+		"""Add the `_user_tags` column if not exists."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		from frappe.database.schema import add_column
 
 		add_column(self.dt, "_user_tags", "Data")
 
 
 def delete_tags_for_document(doc):
+<<<<<<< HEAD
 	"""
 	Delete the Tag Link entry of a document that has
 	been deleted
+=======
+	"""Delete the Tag Link entry of a document that has been deleted.
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	:param doc: Deleted document
 	"""
 	if not frappe.db.table_exists("Tag Link"):
@@ -147,7 +188,11 @@ def delete_tags_for_document(doc):
 
 
 def update_tags(doc, tags):
+<<<<<<< HEAD
 	"""Adds tags for documents
+=======
+	"""Add tags for documents.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	:param doc: Document to be added to global tags
 	"""
@@ -179,8 +224,13 @@ def update_tags(doc, tags):
 
 @frappe.whitelist()
 def get_documents_for_tag(tag):
+<<<<<<< HEAD
 	"""
 	Search for given text in Tag Link
+=======
+	"""Search for given text in Tag Link.
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	:param tag: tag to be searched
 	"""
 	# remove hastag `#` from tag

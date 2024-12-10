@@ -1,16 +1,27 @@
 exclude: 'node_modules|.git'
+<<<<<<< HEAD
 default_stages: [commit]
+=======
+default_stages: [pre-commit]
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 fail_fast: false
 
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
+<<<<<<< HEAD
     rev: v4.3.0
+=======
+    rev: v5.0.0
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
     hooks:
       - id: trailing-whitespace
         files: "frappe.*"
         exclude: ".*json$|.*txt$|.*csv|.*md|.*svg"
+<<<<<<< HEAD
       - id: check-yaml
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
       - id: no-commit-to-branch
         args: ['--branch', 'develop']
       - id: check-merge-conflict
@@ -19,6 +30,7 @@ repos:
       - id: check-toml
       - id: check-yaml
       - id: debug-statements
+<<<<<<< HEAD
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.2.0
@@ -29,6 +41,22 @@ repos:
 
       - id: ruff-format
         name: "Format Python code"
+=======
+        exclude: ^frappe/tests/classes/context_managers\.py$
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.1
+    hooks:
+      - id: ruff
+        name: "Run ruff import sorter"
+        args: ["--select=I", "--fix"]
+
+      - id: ruff
+        name: "Run ruff linter"
+
+      - id: ruff-format
+        name: "Run ruff formatter"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v2.7.1

@@ -19,4 +19,8 @@ class CalendarView(Document):
 		start_date_field: DF.Literal[None]
 		subject_field: DF.Literal[None]
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass

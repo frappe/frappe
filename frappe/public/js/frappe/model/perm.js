@@ -53,7 +53,11 @@ $.extend(frappe.perm, {
 	_get_perm: (doctype, doc) => {
 		let perm = [{ read: 0, permlevel: 0 }];
 
+<<<<<<< HEAD
 		let meta = frappe.get_doc("DocType", doctype);
+=======
+		let meta = frappe.get_meta(doctype);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		const user = frappe.session.user;
 
 		if (user === "Administrator" || frappe.user_roles.includes("Administrator")) {

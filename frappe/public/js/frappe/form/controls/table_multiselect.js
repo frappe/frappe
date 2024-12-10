@@ -1,9 +1,15 @@
 frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 	frappe.ui.form.ControlLink
 ) {
+<<<<<<< HEAD
 	make_input() {
 		super.make_input();
 
+=======
+	static horizontal = false;
+	make_input() {
+		super.make_input();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		this.$input_area.addClass("form-control table-multiselect");
 		this.$input.removeClass("form-control");
 
@@ -28,9 +34,36 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 
 			const value = decodeURIComponent($value.data().value);
 			const link_field = this.get_link_field();
+<<<<<<< HEAD
 			this.rows = this.rows.filter((row) => row[link_field.fieldname] !== value);
 
 			this.parse_validate_and_set_in_model("");
+=======
+			this.rows = this.rows.filter((row) => {
+				if (row[link_field.fieldname] !== value) {
+					return row;
+				} else {
+					frappe.run_serially([
+						() => {
+							return this.frm.script_manager.trigger(
+								`before_${this.df.fieldname}_remove`,
+								this.df.options,
+								row.name
+							);
+						},
+						() => {
+							this.parse_validate_and_set_in_model("");
+
+							return this.frm.script_manager.trigger(
+								`${this.df.fieldname}_remove`,
+								this.df.options,
+								row.name
+							);
+						},
+					]);
+				}
+			});
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		});
 		this.$input_area.on("click", ".btn-link-to-form", (e) => {
 			const $target = $(e.currentTarget);
@@ -67,6 +100,15 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 				);
 				new_row[link_field.fieldname] = value;
 				this.rows = this.frm.doc[this.df.fieldname];
+<<<<<<< HEAD
+=======
+
+				this.frm.script_manager.trigger(
+					`${this.df.fieldname}_add`,
+					this.df.options,
+					new_row.name
+				);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			} else {
 				this.rows.push({
 					[link_field.fieldname]: value,

@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="/assets/frappe/css/hljs-night-owl.css">
 {% endblock -%}
 
+<<<<<<< HEAD
 
 {% block page_content %}
 <style>
@@ -13,11 +14,31 @@
 		border-radius: 8px;
 		background-color: #f5f7fa;
 		margin: 3rem auto;
+=======
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block page_content %}
+<style>
+	body {
+		background-color: var(--subtle-accent);
+		font-size: var(--text-base);
+	}
+
+	.error-content {
+		text-align: left;
+		margin-top: var(--margin-md);
+		border-radius: 8px;
+		background-color: #f5f7fa;
+		max-height: 400px;
+		overflow: auto;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 
 	code::-webkit-scrollbar {
 		display: none;
 	}
+<<<<<<< HEAD
 	{% include "templates/styles/card_style.css"%}
 </style>
 <script></script>
@@ -44,6 +65,30 @@
 <div class="error-content {{ 'hidden' if not dev_server else '' }}">
 	<pre><code>{{ error }}</code></pre>
 </div>
+=======
+</style>
+
+<div class="error-page">
+	<div>
+		<h4>
+			{{ title or _("Server Error") }}
+		</h4>
+		<div class="details">
+			<p>{{ http_status_code }}: {{ message }}</p>
+
+			<button class="btn btn-xs btn-secondary text-muted small view-error" >
+				{{ _("Show Error") }}
+			</button>
+
+			<div class="error-content hidden">
+				<pre><code>{{ error }}</code></pre>
+			</div>
+
+		</div>
+	</div>
+</div>
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 {% endblock %}
 
 {% block script %}

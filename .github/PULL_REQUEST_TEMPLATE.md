@@ -30,4 +30,8 @@ Also, if you're new here
 
 > Screenshots/GIFs
 
+<<<<<<< HEAD
 <!-- Add images/recordings to better visualize the change: expected/current behviour -->
+=======
+<!-- Add images/recordings to better visualize the change: expected/current behavior -->
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

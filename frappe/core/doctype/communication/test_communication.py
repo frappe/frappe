@@ -6,16 +6,34 @@ import frappe
 from frappe.core.doctype.communication.communication import Communication, get_emails, parse_email
 from frappe.core.doctype.communication.email import add_attachments, make
 from frappe.email.doctype.email_queue.email_queue import EmailQueue
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
+=======
+from frappe.tests import IntegrationTestCase, UnitTestCase
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 if TYPE_CHECKING:
 	from frappe.contacts.doctype.contact.contact import Contact
 	from frappe.email.doctype.email_account.email_account import EmailAccount
 
+<<<<<<< HEAD
 test_records = frappe.get_test_records("Communication")
 
 
 class TestCommunication(FrappeTestCase):
+=======
+
+class UnitTestCommunication(UnitTestCase):
+	"""
+	Unit tests for Communication.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestCommunication(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_email(self):
 		valid_email_list = [
 			"Full Name <full@example.com>",
@@ -136,7 +154,11 @@ class TestCommunication(FrappeTestCase):
 		self.assertNotEqual(2, len(comm.timeline_links))
 
 	def test_contacts_attached(self):
+<<<<<<< HEAD
 		contact_sender: "Contact" = frappe.get_doc(
+=======
+		contact_sender: Contact = frappe.get_doc(
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			{
 				"doctype": "Contact",
 				"first_name": "contact_sender",
@@ -145,7 +167,11 @@ class TestCommunication(FrappeTestCase):
 		contact_sender.add_email("comm_sender@example.com")
 		contact_sender.insert(ignore_permissions=True)
 
+<<<<<<< HEAD
 		contact_recipient: "Contact" = frappe.get_doc(
+=======
+		contact_recipient: Contact = frappe.get_doc(
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			{
 				"doctype": "Contact",
 				"first_name": "contact_recipient",
@@ -154,7 +180,11 @@ class TestCommunication(FrappeTestCase):
 		contact_recipient.add_email("comm_recipient@example.com")
 		contact_recipient.insert(ignore_permissions=True)
 
+<<<<<<< HEAD
 		contact_cc: "Contact" = frappe.get_doc(
+=======
+		contact_cc: Contact = frappe.get_doc(
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			{
 				"doctype": "Contact",
 				"first_name": "contact_cc",
@@ -221,11 +251,28 @@ class TestCommunication(FrappeTestCase):
 	def test_parse_email(self):
 		to = "Jon Doe <jon.doe@example.org>"
 		cc = """=?UTF-8?Q?Max_Mu=C3=9F?= <max.muss@examle.org>,
+<<<<<<< HEAD
 	erp+Customer+that%20company@example.org"""
 		bcc = ""
 
 		results = list(parse_email([to, cc, bcc]))
 		self.assertEqual([("Customer", "that company")], results)
+=======
+	erp+Customer=Plus%2BCompany@example.org,
+	erp+Customer+Space%20Company@example.org,
+	erp+Customer+Space+Company+Plus+Encoded@example.org"""
+		bcc = ""
+
+		results = list(parse_email([to, cc, bcc]))
+		self.assertEqual(
+			[
+				("Customer", "Plus+Company"),
+				("Customer", "Space Company"),
+				("Customer", "Space Company Plus Encoded"),
+			],
+			results,
+		)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		results = list(parse_email([to, bcc]))
 		self.assertEqual(results, [])
@@ -316,7 +363,11 @@ class TestCommunication(FrappeTestCase):
 		self.assertNotEqual(normal_comm.email_status, "Spam")
 
 
+<<<<<<< HEAD
 class TestCommunicationEmailMixin(FrappeTestCase):
+=======
+class TestCommunicationEmailMixin(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def new_communication(self, recipients=None, cc=None, bcc=None) -> Communication:
 		recipients = ", ".join(recipients or [])
 		cc = ", ".join(cc or [])
@@ -380,7 +431,12 @@ class TestCommunicationEmailMixin(FrappeTestCase):
 		user = self.new_user(email="bcc+2@test.com", enabled=0)
 		comm = self.new_communication(bcc=bcc_list)
 		res = comm.get_mail_bcc_with_displayname()
+<<<<<<< HEAD
 		self.assertCountEqual(res, bcc_list)
+=======
+		# Disabled users have thread_notify disabled, so they'll be removed from the list
+		self.assertCountEqual(res, bcc_list[:1])
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		user.delete()
 		comm.delete()
 

@@ -216,6 +216,10 @@ class UserPermissions:
 			[
 				"creation",
 				"desk_theme",
+<<<<<<< HEAD
+=======
+				"code_editor_type",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				"document_follow_notify",
 				"email",
 				"email_signature",
@@ -299,7 +303,11 @@ def get_fullname_and_avatar(user: str) -> _dict:
 
 
 def get_system_managers(only_name: bool = False) -> list[str]:
+<<<<<<< HEAD
 	"""returns all system manager's user details"""
+=======
+	"""Return all system manager's user details."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	HasRole = DocType("Has Role")
 	User = DocType("User")
 

@@ -4,6 +4,7 @@
 import frappe
 import frappe.utils
 from frappe.desk.query_report import build_xlsx_data, export_query, run
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.xlsxutils import make_xlsx
 
@@ -12,6 +13,16 @@ class TestQueryReport(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
 		cls.enable_safe_exec()
+=======
+from frappe.tests import IntegrationTestCase
+from frappe.utils.xlsxutils import make_xlsx
+
+
+class TestQueryReport(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls) -> None:
+		cls.enterClassContext(cls.enable_safe_exec())
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		return super().setUpClass()
 
 	def tearDown(self):

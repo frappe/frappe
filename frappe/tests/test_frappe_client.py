@@ -9,11 +9,19 @@ import frappe
 from frappe.core.doctype.user.user import generate_keys
 from frappe.frappeclient import FrappeClient, FrappeException
 from frappe.model import default_fields
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.data import get_url
 
 
 class TestFrappeClient(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase
+from frappe.utils.data import get_url
+
+
+class TestFrappeClient(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	PASSWORD = frappe.conf.admin_password or "admin"
 
 	def test_insert_many(self):

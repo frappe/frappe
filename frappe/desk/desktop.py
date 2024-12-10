@@ -3,14 +3,23 @@
 # Author - Shivam Mishra <shivam@frappe.io>
 
 from functools import wraps
+<<<<<<< HEAD
 from json import dumps, loads
+=======
+from json import JSONDecodeError, dumps, loads
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 import frappe
 from frappe import DoesNotExistError, ValidationError, _, _dict
 from frappe.boot import get_allowed_pages, get_allowed_reports
 from frappe.cache_manager import (
+<<<<<<< HEAD
 	build_domain_restriced_doctype_cache,
 	build_domain_restriced_page_cache,
+=======
+	build_domain_restricted_doctype_cache,
+	build_domain_restricted_page_cache,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	build_table_count_cache,
 )
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
@@ -61,6 +70,7 @@ class Workspace:
 
 			self.table_counts = get_table_with_counts()
 		self.restricted_doctypes = (
+<<<<<<< HEAD
 			frappe.cache.get_value("domain_restricted_doctypes") or build_domain_restriced_doctype_cache()
 		)
 		self.restricted_pages = (
@@ -69,6 +79,16 @@ class Workspace:
 
 	def is_permitted(self):
 		"""Returns true if Has Role is not set or the user is allowed."""
+=======
+			frappe.cache.get_value("domain_restricted_doctypes") or build_domain_restricted_doctype_cache()
+		)
+		self.restricted_pages = (
+			frappe.cache.get_value("domain_restricted_pages") or build_domain_restricted_page_cache()
+		)
+
+	def is_permitted(self):
+		"""Return true if `Has Role` is not set or the user is allowed."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		from frappe.utils import has_common
 
 		allowed = [d.role for d in self.doc.roles]
@@ -139,7 +159,11 @@ class Workspace:
 		item_type = item_type.lower()
 
 		if item_type == "doctype":
+<<<<<<< HEAD
 			return name in self.can_read or [] and name in self.restricted_doctypes or []
+=======
+			return name in (self.can_read or []) and name in (self.restricted_doctypes or [])
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		if item_type == "page":
 			return name in self.allowed_pages and name in self.restricted_pages
 		if item_type == "report":
@@ -338,6 +362,10 @@ class Workspace:
 		for doc in onboarding_doc.get_steps():
 			step = doc.as_dict().copy()
 			step.label = _(doc.title)
+<<<<<<< HEAD
+=======
+			step.description = _(doc.description)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			if step.action == "Create Entry":
 				step.is_submittable = frappe.db.get_value(
 					"DocType", step.reference_document, "is_submittable", cache=True
@@ -384,13 +412,21 @@ class Workspace:
 @frappe.whitelist()
 @frappe.read_only()
 def get_desktop_page(page):
+<<<<<<< HEAD
 	"""Applies permissions, customizations and returns the configruration for a page
 	on desk.
+=======
+	"""Apply permissions, customizations and return the configuration for a page on desk.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	Args:
 	        page (json): page data
 
+<<<<<<< HEAD
 	Returns:
+=======
+	Return:
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	        dict: dictionary of cards, charts and shortcuts to be displayed on website
 	"""
 	try:
@@ -413,6 +449,12 @@ def get_desktop_page(page):
 @frappe.whitelist()
 def get_workspace_sidebar_items():
 	"""Get list of sidebar items for desk"""
+<<<<<<< HEAD
+=======
+
+	from frappe.modules.utils import get_module_app
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	has_access = "Workspace Manager" in frappe.get_roles()
 
 	# don't get domain restricted pages
@@ -443,6 +485,14 @@ def get_workspace_sidebar_items():
 		"icon",
 		"indicator_color",
 		"is_hidden",
+<<<<<<< HEAD
+=======
+		"app",
+		"type",
+		"link_type",
+		"link_to",
+		"external_link",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	]
 	all_pages = frappe.get_all(
 		"Workspace", fields=fields, filters=filters, order_by=order_by, ignore_permissions=True
@@ -450,6 +500,17 @@ def get_workspace_sidebar_items():
 	pages = []
 	private_pages = []
 
+<<<<<<< HEAD
+=======
+	# get additional settings from Work Settings
+	try:
+		workspace_visibilty = loads(
+			frappe.db.get_single_value("Workspace Settings", "workspace_visibility_json") or "{}"
+		)
+	except JSONDecodeError:
+		workspace_visibilty = {}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	# Filter Page based on Permission
 	for page in all_pages:
 		try:
@@ -460,16 +521,45 @@ def get_workspace_sidebar_items():
 				elif page.for_user == frappe.session.user:
 					private_pages.append(page)
 				page["label"] = _(page.get("name"))
+<<<<<<< HEAD
+=======
+
+			if page["name"] in workspace_visibilty:
+				page["visibility"] = workspace_visibilty[page["name"]]
+
+			if not page["app"] and page["module"]:
+				page["app"] = frappe.db.get_value("Module Def", page["module"], "app_name") or get_module_app(
+					page["module"]
+				)
+			if page["link_type"] == "Report":
+				report_type, ref_doctype = frappe.db.get_value(
+					"Report", page["link_to"], ["report_type", "ref_doctype"]
+				)
+				page["report"] = {
+					"report_type": report_type,
+					"ref_doctype": ref_doctype,
+				}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		except frappe.PermissionError:
 			pass
 	if private_pages:
 		pages.extend(private_pages)
 
 	if len(pages) == 0:
+<<<<<<< HEAD
 		pages = [frappe.get_doc("Workspace", "Welcome Workspace").as_dict()]
 		pages[0]["label"] = _("Welcome Workspace")
 
 	return {
+=======
+		pages.append(next((x for x in all_pages if x["title"] == "Welcome Workspace"), None))
+
+	return {
+		"workspace_setup_completed": frappe.db.get_single_value(
+			"Workspace Settings", "workspace_setup_completed"
+		),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		"pages": pages,
 		"has_access": has_access,
 		"has_create_access": frappe.has_permission(doctype="Workspace", ptype="create"),
@@ -511,7 +601,11 @@ def get_custom_doctype_list(module):
 
 
 def get_custom_report_list(module):
+<<<<<<< HEAD
 	"""Returns list on new style reports for modules."""
+=======
+	"""Return list on new style reports for modules."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	reports = frappe.get_all(
 		"Report",
 		fields=["name", "ref_doctype", "report_type"],
@@ -570,7 +664,11 @@ def save_new_widget(doc, page, blocks, new_widgets):
 		exception: {e}
 		"""
 		doc.log_error("Could not save customization", log)
+<<<<<<< HEAD
 		return False
+=======
+		raise
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	return True
 
@@ -621,14 +719,22 @@ def new_widget(config, doctype, parentfield):
 
 
 def prepare_widget(config, doctype, parentfield):
+<<<<<<< HEAD
 	"""Create widget child table entries with parent details
+=======
+	"""Create widget child table entries with parent details.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	Args:
 	        config (dict): Dictionary containing widget config
 	        doctype (string): Doctype name of the child table
 	        parentfield (string): Parent field for the child table
 
+<<<<<<< HEAD
 	Returns:
+=======
+	Return:
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	        TYPE: List of Document objects
 	"""
 	if not config:

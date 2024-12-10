@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
 	"branches": ["version-15"],
 	"plugins": [
 		"@semantic-release/commit-analyzer", {
@@ -6,17 +7,31 @@
 			"releaseRules": [
 				{"breaking": true, "release": false}
 			]
+=======
+	"branches": ["develop", {"name": "version-14-beta", "channel": "beta", "prerelease": true}],
+	"plugins": [
+		"@semantic-release/commit-analyzer", {
+			"preset": "angular"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		},
 		"@semantic-release/release-notes-generator",
 		[
 			"@semantic-release/exec", {
+<<<<<<< HEAD
 				"prepareCmd": 'sed -ir -E "s/\"[0-9]+\.[0-9]+\.[0-9]+\"/\"${nextRelease.version}\"/" frappe/__init__.py'
+=======
+				"prepareCmd": 'sed -ir "s/[0-9]*\.[0-9]*\.[0-9]*/${nextRelease.version}/" frappe/__init__.py'
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			}
 		],
 		[
 			"@semantic-release/git", {
 				"assets": ["frappe/__init__.py"],
+<<<<<<< HEAD
 				"message": "chore(release): Bumped to Version ${nextRelease.version}\n\n${nextRelease.notes}"
+=======
+				"message": "chore(release): Bumped to Version ${nextRelease.version}"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			}
 		],
 		"@semantic-release/github"

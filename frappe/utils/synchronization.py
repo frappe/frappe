@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 """ Utils for thread/process synchronization. """
+=======
+"""Utils for thread/process synchronization."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 import os
 from contextlib import contextmanager
@@ -40,7 +44,11 @@ def filelock(lock_name: str, *, timeout=30, is_global=False):
 		with _StrongFileLock(lock_path, timeout=timeout):
 			yield
 	except Timeout as e:
+<<<<<<< HEAD
 		frappe.log_error("Filelock: Failed to aquire {lock_path}")
+=======
+		frappe.log_error(f"Filelock: Failed to aquire {lock_path}")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		raise LockTimeoutError(
 			_("Failed to aquire lock: {}. Lock may be held by another process.").format(lock_name)

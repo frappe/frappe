@@ -13,7 +13,10 @@ import frappe
 from frappe import _, safe_decode
 from frappe.utils import cint, cstr, encode, get_files_path, random_string, strip
 from frappe.utils.file_manager import safe_b64decode
+<<<<<<< HEAD
 from frappe.utils.image import optimize_image
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 if TYPE_CHECKING:
 	from PIL.ImageFile import ImageFile
@@ -26,7 +29,11 @@ if TYPE_CHECKING:
 
 def make_home_folder() -> None:
 	home = frappe.get_doc(
+<<<<<<< HEAD
 		{"doctype": "File", "is_folder": 1, "is_home_folder": 1, "file_name": _("Home")}
+=======
+		{"doctype": "File", "is_folder": 1, "is_home_folder": 1, "file_name": "Home"}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	).insert(ignore_if_duplicate=True)
 
 	frappe.get_doc(
@@ -35,13 +42,21 @@ def make_home_folder() -> None:
 			"folder": home.name,
 			"is_folder": 1,
 			"is_attachments_folder": 1,
+<<<<<<< HEAD
 			"file_name": _("Attachments"),
+=======
+			"file_name": "Attachments",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		}
 	).insert(ignore_if_duplicate=True)
 
 
 def setup_folder_path(filename: str, new_parent: str) -> None:
+<<<<<<< HEAD
 	file: "File" = frappe.get_doc("File", filename)
+=======
+	file: File = frappe.get_doc("File", filename)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	file.folder = new_parent
 	file.save()
 
@@ -217,9 +232,17 @@ def get_file_name(fname: str, optional_suffix: str | None = None) -> str:
 	return f"{partial}{suffix}{extn}"
 
 
+<<<<<<< HEAD
 def extract_images_from_doc(doc: "Document", fieldname: str):
 	content = doc.get(fieldname)
 	content = extract_images_from_html(doc, content, is_private=(not doc.meta.make_attachments_public))
+=======
+def extract_images_from_doc(doc: "Document", fieldname: str, is_private=True):
+	content = doc.get(fieldname)
+	if doc.meta.make_attachments_public:
+		is_private = False
+	content = extract_images_from_html(doc, content, is_private=is_private)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if frappe.flags.has_dataurl:
 		doc.set(fieldname, content)
 
@@ -247,8 +270,11 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 			frappe.flags.has_dataurl = True
 			return f'<img src="#broken-image" alt="{get_corrupted_image_msg()}"'
 
+<<<<<<< HEAD
 		content = optimize_image(content, mtype)
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		if "filename=" in headers:
 			filename = headers.split("filename=")[-1]
 			filename = safe_decode(filename).split(";", 1)[0]
@@ -360,7 +386,11 @@ def attach_files_to_document(doc: "Document", event) -> None:
 			)
 			continue
 
+<<<<<<< HEAD
 		file: "File" = frappe.get_doc(
+=======
+		file: File = frappe.get_doc(
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			doctype="File",
 			file_url=value,
 			attached_to_name=doc.name,
@@ -438,6 +468,10 @@ def find_file_by_url(path: str, name: str | None = None) -> Optional["File"]:
 	# if the file is accessible from any one of those documents
 	# then it should be downloadable
 	for file_data in files:
+<<<<<<< HEAD
 		file: "File" = frappe.get_doc(doctype="File", **file_data)
+=======
+		file: File = frappe.get_doc(doctype="File", **file_data)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		if file.is_downloadable():
 			return file

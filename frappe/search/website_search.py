@@ -27,10 +27,16 @@ class WebsiteSearch(FullTextSearch):
 		return "path"
 
 	def get_items_to_index(self):
+<<<<<<< HEAD
 		"""Get all routes to be indexed, this includes the static pages
 		in www/ and routes from published documents
 
 		Returns:
+=======
+		"""Get all routes to be indexed, this includes the static pages in www/ and routes from published documents.
+
+		Return:
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		        self (object): FullTextSearch Instance
 		"""
 
@@ -49,6 +55,7 @@ class WebsiteSearch(FullTextSearch):
 
 		return self.get_items_to_index()
 
+<<<<<<< HEAD
 	def get_document_to_index(self, route):
 		"""Render a page and parse it using BeautifulSoup
 
@@ -57,6 +64,15 @@ class WebsiteSearch(FullTextSearch):
 
 		Returns:
 		        document (_dict): A dictionary with title, path and content
+=======
+	def get_document_to_index(self, route: str) -> frappe._dict | None:
+		"""Render a page and parse it using `BeautifulSoup`.
+
+		Args:
+		        path: route of the page to be parsed
+
+		Return a dictionary with title, path and content.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		"""
 		frappe.set_user("Guest")
 		frappe.local.no_cache = True

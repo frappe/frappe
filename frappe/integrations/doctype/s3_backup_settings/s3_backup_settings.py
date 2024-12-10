@@ -38,8 +38,13 @@ class S3BackupSettings(Document):
 		notify_email: DF.Data
 		secret_access_key: DF.Password
 		send_email_for_successful_backup: DF.Check
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def validate(self):
 		if not self.enabled:
 			return

@@ -72,7 +72,11 @@
  "is_virtual": 1,
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2024-01-10 14:17:49.722593",
+=======
+ "modified": "2024-03-23 16:03:34.140177",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Permission Inspector",
@@ -84,7 +88,11 @@
    "write": 1
   }
  ],
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "sort_field": "creation",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "sort_order": "DESC",
  "states": []
 }

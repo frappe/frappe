@@ -17,6 +17,7 @@ class RedisQueue:
 
 	@classmethod
 	def get_connection(cls, username=None, password=None):
+<<<<<<< HEAD
 		if frappe.conf.redis_queue_sentinel_enabled:
 			from frappe.utils.redis_wrapper import get_sentinel_connection
 
@@ -32,6 +33,24 @@ class RedisQueue:
 			conn.ping()
 			return conn
 		conn = redis.from_url(frappe.conf.redis_queue, username=username, password=password)
+=======
+		conf = frappe.get_site_config()
+		if conf.redis_queue_sentinel_enabled:
+			from frappe.utils.redis_wrapper import get_sentinel_connection
+
+			sentinels = [tuple(node.split(":")) for node in conf.get("redis_queue_sentinels", [])]
+			sentinel = get_sentinel_connection(
+				sentinels=sentinels,
+				sentinel_username=conf.get("redis_queue_sentinel_username"),
+				sentinel_password=conf.get("redis_queue_sentinel_password"),
+				master_username=conf.get("redis_queue_master_username", username),
+				master_password=conf.get("redis_queue_master_password", password),
+			)
+			conn = sentinel.master_for(conf.get("redis_queue_master_service"))
+			conn.ping()
+			return conn
+		conn = redis.from_url(conf.redis_queue, username=username, password=password)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		conn.ping()
 		return conn
 

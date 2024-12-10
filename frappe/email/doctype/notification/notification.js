@@ -14,6 +14,7 @@ frappe.notification = {
 			let get_select_options = function (df, parent_field) {
 				// Append parent_field name along with fieldname for child table fields
 				let select_value = parent_field ? df.fieldname + "," + parent_field : df.fieldname;
+<<<<<<< HEAD
 
 				return {
 					value: select_value,
@@ -26,6 +27,19 @@ frappe.notification = {
 					return d.fieldtype == "Date" || d.fieldtype == "Datetime"
 						? get_select_options(d)
 						: null;
+=======
+				let path = parent_field ? parent_field + " > " + df.fieldname : df.fieldname;
+
+				return {
+					value: select_value,
+					label: path + " (" + __(df.label, null, df.parent) + ")",
+				};
+			};
+
+			let get_date_change_options = function (fieldtypes) {
+				let date_options = $.map(fields, function (d) {
+					return fieldtypes.includes(d.fieldtype) ? get_select_options(d) : null;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				});
 				// append creation and modified date to Date Change field
 				return date_options.concat([
@@ -33,6 +47,41 @@ frappe.notification = {
 					{ value: "modified", label: `modified (${__("Last Modified Date")})` },
 				]);
 			};
+<<<<<<< HEAD
+=======
+			let get_receiver_fields = function (
+				fields,
+				is_extra_receiver_field = (_) => {
+					return false;
+				}
+			) {
+				// finds receiver fields from the fields or any child table
+				// by default finds any link to the User doctype
+				// however an additional optional predicate can be passed as argument
+				// to find additional fields
+				let is_receiver_field = function (df) {
+					return (
+						is_extra_receiver_field(df) ||
+						(df.options == "User" && df.fieldtype == "Link") ||
+						(df.options == "Customer" && df.fieldtype == "Link")
+					);
+				};
+				let extract_receiver_field = function (df) {
+					// Add recipients from child doctypes into select dropdown
+					if (frappe.model.table_fields.includes(df.fieldtype)) {
+						let child_fields = frappe.get_doc("DocType", df.options).fields;
+						return $.map(child_fields, function (cdf) {
+							return is_receiver_field(cdf)
+								? get_select_options(cdf, df.fieldname)
+								: null;
+						});
+					} else {
+						return is_receiver_field(df) ? get_select_options(df) : null;
+					}
+				};
+				return $.map(fields, extract_receiver_field);
+			};
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 			let fields = frappe.get_doc("DocType", frm.doc.document_type).fields;
 			let options = $.map(fields, function (d) {
@@ -46,6 +95,7 @@ frappe.notification = {
 			frm.set_df_property("set_property_after_alert", "options", [""].concat(options));
 
 			// set date changed options
+<<<<<<< HEAD
 			frm.set_df_property("date_changed", "options", get_date_change_options());
 
 			let receiver_fields = [];
@@ -71,6 +121,27 @@ frappe.notification = {
 			} else if (["WhatsApp", "SMS"].includes(frm.doc.channel)) {
 				receiver_fields = $.map(fields, function (d) {
 					return d.options == "Phone" ? get_select_options(d) : null;
+=======
+			frm.set_df_property(
+				"date_changed",
+				"options",
+				get_date_change_options(["Date", "Datetime"])
+			);
+			frm.set_df_property(
+				"datetime_changed",
+				"options",
+				get_date_change_options(["Datetime"])
+			);
+
+			let receiver_fields = [];
+			if (frm.doc.channel === "Email") {
+				receiver_fields = get_receiver_fields(fields, function (df) {
+					return df.options == "Email";
+				});
+			} else if (["WhatsApp", "SMS"].includes(frm.doc.channel)) {
+				receiver_fields = get_receiver_fields(fields, function (df) {
+					df.options == "Phone" || df.options == "Mobile";
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				});
 			}
 
@@ -99,8 +170,13 @@ Last comment: {{ comments[-1].comment }} by {{ comments[-1].by }}
 &lt;h4&gt;Details&lt;/h4&gt;
 
 &lt;ul&gt;
+<<<<<<< HEAD
 &lt;li&gt;Customer: {{ doc.customer }}
 &lt;li&gt;Amount: {{ doc.grand_total }}
+=======
+&lt;li&gt;Customer: {{ doc.customer }}&lt;/li&gt;
+&lt;li&gt;Amount: {{ doc.grand_total }}&lt;/li&gt;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 &lt;/ul&gt;
 </pre>
 			`;
@@ -161,6 +237,28 @@ frappe.ui.form.on("Notification", {
 		});
 		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
 		frm.trigger("event");
+<<<<<<< HEAD
+=======
+		if (frm.doc.document_type) {
+			frm.add_custom_button(__("Preview"), () => {
+				const args = {
+					doc: frm.doc,
+					doctype: frm.doc.document_type,
+					preview_fields: [
+						{
+							label: __("Meets Condition?"),
+							fieldtype: "Data",
+							method: "preview_meets_condition",
+						},
+						{ label: __("Subject"), fieldtype: "Data", method: "preview_subject" },
+						{ label: __("Message"), fieldtype: "Code", method: "preview_message" },
+					],
+				};
+				let dialog = new frappe.views.RenderPreviewer(args);
+				return dialog;
+			});
+		}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	},
 	document_type: function (frm) {
 		frappe.notification.setup_fieldname_select(frm);

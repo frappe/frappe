@@ -1,6 +1,10 @@
 {
  "actions": [],
+<<<<<<< HEAD
  "creation": "2018-05-17 18:29:03.923384",
+=======
+ "creation": "2024-02-12 12:38:32.408271",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -79,7 +83,11 @@
   }
  ],
  "links": [],
+<<<<<<< HEAD
  "modified": "2023-08-28 22:32:58.947849",
+=======
+ "modified": "2024-03-23 16:04:04.989036",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow Action",
@@ -91,7 +99,11 @@
    "role": "Desk User"
   }
  ],
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "sort_field": "creation",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "sort_order": "DESC",
  "states": [],
  "title_field": "reference_name",

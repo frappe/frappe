@@ -16,8 +16,12 @@ class LogType(Protocol):
 	"""Interface requirement for doctypes that can be cleared using log settings."""
 
 	@staticmethod
+<<<<<<< HEAD
 	def clear_old_logs(days: int) -> None:
 		...
+=======
+	def clear_old_logs(days: int) -> None: ...
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 @site_cache
@@ -40,8 +44,13 @@ class LogSettings(Document):
 		from frappe.types import DF
 
 		logs_to_clear: DF.Table[LogsToClear]
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def validate(self):
 		self.remove_unsupported_doctypes()
 		self._deduplicate_entries()
@@ -181,7 +190,11 @@ def clear_log_table(doctype, days=90):
 		frappe.db.sql(
 			f"""INSERT INTO `{temporary}`
 				SELECT * FROM `{original}`
+<<<<<<< HEAD
 				WHERE `{original}`.`modified` > NOW() - INTERVAL '{days}' DAY"""
+=======
+				WHERE `{original}`.`creation` > NOW() - INTERVAL '{days}' DAY"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		)
 		frappe.db.sql_ddl(f"RENAME TABLE `{original}` TO `{backup}`, `{temporary}` TO `{original}`")
 	except Exception:

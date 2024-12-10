@@ -114,6 +114,7 @@ def emit_via_redis(event, message, room):
 
 
 @frappe.whitelist(allow_guest=True)
+<<<<<<< HEAD
 def can_subscribe_doc(doctype: str, docname: str) -> bool:
 	from frappe.exceptions import PermissionError
 
@@ -129,6 +130,11 @@ def can_subscribe_doctype(doctype: str) -> bool:
 
 	if not frappe.has_permission(doctype=doctype, ptype="read"):
 		raise PermissionError()
+=======
+def has_permission(doctype: str, name: str) -> bool:
+	if not frappe.has_permission(doctype=doctype, doc=name, ptype="read"):
+		raise frappe.PermissionError
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	return True
 
@@ -138,6 +144,10 @@ def get_user_info():
 	return {
 		"user": frappe.session.user,
 		"user_type": frappe.session.data.user_type,
+<<<<<<< HEAD
+=======
+		"installed_apps": frappe.get_installed_apps(),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 
 

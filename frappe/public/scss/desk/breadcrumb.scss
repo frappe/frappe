@@ -6,8 +6,12 @@
 }
 /*! This comment will be included even in compressed mode. */
 #navbar-breadcrumbs {
+<<<<<<< HEAD
 	margin-left: var(--margin-md);
 	@include get_textstyle("base", "regular");
+=======
+	@include get_textstyle("sm", "regular");
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	a {
 		margin-right: 10px;
 		&:before {
@@ -17,6 +21,14 @@
 		}
 	}
 
+<<<<<<< HEAD
+=======
+	li:first-child a:before {
+		// no angle before first item
+		content: none;
+	}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	li.disabled {
 		a {
 			color: var(--gray-600);

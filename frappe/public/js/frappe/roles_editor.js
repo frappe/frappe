@@ -40,6 +40,10 @@ frappe.RoleEditor = class {
 				role && this.show_permissions(role);
 				e.preventDefault();
 			});
+<<<<<<< HEAD
+=======
+			this.set_enable_disable();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		};
 	}
 	set_enable_disable() {

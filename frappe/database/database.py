@@ -1,13 +1,17 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+<<<<<<< HEAD
 import datetime
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 import itertools
 import json
 import random
 import re
 import string
 import traceback
+<<<<<<< HEAD
 from collections.abc import Iterable, Sequence
 from contextlib import contextmanager, suppress
 from time import time
@@ -15,6 +19,15 @@ from typing import TYPE_CHECKING, Any, Union
 
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 from pypika.terms import Criterion, NullValue
+=======
+import warnings
+from collections.abc import Hashable, Iterable, Sequence
+from contextlib import contextmanager, suppress
+from time import time
+from typing import TYPE_CHECKING, Any
+
+from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 import frappe
 import frappe.defaults
@@ -23,9 +36,17 @@ from frappe.database.utils import (
 	DefaultOrderBy,
 	EmptyQueryValues,
 	FallBackDateTimeStr,
+<<<<<<< HEAD
 	LazyMogrify,
 	Query,
 	QueryValues,
+=======
+	FilterValue,
+	LazyMogrify,
+	Query,
+	QueryValues,
+	convert_to_value,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	is_query_type,
 )
 from frappe.exceptions import DoesNotExistError, ImplicitCommitError
@@ -34,7 +55,10 @@ from frappe.query_builder import Case
 from frappe.query_builder.functions import Count
 from frappe.utils import CallbackManager, cint, get_datetime, get_table_name, getdate, now, sbool
 from frappe.utils import cast as cast_fieldtype
+<<<<<<< HEAD
 from frappe.utils.deprecations import deprecated, deprecation_warning
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 if TYPE_CHECKING:
 	from psycopg2 import connection as PostgresConnection
@@ -42,7 +66,10 @@ if TYPE_CHECKING:
 	from pymysql.connections import Connection as MariadbConnection
 	from pymysql.cursors import Cursor as MariadbCursor
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
 SINGLE_WORD_PATTERN = re.compile(r'([`"]?)(tab([A-Z]\w+))\1')
@@ -51,6 +78,14 @@ MULTI_WORD_PATTERN = re.compile(r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1')
 SQL_ITERATOR_BATCH_SIZE = 100
 
 
+<<<<<<< HEAD
+=======
+TRANSACTION_DISABLED_MSG = """Commit/rollback are disabled during certain events. This command will
+be ignored. Commit/Rollback from here WILL CAUSE very hard to debug problems with atomicity and
+concurrent data update bugs."""
+
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 class Database:
 	"""
 	Open a database connection with the given parmeters, if use_default is True, use the
@@ -73,12 +108,19 @@ class Database:
 
 	def __init__(
 		self,
+<<<<<<< HEAD
+=======
+		socket=None,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		host=None,
 		user=None,
 		password=None,
 		port=None,
 		cur_db_name=None,
+<<<<<<< HEAD
 		socket=None,
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	):
 		self.setup_type_map()
 		self.socket = socket
@@ -101,6 +143,13 @@ class Database:
 		self.before_rollback = CallbackManager()
 		self.after_rollback = CallbackManager()
 
+<<<<<<< HEAD
+=======
+		# Setting this to true will disable full rollback and commit
+		# You can still use savepoint with partial rollback.
+		self._disable_transaction_control = 0
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		# self.db_type: str
 		# self.last_query (lazy) attribute of last sql query executed
 
@@ -109,8 +158,13 @@ class Database:
 
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
+<<<<<<< HEAD
 		self._conn: "MariadbConnection" | "PostgresConnection" = self.get_connection()
 		self._cursor: "MariadbCursor" | "PostgresCursor" = self._conn.cursor()
+=======
+		self._conn: MariadbConnection | PostgresConnection = self.get_connection()
+		self._cursor: MariadbCursor | PostgresCursor = self._conn.cursor()
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		try:
 			if execution_timeout := get_query_execution_timeout():
@@ -129,7 +183,11 @@ class Database:
 		self.cur_db_name = db_name
 
 	def get_connection(self):
+<<<<<<< HEAD
 		"""Returns a Database connection object that conforms with https://peps.python.org/pep-0249/#connection-objects"""
+=======
+		"""Return a Database connection object that conforms with https://peps.python.org/pep-0249/#connection-objects."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		raise NotImplementedError
 
 	def get_database_size(self):
@@ -138,7 +196,11 @@ class Database:
 	def _transform_query(self, query: Query, values: QueryValues) -> tuple:
 		return query, values
 
+<<<<<<< HEAD
 	def _transform_result(self, result: list[tuple]) -> list[tuple]:
+=======
+	def _transform_result(self, result: list[tuple] | tuple[tuple]) -> tuple[tuple]:
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		return result
 
 	def _clean_up(self):
@@ -385,6 +447,7 @@ class Database:
 		"""Wrap the object with str to generate mogrified query."""
 		return LazyMogrify(query, values)
 
+<<<<<<< HEAD
 	def explain_query(self, query, values=None):
 		"""Print `EXPLAIN` in error log."""
 		frappe.log("--- query explain ---")
@@ -394,6 +457,17 @@ class Database:
 			frappe.log(f"error in query explain: {e}")
 		else:
 			frappe.log(json.dumps(self.fetch_as_dict(), indent=1))
+=======
+	def explain_query(self, query, values=EmptyQueryValues):
+		"""Print `EXPLAIN` in error log."""
+		frappe.log("--- query explain ---")
+		try:
+			results = self.sql(f"EXPLAIN {query}", values, as_dict=1)
+		except Exception as e:
+			frappe.log(f"error in query explain: {e}")
+		else:
+			frappe.log(json.dumps(results, indent=1))
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			frappe.log("--- query explain end ---")
 
 	def sql_list(self, query, values=(), debug=False, **kwargs):
@@ -409,10 +483,20 @@ class Database:
 	def sql_ddl(self, query, debug=False):
 		"""Commit and execute a query. DDL (Data Definition Language) queries that alter schema
 		autocommit in MariaDB."""
+<<<<<<< HEAD
 		self.commit()
 		self.sql(query, debug=debug)
 
 	def check_transaction_status(self, query):
+=======
+		transaction_control = self._disable_transaction_control
+		self._disable_transaction_control = 0
+		self.commit()
+		self.sql(query, debug=debug)
+		self._disable_transaction_control = transaction_control
+
+	def check_transaction_status(self, query: str):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		"""Raises exception if more than 200,000 `INSERT`, `UPDATE` queries are
 		executed in one transaction. This is to ensure that writes are always flushed otherwise this
 		could cause the system to hang."""
@@ -431,13 +515,21 @@ class Database:
 					msg += _("The changes have been reverted.") + "<br>"
 					raise frappe.TooManyWritesError(msg)
 
+<<<<<<< HEAD
 	def check_implicit_commit(self, query):
+=======
+	def check_implicit_commit(self, query: str):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		if (
 			self.transaction_writes
 			and query
 			and is_query_type(query, ("start", "alter", "drop", "create", "begin", "truncate"))
 		):
+<<<<<<< HEAD
 			raise ImplicitCommitError("This statement can cause implicit commit")
+=======
+			raise ImplicitCommitError("This statement can cause implicit commit", query)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	def fetch_as_dict(self, result) -> list[frappe._dict]:
 		"""Internal. Convert results to dict."""
@@ -452,7 +544,11 @@ class Database:
 			frappe.cache.delete_key("db_tables")
 
 	def get_description(self):
+<<<<<<< HEAD
 		"""Returns result metadata."""
+=======
+		"""Return result metadata."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		return self._cursor.description
 
 	@staticmethod
@@ -461,11 +557,16 @@ class Database:
 		return [[value for value in row] for row in res]
 
 	def get(self, doctype, filters=None, as_dict=True, cache=False):
+<<<<<<< HEAD
 		"""Returns `get_value` with fieldname='*'"""
+=======
+		"""Return `get_value` with fieldname='*'."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		return self.get_value(doctype, filters, "*", as_dict=as_dict, cache=cache)
 
 	def get_value(
 		self,
+<<<<<<< HEAD
 		doctype,
 		filters=None,
 		fieldname="name",
@@ -483,6 +584,25 @@ class Database:
 		wait=True,
 	):
 		"""Returns a document property or list of properties.
+=======
+		doctype: str,
+		filters: FilterValue | dict | list | None = None,
+		fieldname: str | list[str] = "name",
+		ignore: bool = False,
+		as_dict: bool = False,
+		debug: bool = False,
+		order_by: str = DefaultOrderBy,
+		cache: bool = False,
+		for_update: bool = False,
+		*,
+		run: bool = True,
+		pluck: bool = False,
+		distinct: bool = False,
+		skip_locked: bool = False,
+		wait: bool = True,
+	):
+		"""Return a document property or list of properties.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		:param doctype: DocType name.
 		:param filters: Filters like `{"x":"y"}` or name of the document. `None` if Single DocType.
@@ -545,6 +665,7 @@ class Database:
 
 	def get_values(
 		self,
+<<<<<<< HEAD
 		doctype,
 		filters=None,
 		fieldname="name",
@@ -564,6 +685,27 @@ class Database:
 		wait=True,
 	):
 		"""Returns multiple document properties.
+=======
+		doctype: str,
+		filters: FilterValue | dict | list | None = None,
+		fieldname: str | list[str] = "name",
+		ignore: bool = False,
+		as_dict: bool = False,
+		debug: bool = False,
+		order_by: str = DefaultOrderBy,
+		update: dict | None = None,
+		cache: bool = False,
+		for_update: bool = False,
+		*,
+		run: bool = True,
+		pluck: bool = False,
+		distinct: bool = False,
+		limit: int | None = None,
+		skip_locked: bool = False,
+		wait: bool = True,
+	):
+		"""Return multiple document properties.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		:param doctype: DocType name.
 		:param filters: Filters like `{"x":"y"}` or name of the document.
@@ -583,13 +725,22 @@ class Database:
 		        user = frappe.db.get_values("User", "test@example.com", "*")[0]
 		"""
 		out = None
+<<<<<<< HEAD
 		if cache and isinstance(filters, str) and (doctype, filters, fieldname) in self.value_cache:
 			return self.value_cache[(doctype, filters, fieldname)]
+=======
+		cache_key = None
+		if cache and isinstance(filters, Hashable):
+			cache_key = (doctype, filters, fieldname)
+			if cache_key in self.value_cache:
+				return self.value_cache[cache_key]
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		if distinct:
 			order_by = None
 
 		if isinstance(filters, list):
+<<<<<<< HEAD
 			out = self._get_value_for_many_names(
 				doctype=doctype,
 				names=filters,
@@ -632,6 +783,45 @@ class Database:
 						skip_locked=skip_locked,
 						wait=wait,
 					)
+=======
+			if filters := list(f for f in filters if f is not None):
+				out = frappe.qb.get_query(
+					table=doctype,
+					fields=fieldname,
+					filters=filters,
+					order_by=order_by,
+					distinct=distinct,
+					limit=limit,
+					validate_filters=True,
+					for_update=for_update,
+					skip_locked=skip_locked,
+					wait=True,
+				).run(debug=debug, run=run, as_dict=as_dict, pluck=pluck)
+			else:
+				out = {}
+		else:
+			if (filters is not None) and (filters != doctype or doctype == "DocType"):
+				try:
+					if order_by:
+						order_by = "creation" if order_by == DefaultOrderBy else order_by
+
+					query = frappe.qb.get_query(
+						table=doctype,
+						filters=filters,
+						order_by=order_by,
+						for_update=for_update,
+						skip_locked=skip_locked,
+						wait=wait,
+						fields=fieldname,
+						distinct=distinct,
+						limit=limit,
+						validate_filters=True,
+					)
+					if isinstance(fieldname, str) and fieldname == "*":
+						as_dict = True
+					out = query.run(as_dict=as_dict, debug=debug, update=update, run=run, pluck=pluck)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				except Exception as e:
 					if ignore and (
 						frappe.db.is_missing_column(e)
@@ -641,19 +831,52 @@ class Database:
 						out = None
 					elif (not ignore) and frappe.db.is_table_missing(e):
 						# table not found, look in singles
+<<<<<<< HEAD
 						out = self.get_values_from_single(
 							fields, filters, doctype, as_dict, debug, update, run=run, distinct=distinct
+=======
+						fields = (
+							[fieldname] if (isinstance(fieldname, str) and fieldname != "*") else fieldname
+						)
+						out = self.get_values_from_single(
+							fields,
+							filters,
+							doctype,
+							as_dict,
+							debug,
+							update,
+							run=run,
+							distinct=distinct,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 						)
 
 					else:
 						raise
 			else:
+<<<<<<< HEAD
 				out = self.get_values_from_single(
 					fields, filters, doctype, as_dict, debug, update, run=run, pluck=pluck, distinct=distinct
 				)
 
 		if cache and isinstance(filters, str):
 			self.value_cache[(doctype, filters, fieldname)] = out
+=======
+				fields = [fieldname] if (isinstance(fieldname, str) and fieldname != "*") else fieldname
+				out = self.get_values_from_single(
+					fields,
+					filters,
+					doctype,
+					as_dict,
+					debug,
+					update,
+					run=run,
+					pluck=pluck,
+					distinct=distinct,
+				)
+
+		if cache and cache_key:
+			self.value_cache[cache_key] = out
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		return out
 
@@ -812,7 +1035,11 @@ class Database:
 		if doctype in self.value_cache:
 			del self.value_cache[doctype]
 
+<<<<<<< HEAD
 	def get_single_value(self, doctype, fieldname, cache=True):
+=======
+	def get_single_value(self, doctype: str, fieldname: str, cache: bool = True):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		"""Get property of Single DocType. Cache locally by default
 
 		:param doctype: DocType of the single object whose value is requested
@@ -856,6 +1083,7 @@ class Database:
 		"""Alias for get_single_value"""
 		return self.get_single_value(*args, **kwargs)
 
+<<<<<<< HEAD
 	def _get_values_from_table(
 		self,
 		fields,
@@ -928,6 +1156,13 @@ class Database:
 		dt,
 		dn,
 		field,
+=======
+	def set_value(
+		self,
+		dt: str,
+		dn: FilterValue | dict,
+		field: str,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		val=None,
 		modified=None,
 		modified_by=None,
@@ -953,8 +1188,17 @@ class Database:
 		if dn is None or dt == dn:
 			if not is_single_doctype(dt):
 				return
+<<<<<<< HEAD
 			deprecation_warning(
 				"Calling db.set_value on single doctype is deprecated. This behaviour will be removed in future. Use db.set_single_value instead."
+=======
+			from frappe.deprecation_dumpster import deprecation_warning
+
+			deprecation_warning(
+				"unknown",
+				"v17",
+				"Calling db.set_value on single doctype is deprecated. This behaviour will be removed in future. Use db.set_single_value instead.",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			)
 			self.set_single_value(
 				doctype=dt,
@@ -978,8 +1222,13 @@ class Database:
 			validate_filters=True,
 		)
 
+<<<<<<< HEAD
 		if isinstance(dn, str):
 			frappe.clear_document_cache(dt, dn)
+=======
+		if isinstance(dn, FilterValue):
+			frappe.clear_document_cache(dt, convert_to_value(dn))
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		else:
 			# No way to guess which documents are modified, clear all of them
 			frappe.clear_document_cache(dt)
@@ -1130,6 +1379,7 @@ class Database:
 		self.set_default(key, val, user)
 
 	def get_global(self, key, user="__global"):
+<<<<<<< HEAD
 		"""Returns a global key value."""
 		return self.get_default(key, user)
 
@@ -1137,6 +1387,15 @@ class Database:
 		"""Returns default value as a list if multiple or single"""
 		d = self.get_defaults(key, parent)
 		return isinstance(d, list) and d[0] or d
+=======
+		"""Return a global key value."""
+		return self.get_default(key, user)
+
+	def get_default(self, key, parent="__default"):
+		"""Return default value as a list if multiple or single."""
+		d = self.get_defaults(key, parent)
+		return (isinstance(d, list) and d[0]) or d
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	@staticmethod
 	def set_default(key, val, parent="__default", parenttype=None):
@@ -1167,6 +1426,13 @@ class Database:
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
+<<<<<<< HEAD
+=======
+		if self._disable_transaction_control:
+			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)
+			return
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		self.before_rollback.reset()
 		self.after_rollback.reset()
 
@@ -1181,7 +1447,11 @@ class Database:
 		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
 		if save_point:
 			self.sql(f"rollback to savepoint {save_point}")
+<<<<<<< HEAD
 		else:
+=======
+		elif not self._disable_transaction_control:
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			self.before_commit.reset()
 			self.after_commit.reset()
 
@@ -1191,6 +1461,11 @@ class Database:
 			self.begin()
 
 			self.after_rollback.run()
+<<<<<<< HEAD
+=======
+		else:
+			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	def savepoint(self, save_point):
 		"""Savepoints work as a nested transaction.
@@ -1210,7 +1485,11 @@ class Database:
 		return self.exists("DocField", {"fieldname": fn, "parent": dt})
 
 	def table_exists(self, doctype, cached=True):
+<<<<<<< HEAD
 		"""Returns True if table for given doctype exists."""
+=======
+		"""Return True if table for given doctype exists."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		return f"tab{doctype}" in self.get_tables(cached=cached)
 
 	def has_table(self, doctype):
@@ -1220,10 +1499,17 @@ class Database:
 		raise NotImplementedError
 
 	def a_row_exists(self, doctype):
+<<<<<<< HEAD
 		"""Returns True if atleast one row exists."""
 		return frappe.get_all(doctype, limit=1, order_by=None, as_list=True)
 
 	def exists(self, dt, dn=None, cache=False):
+=======
+		"""Return True if at least one row exists."""
+		return frappe.get_all(doctype, limit=1, order_by=None, as_list=True)
+
+	def exists(self, dt, dn=None, cache=False, *, debug=False):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		"""Return the document name of a matching document, or None.
 
 		Note: `cache` only works if `dt` and `dn` are of type `str`.
@@ -1256,10 +1542,17 @@ class Database:
 			dt = dt.copy()  # don't modify the original dict
 			dt, dn = dt.pop("doctype"), dt
 
+<<<<<<< HEAD
 		return self.get_value(dt, dn, ignore=True, cache=cache, order_by=None)
 
 	def count(self, dt, filters=None, debug=False, cache=False, distinct: bool = True):
 		"""Returns `COUNT(*)` for given DocType and filters."""
+=======
+		return self.get_value(dt, dn, ignore=True, cache=cache, order_by=None, debug=debug)
+
+	def count(self, dt, filters=None, debug=False, cache=False, distinct: bool = True):
+		"""Return `COUNT(*)` for given DocType and filters."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		if cache and not filters:
 			cache_count = frappe.cache.get_value(f"doctype:count:{dt}")
 			if cache_count is not None:
@@ -1280,7 +1573,11 @@ class Database:
 		return getdate(date).strftime("%Y-%m-%d")
 
 	@staticmethod
+<<<<<<< HEAD
 	def format_datetime(datetime):  # noqa: F811
+=======
+	def format_datetime(datetime):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		if not datetime:
 			return FallBackDateTimeStr
 
@@ -1302,7 +1599,11 @@ class Database:
 		)
 
 	def get_db_table_columns(self, table) -> list[str]:
+<<<<<<< HEAD
 		"""Returns list of column names from given table."""
+=======
+		"""Return list of column names from given table."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		columns = frappe.cache.hget("table_columns", table)
 		if columns is None:
 			information_schema = frappe.qb.Schema("information_schema")
@@ -1320,14 +1621,22 @@ class Database:
 		return columns
 
 	def get_table_columns(self, doctype):
+<<<<<<< HEAD
 		"""Returns list of column names from given doctype."""
+=======
+		"""Return list of column names from given doctype."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		columns = self.get_db_table_columns("tab" + doctype)
 		if not columns:
 			raise self.TableMissingError("DocType", doctype)
 		return columns
 
 	def has_column(self, doctype, column):
+<<<<<<< HEAD
 		"""Returns True if column exists in database."""
+=======
+		"""Return True if column exists in database."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		return column in self.get_table_columns(doctype)
 
 	def has_index(self, table_name, index_name):
@@ -1357,6 +1666,7 @@ class Database:
 
 	@staticmethod
 	def escape(s, percent=True):
+<<<<<<< HEAD
 		"""Excape quotes and percent in given string."""
 		# implemented in specific class
 		raise NotImplementedError
@@ -1365,6 +1675,15 @@ class Database:
 	@deprecated
 	def is_column_missing(e):
 		return frappe.db.is_missing_column(e)
+=======
+		"""Escape quotes and percent in given string."""
+		# implemented in specific class
+		raise NotImplementedError
+
+	from frappe.deprecation_dumpster import is_column_missing as _is_column_missing
+
+	is_column_missing = staticmethod(_is_column_missing)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	def get_descendants(self, doctype, name):
 		"""Return descendants of the group node in tree"""
@@ -1386,7 +1705,11 @@ class Database:
 
 	def delete(self, doctype: str, filters: dict | list | None = None, debug=False, **kwargs):
 		"""Delete rows from a table in site which match the passed filters. This
+<<<<<<< HEAD
 		does trigger DocType hooks. Simply runs a DELETE query in the database.
+=======
+		does not trigger DocType hooks. Simply runs a DELETE query in the database.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		Doctype name can be passed directly, it will be pre-pended with `tab`.
 		"""

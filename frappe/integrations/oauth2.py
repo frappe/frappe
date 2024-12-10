@@ -74,7 +74,11 @@ def approve(*args, **kwargs):
 @frappe.whitelist(allow_guest=True)
 def authorize(**kwargs):
 	success_url = "/api/method/frappe.integrations.oauth2.approve?" + encode_params(sanitize_kwargs(kwargs))
+<<<<<<< HEAD
 	failure_url = frappe.form_dict["redirect_uri"] + "?error=access_denied"
+=======
+	failure_url = frappe.form_dict.get("redirect_uri", "") + "?error=access_denied"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	if frappe.session.user == "Guest":
 		# Force login, redirect to preauth again.

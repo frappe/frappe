@@ -10,7 +10,11 @@ Autocomplete = Data
 Attach = Data
 AttachImage = Data
 Barcode = Data
+<<<<<<< HEAD
 Check = int
+=======
+Check = bool | int
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 Code = Text
 Color = str
 Currency = float

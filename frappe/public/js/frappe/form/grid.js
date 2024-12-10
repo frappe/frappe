@@ -71,6 +71,7 @@ export default class Grid {
 						<div class="grid-heading-row"></div>
 						<div class="grid-body">
 							<div class="rows"></div>
+<<<<<<< HEAD
 							<div class="grid-empty text-center">
 								<img
 									src="/assets/frappe/images/ui-states/grid-empty-state.svg"
@@ -78,6 +79,13 @@ export default class Grid {
 									class="grid-empty-illustration"
 								>
 								${__("No Data")}
+=======
+							<div class="grid-empty text-center text-extra-muted">
+								${__("No rows")}
+							</div>
+							<div class="grid-scroll-bar">
+								<div class="grid-scroll-bar-rows"></div>
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 							</div>
 						</div>
 					</div>
@@ -310,6 +318,14 @@ export default class Grid {
 		this.remove_all_rows_button.toggleClass("hidden", !show_delete_all_btn);
 	}
 
+<<<<<<< HEAD
+=======
+	debounced_refresh_remove_rows_button = frappe.utils.debounce(
+		this.refresh_remove_rows_button,
+		100
+	);
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	get_selected() {
 		return (this.grid_rows || [])
 			.map((row) => {
@@ -881,6 +897,7 @@ export default class Grid {
 	}
 
 	duplicate_row(d, copy_doc) {
+<<<<<<< HEAD
 		$.each(copy_doc, function (key, value) {
 			if (
 				![
@@ -895,6 +912,27 @@ export default class Grid {
 					"parentfield",
 				].includes(key)
 			) {
+=======
+		const noCopyFields = new Set([
+			"creation",
+			"modified",
+			"modified_by",
+			"idx",
+			"owner",
+			"parent",
+			"doctype",
+			"name",
+			"parentfield",
+		]);
+
+		const docfields = frappe.get_meta(this.doctype).fields || [];
+		$.each(docfields, function (_index, df) {
+			if (cint(df.no_copy)) noCopyFields.add(df.fieldname);
+		});
+
+		$.each(copy_doc, function (key, value) {
+			if (!noCopyFields.has(key)) {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				d[key] = value;
 			}
 		});
@@ -964,7 +1002,10 @@ export default class Grid {
 				}
 
 				total_colsize += df.colsize;
+<<<<<<< HEAD
 				if (total_colsize > 11) return false;
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				this.visible_columns.push([df, df.colsize]);
 			}
 		}

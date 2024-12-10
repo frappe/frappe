@@ -29,6 +29,7 @@ class MilestoneTracker(Document):
 
 	def apply(self, doc):
 		before_save = doc.get_doc_before_save()
+<<<<<<< HEAD
 		from_value = before_save and before_save.get(self.track_field) or None
 		if from_value != doc.get(self.track_field):
 			frappe.get_doc(
@@ -41,6 +42,18 @@ class MilestoneTracker(Document):
 					value=doc.get(self.track_field),
 					milestone_tracker=self.name,
 				)
+=======
+		from_value = (before_save and before_save.get(self.track_field)) or None
+		if from_value != doc.get(self.track_field):
+			frappe.get_doc(
+				doctype="Milestone",
+				reference_type=doc.doctype,
+				reference_name=doc.name,
+				track_field=self.track_field,
+				from_value=from_value,
+				value=doc.get(self.track_field),
+				milestone_tracker=self.name,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			).insert(ignore_permissions=True)
 
 

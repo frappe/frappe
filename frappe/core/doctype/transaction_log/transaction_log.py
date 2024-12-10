@@ -28,8 +28,13 @@ class TransactionLog(Document):
 		row_index: DF.Data | None
 		timestamp: DF.Datetime | None
 		transaction_hash: DF.SmallText | None
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def before_insert(self):
 		index = get_current_index()
 		self.row_index = index

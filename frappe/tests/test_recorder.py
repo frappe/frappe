@@ -8,13 +8,21 @@ import sqlparse
 import frappe
 import frappe.recorder
 from frappe.recorder import normalize_query
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase, timeout
+=======
+from frappe.tests import IntegrationTestCase, timeout
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.utils import set_request
 from frappe.utils.doctor import any_job_pending
 from frappe.website.serve import get_response_content
 
 
+<<<<<<< HEAD
 class TestRecorder(FrappeTestCase):
+=======
+class TestRecorder(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def setUp(self):
 		self.wait_for_background_jobs()
 		frappe.recorder.stop()
@@ -143,7 +151,11 @@ class TestRecorder(FrappeTestCase):
 		self.assertIn("Error", content)
 
 
+<<<<<<< HEAD
 class TestRecorderDeco(FrappeTestCase):
+=======
+class TestRecorderDeco(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_recorder_flag(self):
 		frappe.recorder.delete()
 
@@ -155,7 +167,11 @@ class TestRecorderDeco(FrappeTestCase):
 		self.assertTrue(frappe.recorder.get())
 
 
+<<<<<<< HEAD
 class TestQueryNormalization(FrappeTestCase):
+=======
+class TestQueryNormalization(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_query_normalization(self):
 		test_cases = {
 			"select * from user where name = 'x'": "select * from user where name = ?",

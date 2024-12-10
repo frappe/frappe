@@ -48,7 +48,11 @@ def get_random(doctype: str, filters: dict | None = None, doc: bool = False):
 		}
 	)
 
+<<<<<<< HEAD
 	out = out and out[0][0] or None
+=======
+	out = (out and out[0][0]) or None
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	if doc and out:
 		return frappe.get_doc(doctype, out)

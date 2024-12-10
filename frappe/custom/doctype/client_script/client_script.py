@@ -18,8 +18,13 @@ class ClientScript(Document):
 		module: DF.Link | None
 		script: DF.Code | None
 		view: DF.Literal["List", "Form"]
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def on_update(self):
 		frappe.clear_cache(doctype=self.dt)
 

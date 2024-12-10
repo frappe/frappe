@@ -19,7 +19,11 @@ def get_user_settings(doctype, for_update=False):
 			where `user`=%s and `doctype`=%s""",
 			(frappe.session.user, doctype),
 		)
+<<<<<<< HEAD
 		user_settings = user_settings and user_settings[0][0] or "{}"
+=======
+		user_settings = (user_settings and user_settings[0][0]) or "{}"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		if not for_update:
 			update_user_settings(doctype, user_settings, True)

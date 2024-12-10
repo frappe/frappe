@@ -21,6 +21,13 @@ class FileUploader {
 		attach_doc_image,
 		frm,
 		make_attachments_public,
+<<<<<<< HEAD
+=======
+		allow_web_link,
+		allow_take_photo,
+		allow_toggle_private,
+		allow_toggle_optimize,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	} = {}) {
 		frm && frm.attachments.max_reached(true);
 
@@ -55,6 +62,13 @@ class FileUploader {
 			disable_file_browser,
 			attach_doc_image,
 			make_attachments_public,
+<<<<<<< HEAD
+=======
+			allow_web_link,
+			allow_take_photo,
+			allow_toggle_private,
+			allow_toggle_optimize,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		});
 		SetVueGlobals(app);
 		this.uploader = app.mount(this.wrapper);

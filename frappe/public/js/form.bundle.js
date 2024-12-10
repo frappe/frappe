@@ -11,6 +11,10 @@ import "./frappe/form/templates/timeline_message_box.html";
 import "./frappe/form/templates/users_in_sidebar.html";
 
 import "./frappe/views/formview.js";
+<<<<<<< HEAD
+=======
+import "./frappe/views/render_preview.js";
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 import "./frappe/form/form.js";
 import "./frappe/meta_tag.js";
 import "./frappe/doctype/";

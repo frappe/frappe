@@ -142,7 +142,11 @@ def _make(
 	cc = list_to_str(cc) if isinstance(cc, list) else cc
 	bcc = list_to_str(bcc) if isinstance(bcc, list) else bcc
 
+<<<<<<< HEAD
 	comm: "Communication" = frappe.get_doc(
+=======
+	comm: Communication = frappe.get_doc(
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		{
 			"doctype": "Communication",
 			"subject": subject,
@@ -199,7 +203,12 @@ def _make(
 def validate_email(doc: "Communication") -> None:
 	"""Validate Email Addresses of Recipients and CC"""
 	if (
+<<<<<<< HEAD
 		not (doc.communication_type == "Communication" and doc.communication_medium == "Email")
+=======
+		doc.communication_type != "Communication"
+		or doc.communication_medium != "Email"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		or doc.flags.in_receive
 	):
 		return

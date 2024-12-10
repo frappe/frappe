@@ -7,6 +7,10 @@ import re
 import frappe
 from frappe import _
 from frappe.core.utils import find
+<<<<<<< HEAD
+=======
+from frappe.desk.doctype.notification_settings.notification_settings import is_email_notifications_enabled
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.model.document import Document
 from frappe.utils import get_datetime, get_fullname, time_diff_in_hours
 from frappe.utils.user import get_system_managers
@@ -29,8 +33,13 @@ class PersonalDataDeletionRequest(Document):
 		deletion_steps: DF.Table[PersonalDataDeletionStep]
 		email: DF.Data
 		status: DF.Literal["Pending Verification", "Pending Approval", "On Hold", "Deleted"]
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
@@ -101,10 +110,20 @@ class PersonalDataDeletionRequest(Document):
 		)
 
 	def notify_system_managers(self):
+<<<<<<< HEAD
 		system_managers = get_system_managers(only_name=True)
 
 		frappe.sendmail(
 			recipients=system_managers,
+=======
+		recipients = []
+		for manager in get_system_managers(only_name=True):
+			if is_email_notifications_enabled(manager):
+				recipients.append(manager)
+
+		frappe.sendmail(
+			recipients=recipients,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			subject=_("User {0} has requested for data deletion").format(self.email),
 			template="data_deletion_approval",
 			args={"user": self.email, "url": frappe.utils.get_url(self.get_url())},
@@ -155,7 +174,11 @@ class PersonalDataDeletionRequest(Document):
 			row_data = {
 				"status": "Pending",
 				"document_type": step.get("doctype"),
+<<<<<<< HEAD
 				"partial": step.get("partial") or False,
+=======
+				"partial": step.get("partial", False),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				"fields": json.dumps(step.get("redact_fields", [])),
 				"filtered_by": step.get("filtered_by") or "",
 			}
@@ -262,6 +285,7 @@ class PersonalDataDeletionRequest(Document):
 		self.add_deletion_steps()
 
 		self.full_match_doctypes = (
+<<<<<<< HEAD
 			x
 			for x in self.full_match_privacy_docs
 			if filter(lambda x: x.document_type == x and x.status == "Pending", self.deletion_steps)
@@ -271,6 +295,17 @@ class PersonalDataDeletionRequest(Document):
 			x
 			for x in self.partial_privacy_docs
 			if filter(lambda x: x.document_type == x and x.status == "Pending", self.deletion_steps)
+=======
+			doc
+			for doc in self.full_match_privacy_docs
+			if filter(lambda x: x.document_type == doc and x.status == "Pending", self.deletion_steps)
+		)
+
+		self.partial_match_doctypes = (
+			doc
+			for doc in self.partial_privacy_docs
+			if filter(lambda x: x.document_type == doc and x.status == "Pending", self.deletion_steps)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		)
 
 		for doctype in self.full_match_doctypes:

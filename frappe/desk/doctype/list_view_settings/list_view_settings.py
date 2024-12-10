@@ -22,6 +22,10 @@ class ListViewSettings(Document):
 		fields: DF.Code | None
 		total_fields: DF.Literal["", "4", "5", "6", "7", "8", "9", "10"]
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass
 
 

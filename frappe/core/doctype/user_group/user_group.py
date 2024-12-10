@@ -18,8 +18,13 @@ class UserGroup(Document):
 		from frappe.types import DF
 
 		user_group_members: DF.TableMultiSelect[UserGroupMember]
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def after_insert(self):
 		frappe.cache.delete_key("user_groups")
 

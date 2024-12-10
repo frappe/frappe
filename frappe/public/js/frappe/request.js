@@ -10,11 +10,19 @@ frappe.request.ajax_count = 0;
 frappe.request.waiting_for_ajax = [];
 frappe.request.logs = {};
 
+<<<<<<< HEAD
 frappe.xcall = function (method, params) {
+=======
+frappe.xcall = function (method, params, type) {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return new Promise((resolve, reject) => {
 		frappe.call({
 			method: method,
 			args: params,
+<<<<<<< HEAD
+=======
+			type: type || "POST",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			callback: (r) => {
 				resolve(r.message);
 			},
@@ -267,7 +275,11 @@ frappe.request.call = function (opts) {
 			},
 			opts.headers
 		),
+<<<<<<< HEAD
 		cache: false,
+=======
+		cache: window.dev_server ? false : true,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	};
 
 	if (opts.args && opts.args.doctype) {

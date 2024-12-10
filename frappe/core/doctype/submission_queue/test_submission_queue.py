@@ -5,15 +5,35 @@ import time
 import typing
 
 import frappe
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase, timeout
+=======
+from frappe.tests import IntegrationTestCase, UnitTestCase, timeout
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.utils.background_jobs import get_queue
 
 if typing.TYPE_CHECKING:
 	from rq.job import Job
 
 
+<<<<<<< HEAD
 class TestSubmissionQueue(FrappeTestCase):
 	queue = get_queue(qtype="default")
+=======
+class UnitTestSubmissionQueue(UnitTestCase):
+	"""
+	Unit tests for SubmissionQueue.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestSubmissionQueue(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		cls.queue = get_queue(qtype="default")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	@timeout(seconds=20)
 	def check_status(self, job: "Job", status, wait=True):

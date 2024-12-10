@@ -24,11 +24,27 @@ frappe.db = {
 			});
 		});
 	},
+<<<<<<< HEAD
 	exists: function (doctype, name) {
 		return new Promise((resolve) => {
 			frappe.db.get_value(doctype, { name: name }, "name").then((r) => {
 				r.message && r.message.name ? resolve(true) : resolve(false);
 			});
+=======
+	exists: function (doctype, nameOrFilters) {
+		return new Promise((resolve) => {
+			let filters;
+			if (typeof nameOrFilters === "string") {
+				// may be cached and more effecient
+				frappe.db.get_value(doctype, { name: nameOrFilters }, "name").then((r) => {
+					r.message && r.message.name ? resolve(true) : resolve(false);
+				});
+			} else if (typeof nameOrFilters === "object") {
+				frappe.db.count(doctype, { filters: nameOrFilters, limit: 1 }).then((count) => {
+					resolve(count > 0);
+				});
+			}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		});
 	},
 	get_value: function (doctype, filters, fieldname, callback, parent_doc) {

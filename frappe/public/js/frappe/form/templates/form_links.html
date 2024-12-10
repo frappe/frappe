@@ -11,8 +11,13 @@
 					{% let doctype = transactions[i].items[j]; %}
 					<div class="document-link" data-doctype="{{ doctype }}">
 						<div class="document-link-badge" data-doctype="{{ doctype }}">
+<<<<<<< HEAD
 							<span class="count hidden"></span>
 							<a class="badge-link">{{ __(doctype) }}</a>
+=======
+							<a class="badge-link">{{ __(doctype) }}</a>
+							<span class="count hidden"></span>
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 						</div>
 						<span class="open-notification hidden"
 							title="{{ __("Open {0}", [__(doctype)])}}">

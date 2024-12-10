@@ -5,7 +5,10 @@ import datetime
 from collections.abc import Callable
 from functools import wraps
 
+<<<<<<< HEAD
 import pytz
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from werkzeug.wrappers import Response
 
 import frappe
@@ -35,7 +38,11 @@ class RateLimiter:
 		self.limit = int(limit * 1000000)
 		self.window = window
 
+<<<<<<< HEAD
 		self.start = datetime.datetime.now(pytz.UTC)
+=======
+		self.start = datetime.datetime.now(datetime.timezone.utc)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		timestamp = int(frappe.utils.now_datetime().timestamp())
 
 		self.window_number, self.spent = divmod(timestamp, self.window)
@@ -80,7 +87,11 @@ class RateLimiter:
 	def record_request_end(self):
 		if self.end is not None:
 			return
+<<<<<<< HEAD
 		self.end = datetime.datetime.now(pytz.UTC)
+=======
+		self.end = datetime.datetime.now(datetime.timezone.utc)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		self.duration = int((self.end - self.start).total_seconds() * 1000000)
 
 	def respond(self):
@@ -110,7 +121,11 @@ def rate_limit(
 	:param ip_based: flag to allow ip based rate-limiting
 	:type ip_based: Boolean
 
+<<<<<<< HEAD
 	:returns: a decorator function that limit the number of requests per endpoint
+=======
+	Return: a decorator function that limit the number of requests per endpoint
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	"""
 
 	def ratelimit_decorator(fn):
@@ -140,7 +155,11 @@ def rate_limit(
 
 			cache_key = frappe.cache.make_key(f"rl:{frappe.form_dict.cmd}:{identity}")
 
+<<<<<<< HEAD
 			value = frappe.cache.get(cache_key) or 0
+=======
+			value = frappe.cache.get(cache_key)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			if not value:
 				frappe.cache.setex(cache_key, seconds, 0)
 

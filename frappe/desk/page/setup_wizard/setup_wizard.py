@@ -32,8 +32,13 @@ def get_setup_stages(args):  # nosemgrep
 	stages.append(
 		{
 			# post executing hooks
+<<<<<<< HEAD
 			"status": "Wrapping up",
 			"fail_msg": "Failed to complete setup",
+=======
+			"status": _("Wrapping up"),
+			"fail_msg": _("Failed to complete setup"),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			"tasks": [{"fn": run_post_setup_complete, "args": args, "fail_msg": "Failed to complete setup"}],
 		}
 	)
@@ -307,7 +312,11 @@ def load_languages():
 	}
 
 
+<<<<<<< HEAD
 @frappe.whitelist()
+=======
+@frappe.whitelist(allow_guest=True)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 def load_country():
 	from frappe.sessions import get_geo_ip_country
 

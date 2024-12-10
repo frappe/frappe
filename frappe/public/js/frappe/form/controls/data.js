@@ -7,10 +7,18 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 	make_input() {
 		if (this.$input) return;
 
+<<<<<<< HEAD
 		let { html_element, input_type } = this.constructor;
 
 		this.$input = $("<" + html_element + ">")
 			.attr("type", input_type)
+=======
+		let { html_element, input_type, input_mode } = this.constructor;
+
+		this.$input = $("<" + html_element + ">")
+			.attr("type", input_type)
+			.attr("inputmode", input_mode)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			.attr("autocomplete", "off")
 			.addClass("input-with-feedback form-control")
 			.prependTo(this.input_area);

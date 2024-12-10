@@ -9,20 +9,34 @@
 	background-position: 50% 50%;
 	fill: var(--icon-fill);
 	stroke: var(--icon-stroke);
+<<<<<<< HEAD
+=======
+	stroke-width: 1.25px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 }
 
 .es-icon {
 	@extend .icon;
+<<<<<<< HEAD
 	// reverse fill and stroke because of the way es icon is drawn
 	fill: var(--icon-stroke);
 	stroke: var(--icon-fill);
+=======
+	// es-icons need to be "filled"
+	fill: var(--icon-stroke);
+	stroke-width: 0;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 }
 
 /* like icon */
 use.like-icon {
 	--icon-stroke: transparent;
 	cursor: pointer;
+<<<<<<< HEAD
 	stroke: var(--gray-800);
+=======
+	stroke: var(--icon-stroke);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 }
 
 #icon-file-large {
@@ -42,9 +56,16 @@ use.like-icon {
 }
 
 .liked {
+<<<<<<< HEAD
 	use.like-icon {
 		--icon-stroke: var(--red-500);
 		fill: var(--icon-stroke);
+=======
+	.like-icon,
+	.like-icon use {
+		--icon-stroke: var(--invert-neutral);
+		fill: var(--invert-neutral);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 }
 
@@ -70,8 +91,13 @@ use.like-icon {
 }
 
 .icon-xl {
+<<<<<<< HEAD
 	width: 75px;
 	height: 75px;
+=======
+	width: 40px;
+	height: 40px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 }
 
 .no-stroke {

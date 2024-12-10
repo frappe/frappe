@@ -22,9 +22,13 @@ class Newsletter(WebsiteGenerator):
 
 	if TYPE_CHECKING:
 		from frappe.email.doctype.newsletter_attachment.newsletter_attachment import NewsletterAttachment
+<<<<<<< HEAD
 		from frappe.email.doctype.newsletter_email_group.newsletter_email_group import (
 			NewsletterEmailGroup,
 		)
+=======
+		from frappe.email.doctype.newsletter_email_group.newsletter_email_group import NewsletterEmailGroup
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		from frappe.types import DF
 
 		attachments: DF.Table[NewsletterAttachment]

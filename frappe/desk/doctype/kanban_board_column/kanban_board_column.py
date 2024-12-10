@@ -15,6 +15,7 @@ class KanbanBoardColumn(Document):
 
 		column_name: DF.Data | None
 		indicator: DF.Literal[
+<<<<<<< HEAD
 			"Blue",
 			"Cyan",
 			"Gray",
@@ -26,6 +27,9 @@ class KanbanBoardColumn(Document):
 			"Red",
 			"Red",
 			"Yellow",
+=======
+			"Blue", "Cyan", "Gray", "Green", "Light Blue", "Orange", "Pink", "Purple", "Red", "Yellow"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		]
 		order: DF.Code | None
 		parent: DF.Data
@@ -33,4 +37,8 @@ class KanbanBoardColumn(Document):
 		parenttype: DF.Data
 		status: DF.Literal["Active", "Archived"]
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass

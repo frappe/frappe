@@ -161,7 +161,11 @@
  "icon": "fa fa-check",
  "idx": 2,
  "links": [],
+<<<<<<< HEAD
  "modified": "2023-10-05 07:44:38.476400",
+=======
+ "modified": "2024-03-23 16:03:58.758787",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "ToDo",
@@ -193,10 +197,20 @@
  "quick_entry": 1,
  "search_fields": "description, reference_type, reference_name",
  "sender_field": "sender",
+<<<<<<< HEAD
  "sort_field": "modified",
  "sort_order": "DESC",
+=======
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "subject_field": "description",
  "title_field": "description",
  "track_changes": 1,
  "track_seen": 1
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

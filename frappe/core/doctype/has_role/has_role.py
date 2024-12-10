@@ -18,8 +18,13 @@ class HasRole(Document):
 		parentfield: DF.Data
 		parenttype: DF.Data
 		role: DF.Link | None
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def before_insert(self):
 		if frappe.db.exists("Has Role", {"parent": self.parent, "role": self.role}):
 			frappe.throw(frappe._("User '{0}' already has the role '{1}'").format(self.parent, self.role))

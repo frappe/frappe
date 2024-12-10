@@ -1,0 +1,81 @@
+language_code,language_name,enabled
+af,Afrikaans,0
+am,አማርኛ,0
+ar,العربية,1
+bg,Български,0
+bn,বাংলা,0
+bo,བོད་སྐད་,0
+bs,Bosanski,0
+ca,Català,0
+cs,Čeština,0
+da,Dansk,0
+de,Deutsch,1
+el,Ελληνικά,0
+en,English,0
+en-GB,English (United Kingdom),0
+en-US,English (United States),0
+eo,In-Context Translation,0
+es,Español,1
+es-AR,Español (Argentina),0
+es-BO,Español (Bolivia),0
+es-CL,Español (Chile),0
+es-CO,Español (Colombia),0
+es-DO,Español (República Dominicana),0
+es-EC,Español (Ecuador),0
+es-GT,Español (Guatemala),0
+es-MX,Español (México),0
+es-NI,Español (Nicaragua),0
+es-PE,Español (Perú),0
+et,Eesti,0
+fa,فارسی,1
+fi,Suomi,0
+fil,Filipino,0
+fr,Français,1
+gu,ગુજરાતી,0
+he,עברית,0
+hi,हिन्दी,0
+hr,Hrvatski,0
+hu,Magyar,0
+id,Indonesia,0
+is,Íslenska,0
+it,Italiano,0
+ja,日本語,0
+km,ខ្មែរ,0
+kn,ಕನ್ನಡ,0
+ko,한국어,0
+ku,Kurdî,0
+lo,ລາວ,0
+lt,Lietuvių,0
+lv,Latviešu,0
+mk,Македонски,0
+ml,മലയാളം,0
+mn,Монгол,0
+mr,मराठी,0
+ms,Melayu,0
+my,မြန်မာ,0
+nl,Nederlands,0
+no,Norsk,0
+pl,Polski,0
+ps,پښتو,0
+pt,Português,0
+ro,Română,0
+ru,Русский,0
+rw,Kinyarwanda,0
+si,සිංහල,0
+sk,Slovenčina,0
+sl,Slovenščina,0
+sq,Shqip,0
+sr,Српски,0
+sr-BA,Srpski,0
+sv,Svenska,0
+sw,Kiswahili,0
+ta,தமிழ்,0
+te,తెలుగు,0
+th,ไทย,0
+tr,Türkçe,0
+uk,Українська,0
+ur,اردو,0
+uz,O‘Zbek,0
+vi,Tiếng Việt,0
+zh,中文,0
+zh-TW,繁體中文,0

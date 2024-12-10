@@ -13,10 +13,17 @@ import time
 import typing
 from code import compile_command
 from enum import Enum
+<<<<<<< HEAD
 from typing import Any, Literal, Optional, TypeVar, Union
 from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlparse, urlunparse
 
 import pytz
+=======
+from typing import Any, Literal, Optional, TypeVar
+from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlparse, urlunparse
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from click import secho
 from dateutil import parser
 from dateutil.parser import ParserError
@@ -24,12 +31,48 @@ from dateutil.relativedelta import relativedelta
 
 import frappe
 from frappe.desk.utils import slug
+<<<<<<< HEAD
 
 DateTimeLikeObject = str | datetime.date | datetime.datetime
 NumericType = int | float
 
 
 if typing.TYPE_CHECKING:
+=======
+from frappe.locale import get_date_format, get_first_day_of_the_week, get_number_format, get_time_format
+from frappe.types.filter import Filters, FilterSignature, FilterTuple
+from frappe.utils.deprecations import deprecated
+from frappe.utils.number_format import NUMBER_FORMAT_MAP, NumberFormat
+
+DateTimeLikeObject = str | datetime.date | datetime.datetime
+NumericType = int | float
+TimespanOptions = Literal[
+	"last week",
+	"last month",
+	"last quarter",
+	"last 6 months",
+	"last year",
+	"yesterday",
+	"today",
+	"tomorrow",
+	"this week",
+	"this month",
+	"this quarter",
+	"this year",
+	"next week",
+	"next month",
+	"next quarter",
+	"next 6 months",
+	"next year",
+]
+
+
+if typing.TYPE_CHECKING:
+	from collections.abc import Mapping
+
+	from PIL.ImageFile import ImageFile as PILImageFile
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	T = TypeVar("T")
 
 
@@ -64,15 +107,22 @@ class Weekday(Enum):
 	Saturday = 6
 
 
+<<<<<<< HEAD
 def get_first_day_of_the_week() -> str:
 	return frappe.get_system_settings("first_day_of_the_week") or "Sunday"
 
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 def get_start_of_week_index() -> int:
 	return Weekday[get_first_day_of_the_week()].value
 
 
 def is_invalid_date_string(date_string: str) -> bool:
+<<<<<<< HEAD
+=======
+	"""Return True if the date string is invalid or None or empty."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	# dateutil parser does not agree with dates like "0001-01-01" or "0000-00-00"
 	return not isinstance(date_string, str) or (
 		(not date_string) or (date_string or "").startswith(("0001-01-01", "0000-00-00"))
@@ -83,7 +133,11 @@ def getdate(
 	string_date: Optional["DateTimeLikeObject"] = None, parse_day_first: bool = False
 ) -> datetime.date | None:
 	"""
+<<<<<<< HEAD
 	Converts string date (yyyy-mm-dd) to datetime.date object.
+=======
+	Convert string date (yyyy-mm-dd) to datetime.date object.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	If no input is provided, current date is returned.
 	"""
 	if not string_date:
@@ -106,8 +160,24 @@ def getdate(
 
 
 def get_datetime(
+<<<<<<< HEAD
 	datetime_str: Optional["DateTimeLikeObject"] = None,
 ) -> datetime.datetime | None:
+=======
+	datetime_str: Optional["DateTimeLikeObject"] | tuple | list = None,
+) -> datetime.datetime | None:
+	"""Return the below mentioned values based on the given `datetime_str`:
+
+	* If `datetime_str` is None, returns datetime object of current datetime
+	* If `datetime_str` is already a datetime object, returns the same
+	* If `datetime_str` is a timedelta object, returns the same
+	* If `datetime_str` is a list or tuple, returns a datetime object
+	* If `datetime_str` is a date object, returns a datetime object
+	* If `datetime_str` is a valid date string, returns a datetime object for the same
+	* If `datetime_str` is an invalid date string, returns None
+	"""
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if datetime_str is None:
 		return now_datetime()
 
@@ -140,7 +210,11 @@ def get_timedelta(time: str | datetime.timedelta | None = None) -> datetime.time
 	        '0:0:0', '17:21:00', '2012-01-19 17:21:00'. Checkout
 	        https://dateutil.readthedocs.io/en/stable/parser.html#dateutil.parser.parse
 
+<<<<<<< HEAD
 	Returns:
+=======
+	Return:
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	        datetime.timedelta: Timedelta object equivalent of the passed `time` string
 	"""
 	if isinstance(time, datetime.timedelta):
@@ -163,6 +237,12 @@ def get_timedelta(time: str | datetime.timedelta | None = None) -> datetime.time
 
 
 def to_timedelta(time_str: str | datetime.time) -> datetime.timedelta:
+<<<<<<< HEAD
+=======
+	"""Return a `datetime.timedelta` object from the given string or `datetime.time` object.
+	If the given argument is not a string or a `datetime.time` object, it is returned as is.
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if isinstance(time_str, datetime.time):
 		time_str = str(time_str)
 
@@ -188,8 +268,12 @@ def add_to_date(
 	seconds=0,
 	as_string: Literal[False] = False,
 	as_datetime: Literal[False] = False,
+<<<<<<< HEAD
 ) -> datetime.date:
 	...
+=======
+) -> datetime.date: ...
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 @typing.overload
@@ -204,8 +288,12 @@ def add_to_date(
 	seconds=0,
 	as_string: Literal[False] = False,
 	as_datetime: Literal[True] = True,
+<<<<<<< HEAD
 ) -> datetime.datetime:
 	...
+=======
+) -> datetime.datetime: ...
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 @typing.overload
@@ -220,8 +308,12 @@ def add_to_date(
 	seconds=0,
 	as_string: Literal[True] = True,
 	as_datetime: bool = False,
+<<<<<<< HEAD
 ) -> str:
 	...
+=======
+) -> str: ...
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 def add_to_date(
@@ -266,6 +358,7 @@ def add_to_date(
 		return date
 
 
+<<<<<<< HEAD
 def add_days(date, days):
 	return add_to_date(date, days=days)
 
@@ -283,11 +376,41 @@ def date_diff(string_ed_date, string_st_date):
 
 
 def month_diff(string_ed_date, string_st_date):
+=======
+def add_days(date: DateTimeLikeObject, days: NumericType) -> DateTimeLikeObject:
+	"""Return a new date after adding the given number of `days` to the given `date`."""
+	return add_to_date(date, days=days)
+
+
+def add_months(date: DateTimeLikeObject, months: NumericType) -> DateTimeLikeObject:
+	"""Return a new date after adding the given number of `months` to the given `date`."""
+	return add_to_date(date, months=months)
+
+
+def add_years(date: DateTimeLikeObject, years: NumericType) -> DateTimeLikeObject:
+	"""Return a new date after adding the given number of `years` to the given `date`."""
+	return add_to_date(date, years=years)
+
+
+def date_diff(string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject) -> int:
+	"""Return the difference between given two dates in days."""
+	return days_diff(string_ed_date, string_st_date)
+
+
+def days_diff(string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject) -> int:
+	"""Return the difference between given two dates in days."""
+	return (getdate(string_ed_date) - getdate(string_st_date)).days
+
+
+def month_diff(string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject) -> int:
+	"""Return the difference between given two dates in months."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	ed_date = getdate(string_ed_date)
 	st_date = getdate(string_st_date)
 	return (ed_date.year - st_date.year) * 12 + ed_date.month - st_date.month + 1
 
 
+<<<<<<< HEAD
 def time_diff(string_ed_date, string_st_date):
 	return get_datetime(string_ed_date) - get_datetime(string_st_date)
 
@@ -310,6 +433,36 @@ def get_timestamp(date):
 
 
 def get_eta(from_time, percent_complete):
+=======
+def time_diff(string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject) -> datetime.timedelta:
+	"""Return the difference between given two dates as `datetime.timedelta` object."""
+	return get_datetime(string_ed_date) - get_datetime(string_st_date)
+
+
+def time_diff_in_seconds(string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject) -> float:
+	"""Return the difference between given two dates in seconds."""
+	return time_diff(string_ed_date, string_st_date).total_seconds()
+
+
+def time_diff_in_hours(string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject) -> float:
+	"""Return the difference between given two dates in hours."""
+	return round(float(time_diff(string_ed_date, string_st_date).total_seconds()) / 3600, 6)
+
+
+def now_datetime() -> datetime.datetime:
+	"""Return the current datetime in system timezone."""
+	return datetime.datetime.now(ZoneInfo(get_system_timezone())).replace(tzinfo=None)
+
+
+def get_timestamp(date: Optional["DateTimeLikeObject"] = None) -> float:
+	"""Return the Unix timestamp (seconds since Epoch) for the given `date`.
+	If `date` is None, the current timestamp is returned.
+	"""
+	return time.mktime(getdate(date).timetuple())
+
+
+def get_eta(from_time: DateTimeLikeObject, percent_complete) -> str:
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	diff = time_diff(now_datetime(), from_time).total_seconds()
 	return str(datetime.timedelta(seconds=(100 - percent_complete) / percent_complete * diff))
 
@@ -319,6 +472,7 @@ def get_system_timezone() -> str:
 	return frappe.get_system_settings("time_zone") or "Asia/Kolkata"  # Default to India ?!
 
 
+<<<<<<< HEAD
 def convert_utc_to_timezone(utc_timestamp, time_zone):
 	from pytz import UnknownTimeZoneError, timezone
 
@@ -336,12 +490,36 @@ def get_datetime_in_timezone(time_zone):
 
 
 def convert_utc_to_system_timezone(utc_timestamp):
+=======
+def convert_utc_to_timezone(utc_timestamp: datetime.datetime, time_zone: str) -> datetime.datetime:
+	if utc_timestamp.tzinfo is None:
+		utc_timestamp = utc_timestamp.replace(tzinfo=ZoneInfo("UTC"))
+
+	try:
+		return utc_timestamp.astimezone(ZoneInfo(time_zone))
+	except ZoneInfoNotFoundError:
+		return utc_timestamp
+
+
+def get_datetime_in_timezone(time_zone: str) -> datetime.datetime:
+	"""Return the current datetime in the given timezone (e.g. 'Asia/Kolkata')."""
+	utc_timestamp = datetime.datetime.now(datetime.timezone.utc)
+	return convert_utc_to_timezone(utc_timestamp, time_zone)
+
+
+def convert_utc_to_system_timezone(utc_timestamp: datetime.datetime) -> datetime.datetime:
+	"""Return the given UTC `datetime` timestamp in system timezone."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	time_zone = get_system_timezone()
 	return convert_utc_to_timezone(utc_timestamp, time_zone)
 
 
 def now() -> str:
+<<<<<<< HEAD
 	"""return current datetime as yyyy-mm-dd hh:mm:ss"""
+=======
+	"""Return current datetime as `yyyy-mm-dd hh:mm:ss`."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if frappe.flags.current_date:
 		return (
 			getdate(frappe.flags.current_date).strftime(DATE_FORMAT)
@@ -353,15 +531,36 @@ def now() -> str:
 
 
 def nowdate() -> str:
+<<<<<<< HEAD
 	"""return current date as yyyy-mm-dd"""
+=======
+	"""Return current date as `yyyy-mm-dd`."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return now_datetime().strftime(DATE_FORMAT)
 
 
 def today() -> str:
+<<<<<<< HEAD
+=======
+	"""Return today's date in `yyyy-mm-dd` format."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return nowdate()
 
 
 def get_abbr(string: str, max_len: int = 2) -> str:
+<<<<<<< HEAD
+=======
+	"""Return the abbreviation of the given string.
+
+	Examples:
+
+	* "John Doe" => "JD"
+	* "Jenny Jane Doe" => "JJ" (default, `max_len` = 2)
+	* "Jenny Jane Doe" => "JJD" (`max_len` = 3)
+
+	Return "?" if the given string is empty.
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	abbr = ""
 	for part in string.split(" "):
 		if len(abbr) < max_len and part:
@@ -371,11 +570,16 @@ def get_abbr(string: str, max_len: int = 2) -> str:
 
 
 def nowtime() -> str:
+<<<<<<< HEAD
 	"""return current time in hh:mm"""
+=======
+	"""Return current time (system timezone) in `hh:mm:ss` format."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return now_datetime().strftime(TIME_FORMAT)
 
 
 @typing.overload
+<<<<<<< HEAD
 def get_first_day(dt, d_years=0, d_months=0, as_str: Literal[False] = False) -> datetime.date:
 	...
 
@@ -383,13 +587,26 @@ def get_first_day(dt, d_years=0, d_months=0, as_str: Literal[False] = False) -> 
 @typing.overload
 def get_first_day(dt, d_years=0, d_months=0, as_str: Literal[True] = False) -> str:
 	...
+=======
+def get_first_day(dt, d_years=0, d_months=0, as_str: Literal[False] = False) -> datetime.date: ...
+
+
+@typing.overload
+def get_first_day(dt, d_years=0, d_months=0, as_str: Literal[True] = False) -> str: ...
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 # TODO: first arg
 def get_first_day(dt, d_years: int = 0, d_months: int = 0, as_str: bool = False) -> str | datetime.date:
+<<<<<<< HEAD
 	"""
 	Returns the first day of the month for the date specified by date object
 	Also adds `d_years` and `d_months` if specified
+=======
+	"""Return the first day of the month for the date specified by date object.
+
+	Also, add `d_years` and `d_months` if specified.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	"""
 	dt = getdate(dt)
 
@@ -405,6 +622,7 @@ def get_first_day(dt, d_years: int = 0, d_months: int = 0, as_str: bool = False)
 
 
 @typing.overload
+<<<<<<< HEAD
 def get_quarter_start(dt, as_str: Literal[False] = False) -> datetime.date:
 	...
 
@@ -415,13 +633,45 @@ def get_quarter_start(dt, as_str: Literal[True] = False) -> str:
 
 
 def get_quarter_start(dt, as_str: bool = False) -> str | datetime.date:
+=======
+def get_quarter_start(
+	dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False
+) -> datetime.date: ...
+
+
+@typing.overload
+def get_quarter_start(dt: DateTimeLikeObject | None = None, as_str: Literal[True] = False) -> str: ...
+
+
+def get_quarter_start(dt: DateTimeLikeObject | None = None, as_str: bool = False) -> str | datetime.date:
+	"""Return the start date of the quarter for the given datetime like object (`dt`).
+
+	If `dt` is None, the current quarter start date is returned.
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	date = getdate(dt)
 	quarter = (date.month - 1) // 3 + 1
 	first_date_of_quarter = datetime.date(date.year, ((quarter - 1) * 3) + 1, 1)
 	return first_date_of_quarter.strftime(DATE_FORMAT) if as_str else first_date_of_quarter
 
 
+<<<<<<< HEAD
 def get_first_day_of_week(dt, as_str=False):
+=======
+@typing.overload
+def get_first_day_of_week(dt: DateTimeLikeObject, as_str: Literal[False] = False) -> datetime.date: ...
+
+
+@typing.overload
+def get_first_day_of_week(dt: DateTimeLikeObject, as_str: Literal[True] = False) -> str: ...
+
+
+def get_first_day_of_week(dt: DateTimeLikeObject, as_str=False) -> datetime.date | str:
+	"""Return the first day of the week (as per System Settings or Sunday by default) for the given datetime like object (`dt`).
+
+	If `as_str` is True, the first day of the week is returned as a string in `yyyy-mm-dd` format.
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	dt = getdate(dt)
 	date = dt - datetime.timedelta(days=get_week_start_offset_days(dt))
 	return date.strftime(DATE_FORMAT) if as_str else date
@@ -442,12 +692,26 @@ def get_normalized_weekday_index(dt):
 	return (dt.weekday() + 1) % 7
 
 
+<<<<<<< HEAD
 def get_year_start(dt, as_str=False):
+=======
+@typing.overload
+def get_year_start(dt: DateTimeLikeObject, as_str: Literal[False] = False) -> datetime.date: ...
+
+
+@typing.overload
+def get_year_start(dt: DateTimeLikeObject, as_str: Literal[True] = False) -> str: ...
+
+
+def get_year_start(dt: DateTimeLikeObject, as_str=False) -> str | datetime.date:
+	"""Return the start date of the year for the given date (`dt`)."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	dt = getdate(dt)
 	date = datetime.date(dt.year, 1, 1)
 	return date.strftime(DATE_FORMAT) if as_str else date
 
 
+<<<<<<< HEAD
 def get_last_day_of_week(dt):
 	dt = get_first_day_of_week(dt)
 	return dt + datetime.timedelta(days=6)
@@ -456,6 +720,29 @@ def get_last_day_of_week(dt):
 def get_last_day(dt):
 	"""
 	Returns last day of the month using:
+=======
+@typing.overload
+def get_last_day_of_week(dt: DateTimeLikeObject, as_str: Literal[False] = False) -> datetime.date: ...
+
+
+@typing.overload
+def get_last_day_of_week(dt: DateTimeLikeObject, as_str: Literal[True] = False) -> str: ...
+
+
+def get_last_day_of_week(dt: DateTimeLikeObject, as_str=False) -> datetime.date | str:
+	"""Return the last day of the week (first day is taken from System Settings or Sunday by default) for the given datetime like object (`dt`).
+
+	If `as_str` is True, the last day of the week is returned as a string in `yyyy-mm-dd` format.
+	"""
+	dt = get_first_day_of_week(dt)
+	date = dt + datetime.timedelta(days=6)
+	return date.strftime(DATE_FORMAT) if as_str else date
+
+
+def get_last_day(dt):
+	"""Return last day of the month using:
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	`get_first_day(dt, 0, 1) + datetime.timedelta(-1)`
 	"""
 	return get_first_day(dt, 0, 1) + datetime.timedelta(-1)
@@ -467,7 +754,26 @@ def is_last_day_of_the_month(dt):
 	return getdate(dt) == getdate(last_day_of_the_month)
 
 
+<<<<<<< HEAD
 def get_quarter_ending(date):
+=======
+@typing.overload
+def get_quarter_ending(
+	dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False
+) -> datetime.date: ...
+
+
+@typing.overload
+def get_quarter_ending(dt: DateTimeLikeObject | None = None, as_str: Literal[True] = False) -> str: ...
+
+
+def get_quarter_ending(date: DateTimeLikeObject | None = None, as_str=False) -> str | datetime.date:
+	"""Return the end date of the quarter for the given datetime like object (`date`).
+
+	If `date` is None, the current quarter end date is returned.
+	If `as_str` is True, the end date of the quarter is returned as a string in `yyyy-mm-dd` format.
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	date = getdate(date)
 
 	# find the earliest quarter ending date that is after
@@ -479,6 +785,7 @@ def get_quarter_ending(date):
 			date = quarter_end_date
 			break
 
+<<<<<<< HEAD
 	return date
 
 
@@ -490,6 +797,40 @@ def get_year_ending(date) -> datetime.date:
 
 
 def get_time(time_str: str) -> datetime.time:
+=======
+	return date.strftime(DATE_FORMAT) if as_str else date
+
+
+@typing.overload
+def get_year_ending(
+	dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False
+) -> datetime.date: ...
+
+
+@typing.overload
+def get_year_ending(dt: DateTimeLikeObject | None = None, as_str: Literal[True] = False) -> str: ...
+
+
+def get_year_ending(date: DateTimeLikeObject | None = None, as_str=False) -> datetime.date | str:
+	"""Return the end date of the year for the given datetime like object (`date`).
+
+	If `date` is None, the current year end date is returned.
+	If `as_str` is True, the end date of the year is returned as a string in `yyyy-mm-dd` format.
+	"""
+	date = getdate(date)
+	next_year_start = datetime.date(date.year + 1, 1, 1)
+	year_ending = add_to_date(next_year_start, days=-1)
+	return year_ending.strftime(DATE_FORMAT) if as_str else year_ending
+
+
+def get_time(
+	time_str: str | datetime.datetime | datetime.time | datetime.timedelta,
+) -> datetime.time:
+	"""Return a `datetime.time` object for the given `time_str`.
+
+	If the given argument is already a `datetime.time` object, it is returned as is."""
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if isinstance(time_str, datetime.datetime):
 		return time_str.time()
 	elif isinstance(time_str, datetime.time):
@@ -504,19 +845,34 @@ def get_time(time_str: str) -> datetime.time:
 		raise e
 
 
+<<<<<<< HEAD
 def get_datetime_str(datetime_obj) -> str:
+=======
+def get_datetime_str(datetime_obj: DateTimeLikeObject) -> str:
+	"""Return the given datetime like object (datetime.date, datetime.datetime, string) as a string in `yyyy-mm-dd hh:mm:ss` format."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if isinstance(datetime_obj, str):
 		datetime_obj = get_datetime(datetime_obj)
 	return datetime_obj.strftime(DATETIME_FORMAT)
 
 
+<<<<<<< HEAD
 def get_date_str(date_obj) -> str:
+=======
+def get_date_str(date_obj: DateTimeLikeObject) -> str:
+	"""Return the given datetime like object (datetime.date, datetime.datetime, string) as a string in `yyyy-mm-dd` format."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if isinstance(date_obj, str):
 		date_obj = get_datetime(date_obj)
 	return date_obj.strftime(DATE_FORMAT)
 
 
+<<<<<<< HEAD
 def get_time_str(timedelta_obj) -> str:
+=======
+def get_time_str(timedelta_obj: datetime.timedelta | str) -> str:
+	"""Return the given timedelta object as a string in `hh:mm:ss` format."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if isinstance(timedelta_obj, str):
 		timedelta_obj = to_timedelta(timedelta_obj)
 
@@ -528,9 +884,15 @@ def get_time_str(timedelta_obj) -> str:
 def get_user_date_format() -> str:
 	"""Get the current user date format. The result will be cached."""
 	if getattr(frappe.local, "user_date_format", None) is None:
+<<<<<<< HEAD
 		frappe.local.user_date_format = frappe.db.get_default("date_format")
 
 	return frappe.local.user_date_format or "yyyy-mm-dd"
+=======
+		frappe.local.user_date_format = get_date_format()
+
+	return frappe.local.user_date_format
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 get_user_format = get_user_date_format  # for backwards compatibility
@@ -539,6 +901,7 @@ get_user_format = get_user_date_format  # for backwards compatibility
 def get_user_time_format() -> str:
 	"""Get the current user time format. The result will be cached."""
 	if getattr(frappe.local, "user_time_format", None) is None:
+<<<<<<< HEAD
 		frappe.local.user_time_format = frappe.db.get_default("time_format")
 
 	return frappe.local.user_time_format or "HH:mm:ss"
@@ -546,6 +909,16 @@ def get_user_time_format() -> str:
 
 def format_date(string_date=None, format_string: str | None = None, parse_day_first: bool = False) -> str:
 	"""Converts the given string date to :data:`user_date_format`
+=======
+		frappe.local.user_time_format = get_time_format()
+
+	return frappe.local.user_time_format
+
+
+def format_date(string_date=None, format_string: str | None = None, parse_day_first: bool = False) -> str:
+	"""Convert the given string date to :data:`user_date_format`.
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	User format specified in defaults
 
 	Examples:
@@ -578,7 +951,12 @@ formatdate = format_date  # For backwards compatibility
 
 
 def format_time(time_string=None, format_string: str | None = None) -> str:
+<<<<<<< HEAD
 	"""Converts the given string time to :data:`user_time_format`
+=======
+	"""Convert the given string time to :data:`user_time_format`.
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	User format specified in defaults
 
 	Examples:
@@ -605,7 +983,11 @@ def format_time(time_string=None, format_string: str | None = None) -> str:
 
 
 def format_datetime(datetime_string: DateTimeLikeObject, format_string: str | None = None) -> str:
+<<<<<<< HEAD
 	"""Converts the given string time to :data:`user_datetime_format`
+=======
+	"""Convert the given string time to :data:`user_datetime_format`
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	User format specified in defaults
 
 	Examples:
@@ -633,9 +1015,15 @@ def format_datetime(datetime_string: DateTimeLikeObject, format_string: str | No
 
 
 def format_duration(seconds, hide_days=False):
+<<<<<<< HEAD
 	"""Converts the given duration value in float(seconds) to duration format
 
 	example: converts 12885 to '3h 34m 45s' where 12885 = seconds in float
+=======
+	"""Convert the given duration value in float(seconds) to duration format.
+
+	example: convert 12885 to '3h 34m 45s' where 12885 = seconds in float
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	"""
 
 	seconds = cint(seconds)
@@ -669,9 +1057,15 @@ def format_duration(seconds, hide_days=False):
 
 
 def duration_to_seconds(duration):
+<<<<<<< HEAD
 	"""Converts the given duration formatted value to duration value in seconds
 
 	example: converts '3h 34m 45s' to 12885 (value in seconds)
+=======
+	"""Convert the given duration formatted value to duration value in seconds.
+
+	example: convert '3h 34m 45s' to 12885 (value in seconds)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	"""
 	validate_duration_format(duration)
 	value = 0
@@ -705,6 +1099,7 @@ def validate_duration_format(duration):
 		)
 
 
+<<<<<<< HEAD
 def get_weekdays():
 	return ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
@@ -712,12 +1107,37 @@ def get_weekdays():
 def get_weekday(datetime: datetime.datetime | None = None) -> str:
 	if not datetime:
 		datetime = now_datetime()
+=======
+def get_weekdays() -> list[str]:
+	"""Return a list of weekday names.
+
+	Return value: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+	"""
+	return ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+
+def get_weekday(datetime: DateTimeLikeObject | None = None) -> str:
+	"""Return the weekday name (e.g. 'Sunday') for the given datetime like object (datetime.date, datetime.datetime, string).
+
+	If `datetime` argument is not provided, the current weekday name is returned.
+	"""
+	if not datetime:
+		datetime = now_datetime()
+
+	if isinstance(datetime, str):
+		datetime = get_datetime(datetime)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	weekdays = get_weekdays()
 	return weekdays[datetime.weekday()]
 
 
 def get_month(datetime: DateTimeLikeObject | None = None) -> str:
 	"""Return the month name (e.g. 'January') for the given datetime like object (datetime.date, datetime.datetime, string).
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	If `datetime` argument is not provided, the current month name is returned.
 	"""
 	if not datetime:
@@ -729,7 +1149,14 @@ def get_month(datetime: DateTimeLikeObject | None = None) -> str:
 	return calendar.month_name[datetime.month]
 
 
+<<<<<<< HEAD
 def get_timespan_date_range(timespan: str) -> tuple[datetime.datetime, datetime.datetime] | None:
+=======
+def get_timespan_date_range(
+	timespan: TimespanOptions,
+) -> tuple[datetime.datetime, datetime.datetime] | None:
+	"""Return the date range (start_date, end_date) tuple for the given timespan."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	today = getdate()
 
 	match timespan:
@@ -802,8 +1229,13 @@ def get_timespan_date_range(timespan: str) -> tuple[datetime.datetime, datetime.
 			return
 
 
+<<<<<<< HEAD
 def global_date_format(date, format="long"):
 	"""returns localized date in the form of January 1, 2012"""
+=======
+def global_date_format(date: DateTimeLikeObject, format="long") -> str:
+	"""Return localized date in the form of 'January 1, 2012'."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	import babel.dates
 
 	date = getdate(date)
@@ -811,7 +1243,11 @@ def global_date_format(date, format="long"):
 
 
 def has_common(l1: typing.Hashable, l2: typing.Hashable) -> bool:
+<<<<<<< HEAD
 	"""Returns truthy value if there are common elements in lists l1 and l2"""
+=======
+	"""Return truthy value if there are common elements in lists l1 and l2."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return set(l1) & set(l2)
 
 
@@ -903,6 +1339,7 @@ def cast(fieldtype, value=None):
 
 
 @typing.overload
+<<<<<<< HEAD
 def flt(s: NumericType | str, precision: Literal[0]) -> int:
 	...
 
@@ -914,12 +1351,33 @@ def flt(s: NumericType | str, precision: int | None = None) -> float:
 
 def flt(s: NumericType | str, precision: int | None = None, rounding_method: str | None = None) -> float:
 	"""Convert to float (ignoring commas in string)
+=======
+def flt(s: NumericType | str, precision: Literal[0]) -> int: ...
+
+
+@typing.overload
+def flt(s: NumericType | str, precision: int | None = None) -> float: ...
+
+
+@typing.overload
+def flt(s: None) -> Literal[0.0]: ...
+
+
+def flt(
+	s: NumericType | str | None, precision: int | None = None, rounding_method: str | None = None
+) -> float:
+	"""Convert to float (ignoring commas in string).
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	:param s: Number in string or other numeric format.
 	:param precision: optional argument to specify precision for rounding.
 	:returns: Converted number in python float type.
 
+<<<<<<< HEAD
 	Returns 0 if input can not be converted to float.
+=======
+	Return 0 if input can not be converted to float.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	Examples:
 
@@ -931,7 +1389,17 @@ def flt(s: NumericType | str, precision: int | None = None, rounding_method: str
 	10500.57
 	>>> flt("a")
 	0.0
+<<<<<<< HEAD
 	"""
+=======
+	>>> flt(None)
+	0.0
+	"""
+
+	if s is None:
+		return 0.0
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if isinstance(s, str):
 		s = s.replace(",", "")
 
@@ -947,21 +1415,40 @@ def flt(s: NumericType | str, precision: int | None = None, rounding_method: str
 	return num
 
 
+<<<<<<< HEAD
 def cint(s: NumericType | str, default: int = 0) -> int:
 	"""Convert to integer
+=======
+def cint(s: NumericType | str | None, default: int = 0) -> int:
+	"""Convert to integer.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	:param s: Number in string or other numeric format.
 	:returns: Converted number in python integer type.
 
+<<<<<<< HEAD
 	Returns default if input can not be converted to integer.
+=======
+	Return default if input cannot be converted to integer.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	Examples:
 	>>> cint("100")
 	100
 	>>> cint("a")
 	0
+<<<<<<< HEAD
 
 	"""
+=======
+	>>> cint(None)
+	0
+
+	"""
+	if s is None:
+		return default
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	try:
 		return int(s)
 	except Exception:
@@ -971,6 +1458,7 @@ def cint(s: NumericType | str, default: int = 0) -> int:
 			return default
 
 
+<<<<<<< HEAD
 def floor(s):
 	"""
 	A number representing the largest integer less than or equal to the specified number
@@ -986,6 +1474,10 @@ def floor(s):
 	        number representing the largest integer less than or equal to the specified number
 
 	"""
+=======
+def floor(s: NumericType | str) -> int:
+	"""Return a number representing the largest integer less than or equal to the specified number."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	try:
 		num = cint(math.floor(flt(s)))
 	except Exception:
@@ -993,6 +1485,7 @@ def floor(s):
 	return num
 
 
+<<<<<<< HEAD
 def ceil(s):
 	"""
 	The smallest integer greater than or equal to the given number
@@ -1008,6 +1501,10 @@ def ceil(s):
 	        smallest integer greater than or equal to the given number
 
 	"""
+=======
+def ceil(s: NumericType | str) -> int:
+	"""Return the smallest integer greater than or equal to the given number."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	try:
 		num = cint(math.ceil(flt(s)))
 	except Exception:
@@ -1015,12 +1512,23 @@ def ceil(s):
 	return num
 
 
+<<<<<<< HEAD
 def cstr(s, encoding="utf-8"):
 	return frappe.as_unicode(s, encoding)
 
 
 def sbool(x: str) -> bool | Any:
 	"""Converts str object to Boolean if possible.
+=======
+def cstr(s, encoding="utf-8") -> str:
+	"""Convert the given argument to string."""
+	return frappe.as_unicode(s, encoding)
+
+
+def sbool(x: str | Any) -> bool | str | Any:
+	"""Convert str object to Boolean if possible.
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	Example:
 	        "true" becomes True
 	        "1" becomes True
@@ -1029,8 +1537,12 @@ def sbool(x: str) -> bool | Any:
 	Args:
 	        x (str): String to be converted to Bool
 
+<<<<<<< HEAD
 	Returns:
 	        object: Returns Boolean or x
+=======
+	Return Boolean or x.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	"""
 	try:
 		val = x.lower()
@@ -1129,6 +1641,10 @@ def _bankers_rounding(num, precision):
 
 
 def remainder(numerator: NumericType, denominator: NumericType, precision: int = 2) -> NumericType:
+<<<<<<< HEAD
+=======
+	"""Return the remainder of the division of `numerator` by `denominator`."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	precision = cint(precision)
 	multiplier = 10**precision
 
@@ -1187,7 +1703,11 @@ def encode(obj, encoding="utf-8"):
 
 
 def parse_val(v):
+<<<<<<< HEAD
 	"""Converts to simple datatypes from SQL query results"""
+=======
+	"""Convert to simple datatypes from SQL query results."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if isinstance(v, datetime.date | datetime.datetime):
 		v = str(v)
 	elif isinstance(v, datetime.timedelta):
@@ -1203,6 +1723,7 @@ def fmt_money(
 	currency: str | None = None,
 	format: str | None = None,
 ) -> str:
+<<<<<<< HEAD
 	"""
 	Convert to string with commas for thousands, millions etc
 	"""
@@ -1214,6 +1735,16 @@ def fmt_money(
 
 	if precision is None:
 		precision = number_format_precision
+=======
+	"""Convert to string with commas for thousands, millions etc."""
+	number_format = NumberFormat.from_string(format) if format else get_number_format()
+
+	if precision is None:
+		precision = cint(frappe.db.get_default("currency_precision")) or None
+
+	if precision is None:
+		precision = number_format.precision
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	# 40,000 -> 40,000.00
 	# 40,000.00000 -> 40,000.00
@@ -1225,7 +1756,11 @@ def fmt_money(
 	if amount is None:
 		amount = 0
 
+<<<<<<< HEAD
 	if decimal_str:
+=======
+	if number_format.decimal_separator:
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		decimals_after = str(round(amount % 1, precision))
 		parts = decimals_after.split(".")
 		parts = parts[1] if len(parts) > 1 else parts[0]
@@ -1236,7 +1771,11 @@ def fmt_money(
 					fraction = frappe.db.get_value("Currency", currency, "fraction_units", cache=True) or 100
 					precision = len(cstr(fraction)) - 1
 				else:
+<<<<<<< HEAD
 					precision = number_format_precision
+=======
+					precision = number_format.precision
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			elif len(decimals) < precision:
 				precision = len(decimals)
 
@@ -1258,7 +1797,11 @@ def fmt_money(
 		parts.append(amount[-3:])
 		amount = amount[:-3]
 
+<<<<<<< HEAD
 		val = number_format == "#,##,###.##" and 2 or 3
+=======
+		val = 2 if number_format.string == "#,##,###.##" else 3
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		while len(amount) > val:
 			parts.append(amount[-val:])
@@ -1268,7 +1811,14 @@ def fmt_money(
 
 	parts.reverse()
 
+<<<<<<< HEAD
 	amount = comma_str.join(parts) + ((precision and decimal_str) and (decimal_str + decimals) or "")
+=======
+	amount = number_format.thousands_separator.join(parts) + (
+		((precision and number_format.decimal_separator) and (number_format.decimal_separator + decimals))
+		or ""
+	)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if amount != "0":
 		amount = minus + amount
 
@@ -1284,6 +1834,7 @@ def fmt_money(
 	return amount
 
 
+<<<<<<< HEAD
 number_format_info = {
 	"#,###.##": (".", ",", 2),
 	"#.###,##": (",", ".", 2),
@@ -1301,6 +1852,26 @@ number_format_info = {
 
 def get_number_format_info(format: str) -> tuple[str, str, int]:
 	return number_format_info.get(format) or (".", ",", 2)
+=======
+from frappe.deprecation_dumpster import get_number_format_info
+
+
+def __getattr__(name):
+	if name == "number_format_info":
+		from frappe.deprecation_dumpster import deprecation_warning
+		from frappe.utils.number_format import NUMBER_FORMAT_MAP
+
+		deprecation_warning(
+			"unkown",
+			"v16",
+			"use frappe.utils.number_format.NUMBER_FORMAT_MAP instead of frappe.utils.data.number_format_info",
+		)
+	else:
+		try:
+			globals()[name]
+		except KeyError:
+			raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 #
@@ -1311,9 +1882,13 @@ def money_in_words(
 	main_currency: str | None = None,
 	fraction_currency: str | None = None,
 ):
+<<<<<<< HEAD
 	"""
 	Returns string in words with currency and fraction currency.
 	"""
+=======
+	"""Return string in words with currency and fraction currency."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	from frappe.utils import get_defaults
 
 	_ = frappe._
@@ -1331,11 +1906,16 @@ def money_in_words(
 	d = get_defaults()
 	if not main_currency:
 		main_currency = d.get("currency", "INR")
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if not fraction_currency:
 		fraction_currency = frappe.db.get_value("Currency", main_currency, "fraction", cache=True) or _(
 			"Cent"
 		)
 
+<<<<<<< HEAD
 	number_format = (
 		frappe.db.get_value("Currency", main_currency, "number_format", cache=True)
 		or frappe.db.get_default("number_format")
@@ -1343,6 +1923,12 @@ def money_in_words(
 	)
 
 	fraction_length = get_number_format_info(number_format)[2]
+=======
+	number_format = get_number_format()
+
+	fraction_units = frappe.db.get_value("Currency", main_currency, "fraction_units", cache=True)
+	fraction_length = math.ceil(math.log10(fraction_units)) or number_format.precision
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	n = f"%.{fraction_length}f" % number
 
@@ -1354,6 +1940,7 @@ def money_in_words(
 		fraction += zeros
 
 	in_million = True
+<<<<<<< HEAD
 	if number_format == "#,##,###.##":
 		in_million = False
 
@@ -1371,15 +1958,38 @@ def money_in_words(
 			)
 
 	return out + " " + _("only.")
+=======
+	if number_format.string == "#,##,###.##":
+		in_million = False
+
+	def fraction_in_words() -> str:
+		return in_words(float(f"0.{fraction}") * fraction_units, in_million).title()
+
+	# 0.00
+	if main == "0" and fraction in ["0", "00", "000"]:
+		out = _(main_currency, context="Currency") + " " + _("Zero")
+	elif main == "0":
+		out = f"{fraction_in_words()} {fraction_currency}"
+	else:
+		out = _(main_currency, context="Currency") + " " + in_words(main, in_million).title()
+		if cint(fraction):
+			out = out + " " + _("and") + " " + fraction_in_words() + " " + fraction_currency
+
+	return _("{0} only.", context="Money in words").format(out)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 #
 # convert number to words
 #
 def in_words(integer: int, in_million=True) -> str:
+<<<<<<< HEAD
 	"""
 	Returns string in words for the given integer.
 	"""
+=======
+	"""Return string in words for the given integer."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	from num2words import num2words
 
 	locale = "en_IN" if not in_million else frappe.local.lang
@@ -1394,12 +2004,20 @@ def in_words(integer: int, in_million=True) -> str:
 
 
 def is_html(text: str) -> bool:
+<<<<<<< HEAD
+=======
+	"""Return True if the given `text` contains any HTML tags."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if not isinstance(text, str):
 		return False
 	return HTML_TAG_PATTERN.search(text)
 
 
 def is_image(filepath: str) -> bool:
+<<<<<<< HEAD
+=======
+	"""Return True if the given `filepath` points to an image file."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	from mimetypes import guess_type
 
 	# filepath can be https://example.com/bed.jpg?v=129
@@ -1407,7 +2025,21 @@ def is_image(filepath: str) -> bool:
 	return (guess_type(filepath)[0] or "").startswith("image/")
 
 
+<<<<<<< HEAD
 def get_thumbnail_base64_for_image(src):
+=======
+def get_thumbnail_base64_for_image(src: str) -> dict[str, str] | None:
+	"""Return the base64 encoded string for the thumbnail of the given image source path.
+
+	Example return value:
+
+	{
+	        "base64": "data:image/ext;base64,...",
+	        "width": 50,
+	        "height": 50
+	}
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	from os.path import exists as file_exists
 
 	from PIL import Image
@@ -1448,7 +2080,12 @@ def get_thumbnail_base64_for_image(src):
 	return cache().hget("thumbnail_base64", src, generator=_get_base64)
 
 
+<<<<<<< HEAD
 def image_to_base64(image, extn: str) -> bytes:
+=======
+def image_to_base64(image: "PILImageFile", extn: str) -> bytes:
+	"""Return the base64 encoded string for the given PIL `ImageFile`."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	from io import BytesIO
 
 	buffered = BytesIO()
@@ -1459,6 +2096,12 @@ def image_to_base64(image, extn: str) -> bytes:
 
 
 def pdf_to_base64(filename: str) -> bytes | None:
+<<<<<<< HEAD
+=======
+	"""Return the base64 encoded string for the given PDF file.
+
+	Return None if the file is not found or is not a PDF file."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	from frappe.utils.file_manager import get_file_path
 
 	if "../" in filename or filename.rsplit(".")[-1] not in ["pdf", "PDF"]:
@@ -1479,11 +2122,22 @@ _striptags_re = re.compile(r"(<!--.*?-->|<[^>]*>)")
 
 
 def strip_html(text: str) -> str:
+<<<<<<< HEAD
 	"""removes anything enclosed in and including <>"""
+=======
+	"""Remove anything enclosed in and including <>."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return _striptags_re.sub("", text)
 
 
 def escape_html(text: str) -> str:
+<<<<<<< HEAD
+=======
+	"""Return the given text with HTML special characters escaped.
+
+	e.g. '<h1>Hello</h1>' -> '&lt;h1&gt;Hello&lt;/h1&gt;'
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if not isinstance(text, str):
 		return text
 
@@ -1499,8 +2153,12 @@ def escape_html(text: str) -> str:
 
 
 def pretty_date(iso_datetime: datetime.datetime | str) -> str:
+<<<<<<< HEAD
 	"""
 	Return a localized string representation of the delta to the current system time.
+=======
+	"""Return a localized string representation of the delta to the current system time.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	For example, "1 hour ago", "2 days ago", "in 5 seconds", etc.
 	"""
@@ -1516,6 +2174,7 @@ def pretty_date(iso_datetime: datetime.datetime | str) -> str:
 	return format_timedelta(iso_datetime - now_dt, add_direction=True, locale=locale)
 
 
+<<<<<<< HEAD
 def comma_or(some_list, add_quotes=True):
 	return comma_sep(some_list, frappe._("{0} or {1}"), add_quotes)
 
@@ -1525,6 +2184,35 @@ def comma_and(some_list, add_quotes=True):
 
 
 def comma_sep(some_list, pattern, add_quotes=True):
+=======
+def comma_or(some_list: list | tuple, add_quotes=True) -> str:
+	"""Return the given list or tuple as a comma separated string with the last item joined by 'or'.
+	e.g. ['a', 'b', 'c'] -> 'a, b or c'
+
+	If `add_quotes` is True, each item in the list will be wrapped in single quotes.
+	e.g. ['a', 'b', 'c'] -> "'a', 'b' or 'c'"
+	"""
+	return comma_sep(some_list, frappe._("{0} or {1}"), add_quotes)
+
+
+def comma_and(some_list: list | tuple, add_quotes=True) -> str:
+	"""Return the given list or tuple as a comma separated string with the last item joined by 'and'.
+	e.g. ['a', 'b', 'c'] -> 'a, b and c'
+
+	If `add_quotes` is True, each item in the list will be wrapped in single quotes.
+	e.g. ['a', 'b', 'c'] -> "'a', 'b' and 'c'"
+	"""
+	return comma_sep(some_list, frappe._("{0} and {1}"), add_quotes)
+
+
+def comma_sep(some_list: list | tuple, pattern: str, add_quotes=True) -> str:
+	"""Return the given list or tuple as a comma separated string, with the last item joined by the given string format pattern.
+
+	If `add_quotes` is True, each item in the list will be wrapped in single quotes.
+
+	e.g. if `some_list` is ['a', 'b', 'c'] and `pattern` is '{0} or {1}', the output will be 'a, b or c'
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if isinstance(some_list, list | tuple):
 		# list(some_list) is done to preserve the existing list
 		some_list = [str(s) for s in list(some_list)]
@@ -1533,13 +2221,27 @@ def comma_sep(some_list, pattern, add_quotes=True):
 		elif len(some_list) == 1:
 			return some_list[0]
 		else:
+<<<<<<< HEAD
 			some_list = ["'%s'" % s for s in some_list] if add_quotes else ["%s" % s for s in some_list]
+=======
+			some_list = (
+				["'{}'".format(s) for s in some_list] if add_quotes else ["{}".format(s) for s in some_list]
+			)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			return pattern.format(", ".join(frappe._(s) for s in some_list[:-1]), some_list[-1])
 	else:
 		return some_list
 
 
+<<<<<<< HEAD
 def new_line_sep(some_list):
+=======
+def new_line_sep(some_list: list | tuple) -> str:
+	"""Return the given list or tuple as a new line separated string.
+
+	e.g. ['', 'Paid', 'Unpaid'] -> '\n Paid\n Unpaid'
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if isinstance(some_list, list | tuple):
 		# list(some_list) is done to preserve the existing list
 		some_list = [str(s) for s in list(some_list)]
@@ -1548,7 +2250,11 @@ def new_line_sep(some_list):
 		elif len(some_list) == 1:
 			return some_list[0]
 		else:
+<<<<<<< HEAD
 			some_list = ["%s" % s for s in some_list]
+=======
+			some_list = ["{}".format(s) for s in some_list]
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			return format("\n ".join(some_list))
 	else:
 		return some_list
@@ -1560,7 +2266,11 @@ def filter_strip_join(some_list: list[str], sep: str) -> list[str]:
 
 
 def get_url(uri: str | None = None, full_address: bool = False) -> str:
+<<<<<<< HEAD
 	"""get app url from request"""
+=======
+	"""Get app url from request."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	host_name = frappe.local.conf.host_name or frappe.local.conf.hostname
 
 	if uri and (uri.startswith("http://") or uri.startswith("https://")):
@@ -1595,16 +2305,31 @@ def get_url(uri: str | None = None, full_address: bool = False) -> str:
 			if not host_name:
 				host_name = "http://127.0.0.1"
 
+<<<<<<< HEAD
 	if host_name and not (host_name.startswith("http://") or host_name.startswith("https://")):
+=======
+	if host_name and not host_name.startswith("http://") and not host_name.startswith("https://"):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		host_name = "http://" + host_name
 
 	if not uri and full_address:
 		uri = frappe.get_request_header("REQUEST_URI", "")
 
+<<<<<<< HEAD
 	port = frappe.conf.http_port or frappe.conf.webserver_port
 
 	if (
 		not (frappe.conf.restart_supervisor_on_update or frappe.conf.restart_systemd_on_update)
+=======
+	port = frappe.conf.http_port
+	if not port and frappe.conf.developer_mode:
+		port = frappe.conf.webserver_port
+
+	if (
+		# XXX: This config is used as proxy for "is production mode enabled?"
+		not frappe.conf.restart_supervisor_on_update
+		and not frappe.conf.restart_systemd_on_update
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		and host_name
 		and not url_contains_port(host_name)
 		and port
@@ -1615,23 +2340,54 @@ def get_url(uri: str | None = None, full_address: bool = False) -> str:
 
 
 def get_host_name_from_request() -> str:
+<<<<<<< HEAD
+=======
+	"""Return the hostname (`request.host`) from the request headers."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if hasattr(frappe.local, "request") and frappe.local.request and frappe.local.request.host:
 		protocol = "https://" if "https" == frappe.get_request_header("X-Forwarded-Proto", "") else "http://"
 		return protocol + frappe.local.request.host
 
 
 def url_contains_port(url: str) -> bool:
+<<<<<<< HEAD
+=======
+	"""Return True if the given url contains a port number.
+
+	e.g. 'http://localhost:8000' -> True, 'http://localhost' -> False.
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	parts = url.split(":")
 	return len(parts) > 2
 
 
 def get_host_name() -> str:
+<<<<<<< HEAD
 	return get_url().rsplit("//", 1)[-1]
 
 
 def get_link_to_form(doctype: str, name: str, label: str | None = None) -> str:
 	if not label:
 		label = name
+=======
+	"""Return the hostname of the current site.
+
+	e.g. If site is 'https://cloud.frappe.io', returns 'cloud.frappe.io'.
+	"""
+	return get_url().rsplit("//", 1)[-1]
+
+
+def get_link_to_form(doctype: str, name: str | None = None, label: str | None = None) -> str:
+	"""Return the HTML link to the given document's form view.
+
+	e.g. get_link_to_form("Sales Invoice", "INV-0001", "Link Label") returns:
+	    '<a href="https://frappe.io/app/sales-invoice/INV-0001">Link Label</a>'.
+	"""
+	from frappe import _
+
+	if not label:
+		label = name or _(doctype)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	return f"""<a href="{get_url_to_form(doctype, name)}">{label}</a>"""
 
@@ -1643,6 +2399,14 @@ def get_link_to_report(
 	doctype: str | None = None,
 	filters: dict | None = None,
 ) -> str:
+<<<<<<< HEAD
+=======
+	"""Return the HTML link to the given report.
+
+	e.g. get_link_to_report("Revenue Report", "Link Label") returns:
+	        '<a href="https://frappe.io/app/query-report/Revenue%20Report">Link Label</a>'.
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if not label:
 		label = name
 
@@ -1667,6 +2431,7 @@ def get_link_to_report(
 
 
 def get_absolute_url(doctype: str, name: str) -> str:
+<<<<<<< HEAD
 	return f"/app/{quoted(slug(doctype))}/{quoted(name)}"
 
 
@@ -1675,10 +2440,51 @@ def get_url_to_form(doctype: str, name: str) -> str:
 
 
 def get_url_to_list(doctype: str) -> str:
+=======
+	"""Return the absolute route for the form view of the given document in the desk.
+
+	e.g. when doctype="Sales Invoice" and name="INV-00001", returns '/app/sales-invoice/INV-00001'
+	"""
+	return f"/app/{quoted(slug(doctype))}/{quoted(name)}"
+
+
+def get_url_to_form(doctype: str, name: str | None = None) -> str:
+	"""Return the absolute URL for the form view of the given document in the desk.
+
+	e.g. when doctype="Sales Invoice" and your site URL is "https://frappe.io",
+	         returns 'https://frappe.io/app/sales-invoice/INV-00001'
+	"""
+	if not name:
+		uri = f"/app/{quoted(slug(doctype))}"
+	else:
+		uri = f"/app/{quoted(slug(doctype))}/{quoted(name)}"
+
+	return get_url(uri=uri)
+
+
+def get_url_to_list(doctype: str) -> str:
+	"""Return the absolute URL for the list view of the given document in the desk.
+
+	e.g. when doctype="Sales Invoice" and your site URL is "https://frappe.io",
+	         returns 'https://frappe.io/app/sales-invoice'
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return get_url(uri=f"/app/{quoted(slug(doctype))}")
 
 
 def get_url_to_report(name, report_type: str | None = None, doctype: str | None = None) -> str:
+<<<<<<< HEAD
+=======
+	"""Return the absolute URL for the report in the desk.
+
+	e.g. when name="Sales Register" and your site URL is "https://frappe.io",
+	         returns 'https://frappe.io/app/query-report/Sales%20Register'
+
+	You can optionally pass `report_type` and `doctype` to get the URL for a Report Builder report.
+
+	get_url_to_report("Revenue", "Report Builder", "Sales Invoice") -> 'https://frappe.io/app/sales-invoice/view/report/Revenue'
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if report_type == "Report Builder":
 		return get_url(uri=f"/app/{quoted(slug(doctype))}/view/report/{quoted(name)}")
 	else:
@@ -1686,6 +2492,10 @@ def get_url_to_report(name, report_type: str | None = None, doctype: str | None 
 
 
 def get_url_to_report_with_filters(name, filters, report_type=None, doctype=None):
+<<<<<<< HEAD
+=======
+	"""Return the absolute URL for the report in the desk with filters."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if report_type == "Report Builder":
 		return get_url(uri=f"/app/{quoted(slug(doctype))}/view/report?{filters}")
 
@@ -1746,6 +2556,7 @@ operator_map = {
 }
 
 
+<<<<<<< HEAD
 def evaluate_filters(doc, filters: dict | list | tuple):
 	"""Returns true if doc matches filters"""
 	if isinstance(filters, dict):
@@ -1759,6 +2570,16 @@ def evaluate_filters(doc, filters: dict | list | tuple):
 			f = get_filter(None, d)
 			if not compare(doc.get(f.fieldname), f.operator, f.value, f.fieldtype):
 				return False
+=======
+def evaluate_filters(doc: "Mapping", filters: FilterSignature):
+	"""Return True if doc matches filters."""
+	if not isinstance(filters, Filters):
+		filters = Filters(filters, doctype=doc.get("doctype"))
+	for d in filters:
+		f = get_filter(None, d)
+		if not compare(doc.get(f.fieldname), f.operator, f.value, f.fieldtype):
+			return False
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	return True
 
@@ -1773,6 +2594,7 @@ def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None):
 	return False
 
 
+<<<<<<< HEAD
 def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "frappe._dict":
 	"""Returns a _dict like
 
@@ -1782,11 +2604,23 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 	        "operator":
 	        "value":
 	        "fieldtype":
+=======
+def get_filter(doctype: str, filters: FilterSignature, filters_config=None) -> "frappe._dict":
+	"""Return a `_dict` like:
+
+	{
+	        "doctype": ...
+	        "fieldname": ...
+	        "operator": ...
+	        "value": ...
+	        "fieldtype": ...
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 	"""
 	from frappe.database.utils import NestedSetHierarchy
 	from frappe.model import child_table_fields, default_fields, optional_fields
 
+<<<<<<< HEAD
 	if isinstance(f, dict):
 		key, value = next(iter(f.items()))
 		f = make_filter_tuple(doctype, key, value)
@@ -1811,6 +2645,20 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 		# if operator is missing
 		f.operator = "="
 
+=======
+	ft: FilterTuple
+	if isinstance(filters, FilterTuple):
+		ft = filters
+	elif not isinstance(filters, Filters):
+		ft = Filters(filters, doctype=doctype)[0]
+	else:
+		ft = filters[0]
+
+	f = frappe._dict(doctype=ft[0], fieldname=ft[1], operator=ft[2], value=ft[3])
+
+	sanitize_column(f.fieldname)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	valid_operators = (
 		"=",
 		"!=",
@@ -1917,10 +2765,26 @@ def sanitize_column(column_name: str) -> None:
 
 
 def scrub_urls(html: str) -> str:
+<<<<<<< HEAD
+=======
+	"""Expand relative urls in the given `html`.
+
+	e.g. If HTML is '<a href="/files/abc.jpeg">View Image</a>' and site URL is 'https://frappe.io',
+	        returns '<a href="https://frappe.io/files/abc.jpeg">View Image</a>'.
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return expand_relative_urls(html)
 
 
 def expand_relative_urls(html: str) -> str:
+<<<<<<< HEAD
+=======
+	"""Expand relative urls in the given `html`.
+
+	e.g. If HTML is '<a href="/files/abc.jpeg">View Image</a>' and site URL is 'https://frappe.io',
+	        returns '<a href="https://frappe.io/files/abc.jpeg">View Image</a>'.
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	# expand relative urls
 	url = get_url()
 	if url.endswith("/"):
@@ -1946,6 +2810,13 @@ def expand_relative_urls(html: str) -> str:
 
 
 def quoted(url: str) -> str:
+<<<<<<< HEAD
+=======
+	"""Return the given `url` quoted.
+
+	e.g. 'https://frappe.io/files/my Image file.jpeg' -> 'https://frappe.io/files/my%20Image%20file.jpeg'
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return cstr(quote(encode(cstr(url)), safe=b"~@#$&()*!+=:;,.?/'"))
 
 
@@ -1968,6 +2839,13 @@ def unique(seq: typing.Sequence["T"]) -> list["T"]:
 
 
 def strip(val: str, chars: str | None = None) -> str:
+<<<<<<< HEAD
+=======
+	"""Strip the given characters from the given string.
+
+	e.g. strip(',hello,bye,', ',') -> 'hello,bye'
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	# \ufeff is no-width-break, \u200b is no-width-space
 	return (val or "").replace("\ufeff", "").replace("\u200b", "").strip(chars)
 
@@ -1982,6 +2860,10 @@ def get_string_between(start: str, string: str, end: str) -> str:
 
 
 def to_markdown(html: str) -> str:
+<<<<<<< HEAD
+=======
+	"""Convert the given HTML to markdown and returns it."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	from html.parser import HTMLParser
 
 	from frappe.core.utils import html2text
@@ -1993,6 +2875,10 @@ def to_markdown(html: str) -> str:
 
 
 def md_to_html(markdown_text: str) -> Optional["UnicodeWithAttrs"]:
+<<<<<<< HEAD
+=======
+	"""Convert the given markdown text to HTML and returns it."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	from markdown2 import MarkdownError
 	from markdown2 import markdown as _markdown
 
@@ -2011,16 +2897,32 @@ def md_to_html(markdown_text: str) -> Optional["UnicodeWithAttrs"]:
 		pass
 
 
+<<<<<<< HEAD
 def markdown(markdown_text):
+=======
+def markdown(markdown_text: str) -> Optional["UnicodeWithAttrs"]:
+	"""Convert the given markdown text to HTML and returns it."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return md_to_html(markdown_text)
 
 
 def is_subset(list_a: list, list_b: list) -> bool:
+<<<<<<< HEAD
 	"""Returns whether list_a is a subset of list_b"""
+=======
+	"""Return whether list_a is a subset of list_b."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return len(list(set(list_a) & set(list_b))) == len(list_a)
 
 
 def generate_hash(*args, **kwargs) -> str:
+<<<<<<< HEAD
+=======
+	"""Generates a random hash using best available randomness source and returns it.
+
+	You can optionally provide the `length` of the hash to be generated. Default is 56.
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return frappe.generate_hash(*args, **kwargs)
 
 
@@ -2032,7 +2934,11 @@ def sha256_hash(input: str | bytes) -> str:
 
 
 def dict_with_keys(dict, keys):
+<<<<<<< HEAD
 	"""Returns a new dict with a subset of keys"""
+=======
+	"""Return a new dict with a subset of keys."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	out = {}
 	for key in dict:
 		if key in keys:
@@ -2135,6 +3041,17 @@ class _UserInfo(typing.TypedDict):
 
 
 def get_user_info_for_avatar(user_id: str) -> _UserInfo:
+<<<<<<< HEAD
+=======
+	"""Return user info for the given `user_id` suitable for use in an avatar.
+
+	e.g. {
+	        "email": "faris@frappe.io",
+	        "image": "/assets/frappe/images/ui/avatar.png",
+	        "name": "Faris Ansari"
+	}
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	try:
 		user = frappe.get_cached_doc("User", user_id)
 		return {"email": user.email, "image": user.user_image, "name": user.full_name}
@@ -2234,16 +3151,38 @@ def get_imaginary_pixel_response():
 
 
 def is_site_link(link: str) -> bool:
+<<<<<<< HEAD
+=======
+	if not link:
+		return False
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if link.startswith("/"):
 		return True
 	return urlparse(link).netloc == urlparse(frappe.utils.get_url()).netloc
 
 
+<<<<<<< HEAD
 def add_trackers_to_url(url: str, source: str, campaign: str, medium: str = "email") -> str:
+=======
+def add_trackers_to_url(
+	url: str,
+	source: str,
+	campaign: str | None = None,
+	medium: str | None = None,
+	content: str | None = None,
+) -> str:
+	def get_utm_values():
+		_source = frappe.db.get_value("UTM Source", source, "slug") or source
+		_campaign = frappe.db.get_value("UTM Campaign", campaign, "slug") or campaign
+		_medium = frappe.db.get_value("UTM Medium", medium, "slug") or medium
+		return _source, _medium, _campaign
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	url_parts = list(urlparse(url))
 	if url_parts[0] == "mailto":
 		return url
 
+<<<<<<< HEAD
 	trackers = {
 		"source": source,
 		"medium": medium,
@@ -2251,6 +3190,24 @@ def add_trackers_to_url(url: str, source: str, campaign: str, medium: str = "ema
 
 	if campaign:
 		trackers["campaign"] = campaign
+=======
+	source, medium, campaign = frappe.cache.get_value(
+		"utm_" + cstr(source) + "_" + cstr(medium) + "_" + cstr(campaign),
+		get_utm_values,
+		shared=True,
+	)
+
+	trackers = {"utm_source": source}
+
+	if medium:
+		trackers["utm_medium"] = medium
+
+	if campaign:
+		trackers["utm_campaign"] = campaign
+
+	if content:
+		trackers["utm_content"] = content
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	query = dict(parse_qsl(url_parts[4])) | trackers
 
@@ -2258,6 +3215,53 @@ def add_trackers_to_url(url: str, source: str, campaign: str, medium: str = "ema
 	return urlunparse(url_parts)
 
 
+<<<<<<< HEAD
+=======
+def parse_and_map_trackers_from_url(url: str, create: bool = False) -> dict:
+	query = urlparse(url).query
+
+	url_trackers = dict(parse_qsl(query))
+
+	return map_trackers(url_trackers, create)
+
+
+def map_trackers(url_trackers: dict, create: bool = False):
+	frappe_trackers = {}
+
+	if url_source := url_trackers.get("utm_source", url_trackers.get("source")):
+		source = frappe.db.get_value("UTM Source", {"slug": slug(url_source)}, "name") or url_source
+		if create and source == url_source and not frappe.db.exists("UTM Source", source):
+			source = frappe.new_doc("UTM Source")
+			source.name = url_source
+			source.description = f"Autogenerated from {url_trackers}"
+			source.save(ignore_permissions=True)
+		frappe_trackers["utm_source"] = source
+
+	if url_medium := url_trackers.get("utm_medium", url_trackers.get("medium")):
+		medium = frappe.db.get_value("UTM Medium", {"slug": slug(url_medium)}, "name") or url_medium
+		if create and medium == url_medium and not frappe.db.exists("UTM Medium", medium):
+			medium = frappe.new_doc("UTM Medium")
+			medium.name = url_medium
+			medium.description = f"Autogenerated from {url_trackers}"
+			medium.save(ignore_permissions=True)
+		frappe_trackers["utm_medium"] = medium
+
+	if url_campaign := url_trackers.get("utm_campaign", url_trackers.get("campaign")):
+		campaign = frappe.db.get_value("UTM Campaign", {"slug": slug(url_campaign)}, "name") or url_campaign
+		if create and campaign == url_campaign and not frappe.db.exists("UTM Campaign", campaign):
+			campaign = frappe.new_doc("UTM Campaign")
+			campaign.name = url_campaign
+			campaign.campaign_description = f"Autogenerated from {url_trackers}"
+			campaign.save(ignore_permissions=True)
+		frappe_trackers["utm_campaign"] = campaign
+
+	if url_content := url_trackers.get("utm_content", url_trackers.get("content")):
+		frappe_trackers["utm_content"] = url_content
+
+	return frappe_trackers
+
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 # This is used in test to count memory overhead of default imports.
 def _get_rss_memory_usage():
 	import psutil

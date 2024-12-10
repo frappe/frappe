@@ -2,6 +2,10 @@
 # License: MIT. See LICENSE
 import pickle
 import re
+<<<<<<< HEAD
+=======
+from contextlib import suppress
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 import redis
 from redis.commands.search import Search
@@ -62,6 +66,7 @@ class RedisWrapper(redis.Redis):
 		if not expires_in_sec:
 			frappe.local.cache[key] = val
 
+<<<<<<< HEAD
 		try:
 			if expires_in_sec:
 				self.setex(name=key, time=expires_in_sec, value=pickle.dumps(val))
@@ -74,6 +79,14 @@ class RedisWrapper(redis.Redis):
 	def get_value(self, key, generator=None, user=None, expires=False, shared=False):
 		"""Returns cache value. If not found and generator function is
 		        given, it will call the generator.
+=======
+		with suppress(redis.exceptions.ConnectionError):
+			self.set(name=key, value=pickle.dumps(val), ex=expires_in_sec)
+
+	def get_value(self, key, generator=None, user=None, expires=False, shared=False):
+		"""Return cache value. If not found and generator function is
+		        given, call the generator.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		:param key: Cache key.
 		:param generator: Function to be called to generate a value if `None` is returned.
@@ -144,7 +157,11 @@ class RedisWrapper(redis.Redis):
 			frappe.local.cache.pop(key, None)
 
 		try:
+<<<<<<< HEAD
 			self.delete(*keys)
+=======
+			self.unlink(*keys)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		except redis.exceptions.ConnectionError:
 			pass
 
@@ -238,6 +255,7 @@ class RedisWrapper(redis.Redis):
 			self.hset(name, key, value, shared=shared)
 		return value
 
+<<<<<<< HEAD
 	def hdel(self, name, key, shared=False):
 		_name = self.make_key(name, shared=shared)
 
@@ -246,14 +264,88 @@ class RedisWrapper(redis.Redis):
 				del frappe.local.cache[_name][key]
 		try:
 			super().hdel(_name, key)
+=======
+	def hdel(
+		self,
+		name: str,
+		keys: str | list | tuple,
+		shared=False,
+		pipeline: redis.client.Pipeline | None = None,
+	):
+		"""
+		A wrapper around redis' HDEL command
+
+		:param name: The hash name
+		:param keys: the keys to delete
+		:param shared: shared frappe key or not
+		:param pipeline: A redis.client.Pipeline object, if this transaction is to be run in a pipeline
+		"""
+		_name = self.make_key(name, shared=shared)
+
+		name_in_local_cache = _name in frappe.local.cache
+
+		if not isinstance(keys, list | tuple):
+			if name_in_local_cache and keys in frappe.local.cache[_name]:
+				del frappe.local.cache[_name][keys]
+			if pipeline:
+				pipeline.hdel(_name, keys)
+			else:
+				try:
+					super().hdel(_name, keys)
+				except redis.exceptions.ConnectionError:
+					pass
+			return
+
+		local_pipeline = False
+
+		if pipeline is None:
+			pipeline = self.pipeline()
+			local_pipeline = True
+
+		for key in keys:
+			if name_in_local_cache:
+				if key in frappe.local.cache[_name]:
+					del frappe.local.cache[_name][key]
+			pipeline.hdel(_name, key)
+
+		if local_pipeline:
+			try:
+				pipeline.execute()
+			except redis.exceptions.ConnectionError:
+				pass
+
+	def hdel_names(self, names: list | tuple, key: str):
+		"""
+		A function to call HDEL on multiple hash names with a common key, run in a single pipeline
+
+		:param names: The hash names
+		:param key: The common key
+		"""
+		pipeline = self.pipeline()
+		for name in names:
+			self.hdel(name, key, pipeline=pipeline)
+		try:
+			pipeline.execute()
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		except redis.exceptions.ConnectionError:
 			pass
 
 	def hdel_keys(self, name_starts_with, key):
 		"""Delete hash names with wildcard `*` and key"""
+<<<<<<< HEAD
 		for name in self.get_keys(name_starts_with):
 			name = name.split("|", 1)[1]
 			self.hdel(name, key)
+=======
+		pipeline = self.pipeline()
+		for name in self.get_keys(name_starts_with):
+			name = name.split("|", 1)[1]
+			self.hdel(name, key, pipeline=pipeline)
+		try:
+			pipeline.execute()
+		except redis.exceptions.ConnectionError:
+			pass
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	def hkeys(self, name):
 		try:
@@ -266,6 +358,7 @@ class RedisWrapper(redis.Redis):
 		super().sadd(self.make_key(name), *values)
 
 	def srem(self, name, *values):
+<<<<<<< HEAD
 		"""Remove a specific member/list of members from the set"""
 		super().srem(self.make_key(name), *values)
 
@@ -283,6 +376,25 @@ class RedisWrapper(redis.Redis):
 
 	def smembers(self, name):
 		"""Return all members of the set"""
+=======
+		"""Remove a specific member/list of members from the set."""
+		super().srem(self.make_key(name), *values)
+
+	def sismember(self, name, value):
+		"""Return True or False based on if a given value is present in the set."""
+		return super().sismember(self.make_key(name), value)
+
+	def spop(self, name):
+		"""Remove and returns a random member from the set."""
+		return super().spop(self.make_key(name))
+
+	def srandmember(self, name, count=None):
+		"""Return a random member from the set."""
+		return super().srandmember(self.make_key(name))
+
+	def smembers(self, name):
+		"""Return all members of the set."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		return super().smembers(self.make_key(name))
 
 	def ft(self, index_name="idx"):

@@ -38,7 +38,11 @@ def create_lock(name):
 
 
 def lock_exists(name):
+<<<<<<< HEAD
 	"""Returns True if lock of the given name exists"""
+=======
+	"""Return True if lock of the given name exists."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return os.path.exists(get_lock_path(name))
 
 

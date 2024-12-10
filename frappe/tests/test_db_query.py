@@ -14,11 +14,19 @@ from frappe.handler import execute_cmd
 from frappe.model.db_query import DatabaseQuery, get_between_date_filter
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 from frappe.query_builder import Column
+<<<<<<< HEAD
 from frappe.tests.test_query_builder import db_type_is, run_only_if
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.testutils import add_custom_field, clear_custom_fields
 
 test_dependencies = ["User", "Blog Post", "Blog Category", "Blogger"]
+=======
+from frappe.tests import IntegrationTestCase
+from frappe.tests.test_query_builder import db_type_is, run_only_if
+from frappe.utils.testutils import add_custom_field, clear_custom_fields
+
+EXTRA_TEST_RECORD_DEPENDENCIES = ["User", "Blog Post", "Blog Category", "Blogger"]
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 @contextmanager
@@ -47,7 +55,11 @@ def setup_patched_blog_post():
 	yield
 
 
+<<<<<<< HEAD
 class TestDBQuery(FrappeTestCase):
+=======
+class TestDBQuery(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def setUp(self):
 		frappe.set_user("Administrator")
 
@@ -268,6 +280,14 @@ class TestDBQuery(FrappeTestCase):
 				result in DatabaseQuery("DocType").execute(filters={"name": ["not in", "DocType,DocField"]})
 			)
 
+<<<<<<< HEAD
+=======
+	def test_string_as_field(self):
+		self.assertEqual(
+			frappe.get_all("DocType", as_list=True), frappe.get_all("DocType", fields="name", as_list=True)
+		)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_none_filter(self):
 		query = frappe.qb.get_query("DocType", fields="name", filters={"restrict_to_domain": None})
 		sql = str(query).replace("`", "").replace('"', "")
@@ -1076,13 +1096,27 @@ class TestDBQuery(FrappeTestCase):
 
 		class VirtualDocType:
 			@staticmethod
+<<<<<<< HEAD
 			def get_list(args):
 				...
+=======
+			def get_list(args=None, limit_page_length=0, doctype=None):
+				from frappe.types.filter import FilterTuple
+
+				# Backward compatibility
+				self.assertEqual(
+					args["filters"], [FilterTuple(doctype="Virtual DocType", fieldname="name", value="test")]
+				)
+
+				self.assertEqual(limit_page_length, 1)
+				self.assertEqual(doctype, "Virtual DocType")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		with patch(
 			"frappe.controllers",
 			new={frappe.local.site: {"Virtual DocType": VirtualDocType}},
 		):
+<<<<<<< HEAD
 			VirtualDocType.get_list = MagicMock()
 
 			frappe.get_all("Virtual DocType", filters={"name": "test"}, fields=["name"], limit=1)
@@ -1097,6 +1131,10 @@ class TestDBQuery(FrappeTestCase):
 			self.assertEqual(call_args["limit_start"], 0)
 			self.assertEqual(call_args["order_by"], DefaultOrderBy)
 
+=======
+			frappe.get_all("Virtual DocType", filters={"name": "test"}, fields=["name"], limit=1)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_coalesce_with_in_ops(self):
 		self.assertNotIn("ifnull", frappe.get_all("User", {"first_name": ("in", ["a", "b"])}, run=0))
 		self.assertIn("ifnull", frappe.get_all("User", {"first_name": ("in", ["a", None])}, run=0))
@@ -1196,7 +1234,11 @@ class TestDBQuery(FrappeTestCase):
 		self.assertEqual(count[1], frappe.db.count("Language"))
 
 
+<<<<<<< HEAD
 class TestReportView(FrappeTestCase):
+=======
+class TestReportView(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	@run_only_if(db_type_is.MARIADB)  # TODO: postgres name casting is messed up
 	def test_get_count(self):
 		frappe.local.request = frappe._dict()
@@ -1271,6 +1313,7 @@ class TestReportView(FrappeTestCase):
 		self.assertIsInstance(count, int)
 		self.assertLessEqual(count, limit)
 
+<<<<<<< HEAD
 		# doctype with space in name
 		limit = 2
 		frappe.local.form_dict = frappe._dict(
@@ -1285,6 +1328,8 @@ class TestReportView(FrappeTestCase):
 		self.assertIsInstance(count, int)
 		self.assertLessEqual(count, limit)
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_reportview_get(self):
 		user = frappe.get_doc("User", "test@example.com")
 		add_child_table_to_blog_post()
@@ -1409,6 +1454,23 @@ class TestReportView(FrappeTestCase):
 			response = execute_cmd("frappe.desk.reportview.get")
 			self.assertListEqual(response["keys"], ["published", "title", "test_field"])
 
+<<<<<<< HEAD
+=======
+	def test_db_filter_not_set(self):
+		"""
+		Test if the 'not set' filter always translates correctly with/without qb under the hood.
+		"""
+		frappe.get_doc({"doctype": "ToDo", "description": "filter test"}).insert()
+		frappe.get_doc({"doctype": "ToDo", "description": "filter test", "reference_name": ""}).insert()
+
+		# `get_all` does not use QueryBuilder while `count` does. Both should return the same result.
+		# `not set` must consider empty strings and NULL values both.
+		self.assertEqual(
+			len(frappe.get_all("ToDo", filters={"reference_name": ["is", "not set"]})),
+			frappe.db.count("ToDo", {"reference_name": ["is", "not set"]}),
+		)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 def add_child_table_to_blog_post():
 	child_table = frappe.get_doc(

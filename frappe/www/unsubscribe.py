@@ -12,10 +12,18 @@ def get_context(context):
 		if verify_request():
 			user_email = frappe.form_dict["email"]
 			context.email = user_email
+<<<<<<< HEAD
 			title = frappe.form_dict["name"]
 			context.email_groups = get_email_groups(user_email)
 			context.current_group = get_current_groups(title)
 			context.status = "waiting_for_confirmation"
+=======
+			title = frappe.form_dict.get("name")
+			context.email_groups = get_email_groups(user_email)
+			context.current_group = get_current_groups(title)
+			context.status = "waiting_for_confirmation"
+			print(context)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	# Called when form is submitted.
 	elif "user_email" in frappe.form_dict and frappe.request.method == "POST":

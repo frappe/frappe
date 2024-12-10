@@ -17,17 +17,30 @@ class WebhookRequestLog(Document):
 		data: DF.Code | None
 		error: DF.Text | None
 		headers: DF.Code | None
+<<<<<<< HEAD
+=======
+		reference_doctype: DF.Data | None
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		reference_document: DF.Data | None
 		response: DF.Code | None
 		url: DF.Data | None
 		user: DF.Link | None
 		webhook: DF.Link | None
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	@staticmethod
 	def clear_old_logs(days=30):
 		from frappe.query_builder import Interval
 		from frappe.query_builder.functions import Now
 
 		table = frappe.qb.DocType("Webhook Request Log")
+<<<<<<< HEAD
 		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
+=======
+		frappe.db.delete(table, filters=(table.creation < (Now() - Interval(days=days))))
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

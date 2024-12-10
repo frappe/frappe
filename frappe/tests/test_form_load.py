@@ -4,6 +4,7 @@ import frappe
 from frappe.core.page.permission_manager.permission_manager import add, reset, update
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.form.load import get_docinfo, getdoc, getdoctype
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.file_manager import save_file
 
@@ -11,6 +12,15 @@ test_dependencies = ["Blog Category", "Blogger"]
 
 
 class TestFormLoad(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase
+from frappe.utils.file_manager import save_file
+
+EXTRA_TEST_RECORD_DEPENDENCIES = ["Blog Category", "Blogger"]
+
+
+class TestFormLoad(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_load(self):
 		getdoctype("DocType")
 		meta = next(filter(lambda d: d.name == "DocType", frappe.response.docs))

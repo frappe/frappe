@@ -4,10 +4,17 @@ from random import choice
 import frappe
 from frappe.model import core_doctypes_list, get_permitted_fields, is_default_field
 from frappe.model.utils import get_fetch_values
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestModelUtils(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase
+
+
+class TestModelUtils(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_get_fetch_values(self):
 		doctype = "ToDo"
 

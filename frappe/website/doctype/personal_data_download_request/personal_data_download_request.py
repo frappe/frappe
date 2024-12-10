@@ -21,8 +21,13 @@ class PersonalDataDownloadRequest(Document):
 		amended_from: DF.Link | None
 		user: DF.Link
 		user_name: DF.Data | None
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def after_insert(self):
 		personal_data = get_user_data(self.user)
 
@@ -71,7 +76,11 @@ class PersonalDataDownloadRequest(Document):
 
 
 def get_user_data(user):
+<<<<<<< HEAD
 	"""returns user data not linked to User doctype"""
+=======
+	"""Return user data not linked to `User` doctype."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	hooks = frappe.get_hooks("user_data_fields")
 	data = {}
 	for hook in hooks:

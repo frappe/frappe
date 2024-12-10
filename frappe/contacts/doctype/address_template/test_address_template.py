@@ -2,11 +2,28 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.contacts.doctype.address_template.address_template import get_default_address_template
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.jinja import validate_template
 
 
 class TestAddressTemplate(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.utils.jinja import validate_template
+
+
+class UnitTestAddressTemplate(UnitTestCase):
+	"""
+	Unit tests for AddressTemplate.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestAddressTemplate(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def setUp(self) -> None:
 		frappe.db.delete("Address Template", {"country": "India"})
 		frappe.db.delete("Address Template", {"country": "Brazil"})

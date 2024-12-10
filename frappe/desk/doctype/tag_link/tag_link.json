@@ -46,7 +46,11 @@
   }
  ],
  "links": [],
+<<<<<<< HEAD
  "modified": "2021-09-20 16:53:37.217998",
+=======
+ "modified": "2024-03-23 16:03:39.781828",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Tag Link",
@@ -77,7 +81,13 @@
   }
  ],
  "read_only": 1,
+<<<<<<< HEAD
  "sort_field": "modified",
  "sort_order": "DESC",
+=======
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "track_changes": 1
 }

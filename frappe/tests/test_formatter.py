@@ -1,9 +1,16 @@
 import frappe
 from frappe import format
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestFormatter(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase
+
+
+class TestFormatter(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_currency_formatting(self):
 		df = frappe._dict({"fieldname": "amount", "fieldtype": "Currency", "options": "currency"})
 

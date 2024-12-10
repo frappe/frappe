@@ -7,6 +7,10 @@ Note:
 	- None of the functions present here should be called from python code, their location and
 	  internal implementation can change without treating it as "breaking change".
 """
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 import json
 from typing import Any
 

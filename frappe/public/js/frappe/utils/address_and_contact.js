@@ -12,7 +12,11 @@ $.extend(frappe.contacts, {
 			$(frm.fields_dict["address_html"].wrapper)
 				.html(frappe.render_template("address_list", frm.doc.__onload))
 				.find(".btn-address")
+<<<<<<< HEAD
 				.on("click", () => new_record("Address", frm.doc));
+=======
+				.on("click", () => new_record("Address", frm));
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		}
 
 		// render contact
@@ -20,7 +24,11 @@ $.extend(frappe.contacts, {
 			$(frm.fields_dict["contact_html"].wrapper)
 				.html(frappe.render_template("contact_list", frm.doc.__onload))
 				.find(".btn-contact")
+<<<<<<< HEAD
 				.on("click", () => new_record("Contact", frm.doc));
+=======
+				.on("click", () => new_record("Contact", frm));
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		}
 	},
 	get_last_doc: function (frm) {
@@ -59,6 +67,7 @@ $.extend(frappe.contacts, {
 	},
 });
 
+<<<<<<< HEAD
 function new_record(doctype, source_doc) {
 	frappe.dynamic_link = {
 		doctype: source_doc.doctype,
@@ -67,4 +76,25 @@ function new_record(doctype, source_doc) {
 	};
 
 	return frappe.new_doc(doctype);
+=======
+function new_record(doctype, frm) {
+	frappe.dynamic_link = {
+		doctype: frm.doc.doctype,
+		doc: frm.doc,
+		fieldname: "name",
+	};
+
+	if (frappe.boot.enable_address_autocompletion === 1 && doctype === "Address") {
+		new frappe.ui.AddressAutocompleteDialog({
+			title: __("New Address"),
+			link_doctype: frm.doc.doctype,
+			link_name: frm.doc.name,
+			after_insert: function (doc) {
+				frm.reload_doc();
+			},
+		}).show();
+	} else {
+		frappe.new_doc(doctype);
+	}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 }

@@ -9,7 +9,10 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
+<<<<<<< HEAD
   "column_break_oyyj",
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   "total_subscribers",
   "sign_up_and_confirmation_section",
   "confirmation_email_template",
@@ -47,10 +50,13 @@
    "options": "Email Template"
   },
   {
+<<<<<<< HEAD
    "fieldname": "column_break_oyyj",
    "fieldtype": "Column Break"
   },
   {
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "fieldname": "sign_up_and_confirmation_section",
    "fieldtype": "Section Break",
    "label": "Sign Up and Confirmation"
@@ -78,7 +84,11 @@
    "link_fieldname": "email_group"
   }
  ],
+<<<<<<< HEAD
  "modified": "2023-11-24 18:35:17.268492",
+=======
+ "modified": "2024-09-25 15:24:37.576084",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Group",
@@ -101,7 +111,11 @@
  ],
  "quick_entry": 1,
  "show_name_in_global_search": 1,
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "sort_field": "creation",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

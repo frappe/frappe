@@ -175,6 +175,7 @@ def normalize_query(query: str) -> str:
 
 
 def record(force=False):
+<<<<<<< HEAD
 	if __debug__:
 		if frappe.cache.get_value(RECORDER_INTERCEPT_FLAG) or force:
 			frappe.local._recorder = Recorder(force=force)
@@ -184,6 +185,15 @@ def dump():
 	if __debug__:
 		if hasattr(frappe.local, "_recorder"):
 			frappe.local._recorder.dump()
+=======
+	if frappe.cache.get_value(RECORDER_INTERCEPT_FLAG) or force:
+		frappe.local._recorder = Recorder(force=force)
+
+
+def dump():
+	if hasattr(frappe.local, "_recorder"):
+		frappe.local._recorder.dump()
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 class Recorder:

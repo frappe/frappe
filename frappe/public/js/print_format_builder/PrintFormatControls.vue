@@ -1,8 +1,15 @@
 <template>
+<<<<<<< HEAD
 	<div class="layout-side-section">
 		<div class="form-sidebar">
 			<div class="sidebar-menu">
 				<div class="sidebar-label">{{ __("Page Margins") }}</div>
+=======
+	<div style="width: 220px">
+		<div class="form-sidebar">
+			<div class="sidebar-menu">
+				<h5>{{ __("Page Margins") }}</h5>
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				<div class="margin-controls">
 					<div class="form-group" v-for="df in margins" :key="df.fieldname">
 						<div class="clearfix">
@@ -25,7 +32,11 @@
 				</div>
 			</div>
 			<div class="sidebar-menu">
+<<<<<<< HEAD
 				<div class="sidebar-label">{{ __("Google Font") }}</div>
+=======
+				<div class="control-label">{{ __("Google Font") }}</div>
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				<div class="form-group">
 					<div class="control-input-wrapper">
 						<div class="control-input">
@@ -42,7 +53,11 @@
 				</div>
 			</div>
 			<div class="sidebar-menu">
+<<<<<<< HEAD
 				<div class="sidebar-label">{{ __("Font Size") }}</div>
+=======
+				<div class="control-label">{{ __("Font Size") }}</div>
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				<div class="form-group">
 					<div class="control-input-wrapper">
 						<div class="control-input">
@@ -60,7 +75,11 @@
 				</div>
 			</div>
 			<div class="sidebar-menu">
+<<<<<<< HEAD
 				<div class="sidebar-label">{{ __("Page Number") }}</div>
+=======
+				<div class="control-label">{{ __("Page Number") }}</div>
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				<div class="form-group">
 					<div class="control-input-wrapper">
 						<div class="control-input">
@@ -80,7 +99,11 @@
 				</div>
 			</div>
 			<div class="sidebar-menu">
+<<<<<<< HEAD
 				<div class="sidebar-label">{{ __("Fields") }}</div>
+=======
+				<div class="control-label">{{ __("Fields") }}</div>
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				<input
 					class="mb-2 form-control form-control-sm"
 					type="text"
@@ -157,6 +180,7 @@ let margins = computed(() => {
 	];
 });
 let fields = computed(() => {
+<<<<<<< HEAD
 	let fields = meta.value.fields
 		.filter((df) => {
 			if (["Section Break", "Column Break"].includes(df.fieldtype)) {
@@ -188,6 +212,9 @@ let fields = computed(() => {
 		});
 
 	return [
+=======
+	let fields = [
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		{
 			label: __("Custom HTML"),
 			fieldname: "custom_html",
@@ -213,8 +240,43 @@ let fields = computed(() => {
 			custom: 1,
 		},
 		...print_templates.value,
+<<<<<<< HEAD
 		...fields,
 	];
+=======
+		...meta.value.fields,
+	]
+		.filter((df) => {
+			if (["Section Break", "Column Break"].includes(df.fieldtype)) {
+				return false;
+			}
+			if (search_text.value) {
+				if (df.fieldname.toLowerCase().includes(search_text.value.toLowerCase())) {
+					return true;
+				}
+				if (df.label && df.label.toLowerCase().includes(search_text.value.toLowerCase())) {
+					return true;
+				}
+				return false;
+			} else {
+				return true;
+			}
+		})
+		.map((df) => {
+			let out = {
+				label: df.label,
+				fieldname: df.fieldname,
+				fieldtype: df.fieldtype,
+				options: df.options,
+			};
+			if (df.fieldtype == "Table") {
+				out.table_columns = get_table_columns(df);
+			}
+			return out;
+		});
+
+	return fields;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 });
 let print_templates = computed(() => {
 	let templates = print_format.value.__onload.print_templates || {};
@@ -283,7 +345,12 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .fields-container {
+<<<<<<< HEAD
 	max-height: calc(100vh - 34rem);
+=======
+	margin-top: var(--margin-md);
+	max-height: calc(100vh - 31rem);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	overflow-y: auto;
 }
 
@@ -304,6 +371,13 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	margin-top: 0.5rem;
 }
 
+<<<<<<< HEAD
+=======
+.sidebar-menu {
+	margin-bottom: var(--margin-md);
+}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 .sidebar-menu:last-child {
 	margin-bottom: 0;
 }

@@ -1,10 +1,18 @@
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 from frappe.www.printview import get_html_and_style
 
 
 class PrintViewTest(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase
+from frappe.www.printview import get_html_and_style
+
+
+class PrintViewTest(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_print_view_without_errors(self):
 		user = frappe.get_last_doc("User")
 

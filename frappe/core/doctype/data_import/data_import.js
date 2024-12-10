@@ -135,6 +135,7 @@ frappe.ui.form.on("Data Import", {
 				let failed_records = cint(r.message.failed);
 				let total_records = cint(r.message.total_records);
 
+<<<<<<< HEAD
 				if (!total_records) return;
 				let action, message;
 				if (frm.doc.import_type === "Insert New Records") {
@@ -163,6 +164,31 @@ frappe.ui.form.on("Data Import", {
 							message_args
 						);
 					}
+=======
+				if (!total_records) {
+					return;
+				}
+
+				let message;
+				if (frm.doc.import_type === "Insert New Records") {
+					message = __("Successfully imported {0} out of {1} records.", [
+						successful_records,
+						total_records,
+					]);
+				} else {
+					message = __("Successfully updated {0} out of {1} records.", [
+						successful_records,
+						total_records,
+					]);
+				}
+
+				if (failed_records > 0) {
+					message +=
+						"<br/>" +
+						__(
+							"Please click on 'Export Errored Rows', fix the errors and import again."
+						);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				}
 
 				// If the job timed out, display an extra hint

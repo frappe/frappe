@@ -22,14 +22,23 @@ def resize_images(path, maxdim=700):
 					print(f"resized {os.path.join(basepath, fname)}")
 
 
+<<<<<<< HEAD
 def strip_exif_data(content, content_type):
 	"""Strips EXIF from image files which support it.
+=======
+def strip_exif_data(content, content_type) -> bytes:
+	"""Strip EXIF from image files which support it.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	Works by creating a new Image object which ignores exif by
 	default and then extracts the binary data back into content.
 
+<<<<<<< HEAD
 	Returns:
 	        Bytes: Stripped image content
+=======
+	Return Stripped image content.
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	"""
 
 	original_image = Image.open(io.BytesIO(content))

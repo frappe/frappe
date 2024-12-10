@@ -22,8 +22,13 @@ class SystemConsole(Document):
 		output: DF.Code | None
 		show_processlist: DF.Check
 		type: DF.Literal["Python", "SQL"]
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def run(self):
 		frappe.only_for("System Manager")
 		try:
@@ -42,7 +47,11 @@ class SystemConsole(Document):
 		else:
 			frappe.db.rollback()
 		frappe.get_doc(
+<<<<<<< HEAD
 			dict(doctype="Console Log", script=self.console, type=self.type, committed=self.commit)
+=======
+			doctype="Console Log", script=self.console, type=self.type, committed=self.commit
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert()
 		frappe.db.commit()
 
@@ -57,7 +66,14 @@ def execute_code(doc):
 @frappe.whitelist()
 def show_processlist():
 	frappe.only_for("System Manager")
+<<<<<<< HEAD
 
+=======
+	return _show_processlist()
+
+
+def _show_processlist():
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return frappe.db.multisql(
 		{
 			"postgres": """

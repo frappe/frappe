@@ -214,5 +214,9 @@ class RealTimeClient {
 
 frappe.realtime = new RealTimeClient();
 
+<<<<<<< HEAD
 // backward compatbility
+=======
+// backward compatibility
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 frappe.socketio = frappe.realtime;

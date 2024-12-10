@@ -49,12 +49,16 @@ export default class ShortcutWidget extends Widget {
 			}
 
 			if (this.type == "URL") {
+<<<<<<< HEAD
 				if (frappe.open_in_new_tab) {
 					window.open(this.url, "_blank");
 					frappe.open_in_new_tab = false;
 				} else {
 					window.location.href = this.url;
 				}
+=======
+				window.open(this.url, "_blank");
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				return;
 			}
 
@@ -80,10 +84,21 @@ export default class ShortcutWidget extends Widget {
 
 		let filters = frappe.utils.process_filter_expression(this.stats_filter);
 
+<<<<<<< HEAD
 		if (this.type == "DocType" && this.doc_view != "New" && filters) {
 			frappe.db
 				.count(this.link_to, {
 					filters: filters,
+=======
+		if (
+			this.type == "DocType" &&
+			this.doc_view != "New" &&
+			!frappe.boot.single_types.includes(this.link_to)
+		) {
+			frappe.db
+				.count(this.link_to, {
+					filters: filters || [],
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				})
 				.then((count) => this.set_count(count));
 		}
@@ -101,7 +116,11 @@ export default class ShortcutWidget extends Widget {
 		const label = get_label();
 		let color = this.color && count ? this.color.toLowerCase() : "gray";
 		$(
+<<<<<<< HEAD
 			`<div class="indicator-pill no-indicator-dot ellipsis ${color}">${label}</div>`
+=======
+			`<div class="indicator-pill no-indicator-dot ellipsis ${color}">${__(label)}</div>`
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).appendTo(this.action_area);
 
 		$(frappe.utils.icon("es-line-arrow-up-right", "xs", "", "", "ml-2")).appendTo(

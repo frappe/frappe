@@ -3,6 +3,11 @@ import KanbanSettings from "./kanban_settings";
 frappe.provide("frappe.views");
 
 frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
+<<<<<<< HEAD
+=======
+	static full_page = true;
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	static load_last_view() {
 		const route = frappe.get_route();
 		if (route.length === 3) {
@@ -142,7 +147,11 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	}
 
 	setup_view() {
+<<<<<<< HEAD
 		if (this.board.columns.filter((col) => col.status !== "Archived").length > 5) {
+=======
+		if (this.board.columns.filter((col) => col.status !== "Archived").length > 4) {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			this.page.container.addClass("full-width");
 		}
 		this.setup_realtime_updates();

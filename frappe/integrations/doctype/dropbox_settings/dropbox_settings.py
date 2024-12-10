@@ -43,8 +43,13 @@ class DropboxSettings(Document):
 		no_of_backups: DF.Int
 		send_email_for_successful_backup: DF.Check
 		send_notifications_to: DF.Data
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def onload(self):
 		if not self.app_access_key and frappe.conf.dropbox_access_key:
 			self.set_onload("dropbox_setup_via_site_config", 1)

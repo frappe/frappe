@@ -60,7 +60,11 @@
  "hide_toolbar": 1,
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2022-09-28 03:51:02.404681",
+=======
+ "modified": "2024-03-23 16:02:16.856404",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Export",
@@ -78,7 +82,11 @@
   }
  ],
  "quick_entry": 1,
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "sort_field": "creation",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "sort_order": "DESC",
  "states": []
 }

@@ -5,6 +5,7 @@ import re
 from functools import partial
 
 import frappe
+<<<<<<< HEAD
 from frappe.app import make_form_dict
 from frappe.desk.search import get_names_for_mentions, search_link, search_widget
 from frappe.tests.utils import FrappeTestCase
@@ -13,6 +14,13 @@ from frappe.website.serve import get_response
 
 
 class TestSearch(FrappeTestCase):
+=======
+from frappe.desk.search import get_names_for_mentions, search_link, search_widget
+from frappe.tests import IntegrationTestCase
+
+
+class TestSearch(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def setUp(self):
 		if self._testMethodName == "test_link_field_order":
 			setup_test_link_field_order(self)
@@ -165,6 +173,11 @@ class TestSearch(FrappeTestCase):
 		self.assertListEqual(results, [])
 
 	def test_search_relevance(self):
+<<<<<<< HEAD
+=======
+		frappe.db.set_value("Language", {"name": ("like", "e%")}, "enabled", 1)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		search = partial(search_link, doctype="Language", filters=None, page_length=10)
 		for row in search(txt="e"):
 			self.assertTrue(row["value"].startswith("e"))
@@ -249,6 +262,7 @@ def teardown_test_link_field_order(TestCase):
 	)
 
 	TestCase.tree_doc.delete()
+<<<<<<< HEAD
 
 
 class TestWebsiteSearch(FrappeTestCase):
@@ -267,3 +281,5 @@ class TestWebsiteSearch(FrappeTestCase):
 		response = self.get("/search?q=b")
 		self.assertEqual(response.status_code, 200)
 		self.assertIn("Search Results", response.get_data(as_text=True))
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

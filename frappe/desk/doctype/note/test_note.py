@@ -2,18 +2,38 @@
 # License: MIT. See LICENSE
 
 import frappe
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 
 test_records = frappe.get_test_records("Note")
 
 
 class TestNote(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase, UnitTestCase
+
+
+class UnitTestNote(UnitTestCase):
+	"""
+	Unit tests for Note.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestNote(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def insert_note(self):
 		frappe.db.delete("Version")
 		frappe.db.delete("Note")
 		frappe.db.delete("Note Seen By")
 
+<<<<<<< HEAD
 		return frappe.get_doc(dict(doctype="Note", title="test note", content="test note content")).insert()
+=======
+		return frappe.get_doc(doctype="Note", title="test note", content="test note content").insert()
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	def test_version(self):
 		note = self.insert_note()

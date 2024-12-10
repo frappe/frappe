@@ -69,7 +69,11 @@ def update_comment(name, content):
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def get_next(doctype, value, prev, filters=None, sort_order="desc", sort_field="modified"):
+=======
+def get_next(doctype, value, prev, filters=None, sort_order="desc", sort_field="creation"):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	prev = int(prev)
 	if not filters:
 		filters = []

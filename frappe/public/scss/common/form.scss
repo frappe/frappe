@@ -17,7 +17,11 @@
 	}
 	min-height: var(--input-height);
 	border-radius: var(--border-radius-sm);
+<<<<<<< HEAD
 	padding: var(--disabled-input-padding);
+=======
+	padding: 4px 8px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	cursor: default;
 	color: var(--disabled-text-color);
 	background-color: var(--disabled-control-bg);

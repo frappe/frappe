@@ -47,7 +47,10 @@ class PrintFormat(Document):
 		raw_printing: DF.Check
 		show_section_headings: DF.Check
 		standard: DF.Literal["No", "Yes"]
+<<<<<<< HEAD
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	# end: auto-generated types
 
 	def onload(self):

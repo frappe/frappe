@@ -1,6 +1,10 @@
 {
  "charts": [],
+<<<<<<< HEAD
  "content": "[{\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Website\",\"col\":12}},{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Your Shortcuts</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Blog Post\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Blogger\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Web Page\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Web Form\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Website Settings\",\"col\":3}},{\"type\":\"spacer\",\"data\":{\"col\":12}},{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports & Masters</b></span>\",\"col\":12}},{\"type\":\"card\",\"data\":{\"card_name\":\"Setup\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Blog\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Web Site\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Portal\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Knowledge Base\",\"col\":4}}]",
+=======
+ "content": "[{\"id\":\"yq1JKyNTFg\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Web Page\",\"col\":3}},{\"id\":\"5GuZo0uP_K\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Web Form\",\"col\":3}},{\"id\":\"292vrD2W3o\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Blog Post\",\"col\":3}},{\"id\":\"xAkA6ItB7O\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"k8RquSngSk\",\"type\":\"card\",\"data\":{\"card_name\":\"Blog\",\"col\":4}},{\"id\":\"qEHBG-BEBI\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Site\",\"col\":4}},{\"id\":\"oUox7d-8lQ\",\"type\":\"card\",\"data\":{\"card_name\":\"Knowledge Base\",\"col\":4}},{\"id\":\"96xAe0QVaV\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ZvrzvEoYtc\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}},{\"id\":\"FVMFcgsiyK\",\"type\":\"card\",\"data\":{\"card_name\":\"Tracking\",\"col\":4}}]",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "creation": "2020-03-02 14:13:51.089373",
  "custom_blocks": [],
  "docstatus": 0,
@@ -13,6 +17,7 @@
  "label": "Website",
  "links": [
   {
+<<<<<<< HEAD
    "hidden": 0,
    "icon": "setting",
    "is_query_report": 0,
@@ -22,6 +27,8 @@
    "type": "Card Break"
   },
   {
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -120,10 +127,100 @@
   },
   {
    "hidden": 0,
+<<<<<<< HEAD
    "icon": "website",
    "is_query_report": 0,
    "label": "Web Site",
    "link_count": 0,
+=======
+   "icon": "project",
+   "is_query_report": 0,
+   "label": "Knowledge Base",
+   "link_count": 0,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Help Category",
+   "link_count": 0,
+   "link_to": "Help Category",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Help Article",
+   "link_count": 0,
+   "link_to": "Help Article",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Settings",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Website Settings",
+   "link_count": 0,
+   "link_to": "Website Settings",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Website Theme",
+   "link_count": 0,
+   "link_to": "Website Theme",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Website Script",
+   "link_count": 0,
+   "link_to": "Website Script",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Portal Settings",
+   "link_count": 0,
+   "link_to": "Portal Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Web Site",
+   "link_count": 5,
+   "link_type": "DocType",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "onboard": 0,
    "type": "Card Break"
   },
@@ -184,6 +281,7 @@
   },
   {
    "hidden": 0,
+<<<<<<< HEAD
    "icon": "website",
    "is_query_report": 0,
    "label": "Portal",
@@ -208,21 +306,36 @@
    "is_query_report": 0,
    "label": "Knowledge Base",
    "link_count": 0,
+=======
+   "is_query_report": 0,
+   "label": "Tracking",
+   "link_count": 4,
+   "link_type": "DocType",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "onboard": 0,
    "type": "Card Break"
   },
   {
+<<<<<<< HEAD
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Help Category",
    "link_count": 0,
    "link_to": "Help Category",
+=======
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "UTM Source",
+   "link_count": 0,
+   "link_to": "UTM Source",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
   },
   {
+<<<<<<< HEAD
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -235,6 +348,39 @@
   }
  ],
  "modified": "2023-05-24 14:47:23.879036",
+=======
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "UTM Campaign",
+   "link_count": 0,
+   "link_to": "UTM Campaign",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "UTM Medium",
+   "link_count": 0,
+   "link_to": "UTM Medium",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Website Analytics",
+   "link_count": 0,
+   "link_to": "Website Analytics",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2024-09-03 19:31:55.698913",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",
@@ -257,6 +403,7 @@
   },
   {
    "color": "Green",
+<<<<<<< HEAD
    "format": "{} Active",
    "label": "Blogger",
    "link_to": "Blogger",
@@ -265,6 +412,8 @@
   },
   {
    "color": "Green",
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "format": "{} Published",
    "label": "Web Page",
    "link_to": "Web Page",
@@ -275,11 +424,14 @@
    "label": "Web Form",
    "link_to": "Web Form",
    "type": "DocType"
+<<<<<<< HEAD
   },
   {
    "label": "Website Settings",
    "link_to": "Website Settings",
    "type": "DocType"
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   }
  ],
  "title": "Website"

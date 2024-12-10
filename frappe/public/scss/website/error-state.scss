@@ -1,4 +1,5 @@
 .error-page {
+<<<<<<< HEAD
 	margin: 3rem 0;
 	text-align: center;
 
@@ -13,5 +14,28 @@
 
 	.back-to-home {
 		@include get_textstyle("base", "regular");
+=======
+	height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	p,
+	h4 {
+		color: var(--text-light);
+	}
+
+	h4 {
+		text-align: center;
+		margin-top: 0px;
+	}
+
+	.details {
+		border-top: 1px solid var(--border-color);
+		margin-top: var(--margin-md);
+		padding-top: var(--padding-md);
+		max-width: 800px;
+		text-align: center;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 }

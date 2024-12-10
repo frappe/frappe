@@ -31,7 +31,11 @@ def get_user_default(key, user=None):
 				# If no default value is found, use the User Permission value
 				d = user_permission_default
 
+<<<<<<< HEAD
 	value = isinstance(d, list | tuple) and d[0] or d
+=======
+	value = (isinstance(d, list | tuple) and d[0]) or d
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if not_in_user_permission(key, value, user):
 		return
 
@@ -68,7 +72,11 @@ def get_user_default_as_list(key, user=None):
 		else:
 			d = user_defaults.get(frappe.scrub(key), None)
 
+<<<<<<< HEAD
 	d = list(filter(None, (not isinstance(d, list | tuple)) and [d] or d))
+=======
+	d = list(filter(None, ((not isinstance(d, list | tuple)) and [d]) or d))
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	# filter default values if not found in user permission
 	return [value for value in d if not not_in_user_permission(key, value)]
@@ -79,7 +87,11 @@ def is_a_user_permission_key(key):
 
 
 def not_in_user_permission(key, value, user=None):
+<<<<<<< HEAD
 	# returns true or false based on if value exist in user permission
+=======
+	# return true or false based on if value exist in user permission
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	user = user or frappe.session.user
 	user_permission = get_user_permissions(user).get(frappe.unscrub(key)) or []
 
@@ -135,7 +147,11 @@ def add_global_default(key, value):
 def get_global_default(key):
 	d = get_defaults().get(key, None)
 
+<<<<<<< HEAD
 	value = isinstance(d, list | tuple) and d[0] or d
+=======
+	value = (isinstance(d, list | tuple) and d[0]) or d
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if not_in_user_permission(key, value):
 		return
 
@@ -168,6 +184,12 @@ def set_default(key, value, parent, parenttype="__default"):
 	else:
 		_clear_cache(parent)
 
+<<<<<<< HEAD
+=======
+	if parent:
+		clear_defaults_cache(parent)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 def add_default(key, value, parent, parenttype=None):
 	d = frappe.get_doc(

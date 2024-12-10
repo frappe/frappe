@@ -121,7 +121,11 @@ frappe.listview_settings["User Permission"] = {
 						callback: function (r) {
 							if (r.message === 1) {
 								frappe.show_alert({
+<<<<<<< HEAD
 									message: __("User Permissions created sucessfully"),
+=======
+									message: __("User Permissions created successfully"),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 									indicator: "blue",
 								});
 							} else {

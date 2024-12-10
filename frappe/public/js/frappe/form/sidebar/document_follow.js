@@ -87,11 +87,19 @@ frappe.ui.form.DocumentFollow = class DocumentFollow {
 	}
 
 	hide_follow_section() {
+<<<<<<< HEAD
 		this.parent.hide();
 	}
 
 	set_followers() {
 		this.followed_by.removeClass("hidden");
+=======
+		this.parent.addClass("hidden");
+	}
+
+	set_followers() {
+		this.parent.removeClass("hidden");
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		this.followed_by_label.removeClass("hidden");
 		this.followed_by.empty();
 		this.get_followed_user().then((user) => {

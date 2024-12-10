@@ -15,7 +15,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+<<<<<<< HEAD
         version: ["13", "14"]
+=======
+        version: ["14", "15"]
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
     steps:
       - uses: octokit/request-action@v2.x

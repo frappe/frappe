@@ -1,8 +1,11 @@
 # Copyright (c) 2015, Web Notes Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+<<<<<<< HEAD
 
 import cProfile
 import pstats
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 import subprocess  # nosec
 import sys
 from functools import wraps
@@ -20,12 +23,20 @@ click.disable_unicode_literals_warning = True
 def pass_context(f):
 	@wraps(f)
 	def _func(ctx, *args, **kwargs):
+<<<<<<< HEAD
 		profile = ctx.obj["profile"]
 		if profile:
+=======
+		profile = ctx.obj.profile
+		if profile:
+			import cProfile
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			pr = cProfile.Profile()
 			pr.enable()
 
 		try:
+<<<<<<< HEAD
 			ret = f(frappe._dict(ctx.obj), *args, **kwargs)
 		except frappe.exceptions.SiteNotSpecifiedError as e:
 			click.secho(str(e), fg="yellow")
@@ -34,10 +45,24 @@ def pass_context(f):
 			site = ctx.obj.get("sites", "")[0]
 			click.secho(f"Site {site} does not exist!", fg="yellow")
 			sys.exit(1)
+=======
+			ret = f(ctx.obj, *args, **kwargs)
+		except (
+			frappe.exceptions.SiteNotSpecifiedError,
+			frappe.exceptions.IncorrectSitePath,
+			frappe.exceptions.CommandFailedError,
+		) as e:
+			raise click.UsageError(e, ctx) from e
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		if profile:
 			pr.disable()
 			s = StringIO()
+<<<<<<< HEAD
+=======
+			import pstats
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			ps = pstats.Stats(pr, stream=s).sort_stats("cumtime", "tottime", "ncalls")
 			ps.print_stats()
 
@@ -109,6 +134,10 @@ def get_commands():
 	from .redis_utils import commands as redis_commands
 	from .scheduler import commands as scheduler_commands
 	from .site import commands as site_commands
+<<<<<<< HEAD
+=======
+	from .testing import commands as testing_commands
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	from .translate import commands as translate_commands
 	from .utils import commands as utils_commands
 
@@ -116,6 +145,10 @@ def get_commands():
 	all_commands = (
 		scheduler_commands
 		+ site_commands
+<<<<<<< HEAD
+=======
+		+ testing_commands
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		+ translate_commands
 		+ gettext_commands
 		+ utils_commands

@@ -89,6 +89,10 @@
 }
 
 .report-view {
+<<<<<<< HEAD
+=======
+	width: calc(100% - 220px);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	.result {
 		.dt-row:last-child:not(.dt-row-filter) {
 			.dt-cell {
@@ -101,6 +105,17 @@
 .group-by-button {
 	margin: 5px;
 }
+<<<<<<< HEAD
+=======
+
+.btn {
+	.button-label,
+	.button-icon {
+		display: inline-flex;
+		vertical-align: middle;
+	}
+}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 .group-by-icon.active {
 	--icon-stroke: var(--primary);
 }

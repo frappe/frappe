@@ -1,0 +1,64 @@
+{
+ "actions": [],
+ "creation": "2024-04-09 23:41:49.747820",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enable_address_autocompletion",
+  "provider",
+  "base_url",
+  "api_key"
+ ],
+ "fields": [
+  {
+   "fieldname": "provider",
+   "fieldtype": "Select",
+   "label": "Provider",
+   "mandatory_depends_on": "enable_address_autocompletion",
+   "options": "Geoapify\nNomatim\nHERE"
+  },
+  {
+   "depends_on": "eval: [\"Geoapify\", \"HERE\"].includes(doc.provider)",
+   "fieldname": "api_key",
+   "fieldtype": "Password",
+   "label": "API Key",
+   "mandatory_depends_on": "eval: doc.enable_address_autocompletion && [\"Geoapify\", \"HERE\"].includes(doc.provider)"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_address_autocompletion",
+   "fieldtype": "Check",
+   "label": "Enable Address Autocompletion"
+  },
+  {
+   "depends_on": "eval: doc.provider === \"Nomatim\"",
+   "fieldname": "base_url",
+   "fieldtype": "Data",
+   "label": "Base URL",
+   "mandatory_depends_on": "eval: doc.provider === \"Nomatim\" && doc.enable_address_autocompletion",
+   "options": "URL"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-06-22 09:18:34.306542",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Geolocation Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

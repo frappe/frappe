@@ -33,7 +33,11 @@ frappe.ui.form.on("Number Card", {
 	},
 
 	create_add_to_dashboard_button: function (frm) {
+<<<<<<< HEAD
 		frm.add_custom_button("Add Card to Dashboard", () => {
+=======
+		frm.add_custom_button(__("Add Card to Dashboard"), () => {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			const dialog = frappe.dashboard_utils.get_add_to_dashboard_dialog(
 				frm.doc.name,
 				"Number Card",
@@ -292,7 +296,11 @@ frappe.ui.form.on("Number Card", {
 						frm.trigger("render_filters_table");
 					}
 				},
+<<<<<<< HEAD
 				primary_action_label: "Set",
+=======
+				primary_action_label: __("Set"),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			});
 
 			if (is_document_type) {
@@ -384,7 +392,11 @@ frappe.ui.form.on("Number Card", {
 					}
 					frm.trigger("set_dynamic_filters_in_table");
 				},
+<<<<<<< HEAD
 				primary_action_label: "Set",
+=======
+				primary_action_label: __("Set"),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			});
 
 			dialog.show();

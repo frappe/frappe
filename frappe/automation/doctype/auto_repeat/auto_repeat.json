@@ -211,7 +211,11 @@
   }
  ],
  "links": [],
+<<<<<<< HEAD
  "modified": "2021-01-12 09:24:49.719611",
+=======
+ "modified": "2024-03-23 16:01:28.502039",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Auto Repeat",
@@ -255,8 +259,14 @@
   }
  ],
  "search_fields": "reference_document",
+<<<<<<< HEAD
  "sort_field": "modified",
  "sort_order": "DESC",
+=======
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "title_field": "reference_document",
  "track_changes": 1
 }

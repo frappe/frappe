@@ -22,7 +22,11 @@ export default class Tab {
 					href="#${id}"
 					role="tab"
 					aria-controls="${id}">
+<<<<<<< HEAD
 						${__(this.label)}
+=======
+						${__(this.label, null, this.doctype)}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				</a>
 			</li>
 		`).appendTo(this.tab_link_container);
@@ -76,6 +80,10 @@ export default class Tab {
 	add_field(fieldobj) {
 		fieldobj.tab = this;
 	}
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	replace_field(fieldobj) {
 		fieldobj.tab = this;
 	}
@@ -96,7 +104,11 @@ export default class Tab {
 
 	setup_listeners() {
 		this.tab_link.find(".nav-link").on("shown.bs.tab", () => {
+<<<<<<< HEAD
 			this?.frm.set_active_tab?.(this);
+=======
+			this.frm?.set_active_tab?.(this);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		});
 	}
 }

@@ -199,6 +199,7 @@
    "type": "Link"
   },
   {
+<<<<<<< HEAD
     "hidden": 0,
     "is_query_report": 0,
     "label": "Push Notifications",
@@ -217,6 +218,26 @@
     "onboard": 0,
     "type": "Link"
    }
+=======
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Push Notifications",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Push Notification Settings",
+   "link_count": 0,
+   "link_to": "Push Notification Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  ],
  "modified": "2024-02-28 10:47:38.188832",
  "modified_by": "Administrator",

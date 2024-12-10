@@ -3,6 +3,7 @@
 from unittest.mock import patch
 
 import frappe
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_site_url
 
@@ -10,6 +11,15 @@ from frappe.utils import get_site_url
 class TestClient(FrappeTestCase):
 	def test_set_value(self):
 		todo = frappe.get_doc(dict(doctype="ToDo", description="test")).insert()
+=======
+from frappe.tests import IntegrationTestCase
+from frappe.utils import get_site_url
+
+
+class TestClient(IntegrationTestCase):
+	def test_set_value(self):
+		todo = frappe.get_doc(doctype="ToDo", description="test").insert()
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		frappe.set_value("ToDo", todo.name, "description", "test 1")
 		self.assertEqual(frappe.get_value("ToDo", todo.name, "description"), "test 1")
 

@@ -24,4 +24,8 @@ class PortalMenuItem(Document):
 		target: DF.Data | None
 		title: DF.Data
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass

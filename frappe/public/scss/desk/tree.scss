@@ -1,5 +1,18 @@
+<<<<<<< HEAD
 .tree {
 	padding: var(--padding-sm);
+=======
+.treeview {
+	.layout-main-section {
+		max-width: var(--page-max-width);
+		margin: auto;
+	}
+}
+
+.tree {
+	padding: var(--padding-sm);
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	.btn-group {
 		.btn {
 			box-shadow: none;

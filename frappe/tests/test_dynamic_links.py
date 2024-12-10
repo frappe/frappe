@@ -1,10 +1,17 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import frappe
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestDynamicLinks(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase
+
+
+class TestDynamicLinks(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def setUp(self):
 		frappe.db.delete("Email Unsubscribe")
 

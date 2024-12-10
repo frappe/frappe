@@ -8,6 +8,10 @@ frappe.standard_pages["Workspaces"] = function () {
 		parent: wrapper,
 		name: "Workspaces",
 		title: __("Workspace"),
+<<<<<<< HEAD
+=======
+		single_column: true,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	});
 
 	frappe.workspace = new frappe.views.Workspace(wrapper);
@@ -23,17 +27,23 @@ frappe.views.Workspace = class Workspace {
 		this.blocks = frappe.workspace_block.blocks;
 		this.is_read_only = true;
 		this.pages = {};
+<<<<<<< HEAD
 		this.sorted_public_items = [];
 		this.sorted_private_items = [];
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		this.current_page = {};
 		this.sidebar_items = {
 			public: {},
 			private: {},
 		};
+<<<<<<< HEAD
 		this.sidebar_categories = [
 			{ id: "Personal", label: __("Personal", null, "Workspace Category") },
 			{ id: "Public", label: __("Public", null, "Workspace Category") },
 		];
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		this.indicator_colors = [
 			"green",
 			"cyan",
@@ -50,21 +60,34 @@ frappe.views.Workspace = class Workspace {
 		];
 
 		this.prepare_container();
+<<<<<<< HEAD
 		this.setup_pages();
+=======
+		this.sidebar = frappe.app.sidebar;
+		this.sidebar.setup_pages();
+		this.cached_pages = $.extend(true, {}, frappe.boot.sidebar_pages);
+		this.has_access = frappe.boot.sidebar_pages.has_access;
+		this.has_create_access = frappe.boot.sidebar_pages.has_create_access;
+		this.show();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		this.register_awesomebar_shortcut();
 	}
 
 	prepare_container() {
+<<<<<<< HEAD
 		let list_sidebar = $(`
 			<div class="list-sidebar overlay-sidebar hidden-xs hidden-sm">
 				<div class="desk-sidebar list-unstyled sidebar-menu"></div>
 			</div>
 		`).appendTo(this.wrapper.find(".layout-side-section"));
 		this.sidebar = list_sidebar.find(".desk-sidebar");
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		this.body = this.wrapper.find(".layout-main-section");
 		this.prepare_new_and_edit();
 	}
 
+<<<<<<< HEAD
 	async setup_pages(reload) {
 		!this.discard && this.create_page_skeleton();
 		!this.discard && this.create_sidebar_skeleton();
@@ -96,6 +119,14 @@ frappe.views.Workspace = class Workspace {
 
 	prepare_new_and_edit() {
 		this.$page = $(`
+=======
+	prepare_new_and_edit() {
+		this.$page = $(`
+		<div class="workspace-header" style="display: flex; gap: 7px; margin-top: var(--margin-sm);">
+			<div class="workspace-icon"></div>
+			<h4 class="workspace-title"></h4>
+		</div>
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		<div class="editor-js-container"></div>
 		<div class="workspace-footer">
 			<button data-label="New" class="btn btn-default ellipsis btn-new-workspace">
@@ -120,6 +151,7 @@ frappe.views.Workspace = class Workspace {
 		this.body.find(".btn-edit-workspace").on("click", async () => {
 			if (!this.editor || !this.editor.readOnly) return;
 			this.is_read_only = false;
+<<<<<<< HEAD
 			this.toggle_hidden_workspaces(true);
 			await this.editor.readOnly.toggle();
 			this.editor.isReady.then(() => {
@@ -127,12 +159,18 @@ frappe.views.Workspace = class Workspace {
 				this.initialize_editorjs_undo();
 				this.setup_customization_buttons(this._page);
 				this.show_sidebar_actions();
+=======
+			await this.editor.readOnly.toggle();
+			this.editor.isReady.then(() => {
+				this.setup_customization_buttons(this._page);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				this.make_blocks_sortable();
 			});
 		});
 	}
 
 	get_pages() {
+<<<<<<< HEAD
 		return frappe.xcall("frappe.desk.desktop.get_workspace_sidebar_items");
 	}
 
@@ -313,12 +351,23 @@ frappe.views.Workspace = class Workspace {
 
 	show() {
 		if (!this.all_pages) {
+=======
+		return frappe.xcall("frappe.desk.desktop.get_workspace_sidebar_items", null, "GET");
+	}
+
+	show() {
+		if (!this.sidebar.all_pages) {
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			// pages not yet loaded, call again after a bit
 			setTimeout(() => this.show(), 100);
 			return;
 		}
 
 		let page = this.get_page_to_show();
+<<<<<<< HEAD
+=======
+		if (this._page?.name === page.name) return; // already shown
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		if (!frappe.router.current_route[0]) {
 			frappe.route_flags.replace_route = true;
@@ -327,6 +376,7 @@ frappe.views.Workspace = class Workspace {
 		}
 
 		this.page.set_title(__(page.name));
+<<<<<<< HEAD
 		this.update_selected_sidebar(this.current_page, false); //remove selected from old page
 		this.update_selected_sidebar(page, true); //add selected on new page
 		this.show_page(page);
@@ -366,6 +416,20 @@ frappe.views.Workspace = class Workspace {
 		return frappe
 			.call("frappe.desk.desktop.get_desktop_page", {
 				page: page,
+=======
+		this.show_page(page);
+	}
+
+	get_data(page) {
+		return frappe
+			.call({
+				method: "frappe.desk.desktop.get_desktop_page",
+				args: {
+					// send sorted min requirements to increase chance of cache hit
+					page: { name: page.name, title: page.title, public: page.public },
+				},
+				type: "GET",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			})
 			.then((data) => {
 				this.page_data = data.message;
@@ -396,19 +460,36 @@ frappe.views.Workspace = class Workspace {
 
 		if (frappe.boot.user.default_workspace) {
 			default_page = {
+<<<<<<< HEAD
 				name: frappe.boot.user.default_workspace.title,
+=======
+				name: frappe.boot.user.default_workspace.name,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				public: frappe.boot.user.default_workspace.public,
 			};
 		} else if (
 			localStorage.current_page &&
+<<<<<<< HEAD
 			this.all_pages.filter((page) => page.title == localStorage.current_page).length != 0
+=======
+			this.sidebar.all_pages.filter((page) => page.name == localStorage.current_page)
+				.length != 0
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		) {
 			default_page = {
 				name: localStorage.current_page,
 				public: localStorage.is_current_page_public != "false",
 			};
+<<<<<<< HEAD
 		} else if (Object.keys(this.all_pages).length !== 0) {
 			default_page = { name: this.all_pages[0].title, public: this.all_pages[0].public };
+=======
+		} else if (Object.keys(this.sidebar.all_pages).length !== 0) {
+			default_page = {
+				name: this.sidebar.all_pages[0].name,
+				public: this.sidebar.all_pages[0].public,
+			};
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		} else {
 			default_page = { name: "Build", public: true };
 		}
@@ -416,6 +497,10 @@ frappe.views.Workspace = class Workspace {
 		const route = frappe.get_route();
 		const page = (route[1] == "private" ? route[2] : route[1]) || default_page.name;
 		const is_public = route[1] ? route[1] != "private" : default_page.public;
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		return { name: page, public: is_public };
 	}
 
@@ -426,6 +511,7 @@ frappe.views.Workspace = class Workspace {
 			`).appendTo(this.body.find(".editor-js-container"));
 		}
 
+<<<<<<< HEAD
 		if (this.all_pages.length) {
 			this.create_page_skeleton();
 
@@ -435,6 +521,31 @@ frappe.views.Workspace = class Workspace {
 			this._page = current_page;
 			this.content = current_page && JSON.parse(current_page.content);
 
+=======
+		if (this.sidebar.all_pages.length) {
+			this.create_page_skeleton();
+
+			let current_page = this.sidebar.all_pages.find((p) => p.name == page.name);
+			this._page = current_page;
+
+			// set app
+			let app;
+			if (!this._page.public) {
+				app = "private";
+			} else {
+				app = this._page.app;
+				if (!app && this._page.module) {
+					app = frappe.boot.module_app[frappe.router.slug(this._page.module)];
+				}
+				if (!app) app = "frappe";
+			}
+
+			if (typeof current_page.content == "string") {
+				current_page.content = JSON.parse(current_page.content);
+			}
+
+			this.content = current_page.content;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			this.content && this.add_custom_cards_in_content();
 
 			$(".item-anchor").addClass("disable-click");
@@ -449,8 +560,22 @@ frappe.views.Workspace = class Workspace {
 
 			this.prepare_editorjs();
 			$(".item-anchor").removeClass("disable-click");
+<<<<<<< HEAD
 
 			this.remove_page_skeleton();
+=======
+			$(".body-sidebar-container").removeClass("expanded");
+
+			this.remove_page_skeleton();
+			frappe.app.sidebar.set_current_app(app);
+			this.wrapper.find(".workspace-title").html(__(this._page.title));
+			this.wrapper
+				.find(".workspace-icon")
+				.html(frappe.utils.icon(this._page.icon || "folder-normal", "md"));
+
+			localStorage.current_page = current_page.name;
+			localStorage.is_current_page_public = current_page.public ? "true" : "false";
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		}
 	}
 
@@ -477,7 +602,11 @@ frappe.views.Workspace = class Workspace {
 				this.editor.configuration.tools.chart.config.page_data = this.page_data;
 				this.editor.configuration.tools.shortcut.config.page_data = this.page_data;
 				this.editor.configuration.tools.card.config.page_data = this.page_data;
+<<<<<<< HEAD
 				this.editor.configuration.tools.onboarding.config.page_data = this.page_data;
+=======
+				// this.editor.configuration.tools.onboarding.config.page_data = this.page_data;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				this.editor.configuration.tools.quick_list.config.page_data = this.page_data;
 				this.editor.configuration.tools.number_card.config.page_data = this.page_data;
 				this.editor.configuration.tools.custom_block.config.page_data = this.page_data;
@@ -489,8 +618,12 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	setup_actions(page) {
+<<<<<<< HEAD
 		let pages = page.public ? this.public_pages : this.private_pages;
 		let current_page = pages.filter((p) => p.title == page.name)[0];
+=======
+		let current_page = this.sidebar.all_pages.filter((p) => p.name == page.name)[0];
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		if (!this.is_read_only) {
 			this.setup_customization_buttons(current_page);
@@ -503,7 +636,10 @@ frappe.views.Workspace = class Workspace {
 		} else {
 			this.body.find(".btn-edit-workspace").addClass("hide");
 		}
+<<<<<<< HEAD
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		// need to add option for icons in inner buttons as well
 		if (this.has_create_access) {
 			this.body.find(".btn-new-workspace").removeClass("hide");
@@ -522,11 +658,31 @@ frappe.views.Workspace = class Workspace {
 		this.page.clear_primary_action();
 		this.page.clear_secondary_action();
 		this.page.clear_inner_toolbar();
+<<<<<<< HEAD
 	}
 
 	setup_customization_buttons(page) {
 		this.clear_page_actions();
 
+=======
+
+		// switch headers
+		if (!this.body.hasClass("edit-mode")) {
+			this.wrapper.find(".page-head").addClass("hidden");
+			this.wrapper.find(".workspace-header").removeClass("hidden");
+		}
+	}
+
+	setup_customization_buttons(page) {
+		this.body.addClass("edit-mode");
+		this.initialize_editorjs_undo();
+		this.clear_page_actions();
+
+		// switch headers
+		this.wrapper.find(".page-head").removeClass("hidden");
+		this.wrapper.find(".workspace-header").addClass("hidden");
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		page.is_editable &&
 			this.page.set_primary_action(
 				__("Save"),
@@ -546,12 +702,19 @@ frappe.views.Workspace = class Workspace {
 
 		this.page.set_secondary_action(__("Discard"), async () => {
 			this.body.removeClass("edit-mode");
+<<<<<<< HEAD
 			this.discard = true;
 			this.clear_page_actions();
 			this.toggle_hidden_workspaces(false);
 			await this.editor.readOnly.toggle();
 			this.is_read_only = true;
 			this.sidebar_pages = this.cached_pages;
+=======
+			this.clear_page_actions();
+			await this.editor.readOnly.toggle();
+			this.is_read_only = true;
+			frappe.boot.sidebar_pages = this.cached_pages;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			this.reload();
 			frappe.show_alert({ message: __("Customizations Discarded"), indicator: "info" });
 		});
@@ -563,6 +726,7 @@ frappe.views.Workspace = class Workspace {
 		}
 	}
 
+<<<<<<< HEAD
 	toggle_hidden_workspaces(show) {
 		$(".desk-sidebar").toggleClass("show-hidden-workspaces", show);
 	}
@@ -1192,6 +1356,8 @@ frappe.views.Workspace = class Workspace {
 		}
 	}
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	make_blocks_sortable() {
 		let me = this;
 		this.page_sortable = Sortable.create(
@@ -1223,6 +1389,44 @@ frappe.views.Workspace = class Workspace {
 					reqd: 1,
 				},
 				{
+<<<<<<< HEAD
+=======
+					label: __("Type"),
+					fieldtype: "Select",
+					fieldname: "type",
+					options: ["Workspace", "Link", "URL"],
+					reqd: 1,
+					onchange: function () {
+						d.set_df_property("link_type", "hidden", this.get_value() != "Link");
+						d.set_df_property("link_to", "hidden", this.get_value() != "Link");
+					},
+				},
+				{
+					label: __("Link Type"),
+					depends_on: `eval:doc.type=='Link'`,
+					mandatory_depends_on: `eval:doc.type=='Link'`,
+					fieldtype: "Select",
+					fieldname: "link_type",
+					options: ["DocType", "Page", "Report"],
+				},
+				{
+					label: __("Link To"),
+					depends_on: `eval:doc.type=='Link'`,
+					mandatory_depends_on: `eval:doc.type=='Link'`,
+					fieldtype: "Dynamic Link",
+					fieldname: "link_to",
+					options: "link_type",
+				},
+				{
+					label: __("External Link"),
+					depends_on: `eval:doc.type=='URL'`,
+					mandatory_depends_on: `eval:doc.type=='URL'`,
+					fieldtype: "Data",
+					fieldname: "external_link",
+					options: "URL",
+				},
+				{
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					label: __("Parent"),
 					fieldtype: "Select",
 					fieldname: "parent",
@@ -1250,7 +1454,10 @@ frappe.views.Workspace = class Workspace {
 					label: __("Icon"),
 					fieldtype: "Icon",
 					fieldname: "icon",
+<<<<<<< HEAD
 					hidden: 1,
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				},
 				{
 					label: __("Indicator color"),
@@ -1262,10 +1469,17 @@ frappe.views.Workspace = class Workspace {
 			primary_action_label: __("Create"),
 			primary_action: (values) => {
 				values.title = strip_html(values.title);
+<<<<<<< HEAD
 				if (!this.validate_page(values)) return;
 				d.hide();
 				this.initialize_editorjs_undo();
 				this.setup_customization_buttons({ is_editable: true });
+=======
+				d.hide();
+				if (values.type === "Workspace") {
+					this.setup_customization_buttons({ is_editable: true });
+				}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 				let name = values.title + (values.is_public ? "" : "-" + frappe.session.user);
 				let blocks = [
@@ -1287,6 +1501,7 @@ frappe.views.Workspace = class Workspace {
 					parent_page: values.parent || "",
 					is_editable: true,
 					selected: true,
+<<<<<<< HEAD
 				};
 
 				this.editor
@@ -1327,11 +1542,41 @@ frappe.views.Workspace = class Workspace {
 						this.show_sidebar_actions();
 						localStorage.setItem("new_workspace", JSON.stringify(new_page));
 					});
+=======
+					app: frappe.current_app,
+					type: values.type,
+					link_type: values.link_type,
+					link_to: values.link_to,
+					external_link: values.external_link,
+				};
+
+				if (new_page.type !== "Workspace") {
+					this.create_page(new_page);
+				} else {
+					this.editor
+						.render({
+							blocks: blocks,
+						})
+						.then(async () => {
+							if (this.editor.configuration.readOnly) {
+								this.is_read_only = false;
+								await this.editor.readOnly.toggle();
+							}
+
+							this.create_page(new_page).then(() => {
+								let pre_url = new_page.public ? "" : "private/";
+								let route = pre_url + frappe.router.slug(new_page.title);
+								frappe.set_route(route);
+							});
+						});
+				}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			},
 		});
 		d.show();
 	}
 
+<<<<<<< HEAD
 	validate_page(new_page, old_page) {
 		let message = "";
 		let [from_pages, to_pages] = new_page.is_public
@@ -1412,6 +1657,36 @@ frappe.views.Workspace = class Workspace {
 		) {
 			this.sidebar_items[section][item.title] = $sidebar_item;
 		}
+=======
+	create_page(new_page) {
+		return new Promise((resolve) => {
+			frappe.call({
+				method: "frappe.desk.doctype.workspace.workspace.new_page",
+				args: {
+					new_page: new_page,
+				},
+				callback: (r) => {
+					if (r.message) {
+						let message = __("Workspace {0} created", [new_page.title.bold()]);
+						if (!window.Cypress) {
+							frappe.show_alert({
+								message: message,
+								indicator: "green",
+							});
+						}
+						frappe.boot.sidebar_pages = r.message;
+						this.sidebar.setup_pages();
+
+						if (!frappe.boot.app_data_map["private"] && new_page.public === 0) {
+							let app_switcher_menu = $(".app-switcher-menu");
+							this.sidebar.add_private_app(app_switcher_menu);
+						}
+						resolve();
+					}
+				},
+			});
+		});
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 
 	initialize_editorjs(blocks) {
@@ -1489,7 +1764,11 @@ frappe.views.Workspace = class Workspace {
 
 	save_page(page) {
 		let me = this;
+<<<<<<< HEAD
 		this.current_page = { name: page.title, public: page.public };
+=======
+		this.current_page = { name: page.name, public: page.public };
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		return this.editor
 			.save()
@@ -1517,9 +1796,14 @@ frappe.views.Workspace = class Workspace {
 					page.content == JSON.stringify(blocks) &&
 					Object.keys(new_widgets).length === 0
 				) {
+<<<<<<< HEAD
 					this.setup_customization_buttons(page);
 					frappe.show_alert({
 						message: __("No changes made on the page"),
+=======
+					frappe.show_alert({
+						message: __("No changes made"),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 						indicator: "warning",
 					});
 					return false;
@@ -1530,7 +1814,11 @@ frappe.views.Workspace = class Workspace {
 				frappe.call({
 					method: "frappe.desk.doctype.workspace.workspace.save_page",
 					args: {
+<<<<<<< HEAD
 						title: page.title,
+=======
+						name: page.name,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 						public: page.public || 0,
 						new_widgets: new_widgets,
 						blocks: JSON.stringify(blocks),
@@ -1538,10 +1826,17 @@ frappe.views.Workspace = class Workspace {
 					callback: function (res) {
 						if (res.message) {
 							me.discard = true;
+<<<<<<< HEAD
 							me.update_cached_values(page, page);
 							me.reload();
 							frappe.show_alert({
 								message: __("Page Saved Successfully"),
+=======
+							me.reload();
+							if (window.Cypress) return;
+							frappe.show_alert({
+								message: __("Saved"),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 								indicator: "green",
 							});
 						}
@@ -1556,11 +1851,45 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	reload() {
+<<<<<<< HEAD
 		this.sorted_public_items = [];
 		this.sorted_private_items = [];
 		this.setup_pages(true);
 		this.discard = false;
 		this.undo.readOnly = true;
+=======
+		delete this.pages[this._page.name];
+		this._page = null;
+		return this.get_pages().then((r) => {
+			frappe.boot.sidebar_pages = r;
+			this.sidebar.setup_pages();
+			this.show();
+			if (this.undo) this.undo.readOnly = true;
+		});
+	}
+
+	get_parent_pages(page) {
+		this.public_parent_pages = [
+			"",
+			...this.sidebar.all_pages
+				.filter((p) => p.public && !p.parent_page)
+				.map((p) => {
+					return { label: p.title, value: p.name };
+				}),
+		];
+		this.private_parent_pages = [
+			"",
+			...this.sidebar.all_pages
+				.filter((p) => !p.public && !p.parent_page)
+				.map((p) => {
+					return { label: p.title, value: p.name };
+				}),
+		];
+
+		if (page) {
+			return page.public ? this.public_parent_pages : this.private_parent_pages;
+		}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	}
 
 	create_page_skeleton() {
@@ -1575,6 +1904,7 @@ frappe.views.Workspace = class Workspace {
 		this.body.find(".workspace-skeleton").remove();
 	}
 
+<<<<<<< HEAD
 	create_sidebar_skeleton() {
 		if ($(".workspace-sidebar-skeleton").length) return;
 
@@ -1587,6 +1917,8 @@ frappe.views.Workspace = class Workspace {
 		$(".workspace-sidebar-skeleton").remove();
 	}
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	register_awesomebar_shortcut() {
 		"abcdefghijklmnopqrstuvwxyz".split("").forEach((letter) => {
 			const default_shortcut = {

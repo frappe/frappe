@@ -19,14 +19,22 @@
 			</div>
 
 			<div class="flex config-area">
+<<<<<<< HEAD
 				<label v-if="is_optimizable" class="frappe-checkbox"
+=======
+				<label v-if="allow_toggle_optimize" class="frappe-checkbox"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					><input
 						type="checkbox"
 						:checked="optimize"
 						@change="emit('toggle_optimize')"
 					/>{{ __("Optimize") }}</label
 				>
+<<<<<<< HEAD
 				<label class="frappe-checkbox"
+=======
+				<label v-if="allow_toggle_private" class="frappe-checkbox"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 					><input
 						type="checkbox"
 						:checked="file.private"
@@ -79,6 +87,15 @@ let emit = defineEmits(["toggle_optimize", "toggle_private", "toggle_image_cropp
 // props
 const props = defineProps({
 	file: Object,
+<<<<<<< HEAD
+=======
+	allow_toggle_private: {
+		default: true,
+	},
+	allow_toggle_optimize: {
+		default: true,
+	},
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 });
 
 // variables
@@ -98,9 +115,21 @@ let uploaded = computed(() => {
 let is_image = computed(() => {
 	return props.file.file_obj.type.startsWith("image");
 });
+<<<<<<< HEAD
 let is_optimizable = computed(() => {
 	let is_svg = props.file.file_obj.type == "image/svg+xml";
 	return is_image.value && !is_svg && !uploaded.value && !props.file.failed;
+=======
+let allow_toggle_optimize = computed(() => {
+	let is_svg = props.file.file_obj.type == "image/svg+xml";
+	return (
+		props.allow_toggle_optimize &&
+		is_image.value &&
+		!is_svg &&
+		!uploaded.value &&
+		!props.file.failed
+	);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 });
 let is_cropable = computed(() => {
 	let croppable_types = ["image/jpeg", "image/png"];

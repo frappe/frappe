@@ -64,8 +64,13 @@ class WebPage(WebsiteGenerator):
 		text_align: DF.Literal["Left", "Center", "Right"]
 		title: DF.Data
 		website_sidebar: DF.Link | None
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def validate(self):
 		self.validate_dates()
 		self.set_route()
@@ -236,7 +241,11 @@ def check_publish_status():
 
 
 def get_web_blocks_html(blocks):
+<<<<<<< HEAD
 	"""Converts a list of blocks into Raw HTML and extracts out their scripts for deduplication"""
+=======
+	"""Convert a list of blocks into Raw HTML and extract out their scripts for deduplication."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	out = frappe._dict(html="", scripts={}, styles={})
 	extracted_scripts = {}

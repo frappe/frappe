@@ -20,19 +20,34 @@ context("Workspace Blocks", () => {
 		cy.get(".codex-editor__redactor .ce-block");
 		cy.get(".btn-new-workspace").click();
 		cy.fill_field("title", "Test Block Page", "Data");
+<<<<<<< HEAD
+=======
+		cy.fill_field("type", "Workspace", "Select");
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		cy.get_open_dialog().find(".modal-header").click();
 		cy.get_open_dialog().find(".btn-primary").click();
 
 		// check if sidebar item is added in private section
+<<<<<<< HEAD
 		cy.get('.sidebar-item-container[item-name="Test Block Page"]').should(
+=======
+		cy.get('.sidebar-item-container[item-title="Test Block Page"]').should(
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			"have.attr",
 			"item-public",
 			"0"
 		);
+<<<<<<< HEAD
 
 		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
 		cy.wait(300);
 		cy.get('.sidebar-item-container[item-name="Test Block Page"]').should(
+=======
+		cy.wait(300);
+		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
+		cy.wait(300);
+		cy.get('.sidebar-item-container[item-title="Test Block Page"]').should(
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			"have.attr",
 			"item-public",
 			"0"

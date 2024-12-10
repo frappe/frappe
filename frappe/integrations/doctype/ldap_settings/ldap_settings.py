@@ -63,8 +63,13 @@ class LDAPSettings(Document):
 		password: DF.Password
 		require_trusted_certificate: DF.Literal["No", "Yes"]
 		ssl_tls_mode: DF.Literal["Off", "StartTLS"]
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def validate(self):
 		self.default_user_type = self.default_user_type or "Website User"
 
@@ -205,7 +210,11 @@ class LDAPSettings(Document):
 		user.remove_roles(*roles_to_remove)
 
 	def create_or_update_user(self, user_data: dict, groups: list | None = None):
+<<<<<<< HEAD
 		user: "User" = None
+=======
+		user: User = None
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		role: str = None
 
 		if frappe.db.exists("User", user_data["email"]):

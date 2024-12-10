@@ -144,6 +144,10 @@
   {
    "fieldname": "options",
    "fieldtype": "Small Text",
+<<<<<<< HEAD
+=======
+   "ignore_xss_filter": 1,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "in_list_view": 1,
    "label": "Options",
    "oldfieldname": "options",
@@ -187,6 +191,10 @@
   {
    "fieldname": "default",
    "fieldtype": "Text",
+<<<<<<< HEAD
+=======
+   "ignore_xss_filter": 1,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
    "label": "Default Value",
    "oldfieldname": "default",
    "oldfieldtype": "Text"
@@ -500,7 +508,11 @@
   }
  ],
  "search_fields": "dt,label,fieldtype,options",
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "sort_field": "creation",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

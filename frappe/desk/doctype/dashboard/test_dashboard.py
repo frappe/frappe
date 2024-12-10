@@ -1,12 +1,30 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
+<<<<<<< HEAD
 from frappe.config import get_modules_from_all_apps_for_user
 from frappe.core.doctype.user.test_user import test_user
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestDashboard(FrappeTestCase):
+=======
+from frappe.core.doctype.user.test_user import test_user
+from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.utils.modules import get_modules_from_all_apps_for_user
+
+
+class UnitTestDashboard(UnitTestCase):
+	"""
+	Unit tests for Dashboard.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestDashboard(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_permission_query(self):
 		for user in ["Administrator", "test@example.com"]:
 			with self.set_user(user):

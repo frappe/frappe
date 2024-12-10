@@ -165,11 +165,19 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		self.db_type = "mariadb"
 		self.type_map = {
 			"Currency": ("decimal", "21,9"),
+<<<<<<< HEAD
 			"Int": ("int", "11"),
 			"Long Int": ("bigint", "20"),
 			"Float": ("decimal", "21,9"),
 			"Percent": ("decimal", "21,9"),
 			"Check": ("int", "1"),
+=======
+			"Int": ("int", None),
+			"Long Int": ("bigint", "20"),
+			"Float": ("decimal", "21,9"),
+			"Percent": ("decimal", "21,9"),
+			"Check": ("tinyint", None),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			"Small Text": ("text", ""),
 			"Long Text": ("longtext", ""),
 			"Code": ("longtext", ""),
@@ -201,7 +209,11 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		}
 
 	def get_database_size(self):
+<<<<<<< HEAD
 		"""'Returns database size in MB"""
+=======
+		"""Return database size in MB."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		db_size = self.sql(
 			"""
 			SELECT `table_schema` as `database_name`,
@@ -228,7 +240,11 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 	@staticmethod
 	def escape(s, percent=True):
+<<<<<<< HEAD
 		"""Excape quotes and percent in given string."""
+=======
+		"""Escape quotes and percent in given string."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		# Update: We've scrapped PyMySQL in favour of MariaDB's official Python client
 		# Also, given we're promoting use of the PyPika builder via frappe.qb, the use
 		# of this method should be limited.
@@ -292,7 +308,11 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 				`name` VARCHAR(255) NOT NULL,
 				`fieldname` VARCHAR(140) NOT NULL,
 				`password` TEXT NOT NULL,
+<<<<<<< HEAD
 				`encrypted` INT(1) NOT NULL DEFAULT 0,
+=======
+				`encrypted` TINYINT NOT NULL DEFAULT 0,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				PRIMARY KEY (`doctype`, `name`, `fieldname`)
 			) ENGINE=InnoDB ROW_FORMAT=DYNAMIC CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci"""
 		)
@@ -307,7 +327,11 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 				content text,
 				fulltext(content),
 				route varchar({self.VARCHAR_LEN}),
+<<<<<<< HEAD
 				published int(1) not null default 0,
+=======
+				published TINYINT not null default 0,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				unique `doctype_name` (doctype, name))
 				COLLATE=utf8mb4_unicode_ci
 				ENGINE=MyISAM
@@ -325,11 +349,19 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		)
 
 	@staticmethod
+<<<<<<< HEAD
 	def get_on_duplicate_update(key=None):
 		return "ON DUPLICATE key UPDATE "
 
 	def get_table_columns_description(self, table_name):
 		"""Returns list of column and its description"""
+=======
+	def get_on_duplicate_update():
+		return "ON DUPLICATE key UPDATE "
+
+	def get_table_columns_description(self, table_name):
+		"""Return list of columns with descriptions."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		return self.sql(
 			f"""select
 			column_name as 'name',
@@ -344,14 +376,23 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 					and Seq_in_index = 1
 					limit 1
 			), 0) as 'index',
+<<<<<<< HEAD
 			column_key = 'UNI' as 'unique'
+=======
+			column_key = 'UNI' as 'unique',
+			(is_nullable = 'NO') AS 'not_nullable'
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			from information_schema.columns as columns
 			where table_name = '{table_name}' """,
 			as_dict=1,
 		)
 
 	def get_column_type(self, doctype, column):
+<<<<<<< HEAD
 		"""Returns column type from database."""
+=======
+		"""Return column type from database."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		information_schema = frappe.qb.Schema("information_schema")
 		table = get_table_name(doctype)
 
@@ -361,6 +402,10 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			.where(
 				(information_schema.columns.table_name == table)
 				& (information_schema.columns.column_name == column)
+<<<<<<< HEAD
+=======
+				& (information_schema.columns.table_schema == self.cur_db_name)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			)
 			.run(pluck=True)[0]
 		)
@@ -452,7 +497,11 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		return self.sql("SHOW DATABASES", pluck=True)
 
 	def get_tables(self, cached=True):
+<<<<<<< HEAD
 		"""Returns list of tables"""
+=======
+		"""Return list of tables."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		to_query = not cached
 
 		if cached:

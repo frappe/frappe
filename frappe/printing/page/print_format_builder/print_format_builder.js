@@ -49,9 +49,15 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 		this.page.sidebar = $('<div class="print-format-builder-sidebar"></div>').appendTo(
 			this.page.sidebar
 		);
+<<<<<<< HEAD
 		this.page.main = $(
 			'<div class="col-md-12 border print-format-builder-main frappe-card"></div>'
 		).appendTo(this.page.main);
+=======
+		this.page.main = $('<div class="col-md-12 print-format-builder-main"></div>').appendTo(
+			this.page.main
+		);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		// future-bindings for buttons on sections / fields
 		// bind only once
@@ -485,6 +491,14 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 						],
 					},
 					{
+<<<<<<< HEAD
+=======
+						label: __("Hide Label"),
+						fieldname: "nolabel",
+						fieldtype: "Check",
+					},
+					{
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 						label: __("Remove Field"),
 						fieldtype: "Button",
 						click: function () {
@@ -497,10 +511,18 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 			});
 
 			d.set_value("label", field.attr("data-label"));
+<<<<<<< HEAD
+=======
+			d.set_value("nolabel", field.attr("data-nolabel"));
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 			d.set_primary_action(__("Update"), function () {
 				field.attr("data-align", d.get_value("align"));
 				field.attr("data-label", d.get_value("label"));
+<<<<<<< HEAD
+=======
+				field.attr("data-nolabel", d.get_value("nolabel"));
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				field.find(".field-label").html(d.get_value("label"));
 				d.hide();
 			});
@@ -608,6 +630,10 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 			var parent = $(this).parents(".print-format-builder-field:first"),
 				doctype = parent.attr("data-doctype"),
 				label = parent.attr("data-label"),
+<<<<<<< HEAD
+=======
+				nolabel = parent.attr("data-nolabel"),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				columns = parent.attr("data-columns").split(","),
 				column_names = $.map(columns, function (v) {
 					return v.split("|")[0];
@@ -792,6 +818,10 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 								fieldtype = $this.attr("data-fieldtype"),
 								align = $this.attr("data-align"),
 								label = $this.attr("data-label"),
+<<<<<<< HEAD
+=======
+								nolabel = $this.attr("data-nolabel"),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 								df = {
 									fieldname: $this.attr("data-fieldname"),
 									print_hide: 0,
@@ -805,6 +835,13 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 								df.label = label;
 							}
 
+<<<<<<< HEAD
+=======
+							if (cint(nolabel)) {
+								df.nolabel = 1;
+							}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 							if (fieldtype === "Table") {
 								// append the user selected columns to visible_columns
 								var columns = $this.attr("data-columns").split(",");

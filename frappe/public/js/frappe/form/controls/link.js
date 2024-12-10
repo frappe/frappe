@@ -15,7 +15,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			<input type="text" class="input-with-feedback form-control">
 			<span class="link-btn">
 				<a class="btn-clear no-decoration">
+<<<<<<< HEAD
 					${frappe.utils.icon("close-alt", "xs")}
+=======
+					${frappe.utils.icon("close", "xs", "es-icon")}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				</a>
 				<a class="btn-open no-decoration" title="${__("Open Link")}">
 					${frappe.utils.icon("arrow-right", "xs")}
@@ -608,6 +612,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		link_filters.forEach((filter) => {
 			let [_, fieldname, operator, value] = filter;
 			if (value?.startsWith?.("eval:")) {
+<<<<<<< HEAD
+=======
+				// get the value to calculate
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				value = value.split("eval:")[1];
 				let context = {
 					doc: this.doc,

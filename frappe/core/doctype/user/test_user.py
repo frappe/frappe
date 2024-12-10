@@ -22,6 +22,7 @@ from frappe.core.doctype.user.user import (
 from frappe.desk.notifications import extract_mentions
 from frappe.frappeclient import FrappeClient
 from frappe.model.delete_doc import delete_doc
+<<<<<<< HEAD
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import FrappeTestCase, change_settings
 from frappe.utils import get_url
@@ -31,6 +32,25 @@ test_records = frappe.get_test_records("User")
 
 
 class TestUser(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests.test_api import FrappeAPITestCase
+from frappe.utils import get_url
+
+user_module = frappe.core.doctype.user.user
+
+
+class UnitTestUser(UnitTestCase):
+	"""
+	Unit tests for User.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestUser(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def tearDown(self):
 		# disable password strength test
 		frappe.db.set_single_value("System Settings", "enable_password_policy", 0)
@@ -80,7 +100,11 @@ class TestUser(FrappeTestCase):
 			delete_contact("_test@example.com")
 			delete_doc("User", "_test@example.com")
 
+<<<<<<< HEAD
 		user = frappe.copy_doc(test_records[1])
+=======
+		user = frappe.copy_doc(self.globalTestRecords["User"][1])
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		user.email = "_test@example.com"
 		user.insert()
 
@@ -93,9 +117,13 @@ class TestUser(FrappeTestCase):
 			not frappe.db.sql("""select * from `tabToDo` where allocated_to=%s""", ("_test@example.com",))
 		)
 
+<<<<<<< HEAD
 		from frappe.core.doctype.role.test_role import test_records as role_records
 
 		frappe.copy_doc(role_records[1]).insert()
+=======
+		frappe.copy_doc(self.globalTestRecords["Role"][1]).insert()
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	def test_get_value(self):
 		self.assertEqual(frappe.db.get_value("User", "test@example.com"), "test@example.com")
@@ -161,7 +189,11 @@ class TestUser(FrappeTestCase):
 
 	def test_delete_user(self):
 		new_user = frappe.get_doc(
+<<<<<<< HEAD
 			dict(doctype="User", email="test-for-delete@example.com", first_name="Tester Delete User")
+=======
+			doctype="User", email="test-for-delete@example.com", first_name="Tester Delete User"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert(ignore_if_duplicate=True)
 		self.assertEqual(new_user.user_type, "Website User")
 
@@ -279,7 +311,11 @@ class TestUser(FrappeTestCase):
 		"""
 		self.assertListEqual(extract_mentions(comment), ["test@example.com", "test1@example.com"])
 
+<<<<<<< HEAD
 	@change_settings("System Settings", commit=True, password_reset_limit=1)
+=======
+	@IntegrationTestCase.change_settings("System Settings", commit=True, password_reset_limit=1)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_rate_limiting_for_reset_password(self):
 		url = get_url()
 		data = {"cmd": "frappe.core.doctype.user.user.reset_password", "user": "test@test.com"}
@@ -358,7 +394,11 @@ class TestUser(FrappeTestCase):
 				"/signup",
 			)
 
+<<<<<<< HEAD
 	@change_settings("System Settings", password_reset_limit=6)
+=======
+	@IntegrationTestCase.change_settings("System Settings", password_reset_limit=6)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_reset_password(self):
 		from frappe.auth import CookieManager, LoginManager
 		from frappe.utils import set_request
@@ -422,7 +462,11 @@ class TestUser(FrappeTestCase):
 			update_password(old_password, old_password=new_password)
 			self.assertEqual(
 				frappe.message_log[0].get("message"),
+<<<<<<< HEAD
 				"Password reset instructions have been sent to your email",
+=======
+				f"Password reset instructions have been sent to {test_user.full_name}'s email",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			)
 
 		sendmail.assert_called_once()
@@ -433,8 +477,13 @@ class TestUser(FrappeTestCase):
 		self.assertEqual(reset_password(user="random"), "not found")
 
 	def test_user_onload_modules(self):
+<<<<<<< HEAD
 		from frappe.config import get_modules_from_all_apps
 		from frappe.desk.form.load import getdoc
+=======
+		from frappe.desk.form.load import getdoc
+		from frappe.utils.modules import get_modules_from_all_apps
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		frappe.response.docs = []
 		getdoc("User", "Administrator")
@@ -444,7 +493,11 @@ class TestUser(FrappeTestCase):
 			sorted(m.get("module_name") for m in get_modules_from_all_apps()),
 		)
 
+<<<<<<< HEAD
 	@change_settings("System Settings", reset_password_link_expiry_duration=1)
+=======
+	@IntegrationTestCase.change_settings("System Settings", reset_password_link_expiry_duration=1)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_reset_password_link_expiry(self):
 		new_password = "new_password"
 		frappe.set_user("testpassword@example.com")

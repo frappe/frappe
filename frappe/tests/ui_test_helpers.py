@@ -7,7 +7,11 @@ UI_TEST_USER = "frappe@example.com"
 
 
 def whitelist_for_tests(fn):
+<<<<<<< HEAD
 	if frappe.request and not (frappe.flags.in_test or getattr(frappe.local, "dev_server", 0)):
+=======
+	if frappe.request and not frappe.flags.in_test and not getattr(frappe.local, "dev_server", 0):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		frappe.throw("Cannot run UI tests. Use a development server with `bench start`")
 
 	return frappe.whitelist()(fn)
@@ -130,6 +134,10 @@ def create_doctype(name, fields):
 			"doctype": "DocType",
 			"module": "Core",
 			"custom": 1,
+<<<<<<< HEAD
+=======
+			"autoname": "autoincrement",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			"fields": fields,
 			"permissions": [{"role": "System Manager", "read": 1}],
 			"name": name,
@@ -449,6 +457,11 @@ def create_test_user(username=None):
 
 	user.save()
 
+<<<<<<< HEAD
+=======
+	frappe.db.set_single_value("Workspace Settings", "workspace_setup_completed", 1)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 @whitelist_for_tests
 def setup_tree_doctype():

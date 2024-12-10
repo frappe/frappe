@@ -37,8 +37,13 @@ class EnergyPointLog(Document):
 		seen: DF.Check
 		type: DF.Literal["Auto", "Appreciation", "Criticism", "Review", "Revert"]
 		user: DF.Link
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def validate(self):
 		self.map_milestone_reference()
 		if self.type in ["Appreciation", "Criticism"] and self.user == self.owner:

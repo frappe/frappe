@@ -137,7 +137,11 @@ frappe.ui.form.on("Workflow", {
 		};
 
 		frappe.warn(
+<<<<<<< HEAD
 			__("Worflow States Don't Exist"),
+=======
+			__("Workflow States Don't Exist"),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			message_html,
 			proceed_action,
 			__("Save Anyway")

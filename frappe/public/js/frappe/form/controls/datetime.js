@@ -37,7 +37,11 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 	}
 	parse(value) {
 		if (value) {
+<<<<<<< HEAD
 			value = frappe.datetime.user_to_str(value, false);
+=======
+			value = this.eval_expression(value, "datetime");
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 			if (!frappe.datetime.is_system_time_zone()) {
 				value = frappe.datetime.convert_to_system_tz(value, true);

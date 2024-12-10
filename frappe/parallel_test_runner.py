@@ -6,13 +6,24 @@ import signal
 import sys
 import time
 import unittest
+<<<<<<< HEAD
+=======
+import warnings
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 import click
 import requests
 
 import frappe
+<<<<<<< HEAD
 
 from .test_runner import SLOW_TEST_THRESHOLD, make_test_records
+=======
+from frappe.tests.utils import make_test_records
+
+from .testing.environment import _decorate_all_methods_and_functions_with_type_checker
+from .testing.result import TestResult
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 click_ctx = click.get_current_context(True)
 if click_ctx:
@@ -26,11 +37,26 @@ class ParallelTestRunner:
 		self.build_number = frappe.utils.cint(build_number) or 1
 		self.total_builds = frappe.utils.cint(total_builds)
 		self.dry_run = dry_run
+<<<<<<< HEAD
 		self.setup_test_site()
 		self.run_tests()
 
 	def setup_test_site(self):
 		frappe.init(site=self.site)
+=======
+		self.test_file_list = []
+		self.total_tests = 0
+		self.test_result = None
+		self.setup_test_file_list()
+
+	def setup_and_run(self):
+		self.setup_test_site()
+		self.run_tests()
+		self.print_result()
+
+	def setup_test_site(self):
+		frappe.init(self.site)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		if not frappe.db:
 			frappe.connect()
 
@@ -40,6 +66,10 @@ class ParallelTestRunner:
 		frappe.flags.in_test = True
 		frappe.clear_cache()
 		frappe.utils.scheduler.disable_scheduler()
+<<<<<<< HEAD
+=======
+		_decorate_all_methods_and_functions_with_type_checker()
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		self.before_test_setup()
 
 	def before_test_setup(self):
@@ -57,6 +87,7 @@ class ParallelTestRunner:
 		elapsed = click.style(f" ({elapsed:.03}s)", fg="red")
 		click.echo(f"Before Test {elapsed}")
 
+<<<<<<< HEAD
 	def run_tests(self):
 		self.test_result = ParallelTestResult(stream=sys.stderr, descriptions=True, verbosity=2)
 
@@ -65,6 +96,19 @@ class ParallelTestRunner:
 
 		self.print_result()
 
+=======
+	def setup_test_file_list(self):
+		self.test_file_list = self.get_test_file_list()
+		self.total_tests = sum(self.get_test_count(test) for test in self.test_file_list)
+		click.echo(f"Estimated total tests for build {self.build_number}: {self.total_tests}")
+
+	def run_tests(self):
+		self.test_result = TestResult(stream=sys.stderr, descriptions=True, verbosity=2)
+
+		for test_file_info in self.test_file_list:
+			self.run_tests_for_file(test_file_info)
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def run_tests_for_file(self, file_info):
 		if not file_info:
 			return
@@ -73,6 +117,7 @@ class ParallelTestRunner:
 			print("running tests from", "/".join(file_info))
 			return
 
+<<<<<<< HEAD
 		frappe.set_user("Administrator")
 		path, filename = file_info
 		module = self.get_module(path, filename)
@@ -96,6 +141,28 @@ class ParallelTestRunner:
 					doc = json.loads(f.read())
 					doctype = doc["name"]
 					make_test_records(doctype, commit=True)
+=======
+		if frappe.session.user != "Administrator":
+			from frappe.deprecation_dumpster import deprecation_warning
+
+			deprecation_warning(
+				"2024-11-13",
+				"v17",
+				"Setting the test environment user to 'Administrator' by the test runner is deprecated. The UnitTestCase now ensures a consistent user environment on set up and tear down at the class level. ",
+			)
+			frappe.set_user("Administrator")
+		path, filename = file_info
+		module = self.get_module(path, filename)
+		from frappe.deprecation_dumpster import compat_preload_test_records_upfront
+
+		compat_preload_test_records_upfront([(module, path, filename)])
+		test_suite = unittest.TestSuite()
+		module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
+		test_suite.addTest(module_test_cases)
+		self.test_result.startTestRun()
+		test_suite(self.test_result)
+		self.test_result.stopTestRun()
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	def get_module(self, path, filename):
 		app_path = frappe.get_app_path(self.app)
@@ -165,6 +232,7 @@ def split_by_weight(work, weights, chunk_count):
 	return chunks
 
 
+<<<<<<< HEAD
 class ParallelTestResult(unittest.TextTestResult):
 	def startTest(self, test):
 		self.tb_locals = True
@@ -225,6 +293,12 @@ def get_all_tests(app):
 	test_file_list = []
 	for path, folders, files in os.walk(frappe.get_app_path(app)):
 		for dontwalk in ("locals", ".git", "public", "__pycache__"):
+=======
+def get_all_tests(app):
+	test_file_list = []
+	for path, folders, files in os.walk(frappe.get_app_path(app)):
+		for dontwalk in ("node_modules", "locals", ".git", "public", "__pycache__"):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			if dontwalk in folders:
 				folders.remove(dontwalk)
 

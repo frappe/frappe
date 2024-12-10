@@ -173,8 +173,11 @@ def get_all_translations(lang: str) -> dict[str, str]:
 	try:
 		return frappe.cache.hget(MERGED_TRANSLATION_KEY, lang, generator=_merge_translations)
 	except Exception:
+<<<<<<< HEAD
 		if frappe.flags and frappe.flags.in_test:
 			raise
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		# People mistakenly call translation function on global variables
 		# where locals are not initialized, translations don't make much sense there
 		frappe.logger().error("Unable to load translations", exc_info=True)
@@ -372,7 +375,11 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 	else:
 		fixtures = frappe.get_hooks("fixtures", app_name=app_name) or []
 		for fixture in fixtures:
+<<<<<<< HEAD
 			if isinstance(fixture, str) and fixture == "Worflow":
+=======
+			if isinstance(fixture, str) and fixture == "Workflow":
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 				workflows = frappe.get_all("Workflow")
 				break
 			elif isinstance(fixture, dict) and fixture.get("dt", fixture.get("doctype")) == "Workflow":
@@ -483,8 +490,13 @@ def get_messages_from_report(name):
 	)
 
 	if report.columns:
+<<<<<<< HEAD
 		context = (
 			"Column of report '%s'" % report.name
+=======
+		context = "Column of report '{}'".format(
+			report.name
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		)  # context has to match context in `prepare_columns` in query_report.js
 		messages.extend([(None, report_column.label, context) for report_column in report.columns])
 

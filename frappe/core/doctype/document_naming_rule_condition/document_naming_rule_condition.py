@@ -21,4 +21,8 @@ class DocumentNamingRuleCondition(Document):
 		parenttype: DF.Data
 		value: DF.Data
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass

@@ -7,13 +7,58 @@ from unittest.mock import patch
 from dateutil.relativedelta import relativedelta
 
 import frappe
+<<<<<<< HEAD
 from frappe.desk.doctype.dashboard_chart.dashboard_chart import get
 from frappe.tests.utils import FrappeTestCase
+=======
+from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.desk.doctype.dashboard_chart.dashboard_chart import get
+from frappe.tests import IntegrationTestCase, UnitTestCase
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.utils import formatdate, get_last_day, getdate
 from frappe.utils.dateutils import get_period, get_period_ending
 
 
+<<<<<<< HEAD
 class TestDashboardChart(FrappeTestCase):
+=======
+class UnitTestDashboardChart(UnitTestCase):
+	"""
+	Unit tests for DashboardChart.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestDashboardChart(IntegrationTestCase):
+	def setUp(self):
+		doc = new_doctype(
+			fields=[
+				{
+					"fieldname": "title",
+					"fieldtype": "Text",
+					"label": "Title",
+					"reqd": 1,  # mandatory
+				},
+				{
+					"fieldname": "number",
+					"fieldtype": "Int",
+					"label": "Number",
+					"reqd": 1,  # mandatory
+				},
+				{
+					"fieldname": "date",
+					"fieldtype": "Date",
+					"label": "Date",
+					"reqd": 1,  # mandatory
+				},
+			],
+		)
+		doc.insert()
+		self.doctype_name = doc.name
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_period_ending(self):
 		self.assertEqual(get_period_ending("2019-04-10", "Daily"), getdate("2019-04-10"))
 
@@ -34,6 +79,7 @@ class TestDashboardChart(FrappeTestCase):
 			frappe.delete_doc("Dashboard Chart", "Test Dashboard Chart")
 
 		frappe.get_doc(
+<<<<<<< HEAD
 			dict(
 				doctype="Dashboard Chart",
 				chart_name="Test Dashboard Chart",
@@ -45,6 +91,17 @@ class TestDashboardChart(FrappeTestCase):
 				filters_json="{}",
 				timeseries=1,
 			)
+=======
+			doctype="Dashboard Chart",
+			chart_name="Test Dashboard Chart",
+			chart_type="Count",
+			document_type="DocType",
+			based_on="creation",
+			timespan="Last Year",
+			time_interval="Monthly",
+			filters_json="{}",
+			timeseries=1,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert()
 
 		cur_date = datetime.now() - relativedelta(years=1)
@@ -64,6 +121,7 @@ class TestDashboardChart(FrappeTestCase):
 		frappe.db.delete("Error Log")
 
 		frappe.get_doc(
+<<<<<<< HEAD
 			dict(
 				doctype="Dashboard Chart",
 				chart_name="Test Empty Dashboard Chart",
@@ -75,6 +133,17 @@ class TestDashboardChart(FrappeTestCase):
 				filters_json="[]",
 				timeseries=1,
 			)
+=======
+			doctype="Dashboard Chart",
+			chart_name="Test Empty Dashboard Chart",
+			chart_type="Count",
+			document_type="Error Log",
+			based_on="creation",
+			timespan="Last Year",
+			time_interval="Monthly",
+			filters_json="[]",
+			timeseries=1,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert()
 
 		cur_date = datetime.now() - relativedelta(years=1)
@@ -94,6 +163,7 @@ class TestDashboardChart(FrappeTestCase):
 		frappe.db.delete("Error Log")
 
 		# create one data point
+<<<<<<< HEAD
 		frappe.get_doc(dict(doctype="Error Log", creation="2018-06-01 00:00:00")).insert()
 
 		frappe.get_doc(
@@ -108,6 +178,20 @@ class TestDashboardChart(FrappeTestCase):
 				filters_json="[]",
 				timeseries=1,
 			)
+=======
+		frappe.get_doc(doctype="Error Log", creation="2018-06-01 00:00:00").insert()
+
+		frappe.get_doc(
+			doctype="Dashboard Chart",
+			chart_name="Test Empty Dashboard Chart 2",
+			chart_type="Count",
+			document_type="Error Log",
+			based_on="creation",
+			timespan="Last Year",
+			time_interval="Monthly",
+			filters_json="[]",
+			timeseries=1,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert()
 
 		cur_date = datetime.now() - relativedelta(years=1)
@@ -130,6 +214,7 @@ class TestDashboardChart(FrappeTestCase):
 		frappe.get_doc({"doctype": "ToDo", "description": "test"}).insert()
 
 		frappe.get_doc(
+<<<<<<< HEAD
 			dict(
 				doctype="Dashboard Chart",
 				chart_name="Test Group By Dashboard Chart",
@@ -138,6 +223,14 @@ class TestDashboardChart(FrappeTestCase):
 				group_by_based_on="status",
 				filters_json="[]",
 			)
+=======
+			doctype="Dashboard Chart",
+			chart_name="Test Group By Dashboard Chart",
+			chart_type="Group By",
+			document_type="ToDo",
+			group_by_based_on="status",
+			filters_json="[]",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert()
 
 		result = get(chart_name="Test Group By Dashboard Chart", refresh=1)
@@ -146,12 +239,17 @@ class TestDashboardChart(FrappeTestCase):
 		self.assertEqual(result.get("datasets")[0].get("values")[0], todo_status_count)
 
 	def test_daily_dashboard_chart(self):
+<<<<<<< HEAD
 		insert_test_records()
+=======
+		insert_test_records(self.doctype_name)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		if frappe.db.exists("Dashboard Chart", "Test Daily Dashboard Chart"):
 			frappe.delete_doc("Dashboard Chart", "Test Daily Dashboard Chart")
 
 		frappe.get_doc(
+<<<<<<< HEAD
 			dict(
 				doctype="Dashboard Chart",
 				chart_name="Test Daily Dashboard Chart",
@@ -166,6 +264,20 @@ class TestDashboardChart(FrappeTestCase):
 				filters_json="[]",
 				timeseries=1,
 			)
+=======
+			doctype="Dashboard Chart",
+			chart_name="Test Daily Dashboard Chart",
+			chart_type="Sum",
+			document_type=self.doctype_name,
+			based_on="date",
+			value_based_on="number",
+			timespan="Select Date Range",
+			time_interval="Daily",
+			from_date=datetime(2019, 1, 6),
+			to_date=datetime(2019, 1, 11),
+			filters_json="[]",
+			timeseries=1,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert()
 
 		result = get(chart_name="Test Daily Dashboard Chart", refresh=1)
@@ -177,12 +289,17 @@ class TestDashboardChart(FrappeTestCase):
 		)
 
 	def test_weekly_dashboard_chart(self):
+<<<<<<< HEAD
 		insert_test_records()
+=======
+		insert_test_records(self.doctype_name)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		if frappe.db.exists("Dashboard Chart", "Test Weekly Dashboard Chart"):
 			frappe.delete_doc("Dashboard Chart", "Test Weekly Dashboard Chart")
 
 		frappe.get_doc(
+<<<<<<< HEAD
 			dict(
 				doctype="Dashboard Chart",
 				chart_name="Test Weekly Dashboard Chart",
@@ -197,6 +314,20 @@ class TestDashboardChart(FrappeTestCase):
 				filters_json="[]",
 				timeseries=1,
 			)
+=======
+			doctype="Dashboard Chart",
+			chart_name="Test Weekly Dashboard Chart",
+			chart_type="Sum",
+			document_type=self.doctype_name,
+			based_on="date",
+			value_based_on="number",
+			timespan="Select Date Range",
+			time_interval="Weekly",
+			from_date=datetime(2018, 12, 30),
+			to_date=datetime(2019, 1, 15),
+			filters_json="[]",
+			timeseries=1,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert()
 
 		with patch.object(frappe.utils.data, "get_first_day_of_the_week", return_value="Monday"):
@@ -206,12 +337,17 @@ class TestDashboardChart(FrappeTestCase):
 			self.assertEqual(result.get("labels"), ["12-30-2018", "01-06-2019", "01-13-2019", "01-20-2019"])
 
 	def test_avg_dashboard_chart(self):
+<<<<<<< HEAD
 		insert_test_records()
+=======
+		insert_test_records(self.doctype_name)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		if frappe.db.exists("Dashboard Chart", "Test Average Dashboard Chart"):
 			frappe.delete_doc("Dashboard Chart", "Test Average Dashboard Chart")
 
 		frappe.get_doc(
+<<<<<<< HEAD
 			dict(
 				doctype="Dashboard Chart",
 				chart_name="Test Average Dashboard Chart",
@@ -226,6 +362,20 @@ class TestDashboardChart(FrappeTestCase):
 				filters_json="[]",
 				timeseries=1,
 			)
+=======
+			doctype="Dashboard Chart",
+			chart_name="Test Average Dashboard Chart",
+			chart_type="Average",
+			document_type=self.doctype_name,
+			based_on="date",
+			value_based_on="number",
+			timespan="Select Date Range",
+			time_interval="Weekly",
+			from_date=datetime(2018, 12, 30),
+			to_date=datetime(2019, 1, 15),
+			filters_json="[]",
+			timeseries=1,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert()
 
 		with patch.object(frappe.utils.data, "get_first_day_of_the_week", return_value="Monday"):
@@ -237,6 +387,7 @@ class TestDashboardChart(FrappeTestCase):
 		frappe.delete_doc_if_exists("Dashboard Chart", "Test Dashboard Chart Date Label")
 
 		frappe.get_doc(
+<<<<<<< HEAD
 			dict(
 				doctype="Dashboard Chart",
 				chart_name="Test Dashboard Chart Date Label",
@@ -250,6 +401,19 @@ class TestDashboardChart(FrappeTestCase):
 				filters_json="[]",
 				timeseries=1,
 			)
+=======
+			doctype="Dashboard Chart",
+			chart_name="Test Dashboard Chart Date Label",
+			chart_type="Count",
+			document_type="DocType",
+			based_on="creation",
+			timespan="Select Date Range",
+			time_interval="Weekly",
+			from_date=datetime(2018, 12, 30),
+			to_date=datetime(2019, 1, 15),
+			filters_json="[]",
+			timeseries=1,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert()
 
 		with patch.object(frappe.utils.data, "get_user_date_format", return_value="dd.mm.yyyy"):
@@ -261,6 +425,7 @@ class TestDashboardChart(FrappeTestCase):
 			self.assertEqual(sorted(result.get("labels")), sorted(["01-19-2019", "01-05-2019", "01-12-2019"]))
 
 
+<<<<<<< HEAD
 def insert_test_records():
 	create_new_communication("Communication 1", datetime(2018, 12, 30), 50)
 	create_new_communication("Communication 2", datetime(2019, 1, 4), 100)
@@ -280,3 +445,24 @@ def create_new_communication(subject, date, rating):
 	comm = frappe.get_doc(communication)
 	if not frappe.db.exists("Communication", {"subject": comm.subject}):
 		comm.insert()
+=======
+def insert_test_records(doctype_name):
+	create_new_record(doctype_name, "Title 1", datetime(2018, 12, 30), 50)
+	create_new_record(doctype_name, "Title 2", datetime(2019, 1, 4), 100)
+	create_new_record(doctype_name, "Title 3", datetime(2019, 1, 6), 200)
+	create_new_record(doctype_name, "Title 4", datetime(2019, 1, 7), 400)
+	create_new_record(doctype_name, "Title 5", datetime(2019, 1, 8), 300)
+	create_new_record(doctype_name, "Title 6", datetime(2019, 1, 10), 100)
+
+
+def create_new_record(doctype_name, title, date, number):
+	doc = {
+		"doctype": doctype_name,
+		"title": title,
+		"date": date,
+		"number": number,
+	}
+	doc = frappe.get_doc(doc)
+	if not frappe.db.exists(doctype_name, {"title": doc.title}):
+		doc.insert(ignore_mandatory=True)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

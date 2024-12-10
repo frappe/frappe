@@ -1,4 +1,8 @@
 {
+<<<<<<< HEAD
+=======
+ "actions": [],
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "allow_rename": 1,
  "autoname": "Prompt",
  "creation": "2019-02-16 17:37:27.918909",
@@ -17,7 +21,12 @@
    "reqd": 1
   }
  ],
+<<<<<<< HEAD
  "modified": "2019-11-28 17:26:49.068372",
+=======
+ "links": [],
+ "modified": "2024-03-23 16:04:03.714438",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Route Meta",
@@ -37,7 +46,15 @@
   }
  ],
  "quick_entry": 1,
+<<<<<<< HEAD
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1
 }
+=======
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

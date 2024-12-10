@@ -3,6 +3,10 @@
 		title="{{ __("Hidden") }}"{% } %}
 	data-fieldname="{%= field.fieldname %}"
 	data-label="{{ __(field.label, context=field.parent) }}"
+<<<<<<< HEAD
+=======
+	data-nolabel="{%= field.nolabel ? 1 : 0 %}"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	{% if field.align %}data-align="{{ field.align }}"{% endif %}
 	data-fieldtype="{%= field.fieldtype %}"
@@ -10,7 +14,11 @@
 		data-columns="{%= me.get_visible_columns_string(field) %}"
 		data-doctype="{%= field.options %}"
 	{% } %}>
+<<<<<<< HEAD
 	{% if !in_list(["Table", "HTML", "Custom HTML"], field.fieldtype) %}
+=======
+	{% if !["Table", "HTML", "Custom HTML"].includes(field.fieldtype) %}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	<a class="field-settings pull-right">
 		<span>
 			<svg class="icon icon-sm"><use href="#icon-setting-gear"></use></svg>

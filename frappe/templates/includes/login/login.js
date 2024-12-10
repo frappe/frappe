@@ -13,7 +13,10 @@ login.bind_events = function () {
 		login.route();
 	});
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	$(".form-login").on("submit", function (event) {
 		event.preventDefault();
 		var args = {};
@@ -300,6 +303,7 @@ login.login_handlers = (function () {
 frappe.ready(function () {
 
 	login.bind_events();
+<<<<<<< HEAD
 
 	if (!window.location.hash) {
 		window.location.hash = "#login";
@@ -307,6 +311,8 @@ frappe.ready(function () {
 		$(window).trigger("hashchange");
 	}
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if (window.show_footer_on_login) {
 		$("body .web-footer").show();
 	}
@@ -394,4 +400,8 @@ var continue_email = function (setup, prompt) {
 	}
 }
 
+<<<<<<< HEAD
 login.route();
+=======
+login.route();
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

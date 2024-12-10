@@ -2,13 +2,31 @@
 # License: MIT. See LICENSE
 
 import frappe
+<<<<<<< HEAD
 from frappe.test_runner import make_test_records
 from frappe.tests.utils import FrappeTestCase
+=======
+from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests.utils import make_test_records
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 TEST_DOCTYPE = "Assignment Test"
 
 
+<<<<<<< HEAD
 class TestAutoAssign(FrappeTestCase):
+=======
+class UnitTestAssignmentRule(UnitTestCase):
+	"""
+	Unit tests for AssignmentRule.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestAutoAssign(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
@@ -249,6 +267,7 @@ class TestAutoAssign(FrappeTestCase):
 		frappe.db.delete("Assignment Rule")
 
 		assignment_rule = frappe.get_doc(
+<<<<<<< HEAD
 			dict(
 				name="Assignment with Due Date",
 				doctype="Assignment Rule",
@@ -260,6 +279,17 @@ class TestAutoAssign(FrappeTestCase):
 					dict(user="test@example.com"),
 				],
 			)
+=======
+			name="Assignment with Due Date",
+			doctype="Assignment Rule",
+			document_type=TEST_DOCTYPE,
+			assign_condition="public == 0",
+			due_date_based_on="expiry_date",
+			assignment_days=self.days,
+			users=[
+				dict(user="test@example.com"),
+			],
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		).insert()
 
 		expiry_date = frappe.utils.add_days(frappe.utils.nowdate(), 2)
@@ -351,6 +381,7 @@ def get_assignment_rule(days, assign=None):
 		assign = ["public == 1", "notify_on_login == 1"]
 
 	assignment_rule = frappe.get_doc(
+<<<<<<< HEAD
 		dict(
 			name=f"For {TEST_DOCTYPE} 1",
 			doctype="Assignment Rule",
@@ -367,12 +398,29 @@ def get_assignment_rule(days, assign=None):
 				dict(user="test2@example.com"),
 			],
 		)
+=======
+		name=f"For {TEST_DOCTYPE} 1",
+		doctype="Assignment Rule",
+		priority=0,
+		document_type=TEST_DOCTYPE,
+		assign_condition=assign[0],
+		unassign_condition="public == 0 or notify_on_login == 1",
+		close_condition='"Closed" in content',
+		rule="Round Robin",
+		assignment_days=days[0],
+		users=[
+			dict(user="test@example.com"),
+			dict(user="test1@example.com"),
+			dict(user="test2@example.com"),
+		],
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	).insert()
 
 	frappe.delete_doc_if_exists("Assignment Rule", f"For {TEST_DOCTYPE} 2")
 
 	# 2nd rule
 	frappe.get_doc(
+<<<<<<< HEAD
 		dict(
 			name=f"For {TEST_DOCTYPE} 2",
 			doctype="Assignment Rule",
@@ -384,6 +432,17 @@ def get_assignment_rule(days, assign=None):
 			assignment_days=days[1],
 			users=[dict(user="test3@example.com")],
 		)
+=======
+		name=f"For {TEST_DOCTYPE} 2",
+		doctype="Assignment Rule",
+		priority=1,
+		document_type=TEST_DOCTYPE,
+		assign_condition=assign[1],
+		unassign_condition="notify_on_login == 0",
+		rule="Round Robin",
+		assignment_days=days[1],
+		users=[dict(user="test3@example.com")],
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	).insert()
 
 	return assignment_rule

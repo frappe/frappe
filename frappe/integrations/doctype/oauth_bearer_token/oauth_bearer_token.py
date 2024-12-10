@@ -22,8 +22,13 @@ class OAuthBearerToken(Document):
 		scopes: DF.Text | None
 		status: DF.Literal["Active", "Revoked"]
 		user: DF.Link | None
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def validate(self):
 		if not self.expiration_time:
 			self.expiration_time = frappe.utils.datetime.datetime.strptime(

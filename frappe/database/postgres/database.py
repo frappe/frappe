@@ -2,6 +2,10 @@ import re
 
 import psycopg2
 import psycopg2.extensions
+<<<<<<< HEAD
+=======
+from psycopg2 import sql
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from psycopg2.errorcodes import (
 	CLASS_INTEGRITY_CONSTRAINT_VIOLATION,
 	DEADLOCK_DETECTED,
@@ -130,7 +134,11 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		self.db_type = "postgres"
 		self.type_map = {
 			"Currency": ("decimal", "21,9"),
+<<<<<<< HEAD
 			"Int": ("bigint", None),
+=======
+			"Int": ("int", None),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			"Long Int": ("bigint", None),
 			"Float": ("decimal", "21,9"),
 			"Percent": ("decimal", "21,9"),
@@ -169,10 +177,26 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def last_query(self):
 		return LazyDecode(self._cursor.query)
 
+<<<<<<< HEAD
 	def get_connection(self):
 		conn_settings = {
 			"user": self.user,
 			"dbname": self.cur_db_name,
+=======
+	@property
+	def db_schema(self):
+		return frappe.conf.get("db_schema", "public").replace("'", "").replace('"', "")
+
+	def connect(self):
+		super().connect()
+
+		self._cursor.execute("SET search_path TO %s", (self.db_schema,))
+
+	def get_connection(self):
+		conn_settings = {
+			"dbname": self.cur_db_name,
+			"user": self.user,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			# libpg defaults to default socket if not specified
 			"host": self.host or self.socket,
 		}
@@ -209,12 +233,22 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		return str(psycopg2.extensions.QuotedString(s))
 
 	def get_database_size(self):
+<<<<<<< HEAD
 		"""'Returns database size in MB"""
+=======
+		"""Return database size in MB"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		db_size = self.sql(
 			"SELECT (pg_database_size(%s) / 1024 / 1024) as database_size", self.cur_db_name, as_dict=True
 		)
 		return db_size[0].get("database_size")
 
+<<<<<<< HEAD
+=======
+	def _transform_result(self, result: list[tuple] | tuple[tuple]) -> tuple[tuple]:
+		return tuple(result) if isinstance(result, list) else result
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	# pylint: disable=W0221
 	def sql(self, query, values=EmptyQueryValues, *args, **kwargs):
 		return super().sql(modify_query(query), modify_values(values), *args, **kwargs)
@@ -228,12 +262,43 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			for d in self.sql(
 				"""select table_name
 			from information_schema.tables
+<<<<<<< HEAD
 			where table_catalog='{}'
 				and table_type = 'BASE TABLE'
 				and table_schema='{}'""".format(self.cur_db_name, frappe.conf.get("db_schema", "public"))
 			)
 		]
 
+=======
+			where table_catalog=%s
+				and table_type = 'BASE TABLE'
+				and table_schema=%s""",
+				(self.cur_db_name, self.db_schema),
+			)
+		]
+
+	def get_db_table_columns(self, table) -> list[str]:
+		"""Returns list of column names from given table."""
+		if (columns := frappe.cache.hget("table_columns", table)) is not None:
+			return columns
+
+		information_schema = frappe.qb.Schema("information_schema")
+
+		columns = (
+			frappe.qb.from_(information_schema.columns)
+			.select(information_schema.columns.column_name)
+			.where(
+				(information_schema.columns.table_name == table)
+				& (information_schema.columns.table_schema == self.db_schema)
+			)
+			.run(pluck=True)
+		)
+
+		frappe.cache.hset("table_columns", table, columns)
+
+		return columns
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def format_date(self, date):
 		if not date:
 			return "0001-01-01"
@@ -260,7 +325,11 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def describe(self, doctype: str) -> list | tuple:
 		table_name = get_table_name(doctype)
 		return self.sql(
+<<<<<<< HEAD
 			f"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = '{table_name}'"
+=======
+			f"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = '{table_name}' and table_schema='{frappe.conf.get('db_schema', 'public')}'"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		)
 
 	def change_column_type(
@@ -336,7 +405,11 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			db_table.validate()
 
 			db_table.sync()
+<<<<<<< HEAD
 			self.begin()
+=======
+			self.commit()
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	@staticmethod
 	def get_on_duplicate_update(key="name"):
@@ -349,8 +422,15 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 	def has_index(self, table_name, index_name):
 		return self.sql(
+<<<<<<< HEAD
 			f"""SELECT 1 FROM pg_indexes WHERE tablename='{table_name}'
 			and indexname='{index_name}' limit 1"""
+=======
+			"""SELECT 1 FROM pg_indexes WHERE tablename=%s
+			and schemaname = %s
+			and indexname=%s limit 1""",
+			(table_name, self.db_schema, index_name),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		)
 
 	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
@@ -360,7 +440,13 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		index_name = index_name or self.get_index_name(fields)
 		fields_str = '", "'.join(re.sub(r"\(.*\)", "", field) for field in fields)
 
+<<<<<<< HEAD
 		self.sql_ddl(f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{table_name}` ("{fields_str}")')
+=======
+		self.sql_ddl(
+			f'CREATE INDEX IF NOT EXISTS "{index_name}" ON "{self.db_schema}"."{table_name}" ("{fields_str}")'
+		)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	def add_unique(self, doctype, fields, constraint_name=None):
 		if isinstance(fields, str):
@@ -374,6 +460,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			FROM information_schema.TABLE_CONSTRAINTS
 			WHERE table_name=%s
 			AND constraint_type='UNIQUE'
+<<<<<<< HEAD
 			AND CONSTRAINT_NAME=%s""",
 			("tab" + doctype, constraint_name),
 		):
@@ -385,6 +472,30 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 	def get_table_columns_description(self, table_name):
 		"""Returns list of column and its description"""
+=======
+			AND constraint_schema=%s
+			AND CONSTRAINT_NAME=%s""",
+			("tab" + doctype, self.db_schema, constraint_name),
+		):
+			self.commit()
+
+			self.sql(
+				sql.SQL(
+					"""ALTER TABLE {schema}.{table}
+					ADD CONSTRAINT {constraint} UNIQUE ({fields})"""
+				)
+				.format(
+					schema=sql.Identifier(self.db_schema),
+					table=sql.Identifier("tab" + doctype),
+					constraint=sql.Identifier(constraint_name),
+					fields=sql.SQL(", ").join(sql.Identifier(field) for field in fields),
+				)
+				.as_string(self._conn)
+			)
+
+	def get_table_columns_description(self, table_name):
+		"""Return list of columns with description."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		# pylint: disable=W1401
 		return self.sql(
 			f"""
@@ -396,23 +507,40 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			END AS type,
 			BOOL_OR(b.index) AS index,
 			SPLIT_PART(COALESCE(a.column_default, NULL), '::', 1) AS default,
+<<<<<<< HEAD
 			BOOL_OR(b.unique) AS unique
+=======
+			BOOL_OR(b.unique) AS unique,
+			COALESCE(a.is_nullable = 'NO', false) AS not_nullable
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			FROM information_schema.columns a
 			LEFT JOIN
 				(SELECT indexdef, tablename,
 					indexdef LIKE '%UNIQUE INDEX%' AS unique,
 					indexdef NOT LIKE '%UNIQUE INDEX%' AS index
 					FROM pg_indexes
+<<<<<<< HEAD
 					WHERE tablename='{table_name}') b
 				ON SUBSTRING(b.indexdef, '(.*)') LIKE CONCAT('%', a.column_name, '%')
 			WHERE a.table_name = '{table_name}'
 			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length;
+=======
+					WHERE tablename='{table_name}' AND schemaname='{self.db_schema}') b
+				ON SUBSTRING(b.indexdef, '(.*)') LIKE CONCAT('%', a.column_name, '%')
+			WHERE a.table_name = '{table_name}'
+				AND a.table_schema = '{self.db_schema}'
+			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length, a.is_nullable;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		""",
 			as_dict=1,
 		)
 
 	def get_column_type(self, doctype, column):
+<<<<<<< HEAD
 		"""Returns column type from database."""
+=======
+		"""Return column type from database."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		information_schema = frappe.qb.Schema("information_schema")
 		table = get_table_name(doctype)
 
@@ -422,6 +550,10 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			.where(
 				(information_schema.columns.table_name == table)
 				& (information_schema.columns.column_name == column)
+<<<<<<< HEAD
+=======
+				& (information_schema.columns.table_schema == self.db_schema)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			)
 			.run(pluck=True)[0]
 		)

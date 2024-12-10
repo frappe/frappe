@@ -108,7 +108,11 @@
  "in_create": 1,
  "is_virtual": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2024-01-13 10:38:40.230972",
+=======
+ "modified": "2024-03-23 16:03:37.325708",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "RQ Job",
@@ -135,7 +139,11 @@
    "share": 1
   }
  ],
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "sort_field": "creation",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "sort_order": "DESC",
  "states": [
   {

@@ -21,7 +21,11 @@
 			href="{{ favicon or "/assets/frappe/images/frappe-favicon.svg" }}" type="image/x-icon">
 		<link rel="icon"
 			href="{{ favicon or "/assets/frappe/images/frappe-favicon.svg" }}" type="image/x-icon">
+<<<<<<< HEAD
 		{% for include in include_css -%}
+=======
+		{% for include in app_include_css -%}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		{{ include_style(include) }}
 		{%- endfor -%}
 
@@ -56,6 +60,7 @@
 			frappe.csrf_token = "{{ csrf_token }}";
 
 
+<<<<<<< HEAD
 			{%- for path in include_icons -%}
 			fetch(`/assets/{{ path }}?v=${window._version_number}`, { credentials: "same-origin" })
 				.then((r) => r.text())
@@ -67,6 +72,15 @@
 		</script>
 
 	{% for include in include_js %}
+=======
+		</script>
+
+		{%- for path in app_include_icons -%}
+		{{ include_icons(path) }}
+		{%- endfor -%}
+
+	{% for include in app_include_js %}
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	{{ include_script(include) }}
 	{% endfor %}
 

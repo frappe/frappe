@@ -127,6 +127,9 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	margin-left: auto;
 	background-color: white;
 	box-shadow: var(--shadow-lg);
+<<<<<<< HEAD
 	border-radius: var(--border-radius);
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 }
 </style>

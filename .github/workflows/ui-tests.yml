@@ -2,6 +2,11 @@ name: UI
 
 on:
   pull_request:
+<<<<<<< HEAD
+=======
+  repository_dispatch:
+    types: [frappe-framework-change]
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
   workflow_dispatch:
   schedule:
     # Run everday at midnight UTC / 5:30 IST
@@ -17,7 +22,11 @@ permissions:
 
 jobs:
   checkrun:
+<<<<<<< HEAD
     name: Build Check
+=======
+    name: Plan Tests
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
     runs-on: ubuntu-latest
 
     outputs:
@@ -38,6 +47,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   test:
+<<<<<<< HEAD
     runs-on: ubuntu-latest
     needs: checkrun
     if: ${{ needs.checkrun.outputs.build == 'strawberry' && github.repository_owner == 'frappe' }}
@@ -160,3 +170,41 @@ jobs:
     steps:
       - name: Pass skipped tests unconditionally
         run: "echo Skipped"
+=======
+    name: Tests (Cypress)
+    uses: frappe/frappe/.github/workflows/_base-ui-tests.yml@develop
+    with:
+      parallel-runs: 3
+      enable-coverage: ${{ github.event_name != 'pull_request' }}
+      fake-success: ${{ needs.checkrun.outputs.build != 'strawberry' }}
+    needs: checkrun
+
+  coverage:
+    name: Coverage Wrap Up
+    needs: [test, checkrun]
+    if: ${{ github.event_name != 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone
+        uses: actions/checkout@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4.1.8
+      - name: Upload python coverage data
+        uses: codecov/codecov-action@v5
+        with:
+          name: UIBackend
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          verbose: true
+          exclude: coverage-js*
+          flags: server-ui
+      - name: Upload JS coverage data
+        uses: codecov/codecov-action@v5
+        with:
+          name: Cypress
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          exclude: coverage-py*
+          verbose: true
+          flags: ui-tests
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

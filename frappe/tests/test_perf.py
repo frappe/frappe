@@ -16,6 +16,10 @@ query. This test can be written like this.
 >>> 		get_controller("User")
 
 """
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 import gc
 import sys
 import time
@@ -27,9 +31,15 @@ import frappe
 from frappe.frappeclient import FrappeClient
 from frappe.model.base_document import get_controller
 from frappe.query_builder.utils import db_type_is
+<<<<<<< HEAD
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils import FrappeTestCase
+=======
+from frappe.tests import IntegrationTestCase
+from frappe.tests.test_api import FrappeAPITestCase
+from frappe.tests.test_query_builder import run_only_if
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.utils import cint
 from frappe.website.path_resolver import PathResolver
 
@@ -37,11 +47,19 @@ TEST_USER = "test@example.com"
 
 
 @run_only_if(db_type_is.MARIADB)
+<<<<<<< HEAD
 class TestPerformance(FrappeTestCase):
 	def reset_request_specific_caches(self):
 		# To simulate close to request level of handling
 		frappe.destroy()  # releases everything on frappe.local
 		frappe.init(site=self.TEST_SITE)
+=======
+class TestPerformance(IntegrationTestCase):
+	def reset_request_specific_caches(self):
+		# To simulate close to request level of handling
+		frappe.destroy()  # releases everything on frappe.local
+		frappe.init(self.TEST_SITE)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		frappe.connect()
 		frappe.clear_cache()
 

@@ -30,4 +30,8 @@ class UserDocumentType(Document):
 		submit: DF.Check
 		write: DF.Check
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass

@@ -313,6 +313,10 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 		let value = this.quill ? this.quill.root.innerHTML : "";
 		// hack to retain space sequence.
 		value = value.replace(/(\s)(\s)/g, " &nbsp;");
+<<<<<<< HEAD
+=======
+		value = this.patch_unordered_list(value);
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 		try {
 			if (!$(value).find(".ql-editor").length) {
@@ -325,6 +329,36 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 		return value;
 	}
 
+<<<<<<< HEAD
+=======
+	patch_unordered_list(value) {
+		/*
+		Quill uses the <ol> element for ordered AND unordered lists. Unordered
+		lists are identified by the data-list attribute. This creates problems
+		when cleaning up the html and the style of the list is lost.
+
+		To fix this, we convert the unordered lists to <ul> elements.
+		*/
+		const valueElement = document.createElement("div");
+		valueElement.innerHTML = value;
+
+		const firstBulletLiElements = valueElement.querySelectorAll(
+			"ol li[data-list=bullet]:first-child"
+		);
+		firstBulletLiElements.forEach((li) => {
+			const parent = li.parentNode;
+			const children = Array.from(parent.children);
+			const ul = document.createElement("ul");
+			children.forEach((child) => {
+				ul.appendChild(child);
+			});
+			parent.parentNode.replaceChild(ul, parent);
+		});
+
+		return valueElement.innerHTML;
+	}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	set_focus() {
 		this.quill.focus();
 	}

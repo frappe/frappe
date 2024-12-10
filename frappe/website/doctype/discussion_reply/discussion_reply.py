@@ -17,8 +17,13 @@ class DiscussionReply(Document):
 
 		reply: DF.TextEditor | None
 		topic: DF.Link | None
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def on_update(self):
 		frappe.publish_realtime(
 			event="update_message",

@@ -25,8 +25,13 @@ class Translation(Document):
 		language: DF.Link
 		source_text: DF.Code
 		translated_text: DF.Code
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def validate(self):
 		if is_html(self.source_text):
 			self.remove_html_from_source()

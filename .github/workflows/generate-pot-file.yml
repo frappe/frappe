@@ -1,6 +1,9 @@
+<<<<<<< HEAD
 # This workflow is agnostic to branches. Only maintain on develop branch.
 # To add/remove branches just modify the matrix.
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 name: Regenerate POT file (translatable strings)
 on:
   schedule:
@@ -15,7 +18,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+<<<<<<< HEAD
         branch: ["version-15-hotfix"]
+=======
+        branch: ["develop"]
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
     permissions:
       contents: write
 
@@ -28,7 +35,11 @@ jobs:
         - name: Setup Python
           uses: actions/setup-python@v5
           with:
+<<<<<<< HEAD
             python-version: "3.12"
+=======
+            python-version: "3.13"
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
         - name: Run script to update POT file
           run: |

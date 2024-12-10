@@ -36,7 +36,11 @@
  ],
  "in_create": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2023-08-28 22:32:51.465521",
+=======
+ "modified": "2024-03-23 16:03:29.075357",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List Filter",
@@ -56,7 +60,11 @@
   }
  ],
  "read_only": 1,
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "sort_field": "creation",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "sort_order": "DESC",
  "states": []
 }

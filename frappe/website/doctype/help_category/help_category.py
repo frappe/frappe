@@ -2,7 +2,11 @@
 # License: MIT. See LICENSE
 
 import frappe
+<<<<<<< HEAD
 from frappe.website.doctype.help_article.help_article import clear_cache
+=======
+from frappe.website.doctype.help_article.help_article import clear_knowledge_base_cache
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.website.website_generator import WebsiteGenerator
 
 
@@ -21,6 +25,10 @@ class HelpCategory(WebsiteGenerator):
 		published: DF.Check
 		route: DF.Data | None
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	website = frappe._dict(condition_field="published", page_title_field="category_name")
 
 	def before_insert(self):
@@ -41,5 +49,11 @@ class HelpCategory(WebsiteGenerator):
 		if not self.route:
 			self.route = "kb/" + self.scrub(self.category_name)
 
+<<<<<<< HEAD
 	def on_update(self):
 		clear_cache()
+=======
+	def clear_cache(self):
+		clear_knowledge_base_cache()
+		return super().clear_cache()
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)

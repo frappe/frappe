@@ -1,17 +1,38 @@
 {% from "frappe/templates/includes/avatar_macro.html" import avatar %}
 {% extends "templates/web.html" %}
+<<<<<<< HEAD
+=======
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 {% block title %}
 {{ _("My Account") }}
 {% endblock %}
 {% block page_content %}
+<<<<<<< HEAD
 <div class="my-account-container">
 <h3 class="my-account-header">{{_("My Account") }}</h3>
 <div class="row account-info d-flex flex-column">
 	<div class="col d-flex justify-content-between align-items-center">
+=======
+<style>
+	body {
+		background-color: var(--subtle-fg);
+		font-size: var(--text-base);
+	}
+</style>
+
+<div class="portal-container">
+	<div class="portal-section head">
+		<div class="title">{{_("Settings")}}</div>
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		<div>
 			<span class="my-account-avatar">
 				{{avatar(current_user.name)}}
 			</span>
+<<<<<<< HEAD
 			<span class="my-account-name ml-4">
 				{{current_user.full_name }}
 			</span>
@@ -24,11 +45,27 @@
 						</use>
 					</svg>
 					<span class="item-link-text pl-2">
+=======
+			<span class="my-account-name ml-2">
+				{{current_user.full_name }}
+			</span>
+		</div>
+	</div>
+	<div class="portal-items">
+		<div class="portal-section">
+			<span class="my-account-item-link">
+				<a href="/update-profile/{{ user }}">
+					<svg class="edit-profile-icon icon icon-md">
+						<use href="#icon-edit"></use>
+					</svg>
+					<span class="item-link-text">
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 						{{_("Edit Profile") }}
 					</span>
 				</a>
 			</span>
 		</div>
+<<<<<<< HEAD
 	</div>
 	<div class="col d-flex justify-content-between align-items-center">
 		<span>
@@ -78,5 +115,50 @@
 	</div>
 	{% endif %}
 </div>
+=======
+
+		<div class="portal-section">
+			<span class="my-account-item-link">
+				<a href="/update-password">
+					<svg class="right-icon icon icon-md"><use href="#icon-lock"></use></svg>
+					<span class="item-link-text">{{_("Reset Password") }}</span>
+				</a>
+			</span>
+		</div>
+		<div class="portal-section">
+			<span class="my-account-item-link">
+				<a href="/third_party_apps">
+					<svg class="right-icon icon icon-md"><use href="#icon-web"></use></svg>
+					<span class="item-link-text">{{_("Manage 3rd party apps") }}</span>
+				</a>
+			</span>
+		</div>
+		<!-- {% if frappe.db.get_single_value("Website Settings", "show_account_deletion_link") %} -->
+		<div class="d-flex justify-content-between align-items-center">
+			<span class="my-account-item-link">
+				<a href="/request-for-account-deletion?new=1">
+					<svg class="right-icon es-icon icon-md"><use href="#icon-delete"></use></svg>
+					<span class="item-link-text">{{_("Delete Account") }}</span>
+				</a>
+			</span>
+		</div>
+		<!-- {% endif %} -->
+	</div>
+</div>
+
+<div class="portal-footer">
+	<a href="/">
+		<svg class="right-icon icon icon-md"><use href="#icon-home"></use></svg>
+		{{ _("Home") }}
+	</a>
+	<a href="/apps">
+		<svg class="right-icon icon icon-md"><use href="#icon-grid"></use></svg>
+		{{ _("Apps") }}
+	</a>
+	<a href="/logout">
+		<svg class="right-icon icon icon-md"><use href="#icon-logout"></use></svg>
+		{{ _("Logout") }}
+	</a>
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 </div>
 {% endblock %}

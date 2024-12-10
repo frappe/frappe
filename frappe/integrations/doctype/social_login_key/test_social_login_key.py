@@ -7,14 +7,31 @@ from rauth import OAuth2Service
 import frappe
 from frappe.auth import CookieManager, LoginManager
 from frappe.integrations.doctype.social_login_key.social_login_key import BaseUrlNotSetError
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase, change_settings
+=======
+from frappe.tests import IntegrationTestCase, UnitTestCase
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.utils import set_request
 from frappe.utils.oauth import login_via_oauth2
 
 TEST_GITHUB_USER = "githublogin@example.com"
 
 
+<<<<<<< HEAD
 class TestSocialLoginKey(FrappeTestCase):
+=======
+class UnitTestSocialLoginKey(UnitTestCase):
+	"""
+	Unit tests for SocialLoginKey.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestSocialLoginKey(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def setUp(self) -> None:
 		frappe.set_user("Administrator")
 		frappe.delete_doc("User", TEST_GITHUB_USER, force=True)
@@ -72,7 +89,11 @@ class TestSocialLoginKey(FrappeTestCase):
 			login_via_oauth2("github", "iwriu", {"token": "ewrwerwer"})
 		self.assertEqual(frappe.session.user, "Guest")
 
+<<<<<<< HEAD
 	@change_settings("Website Settings", disable_signup=1)
+=======
+	@IntegrationTestCase.change_settings("Website Settings", disable_signup=1)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_force_enabled_signups(self):
 		"""Social login key can override website settings for disabled signups."""
 		key = github_social_login_setup()

@@ -10,7 +10,11 @@ frappe.ui.form.ControlCheck = class ControlCheck extends frappe.ui.form.ControlD
 					<span class="label-area"></span>
 					<span class="ml-1 help"></span>
 				</label>
+<<<<<<< HEAD
 				<p class="help-box small text-muted"></p>
+=======
+				<p class="help-box small text-extra-muted"></p>
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			</div>
 		</div>`).appendTo(this.parent);
 	}

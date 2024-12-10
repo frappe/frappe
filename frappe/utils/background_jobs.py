@@ -6,10 +6,18 @@ from collections import defaultdict
 from collections.abc import Callable
 from contextlib import suppress
 from functools import lru_cache
+<<<<<<< HEAD
+=======
+from threading import Thread
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from typing import Any, NoReturn
 from uuid import uuid4
 
 import redis
+<<<<<<< HEAD
+=======
+import setproctitle
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from redis.exceptions import BusyLoadingError, ConnectionError
 from rq import Callback, Queue, Worker
 from rq.exceptions import NoSuchJobError
@@ -24,7 +32,10 @@ import frappe.monitor
 from frappe import _
 from frappe.utils import CallbackManager, cint, get_bench_id
 from frappe.utils.commands import log
+<<<<<<< HEAD
 from frappe.utils.deprecations import deprecation_warning
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.utils.redis_queue import RedisQueue
 
 # TTL to keep RQ job logs in redis for.
@@ -37,7 +48,16 @@ _redis_queue_conn = None
 
 
 @lru_cache
+<<<<<<< HEAD
 def get_queues_timeout():
+=======
+def get_queues_timeout() -> dict[str, int]:
+	"""
+	Method returning a mapping of queue name to timeout for that queue
+
+	:return: Dictionary of queue name to timeout
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	common_site_config = frappe.get_conf()
 	custom_workers_config = common_site_config.get("workers", {})
 	default_timeout = 300
@@ -58,7 +78,11 @@ def enqueue(
 	method: str | Callable,
 	queue: str = "default",
 	timeout: int | None = None,
+<<<<<<< HEAD
 	event=None,
+=======
+	event: str | None = None,
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	is_async: bool = True,
 	job_name: str | None = None,
 	now: bool = False,
@@ -79,8 +103,19 @@ def enqueue(
 	:param timeout: should be set according to the functions
 	:param event: this is passed to enable clearing of jobs from queues
 	:param is_async: if is_async=False, the method is executed immediately, else via a worker
+<<<<<<< HEAD
 	:param job_name: [DEPRECATED] can be used to name an enqueue call, which can be used to prevent duplicate calls
 	:param now: if now=True, the method is executed via frappe.call
+=======
+	:param job_name: [DEPRECATED] can be used to name an enqueue call, which can be used to prevent
+	duplicate calls
+	:param now: if now=True, the method is executed via frappe.call()
+	:param enqueue_after_commit: if True, the job will be enqueued after the current transaction is
+	committed
+	:param on_success: Success callback
+	:param on_failure: Failure callback
+	:param at_front: Enqueue the job at the front of the queue or not
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	:param kwargs: keyword arguments to be passed to the method
 	:param deduplicate: do not re-queue job if it's already queued, requires job_id.
 	:param job_id: Assigning unique job id, which can be checked using `is_job_enqueued`
@@ -106,11 +141,27 @@ def enqueue(
 	job_id = create_job_id(job_id)
 
 	if job_name:
+<<<<<<< HEAD
 		deprecation_warning("Using enqueue with `job_name` is deprecated, use `job_id` instead.")
 
 	if not is_async and not frappe.flags.in_test:
 		deprecation_warning(
 			"Using enqueue with is_async=False outside of tests is not recommended, use now=True instead."
+=======
+		from frappe.deprecation_dumpster import deprecation_warning
+
+		deprecation_warning(
+			"unknown", "v17", "Using enqueue with `job_name` is deprecated, use `job_id` instead."
+		)
+
+	if not is_async and not frappe.flags.in_test:
+		from frappe.deprecation_dumpster import deprecation_warning
+
+		deprecation_warning(
+			"unknown",
+			"v17",
+			"Using enqueue with is_async=False outside of tests is not recommended, use now=True instead.",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		)
 
 	call_directly = now or (not is_async and not frappe.flags.in_test)
@@ -150,9 +201,15 @@ def enqueue(
 
 	def enqueue_call():
 		return q.enqueue_call(
+<<<<<<< HEAD
 			execute_job,
 			on_success=Callback(func=on_success) if on_success else None,
 			on_failure=Callback(func=on_failure) if on_failure else None,
+=======
+			"frappe.utils.background_jobs.execute_job",
+			on_success=Callback(func=on_success) if on_success else None,
+			on_failure=Callback(func=on_failure),
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			timeout=timeout,
 			kwargs=queue_args,
 			at_front=at_front,
@@ -191,7 +248,11 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	retval = None
 
 	if is_async:
+<<<<<<< HEAD
 		frappe.init(site=site)
+=======
+		frappe.init(site)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		frappe.connect()
 		if os.environ.get("CI"):
 			frappe.flags.in_test = True
@@ -205,6 +266,12 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	else:
 		method_name = f"{method.__module__}.{method.__qualname__}"
 
+<<<<<<< HEAD
+=======
+	actual_func_name = kwargs.get("job_type") if "run_scheduled_job" in method_name else method_name
+	setproctitle.setproctitle(f"rq: Started running {actual_func_name} at {time.time()}")
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	frappe.local.job = frappe._dict(
 		site=site,
 		method=method_name,
@@ -240,9 +307,16 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 			frappe.log_error(title=method_name)
 			raise
 
+<<<<<<< HEAD
 	except Exception:
 		frappe.db.rollback()
 		frappe.log_error(title=method_name)
+=======
+	except Exception as e:
+		frappe.db.rollback()
+		frappe.log_error(title=method_name)
+		frappe.monitor.add_data_to_monitor(exception=e.__class__.__name__)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		frappe.db.commit()
 		print(frappe.get_traceback())
 		raise
@@ -267,7 +341,11 @@ def start_worker(
 	rq_password: str | None = None,
 	burst: bool = False,
 	strategy: DequeueStrategy | None = DequeueStrategy.DEFAULT,
+<<<<<<< HEAD
 ) -> None:  # pragma: no cover
+=======
+) -> NoReturn:  # pragma: no cover
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	"""Wrapper to start rq worker. Connects to redis and monitors these queues."""
 
 	if not strategy:
@@ -303,6 +381,26 @@ def start_worker(
 	)
 
 
+<<<<<<< HEAD
+=======
+class FrappeWorker(Worker):
+	def work(self, *args, **kwargs):
+		self.start_frappe_scheduler()
+		kwargs["with_scheduler"] = False  # Always disable RQ scheduler
+		return super().work(*args, **kwargs)
+
+	def run_maintenance_tasks(self, *args, **kwargs):
+		"""Attempt to start a scheduler in case the worker doing scheduling died."""
+		self.start_frappe_scheduler()
+		return super().run_maintenance_tasks(*args, **kwargs)
+
+	def start_frappe_scheduler(self):
+		from frappe.utils.scheduler import start_scheduler
+
+		Thread(target=start_scheduler, daemon=True).start()
+
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 def start_worker_pool(
 	queue: str | None = None,
 	num_workers: int = 1,
@@ -319,8 +417,14 @@ def start_worker_pool(
 	# If gc.freeze is done then importing modules before forking allows us to share the memory
 	import frappe.database.query  # sqlparse and indirect imports
 	import frappe.query_builder  # pypika
+<<<<<<< HEAD
 	import frappe.utils.data  # common utils
 	import frappe.utils.safe_exec
+=======
+	import frappe.utils  # common utils
+	import frappe.utils.safe_exec
+	import frappe.utils.scheduler
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	import frappe.utils.typing_validations  # any whitelisted method uses this
 	import frappe.website.path_resolver  # all the page types and resolver
 
@@ -347,6 +451,10 @@ def start_worker_pool(
 		queues=queues,
 		connection=redis_connection,
 		num_workers=num_workers,
+<<<<<<< HEAD
+=======
+		worker_class=FrappeWorker,  # Auto starts scheduler with workerpool
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	)
 	pool.start(logging_level=logging_level, burst=burst)
 
@@ -409,7 +517,11 @@ def get_queue_list(queue_list=None, build_queue_name=False):
 
 
 def get_workers(queue=None):
+<<<<<<< HEAD
 	"""Returns a list of Worker objects tied to a queue object if queue is passed, else returns a list of all workers"""
+=======
+	"""Return a list of Worker objects tied to a queue object if queue is passed, else return a list of all workers."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if queue:
 		return Worker.all(queue=queue)
 	else:
@@ -417,7 +529,11 @@ def get_workers(queue=None):
 
 
 def get_running_jobs_in_queue(queue):
+<<<<<<< HEAD
 	"""Returns a list of Jobs objects that are tied to a queue object and are currently running"""
+=======
+	"""Return a list of Jobs objects that are tied to a queue object and are currently running."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	jobs = []
 	workers = get_workers(queue)
 	for worker in workers:
@@ -427,13 +543,35 @@ def get_running_jobs_in_queue(queue):
 	return jobs
 
 
+<<<<<<< HEAD
 def get_queue(qtype, is_async=True):
 	"""Returns a Queue object tied to a redis connection"""
+=======
+def get_queue(qtype: str, is_async: bool = True) -> Queue:
+	"""
+	Return a Queue object tied to a redis connection.
+
+	:param qtype: Queue type, should be either long, default or short
+	:param is_async: Whether the job should be executed asynchronously or in the same process
+	:return: Queue object
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	validate_queue(qtype)
 	return Queue(generate_qname(qtype), connection=get_redis_conn(), is_async=is_async)
 
 
+<<<<<<< HEAD
 def validate_queue(queue, default_queue_list=None):
+=======
+def validate_queue(queue: str, default_queue_list: list | None = None) -> None:
+	"""
+	Validates if the queue is in the list of default queues.
+
+	:param queue: The queue to be validated
+	:param default_queue_list: Optionally, a custom list of queues to validate against
+	:return:
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	if not default_queue_list:
 		default_queue_list = list(get_queues_timeout())
 
@@ -451,19 +589,33 @@ def get_redis_conn(username=None, password=None):
 	if not hasattr(frappe.local, "conf"):
 		raise Exception("You need to call frappe.init")
 
+<<<<<<< HEAD
 	elif not frappe.local.conf.redis_queue:
+=======
+	conf = frappe.get_site_config()
+	if not conf.redis_queue:
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		raise Exception("redis_queue missing in common_site_config.json")
 
 	global _redis_queue_conn
 
 	cred = frappe._dict()
+<<<<<<< HEAD
 	if frappe.conf.get("use_rq_auth"):
+=======
+	if conf.get("use_rq_auth"):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		if username:
 			cred["username"] = username
 			cred["password"] = password
 		else:
+<<<<<<< HEAD
 			cred["username"] = frappe.get_site_config().rq_username or get_bench_id()
 			cred["password"] = frappe.get_site_config().rq_password
+=======
+			cred["username"] = conf.rq_username or get_bench_id()
+			cred["password"] = conf.rq_password
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	elif os.environ.get("RQ_ADMIN_PASWORD"):
 		cred["username"] = "default"
@@ -530,8 +682,18 @@ def test_job(s):
 	time.sleep(s)
 
 
+<<<<<<< HEAD
 def create_job_id(job_id: str) -> str:
 	"""Generate unique job id for deduplication"""
+=======
+def create_job_id(job_id: str | None = None) -> str:
+	"""
+	Generate unique job id for deduplication
+
+	:param job_id: Optional job id, if not provided, a UUID is generated for it
+	:return: Unique job id, namespaced by site
+	"""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	if not job_id:
 		job_id = str(uuid4())
@@ -544,12 +706,20 @@ def is_job_enqueued(job_id: str) -> bool:
 
 def get_job_status(job_id: str) -> JobStatus | None:
 	"""Get RQ job status, returns None if job is not found."""
+<<<<<<< HEAD
 	job = get_job(job_id)
 	if job:
 		return job.get_status()
 
 
 def get_job(job_id: str) -> Job:
+=======
+	if job := get_job(job_id):
+		return job.get_status()
+
+
+def get_job(job_id: str) -> Job | None:
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	try:
 		return Job.fetch(create_job_id(job_id), connection=get_redis_conn())
 	except NoSuchJobError:

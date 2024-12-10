@@ -70,6 +70,10 @@ coverage.xml
 
 # Translations
 *.mo
+<<<<<<< HEAD
+=======
+*.pot
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 # Django stuff:
 *.log
@@ -167,6 +171,10 @@ typings/
 
 # Optional npm cache directory
 .npm
+<<<<<<< HEAD
+=======
+.yarn
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 # Optional eslint cache
 .eslintcache
@@ -192,6 +200,13 @@ cypress/videos
 
 # JetBrains IDEs
 .idea/
+<<<<<<< HEAD
+=======
+# Helix Editor
+.helix/
+# Aider AI Chat
+.aider*
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 # frappecloud billing
 billing/node_modules

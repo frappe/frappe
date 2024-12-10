@@ -1,10 +1,26 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestModuleProfile(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase, UnitTestCase
+
+
+class UnitTestModuleProfile(UnitTestCase):
+	"""
+	Unit tests for ModuleProfile.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestModuleProfile(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_make_new_module_profile(self):
 		if not frappe.db.get_value("Module Profile", "_Test Module Profile"):
 			frappe.get_doc(

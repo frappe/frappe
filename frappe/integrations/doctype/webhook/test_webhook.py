@@ -13,7 +13,11 @@ from frappe.integrations.doctype.webhook.webhook import (
 	get_webhook_data,
 	get_webhook_headers,
 )
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
+=======
+from frappe.tests import IntegrationTestCase, UnitTestCase
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 @contextmanager
@@ -29,7 +33,20 @@ def get_test_webhook(config):
 		wh.delete()
 
 
+<<<<<<< HEAD
 class TestWebhook(FrappeTestCase):
+=======
+class UnitTestWebhook(UnitTestCase):
+	"""
+	Unit tests for Webhook.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestWebhook(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	@classmethod
 	def setUpClass(cls):
 		# delete any existing webhooks

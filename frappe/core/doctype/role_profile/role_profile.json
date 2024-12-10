@@ -39,10 +39,18 @@
  "links": [
   {
    "link_doctype": "User",
+<<<<<<< HEAD
    "link_fieldname": "role_profile_name"
   }
  ],
  "modified": "2021-12-03 15:45:45.270963",
+=======
+   "link_fieldname": "role_profile",
+   "table_fieldname": "role_profiles"
+  }
+ ],
+ "modified": "2024-03-23 16:03:37.104710",
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role Profile",
@@ -73,8 +81,14 @@
    "write": 1
   }
  ],
+<<<<<<< HEAD
  "sort_field": "modified",
  "sort_order": "DESC",
+=======
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
  "title_field": "role_profile",
  "track_changes": 1
 }

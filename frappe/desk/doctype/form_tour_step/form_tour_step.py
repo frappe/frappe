@@ -54,4 +54,8 @@ class FormTourStep(Document):
 		title: DF.Data
 		ui_tour: DF.Check
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass

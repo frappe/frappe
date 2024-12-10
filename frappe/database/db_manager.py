@@ -16,7 +16,11 @@ class DbManager:
 	def create_user(self, user, password, host=None):
 		host = host or self.get_current_host()
 		password_predicate = f" IDENTIFIED BY '{password}'" if password else ""
+<<<<<<< HEAD
 		self.db.sql(f"CREATE USER '{user}'@'{host}'{password_predicate}")
+=======
+		self.db.sql(f"CREATE USER IF NOT EXISTS '{user}'@'{host}'{password_predicate}")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	def delete_user(self, target, host=None):
 		host = host or self.get_current_host()

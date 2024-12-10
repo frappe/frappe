@@ -397,7 +397,10 @@ frappe.setup.slides_settings = [
 				fieldtype: "Select",
 				reqd: 1,
 			},
+<<<<<<< HEAD
 			{ fieldtype: "Column Break" },
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			{
 				fieldname: "currency",
 				label: __("Currency"),

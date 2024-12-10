@@ -37,7 +37,11 @@ def execute():
 
 
 def get_doctypes_to_skip(doctype, user):
+<<<<<<< HEAD
 	"""Returns doctypes to be skipped from user permission check"""
+=======
+	"""Return doctypes to be skipped from user permission check."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	doctypes_to_skip = []
 	valid_perms = get_user_valid_perms(user) or []
 	for perm in valid_perms:

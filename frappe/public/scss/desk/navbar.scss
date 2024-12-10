@@ -4,8 +4,21 @@
 	border-bottom: 1px solid var(--border-color);
 	padding: 0;
 	.navbar-brand {
+<<<<<<< HEAD
 		margin-right: 0;
 	}
+=======
+		margin-right: 15px;
+	}
+
+	@include media-breakpoint-up(md) {
+		.navbar-brand {
+			// not shown for full screen
+			display: none;
+		}
+	}
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	.navbar-nav {
 		.dropdown-item {
 			padding: 6px 8px !important;
@@ -34,7 +47,11 @@
 
 .navbar-home {
 	img {
+<<<<<<< HEAD
 		max-height: 28px;
+=======
+		height: 28px;
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		width: auto;
 	}
 }

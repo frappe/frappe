@@ -17,11 +17,19 @@ class OAuthProviderSettings(Document):
 
 		skip_authorization: DF.Literal["Force", "Auto"]
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass
 
 
 def get_oauth_settings():
+<<<<<<< HEAD
 	"""Returns oauth settings"""
+=======
+	"""Return OAuth settings."""
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	return frappe._dict(
 		{"skip_authorization": frappe.db.get_single_value("OAuth Provider Settings", "skip_authorization")}
 	)

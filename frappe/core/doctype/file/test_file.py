@@ -1,7 +1,10 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import base64
+<<<<<<< HEAD
 import json
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 import os
 import shutil
 import tempfile
@@ -21,7 +24,11 @@ from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
 from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension
 from frappe.desk.form.utils import add_comment
 from frappe.exceptions import ValidationError
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase, change_settings
+=======
+from frappe.tests import IntegrationTestCase, UnitTestCase
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 from frappe.utils import get_files_path, set_request
 
 if TYPE_CHECKING:
@@ -54,7 +61,11 @@ def make_test_image_file(private=False):
 		}
 	).insert()
 	# remove those flags
+<<<<<<< HEAD
 	_test_file: "File" = frappe.get_doc("File", test_file.name)
+=======
+	_test_file: File = frappe.get_doc("File", test_file.name)
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 	try:
 		yield _test_file
@@ -62,7 +73,20 @@ def make_test_image_file(private=False):
 		_test_file.delete()
 
 
+<<<<<<< HEAD
 class TestSimpleFile(FrappeTestCase):
+=======
+class UnitTestFile(UnitTestCase):
+	"""
+	Unit tests for File.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestSimpleFile(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def setUp(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 		self.test_content = test_content1
@@ -84,7 +108,11 @@ class TestSimpleFile(FrappeTestCase):
 		self.assertEqual(content, self.test_content)
 
 
+<<<<<<< HEAD
 class TestFSRollbacks(FrappeTestCase):
+=======
+class TestFSRollbacks(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_rollback_from_file_system(self):
 		file_name = content = frappe.generate_hash()
 		file = frappe.new_doc("File", file_name=file_name, content=content).insert()
@@ -94,8 +122,13 @@ class TestFSRollbacks(FrappeTestCase):
 		self.assertFalse(file.exists_on_disk())
 
 
+<<<<<<< HEAD
 class TestExtensionValidations(FrappeTestCase):
 	@change_settings("System Settings", {"allowed_file_extensions": "JPG\nCSV"})
+=======
+class TestExtensionValidations(IntegrationTestCase):
+	@IntegrationTestCase.change_settings("System Settings", {"allowed_file_extensions": "JPG\nCSV"})
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_allowed_extension(self):
 		set_request(method="POST", path="/")
 		file_name = content = frappe.generate_hash()
@@ -107,11 +140,19 @@ class TestExtensionValidations(FrappeTestCase):
 		self.assertFalse(bad_file.exists_on_disk())
 
 
+<<<<<<< HEAD
 class TestBase64File(FrappeTestCase):
 	def setUp(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 		self.test_content = base64.b64encode(test_content1.encode("utf-8"))
 		_file: "File" = frappe.get_doc(
+=======
+class TestBase64File(IntegrationTestCase):
+	def setUp(self):
+		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
+		self.test_content = base64.b64encode(test_content1.encode("utf-8"))
+		_file: frappe.Document = frappe.get_doc(
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			{
 				"doctype": "File",
 				"file_name": "test_base64.txt",
@@ -125,12 +166,20 @@ class TestBase64File(FrappeTestCase):
 		self.saved_file_url = _file.file_url
 
 	def test_saved_content(self):
+<<<<<<< HEAD
 		_file = frappe.get_doc("File", {"file_url": self.saved_file_url})
+=======
+		_file: frappe.Document = frappe.get_doc("File", {"file_url": self.saved_file_url})
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		content = _file.get_content()
 		self.assertEqual(content, test_content1)
 
 
+<<<<<<< HEAD
 class TestSameFileName(FrappeTestCase):
+=======
+class TestSameFileName(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_saved_content(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 		self.test_content1 = test_content1
@@ -190,7 +239,11 @@ class TestSameFileName(FrappeTestCase):
 		self.assertEqual(_file.get_content(), test_content2)
 
 
+<<<<<<< HEAD
 class TestSameContent(FrappeTestCase):
+=======
+class TestSameContent(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def setUp(self):
 		self.attached_to_doctype1, self.attached_to_docname1 = make_test_doc()
 		self.attached_to_doctype2, self.attached_to_docname2 = make_test_doc()
@@ -255,8 +308,32 @@ class TestSameContent(FrappeTestCase):
 		limit_property.delete()
 		frappe.clear_cache(doctype="ToDo")
 
+<<<<<<< HEAD
 
 class TestFile(FrappeTestCase):
+=======
+	def test_utf8_bom_content_decoding(self):
+		utf8_bom_content = test_content1.encode("utf-8-sig")
+		_file: frappe.Document = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "utf8bom.txt",
+				"attached_to_doctype": self.attached_to_doctype1,
+				"attached_to_name": self.attached_to_docname1,
+				"content": utf8_bom_content,
+				"decode": False,
+			}
+		)
+		_file.save()
+		saved_file = frappe.get_doc("File", _file.name)
+		file_content_decoded = saved_file.get_content(encodings=["utf-8"])
+		self.assertEqual(file_content_decoded[0], "\ufeff")
+		file_content_properly_decoded = saved_file.get_content(encodings=["utf-8-sig", "utf-8"])
+		self.assertEqual(file_content_properly_decoded, test_content1)
+
+
+class TestFile(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def setUp(self):
 		frappe.set_user("Administrator")
 		self.delete_test_data()
@@ -442,7 +519,11 @@ class TestFile(FrappeTestCase):
 		self.assertRaises(OSError, file1.save)
 
 	def test_file_url_validation(self):
+<<<<<<< HEAD
 		test_file: "File" = frappe.new_doc("File")
+=======
+		test_file: File = frappe.new_doc("File")
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		test_file.update({"file_name": "logo", "file_url": "https://frappe.io/files/frappe.png"})
 
 		self.assertIsNone(test_file.validate())
@@ -467,7 +548,11 @@ class TestFile(FrappeTestCase):
 
 	def test_make_thumbnail(self):
 		# test web image
+<<<<<<< HEAD
 		test_file: "File" = frappe.get_doc(
+=======
+		test_file: File = frappe.get_doc(
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 			{
 				"doctype": "File",
 				"file_name": "logo",
@@ -577,7 +662,11 @@ def convert_to_symlink(directory):
 		shutil.move(new_directory, directory)
 
 
+<<<<<<< HEAD
 class TestAttachment(FrappeTestCase):
+=======
+class TestAttachment(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	test_doctype = "Test For Attachment"
 
 	@classmethod
@@ -623,7 +712,11 @@ class TestAttachment(FrappeTestCase):
 		self.assertTrue(exists)
 
 
+<<<<<<< HEAD
 class TestAttachmentsAccess(FrappeTestCase):
+=======
+class TestAttachmentsAccess(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def setUp(self) -> None:
 		frappe.db.delete("File", {"is_folder": 0})
 
@@ -689,7 +782,11 @@ class TestAttachmentsAccess(FrappeTestCase):
 		frappe.db.rollback()
 
 
+<<<<<<< HEAD
 class TestFileUtils(FrappeTestCase):
+=======
+class TestFileUtils(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_extract_images_from_doc(self):
 		is_private = not frappe.get_meta("ToDo").make_attachments_public
 
@@ -774,7 +871,11 @@ class TestFileUtils(FrappeTestCase):
 		self.assertTrue(folder.is_folder)
 
 
+<<<<<<< HEAD
 class TestFileOptimization(FrappeTestCase):
+=======
+class TestFileOptimization(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def test_optimize_file(self):
 		with make_test_image_file() as test_file:
 			original_size = test_file.file_size
@@ -826,7 +927,11 @@ class TestFileOptimization(FrappeTestCase):
 		self.assertEqual(get_extension("", None, file_content), "jpg")
 
 
+<<<<<<< HEAD
 class TestGuestFileAndAttachments(FrappeTestCase):
+=======
+class TestGuestFileAndAttachments(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def setUp(self) -> None:
 		frappe.db.delete("File", {"is_folder": 0})
 		frappe.get_doc(
@@ -907,12 +1012,20 @@ class TestGuestFileAndAttachments(FrappeTestCase):
 		file_name = "test" + frappe.generate_hash()
 		content = file_name.encode()
 
+<<<<<<< HEAD
 		doc_pub: "File" = frappe.new_doc("File")  # type: ignore
+=======
+		doc_pub: File = frappe.new_doc("File")  # type: ignore
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		doc_pub.file_url = f"/files/{file_name}.txt"
 		doc_pub.content = content
 		doc_pub.save()
 
+<<<<<<< HEAD
 		doc_pri: "File" = frappe.new_doc("File")  # type: ignore
+=======
+		doc_pri: File = frappe.new_doc("File")  # type: ignore
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		doc_pri.file_url = f"/private/files/{file_name}.txt"
 		doc_pri.is_private = False
 		doc_pri.content = content

@@ -67,8 +67,13 @@ class SocialLoginKey(Document):
 			"Keycloak",
 		]
 		user_id_property: DF.Data | None
+<<<<<<< HEAD
 
 	# end: auto-generated types
+=======
+	# end: auto-generated types
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def autoname(self):
 		self.name = frappe.scrub(self.provider_name)
 

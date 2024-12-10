@@ -44,6 +44,10 @@ class WorkflowAction(Document):
 		user: DF.Link | None
 		workflow_state: DF.Data | None
 	# end: auto-generated types
+<<<<<<< HEAD
+=======
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	pass
 
 
@@ -74,8 +78,12 @@ def get_permission_query_conditions(user):
 		.where(WorkflowActionPermittedRole.role.isin(roles))
 	).get_sql()
 
+<<<<<<< HEAD
 	return f"""(`tabWorkflow Action`.`name` in ({permitted_workflow_actions})
 		or `tabWorkflow Action`.`user`={frappe.db.escape(user)})
+=======
+	return f""" `tabWorkflow Action`.`name` in ({permitted_workflow_actions})
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 		and `tabWorkflow Action`.`status`='Open'
 	"""
 
@@ -213,11 +221,14 @@ def update_completed_workflow_actions(doc, user=None, workflow=None, workflow_st
 		return
 	if workflow_action := get_workflow_action_by_role(doc, allowed_roles):
 		update_completed_workflow_actions_using_role(user, workflow_action)
+<<<<<<< HEAD
 	else:
 		# backwards compatibility
 		# for workflow actions saved using user
 		clear_old_workflow_actions_using_user(doc, user)
 		update_completed_workflow_actions_using_user(doc, user)
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 def get_allowed_roles(user, workflow, workflow_state):
@@ -269,6 +280,7 @@ def update_completed_workflow_actions_using_role(user=None, workflow_action=None
 	).run()
 
 
+<<<<<<< HEAD
 def clear_old_workflow_actions_using_user(doc, user=None):
 	user = user if user else frappe.session.user
 
@@ -302,6 +314,8 @@ def update_completed_workflow_actions_using_user(doc, user=None):
 		).run()
 
 
+=======
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 def get_next_possible_transitions(workflow_name, state, doc=None):
 	transitions = frappe.get_all(
 		"Workflow Transition",

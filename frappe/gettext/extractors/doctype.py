@@ -1,5 +1,6 @@
 import json
 
+<<<<<<< HEAD
 EXCLUDE_SELECT_OPTIONS = [
 	"naming_series",
 	"number_format",
@@ -7,6 +8,9 @@ EXCLUDE_SELECT_OPTIONS = [
 	"currency_precision",
 	"minimum_password_score",
 ]
+=======
+from .utils import extract_messages_from_docfield, extract_messages_from_links
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 
 
 def extract(fileobj, *args, **kwargs):
@@ -29,6 +33,7 @@ def extract(fileobj, *args, **kwargs):
 		yield None, "_", doctype_description, ["Description of a DocType"]
 
 	messages = []
+<<<<<<< HEAD
 	fields = data.get("fields", [])
 	links = data.get("links", [])
 
@@ -78,6 +83,14 @@ def extract(fileobj, *args, **kwargs):
 			messages.append((link_doctype, f"Linked DocType in {doctype}'s connections"))
 
 	# By using "pgettext" as the function name we can supply the doctype as context
+=======
+
+	for field in data.get("fields", []):
+		messages.extend(extract_messages_from_docfield(doctype, field))
+
+	messages.extend(extract_messages_from_links(doctype, data.get("links", [])))
+
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	yield from ((None, "_", message, [comment]) for message, comment in messages)
 
 	# Role names do not get context because they are used with multiple doctypes

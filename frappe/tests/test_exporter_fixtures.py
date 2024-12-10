@@ -5,10 +5,17 @@ import os
 import frappe
 import frappe.defaults
 from frappe.core.doctype.data_import.data_import import export_csv
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestDataImportFixtures(FrappeTestCase):
+=======
+from frappe.tests import IntegrationTestCase
+
+
+class TestDataImportFixtures(IntegrationTestCase):
+>>>>>>> beab110ce9 (fix: clarify error message for child tables)
 	def setUp(self):
 		pass
 
