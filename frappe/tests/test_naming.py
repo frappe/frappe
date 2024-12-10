@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import time
+import unittest
 
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_full_jitter
 
@@ -404,6 +405,7 @@ class TestNaming(FrappeTestCase):
 			expected_name = "TODO-" + nowdate().split("-")[1] + "-" + "0001"
 			self.assertEqual(name, expected_name)
 
+	@unittest.skip("This is not supported anymore, see #28349.")
 	@retry(
 		retry=retry_if_exception_type(AssertionError),
 		stop=stop_after_attempt(3),
