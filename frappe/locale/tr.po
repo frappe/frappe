@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-12-01 17:58+0000\n"
-"PO-Revision-Date: 2024-12-05 19:58\n"
+"PO-Revision-Date: 2024-12-10 20:05\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -23337,7 +23337,7 @@ msgstr "Paylaş"
 
 #: frappe/public/js/frappe/form/templates/set_sharing.html:49
 msgid "Share this document with"
-msgstr "Dökümanı Şu Kişiyle Paylaş"
+msgstr "Dökümanı Paylaş"
 
 #: frappe/public/js/frappe/form/sidebar/share.js:45
 msgid "Share {0} with"
