@@ -5,6 +5,7 @@ import json
 from contextlib import suppress
 from typing import Any
 
+from pymysql.err import OperationalError
 from rq import get_current_job
 
 import frappe
@@ -234,6 +235,14 @@ def create_json_gz_file(data, dt, dn, report_name):
 	encoded_content = frappe.safe_encode(frappe.as_json(data, indent=None, separators=(",", ":")))
 	compressed_content = gzip.compress(encoded_content)
 
+	try:
+		create_file_for_prepared_report(json_filename, dt, dn, compressed_content)
+	except OperationalError:
+		frappe.db.connect()
+		create_file_for_prepared_report(json_filename, dt, dn, compressed_content)
+
+
+def create_file_for_prepared_report(json_filename, dt, dn, compressed_content):
 	# Call save() file function to upload and attach the file
 	_file = frappe.get_doc(
 		{
