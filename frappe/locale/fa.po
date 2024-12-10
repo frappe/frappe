@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-08 17:02+0000\n"
-"PO-Revision-Date: 2024-10-19 05:44\n"
+"PO-Revision-Date: 2024-10-28 09:07\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -7877,7 +7877,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:14
 msgid "Drag and drop files here or upload from"
-msgstr ""
+msgstr "فایل‌ها را به اینجا بکشید و رها کنید یا آپلود کنید از"
 
 #: frappe/public/js/print_format_builder/ConfigureColumns.vue:76
 msgid "Drag columns to set order. Column width is set in percentage. The total width should not be more than 100. Columns marked in red will be removed."
@@ -12490,7 +12490,7 @@ msgstr "InnoDB"
 
 #: frappe/core/doctype/data_import/data_import_list.js:35
 msgid "Insert"
-msgstr "درج کنید"
+msgstr "درج"
 
 #: frappe/public/js/frappe/form/grid_row_form.js:42
 msgid "Insert Above"
@@ -22809,11 +22809,11 @@ msgstr "مقدار را تنظیم کنید"
 #: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:72
 #: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:124
 msgid "Set all private"
-msgstr "همه را خصوصی تنظیم کنید"
+msgstr "تنظیم همه به عنوان خصوصی"
 
 #: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:72
 msgid "Set all public"
-msgstr "تنظیم همه عمومی"
+msgstr "تنظیم همه به عنوان عمومی"
 
 #: frappe/printing/doctype/print_format/print_format.js:49
 msgid "Set as Default"
@@ -26897,7 +26897,7 @@ msgstr "در حال به روز رسانی {0} از {1}، {2}"
 #: frappe/public/js/frappe/form/grid.js:63
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:13
 msgid "Upload"
-msgstr "بارگذاری"
+msgstr "آپلود"
 
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:93
 msgid "Upload Image"
@@ -30442,7 +30442,7 @@ msgstr "به روز شده به {0}"
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "upload"
-msgstr "بارگذاری"
+msgstr "آپلود"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:338
 msgid "use % as wildcard"
@@ -31512,4 +31512,4 @@ msgstr "{} در PATH یافت نشد! این مورد برای تهیه نسخه
 #: frappe/public/js/frappe/file_uploader/FileBrowser.vue:5
 #: frappe/public/js/frappe/file_uploader/WebLink.vue:4
 msgid "← Back to upload files"
-msgstr ""
+msgstr "← بازگشت به آپلود فایل ها"
