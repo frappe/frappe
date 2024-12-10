@@ -420,3 +420,39 @@ def get_group_by_column_label(args, meta):
 
 def enable_prepared_report(report: str):
 	frappe.db.set_value("Report", report, "prepared_report", 1)
+
+
+def get_permission_query_conditions(user=None):
+	user = user or frappe.session.user
+
+	if user == "Administrator":
+		return
+
+	roles = frappe.get_roles(user)
+	if {"System Manager", "Report Manager"} & set(roles):
+		return None
+
+	report_list = frappe.db.get_all(
+		"Has Role", {"parenttype": "Report", "role": ["in", roles]}, pluck="parent"
+	)
+
+	if not report_list:
+		return "`tabReport`.`name` = ''"
+
+	if len(report_list) == 1:
+		return f"`tabReport`.`name` = '{report_list[0]}'"
+	return f"`tabReport`.`name` IN {tuple(report_list)}"
+
+
+def has_permission(doc, ptype, user):
+	user_roles = set(frappe.get_roles(user))
+	if {"System Manager", "Report Manager"} & user_roles:
+		return True
+
+	report_allowed_roles = frappe.db.get_all(
+		"Has Role", {"parenttype": "Report", "parent": doc.name}, pluck="role"
+	)
+	if report_allowed_roles and user_roles & set(report_allowed_roles):
+		return True
+
+	return False
