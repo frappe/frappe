@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-08 17:02+0000\n"
-"PO-Revision-Date: 2024-10-26 08:29\n"
+"PO-Revision-Date: 2024-11-04 11:43\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -1495,14 +1495,14 @@ msgstr "Adress"
 #: frappe/contacts/doctype/address/address.json
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Address Line 1"
-msgstr "Co/Box"
+msgstr "Adress Linje 1"
 
 #. Label of a Data field in DocType 'Address'
 #. Label of a Data field in DocType 'Contact Us Settings'
 #: frappe/contacts/doctype/address/address.json
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Address Line 2"
-msgstr "Gata och Nummer"
+msgstr "Adress Linje 2"
 
 #. Name of a DocType
 #: frappe/contacts/doctype/address_template/address_template.json
@@ -26226,7 +26226,7 @@ msgstr "Växla Diagram"
 #. Type: Action
 #: frappe/hooks.py
 msgid "Toggle Full Width"
-msgstr "Ändra Full Bredd"
+msgstr "Växla Full Bredd"
 
 #: frappe/public/js/frappe/views/file/file_view.js:33
 msgid "Toggle Grid View"
@@ -26251,7 +26251,7 @@ msgstr "Växla Sidofält"
 #. Type: Action
 #: frappe/hooks.py
 msgid "Toggle Theme"
-msgstr "Ändra Tema"
+msgstr "Växla Tema"
 
 #. Option for the 'Response Type' (Select) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -28971,7 +28971,7 @@ msgstr "Du kan ändra godkännda dokument genom att avbryta dem och sedan ändra
 
 #: frappe/public/js/frappe/logtypes.js:21
 msgid "You can change the retention policy from {0}."
-msgstr "Du kan ändra lagring princip från {0}."
+msgstr "Ändra lagring regel från {0}."
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:199
 msgid "You can continue with the onboarding after exploring this page"

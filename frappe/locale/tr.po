@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-10-08 17:02+0000\n"
-"PO-Revision-Date: 2024-10-24 07:20\n"
+"PO-Revision-Date: 2024-11-01 10:28\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -1546,7 +1546,7 @@ msgstr "Adres ve Kişiler"
 #. Description of a DocType
 #: frappe/custom/doctype/client_script/client_script.json
 msgid "Adds a custom client script to a DocType"
-msgstr ""
+msgstr "DocType'a özel bir istemci komut dosyası ekler"
 
 #. Description of a DocType
 #: frappe/custom/doctype/custom_field/custom_field.json
@@ -2051,7 +2051,7 @@ msgstr "Bağımlı para birimi alanı da ekleniyor {0}"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:849
 msgid "Also adding the status dependency field {0}"
-msgstr ""
+msgstr "Durum bağımlılığı alanı da ekleniyor {0}"
 
 #. Label of a Data field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -2338,7 +2338,7 @@ msgstr "Kısıtlı Kullanıcı İzinlerini Uygula"
 #. Label of a Select field in DocType 'Client Script'
 #: frappe/custom/doctype/client_script/client_script.json
 msgid "Apply To"
-msgstr ""
+msgstr "Uygulanan"
 
 #. Label of a Check field in DocType 'User Permission'
 #: frappe/core/doctype/user_permission/user_permission.json
@@ -7471,7 +7471,7 @@ msgstr "Belge Türü"
 
 #: frappe/core/doctype/doctype/doctype.py:1539
 msgid "DocType <b>{0}</b> provided for the field <b>{1}</b> must have atleast one Link field"
-msgstr ""
+msgstr "DocType <b>{0}</b> alanı için sağlanmıştır <b>{1}</b> en az bir Bağlantı alanına sahip olmalıdır"
 
 #. Name of a DocType
 #. Option for the 'Applied On' (Select) field in DocType 'Property Setter'
@@ -7639,15 +7639,15 @@ msgstr "Döküman Bağlantıları"
 
 #: frappe/core/doctype/doctype/doctype.py:1173
 msgid "Document Links Row #{0}: Could not find field {1} in {2} DocType"
-msgstr ""
+msgstr "Belge Bağlantıları Satırı #{0}: {2} DocType'da {1} alanı bulunamadı"
 
 #: frappe/core/doctype/doctype/doctype.py:1193
 msgid "Document Links Row #{0}: Invalid doctype or fieldname."
-msgstr ""
+msgstr "Belge Bağlantıları Satırı #{0}: Geçersiz doctype veya alan."
 
 #: frappe/core/doctype/doctype/doctype.py:1156
 msgid "Document Links Row #{0}: Parent DocType is mandatory for internal links"
-msgstr ""
+msgstr "Belge Bağlantıları Satırı #{0}: Dahili bağlantılar için Üst DocType zorunludur"
 
 #: frappe/core/doctype/doctype/doctype.py:1162
 msgid "Document Links Row #{0}: Table Fieldname is mandatory for internal links"
@@ -10968,7 +10968,7 @@ msgstr "Yeni isimlendirme serisinin önizlemesini buradan görebilirsiniz."
 
 #: frappe/public/js/frappe/list/list_sidebar.js:273
 msgid "Get more insights with"
-msgstr "İle daha fazla grafik edinin"
+msgstr "Daha fazla grafik edinin"
 
 #. Description of the 'Email Threads on Assigned Document' (Check) field in
 #. DocType 'Notification Settings'
@@ -11489,7 +11489,7 @@ msgstr ""
 #. Label of a Tab Break field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Header, Robots"
-msgstr ""
+msgstr "Üst Bilgi Alanı"
 
 #: frappe/printing/doctype/letter_head/letter_head.js:30
 msgid "Header/Footer scripts can be used to add dynamic behaviours."
@@ -12274,7 +12274,7 @@ msgstr "Resimler"
 #: frappe/core/doctype/activity_log/activity_log.json
 #: frappe/core/doctype/user/user.js:367
 msgid "Impersonate"
-msgstr ""
+msgstr "Yerine Geçir"
 
 #: frappe/core/doctype/user/user.js:394
 msgid "Impersonate as {0}"
@@ -12459,7 +12459,7 @@ msgstr "Önizleme"
 
 #: frappe/core/doctype/data_import/data_import.js:42
 msgid "In Progress"
-msgstr "Devam ediyor"
+msgstr "Devam Ediyor"
 
 #: frappe/database/database.py:243
 msgid "In Read Only Mode"
@@ -17332,7 +17332,7 @@ msgstr "Gönderildikten sonra, gönderilebilir belgeler değiştirilemez. Sadece
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:35
 msgid "Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger)."
-msgstr ""
+msgstr "Bunu ayarladıktan sonra kullanıcılar yalnızca bağlantının bulunduğu belgeler erişebilecektir."
 
 #: frappe/www/complete_signup.html:7
 msgid "One Last Step"
@@ -20133,7 +20133,7 @@ msgstr "Kırmızı"
 #. Label of a Select field in DocType 'Website Route Redirect'
 #: frappe/website/doctype/website_route_redirect/website_route_redirect.json
 msgid "Redirect HTTP Status"
-msgstr ""
+msgstr "HTTP Yönlendirme Durumu"
 
 #. Label of a Data field in DocType 'Connected App'
 #: frappe/integrations/doctype/connected_app/connected_app.json
@@ -20172,7 +20172,7 @@ msgstr "Başarılı onaylamadan sonra bu bağlantıya yönlendirin."
 #. Label of a Tab Break field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Redirects"
-msgstr ""
+msgstr "Yönlendirmeler"
 
 #: frappe/sessions.py:147
 msgid "Redis cache server not running. Please contact Administrator / Tech support"
@@ -21467,7 +21467,7 @@ msgstr "Dolaşım Geçmişi"
 #. Label of a Table field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Route Redirects"
-msgstr ""
+msgstr "Rota Yönlendirmeleri"
 
 #. Description of the 'Home Page' (Data) field in DocType 'Role'
 #: frappe/core/doctype/role/role.json
@@ -28975,7 +28975,7 @@ msgstr ""
 
 #: frappe/model/delete_doc.py:136
 msgid "You can disable this {0} instead of deleting it."
-msgstr ""
+msgstr "Bu {0} öğesini silmek yerine devre dışı bırakabilirsiniz."
 
 #: frappe/core/doctype/file/file.py:688
 msgid "You can increase the limit from System Settings."

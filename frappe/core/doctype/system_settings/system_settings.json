@@ -11,6 +11,7 @@
   "language",
   "column_break_3",
   "time_zone",
+  "currency",
   "enable_onboarding",
   "setup_complete",
   "disable_document_sharing",
@@ -677,12 +678,19 @@
    "fieldname": "default_app",
    "fieldtype": "Select",
    "label": "Default App"
+  },
+  {
+   "description": "Default display currency",
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2024-08-08 20:10:55.939839",
+ "modified": "2024-11-04 15:51:39.954876",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
