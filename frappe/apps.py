@@ -6,6 +6,7 @@ import re
 import frappe
 from frappe import _
 from frappe.boot import get_bootinfo
+from frappe.desk.utils import slug
 
 
 @frappe.whitelist()
@@ -37,20 +38,25 @@ def get_route(app_name):
 	apps = frappe.get_hooks("add_to_apps_screen", app_name=app_name)
 	app = next((app for app in apps if app.get("name") == app_name), None)
 	route = app.get("route") if app and app.get("route") else "/apps"
-	
+
 	# Check if user has access to default workspace, if not, pick first workspace user has access to
 	if route.startswith("/app/"):
 		ws = route.split("/")[2]
 		bootinfo = get_bootinfo()
 		allowed_workspaces = bootinfo.get("allowed_workspaces")
+		if not allowed_workspaces:
+			return "/app"
+
 		for allowed_ws in allowed_workspaces:
 			if allowed_ws.get("name").lower() == ws.lower():
 				return route
-		
+
 		module_app = bootinfo.get("module_app")
 		for allowed_ws in allowed_workspaces:
-			if module_app.get(allowed_ws.get("module").lower()) == app_name:
-				return f"/app/{allowed_ws.name.lower()}"
+			module = allowed_ws.get("module")
+			if module and module_app.get(module.lower()) == app_name:
+				return f"/app/{slug(allowed_ws.name.lower())}"
+		return f"/app/{slug(allowed_workspaces[0].get('name').lower())}"
 	else:
 		return route
 
