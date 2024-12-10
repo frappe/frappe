@@ -1035,7 +1035,6 @@ def clear_cache(user: str | None = None, doctype: str | None = None):
 	:param doctype: If doctype is given, only DocType cache is cleared."""
 	import frappe.cache_manager
 	import frappe.utils.caching
-	from frappe.model.document import DocumentProxy
 	from frappe.website.router import clear_routing_cache
 
 	if doctype:
@@ -1058,8 +1057,6 @@ def clear_cache(user: str | None = None, doctype: str | None = None):
 			get_attr(fn)()
 
 	frappe.utils.caching._SITE_CACHE.clear()
-	DocumentProxy._fields_cache.clear()
-	DocumentProxy._values_cache.clear()
 	local.role_permissions = {}
 	if hasattr(local, "request_cache"):
 		local.request_cache.clear()

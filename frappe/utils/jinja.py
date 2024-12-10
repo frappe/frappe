@@ -176,8 +176,6 @@ def render_template(
 
 		frappe.throw(title="Context Error", msg=f"<pre>{html.escape(frappe.get_traceback())}</pre>", exc=e)
 	finally:
-		if site := getattr(frappe.local, "site", None):
-			DocumentProxy._values_cache[site].clear()
 		if is_path:
 			logger.debug(f"Rendering time: {time.monotonic() - start_time:.6f} seconds ({template})")
 		else:

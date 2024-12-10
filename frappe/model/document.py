@@ -3,12 +3,11 @@
 import hashlib
 import json
 import time
-from collections import defaultdict
 from collections.abc import Generator, Iterable
 from contextlib import contextmanager
-from functools import singledispatchmethod, wraps
+from functools import cached_property, singledispatchmethod, wraps
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, ClassVar, Literal, Optional, TypeAlias, Union, overload
+from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, Union, overload
 
 from werkzeug.exceptions import NotFound
 
@@ -167,89 +166,70 @@ def read_only_document(context=None):
 
 
 class DocumentProxy(DocRef):
-	_fields_cache: ClassVar = {}
-	_values_cache: ClassVar = defaultdict(dict)
 	_undefined = object()
 
 	def __init__(self, doctype, name, parent=None, doc=None):
 		super().__init__(doctype, name)
-		self.__dict__["_doc"] = doc
 		self._super = parent or self
+		if doc is not None:
+			# micro-optimization: seed the cache, if object pointer is already available
+			self.__dict__["_doc"] = doc
 
-	@classmethod
-	def _get_fields(cls, doctype):
-		cache_key = (frappe.local.site, doctype)
-		if cache_key not in cls._fields_cache:
-			from frappe.model import data_fieldtypes, default_fields, table_fields
-			from frappe.model.meta import get_default_df
+	@cached_property
+	def _fields(self, doctype):
+		from frappe.model import data_fieldtypes, default_fields, table_fields
+		from frappe.model.meta import get_default_df
 
-			meta = frappe.get_meta(doctype)
+		meta = frappe.get_meta(doctype)
 
-			cls._fields_cache[cache_key] = {
-				# all meta fields with values
-				f.fieldname: f
-				for f in meta.fields
-				if f.fieldtype in (*data_fieldtypes, *table_fields)
-			} | {
-				# all default fields
-				f.fieldname: f
-				for f in (get_default_df(n) for n in default_fields)
-			}
-		return cls._fields_cache[cache_key]
+		return {
+			# all meta fields with values
+			f.fieldname: f
+			for f in meta.fields
+			if f.fieldtype in (*data_fieldtypes, *table_fields)
+		} | {
+			# all default fields
+			f.fieldname: f
+			for f in (get_default_df(n) for n in default_fields)
+		}
 
-	@property
+	@cached_property
 	def _doc(self):
-		if self.__dict__["_doc"] is None:
-			# print("Last 3 frames of the traceback:")
-			# import traceback
+		return frappe.get_cached_doc(self.doctype, self.name)
 
-			# for frame in traceback.extract_stack()[-4:-1]:  # Get the last 3 frames, excluding this line
-			# 	filename, line_number, function_name, text = frame
-			# 	print(f"  File '{filename}', line {line_number}, in {function_name}")
-			# 	if text:
-			# 		print(f"    {text.strip()}")
-			self.__dict__["_doc"] = frappe.get_doc(self.doctype, self.name)
-		return self.__dict__["_doc"]
-
-	@property
-	def _fieldnames(self):
-		return self._get_fields(self.doctype).keys()
-
-	def _fields(self, fieldname):
-		return self._get_fields(self.doctype)[fieldname]
-
+	# override this method in custom proxy for attribute overlay
 	def __getattr_value__(self, attr):
-		if attr in self._fieldnames:
+		if attr in self._fields.keys():
 			value = None
-			if self.name:
+			if self.name:  # only process named documents
 				value = self._doc.get(attr)
 			field = self._fields(attr)
-			if field.fieldtype == "Link":
-				linked_doctype = field.options
-				return type(self)(linked_doctype, value, self)
-			if field.fieldtype == "Dynamic Link":
-				linked_doctype = self._doc.get(field.options)
-				return type(self)(linked_doctype, value, self)
-			if field.fieldtype in ("Table", "Table MultiSelect"):
-				linked_doctype = field.options
-				return DocumentProxyList(linked_doctype, [v.name for v in value], self)
+			match field.fieldtype:
+				case "Link":
+					linked_doctype = field.options
+					return type(self)(linked_doctype, value, self)
+				case "Dynamic Link":
+					linked_doctype = self._doc.get(field.options)
+					return type(self)(linked_doctype, value, self)
+				case ("Table", "Table MultiSelect"):
+					linked_doctype = field.options
+					return DocumentProxyList(linked_doctype, [v.name for v in value], self)
 			return value
 		return self._undefined
 
 	def __getattr__(self, attr):
-		cache_key = (self.doctype, str(self.name), attr)
-		if cache_key not in self._values_cache[frappe.local.site]:
-			value = self.__getattr_value__(attr)
-			if value is self._undefined:
-				return getattr(self._doc, attr, None)
-			self._values_cache[frappe.local.site][cache_key] = value
-		return self._values_cache[frappe.local.site][cache_key]
+		value = self.__getattr_value__(attr)
+		if value is self._undefined:
+			# attribute delegation for compatibility reasons only
+			# at least not encouraged in rendering contexts
+			return getattr(self._doc, attr, None)
+		return value
 
 	def __getitem__(self, key):
 		return self.__getattr__(key)
 
 	def __contains__(self, key):
-		return key in self._fieldnames
+		return key in self._fields.keys()
 
 	def __repr__(self):
 		return f"<{self.__class__.__name__}: doctype={self.doctype} name={self.name or 'n/a'}>"
@@ -263,9 +243,6 @@ class DocumentProxy(DocRef):
 
 	def __bool__(self):
 		return bool(self.name)
-
-	# def __del__(self) -> None:
-	# 	print(f"deleting {self.doctype} {self}")
 
 
 class DocumentProxyList:
