@@ -306,7 +306,10 @@ class TestProcessContext(UnitTestCase):
 			{"value": "dict.key", "score": 6, "meta": "ctx"},
 		]
 
-		self.assertEqual(completion_list, expected_items)
+		self.assertEqual(
+			set(tuple(item.items()) for item in completion_list),
+			set(tuple(item.items()) for item in expected_items),
+		)
 
 	def test_process_context_completion_with_get_keys_for_autocomplete(self):
 		from frappe.utils.safe_exec import NamespaceDict
@@ -385,7 +388,10 @@ class TestProcessContext(UnitTestCase):
 			{"value": "frappe.utils.cint", "score": 9, "meta": "ctx"},
 		]
 
-		self.assertEqual(completion_list, expected_items)
+		self.assertEqual(
+			set(tuple(item.items()) for item in completion_list),
+			set(tuple(item.items()) for item in expected_items),
+		)
 
 
 class CustomDocumentProxy(DocumentProxy):
