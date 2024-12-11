@@ -21,9 +21,10 @@ from frappe.utils.dashboard import sync_dashboards
 from frappe.utils.synchronization import filelock
 
 
-def _is_scheduler_enabled() -> bool:
+def _is_scheduler_enabled(site) -> bool:
 	enable_scheduler = False
 	try:
+		frappe.init(site=site)
 		frappe.connect()
 		enable_scheduler = cint(frappe.db.get_single_value("System Settings", "enable_scheduler"))
 	except Exception:
@@ -50,6 +51,7 @@ def _new_site(
 	db_type=None,
 	db_host=None,
 	db_port=None,
+	setup_db=True,
 ):
 	"""Install a new Frappe site"""
 
@@ -77,7 +79,7 @@ def _new_site(
 
 	try:
 		# enable scheduler post install?
-		enable_scheduler = _is_scheduler_enabled()
+		enable_scheduler = _is_scheduler_enabled(site)
 	except Exception:
 		enable_scheduler = False
 
@@ -98,6 +100,7 @@ def _new_site(
 			db_host=db_host,
 			db_port=db_port,
 			no_mariadb_socket=no_mariadb_socket,
+			setup=setup_db,
 		)
 
 		apps_to_install = ["frappe"] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
@@ -133,9 +136,10 @@ def install_db(
 	db_host=None,
 	db_port=None,
 	no_mariadb_socket=False,
+	setup=True,
 ):
 	import frappe.database
-	from frappe.database import setup_database
+	from frappe.database import bootstrap_database, setup_database
 
 	if not db_type:
 		db_type = frappe.conf.db_type
@@ -157,7 +161,14 @@ def install_db(
 
 	frappe.flags.root_login = root_login
 	frappe.flags.root_password = root_password
-	setup_database(force, source_sql, verbose, no_mariadb_socket)
+
+	if setup:
+		setup_database(force, verbose, no_mariadb_socket)
+
+	bootstrap_database(
+		verbose=verbose,
+		source_sql=source_sql,
+	)
 
 	frappe.conf.admin_password = frappe.conf.admin_password or admin_password
 

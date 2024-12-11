@@ -28,6 +28,11 @@ def get_oauth2_providers() -> dict[str, dict]:
 		if provider.custom_base_url:
 			authorize_url = provider.base_url + provider.authorize_url
 			access_token_url = provider.base_url + provider.access_token_url
+
+		# Keycloak needs this, the base URL also has a route, that urljoin() ignores
+		if provider.name == "keycloak":
+			provider.api_endpoint = provider.base_url + provider.api_endpoint
+
 		out[provider.name] = {
 			"flow_params": {
 				"name": provider.name,

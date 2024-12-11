@@ -129,8 +129,9 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 	refresh() {
 		super.refresh();
 		// Previously opened doc values showing up on a new doc
+		// Previously opened doc values showing up on other docs where phone fields is empty
 
-		if (this.frm && this.frm.doc.__islocal && !this.get_value()) {
+		if (!this.get_value()) {
 			this.reset_input();
 		}
 	}
