@@ -377,10 +377,15 @@ def validate_rename(
 
 	kwargs = {"doctype": doctype, "ptype": "write", "raise_exception": False}
 	if old_doc:
-		kwargs |= {"doc": old_doc}
+		kwargs["doc"] = old_doc
 
 	if not (ignore_permissions or frappe.permissions.has_permission(**kwargs)):
-		frappe.throw(_("You need write permission to rename"))
+		frappe.throw(_("You need write permission on {0} {1} to rename").format(doctype, old))
+	
+	if merge:
+		kwargs["doc"] = frappe.get_doc(doctype, new)
+		if not (ignore_permissions or frappe.permissions.has_permission(**kwargs)):
+			frappe.throw(_("You need write permission on {0} {1} to merge").format(doctype, new))
 
 	if not (force or ignore_permissions) and not meta.allow_rename:
 		frappe.throw(_("{0} not allowed to be renamed").format(_(doctype)))
