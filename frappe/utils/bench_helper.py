@@ -1,3 +1,5 @@
+#!/bin/env python3
+
 import importlib
 import json
 import linecache
