@@ -18,7 +18,7 @@
 				<component :is="{ template: slotContent }" :class="slotClasses" :data-slot-name="slotName" />
 			</template>
 			<template v-else>
-				<span :class="slotClasses" :data-slot-name="slotName">{{ slotContent }}</span>
+				<span :class="slotClasses" :data-slot-name="slotName" class="min-h-5 min-w-5">{{ slotContent }}</span>
 			</template>
 		</template>
 
