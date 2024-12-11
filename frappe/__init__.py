@@ -285,6 +285,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 		patch_query_execute()
 		patch_query_aggregation()
 		_register_fault_handler()
+		_qb_patched[local.conf.db_type] = True
 
 	setup_module_map(include_all_apps=not (frappe.request or frappe.job or frappe.flags.in_migrate))
 
