@@ -48,7 +48,7 @@ from frappe.query_builder.utils import (
 	patch_query_aggregation,
 	patch_query_execute,
 )
-from frappe.utils.caching import request_cache
+from frappe.utils.caching import request_cache, site_cache
 from frappe.utils.data import cint, cstr, sbool
 
 from .bench_interface import Bench
@@ -369,11 +369,14 @@ def connect_replica() -> bool:
 def get_site_config(sites_path: str | None = None, site_path: str | None = None) -> _dict[str, Any]:
 	"""Return `site_config.json` combined with `sites/common_site_config.json`.
 	`site_config` is a set of site wide settings like database name, password, email etc."""
-	config: _dict[str, Any] = _dict()
-
 	sites_path = sites_path or getattr(local, "sites_path", None)
 	site_path = site_path or getattr(local, "site_path", None)
+	return _get_site_config(sites_path, site_path)
 
+
+@site_cache(ttl=60)
+def _get_site_config(sites_path, site_path):
+	config: _dict[str, Any] = _dict()
 	common_config = get_common_site_config(sites_path)
 
 	if sites_path:
@@ -448,6 +451,7 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	return config
 
 
+@site_cache(ttl=60)
 def get_common_site_config(sites_path: str | None = None) -> _dict[str, Any]:
 	"""Return common site config as dictionary.
 
@@ -455,6 +459,7 @@ def get_common_site_config(sites_path: str | None = None) -> _dict[str, Any]:
 	- checking configuration which should only be allowed in common site config
 	- When no site context is present and fallback is required.
 	"""
+	# XXX: This fallback can break caching.
 	sites_path = sites_path or getattr(local, "sites_path", None)
 
 	common_site_config = os.path.join(sites_path, "common_site_config.json")
