@@ -11,6 +11,7 @@ be used to build database driven apps.
 Read the documentation: https://frappeframework.com/docs
 """
 
+from contextvars import ContextVar
 import copy
 import faulthandler
 import functools
@@ -184,6 +185,8 @@ FormDict: TypeAlias = _dict[str, str]
 db: LocalProxy[Union["MariaDBDatabase", "PostgresDatabase"]] = local("db")
 qb: LocalProxy[Union["MariaDB", "Postgres"]] = local("qb")
 conf: LocalProxy[ConfType] = local("conf")
+_db_name_ctxvar = ContextVar("_frappe_db_name_ctx")
+db_name = LocalProxy(_db_name_ctxvar)
 form_dict: LocalProxy[FormDict] = local("form_dict")
 form = form_dict
 request: LocalProxy["Request"] = local("request")
@@ -258,6 +261,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 	local.task_id = None
 
 	local.conf = _dict(get_site_config())
+	_db_name_ctxvar.set(conf.db_name)
 	local.lang = local.conf.lang or "en"
 
 	local.module_app = None
