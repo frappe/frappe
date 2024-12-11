@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-11-10 17:35+0000\n"
-"PO-Revision-Date: 2024-11-11 13:03\n"
+"PO-Revision-Date: 2024-11-12 12:59\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -1891,7 +1891,7 @@ msgstr "Kullanıcı Adı ile Oturum Açmaya İzin Ver"
 #. Label of a Section Break field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Allow Modules"
-msgstr "Modüllere İzin Ver"
+msgstr "Modül İzinleri"
 
 #. Label of a Check field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -3230,7 +3230,7 @@ msgstr "Arka Plan İşleri Kuyruğu"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:87
 msgid "Background Print (required for >25 documents)"
-msgstr ""
+msgstr "Arka Plan Baskısı ( En az 25 belge ve üstü)"
 
 #. Label of a Section Break field in DocType 'System Settings'
 #. Label of a Table field in DocType 'System Health Report'
@@ -7128,7 +7128,7 @@ msgstr "Listeleme sayfası için açıklama, düz metin olarak, sadece birkaç s
 #. 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Description to inform the user about any action that is going to be performed"
-msgstr ""
+msgstr "Gerçekleştirilecek herhangi bir eylem hakkında kullanıcıyı bilgilendirmek için açıklama"
 
 #. Label of a Data field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
@@ -7210,7 +7210,7 @@ msgstr "Ayrıntılar"
 
 #: frappe/core/page/permission_manager/permission_manager.js:487
 msgid "Did not add"
-msgstr ""
+msgstr "Eklenmedi"
 
 #: frappe/core/page/permission_manager/permission_manager.js:381
 msgid "Did not remove"
@@ -10524,7 +10524,7 @@ msgstr ""
 #. Description of the 'Row Name' (Data) field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "For DocType Link / DocType Action"
-msgstr ""
+msgstr "DocType Bağlantısı / DocType Eylemi için"
 
 #. Label of a Select field in DocType 'Energy Point Rule'
 #: frappe/social/doctype/energy_point_rule/energy_point_rule.json
@@ -11754,7 +11754,7 @@ msgstr "Önizlemeyi Gizle"
 #. Description of the 'Hide Buttons' (Check) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Hide Previous, Next and Close button on highlight dialog."
-msgstr ""
+msgstr "Vurgulama iletişim kutusunda Önceki, Sonraki ve Kapat düğmelerini gizle."
 
 #: frappe/public/js/frappe/list/list_filter.js:87
 msgid "Hide Saved"
@@ -14999,7 +14999,7 @@ msgstr ""
 #. Description of the 'Dynamic Route' (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Map route parameters into form variables. Example <code>/project/&lt;name&gt;</code>"
-msgstr ""
+msgstr "Rota parametrelerini form değişkenlerine eşleyin. Örnek <code>/proje/&lt;adı&gt;</code>"
 
 #: frappe/core/doctype/data_import/importer.py:886
 msgid "Mapping column {0} to field {1}"
@@ -17484,7 +17484,7 @@ msgstr "Özelleştirmelerin yalnızca geliştirici modunda dışa aktarılmasın
 #. Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgid "Only change this if you want to use other S3 compatible object storage backends."
-msgstr ""
+msgstr "Yalnızca diğer S3 uyumlu nesne depolama arka uçlarını kullanmak istiyorsanız bunu değiştirin."
 
 #. Label of a Link field in DocType 'Workspace Link'
 #: frappe/desk/doctype/workspace_link/workspace_link.json
@@ -17585,7 +17585,7 @@ msgstr "Web için Açık Kaynaklı Uygulamalar"
 #. Label of a Check field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
 msgid "Open URL in a New Tab"
-msgstr ""
+msgstr "Bağlantıyı Yeni Sekmede Aç"
 
 #. Description of the 'Quick Entry' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -24505,12 +24505,12 @@ msgstr "Hata Bildir"
 #: frappe/website/doctype/web_form/templates/web_form.html:153
 msgctxt "Button in web form"
 msgid "Submit another response"
-msgstr ""
+msgstr "Başka bir yanıt gönder"
 
 #. Label of a Data field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Submit button label"
-msgstr ""
+msgstr "Gönder Butonu Etiketi"
 
 #. Label of a Check field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
@@ -25662,11 +25662,11 @@ msgstr "Bu Para Birimi aktif değil. İşlemlerde kullanmak için etkinleştirin
 
 #: frappe/geo/utils.py:84
 msgid "This Doctype does not contain latitude and longitude fields"
-msgstr ""
+msgstr "Bu Doctype enlem ve boylam alanlarını içermiyor"
 
 #: frappe/geo/utils.py:67
 msgid "This Doctype does not contain location fields"
-msgstr ""
+msgstr "Bu Doctype konum alanları içermiyor"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:391
 msgid "This Kanban Board will be private"
@@ -25895,7 +25895,7 @@ msgstr "Rapora yönlendirildikten sonra kullanıcıya bir iletişim kutusunda g�
 
 #: frappe/www/third_party_apps.html:21
 msgid "This will log out {0} from all other devices"
-msgstr ""
+msgstr "Bu işlem {0} uygulamasını diğer tüm cihazlardan kapatacaktır"
 
 #: frappe/templates/emails/delete_data_confirmation.html:3
 msgid "This will permanently remove your data."
@@ -31732,7 +31732,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/workflow.js:45
 msgid "{0}: Other permission rules may also apply"
-msgstr ""
+msgstr "{0}: Diğer izin kuralları da geçerli olabilir"
 
 #: frappe/core/doctype/doctype/doctype.py:1746
 msgid "{0}: Permission at level 0 must be set before higher levels are set"

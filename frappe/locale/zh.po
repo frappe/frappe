@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-11-10 17:35+0000\n"
-"PO-Revision-Date: 2024-11-11 13:03\n"
+"PO-Revision-Date: 2024-11-19 16:29\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -19420,12 +19420,12 @@ msgstr ""
 #: frappe/public/js/frappe/views/workspace/workspace.js:986
 #: frappe/public/js/frappe/views/workspace/workspace.js:1232
 msgid "Public"
-msgstr "公"
+msgstr "公共"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:35
 msgctxt "Workspace Category"
 msgid "Public"
-msgstr "公"
+msgstr "公共"
 
 #. Label of a Float field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
