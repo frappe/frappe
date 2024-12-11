@@ -1031,9 +1031,12 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 	list_filters = {
 		"enabled": 1,
 		"docstatus": ["<", 2],
-		"name": ["not in", STANDARD_USERS],
-		searchfield: ["like", f"%{txt}%"],
 	}
+
+	# Check if we have a search term, and decide the filters depending on the search term
+	or_filters = [[searchfield, "like", f"%{txt}%"]]
+	if "name" in searchfield:
+		or_filters += [[field, "like", f"%{txt}%"] for field in ("first_name", "middle_name", "last_name")]
 
 	if filters:
 		if not (filters.get("ignore_user_type") and frappe.session.data.user_type == "System User"):
@@ -1042,17 +1045,16 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 		filters.pop("ignore_user_type", None)
 		list_filters.update(filters)
 
-	return [
-		(user.name, user.full_name)
-		for user in frappe.get_list(
-			doctype,
-			filters=list_filters,
-			fields=["name", "full_name"],
-			limit_start=start,
-			limit_page_length=page_len,
-			order_by="name asc",
-		)
-	]
+	return frappe.get_list(
+		doctype,
+		filters=list_filters,
+		fields=["name", "full_name"],
+		limit_start=start,
+		limit_page_length=page_len,
+		order_by="name asc",
+		or_filters=or_filters,
+		as_list=True,
+	)
 
 
 def get_total_users():

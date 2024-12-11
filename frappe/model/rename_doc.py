@@ -425,6 +425,7 @@ def update_link_field_values(link_fields: list[dict], old: str, new: str, doctyp
 					# update single docs using ORM rather then query
 					# as single docs also sometimes sets defaults!
 					single_doc.flags.ignore_mandatory = True
+					single_doc.flags.ignore_links = True
 					single_doc.save(ignore_permissions=True)
 			except ImportError:
 				# fails in patches where the doctype has been renamed
