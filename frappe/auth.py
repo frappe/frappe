@@ -7,7 +7,6 @@ from urllib.parse import quote, urlencode, urlparse
 from werkzeug.wrappers import Response
 
 import frappe
-import frappe.boot
 import frappe.database
 import frappe.utils
 import frappe.utils.user
@@ -159,7 +158,10 @@ class LoginManager:
 
 	def get_user_info(self):
 		self.info = frappe.get_cached_value(
-			"User", self.user, ["user_type", "first_name", "last_name", "user_image"], as_dict=1
+			"User",
+			self.user,
+			["user_type", "first_name", "last_name", "user_image", "default_workspace"],
+			as_dict=1,
 		)
 
 		self.user_type = self.info.user_type
@@ -184,9 +186,9 @@ class LoginManager:
 			frappe.local.cookie_manager.set_cookie("system_user", "yes")
 			if not resume:
 				frappe.local.response["message"] = "Logged In"
-				default_workspace = frappe.boot.get_bootinfo().get("user").get("default_workspace")
+				default_workspace = self.info.default_workspace
 				if default_workspace:
-					frappe.local.response["home_page"] = "/app/" + slug(default_workspace.get("name"))
+					frappe.local.response["home_page"] = "/app/" + slug(default_workspace)
 				else:
 					frappe.local.response["home_page"] = get_default_path() or "/app"
 

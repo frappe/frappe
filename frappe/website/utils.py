@@ -166,12 +166,13 @@ def get_home_page_via_hooks():
 
 
 def get_boot_data():
+	apps = get_apps() or []
 	return {
 		"lang": frappe.local.lang or "en",
 		"apps_data": {
-			"apps": get_apps() or [],
-			"is_desk_apps": 1 if bool(is_desk_apps(get_apps())) else 0,
-			"default_path": get_default_path() or "",
+			"apps": apps,
+			"is_desk_apps": 1 if bool(is_desk_apps(apps)) else 0,
+			"default_path": get_default_path(apps) or "",
 		},
 		"sysdefaults": {
 			"float_precision": cint(frappe.get_system_settings("float_precision")) or 3,
