@@ -1482,7 +1482,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				const docfield = frappe.query_report.get_filter(fieldname).df;
 				const value = applied_filters[fieldname];
 
-				if (frappe.utils.is_empty(value) || docfield.hidden_due_to_dependency) {
+				if (docfield.hidden_due_to_dependency) {
 					return null;
 				}
 
@@ -1541,7 +1541,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							df.fieldtype === "Check" ? boolean_labels[value] : value;
 					}
 				}
-				
+
 				if (this.prepared_report_name) {
 					filters.prepared_report_name = this.prepared_report_name;
 				}
