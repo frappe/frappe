@@ -1734,40 +1734,33 @@ def setup_module_map(include_all_apps: bool = True) -> None:
 	:param: include_all_apps: Include all apps on bench, or just apps installed on the site.
 	:return: Nothing
 	"""
+	local.app_modules, local.module_app = _get_module_maps(include_all_apps)
+
+@site_cache(ttl=60)
+def _get_module_maps(include_all_apps: bool) -> tuple[dict[str, str], dict[str, str]]:
+	app_modules = {}
 	if include_all_apps:
-		local.app_modules = cache.get_value("app_modules")
+		apps = get_all_apps(with_internal_apps=True)
 	else:
-		local.app_modules = cache.get_value("installed_app_modules")
+		apps = get_installed_apps(_ensure_on_bench=True)
 
-	if not local.app_modules:
-		local.app_modules = {}
-		if include_all_apps:
-			apps = get_all_apps(with_internal_apps=True)
-		else:
-			apps = get_installed_apps(_ensure_on_bench=True)
+	for app in apps:
+		app_modules.setdefault(app, [])
+		for module in get_module_list(app):
+			module = scrub(module)
+			app_modules[app].append(module)
 
-		for app in apps:
-			local.app_modules.setdefault(app, [])
-			for module in get_module_list(app):
-				module = scrub(module)
-				local.app_modules[app].append(module)
-
-		if include_all_apps:
-			cache.set_value("app_modules", local.app_modules)
-		else:
-			cache.set_value("installed_app_modules", local.app_modules)
-
-	# Init module_app (reverse mapping)
-	local.module_app = {}
-	for app, modules in local.app_modules.items():
+	module_app = {}
+	for app, modules in app_modules.items():
 		for module in modules:
-			if module in local.module_app:
+			if module in module_app:
 				warnings.warn(
-					f"WARNING: module `{module}` found in apps `{local.module_app[module]}` and `{app}`",
+					f"WARNING: module `{module}` found in apps `{module_app[module]}` and `{app}`",
 					stacklevel=1,
 				)
-			local.module_app[module] = app
+			module_app[module] = app
 
+	return app_modules, module_app
 
 def get_file_items(path, raise_not_found=False, ignore_empty_lines=True):
 	"""Return items from text file as a list. Ignore empty lines."""
