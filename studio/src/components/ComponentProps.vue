@@ -85,7 +85,7 @@ const updateComponentProp = (propName: string, newValue: any) => {
 	props.block?.setProp(propName, newValue)
 }
 
-const componentSlots = ref([])
+const componentSlots = ref<string[]>([])
 watch(
 	() => props.block?.componentName,
 	async () => {

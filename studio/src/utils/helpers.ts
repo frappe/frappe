@@ -175,6 +175,12 @@ function replaceMapKey(map: Map<any, any>, oldKey: string, newKey: string) {
 	return newMap;
 }
 
+// slots
+function isHTML(content: any) {
+	if (typeof content !== 'string') return false
+	return /<[a-z][\s\S]*>/i.test(content)
+}
+
 // app
 async function fetchApp(appName: string) {
 	const appResource = createDocumentResource({
@@ -454,7 +460,6 @@ function getErrorMessage(err: any) {
 
 
 export {
-	copyToClipboard,
 	getBlockInstance,
 	getComponentBlock,
 	getRootBlock,
@@ -471,6 +476,8 @@ export {
 	jsonToJs,
 	mapToObject,
 	replaceMapKey,
+	// slots
+	isHTML,
 	// app
 	fetchApp,
 	fetchAppPages,
@@ -484,5 +491,7 @@ export {
 	getNewResource,
 	// dialog
 	confirm,
+	// general utils
+	copyToClipboard,
 	getErrorMessage,
 }

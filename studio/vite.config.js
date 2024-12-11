@@ -11,6 +11,7 @@ export default defineConfig({
 	plugins: [frappeui({ source: "^/(app|login|api|assets|files|pages)" }), vue()],
 	resolve: {
 		alias: {
+			vue: "vue/dist/vue.esm-bundler.js",
 			"@": path.resolve(__dirname, "src"),
 		},
 	},
