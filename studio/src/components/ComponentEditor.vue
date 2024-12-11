@@ -38,13 +38,17 @@
 					:ref="(el) => setSlotOverlayRef(slotName, el)"
 					:data-slot-name="slotName"
 					class="pointer-events-none fixed ring-2 ring-inset ring-purple-500"
+					:class="store.selectedSlot === slotName ? 'opacity-100' : 'opacity-65'"
 					:style="{
 						// set min height and width so that slots without content are visible
 						minWidth: `calc(${12}px * ${canvasProps.scale})`,
 						minHeight: `calc(${12}px * ${canvasProps.scale})`,
 					}"
 				>
-					<span class="absolute -top-3 left-0 inline-block bg-purple-500 text-xs text-white">
+					<span
+						class="absolute -top-3 left-0 inline-block text-xs text-white"
+						:class="store.selectedSlot === slotName ? 'bg-purple-500' : 'bg-purple-500/65'"
+					>
 						{{ slotName }}
 					</span>
 				</div>
@@ -94,6 +98,7 @@ const updateTracker = ref(() => {})
 const canvasProps = inject("canvasProps") as CanvasProps
 
 const showMarginPaddingHandlers = computed(() => {
+	return false
 	return isBlockSelected.value && !props.block.isRoot() && !resizing.value
 })
 

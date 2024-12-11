@@ -158,6 +158,11 @@ const handleClick = (e: MouseEvent) => {
 	} else {
 		store.selectBlock(props.block, e)
 	}
+
+	if (e.target?.dataset.slotName) {
+		store.selectSlot(e.target.dataset.slotName)
+	}
+
 	e.stopPropagation()
 	e.preventDefault()
 }
