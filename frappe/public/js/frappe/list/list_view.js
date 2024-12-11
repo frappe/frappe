@@ -211,7 +211,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					) {
 						frappe.model.with_doctype(df.options, () => {
 							const meta = frappe.get_meta(df.options);
-							if (meta.show_title_field_in_link) {
+							if (meta.show_title_field_in_link && meta.title_field) {
 								this.link_field_title_fields[
 									typeof f === "string" ? f : f.fieldname
 								] = meta.title_field;
