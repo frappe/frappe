@@ -1821,6 +1821,10 @@ def call(fn: str | Callable, *args, **kwargs):
 	return fn(*args, **newargs)
 
 
+@functools.lru_cache
+def _cached_inspect_singature(fn):
+	return inspect.signature(fn)
+
 def get_newargs(fn: Callable, kwargs: dict[str, Any]) -> dict[str, Any]:
 	"""Remove any kwargs that are not supported by the function.
 
@@ -1836,7 +1840,7 @@ def get_newargs(fn: Callable, kwargs: dict[str, Any]) -> dict[str, Any]:
 	# Ref: https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind
 	varkw_exist = False
 
-	signature = inspect.signature(fn)
+	signature = _cached_inspect_singature(fn)
 	fnargs = list(signature.parameters)
 
 	for param_name, parameter in signature.parameters.items():
