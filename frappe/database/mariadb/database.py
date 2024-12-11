@@ -1,4 +1,5 @@
 import re
+import datetime
 from contextlib import contextmanager
 
 import pymysql
@@ -155,7 +156,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	REGEX_CHARACTER = "regexp"
 	CONVERSION_MAP = conversions | {
 		FIELD_TYPE.NEWDECIMAL: float,
-		FIELD_TYPE.DATETIME: get_datetime,
+		FIELD_TYPE.DATETIME: datetime.datetime.fromisoformat,
 		UnicodeWithAttrs: escape_string,
 	}
 	default_port = "3306"
