@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-11-10 17:35+0000\n"
-"PO-Revision-Date: 2024-11-11 13:03\n"
+"POT-Creation-Date: 2024-12-01 17:58+0000\n"
+"PO-Revision-Date: 2024-12-04 19:52\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Esperanto\n"
 "MIME-Version: 1.0\n"
@@ -102,11 +102,11 @@ msgstr "crwdns112794:0{0}crwdnd112794:0{1}crwdnd112794:0{2}crwdne112794:0"
 msgid "(Mandatory)"
 msgstr "crwdns112796:0crwdne112796:0"
 
-#: frappe/model/rename_doc.py:693
+#: frappe/model/rename_doc.py:699
 msgid "** Failed: {0} to {1}: {2}"
 msgstr "crwdns112798:0{0}crwdnd112798:0{1}crwdnd112798:0{2}crwdne112798:0"
 
-#: frappe/public/js/frappe/list/list_settings.js:132
+#: frappe/public/js/frappe/list/list_settings.js:135
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:111
 msgid "+ Add / Remove Fields"
 msgstr "crwdns112800:0crwdne112800:0"
@@ -816,7 +816,7 @@ msgstr "crwdns143686:0crwdne143686:0"
 msgid "Access Token URL"
 msgstr "crwdns143688:0crwdne143688:0"
 
-#: frappe/auth.py:473
+#: frappe/auth.py:475
 msgid "Access not allowed from this IP Address"
 msgstr "crwdns113010:0crwdne113010:0"
 
@@ -875,7 +875,7 @@ msgstr "crwdns143694:0crwdne143694:0"
 msgid "Action Complete"
 msgstr "crwdns113034:0crwdne113034:0"
 
-#: frappe/model/document.py:1679
+#: frappe/model/document.py:1683
 msgid "Action Failed"
 msgstr "crwdns113036:0crwdne113036:0"
 
@@ -1398,11 +1398,11 @@ msgstr "crwdns113240:0crwdne113240:0"
 msgid "Administrator"
 msgstr "crwdns113242:0crwdne113242:0"
 
-#: frappe/core/doctype/user/user.py:1156
+#: frappe/core/doctype/user/user.py:1149
 msgid "Administrator Logged In"
 msgstr "crwdns113244:0crwdne113244:0"
 
-#: frappe/core/doctype/user/user.py:1150
+#: frappe/core/doctype/user/user.py:1143
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr "crwdns113246:0{0}crwdnd113246:0{1}crwdnd113246:0{2}crwdne113246:0"
 
@@ -2089,7 +2089,7 @@ msgstr "crwdns143928:0crwdne143928:0"
 msgid "App not found for module: {0}"
 msgstr "crwdns113546:0{0}crwdne113546:0"
 
-#: frappe/__init__.py:1767
+#: frappe/__init__.py:1711
 msgid "App {0} is not installed"
 msgstr "crwdns113548:0{0}crwdne113548:0"
 
@@ -2107,7 +2107,7 @@ msgstr "crwdns143930:0crwdne143930:0"
 msgid "Append To"
 msgstr "crwdns143932:0crwdne143932:0"
 
-#: frappe/email/doctype/email_account/email_account.py:183
+#: frappe/email/doctype/email_account/email_account.py:184
 msgid "Append To can be one of {0}"
 msgstr "crwdns113558:0{0}crwdne113558:0"
 
@@ -2648,6 +2648,11 @@ msgstr "crwdns113800:0crwdne113800:0"
 msgid "Auth URL Data"
 msgstr "crwdns144022:0crwdne144022:0"
 
+#. Label of a Check field in DocType 'Email Account'
+#: frappe/email/doctype/email_account/email_account.json
+msgid "Authenticate as Service Principal"
+msgstr "crwdns151854:0crwdne151854:0"
+
 #. Label of a Section Break field in DocType 'Email Account'
 #. Label of a Section Break field in DocType 'Push Notification Settings'
 #. Label of a Card Break in the Integrations Workspace
@@ -2661,7 +2666,7 @@ msgstr "crwdns113804:0crwdne113804:0"
 msgid "Authentication Apps you can use are: "
 msgstr "crwdns113810:0crwdne113810:0"
 
-#: frappe/email/doctype/email_account/email_account.py:310
+#: frappe/email/doctype/email_account/email_account.py:311
 msgid "Authentication failed while receiving emails from Email Account: {0}."
 msgstr "crwdns113812:0{0}crwdne113812:0"
 
@@ -2854,11 +2859,11 @@ msgstr "crwdns144068:0crwdne144068:0"
 msgid "Automatic"
 msgstr "crwdns113900:0crwdne113900:0"
 
-#: frappe/email/doctype/email_account/email_account.py:718
+#: frappe/email/doctype/email_account/email_account.py:719
 msgid "Automatic Linking can be activated only for one Email Account."
 msgstr "crwdns113904:0crwdne113904:0"
 
-#: frappe/email/doctype/email_account/email_account.py:712
+#: frappe/email/doctype/email_account/email_account.py:713
 msgid "Automatic Linking can be activated only if Incoming is enabled."
 msgstr "crwdns113906:0crwdne113906:0"
 
@@ -3971,11 +3976,11 @@ msgstr "crwdns114410:0{0}crwdne114410:0"
 msgid "Cannot cancel {0}."
 msgstr "crwdns114412:0{0}crwdne114412:0"
 
-#: frappe/model/document.py:846
+#: frappe/model/document.py:850
 msgid "Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"
 msgstr "crwdns114414:0crwdne114414:0"
 
-#: frappe/model/document.py:860
+#: frappe/model/document.py:864
 msgid "Cannot change docstatus from 1 (Submitted) to 0 (Draft)"
 msgstr "crwdns114416:0crwdne114416:0"
 
@@ -4066,7 +4071,7 @@ msgstr "crwdns114454:0crwdne114454:0"
 msgid "Cannot edit a standard report. Please duplicate and create a new report"
 msgstr "crwdns114456:0crwdne114456:0"
 
-#: frappe/model/document.py:866
+#: frappe/model/document.py:870
 msgid "Cannot edit cancelled document"
 msgstr "crwdns114458:0crwdne114458:0"
 
@@ -4099,7 +4104,7 @@ msgstr "crwdns114468:0crwdne114468:0"
 msgid "Cannot have multiple printers mapped to a single print format."
 msgstr "crwdns114470:0crwdne114470:0"
 
-#: frappe/model/document.py:934
+#: frappe/model/document.py:938
 msgid "Cannot link cancelled document: {0}"
 msgstr "crwdns114472:0{0}crwdne114472:0"
 
@@ -4989,6 +4994,10 @@ msgstr "crwdns148376:0crwdne148376:0"
 msgid "Communication Type"
 msgstr "crwdns144428:0crwdne144428:0"
 
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:28
+msgid "Communication secret not set"
+msgstr "crwdns151856:0crwdne151856:0"
+
 #: frappe/desk/page/leaderboard/leaderboard.js:112
 msgid "Company"
 msgstr "crwdns114910:0crwdne114910:0"
@@ -5078,6 +5087,7 @@ msgid "Compose Email"
 msgstr "crwdns114952:0crwdne114952:0"
 
 #. Label of a Select field in DocType 'Document Naming Rule Condition'
+#. Label of a Code field in DocType 'Navbar Item'
 #. Label of a Small Text field in DocType 'Bulk Update'
 #. Label of a Code field in DocType 'Notification'
 #. Label of a Data field in DocType 'Notification Recipient'
@@ -5085,6 +5095,7 @@ msgstr "crwdns114952:0crwdne114952:0"
 #. Label of a Code field in DocType 'Energy Point Rule'
 #. Label of a Code field in DocType 'Workflow Transition'
 #: frappe/core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
+#: frappe/core/doctype/navbar_item/navbar_item.json
 #: frappe/desk/doctype/bulk_update/bulk_update.json
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:305
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:439
@@ -5313,11 +5324,11 @@ msgstr "crwdns115060:0crwdne115060:0"
 msgid "Contact options, like \"Sales Query, Support Query\" etc each on a new line or separated by commas."
 msgstr "crwdns144464:0crwdne144464:0"
 
-#: frappe/utils/change_log.py:360
+#: frappe/utils/change_log.py:363
 msgid "Contains {0} security fix"
 msgstr "crwdns144466:0{0}crwdne144466:0"
 
-#: frappe/utils/change_log.py:358
+#: frappe/utils/change_log.py:361
 msgid "Contains {0} security fixes"
 msgstr "crwdns144468:0{0}crwdne144468:0"
 
@@ -5454,7 +5465,7 @@ msgstr "crwdns144496:0crwdne144496:0"
 msgid "Could not connect to outgoing email server"
 msgstr "crwdns115126:0crwdne115126:0"
 
-#: frappe/model/document.py:930
+#: frappe/model/document.py:934
 msgid "Could not find {0}"
 msgstr "crwdns115128:0{0}crwdne115128:0"
 
@@ -6528,7 +6539,7 @@ msgstr "crwdns115668:0crwdne115668:0"
 
 #. Label of a Check field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
-#: frappe/email/doctype/email_account/email_account.py:199
+#: frappe/email/doctype/email_account/email_account.py:200
 msgid "Default Incoming"
 msgstr "crwdns115670:0crwdne115670:0"
 
@@ -6548,7 +6559,7 @@ msgstr "crwdns144620:0crwdne144620:0"
 
 #. Label of a Check field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
-#: frappe/email/doctype/email_account/email_account.py:207
+#: frappe/email/doctype/email_account/email_account.py:208
 msgid "Default Outgoing"
 msgstr "crwdns115680:0crwdne115680:0"
 
@@ -6669,7 +6680,7 @@ msgstr "crwdns115730:0crwdne115730:0"
 msgid "Defaults"
 msgstr "crwdns144650:0crwdne144650:0"
 
-#: frappe/email/doctype/email_account/email_account.py:218
+#: frappe/email/doctype/email_account/email_account.py:219
 msgid "Defaults Updated"
 msgstr "crwdns115736:0crwdne115736:0"
 
@@ -7153,7 +7164,7 @@ msgstr "crwdns144732:0crwdne144732:0"
 msgid "Disabled"
 msgstr "crwdns115922:0crwdne115922:0"
 
-#: frappe/email/doctype/email_account/email_account.js:228
+#: frappe/email/doctype/email_account/email_account.js:232
 msgid "Disabled Auto Reply"
 msgstr "crwdns115948:0crwdne115948:0"
 
@@ -7542,7 +7553,7 @@ msgstr "crwdns116140:0crwdne116140:0"
 msgid "Document Naming Settings"
 msgstr "crwdns116142:0crwdne116142:0"
 
-#: frappe/model/document.py:1541
+#: frappe/model/document.py:1545
 msgid "Document Queued"
 msgstr "crwdns116144:0crwdne116144:0"
 
@@ -7693,7 +7704,7 @@ msgid "Document Types and Permissions"
 msgstr "crwdns144786:0crwdne144786:0"
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:163
-#: frappe/model/document.py:1748
+#: frappe/model/document.py:1752
 msgid "Document Unlocked"
 msgstr "crwdns116230:0crwdne116230:0"
 
@@ -8154,7 +8165,7 @@ msgstr "crwdns144846:0crwdne144846:0"
 msgid "Edit Format"
 msgstr "crwdns116422:0crwdne116422:0"
 
-#: frappe/public/js/frappe/form/quick_entry.js:286
+#: frappe/public/js/frappe/form/quick_entry.js:287
 msgid "Edit Full Form"
 msgstr "crwdns116424:0crwdne116424:0"
 
@@ -8316,7 +8327,7 @@ msgstr "crwdns116472:0crwdne116472:0"
 msgid "Email Account"
 msgstr "crwdns116494:0crwdne116494:0"
 
-#: frappe/email/doctype/email_account/email_account.py:314
+#: frappe/email/doctype/email_account/email_account.py:315
 msgid "Email Account Disabled."
 msgstr "crwdns116510:0crwdne116510:0"
 
@@ -8616,7 +8627,7 @@ msgstr "crwdns144914:0crwdne144914:0"
 
 #. Label of a Check field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
-#: frappe/email/doctype/email_account/email_account.py:200
+#: frappe/email/doctype/email_account/email_account.py:201
 msgid "Enable Incoming"
 msgstr "crwdns116650:0crwdne116650:0"
 
@@ -8629,7 +8640,7 @@ msgstr "crwdns144916:0crwdne144916:0"
 #. Label of a Check field in DocType 'Email Account'
 #: frappe/core/doctype/user_email/user_email.json
 #: frappe/email/doctype/email_account/email_account.json
-#: frappe/email/doctype/email_account/email_account.py:208
+#: frappe/email/doctype/email_account/email_account.py:209
 msgid "Enable Outgoing"
 msgstr "crwdns116656:0crwdne116656:0"
 
@@ -8766,11 +8777,11 @@ msgstr "crwdns116704:0crwdne116704:0"
 msgid "Enabled Scheduler"
 msgstr "crwdns116732:0crwdne116732:0"
 
-#: frappe/email/doctype/email_account/email_account.py:931
+#: frappe/email/doctype/email_account/email_account.py:939
 msgid "Enabled email inbox for user {0}"
 msgstr "crwdns116734:0{0}crwdne116734:0"
 
-#: frappe/core/doctype/server_script/server_script.py:269
+#: frappe/core/doctype/server_script/server_script.py:243
 msgid "Enabled scheduled execution for script {0}"
 msgstr "crwdns116736:0{0}crwdne116736:0"
 
@@ -8783,7 +8794,7 @@ msgstr "crwdns116736:0{0}crwdne116736:0"
 msgid "Enables Calendar and Gantt views."
 msgstr "crwdns144944:0crwdne144944:0"
 
-#: frappe/email/doctype/email_account/email_account.js:223
+#: frappe/email/doctype/email_account/email_account.js:227
 msgid "Enabling auto reply on an incoming email account will send automated replies to all the synchronized emails. Do you wish to continue?"
 msgstr "crwdns116742:0crwdne116742:0"
 
@@ -9045,7 +9056,7 @@ msgstr "crwdns116864:0{0}crwdne116864:0"
 msgid "Error in Client Script"
 msgstr "crwdns116866:0crwdne116866:0"
 
-#: frappe/public/js/frappe/form/script_manager.js:242
+#: frappe/public/js/frappe/form/script_manager.js:243
 msgid "Error in Client Script."
 msgstr "crwdns116868:0crwdne116868:0"
 
@@ -9063,7 +9074,7 @@ msgstr "crwdns116872:0crwdne116872:0"
 msgid "Error in print format on line {0}: {1}"
 msgstr "crwdns116874:0{0}crwdnd116874:0{1}crwdne116874:0"
 
-#: frappe/email/doctype/email_account/email_account.py:617
+#: frappe/email/doctype/email_account/email_account.py:618
 msgid "Error while connecting to email account {0}"
 msgstr "crwdns116876:0{0}crwdne116876:0"
 
@@ -9071,7 +9082,7 @@ msgstr "crwdns116876:0{0}crwdne116876:0"
 msgid "Error while evaluating Notification {0}. Please fix your template."
 msgstr "crwdns116878:0{0}crwdne116878:0"
 
-#: frappe/model/document.py:816
+#: frappe/model/document.py:820
 msgid "Error: Document has been modified after you have opened it"
 msgstr "crwdns116880:0crwdne116880:0"
 
@@ -9480,7 +9491,7 @@ msgstr "crwdns117056:0crwdne117056:0"
 msgid "Failed to connect to server"
 msgstr "crwdns117058:0crwdne117058:0"
 
-#: frappe/auth.py:676
+#: frappe/auth.py:678
 msgid "Failed to decode token, please provide a valid base64-encoded token."
 msgstr "crwdns117060:0crwdne117060:0"
 
@@ -9504,6 +9515,10 @@ msgstr "crwdns117064:0crwdne117064:0"
 msgid "Failed to export python type hints"
 msgstr "crwdns117066:0crwdne117066:0"
 
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:48
+msgid "Failed to generate access token"
+msgstr "crwdns151858:0crwdne151858:0"
+
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.py:249
 msgid "Failed to generate names from the series"
 msgstr "crwdns117068:0crwdne117068:0"
@@ -9520,6 +9535,10 @@ msgstr "crwdns117072:0{0}crwdnd117072:0{1}crwdne117072:0"
 msgid "Failed to get method {0} with {1}"
 msgstr "crwdns117074:0{0}crwdnd117074:0{1}crwdne117074:0"
 
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:68
+msgid "Failed to get site info"
+msgstr "crwdns151860:0crwdne151860:0"
+
 #: frappe/model/virtual_doctype.py:63
 msgid "Failed to import virtual doctype {}, is controller file present?"
 msgstr "crwdns117076:0crwdne117076:0"
@@ -9527,6 +9546,10 @@ msgstr "crwdns117076:0crwdne117076:0"
 #: frappe/utils/image.py:76
 msgid "Failed to optimize image: {0}"
 msgstr "crwdns117078:0{0}crwdne117078:0"
+
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:104
+msgid "Failed to request login to Frappe Cloud"
+msgstr "crwdns151862:0crwdne151862:0"
 
 #: frappe/email/doctype/email_queue/email_queue.py:280
 msgid "Failed to send email with subject:"
@@ -9539,6 +9562,10 @@ msgstr "crwdns117082:0crwdne117082:0"
 #: frappe/desk/page/setup_wizard/setup_wizard.py:23
 msgid "Failed to update global settings"
 msgstr "crwdns117084:0crwdne117084:0"
+
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:83
+msgid "Failed while calling API {0}"
+msgstr "crwdns151864:0{0}crwdne151864:0"
 
 #. Label of a Table field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -9794,7 +9821,7 @@ msgstr "crwdns117204:0{0}crwdne117204:0"
 #: frappe/custom/doctype/doctype_layout/doctype_layout.json
 #: frappe/desk/doctype/kanban_board/kanban_board.json
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
-#: frappe/public/js/frappe/list/list_settings.js:132
+#: frappe/public/js/frappe/list/list_settings.js:135
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:111
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:83
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
@@ -10690,7 +10717,7 @@ msgstr "crwdns117668:0crwdne117668:0"
 msgid "Function Based On"
 msgstr "crwdns117672:0crwdne117672:0"
 
-#: frappe/__init__.py:911
+#: frappe/__init__.py:855
 msgid "Function {0} is not whitelisted."
 msgstr "crwdns117674:0{0}crwdne117674:0"
 
@@ -11725,7 +11752,7 @@ msgstr "crwdns148398:0crwdne148398:0"
 #: frappe/desk/report/todo/todo.py:36 frappe/model/meta.py:44
 #: frappe/public/js/frappe/data_import/data_exporter.js:330
 #: frappe/public/js/frappe/data_import/data_exporter.js:345
-#: frappe/public/js/frappe/list/list_settings.js:334
+#: frappe/public/js/frappe/list/list_settings.js:337
 #: frappe/public/js/frappe/list/list_view.js:357
 #: frappe/public/js/frappe/list/list_view.js:420
 #: frappe/public/js/frappe/model/meta.js:197
@@ -12446,7 +12473,7 @@ msgstr "crwdns118506:0crwdne118506:0"
 msgid "Incomplete Virtual Doctype Implementation"
 msgstr "crwdns118508:0crwdne118508:0"
 
-#: frappe/auth.py:239
+#: frappe/auth.py:241
 msgid "Incomplete login details"
 msgstr "crwdns118510:0crwdne118510:0"
 
@@ -12466,11 +12493,11 @@ msgstr "crwdns118516:0crwdne118516:0"
 msgid "Incorrect Verification code"
 msgstr "crwdns118518:0crwdne118518:0"
 
-#: frappe/model/document.py:1347
+#: frappe/model/document.py:1351
 msgid "Incorrect value in row {0}:"
 msgstr "crwdns148406:0{0}crwdne148406:0"
 
-#: frappe/model/document.py:1349
+#: frappe/model/document.py:1353
 msgid "Incorrect value:"
 msgstr "crwdns148408:0crwdne148408:0"
 
@@ -12623,7 +12650,6 @@ msgid "Insufficient Permission Level for {0}"
 msgstr "crwdns118592:0{0}crwdne118592:0"
 
 #: frappe/database/query.py:375 frappe/desk/form/load.py:40
-#: frappe/model/document.py:239
 msgid "Insufficient Permission for {0}"
 msgstr "crwdns118594:0{0}crwdne118594:0"
 
@@ -12768,6 +12794,10 @@ msgstr "crwdns118662:0crwdne118662:0"
 msgid "Invalid CSV Format"
 msgstr "crwdns118664:0crwdne118664:0"
 
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:121
+msgid "Invalid Code. Please try again."
+msgstr "crwdns151866:0crwdne151866:0"
+
 #: frappe/integrations/doctype/webhook/webhook.py:90
 msgid "Invalid Condition: {}"
 msgstr "crwdns118666:0crwdne118666:0"
@@ -12845,11 +12875,11 @@ msgstr "crwdns118698:0{0}crwdne118698:0"
 msgid "Invalid Output Format"
 msgstr "crwdns118700:0crwdne118700:0"
 
-#: frappe/integrations/doctype/connected_app/connected_app.py:166
+#: frappe/integrations/doctype/connected_app/connected_app.py:190
 msgid "Invalid Parameters."
 msgstr "crwdns118702:0crwdne118702:0"
 
-#: frappe/core/doctype/user/user.py:1171 frappe/www/update-password.html:121
+#: frappe/core/doctype/user/user.py:1164 frappe/www/update-password.html:121
 #: frappe/www/update-password.html:142 frappe/www/update-password.html:144
 #: frappe/www/update-password.html:245
 msgid "Invalid Password"
@@ -12859,7 +12889,7 @@ msgstr "crwdns118704:0crwdne118704:0"
 msgid "Invalid Phone Number"
 msgstr "crwdns118706:0crwdne118706:0"
 
-#: frappe/auth.py:96 frappe/utils/oauth.py:185 frappe/utils/oauth.py:192
+#: frappe/auth.py:95 frappe/utils/oauth.py:185 frappe/utils/oauth.py:192
 #: frappe/www/login.py:118
 msgid "Invalid Request"
 msgstr "crwdns118708:0crwdne118708:0"
@@ -12899,7 +12929,7 @@ msgstr "crwdns118722:0crwdne118722:0"
 msgid "Invalid column"
 msgstr "crwdns118724:0crwdne118724:0"
 
-#: frappe/model/document.py:849 frappe/model/document.py:863
+#: frappe/model/document.py:853 frappe/model/document.py:867
 msgid "Invalid docstatus"
 msgstr "crwdns118726:0crwdne118726:0"
 
@@ -12961,7 +12991,7 @@ msgstr "crwdns118752:0crwdne118752:0"
 msgid "Invalid template file for import"
 msgstr "crwdns118756:0crwdne118756:0"
 
-#: frappe/integrations/doctype/connected_app/connected_app.py:172
+#: frappe/integrations/doctype/connected_app/connected_app.py:196
 msgid "Invalid token state! Check if the token has been created by the OAuth user."
 msgstr "crwdns149028:0crwdne149028:0"
 
@@ -13803,7 +13833,7 @@ msgstr "crwdns145786:0crwdne145786:0"
 msgid "Last Year"
 msgstr "crwdns145788:0crwdne145788:0"
 
-#: frappe/public/js/frappe/widgets/chart_widget.js:698
+#: frappe/public/js/frappe/widgets/chart_widget.js:704
 msgid "Last synced {0}"
 msgstr "crwdns119168:0{0}crwdne119168:0"
 
@@ -13855,7 +13885,7 @@ msgid "Leave blank to repeat always"
 msgstr "crwdns145790:0crwdne145790:0"
 
 #: frappe/core/doctype/communication/mixins.py:207
-#: frappe/email/doctype/email_account/email_account.py:666
+#: frappe/email/doctype/email_account/email_account.py:667
 msgid "Leave this conversation"
 msgstr "crwdns119190:0crwdne119190:0"
 
@@ -13915,7 +13945,7 @@ msgstr "crwdns119216:0crwdne119216:0"
 msgid "Length of {0} should be between 1 and 1000"
 msgstr "crwdns119218:0{0}crwdne119218:0"
 
-#: frappe/public/js/frappe/widgets/chart_widget.js:674
+#: frappe/public/js/frappe/widgets/chart_widget.js:680
 msgid "Less"
 msgstr "crwdns119220:0crwdne119220:0"
 
@@ -14487,7 +14517,7 @@ msgstr "crwdns145902:0crwdne145902:0"
 msgid "Login Failed please try again"
 msgstr "crwdns119474:0crwdne119474:0"
 
-#: frappe/email/doctype/email_account/email_account.py:139
+#: frappe/email/doctype/email_account/email_account.py:140
 msgid "Login Id is required"
 msgstr "crwdns119476:0crwdne119476:0"
 
@@ -14521,7 +14551,7 @@ msgstr "crwdns119492:0{0}crwdne119492:0"
 msgid "Login link sent to your email"
 msgstr "crwdns119494:0crwdne119494:0"
 
-#: frappe/auth.py:325 frappe/auth.py:328
+#: frappe/auth.py:327 frappe/auth.py:330
 msgid "Login not allowed at this time"
 msgstr "crwdns119496:0crwdne119496:0"
 
@@ -14568,7 +14598,7 @@ msgstr "crwdns145910:0crwdne145910:0"
 msgid "Login with email link expiry (in minutes)"
 msgstr "crwdns145912:0crwdne145912:0"
 
-#: frappe/auth.py:132
+#: frappe/auth.py:131
 msgid "Login with username and password is not allowed."
 msgstr "crwdns119514:0crwdne119514:0"
 
@@ -14725,6 +14755,12 @@ msgstr "crwdns119580:0crwdne119580:0"
 #: frappe/desk/page/setup_wizard/install_fixtures.py:29
 msgid "Male"
 msgstr "crwdns148418:0crwdne148418:0"
+
+#. Label of a standard navbar item
+#. Type: Route
+#: frappe/hooks.py
+msgid "Manage Billing"
+msgstr "crwdns151868:0crwdne151868:0"
 
 #: frappe/www/me.html:50
 msgid "Manage third party apps"
@@ -14973,7 +15009,7 @@ msgid "Maximum points allowed after multiplying points with the multiplier value
 "(Note: For no limit leave this field empty or set 0)"
 msgstr "crwdns145986:0crwdne145986:0"
 
-#: frappe/model/rename_doc.py:679
+#: frappe/model/rename_doc.py:685
 msgid "Maximum {0} rows allowed"
 msgstr "crwdns119698:0{0}crwdne119698:0"
 
@@ -15070,7 +15106,7 @@ msgstr "crwdns119726:0crwdne119726:0"
 msgid "Message"
 msgstr "crwdns119728:0crwdne119728:0"
 
-#: frappe/__init__.py:595 frappe/public/js/frappe/ui/messages.js:267
+#: frappe/__init__.py:539 frappe/public/js/frappe/ui/messages.js:267
 msgctxt "Default title of the message dialog"
 msgid "Message"
 msgstr "crwdns119738:0crwdne119738:0"
@@ -15115,7 +15151,7 @@ msgstr "crwdns146010:0crwdne146010:0"
 msgid "Message clipped"
 msgstr "crwdns119766:0crwdne119766:0"
 
-#: frappe/email/doctype/email_account/email_account.py:315
+#: frappe/email/doctype/email_account/email_account.py:316
 msgid "Message from server: {0}"
 msgstr "crwdns119768:0{0}crwdne119768:0"
 
@@ -15204,7 +15240,7 @@ msgstr "crwdns119804:0crwdne119804:0"
 msgid "Method"
 msgstr "crwdns146022:0crwdne146022:0"
 
-#: frappe/__init__.py:913
+#: frappe/__init__.py:857
 msgid "Method Not Allowed"
 msgstr "crwdns146024:0crwdne146024:0"
 
@@ -15511,7 +15547,7 @@ msgstr "crwdns119992:0crwdne119992:0"
 #: frappe/public/js/frappe/form/multi_select_dialog.js:72
 #: frappe/public/js/frappe/ui/toolbar/search.js:285
 #: frappe/public/js/frappe/ui/toolbar/search.js:300
-#: frappe/public/js/frappe/widgets/chart_widget.js:674
+#: frappe/public/js/frappe/widgets/chart_widget.js:680
 #: frappe/templates/includes/list/list.html:23
 #: frappe/templates/includes/search_template.html:13
 msgid "More"
@@ -15847,7 +15883,7 @@ msgstr "crwdns120128:0crwdne120128:0"
 msgid "Need Workspace Manager role to hide/unhide public workspaces"
 msgstr "crwdns120130:0crwdne120130:0"
 
-#: frappe/model/document.py:625
+#: frappe/model/document.py:629
 msgid "Negative Value"
 msgstr "crwdns120132:0crwdne120132:0"
 
@@ -15989,7 +16025,7 @@ msgstr "crwdns120192:0crwdne120192:0"
 msgid "New password cannot be same as old password"
 msgstr "crwdns120194:0crwdne120194:0"
 
-#: frappe/utils/change_log.py:391
+#: frappe/utils/change_log.py:394
 msgid "New updates are available"
 msgstr "crwdns120196:0crwdne120196:0"
 
@@ -16036,7 +16072,7 @@ msgstr "crwdns120208:0{0}crwdnd120208:0{1}crwdne120208:0"
 msgid "New {0}: {1}"
 msgstr "crwdns120210:0{0}crwdnd120210:0{1}crwdne120210:0"
 
-#: frappe/utils/change_log.py:373
+#: frappe/utils/change_log.py:376
 msgid "New {} releases for the following apps are available"
 msgstr "crwdns120212:0crwdne120212:0"
 
@@ -16090,7 +16126,7 @@ msgstr "crwdns120232:0crwdne120232:0"
 #: frappe/public/js/frappe/web_form/web_form.js:91
 #: frappe/public/js/onboarding_tours/onboarding_tours.js:15
 #: frappe/public/js/onboarding_tours/onboarding_tours.js:240
-#: frappe/templates/includes/slideshow.html:38 frappe/website/utils.py:253
+#: frappe/templates/includes/slideshow.html:38 frappe/website/utils.py:254
 #: frappe/website/web_template/slideshow/slideshow.html:44
 msgid "Next"
 msgstr "crwdns120234:0crwdne120234:0"
@@ -16468,7 +16504,7 @@ msgstr "crwdns120402:0crwdne120402:0"
 msgid "No of Rows (Max 500)"
 msgstr "crwdns146136:0crwdne146136:0"
 
-#: frappe/__init__.py:1102 frappe/client.py:109 frappe/client.py:151
+#: frappe/__init__.py:1046 frappe/client.py:109 frappe/client.py:151
 msgid "No permission for {0}"
 msgstr "crwdns120406:0{0}crwdne120406:0"
 
@@ -16501,11 +16537,11 @@ msgstr "crwdns120418:0crwdne120418:0"
 msgid "No records will be exported"
 msgstr "crwdns120420:0crwdne120420:0"
 
-#: frappe/www/printview.py:424
+#: frappe/www/printview.py:427
 msgid "No template found at path: {0}"
 msgstr "crwdns120422:0{0}crwdne120422:0"
 
-#: frappe/public/js/frappe/form/controls/multiselect_list.js:226
+#: frappe/public/js/frappe/form/controls/multiselect_list.js:242
 msgid "No values to show"
 msgstr "crwdns120424:0crwdne120424:0"
 
@@ -16610,7 +16646,7 @@ msgstr "crwdns120468:0crwdne120468:0"
 msgid "Not Linked to any record"
 msgstr "crwdns120470:0crwdne120470:0"
 
-#: frappe/__init__.py:995 frappe/app.py:357 frappe/desk/calendar.py:26
+#: frappe/__init__.py:939 frappe/app.py:357 frappe/desk/calendar.py:26
 #: frappe/desk/treeview.py:19 frappe/geo/utils.py:97
 #: frappe/public/js/frappe/web_form/webform_script.js:15
 #: frappe/website/doctype/web_form/web_form.py:602
@@ -16693,11 +16729,11 @@ msgstr "crwdns120504:0{0}crwdnd120504:0{0}crwdne120504:0"
 msgid "Not allowed to create custom Virtual DocType."
 msgstr "crwdns120506:0crwdne120506:0"
 
-#: frappe/www/printview.py:124
+#: frappe/www/printview.py:127
 msgid "Not allowed to print cancelled documents"
 msgstr "crwdns120508:0crwdne120508:0"
 
-#: frappe/www/printview.py:121
+#: frappe/www/printview.py:124
 msgid "Not allowed to print draft documents"
 msgstr "crwdns120510:0crwdne120510:0"
 
@@ -17055,7 +17091,7 @@ msgstr "crwdns120660:0crwdne120660:0"
 msgid "OAuth Scope"
 msgstr "crwdns120664:0crwdne120664:0"
 
-#: frappe/email/doctype/email_account/email_account.js:178
+#: frappe/email/doctype/email_account/email_account.js:182
 msgid "OAuth has been enabled but not authorised. Please use \"Authorise API Access\" button to do the same."
 msgstr "crwdns120666:0crwdne120666:0"
 
@@ -18017,7 +18053,7 @@ msgstr "crwdns121098:0crwdne121098:0"
 msgid "Password for Base DN"
 msgstr "crwdns146354:0crwdne146354:0"
 
-#: frappe/email/doctype/email_account/email_account.py:170
+#: frappe/email/doctype/email_account/email_account.py:171
 msgid "Password is required or select Awaiting Password"
 msgstr "crwdns121102:0crwdne121102:0"
 
@@ -18037,7 +18073,7 @@ msgstr "crwdns121108:0crwdne121108:0"
 msgid "Password set"
 msgstr "crwdns121110:0crwdne121110:0"
 
-#: frappe/auth.py:242
+#: frappe/auth.py:244
 msgid "Password size exceeded the maximum allowed size"
 msgstr "crwdns121112:0crwdne121112:0"
 
@@ -18593,7 +18629,7 @@ msgstr "crwdns121372:0crwdne121372:0"
 msgid "Please make sure the Reference Communication Docs are not circularly linked."
 msgstr "crwdns121374:0crwdne121374:0"
 
-#: frappe/model/document.py:818
+#: frappe/model/document.py:822
 msgid "Please refresh to get the latest document."
 msgstr "crwdns121376:0crwdne121376:0"
 
@@ -18657,7 +18693,7 @@ msgstr "crwdns146412:0crwdne146412:0"
 msgid "Please select a file or url"
 msgstr "crwdns121404:0crwdne121404:0"
 
-#: frappe/model/rename_doc.py:674
+#: frappe/model/rename_doc.py:680
 msgid "Please select a valid csv file with data"
 msgstr "crwdns121406:0crwdne121406:0"
 
@@ -18731,7 +18767,7 @@ msgstr "crwdns121438:0crwdne121438:0"
 msgid "Please setup a message first"
 msgstr "crwdns121440:0crwdne121440:0"
 
-#: frappe/email/doctype/email_account/email_account.py:405
+#: frappe/email/doctype/email_account/email_account.py:406
 msgid "Please setup default Email Account from Settings > Email Account"
 msgstr "crwdns121442:0crwdne121442:0"
 
@@ -19157,7 +19193,7 @@ msgstr "crwdns146464:0crwdne146464:0"
 msgid "Print Format Type"
 msgstr "crwdns146466:0crwdne146466:0"
 
-#: frappe/www/printview.py:406
+#: frappe/www/printview.py:409
 msgid "Print Format {0} is disabled"
 msgstr "crwdns121640:0{0}crwdne121640:0"
 
@@ -19613,7 +19649,7 @@ msgstr "crwdns121864:0crwdne121864:0"
 msgid "Query analysis complete. Check suggested indexes."
 msgstr "crwdns146532:0crwdne146532:0"
 
-#: frappe/utils/safe_exec.py:428
+#: frappe/utils/safe_exec.py:477
 msgid "Query must be of SELECT or read-only WITH type."
 msgstr "crwdns121868:0crwdne121868:0"
 
@@ -19815,7 +19851,7 @@ msgstr "crwdns121960:0crwdne121960:0"
 msgid "Re-Run in Console"
 msgstr "crwdns121962:0crwdne121962:0"
 
-#: frappe/email/doctype/email_account/email_account.py:672
+#: frappe/email/doctype/email_account/email_account.py:673
 msgid "Re:"
 msgstr "crwdns121964:0crwdne121964:0"
 
@@ -19895,7 +19931,7 @@ msgstr "crwdns146580:0crwdne146580:0"
 msgid "Read mode"
 msgstr "crwdns122010:0crwdne122010:0"
 
-#: frappe/utils/safe_exec.py:90
+#: frappe/utils/safe_exec.py:93
 msgid "Read the documentation to know more"
 msgstr "crwdns122012:0crwdne122012:0"
 
@@ -20888,7 +20924,7 @@ msgstr "crwdns122508:0crwdne122508:0"
 msgid "Reset Dashboard Customizations"
 msgstr "crwdns122510:0crwdne122510:0"
 
-#: frappe/public/js/frappe/list/list_settings.js:227
+#: frappe/public/js/frappe/list/list_settings.js:230
 msgid "Reset Fields"
 msgstr "crwdns122512:0crwdne122512:0"
 
@@ -21361,7 +21397,7 @@ msgid "Route: Example \"/app\""
 msgstr "crwdns146792:0crwdne146792:0"
 
 #: frappe/model/base_document.py:727 frappe/model/base_document.py:768
-#: frappe/model/document.py:610
+#: frappe/model/document.py:614
 msgid "Row"
 msgstr "crwdns122772:0crwdne122772:0"
 
@@ -21533,7 +21569,7 @@ msgstr "crwdns151556:0crwdne151556:0"
 msgid "SMS was not sent. Please contact Administrator."
 msgstr "crwdns122852:0crwdne122852:0"
 
-#: frappe/email/doctype/email_account/email_account.py:187
+#: frappe/email/doctype/email_account/email_account.py:188
 msgid "SMTP Server is required"
 msgstr "crwdns122854:0crwdne122854:0"
 
@@ -21641,7 +21677,7 @@ msgstr "crwdns146840:0crwdne146840:0"
 #: frappe/public/js/frappe/form/footer/form_timeline.js:663
 #: frappe/public/js/frappe/form/quick_entry.js:161
 #: frappe/public/js/frappe/list/list_settings.js:36
-#: frappe/public/js/frappe/list/list_settings.js:244
+#: frappe/public/js/frappe/list/list_settings.js:247
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:25
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:322
 #: frappe/public/js/frappe/utils/common.js:443
@@ -21804,7 +21840,7 @@ msgstr "crwdns146848:0crwdne146848:0"
 msgid "Scheduled To Send"
 msgstr "crwdns146850:0crwdne146850:0"
 
-#: frappe/core/doctype/server_script/server_script.py:281
+#: frappe/core/doctype/server_script/server_script.py:255
 msgid "Scheduled execution for script {0} has updated"
 msgstr "crwdns122974:0{0}crwdne122974:0"
 
@@ -22208,7 +22244,7 @@ msgid "Select Field..."
 msgstr "crwdns123162:0crwdne123162:0"
 
 #: frappe/public/js/frappe/form/grid_row.js:460
-#: frappe/public/js/frappe/list/list_settings.js:233
+#: frappe/public/js/frappe/list/list_settings.js:236
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:181
 msgid "Select Fields"
 msgstr "crwdns123164:0crwdne123164:0"
@@ -22736,7 +22772,7 @@ msgstr "crwdns147004:0crwdne147004:0"
 msgid "Server Script"
 msgstr "crwdns123398:0crwdne123398:0"
 
-#: frappe/utils/safe_exec.py:89
+#: frappe/utils/safe_exec.py:92
 msgid "Server Scripts are disabled. Please enable server scripts from bench configuration."
 msgstr "crwdns123408:0crwdne123408:0"
 
@@ -24069,7 +24105,7 @@ msgstr "crwdns123996:0{0}crwdnd123996:0{1}crwdne123996:0"
 #: frappe/email/doctype/newsletter/newsletter.json
 #: frappe/integrations/doctype/integration_request/integration_request.json
 #: frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
-#: frappe/public/js/frappe/list/list_settings.js:356
+#: frappe/public/js/frappe/list/list_settings.js:359
 #: frappe/public/js/frappe/views/reports/report_view.js:909
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
@@ -24418,7 +24454,7 @@ msgstr "crwdns147256:0crwdne147256:0"
 msgid "Successful Transactions"
 msgstr "crwdns124204:0crwdne124204:0"
 
-#: frappe/model/rename_doc.py:688
+#: frappe/model/rename_doc.py:694
 msgid "Successful: {0} to {1}"
 msgstr "crwdns124206:0{0}crwdnd124206:0{1}crwdne124206:0"
 
@@ -24888,7 +24924,7 @@ msgstr "crwdns124346:0crwdne124346:0"
 msgid "Table updated"
 msgstr "crwdns124348:0crwdne124348:0"
 
-#: frappe/model/document.py:1370
+#: frappe/model/document.py:1374
 msgid "Table {0} cannot be empty"
 msgstr "crwdns124350:0{0}crwdne124350:0"
 
@@ -25004,10 +25040,20 @@ msgstr "crwdns124398:0crwdne124398:0"
 msgid "Temporarily Disabled"
 msgstr "crwdns124400:0crwdne124400:0"
 
+#: frappe/core/doctype/translation/test_translation.py:47
+#: frappe/core/doctype/translation/test_translation.py:54
+msgid "Test Data"
+msgstr "crwdns151870:0crwdne151870:0"
+
 #. Label of a Data field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Test Job ID"
 msgstr "crwdns147324:0crwdne147324:0"
+
+#: frappe/core/doctype/translation/test_translation.py:49
+#: frappe/core/doctype/translation/test_translation.py:57
+msgid "Test Spanish"
+msgstr "crwdns151872:0crwdne151872:0"
 
 #: frappe/email/doctype/newsletter/newsletter.py:94
 msgid "Test email sent to {0}"
@@ -25453,7 +25499,7 @@ msgstr "crwdns124608:0crwdne124608:0"
 msgid "This action is irreversible. Do you wish to continue?"
 msgstr "crwdns124610:0crwdne124610:0"
 
-#: frappe/__init__.py:991
+#: frappe/__init__.py:935
 msgid "This action is only allowed for {}"
 msgstr "crwdns124612:0crwdne124612:0"
 
@@ -25508,7 +25554,7 @@ msgstr "crwdns147376:0crwdne147376:0"
 msgid "This document is already amended, you cannot ammend it again"
 msgstr "crwdns124634:0crwdne124634:0"
 
-#: frappe/model/document.py:1538
+#: frappe/model/document.py:1542
 msgid "This document is currently locked and queued for execution. Please try again after some time."
 msgstr "crwdns124636:0crwdne124636:0"
 
@@ -25685,7 +25731,7 @@ msgstr "crwdns124712:0crwdne124712:0"
 msgid "This will terminate the job immediately and might be dangerous, are you sure? "
 msgstr "crwdns124714:0crwdne124714:0"
 
-#: frappe/core/doctype/user/user.py:1185
+#: frappe/core/doctype/user/user.py:1178
 msgid "Throttled"
 msgstr "crwdns124716:0crwdne124716:0"
 
@@ -26749,7 +26795,7 @@ msgstr "crwdns125230:0{0}crwdne125230:0"
 msgid "Unknown Rounding Method: {}"
 msgstr "crwdns125232:0crwdne125232:0"
 
-#: frappe/auth.py:302
+#: frappe/auth.py:304
 msgid "Unknown User"
 msgstr "crwdns125234:0crwdne125234:0"
 
@@ -26776,7 +26822,7 @@ msgstr "crwdns147568:0crwdne147568:0"
 msgid "Unread Notification Sent"
 msgstr "crwdns147570:0crwdne147570:0"
 
-#: frappe/utils/safe_exec.py:429
+#: frappe/utils/safe_exec.py:478
 msgid "Unsafe SQL query"
 msgstr "crwdns125246:0crwdne125246:0"
 
@@ -26909,7 +26955,7 @@ msgstr "crwdns125300:0crwdne125300:0"
 msgid "Update Value"
 msgstr "crwdns147590:0crwdne147590:0"
 
-#: frappe/utils/change_log.py:383
+#: frappe/utils/change_log.py:386
 msgid "Update from Frappe Cloud"
 msgstr "crwdns147592:0crwdne147592:0"
 
@@ -26979,6 +27025,10 @@ msgstr "crwdns125336:0{0}crwdne125336:0"
 #: frappe/core/doctype/data_import/data_import.js:36
 msgid "Updating {0} of {1}, {2}"
 msgstr "crwdns125338:0{0}crwdnd125338:0{1}crwdnd125338:0{2}crwdne125338:0"
+
+#: frappe/public/js/billing.bundle.js:30
+msgid "Upgrade plan"
+msgstr "crwdns151874:0crwdne151874:0"
 
 #: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:121
 #: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:122
@@ -27463,7 +27513,7 @@ msgstr "crwdns147674:0{0}crwdne147674:0"
 msgid "User {0} has requested for data deletion"
 msgstr "crwdns125570:0{0}crwdne125570:0"
 
-#: frappe/core/doctype/user/user.py:1319
+#: frappe/core/doctype/user/user.py:1312
 msgid "User {0} impersonated as {1}"
 msgstr "crwdns125572:0{0}crwdnd125572:0{1}crwdne125572:0"
 
@@ -27471,7 +27521,7 @@ msgstr "crwdns125572:0{0}crwdnd125572:0{1}crwdne125572:0"
 msgid "User {0} is disabled"
 msgstr "crwdns125574:0{0}crwdne125574:0"
 
-#: frappe/sessions.py:230
+#: frappe/sessions.py:231
 msgid "User {0} is disabled. Please contact your System Manager."
 msgstr "crwdns147676:0{0}crwdne147676:0"
 
@@ -27613,15 +27663,15 @@ msgstr "crwdns147696:0crwdne147696:0"
 msgid "Value To Be Set"
 msgstr "crwdns147698:0crwdne147698:0"
 
-#: frappe/model/base_document.py:948 frappe/model/document.py:666
+#: frappe/model/base_document.py:948 frappe/model/document.py:670
 msgid "Value cannot be changed for {0}"
 msgstr "crwdns125640:0{0}crwdne125640:0"
 
-#: frappe/model/document.py:612
+#: frappe/model/document.py:616
 msgid "Value cannot be negative for"
 msgstr "crwdns125642:0crwdne125642:0"
 
-#: frappe/model/document.py:616
+#: frappe/model/document.py:620
 msgid "Value cannot be negative for {0}: {1}"
 msgstr "crwdns125644:0{0}crwdnd125644:0{1}crwdne125644:0"
 
@@ -28733,6 +28783,10 @@ msgstr "crwdns126176:0crwdne126176:0"
 msgid "You are impersonating as another user."
 msgstr "crwdns126178:0crwdne126178:0"
 
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:24
+msgid "You are not allowed to access this resource"
+msgstr "crwdns151876:0crwdne151876:0"
+
 #: frappe/permissions.py:403
 msgid "You are not allowed to access this {0} record because it is linked to {1} '{2}' in field {3}"
 msgstr "crwdns126180:0{0}crwdnd126180:0{1}crwdnd126180:0{2}crwdnd126180:0{3}crwdne126180:0"
@@ -28785,7 +28839,7 @@ msgstr "crwdns126202:0crwdne126202:0"
 msgid "You are not permitted to access this page."
 msgstr "crwdns126204:0crwdne126204:0"
 
-#: frappe/__init__.py:910
+#: frappe/__init__.py:854
 msgid "You are not permitted to access this resource."
 msgstr "crwdns126206:0crwdne126206:0"
 
@@ -28797,7 +28851,7 @@ msgstr "crwdns126208:0crwdne126208:0"
 msgid "You are only allowed to update order, do not remove or add apps."
 msgstr "crwdns126210:0crwdne126210:0"
 
-#: frappe/email/doctype/email_account/email_account.js:212
+#: frappe/email/doctype/email_account/email_account.js:216
 msgid "You are selecting Sync Option as ALL, It will resync all read as well as unread message from server. This may also cause the duplication of Communication (emails)."
 msgstr "crwdns126212:0crwdne126212:0"
 
@@ -28862,7 +28916,7 @@ msgstr "crwdns126240:0{0}crwdne126240:0"
 msgid "You can only set the 3 custom doctypes in the Document Types table."
 msgstr "crwdns126242:0crwdne126242:0"
 
-#: frappe/handler.py:228
+#: frappe/handler.py:229
 msgid "You can only upload JPG, PNG, PDF, TXT or Microsoft documents."
 msgstr "crwdns126244:0crwdne126244:0"
 
@@ -28969,11 +29023,11 @@ msgstr "crwdns126290:0crwdne126290:0"
 msgid "You do not have enough review points"
 msgstr "crwdns126292:0crwdne126292:0"
 
-#: frappe/desk/query_report.py:803
+#: frappe/desk/query_report.py:807
 msgid "You do not have permission to access {0}: {1}."
 msgstr "crwdns151568:0{0}crwdnd151568:0{1}crwdne151568:0"
 
-#: frappe/www/printview.py:358
+#: frappe/www/printview.py:361
 msgid "You do not have permission to view this document"
 msgstr "crwdns126294:0crwdne126294:0"
 
@@ -29074,6 +29128,10 @@ msgstr "crwdns126340:0crwdne126340:0"
 msgid "You must login to submit this form"
 msgstr "crwdns126342:0crwdne126342:0"
 
+#: frappe/model/document.py:238
+msgid "You need the '{0}' permission on {1} {2} to perform this action."
+msgstr "crwdns151878:0{0}crwdnd151878:0{1}crwdnd151878:0{2}crwdne151878:0"
+
 #: frappe/desk/doctype/workspace/workspace.py:113
 msgid "You need to be Workspace Manager to delete a public workspace."
 msgstr "crwdns151570:0crwdne151570:0"
@@ -29118,13 +29176,17 @@ msgstr "crwdns126360:0crwdne126360:0"
 msgid "You need to select indexes you want to add first."
 msgstr "crwdns147830:0crwdne147830:0"
 
-#: frappe/email/doctype/email_account/email_account.py:145
+#: frappe/email/doctype/email_account/email_account.py:146
 msgid "You need to set one IMAP folder for {0}"
 msgstr "crwdns126362:0{0}crwdne126362:0"
 
+#: frappe/model/rename_doc.py:388
+msgid "You need write permission on {0} {1} to merge"
+msgstr "crwdns151880:0{0}crwdnd151880:0{1}crwdne151880:0"
+
 #: frappe/model/rename_doc.py:383
-msgid "You need write permission to rename"
-msgstr "crwdns126364:0crwdne126364:0"
+msgid "You need write permission on {0} {1} to rename"
+msgstr "crwdns151882:0{0}crwdnd151882:0{1}crwdne151882:0"
 
 #: frappe/client.py:458
 msgid "You need {0} permission to fetch values from {1} {2}"
@@ -29194,7 +29256,7 @@ msgstr "crwdns126390:0crwdne126390:0"
 msgid "Your account has been deleted"
 msgstr "crwdns126392:0crwdne126392:0"
 
-#: frappe/auth.py:494
+#: frappe/auth.py:496
 msgid "Your account has been locked and will resume after {0} seconds"
 msgstr "crwdns126394:0{0}crwdne126394:0"
 
@@ -30700,7 +30762,7 @@ msgid "{0} Dashboard"
 msgstr "crwdns127026:0{0}crwdne127026:0"
 
 #: frappe/public/js/frappe/form/grid_row.js:457
-#: frappe/public/js/frappe/list/list_settings.js:224
+#: frappe/public/js/frappe/list/list_settings.js:227
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:178
 msgid "{0} Fields"
 msgstr "crwdns127028:0{0}crwdne127028:0"
@@ -30986,7 +31048,7 @@ msgstr "crwdns127156:0{0}crwdne127156:0"
 msgid "{0} has left the conversation in {1} {2}"
 msgstr "crwdns127158:0{0}crwdnd127158:0{1}crwdnd127158:0{2}crwdne127158:0"
 
-#: frappe/__init__.py:2466
+#: frappe/__init__.py:2410
 msgid "{0} has no versions tracked."
 msgstr "crwdns127160:0{0}crwdne127160:0"
 
@@ -31052,7 +31114,7 @@ msgstr "crwdns127188:0{0}crwdnd127188:0{1}crwdne127188:0"
 msgid "{0} is like {1}"
 msgstr "crwdns127190:0{0}crwdnd127190:0{1}crwdne127190:0"
 
-#: frappe/email/doctype/email_account/email_account.py:174
+#: frappe/email/doctype/email_account/email_account.py:175
 msgid "{0} is mandatory"
 msgstr "crwdns127192:0{0}crwdne127192:0"
 
@@ -31060,7 +31122,7 @@ msgstr "crwdns127192:0{0}crwdne127192:0"
 msgid "{0} is not a field of doctype {1}"
 msgstr "crwdns127194:0{0}crwdnd127194:0{1}crwdne127194:0"
 
-#: frappe/www/printview.py:341
+#: frappe/www/printview.py:344
 msgid "{0} is not a raw printing format."
 msgstr "crwdns127196:0{0}crwdne127196:0"
 
@@ -31133,7 +31195,7 @@ msgstr "crwdns127228:0{0}crwdnd127228:0{1}crwdne127228:0"
 msgid "{0} is one of {1}"
 msgstr "crwdns127230:0{0}crwdnd127230:0{1}crwdne127230:0"
 
-#: frappe/email/doctype/email_account/email_account.py:275
+#: frappe/email/doctype/email_account/email_account.py:276
 #: frappe/model/naming.py:201
 #: frappe/printing/doctype/print_format/print_format.py:92
 #: frappe/utils/csvutils.py:131
@@ -31152,7 +31214,7 @@ msgstr "crwdns127236:0{0}crwdnd127236:0{1}crwdne127236:0"
 msgid "{0} items selected"
 msgstr "crwdns127238:0{0}crwdne127238:0"
 
-#: frappe/core/doctype/user/user.py:1328
+#: frappe/core/doctype/user/user.py:1321
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr "crwdns127240:0{0}crwdnd127240:0{1}crwdne127240:0"
 
@@ -31185,23 +31247,23 @@ msgstr "crwdns127252:0{0}crwdne127252:0"
 msgid "{0} months ago"
 msgstr "crwdns127254:0{0}crwdne127254:0"
 
-#: frappe/model/document.py:1595
+#: frappe/model/document.py:1599
 msgid "{0} must be after {1}"
 msgstr "crwdns127256:0{0}crwdnd127256:0{1}crwdne127256:0"
 
-#: frappe/model/document.py:1356
+#: frappe/model/document.py:1360
 msgid "{0} must be beginning with '{1}'"
 msgstr "crwdns148460:0{0}crwdnd148460:0{1}crwdne148460:0"
 
-#: frappe/model/document.py:1358
+#: frappe/model/document.py:1362
 msgid "{0} must be equal to '{1}'"
 msgstr "crwdns148462:0{0}crwdnd148462:0{1}crwdne148462:0"
 
-#: frappe/model/document.py:1354
+#: frappe/model/document.py:1358
 msgid "{0} must be none of {1}"
 msgstr "crwdns148464:0{0}crwdnd148464:0{1}crwdne148464:0"
 
-#: frappe/model/document.py:1352 frappe/utils/csvutils.py:136
+#: frappe/model/document.py:1356 frappe/utils/csvutils.py:136
 msgid "{0} must be one of {1}"
 msgstr "crwdns127258:0{0}crwdnd127258:0{1}crwdne127258:0"
 
@@ -31213,7 +31275,7 @@ msgstr "crwdns127260:0{0}crwdne127260:0"
 msgid "{0} must be unique"
 msgstr "crwdns127262:0{0}crwdne127262:0"
 
-#: frappe/model/document.py:1360
+#: frappe/model/document.py:1364
 msgid "{0} must be {1} {2}"
 msgstr "crwdns148466:0{0}crwdnd148466:0{1}crwdnd148466:0{2}crwdne148466:0"
 
@@ -31226,7 +31288,7 @@ msgstr "crwdns127264:0{0}crwdne127264:0"
 msgid "{0} not a valid State"
 msgstr "crwdns127266:0{0}crwdne127266:0"
 
-#: frappe/model/rename_doc.py:386
+#: frappe/model/rename_doc.py:391
 msgid "{0} not allowed to be renamed"
 msgstr "crwdns127268:0{0}crwdne127268:0"
 
@@ -31359,7 +31421,7 @@ msgstr "crwdns127326:0{0}crwdnd127326:0{1}crwdne127326:0"
 msgid "{0} updated"
 msgstr "crwdns127328:0{0}crwdne127328:0"
 
-#: frappe/public/js/frappe/form/controls/multiselect_list.js:162
+#: frappe/public/js/frappe/form/controls/multiselect_list.js:178
 msgid "{0} values selected"
 msgstr "crwdns127330:0{0}crwdne127330:0"
 
@@ -31587,8 +31649,8 @@ msgstr "crwdns127432:0crwdne127432:0"
 msgid "{} field cannot be empty."
 msgstr "crwdns127434:0crwdne127434:0"
 
-#: frappe/email/doctype/email_account/email_account.py:198
-#: frappe/email/doctype/email_account/email_account.py:206
+#: frappe/email/doctype/email_account/email_account.py:199
+#: frappe/email/doctype/email_account/email_account.py:207
 msgid "{} has been disabled. It can only be enabled if {} is checked."
 msgstr "crwdns127436:0crwdne127436:0"
 
