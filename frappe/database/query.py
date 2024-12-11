@@ -2,6 +2,7 @@ import re
 from ast import literal_eval
 from types import BuiltinFunctionType
 from typing import TYPE_CHECKING, TypeAlias
+from functools import lru_cache
 
 import sqlparse
 from pypika.queries import QueryBuilder, Table
@@ -275,18 +276,10 @@ class Engine:
 			return Function(func, *_args, alias=alias or None)
 
 	def sanitize_fields(self, fields: str | list | tuple):
-		def _sanitize_field(field: str):
-			if not isinstance(field, str):
-				return field
-			stripped_field = sqlparse.format(field, strip_comments=True, keyword_case="lower")
-			if self.is_mariadb:
-				return MARIADB_SPECIFIC_COMMENT.sub("", stripped_field)
-			return stripped_field
-
 		if isinstance(fields, list | tuple):
-			return [_sanitize_field(field) for field in fields]
+			return [_sanitize_field(field, self.is_mariadb) for field in fields]
 		elif isinstance(fields, str):
-			return _sanitize_field(fields)
+			return _sanitize_field(fields, self.is_mariadb)
 
 		return fields
 
@@ -558,3 +551,13 @@ def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str) -> 
 			.run(pluck=True)
 		)
 	return result
+
+@lru_cache
+def _sanitize_field(field: str, is_mariadb):
+	if not isinstance(field, str):
+		return field
+
+	stripped_field = sqlparse.format(field, strip_comments=True, keyword_case="lower")
+	if is_mariadb:
+		return MARIADB_SPECIFIC_COMMENT.sub("", stripped_field)
+	return stripped_field
