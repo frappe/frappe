@@ -121,22 +121,22 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 
 		@wraps(func)
 		def site_cache_wrapper(*args, **kwargs):
-			if getattr(frappe.local, "initialised", None):
+			if site := getattr(frappe.local, "site", None):
 				func_call_key = __generate_request_cache_key(args, kwargs)
 
 				if hasattr(func, "ttl") and time.monotonic() >= func.expiration:
 					func.clear_cache()
 					func.expiration = time.monotonic() + func.ttl
 
-				if hasattr(func, "maxsize") and len(_SITE_CACHE[func_key][frappe.local.site]) >= func.maxsize:
-					_SITE_CACHE[func_key][frappe.local.site].pop(
-						next(iter(_SITE_CACHE[func_key][frappe.local.site])), None
+				if hasattr(func, "maxsize") and len(_SITE_CACHE[func_key][site]) >= func.maxsize:
+					_SITE_CACHE[func_key][site].pop(
+						next(iter(_SITE_CACHE[func_key][site])), None
 					)
 
-				if func_call_key not in _SITE_CACHE[func_key][frappe.local.site]:
-					_SITE_CACHE[func_key][frappe.local.site][func_call_key] = func(*args, **kwargs)
+				if func_call_key not in _SITE_CACHE[func_key][site]:
+					_SITE_CACHE[func_key][site][func_call_key] = func(*args, **kwargs)
 
-				return _SITE_CACHE[func_key][frappe.local.site][func_call_key]
+				return _SITE_CACHE[func_key][site][func_call_key]
 
 			return func(*args, **kwargs)
 
