@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-11-10 17:35+0000\n"
-"PO-Revision-Date: 2024-11-17 14:18\n"
+"PO-Revision-Date: 2024-11-28 17:55\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -2468,7 +2468,7 @@ msgstr "Är du säker på att du vill skapa ny rapport?"
 
 #: frappe/public/js/frappe/form/toolbar.js:111
 msgid "Are you sure you want to merge {0} with {1}?"
-msgstr "Är du säker på att du vill sammanfoga {0} med {1}?"
+msgstr "Är du säker på att du vill slå samman {0} med {1}?"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:105
 msgid "Are you sure you want to proceed?"
@@ -2480,7 +2480,7 @@ msgstr "Är du säker på att du vill återaktivera schemaläggare?"
 
 #: frappe/core/doctype/communication/communication.js:163
 msgid "Are you sure you want to relink this communication to {0}?"
-msgstr "Är du säker att du vill länka om kommunikation till {0}?"
+msgstr "Är du säker att du vill länka om konversation till {0}?"
 
 #: frappe/core/doctype/rq_job/rq_job_list.js:10
 msgid "Are you sure you want to remove all failed jobs?"
@@ -4413,12 +4413,12 @@ msgstr "Kedjehash"
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:11
 #: frappe/tests/test_translate.py:98
 msgid "Change"
-msgstr "Ändra"
+msgstr "Växel"
 
 #: frappe/tests/test_translate.py:99
 msgctxt "Coins"
 msgid "Change"
-msgstr "Ändra"
+msgstr "Växel"
 
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:38
 msgid "Change Image"
@@ -4588,7 +4588,7 @@ msgstr "Om vald döljs anpassade doctypes och rapport kort i Länk sektion"
 
 #: frappe/website/doctype/web_page/web_page.js:78
 msgid "Checking this will publish the page on your website and it'll be visible to everyone."
-msgstr "Om vald kommer sida att publiceras på hemsida och vara synlig för alla."
+msgstr "Om vald kommer sida att publiceras på webbplats och vara synlig för alla."
 
 #: frappe/website/doctype/web_page/web_page.js:104
 msgid "Checking this will show a text area where you can write custom javascript that will run on this page."
@@ -5154,17 +5154,17 @@ msgstr "Vanliga förnamn och efternamn är lätta att gissa."
 #: frappe/email/doctype/email_queue/email_queue.json
 #: frappe/tests/test_translate.py:35 frappe/tests/test_translate.py:103
 msgid "Communication"
-msgstr "Kommunikation"
+msgstr "Konversation"
 
 #. Name of a DocType
 #: frappe/core/doctype/communication_link/communication_link.json
 msgid "Communication Link"
-msgstr "Kommunikation Länk"
+msgstr "Konversation Länk"
 
 #. Label of a Link in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Communication Logs"
-msgstr "Kommunikation Logg"
+msgstr "Konversation Logg"
 
 #. Label of a Select field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
@@ -7346,16 +7346,16 @@ msgstr "Inaktiverad Autosvar"
 #: frappe/public/js/frappe/views/workspace/workspace.js:547
 #: frappe/public/js/frappe/web_form/web_form.js:187
 msgid "Discard"
-msgstr "Avvisa"
+msgstr "Förkasta"
 
 #: frappe/website/doctype/web_form/templates/web_form.html:41
 msgctxt "Button in web form"
 msgid "Discard"
-msgstr "Avvisa"
+msgstr "Förkasta"
 
 #: frappe/public/js/frappe/web_form/web_form.js:184
 msgid "Discard?"
-msgstr "Avvisa?"
+msgstr "Förkasta?"
 
 #. Description of the 'Suggested Indexes' (Table) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
@@ -8150,7 +8150,7 @@ msgstr "Rullgardin Meny"
 #. Label of a Date field in DocType 'ToDo'
 #: frappe/desk/doctype/todo/todo.json
 msgid "Due Date"
-msgstr "Förfallo Datum"
+msgstr "Förfallodatum"
 
 #. Label of a Select field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
@@ -9239,7 +9239,7 @@ msgstr "Fel i Klient Skript."
 
 #: frappe/printing/doctype/letter_head/letter_head.js:21
 msgid "Error in Header/Footer Script"
-msgstr "Fel i Sidhuvud/Sidfot Skript"
+msgstr "Fel i Brevhuvud/Sidfot Skript"
 
 #: frappe/email/doctype/notification/notification.py:396
 #: frappe/email/doctype/notification/notification.py:512
@@ -10990,7 +10990,7 @@ msgstr "Hämta Fält"
 
 #: frappe/printing/doctype/letter_head/letter_head.js:32
 msgid "Get Header and Footer wkhtmltopdf variables"
-msgstr "Hämta Brevhuvud och Sidfot wkhtmltopdf variabler"
+msgstr "Hämta wkhtmltopdf variabler för sidhuvud och sidfot"
 
 #: frappe/public/js/frappe/form/multi_select_dialog.js:87
 msgid "Get Items"
@@ -11847,7 +11847,7 @@ msgstr "Tips: Inkludera symboler, siffror och stora bokstäver i lösenord"
 #: frappe/www/contact.py:22 frappe/www/error.html:30 frappe/www/login.html:150
 #: frappe/www/message.html:34
 msgid "Home"
-msgstr "Start"
+msgstr "Hem"
 
 #. Label of a Data field in DocType 'Role'
 #. Label of a Data field in DocType 'Website Settings'
@@ -11869,7 +11869,7 @@ msgstr "Hem/Test Mapp 1"
 
 #: frappe/core/doctype/file/test_file.py:358
 msgid "Home/Test Folder 1/Test Folder 3"
-msgstr "Start/Testa Mapp 1 / Test Mapp 3"
+msgstr "Hem/Test Mapp 1 / Test Mapp 3"
 
 #: frappe/core/doctype/file/test_file.py:314
 msgid "Home/Test Folder 2"
@@ -12296,7 +12296,7 @@ msgstr "Bild Länk"
 
 #: frappe/public/js/frappe/list/base_list.js:208
 msgid "Image View"
-msgstr "Visa Bild"
+msgstr "Bild Vy"
 
 #. Label of a Float field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
@@ -13587,7 +13587,7 @@ msgstr "Håll koll på alla uppdatering flöde"
 #. Description of a DocType
 #: frappe/core/doctype/communication/communication.json
 msgid "Keeps track of all communications"
-msgstr "Kommunikation Övervakning"
+msgstr "Konversation Översikt"
 
 #. Label of a Data field in DocType 'DefaultValue'
 #. Label of a Data field in DocType 'Document Share Key'
@@ -14550,7 +14550,7 @@ msgstr "Ladda Mer"
 #: frappe/public/js/frappe/form/footer/form_timeline.js:216
 msgctxt "Form timeline"
 msgid "Load More Communications"
-msgstr "Ladda Mer Kommunikation"
+msgstr "Ladda mer Konversation"
 
 #: frappe/public/js/frappe/file_uploader/TreeNode.vue:45
 msgid "Load more"
@@ -15647,7 +15647,7 @@ msgstr "Måndag"
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Monitor logs for errors, background jobs, communications, and user activity"
-msgstr "Övervaka loggar för fel, bakgrundsjobb, kommunikation och användaraktivitet"
+msgstr "Övervaka loggar för fel, bakgrundsjobb, konversation och användaraktivitet"
 
 #. Option for the 'Font' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -16900,7 +16900,7 @@ msgstr "Ej Tillåtet via kontroll behörighet koll"
 
 #: frappe/public/js/frappe/request.js:145 frappe/website/js/website.js:94
 msgid "Not found"
-msgstr "Ej Hittad"
+msgstr "Hittade inte"
 
 #: frappe/core/doctype/page/page.py:62
 msgid "Not in Developer Mode"
@@ -16977,7 +16977,7 @@ msgstr "Obs: Detta kommer att delas med användare."
 
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.js:8
 msgid "Note: Your request for account deletion will be fulfilled within {0} hours."
-msgstr "Obs: Begäran om borttagning av konto kommer att uppfyllas inom {0} timmar."
+msgstr "Obs: Begäran om borttagning av konto kommer att behandlas inom {0} timmar."
 
 #: frappe/core/doctype/data_export/exporter.py:183
 msgid "Notes:"
@@ -17554,7 +17554,7 @@ msgstr "Öppna Awesomebar"
 
 #: frappe/public/js/frappe/form/templates/timeline_message_box.html:67
 msgid "Open Communication"
-msgstr "Öppna Kommunikation"
+msgstr "Öppna Konversation"
 
 #: frappe/templates/emails/new_notification.html:10
 msgid "Open Document"
@@ -18784,7 +18784,7 @@ msgstr "Logga in för att lämna kommentar."
 
 #: frappe/core/doctype/communication/communication.py:209
 msgid "Please make sure the Reference Communication Docs are not circularly linked."
-msgstr "Kontrollera att Referens Dokument för Kommunikation inte är cirkulärt länkade."
+msgstr "Kontrollera att Referens Dokument för Konversation inte är cirkulärt länkade."
 
 #: frappe/model/document.py:818
 msgid "Please refresh to get the latest document."
@@ -20545,7 +20545,7 @@ msgstr "Länka om"
 
 #: frappe/core/doctype/communication/communication.js:138
 msgid "Relink Communication"
-msgstr "Länka om Kommunikation"
+msgstr "Länka om Konversation"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
@@ -22689,7 +22689,7 @@ msgstr "Skicka Utskrift som PDF"
 
 #: frappe/public/js/frappe/views/communication.js:138
 msgid "Send Read Receipt"
-msgstr "Skicka Läsbekräftelse"
+msgstr "Skicka Läskvitto"
 
 #. Label of a Check field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -22765,7 +22765,7 @@ msgstr "Skicka Inloggning Länk"
 
 #: frappe/public/js/frappe/views/communication.js:132
 msgid "Send me a copy"
-msgstr "Skicka Kopia"
+msgstr "Skicka mig kopia"
 
 #: frappe/email/doctype/newsletter/newsletter.js:46
 msgid "Send now"
@@ -28608,7 +28608,7 @@ msgstr "Kommer att användas i URL (vanligtvis förnamn)."
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:463
 msgid "Will be your login ID"
-msgstr "Inloggning ID"
+msgstr "Kommer att vara ditt inloggning ID"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:424
 msgid "Will only be shown if section headings are enabled"
@@ -29030,7 +29030,7 @@ msgstr "Du får bara uppdatera ordning, inte ta bort eller lägga till appar."
 
 #: frappe/email/doctype/email_account/email_account.js:212
 msgid "You are selecting Sync Option as ALL, It will resync all read as well as unread message from server. This may also cause the duplication of Communication (emails)."
-msgstr "Du väljer Synkronisering Alternativ som ALLA. Det kommer att synkronisera alla lästa såväl som olästa meddelanden från server. Detta kan också orsaka kopior av kommunikation (e-post)."
+msgstr "Du väljer Synkronisering Alternativ som ALLA. Det kommer att synkronisera alla lästa såväl som olästa meddelanden från server. Detta kan också orsaka kopior av konversation (e-post)."
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:415
 msgctxt "Form timeline"
@@ -29427,7 +29427,7 @@ msgstr "Ditt konto är borttagen"
 
 #: frappe/auth.py:494
 msgid "Your account has been locked and will resume after {0} seconds"
-msgstr "Ditt konto är låst och kommer att låsas upp efter {0} sekunder"
+msgstr "Konto är låst och kommer att låsas upp efter {0} sekunder"
 
 #: frappe/desk/form/assign_to.py:278
 msgid "Your assignment on {0} {1} has been removed by {2}"
@@ -29473,7 +29473,7 @@ msgstr "Bolag Namn och Adress för E-post Signatur."
 
 #: frappe/templates/emails/auto_reply.html:2
 msgid "Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail."
-msgstr "Din fråga har tagits emot. Vi kommer att svara inom kort. Om du har ytterligare information, vänligen svara på detta mail."
+msgstr "Din fråga har mottagits. Vi kommer att svara inom kort. Om du har någon ytterligare information, vänligen svara på detta mail."
 
 #: frappe/app.py:349
 msgid "Your session has expired, please login again to continue."
@@ -30076,7 +30076,7 @@ msgstr "hjärta"
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "home"
-msgstr "start"
+msgstr "hem"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:296
 msgid "hub"
@@ -30205,7 +30205,7 @@ msgstr "mapp-markör"
 
 #: frappe/model/rename_doc.py:213
 msgid "merged {0} into {1}"
-msgstr "slog samman {0} in i {1}"
+msgstr "sammanslog {0} in i {1}"
 
 #: frappe/website/doctype/blog_post/templates/blog_post.html:25
 #: frappe/website/doctype/blog_post/templates/blog_post_row.html:36
@@ -31637,7 +31637,7 @@ msgstr "{0} {1} kan inte vara undernod då den har undernoder"
 
 #: frappe/model/rename_doc.py:373
 msgid "{0} {1} does not exist, select a new target to merge"
-msgstr "{0} {1} existerar inte. Välj ny mål att sammanfoga"
+msgstr "{0} {1} finns inte, välj ett nytt mål för att slå samman"
 
 #: frappe/public/js/frappe/form/form.js:928
 msgid "{0} {1} is linked with the following submitted documents: {2}"

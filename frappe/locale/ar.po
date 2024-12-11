@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-11-10 17:35+0000\n"
-"PO-Revision-Date: 2024-11-11 13:03\n"
+"PO-Revision-Date: 2024-11-26 17:48\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Arabic\n"
 "MIME-Version: 1.0\n"
@@ -20321,7 +20321,7 @@ msgstr ""
 #: frappe/core/doctype/user/user.js:361
 #: frappe/desk/page/setup_wizard/setup_wizard.js:204
 msgid "Refreshing..."
-msgstr "يحديث ..."
+msgstr "جاري التحديث..."
 
 #: frappe/core/doctype/user/user.py:962
 msgid "Registered but disabled"

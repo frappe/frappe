@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-11-10 17:35+0000\n"
-"PO-Revision-Date: 2024-11-19 16:29\n"
+"PO-Revision-Date: 2024-11-21 16:49\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -30768,7 +30768,7 @@ msgstr "{0} 树"
 #: frappe/public/js/frappe/form/footer/form_timeline.js:128
 #: frappe/public/js/frappe/form/sidebar/form_sidebar.js:86
 msgid "{0} Web page views"
-msgstr "{0}浏览量"
+msgstr "{0} 网页浏览量"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:91
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:92
