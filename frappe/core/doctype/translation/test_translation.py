@@ -27,28 +27,33 @@ class TestTranslation(FrappeTestCase):
 			self.assertEqual(_(val[0]), val[0])
 
 	def test_parent_language(self):
-		data = [
-			["es", ["Test Data", "datos de prueba"]],
-			["es", ["Test Spanish", "prueba de español"]],
-			["es-MX", ["Test Data", "pruebas de datos"]],
-		]
+		data = {
+			"Test Data": {
+				"es": "datos de prueba",
+				"es-MX": "pruebas de datos",
+			},
+			"Test Spanish": {
+				"es": "prueba de español",
+			},
+		}
 
-		for key, val in data:
-			create_translation(key, val)
+		for ss, lm in data.items():
+			for l, st in lm.items():
+				create_translation(l, (ss, st))
 
 		frappe.local.lang = "es"
 
-		self.assertTrue(_(data[0][0]), data[0][1])
+		self.assertEqual(_("Test Data"), data["Test Data"]["es"])
 
-		self.assertTrue(_(data[1][0]), data[1][1])
+		self.assertEqual(_("Test Spanish"), data["Test Spanish"]["es"])
 
 		frappe.local.lang = "es-MX"
 
 		# different translation for es-MX
-		self.assertTrue(_(data[2][0]), data[2][1])
+		self.assertEqual(_("Test Data"), data["Test Data"]["es-MX"])
 
 		# from spanish (general)
-		self.assertTrue(_(data[1][0]), data[1][1])
+		self.assertEqual(_("Test Spanish"), data["Test Spanish"]["es"])
 
 	def test_multi_language_translations(self):
 		source = "User"
