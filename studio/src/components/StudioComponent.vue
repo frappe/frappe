@@ -15,10 +15,10 @@
 		<!-- Dynamically render named slots -->
 		<template v-for="(slotContent, slotName) in block.componentSlots" :key="slotName" v-slot:[slotName]>
 			<template v-if="isHTML(slotContent)">
-				<component v-if="isHTML(slotContent)" :is="{ template: slotContent }" />
+				<component :is="{ template: slotContent }" :class="slotClasses" :data-slot-name="slotName" />
 			</template>
 			<template v-else>
-				{{ slotContent }}
+				<span :class="slotClasses" :data-slot-name="slotName">{{ slotContent }}</span>
 			</template>
 		</template>
 
@@ -82,6 +82,7 @@ const isComponentReady = ref(false)
 const editor = ref<InstanceType<typeof ComponentEditor> | null>(null)
 const store = useStudioStore()
 const classes = ["__studio_component__", "outline-none", "select-none"]
+const slotClasses = ["__studio_component_slot__", "outline-none", "select-none"]
 
 const canvasProps = inject("canvasProps") as CanvasProps
 

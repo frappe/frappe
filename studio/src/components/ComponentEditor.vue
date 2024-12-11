@@ -27,12 +27,34 @@
 				:breakpoint="breakpoint"
 			/>
 			<BoxResizer v-if="showResizer" :targetBlock="block" @resizing="resizing = $event" :target="target" />
+
+			<!-- Slot Overlays -->
+			<template
+				v-if="showSlotOverlays"
+				v-for="(slotContent, slotName) in block.componentSlots"
+				:key="slotName"
+			>
+				<div
+					:ref="(el) => setSlotOverlayRef(slotName, el)"
+					:data-slot-name="slotName"
+					class="pointer-events-none fixed ring-2 ring-inset ring-purple-500"
+					:style="{
+						// set min height and width so that slots without content are visible
+						minWidth: `calc(${12}px * ${canvasProps.scale})`,
+						minHeight: `calc(${12}px * ${canvasProps.scale})`,
+					}"
+				>
+					<span class="absolute -top-3 left-0 inline-block bg-purple-500 text-xs text-white">
+						{{ slotName }}
+					</span>
+				</div>
+			</template>
 		</div>
 	</ComponentContextMenu>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, Ref, watchEffect, nextTick } from "vue"
+import { ref, reactive, computed, onMounted, Ref, watchEffect, nextTick, inject } from "vue"
 
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import BoxResizer from "@/components/BoxResizer.vue"
@@ -68,6 +90,8 @@ const store = useStudioStore()
 const editor = ref(null) as unknown as Ref<HTMLElement>
 const resizing = ref(false)
 const updateTracker = ref(() => {})
+
+const canvasProps = inject("canvasProps") as CanvasProps
 
 const showMarginPaddingHandlers = computed(() => {
 	return isBlockSelected.value && !props.block.isRoot() && !resizing.value
@@ -128,11 +152,71 @@ watchEffect(() => {
 
 	nextTick(() => {
 		updateTracker.value()
+		Object.values(slotOverlays).forEach((overlay) => {
+			if (overlay.tracker) {
+				overlay.tracker()
+			}
+		})
 	})
+})
+
+// Slot Overlays
+const showSlotOverlays = computed(() => {
+	return isBlockSelected.value && !props.block.isRoot() && Object.keys(props.block.componentSlots).length > 0
+})
+
+const slotOverlays = reactive<
+	Record<
+		string,
+		{
+			element: HTMLElement | null
+			tracker: (() => void) | null
+		}
+	>
+>({})
+const setSlotOverlayRef = (slotName: string, element: HTMLElement | null) => {
+	if (element) {
+		// If the slot doesn't exist, create it
+		if (!slotOverlays[slotName]) {
+			slotOverlays[slotName] = {
+				element: null,
+				tracker: null,
+			}
+		}
+		// Update the element
+		slotOverlays[slotName].element = element
+	} else {
+		delete slotOverlays[slotName]
+	}
+}
+
+const updateSlotOverlayRefs = () => {
+	if (!props.target) return
+
+	// Find all slot elements within the target
+	const slotElements = props.target.querySelectorAll("[data-slot-name]")
+
+	slotElements.forEach((element: HTMLElement) => {
+		const slotName = element.dataset.slotName
+		if (slotName && slotOverlays[slotName]?.element) {
+			slotOverlays[slotName].tracker = trackTarget(
+				element,
+				slotOverlays[slotName].element!,
+				store.canvas?.canvasProps as CanvasProps,
+			)
+		}
+	})
+}
+
+watchEffect(() => {
+	if (isBlockSelected.value) {
+		nextTick(updateSlotOverlayRefs)
+	}
 })
 
 onMounted(() => {
 	updateTracker.value = trackTarget(props.target, editor.value, store.canvas?.canvasProps as CanvasProps)
+	updateSlotOverlayRefs()
 })
 
 defineExpose({
