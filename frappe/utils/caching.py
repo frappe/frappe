@@ -2,7 +2,6 @@
 # License: MIT. Check LICENSE
 
 import time
-import json
 from collections import defaultdict
 from collections.abc import Callable
 from functools import wraps
@@ -121,7 +120,7 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 		@wraps(func)
 		def site_cache_wrapper(*args, **kwargs):
 			if getattr(frappe.local, "initialised", None):
-				func_call_key = json.dumps((args, kwargs))
+				func_call_key = __generate_request_cache_key(args, kwargs)
 
 				if hasattr(func, "ttl") and time.monotonic() >= func.expiration:
 					func.clear_cache()
