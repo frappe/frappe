@@ -43,6 +43,7 @@ import click
 from werkzeug.local import Local, LocalProxy, release_local
 
 import frappe
+import frappe.utils.caching
 from frappe.query_builder.utils import (
 	get_query,
 	get_query_builder,
@@ -262,6 +263,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 
 	local.conf = _dict(get_site_config())
 	_db_name_ctxvar.set(conf.db_name)
+	frappe.utils.caching._request_cache_ctxvar.set(defaultdict(dict))
 	local.lang = local.conf.lang or "en"
 
 	local.module_app = None

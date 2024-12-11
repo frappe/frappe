@@ -1,14 +1,19 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. Check LICENSE
 
+from contextvars import ContextVar
 import time
 from collections import defaultdict
 from collections.abc import Callable
 from functools import wraps
 
+from werkzeug.local import LocalProxy
+
 import frappe
 
 _SITE_CACHE = defaultdict(lambda: defaultdict(dict))
+_request_cache_ctxvar = ContextVar("_frappe_local_cache")
+_REQUEST_CACHE = LocalProxy(_request_cache_ctxvar)
 
 
 def __generate_request_cache_key(args: tuple, kwargs: dict):
@@ -50,19 +55,16 @@ def request_cache(func: Callable) -> Callable:
 	def wrapper(*args, **kwargs):
 		if not getattr(frappe.local, "initialised", None):
 			return func(*args, **kwargs)
-		if not hasattr(frappe.local, "request_cache"):
-			frappe.local.request_cache = defaultdict(dict)
-
 		try:
 			args_key = __generate_request_cache_key(args, kwargs)
 		except Exception:
 			return func(*args, **kwargs)
 
 		try:
-			return frappe.local.request_cache[func][args_key]
+			return _REQUEST_CACHE[func][args_key]
 		except KeyError:
 			return_val = func(*args, **kwargs)
-			frappe.local.request_cache[func][args_key] = return_val
+			_REQUEST_CACHE[func][args_key] = return_val
 			return return_val
 
 	return wrapper
