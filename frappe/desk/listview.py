@@ -71,6 +71,7 @@ def get_group_by_count(doctype: str, current_filters: str, field: str) -> list[d
 		group_by=f"`tab{doctype}`.{field}",
 		fields=["count(*) as count", f"`{field}` as name"],
 		order_by="count desc",
+		limit=1000,
 	)
 
 	if field == "owner":
