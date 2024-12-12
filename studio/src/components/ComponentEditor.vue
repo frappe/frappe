@@ -221,6 +221,7 @@ const setSlotOverlayRef = (slotName: string, element: HTMLElement | null) => {
 		}
 		// Update the element
 		slotOverlays[slotName].element = element
+		slotOverlays[slotName].tracker?.()
 	} else {
 		delete slotOverlays[slotName]
 	}
