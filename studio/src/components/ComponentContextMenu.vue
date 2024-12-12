@@ -19,7 +19,7 @@ import ContextMenu from "@/components/ContextMenu.vue"
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import { ContextMenuOption } from "@/types"
-import { getComponentBlock } from "@/utils/helpers"
+import { getComponentBlock, isObjectEmpty } from "@/utils/helpers"
 
 const props = defineProps<{
 	block: Block
@@ -94,6 +94,13 @@ const contextMenuOptions: ContextMenuOption[] = [
 				newBlock.selectBlock()
 			}
 		},
+	},
+	{
+		label: "Edit Slot",
+		action: () => {
+			store.showSlotEditorDialog = true
+		},
+		condition: () => !isObjectEmpty(props.block.componentSlots) && store.selectedSlot !== null,
 	},
 ]
 </script>

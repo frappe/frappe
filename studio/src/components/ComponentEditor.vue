@@ -55,6 +55,32 @@
 			</template>
 		</div>
 	</ComponentContextMenu>
+
+	<Dialog
+		v-model="store.showSlotEditorDialog"
+		class="overscroll-none"
+		:options="{
+			title: `Edit slot #${store.selectedSlot} for ${block.componentName}`,
+			size: '3xl',
+		}"
+	>
+		<template #body-content>
+			<CodeEditor
+				:modelValue="block.componentSlots[store.selectedSlot]"
+				type="HTML"
+				height="60vh"
+				:showLineNumbers="true"
+				:showSaveButton="true"
+				@save="
+					(val) => {
+						props.block.updateSlot(store.selectedSlot, val)
+						store.showSlotEditorDialog = false
+					}
+				"
+				required
+			/>
+		</template>
+	</Dialog>
 </template>
 
 <script setup lang="ts">
@@ -64,6 +90,7 @@ import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import BoxResizer from "@/components/BoxResizer.vue"
 import PaddingHandler from "@/components/PaddingHandler.vue"
 import MarginHandler from "@/components/MarginHandler.vue"
+import CodeEditor from "@/components/CodeEditor.vue"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
