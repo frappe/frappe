@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, Ref, watchEffect, nextTick, inject } from "vue"
+import { ref, reactive, computed, onMounted, Ref, watchEffect, nextTick, inject, watch } from "vue"
 
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import BoxResizer from "@/components/BoxResizer.vue"
@@ -157,11 +157,6 @@ watchEffect(() => {
 
 	nextTick(() => {
 		updateTracker.value()
-		Object.values(slotOverlays).forEach((overlay) => {
-			if (overlay.tracker) {
-				overlay.tracker()
-			}
-		})
 	})
 })
 
@@ -203,6 +198,7 @@ const updateSlotOverlayRefs = () => {
 
 	slotElements.forEach((element: HTMLElement) => {
 		const slotName = element.dataset.slotName
+
 		if (slotName && slotOverlays[slotName]?.element) {
 			slotOverlays[slotName].tracker = trackTarget(
 				element,
@@ -212,6 +208,15 @@ const updateSlotOverlayRefs = () => {
 		}
 	})
 }
+
+// watch entire componentSlots object for changes, doesn't work with watchEffect
+watch(
+	() => props.block.componentSlots,
+	() => {
+		nextTick(updateSlotOverlayRefs)
+	},
+	{ deep: true },
+)
 
 watchEffect(() => {
 	if (isBlockSelected.value) {
