@@ -9,6 +9,15 @@
 			@contextmenu="onContextMenu"
 			@click.stop="handleClick"
 		>
+			<!-- Component name label -->
+			<span
+				v-if="isBlockSelected && !props.block.isRoot()"
+				class="absolute -top-3 left-0 inline-block text-xs text-white"
+				:class="store.selectedSlot === null ? 'bg-blue-500' : 'bg-blue-500/65'"
+			>
+				{{ block.componentName }}
+			</span>
+
 			<PaddingHandler
 				:data-block-id="block.componentId"
 				v-if="showMarginPaddingHandlers"
@@ -49,7 +58,7 @@
 						class="absolute -top-3 left-0 inline-block text-xs text-white"
 						:class="store.selectedSlot === slotName ? 'bg-purple-500' : 'bg-purple-500/65'"
 					>
-						{{ slotName }}
+						#{{ slotName }}
 					</span>
 				</div>
 			</template>
