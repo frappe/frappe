@@ -60,7 +60,7 @@
 		v-model="store.showSlotEditorDialog"
 		class="overscroll-none"
 		:options="{
-			title: `Edit slot #${store.selectedSlot} for ${block.componentName}`,
+			title: `Edit #${store.selectedSlot} slot for ${block.componentName}`,
 			size: '3xl',
 		}"
 	>
