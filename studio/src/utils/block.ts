@@ -336,7 +336,7 @@ class Block implements BlockOptions {
 
 	// component slots
 	addSlot(slot: string) {
-		this.componentSlots[slot] = `${slot} Slot`
+		this.componentSlots[slot] = ""
 	}
 
 	updateSlot(slot: string, content: string) {
