@@ -3,12 +3,17 @@
 import pickle
 import re
 from contextlib import suppress
+from contextvars import ContextVar
 
 import redis
 from redis.commands.search import Search
+from werkzeug.local import LocalProxy
 
 import frappe
 from frappe.utils import cstr
+
+_redis_cache_ctxvar = ContextVar("_frappe_redis_local_cache")
+_LOCAL_CACHE = LocalProxy(_redis_cache_ctxvar)
 
 
 class RedisearchWrapper(Search):
@@ -61,7 +66,7 @@ class RedisWrapper(redis.Redis):
 		key = self.make_key(key, user, shared)
 
 		if not expires_in_sec:
-			frappe.local.cache[key] = val
+			_LOCAL_CACHE[key] = val
 
 		with suppress(redis.exceptions.ConnectionError):
 			self.set(name=key, value=pickle.dumps(val), ex=expires_in_sec)
@@ -77,8 +82,8 @@ class RedisWrapper(redis.Redis):
 		original_key = key
 		key = self.make_key(key, user, shared)
 
-		if key in frappe.local.cache:
-			val = frappe.local.cache[key]
+		if key in _LOCAL_CACHE:
+			val = _LOCAL_CACHE[key]
 
 		else:
 			val = None
@@ -96,7 +101,7 @@ class RedisWrapper(redis.Redis):
 					self.set_value(original_key, val, user=user)
 
 				else:
-					frappe.local.cache[key] = val
+					_LOCAL_CACHE[key] = val
 
 		return val
 
@@ -115,7 +120,7 @@ class RedisWrapper(redis.Redis):
 
 		except redis.exceptions.ConnectionError:
 			regex = re.compile(cstr(key).replace("|", r"\|").replace("*", r"[\w]*"))
-			return [k for k in list(frappe.local.cache) if regex.match(cstr(k))]
+			return [k for k in list(_LOCAL_CACHE) if regex.match(cstr(k))]
 
 	def delete_keys(self, key):
 		"""Delete keys with wildcard `*`."""
@@ -136,7 +141,7 @@ class RedisWrapper(redis.Redis):
 			keys = [self.make_key(k, shared=shared, user=user) for k in keys]
 
 		for key in keys:
-			frappe.local.cache.pop(key, None)
+			_LOCAL_CACHE.pop(key, None)
 
 		try:
 			self.unlink(*keys)
@@ -179,7 +184,7 @@ class RedisWrapper(redis.Redis):
 		_name = self.make_key(name, shared=shared)
 
 		# set in local
-		frappe.local.cache.setdefault(_name, {})[key] = value
+		_LOCAL_CACHE.setdefault(_name, {})[key] = value
 
 		# set in redis
 		try:
@@ -210,14 +215,14 @@ class RedisWrapper(redis.Redis):
 
 	def hget(self, name, key, generator=None, shared=False):
 		_name = self.make_key(name, shared=shared)
-		if _name not in frappe.local.cache:
-			frappe.local.cache[_name] = {}
+		if _name not in _LOCAL_CACHE:
+			_LOCAL_CACHE[_name] = {}
 
 		if not key:
 			return None
 
-		if key in frappe.local.cache[_name]:
-			return frappe.local.cache[_name][key]
+		if key in _LOCAL_CACHE[_name]:
+			return _LOCAL_CACHE[_name][key]
 
 		value = None
 		try:
@@ -227,7 +232,7 @@ class RedisWrapper(redis.Redis):
 
 		if value is not None:
 			value = pickle.loads(value)
-			frappe.local.cache[_name][key] = value
+			_LOCAL_CACHE[_name][key] = value
 		elif generator:
 			value = generator()
 			self.hset(name, key, value, shared=shared)
@@ -250,11 +255,11 @@ class RedisWrapper(redis.Redis):
 		"""
 		_name = self.make_key(name, shared=shared)
 
-		name_in_local_cache = _name in frappe.local.cache
+		name_in_local_cache = _name in _LOCAL_CACHE
 
 		if not isinstance(keys, list | tuple):
-			if name_in_local_cache and keys in frappe.local.cache[_name]:
-				del frappe.local.cache[_name][keys]
+			if name_in_local_cache and keys in _LOCAL_CACHE[_name]:
+				del _LOCAL_CACHE[_name][keys]
 			if pipeline:
 				pipeline.hdel(_name, keys)
 			else:
@@ -272,8 +277,8 @@ class RedisWrapper(redis.Redis):
 
 		for key in keys:
 			if name_in_local_cache:
-				if key in frappe.local.cache[_name]:
-					del frappe.local.cache[_name][key]
+				if key in _LOCAL_CACHE[_name]:
+					del _LOCAL_CACHE[_name][key]
 			pipeline.hdel(_name, key)
 
 		if local_pipeline:

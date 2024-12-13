@@ -11,7 +11,6 @@ be used to build database driven apps.
 Read the documentation: https://frappeframework.com/docs
 """
 
-from contextvars import ContextVar
 import copy
 import faulthandler
 import functools
@@ -27,6 +26,7 @@ import traceback
 import warnings
 from collections import defaultdict
 from collections.abc import Callable, Iterable
+from contextvars import ContextVar
 from typing import (
 	TYPE_CHECKING,
 	Any,
@@ -44,6 +44,7 @@ from werkzeug.local import Local, LocalProxy, release_local
 
 import frappe
 import frappe.utils.caching
+import frappe.utils.redis_wrapper
 from frappe.query_builder.utils import (
 	get_query,
 	get_query_builder,
@@ -264,6 +265,8 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 	local.conf = _dict(get_site_config())
 	_db_name_ctxvar.set(conf.db_name)
 	frappe.utils.caching._request_cache_ctxvar.set(defaultdict(dict))
+	frappe.utils.redis_wrapper._redis_cache_ctxvar.set(dict())
+
 	local.lang = local.conf.lang or "en"
 
 	local.module_app = None
@@ -1743,6 +1746,7 @@ def setup_module_map(include_all_apps: bool = True) -> None:
 	"""
 	local.app_modules, local.module_app = _get_module_maps(include_all_apps)
 
+
 @site_cache(ttl=60)
 def _get_module_maps(include_all_apps: bool) -> tuple[dict[str, str], dict[str, str]]:
 	app_modules = {}
@@ -1768,6 +1772,7 @@ def _get_module_maps(include_all_apps: bool) -> tuple[dict[str, str], dict[str, 
 			module_app[module] = app
 
 	return app_modules, module_app
+
 
 def get_file_items(path, raise_not_found=False, ignore_empty_lines=True):
 	"""Return items from text file as a list. Ignore empty lines."""
@@ -1830,6 +1835,7 @@ def call(fn: str | Callable, *args, **kwargs):
 @functools.lru_cache
 def _cached_inspect_singature(fn):
 	return inspect.signature(fn)
+
 
 def get_newargs(fn: Callable, kwargs: dict[str, Any]) -> dict[str, Any]:
 	"""Remove any kwargs that are not supported by the function.
