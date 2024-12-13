@@ -1,8 +1,8 @@
 import re
 from ast import literal_eval
+from functools import lru_cache
 from types import BuiltinFunctionType
 from typing import TYPE_CHECKING, TypeAlias
-from functools import lru_cache
 
 import sqlparse
 from pypika.queries import QueryBuilder, Table
@@ -551,6 +551,7 @@ def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str) -> 
 			.run(pluck=True)
 		)
 	return result
+
 
 @lru_cache
 def _sanitize_field(field: str, is_mariadb):

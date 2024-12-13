@@ -1,5 +1,5 @@
-import re
 import datetime
+import re
 from contextlib import contextmanager
 
 import pymysql

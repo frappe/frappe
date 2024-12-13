@@ -1,10 +1,10 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. Check LICENSE
 
-from contextvars import ContextVar
 import time
 from collections import defaultdict
 from collections.abc import Callable
+from contextvars import ContextVar
 from functools import wraps
 
 from werkzeug.local import LocalProxy
@@ -129,9 +129,7 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 					func.expiration = time.monotonic() + func.ttl
 
 				if hasattr(func, "maxsize") and len(_SITE_CACHE[func_key][site]) >= func.maxsize:
-					_SITE_CACHE[func_key][site].pop(
-						next(iter(_SITE_CACHE[func_key][site])), None
-					)
+					_SITE_CACHE[func_key][site].pop(next(iter(_SITE_CACHE[func_key][site])), None)
 
 				if func_call_key not in _SITE_CACHE[func_key][site]:
 					_SITE_CACHE[func_key][site][func_call_key] = func(*args, **kwargs)
