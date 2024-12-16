@@ -14,7 +14,7 @@
 						<div
 							:data-component-layer-id="element.componentId"
 							:title="element.componentId"
-							class="dark:bg-zinc-900 min-w-24 cursor-pointer overflow-hidden rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700 dark:text-gray-500"
+							class="min-w-24 cursor-pointer overflow-hidden rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700"
 							@contextmenu.prevent.stop="onContextMenu"
 							@click.stop="store.selectBlock(element, $event, false)"
 							@mouseover.stop="store.hoveredBlock = element.componentId"
@@ -28,7 +28,7 @@
 								}"
 							>
 								<FeatherIcon
-									v-if="element.children && element.children.length && !element.isRoot()"
+									v-if="isExpandable(element)"
 									:name="isExpanded(element) ? 'chevron-down' : 'chevron-right'"
 									class="h-3 w-3"
 									@click.stop="toggleExpanded(element)"
@@ -52,15 +52,53 @@
 									class="ml-auto mr-2 hidden h-3 w-3 group-hover:block"
 									@click.stop="element.toggleVisibility()"
 								/>
-								<span
-									v-if="element.isRoot()"
-									class="dark:text-zinc-500 ml-auto mr-2 text-sm capitalize text-gray-500"
-								>
+								<span v-if="element.isRoot()" class="ml-auto mr-2 text-sm capitalize text-gray-500">
 									{{ store.activeBreakpoint }}
 								</span>
 							</span>
 							<div v-show="canShowChildLayer(element)">
 								<ComponentLayers :blocks="element.children" ref="childLayer" :indent="childIndent" />
+							</div>
+
+							<div v-show="canShowSlotLayer(element)">
+								<div
+									v-for="(slotContent, slotName) in element.componentSlots"
+									:key="slotName"
+									:data-slot-layer-id="element.getSlotId(slotName)"
+									:title="slotName"
+									class="min-w-24 cursor-pointer overflow-hidden rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700"
+									@contextmenu.prevent.stop="onContextMenu"
+								>
+									<div
+										class="group my-[7px] flex items-center gap-1.5 pr-[2px] font-medium"
+										:style="{ paddingLeft: `${childIndent}px` }"
+									>
+										<FeatherIcon
+											:name="isSlotExpanded(element, slotName) ? 'chevron-down' : 'chevron-right'"
+											class="h-3 w-3"
+											@click.stop="toggleSlotExpanded(element, slotName)"
+										/>
+										<SlotIcon class="h-3 w-3" />
+										<span
+											class="min-h-[1em] min-w-[2em] truncate"
+											:contenteditable="element.editable"
+											:title="element.blockId"
+											@dblclick="element.editable = true"
+											@keydown.enter.stop.prevent="element.editable = false"
+											@blur="setBlockName($event, element)"
+										>
+											{{ slotName }} slot
+										</span>
+									</div>
+
+									<div v-if="Array.isArray(slotContent) && isSlotExpanded(element, slotName)">
+										<ComponentLayers
+											:blocks="getComponentSlots(slotContent)"
+											ref="slotLayer"
+											:indent="slotIndent"
+										/>
+									</div>
+								</div>
 							</div>
 						</div>
 					</ComponentContextMenu>
@@ -71,7 +109,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue"
+import { ref, watch, computed } from "vue"
 import { FeatherIcon } from "frappe-ui"
 import Draggable from "vuedraggable"
 
@@ -81,6 +119,8 @@ import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
 import LucideIcon from "./LucideIcon.vue"
+import SlotIcon from "@/components/Icons/SlotIcon.vue"
+import { getBlockCopy } from "@/utils/helpers"
 
 const props = withDefaults(
 	defineProps<{
@@ -131,6 +171,30 @@ const canShowChildLayer = (block: Block) => {
 	return isExpanded(block) && block.hasChildren()
 }
 
+const isExpandable = (block: Block) => {
+	return block.hasChildren() || (block.hasComponentSlots() && !block.isRoot())
+}
+
+// slots
+const expandedSlots = ref<Set<string>>(new Set())
+
+const isSlotExpanded = (block: Block, slotName: string) => {
+	return expandedSlots.value.has(block.getSlotId(slotName))
+}
+
+const toggleSlotExpanded = (block: Block, slotName: string) => {
+	const key = block.getSlotId(slotName)
+	if (expandedSlots.value.has(key)) {
+		expandedSlots.value.delete(key)
+	} else {
+		expandedSlots.value.add(key)
+	}
+}
+
+const canShowSlotLayer = (block: Block) => {
+	return isExpanded(block) && block.hasComponentSlots()
+}
+
 // @ts-ignore
 const updateParent = (event) => {
 	// update parent block reference when a block is moved inside it
@@ -156,6 +220,14 @@ watch(
 		}
 	},
 )
+
+const getComponentSlots = (slotContent: Block[]) => {
+	return slotContent.map((slot) => {
+		return getBlockCopy(slot, true)
+	})
+}
+
+const slotIndent = computed(() => childIndent + 16)
 
 defineExpose({
 	toggleExpanded,

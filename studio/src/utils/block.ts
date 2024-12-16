@@ -4,7 +4,7 @@ import { reactive, CSSProperties, nextTick } from 'vue'
 
 import useStudioStore from "@/stores/studioStore";
 import components from "@/data/components";
-import { copyObject, getBlockCopy, kebabToCamelCase, numberToPx } from "./helpers";
+import { copyObject, getBlockCopy, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
 
 import { StyleValue } from "@/types"
 import { ComponentEvent } from "@/types/ComponentEvent"
@@ -353,6 +353,14 @@ class Block implements BlockOptions {
 
 	removeSlot(slot: string) {
 		delete this.componentSlots[slot]
+	}
+
+	hasComponentSlots() {
+		return !isObjectEmpty(this.componentSlots)
+	}
+
+	getSlotId(slotName: string) {
+		return `${this.componentId}:${slotName}`
 	}
 
 	// events
