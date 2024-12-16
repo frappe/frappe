@@ -160,16 +160,25 @@ const { isOverDropZone } = useDropZone(canvasContainer, {
 		let element = document.elementFromPoint(ev.x, ev.y) as HTMLElement
 		let parentComponent = rootComponent.value
 
+		let componentId, slotName
+
 		if (element) {
-			if (element.dataset.componentId) {
-				parentComponent = findBlock(element.dataset.componentId) || parentComponent
+			componentId = element.dataset.componentId
+			if (componentId) {
+				parentComponent = findBlock(componentId) || parentComponent
 			}
+			slotName = element.dataset.slotName || store.selectedSlot
 		}
 
-		const componentName = ev.dataTransfer?.getData("componentName")
-		if (componentName) {
-			const newBlock = getComponentBlock(componentName)
-			parentComponent.addChild(newBlock)
+		const droppedComponentName = ev.dataTransfer?.getData("componentName")
+		if (droppedComponentName) {
+			const newBlock = getComponentBlock(droppedComponentName)
+
+			if (slotName) {
+				parentComponent.updateSlot(slotName, newBlock)
+			} else {
+				parentComponent.addChild(newBlock)
+			}
 		}
 	},
 })

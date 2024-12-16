@@ -13,7 +13,7 @@ export interface BlockOptions {
 	componentId?: string
 	componentName: string
 	componentProps?: Record<string, any>
-	componentSlots?: Record<string, any>
+	componentSlots?: Record<string, string | Block[]>
 	componentEvents?: Record<string, any>
 	children?: Array<BlockOptions>
 	baseStyles?: BlockStyleMap

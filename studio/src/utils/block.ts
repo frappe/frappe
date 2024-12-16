@@ -14,7 +14,7 @@ class Block implements BlockOptions {
 	componentId: string
 	componentName: string
 	componentProps: Record<string, any>
-	componentSlots: Record<string, any>
+	componentSlots: Record<string, string | Block[]>
 	componentEvents: Record<string, any>
 	blockName: string
 	originalElement?: string | undefined
@@ -339,8 +339,16 @@ class Block implements BlockOptions {
 		this.componentSlots[slot] = ""
 	}
 
-	updateSlot(slot: string, content: string) {
-		this.componentSlots[slot] = content
+	updateSlot(slot: string, content: string | Block) {
+		if (content instanceof Block) {
+			if (!Array.isArray(this.componentSlots[slot])) {
+				this.componentSlots[slot] = []
+			}
+
+			this.componentSlots[slot].push(content)
+		} else {
+			this.componentSlots[slot] = content
+		}
 	}
 
 	removeSlot(slot: string) {
