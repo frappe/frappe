@@ -8,14 +8,18 @@
 		v-on="componentEvents"
 	>
 		<!-- Dynamically render named slots -->
-		<template v-for="(slotContent, slotName) in block.componentSlots" :key="slotName" v-slot:[slotName]>
-			<template v-if="isHTML(slotContent)">
-				<component v-if="isHTML(slotContent)" :is="{ template: slotContent }" />
+		<template v-for="(slot, slotName) in block.componentSlots" :key="slotName" v-slot:[slotName]>
+			<template v-if="Array.isArray(slot.slotContent)">
+				<StudioComponent v-for="block in slot.slotContent" :block="getBlockInstance(block)" />
+			</template>
+			<template v-else-if="isHTML(slot.slotContent)">
+				<component :is="{ template: slot.slotContent }" />
 			</template>
 			<template v-else>
-				{{ slotContent }}
+				{{ slot.slotContent }}
 			</template>
 		</template>
+
 		<AppComponent v-for="child in block?.children" :key="child.componentId" :block="child" />
 	</component>
 </template>
@@ -26,7 +30,7 @@ import { computed, onMounted, ref, useAttrs } from "vue"
 import { useRouter, useRoute } from "vue-router"
 import { createResource } from "frappe-ui"
 import components from "@/data/components"
-import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML } from "@/utils/helpers"
+import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML, getBlockInstance } from "@/utils/helpers"
 
 import useAppStore from "@/stores/appStore"
 

@@ -149,7 +149,6 @@ watch(
 watch(
 	() => store.selectedSlot,
 	() => {
-		console.log("selectedSlot", store.selectedSlot)
 		document.querySelectorAll(`[data-slot-layer-id].slot-selected`).forEach((el) => {
 			el.classList.remove("slot-selected")
 		})

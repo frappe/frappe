@@ -38,17 +38,13 @@
 			<BoxResizer v-if="showResizer" :targetBlock="block" @resizing="resizing = $event" :target="target" />
 
 			<!-- Slot Overlays -->
-			<template
-				v-if="showSlotOverlays"
-				v-for="(slotContent, slotName) in block.componentSlots"
-				:key="slotName"
-			>
+			<template v-if="showSlotOverlays" v-for="(slot, slotName) in block.componentSlots" :key="slotName">
 				<div
 					:ref="(el) => setSlotOverlayRef(slotName, el)"
 					:data-slot-name="slotName"
-					:data-slot-id="block.getSlotId(slotName)"
+					:data-slot-id="slot.slotId"
 					class="pointer-events-none fixed ring-2 ring-inset ring-purple-500"
-					:class="isSlotSelected(slotName) ? 'opacity-100' : 'opacity-65'"
+					:class="isSlotSelected(slot.slotId) ? 'opacity-100' : 'opacity-65'"
 					:style="{
 						// set min height and width so that slots without content are visible
 						minWidth: `calc(${12}px * ${canvasProps.scale})`,
@@ -57,7 +53,7 @@
 				>
 					<span
 						class="absolute -top-3 left-0 inline-block text-xs text-white"
-						:class="isSlotSelected(slotName) ? 'bg-purple-500' : 'bg-purple-500/65'"
+						:class="isSlotSelected(slot.slotId) ? 'bg-purple-500' : 'bg-purple-500/65'"
 					>
 						#{{ slotName }}
 					</span>
@@ -77,7 +73,7 @@
 	>
 		<template #body-content>
 			<CodeEditor
-				:modelValue="block.componentSlots[store.selectedSlot?.slotName]"
+				:modelValue="block.getSlotContent(store.selectedSlot?.slotName) || ''"
 				type="HTML"
 				height="60vh"
 				:showLineNumbers="true"
@@ -149,8 +145,8 @@ const isBlockSelected = computed(() => {
 	return props.isSelected && props.breakpoint === store.activeBreakpoint
 })
 
-const isSlotSelected = (slotName: string) => {
-	return store.selectedSlot?.slotId === props.block.getSlotId(slotName)
+const isSlotSelected = (slotId: string) => {
+	return store.selectedSlot?.slotId === slotId
 }
 
 const getStyleClasses = computed(() => {
@@ -240,12 +236,12 @@ const updateSlotOverlayRefs = () => {
 	// Find all slot elements within the target
 	const slotElements = props.target.querySelectorAll("[data-slot-name]")
 
-	slotElements.forEach((element: HTMLElement) => {
-		const slotName = element.dataset.slotName
+	slotElements.forEach((element) => {
+		const slotName = (element as HTMLElement).dataset.slotName
 
 		if (slotName && slotOverlays[slotName]?.element) {
 			slotOverlays[slotName].tracker = trackTarget(
-				element,
+				element as HTMLElement,
 				slotOverlays[slotName].element!,
 				store.canvas?.canvasProps as CanvasProps,
 			)

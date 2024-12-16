@@ -22,7 +22,7 @@ import Block from "@/utils/block"
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Resource } from "@/types/Studio/StudioResource"
-import { LeftPanelOptions, RightPanelOptions, SlotConfig } from "@/types"
+import { LeftPanelOptions, RightPanelOptions, SlotConfig, SlotOptions } from "@/types"
 
 const useStudioStore = defineStore("store", () => {
 	const canvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
@@ -65,13 +65,9 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	// slots
-	const selectedSlot = ref<SlotConfig | null>()
-	function selectSlot(block: Block, slotName: string) {
-		selectedSlot.value = {
-			slotName: slotName,
-			slotId: block.getSlotId(slotName),
-			componentId: block.componentId,
-		}
+	const selectedSlot = ref<SlotOptions | null>()
+	function selectSlot(slot: SlotOptions) {
+		selectedSlot.value = slot
 	}
 
 	const showSlotEditorDialog = ref(false)

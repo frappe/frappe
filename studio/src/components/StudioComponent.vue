@@ -13,39 +13,39 @@
 		ref="componentRef"
 	>
 		<!-- Dynamically render named slots -->
-		<template v-for="(slotContent, slotName) in block.componentSlots" :key="slotName" v-slot:[slotName]>
-			<template v-if="Array.isArray(slotContent)">
+		<template v-for="(slot, slotName) in block.componentSlots" :key="slotName" v-slot:[slotName]>
+			<template v-if="Array.isArray(slot.slotContent)">
 				<div
+					class="flex items-center"
 					:class="slotClasses"
-					:data-slot-id="block.getSlotId(slotName)"
+					:data-slot-id="slot.slotId"
 					:data-slot-name="slotName"
 					:data-component-id="block.componentId"
 				>
 					<StudioComponent
-						v-for="block in slotContent"
+						v-for="block in slot.slotContent"
 						:block="getBlockInstance(block)"
 						:class="slotClasses"
 					/>
 				</div>
 			</template>
-			<template v-else-if="isHTML(slotContent)">
+			<template v-else-if="isHTML(slot.slotContent)">
 				<component
-					:is="{ template: slotContent }"
+					:is="{ template: slot.slotContent }"
 					:class="slotClasses"
-					:data-slot-id="block.getSlotId(slotName)"
+					:data-slot-id="slot.slotId"
 					:data-slot-name="slotName"
 					:data-component-id="block.componentId"
 				/>
 			</template>
 			<template v-else>
 				<span
-					:class="slotClasses"
-					:data-slot-id="block.getSlotId(slotName)"
+					:class="[slotClasses, !slot.slotContent ? 'min-h-5 min-w-5' : '']"
+					:data-slot-id="slot.slotId"
 					:data-slot-name="slotName"
 					:data-component-id="block.componentId"
-					class="min-h-5 min-w-5"
 				>
-					{{ slotContent }}
+					{{ slot.slotContent }}
 				</span>
 			</template>
 		</template>
@@ -183,8 +183,10 @@ const handleClick = (e: MouseEvent) => {
 	const block = getClickedComponent(e) || props.block
 	store.selectBlock(block, e)
 
-	if (e.target?.dataset.slotName) {
-		store.selectSlot(block, e.target.dataset.slotName)
+	const slotName = (e.target as HTMLElement).dataset.slotName
+	if (slotName) {
+		const slot = block.getSlot(slotName)
+		store.selectSlot(slot)
 	}
 
 	e.stopPropagation()

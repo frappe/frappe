@@ -100,7 +100,8 @@ const contextMenuOptions: ContextMenuOption[] = [
 		action: () => {
 			store.showSlotEditorDialog = true
 		},
-		condition: () => !isObjectEmpty(props.block.componentSlots) && Boolean(store.selectedSlot?.slotId),
+		condition: () =>
+			!isObjectEmpty(props.block.componentSlots) && props.block.isSlotEditable(store.selectedSlot),
 	},
 ]
 </script>

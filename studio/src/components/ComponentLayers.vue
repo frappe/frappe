@@ -62,30 +62,33 @@
 
 							<div v-show="canShowSlotLayer(element)">
 								<div
-									v-for="(slotContent, slotName) in element.componentSlots"
+									v-for="(slot, slotName) in element.componentSlots"
 									:key="slotName"
-									:data-slot-layer-id="element.getSlotId(slotName)"
-									:title="slotName"
+									:data-slot-layer-id="slot.slotId"
+									:title="slot.slotName"
 									class="min-w-24 cursor-pointer overflow-hidden rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700"
 									@contextmenu.prevent.stop="onContextMenu"
-									@click.stop="store.selectSlot(element, slotName)"
+									@click.stop="store.selectSlot(slot)"
 								>
 									<div
 										class="group my-[7px] flex items-center gap-1.5 pr-[2px] font-medium"
 										:style="{ paddingLeft: `${childIndent}px` }"
 									>
 										<FeatherIcon
-											:name="isSlotExpanded(element, slotName) ? 'chevron-down' : 'chevron-right'"
+											v-if="isSlotExpandable(slot)"
+											:name="isSlotExpanded(slot) ? 'chevron-down' : 'chevron-right'"
 											class="h-3 w-3"
-											@click.stop="toggleSlotExpanded(element, slotName)"
+											@click.stop="toggleSlotExpanded(slot)"
 										/>
 										<SlotIcon class="h-3 w-3" />
-										<span class="min-h-[1em] min-w-[2em] truncate" :title="slotName"> #{{ slotName }} </span>
+										<span class="min-h-[1em] min-w-[2em] truncate" :title="slot.slotName">
+											#{{ slotName }}
+										</span>
 									</div>
 
-									<div v-if="Array.isArray(slotContent) && isSlotExpanded(element, slotName)">
+									<div v-if="Array.isArray(slot.slotContent) && isSlotExpanded(slot)">
 										<ComponentLayers
-											:blocks="getComponentSlots(slotContent)"
+											:blocks="getComponentSlots(slot.slotContent)"
 											ref="slotLayer"
 											:indent="slotIndent"
 										/>
@@ -113,6 +116,7 @@ import Block from "@/utils/block"
 import LucideIcon from "./LucideIcon.vue"
 import SlotIcon from "@/components/Icons/SlotIcon.vue"
 import { getBlockCopy } from "@/utils/helpers"
+import { SlotOptions } from "@/types"
 
 const props = withDefaults(
 	defineProps<{
@@ -170,16 +174,19 @@ const isExpandable = (block: Block) => {
 // slots
 const expandedSlots = ref<Set<string>>(new Set())
 
-const isSlotExpanded = (block: Block, slotName: string) => {
-	return expandedSlots.value.has(block.getSlotId(slotName))
+const isSlotExpanded = (slot: SlotOptions) => {
+	return expandedSlots.value.has(slot.slotId)
 }
 
-const toggleSlotExpanded = (block: Block, slotName: string) => {
-	const key = block.getSlotId(slotName)
-	if (expandedSlots.value.has(key)) {
-		expandedSlots.value.delete(key)
+const isSlotExpandable = (slot: SlotOptions) => {
+	return slot.slotContent?.length > 0
+}
+
+const toggleSlotExpanded = (slot: SlotOptions) => {
+	if (expandedSlots.value.has(slot.slotId)) {
+		expandedSlots.value.delete(slot.slotId)
 	} else {
-		expandedSlots.value.add(key)
+		expandedSlots.value.add(slot.slotId)
 	}
 }
 

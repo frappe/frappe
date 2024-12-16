@@ -13,7 +13,7 @@ export interface BlockOptions {
 	componentId?: string
 	componentName: string
 	componentProps?: Record<string, any>
-	componentSlots?: Record<string, string | Block[]>
+	componentSlots?: Record<string, SlotOptions>
 	componentEvents?: Record<string, any>
 	children?: Array<BlockOptions>
 	baseStyles?: BlockStyleMap
@@ -26,6 +26,12 @@ export interface BlockOptions {
 }
 
 // slot
+export interface SlotOptions {
+	slotName: string,
+	slotId: string,
+	slotContent: string | BlockOptions[]
+}
+
 export interface SlotConfig {
 	slotName: string,
 	componentId: string,

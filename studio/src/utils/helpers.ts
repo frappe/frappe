@@ -19,6 +19,14 @@ function getBlockInstance(options: BlockOptions, retainId = true): Block {
 			for (let child of block.children || []) {
 				deleteComponentId(child)
 			}
+
+			// clear componentId of slot children
+			for (let slot of Object.values(block.componentSlots || {})) {
+				if (typeof slot.slotContent === "string") continue
+				for (let child of slot.slotContent) {
+					deleteComponentId(child)
+				}
+			}
 		}
 		deleteComponentId(options)
 	}

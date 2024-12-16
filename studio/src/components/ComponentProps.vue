@@ -41,7 +41,7 @@
 						<InlineInput
 							:label="name"
 							type="textarea"
-							:modelValue="slot"
+							:modelValue="slot.slotContent"
 							@update:modelValue="(slotContent) => block?.updateSlot(name, slotContent)"
 						/>
 						<Button variant="outline" size="sm" icon="x" @click="block?.removeSlot(name)" />

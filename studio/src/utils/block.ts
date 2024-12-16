@@ -1,4 +1,4 @@
-import { BlockOptions, BlockStyleMap } from "@/types"
+import { BlockOptions, BlockStyleMap, SlotOptions } from "@/types"
 import { clamp } from "@vueuse/core"
 import { reactive, CSSProperties, nextTick } from 'vue'
 
@@ -14,7 +14,7 @@ class Block implements BlockOptions {
 	componentId: string
 	componentName: string
 	componentProps: Record<string, any>
-	componentSlots: Record<string, string | Block[]>
+	componentSlots: Record<string, SlotOptions>
 	componentEvents: Record<string, any>
 	blockName: string
 	originalElement?: string | undefined
@@ -335,32 +335,54 @@ class Block implements BlockOptions {
 	}
 
 	// component slots
-	addSlot(slot: string) {
-		this.componentSlots[slot] = ""
-	}
-
-	updateSlot(slot: string, content: string | Block) {
-		if (content instanceof Block) {
-			if (!Array.isArray(this.componentSlots[slot])) {
-				this.componentSlots[slot] = []
-			}
-
-			this.componentSlots[slot].push(content)
-		} else {
-			this.componentSlots[slot] = content
+	addSlot(slotName: string) {
+		this.componentSlots[slotName] = {
+			slotName: slotName,
+			slotId: this.generateSlotId(slotName),
+			slotContent: "",
 		}
 	}
 
-	removeSlot(slot: string) {
-		delete this.componentSlots[slot]
+	updateSlot(slotName: string, content: string | Block) {
+		if (content instanceof Block) {
+			if (!Array.isArray(this.componentSlots[slotName].slotContent)) {
+				this.componentSlots[slotName].slotContent = []
+			}
+
+			this.componentSlots[slotName].slotContent.push(content)
+		} else {
+			this.componentSlots[slotName].slotContent = content
+		}
+	}
+
+	removeSlot(slotName: string) {
+		delete this.componentSlots[slotName]
+	}
+
+	getSlot(slotName: string) {
+		return this.componentSlots[slotName]
+	}
+
+	getSlotContent(slotName: string) {
+		return this.componentSlots[slotName]?.slotContent
 	}
 
 	hasComponentSlots() {
 		return !isObjectEmpty(this.componentSlots)
 	}
 
-	getSlotId(slotName: string) {
+	generateSlotId(slotName: string) {
 		return `${this.componentId}:${slotName}`
+	}
+
+	isSlotEditable(slot: SlotOptions | undefined | null) {
+		if (!slot) return false
+
+		return Boolean(
+			!this.isRoot()
+			&& slot.slotId
+			&& typeof slot.slotContent === "string"
+		)
 	}
 
 	// events
