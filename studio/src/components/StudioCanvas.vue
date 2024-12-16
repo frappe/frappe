@@ -167,7 +167,7 @@ const { isOverDropZone } = useDropZone(canvasContainer, {
 			if (componentId) {
 				parentComponent = findBlock(componentId) || parentComponent
 			}
-			slotName = element.dataset.slotName || store.selectedSlot
+			slotName = element.dataset.slotName || store.selectedSlot?.slotName
 		}
 
 		const droppedComponentName = ev.dataTransfer?.getData("componentName")
@@ -266,5 +266,8 @@ defineExpose({
 }
 .block-selected {
 	@apply border-blue-400 text-gray-900 dark:border-blue-700 dark:text-gray-200;
+}
+.slot-selected {
+	@apply border-purple-400 text-gray-900;
 }
 </style>

@@ -46,8 +46,9 @@
 				<div
 					:ref="(el) => setSlotOverlayRef(slotName, el)"
 					:data-slot-name="slotName"
+					:data-slot-id="block.getSlotId(slotName)"
 					class="pointer-events-none fixed ring-2 ring-inset ring-purple-500"
-					:class="store.selectedSlot === slotName ? 'opacity-100' : 'opacity-65'"
+					:class="isSlotSelected(slotName) ? 'opacity-100' : 'opacity-65'"
 					:style="{
 						// set min height and width so that slots without content are visible
 						minWidth: `calc(${12}px * ${canvasProps.scale})`,
@@ -56,7 +57,7 @@
 				>
 					<span
 						class="absolute -top-3 left-0 inline-block text-xs text-white"
-						:class="store.selectedSlot === slotName ? 'bg-purple-500' : 'bg-purple-500/65'"
+						:class="isSlotSelected(slotName) ? 'bg-purple-500' : 'bg-purple-500/65'"
 					>
 						#{{ slotName }}
 					</span>
@@ -66,23 +67,25 @@
 	</ComponentContextMenu>
 
 	<Dialog
+		v-if="store.selectedSlot?.slotId"
 		v-model="store.showSlotEditorDialog"
 		class="overscroll-none"
 		:options="{
-			title: `Edit #${store.selectedSlot} slot for ${block.componentName}`,
+			title: `Edit #${store.selectedSlot?.slotName} slot for ${block.componentName}`,
 			size: '3xl',
 		}"
 	>
 		<template #body-content>
 			<CodeEditor
-				:modelValue="block.componentSlots[store.selectedSlot]"
+				:modelValue="block.componentSlots[store.selectedSlot?.slotName]"
 				type="HTML"
 				height="60vh"
 				:showLineNumbers="true"
 				:showSaveButton="true"
 				@save="
 					(val) => {
-						props.block.updateSlot(store.selectedSlot, val)
+						if (!store.selectedSlot) return
+						props.block.updateSlot(store.selectedSlot?.slotName, val)
 						store.showSlotEditorDialog = false
 					}
 				"
@@ -145,6 +148,10 @@ const showResizer = computed(() => {
 const isBlockSelected = computed(() => {
 	return props.isSelected && props.breakpoint === store.activeBreakpoint
 })
+
+const isSlotSelected = (slotName: string) => {
+	return store.selectedSlot?.slotId === props.block.getSlotId(slotName)
+}
 
 const getStyleClasses = computed(() => {
 	const classes = ["ring-blue-400"]

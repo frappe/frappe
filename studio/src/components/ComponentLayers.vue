@@ -68,6 +68,7 @@
 									:title="slotName"
 									class="min-w-24 cursor-pointer overflow-hidden rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700"
 									@contextmenu.prevent.stop="onContextMenu"
+									@click.stop="store.selectSlot(element, slotName)"
 								>
 									<div
 										class="group my-[7px] flex items-center gap-1.5 pr-[2px] font-medium"
@@ -79,16 +80,7 @@
 											@click.stop="toggleSlotExpanded(element, slotName)"
 										/>
 										<SlotIcon class="h-3 w-3" />
-										<span
-											class="min-h-[1em] min-w-[2em] truncate"
-											:contenteditable="element.editable"
-											:title="element.blockId"
-											@dblclick="element.editable = true"
-											@keydown.enter.stop.prevent="element.editable = false"
-											@blur="setBlockName($event, element)"
-										>
-											{{ slotName }} slot
-										</span>
+										<span class="min-h-[1em] min-w-[2em] truncate" :title="slotName"> #{{ slotName }} </span>
 									</div>
 
 									<div v-if="Array.isArray(slotContent) && isSlotExpanded(element, slotName)">

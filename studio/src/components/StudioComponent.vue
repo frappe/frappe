@@ -15,7 +15,12 @@
 		<!-- Dynamically render named slots -->
 		<template v-for="(slotContent, slotName) in block.componentSlots" :key="slotName" v-slot:[slotName]>
 			<template v-if="Array.isArray(slotContent)">
-				<div :class="slotClasses" :data-slot-name="slotName" :data-component-id="block.componentId">
+				<div
+					:class="slotClasses"
+					:data-slot-id="block.getSlotId(slotName)"
+					:data-slot-name="slotName"
+					:data-component-id="block.componentId"
+				>
 					<StudioComponent
 						v-for="block in slotContent"
 						:block="getBlockInstance(block)"
@@ -27,6 +32,7 @@
 				<component
 					:is="{ template: slotContent }"
 					:class="slotClasses"
+					:data-slot-id="block.getSlotId(slotName)"
 					:data-slot-name="slotName"
 					:data-component-id="block.componentId"
 				/>
@@ -34,6 +40,7 @@
 			<template v-else>
 				<span
 					:class="slotClasses"
+					:data-slot-id="block.getSlotId(slotName)"
 					:data-slot-name="slotName"
 					:data-component-id="block.componentId"
 					class="min-h-5 min-w-5"
@@ -173,15 +180,11 @@ const getClickedComponent = (e: MouseEvent) => {
 }
 
 const handleClick = (e: MouseEvent) => {
-	const block = getClickedComponent(e)
-	if (block) {
-		store.selectBlock(block, e)
-	} else {
-		store.selectBlock(props.block, e)
-	}
+	const block = getClickedComponent(e) || props.block
+	store.selectBlock(block, e)
 
 	if (e.target?.dataset.slotName) {
-		store.selectSlot(e.target.dataset.slotName)
+		store.selectSlot(block, e.target.dataset.slotName)
 	}
 
 	e.stopPropagation()

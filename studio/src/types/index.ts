@@ -25,6 +25,14 @@ export interface BlockOptions {
 	[key: string]: any
 }
 
+// slot
+export interface SlotConfig {
+	slotName: string,
+	componentId: string,
+	// componentId:slotName
+	slotId: string
+}
+
 export interface Breakpoint {
 	icon: string;
 	device: string;
