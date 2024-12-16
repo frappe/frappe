@@ -96,12 +96,13 @@ frappe.ui.form.LinkSelector = class LinkSelector {
 							repl(
 								'<div class="row link-select-row">\
 						<div class="col-xs-4">\
-							<b><a href="#">%(name)s</a></b></div>\
+							<b><a href="%(link)s">%(name)s</a></b></div>\
 						<div class="col-xs-8">\
 							<span class="text-muted">%(values)s</span></div>\
 						</div>',
 								{
 									name: v[0],
+									link: frappe.utils.get_form_link(me.doctype, v[0], false),
 									values: v.splice(1).join(", "),
 								}
 							)
