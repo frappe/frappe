@@ -176,6 +176,7 @@ def update_system_settings(args):  # nosemgrep
 			"country": args.get("country"),
 			"language": get_language_code(args.get("language")) or "en",
 			"time_zone": args.get("timezone"),
+			"currency": args.get("currency"),
 			"float_precision": 3,
 			"rounding_method": "Banker's Rounding",
 			"date_format": frappe.db.get_value("Country", args.get("country"), "date_format"),
@@ -220,6 +221,7 @@ def create_or_update_user(args):  # nosemgrep
 			}
 		)
 		user.append_roles(*_get_default_roles())
+		user.append_roles("System Manager")
 		user.flags.no_welcome_mail = True
 		user.insert()
 

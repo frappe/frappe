@@ -278,6 +278,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 				this.after_insert(frm);
 			};
 		}
+		this.doc.__run_link_triggers = false;
 		frappe.set_route("Form", this.doctype, this.doc.name);
 	}
 

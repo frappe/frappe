@@ -22,7 +22,8 @@
   "use_ssl_for_outgoing",
   "column_break_18",
   "smtp_port",
-  "append_emails_to_sent_folder"
+  "append_emails_to_sent_folder",
+  "sent_folder_name"
  ],
  "fields": [
   {
@@ -125,6 +126,14 @@
   {
    "fieldname": "column_break_18",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "Sent",
+   "depends_on": "eval: doc.append_emails_to_sent_folder",
+   "description": "Some mailboxes require a different Sent Folder Name e.g. \"INBOX.Sent\"",
+   "fieldname": "sent_folder_name",
+   "fieldtype": "Data",
+   "label": "Sent Folder Name"
   }
  ],
  "icon": "icon-inbox",
@@ -134,7 +143,7 @@
    "link_fieldname": "domain"
   }
  ],
- "modified": "2023-06-05 12:55:06.434541",
+ "modified": "2024-12-05 12:41:16.753751",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Domain",
