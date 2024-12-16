@@ -649,7 +649,11 @@ class Database:
 					):
 						out = None
 					elif (not ignore) and frappe.db.is_table_missing(e):
+						from frappe.model.utils import is_single_doctype
+
 						# table not found, look in singles
+						if not is_single_doctype(doctype):
+							raise
 						fields = (
 							[fieldname] if (isinstance(fieldname, str) and fieldname != "*") else fieldname
 						)
