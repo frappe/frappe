@@ -27,7 +27,7 @@ class Contact(Document):
 		designation: DF.Data | None
 		email_id: DF.Data | None
 		email_ids: DF.Table[ContactEmail]
-		first_name: DF.Data | None
+		first_name: DF.Data
 		full_name: DF.Data | None
 		gender: DF.Link | None
 		google_contacts: DF.Link | None
