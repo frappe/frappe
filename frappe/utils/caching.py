@@ -48,21 +48,19 @@ def request_cache(func: Callable) -> Callable:
 
 	@wraps(func)
 	def wrapper(*args, **kwargs):
-		if not getattr(frappe.local, "initialised", None):
+		_cache = getattr(frappe.local, "request_cache", None)
+		if _cache is None:
 			return func(*args, **kwargs)
-		if not hasattr(frappe.local, "request_cache"):
-			frappe.local.request_cache = defaultdict(dict)
-
 		try:
 			args_key = __generate_request_cache_key(args, kwargs)
 		except Exception:
 			return func(*args, **kwargs)
 
 		try:
-			return frappe.local.request_cache[func][args_key]
+			return _cache[func][args_key]
 		except KeyError:
 			return_val = func(*args, **kwargs)
-			frappe.local.request_cache[func][args_key] = return_val
+			_cache[func][args_key] = return_val
 			return return_val
 
 	return wrapper
@@ -127,7 +125,7 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 					func.expiration = time.monotonic() + func.ttl
 
 				if hasattr(func, "maxsize") and len(_SITE_CACHE[func_key][site]) >= func.maxsize:
-					# Note: This implements FIFO eviction policty
+					# Note: This implements FIFO eviction policy
 					_SITE_CACHE[func_key][site].pop(next(iter(_SITE_CACHE[func_key][site])), None)
 
 				if func_call_key not in _SITE_CACHE[func_key][site]:

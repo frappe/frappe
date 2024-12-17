@@ -270,6 +270,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 	local.valid_columns = {}
 	local.new_doc_templates = {}
 
+	local.request_cache = defaultdict(dict)
 	local.jenv = None
 	local.jloader = None
 	local.cache = {}
