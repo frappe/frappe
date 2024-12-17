@@ -124,11 +124,6 @@ To setup the repository locally follow the steps mentioned below:
 1. [Report Security Vulnerabilities](https://frappe.io/security)
 1. [Pull Request Requirements](https://github.com/frappe/erpnext/wiki/Contribution-Guidelines)
 
-## License
-This repository has been released under the [MIT License](LICENSE).
-
-By contributing to Frappe, you agree that your contributions will be licensed under its MIT License.
-
 <br>
 <br>
 <div align="center">
