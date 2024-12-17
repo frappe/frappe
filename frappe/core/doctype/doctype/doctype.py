@@ -363,11 +363,11 @@ class DocType(Document):
 
 					if frappe.db.db_type == "postgres":
 						update_query = """
-							UPDATE `tab{doctype}`
+							UPDATE `tab{doctype}` AS target
 							SET `{fieldname}` = source.`{source_fieldname}`
-							FROM `tab{link_doctype}` as source
-							WHERE `{link_fieldname}` = source.name
-							AND ifnull(`{fieldname}`, '')=''
+							FROM `tab{link_doctype}` AS source
+							WHERE `target`.`{link_fieldname}` = `source`.`name`
+							AND (`target`.`{fieldname}` IS NULL OR `target`.`{fieldname}` = 0)
 						"""
 					else:
 						update_query = """
