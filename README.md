@@ -10,7 +10,7 @@
 	<a href="https://codecov.io/gh/frappe/frappe"><img src="https://codecov.io/gh/frappe/frappe/branch/develop/graph/badge.svg?token=XoTa679hIj"/></a>
 </div>
 <div align="center">
-	<img src=".github/hero-image.png" alt="Hero Image" width="72%" />
+	<img src=".github/hero-image.png" alt="Hero Image" />
 </div>
 <div align="center">
     <a href="https://frappe.io/framework">Website</a>
