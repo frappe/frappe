@@ -88,11 +88,7 @@ local = Local()
 cache = None
 STANDARD_USERS = ("Guest", "Administrator")
 
-<<<<<<< HEAD
-_qb_patched = {}
-=======
-_one_time_setup: dict[str, bool] = {}
->>>>>>> 5bf50b6bc2 (perf: Avoid patching QB in every request)
+_one_time_setup = {}
 _dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
 _tune_gc = bool(sbool(os.environ.get("FRAPPE_TUNE_GC", True)))
 
