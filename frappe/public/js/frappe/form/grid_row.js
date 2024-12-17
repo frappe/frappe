@@ -327,53 +327,63 @@ export default class GridRow {
 	}
 
 	add_open_form_button() {
+		if (this.doc && this.grid.df.in_place_edit && !this.grid.df.can_configure_columns) {
+			return;
+		}
+
 		var me = this;
-		if (this.doc && !this.grid.df.in_place_edit) {
-			// remove row
-			if (!this.open_form_button) {
+		if (!this.open_form_button) {
+			if (this.doc && !this.grid.df.in_place_edit) {
 				this.open_form_button = $('<div class="col"></div>').appendTo(this.row);
-
-				if (!this.configure_columns) {
-					const edit_msg = __("Edit", "", "Edit grid row");
-					this.open_form_button = $(`
-						<div class="btn-open-row" data-toggle="tooltip" data-placement="right" title="${edit_msg}">
-							<a>${frappe.utils.icon("edit", "xs")}</a>
-						</div>
-					`)
-						.appendTo(this.open_form_button)
-						.on("click", function () {
-							me.toggle_view();
-							return false;
-						});
-
-					this.open_form_button.tooltip({ delay: { show: 600, hide: 100 } });
-				}
-
-				if (this.is_too_small()) {
-					// narrow
-					this.open_form_button.css({ "margin-right": "-2px" });
-				}
+				const edit_msg = __("Edit", "", "Edit grid row");
+				this.open_form_button = $(`
+					<div class="btn-open-row" data-toggle="tooltip" data-placement="right" title="${edit_msg}">
+						<a>${frappe.utils.icon("edit", "xs")}</a>
+					</div>
+				`)
+					.appendTo(this.open_form_button)
+					.on("click", function () {
+						me.toggle_view();
+						return false;
+					});
+				this.open_form_button.tooltip({ delay: { show: 600, hide: 100 } });
+			} else if (
+				this.doc &&
+				this.grid.df.in_place_edit &&
+				this.grid.df.can_configure_columns
+			) {
+				this.open_form_button = $('<div class="col"></div>').appendTo(this.row);
+				this.open_form_button = $(`<div></div>`).appendTo(this.open_form_button);
+			} else {
+				this.open_form_button = null;
+			}
+			if (this.is_too_small() && this.open_form_button) {
+				// narrow
+				this.open_form_button.css({ "margin-right": "-2px" });
 			}
 		}
 	}
 
 	add_column_configure_button() {
-		if (this.grid.df.in_place_edit && !this.frm) return;
-
-		if (this.configure_columns && this.frm) {
-			this.configure_columns_button = $(`
-				<div class="col grid-static-col pointer">
-					<a>${frappe.utils.icon("setting-gear", "sm", "", "filter: opacity(0.5)")}</a>
-				</div>
-			`)
-				.appendTo(this.row)
-				.on("click", () => {
-					this.configure_dialog_for_columns_selector();
-				});
-		} else if (this.configure_columns && !this.frm) {
-			this.configure_columns_button = $(`
-				<div class="col grid-static-col"></div>
-			`).appendTo(this.row);
+		if (this.doc) {
+			return
+		}
+		if (!this.configure_columns_button) {
+			if (this.grid.df.can_configure_columns && this.frm) {
+				this.configure_columns_button = $(`
+					<div class="col grid-static-col d-flex justify-content-center" style="cursor: pointer;">
+						<a>${frappe.utils.icon("setting-gear", "sm", "", "filter: opacity(0.5)")}</a>
+					</div>
+				`)
+					.appendTo(this.row)
+					.on("click", () => {
+						this.configure_dialog_for_columns_selector();
+					});
+			} else if (!this.grid.df.in_place_edit && !this.grid.df.can_configure_columns && this.frm) {
+				this.configure_columns_button = $(
+					`<div class="col grid-static-col"></div>`
+				).appendTo(this.row);
+			}
 		}
 	}
 
