@@ -18,14 +18,6 @@
     <a href="https://docs.frappe.io/framework">Documentation</a>
 </div>
 
-<details>
-<summary>Screenshots</summary>
-
-![List View](.github/fw-list-view.png)
-![Form View](.github/fw-form-view.png)
-![Role Permission Manager](.github/fw-rpm.png)
-</details>
-
 ## Frappe Framework
 Full-stack web application framework that uses Python and MariaDB on the server side and a tightly integrated client side library. Built for ERPNext.
 
@@ -48,7 +40,13 @@ By creating a web framework that allowed for easy definition of metadata, it mad
 
 - **Report Builder**: Powerful reporting tool that allows users to create custom reports without writing any code.
 
-<a href="https://frappe.io/framework">And More</a>
+<details>
+<summary>Screenshots</summary>
+
+![List View](.github/fw-list-view.png)
+![Form View](.github/fw-form-view.png)
+![Role Permission Manager](.github/fw-rpm.png)
+</details>
 
 ## Production Setup
 
@@ -86,6 +84,7 @@ After a couple of minutes, site should be accessible on your localhost port: 808
 
 See [Frappe Docker](https://github.com/frappe/frappe_docker?tab=readme-ov-file#to-run-on-arm64-architecture-follow-this-instructions) for ARM based docker setup.
 
+## Development Setup
 ### Manual Install
 
 The Easy Way: our install script for bench will install all dependencies (e.g. MariaDB). See https://github.com/frappe/bench for more details.
