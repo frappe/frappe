@@ -77,8 +77,9 @@ class RedisWrapper(redis.Redis):
 		original_key = key
 		key = self.make_key(key, user, shared)
 
-		if key in frappe.local.cache:
-			val = frappe.local.cache[key]
+		local_cache = frappe.local.cache
+		if key in local_cache:
+			val = local_cache[key]
 
 		else:
 			val = None
@@ -96,7 +97,7 @@ class RedisWrapper(redis.Redis):
 					self.set_value(original_key, val, user=user)
 
 				else:
-					frappe.local.cache[key] = val
+					local_cache[key] = val
 
 		return val
 
@@ -135,8 +136,9 @@ class RedisWrapper(redis.Redis):
 		if make_keys:
 			keys = [self.make_key(k, shared=shared, user=user) for k in keys]
 
+		local_cache = frappe.local.cache
 		for key in keys:
-			frappe.local.cache.pop(key, None)
+			local_cache.pop(key, None)
 
 		try:
 			self.unlink(*keys)
@@ -210,14 +212,16 @@ class RedisWrapper(redis.Redis):
 
 	def hget(self, name, key, generator=None, shared=False):
 		_name = self.make_key(name, shared=shared)
-		if _name not in frappe.local.cache:
-			frappe.local.cache[_name] = {}
+
+		local_cache = frappe.local.cache
+		if _name not in local_cache:
+			local_cache[_name] = {}
 
 		if not key:
 			return None
 
-		if key in frappe.local.cache[_name]:
-			return frappe.local.cache[_name][key]
+		if key in local_cache[_name]:
+			return local_cache[_name][key]
 
 		value = None
 		try:
@@ -227,7 +231,7 @@ class RedisWrapper(redis.Redis):
 
 		if value is not None:
 			value = pickle.loads(value)
-			frappe.local.cache[_name][key] = value
+			local_cache[_name][key] = value
 		elif generator:
 			value = generator()
 			self.hset(name, key, value, shared=shared)
