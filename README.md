@@ -70,7 +70,21 @@ It takes care of installation, setup, upgrades, monitoring, maintenance and supp
 ### Self Hosting
 
 ### Docker
-Use docker for development of Frappe Framework apps. See https://github.com/frappe/frappe_docker for more details.
+Prerequisites: docker, docker-compose, git. Refer [Docker Documentation](https://docs.docker.com) for more details on Docker setup.
+
+Run following commands:
+
+```
+git clone https://github.com/frappe/frappe_docker
+cd frappe_docker
+docker compose -f pwd.yml up -d
+```
+
+After a couple of minutes, site should be accessible on your localhost port: 8080. Use below default login credentials to access the site.
+- Username: Administrator
+- Password: admin
+
+See [Frappe Docker](https://github.com/frappe/frappe_docker?tab=readme-ov-file#to-run-on-arm64-architecture-follow-this-instructions) for ARM based docker setup.
 
 ### Manual Install
 
