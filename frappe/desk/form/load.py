@@ -20,7 +20,7 @@ if typing.TYPE_CHECKING:
 
 
 @frappe.whitelist()
-def getdoc(doctype, name, user=None):
+def getdoc(doctype, name):
 	"""
 	Loads a doclist for a given document. This method is called directly from the client.
 	Requries "doctype", "name" as form variables.
@@ -37,6 +37,11 @@ def getdoc(doctype, name, user=None):
 		return []
 
 	doc.check_permission("read")
+
+	# Replace cache if stale one exists
+	# PERF: This should be eventually removed completely when we are sure about caching correctness
+	if (key := frappe.can_cache_doc((doctype, name))) and frappe.cache.exists(key):
+		frappe._set_document_in_cache(key, doc)
 
 	run_onload(doc)
 	doc.apply_fieldlevel_read_permissions()

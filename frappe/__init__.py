@@ -1380,13 +1380,7 @@ def get_doc(*args: Any, **kwargs: Any) -> "Document":
 	"""
 	import frappe.model.document
 
-	doc = frappe.model.document.get_doc(*args, **kwargs)
-
-	# Replace cache if stale one exists
-	if not kwargs.get("for_update") and (key := can_cache_doc(args)) and cache.exists(key):
-		_set_document_in_cache(key, doc)
-
-	return doc
+	return frappe.model.document.get_doc(*args, **kwargs)
 
 
 def get_last_doc(
