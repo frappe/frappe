@@ -48,6 +48,8 @@
   "in_list_view",
   "in_standard_filter",
   "in_preview",
+  "in_place_edit",
+  "can_configure_columns",
   "column_break_35",
   "in_filter",
   "in_global_search",
@@ -601,13 +603,27 @@
    "fieldname": "make_attachment_public",
    "fieldtype": "Check",
    "label": "Make Attachment Public (by default)"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fieldtype=='Table'",
+   "fieldname": "in_place_edit",
+   "fieldtype": "Check",
+   "label": "In Place Edit"
+  },
+  {
+   "default": "1",
+   "depends_on": "eval:doc.fieldtype=='Table'",
+   "fieldname": "can_configure_columns",
+   "fieldtype": "Check",
+   "label": "Can Configure Columns"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-10-15 23:33:03.926033",
+ "modified": "2024-12-17 13:05:46.380005",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",
