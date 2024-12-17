@@ -18,6 +18,7 @@ class DocField(Document):
 		allow_in_quick_entry: DF.Check
 		allow_on_submit: DF.Check
 		bold: DF.Check
+		can_configure_columns: DF.Check
 		collapsible: DF.Check
 		collapsible_depends_on: DF.Code | None
 		columns: DF.Int
@@ -82,6 +83,7 @@ class DocField(Document):
 		in_filter: DF.Check
 		in_global_search: DF.Check
 		in_list_view: DF.Check
+		in_place_edit: DF.Check
 		in_preview: DF.Check
 		in_standard_filter: DF.Check
 		is_virtual: DF.Check
