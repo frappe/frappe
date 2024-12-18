@@ -298,7 +298,6 @@ def start_worker(
 		strategy = DequeueStrategy.DEFAULT
 
 	_start_sentry()
-	_freeze_gc()
 
 	with frappe.init_site():
 		# empty init is required to get redis_queue from common_site_config.json
@@ -365,10 +364,7 @@ def start_worker_pool(
 	import frappe.utils.scheduler
 	import frappe.utils.typing_validations  # any whitelisted method uses this
 	import frappe.website.path_resolver  # all the page types and resolver
-
 	# end: module pre-loading
-
-	_freeze_gc()
 
 	with frappe.init_site():
 		redis_connection = get_redis_conn()
@@ -392,12 +388,6 @@ def start_worker_pool(
 		worker_class=FrappeWorker,  # Auto starts scheduler with workerpool
 	)
 	pool.start(logging_level=logging_level, burst=burst)
-
-
-def _freeze_gc():
-	if frappe._tune_gc:
-		gc.collect()
-		gc.freeze()
 
 
 def get_worker_name(queue):
