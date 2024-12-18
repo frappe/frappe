@@ -10,6 +10,10 @@ from redis.commands.search import Search
 import frappe
 from frappe.utils import cstr
 
+# 5 is faster than default which is 4.
+# Python uses old protocol for backward compatibility, we don't support anything <3.10.
+DEFAULT_PICKLE_PROTOCOL = 5
+
 
 class RedisearchWrapper(Search):
 	def sugadd(self, key, *suggestions, **kwargs):
@@ -63,7 +67,7 @@ class RedisWrapper(redis.Redis):
 		frappe.local.cache[key] = val
 
 		with suppress(redis.exceptions.ConnectionError):
-			self.set(name=key, value=pickle.dumps(val), ex=expires_in_sec)
+			self.set(name=key, value=pickle.dumps(val, protocol=DEFAULT_PICKLE_PROTOCOL), ex=expires_in_sec)
 
 	def get_value(self, key, generator=None, user=None, expires=False, shared=False):
 		"""Return cache value. If not found and generator function is
@@ -184,7 +188,7 @@ class RedisWrapper(redis.Redis):
 
 		# set in redis
 		try:
-			super().hset(_name, key, pickle.dumps(value), *args, **kwargs)
+			super().hset(_name, key, pickle.dumps(value, protocol=DEFAULT_PICKLE_PROTOCOL), *args, **kwargs)
 		except redis.exceptions.ConnectionError:
 			pass
 
