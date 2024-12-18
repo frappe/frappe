@@ -15,7 +15,7 @@ from werkzeug.routing import Rule
 
 import frappe
 import frappe.client
-from frappe import _, get_newargs, is_whitelisted
+from frappe import _, cint, get_newargs, is_whitelisted
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.handler import is_valid_http_method, run_server_script, upload_file
 
@@ -72,13 +72,41 @@ def read_doc(doctype: str, name: str):
 
 
 def document_list(doctype: str):
-	if frappe.form_dict.get("fields"):
-		frappe.form_dict["fields"] = json.loads(frappe.form_dict["fields"])
+	from frappe.model.base_document import get_controller
 
-	# set limit of records for frappe.get_list
-	frappe.form_dict.limit_page_length = frappe.form_dict.limit or 20
-	# evaluate frappe.get_list
-	return frappe.call(frappe.client.get_list, doctype, **frappe.form_dict)
+	args = frappe.request.args
+
+	fields = frappe.parse_json(args.get("fields", None))
+	filters = frappe.parse_json(args.get("filters", None))
+	order_by = args.get("order_by", None)
+	start = cint(args.get("start", 0))
+	limit = cint(args.get("limit", 20))
+	group_by = args.get("group_by", None)
+	debug = args.get("debug", False)
+
+	query = frappe.qb.get_query(
+		table=doctype,
+		fields=fields,
+		filters=filters,
+		order_by=order_by,
+		offset=start,
+		limit=limit + 1,
+		group_by=group_by,
+	)
+	controller = get_controller(doctype)
+	if hasattr(controller, "get_list"):
+		return_value = controller.get_list(query)
+		if return_value is not None:
+			query = return_value
+
+	print(query)
+
+	data = query.run(as_dict=True, debug=debug)
+
+	return {
+		"result": data[:limit],
+		"has_next_page": len(data) > limit,
+	}
 
 
 def count(doctype: str) -> int:
