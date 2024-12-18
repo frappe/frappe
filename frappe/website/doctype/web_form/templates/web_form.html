@@ -160,7 +160,7 @@
 
 {% block script %}
 	<script>
-		frappe.boot = {{ boot }};
+		frappe.boot = {{ boot | json }};
 		frappe._messages = {{ translated_messages }};
 		frappe.web_form_doc = {{ web_form_doc | json }};
 		frappe.reference_doc = {{ reference_doc | json }};
