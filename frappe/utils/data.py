@@ -146,7 +146,7 @@ def get_datetime(
 	if datetime_str is None:
 		return now_datetime()
 
-	if isinstance(datetime_str, datetime.datetime | datetime.timedelta):
+	elif isinstance(datetime_str, datetime.datetime | datetime.timedelta):
 		return datetime_str
 
 	elif isinstance(datetime_str, list | tuple):
@@ -155,11 +155,19 @@ def get_datetime(
 	elif isinstance(datetime_str, datetime.date):
 		return datetime.datetime.combine(datetime_str, datetime.time())
 
-	if is_invalid_date_string(datetime_str):
+	elif is_invalid_date_string(datetime_str):
 		return None
 
 	try:
-		return datetime.datetime.strptime(datetime_str, DATETIME_FORMAT)
+		# PERF: Our DATETIME_FORMAT is same as ISO format.
+		# fromisoformat is written in C so it's better than using strptime parser
+		dt_object = datetime.datetime.fromisoformat(datetime_str)
+
+		# fromisoformat also adds tzinfo if present in src string,
+		# so we strip it before returning
+		if dt_object.tzinfo:
+			return dt_object.replace(tzinfo=None)
+		return dt_object
 	except ValueError:
 		return parser.parse(datetime_str)
 
