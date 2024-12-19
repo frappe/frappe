@@ -1679,8 +1679,8 @@ def pretty_date(iso_datetime: datetime.datetime | str) -> str:
 	from babel.dates import format_timedelta
 
 	if isinstance(iso_datetime, str):
-		iso_datetime = datetime.datetime.strptime(iso_datetime, DATETIME_FORMAT)
-	now_dt = datetime.datetime.strptime(now(), DATETIME_FORMAT)
+		iso_datetime = get_datetime(iso_datetime)
+	now_dt = now_datetime()
 	locale = frappe.local.lang.replace("-", "_") if frappe.local.lang else None
 	return format_timedelta(iso_datetime - now_dt, add_direction=True, locale=locale)
 
