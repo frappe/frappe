@@ -90,8 +90,10 @@ def handle_exception(cmd, info_name, exc):
 		else:
 			click.echo(f"{i:4d}: {line}")
 
-	show_exception = (not sys.stdout.isatty()) or click.confirm(
-		"\nDo you want to see the full traceback?", default=False
+	show_exception = (
+		(not sys.stdout.isatty())
+		or os.environ.get("FRAPPE_ALWAYS_SHOW_FULL_TRACEBACKS")
+		or click.confirm("\nDo you want to see the full traceback?", default=True)
 	)
 	if show_exception:
 		click.secho("\nFull traceback:", fg="red")
