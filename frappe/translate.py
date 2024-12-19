@@ -481,8 +481,8 @@ def get_messages_from_report(name):
 	)
 
 	if report.columns:
-		context = (
-			"Column of report '%s'" % report.name
+		context = "Column of report '{}'".format(
+			report.name
 		)  # context has to match context in `prepare_columns` in query_report.js
 		messages.extend([(None, report_column.label, context) for report_column in report.columns])
 

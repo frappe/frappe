@@ -592,8 +592,7 @@ class Meta(Document):
 	def get_fieldnames_with_value(self, with_field_meta=False, with_virtual_fields=False):
 		def is_value_field(docfield):
 			return not (
-				not with_virtual_fields
-				and docfield.get("is_virtual")
+				(not with_virtual_fields and docfield.get("is_virtual"))
 				or docfield.fieldtype in no_value_fields
 			)
 
@@ -785,7 +784,7 @@ def is_single(doctype):
 	try:
 		return frappe.db.get_value("DocType", doctype, "issingle")
 	except IndexError:
-		raise Exception("Cannot determine whether %s is single" % doctype)
+		raise Exception("Cannot determine whether {} is single".format(doctype))
 
 
 def get_parent_dt(dt):

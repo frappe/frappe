@@ -5,14 +5,13 @@ import io
 import json
 import os
 import sys
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 from decimal import ROUND_HALF_UP, Decimal, localcontext
 from enum import Enum
 from io import StringIO
 from mimetypes import guess_type
 from unittest.mock import patch
 
-import pytz
 from hypothesis import given
 from hypothesis import strategies as st
 from PIL import Image
@@ -736,9 +735,9 @@ class TestResponse(IntegrationTestCase):
 					minute=23,
 					second=23,
 					microsecond=23,
-					tzinfo=pytz.utc,
+					tzinfo=timezone.utc,
 				),
-				time(hour=23, minute=23, second=23, microsecond=23, tzinfo=pytz.utc),
+				time(hour=23, minute=23, second=23, microsecond=23, tzinfo=timezone.utc),
 				timedelta(days=10, hours=12, minutes=120, seconds=10),
 			],
 			"float": [

@@ -55,7 +55,7 @@ def import_db_from_sql(source_sql=None, verbose=False):
 		verbose, db_name, source_sql, frappe.conf.db_user, frappe.conf.db_password
 	)
 	if verbose:
-		print("Imported from database %s" % source_sql)
+		print("Imported from database {}".format(source_sql))
 
 
 def get_root_connection():

@@ -86,7 +86,7 @@ runs:
 
   - name: Maybe clone additional apps
     shell: bash -e {0}
-    env: 
+    env:
       org: ${{ env.FRAPPE_GH_ORG || github.repository_owner }}
       ref: ${{ github.event.client_payload.frappe_sha || github.base_ref || github.ref_name }}
     run: |
@@ -148,15 +148,10 @@ runs:
 
       sudo apt -qq update
       sudo apt -qq remove mysql-server mysql-client
-      sudo apt -qq install libcups2-dev redis-server mariadb-client-10.6
+      sudo apt -qq install libcups2-dev redis-server mariadb-client
 
-      if [ "$(lsb_release -rs)" = "22.04" ]; then
-          wget -q -O /tmp/wkhtmltox.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
-          sudo apt install /tmp/wkhtmltox.deb
-      else
-          echo "Please update frappe/.github/lib/tests.yml to support wkhtmltopdf for $(lsb_release -ds)"
-          exit 1
-      fi
+      wget -q -O /tmp/wkhtmltox.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+      sudo apt install /tmp/wkhtmltox.deb
 
       end_time=$(date +%s)
       echo -e "\033[33mInstall System Dependencies: $((end_time - start_time)) seconds\033[0m"

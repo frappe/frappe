@@ -25,13 +25,13 @@ testing_logger = logging.getLogger("frappe.testing.generators")
 datetime_like_types = (datetime.datetime, datetime.date, datetime.time, datetime.timedelta)
 
 __all__ = [
-	"get_modules",
 	"get_missing_records_doctypes",
 	"get_missing_records_module_overrides",
+	"get_modules",
+	"load_test_records_for",
+	"make_test_objects",
 	"make_test_records",
 	"make_test_records_for_doctype",
-	"make_test_objects",
-	"load_test_records_for",
 ]
 
 

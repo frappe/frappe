@@ -16,8 +16,7 @@ if TYPE_CHECKING:
 	from frappe.core.doctype.user.user import User
 
 
-class SignupDisabledError(frappe.PermissionError):
-	...
+class SignupDisabledError(frappe.PermissionError): ...
 
 
 def get_oauth2_providers() -> dict[str, dict]:
@@ -235,7 +234,7 @@ def get_user_record(user: str, data: dict, provider: str) -> "User":
 		if not provider_allows_signup(provider):
 			raise SignupDisabledError
 
-	user: "User" = frappe.new_doc("User")
+	user: User = frappe.new_doc("User")
 
 	if gender := data.get("gender", "").title():
 		frappe.get_doc({"doctype": "Gender", "gender": gender}).insert(
@@ -264,7 +263,7 @@ def update_oauth_user(user: str, data: dict, provider: str):
 	if isinstance(data.get("location"), dict):
 		data["location"] = data["location"].get("name")
 
-	user: "User" = get_user_record(user, data, provider)
+	user: User = get_user_record(user, data, provider)
 	update_user_record = user.is_new()
 
 	if not user.enabled:

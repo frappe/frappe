@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-11-24 09:34+0000\n"
-"PO-Revision-Date: 2024-11-25 17:49\n"
+"POT-Creation-Date: 2024-12-01 09:33+0000\n"
+"PO-Revision-Date: 2024-12-01 19:09\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -102,7 +102,7 @@ msgstr "'{0}' nije dozvoljeno za tip {1} u redu {2}"
 msgid "(Mandatory)"
 msgstr "(Obavezno)"
 
-#: frappe/model/rename_doc.py:703
+#: frappe/model/rename_doc.py:708
 msgid "** Failed: {0} to {1}: {2}"
 msgstr "** Neuspješno: {0} do {1}: {2}"
 
@@ -997,7 +997,7 @@ msgstr "Akcija / Ruta"
 msgid "Action Complete"
 msgstr "Akcija završena"
 
-#: frappe/model/document.py:1801
+#: frappe/model/document.py:1809
 msgid "Action Failed"
 msgstr "Akcija nije uspjela"
 
@@ -2122,6 +2122,10 @@ msgstr "Izmjena"
 msgid "Amendment Naming Override"
 msgstr "Zaobiđi izmjenu imenovanja"
 
+#: frappe/model/document.py:489
+msgid "Amendment Not Allowed"
+msgstr ""
+
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.py:207
 msgid "Amendment naming rules updated."
 msgstr "Ažurirana su pravila za imenovanje dopuna."
@@ -2258,7 +2262,7 @@ msgstr "Tajni ključ aplikacije"
 msgid "App not found for module: {0}"
 msgstr "Aplikacija nije pronađena za modul: {0}"
 
-#: frappe/__init__.py:1793
+#: frappe/__init__.py:1798
 msgid "App {0} is not installed"
 msgstr "Aplikacija {0} nije instalirana"
 
@@ -4173,11 +4177,11 @@ msgstr "Nije moguće otkazati prije podnošenja. Pogledajte Tranzicija {0}"
 msgid "Cannot cancel {0}."
 msgstr "Nije moguće otkazati {0}."
 
-#: frappe/model/document.py:945
+#: frappe/model/document.py:953
 msgid "Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"
 msgstr "Nije moguće promijeniti status dokumenta iz 0 (Nacrt) u 2 (Otkazano)"
 
-#: frappe/model/document.py:959
+#: frappe/model/document.py:967
 msgid "Cannot change docstatus from 1 (Submitted) to 0 (Draft)"
 msgstr "Nije moguće promijeniti status dokumenta sa 1 (Podneseno) na 0 (Nacrt)"
 
@@ -4260,7 +4264,7 @@ msgstr "Nije moguće uređivati standardne grafikone"
 msgid "Cannot edit a standard report. Please duplicate and create a new report"
 msgstr "Nije moguće uređivati standardni izvještaj. Molimo duplicirajte i kreirajte novi izvještaj"
 
-#: frappe/model/document.py:965
+#: frappe/model/document.py:973
 msgid "Cannot edit cancelled document"
 msgstr "Nije moguće uređivati otkazani dokument"
 
@@ -4293,7 +4297,7 @@ msgstr "Nije moguće dobiti sadržaj fascikle"
 msgid "Cannot have multiple printers mapped to a single print format."
 msgstr "Nije moguće imati više štampača mapiranih u jedan format štampanja."
 
-#: frappe/model/document.py:1033
+#: frappe/model/document.py:1041
 msgid "Cannot link cancelled document: {0}"
 msgstr "Nije moguće povezati otkazani dokument: {0}"
 
@@ -5674,7 +5678,7 @@ msgstr "Ispravna verzija:"
 msgid "Could not connect to outgoing email server"
 msgstr "Povezivanje sa serverom odlazne e-pošte nije uspjelo"
 
-#: frappe/model/document.py:1029
+#: frappe/model/document.py:1037
 msgid "Could not find {0}"
 msgstr "Nije moguće pronaći {0}"
 
@@ -7814,7 +7818,7 @@ msgstr "Uslov pravila imenovanja dokumenta"
 msgid "Document Naming Settings"
 msgstr "Postavke imenovanja dokumenata"
 
-#: frappe/model/document.py:1667
+#: frappe/model/document.py:1675
 msgid "Document Queued"
 msgstr "Dokument u redu čekanja"
 
@@ -7971,7 +7975,7 @@ msgid "Document Types and Permissions"
 msgstr "Vrste dokumenata i dozvole"
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:163
-#: frappe/model/document.py:1865
+#: frappe/model/document.py:1873
 msgid "Document Unlocked"
 msgstr "Dokument otključan"
 
@@ -9378,7 +9382,7 @@ msgstr "Došlo je do greške u {0}"
 msgid "Error in Client Script"
 msgstr "Greška u klijentskoj skripti"
 
-#: frappe/public/js/frappe/form/script_manager.js:250
+#: frappe/public/js/frappe/form/script_manager.js:251
 msgid "Error in Client Script."
 msgstr "Greška u klijentskoj skripti."
 
@@ -11123,7 +11127,7 @@ msgstr "Funkcija"
 msgid "Function Based On"
 msgstr "Funkcija zasnovana na"
 
-#: frappe/__init__.py:929
+#: frappe/__init__.py:934
 msgid "Function {0} is not whitelisted."
 msgstr "Funkcija {0} nije na bijeloj listi."
 
@@ -12943,11 +12947,11 @@ msgstr "Netačan korisnik ili lozinka"
 msgid "Incorrect Verification code"
 msgstr "Netačan verifikacioni kod"
 
-#: frappe/model/document.py:1473
+#: frappe/model/document.py:1481
 msgid "Incorrect value in row {0}:"
 msgstr ""
 
-#: frappe/model/document.py:1475
+#: frappe/model/document.py:1483
 msgid "Incorrect value:"
 msgstr ""
 
@@ -13385,7 +13389,7 @@ msgstr "Nevažeća agregatna funkcija"
 msgid "Invalid column"
 msgstr "Nevažeća kolona"
 
-#: frappe/model/document.py:948 frappe/model/document.py:962
+#: frappe/model/document.py:956 frappe/model/document.py:970
 msgid "Invalid docstatus"
 msgstr "Nevažeći status dokumenta"
 
@@ -15487,7 +15491,7 @@ msgid "Maximum points allowed after multiplying points with the multiplier value
 msgstr "Maksimalni dozvoljeni broj bodova nakon množenja bodova sa vrijednošću množitelja\n"
 "(Napomena: Bez ograničenja ostavite ovo polje prazno ili postavite 0)"
 
-#: frappe/model/rename_doc.py:689
+#: frappe/model/rename_doc.py:694
 msgid "Maximum {0} rows allowed"
 msgstr "Maksimalno je dozvoljeno {0} redova"
 
@@ -15590,7 +15594,7 @@ msgstr "Spajanje je moguće samo između grupe-grupe ili lista čvora-lista čvo
 msgid "Message"
 msgstr "Poruka"
 
-#: frappe/__init__.py:605 frappe/public/js/frappe/ui/messages.js:267
+#: frappe/__init__.py:610 frappe/public/js/frappe/ui/messages.js:267
 msgctxt "Default title of the message dialog"
 msgid "Message"
 msgstr "Poruka"
@@ -15724,7 +15728,7 @@ msgstr "Meta naslov za SEO"
 msgid "Method"
 msgstr "Metod"
 
-#: frappe/__init__.py:931
+#: frappe/__init__.py:936
 msgid "Method Not Allowed"
 msgstr ""
 
@@ -16375,7 +16379,7 @@ msgstr "Postavke navigacije"
 msgid "Need Workspace Manager role to edit private workspace of other users"
 msgstr "Potrebna je uloga upravitelja radnog prostora za uređivanje privatnog radnog prostora drugih korisnika"
 
-#: frappe/model/document.py:723
+#: frappe/model/document.py:731
 msgid "Negative Value"
 msgstr "Negativna vrijednost"
 
@@ -17040,7 +17044,7 @@ msgstr "Broj redova (Max. 500)"
 msgid "No of Sent SMS"
 msgstr "Broj poslanih SMS-ova"
 
-#: frappe/__init__.py:1121 frappe/client.py:108 frappe/client.py:150
+#: frappe/__init__.py:1126 frappe/client.py:108 frappe/client.py:150
 msgid "No permission for {0}"
 msgstr "Nema dozvole za {0}"
 
@@ -17085,7 +17089,7 @@ msgstr ""
 msgid "No template found at path: {0}"
 msgstr "Nije pronađen šablon na putu: {0}"
 
-#: frappe/public/js/frappe/form/controls/multiselect_list.js:246
+#: frappe/public/js/frappe/form/controls/multiselect_list.js:262
 msgid "No values to show"
 msgstr "Nema vrijednosti za prikaz"
 
@@ -17200,7 +17204,7 @@ msgstr "Nije povezano ni sa jednim zapisom"
 msgid "Not Nullable"
 msgstr "Nije nulabilno"
 
-#: frappe/__init__.py:1013 frappe/app.py:373 frappe/desk/calendar.py:26
+#: frappe/__init__.py:1018 frappe/app.py:373 frappe/desk/calendar.py:26
 #: frappe/geo/utils.py:97 frappe/public/js/frappe/web_form/webform_script.js:15
 #: frappe/website/doctype/web_form/web_form.py:605
 #: frappe/website/page_renderers/not_permitted_page.py:20
@@ -17306,7 +17310,7 @@ msgstr "Nije u načinu rada za programere"
 msgid "Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."
 msgstr "Nije u načinu rada za programere! Postavite u site_config.json ili napravite 'Custom' DocType."
 
-#: frappe/__init__.py:685
+#: frappe/__init__.py:690
 #: frappe/core/doctype/system_settings/system_settings.py:212
 #: frappe/public/js/frappe/request.js:158
 #: frappe/public/js/frappe/request.js:168
@@ -17905,7 +17909,7 @@ msgstr "Dozvoljeno je izvoziti prilagođavanja samo u načinu rada za programere
 msgid "Only change this if you want to use other S3 compatible object storage backends."
 msgstr "Ovo promijenite samo ako želite koristiti druge S3 kompatibilne pozadine za pohranu objekata."
 
-#: frappe/model/document.py:1166
+#: frappe/model/document.py:1174
 msgid "Only draft documents can be discarded"
 msgstr "Mogu se odbaciti samo nacrti dokumenata"
 
@@ -19244,7 +19248,7 @@ msgstr "Molimo prijavite se da biste objavili komentar."
 msgid "Please make sure the Reference Communication Docs are not circularly linked."
 msgstr "Uvjerite se da Referentni komunikacijski dokumenti nisu kružno povezani."
 
-#: frappe/model/document.py:917
+#: frappe/model/document.py:925
 msgid "Please refresh to get the latest document."
 msgstr "Osvježite da dobijete najnoviji dokument."
 
@@ -19308,7 +19312,7 @@ msgstr ""
 msgid "Please select a file or url"
 msgstr "Molimo odaberite datoteku ili url"
 
-#: frappe/model/rename_doc.py:684
+#: frappe/model/rename_doc.py:689
 msgid "Please select a valid csv file with data"
 msgstr "Molimo odaberite važeću csv datoteku sa podacima"
 
@@ -22115,7 +22119,7 @@ msgstr "Preusmjeravanja rute"
 msgid "Route: Example \"/app\""
 msgstr "Ruta: Primjer \"/app\""
 
-#: frappe/model/base_document.py:797 frappe/model/document.py:708
+#: frappe/model/base_document.py:797 frappe/model/document.py:716
 msgid "Row"
 msgstr "Red"
 
@@ -25267,7 +25271,7 @@ msgstr "Broj uspješnih poslova"
 msgid "Successful Transactions"
 msgstr "Uspješne transakcije"
 
-#: frappe/model/rename_doc.py:698
+#: frappe/model/rename_doc.py:703
 msgid "Successful: {0} to {1}"
 msgstr "Uspješno: {0} do {1}"
 
@@ -25743,7 +25747,7 @@ msgstr "Tabela podrezana"
 msgid "Table updated"
 msgstr "Tabela ažurirana"
 
-#: frappe/model/document.py:1496
+#: frappe/model/document.py:1504
 msgid "Table {0} cannot be empty"
 msgstr "Tabela {0} ne može biti prazna"
 
@@ -26330,7 +26334,7 @@ msgstr "Ova Kanban ploča će biti privatna"
 msgid "This action is irreversible. Do you wish to continue?"
 msgstr "Ova akcija je nepovratna. Da li želite da nastavite?"
 
-#: frappe/__init__.py:1009
+#: frappe/__init__.py:1014
 msgid "This action is only allowed for {}"
 msgstr "Ova radnja je dozvoljena samo za {}"
 
@@ -26381,7 +26385,7 @@ msgstr "Ovaj dokument ima nespremljene promjene koje se možda neće pojaviti u 
 msgid "This document is already amended, you cannot ammend it again"
 msgstr "Ovaj dokument je već izmijenjen, ne možete ga ponovo mijenjati"
 
-#: frappe/model/document.py:1664
+#: frappe/model/document.py:1672
 msgid "This document is currently locked and queued for execution. Please try again after some time."
 msgstr "Ovaj dokument je trenutno zaključan i na čekanju za izvršenje. Molimo pokušajte ponovo nakon nekog vremena."
 
@@ -28565,15 +28569,15 @@ msgstr "Vrijednost promijenjena"
 msgid "Value To Be Set"
 msgstr "Vrijednost koju treba postaviti"
 
-#: frappe/model/base_document.py:993 frappe/model/document.py:764
+#: frappe/model/base_document.py:993 frappe/model/document.py:772
 msgid "Value cannot be changed for {0}"
 msgstr "Vrijednost se ne može promijeniti za {0}"
 
-#: frappe/model/document.py:710
+#: frappe/model/document.py:718
 msgid "Value cannot be negative for"
 msgstr "Vrijednost ne može biti negativna za"
 
-#: frappe/model/document.py:714
+#: frappe/model/document.py:722
 msgid "Value cannot be negative for {0}: {1}"
 msgstr "Vrijednost ne može biti negativna za {0}: {1}"
 
@@ -28712,7 +28716,7 @@ msgid "View Full Log"
 msgstr "Pogledaj cijeli zapisnik"
 
 #: frappe/public/js/frappe/views/treeview.js:464
-#: frappe/public/js/frappe/widgets/quick_list_widget.js:251
+#: frappe/public/js/frappe/widgets/quick_list_widget.js:256
 msgid "View List"
 msgstr "Pogledaj listu"
 
@@ -29760,7 +29764,7 @@ msgstr "Nije vam dozvoljen pristup ovoj stranici bez prijave."
 msgid "You are not permitted to access this page."
 msgstr "Nije vam dozvoljen pristup ovoj stranici."
 
-#: frappe/__init__.py:928
+#: frappe/__init__.py:933
 msgid "You are not permitted to access this resource."
 msgstr "Nije vam dozvoljen pristup ovom resursu."
 
@@ -29944,7 +29948,7 @@ msgstr "Nemate dovoljno bodova"
 msgid "You do not have enough review points"
 msgstr "Nemate dovoljno bodova za recenzije"
 
-#: frappe/desk/query_report.py:806
+#: frappe/desk/query_report.py:808
 msgid "You do not have permission to access {0}: {1}."
 msgstr ""
 
@@ -30105,9 +30109,13 @@ msgstr "Prvo morate odabrati indekse koje želite dodati."
 msgid "You need to set one IMAP folder for {0}"
 msgstr "Morate postaviti jednu IMAP fasciklu za {0}"
 
+#: frappe/model/rename_doc.py:397
+msgid "You need write permission on {0} {1} to merge"
+msgstr ""
+
 #: frappe/model/rename_doc.py:392
-msgid "You need write permission to rename"
-msgstr "Za preimenovanje vam je potrebna dozvola za pisanje"
+msgid "You need write permission on {0} {1} to rename"
+msgstr ""
 
 #: frappe/client.py:438
 msgid "You need {0} permission to fetch values from {1} {2}"
@@ -31167,6 +31175,10 @@ msgctxt "Form timeline"
 msgid "{0} cancelled this document {1}"
 msgstr "{0} je otkazao ovaj dokument {1}"
 
+#: frappe/model/document.py:486
+msgid "{0} cannot be amended because it is not cancelled. Please cancel the document before creating an amendment."
+msgstr ""
+
 #: frappe/public/js/form_builder/store.js:190
 msgid "{0} cannot be hidden and mandatory without any default value"
 msgstr "{0} ne može biti skriven i obavezan bez ikakve zadane vrijednosti"
@@ -31296,7 +31308,7 @@ msgstr "{0} je uspješno dodan u grupu e-pošte."
 msgid "{0} has left the conversation in {1} {2}"
 msgstr "{0} je napustio razgovor u {1} {2}"
 
-#: frappe/__init__.py:2489
+#: frappe/__init__.py:2494
 msgid "{0} has no versions tracked."
 msgstr "{0} nema praćenih verzija."
 
@@ -31495,23 +31507,23 @@ msgstr "prije {0} minuta"
 msgid "{0} months ago"
 msgstr "prije {0} mjeseci"
 
-#: frappe/model/document.py:1721
+#: frappe/model/document.py:1729
 msgid "{0} must be after {1}"
 msgstr "{0} mora biti iza {1}"
 
-#: frappe/model/document.py:1482
+#: frappe/model/document.py:1490
 msgid "{0} must be beginning with '{1}'"
 msgstr ""
 
-#: frappe/model/document.py:1484
+#: frappe/model/document.py:1492
 msgid "{0} must be equal to '{1}'"
 msgstr ""
 
-#: frappe/model/document.py:1480
+#: frappe/model/document.py:1488
 msgid "{0} must be none of {1}"
 msgstr ""
 
-#: frappe/model/document.py:1478 frappe/utils/csvutils.py:158
+#: frappe/model/document.py:1486 frappe/utils/csvutils.py:158
 msgid "{0} must be one of {1}"
 msgstr "{0} mora biti jedan od {1}"
 
@@ -31523,7 +31535,7 @@ msgstr "{0} se mora prvo postaviti"
 msgid "{0} must be unique"
 msgstr "{0} mora biti jedinstven"
 
-#: frappe/model/document.py:1486
+#: frappe/model/document.py:1494
 msgid "{0} must be {1} {2}"
 msgstr ""
 
@@ -31535,7 +31547,7 @@ msgstr ""
 msgid "{0} not a valid State"
 msgstr "{0} nije važeća država"
 
-#: frappe/model/rename_doc.py:395
+#: frappe/model/rename_doc.py:400
 msgid "{0} not allowed to be renamed"
 msgstr "{0} nije dozvoljeno preimenovati"
 
@@ -31673,7 +31685,7 @@ msgstr "{0} je prekinuo dijeljenje ovog dokumenta sa {1}"
 msgid "{0} updated"
 msgstr "{0} ažurirano"
 
-#: frappe/public/js/frappe/form/controls/multiselect_list.js:182
+#: frappe/public/js/frappe/form/controls/multiselect_list.js:198
 msgid "{0} values selected"
 msgstr "{0} vrijednosti odabrane"
 

@@ -43,7 +43,7 @@ def setup_database(force, verbose, mariadb_user_host_login_scope=None):
 
 	dbman.create_database(db_name)
 	if verbose:
-		print("Created database %s" % db_name)
+		print("Created database {}".format(db_name))
 
 	dbman.grant_all_privileges(db_name, db_user, **dbman_kwargs)
 	dbman.flush_privileges()
@@ -96,7 +96,7 @@ def import_db_from_sql(source_sql=None, verbose=False):
 		verbose, db_name, source_sql, frappe.conf.db_user, frappe.conf.db_password
 	)
 	if verbose:
-		print("Imported from database %s" % source_sql)
+		print("Imported from database {}".format(source_sql))
 
 
 def check_compatible_versions():
@@ -106,12 +106,12 @@ def check_compatible_versions():
 
 		if version_tuple < (10, 6):
 			click.secho(
-				f"Warning: MariaDB version {version} is less than 10.6 which is not supported by Frappe",
+				f"Warning: MariaDB version {version} is older than 10.6 which is not supported by Frappe",
 				fg="yellow",
 			)
-		elif version_tuple >= (10, 9):
+		elif version_tuple > (11, 3):
 			click.secho(
-				f"Warning: MariaDB version {version} is more than 10.8 which is not yet tested with Frappe Framework.",
+				f"Warning: MariaDB version {version} is newer than 11.3 which is not yet tested with Frappe Framework.",
 				fg="yellow",
 			)
 	except Exception:

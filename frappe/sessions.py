@@ -6,6 +6,7 @@ Boot session from cache or build
 Session bootstraps info needed by common client side activities including
 permission, homepage, default variables, system defaults etc
 """
+
 import json
 from urllib.parse import unquote
 
@@ -202,7 +203,7 @@ def generate_csrf_token():
 
 
 class Session:
-	__slots__ = ("user", "user_type", "full_name", "data", "time_diff", "sid", "_update_in_cache")
+	__slots__ = ("_update_in_cache", "data", "full_name", "sid", "time_diff", "user", "user_type")
 
 	def __init__(self, user, resume=False, full_name=None, user_type=None):
 		self.sid = cstr(frappe.form_dict.get("sid") or unquote(frappe.request.cookies.get("sid", "Guest")))

@@ -184,8 +184,10 @@ def load_desktop_data(bootinfo):
 				app_name=app_info.get("name") or app_name,
 				app_title=app_info.get("title")
 				or (
-					frappe.get_hooks("app_title", app_name=app_name)
-					and frappe.get_hooks("app_title", app_name=app_name)[0]
+					(
+						frappe.get_hooks("app_title", app_name=app_name)
+						and frappe.get_hooks("app_title", app_name=app_name)[0]
+					)
 					or ""
 				)
 				or app_name,

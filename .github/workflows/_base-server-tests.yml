@@ -9,7 +9,7 @@ on:
       python-version:
         required: false
         type: string
-        default: '3.12'
+        default: '3.13'
       node-version:
         required: false
         type: number
@@ -90,7 +90,8 @@ jobs:
           - 2525:25
           - 3000:80
     steps:
-      - uses: frappe/frappe/.github/actions/setup@develop
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
         name: Environment Setup
         with:
           python-version: ${{ inputs.python-version }}
@@ -120,10 +121,10 @@ jobs:
               file_path=$(echo "$file_info" | cut -d':' -f1)
               line_number=$(echo "$file_info" | cut -d':' -f2)
               warning_type=$(echo "$warning" | grep -oP '\w+Warning')
-  
+
               # Extract the actual warning message
               message=$(echo "$warning" | sed -E "s/^.*$warning_type: //")
-  
+
               # Create the annotation
               echo "::warning file=${file_path},line=${line_number}::${warning_type}: ${message}"
             done

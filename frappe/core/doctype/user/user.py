@@ -441,7 +441,7 @@ class User(Document):
 
 	def get_fullname(self):
 		"""get first_name space last_name"""
-		return (self.first_name or "") + (self.first_name and " " or "") + (self.last_name or "")
+		return (self.first_name or "") + ((self.first_name and " ") or "") + (self.last_name or "")
 
 	def password_reset_mail(self, link):
 		reset_password_template = frappe.db.get_system_setting("reset_password_template")
@@ -501,8 +501,8 @@ class User(Document):
 		args.update(add_args)
 
 		sender = (
-			frappe.session.user not in STANDARD_USERS and get_formatted_email(frappe.session.user) or None
-		)
+			frappe.session.user not in STANDARD_USERS and get_formatted_email(frappe.session.user)
+		) or None
 
 		if custom_template:
 			from frappe.email.doctype.email_template.email_template import get_email_template
@@ -808,9 +808,9 @@ class User(Document):
 
 @frappe.whitelist()
 def get_timezones():
-	import pytz
+	import zoneinfo
 
-	return {"timezones": pytz.all_timezones}
+	return {"timezones": zoneinfo.available_timezones()}
 
 
 @frappe.whitelist()

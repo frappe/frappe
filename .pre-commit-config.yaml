@@ -21,7 +21,7 @@ repos:
         exclude: ^frappe/tests/classes/context_managers\.py$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.2.0
+    rev: v0.8.1
     hooks:
       - id: ruff
         name: "Run ruff import sorter"

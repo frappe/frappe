@@ -190,7 +190,7 @@ def delete_fields(args_dict, delete=0):
 			)
 		else:
 			existing_fields = frappe.db.describe(dt)
-			existing_fields = existing_fields and [e[0] for e in existing_fields] or []
+			existing_fields = (existing_fields and [e[0] for e in existing_fields]) or []
 			fields_need_to_delete = set(fields) & set(existing_fields)
 			if not fields_need_to_delete:
 				continue
@@ -199,8 +199,8 @@ def delete_fields(args_dict, delete=0):
 				# mariadb implicitly commits before DDL, make it explicit
 				frappe.db.commit()
 
-			query = "ALTER TABLE `tab%s` " % dt + ", ".join(
-				"DROP COLUMN `%s`" % f for f in fields_need_to_delete
+			query = "ALTER TABLE `tab{}` ".format(dt) + ", ".join(
+				"DROP COLUMN `{}`".format(f) for f in fields_need_to_delete
 			)
 			frappe.db.sql(query)
 

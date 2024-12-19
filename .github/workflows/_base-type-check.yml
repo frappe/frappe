@@ -5,7 +5,7 @@ on:
       python-version:
         required: false
         type: string
-        default: '3.12.6'
+        default: '3.13.0'
 
 jobs:
   typecheck:
@@ -19,11 +19,12 @@ jobs:
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
         script: |
+          const ref = context.payload.pull_request ? context.payload.pull_request.head.sha : context.sha;
           const { data: pyprojectContent } = await github.rest.repos.getContent({
             owner: context.repo.owner,
             repo: context.repo.repo,
             path: 'pyproject.toml',
-            ref: context.payload.pull_request.head.sha
+            ref: ref
           });
           const content = Buffer.from(pyprojectContent.content, 'base64').toString();
           const toml = require('toml');
@@ -38,14 +39,22 @@ jobs:
         github-token: ${{secrets.GITHUB_TOKEN}}
         script: |
           const { mypyFiles } = ${{ steps.get-pyproject.outputs.result }};
-          const { data: changedFiles } = await github.rest.pulls.listFiles({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            pull_number: context.payload.pull_request.number
-          });
-          const changedMypyFiles = changedFiles
-            .filter(file => mypyFiles.includes(file.filename))
-            .map(file => file.filename);
+
+          let changedMypyFiles = [];
+  
+          if (context.payload.pull_request) {
+            const { data: changedFiles } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number
+            });
+            changedMypyFiles = changedFiles
+              .filter(file => mypyFiles.includes(file.filename))
+              .map(file => file.filename);
+          } else {
+            // If not a pull request, assume all mypy files are changed
+            changedMypyFiles = mypyFiles;
+          }
           return changedMypyFiles.length > 0;
 
     - name: Set up Python

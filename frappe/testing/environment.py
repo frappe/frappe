@@ -156,7 +156,7 @@ def _decorate_all_methods_and_functions_with_type_checker():
 
 	for app in (apps := frappe.get_installed_apps()):
 		config = _get_config_from_pyproject(frappe.get_app_source_path(app))
-		max_depth = config.get("max_module_depth", float("inf"))
+		max_depth = config.get("max_module_depth", 0)
 		skip_namespaces = config.get("skip_namespaces", [])
 		logger.info(f"Adding type validator in {app!r} (up to level {max_depth})...")
 		pkg = frappe.get_module(app)

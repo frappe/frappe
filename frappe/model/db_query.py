@@ -7,7 +7,7 @@ import datetime
 import json
 import re
 from collections import Counter
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
 import frappe
 import frappe.defaults
@@ -21,6 +21,7 @@ from frappe.model.meta import get_table_columns
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.query_builder.utils import Column
+from frappe.types import Filters, FilterSignature, FilterTuple
 from frappe.utils import (
 	cint,
 	cstr,
@@ -28,7 +29,6 @@ from frappe.utils import (
 	get_filter,
 	get_time,
 	get_timespan_date_range,
-	make_filter_tuple,
 )
 from frappe.utils.data import DateTimeLikeObject, get_datetime, getdate, sbool
 
@@ -79,8 +79,8 @@ class DatabaseQuery:
 	def execute(
 		self,
 		fields=None,
-		filters=None,
-		or_filters=None,
+		filters: FilterSignature | str | None = None,
+		or_filters: FilterSignature | None = None,
 		docstatus=None,
 		group_by=None,
 		order_by=DefaultOrderBy,
@@ -137,8 +137,18 @@ class DatabaseQuery:
 		if as_list and not isinstance(self.fields, (Sequence | str)) and len(self.fields) > 1:
 			frappe.throw(_("Fields must be a list or tuple when as_list is enabled"))
 
-		self.filters = filters or []
-		self.or_filters = or_filters or []
+		self.filters: Filters
+		self.or_filters: Filters
+		for k, _filters in {
+			"filters": filters or Filters(),
+			"or_filters": or_filters or Filters(),
+		}.items():
+			if isinstance(_filters, str):
+				_filters = json.loads(_filters)
+			if not isinstance(_filters, Filters):
+				_filters = Filters(_filters, doctype=self.doctype)
+			setattr(self, k, _filters)
+
 		self.docstatus = docstatus or []
 		self.group_by = group_by
 		self.order_by = order_by
@@ -306,10 +316,10 @@ class DatabaseQuery:
 		self.set_order_by(args)
 
 		self.validate_order_by_and_group_by(args.order_by)
-		args.order_by = args.order_by and (" order by " + args.order_by) or ""
+		args.order_by = (args.order_by and (" order by " + args.order_by)) or ""
 
 		self.validate_order_by_and_group_by(self.group_by)
-		args.group_by = self.group_by and (" group by " + self.group_by) or ""
+		args.group_by = (self.group_by and (" group by " + self.group_by)) or ""
 
 		return args
 
@@ -361,16 +371,6 @@ class DatabaseQuery:
 				if alias:
 					field = f"{field} as {alias}"
 				self.fields[self.fields.index(original_field)] = field
-
-		for filter_name in ["filters", "or_filters"]:
-			filters = getattr(self, filter_name)
-			if isinstance(filters, str):
-				filters = json.loads(filters)
-
-			if isinstance(filters, dict):
-				fdict = filters
-				filters = [make_filter_tuple(self.doctype, key, value) for key, value in fdict.items()]
-			setattr(self, filter_name, filters)
 
 	def sanitize_fields(self):
 		"""
@@ -554,27 +554,11 @@ class DatabaseQuery:
 
 	def set_optional_columns(self):
 		"""Removes optional columns like `_user_tags`, `_comments` etc. if not in table"""
-		# remove from fields
-		to_remove = []
-		for fld in self.fields:
-			to_remove.extend(fld for f in optional_fields if f in fld and f not in self.columns)
-		for fld in to_remove:
-			del self.fields[self.fields.index(fld)]
 
-		# remove from filters
-		to_remove = []
-		for each in self.filters:
-			if isinstance(each, str):
-				each = [each]
-
-			to_remove.extend(
-				each for element in each if element in optional_fields and element not in self.columns
-			)
-		for each in to_remove:
-			if isinstance(self.filters, dict):
-				del self.filters[each]
-			else:
-				self.filters.remove(each)
+		self.fields[:] = [f for f in self.fields if f not in optional_fields or f in self.columns]
+		self.filters[:] = [
+			f for f in self.filters if f.fieldname not in optional_fields or f.fieldname in self.columns
+		]
 
 	def build_conditions(self):
 		self.conditions = []
@@ -588,19 +572,13 @@ class DatabaseQuery:
 			if match_conditions:
 				self.conditions.append(f"({match_conditions})")
 
-	def build_filter_conditions(self, filters, conditions: list, ignore_permissions=None):
+	def build_filter_conditions(self, filters: Filters, conditions: list, ignore_permissions=None):
 		"""build conditions from user filters"""
 		if ignore_permissions is not None:
 			self.flags.ignore_permissions = ignore_permissions
 
-		if isinstance(filters, dict):
-			filters = [filters]
-
 		for f in filters:
-			if isinstance(f, str):
-				conditions.append(f)
-			else:
-				conditions.append(self.prepare_filter_condition(f))
+			conditions.append(self.prepare_filter_condition(f))
 
 	def remove_field(self, idx: int):
 		if self.as_list:
@@ -701,7 +679,7 @@ class DatabaseQuery:
 			self.fields[i + j : i + j + 1] = permitted_fields
 			j = j + len(permitted_fields) - 1
 
-	def prepare_filter_condition(self, f):
+	def prepare_filter_condition(self, ft: FilterTuple) -> str:
 		"""Return a filter condition in the format:
 
 		ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
@@ -712,7 +690,7 @@ class DatabaseQuery:
 		from frappe.boot import get_additional_filters_from_hooks
 
 		additional_filters_config = get_additional_filters_from_hooks()
-		f = get_filter(self.doctype, f, additional_filters_config)
+		f: FilterTuple = get_filter(self.doctype, ft, additional_filters_config)
 
 		tname = "`tab" + f.doctype + "`"
 		if tname not in self.tables:
@@ -1261,7 +1239,7 @@ def get_between_date_filter(value, df=None):
 	        no change is applied.
 	"""
 
-	fieldtype = df and df.fieldtype or "Datetime"
+	fieldtype = (df and df.fieldtype) or "Datetime"
 
 	from_date = frappe.utils.nowdate()
 	to_date = frappe.utils.nowdate()

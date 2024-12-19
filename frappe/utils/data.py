@@ -15,8 +15,8 @@ from code import compile_command
 from enum import Enum
 from typing import Any, Literal, Optional, TypeVar
 from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlparse, urlunparse
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-import pytz
 from click import secho
 from dateutil import parser
 from dateutil.parser import ParserError
@@ -25,6 +25,7 @@ from dateutil.relativedelta import relativedelta
 import frappe
 from frappe.desk.utils import slug
 from frappe.locale import get_date_format, get_first_day_of_the_week, get_number_format, get_time_format
+from frappe.types.filter import Filters, FilterSignature, FilterTuple
 from frappe.utils.deprecations import deprecated
 from frappe.utils.number_format import NUMBER_FORMAT_MAP, NumberFormat
 
@@ -52,6 +53,8 @@ TimespanOptions = Literal[
 
 
 if typing.TYPE_CHECKING:
+	from collections.abc import Mapping
+
 	from PIL.ImageFile import ImageFile as PILImageFile
 
 	T = TypeVar("T")
@@ -223,8 +226,7 @@ def add_to_date(
 	seconds=0,
 	as_string: Literal[False] = False,
 	as_datetime: Literal[False] = False,
-) -> datetime.date:
-	...
+) -> datetime.date: ...
 
 
 @typing.overload
@@ -239,8 +241,7 @@ def add_to_date(
 	seconds=0,
 	as_string: Literal[False] = False,
 	as_datetime: Literal[True] = True,
-) -> datetime.datetime:
-	...
+) -> datetime.datetime: ...
 
 
 @typing.overload
@@ -255,8 +256,7 @@ def add_to_date(
 	seconds=0,
 	as_string: Literal[True] = True,
 	as_datetime: bool = False,
-) -> str:
-	...
+) -> str: ...
 
 
 def add_to_date(
@@ -350,8 +350,7 @@ def time_diff_in_hours(string_ed_date: DateTimeLikeObject, string_st_date: DateT
 
 def now_datetime() -> datetime.datetime:
 	"""Return the current datetime in system timezone."""
-	dt = convert_utc_to_system_timezone(datetime.datetime.now(pytz.UTC))
-	return dt.replace(tzinfo=None)
+	return datetime.datetime.now(ZoneInfo(get_system_timezone())).replace(tzinfo=None)
 
 
 def get_timestamp(date: Optional["DateTimeLikeObject"] = None) -> float:
@@ -372,19 +371,18 @@ def get_system_timezone() -> str:
 
 
 def convert_utc_to_timezone(utc_timestamp: datetime.datetime, time_zone: str) -> datetime.datetime:
-	from pytz import UnknownTimeZoneError, timezone
-
 	if utc_timestamp.tzinfo is None:
-		utc_timestamp = timezone("UTC").localize(utc_timestamp)
+		utc_timestamp = utc_timestamp.replace(tzinfo=ZoneInfo("UTC"))
+
 	try:
-		return utc_timestamp.astimezone(timezone(time_zone))
-	except UnknownTimeZoneError:
+		return utc_timestamp.astimezone(ZoneInfo(time_zone))
+	except ZoneInfoNotFoundError:
 		return utc_timestamp
 
 
 def get_datetime_in_timezone(time_zone: str) -> datetime.datetime:
 	"""Return the current datetime in the given timezone (e.g. 'Asia/Kolkata')."""
-	utc_timestamp = datetime.datetime.now(pytz.UTC)
+	utc_timestamp = datetime.datetime.now(datetime.timezone.utc)
 	return convert_utc_to_timezone(utc_timestamp, time_zone)
 
 
@@ -441,13 +439,11 @@ def nowtime() -> str:
 
 
 @typing.overload
-def get_first_day(dt, d_years=0, d_months=0, as_str: Literal[False] = False) -> datetime.date:
-	...
+def get_first_day(dt, d_years=0, d_months=0, as_str: Literal[False] = False) -> datetime.date: ...
 
 
 @typing.overload
-def get_first_day(dt, d_years=0, d_months=0, as_str: Literal[True] = False) -> str:
-	...
+def get_first_day(dt, d_years=0, d_months=0, as_str: Literal[True] = False) -> str: ...
 
 
 # TODO: first arg
@@ -470,13 +466,13 @@ def get_first_day(dt, d_years: int = 0, d_months: int = 0, as_str: bool = False)
 
 
 @typing.overload
-def get_quarter_start(dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False) -> datetime.date:
-	...
+def get_quarter_start(
+	dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False
+) -> datetime.date: ...
 
 
 @typing.overload
-def get_quarter_start(dt: DateTimeLikeObject | None = None, as_str: Literal[True] = False) -> str:
-	...
+def get_quarter_start(dt: DateTimeLikeObject | None = None, as_str: Literal[True] = False) -> str: ...
 
 
 def get_quarter_start(dt: DateTimeLikeObject | None = None, as_str: bool = False) -> str | datetime.date:
@@ -491,13 +487,11 @@ def get_quarter_start(dt: DateTimeLikeObject | None = None, as_str: bool = False
 
 
 @typing.overload
-def get_first_day_of_week(dt: DateTimeLikeObject, as_str: Literal[False] = False) -> datetime.date:
-	...
+def get_first_day_of_week(dt: DateTimeLikeObject, as_str: Literal[False] = False) -> datetime.date: ...
 
 
 @typing.overload
-def get_first_day_of_week(dt: DateTimeLikeObject, as_str: Literal[True] = False) -> str:
-	...
+def get_first_day_of_week(dt: DateTimeLikeObject, as_str: Literal[True] = False) -> str: ...
 
 
 def get_first_day_of_week(dt: DateTimeLikeObject, as_str=False) -> datetime.date | str:
@@ -526,13 +520,11 @@ def get_normalized_weekday_index(dt):
 
 
 @typing.overload
-def get_year_start(dt: DateTimeLikeObject, as_str: Literal[False] = False) -> datetime.date:
-	...
+def get_year_start(dt: DateTimeLikeObject, as_str: Literal[False] = False) -> datetime.date: ...
 
 
 @typing.overload
-def get_year_start(dt: DateTimeLikeObject, as_str: Literal[True] = False) -> str:
-	...
+def get_year_start(dt: DateTimeLikeObject, as_str: Literal[True] = False) -> str: ...
 
 
 def get_year_start(dt: DateTimeLikeObject, as_str=False) -> str | datetime.date:
@@ -543,13 +535,11 @@ def get_year_start(dt: DateTimeLikeObject, as_str=False) -> str | datetime.date:
 
 
 @typing.overload
-def get_last_day_of_week(dt: DateTimeLikeObject, as_str: Literal[False] = False) -> datetime.date:
-	...
+def get_last_day_of_week(dt: DateTimeLikeObject, as_str: Literal[False] = False) -> datetime.date: ...
 
 
 @typing.overload
-def get_last_day_of_week(dt: DateTimeLikeObject, as_str: Literal[True] = False) -> str:
-	...
+def get_last_day_of_week(dt: DateTimeLikeObject, as_str: Literal[True] = False) -> str: ...
 
 
 def get_last_day_of_week(dt: DateTimeLikeObject, as_str=False) -> datetime.date | str:
@@ -577,13 +567,13 @@ def is_last_day_of_the_month(dt):
 
 
 @typing.overload
-def get_quarter_ending(dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False) -> datetime.date:
-	...
+def get_quarter_ending(
+	dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False
+) -> datetime.date: ...
 
 
 @typing.overload
-def get_quarter_ending(dt: DateTimeLikeObject | None = None, as_str: Literal[True] = False) -> str:
-	...
+def get_quarter_ending(dt: DateTimeLikeObject | None = None, as_str: Literal[True] = False) -> str: ...
 
 
 def get_quarter_ending(date: DateTimeLikeObject | None = None, as_str=False) -> str | datetime.date:
@@ -607,13 +597,13 @@ def get_quarter_ending(date: DateTimeLikeObject | None = None, as_str=False) -> 
 
 
 @typing.overload
-def get_year_ending(dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False) -> datetime.date:
-	...
+def get_year_ending(
+	dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False
+) -> datetime.date: ...
 
 
 @typing.overload
-def get_year_ending(dt: DateTimeLikeObject | None = None, as_str: Literal[True] = False) -> str:
-	...
+def get_year_ending(dt: DateTimeLikeObject | None = None, as_str: Literal[True] = False) -> str: ...
 
 
 def get_year_ending(date: DateTimeLikeObject | None = None, as_str=False) -> datetime.date | str:
@@ -1069,16 +1059,20 @@ def cast(fieldtype, value=None):
 
 
 @typing.overload
-def flt(s: NumericType | str, precision: Literal[0]) -> int:
-	...
+def flt(s: NumericType | str, precision: Literal[0]) -> int: ...
 
 
 @typing.overload
-def flt(s: NumericType | str, precision: int | None = None) -> float:
-	...
+def flt(s: NumericType | str, precision: int | None = None) -> float: ...
 
 
-def flt(s: NumericType | str, precision: int | None = None, rounding_method: str | None = None) -> float:
+@typing.overload
+def flt(s: None) -> Literal[0.0]: ...
+
+
+def flt(
+	s: NumericType | str | None, precision: int | None = None, rounding_method: str | None = None
+) -> float:
 	"""Convert to float (ignoring commas in string).
 
 	:param s: Number in string or other numeric format.
@@ -1097,7 +1091,13 @@ def flt(s: NumericType | str, precision: int | None = None, rounding_method: str
 	10500.57
 	>>> flt("a")
 	0.0
+	>>> flt(None)
+	0.0
 	"""
+
+	if s is None:
+		return 0.0
+
 	if isinstance(s, str):
 		s = s.replace(",", "")
 
@@ -1113,7 +1113,7 @@ def flt(s: NumericType | str, precision: int | None = None, rounding_method: str
 	return num
 
 
-def cint(s: NumericType | str, default: int = 0) -> int:
+def cint(s: NumericType | str | None, default: int = 0) -> int:
 	"""Convert to integer.
 
 	:param s: Number in string or other numeric format.
@@ -1126,8 +1126,13 @@ def cint(s: NumericType | str, default: int = 0) -> int:
 	100
 	>>> cint("a")
 	0
+	>>> cint(None)
+	0
 
 	"""
+	if s is None:
+		return default
+
 	try:
 		return int(s)
 	except Exception:
@@ -1408,7 +1413,8 @@ def fmt_money(
 	parts.reverse()
 
 	amount = number_format.thousands_separator.join(parts) + (
-		(precision and number_format.decimal_separator) and (number_format.decimal_separator + decimals) or ""
+		((precision and number_format.decimal_separator) and (number_format.decimal_separator + decimals))
+		or ""
 	)
 	if amount != "0":
 		amount = minus + amount
@@ -1706,7 +1712,9 @@ def comma_sep(some_list: list | tuple, pattern: str, add_quotes=True) -> str:
 		elif len(some_list) == 1:
 			return some_list[0]
 		else:
-			some_list = ["'%s'" % s for s in some_list] if add_quotes else ["%s" % s for s in some_list]
+			some_list = (
+				["'{}'".format(s) for s in some_list] if add_quotes else ["{}".format(s) for s in some_list]
+			)
 			return pattern.format(", ".join(frappe._(s) for s in some_list[:-1]), some_list[-1])
 	else:
 		return some_list
@@ -1725,7 +1733,7 @@ def new_line_sep(some_list: list | tuple) -> str:
 		elif len(some_list) == 1:
 			return some_list[0]
 		else:
-			some_list = ["%s" % s for s in some_list]
+			some_list = ["{}".format(s) for s in some_list]
 			return format("\n ".join(some_list))
 	else:
 		return some_list
@@ -1977,19 +1985,14 @@ operator_map = {
 }
 
 
-def evaluate_filters(doc, filters: dict | list | tuple):
+def evaluate_filters(doc: "Mapping", filters: FilterSignature):
 	"""Return True if doc matches filters."""
-	if isinstance(filters, dict):
-		for key, value in filters.items():
-			f = get_filter(None, {key: value})
-			if not compare(doc.get(f.fieldname), f.operator, f.value, f.fieldtype):
-				return False
-
-	elif isinstance(filters, list | tuple):
-		for d in filters:
-			f = get_filter(None, d)
-			if not compare(doc.get(f.fieldname), f.operator, f.value, f.fieldtype):
-				return False
+	if not isinstance(filters, Filters):
+		filters = Filters(filters, doctype=doc.get("doctype"))
+	for d in filters:
+		f = get_filter(None, d)
+		if not compare(doc.get(f.fieldname), f.operator, f.value, f.fieldtype):
+			return False
 
 	return True
 
@@ -2004,7 +2007,7 @@ def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None):
 	return False
 
 
-def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "frappe._dict":
+def get_filter(doctype: str, filters: FilterSignature, filters_config=None) -> "frappe._dict":
 	"""Return a `_dict` like:
 
 	{
@@ -2018,29 +2021,17 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 	from frappe.database.utils import NestedSetHierarchy
 	from frappe.model import child_table_fields, default_fields, optional_fields
 
-	if isinstance(f, dict):
-		key, value = next(iter(f.items()))
-		f = make_filter_tuple(doctype, key, value)
+	ft: FilterTuple
+	if isinstance(filters, FilterTuple):
+		ft = filters
+	elif not isinstance(filters, Filters):
+		ft = Filters(filters, doctype=doctype)[0]
+	else:
+		ft = filters[0]
 
-	if not isinstance(f, list | tuple):
-		frappe.throw(frappe._("Filter must be a tuple or list (in a list)"))
-
-	if len(f) == 3:
-		f = (doctype, f[0], f[1], f[2])
-	elif len(f) > 4:
-		f = f[0:4]
-	elif len(f) != 4:
-		frappe.throw(
-			frappe._("Filter must have 4 values (doctype, fieldname, operator, value): {0}").format(str(f))
-		)
-
-	f = frappe._dict(doctype=f[0], fieldname=f[1], operator=f[2], value=f[3])
+	f = frappe._dict(doctype=ft[0], fieldname=ft[1], operator=ft[2], value=ft[3])
 
 	sanitize_column(f.fieldname)
-
-	if not f.operator:
-		# if operator is missing
-		f.operator = "="
 
 	valid_operators = (
 		"=",

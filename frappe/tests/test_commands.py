@@ -454,7 +454,7 @@ class TestCommands(BaseTestCommands):
 
 		# Reset it back to original password
 		original_password = frappe.conf.admin_password or "admin"
-		self.execute("bench --site {site} set-admin-password %s" % original_password)
+		self.execute("bench --site {{site}} set-admin-password {}".format(original_password))
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(check_password("Administrator", original_password), "Administrator")
 

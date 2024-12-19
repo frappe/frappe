@@ -18,7 +18,7 @@ from frappe.website.utils import can_cache, get_home_page
 
 
 class PathResolver:
-	__slots__ = ("path", "http_status_code")
+	__slots__ = ("http_status_code", "path")
 
 	def __init__(self, path, http_status_code=None):
 		self.path = path.strip("/ ")

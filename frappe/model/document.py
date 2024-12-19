@@ -24,7 +24,7 @@ from frappe.model.naming import set_new_name, validate_name
 from frappe.model.utils import is_virtual_doctype, simple_singledispatch
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
 from frappe.types import DF, DocRef
-from frappe.utils import compare, cstr, date_diff, file_lock, flt, now
+from frappe.utils import compare, cstr, date_diff, file_lock, flt, get_table_name, now
 from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
 from frappe.utils.global_search import update_global_search
 
@@ -232,13 +232,25 @@ class Document(BaseDocument, DocRef):
 			self._fix_numeric_types()
 
 		else:
-			get_value_kwargs = {"for_update": self.flags.for_update, "as_dict": True}
-			if not isinstance(self.name, dict | list):
-				get_value_kwargs["order_by"] = None
-
-			d = frappe.db.get_value(
-				doctype=self.doctype, filters=self.name, fieldname="*", **get_value_kwargs
-			)
+			if isinstance(self.name, str) and self.doctype != "DocType":
+				# Fast path - use raw SQL to avoid QB/ORM overheads.
+				d = frappe.db.sql(
+					"SELECT * FROM {table_name} WHERE `name` = %s {for_update}".format(
+						table_name=get_table_name(self.doctype, wrap_in_backticks=True),
+						for_update="FOR UPDATE" if self.flags.for_update else "",
+					),
+					(self.name),
+					as_dict=True,
+				)
+				d = d[0] if d else d
+			else:
+				d = frappe.db.get_value(
+					doctype=self.doctype,
+					filters=self.name,
+					fieldname="*",
+					for_update=self.flags.for_update,
+					as_dict=True,
+				)
 
 			if not d:
 				frappe.throw(
@@ -265,8 +277,10 @@ class Document(BaseDocument, DocRef):
 				self.set(df.fieldname, [])
 				continue
 
-			children = (
-				frappe.db.get_values(
+			if self.doctype == "DocType":
+				# This special handling is required because of bootstrapping code that doesn't
+				# handle failures correctly.
+				children = frappe.db.get_values(
 					df.options,
 					{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname},
 					"*",
@@ -274,10 +288,22 @@ class Document(BaseDocument, DocRef):
 					order_by="idx asc",
 					for_update=self.flags.for_update,
 				)
-				or []
-			)
+			else:
+				# Fast pass for all other doctypes - using raw SQL
+				children = frappe.db.sql(
+					"""SELECT * FROM {table_name}
+					WHERE `parent`= %(parent)s
+						AND `parenttype`= %(parenttype)s
+						AND `parentfield`= %(parentfield)s
+					ORDER BY `idx` ASC {for_update}""".format(
+						table_name=get_table_name(df.options, wrap_in_backticks=True),
+						for_update="FOR UPDATE" if self.flags.for_update else "",
+					),
+					{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname},
+					as_dict=True,
+				)
 
-			self.set(df.fieldname, children)
+			self.set(df.fieldname, children or [])
 
 		return self
 
@@ -518,7 +544,7 @@ class Document(BaseDocument, DocRef):
 
 	def update_child_table(self, fieldname: str, df: Optional["DocField"] = None):
 		"""sync child table for given fieldname"""
-		df: "DocField" = df or self.meta.get_field(fieldname)
+		df: DocField = df or self.meta.get_field(fieldname)
 		all_rows = self.get(df.fieldname)
 
 		# delete rows that do not match the ones in the document
@@ -1725,8 +1751,16 @@ class Document(BaseDocument, DocRef):
 			return
 
 		if date_diff(to_date, from_date) < 0:
+			table_row = ""
+			if self.meta.istable:
+				table_row = _("{0} row #{1}: ").format(
+					_(frappe.unscrub(self.parentfield)),
+					self.idx,
+				)
+
 			frappe.throw(
-				_("{0} must be after {1}").format(
+				table_row
+				+ _("{0} must be after {1}").format(
 					frappe.bold(_(self.meta.get_label(to_date_field))),
 					frappe.bold(_(self.meta.get_label(from_date_field))),
 				),

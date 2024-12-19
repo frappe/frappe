@@ -139,7 +139,7 @@ class Workspace:
 		item_type = item_type.lower()
 
 		if item_type == "doctype":
-			return name in self.can_read or [] and name in self.restricted_doctypes or []
+			return name in (self.can_read or []) and name in (self.restricted_doctypes or [])
 		if item_type == "page":
 			return name in self.allowed_pages and name in self.restricted_pages
 		if item_type == "report":
@@ -571,7 +571,8 @@ def get_custom_report_list(module):
 
 
 def save_new_widget(doc, page, blocks, new_widgets):
-	if loads(new_widgets):
+	widgets = _dict()
+	if new_widgets:
 		widgets = _dict(loads(new_widgets))
 
 		if widgets.chart:

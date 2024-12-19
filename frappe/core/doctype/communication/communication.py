@@ -489,7 +489,7 @@ def get_permission_query_conditions_for_communication(user):
 		if not accounts:
 			return """`tabCommunication`.communication_medium!='Email'"""
 
-		email_accounts = ['"%s"' % account.get("email_account") for account in accounts]
+		email_accounts = ['"{}"'.format(account.get("email_account")) for account in accounts]
 		return """`tabCommunication`.email_account in ({email_accounts})""".format(
 			email_accounts=",".join(email_accounts)
 		)
@@ -623,9 +623,7 @@ def update_parent_document_on_communication(doc):
 
 		# if status has a "Open" option and status is "Replied", then update the status for received communication
 		if (
-			("Open" in options)
-			and parent.status == "Replied"
-			and doc.sent_or_received == "Received"
+			(("Open" in options) and parent.status == "Replied" and doc.sent_or_received == "Received")
 			or (
 				parent.doctype == "Issue" and ("Open" in options) and doc.sent_or_received == "Received"
 			)  # For 'Issue', current status is not considered.

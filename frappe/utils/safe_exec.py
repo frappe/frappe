@@ -184,7 +184,7 @@ def get_safe_globals():
 	if "_" in form_dict:
 		del frappe.local.form_dict["_"]
 
-	user = getattr(frappe.local, "session", None) and frappe.local.session.user or "Guest"
+	user = (getattr(frappe.local, "session", None) and frappe.local.session.user) or "Guest"
 
 	out = NamespaceDict(
 		# make available limited methods of frappe

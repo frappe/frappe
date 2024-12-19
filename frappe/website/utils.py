@@ -179,6 +179,7 @@ def get_boot_data():
 			"time_format": get_time_format(),
 			"first_day_of_the_week": get_first_day_of_the_week(),
 			"number_format": get_number_format().string,
+			"currency": frappe.get_system_settings("currency"),
 		},
 		"time_zone": {
 			"system": get_system_timezone(),
@@ -545,14 +546,14 @@ def build_response(path, data, http_status_code, headers: dict | None = None):
 	response = Response()
 	response.data = set_content_type(response, data, path)
 	response.status_code = http_status_code
-	response.headers["X-Page-Name"] = cstr(path.encode("ascii", errors="xmlcharrefreplace"))
+	response.headers["X-Page-Name"] = cstr(cstr(path).encode("ascii", errors="xmlcharrefreplace"))
 	response.headers["X-From-Cache"] = frappe.local.response.from_cache or False
 
 	add_preload_for_bundled_assets(response)
 
 	if headers:
 		for key, val in headers.items():
-			response.headers[key] = cstr(val.encode("ascii", errors="xmlcharrefreplace"))
+			response.headers[key] = cstr(cstr(val).encode("ascii", errors="xmlcharrefreplace"))
 
 	return response
 

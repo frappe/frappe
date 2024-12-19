@@ -53,7 +53,7 @@ def make_test_image_file(private=False):
 		}
 	).insert()
 	# remove those flags
-	_test_file: "File" = frappe.get_doc("File", test_file.name)
+	_test_file: File = frappe.get_doc("File", test_file.name)
 
 	try:
 		yield _test_file
@@ -469,7 +469,7 @@ class TestFile(IntegrationTestCase):
 		self.assertRaises(OSError, file1.save)
 
 	def test_file_url_validation(self):
-		test_file: "File" = frappe.new_doc("File")
+		test_file: File = frappe.new_doc("File")
 		test_file.update({"file_name": "logo", "file_url": "https://frappe.io/files/frappe.png"})
 
 		self.assertIsNone(test_file.validate())
@@ -494,7 +494,7 @@ class TestFile(IntegrationTestCase):
 
 	def test_make_thumbnail(self):
 		# test web image
-		test_file: "File" = frappe.get_doc(
+		test_file: File = frappe.get_doc(
 			{
 				"doctype": "File",
 				"file_name": "logo",
@@ -934,12 +934,12 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 		file_name = "test" + frappe.generate_hash()
 		content = file_name.encode()
 
-		doc_pub: "File" = frappe.new_doc("File")  # type: ignore
+		doc_pub: File = frappe.new_doc("File")  # type: ignore
 		doc_pub.file_url = f"/files/{file_name}.txt"
 		doc_pub.content = content
 		doc_pub.save()
 
-		doc_pri: "File" = frappe.new_doc("File")  # type: ignore
+		doc_pri: File = frappe.new_doc("File")  # type: ignore
 		doc_pri.file_url = f"/private/files/{file_name}.txt"
 		doc_pri.is_private = False
 		doc_pri.content = content

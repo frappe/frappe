@@ -1,9 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 """
-	Sync's doctype and docfields from txt files to database
-	perms will get synced only if none exist
+Sync's doctype and docfields from txt files to database
+perms will get synced only if none exist
 """
+
 import os
 
 import frappe

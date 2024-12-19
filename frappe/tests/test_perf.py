@@ -16,6 +16,7 @@ query. This test can be written like this.
 >>> 		get_controller("User")
 
 """
+
 import gc
 import sys
 import time
@@ -31,6 +32,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.test_query_builder import run_only_if
 from frappe.utils import cint
+from frappe.utils.caching import redis_cache
 from frappe.website.path_resolver import PathResolver
 
 TEST_USER = "test@example.com"
@@ -200,8 +202,35 @@ class TestPerformance(IntegrationTestCase):
 
 	def test_get_doc_cache_calls(self):
 		frappe.get_doc("User", "Administrator")
-		with self.assertRedisCallCounts(1):
+		with self.assertRedisCallCounts(0):
 			frappe.get_doc("User", "Administrator")
+
+	def test_local_caching(self):
+		frappe.get_cached_doc("User", "Administrator")
+		with self.assertRedisCallCounts(0):
+			frappe.get_cached_doc("User", "Administrator")
+
+	def test_redis_cache_calls(self):
+		redis_cached_func()  # warmup
+
+		# Repeat call should use locally cached value
+		with self.assertRedisCallCounts(0):
+			redis_cached_func()
+
+		frappe.local.cache.clear()
+		# Without local cache - only one call required
+		with self.assertRedisCallCounts(1):
+			redis_cached_func()
+
+	def test_one_time_setup(self):
+		site = frappe.local.site
+		frappe.init(site, force=True)
+		run = frappe.qb._BuilderClasss.run
+
+		frappe.init(site, force=True)
+		patched_run = frappe.qb._BuilderClasss.run
+
+		self.assertIs(run, patched_run, "frappe.init should run one-time patching code just once")
 
 
 @run_only_if(db_type_is.MARIADB)
@@ -234,3 +263,8 @@ class TestOverheadCalls(FrappeAPITestCase):
 		self.get(self.resource("User", "Administrator"), {"sid": sid})
 		with self.assertRedisCallCounts(19), self.assertQueryCount(self.BASE_SQL_CALLS + 1 + tables):
 			self.get(self.resource("User", "Administrator"), {"sid": sid})
+
+
+@redis_cache
+def redis_cached_func():
+	return 42

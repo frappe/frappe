@@ -550,6 +550,60 @@ class TestDB(IntegrationTestCase):
 
 		frappe.db.delete("ToDo", {"description": test_body})
 
+	def test_bulk_update(self):
+		test_body = f"test_bulk_update - {random_string(10)}"
+
+		frappe.db.bulk_insert(
+			"ToDo",
+			["name", "description"],
+			[[f"ToDo Test Bulk Update {i}", test_body] for i in range(20)],
+			ignore_duplicates=True,
+		)
+
+		record_names = frappe.get_all("ToDo", filters={"description": test_body}, pluck="name")
+
+		new_descriptions = {name: f"{test_body} - updated - {random_string(10)}" for name in record_names}
+
+		# update with same fields to update
+		frappe.db.bulk_update(
+			"ToDo", {name: {"description": new_descriptions[name]} for name in record_names}
+		)
+
+		# check if all records were updated
+		updated_records = dict(
+			frappe.get_all(
+				"ToDo", filters={"name": ("in", record_names)}, fields=["name", "description"], as_list=True
+			)
+		)
+		self.assertDictEqual(new_descriptions, updated_records)
+
+		# update with different fields to update
+		updates = {
+			record_names[0]: {"priority": "High", "status": "Closed"},
+			record_names[1]: {"status": "Closed"},
+		}
+		frappe.db.bulk_update("ToDo", updates)
+
+		priority, status = frappe.db.get_value("ToDo", record_names[0], ["priority", "status"])
+
+		self.assertEqual(priority, "High")
+		self.assertEqual(status, "Closed")
+
+		# further updates with different fields to update
+		updates = {record_names[0]: {"status": "Open"}, record_names[1]: {"priority": "Low"}}
+		frappe.db.bulk_update("ToDo", updates)
+
+		priority, status = frappe.db.get_value("ToDo", record_names[0], ["priority", "status"])
+		self.assertEqual(priority, "High")  # should stay the same
+		self.assertEqual(status, "Open")
+
+		priority, status = frappe.db.get_value("ToDo", record_names[1], ["priority", "status"])
+		self.assertEqual(priority, "Low")
+		self.assertEqual(status, "Closed")  # should stay the same
+
+		# cleanup
+		frappe.db.delete("ToDo", {"name": ("in", record_names)})
+
 	def test_count(self):
 		frappe.db.delete("Note")
 

@@ -36,6 +36,7 @@ ALLOWED_MIMETYPES = (
 	"text/plain",
 	"video/quicktime",
 	"video/mp4",
+	"text/csv",
 )
 
 
@@ -129,7 +130,7 @@ def upload_file():
 		else:
 			raise frappe.PermissionError
 	else:
-		user: "User" = frappe.get_doc("User", frappe.session.user)
+		user: User = frappe.get_doc("User", frappe.session.user)
 		ignore_permissions = False
 
 	files = frappe.request.files
@@ -180,7 +181,7 @@ def upload_file():
 	if content is not None and (frappe.session.user == "Guest" or (user and not user.has_desk_access())):
 		filetype = guess_type(filename)[0]
 		if filetype not in ALLOWED_MIMETYPES:
-			frappe.throw(_("You can only upload JPG, PNG, PDF, TXT or Microsoft documents."))
+			frappe.throw(_("You can only upload JPG, PNG, PDF, TXT, CSV or Microsoft documents."))
 
 	if method:
 		method = frappe.get_attr(method)
@@ -227,7 +228,7 @@ def download_file(file_url: str):
 	Endpoints : download_file, frappe.core.doctype.file.file.download_file
 	URL Params : file_name = /path/to/file relative to site path
 	"""
-	file: "File" = frappe.get_doc("File", {"file_url": file_url})
+	file: File = frappe.get_doc("File", {"file_url": file_url})
 	if not file.is_downloadable():
 		raise frappe.PermissionError
 

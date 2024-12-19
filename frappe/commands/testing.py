@@ -31,7 +31,8 @@ def main(
 	failfast: bool = False,
 	case: str | None = None,
 	skip_before_tests: bool = False,
-	pdb_on_exceptions: bool = False,
+	debug: bool = False,
+	debug_exceptions: tuple[Exception] | None = None,
 	selected_categories: list[str] | None = None,
 ) -> None:
 	"""Main function to run tests"""
@@ -45,6 +46,9 @@ def main(
 		discover_module_tests,
 	)
 	from frappe.testing.environment import _cleanup_after_tests, _initialize_test_environment
+
+	if debug and not debug_exceptions:
+		debug_exceptions = (Exception,)
 
 	testing_module_logger = logging.getLogger("frappe.testing")
 	testing_module_logger.setLevel(logging.DEBUG if verbose else logging.INFO)
@@ -76,7 +80,8 @@ def main(
 		"failfast",
 		"case",
 		"skip_before_tests",
-		"pdb_on_exceptions",
+		"debug_exceptions",
+		"debug",
 		"selected_categories",
 	]:
 		param_value = locals()[param_name]
@@ -100,7 +105,7 @@ def main(
 		failfast=failfast,
 		tests=tests,
 		case=case,
-		pdb_on_exceptions=pdb_on_exceptions,
+		pdb_on_exceptions=debug_exceptions,
 		selected_categories=selected_categories or [],
 		skip_before_tests=skip_before_tests,
 	)
@@ -115,7 +120,7 @@ def main(
 			verbosity=2 if testing_module_logger.getEffectiveLevel() < logging.INFO else 1,
 			tb_locals=testing_module_logger.getEffectiveLevel() <= logging.INFO,
 			cfg=test_config,
-			buffer=not bool(pdb_on_exceptions),
+			buffer=not debug,  # unfortunate as it messes up stdout/stderr output order
 		)
 
 		if doctype or doctype_list_path:
@@ -252,7 +257,12 @@ def _get_doctypes_for_module_def(app, module_def):
 )
 @click.option("--test", multiple=True, help="Specific test")
 @click.option("--module", help="Run tests in a module")
-@click.option("--pdb", is_flag=True, default=False, help="Open pdb on AssertionError")
+@click.option(
+	"--debug",
+	is_flag=True,
+	default=False,
+	help="Disable buffer and attach to pdb on breakpoint or exception",
+)
 @click.option("--profile", is_flag=True, default=False)
 @click.option("--coverage", is_flag=True, default=False)
 @click.option("--skip-test-records", is_flag=True, default=False, help="DEPRECATED")
@@ -284,13 +294,9 @@ def run_tests(
 	failfast=False,
 	case=None,
 	test_category="all",
-	pdb=False,
+	debug=False,
 ):
 	"""Run python unit-tests"""
-
-	pdb_on_exceptions = None
-	if pdb:
-		pdb_on_exceptions = (AssertionError,)
 
 	from frappe.coverage import CodeCoverage
 
@@ -330,7 +336,7 @@ def run_tests(
 			failfast=failfast,
 			case=case,
 			skip_before_tests=skip_before_tests,
-			pdb_on_exceptions=pdb_on_exceptions,
+			debug=debug,
 			selected_categories=[] if test_category == "all" else test_category,
 		)
 

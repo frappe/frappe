@@ -1,6 +1,7 @@
 """
 FrappeClient is a library that helps you connect with other frappe systems
 """
+
 import base64
 import json
 

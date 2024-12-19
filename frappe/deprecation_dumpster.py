@@ -15,10 +15,12 @@ Remember, deprecated doesn't mean useless - it just means these functions are en
 Enjoy your stay in the Deprecation Dumpster, where every function gets a second chance to shine (or at least, to not break everything).
 """
 
+import functools
 import inspect
 import os
 import re
 import sys
+import typing
 import warnings
 from importlib.metadata import version
 
@@ -85,7 +87,7 @@ def __get_deprecation_class(graduation: str | None = None, class_name: str | Non
 	try:
 		return getattr(current_module, class_name)
 	except AttributeError:
-		return PendingDeprecationWarning
+		return PendingFrappeDeprecationWarning
 
 
 # Parse PYTHONWARNINGS environment variable
@@ -117,7 +119,6 @@ try:
 	# since python 3.13, PEP 702
 	from warnings import deprecated as _deprecated
 except ImportError:
-	import functools
 	import warnings
 	from collections.abc import Callable
 	from typing import Optional, TypeVar, Union, overload
@@ -200,6 +201,44 @@ def deprecation_warning(marked: str, graduation: str, msg: str):
 
 
 ### Party starts here
+
+if typing.TYPE_CHECKING:
+	from werkzeug.local import Local
+
+
+def get_local_with_deprecations() -> "Local":
+	from werkzeug.local import Local
+
+	class DeprecatedLocalAttribute:
+		def __init__(self, name, warning):
+			self.name = name
+			self.warning = warning
+
+		def __get__(self, obj, type=None):
+			self.warning()
+			return obj.__getattr__(self.name)
+
+		def __set__(self, obj, value):
+			return obj.__setattr__(self.name, value)
+
+		def __delete__(self, obj):
+			return obj.__delattr__(self.name)
+
+	class LocalWithDeprecations(Local):
+		"""Can deprecate local attributes."""
+
+		# sites_path = DeprecatedLocalAttribute(
+		# 	"sites_path",
+		# 	lambda: deprecation_warning(
+		# 		"2024-12-06",
+		# 		"v17",
+		# 		"'local.sites_path' will be deprecated: use 'frappe.bench.sites.path instead'",
+		# 	),
+		# )
+
+	return LocalWithDeprecations()
+
+
 def _old_deprecated(func):
 	return deprecated(
 		"frappe.deprecations.deprecated",
@@ -814,15 +853,19 @@ def get_tests_CompatFrappeTestCase():
 
 		@contextmanager
 		def freeze_time(self, time_to_freeze, is_utc=False, *args, **kwargs):
-			import pytz
+			from zoneinfo import ZoneInfo
+
 			from freezegun import freeze_time
 
 			from frappe.utils.data import convert_utc_to_timezone, get_datetime, get_system_timezone
 
 			if not is_utc:
 				# Freeze time expects UTC or tzaware objects. We have neither, so convert to UTC.
-				timezone = pytz.timezone(get_system_timezone())
-				time_to_freeze = timezone.localize(get_datetime(time_to_freeze)).astimezone(pytz.utc)
+				time_to_freeze = (
+					get_datetime(time_to_freeze)
+					.replace(tzinfo=ZoneInfo(get_system_timezone()))
+					.astimezone(ZoneInfo("UTC"))
+				)
 
 			with freeze_time(time_to_freeze, *args, **kwargs):
 				yield
@@ -1001,3 +1044,17 @@ def get_number_format_info(format: str) -> tuple[str, str, int]:
 	from frappe.utils.number_format import NUMBER_FORMAT_MAP
 
 	return NUMBER_FORMAT_MAP.get(format) or (".", ",", 2)
+
+
+@deprecated(
+	"modules.txt",
+	"2024-11-12",
+	"yet unknown",
+	"""It has been added for compatibility in addition to the new .frappe sentinel file inside the module. This is for your info: you don't have to do anything.
+""",
+)
+def boilerplate_modules_txt(dest, app_name, app_title):
+	import frappe
+
+	with open(os.path.join(dest, app_name, app_name, "modules.txt"), "w") as f:
+		f.write(frappe.as_unicode(app_title))

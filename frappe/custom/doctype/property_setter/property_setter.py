@@ -83,7 +83,7 @@ def make_property_setter(
 	property_setter = frappe.get_doc(
 		{
 			"doctype": "Property Setter",
-			"doctype_or_field": for_doctype and "DocType" or "DocField",
+			"doctype_or_field": (for_doctype and "DocType") or "DocField",
 			"doc_type": doctype,
 			"field_name": fieldname,
 			"property": property,

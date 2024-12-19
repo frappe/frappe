@@ -41,7 +41,7 @@ jobs:
 
   test:
     name: Tests (Cypress)
-    uses: frappe/frappe/.github/workflows/_base-ui-tests.yml@develop
+    uses: ./.github/workflows/_base-ui-tests.yml
     with:
       parallel-runs: 3
       enable-coverage: ${{ github.event_name != 'pull_request' }}

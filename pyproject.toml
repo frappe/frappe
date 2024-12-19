@@ -4,7 +4,7 @@ authors = [
     { name = "Frappe Technologies Pvt Ltd", email = "developers@frappe.io"}
 ]
 description = "Metadata driven, full-stack low code web framework"
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10,<3.14"
 readme = "README.md"
 dynamic = ["version"]
 dependencies = [
@@ -24,7 +24,7 @@ dependencies = [
     "PyPika==0.48.9",
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.1",
-    "RestrictedPython~=7.0",
+    "RestrictedPython~=7.4",
     "WeasyPrint==59.0",
     "pydyf==0.10.0",
     "Werkzeug~=3.0.1",
@@ -54,7 +54,7 @@ dependencies = [
     "psutil~=5.9.5",
     "psycopg2-binary~=2.9.1",
     "pyOpenSSL~=24.2.1",
-    "pydantic~=2.7.0",
+    "pydantic~=2.10.2",
     "pyotp~=2.8.0",
     "python-dateutil~=2.8.2",
     "pytz==2023.3",
@@ -75,7 +75,7 @@ dependencies = [
     "traceback-with-variables~=2.0.4",
     "typing_extensions>=4.6.1,<5",
     "tomli~=2.0.1",
-    "uuid-utils~=0.6.1",
+    "uuid-utils~=0.10.0",
     "xlrd~=2.0.1",
     "zxcvbn~=4.4.28",
     "markdownify~=0.11.6",
@@ -103,34 +103,35 @@ dev = [
     "responses==0.23.1",
     # typechecking
     "basedmypy",
-    "types-PyMySQL",  
-    "types-PyYAML",  
-    "types-Pygments",  
-    "types-beautifulsoup4",  
-    "types-bleach",  
-    "types-cffi",  
-    "types-colorama",  
-    "types-croniter",  
-    "types-decorator",  
-    "types-ldap3",  
-    "types-oauthlib",  
-    "types-openpyxl",  
-    "types-passlib",  
-    "types-psutil",  
-    "types-psycopg2",  
-    "types-python-dateutil",  
-    "types-pytz",  
-    "types-requests",  
-    "types-six",  
-    "types-vobject",  
-    "types-zxcvbn",  
+    "types-PyMySQL",
+    "types-PyYAML",
+    "types-Pygments",
+    "types-beautifulsoup4",
+    "types-bleach",
+    "types-cffi",
+    "types-colorama",
+    "types-croniter",
+    "types-decorator",
+    "types-ldap3",
+    "types-oauthlib",
+    "types-openpyxl",
+    "types-passlib",
+    "types-psutil",
+    "types-psycopg2",
+    "types-python-dateutil",
+    "types-pytz",
+    "types-requests",
+    "types-six",
+    "types-vobject",
+    "types-zxcvbn",
+    "pypika-stubs",  # contributed
 ]
 test = [
     "unittest-xml-reporting~=3.2.0",
     "coverage~=6.5.0",
     "Faker~=18.10.1",
     "hypothesis~=6.77.0",
-    "freezegun~=1.2.2",
+    "freezegun~=1.5.1",
     "pdbpp~=0.10.3",
 ]
 
@@ -188,8 +189,9 @@ ignore = [
     "F722", # syntax error in forward type annotation
     "W191", # indentation contains tabs
     "RUF001", # string contains ambiguous unicode character
-    "UP032", # Use f-string instead of `format` call (translations)
     "UP030", # Use implicit references for positional format fields (translations)
+    "UP031", # Use format specifiers instead of percent format
+    "UP032", # Use f-string instead of `format` call (translations)
 ]
 typing-modules = ["frappe.types.DF"]
 
@@ -223,6 +225,9 @@ files = [
     "frappe/types/DF.py",
     "frappe/types/docref.py",
     "frappe/types/frappedict.py",
+    "frappe/types/filter.py",
+    "frappe/bench_interface.py",
+    "frappe/config.py",
 ]
 exclude = [
     # permanent excludes

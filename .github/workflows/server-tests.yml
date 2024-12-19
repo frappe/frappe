@@ -20,7 +20,7 @@ permissions:
 jobs:
   typecheck:
     name: Types
-    uses: frappe/frappe/.github/workflows/_base-type-check.yml@develop
+    uses: ./.github/workflows/_base-type-check.yml
 
   checkrun:
     name: Plan Tests
@@ -42,7 +42,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   test:
     name: Tests
-    uses: frappe/frappe/.github/workflows/_base-server-tests.yml@develop
+    uses: ./.github/workflows/_base-server-tests.yml
     with:
       enable-postgres: true  # This will test against both MariaDB and PostgreSQL
       parallel-runs: 2
@@ -54,7 +54,7 @@ jobs:
   migrate:
     name: Migration
     needs: checkrun
-    uses: frappe/frappe/.github/workflows/_base-migration.yml@develop
+    uses: ./.github/workflows/_base-migration.yml
     with:
       db-artifact-url: https://frappeframework.com/files/v13-frappe.sql.gz
       python-version: '3.10'

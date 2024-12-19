@@ -78,8 +78,8 @@ def get_assets_link(frappe_head) -> str:
 	import requests
 
 	tag = getoutput(
-		r"cd ../apps/frappe && git show-ref --tags -d | grep %s | sed -e 's,.*"
-		r" refs/tags/,,' -e 's/\^{}//'" % frappe_head
+		r"cd ../apps/frappe && git show-ref --tags -d | grep {} | sed -e 's,.*"
+		r" refs/tags/,,' -e 's/\^{{}}//'".format(frappe_head)
 	)
 
 	if tag:
@@ -196,7 +196,7 @@ def symlink(target, link_name, overwrite=False):
 		if os.path.isdir(link_name):
 			raise IsADirectoryError(f"Cannot symlink over existing directory: '{link_name}'")
 		try:
-			os.replace(temp_link_name, link_name)
+			shutil.move(temp_link_name, link_name)
 		except AttributeError:
 			os.renames(temp_link_name, link_name)
 	except Exception:
