@@ -57,6 +57,10 @@ const useStudioStore = defineStore("store", () => {
 
 	function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false) {
 		selectBlockById(block.componentId, e, multiSelect)
+		// clear slot selection if slot does not belong to the selected block
+		if (selectedSlot.value && selectedSlot.value.parentBlockId !== block.componentId) {
+			selectedSlot.value = null
+		}
 	}
 
 	function selectBlockById(blockId: string, e: MouseEvent | null, multiSelect = false) {
@@ -241,6 +245,7 @@ const useStudioStore = defineStore("store", () => {
 		selectedBlockIds,
 		selectedBlocks,
 		selectBlock,
+		selectBlockById,
 		pageBlocks,
 		// slots
 		selectedSlot,
