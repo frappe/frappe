@@ -56,18 +56,22 @@ const useStudioStore = defineStore("store", () => {
 	}) as Ref<Block[]>
 
 	function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false) {
+		selectBlockById(block.componentId, e, multiSelect)
+	}
+
+	function selectBlockById(blockId: string, e: MouseEvent | null, multiSelect = false) {
 		if (multiSelect) {
-			selectedBlockIds.value.push(block.componentId)
+			selectedBlockIds.value.push(blockId)
 		} else {
-			selectedBlockIds.value.splice(0, selectedBlockIds.value.length, block.componentId)
+			selectedBlockIds.value.splice(0, selectedBlockIds.value.length, blockId)
 		}
-		studioLayout.leftPanelActiveTab = "Layers"
 	}
 
 	// slots
 	const selectedSlot = ref<SlotOptions | null>()
 	function selectSlot(slot: SlotOptions) {
 		selectedSlot.value = slot
+		selectBlockById(slot.parentBlockId, null)
 	}
 
 	const showSlotEditorDialog = ref(false)

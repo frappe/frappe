@@ -340,6 +340,7 @@ class Block implements BlockOptions {
 			slotName: slotName,
 			slotId: this.generateSlotId(slotName),
 			slotContent: "",
+			parentBlockId: this.componentId
 		}
 	}
 

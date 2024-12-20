@@ -30,6 +30,7 @@ export interface SlotOptions {
 	slotName: string,
 	slotId: string,
 	slotContent: string | BlockOptions[]
+	parentBlockId: string
 }
 
 export interface SlotConfig {
