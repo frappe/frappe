@@ -195,7 +195,7 @@ def get_versions(doc: "Document") -> list[dict]:
 		return []
 	return frappe.get_all(
 		"Version",
-		filters=dict(ref_doctype=doc.doctype, docname=doc.name),
+		filters=dict(ref_doctype=doc.doctype, docname=str(doc.name)),
 		fields=["name", "owner", "creation", "data"],
 		limit=10,
 		order_by="creation desc",
