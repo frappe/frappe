@@ -57,7 +57,12 @@ const debouncedPageSave = useDebounceFn(store.savePage, 300)
 watch(
 	() => canvas.value?.rootComponent,
 	() => {
-		if (store.selectedPage && !canvas.value?.canvasProps?.settingCanvas) {
+		if (
+			store.selectedPage &&
+			!canvas.value?.canvasProps?.settingCanvas &&
+			!store.settingPage &&
+			!store.savingPage
+		) {
 			store.savingPage = true
 			debouncedPageSave()
 		}
