@@ -28,7 +28,7 @@ export interface BlockOptions {
 // slot
 export interface SlotOptions {
 	slotName: string,
-	slotId: string,
+	slotId?: string,
 	slotContent: string | BlockOptions[]
 	parentBlockId: string
 }

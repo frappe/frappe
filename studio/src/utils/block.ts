@@ -46,8 +46,14 @@ class Block implements BlockOptions {
 		} else {
 			this.componentProps = options.componentProps
 		}
-		this.componentSlots = options.componentSlots || {}
 		this.componentEvents = options.componentEvents || {}
+
+		this.componentSlots = options.componentSlots || {}
+		// regenerate slot IDs
+		Object.entries(this.componentSlots).forEach(([slotName, slot]) => {
+			slot.slotId = this.generateSlotId(slotName)
+			slot.parentBlockId = this.componentId
+		})
 
 		// set up hierarchy
 		this.parentBlock = options.parentBlock || null

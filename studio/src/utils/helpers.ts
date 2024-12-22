@@ -28,7 +28,15 @@ function getBlockInstance(options: BlockOptions, retainId = true): Block {
 				}
 			}
 		}
+
+		const deleteSlotId = (block: BlockOptions) => {
+			for (let slot of Object.values(block.componentSlots || {})) {
+				delete slot.slotId
+			}
+		}
+
 		deleteComponentId(options)
+		deleteSlotId(options)
 	}
 	return reactive(new Block(options))
 }
