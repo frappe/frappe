@@ -56,6 +56,7 @@ const useStudioStore = defineStore("store", () => {
 	}) as Ref<Block[]>
 
 	function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false) {
+		if (settingPage.value) return
 		selectBlockById(block.componentId, e, multiSelect)
 		// clear slot selection if slot does not belong to the selected block
 		if (selectedSlot.value && selectedSlot.value.parentBlockId !== block.componentId) {
@@ -165,9 +166,13 @@ const useStudioStore = defineStore("store", () => {
 			name: selectedPage.value,
 			draft_blocks: pageData,
 		}
-		return studioPages.setValue.submit(args).finally(() => {
-			savingPage.value = false
-		})
+		return studioPages.setValue.submit(args)
+			.then((page: StudioPage) => {
+				activePage.value = page
+			})
+			.finally(() => {
+				savingPage.value = false
+			})
 	}
 
 	function updateActivePage(key: string, value: string) {

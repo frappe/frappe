@@ -87,11 +87,7 @@
 									</div>
 
 									<div v-if="Array.isArray(slot.slotContent) && isSlotExpanded(slot)">
-										<ComponentLayers
-											:blocks="getComponentSlots(slot.slotContent)"
-											ref="slotLayer"
-											:indent="slotIndent"
-										/>
+										<ComponentLayers :blocks="slot.slotContent" ref="slotLayer" :indent="slotIndent" />
 									</div>
 								</div>
 							</div>
@@ -115,7 +111,6 @@ import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
 import LucideIcon from "./LucideIcon.vue"
 import SlotIcon from "@/components/Icons/SlotIcon.vue"
-import { getBlockCopy } from "@/utils/helpers"
 import { SlotOptions } from "@/types"
 
 const props = withDefaults(
@@ -219,12 +214,6 @@ watch(
 		}
 	},
 )
-
-const getComponentSlots = (slotContent: Block[]) => {
-	return slotContent.map((slot) => {
-		return getBlockCopy(slot, true)
-	})
-}
 
 const slotIndent = computed(() => childIndent + 16)
 

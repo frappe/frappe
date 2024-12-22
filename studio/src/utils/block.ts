@@ -46,14 +46,9 @@ class Block implements BlockOptions {
 		} else {
 			this.componentProps = options.componentProps
 		}
-		this.componentEvents = options.componentEvents || {}
-
-		this.componentSlots = options.componentSlots || {}
-		// regenerate slot IDs
-		Object.entries(this.componentSlots).forEach(([slotName, slot]) => {
-			slot.slotId = this.generateSlotId(slotName)
-			slot.parentBlockId = this.componentId
-		})
+		this.componentEvents = reactive(options.componentEvents || {})
+		this.componentSlots = reactive(options.componentSlots || {})
+		this.initializeSlots()
 
 		// set up hierarchy
 		this.parentBlock = options.parentBlock || null
@@ -341,6 +336,21 @@ class Block implements BlockOptions {
 	}
 
 	// component slots
+	initializeSlots() {
+		Object.entries(this.componentSlots).forEach(([slotName, slot]) => {
+			slot.slotId = this.generateSlotId(slotName)
+			slot.parentBlockId = this.componentId
+
+			if (Array.isArray(slot.slotContent)) {
+				slot.slotContent = slot.slotContent.map((block) => {
+					if (typeof block === "string") return block
+					block.parentBlock = this
+					return reactive(new Block(block))
+				})
+			}
+		})
+	}
+
 	addSlot(slotName: string) {
 		this.componentSlots[slotName] = {
 			slotName: slotName,
@@ -356,7 +366,9 @@ class Block implements BlockOptions {
 				this.componentSlots[slotName].slotContent = []
 			}
 
-			this.componentSlots[slotName].slotContent.push(content)
+			content.parentBlock = this
+			const childBlock = reactive(new Block(content))
+			this.componentSlots[slotName].slotContent.push(childBlock)
 		} else {
 			this.componentSlots[slotName].slotContent = content
 		}

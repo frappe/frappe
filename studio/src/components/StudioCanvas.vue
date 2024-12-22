@@ -195,6 +195,15 @@ const findBlock = (componentId: string, blocks?: Block[]): Block | null => {
 			const found = findBlock(componentId, block.children)
 			if (found) return found
 		}
+
+		if (block.componentSlots) {
+			for (const slot of Object.values(block.componentSlots)) {
+				if (Array.isArray(slot.slotContent)) {
+					const found = findBlock(componentId, slot.slotContent)
+					if (found) return found
+				}
+			}
+		}
 	}
 	return null
 }

@@ -55,10 +55,17 @@ function getBlockCopy(block: BlockOptions | Block, retainId = false): Block {
 	return getBlockInstance(b, retainId)
 }
 
-function getBlockCopyWithoutParent(block: BlockOptions | Block): BlockOptions {
+function getBlockCopyWithoutParent(block: BlockOptions | Block) {
 	const blockCopy = { ...toRaw(block) }
 	blockCopy.children = blockCopy.children?.map((child) => getBlockCopyWithoutParent(child))
 	delete blockCopy.parentBlock
+
+	// remove parentBlock reference for slot children
+	for (const slot of Object.values(blockCopy.componentSlots || {})) {
+		if (typeof slot.slotContent === "string") continue
+		slot.slotContent = slot.slotContent.map((child) => getBlockCopyWithoutParent(child))
+	}
+
 	return blockCopy
 }
 

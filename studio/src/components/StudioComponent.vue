@@ -23,8 +23,9 @@
 					:data-component-id="block.componentId"
 				>
 					<StudioComponent
-						v-for="block in slot.slotContent"
-						:block="getBlockInstance(block)"
+						v-for="slotBlock in slot.slotContent"
+						:key="slotBlock.componentId"
+						:block="slotBlock"
 						:class="slotClasses"
 					/>
 				</div>
@@ -88,7 +89,7 @@ import ComponentEditor from "@/components/ComponentEditor.vue"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
-import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML, getBlockInstance } from "@/utils/helpers"
+import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML } from "@/utils/helpers"
 
 import { CanvasProps } from "@/types"
 

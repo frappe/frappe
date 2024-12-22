@@ -10,7 +10,11 @@
 		<!-- Dynamically render named slots -->
 		<template v-for="(slot, slotName) in block.componentSlots" :key="slotName" v-slot:[slotName]>
 			<template v-if="Array.isArray(slot.slotContent)">
-				<StudioComponent v-for="block in slot.slotContent" :block="getBlockInstance(block)" />
+				<StudioComponent
+					v-for="slotBlock in slot.slotContent"
+					:block="slotBlock"
+					:key="slotBlock.componentId"
+				/>
 			</template>
 			<template v-else-if="isHTML(slot.slotContent)">
 				<component :is="{ template: slot.slotContent }" />
@@ -30,7 +34,7 @@ import { computed, onMounted, ref, useAttrs } from "vue"
 import { useRouter, useRoute } from "vue-router"
 import { createResource } from "frappe-ui"
 import components from "@/data/components"
-import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML, getBlockInstance } from "@/utils/helpers"
+import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML } from "@/utils/helpers"
 
 import useAppStore from "@/stores/appStore"
 
