@@ -153,16 +153,18 @@ const rootComponent = ref(getBlockCopy(props.componentTree, true))
 // handle dropping components
 useDropZone(canvasContainer, {
 	onDrop: (_files, ev) => {
-		const parentComponent = getDropTarget(ev)
+		let parentComponent = getDropTarget(ev)
 		const componentName = ev.dataTransfer?.getData("componentName")
-		if (componentName) {
+		if (componentName && parentComponent) {
 			const newBlock = getComponentBlock(componentName)
 			parentComponent.addChild(newBlock)
 		}
 	},
 	onOver: (_files, ev) => {
 		const parentComponent = getDropTarget(ev)
-		store.hoveredBlock = parentComponent.componentId
+		if (parentComponent) {
+			store.hoveredBlock = parentComponent.componentId
+		}
 	},
 })
 
@@ -173,6 +175,9 @@ const getDropTarget = (ev: DragEvent) => {
 	if (element) {
 		if (element.dataset.componentId) {
 			parentComponent = findBlock(element.dataset.componentId) || parentComponent
+			while (parentComponent && !parentComponent.canHaveChildren()) {
+				parentComponent = parentComponent.getParentBlock()
+			}
 		}
 	}
 
