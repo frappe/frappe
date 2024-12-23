@@ -637,6 +637,7 @@ class TestBackups(BaseTestCommands):
 				except OSError:
 					pass
 
+	@run_only_if(db_type_is.MARIADB)
 	def test_backup_no_options(self):
 		"""Take a backup without any options"""
 		before_backup = fetch_latest_backups(partial=True)
