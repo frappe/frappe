@@ -72,7 +72,7 @@
    "fieldname": "position",
    "fieldtype": "Select",
    "label": "Position",
-   "options": "Left\nLeft Center\nLeft Bottom\nTop\nTop Center\nTop Right\nRight\nRight Center\nRight Bottom\nBottom\nBottom Center\nBottom Right\nMid Center"
+   "options": "Left Align\nLeft Center\nLeft Bottom\nTop\nTop Center\nTop Right Align\nRight Align\nRight Center\nRight Bottom\nBottom\nBottom Center\nBottom Right\nMid Center"
   },
   {
    "depends_on": "has_next_condition",

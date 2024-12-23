@@ -177,7 +177,7 @@
    "fieldname": "text_align",
    "fieldtype": "Select",
    "label": "Text Align",
-   "options": "Left\nCenter\nRight"
+   "options": "Left Align\nCenter Align\nRight Align"
   },
   {
    "depends_on": "insert_style",

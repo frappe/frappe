@@ -120,7 +120,7 @@
    "fieldname": "align",
    "fieldtype": "Select",
    "label": "Align",
-   "options": "Left\nRight\nCenter"
+   "options": "Left Align\nRight Align\nCenter Align"
   },
   {
    "fieldname": "image_height",
@@ -157,7 +157,7 @@
    "fieldname": "footer_align",
    "fieldtype": "Select",
    "label": "Align",
-   "options": "Left\nRight\nCenter"
+   "options": "Left Align\nRight Align\nCenter Align"
   },
   {
    "default": "HTML",
