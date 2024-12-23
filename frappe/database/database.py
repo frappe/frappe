@@ -1152,8 +1152,7 @@ class Database:
 
 		self.before_commit.run()
 
-		self.sql("commit")
-		self.begin()  # explicitly start a new transaction
+		self.sql("commit and chain")
 
 		self.after_commit.run()
 
@@ -1167,8 +1166,7 @@ class Database:
 
 			self.before_rollback.run()
 
-			self.sql("rollback")
-			self.begin()
+			self.sql("rollback and chain")
 
 			self.after_rollback.run()
 		else:
