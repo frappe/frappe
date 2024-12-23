@@ -142,38 +142,6 @@ def main(
 			results.append([app, category, runner.run(suite)])
 
 		success = all(r.wasSuccessful() for _, _, r in results)
-		click.secho("\nTest Results:", fg="cyan", bold=True)
-
-		def _print_result(app, category, result):
-			tests_run = result.testsRun
-			failures = len(result.failures)
-			errors = len(result.errors)
-			click.echo(
-				f"\n{click.style(f'{category} Tests in {app}:', bold=True)}\n"
-				f"  Ran: {click.style(f'{tests_run:<3}', fg='cyan')}"
-				f"  Failures: {click.style(f'{failures:<3}', fg='red' if failures else 'green')}"
-				f"  Errors: {click.style(f'{errors:<3}', fg='red' if errors else 'green')}"
-			)
-
-			if failures > 0:
-				click.echo(f"\n{click.style(category + ' Test Failures:', fg='red', bold=True)}")
-				for i, failure in enumerate(result.failures, 1):
-					click.echo(f"  {i}. {click.style(str(failure[0]), fg='yellow')}")
-
-			if errors > 0:
-				click.echo(f"\n{click.style(category + ' Test Errors:', fg='red', bold=True)}")
-				for i, error in enumerate(result.errors, 1):
-					click.echo(f"  {i}. {click.style(str(error[0]), fg='yellow')}")
-					click.echo(click.style("     " + str(error[1]).split("\n")[-2], fg="red"))
-
-		for app, category, result in results:
-			_print_result(frappe.unscrub(app or "Unspecified App"), frappe.unscrub(category), result)
-
-		if success:
-			click.echo(f"\n{click.style('All tests passed successfully!', fg='green', bold=True)}")
-		else:
-			click.echo(f"\n{click.style('Some tests failed or encountered errors.', fg='red', bold=True)}")
-
 		if not success:
 			sys.exit(1)
 
