@@ -9,6 +9,15 @@
 			@contextmenu="onContextMenu"
 			@click.stop="handleClick"
 		>
+			<!-- Component name label -->
+			<span
+				v-if="!props.block.isRoot()"
+				class="absolute -top-3 left-0 inline-block text-xs"
+				:class="isBlockSelected ? 'bg-blue-500 text-white' : 'text-blue-500'"
+			>
+				{{ block.componentName }}
+			</span>
+
 			<PaddingHandler
 				:data-block-id="block.componentId"
 				v-if="showMarginPaddingHandlers"
