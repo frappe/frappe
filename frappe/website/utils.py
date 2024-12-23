@@ -180,6 +180,7 @@ def get_boot_data():
 			"time_format": frappe.get_system_settings("time_format") or "HH:mm:ss",
 			"first_day_of_the_week": frappe.get_system_settings("first_day_of_the_week") or "Sunday",
 			"number_format": frappe.get_system_settings("number_format") or "#,###.##",
+			"currency": frappe.get_system_settings("currency"),
 		},
 		"time_zone": {
 			"system": get_system_timezone(),

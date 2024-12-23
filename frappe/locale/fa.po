@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-12-01 17:58+0000\n"
-"PO-Revision-Date: 2024-12-04 19:52\n"
+"PO-Revision-Date: 2024-12-11 20:01\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -3562,7 +3562,7 @@ msgstr "ساخته شده در {0}"
 #. Label of a Check field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Bulk Actions"
-msgstr "اعمال توده"
+msgstr "اعمال انبوه"
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:142
 msgid "Bulk Delete"
@@ -12795,7 +12795,7 @@ msgstr "قالب CSV نامعتبر است"
 
 #: frappe/integrations/frappe_providers/frappecloud_billing.py:121
 msgid "Invalid Code. Please try again."
-msgstr ""
+msgstr "کد نامعتبر. لطفا دوباره امتحان کنید."
 
 #: frappe/integrations/doctype/webhook/webhook.py:90
 msgid "Invalid Condition: {}"
@@ -14841,7 +14841,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/data_import/import_preview.js:290
 msgid "Map columns from {0} to fields in {1}"
-msgstr "ستون‌های نقشه از {0} تا فیلدها در {1}"
+msgstr "نگاشت ستون‌ها از {0} به فیلدها در {1}"
 
 #. Description of the 'Dynamic Route' (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -15666,7 +15666,7 @@ msgstr "فیلد ضرب"
 #. Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Must be a publicly accessible Google Sheets URL"
-msgstr "باید یک URL برای عموم کاربرگ‌نگار باشد"
+msgstr "باید یک URL کاربرگ‌نگار در دسترس عموم باشد"
 
 #. Description of the 'LDAP Search String' (Data) field in DocType 'LDAP
 #. Settings'
@@ -24497,7 +24497,7 @@ msgstr ""
 
 #: frappe/core/doctype/data_import/data_import.js:151
 msgid "Successfully {0} {1} records."
-msgstr ""
+msgstr "{1} رکورد با موفقیت {0} شد."
 
 #: frappe/core/doctype/recorder/recorder.js:15
 msgid "Suggest Optimizations"
@@ -29133,7 +29133,7 @@ msgstr "برای ارسال این فرم باید وارد شوید"
 
 #: frappe/model/document.py:238
 msgid "You need the '{0}' permission on {1} {2} to perform this action."
-msgstr ""
+msgstr "برای انجام این عمل به مجوز \"{0}\" در {1} {2} نیاز دارید."
 
 #: frappe/desk/doctype/workspace/workspace.py:113
 msgid "You need to be Workspace Manager to delete a public workspace."
@@ -29185,11 +29185,11 @@ msgstr "باید یک پوشه IMAP برای {0} تنظیم کنید"
 
 #: frappe/model/rename_doc.py:388
 msgid "You need write permission on {0} {1} to merge"
-msgstr ""
+msgstr "برای ادغام به اجازه نوشتن در {0} {1} نیاز دارید"
 
 #: frappe/model/rename_doc.py:383
 msgid "You need write permission on {0} {1} to rename"
-msgstr ""
+msgstr "برای تغییر نام به اجازه نوشتن در {0} {1} نیاز دارید"
 
 #: frappe/client.py:458
 msgid "You need {0} permission to fetch values from {1} {2}"
