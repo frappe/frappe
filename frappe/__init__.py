@@ -19,7 +19,6 @@ import json
 import os
 import sys
 import threading
-import traceback
 import warnings
 from collections import defaultdict
 from collections.abc import Callable, Iterable
@@ -243,14 +242,15 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 	local.site = site
 	local.site_name = site  # implicitly scopes bench
 	local.sites_path = sites_path
-	local.site_path = os.path.join(sites_path, site)
+	site_path = os.path.join(sites_path, site)
+	local.site_path = site_path
 	local.all_apps = None
 
 	local.request_ip = None
 	local.response = _dict({"docs": []})
 	local.task_id = None
 
-	local.conf = _dict(get_site_config())
+	local.conf = get_site_config(sites_path=sites_path, site_path=site_path, cached=bool(frappe.request))
 	local.lang = local.conf.lang or "en"
 
 	local.module_app = None
@@ -359,107 +359,6 @@ def connect_replica() -> bool:
 	local.db = local.replica_db
 
 	return True
-
-
-def get_site_config(sites_path: str | None = None, site_path: str | None = None) -> _dict[str, Any]:
-	"""Return `site_config.json` combined with `sites/common_site_config.json`.
-	`site_config` is a set of site wide settings like database name, password, email etc."""
-	config: _dict[str, Any] = _dict()
-
-	sites_path = sites_path or getattr(local, "sites_path", None)
-	site_path = site_path or getattr(local, "site_path", None)
-
-	common_config = get_common_site_config(sites_path)
-
-	if sites_path:
-		config.update(common_config)
-
-	if site_path:
-		site_config = os.path.join(site_path, "site_config.json")
-		if os.path.exists(site_config):
-			try:
-				config.update(get_file_json(site_config))
-			except Exception as error:
-				click.secho(f"{local.site}/site_config.json is invalid", fg="red")
-				print(error)
-		elif local.site and not local.flags.new_site:
-			error_msg = f"{local.site} does not exist."
-			if common_config.developer_mode:
-				from frappe.utils import get_sites
-
-				all_sites = get_sites()
-				error_msg += "\n\nSites on this bench:\n"
-				error_msg += "\n".join(f"* {site}" for site in all_sites)
-
-			raise IncorrectSitePath(error_msg)
-
-	# Generalized env variable overrides and defaults
-	def db_default_ports(db_type):
-		if db_type == "mariadb":
-			from frappe.database.mariadb.database import MariaDBDatabase
-
-			return MariaDBDatabase.default_port
-		elif db_type == "postgres":
-			from frappe.database.postgres.database import PostgresDatabase
-
-			return PostgresDatabase.default_port
-
-		raise ValueError(f"Unsupported db_type={db_type}")
-
-	config["redis_queue"] = (
-		os.environ.get("FRAPPE_REDIS_QUEUE") or config.get("redis_queue") or "redis://127.0.0.1:11311"
-	)
-	config["redis_cache"] = (
-		os.environ.get("FRAPPE_REDIS_CACHE") or config.get("redis_cache") or "redis://127.0.0.1:13311"
-	)
-	config["db_type"] = os.environ.get("FRAPPE_DB_TYPE") or config.get("db_type") or "mariadb"
-	config["db_socket"] = os.environ.get("FRAPPE_DB_SOCKET") or config.get("db_socket")
-	config["db_host"] = os.environ.get("FRAPPE_DB_HOST") or config.get("db_host") or "127.0.0.1"
-	config["db_port"] = int(
-		os.environ.get("FRAPPE_DB_PORT") or config.get("db_port") or db_default_ports(config["db_type"])
-	)
-
-	# Set the user as database name if not set in config
-	config["db_user"] = os.environ.get("FRAPPE_DB_USER") or config.get("db_user") or config.get("db_name")
-
-	# vice versa for dbname if not defined
-	config["db_name"] = os.environ.get("FRAPPE_DB_NAME") or config.get("db_name") or config["db_user"]
-
-	# read password
-	config["db_password"] = os.environ.get("FRAPPE_DB_PASSWORD") or config.get("db_password")
-
-	# Allow externally extending the config with hooks
-	if extra_config := config.get("extra_config"):
-		if isinstance(extra_config, str):
-			extra_config = [extra_config]
-		for hook in extra_config:
-			try:
-				module, method = hook.rsplit(".", 1)
-				config |= getattr(importlib.import_module(module), method)()
-			except Exception:
-				print(f"Config hook {hook} failed")
-				traceback.print_exc()
-
-	return config
-
-
-def get_common_site_config(sites_path: str | None = None) -> _dict[str, Any]:
-	"""Return common site config as dictionary.
-
-	This is useful for:
-	- checking configuration which should only be allowed in common site config
-	- When no site context is present and fallback is required.
-	"""
-	sites_path = sites_path or getattr(local, "sites_path", None)
-
-	common_site_config = os.path.join(sites_path, "common_site_config.json")
-	if os.path.exists(common_site_config):
-		try:
-			return _dict(get_file_json(common_site_config))
-		except Exception as error:
-			click.secho("common_site_config.json is invalid", fg="red")
-			print(error)
-	return _dict()
 
 
 def get_conf(site: str | None = None) -> _dict[str, Any]:
@@ -2582,6 +2481,9 @@ def validate_and_sanitize_search_inputs(fn):
 
 
 import frappe._optimizations
-from frappe.utils.error import log_error  # Backward compatibility
+
+# Backward compatibility
+from frappe.config import get_common_site_config, get_site_config
+from frappe.utils.error import log_error
 
 frappe._optimizations.optimize_all()

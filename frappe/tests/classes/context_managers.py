@@ -109,6 +109,7 @@ def switch_site(site: str) -> None:
 	frappe.init(site, force=True)
 	frappe.connect()
 	yield
+	frappe.destroy()
 	frappe.init(old_site, force=True)
 	frappe.connect()
 
