@@ -2571,7 +2571,7 @@ def validate_and_sanitize_search_inputs(fn):
 	return wrapper
 
 
-import frappe.optimizations
+import frappe._optimizations
 from frappe.utils.error import log_error  # Backward compatibility
 
-frappe.optimizations.optimize_all()
+frappe._optimizations.optimize_all()

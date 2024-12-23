@@ -1,3 +1,8 @@
+"""This file houses all Frappe specific optimizations and hooks that run on startup or during fork.
+
+Warning: This entire file is private as indicated by `_` prefix in filename.
+"""
+
 import faulthandler
 import gc
 import glob
@@ -21,15 +26,15 @@ def optimize_all():
 	# - Respect configurations using environement variables.
 	# - fork hooks can not be unregistered, so care should be taken to execute them only when they
 	#   make sense.
-	_optimize_regex_cache()
-	_optimize_gc_parameters()
-	_optimize_gc_for_copy_on_write()
-	_optimize_for_gil_contention()
-	_register_fault_handler()
-	os.register_at_fork(after_in_child=_register_fault_handler)
+	optimize_regex_cache()
+	optimize_gc_parameters()
+	optimize_gc_for_copy_on_write()
+	optimize_for_gil_contention()
+	register_fault_handler()
+	os.register_at_fork(after_in_child=register_fault_handler)
 
 
-def _optimize_gc_parameters():
+def optimize_gc_parameters():
 	from frappe.utils import sbool
 
 	if not bool(sbool(os.environ.get("FRAPPE_TUNE_GC", True))):
@@ -44,32 +49,32 @@ def _optimize_gc_parameters():
 	gc.set_threshold(g0 * 10, g1 * 2, g2 * 2)
 
 
-def _optimize_regex_cache():
+def optimize_regex_cache():
 	# Remove references to pattern that are pre-compiled and loaded to global scopes.
 	# Leave that cache for dynamically generated regex.
 	os.register_at_fork(before=re.purge)
 
 
-def _register_fault_handler():
+def register_fault_handler():
 	# Some libraries monkey patch stderr, we need actual fd
 	if isinstance(sys.__stderr__, io.TextIOWrapper):
 		faulthandler.register(signal.SIGUSR1, file=sys.__stderr__)
 
 
-def _optimize_gc_for_copy_on_write():
+def optimize_gc_for_copy_on_write():
 	from frappe.utils import sbool
 
 	if not bool(sbool(os.environ.get("FRAPPE_TUNE_GC", True))):
 		return
 
-	os.register_at_fork(before=_freeze_gc)
+	os.register_at_fork(before=freeze_gc)
 
 
 _gc_frozen = False
-_worker_num = os.getpid()
+worker_num = os.getpid()
 
 
-def _freeze_gc():
+def freeze_gc():
 	global _gc_frozen
 	if _gc_frozen:
 		return
@@ -88,32 +93,32 @@ def _freeze_gc():
 	_gc_frozen = True
 
 
-def _optimize_for_gil_contention():
+def optimize_for_gil_contention():
 	if not os.environ.get("FRAPPE_PERF_PIN_WORKERS"):
 		return
 
 	if os.environ.get("FRAPPE_PERF_PIN_WORKERS_DETERMINISTIC"):
 		# Ensure same pinning order every time.
 		# This is only useful for benchmarking, DO NOT enable this in production.
-		global _worker_num
-		_worker_num = 0
+		global worker_num
+		worker_num = 0
 
 	if not psutil.LINUX:
 		# No need to support Mac, this optimization is only useful on _real_ servers.
 		return
 
-	os.register_at_fork(after_in_parent=_increment_worker_count, after_in_child=_pin_web_worker_to_one_core)
+	os.register_at_fork(after_in_parent=increment_worker_count, after_in_child=pin_web_worker_to_one_core)
 
 
-def _increment_worker_count():
+def increment_worker_count():
 	# Not all forked workers will have incrementing numbers.
 	# This psuedo-counter ensures a deterministic round-robbin style assignment of workers.
-	global _worker_num
+	global worker_num
 
-	_worker_num += 1
+	worker_num += 1
 
 
-def _assign_core(
+def assign_core(
 	pid: int,
 	physical_cpu_count: int,
 	logical_cpu_count: int,
@@ -153,22 +158,22 @@ def _assign_core(
 	return logical_core
 
 
-def _pin_web_worker_to_one_core():
+def pin_web_worker_to_one_core():
 	"""Try to assign current process to one core."""
 
-	core = _assign_core(
-		pid=_worker_num,
+	core = assign_core(
+		pid=worker_num,
 		physical_cpu_count=psutil.cpu_count(logical=False),
 		logical_cpu_count=psutil.cpu_count(logical=True),
 		current_affinity=sorted(os.sched_getaffinity(0)),
-		thread_siblings=_parse_thread_siblings(),
+		thread_siblings=parse_thread_siblings(),
 	)
 	if core is not None:
 		psutil.Process().cpu_affinity([core])
 
 
 @lru_cache(maxsize=1)
-def _parse_thread_siblings() -> list[tuple[int, int]] | None:
+def parse_thread_siblings() -> list[tuple[int, int]] | None:
 	try:
 		threads_list = set()
 
