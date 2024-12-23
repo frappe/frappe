@@ -97,7 +97,7 @@ def main(
 	for handler in testing_module_logger.handlers:
 		if file := getattr(handler, "baseFilename", None):
 			click.secho(
-				f"Detailed logs{' (augment with --verbose)' if not verbose else ''}: {click.style(file, bold=True)}"
+				f"View detailed logs{' (using --verbose)' if not verbose else ''}: {click.style(file, bold=True)}"
 			)
 
 	test_config = TestConfig(
