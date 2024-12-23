@@ -339,7 +339,11 @@ class Database:
 		"""Takes the query and logs it to various interfaces according to the settings."""
 		_query = None
 
-		if frappe.conf.allow_tests and frappe.cache.get_value("flag_print_sql"):
+		if (
+			frappe.conf.allow_tests
+			and frappe.conf.developer_mode
+			and frappe.cache.get_value("flag_print_sql")
+		):
 			_query = _query or str(mogrified_query)
 			print(_query)
 
