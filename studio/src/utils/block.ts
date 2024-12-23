@@ -46,8 +46,8 @@ class Block implements BlockOptions {
 		} else {
 			this.componentProps = options.componentProps
 		}
-		this.componentEvents = reactive(options.componentEvents || {})
-		this.componentSlots = reactive(options.componentSlots || {})
+		this.componentEvents = options.componentEvents || {}
+		this.componentSlots = options.componentSlots || {}
 		this.initializeSlots()
 
 		// set up hierarchy
