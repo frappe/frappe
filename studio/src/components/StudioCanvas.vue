@@ -12,10 +12,6 @@
 		</Transition>
 
 		<div
-			v-if="isOverDropZone"
-			class="pointer-events-none absolute bottom-0 left-0 right-0 top-0 z-30 bg-cyan-300 opacity-20"
-		></div>
-		<div
 			class="fixed flex gap-40"
 			ref="canvas"
 			:style="{
@@ -155,24 +151,33 @@ const visibleBreakpoints = computed(() => {
 const rootComponent = ref(getBlockCopy(props.componentTree, true))
 
 // handle dropping components
-const { isOverDropZone } = useDropZone(canvasContainer, {
+useDropZone(canvasContainer, {
 	onDrop: (_files, ev) => {
-		let element = document.elementFromPoint(ev.x, ev.y) as HTMLElement
-		let parentComponent = rootComponent.value
-
-		if (element) {
-			if (element.dataset.componentId) {
-				parentComponent = findBlock(element.dataset.componentId) || parentComponent
-			}
-		}
-
+		const parentComponent = getDropTarget(ev)
 		const componentName = ev.dataTransfer?.getData("componentName")
 		if (componentName) {
 			const newBlock = getComponentBlock(componentName)
 			parentComponent.addChild(newBlock)
 		}
 	},
+	onOver: (_files, ev) => {
+		const parentComponent = getDropTarget(ev)
+		store.hoveredBlock = parentComponent.componentId
+	},
 })
+
+const getDropTarget = (ev: DragEvent) => {
+	let element = document.elementFromPoint(ev.x, ev.y) as HTMLElement
+	let parentComponent = rootComponent.value
+
+	if (element) {
+		if (element.dataset.componentId) {
+			parentComponent = findBlock(element.dataset.componentId) || parentComponent
+		}
+	}
+
+	return parentComponent
+}
 
 const findBlock = (componentId: string, blocks?: Block[]): Block | null => {
 	if (!blocks) {
