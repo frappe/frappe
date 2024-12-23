@@ -157,7 +157,7 @@ useDropZone(canvasContainer, {
 		const droppedComponentName = ev.dataTransfer?.getData("componentName")
 		if (droppedComponentName && parentComponent) {
 			const newBlock = getComponentBlock(droppedComponentName)
-      if (slotName) {
+			if (slotName) {
 				parentComponent.updateSlot(slotName, newBlock)
 			} else {
 				parentComponent.addChild(newBlock)
@@ -175,7 +175,7 @@ useDropZone(canvasContainer, {
 const getDropTarget = (ev: DragEvent) => {
 	let element = document.elementFromPoint(ev.x, ev.y) as HTMLElement
 	let parentComponent = rootComponent.value
-  let slotName
+	let slotName
 
 	if (element) {
 		if (element.dataset.componentId) {
@@ -183,14 +183,14 @@ const getDropTarget = (ev: DragEvent) => {
 			while (parentComponent && !parentComponent.canHaveChildren()) {
 				parentComponent = parentComponent.getParentBlock()
 			}
-      slotName = element.dataset.slotName || store.selectedSlot?.slotName
+			slotName = element.dataset.slotName || store.selectedSlot?.slotName
 		}
 	}
 
 	return {
-    parentComponent,
-    slotName,
-  }
+		parentComponent,
+		slotName,
+	}
 }
 
 const findBlock = (componentId: string, blocks?: Block[]): Block | null => {
