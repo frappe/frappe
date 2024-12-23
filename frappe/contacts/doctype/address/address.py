@@ -266,10 +266,13 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_match_cond
 
 	doctype = "Address"
-	link_doctype = filters.pop("link_doctype")
-	link_name = filters.pop("link_name")
-
 	condition = ""
+	
+	if link_doctype := filters.pop("link_doctype", None):
+		condition += "and `tabDynamic Link`.link_doctype = %(link_doctype)s"
+	if link_name := filters.pop("link_name", None):
+		condition += "and `tabDynamic Link`.link_name = %(link_name)s"
+		
 	meta = frappe.get_meta(doctype)
 	for fieldname, value in filters.items():
 		if meta.get_field(fieldname) or fieldname in frappe.db.DEFAULT_COLUMNS:
@@ -310,8 +313,6 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 		join `tabDynamic Link`
 			on (`tabDynamic Link`.parent = `tabAddress`.name and `tabDynamic Link`.parenttype = 'Address')
 		where
-			`tabDynamic Link`.link_doctype = %(link_doctype)s and
-			`tabDynamic Link`.link_name = %(link_name)s and
 			ifnull(`tabAddress`.disabled, 0) = 0 and
 			({search_condition})
 			{mcond} {condition}
