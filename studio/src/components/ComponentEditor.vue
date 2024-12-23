@@ -11,9 +11,9 @@
 		>
 			<!-- Component name label -->
 			<span
-				v-if="isBlockSelected && !props.block.isRoot()"
-				class="absolute -top-3 left-0 inline-block text-xs text-white"
-				:class="store.selectedSlot === null ? 'bg-blue-500' : 'bg-blue-500/65'"
+				v-if="!props.block.isRoot()"
+				class="absolute -top-3 left-0 inline-block text-xs"
+				:class="isBlockSelected ? 'bg-blue-500 text-white' : 'text-blue-500'"
 			>
 				{{ block.componentName }}
 			</span>

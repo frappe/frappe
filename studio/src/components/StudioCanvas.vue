@@ -12,10 +12,6 @@
 		</Transition>
 
 		<div
-			v-if="isOverDropZone"
-			class="pointer-events-none absolute bottom-0 left-0 right-0 top-0 z-30 bg-cyan-300 opacity-20"
-		></div>
-		<div
 			class="fixed flex gap-40"
 			ref="canvas"
 			:style="{
@@ -155,33 +151,47 @@ const visibleBreakpoints = computed(() => {
 const rootComponent = ref(getBlockCopy(props.componentTree, true))
 
 // handle dropping components
-const { isOverDropZone } = useDropZone(canvasContainer, {
+useDropZone(canvasContainer, {
 	onDrop: (_files, ev) => {
-		let element = document.elementFromPoint(ev.x, ev.y) as HTMLElement
-		let parentComponent = rootComponent.value
-
-		let componentId, slotName
-
-		if (element) {
-			componentId = element.dataset.componentId
-			if (componentId) {
-				parentComponent = findBlock(componentId) || parentComponent
-			}
-			slotName = element.dataset.slotName || store.selectedSlot?.slotName
-		}
-
+		let { parentComponent, slotName } = getDropTarget(ev)
 		const droppedComponentName = ev.dataTransfer?.getData("componentName")
-		if (droppedComponentName) {
+		if (droppedComponentName && parentComponent) {
 			const newBlock = getComponentBlock(droppedComponentName)
-
-			if (slotName) {
+      if (slotName) {
 				parentComponent.updateSlot(slotName, newBlock)
 			} else {
 				parentComponent.addChild(newBlock)
 			}
 		}
 	},
+	onOver: (_files, ev) => {
+		const { parentComponent } = getDropTarget(ev)
+		if (parentComponent) {
+			store.hoveredBlock = parentComponent.componentId
+		}
+	},
 })
+
+const getDropTarget = (ev: DragEvent) => {
+	let element = document.elementFromPoint(ev.x, ev.y) as HTMLElement
+	let parentComponent = rootComponent.value
+  let slotName
+
+	if (element) {
+		if (element.dataset.componentId) {
+			parentComponent = findBlock(element.dataset.componentId) || parentComponent
+			while (parentComponent && !parentComponent.canHaveChildren()) {
+				parentComponent = parentComponent.getParentBlock()
+			}
+      slotName = element.dataset.slotName || store.selectedSlot?.slotName
+		}
+	}
+
+	return {
+    parentComponent,
+    slotName,
+  }
+}
 
 const findBlock = (componentId: string, blocks?: Block[]): Block | null => {
 	if (!blocks) {
