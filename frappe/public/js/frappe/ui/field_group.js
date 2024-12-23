@@ -128,7 +128,7 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 
 		if (invalid.length && check_invalid) {
 			frappe.msgprint({
-				title: __("Inavlid Values"),
+				title: __("Invalid Values"),
 				message:
 					__("Following fields have invalid values:") +
 					"<br><br><ul><li>" +
