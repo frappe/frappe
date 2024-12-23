@@ -107,6 +107,8 @@ def optimize_for_gil_contention():
 		# No need to support Mac, this optimization is only useful on _real_ servers.
 		return
 
+	# Populate the cache to avoid recomputing this in future.
+	_ = parse_thread_siblings()
 	os.register_at_fork(after_in_parent=increment_worker_count, after_in_child=pin_web_worker_to_one_core)
 
 
