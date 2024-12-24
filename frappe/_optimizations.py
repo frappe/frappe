@@ -97,6 +97,9 @@ def optimize_for_gil_contention():
 	if not os.environ.get("FRAPPE_PERF_PIN_WORKERS"):
 		return
 
+	if "gunicorn" not in str(sys.argv[0]):
+		return
+
 	if os.environ.get("FRAPPE_PERF_PIN_WORKERS_DETERMINISTIC"):
 		# Ensure same pinning order every time.
 		# This is only useful for benchmarking, DO NOT enable this in production.
