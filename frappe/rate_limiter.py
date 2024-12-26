@@ -1,7 +1,7 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import datetime
+import time
 from collections.abc import Callable
 from functools import wraps
 
@@ -34,10 +34,9 @@ class RateLimiter:
 		self.limit = int(limit * 1000000)
 		self.window = window
 
-		self.start = datetime.datetime.now(datetime.timezone.utc)
-		timestamp = int(self.start.timestamp())
+		self.start = time.time()
 
-		self.window_number, self.spent = divmod(timestamp, self.window)
+		self.window_number, self.spent = divmod(int(self.start), self.window)
 		self.key = frappe.cache.make_key(f"rate-limit-counter-{self.window_number}")
 		self.counter = cint(frappe.cache.get(self.key))
 		self.remaining = max(self.limit - self.counter, 0)
@@ -79,8 +78,8 @@ class RateLimiter:
 	def record_request_end(self):
 		if self.end is not None:
 			return
-		self.end = datetime.datetime.now(datetime.timezone.utc)
-		self.duration = int((self.end - self.start).total_seconds() * 1000000)
+		self.end = time.time()
+		self.duration = int((self.end - self.start) * 1000000)
 
 	def respond(self):
 		if self.rejected:
