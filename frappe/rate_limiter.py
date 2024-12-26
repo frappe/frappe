@@ -35,7 +35,7 @@ class RateLimiter:
 		self.window = window
 
 		self.start = datetime.datetime.now(datetime.timezone.utc)
-		timestamp = int(frappe.utils.now_datetime().timestamp())
+		timestamp = int(self.start.timestamp())
 
 		self.window_number, self.spent = divmod(timestamp, self.window)
 		self.key = frappe.cache.make_key(f"rate-limit-counter-{self.window_number}")
