@@ -614,7 +614,7 @@
   {
    "fieldname": "updates_tab",
    "fieldtype": "Tab Break",
-   "label": "Display"
+   "label": "Display/Hide"
   },
   {
    "fieldname": "backups_tab",
