@@ -552,7 +552,7 @@ def build_response(path, data, http_status_code, headers: dict | None = None):
 
 	if headers:
 		for key, val in headers.items():
-			response.headers[key] = cstr(cstr(val).encode("ascii", errors="xmlcharrefreplace")
+			response.headers[key] = cstr(cstr(val).encode("ascii", errors="xmlcharrefreplace"))
 
 	return response
 
