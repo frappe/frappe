@@ -63,19 +63,6 @@ runs:
           exit 1
       fi
 
-  - name: Fetch tombl util
-    shell: bash -e {0}
-    run: |
-      # Fetch tombl util
-      pushd $RUNNER_TEMP
-        curl -LO https://github.com/snyball/tombl/releases/download/v0.2.3/tombl-v0.2.3.tar.gz
-        curl -LO https://github.com/snyball/tombl/releases/download/v0.2.3/tombl-v0.2.3.sha256sum
-        sha256sum -c tombl-v0.2.3.sha256sum
-        tar -xzf tombl-v0.2.3.tar.gz
-        chmod +x tombl-v0.2.3/tombl
-      popd
-      echo "$RUNNER_TEMP/tombl-v0.2.3" >> $GITHUB_PATH
-
   - name: Checkout Frappe
     uses: actions/checkout@v4
     with:
@@ -83,38 +70,6 @@ runs:
       ref: ${{ github.event.client_payload.frappe_sha || github.base_ref || github.ref_name }}
       path: apps/frappe
     if: github.event.repository.name != 'frappe'
-
-  - name: Maybe clone additional apps
-    shell: bash -e {0}
-    env:
-      org: ${{ env.FRAPPE_GH_ORG || github.repository_owner }}
-      ref: ${{ github.event.client_payload.frappe_sha || github.base_ref || github.ref_name }}
-    run: |
-      # Maybe clone additional apps
-      eval "$(tombl -e CHECKOUTS=tool.frappe-ci.setup.app-checkouts ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/pyproject.toml)" || exit 0
-      start_time=$(date +%s)
-
-      for spec in "${CHECKOUTS[@]}"; do
-        spec_basename=$(basename "$spec")
-        if [[ "$spec" == *"/"* ]] || [[ "$spec" == http* ]]; then
-          remote_url="$spec"
-        else
-          remote_url="$org/$spec_basename"
-        fi
-        if [[ "$remote_url" != http* ]]; then
-          remote_url="https://github.com/$remote_url"
-        fi
-        mkdir "apps/$spec_basename"
-        pushd "apps/$spec_basename"
-          git init
-          git remote add origin "$remote_url"
-          git fetch origin "$ref" --depth 1
-          git checkout FETCH_HEAD --quiet
-        popd
-      done
-      end_time=$(date +%s)
-      echo -e "\033[33mClone additional apps: $((end_time - start_time)) seconds\033[0m"
-
 
   - uses: actions/setup-node@v4
     with:
@@ -261,19 +216,10 @@ runs:
       start_time=$(date +%s)
 
       source ${GITHUB_WORKSPACE}/env/bin/activate
-      CI=Yes bench build
-
-      end_time=$(date +%s)
-      echo -e "\033[33mBuild Assets: $((end_time - start_time)) seconds\033[0m"
-
-  - shell: bash -e {0}
-    run: |
-      # Reinstall Test Site
-      start_time=$(date +%s)
-
-      source ${GITHUB_WORKSPACE}/env/bin/activate
+      CI=Yes bench build &
+      build_pid=$!
       bench --site test_site reinstall --yes
+      wait $build_pid
 
       end_time=$(date +%s)
-      echo -e "\033[33mReinstall Test Site: $((end_time - start_time)) seconds\033[0m"
-
+      echo -e "\033[33mBuild Assets and reinstall site: $((end_time - start_time)) seconds\033[0m"
