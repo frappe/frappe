@@ -599,37 +599,37 @@
   {
    "fieldname": "security_tab",
    "fieldtype": "Tab Break",
-   "label": "Login"
+   "label": "Login Settings"
   },
   {
    "fieldname": "email_tab",
    "fieldtype": "Tab Break",
-   "label": "Email"
+   "label": "Email Settings"
   },
   {
    "fieldname": "files_tab",
    "fieldtype": "Tab Break",
-   "label": "Files"
+   "label": "Files Settings"
   },
   {
    "fieldname": "updates_tab",
    "fieldtype": "Tab Break",
-   "label": "Display"
+   "label": "Display/Hide Settings"
   },
   {
    "fieldname": "backups_tab",
    "fieldtype": "Tab Break",
-   "label": "Backups"
+   "label": "Backup Settings"
   },
   {
    "fieldname": "advanced_tab",
    "fieldtype": "Tab Break",
-   "label": "Advanced"
+   "label": "Advanced Settings"
   },
   {
    "fieldname": "password_tab",
    "fieldtype": "Tab Break",
-   "label": "Password"
+   "label": "Password Settings"
   },
   {
    "fieldname": "column_break_txqh",
@@ -666,7 +666,7 @@
   {
    "fieldname": "app_tab",
    "fieldtype": "Tab Break",
-   "label": "App"
+   "label": "App Settings"
   },
   {
    "description": "Redirect to the selected app after login",
