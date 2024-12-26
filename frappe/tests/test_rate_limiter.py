@@ -45,7 +45,6 @@ class TestRateLimiter(FrappeTestCase):
 
 		headers = frappe.local.rate_limiter.headers()
 		self.assertIn("Retry-After", headers)
-		self.assertNotIn("X-RateLimit-Used", headers)
 		self.assertIn("X-RateLimit-Reset", headers)
 		self.assertIn("X-RateLimit-Limit", headers)
 		self.assertIn("X-RateLimit-Remaining", headers)
@@ -75,7 +74,6 @@ class TestRateLimiter(FrappeTestCase):
 		self.assertNotIn("Retry-After", headers)
 		self.assertIn("X-RateLimit-Reset", headers)
 		self.assertTrue(int(headers["X-RateLimit-Reset"] < 86400))
-		self.assertEqual(int(headers["X-RateLimit-Used"]), frappe.local.rate_limiter.duration)
 		self.assertEqual(int(headers["X-RateLimit-Limit"]), 10000)
 		self.assertEqual(int(headers["X-RateLimit-Remaining"]), 10000)
 

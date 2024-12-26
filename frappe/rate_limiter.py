@@ -1,6 +1,10 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+<<<<<<< HEAD
+=======
+import time
+>>>>>>> 3ab2c2fbcf (perf: speedup rate limiter by ~1.2x (#28920))
 from collections.abc import Callable
 from datetime import datetime
 from functools import wraps
@@ -30,16 +34,39 @@ def respond():
 
 
 class RateLimiter:
+	__slots__ = (
+		"counter",
+		"duration",
+		"end",
+		"key",
+		"limit",
+		"rejected",
+		"remaining",
+		"reset",
+		"spent",
+		"start",
+		"window",
+		"window_number",
+	)
+
 	def __init__(self, limit, window):
 		self.limit = int(limit * 1000000)
 		self.window = window
 
+<<<<<<< HEAD
 		self.start = datetime.utcnow()
 		timestamp = int(frappe.utils.now_datetime().timestamp())
 
 		self.window_number, self.spent = divmod(timestamp, self.window)
 		self.key = frappe.cache().make_key(f"rate-limit-counter-{self.window_number}")
 		self.counter = cint(frappe.cache().get(self.key))
+=======
+		self.start = time.time()
+
+		self.window_number, self.spent = divmod(int(self.start), self.window)
+		self.key = frappe.cache.make_key(f"rate-limit-counter-{self.window_number}")
+		self.counter = cint(frappe.cache.get(self.key))
+>>>>>>> 3ab2c2fbcf (perf: speedup rate limiter by ~1.2x (#28920))
 		self.remaining = max(self.limit - self.counter, 0)
 		self.reset = self.window - self.spent
 
@@ -56,10 +83,15 @@ class RateLimiter:
 		raise frappe.TooManyRequestsError
 
 	def update(self):
+<<<<<<< HEAD
 		self.end = datetime.utcnow()
 		self.duration = int((self.end - self.start).total_seconds() * 1000000)
 
 		pipeline = frappe.cache().pipeline()
+=======
+		self.record_request_end()
+		pipeline = frappe.cache.pipeline(transaction=False)
+>>>>>>> 3ab2c2fbcf (perf: speedup rate limiter by ~1.2x (#28920))
 		pipeline.incrby(self.key, self.duration)
 		pipeline.expire(self.key, self.window)
 		pipeline.execute()
@@ -72,11 +104,18 @@ class RateLimiter:
 		}
 		if self.rejected:
 			headers["Retry-After"] = self.reset
-		else:
-			headers["X-RateLimit-Used"] = self.duration
 
 		return headers
 
+<<<<<<< HEAD
+=======
+	def record_request_end(self):
+		if self.end is not None:
+			return
+		self.end = time.time()
+		self.duration = int((self.end - self.start) * 1000000)
+
+>>>>>>> 3ab2c2fbcf (perf: speedup rate limiter by ~1.2x (#28920))
 	def respond(self):
 		if self.rejected:
 			return Response(_("Too Many Requests"), status=429)
