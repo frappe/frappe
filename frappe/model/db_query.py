@@ -1136,8 +1136,9 @@ class DatabaseQuery:
 				continue
 
 			r._comment_count = 0
-			if "_comments" in r:
-				r._comment_count = len(json.loads(r._comments or "[]"))
+			if "_comments" in r and r._comments:
+				# perf: Avoid parsing _comments, they can be huge and this is just a "UX feature"
+				r._comment_count = r._comments.count('"comment"')
 
 	def update_user_settings(self):
 		# update user settings if new search
