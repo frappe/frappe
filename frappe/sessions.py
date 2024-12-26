@@ -98,7 +98,6 @@ def delete_session(sid=None, user=None, reason="Session Expired"):
 	frappe.db.commit()
 
 	frappe.cache.hdel("session", sid)
-	frappe.cache.hdel("last_db_session_update", sid)
 
 
 def clear_all_sessions(reason=None):
@@ -391,7 +390,7 @@ class Session:
 		Sessions = frappe.qb.DocType("Sessions")
 
 		# update session in db
-		last_updated = frappe.cache.hget("last_db_session_update", self.sid)
+		last_updated = self.data.data.last_updated
 		time_diff = frappe.utils.time_diff_in_seconds(now, last_updated) if last_updated else None
 
 		# database persistence is secondary, don't update it too often
@@ -414,8 +413,6 @@ class Session:
 
 			frappe.db.commit()
 			updated_in_db = True
-
-			frappe.cache.hset("last_db_session_update", self.sid, now)
 			frappe.cache.hset("session", self.sid, self.data)
 
 		return updated_in_db
