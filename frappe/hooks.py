@@ -570,4 +570,5 @@ persistent_cache_keys = [
 	"insert_queue_for_*",  # Deferred Insert
 	"recorder-*",  # Recorder
 	"global_search_queue",
+	"monitor-transactions",
 ]
