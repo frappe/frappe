@@ -30,6 +30,21 @@ def respond():
 
 
 class RateLimiter:
+	__slots__ = (
+		"counter",
+		"duration",
+		"end",
+		"key",
+		"limit",
+		"rejected",
+		"remaining",
+		"reset",
+		"spent",
+		"start",
+		"window",
+		"window_number",
+	)
+
 	def __init__(self, limit, window):
 		self.limit = int(limit * 1000000)
 		self.window = window
