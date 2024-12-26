@@ -198,11 +198,11 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				fields: [
 					{
 						fieldtype: 'HTML',
-						options: `<h4>Test</h4>`
+						options: '<p>If you enable the freeze queue position process, job cards will not move even if they are marked as completed.</p>'
 					},
 					{
 						fieldtype: 'HTML',
-						options: `<p>Consecuences</p>`
+						options: 'Do you want to continue?'
 					}
 				],
 				primary_action_label: 'Confirm',
