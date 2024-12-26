@@ -545,14 +545,14 @@ def build_response(path, data, http_status_code, headers: dict | None = None):
 	response = Response()
 	response.data = set_content_type(response, data, path)
 	response.status_code = http_status_code
-	response.headers["X-Page-Name"] = cstr(path.encode("ascii", errors="xmlcharrefreplace"))
+	response.headers["X-Page-Name"] = cstr(cstr(path).encode("ascii", errors="xmlcharrefreplace"))
 	response.headers["X-From-Cache"] = frappe.local.response.from_cache or False
 
 	add_preload_for_bundled_assets(response)
 
 	if headers:
 		for key, val in headers.items():
-			response.headers[key] = cstr(val.encode("ascii", errors="xmlcharrefreplace"))
+			response.headers[key] = cstr(cstr(val).encode("ascii", errors="xmlcharrefreplace"))
 
 	return response
 

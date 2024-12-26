@@ -533,7 +533,7 @@ class TestDocumentWebView(FrappeTestCase):
 
 		# without key
 		url_without_key = f"/ToDo/{todo.name}"
-		self.assertEqual(self.get(url_without_key).status, "403 FORBIDDEN")
+		self.assertEqual(self.get(url_without_key).status, "404 NOT FOUND")
 
 		# Logged-in user can access the page without key
 		self.assertEqual(self.get(url_without_key, "Administrator").status, "200 OK")
