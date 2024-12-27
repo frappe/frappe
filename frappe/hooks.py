@@ -571,4 +571,5 @@ persistent_cache_keys = [
 	"recorder-*",  # Recorder
 	"global_search_queue",
 	"monitor-transactions",
+	"rate-limit-counter-*",
 ]
