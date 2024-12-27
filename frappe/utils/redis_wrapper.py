@@ -364,7 +364,7 @@ def setup_cache():
 			redis_class=RedisWrapper,
 		)
 
-	return RedisWrapper.from_url(frappe.conf.get("redis_cache"), protocol=3)
+	return RedisWrapper.from_url(frappe.conf.get("redis_cache"))
 
 
 def get_sentinel_connection(
