@@ -10,7 +10,7 @@
 		<!-- Dynamically render named slots -->
 		<template v-for="(slot, slotName) in block.componentSlots" :key="slotName" v-slot:[slotName]>
 			<template v-if="Array.isArray(slot.slotContent)">
-				<StudioComponent
+				<AppComponent
 					v-for="slotBlock in slot.slotContent"
 					:block="slotBlock"
 					:key="slotBlock.componentId"
