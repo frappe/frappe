@@ -13,7 +13,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from "vue"
+import { ref } from "vue"
 import { vOnClickOutside } from "@vueuse/components"
 import ContextMenu from "@/components/ContextMenu.vue"
 import Block from "@/utils/block"
@@ -54,7 +54,7 @@ const contextMenuOptions: ContextMenuOption[] = [
 	{
 		label: "Delete",
 		action: () => {
-			props.block.getParentBlock()?.removeChild(props.block)
+			props.block.deleteBlock()
 		},
 		condition: () => {
 			return !props.block.isRoot() && Boolean(props.block.getParentBlock())

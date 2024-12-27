@@ -24,6 +24,7 @@ class Block implements BlockOptions {
 	mobileStyles: BlockStyleMap
 	tabletStyles: BlockStyleMap
 	classes?: string[]
+	parentSlotName?: string
 
 	constructor(options: BlockOptions) {
 		this.componentName = options.componentName
@@ -49,6 +50,9 @@ class Block implements BlockOptions {
 		this.componentEvents = options.componentEvents || {}
 		this.componentSlots = options.componentSlots || {}
 		this.initializeSlots()
+		if (options.parentSlotName) {
+			this.parentSlotName = options.parentSlotName
+		}
 
 		// set up hierarchy
 		this.parentBlock = options.parentBlock || null
@@ -60,6 +64,13 @@ class Block implements BlockOptions {
 
 	generateComponentId(componentName?: string | null): string {
 		return `${componentName || this.componentName}-${Math.random().toString(36).substring(2, 9)}`
+	}
+
+	deleteBlock() {
+		const parentBlock = this.getParentBlock()
+		if (parentBlock) {
+			parentBlock.removeChild(this)
+		}
 	}
 
 	addChild(child: BlockOptions, index?: number | null) {
@@ -77,13 +88,20 @@ class Block implements BlockOptions {
 
 	removeChild(child: Block) {
 		const index = this.getChildIndex(child)
-		if (index > -1) {
+		if (index === -1) return
+
+		if (child.isSlotBlock()) {
+			(this.getSlotContent(child.parentSlotName!) as Block[]).splice(index, 1)
+		} else {
 			this.children.splice(index, 1)
 		}
 	}
 
 	getChildIndex(child: Block) {
-		return this.children.findIndex((block) => block.componentId === child.componentId);
+		if (child.parentSlotName) {
+			return (this.componentSlots[child.parentSlotName].slotContent as Block[]).findIndex((block) => block.componentId === child.componentId)
+		}
+		return this.children.findIndex((block) => block.componentId === child.componentId)
 	}
 
 	addChildAfter(child: BlockOptions, siblingBlock: Block) {
@@ -391,6 +409,8 @@ class Block implements BlockOptions {
 			}
 
 			content.parentBlock = this
+			// for top-level blocks inside a slot
+			content.parentSlotName = slotName
 			const childBlock = reactive(new Block(content))
 			this.componentSlots[slotName].slotContent.push(childBlock)
 		} else {
@@ -426,6 +446,10 @@ class Block implements BlockOptions {
 			&& slot.slotId
 			&& typeof slot.slotContent === "string"
 		)
+	}
+
+	isSlotBlock() {
+		return Boolean(this.parentSlotName)
 	}
 
 	// events
