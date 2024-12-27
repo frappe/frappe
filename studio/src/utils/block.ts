@@ -361,12 +361,13 @@ class Block implements BlockOptions {
 	// component slots
 	initializeSlots() {
 		Object.entries(this.componentSlots).forEach(([slotName, slot]) => {
-			slot.slotId = this.generateSlotId(slotName)
+			if (!slot.slotId) {
+				slot.slotId = this.generateSlotId(slotName)
+			}
 			slot.parentBlockId = this.componentId
 
 			if (Array.isArray(slot.slotContent)) {
 				slot.slotContent = slot.slotContent.map((block) => {
-					if (typeof block === "string") return block
 					block.parentBlock = this
 					return reactive(new Block(block))
 				})
