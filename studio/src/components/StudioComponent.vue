@@ -13,7 +13,7 @@
 		ref="componentRef"
 	>
 		<!-- Dynamically render named slots -->
-		<template v-for="(slot, slotName) in block.componentSlots" :key="slotName" v-slot:[slotName]>
+		<template v-for="(slot, slotName) in block?.componentSlots" :key="slotName" v-slot:[slotName]>
 			<template v-if="Array.isArray(slot.slotContent)">
 				<div
 					class="flex items-center"
@@ -23,7 +23,7 @@
 					:data-component-id="block.componentId"
 				>
 					<StudioComponent
-						v-for="slotBlock in slot.slotContent"
+						v-for="slotBlock in slot?.slotContent"
 						:key="slotBlock.componentId"
 						:block="slotBlock"
 						:class="slotClasses"

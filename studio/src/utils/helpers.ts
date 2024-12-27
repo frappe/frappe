@@ -22,9 +22,10 @@ function getBlockInstance(options: BlockOptions, retainId = true): Block {
 
 			// clear componentId of slot children
 			for (let slot of Object.values(block.componentSlots || {})) {
-				if (typeof slot.slotContent === "string") continue
-				for (let child of slot.slotContent) {
-					deleteComponentId(child)
+				if (Array.isArray(slot.slotContent)) {
+					for (let child of slot.slotContent) {
+						deleteComponentId(child)
+					}
 				}
 			}
 		}
@@ -55,15 +56,38 @@ function getBlockCopy(block: BlockOptions | Block, retainId = false): Block {
 	return getBlockInstance(b, retainId)
 }
 
+function deepCloneObject(obj: any, skipKeys: string[] | null = null): any {
+	if (!obj || typeof obj !== "object") {
+		return obj
+	}
+	if (obj instanceof Date) {
+		return new Date(obj)
+	}
+	if (Array.isArray(obj)) {
+		return obj.map(item => deepCloneObject(item, skipKeys))
+	}
+
+	const clonedObj: any = {}
+	for (const key in obj) {
+		if (skipKeys?.includes(key)) continue
+		clonedObj[key] = deepCloneObject(obj[key], skipKeys)
+	}
+
+	return clonedObj
+}
+
 function getBlockCopyWithoutParent(block: BlockOptions | Block) {
-	const blockCopy = { ...toRaw(block) }
-	blockCopy.children = blockCopy.children?.map((child) => getBlockCopyWithoutParent(child))
+	const rawBlock = toRaw(block)
+	const blockCopy = deepCloneObject(rawBlock, ["parentBlock"]) as BlockOptions
 	delete blockCopy.parentBlock
+
+	blockCopy.children = blockCopy.children?.map((child) => getBlockCopyWithoutParent(child))
 
 	// remove parentBlock reference for slot children
 	for (const slot of Object.values(blockCopy.componentSlots || {})) {
-		if (typeof slot.slotContent === "string") continue
-		slot.slotContent = slot.slotContent.map((child) => getBlockCopyWithoutParent(child))
+		if (Array.isArray(slot.slotContent)) {
+			slot.slotContent = slot.slotContent.map((child) => getBlockCopyWithoutParent(child))
+		}
 	}
 
 	return blockCopy
