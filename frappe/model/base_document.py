@@ -99,16 +99,9 @@ def get_controller(doctype):
 
 class BaseDocument:
 	_reserved_keywords = frozenset(
-<<<<<<< HEAD
 		{
 			"doctype",
 			"meta",
-=======
-		(
-			"doctype",
-			"meta",
-			"_meta",
->>>>>>> c7847395da (fix: remove thread-unsafe class attributes (#22097))
 			"flags",
 			"parent_doc",
 			"_table_fields",
@@ -116,14 +109,9 @@ class BaseDocument:
 			"_doc_before_save",
 			"_table_fieldnames",
 			"_reserved_keywords",
-<<<<<<< HEAD
 			"permitted_fieldnames",
 			"dont_update_if_missing",
 		}
-=======
-			"dont_update_if_missing",
-		)
->>>>>>> c7847395da (fix: remove thread-unsafe class attributes (#22097))
 	)
 
 	def __init__(self, d):

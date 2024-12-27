@@ -612,11 +612,6 @@ class ImportFile:
 
 
 class Row:
-<<<<<<< HEAD
-	link_values_exist_map: typing.ClassVar[dict] = {}
-
-=======
->>>>>>> c7847395da (fix: remove thread-unsafe class attributes (#22097))
 	def __init__(self, index, row, doctype, header, import_type):
 		self.index = index
 		self.row_number = index + 1
@@ -856,11 +851,6 @@ class Header(Row):
 
 
 class Column:
-<<<<<<< HEAD
-	seen: typing.ClassVar[list] = []
-
-=======
->>>>>>> c7847395da (fix: remove thread-unsafe class attributes (#22097))
 	def __init__(self, index, header, doctype, column_values, map_to_field=None, seen=None):
 		if seen is None:
 			seen = []

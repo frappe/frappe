@@ -97,11 +97,7 @@ class Meta(Document):
 	_metaclass = True
 	default_fields = list(default_fields)[1:]
 	special_doctypes = frozenset(
-<<<<<<< HEAD
 		{
-=======
-		(
->>>>>>> c7847395da (fix: remove thread-unsafe class attributes (#22097))
 			"DocField",
 			"DocPerm",
 			"DocType",
@@ -109,15 +105,9 @@ class Meta(Document):
 			"DocType Action",
 			"DocType Link",
 			"DocType State",
-<<<<<<< HEAD
 		}
 	)
 	standard_set_once_fields = (
-=======
-		)
-	)
-	standard_set_once_fields = [
->>>>>>> c7847395da (fix: remove thread-unsafe class attributes (#22097))
 		frappe._dict(fieldname="creation", fieldtype="Datetime"),
 		frappe._dict(fieldname="owner", fieldtype="Data"),
 	)
