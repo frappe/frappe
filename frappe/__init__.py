@@ -18,6 +18,7 @@ import inspect
 import json
 import os
 import sys
+import threading
 import traceback
 import warnings
 from collections import defaultdict
@@ -272,7 +273,8 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 	local.dev_server = _dev_server
 	local.qb = get_query_builder(local.conf.db_type)
 	local.qb.get_query = get_query
-	setup_redis_cache_connection()
+	if not cache:
+		setup_redis_cache_connection()
 
 	if not _one_time_setup.get(local.conf.db_type):
 		patch_query_execute()
@@ -490,14 +492,19 @@ def destroy():
 	release_local(local)
 
 
+_redis_init_lock = threading.Lock()
+
+
 def setup_redis_cache_connection():
 	"""Defines `frappe.cache` as `RedisWrapper` instance"""
+	from frappe.utils.redis_wrapper import setup_cache
+
 	global cache
 
-	if not cache:
-		from frappe.utils.redis_wrapper import setup_cache
-
-		cache = setup_cache()
+	with _redis_init_lock:
+		# We need to check again since someone else might have setup connection before us.
+		if not cache:
+			cache = setup_cache()
 
 
 def get_traceback(with_context: bool = False) -> str:
