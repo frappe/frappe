@@ -87,6 +87,7 @@ def send_reminders():
 			("notified", "=", 0),
 		],
 		pluck="name",
+		ignore_ifnull=True,
 	)
 
 	for reminder in pending_reminders:
