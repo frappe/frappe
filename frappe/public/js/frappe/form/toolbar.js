@@ -208,7 +208,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				let label = __("New Name");
 				if (me.frm.meta.autoname && me.frm.meta.autoname.startsWith("field:")) {
 					let fieldname = me.frm.meta.autoname.split(":")[1];
-					label = __("New {0}", [me.frm.get_docfield(fieldname).label]);
+					label = __("New {0}", [__(me.frm.get_docfield(fieldname).label)]);
 				}
 
 				fields.push(
