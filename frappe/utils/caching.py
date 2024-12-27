@@ -4,14 +4,15 @@
 import time
 from collections import defaultdict
 from collections.abc import Callable
+from contextlib import suppress
 from functools import wraps
 
 import frappe
 
-_SITE_CACHE = defaultdict(lambda: defaultdict(dict))
+_SITE_CACHE = defaultdict(dict)
 
 
-def __generate_request_cache_key(args: tuple, kwargs: dict):
+def __generate_request_cache_key(args: tuple, kwargs: dict) -> int:
 	"""Generate a key for the cache."""
 	if not kwargs:
 		return hash(args)
@@ -121,31 +122,32 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 			if not site:
 				return func(*args, **kwargs)
 
-			func_call_key = __generate_request_cache_key(args, kwargs)
+			arguments_key = f"{site}::{__generate_request_cache_key(args, kwargs)}"
 
 			if hasattr(func, "ttl") and time.monotonic() >= func.expiration:
 				func.clear_cache()
 				func.expiration = time.monotonic() + func.ttl
 
 			# NOTE: Important things to consider from thread safety POV:
-			#   1. Other thread can issue clear_cache and delete entire func_key dictionary.
+			#   1. Other thread can issue clear_cache and delete entire dictionary.
 			#   2. Other thread can pop the exact elemement we are reading if maxsize is hit.
 
 			# NOTE: Keep a local reference to dictionary of interest so it doesn't get swapped
-			site_specific_cache = _SITE_CACHE[func_key][site]
+			function_cache = _SITE_CACHE[func_key]
 
 			try:
-				return site_specific_cache[func_call_key]
-			except KeyError:
-				# NOTE: This is just a cache miss
+				return function_cache[arguments_key]
+			except (KeyError, RuntimeError):
+				# NOTE: This is just a cache miss or dictionary was modified while reading it
 				pass
 
-			if hasattr(func, "maxsize") and len(site_specific_cache) >= func.maxsize:
+			if hasattr(func, "maxsize") and len(function_cache) >= func.maxsize:
 				# Note: This implements FIFO eviction policy
-				site_specific_cache.pop(next(iter(site_specific_cache)), None)
+				with suppress(RuntimeError):
+					function_cache.pop(next(iter(function_cache)), None)
 
 			result = func(*args, **kwargs)
-			site_specific_cache[func_call_key] = result
+			function_cache[arguments_key] = result
 
 			return result
 
