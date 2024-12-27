@@ -22,7 +22,15 @@
 					:data-slot-name="slotName"
 					:data-component-id="block.componentId"
 				>
+					<span
+						v-if="slot.slotContent.length === 0"
+						:class="[slotClasses, 'min-h-5 min-w-5']"
+						:data-slot-id="slot.slotId"
+						:data-slot-name="slotName"
+						:data-component-id="block.componentId"
+					></span>
 					<StudioComponent
+						v-else
 						v-for="slotBlock in slot?.slotContent"
 						:key="slotBlock.componentId"
 						:block="slotBlock"
