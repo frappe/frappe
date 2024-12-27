@@ -74,12 +74,12 @@ class Block implements BlockOptions {
 	}
 
 	addChild(child: BlockOptions, index?: number | null) {
-		child.parentBlock = this
-		if (index === undefined || index === null) {
-			index = this.children.length
+		if (child.parentSlotName) {
+			return this.updateSlot(child.parentSlotName, child, index)
 		}
-		index = clamp(index, 0, this.children.length)
 
+		child.parentBlock = this
+		index = this.getValidIndex(index, this.children.length)
 		const childBlock = reactive(new Block(child))
 		this.children.splice(index, 0, childBlock)
 		childBlock.selectBlock()
@@ -99,10 +99,19 @@ class Block implements BlockOptions {
 
 	getChildIndex(child: Block) {
 		if (child.parentSlotName) {
-			return (this.componentSlots[child.parentSlotName].slotContent as Block[]).findIndex((block) => block.componentId === child.componentId)
+			return (
+				this.getSlotContent(child.parentSlotName) as Block[]
+			).findIndex((block) => block.componentId === child.componentId)
 		}
 		return this.children.findIndex((block) => block.componentId === child.componentId)
 	}
+
+	getValidIndex(index: number | null | undefined, arrayLength: number): number {
+		if (index === undefined || index === null) {
+			return arrayLength
+		}
+		return clamp(index, 0, arrayLength)
+	  }
 
 	addChildAfter(child: BlockOptions, siblingBlock: Block) {
 		const siblingIndex = this.getChildIndex(siblingBlock)
@@ -402,19 +411,22 @@ class Block implements BlockOptions {
 		}
 	}
 
-	updateSlot(slotName: string, content: string | Block) {
-		if (content instanceof Block) {
+	updateSlot(slotName: string, content: string | Block | BlockOptions, index?: number | null) {
+		if (typeof content === "string") {
+			this.componentSlots[slotName].slotContent = content
+		} else {
 			if (!Array.isArray(this.componentSlots[slotName].slotContent)) {
 				this.componentSlots[slotName].slotContent = []
 			}
 
-			content.parentBlock = this
 			// for top-level blocks inside a slot
 			content.parentSlotName = slotName
+			content.parentBlock = this
+			const slotContent = this.componentSlots[slotName].slotContent as Block[]
+			index = this.getValidIndex(index, slotContent.length)
 			const childBlock = reactive(new Block(content))
-			this.componentSlots[slotName].slotContent.push(childBlock)
-		} else {
-			this.componentSlots[slotName].slotContent = content
+			slotContent.splice(index, 0, childBlock)
+			childBlock.selectBlock()
 		}
 	}
 
