@@ -16,6 +16,7 @@
   "default_kanban",
   "size_kanban",
   "phone_notification",
+  "standard_replies",
   "section_break_3",
   "email",
   "first_name",
@@ -780,7 +781,13 @@
    "fieldtype": "Small Text",
    "hidden": 1,
    "label": "Onboarding Status"
-  }
+  },
+  {
+    "fieldname": "standard_replies",
+    "fieldtype": "Data",
+    "hidden": 1,
+    "label": "Standard replies"
+   }
  ],
  "icon": "fa fa-user",
  "idx": 413,
