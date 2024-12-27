@@ -192,6 +192,52 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			last_kanban_board: this.board_name,
 		});
 
+		function showConfirmationDialog(input) {
+			const dialog = new frappe.ui.Dialog({
+				title: 'Confirm',
+				fields: [
+					{
+						fieldtype: 'HTML',
+						options: '<p>If you enable the freeze queue position process, job cards will not move even if they are marked as completed.</p>'
+					},
+					{
+						fieldtype: 'HTML',
+						options: 'Do you want to continue?'
+					}
+				],
+				primary_action_label: 'Confirm',
+				primary_action: function () {
+					dialog.hide();
+					frappe.db.set_value('Queue Settings', 'Queue Settings', 'auto_move_paused', 1).then(res => {
+						frappe.warn('Status updated successfully', 'TEST TWO Would you like to send a WhatsApp message to notify the clients in the queue?',
+							async () => {
+								const { aws_url } = await frappe.db.get_doc('Queue Settings')
+								return frappe.call({
+									method: "frappe.desk.doctype.kanban_board.kanban_board.call_freeze_queue_position_message",
+									args: { aws_url: aws_url },
+									callback: (result) => {
+										console.log("message queue position freeze sent: ", result);
+									},
+								});
+							},
+							'Yes',
+							true // Sets dialog as minimizable
+						)
+					})
+				},
+				secondary_action_label: 'Cancel',
+				secondary_action: function () {
+					input.checked = false
+					dialog.hide();
+				}
+			});
+		
+			dialog.$wrapper.find('.modal-header .modal-actions').hide();
+			dialog.$wrapper.modal({ backdrop: 'static', keyboard: false })
+		
+			dialog.show();
+		}
+
 		const { auto_move_paused } = await frappe.db.get_doc('Queue Settings')
 		setTimeout(() => {
 			const containers = document.querySelectorAll('div[id*="Kanban"] div.page-head.flex > div > div > div.flex.col.page-actions.justify-content-end')
@@ -223,28 +269,14 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 					}
 					container.prepend(label);
 					input.addEventListener('change', (event) => {
-						frappe.db.set_value('Queue Settings', 'Queue Settings', 'auto_move_paused', auto_move_paused ? 0 : 1)
-							.then(() => {
-								const isChecked = event.target.checked;
-								if (isChecked) {
-									frappe.warn('Status updated successfully', 'Would you like to send a WhatsApp message to notify the clients in the queue?',
-										async () => {
-											const { aws_url } = await frappe.db.get_doc('Queue Settings')
-											return frappe.call({
-												method: "frappe.desk.doctype.kanban_board.kanban_board.call_freeze_queue_position_message",
-												args: { aws_url: aws_url },
-												callback: (result) => {
-													console.log("message queue position freeze sent: ", result);
-												},
-											});
-										},
-										'Yes',
-										true // Sets dialog as minimizable
-									)
-								} else {
-									frappe.msgprint(__('Status updated successfully'));
-								}
-							})
+						const isChecked = event.target.checked;
+						if (isChecked) {
+							showConfirmationDialog(input)
+							return
+						}
+
+						frappe.db.set_value('Queue Settings', 'Queue Settings', 'auto_move_paused', Number(isChecked))
+						frappe.msgprint(__('Status updated successfully'));
 					})
 				}
 			}
