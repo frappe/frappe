@@ -61,6 +61,12 @@
    "length": 240
   },
   {
+    "fieldname": "pincode",
+    "fieldtype": "Data",
+    "label": "Postal Code",
+    "search_index": 1
+   },
+  {
    "fieldname": "city",
    "fieldtype": "Data",
    "in_global_search": 1,
@@ -89,12 +95,7 @@
    "reqd": 1,
    "search_index": 1
   },
-  {
-   "fieldname": "pincode",
-   "fieldtype": "Data",
-   "label": "Postal Code",
-   "search_index": 1
-  },
+  
   {
    "fieldname": "column_break0",
    "fieldtype": "Column Break",
