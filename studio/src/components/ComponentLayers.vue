@@ -191,10 +191,17 @@ const canShowSlotLayer = (block: Block) => {
 
 // @ts-ignore
 const updateParent = (event) => {
-	// update parent block reference when a block is moved inside it
-	event.item.__draggable_context.element.parentBlock = store.canvas?.findBlock(
-		event.to.closest("[data-component-layer-id]").dataset.componentLayerId,
-	)
+	const element = event.item.__draggable_context.element as Block
+	const newParentLayerId = event.to.closest("[data-component-layer-id]")?.dataset.componentLayerId
+	element.parentBlock = store.canvas?.findBlock(newParentLayerId) ?? null
+
+	// Check if moving into a slot
+	const slotLayerId = event.to.closest("[data-slot-layer-id]")?.dataset.slotLayerId
+	if (slotLayerId) {
+		element.parentSlotName = slotLayerId.split(":")[1]
+	} else {
+		delete element.parentSlotName
+	}
 }
 
 watch(
