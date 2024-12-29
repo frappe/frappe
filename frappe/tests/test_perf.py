@@ -16,7 +16,9 @@ query. This test can be written like this.
 >>> 		get_controller("User")
 
 """
+
 import gc
+import itertools
 import sys
 import time
 from unittest.mock import patch
@@ -31,6 +33,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.test_query_builder import run_only_if
 from frappe.utils import cint
+from frappe.utils.caching import redis_cache
 from frappe.website.path_resolver import PathResolver
 
 TEST_USER = "test@example.com"
@@ -200,8 +203,79 @@ class TestPerformance(IntegrationTestCase):
 
 	def test_get_doc_cache_calls(self):
 		frappe.get_doc("User", "Administrator")
-		with self.assertRedisCallCounts(1):
+		with self.assertRedisCallCounts(0):
 			frappe.get_doc("User", "Administrator")
+
+	def test_local_caching(self):
+		frappe.get_cached_doc("User", "Administrator")
+		with self.assertRedisCallCounts(0):
+			frappe.get_cached_doc("User", "Administrator")
+
+	def test_redis_cache_calls(self):
+		redis_cached_func()  # warmup
+
+		# Repeat call should use locally cached value
+		with self.assertRedisCallCounts(0):
+			redis_cached_func()
+
+		frappe.local.cache.clear()
+		# Without local cache - only one call required
+		with self.assertRedisCallCounts(1):
+			redis_cached_func()
+
+	def test_one_time_setup(self):
+		site = frappe.local.site
+		frappe.init(site, force=True)
+		run = frappe.qb._BuilderClasss.run
+
+		frappe.init(site, force=True)
+		patched_run = frappe.qb._BuilderClasss.run
+
+		self.assertIs(run, patched_run, "frappe.init should run one-time patching code just once")
+
+	def test_cpu_allocation(self):
+		from frappe._optimizations import assign_core
+
+		# Already allocated
+		self.assertEqual(assign_core(0, 4, 8, [0], []), 0)
+
+		# All physical, pid same as core for 0-7
+		siblings = [(i,) for i in range(8)]
+		cores = list(range(8))
+		for pid in cores:
+			self.assertEqual(assign_core(pid, len(cores), len(cores), cores, siblings), pid)
+
+		# All physical, pid wraps for core for 8-15
+		for pid in range(8, 16):
+			self.assertEqual(assign_core(pid, len(cores), len(cores), cores, siblings), pid % len(cores))
+
+		default_affinity_16 = list(range(16))
+		# "linear" siblings = (0,1) (2,3) ...
+		linear_siblings_16 = list(itertools.batched(range(16), 2))
+		logical_cores = list(range(16))
+		expected_assignments = [*(l[0] for l in linear_siblings_16), *(l[1] for l in linear_siblings_16)]
+		for pid, expected_core in zip(logical_cores, expected_assignments, strict=True):
+			core = assign_core(
+				pid, len(logical_cores) // 2, len(logical_cores), default_affinity_16, linear_siblings_16
+			)
+			self.assertEqual(core, expected_core)
+
+		# "Block" siblings = (0,4) (1,5) ...
+		block_siblings_16 = list(zip(range(8), range(8, 16), strict=True))
+		for pid in logical_cores:
+			core = assign_core(
+				pid, len(logical_cores) // 2, len(logical_cores), logical_cores, block_siblings_16
+			)
+			self.assertEqual(core, pid)
+
+		# Few cores disabled
+		enabled_cores = [0, 2, 4, 6]
+		affinity = [(i,) for i in enabled_cores]
+		core = assign_core(0, 4, 4, enabled_cores, affinity)
+		self.assertEqual(core, 0)
+
+		core = assign_core(1, 4, 4, enabled_cores, affinity)
+		self.assertEqual(core, 2)
 
 
 @run_only_if(db_type_is.MARIADB)
@@ -234,3 +308,8 @@ class TestOverheadCalls(FrappeAPITestCase):
 		self.get(self.resource("User", "Administrator"), {"sid": sid})
 		with self.assertRedisCallCounts(19), self.assertQueryCount(self.BASE_SQL_CALLS + 1 + tables):
 			self.get(self.resource("User", "Administrator"), {"sid": sid})
+
+
+@redis_cache
+def redis_cached_func():
+	return 42

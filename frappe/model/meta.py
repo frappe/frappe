@@ -20,6 +20,7 @@ import os
 import typing
 from datetime import datetime
 from functools import singledispatchmethod
+from types import NoneType
 
 import click
 
@@ -59,18 +60,21 @@ DEFAULT_FIELD_LABELS = {
 }
 
 
-def get_meta(doctype: str | DocRef | Document, cached=True) -> "_Meta":
+def get_meta(doctype: str | dict | DocRef, cached=True) -> "_Meta":
 	"""Get metadata for a doctype.
 
 	Args:
-	    doctype: The doctype as a string, DocRef, or Document object.
+	    doctype: The doctype as a string, dict, DocRef (also: Document) object.
 	    cached: Whether to use cached metadata (default: True).
 
 	Returns:
 	    Meta object for the given doctype.
 	"""
-	doctype_name = getattr(doctype, "doctype", doctype)
-	if cached and not isinstance(doctype, Document):
+	if cached and (
+		doctype_name := getattr(doctype, "doctype", doctype)
+		if not isinstance(doctype, dict)
+		else doctype.get("doctype")
+	):
 		if meta := frappe.cache.hget("doctype_meta", doctype_name):
 			return meta
 
@@ -125,7 +129,7 @@ class Meta(Document):
 	)
 
 	@singledispatchmethod
-	def __init__(self, arg):
+	def __init__(self, arg, bootstrap: Document = None):
 		raise TypeError(f"Unsupported argument type: {type(arg)}")
 
 	@__init__.register(str)
@@ -138,9 +142,14 @@ class Meta(Document):
 		super().__init__("DocType", doc_ref.doctype)
 		self.process()
 
-	@__init__.register(Document)
-	def _(self, doc):
-		super().__init__(doc.as_dict())
+	@__init__.register(dict)
+	def _(self, doc_ref):
+		super().__init__("DocType", doc_ref.get("doctype"))
+		self.process()
+
+	@__init__.register(NoneType)
+	def _(self, _args, bootstrap):
+		super().__init__(bootstrap.as_dict())
 		self.process()
 
 	def load_from_db(self):
@@ -583,8 +592,7 @@ class Meta(Document):
 	def get_fieldnames_with_value(self, with_field_meta=False, with_virtual_fields=False):
 		def is_value_field(docfield):
 			return not (
-				not with_virtual_fields
-				and docfield.get("is_virtual")
+				(not with_virtual_fields and docfield.get("is_virtual"))
 				or docfield.fieldtype in no_value_fields
 			)
 
@@ -776,7 +784,7 @@ def is_single(doctype):
 	try:
 		return frappe.db.get_value("DocType", doctype, "issingle")
 	except IndexError:
-		raise Exception("Cannot determine whether %s is single" % doctype)
+		raise Exception("Cannot determine whether {} is single".format(doctype))
 
 
 def get_parent_dt(dt):

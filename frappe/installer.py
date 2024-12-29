@@ -142,11 +142,6 @@ def install_db(
 	if not db_type:
 		db_type = frappe.conf.db_type
 
-	if not root_login and db_type == "mariadb":
-		root_login = "root"
-	elif not root_login and db_type == "postgres":
-		root_login = "postgres"
-
 	make_conf(
 		db_name,
 		site_config=site_config,
@@ -159,8 +154,11 @@ def install_db(
 	)
 	frappe.flags.in_install_db = True
 
-	frappe.flags.root_login = root_login
-	frappe.flags.root_password = root_password
+	if root_login:
+		frappe.flags.root_login = root_login
+
+	if root_password:
+		frappe.flags.root_password = root_password
 
 	if setup:
 		setup_database(force, verbose, mariadb_user_host_login_scope)
@@ -602,6 +600,7 @@ def make_site_config(
 
 def update_site_config(key, value, validate=True, site_config_path=None):
 	"""Update a value in site_config"""
+	from frappe.config import clear_site_config_cache
 	from frappe.utils.synchronization import filelock
 
 	if not site_config_path:
@@ -612,6 +611,7 @@ def update_site_config(key, value, validate=True, site_config_path=None):
 
 	with filelock("site_config", is_global=_is_global_conf):
 		_update_config_file(key=key, value=value, config_file=site_config_path)
+		clear_site_config_cache()
 
 
 def _update_config_file(key: str, value, config_file: str):

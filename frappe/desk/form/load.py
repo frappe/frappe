@@ -9,18 +9,19 @@ import frappe
 import frappe.defaults
 import frappe.desk.form.meta
 import frappe.utils
-from frappe import _, _dict
+from frappe import _dict
 from frappe.desk.form.document_follow import is_document_followed
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import get_doc_permissions, has_permission
 from frappe.utils.data import cstr
+from frappe.utils.html_utils import clean_email_html
 
 if typing.TYPE_CHECKING:
 	from frappe.model.document import Document
 
 
 @frappe.whitelist()
-def getdoc(doctype, name, user=None):
+def getdoc(doctype, name):
 	"""
 	Loads a doclist for a given document. This method is called directly from the client.
 	Requries "doctype", "name" as form variables.
@@ -36,11 +37,12 @@ def getdoc(doctype, name, user=None):
 		frappe.clear_last_message()
 		return []
 
-	if not doc.has_permission("read"):
-		frappe.flags.error_message = _("Insufficient Permission for {0}").format(
-			frappe.bold(_(doctype) + " " + name)
-		)
-		raise frappe.PermissionError(("read", doctype, name))
+	doc.check_permission("read")
+
+	# Replace cache if stale one exists
+	# PERF: This should be eventually removed completely when we are sure about caching correctness
+	if (key := frappe.can_cache_doc((doctype, name))) and frappe.cache.exists(key):
+		frappe._set_document_in_cache(key, doc)
 
 	run_onload(doc)
 	doc.apply_fieldlevel_read_permissions()
@@ -95,8 +97,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 
 	if not doc:
 		doc = frappe.get_doc(doctype, name)
-		if not doc.has_permission("read"):
-			raise frappe.PermissionError
+		doc.check_permission("read")
 
 	all_communications = _get_communications(doc.doctype, doc.name, limit=21)
 	automated_messages = [
@@ -196,7 +197,7 @@ def get_versions(doc: "Document") -> list[dict]:
 		return []
 	return frappe.get_all(
 		"Version",
-		filters=dict(ref_doctype=doc.doctype, docname=doc.name),
+		filters=dict(ref_doctype=doc.doctype, docname=str(doc.name)),
 		fields=["name", "owner", "creation", "data"],
 		limit=10,
 		order_by="creation desc",
@@ -222,8 +223,7 @@ def get_communications(doctype, name, start=0, limit=20):
 	from frappe.utils import cint
 
 	doc = frappe.get_doc(doctype, name)
-	if not doc.has_permission("read"):
-		raise frappe.PermissionError
+	doc.check_permission("read")
 
 	return _get_communications(doctype, name, cint(start), cint(limit))
 
@@ -274,6 +274,7 @@ def _get_communications(doctype, name, start=0, limit=20):
 	communications = get_communication_data(doctype, name, start, limit)
 	for c in communications:
 		if c.communication_type in ("Communication", "Automated Message"):
+			clean_email_html(c.content)
 			c.attachments = json.dumps(
 				frappe.get_all(
 					"File",
@@ -292,11 +293,11 @@ def get_communication_data(
 	if not fields:
 		fields = """
 			C.name, C.communication_type, C.communication_medium,
-			C.comment_type, C.communication_date, C.content,
+			C.communication_date, C.content,
 			C.sender, C.sender_full_name, C.cc, C.bcc,
 			C.creation AS creation, C.subject, C.delivery_status,
 			C._liked_by, C.reference_doctype, C.reference_name,
-			C.read_by_recipient, C.rating, C.recipients
+			C.read_by_recipient, C.recipients
 		"""
 
 	conditions = ""
@@ -315,7 +316,7 @@ def get_communication_data(
 	part1 = f"""
 		SELECT {fields}
 		FROM `tabCommunication` as C
-		WHERE C.communication_type IN ('Communication', 'Feedback', 'Automated Message')
+		WHERE C.communication_type IN ('Communication', 'Automated Message')
 		AND (C.reference_doctype = %(doctype)s AND C.reference_name = %(name)s)
 		{conditions}
 	"""
@@ -325,7 +326,7 @@ def get_communication_data(
 		SELECT {fields}
 		FROM `tabCommunication` as C
 		INNER JOIN `tabCommunication Link` ON C.name=`tabCommunication Link`.parent
-		WHERE C.communication_type IN ('Communication', 'Feedback', 'Automated Message')
+		WHERE C.communication_type IN ('Communication', 'Automated Message')
 		AND `tabCommunication Link`.link_doctype = %(doctype)s AND `tabCommunication Link`.link_name = %(name)s
 		{conditions}
 	"""

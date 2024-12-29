@@ -1,6 +1,7 @@
 """
 Run this after updating country_info.json and or
 """
+
 import frappe
 
 

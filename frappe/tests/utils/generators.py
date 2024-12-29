@@ -25,13 +25,13 @@ testing_logger = logging.getLogger("frappe.testing.generators")
 datetime_like_types = (datetime.datetime, datetime.date, datetime.time, datetime.timedelta)
 
 __all__ = [
-	"get_modules",
 	"get_missing_records_doctypes",
 	"get_missing_records_module_overrides",
+	"get_modules",
+	"load_test_records_for",
+	"make_test_objects",
 	"make_test_records",
 	"make_test_records_for_doctype",
-	"make_test_objects",
-	"load_test_records_for",
 ]
 
 
@@ -169,7 +169,7 @@ def _generate_records_for(
 	# to completely bypass the standard loading and create test records
 	# according to custom logic.
 	if hasattr(test_module, "_make_test_records"):
-		logger.warning("↺" + logstr)
+		logger.info("↺" + logstr)
 		testing_logger.info(
 			f" Made  + {index_doctype:<30} via {initial_doctype} through {test_module._make_test_records}"
 		)
@@ -189,12 +189,12 @@ def _generate_records_for(
 			test_records = load_test_records_for(index_doctype)
 
 		if not test_records:
-			logger.warning("➛ " + logstr + " (missing)")
+			logger.info("➛ " + logstr + " (missing)")
 			frappe.local.test_objects[index_doctype] = []  # avoid noisy retries on multiple invocations
 			print_mandatory_fields(index_doctype, initial_doctype)
 			return
 
-		logger.warning("↺ " + logstr)
+		logger.info("↺ " + logstr)
 		testing_logger.info(f" Synced  + {index_doctype:<30} via {initial_doctype}")
 
 		yield from _sync_records(index_doctype, test_records, reset=reset, commit=commit)

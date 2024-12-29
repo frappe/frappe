@@ -5,6 +5,7 @@ from strings.
 It provides a (slighltly modified) version of https://github.com/evuez/identicons
 which has been released under the MIT license, as described in attributions.md.
 """
+
 from base64 import b64encode
 from hashlib import md5
 from io import BytesIO

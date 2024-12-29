@@ -55,3 +55,6 @@ de9ac897482013f5464a05f3c171da0072619c3a
 
 # caching decorators docstrings indentation
 e9bbe03354079cfcef65a77b0c33f57b047a7c93
+
+# ruff update
+84ef6ec677c8657c3243ac456a1ef794bfb34a50

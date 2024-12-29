@@ -248,7 +248,7 @@ class TestCommands(BaseTestCommands):
 		global_config = {
 			"admin_password": frappe.conf.admin_password,
 			"root_login": frappe.conf.root_login,
-			"root_password": frappe.conf.root_password,
+			"root_password": frappe.conf.mariadb_root_password or frappe.conf.root_password,
 			"db_type": frappe.conf.db_type,
 		}
 		site_data = {"test_site": TEST_SITE, **global_config}
@@ -454,7 +454,7 @@ class TestCommands(BaseTestCommands):
 
 		# Reset it back to original password
 		original_password = frappe.conf.admin_password or "admin"
-		self.execute("bench --site {site} set-admin-password %s" % original_password)
+		self.execute("bench --site {{site}} set-admin-password {}".format(original_password))
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(check_password("Administrator", original_password), "Administrator")
 
@@ -519,7 +519,8 @@ class TestCommands(BaseTestCommands):
 
 	def test_set_global_conf(self):
 		key = "answer"
-		value = "42"
+		value = frappe.generate_hash()
+		_ = frappe.get_site_config()
 		self.execute(f"bench set-config {key} {value} -g")
 		conf = frappe.get_site_config()
 
@@ -637,6 +638,7 @@ class TestBackups(BaseTestCommands):
 				except OSError:
 					pass
 
+	@run_only_if(db_type_is.MARIADB)
 	def test_backup_no_options(self):
 		"""Take a backup without any options"""
 		before_backup = fetch_latest_backups(partial=True)

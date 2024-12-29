@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import gzip
 import json
+import resource
 from contextlib import suppress
 from typing import Any
 
@@ -33,6 +34,7 @@ class PreparedReport(Document):
 		error_message: DF.Text | None
 		filters: DF.SmallText | None
 		job_id: DF.Data | None
+		peak_memory_usage: DF.Int
 		queued_at: DF.Datetime | None
 		queued_by: DF.Data | None
 		report_end_time: DF.Datetime | None
@@ -119,6 +121,8 @@ def generate_report(prepared_report):
 		_save_error(instance, error=frappe.get_traceback(with_context=True))
 
 	instance.report_end_time = frappe.utils.now()
+	instance.peak_memory_usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+	add_data_to_monitor(peak_memory_usage=instance.peak_memory_usage)
 	instance.save(ignore_permissions=True)
 
 	frappe.publish_realtime(

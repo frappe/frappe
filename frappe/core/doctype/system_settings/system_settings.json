@@ -88,6 +88,7 @@
   "system_updates_section",
   "disable_system_update_notification",
   "disable_change_log_notification",
+  "hide_empty_read_only_fields",
   "backups_tab",
   "sec_backup_limit",
   "backup_limit",
@@ -692,12 +693,18 @@
    "fieldtype": "Link",
    "label": "Currency",
    "options": "Currency"
+  },
+  {
+   "default": "1",
+   "fieldname": "hide_empty_read_only_fields",
+   "fieldtype": "Check",
+   "label": "Hide Empty Read-Only Fields"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2024-11-04 15:51:39.954876",
+ "modified": "2024-12-03 16:23:09.410614",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

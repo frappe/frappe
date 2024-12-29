@@ -2,9 +2,10 @@
 # MIT License. See LICENSE
 
 """
-	Customize Form is a Single DocType used to mask the Property Setter
-	Thus providing a better UI from user perspective
+Customize Form is a Single DocType used to mask the Property Setter
+Thus providing a better UI from user perspective
 """
+
 import json
 
 import frappe

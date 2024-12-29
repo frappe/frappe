@@ -139,7 +139,7 @@ def load_conf_settings(bootinfo):
 	from frappe.core.api.file import get_max_file_size
 
 	bootinfo.max_file_size = get_max_file_size()
-	for key in ("developer_mode", "socketio_port", "file_watcher_port"):
+	for key in ("developer_mode", "socketio_port", "file_watcher_port", "fc_communication_secret"):
 		if key in frappe.conf:
 			bootinfo[key] = frappe.conf.get(key)
 
@@ -184,8 +184,10 @@ def load_desktop_data(bootinfo):
 				app_name=app_info.get("name") or app_name,
 				app_title=app_info.get("title")
 				or (
-					frappe.get_hooks("app_title", app_name=app_name)
-					and frappe.get_hooks("app_title", app_name=app_name)[0]
+					(
+						frappe.get_hooks("app_title", app_name=app_name)
+						and frappe.get_hooks("app_title", app_name=app_name)[0]
+					)
 					or ""
 				)
 				or app_name,

@@ -833,7 +833,7 @@ def get_site_info():
 	return json.loads(frappe.as_json(site_info))
 
 
-def parse_json(val):
+def parse_json(val: str):
 	"""
 	Parses json if string else return
 	"""

@@ -24,7 +24,7 @@ from frappe.model.naming import set_new_name, validate_name
 from frappe.model.utils import is_virtual_doctype, simple_singledispatch
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
 from frappe.types import DF, DocRef
-from frappe.utils import compare, cstr, date_diff, file_lock, flt, now
+from frappe.utils import compare, cstr, date_diff, file_lock, flt, get_table_name, now
 from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
 from frappe.utils.global_search import update_global_search
 
@@ -107,58 +107,42 @@ def get_doc_from_dict(data: dict[str, Any], **kwargs) -> "Document":
 	raise ImportError(data["doctype"])
 
 
+def read_only_guard(func):
+	"""Decorator to prevent document methods from being called in read-only mode"""
+
+	@wraps(func)
+	def wrapper(self, *args, **kwargs):
+		if getattr(frappe.local, "read_only_depth", 0) > 0:
+			# Allow Error Log inserts even in read-only mode
+			if self.doctype == "Error Log" and func.__name__ == "insert":
+				return func(self, *args, **kwargs)
+			error_msg = f"Cannot call {func.__name__} in read-only document mode"
+			if getattr(frappe.local, "read_only_context", None):
+				error_msg += f" ({frappe.local.read_only_context})"
+			raise frappe.DatabaseModificationError(error_msg)
+		return func(self, *args, **kwargs)
+
+	return wrapper
+
+
 @contextmanager
 def read_only_document(context=None):
-	# Store original methods
-	original_methods = {
-		"save": Document.save,
-		"_save": Document._save,
-		"insert": Document.insert,
-		"delete": Document.delete,
-		"submit": Document.submit,
-		"cancel": Document.cancel,
-		"db_set": Document.db_set,
-	}
-
-	def read_only_method(func):
-		@wraps(func)
-		def wrapper(self, *args, **kwargs):
-			if self.doctype == "Error Log" and func.__name__ == "insert":
-				return original_methods["insert"](self, *args, **kwargs)
-			error_msg = f"Cannot call {func.__name__} in read-only document mode"
-			if context:
-				error_msg += f" ({context})"
-			raise frappe.DatabaseModificationError(error_msg)
-
-		return wrapper
-
-	# Use a thread-local variable to track nested invocations
+	"""Context manager to prevent document modifications.
+	Uses thread-local state to track read-only mode."""
 	if not hasattr(frappe.local, "read_only_depth"):
 		frappe.local.read_only_depth = 0
 
+	frappe.local.read_only_depth += 1
+	if context:
+		frappe.local.read_only_context = context
+
 	try:
-		# Increment the depth counter
-		frappe.local.read_only_depth += 1
-
-		# Only apply read-only methods if this is the outermost invocation
-		if frappe.local.read_only_depth == 1:
-			# Replace methods with read-only versions
-			for method_name, method in original_methods.items():
-				setattr(Document, method_name, read_only_method(method))
-
 		yield
-
 	finally:
-		# Decrement the depth counter
 		frappe.local.read_only_depth -= 1
-
-		# Only restore original methods if this is the outermost invocation
 		if frappe.local.read_only_depth == 0:
-			# Restore original methods
-			for method_name, method in original_methods.items():
-				setattr(Document, method_name, method)
-
-			# Clean up the thread-local variable
+			if hasattr(frappe.local, "read_only_context"):
+				del frappe.local.read_only_context
 			del frappe.local.read_only_depth
 
 
@@ -248,13 +232,25 @@ class Document(BaseDocument, DocRef):
 			self._fix_numeric_types()
 
 		else:
-			get_value_kwargs = {"for_update": self.flags.for_update, "as_dict": True}
-			if not isinstance(self.name, dict | list):
-				get_value_kwargs["order_by"] = None
-
-			d = frappe.db.get_value(
-				doctype=self.doctype, filters=self.name, fieldname="*", **get_value_kwargs
-			)
+			if isinstance(self.name, str) and self.doctype != "DocType":
+				# Fast path - use raw SQL to avoid QB/ORM overheads.
+				d = frappe.db.sql(
+					"SELECT * FROM {table_name} WHERE `name` = %s {for_update}".format(
+						table_name=get_table_name(self.doctype, wrap_in_backticks=True),
+						for_update="FOR UPDATE" if self.flags.for_update else "",
+					),
+					(self.name),
+					as_dict=True,
+				)
+				d = d[0] if d else d
+			else:
+				d = frappe.db.get_value(
+					doctype=self.doctype,
+					filters=self.name,
+					fieldname="*",
+					for_update=self.flags.for_update,
+					as_dict=True,
+				)
 
 			if not d:
 				frappe.throw(
@@ -281,8 +277,10 @@ class Document(BaseDocument, DocRef):
 				self.set(df.fieldname, [])
 				continue
 
-			children = (
-				frappe.db.get_values(
+			if self.doctype == "DocType":
+				# This special handling is required because of bootstrapping code that doesn't
+				# handle failures correctly.
+				children = frappe.db.get_values(
 					df.options,
 					{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname},
 					"*",
@@ -290,10 +288,22 @@ class Document(BaseDocument, DocRef):
 					order_by="idx asc",
 					for_update=self.flags.for_update,
 				)
-				or []
-			)
+			else:
+				# Fast pass for all other doctypes - using raw SQL
+				children = frappe.db.sql(
+					"""SELECT * FROM {table_name}
+					WHERE `parent`= %(parent)s
+						AND `parenttype`= %(parenttype)s
+						AND `parentfield`= %(parentfield)s
+					ORDER BY `idx` ASC {for_update}""".format(
+						table_name=get_table_name(df.options, wrap_in_backticks=True),
+						for_update="FOR UPDATE" if self.flags.for_update else "",
+					),
+					{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname},
+					as_dict=True,
+				)
 
-			self.set(df.fieldname, children)
+			self.set(df.fieldname, children or [])
 
 		return self
 
@@ -337,6 +347,7 @@ class Document(BaseDocument, DocRef):
 		)
 		raise frappe.PermissionError
 
+	@read_only_guard
 	def insert(
 		self,
 		ignore_permissions=None,
@@ -407,6 +418,7 @@ class Document(BaseDocument, DocRef):
 		self.flags.in_insert = True
 
 		if self.get("amended_from"):
+			self.validate_amended_from()
 			self.copy_attachments_from_amended_from()
 
 		relink_mismatched_files(self)
@@ -430,10 +442,12 @@ class Document(BaseDocument, DocRef):
 		if self.creation and self.is_locked:
 			raise frappe.DocumentLockedError
 
+	@read_only_guard
 	def save(self, *args, **kwargs) -> "Self":
 		"""Wrapper for _save"""
 		return self._save(*args, **kwargs)
 
+	@read_only_guard
 	def _save(self, ignore_permissions=None, ignore_version=None) -> "Self":
 		"""Save the current document in the database in the **DocType**'s table or
 		`tabSingles` (for single types).
@@ -493,6 +507,13 @@ class Document(BaseDocument, DocRef):
 
 		return self
 
+	def validate_amended_from(self):
+		if frappe.db.get_value(self.doctype, self.get("amended_from"), "docstatus") != 2:
+			message = _(
+				"{0} cannot be amended because it is not cancelled. Please cancel the document before creating an amendment."
+			).format(frappe.utils.get_link_to_form(self.doctype, self.get("amended_from")))
+			frappe.throw(message, title=_("Amendment Not Allowed"))
+
 	def copy_attachments_from_amended_from(self):
 		"""Copy attachments from `amended_from`"""
 		from frappe.desk.form.load import get_attachments
@@ -523,7 +544,7 @@ class Document(BaseDocument, DocRef):
 
 	def update_child_table(self, fieldname: str, df: Optional["DocField"] = None):
 		"""sync child table for given fieldname"""
-		df: "DocField" = df or self.meta.get_field(fieldname)
+		df: DocField = df or self.meta.get_field(fieldname)
 		all_rows = self.get(df.fieldname)
 
 		# delete rows that do not match the ones in the document
@@ -690,7 +711,7 @@ class Document(BaseDocument, DocRef):
 		self._fix_rating_value()
 		self._validate_code_fields()
 		self._sync_autoname_field()
-		self._extract_images_from_text_editor()
+		self._extract_images_from_editor()
 		self._sanitize_content()
 		self._save_passwords()
 		self.validate_workflow()
@@ -703,7 +724,7 @@ class Document(BaseDocument, DocRef):
 			d._fix_rating_value()
 			d._validate_code_fields()
 			d._sync_autoname_field()
-			d._extract_images_from_text_editor()
+			d._extract_images_from_editor()
 			d._sanitize_content()
 			d._save_passwords()
 		if self.is_new():
@@ -1155,11 +1176,13 @@ class Document(BaseDocument, DocRef):
 		self.reload()
 
 	@frappe.whitelist()
+	@read_only_guard
 	def submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
 		return self._submit()
 
 	@frappe.whitelist()
+	@read_only_guard
 	def cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		return self._cancel()
@@ -1188,6 +1211,7 @@ class Document(BaseDocument, DocRef):
 		"""Rename the document to `name`. This transforms the current object."""
 		return self._rename(name=name, merge=merge, force=force, validate_rename=validate_rename)
 
+	@read_only_guard
 	def delete(self, ignore_permissions=False, force=False, *, delete_permanently=False):
 		"""Delete document."""
 		return frappe.delete_doc(
@@ -1311,6 +1335,7 @@ class Document(BaseDocument, DocRef):
 			data = {"doctype": self.doctype, "name": self.name, "user": frappe.session.user}
 			frappe.publish_realtime("list_update", data, after_commit=True)
 
+	@read_only_guard
 	def db_set(self, fieldname, value=None, update_modified=True, notify=False, commit=False):
 		"""Set a value in the document object, update the timestamp and update the database.
 
@@ -1516,8 +1541,17 @@ class Document(BaseDocument, DocRef):
 				for df in doc.meta.get("fields", {"fieldtype": ["in", ["Currency", "Float", "Percent"]]})
 			)
 
+		# PERF: flt internally has to resolve this if we don't specify it.
+		rounding_method = frappe.get_system_settings("rounding_method")
 		for fieldname in fieldnames:
-			doc.set(fieldname, flt(doc.get(fieldname), self.precision(fieldname, doc.get("parentfield"))))
+			doc.set(
+				fieldname,
+				flt(
+					doc.get(fieldname),
+					self.precision(fieldname, doc.get("parentfield")),
+					rounding_method=rounding_method,
+				),
+			)
 
 	def get_url(self):
 		"""Return Desk URL for this document."""
@@ -1726,8 +1760,16 @@ class Document(BaseDocument, DocRef):
 			return
 
 		if date_diff(to_date, from_date) < 0:
+			table_row = ""
+			if self.meta.istable:
+				table_row = _("{0} row #{1}: ").format(
+					_(frappe.unscrub(self.parentfield)),
+					self.idx,
+				)
+
 			frappe.throw(
-				_("{0} must be after {1}").format(
+				table_row
+				+ _("{0} must be after {1}").format(
 					frappe.bold(_(self.meta.get_label(to_date_field))),
 					frappe.bold(_(self.meta.get_label(from_date_field))),
 				),

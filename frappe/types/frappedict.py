@@ -16,35 +16,26 @@ class _dict(dict[_KT, _VT]):
 
 	__slots__ = ()
 
-	def __getattr__(self, k: str) -> _VT | None:
-		return super().get(k)  # type: ignore[arg-type]
+	# NOTE(perf): Do NOT use super() here, it's an unnecessary function call!
+	# Refer: https://github.com/frappe/frappe/pull/16449
 
-	@override
-	def __setattr__(self, k: str, v: _VT) -> None:
-		return super().__setitem__(k, v)  # type: ignore[index]
-
-	@override
-	def __delattr__(self, k: str):
-		return super().__delitem__(k)  # type: ignore[arg-type]
-
-	def __setstate__(self, m: Mapping[_KT, _VT]) -> None:
-		return super().update(m)
+	__getattr__ = dict.get
+	__setattr__ = dict.__setitem__
+	__delattr__ = dict.__delitem__
+	__setstate__ = dict.update
 
 	@override
 	def __getstate__(self) -> Self:
 		return self
 
 	@overload  # type: ignore[override]
-	def update(self, m: Mapping[_KT, _VT], /, **kwargs: _VT) -> Self:
-		...
+	def update(self, m: Mapping[_KT, _VT], /, **kwargs: _VT) -> Self: ...
 
 	@overload
-	def update(self, m: Iterable[tuple[_KT, _VT]], /, **kwargs: _VT) -> Self:
-		...
+	def update(self, m: Iterable[tuple[_KT, _VT]], /, **kwargs: _VT) -> Self: ...
 
 	@overload
-	def update(self, /, **kwargs: _VT) -> Self:
-		...
+	def update(self, /, **kwargs: _VT) -> Self: ...
 
 	@override
 	def update(

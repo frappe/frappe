@@ -4,7 +4,6 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 	static horizontal = false;
 	make_input() {
 		super.make_input();
-
 		this.$input_area.addClass("form-control table-multiselect");
 		this.$input.removeClass("form-control");
 
@@ -29,9 +28,30 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 
 			const value = decodeURIComponent($value.data().value);
 			const link_field = this.get_link_field();
-			this.rows = this.rows.filter((row) => row[link_field.fieldname] !== value);
+			this.rows = this.rows.filter((row) => {
+				if (row[link_field.fieldname] !== value) {
+					return row;
+				} else {
+					frappe.run_serially([
+						() => {
+							return this.frm.script_manager.trigger(
+								`before_${this.df.fieldname}_remove`,
+								this.df.options,
+								row.name
+							);
+						},
+						() => {
+							this.parse_validate_and_set_in_model("");
 
-			this.parse_validate_and_set_in_model("");
+							return this.frm.script_manager.trigger(
+								`${this.df.fieldname}_remove`,
+								this.df.options,
+								row.name
+							);
+						},
+					]);
+				}
+			});
 		});
 		this.$input_area.on("click", ".btn-link-to-form", (e) => {
 			const $target = $(e.currentTarget);
@@ -68,6 +88,12 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 				);
 				new_row[link_field.fieldname] = value;
 				this.rows = this.frm.doc[this.df.fieldname];
+
+				this.frm.script_manager.trigger(
+					`${this.df.fieldname}_add`,
+					this.df.options,
+					new_row.name
+				);
 			} else {
 				this.rows.push({
 					[link_field.fieldname]: value,
