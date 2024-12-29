@@ -58,7 +58,7 @@ def get_contact_number(contact_name, ref_doctype, ref_name):
 		(contact_name, ref_doctype, ref_name),
 	)
 
-	return number and (number[0][0] or number[0][1]) or ""
+	return (number and (number[0][0] or number[0][1])) or ""
 
 
 @frappe.whitelist()

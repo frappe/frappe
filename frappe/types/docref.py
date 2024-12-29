@@ -1,3 +1,5 @@
+from typing import Union
+
 from typing_extensions import override
 
 
@@ -13,8 +15,18 @@ class DocRef:
 		return self.name
 
 	@override
-	def __hash__(self) -> int:
-		return hash(self.doctype + self.name or "")
+	def __hash__(self: Union[type, "DocRef"]) -> int:
+		if isinstance(self, type):
+			raise TypeError("Only document instances can be hashed.")
+		try:
+			name = self.name
+		except AttributeError:
+			raise TypeError("Partially instantiated document instances can't be hashed.")
+		if name:
+			return hash(self.doctype + name)
+		raise TypeError(
+			f"Only named documents can be hashed; maybe the document ({self.doctype}) is unsaved."
+		)
 
 	@override
 	def __str__(self) -> str:

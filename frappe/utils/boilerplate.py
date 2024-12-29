@@ -66,7 +66,7 @@ def _get_user_inputs(app_name):
 		input_type = config.get("type", str)
 
 		while value is None:
-			if input_type == bool:
+			if input_type is bool:
 				value = click.confirm(config["prompt"], default=config.get("default"))
 			else:
 				value = click.prompt(config["prompt"], default=config.get("default"), type=input_type)
@@ -166,8 +166,14 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 	with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
 		f.write(frappe.as_unicode(license_body))
 
-	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "modules.txt"), "w") as f:
-		f.write(frappe.as_unicode(hooks.app_title))
+	with open(
+		os.path.join(dest, hooks.app_name, hooks.app_name, frappe.scrub(hooks.app_title), ".frappe"), "w"
+	) as f:
+		f.write("")
+
+	from frappe.deprecation_dumpster import boilerplate_modules_txt
+
+	boilerplate_modules_txt(dest, hooks.app_name, hooks.app_title)
 
 	# These values could contain quotes and can break string declarations
 	# So escaping them before setting variables in setup.py and hooks.py
@@ -458,6 +464,9 @@ app_license = "{app_license}"
 # automatically create page for each record of this doctype
 # website_generators = ["Web Page"]
 
+# automatically load and sync documents of this doctype from downstream apps
+# importable_doctypes = [doctype_1]
+
 # Jinja
 # ----------
 
@@ -632,16 +641,64 @@ app_license = "{app_license}"
 
 """
 
-gitignore_template = """.DS_Store
+gitignore_template = """# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
 *.pyc
-*.egg-info
-*.swp
-tags
-node_modules
-__pycache__"""
+*.py~
 
-github_workflow_template = """
-name: CI
+# Distribution / packaging
+.Python
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+tags
+MANIFEST
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# IDEs and editors
+.vscode/
+.vs/
+.idea/
+.kdev4/
+*.kdev4
+*.DS_Store
+*.swp
+*.comp.js
+.wnf-lang-status
+*debug.log
+
+# Helix Editor
+.helix/
+
+# Aider AI Chat
+.aider*
+"""
+
+github_workflow_template = """name: CI
 
 on:
   push:
@@ -827,8 +884,7 @@ ci:
     submodules: false
 """
 
-linter_workflow_template = """
-name: Linters
+linter_workflow_template = """name: Linters
 
 on:
   pull_request:
@@ -925,8 +981,7 @@ Pre-commit is configured to use the following tools for checking and formatting 
 {app_license}
 """
 
-readme_ci_section = """
-### CI
+readme_ci_section = """### CI
 
 This app can use GitHub Actions for CI. The following workflows are configured:
 

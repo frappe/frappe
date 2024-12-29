@@ -100,7 +100,7 @@ export default class ShortcutWidget extends Widget {
 		const label = get_label();
 		let color = this.color && count ? this.color.toLowerCase() : "gray";
 		$(
-			`<div class="indicator-pill no-indicator-dot ellipsis ${color}">${label}</div>`
+			`<div class="indicator-pill no-indicator-dot ellipsis ${color}">${__(label)}</div>`
 		).appendTo(this.action_area);
 
 		$(frappe.utils.icon("es-line-arrow-up-right", "xs", "", "", "ml-2")).appendTo(

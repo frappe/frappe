@@ -102,6 +102,14 @@
 .group-by-button {
 	margin: 5px;
 }
+
+.btn {
+	.button-label,
+	.button-icon {
+		display: inline-flex;
+		vertical-align: middle;
+	}
+}
 .group-by-icon.active {
 	--icon-stroke: var(--primary);
 }

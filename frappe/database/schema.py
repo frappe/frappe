@@ -5,7 +5,9 @@ from frappe import _
 from frappe.utils import cint, cstr, flt
 from frappe.utils.defaults import get_not_null_defaults
 
+# This matches anything that isn't [a-zA-Z0-9_]
 SPECIAL_CHAR_PATTERN = re.compile(r"[\W]", flags=re.UNICODE)
+
 VARCHAR_CAST_PATTERN = re.compile(r"varchar\(([\d]+)\)")
 
 

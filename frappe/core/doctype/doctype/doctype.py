@@ -193,7 +193,6 @@ class DocType(Document):
 		self.validate_name()
 
 		self.set_defaults_for_single_and_table()
-		self.set_defaults_for_autoincremented()
 		self.scrub_field_names()
 		self.set_default_in_list_view()
 		self.set_default_translatable()
@@ -278,10 +277,6 @@ class DocType(Document):
 		elif self.istable:
 			self.allow_import = 0
 			self.permissions = []
-
-	def set_defaults_for_autoincremented(self):
-		if self.autoname and self.autoname == "autoincrement":
-			self.allow_rename = 0
 
 	def set_default_in_list_view(self):
 		"""Set default in-list-view for first 4 mandatory fields"""
@@ -520,7 +515,7 @@ class DocType(Document):
 			self.setup_autoincrement_and_sequence()
 
 		try:
-			frappe.db.updatedb(self.name, Meta(self))
+			frappe.db.updatedb(self.name, Meta(None, bootstrap=self))
 		except Exception as e:
 			print(f"\n\nThere was an issue while migrating the DocType: {self.name}\n")
 			raise e
@@ -1008,7 +1003,7 @@ class DocType(Document):
 	def get_max_idx(self):
 		"""Return the highest `idx`."""
 		max_idx = frappe.db.sql("""select max(idx) from `tabDocField` where parent = %s""", self.name)
-		return max_idx and max_idx[0][0] or 0
+		return (max_idx and max_idx[0][0]) or 0
 
 	def validate_name(self, name=None):
 		if not name:
@@ -1090,6 +1085,12 @@ def validate_series(dt, autoname=None, name=None):
 					df.unique = 1
 					break
 
+	if autoname and autoname.startswith("format:"):
+		from frappe.model.naming import BRACED_PARAMS_HASH_PATTERN
+
+		if len(BRACED_PARAMS_HASH_PATTERN.findall(autoname)) > 1:
+			frappe.throw(_("Only one set of {#} pattern is allowed in the format string"))
+
 	if (
 		autoname
 		and (not autoname.startswith("field:"))
@@ -1147,10 +1148,8 @@ def validate_autoincrement_autoname(dt: Union[DocType, "CustomizeForm"]) -> bool
 		autoname_before_save = get_autoname_before_save(dt)
 		is_autoname_autoincrement = dt.autoname == "autoincrement"
 
-		if (
-			is_autoname_autoincrement
-			and autoname_before_save != "autoincrement"
-			or (not is_autoname_autoincrement and autoname_before_save == "autoincrement")
+		if (is_autoname_autoincrement and autoname_before_save != "autoincrement") or (
+			not is_autoname_autoincrement and autoname_before_save == "autoincrement"
 		):
 			if dt.doctype == "Customize Form":
 				frappe.throw(_("Cannot change to/from autoincrement autoname in Customize Form"))
@@ -1277,7 +1276,7 @@ def validate_fields(meta: Meta):
 
 	def check_unique_fieldname(docname, fieldname):
 		duplicates = list(
-			filter(None, map(lambda df: df.fieldname == fieldname and str(df.idx) or None, fields))
+			filter(None, map(lambda df: (df.fieldname == fieldname and str(df.idx)) or None, fields))
 		)
 		if len(duplicates) > 1:
 			frappe.throw(

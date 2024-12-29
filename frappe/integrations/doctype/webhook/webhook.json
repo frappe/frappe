@@ -130,7 +130,7 @@
    "fieldname": "webhook_json",
    "fieldtype": "Code",
    "label": "JSON Request Body",
-   "options": "JSON"
+   "options": "Jinja"
   },
   {
    "fieldname": "sb_security",
@@ -189,7 +189,7 @@
    "link_fieldname": "webhook"
   }
  ],
- "modified": "2024-07-22 09:23:32.642172",
+ "modified": "2024-10-28 12:21:52.172428",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",

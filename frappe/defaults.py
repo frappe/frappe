@@ -31,7 +31,7 @@ def get_user_default(key, user=None):
 				# If no default value is found, use the User Permission value
 				d = user_permission_default
 
-	value = isinstance(d, list | tuple) and d[0] or d
+	value = (isinstance(d, list | tuple) and d[0]) or d
 	if not_in_user_permission(key, value, user):
 		return
 
@@ -68,7 +68,7 @@ def get_user_default_as_list(key, user=None):
 		else:
 			d = user_defaults.get(frappe.scrub(key), None)
 
-	d = list(filter(None, (not isinstance(d, list | tuple)) and [d] or d))
+	d = list(filter(None, ((not isinstance(d, list | tuple)) and [d]) or d))
 
 	# filter default values if not found in user permission
 	return [value for value in d if not not_in_user_permission(key, value)]
@@ -135,7 +135,7 @@ def add_global_default(key, value):
 def get_global_default(key):
 	d = get_defaults().get(key, None)
 
-	value = isinstance(d, list | tuple) and d[0] or d
+	value = (isinstance(d, list | tuple) and d[0]) or d
 	if not_in_user_permission(key, value):
 		return
 

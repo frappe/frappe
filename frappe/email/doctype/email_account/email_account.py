@@ -101,6 +101,7 @@ class EmailAccount(Document):
 		password: DF.Password | None
 		send_notification_to: DF.SmallText | None
 		send_unsubscribe_message: DF.Check
+		sent_folder_name: DF.Data | None
 		service: DF.Literal[
 			"", "Frappe Mail", "GMail", "Sendgrid", "SparkPost", "Yahoo Mail", "Outlook.com", "Yandex.Mail"
 		]
@@ -774,7 +775,10 @@ class EmailAccount(Document):
 		try:
 			email_server = self.get_incoming_server(in_receive=True)
 			message = safe_encode(message)
-			email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message)
+			sent_folder_name = self.sent_folder_name or "Sent"
+			email_server.imap.append(
+				sent_folder_name, "\\Seen", imaplib.Time2Internaldate(time.time()), message
+			)
 		except Exception:
 			self.log_error("Unable to add to Sent folder")
 
@@ -1034,3 +1038,11 @@ def set_email_password(email_account, password):
 			return False
 
 	return True
+
+
+def on_doctype_update() -> None:
+	frappe.db.add_unique(
+		"Email Account",
+		["email_id", "enable_incoming", "enable_outgoing"],
+		constraint_name="unique_email_account_type",
+	)

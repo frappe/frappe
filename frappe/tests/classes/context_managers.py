@@ -2,7 +2,6 @@ import logging
 from collections.abc import Callable
 from contextlib import contextmanager
 from functools import wraps
-from inspect import isfunction, ismethod
 from typing import TYPE_CHECKING, Any
 
 import frappe
@@ -28,15 +27,18 @@ logger = logging.Logger(__file__)
 @contextmanager
 def freeze_time(time_to_freeze: Any, is_utc: bool = False, *args: Any, **kwargs: Any) -> None:
 	"""Temporarily: freeze time with freezegun."""
-	import pytz
+	from datetime import UTC
+	from zoneinfo import ZoneInfo
+
 	from freezegun import freeze_time as freezegun_freeze_time
 
 	from frappe.utils.data import get_datetime, get_system_timezone
 
 	if not is_utc:
 		# Freeze time expects UTC or tzaware objects. We have neither, so convert to UTC.
-		timezone = pytz.timezone(get_system_timezone())
-		time_to_freeze = timezone.localize(get_datetime(time_to_freeze)).astimezone(pytz.utc)
+		time_to_freeze = (
+			get_datetime(time_to_freeze).replace(tzinfo=ZoneInfo(get_system_timezone())).astimezone(UTC)
+		)
 
 	with freezegun_freeze_time(time_to_freeze, *args, **kwargs):
 		yield
@@ -107,6 +109,7 @@ def switch_site(site: str) -> None:
 	frappe.init(site, force=True)
 	frappe.connect()
 	yield
+	frappe.destroy()
 	frappe.init(old_site, force=True)
 	frappe.connect()
 
@@ -261,14 +264,14 @@ def trace_fields(
 # these can be general purpose context managers who do NOT depend on a particular
 # test class setup, such as for example the IntegrationTestCase's connection to site
 __all__ = [
-	"freeze_time",
-	"set_user",
-	"patch_hooks",
 	"change_settings",
-	"switch_site",
-	"enable_safe_exec",
 	"debug_on",
-	"timeout_context",
+	"enable_safe_exec",
+	"freeze_time",
+	"patch_hooks",
+	"set_user",
+	"switch_site",
 	"timeout",
+	"timeout_context",
 	"trace_fields",
 ]

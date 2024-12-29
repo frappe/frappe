@@ -730,13 +730,12 @@ Tip: use lucide.svg in /icons for all downloaded icons
 		<path d="M14.2271 6.59087C15.3567 6.59087 16.2725 5.6751 16.2725 4.54544C16.2725 3.41577 15.3567 2.5 14.2271 2.5C13.0974 2.5 12.1816 3.41577 12.1816 4.54544C12.1816 5.6751 13.0974 6.59087 14.2271 6.59087Z" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
 
-	<symbol viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" id="icon-reply">
-		<path d="M8.55263 15.3307L1.78113 9.49965L8.55263 4.04483V7.47368V7.97829L9.05722 7.97366C13.1526 7.93609 16.6082 10.8388 17.3522 14.7145C15.3383 12.5107 12.327 11.4474 9.05263 11.4474H8.55263V11.9474V15.3307Z" stroke-miterlimit="10" stroke-linecap="round" />
+	<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="icon-reply">
+		<polyline points="9 17 4 12 9 7" />  <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
 	</symbol>
 
-	<symbol viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" id="icon-reply-all">
-		<path d="M10.5589 14.8213L4.693 9.77014L10.5589 5.04483V7.97057V8.47518L11.0635 8.47055C14.6022 8.43809 17.598 10.8976 18.3297 14.213C16.5316 12.3421 13.9036 11.4411 11.0589 11.4411H10.5589V11.9411V14.8213Z" stroke-miterlimit="10" />
-		<path d="M8.14703 15.9117L1 9.75733L8.14703 4" stroke-miterlimit="10" />
+	<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="icon-reply-all">
+		<polyline points="7 17 2 12 7 7" />  <polyline points="12 17 7 12 12 7" />  <path d="M22 18v-2a4 4 0 0 0-4-4H7" />
 	</symbol>
 
 	<symbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="icon-printer">

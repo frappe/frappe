@@ -77,7 +77,7 @@ def get_language(lang_list: list | None = None) -> str:
 			return parent_language
 
 	# fallback to language set in System Settings or "en"
-	return frappe.db.get_default("lang") or "en"
+	return frappe.get_system_settings("language") or "en"
 
 
 @functools.lru_cache
@@ -100,7 +100,7 @@ def get_user_lang(user: str | None = None) -> str:
 	# User.language => Session Defaults => frappe.local.lang => 'en'
 	return (
 		frappe.get_cached_value("User", user, "language")
-		or frappe.db.get_default("lang")
+		or frappe.get_system_settings("language")
 		or frappe.local.lang
 		or "en"
 	)
@@ -130,6 +130,16 @@ def get_messages_for_boot():
 	"""Return all message translations that are required on boot."""
 
 	return get_all_translations(frappe.local.lang)
+
+
+@frappe.whitelist(allow_guest=True)
+def get_app_translations():
+	if frappe.session.user != "Guest":
+		language = frappe.db.get_value("User", frappe.session.user, "language")
+	else:
+		language = frappe.db.get_single_value("System Settings", "language")
+
+	return get_all_translations(language)
 
 
 def get_all_translations(lang: str) -> dict[str, str]:
@@ -471,8 +481,8 @@ def get_messages_from_report(name):
 	)
 
 	if report.columns:
-		context = (
-			"Column of report '%s'" % report.name
+		context = "Column of report '{}'".format(
+			report.name
 		)  # context has to match context in `prepare_columns` in query_report.js
 		messages.extend([(None, report_column.label, context) for report_column in report.columns])
 

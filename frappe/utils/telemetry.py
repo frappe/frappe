@@ -1,8 +1,9 @@
-""" Basic telemetry for improving apps.
+"""Basic telemetry for improving apps.
 
 WARNING: Everything in this file should be treated "internal" and is subjected to change or get
 removed without any warning.
 """
+
 from contextlib import suppress
 
 import frappe

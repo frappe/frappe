@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Built on Frappe. https://frappeframework.com/ -->
-<html lang="{{boot.lang}}">
+<html lang="{{boot.lang}}" dir="{{ 'rtl' if is_rtl() else 'ltr' }}">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -95,7 +95,7 @@
 	{% block base_scripts %}
 	<!-- js should be loaded in body! -->
 	<script>
-		frappe.boot = {{ boot }}
+		frappe.boot = {{ boot | json }}
 		// for backward compatibility of some libs
 		frappe.sys_defaults = frappe.boot.sysdefaults;
 	</script>

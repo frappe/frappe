@@ -50,7 +50,7 @@ def setup_complete(args):
 	if cint(frappe.db.get_single_value("System Settings", "setup_complete")):
 		return {"status": "ok"}
 
-	args = parse_args(args)
+	args = parse_args(sanitize_input(args))
 	stages = get_setup_stages(args)
 	is_background_task = frappe.conf.get("trigger_site_setup_in_background")
 
@@ -176,6 +176,7 @@ def update_system_settings(args):  # nosemgrep
 			"country": args.get("country"),
 			"language": get_language_code(args.get("language")) or "en",
 			"time_zone": args.get("timezone"),
+			"currency": args.get("currency"),
 			"float_precision": 3,
 			"rounding_method": "Banker's Rounding",
 			"date_format": frappe.db.get_value("Country", args.get("country"), "date_format"),
@@ -248,6 +249,19 @@ def parse_args(args):  # nosemgrep
 	for key, value in args.items():
 		if isinstance(value, str):
 			args[key] = strip(value)
+
+	return args
+
+
+def sanitize_input(args):
+	from frappe.utils import is_html, strip_html_tags
+
+	if isinstance(args, str):
+		args = json.loads(args)
+
+	for key, value in args.items():
+		if is_html(value):
+			args[key] = strip_html_tags(value)
 
 	return args
 

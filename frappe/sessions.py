@@ -6,6 +6,7 @@ Boot session from cache or build
 Session bootstraps info needed by common client side activities including
 permission, homepage, default variables, system defaults etc
 """
+
 import json
 from urllib.parse import unquote
 
@@ -97,7 +98,6 @@ def delete_session(sid=None, user=None, reason="Session Expired"):
 	frappe.db.commit()
 
 	frappe.cache.hdel("session", sid)
-	frappe.cache.hdel("last_db_session_update", sid)
 
 
 def clear_all_sessions(reason=None):
@@ -202,7 +202,7 @@ def generate_csrf_token():
 
 
 class Session:
-	__slots__ = ("user", "user_type", "full_name", "data", "time_diff", "sid", "_update_in_cache")
+	__slots__ = ("_update_in_cache", "data", "full_name", "sid", "time_diff", "user", "user_type")
 
 	def __init__(self, user, resume=False, full_name=None, user_type=None):
 		self.sid = cstr(frappe.form_dict.get("sid") or unquote(frappe.request.cookies.get("sid", "Guest")))
@@ -390,7 +390,7 @@ class Session:
 		Sessions = frappe.qb.DocType("Sessions")
 
 		# update session in db
-		last_updated = frappe.cache.hget("last_db_session_update", self.sid)
+		last_updated = self.data.data.last_updated
 		time_diff = frappe.utils.time_diff_in_seconds(now, last_updated) if last_updated else None
 
 		# database persistence is secondary, don't update it too often
@@ -413,8 +413,6 @@ class Session:
 
 			frappe.db.commit()
 			updated_in_db = True
-
-			frappe.cache.hset("last_db_session_update", self.sid, now)
 			frappe.cache.hset("session", self.sid, self.data)
 
 		return updated_in_db
@@ -450,7 +448,7 @@ def get_expired_threshold():
 
 
 def get_expiry_period():
-	exp_sec = frappe.defaults.get_global_default("session_expiry") or "240:00:00"
+	exp_sec = frappe.get_system_settings("session_expiry") or "240:00:00"
 
 	# incase seconds is missing
 	if len(exp_sec.split(":")) == 2:

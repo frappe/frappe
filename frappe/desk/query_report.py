@@ -39,18 +39,18 @@ def get_report_doc(report_name):
 
 	if not doc.is_permitted():
 		frappe.throw(
-			_("You don't have access to Report: {0}").format(report_name),
+			_("You don't have access to Report: {0}").format(_(report_name)),
 			frappe.PermissionError,
 		)
 
 	if not frappe.has_permission(doc.ref_doctype, "report"):
 		frappe.throw(
-			_("You don't have permission to get a report on: {0}").format(doc.ref_doctype),
+			_("You don't have permission to get a report on: {0}").format(_(doc.ref_doctype)),
 			frappe.PermissionError,
 		)
 
 	if doc.disabled:
-		frappe.throw(_("Report {0} is disabled").format(report_name))
+		frappe.throw(_("Report {0} is disabled").format(_(report_name)))
 
 	return doc
 
@@ -165,7 +165,7 @@ def get_script(report_name):
 		script += f"\n\n//# sourceURL={scrub(report.name)}__custom"
 
 	if not script:
-		script = "frappe.query_reports['%s']={}" % report_name
+		script = "frappe.query_reports['{}']={{}}".format(report_name)
 
 	return {
 		"script": render_include(script),
@@ -195,10 +195,10 @@ def run(
 	parent_field=None,
 	are_default_filters=True,
 ):
-	validate_filters_permissions(report_name, filters, user)
-	report = get_report_doc(report_name)
 	if not user:
 		user = frappe.session.user
+	validate_filters_permissions(report_name, filters, user)
+	report = get_report_doc(report_name)
 	if not frappe.has_permission(report.ref_doctype, "report"):
 		frappe.msgprint(
 			_("Must have report permission to access this report."),
@@ -516,7 +516,7 @@ def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):
 @frappe.whitelist()
 def get_data_for_custom_field(doctype, field, names=None):
 	if not frappe.has_permission(doctype, "read"):
-		frappe.throw(_("Not Permitted to read {0}").format(doctype), frappe.PermissionError)
+		frappe.throw(_("Not Permitted to read {0}").format(_(doctype)), frappe.PermissionError)
 
 	filters = {}
 	if names:
@@ -586,7 +586,7 @@ def save_report(reference_report, report_name, columns, filters):
 				"reference_report": reference_report,
 			}
 		).insert(ignore_permissions=True)
-		frappe.msgprint(_("{0} saved successfully").format(new_report.name))
+		frappe.msgprint(_("{0} saved successfully").format(_(new_report.name)))
 		return new_report.name
 
 
@@ -799,7 +799,11 @@ def validate_filters_permissions(report_name, filters=None, user=None):
 	for field in report.filters:
 		if field.fieldname in filters and field.fieldtype == "Link":
 			linked_doctype = field.options
-			if not has_permission(doctype=linked_doctype, doc=filters[field.fieldname], user=user):
+			if not has_permission(
+				doctype=linked_doctype, ptype="read", doc=filters[field.fieldname], user=user
+			) and not has_permission(
+				doctype=linked_doctype, ptype="select", doc=filters[field.fieldname], user=user
+			):
 				frappe.throw(
 					_("You do not have permission to access {0}: {1}.").format(
 						linked_doctype, filters[field.fieldname]

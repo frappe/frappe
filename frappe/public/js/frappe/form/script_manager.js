@@ -214,6 +214,7 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 					"Float",
 					"Int",
 					"Date",
+					"Datetime",
 					"Select",
 					"Duration",
 					"Time",

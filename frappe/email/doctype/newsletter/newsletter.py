@@ -147,6 +147,9 @@ class Newsletter(WebsiteGenerator):
 			frappe.throw(_("Newsletter must be published to send webview link in email"))
 
 	def validate_scheduling_date(self):
+		if getattr(frappe.flags, "is_scheduler_running", False):
+			return
+
 		if (
 			self.schedule_sending
 			and frappe.utils.get_datetime(self.schedule_send) < frappe.utils.now_datetime()
@@ -394,6 +397,8 @@ def get_list_context(context=None):
 
 def send_scheduled_email():
 	"""Send scheduled newsletter to the recipients."""
+	frappe.flags.is_scheduler_running = True
+
 	scheduled_newsletter = frappe.get_all(
 		"Newsletter",
 		filters={
@@ -419,6 +424,8 @@ def send_scheduled_email():
 
 		if not frappe.flags.in_test:
 			frappe.db.commit()
+
+	frappe.flags.is_scheduler_running = False
 
 
 @frappe.whitelist(allow_guest=True)

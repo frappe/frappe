@@ -23,7 +23,8 @@ if TYPE_CHECKING:
 
 
 NAMING_SERIES_PATTERN = re.compile(r"^[\w\- \/.#{}]+$", re.UNICODE)
-BRACED_PARAMS_PATTERN = re.compile(r"(\{[\w | #]+\})")
+BRACED_PARAMS_WORD_PATTERN = re.compile(r"(\{[\w]+\})")
+BRACED_PARAMS_HASH_PATTERN = re.compile(r"(\{[#]+\})")
 
 
 # Types that can be using in naming series fields
@@ -280,8 +281,7 @@ def make_autoname(key="", doctype="", doc="", *, ignore_validate=False):
 	                DE/09/01/00001 where 09 is the year, 01 is the month and 00001 is the series
 	"""
 	if key == "hash":
-		# Makeshift "ULID": first 4 chars are based on timestamp, other 6 are random
-		return _get_timestamp_prefix() + _generate_random_string(6)
+		return _generate_random_string(10)
 
 	series = NamingSeries(key)
 	return series.generate_next_name(doc, ignore_validate=ignore_validate)
@@ -315,6 +315,7 @@ def parse_naming_series(
 	doctype=None,
 	doc: Optional["Document"] = None,
 	number_generator: Callable[[str, int], str] | None = None,
+	key: str | None = None,
 ) -> str:
 	"""Parse the naming series and get next name.
 
@@ -342,7 +343,10 @@ def parse_naming_series(
 		if e.startswith("#"):
 			if not series_set:
 				digits = len(e)
-				part = number_generator(name, digits)
+				if key:
+					part = number_generator(key, digits)
+				else:
+					part = number_generator(name, digits)
 				series_set = True
 		elif e == "YY":
 			part = today.strftime("%y")
@@ -576,11 +580,19 @@ def _format_autoname(autoname: str, doc):
 	first_colon_index = autoname.find(":")
 	autoname_value = autoname[first_colon_index + 1 :]
 
-	def get_param_value_for_match(match):
+	def get_param_value_for_word_match(match):
 		param = match.group()
 		return parse_naming_series([param[1:-1]], doc=doc)
 
-	# Replace braced params with their parsed value
-	name = BRACED_PARAMS_PATTERN.sub(get_param_value_for_match, autoname_value)
+	def get_param_value_for_hash_match(patterned_string: str):
+		def get_param_value(match):
+			param = match.group()
+			key = patterned_string[: patterned_string.find(param)]
 
-	return name
+			return parse_naming_series([param[1:-1]], doc=doc, key=key)
+
+		return get_param_value
+
+	# Replace braced params with their parsed value
+	autoname_value = BRACED_PARAMS_WORD_PATTERN.sub(get_param_value_for_word_match, autoname_value)
+	return BRACED_PARAMS_HASH_PATTERN.sub(get_param_value_for_hash_match(autoname_value), autoname_value)

@@ -1,13 +1,12 @@
 from datetime import datetime
 from typing import Any
 from urllib.parse import urljoin
-
-import pytz
+from zoneinfo import ZoneInfo
 
 import frappe
 from frappe import _
 from frappe.frappeclient import FrappeClient, FrappeOAuth2Client
-from frappe.utils import convert_utc_to_system_timezone, get_datetime, get_datetime_str, get_system_timezone
+from frappe.utils import convert_utc_to_system_timezone, get_datetime, get_system_timezone
 
 
 class FrappeMail:
@@ -62,9 +61,9 @@ class FrappeMail:
 		params: dict | None = None,
 		data: dict | None = None,
 		json: dict | None = None,
+		files: dict | None = None,
 		headers: dict[str, str] | None = None,
 		timeout: int | tuple[int, int] = (60, 120),
-		raise_exception: bool = True,
 	) -> Any | None:
 		"""Makes a request to the Frappe Mail API."""
 
@@ -73,8 +72,18 @@ class FrappeMail:
 		headers = headers or {}
 		headers.update(self.client.headers)
 
+		if files:
+			headers.pop("content-type", None)
+
 		response = self.client.session.request(
-			method=method, url=url, params=params, data=data, json=json, headers=headers, timeout=timeout
+			method=method,
+			url=url,
+			params=params,
+			data=data,
+			json=json,
+			files=files,
+			headers=headers,
+			timeout=timeout,
 		)
 
 		return self.client.post_process(response)
@@ -82,28 +91,23 @@ class FrappeMail:
 	def validate(self, for_outbound: bool = False, for_inbound: bool = False) -> None:
 		"""Validates the mailbox for inbound and outbound emails."""
 
-		endpoint = "/api/method/mail.api.auth.validate"
+		endpoint = "/api/method/mail_client.api.auth.validate"
 		data = {"mailbox": self.mailbox, "for_outbound": for_outbound, "for_inbound": for_inbound}
 		self.request("POST", endpoint=endpoint, data=data)
 
-	def send_raw(self, sender: str, recipients: str | list, message: str) -> None:
+	def send_raw(
+		self, sender: str, recipients: str | list, message: str | bytes, is_newsletter: bool = False
+	) -> None:
 		"""Sends an email using the Frappe Mail API."""
 
-		endpoint = "/api/method/mail.api.outbound.send_raw"
-		data = {"from_": sender, "to": recipients, "raw_message": message}
-		self.request("POST", endpoint=endpoint, data=data)
+		endpoint = "/api/method/mail_client.api.outbound.send_raw"
+		data = {"from_": sender, "to": recipients, "is_newsletter": is_newsletter}
+		self.request("POST", endpoint=endpoint, data=data, files={"raw_message": message})
 
-	def send_newsletter(self, sender: str, recipients: str | list, message: str) -> None:
-		"""Sends an newsletter using the Frappe Mail API."""
-
-		endpoint = "/api/method/mail.api.outbound.send_newsletter"
-		data = {"from_": sender, "to": recipients, "raw_message": message}
-		self.request("POST", endpoint=endpoint, json=data)
-
-	def pull_raw(self, limit: int = 50, last_synced_at: str | None = None) -> dict[str, list[str] | str]:
+	def pull_raw(self, limit: int = 50, last_synced_at: str | None = None) -> dict[str, str | list[str]]:
 		"""Pulls emails from the mailbox using the Frappe Mail API."""
 
-		endpoint = "/api/method/mail.api.inbound.pull_raw"
+		endpoint = "/api/method/mail_client.api.inbound.pull_raw"
 		if last_synced_at:
 			last_synced_at = add_or_update_tzinfo(last_synced_at)
 
@@ -117,12 +121,11 @@ class FrappeMail:
 
 def add_or_update_tzinfo(date_time: datetime | str, timezone: str | None = None) -> str:
 	"""Adds or updates timezone to the datetime."""
-
 	date_time = get_datetime(date_time)
-	target_tz = pytz.timezone(timezone or get_system_timezone())
+	target_tz = ZoneInfo(timezone or get_system_timezone())
 
 	if date_time.tzinfo is None:
-		date_time = target_tz.localize(date_time)
+		date_time = date_time.replace(tzinfo=target_tz)
 	else:
 		date_time = date_time.astimezone(target_tz)
 

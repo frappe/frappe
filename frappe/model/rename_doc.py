@@ -11,7 +11,7 @@ from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.model.naming import validate_name
 from frappe.model.utils.user_settings import sync_user_settings, update_user_settings_data
 from frappe.query_builder import Field
-from frappe.utils.data import sbool
+from frappe.utils.data import cint, cstr, sbool
 from frappe.utils.password import rename_password
 from frappe.utils.scheduler import is_scheduler_inactive
 
@@ -118,8 +118,8 @@ def update_document_title(
 
 def rename_doc(
 	doctype: str | None = None,
-	old: str | None = None,
-	new: str | None = None,
+	old: str | int | None = None,
+	new: str | int | None = None,
 	force: bool = False,
 	merge: bool = False,
 	ignore_permissions: bool = False,
@@ -156,6 +156,10 @@ def rename_doc(
 	force = sbool(force)
 	merge = sbool(merge)
 	meta = frappe.get_meta(doctype)
+
+	if meta.naming_rule == "Autoincrement":
+		old = cint(old)
+		new = cint(new)
 
 	if validate:
 		old_doc = doc or frappe.get_doc(doctype, old)
@@ -283,7 +287,7 @@ def update_user_settings(old: str, new: str, link_fields: list[dict]) -> None:
 	user_settings_details = (
 		frappe.qb.from_(UserSettings)
 		.select("user", "doctype", "data")
-		.where(UserSettings.data.like(old) & UserSettings.doctype.isin(linked_doctypes))
+		.where(UserSettings.data.like(cstr(old)) & UserSettings.doctype.isin(linked_doctypes))
 		.run(as_dict=True)
 	)
 
@@ -350,8 +354,8 @@ def update_autoname_field(doctype: str, new: str, meta: "Meta") -> None:
 
 def validate_rename(
 	doctype: str,
-	old: str,
-	new: str,
+	old: str | int,
+	new: str | int,
 	meta: "Meta",
 	merge: bool,
 	force: bool = False,
@@ -386,10 +390,15 @@ def validate_rename(
 
 	kwargs = {"doctype": doctype, "ptype": "write", "print_logs": False}
 	if old_doc:
-		kwargs |= {"doc": old_doc}
+		kwargs["doc"] = old_doc
 
 	if not (ignore_permissions or frappe.permissions.has_permission(**kwargs)):
-		frappe.throw(_("You need write permission to rename"))
+		frappe.throw(_("You need write permission on {0} {1} to rename").format(doctype, old))
+
+	if merge:
+		kwargs["doc"] = frappe.get_doc(doctype, new)
+		if not (ignore_permissions or frappe.permissions.has_permission(**kwargs)):
+			frappe.throw(_("You need write permission on {0} {1} to merge").format(doctype, new))
 
 	if not force and not ignore_permissions and not meta.allow_rename:
 		frappe.throw(_("{0} not allowed to be renamed").format(_(doctype)))
@@ -434,6 +443,7 @@ def update_link_field_values(link_fields: list[dict], old: str, new: str, doctyp
 					# update single docs using ORM rather then query
 					# as single docs also sometimes sets defaults!
 					single_doc.flags.ignore_mandatory = True
+					single_doc.flags.ignore_links = True
 					single_doc.save(ignore_permissions=True)
 			except ImportError:
 				# fails in patches where the doctype has been renamed
@@ -453,7 +463,9 @@ def update_link_field_values(link_fields: list[dict], old: str, new: str, doctyp
 			if parent == new and doctype == "DocType":
 				parent = old
 
-			frappe.db.set_value(parent, {docfield: old}, docfield, new, update_modified=False)
+			# when a document with autoincrement naming is renamed, the old and new values are int
+			# but link field values are always stored as varchar, so casting the values to string
+			frappe.db.set_value(parent, {docfield: cstr(old)}, docfield, cstr(new), update_modified=False)
 
 		# update cached link_fields as per new
 		if doctype == "DocType" and field["parent"] == old:

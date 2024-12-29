@@ -43,7 +43,7 @@ def get_not_null_defaults(column_type: str) -> Literal["", 0] | None:
 	}
 	data_type = column_type_map.get(column_type.replace(" ", ""), str)
 	# data_type = eval(f"frappe.types.DF.{column_type.replace(' ', '')}")
-	if data_type == str:
+	if data_type is str:
 		return ""
 	if data_type in (int, float):
 		return 0

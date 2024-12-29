@@ -51,6 +51,7 @@
   "imap_folder",
   "section_break_12",
   "append_emails_to_sent_folder",
+  "sent_folder_name",
   "append_to",
   "create_contact",
   "enable_automatic_linking",
@@ -95,8 +96,7 @@
    "in_list_view": 1,
    "label": "Email Address",
    "options": "Email",
-   "reqd": 1,
-   "unique": 1
+   "reqd": 1
   },
   {
    "default": "0",
@@ -692,12 +692,19 @@
    "fieldname": "backend_app_flow",
    "fieldtype": "Check",
    "label": "Authenticate as Service Principal"
+  },
+  {
+   "depends_on": "eval:!doc.domain && doc.enable_outgoing && doc.enable_incoming && doc.use_imap",
+   "fetch_from": "domain.sent_folder_name",
+   "fieldname": "sent_folder_name",
+   "fieldtype": "Data",
+   "label": "Sent Folder Name"
   }
  ],
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-07-18 11:05:57.193762",
+ "modified": "2024-12-04 23:30:37.622353",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",
