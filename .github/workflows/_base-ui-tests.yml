@@ -63,7 +63,8 @@ jobs:
         env:
           MARIADB_ROOT_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
     steps:
-      - uses: frappe/frappe/.github/actions/setup@develop
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
         name: Environment Setup
         with:
           python-version: ${{ inputs.python-version }}

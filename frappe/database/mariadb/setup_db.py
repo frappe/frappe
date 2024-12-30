@@ -106,12 +106,12 @@ def check_compatible_versions():
 
 		if version_tuple < (10, 6):
 			click.secho(
-				f"Warning: MariaDB version {version} is less than 10.6 which is not supported by Frappe",
+				f"Warning: MariaDB version {version} is older than 10.6 which is not supported by Frappe",
 				fg="yellow",
 			)
-		elif version_tuple >= (10, 9):
+		elif version_tuple > (11, 3):
 			click.secho(
-				f"Warning: MariaDB version {version} is more than 10.8 which is not yet tested with Frappe Framework.",
+				f"Warning: MariaDB version {version} is newer than 11.3 which is not yet tested with Frappe Framework.",
 				fg="yellow",
 			)
 	except Exception:

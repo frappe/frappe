@@ -23,6 +23,8 @@ from frappe.utils import cstr, scrub_urls
 from frappe.utils.caching import redis_cache
 from frappe.utils.jinja_globals import bundled_asset, is_rtl
 
+cssutils.log.setLog(frappe.logger("cssutils"))
+
 PDF_CONTENT_ERRORS = [
 	"ContentNotFoundError",
 	"ContentOperationNotPermittedError",

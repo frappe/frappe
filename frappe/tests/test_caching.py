@@ -110,6 +110,7 @@ class TestRedisCache(FrappeAPITestCase):
 		self.assertEqual(function_call_count, 1)
 
 		time.sleep(CACHE_TTL * 1.5)
+		frappe.local.cache.clear()
 		self.assertEqual(calculate_area(10), 314)
 		self.assertEqual(function_call_count, 2)
 

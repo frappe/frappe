@@ -18,6 +18,7 @@ from frappe.model import (
 	table_fields,
 )
 from frappe.model.docstatus import DocStatus
+from frappe.model.dynamic_links import invalidate_distinct_link_doctypes
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
@@ -176,6 +177,11 @@ class BaseDocument:
 		state.pop("meta", None)
 		state.pop("permitted_fieldnames", None)
 		state.pop("_parent_doc", None)
+		state.pop("flags", None)
+
+	def __setstate__(self, state):
+		self.__dict__ = state
+		self.flags = _dict()
 
 	def update(self, d):
 		"""Update multiple fields of a doctype using a dictionary of key-value pairs.
@@ -813,6 +819,7 @@ class BaseDocument:
 					doctype = self.get(df.options)
 					if not doctype:
 						frappe.throw(_("{0} must be set first").format(self.meta.get_label(df.options)))
+					invalidate_distinct_link_doctypes(df.parent, df.options, doctype)
 
 				# MySQL is case insensitive. Preserve case of the original docname in the Link Field.
 
@@ -1316,11 +1323,11 @@ class BaseDocument:
 	def cast(self, value, df):
 		return cast_fieldtype(df.fieldtype, value, show_warning=False)
 
-	def _extract_images_from_text_editor(self):
+	def _extract_images_from_editor(self):
 		from frappe.core.doctype.file.utils import extract_images_from_doc
 
 		if self.doctype != "DocType":
-			for df in self.meta.get("fields", {"fieldtype": ("=", "Text Editor")}):
+			for df in self.meta.get("fields", {"fieldtype": ("in", ("Text Editor", "HTML Editor"))}):
 				extract_images_from_doc(self, df.fieldname)
 
 

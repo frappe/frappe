@@ -1,8 +1,7 @@
 from datetime import datetime
 from typing import Any
 from urllib.parse import urljoin
-
-import pytz
+from zoneinfo import ZoneInfo
 
 import frappe
 from frappe import _
@@ -122,12 +121,11 @@ class FrappeMail:
 
 def add_or_update_tzinfo(date_time: datetime | str, timezone: str | None = None) -> str:
 	"""Adds or updates timezone to the datetime."""
-
 	date_time = get_datetime(date_time)
-	target_tz = pytz.timezone(timezone or get_system_timezone())
+	target_tz = ZoneInfo(timezone or get_system_timezone())
 
 	if date_time.tzinfo is None:
-		date_time = target_tz.localize(date_time)
+		date_time = date_time.replace(tzinfo=target_tz)
 	else:
 		date_time = date_time.astimezone(target_tz)
 

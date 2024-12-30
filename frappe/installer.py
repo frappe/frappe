@@ -600,6 +600,7 @@ def make_site_config(
 
 def update_site_config(key, value, validate=True, site_config_path=None):
 	"""Update a value in site_config"""
+	from frappe.config import clear_site_config_cache
 	from frappe.utils.synchronization import filelock
 
 	if not site_config_path:
@@ -610,6 +611,7 @@ def update_site_config(key, value, validate=True, site_config_path=None):
 
 	with filelock("site_config", is_global=_is_global_conf):
 		_update_config_file(key=key, value=value, config_file=site_config_path)
+		clear_site_config_cache()
 
 
 def _update_config_file(key: str, value, config_file: str):

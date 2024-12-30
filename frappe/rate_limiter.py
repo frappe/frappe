@@ -1,11 +1,10 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import datetime
+import time
 from collections.abc import Callable
 from functools import wraps
 
-import pytz
 from werkzeug.wrappers import Response
 
 import frappe
@@ -31,16 +30,35 @@ def respond():
 
 
 class RateLimiter:
+	__slots__ = (
+		"counter",
+		"duration",
+		"end",
+		"key",
+		"limit",
+		"rejected",
+		"remaining",
+		"reset",
+		"spent",
+		"start",
+		"window",
+		"window_number",
+	)
+
 	def __init__(self, limit, window):
 		self.limit = int(limit * 1000000)
 		self.window = window
 
-		self.start = datetime.datetime.now(pytz.UTC)
-		timestamp = int(frappe.utils.now_datetime().timestamp())
+		self.start = time.time()
 
-		self.window_number, self.spent = divmod(timestamp, self.window)
+		self.window_number, self.spent = divmod(int(self.start), self.window)
 		self.key = frappe.cache.make_key(f"rate-limit-counter-{self.window_number}")
 		self.counter = cint(frappe.cache.get(self.key))
+		if not self.counter:
+			# This is the first request in this window
+			frappe.cache.incrby(self.key, 0)
+			frappe.cache.expire(self.key, self.window)
+
 		self.remaining = max(self.limit - self.counter, 0)
 		self.reset = self.window - self.spent
 
@@ -58,10 +76,7 @@ class RateLimiter:
 
 	def update(self):
 		self.record_request_end()
-		pipeline = frappe.cache.pipeline()
-		pipeline.incrby(self.key, self.duration)
-		pipeline.expire(self.key, self.window)
-		pipeline.execute()
+		frappe.cache.incrby(self.key, self.duration)
 
 	def headers(self):
 		self.record_request_end()
@@ -72,16 +87,14 @@ class RateLimiter:
 		}
 		if self.rejected:
 			headers["Retry-After"] = self.reset
-		else:
-			headers["X-RateLimit-Used"] = self.duration
 
 		return headers
 
 	def record_request_end(self):
 		if self.end is not None:
 			return
-		self.end = datetime.datetime.now(pytz.UTC)
-		self.duration = int((self.end - self.start).total_seconds() * 1000000)
+		self.end = time.time()
+		self.duration = int((self.end - self.start) * 1000000)
 
 	def respond(self):
 		if self.rejected:

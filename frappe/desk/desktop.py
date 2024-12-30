@@ -571,7 +571,8 @@ def get_custom_report_list(module):
 
 
 def save_new_widget(doc, page, blocks, new_widgets):
-	if loads(new_widgets):
+	widgets = _dict()
+	if new_widgets:
 		widgets = _dict(loads(new_widgets))
 
 		if widgets.chart:

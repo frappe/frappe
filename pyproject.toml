@@ -64,6 +64,9 @@ dependencies = [
     "setproctitle~=1.3.3",
     "requests-oauthlib~=1.3.1",
     "requests~=2.32.0",
+    # We depend on internal attributes of RQ.
+    # Do NOT add loose requirements on RQ versions.
+    # Audit the code changes w.r.t. background_jobs.py before updating.
     "rq==1.16.2",
     "rsa>=4.1",
     "semantic-version~=2.10.0",

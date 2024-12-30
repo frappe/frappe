@@ -519,7 +519,8 @@ class TestCommands(BaseTestCommands):
 
 	def test_set_global_conf(self):
 		key = "answer"
-		value = "42"
+		value = frappe.generate_hash()
+		_ = frappe.get_site_config()
 		self.execute(f"bench set-config {key} {value} -g")
 		conf = frappe.get_site_config()
 
@@ -637,6 +638,7 @@ class TestBackups(BaseTestCommands):
 				except OSError:
 					pass
 
+	@run_only_if(db_type_is.MARIADB)
 	def test_backup_no_options(self):
 		"""Take a backup without any options"""
 		before_backup = fetch_latest_backups(partial=True)

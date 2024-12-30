@@ -144,7 +144,7 @@ async function update_assets_json_from_built_assets(apps) {
 	const assets = await get_assets_json_path_and_obj(false);
 	const assets_rtl = await get_assets_json_path_and_obj(true);
 
-	for (const app in apps) {
+	for (const app of apps) {
 		await update_assets_obj(app, assets.obj, assets_rtl.obj);
 	}
 

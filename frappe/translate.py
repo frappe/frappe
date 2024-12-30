@@ -77,7 +77,7 @@ def get_language(lang_list: list | None = None) -> str:
 			return parent_language
 
 	# fallback to language set in System Settings or "en"
-	return frappe.db.get_default("lang") or "en"
+	return frappe.get_system_settings("language") or "en"
 
 
 @functools.lru_cache
@@ -100,7 +100,7 @@ def get_user_lang(user: str | None = None) -> str:
 	# User.language => Session Defaults => frappe.local.lang => 'en'
 	return (
 		frappe.get_cached_value("User", user, "language")
-		or frappe.db.get_default("lang")
+		or frappe.get_system_settings("language")
 		or frappe.local.lang
 		or "en"
 	)

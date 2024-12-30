@@ -582,7 +582,7 @@ Run the following in your first cell to connect notebook to frappe
 import frappe
 frappe.init('{site}', sites_path='{sites_path}')
 frappe.connect()
-frappe.local.lang = frappe.db.get_default('lang')
+frappe.local.lang = frappe.get_system_settings('language')
 frappe.db.connect()
 ```
 	"""
@@ -623,7 +623,7 @@ def console(context: CliCtxObj, autoreload=False):
 	site = get_site(context)
 	frappe.init(site)
 	frappe.connect()
-	frappe.local.lang = frappe.db.get_default("lang")
+	frappe.local.lang = frappe.get_system_settings("language")
 
 	from atexit import register
 

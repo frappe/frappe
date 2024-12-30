@@ -202,7 +202,7 @@ def decrypt(txt, encryption_key=None, key: str | None = None):
 			+ _("Encryption key is invalid! Please check site_config.json")
 			+ "<br><br>"
 			+ _(
-				"If you have recently restored the site you may need to copy the site config contaning original Encryption Key."
+				"If you have recently restored the site, you may need to copy the site_config.json containing the original encryption key."
 			)
 			+ "<br><br>"
 			+ _(

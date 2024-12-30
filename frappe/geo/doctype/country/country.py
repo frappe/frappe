@@ -1,7 +1,10 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import pycountry
+
 import frappe
+from frappe import _
 from frappe.model.document import Document, bulk_insert
 
 
@@ -14,7 +17,7 @@ class Country(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		code: DF.Data | None
+		code: DF.Data
 		country_name: DF.Data
 		date_format: DF.Data | None
 		time_format: DF.Data | None
@@ -22,7 +25,16 @@ class Country(Document):
 	# end: auto-generated types
 
 	# NOTE: During installation country docs are bulk inserted.
-	pass
+
+	def validate(self):
+		error_msg = _("{0} is not a valid ISO 3166 ALPHA-2 code.").format(self.code)
+		try:
+			country = pycountry.countries.lookup(self.code)
+		except LookupError:
+			frappe.throw(error_msg)
+
+		if country.alpha_2 != self.code.upper():
+			frappe.throw(error_msg)
 
 
 def import_country_and_currency():

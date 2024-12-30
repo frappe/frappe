@@ -1,20 +1,18 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. Check LICENSE
 
-import datetime
-import json
+import time
 from collections import defaultdict
 from collections.abc import Callable
+from contextlib import suppress
 from functools import wraps
-
-import pytz
 
 import frappe
 
-_SITE_CACHE = defaultdict(lambda: defaultdict(dict))
+_SITE_CACHE = defaultdict(dict)
 
 
-def __generate_request_cache_key(args: tuple, kwargs: dict):
+def __generate_request_cache_key(args: tuple, kwargs: dict) -> int:
 	"""Generate a key for the cache."""
 	if not kwargs:
 		return hash(args)
@@ -51,21 +49,19 @@ def request_cache(func: Callable) -> Callable:
 
 	@wraps(func)
 	def wrapper(*args, **kwargs):
-		if not getattr(frappe.local, "initialised", None):
+		_cache = getattr(frappe.local, "request_cache", None)
+		if _cache is None:
 			return func(*args, **kwargs)
-		if not hasattr(frappe.local, "request_cache"):
-			frappe.local.request_cache = defaultdict(dict)
-
 		try:
 			args_key = __generate_request_cache_key(args, kwargs)
 		except Exception:
 			return func(*args, **kwargs)
 
 		try:
-			return frappe.local.request_cache[func][args_key]
+			return _cache[func][args_key]
 		except KeyError:
 			return_val = func(*args, **kwargs)
-			frappe.local.request_cache[func][args_key] = return_val
+			_cache[func][args_key] = return_val
 			return return_val
 
 	return wrapper
@@ -115,31 +111,45 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 
 		if ttl is not None and not callable(ttl):
 			func.ttl = ttl
-			func.expiration = datetime.datetime.now(pytz.UTC) + datetime.timedelta(seconds=func.ttl)
+			func.expiration = time.monotonic() + func.ttl
 
 		if maxsize is not None and not callable(maxsize):
 			func.maxsize = maxsize
 
 		@wraps(func)
 		def site_cache_wrapper(*args, **kwargs):
-			if getattr(frappe.local, "initialised", None):
-				func_call_key = json.dumps((args, kwargs))
+			site = getattr(frappe.local, "site", None)
+			if not site:
+				return func(*args, **kwargs)
 
-				if hasattr(func, "ttl") and datetime.datetime.now(pytz.UTC) >= func.expiration:
-					func.clear_cache()
-					func.expiration = datetime.datetime.now(pytz.UTC) + datetime.timedelta(seconds=func.ttl)
+			arguments_key = f"{site}::{__generate_request_cache_key(args, kwargs)}"
 
-				if hasattr(func, "maxsize") and len(_SITE_CACHE[func_key][frappe.local.site]) >= func.maxsize:
-					_SITE_CACHE[func_key][frappe.local.site].pop(
-						next(iter(_SITE_CACHE[func_key][frappe.local.site])), None
-					)
+			if hasattr(func, "ttl") and time.monotonic() >= func.expiration:
+				func.clear_cache()
+				func.expiration = time.monotonic() + func.ttl
 
-				if func_call_key not in _SITE_CACHE[func_key][frappe.local.site]:
-					_SITE_CACHE[func_key][frappe.local.site][func_call_key] = func(*args, **kwargs)
+			# NOTE: Important things to consider from thread safety POV:
+			#   1. Other thread can issue clear_cache and delete entire dictionary.
+			#   2. Other thread can pop the exact elemement we are reading if maxsize is hit.
 
-				return _SITE_CACHE[func_key][frappe.local.site][func_call_key]
+			# NOTE: Keep a local reference to dictionary of interest so it doesn't get swapped
+			function_cache = _SITE_CACHE[func_key]
 
-			return func(*args, **kwargs)
+			try:
+				return function_cache[arguments_key]
+			except (KeyError, RuntimeError):
+				# NOTE: This is just a cache miss or dictionary was modified while reading it
+				pass
+
+			if hasattr(func, "maxsize") and len(function_cache) >= func.maxsize:
+				# Note: This implements FIFO eviction policy
+				with suppress(RuntimeError):
+					function_cache.pop(next(iter(function_cache)), None)
+
+			result = func(*args, **kwargs)
+			function_cache[arguments_key] = result
+
+			return result
 
 		return site_cache_wrapper
 
@@ -170,8 +180,15 @@ def redis_cache(ttl: int | None = 3600, user: str | bool | None = None, shared: 
 		@wraps(func)
 		def redis_cache_wrapper(*args, **kwargs):
 			func_call_key = func_key + "::" + str(__generate_request_cache_key(args, kwargs))
+			cached_val = frappe.cache.get_value(func_call_key, user=user, shared=shared)
+			if cached_val is not None:
+				return cached_val
+
+			# Edge Case: None can mean two things: cache miss or the result itself is `None`
+			# RedisWrapper doesn't give us any way to handle this cleanly.
 			if frappe.cache.exists(func_call_key, user=user, shared=shared):
-				return frappe.cache.get_value(func_call_key, user=user, shared=shared)
+				return None
+
 			val = func(*args, **kwargs)
 			ttl = getattr(func, "ttl", 3600)
 			frappe.cache.set_value(func_call_key, val, expires_in_sec=ttl, user=user, shared=shared)
