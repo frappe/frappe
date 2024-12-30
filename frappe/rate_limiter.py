@@ -54,6 +54,11 @@ class RateLimiter:
 		self.window_number, self.spent = divmod(int(self.start), self.window)
 		self.key = frappe.cache.make_key(f"rate-limit-counter-{self.window_number}")
 		self.counter = cint(frappe.cache.get(self.key))
+		if not self.counter:
+			# This is the first request in this window
+			frappe.cache.incrby(self.key, 0)
+			frappe.cache.expire(self.key, self.window)
+
 		self.remaining = max(self.limit - self.counter, 0)
 		self.reset = self.window - self.spent
 

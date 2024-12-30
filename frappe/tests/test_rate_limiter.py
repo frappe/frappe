@@ -108,3 +108,12 @@ class TestRateLimiter(IntegrationTestCase):
 		self.assertEqual(limiter.duration, cint(frappe.cache.get(limiter.key)))
 
 		frappe.cache.delete(limiter.key)
+
+	def test_window_expires(self):
+		limiter = RateLimiter(1000, 1)
+		self.assertTrue(frappe.cache.exists(limiter.key, shared=True))
+		limiter.update()
+		self.assertTrue(frappe.cache.exists(limiter.key, shared=True))
+		time.sleep(1.1)
+		self.assertFalse(frappe.cache.exists(limiter.key, shared=True))
+		frappe.cache.delete(limiter.key)
