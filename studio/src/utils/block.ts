@@ -91,7 +91,14 @@ class Block implements BlockOptions {
 		if (index === -1) return
 
 		if (child.isSlotBlock()) {
-			(this.getSlotContent(child.parentSlotName!) as Block[]).splice(index, 1)
+			let slotContent = this.getSlotContent(child.parentSlotName!)
+			if (!Array.isArray(slotContent)) return
+
+			if (slotContent.length === 1) {
+				this.updateSlot(child.parentSlotName!, "")
+			} else {
+				slotContent.splice(index, 1)
+			}
 		} else {
 			this.children.splice(index, 1)
 		}
