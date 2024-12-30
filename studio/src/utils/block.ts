@@ -427,6 +427,7 @@ class Block implements BlockOptions {
 			const childBlock = reactive(new Block(content))
 			slotContent.splice(index, 0, childBlock)
 			childBlock.selectBlock()
+			return childBlock
 		}
 	}
 

@@ -63,9 +63,13 @@ const contextMenuOptions: ContextMenuOption[] = [
 	{
 		label: "Wrap In Container",
 		action: () => {
-			const newBlockObj = getComponentBlock("FitContainer")
 			const parentBlock = props.block.getParentBlock()
 			if (!parentBlock) return
+
+			const newBlockObj = getComponentBlock("FitContainer")
+			if (props.block.isSlotBlock()) {
+				newBlockObj.parentSlotName = props.block.parentSlotName
+			}
 
 			const selectedBlocks = store.selectedBlocks || []
 			const blockPosition = Math.min(...selectedBlocks.map(parentBlock.getChildIndex.bind(parentBlock)))
@@ -77,6 +81,9 @@ const contextMenuOptions: ContextMenuOption[] = [
 				.sort((a, b) => parentBlock.getChildIndex(a) - parentBlock.getChildIndex(b))
 				.forEach((block) => {
 					parentBlock?.removeChild(block)
+					if (block.parentSlotName) {
+						delete block.parentSlotName
+					}
 					newBlock?.addChild(block)
 					if (!width) {
 						const blockWidth = block.getStyle("width") as string | undefined
