@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-12-29 17:34+0000\n"
-"PO-Revision-Date: 2024-12-29 21:29\n"
+"PO-Revision-Date: 2024-12-30 21:53\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -29391,7 +29391,7 @@ msgstr "ردیف های اضافه شده برای {0}"
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "adjust"
-msgstr "تنظیم کنید"
+msgstr "adjust"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -29401,12 +29401,12 @@ msgstr "after_insert"
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "align-center"
-msgstr "تراز-مرکز"
+msgstr "align-center"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "align-justify"
-msgstr "تراز کردن-توجیه کردن"
+msgstr "align-justify"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
@@ -29837,12 +29837,12 @@ msgstr "پرچم"
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "folder-close"
-msgstr "پوشه بستن"
+msgstr "folder-close"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "folder-open"
-msgstr "پوشه باز"
+msgstr "folder-open"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
