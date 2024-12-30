@@ -71,10 +71,7 @@ class RateLimiter:
 
 	def update(self):
 		self.record_request_end()
-		pipeline = frappe.cache.pipeline(transaction=False)
-		pipeline.incrby(self.key, self.duration)
-		pipeline.expire(self.key, self.window)
-		pipeline.execute()
+		frappe.cache.incrby(self.key, self.duration)
 
 	def headers(self):
 		self.record_request_end()
