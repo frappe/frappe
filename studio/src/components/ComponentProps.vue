@@ -38,12 +38,22 @@
 					class="flex w-full flex-row justify-between"
 				>
 					<div class="flex w-full cursor-pointer items-start justify-between gap-2">
-						<InlineInput
-							:label="name"
-							type="textarea"
-							:modelValue="slot.slotContent"
-							@update:modelValue="(slotContent) => block?.updateSlot(name, slotContent)"
-						/>
+						<div class="relative w-full">
+							<InlineInput
+								:label="name"
+								type="textarea"
+								:modelValue="getSlotContent(slot)"
+								@update:modelValue="(slotContent) => block?.updateSlot(name, slotContent)"
+							/>
+							<Badge
+								v-if="Array.isArray(slot.slotContent)"
+								variant="subtle"
+								theme="blue"
+								class="absolute right-5 top-4 -translate-y-1/2"
+							>
+								Component Tree
+							</Badge>
+						</div>
 						<Button variant="outline" size="sm" icon="x" @click="block?.removeSlot(name)" />
 					</div>
 				</div>
@@ -63,7 +73,7 @@ import Block from "@/utils/block"
 import { getComponentProps, getComponentSlots } from "@/utils/components"
 import InlineInput from "@/components/InlineInput.vue"
 import EmptyState from "@/components/EmptyState.vue"
-import type { SelectOption } from "@/types"
+import type { SelectOption, SlotOptions } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
 
 const props = defineProps<{
@@ -115,5 +125,12 @@ const updateAvailableSlots = async () => {
 	componentSlots.value = slots
 		.filter((slot) => !(slot.name in (props.block?.componentSlots || [])))
 		.map((slot) => slot.name)
+}
+
+const getSlotContent = (slot: SlotOptions) => {
+	if (!slot.slotContent) return ""
+	else if (typeof slot.slotContent === "string") return slot.slotContent
+	// hack to show the clear button for slot blocks
+	return " "
 }
 </script>

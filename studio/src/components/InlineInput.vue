@@ -46,7 +46,6 @@
 		<Input
 			v-else
 			:type="type"
-			placeholder="unset"
 			:modelValue="modelValue"
 			:options="inputOptions"
 			@update:modelValue="handleChange"
