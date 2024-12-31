@@ -30,8 +30,6 @@ def optimize_all():
 	optimize_gc_parameters()
 	optimize_gc_for_copy_on_write()
 	optimize_for_gil_contention()
-	register_fault_handler()
-	os.register_at_fork(after_in_child=register_fault_handler)
 
 
 def optimize_gc_parameters():

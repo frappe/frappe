@@ -279,6 +279,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 	if not _one_time_setup.get(local.conf.db_type):
 		patch_query_execute()
 		patch_query_aggregation()
+		frappe._optimizations.register_fault_handler()
 		_one_time_setup[local.conf.db_type] = True
 
 	setup_module_map(include_all_apps=not (frappe.request or frappe.job or frappe.flags.in_migrate))
