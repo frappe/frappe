@@ -258,7 +258,7 @@ export default class GridRow {
 			).appendTo(this.row);
 
 			this.row_index = $(
-				`<div class="row-index sortable-handle col">
+				`<div class="row-index sortable-handle grid-static-col col">
 					<span>${txt}</span>
 				</div>`
 			)
