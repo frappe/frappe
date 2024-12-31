@@ -9,7 +9,6 @@
 		@mouseover="handleMouseOver"
 		@mouseleave="handleMouseLeave"
 		@click="handleClick"
-		@contextmenu="triggerContextMenu($event)"
 		ref="componentRef"
 	>
 		<!-- Dynamically render named slots -->
@@ -73,7 +72,6 @@
 		@mouseover="handleMouseOver"
 		@mouseleave="handleMouseLeave"
 		@click="handleClick"
-		@contextmenu="triggerContextMenu($event)"
 		ref="componentRef"
 	/>
 
@@ -200,19 +198,6 @@ const handleClick = (e: MouseEvent) => {
 
 	e.stopPropagation()
 	e.preventDefault()
-}
-
-const triggerContextMenu = (e: MouseEvent) => {
-	if (props.block.isRoot()) return
-	e.stopPropagation()
-	e.preventDefault()
-
-	const block = getClickedComponent(e) || props.block
-	store.selectBlock(block, e)
-
-	nextTick(() => {
-		editor.value?.element.dispatchEvent(new MouseEvent("contextmenu", e))
-	})
 }
 
 watch(

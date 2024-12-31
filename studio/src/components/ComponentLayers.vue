@@ -12,89 +12,85 @@
 		>
 			<template #item="{ element }">
 				<div>
-					<ComponentContextMenu v-slot="{ onContextMenu }" :block="element" :editable="false">
-						<div
-							:data-component-layer-id="element.componentId"
-							:title="element.componentId"
-							class="min-w-24 cursor-pointer overflow-hidden rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700"
-							@contextmenu.prevent.stop="onContextMenu"
-							@click.stop="store.selectBlock(element, $event, false)"
-							@mouseover.stop="handleMouseOver(element)"
-							@mouseleave="store.hoveredBlock = null"
+					<div
+						:data-component-layer-id="element.componentId"
+						:title="element.componentId"
+						class="min-w-24 cursor-pointer overflow-hidden rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700"
+						@click.stop="store.selectBlock(element, $event, false)"
+						@mouseover.stop="handleMouseOver(element)"
+						@mouseleave="store.hoveredBlock = null"
+					>
+						<span
+							class="group my-[7px] flex items-center gap-1.5 pr-[2px] font-medium"
+							:style="{ paddingLeft: `${indent}px` }"
+							:class="{
+								'!opacity-50': !element.isVisible(),
+							}"
 						>
+							<FeatherIcon
+								v-if="isExpandable(element)"
+								:name="isExpanded(element) ? 'chevron-down' : 'chevron-right'"
+								class="h-3 w-3"
+								@click.stop="toggleExpanded(element)"
+							/>
+							<LucideIcon :name="element.getIcon()" class="h-3 w-3" />
 							<span
-								class="group my-[7px] flex items-center gap-1.5 pr-[2px] font-medium"
-								:style="{ paddingLeft: `${indent}px` }"
-								:class="{
-									'!opacity-50': !element.isVisible(),
-								}"
+								class="min-h-[1em] min-w-[2em] truncate"
+								:contenteditable="element.editable"
+								:title="element.blockId"
+								@dblclick="element.editable = true"
+								@keydown.enter.stop.prevent="element.editable = false"
+								@blur="setBlockName($event, element)"
 							>
-								<FeatherIcon
-									v-if="isExpandable(element)"
-									:name="isExpanded(element) ? 'chevron-down' : 'chevron-right'"
-									class="h-3 w-3"
-									@click.stop="toggleExpanded(element)"
-								/>
-								<LucideIcon :name="element.getIcon()" class="h-3 w-3" />
-								<span
-									class="min-h-[1em] min-w-[2em] truncate"
-									:contenteditable="element.editable"
-									:title="element.blockId"
-									@dblclick="element.editable = true"
-									@keydown.enter.stop.prevent="element.editable = false"
-									@blur="setBlockName($event, element)"
-								>
-									{{ element.getBlockDescription() }}
-								</span>
-
-								<!-- toggle visibility -->
-								<FeatherIcon
-									v-if="!element.isRoot()"
-									:name="element.isVisible() ? 'eye' : 'eye-off'"
-									class="ml-auto mr-2 hidden h-3 w-3 group-hover:block"
-									@click.stop="element.toggleVisibility()"
-								/>
-								<span v-if="element.isRoot()" class="ml-auto mr-2 text-sm capitalize text-gray-500">
-									{{ store.activeBreakpoint }}
-								</span>
+								{{ element.getBlockDescription() }}
 							</span>
-							<div v-show="canShowChildLayer(element)">
-								<ComponentLayers :blocks="element.children" ref="childLayer" :indent="childIndent" />
-							</div>
 
-							<div v-show="canShowSlotLayer(element)">
+							<!-- toggle visibility -->
+							<FeatherIcon
+								v-if="!element.isRoot()"
+								:name="element.isVisible() ? 'eye' : 'eye-off'"
+								class="ml-auto mr-2 hidden h-3 w-3 group-hover:block"
+								@click.stop="element.toggleVisibility()"
+							/>
+							<span v-if="element.isRoot()" class="ml-auto mr-2 text-sm capitalize text-gray-500">
+								{{ store.activeBreakpoint }}
+							</span>
+						</span>
+						<div v-show="canShowChildLayer(element)">
+							<ComponentLayers :blocks="element.children" ref="childLayer" :indent="childIndent" />
+						</div>
+
+						<div v-show="canShowSlotLayer(element)">
+							<div
+								v-for="(slot, slotName) in element.componentSlots"
+								:key="slot.slotId"
+								:data-slot-layer-id="slot.slotId"
+								:title="slot.slotName"
+								class="min-w-24 cursor-pointer overflow-hidden rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700"
+								@click.stop="store.selectSlot(slot)"
+							>
 								<div
-									v-for="(slot, slotName) in element.componentSlots"
-									:key="slot.slotId"
-									:data-slot-layer-id="slot.slotId"
-									:title="slot.slotName"
-									class="min-w-24 cursor-pointer overflow-hidden rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700"
-									@contextmenu.prevent.stop="onContextMenu"
-									@click.stop="store.selectSlot(slot)"
+									class="group my-[7px] flex items-center gap-1.5 pr-[2px] font-medium"
+									:style="{ paddingLeft: `${childIndent}px` }"
 								>
-									<div
-										class="group my-[7px] flex items-center gap-1.5 pr-[2px] font-medium"
-										:style="{ paddingLeft: `${childIndent}px` }"
-									>
-										<FeatherIcon
-											v-if="isSlotExpandable(slot)"
-											:name="isSlotExpanded(slot) ? 'chevron-down' : 'chevron-right'"
-											class="h-3 w-3"
-											@click.stop="toggleSlotExpanded(slot)"
-										/>
-										<SlotIcon class="h-3 w-3" />
-										<span class="min-h-[1em] min-w-[2em] truncate" :title="slot.slotName">
-											#{{ slotName }}
-										</span>
-									</div>
+									<FeatherIcon
+										v-if="isSlotExpandable(slot)"
+										:name="isSlotExpanded(slot) ? 'chevron-down' : 'chevron-right'"
+										class="h-3 w-3"
+										@click.stop="toggleSlotExpanded(slot)"
+									/>
+									<SlotIcon class="h-3 w-3" />
+									<span class="min-h-[1em] min-w-[2em] truncate" :title="slot.slotName">
+										#{{ slotName }}
+									</span>
+								</div>
 
-									<div v-if="Array.isArray(slot.slotContent) && isSlotExpanded(slot)">
-										<ComponentLayers :blocks="slot.slotContent" ref="slotLayer" :indent="slotIndent" />
-									</div>
+								<div v-if="Array.isArray(slot.slotContent) && isSlotExpanded(slot)">
+									<ComponentLayers :blocks="slot.slotContent" ref="slotLayer" :indent="slotIndent" />
 								</div>
 							</div>
 						</div>
-					</ComponentContextMenu>
+					</div>
 				</div>
 			</template>
 		</Draggable>
@@ -107,7 +103,6 @@ import { FeatherIcon } from "frappe-ui"
 import Draggable from "vuedraggable"
 
 import ComponentLayers from "@/components/ComponentLayers.vue"
-import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 
 import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"

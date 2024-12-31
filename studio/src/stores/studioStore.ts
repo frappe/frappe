@@ -22,7 +22,8 @@ import Block from "@/utils/block"
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Resource } from "@/types/Studio/StudioResource"
-import { LeftPanelOptions, RightPanelOptions, SlotConfig, SlotOptions } from "@/types"
+import { LeftPanelOptions, RightPanelOptions, SlotOptions } from "@/types"
+import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 
 const useStudioStore = defineStore("store", () => {
 	const canvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
@@ -41,6 +42,7 @@ const useStudioStore = defineStore("store", () => {
 		x: 0,
 		y: 0,
 	})
+	const componentContextMenu = ref<InstanceType<typeof ComponentContextMenu> | null>(null)
 
 	// block hover & selection
 	const hoveredBlock = ref<string | null>(null)
@@ -244,6 +246,7 @@ const useStudioStore = defineStore("store", () => {
 		studioLayout,
 		activeBreakpoint,
 		guides,
+		componentContextMenu,
 		// block hover & selection
 		hoveredBlock,
 		hoveredBreakpoint,

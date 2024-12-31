@@ -1,6 +1,5 @@
 <template>
 	<div>
-		<slot :onContextMenu="showContextMenu" />
 		<ContextMenu
 			v-if="contextMenuVisible"
 			v-on-click-outside="() => (contextMenuVisible = false)"
@@ -13,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref, Ref } from "vue"
 import { vOnClickOutside } from "@vueuse/components"
 import ContextMenu from "@/components/ContextMenu.vue"
 import Block from "@/utils/block"
@@ -21,19 +20,16 @@ import useStudioStore from "@/stores/studioStore"
 import { ContextMenuOption } from "@/types"
 import { getComponentBlock, isObjectEmpty } from "@/utils/helpers"
 
-const props = defineProps<{
-	block: Block
-	editable: boolean
-}>()
-
 const store = useStudioStore()
 
 const contextMenuVisible = ref(false)
 const posX = ref(0)
 const posY = ref(0)
 
-const showContextMenu = (e: MouseEvent) => {
-	if (props.block.isRoot() || props.editable) return
+const block = ref(null) as unknown as Ref<Block>
+const showContextMenu = (e: MouseEvent, refBlock: Block) => {
+	block.value = refBlock
+	if (block.value.isRoot()) return
 	contextMenuVisible.value = true
 	posX.value = e.pageX
 	posY.value = e.pageY
@@ -49,26 +45,26 @@ const handleContextMenuSelect = (action: CallableFunction) => {
 const contextMenuOptions: ContextMenuOption[] = [
 	{
 		label: "Duplicate",
-		action: () => props.block.duplicateBlock(),
+		action: () => block.value.duplicateBlock(),
 	},
 	{
 		label: "Delete",
 		action: () => {
-			props.block.deleteBlock()
+			block.value.deleteBlock()
 		},
 		condition: () => {
-			return !props.block.isRoot() && Boolean(props.block.getParentBlock())
+			return !block.value.isRoot() && Boolean(block.value.getParentBlock())
 		},
 	},
 	{
 		label: "Wrap In Container",
 		action: () => {
-			const parentBlock = props.block.getParentBlock()
+			const parentBlock = block.value.getParentBlock()
 			if (!parentBlock) return
 
 			const newBlockObj = getComponentBlock("FitContainer")
-			if (props.block.isSlotBlock()) {
-				newBlockObj.parentSlotName = props.block.parentSlotName
+			if (block.value.isSlotBlock()) {
+				newBlockObj.parentSlotName = block.value.parentSlotName
 			}
 
 			const selectedBlocks = store.selectedBlocks || []
@@ -108,7 +104,11 @@ const contextMenuOptions: ContextMenuOption[] = [
 			store.showSlotEditorDialog = true
 		},
 		condition: () =>
-			!isObjectEmpty(props.block.componentSlots) && props.block.isSlotEditable(store.selectedSlot),
+			!isObjectEmpty(block.value.componentSlots) && block.value.isSlotEditable(store.selectedSlot),
 	},
 ]
+
+defineExpose({
+	showContextMenu,
+})
 </script>

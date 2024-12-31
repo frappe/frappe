@@ -1,66 +1,64 @@
 <template>
-	<ComponentContextMenu :block="block" :editable="false" v-slot="{ onContextMenu }">
-		<div
-			class="editor pointer-events-none fixed z-[18] box-content select-none ring-2 ring-inset"
-			ref="editor"
-			:selected="isBlockSelected"
-			:data-component-id="block.componentId"
-			:class="getStyleClasses"
-			@contextmenu="onContextMenu"
-			@click.stop="handleClick"
+	<div
+		class="editor pointer-events-none fixed z-[18] box-content select-none ring-2 ring-inset"
+		ref="editor"
+		:selected="isBlockSelected"
+		:data-component-id="block.componentId"
+		:class="getStyleClasses"
+		@click.stop="handleClick"
+	>
+		<!-- Component name label -->
+		<span
+			v-if="!props.block.isRoot()"
+			class="absolute -top-3 left-0 inline-block text-xs"
+			:class="isBlockSelected ? 'bg-blue-500 text-white' : 'text-blue-500'"
 		>
-			<!-- Component name label -->
-			<span
-				v-if="!props.block.isRoot()"
-				class="absolute -top-3 left-0 inline-block text-xs"
-				:class="isBlockSelected ? 'bg-blue-500 text-white' : 'text-blue-500'"
+			{{ block.componentName }}
+		</span>
+
+		<PaddingHandler
+			:data-block-id="block.componentId"
+			v-if="showMarginPaddingHandlers"
+			:target-block="block"
+			:target="target"
+			:on-update="updateTracker"
+			:disable-handlers="false"
+			:breakpoint="breakpoint"
+		/>
+		<MarginHandler
+			v-if="showMarginPaddingHandlers"
+			:target-block="block"
+			:target="target"
+			:on-update="updateTracker"
+			:disable-handlers="false"
+			:breakpoint="breakpoint"
+		/>
+		<BoxResizer v-if="showResizer" :targetBlock="block" @resizing="resizing = $event" :target="target" />
+
+		<!-- Slot Overlays -->
+		<template v-if="showSlotOverlays" v-for="(slot, slotName) in block.componentSlots" :key="slotName">
+			<div
+				:ref="(el) => setSlotOverlayRef(slotName, el)"
+				:data-slot-name="slotName"
+				:data-slot-id="slot.slotId"
+				:data-component-id="block.componentId"
+				class="pointer-events-none fixed ring-2 ring-inset ring-purple-500"
+				:class="isSlotSelected(slot.slotId) ? 'opacity-100' : 'opacity-65'"
+				:style="{
+					// set min height and width so that slots without content are visible
+					minWidth: `calc(${12}px * ${canvasProps.scale})`,
+					minHeight: `calc(${12}px * ${canvasProps.scale})`,
+				}"
 			>
-				{{ block.componentName }}
-			</span>
-
-			<PaddingHandler
-				:data-block-id="block.componentId"
-				v-if="showMarginPaddingHandlers"
-				:target-block="block"
-				:target="target"
-				:on-update="updateTracker"
-				:disable-handlers="false"
-				:breakpoint="breakpoint"
-			/>
-			<MarginHandler
-				v-if="showMarginPaddingHandlers"
-				:target-block="block"
-				:target="target"
-				:on-update="updateTracker"
-				:disable-handlers="false"
-				:breakpoint="breakpoint"
-			/>
-			<BoxResizer v-if="showResizer" :targetBlock="block" @resizing="resizing = $event" :target="target" />
-
-			<!-- Slot Overlays -->
-			<template v-if="showSlotOverlays" v-for="(slot, slotName) in block.componentSlots" :key="slotName">
-				<div
-					:ref="(el) => setSlotOverlayRef(slotName, el)"
-					:data-slot-name="slotName"
-					:data-slot-id="slot.slotId"
-					class="pointer-events-none fixed ring-2 ring-inset ring-purple-500"
-					:class="isSlotSelected(slot.slotId) ? 'opacity-100' : 'opacity-65'"
-					:style="{
-						// set min height and width so that slots without content are visible
-						minWidth: `calc(${12}px * ${canvasProps.scale})`,
-						minHeight: `calc(${12}px * ${canvasProps.scale})`,
-					}"
+				<span
+					class="absolute -top-3 left-0 inline-block text-xs text-white"
+					:class="isSlotSelected(slot.slotId) ? 'bg-purple-500' : 'bg-purple-500/65'"
 				>
-					<span
-						class="absolute -top-3 left-0 inline-block text-xs text-white"
-						:class="isSlotSelected(slot.slotId) ? 'bg-purple-500' : 'bg-purple-500/65'"
-					>
-						#{{ slotName }}
-					</span>
-				</div>
-			</template>
-		</div>
-	</ComponentContextMenu>
+					#{{ slotName }}
+				</span>
+			</div>
+		</template>
+	</div>
 
 	<Dialog
 		v-if="store.selectedSlot?.slotId"
@@ -94,7 +92,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, Ref, watchEffect, nextTick, inject, watch } from "vue"
 
-import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import BoxResizer from "@/components/BoxResizer.vue"
 import PaddingHandler from "@/components/PaddingHandler.vue"
 import MarginHandler from "@/components/MarginHandler.vue"
