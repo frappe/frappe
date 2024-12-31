@@ -13,6 +13,15 @@ export function useStudioEvents() {
 			const block = store.canvas?.findBlock(blockId as string)
 			if (block) {
 				store.selectBlock(block, e)
+
+				const slotName = target.dataset.slotName
+				if (slotName) {
+					const slot = block.getSlot(slotName)
+					if (slot) {
+						store.selectSlot(slot)
+					}
+				}
+
 				store.componentContextMenu?.showContextMenu(e, block)
 			}
 		}
