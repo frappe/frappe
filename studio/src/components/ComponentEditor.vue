@@ -38,7 +38,7 @@
 		<!-- Slot Overlays -->
 		<template v-if="showSlotOverlays" v-for="(slot, slotName) in block.componentSlots" :key="slotName">
 			<div
-				:ref="(el) => setSlotOverlayRef(slotName, el)"
+				:ref="(el) => setSlotOverlayRefs(slotName, el)"
 				:data-slot-name="slotName"
 				:data-slot-id="slot.slotId"
 				:data-component-id="block.componentId"
@@ -212,34 +212,19 @@ watchEffect(() => {
 	})
 })
 
-// Slot Overlays
+// Slot overlay tracking
 const showSlotOverlays = computed(() => {
 	return isBlockSelected.value && !props.block.isRoot() && Object.keys(props.block.componentSlots).length > 0
 })
+const slotOverlays = ref<Record<string, HTMLElement>>({})
+const slotTrackers = ref<Record<string, () => void>>({})
 
-const slotOverlays = reactive<
-	Record<
-		string,
-		{
-			element: HTMLElement | null
-			tracker: (() => void) | null
-		}
-	>
->({})
-const setSlotOverlayRef = (slotName: string, element: HTMLElement | null) => {
+const setSlotOverlayRefs = (slotName: string, element: HTMLElement | null) => {
 	if (element) {
-		// If the slot doesn't exist, create it
-		if (!slotOverlays[slotName]) {
-			slotOverlays[slotName] = {
-				element: null,
-				tracker: null,
-			}
-		}
-		// Update the element
-		slotOverlays[slotName].element = element
-		slotOverlays[slotName].tracker?.()
+		slotOverlays.value[slotName] = element
 	} else {
-		delete slotOverlays[slotName]
+		delete slotOverlays.value[slotName]
+		delete slotTrackers.value[slotName]
 	}
 }
 
@@ -248,21 +233,23 @@ const updateSlotOverlayRefs = () => {
 
 	// Find all slot elements within the target
 	const slotElements = props.target.querySelectorAll("[data-slot-name]")
-
 	slotElements.forEach((element) => {
 		const slotName = (element as HTMLElement).dataset.slotName
-
-		if (slotName && slotOverlays[slotName]?.element) {
-			slotOverlays[slotName].tracker = trackTarget(
+		if (!slotName || !slotOverlays.value[slotName]) return
+		const tracker = slotTrackers.value[slotName]
+		if (tracker) {
+			tracker()
+		} else {
+			slotTrackers.value[slotName] = trackTarget(
 				element as HTMLElement,
-				slotOverlays[slotName].element!,
-				store.canvas?.canvasProps as CanvasProps,
+				slotOverlays.value[slotName],
+				canvasProps,
 			)
 		}
 	})
 }
 
-// watch entire componentSlots object for changes, doesn't work with watchEffect
+// watch entire componentSlots object for changes, doesn't work with the common watchEffect
 watch(
 	() => props.block.componentSlots,
 	() => {
