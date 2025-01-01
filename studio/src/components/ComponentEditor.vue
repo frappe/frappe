@@ -178,9 +178,24 @@ const handleClick = (ev: MouseEvent) => {
 }
 
 watchEffect(() => {
+	props.block.getStyle("top")
+	props.block.getStyle("left")
+	props.block.getStyle("bottom")
+	props.block.getStyle("right")
+	props.block.getStyle("position")
+
 	const parentBlock = props.block.getParentBlock()
 	// on rearranging blocks
 	parentBlock?.getChildIndex(props.block)
+	parentBlock?.getStyle("display")
+	parentBlock?.getStyle("justifyContent")
+	parentBlock?.getStyle("alignItems")
+	parentBlock?.getStyle("flexDirection")
+	parentBlock?.getStyle("paddingTop")
+	parentBlock?.getStyle("paddingBottom")
+	parentBlock?.getStyle("paddingLeft")
+	parentBlock?.getStyle("paddingRight")
+	parentBlock?.getStyle("margin")
 
 	// on changing panel states
 	store.studioLayout.leftPanelWidth
@@ -193,6 +208,7 @@ watchEffect(() => {
 
 	nextTick(() => {
 		updateTracker.value()
+		updateSlotOverlayRefs()
 	})
 })
 
@@ -252,18 +268,19 @@ watch(
 	() => {
 		nextTick(updateSlotOverlayRefs)
 	},
-	{ deep: true },
+	{ deep: true, immediate: true },
 )
 
-watchEffect(() => {
-	if (isBlockSelected.value) {
+watch(
+	() => isBlockSelected.value,
+	() => {
 		nextTick(updateSlotOverlayRefs)
-	}
-})
+	},
+	{ immediate: true },
+)
 
 onMounted(() => {
 	updateTracker.value = trackTarget(props.target, editor.value, store.canvas?.canvasProps as CanvasProps)
-	updateSlotOverlayRefs()
 })
 
 defineExpose({
