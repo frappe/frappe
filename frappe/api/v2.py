@@ -170,7 +170,10 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 	doc.is_whitelisted(method)
 
 	doc.check_permission(PERMISSION_MAP[frappe.request.method])
-	return doc.run_method(method, **frappe.form_dict)
+	result = doc.run_method(method, **frappe.form_dict)
+	doc.reload()
+	frappe.response.docs.append(doc.as_dict())
+	return result
 
 
 def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
