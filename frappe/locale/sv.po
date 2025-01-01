@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-12-29 09:33+0000\n"
-"PO-Revision-Date: 2024-12-29 21:30\n"
+"PO-Revision-Date: 2025-01-01 22:16\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -12506,7 +12506,7 @@ msgstr "Om du laddar upp nya poster, lämna kolumn 'namn' (ID) tomt."
 
 #: frappe/utils/password.py:204
 msgid "If you have recently restored the site, you may need to copy the site_config.json containing the original encryption key."
-msgstr "Om du nyligen återställt webbplats kan du behöva kopiera site_config.json som innehåller den ursprunglig krypteringsnyckel."
+msgstr "Om du nyligen återställt webbplats kan du behöva kopiera site_config.json som innehåller ursprunglig kryptering nyckel."
 
 #. Description of the 'Parent Label' (Select) field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
