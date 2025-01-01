@@ -439,10 +439,6 @@ class Block implements BlockOptions {
 	}
 
 	removeSlot(slotName: string) {
-		const store = useStudioStore()
-		if (store.selectedSlot === this.componentSlots[slotName]) {
-			store.selectedSlot = null
-		}
 		delete this.componentSlots[slotName]
 	}
 

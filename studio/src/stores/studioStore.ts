@@ -1,4 +1,4 @@
-import { ref, reactive, computed, nextTick, Ref } from "vue"
+import { ref, reactive, computed, nextTick, Ref, watch } from "vue"
 import { defineStore } from "pinia"
 
 import {
@@ -60,10 +60,6 @@ const useStudioStore = defineStore("store", () => {
 	function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false) {
 		if (settingPage.value) return
 		selectBlockById(block.componentId, e, multiSelect)
-		// clear slot selection if slot does not belong to the selected block
-		if (selectedSlot.value && selectedSlot.value.parentBlockId !== block.componentId) {
-			selectedSlot.value = null
-		}
 	}
 
 	function selectBlockById(blockId: string, e: MouseEvent | null, multiSelect = false) {
@@ -75,13 +71,34 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	// slots
+	const showSlotEditorDialog = ref(false)
+
 	const selectedSlot = ref<SlotOptions | null>()
 	function selectSlot(slot: SlotOptions) {
 		selectedSlot.value = slot
 		selectBlockById(slot.parentBlockId, null)
 	}
 
-	const showSlotEditorDialog = ref(false)
+	const activeSlotIds = computed(() => {
+		const slotIds = new Set<string>()
+		for (const block of selectedBlocks.value) {
+			for (const slot of Object.values(block.componentSlots)) {
+				slotIds.add(slot.slotId)
+			}
+		}
+		return slotIds
+	})
+
+	watch(
+		() => activeSlotIds.value,
+		(map) => {
+			// clear selected slot if the block is deleted, not selected anymore, or the slot is removed from the block
+			if (selectedSlot.value && !map.has(selectedSlot.value.slotId)) {
+				selectedSlot.value = null
+			}
+		},
+		{ immediate: true }
+	)
 
 	// studio apps
 	const activeApp = ref<StudioApp | null>(null)
@@ -259,6 +276,7 @@ const useStudioStore = defineStore("store", () => {
 		selectedSlot,
 		selectSlot,
 		showSlotEditorDialog,
+		activeSlotIds,
 		// studio app
 		activeApp,
 		setApp,
