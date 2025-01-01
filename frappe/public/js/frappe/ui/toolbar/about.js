@@ -21,6 +21,9 @@ frappe.ui.misc.about = function () {
 						Twitter: <a href='https://twitter.com/frappetech' target='_blank'>https://twitter.com/frappetech</a></p>
 					<p><i class='fa fa-youtube-play fa-fw'></i>
 						YouTube: <a href='https://www.youtube.com/@frappetech' target='_blank'>https://www.youtube.com/@frappetech</a></p>
+					<p><i class='fa fa-instagram fa-fw'></i>
+						Instagram: <a href='https://www.instagram.com/frappetech' target='_blank'>https://www.instagram.com/frappetech</a></p>
+
 					<hr>
 					<div class="d-flex align-items-center justify-content-between">
 						<h4>${__("Installed Apps")}</h4>
