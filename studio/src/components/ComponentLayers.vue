@@ -7,8 +7,6 @@
 			:group="{ name: 'component-tree' }"
 			@add="updateParent"
 			:disabled="blocks.length && blocks[0].isRoot()"
-			@start="isDragging = true"
-			@end="isDragging = false"
 		>
 			<template #item="{ element }">
 				<div>
@@ -17,7 +15,7 @@
 						:title="element.componentId"
 						class="min-w-24 cursor-pointer overflow-hidden rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700"
 						@click.stop="store.selectBlock(element, $event, false)"
-						@mouseover.stop="handleMouseOver(element)"
+						@mouseover.stop="store.hoveredBlock = element.componentId"
 						@mouseleave="store.hoveredBlock = null"
 					>
 						<span
@@ -156,23 +154,11 @@ const toggleExpanded = (block: Block) => {
 }
 
 const canShowChildLayer = (block: Block) => {
-	return (isExpanded(block) && block.hasChildren()) || (block.canHaveChildren() && !block.hasChildren())
+	return isExpanded(block) && block.hasChildren()
 }
 
-const isDragging = ref(false)
 const isExpandable = (block: Block) => {
-	return (
-		block.hasChildren() ||
-		block.hasComponentSlots() ||
-		(store.hoveredBlock === block.componentId && block.canHaveChildren() && isDragging.value)
-	)
-}
-
-const handleMouseOver = (element: Block) => {
-	store.hoveredBlock = element.componentId
-	if (isDragging.value && element.canHaveChildren()) {
-		expandedLayers.value.add(element.componentId)
-	}
+	return block.hasChildren() || (block.hasComponentSlots() && !block.isRoot())
 }
 
 // slots
