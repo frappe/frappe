@@ -1,9 +1,9 @@
 frappe.provide("frappe.ui.misc");
 frappe.ui.misc.about = function () {
 	if (!frappe.ui.misc.about_dialog) {
-		var d = new frappe.ui.Dialog({ title: __("Frappe Framework") });
+		const dialog = new frappe.ui.Dialog({ title: __("Frappe Framework") });
 
-		$(d.body).html(
+		$(dialog.body).html(
 			repl(
 				`<div>
 					<p>${__("Open Source Applications for the Web")}</p>
@@ -43,7 +43,7 @@ frappe.ui.misc.about = function () {
 			)
 		);
 
-		frappe.ui.misc.about_dialog = d;
+		frappe.ui.misc.about_dialog = dialog;
 
 		frappe.ui.misc.about_dialog.on_page_show = function () {
 			if (!frappe.versions) {
@@ -58,21 +58,23 @@ frappe.ui.misc.about = function () {
 			}
 		};
 
-		const version_copy_button = $(d.body).find("#copy-apps-info");
+		const apps_info_copy_button = $(dialog.body).find("#copy-apps-info");
 
-		var show_versions = function (versions) {
-			var $wrap = $("#about-app-versions").empty();
+		const show_versions = function (versions) {
+			const $wrap = $("#about-app-versions").empty();
+			let app = {};
+			let text = "";
+
 			$.each(Object.keys(versions).sort(), function (i, key) {
-				var v = versions[key];
-				let text;
-				if (v.branch) {
+				app = versions[key];
+				if (app.branch) {
 					text = $.format("<p><b>{0}:</b> v{1} ({2})<br></p>", [
-						v.title,
-						v.branch_version || v.version,
-						v.branch,
+						app.title,
+						app.branch_version || app.version,
+						app.branch,
 					]);
 				} else {
-					text = $.format("<p><b>{0}:</b> v{1}<br></p>", [v.title, v.version]);
+					text = $.format("<p><b>{0}:</b> v{1}<br></p>", [app.title, app.version]);
 				}
 				$(text).appendTo($wrap);
 			});
@@ -80,14 +82,14 @@ frappe.ui.misc.about = function () {
 			frappe.versions = versions;
 
 			if (frappe.versions) {
-				version_copy_button.removeClass("hidden");
+				apps_info_copy_button.removeClass("hidden");
 			}
 		};
 
 		// Listener for copy installed apps info
 		const code_block = (snippet, lang = "") => "```" + lang + "\n" + snippet + "\n```";
 
-		version_copy_button.on("click", function () {
+		apps_info_copy_button.on("click", function () {
 			const apps_info = [
 				"### App Versions",
 				code_block(JSON.stringify(frappe.versions, null, "\t"), "json"),
