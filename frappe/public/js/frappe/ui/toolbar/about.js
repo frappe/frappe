@@ -22,7 +22,12 @@ frappe.ui.misc.about = function () {
 					<p><i class='fa fa-youtube fa-fw'></i>
 						YouTube: <a href='https://www.youtube.com/@frappetech' target='_blank'>https://www.youtube.com/@frappetech</a></p>
 					<hr>
-					<h4>${__("Installed Apps")}</h4>
+					<div class="d-flex align-items-center justify-content-between">
+						<h4>${__("Installed Apps")}</h4>
+						<button class="btn action-btn hidden" id="copy-apps-info" title="${__("Copy Apps Info")}">
+							${frappe.utils.icon("clipboard")}
+						</button>
+					</div>
 					<div id='about-app-versions'>${__("Loading versions...")}</div>
 					<p>
 						<b>
@@ -53,6 +58,8 @@ frappe.ui.misc.about = function () {
 			}
 		};
 
+		const version_copy_button = $(d.body).find("#copy-apps-info");
+
 		var show_versions = function (versions) {
 			var $wrap = $("#about-app-versions").empty();
 			$.each(Object.keys(versions).sort(), function (i, key) {
@@ -71,7 +78,23 @@ frappe.ui.misc.about = function () {
 			});
 
 			frappe.versions = versions;
+
+			if (frappe.versions) {
+				version_copy_button.removeClass("hidden");
+			}
 		};
+
+		// Listener for copy installed apps info
+		const code_block = (snippet, lang = "") => "```" + lang + "\n" + snippet + "\n```";
+
+		version_copy_button.on("click", function () {
+			const apps_info = [
+				"### App Versions",
+				code_block(JSON.stringify(frappe.versions, null, "\t"), "json"),
+			].join("\n");
+
+			frappe.utils.copy_to_clipboard(apps_info);
+		});
 	}
 
 	frappe.ui.misc.about_dialog.show();
