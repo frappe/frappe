@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-12-29 09:33+0000\n"
-"PO-Revision-Date: 2024-12-31 22:13\n"
+"PO-Revision-Date: 2025-01-01 22:16\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -8869,7 +8869,7 @@ msgstr "کارهای برنامه ریزی شده را فعال کنید"
 
 #: frappe/core/doctype/rq_job/rq_job_list.js:23
 msgid "Enable Scheduler"
-msgstr "زمانبندی را فعال کنید"
+msgstr "زمان‌بندی را فعال کنید"
 
 #. Label of the enable_security (Check) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -8956,7 +8956,7 @@ msgstr "فعال"
 
 #: frappe/core/doctype/rq_job/rq_job_list.js:29
 msgid "Enabled Scheduler"
-msgstr "زمانبندی فعال شد"
+msgstr "زمان‌بندی فعال شد"
 
 #: frappe/email/doctype/email_account/email_account.py:1005
 msgid "Enabled email inbox for user {0}"
@@ -9700,7 +9700,7 @@ msgstr ""
 
 #: frappe/core/doctype/rq_job/rq_job_list.js:33
 msgid "Failed to enable scheduler: {0}"
-msgstr "زمانبندی فعال نشد: {0}"
+msgstr "زمان‌بندی فعال نشد: {0}"
 
 #: frappe/email/doctype/notification/notification.py:99
 #: frappe/integrations/doctype/webhook/webhook.py:127
@@ -18542,7 +18542,7 @@ msgstr "رمزهای ورود مطابقت ندارند!"
 
 #: frappe/email/doctype/newsletter/newsletter.py:157
 msgid "Past dates are not allowed for Scheduling."
-msgstr "تاریخ های گذشته برای زمان بندی مجاز نیستند."
+msgstr "تاریخ های گذشته برای زمان‌بندی مجاز نیستند."
 
 #: frappe/public/js/frappe/views/file/file_view.js:151
 msgid "Paste"
@@ -22362,11 +22362,11 @@ msgstr "برنامه"
 
 #: frappe/email/doctype/newsletter/newsletter.js:106
 msgid "Schedule Newsletter"
-msgstr "زمانبندی خبرنامه"
+msgstr "زمان‌بندی خبرنامه"
 
 #: frappe/public/js/frappe/views/communication.js:85
 msgid "Schedule Send At"
-msgstr "زمانبندی ارسال در"
+msgstr "زمان‌بندی ارسال در"
 
 #: frappe/email/doctype/newsletter/newsletter.js:70
 msgid "Schedule sending"
@@ -22438,7 +22438,7 @@ msgstr ""
 #. Option for the 'Script Type' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Scheduler Event"
-msgstr "رویداد زمانبندی"
+msgstr "رویداد زمان‌بندی"
 
 #: frappe/core/doctype/data_import/data_import.py:105
 msgid "Scheduler Inactive"
@@ -22459,11 +22459,11 @@ msgstr "زمانبند غیرفعال است. نمی توان داده ها را
 
 #: frappe/core/doctype/rq_job/rq_job_list.js:19
 msgid "Scheduler: Active"
-msgstr "زمانبندی: فعال"
+msgstr "زمان‌بندی: فعال"
 
 #: frappe/core/doctype/rq_job/rq_job_list.js:21
 msgid "Scheduler: Inactive"
-msgstr "زمانبندی: غیر فعال"
+msgstr "زمان‌بندی: غیر فعال"
 
 #. Label of the scope (Data) field in DocType 'OAuth Scope'
 #: frappe/integrations/doctype/oauth_scope/oauth_scope.json
