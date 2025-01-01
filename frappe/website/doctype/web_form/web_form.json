@@ -191,7 +191,8 @@
    "description": "For help see <a href=\"https://frappeframework.com/docs/user/en/guides/portal-development/web-forms\" target=\"_blank\">Client Script API and Examples</a>",
    "fieldname": "client_script",
    "fieldtype": "Code",
-   "label": "Client script"
+   "label": "Client script",
+   "options": "Javascript"
   },
   {
    "default": "Save",
@@ -414,7 +415,7 @@
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2024-10-21 12:04:47.314849",
+ "modified": "2024-12-30 17:00:05.944646",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

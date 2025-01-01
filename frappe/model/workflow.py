@@ -130,6 +130,13 @@ def apply_workflow(doc, action):
 	if doc.docstatus.is_draft() and new_docstatus == DocStatus.draft():
 		doc.save()
 	elif doc.docstatus.is_draft() and new_docstatus == DocStatus.submitted():
+		from frappe.core.doctype.submission_queue.submission_queue import queue_submission
+		from frappe.utils.scheduler import is_scheduler_inactive
+
+		if doc.meta.queue_in_background and not is_scheduler_inactive():
+			queue_submission(doc, "Submit")
+			return
+
 		doc.submit()
 	elif doc.docstatus.is_submitted() and new_docstatus == DocStatus.submitted():
 		doc.save()

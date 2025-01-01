@@ -32,18 +32,16 @@ def get_apps():
 					"name": app,
 					"logo": app_detail.get("logo"),
 					"title": _(app_detail.get("title")),
-					"route": get_route(app, allowed_workspaces),
+					"route": get_route(app_detail, allowed_workspaces),
 				}
 			)
 	return app_list
 
 
-def get_route(app_name, allowed_workspaces=None):
+def get_route(app, allowed_workspaces=None):
 	if not allowed_workspaces:
 		return "/app"
 
-	apps = frappe.get_hooks("add_to_apps_screen", app_name=app_name)
-	app = next((app for app in apps if app.get("name") == app_name), None)
 	route = app.get("route") if app and app.get("route") else "/apps"
 
 	# Check if user has access to default workspace, if not, pick first workspace user has access to
@@ -57,7 +55,7 @@ def get_route(app_name, allowed_workspaces=None):
 		module_app = frappe.local.module_app
 		for allowed_ws in allowed_workspaces:
 			module = allowed_ws.get("module")
-			if module and module_app.get(module.lower()) == app_name:
+			if module and module_app.get(module.lower()) == app.get("name"):
 				return f"/app/{slug(allowed_ws.name.lower())}"
 		return f"/app/{slug(allowed_workspaces[0].get('name').lower())}"
 	else:

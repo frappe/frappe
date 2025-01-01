@@ -219,9 +219,9 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 			? frappe.last_response.setup_wizard_failure_message
 			: __("Failed to complete setup");
 
-		this.update_setup_message("Could not start up: " + fail_msg);
+		this.update_setup_message(__("Could not start up: ") + fail_msg);
 
-		this.$working_state.find(".title").html("Setup failed");
+		this.$working_state.find(".title").html(__("Setup failed"));
 
 		this.$abort_btn.show();
 	}

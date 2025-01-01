@@ -237,6 +237,10 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 		if b"," in content:
 			content = content.split(b",")[1]
 
+		if not content:
+			# if there is no content, return the original tag
+			return match.group(0)
+
 		try:
 			content = safe_b64decode(content)
 		except BinasciiError:

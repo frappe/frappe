@@ -591,11 +591,11 @@ def can_import(doctype, raise_exception=False):
 	return True
 
 
-def can_export(doctype, raise_exception=False):
+def can_export(doctype, raise_exception=False, is_owner=False):
 	if "System Manager" in frappe.get_roles():
 		return True
 	else:
-		role_permissions = frappe.permissions.get_role_permissions(doctype)
+		role_permissions = frappe.permissions.get_role_permissions(doctype, is_owner=is_owner)
 		has_access = role_permissions.get("export") or role_permissions.get("if_owner").get("export")
 		if not has_access and raise_exception:
 			raise frappe.PermissionError(_("You are not allowed to export {} doctype").format(doctype))

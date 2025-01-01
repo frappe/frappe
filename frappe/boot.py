@@ -136,7 +136,7 @@ def load_conf_settings(bootinfo):
 	from frappe.core.api.file import get_max_file_size
 
 	bootinfo.max_file_size = get_max_file_size()
-	for key in ("developer_mode", "socketio_port", "file_watcher_port"):
+	for key in ("developer_mode", "socketio_port", "file_watcher_port", "fc_communication_secret"):
 		if key in frappe.conf:
 			bootinfo[key] = frappe.conf.get(key)
 

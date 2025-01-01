@@ -15,6 +15,7 @@
   "service",
   "authentication_column",
   "auth_method",
+  "backend_app_flow",
   "authorize_api_access",
   "password",
   "awaiting_password",
@@ -40,6 +41,7 @@
   "imap_folder",
   "section_break_12",
   "append_emails_to_sent_folder",
+  "sent_folder_name",
   "append_to",
   "create_contact",
   "enable_automatic_linking",
@@ -88,6 +90,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval: !doc.backend_app_flow",
    "fieldname": "login_id_is_different",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -576,7 +579,7 @@
    "label": "IMAP Details"
   },
   {
-   "depends_on": "eval: doc.auth_method === \"OAuth\" && !doc.__islocal && !doc.__unsaved",
+   "depends_on": "eval: doc.auth_method === \"OAuth\" && !doc.__islocal && !doc.__unsaved && !doc.backend_app_flow",
    "fieldname": "authorize_api_access",
    "fieldtype": "Button",
    "label": "Authorize API Access"
@@ -605,18 +608,32 @@
    "options": "Connected App"
   },
   {
-   "depends_on": "eval: doc.auth_method === \"OAuth\"",
+   "depends_on": "eval: doc.auth_method === \"OAuth\" && !doc.backend_app_flow",
    "fieldname": "connected_user",
    "fieldtype": "Link",
    "label": "Connected User",
-   "mandatory_depends_on": "eval: doc.auth_method === \"OAuth\"",
+   "mandatory_depends_on": "eval: doc.auth_method === \"OAuth\" && !doc.backend_app_flow",
    "options": "User"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.auth_method === \"OAuth\"",
+   "fieldname": "backend_app_flow",
+   "fieldtype": "Check",
+   "label": "Authenticate as Service Principal"
+  },
+  {
+   "depends_on": "eval:!doc.domain && doc.enable_outgoing && doc.enable_incoming && doc.use_imap && doc.append_emails_to_sent_folder",
+   "fetch_from": "domain.sent_folder_name",
+   "fieldname": "sent_folder_name",
+   "fieldtype": "Data",
+   "label": "Sent Folder Name"
   }
  ],
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-06-05 15:03:08.538819",
+ "modified": "2024-12-05 12:45:15.801652",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

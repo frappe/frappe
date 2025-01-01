@@ -9,7 +9,9 @@
   "route",
   "action",
   "hidden",
-  "is_standard"
+  "is_standard",
+  "column_break_dtwu",
+  "condition"
  ],
  "fields": [
   {
@@ -72,11 +74,21 @@
    "read_only_depends_on": "eval:doc.is_standard",
    "show_days": 1,
    "show_seconds": 1
+  },
+  {
+   "fieldname": "condition",
+   "fieldtype": "Code",
+   "label": "Condition",
+   "options": "Javascript"
+  },
+  {
+   "fieldname": "column_break_dtwu",
+   "fieldtype": "Column Break"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2020-11-02 10:57:37.709262",
+ "modified": "2024-11-15 14:12:19.803995",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Navbar Item",

@@ -49,10 +49,10 @@ class Workspace:
 
 		self.can_read = self.get_cached("user_perm_can_read", self.get_can_read_items)
 
-		self.allowed_pages = get_allowed_pages(cache=True)
-		self.allowed_reports = get_allowed_reports(cache=True)
-
 		if not minimal:
+			self.allowed_pages = get_allowed_pages(cache=True)
+			self.allowed_reports = get_allowed_reports(cache=True)
+
 			if self.doc.content:
 				self.onboarding_list = [
 					x["data"]["onboarding_name"] for x in loads(self.doc.content) if x["type"] == "onboarding"
@@ -141,8 +141,12 @@ class Workspace:
 		if item_type == "doctype":
 			return name in self.can_read or [] and name in self.restricted_doctypes or []
 		if item_type == "page":
+			if not self.allowed_pages:
+				self.allowed_pages = get_allowed_pages(cache=True)
 			return name in self.allowed_pages and name in self.restricted_pages
 		if item_type == "report":
+			if not self.allowed_reports:
+				self.allowed_reports = get_allowed_reports(cache=True)
 			return name in self.allowed_reports
 		if item_type == "help":
 			return True

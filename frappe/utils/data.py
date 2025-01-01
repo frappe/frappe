@@ -1912,6 +1912,11 @@ def sanitize_column(column_name: str) -> None:
 			elif any(keyword in column_name.split() for keyword in blacklisted_keywords):
 				_raise_exception()
 
+			elif any(
+				re.search(rf"\b{keyword}\b", column_name, re.IGNORECASE) for keyword in blacklisted_keywords
+			):
+				_raise_exception()
+
 	elif regex.match(column_name):
 		_raise_exception()
 

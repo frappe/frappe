@@ -192,3 +192,8 @@ cypress/videos
 
 # JetBrains IDEs
 .idea/
+
+# frappecloud billing
+billing/node_modules
+frappe/public/billing
+frappe/www/billing.html

@@ -68,6 +68,7 @@ class EmailAccount(Document):
 		auth_method: DF.Literal["Basic", "OAuth"]
 		auto_reply_message: DF.TextEditor | None
 		awaiting_password: DF.Check
+		backend_app_flow: DF.Check
 		brand_logo: DF.AttachImage | None
 		connected_app: DF.Link | None
 		connected_user: DF.Link | None
@@ -95,15 +96,8 @@ class EmailAccount(Document):
 		password: DF.Password | None
 		send_notification_to: DF.SmallText | None
 		send_unsubscribe_message: DF.Check
-		service: DF.Literal[
-			"",
-			"GMail",
-			"Sendgrid",
-			"SparkPost",
-			"Yahoo Mail",
-			"Outlook.com",
-			"Yandex.Mail",
-		]
+		sent_folder_name: DF.Data | None
+		service: DF.Literal["", "GMail", "Sendgrid", "SparkPost", "Yahoo Mail", "Outlook.com", "Yandex.Mail"]
 		signature: DF.TextEditor | None
 		smtp_port: DF.Data | None
 		smtp_server: DF.Data | None
@@ -725,14 +719,22 @@ class EmailAccount(Document):
 		try:
 			email_server = self.get_incoming_server(in_receive=True)
 			message = safe_encode(message)
-			email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message)
+			sent_folder_name = self.sent_folder_name or "Sent"
+			email_server.imap.append(
+				sent_folder_name, "\\Seen", imaplib.Time2Internaldate(time.time()), message
+			)
 		except Exception:
 			self.log_error("Unable to add to Sent folder")
 
 	def get_oauth_token(self):
 		if self.auth_method == "OAuth":
 			connected_app = frappe.get_doc("Connected App", self.connected_app)
-			return connected_app.get_active_token(self.connected_user)
+			if self.backend_app_flow:
+				token = connected_app.get_backend_app_token()
+			else:
+				token = connected_app.get_active_token(self.connected_user)
+
+			return token
 
 
 @frappe.whitelist()
@@ -831,8 +833,10 @@ def pull(now=False):
 	)
 
 	for email_account in email_accounts:
-		if email_account.auth_method == "OAuth" and not has_token(
-			email_account.connected_app, email_account.connected_user
+		if (
+			email_account.auth_method == "OAuth"
+			and not email_account.backend_app_flow
+			and not has_token(email_account.connected_app, email_account.connected_user)
 		):
 			# don't try to pull from accounts which dont have access token (for Oauth)
 			continue

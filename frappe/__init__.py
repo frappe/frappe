@@ -41,6 +41,7 @@ from frappe.utils.data import cint, cstr, sbool
 
 # Local application imports
 from .exceptions import *
+from .types.frappedict import _dict
 from .utils.jinja import (
 	get_email_from_template,
 	get_jenv,
@@ -50,43 +51,50 @@ from .utils.jinja import (
 )
 from .utils.lazy_loader import lazy_import
 
-__version__ = "15.47.2"
+__version__ = "15.51.1"
 __title__ = "Frappe Framework"
+
+# This if block is never executed when running the code. It is only used for
+# telling static code analyzer where to find dynamically defined attributes.
+if TYPE_CHECKING:  # pragma: no cover
+	from werkzeug.wrappers import Request
+
+	from frappe.database.mariadb.database import MariaDBDatabase
+	from frappe.database.postgres.database import PostgresDatabase
+	from frappe.email.doctype.email_queue.email_queue import EmailQueue
+	from frappe.model.document import Document
+	from frappe.query_builder.builder import MariaDB, Postgres
+	from frappe.utils.redis_wrapper import RedisWrapper
+
+	db: MariaDBDatabase | PostgresDatabase
+	qb: MariaDB | Postgres
+	cache: RedisWrapper
+	response: _dict
+	conf: _dict
+	form_dict: _dict
+	flags: _dict
+	request: Request
+	session: _dict
+	user: str
+	flags: _dict
+	lang: str
+
+
+# end: static analysis hack
+
 
 controllers = {}
 local = Local()
 cache = None
 STANDARD_USERS = ("Guest", "Administrator")
 
-_qb_patched = {}
+_one_time_setup = {}
 _dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
 _tune_gc = bool(sbool(os.environ.get("FRAPPE_TUNE_GC", True)))
 
 if _dev_server:
 	warnings.simplefilter("always", DeprecationWarning)
 	warnings.simplefilter("always", PendingDeprecationWarning)
-
-
-class _dict(dict):
-	"""dict like object that exposes keys as attributes"""
-
-	__slots__ = ()
-	__getattr__ = dict.get
-	__setattr__ = dict.__setitem__
-	__delattr__ = dict.__delitem__
-	__setstate__ = dict.update
-
-	def __getstate__(self):
-		return self
-
-	def update(self, *args, **kwargs):
-		"""update and return self -- the missing dict feature in python"""
-
-		super().update(*args, **kwargs)
-		return self
-
-	def copy(self):
-		return _dict(self)
 
 
 def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
@@ -137,45 +145,9 @@ def _lt(msg: str, lang: str | None = None, context: str | None = None):
 
 	Note: Result is not guaranteed to equivalent to pure strings for all operations.
 	"""
+	from .types.lazytranslatedstring import _LazyTranslate
+
 	return _LazyTranslate(msg, lang, context)
-
-
-@functools.total_ordering
-class _LazyTranslate:
-	__slots__ = ("msg", "lang", "context")
-
-	def __init__(self, msg: str, lang: str | None = None, context: str | None = None) -> None:
-		self.msg = msg
-		self.lang = lang
-		self.context = context
-
-	@property
-	def value(self) -> str:
-		return _(str(self.msg), self.lang, self.context)
-
-	def __str__(self):
-		return self.value
-
-	def __add__(self, other):
-		if isinstance(other, str | _LazyTranslate):
-			return self.value + str(other)
-		raise NotImplementedError
-
-	def __radd__(self, other):
-		if isinstance(other, str | _LazyTranslate):
-			return str(other) + self.value
-		return NotImplementedError
-
-	def __repr__(self) -> str:
-		return f"'{self.value}'"
-
-	# NOTE: it's required to override these methods and raise error as default behaviour will
-	# return `False` in all cases.
-	def __eq__(self, other):
-		raise NotImplementedError
-
-	def __lt__(self, other):
-		raise NotImplementedError
 
 
 def as_unicode(text, encoding: str = "utf-8") -> str:
@@ -215,34 +187,6 @@ debug_log = local("debug_log")
 message_log = local("message_log")
 
 lang = local("lang")
-
-# This if block is never executed when running the code. It is only used for
-# telling static code analyzer where to find dynamically defined attributes.
-if TYPE_CHECKING:  # pragma: no cover
-	from werkzeug.wrappers import Request
-
-	from frappe.database.mariadb.database import MariaDBDatabase
-	from frappe.database.postgres.database import PostgresDatabase
-	from frappe.email.doctype.email_queue.email_queue import EmailQueue
-	from frappe.model.document import Document
-	from frappe.query_builder.builder import MariaDB, Postgres
-	from frappe.utils.redis_wrapper import RedisWrapper
-
-	db: MariaDBDatabase | PostgresDatabase
-	qb: MariaDB | Postgres
-	cache: RedisWrapper
-	response: _dict
-	conf: _dict
-	form_dict: _dict
-	flags: _dict
-	request: Request
-	session: _dict
-	user: str
-	flags: _dict
-	lang: str
-
-
-# end: static analysis hack
 
 
 def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) -> None:
@@ -305,10 +249,11 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.qb.get_query = get_query
 	setup_redis_cache_connection()
 
-	if not _qb_patched.get(local.conf.db_type):
+	if not _one_time_setup.get(local.conf.db_type):
 		patch_query_execute()
 		patch_query_aggregation()
 		_register_fault_handler()
+		_one_time_setup[local.conf.db_type] = True
 
 	setup_module_map(include_all_apps=not (frappe.request or frappe.job or frappe.flags.in_migrate))
 

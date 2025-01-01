@@ -353,13 +353,15 @@ def export_query():
 	form_params["limit_page_length"] = None
 	form_params["as_list"] = True
 	doctype = form_params.pop("doctype")
+	if isinstance(form_params["fields"], list):
+		form_params["fields"].append("owner")
+	elif isinstance(form_params["fields"], tuple):
+		form_params["fields"] = form_params["fields"] + ("owner",)
 	file_format_type = form_params.pop("file_format_type")
 	title = form_params.pop("title", doctype)
 	csv_params = pop_csv_params(form_params)
 	add_totals_row = 1 if form_params.pop("add_totals_row", None) == "1" else None
 	translate_values = 1 if form_params.pop("translate_values", None) == "1" else None
-
-	frappe.permissions.can_export(doctype, raise_exception=True)
 
 	if selection := form_params.pop("selected_items", None):
 		form_params["filters"] = {"name": ("in", json.loads(selection))}
@@ -373,6 +375,16 @@ def export_query():
 
 	db_query = DatabaseQuery(doctype)
 	ret = db_query.execute(**form_params)
+
+	if not frappe.permissions.can_export(doctype):
+		if frappe.permissions.can_export(doctype, is_owner=True):
+			for row in ret:
+				if row[-1] != frappe.session.user:
+					raise frappe.PermissionError(
+						_("You are not allowed to export {} doctype").format(doctype)
+					)
+		else:
+			raise frappe.PermissionError(_("You are not allowed to export {} doctype").format(doctype))
 
 	if add_totals_row:
 		ret = append_totals_row(ret)

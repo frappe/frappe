@@ -4,7 +4,8 @@
     "build": "node esbuild",
     "production": "node esbuild --production",
     "watch": "node esbuild --watch",
-    "coverage:report": "npx nyc report --reporter=clover"
+    "coverage:report": "npx nyc report --reporter=clover",
+    "postinstall": "cd billing && yarn install"
   },
   "repository": {
     "type": "git",

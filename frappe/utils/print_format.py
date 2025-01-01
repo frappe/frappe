@@ -226,7 +226,9 @@ def read_multi_pdf(output: PdfWriter) -> bytes:
 
 
 @frappe.whitelist(allow_guest=True)
-def download_pdf(doctype, name, format=None, doc=None, no_letterhead=0, language=None, letterhead=None):
+def download_pdf(
+	doctype: str, name: str, format=None, doc=None, no_letterhead=0, language=None, letterhead=None
+):
 	doc = doc or frappe.get_doc(doctype, name)
 	validate_print_permission(doc)
 
