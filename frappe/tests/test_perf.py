@@ -217,8 +217,14 @@ class TestOverheadCalls(FrappeAPITestCase):
 
 	def test_ping_overheads(self):
 		self.get(self.method("ping"), {"sid": "Guest"})
-		with self.assertRedisCallCounts(13), self.assertQueryCount(self.BASE_SQL_CALLS):
+		with self.assertRedisCallCounts(10), self.assertQueryCount(self.BASE_SQL_CALLS):
 			self.get(self.method("ping"), {"sid": "Guest"})
+
+	def test_ping_overheads_authenticated(self):
+		sid = self.sid
+		self.get(self.method("ping"), {"sid": sid})
+		with self.assertRedisCallCounts(10), self.assertQueryCount(self.BASE_SQL_CALLS):
+			self.get(self.method("ping"), {"sid": sid})
 
 	def test_list_view_overheads(self):
 		sid = self.sid
