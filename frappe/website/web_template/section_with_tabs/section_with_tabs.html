@@ -33,7 +33,7 @@
 			<a class="nav-link {{ 'active' if first_tab else '' }}" id="{{ tab.buttonid }}" data-toggle="tab"
 				href="#{{ tab.panelid }}"
 				role="tab" aria-controls="{{ tab.panelid }}" aria-selected="{{ 'true' if first_tab else 'false' }}">
-				{{ tab.title }}
+				{{ _(tab.title) }}
 			</a>
 		</li>
 		{%- endfor -%}
