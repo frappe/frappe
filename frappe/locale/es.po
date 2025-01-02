@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-12-01 17:58+0000\n"
-"PO-Revision-Date: 2024-12-08 20:00\n"
+"PO-Revision-Date: 2024-12-26 21:01\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -12587,7 +12587,7 @@ msgstr "Inactivo"
 
 #: frappe/public/js/frappe/ui/field_group.js:131
 msgid "Inavlid Values"
-msgstr "Valor no válido"
+msgstr "Valores no válidos"
 
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
@@ -29161,7 +29161,7 @@ msgstr "Solo puede configurar los 3 tipos de documentos personalizados en la tab
 
 #: frappe/handler.py:229
 msgid "You can only upload JPG, PNG, PDF, TXT or Microsoft documents."
-msgstr "Sólo puede cargar documentos JPG, PNG, PDF, TXT o Microsoft."
+msgstr ""
 
 #: frappe/core/doctype/data_export/exporter.py:199
 msgid "You can only upload upto 5000 records in one go. (may be less in some cases)"

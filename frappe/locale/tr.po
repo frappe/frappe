@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-12-01 17:58+0000\n"
-"PO-Revision-Date: 2024-12-10 20:05\n"
+"PO-Revision-Date: 2024-12-26 21:01\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -7727,12 +7727,12 @@ msgstr "Belge Adı bir dize olmalıdır"
 #. Name of a DocType
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json
 msgid "Document Naming Rule"
-msgstr "Belge Adlandırma Kuralı"
+msgstr "Adlandırma Kuralı"
 
 #. Name of a DocType
 #: frappe/core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "Document Naming Rule Condition"
-msgstr "Belge Adlandırma Kuralı Koşulu"
+msgstr "Adlandırma Kuralı Koşulu"
 
 #. Name of a DocType
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
@@ -8274,7 +8274,7 @@ msgstr "ESC"
 #. Description of the Onboarding Step 'Setup Naming Series'
 #: frappe/custom/onboarding_step/naming_series/naming_series.json
 msgid "Each document created in ERPNext can have a unique ID generated for it, using a prefix defined for it. Though each document has some prefix pre-configured, you can further customize it using tools like Naming Series Tool and Document Naming Rule.\n"
-msgstr "ERPNext'te oluşturulan her belge, kendisi için tanımlanmış bir önek kullanılarak oluşturulan benzersiz bir kimliğe sahip olabilir. Her belgenin önceden yapılandırılmış bir öneki olmasına rağmen, Adlandırma Serisi Aracı ve Belge Adlandırma Kuralı gibi araçları kullanarak daha da özelleştirebilirsiniz.\n"
+msgstr "ERPNext'te oluşturulan her belge, kendisi için tanımlanmış bir önek kullanılarak oluşturulan benzersiz bir kimliğe sahip olabilir. Her belgenin önceden yapılandırılmış bir öneki olmasına rağmen, Adlandırma Serisi Aracı ve Belge Adlandırma Kuralı gibi araçları kullanarak daha da özelleştirebilirsiniz."
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
@@ -13643,7 +13643,7 @@ msgstr "Klavye Kısayolları"
 #. Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Keycloak"
-msgstr ""
+msgstr "Keycloak"
 
 #: frappe/public/js/frappe/utils/number_systems.js:37
 msgctxt "Number system"
@@ -14139,15 +14139,15 @@ msgstr "Daha az"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:24
 msgid "Less Than"
-msgstr ""
+msgstr "Daha az"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:26
 msgid "Less Than Or Equal To"
-msgstr ""
+msgstr "Daha az veya eşit"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:439
 msgid "Let us continue with the onboarding"
-msgstr ""
+msgstr "Modül Tanıtımı ile devam edelim"
 
 #: frappe/public/js/frappe/views/workspace/blocks/onboarding.js:94
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:602
@@ -15338,7 +15338,7 @@ msgstr "Mesaj Türü"
 
 #: frappe/public/js/frappe/views/communication.js:941
 msgid "Message clipped"
-msgstr ""
+msgstr "Mesaj kopyalandı"
 
 #: frappe/email/doctype/email_account/email_account.py:316
 msgid "Message from server: {0}"
@@ -15346,7 +15346,7 @@ msgstr "Sunucudan mesaj: {0}"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.js:102
 msgid "Message not setup"
-msgstr ""
+msgstr "Mesaj ayarlanmamış"
 
 #. Description of the 'Success message' (Text) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -16626,7 +16626,7 @@ msgstr "Henüz kişi eklenmedi."
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:431
 msgid "No contacts linked to document"
-msgstr ""
+msgstr "Belgeye bağlı kişi yok"
 
 #: frappe/desk/query_report.py:339
 msgid "No data to export"
@@ -20685,7 +20685,7 @@ msgstr "Son sütunu kaldır"
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:130
 msgid "Remove page break"
-msgstr ""
+msgstr "Sayfa sonunu kaldır"
 
 #: frappe/public/js/form_builder/components/Section.vue:266
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:135
@@ -24105,7 +24105,7 @@ msgstr "Standart Yazdırma Formatı güncellenemez"
 
 #: frappe/printing/doctype/print_style/print_style.py:30
 msgid "Standard Print Style cannot be changed. Please duplicate to edit."
-msgstr ""
+msgstr "Standart Baskı Stili değiştirilemez. Düzenlemek için lütfen çoğaltın."
 
 #: frappe/desk/reportview.py:330
 msgid "Standard Reports cannot be deleted"
@@ -26517,7 +26517,7 @@ msgstr "Toplam Hatalar (Son 1 Gün)"
 
 #: frappe/public/js/frappe/ui/capture.js:251
 msgid "Total Images"
-msgstr ""
+msgstr "Toplam Görüntüler"
 
 #. Label of a Int field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -27771,7 +27771,7 @@ msgstr "Kullanıcı Adı"
 
 #: frappe/core/doctype/user/user.py:631
 msgid "Username {0} already exists"
-msgstr ""
+msgstr "Kullanıcı adı {0} zaten var"
 
 #. Label of a Table MultiSelect field in DocType 'Assignment Rule'
 #. Name of a Workspace
@@ -27926,7 +27926,7 @@ msgstr "Eksik değer"
 
 #: frappe/core/doctype/data_import/importer.py:707
 msgid "Value must be one of {0}"
-msgstr ""
+msgstr "{0} değerlerinden biri olmalıdır"
 
 #. Label of a Data field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
@@ -29145,7 +29145,7 @@ msgstr ""
 
 #: frappe/handler.py:229
 msgid "You can only upload JPG, PNG, PDF, TXT or Microsoft documents."
-msgstr ""
+msgstr "Sadece JPG, PNG, PDF, TXT veya Microsoft belgelerini yükleyebilirsiniz."
 
 #: frappe/core/doctype/data_export/exporter.py:199
 msgid "You can only upload upto 5000 records in one go. (may be less in some cases)"
