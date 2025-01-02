@@ -75,10 +75,9 @@ def create_new_reminder(
 
 def send_reminders():
 	# Ensure that we send all reminders that might be before next job execution.
-	job_freq = cint(frappe.get_conf().scheduler_interval) or 240
+	job_freq = 15 * 60  # 15 minutes, as specified in hooks.py
 	upper_threshold = add_to_date(now_datetime(), seconds=job_freq, as_string=True, as_datetime=True)
-
-	lower_threshold = add_to_date(now_datetime(), hours=-8, as_string=True, as_datetime=True)
+	lower_threshold = add_to_date(now_datetime(), hours=-1, as_string=True, as_datetime=True)
 
 	pending_reminders = frappe.get_all(
 		"Reminder",
@@ -88,6 +87,7 @@ def send_reminders():
 			("notified", "=", 0),
 		],
 		pluck="name",
+		ignore_ifnull=True,
 	)
 
 	for reminder in pending_reminders:
