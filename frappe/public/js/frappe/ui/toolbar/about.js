@@ -66,8 +66,6 @@ frappe.ui.misc.about = function () {
 			}
 		};
 
-		const apps_info_copy_button = $(dialog.body).find("#copy-apps-info");
-
 		const show_versions = function (versions) {
 			const $wrap = $("#about-app-versions").empty();
 			let app = {};
@@ -76,13 +74,20 @@ frappe.ui.misc.about = function () {
 			$.each(Object.keys(versions).sort(), function (i, key) {
 				app = versions[key];
 				if (app.branch) {
-					text = $.format("<p><b>{0}:</b> v{1} ({2})<br></p>", [
-						app.title,
-						app.branch_version || app.version,
-						app.branch,
-					]);
+					text = $.format(
+						"<p class='app_version' role='button' title='{0}'><b>{1}:</b> v{2} ({3})<br></p>",
+						[
+							`${app.title}: v${app.branch_version || app.version} (${app.branch})`,
+							app.title,
+							app.branch_version || app.version,
+							app.branch,
+						]
+					);
 				} else {
-					text = $.format("<p><b>{0}:</b> v{1}<br></p>", [app.title, app.version]);
+					text = $.format(
+						"<p class='app_version' role='button' title='{0}'><b>{1}:</b> v{2}<br></p>",
+						[`${app.title}: v${app.version}`, app.title, app.version]
+					);
 				}
 				$(text).appendTo($wrap);
 			});
@@ -90,20 +95,28 @@ frappe.ui.misc.about = function () {
 			frappe.versions = versions;
 
 			if (frappe.versions) {
-				apps_info_copy_button.removeClass("hidden");
+				$(dialog.body).find("#copy-apps-info").removeClass("hidden");
 			}
 		};
 
 		// Listener for copy installed apps info
 		const code_block = (snippet, lang = "") => "```" + lang + "\n" + snippet + "\n```";
 
-		apps_info_copy_button.on("click", function () {
+		$(dialog.body).on("click", "#copy-apps-info", function () {
 			const apps_info = [
 				"### App Versions",
 				code_block(JSON.stringify(frappe.versions, null, "\t"), "json"),
 			].join("\n");
 
 			frappe.utils.copy_to_clipboard(apps_info);
+		});
+
+		// Listener for click on app version
+		$(dialog.body).on("click", ".app_version", function () {
+			const title = $(this).attr("title");
+			if (title) {
+				frappe.utils.copy_to_clipboard(title);
+			}
 		});
 	}
 
