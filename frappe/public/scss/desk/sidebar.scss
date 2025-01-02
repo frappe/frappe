@@ -476,6 +476,7 @@ body {
 			transition: opacity 0.3s;
 			border-radius: var(--border-radius-lg);
 			border: 1px solid var(--border-color);
+			width: 100%;
 		}
 
 		.sidebar-image-wrapper:hover {
@@ -512,7 +513,7 @@ body {
 	// padding-right: 30px;
 	width: 220px;
 	border-left: 1px solid var(--border-color);
-
+	height: 100vh;
 	.sidebar-section {
 		padding: var(--padding-md);
 		border-bottom: 1px solid var(--border-color);
