@@ -90,7 +90,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, Ref, watchEffect, nextTick, inject, watch } from "vue"
+import { ref, computed, onMounted, Ref, watchEffect, nextTick, inject, watch } from "vue"
 
 import BoxResizer from "@/components/BoxResizer.vue"
 import PaddingHandler from "@/components/PaddingHandler.vue"
@@ -158,10 +158,10 @@ const getStyleClasses = computed(() => {
 	return classes
 })
 
-const preventCLick = ref(false)
+const preventClick = ref(false)
 const handleClick = (ev: MouseEvent) => {
-	if (preventCLick.value) {
-		preventCLick.value = false
+	if (preventClick.value) {
+		preventClick.value = false
 		return
 	}
 	const editorWrapper = editor.value
@@ -260,7 +260,8 @@ watch(
 
 watch(
 	() => isBlockSelected.value,
-	() => {
+	(newValue, oldValue) => {
+		if (newValue === oldValue) return
 		nextTick(updateSlotOverlayRefs)
 	},
 	{ immediate: true },
