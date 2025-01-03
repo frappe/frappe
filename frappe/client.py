@@ -99,8 +99,35 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 	"""Return a value from a document.
 
 	:param doctype: DocType to be queried
-	:param fieldname: Field to be returned (default `name`)
-	:param filters: dict or string for identifying the record"""
+	:param fieldname: Field to be returned.
+		A str could be provided here to return a single field or a list of strings to
+		return multiple.
+	:param filters: dict or string for identifying the record (default `None`).
+		If string is provided, it will be used to filter the `name` of the DocType
+	:param as_dict: Return values as a dictionary instead of as a list (default `True`)
+	:param debug: Print query in error log (default `False`)
+	:param parent: Parent DocType (default `None`)
+
+	Returns:
+		Returns a dictionary containing the results. If as_dict is False, a list is returned.
+		For null results, an empty dictionary is returned. If as_dict is False, None is returned.
+
+	Raises:
+		frappe.PermissionError
+
+	Examples:
+		# return first customer starting with "a"
+		frappe.client.get_value("Customer", "name", {"name": ("like a%")})
+
+		# Return last login of **User** `test@example.com`
+		frappe.client.get_value("User", "last_login", "test@example.com")
+
+		# Return last login and last IP of **User** `test@example.com`
+		last_login, last_ip = frappe.client.get_value("User", ["last_login", "last_ip"], "test@example.com")
+
+		# Returns default date_format
+		frappe.client.get_value("System Settings", "date_format")
+	"""
 	if frappe.is_table(doctype):
 		check_parent_permission(parent, doctype)
 
