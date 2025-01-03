@@ -51,7 +51,7 @@
 				}"
 			>
 				<span
-					class="absolute -top-3 left-0 inline-block text-xs text-white"
+					class="absolute -top-3 left-0 inline-block text-white text-xs text-nowrap"
 					:class="isSlotSelected(slot.slotId) ? 'bg-purple-500' : 'bg-purple-500/65'"
 				>
 					#{{ slotName }}
