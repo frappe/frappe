@@ -14,28 +14,15 @@
 		<!-- Dynamically render named slots -->
 		<template v-for="(slot, slotName) in block?.componentSlots" :key="slotName" v-slot:[slotName]>
 			<template v-if="Array.isArray(slot.slotContent)">
-				<div
-					class="flex items-center"
+				<StudioComponent
+					v-for="slotBlock in slot?.slotContent"
+					:key="slotBlock.componentId"
+					:block="slotBlock"
 					:class="slotClasses"
 					:data-slot-id="slot.slotId"
 					:data-slot-name="slotName"
 					:data-component-id="block.componentId"
-				>
-					<span
-						v-if="slot.slotContent.length === 0"
-						:class="[slotClasses, 'min-h-5 min-w-5']"
-						:data-slot-id="slot.slotId"
-						:data-slot-name="slotName"
-						:data-component-id="block.componentId"
-					></span>
-					<StudioComponent
-						v-else
-						v-for="slotBlock in slot?.slotContent"
-						:key="slotBlock.componentId"
-						:block="slotBlock"
-						:class="slotClasses"
-					/>
-				</div>
+				/>
 			</template>
 			<template v-else-if="isHTML(slot.slotContent)">
 				<component
