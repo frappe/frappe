@@ -72,7 +72,7 @@
 									:style="{ paddingLeft: `${childIndent}px` }"
 								>
 									<FeatherIcon
-										v-if="isSlotExpandable(slot)"
+										v-if="isSlotExpandable(slot, element)"
 										:name="isSlotExpanded(slot) ? 'chevron-down' : 'chevron-right'"
 										class="h-3 w-3"
 										@click.stop="toggleSlotExpanded(slot)"
@@ -168,8 +168,8 @@ const isSlotExpanded = (slot: Slot) => {
 	return expandedSlots.value.has(slot.slotId)
 }
 
-const isSlotExpandable = (slot: Slot) => {
-	return slot.slotContent?.length > 0
+const isSlotExpandable = (slot: Slot, block: Block) => {
+	return !block.isSlotEditable(slot) && slot.slotContent?.length > 0
 }
 
 const toggleSlotExpanded = (slot: Slot) => {
