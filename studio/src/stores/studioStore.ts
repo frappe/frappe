@@ -22,7 +22,7 @@ import Block from "@/utils/block"
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Resource } from "@/types/Studio/StudioResource"
-import { LeftPanelOptions, RightPanelOptions, SlotOptions } from "@/types"
+import { LeftPanelOptions, RightPanelOptions, Slot } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 
 const useStudioStore = defineStore("store", () => {
@@ -73,8 +73,8 @@ const useStudioStore = defineStore("store", () => {
 	// slots
 	const showSlotEditorDialog = ref(false)
 
-	const selectedSlot = ref<SlotOptions | null>()
-	function selectSlot(slot: SlotOptions) {
+	const selectedSlot = ref<Slot | null>()
+	function selectSlot(slot: Slot) {
 		selectedSlot.value = slot
 		selectBlockById(slot.parentBlockId, null)
 	}

@@ -38,7 +38,7 @@
 		<!-- Slot Overlays -->
 		<template v-if="showSlotOverlays" v-for="(slot, slotName) in block.componentSlots" :key="slotName">
 			<div
-				:ref="(el) => setSlotOverlayRefs(slotName, el)"
+				:ref="(el: any) => setSlotOverlayRefs(slotName, el)"
 				:data-slot-name="slotName"
 				:data-slot-id="slot.slotId"
 				:data-component-id="block.componentId"

@@ -106,7 +106,7 @@ import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
 import LucideIcon from "./LucideIcon.vue"
 import SlotIcon from "@/components/Icons/SlotIcon.vue"
-import { SlotOptions } from "@/types"
+import { Slot } from "@/types"
 
 const props = withDefaults(
 	defineProps<{
@@ -164,15 +164,15 @@ const isExpandable = (block: Block) => {
 // slots
 const expandedSlots = ref<Set<string>>(new Set())
 
-const isSlotExpanded = (slot: SlotOptions) => {
+const isSlotExpanded = (slot: Slot) => {
 	return expandedSlots.value.has(slot.slotId)
 }
 
-const isSlotExpandable = (slot: SlotOptions) => {
+const isSlotExpandable = (slot: Slot) => {
 	return slot.slotContent?.length > 0
 }
 
-const toggleSlotExpanded = (slot: SlotOptions) => {
+const toggleSlotExpanded = (slot: Slot) => {
 	if (expandedSlots.value.has(slot.slotId)) {
 		expandedSlots.value.delete(slot.slotId)
 	} else {

@@ -73,7 +73,7 @@ import Block from "@/utils/block"
 import { getComponentProps, getComponentSlots } from "@/utils/components"
 import InlineInput from "@/components/InlineInput.vue"
 import EmptyState from "@/components/EmptyState.vue"
-import type { SelectOption, SlotOptions } from "@/types"
+import type { SelectOption, Slot } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
 
 const props = defineProps<{
@@ -127,7 +127,7 @@ const updateAvailableSlots = async () => {
 		.map((slot) => slot.name)
 }
 
-const getSlotContent = (slot: SlotOptions) => {
+const getSlotContent = (slot: Slot) => {
 	if (!slot.slotContent) return ""
 	else if (typeof slot.slotContent === "string") return slot.slotContent
 	// hack to show the clear button for slot blocks

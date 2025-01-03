@@ -1,4 +1,4 @@
-import { BlockOptions, BlockStyleMap, SlotOptions } from "@/types"
+import { BlockOptions, BlockStyleMap, Slot } from "@/types"
 import { clamp } from "@vueuse/core"
 import { reactive, CSSProperties, nextTick } from 'vue'
 
@@ -14,7 +14,7 @@ class Block implements BlockOptions {
 	componentId: string
 	componentName: string
 	componentProps: Record<string, any>
-	componentSlots: Record<string, SlotOptions>
+	componentSlots: Record<string, Slot>
 	componentEvents: Record<string, any>
 	blockName: string
 	originalElement?: string | undefined
@@ -458,7 +458,7 @@ class Block implements BlockOptions {
 		return `${this.componentId}:${slotName}`
 	}
 
-	isSlotEditable(slot: SlotOptions | undefined | null) {
+	isSlotEditable(slot: Slot | undefined | null) {
 		if (!slot) return false
 
 		return Boolean(
