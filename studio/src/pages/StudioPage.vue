@@ -1,5 +1,6 @@
 <template>
 	<div class="studio h-screen flex-col overflow-hidden bg-gray-100">
+		<ComponentContextMenu ref="componentContextMenu"></ComponentContextMenu>
 		<StudioToolbar class="relative z-30" />
 		<div class="flex flex-col">
 			<StudioLeftPanel
@@ -26,11 +27,12 @@
 </template>
 
 <script setup lang="ts">
-import { onActivated, watchEffect, watch, ref, onDeactivated } from "vue"
+import { onActivated, watchEffect, watch, ref, onDeactivated, toRef } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useDebounceFn } from "@vueuse/core"
 import { usePageMeta } from "frappe-ui"
 
+import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import StudioToolbar from "@/components/StudioToolbar.vue"
 import StudioLeftPanel from "@/components/StudioLeftPanel.vue"
 import StudioRightPanel from "@/components/StudioRightPanel.vue"
@@ -41,10 +43,14 @@ import { studioPages } from "@/data/studioPages"
 import { getRootBlock } from "@/utils/helpers"
 import { studioAppPages } from "@/data/studioApps"
 import { StudioPage } from "@/types/Studio/StudioPage"
+import { useStudioEvents } from "@/utils/useStudioEvents"
 
 const route = useRoute()
 const router = useRouter()
 const store = useStudioStore()
+
+const componentContextMenu = toRef(store, "componentContextMenu")
+useStudioEvents()
 
 const canvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
 watchEffect(() => {
@@ -57,7 +63,12 @@ const debouncedPageSave = useDebounceFn(store.savePage, 300)
 watch(
 	() => canvas.value?.rootComponent,
 	() => {
-		if (store.selectedPage && !canvas.value?.canvasProps?.settingCanvas) {
+		if (
+			store.selectedPage &&
+			!canvas.value?.canvasProps?.settingCanvas &&
+			!store.settingPage &&
+			!store.savingPage
+		) {
 			store.savingPage = true
 			debouncedPageSave()
 		}

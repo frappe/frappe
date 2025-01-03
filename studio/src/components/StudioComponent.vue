@@ -9,9 +9,43 @@
 		@mouseover="handleMouseOver"
 		@mouseleave="handleMouseLeave"
 		@click="handleClick"
-		@contextmenu="triggerContextMenu($event)"
 		ref="componentRef"
 	>
+		<!-- Dynamically render named slots -->
+		<template v-for="(slot, slotName) in block?.componentSlots" :key="slotName" v-slot:[slotName]>
+			<template v-if="Array.isArray(slot.slotContent)">
+				<StudioComponent
+					v-for="slotBlock in slot?.slotContent"
+					:key="slotBlock.componentId"
+					:block="slotBlock"
+					:class="slotClasses"
+					:data-slot-id="slot.slotId"
+					:data-slot-name="slotName"
+					:data-component-id="block.componentId"
+				/>
+			</template>
+			<template v-else-if="isHTML(slot.slotContent)">
+				<component
+					v-memo="[slot.slotContent]"
+					:is="{ template: slot.slotContent }"
+					:class="slotClasses"
+					:data-slot-id="slot.slotId"
+					:data-slot-name="slotName"
+					:data-component-id="block.componentId"
+				/>
+			</template>
+			<template v-else>
+				<span
+					:class="[slotClasses, !slot.slotContent ? 'min-h-5 min-w-5' : '']"
+					:data-slot-id="slot.slotId"
+					:data-slot-name="slotName"
+					:data-component-id="block.componentId"
+				>
+					{{ slot.slotContent }}
+				</span>
+			</template>
+		</template>
+
 		<StudioComponent v-for="child in block?.children" :key="child.componentId" :block="child" />
 	</component>
 
@@ -26,7 +60,6 @@
 		@mouseover="handleMouseOver"
 		@mouseleave="handleMouseLeave"
 		@click="handleClick"
-		@contextmenu="triggerContextMenu($event)"
 		ref="componentRef"
 	/>
 
@@ -44,13 +77,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, useAttrs, onMounted, nextTick, inject } from "vue"
+import { computed, ref, watch, useAttrs, onMounted, inject } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
-import { getComponentRoot, isDynamicValue, getDynamicValue } from "@/utils/helpers"
+import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML } from "@/utils/helpers"
 
 import { CanvasProps } from "@/types"
 
@@ -72,6 +105,7 @@ const isComponentReady = ref(false)
 const editor = ref<InstanceType<typeof ComponentEditor> | null>(null)
 const store = useStudioStore()
 const classes = ["__studio_component__", "outline-none", "select-none"]
+const slotClasses = ["__studio_component_slot__", "outline-none", "select-none"]
 
 const canvasProps = inject("canvasProps") as CanvasProps
 
@@ -141,27 +175,17 @@ const getClickedComponent = (e: MouseEvent) => {
 }
 
 const handleClick = (e: MouseEvent) => {
-	const block = getClickedComponent(e)
-	if (block) {
-		store.selectBlock(block, e)
-	} else {
-		store.selectBlock(props.block, e)
-	}
-	e.stopPropagation()
-	e.preventDefault()
-}
-
-const triggerContextMenu = (e: MouseEvent) => {
-	if (props.block.isRoot()) return
-	e.stopPropagation()
-	e.preventDefault()
-
 	const block = getClickedComponent(e) || props.block
 	store.selectBlock(block, e)
 
-	nextTick(() => {
-		editor.value?.element.dispatchEvent(new MouseEvent("contextmenu", e))
-	})
+	const slotName = (e.target as HTMLElement).dataset.slotName
+	if (slotName) {
+		const slot = block.getSlot(slotName)
+		store.selectSlot(slot)
+	}
+
+	e.stopPropagation()
+	e.preventDefault()
 }
 
 watch(

@@ -1,10 +1,10 @@
-import { BlockOptions, BlockStyleMap } from "@/types"
+import { BlockOptions, BlockStyleMap, Slot } from "@/types"
 import { clamp } from "@vueuse/core"
 import { reactive, CSSProperties, nextTick } from 'vue'
 
 import useStudioStore from "@/stores/studioStore";
 import components from "@/data/components";
-import { copyObject, getBlockCopy, kebabToCamelCase, numberToPx } from "./helpers";
+import { copyObject, getBlockCopy, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
 
 import { StyleValue } from "@/types"
 import { ComponentEvent } from "@/types/ComponentEvent"
@@ -14,6 +14,7 @@ class Block implements BlockOptions {
 	componentId: string
 	componentName: string
 	componentProps: Record<string, any>
+	componentSlots: Record<string, Slot>
 	componentEvents: Record<string, any>
 	blockName: string
 	originalElement?: string | undefined
@@ -23,6 +24,7 @@ class Block implements BlockOptions {
 	mobileStyles: BlockStyleMap
 	tabletStyles: BlockStyleMap
 	classes?: string[]
+	parentSlotName?: string
 
 	constructor(options: BlockOptions) {
 		this.componentName = options.componentName
@@ -46,6 +48,11 @@ class Block implements BlockOptions {
 			this.componentProps = options.componentProps
 		}
 		this.componentEvents = options.componentEvents || {}
+		this.componentSlots = options.componentSlots || {}
+		this.initializeSlots()
+		if (options.parentSlotName) {
+			this.parentSlotName = options.parentSlotName
+		}
 
 		// set up hierarchy
 		this.parentBlock = options.parentBlock || null
@@ -59,13 +66,20 @@ class Block implements BlockOptions {
 		return `${componentName || this.componentName}-${Math.random().toString(36).substring(2, 9)}`
 	}
 
-	addChild(child: BlockOptions, index?: number | null) {
-		child.parentBlock = this
-		if (index === undefined || index === null) {
-			index = this.children.length
+	deleteBlock() {
+		const parentBlock = this.getParentBlock()
+		if (parentBlock) {
+			parentBlock.removeChild(this)
 		}
-		index = clamp(index, 0, this.children.length)
+	}
 
+	addChild(child: BlockOptions, index?: number | null) {
+		if (child.parentSlotName) {
+			return this.updateSlot(child.parentSlotName, child, index)
+		}
+
+		child.parentBlock = this
+		index = this.getValidIndex(index, this.children.length)
 		const childBlock = reactive(new Block(child))
 		this.children.splice(index, 0, childBlock)
 		childBlock.selectBlock()
@@ -74,14 +88,37 @@ class Block implements BlockOptions {
 
 	removeChild(child: Block) {
 		const index = this.getChildIndex(child)
-		if (index > -1) {
+		if (index === -1) return
+
+		if (child.isSlotBlock()) {
+			let slotContent = this.getSlotContent(child.parentSlotName!)
+			if (!Array.isArray(slotContent)) return
+
+			if (slotContent.length === 1) {
+				this.updateSlot(child.parentSlotName!, "")
+			} else {
+				slotContent.splice(index, 1)
+			}
+		} else {
 			this.children.splice(index, 1)
 		}
 	}
 
 	getChildIndex(child: Block) {
-		return this.children.findIndex((block) => block.componentId === child.componentId);
+		if (child.parentSlotName) {
+			return (
+				this.getSlotContent(child.parentSlotName) as Block[]
+			).findIndex((block) => block.componentId === child.componentId)
+		}
+		return this.children.findIndex((block) => block.componentId === child.componentId)
 	}
+
+	getValidIndex(index: number | null | undefined, arrayLength: number): number {
+		if (index === undefined || index === null) {
+			return arrayLength
+		}
+		return clamp(index, 0, arrayLength)
+	  }
 
 	addChildAfter(child: BlockOptions, siblingBlock: Block) {
 		const siblingIndex = this.getChildIndex(siblingBlock)
@@ -353,6 +390,86 @@ class Block implements BlockOptions {
 	// component props
 	setProp(propName: string, value: any) {
 		this.componentProps[propName] = value
+	}
+
+	// component slots
+	initializeSlots() {
+		Object.entries(this.componentSlots).forEach(([slotName, slot]) => {
+			if (!slot.slotId) {
+				slot.slotId = this.generateSlotId(slotName)
+			}
+			slot.parentBlockId = this.componentId
+
+			if (Array.isArray(slot.slotContent)) {
+				slot.slotContent = slot.slotContent.map((block) => {
+					block.parentBlock = this
+					return reactive(new Block(block))
+				})
+			}
+		})
+	}
+
+	addSlot(slotName: string) {
+		this.componentSlots[slotName] = {
+			slotName: slotName,
+			slotId: this.generateSlotId(slotName),
+			slotContent: "",
+			parentBlockId: this.componentId
+		}
+	}
+
+	updateSlot(slotName: string, content: string | Block | BlockOptions, index?: number | null) {
+		if (typeof content === "string") {
+			this.componentSlots[slotName].slotContent = content
+		} else {
+			if (!Array.isArray(this.componentSlots[slotName].slotContent)) {
+				this.componentSlots[slotName].slotContent = []
+			}
+
+			// for top-level blocks inside a slot
+			content.parentSlotName = slotName
+			content.parentBlock = this
+			const slotContent = this.componentSlots[slotName].slotContent as Block[]
+			index = this.getValidIndex(index, slotContent.length)
+			const childBlock = reactive(new Block(content))
+			slotContent.splice(index, 0, childBlock)
+			childBlock.selectBlock()
+			return childBlock
+		}
+	}
+
+	removeSlot(slotName: string) {
+		delete this.componentSlots[slotName]
+	}
+
+	getSlot(slotName: string) {
+		return this.componentSlots[slotName]
+	}
+
+	getSlotContent(slotName: string) {
+		return this.componentSlots[slotName]?.slotContent
+	}
+
+	hasComponentSlots() {
+		return !isObjectEmpty(this.componentSlots)
+	}
+
+	generateSlotId(slotName: string) {
+		return `${this.componentId}:${slotName}`
+	}
+
+	isSlotEditable(slot: Slot | undefined | null) {
+		if (!slot) return false
+
+		return Boolean(
+			!this.isRoot()
+			&& slot.slotId
+			&& typeof slot.slotContent === "string"
+		)
+	}
+
+	isSlotBlock() {
+		return Boolean(this.parentSlotName)
 	}
 
 	// events

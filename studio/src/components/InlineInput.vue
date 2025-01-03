@@ -1,7 +1,7 @@
 <template>
 	<div
 		class="flex [&>div>input]:!bg-red-600 [&>div>input]:pr-6"
-		:class="type === 'code' ? 'flex-col gap-1.5' : 'flex-row items-center justify-between'"
+		:class="type === 'code' ? 'flex-col gap-1.5' : 'flex-row items-start justify-between'"
 	>
 		<InputLabel
 			:class="[
@@ -46,7 +46,6 @@
 		<Input
 			v-else
 			:type="type"
-			placeholder="unset"
 			:modelValue="modelValue"
 			:options="inputOptions"
 			@update:modelValue="handleChange"

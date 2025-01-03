@@ -19,8 +19,25 @@ function getBlockInstance(options: BlockOptions, retainId = true): Block {
 			for (let child of block.children || []) {
 				deleteComponentId(child)
 			}
+
+			// clear componentId of slot children
+			for (let slot of Object.values(block.componentSlots || {})) {
+				if (Array.isArray(slot.slotContent)) {
+					for (let child of slot.slotContent) {
+						deleteComponentId(child)
+					}
+				}
+			}
 		}
+
+		const deleteSlotId = (block: BlockOptions) => {
+			for (let slot of Object.values(block.componentSlots || {})) {
+				delete slot.slotId
+			}
+		}
+
 		deleteComponentId(options)
+		deleteSlotId(options)
 	}
 	return reactive(new Block(options))
 }
@@ -39,10 +56,40 @@ function getBlockCopy(block: BlockOptions | Block, retainId = false): Block {
 	return getBlockInstance(b, retainId)
 }
 
-function getBlockCopyWithoutParent(block: BlockOptions | Block): BlockOptions {
-	const blockCopy = { ...toRaw(block) }
-	blockCopy.children = blockCopy.children?.map((child) => getBlockCopyWithoutParent(child))
+function deepCloneObject(obj: any, skipKeys: string[] | null = null): any {
+	if (!obj || typeof obj !== "object") {
+		return obj
+	}
+	if (obj instanceof Date) {
+		return new Date(obj)
+	}
+	if (Array.isArray(obj)) {
+		return obj.map(item => deepCloneObject(item, skipKeys))
+	}
+
+	const clonedObj: any = {}
+	for (const key in obj) {
+		if (skipKeys?.includes(key)) continue
+		clonedObj[key] = deepCloneObject(obj[key], skipKeys)
+	}
+
+	return clonedObj
+}
+
+function getBlockCopyWithoutParent(block: BlockOptions | Block) {
+	const rawBlock = toRaw(block)
+	const blockCopy = deepCloneObject(rawBlock, ["parentBlock"]) as BlockOptions
 	delete blockCopy.parentBlock
+
+	blockCopy.children = blockCopy.children?.map((child) => getBlockCopyWithoutParent(child))
+
+	// remove parentBlock reference for slot children
+	for (const slot of Object.values(blockCopy.componentSlots || {})) {
+		if (Array.isArray(slot.slotContent)) {
+			slot.slotContent = slot.slotContent.map((child) => getBlockCopyWithoutParent(child))
+		}
+	}
+
 	return blockCopy
 }
 
@@ -123,7 +170,7 @@ function areObjectsEqual(obj1: ObjectLiteral, obj2: ObjectLiteral): boolean {
 	return true
 }
 
-function isObjectEmpty(obj: object | null) {
+function isObjectEmpty(obj: object | null | undefined) {
 	if (!obj) return true
 	return Object.keys(obj).length === 0
 }
@@ -173,6 +220,12 @@ function replaceMapKey(map: Map<any, any>, oldKey: string, newKey: string) {
 		}
 	});
 	return newMap;
+}
+
+// slots
+function isHTML(content: any) {
+	if (typeof content !== 'string') return false
+	return /<[a-z][\s\S]*>/i.test(content)
 }
 
 // app
@@ -454,7 +507,6 @@ function getErrorMessage(err: any) {
 
 
 export {
-	copyToClipboard,
 	getBlockInstance,
 	getComponentBlock,
 	getRootBlock,
@@ -471,6 +523,8 @@ export {
 	jsonToJs,
 	mapToObject,
 	replaceMapKey,
+	// slots
+	isHTML,
 	// app
 	fetchApp,
 	fetchAppPages,
@@ -484,5 +538,7 @@ export {
 	getNewResource,
 	// dialog
 	confirm,
+	// general utils
+	copyToClipboard,
 	getErrorMessage,
 }

@@ -1,6 +1,5 @@
 <template>
 	<div>
-		<slot :onContextMenu="showContextMenu" />
 		<ContextMenu
 			v-if="contextMenuVisible"
 			v-on-click-outside="() => (contextMenuVisible = false)"
@@ -13,18 +12,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from "vue"
+import { ref, Ref } from "vue"
 import { vOnClickOutside } from "@vueuse/components"
 import ContextMenu from "@/components/ContextMenu.vue"
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import { ContextMenuOption } from "@/types"
-import { getComponentBlock } from "@/utils/helpers"
-
-const props = defineProps<{
-	block: Block
-	editable: boolean
-}>()
+import { getComponentBlock, isObjectEmpty } from "@/utils/helpers"
 
 const store = useStudioStore()
 
@@ -32,8 +26,10 @@ const contextMenuVisible = ref(false)
 const posX = ref(0)
 const posY = ref(0)
 
-const showContextMenu = (e: MouseEvent) => {
-	if (props.block.isRoot() || props.editable) return
+const block = ref(null) as unknown as Ref<Block>
+const showContextMenu = (e: MouseEvent, refBlock: Block) => {
+	block.value = refBlock
+	if (block.value.isRoot()) return
 	contextMenuVisible.value = true
 	posX.value = e.pageX
 	posY.value = e.pageY
@@ -49,23 +45,27 @@ const handleContextMenuSelect = (action: CallableFunction) => {
 const contextMenuOptions: ContextMenuOption[] = [
 	{
 		label: "Duplicate",
-		action: () => props.block.duplicateBlock(),
+		action: () => block.value.duplicateBlock(),
 	},
 	{
 		label: "Delete",
 		action: () => {
-			props.block.getParentBlock()?.removeChild(props.block)
+			block.value.deleteBlock()
 		},
 		condition: () => {
-			return !props.block.isRoot() && Boolean(props.block.getParentBlock())
+			return !block.value.isRoot() && Boolean(block.value.getParentBlock())
 		},
 	},
 	{
 		label: "Wrap In Container",
 		action: () => {
-			const newBlockObj = getComponentBlock("FitContainer")
-			const parentBlock = props.block.getParentBlock()
+			const parentBlock = block.value.getParentBlock()
 			if (!parentBlock) return
+
+			const newBlockObj = getComponentBlock("FitContainer")
+			if (block.value.isSlotBlock()) {
+				newBlockObj.parentSlotName = block.value.parentSlotName
+			}
 
 			const selectedBlocks = store.selectedBlocks || []
 			const blockPosition = Math.min(...selectedBlocks.map(parentBlock.getChildIndex.bind(parentBlock)))
@@ -77,6 +77,9 @@ const contextMenuOptions: ContextMenuOption[] = [
 				.sort((a, b) => parentBlock.getChildIndex(a) - parentBlock.getChildIndex(b))
 				.forEach((block) => {
 					parentBlock?.removeChild(block)
+					if (block.parentSlotName) {
+						delete block.parentSlotName
+					}
 					newBlock?.addChild(block)
 					if (!width) {
 						const blockWidth = block.getStyle("width") as string | undefined
@@ -95,5 +98,17 @@ const contextMenuOptions: ContextMenuOption[] = [
 			}
 		},
 	},
+	{
+		label: "Edit Slot",
+		action: () => {
+			store.showSlotEditorDialog = true
+		},
+		condition: () =>
+			!isObjectEmpty(block.value.componentSlots) && block.value.isSlotEditable(store.selectedSlot),
+	},
 ]
+
+defineExpose({
+	showContextMenu,
+})
 </script>

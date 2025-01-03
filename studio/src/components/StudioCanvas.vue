@@ -153,15 +153,19 @@ const rootComponent = ref(getBlockCopy(props.componentTree, true))
 // handle dropping components
 useDropZone(canvasContainer, {
 	onDrop: (_files, ev) => {
-		let parentComponent = getDropTarget(ev)
-		const componentName = ev.dataTransfer?.getData("componentName")
-		if (componentName && parentComponent) {
-			const newBlock = getComponentBlock(componentName)
-			parentComponent.addChild(newBlock)
+		let { parentComponent, slotName } = getDropTarget(ev)
+		const droppedComponentName = ev.dataTransfer?.getData("componentName")
+		if (droppedComponentName && parentComponent) {
+			const newBlock = getComponentBlock(droppedComponentName)
+			if (slotName) {
+				parentComponent.updateSlot(slotName, newBlock)
+			} else {
+				parentComponent.addChild(newBlock)
+			}
 		}
 	},
 	onOver: (_files, ev) => {
-		const parentComponent = getDropTarget(ev)
+		const { parentComponent } = getDropTarget(ev)
 		if (parentComponent) {
 			store.hoveredBlock = parentComponent.componentId
 		}
@@ -171,6 +175,7 @@ useDropZone(canvasContainer, {
 const getDropTarget = (ev: DragEvent) => {
 	let element = document.elementFromPoint(ev.x, ev.y) as HTMLElement
 	let parentComponent = rootComponent.value
+	let slotName
 
 	if (element) {
 		if (element.dataset.componentId) {
@@ -178,10 +183,14 @@ const getDropTarget = (ev: DragEvent) => {
 			while (parentComponent && !parentComponent.canHaveChildren()) {
 				parentComponent = parentComponent.getParentBlock()
 			}
+			slotName = element.dataset.slotName || store.selectedSlot?.slotName
 		}
 	}
 
-	return parentComponent
+	return {
+		parentComponent,
+		slotName,
+	}
 }
 
 const findBlock = (componentId: string, blocks?: Block[]): Block | null => {
@@ -195,6 +204,15 @@ const findBlock = (componentId: string, blocks?: Block[]): Block | null => {
 		if (block.children) {
 			const found = findBlock(componentId, block.children)
 			if (found) return found
+		}
+
+		if (block.componentSlots) {
+			for (const slot of Object.values(block.componentSlots)) {
+				if (Array.isArray(slot.slotContent)) {
+					const found = findBlock(componentId, slot.slotContent)
+					if (found) return found
+				}
+			}
 		}
 	}
 	return null
@@ -267,5 +285,8 @@ defineExpose({
 }
 .block-selected {
 	@apply border-blue-400 text-gray-900 dark:border-blue-700 dark:text-gray-200;
+}
+.slot-selected {
+	@apply border-purple-400 text-gray-900;
 }
 </style>

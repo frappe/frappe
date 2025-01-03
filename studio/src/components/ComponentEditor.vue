@@ -1,56 +1,105 @@
 <template>
-	<ComponentContextMenu :block="block" :editable="false" v-slot="{ onContextMenu }">
-		<div
-			class="editor pointer-events-none fixed z-[18] box-content select-none ring-2 ring-inset"
-			ref="editor"
-			:selected="isBlockSelected"
-			:data-component-id="block.componentId"
-			:class="getStyleClasses"
-			@contextmenu="onContextMenu"
-			@click.stop="handleClick"
+	<div
+		class="editor pointer-events-none fixed z-[18] box-content select-none ring-2 ring-inset"
+		ref="editor"
+		:selected="isBlockSelected"
+		:data-component-id="block.componentId"
+		:class="getStyleClasses"
+		@click.stop="handleClick"
+	>
+		<!-- Component name label -->
+		<span
+			v-if="!props.block.isRoot()"
+			class="absolute -top-3 left-0 inline-block text-xs"
+			:class="isBlockSelected ? 'bg-blue-500 text-white' : 'text-blue-500'"
 		>
-			<!-- Component name label -->
-			<span
-				v-if="!props.block.isRoot()"
-				class="absolute -top-3 left-0 inline-block text-xs"
-				:class="isBlockSelected ? 'bg-blue-500 text-white' : 'text-blue-500'"
-			>
-				{{ block.componentName }}
-			</span>
+			{{ block.componentName }}
+		</span>
 
-			<PaddingHandler
-				:data-block-id="block.componentId"
-				v-if="showMarginPaddingHandlers"
-				:target-block="block"
-				:target="target"
-				:on-update="updateTracker"
-				:disable-handlers="false"
-				:breakpoint="breakpoint"
+		<PaddingHandler
+			:data-block-id="block.componentId"
+			v-if="showMarginPaddingHandlers"
+			:target-block="block"
+			:target="target"
+			:on-update="tracker?.update"
+			:disable-handlers="false"
+			:breakpoint="breakpoint"
+		/>
+		<MarginHandler
+			v-if="showMarginPaddingHandlers"
+			:target-block="block"
+			:target="target"
+			:on-update="tracker?.update"
+			:disable-handlers="false"
+			:breakpoint="breakpoint"
+		/>
+		<BoxResizer v-if="showResizer" :targetBlock="block" @resizing="resizing = $event" :target="target" />
+
+		<!-- Slot Overlays -->
+		<template v-if="showSlotOverlays" v-for="(slot, slotName) in block.componentSlots" :key="slotName">
+			<div
+				:ref="(el: any) => setSlotOverlayRefs(slotName, el)"
+				:data-slot-name="slotName"
+				:data-slot-id="slot.slotId"
+				:data-component-id="block.componentId"
+				class="pointer-events-none fixed ring-2 ring-inset ring-purple-500"
+				:class="isSlotSelected(slot.slotId) ? 'opacity-100' : 'opacity-65'"
+				:style="{
+					// set min height and width so that slots without content are visible
+					minWidth: `calc(${12}px * ${canvasProps.scale})`,
+					minHeight: `calc(${12}px * ${canvasProps.scale})`,
+				}"
+			>
+				<span
+					class="absolute -top-3 left-0 inline-block text-white text-xs text-nowrap"
+					:class="isSlotSelected(slot.slotId) ? 'bg-purple-500' : 'bg-purple-500/65'"
+				>
+					#{{ slotName }}
+				</span>
+			</div>
+		</template>
+	</div>
+
+	<Dialog
+		v-if="store.selectedSlot?.slotId"
+		v-model="store.showSlotEditorDialog"
+		class="overscroll-none"
+		:options="{
+			title: `Edit #${store.selectedSlot?.slotName} slot for ${block.componentName}`,
+			size: '3xl',
+		}"
+	>
+		<template #body-content>
+			<CodeEditor
+				:modelValue="block.getSlotContent(store.selectedSlot?.slotName) || ''"
+				type="HTML"
+				height="60vh"
+				:showLineNumbers="true"
+				:showSaveButton="true"
+				@save="
+					(val) => {
+						if (!store.selectedSlot) return
+						props.block.updateSlot(store.selectedSlot?.slotName, val)
+						store.showSlotEditorDialog = false
+					}
+				"
+				required
 			/>
-			<MarginHandler
-				v-if="showMarginPaddingHandlers"
-				:target-block="block"
-				:target="target"
-				:on-update="updateTracker"
-				:disable-handlers="false"
-				:breakpoint="breakpoint"
-			/>
-			<BoxResizer v-if="showResizer" :targetBlock="block" @resizing="resizing = $event" :target="target" />
-		</div>
-	</ComponentContextMenu>
+		</template>
+	</Dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, Ref, watchEffect, nextTick } from "vue"
+import { ref, computed, onMounted, Ref, watchEffect, nextTick, inject, watch } from "vue"
 
-import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import BoxResizer from "@/components/BoxResizer.vue"
 import PaddingHandler from "@/components/PaddingHandler.vue"
 import MarginHandler from "@/components/MarginHandler.vue"
+import CodeEditor from "@/components/CodeEditor.vue"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
-import trackTarget from "@/utils/trackTarget"
+import trackTarget, { Tracker } from "@/utils/trackTarget"
 
 import { CanvasProps } from "@/types"
 
@@ -76,9 +125,12 @@ const props = defineProps({
 const store = useStudioStore()
 const editor = ref(null) as unknown as Ref<HTMLElement>
 const resizing = ref(false)
-const updateTracker = ref(() => {})
+const tracker = ref<Tracker>()
+
+const canvasProps = inject("canvasProps") as CanvasProps
 
 const showMarginPaddingHandlers = computed(() => {
+	return false
 	return isBlockSelected.value && !props.block.isRoot() && !resizing.value
 })
 
@@ -89,6 +141,10 @@ const showResizer = computed(() => {
 const isBlockSelected = computed(() => {
 	return props.isSelected && props.breakpoint === store.activeBreakpoint
 })
+
+const isSlotSelected = (slotId: string) => {
+	return store.selectedSlot?.slotId === slotId
+}
 
 const getStyleClasses = computed(() => {
 	const classes = ["ring-blue-400"]
@@ -102,10 +158,10 @@ const getStyleClasses = computed(() => {
 	return classes
 })
 
-const preventCLick = ref(false)
+const preventClick = ref(false)
 const handleClick = (ev: MouseEvent) => {
-	if (preventCLick.value) {
-		preventCLick.value = false
+	if (preventClick.value) {
+		preventClick.value = false
 		return
 	}
 	const editorWrapper = editor.value
@@ -122,9 +178,24 @@ const handleClick = (ev: MouseEvent) => {
 }
 
 watchEffect(() => {
+	props.block.getStyle("top")
+	props.block.getStyle("left")
+	props.block.getStyle("bottom")
+	props.block.getStyle("right")
+	props.block.getStyle("position")
+
 	const parentBlock = props.block.getParentBlock()
 	// on rearranging blocks
 	parentBlock?.getChildIndex(props.block)
+	parentBlock?.getStyle("display")
+	parentBlock?.getStyle("justifyContent")
+	parentBlock?.getStyle("alignItems")
+	parentBlock?.getStyle("flexDirection")
+	parentBlock?.getStyle("paddingTop")
+	parentBlock?.getStyle("paddingBottom")
+	parentBlock?.getStyle("paddingLeft")
+	parentBlock?.getStyle("paddingRight")
+	parentBlock?.getStyle("margin")
 
 	// on changing panel states
 	store.studioLayout.leftPanelWidth
@@ -136,12 +207,86 @@ watchEffect(() => {
 	store.canvas?.canvasProps.breakpoints.map((breakpoint) => breakpoint.visible)
 
 	nextTick(() => {
-		updateTracker.value()
+		tracker.value?.update()
+		updateSlotOverlayRefs()
 	})
 })
 
+// Slot overlay tracking
+const showSlotOverlays = computed(() => {
+	return isBlockSelected.value && !props.block.isRoot() && Object.keys(props.block.componentSlots).length > 0
+})
+
+const slotOverlays = ref<Record<string, HTMLElement>>({})
+const slotTrackers = ref<Record<string, Tracker>>({})
+
+const setSlotOverlayRefs = (slotName: string, element: HTMLElement | null) => {
+	if (element) {
+		slotOverlays.value[slotName] = element
+	} else {
+		if (slotTrackers.value[slotName]) {
+			slotTrackers.value[slotName].cleanup()
+		}
+		delete slotOverlays.value[slotName]
+		delete slotTrackers.value[slotName]
+	}
+}
+
+const updateSlotOverlayRefs = () => {
+	if (!props.target) return
+
+	// Find all slot elements within the target
+	const slotElements = props.target.querySelectorAll("[data-slot-name]")
+	const handledSlots = new Set<string>()
+
+	slotElements.forEach((element) => {
+		const slotName = (element as HTMLElement).dataset.slotName
+		if (!slotName || !slotOverlays.value[slotName]) return
+
+		handledSlots.add(slotName)
+
+		// always clean up existing tracker and create a new one since underlying
+		// slot elements might completely change, unlike the main component editor
+		if (slotTrackers.value[slotName]) {
+			slotTrackers.value[slotName].cleanup()
+		}
+
+		slotTrackers.value[slotName] = trackTarget(
+			element as HTMLElement,
+			slotOverlays.value[slotName],
+			canvasProps,
+		)
+	})
+
+	// Clean up trackers for removed slots
+	Object.keys(slotTrackers.value).forEach((slotName) => {
+		if (!handledSlots.has(slotName)) {
+			slotTrackers.value[slotName].cleanup()
+			delete slotTrackers.value[slotName]
+		}
+	})
+}
+
+// watch entire componentSlots object for changes, doesn't work with the common watchEffect
+watch(
+	() => props.block.componentSlots,
+	() => {
+		nextTick(updateSlotOverlayRefs)
+	},
+	{ deep: true, immediate: true },
+)
+
+watch(
+	() => isBlockSelected.value,
+	(newValue, oldValue) => {
+		if (newValue === oldValue) return
+		nextTick(updateSlotOverlayRefs)
+	},
+	{ immediate: true },
+)
+
 onMounted(() => {
-	updateTracker.value = trackTarget(props.target, editor.value, store.canvas?.canvasProps as CanvasProps)
+	tracker.value = trackTarget(props.target, editor.value, store.canvas?.canvasProps as CanvasProps)
 })
 
 defineExpose({

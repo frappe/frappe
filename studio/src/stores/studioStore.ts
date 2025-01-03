@@ -1,4 +1,4 @@
-import { ref, reactive, computed, nextTick, Ref } from "vue"
+import { ref, reactive, computed, nextTick, Ref, watch } from "vue"
 import { defineStore } from "pinia"
 
 import {
@@ -22,7 +22,8 @@ import Block from "@/utils/block"
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Resource } from "@/types/Studio/StudioResource"
-import { LeftPanelOptions, RightPanelOptions } from "@/types"
+import { LeftPanelOptions, RightPanelOptions, Slot } from "@/types"
+import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 
 const useStudioStore = defineStore("store", () => {
 	const canvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
@@ -32,7 +33,7 @@ const useStudioStore = defineStore("store", () => {
 		showLeftPanel: true,
 		showRightPanel: true,
 		leftPanelActiveTab: <LeftPanelOptions>"Add Component",
-		rightPanelActiveTab: <RightPanelOptions>"Props",
+		rightPanelActiveTab: <RightPanelOptions>"Properties",
 	})
 	const activeBreakpoint = ref("desktop")
 	const guides = reactive({
@@ -41,6 +42,7 @@ const useStudioStore = defineStore("store", () => {
 		x: 0,
 		y: 0,
 	})
+	const componentContextMenu = ref<InstanceType<typeof ComponentContextMenu> | null>(null)
 
 	// block hover & selection
 	const hoveredBlock = ref<string | null>(null)
@@ -56,14 +58,47 @@ const useStudioStore = defineStore("store", () => {
 	}) as Ref<Block[]>
 
 	function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false) {
-		if (multiSelect) {
-			selectedBlockIds.value.push(block.componentId)
-		} else {
-			selectedBlockIds.value.splice(0, selectedBlockIds.value.length, block.componentId)
-		}
-
-		studioLayout.leftPanelActiveTab = "Layers"
+		if (settingPage.value) return
+		selectBlockById(block.componentId, e, multiSelect)
 	}
+
+	function selectBlockById(blockId: string, e: MouseEvent | null, multiSelect = false) {
+		if (multiSelect) {
+			selectedBlockIds.value.push(blockId)
+		} else {
+			selectedBlockIds.value.splice(0, selectedBlockIds.value.length, blockId)
+		}
+	}
+
+	// slots
+	const showSlotEditorDialog = ref(false)
+
+	const selectedSlot = ref<Slot | null>()
+	function selectSlot(slot: Slot) {
+		selectedSlot.value = slot
+		selectBlockById(slot.parentBlockId, null)
+	}
+
+	const activeSlotIds = computed(() => {
+		const slotIds = new Set<string>()
+		for (const block of selectedBlocks.value) {
+			for (const slot of Object.values(block.componentSlots)) {
+				slotIds.add(slot.slotId)
+			}
+		}
+		return slotIds
+	})
+
+	watch(
+		() => activeSlotIds.value,
+		(map) => {
+			// clear selected slot if the block is deleted, not selected anymore, or the slot is removed from the block
+			if (selectedSlot.value && !map.has(selectedSlot.value.slotId)) {
+				selectedSlot.value = null
+			}
+		},
+		{ immediate: true }
+	)
 
 	// studio apps
 	const activeApp = ref<StudioApp | null>(null)
@@ -150,9 +185,13 @@ const useStudioStore = defineStore("store", () => {
 			name: selectedPage.value,
 			draft_blocks: pageData,
 		}
-		return studioPages.setValue.submit(args).finally(() => {
-			savingPage.value = false
-		})
+		return studioPages.setValue.submit(args)
+			.then((page: StudioPage) => {
+				activePage.value = page
+			})
+			.finally(() => {
+				savingPage.value = false
+			})
 	}
 
 	function updateActivePage(key: string, value: string) {
@@ -224,13 +263,20 @@ const useStudioStore = defineStore("store", () => {
 		studioLayout,
 		activeBreakpoint,
 		guides,
+		componentContextMenu,
 		// block hover & selection
 		hoveredBlock,
 		hoveredBreakpoint,
 		selectedBlockIds,
 		selectedBlocks,
 		selectBlock,
+		selectBlockById,
 		pageBlocks,
+		// slots
+		selectedSlot,
+		selectSlot,
+		showSlotEditorDialog,
+		activeSlotIds,
 		// studio app
 		activeApp,
 		setApp,

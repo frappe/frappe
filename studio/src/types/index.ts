@@ -13,6 +13,7 @@ export interface BlockOptions {
 	componentId?: string
 	componentName: string
 	componentProps?: Record<string, any>
+	componentSlots?: Record<string, Slot>
 	componentEvents?: Record<string, any>
 	children?: Array<BlockOptions>
 	baseStyles?: BlockStyleMap
@@ -21,7 +22,23 @@ export interface BlockOptions {
 	blockName?: string
 	parentBlock?: Block | null
 	classes?: string[]
+	parentSlotName?: string // for top-level blocks inside a slot
 	[key: string]: any
+}
+
+// slot
+export interface Slot {
+	slotId: string,
+	slotName: string,
+	slotContent: string | Block[],
+	parentBlockId: string
+}
+
+export interface SlotConfig {
+	slotName: string,
+	componentId: string,
+	// componentId:slotName
+	slotId: string
 }
 
 export interface Breakpoint {
@@ -99,4 +116,4 @@ export type Filter = {
 }
 
 export type LeftPanelOptions = "Pages" | "Add Component" | "Layers" | "Data" | "Code"
-export type RightPanelOptions = "Props" | "Events" | "Styles"
+export type RightPanelOptions = "Properties" | "Events" | "Styles"
