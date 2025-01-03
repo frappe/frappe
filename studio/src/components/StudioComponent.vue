@@ -39,6 +39,7 @@
 			</template>
 			<template v-else-if="isHTML(slot.slotContent)">
 				<component
+					v-memo="[slot.slotContent]"
 					:is="{ template: slot.slotContent }"
 					:class="slotClasses"
 					:data-slot-id="slot.slotId"
