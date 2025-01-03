@@ -21,7 +21,7 @@
 			v-if="showMarginPaddingHandlers"
 			:target-block="block"
 			:target="target"
-			:on-update="updateTracker"
+			:on-update="tracker?.update"
 			:disable-handlers="false"
 			:breakpoint="breakpoint"
 		/>
@@ -29,7 +29,7 @@
 			v-if="showMarginPaddingHandlers"
 			:target-block="block"
 			:target="target"
-			:on-update="updateTracker"
+			:on-update="tracker?.update"
 			:disable-handlers="false"
 			:breakpoint="breakpoint"
 		/>
@@ -99,7 +99,7 @@ import CodeEditor from "@/components/CodeEditor.vue"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
-import trackTarget from "@/utils/trackTarget"
+import trackTarget, { Tracker } from "@/utils/trackTarget"
 
 import { CanvasProps } from "@/types"
 
@@ -125,7 +125,7 @@ const props = defineProps({
 const store = useStudioStore()
 const editor = ref(null) as unknown as Ref<HTMLElement>
 const resizing = ref(false)
-const updateTracker = ref(() => {})
+const tracker = ref<Tracker>()
 
 const canvasProps = inject("canvasProps") as CanvasProps
 
@@ -207,7 +207,7 @@ watchEffect(() => {
 	store.canvas?.canvasProps.breakpoints.map((breakpoint) => breakpoint.visible)
 
 	nextTick(() => {
-		updateTracker.value()
+		tracker.value?.update()
 		updateSlotOverlayRefs()
 	})
 })
@@ -216,13 +216,17 @@ watchEffect(() => {
 const showSlotOverlays = computed(() => {
 	return isBlockSelected.value && !props.block.isRoot() && Object.keys(props.block.componentSlots).length > 0
 })
+
 const slotOverlays = ref<Record<string, HTMLElement>>({})
-const slotTrackers = ref<Record<string, () => void>>({})
+const slotTrackers = ref<Record<string, Tracker>>({})
 
 const setSlotOverlayRefs = (slotName: string, element: HTMLElement | null) => {
 	if (element) {
 		slotOverlays.value[slotName] = element
 	} else {
+		if (slotTrackers.value[slotName]) {
+			slotTrackers.value[slotName].cleanup()
+		}
 		delete slotOverlays.value[slotName]
 		delete slotTrackers.value[slotName]
 	}
@@ -233,18 +237,32 @@ const updateSlotOverlayRefs = () => {
 
 	// Find all slot elements within the target
 	const slotElements = props.target.querySelectorAll("[data-slot-name]")
+	const handledSlots = new Set<string>()
+
 	slotElements.forEach((element) => {
 		const slotName = (element as HTMLElement).dataset.slotName
 		if (!slotName || !slotOverlays.value[slotName]) return
-		const tracker = slotTrackers.value[slotName]
-		if (tracker) {
-			tracker()
-		} else {
-			slotTrackers.value[slotName] = trackTarget(
-				element as HTMLElement,
-				slotOverlays.value[slotName],
-				canvasProps,
-			)
+
+		handledSlots.add(slotName)
+
+		// always clean up existing tracker and create a new one since underlying
+		// slot elements might completely change, unlike the main component editor
+		if (slotTrackers.value[slotName]) {
+			slotTrackers.value[slotName].cleanup()
+		}
+
+		slotTrackers.value[slotName] = trackTarget(
+			element as HTMLElement,
+			slotOverlays.value[slotName],
+			canvasProps,
+		)
+	})
+
+	// Clean up trackers for removed slots
+	Object.keys(slotTrackers.value).forEach((slotName) => {
+		if (!handledSlots.has(slotName)) {
+			slotTrackers.value[slotName].cleanup()
+			delete slotTrackers.value[slotName]
 		}
 	})
 }
@@ -268,7 +286,7 @@ watch(
 )
 
 onMounted(() => {
-	updateTracker.value = trackTarget(props.target, editor.value, store.canvas?.canvasProps as CanvasProps)
+	tracker.value = trackTarget(props.target, editor.value, store.canvas?.canvasProps as CanvasProps)
 })
 
 defineExpose({

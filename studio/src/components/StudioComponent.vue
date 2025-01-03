@@ -90,7 +90,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, useAttrs, onMounted, nextTick, inject } from "vue"
+import { computed, ref, watch, useAttrs, onMounted, inject } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
 

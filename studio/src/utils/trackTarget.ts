@@ -1,8 +1,8 @@
-// Extracted from Builder
+// Extracted from Builder - modified later
 import { useElementBounding, useMutationObserver } from "@vueuse/core";
 import { nextTick, reactive, watch, watchEffect } from "vue";
 import { numberToPx } from "./helpers";
-import { CanvasProps } from "@/types"
+import { CanvasProps } from "@/types";
 
 declare global {
 	interface Window {
@@ -13,12 +13,17 @@ declare global {
 window.observer = null;
 const updateList: (() => void)[] = [];
 
-function trackTarget(target: HTMLElement | SVGElement, host: HTMLElement, canvasProps: CanvasProps) {
+export interface Tracker {
+	update: () => void
+	cleanup: () => void
+}
+
+function trackTarget(target: HTMLElement | SVGElement, host: HTMLElement, canvasProps: CanvasProps): Tracker {
 	const targetBounds = reactive(useElementBounding(target));
 	const container = target.closest(".canvas-container");
 	// TODO: too much? find a better way to track changes
 	updateList.push(targetBounds.update);
-	watch(canvasProps, () => nextTick(targetBounds.update), { deep: true });
+	const stopWatch = watch(canvasProps, () => nextTick(targetBounds.update), { deep: true })
 
 	if (!window.observer) {
 		let callback = () => {
@@ -36,14 +41,27 @@ function trackTarget(target: HTMLElement | SVGElement, host: HTMLElement, canvas
 			characterData: true,
 		});
 	}
-	watchEffect(() => {
-		host.style.width = numberToPx(targetBounds.width, false);
-		host.style.height = numberToPx(targetBounds.height, false);
-		host.style.top = numberToPx(targetBounds.top, false);
-		host.style.left = numberToPx(targetBounds.left, false);
+
+	const stopEffect = watchEffect(() => {
+		host.style.width = numberToPx(targetBounds.width, false)
+		host.style.height = numberToPx(targetBounds.height, false)
+		host.style.top = numberToPx(targetBounds.top, false)
+		host.style.left = numberToPx(targetBounds.left, false)
 	});
 
-	return targetBounds.update;
+	const cleanup = () => {
+		const index = updateList.indexOf(targetBounds.update)
+		if (index > -1) {
+			updateList.splice(index, 1)
+		}
+		stopWatch()
+		stopEffect()
+	};
+
+	return {
+		update: targetBounds.update,
+		cleanup,
+	}
 }
 
-export default trackTarget;
+export default trackTarget
