@@ -968,7 +968,9 @@ def clear_cache(user: str | None = None, doctype: str | None = None):
 		for fn in get_hooks("clear_cache"):
 			get_attr(fn)()
 
-	frappe.utils.caching._SITE_CACHE.clear()
+	if (not doctype and not user) or doctype == "DocType":
+		frappe.utils.caching._SITE_CACHE.clear()
+
 	local.role_permissions = {}
 	if hasattr(local, "request_cache"):
 		local.request_cache.clear()
