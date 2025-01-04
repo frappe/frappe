@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-12-29 09:33+0000\n"
-"PO-Revision-Date: 2025-01-01 22:16\n"
+"PO-Revision-Date: 2025-01-04 22:30\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -5746,7 +5746,7 @@ msgstr "Antal"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:527
 msgid "Count Customizations"
-msgstr "Antal & Färgkod Status"
+msgstr "Antal Anpassningar"
 
 #. Label of the section_break_5 (Section Break) field in DocType 'Workspace
 #. Shortcut'
@@ -18790,7 +18790,7 @@ msgstr "Sökväg {0} är inte giltigt sökväg"
 #. Label of the payload_count (Int) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Payload Count"
-msgstr "Payload Antal"
+msgstr "Antal Nyttolaster"
 
 #. Label of the peak_memory_usage (Int) field in DocType 'Prepared Report'
 #: frappe/core/doctype/prepared_report/prepared_report.json
@@ -26176,7 +26176,7 @@ msgstr "Nästa Formulär Tur börjar där användare slutade."
 #. Description of the 'Request Timeout' (Int) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "The number of seconds until the request expires"
-msgstr "Antal sekunder tills begäran går ut"
+msgstr "Antal sekunder tills begäran upphör att gälla"
 
 #: frappe/www/update-password.html:75
 msgid "The password of your account has expired."
@@ -31812,7 +31812,7 @@ msgstr "{0}/{1} komplett | Lämna denna flik öppen tills den är klar."
 
 #: frappe/model/base_document.py:1066
 msgid "{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}"
-msgstr "{0}: {1} ({3}) kommer att förminskas då maximum tillåtna antal tecken är {2}"
+msgstr "{0}: '{1}' ({3}) kommer att avkortas, eftersom max tillåtna tecken är {2}"
 
 #: frappe/core/doctype/doctype/doctype.py:1802
 msgid "{0}: Cannot set Amend without Cancel"
