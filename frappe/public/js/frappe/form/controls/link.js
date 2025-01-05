@@ -14,13 +14,8 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		$(`<div class="link-field ui-front" style="position: relative;">
 			<input type="text" class="input-with-feedback form-control">
 			<span class="link-btn">
-<<<<<<< HEAD
-				<a class="btn-clear no-decoration">
-					${frappe.utils.icon("close-alt", "xs")}
-=======
 				<a class="btn-clear" style="display: inline-block;" title="${__("Clear Link")}">
 					${frappe.utils.icon("close", "xs", "es-icon")}
->>>>>>> bba05d869f (perf: reduce klicks for changing link value (#28988))
 				</a>
 				<a class="btn-open" style="display: inline-block;" title="${__("Open Link")}">
 					${frappe.utils.icon("arrow-right", "xs")}
