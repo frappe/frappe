@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-12-29 09:33+0000\n"
-"PO-Revision-Date: 2024-12-29 21:30\n"
+"POT-Creation-Date: 2025-01-05 09:33+0000\n"
+"PO-Revision-Date: 2025-01-05 22:28\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -973,7 +973,7 @@ msgstr "Erişim Anahtarı"
 msgid "Access Token URL"
 msgstr ""
 
-#: frappe/auth.py:486
+#: frappe/auth.py:485
 msgid "Access not allowed from this IP Address"
 msgstr "Bu IP Adresinden erişime izin verilmiyor"
 
@@ -1144,7 +1144,7 @@ msgstr "Aktivite Günlüğü"
 
 #: frappe/core/page/permission_manager/permission_manager.js:475
 #: frappe/email/doctype/email_group/email_group.js:60
-#: frappe/public/js/frappe/form/grid_row.js:471
+#: frappe/public/js/frappe/form/grid_row.js:473
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:100
 #: frappe/public/js/frappe/form/templates/set_sharing.html:68
 #: frappe/public/js/frappe/list/bulk_operations.js:437
@@ -1589,8 +1589,8 @@ msgstr "Gelişmiş"
 msgid "Advanced Control"
 msgstr "Gelişmiş Kontrol"
 
-#: frappe/public/js/frappe/form/controls/link.js:327
-#: frappe/public/js/frappe/form/controls/link.js:329
+#: frappe/public/js/frappe/form/controls/link.js:345
+#: frappe/public/js/frappe/form/controls/link.js:347
 msgid "Advanced Search"
 msgstr "Gelişmiş Arama"
 
@@ -2169,7 +2169,7 @@ msgstr ""
 msgid "Amendment naming rules updated."
 msgstr "Değişiklik adlandırma kuralları güncellendi."
 
-#: frappe/public/js/frappe/ui/toolbar/toolbar.js:333
+#: frappe/public/js/frappe/ui/toolbar/toolbar.js:322
 msgid "An error occurred while setting Session Defaults"
 msgstr "Oturum Varsayılanlarını ayarlarken bir hata oluştu"
 
@@ -2301,7 +2301,7 @@ msgstr "Uygulama Gizli Anahtarı"
 msgid "App not found for module: {0}"
 msgstr "Modül için uygulama bulunamadı: {0}"
 
-#: frappe/__init__.py:1704
+#: frappe/__init__.py:1707
 msgid "App {0} is not installed"
 msgstr "{0} Uygulaması yüklü değil"
 
@@ -3268,7 +3268,7 @@ msgstr "Arkaplan Resmi"
 #. 'System Health Report'
 #: frappe/core/workspace/build/build.json
 #: frappe/desk/doctype/system_health_report/system_health_report.json
-#: frappe/public/js/frappe/ui/toolbar/toolbar.js:189
+#: frappe/public/js/frappe/ui/toolbar/toolbar.js:178
 msgid "Background Jobs"
 msgstr "Arkaplan Görevleri"
 
@@ -4160,7 +4160,7 @@ msgstr "{0} belge iptal edilsin mi?"
 #. Option for the 'Status' (Select) field in DocType 'Integration Request'
 #: frappe/core/doctype/comment/comment.json
 #: frappe/desk/doctype/event/event.json frappe/desk/doctype/todo/todo.json
-#: frappe/desk/form/save.py:59
+#: frappe/desk/form/save.py:63
 #: frappe/integrations/doctype/integration_request/integration_request.json
 #: frappe/public/js/frappe/model/indicator.js:78
 #: frappe/public/js/frappe/ui/filters/filter.js:534
@@ -4196,7 +4196,7 @@ msgstr "Değerler Getirilemiyor"
 msgid "Cannot Remove"
 msgstr "Kaldırılamıyor"
 
-#: frappe/model/base_document.py:1107
+#: frappe/model/base_document.py:1108
 msgid "Cannot Update After Submit"
 msgstr "Belge Gönderildikten Sonra Güncelleme Yapılamaz"
 
@@ -4438,7 +4438,7 @@ msgstr "Kategori Açıklaması"
 msgid "Category Name"
 msgstr "Kategori Adı"
 
-#: frappe/utils/data.py:1490
+#: frappe/utils/data.py:1491
 msgid "Cent"
 msgstr "Kuruş"
 
@@ -4688,7 +4688,7 @@ msgstr "Alt Tablolar, diğer DocType'larda Tablo olarak gösterilir."
 msgid "Choose Existing Card or create New Card"
 msgstr "Mevcut Kartı Seçin veya Yeni Kart Oluşturun"
 
-#: frappe/public/js/frappe/views/workspace/workspace.js:570
+#: frappe/public/js/frappe/views/workspace/workspace.js:571
 msgid "Choose a block or continue typing"
 msgstr "Bir blok seçin veya yazmaya devam edin"
 
@@ -4971,6 +4971,7 @@ msgid "Code challenge method"
 msgstr ""
 
 #: frappe/public/js/frappe/form/form_tour.js:276
+#: frappe/public/js/frappe/ui/sidebar.html:11
 #: frappe/public/js/frappe/widgets/base_widget.js:159
 msgid "Collapse"
 msgstr "Daralt"
@@ -5410,7 +5411,7 @@ msgid "Configure various aspects of how document naming works like naming series
 msgstr "Adlandırma serisi, geçerli sayaç gibi belge adlandırmanın nasıl çalıştığına ilişkin çeşitli yönleri yapılandırın."
 
 #: frappe/core/doctype/user/user.js:406 frappe/public/js/frappe/dom.js:345
-#: frappe/www/update-password.html:40
+#: frappe/www/update-password.html:53
 msgid "Confirm"
 msgstr "Onayla"
 
@@ -5432,7 +5433,7 @@ msgstr "Hesabın Silinmesini Onayla"
 msgid "Confirm New Password"
 msgstr "Yeni Şifreyi Onayla"
 
-#: frappe/www/update-password.html:34
+#: frappe/www/update-password.html:47
 msgid "Confirm Password"
 msgstr "Şifreyi Onayla"
 
@@ -5809,7 +5810,7 @@ msgstr "Alacak"
 #: frappe/public/js/frappe/views/file/file_view.js:112
 #: frappe/public/js/frappe/views/interaction.js:18
 #: frappe/public/js/frappe/views/reports/query_report.js:1193
-#: frappe/public/js/frappe/views/workspace/workspace.js:467
+#: frappe/public/js/frappe/views/workspace/workspace.js:468
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:46
 msgid "Create"
 msgstr "Oluştur"
@@ -5895,8 +5896,8 @@ msgstr "Yeni Oluştur ..."
 msgid "Create a new record"
 msgstr "Yeni Kayıt Oluştur"
 
-#: frappe/public/js/frappe/form/controls/link.js:303
-#: frappe/public/js/frappe/form/controls/link.js:305
+#: frappe/public/js/frappe/form/controls/link.js:321
+#: frappe/public/js/frappe/form/controls/link.js:323
 #: frappe/public/js/frappe/form/link_selector.js:139
 #: frappe/public/js/frappe/list/list_view.js:471
 #: frappe/public/js/frappe/web_form/web_form_list.js:225
@@ -6291,7 +6292,7 @@ msgstr "Özel"
 msgid "Customization"
 msgstr "Özelleştirme"
 
-#: frappe/public/js/frappe/views/workspace/workspace.js:356
+#: frappe/public/js/frappe/views/workspace/workspace.js:357
 msgid "Customizations Discarded"
 msgstr "Özelleştirme İptal Edildi"
 
@@ -7458,7 +7459,7 @@ msgstr "Otomatik Yanıt Devre Dışı"
 #: frappe/public/js/frappe/form/toolbar.js:312
 #: frappe/public/js/frappe/views/communication.js:30
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:70
-#: frappe/public/js/frappe/views/workspace/workspace.js:349
+#: frappe/public/js/frappe/views/workspace/workspace.js:350
 #: frappe/public/js/frappe/web_form/web_form.js:187
 msgid "Discard"
 msgstr "Vazgeç"
@@ -7476,7 +7477,7 @@ msgstr "{0} Vazgeç"
 msgid "Discard?"
 msgstr "Vazgeç"
 
-#: frappe/desk/form/save.py:70
+#: frappe/desk/form/save.py:74
 msgid "Discarded"
 msgstr "Vazgeçildi"
 
@@ -8152,7 +8153,7 @@ msgid "Don't encode HTML tags like &lt;script&gt; or just characters like &lt; o
 msgstr " HTML etiketlerini &lt;script&gt; gibi veya sadece &lt; ve &gt; gibi karakterleri kodlamayın, çünkü bunlar bu alanda kasıtlı olarak kullanılabilir"
 
 #: frappe/www/login.html:120 frappe/www/login.html:136
-#: frappe/www/update-password.html:44
+#: frappe/www/update-password.html:57
 msgid "Don't have an account?"
 msgstr "Hesabınız yok mu?"
 
@@ -8321,7 +8322,7 @@ msgstr "Yinelenen Giriş"
 msgid "Duplicate Filter Name"
 msgstr "Yinelenen Filtre Adı"
 
-#: frappe/model/base_document.py:618 frappe/model/rename_doc.py:111
+#: frappe/model/base_document.py:619 frappe/model/rename_doc.py:111
 msgid "Duplicate Name"
 msgstr "Çoklu İsim"
 
@@ -8418,7 +8419,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/toolbar.js:717
 #: frappe/public/js/frappe/views/reports/query_report.js:815
 #: frappe/public/js/frappe/views/reports/query_report.js:1648
-#: frappe/public/js/frappe/views/workspace/workspace.js:63
+#: frappe/public/js/frappe/views/workspace/workspace.js:65
 #: frappe/public/js/frappe/widgets/base_widget.js:64
 #: frappe/public/js/frappe/widgets/chart_widget.js:299
 #: frappe/public/js/frappe/widgets/number_card_widget.js:331
@@ -8610,7 +8611,7 @@ msgstr "{0} Düzenleniyor"
 msgid "Eg. smsgateway.com/api/send_sms.cgi"
 msgstr "Örn. smsgateway.com/api/send_sms.cgi"
 
-#: frappe/rate_limiter.py:150
+#: frappe/rate_limiter.py:152
 msgid "Either key or IP flag is required."
 msgstr ""
 
@@ -9447,15 +9448,15 @@ msgstr "E-posta hesabına bağlanırken hata oluştu {0}"
 msgid "Error while evaluating Notification {0}. Please fix your template."
 msgstr "{0} Bildirim değerlendirilirken hata oluştu. Lütfen şablonunuzu düzeltin."
 
-#: frappe/model/base_document.py:758
+#: frappe/model/base_document.py:759
 msgid "Error: Data missing in table {0}"
 msgstr ""
 
-#: frappe/model/base_document.py:768
+#: frappe/model/base_document.py:769
 msgid "Error: Value missing for {0}: {1}"
 msgstr "Hata: {0} için değer eksik: {1}"
 
-#: frappe/model/base_document.py:762
+#: frappe/model/base_document.py:763
 msgid "Error: {0} Row #{1}: Value missing for: {2}"
 msgstr "Hata: {0} Satır #{1}: {2} için değer eksik"
 
@@ -9794,7 +9795,7 @@ msgstr "İfade, İsteğe Bağlı"
 
 #. Label of the external_link (Data) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
-#: frappe/public/js/frappe/views/workspace/workspace.js:424
+#: frappe/public/js/frappe/views/workspace/workspace.js:425
 msgid "External Link"
 msgstr "Dış Bağlantı"
 
@@ -9874,7 +9875,7 @@ msgstr ""
 msgid "Failed to connect to server"
 msgstr "Sunucuya bağlanılamadı"
 
-#: frappe/auth.py:691
+#: frappe/auth.py:690
 msgid "Failed to decode token, please provide a valid base64-encoded token."
 msgstr ""
 
@@ -10471,7 +10472,7 @@ msgstr "JSON Filtreleri"
 msgid "Filters Section"
 msgstr "Filtre Seçimi"
 
-#: frappe/public/js/frappe/form/controls/link.js:502
+#: frappe/public/js/frappe/form/controls/link.js:520
 msgid "Filters applied for {0}"
 msgstr "Filtreler {0} için Uygulandı"
 
@@ -11159,7 +11160,7 @@ msgstr "Fonksiyon"
 msgid "Function Based On"
 msgstr ""
 
-#: frappe/__init__.py:840
+#: frappe/__init__.py:841
 msgid "Function {0} is not whitelisted."
 msgstr "{0} fonksiyonu beyaz listeye eklenmemiş."
 
@@ -11232,7 +11233,7 @@ msgstr "Yeni Rapor Oluştur"
 msgid "Generate Random Password"
 msgstr "Rastgele Şifre Oluştur"
 
-#: frappe/public/js/frappe/ui/toolbar/toolbar.js:183
+#: frappe/public/js/frappe/ui/toolbar/toolbar.js:172
 #: frappe/public/js/frappe/utils/utils.js:1790
 msgid "Generate Tracking URL"
 msgstr "İzleme Bağlantısı Oluştur"
@@ -12147,7 +12148,7 @@ msgstr "Daha yüksek öncelikli kural önce uygulanacaktır"
 msgid "Highlight"
 msgstr "Vurgulama"
 
-#: frappe/www/update-password.html:263
+#: frappe/www/update-password.html:276
 msgid "Hint: Include symbols, numbers and capital letters in the password"
 msgstr "İpucu: Parolaya semboller, sayılar ve büyük harfler ekleyin."
 
@@ -12301,7 +12302,7 @@ msgstr "IP Adresi"
 #: frappe/desk/doctype/workspace_link/workspace_link.json
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
-#: frappe/public/js/frappe/views/workspace/workspace.js:456
+#: frappe/public/js/frappe/views/workspace/workspace.js:457
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Icon"
 msgstr "Simge"
@@ -12961,7 +12962,7 @@ msgstr "Gelen e-posta hesabı doğru değil"
 msgid "Incomplete Virtual Doctype Implementation"
 msgstr "Tamamlanmamış Sanal Doküman Tipi Uygulaması"
 
-#: frappe/auth.py:252
+#: frappe/auth.py:251
 msgid "Incomplete login details"
 msgstr "Hatalı giriş bilgileri"
 
@@ -13032,7 +13033,7 @@ msgstr ""
 msgid "Indicator Color"
 msgstr "Gösterge Rengi"
 
-#: frappe/public/js/frappe/views/workspace/workspace.js:461
+#: frappe/public/js/frappe/views/workspace/workspace.js:462
 msgid "Indicator color"
 msgstr "Gösterge Rengi"
 
@@ -13296,7 +13297,7 @@ msgstr "Geçersiz Koşul: {}"
 msgid "Invalid Credentials"
 msgstr "Geçersiz kimlik bilgileri"
 
-#: frappe/utils/data.py:128 frappe/utils/data.py:297
+#: frappe/utils/data.py:129 frappe/utils/data.py:298
 msgid "Invalid Date"
 msgstr "Geçersiz Tarih"
 
@@ -13328,7 +13329,7 @@ msgstr "Geçersiz Filtre Değeri"
 msgid "Invalid Home Page"
 msgstr "Geçersiz Ana Sayfa"
 
-#: frappe/utils/verified_command.py:48 frappe/www/update-password.html:140
+#: frappe/utils/verified_command.py:48 frappe/www/update-password.html:153
 msgid "Invalid Link"
 msgstr "Geçersiz Bağlantı"
 
@@ -13373,9 +13374,9 @@ msgstr ""
 msgid "Invalid Parameters."
 msgstr "Geçersiz Parametreler."
 
-#: frappe/core/doctype/user/user.py:1217 frappe/www/update-password.html:110
-#: frappe/www/update-password.html:131 frappe/www/update-password.html:133
-#: frappe/www/update-password.html:234
+#: frappe/core/doctype/user/user.py:1217 frappe/www/update-password.html:123
+#: frappe/www/update-password.html:144 frappe/www/update-password.html:146
+#: frappe/www/update-password.html:247
 msgid "Invalid Password"
 msgstr "Geçersiz Şifre"
 
@@ -13439,7 +13440,7 @@ msgstr "{0} filtresinde geçersiz \"depends_on\" ifadesi ayarlandı"
 msgid "Invalid expression set in filter {0} ({1})"
 msgstr "{0} filtresinde ayarlanmış geçersiz ifade ({1})"
 
-#: frappe/utils/data.py:2132
+#: frappe/utils/data.py:2138
 msgid "Invalid field name {0}"
 msgstr "Geçersiz alan adı {0}"
 
@@ -14742,7 +14743,7 @@ msgstr "Bağlantı Başlığı"
 #: frappe/desk/doctype/workspace/workspace.json
 #: frappe/desk/doctype/workspace_link/workspace_link.json
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
-#: frappe/public/js/frappe/views/workspace/workspace.js:416
+#: frappe/public/js/frappe/views/workspace/workspace.js:417
 #: frappe/public/js/frappe/widgets/widget_dialog.js:281
 #: frappe/public/js/frappe/widgets/widget_dialog.js:414
 msgid "Link To"
@@ -14756,7 +14757,7 @@ msgstr ""
 #. Label of the link_type (Select) field in DocType 'Workspace Link'
 #: frappe/desk/doctype/workspace/workspace.json
 #: frappe/desk/doctype/workspace_link/workspace_link.json
-#: frappe/public/js/frappe/views/workspace/workspace.js:408
+#: frappe/public/js/frappe/views/workspace/workspace.js:409
 #: frappe/public/js/frappe/widgets/widget_dialog.js:273
 msgid "Link Type"
 msgstr "Bağlantı Türü"
@@ -15063,7 +15064,7 @@ msgstr "Web formu liste görünümünü görmek için giriş yapılması gerekir
 msgid "Login link sent to your email"
 msgstr "Giriş bağlantısı e-postanıza gönderildi"
 
-#: frappe/auth.py:336 frappe/auth.py:339
+#: frappe/auth.py:335 frappe/auth.py:338
 msgid "Login not allowed at this time"
 msgstr "Şu anda oturum açmaya izin verilmiyor"
 
@@ -15632,7 +15633,7 @@ msgstr ""
 msgid "Message"
 msgstr "Mesaj"
 
-#: frappe/__init__.py:516 frappe/public/js/frappe/ui/messages.js:267
+#: frappe/__init__.py:517 frappe/public/js/frappe/ui/messages.js:267
 msgctxt "Default title of the message dialog"
 msgid "Message"
 msgstr "Mesaj"
@@ -15766,7 +15767,7 @@ msgstr "SEO için meta başlık"
 msgid "Method"
 msgstr "Yöntem"
 
-#: frappe/__init__.py:842
+#: frappe/__init__.py:843
 msgid "Method Not Allowed"
 msgstr "İzin Verilmeyen Method"
 
@@ -15863,7 +15864,7 @@ msgstr "Eksik Filtreler Gerekli"
 msgid "Missing Permission"
 msgstr "Eksik İzin"
 
-#: frappe/www/update-password.html:96 frappe/www/update-password.html:103
+#: frappe/www/update-password.html:109 frappe/www/update-password.html:116
 msgid "Missing Value"
 msgstr "Eksik Değer"
 
@@ -16255,7 +16256,7 @@ msgstr "Hesabım"
 msgid "My Device"
 msgstr "Cihazım"
 
-#: frappe/public/js/frappe/ui/sidebar.js:122
+#: frappe/public/js/frappe/ui/apps_switcher.js:61
 msgid "My Workspaces"
 msgstr "Çalışma Alanlarım"
 
@@ -16441,7 +16442,7 @@ msgstr "Ağ Yazıcısı Ayarları"
 #: frappe/email/doctype/notification/notification.json
 #: frappe/public/js/frappe/form/success_action.js:77
 #: frappe/public/js/frappe/views/treeview.js:451
-#: frappe/public/js/frappe/views/workspace/workspace.js:63
+#: frappe/public/js/frappe/views/workspace/workspace.js:65
 #: frappe/social/doctype/energy_point_rule/energy_point_rule.json
 #: frappe/website/doctype/web_form/templates/web_list.html:15
 #: frappe/www/list.html:19
@@ -16545,7 +16546,7 @@ msgstr "Yeni Veri Kartı"
 msgid "New Onboarding"
 msgstr "Yeni Modül Tanıtımı"
 
-#: frappe/core/doctype/user/user.js:185 frappe/www/update-password.html:29
+#: frappe/core/doctype/user/user.js:185 frappe/www/update-password.html:42
 msgid "New Password"
 msgstr "Yeni Şifre"
 
@@ -16586,11 +16587,11 @@ msgstr "Yeni Değer"
 msgid "New Workflow Name"
 msgstr "Yeni İş Akışı Adı"
 
-#: frappe/public/js/frappe/views/workspace/workspace.js:388
+#: frappe/public/js/frappe/views/workspace/workspace.js:389
 msgid "New Workspace"
 msgstr "Yeni Çalışma Alanı"
 
-#: frappe/www/update-password.html:66
+#: frappe/www/update-password.html:79
 msgid "New password cannot be same as old password"
 msgstr "Yeni şifre eskisiyle aynı olamaz"
 
@@ -16619,7 +16620,7 @@ msgstr "Ayarlanacak yeni değer"
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:168
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:217
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:218
-#: frappe/public/js/frappe/views/breadcrumbs.js:206
+#: frappe/public/js/frappe/views/breadcrumbs.js:208
 #: frappe/public/js/frappe/views/treeview.js:346
 #: frappe/public/js/frappe/widgets/widget_dialog.js:72
 #: frappe/website/doctype/web_form/web_form.py:312
@@ -16774,7 +16775,7 @@ msgstr "Sonraki Tıklamada"
 #: frappe/integrations/doctype/webhook/webhook.py:128
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/public/js/form_builder/utils.js:341
-#: frappe/public/js/frappe/form/controls/link.js:486
+#: frappe/public/js/frappe/form/controls/link.js:504
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:223
 #: frappe/public/js/frappe/views/reports/query_report.js:1538
 #: frappe/website/doctype/help_article/templates/help_article.html:26
@@ -16971,7 +16972,7 @@ msgstr "E-posta içeriğinde kırık bağlantı bulunamadı"
 msgid "No changes in document"
 msgstr "Belgede Değişiklik Yapılmadı"
 
-#: frappe/public/js/frappe/views/workspace/workspace.js:661
+#: frappe/public/js/frappe/views/workspace/workspace.js:662
 msgid "No changes made"
 msgstr "Hiçbir değişiklik yapılmadı"
 
@@ -17082,7 +17083,7 @@ msgstr "Satır Sayısı (Maksimum 500)"
 msgid "No of Sent SMS"
 msgstr "Gönderilen SMS sayısı"
 
-#: frappe/__init__.py:1032 frappe/client.py:108 frappe/client.py:150
+#: frappe/__init__.py:1035 frappe/client.py:108 frappe/client.py:150
 msgid "No permission for {0}"
 msgstr "{0} İçin Yetki Yok"
 
@@ -17242,7 +17243,7 @@ msgstr "Herhangi bir kayıtla bağlantılı değil"
 msgid "Not Nullable"
 msgstr "Boş Bırakılamaz"
 
-#: frappe/__init__.py:924 frappe/app.py:370 frappe/desk/calendar.py:26
+#: frappe/__init__.py:925 frappe/app.py:370 frappe/desk/calendar.py:26
 #: frappe/geo/utils.py:97 frappe/public/js/frappe/web_form/webform_script.js:15
 #: frappe/website/doctype/web_form/web_form.py:605
 #: frappe/website/page_renderers/not_permitted_page.py:20
@@ -17348,7 +17349,7 @@ msgstr "Geliştirici modunda değil"
 msgid "Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."
 msgstr "Geliştirici Modunda değil! site_config.json dosyasına ayarlayın veya 'Özel' DocType yapın."
 
-#: frappe/__init__.py:596
+#: frappe/__init__.py:597
 #: frappe/core/doctype/system_settings/system_settings.py:213
 #: frappe/public/js/frappe/request.js:158
 #: frappe/public/js/frappe/request.js:168
@@ -17768,7 +17769,7 @@ msgstr "X Ekseni"
 msgid "Offset Y"
 msgstr "Y Ekseni"
 
-#: frappe/www/update-password.html:25
+#: frappe/www/update-password.html:38
 msgid "Old Password"
 msgstr "Eski Şifre"
 
@@ -18122,7 +18123,7 @@ msgstr "Açıldı"
 msgid "Operation"
 msgstr "Operasyon"
 
-#: frappe/utils/data.py:2068
+#: frappe/utils/data.py:2069
 msgid "Operator must be one of {0}"
 msgstr ""
 
@@ -18205,7 +18206,7 @@ msgstr "Varsayılan değeri ayarlamadan önce {0} seçenekleri ayarlanmalıdır.
 msgid "Options is required for field {0} of type {1}"
 msgstr "{1} türündeki {0} alanı için seçenekler gereklidir"
 
-#: frappe/model/base_document.py:817
+#: frappe/model/base_document.py:818
 msgid "Options not set for link field {0}"
 msgstr "{0} bağlantı alanı için ayarlanmamış seçenekler"
 
@@ -18542,7 +18543,7 @@ msgid "Parameter"
 msgstr "Parametre"
 
 #: frappe/public/js/frappe/model/model.js:142
-#: frappe/public/js/frappe/views/workspace/workspace.js:432
+#: frappe/public/js/frappe/views/workspace/workspace.js:433
 msgid "Parent"
 msgstr "Üst Grup"
 
@@ -18711,11 +18712,11 @@ msgstr "{0} {1} {2} için şifre bulunamadı"
 msgid "Password reset instructions have been sent to {}'s email"
 msgstr "Şifre sıfırlama talimatları {}'in e-postasına gönderildi"
 
-#: frappe/www/update-password.html:153
+#: frappe/www/update-password.html:166
 msgid "Password set"
 msgstr "Şifre ayarlandı"
 
-#: frappe/auth.py:255
+#: frappe/auth.py:254
 msgid "Password size exceeded the maximum allowed size"
 msgstr "Şifre boyutu izin verilen maksimum boyutu aştı"
 
@@ -18723,7 +18724,7 @@ msgstr "Şifre boyutu izin verilen maksimum boyutu aştı"
 msgid "Password size exceeded the maximum allowed size."
 msgstr "Şifre boyutu izin verilen maksimum boyutu aştı."
 
-#: frappe/www/update-password.html:67
+#: frappe/www/update-password.html:80
 msgid "Passwords do not match"
 msgstr "Parolalar uyuşmuyor"
 
@@ -19136,7 +19137,7 @@ msgstr "Lütfen OpenID Yapılandırma URL'sini kontrol edin"
 msgid "Please check the filter values set for Dashboard Chart: {}"
 msgstr "Lütfen Gösterge Tablosu Grafiği için ayarlanan filtre değerlerini kontrol edin: {}"
 
-#: frappe/model/base_document.py:897
+#: frappe/model/base_document.py:898
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr ""
 
@@ -19262,7 +19263,7 @@ msgstr "Lütfen geçerli bir e-posta adresi girin."
 msgid "Please enter both your email and message so that we can get back to you. Thanks!"
 msgstr "Size geri dönüş yapabilmemiz için lütfen hem e-postanızı hem de mesajınızı girin. Teşekkürler!"
 
-#: frappe/www/update-password.html:221
+#: frappe/www/update-password.html:234
 msgid "Please enter the password"
 msgstr "Lütfen şifrenizi girin"
 
@@ -19275,11 +19276,11 @@ msgstr "Lütfen şifreyi giriniz: <b>{0}</b>"
 msgid "Please enter valid mobile nos"
 msgstr "Lütfen geçerli bir cep telefonu numarası girin"
 
-#: frappe/www/update-password.html:104
+#: frappe/www/update-password.html:117
 msgid "Please enter your new password."
 msgstr "Lütfen yeni şifrenizi girin."
 
-#: frappe/www/update-password.html:97
+#: frappe/www/update-password.html:110
 msgid "Please enter your old password."
 msgstr "Lütfen eski şifrenizi giriniz."
 
@@ -19363,7 +19364,7 @@ msgstr "Lütfen bir dosya veya url seçin"
 msgid "Please select a valid csv file with data"
 msgstr "Lütfen veri içeren geçerli bir csv dosyası seçin"
 
-#: frappe/utils/data.py:297
+#: frappe/utils/data.py:298
 msgid "Please select a valid date filter"
 msgstr "Lütfen geçerli bir tarih filtresi seçin"
 
@@ -20132,7 +20133,7 @@ msgstr ""
 #: frappe/desk/doctype/note/note_list.js:6
 #: frappe/desk/doctype/workspace/workspace.json
 #: frappe/public/js/frappe/views/interaction.js:78
-#: frappe/public/js/frappe/views/workspace/workspace.js:438
+#: frappe/public/js/frappe/views/workspace/workspace.js:439
 msgid "Public"
 msgstr "Herkese Açık"
 
@@ -20366,7 +20367,7 @@ msgstr "Sorgu Türleri"
 msgid "Queue in Background (BETA)"
 msgstr "Arka Plan Kuyruğu (Beta)"
 
-#: frappe/utils/background_jobs.py:491
+#: frappe/utils/background_jobs.py:511
 msgid "Queue should be one of {0}"
 msgstr ""
 
@@ -21697,7 +21698,7 @@ msgstr "Tek Kullanımlık Şifreyi Sıfırla"
 
 #: frappe/core/doctype/user/user.js:163 frappe/www/login.html:180
 #: frappe/www/me.html:48 frappe/www/update-password.html:3
-#: frappe/www/update-password.html:19
+#: frappe/www/update-password.html:32
 msgid "Reset Password"
 msgstr "Şifreyi Sıfırla"
 
@@ -22166,7 +22167,7 @@ msgstr "Rota Yönlendirmeleri"
 msgid "Route: Example \"/app\""
 msgstr "Rota: Örnek \"/app\""
 
-#: frappe/model/base_document.py:803 frappe/model/document.py:742
+#: frappe/model/base_document.py:804 frappe/model/document.py:742
 msgid "Row"
 msgstr "Satır"
 
@@ -22179,7 +22180,7 @@ msgstr "Satır #"
 msgid "Row # {0}: Non administrator user can not set the role {1} to the custom doctype"
 msgstr "Satır # {0}: Yönetici olmayan kullanıcı {1} rolünü özel doctype'a ayarlayamaz"
 
-#: frappe/model/base_document.py:928
+#: frappe/model/base_document.py:929
 msgid "Row #{0}:"
 msgstr "Satır #{0}:"
 
@@ -22453,14 +22454,14 @@ msgstr "Cumartesi"
 #: frappe/public/js/frappe/list/list_settings.js:36
 #: frappe/public/js/frappe/list/list_settings.js:247
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:25
-#: frappe/public/js/frappe/ui/toolbar/toolbar.js:343
+#: frappe/public/js/frappe/ui/toolbar/toolbar.js:332
 #: frappe/public/js/frappe/utils/common.js:443
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:45
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:189
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:345
 #: frappe/public/js/frappe/views/reports/query_report.js:1816
 #: frappe/public/js/frappe/views/reports/report_view.js:1678
-#: frappe/public/js/frappe/views/workspace/workspace.js:334
+#: frappe/public/js/frappe/views/workspace/workspace.js:335
 #: frappe/public/js/frappe/widgets/base_widget.js:142
 #: frappe/public/js/frappe/widgets/quick_list_widget.js:119
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:15
@@ -22502,11 +22503,11 @@ msgstr "Tamamlamada Kaydet"
 msgid "Save the document."
 msgstr "Belgeyi kaydet."
 
-#: frappe/desk/form/save.py:46 frappe/model/rename_doc.py:106
+#: frappe/desk/form/save.py:50 frappe/model/rename_doc.py:106
 #: frappe/printing/page/print_format_builder/print_format_builder.js:858
 #: frappe/public/js/frappe/form/toolbar.js:262
 #: frappe/public/js/frappe/views/kanban/kanban_board.bundle.js:916
-#: frappe/public/js/frappe/views/workspace/workspace.js:683
+#: frappe/public/js/frappe/views/workspace/workspace.js:684
 msgid "Saved"
 msgstr "Kaydedildi"
 
@@ -22516,7 +22517,7 @@ msgstr "Kayıtlı Filitreler"
 
 #: frappe/public/js/frappe/list/list_settings.js:40
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:47
-#: frappe/public/js/frappe/views/workspace/workspace.js:346
+#: frappe/public/js/frappe/views/workspace/workspace.js:347
 msgid "Saving"
 msgstr "Kaydediliyor"
 
@@ -22933,7 +22934,7 @@ msgstr "Seçim"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:149
 #: frappe/public/js/frappe/form/controls/multicheck.js:166
-#: frappe/public/js/frappe/form/grid_row.js:467
+#: frappe/public/js/frappe/form/grid_row.js:469
 msgid "Select All"
 msgstr "Tümünü Seç"
 
@@ -23013,7 +23014,7 @@ msgstr "Alan Seçin"
 msgid "Select Field..."
 msgstr "Alan Seçin..."
 
-#: frappe/public/js/frappe/form/grid_row.js:459
+#: frappe/public/js/frappe/form/grid_row.js:461
 #: frappe/public/js/frappe/list/list_settings.js:236
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:181
 msgid "Select Fields"
@@ -23607,11 +23608,11 @@ msgstr "Oturum Varsayılanı Ayarları"
 #. Label of the session_defaults (Table) field in DocType 'Session Default
 #. Settings'
 #: frappe/core/doctype/session_default_settings/session_default_settings.json
-#: frappe/hooks.py frappe/public/js/frappe/ui/toolbar/toolbar.js:342
+#: frappe/hooks.py frappe/public/js/frappe/ui/toolbar/toolbar.js:331
 msgid "Session Defaults"
 msgstr "Oturum Varsayılanları"
 
-#: frappe/public/js/frappe/ui/toolbar/toolbar.js:327
+#: frappe/public/js/frappe/ui/toolbar/toolbar.js:316
 msgid "Session Defaults Saved"
 msgstr "Oturum Varsayılanları Kaydedildi"
 
@@ -23696,7 +23697,7 @@ msgstr "Yeni Şifre Belirle"
 msgid "Set Number of Backups"
 msgstr "Yedekleme Sayısını Ayarla"
 
-#: frappe/www/update-password.html:19
+#: frappe/www/update-password.html:32
 msgid "Set Password"
 msgstr "Şifre Ayarla"
 
@@ -23868,8 +23869,9 @@ msgstr "Sisteminiz Yapılandırılıyor"
 #: frappe/core/doctype/doctype/doctype.json frappe/core/doctype/user/user.json
 #: frappe/integrations/workspace/integrations/integrations.json
 #: frappe/public/js/frappe/form/templates/print_layout.html:25
-#: frappe/public/js/frappe/ui/toolbar/toolbar.js:300
-#: frappe/public/js/frappe/views/workspace/workspace.js:360
+#: frappe/public/js/frappe/ui/apps_switcher.js:126
+#: frappe/public/js/frappe/ui/toolbar/toolbar.js:289
+#: frappe/public/js/frappe/views/workspace/workspace.js:361
 #: frappe/website/doctype/web_form/web_form.json
 #: frappe/website/doctype/web_page/web_page.json
 #: frappe/website/workspace/website/website.json frappe/www/me.html:20
@@ -24330,7 +24332,7 @@ msgid "Sign Up is disabled"
 msgstr "Kaydolma devre dışı bırakıldı"
 
 #: frappe/templates/signup.html:16 frappe/www/login.html:121
-#: frappe/www/login.html:137 frappe/www/update-password.html:45
+#: frappe/www/login.html:137 frappe/www/update-password.html:58
 msgid "Sign up"
 msgstr "Yeni Kayıt"
 
@@ -24988,7 +24990,7 @@ msgstr ""
 msgid "Status"
 msgstr "Durum"
 
-#: frappe/www/update-password.html:150
+#: frappe/www/update-password.html:163
 msgid "Status Updated"
 msgstr "Durumlar Güncellendi"
 
@@ -25322,7 +25324,7 @@ msgstr ""
 msgid "Success title"
 msgstr ""
 
-#: frappe/www/update-password.html:68
+#: frappe/www/update-password.html:81
 msgid "Success! You are good to go 👍"
 msgstr "Başarılı! Artık Hazırsınız 👍"
 
@@ -25494,7 +25496,7 @@ msgstr "Senkronize Ediliyor"
 msgid "Syncing {0} of {1}"
 msgstr "Senkronize Ediliyor {0}/{1}"
 
-#: frappe/utils/data.py:2438
+#: frappe/utils/data.py:2444
 msgid "Syntax Error"
 msgstr "Sözdizimi Hatası"
 
@@ -26106,6 +26108,11 @@ msgstr "Bu e-postanın içeriği kesinlikle gizlidir. Lütfen bu e-postayı kims
 msgid "The count shown is an estimated count. Click here to see the accurate count."
 msgstr "Gösterilen sayı tahmini bir sayıdır. Kesin sayıyı görmek için buraya tıklayın."
 
+#. Description of the 'Code' (Data) field in DocType 'Country'
+#: frappe/geo/doctype/country/country.json
+msgid "The country's ISO 3166 ALPHA-2 code."
+msgstr ""
+
 #: frappe/public/js/frappe/views/interaction.js:300
 msgid "The document could not be correctly assigned"
 msgstr "Belge doğru bir şekilde atanamadı"
@@ -26182,7 +26189,7 @@ msgstr "Bir sonraki tur kullanıcının kaldığı yerden başlayacaktır."
 msgid "The number of seconds until the request expires"
 msgstr "İsteğin süresinin dolmasına kadar geçecek saniye sayısı"
 
-#: frappe/www/update-password.html:75
+#: frappe/www/update-password.html:88
 msgid "The password of your account has expired."
 msgstr "Şifrenizin süresi doldu."
 
@@ -26394,7 +26401,7 @@ msgstr "Bu Kanban Panosu özel olacak"
 msgid "This action is irreversible. Do you wish to continue?"
 msgstr "Bu eylem geri döndürülemez. Devam etmek istiyor musunuz?"
 
-#: frappe/__init__.py:920
+#: frappe/__init__.py:921
 msgid "This action is only allowed for {}"
 msgstr "Bu eylem yalnızca {} için izin verilir"
 
@@ -26856,7 +26863,7 @@ msgstr "Zaman Bilgisi"
 #: frappe/desk/doctype/system_health_report_errors/system_health_report_errors.json
 #: frappe/desk/doctype/workspace/workspace.json
 #: frappe/email/doctype/email_group/email_group.json
-#: frappe/public/js/frappe/views/workspace/workspace.js:391
+#: frappe/public/js/frappe/views/workspace/workspace.js:392
 #: frappe/website/doctype/blog_category/blog_category.json
 #: frappe/website/doctype/blog_post/blog_post.json
 #: frappe/website/doctype/blog_settings/blog_settings.json
@@ -27089,7 +27096,7 @@ msgstr ""
 msgid "Too Many Documents"
 msgstr "Çok Fazla Seçim Yapıldı"
 
-#: frappe/rate_limiter.py:99
+#: frappe/rate_limiter.py:101
 msgid "Too Many Requests"
 msgstr "Çok Fazla İstek"
 
@@ -27506,7 +27513,7 @@ msgstr "2 Adımlı Doğrulama Metodu"
 #: frappe/desk/doctype/workspace_link/workspace_link.json
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: frappe/public/js/frappe/views/file/file_view.js:337
-#: frappe/public/js/frappe/views/workspace/workspace.js:397
+#: frappe/public/js/frappe/views/workspace/workspace.js:398
 #: frappe/public/js/frappe/widgets/widget_dialog.js:391
 #: frappe/social/doctype/energy_point_log/energy_point_log.json
 #: frappe/website/doctype/web_template/web_template.json
@@ -27731,11 +27738,11 @@ msgstr "Bilinmiyor"
 msgid "Unknown Column: {0}"
 msgstr "Bilinmeyen Sütun: {0}"
 
-#: frappe/utils/data.py:1216
+#: frappe/utils/data.py:1217
 msgid "Unknown Rounding Method: {}"
 msgstr "Bilinmeyen Yuvarlama Yöntemi: {}"
 
-#: frappe/auth.py:313
+#: frappe/auth.py:312
 msgid "Unknown User"
 msgstr "Bilinmeyen Kullanıcı"
 
@@ -28619,7 +28626,7 @@ msgstr "Değer Değişti"
 msgid "Value To Be Set"
 msgstr "Ayarlanacak Değer"
 
-#: frappe/model/base_document.py:1000 frappe/model/document.py:798
+#: frappe/model/base_document.py:1001 frappe/model/document.py:798
 msgid "Value cannot be changed for {0}"
 msgstr "{0} Değeri Değiştirilemez"
 
@@ -28639,7 +28646,7 @@ msgstr "Bir kontrol alanı için değer 0 veya 1 olabilir"
 msgid "Value for field {0} is too long in {1}. Length should be lesser than {2} characters"
 msgstr "{0} alanı için değer {1} için çok uzun. Uzunluk {2} karakterden daha az olmalıdır"
 
-#: frappe/model/base_document.py:409
+#: frappe/model/base_document.py:410
 msgid "Value for {0} cannot be a list"
 msgstr "{0} için değer bir liste olamaz"
 
@@ -28658,7 +28665,7 @@ msgstr "{0} değerlerinden biri olmalıdır"
 msgid "Value to Validate"
 msgstr "Doğrulanacak Değer"
 
-#: frappe/model/base_document.py:1070
+#: frappe/model/base_document.py:1071
 msgid "Value too big"
 msgstr "Değer çok büyük"
 
@@ -28666,7 +28673,7 @@ msgstr "Değer çok büyük"
 msgid "Value {0} missing for {1}"
 msgstr "{1} için {0} değeri eksik"
 
-#: frappe/core/doctype/data_import/importer.py:751 frappe/utils/data.py:852
+#: frappe/core/doctype/data_import/importer.py:751 frappe/utils/data.py:853
 msgid "Value {0} must be in the valid duration format: d h m s"
 msgstr "Değer {0} geçerli süre biçiminde olmalıdır: d h m s"
 
@@ -29095,7 +29102,7 @@ msgstr ""
 #. Name of a Workspace
 #: frappe/core/doctype/module_def/module_def.json
 #: frappe/email/doctype/newsletter/newsletter.py:458
-#: frappe/public/js/frappe/ui/sidebar.js:192
+#: frappe/public/js/frappe/ui/apps_switcher.js:114
 #: frappe/public/js/frappe/ui/toolbar/about.js:8
 #: frappe/website/workspace/website/website.json
 msgid "Website"
@@ -29612,7 +29619,7 @@ msgstr "Çalışma Alanı Kısayolu"
 msgid "Workspace Visibility"
 msgstr "Çalışma Alanı Görünürlüğü"
 
-#: frappe/public/js/frappe/views/workspace/workspace.js:536
+#: frappe/public/js/frappe/views/workspace/workspace.js:537
 msgid "Workspace {0} created"
 msgstr "{0} Çalışma Alanı Oluşturuldu"
 
@@ -29636,7 +29643,7 @@ msgstr "Son dokunuşlar"
 msgid "Write"
 msgstr "Yazma"
 
-#: frappe/model/base_document.py:900
+#: frappe/model/base_document.py:901
 msgid "Wrong Fetch From value"
 msgstr ""
 
@@ -29724,7 +29731,7 @@ msgstr "Sarı"
 #: frappe/integrations/doctype/webhook/webhook.py:128
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/public/js/form_builder/utils.js:336
-#: frappe/public/js/frappe/form/controls/link.js:486
+#: frappe/public/js/frappe/form/controls/link.js:504
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:223
 #: frappe/public/js/frappe/views/reports/query_report.js:1538
 #: frappe/website/doctype/help_article/templates/help_article.html:25
@@ -29817,7 +29824,7 @@ msgstr "Giriş yapmadan bu sayfaya erişmenize izin verilmiyor."
 msgid "You are not permitted to access this page."
 msgstr "Bu sayfaya erişim yetkiniz bulunmamaktadır."
 
-#: frappe/__init__.py:839
+#: frappe/__init__.py:840
 msgid "You are not permitted to access this resource."
 msgstr "Bu kaynağa erişim izniniz bulunmamaktadır."
 
@@ -30081,7 +30088,7 @@ msgstr "Henüz herhangi bir <b>Gösterge Tablosu</b> ve <b>Sayı Kartı</b> ekle
 msgid "You haven't created a {0} yet"
 msgstr "Henüz bir {0} oluşturmadınız."
 
-#: frappe/rate_limiter.py:161
+#: frappe/rate_limiter.py:163
 msgid "You hit the rate limit because of too many requests. Please try after sometime."
 msgstr "Çok fazla istek nedeniyle izin verilen sınıra ulaştınız. Lütfen bir süre sonra tekrar deneyin."
 
@@ -30234,7 +30241,7 @@ msgstr "Kısayollar"
 msgid "Your account has been deleted"
 msgstr "Hesabınız silindi"
 
-#: frappe/auth.py:507
+#: frappe/auth.py:506
 msgid "Your account has been locked and will resume after {0} seconds"
 msgstr "Hesabınız kilitlendi ve {0} saniye sonra yeniden erişilebilir olacak"
 
@@ -30266,11 +30273,11 @@ msgstr "Formunuz başarıyla güncellendi"
 msgid "Your login id is"
 msgstr "Giriş kimliğiniz"
 
-#: frappe/www/update-password.html:154
+#: frappe/www/update-password.html:167
 msgid "Your new password has been set successfully."
 msgstr "Yeni şifreniz başarıyla ayarlandı."
 
-#: frappe/www/update-password.html:134
+#: frappe/www/update-password.html:147
 msgid "Your old password is incorrect."
 msgstr "Eski şifreniz hatalı."
 
@@ -30296,7 +30303,7 @@ msgstr "Siteniz bakımda veya güncelleniyor."
 msgid "Your verification code is {0}"
 msgstr "Doğrulama kodunuz {0}"
 
-#: frappe/utils/data.py:1517
+#: frappe/utils/data.py:1518
 msgid "Zero"
 msgstr "Sıfır"
 
@@ -30339,7 +30346,7 @@ msgstr ""
 msgid "amend"
 msgstr "değiştir"
 
-#: frappe/public/js/frappe/utils/utils.js:399 frappe/utils/data.py:1523
+#: frappe/public/js/frappe/utils/utils.js:399 frappe/utils/data.py:1524
 msgid "and"
 msgstr "ve"
 
@@ -30512,7 +30519,7 @@ msgid "email inbox"
 msgstr "e-posta gelen kutusu"
 
 #: frappe/permissions.py:402 frappe/permissions.py:413
-#: frappe/public/js/frappe/form/controls/link.js:495
+#: frappe/public/js/frappe/form/controls/link.js:513
 msgid "empty"
 msgstr "boş"
 
@@ -31072,7 +31079,7 @@ msgstr "{0} Grafiği"
 msgid "{0} Dashboard"
 msgstr "{0} Gösterge Paneli"
 
-#: frappe/public/js/frappe/form/grid_row.js:456
+#: frappe/public/js/frappe/form/grid_row.js:458
 #: frappe/public/js/frappe/list/list_settings.js:227
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:178
 msgid "{0} Fields"
@@ -31109,7 +31116,7 @@ msgstr "{0} Harita"
 msgid "{0} Name"
 msgstr "{0} İsmi"
 
-#: frappe/model/base_document.py:1100
+#: frappe/model/base_document.py:1101
 msgid "{0} Not allowed to change {1} after submission from {2} to {3}"
 msgstr ""
 
@@ -31160,7 +31167,7 @@ msgstr "{0} zaten aboneliği iptal etti"
 msgid "{0} already unsubscribed for {1} {2}"
 msgstr "{0}, zaten {1} {2} için abonelikten çıkmış."
 
-#: frappe/utils/data.py:1705
+#: frappe/utils/data.py:1706
 msgid "{0} and {1}"
 msgstr "{0} ve {1}"
 
@@ -31357,7 +31364,7 @@ msgstr "{0} başarıyla E-posta Grubuna eklendi."
 msgid "{0} has left the conversation in {1} {2}"
 msgstr "{0} hesabı {1} {2} ile ilgili aboneliği sonlandırıldı."
 
-#: frappe/__init__.py:2405
+#: frappe/__init__.py:2408
 msgid "{0} has no versions tracked."
 msgstr "{0} için takip edilen sürüm yok."
 
@@ -31451,6 +31458,10 @@ msgstr ""
 #: frappe/utils/__init__.py:200
 msgid "{0} is not a valid Email Address"
 msgstr "{0} geçerli bir E-Posta Adresi değil."
+
+#: frappe/geo/doctype/country/country.py:30
+msgid "{0} is not a valid ISO 3166 ALPHA-2 code."
+msgstr ""
 
 #: frappe/utils/__init__.py:168
 msgid "{0} is not a valid Name"
@@ -31576,11 +31587,11 @@ msgstr "{0} hiçbiri {1} olmamalıdır"
 msgid "{0} must be one of {1}"
 msgstr ""
 
-#: frappe/model/base_document.py:821
+#: frappe/model/base_document.py:822
 msgid "{0} must be set first"
 msgstr "{0} önce ayarlanmalıdır"
 
-#: frappe/model/base_document.py:684
+#: frappe/model/base_document.py:685
 msgid "{0} must be unique"
 msgstr ""
 
@@ -31617,12 +31628,12 @@ msgstr ""
 msgid "{0} of {1} sent"
 msgstr "{0} / {1} gönderildi"
 
-#: frappe/utils/data.py:1525
+#: frappe/utils/data.py:1526
 msgctxt "Money in words"
 msgid "{0} only."
 msgstr "Sadece {0}."
 
-#: frappe/utils/data.py:1695
+#: frappe/utils/data.py:1696
 msgid "{0} or {1}"
 msgstr "{0} veya {1}"
 
@@ -31770,11 +31781,11 @@ msgstr "{0} {1} Eklendi"
 msgid "{0} {1} added to Dashboard {2}"
 msgstr "<b>{0}</b>: {1}, {2} Panosuna eklendi."
 
-#: frappe/model/base_document.py:617 frappe/model/rename_doc.py:110
+#: frappe/model/base_document.py:618 frappe/model/rename_doc.py:110
 msgid "{0} {1} already exists"
 msgstr "{0} {1} zaten mevcut."
 
-#: frappe/model/base_document.py:933
+#: frappe/model/base_document.py:934
 msgid "{0} {1} cannot be \"{2}\". It should be one of \"{3}\""
 msgstr ""
 
@@ -31799,7 +31810,7 @@ msgstr "{0} {1} bulunamadı."
 msgid "{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first."
 msgstr "{0} {1}: Gönderilen kayıt silinemez. Önce {2} İptal {3} işlemini gerçekleştirin."
 
-#: frappe/model/base_document.py:1061
+#: frappe/model/base_document.py:1062
 msgid "{0}, Row {1}"
 msgstr "{0}, Satır {1}"
 
@@ -31807,7 +31818,7 @@ msgstr "{0}, Satır {1}"
 msgid "{0}/{1} complete | Please leave this tab open until completion."
 msgstr ""
 
-#: frappe/model/base_document.py:1066
+#: frappe/model/base_document.py:1067
 msgid "{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}"
 msgstr ""
 
@@ -31944,11 +31955,11 @@ msgstr ""
 msgid "{} Complete"
 msgstr "{} Tamamlandı"
 
-#: frappe/utils/data.py:2432
+#: frappe/utils/data.py:2438
 msgid "{} Invalid python code on line {}"
 msgstr ""
 
-#: frappe/utils/data.py:2441
+#: frappe/utils/data.py:2447
 msgid "{} Possibly invalid python code. <br>{}"
 msgstr "{} Muhtemelen geçersiz python kodu. <br>{}"
 
@@ -31970,7 +31981,7 @@ msgstr "{} alanı boş olamaz."
 msgid "{} has been disabled. It can only be enabled if {} is checked."
 msgstr "{} devre dışı bırakılmıştır. Yalnızca {} işaretliyse etkinleştirilebilir."
 
-#: frappe/utils/data.py:127
+#: frappe/utils/data.py:128
 msgid "{} is not a valid date string."
 msgstr "{} geçerli bir tarih dizesi değil."
 
