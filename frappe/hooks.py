@@ -204,6 +204,7 @@ scheduler_events = {
 			"frappe.email.doctype.email_account.email_account.notify_unreplied",
 			"frappe.utils.global_search.sync_global_search",
 			"frappe.deferred_insert.save_to_db",
+			"frappe.automation.doctype.reminder.reminder.send_reminders",
 		],
 		# 10 minutes
 		"0/10 * * * *": [
@@ -221,7 +222,6 @@ scheduler_events = {
 	"all": [
 		"frappe.email.queue.flush",
 		"frappe.monitor.flush",
-		"frappe.automation.doctype.reminder.reminder.send_reminders",
 	],
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
@@ -571,4 +571,5 @@ persistent_cache_keys = [
 	"recorder-*",  # Recorder
 	"global_search_queue",
 	"monitor-transactions",
+	"rate-limit-counter-*",
 ]
