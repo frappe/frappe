@@ -808,7 +808,10 @@ const zoomLevels = {
 						.then(res => {
 							store.dispatch("update_order_for_single_card", args)
 						}).catch(e => console.log("dont update jobcard status"))
-					}else{	
+					}else{
+						if(args.from_colname === "Remote diagnose" && args.to_colname === "Completed"){	
+							showSentMessageAfterRemoteDiagnoseDialog(args.name)
+						}
 						store.dispatch("update_order_for_single_card", args);	
 					}
 					
@@ -1611,6 +1614,34 @@ const zoomLevels = {
 		fields.push(question_field)
 	
 		return fields
+	}
+
+	function showSentMessageAfterRemoteDiagnoseDialog(project_name) {
+		const dialog = new frappe.ui.Dialog({
+			title: 'Remote Diagnose Completed',
+			fields: [
+				{
+					fieldtype: 'HTML',
+					options: `<p>Would you like to send the customer an invitation to schedule an appointment with our workshop?</p> `
+				},
+			],
+			primary_action_label: 'Yes',
+			primary_action: async function() {
+				const { aws_url } = await frappe.db.get_doc("Whatsapp Config")
+				console.log("aws_url => ",aws_url)
+				await frappe.call({
+					method: 'frappe.desk.doctype.kanban_board.kanban_board.call_send_whatsapp_message',
+					args: { aws_url: aws_url, project_name: project_name }
+				})
+				dialog.hide();
+			},
+			secondary_action_label: 'No',
+			secondary_action: function() {
+				dialog.hide();
+			}
+		});
+
+		dialog.show();			
 	}
 })();
 
