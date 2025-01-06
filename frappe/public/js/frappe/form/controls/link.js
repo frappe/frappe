@@ -234,7 +234,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					d.label = d.value;
 				}
 
-				let _label = me.get_translated(d.label);
+				let _label = __(me.get_translated(d.label));
 				let html = d.html || "<strong>" + _label + "</strong>";
 				if (
 					d.description &&
