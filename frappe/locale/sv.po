@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-05 09:33+0000\n"
-"PO-Revision-Date: 2025-01-05 22:28\n"
+"PO-Revision-Date: 2025-01-06 22:25\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -1499,11 +1499,11 @@ msgstr "Adress Mall"
 #: frappe/contacts/doctype/address/address.json
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Address Title"
-msgstr "Adress Titel"
+msgstr "Adress Benämning"
 
 #: frappe/contacts/doctype/address/address.py:72
 msgid "Address Title is mandatory."
-msgstr "Adress Titel erfodras."
+msgstr "Adress Benämning erfodras."
 
 #. Label of the address_type (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -3620,7 +3620,7 @@ msgstr "Blogg Inställningar"
 #. Label of the blog_title (Data) field in DocType 'Blog Settings'
 #: frappe/website/doctype/blog_settings/blog_settings.json
 msgid "Blog Title"
-msgstr "Blogg Titel"
+msgstr "Blogg Benämning"
 
 #. Name of a role
 #. Label of the blogger (Link) field in DocType 'Blog Post'
@@ -3877,7 +3877,7 @@ msgstr "Efter \"Nummer Serie\"."
 #: frappe/website/doctype/web_page/web_page.js:111
 #: frappe/website/doctype/web_page/web_page.js:118
 msgid "By default the title is used as meta title, adding a value here will override it."
-msgstr "Som standard används titel som meta titel. Att lägga till värde här kommer att åsidosätta standard värde."
+msgstr "Som standard används benämning som metabenämning. Att lägga till värde här kommer att åsidosätta standard värde."
 
 #. Description of the 'Send Email for Successful Backup' (Check) field in
 #. DocType 'S3 Backup Settings'
@@ -4045,7 +4045,7 @@ msgstr "Återuppringning Meddelande"
 #. Label of the callback_title (Data) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Callback Title"
-msgstr "Återuppringning Titel"
+msgstr "Återuppringning Benämning"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:150
 #: frappe/public/js/frappe/ui/capture.js:334
@@ -7926,7 +7926,7 @@ msgstr "Dokument Tagg"
 #. Label of the title (Data) field in DocType 'Tag Link'
 #: frappe/desk/doctype/tag_link/tag_link.json
 msgid "Document Title"
-msgstr "Dokument Titel"
+msgstr "Dokument Benämning"
 
 #. Label of the document_type (Link) field in DocType 'Assignment Rule'
 #. Label of the reference_type (Link) field in DocType 'Milestone'
@@ -10064,7 +10064,7 @@ msgstr "Fält \"\"sökväg\"\" erfodras för Webb Vyer"
 
 #: frappe/core/doctype/doctype/doctype.py:1528
 msgid "Field \"title\" is mandatory if \"Website Search Field\" is set."
-msgstr "Fält \"titel\" erfodras om \"Webbplats Sökfält\" är angiven."
+msgstr "Fält \"benämning\" erfodras om \"Webbplats Sökfält\" är angiven."
 
 #: frappe/desk/doctype/bulk_update/bulk_update.js:17
 msgid "Field \"value\" is mandatory. Please specify value to be updated"
@@ -14736,7 +14736,7 @@ msgstr "Länk Namn"
 #: frappe/core/doctype/communication_link/communication_link.json
 #: frappe/core/doctype/dynamic_link/dynamic_link.json
 msgid "Link Title"
-msgstr "Länk Titel"
+msgstr "Länk Benämning"
 
 #. Label of the link_to (Dynamic Link) field in DocType 'Workspace'
 #. Label of the link_to (Dynamic Link) field in DocType 'Workspace Link'
@@ -15731,7 +15731,7 @@ msgstr "Meta Taggar"
 #: frappe/website/doctype/blog_post/blog_post.json
 #: frappe/website/doctype/web_page/web_page.js:117
 msgid "Meta Title"
-msgstr "Meta Titel"
+msgstr "Meta Benämning"
 
 #. Label of the meta_description (Small Text) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -15746,11 +15746,11 @@ msgstr "Meta Bild"
 #. Label of the meta_title (Data) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Meta title"
-msgstr "Meta Titel"
+msgstr "Meta Benämning"
 
 #: frappe/website/doctype/web_page/web_page.js:110
 msgid "Meta title for SEO"
-msgstr "Meta Titel för SEO"
+msgstr "Meta Benämning för SEO"
 
 #. Label of the method (Data) field in DocType 'Access Log'
 #. Label of the method (Select) field in DocType 'Recorder'
@@ -18506,7 +18506,7 @@ msgstr "Sida Storlek"
 #. Label of the page_title (Data) field in DocType 'About Us Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Page Title"
-msgstr "Sida Titel"
+msgstr "Sida Benämning"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:80
 msgid "Page Width (in mm)"
@@ -22852,7 +22852,7 @@ msgstr "Sektion"
 #: frappe/public/js/form_builder/components/Section.vue:28
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:8
 msgid "Section Title"
-msgstr "Sektion Namn"
+msgstr "Sektion Benämning"
 
 #: frappe/public/js/form_builder/components/Section.vue:217
 #: frappe/public/js/form_builder/components/Section.vue:240
@@ -24172,7 +24172,7 @@ msgstr "Visa Taggar"
 #. Label of the show_title (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Show Title"
-msgstr "Visa Titel"
+msgstr "Visa Benämning"
 
 #. Label of the show_title_field_in_link (Check) field in DocType 'DocType'
 #. Label of the show_title_field_in_link (Check) field in DocType 'Customize
@@ -24180,7 +24180,7 @@ msgstr "Visa Titel"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Show Title in Link Fields"
-msgstr "Visa Titel i Länk Fält"
+msgstr "Visa Benämning i Länk Fält"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1479
 msgid "Show Totals"
@@ -24286,7 +24286,7 @@ msgstr "Visa sidofält"
 #. Description of the 'Title Prefix' (Data) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Show title in browser window as \"Prefix - title\""
-msgstr "Visar Titel i webbläsare fönster som 'Prefix - Titel'"
+msgstr "Visar Benämning i webbläsare fönster som 'Prefix - Benämning'"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:148
 msgid "Show {0} List"
@@ -24334,7 +24334,7 @@ msgstr "Registrering är inaktiverad"
 #: frappe/templates/signup.html:16 frappe/www/login.html:121
 #: frappe/www/login.html:137 frappe/www/update-password.html:58
 msgid "Sign up"
-msgstr "Registrera dig"
+msgstr "Registrera"
 
 #. Label of the sign_ups (Select) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
@@ -25270,7 +25270,7 @@ msgstr "Dotter Bolag"
 #: frappe/desk/doctype/module_onboarding/module_onboarding.json
 #: frappe/website/doctype/blog_settings/blog_settings.json
 msgid "Subtitle"
-msgstr "Undertext"
+msgstr "Underbenämning"
 
 #. Option for the 'Status' (Select) field in DocType 'Activity Log'
 #. Option for the 'Status' (Select) field in DocType 'Data Import'
@@ -25322,7 +25322,7 @@ msgstr "Klart Meddelande"
 #. Label of the success_title (Data) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Success title"
-msgstr "Klart Titel"
+msgstr "Klart Benämning"
 
 #: frappe/www/update-password.html:81
 msgid "Success! You are good to go 👍"
@@ -25886,7 +25886,7 @@ msgstr "Team Medlemmar Huvud Rubrik"
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Team Members Subtitle"
-msgstr "Team Medlemmar Undertext"
+msgstr "Team Medlemmar Underbenämning"
 
 #. Label of the telemetry_section (Section Break) field in DocType 'System
 #. Settings'
@@ -26598,7 +26598,7 @@ msgstr "Denna programvara är byggd ovanpå många andra öppen källkod program
 
 #: frappe/website/doctype/web_page/web_page.js:71
 msgid "This title will be used as the title of the webpage as well as in meta tags"
-msgstr "Denna titel kommer att användas som titel på hemsida såväl som i meta taggar"
+msgstr "Denna benämning kommer att användas som benämning på hemsida såväl som i meta taggar"
 
 #: frappe/public/js/frappe/form/controls/base_input.js:129
 msgid "This value is fetched from {0}'s {1} field"
@@ -26874,27 +26874,27 @@ msgstr "Tid Stämpel"
 #: frappe/website/doctype/website_sidebar/website_sidebar.json
 #: frappe/website/doctype/website_sidebar_item/website_sidebar_item.json
 msgid "Title"
-msgstr "Titel"
+msgstr "Benämning"
 
 #. Label of the title_field (Data) field in DocType 'DocType'
 #. Label of the title_field (Data) field in DocType 'Customize Form'
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Title Field"
-msgstr "Titel Fält"
+msgstr "Benämning Fält"
 
 #. Label of the title_prefix (Data) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Title Prefix"
-msgstr "Titel Prefix"
+msgstr "Benämning Prefix"
 
 #: frappe/core/doctype/doctype/doctype.py:1477
 msgid "Title field must be a valid fieldname"
-msgstr "Titel Fält måste vara giltig fält namn"
+msgstr "Benämning Fält måste vara giltig fält namn"
 
 #: frappe/website/doctype/web_page/web_page.js:70
 msgid "Title of the page"
-msgstr "Sida Titel"
+msgstr "Sida Benämning"
 
 #. Label of the recipients (Code) field in DocType 'Communication'
 #. Label of the recipients (Section Break) field in DocType 'Newsletter'
@@ -27539,7 +27539,7 @@ msgstr "Skriv något i sökruta för att söka"
 #: frappe/templates/discussions/reply_section.html:53
 #: frappe/templates/discussions/topic_modal.html:11
 msgid "Type title"
-msgstr "Skriv rubrik"
+msgstr "Benämning"
 
 #: frappe/templates/discussions/discussions.js:341
 msgid "Type your reply here..."
@@ -28108,7 +28108,7 @@ msgstr "Använd ny Urskrift Format Redigerare"
 #. Description of the 'Title Field' (Data) field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Use this fieldname to generate title"
-msgstr "Använd detta Fält Namn för att skapa Titel"
+msgstr "Använd detta fält namn för att skapa benämning"
 
 #. Label of the used_oauth (Check) field in DocType 'User Email'
 #: frappe/core/doctype/user_email/user_email.json
