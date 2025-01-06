@@ -45,6 +45,7 @@ frappe.make_page = function (double_column, page_name, sidebar_position) {
 		parent: page,
 		single_column: !double_column,
 		sidebar_position: sidebar_position,
+		disable_sidebar_toggle: !sidebar_position,
 	});
 
 	frappe.container.change_to(page_name);
