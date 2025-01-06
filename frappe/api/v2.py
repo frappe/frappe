@@ -9,6 +9,7 @@ Note:
 """
 
 import json
+from contextlib import suppress
 from typing import Any
 
 from werkzeug.routing import Rule
@@ -38,10 +39,15 @@ def handle_rpc_call(method: str, doctype: str | None = None):
 		method = hook
 		break
 
+	method_exists = False
+	with suppress(Exception):
+		method_exists = bool(frappe.get_attr(method))
+
 	# via server script
-	server_script = get_server_script_map().get("_api", {}).get(method)
-	if server_script:
-		return run_server_script(server_script)
+	if not method_exists:
+		server_script = get_server_script_map().get("_api", {}).get(method)
+		if server_script:
+			return run_server_script(server_script)
 
 	try:
 		method = frappe.get_attr(method)
