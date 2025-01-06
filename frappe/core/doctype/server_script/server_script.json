@@ -16,8 +16,11 @@
   "column_break_3",
   "module",
   "disabled",
+  "restrictions",
   "section_break_8",
+  "custom_script",
   "script",
+  "custom_script_code",
   "rate_limiting_section",
   "enable_rate_limit",
   "rate_limit_count",
@@ -36,11 +39,12 @@
    "reqd": 1
   },
   {
+   "depends_on": "eval:doc.restrictions == \"Original\"",
    "fieldname": "script",
    "fieldtype": "Code",
    "label": "Script",
-   "options": "Python",
-   "reqd": 1
+   "mandatory_depends_on": "eval:doc.restrictions == \"Original\"",
+   "options": "Python"
   },
   {
    "depends_on": "eval:['DocType Event', 'Permission Query'].includes(doc.script_type)",
@@ -142,6 +146,26 @@
    "fieldname": "cron_format",
    "fieldtype": "Data",
    "label": "Cron Format"
+  },
+  {
+   "fieldname": "restrictions",
+   "fieldtype": "Select",
+   "label": "Restrictions",
+   "options": "Original\nOn Disk (unrestricted)"
+  },
+  {
+   "depends_on": "eval:doc.restrictions != \"Original\"",
+   "fieldname": "custom_script",
+   "fieldtype": "Link",
+   "label": "Choose Custom Script",
+   "options": "Custom Script File"
+  },
+  {
+   "depends_on": "eval:doc.restrictions != \"Original\"",
+   "fieldname": "custom_script_code",
+   "fieldtype": "Code",
+   "is_virtual": 1,
+   "label": "Custom Script"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -151,7 +175,7 @@
    "link_fieldname": "server_script"
   }
  ],
- "modified": "2024-05-08 03:21:54.169380",
+ "modified": "2025-01-13 13:07:28.433074",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",

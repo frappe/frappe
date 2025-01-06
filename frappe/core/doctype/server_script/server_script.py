@@ -18,6 +18,8 @@ from frappe.utils.safe_exec import (
 )
 
 if TYPE_CHECKING:
+	from collections.abc import Callable
+
 	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType
 
 
@@ -33,6 +35,8 @@ class ServerScript(Document):
 		allow_guest: DF.Check
 		api_method: DF.Data | None
 		cron_format: DF.Data | None
+		custom_script: DF.Link | None
+		custom_script_code: DF.Code | None
 		disabled: DF.Check
 		doctype_event: DF.Literal[
 			"Before Insert",
@@ -78,13 +82,20 @@ class ServerScript(Document):
 		rate_limit_count: DF.Int
 		rate_limit_seconds: DF.Int
 		reference_doctype: DF.Link | None
-		script: DF.Code
+		restrictions: DF.Literal["Original", "On Disk (unrestricted)"]
+		script: DF.Code | None
 		script_type: DF.Literal["DocType Event", "Scheduler Event", "Permission Query", "API"]
 	# end: auto-generated types
 
 	def validate(self):
 		frappe.only_for("Script Manager", True)
-		self.check_if_compilable_in_restricted_context()
+		if self.restrictions == "Original":
+			if not self.script:
+				frappe.throw(_("Script is a mandatory field"), title=_("Validation Error"))
+			self.check_if_compilable_in_restricted_context()
+		else:
+			if not self.custom_script:
+				frappe.throw(_("Custom Script is a mandatory field"), title=_("Validation Error"))
 
 	def on_update(self):
 		self.sync_scheduled_job_type()
@@ -112,6 +123,11 @@ class ServerScript(Document):
 			filters={"server_script": self.name},
 			fields=["name", "stopped"],
 		)
+
+	@property
+	def custom_script_code(self) -> str | None:
+		if self.custom_script:
+			return frappe.get_doc("Custom Script File", self.custom_script).code
 
 	def sync_scheduled_job_type(self):
 		"""Create or update Scheduled Job Type documents for Scheduler Event Server Scripts"""
@@ -183,11 +199,9 @@ class ServerScript(Document):
 		Args:
 		        doc (Document): Executes script with for a certain document's events
 		"""
-		safe_exec(
-			self.script,
-			_locals={"doc": doc},
+		self.execute(
+			locals={"doc": doc},
 			restrict_commit_rollback=True,
-			script_filename=self.name,
 		)
 
 	def execute_scheduled_method(self):
@@ -199,7 +213,7 @@ class ServerScript(Document):
 		if self.script_type != "Scheduler Event":
 			raise frappe.DoesNotExistError
 
-		safe_exec(self.script, script_filename=self.name)
+		self.execute()
 
 	def get_permission_query_conditions(self, user: str) -> list[str]:
 		"""Specific to Permission Query Server Scripts.
@@ -214,6 +228,23 @@ class ServerScript(Document):
 		safe_exec(self.script, None, locals, script_filename=self.name)
 		if locals["conditions"]:
 			return locals["conditions"]
+
+	def execute(
+		self, locals: dict | None = None, globals: dict | None = None, restrict_commit_rollback: bool = False
+	) -> frappe._dict | None:
+		"""Return the code of the script"""
+		if self.restrictions == "Original":
+			_globals, _locals = safe_exec(
+				self.script,
+				_globals=globals,
+				_locals=locals,
+				restrict_commit_rollback=restrict_commit_rollback,
+				script_filename=self.name,
+			)
+			return _globals.frappe.flags
+		else:
+			code = frappe.get_doc("Custom Script File", self.custom_script).code
+			exec(code)
 
 
 @frappe.whitelist()
@@ -247,10 +278,7 @@ def execute_api_server_script(script: ServerScript, *args, **kwargs):
 	if frappe.session.user == "Guest" and not script.allow_guest:
 		raise frappe.PermissionError
 
-	# output can be stored in flags
-	_globals, _locals = safe_exec(script.script, script_filename=script.name)
-
-	return _globals.frappe.flags
+	return script.execute()
 
 
 @frappe.whitelist()

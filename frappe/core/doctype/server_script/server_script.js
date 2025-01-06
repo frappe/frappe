@@ -41,6 +41,14 @@ frappe.ui.form.on("Server Script", {
 		});
 	},
 
+	custom_script: function (frm) {
+		if (frm.doc.custom_script) {
+			frappe.db.get_doc("Custom Script File", frm.doc.custom_script).then((r) => {
+				frm.set_value("custom_script_code", r.code);
+			});
+		}
+	},
+
 	setup_help(frm) {
 		frm.get_field("help_html").html(`
 <h4>DocType Event</h4>
