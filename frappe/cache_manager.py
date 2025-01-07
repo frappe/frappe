@@ -67,12 +67,16 @@ user_cache_keys = (
 
 doctype_cache_keys = (
 	"doctype_form_meta",
-	"table_columns",
 	"last_modified",
 	"linked_doctypes",
 	"notifications",
 	"workflow",
 	"data_import_column_header_map",
+)
+
+wildcard_keys = (
+	"document_cache::*",
+	"table_columns::*",
 )
 
 
@@ -158,7 +162,8 @@ def _clear_doctype_cache_from_redis(doctype: str | None = None):
 	else:
 		# clear all
 		to_del += doctype_cache_keys
-		to_del += frappe.cache.get_keys("document_cache::")
+		for pattern in wildcard_keys:
+			to_del += frappe.cache.get_keys(pattern)
 		clear_meta_cache()
 
 	frappe.cache.delete_value(to_del)
