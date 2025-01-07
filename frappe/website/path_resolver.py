@@ -30,6 +30,10 @@ class PathResolver:
 		if hasattr(frappe.local, "request"):
 			request = frappe.local.request or request
 
+		# WARN: Hardcoded for better performance
+		if self.path == "app" or self.path.startswith("app/"):
+			return "app", TemplatePage("app", self.http_status_code)
+
 		# check if the request url is in 404 list
 		if request.url and can_cache() and frappe.cache.hget("website_404", request.url):
 			return self.path, NotFoundPage(self.path)
@@ -48,10 +52,6 @@ class PathResolver:
 			except werkzeug.routing.exceptions.RequestRedirect as e:
 				frappe.flags.redirect_location = e.new_url
 				return frappe.flags.redirect_location, RedirectPage(e.new_url, e.code)
-
-		# WARN: Hardcoded for better performance
-		if endpoint == "app":
-			return endpoint, TemplatePage(endpoint, self.http_status_code)
 
 		custom_renderers = self.get_custom_page_renderers()
 		renderers = [
