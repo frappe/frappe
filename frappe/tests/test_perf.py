@@ -291,20 +291,20 @@ class TestOverheadCalls(FrappeAPITestCase):
 
 	def test_ping_overheads(self):
 		self.get(self.method("ping"), {"sid": "Guest"})
-		with self.assertRedisCallCounts(10), self.assertQueryCount(self.BASE_SQL_CALLS):
+		with self.assertRedisCallCounts(2), self.assertQueryCount(self.BASE_SQL_CALLS):
 			self.get(self.method("ping"), {"sid": "Guest"})
 
 	def test_ping_overheads_authenticated(self):
 		sid = self.sid
 		self.get(self.method("ping"), {"sid": sid})
-		with self.assertRedisCallCounts(10), self.assertQueryCount(self.BASE_SQL_CALLS):
+		with self.assertRedisCallCounts(3), self.assertQueryCount(self.BASE_SQL_CALLS):
 			self.get(self.method("ping"), {"sid": sid})
 
 	def test_list_view_overheads(self):
 		sid = self.sid
 		self.get(self.resource("ToDo"), {"sid": sid})
 		self.get(self.resource("ToDo"), {"sid": sid})
-		with self.assertRedisCallCounts(24), self.assertQueryCount(self.BASE_SQL_CALLS + 1):
+		with self.assertRedisCallCounts(6), self.assertQueryCount(self.BASE_SQL_CALLS + 1):
 			self.get(self.resource("ToDo"), {"sid": sid})
 
 	def test_get_doc_overheads(self):
@@ -312,7 +312,7 @@ class TestOverheadCalls(FrappeAPITestCase):
 		tables = len(frappe.get_meta("User").get_table_fields())
 		self.get(self.resource("User", "Administrator"), {"sid": sid})
 		self.get(self.resource("User", "Administrator"), {"sid": sid})
-		with self.assertRedisCallCounts(19), self.assertQueryCount(self.BASE_SQL_CALLS + 1 + tables):
+		with self.assertRedisCallCounts(3), self.assertQueryCount(self.BASE_SQL_CALLS + 1 + tables):
 			self.get(self.resource("User", "Administrator"), {"sid": sid})
 
 
