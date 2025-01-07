@@ -176,7 +176,6 @@ class LoginManager:
 		self.info = frappe.get_cached_value(
 			"User", self.user, ["user_type", "first_name", "last_name", "user_image"], as_dict=1
 		)
-		self.user_lang = frappe.translate.get_user_lang()
 		self.user_type = self.info.user_type
 
 	def setup_boot_cache(self):
@@ -212,8 +211,7 @@ class LoginManager:
 		frappe.local.cookie_manager.set_cookie("full_name", self.full_name)
 		frappe.local.cookie_manager.set_cookie("user_id", self.user)
 		frappe.local.cookie_manager.set_cookie("user_image", self.info.user_image or "")
-		# cache control: round trip the effectively delivered language
-		frappe.local.cookie_manager.set_cookie("user_lang", self.user_lang)
+		frappe.local.cookie_manager.set_cookie("user_lang", frappe.local.lang)
 
 	def clear_preferred_language(self):
 		frappe.local.cookie_manager.delete_cookie("preferred_language")
