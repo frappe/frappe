@@ -274,7 +274,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 	local.dev_server = _dev_server
 	local.qb = get_query_builder(local.conf.db_type)
 	local.qb.get_query = get_query
-	if not cache:
+	if not cache or not client_cache:
 		setup_redis_cache_connection()
 
 	if not _one_time_setup.get(local.conf.db_type):
