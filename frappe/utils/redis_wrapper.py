@@ -483,6 +483,9 @@ class ClientCache:
 		self.invalidator_thread = self.run_invalidator_thread()
 
 	def get_value(self, key):
+		if not self.healthy:
+			return self.redis.get_value(key)
+
 		key = self.redis.make_key(key)
 		try:
 			val = self.cache[key]
@@ -526,7 +529,7 @@ class ClientCache:
 		# - Client A writes a key and reads it again from local cache
 		# - Client B overwrites this key, but since client A never "read" it from Redis, Redis
 		#   doesn't send invalidation.
-		_ = self.redis.get_value(key, shared=True, use_local_cache=False)
+		_ = self.redis.get_value(key, shared=True, use_local_cache=not self.healthy)
 
 	def ensure_max_size(self):
 		if len(self.cache) >= self.maxsize:
