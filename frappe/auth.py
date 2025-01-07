@@ -454,22 +454,12 @@ def validate_ip_address(user):
 
 	from frappe.core.doctype.user.user import get_restricted_ip_list
 
-	# Only fetch required fields - for perf
-	user_fields = ["restrict_ip", "bypass_restrict_ip_check_if_2fa_enabled"]
-	user_info = (
-		frappe.get_cached_value("User", user, user_fields, as_dict=True)
-		if not frappe.flags.in_test
-		else frappe.db.get_value("User", user, user_fields, as_dict=True)
-	)
-	ip_list = get_restricted_ip_list(user_info)
+	user_info = frappe.get_cached_doc("User", user)
+	ip_list = user_info.get_restricted_ip_list()
 	if not ip_list:
 		return
 
-	system_settings = (
-		frappe.get_cached_doc("System Settings")
-		if not frappe.flags.in_test
-		else frappe.get_single("System Settings")
-	)
+	system_settings = frappe.get_cached_doc("System Settings")
 	# check if bypass restrict ip is enabled for all users
 	bypass_restrict_ip_check = system_settings.bypass_restrict_ip_check_if_2fa_enabled
 
