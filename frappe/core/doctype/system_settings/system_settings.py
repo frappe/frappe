@@ -229,7 +229,7 @@ def get_system_settings(key: str):
 		try:
 			system_settings = frappe.client_cache.get_value(cache_key)
 			if not system_settings:
-				system_settings = frappe.get_doc("System Settings")
+				system_settings = frappe.get_cached_doc("System Settings")
 				frappe.client_cache.set_value(cache_key, system_settings)
 			frappe.local.system_settings = system_settings
 		except frappe.DoesNotExistError:  # possible during new install
