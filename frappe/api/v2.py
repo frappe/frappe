@@ -100,11 +100,8 @@ def document_list(doctype: str):
 			query = return_value
 
 	data = query.run(as_dict=True, debug=debug)
-
-	return {
-		"result": data[:limit],
-		"has_next_page": len(data) > limit,
-	}
+	frappe.response["has_next_page"] = len(data) > limit
+	return data[:limit]
 
 
 def count(doctype: str) -> int:
