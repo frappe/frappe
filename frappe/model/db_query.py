@@ -729,6 +729,8 @@ class DatabaseQuery:
 
 		# primary key is never nullable, modified is usually indexed by default and always present
 		can_be_null = f.fieldname not in ("name", "modified", "creation")
+		df = meta.get("fields", {"fieldname": f.fieldname})
+		df = df[0] if df else None
 
 		# prepare in condition
 		if f.operator.lower() in NestedSetHierarchy:
@@ -804,8 +806,6 @@ class DatabaseQuery:
 
 		else:
 			escape = True
-			df = meta.get("fields", {"fieldname": f.fieldname})
-			df = df[0] if df else None
 
 			if df and df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent"):
 				can_be_null = False
@@ -925,7 +925,10 @@ class DatabaseQuery:
 				f.operator = "ilike"
 			condition = f"{column_name} {f.operator} {value}"
 		else:
-			condition = f"ifnull({column_name}, {fallback}) {f.operator} {value}"
+			if df and df.fieldtype not in ("Check", "Float", "Int", "Currency", "Percent"):
+				condition = f"ifnull({column_name}, '{fallback}') {f.operator} {value}"
+			else:
+				condition = f"ifnull({column_name}, {fallback}) {f.operator} {value}"
 
 		return condition
 
