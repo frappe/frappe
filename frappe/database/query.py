@@ -12,6 +12,7 @@ from frappe import _
 from frappe.database.operator_map import OPERATOR_MAP
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.database.utils import DefaultOrderBy, FilterValue, convert_to_value, get_doctype_name
+from frappe.model import get_permitted_fields
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.functions import Function, SqlFunctions
 from frappe.query_builder.utils import PseudoColumnMapper
@@ -50,10 +51,15 @@ class Engine:
 		validate_filters: bool = False,
 		skip_locked: bool = False,
 		wait: bool = True,
+		ignore_permissions: bool = True,
+		user: str | None = None,
+		parent_doctype: str | None = None,
 	) -> QueryBuilder:
 		self.is_mariadb = frappe.db.db_type == "mariadb"
 		self.is_postgres = frappe.db.db_type == "postgres"
 		self.validate_filters = validate_filters
+		self.user = user or frappe.session.user
+		self.parent_doctype = parent_doctype
 
 		if isinstance(table, Table):
 			self.table = table
@@ -71,7 +77,10 @@ class Engine:
 			self.query = frappe.qb.from_(self.table).delete()
 		else:
 			self.query = frappe.qb.from_(self.table)
-			self.apply_fields(fields)
+			self.fields = self.parse_fields(fields)
+			if not ignore_permissions:
+				self.fields = self.apply_field_permissions()
+			self.apply_fields(self.fields)
 
 		self.apply_filters(filters)
 		self.apply_order_by(order_by)
@@ -91,6 +100,10 @@ class Engine:
 		if group_by:
 			self.query = self.query.groupby(group_by)
 
+		if not ignore_permissions:
+			self.check_read_permission()
+			self.add_permission_conditions()
+
 		return self.query
 
 	def validate_doctype(self):
@@ -98,8 +111,6 @@ class Engine:
 			frappe.throw(_("Invalid DocType: {0}").format(self.doctype))
 
 	def apply_fields(self, fields):
-		# add fields
-		self.fields = self.parse_fields(fields)
 		if not self.fields:
 			self.fields = [self.table.name]
 
@@ -346,6 +357,167 @@ class Engine:
 				order_direction = Order.asc if order_direction.lower() == "asc" else Order.desc
 				self.query = self.query.orderby(order_field, order=order_direction)
 
+	def check_read_permission(self):
+		"""Check if user has read permission on the doctype"""
+
+		def has_permission(ptype):
+			return frappe.has_permission(
+				self.doctype,
+				ptype,
+				user=self.user,
+				parent_doctype=self.parent_doctype,
+			)
+
+		if not has_permission("select") and not has_permission("read"):
+			frappe.throw(_("Insufficient Permission for {0}").format(frappe.bold(self.doctype)))
+
+	def apply_field_permissions(self):
+		"""Allow fields that user has permission to read"""
+		permitted_fields = get_permitted_fields(
+			doctype=self.doctype,
+			parenttype=self.parent_doctype,
+			permission_type=self.get_permission_type(self.doctype),
+			ignore_virtual=True,
+		)
+		filtered_fields = []
+		for field in self.fields:
+			if isinstance(field, ChildTableField):
+				permitted_child_fields = get_permitted_fields(
+					doctype=field.doctype,
+					parenttype=field.parent_doctype,
+					permission_type=self.get_permission_type(field.doctype),
+					ignore_virtual=True,
+				)
+				if field.child_fieldname in permitted_child_fields:
+					filtered_fields.append(field)
+			elif isinstance(field, LinkTableField):
+				if field.link_fieldname in permitted_fields:
+					filtered_fields.append(field)
+			elif isinstance(field, ChildQuery):
+				permitted_child_fields = get_permitted_fields(
+					doctype=field.doctype,
+					parenttype=field.parent_doctype,
+					permission_type=self.get_permission_type(field.doctype),
+					ignore_virtual=True,
+				)
+				field.fields = [f for f in field.fields if f in permitted_child_fields]
+			elif isinstance(field, Field):
+				if field.name == "*":
+					filtered_fields.extend(self.parse_fields(permitted_fields))
+				elif field.name in permitted_fields:
+					filtered_fields.append(field)
+		return filtered_fields
+
+	def get_user_permission_conditions(self, role_permissions):
+		"""Build conditions for user permissions and return tuple of (conditions, fetch_shared_docs)"""
+		conditions = []
+		fetch_shared_docs = False
+
+		# add user permission only if role has read perm
+		if not (role_permissions.get("read") or role_permissions.get("select")):
+			return conditions, fetch_shared_docs
+
+		user_permissions = frappe.permissions.get_user_permissions(self.user)
+
+		if not user_permissions:
+			return conditions, fetch_shared_docs
+
+		fetch_shared_docs = True
+
+		doctype_link_fields = self.get_doctype_link_fields()
+		for df in doctype_link_fields:
+			if df.get("ignore_user_permissions"):
+				continue
+
+			user_permission_values = user_permissions.get(df.get("options"), {})
+			if user_permission_values:
+				docs = []
+				for permission in user_permission_values:
+					if not permission.get("applicable_for"):
+						docs.append(permission.get("doc"))
+					# append docs based on user permission applicable on reference doctype
+					# this is useful when getting list of docs from a link field
+					# in this case parent doctype of the link
+					# will be the reference doctype
+					elif df.get("fieldname") == "name" and self.reference_doctype:
+						if permission.get("applicable_for") == self.reference_doctype:
+							docs.append(permission.get("doc"))
+					elif permission.get("applicable_for") == self.doctype:
+						docs.append(permission.get("doc"))
+
+				if docs:
+					field_name = df.get("fieldname")
+					strict_user_permissions = frappe.get_system_settings("apply_strict_user_permissions")
+					if strict_user_permissions:
+						conditions.append(self.table[field_name].isin(docs))
+					else:
+						empty_value_condition = self.table[field_name].isnull()
+						value_condition = self.table[field_name].isin(docs)
+						conditions.append(empty_value_condition | value_condition)
+
+		return conditions, fetch_shared_docs
+
+	def get_doctype_link_fields(self):
+		meta = frappe.get_meta(self.doctype)
+		# append current doctype with fieldname as 'name' as first link field
+		doctype_link_fields = [{"options": self.doctype, "fieldname": "name"}]
+		# append other link fields
+		doctype_link_fields.extend(meta.get_link_fields())
+		return doctype_link_fields
+
+	def add_permission_conditions(self):
+		conditions = []
+		role_permissions = frappe.permissions.get_role_permissions(self.doctype, user=self.user)
+		fetch_shared_docs = False
+
+		if self.requires_owner_constraint(role_permissions):
+			fetch_shared_docs = True
+			conditions.append(self.table.owner == self.user)
+		# skip user perm check if owner constraint is required
+		elif role_permissions.get("read") or role_permissions.get("select"):
+			user_perm_conditions, fetch_shared = self.get_user_permission_conditions(role_permissions)
+			conditions.extend(user_perm_conditions)
+			fetch_shared_docs = fetch_shared_docs or fetch_shared
+
+		shared_docs = []
+		if fetch_shared_docs:
+			shared_docs = frappe.share.get_shared(self.doctype, self.user)
+
+		if shared_docs:
+			shared_condition = self.table.name.isin(shared_docs)
+			if conditions:
+				# (permission conditions) OR (shared condition)
+				self.query = self.query.where(Criterion.any(conditions) | shared_condition)
+			else:
+				self.query = self.query.where(shared_condition)
+		elif conditions:
+			# AND all permission conditions
+			self.query = self.query.where(Criterion.all(conditions))
+
+	def get_permission_type(self, doctype) -> str:
+		"""Get permission type (select/read) based on user permissions"""
+		if frappe.only_has_select_perm(doctype, user=self.user):
+			return "select"
+		return "read"
+
+	def requires_owner_constraint(self, role_permissions):
+		"""Return True if "select" or "read" isn't available without being creator."""
+		if not role_permissions.get("has_if_owner_enabled"):
+			return
+
+		if_owner_perms = role_permissions.get("if_owner")
+		if not if_owner_perms:
+			return
+
+		# has select or read without if owner, no need for constraint
+		for perm_type in ("select", "read"):
+			if role_permissions.get(perm_type) and perm_type not in if_owner_perms:
+				return
+
+		# not checking if either select or read if present in if_owner_perms
+		# because either of those is required to perform a query
+		return True
+
 
 class Permission:
 	@classmethod
@@ -417,7 +589,7 @@ class DynamicTableField:
 				if linked_field.fieldtype == "Link":
 					return LinkTableField(linked_doctype, fieldname, doctype, linked_fieldname, alias=alias)
 				elif linked_field.fieldtype in frappe.model.table_fields:
-					return ChildTableField(linked_doctype, fieldname, doctype, alias=alias)
+					return ChildTableField(linked_doctype, fieldname, doctype, linked_fieldname, alias=alias)
 
 	def apply_select(self, query: QueryBuilder) -> QueryBuilder:
 		raise NotImplementedError
@@ -429,12 +601,14 @@ class ChildTableField(DynamicTableField):
 		doctype: str,
 		fieldname: str,
 		parent_doctype: str,
+		parent_fieldname: str | None = None,
 		alias: str | None = None,
 	) -> None:
 		self.doctype = doctype
 		self.fieldname = fieldname
 		self.alias = alias
 		self.parent_doctype = parent_doctype
+		self.parent_fieldname = parent_fieldname
 		self.table = frappe.qb.DocType(self.doctype)
 		self.field = self.table[self.fieldname]
 
