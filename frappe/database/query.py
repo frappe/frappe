@@ -379,7 +379,7 @@ class Engine:
 			permission_type=self.get_permission_type(self.doctype),
 			ignore_virtual=True,
 		)
-		filtered_fields = []
+		allowed_fields = []
 		for field in self.fields:
 			if isinstance(field, ChildTableField):
 				permitted_child_fields = get_permitted_fields(
@@ -389,10 +389,10 @@ class Engine:
 					ignore_virtual=True,
 				)
 				if field.child_fieldname in permitted_child_fields:
-					filtered_fields.append(field)
+					allowed_fields.append(field)
 			elif isinstance(field, LinkTableField):
 				if field.link_fieldname in permitted_fields:
-					filtered_fields.append(field)
+					allowed_fields.append(field)
 			elif isinstance(field, ChildQuery):
 				permitted_child_fields = get_permitted_fields(
 					doctype=field.doctype,
@@ -401,12 +401,13 @@ class Engine:
 					ignore_virtual=True,
 				)
 				field.fields = [f for f in field.fields if f in permitted_child_fields]
+				allowed_fields.append(field)
 			elif isinstance(field, Field):
 				if field.name == "*":
-					filtered_fields.extend(self.parse_fields(permitted_fields))
+					allowed_fields.extend(self.parse_fields(permitted_fields))
 				elif field.name in permitted_fields:
-					filtered_fields.append(field)
-		return filtered_fields
+					allowed_fields.append(field)
+		return allowed_fields
 
 	def get_user_permission_conditions(self, role_permissions):
 		"""Build conditions for user permissions and return tuple of (conditions, fetch_shared_docs)"""
