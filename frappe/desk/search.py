@@ -217,7 +217,7 @@ def search_widget(
 	values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
 
 	# remove _relevance from results
-	if not meta.translated_doctype:
+	if not meta.translated_doctype and not meta.is_virtual:
 		if as_dict:
 			for r in values:
 				r.pop("_relevance", None)
