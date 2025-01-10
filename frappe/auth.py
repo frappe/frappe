@@ -450,19 +450,16 @@ def validate_ip_address(user):
 	):
 		return True
 
-	from frappe.core.doctype.user.user import get_restricted_ip_list
-
 	user_info = frappe.get_cached_doc("User", user)
 	ip_list = user_info.get_restricted_ip_list()
 	if not ip_list:
 		return
 
-	system_settings = frappe.get_cached_doc("System Settings")
 	# check if bypass restrict ip is enabled for all users
-	bypass_restrict_ip_check = system_settings.bypass_restrict_ip_check_if_2fa_enabled
+	bypass_restrict_ip_check = frappe.get_system_settings("bypass_restrict_ip_check_if_2fa_enabled")
 
 	# check if two factor auth is enabled
-	if system_settings.enable_two_factor_auth and not bypass_restrict_ip_check:
+	if frappe.get_system_settings("enable_two_factor_auth") and not bypass_restrict_ip_check:
 		# check if bypass restrict ip is enabled for login user
 		bypass_restrict_ip_check = user_info.bypass_restrict_ip_check_if_2fa_enabled
 
