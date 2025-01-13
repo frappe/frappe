@@ -7,7 +7,13 @@ import importlib
 import json
 import os
 import shlex
+<<<<<<< HEAD:frappe/tests/test_commands.py
+=======
+import signal
+import string
+>>>>>>> 2214116318 (test: sanity tests for gunicorn workers):frappe/commands/test_commands.py
 import subprocess
+import time
 import types
 import unittest
 from contextlib import contextmanager
@@ -19,6 +25,7 @@ from unittest.mock import patch
 
 # imports - third party imports
 import click
+import requests
 from click import Command
 from click.testing import CliRunner, Result
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
@@ -918,3 +925,49 @@ class TestSchedulerCLI(BaseTestCommands):
 		self.execute("bench --site {site} scheduler resume")
 		self.assertEqual(self.returncode, 0)
 		self.assertRegex(self.stdout, r"Scheduler is resumed for site .*")
+<<<<<<< HEAD:frappe/tests/test_commands.py
+=======
+
+
+class TestCLIImplementation(BaseTestCommands):
+	def test_missing_commands(self):
+		self.execute("bench --site {site} migrat")
+		self.assertNotEqual(self.returncode, 0)
+		self.assertRegex(self.stderr, r"No such.*migrat.*migrate")
+
+
+class TestGunicornWorker(IntegrationTestCase):
+	port = 8005
+
+	def spawn_gunicorn(self, args):
+		self.handle = subprocess.Popen(
+			[
+				"gunicorn",
+				"-b",
+				f"127.0.0.1:{self.port}",
+				"-w1",
+				"frappe.app:application",
+				"--preload",
+				*args,
+			],
+		)
+		time.sleep(1)  # let worker startup finish
+		self.addCleanup(self.kill_gunicorn)
+
+	def kill_gunicorn(self):
+		self.handle.send_signal(signal.SIGINT)
+		try:
+			self.handle.communicate(timeout=1)
+		except subprocess.TimeoutExpired:
+			self.handle.kill()
+
+	def test_gunicorn_ping_sync(self):
+		self.spawn_gunicorn([])
+		path = f"http://{self.TEST_SITE}:{self.port}/api/method/ping"
+		self.assertEqual(requests.get(path).status_code, 200)
+
+	def test_gunicorn_ping_gthread(self):
+		self.spawn_gunicorn(["--threads=2"])
+		path = f"http://{self.TEST_SITE}:{self.port}/api/method/ping"
+		self.assertEqual(requests.get(path).status_code, 200)
+>>>>>>> 2214116318 (test: sanity tests for gunicorn workers):frappe/commands/test_commands.py
