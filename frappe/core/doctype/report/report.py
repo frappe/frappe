@@ -144,6 +144,20 @@ class Report(Document):
 			make_boilerplate("controller.py", self, {"name": self.name})
 			make_boilerplate("controller.js", self, {"name": self.name})
 
+	def translate_columns(self, columns):
+		translated_columns = []
+		for column in columns:
+			if isinstance(column, str):
+				translate = column.split(":", 1)
+				translate = '{0}:{1}'.format(_(translate[0]), translate[1])
+			elif isinstance(column, dict) and hasattr(column, 'label'):
+				column.label = _(column.label)
+				translate = column
+			else:
+				translate = column
+			translated_columns.append(translate)
+		return translated_columns
+
 	def execute_query_report(self, filters):
 		if not self.query:
 			frappe.throw(_("Must specify a Query to run"), title=_("Report Document Error"))
@@ -152,8 +166,7 @@ class Report(Document):
 
 		result = [list(t) for t in frappe.db.sql(self.query, filters)]
 		columns = self.get_columns() or [cstr(c[0]) for c in frappe.db.get_description()]
-
-		return [columns, result]
+		return [self.translate_columns(columns), result]
 
 	def execute_script_report(self, filters):
 		# save the timestamp to automatically set to prepared
