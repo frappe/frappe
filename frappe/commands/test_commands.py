@@ -1,7 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-# imports - standard imports
 import gzip
 import importlib
 import json
@@ -11,6 +10,7 @@ import shlex
 import signal
 import string
 import subprocess
+import sys
 import time
 import types
 import unittest
@@ -21,14 +21,12 @@ from pathlib import Path
 from unittest.case import skipIf
 from unittest.mock import patch
 
-# imports - third party imports
 import click
 import requests
 from click import Command
 from click.testing import CliRunner, Result
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
-# imports - module imports
 import frappe
 import frappe.commands.scheduler
 import frappe.commands.site
@@ -1023,6 +1021,8 @@ class TestGunicornWorker(IntegrationTestCase):
 	def spawn_gunicorn(self, args):
 		self.handle = subprocess.Popen(
 			[
+				sys.executable,
+				"-m",
 				"gunicorn",
 				"-b",
 				f"127.0.0.1:{self.port}",
