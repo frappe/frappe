@@ -168,13 +168,7 @@ def get_datetime(
 	try:
 		# PERF: Our DATETIME_FORMAT is same as ISO format.
 		# fromisoformat is written in C so it's better than using strptime parser
-		dt_object = datetime.datetime.fromisoformat(datetime_str)
-
-		# fromisoformat also adds tzinfo if present in src string,
-		# so we strip it before returning
-		if dt_object.tzinfo:
-			return dt_object.replace(tzinfo=None)
-		return dt_object
+		return datetime.datetime.fromisoformat(datetime_str)
 	except ValueError:
 		return parser.parse(datetime_str)
 
