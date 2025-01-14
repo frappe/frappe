@@ -7,6 +7,7 @@
 			:group="{ name: 'component-tree' }"
 			@add="updateParent"
 			:disabled="blocks.length && blocks[0].isRoot()"
+			ghost-class="opacity-50"
 		>
 			<template #item="{ element }">
 				<div>
