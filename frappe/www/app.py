@@ -36,14 +36,6 @@ def get_context(context):
 
 	frappe.db.commit()
 
-	boot_json = frappe.as_json(boot, indent=None, separators=(",", ":"))
-
-	# remove script tags from boot
-	boot_json = SCRIPT_TAG_PATTERN.sub("", boot_json)
-
-	# TODO: Find better fix
-	boot_json = CLOSING_SCRIPT_TAG_PATTERN.sub("", boot_json)
-
 	hooks = frappe.get_hooks()
 	app_include_js = hooks.get("app_include_js", []) + frappe.conf.get("app_include_js", [])
 	app_include_css = hooks.get("app_include_css", []) + frappe.conf.get("app_include_css", [])
@@ -62,7 +54,7 @@ def get_context(context):
 			"layout_direction": "rtl" if is_rtl() else "ltr",
 			"lang": frappe.local.lang,
 			"sounds": hooks["sounds"],
-			"boot": boot if context.get("for_mobile") else json.loads(boot_json),
+			"boot": boot,
 			"desk_theme": boot.get("desk_theme") or "Light",
 			"csrf_token": csrf_token,
 			"google_analytics_id": frappe.conf.get("google_analytics_id"),
