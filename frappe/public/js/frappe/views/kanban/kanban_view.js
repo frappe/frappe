@@ -209,7 +209,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				primary_action: function () {
 					dialog.hide();
 					frappe.db.set_value('Queue Settings', 'Queue Settings', 'auto_move_paused', 1).then(res => {
-						frappe.warn('Status updated successfully', 'TEST TWO Would you like to send a WhatsApp message to notify the clients in the queue?',
+						frappe.warn('Status updated successfully', 'Would you like to send a WhatsApp message to notify the clients in the queue?',
 							async () => {
 								const { aws_url } = await frappe.db.get_doc('Queue Settings')
 								return frappe.call({
