@@ -7,11 +7,7 @@ import importlib
 import json
 import os
 import shlex
-<<<<<<< HEAD:frappe/tests/test_commands.py
-=======
 import signal
-import string
->>>>>>> 2214116318 (test: sanity tests for gunicorn workers):frappe/commands/test_commands.py
 import subprocess
 import time
 import types
@@ -925,18 +921,9 @@ class TestSchedulerCLI(BaseTestCommands):
 		self.execute("bench --site {site} scheduler resume")
 		self.assertEqual(self.returncode, 0)
 		self.assertRegex(self.stdout, r"Scheduler is resumed for site .*")
-<<<<<<< HEAD:frappe/tests/test_commands.py
-=======
 
 
-class TestCLIImplementation(BaseTestCommands):
-	def test_missing_commands(self):
-		self.execute("bench --site {site} migrat")
-		self.assertNotEqual(self.returncode, 0)
-		self.assertRegex(self.stderr, r"No such.*migrat.*migrate")
-
-
-class TestGunicornWorker(IntegrationTestCase):
+class TestGunicornWorker(FrappeTestCase):
 	port = 8005
 
 	def spawn_gunicorn(self, args):
@@ -970,4 +957,3 @@ class TestGunicornWorker(IntegrationTestCase):
 		self.spawn_gunicorn(["--threads=2"])
 		path = f"http://{self.TEST_SITE}:{self.port}/api/method/ping"
 		self.assertEqual(requests.get(path).status_code, 200)
->>>>>>> 2214116318 (test: sanity tests for gunicorn workers):frappe/commands/test_commands.py
