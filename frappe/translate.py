@@ -924,18 +924,6 @@ def update_translations_for_source(source=None, translation_dict=None):
 	return translation_records
 
 
-@frappe.whitelist()
-def get_translations(source_text):
-	if is_html(source_text):
-		source_text = strip_html_tags(source_text)
-
-	return frappe.db.get_list(
-		"Translation",
-		fields=["name", "language", "translated_text as translation"],
-		filters={"source_text": source_text},
-	)
-
-
 @frappe.whitelist(allow_guest=True)
 def get_all_languages(with_language_name: bool = False) -> list:
 	"""Return all enabled language codes ar, ch etc."""
