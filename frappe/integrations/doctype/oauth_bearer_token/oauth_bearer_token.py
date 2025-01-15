@@ -21,7 +21,7 @@ class OAuthBearerToken(Document):
 		refresh_token: DF.Data | None
 		scopes: DF.Text | None
 		status: DF.Literal["Active", "Revoked"]
-		user: DF.Link | None
+		user: DF.Link
 	# end: auto-generated types
 
 	def validate(self):
