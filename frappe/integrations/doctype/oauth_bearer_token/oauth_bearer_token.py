@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.utils.data import add_to_date
 
 
 class OAuthBearerToken(Document):
@@ -26,6 +27,4 @@ class OAuthBearerToken(Document):
 
 	def validate(self):
 		if not self.expiration_time:
-			self.expiration_time = frappe.utils.datetime.datetime.strptime(
-				self.creation, "%Y-%m-%d %H:%M:%S.%f"
-			) + frappe.utils.datetime.timedelta(seconds=self.expires_in)
+			self.expiration_time = add_to_date(self.creation, seconds=self.expires_in, as_datetime=True)
