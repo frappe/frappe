@@ -4,6 +4,7 @@ function getBlockTemplate(
 	type:
 		| "body"
 		| "fallback-component"
+		| "placeholder-component"
 ): BlockOptions {
 	switch (type) {
 		case "body":
@@ -32,6 +33,13 @@ function getBlockTemplate(
 					height: "fit-content",
 					width: "fit-content",
 				}
+			}
+
+		case "placeholder-component":
+			return {
+				componentName: "div",
+				originalElement: "__raw_html__",
+				innerHTML: `<div class="p-2 border-dashed border border-green-500 w-fit h-fit text-sm text-gray-700">Drop component here</div>`,
 			}
 	}
 }

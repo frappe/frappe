@@ -1,6 +1,7 @@
 <template>
+	<div v-if="block.isHTML()" v-html="block.innerHTML" />
 	<component
-		v-if="block.canHaveChildren()"
+		v-else-if="block.canHaveChildren()"
 		:is="block.componentName"
 		v-bind="componentProps"
 		:data-component-id="block.componentId"

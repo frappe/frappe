@@ -23,6 +23,7 @@ class Block implements BlockOptions {
 	baseStyles: BlockStyleMap
 	mobileStyles: BlockStyleMap
 	tabletStyles: BlockStyleMap
+	innerHTML?: string
 	classes?: string[]
 	parentSlotName?: string
 
@@ -33,6 +34,7 @@ class Block implements BlockOptions {
 		this.baseStyles = reactive(options.baseStyles || {})
 		this.mobileStyles = reactive(options.mobileStyles || {});
 		this.tabletStyles = reactive(options.tabletStyles || {});
+		this.innerHTML = options.innerHTML
 
 		// generate ID
 		if (!options.componentId) {
@@ -158,6 +160,10 @@ class Block implements BlockOptions {
 
 	isRoot() {
 		return this.componentId === "root" || this.originalElement === "body";
+	}
+
+	isHTML() {
+		return this.originalElement === "__raw_html__"
 	}
 
 	getParentBlock(): Block | null {
