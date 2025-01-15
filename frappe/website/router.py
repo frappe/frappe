@@ -89,7 +89,7 @@ def get_pages(app=None):
 		if app:
 			apps = [app]
 		else:
-			apps = frappe.local.flags.web_pages_apps or frappe.get_installed_apps()
+			apps = frappe.get_installed_apps()
 
 		for app in apps:
 			app_path = frappe.get_app_path(app)

@@ -675,7 +675,6 @@ class TestDateUtils(IntegrationTestCase):
 	@given(st.datetimes(timezones=st.timezones()))
 	def test_get_datetime_tz_aware(self, original):
 		parsed = get_datetime(str(original))
-		original = original.replace(tzinfo=None)
 		self.assertEqual(parsed, original)
 
 	def test_pretty_date(self):

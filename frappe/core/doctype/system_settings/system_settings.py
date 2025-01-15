@@ -227,10 +227,7 @@ def get_system_settings(key: str):
 	"""Return the value associated with the given `key` from System Settings DocType."""
 	if not (system_settings := getattr(frappe.local, "system_settings", None)):
 		try:
-			system_settings = frappe.client_cache.get_value(cache_key)
-			if not system_settings:
-				system_settings = frappe.get_cached_doc("System Settings")
-				frappe.client_cache.set_value(cache_key, system_settings)
+			system_settings = frappe.client_cache.get_doc("System Settings")
 			frappe.local.system_settings = system_settings
 		except frappe.DoesNotExistError:  # possible during new install
 			frappe.clear_last_message()

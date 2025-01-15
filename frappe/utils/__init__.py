@@ -961,18 +961,15 @@ def get_assets_json():
 
 		return assets
 
-	if not hasattr(frappe.local, "assets_json"):
-		if not frappe.conf.developer_mode:
-			frappe.local.assets_json = frappe.cache.get_value(
-				"assets_json",
-				_get_assets,
-				shared=True,
-			)
+	if not frappe.conf.developer_mode:
+		return frappe.client_cache.get_value(
+			"assets_json",
+			shared=True,
+			generator=_get_assets,
+		)
 
-		else:
-			frappe.local.assets_json = _get_assets()
-
-	return frappe.local.assets_json
+	else:
+		return _get_assets()
 
 
 def get_bench_relative_path(file_path):

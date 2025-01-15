@@ -40,6 +40,7 @@ class DataImport(Document):
 		submit_after_import: DF.Check
 		template_options: DF.Code | None
 		template_warnings: DF.Code | None
+		use_csv_sniffer: DF.Check
 	# end: auto-generated types
 
 	def validate(self):
@@ -127,7 +128,7 @@ class DataImport(Document):
 		return self.get_importer().export_import_log()
 
 	def get_importer(self):
-		return Importer(self.reference_doctype, data_import=self)
+		return Importer(self.reference_doctype, data_import=self, use_sniffer=self.use_csv_sniffer)
 
 
 @frappe.whitelist()

@@ -1,5 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import frappe
+from frappe.utils.caching import site_cache
+
+
 def get_jenv():
 	import frappe
 
@@ -88,22 +92,23 @@ def render_template(template, context=None, is_path=None, safe_render=True):
 	if context is None:
 		context = {}
 
-	jenv: SandboxedEnvironment = get_jenv()
-	if is_path or guess_is_path(template):
-		is_path = True
-		compiled_template = jenv.get_template(template)
-	else:
-		if safe_render and ".__" in template:
-			throw(_("Illegal template"))
-		try:
-			compiled_template = jenv.from_string(template)
-		except TemplateError:
-			import html
+	try:
+		if is_path or guess_is_path(template):
+			is_path = True
+			compiled_template = compile_template(template)
+		else:
+			jenv: SandboxedEnvironment = get_jenv()
+			if safe_render and ".__" in template:
+				throw(_("Illegal template"))
 
-			throw(
-				title="Jinja Template Error",
-				msg=f"<pre>{template}</pre><pre>{html.escape(get_traceback())}</pre>",
-			)
+			compiled_template = jenv.from_string(template)
+	except TemplateError:
+		import html
+
+		throw(
+			title="Jinja Template Error",
+			msg=f"<pre>{template}</pre><pre>{html.escape(get_traceback())}</pre>",
+		)
 
 	import time
 
@@ -136,30 +141,38 @@ def guess_is_path(template):
 
 
 def get_jloader():
+	jloader = _get_jloader()
+	frappe.local.jloader = jloader  # backward compat
+	return jloader
+
+
+@site_cache(ttl=10 * 60, maxsize=16)
+def compile_template(path):
+	jenv = get_jenv()
+	return jenv.get_template(path)
+
+
+@site_cache(ttl=10 * 60, maxsize=8)
+def _get_jloader():
+	from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
+
 	import frappe
 
-	if not getattr(frappe.local, "jloader", None):
-		from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
+	apps = frappe.get_hooks("template_apps")
+	if not apps:
+		apps = list(reversed(frappe.get_installed_apps(_ensure_on_bench=True)))
 
-		apps = frappe.get_hooks("template_apps")
-		if not apps:
-			apps = list(
-				reversed(
-					frappe.local.flags.web_pages_apps or frappe.get_installed_apps(_ensure_on_bench=True)
-				)
-			)
+	if "frappe" not in apps:
+		apps.append("frappe")
 
-		if "frappe" not in apps:
-			apps.append("frappe")
+	jloader = ChoiceLoader(
+		# search for something like app/templates/...
+		[PrefixLoader({app: PackageLoader(app, ".") for app in apps})]
+		# search for something like templates/...
+		+ [PackageLoader(app, ".") for app in apps]
+	)
 
-		frappe.local.jloader = ChoiceLoader(
-			# search for something like app/templates/...
-			[PrefixLoader({app: PackageLoader(app, ".") for app in apps})]
-			# search for something like templates/...
-			+ [PackageLoader(app, ".") for app in apps]
-		)
-
-	return frappe.local.jloader
+	return jloader
 
 
 def set_filters(jenv):
