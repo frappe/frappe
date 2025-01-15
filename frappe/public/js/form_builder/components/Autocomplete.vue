@@ -8,7 +8,7 @@
 					type="text"
 					@change="(e) => (query = e.target.value)"
 					:value="query"
-					:placeholder="props.placeholder"
+					:placeholder="__(props.placeholder)"
 					autocomplete="off"
 					@click.stop
 				/>

@@ -14,6 +14,7 @@
   "stopped",
   "method",
   "server_script",
+  "scheduler_event",
   "frequency",
   "cron_format",
   "create_log",
@@ -93,6 +94,13 @@
   {
    "fieldname": "column_break_9",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "scheduler_event",
+   "fieldtype": "Link",
+   "label": "Scheduler Event",
+   "options": "Scheduler Event",
+   "read_only": 1
   }
  ],
  "in_create": 1,
@@ -102,7 +110,7 @@
    "link_fieldname": "scheduled_job_type"
   }
  ],
- "modified": "2024-03-30 11:39:49.693632",
+ "modified": "2025-01-13 10:39:39.975031",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Scheduled Job Type",

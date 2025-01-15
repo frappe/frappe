@@ -2,6 +2,10 @@
 # License: MIT. See LICENSE
 import pickle
 import re
+import threading
+import time
+import typing
+from collections import namedtuple
 from contextlib import suppress
 
 import redis
@@ -9,6 +13,7 @@ from redis.commands.search import Search
 
 import frappe
 from frappe.utils import cstr
+from frappe.utils.data import cint
 
 # 5 is faster than default which is 4.
 # Python uses old protocol for backward compatibility, we don't support anything <3.10.
@@ -69,7 +74,7 @@ class RedisWrapper(redis.Redis):
 		with suppress(redis.exceptions.ConnectionError):
 			self.set(name=key, value=pickle.dumps(val, protocol=DEFAULT_PICKLE_PROTOCOL), ex=expires_in_sec)
 
-	def get_value(self, key, generator=None, user=None, expires=False, shared=False):
+	def get_value(self, key, generator=None, user=None, expires=False, shared=False, *, use_local_cache=True):
 		"""Return cache value. If not found and generator function is
 		        given, call the generator.
 
@@ -81,7 +86,7 @@ class RedisWrapper(redis.Redis):
 		key = self.make_key(key, user, shared)
 
 		local_cache = frappe.local.cache
-		if key in local_cache:
+		if key in local_cache and use_local_cache:
 			val = local_cache[key]
 
 		else:
@@ -97,7 +102,7 @@ class RedisWrapper(redis.Redis):
 			if not expires:
 				if val is None and generator:
 					val = generator()
-					self.set_value(original_key, val, user=user)
+					self.set_value(original_key, val, user=user, shared=shared)
 
 				else:
 					local_cache[key] = val
@@ -349,7 +354,7 @@ class RedisWrapper(redis.Redis):
 		return RedisearchWrapper(client=self, index_name=self.make_key(index_name))
 
 
-def setup_cache():
+def setup_cache() -> RedisWrapper:
 	if frappe.conf.redis_cache_sentinel_enabled:
 		sentinels = [tuple(node.split(":")) for node in frappe.conf.get("redis_cache_sentinels", [])]
 		sentinel = get_sentinel_connection(
@@ -389,3 +394,222 @@ def get_sentinel_connection(
 		username=master_username,
 		password=master_password,
 	)
+
+
+class _TrackedConnection(redis.Connection):
+	def __init__(self, *args, **kwargs):
+		self._invalidator_id = kwargs.pop("_invalidator_id")
+		super().__init__(*args, **kwargs)
+		# Every redis connection needs to enable client tracking to get notified about invalidated
+		# keys.
+		self.register_connect_callback(self._enable_client_tracking)
+
+	def _enable_client_tracking(self, conn):
+		conn.send_command("CLIENT", "TRACKING", "ON", "redirect", self._invalidator_id, "NOLOOP")
+		conn.read_response()
+
+
+CachedValue = namedtuple("CachedValue", ["value", "expiry"])
+CacheStatistics = namedtuple(
+	"CacheStatistics", ["hits", "misses", "capacity", "used", "utilization", "hit_ratio", "healthy"]
+)
+_PLACEHOLDER_VALUE = CachedValue(value=None, expiry=-1)
+
+
+class ClientCache:
+	"""A subset of RedisWrapper that keeps "local" cache across requests.
+
+	Main reason for doing this is improving performance while reading things like hooks, schema.
+	This feature is internal to Frappe Framework and is subjected to change without any notice.
+	There aren't many use cases for such aggressive caching outside of core Framework.
+
+	This is an implementation of Redis' "client side caching" concept:
+		- https://redis.io/docs/latest/develop/reference/client-side-caching/
+
+	Usage/Notes:
+		- Cache keys that do not change often: Think hours-days, not minutes.
+		- Cache keys that are read frequently, e.g. every request or at least >10% of the requests.
+		- Cache values are not huge, consider avg size of ~4kb per value. You can deviate here and
+		  there but not go crazy with caching large values in this cache.
+		- We have hardcoded 10 minutes "local" ttl and max 1024 keys.
+			You're not supposed to work with these numbers, not change them.
+		- Same keys can be accessed with `frappe.cache` too, but that won't implement invalidation.
+		- Invalidate things as usual using `delete_value`. Local invalidation should be instant.
+		  Do not expect sub-second invalidation guarantees across processes.
+		  If you need that kind of guarantees, don't use this cache.
+		- When redis connection isn't available or any unknown exceptions are encountered, this
+		  cache automatically turns itself off and falls back to behaviour that is equivalent to
+		  default Redis cache behaviour.
+		- Never use `frappe.cache`'s request local cache along with client-side cache. Two
+		  different copies of same key are a big source of data races.
+		- This cache uses simple FIFO eviction policy. Make sure your access patterns don't cause
+		  the worst case behaviour for this policy. E.g. looping over `maxsize` items repeatedly.
+	"""
+
+	def __init__(self, maxsize: int = 1024, ttl=10 * 60, monitor: RedisWrapper | None = None) -> None:
+		self.maxsize = maxsize or 1024  # Expect 1024 * 4kb objects ~ 4MB
+		self.local_ttl = ttl
+		# This guards writes to self.cache, reads are done without a lock.
+		self.lock = threading.RLock()
+		self.cache: dict[bytes, CachedValue] = {}
+
+		self.invalidator = frappe.cache
+		self.healthy = True
+		self.connection_retries = 0
+		self.invalidator_id = None
+
+		try:
+			self.invalidator_id = self.invalidator.client_id()
+		except redis.exceptions.ConnectionError:
+			# Redis not available, this can happen during setup/startup time
+			self.redis = frappe.cache
+			self.healthy = False
+
+		# These are local hits and misses, *not* global.
+		# - Local miss = not found in worker memory
+		# - Global miss = not found in Redis too
+		# These stats can be *slightly* off, these aren't guarded by a mutex.
+		self.hits = self.misses = 0
+
+		if not self.invalidator_id:
+			return
+
+		self.redis: RedisWrapper = RedisWrapper.from_url(
+			frappe.conf.get("redis_cache"),
+			connection_class=_TrackedConnection,
+			_invalidator_id=self.invalidator_id,
+			protocol=2,
+		)
+		self.invalidator_thread = self.run_invalidator_thread()
+
+	def get_value(self, key, *, shared=False, generator=None):
+		if not self.healthy:
+			return self.redis.get_value(key, shared=shared, generator=generator)
+
+		key = self.redis.make_key(key, shared=shared)
+		try:
+			val = self.cache[key]
+			if time.monotonic() < val.expiry and self.healthy:
+				self.hits += 1
+				return val.value
+		except KeyError:
+			pass
+
+		self.misses += 1
+
+		# Store a placeholder value to detect race between GET and parallel invalidation.
+		with self.lock:
+			self.cache[key] = _PLACEHOLDER_VALUE
+
+		val = self.redis.get_value(key, shared=True, use_local_cache=not self.healthy)
+
+		# Note: We should not "cache" the cache-misses in client cache.
+		# This cache is long lived and "misses" are not tracked by redis so they'll never get
+		# invalidated.
+		if val is None:
+			if generator:
+				val = generator()
+				self.set_value(key, val, shared=True)
+				return val
+			else:
+				return None
+
+		self.ensure_max_size()
+		with self.lock:
+			# Note: If our placeholder value is not present then it's possible that value we just
+			# got is invalidated, so we should not store it in local cache.
+			if key in self.cache:
+				self.cache[key] = CachedValue(value=val, expiry=time.monotonic() + self.local_ttl)
+
+		return val
+
+	def set_value(self, key, val, *, shared=False):
+		key = self.redis.make_key(key, shared=shared)
+		self.ensure_max_size()
+		self.redis.set_value(key, val, shared=True)
+		with self.lock:
+			self.cache[key] = CachedValue(value=val, expiry=time.monotonic() + self.local_ttl)
+		# XXX: We need to tell redis that we indeed read this key we just wrote
+		# This is an edge case:
+		# - Client A writes a key and reads it again from local cache
+		# - Client B overwrites this key, but since client A never "read" it from Redis, Redis
+		#   doesn't send invalidation.
+		_ = self.redis.get_value(key, shared=True, use_local_cache=not self.healthy)
+
+	def get_doc(self, doctype: str, name: str | None = None):
+		"""Utility to fetch and store documents in client cache.
+
+		Use sparingly, this should ideally be used for settings and doctypes that have few known
+		number of documents.
+		"""
+		if not name:
+			name = doctype  # singles
+		key = frappe.get_document_cache_key(doctype, name)
+		return self.get_value(key, generator=lambda: frappe.get_doc(doctype, name))
+
+	def ensure_max_size(self):
+		if len(self.cache) >= self.maxsize:
+			with self.lock, suppress(RuntimeError):
+				self.cache.pop(next(iter(self.cache)), None)
+
+	def delete_value(self, key, *, shared=False):
+		key = self.redis.make_key(key, shared=shared)
+		self.redis.delete_value(key, shared=True)
+		with self.lock:
+			self.cache.pop(key, None)
+
+	def delete_keys(self, pattern):
+		keys = self.redis.get_keys(pattern)
+		self.redis.delete_value(keys, shared=True, make_keys=False)
+		with self.lock:
+			for key in keys:
+				self.cache.pop(key, None)
+
+	def run_invalidator_thread(self):
+		self._watcher = self.invalidator.pubsub()
+		self._watcher.subscribe(**{"__redis__:invalidate": self._handle_invalidation})
+		return self._watcher.run_in_thread(
+			sleep_time=None,
+			daemon=True,
+			exception_handler=self._exception_handler,
+		)
+
+	def _handle_invalidation(self, message):
+		if message["data"] is None:
+			# Flushall
+			self.clear_cache()
+			return
+		with self.lock:
+			for key in message["data"]:
+				self.cache.pop(key, None)
+
+	def _exception_handler(self, exc, pubsub, pubsub_thread):
+		if isinstance(exc, (redis.exceptions.ConnectionError)):
+			self.clear_cache()
+			self.connection_retries += 1
+			if self.connection_retries > 10:
+				self.healthy = False
+				raise
+			time.sleep(1)
+		else:
+			self.healthy = False
+			raise
+
+	def clear_cache(self):
+		with self.lock:
+			self.cache.clear()
+
+	@property
+	def statistics(self) -> CacheStatistics:
+		return CacheStatistics(
+			hits=self.hits,
+			misses=self.misses,
+			capacity=self.maxsize,
+			used=len(self.cache),
+			healthy=self.healthy,
+			utilization=round(len(self.cache) / self.maxsize, 2),
+			hit_ratio=round(self.hits / (self.hits + self.misses), 2) if self.hits else None,
+		)
+
+	def reset_statistics(self):
+		self.hits = self.misses = 0

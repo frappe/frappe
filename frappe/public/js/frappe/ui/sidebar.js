@@ -1,8 +1,7 @@
-frappe.provide("frappe.ui");
-
 frappe.ui.Sidebar = class Sidebar {
 	constructor() {
 		this.items = {};
+		this.sidebar_expanded = false;
 
 		if (!frappe.boot.setup_complete) {
 			// no sidebar if setup is not complete
@@ -35,25 +34,34 @@ frappe.ui.Sidebar = class Sidebar {
 
 	make_dom() {
 		this.set_default_app();
-		this.wrapper = $(
-			frappe.render_template("sidebar", {
+		this.wrapper = $(frappe.render_template("sidebar")).prependTo("body");
+
+		this.app_switcher_dropdown = $(
+			frappe.render_template("apps_switcher", {
 				app_logo_url: frappe.boot.app_data[0].app_logo_url,
 				app_title: __(frappe.boot.app_data[0].app_title),
 			})
-		).prependTo("body");
+		).prependTo(this.wrapper.find(".body-sidebar"));
 
 		this.$sidebar = this.wrapper.find(".sidebar-items");
 
-		if (this.has_access) {
-			this.wrapper
-				.find(".body-sidebar .edit-sidebar-link")
-				.removeClass("hidden")
-				.on("click", () => {
-					frappe.quick_edit("Workspace Settings");
-				});
-		}
+		this.wrapper.find(".body-sidebar .collapse-sidebar-link").on("click", () => {
+			this.toggle_sidebar();
+		});
 
-		this.setup_app_switcher();
+		this.apps_switcher = new frappe.ui.AppsSwitcher(this.wrapper);
+		this.apps_switcher.create_app_data_map();
+	}
+
+	set_hover() {
+		$(".standard-sidebar-item > .item-anchor").on("mouseover", function (event) {
+			if ($(this).parent().hasClass("active-sidebar")) return;
+			$(this).parent().addClass("hover");
+		});
+
+		$(".standard-sidebar-item > .item-anchor").on("mouseleave", function () {
+			$(this).parent().removeClass("hover");
+		});
 	}
 
 	set_all_pages() {
@@ -69,137 +77,29 @@ frappe.ui.Sidebar = class Sidebar {
 		frappe.current_app = frappe.boot.app_data[0].app_name;
 	}
 
-	setup_app_switcher() {
-		let app_switcher_menu = $(".app-switcher-menu");
-
-		$(".app-switcher-dropdown").on("click", () => {
-			app_switcher_menu.toggleClass("hidden");
-		});
-
-		// hover out of the sidebar
-		this.wrapper.find(".body-sidebar").on("mouseleave", () => {
-			app_switcher_menu.addClass("hidden");
-
-			// hide any expanded menus as they leave a blank space in the sidebar
-			this.wrapper.find(".drop-icon[data-state='opened'").click();
-		});
-
-		frappe.boot.app_data_map = {};
-		this.add_private_app(app_switcher_menu);
-
-		for (var app of frappe.boot.app_data) {
-			frappe.boot.app_data_map[app.app_name] = app;
-			if (app.workspaces?.length) {
-				this.add_app_item(app, app_switcher_menu);
-			}
+	set_active_workspace_item() {
+		if (this.is_route_in_sidebar(decodeURIComponent(window.location.pathname))) {
+			this.active_item.addClass("active-sidebar");
 		}
-		this.add_website_select(app_switcher_menu);
-		this.setup_select_app(app_switcher_menu);
 	}
 
-	add_app_item(app, app_switcher_menu) {
-		$(`<div class="app-item" data-app-name="${app.app_name}"
-			data-app-route="${app.app_route}">
-			<a>
-				<div class="sidebar-item-icon">
-					<img
-						class="app-logo"
-						src="${app.app_logo_url}"
-						alt="${__("App Logo")}"
-					>
-				</div>
-				<span class="app-item-title">${app.app_title}</span>
-			</a>
-		</div>`).appendTo(app_switcher_menu);
-	}
-
-	add_private_app(app_switcher_menu) {
-		let private_pages = this.all_pages.filter((p) => p.public === 0);
-		if (private_pages.length === 0) return;
-
-		const app = {
-			app_name: "private",
-			app_title: __("My Workspaces"),
-			app_route: "/app/private",
-			app_logo_url: "/assets/frappe/images/frappe-framework-logo.svg",
-			workspaces: private_pages,
-		};
-
-		frappe.boot.app_data_map["private"] = app;
-		$(`<div class="divider"></div>`).prependTo(app_switcher_menu);
-		$(`<div class="app-item" data-app-name="${app.app_name}"
-			data-app-route="${app.app_route}">
-			<a>
-				<div class="sidebar-item-icon">
-					<img
-						class="app-logo"
-						src="${app.app_logo_url}"
-						alt="${__("App Logo")}"
-					>
-				</div>
-				<span class="app-item-title">${app.app_title}</span>
-			</a>
-		</div>`).prependTo(app_switcher_menu);
-	}
-
-	setup_select_app(app_switcher_menu) {
-		app_switcher_menu.find(".app-item").on("click", (e) => {
-			let item = $(e.delegateTarget);
-			let route = item.attr("data-app-route");
-			app_switcher_menu.toggleClass("hidden");
-
-			if (route.startsWith("/app/private")) {
-				this.set_current_app("private");
-				let ws = Object.values(frappe.workspace_map).find((ws) => ws.public === 0);
-				route += "/" + frappe.router.slug(ws.title);
-				frappe.set_route(route);
-			} else if (route.startsWith("/app")) {
-				frappe.set_route(route);
-				this.set_current_app(item.attr("data-app-name"));
-			} else {
-				// new page
-				window.open(route);
+	is_route_in_sidebar(route_name) {
+		let match = false;
+		const that = this;
+		$(".item-anchor").each(function () {
+			if ($(this).attr("href") == route_name) {
+				match = true;
+				if (that.active_item) that.active_item.removeClass("active-sidebar");
+				that.active_item = $(this).parent();
+				// this exists the each loop
+				return false;
 			}
 		});
-	}
-
-	set_current_app(app) {
-		if (!app) {
-			console.warn("set_current_app: app not defined");
-			return;
-		}
-		let app_data = frappe.boot.app_data_map[app] || frappe.boot.app_data_map["frappe"];
-
-		this.wrapper
-			.find(".app-switcher-dropdown .sidebar-item-icon img")
-			.attr("src", app_data.app_logo_url);
-		this.wrapper.find(".app-switcher-dropdown .sidebar-item-label").html(app_data.app_title);
-
-		$(".navbar-brand .app-logo").attr("src", app_data.app_logo_url);
-
-		if (frappe.current_app === app) return;
-		frappe.current_app = app;
-
-		// re-render the sidebar
-		this.make_sidebar();
-	}
-
-	add_website_select(app_switcher_menu) {
-		$(`<div class="divider"></div>`).appendTo(app_switcher_menu);
-		this.add_app_item(
-			{
-				app_name: "website",
-				app_title: __("Website"),
-				app_route: "/",
-				app_logo_url: "/assets/frappe/images/web.svg",
-			},
-			app_switcher_menu
-		);
+		return match;
 	}
 
 	setup_pages() {
 		this.set_all_pages();
-
 		this.all_pages.forEach((page) => {
 			page.is_editable = !page.public || this.has_access;
 			if (typeof page.content == "string") {
@@ -223,6 +123,11 @@ frappe.ui.Sidebar = class Sidebar {
 				frappe.workspace_list.push(page);
 			}
 			this.make_sidebar();
+		}
+		this.set_hover();
+		if (localStorage.getItem("sidebar-expanded") !== null) {
+			this.sidebar_expanded = JSON.parse(localStorage.getItem("sidebar-expanded"));
+			this.expand_sidebar();
 		}
 	}
 
@@ -248,6 +153,7 @@ frappe.ui.Sidebar = class Sidebar {
 			this.wrapper.find(".selected")[0].scrollIntoView();
 
 		this.setup_sorting();
+		this.set_active_workspace_item();
 	}
 
 	build_sidebar_section(title, root_pages) {
@@ -263,7 +169,7 @@ frappe.ui.Sidebar = class Sidebar {
 
 		$(".item-anchor").on("click", () => {
 			$(".list-sidebar.hidden-xs.hidden-sm").removeClass("opened");
-			$(".close-sidebar").css("display", "none");
+			// $(".close-sidebar").css("display", "none");
 			$("body").css("overflow", "auto");
 		});
 
@@ -289,6 +195,30 @@ frappe.ui.Sidebar = class Sidebar {
 			last_item = item;
 		}
 		child_container.appendTo(item_container);
+	}
+	toggle_sidebar() {
+		if (!this.sidebar_expanded) {
+			this.open_sidebar();
+		} else {
+			this.close_sidebar();
+		}
+	}
+	expand_sidebar() {
+		let direction;
+		if (this.sidebar_expanded) {
+			this.wrapper.addClass("expanded");
+			// this.sidebar_expanded = false
+			direction = "left";
+		} else {
+			this.wrapper.removeClass("expanded");
+			// this.sidebar_expanded = true
+			direction = "right";
+		}
+		localStorage.setItem("sidebar-expanded", this.sidebar_expanded);
+		this.wrapper
+			.find(".body-sidebar .collapse-sidebar-link")
+			.find("use")
+			.attr("href", `#icon-arrow-${direction}-to-line`);
 	}
 
 	append_item(item, container) {
@@ -452,6 +382,15 @@ frappe.ui.Sidebar = class Sidebar {
 				},
 			});
 		}
+	}
+
+	close_sidebar() {
+		this.sidebar_expanded = false;
+		this.expand_sidebar();
+	}
+	open_sidebar() {
+		this.sidebar_expanded = true;
+		this.expand_sidebar();
 	}
 
 	reload() {

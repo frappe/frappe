@@ -35,35 +35,34 @@ _sites_path = os.environ.get("SITES_PATH", ".")
 
 
 # If gc.freeze is done then importing modules before forking allows us to share the memory
-if frappe._tune_gc:
-	import gettext
+import gettext
 
-	import babel
-	import babel.messages
-	import bleach
-	import num2words
-	import pydantic
+import babel
+import babel.messages
+import bleach
+import num2words
+import pydantic
 
-	import frappe.boot
-	import frappe.client
-	import frappe.core.doctype.file.file
-	import frappe.core.doctype.user.user
-	import frappe.database.mariadb.database  # Load database related utils
-	import frappe.database.query
-	import frappe.desk.desktop  # workspace
-	import frappe.desk.form.save
-	import frappe.model.db_query
-	import frappe.query_builder
-	import frappe.utils.background_jobs  # Enqueue is very common
-	import frappe.utils.data  # common utils
-	import frappe.utils.jinja  # web page rendering
-	import frappe.utils.jinja_globals
-	import frappe.utils.redis_wrapper  # Exact redis_wrapper
-	import frappe.utils.safe_exec
-	import frappe.utils.typing_validations  # any whitelisted method uses this
-	import frappe.website.path_resolver  # all the page types and resolver
-	import frappe.website.router  # Website router
-	import frappe.website.website_generator  # web page doctypes
+import frappe.boot
+import frappe.client
+import frappe.core.doctype.file.file
+import frappe.core.doctype.user.user
+import frappe.database.mariadb.database  # Load database related utils
+import frappe.database.query
+import frappe.desk.desktop  # workspace
+import frappe.desk.form.save
+import frappe.model.db_query
+import frappe.query_builder
+import frappe.utils.background_jobs  # Enqueue is very common
+import frappe.utils.data  # common utils
+import frappe.utils.jinja  # web page rendering
+import frappe.utils.jinja_globals
+import frappe.utils.redis_wrapper  # Exact redis_wrapper
+import frappe.utils.safe_exec
+import frappe.utils.typing_validations  # any whitelisted method uses this
+import frappe.website.path_resolver  # all the page types and resolver
+import frappe.website.router  # Website router
+import frappe.website.website_generator  # web page doctypes
 
 # end: module pre-loading
 
@@ -519,20 +518,3 @@ def application_with_statics():
 	application = StaticDataMiddleware(application, {"/files": str(os.path.abspath(_sites_path))})
 
 	return application
-
-
-# Remove references to pattern that are pre-compiled and loaded to global scopes.
-re.purge()
-
-# Both Gunicorn and RQ use forking to spawn workers. In an ideal world, the fork should be sharing
-# most of the memory if there are no writes made to data because of Copy on Write, however,
-# python's GC is not CoW friendly and writes to data even if user-code doesn't. Specifically, the
-# generational GC which stores and mutates every python object: `PyGC_Head`
-#
-# Calling gc.freeze() moves all the objects imported so far into permanant generation and hence
-# doesn't mutate `PyGC_Head`
-#
-# Refer to issue for more info: https://github.com/frappe/frappe/issues/18927
-if frappe._tune_gc:
-	gc.collect()  # clean up any garbage created so far before freeze
-	gc.freeze()

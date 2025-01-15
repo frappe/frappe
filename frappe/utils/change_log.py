@@ -152,7 +152,7 @@ def get_app_last_commit_ref(app):
 	try:
 		with open(os.devnull, "wb") as null_stream:
 			result = subprocess.check_output(
-				f"cd ../apps/{app} && git rev-parse HEAD --short 7",
+				f"git -C ../apps/{app} rev-parse --short=7 HEAD",
 				shell=True,
 				stdin=null_stream,
 				stderr=null_stream,

@@ -254,6 +254,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 			# 1213 = deadlock
 			# 1205 = lock wait timeout
 			# or RetryBackgroundJobError is explicitly raised
+			frappe.job.after_job.reset()
 			frappe.destroy()
 			time.sleep(retry + 1)
 
@@ -276,6 +277,9 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		return retval
 
 	finally:
+		if not hasattr(frappe.local, "site"):
+			frappe.init(site)
+			frappe.connect()
 		for after_job_task in frappe.get_hooks("after_job"):
 			frappe.call(after_job_task, method=method_name, kwargs=kwargs, result=retval)
 		frappe.local.job.after_job.run()
@@ -298,7 +302,6 @@ def start_worker(
 		strategy = DequeueStrategy.DEFAULT
 
 	_start_sentry()
-	_freeze_gc()
 
 	with frappe.init_site():
 		# empty init is required to get redis_queue from common_site_config.json
@@ -343,6 +346,26 @@ class FrappeWorker(Worker):
 
 		Thread(target=start_scheduler, daemon=True).start()
 
+	def subscribe(self):
+		"""Subscribe to this worker's channel"""
+		# This function is overridden to increase the timeout of pubsub thread. Default is 0.2
+		# second which is too frequent for us, this change sets it to 2s which is 10x the default.
+		# ref: https://github.com/frappe/caffeine/issues/46
+
+		# The pubsub thread is responsible for handling three commands from master process:
+		# 1. shutdown
+		# 2. stop current job
+		# 3. Kill forked horse (~ force stop the job)
+
+		# Impact of increasing timeout: shutdown might have up to 2s before background thread
+		# times out and is joined with main thread. Ideally, we should not have to do this at all.
+		# But the code that handles blocking socket behaviour is deep inside redis-py/hiredis.
+
+		self.log.info("Subscribing to channel %s", self.pubsub_channel_name)
+		self.pubsub = self.connection.pubsub()
+		self.pubsub.subscribe(**{self.pubsub_channel_name: self.handle_payload})
+		self.pubsub_thread = self.pubsub.run_in_thread(sleep_time=2, daemon=True)
+
 
 def start_worker_pool(
 	queue: str | None = None,
@@ -365,10 +388,7 @@ def start_worker_pool(
 	import frappe.utils.scheduler
 	import frappe.utils.typing_validations  # any whitelisted method uses this
 	import frappe.website.path_resolver  # all the page types and resolver
-
 	# end: module pre-loading
-
-	_freeze_gc()
 
 	with frappe.init_site():
 		redis_connection = get_redis_conn()
@@ -392,12 +412,6 @@ def start_worker_pool(
 		worker_class=FrappeWorker,  # Auto starts scheduler with workerpool
 	)
 	pool.start(logging_level=logging_level, burst=burst)
-
-
-def _freeze_gc():
-	if frappe._tune_gc:
-		gc.collect()
-		gc.freeze()
 
 
 def get_worker_name(queue):

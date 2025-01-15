@@ -23,6 +23,7 @@ from frappe.modules.utils import sync_customizations
 from frappe.search.website_search import build_index_for_all_routes
 from frappe.utils.connections import check_connection
 from frappe.utils.dashboard import sync_dashboards
+from frappe.utils.data import cint
 from frappe.utils.fixtures import sync_fixtures
 from frappe.website.utils import clear_website_cache
 
@@ -84,6 +85,9 @@ class SiteMigration:
 		if os.path.exists(self.touched_tables_file):
 			os.remove(self.touched_tables_file)
 
+		self.lower_lock_timeout()
+		with contextlib.suppress(Exception):
+			self.kill_idle_connections()
 		frappe.flags.in_migrate = True
 
 	def tearDown(self):
@@ -184,6 +188,44 @@ class SiteMigration:
 			print(BENCH_START_MESSAGE)
 
 		return are_services_running
+
+	def lower_lock_timeout(self):
+		"""Lower timeout for table metadata locks, default is 1 day, reduce it to 5 minutes.
+
+		This is required to avoid indefinitely waiting for metadata lock.
+		"""
+		if frappe.db.db_type != "mariadb":
+			return
+		frappe.db.sql("set session lock_wait_timeout = %s", 5 * 60)
+
+	def kill_idle_connections(self, idle_limit=30):
+		"""Assuming migrate has highest priority, kill everything else.
+
+		If someone has connected to mariadb using DB console or ipython console and then acquired
+		certain locks we won't be able to migrate."""
+		if frappe.db.db_type != "mariadb":
+			return
+
+		processes = frappe.db.sql("show full processlist", as_dict=1)
+		connection_id = frappe.db.sql("select connection_id()")[0][0]
+		for process in processes:
+			sleeping = process.get("Command") == "Sleep"
+			sleeping_since = cint(process.get("Time")) or 0
+			pid = process.get("Id")
+
+			if (
+				pid
+				and pid != connection_id
+				and process.db == frappe.conf.db_name
+				and sleeping
+				and sleeping_since > idle_limit
+			):
+				try:
+					frappe.db.sql(f"kill {pid}")
+					print(f"Killed inactive database connection with PID {pid}")
+				except Exception as e:
+					# We might not have permission to do this.
+					print(f"Failed to kill inactive database connection with PID {pid}: {e}")
 
 	def run(self, site: str):
 		"""Run Migrate operation on site specified. This method initializes

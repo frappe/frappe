@@ -75,12 +75,22 @@ def get_meta(doctype: str | dict | DocRef, cached=True) -> "_Meta":
 		if not isinstance(doctype, dict)
 		else doctype.get("doctype")
 	):
-		if meta := frappe.cache.hget("doctype_meta", doctype_name):
+		key = f"doctype_meta::{doctype_name}"
+		if meta := frappe.client_cache.get_value(key):
 			return meta
 
 	meta = Meta(doctype)
-	frappe.cache.hset("doctype_meta", meta.name, meta)
+	key = f"doctype_meta::{meta.name}"
+	frappe.client_cache.set_value(key, meta)
 	return meta
+
+
+def clear_meta_cache(doctype: str = "*"):
+	key = f"doctype_meta::{doctype}"
+	if doctype == "*":
+		frappe.cache.delete_keys(key)
+	else:
+		frappe.client_cache.delete_value(key)
 
 
 def load_meta(doctype):

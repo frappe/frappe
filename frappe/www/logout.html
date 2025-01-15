@@ -1,0 +1,11 @@
+{% from "frappe/templates/includes/avatar_macro.html" import avatar %}
+{% extends "templates/web.html" %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block page_content %}
+<script>
+	window.onload = function () {
+		frappe.logout()
+	}
+</script>
+{% endblock %}

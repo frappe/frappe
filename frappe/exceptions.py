@@ -4,11 +4,6 @@
 # BEWARE don't put anything in this file except exceptions
 from werkzeug.exceptions import NotFound
 
-from .bench_interface import (
-	BenchNotScopedError,
-	BenchSiteNotLoadedError,
-)
-
 
 class SiteNotSpecifiedError(Exception):
 	def __init__(self, *args, **kwargs):

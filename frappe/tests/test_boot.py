@@ -1,6 +1,6 @@
 import frappe
-from frappe.boot import get_unseen_notes, get_user_pages_or_reports
-from frappe.desk.doctype.note.note import mark_as_seen
+from frappe.boot import get_user_pages_or_reports
+from frappe.desk.doctype.note.note import get_unseen_notes, mark_as_seen
 from frappe.tests import IntegrationTestCase
 
 

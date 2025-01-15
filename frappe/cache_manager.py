@@ -66,14 +66,17 @@ user_cache_keys = (
 )
 
 doctype_cache_keys = (
-	"doctype_meta",
 	"doctype_form_meta",
-	"table_columns",
 	"last_modified",
 	"linked_doctypes",
 	"notifications",
 	"workflow",
 	"data_import_column_header_map",
+)
+
+wildcard_keys = (
+	"document_cache::*",
+	"table_columns::*",
 )
 
 
@@ -110,9 +113,10 @@ def clear_global_cache():
 
 def clear_defaults_cache(user=None):
 	if user:
-		frappe.cache.hdel("defaults", [user, *common_default_keys])
+		for key in [user, *common_default_keys]:
+			frappe.client_cache.delete_value(f"defaults::{key}")
 	elif frappe.flags.in_install != "frappe":
-		frappe.cache.delete_value("defaults")
+		frappe.client_cache.delete_keys("defaults::*")
 
 
 def clear_doctype_cache(doctype=None):
@@ -126,6 +130,7 @@ def clear_doctype_cache(doctype=None):
 
 def _clear_doctype_cache_from_redis(doctype: str | None = None):
 	from frappe.desk.notifications import delete_notification_count_for
+	from frappe.model.meta import clear_meta_cache
 
 	to_del = ["is_table", "doctype_modules"]
 
@@ -134,6 +139,7 @@ def _clear_doctype_cache_from_redis(doctype: str | None = None):
 		def clear_single(dt):
 			frappe.clear_document_cache(dt)
 			frappe.cache.hdel_names(doctype_cache_keys, dt)
+			clear_meta_cache(dt)
 
 		clear_single(doctype)
 
@@ -156,7 +162,9 @@ def _clear_doctype_cache_from_redis(doctype: str | None = None):
 	else:
 		# clear all
 		to_del += doctype_cache_keys
-		to_del += frappe.cache.get_keys("document_cache::")
+		for pattern in wildcard_keys:
+			to_del += frappe.cache.get_keys(pattern)
+		clear_meta_cache()
 
 	frappe.cache.delete_value(to_del)
 

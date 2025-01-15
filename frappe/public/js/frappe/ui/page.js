@@ -135,6 +135,7 @@ frappe.ui.Page = class Page {
 		this.indicator = this.wrapper.find(".indicator-pill");
 
 		this.page_actions = this.wrapper.find(".page-actions");
+		this.filters = this.wrapper.find(".filters");
 
 		this.btn_primary = this.page_actions.find(".primary-action");
 		this.btn_secondary = this.page_actions.find(".btn-secondary");
@@ -517,9 +518,9 @@ frappe.ui.Page = class Page {
 		} else {
 			this.divider = parent.find(".dropdown-divider.user-action");
 			if (!this.divider.length) {
-				this.divider = $('<li class="dropdown-divider user-action"></li>').prependTo(
-					parent
-				);
+				this.divider = $(
+					'<li class="dropdown-divider user-action visible-xs"></li>'
+				).prependTo(parent);
 			}
 			$li.addClass("user-action").insertBefore(this.divider);
 		}
@@ -592,7 +593,7 @@ frappe.ui.Page = class Page {
 		return $('<li class="dropdown-divider"></li>').appendTo(this.menu);
 	}
 
-	get_or_add_inner_group_button(label) {
+	get_or_add_inner_group_button(label, align_right) {
 		var $group = this.inner_toolbar.find(
 			`.inner-group-button[data-label="${encodeURIComponent(label)}"]`
 		);
@@ -603,7 +604,7 @@ frappe.ui.Page = class Page {
 						${label}
 						${frappe.utils.icon("select", "xs")}
 					</button>
-					<div role="menu" class="dropdown-menu"></div>
+					<div role="menu" class="dropdown-menu ${align_right ? "dropdown-menu-right" : ""}"></div>
 				</div>`
 			).appendTo(this.inner_toolbar);
 		}
@@ -636,7 +637,10 @@ frappe.ui.Page = class Page {
 			});
 		}
 	}
-
+	add_divider_to_button_group(group) {
+		var $group = this.get_or_add_inner_group_button(group);
+		$('<li class="dropdown-divider"></li>').appendTo($group.find(".dropdown-menu"));
+	}
 	/*
 	 * Add button to button group. If there exists another button with the same label,
 	 * `add_inner_button` will not add the new button to the button group even if the callback
@@ -646,7 +650,7 @@ frappe.ui.Page = class Page {
 	 * @param {object} action - function to be called when button is clicked
 	 * @param {string} group - Label of the group button
 	 */
-	add_inner_button(label, action, group, type = "default") {
+	add_inner_button(label, action, group, type = "default", align_right = false) {
 		var me = this;
 		let _action = function () {
 			let btn = $(this);
@@ -663,7 +667,7 @@ frappe.ui.Page = class Page {
 		}
 
 		if (group) {
-			var $group = this.get_or_add_inner_group_button(group);
+			var $group = this.get_or_add_inner_group_button(group, align_right);
 			$(this.inner_toolbar).removeClass("hide");
 
 			if (!this.is_in_group_button_dropdown($group.find(".dropdown-menu"), "a", label)) {
@@ -887,6 +891,9 @@ frappe.ui.Page = class Page {
 				delay: { show: 600, hide: 100 },
 				trigger: "hover",
 			});
+		if (parent == this.filters) {
+			this.restyle_field(f);
+		}
 
 		// html fields in toolbar are only for display
 		if (df.fieldtype == "HTML") {
@@ -910,6 +917,12 @@ frappe.ui.Page = class Page {
 		if (df["default"]) f.set_input(df["default"]);
 		this.fields_dict[df.fieldname || df.label] = f;
 		return f;
+	}
+	restyle_field(f) {
+		$(f.wrapper).removeClass("col-md-2").css("margin", "0px");
+
+		$(f.wrapper).find("select").css("width", "140px");
+		$(f.wrapper).find(".select-icon").css("top", "2px");
 	}
 	clear_fields() {
 		this.page_form.empty();

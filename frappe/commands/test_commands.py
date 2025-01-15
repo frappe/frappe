@@ -1,15 +1,17 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-# imports - standard imports
 import gzip
 import importlib
 import json
 import os
 import secrets
 import shlex
+import signal
 import string
 import subprocess
+import sys
+import time
 import types
 import unittest
 from contextlib import contextmanager
@@ -19,13 +21,12 @@ from pathlib import Path
 from unittest.case import skipIf
 from unittest.mock import patch
 
-# imports - third party imports
 import click
+import requests
 from click import Command
 from click.testing import CliRunner, Result
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
-# imports - module imports
 import frappe
 import frappe.commands.scheduler
 import frappe.commands.site
@@ -519,7 +520,8 @@ class TestCommands(BaseTestCommands):
 
 	def test_set_global_conf(self):
 		key = "answer"
-		value = "42"
+		value = frappe.generate_hash()
+		_ = frappe.get_site_config()
 		self.execute(f"bench set-config {key} {value} -g")
 		conf = frappe.get_site_config()
 
@@ -637,6 +639,7 @@ class TestBackups(BaseTestCommands):
 				except OSError:
 					pass
 
+	@run_only_if(db_type_is.MARIADB)
 	def test_backup_no_options(self):
 		"""Take a backup without any options"""
 		before_backup = fetch_latest_backups(partial=True)
@@ -895,12 +898,8 @@ class TestAddNewUser(BaseTestCommands):
 		self.assertEqual({"Accounts User", "Sales User"}, roles)
 
 
-class TestBenchBuild(BaseTestCommands):
+class TestBenchBuild(IntegrationTestCase):
 	def test_build_assets_size_check(self):
-		with cli(frappe.commands.utils.build, "--force --production --app frappe") as result:
-			self.assertEqual(result.exit_code, 0)
-			self.assertEqual(result.exception, None)
-
 		CURRENT_SIZE = 3.3  # MB
 		JS_ASSET_THRESHOLD = 0.01
 
@@ -1014,3 +1013,41 @@ class TestCLIImplementation(BaseTestCommands):
 		self.execute("bench --site {site} migrat")
 		self.assertNotEqual(self.returncode, 0)
 		self.assertRegex(self.stderr, r"No such.*migrat.*migrate")
+
+
+class TestGunicornWorker(IntegrationTestCase):
+	port = 8005
+
+	def spawn_gunicorn(self, args):
+		self.handle = subprocess.Popen(
+			[
+				sys.executable,
+				"-m",
+				"gunicorn",
+				"-b",
+				f"127.0.0.1:{self.port}",
+				"-w1",
+				"frappe.app:application",
+				"--preload",
+				*args,
+			],
+		)
+		time.sleep(1)  # let worker startup finish
+		self.addCleanup(self.kill_gunicorn)
+
+	def kill_gunicorn(self):
+		self.handle.send_signal(signal.SIGINT)
+		try:
+			self.handle.communicate(timeout=1)
+		except subprocess.TimeoutExpired:
+			self.handle.kill()
+
+	def test_gunicorn_ping_sync(self):
+		self.spawn_gunicorn([])
+		path = f"http://{self.TEST_SITE}:{self.port}/api/method/ping"
+		self.assertEqual(requests.get(path).status_code, 200)
+
+	def test_gunicorn_ping_gthread(self):
+		self.spawn_gunicorn(["--threads=2"])
+		path = f"http://{self.TEST_SITE}:{self.port}/api/method/ping"
+		self.assertEqual(requests.get(path).status_code, 200)

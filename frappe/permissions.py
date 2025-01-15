@@ -572,7 +572,7 @@ def remove_user_permission(doctype, name, user):
 	user_permission_name = frappe.db.get_value(
 		"User Permission", dict(user=user, allow=doctype, for_value=name)
 	)
-	frappe.delete_doc("User Permission", user_permission_name)
+	frappe.delete_doc("User Permission", user_permission_name, force=True)
 
 
 def clear_user_permissions_for_doctype(doctype, user=None):
@@ -581,7 +581,7 @@ def clear_user_permissions_for_doctype(doctype, user=None):
 		filters["user"] = user
 	user_permissions_for_doctype = frappe.get_all("User Permission", filters=filters)
 	for d in user_permissions_for_doctype:
-		frappe.delete_doc("User Permission", d.name)
+		frappe.delete_doc("User Permission", d.name, force=True)
 
 
 def can_import(doctype, raise_exception=False):
@@ -692,7 +692,7 @@ def reset_perms(doctype):
 
 	delete_notification_count_for(doctype)
 	for custom_docperm in frappe.get_all("Custom DocPerm", filters={"parent": doctype}, pluck="name"):
-		frappe.delete_doc("Custom DocPerm", custom_docperm, ignore_permissions=True)
+		frappe.delete_doc("Custom DocPerm", custom_docperm, ignore_permissions=True, force=True)
 
 
 def get_linked_doctypes(dt: str) -> list:

@@ -41,7 +41,7 @@ context("MultiSelectDialog", () => {
 
 	it("checks multi select dialog api works", () => {
 		open_multi_select_dialog();
-		cy.get_open_dialog().should("contain", "Select Contacts");
+		cy.get_open_dialog().should("contain", "Select Contact");
 	});
 
 	it("checks for filters", () => {

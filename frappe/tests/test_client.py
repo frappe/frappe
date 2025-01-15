@@ -74,19 +74,16 @@ class TestClient(IntegrationTestCase):
 	def test_run_doc_method(self):
 		from frappe.handler import execute_cmd
 
-		if not frappe.db.exists("Report", "Test Run Doc Method"):
-			report = frappe.get_doc(
-				{
-					"doctype": "Report",
-					"ref_doctype": "User",
-					"report_name": "Test Run Doc Method",
-					"report_type": "Query Report",
-					"is_standard": "No",
-					"roles": [{"role": "System Manager"}],
-				}
-			).insert()
-		else:
-			report = frappe.get_doc("Report", "Test Run Doc Method")
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "User",
+				"report_name": frappe.generate_hash(),
+				"report_type": "Query Report",
+				"is_standard": "No",
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert()
 
 		frappe.local.request = frappe._dict()
 		frappe.local.request.method = "GET"

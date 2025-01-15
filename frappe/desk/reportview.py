@@ -188,7 +188,7 @@ def is_standard(fieldname):
 	return fieldname in default_fields or fieldname in optional_fields or fieldname in child_table_fields
 
 
-@lru_cache
+@lru_cache(maxsize=1024)
 def extract_fieldnames(field):
 	from frappe.database.schema import SPECIAL_CHAR_PATTERN
 

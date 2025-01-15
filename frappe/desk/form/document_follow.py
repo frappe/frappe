@@ -75,7 +75,7 @@ def unfollow_document(doctype, doc_name, user):
 		limit=1,
 	)
 	if doc:
-		frappe.delete_doc("Document Follow", doc[0].name)
+		frappe.delete_doc("Document Follow", doc[0].name, force=True)
 		frappe.toast(_("Un-following document {0}").format(doc_name))
 		return False
 	return False

@@ -37,7 +37,7 @@ dependencies = [
     "cryptography~=43.0.1",
     "cssutils~=2.9.0",
     "email-reply-parser~=0.5.12",
-    "gunicorn~=22.0.0",
+    "gunicorn @ git+https://github.com/frappe/gunicorn@2f5b4923399d18c28e4221f6514792b5cc7d2c21",
     "html5lib~=1.1",
     "ipython~=8.15.0",
     "ldap3~=2.9",
@@ -64,6 +64,9 @@ dependencies = [
     "setproctitle~=1.3.3",
     "requests-oauthlib~=1.3.1",
     "requests~=2.32.0",
+    # We depend on internal attributes of RQ.
+    # Do NOT add loose requirements on RQ versions.
+    # Audit the code changes w.r.t. background_jobs.py before updating.
     "rq==1.16.2",
     "rsa>=4.1",
     "semantic-version~=2.10.0",
@@ -226,8 +229,6 @@ files = [
     "frappe/types/docref.py",
     "frappe/types/frappedict.py",
     "frappe/types/filter.py",
-    "frappe/bench_interface.py",
-    "frappe/config.py",
 ]
 exclude = [
     # permanent excludes

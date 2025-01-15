@@ -86,6 +86,8 @@
 
 .report-wrapper {
 	overflow: auto;
+	padding-left: 15px;
+	padding-right: 15px;
 }
 
 .report-view {
@@ -290,4 +292,8 @@
 	.group-by-box .row > div[class*="col-sm-"] {
 		margin-bottom: 5px;
 	}
+}
+
+.input-group > * {
+	margin-right: 10px;
 }

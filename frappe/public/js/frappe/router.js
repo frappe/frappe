@@ -140,6 +140,7 @@ frappe.router = {
 		this.current_sub_path = sub_path;
 		this.current_route = await this.parse();
 		this.set_history(sub_path);
+		this.set_active_sidebar_item();
 		this.render();
 		this.set_title(sub_path);
 		this.trigger("change");
@@ -162,7 +163,6 @@ frappe.router = {
 		// /app/user/user-001 = ["Form", "User", "user-001"]
 		// /app/user/user-001 = ["Form", "User", "user-001"]
 		// /app/event/view/calendar/default = ["List", "Event", "Calendar", "Default"]
-
 		if (frappe.workspaces[route[0]]) {
 			// public workspace
 			route = ["Workspaces", frappe.workspaces[route[0]].name];
@@ -278,6 +278,10 @@ frappe.router = {
 	set_history() {
 		frappe.route_history.push(this.current_route);
 		frappe.ui.hide_open_dialog();
+	},
+
+	async set_active_sidebar_item() {
+		frappe.app.sidebar.set_active_workspace_item();
 	},
 
 	render() {

@@ -98,7 +98,6 @@ def delete_session(sid=None, user=None, reason="Session Expired"):
 	frappe.db.commit()
 
 	frappe.cache.hdel("session", sid)
-	frappe.cache.hdel("last_db_session_update", sid)
 
 
 def clear_all_sessions(reason=None):
@@ -127,7 +126,8 @@ def clear_expired_sessions():
 
 def get():
 	"""get session boot info"""
-	from frappe.boot import get_bootinfo, get_unseen_notes
+	from frappe.boot import get_bootinfo
+	from frappe.desk.doctype.note.note import get_unseen_notes
 	from frappe.utils.change_log import get_change_log
 
 	bootinfo = None
@@ -155,7 +155,7 @@ def get():
 		if frappe.local.request:
 			bootinfo["change_log"] = get_change_log()
 
-	bootinfo["metadata_version"] = frappe.cache.get_value("metadata_version")
+	bootinfo["metadata_version"] = frappe.client_cache.get_value("metadata_version")
 	if not bootinfo["metadata_version"]:
 		bootinfo["metadata_version"] = frappe.reset_metadata_version()
 
@@ -176,9 +176,9 @@ def get():
 		"default_path": get_default_path() or "",
 	}
 
-	bootinfo["desk_theme"] = frappe.db.get_value("User", frappe.session.user, "desk_theme") or "Light"
+	bootinfo["desk_theme"] = frappe.get_cached_value("User", frappe.session.user, "desk_theme") or "Light"
 	bootinfo["user"]["impersonated_by"] = frappe.session.data.get("impersonated_by")
-	bootinfo["navbar_settings"] = frappe.get_cached_doc("Navbar Settings")
+	bootinfo["navbar_settings"] = frappe.client_cache.get_doc("Navbar Settings")
 	bootinfo.has_app_updates = has_app_update_notifications()
 
 	return bootinfo
@@ -206,7 +206,9 @@ class Session:
 	__slots__ = ("_update_in_cache", "data", "full_name", "sid", "time_diff", "user", "user_type")
 
 	def __init__(self, user, resume=False, full_name=None, user_type=None):
-		self.sid = cstr(frappe.form_dict.get("sid") or unquote(frappe.request.cookies.get("sid", "Guest")))
+		self.sid = cstr(
+			frappe.form_dict.pop("sid", None) or unquote(frappe.request.cookies.get("sid", "Guest"))
+		)
 		self.user = user
 		self.user_type = user_type
 		self.full_name = full_name
@@ -302,7 +304,6 @@ class Session:
 		if data:
 			self.data.update({"data": data, "user": data.user, "sid": self.sid})
 			self.user = data.user
-			self.validate_user()
 			validate_ip_address(self.user)
 		else:
 			self.start_as_guest()
@@ -391,7 +392,7 @@ class Session:
 		Sessions = frappe.qb.DocType("Sessions")
 
 		# update session in db
-		last_updated = frappe.cache.hget("last_db_session_update", self.sid)
+		last_updated = self.data.data.last_updated
 		time_diff = frappe.utils.time_diff_in_seconds(now, last_updated) if last_updated else None
 
 		# database persistence is secondary, don't update it too often
@@ -414,8 +415,6 @@ class Session:
 
 			frappe.db.commit()
 			updated_in_db = True
-
-			frappe.cache.hset("last_db_session_update", self.sid, now)
 			frappe.cache.hset("session", self.sid, self.data)
 
 		return updated_in_db
@@ -451,7 +450,7 @@ def get_expired_threshold():
 
 
 def get_expiry_period():
-	exp_sec = frappe.defaults.get_global_default("session_expiry") or "240:00:00"
+	exp_sec = frappe.get_system_settings("session_expiry") or "240:00:00"
 
 	# incase seconds is missing
 	if len(exp_sec.split(":")) == 2:

@@ -250,7 +250,8 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 	def get_db_table_columns(self, table) -> list[str]:
 		"""Returns list of column names from given table."""
-		if (columns := frappe.cache.hget("table_columns", table)) is not None:
+		key = f"table_columns::{table}"
+		if (columns := frappe.client_cache.get_value(key)) is not None:
 			return columns
 
 		information_schema = frappe.qb.Schema("information_schema")
@@ -265,7 +266,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			.run(pluck=True)
 		)
 
-		frappe.cache.hset("table_columns", table, columns)
+		frappe.client_cache.set_value(key, columns)
 
 		return columns
 

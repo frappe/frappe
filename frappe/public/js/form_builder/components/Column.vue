@@ -16,7 +16,7 @@
 			</div>
 		</div>
 		<div v-if="column.df.description" class="column-description">
-			{{ column.df.description }}
+			{{ __(column.df.description) }}
 		</div>
 		<draggable
 			class="column-container"

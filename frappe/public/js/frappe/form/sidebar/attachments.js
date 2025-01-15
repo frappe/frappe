@@ -147,7 +147,7 @@ frappe.ui.form.Attachments = class Attachments {
 			};
 		}
 
-		const icon = `<a href="/app/file/${fileid}">
+		const icon = `<a href="/app/file/${fileid}" class="attachment-icon">
 				${frappe.utils.icon(attachment.is_private ? "es-line-lock" : "es-line-unlock", "sm ml-0")}
 			</a>`;
 

@@ -2,7 +2,6 @@
 	border: 1px solid var(--table-border-color);
 	border-radius: var(--border-radius-md);
 	color: var(--text-color);
-	min-height: 150px;
 	background-color: var(--subtle-accent);
 }
 
@@ -42,7 +41,7 @@
 	.row-check,
 	.row-index {
 		height: 32px;
-		padding: 6px 8px !important;
+		padding: 4px 8px !important;
 	}
 	.grid-static-col {
 		padding: 6px 8px !important;
@@ -141,6 +140,7 @@
 .row-check {
 	// height: 38px;
 	text-align: center;
+	flex-grow: 0;
 
 	input {
 		margin-right: 0 !important;
@@ -345,7 +345,6 @@
 }
 
 .grid-row {
-	padding: 0px var(--padding-md);
 	border-bottom: 1px solid var(--table-border-color);
 	background-color: var(--fg-color);
 
@@ -605,55 +604,42 @@
 		display: grid;
 		grid-auto-rows: min-content;
 		.grid-static-col.col-xs-1 {
-			flex: 0 0 60px;
-			max-width: 60px;
+			flex: 1 0 60px;
 		}
 		.grid-static-col.col-xs-2 {
-			flex: 0 0 90px;
-			max-width: 90px;
+			flex: 1 0 90px;
 		}
 		.grid-static-col.col-xs-3 {
-			flex: 0 0 120px;
-			max-width: 120px;
+			flex: 1 0 120px;
 		}
 		.grid-static-col.col-xs-4 {
-			flex: 0 0 150px;
-			max-width: 150px;
+			flex: 1 0 150px;
 		}
 		.grid-static-col.col-xs-5 {
-			flex: 0 0 200px;
-			max-width: 200px;
+			flex: 1 0 200px;
 		}
 		.grid-static-col.col-xs-6 {
-			flex: 0 0 250px;
-			max-width: 250px;
+			flex: 1 0 250px;
 		}
 		.grid-static-col.col-xs-7 {
-			flex: 0 0 300px;
-			max-width: 300px;
+			flex: 1 0 300px;
 		}
 		.grid-static-col.col-xs-8 {
-			flex: 0 0 350px;
-			max-width: 350px;
+			flex: 1 0 350px;
 		}
 		.grid-static-col.col-xs-9 {
-			flex: 0 0 400px;
-			max-width: 400px;
+			flex: 1 0 400px;
 		}
 		.grid-static-col.col-xs-10 {
-			flex: 0 0 450px;
-			max-width: 450px;
+			flex: 1 0 450px;
 		}
 		.grid-static-col.col-xs-11 {
-			flex: 0 0 500px;
-			max-width: 500px;
+			flex: 1 0 500px;
 		}
 		.grid-static-col.col-xs-12 {
-			flex: 0 0 550px;
-			max-width: 550px;
+			flex: 1 0 550px;
 		}
 		.grid-row > .row .col:last-child,
-		.grid-row > .row .col:first-child,
 		.grid-row > .dialog-assignment-row .col:first-child,
 		.grid-row > .dialog-assignment-row .col:last-child {
 			max-width: 30px;
@@ -664,13 +650,10 @@
 			max-width: 40px;
 			min-width: 40px;
 		}
-		.grid-heading-row .grid-row .data-row.row,
-		.grid-body .rows .grid-row .data-row.row {
-			justify-content: space-between;
-		}
 	}
 }
 .grid-scroll-bar {
+	display: none;
 	overflow-x: auto;
 	height: 12px;
 	position: relative;
@@ -687,10 +670,8 @@
 }
 
 @media (max-width: map-get($grid-breakpoints, "md")) {
-	.form-grid-container {
-		.form-grid {
-			min-width: 738px;
-		}
+	.grid-scroll-bar {
+		display: block;
 	}
 
 	.form-column.col-sm-6 .form-grid {

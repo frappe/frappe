@@ -24,3 +24,4 @@ import "./bootstrap-4-web.bundle";
 
 import "../../website/js/website.js";
 import "./frappe/socketio_client.js";
+import "./frappe/utils/logout.js";

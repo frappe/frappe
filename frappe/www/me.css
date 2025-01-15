@@ -1,0 +1,10 @@
+.container {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	height: 100vh;
+	max-width: 100vw;
+	padding: 0;
+	margin: 0;
+	background: var(--bg-light-gray);
+}

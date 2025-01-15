@@ -21,7 +21,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 				`<div class="frappe-control">
 				<div class="form-group">
 					<div class="clearfix">
-						<label class="control-label" style="padding-right: 0px;"></label>
+						<label class="control-label" style="padding-right: 5px;"></label>
 						<span class="help"></span>
 					</div>
 					<div class="control-input-wrapper">
@@ -39,7 +39,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		}
 	}
 	toggle_label(show) {
-		this.$wrapper.find(".control-label").toggleClass("hide", !show);
+		this.$wrapper.find(".control-label").parent().toggleClass("hide", !show);
 	}
 	toggle_description(show) {
 		this.$wrapper.find(".help-box").toggleClass("hide", !show);

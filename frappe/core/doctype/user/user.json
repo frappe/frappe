@@ -593,6 +593,7 @@
    "fieldname": "api_key",
    "fieldtype": "Data",
    "label": "API Key",
+   "no_copy": 1,
    "permlevel": 1,
    "read_only": 1,
    "unique": 1
@@ -887,7 +888,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2024-09-27 11:41:13.336662",
+ "modified": "2024-12-31 19:35:17.052698",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

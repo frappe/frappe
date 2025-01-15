@@ -339,7 +339,11 @@ class Database:
 		"""Takes the query and logs it to various interfaces according to the settings."""
 		_query = None
 
-		if frappe.conf.allow_tests and frappe.cache.get_value("flag_print_sql"):
+		if (
+			frappe.conf.allow_tests
+			and frappe.conf.developer_mode
+			and frappe.cache.get_value("flag_print_sql")
+		):
 			_query = _query or str(mogrified_query)
 			print(_query)
 
@@ -1274,7 +1278,8 @@ class Database:
 
 	def get_db_table_columns(self, table) -> list[str]:
 		"""Return list of column names from given table."""
-		columns = frappe.cache.hget("table_columns", table)
+		key = f"table_columns::{table}"
+		columns = frappe.client_cache.get_value(key)
 		if columns is None:
 			information_schema = frappe.qb.Schema("information_schema")
 
@@ -1286,7 +1291,7 @@ class Database:
 			)
 
 			if columns:
-				frappe.cache.hset("table_columns", table, columns)
+				frappe.cache.set_value(key, columns)
 
 		return columns
 

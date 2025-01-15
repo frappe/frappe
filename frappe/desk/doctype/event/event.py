@@ -110,7 +110,7 @@ class Event(Document):
 		)
 		if communications:
 			for communication in communications:
-				frappe.delete_doc_if_exists("Communication", communication.name)
+				frappe.delete_doc_if_exists("Communication", communication.name, force=True)
 
 	def sync_communication(self):
 		if self.event_participants:

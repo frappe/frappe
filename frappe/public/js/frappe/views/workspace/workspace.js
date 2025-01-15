@@ -46,7 +46,9 @@ frappe.views.Workspace = class Workspace {
 
 		this.prepare_container();
 		this.sidebar = frappe.app.sidebar;
+		this.app_switcher_menu = frappe.app.app_switcher_menu;
 		this.sidebar.setup_pages();
+		this.sidebar.apps_switcher.populate_apps_menu();
 		this.cached_pages = $.extend(true, {}, frappe.boot.sidebar_pages);
 		this.has_access = frappe.boot.sidebar_pages.has_access;
 		this.has_create_access = frappe.boot.sidebar_pages.has_create_access;
@@ -232,10 +234,9 @@ frappe.views.Workspace = class Workspace {
 
 			this.prepare_editorjs();
 			$(".item-anchor").removeClass("disable-click");
-			$(".body-sidebar-container").removeClass("expanded");
 
 			this.remove_page_skeleton();
-			frappe.app.sidebar.set_current_app(app);
+			frappe.app.sidebar.apps_switcher.set_current_app(app);
 			this.wrapper.find(".workspace-title").html(__(this._page.title));
 			this.wrapper
 				.find(".workspace-icon")
@@ -545,7 +546,7 @@ frappe.views.Workspace = class Workspace {
 
 						if (!frappe.boot.app_data_map["private"] && new_page.public === 0) {
 							let app_switcher_menu = $(".app-switcher-menu");
-							this.sidebar.add_private_app(app_switcher_menu);
+							this.sidebar.apps_switcher.add_private_app(app_switcher_menu);
 						}
 						resolve();
 					}

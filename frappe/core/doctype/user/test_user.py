@@ -23,6 +23,7 @@ from frappe.desk.notifications import extract_mentions
 from frappe.frappeclient import FrappeClient
 from frappe.model.delete_doc import delete_doc
 from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests.classes.context_managers import change_settings
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.utils import get_url
 
@@ -193,37 +194,36 @@ class TestUser(IntegrationTestCase):
 
 	def test_password_strength(self):
 		# Test Password without Password Strength Policy
-		frappe.db.set_single_value("System Settings", "enable_password_policy", 0)
-
-		# password policy is disabled, test_password_strength should be ignored
-		result = test_password_strength("test_password")
-		self.assertFalse(result.get("feedback", None))
+		with change_settings("System Settings", enable_password_policy=0):
+			# password policy is disabled, test_password_strength should be ignored
+			result = test_password_strength("test_password")
+			self.assertFalse(result.get("feedback", None))
 
 		# Test Password with Password Strenth Policy Set
-		frappe.db.set_single_value("System Settings", "enable_password_policy", 1)
-		frappe.db.set_single_value("System Settings", "minimum_password_score", 2)
+		with change_settings("System Settings", enable_password_policy=1, minimum_password_score=2):
+			# Score 1; should now fail
+			result = test_password_strength("bee2ve")
+			self.assertEqual(result["feedback"]["password_policy_validation_passed"], False)
+			self.assertRaises(
+				frappe.exceptions.ValidationError, handle_password_test_fail, result["feedback"]
+			)
+			self.assertRaises(
+				frappe.exceptions.ValidationError, handle_password_test_fail, result
+			)  # test backwards compatibility
 
-		# Score 1; should now fail
-		result = test_password_strength("bee2ve")
-		self.assertEqual(result["feedback"]["password_policy_validation_passed"], False)
-		self.assertRaises(frappe.exceptions.ValidationError, handle_password_test_fail, result["feedback"])
-		self.assertRaises(
-			frappe.exceptions.ValidationError, handle_password_test_fail, result
-		)  # test backwards compatibility
+			# Score 4; should pass
+			result = test_password_strength("Eastern_43A1W")
+			self.assertEqual(result["feedback"]["password_policy_validation_passed"], True)
 
-		# Score 4; should pass
-		result = test_password_strength("Eastern_43A1W")
-		self.assertEqual(result["feedback"]["password_policy_validation_passed"], True)
-
-		# test password strength while saving user with new password
-		user = frappe.get_doc("User", "test@example.com")
-		frappe.flags.in_test = False
-		user.new_password = "password"
-		self.assertRaises(frappe.exceptions.ValidationError, user.save)
-		user.reload()
-		user.new_password = "Eastern_43A1W"
-		user.save()
-		frappe.flags.in_test = True
+			# test password strength while saving user with new password
+			user = frappe.get_doc("User", "test@example.com")
+			frappe.flags.in_test = False
+			user.new_password = "password"
+			self.assertRaises(frappe.exceptions.ValidationError, user.save)
+			user.reload()
+			user.new_password = "Eastern_43A1W"
+			user.save()
+			frappe.flags.in_test = True
 
 	def test_comment_mentions(self):
 		comment = """
