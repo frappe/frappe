@@ -89,6 +89,27 @@ if _dev_server:
 	warnings.simplefilter("always", PendingDeprecationWarning)
 
 
+def _get_local_proxy(self: Local, name: str) -> LocalProxy:
+	"""Get local proxy object by name."""
+
+	_local_contextvar = self._Local__storage
+
+	def _get_current_object() -> Any:
+		obj = _local_contextvar.get(None)
+
+		if obj is not None and name in obj:
+			return obj[name]
+
+		raise RuntimeError("object is not bound") from None
+
+	lp = LocalProxy(_local_contextvar, name)
+	object.__setattr__(lp, "_get_current_object", _get_current_object)
+	return lp
+
+
+Local.__call__ = _get_local_proxy
+
+
 def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 	"""Return translated string in current lang, if exists.
 	Usage:
