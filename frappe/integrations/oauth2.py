@@ -93,7 +93,9 @@ def authorize(**kwargs):
 				frappe.flags.oauth_credentials["client_id"],
 				"skip_authorization",
 			)
-			unrevoked_tokens = frappe.get_all("OAuth Bearer Token", filters={"status": "Active"})
+			unrevoked_tokens = frappe.db.exists(
+				"OAuth Bearer Token", {"status": "Active", "user": frappe.session.user}
+			)
 
 			if skip_auth or (get_oauth_settings().skip_authorization == "Auto" and unrevoked_tokens):
 				frappe.local.response["type"] = "redirect"
