@@ -923,13 +923,14 @@ class DatabaseQuery:
 		):
 			if f.operator.lower() == "like" and frappe.conf.get("db_type") == "postgres":
 				f.operator = "ilike"
+			if "ifnull(" in column_name.lower():
+				column_name = column_name.replace("ifnull", "coalesce",1)
 			condition = f"{column_name} {f.operator} {value}"
 		else:
 			if df and df.fieldtype not in ("Check", "Float", "Int", "Currency", "Percent"):
-				condition = f"ifnull({column_name}, '{fallback}') {f.operator} {value}"
+				condition = f"coalesce({column_name}, {fallback}) {f.operator} {value}"
 			else:
-				condition = f"ifnull({column_name}, {fallback}) {f.operator} {value}"
-
+				condition = f"coalesce({column_name}, {fallback}) {f.operator} {value}"
 		return condition
 
 	def build_match_conditions(self, as_condition=True) -> str | list:
