@@ -193,6 +193,16 @@ class Contact(Document):
 		if self.designation:
 			vcard.add("title").value = self.designation
 
+		org_list = []
+		if self.company_name:
+			org_list.append(self.company_name)
+
+		if self.department:
+			org_list.append(self.department)
+
+		if org_list:
+			vcard.add("org").value = org_list
+
 		for row in self.email_ids:
 			email = vcard.add("email")
 			email.value = row.email_id
