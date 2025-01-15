@@ -114,6 +114,18 @@ def resolve_redirect(path, query_string=None):
 	                                # use r as a string prefix if you use regex groups or want to escape any string literal
 	                ]
 	"""
+
+	redirect_to = frappe.cache.hget("website_redirects", path)
+	if redirect_to:
+		if isinstance(redirect_to, dict):
+			frappe.flags.redirect_location = redirect_to["path"]
+			raise frappe.Redirect(redirect_to["status_code"])
+		frappe.flags.redirect_location = redirect_to
+		raise frappe.Redirect
+
+	if redirect_to is False:
+		return
+
 	redirects = frappe.get_hooks("website_redirects")
 	redirects += frappe.get_all(
 		"Website Route Redirect", ["source", "target", "redirect_http_status"], order_by=None
@@ -121,15 +133,6 @@ def resolve_redirect(path, query_string=None):
 
 	if not redirects:
 		return
-
-	redirect_to = frappe.cache.hget("website_redirects", path)
-
-	if redirect_to:
-		if isinstance(redirect_to, dict):
-			frappe.flags.redirect_location = redirect_to["path"]
-			raise frappe.Redirect(redirect_to["status_code"])
-		frappe.flags.redirect_location = redirect_to
-		raise frappe.Redirect
 
 	for rule in redirects:
 		pattern = rule["source"].strip("/ ") + "$"
@@ -150,6 +153,8 @@ def resolve_redirect(path, query_string=None):
 				"website_redirects", path_to_match, {"path": redirect_to, "status_code": status_code}
 			)
 			raise frappe.Redirect(status_code)
+
+	frappe.cache.hset("website_redirects", path_to_match, False)
 
 
 def resolve_path(path):
