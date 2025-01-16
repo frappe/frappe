@@ -203,7 +203,7 @@ class EmailAccount(Document):
 	def validate_frappe_mail_settings(self):
 		if self.service == "Frappe Mail":
 			frappe_mail_client = self.get_frappe_mail_client()
-			frappe_mail_client.validate(for_inbound=self.enable_incoming, for_outbound=self.enable_outgoing)
+			frappe_mail_client.validate()
 
 	def validate_smtp_conn(self):
 		if not self.smtp_server:
