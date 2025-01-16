@@ -505,6 +505,30 @@ function getErrorMessage(err: any) {
 	return lastLine || err.message || err.toString()
 }
 
+function throttle<T extends (...args: any[]) => void>(func: T, wait: number = 1000) {
+	let timeout: ReturnType<typeof setTimeout> | null = null
+	let lastArgs: Parameters<T> | null = null
+	let pending = false
+
+	const invoke = (...args: Parameters<T>) => {
+		lastArgs = args
+		if (timeout) {
+			pending = true
+			return
+		}
+
+		func(...lastArgs);
+		timeout = setTimeout(() => {
+			timeout = null
+			if (pending && lastArgs) {
+				pending = false
+				invoke(...lastArgs)
+			}
+		}, wait)
+	};
+
+	return invoke
+}
 
 export {
 	getBlockInstance,
@@ -541,4 +565,5 @@ export {
 	// general utils
 	copyToClipboard,
 	getErrorMessage,
+	throttle,
 }

@@ -11,6 +11,7 @@ import {
 	fetchPage,
 	getNewResource,
 	confirm,
+	throttle,
 } from "@/utils/helpers"
 import getBlockTemplate from "@/utils/blockTemplate"
 import { studioPages } from "@/data/studioPages"
@@ -87,7 +88,7 @@ const useStudioStore = defineStore("store", () => {
 		}
 	}
 
-	const updateDropTarget = (parentBlock: Block | null) => {
+	const updateDropTarget = throttle((parentBlock: Block | null) => {
 		if (parentBlock?.componentId === dnd.target?.parentBlock?.componentId) {
 			return
 		}
@@ -96,7 +97,7 @@ const useStudioStore = defineStore("store", () => {
 			dnd.target.parentBlock?.removeChild(dnd.target)
 			parentBlock?.addChild(dnd.target)
 		}
-	}
+	}, 130)
 
 	const resetDnd = () => {
 		if (dnd.target) {
