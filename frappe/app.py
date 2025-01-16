@@ -26,7 +26,7 @@ from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, val
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils import CallbackManager, cint, get_site_name
 from frappe.utils.data import escape_html
-from frappe.utils.error import log_error_snapshot
+from frappe.utils.error import log_error, log_error_snapshot
 from frappe.website.page_renderers.error_page import ErrorPage
 from frappe.website.serve import get_response
 
@@ -390,7 +390,7 @@ def handle_exception(e):
 		if hasattr(frappe.local, "login_manager"):
 			frappe.local.login_manager.clear_cookies()
 
-	if http_status_code >= 500:
+	if http_status_code >= 500 or frappe.conf.developer_mode:
 		log_error_snapshot(e)
 
 	if frappe.conf.get("developer_mode") and not respond_as_json:
