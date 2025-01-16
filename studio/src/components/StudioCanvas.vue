@@ -163,11 +163,14 @@ useDropZone(canvasContainer, {
 				parentComponent.addChild(newBlock)
 			}
 		}
+
+		store.resetDnd()
 	},
 	onOver: (_files, ev) => {
 		const { parentComponent } = getDropTarget(ev)
 		if (parentComponent) {
 			store.hoveredBlock = parentComponent.componentId
+			store.updateDropTarget(parentComponent)
 		}
 	},
 })

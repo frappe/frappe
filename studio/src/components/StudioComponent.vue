@@ -115,7 +115,7 @@ const styles = computed(() => {
 })
 
 const getComponentProps = () => {
-	if (!props.block || props.block.isRoot()) return []
+	if (!props.block || props.block.isStaticComponent()) return []
 
 	const componentProps = { ...props.block.componentProps }
 

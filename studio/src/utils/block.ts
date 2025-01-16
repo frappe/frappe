@@ -166,6 +166,10 @@ class Block implements BlockOptions {
 		return this.originalElement === "__raw_html__"
 	}
 
+	isStaticComponent() {
+		return this.isRoot() || this.isHTML()
+	}
+
 	getParentBlock(): Block | null {
 		return this.parentBlock || null;
 	}

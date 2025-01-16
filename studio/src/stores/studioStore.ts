@@ -12,6 +12,7 @@ import {
 	getNewResource,
 	confirm,
 } from "@/utils/helpers"
+import getBlockTemplate from "@/utils/blockTemplate"
 import { studioPages } from "@/data/studioPages"
 import { studioPageResources } from "@/data/studioResources"
 import { studioApps, studioAppPages } from "@/data/studioApps"
@@ -22,7 +23,7 @@ import Block from "@/utils/block"
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Resource } from "@/types/Studio/StudioResource"
-import { LeftPanelOptions, RightPanelOptions, Slot } from "@/types"
+import { BlockOptions, LeftPanelOptions, RightPanelOptions, Slot } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 
 const useStudioStore = defineStore("store", () => {
@@ -68,6 +69,41 @@ const useStudioStore = defineStore("store", () => {
 		} else {
 			selectedBlockIds.value.splice(0, selectedBlockIds.value.length, blockId)
 		}
+	}
+
+	// drag & drop
+	const dnd = reactive({
+		source: null as unknown as string | null, // drag component name
+		target: null as unknown as Block | null, // drop target block
+	})
+
+	const startDrag = (ev: DragEvent, componentName: string) => {
+		if (ev.dataTransfer) {
+			ev.dataTransfer.setData("componentName", componentName)
+			dnd.source = componentName
+
+			const placeholderComponent = getBlockInstance(getBlockTemplate("placeholder-component"))
+			dnd.target = pageBlocks.value?.[0].addChild(placeholderComponent)
+		}
+	}
+
+	const updateDropTarget = (parentBlock: Block | null) => {
+		if (parentBlock?.componentId === dnd.target?.parentBlock?.componentId) {
+			return
+		}
+
+		if (dnd.target) {
+			dnd.target.parentBlock?.removeChild(dnd.target)
+			parentBlock?.addChild(dnd.target)
+		}
+	}
+
+	const resetDnd = () => {
+		if (dnd.target) {
+			dnd.target.parentBlock?.removeChild(dnd.target)
+		}
+		dnd.source = null
+		dnd.target = null
 	}
 
 	// slots
@@ -272,6 +308,10 @@ const useStudioStore = defineStore("store", () => {
 		selectBlock,
 		selectBlockById,
 		pageBlocks,
+		dnd,
+		startDrag,
+		updateDropTarget,
+		resetDnd,
 		// slots
 		selectedSlot,
 		selectSlot,
