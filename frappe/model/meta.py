@@ -223,9 +223,11 @@ class Meta(Document):
 		return self.get("fields", {"fieldtype": "Phone"})
 
 	def get_dynamic_link_fields(self):
-		if not hasattr(self, "_dynamic_link_fields"):
-			self._dynamic_link_fields = self.get("fields", {"fieldtype": "Dynamic Link"})
 		return self._dynamic_link_fields
+
+	@cached_property
+	def _dynamic_link_fields(self):
+		return self.get("fields", {"fieldtype": "Dynamic Link"})
 
 	def get_select_fields(self):
 		return self.get("fields", {"fieldtype": "Select", "options": ["not in", ["[Select]", "Loading..."]]})
@@ -640,9 +642,11 @@ class Meta(Document):
 
 	def get_high_permlevel_fields(self):
 		"""Build list of fields with high perm level and all the higher perm levels defined."""
-		if not hasattr(self, "high_permlevel_fields"):
-			self.high_permlevel_fields = [df for df in self.fields if df.permlevel > 0]
 		return self.high_permlevel_fields
+
+	@cached_property
+	def high_permlevel_fields(self):
+		return [df for df in self.fields if df.permlevel > 0]
 
 	def get_permitted_fieldnames(
 		self,
