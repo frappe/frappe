@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-12 09:33+0000\n"
-"PO-Revision-Date: 2025-01-15 01:13\n"
+"PO-Revision-Date: 2025-01-17 01:25\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -2822,7 +2822,7 @@ msgstr "تکرار خودکار ایجاد سند انجام نشد"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.js:115
 msgid "Auto Repeat Schedule"
-msgstr "برنامه تکرار خودکار"
+msgstr "زمان‌بندی تکرار خودکار"
 
 #: frappe/public/js/frappe/utils/common.js:434
 msgid "Auto Repeat created for this document"
@@ -3962,7 +3962,7 @@ msgstr "لغو تمام اسناد"
 
 #: frappe/email/doctype/newsletter/newsletter.js:132
 msgid "Cancel Scheduling"
-msgstr "لغو برنامه ریزی"
+msgstr "لغو زمان‌بندی"
 
 #: frappe/public/js/frappe/list/list_view.js:2023
 msgctxt "Title of confirmation dialog"
@@ -8866,7 +8866,7 @@ msgstr "فعال کردن گزارش"
 #. Label of the enable_scheduler (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Enable Scheduled Jobs"
-msgstr "کارهای برنامه ریزی شده را فعال کنید"
+msgstr "فعال کردن کارهای زمان‌بندی شده"
 
 #: frappe/core/doctype/rq_job/rq_job_list.js:23
 msgid "Enable Scheduler"
@@ -9779,7 +9779,7 @@ msgstr "هنگام فراخوان API {0} ناموفق بود"
 #. Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Failing Scheduled Jobs (last 7 days)"
-msgstr ""
+msgstr "کارهای زمان‌بندی شده ناموفق (7 روز گذشته)"
 
 #: frappe/core/doctype/data_import/data_import.js:459
 msgid "Failure"
@@ -16548,11 +16548,11 @@ msgstr "تور فرم بعدی"
 #. Label of the next_schedule_date (Date) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Next Schedule Date"
-msgstr "تاریخ برنامه بعدی"
+msgstr "تاریخ زمان‌بندی بعدی"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat_schedule.html:6
 msgid "Next Scheduled Date"
-msgstr "تاریخ برنامه ریزی شده بعدی"
+msgstr "تاریخ زمان‌بندی شده بعدی"
 
 #. Label of the next_state (Link) field in DocType 'Workflow Transition'
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
@@ -17603,7 +17603,7 @@ msgstr "نسخه های پشتیبان قدیمی به طور خودکار حذ�
 #. Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Oldest Unscheduled Job"
-msgstr ""
+msgstr "قدیمی ترین کار زمان‌بندی نشده"
 
 #. Option for the 'Status' (Select) field in DocType 'Personal Data Deletion
 #. Request'
@@ -22105,7 +22105,7 @@ msgstr "اجرای Jobs فقط روزانه در صورت غیرفعال بود�
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Run scheduled jobs only if checked"
-msgstr "کارهای برنامه ریزی شده را فقط در صورت علامت زدن اجرا کنید"
+msgstr "کارهای زمان‌بندی شده را فقط در صورت علامت زدن اجرا کنید"
 
 #. Name of a DocType
 #. Label of a Link in the Integrations Workspace
@@ -22366,7 +22366,7 @@ msgstr "کد QR را اسکن کرده و کد نمایش داده شده را �
 
 #: frappe/email/doctype/newsletter/newsletter.js:125
 msgid "Schedule"
-msgstr "برنامه"
+msgstr "زمان‌بندی"
 
 #: frappe/email/doctype/newsletter/newsletter.js:106
 msgid "Schedule Newsletter"
@@ -22378,12 +22378,12 @@ msgstr "زمان‌بندی ارسال در"
 
 #: frappe/email/doctype/newsletter/newsletter.js:70
 msgid "Schedule sending"
-msgstr "برای ارسال برنامه ریزی کنید"
+msgstr "زمان‌بندی ارسال"
 
 #. Label of the schedule_sending (Check) field in DocType 'Newsletter'
 #: frappe/email/doctype/newsletter/newsletter.json
 msgid "Schedule sending at a later time"
-msgstr "برای ارسال در زمان دیگری برنامه ریزی کنید"
+msgstr "برای ارسال در زمان دیگری زمان‌بندی کنید"
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #. Option for the 'Status' (Select) field in DocType 'Scheduled Job Log'
@@ -22391,17 +22391,17 @@ msgstr "برای ارسال در زمان دیگری برنامه ریزی کن�
 #: frappe/core/doctype/scheduled_job_log/scheduled_job_log.json
 #: frappe/email/doctype/newsletter/newsletter_list.js:7
 msgid "Scheduled"
-msgstr "برنامه ریزی شده است"
+msgstr "زمان‌بندی شده است"
 
 #. Label of the scheduled_job_type (Link) field in DocType 'Scheduled Job Log'
 #: frappe/core/doctype/scheduled_job_log/scheduled_job_log.json
 msgid "Scheduled Job"
-msgstr "کار برنامه ریزی شده"
+msgstr "کار زمان‌بندی شده"
 
 #. Name of a DocType
 #: frappe/core/doctype/scheduled_job_log/scheduled_job_log.json
 msgid "Scheduled Job Log"
-msgstr "گزارش کار برنامه ریزی شده"
+msgstr "گزارش کار زمان‌بندی شده"
 
 #. Name of a DocType
 #. Label of a Link in the Build Workspace
@@ -22411,37 +22411,37 @@ msgstr "گزارش کار برنامه ریزی شده"
 #: frappe/core/workspace/build/build.json
 #: frappe/desk/doctype/system_health_report_failing_jobs/system_health_report_failing_jobs.json
 msgid "Scheduled Job Type"
-msgstr "نوع کار برنامه ریزی شده"
+msgstr "نوع کار زمان‌بندی شده"
 
 #. Label of a Link in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Scheduled Jobs Logs"
-msgstr ""
+msgstr "لاگ کارهای زمان‌بندی شده"
 
 #. Label of the schedule_settings_section (Section Break) field in DocType
 #. 'Newsletter'
 #: frappe/email/doctype/newsletter/newsletter.json
 msgid "Scheduled Sending"
-msgstr "ارسال برنامه ریزی شده"
+msgstr "ارسال زمان‌بندی شده"
 
 #. Label of the scheduled_to_send (Int) field in DocType 'Newsletter'
 #: frappe/email/doctype/newsletter/newsletter.json
 msgid "Scheduled To Send"
-msgstr "برنامه ریزی شده برای ارسال"
+msgstr "زمان‌بندی شده برای ارسال"
 
 #: frappe/core/doctype/server_script/server_script.py:147
 msgid "Scheduled execution for script {0} has updated"
-msgstr "اجرای برنامه ریزی شده برای اسکریپت {0} به روز شده است"
+msgstr "اجرای زمان‌بندی شده برای اسکریپت {0} به روز شده است"
 
 #: frappe/email/doctype/auto_email_report/auto_email_report.js:26
 msgid "Scheduled to send"
-msgstr "برای ارسال برنامه ریزی شده است"
+msgstr "برای ارسال زمان‌بندی شده است"
 
 #. Label of the scheduler_section (Section Break) field in DocType 'System
 #. Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Scheduler"
-msgstr ""
+msgstr "زمان‌بند"
 
 #. Option for the 'Script Type' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -22455,7 +22455,7 @@ msgstr "زمانبند غیرفعال"
 #. Label of the scheduler_status (Data) field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Scheduler Status"
-msgstr ""
+msgstr "وضعیت زمانبند"
 
 #: frappe/utils/scheduler.py:229
 msgid "Scheduler can not be re-enabled when maintenance mode is active."
@@ -24788,7 +24788,7 @@ msgstr "وضعیت به روز شد"
 
 #: frappe/email/doctype/email_queue/email_queue.js:36
 msgid "Status Updated. The email will be picked up in the next scheduled run."
-msgstr ""
+msgstr "وضعیت به روز شد. ایمیل در اجرای زمان‌بندی شده بعدی دریافت خواهد شد."
 
 #: frappe/www/message.html:24
 msgid "Status: {0}"
@@ -27724,7 +27724,7 @@ msgstr "در حال بروز رسانی"
 
 #: frappe/email/doctype/email_queue/email_queue_list.js:49
 msgid "Updating Email Queue Statuses. The emails will be picked up in the next scheduled run."
-msgstr "به روز رسانی وضعیت های صف ایمیل. ایمیل ها در اجرای برنامه ریزی شده بعدی دریافت خواهند شد."
+msgstr "به روز رسانی وضعیت های صف ایمیل. ایمیل ها در اجرای زمان‌بندی شده بعدی دریافت خواهند شد."
 
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.js:17
 msgid "Updating counter may lead to document name conflicts if not done properly"
@@ -30636,7 +30636,7 @@ msgstr "s256"
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: frappe/core/doctype/rq_job/rq_job.json
 msgid "scheduled"
-msgstr "برنامه ریزی شده است"
+msgstr "زمان‌بندی شده است"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
