@@ -78,9 +78,14 @@ const zoomLevels = {
 					opts.card_meta = card_meta;
 					opts.board = board;
 					var cards = []
+					var phone_numbers = []
+
+					phone_numbers = opts.cards.map(card => card.custom_customers_phone_number)
+					const conversations = await last_message_from_customer(phone_numbers)
 
 					for (const card of opts.cards) {
-						cards.push(await prepare_card(card, opts))
+						const customer_responded = conversations.includes(card.custom_customers_phone_number)
+						cards.push(prepare_card(card, opts, null, customer_responded))
 					}
 
 					var columns = prepare_columns(board.columns);
@@ -100,8 +105,12 @@ const zoomLevels = {
 					var state = context.state;
 					var prepared_cards = []
 
+					phone_numbers = cards.map(card => card.custom_customers_phone_number)
+					const conversations = await last_message_from_customer(phone_numbers)
+
 					for (const card of cards) {
-						prepared_cards.push(await prepare_card(card, state))
+						const customer_responded = conversations.includes(card.custom_customers_phone_number)
+						prepared_cards.push(prepare_card(card, state, null, customer_responded))
 					}
 
 					var _cards = [].concat(
@@ -153,7 +162,7 @@ const zoomLevels = {
 							}
 						);
 				},
-				add_card: async function (context, { card_title, column_title }) {
+				add_card: function (context, { card_title, column_title }) {
 					var state = context.state;
 					var doc = frappe.model.get_new_doc(state.doctype);
 					var field = state.card_meta.title_field;
@@ -171,7 +180,7 @@ const zoomLevels = {
 
 					// add the card directly
 					// for better ux
-					const card = await prepare_card(doc, state);
+					const card = prepare_card(doc, state);
 					console.log('add card', card)
 					card._disable_click = true;
 					const cards = [...state.cards, card];
@@ -184,7 +193,7 @@ const zoomLevels = {
 							// update the card in place with the updated doc
 							const updated_doc = r.message;
 							const index = state.cards.findIndex((card) => card.name === old_name);
-							const card = await prepare_card(updated_doc, state);
+							const card = prepare_card(updated_doc, state);
 							const new_cards = state.cards.slice();
 							new_cards[index] = card;
 							context.commit("update_state", { cards: new_cards });
@@ -1191,7 +1200,7 @@ const zoomLevels = {
 		init();
 	};
 
-	async function prepare_card(card, state, doc) {
+	function prepare_card(card, state, doc, customer_responded) {
 		var assigned_list = card._assign ? JSON.parse(card._assign) : [];
 		var comment_count = card._comment_count || 0;
 
@@ -1212,7 +1221,7 @@ const zoomLevels = {
 			comment_count: card.comment_count || comment_count,
 			color: card.color || null,
 			doc: doc || card,
-			border: await set_border_color(card),
+			border: set_border_color(card, customer_responded),
 			conversation: hasconversationUnread(card),
 			status_modified: card.status_modified,
 		};
@@ -1222,7 +1231,7 @@ const zoomLevels = {
 		return unread_conversations.find((el) => el.from === card.custom_customers_phone_number)
 	}
 
-	async function set_border_color(card) {
+	function set_border_color(card, customer_responded) {
 		let message = false;
 		const nowDate = new Date();
 		const modifiedDate = new Date(card.status_modified);
@@ -1230,7 +1239,6 @@ const zoomLevels = {
 		const in_parking = card.status === 'In parking' && Number(card.queue_position) <= 5 && satuday_sunday_combined(card.parking_date, nowDate) >= 2;;
 		const quotation = card.status === 'Quoted' && quotations_draft.length && quotations_draft.find(quotation => quotation.parent == card.name);
 		const hass_passed_one_day_quotation = quotation && has_passed_one_day(quotation.modified);
-		const customer_responded = await last_message_from_customer(card.custom_customers_phone_number)
 
 		if (in_parking) {
 			message = "2 days since moved to parking.";
@@ -1280,14 +1288,15 @@ const zoomLevels = {
 		return differenceInDays >= 1;
 	}
 
-	async function last_message_from_customer(phone_number){
+	async function last_message_from_customer(phone_numbers){
 		const conversations = await frappe.db.get_list('Conversation', {
-			filters: { from: phone_number, last_message_from_customer: 1 },
-			fields: ["last_message_from_customer"],
-			limit: 1
+			filters: {
+				from: ["in", phone_numbers]
+			},
+			fields: ["from"],
 		})
 
-		return conversations.length > 0
+		return conversations.map(conversation => conversation.from)
 	}
 
 	async function getUnreadConversations() {
