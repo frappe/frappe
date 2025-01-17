@@ -236,25 +236,17 @@ def log_request(request, response):
 		)
 
 
-def process_response(response):
+def process_response(response: Response):
 	if not response:
 		return
 
 	# cache control
 	# read: https://simonhearne.com/2022/caching-header-best-practices/
 	if frappe.local.response.can_cache:
-		response.headers.extend(
-			{
-				# default: 5m (client), 3h (allow stale resources for this long if upstream is down)
-				"Cache-Control": "private,max-age=300,stale-while-revalidate=10800",
-			}
-		)
+		# default: 5m (client), 3h (allow stale resources for this long if upstream is down)
+		response.headers.setdefault("Cache-Control", "private,max-age=300,stale-while-revalidate=10800")
 	else:
-		response.headers.extend(
-			{
-				"Cache-Control": "no-store,no-cache,must-revalidate,max-age=0",
-			}
-		)
+		response.headers.setdefault("Cache-Control", "no-store,no-cache,must-revalidate,max-age=0")
 
 	# Set cookies, only if response is non-cacheable to avoid proxy cache invalidation
 	if hasattr(frappe.local, "cookie_manager") and not frappe.local.response.can_cache:
