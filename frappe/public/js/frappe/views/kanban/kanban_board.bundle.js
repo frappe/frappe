@@ -178,7 +178,6 @@ const zoomLevels = {
 					// add the card directly
 					// for better ux
 					const card = prepare_card(doc, state);
-					console.log('add card', card)
 					card._disable_click = true;
 					const cards = [...state.cards, card];
 					// remember the name which we will override later
@@ -186,7 +185,7 @@ const zoomLevels = {
 					context.commit("update_state", { cards });
 
 					if (field && !quick_entry) {
-						return insert_doc(doc).then(async function (r) {
+						return insert_doc(doc).then(function (r) {
 							// update the card in place with the updated doc
 							const updated_doc = r.message;
 							const index = state.cards.findIndex((card) => card.name === old_name);
