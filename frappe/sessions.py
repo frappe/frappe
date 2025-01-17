@@ -457,26 +457,3 @@ def get_expiry_period():
 		exp_sec = exp_sec + ":00"
 
 	return exp_sec
-
-
-def get_geo_from_ip(ip_addr):
-	try:
-		from geolite2 import geolite2
-
-		with geolite2 as f:
-			reader = f.reader()
-			data = reader.get(ip_addr)
-
-			return frappe._dict(data)
-	except ImportError:
-		return
-	except ValueError:
-		return
-	except TypeError:
-		return
-
-
-def get_geo_ip_country(ip_addr):
-	match = get_geo_from_ip(ip_addr)
-	if match:
-		return match.country
