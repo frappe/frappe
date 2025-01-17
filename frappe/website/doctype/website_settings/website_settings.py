@@ -278,6 +278,10 @@ def get_items(parentfield: str) -> list[dict]:
 def modify_header_footer_items(items: list):
 	top_items = items.copy()
 	# attach child items to top bar
+
+	for item in items:
+		item.child_items = []  # clear cached list
+
 	for item in items:
 		if not item.parent_label:
 			continue
