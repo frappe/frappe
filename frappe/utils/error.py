@@ -97,10 +97,9 @@ def get_default_args(func):
 	return {k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty}
 
 
+# TODO: Remove keep_quiet flag after testing and fixing sendmail flow.
 def raise_error_on_no_output(error_message, error_type=None, keep_quiet=None):
 	"""Decorate any function to throw error incase of missing output.
-
-	TODO: Remove keep_quiet flag after testing and fixing sendmail flow.
 
 	:param error_message: error message to raise
 	:param error_type: type of error to raise
@@ -109,11 +108,17 @@ def raise_error_on_no_output(error_message, error_type=None, keep_quiet=None):
 	:type error_type: Exception Class
 	:type keep_quiet: function
 
-	>>> @raise_error_on_no_output("Ingradients missing")
-	... def get_indradients(_raise_error=1):
-	...     return
-	>>> get_ingradients()
-	`Exception Name`: Ingradients missing
+	---
+	Example:
+
+	```py
+	@raise_error_on_no_output("Ingredients are missing")
+	def get_ingredients(_raise_error=1):
+	    return
+
+
+	ingredients = get_ingredients()
+	```
 	"""
 
 	def decorator_raise_error_on_no_output(func):
