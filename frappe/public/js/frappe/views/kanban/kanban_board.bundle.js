@@ -103,7 +103,8 @@ const zoomLevels = {
 					await getUnreadConversations()
 					var state = context.state;
 					var prepared_cards = []
-					const phone_numbers = cards.map(card => card.custom_customers_phone_number)
+					let phone_numbers = cards.map(card => card.custom_customers_phone_number)
+					phone_numbers = new Set(phone_numbers)
 					const conversations = await last_message_from_customer(phone_numbers)
 
 					for (const card of cards) {
