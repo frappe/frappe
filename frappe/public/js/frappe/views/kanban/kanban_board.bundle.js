@@ -78,7 +78,8 @@ const zoomLevels = {
 					opts.card_meta = card_meta;
 					opts.board = board;
 					var cards = []
-					const phone_numbers = opts.cards.map(card => card.custom_customers_phone_number)
+					let phone_numbers = opts.cards.map(card => card.custom_customers_phone_number)
+					phone_numbers = new Set(phone_numbers)
 					const conversations = await last_message_from_customer(phone_numbers)
 
 					for (const card of opts.cards) {
@@ -1288,6 +1289,7 @@ const zoomLevels = {
 		const conversations = await frappe.db.get_list('Conversation', {
 			filters: {
 				from: ["in", phone_numbers],
+				from: ['is', 'set'],
 				last_message_from_customer: 1
 			},
 			fields: ["from"],
