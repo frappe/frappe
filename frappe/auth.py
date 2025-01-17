@@ -2,7 +2,7 @@
 # MIT License. See LICENSE
 import base64
 import binascii
-from urllib.parse import quote, urlencode, urlparse
+from urllib.parse import quote, unquote, urlencode, urlparse
 
 from werkzeug.wrappers import Response
 
@@ -190,12 +190,12 @@ class LoginManager:
 		self.full_name = " ".join(filter(None, [self.info.first_name, self.info.last_name]))
 
 		if self.info.user_type == "Website User":
-			frappe.local.cookie_manager.set_cookie("system_user", "no")
+			frappe.local.cookie_manager.set_cookie("system_user", "no", deduplicate=True)
 			if not resume:
 				frappe.local.response["message"] = "No App"
 				frappe.local.response["home_page"] = get_default_path() or "/" + get_home_page()
 		else:
-			frappe.local.cookie_manager.set_cookie("system_user", "yes")
+			frappe.local.cookie_manager.set_cookie("system_user", "yes", deduplicate=True)
 			if not resume:
 				frappe.local.response["message"] = "Logged In"
 				frappe.local.response["home_page"] = get_default_path() or "/app"
@@ -208,10 +208,10 @@ class LoginManager:
 			frappe.local.response["redirect_to"] = redirect_to
 			frappe.cache.hdel("redirect_after_login", self.user)
 
-		frappe.local.cookie_manager.set_cookie("full_name", self.full_name)
-		frappe.local.cookie_manager.set_cookie("user_id", self.user)
-		frappe.local.cookie_manager.set_cookie("user_image", self.info.user_image or "")
-		frappe.local.cookie_manager.set_cookie("user_lang", frappe.local.lang)
+		frappe.local.cookie_manager.set_cookie("full_name", self.full_name, deduplicate=True)
+		frappe.local.cookie_manager.set_cookie("user_id", self.user, deduplicate=True)
+		frappe.local.cookie_manager.set_cookie("user_image", self.info.user_image or "", deduplicate=True)
+		frappe.local.cookie_manager.set_cookie("user_lang", frappe.local.lang, deduplicate=True)
 
 	def clear_preferred_language(self):
 		frappe.local.cookie_manager.delete_cookie("preferred_language")
@@ -387,9 +387,17 @@ class CookieManager:
 		httponly=False,
 		samesite="Lax",
 		max_age=None,
+		deduplicate=False,
 	):
 		if not secure and hasattr(frappe.local, "request"):
 			secure = frappe.local.request.scheme == "https"
+		if (
+			deduplicate
+			and not (expires or max_age)
+			and (request := getattr(frappe.local, "request", None))
+			and unquote(request.cookies.get(key, "")) == value
+		):
+			return
 
 		self.cookies[key] = {
 			"value": value,
