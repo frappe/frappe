@@ -292,4 +292,7 @@ defineExpose({
 .slot-selected {
 	@apply border-purple-400 text-gray-900;
 }
+#placeholder {
+	@apply border border-dashed border-gray-300 bg-blue-50 dark:border-gray-700;
+}
 </style>

@@ -13,7 +13,6 @@ import {
 	confirm,
 	throttle,
 } from "@/utils/helpers"
-import getBlockTemplate from "@/utils/blockTemplate"
 import { studioPages } from "@/data/studioPages"
 import { studioPageResources } from "@/data/studioResources"
 import { studioApps, studioAppPages } from "@/data/studioApps"
@@ -75,7 +74,11 @@ const useStudioStore = defineStore("store", () => {
 	// drag & drop
 	const dnd = reactive({
 		source: null as unknown as string | null, // drag component name
-		target: null as unknown as Block | null, // drop target block
+		target: {
+			element: null as Element | null,
+			parentBlockId: null as string | null,
+			index: null as number | null,
+		}
 	})
 
 	const startDrag = (ev: DragEvent, componentName: string) => {
@@ -83,28 +86,44 @@ const useStudioStore = defineStore("store", () => {
 			ev.dataTransfer.setData("componentName", componentName)
 			dnd.source = componentName
 
-			const placeholderComponent = getBlockInstance(getBlockTemplate("placeholder-component"))
-			dnd.target = pageBlocks.value?.[0].addChild(placeholderComponent)
+			let element = document.createElement("div")
+			element.id = "placeholder"
+			element.style.width = "100%"
+			element.style.height = "2rem"
+
+			const root = document.querySelector("[data-component-id='root']")
+			if (root) {
+				dnd.target.element = root.appendChild(element)
+			}
 		}
 	}
 
 	const updateDropTarget = throttle((parentBlock: Block | null) => {
-		if (parentBlock?.componentId === dnd.target?.parentBlock?.componentId) {
-			return
-		}
+		// append placeholder component to the dom directly
+		// to avoid re-rendering the whole canvas
+		if (!parentBlock || !dnd.target?.element) return
+		const newParent = document.querySelector(`[data-component-id="${parentBlock.componentId}"]`)
+		if (!newParent) return
 
-		if (dnd.target) {
-			dnd.target.parentBlock?.removeChild(dnd.target)
-			parentBlock?.addChild(dnd.target)
-		}
+		// Append the element to the new parent
+		newParent.appendChild(dnd.target.element)
+		dnd.target.parentBlockId = parentBlock.componentId
 	}, 130)
 
 	const resetDnd = () => {
-		if (dnd.target) {
-			dnd.target.parentBlock?.removeChild(dnd.target)
-		}
 		dnd.source = null
-		dnd.target = null
+		if (dnd.target) {
+			const placeholder = document.getElementById("placeholder")
+			if (placeholder) {
+				placeholder.remove()
+			}
+
+			dnd.target = {
+				element: null,
+				parentBlockId: null,
+				index: null,
+			}
+		}
 	}
 
 	// slots
