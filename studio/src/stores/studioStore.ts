@@ -91,7 +91,7 @@ const useStudioStore = defineStore("store", () => {
 			element.style.width = "100%"
 			element.style.height = "2rem"
 
-			const root = document.querySelector("[data-component-id='root']")
+			const root = document.querySelector(".__studio_component__[data-component-id='root']")
 			if (root) {
 				dnd.target.element = root.appendChild(element)
 			}
@@ -102,7 +102,7 @@ const useStudioStore = defineStore("store", () => {
 		// append placeholder component to the dom directly
 		// to avoid re-rendering the whole canvas
 		if (!parentBlock || !dnd.target?.element) return
-		const newParent = document.querySelector(`[data-component-id="${parentBlock.componentId}"]`)
+		const newParent = document.querySelector(`.__studio_component__[data-component-id="${parentBlock.componentId}"]`)
 		if (!newParent) return
 
 		// Append the element to the new parent
