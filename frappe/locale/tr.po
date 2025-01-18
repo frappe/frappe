@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-13 17:03+0000\n"
-"PO-Revision-Date: 2025-01-15 01:13\n"
+"PO-Revision-Date: 2025-01-18 01:24\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -18830,7 +18830,7 @@ msgstr "Lütfen eski şifrenizi giriniz."
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:406
 msgid "Please find attached {0}: {1}"
-msgstr ""
+msgstr "Dosya eki olarak {{ doc.doctype }} #{{ doc.name }} bulunmaktadır."
 
 #: frappe/core/doctype/navbar_settings/navbar_settings.py:43
 msgid "Please hide the standard navbar items instead of deleting them"
@@ -24602,7 +24602,7 @@ msgstr "Gönder Butonu Etiketi"
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:126
 msgid "Submit on Creation"
-msgstr ""
+msgstr "Oluştururken Gönder"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:400
 msgid "Submit this document to complete this step."
@@ -26294,7 +26294,8 @@ msgstr ""
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "To add dynamic subject, use jinja tags like\n\n"
 "<div><pre><code>New {{ doc.doctype }} #{{ doc.name }}</code></pre></div>"
-msgstr ""
+msgstr "Dinamik konu eklemek için aşağıdaki gibi jinja etiketleri kullanın\n\n"
+"<div><pre><code>Yeni {{ doc.doctype }} #{{ doc.name }}</code></pre></div>"
 
 #. Description of the 'Subject' (Data) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
