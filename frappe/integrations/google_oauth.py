@@ -5,6 +5,7 @@ from googleapiclient.discovery import build
 from requests import get, post
 
 import frappe
+from frappe import _
 from frappe.utils import get_request_site_address
 
 CALLBACK_METHOD = "/api/method/frappe.integrations.google_oauth.callback"
@@ -50,10 +51,10 @@ class GoogleOAuth:
 		google_settings = "<a href='/app/google-settings'>Google Settings</a>"
 
 		if not self.google_settings.enable:
-			frappe.throw(frappe._("Please enable {} before continuing.").format(google_settings))
+			frappe.throw(frappe._("Please enable {} before continuing.").format(_(google_settings)))
 
 		if not (self.google_settings.client_id and self.google_settings.client_secret):
-			frappe.throw(frappe._("Please update {} before continuing.").format(google_settings))
+			frappe.throw(frappe._("Please update {} before continuing.").format(_(google_settings)))
 
 	def authorize(self, oauth_code: str) -> dict[str, str | int]:
 		"""Return a dict with access and refresh token.
