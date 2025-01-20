@@ -246,7 +246,7 @@ class DatabaseQuery:
 			{group_by}
 			{order_by}
 			{limit}""".format(**args)
-		print(222, query)
+
 		return frappe.db.sql(
 			query,
 			as_dict=not self.as_list,
