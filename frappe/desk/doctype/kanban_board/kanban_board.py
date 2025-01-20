@@ -424,3 +424,15 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
 
     # Ordenar los proyectos con la clave de ordenamiento personalizada
     return sorted(projects, key=sort_key)
+@frappe.whitelist()
+def call_send_whatsapp_message(aws_url: str, project_name: str):
+    project = frappe.get_doc('Project', project_name)
+
+    return make_post_request(
+        f"{aws_url}/send-after-remote-diagnose-message",
+        headers={"Content-Type":"application/json"},
+        data=json.dumps({ 
+            "phone_number": project.custom_customers_phone_number, 
+            "project_name": project_name 
+        })
+    )
