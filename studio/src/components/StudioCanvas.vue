@@ -212,9 +212,31 @@ const getInsertionIndex = (ev: DragEvent, element: HTMLElement, parentComponent:
 		return parentComponent.children.length
 	}
 
-	const elementMidY = rect.top + rect.height / 2
-	// Insert before the element if mouse is above midpoint, after if mouse is below midpoint
-	return ev.clientY <= elementMidY ? elementIndex : elementIndex + 1
+	const parentEl = document.querySelector(
+		`[data-component-id="${parentComponent.componentId}"]`,
+	) as HTMLElement
+	const direction = getLayoutDirection(parentEl)
+
+	if (direction === "row") {
+		// insert before the element if mouse is on the left side of the element, else right
+		const elementMidX = rect.left + rect.width / 2
+		return ev.clientX <= elementMidX ? elementIndex : elementIndex + 1
+	} else {
+		// insert before the element if mouse is above the midpoint, else after
+		const elementMidY = rect.top + rect.height / 2
+		return ev.clientY <= elementMidY ? elementIndex : elementIndex + 1
+	}
+}
+
+const getLayoutDirection = (element: HTMLElement): "row" | "column" => {
+	const style = window.getComputedStyle(element)
+	const display = style.display
+	if (display === "flex" || display === "inline-flex") {
+		return style.flexDirection.includes("row") ? "row" : "column"
+	} else if (display === "grid" || display == "inline-grid") {
+		return style.gridAutoFlow.includes("row") ? "row" : "column"
+	}
+	return "column"
 }
 
 const findBlock = (componentId: string, blocks?: Block[]): Block | null => {
