@@ -37,13 +37,9 @@ dependencies = [
     "cryptography~=43.0.1",
     "cssutils~=2.9.0",
     "email-reply-parser~=0.5.12",
-<<<<<<< HEAD
     "git-url-parse~=1.2.2",
     "gitdb~=4.0.7",
-    "gunicorn~=22.0.0",
-=======
     "gunicorn @ git+https://github.com/frappe/gunicorn@2f5b4923399d18c28e4221f6514792b5cc7d2c21",
->>>>>>> 678d234bd9 (build: switch to gunicorn fork)
     "html5lib~=1.1",
     "ipython~=8.10.0",
     "ldap3~=2.9",
