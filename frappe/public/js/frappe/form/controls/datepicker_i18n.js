@@ -218,3 +218,85 @@ import "air-datepicker/dist/js/i18n/datepicker.zh.js";
 		firstDay: 1,
 	};
 })(jQuery);
+
+(function ($) {
+	$.fn.datepicker.language["bs"] = {
+		days: ["Nedjelja", "Ponedjeljak", "Utorak", "Srijeda", "Četvrtak", "Petak", "Subota"],
+		daysShort: ["Ned", "Pon", "Uto", "Sri", "Čet", "Pet", "Sub"],
+		daysMin: ["Ne", "Po", "Ut", "Sr", "Če", "Pe", "Su"],
+		months: [
+			"Januar",
+			"Februar",
+			"Mart",
+			"April",
+			"Maj",
+			"Juni",
+			"Juli",
+			"August",
+			"Septembar",
+			"Oktobar",
+			"Novembar",
+			"Decembar",
+		],
+		monthsShort: [
+			"Jan",
+			"Feb",
+			"Mar",
+			"Apr",
+			"Maj",
+			"Jun",
+			"Jul",
+			"Aug",
+			"Sep",
+			"Okt",
+			"Nov",
+			"Dec",
+		],
+		today: "Danas",
+		clear: "Resetiraj",
+		dateFormat: "dd/mm/yyyy",
+		timeFormat: "hh:ii",
+		firstDay: 1,
+	};
+})(jQuery);
+
+(function ($) {
+	$.fn.datepicker.language["hr"] = {
+		days: ["Nedjelja", "Ponedjeljak", "Utorak", "Srijeda", "Četvrtak", "Petak", "Subota"],
+		daysShort: ["Ned", "Pon", "Uto", "Sri", "Čet", "Pet", "Sub"],
+		daysMin: ["Ne", "Po", "Ut", "Sr", "Če", "Pe", "Su"],
+		months: [
+			"Sječanj",
+			"Veljača",
+			"Ožujak",
+			"Travanj",
+			"Svibanj",
+			"Lipanj",
+			"Srpanj",
+			"Kolovoz",
+			"Rujan",
+			"Listopad",
+			"Studeni",
+			"Prosinac",
+		],
+		monthsShort: [
+			"Sje",
+			"Velj",
+			"Ožu",
+			"Tra",
+			"Svi",
+			"Lip",
+			"Srp",
+			"Kol",
+			"Ruj",
+			"Lis",
+			"Stu",
+			"Pro",
+		],
+		today: "Danas",
+		clear: "Resetiraj",
+		dateFormat: "dd/mm/yyyy",
+		timeFormat: "hh:ii",
+		firstDay: 1,
+	};
+})(jQuery);
