@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-12 09:33+0000\n"
-"PO-Revision-Date: 2025-01-18 01:24\n"
+"PO-Revision-Date: 2025-01-20 01:28\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -7460,24 +7460,24 @@ msgstr "Inaktiverad Autosvar"
 #: frappe/public/js/frappe/views/workspace/workspace.js:350
 #: frappe/public/js/frappe/web_form/web_form.js:187
 msgid "Discard"
-msgstr "Förkasta"
+msgstr "Ångra"
 
 #: frappe/website/doctype/web_form/templates/web_form.html:44
 msgctxt "Button in web form"
 msgid "Discard"
-msgstr "Förkasta"
+msgstr "Ångra"
 
 #: frappe/public/js/frappe/form/form.js:853
 msgid "Discard {0}"
-msgstr "Förkasta {0}"
+msgstr "Ångra {0}"
 
 #: frappe/public/js/frappe/web_form/web_form.js:184
 msgid "Discard?"
-msgstr "Förkasta?"
+msgstr "Ångra?"
 
 #: frappe/desk/form/save.py:74
 msgid "Discarded"
-msgstr "Förkastad"
+msgstr "Ångrad"
 
 #. Description of the 'Suggested Indexes' (Table) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
@@ -17957,7 +17957,7 @@ msgstr "Ändra endast detta om du vill använda andra S3-kompatibla objekt lagri
 
 #: frappe/model/document.py:1201
 msgid "Only draft documents can be discarded"
-msgstr "Endast utkast dokument kan förkastas"
+msgstr "Endast utkast dokument kan ångras"
 
 #. Label of the only_for (Link) field in DocType 'Workspace Link'
 #: frappe/desk/doctype/workspace_link/workspace_link.json
@@ -23398,7 +23398,7 @@ msgstr "Skicka Inloggning Länk"
 
 #: frappe/public/js/frappe/views/communication.js:132
 msgid "Send me a copy"
-msgstr "Skicka mig kopia"
+msgstr "Skicka Kopia"
 
 #: frappe/email/doctype/newsletter/newsletter.js:46
 msgid "Send now"
