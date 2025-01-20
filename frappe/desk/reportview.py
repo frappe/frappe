@@ -778,6 +778,7 @@ def is_user_allowed():
         "System Manager",
         "Sales Manager",
         "Projects Manager",
+        "Workshop Viewer",
     ]  # list of the user roles can see all projects without assign
     return any(role in allowed_roles for role in user_roles)
 
@@ -797,4 +798,4 @@ def fetch_data_with_filters(filters=[], args=None, page_length=0):
 
 
 def is_default_project_request(args):
-    return len(args["filters"]) == 0 and args["doctype"] == "Project" and args["page_length"] == "0"
+    return len(args["filters"]) == 0 and args["doctype"] == "Project"
