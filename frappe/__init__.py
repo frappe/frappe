@@ -102,7 +102,7 @@ def _get_local_proxy(self: Local, name: str) -> LocalProxy:
 
 		raise RuntimeError("object is not bound") from None
 
-	lp = LocalProxy(_local_contextvar, name)
+	lp = LocalProxy(_get_current_object)
 	object.__setattr__(lp, "_get_current_object", _get_current_object)
 	return lp
 

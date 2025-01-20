@@ -27,7 +27,7 @@ dependencies = [
     "RestrictedPython~=7.4",
     "WeasyPrint==59.0",
     "pydyf==0.10.0",
-    "Werkzeug~=3.0.1",
+    "Werkzeug==3.0.6",
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.12.2",
     "bleach-allowlist~=1.0.3",
