@@ -177,11 +177,6 @@ class BaseDocument:
 		state.pop("meta", None)
 		state.pop("permitted_fieldnames", None)
 		state.pop("_parent_doc", None)
-		state.pop("flags", None)
-
-	def __setstate__(self, state):
-		self.__dict__ = state
-		self.flags = _dict()
 
 	def update(self, d):
 		"""Update multiple fields of a doctype using a dictionary of key-value pairs.

@@ -68,6 +68,7 @@ from frappe.utils.data import (
 	get_url_to_form,
 	get_year_ending,
 	getdate,
+	is_invalid_date_string,
 	now_datetime,
 	nowtime,
 	pretty_date,
@@ -669,11 +670,15 @@ class TestDateUtils(IntegrationTestCase):
 
 	@given(st.datetimes())
 	def test_get_datetime(self, original):
+		if is_invalid_date_string(str(original)):
+			return
 		parsed = get_datetime(str(original))
 		self.assertEqual(parsed, original)
 
 	@given(st.datetimes(timezones=st.timezones()))
 	def test_get_datetime_tz_aware(self, original):
+		if is_invalid_date_string(str(original)):
+			return
 		parsed = get_datetime(str(original))
 		self.assertEqual(parsed, original)
 

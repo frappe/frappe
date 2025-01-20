@@ -182,6 +182,7 @@ class User(Document):
 		self.populate_role_profile_roles()
 		self.check_roles_added()
 		self.set_system_user()
+		self.clean_name()
 		self.set_full_name()
 		self.check_enable_disable()
 		self.ensure_unique_roles()
@@ -309,6 +310,11 @@ class User(Document):
 	def has_website_permission(self, ptype, user, verbose=False):
 		"""Return True if current user is the session user."""
 		return self.name == frappe.session.user
+
+	def clean_name(self):
+		self.first_name = escape_html(self.first_name)
+		self.middle_name = escape_html(self.middle_name)
+		self.last_name = escape_html(self.last_name)
 
 	def set_full_name(self):
 		self.full_name = " ".join(filter(None, [self.first_name, self.last_name]))

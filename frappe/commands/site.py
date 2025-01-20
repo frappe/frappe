@@ -784,7 +784,7 @@ def reload_doctype(context: CliCtxObj, doctype):
 def add_to_hosts(context: CliCtxObj):
 	"Add site to hosts"
 	for site in context.sites:
-		frappe.commands.popen(f"echo 127.0.0.1\t{site} | sudo tee -a /etc/hosts")
+		frappe.commands.popen(f"echo '127.0.0.1\t{site}\n::1\t{site}' | sudo tee -a /etc/hosts")
 	if not context.sites:
 		raise SiteNotSpecifiedError
 

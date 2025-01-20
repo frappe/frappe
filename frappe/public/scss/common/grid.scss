@@ -2,6 +2,7 @@
 	border: 1px solid var(--table-border-color);
 	border-radius: var(--border-radius-md);
 	color: var(--text-color);
+	min-height: 150px;
 	background-color: var(--subtle-accent);
 }
 
@@ -25,7 +26,7 @@
 	}
 
 	&.with-filter {
-		height: 64px;
+		height: 66px;
 	}
 	.filter-row {
 		background-color: var(--bg-color);
@@ -33,7 +34,6 @@
 		.search {
 			// TODO: Align with table grid without overwriting padding if possible
 			padding: 4px 7px 4px 7px !important;
-			border-bottom: 1px solid var(--table-border-color);
 		}
 	}
 
@@ -190,6 +190,7 @@
 
 .row-index {
 	text-align: center;
+	flex-grow: 0;
 }
 
 .grid-row > .row {
@@ -230,7 +231,9 @@
 		--input-disabled-bg: var(--gray-50);
 		.grid-static-col {
 			padding: 0px !important;
-			height: 32px;
+		}
+		.grid-static-col.row-index {
+			padding: var(--grid-padding) !important;
 		}
 
 		.frappe-control[data-fieldtype="Select"].form-group .select-icon {
@@ -327,6 +330,9 @@
 			max-height: unset !important;
 			line-height: 1.3 !important;
 		}
+	}
+	.data-row div[data-fieldname="options"] {
+		height: 40px;
 	}
 }
 
@@ -600,44 +606,58 @@
 	background-color: var(--subtle-accent);
 	border-top-left-radius: var(--border-radius-md);
 	border-top-right-radius: var(--border-radius-md);
+	border: 1px solid var(--table-border-color);
 	.form-grid {
 		display: grid;
 		grid-auto-rows: min-content;
+		border: unset;
 		.grid-static-col.col-xs-1 {
 			flex: 1 0 60px;
+			width: 60px;
 		}
 		.grid-static-col.col-xs-2 {
-			flex: 1 0 90px;
+			flex: 1 0 100px;
+			width: 100px;
 		}
 		.grid-static-col.col-xs-3 {
-			flex: 1 0 120px;
+			flex: 1 0 140px;
+			width: 140px;
 		}
 		.grid-static-col.col-xs-4 {
-			flex: 1 0 150px;
+			flex: 1 0 200px;
+			width: 200;
 		}
 		.grid-static-col.col-xs-5 {
-			flex: 1 0 200px;
+			flex: 1 0 250px;
+			width: 250px;
 		}
 		.grid-static-col.col-xs-6 {
-			flex: 1 0 250px;
+			flex: 1 0 300px;
+			width: 300px;
 		}
 		.grid-static-col.col-xs-7 {
-			flex: 1 0 300px;
+			flex: 1 0 350px;
+			width: 350px;
 		}
 		.grid-static-col.col-xs-8 {
-			flex: 1 0 350px;
+			flex: 1 0 400px;
+			width: 400px;
 		}
 		.grid-static-col.col-xs-9 {
-			flex: 1 0 400px;
+			flex: 1 0 450px;
+			width: 450px;
 		}
 		.grid-static-col.col-xs-10 {
-			flex: 1 0 450px;
+			flex: 1 0 500px;
+			width: 500px;
 		}
 		.grid-static-col.col-xs-11 {
-			flex: 1 0 500px;
+			flex: 1 0 550px;
+			width: 550px;
 		}
 		.grid-static-col.col-xs-12 {
-			flex: 1 0 550px;
+			flex: 1 0 600px;
+			width: 600px;
 		}
 		.grid-row > .row .col:last-child,
 		.grid-row > .dialog-assignment-row .col:first-child,
@@ -650,10 +670,13 @@
 			max-width: 40px;
 			min-width: 40px;
 		}
+		.grid-heading-row .grid-row .data-row.row,
+		.grid-body .rows .grid-row .data-row.row {
+			justify-content: space-between;
+		}
 	}
 }
 .grid-scroll-bar {
-	display: none;
 	overflow-x: auto;
 	height: 12px;
 	position: relative;
@@ -670,10 +693,6 @@
 }
 
 @media (max-width: map-get($grid-breakpoints, "md")) {
-	.grid-scroll-bar {
-		display: block;
-	}
-
 	.form-column.col-sm-6 .form-grid {
 		.row-index {
 			display: block;

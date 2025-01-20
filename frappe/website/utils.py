@@ -29,14 +29,11 @@ CLEANUP_PATTERN_2 = re.compile("[:/]")
 CLEANUP_PATTERN_3 = re.compile(r"(-)\1+")
 
 
-def delete_page_cache(path):
-	groups = ["website_page", "page_context"]
+def delete_page_cache(path=None):
 	if path:
-		frappe.cache.hdel_names(groups, path)
-		frappe.cache.delete_value("full_index")
+		frappe.cache.delete_value(f"{WEBSITE_PAGE_CACHE_PREFIX}{path}")
 	else:
-		groups.append("full_index")
-		frappe.cache.delete_value(groups)
+		frappe.cache.delete_keys(WEBSITE_PAGE_CACHE_PREFIX)
 
 
 def find_first_image(html):
@@ -388,14 +385,13 @@ def clear_cache(path=None):
 	else:
 		clear_sitemap()
 		frappe.clear_cache("Guest")
+		delete_page_cache()
 		keys += [
 			"portal_menu_items",
 			"home_page",
 			"website_route_rules",
 			"doctypes_with_web_view",
 			"website_redirects",
-			"page_context",
-			"website_page",
 		]
 
 	frappe.cache.delete_value(keys)
@@ -517,12 +513,17 @@ def get_sidebar_json_path(path, look_for=False):
 			return ""
 
 
+WEBSITE_PAGE_CACHE_PREFIX = "website_page::"
+
+
 def cache_html(func):
 	@wraps(func)
 	def cache_html_decorator(*args, **kwargs):
+		cache_key = f"{WEBSITE_PAGE_CACHE_PREFIX}{args[0].path}"
+
 		if can_cache():
 			html = None
-			page_cache = frappe.cache.hget("website_page", args[0].path)
+			page_cache = frappe.cache.get_value(cache_key)
 			if page_cache and frappe.local.lang in page_cache:
 				html = page_cache[frappe.local.lang]
 			if html:
@@ -532,9 +533,9 @@ def cache_html(func):
 		html = func(*args, **kwargs)
 		context = args[0].context
 		if can_cache(context.no_cache):
-			page_cache = frappe.cache.hget("website_page", args[0].path) or {}
+			page_cache = frappe.cache.get_value(cache_key) or {}
 			page_cache[frappe.local.lang] = html
-			frappe.cache.hset("website_page", args[0].path, page_cache)
+			frappe.cache.set_value(cache_key, page_cache, expires_in_sec=30 * 60)
 			frappe.local.response.can_cache = True
 
 		return html

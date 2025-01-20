@@ -797,6 +797,7 @@ class File(Document):
 
 def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
+	frappe.db.add_index("File", ["file_url(100)"])
 
 
 def has_permission(doc, ptype=None, user=None, debug=False):

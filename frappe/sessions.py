@@ -309,8 +309,7 @@ class Session:
 			self.start_as_guest()
 
 		if self.sid != "Guest":
-			frappe.local.user_lang = frappe.translate.get_user_lang(self.data.user)
-			frappe.local.lang = frappe.local.user_lang
+			frappe.local.lang = frappe.translate.get_user_lang(self.data.user)
 
 	def get_session_record(self):
 		"""get session record, or return the standard Guest Record"""
@@ -387,9 +386,7 @@ class Session:
 		if frappe.session.user == "Guest":
 			return
 
-		now = frappe.utils.now()
-
-		Sessions = frappe.qb.DocType("Sessions")
+		now = frappe.utils.now_datetime()
 
 		# update session in db
 		last_updated = self.data.data.last_updated
@@ -397,9 +394,13 @@ class Session:
 
 		# database persistence is secondary, don't update it too often
 		updated_in_db = False
-		if (force or (time_diff is None) or (time_diff > 600)) and not frappe.flags.read_only:
+		if (
+			force or (time_diff is None) or (time_diff > 600) or self._update_in_cache
+		) and not frappe.flags.read_only:
 			self.data.data.last_updated = now
 			self.data.data.lang = str(frappe.lang)
+
+			Sessions = frappe.qb.DocType("Sessions")
 			# update sessions table
 			(
 				frappe.qb.update(Sessions)
@@ -457,26 +458,3 @@ def get_expiry_period():
 		exp_sec = exp_sec + ":00"
 
 	return exp_sec
-
-
-def get_geo_from_ip(ip_addr):
-	try:
-		from geolite2 import geolite2
-
-		with geolite2 as f:
-			reader = f.reader()
-			data = reader.get(ip_addr)
-
-			return frappe._dict(data)
-	except ImportError:
-		return
-	except ValueError:
-		return
-	except TypeError:
-		return
-
-
-def get_geo_ip_country(ip_addr):
-	match = get_geo_from_ip(ip_addr)
-	if match:
-		return match.country
