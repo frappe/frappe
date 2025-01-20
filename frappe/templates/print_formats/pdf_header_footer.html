@@ -31,11 +31,12 @@
 				margin-top: -15mm !important;
 			}
 
+
 			/* Dont show explicit links for <a> tags */
 			@media print {
 				a[href]:after {
-					content: none;
-				}
+					content: " (" attr(href) ")" !important;
+			 } 
 			}
 		</style>
 
