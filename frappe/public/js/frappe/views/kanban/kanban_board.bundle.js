@@ -40,7 +40,7 @@ const zoomLevels = {
 
 (function () {
 	let kanban_size = KanbanSize.large
-	let same_status_2days = "2 days in the same status"
+	let same_status_2days = "2 days w/o update"
 	let quotations_draft = 0
 	let unread_conversations = []
 	var method_prefix = "frappe.desk.doctype.kanban_board.kanban_board.";
@@ -69,7 +69,7 @@ const zoomLevels = {
 				},
 			},
 			actions: {
-				init: function (context, opts) {
+				init: async function (context, opts) {
 					context.commit("update_state", {
 						empty_state: true,
 					});
@@ -77,9 +77,16 @@ const zoomLevels = {
 					var card_meta = opts.card_meta;
 					opts.card_meta = card_meta;
 					opts.board = board;
-					var cards = opts.cards.map(function (card) {
-						return prepare_card(card, opts);
-					});
+					var cards = []
+					let phone_numbers = opts.cards.map(card => card.custom_customers_phone_number)
+					phone_numbers = new Set(phone_numbers)
+					const conversations = await last_message_from_customer(phone_numbers)
+
+					for (const card of opts.cards) {
+						const customer_responded = conversations.includes(card.custom_customers_phone_number)
+						cards.push(prepare_card(card, opts, null, customer_responded))
+					}
+
 					var columns = prepare_columns(board.columns);
 					context.commit("update_state", {
 						doctype: opts.doctype,
@@ -95,9 +102,18 @@ const zoomLevels = {
 				update_cards: async function (context, cards) {
 					await getUnreadConversations()
 					var state = context.state;
+					var prepared_cards = []
+					let phone_numbers = cards.map(card => card.custom_customers_phone_number)
+					phone_numbers = new Set(phone_numbers)
+					const conversations = await last_message_from_customer(phone_numbers)
+
+					for (const card of cards) {
+						const customer_responded = conversations.includes(card.custom_customers_phone_number)
+						prepared_cards.push(prepare_card(card, state, null, customer_responded))
+					}
+
 					var _cards = [].concat(
-						...cards
-							.map((card) => prepare_card(card, state)),
+						...prepared_cards,
 						...state.cards
 					).uniqBy((el) => el.name)
 
@@ -1182,7 +1198,7 @@ const zoomLevels = {
 		init();
 	};
 
-	function prepare_card(card, state, doc) {
+	function prepare_card(card, state, doc, customer_responded) {
 		var assigned_list = card._assign ? JSON.parse(card._assign) : [];
 		var comment_count = card._comment_count || 0;
 
@@ -1203,7 +1219,7 @@ const zoomLevels = {
 			comment_count: card.comment_count || comment_count,
 			color: card.color || null,
 			doc: doc || card,
-			border: set_border_color(card),
+			border: set_border_color(card, customer_responded),
 			conversation: hasconversationUnread(card),
 			status_modified: card.status_modified,
 		};
@@ -1213,7 +1229,7 @@ const zoomLevels = {
 		return unread_conversations.find((el) => el.from === card.custom_customers_phone_number)
 	}
 
-	function set_border_color(card) {
+	function set_border_color(card, customer_responded) {
 		let message = false;
 		const nowDate = new Date();
 		const modifiedDate = new Date(card.status_modified);
@@ -1221,6 +1237,7 @@ const zoomLevels = {
 		const in_parking = card.status === 'In parking' && Number(card.queue_position) <= 5 && satuday_sunday_combined(card.parking_date, nowDate) >= 2;;
 		const quotation = card.status === 'Quoted' && quotations_draft.length && quotations_draft.find(quotation => quotation.parent == card.name);
 		const hass_passed_one_day_quotation = quotation && has_passed_one_day(quotation.modified);
+
 		if (in_parking) {
 			message = "2 days since moved to parking.";
 		} else if (hass_passed_one_day_quotation) {
@@ -1230,7 +1247,7 @@ const zoomLevels = {
 			card.status !== 'In parking' &&
 			card.status !== 'Completed' &&
 			!isNaN(modifiedDate.getTime()) &&
-			dayDifference > 2) {
+			dayDifference > 2 && !customer_responded) {
 			message = same_status_2days;
 		}
 		return { message };
@@ -1267,6 +1284,19 @@ const zoomLevels = {
 		const millisecondsInADay = 24 * 60 * 60 * 1000;
 		const differenceInDays = differenceInMs / millisecondsInADay;
 		return differenceInDays >= 1;
+	}
+
+	async function last_message_from_customer(phone_numbers){
+		const conversations = await frappe.db.get_list('Conversation', {
+			filters: {
+				from: ["in", phone_numbers],
+				from: ['is', 'set'],
+				last_message_from_customer: 1
+			},
+			fields: ["from"],
+		})
+
+		return conversations.map(conversation => conversation.from)
 	}
 
 	async function getUnreadConversations() {
