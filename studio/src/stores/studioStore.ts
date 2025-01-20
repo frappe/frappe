@@ -76,14 +76,16 @@ const useStudioStore = defineStore("store", () => {
 		source: null as unknown as string | null, // drag component name
 		target: {
 			element: null as Element | null,
-			parentBlockId: null as string | null,
+			parentComponent: null as Block | null,
 			index: null as number | null,
+			slotName: null as string | null,
 		}
 	})
 
 	const startDrag = (ev: DragEvent, componentName: string) => {
 		if (ev.dataTransfer) {
 			ev.dataTransfer.setData("componentName", componentName)
+			ev.dataTransfer.setDragImage(new Image(), 0, 0)
 			dnd.source = componentName
 
 			let element = document.createElement("div")
@@ -98,16 +100,17 @@ const useStudioStore = defineStore("store", () => {
 		}
 	}
 
-	const updateDropTarget = throttle((parentBlock: Block | null) => {
+	const updateDropTarget = throttle((parentComponent: Block | null, index) => {
 		// append placeholder component to the dom directly
 		// to avoid re-rendering the whole canvas
-		if (!parentBlock || !dnd.target?.element) return
-		const newParent = document.querySelector(`.__studio_component__[data-component-id="${parentBlock.componentId}"]`)
+		if (!parentComponent || !dnd.target?.element) return
+		const newParent = document.querySelector(`.__studio_component__[data-component-id="${parentComponent.componentId}"]`)
 		if (!newParent) return
 
 		// Append the element to the new parent
-		newParent.appendChild(dnd.target.element)
-		dnd.target.parentBlockId = parentBlock.componentId
+		newParent.insertBefore(dnd.target.element, newParent.children[index])
+		dnd.target.parentComponent = parentComponent
+		dnd.target.index = index
 	}, 130)
 
 	const resetDnd = () => {
@@ -120,8 +123,9 @@ const useStudioStore = defineStore("store", () => {
 
 			dnd.target = {
 				element: null,
-				parentBlockId: null,
+				parentComponent: null,
 				index: null,
+				slotName: null,
 			}
 		}
 	}

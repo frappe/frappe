@@ -153,47 +153,68 @@ const rootComponent = ref(getBlockCopy(props.componentTree, true))
 // handle dropping components
 useDropZone(canvasContainer, {
 	onDrop: (_files, ev) => {
-		let { parentComponent, slotName } = getDropTarget(ev)
-		const droppedComponentName = ev.dataTransfer?.getData("componentName")
+		const droppedComponentName = store.dnd.source
+		const { parentComponent, index, slotName } = store.dnd.target
+
 		if (droppedComponentName && parentComponent) {
 			const newBlock = getComponentBlock(droppedComponentName)
 			if (slotName) {
 				parentComponent.updateSlot(slotName, newBlock)
 			} else {
-				parentComponent.addChild(newBlock)
+				parentComponent.addChild(newBlock, index)
 			}
 		}
 
 		store.resetDnd()
 	},
 	onOver: (_files, ev) => {
-		const { parentComponent } = getDropTarget(ev)
+		const { parentComponent, index } = getDropTarget(ev)
 		if (parentComponent) {
 			store.hoveredBlock = parentComponent.componentId
-			store.updateDropTarget(parentComponent)
+			store.updateDropTarget(parentComponent, index)
 		}
 	},
 })
 
 const getDropTarget = (ev: DragEvent) => {
-	let element = document.elementFromPoint(ev.x, ev.y) as HTMLElement
+	const element = document.elementFromPoint(ev.clientX, ev.clientY) as HTMLElement
+	const targetElement = element.closest(".__studio_component__") as HTMLElement
+
 	let parentComponent = rootComponent.value
 	let slotName
+	let index = parentComponent.children.length
 
-	if (element) {
-		if (element.dataset.componentId) {
-			parentComponent = findBlock(element.dataset.componentId) || parentComponent
-			while (parentComponent && !parentComponent.canHaveChildren()) {
-				parentComponent = parentComponent.getParentBlock()
-			}
-			slotName = element.dataset.slotName || store.selectedSlot?.slotName
+	if (targetElement && targetElement.dataset.componentId) {
+		parentComponent = findBlock(targetElement.dataset.componentId) || parentComponent
+		// Walk up the tree until we find a component that can have children
+		while (parentComponent && !parentComponent.canHaveChildren()) {
+			parentComponent = parentComponent.getParentBlock()
 		}
+		slotName = targetElement.dataset.slotName || store.selectedSlot?.slotName
+		index = getInsertionIndex(ev, targetElement, parentComponent)
 	}
-
 	return {
 		parentComponent,
 		slotName,
+		index,
 	}
+}
+
+const getInsertionIndex = (ev: DragEvent, element: HTMLElement, parentComponent: Block): number => {
+	/**
+	 * Helper function to determine the exact insertion index
+	 */
+	const rect = element.getBoundingClientRect()
+	const elementIndex = parentComponent.children.findIndex(
+		(child) => child.componentId === element.dataset.componentId,
+	)
+	if (elementIndex === -1) {
+		return parentComponent.children.length
+	}
+
+	const elementMidY = rect.top + rect.height / 2
+	// Insert before the element if mouse is above midpoint, after if mouse is below midpoint
+	return ev.clientY <= elementMidY ? elementIndex : elementIndex + 1
 }
 
 const findBlock = (componentId: string, blocks?: Block[]): Block | null => {
