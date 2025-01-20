@@ -1288,10 +1288,9 @@ const zoomLevels = {
 
 	async function last_message_from_customer(phone_numbers){
 		const conversations = await frappe.db.get_list('Conversation', {
-			filters: {
-				from: ["in", phone_numbers],
-				from: ['is', 'set'],
-				last_message_from_customer: 1
+			filters:{
+					from: ["in", phone_numbers],
+					last_message_from_customer: 1
 			},
 			fields: ["from"],
 		})
