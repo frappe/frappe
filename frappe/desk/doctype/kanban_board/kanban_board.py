@@ -372,7 +372,7 @@ def call_send_whatsapp_message(aws_url: str, project_name: str):
     project = frappe.get_doc('Project', project_name)
 
     return make_post_request(
-        f"{aws_url}send-after-remote-diagnose-message",
+        f"{aws_url}/send-after-remote-diagnose-message",
         headers={"Content-Type":"application/json"},
         data=json.dumps({ 
             "phone_number": project.custom_customers_phone_number, 
