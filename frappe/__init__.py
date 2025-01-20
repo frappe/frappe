@@ -2323,56 +2323,6 @@ def get_active_domains():
 	return get_active_domains()
 
 
-def get_version(doctype, name, limit=None, head=False, raise_err=True):
-	"""
-	Return a list of version information for the given DocType.
-
-	Note: Applicable only if DocType has changes tracked.
-
-	Example
-	>>> frappe.get_version("User", "foobar@gmail.com")
-	>>>
-	[
-	        {
-	                "version": [version.data],			# Refer Version DocType get_diff method and data attribute
-	                "user": "admin@gmail.com",			# User that created this version
-	                "creation": <datetime.datetime>		# Creation timestamp of that object.
-	        }
-	]
-	"""
-	meta = get_meta(doctype)
-	if meta.track_changes:
-		names = get_all(
-			"Version",
-			filters={
-				"ref_doctype": doctype,
-				"docname": name,
-				"order_by": "creation" if head else None,
-				"limit": limit,
-			},
-			as_list=1,
-		)
-
-		from frappe.utils import dictify, safe_json_loads, squashify
-
-		versions = []
-
-		for name in names:
-			name = squashify(name)
-			doc = get_doc("Version", name)
-
-			data = doc.data
-			data = safe_json_loads(data)
-			data = dictify(dict(version=data, user=doc.owner, creation=doc.creation))
-
-			versions.append(data)
-
-		return versions
-	else:
-		if raise_err:
-			raise ValueError(_("{0} has no versions tracked.").format(doctype))
-
-
 @whitelist(allow_guest=True)
 def ping():
 	return "pong"
