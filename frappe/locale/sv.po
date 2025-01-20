@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-13 17:03+0000\n"
-"PO-Revision-Date: 2025-01-15 01:13\n"
+"PO-Revision-Date: 2025-01-20 01:27\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -7367,16 +7367,16 @@ msgstr "Inaktiverad Autosvar"
 #: frappe/public/js/frappe/views/workspace/workspace.js:547
 #: frappe/public/js/frappe/web_form/web_form.js:187
 msgid "Discard"
-msgstr "Förkasta"
+msgstr "Ångra"
 
 #: frappe/website/doctype/web_form/templates/web_form.html:41
 msgctxt "Button in web form"
 msgid "Discard"
-msgstr "Förkasta"
+msgstr "Ångra"
 
 #: frappe/public/js/frappe/web_form/web_form.js:184
 msgid "Discard?"
-msgstr "Förkasta?"
+msgstr "Ångra?"
 
 #. Description of the 'Suggested Indexes' (Table) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
@@ -22825,7 +22825,7 @@ msgstr "Skicka Inloggning Länk"
 
 #: frappe/public/js/frappe/views/communication.js:132
 msgid "Send me a copy"
-msgstr "Skicka mig kopia"
+msgstr "Skicka Kopia"
 
 #: frappe/email/doctype/newsletter/newsletter.js:46
 msgid "Send now"
@@ -29389,7 +29389,7 @@ msgstr "Du har inte lagt till några Översiktpanel Diagram eller Nummerkort än
 
 #: frappe/public/js/frappe/list/list_view.js:472
 msgid "You haven't created a {0} yet"
-msgstr "Ingen {0} skapad än"
+msgstr "Du har inte skapat {0} än"
 
 #: frappe/rate_limiter.py:150
 msgid "You hit the rate limit because of too many requests. Please try after sometime."
