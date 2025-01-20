@@ -964,49 +964,6 @@ def get_domain_data(module):
 			raise
 
 
-def clear_cache(user: str | None = None, doctype: str | None = None):
-	"""Clear **User**, **DocType** or global cache.
-
-	:param user: If user is given, only user cache is cleared.
-	:param doctype: If doctype is given, only DocType cache is cleared."""
-	import frappe.cache_manager
-	import frappe.utils.caching
-	from frappe.website.router import clear_routing_cache
-
-	if doctype:
-		frappe.cache_manager.clear_doctype_cache(doctype)
-		reset_metadata_version()
-	elif user:
-		frappe.cache_manager.clear_user_cache(user)
-	else:  # everything
-		# Delete ALL keys associated with this site.
-		keys_to_delete = set(frappe.cache.get_keys(""))
-		for key in frappe.get_hooks("persistent_cache_keys"):
-			keys_to_delete.difference_update(frappe.cache.get_keys(key))
-		frappe.cache.delete_value(list(keys_to_delete), make_keys=False)
-
-		reset_metadata_version()
-		local.cache = {}
-		local.new_doc_templates = {}
-
-		for fn in get_hooks("clear_cache"):
-			get_attr(fn)()
-
-	if (not doctype and not user) or doctype == "DocType":
-		frappe.utils.caching._SITE_CACHE.clear()
-		frappe.client_cache.clear_cache()
-
-	local.role_permissions = {}
-	if hasattr(local, "request_cache"):
-		local.request_cache.clear()
-	if hasattr(local, "system_settings"):
-		del local.system_settings
-	if hasattr(local, "website_settings"):
-		del local.website_settings
-
-	clear_routing_cache()
-
-
 def only_has_select_perm(doctype, user=None, ignore_permissions=False):
 	if ignore_permissions:
 		return False
@@ -1134,13 +1091,6 @@ def generate_hash(txt: str | None = None, length: int = 56) -> str:
 		)
 
 	return secrets.token_hex(math.ceil(length / 2))[:length]
-
-
-def reset_metadata_version():
-	"""Reset `metadata_version` (Client (Javascript) build ID) hash."""
-	v = generate_hash()
-	client_cache.set_value("metadata_version", v)
-	return v
 
 
 def new_doc(
@@ -2457,12 +2407,6 @@ def safe_decode(param, encoding="utf-8", fallback_map: dict | None = None):
 	return param
 
 
-def parse_json(val):
-	from frappe.utils import parse_json
-
-	return parse_json(val)
-
-
 def mock(type, size=1, locale="en"):
 	import faker
 
@@ -2499,10 +2443,12 @@ def validate_and_sanitize_search_inputs(fn):
 
 
 import frappe._optimizations
+from frappe.cache_manager import clear_cache, reset_metadata_version
 
 # Backward compatibility
 from frappe.config import get_common_site_config, get_site_config
 from frappe.core.doctype.system_settings.system_settings import get_system_settings
+from frappe.utils import parse_json
 from frappe.utils.error import log_error
 
 frappe._optimizations.optimize_all()

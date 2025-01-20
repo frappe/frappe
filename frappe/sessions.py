@@ -19,7 +19,7 @@ import frappe.translate
 import frappe.utils
 from frappe import _
 from frappe.apps import get_apps, get_default_path, is_desk_apps
-from frappe.cache_manager import clear_user_cache
+from frappe.cache_manager import clear_user_cache, reset_metadata_version
 from frappe.query_builder import Order
 from frappe.utils import cint, cstr, get_assets_json
 from frappe.utils.change_log import has_app_update_notifications
@@ -157,7 +157,7 @@ def get():
 
 	bootinfo["metadata_version"] = frappe.client_cache.get_value("metadata_version")
 	if not bootinfo["metadata_version"]:
-		bootinfo["metadata_version"] = frappe.reset_metadata_version()
+		bootinfo["metadata_version"] = reset_metadata_version()
 
 	bootinfo.notes = get_unseen_notes()
 	bootinfo.assets_json = get_assets_json()
