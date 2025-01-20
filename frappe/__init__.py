@@ -45,7 +45,7 @@ from frappe.query_builder.utils import (
 	patch_query_execute,
 )
 from frappe.utils.caching import request_cache
-from frappe.utils.data import bold, cint, cstr, sbool
+from frappe.utils.data import bold, cint, cstr, safe_decode, safe_encode, sbool
 
 # Local application imports
 from .exceptions import *
@@ -2321,35 +2321,6 @@ def get_active_domains():
 @whitelist(allow_guest=True)
 def ping():
 	return "pong"
-
-
-def safe_encode(param, encoding="utf-8"):
-	try:
-		param = param.encode(encoding)
-	except Exception:
-		pass
-	return param
-
-
-def safe_decode(param, encoding="utf-8", fallback_map: dict | None = None):
-	"""
-	Method to safely decode data into a string
-
-	:param param: The data to be decoded
-	:param encoding: The encoding to decode into
-	:param fallback_map: A fallback map to reference in case of a LookupError
-	:return:
-	"""
-	try:
-		param = param.decode(encoding)
-	except LookupError:
-		try:
-			param = param.decode((fallback_map or {}).get(encoding, "utf-8"))
-		except Exception:
-			pass
-	except Exception:
-		pass
-	return param
 
 
 def mock(type, size=1, locale="en"):
