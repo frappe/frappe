@@ -2599,6 +2599,11 @@ def map_trackers(url_trackers: dict, create: bool = False):
 	return frappe_trackers
 
 
+def bold(text: str | int | float) -> str:
+	"""Return `text` wrapped in `<strong>` tags."""
+	return f"<strong>{text}</strong>"
+
+
 # This is used in test to count memory overhead of default imports.
 def _get_rss_memory_usage():
 	import psutil

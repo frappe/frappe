@@ -45,7 +45,7 @@ from frappe.query_builder.utils import (
 	patch_query_execute,
 )
 from frappe.utils.caching import request_cache
-from frappe.utils.data import cint, cstr, sbool
+from frappe.utils.data import bold, cint, cstr, sbool
 
 # Local application imports
 from .exceptions import *
@@ -2291,11 +2291,6 @@ def get_desk_link(doctype, name):
 
 	html = '<a href="/app/Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {title_local}</a>'
 	return html.format(doctype=doctype, name=name, doctype_local=_(doctype), title_local=_(title))
-
-
-def bold(text: str | int | float) -> str:
-	"""Return `text` wrapped in `<strong>` tags."""
-	return f"<strong>{text}</strong>"
 
 
 def safe_eval(code, eval_globals=None, eval_locals=None):
