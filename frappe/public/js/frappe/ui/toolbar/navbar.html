@@ -3,8 +3,10 @@
 		<a class="navbar-brand navbar-home" href="/app">
 			<img class="app-logo" style="width: {{ navbar_settings.logo_width || 28 }}px" src="{{ frappe.boot.app_logo_url }}">
 		</a>
-		<ul class="nav navbar-nav d-none d-sm-flex" id="navbar-breadcrumbs"></ul>
-		<div class="collapse navbar-collapse justify-content-end">
+		<ul class="nav navbar-nav d-none d-sm-flex" id="navbar-breadcrumbs"
+		{% if frappe.boot.is_workshop_viewer %} style="display: none !important" {% endif %}></ul>
+		<div class="collapse navbar-collapse justify-content-end" 
+     {% if frappe.boot.is_workshop_viewer %} style="display: none !important" {% endif %}>
 			<form class="form-inline fill-width justify-content-end" role="search" onsubmit="return false;">
 				{% if (frappe.boot.read_only) { %}
 					<span class="indicator-pill yellow no-indicator-dot" title="{%= __("Your site is undergoing maintenance or being updated.") %}">

@@ -454,6 +454,7 @@ def get_geo_ip_country(ip_addr):
 	if match:
 		return match.country
 
+@frappe.whitelist()
 def get_is_workshop_viewer():
 	role = frappe.db.get_value("User", frappe.session.user, "role_profile_name")
 	if role == "Workshop Viewer":
