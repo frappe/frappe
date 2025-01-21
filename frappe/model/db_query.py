@@ -212,6 +212,19 @@ class DatabaseQuery:
 			# apply_fieldlevel_read_permissions has likely removed ALL the fields that user asked for
 			return []
 
+		if frappe.db.db_type == "postgres":
+			field_parts = args.fields.split(",")
+			modified_fields = []
+			for part in field_parts:
+				# Handle "as 'alias'" pattern
+				if " as '" in part.lower():
+					before_as, after_as = part.split(" as '", 1)
+					alias = after_as.rstrip("'").strip()
+					modified_fields.append(f'{before_as} AS "{alias}"')
+				else:
+					modified_fields.append(part)
+			args.fields = ",".join(modified_fields)
+
 		if args.conditions:
 			args.conditions = "where " + args.conditions
 
