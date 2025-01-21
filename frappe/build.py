@@ -4,6 +4,7 @@ import os
 import re
 import shutil
 import subprocess
+from contextlib import suppress
 from subprocess import getoutput
 from tempfile import mkdtemp
 from urllib.parse import urlparse
@@ -255,6 +256,9 @@ def bundle(
 	check_node_executable()
 	frappe_app_path = frappe.get_app_source_path("frappe")
 	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env(), raise_err=True)
+
+	with suppress(Exception):
+		frappe.cache.flushall()
 
 
 def watch(apps=None):
