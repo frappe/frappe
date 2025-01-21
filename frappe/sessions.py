@@ -172,6 +172,7 @@ def get():
 	bootinfo["setup_complete"] = cint(frappe.get_system_settings("setup_complete"))
 
 	bootinfo["desk_theme"] = frappe.db.get_value("User", frappe.session.user, "desk_theme") or "Light"
+	bootinfo["is_workshop_viewer"] = get_is_workshop_viewer()
 
 	return bootinfo
 
@@ -452,3 +453,9 @@ def get_geo_ip_country(ip_addr):
 	match = get_geo_from_ip(ip_addr)
 	if match:
 		return match.country
+
+def get_is_workshop_viewer():
+	role = frappe.db.get_value("User", frappe.session.user, "role_profile_name")
+	if role == "Workshop Viewer":
+		return True
+	return False
