@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-13 17:03+0000\n"
-"PO-Revision-Date: 2025-01-18 01:24\n"
+"PO-Revision-Date: 2025-01-21 01:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -2912,12 +2912,12 @@ msgstr "Google Drive Erişimini Yetkilendirin"
 #. Label of a Data field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Authorize URL"
-msgstr ""
+msgstr "URL'yi Yetkilendir"
 
 #. Option for the 'Status' (Select) field in DocType 'Integration Request'
 #: frappe/integrations/doctype/integration_request/integration_request.json
 msgid "Authorized"
-msgstr ""
+msgstr "Yetkilendirildi"
 
 #. Option for the 'Skip Authorization' (Select) field in DocType 'OAuth
 #. Provider Settings'
@@ -3520,7 +3520,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Desktop Icon'
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
 msgid "Blocked"
-msgstr ""
+msgstr "Engellendi"
 
 #. Label of a Card Break in the Website Workspace
 #: frappe/website/doctype/blog_post/blog_post.py:239
@@ -6807,7 +6807,7 @@ msgstr "Varsayılan Sıralama"
 #. Label of a Data field in DocType 'Print Format Field Template'
 #: frappe/printing/doctype/print_format_field_template/print_format_field_template.json
 msgid "Default Template For Field"
-msgstr ""
+msgstr "Alan İçin Varsayılan Şablon"
 
 #: frappe/website/doctype/website_theme/website_theme.js:28
 msgid "Default Theme"
@@ -6845,7 +6845,7 @@ msgstr "Varsayılan Çalışma Alanı"
 #. Description of the 'Currency' (Link) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Default display currency"
-msgstr ""
+msgstr "Gösterilecek Varsayılan Para Birimi"
 
 #: frappe/core/doctype/doctype/doctype.py:1338
 msgid "Default for 'Check' type of field {0} must be either '0' or '1'"
@@ -6867,7 +6867,7 @@ msgstr "Varsayılan: \"Bize Ulaşın\""
 #. Name of a DocType
 #: frappe/core/doctype/defaultvalue/defaultvalue.json
 msgid "DefaultValue"
-msgstr ""
+msgstr "VarsayılanDeğer"
 
 #. Label of a Section Break field in DocType 'DocField'
 #. Label of a Section Break field in DocType 'User'
@@ -7090,7 +7090,7 @@ msgstr "Bağımlılıklar"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Depends On"
-msgstr ""
+msgstr "Bağlı"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:32
 msgid "Descendants Of"
@@ -10401,7 +10401,7 @@ msgstr ""
 #. Label of a Link field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Folder"
-msgstr ""
+msgstr "Klasör"
 
 #. Label of a Data field in DocType 'IMAP Folder'
 #: frappe/email/doctype/imap_folder/imap_folder.json
@@ -10510,12 +10510,12 @@ msgstr "Footer İçeriği"
 #. Label of a Section Break field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Footer Details"
-msgstr ""
+msgstr "Altbilgi Ayrıntıları"
 
 #. Label of a HTML Editor field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Footer HTML"
-msgstr ""
+msgstr "Altbilgi HTML"
 
 #: frappe/printing/doctype/letter_head/letter_head.py:73
 msgid "Footer HTML set from attachment {0}"
@@ -10790,7 +10790,7 @@ msgstr "Frappe Framework"
 
 #: frappe/public/js/frappe/list/list_sidebar.js:275
 msgid "Frappe Insights"
-msgstr ""
+msgstr "Frappe Insights"
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:59
 msgid "Frappe Light"
@@ -12032,7 +12032,7 @@ msgstr "Simge"
 #. Description of the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Icon will appear on the button"
-msgstr ""
+msgstr "Simge butonun üstünde gözükecek"
 
 #. Label of a Section Break field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
@@ -12099,7 +12099,7 @@ msgstr "Etkinleştirilirse, kullanıcı İki Faktörlü Kimlik Doğrulama kullan
 #. Description of the 'Anonymous responses' (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "If enabled, all responses on the web form will be submitted anonymously"
-msgstr ""
+msgstr "Etkinleştirilirse, web formundaki tüm yanıtlar anonim olarak gönderilecektir"
 
 #. Description of the 'Bypass restricted IP Address check If Two Factor Auth
 #. Enabled' (Check) field in DocType 'System Settings'
@@ -12280,7 +12280,7 @@ msgstr "Yoksayılan Uygulamalar"
 
 #: frappe/integrations/doctype/dropbox_settings/dropbox_settings.py:348
 msgid "Illegal Access Token. Please try again"
-msgstr ""
+msgstr "Geçersiz Erişim Tokenı. Lütfen tekrar deneyin"
 
 #: frappe/model/workflow.py:146
 msgid "Illegal Document Status for {0}"
@@ -12878,7 +12878,7 @@ msgstr "Yetersiz dosya eki limiti"
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Int"
-msgstr ""
+msgstr "Tam sayı"
 
 #. Name of a DocType
 #: frappe/integrations/doctype/integration_request/integration_request.json
@@ -13118,7 +13118,7 @@ msgstr "Geçersiz Kullanıcı Adı veya Destek Şifresi. Lütfen düzeltin ve te
 
 #: frappe/public/js/frappe/ui/field_group.js:131
 msgid "Invalid Values"
-msgstr ""
+msgstr "Geçersiz Değerler"
 
 #: frappe/integrations/doctype/webhook/webhook.py:119
 msgid "Invalid Webhook Secret"
@@ -14451,7 +14451,7 @@ msgstr "Bağlantı"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:325
 msgid "Link To in Row"
-msgstr ""
+msgstr "Satırdaki Bağlantı"
 
 #. Label of a Select field in DocType 'Workspace Link'
 #: frappe/desk/doctype/workspace_link/workspace_link.json
@@ -29484,7 +29484,7 @@ msgstr "Artık hazırsınız gibi görünüyor!"
 
 #: frappe/templates/includes/contact.js:20
 msgid "You seem to have written your name instead of your email. Please enter a valid email address so that we can get back."
-msgstr ""
+msgstr "E-posta adresiniz yerine adınızı yazmış görünüyorsunuz. Geri dönüş yapabilmemiz için lütfen geçerli bir e-posta adresi girin."
 
 #: frappe/public/js/frappe/list/bulk_operations.js:31
 msgid "You selected Draft or Cancelled documents"
@@ -31291,7 +31291,7 @@ msgstr "{0} alanı {1} içinde benzersiz olarak ayarlanamaz, çünkü benzersiz 
 
 #: frappe/core/doctype/data_import/importer.py:1024
 msgid "{0} format could not be determined from the values in this column. Defaulting to {1}."
-msgstr ""
+msgstr "{0} biçimi bu sütundaki değerlerden belirlenemedi. Varsayılan {1}."
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:101
 msgid "{0} from {1} to {2}"
@@ -31825,7 +31825,7 @@ msgstr "{0}: {2} satırındaki {1} alanı varsayılan olmadan gizlenemez ve zoru
 
 #: frappe/core/doctype/doctype/doctype.py:1255
 msgid "{0}: Field {1} of type {2} cannot be mandatory"
-msgstr ""
+msgstr "{0}: {2} türündeki {1} alanı zorunlu olamaz"
 
 #: frappe/core/doctype/doctype/doctype.py:1243
 msgid "{0}: Fieldname {1} appears multiple times in rows {2}"
