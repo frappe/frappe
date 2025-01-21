@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-13 17:03+0000\n"
-"PO-Revision-Date: 2025-01-20 01:27\n"
+"PO-Revision-Date: 2025-01-21 01:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -31509,7 +31509,7 @@ msgstr "{0} efterliknade som du. De gav detta skäl: {1}"
 #: frappe/public/js/frappe/form/footer/form_timeline.js:152
 #: frappe/public/js/frappe/form/sidebar/form_sidebar.js:96
 msgid "{0} last edited this"
-msgstr "{0} senast redigerade detta"
+msgstr "{0} redigerade detta"
 
 #: frappe/core/doctype/activity_log/feed.py:13
 msgid "{0} logged in"
