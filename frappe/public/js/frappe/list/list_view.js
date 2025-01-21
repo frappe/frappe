@@ -1008,10 +1008,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let count_without_children = this.data.uniqBy((d) => d.name).length;
 
 		return frappe.db
-			.count(this.doctype, {
-				filters: this.get_filters_for_args(),
-				limit: this.count_upper_bound,
-			})
+			.count(
+				this.doctype,
+				{
+					filters: this.get_filters_for_args(),
+					limit: this.count_upper_bound,
+				},
+				Boolean(this.count_upper_bound)
+			)
 			.then((total_count) => {
 				this.total_count = total_count || current_count;
 				this.count_without_children =
