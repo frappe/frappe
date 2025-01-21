@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-13 17:03+0000\n"
-"PO-Revision-Date: 2025-01-20 01:27\n"
+"PO-Revision-Date: 2025-01-21 01:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -1070,7 +1070,7 @@ msgstr "کانتینر اضافه کنید"
 #. Label of a Button field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Add Custom Tags"
-msgstr "برچسب های سفارشی اضافه کنید"
+msgstr "افزودن تگ‌های سفارشی"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:159
 #: frappe/public/js/frappe/widgets/widget_dialog.js:688
@@ -7818,7 +7818,7 @@ msgstr "HTML دامنه ها"
 #. Field'
 #: frappe/custom/doctype/custom_field/custom_field.json
 msgid "Don't HTML Encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field"
-msgstr "برچسب های HTML مانند &lt;script&gt; یا فقط کاراکترهایی مانند &lt; یا &gt;، زیرا می‌توانند عمداً در این زمینه استفاده شوند"
+msgstr ""
 
 #: frappe/public/js/frappe/data_import/import_preview.js:268
 msgid "Don't Import"
@@ -7842,7 +7842,7 @@ msgstr "ایمیل ارسال نکنید"
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Don't encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field"
-msgstr "برچسب های HTML مانند &lt;script&gt; یا فقط کاراکترهایی مانند &lt; یا &gt;، زیرا می‌توانند عمداً در این زمینه استفاده شوند"
+msgstr ""
 
 #: frappe/www/login.html:119 frappe/www/login.html:135
 #: frappe/www/update-password.html:34
@@ -11633,7 +11633,7 @@ msgstr "مخفی کردن منوی استاندارد"
 
 #: frappe/public/js/frappe/list/list_view.js:1603
 msgid "Hide Tags"
-msgstr "پنهان کردن برچسب ها"
+msgstr "پنهان کردن تگ‌ها"
 
 #: frappe/public/js/frappe/views/calendar/calendar.js:185
 msgid "Hide Weekends"
@@ -12055,7 +12055,7 @@ msgstr "اگر فکر می کنید این غیرمجاز است، لطفا رم
 #. Description of the 'Source Text' (Code) field in DocType 'Translation'
 #: frappe/core/doctype/translation/translation.json
 msgid "If your data is in HTML, please copy paste the exact HTML code with the tags."
-msgstr "اگر داده‌های شما به صورت HTML هستند، لطفاً کد HTML دقیق را با برچسب‌ها کپی کنید."
+msgstr "اگر داده‌های شما به صورت HTML هستند، لطفاً کد HTML دقیق را با تگ‌ها کپی کنید."
 
 #. Label of a Check field in DocType 'DocField'
 #. Label of a Check field in DocType 'Custom Field'
@@ -15214,7 +15214,7 @@ msgstr "تصویر متا"
 #: frappe/website/doctype/web_page/web_page.json
 #: frappe/website/doctype/website_route_meta/website_route_meta.json
 msgid "Meta Tags"
-msgstr "برچسب های متا"
+msgstr "تگ‌های متا"
 
 #. Label of a Data field in DocType 'Blog Post'
 #: frappe/website/doctype/blog_post/blog_post.json
@@ -16390,7 +16390,7 @@ msgstr "بدون پیشنهاد"
 
 #: frappe/desk/reportview.py:645
 msgid "No Tags"
-msgstr "بدون برچسب"
+msgstr "بدون تگ"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:435
 msgid "No Upcoming Events"
@@ -16462,7 +16462,7 @@ msgstr "هیچ الگوی آدرس پیش‌فرضی یافت نشد. لطفاً
 
 #: frappe/public/js/frappe/ui/toolbar/search.js:71
 msgid "No documents found tagged with {0}"
-msgstr "هیچ سندی با برچسب {0} یافت نشد"
+msgstr "هیچ سندی با تگ {0} یافت نشد"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:21
 msgid "No email account associated with the User. Please add an account under User > Email Inbox."
@@ -16548,7 +16548,7 @@ msgstr "هیچ رکوردی در {0} وجود ندارد"
 
 #: frappe/public/js/frappe/list/list_sidebar_stat.html:3
 msgid "No records tagged."
-msgstr "هیچ رکوردی برچسب گذاری نشده است."
+msgstr "هیچ رکوردی تگ گذاری نشده است."
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:225
 msgid "No records will be exported"
@@ -16967,7 +16967,7 @@ msgstr "اکنون"
 #. Label of a Data field in DocType 'Contact Phone'
 #: frappe/contacts/doctype/contact_phone/contact_phone.json
 msgid "Number"
-msgstr "عدد"
+msgstr "شماره"
 
 #. Name of a DocType
 #: frappe/desk/doctype/number_card/number_card.json
@@ -23379,7 +23379,7 @@ msgstr "نمایش نوار کناری"
 #: frappe/public/js/frappe/list/list_sidebar.html:66
 #: frappe/public/js/frappe/list/list_view.js:1603
 msgid "Show Tags"
-msgstr "نمایش برچسب ها"
+msgstr "نمایش تگ‌ها"
 
 #. Label of a Check field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -24229,7 +24229,7 @@ msgstr "ردیف های مستقیم کلیدها به راحتی قابل حد�
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Strip EXIF tags from uploaded images"
-msgstr "برچسب های EXIF را از تصاویر آپلود شده حذف کنید"
+msgstr "‌حذف تگ‌های EXIF از تصاویر آپلود شده"
 
 #: frappe/public/js/frappe/form/controls/password.js:90
 msgid "Strong"
@@ -24986,7 +24986,7 @@ msgstr "تبلوید"
 #. Name of a DocType
 #: frappe/desk/doctype/tag/tag.json
 msgid "Tag"
-msgstr "برچسب بزنید"
+msgstr "تگ"
 
 #. Name of a DocType
 #: frappe/desk/doctype/tag_link/tag_link.json
@@ -25002,7 +25002,7 @@ msgstr "لینک را تگ کنید"
 #: frappe/public/js/frappe/model/model.js:133
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:171
 msgid "Tags"
-msgstr "برچسب ها"
+msgstr "تگ‌ها"
 
 #: frappe/integrations/doctype/google_drive/google_drive.js:29
 msgid "Take Backup"
@@ -27469,7 +27469,7 @@ msgstr "ورود به سیستم اجتماعی کاربر"
 #. Label of a Data field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "User Tags"
-msgstr "برچسب های کاربر"
+msgstr "تگ‌های کاربر"
 
 #. Label of a Link field in DocType 'User'
 #. Name of a DocType
@@ -30565,16 +30565,16 @@ msgstr "ارسال"
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "tag"
-msgstr "برچسب زدن"
+msgstr "تگ"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:173
 msgid "tag name..., e.g. #tag"
-msgstr "نام برچسب...، به عنوان مثال #برچسب"
+msgstr "نام تگ...، به عنوان مثال #تگ"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "tags"
-msgstr "برچسب ها"
+msgstr "تگ‌ها"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
