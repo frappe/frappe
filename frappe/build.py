@@ -4,7 +4,11 @@ import os
 import re
 import shutil
 import subprocess
+<<<<<<< HEAD
 from distutils.spawn import find_executable
+=======
+from contextlib import suppress
+>>>>>>> b9479e21e1 (fix: Clear all cache after rebuilding assets (#29876))
 from subprocess import getoutput
 from tempfile import mkdtemp, mktemp
 from urllib.parse import urlparse
@@ -254,6 +258,9 @@ def bundle(
 	check_node_executable()
 	frappe_app_path = frappe.get_app_path("frappe", "..")
 	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env(), raise_err=True)
+
+	with suppress(Exception):
+		frappe.cache.flushall()
 
 
 def watch(apps=None):
