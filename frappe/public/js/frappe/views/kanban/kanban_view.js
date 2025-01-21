@@ -196,10 +196,9 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			insertFreezeQueuePosition()
 		}else{
 			const sidebar = $(".layout-side-section");
-
-		if (sidebar.is(':visible')) {
-			sidebar.hide();
-		}
+			if (sidebar.is(':visible')) {
+				sidebar.hide();
+			}
 		}
 		
 	}
