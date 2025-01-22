@@ -191,41 +191,47 @@ const getDropTarget = (ev: DragEvent) => {
 			parentComponent = parentComponent.getParentBlock()
 		}
 		slotName = targetElement.dataset.slotName || store.selectedSlot?.slotName
-		index = getInsertionIndex(ev, targetElement, parentComponent)
+		index = findDropIndex(ev, parentComponent)
 	}
-	return {
-		parentComponent,
-		slotName,
-		index,
-	}
+	return { parentComponent, slotName, index }
 }
 
-const getInsertionIndex = (ev: DragEvent, element: HTMLElement, parentComponent: Block): number => {
-	/**
-	 * Helper function to determine the exact insertion index
-	 */
-	const rect = element.getBoundingClientRect()
-	const elementIndex = parentComponent.children.findIndex(
-		(child) => child.componentId === element.dataset.componentId,
-	)
-	if (elementIndex === -1) {
-		return parentComponent.children.length
-	}
-
+const findDropIndex = (ev: DragEvent, parentComponent: Block): number => {
 	const parentEl = document.querySelector(
 		`[data-component-id="${parentComponent.componentId}"]`,
 	) as HTMLElement
-	const direction = getLayoutDirection(parentEl)
+	if (!parentEl) return parentComponent.children.length
 
-	if (direction === "row") {
-		// insert before the element if mouse is on the left side of the element, else right
-		const elementMidX = rect.left + rect.width / 2
-		return ev.clientX <= elementMidX ? elementIndex : elementIndex + 1
-	} else {
-		// insert before the element if mouse is above the midpoint, else after
-		const elementMidY = rect.top + rect.height / 2
-		return ev.clientY <= elementMidY ? elementIndex : elementIndex + 1
-	}
+	const childElements = Array.from(
+		parentEl.querySelectorAll(":scope > .__studio_component__"),
+	) as HTMLElement[]
+	if (childElements.length === 0) return 0
+
+	const direction = getLayoutDirection(parentEl)
+	const mousePos = direction === "row" ? ev.clientX : ev.clientY
+
+	// Get all child positions
+	const childPositions = childElements.map((child, idx) => {
+		const rect = child.getBoundingClientRect()
+		const midPoint = direction === "row" ? rect.left + rect.width / 2 : rect.top + rect.height / 2
+		return { midPoint, idx }
+	})
+
+	// Find the closest child to the mouse position
+	let closestIndex = 0
+	let minDistance = Infinity
+
+	childPositions.forEach(({ midPoint, idx }) => {
+		const distance = Math.abs(midPoint - mousePos)
+		if (distance < minDistance) {
+			minDistance = distance
+			closestIndex = idx
+		}
+	})
+
+	// Determine if we should insert before or after the closest child
+	// if mouse is closer to left/top side of the child, insert before, else after
+	return mousePos <= childPositions[closestIndex].midPoint ? closestIndex : closestIndex + 1
 }
 
 const getLayoutDirection = (element: HTMLElement): "row" | "column" => {
