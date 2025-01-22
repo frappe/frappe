@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-19 09:33+0000\n"
-"PO-Revision-Date: 2025-01-21 01:26\n"
+"PO-Revision-Date: 2025-01-22 01:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -1420,7 +1420,7 @@ msgstr "Tabloya ekle"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:99
 msgid "Add to this activity by mailing to {0}"
-msgstr ""
+msgstr "Bu aktiviteye katkıda bulunmak için {0} adresine e-posta gönderin."
 
 #: frappe/public/js/frappe/views/kanban/kanban_column.html:20
 msgid "Add {0}"
@@ -2431,7 +2431,7 @@ msgstr "Uygulanıyor: {0}"
 
 #: frappe/public/js/frappe/form/sidebar/review.js:62
 msgid "Appreciate"
-msgstr ""
+msgstr "Takdir"
 
 #. Option for the 'Type' (Select) field in DocType 'Energy Point Log'
 #: frappe/social/doctype/energy_point_log/energy_point_log.json
@@ -2768,7 +2768,7 @@ msgstr "Bir web bağlantısı ekleyin"
 
 #: frappe/website/doctype/website_slideshow/website_slideshow.js:8
 msgid "Attach files / urls and add in table."
-msgstr ""
+msgstr "Dosyaları / URL’leri tabloya ekleyin."
 
 #. Label of the attached_file (Code) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
@@ -2788,7 +2788,7 @@ msgstr ""
 #. Label of the attached_to_name (Data) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Attached To Name"
-msgstr ""
+msgstr "İsme Bağlı"
 
 #: frappe/core/doctype/file/file.py:141
 msgid "Attached To Name must be a string or an integer"
@@ -3375,12 +3375,12 @@ msgstr "Hatalı Cron İfadesi"
 #. Option for the 'Rounding Method' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Banker's Rounding"
-msgstr ""
+msgstr "Finansal Yuvarlama"
 
 #. Option for the 'Rounding Method' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Banker's Rounding (legacy)"
-msgstr ""
+msgstr "Finansal Yuvarlama (Eski)"
 
 #. Label of the banner (Section Break) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -3871,7 +3871,7 @@ msgstr ""
 #. Label of the button_shadows (Check) field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Button Shadows"
-msgstr ""
+msgstr "Buton Gölgeleri"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
@@ -4525,7 +4525,7 @@ msgstr "Değiştiren"
 #. Name of a DocType
 #: frappe/desk/doctype/changelog_feed/changelog_feed.json
 msgid "Changelog Feed"
-msgstr ""
+msgstr "Değişiklik Günlüğü Akışı"
 
 #. Label of the changed_values (HTML) field in DocType 'Permission Log'
 #: frappe/core/doctype/permission_log/permission_log.json
@@ -4779,7 +4779,7 @@ msgstr "Buraya tıklayın"
 
 #: frappe/public/js/billing.bundle.js:114
 msgid "Click here to login"
-msgstr ""
+msgstr "Giriş yapmak için buraya tıklayın"
 
 #: frappe/email/doctype/newsletter/newsletter.py:336
 msgid "Click here to verify"
@@ -5202,7 +5202,7 @@ msgstr "Yorumlarda bağlantı veya e-posta adresi bulunamaz"
 #. Option for the 'Rounding Method' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Commercial Rounding"
-msgstr ""
+msgstr "Ticari Yuvarlama"
 
 #. Label of the commit (Check) field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
@@ -6178,7 +6178,7 @@ msgstr "Özel Alan {0} Yönetici tarafından oluşturulur ve yalnızca Yönetici
 
 #: frappe/custom/doctype/custom_field/custom_field.py:277
 msgid "Custom Fields can only be added to a standard DocType."
-msgstr ""
+msgstr "Özel Alanlar yalnızca standart bir DocType’a eklenebilir."
 
 #: frappe/custom/doctype/custom_field/custom_field.py:274
 msgid "Custom Fields cannot be added to core DocTypes."
@@ -6915,7 +6915,7 @@ msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1391
 msgid "Default value for {0} must be in the list of options."
-msgstr ""
+msgstr "{0} için varsayılan değer seçenekler listesinde olmalıdır."
 
 #: frappe/core/doctype/session_default_settings/session_default_settings.py:38
 msgid "Default {0}"
@@ -8515,7 +8515,7 @@ msgstr "HTML Düzenle"
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:9
 msgid "Edit Header"
-msgstr ""
+msgstr "Başlığı Düzenle"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:609
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:8
@@ -8524,7 +8524,7 @@ msgstr "Başlığı Düzenle"
 
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:52
 msgid "Edit Letter Head"
-msgstr ""
+msgstr "Antetli Kağıdı Düzenle"
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:35
 msgid "Edit Letter Head Footer"
@@ -9342,7 +9342,7 @@ msgstr "Klasör adını girin"
 #. Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
 msgid "Enter static url parameters here (Eg. sender=ERPNext, username=ERPNext, password=1234 etc.)"
-msgstr ""
+msgstr "Buraya statik URL parametrelerini girin (Örn. gönderen=ERPNext, kullanıcıadı=ERPNext, şifre=1234 vb.)"
 
 #. Description of the 'Message Parameter' (Data) field in DocType 'SMS
 #. Settings'
@@ -9938,7 +9938,7 @@ msgstr ""
 
 #: frappe/integrations/frappe_providers/frappecloud_billing.py:68
 msgid "Failed to get site info"
-msgstr ""
+msgstr "Site bilgisi alınamadı"
 
 #: frappe/model/virtual_doctype.py:63
 msgid "Failed to import virtual doctype {}, is controller file present?"
@@ -10637,7 +10637,7 @@ msgstr "{0} klasörü boş değil"
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Folio"
-msgstr ""
+msgstr "Folio"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:131
 #: frappe/public/js/frappe/form/toolbar.js:848
@@ -10760,7 +10760,7 @@ msgstr ""
 #. Label of the footer_logo (Attach Image) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Footer Logo"
-msgstr ""
+msgstr "Altbilgi Logo"
 
 #. Label of the footer_script (Code) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
@@ -12069,7 +12069,7 @@ msgstr ""
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Hide Empty Read-Only Fields"
-msgstr ""
+msgstr "Boşsa Salt Okunur Alanları Gizle"
 
 #: frappe/www/error.html:62
 msgid "Hide Error"
@@ -12129,7 +12129,7 @@ msgstr "Hafta Sonlarını Gizle"
 #. Permission'
 #: frappe/core/doctype/user_permission/user_permission.json
 msgid "Hide descendant records of <b>For Value</b>."
-msgstr ""
+msgstr "<b>Değeri için</b> alt kayıtlarını gizle."
 
 #: frappe/public/js/frappe/form/layout.js:270
 msgid "Hide details"
@@ -12278,7 +12278,7 @@ msgstr "ID (isim)"
 #. Description of the 'Field Name' (Data) field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "ID (name) of the entity whose property is to be set"
-msgstr ""
+msgstr "Özelliği ayarlanacak kuruluşun kimliği (adı)"
 
 #. Description of the 'Section ID' (Data) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
@@ -12403,7 +12403,7 @@ msgstr "Etkinleştirilirse, kullanıcı İki Faktörlü Kimlik Doğrulama kullan
 #. Description of the 'Anonymous responses' (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "If enabled, all responses on the web form will be submitted anonymously"
-msgstr ""
+msgstr "Etkinleştirilirse, web formundaki tüm yanıtlar anonim olarak gönderilecektir"
 
 #. Description of the 'Bypass restricted IP Address check If Two Factor Auth
 #. Enabled' (Check) field in DocType 'System Settings'
@@ -12530,11 +12530,11 @@ msgstr "Yeni kayıt yüklüyorsanız \"isim\" (ID) sütununu boş bırakın."
 
 #: frappe/utils/password.py:204
 msgid "If you have recently restored the site, you may need to copy the site_config.json containing the original encryption key."
-msgstr ""
+msgstr "Siteyi yakın zamanda geri yüklediyseniz, orijinal şifreleme anahtarını içeren site_config.json dosyasını kopyalamanız gerekebilir."
 
 #: frappe/public/js/billing.bundle.js:112
 msgid "If you haven't been redirected,"
-msgstr ""
+msgstr "Eğer yönlendirilmediyseniz,"
 
 #. Description of the 'Parent Label' (Select) field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
@@ -13053,12 +13053,12 @@ msgstr "Dizinleme yetkilendirme kodu"
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Indexing refresh token"
-msgstr ""
+msgstr "İndeksleme yenileme tokenı"
 
 #. Label of the indicator (Select) field in DocType 'Kanban Board Column'
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Indicator"
-msgstr ""
+msgstr "Gösterge"
 
 #. Label of the indicator_color (Select) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
@@ -16665,7 +16665,7 @@ msgstr "Yeni {0} Oluşturuldu"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:385
 msgid "New {0} {1} added to Dashboard {2}"
-msgstr ""
+msgstr "Yeni {0} {1}, {2} Panosuna eklendi."
 
 #: frappe/public/js/frappe/views/reports/query_report.js:390
 msgid "New {0} {1} created"
@@ -16934,7 +16934,7 @@ msgstr "İzin Verilen Grafik Yok"
 
 #: frappe/core/page/dashboard_view/dashboard_view.js:92
 msgid "No Permitted Charts on this Dashboard"
-msgstr "Bu Gösterge Tablosunda İzin Verilen Grafik Yok"
+msgstr "Bu Gösterge Panosunda Görüntülemeniz için İzin Verilen Grafik Yok"
 
 #: frappe/printing/doctype/print_settings/print_settings.js:13
 msgid "No Preview"
@@ -17042,7 +17042,7 @@ msgstr "Verilecek veri yok"
 
 #: frappe/contacts/doctype/address/address.py:246
 msgid "No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template."
-msgstr ""
+msgstr "Varsayılan Adres Şablonu bulunamadı. Lütfen yeni bir şablon oluşturmak için Ayarlar > Baskı > Adres Şablonu bölümüne gidin."
 
 #: frappe/public/js/frappe/ui/toolbar/search.js:71
 msgid "No documents found tagged with {0}"
@@ -21892,7 +21892,7 @@ msgstr "Geri Al"
 #. Label of the revert_of (Link) field in DocType 'Energy Point Log'
 #: frappe/social/doctype/energy_point_log/energy_point_log.json
 msgid "Revert Of"
-msgstr ""
+msgstr "Geri Alınan"
 
 #. Label of the reverted (Check) field in DocType 'Energy Point Log'
 #: frappe/social/doctype/energy_point_log/energy_point_log.json
@@ -21916,7 +21916,7 @@ msgstr "Katkı Düzeyleri"
 #. Label of the review_levels (Table) field in DocType 'Energy Point Settings'
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.json
 msgid "Review Levels"
-msgstr ""
+msgstr "İnceleme Seviyeleri"
 
 #. Label of the review_points (Int) field in DocType 'Review Level'
 #: frappe/desk/page/user_profile/user_profile_controller.js:402
@@ -24970,11 +24970,11 @@ msgstr "Zaman Aralığı"
 
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:389
 msgid "Stats based on last month's performance (from {0} to {1})"
-msgstr ""
+msgstr "Geçen ayın performansına dayalı istatistikler ({0} - {1} tarihleri arası)"
 
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:391
 msgid "Stats based on last week's performance (from {0} to {1})"
-msgstr ""
+msgstr "Geçen haftanın performansına dayalı istatistikler ({0} - {1} tarihleri arası)"
 
 #. Label of the status (Select) field in DocType 'Auto Repeat'
 #. Label of the status (Select) field in DocType 'Contact'
@@ -29381,7 +29381,7 @@ msgstr "Çalışma Alanına Hoşgeldiniz"
 
 #: frappe/core/doctype/user/user.py:413
 msgid "Welcome email sent"
-msgstr "Hoşgeldiniz e-posta gönderimi yapılır"
+msgstr "Hoşgeldiniz e-postası gönderildi"
 
 #: frappe/core/doctype/user/user.py:474
 msgid "Welcome to {0}"
@@ -30216,7 +30216,7 @@ msgstr ""
 
 #: frappe/core/doctype/recorder/recorder.js:38
 msgid "You need to select indexes you want to add first."
-msgstr ""
+msgstr "Önce eklemek istediğiniz dizinleri seçmeniz gerekir."
 
 #: frappe/email/doctype/email_account/email_account.py:155
 msgid "You need to set one IMAP folder for {0}"
@@ -31234,21 +31234,21 @@ msgstr "{0} ve {1}"
 
 #: frappe/public/js/frappe/utils/energy_point_utils.js:38
 msgid "{0} appreciated on {1}"
-msgstr ""
+msgstr "{0} {1} tarihinde takdir edildi"
 
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:126
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:163
 msgid "{0} appreciated your work on {1} with {2} point"
-msgstr ""
+msgstr "{0} {1} üzerindeki çalışmanızı {2} puanla takdir ettim"
 
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:128
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:165
 msgid "{0} appreciated your work on {1} with {2} points"
-msgstr ""
+msgstr "{0} {1} üzerindeki çalışmanızı {2} puanla takdir ettim"
 
 #: frappe/public/js/frappe/utils/energy_point_utils.js:53
 msgid "{0} appreciated {1}"
-msgstr ""
+msgstr "{0} takdir edildi {1}"
 
 #: frappe/public/js/frappe/form/sidebar/review.js:148
 msgid "{0} appreciation point for {1}"
@@ -31348,7 +31348,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/utils/energy_point_utils.js:41
 msgid "{0} criticized on {1}"
-msgstr ""
+msgstr "{0}, {1} tarihinde eleştirildi"
 
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:132
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:170
