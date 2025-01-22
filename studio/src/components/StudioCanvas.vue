@@ -1,7 +1,7 @@
 <template>
 	<div ref="canvasContainer">
 		<slot name="header"></slot>
-		<div class="overlay absolute" id="overlay" ref="overlay" />
+		<div v-if="!isOverDropZone" class="overlay absolute" id="overlay" ref="overlay" />
 		<Transition name="fade">
 			<div
 				class="absolute bottom-0 left-0 right-0 top-0 z-[19] grid w-full place-items-center bg-gray-50"
@@ -151,7 +151,7 @@ const visibleBreakpoints = computed(() => {
 const rootComponent = ref(getBlockCopy(props.componentTree, true))
 
 // handle dropping components
-useDropZone(canvasContainer, {
+const { isOverDropZone } = useDropZone(canvasContainer, {
 	onDrop: (_files, ev) => {
 		const droppedComponentName = store.dnd.source
 		const { parentComponent, index, slotName } = store.dnd.target
