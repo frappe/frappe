@@ -243,3 +243,53 @@ def build_domain_restricted_page_cache(*args, **kwargs):
 	frappe.cache.set_value("domain_restricted_pages", pages)
 
 	return pages
+
+
+def clear_cache(user: str | None = None, doctype: str | None = None):
+	"""Clear **User**, **DocType** or global cache.
+
+	:param user: If user is given, only user cache is cleared.
+	:param doctype: If doctype is given, only DocType cache is cleared."""
+	import frappe.cache_manager
+	import frappe.utils.caching
+	from frappe.website.router import clear_routing_cache
+
+	if doctype:
+		frappe.cache_manager.clear_doctype_cache(doctype)
+		reset_metadata_version()
+	elif user:
+		frappe.cache_manager.clear_user_cache(user)
+	else:  # everything
+		# Delete ALL keys associated with this site.
+		keys_to_delete = set(frappe.cache.get_keys(""))
+		for key in frappe.get_hooks("persistent_cache_keys"):
+			keys_to_delete.difference_update(frappe.cache.get_keys(key))
+		frappe.cache.delete_value(list(keys_to_delete), make_keys=False)
+
+		reset_metadata_version()
+		frappe.local.cache = {}
+		frappe.local.new_doc_templates = {}
+
+		for fn in frappe.get_hooks("clear_cache"):
+			frappe.get_attr(fn)()
+
+	if (not doctype and not user) or doctype == "DocType":
+		frappe.utils.caching._SITE_CACHE.clear()
+		frappe.client_cache.clear_cache()
+
+	frappe.local.role_permissions = {}
+	if hasattr(frappe.local, "request_cache"):
+		frappe.local.request_cache.clear()
+	if hasattr(frappe.local, "system_settings"):
+		del frappe.local.system_settings
+	if hasattr(frappe.local, "website_settings"):
+		del frappe.local.website_settings
+
+	clear_routing_cache()
+
+
+def reset_metadata_version():
+	"""Reset `metadata_version` (Client (Javascript) build ID) hash."""
+	v = frappe.generate_hash()
+	frappe.client_cache.set_value("metadata_version", v)
+	return v

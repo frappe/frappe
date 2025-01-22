@@ -1,10 +1,12 @@
 import frappe
 from frappe.model.naming import (
 	BRACED_PARAMS_WORD_PATTERN,
+	NAMING_SERIES_PART_TYPES,
 	determine_consecutive_week_number,
 	has_custom_parser,
 )
 from frappe.query_builder import DocType
+from frappe.utils import cstr
 
 
 def execute():
@@ -37,6 +39,10 @@ def execute():
 				part = frappe.get_attr(method[0])(doc, e)
 			else:
 				part = e
+
+			if isinstance(part, NAMING_SERIES_PART_TYPES):
+				part = cstr(part).strip()
+
 			return part
 
 		return get_param_value

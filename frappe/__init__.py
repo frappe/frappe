@@ -45,7 +45,7 @@ from frappe.query_builder.utils import (
 	patch_query_execute,
 )
 from frappe.utils.caching import request_cache
-from frappe.utils.data import cint, cstr, sbool
+from frappe.utils.data import bold, cint, cstr, safe_decode, safe_encode, sbool
 
 # Local application imports
 from .exceptions import *
@@ -87,6 +87,27 @@ _dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
 if _dev_server:
 	warnings.simplefilter("always", DeprecationWarning)
 	warnings.simplefilter("always", PendingDeprecationWarning)
+
+
+def _get_local_proxy(self: Local, name: str) -> LocalProxy:
+	"""Get local proxy object by name."""
+
+	_local_contextvar = self._Local__storage
+
+	def _get_current_object() -> Any:
+		obj = _local_contextvar.get(None)
+
+		if obj is not None and name in obj:
+			return obj[name]
+
+		raise RuntimeError("object is not bound") from None
+
+	lp = LocalProxy(_get_current_object)
+	object.__setattr__(lp, "_get_current_object", _get_current_object)
+	return lp
+
+
+Local.__call__ = _get_local_proxy
 
 
 def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
@@ -943,49 +964,6 @@ def get_domain_data(module):
 			raise
 
 
-def clear_cache(user: str | None = None, doctype: str | None = None):
-	"""Clear **User**, **DocType** or global cache.
-
-	:param user: If user is given, only user cache is cleared.
-	:param doctype: If doctype is given, only DocType cache is cleared."""
-	import frappe.cache_manager
-	import frappe.utils.caching
-	from frappe.website.router import clear_routing_cache
-
-	if doctype:
-		frappe.cache_manager.clear_doctype_cache(doctype)
-		reset_metadata_version()
-	elif user:
-		frappe.cache_manager.clear_user_cache(user)
-	else:  # everything
-		# Delete ALL keys associated with this site.
-		keys_to_delete = set(frappe.cache.get_keys(""))
-		for key in frappe.get_hooks("persistent_cache_keys"):
-			keys_to_delete.difference_update(frappe.cache.get_keys(key))
-		frappe.cache.delete_value(list(keys_to_delete), make_keys=False)
-
-		reset_metadata_version()
-		local.cache = {}
-		local.new_doc_templates = {}
-
-		for fn in get_hooks("clear_cache"):
-			get_attr(fn)()
-
-	if (not doctype and not user) or doctype == "DocType":
-		frappe.utils.caching._SITE_CACHE.clear()
-		frappe.client_cache.clear_cache()
-
-	local.role_permissions = {}
-	if hasattr(local, "request_cache"):
-		local.request_cache.clear()
-	if hasattr(local, "system_settings"):
-		del local.system_settings
-	if hasattr(local, "website_settings"):
-		del local.website_settings
-
-	clear_routing_cache()
-
-
 def only_has_select_perm(doctype, user=None, ignore_permissions=False):
 	if ignore_permissions:
 		return False
@@ -1113,13 +1091,6 @@ def generate_hash(txt: str | None = None, length: int = 56) -> str:
 		)
 
 	return secrets.token_hex(math.ceil(length / 2))[:length]
-
-
-def reset_metadata_version():
-	"""Reset `metadata_version` (Client (Javascript) build ID) hash."""
-	v = generate_hash()
-	client_cache.set_value("metadata_version", v)
-	return v
 
 
 def new_doc(
@@ -2322,11 +2293,6 @@ def get_desk_link(doctype, name):
 	return html.format(doctype=doctype, name=name, doctype_local=_(doctype), title_local=_(title))
 
 
-def bold(text: str | int | float) -> str:
-	"""Return `text` wrapped in `<strong>` tags."""
-	return f"<strong>{text}</strong>"
-
-
 def safe_eval(code, eval_globals=None, eval_locals=None):
 	"""A safer `eval`"""
 
@@ -2352,94 +2318,9 @@ def get_active_domains():
 	return get_active_domains()
 
 
-def get_version(doctype, name, limit=None, head=False, raise_err=True):
-	"""
-	Return a list of version information for the given DocType.
-
-	Note: Applicable only if DocType has changes tracked.
-
-	Example
-	>>> frappe.get_version("User", "foobar@gmail.com")
-	>>>
-	[
-	        {
-	                "version": [version.data],			# Refer Version DocType get_diff method and data attribute
-	                "user": "admin@gmail.com",			# User that created this version
-	                "creation": <datetime.datetime>		# Creation timestamp of that object.
-	        }
-	]
-	"""
-	meta = get_meta(doctype)
-	if meta.track_changes:
-		names = get_all(
-			"Version",
-			filters={
-				"ref_doctype": doctype,
-				"docname": name,
-				"order_by": "creation" if head else None,
-				"limit": limit,
-			},
-			as_list=1,
-		)
-
-		from frappe.utils import dictify, safe_json_loads, squashify
-
-		versions = []
-
-		for name in names:
-			name = squashify(name)
-			doc = get_doc("Version", name)
-
-			data = doc.data
-			data = safe_json_loads(data)
-			data = dictify(dict(version=data, user=doc.owner, creation=doc.creation))
-
-			versions.append(data)
-
-		return versions
-	else:
-		if raise_err:
-			raise ValueError(_("{0} has no versions tracked.").format(doctype))
-
-
 @whitelist(allow_guest=True)
 def ping():
 	return "pong"
-
-
-def safe_encode(param, encoding="utf-8"):
-	try:
-		param = param.encode(encoding)
-	except Exception:
-		pass
-	return param
-
-
-def safe_decode(param, encoding="utf-8", fallback_map: dict | None = None):
-	"""
-	Method to safely decode data into a string
-
-	:param param: The data to be decoded
-	:param encoding: The encoding to decode into
-	:param fallback_map: A fallback map to reference in case of a LookupError
-	:return:
-	"""
-	try:
-		param = param.decode(encoding)
-	except LookupError:
-		try:
-			param = param.decode((fallback_map or {}).get(encoding, "utf-8"))
-		except Exception:
-			pass
-	except Exception:
-		pass
-	return param
-
-
-def parse_json(val):
-	from frappe.utils import parse_json
-
-	return parse_json(val)
 
 
 def mock(type, size=1, locale="en"):
@@ -2478,10 +2359,12 @@ def validate_and_sanitize_search_inputs(fn):
 
 
 import frappe._optimizations
+from frappe.cache_manager import clear_cache, reset_metadata_version
 
 # Backward compatibility
 from frappe.config import get_common_site_config, get_site_config
 from frappe.core.doctype.system_settings.system_settings import get_system_settings
+from frappe.utils import parse_json
 from frappe.utils.error import log_error
 
 frappe._optimizations.optimize_all()

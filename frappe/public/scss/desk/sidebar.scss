@@ -1,4 +1,18 @@
 // clean-this-file
+:root {
+	--sidebar-hover-color: #f3f3f3;
+	--sidebar-active-color: rgba(255, 255, 255, 1);
+	--sidebar-border-color: #ededed;
+	--surface-modal: rgba(255, 255, 255, 1);
+	--divider-color: rgba(237, 237, 237, 1);
+}
+[data-theme="dark"] {
+	--sidebar-hover-color: rgba(43, 43, 43, 1);
+	--sidebar-active-color: rgba(66, 66, 66, 1);
+	--sidebar-border-color: #232323;
+	--surface-modal: rgb(0, 0, 0);
+	--divider-color: rgba(52, 52, 52, 1);
+}
 .underline-hover {
 	display: initial;
 }
@@ -65,7 +79,7 @@ body {
 .body-sidebar {
 	width: 50px;
 	background: var(--subtle-accent);
-	border-right: 1px solid var(--dark-border-color);
+	border-right: 1px solid var(--sidebar-border-color);
 
 	display: flex;
 	flex-direction: column;
@@ -115,7 +129,7 @@ body {
 
 	.divider {
 		margin: var(--margin-xs) 0;
-		border-top: 1px solid var(--border-color);
+		border-top: 1px solid var(--divider-color);
 	}
 
 	.standard-sidebar-section {
@@ -140,7 +154,6 @@ body {
 	.standard-sidebar-item {
 		display: flex;
 		line-height: 0px;
-		justify-content: space-between;
 		padding: 0px;
 		.sidebar-item-control {
 			display: none;
@@ -293,10 +306,26 @@ body {
 
 	// expands when navbar-brand is clicked
 	.body-sidebar-container.expanded {
+		position: relative;
 		.body-sidebar {
 			padding: 8px 8px 10px 8px;
 			width: 220px;
+			height: 100%;
+			position: absolute;
+			bottom: 0;
+			top: 0;
 		}
+		.overlay {
+			display: block;
+			position: absolute;
+			width: 100vw;
+			height: 100%;
+			z-index: 1021;
+			left: 220px;
+			overflow: auto;
+			background-color: rgba(128, 128, 128, 0.5);
+		}
+
 		// acts a overlay when in mobile view
 		.body-sidebar-placeholder {
 			display: flex;
@@ -325,7 +354,7 @@ body {
 		.d-flex {
 			width: 161px;
 		}
-		gap: 12px;
+		gap: 8px;
 	}
 	.sidebar-item-control {
 		margin: 2px;
@@ -337,10 +366,10 @@ body {
 	position: absolute;
 	top: 44px;
 	left: 7px;
-	width: 220px; /* 200 - 7px */
+	width: 205px;
 	padding: 6px;
 	border-radius: var(--border-radius-lg);
-	background: var(--surface-modal, rgba(255, 255, 255, 1));
+	background: var(--surface-modal);
 	box-shadow: 0px 10px 24px -3px rgba(0, 0, 0, 0.1);
 	// box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.05);
 	// box-shadow: 0px 0px 1px 0px rgba(0, 0, 0, 0.2);
@@ -352,7 +381,7 @@ body {
 	border-radius: var(--border-radius-tiny);
 	opacity: 0px;
 	&:hover {
-		background-color: var(--subtle-accent);
+		background-color: var(--sidebar-hover-color);
 	}
 
 	a {
@@ -381,7 +410,7 @@ body {
 }
 // sidebar-item states
 @mixin hover-mixin {
-	background-color: #f3f3f3;
+	background-color: var(--sidebar-hover-color);
 	border-radius: 8px;
 }
 
@@ -390,9 +419,12 @@ body {
 }
 
 .active-sidebar {
-	background: var(--surface-selected, rgba(255, 255, 255, 1));
+	background: var(--sidebar-active-color);
 	box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.1);
 	border-radius: 8px;
+}
+.overlay {
+	display: none;
 }
 // form sidebar
 .form-sidebar {
