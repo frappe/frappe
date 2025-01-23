@@ -19,7 +19,6 @@ export interface BlockOptions {
 	baseStyles?: BlockStyleMap
 	mobileStyles?: BlockStyleMap
 	tabletStyles?: BlockStyleMap
-	innerHTML?: string
 	blockName?: string
 	parentBlock?: Block | null
 	classes?: string[]

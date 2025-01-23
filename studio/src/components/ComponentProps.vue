@@ -81,7 +81,7 @@ const props = defineProps<{
 }>()
 
 const componentProps = computed(() => {
-	if (!props.block || props.block.isStaticComponent()) return {}
+	if (!props.block || props.block.isRoot()) return {}
 	const propConfig = getComponentProps(props.block.componentName) || {}
 	if (!propConfig) return {}
 
@@ -118,7 +118,7 @@ watch(
 )
 
 const updateAvailableSlots = async () => {
-	if (!props.block || props.block.isStaticComponent()) return
+	if (!props.block || props.block.isRoot()) return
 
 	const slots = await getComponentSlots(props.block.componentName)
 	// filter out already added slots

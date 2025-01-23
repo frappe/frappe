@@ -1,7 +1,6 @@
 <template>
-	<div v-if="block.isHTML()" v-html="block.innerHTML" />
 	<component
-		v-else-if="block.canHaveChildren()"
+		v-if="block.canHaveChildren()"
 		:is="block.componentName"
 		v-bind="componentProps"
 		:data-component-id="block.componentId"
@@ -115,7 +114,7 @@ const styles = computed(() => {
 })
 
 const getComponentProps = () => {
-	if (!props.block || props.block.isStaticComponent()) return []
+	if (!props.block || props.block.isRoot()) return []
 
 	const componentProps = { ...props.block.componentProps }
 
