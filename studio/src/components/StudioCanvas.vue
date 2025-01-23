@@ -80,17 +80,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, nextTick, provide } from "vue"
-import { useDropZone, useElementBounding } from "@vueuse/core"
+import { Ref, ref, reactive, computed, onMounted, nextTick, provide } from "vue"
+import { useElementBounding } from "@vueuse/core"
 import { LoadingIndicator } from "frappe-ui"
 import StudioComponent from "@/components/StudioComponent.vue"
 import FitScreenIcon from "@/components/Icons/FitScreenIcon.vue"
 import StudioCanvas from "@/components/StudioCanvas.vue"
 
 import useStudioStore from "@/stores/studioStore"
-import { getBlockCopy, getComponentBlock } from "@/utils/helpers"
+import { getBlockCopy } from "@/utils/helpers"
 import setPanAndZoom from "@/utils/panAndZoom"
 import Block from "@/utils/block"
+import { useCanvasDropZone } from "@/utils/useCanvasDropZone"
 
 const props = defineProps({
 	componentTree: {
@@ -150,99 +151,15 @@ const visibleBreakpoints = computed(() => {
 
 const rootComponent = ref(getBlockCopy(props.componentTree, true))
 
-// handle dropping components
-const { isOverDropZone } = useDropZone(canvasContainer, {
-	onDrop: (_files, ev) => {
-		const droppedComponentName = store.dnd.source
-		const { parentComponent, index, slotName } = store.dnd.target
+const getRootBlock = () => rootComponent.value
 
-		if (droppedComponentName && parentComponent) {
-			const newBlock = getComponentBlock(droppedComponentName)
-			if (slotName) {
-				parentComponent.updateSlot(slotName, newBlock)
-			} else {
-				parentComponent.addChild(newBlock, index)
-			}
-		}
-
-		store.resetDnd()
-	},
-	onOver: (_files, ev) => {
-		const { parentComponent, index } = getDropTarget(ev)
-		if (parentComponent) {
-			store.hoveredBlock = parentComponent.componentId
-			store.updateDropTarget(parentComponent, index)
-		}
-	},
-})
-
-const getDropTarget = (ev: DragEvent) => {
-	const element = document.elementFromPoint(ev.clientX, ev.clientY) as HTMLElement
-	const targetElement = element.closest(".__studio_component__") as HTMLElement
-
-	let parentComponent = rootComponent.value
-	let slotName
-	let index = parentComponent.children.length
-
-	if (targetElement && targetElement.dataset.componentId) {
-		parentComponent = findBlock(targetElement.dataset.componentId) || parentComponent
-		// Walk up the tree until we find a component that can have children
-		while (parentComponent && !parentComponent.canHaveChildren()) {
-			parentComponent = parentComponent.getParentBlock()
-		}
-		slotName = targetElement.dataset.slotName || store.selectedSlot?.slotName
-		index = findDropIndex(ev, parentComponent)
+const setRootBlock = (newBlock: Block, resetCanvas = false) => {
+	rootComponent.value = newBlock
+	if (resetCanvas) {
+		nextTick(() => {
+			setScaleAndTranslate()
+		})
 	}
-	return { parentComponent, slotName, index }
-}
-
-const findDropIndex = (ev: DragEvent, parentComponent: Block): number => {
-	const parentEl = document.querySelector(
-		`[data-component-id="${parentComponent.componentId}"]`,
-	) as HTMLElement
-	if (!parentEl) return parentComponent.children.length
-
-	const childElements = Array.from(
-		parentEl.querySelectorAll(":scope > .__studio_component__"),
-	) as HTMLElement[]
-	if (childElements.length === 0) return 0
-
-	const direction = getLayoutDirection(parentEl)
-	const mousePos = direction === "row" ? ev.clientX : ev.clientY
-
-	// Get all child positions
-	const childPositions = childElements.map((child, idx) => {
-		const rect = child.getBoundingClientRect()
-		const midPoint = direction === "row" ? rect.left + rect.width / 2 : rect.top + rect.height / 2
-		return { midPoint, idx }
-	})
-
-	// Find the closest child to the mouse position
-	let closestIndex = 0
-	let minDistance = Infinity
-
-	childPositions.forEach(({ midPoint, idx }) => {
-		const distance = Math.abs(midPoint - mousePos)
-		if (distance < minDistance) {
-			minDistance = distance
-			closestIndex = idx
-		}
-	})
-
-	// Determine if we should insert before or after the closest child
-	// if mouse is closer to left/top side of the child, insert before, else after
-	return mousePos <= childPositions[closestIndex].midPoint ? closestIndex : closestIndex + 1
-}
-
-const getLayoutDirection = (element: HTMLElement): "row" | "column" => {
-	const style = window.getComputedStyle(element)
-	const display = style.display
-	if (display === "flex" || display === "inline-flex") {
-		return style.flexDirection.includes("row") ? "row" : "column"
-	} else if (display === "grid" || display == "inline-grid") {
-		return style.gridAutoFlow.includes("row") ? "row" : "column"
-	}
-	return "column"
 }
 
 const findBlock = (componentId: string, blocks?: Block[]): Block | null => {
@@ -269,17 +186,11 @@ const findBlock = (componentId: string, blocks?: Block[]): Block | null => {
 	}
 	return null
 }
-
-const getRootBlock = () => rootComponent.value
-
-const setRootBlock = (newBlock: Block, resetCanvas = false) => {
-	rootComponent.value = newBlock
-	if (resetCanvas) {
-		nextTick(() => {
-			setScaleAndTranslate()
-		})
-	}
-}
+const { isOverDropZone } = useCanvasDropZone(
+	canvasContainer as unknown as Ref<HTMLElement>,
+	rootComponent,
+	findBlock,
+)
 
 // canvas positioning
 const containerBound = reactive(useElementBounding(canvasContainer))
@@ -342,6 +253,6 @@ defineExpose({
 	@apply border-purple-400 text-gray-900;
 }
 #placeholder {
-	@apply border border-dashed border-gray-300 bg-blue-50 dark:border-gray-700 transition-all;
+	@apply border border-dashed border-gray-300 bg-blue-50 transition-all;
 }
 </style>
