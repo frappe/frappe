@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-19 09:33+0000\n"
-"PO-Revision-Date: 2025-01-21 01:26\n"
+"PO-Revision-Date: 2025-01-23 01:27\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -23311,7 +23311,7 @@ msgstr "Skicka E-post för Säkerhetskopiering Klar"
 #. Label of the send_me_a_copy (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Send Me A Copy of Outgoing Emails"
-msgstr "Skicka mig kopia av Utgående E-post Meddelande"
+msgstr "Skicka Kopia till mig av Utgående E-post"
 
 #. Label of the email (Data) field in DocType 'Google Drive'
 #: frappe/integrations/doctype/google_drive/google_drive.json
@@ -23432,7 +23432,7 @@ msgstr "Skicka Inloggning Länk"
 
 #: frappe/public/js/frappe/views/communication.js:132
 msgid "Send me a copy"
-msgstr "Skicka Kopia"
+msgstr "Skicka Kopia till mig"
 
 #: frappe/email/doctype/newsletter/newsletter.js:46
 msgid "Send now"
