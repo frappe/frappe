@@ -69,17 +69,11 @@ def get_mapped_doc(
 	elif isinstance(target_doc, str):
 		target_doc = frappe.get_doc(json.loads(target_doc))
 
-<<<<<<< HEAD
 	if (
-		not apply_strict_user_permissions
-		and not ignore_permissions
+		not ignore_permissions
 		and not target_doc.has_permission("create")
 	):
 		target_doc.raise_no_permission_to("create")
-=======
-	if not ignore_permissions:
-		target_doc.check_permission("create")
->>>>>>> 4a0ccf6d76 (fix: don't skip perm check when Apply Strict User Permissions is enabled (#29916))
 
 	if cached:
 		source_doc = frappe.get_cached_doc(from_doctype, from_docname)
@@ -154,13 +148,8 @@ def get_mapped_doc(
 	target_doc.run_method("after_mapping", source_doc)
 	target_doc.set_onload("load_after_mapping", True)
 
-<<<<<<< HEAD
-	if apply_strict_user_permissions and not ignore_permissions and not target_doc.has_permission("create"):
+	if not ignore_permissions and not target_doc.has_permission("create"):
 		target_doc.raise_no_permission_to("create")
-=======
-	if not ignore_permissions:
-		ret_doc.check_permission("create")
->>>>>>> 4a0ccf6d76 (fix: don't skip perm check when Apply Strict User Permissions is enabled (#29916))
 
 	return target_doc
 
