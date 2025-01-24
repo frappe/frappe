@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-19 09:33+0000\n"
-"PO-Revision-Date: 2025-01-23 01:27\n"
+"PO-Revision-Date: 2025-01-24 01:44\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -5880,7 +5880,7 @@ msgstr "Skapa Ny DocType"
 
 #: frappe/public/js/frappe/list/list_view_select.js:204
 msgid "Create New Kanban Board"
-msgstr "Skapa Ny Anslags Tavla"
+msgstr "Skapa Ny Anslagstavla"
 
 #: frappe/core/doctype/user/user.js:270
 msgid "Create User Email"
@@ -6996,7 +6996,7 @@ msgstr "Ta bort Data"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:105
 msgid "Delete Kanban Board"
-msgstr "Ta bort Anslag Tavla"
+msgstr "Ta bort Anslagstavla"
 
 #: frappe/public/js/form_builder/components/Section.vue:125
 msgctxt "Title of confirmation dialog"
@@ -12367,7 +12367,7 @@ msgstr "Om vald kommer arbetsflöde tillstånd inte åsidosätta tillstånd i li
 #: frappe/core/report/user_doctype_permissions/user_doctype_permissions.py:45
 #: frappe/public/js/frappe/roles_editor.js:66
 msgid "If Owner"
-msgstr "Om Ansvarig"
+msgstr "Ägare"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:25
 msgid "If a Role does not have access at Level 0, then higher levels are meaningless."
@@ -13929,7 +13929,7 @@ msgstr "K"
 #: frappe/desk/doctype/form_tour/form_tour.json
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgid "Kanban"
-msgstr "Anslag Tavla"
+msgstr "Anslagstavla"
 
 #. Name of a DocType
 #. Label of the kanban_board (Link) field in DocType 'Workspace Shortcut'
@@ -13937,27 +13937,27 @@ msgstr "Anslag Tavla"
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: frappe/public/js/frappe/widgets/widget_dialog.js:498
 msgid "Kanban Board"
-msgstr "Anslag Tavla"
+msgstr "Anslagstavla Bord"
 
 #. Name of a DocType
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Kanban Board Column"
-msgstr "Anslag Tavla Kolumn"
+msgstr "Anslagstavla Bord Kolumn"
 
 #. Label of the kanban_board_name (Data) field in DocType 'Kanban Board'
 #: frappe/desk/doctype/kanban_board/kanban_board.json
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:390
 msgid "Kanban Board Name"
-msgstr "Anslag Tavla Namn"
+msgstr "Anslagstavla Bord Namn"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:267
 msgctxt "Button in kanban view menu"
 msgid "Kanban Settings"
-msgstr "Anslag Tavla Inställningar"
+msgstr "Anslagstavla Inställningar"
 
 #: frappe/public/js/frappe/list/base_list.js:207
 msgid "Kanban View"
-msgstr "Anslag Tavla Vy"
+msgstr "Anslagstavla Vy"
 
 #. Description of a DocType
 #: frappe/core/doctype/activity_log/activity_log.json
@@ -16541,7 +16541,7 @@ msgstr "Ny Mapp"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:346
 msgid "New Kanban Board"
-msgstr "Ny Anslag Tavla"
+msgstr "Ny Anslagstavla"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:62
 msgid "New Links"
@@ -17058,7 +17058,7 @@ msgstr "Inga Misslyckade Logg"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:373
 msgid "No fields found that can be used as a Kanban Column. Use the Customize Form to add a Custom Field of type \"Select\"."
-msgstr "Inga fält hittades som kan användas som Anslag Tavla kolumn. Använd Anpassa Formulär för att lägga till anpassat fält av typ \"Välj\"."
+msgstr "Inga fält hittades som kan användas som Anslagstavla kolumn. Använd Anpassa Formulär för att lägga till anpassat fält av typ \"Välj\"."
 
 #: frappe/utils/file_manager.py:143
 msgid "No file attached"
@@ -26433,7 +26433,7 @@ msgstr "Denna Doctype innehåller inte plats fält"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:393
 msgid "This Kanban Board will be private"
-msgstr "Detta Anslag Tavla kommer att vara privat"
+msgstr "Detta Anslagstavla Bord kommer att vara privat"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:220
 msgid "This action is irreversible. Do you wish to continue?"
