@@ -418,12 +418,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			async:false,
 			callback:((r) => {
 				if (r.message) {
-					var custom_filter = eval(r.message)
+					try {
+						var custom_filter = frappe.utils.eval(r.message);
 						custom_filter.forEach(fld=>{
 							if (this.check_duplicacy(fld.fieldname) != true){
 								frappe.query_reports[this.report_name].filters.push(fld)
 							}
 						})
+					} catch (error) {
+						console.error(error)
+					}
 				}
 			})
 		})	

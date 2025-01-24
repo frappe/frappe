@@ -479,7 +479,7 @@ app_license = "{app_license}"
 # }}
 
 
-# Added Custom Filter in standared report
+# Custom Filter in Standard Report
 # ---------------
 
 # report_filters  = {
