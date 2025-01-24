@@ -1,6 +1,6 @@
 import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
-import { getComponentBlock } from "@/utils/helpers"
+import { getComponentBlock, throttle } from "@/utils/helpers"
 import { useDropZone } from "@vueuse/core"
 import { Ref } from "vue"
 
@@ -11,7 +11,6 @@ export function useCanvasDropZone(
 	block: Ref<Block>,
 	findBlock: (id: string) => Block | null,
 ) {
-
 	const { isOverDropZone } = useDropZone(canvasContainer, {
 		onDrop: (_files, ev) => {
 			const droppedComponentName = store.dnd.source
@@ -25,14 +24,12 @@ export function useCanvasDropZone(
 					parentComponent.addChild(newBlock, index)
 				}
 			}
-
-			store.resetDnd()
 		},
 		onOver: (_files, ev) => {
 			const { parentComponent, index } = getDropTarget(ev)
 			if (parentComponent) {
 				store.hoveredBlock = parentComponent.componentId
-				store.updateDropTarget(parentComponent, index)
+				updateDropTarget(parentComponent, index)
 			}
 		},
 	})
@@ -105,6 +102,19 @@ export function useCanvasDropZone(
 		}
 		return "column"
 	}
+
+	const updateDropTarget = throttle((parentComponent: Block | null, index) => {
+		// append placeholder component to the dom directly
+		// to avoid re-rendering the whole canvas
+		if (!parentComponent || !store.dnd.target?.element) return
+		const newParent = document.querySelector(`.__studio_component__[data-component-id="${parentComponent.componentId}"]`)
+		if (!newParent) return
+
+		// Append the element to the new parent
+		newParent.insertBefore(store.dnd.target.element, newParent.children[index])
+		store.dnd.target.parentComponent = parentComponent
+		store.dnd.target.index = index
+	}, 130)
 
 	return { isOverDropZone }
 }

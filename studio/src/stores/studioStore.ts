@@ -11,7 +11,6 @@ import {
 	fetchPage,
 	getNewResource,
 	confirm,
-	throttle,
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
 import { studioPageResources } from "@/data/studioResources"
@@ -82,7 +81,7 @@ const useStudioStore = defineStore("store", () => {
 		}
 	})
 
-	const startDrag = (ev: DragEvent, componentName: string) => {
+	const handleDragStart = (ev: DragEvent, componentName: string) => {
 		if (ev.dataTransfer) {
 			ev.dataTransfer.setData("componentName", componentName)
 			ev.dataTransfer.setDragImage(new Image(), 0, 0)
@@ -100,20 +99,7 @@ const useStudioStore = defineStore("store", () => {
 		}
 	}
 
-	const updateDropTarget = throttle((parentComponent: Block | null, index) => {
-		// append placeholder component to the dom directly
-		// to avoid re-rendering the whole canvas
-		if (!parentComponent || !dnd.target?.element) return
-		const newParent = document.querySelector(`.__studio_component__[data-component-id="${parentComponent.componentId}"]`)
-		if (!newParent) return
-
-		// Append the element to the new parent
-		newParent.insertBefore(dnd.target.element, newParent.children[index])
-		dnd.target.parentComponent = parentComponent
-		dnd.target.index = index
-	}, 130)
-
-	const resetDnd = () => {
+	const handleDragEnd = () => {
 		dnd.source = null
 		if (dnd.target) {
 			const placeholder = document.getElementById("placeholder")
@@ -333,9 +319,8 @@ const useStudioStore = defineStore("store", () => {
 		selectBlockById,
 		pageBlocks,
 		dnd,
-		startDrag,
-		updateDropTarget,
-		resetDnd,
+		handleDragStart,
+		handleDragEnd,
 		// slots
 		selectedSlot,
 		selectSlot,
