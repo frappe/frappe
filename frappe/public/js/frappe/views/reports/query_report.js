@@ -398,6 +398,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.prepared_report_name = null; // this should be set only if prepared report is EXPLICITLY requested
 		this.toggle_message(true);
 		this.toggle_report(false);
+		this.add_dyamic_filters();
 
 		return frappe.run_serially([
 			() => this.setup_filters(),
@@ -406,6 +407,37 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			() => this.report_settings.onload && this.report_settings.onload(this),
 			() => this.refresh(),
 		]);
+	}
+	
+	add_dyamic_filters(){
+		frappe.call({
+			method:"frappe.desk.query_report.get_custom_script",
+			args:{
+				report_name: this.report_name,
+			},
+			async:false,
+			callback:((r) => {
+				if (r.message) {
+					var custom_filter = eval(r.message)
+						custom_filter.forEach(fld=>{
+							if (this.check_duplicacy(fld.fieldname) != true){
+								frappe.query_reports[this.report_name].filters.push(fld)
+							}
+						})
+				}
+			})
+		})	
+	}
+
+	check_duplicacy(field_name){
+		var flag = false
+		for (const fld of frappe.query_reports[this.report_name].filters){
+			if (fld.fieldname == field_name){
+				flag=true
+				break;
+			}
+		}
+		return flag
 	}
 
 	get_report_doc() {

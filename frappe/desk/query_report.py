@@ -808,3 +808,17 @@ def validate_filters_permissions(report_name, filters=None, user=None):
 						linked_doctype, filters[field.fieldname]
 					)
 				)
+
+@frappe.whitelist()
+def get_custom_script(report_name):
+	all_filtetrs = "["
+	for app_name in frappe.get_installed_apps():
+		files = frappe.get_hooks("report_filters", default={}, app_name=app_name).get(report_name)
+		if files:
+			path = frappe.get_app_path(app_name, *files[0].strip("/").split("/"))
+			with open(path, 'r') as file:
+				js_content = file.read()
+				js_content = js_content.strip()[1:-1].strip().rstrip(",")
+				all_filtetrs += js_content + ','
+	return all_filtetrs + ']'
+

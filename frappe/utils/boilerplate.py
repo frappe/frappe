@@ -478,6 +478,26 @@ app_license = "{app_license}"
 # 	}}
 # }}
 
+
+# Added Custom Filter in standared report
+# ---------------
+
+# report_filters  = {
+#     "General Ledger": "/{app_name}/report_filters/general_ledger.js",
+#	  "Gross Profit": "/{app_name}/report_filters/gross_profit.js"
+# }
+
+# Add the list of filters in 'general_ledger.js'
+# [
+# 	{
+# 		fieldname: "field_name1",
+# 		label: __("Field Name"),
+# 		fieldtype: "Field Type",
+# 	},
+# 	...
+# ]
+
+
 # Scheduled Tasks
 # ---------------
 
