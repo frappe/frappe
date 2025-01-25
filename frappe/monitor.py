@@ -83,7 +83,7 @@ class Monitor:
 			self.data.job.scheduled = True
 
 		if job := rq.get_current_job():
-			self.data.uuid = job.id
+			self.data.job_id = job.id
 			waitdiff = self.data.timestamp - job.enqueued_at.replace(tzinfo=datetime.timezone.utc)
 			self.data.job.wait = int(waitdiff.total_seconds() * 1000000)
 
