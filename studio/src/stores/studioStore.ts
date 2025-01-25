@@ -22,7 +22,7 @@ import Block from "@/utils/block"
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Resource } from "@/types/Studio/StudioResource"
-import { BlockOptions, LeftPanelOptions, RightPanelOptions, Slot } from "@/types"
+import { LeftPanelOptions, RightPanelOptions, Slot } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 
 const useStudioStore = defineStore("store", () => {
@@ -74,7 +74,7 @@ const useStudioStore = defineStore("store", () => {
 	const dnd = reactive({
 		source: null as unknown as string | null, // drag component name
 		target: {
-			element: null as Element | null,
+			placeholder: null as HTMLElement | null,
 			parentComponent: null as Block | null,
 			index: null as number | null,
 			slotName: null as string | null,
@@ -92,7 +92,7 @@ const useStudioStore = defineStore("store", () => {
 
 			const root = document.querySelector(".__studio_component__[data-component-id='root']")
 			if (root) {
-				dnd.target.element = root.appendChild(element)
+				dnd.target.placeholder = root.appendChild(element)
 			}
 		}
 	}
@@ -106,7 +106,7 @@ const useStudioStore = defineStore("store", () => {
 			}
 
 			dnd.target = {
-				element: null,
+				placeholder: null,
 				parentComponent: null,
 				index: null,
 				slotName: null,

@@ -5,6 +5,7 @@ import { useDropZone } from "@vueuse/core"
 import { Ref } from "vue"
 
 const store = useStudioStore()
+type LayoutDirection = "row" | "column"
 
 export function useCanvasDropZone(
 	canvasContainer: Ref<HTMLElement>,
@@ -26,10 +27,10 @@ export function useCanvasDropZone(
 			}
 		},
 		onOver: (_files, ev) => {
-			const { parentComponent, index } = getDropTarget(ev)
+			const { parentComponent, index, layoutDirection } = getDropTarget(ev)
 			if (parentComponent) {
 				store.hoveredBlock = parentComponent.componentId
-				updateDropTarget(parentComponent, index)
+				updateDropTarget(parentComponent, index, layoutDirection)
 			}
 		},
 	})
@@ -40,6 +41,7 @@ export function useCanvasDropZone(
 
 		let parentComponent = block.value
 		let slotName
+		let layoutDirection = "column" as LayoutDirection
 		let index = parentComponent.children.length
 
 		if (targetElement && targetElement.dataset.componentId) {
@@ -48,30 +50,31 @@ export function useCanvasDropZone(
 			while (parentComponent && !parentComponent.canHaveChildren()) {
 				parentComponent = parentComponent.getParentBlock()
 			}
-			slotName = targetElement.dataset.slotName || store.selectedSlot?.slotName
-			index = findDropIndex(ev, parentComponent)
+
+			if (parentComponent) {
+				const parentElement = document.querySelector(
+					`[data-component-id="${parentComponent.componentId}"]`,
+				) as HTMLElement
+				layoutDirection = getLayoutDirection(parentElement)
+				index = findDropIndex(ev, parentElement, layoutDirection)
+				slotName = targetElement.dataset.slotName || store.selectedSlot?.slotName
+			}
 		}
-		return { parentComponent, slotName, index }
+		return { parentComponent, slotName, index, layoutDirection }
 	}
 
-	const findDropIndex = (ev: DragEvent, parentComponent: Block): number => {
-		const parentEl = document.querySelector(
-			`[data-component-id="${parentComponent.componentId}"]`,
-		) as HTMLElement
-		if (!parentEl) return parentComponent.children.length
-
+	const findDropIndex = (ev: DragEvent, parentElement: HTMLElement, layoutDirection: LayoutDirection): number => {
 		const childElements = Array.from(
-			parentEl.querySelectorAll(":scope > .__studio_component__"),
+			parentElement.querySelectorAll(":scope > .__studio_component__"),
 		) as HTMLElement[]
 		if (childElements.length === 0) return 0
 
-		const direction = getLayoutDirection(parentEl)
-		const mousePos = direction === "row" ? ev.clientX : ev.clientY
+		const mousePos = layoutDirection === "row" ? ev.clientX : ev.clientY
 
 		// Get all child positions
 		const childPositions = childElements.map((child, idx) => {
 			const rect = child.getBoundingClientRect()
-			const midPoint = direction === "row" ? rect.left + rect.width / 2 : rect.top + rect.height / 2
+			const midPoint = layoutDirection === "row" ? rect.left + rect.width / 2 : rect.top + rect.height / 2
 			return { midPoint, idx }
 		})
 
@@ -92,7 +95,7 @@ export function useCanvasDropZone(
 		return mousePos <= childPositions[closestIndex].midPoint ? closestIndex : closestIndex + 1
 	}
 
-	const getLayoutDirection = (element: HTMLElement): "row" | "column" => {
+	const getLayoutDirection = (element: HTMLElement): LayoutDirection => {
 		const style = window.getComputedStyle(element)
 		const display = style.display
 		if (display === "flex" || display === "inline-flex") {
@@ -103,15 +106,27 @@ export function useCanvasDropZone(
 		return "column"
 	}
 
-	const updateDropTarget = throttle((parentComponent: Block | null, index) => {
+	const updateDropTarget = throttle((parentComponent: Block | null, index: number, layoutDirection: LayoutDirection) => {
 		// append placeholder component to the dom directly
 		// to avoid re-rendering the whole canvas
-		if (!parentComponent || !store.dnd.target?.element) return
+		const { placeholder } = store.dnd.target
+		if (!parentComponent || !placeholder) return
 		const newParent = document.querySelector(`.__studio_component__[data-component-id="${parentComponent.componentId}"]`)
 		if (!newParent) return
 
-		// Append the element to the new parent
-		newParent.insertBefore(store.dnd.target.element, newParent.children[index])
+		if (store.dnd.target.parentComponent === parentComponent && store.dnd.target.index === index) return
+
+		// flip placeholder border as per layout direction to avoid shifting elements too much
+		if (layoutDirection === "row") {
+			placeholder.classList.remove("horizontal-placeholder")
+			placeholder.classList.add("vertical-placeholder")
+		} else {
+			placeholder.classList.remove("vertical-placeholder")
+			placeholder.classList.add("horizontal-placeholder")
+		}
+
+		// Append the placeholder to the new parent
+		newParent.insertBefore(placeholder, newParent.children[index])
 		store.dnd.target.parentComponent = parentComponent
 		store.dnd.target.index = index
 	}, 130)
