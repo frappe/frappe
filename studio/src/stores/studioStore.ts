@@ -89,8 +89,6 @@ const useStudioStore = defineStore("store", () => {
 
 			let element = document.createElement("div")
 			element.id = "placeholder"
-			element.style.width = "100%"
-			element.style.height = "2rem"
 
 			const root = document.querySelector(".__studio_component__[data-component-id='root']")
 			if (root) {

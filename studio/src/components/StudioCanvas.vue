@@ -253,6 +253,6 @@ defineExpose({
 	@apply border-purple-400 text-gray-900;
 }
 #placeholder {
-	@apply border border-dashed border-gray-300 bg-blue-50 transition-all;
+	@apply w-full border-b-2 border-blue-500 transition-all;
 }
 </style>
