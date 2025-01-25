@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-19 09:33+0000\n"
-"PO-Revision-Date: 2025-01-24 01:44\n"
+"PO-Revision-Date: 2025-01-25 02:22\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -22578,7 +22578,7 @@ msgstr "Skanna QR Kod"
 
 #: frappe/www/qrcode.html:14
 msgid "Scan the QR Code and enter the resulting code displayed."
-msgstr "Skanna QR Kod och ange kod som visas."
+msgstr "Skanna QR Kod och ange resulterande koden som visas."
 
 #: frappe/email/doctype/newsletter/newsletter.js:125
 msgid "Schedule"
