@@ -84,8 +84,13 @@ class Monitor:
 			self.data.job.scheduled = True
 
 		if job := rq.get_current_job():
+<<<<<<< HEAD
 			self.data.uuid = job.id
 			waitdiff = self.data.timestamp - job.enqueued_at.replace(tzinfo=pytz.UTC)
+=======
+			self.data.job_id = job.id
+			waitdiff = self.data.timestamp - job.enqueued_at.replace(tzinfo=datetime.timezone.utc)
+>>>>>>> 9b79dfeb7b (perf: "random" naming to improve concurrency and locality (#30053))
 			self.data.job.wait = int(waitdiff.total_seconds() * 1000000)
 
 	def add_custom_data(self, **kwargs):
