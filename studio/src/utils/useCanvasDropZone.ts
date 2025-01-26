@@ -14,8 +14,8 @@ export function useCanvasDropZone(
 ) {
 	const { isOverDropZone } = useDropZone(canvasContainer, {
 		onDrop: (_files, ev) => {
-			const droppedComponentName = store.dragState.source
-			const { parentComponent, index, slotName } = store.dragState.target
+			const droppedComponentName = ev.dataTransfer?.getData("componentName")
+			const { parentComponent, index, slotName } = store.dragTarget
 
 			if (droppedComponentName && parentComponent) {
 				const newBlock = getComponentBlock(droppedComponentName)
@@ -109,12 +109,12 @@ export function useCanvasDropZone(
 	const updateDropTarget = throttle((parentComponent: Block | null, index: number, layoutDirection: LayoutDirection) => {
 		// append placeholder component to the dom directly
 		// to avoid re-rendering the whole canvas
-		const { placeholder } = store.dragState.target
+		const { placeholder } = store.dragTarget
 		if (!parentComponent || !placeholder) return
 		const newParent = document.querySelector(`.__studio_component__[data-component-id="${parentComponent.componentId}"]`)
 		if (!newParent) return
 
-		if (store.dragState.target.parentComponent === parentComponent && store.dragState.target.index === index) return
+		if (store.dragTarget.parentComponent === parentComponent && store.dragTarget.index === index) return
 
 		// flip placeholder border as per layout direction to avoid shifting elements too much
 		if (layoutDirection === "row") {
@@ -127,8 +127,8 @@ export function useCanvasDropZone(
 
 		// Append the placeholder to the new parent
 		newParent.insertBefore(placeholder, newParent.children[index])
-		store.dragState.target.parentComponent = parentComponent
-		store.dragState.target.index = index
+		store.dragTarget.parentComponent = parentComponent
+		store.dragTarget.index = index
 	}, 130)
 
 	return { isOverDropZone }
