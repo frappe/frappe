@@ -71,7 +71,7 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	// drag & drop
-	const dnd = reactive({
+	const dragState = reactive({
 		source: null as unknown as string | null, // drag component name
 		target: {
 			placeholder: null as HTMLElement | null,
@@ -80,32 +80,34 @@ const useStudioStore = defineStore("store", () => {
 			slotName: null as string | null,
 		}
 	})
+	const isDragging = () => dragState.source !== null && dragState.source !== undefined
 
 	const handleDragStart = (ev: DragEvent, componentName: string) => {
 		if (ev.dataTransfer) {
 			ev.dataTransfer.setData("componentName", componentName)
 			ev.dataTransfer.setDragImage(new Image(), 0, 0)
-			dnd.source = componentName
+			dragState.source = componentName
 
 			let element = document.createElement("div")
 			element.id = "placeholder"
 
 			const root = document.querySelector(".__studio_component__[data-component-id='root']")
 			if (root) {
-				dnd.target.placeholder = root.appendChild(element)
+				dragState.target.placeholder = root.appendChild(element)
 			}
 		}
 	}
 
 	const handleDragEnd = () => {
-		dnd.source = null
-		if (dnd.target) {
+		dragState.source = null
+
+		if (dragState.target) {
 			const placeholder = document.getElementById("placeholder")
 			if (placeholder) {
 				placeholder.remove()
 			}
 
-			dnd.target = {
+			dragState.target = {
 				placeholder: null,
 				parentComponent: null,
 				index: null,
@@ -316,7 +318,8 @@ const useStudioStore = defineStore("store", () => {
 		selectBlock,
 		selectBlockById,
 		pageBlocks,
-		dnd,
+		dragState,
+		isDragging,
 		handleDragStart,
 		handleDragEnd,
 		// slots

@@ -149,7 +149,7 @@ const isSlotSelected = (slotId: string) => {
 const getStyleClasses = computed(() => {
 	const classes = ["ring-blue-400"]
 
-	if (isBlockSelected.value && !props.block.isRoot() && !store.dnd.source) {
+	if (isBlockSelected.value && !props.block.isRoot() && !store.isDragging()) {
 		// make editor interactive
 		classes.push("pointer-events-auto")
 		// Place the block on the top of the stack
