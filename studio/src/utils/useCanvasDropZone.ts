@@ -53,7 +53,7 @@ export function useCanvasDropZone(
 
 			if (parentComponent) {
 				const parentElement = document.querySelector(
-					`[data-component-id="${parentComponent.componentId}"]`,
+					`[data-component-id="${parentComponent.componentId}"]:not(.editor)`,
 				) as HTMLElement
 				layoutDirection = getLayoutDirection(parentElement)
 				index = findDropIndex(ev, parentElement, layoutDirection)
