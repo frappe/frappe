@@ -83,16 +83,30 @@ const useStudioStore = defineStore("store", () => {
 	const isDragging = () => dragState.source !== null && dragState.source !== undefined
 
 	const handleDragStart = (ev: DragEvent, componentName: string) => {
-		if (ev.dataTransfer) {
+		if (ev.target && ev.dataTransfer) {
+			const ghostScale = canvas.value?.canvasProps.scale
+			const ghostElement = (ev.target as HTMLElement).cloneNode(true) as HTMLElement
+			ghostElement.id = "ghost"
+			ghostElement.style.position = "fixed"
+			ghostElement.style.transform = `scale(${ghostScale || 1})`
+			ghostElement.style.pointerEvents = "none"
+			ghostElement.style.zIndex = "999999"
+			document.body.appendChild(ghostElement)
+
+			// Set the scaled drag image
+			ev.dataTransfer.setDragImage(ghostElement, 0, 0)
+			// Clean up the ghost element
+			setTimeout(() => {
+				document.body.removeChild(ghostElement)
+			}, 0)
 			ev.dataTransfer.setData("componentName", componentName)
-			ev.dataTransfer.setDragImage(new Image(), 0, 0)
-			dragState.source = componentName
 
 			let element = document.createElement("div")
 			element.id = "placeholder"
 
 			const root = document.querySelector(".__studio_component__[data-component-id='root']")
 			if (root) {
+				dragState.source = componentName
 				dragState.target.placeholder = root.appendChild(element)
 			}
 		}
