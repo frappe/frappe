@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-13 17:03+0000\n"
-"PO-Revision-Date: 2025-01-21 01:26\n"
+"PO-Revision-Date: 2025-01-26 02:49\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -5814,7 +5814,7 @@ msgstr "Skapa Ny DocType"
 
 #: frappe/public/js/frappe/list/list_view_select.js:204
 msgid "Create New Kanban Board"
-msgstr "Skapa Ny Anslags Tavla"
+msgstr "Skapa Ny Anslagstavla"
 
 #: frappe/core/doctype/user/user.js:267
 msgid "Create User Email"
@@ -6935,7 +6935,7 @@ msgstr "Ta bort Data"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:103
 msgid "Delete Kanban Board"
-msgstr "Ta bort Anslag Tavla"
+msgstr "Ta bort Anslagstavla"
 
 #: frappe/public/js/form_builder/components/Section.vue:125
 msgctxt "Title of confirmation dialog"
@@ -12063,7 +12063,7 @@ msgstr "Om vald kommer Arbetsflöde Tillstånd inte Åsidosätta Tillstånd i Li
 #: frappe/core/doctype/doctype/doctype.py:1725
 #: frappe/public/js/frappe/roles_editor.js:65
 msgid "If Owner"
-msgstr "Om Ansvarig"
+msgstr "Ägare"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:25
 msgid "If a Role does not have access at Level 0, then higher levels are meaningless."
@@ -13607,22 +13607,22 @@ msgstr "Anslag Tavla"
 #. Name of a DocType
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Kanban Board Column"
-msgstr "Anslag Tavla Kolumn"
+msgstr "Anslagstavla Bord Kolumn"
 
 #. Label of a Data field in DocType 'Kanban Board'
 #: frappe/desk/doctype/kanban_board/kanban_board.json
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:388
 msgid "Kanban Board Name"
-msgstr "Anslag Tavla Namn"
+msgstr "Anslagstavla Bord Namn"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:265
 msgctxt "Button in kanban view menu"
 msgid "Kanban Settings"
-msgstr "Anslag Tavla Inställningar"
+msgstr "Anslagstavla Inställningar"
 
 #: frappe/public/js/frappe/list/base_list.js:206
 msgid "Kanban View"
-msgstr "Anslag Tavla Vy"
+msgstr "Anslagstavla Vy"
 
 #. Description of a DocType
 #: frappe/core/doctype/activity_log/activity_log.json
@@ -16173,7 +16173,7 @@ msgstr "Ny Mapp"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:344
 msgid "New Kanban Board"
-msgstr "Ny Anslag Tavla"
+msgstr "Ny Anslagstavla"
 
 #: frappe/desk/doctype/notification_log/notification_log.py:156
 msgid "New Mention on {0}"
@@ -16667,7 +16667,7 @@ msgstr "Inga Misslyckade Logg"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:371
 msgid "No fields found that can be used as a Kanban Column. Use the Customize Form to add a Custom Field of type \"Select\"."
-msgstr "Inga fält hittades som kan användas som Anslag Tavla kolumn. Använd Anpassa Formulär för att lägga till anpassat fält av typ \"Välj\"."
+msgstr "Inga fält hittades som kan användas som Anslagstavla kolumn. Använd Anpassa Formulär för att lägga till anpassat fält av typ \"Välj\"."
 
 #: frappe/utils/file_manager.py:144
 msgid "No file attached"
@@ -21987,7 +21987,7 @@ msgstr "Skanna QR Kod"
 
 #: frappe/www/qrcode.html:14
 msgid "Scan the QR Code and enter the resulting code displayed."
-msgstr "Skanna QR Kod och ange kod som visas."
+msgstr "Skanna QR Kod och ange resulterande koden som visas."
 
 #: frappe/email/doctype/newsletter/newsletter.js:125
 msgid "Schedule"
@@ -22825,7 +22825,7 @@ msgstr "Skicka Inloggning Länk"
 
 #: frappe/public/js/frappe/views/communication.js:132
 msgid "Send me a copy"
-msgstr "Skicka Kopia"
+msgstr "Skicka Kopia till mig"
 
 #: frappe/email/doctype/newsletter/newsletter.js:46
 msgid "Send now"
@@ -25764,7 +25764,7 @@ msgstr "Denna Doctype innehåller inte plats fält"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:391
 msgid "This Kanban Board will be private"
-msgstr "Detta Anslag Tavla kommer att vara privat"
+msgstr "Detta Anslagstavla Bord kommer att vara privat"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:220
 msgid "This action is irreversible. Do you wish to continue?"
