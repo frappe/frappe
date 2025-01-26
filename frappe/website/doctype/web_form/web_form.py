@@ -268,6 +268,17 @@ def get_context(context):
 		messages = [
 			"Sr",
 			"Attach",
+			"Next",
+			"Previous",
+			"Discard?",
+			"Discard",
+			"Are you sure you want to discard the changes?",
+			"Mandatory fields required:",
+			"Invalid values for fields:",
+			"Error",
+			"Page {0} of {1}",
+			"Couldn't save, please check the data you have entered",
+			"Validation Error",
 			self.title,
 			self.introduction_text,
 			self.success_title,
@@ -282,7 +293,52 @@ def get_context(context):
 			messages.extend([field.label, field.description])
 			if field.fieldtype == "Select" and field.options:
 				messages.extend(field.options.split("\n"))
+		# When at least one field in self.web_form_fields has fieldtype "Table" then add "No data" to messages
+		if any(field.fieldtype == "Table" for field in self.web_form_fields):
+			messages.append("Move")
+			messages.append("Insert Above")
+			messages.append("Insert Below")
+			messages.append("Duplicate")
+			messages.append("Shortcuts")
+			messages.append("Ctrl + Up")
+			messages.append("Ctrl + Down")
+			messages.append("ESC")
+			messages.append("Editing Row")
+			messages.append("Add / Remove Columns")
+			messages.append("Fieldname")
+			messages.append("Column Width")
+			messages.append("Configure Columns")
+			messages.append("Select Fields")
+			messages.append("Select All")
+			messages.append("Update")
+			messages.append("Reset to default")
+			messages.append("No Data")
+			messages.append("Delete")
+			messages.append("Delete All")
+			messages.append("Add Row")
+			messages.append("Add Multiple")
+			messages.append("Download")
+			messages.append("of")
+			messages.append("Upload")
+			messages.append("Last")
+			messages.append("First")
+			messages.append("No.:Title of the 'row number' column:")
+   
+		# Phone Picker
+		if any(field.fieldtype == "Phone" for field in self.web_form_fields):
+			messages.append("Search for countries...")
 
+		# Dates
+		if any(field.fieldtype == "Date" for field in self.web_form_fields):
+			messages.append("Now")
+			messages.append("Today")
+			messages.append("Date {0} must be in format: {1}")
+			messages.append("{0} to {1}")
+
+		# Time
+		if any(field.fieldtype == "Time" for field in self.web_form_fields):
+			messages.append("Now")
+		
 		messages.extend(col.get("label") if col else "" for col in self.list_columns)
 
 		context.translated_messages = frappe.as_json({message: _(message) for message in messages if message})
