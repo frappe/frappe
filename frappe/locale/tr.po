@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-13 17:03+0000\n"
-"PO-Revision-Date: 2025-01-23 01:26\n"
+"PO-Revision-Date: 2025-01-26 02:50\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -12693,7 +12693,7 @@ msgstr "Hatalı Doğrulama Kodu"
 
 #: frappe/model/document.py:1359
 msgid "Incorrect value in row {0}:"
-msgstr ""
+msgstr "{0} satırında hatalı değer:"
 
 #: frappe/model/document.py:1361
 msgid "Incorrect value:"
@@ -21642,7 +21642,7 @@ msgstr "Satır Dizini"
 #. Label of a Code field in DocType 'Data Import Log'
 #: frappe/core/doctype/data_import_log/data_import_log.json
 msgid "Row Indexes"
-msgstr ""
+msgstr "Satır İndeksleri"
 
 #. Label of a Data field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
@@ -31299,7 +31299,7 @@ msgstr "{0} {1} değeri {2} olarak değiştirildi."
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:165
 msgid "{0} from {1} to {2} in row #{3}"
-msgstr ""
+msgstr "{0} değeri {1}, {2} ile #{3} nolu satır için"
 
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:120
 msgid "{0} gained {1} point for {2} {3}"
@@ -31829,7 +31829,7 @@ msgstr "{0}: {2} türündeki {1} alanı zorunlu olamaz"
 
 #: frappe/core/doctype/doctype/doctype.py:1243
 msgid "{0}: Fieldname {1} appears multiple times in rows {2}"
-msgstr ""
+msgstr "{0}: Alan {1} {2} satırlarında birden fazla kez görünüyor"
 
 #: frappe/core/doctype/doctype/doctype.py:1375
 msgid "{0}: Fieldtype {1} for {2} cannot be unique"
@@ -31845,11 +31845,11 @@ msgstr "{0}: Aynı Rol, Seviye ve {1} ile sadece bir kurala izin verilir"
 
 #: frappe/core/doctype/doctype/doctype.py:1277
 msgid "{0}: Options must be a valid DocType for field {1} in row {2}"
-msgstr ""
+msgstr "{0}: Seçenekler, {2} satırındaki {1} alanı için geçerli bir DocType olmalıdır"
 
 #: frappe/core/doctype/doctype/doctype.py:1266
 msgid "{0}: Options required for Link or Table type field {1} in row {2}"
-msgstr ""
+msgstr "{0}: {1} satırındaki Bağlantı veya Tablo türü alanı {2} için olması gerekli seçenekler"
 
 #: frappe/core/doctype/doctype/doctype.py:1284
 msgid "{0}: Options {1} must be the same as doctype name {2} for the field {3}"
