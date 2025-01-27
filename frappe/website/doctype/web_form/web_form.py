@@ -271,6 +271,7 @@ def get_context(context):
 			"Next",
 			"Previous",
 			"Discard?",
+			"Cancel",
 			"Discard:Button in web form",
 			"Edit:Button in web form",
 			"See previous responses:Button in web form"
