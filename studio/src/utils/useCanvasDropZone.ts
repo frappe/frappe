@@ -114,7 +114,7 @@ export function useCanvasDropZone(
 		const newParent = document.querySelector(`.__studio_component__[data-component-id="${parentComponent.componentId}"]`)
 		if (!newParent) return
 
-		if (store.dragTarget.parentComponent === parentComponent && store.dragTarget.index === index) return
+		if (store.dragTarget.parentComponent?.componentId === parentComponent.componentId && store.dragTarget.index === index) return
 
 		// flip placeholder border as per layout direction to avoid shifting elements too much
 		if (layoutDirection === "row") {
