@@ -130,6 +130,9 @@ class DataImport(Document):
 	def get_importer(self):
 		return Importer(self.reference_doctype, data_import=self, use_sniffer=self.use_csv_sniffer)
 
+	def on_trash(self):
+		frappe.db.delete("Data Import Log", {"data_import": self.name})
+
 
 @frappe.whitelist()
 def get_preview_from_template(data_import, import_file=None, google_sheets_url=None):
