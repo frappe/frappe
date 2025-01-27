@@ -395,12 +395,17 @@ def relink_files(doc, fieldname, temp_doc_name):
 		return
 	from frappe.utils.data import add_to_date, now_datetime
 
+	if doc.parenttype:
+		attached_to_doctype_filter = ("in", [doc.doctype, doc.parenttype])
+	else:
+		attached_to_doctype_filter = doc.doctype
+
 	mislinked_file = frappe.db.get_value(
 		"File",
 		{
 			"file_url": doc.get(fieldname),
 			"attached_to_name": temp_doc_name,
-			"attached_to_doctype": doc.doctype,
+			"attached_to_doctype": attached_to_doctype_filter,
 			"attached_to_field": fieldname,
 			"creation": (
 				"between",
@@ -413,9 +418,7 @@ def relink_files(doc, fieldname, temp_doc_name):
 		frappe.db.set_value(
 			"File",
 			mislinked_file,
-			field={
-				"attached_to_name": doc.name,
-			},
+			field={"attached_to_name": doc.name},
 		)
 		return
 
@@ -427,6 +430,12 @@ def relink_mismatched_files(doc: "Document") -> None:
 	for df in attach_fields:
 		if doc.get(df.fieldname):
 			relink_files(doc, df.fieldname, doc.__temporary_name)
+
+	for child in doc.get_all_children():
+		for df in child.meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]}):
+			if child.get(df.fieldname):
+				relink_files(child, df.fieldname, doc.__temporary_name)
+
 	# delete temporary name after relinking is done
 	doc.delete_key("__temporary_name")
 
