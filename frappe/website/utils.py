@@ -51,6 +51,8 @@ def can_cache(no_cache=False):
 		return False
 	if getattr(frappe.local, "no_cache", False):
 		return False
+	if frappe.request and frappe.request.query_string:
+		return False
 	return not no_cache
 
 
