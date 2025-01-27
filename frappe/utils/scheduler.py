@@ -33,13 +33,6 @@ def cprint(*args, **kwargs):
 		pass
 
 
-<<<<<<< HEAD
-=======
-def _proctitle(message):
-	setproctitle.setthreadtitle(f"frappe-scheduler: {message}")
-
-
->>>>>>> f7ff829ea7 (perf: Merge worker and scheduler)
 def start_scheduler() -> NoReturn:
 	"""Run enqueue_events_for_all_sites based on scheduler tick.
 	Specify scheduler_interval in seconds in common_site_config.json"""
@@ -47,9 +40,6 @@ def start_scheduler() -> NoReturn:
 	tick = get_scheduler_tick()
 	set_niceness()
 
-<<<<<<< HEAD
-	while True:
-=======
 	lock_path = os.path.abspath(os.path.join(get_bench_path(), "config", "scheduler_process"))
 
 	try:
@@ -60,8 +50,6 @@ def start_scheduler() -> NoReturn:
 		return
 
 	while True:
-		_proctitle("idle")
->>>>>>> f7ff829ea7 (perf: Merge worker and scheduler)
 		time.sleep(tick)
 		enqueue_events_for_all_sites()
 

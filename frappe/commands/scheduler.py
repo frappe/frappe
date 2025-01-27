@@ -198,20 +198,8 @@ def start_scheduler():
 	type=click.Choice(["round_robin", "random"]),
 	help="Dequeuing strategy to use",
 )
-<<<<<<< HEAD
-<<<<<<< HEAD
 def start_worker(queue, quiet=False, rq_username=None, rq_password=None, burst=False, strategy=None):
-	"""Start a backgrond worker"""
-=======
-@click.option("--no-scheduler", is_flag=True, default=False, help="Do not start scheduler")
-def start_worker(
-	queue, quiet=False, rq_username=None, rq_password=None, burst=False, strategy=None, no_scheduler=False
-):
-=======
-def start_worker(queue, quiet=False, rq_username=None, rq_password=None, burst=False, strategy=None):
->>>>>>> d13178755b (refactor: keep scheduler+worker behaviour to workerpool)
 	"""Start a background worker"""
->>>>>>> 433e7281f7 (feat: make running scheduler with worker optional)
 	from frappe.utils.background_jobs import start_worker
 
 	start_worker(
