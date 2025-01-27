@@ -60,7 +60,10 @@ def _get_jenv():
 
 
 def get_template(path):
-	return get_jenv().get_template(path)
+	jenv = get_jenv()
+	# Note: jenv globals are reapplied here because we don't have true "global"/"local" separation.
+	# Ideally globals should never change as per Jinja design.
+	return jenv.get_template(path, globals=jenv.globals)
 
 
 def get_email_from_template(name, args):
