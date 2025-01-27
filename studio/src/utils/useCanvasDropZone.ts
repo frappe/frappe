@@ -9,7 +9,7 @@ type LayoutDirection = "row" | "column"
 
 export function useCanvasDropZone(
 	canvasContainer: Ref<HTMLElement>,
-	block: Ref<Block>,
+	block: Ref<Block | null>,
 	findBlock: (id: string) => Block | null,
 ) {
 	const { isOverDropZone } = useDropZone(canvasContainer, {
@@ -42,7 +42,7 @@ export function useCanvasDropZone(
 		let parentComponent = block.value
 		let slotName
 		let layoutDirection = "column" as LayoutDirection
-		let index = parentComponent.children.length
+		let index = parentComponent?.children.length || 0
 
 		if (targetElement && targetElement.dataset.componentId) {
 			parentComponent = findBlock(targetElement.dataset.componentId) || parentComponent
