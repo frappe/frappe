@@ -27,7 +27,7 @@ export function useCanvasDropZone(
 			}
 		},
 		onOver: (_files, ev) => {
-			const { parentComponent, index, layoutDirection } = getDropTarget(ev)
+			const { parentComponent, index, layoutDirection } = findDropTarget(ev)
 			if (parentComponent) {
 				store.hoveredBlock = parentComponent.componentId
 				updateDropTarget(parentComponent, index, layoutDirection)
@@ -35,7 +35,7 @@ export function useCanvasDropZone(
 		},
 	})
 
-	const getDropTarget = (ev: DragEvent) => {
+	const findDropTarget = (ev: DragEvent) => {
 		const element = document.elementFromPoint(ev.clientX, ev.clientY) as HTMLElement
 		const targetElement = element.closest(".__studio_component__") as HTMLElement
 
