@@ -65,7 +65,7 @@ export function useCanvasDropZone(
 
 	const findDropIndex = (ev: DragEvent, parentElement: HTMLElement, layoutDirection: LayoutDirection): number => {
 		const childElements = Array.from(
-			parentElement.querySelectorAll(":scope > .__studio_component__"),
+			parentElement.querySelectorAll(":scope > .__studio_component__, #placeholder"),
 		) as HTMLElement[]
 		if (childElements.length === 0) return 0
 
@@ -125,8 +125,13 @@ export function useCanvasDropZone(
 			placeholder.classList.add("horizontal-placeholder")
 		}
 
-		// Append the placeholder to the new parent
-		newParent.insertBefore(placeholder, newParent.children[index])
+		// add the placeholder to the new parent
+		if (index >= newParent.children.length) {
+			newParent.appendChild(placeholder)
+		} else {
+			newParent.insertBefore(placeholder, newParent.children[index])
+		}
+
 		store.dragTarget.parentComponent = parentComponent
 		store.dragTarget.index = index
 	}, 130)
