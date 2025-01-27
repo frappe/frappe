@@ -130,12 +130,11 @@ const tracker = ref<Tracker>()
 const canvasProps = inject("canvasProps") as CanvasProps
 
 const showMarginPaddingHandlers = computed(() => {
-	return false
-	return isBlockSelected.value && !props.block.isRoot() && !resizing.value
+	return isBlockSelected.value && !props.block.isRoot() && !resizing.value && !store.isDragging
 })
 
 const showResizer = computed(() => {
-	return !props.block.isRoot() && isBlockSelected.value
+	return !props.block.isRoot() && isBlockSelected.value && !store.isDragging
 })
 
 const isBlockSelected = computed(() => {
@@ -149,7 +148,7 @@ const isSlotSelected = (slotId: string) => {
 const getStyleClasses = computed(() => {
 	const classes = ["ring-blue-400"]
 
-	if (isBlockSelected.value && !props.block.isRoot() && !store.isDragging()) {
+	if (isBlockSelected.value && !props.block.isRoot() && !store.isDragging) {
 		// make editor interactive
 		classes.push("pointer-events-auto")
 		// Place the block on the top of the stack

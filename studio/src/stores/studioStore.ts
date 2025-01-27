@@ -71,16 +71,17 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	// drag & drop
+	const isDragging = ref(false)
 	const dragTarget = reactive({
 		placeholder: null as HTMLElement | null,
 		parentComponent: null as Block | null,
 		index: null as number | null,
 		slotName: null as string | null,
 	})
-	const isDragging = () => dragTarget.placeholder !== null && dragTarget.placeholder !== undefined
 
 	const handleDragStart = (ev: DragEvent, componentName: string) => {
 		if (ev.target && ev.dataTransfer) {
+			isDragging.value = true
 			const ghostScale = canvas.value?.canvasProps.scale
 			const ghostElement = (ev.target as HTMLElement).cloneNode(true) as HTMLElement
 			ghostElement.id = "ghost"
@@ -109,17 +110,17 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	const handleDragEnd = () => {
-		if (dragTarget.placeholder) {
-			const placeholder = document.getElementById("placeholder")
-			if (placeholder) {
-				placeholder.remove()
-			}
-
-			dragTarget.placeholder = null
-			dragTarget.parentComponent = null
-			dragTarget.index = null
-			dragTarget.slotName = null
+		const placeholder = document.getElementById("placeholder")
+		if (placeholder) {
+			placeholder.remove()
 		}
+
+		dragTarget.placeholder = null
+		dragTarget.parentComponent = null
+		dragTarget.index = null
+		dragTarget.slotName = null
+
+		isDragging.value = false
 	}
 
 	// slots
