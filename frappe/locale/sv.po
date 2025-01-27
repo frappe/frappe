@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-19 09:33+0000\n"
-"PO-Revision-Date: 2025-01-25 02:22\n"
+"PO-Revision-Date: 2025-01-27 02:48\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -6300,7 +6300,7 @@ msgstr "Anpassning"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:357
 msgid "Customizations Discarded"
-msgstr "Anpassningar Bortkastade"
+msgstr "Anpassningar Ångrade"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:465
 msgid "Customizations Reset"
