@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-19 09:33+0000\n"
-"PO-Revision-Date: 2025-01-21 01:26\n"
+"PO-Revision-Date: 2025-01-28 03:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -619,7 +619,7 @@ msgstr ""
 #. Header text in the Integrations Workspace
 #: frappe/integrations/workspace/integrations/integrations.json
 msgid "<span class=\"h4\"><b>Reports &amp; Masters</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>Rapports et Pages principales</b></span>"
 
 #: frappe/custom/doctype/custom_field/custom_field.js:39
 msgid "<strong>Warning:</strong> This field is system generated and may be overwritten by a future update. Modify it using {0} instead."
@@ -1341,7 +1341,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Permission Log'
 #: frappe/core/doctype/permission_log/permission_log.json
 msgid "Added"
-msgstr ""
+msgstr "Ajouté"
 
 #. Description of the '&lt;head&gt; HTML' (Code) field in DocType 'Website
 #. Settings'
@@ -21064,7 +21064,7 @@ msgstr "Recharger"
 
 #: frappe/public/js/frappe/form/controls/attach.js:16
 msgid "Reload File"
-msgstr ""
+msgstr "Recharger le fichier"
 
 #: frappe/public/js/frappe/list/base_list.js:250
 msgid "Reload List"
@@ -27586,7 +27586,7 @@ msgstr "Impossible de lire le format de fichier pour {0}"
 
 #: frappe/core/doctype/communication/email.py:179
 msgid "Unable to send mail because of a missing email account. Please setup default Email Account from Settings > Email Account"
-msgstr ""
+msgstr "Impossible d'envoyer du courrier en raison d'un compte de messagerie manquant. Veuillez configurer le compte de messagerie par défaut dans Paramètres > Compte de messagerie"
 
 #: frappe/public/js/frappe/views/calendar/calendar.js:449
 msgid "Unable to update event"
