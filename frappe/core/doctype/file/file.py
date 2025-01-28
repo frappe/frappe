@@ -803,6 +803,14 @@ def on_doctype_update():
 def has_permission(doc, ptype=None, user=None, debug=False):
 	user = user or frappe.session.user
 
+	# the attached doctype should be present
+	if doc.attached_to_doctype:
+		try:
+			frappe.get_doc("DocType", doc.attached_to_doctype)
+		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
+			return False
+
 	if user == "Administrator":
 		return True
 
