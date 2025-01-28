@@ -1,6 +1,6 @@
 frappe.ui.form.on("File", {
 	refresh: function (frm) {
-		frm.add_custom_button("View File", () =>
+		frm.add_custom_button(__("View File"), () =>
 			window.open(window.location.origin + frm.doc.file_url)
 		);
 		if (!frm.doc.is_folder) {
