@@ -52,6 +52,12 @@ def _get_jenv():
 
 			return super().is_safe_attribute(obj, attr, *args, **kwargs)
 
+		def get_template(self, *args, **kwargs):
+			# Note: jenv globals are reapplied here because we don't have true "global"/"local" separation.
+			# Ideally globals should never change as per Jinja design.
+			kwargs.update({"globals": self.globals})
+			return super().get_template(*args, **kwargs)
+
 	# frappe will be loaded last, so app templates will get precedence
 	jenv = FrappeSandboxedEnvironment(loader=get_jloader(), undefined=DebugUndefined, cache_size=32)
 	set_filters(jenv)
@@ -61,9 +67,7 @@ def _get_jenv():
 
 def get_template(path):
 	jenv = get_jenv()
-	# Note: jenv globals are reapplied here because we don't have true "global"/"local" separation.
-	# Ideally globals should never change as per Jinja design.
-	return jenv.get_template(path, globals=jenv.globals)
+	return jenv.get_template(path)
 
 
 def get_email_from_template(name, args):
