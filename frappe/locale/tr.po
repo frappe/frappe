@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-13 17:03+0000\n"
-"PO-Revision-Date: 2025-01-26 02:50\n"
+"PO-Revision-Date: 2025-01-28 03:25\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -7930,7 +7930,7 @@ msgstr "Belgenin adı {0} değeri {1} olarak değiştirildi"
 
 #: frappe/public/js/frappe/form/toolbar.js:155
 msgid "Document renaming from {0} to {1} has been queued"
-msgstr ""
+msgstr "Belgenin adı {0} değerinden {1} değerine değiştirilmek üzere sıraya alındı."
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:386
 msgid "Document type is required to create a dashboard chart"
