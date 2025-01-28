@@ -30,12 +30,14 @@ export function useCanvasDropZone(
 			const { parentComponent, index, layoutDirection } = findDropTarget(ev)
 			if (parentComponent) {
 				store.hoveredBlock = parentComponent.componentId
-				updateDropTarget(parentComponent, index, layoutDirection)
+				updateDropTarget(ev, parentComponent, index, layoutDirection)
 			}
 		},
 	})
 
 	const findDropTarget = (ev: DragEvent) => {
+		if (store.dragTarget.x === ev.x && store.dragTarget.y === ev.y) return {}
+
 		const element = document.elementFromPoint(ev.clientX, ev.clientY) as HTMLElement
 		const targetElement = element.closest(".__studio_component__") as HTMLElement
 
@@ -106,7 +108,7 @@ export function useCanvasDropZone(
 		return "column"
 	}
 
-	const updateDropTarget = throttle((parentComponent: Block | null, index: number, layoutDirection: LayoutDirection) => {
+	const updateDropTarget = throttle((ev: DragEvent, parentComponent: Block | null, index: number, layoutDirection: LayoutDirection) => {
 		// append placeholder component to the dom directly
 		// to avoid re-rendering the whole canvas
 		const { placeholder } = store.dragTarget
@@ -134,6 +136,8 @@ export function useCanvasDropZone(
 
 		store.dragTarget.parentComponent = parentComponent
 		store.dragTarget.index = index
+		store.dragTarget.x = ev.x
+		store.dragTarget.y = ev.y
 	}, 130)
 
 	return { isOverDropZone }

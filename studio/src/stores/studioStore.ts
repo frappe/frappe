@@ -73,6 +73,8 @@ const useStudioStore = defineStore("store", () => {
 	// drag & drop
 	const isDragging = ref(false)
 	const dragTarget = reactive({
+		x: null as number | null,
+		y: null as number | null,
 		placeholder: null as HTMLElement | null,
 		parentComponent: null as Block | null,
 		index: null as number | null,
@@ -115,6 +117,8 @@ const useStudioStore = defineStore("store", () => {
 			placeholder.remove()
 		}
 
+		dragTarget.x = null
+		dragTarget.y = null
 		dragTarget.placeholder = null
 		dragTarget.parentComponent = null
 		dragTarget.index = null
