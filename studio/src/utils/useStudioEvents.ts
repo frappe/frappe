@@ -47,6 +47,21 @@ export function useStudioEvents() {
 				const block = blockController.getSelectedBlocks()[0];
 				block.duplicateBlock();
 			}
+			return;
+		}
+
+		// undo
+		if (e.key === "z" && isCtrlOrCmd(e) && !e.shiftKey && store.canvas?.history?.canUndo()) {
+			store.canvas?.history.undo()
+			e.preventDefault()
+			return;
+		}
+
+		// redo
+		if (e.key === "z" && e.shiftKey && isCtrlOrCmd(e) && store.canvas?.history?.canRedo) {
+			store.canvas?.history.redo();
+			e.preventDefault();
+			return;
 		}
 	})
 

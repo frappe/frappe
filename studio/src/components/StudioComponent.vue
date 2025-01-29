@@ -146,7 +146,7 @@ const target = computed(() => getComponentRoot(componentRef))
 
 // block hovering and selection
 const isHovered = ref(false)
-const isSelected = computed(() => store.selectedBlockIds?.includes(props.block.componentId))
+const isSelected = computed(() => store.selectedBlockIds?.has(props.block.componentId))
 
 const loadEditor = computed(() => {
 	return (

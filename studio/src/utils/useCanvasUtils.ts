@@ -2,6 +2,7 @@ import { CanvasProps } from "@/types"
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import { nextTick, reactive, Ref } from "vue"
+import { useCanvasHistory } from "@/utils/useCanvasHistory"
 import { useElementBounding } from "@vueuse/core"
 import { toast } from "vue-sonner"
 
@@ -11,6 +12,7 @@ export function useCanvasUtils(
 	canvasContainer: Ref<HTMLElement | null>,
 	canvas: Ref<HTMLElement | null>,
 	rootComponent: Ref<Block>,
+	canvasHistory: Ref<null | any>,
 ) {
 	// canvas positioning
 	const containerBound = reactive(useElementBounding(canvasContainer));
@@ -41,17 +43,25 @@ export function useCanvasUtils(
 			canvasProps.translateY = diffY / scale;
 		}
 		canvasProps.settingCanvas = false;
-	};
+	}
+
+	function setupHistory() {
+		canvasHistory.value = useCanvasHistory(rootComponent);
+	}
 
 	function getRootBlock() {
 		return rootComponent.value;
 	}
 
 	function setRootBlock(newBlock: Block, resetCanvas = false) {
-		rootComponent.value = newBlock;
+		rootComponent.value = newBlock
+		if (canvasHistory.value) {
+			canvasHistory.value.dispose();
+			setupHistory();
+		}
 		if (resetCanvas) {
 			nextTick(() => {
-				setScaleAndTranslate();
+				setScaleAndTranslate()
 			});
 		}
 
@@ -108,6 +118,7 @@ export function useCanvasUtils(
 
 	return {
 		setScaleAndTranslate,
+		setupHistory,
 		getRootBlock,
 		setRootBlock,
 		findBlock,

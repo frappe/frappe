@@ -47,10 +47,10 @@ const useStudioStore = defineStore("store", () => {
 	// block hover & selection
 	const hoveredBlock = ref<string | null>(null)
 	const hoveredBreakpoint = ref<string | null>(null)
-	const selectedBlockIds = ref<string[]>([])
+	const selectedBlockIds = ref<Set<string>>(new Set())
 	const selectedBlocks = computed(() => {
 		return (
-			selectedBlockIds.value
+			Array.from(selectedBlockIds.value)
 				.map((id) => canvas.value?.findBlock(id))
 				// filter out missing blocks/null values
 				.filter((b) => b)
@@ -64,9 +64,9 @@ const useStudioStore = defineStore("store", () => {
 
 	function selectBlockById(blockId: string, e: MouseEvent | null, multiSelect = false) {
 		if (multiSelect) {
-			selectedBlockIds.value.push(blockId)
+			selectedBlockIds.value.add(blockId)
 		} else {
-			selectedBlockIds.value.splice(0, selectedBlockIds.value.length, blockId)
+			selectedBlockIds.value = new Set([blockId])
 		}
 	}
 

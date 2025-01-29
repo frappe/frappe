@@ -96,6 +96,7 @@ import setPanAndZoom from "@/utils/panAndZoom"
 import Block from "@/utils/block"
 import { useCanvasDropZone } from "@/utils/useCanvasDropZone"
 import { useCanvasUtils } from "@/utils/useCanvasUtils"
+import { CanvasHistory } from "@/types/StudioCanvas"
 
 const props = defineProps({
 	componentTree: {
@@ -164,13 +165,10 @@ watch(
 
 // clone props.block into canvas data to avoid mutating them
 const rootComponent = ref(getBlockCopy(props.componentTree, true))
+const history = ref(null) as Ref<null> | CanvasHistory
 
-const { setScaleAndTranslate, getRootBlock, setRootBlock, findBlock, removeBlock } = useCanvasUtils(
-	canvasProps,
-	canvasContainer,
-	canvas,
-	rootComponent,
-)
+const { setScaleAndTranslate, setupHistory, getRootBlock, setRootBlock, findBlock, removeBlock } =
+	useCanvasUtils(canvasProps, canvasContainer, canvas, rootComponent, history)
 
 const { isOverDropZone } = useCanvasDropZone(
 	canvasContainer as unknown as Ref<HTMLElement>,
@@ -181,13 +179,15 @@ const { isOverDropZone } = useCanvasDropZone(
 onMounted(() => {
 	canvasProps.overlayElement = overlay.value
 	setScaleAndTranslate()
+	showBlocks.value = true
+	setupHistory()
 	const canvasContainerEl = canvasContainer.value as unknown as HTMLElement
 	const canvasEl = canvas.value as unknown as HTMLElement
 	setPanAndZoom(canvasProps, canvasEl, canvasContainerEl)
-	showBlocks.value = true
 })
 
 defineExpose({
+	history,
 	rootComponent,
 	canvasProps,
 	findBlock,

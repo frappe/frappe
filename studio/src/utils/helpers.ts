@@ -9,9 +9,13 @@ import { ObjectLiteral, BlockOptions, StyleValue, ExpressionEvaluationContext, S
 import { DataResult, DocumentResource, DocumentResult, Filters, Resource } from "@/types/Studio/StudioResource"
 import { StudioPage } from "@/types/Studio/StudioPage"
 
-function getBlockInstance(options: BlockOptions, retainId = true): Block {
+function getBlockString(block: BlockOptions | Block): string {
+	return jsToJson(getBlockCopyWithoutParent(block))
+}
+
+function getBlockInstance(options: BlockOptions | string, retainId = true): Block {
 	if (typeof options === "string") {
-		options = jsonToJs(options)
+		options = jsonToJs(options) as BlockOptions
 	}
 	if (!retainId) {
 		const deleteComponentId = (block: BlockOptions) => {
@@ -220,6 +224,10 @@ function replaceMapKey(map: Map<any, any>, oldKey: string, newKey: string) {
 		}
 	});
 	return newMap;
+}
+
+function generateId() {
+	return Math.random().toString(36).substr(2, 9);
 }
 
 // slots
@@ -535,6 +543,7 @@ function throttle<T extends (...args: any[]) => void>(func: T, wait: number = 10
 }
 
 export {
+	getBlockString,
 	getBlockInstance,
 	getComponentBlock,
 	getRootBlock,
@@ -551,6 +560,7 @@ export {
 	jsonToJs,
 	mapToObject,
 	replaceMapKey,
+	generateId,
 	// slots
 	isHTML,
 	// app

@@ -4,7 +4,7 @@ import { reactive, CSSProperties, nextTick } from 'vue'
 
 import useStudioStore from "@/stores/studioStore";
 import components from "@/data/components";
-import { copyObject, getBlockCopy, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
+import { copyObject, generateId, getBlockCopy, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
 
 import { StyleValue } from "@/types"
 import { ComponentEvent } from "@/types/ComponentEvent"
@@ -63,7 +63,7 @@ class Block implements BlockOptions {
 	}
 
 	generateComponentId(componentName?: string | null): string {
-		return `${componentName || this.componentName}-${Math.random().toString(36).substring(2, 9)}`
+		return `${componentName || this.componentName}-${generateId()}`
 	}
 
 	deleteBlock() {
