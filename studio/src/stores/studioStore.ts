@@ -70,6 +70,63 @@ const useStudioStore = defineStore("store", () => {
 		}
 	}
 
+	// drag & drop
+	const isDragging = ref(false)
+	const dropTarget = reactive({
+		x: null as number | null,
+		y: null as number | null,
+		placeholder: null as HTMLElement | null,
+		parentComponent: null as Block | null,
+		index: null as number | null,
+		slotName: null as string | null,
+	})
+
+	const handleDragStart = (ev: DragEvent, componentName: string) => {
+		if (ev.target && ev.dataTransfer) {
+			isDragging.value = true
+			const ghostScale = canvas.value?.canvasProps.scale
+			const ghostElement = (ev.target as HTMLElement).cloneNode(true) as HTMLElement
+			ghostElement.id = "ghost"
+			ghostElement.style.position = "fixed"
+			ghostElement.style.transform = `scale(${ghostScale || 1})`
+			ghostElement.style.pointerEvents = "none"
+			ghostElement.style.zIndex = "999999"
+			document.body.appendChild(ghostElement)
+
+			// Set the scaled drag image
+			ev.dataTransfer.setDragImage(ghostElement, 0, 0)
+			// Clean up the ghost element
+			setTimeout(() => {
+				document.body.removeChild(ghostElement)
+			}, 0)
+			ev.dataTransfer.setData("componentName", componentName)
+
+			let element = document.createElement("div")
+			element.id = "placeholder"
+
+			const root = document.querySelector(".__studio_component__[data-component-id='root']")
+			if (root) {
+				dropTarget.placeholder = root.appendChild(element)
+			}
+		}
+	}
+
+	const handleDragEnd = () => {
+		const placeholder = document.getElementById("placeholder")
+		if (placeholder) {
+			placeholder.remove()
+		}
+
+		dropTarget.x = null
+		dropTarget.y = null
+		dropTarget.placeholder = null
+		dropTarget.parentComponent = null
+		dropTarget.index = null
+		dropTarget.slotName = null
+
+		isDragging.value = false
+	}
+
 	// slots
 	const showSlotEditorDialog = ref(false)
 
@@ -272,6 +329,10 @@ const useStudioStore = defineStore("store", () => {
 		selectBlock,
 		selectBlockById,
 		pageBlocks,
+		dropTarget,
+		isDragging,
+		handleDragStart,
+		handleDragEnd,
 		// slots
 		selectedSlot,
 		selectSlot,

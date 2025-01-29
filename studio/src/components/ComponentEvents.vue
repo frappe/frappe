@@ -102,7 +102,7 @@ const emptyEvent: ComponentEvent = {
 const newEvent = ref<ComponentEvent>({ ...emptyEvent })
 
 const eventOptions = computed(() => {
-	if (!props.block) return []
+	if (!props.block || props.block.isRoot()) return []
 	return [
 		...getComponentEvents(props.block?.componentName),
 		"click",

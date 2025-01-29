@@ -15,11 +15,14 @@
 
 		<div class="grid grid-cols-3 items-center gap-x-2 gap-y-4">
 			<div v-for="component in componentList" :key="component.name">
-				<div class="flex flex-col items-center justify-center gap-2 text-gray-700">
+				<div
+					class="flex cursor-grab flex-col items-center justify-center gap-2 text-gray-700"
+					draggable="true"
+					@dragstart="(ev) => store.handleDragStart(ev, component.name)"
+					@dragend="(_ev) => store.handleDragEnd()"
+				>
 					<div
-						class="flex cursor-grab flex-col items-center justify-center gap-2 truncate rounded border-[1px] border-gray-300 bg-gray-50 p-4 transition duration-300 ease-in-out"
-						draggable="true"
-						@dragstart="(ev) => setComponentData(ev, component)"
+						class="flex flex-col items-center justify-center gap-2 truncate rounded border-[1px] border-gray-300 bg-gray-50 p-4 transition duration-300 ease-in-out"
 					>
 						<LucideIcon :name="component.icon" class="h-6 w-6" />
 					</div>
@@ -37,7 +40,9 @@ import { TextInput } from "frappe-ui"
 import components from "@/data/components"
 
 import LucideIcon from "@/components/LucideIcon.vue"
-import { FrappeUIComponent } from "@/types"
+import useStudioStore from "@/stores/studioStore"
+
+const store = useStudioStore()
 
 const componentFilter = ref("")
 const componentList = computed(() => {
@@ -49,10 +54,4 @@ const componentList = computed(() => {
 		return components.list
 	}
 })
-
-const setComponentData = (ev: DragEvent, component: FrappeUIComponent) => {
-	if (ev.dataTransfer) {
-		ev.dataTransfer.setData("componentName", component.name)
-	}
-}
 </script>

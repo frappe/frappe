@@ -1,7 +1,12 @@
 <template>
 	<div ref="canvasContainer">
 		<slot name="header"></slot>
-		<div class="overlay absolute" id="overlay" ref="overlay" />
+		<div
+			class="overlay absolute"
+			:class="{ 'pointer-events-none': isOverDropZone }"
+			id="overlay"
+			ref="overlay"
+		/>
 		<Transition name="fade">
 			<div
 				class="absolute bottom-0 left-0 right-0 top-0 z-[19] grid w-full place-items-center bg-gray-50"
@@ -80,17 +85,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, nextTick, provide } from "vue"
-import { useDropZone, useElementBounding } from "@vueuse/core"
+import { Ref, ref, watch, reactive, computed, onMounted, nextTick, provide } from "vue"
+import { useElementBounding } from "@vueuse/core"
 import { LoadingIndicator } from "frappe-ui"
 import StudioComponent from "@/components/StudioComponent.vue"
 import FitScreenIcon from "@/components/Icons/FitScreenIcon.vue"
 import StudioCanvas from "@/components/StudioCanvas.vue"
 
 import useStudioStore from "@/stores/studioStore"
-import { getBlockCopy, getComponentBlock } from "@/utils/helpers"
+import { getBlockCopy } from "@/utils/helpers"
 import setPanAndZoom from "@/utils/panAndZoom"
 import Block from "@/utils/block"
+import { useCanvasDropZone } from "@/utils/useCanvasDropZone"
 
 const props = defineProps({
 	componentTree: {
@@ -147,49 +153,26 @@ provide("canvasProps", canvasProps)
 const visibleBreakpoints = computed(() => {
 	return canvasProps.breakpoints.filter((breakpoint) => breakpoint.visible || breakpoint.device === "desktop")
 })
+watch(
+	() => canvasProps.breakpoints.map((b) => b.visible),
+	() => {
+		if (canvasProps.settingCanvas) {
+			return
+		}
+		setScaleAndTranslate()
+	},
+)
 
 const rootComponent = ref(getBlockCopy(props.componentTree, true))
 
-// handle dropping components
-useDropZone(canvasContainer, {
-	onDrop: (_files, ev) => {
-		let { parentComponent, slotName } = getDropTarget(ev)
-		const droppedComponentName = ev.dataTransfer?.getData("componentName")
-		if (droppedComponentName && parentComponent) {
-			const newBlock = getComponentBlock(droppedComponentName)
-			if (slotName) {
-				parentComponent.updateSlot(slotName, newBlock)
-			} else {
-				parentComponent.addChild(newBlock)
-			}
-		}
-	},
-	onOver: (_files, ev) => {
-		const { parentComponent } = getDropTarget(ev)
-		if (parentComponent) {
-			store.hoveredBlock = parentComponent.componentId
-		}
-	},
-})
+const getRootBlock = () => rootComponent.value
 
-const getDropTarget = (ev: DragEvent) => {
-	let element = document.elementFromPoint(ev.x, ev.y) as HTMLElement
-	let parentComponent = rootComponent.value
-	let slotName
-
-	if (element) {
-		if (element.dataset.componentId) {
-			parentComponent = findBlock(element.dataset.componentId) || parentComponent
-			while (parentComponent && !parentComponent.canHaveChildren()) {
-				parentComponent = parentComponent.getParentBlock()
-			}
-			slotName = element.dataset.slotName || store.selectedSlot?.slotName
-		}
-	}
-
-	return {
-		parentComponent,
-		slotName,
+const setRootBlock = (newBlock: Block, resetCanvas = false) => {
+	rootComponent.value = newBlock
+	if (resetCanvas) {
+		nextTick(() => {
+			setScaleAndTranslate()
+		})
 	}
 }
 
@@ -217,17 +200,11 @@ const findBlock = (componentId: string, blocks?: Block[]): Block | null => {
 	}
 	return null
 }
-
-const getRootBlock = () => rootComponent.value
-
-const setRootBlock = (newBlock: Block, resetCanvas = false) => {
-	rootComponent.value = newBlock
-	if (resetCanvas) {
-		nextTick(() => {
-			setScaleAndTranslate()
-		})
-	}
-}
+const { isOverDropZone } = useCanvasDropZone(
+	canvasContainer as unknown as Ref<HTMLElement>,
+	rootComponent,
+	findBlock,
+)
 
 // canvas positioning
 const containerBound = reactive(useElementBounding(canvasContainer))
@@ -288,5 +265,14 @@ defineExpose({
 }
 .slot-selected {
 	@apply border-purple-400 text-gray-900;
+}
+#placeholder {
+	@apply transition-all;
+}
+.vertical-placeholder {
+	@apply mx-4 h-full min-h-5 w-auto border-l-2 border-dashed border-blue-500;
+}
+.horizontal-placeholder {
+	@apply my-4 h-auto w-full border-t-2 border-dashed border-blue-500;
 }
 </style>

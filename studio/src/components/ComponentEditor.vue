@@ -51,7 +51,7 @@
 				}"
 			>
 				<span
-					class="absolute -top-3 left-0 inline-block text-white text-xs text-nowrap"
+					class="absolute -top-3 left-0 inline-block text-nowrap text-xs text-white"
 					:class="isSlotSelected(slot.slotId) ? 'bg-purple-500' : 'bg-purple-500/65'"
 				>
 					#{{ slotName }}
@@ -130,12 +130,11 @@ const tracker = ref<Tracker>()
 const canvasProps = inject("canvasProps") as CanvasProps
 
 const showMarginPaddingHandlers = computed(() => {
-	return false
-	return isBlockSelected.value && !props.block.isRoot() && !resizing.value
+	return isBlockSelected.value && !props.block.isRoot() && !resizing.value && !store.isDragging
 })
 
 const showResizer = computed(() => {
-	return !props.block.isRoot() && isBlockSelected.value
+	return !props.block.isRoot() && isBlockSelected.value && !store.isDragging
 })
 
 const isBlockSelected = computed(() => {
@@ -149,7 +148,7 @@ const isSlotSelected = (slotId: string) => {
 const getStyleClasses = computed(() => {
 	const classes = ["ring-blue-400"]
 
-	if (isBlockSelected.value && !props.block.isRoot()) {
+	if (isBlockSelected.value && !props.block.isRoot() && !store.isDragging) {
 		// make editor interactive
 		classes.push("pointer-events-auto")
 		// Place the block on the top of the stack
@@ -204,6 +203,7 @@ watchEffect(() => {
 	store.studioLayout.showRightPanel
 
 	store.activeBreakpoint
+	store.dropTarget.placeholder
 	store.canvas?.canvasProps.breakpoints.map((breakpoint) => breakpoint.visible)
 
 	nextTick(() => {
