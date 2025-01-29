@@ -72,7 +72,7 @@ const useStudioStore = defineStore("store", () => {
 
 	// drag & drop
 	const isDragging = ref(false)
-	const dragTarget = reactive({
+	const dropTarget = reactive({
 		x: null as number | null,
 		y: null as number | null,
 		placeholder: null as HTMLElement | null,
@@ -106,7 +106,7 @@ const useStudioStore = defineStore("store", () => {
 
 			const root = document.querySelector(".__studio_component__[data-component-id='root']")
 			if (root) {
-				dragTarget.placeholder = root.appendChild(element)
+				dropTarget.placeholder = root.appendChild(element)
 			}
 		}
 	}
@@ -117,12 +117,12 @@ const useStudioStore = defineStore("store", () => {
 			placeholder.remove()
 		}
 
-		dragTarget.x = null
-		dragTarget.y = null
-		dragTarget.placeholder = null
-		dragTarget.parentComponent = null
-		dragTarget.index = null
-		dragTarget.slotName = null
+		dropTarget.x = null
+		dropTarget.y = null
+		dropTarget.placeholder = null
+		dropTarget.parentComponent = null
+		dropTarget.index = null
+		dropTarget.slotName = null
 
 		isDragging.value = false
 	}
@@ -329,7 +329,7 @@ const useStudioStore = defineStore("store", () => {
 		selectBlock,
 		selectBlockById,
 		pageBlocks,
-		dragTarget,
+		dropTarget,
 		isDragging,
 		handleDragStart,
 		handleDragEnd,

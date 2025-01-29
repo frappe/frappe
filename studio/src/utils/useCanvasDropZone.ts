@@ -15,7 +15,7 @@ export function useCanvasDropZone(
 	const { isOverDropZone } = useDropZone(canvasContainer, {
 		onDrop: (_files, ev) => {
 			const droppedComponentName = ev.dataTransfer?.getData("componentName")
-			const { parentComponent, index, slotName } = store.dragTarget
+			const { parentComponent, index, slotName } = store.dropTarget
 
 			if (droppedComponentName && parentComponent) {
 				const newBlock = getComponentBlock(droppedComponentName)
@@ -35,11 +35,22 @@ export function useCanvasDropZone(
 		},
 	})
 
+	const getBlockElement = (block: Block) => {
+		const breakpoint = store.hoveredBreakpoint || store.activeBreakpoint;
+		return document.querySelector(`.__studio_component__[data-component-id="${block.componentId}"][data-breakpoint="${breakpoint}"]`) as HTMLElement;
+	}
+
 	const findDropTarget = (ev: DragEvent) => {
-		if (store.dragTarget.x === ev.x && store.dragTarget.y === ev.y) return {}
+		if (store.dropTarget.x === ev.x && store.dropTarget.y === ev.y) return {}
 
 		const element = document.elementFromPoint(ev.clientX, ev.clientY) as HTMLElement
 		const targetElement = element.closest(".__studio_component__") as HTMLElement
+
+		// set the hoveredBreakpoint from the target element to show placeholder at the correct breakpoint canvas
+		const breakpoint = targetElement?.dataset.breakpoint || store.activeBreakpoint;
+		if (breakpoint !== store.hoveredBreakpoint) {
+			store.hoveredBreakpoint = breakpoint;
+		}
 
 		let parentComponent = block.value
 		let slotName
@@ -54,9 +65,7 @@ export function useCanvasDropZone(
 			}
 
 			if (parentComponent) {
-				const parentElement = document.querySelector(
-					`.__studio_component__[data-component-id="${parentComponent.componentId}"]`,
-				) as HTMLElement
+				const parentElement = getBlockElement(parentComponent)
 				layoutDirection = getLayoutDirection(parentElement)
 				index = findDropIndex(ev, parentElement, layoutDirection)
 				slotName = targetElement.dataset.slotName || store.selectedSlot?.slotName
@@ -111,12 +120,12 @@ export function useCanvasDropZone(
 	const updateDropTarget = throttle((ev: DragEvent, parentComponent: Block | null, index: number, layoutDirection: LayoutDirection) => {
 		// append placeholder component to the dom directly
 		// to avoid re-rendering the whole canvas
-		const { placeholder } = store.dragTarget
+		const { placeholder } = store.dropTarget
 		if (!parentComponent || !placeholder) return
-		const newParent = document.querySelector(`.__studio_component__[data-component-id="${parentComponent.componentId}"]`)
+		const newParent = getBlockElement(parentComponent)
 		if (!newParent) return
 
-		if (store.dragTarget.parentComponent?.componentId === parentComponent.componentId && store.dragTarget.index === index) return
+		if (store.dropTarget.parentComponent?.componentId === parentComponent.componentId && store.dropTarget.index === index) return
 
 		// flip placeholder border as per layout direction to avoid shifting elements too much
 		if (layoutDirection === "row") {
@@ -136,10 +145,10 @@ export function useCanvasDropZone(
 			newParent.insertBefore(placeholder, children[index])
 		}
 
-		store.dragTarget.parentComponent = parentComponent
-		store.dragTarget.index = index
-		store.dragTarget.x = ev.x
-		store.dragTarget.y = ev.y
+		store.dropTarget.parentComponent = parentComponent
+		store.dropTarget.index = index
+		store.dropTarget.x = ev.x
+		store.dropTarget.y = ev.y
 	}, 130)
 
 	return { isOverDropZone }
