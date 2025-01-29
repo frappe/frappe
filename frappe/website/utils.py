@@ -524,8 +524,8 @@ def cache_html(func):
 		cache_key = f"{WEBSITE_PAGE_CACHE_PREFIX}{args[0].path}"
 
 		cache_headers = {"Cache-Control": "private,max-age=300,stale-while-revalidate=10800"}
-
-		if can_cache():
+		no_cache = frappe.request and frappe.request.cache_control.no_cache
+		if can_cache(no_cache):
 			html = None
 			page_cache = frappe.cache.get_value(cache_key)
 			if page_cache and frappe.local.lang in page_cache:
