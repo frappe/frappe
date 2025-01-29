@@ -274,7 +274,7 @@ def get_context(context):
 			"Cancel",
 			"Discard:Button in web form",
 			"Edit:Button in web form",
-			"See previous responses:Button in web form"
+			"See previous responses:Button in web form",
 			"Edit your response:Button in web form",
 			"Are you sure you want to discard the changes?",
 			"Mandatory fields required::Error message in web form",
@@ -297,6 +297,7 @@ def get_context(context):
 			messages.extend([field.label, field.description])
 			if field.fieldtype == "Select" and field.options:
 				messages.extend(field.options.split("\n"))
+
 		# When at least one field in self.web_form_fields has fieldtype "Table" then add "No data" to messages
 		if any(field.fieldtype == "Table" for field in self.web_form_fields):
 			messages.append("Move")
@@ -327,7 +328,7 @@ def get_context(context):
 			messages.append("Last")
 			messages.append("First")
 			messages.append("No.:Title of the 'row number' column")
-   
+
 		# Phone Picker
 		if any(field.fieldtype == "Phone" for field in self.web_form_fields):
 			messages.append("Search for countries...")
@@ -342,7 +343,7 @@ def get_context(context):
 		# Time
 		if any(field.fieldtype == "Time" for field in self.web_form_fields):
 			messages.append("Now")
-		
+
 		messages.extend(col.get("label") if col else "" for col in self.list_columns)
 
 		context.translated_messages = frappe.as_json({message: _(message) for message in messages if message})
