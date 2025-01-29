@@ -468,6 +468,10 @@ async function confirm(message: string, title: string = "Confirm"): Promise<bool
 }
 
 // general utils
+function isCtrlOrCmd(e: KeyboardEvent | MouseEvent) {
+	return e.ctrlKey || e.metaKey;
+}
+
 function copyToClipboard(text: string | object) {
 	if (typeof text !== "string") {
 		text = JSON.stringify(text)
@@ -563,6 +567,7 @@ export {
 	// dialog
 	confirm,
 	// general utils
+	isCtrlOrCmd,
 	copyToClipboard,
 	getErrorMessage,
 	throttle,
