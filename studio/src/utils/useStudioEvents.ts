@@ -1,5 +1,6 @@
 import useStudioStore from "@/stores/studioStore"
 import { useEventListener } from "@vueuse/core"
+import blockController from "@/utils/blockController"
 
 const store = useStudioStore()
 
@@ -26,4 +27,22 @@ export function useStudioEvents() {
 			}
 		}
 	});
+
+	useEventListener(document, "keydown", (e) => {
+		if ((e.key === "Backspace" || e.key === "Delete") && blockController.isAnyBlockSelected()) {
+			for (const block of blockController.getSelectedBlocks()) {
+				store.canvas?.removeBlock(block, e.shiftKey)
+			}
+			clearSelection()
+			e.stopPropagation()
+			return
+		}
+	})
 }
+
+const clearSelection = () => {
+	blockController.clearSelection();
+	if (document.activeElement instanceof HTMLElement) {
+		document.activeElement.blur();
+	}
+};

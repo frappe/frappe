@@ -1,8 +1,11 @@
 import { CanvasProps } from "@/types"
 import Block from "@/utils/block"
-import { nextTick, reactive, ref, Ref } from "vue"
+import useStudioStore from "@/stores/studioStore"
+import { nextTick, reactive, Ref } from "vue"
 import { useElementBounding } from "@vueuse/core"
+import { toast } from "vue-sonner"
 
+const store = useStudioStore()
 export function useCanvasUtils(
 	canvasProps: CanvasProps,
 	canvasContainer: Ref<HTMLElement | null>,
@@ -79,10 +82,35 @@ export function useCanvasUtils(
 		return null
 	}
 
+	function removeBlock(block: Block, force: boolean = false) {
+		if (block.componentId === "root") {
+			toast.warning("Warning", {
+				description: "Cannot delete root component",
+			})
+			return
+		}
+		const parentBlock = block.parentBlock
+		if (!parentBlock) return
+		const nextSibling = block.getSiblingBlock("next")
+		if (store.activeBreakpoint === "desktop" || force) {
+			parentBlock.removeChild(block)
+		} else {
+			block.toggleVisibility(false)
+		}
+		nextTick(() => {
+			if (parentBlock.children.length) {
+				if (nextSibling) {
+					nextSibling.selectBlock()
+				}
+			}
+		})
+	}
+
 	return {
 		setScaleAndTranslate,
 		getRootBlock,
 		setRootBlock,
 		findBlock,
+		removeBlock,
 	};
 }

@@ -9,6 +9,9 @@ const store = useStudioStore()
 type styleProperty = keyof CSSProperties
 
 const blockController = {
+	clearSelection: () => {
+		store.selectedBlockIds = []
+	},
 	isAnyBlockSelected: () => {
 		return store.selectedBlocks?.length || 0 > 0
 	},

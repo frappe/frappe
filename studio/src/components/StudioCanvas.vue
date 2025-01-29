@@ -165,7 +165,7 @@ watch(
 // clone props.block into canvas data to avoid mutating them
 const rootComponent = ref(getBlockCopy(props.componentTree, true))
 
-const { setScaleAndTranslate, getRootBlock, setRootBlock, findBlock } = useCanvasUtils(
+const { setScaleAndTranslate, getRootBlock, setRootBlock, findBlock, removeBlock } = useCanvasUtils(
 	canvasProps,
 	canvasContainer,
 	canvas,
@@ -191,6 +191,7 @@ defineExpose({
 	rootComponent,
 	canvasProps,
 	findBlock,
+	removeBlock,
 	getRootBlock,
 	setRootBlock,
 })
