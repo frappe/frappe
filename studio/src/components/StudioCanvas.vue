@@ -85,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { Ref, ref, reactive, computed, onMounted, nextTick, provide } from "vue"
+import { Ref, ref, watch, reactive, computed, onMounted, nextTick, provide } from "vue"
 import { useElementBounding } from "@vueuse/core"
 import { LoadingIndicator } from "frappe-ui"
 import StudioComponent from "@/components/StudioComponent.vue"
@@ -153,6 +153,15 @@ provide("canvasProps", canvasProps)
 const visibleBreakpoints = computed(() => {
 	return canvasProps.breakpoints.filter((breakpoint) => breakpoint.visible || breakpoint.device === "desktop")
 })
+watch(
+	() => canvasProps.breakpoints.map((b) => b.visible),
+	() => {
+		if (canvasProps.settingCanvas) {
+			return
+		}
+		setScaleAndTranslate()
+	},
+)
 
 const rootComponent = ref(getBlockCopy(props.componentTree, true))
 

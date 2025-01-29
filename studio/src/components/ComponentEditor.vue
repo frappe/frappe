@@ -203,7 +203,7 @@ watchEffect(() => {
 	store.studioLayout.showRightPanel
 
 	store.activeBreakpoint
-	store.dragTarget.placeholder
+	store.dropTarget.placeholder
 	store.canvas?.canvasProps.breakpoints.map((breakpoint) => breakpoint.visible)
 
 	nextTick(() => {

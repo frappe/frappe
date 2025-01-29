@@ -4,6 +4,7 @@
 		:is="block.componentName"
 		v-bind="componentProps"
 		:data-component-id="block.componentId"
+		:data-breakpoint="breakpoint"
 		:style="styles"
 		:class="classes"
 		@mouseover="handleMouseOver"
@@ -46,7 +47,12 @@
 			</template>
 		</template>
 
-		<StudioComponent v-for="child in block?.children" :key="child.componentId" :block="child" />
+		<StudioComponent
+			v-for="child in block?.children"
+			:key="child.componentId"
+			:block="child"
+			:breakpoint="breakpoint"
+		/>
 	</component>
 
 	<!-- Rendering separately to avoid empty slots being passed as default slots to components like Dropdown -->
@@ -55,6 +61,7 @@
 		:is="block.componentName"
 		v-bind="componentProps"
 		:data-component-id="block.componentId"
+		:data-breakpoint="breakpoint"
 		:style="styles"
 		:class="classes"
 		@mouseover="handleMouseOver"
