@@ -128,10 +128,12 @@ export function useCanvasDropZone(
 		}
 
 		// add the placeholder to the new parent
-		if (index >= newParent.children.length) {
+		// exclude placeholder as its going to move with this update
+		const children = Array.from(newParent.children).filter((child) => child.id !== "placeholder")
+		if (index >= children.length) {
 			newParent.appendChild(placeholder)
 		} else {
-			newParent.insertBefore(placeholder, newParent.children[index])
+			newParent.insertBefore(placeholder, children[index])
 		}
 
 		store.dragTarget.parentComponent = parentComponent
