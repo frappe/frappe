@@ -270,7 +270,7 @@ defineExpose({
 	@apply transition-all;
 }
 .vertical-placeholder {
-	@apply mx-4 w-auto border-l-2 border-dashed border-blue-500;
+	@apply mx-4 min-h-5 w-auto border-l-2 border-dashed border-blue-500;
 }
 .horizontal-placeholder {
 	@apply my-4 h-auto w-full border-t-2 border-dashed border-blue-500;
