@@ -1,5 +1,7 @@
 import useStudioStore from "@/stores/studioStore"
 import { useEventListener } from "@vueuse/core"
+import blockController from "@/utils/blockController"
+import { isCtrlOrCmd, isTargetEditable } from "@/utils/helpers"
 
 const store = useStudioStore()
 
@@ -26,4 +28,50 @@ export function useStudioEvents() {
 			}
 		}
 	});
+
+	useEventListener(document, "keydown", (e) => {
+		if (isTargetEditable(e)) return
+
+		// delete
+		if ((e.key === "Backspace" || e.key === "Delete") && blockController.isAnyBlockSelected()) {
+			for (const block of blockController.getSelectedBlocks()) {
+				store.canvas?.removeBlock(block, e.shiftKey)
+			}
+			clearSelection()
+			e.stopPropagation()
+			return
+		}
+
+		// duplicate
+		if (e.key === "d" && isCtrlOrCmd(e)) {
+			if (blockController.isAnyBlockSelected() && !blockController.multipleBlocksSelected()) {
+				e.preventDefault();
+				const block = blockController.getSelectedBlocks()[0];
+				block.duplicateBlock();
+			}
+			return;
+		}
+
+		// undo
+		if (e.key === "z" && isCtrlOrCmd(e) && !e.shiftKey && store.canvas?.history?.canUndo()) {
+			store.canvas?.history.undo()
+			e.preventDefault()
+			return;
+		}
+
+		// redo
+		if (e.key === "z" && e.shiftKey && isCtrlOrCmd(e) && store.canvas?.history?.canRedo) {
+			store.canvas?.history.redo();
+			e.preventDefault();
+			return;
+		}
+	})
+
 }
+
+const clearSelection = () => {
+	blockController.clearSelection();
+	if (document.activeElement instanceof HTMLElement) {
+		document.activeElement.blur();
+	}
+};

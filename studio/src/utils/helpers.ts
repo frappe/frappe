@@ -9,9 +9,13 @@ import { ObjectLiteral, BlockOptions, StyleValue, ExpressionEvaluationContext, S
 import { DataResult, DocumentResource, DocumentResult, Filters, Resource } from "@/types/Studio/StudioResource"
 import { StudioPage } from "@/types/Studio/StudioPage"
 
-function getBlockInstance(options: BlockOptions, retainId = true): Block {
+function getBlockString(block: BlockOptions | Block): string {
+	return jsToJson(getBlockCopyWithoutParent(block))
+}
+
+function getBlockInstance(options: BlockOptions | string, retainId = true): Block {
 	if (typeof options === "string") {
-		options = jsonToJs(options)
+		options = jsonToJs(options) as BlockOptions
 	}
 	if (!retainId) {
 		const deleteComponentId = (block: BlockOptions) => {
@@ -220,6 +224,17 @@ function replaceMapKey(map: Map<any, any>, oldKey: string, newKey: string) {
 		}
 	});
 	return newMap;
+}
+
+function isTargetEditable(e: Event) {
+	const target = e.target as HTMLElement;
+	const isEditable = target.isContentEditable;
+	const isInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA";
+	return isEditable || isInput;
+}
+
+function generateId() {
+	return Math.random().toString(36).substr(2, 9);
 }
 
 // slots
@@ -468,6 +483,10 @@ async function confirm(message: string, title: string = "Confirm"): Promise<bool
 }
 
 // general utils
+function isCtrlOrCmd(e: KeyboardEvent | MouseEvent) {
+	return e.ctrlKey || e.metaKey;
+}
+
 function copyToClipboard(text: string | object) {
 	if (typeof text !== "string") {
 		text = JSON.stringify(text)
@@ -531,6 +550,7 @@ function throttle<T extends (...args: any[]) => void>(func: T, wait: number = 10
 }
 
 export {
+	getBlockString,
 	getBlockInstance,
 	getComponentBlock,
 	getRootBlock,
@@ -547,6 +567,8 @@ export {
 	jsonToJs,
 	mapToObject,
 	replaceMapKey,
+	isTargetEditable,
+	generateId,
 	// slots
 	isHTML,
 	// app
@@ -563,6 +585,7 @@ export {
 	// dialog
 	confirm,
 	// general utils
+	isCtrlOrCmd,
 	copyToClipboard,
 	getErrorMessage,
 	throttle,

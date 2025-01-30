@@ -4,7 +4,7 @@ import { reactive, CSSProperties, nextTick } from 'vue'
 
 import useStudioStore from "@/stores/studioStore";
 import components from "@/data/components";
-import { copyObject, getBlockCopy, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
+import { copyObject, generateId, getBlockCopy, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
 
 import { StyleValue } from "@/types"
 import { ComponentEvent } from "@/types/ComponentEvent"
@@ -63,7 +63,7 @@ class Block implements BlockOptions {
 	}
 
 	generateComponentId(componentName?: string | null): string {
-		return `${componentName || this.componentName}-${Math.random().toString(36).substring(2, 9)}`
+		return `${componentName || this.componentName}-${generateId()}`
 	}
 
 	deleteBlock() {
@@ -164,6 +164,23 @@ class Block implements BlockOptions {
 		return this.parentBlock || null;
 	}
 
+	getSiblingBlock(direction: "next" | "previous") {
+		const parentBlock = this.getParentBlock();
+		let sibling = null as Block | null;
+		if (parentBlock) {
+			const index = parentBlock.getChildIndex(this);
+			if (direction === "next") {
+				sibling = parentBlock.children[index + 1];
+			} else {
+				sibling = parentBlock.children[index - 1];
+			}
+			if (sibling) {
+				return sibling;
+			}
+		}
+		return null;
+	}
+
 	getIcon() {
 		if (this.isRoot()) return "Hash"
 		return components.get(this.componentName)?.icon
@@ -199,8 +216,8 @@ class Block implements BlockOptions {
 		styleObj[style] = value
 	}
 
-	toggleVisibility() {
-		if (this.getStyle("display") === "none") {
+	toggleVisibility(show: boolean | null = null) {
+		if ((this.getStyle("display") === "none" && show !== false) || (show === true)) {
 			this.setStyle("display", this.getStyle("__last_display") || "flex");
 			this.setStyle("__last_display", null);
 		} else {

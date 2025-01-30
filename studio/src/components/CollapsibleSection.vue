@@ -7,7 +7,7 @@
 			</h3>
 			<Button
 				class="dark:text-zinc-400 dark:hover:bg-zinc-700"
-				:icon="collapsed ? 'plus' : 'minus'"
+				:icon="collapsed ? 'chevron-right' : 'chevron-down'"
 				:variant="'ghost'"
 				size="sm"
 				@click="toggleCollapsed"

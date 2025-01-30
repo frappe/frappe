@@ -36,6 +36,7 @@ import { pxToNumber } from "@/utils/helpers"
 import { computed, onMounted, ref, watch, inject } from "vue"
 import Block from "@/utils/block"
 import guidesTracker from "@/utils/guidesTracker"
+import useStudioStore from "@/stores/studioStore"
 
 import { CanvasProps } from "@/types"
 
@@ -59,10 +60,18 @@ onMounted(() => {
 
 const resizing = ref(false)
 const emit = defineEmits(["resizing"])
+const store = useStudioStore()
+
 watch(resizing, () => {
 	if (resizing.value) {
+		if (store.canvas) {
+			store.canvas.history?.pause()
+		}
 		emit("resizing", true)
 	} else {
+		if (store.canvas) {
+			store.canvas?.history?.resume(undefined, true, true)
+		}
 		emit("resizing", false)
 	}
 })
