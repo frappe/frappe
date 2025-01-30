@@ -1,7 +1,7 @@
 import useStudioStore from "@/stores/studioStore"
 import { useEventListener } from "@vueuse/core"
 import blockController from "@/utils/blockController"
-import { isCtrlOrCmd } from "@/utils/helpers"
+import { isCtrlOrCmd, isTargetEditable } from "@/utils/helpers"
 
 const store = useStudioStore()
 
@@ -30,6 +30,8 @@ export function useStudioEvents() {
 	});
 
 	useEventListener(document, "keydown", (e) => {
+		if (isTargetEditable(e)) return
+
 		// delete
 		if ((e.key === "Backspace" || e.key === "Delete") && blockController.isAnyBlockSelected()) {
 			for (const block of blockController.getSelectedBlocks()) {

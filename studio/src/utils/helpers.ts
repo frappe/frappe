@@ -226,6 +226,13 @@ function replaceMapKey(map: Map<any, any>, oldKey: string, newKey: string) {
 	return newMap;
 }
 
+function isTargetEditable(e: Event) {
+	const target = e.target as HTMLElement;
+	const isEditable = target.isContentEditable;
+	const isInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA";
+	return isEditable || isInput;
+}
+
 function generateId() {
 	return Math.random().toString(36).substr(2, 9);
 }
@@ -560,6 +567,7 @@ export {
 	jsonToJs,
 	mapToObject,
 	replaceMapKey,
+	isTargetEditable,
 	generateId,
 	// slots
 	isHTML,
