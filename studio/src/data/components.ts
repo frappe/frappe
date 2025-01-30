@@ -546,9 +546,9 @@ export const COMPONENTS: FrappeUIComponents = {
 		initialState: {
 			title: "Frappe",
 			menuItems: [
-				{ label: "Home", featherIcon: "home" },
-				{ label: "Notifications", featherIcon: "bell" },
-				{ label: "Settings", featherIcon: "settings" },
+				{ label: "Home", featherIcon: "home", route_to: "/", selected: true },
+				{ label: "Notifications", featherIcon: "bell", route_to: "/" },
+				{ label: "Settings", featherIcon: "settings", route_to: "/" },
 			],
 		},
 	},

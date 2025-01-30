@@ -19,7 +19,12 @@
 					:is="item.route_to ? 'router-link' : 'div'"
 					:to="item.route_to"
 					class="flex cursor-pointer items-center gap-2 truncate rounded px-2 py-1 transition duration-300 ease-in-out"
-					:class="[item.selected ? 'bg-white shadow-sm' : 'hover:bg-gray-200']"
+					:class="[
+						item.selected || $router.currentRoute.value.path === item.route_to
+							? 'bg-white shadow-sm'
+							: 'hover:bg-gray-200',
+					]"
+					@click="item.route_to && $router.push(item.route_to)"
 				>
 					<FeatherIcon :name="item.featherIcon || 'folder-normal'" class="h-5 w-5 text-gray-700" />
 					<div class="flex items-center gap-1 truncate text-base text-gray-700">
