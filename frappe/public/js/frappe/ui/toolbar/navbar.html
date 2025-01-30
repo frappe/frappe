@@ -5,9 +5,8 @@
 		</a>
 		<ul class="nav navbar-nav d-none d-sm-flex" id="navbar-breadcrumbs"
 		{% if frappe.boot.is_workshop_viewer %} style="display: none !important" {% endif %}></ul>
-		<div class="collapse navbar-collapse justify-content-end" 
-     {% if frappe.boot.is_workshop_viewer %} style="display: none !important" {% endif %}>
-			<form class="form-inline fill-width justify-content-end" role="search" onsubmit="return false;">
+		<div class="collapse navbar-collapse justify-content-end" >
+			<form class="form-inline fill-width justify-content-end" role="search" onsubmit="return false;" {% if frappe.boot.is_workshop_viewer %} style="display: none !important" {% endif %}>
 				{% if (frappe.boot.read_only) { %}
 					<span class="indicator-pill yellow no-indicator-dot" title="{%= __("Your site is undergoing maintenance or being updated.") %}">
 						{%= __("Read Only Mode") %}
@@ -26,7 +25,7 @@
 					</span>
 				</div>
 			</form>
-			<ul class="navbar-nav">
+			<ul class="navbar-nav" {% if frappe.boot.is_workshop_viewer %} style="display: none !important" {% endif %}>
 				<li class="nav-item dropdown dropdown-notifications dropdown-mobile hidden">
 					<a
 						class="nav-link notifications-icon text-muted"
@@ -115,6 +114,14 @@
 							{% } %}
 						{% endfor %}
 					</div>
+				</li>
+				
+			</ul>
+			<ul class="navbar-nav" {% if not frappe.boot.is_workshop_viewer %}  {% endif %}>
+				<li class="nav-item dropdown dropdown-navbar-user dropdown-mobile">
+					<a class="nav-link" onclick="frappe.app.logout()">
+						Log out
+					</a>
 				</li>
 			</ul>
 		</div>
