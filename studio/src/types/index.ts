@@ -117,3 +117,8 @@ export type Filter = {
 
 export type LeftPanelOptions = "Pages" | "Add Component" | "Layers" | "Data" | "Code"
 export type RightPanelOptions = "Properties" | "Events" | "Styles"
+
+// right panel
+export type HashString = `#${string}`
+
+export type RGBString = `rgb(${number}, ${number}, ${number})`
