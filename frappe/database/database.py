@@ -1208,6 +1208,10 @@ class Database:
 			frappe.cache().set_value(f"doctype:count:{dt}", count, expires_in_sec=86400)
 		return count
 
+	def estimate_count(self, doctype: str) -> int:
+		"""Get estimated count of total rows in a table."""
+		raise NotImplementedError
+
 	@staticmethod
 	def format_date(date):
 		return getdate(date).strftime("%Y-%m-%d")

@@ -492,6 +492,25 @@ class TestDB(FrappeTestCase):
 
 		self.assertEqual(frappe.db.exists(dt, [["name", "=", dn]]), dn)
 
+<<<<<<< HEAD
+=======
+	def test_estimated_count(self):
+		self.assertGreater(frappe.db.estimate_count("DocField"), 100)
+
+	def test_datetime_serialization(self):
+		dt = now_datetime()
+		dt = dt.replace(microsecond=0)
+		self.assertEqual(str(dt), str(frappe.db.sql("select %s", dt)[0][0]))
+
+		frappe.db.exists("User", {"creation": (">", dt)})
+		self.assertIn(str(dt), str(frappe.db.last_query))
+
+		before = now_datetime()
+		note = frappe.get_doc(doctype="Note", title=frappe.generate_hash(), content="something").insert()
+		after = now_datetime()
+		self.assertEqual(note.name, frappe.db.exists("Note", {"creation": ("between", (before, after))}))
+
+>>>>>>> 4406116f86 (feat: estimate table size)
 	def test_bulk_insert(self):
 		current_count = frappe.db.count("ToDo")
 		test_body = f"test_bulk_insert - {random_string(10)}"
