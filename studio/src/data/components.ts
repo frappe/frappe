@@ -9,6 +9,7 @@ import ImageView from "@/components/AppLayout/ImageView.vue"
 import TextBlock from "@/components/AppLayout/TextBlock.vue"
 import AppHeader from "@/components/AppLayout/AppHeader.vue"
 import BottomTabs from "@/components/AppLayout/BottomTabs.vue"
+import MarkdownEditor from "@/components/AppLayout/MarkdownEditor.vue"
 
 import { FrappeUIComponents } from "@/types"
 
@@ -642,6 +643,15 @@ export const COMPONENTS: FrappeUIComponents = {
 			],
 		},
 	},
+	MarkdownEditor: {
+		name: "MarkdownEditor",
+		title: "Markdown",
+		icon: "FilePenLine",
+		props: MarkdownEditor.props,
+		initialState: {
+			modelValue: "# This is a markdown editor",
+		},
+	}
 }
 
 function get(name: string) {
