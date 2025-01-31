@@ -73,6 +73,7 @@ const tools = ref<Tool[]>([
 	{ id: "list", icon: "List", title: "List", prefix: "- ", suffix: "", shortcut: "Ctrl+U" },
 	{ id: "olist", icon: "ListOrdered", title: "Numbered List", prefix: "1. ", suffix: "", shortcut: "Ctrl+O" },
 	{ id: "hr", icon: "Minus", title: "Horizontal Rule", prefix: "\n---\n", suffix: "", shortcut: "Ctrl+R" },
+	{ id: "br", icon: "CornerDownLeft", title: "Line Break", prefix: "", suffix: "", shortcut: "Ctrl+Enter" },
 ])
 
 const compiledMarkdown = computed(() => {
@@ -86,23 +87,31 @@ const applyFormat = (tool: Tool) => {
 	const range = selection.getRange()
 	const selectedText = session.getTextRange(range)
 
-	if (tool.id === "link" && !selectedText) {
-		const newText = "[Link text](url)"
-		session.replace(range, newText)
-		return
-	}
-
 	let newText
-	if (selectedText) {
-		newText = tool.prefix + selectedText + tool.suffix
+
+	// Handle the special case for the line break (Ctrl+Enter)
+	if (tool.id === "br") {
+		newText = "\n<br>"
+	} else if (tool.id === "link" && !selectedText) {
+		newText = "[Link text](url)"
 	} else {
-		newText = tool.prefix + "text" + tool.suffix
+		if (selectedText) {
+			newText = tool.prefix + selectedText + tool.suffix
+		} else {
+			newText = tool.prefix + "text" + tool.suffix
+		}
 	}
 
+	// Replace the selected text (or insert new text)
 	session.replace(range, newText)
 	editor.value.focus()
 
-	if (!selectedText) {
+	// Handle cursor positioning after insertion
+	if (newText === "\n<br>") {
+		const cursorPos = selection.getCursor()
+		selection.moveCursorTo(cursorPos.row + 1, 0) // Move to the next line
+	} else if (!selectedText) {
+		// If no text was selected, select the inserted text (for styling purposes)
 		const startCol = range.start.column + tool.prefix.length
 		const endCol = startCol + 4
 		selection.setSelectionRange({
