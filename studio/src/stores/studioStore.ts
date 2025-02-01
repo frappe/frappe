@@ -1,5 +1,5 @@
 import { ref, reactive, computed, nextTick, Ref, watch } from "vue"
-import { useRouter } from "vue-router"
+import router from "@/router/studio_router"
 import { defineStore } from "pinia"
 
 import {
@@ -220,12 +220,9 @@ const useStudioStore = defineStore("store", () => {
 				loading: "Duplicating page",
 				success: (page: StudioPage) => {
 					// load page and refresh
-					const router = useRouter()
 					router.push({
 						name: "StudioPage",
 						params: { appID: appName, pageID: page.name },
-					}).then(() => {
-						router.go(0)
 					})
 					return "Page duplicated"
 				},
