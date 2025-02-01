@@ -24,6 +24,8 @@ import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Resource } from "@/types/Studio/StudioResource"
 import { LeftPanelOptions, RightPanelOptions, Slot } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
+import { studioVariables } from "@/data/studioVariables"
+import { Variable } from "@/types/Studio/StudioPageVariable"
 
 const useStudioStore = defineStore("store", () => {
 	const canvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
@@ -224,7 +226,7 @@ const useStudioStore = defineStore("store", () => {
 			pageBlocks.value = [getBlockInstance(blocks[0])]
 		}
 		selectedPage.value = page.name
-		await setPageResources(page)
+		await setPageData(page)
 		canvas.value?.setRootBlock(pageBlocks.value[0])
 
 		nextTick(() => {
@@ -288,6 +290,12 @@ const useStudioStore = defineStore("store", () => {
 
 	// data
 	const resources = ref<Record<string, Resource>>({})
+	const variables = ref<Record<string, any>>({})
+
+	async function setPageData(page: StudioPage) {
+		await setPageResources(page)
+		await setPageVariables(page)
+	}
 
 	async function setPageResources(page: StudioPage) {
 		studioPageResources.filters = { parent: page.name }
@@ -311,6 +319,16 @@ const useStudioStore = defineStore("store", () => {
 			if (!item.value) return
 			resources.value[item.resource_name].resource_id = item.resource_id
 			resources.value[item.resource_name].resource_child_table_id = item.resource_child_table_id
+		})
+	}
+
+	async function setPageVariables(page: StudioPage) {
+		studioVariables.filters = { parent: page.name }
+		await studioVariables.reload()
+		variables.value = {}
+
+		studioVariables.data.map((variable: Variable) => {
+			variables.value[variable.variable_name] = variable.initial_value
 		})
 	}
 
@@ -360,7 +378,10 @@ const useStudioStore = defineStore("store", () => {
 		stylePropertyFilter,
 		// data
 		resources,
+		variables,
+		setPageData,
 		setPageResources,
+		setPageVariables,
 	}
 })
 

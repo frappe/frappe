@@ -1,5 +1,5 @@
 <template>
-	<div class="flex flex-col p-4">
+	<div class="flex flex-col gap-3 p-4">
 		<CollapsibleSection sectionName="Data Sources">
 			<div class="flex flex-col gap-2" v-if="!isObjectEmpty(store.resources)">
 				<div
@@ -37,6 +37,84 @@
 				/>
 			</div>
 		</CollapsibleSection>
+
+		<!-- Variables -->
+		<CollapsibleSection sectionName="Variables">
+			<div class="flex flex-col gap-2" v-if="!isObjectEmpty(store.variables)">
+				<div
+					v-for="(initial_value, variable_name) in store.variables"
+					:key="variable_name"
+					class="group/variable flex flex-row justify-between"
+				>
+					<ObjectBrowser
+						v-if="typeof initial_value === 'object'"
+						:object="variable"
+						:name="variable_name"
+						class="overflow-hidden"
+					/>
+					<div v-else class="flex flex-row justify-between">
+						<div class="text-sm font-semibold text-pink-700">{{ variable_name }}</div>
+						<div class="text-xs text-gray-600">&nbsp;=&nbsp;</div>
+						<div class="text-sm text-gray-800">{{ initial_value }}</div>
+					</div>
+					<div
+						class="invisible -mt-1 ml-auto self-start text-gray-600 group-hover/variable:visible has-[.active-item]:visible"
+					>
+						<!-- <Dropdown :options="getVariableMenu(variable, variable_name)" trigger="click">
+							<template v-slot="{ open }">
+								<button
+									class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
+									:class="open ? 'active-item' : ''"
+								>
+									<FeatherIcon name="more-horizontal" class="h-3 w-3" />
+								</button>
+							</template>
+						</Dropdown> -->
+					</div>
+				</div>
+			</div>
+
+			<EmptyState v-else message="No variables added" />
+
+			<div class="mt-2 flex flex-col" v-if="store.activePage">
+				<Button icon-left="plus" @click="showVariableDialog = true">Add Variable</Button>
+				<Dialog
+					v-model="showVariableDialog"
+					:options="{
+						title: variable?.name ? 'Edit Variable' : 'Add Variable',
+					}"
+				>
+					<template #body-content>
+						<div class="flex flex-col space-y-4">
+							<FormControl
+								label="Variable Name"
+								v-model="variable.variable_name"
+								:required="true"
+								autocomplete="off"
+							/>
+							<FormControl
+								label="Variable Type"
+								type="select"
+								:options="['String', 'Number', 'Boolean']"
+								v-model="variable.variable_type"
+								:required="true"
+								default="String"
+								@change="() => setInitialValue()"
+							/>
+							<FormControl label="Initial Value" v-model="variable.initial_value" autocomplete="off" />
+						</div>
+					</template>
+					<template #actions>
+						<Button
+							variant="solid"
+							:label="variable?.name ? 'Save' : 'Add'"
+							@click="() => addVariable(variable)"
+							class="w-full"
+						/>
+					</template>
+				</Dialog>
+			</div>
+		</CollapsibleSection>
 	</div>
 </template>
 
@@ -50,6 +128,8 @@ import ResourceDialog from "@/components/ResourceDialog.vue"
 
 import { isObjectEmpty, getAutocompleteValues, confirm, copyToClipboard } from "@/utils/helpers"
 import { studioResources, studioPageResources } from "@/data/studioResources"
+import { studioVariables } from "@/data/studioVariables"
+import { Variable } from "@/types/Studio/StudioPageVariable"
 import { NewResource, Resource } from "@/types/Studio/StudioResource"
 import { toast } from "vue-sonner"
 
@@ -179,5 +259,40 @@ const getResourceMenu = (resource: Resource, resource_name: string) => {
 			},
 		},
 	]
+}
+
+// variables
+const showVariableDialog = ref(false)
+const variable = ref<Variable>({
+	name: "",
+	variable_name: "",
+	variable_type: "String",
+	initial_value: "" as string | number | boolean | object | null,
+})
+const setInitialValue = () => {
+	if (variable.value.variable_type === "String") {
+		variable.value.initial_value = ""
+	} else if (variable.value.variable_type === "Number") {
+		variable.value.initial_value = 0
+	} else if (variable.value.variable_type === "Boolean") {
+		variable.value.initial_value = false
+	}
+}
+
+const addVariable = (variable: Variable) => {
+	studioVariables.insert
+		.submit({
+			variable_name: variable.variable_name,
+			initial_value: variable.initial_value,
+			parent: store.activePage?.name,
+			parenttype: "Studio Page",
+			parentfield: "variables",
+		})
+		.then(async () => {
+			if (store.activePage) {
+				await store.setPageVariables(store.activePage)
+			}
+			showVariableDialog.value = false
+		})
 }
 </script>

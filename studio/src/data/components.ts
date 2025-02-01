@@ -412,6 +412,7 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "Tabs",
 		icon: "ArrowRightLeft",
 		initialState: {
+			as: "div",
 			tabs: [
 				{
 					label: "Github",
