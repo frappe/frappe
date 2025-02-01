@@ -1,4 +1,5 @@
 import { ref, reactive, computed, nextTick, Ref, watch } from "vue"
+import { useRouter } from "vue-router"
 import { defineStore } from "pinia"
 
 import {
@@ -26,6 +27,8 @@ import { LeftPanelOptions, RightPanelOptions, Slot } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import { studioVariables } from "@/data/studioVariables"
 import { Variable } from "@/types/Studio/StudioPageVariable"
+import { toast } from "vue-sonner"
+import { createResource } from "frappe-ui"
 
 const useStudioStore = defineStore("store", () => {
 	const canvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
@@ -203,6 +206,33 @@ const useStudioStore = defineStore("store", () => {
 		}
 	}
 
+	async function duplicateAppPage(appName: string, page: StudioPage) {
+		toast.promise(
+			createResource({
+				url: "studio.studio.doctype.studio_page.studio_page.duplicate_page",
+				method: "POST",
+				params: {
+					page_name: page.page_name,
+					app_name: appName,
+				}
+			}).fetch(),
+			{
+				loading: "Duplicating page",
+				success: (page: StudioPage) => {
+					// load page and refresh
+					const router = useRouter()
+					router.push({
+						name: "StudioPage",
+						params: { appID: appName, pageID: page.name },
+					}).then(() => {
+						router.go(0)
+					})
+					return "Page duplicated"
+				},
+			},
+		)
+	}
+
 	function getAppPageRoute(pageName: string) {
 		return Object.values(appPages.value).find((page) => page.page_name === pageName)?.route
 	}
@@ -361,6 +391,7 @@ const useStudioStore = defineStore("store", () => {
 		setApp,
 		setAppHome,
 		deleteAppPage,
+		duplicateAppPage,
 		appPages,
 		setAppPages,
 		getAppPageRoute,
