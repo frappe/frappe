@@ -8,7 +8,7 @@
 				class="grid items-center rounded-t-sm bg-gray-100"
 				:style="{ gridTemplateColumns: gridTemplateColumns }"
 			>
-				<div class="border-r p-2 text-center">
+				<div class="border-r p-1 text-center">
 					<Checkbox
 						size="sm"
 						class="cursor-pointer duration-300"
@@ -16,17 +16,17 @@
 						@click.stop="toggleSelectAllRows($event.target.checked)"
 					/>
 				</div>
-				<div class="inline-flex h-full items-center justify-center border-r p-2 text-base text-gray-800">
+				<div class="inline-flex h-full items-center justify-center border-r p-1 text-base text-gray-800">
 					No.
 				</div>
 				<div
-					class="inline-flex h-full items-center border-r p-2 text-base text-gray-800"
+					class="inline-flex h-full items-center border-r p-1 text-base text-gray-800"
 					v-for="column in columns"
 					:key="column.fieldname"
 				>
 					{{ column.label }}
 				</div>
-				<div class="p-2 text-center text-base text-gray-900"></div>
+				<div class="p-1 text-center text-base text-gray-900"></div>
 			</div>
 
 			<!-- Rows -->
@@ -45,7 +45,7 @@
 									@click.stop="toggleSelectRow(row)"
 								/>
 							</div>
-							<div class="flex h-full items-center justify-center border-r p-2 text-sm text-gray-800">
+							<div class="flex h-full items-center justify-center border-r p-1 text-sm text-gray-800">
 								{{ index + 1 }}
 							</div>
 							<div class="border-r border-gray-100" v-for="column in columns" :key="column.fieldname">
@@ -110,7 +110,7 @@ const selectedRows = reactive(new Set<string>())
 const gridTemplateColumns = computed(() => {
 	// for the checkbox & sr no. columns
 	let columns = "0.75fr 0.75fr"
-	columns += " " + props.columns.map((col) => `minmax(0, ${2}fr)`).join(" ")
+	columns += " " + props.columns.map((col) => `minmax(0, ${col.width || 2}fr)`).join(" ")
 	// for the edit button column
 	columns += " 0.75fr"
 

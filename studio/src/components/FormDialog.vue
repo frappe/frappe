@@ -39,8 +39,9 @@
 							fieldname: 'componentName',
 							fieldtype: 'Select',
 							options: components.names,
+							width: 3,
 						},
-						{ label: 'Component Type', fieldname: 'componentType', fieldtype: 'Data' },
+						{ label: 'Component Type', fieldname: 'componentType', fieldtype: 'Data', width: 3 },
 					]"
 					v-model:rows="formMeta.fields"
 					:showDeleteBtn="true"
