@@ -432,6 +432,23 @@ export const COMPONENTS: FrappeUIComponents = {
 			],
 		},
 	},
+	TabButtons: {
+		name: "TabButtons",
+		title: "Tab Buttons",
+		icon: "ArrowRightLeft",
+		initialState: {
+			buttons: [
+				{
+					label: "My Tasks",
+					value: "mytasks",
+				},
+				{
+					label: "Team Tasks",
+					value: "teamtasks",
+				},
+			],
+		},
+	},
 	Textarea: {
 		name: "Textarea",
 		title: "Textarea",
