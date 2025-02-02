@@ -694,6 +694,7 @@ function getEmits(name: string) {
 export default {
 	...COMPONENTS,
 	list: Object.values(COMPONENTS),
+	names: Object.keys(COMPONENTS),
 	get,
 	getComponent,
 	getProps,

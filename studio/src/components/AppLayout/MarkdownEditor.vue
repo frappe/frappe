@@ -1,25 +1,28 @@
 <template>
-	<div class="flex h-40 flex-col overflow-hidden rounded-lg border border-gray-200">
-		<div class="flex gap-2 border-b border-gray-200 bg-gray-50 p-2">
-			<Button
-				v-for="tool in tools"
-				:key="tool.id"
-				variant="ghost"
-				size="sm"
-				@click="applyFormat(tool)"
-				:title="`${tool.title} ${tool.shortcut ? `(${tool.shortcut})` : ''}`"
-			>
-				<LucideIcon :name="tool.icon" class="h-3 w-3" />
-			</Button>
-		</div>
+	<div class="flex flex-col">
+		<div v-if="label" class="mb-1.5 text-xs text-gray-600">{{ label }}</div>
+		<div class="flex h-40 flex-col overflow-hidden rounded-lg border border-gray-200">
+			<div class="flex gap-2 border-b border-gray-200 bg-gray-50 p-2">
+				<Button
+					v-for="tool in tools"
+					:key="tool.id"
+					variant="ghost"
+					size="sm"
+					@click="applyFormat(tool)"
+					:title="`${tool.title} ${tool.shortcut ? `(${tool.shortcut})` : ''}`"
+				>
+					<LucideIcon :name="tool.icon" class="h-3 w-3" />
+				</Button>
+			</div>
 
-		<div class="flex flex-1">
-			<div ref="editorContainer" class="flex-1"></div>
-			<div
-				v-if="showPreview"
-				class="flex-1 overflow-y-auto border-l border-gray-200 p-4"
-				v-html="compiledMarkdown"
-			></div>
+			<div class="flex flex-1">
+				<div ref="editorContainer" class="flex-1"></div>
+				<div
+					v-if="showPreview"
+					class="flex-1 overflow-y-auto border-l border-gray-200 p-4"
+					v-html="compiledMarkdown"
+				></div>
+			</div>
 		</div>
 	</div>
 </template>
@@ -36,6 +39,7 @@ import "ace-builds/src-min-noconflict/theme-twilight"
 
 const props = withDefaults(
 	defineProps<{
+		label?: string
 		modelValue: string
 		showPreview?: boolean
 	}>(),
