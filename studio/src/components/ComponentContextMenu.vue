@@ -9,6 +9,8 @@
 			@select="handleContextMenuSelect"
 		/>
 	</div>
+
+	<FormDialog v-model:showDialog="showFormDialog" :block="block" />
 </template>
 
 <script setup lang="ts">
@@ -19,6 +21,7 @@ import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import { ContextMenuOption } from "@/types"
 import { getComponentBlock, isObjectEmpty } from "@/utils/helpers"
+import FormDialog from "@/components/FormDialog.vue"
 
 const store = useStudioStore()
 
@@ -27,6 +30,7 @@ const posX = ref(0)
 const posY = ref(0)
 
 const block = ref(null) as unknown as Ref<Block>
+const showFormDialog = ref(false)
 const showContextMenu = (e: MouseEvent, refBlock: Block) => {
 	block.value = refBlock
 	if (block.value.isRoot()) return
@@ -105,6 +109,12 @@ const contextMenuOptions: ContextMenuOption[] = [
 		},
 		condition: () =>
 			!isObjectEmpty(block.value.componentSlots) && block.value.isSlotEditable(store.selectedSlot),
+	},
+	{
+		label: "Add Fields from DocType",
+		action: () => {
+			showFormDialog.value = true
+		},
 	},
 ]
 
