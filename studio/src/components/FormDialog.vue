@@ -5,6 +5,12 @@
 			title: 'Add Fields from DocType',
 			size: '3xl',
 		}"
+		@after-leave="
+			() => {
+				formMeta.doctype = ''
+				formMeta.fields = []
+			}
+		"
 	>
 		<template #body-content>
 			<div class="flex flex-col space-y-4">
