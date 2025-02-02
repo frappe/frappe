@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-13 17:03+0000\n"
-"PO-Revision-Date: 2025-02-01 04:20\n"
+"PO-Revision-Date: 2025-02-02 05:14\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -2337,7 +2337,7 @@ msgstr "Primijenjeno na"
 
 #: frappe/public/js/form_builder/components/Field.vue:103
 msgid "Apply"
-msgstr ""
+msgstr "Primjeni"
 
 #: frappe/public/js/frappe/list/list_view.js:1888
 msgctxt "Button in list view actions menu"
@@ -12339,7 +12339,7 @@ msgstr "Veza slike"
 
 #: frappe/public/js/frappe/list/base_list.js:208
 msgid "Image View"
-msgstr ""
+msgstr "Prikaz Slike"
 
 #. Label of a Float field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
@@ -14620,7 +14620,7 @@ msgstr "Učitavanje filtera..."
 
 #: frappe/core/doctype/data_import/data_import.js:262
 msgid "Loading import file..."
-msgstr ""
+msgstr "Učitavanje datoteke za import..."
 
 #: frappe/desk/page/user_profile/user_profile_controller.js:20
 msgid "Loading user profile"
@@ -19832,7 +19832,7 @@ msgstr "QZ Tray neuspješan: "
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 #: frappe/public/js/frappe/utils/common.js:401
 msgid "Quarterly"
-msgstr ""
+msgstr "Kvartalno"
 
 #. Label of a Data field in DocType 'Recorder Query'
 #. Label of a Code field in DocType 'Report'
@@ -20352,7 +20352,7 @@ msgstr "Referentni Doctype i naziv nadzorne ploče ne mogu se koristiti istovrem
 #: frappe/integrations/doctype/integration_request/integration_request.json
 #: frappe/public/js/frappe/views/interaction.js:54
 msgid "Reference"
-msgstr ""
+msgstr "Referenca"
 
 #. Label of a Select field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -23860,7 +23860,7 @@ msgstr "Preskakanje sinhronizacije fiksiranja za tip dokumenta {0} iz datoteke {
 
 #: frappe/core/doctype/data_import/data_import.js:39
 msgid "Skipping {0} of {1}, {2}"
-msgstr ""
+msgstr "Preskačem {0} od {1}, {2}"
 
 #. Label of a Data field in DocType 'Contact Us Settings'
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
@@ -24051,7 +24051,7 @@ msgstr "Polje za sortiranje {0} mora biti važeći naziv polja"
 #: frappe/website/doctype/website_route_redirect/website_route_redirect.json
 #: frappe/website/report/website_analytics/website_analytics.js:38
 msgid "Source"
-msgstr ""
+msgstr "Izvor"
 
 #. Label of a Data field in DocType 'Dashboard Chart Source'
 #: frappe/desk/doctype/dashboard_chart_source/dashboard_chart_source.json
@@ -24214,7 +24214,7 @@ msgstr ""
 #: frappe/public/js/frappe/utils/common.js:409
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Start Date"
-msgstr ""
+msgstr "Start Datum"
 
 #. Label of a Select field in DocType 'Calendar View'
 #: frappe/desk/doctype/calendar_view/calendar_view.json
@@ -24223,7 +24223,7 @@ msgstr "Polje datuma početka"
 
 #: frappe/core/doctype/data_import/data_import.js:110
 msgid "Start Import"
-msgstr ""
+msgstr "Pokreni import"
 
 #: frappe/core/doctype/recorder/recorder_list.js:201
 msgid "Start Recording"
@@ -24282,7 +24282,7 @@ msgstr "Počinje"
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "State"
-msgstr ""
+msgstr "Država"
 
 #: frappe/public/js/workflow_builder/components/Properties.vue:24
 msgid "State Properties"
@@ -24381,7 +24381,7 @@ msgstr "Statistika zasnovana na prošlosedmičnom učinku (od {0} do {1})"
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
 msgid "Status"
-msgstr ""
+msgstr "Status"
 
 #: frappe/www/update-password.html:161
 msgid "Status Updated"
@@ -24515,7 +24515,7 @@ msgstr "Poddomena"
 #: frappe/public/js/frappe/views/communication.js:107
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:63
 msgid "Subject"
-msgstr ""
+msgstr "Predmet"
 
 #. Label of a Data field in DocType 'DocType'
 #. Label of a Data field in DocType 'Customize Form'
@@ -24679,7 +24679,7 @@ msgstr "Podnaslov"
 #: frappe/workflow/doctype/workflow_action/workflow_action.py:167
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Success"
-msgstr ""
+msgstr "Uspjeh"
 
 #. Name of a DocType
 #: frappe/core/doctype/success_action/success_action.json
@@ -24739,7 +24739,7 @@ msgstr "Uspješno ažurirano"
 
 #: frappe/core/doctype/data_import/data_import.js:428
 msgid "Successfully imported {0}"
-msgstr ""
+msgstr "Uspješno importirano {0}"
 
 #: frappe/desk/doctype/form_tour/form_tour.py:87
 msgid "Successfully reset onboarding status for all users."
@@ -24751,7 +24751,7 @@ msgstr "Uspješno ažurirani prijevodi"
 
 #: frappe/core/doctype/data_import/data_import.js:436
 msgid "Successfully updated {0}"
-msgstr ""
+msgstr "Uspješno ažuriran {0}"
 
 #: frappe/core/doctype/data_import/data_import.js:149
 msgid "Successfully {0} 1 record."
@@ -25085,7 +25085,7 @@ msgstr "Sistemski dnevnici"
 #: frappe/workflow/doctype/workflow_action_master/workflow_action_master.json
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "System Manager"
-msgstr ""
+msgstr "Upravitelj Sistema"
 
 #: frappe/desk/page/backups/backups.js:36
 msgid "System Manager privileges required."
@@ -26281,7 +26281,7 @@ msgstr "Do"
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/website/report/website_analytics/website_analytics.js:14
 msgid "To Date"
-msgstr ""
+msgstr "Do Datuma"
 
 #. Label of a Select field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
@@ -26566,7 +26566,7 @@ msgstr "Tema"
 #: frappe/public/js/frappe/views/reports/print_grid.html:45
 #: frappe/public/js/frappe/views/reports/report_view.js:1504
 msgid "Total"
-msgstr ""
+msgstr "Ukupno"
 
 #. Label of a Int field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -27315,7 +27315,7 @@ msgstr "Ažuriranje {0}"
 
 #: frappe/core/doctype/data_import/data_import.js:36
 msgid "Updating {0} of {1}, {2}"
-msgstr ""
+msgstr "Ažuriram {0} od {1}, {2}"
 
 #: frappe/public/js/billing.bundle.js:30
 msgid "Upgrade plan"
@@ -28222,7 +28222,7 @@ msgstr "Želite razgovarati?"
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Warehouse"
-msgstr ""
+msgstr "Skladište"
 
 #. Option for the 'Style' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
@@ -28609,7 +28609,7 @@ msgstr "Radnim danima"
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.json
 #: frappe/website/report/website_analytics/website_analytics.js:24
 msgid "Weekly"
-msgstr ""
+msgstr "Sedmično"
 
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #. Option for the 'Event Frequency' (Select) field in DocType 'Server Script'
@@ -28832,7 +28832,7 @@ msgstr "Naziv radnog toka"
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Workflow State"
-msgstr ""
+msgstr "Radni Tok Stanje"
 
 #. Label of a Data field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
@@ -31925,7 +31925,7 @@ msgstr "{{{0}}} nije važeći obrazac naziva polja. Trebalo bi da bude {{field_n
 #. Count format of shortcut in the Website Workspace
 #: frappe/website/workspace/website/website.json
 msgid "{} Active"
-msgstr ""
+msgstr "{} Aktivan"
 
 #: frappe/public/js/frappe/form/form.js:511
 msgid "{} Complete"
