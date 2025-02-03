@@ -134,12 +134,12 @@ class TestWebhook(IntegrationTestCase):
 	def test_webhook_trigger_with_enabled_webhooks(self):
 		"""Test webhook trigger for enabled webhooks"""
 
-		frappe.cache.delete_value("webhooks")
+		frappe.client_cache.delete_value("webhooks")
 
 		# Insert the user to db
 		self.test_user.insert()
 
-		webhooks = frappe.cache.get_value("webhooks")
+		webhooks = frappe.client_cache.get_value("webhooks")
 		self.assertTrue("User" in webhooks)
 		self.assertEqual(len(webhooks.get("User")), 1)
 
