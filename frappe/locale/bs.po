@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-19 09:33+0000\n"
-"PO-Revision-Date: 2025-02-01 04:20\n"
+"PO-Revision-Date: 2025-02-03 05:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -1415,11 +1415,11 @@ msgstr "Dodaj u listu obaveza"
 
 #: frappe/website/doctype/website_slideshow/website_slideshow.js:32
 msgid "Add to table"
-msgstr "Add to tabelu"
+msgstr "Dodaj u tabelu"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:99
 msgid "Add to this activity by mailing to {0}"
-msgstr "Dodajte ovoj aktivnosti slanjem pošte na adresu {0}"
+msgstr "Dodajte ovoj aktivnosti slanjem e-pošte na adresu {0}"
 
 #: frappe/public/js/frappe/views/kanban/kanban_column.html:20
 msgid "Add {0}"
@@ -1884,7 +1884,7 @@ msgstr "Dozvoli starije veze za web pregled (nesigurno)"
 #. Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Allow Print for Cancelled"
-msgstr "Dozvoli štampanje za Otkazano"
+msgstr "Dozvoli Ispisivanje za Otkazano"
 
 #. Label of the allow_print_for_draft (Check) field in DocType 'Print Settings'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:400
@@ -2098,7 +2098,7 @@ msgstr "Alternativni ID e-pošte"
 #. Label of the add_draft_heading (Check) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Always add \"Draft\" Heading for printing draft documents"
-msgstr "Uvijek dodajte naslov \"Nacrt\" za štampanje nacrta dokumenata"
+msgstr "Uvijek dodajte naslov \"Nacrt\" za ispisivanje nacrta dokumenata"
 
 #. Label of the always_use_account_email_id_as_sender (Check) field in DocType
 #. 'Email Account'
@@ -2119,7 +2119,7 @@ msgstr "Uvijek koristite ovo ime kao ime pošiljaoca"
 #: frappe/core/doctype/docperm/docperm.json
 #: frappe/core/doctype/user_document_type/user_document_type.json
 msgid "Amend"
-msgstr "Izmijeniti"
+msgstr "Izmijeni"
 
 #. Option for the 'Action' (Select) field in DocType 'Amended Document Naming
 #. Settings'
@@ -2230,7 +2230,7 @@ msgstr "Još jedan {0} s imenom {1} postoji, odaberite drugo ime"
 #. Description of the 'Raw Commands' (Code) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Any string-based printer languages can be used. Writing raw commands requires knowledge of the printer's native language provided by the printer manufacturer. Please refer to the developer manual provided by the printer manufacturer on how to write their native commands. These commands are rendered on the server side using the Jinja Templating Language."
-msgstr "Mogu se koristiti bilo koji jezici štampača zasnovani na stringovima. Pisanje neobrađenih naredbi zahtijeva poznavanje izvornog jezika štampača koji obezbjeđuje proizvođač štampača. Molimo pogledajte priručnik za programere koji ste dobili od proizvođača štampača o tome kako napisati svoje izvorne komande. Ove komande se prikazuju na strani servera koristeći Jinja Template Language."
+msgstr "Mogu se koristiti bilo koji jezici pisača zasnovani na stringovima. Pisanje neobrađenih naredbi zahtijeva poznavanje izvornog jezika pisača koji obezbjeđuje proizvođač pisača. Molimo pogledajte priručnik za programere koji ste dobili od proizvođača pisača o tome kako napisati svoje izvorne komande. Ove komande se prikazuju na strani servera koristeći Jinja Template Language."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:36
 msgid "Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type."
@@ -2736,7 +2736,7 @@ msgstr "Priloži"
 
 #: frappe/public/js/frappe/views/communication.js:143
 msgid "Attach Document Print"
-msgstr "Priložite štampanje dokumenta"
+msgstr "Priložite ispis dokumenta"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -2749,17 +2749,17 @@ msgstr "Priložite štampanje dokumenta"
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Attach Image"
-msgstr "Priložite sliku"
+msgstr "Priloži sliku"
 
 #. Label of the attach_package (Attach) field in DocType 'Package Import'
 #: frappe/core/doctype/package_import/package_import.json
 msgid "Attach Package"
-msgstr "Priložite paket"
+msgstr "Priloži paket"
 
 #. Label of the attach_print (Check) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Attach Print"
-msgstr "Priloži štampanje"
+msgstr "Priloži ispis"
 
 #: frappe/public/js/frappe/file_uploader/WebLink.vue:10
 msgid "Attach a web link"
@@ -3484,7 +3484,7 @@ msgstr "Prije umetanja"
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Before Print"
-msgstr "Prije štampanja"
+msgstr "Prije ispisa"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -3786,7 +3786,7 @@ msgstr "Izgradnja"
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Build your own reports, print formats, and dashboards. Create personalized workspaces for easier navigation"
-msgstr "Napravite vlastite izvještaje, formate za štampanje i nadzorne ploče. Kreirajte personalizirane radne prostore za lakšu navigaciju"
+msgstr "Napravite vlastite izvještaje, formate za ispisivanje i nadzorne ploče. Kreirajte personalizirane radne prostore za lakšu navigaciju"
 
 #: frappe/workflow/doctype/workflow/workflow_list.js:18
 msgid "Build {0}"
@@ -4337,7 +4337,7 @@ msgstr "Nije moguće dobiti sadržaj fascikle"
 
 #: frappe/printing/page/print/print.js:845
 msgid "Cannot have multiple printers mapped to a single print format."
-msgstr "Nije moguće imati više štampača mapiranih u jedan format štampanja."
+msgstr "Nije moguće imati više pisača mapiranih u jedan format pisača."
 
 #: frappe/model/document.py:1067
 msgid "Cannot link cancelled document: {0}"
@@ -4496,7 +4496,7 @@ msgstr "Promjeni lozinku"
 
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:27
 msgid "Change Print Format"
-msgstr "Promjena formata štampanja"
+msgstr "Promjeni Formata Ispisivanja"
 
 #: frappe/desk/page/user_profile/user_profile_controller.js:51
 #: frappe/desk/page/user_profile/user_profile_controller.js:59
@@ -5922,7 +5922,7 @@ msgstr "Periodično kreirajte i šaljite e-poštu određenoj grupi pretplatnika.
 
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:34
 msgid "Create or Edit Print Format"
-msgstr "Kreirajte ili uredite format za štampanje"
+msgstr "Kreirajte ili uredite format za ispisivanje"
 
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:34
 msgid "Create or Edit Workflow"
@@ -6830,12 +6830,12 @@ msgstr "Zadana početna stranica portala"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Default Print Format"
-msgstr "Zadani format štampanja"
+msgstr "Standard Format Ispisivanja"
 
 #. Label of the default_print_language (Link) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Default Print Language"
-msgstr "Zadani jezik štampanja"
+msgstr "Standard Jezik Ispisivanja"
 
 #. Label of the default_redirect_uri (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -8546,7 +8546,7 @@ msgstr "Uredi uključenje"
 
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:24
 msgid "Edit Print Format"
-msgstr "Uredi format štampanja"
+msgstr "Uredi format ispisivanja"
 
 #: frappe/desk/page/user_profile/user_profile_controller.js:273
 #: frappe/desk/page/user_profile/user_profile_sidebar.html:51
@@ -9044,7 +9044,7 @@ msgstr "Omogućite pripremljeni izvještaj"
 #. Label of the enable_print_server (Check) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Enable Print Server"
-msgstr "Omogućite server za štampanje"
+msgstr "Omogući server za ispisivanje"
 
 #. Label of the enable_push_notification_relay (Check) field in DocType 'Push
 #. Notification Settings'
@@ -9060,7 +9060,7 @@ msgstr "Omogući ograničenje brzine"
 #. Label of the enable_raw_printing (Check) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Enable Raw Printing"
-msgstr "Omogući sirovo štampanje"
+msgstr "Omogući Direktno Ispisivanje"
 
 #: frappe/core/doctype/report/report.js:39
 msgid "Enable Report"
@@ -9420,7 +9420,7 @@ msgstr "Poruka o grešci"
 
 #: frappe/public/js/frappe/form/print_utils.js:128
 msgid "Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Click here to Download and install QZ Tray</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Click here to learn more about Raw Printing</a>."
-msgstr "Greška pri povezivanju sa QZ Tray aplikacijom...<br><br> Morate imati instaliranu i pokrenutu aplikaciju QZ Tray da biste koristili funkciju Raw Print.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Kliknite ovdje da preuzmete i instalirate QZ Tray</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Kliknite ovdje da saznate više o sirovom štampanju</a>."
+msgstr "Greška pri povezivanju sa QZ Tray aplikacijom...<br><br> Morate imati instaliranu i pokrenutu aplikaciju QZ Tray da biste koristili funkciju Raw Print.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Kliknite ovdje da preuzmete i instalirate QZ Tray</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Kliknite ovdje da saznate više o direknom ispisivanju</a>."
 
 #: frappe/email/doctype/email_domain/email_domain.py:32
 msgid "Error connecting via IMAP/POP3: {e}"
@@ -9454,7 +9454,7 @@ msgstr "Greška u obavještenju"
 
 #: frappe/utils/pdf.py:57
 msgid "Error in print format on line {0}: {1}"
-msgstr "Greška u formatu za štampanje na liniji {0}: {1}"
+msgstr "Greška u formatu za ispisivanje na liniji {0}: {1}"
 
 #: frappe/email/doctype/email_account/email_account.py:666
 msgid "Error while connecting to email account {0}"
@@ -16344,7 +16344,7 @@ msgstr "Naziv tipa dokumenta (DocType) sa kojim želite da se ovo polje poveže.
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:117
 msgid "Name of the new Print Format"
-msgstr "Naziv novog formata za štampanje"
+msgstr "Naziv novog formata za ispisivanje"
 
 #: frappe/model/naming.py:494
 msgid "Name of {0} cannot be {1}"
@@ -16463,7 +16463,7 @@ msgstr "Greška ugniježđenog skupa. Molimo kontaktirajte administratora."
 #. Name of a DocType
 #: frappe/printing/doctype/network_printer_settings/network_printer_settings.json
 msgid "Network Printer Settings"
-msgstr "Postavke mrežnog štampača"
+msgstr "Postavke mrežnog pisača"
 
 #. Option for the 'DocType View' (Select) field in DocType 'Workspace Shortcut'
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
@@ -16512,7 +16512,7 @@ msgstr "Novi prilagođeni blok"
 #: frappe/printing/page/print/print.js:295
 #: frappe/printing/page/print/print.js:342
 msgid "New Custom Print Format"
-msgstr "Novi prilagođeni format štampanja"
+msgstr "Novi prilagođeni format ispisivanja"
 
 #. Label of the new_document_form (Check) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
@@ -16588,7 +16588,7 @@ msgstr "Nova šifra"
 #: frappe/printing/page/print/print.js:321
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:61
 msgid "New Print Format Name"
-msgstr "Novo ime formata za štampanje"
+msgstr "Novo ime formata za ispisivanje"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:68
 msgid "New Quick List"
@@ -16948,7 +16948,7 @@ msgstr "Pregled nije dostupan"
 
 #: frappe/printing/page/print/print.js:863
 msgid "No Printer is Available."
-msgstr "Nijedan štampač nije dostupan."
+msgstr "Nijedan pisač nije dostupan."
 
 #: frappe/core/doctype/rq_worker/rq_worker_list.js:3
 msgid "No RQ Workers connected. Try restarting the bench."
@@ -17044,7 +17044,7 @@ msgstr "Nema podataka za eksport"
 
 #: frappe/contacts/doctype/address/address.py:246
 msgid "No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template."
-msgstr "Nije pronađen zadani šablon adrese. Molimo kreirajte novi iz Postavljanje > Štampanje i brendiranje > Šablon adrese."
+msgstr "Nije pronađen zadani šablon adrese. Molimo kreirajte novi iz Postavljanje > Ispisivanje i brendiranje > Šablon adrese."
 
 #: frappe/public/js/frappe/ui/toolbar/search.js:71
 msgid "No documents found tagged with {0}"
@@ -17353,7 +17353,7 @@ msgstr "Nije dozvoljeno za {0}: {1}"
 
 #: frappe/email/doctype/notification/notification.py:592
 msgid "Not allowed to attach {0} document, please enable Allow Print For {0} in Print Settings"
-msgstr "Nije dozvoljeno priložiti {0} dokument, omogućite Dozvoli štampanje za {0} u postavkama štampanja"
+msgstr "Nije dozvoljeno priložiti {0} dokument, omogućite Dozvoli ispisivaanje za {0} u postavkama ispisivanja"
 
 #: frappe/core/doctype/doctype/doctype.py:331
 msgid "Not allowed to create custom Virtual DocType."
@@ -17361,11 +17361,11 @@ msgstr "Nije dozvoljeno kreirati prilagođeni virtualni DocType."
 
 #: frappe/www/printview.py:150
 msgid "Not allowed to print cancelled documents"
-msgstr "Nije dozvoljeno štampanje otkazanih dokumenata"
+msgstr "Nije dozvoljeno ispisivanje otkazanih dokumenata"
 
 #: frappe/www/printview.py:147
 msgid "Not allowed to print draft documents"
-msgstr "Nije dozvoljeno štampanje nacrta dokumenata"
+msgstr "Nije dozvoljeno ispisivanje nacrta dokumenata"
 
 #: frappe/permissions.py:211
 msgid "Not allowed via controller permission check"
@@ -18396,7 +18396,7 @@ msgstr "Generisanje PDF-a možda neće raditi kako se očekuje."
 
 #: frappe/printing/page/print/print.js:534
 msgid "PDF printing via \"Raw Print\" is not supported."
-msgstr "PDF štampa putem \"Raw Print\" nije podržana."
+msgstr "PDF ispis putem \"Direktnog Ispisivanja\" nije podržana."
 
 #. Label of the pid (Data) field in DocType 'RQ Worker'
 #: frappe/core/doctype/rq_worker/rq_worker.json
@@ -18992,7 +18992,7 @@ msgstr "Dozvole se automatski primjenjuju na standardne izvještaje i pretrage."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:5
 msgid "Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions."
-msgstr "Dozvole se postavljaju za uloge i vrste dokumenata (zvane DocTypes) postavljanjem prava kao što su čitanje, pisanje, kreiranje, brisanje, slanje, poništavanje, izmjena, izvještaj, uvoz, izvoz, štampanje, slanje e-pošte i postavljanje korisničkih dozvola."
+msgstr "Dozvole se postavljaju za uloge i vrste dokumenata (zvane DocTypes) postavljanjem prava kao što su čitanje, pisanje, kreiranje, brisanje, slanje, poništavanje, izmjena, izvještaj, uvoz, izvoz, ispisivanje, slanje e-pošte i postavljanje korisničkih dozvola."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:26
 msgid "Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles."
@@ -19336,7 +19336,7 @@ msgstr "Osvježite da dobijete najnoviji dokument."
 
 #: frappe/printing/page/print/print.js:535
 msgid "Please remove the printer mapping in Printer Settings and try again."
-msgstr "Uklonite mapiranje štampača u postavkama štampača i pokušajte ponovo."
+msgstr "Uklonite mapiranje pisača u postavkama pisača i pokušajte ponovo."
 
 #: frappe/public/js/frappe/form/form.js:358
 msgid "Please save before attaching."
@@ -19438,7 +19438,7 @@ msgstr "Molimo postavite adresu e-pošte"
 
 #: frappe/printing/page/print/print.js:549
 msgid "Please set a printer mapping for this print format in the Printer Settings"
-msgstr "Podesite mapiranje štampača za ovaj format štampanja u postavkama štampača"
+msgstr "Podesite mapiranje pisača za ovaj format ispisivanja u postavkama pisača"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1330
 msgid "Please set filters"
@@ -19837,16 +19837,16 @@ msgstr "Primarni ključ tipa dokumenta {0} ne može se promijeniti jer postoje p
 #: frappe/public/js/frappe/views/reports/report_view.js:1489
 #: frappe/public/js/frappe/views/treeview.js:490 frappe/www/printview.html:18
 msgid "Print"
-msgstr "Štampaj"
+msgstr "Ispiši"
 
 #: frappe/public/js/frappe/list/list_view.js:1978
 msgctxt "Button in list view actions menu"
 msgid "Print"
-msgstr "Štampaj"
+msgstr "Ispiši"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:48
 msgid "Print Documents"
-msgstr "Štampaj dokumente"
+msgstr "Ispiši dokumente"
 
 #. Label of the print_format (Link) field in DocType 'Auto Repeat'
 #. Label of a Link in the Build Workspace
@@ -19862,7 +19862,7 @@ msgstr "Štampaj dokumente"
 #: frappe/public/js/frappe/list/bulk_operations.js:59
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Print Format"
-msgstr "Format za štampanje"
+msgstr "Format za ispisivanje"
 
 #. Label of a Link in the Tools Workspace
 #. Label of the print_format_builder (Check) field in DocType 'Print Format'
@@ -19877,36 +19877,36 @@ msgstr "Izrađivač formata za štampanje"
 #. Label of a Link in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
 msgid "Print Format Builder (New)"
-msgstr "Izrađivač formata za štampanje (Novo)"
+msgstr "Izrađivač formata za ispisivanje (Novo)"
 
 #. Label of the print_format_builder_beta (Check) field in DocType 'Print
 #. Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Print Format Builder Beta"
-msgstr "Izrađivač formata za štampanje Beta"
+msgstr "Izrađivač formata za ispisivanje Beta"
 
 #: frappe/utils/pdf.py:61
 msgid "Print Format Error"
-msgstr "Greška u formatu štampanja"
+msgstr "Greška u formatu ispisivanja"
 
 #. Name of a DocType
 #: frappe/printing/doctype/print_format_field_template/print_format_field_template.json
 msgid "Print Format Field Template"
-msgstr "Šablon polja formata za štampanje"
+msgstr "Šablon polja formata za ispisivanje"
 
 #. Label of the print_format_help (HTML) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Print Format Help"
-msgstr "Pomoć za format štampanja"
+msgstr "Pomoć za format ispisivanja"
 
 #. Label of the print_format_type (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Print Format Type"
-msgstr "Tip formata za štampanje"
+msgstr "Tip formata za ispisivanje"
 
 #: frappe/www/printview.py:437
 msgid "Print Format {0} is disabled"
-msgstr "Format štampanja {0} je onemogućen"
+msgstr "Format ispisivanja {0} je onemogućen"
 
 #. Label of a Link in the Tools Workspace
 #. Name of a DocType
@@ -19923,7 +19923,7 @@ msgstr "Štampanje naslova"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Print Hide"
-msgstr "Sakrij štampanje"
+msgstr "Sakrij"
 
 #. Label of the print_hide_if_no_value (Check) field in DocType 'DocField'
 #. Label of the print_hide_if_no_value (Check) field in DocType 'Custom Field'
@@ -19933,21 +19933,21 @@ msgstr "Sakrij štampanje"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Print Hide If No Value"
-msgstr "Sakrij štampanje ako nema vrijednosti"
+msgstr "Sakrij ispisivanje ako nema vrijednosti"
 
 #: frappe/public/js/frappe/views/communication.js:156
 msgid "Print Language"
-msgstr "Pisač Jezik"
+msgstr "Jezik Ispisivanja"
 
 #: frappe/public/js/frappe/form/print_utils.js:197
 msgid "Print Sent to the printer!"
-msgstr "Štampanje poslano na štampač!"
+msgstr "Ispis poslan na pisač!"
 
 #. Label of the server_printer (Section Break) field in DocType 'Print
 #. Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Print Server"
-msgstr "Print server"
+msgstr "Ispisni Server"
 
 #. Label of a Link in the Tools Workspace
 #. Label of the column_break_25 (Section Break) field in DocType 'Notification'
@@ -19960,7 +19960,7 @@ msgstr "Print server"
 #: frappe/public/js/frappe/form/print_utils.js:71
 #: frappe/public/js/frappe/form/templates/print_layout.html:35
 msgid "Print Settings"
-msgstr "Postavke štampanja"
+msgstr "Postavke Ispisivanja"
 
 #. Label of the print_style_section (Section Break) field in DocType 'Print
 #. Settings'
@@ -19969,17 +19969,17 @@ msgstr "Postavke štampanja"
 #: frappe/printing/doctype/print_settings/print_settings.json
 #: frappe/printing/doctype/print_style/print_style.json
 msgid "Print Style"
-msgstr "Stil štampanja"
+msgstr "Ispisni Stil"
 
 #. Label of the print_style_name (Data) field in DocType 'Print Style'
 #: frappe/printing/doctype/print_style/print_style.json
 msgid "Print Style Name"
-msgstr "Naziv stila štampanja"
+msgstr "Naziv Ispisnog Stila"
 
 #. Label of the print_style_preview (HTML) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Print Style Preview"
-msgstr "Pregled stila štampanja"
+msgstr "Pregled Ispisnog Stila"
 
 #. Label of the print_width (Data) field in DocType 'DocField'
 #. Label of the print_width (Data) field in DocType 'Custom Field'
@@ -19988,7 +19988,7 @@ msgstr "Pregled stila štampanja"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Print Width"
-msgstr "Širina za štampanje"
+msgstr "Ispisna Širina"
 
 #. Description of the 'Print Width' (Data) field in DocType 'Customize Form
 #. Field'
@@ -19998,43 +19998,43 @@ msgstr "Ispis širine polja, ako je polje kolona u tabeli"
 
 #: frappe/public/js/frappe/form/form.js:170
 msgid "Print document"
-msgstr "Štampaj dokument"
+msgstr "Ispiši dokument"
 
 #. Label of the with_letterhead (Check) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Print with letterhead"
-msgstr "Štampaj sa memorandumom"
+msgstr "Ispiši sa Zaglavljem"
 
 #: frappe/printing/page/print/print.js:831
 msgid "Printer"
-msgstr "Štampač"
+msgstr "Pisač"
 
 #: frappe/printing/page/print/print.js:808
 msgid "Printer Mapping"
-msgstr "Mapiranje štampača"
+msgstr "Mapiranje Pisača"
 
 #. Label of the printer_name (Select) field in DocType 'Network Printer
 #. Settings'
 #: frappe/printing/doctype/network_printer_settings/network_printer_settings.json
 msgid "Printer Name"
-msgstr "Naziv štampača"
+msgstr "Naziv Pisača"
 
 #: frappe/printing/page/print/print.js:800
 msgid "Printer Settings"
-msgstr "Postavke štampača"
+msgstr "Postavke Pisača"
 
 #: frappe/printing/page/print/print.js:548
 msgid "Printer mapping not set."
-msgstr "Mapiranje štampača nije postavljeno."
+msgstr "Mapiranje pisača nije postavljeno."
 
 #. Label of a Card Break in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
 msgid "Printing"
-msgstr "Štampanje"
+msgstr "Ispisivanje"
 
 #: frappe/utils/print_format.py:275
 msgid "Printing failed"
-msgstr "Štampanje nije uspjelo"
+msgstr "Neuspješno Ispisivanje"
 
 #. Label of the priority (Int) field in DocType 'Assignment Rule'
 #. Label of the priority (Int) field in DocType 'Document Naming Rule'
@@ -20552,7 +20552,7 @@ msgstr "Ocjena"
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/printing/doctype/print_format/print_format.py:88
 msgid "Raw Commands"
-msgstr "Sirove naredbe"
+msgstr "Direktne naredbe"
 
 #. Label of the raw (Code) field in DocType 'Unhandled Email'
 #: frappe/email/doctype/unhandled_email/unhandled_email.json
@@ -20565,15 +20565,15 @@ msgstr "Neobrađena e-pošta"
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Raw Printing"
-msgstr "Sirova štampa"
+msgstr "Direktno Ispisivanje"
 
 #: frappe/printing/page/print/print.js:165
 msgid "Raw Printing Setting"
-msgstr "Postavka sirovog štampanja"
+msgstr "Postavka Direktnog Ispisivanja"
 
 #: frappe/public/js/frappe/form/templates/print_layout.html:37
 msgid "Raw Printing Settings"
-msgstr "Postavke sirovog štampanja"
+msgstr "Postavka Direktnog Ispisivanja"
 
 #: frappe/desk/doctype/console_log/console_log.js:6
 msgid "Re-Run in Console"
@@ -23111,7 +23111,7 @@ msgstr "Odaberi modul"
 #: frappe/printing/page/print/print.js:175
 #: frappe/printing/page/print/print.js:585
 msgid "Select Network Printer"
-msgstr "Odaberi mrežni štampač"
+msgstr "Odaberi mrežni pisač"
 
 #. Label of the page_name (Link) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
@@ -23121,11 +23121,11 @@ msgstr "Odaberi stranicu"
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:68
 #: frappe/public/js/frappe/views/communication.js:148
 msgid "Select Print Format"
-msgstr "Odaberit format štampanja"
+msgstr "Odaberit format ispisivanja"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:82
 msgid "Select Print Format to Edit"
-msgstr "Odaberi format štampanja za uređivanje"
+msgstr "Odaberi format ispisivanja za Uređivanje"
 
 #. Label of the report_name (Link) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
@@ -23195,7 +23195,7 @@ msgstr "Odaberite aplikaciju da nastavite"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_start.html:2
 msgid "Select an existing format to edit or start a new format."
-msgstr "Odaberite postojeći format za uređivanje ili započnite novi format."
+msgstr "Odaberite postojeći format za uređivanje ili započni novi format."
 
 #. Description of the 'Brand Image' (Attach Image) field in DocType 'Website
 #. Settings'
@@ -23205,7 +23205,7 @@ msgstr "Odaberite sliku približne širine 150px sa prozirnom pozadinom za najbo
 
 #: frappe/public/js/frappe/list/bulk_operations.js:36
 msgid "Select atleast 1 record for printing"
-msgstr "Odaberite najmanje 1 zapis za štampanje"
+msgstr "Odaberite najmanje 1 zapis za ispisivanje"
 
 #: frappe/core/doctype/success_action/success_action.js:18
 msgid "Select atleast 2 actions"
@@ -23293,7 +23293,7 @@ msgstr "Pošalji e-poštu na"
 #. Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Send Email Print Attachments as PDF (Recommended)"
-msgstr "Pošalji e-poštom štampanje priloga kao PDF (preporučeno)"
+msgstr "Pošalji prilog e-poštom kao PDF (preporučeno)"
 
 #. Label of the send_email_for_successful_backup (Check) field in DocType
 #. 'Dropbox Settings'
@@ -23351,7 +23351,7 @@ msgstr "Pošalji Sad"
 #. Label of the send_print_as_pdf (Check) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Send Print as PDF"
-msgstr "Pošalji štampu kao PDF"
+msgstr "Pošalji Ispis kao PDF"
 
 #: frappe/public/js/frappe/views/communication.js:138
 msgid "Send Read Receipt"
@@ -24789,7 +24789,7 @@ msgstr "Standardni DocType se ne može izbrisati."
 
 #: frappe/core/doctype/doctype/doctype.py:224
 msgid "Standard DocType cannot have default print format, use Customize Form"
-msgstr "Standardni DocType ne može imati zadani format za štampanje, koristite Prilagodi obrazac"
+msgstr "Standardni DocType ne može imati zadani format za ispisivanje, koristite Prilagodi Obrazac"
 
 #: frappe/desk/doctype/dashboard/dashboard.py:58
 msgid "Standard Not Set"
@@ -24805,7 +24805,7 @@ msgstr "Standardni format štampanja se ne može ažurirati"
 
 #: frappe/printing/doctype/print_style/print_style.py:31
 msgid "Standard Print Style cannot be changed. Please duplicate to edit."
-msgstr "Standardni stil štampanja se ne može promeniti. Molimo duplirajte za uređivanje."
+msgstr "Standardni stil ispisivanja se ne može promeniti. Molimo duplirajte za uređivanje."
 
 #: frappe/desk/reportview.py:334
 msgid "Standard Reports cannot be deleted"
@@ -26603,7 +26603,7 @@ msgstr "Ova veza nije važeća ili je istekla. Provjerite jeste li ispravno zali
 
 #: frappe/printing/page/print/print.js:410
 msgid "This may get printed on multiple pages"
-msgstr "Ovo se može odštampati na više stranica"
+msgstr "Ovo se može ispisati na više stranica"
 
 #: frappe/utils/goal.py:109
 msgid "This month"
@@ -27042,7 +27042,7 @@ msgstr "Da biste dobili ažurirani izvještaj, kliknite na {0}."
 #. Description of the 'Console' (Code) field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
 msgid "To print output use <code>print(text)</code>"
-msgstr "Za štampanje izlaza koristite <code>print(text)</code>"
+msgstr "Za ispisivanje izlaza koristite <code>print(text)</code>"
 
 #: frappe/core/doctype/user_type/user_type.py:291
 msgid "To set the role {0} in the user {1}, kindly set the {2} field as {3} in one of the {4} record."
@@ -27500,7 +27500,7 @@ msgstr "Isprobaj seriju imenovanja"
 #: frappe/printing/page/print/print.js:189
 #: frappe/printing/page/print/print.js:195
 msgid "Try the new Print Designer"
-msgstr "Isprobajte novi uređivač štampanja"
+msgstr "Isprobajte novi uređivač ispisivanja"
 
 #: frappe/utils/password_strength.py:106
 msgid "Try to avoid repeated words and characters"
@@ -28159,7 +28159,7 @@ msgstr "Upotreba podupita ili funkcije je ograničena"
 
 #: frappe/printing/page/print/print.js:279
 msgid "Use the new Print Format Builder"
-msgstr "Koristite novi alat za izradu formata za štampanje"
+msgstr "Koristite novi alat za izradu formata za ispisivanje"
 
 #. Description of the 'Title Field' (Data) field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
@@ -29870,7 +29870,7 @@ msgstr "Nije vam dozvoljeno da izvezete {} doctype"
 
 #: frappe/public/js/frappe/views/treeview.js:448
 msgid "You are not allowed to print this report"
-msgstr "Nije vam dozvoljeno da štampate ovaj izveštaj"
+msgstr "Nije vam dozvoljeno da ispišete ovaj izveštaj"
 
 #: frappe/public/js/frappe/views/communication.js:772
 msgid "You are not allowed to send emails related to this document"
@@ -29919,7 +29919,7 @@ msgstr "Možete dodati dinamička svojstva iz dokumenta korištenjem Jinja šabl
 
 #: frappe/printing/doctype/letter_head/letter_head.js:32
 msgid "You can also access wkhtmltopdf variables (valid only in PDF print):"
-msgstr "Također možete pristupiti wkhtmltopdf varijablama (važe samo u PDF štampi):"
+msgstr "Također možete pristupiti wkhtmltopdf varijablama (važe samo u PDF ispis):"
 
 #: frappe/templates/emails/new_user.html:22
 msgid "You can also copy-paste following link in your browser"
@@ -29963,7 +29963,7 @@ msgstr "Slike možete umetnuti samo u polja Markdown"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:42
 msgid "You can only print upto {0} documents at a time"
-msgstr "Možete odštampati najviše {0} dokumenata odjednom"
+msgstr "Možete ispisati najviše {0} dokumenata odjednom"
 
 #: frappe/core/doctype/user_type/user_type.py:104
 msgid "You can only set the 3 custom doctypes in the Document Types table."
@@ -30854,7 +30854,7 @@ msgstr "običan"
 #. Inspector'
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 msgid "print"
-msgstr "štampaj"
+msgstr "ispiši"
 
 #. Label of the processlist (HTML) field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
@@ -31512,7 +31512,7 @@ msgstr "{0} nije polje tipa dokumenta {1}"
 
 #: frappe/www/printview.py:369
 msgid "{0} is not a raw printing format."
-msgstr "{0} nije sirovi format za štampanje."
+msgstr "{0} nije direktni format za ispisivanje."
 
 #: frappe/public/js/frappe/views/calendar/calendar.js:82
 msgid "{0} is not a valid Calendar. Redirecting to default Calendar."
@@ -31581,7 +31581,7 @@ msgstr "{0} nije postavljeno"
 
 #: frappe/printing/doctype/print_format/print_format.py:164
 msgid "{0} is now default print format for {1} doctype"
-msgstr "{0} je sada podrazumijevani format štampanja za {1} tip dokumenta"
+msgstr "{0} je sada standardi format ispisivanja za {1} tip dokumenta"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1428
 msgid "{0} is one of {1}"
