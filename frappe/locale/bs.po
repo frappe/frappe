@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-13 17:03+0000\n"
-"PO-Revision-Date: 2025-02-02 05:14\n"
+"PO-Revision-Date: 2025-02-03 05:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -3737,7 +3737,7 @@ msgstr "Izgradnja"
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Build your own reports, print formats, and dashboards. Create personalized workspaces for easier navigation"
-msgstr "Napravite vlastite izvještaje, formate za štampanje i nadzorne ploče. Kreirajte personalizirane radne prostore za lakšu navigaciju"
+msgstr "Napravite vlastite izvještaje, formate za ispisivanje i nadzorne ploče. Kreirajte personalizirane radne prostore za lakšu navigaciju"
 
 #: frappe/workflow/doctype/workflow/workflow_list.js:18
 msgid "Build {0}"
@@ -8106,7 +8106,7 @@ msgstr "Preuzmite svoje podatke"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:47
 msgid "Dr"
-msgstr ""
+msgstr "Dr"
 
 #: frappe/public/js/frappe/model/indicator.js:73
 #: frappe/public/js/frappe/ui/filters/filter.js:530
@@ -19449,7 +19449,7 @@ msgstr "Sakrij štampanje ako nema vrijednosti"
 
 #: frappe/public/js/frappe/views/communication.js:156
 msgid "Print Language"
-msgstr "Pisač Jezik"
+msgstr "Jezik Ispisivanja"
 
 #: frappe/public/js/frappe/form/print_utils.js:197
 msgid "Print Sent to the printer!"
@@ -22667,7 +22667,7 @@ msgstr "Samoodobrenje nije dozvoljeno"
 #: frappe/email/doctype/newsletter/newsletter.js:162
 #: frappe/public/js/frappe/views/communication.js:26 frappe/www/contact.html:41
 msgid "Send"
-msgstr ""
+msgstr "Pošalji"
 
 #. Label of a Datetime field in DocType 'Communication'
 #. Label of a Datetime field in DocType 'Email Queue'
@@ -22743,7 +22743,7 @@ msgstr "Pošalji obavještenja na"
 
 #: frappe/email/doctype/auto_email_report/auto_email_report.js:21
 msgid "Send Now"
-msgstr ""
+msgstr "Pošalji Odmah"
 
 #. Label of a Check field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -22899,7 +22899,7 @@ msgstr "Sendgrid"
 #: frappe/email/doctype/email_queue/email_queue.json
 #: frappe/email/doctype/newsletter/newsletter.js:201
 msgid "Sending"
-msgstr ""
+msgstr "Šalje se"
 
 #: frappe/email/doctype/newsletter/newsletter.js:203
 msgid "Sending emails"
@@ -22951,7 +22951,7 @@ msgstr "Separator"
 #. Label of a Float field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "Sequence Id"
-msgstr ""
+msgstr "ID Sekvence"
 
 #. Label of a Text field in DocType 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
@@ -23017,7 +23017,7 @@ msgstr "Server je bio prezauzet za obradu ovog zahtjeva. Molimo pokušajte ponov
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/integrations/doctype/integration_request/integration_request.json
 msgid "Service"
-msgstr ""
+msgstr "Servis"
 
 #. Name of a DocType
 #: frappe/core/doctype/session_default/session_default.json
@@ -26367,7 +26367,7 @@ msgstr "Za upravljanje vašim ovlaštenim aplikacijama trećih strana"
 #. Description of the 'Console' (Code) field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
 msgid "To print output use <code>print(text)</code>"
-msgstr "Za štampanje izlaza koristite <code>print(text)</code>"
+msgstr "Za ispisivanje izlaza koristite <code>print(text)</code>"
 
 #: frappe/core/doctype/user_type/user_type.py:292
 msgid "To set the role {0} in the user {1}, kindly set the {2} field as {3} in one of the {4} record."
