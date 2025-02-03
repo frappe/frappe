@@ -13,7 +13,7 @@ doctypes_for_mapping = {
 }
 
 
-def get_doctype_map_key(doctype, name) -> str:
+def get_doctype_map_key(doctype, name="*") -> str:
 	return frappe.scrub(doctype) + "_map" + f"::{name}"
 
 
@@ -43,7 +43,6 @@ global_cache_keys = (
 	"information_schema:counts",
 	"db_tables",
 	"server_script_autocompletion_items",
-	*doctype_map_keys,
 )
 
 user_cache_keys = (
@@ -77,6 +76,7 @@ wildcard_keys = (
 	"document_cache::*",
 	"table_columns::*",
 	"notifications::*",
+	*doctype_map_keys,
 )
 
 
