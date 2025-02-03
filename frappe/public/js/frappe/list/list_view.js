@@ -24,9 +24,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	constructor(opts) {
 		super(opts);
 		this.show();
+		const meta = frappe.get_meta(this.doctype);
 		this.debounced_refresh = frappe.utils.debounce(
 			this.process_document_refreshes.bind(this),
+<<<<<<< HEAD
 			2000
+=======
+			meta?.is_large_table ? 15000 : 2000
+>>>>>>> 34dd0d7290 (fix: throttle list view refreshes for longer time)
 		);
 		this.count_upper_bound = 1001;
 	}
