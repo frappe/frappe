@@ -160,10 +160,13 @@ class Notification(Document):
 		self.validate_forbidden_document_types()
 		self.validate_condition()
 		self.validate_standard()
-		frappe.cache.hdel("notifications", self.document_type)
+		clear_notification_cache()
+
+	def clear_cache(self):
+		super().clear_cache()
+		clear_notification_cache()
 
 	def on_update(self):
-		frappe.cache.hdel("notifications", self.document_type)
 		path = export_module_json(self, self.is_standard, self.module)
 		if path and self.message:
 			extension = FORMATS.get(self.message_type, ".md")
@@ -641,7 +644,11 @@ def get_context(context):
 		self.message = self.get_template(md_as_html=True)
 
 	def on_trash(self):
-		frappe.cache.hdel("notifications", self.document_type)
+		clear_notification_cache()
+
+
+def clear_notification_cache():
+	frappe.client_cache.delete_keys("notifications::")
 
 
 @frappe.whitelist()

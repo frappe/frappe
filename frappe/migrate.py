@@ -11,7 +11,6 @@ import frappe
 import frappe.model.sync
 import frappe.modules.patch_handler
 import frappe.translate
-from frappe.cache_manager import clear_global_cache
 from frappe.core.doctype.language.language import sync_languages
 from frappe.core.doctype.navbar_settings.navbar_settings import sync_standard_items
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
@@ -80,7 +79,7 @@ class SiteMigration:
 		self.touched_tables_file = frappe.get_site_path("touched_tables.json")
 		frappe.clear_cache()
 		add_column(doctype="DocType", column_name="migration_hash", fieldtype="Data")
-		clear_global_cache()
+		frappe.clear_cache()
 
 		if os.path.exists(self.touched_tables_file):
 			os.remove(self.touched_tables_file)

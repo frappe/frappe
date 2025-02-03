@@ -69,7 +69,6 @@ doctype_cache_keys = (
 	"doctype_form_meta",
 	"last_modified",
 	"linked_doctypes",
-	"notifications",
 	"workflow",
 	"data_import_column_header_map",
 )
@@ -130,6 +129,7 @@ def clear_doctype_cache(doctype=None):
 
 def _clear_doctype_cache_from_redis(doctype: str | None = None):
 	from frappe.desk.notifications import delete_notification_count_for
+	from frappe.email.doctype.notification.notification import clear_notification_cache
 	from frappe.model.meta import clear_meta_cache
 
 	to_del = ["is_table", "doctype_modules"]
@@ -166,6 +166,7 @@ def _clear_doctype_cache_from_redis(doctype: str | None = None):
 			to_del += frappe.cache.get_keys(pattern)
 		clear_meta_cache()
 
+	clear_notification_cache()
 	frappe.cache.delete_value(to_del)
 
 
