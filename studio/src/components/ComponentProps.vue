@@ -7,14 +7,42 @@
 			</div>
 			<div class="mb-4 mt-3 flex flex-col gap-3">
 				<div v-for="(config, propName) in componentProps" :key="propName">
-					<InlineInput
-						:label="propName"
-						:type="config.inputType"
-						:modelValue="config.modelValue"
-						:options="config.options"
-						:required="config.required"
-						@update:modelValue="(val) => updateComponentProp(propName, val)"
-					/>
+					<div class="flex w-full items-center gap-2">
+						<InlineInput
+							:label="propName"
+							:type="config.inputType"
+							:options="config.options"
+							:required="config.required"
+							v-model="boundValue"
+							class="flex-1"
+						/>
+						<Autocomplete
+							v-if="propName === 'modelValue'"
+							:options="variables"
+							placeholder="Select variable"
+							@update:modelValue="(variable: SelectOption) => bindVariable(propName, variable.value)"
+						>
+							<template #target="{ togglePopover }">
+								<IconButton
+									:icon="isVariableBound(config.modelValue) ? 'Link2Off' : 'Link2'"
+									:label="
+										isVariableBound(config.modelValue) ? 'Disable two-way binding' : 'Enable two-way binding'
+									"
+									iconComponent="LucideIcon"
+									placement="bottom"
+									@click="
+										() => {
+											if (isVariableBound(config.modelValue)) {
+												unbindVariable(propName)
+											} else {
+												togglePopover()
+											}
+										}
+									"
+								/>
+							</template>
+						</Autocomplete>
+					</div>
 				</div>
 			</div>
 
@@ -75,10 +103,13 @@ import InlineInput from "@/components/InlineInput.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import type { SelectOption, Slot } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
+import useStudioStore from "@/stores/studioStore"
+import IconButton from "@/components/IconButton.vue"
 
 const props = defineProps<{
 	block?: Block
 }>()
+const store = useStudioStore()
 
 const componentProps = computed(() => {
 	if (!props.block || props.block.isRoot()) return {}
@@ -96,10 +127,6 @@ const componentProps = computed(() => {
 
 	return propConfig
 })
-
-const updateComponentProp = (propName: string, newValue: any) => {
-	props.block?.setProp(propName, newValue)
-}
 
 const componentSlots = ref<string[]>([])
 watch(
@@ -132,5 +159,39 @@ const getSlotContent = (slot: Slot) => {
 	else if (typeof slot.slotContent === "string") return slot.slotContent
 	// hack to show the clear button for slot blocks
 	return " "
+}
+
+// variable binding
+const variables = computed(() => Object.keys(store.variables))
+const boundValue = computed({
+	get() {
+		const modelValue = props.block?.componentProps.modelValue
+		if (modelValue?.$type === "variable") {
+			return `{{ ${modelValue.name} }}`
+		}
+		return modelValue
+	},
+	set(newValue) {
+		if (typeof newValue === "string" && newValue.startsWith("{{")) {
+			const varName = newValue.replace(/[{} ]/g, "")
+			if (store.variables.value[varName]) {
+				bindVariable("modelValue", varName)
+				return
+			}
+		}
+		props.block?.setProp("modelValue", newValue)
+	},
+})
+
+const isVariableBound = (value: any) => {
+	return value?.$type === "variable" ? value.name : null
+}
+
+const bindVariable = (propName: string, varName: string) => {
+	props.block?.setProp(propName, { $type: "variable", name: varName })
+}
+
+const unbindVariable = (propName: string) => {
+	props.block?.setProp(propName, "")
 }
 </script>

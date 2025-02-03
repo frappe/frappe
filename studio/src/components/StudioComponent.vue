@@ -3,6 +3,7 @@
 		v-if="block.canHaveChildren()"
 		:is="block.componentName"
 		v-bind="componentProps"
+		v-model="boundValue"
 		:data-component-id="block.componentId"
 		:data-breakpoint="breakpoint"
 		:style="styles"
@@ -143,6 +144,29 @@ const componentProps = computed(() => {
 
 const componentRef = ref<ComponentPublicInstance | null>(null)
 const target = computed(() => getComponentRoot(componentRef))
+
+// Computed property for v-model binding
+const boundValue = computed({
+	get() {
+		const modelValue = props.block.componentProps.modelValue
+		if (modelValue?.$type === "variable") {
+			// Return the variable value from the store
+			return store.variables[modelValue.name]
+		}
+		// Return the plain value if not bound to a variable
+		return modelValue
+	},
+	set(newValue) {
+		const modelValue = props.block.componentProps.modelValue
+		if (modelValue?.$type === "variable") {
+			// Update the variable in the store
+			store.variables[modelValue.name] = newValue
+		} else {
+			// Update the prop directly if not bound to a variable
+			props.block.setProp("modelValue", newValue)
+		}
+	},
+})
 
 // block hovering and selection
 const isHovered = ref(false)
