@@ -464,7 +464,8 @@ frappe.ui.filter_utils = {
 	},
 
 	get_default_condition(df) {
-		if (df.fieldtype == "Data") {
+		const meta = frappe.get_meta(df.parent);
+		if (df.fieldtype == "Data" && !meta?.is_large_table) {
 			return "like";
 		} else if (df.fieldtype == "Date" || df.fieldtype == "Datetime") {
 			return "Between";
