@@ -42,20 +42,20 @@
 		<CollapsibleSection sectionName="Variables">
 			<div class="flex flex-col gap-2" v-if="!isObjectEmpty(store.variables)">
 				<div
-					v-for="(initial_value, variable_name) in store.variables"
+					v-for="(value, variable_name) in store.variables"
 					:key="variable_name"
 					class="group/variable flex flex-row justify-between"
 				>
 					<ObjectBrowser
-						v-if="typeof initial_value === 'object'"
-						:object="variable"
+						v-if="typeof value === 'object'"
+						:object="value"
 						:name="variable_name"
 						class="overflow-hidden"
 					/>
 					<div v-else class="flex flex-row justify-between">
 						<div class="text-sm font-semibold text-pink-700">{{ variable_name }}</div>
 						<div class="text-xs text-gray-600">&nbsp;=&nbsp;</div>
-						<div class="text-sm text-gray-800">{{ initial_value }}</div>
+						<div class="text-sm text-violet-700">{{ value }}</div>
 					</div>
 					<div
 						class="invisible -mt-1 ml-auto self-start text-gray-600 group-hover/variable:visible has-[.active-item]:visible"
@@ -83,6 +83,15 @@
 					:options="{
 						title: variable?.name ? 'Edit Variable' : 'Add Variable',
 					}"
+					@after-leave="
+						() =>
+							(variable = {
+								name: '',
+								variable_name: '',
+								variable_type: 'String',
+								initial_value: '',
+							})
+					"
 				>
 					<template #body-content>
 						<div class="flex flex-col space-y-4">
@@ -283,7 +292,8 @@ const addVariable = (variable: Variable) => {
 	studioVariables.insert
 		.submit({
 			variable_name: variable.variable_name,
-			initial_value: variable.initial_value,
+			variable_type: variable.variable_type,
+			initial_value: variable.initial_value?.toString(),
 			parent: store.activePage?.name,
 			parenttype: "Studio Page",
 			parentfield: "variables",

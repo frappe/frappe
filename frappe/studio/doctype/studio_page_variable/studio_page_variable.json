@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "variable_name",
+  "variable_type",
   "initial_value"
  ],
  "fields": [
@@ -20,13 +21,21 @@
    "default": "\"\"",
    "fieldname": "initial_value",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Initial Value"
+  },
+  {
+   "fieldname": "variable_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Variable Type",
+   "options": "String\nNumber\nBoolean\nObject"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-02-01 16:31:40.801768",
+ "modified": "2025-02-03 21:42:25.051169",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page Variable",
