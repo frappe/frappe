@@ -69,7 +69,6 @@ doctype_cache_keys = (
 	"doctype_form_meta",
 	"last_modified",
 	"linked_doctypes",
-	"notifications",
 	"workflow",
 	"data_import_column_header_map",
 )
@@ -77,6 +76,7 @@ doctype_cache_keys = (
 wildcard_keys = (
 	"document_cache::*",
 	"table_columns::*",
+	"notifications::*",
 )
 
 
