@@ -464,7 +464,7 @@ class Database:
 	@staticmethod
 	def clear_db_table_cache(query):
 		if query and is_query_type(query, ("drop", "create")):
-			frappe.cache.delete_key("db_tables")
+			frappe.client_cache.delete_value("db_tables")
 
 	def get_description(self):
 		"""Return result metadata."""
