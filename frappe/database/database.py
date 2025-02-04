@@ -1537,4 +1537,4 @@ def get_query_execution_timeout() -> int:
 		elif job := get_current_job():
 			timeout = job.timeout
 
-	return int(cint(timeout) * 1.5)
+	return int(cint(timeout) * 1.01)
