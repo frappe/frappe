@@ -23,6 +23,7 @@ export interface BlockOptions {
 	parentBlock?: Block | null
 	classes?: string[]
 	parentSlotName?: string // for top-level blocks inside a slot
+	visibilityCondition?: string
 	[key: string]: any
 }
 

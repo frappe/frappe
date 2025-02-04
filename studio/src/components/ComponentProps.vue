@@ -99,6 +99,19 @@
 			</div>
 
 			<EmptyState v-else message="No slots added" />
+
+			<!-- Visibility Condition -->
+			<div class="mt-7 flex items-center justify-between text-sm font-medium">
+				<h3 class="cursor-pointer text-base text-gray-900">Visibility Condition</h3>
+			</div>
+			<CodeEditor
+				:modelValue="block?.visibilityCondition"
+				@update:modelValue="blockController.setKeyValue('visibilityCondition', $event)"
+				type="JavaScript"
+				:showLineNumbers="false"
+				height="60px"
+				class="w-full"
+			/>
 		</div>
 
 		<EmptyState v-else message="Select a block to edit properties" />
@@ -116,6 +129,8 @@ import type { SelectOption, Slot } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
 import useStudioStore from "@/stores/studioStore"
 import IconButton from "@/components/IconButton.vue"
+import CodeEditor from "@/components/CodeEditor.vue"
+import blockController from "@/utils/blockController"
 
 const props = defineProps<{
 	block?: Block

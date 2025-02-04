@@ -307,6 +307,10 @@ function getDynamicValue(value: string, context: ExpressionEvaluationContext) {
 	let result = ""
 	let lastIndex = 0
 
+	if (!isDynamicValue(value)) {
+		return evaluateExpression(value, context)
+	}
+
 	// Find all dynamic expressions in the prop value
 	const matches = value.matchAll(/\{\{(.*?)\}\}/g)
 
