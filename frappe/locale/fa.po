@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-19 09:33+0000\n"
-"PO-Revision-Date: 2025-01-27 02:49\n"
+"PO-Revision-Date: 2025-02-04 05:52\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -9992,7 +9992,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/grid_row.js:434
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Fieldname"
-msgstr "Fieldname"
+msgstr "نام فیلد"
 
 #: frappe/core/doctype/doctype/doctype.py:266
 msgid "Fieldname '{0}' conflicting with a {1} of the name {2} in {3}"
@@ -10088,7 +10088,7 @@ msgstr "فیلدهایی که با کاما (،) از هم جدا شده اند 
 #: frappe/website/doctype/web_form_list_column/web_form_list_column.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Fieldtype"
-msgstr "Fieldtype"
+msgstr "نوع فیلد"
 
 #: frappe/custom/doctype/custom_field/custom_field.py:193
 msgid "Fieldtype cannot be changed from {0} to {1}"
@@ -18698,7 +18698,7 @@ msgstr "دوره زمانی"
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Perm Level"
-msgstr "سطح پرم"
+msgstr "سطح مجوز"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -25690,7 +25690,7 @@ msgstr "عکس گرفتن"
 #: frappe/website/doctype/portal_menu_item/portal_menu_item.json
 #: frappe/website/doctype/website_route_redirect/website_route_redirect.json
 msgid "Target"
-msgstr "هدف"
+msgstr "مقدار هدف‌گذاری"
 
 #: frappe/desk/doctype/todo/todo_calendar.js:19
 #: frappe/desk/doctype/todo/todo_calendar.js:25
@@ -28578,7 +28578,7 @@ msgstr "URL ویدیو"
 #. Label of the view_name (Select) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
 msgid "View"
-msgstr "چشم انداز"
+msgstr "نما"
 
 #: frappe/core/doctype/success_action/success_action.js:60
 #: frappe/public/js/frappe/form/success_action.js:89
