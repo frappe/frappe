@@ -1515,7 +1515,7 @@ def savepoint(catch: type | tuple[type, ...] = Exception):
 		frappe.db.release_savepoint(savepoint)
 
 
-def get_query_execution_timeout() -> int:
+def get_query_execution_timeout(force=False) -> int:
 	"""Get execution timeout based on current timeout in different contexts.
 
 	    HTTP requests: HTTP timeout or a default (300)
@@ -1526,7 +1526,7 @@ def get_query_execution_timeout() -> int:
 	"""
 	from rq import get_current_job
 
-	if not frappe.conf.get("enable_db_statement_timeout"):
+	if not frappe.conf.get("enable_db_statement_timeout") and not force:
 		return 0
 
 	# Zero means no timeout, which is the default value in db.

@@ -9,6 +9,7 @@ from typing import Any
 from rq import get_current_job
 
 import frappe
+from frappe.database.database import get_query_execution_timeout
 from frappe.database.utils import dangerously_reconnect_on_connection_abort
 from frappe.desk.form.load import get_attachments
 from frappe.desk.query_report import generate_report_result
@@ -99,6 +100,10 @@ def generate_report(prepared_report):
 	report = frappe.get_doc("Report", instance.report_name)
 
 	add_data_to_monitor(report=instance.report_name)
+
+	# Explicitly set query timeout, some reports just run wild with queries and they never
+	# terminate.
+	frappe.db.set_execution_timeout(get_query_execution_timeout(force=True))
 
 	try:
 		report.custom_columns = []
