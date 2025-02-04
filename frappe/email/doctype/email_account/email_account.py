@@ -1053,7 +1053,7 @@ def get_automatic_email_link():
 			"Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1}, "email_id"
 		)
 
-	return frappe.client_cache.get_value("automatic_linking_email", generator=check_db())
+	return frappe.client_cache.get_value("automatic_linking_email", generator=check_db)
 
 
 def on_doctype_update() -> None:
