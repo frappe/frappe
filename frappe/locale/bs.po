@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-19 09:33+0000\n"
-"PO-Revision-Date: 2025-02-03 05:35\n"
+"PO-Revision-Date: 2025-02-04 05:52\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -11192,7 +11192,7 @@ msgstr "Funkcija {0} nije na bijeloj listi."
 
 #: frappe/public/js/frappe/views/treeview.js:419
 msgid "Further nodes can be only created under 'Group' type nodes"
-msgstr "Dalji čvorovi se mogu kreirati samo pod čvorovima tipa 'Grupa'"
+msgstr "Dalji članovi se mogu kreirati samo pod članovima tipa 'Grupa'"
 
 #: frappe/core/doctype/communication/communication.js:291
 msgid "Fw: {0}"
