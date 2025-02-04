@@ -378,7 +378,7 @@ def get_tags(doctype: str, name: str) -> str:
 	from frappe.desk.doctype.tag_link.tag_link import has_tags
 
 	if not has_tags(doctype):
-		return
+		return ""
 
 	tags = frappe.get_all(
 		"Tag Link",
@@ -391,18 +391,14 @@ def get_tags(doctype: str, name: str) -> str:
 
 
 def get_document_email(doctype, name):
+	from frappe.email.doctype.email_account.email_account import get_automatic_email_link
+
 	email = get_automatic_email_link()
 	if not email:
 		return None
 
 	email = email.split("@")
 	return f"{email[0]}+{quote(doctype)}={quote(cstr(name))}@{email[1]}"
-
-
-def get_automatic_email_link():
-	return frappe.db.get_value(
-		"Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1}, "email_id"
-	)
 
 
 def get_additional_timeline_content(doctype, docname):
