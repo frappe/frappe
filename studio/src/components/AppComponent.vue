@@ -1,8 +1,10 @@
 <template>
 	<component
 		ref="componentRef"
+		v-show="showComponent"
 		:is="components.getComponent(block.componentName)"
 		v-bind="componentProps"
+		v-model="boundValue"
 		:data-component-id="block.componentId"
 		:style="styles"
 		v-on="componentEvents"
@@ -10,11 +12,7 @@
 		<!-- Dynamically render named slots -->
 		<template v-for="(slot, slotName) in block.componentSlots" :key="slotName" v-slot:[slotName]>
 			<template v-if="Array.isArray(slot.slotContent)">
-				<AppComponent
-					v-for="slotBlock in slot.slotContent"
-					:block="slotBlock"
-					:key="slotBlock.componentId"
-				/>
+				<AppComponent v-for="slotBlock in slot.slotContent" :block="slotBlock" :key="slotBlock.componentId" />
 			</template>
 			<template v-else-if="isHTML(slot.slotContent)">
 				<component :is="{ template: slot.slotContent }" />
@@ -65,6 +63,38 @@ const componentProps = computed(() => {
 		...getComponentProps(),
 		...attrs,
 	}
+})
+
+// visibility
+const showComponent = computed(() => {
+	if (props.block.visibilityCondition) {
+		const value = getDynamicValue(props.block.visibilityCondition, { ...store.resources, ...store.variables })
+		return typeof value === "string" ? value === "true" : value
+	}
+	return true
+})
+
+// Computed property for v-model binding
+const boundValue = computed({
+	get() {
+		const modelValue = props.block.componentProps.modelValue
+		if (modelValue?.$type === "variable") {
+			// Return the variable value from the store
+			return store.variables[modelValue.name]
+		}
+		// Return the plain value if not bound to a variable
+		return modelValue
+	},
+	set(newValue) {
+		const modelValue = props.block.componentProps.modelValue
+		if (modelValue?.$type === "variable") {
+			// Update the variable in the store
+			store.variables[modelValue.name] = newValue
+		} else {
+			// Update the prop directly if not bound to a variable
+			props.block.setProp("modelValue", newValue)
+		}
+	},
 })
 
 const router = useRouter()
