@@ -46,7 +46,11 @@
   }
  ],
  "links": [],
+<<<<<<< HEAD
  "modified": "2021-09-20 16:53:37.217998",
+=======
+ "modified": "2025-02-04 12:02:03.779623",
+>>>>>>> 7c67ca43ef (perf: index tags for a document and dont track changes)
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Tag Link",
@@ -79,5 +83,10 @@
  "read_only": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+<<<<<<< HEAD
  "track_changes": 1
 }
+=======
+ "states": []
+}
+>>>>>>> 7c67ca43ef (perf: index tags for a document and dont track changes)

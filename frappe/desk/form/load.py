@@ -375,6 +375,11 @@ def get_view_logs(doc: "Document") -> list[dict]:
 
 
 def get_tags(doctype: str, name: str) -> str:
+	from frappe.desk.doctype.tag_link.tag_link import has_tags
+
+	if not has_tags(doctype):
+		return
+
 	tags = frappe.get_all(
 		"Tag Link",
 		filters={"document_type": doctype, "document_name": name},
