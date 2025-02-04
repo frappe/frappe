@@ -23,6 +23,7 @@ import sys
 import time
 from unittest.mock import patch
 
+import psutil
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 import frappe
@@ -232,6 +233,11 @@ class TestPerformance(IntegrationTestCase):
 		patched_run = frappe.qb._BuilderClasss.run
 
 		self.assertIs(run, patched_run, "frappe.init should run one-time patching code just once")
+
+	def test_idle_cpu_utilization_redis_pubsub(self):
+		pid = frappe.client_cache.invalidator_thread.native_id
+		process = psutil.Process(pid)
+		self.assertLess(process.cpu_percent(interval=1.0), 0.02)
 
 	def test_cpu_allocation(self):
 		from frappe._optimizations import assign_core

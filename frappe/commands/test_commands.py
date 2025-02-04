@@ -22,6 +22,7 @@ from unittest.case import skipIf
 from unittest.mock import patch
 
 import click
+import psutil
 import requests
 from click import Command
 from click.testing import CliRunner, Result
@@ -1018,7 +1019,7 @@ class TestCLIImplementation(BaseTestCommands):
 class TestGunicornWorker(IntegrationTestCase):
 	port = 8005
 
-	def spawn_gunicorn(self, args):
+	def spawn_gunicorn(self, args=None):
 		self.handle = subprocess.Popen(
 			[
 				sys.executable,
@@ -1029,7 +1030,7 @@ class TestGunicornWorker(IntegrationTestCase):
 				"-w1",
 				"frappe.app:application",
 				"--preload",
-				*args,
+				*(args or ()),
 			],
 		)
 		time.sleep(1)  # let worker startup finish
@@ -1043,7 +1044,7 @@ class TestGunicornWorker(IntegrationTestCase):
 			self.handle.kill()
 
 	def test_gunicorn_ping_sync(self):
-		self.spawn_gunicorn([])
+		self.spawn_gunicorn()
 		path = f"http://{self.TEST_SITE}:{self.port}/api/method/ping"
 		self.assertEqual(requests.get(path).status_code, 200)
 
@@ -1051,3 +1052,54 @@ class TestGunicornWorker(IntegrationTestCase):
 		self.spawn_gunicorn(["--threads=2"])
 		path = f"http://{self.TEST_SITE}:{self.port}/api/method/ping"
 		self.assertEqual(requests.get(path).status_code, 200)
+
+	def test_gunicorn_idle_cpu_usage(self):
+		def get_total_usage():
+			process = psutil.Process(self.handle.pid)
+			return sum(c.cpu_percent(1.0) for c in process.children(True)) + process.cpu_percent(1.0)
+
+		self.spawn_gunicorn(["--threads=2"])
+		self.assertLessEqual(get_total_usage(), 0.02)
+
+		# Wake up at least one thread, go idle and check again
+		path = f"http://{self.TEST_SITE}:{self.port}/api/method/ping"
+		self.assertEqual(requests.get(path).status_code, 200)
+		self.assertLessEqual(get_total_usage(), 0.02)
+
+
+class TestRQWorker(IntegrationTestCase):
+	def spawn_rq(self, args=None, pool=False):
+		self.handle = subprocess.Popen(
+			["bench", "worker-pool" if pool else "worker", *(args or ())],
+		)
+		self.addCleanup(self.kill_rq)
+		time.sleep(1)  # let worker startup finish
+
+	def kill_rq(self):
+		self.handle.send_signal(signal.SIGINT)
+		try:
+			self.handle.communicate(timeout=1)
+		except subprocess.TimeoutExpired:
+			self.handle.kill()
+
+	def get_total_usage(self):
+		process = psutil.Process(self.handle.pid)
+		return sum(c.cpu_percent(1.0) for c in process.children(True)) + process.cpu_percent(1.0)
+
+	def test_rq_idle_cpu_usage(self):
+		self.spawn_rq()
+		self.assertLessEqual(self.get_total_usage(), 0.02)
+
+		for _ in range(3):
+			frappe.enqueue("frappe.ping")
+		time.sleep(1)
+		self.assertLessEqual(self.get_total_usage(), 0.02)
+
+	def test_rq_pool_idle_cpu_usage(self):
+		self.spawn_rq(pool=True)
+		self.assertLessEqual(self.get_total_usage(), 0.02)
+
+		for _ in range(3):
+			frappe.enqueue("frappe.ping")
+		time.sleep(1)
+		self.assertLessEqual(self.get_total_usage(), 0.02)
