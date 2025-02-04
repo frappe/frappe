@@ -9,6 +9,17 @@
 				<div v-for="(config, propName) in componentProps" :key="propName">
 					<div class="flex w-full items-center gap-2">
 						<InlineInput
+							v-if="propName !== 'modelValue'"
+							:label="propName"
+							:type="config.inputType"
+							:options="config.options"
+							:required="config.required"
+							:modelValue="config.modelValue"
+							@update:modelValue="(newValue) => props.block?.setProp(propName, newValue)"
+							class="flex-1"
+						/>
+						<InlineInput
+							v-if="propName === 'modelValue'"
 							:label="propName"
 							:type="config.inputType"
 							:options="config.options"
