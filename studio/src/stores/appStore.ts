@@ -2,7 +2,7 @@ import { defineStore } from "pinia"
 import { reactive, ref } from "vue"
 import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
-import { getNewResource } from "@/utils/helpers"
+import { getInitialVariableValue, getNewResource } from "@/utils/helpers"
 
 import type { Resource } from "@/types/Studio/StudioResource"
 import type { StudioPage } from "@/types/Studio/StudioPage"
@@ -43,7 +43,7 @@ const useAppStore = defineStore("appStore", () => {
 		await studioVariables.reload()
 
 		studioVariables.data.map((variable: Variable) => {
-			variables[variable.variable_name] = variable.initial_value
+			variables[variable.variable_name] = getInitialVariableValue(variable)
 		})
 	}
 

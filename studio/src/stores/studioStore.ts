@@ -12,6 +12,7 @@ import {
 	fetchPage,
 	getNewResource,
 	confirm,
+	getInitialVariableValue,
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
 import { studioPageResources } from "@/data/studioResources"
@@ -355,7 +356,7 @@ const useStudioStore = defineStore("store", () => {
 		variables.value = {}
 
 		studioVariables.data.map((variable: Variable) => {
-			variables.value[variable.variable_name] = variable.initial_value
+			variables.value[variable.variable_name] = getInitialVariableValue(variable)
 		})
 	}
 

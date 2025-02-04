@@ -8,6 +8,7 @@ import { toast } from "vue-sonner"
 import { ObjectLiteral, BlockOptions, StyleValue, ExpressionEvaluationContext, SelectOption, HashString, RGBString } from "@/types"
 import { DataResult, DocumentResource, DocumentResult, Filters, Resource } from "@/types/Studio/StudioResource"
 import { StudioPage } from "@/types/Studio/StudioPage"
+import { Variable } from "@/types/Studio/StudioPageVariable"
 
 function getBlockString(block: BlockOptions | Block): string {
 	return jsToJson(getBlockCopyWithoutParent(block))
@@ -472,6 +473,18 @@ function getNewResource(resource: Resource, context?: ExpressionEvaluationContex
 	}
 }
 
+// variables
+const getInitialVariableValue = (variable: Variable) => {
+	// cast variable's initial value as per variable type
+	let initialValue = variable.initial_value
+	if (variable.variable_type === "Number") {
+		initialValue = Number(initialValue)
+	} else if (variable.variable_type === "Boolean") {
+		initialValue = (initialValue === "true")
+	}
+	return initialValue
+}
+
 // dialogs
 async function confirm(message: string, title: string = "Confirm"): Promise<boolean> {
 	return new Promise((resolve) => {
@@ -671,6 +684,8 @@ export {
 	isDynamicValue,
 	getDynamicValue,
 	getNewResource,
+	// variables
+	getInitialVariableValue,
 	// dialog
 	confirm,
 	// colors
