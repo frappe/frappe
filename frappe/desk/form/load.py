@@ -247,6 +247,11 @@ def get_comments(doctype: str, name: str, comment_type: str | list[str] = "Comme
 
 
 def get_point_logs(doctype, docname):
+	from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
+
+	if not is_energy_point_enabled():
+		return []
+
 	return frappe.get_all(
 		"Energy Point Log",
 		filters={"reference_doctype": doctype, "reference_name": docname, "type": ["!=", "Review"]},
