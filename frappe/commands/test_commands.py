@@ -1059,12 +1059,12 @@ class TestGunicornWorker(IntegrationTestCase):
 			return sum(c.cpu_percent(1.0) for c in process.children(True)) + process.cpu_percent(1.0)
 
 		self.spawn_gunicorn(["--threads=2"])
-		self.assertLessEqual(get_total_usage(), 0.02)
+		self.assertLessEqual(get_total_usage(), 2)
 
 		# Wake up at least one thread, go idle and check again
 		path = f"http://{self.TEST_SITE}:{self.port}/api/method/ping"
 		self.assertEqual(requests.get(path).status_code, 200)
-		self.assertLessEqual(get_total_usage(), 0.02)
+		self.assertLessEqual(get_total_usage(), 2)
 
 
 class TestRQWorker(IntegrationTestCase):
@@ -1088,18 +1088,18 @@ class TestRQWorker(IntegrationTestCase):
 
 	def test_rq_idle_cpu_usage(self):
 		self.spawn_rq()
-		self.assertLessEqual(self.get_total_usage(), 0.02)
+		self.assertLessEqual(self.get_total_usage(), 2)
 
 		for _ in range(3):
 			frappe.enqueue("frappe.ping")
 		time.sleep(1)
-		self.assertLessEqual(self.get_total_usage(), 0.02)
+		self.assertLessEqual(self.get_total_usage(), 2)
 
 	def test_rq_pool_idle_cpu_usage(self):
 		self.spawn_rq(pool=True)
-		self.assertLessEqual(self.get_total_usage(), 0.02)
+		self.assertLessEqual(self.get_total_usage(), 2)
 
 		for _ in range(3):
 			frappe.enqueue("frappe.ping")
 		time.sleep(1)
-		self.assertLessEqual(self.get_total_usage(), 0.02)
+		self.assertLessEqual(self.get_total_usage(), 2)

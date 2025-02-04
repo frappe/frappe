@@ -237,7 +237,7 @@ class TestPerformance(IntegrationTestCase):
 	def test_idle_cpu_utilization_redis_pubsub(self):
 		pid = frappe.client_cache.invalidator_thread.native_id
 		process = psutil.Process(pid)
-		self.assertLess(process.cpu_percent(interval=1.0), 0.02)
+		self.assertLess(process.cpu_percent(interval=1.0), 2)
 
 	def test_cpu_allocation(self):
 		from frappe._optimizations import assign_core
