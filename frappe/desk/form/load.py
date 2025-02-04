@@ -129,8 +129,6 @@ def get_docinfo(doc=None, doctype=None, name=None):
 			"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
 			"tags": get_tags(doc.doctype, doc.name),
 			"document_email": get_document_email(doc.doctype, doc.name),
-			"error_log_exists": get_error_log_exists(doc),
-			"webhook_request_log_log_exists": get_webhook_request_log_exists(doc),
 		}
 	)
 
@@ -202,20 +200,6 @@ def get_versions(doc: "Document") -> list[dict]:
 		limit=10,
 		order_by="creation desc",
 	)
-
-
-def get_error_log_exists(doc: "Document") -> bool:
-	if has_permission("Error Log", print_logs=False):
-		return frappe.db.exists("Error Log", {"reference_doctype": doc.doctype, "reference_name": doc.name})
-	return False
-
-
-def get_webhook_request_log_exists(doc: "Document") -> bool:
-	if has_permission("Webhook Request Log", print_logs=False):
-		return frappe.db.exists(
-			"Webhook Request Log", {"reference_doctype": doc.doctype, "reference_document": doc.name}
-		)
-	return False
 
 
 @frappe.whitelist()
