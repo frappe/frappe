@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-13 17:03+0000\n"
-"PO-Revision-Date: 2025-02-03 05:35\n"
+"PO-Revision-Date: 2025-02-04 05:51\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -15138,7 +15138,7 @@ msgstr "Marketinška kampanja"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:51
 msgid "Master"
-msgstr ""
+msgstr "Poslovođa"
 
 #. Description of the 'Limit' (Int) field in DocType 'Bulk Update'
 #: frappe/desk/doctype/bulk_update/bulk_update.json
@@ -16650,7 +16650,7 @@ msgstr "Nema kontakata povezanih s dokumentom"
 
 #: frappe/desk/query_report.py:339
 msgid "No data to export"
-msgstr ""
+msgstr "Nema podataka za eksport"
 
 #: frappe/contacts/doctype/address/address.py:246
 msgid "No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template."
@@ -17696,7 +17696,7 @@ msgstr "Otvoreno"
 #. Label of a Select field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json
 msgid "Operation"
-msgstr ""
+msgstr "Operacija"
 
 #: frappe/utils/data.py:1844
 msgid "Operator must be one of {0}"
@@ -20006,7 +20006,7 @@ msgstr ""
 
 #: frappe/website/report/website_analytics/website_analytics.js:20
 msgid "Range"
-msgstr ""
+msgstr "Raspon"
 
 #: frappe/desk/page/user_profile/user_profile_controller.js:402
 msgid "Rank"
@@ -20179,7 +20179,7 @@ msgstr "Obnova"
 
 #: frappe/public/js/frappe/views/treeview.js:475
 msgid "Rebuild Tree"
-msgstr ""
+msgstr "Ažuriraj Stablo"
 
 #: frappe/utils/nestedset.py:181
 msgid "Rebuilding of tree is not supported for {}"
@@ -21017,7 +21017,7 @@ msgstr "Izvještaj:"
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:547
 msgid "Reports"
-msgstr ""
+msgstr "Izvještaji"
 
 #: frappe/patches/v14_0/update_workspace2.py:50
 msgid "Reports & Masters"
@@ -21836,7 +21836,7 @@ msgstr "SWATCHES"
 #. Name of a role
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Sales Manager"
-msgstr ""
+msgstr "Upravitelj Prodaje"
 
 #. Name of a role
 #: frappe/contacts/doctype/contact/contact.json
@@ -21848,7 +21848,7 @@ msgstr ""
 #: frappe/contacts/doctype/contact/contact.json
 #: frappe/geo/doctype/currency/currency.json
 msgid "Sales User"
-msgstr ""
+msgstr "Korisnik Prodaje"
 
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
@@ -27186,7 +27186,7 @@ msgstr "Nadolazeći događaji za danas"
 #: frappe/public/js/frappe/form/grid_row.js:403
 #: frappe/public/js/frappe/views/workspace/workspace.js:692
 msgid "Update"
-msgstr ""
+msgstr "Ažuriraj"
 
 #. Label of a Button field in DocType 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
@@ -28077,7 +28077,7 @@ msgstr "Video URL"
 #. Label of a Select field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
 msgid "View"
-msgstr ""
+msgstr "Pogled"
 
 #: frappe/core/doctype/success_action/success_action.js:60
 #: frappe/public/js/frappe/form/success_action.js:89
