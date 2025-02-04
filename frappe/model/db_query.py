@@ -371,7 +371,10 @@ class DatabaseQuery:
 				linked_doctype = linked_field.options
 				if linked_field.fieldtype == "Link":
 					linked_table = self.append_link_table(linked_doctype, linked_fieldname)
-					field = f"{linked_table.table_alias}.`{fieldname}`"
+					if frappe.conf.db_type == "postgres" and self.group_by:
+						field = f"(array_agg({linked_table.table_alias}.`{fieldname}`))[1]"
+					else:
+						field = f"{linked_table.table_alias}.`{fieldname}`"
 				else:
 					field = f"`tab{linked_doctype}`.`{fieldname}`"
 				if alias:
@@ -483,6 +486,9 @@ class DatabaseQuery:
 
 				# Check if table_name is a linked_table alias
 				for linked_table in self.link_tables:
+					if table_name.lower().startswith("(array_agg("):
+						table_name = table_name[11:]
+
 					if linked_table.table_alias == table_name:
 						table_name = linked_table.table_name
 						break
