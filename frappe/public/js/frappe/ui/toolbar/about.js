@@ -79,7 +79,7 @@ frappe.ui.misc.about = function () {
 			app = versions[key];
 			if (app.branch) {
 				text = $.format(
-					"<p class='app-version' role='button' title='{0}'><b>{1}:</b> v{2} ({3})<br></p>",
+					"<p class='app-version' title='{0}'><b>{1}:</b> v{2} ({3})<br></p>",
 					[
 						`${app.title}: v${app.branch_version || app.version} (${app.branch})`,
 						app.title,
@@ -88,10 +88,11 @@ frappe.ui.misc.about = function () {
 					]
 				);
 			} else {
-				text = $.format(
-					"<p class='app-version' role='button' title='{0}'><b>{1}:</b> v{2}<br></p>",
-					[`${app.title}: v${app.version}`, app.title, app.version]
-				);
+				text = $.format("<p class='app-version' title='{0}'><b>{1}:</b> v{2}<br></p>", [
+					`${app.title}: v${app.version}`,
+					app.title,
+					app.version,
+				]);
 			}
 			$(text).appendTo($wrap);
 		});
@@ -113,14 +114,6 @@ frappe.ui.misc.about = function () {
 		].join("\n");
 
 		frappe.utils.copy_to_clipboard(apps_info);
-	});
-
-	// Listener for copy app version
-	$(dialog.body).on("click", ".app-version", function () {
-		const title = $(this).attr("title");
-		if (title) {
-			frappe.utils.copy_to_clipboard(title);
-		}
 	});
 
 	frappe.ui.misc.about_dialog.show();
