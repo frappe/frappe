@@ -50,14 +50,13 @@
    "in_list_view": 1,
    "label": "Code",
    "length": 2,
-   "reqd": 1,
-   "unique": 1
+   "reqd": 1
   }
  ],
  "icon": "fa fa-globe",
  "idx": 1,
  "links": [],
- "modified": "2024-12-29 16:56:04.850422",
+ "modified": "2025-01-03 13:01:46.030113",
  "modified_by": "Administrator",
  "module": "Geo",
  "name": "Country",

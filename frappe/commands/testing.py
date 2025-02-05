@@ -360,8 +360,7 @@ def run_parallel_tests(
 		║ App:            {app:<26} ║
 		║ Site:           {site:<26} ║
 		║ Build Number:   {build_number:<26} ║
-		║ Total Builds:   {total_builds:<26} ║
-		║ Tests in Build: ~{runner.total_tests:<25} ║"""
+		║ Total Builds:   {total_builds:<26} ║"""
 		if cc.with_coverage:
 			banner += """
 			║ Coverage Rep.:  {cc.outfile:<26} ║"""

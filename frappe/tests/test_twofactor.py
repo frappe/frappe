@@ -1,5 +1,6 @@
 # Copyright (c) 2017, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import datetime
 import time
 
 import pyotp
@@ -115,11 +116,14 @@ class TestTwoFactor(IntegrationTestCase):
 		otp = "wrongotp"
 		with self.assertRaises(frappe.AuthenticationError):
 			confirm_otp_token(self.login_manager, otp=otp, tmp_id=tmp_id)
-		otp = get_otp(self.user)
-		self.assertTrue(confirm_otp_token(self.login_manager, otp=otp, tmp_id=tmp_id))
+
+		# Freeze the time to avoid expiry during test
+		with self.freeze_time(datetime.datetime.now()):
+			otp = get_otp(self.user)
+			self.assertTrue(confirm_otp_token(self.login_manager, otp=otp, tmp_id=tmp_id))
+
 		frappe.flags.otp_expiry = None
-		if frappe.flags.tests_verbose:
-			print("Sleeping for 2 secs to confirm token expires..")
+		print("Sleeping for 2 secs to confirm token expires..")
 		time.sleep(2)
 		with self.assertRaises(ExpiredLoginException):
 			confirm_otp_token(self.login_manager, otp=otp, tmp_id=tmp_id)
@@ -187,8 +191,10 @@ class TestTwoFactor(IntegrationTestCase):
 		tracker = get_login_attempt_tracker(self.user, raise_locked_exception=False)
 		tracker.add_success_attempt()
 
-		otp = get_otp(self.user)
-		self.assertTrue(confirm_otp_token(self.login_manager, otp=otp, tmp_id=tmp_id))
+		# Freeze the time to avoid expiry during test
+		with self.freeze_time(datetime.datetime.now()):
+			otp = get_otp(self.user)
+			self.assertTrue(confirm_otp_token(self.login_manager, otp=otp, tmp_id=tmp_id))
 
 
 def create_http_request():

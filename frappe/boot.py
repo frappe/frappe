@@ -385,25 +385,6 @@ def load_print_css(bootinfo, print_settings):
 	)
 
 
-def get_unseen_notes():
-	note = DocType("Note")
-	nsb = DocType("Note Seen By").as_("nsb")
-
-	return (
-		frappe.qb.from_(note)
-		.select(note.name, note.title, note.content, note.notify_on_every_login)
-		.where(
-			(note.notify_on_login == 1)
-			& (note.expire_notification_on > frappe.utils.now())
-			& (
-				ParameterizedValueWrapper(frappe.session.user).notin(
-					SubQuery(frappe.qb.from_(nsb).select(nsb.user).where(nsb.parent == note.name))
-				)
-			)
-		)
-	).run(as_dict=1)
-
-
 def get_success_action():
 	return frappe.get_all("Success Action", fields=["*"])
 

@@ -44,7 +44,7 @@ class DBTable:
 		if self.is_new():
 			self.create()
 		else:
-			frappe.cache.hdel("table_columns", self.table_name)
+			frappe.client_cache.delete_value(f"table_columns::{self.table_name}")
 			self.alter()
 
 	def create(self):

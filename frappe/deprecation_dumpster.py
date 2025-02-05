@@ -994,36 +994,28 @@ def frappe_get_test_records(doctype):
 
 
 def compat_preload_test_records_upfront(candidates: list):
-	import os
+	import json
+	import re
 
-	if os.environ.get("OLD_FRAPPE_TEST_CLASS_RECORDS_PRELOAD"):
-		deprecation_warning(
-			"2024-11-06",
-			"v17",
-			"Please fully declare test record dependencies for each test individually; you can assert compliance of your test suite with the following GH action: https://github.com/frappe/frappe/blob/develop/.github/workflows/run-indinvidual-tests.yml",
-		)
-		import json
-		import re
+	from frappe.tests.utils import make_test_records
 
-		from frappe.tests.utils import make_test_records
+	for module, path, filename in candidates:
+		if hasattr(module, "test_dependencies"):
+			for doctype in module.test_dependencies:
+				make_test_records(doctype, commit=True)
+		if hasattr(module, "EXTRA_TEST_RECORD_DEPENDENCIES"):
+			for doctype in module.EXTRA_TEST_RECORD_DEPENDENCIES:
+				make_test_records(doctype, commit=True)
 
-		for module, path, filename in candidates:
-			if hasattr(module, "test_dependencies"):
-				for doctype in module.test_dependencies:
+		if os.path.basename(os.path.dirname(path)) == "doctype":
+			# test_data_migration_connector.py > data_migration_connector.json
+			test_record_filename = re.sub("^test_", "", filename).replace(".py", ".json")
+			test_record_file_path = os.path.join(path, test_record_filename)
+			if os.path.exists(test_record_file_path):
+				with open(test_record_file_path) as f:
+					doc = json.loads(f.read())
+					doctype = doc["name"]
 					make_test_records(doctype, commit=True)
-			if hasattr(module, "EXTRA_TEST_RECORD_DEPENDENCIES"):
-				for doctype in module.EXTRA_TEST_RECORD_DEPENDENCIES:
-					make_test_records(doctype, commit=True)
-
-			if os.path.basename(os.path.dirname(path)) == "doctype":
-				# test_data_migration_connector.py > data_migration_connector.json
-				test_record_filename = re.sub("^test_", "", filename).replace(".py", ".json")
-				test_record_file_path = os.path.join(path, test_record_filename)
-				if os.path.exists(test_record_file_path):
-					with open(test_record_file_path) as f:
-						doc = json.loads(f.read())
-						doctype = doc["name"]
-						make_test_records(doctype, commit=True)
 
 
 @deprecated(

@@ -115,7 +115,25 @@ function set_default_max_attachment_size(frm) {
 		});
 	}
 }
-
+function add_helpful_links(frm) {
+	// For better UX
+	switch (frm.doc.service) {
+		case "GMail":
+			frm.set_df_property(
+				"password",
+				"description",
+				'To generate password visit <a href="https://knowledge.workspace.google.com/kb/how-to-create-app-passwords-000009237"> here'
+			);
+			break;
+		case "Frappe Mail":
+			frm.set_df_property(
+				"api_secret",
+				"description",
+				'To know more visit <a href="https://github.com/frappe/mail"> here'
+			);
+			break;
+	}
+}
 frappe.ui.form.on("Email Account", {
 	service: function (frm) {
 		$.each(frappe.email_defaults[frm.doc.service], function (key, value) {
@@ -126,6 +144,7 @@ frappe.ui.form.on("Email Account", {
 				frm.set_value(key, value);
 			});
 		}
+		add_helpful_links(frm);
 	},
 
 	use_imap: function (frm) {

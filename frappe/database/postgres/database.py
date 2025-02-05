@@ -250,7 +250,8 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 	def get_db_table_columns(self, table) -> list[str]:
 		"""Returns list of column names from given table."""
-		if (columns := frappe.cache.hget("table_columns", table)) is not None:
+		key = f"table_columns::{table}"
+		if (columns := frappe.client_cache.get_value(key)) is not None:
 			return columns
 
 		information_schema = frappe.qb.Schema("information_schema")
@@ -265,7 +266,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			.run(pluck=True)
 		)
 
-		frappe.cache.hset("table_columns", table, columns)
+		frappe.client_cache.set_value(key, columns)
 
 		return columns
 
@@ -481,6 +482,14 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 	def get_database_list(self):
 		return self.sql("SELECT datname FROM pg_database", pluck=True)
+
+	def estimate_count(self, doctype: str):
+		"""Get estimated count of total rows in a table."""
+		from frappe.utils.data import cint
+
+		table = get_table_name(doctype)
+		count = self.sql("select reltuples from pg_class where relname = %s", table)
+		return cint(count[0][0]) if count else 0
 
 
 def modify_query(query):

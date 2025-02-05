@@ -8,6 +8,7 @@ import json
 import re
 from collections import Counter
 from collections.abc import Mapping, Sequence
+from functools import cached_property
 
 import frappe
 import frappe.defaults
@@ -46,6 +47,7 @@ STRICT_FIELD_PATTERN = re.compile(r".*/\*.*")
 STRICT_UNION_PATTERN = re.compile(r".*\s(union).*\s")
 ORDER_GROUP_PATTERN = re.compile(r".*[^a-z0-9-_ ,`'\"\.\(\)].*")
 SPECIAL_FIELD_CHARS = frozenset(("(", "`", ".", "'", '"', "*"))
+# XXX: These are just matching brackets to not confuse code formatters: ))
 
 
 class DatabaseQuery:
@@ -65,12 +67,16 @@ class DatabaseQuery:
 		self.permission_map = {}
 		self.shared = []
 		self._fetch_shared_documents = False
+		self._metas = {}
 
-	@property
+	@cached_property
 	def doctype_meta(self):
-		if not hasattr(self, "_doctype_meta"):
-			self._doctype_meta = frappe.get_meta(self.doctype)
-		return self._doctype_meta
+		return self.get_meta(self.doctype)
+
+	def get_meta(self, doctype: str):
+		if doctype not in self._metas:
+			self._metas[doctype] = frappe.get_meta(doctype)
+		return self._metas[doctype]
 
 	@property
 	def query_tables(self):
@@ -358,7 +364,7 @@ class DatabaseQuery:
 				if " as " in field:
 					field, alias = field.split(" as ", 1)
 				linked_fieldname, fieldname = field.split(".", 1)
-				linked_field = frappe.get_meta(self.doctype).get_field(linked_fieldname)
+				linked_field = self.get_meta(self.doctype).get_field(linked_fieldname)
 				# this is not a link field
 				if not linked_field:
 					continue
@@ -701,7 +707,7 @@ class DatabaseQuery:
 		if f.operator.lower() in additional_filters_config:
 			f.update(get_additional_filter_field(additional_filters_config, f, f.value))
 
-		meta = frappe.get_meta(f.doctype)
+		meta = self.get_meta(f.doctype)
 		df = meta.get("fields", {"fieldname": f.fieldname})
 		df = df[0] if df else None
 

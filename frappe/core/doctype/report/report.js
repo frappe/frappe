@@ -1,3 +1,6 @@
+// Copyright (c) 2022, Frappe Technologies and contributors
+// For license information, please see license.txt
+
 frappe.ui.form.on("Report", {
 	refresh: function (frm) {
 		if (frm.doc.is_standard === "Yes" && !frappe.boot.developer_mode) {

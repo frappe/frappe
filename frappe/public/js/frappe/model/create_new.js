@@ -60,11 +60,7 @@ $.extend(frappe.model, {
 		if (frappe.route_options && !doc.parent) {
 			$.each(frappe.route_options, function (fieldname, value) {
 				var df = frappe.meta.has_field(doctype, fieldname);
-				if (
-					df &&
-					["Link", "Data", "Select", "Dynamic Link"].includes(df.fieldtype) &&
-					!df.no_copy
-				) {
+				if (df && !df.no_copy) {
 					doc[fieldname] = value;
 				}
 			});

@@ -796,6 +796,16 @@ class TestDocType(IntegrationTestCase):
 		)
 		self.assertRaises(frappe.ValidationError, recursive_dt.insert)
 
+	def test_meta_serialization(self):
+		doctype = new_doctype(
+			fields=[{"fieldname": "some_fieldname", "fieldtype": "Data", "set_only_once": 1}],
+			is_submittable=1,
+		).insert()
+		doc = frappe.new_doc(doctype.name, some_fieldname="something").insert()
+		doc.save()
+		doc.submit()
+		frappe.get_meta(doctype.name).as_dict()
+
 
 def new_doctype(
 	name: str | None = None,

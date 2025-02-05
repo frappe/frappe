@@ -29,7 +29,7 @@ class EnergyPointSettings(Document):
 
 
 def is_energy_point_enabled():
-	return frappe.db.get_single_value("Energy Point Settings", "enabled", True)
+	return frappe.client_cache.get_doc("Energy Point Settings").enabled
 
 
 def allocate_review_points():

@@ -510,6 +510,9 @@ class TestDB(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.exists(dt, [["name", "=", dn]]), dn)
 
+	def test_estimated_count(self):
+		self.assertGreater(frappe.db.estimate_count("DocField"), 100)
+
 	def test_datetime_serialization(self):
 		dt = now_datetime()
 		dt = dt.replace(microsecond=0)
@@ -1251,14 +1254,15 @@ class TestPostgresSchemaQueryIndependence(ExtIntegrationTestCase):
 		self.assertEqual(columns, ["col_a", "col_b"])
 
 		frappe.conf["db_schema"] = "alt_schema"
-		frappe.cache.delete_key("table_columns")  # remove table columns cache for next try from alt_schema
+		# remove table columns cache for next try from alt_schema
+		frappe.client_cache.delete_keys("table_columns::*")
 
 		# should have received the columns of the table from alt_schema
 		columns = frappe.db.get_table_columns(self.test_table_name)
 		self.assertEqual(columns, ["col_c", "col_d"])
 
 		del frappe.conf["db_schema"]
-		frappe.cache.delete_key("table_columns")
+		frappe.client_cache.delete_keys("table_columns::*")
 
 	def test_describe(self) -> None:
 		self.assertSequenceEqual([("col_a",), ("col_b",)], frappe.db.describe(self.test_table_name))
@@ -1274,7 +1278,7 @@ class TestPostgresSchemaQueryIndependence(ExtIntegrationTestCase):
 		frappe.db.add_index("User", ("col_c",))
 
 		del frappe.conf["db_schema"]
-		frappe.cache.delete_key("table_columns")
+		frappe.client_cache.delete_keys("table_columns::*")
 
 		# the index creation in the default schema should fail
 		with self.assertSqlException():

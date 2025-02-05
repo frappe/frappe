@@ -227,7 +227,7 @@ class TestWebsite(IntegrationTestCase):
 		self.assertEqual(response.headers.get("Location"), "/test")
 
 		delattr(frappe.hooks, "website_redirects")
-		frappe.cache.delete_key("app_hooks")
+		frappe.client_cache.delete_value("app_hooks")
 
 	def test_custom_page_renderer(self):
 		from frappe import get_hooks

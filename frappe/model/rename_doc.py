@@ -263,7 +263,7 @@ def update_assignments(old: str, new: str, doctype: str) -> None:
 		)
 
 		for todo in todos:
-			frappe.delete_doc("ToDo", todo.name)
+			frappe.delete_doc("ToDo", todo.name, force=True)
 
 	unique_assignments = list(set(old_assignments + new_assignments))
 	frappe.db.set_value(doctype, new, "_assign", frappe.as_json(unique_assignments, indent=0))

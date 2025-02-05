@@ -50,26 +50,43 @@ def get_list():
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_count() -> int:
+def get_count() -> int | None:
 	args = get_form_params()
 
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
-		count = frappe.call(controller.get_count, args=args, **args)
-	else:
-		args.distinct = sbool(args.distinct)
-		distinct = "distinct " if args.distinct else ""
-		args.limit = cint(args.limit)
-		fieldname = f"{distinct}`tab{args.doctype}`.name"
-		args.order_by = None
+		return frappe.call(controller.get_count, args=args, **args)
 
-		if args.limit:
-			args.fields = [fieldname]
-			partial_query = execute(**args, run=0)
-			count = frappe.db.sql(f"""select count(*) from ( {partial_query} ) p""")[0][0]
+	args.distinct = sbool(args.distinct)
+	distinct = "distinct " if args.distinct else ""
+	args.limit = cint(args.limit)
+	fieldname = f"{distinct}`tab{args.doctype}`.name"
+	args.order_by = None
+
+	# args.limit is specified to avoid getting accurate count.
+	if not args.limit:
+		args.fields = [f"count({fieldname}) as total_count"]
+		return execute(**args)[0].get("total_count")
+
+	args.fields = [fieldname]
+	partial_query = execute(**args, run=0)
+
+	# Count queries are notoriously unpredictable based on the type of filters used.
+	# We should not attempt to fetch accurate count for 2 entire minutes! (default timeout)
+	# Very short timeout is used to here to set an upper bound on damage a bad request can do.
+	# Users can request accurate count by dropping limit from arguments.
+	timeout_clause = "SET STATEMENT max_statement_time=1 FOR" if frappe.db.db_type == "mariadb" else ""
+
+	try:
+		count = frappe.db.sql(f"{timeout_clause} select count(*) from ( {partial_query} ) p")[0][0]
+	except Exception as e:
+		if frappe.db.is_statement_timeout(e):  # Skip fetching accurate count
+			count = None
 		else:
-			args.fields = [f"count({fieldname}) as total_count"]
-			count = execute(**args)[0].get("total_count")
+			raise
+
+	if count == args.limit or count is None:
+		frappe.local.response_headers.set("Cache-Control", "private,max-age=600,stale-while-revalidate=10800")
 
 	return count
 
@@ -188,7 +205,7 @@ def is_standard(fieldname):
 	return fieldname in default_fields or fieldname in optional_fields or fieldname in child_table_fields
 
 
-@lru_cache
+@lru_cache(maxsize=1024)
 def extract_fieldnames(field):
 	from frappe.database.schema import SPECIAL_CHAR_PATTERN
 

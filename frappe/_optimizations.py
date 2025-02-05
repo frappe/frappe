@@ -56,6 +56,7 @@ def optimize_regex_cache():
 def register_fault_handler():
 	# Some libraries monkey patch stderr, we need actual fd
 	if isinstance(sys.__stderr__, io.TextIOWrapper):
+		faulthandler.enable()
 		faulthandler.register(signal.SIGUSR1, file=sys.__stderr__)
 
 

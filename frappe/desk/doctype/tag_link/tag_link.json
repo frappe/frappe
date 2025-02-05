@@ -46,7 +46,7 @@
   }
  ],
  "links": [],
- "modified": "2024-03-23 16:03:39.781828",
+ "modified": "2025-02-04 12:02:03.779623",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Tag Link",
@@ -79,6 +79,5 @@
  "read_only": 1,
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": [],
- "track_changes": 1
+ "states": []
 }

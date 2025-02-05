@@ -24,7 +24,8 @@
    "fieldname": "path",
    "fieldtype": "Data",
    "label": "Path",
-   "set_only_once": 1
+   "set_only_once": 1,
+   "search_index": 1
   },
   {
    "fieldname": "referrer",

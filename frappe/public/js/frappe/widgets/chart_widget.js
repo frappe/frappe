@@ -155,7 +155,7 @@ export default class ChartWidget extends Widget {
 					},
 				},
 				{
-					label: this.chart_settings.timespan || this.chart_doc.timespan,
+					label: __(this.chart_settings.timespan) || __(this.chart_doc.timespan),
 					options: [
 						"Select Date Range",
 						"Last Year",

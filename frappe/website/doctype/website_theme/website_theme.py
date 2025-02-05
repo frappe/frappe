@@ -154,7 +154,7 @@ class WebsiteTheme(Document):
 def get_active_theme() -> Optional["WebsiteTheme"]:
 	if website_theme := frappe.get_website_settings("website_theme"):
 		try:
-			return frappe.get_cached_doc("Website Theme", website_theme)
+			return frappe.client_cache.get_doc("Website Theme", website_theme)
 		except frappe.DoesNotExistError:
 			frappe.clear_last_message()
 			pass

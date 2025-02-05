@@ -1106,7 +1106,8 @@ class Document(BaseDocument, DocRef):
 	def run_notifications(self, method):
 		"""Run notifications for this method"""
 		if (
-			(frappe.flags.in_import and frappe.flags.mute_emails)
+			method == "onload"
+			or (frappe.flags.in_import and frappe.flags.mute_emails)
 			or frappe.flags.in_patch
 			or frappe.flags.in_install
 		):
@@ -1117,20 +1118,20 @@ class Document(BaseDocument, DocRef):
 
 		from frappe.email.doctype.notification.notification import evaluate_alert
 
-		if self.flags.notifications is None:
+		def _get_notifications():
+			"""Return enabled notifications for the current doctype."""
 
-			def _get_notifications():
-				"""Return enabled notifications for the current doctype."""
+			return frappe.get_all(
+				"Notification",
+				fields=["name", "event", "method"],
+				filters={"enabled": 1, "document_type": self.doctype},
+			)
 
-				return frappe.get_all(
-					"Notification",
-					fields=["name", "event", "method"],
-					filters={"enabled": 1, "document_type": self.doctype},
-				)
+		notifications = frappe.client_cache.get_value(
+			f"notifications::{self.doctype}", generator=_get_notifications
+		)
 
-			self.flags.notifications = frappe.cache.hget("notifications", self.doctype, _get_notifications)
-
-		if not self.flags.notifications:
+		if not notifications:
 			return
 
 		def _evaluate_alert(alert):
@@ -1151,7 +1152,7 @@ class Document(BaseDocument, DocRef):
 			# value change is not applicable in insert
 			event_map["on_change"] = "Value Change"
 
-		for alert in self.flags.notifications:
+		for alert in notifications:
 			event = event_map.get(method, None)
 			if event and alert.event == event:
 				_evaluate_alert(alert)

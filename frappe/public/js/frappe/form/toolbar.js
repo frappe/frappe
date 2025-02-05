@@ -660,10 +660,15 @@ frappe.ui.form.Toolbar = class Toolbar {
 			if (status !== this.current_status && status === "Amend") {
 				let doc = this.frm.doc;
 				frappe
-					.xcall("frappe.client.is_document_amended", {
-						doctype: doc.doctype,
-						docname: doc.name,
-					})
+					.xcall(
+						"frappe.client.is_document_amended",
+						{
+							doctype: doc.doctype,
+							docname: doc.name,
+						},
+						"GET",
+						{ cache: true }
+					)
 					.then((is_amended) => {
 						if (is_amended) {
 							this.page.clear_actions();

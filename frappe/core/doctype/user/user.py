@@ -31,7 +31,7 @@ from frappe.utils import (
 	now_datetime,
 	today,
 )
-from frappe.utils.data import sha256_hash
+from frappe.utils.data import sha256_hash, strip_html
 from frappe.utils.password import check_password, get_password_reset_limit
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
@@ -182,6 +182,7 @@ class User(Document):
 		self.populate_role_profile_roles()
 		self.check_roles_added()
 		self.set_system_user()
+		self.clean_name()
 		self.set_full_name()
 		self.check_enable_disable()
 		self.ensure_unique_roles()
@@ -195,6 +196,8 @@ class User(Document):
 		self.validate_allowed_modules()
 		self.validate_user_image()
 		self.set_time_zone()
+		if self.restrict_ip:
+			self.validate_ip_addr()
 
 		if self.language == "Loading...":
 			self.language = None
@@ -225,8 +228,6 @@ class User(Document):
 		# Remove invalid roles and add new ones
 		self.roles = [r for r in self.roles if r.role in new_roles]
 		self.append_roles(*new_roles)
-
-	from frappe.deprecation_dumpster import validate_roles
 
 	def move_role_profile_name_to_role_profiles(self):
 		"""This handles old role_profile_name field if programatically set.
@@ -309,6 +310,14 @@ class User(Document):
 	def has_website_permission(self, ptype, user, verbose=False):
 		"""Return True if current user is the session user."""
 		return self.name == frappe.session.user
+
+	def clean_name(self):
+		if self.first_name:
+			self.first_name = strip_html(self.first_name)
+		if self.middle_name:
+			self.middle_name = strip_html(self.middle_name)
+		if self.last_name:
+			self.last_name = strip_html(self.last_name)
 
 	def set_full_name(self):
 		self.full_name = " ".join(filter(None, [self.first_name, self.last_name]))
@@ -804,6 +813,9 @@ class User(Document):
 				"args": ["Form", self.doctype, self.name],
 			},
 		)
+
+	def validate_ip_addr(self):
+		self.restrict_ip = ",".join(self.get_restricted_ip_list())
 
 
 @frappe.whitelist()
@@ -1308,7 +1320,7 @@ def get_restricted_ip_list(user):
 	if not user.restrict_ip:
 		return
 
-	return [i.strip() for i in user.restrict_ip.split(",")]
+	return [i.strip() for i in user.restrict_ip.strip().split(",")]
 
 
 @frappe.whitelist(methods=["POST"])

@@ -30,6 +30,7 @@ frappe.ui.Sidebar = class Sidebar {
 		];
 
 		this.setup_pages();
+		this.apps_switcher.populate_apps_menu();
 	}
 
 	make_dom() {
@@ -49,7 +50,7 @@ frappe.ui.Sidebar = class Sidebar {
 			this.toggle_sidebar();
 		});
 
-		this.apps_switcher = new frappe.ui.AppsSwitcher(this.wrapper);
+		this.apps_switcher = new frappe.ui.AppsSwitcher(this);
 		this.apps_switcher.create_app_data_map();
 	}
 
@@ -154,6 +155,7 @@ frappe.ui.Sidebar = class Sidebar {
 
 		this.setup_sorting();
 		this.set_active_workspace_item();
+		this.set_hover();
 	}
 
 	build_sidebar_section(title, root_pages) {
@@ -347,14 +349,19 @@ frappe.ui.Sidebar = class Sidebar {
 			$child_item_section.toggleClass("hidden");
 		});
 	}
-
+	toggle_sorting() {
+		this.sorting_items.forEach((item) => {
+			var state = item.option("disabled");
+			item.option("disabled", !state);
+		});
+	}
 	setup_sorting() {
 		if (!this.has_access) return;
-
+		this.sorting_items = [];
 		for (let container of this.$sidebar.find(".nested-container")) {
-			Sortable.create(container, {
+			this.sorting_items[this.sorting_items.length] = Sortable.create(container, {
 				group: "sidebar-items",
-				fitler: ".divider",
+				disabled: true,
 				onEnd: () => {
 					let sidebar_items = [];
 					for (let container of this.$sidebar.find(".nested-container")) {

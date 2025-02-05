@@ -30,6 +30,10 @@ class PathResolver:
 		if hasattr(frappe.local, "request"):
 			request = frappe.local.request or request
 
+		# WARN: Hardcoded for better performance
+		if self.path == "app" or self.path.startswith("app/"):
+			return "app", TemplatePage("app", self.http_status_code)
+
 		# check if the request url is in 404 list
 		if request.url and can_cache() and frappe.cache.hget("website_404", request.url):
 			return self.path, NotFoundPage(self.path)
@@ -48,10 +52,6 @@ class PathResolver:
 			except werkzeug.routing.exceptions.RequestRedirect as e:
 				frappe.flags.redirect_location = e.new_url
 				return frappe.flags.redirect_location, RedirectPage(e.new_url, e.code)
-
-		# WARN: Hardcoded for better performance
-		if endpoint == "app":
-			return endpoint, TemplatePage(endpoint, self.http_status_code)
 
 		custom_renderers = self.get_custom_page_renderers()
 		renderers = [
@@ -114,6 +114,18 @@ def resolve_redirect(path, query_string=None):
 	                                # use r as a string prefix if you use regex groups or want to escape any string literal
 	                ]
 	"""
+
+	redirect_to = frappe.cache.hget("website_redirects", path or "/")
+	if redirect_to:
+		if isinstance(redirect_to, dict):
+			frappe.flags.redirect_location = redirect_to["path"]
+			raise frappe.Redirect(redirect_to["status_code"])
+		frappe.flags.redirect_location = redirect_to
+		raise frappe.Redirect
+
+	if redirect_to is False:
+		return
+
 	redirects = frappe.get_hooks("website_redirects")
 	redirects += frappe.get_all(
 		"Website Route Redirect", ["source", "target", "redirect_http_status"], order_by=None
@@ -121,15 +133,6 @@ def resolve_redirect(path, query_string=None):
 
 	if not redirects:
 		return
-
-	redirect_to = frappe.cache.hget("website_redirects", path)
-
-	if redirect_to:
-		if isinstance(redirect_to, dict):
-			frappe.flags.redirect_location = redirect_to["path"]
-			raise frappe.Redirect(redirect_to["status_code"])
-		frappe.flags.redirect_location = redirect_to
-		raise frappe.Redirect
 
 	for rule in redirects:
 		pattern = rule["source"].strip("/ ") + "$"
@@ -147,9 +150,11 @@ def resolve_redirect(path, query_string=None):
 			frappe.flags.redirect_location = redirect_to
 			status_code = rule.get("redirect_http_status") or 301
 			frappe.cache.hset(
-				"website_redirects", path_to_match, {"path": redirect_to, "status_code": status_code}
+				"website_redirects", path_to_match or "/", {"path": redirect_to, "status_code": status_code}
 			)
 			raise frappe.Redirect(status_code)
+
+	frappe.cache.hset("website_redirects", path_to_match or "/", False)
 
 
 def resolve_path(path):

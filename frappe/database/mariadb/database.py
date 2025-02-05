@@ -458,7 +458,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		to_query = not cached
 
 		if cached:
-			tables = frappe.cache.get_value("db_tables")
+			tables = frappe.client_cache.get_value("db_tables")
 			to_query = not tables
 
 		if to_query:
@@ -470,7 +470,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 				.where(information_schema.tables.table_schema == frappe.db.cur_db_name)
 				.run(pluck=True)
 			)
-			frappe.cache.set_value("db_tables", tables)
+			frappe.client_cache.set_value("db_tables", tables)
 
 		return tables
 
@@ -541,3 +541,12 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		finally:
 			self._cursor = original_cursor
 			new_cursor.close()
+
+	def estimate_count(self, doctype: str):
+		"""Get estimated count of total rows in a table."""
+		from frappe.utils.data import cint
+
+		table = get_table_name(doctype)
+
+		count = self.sql("select table_rows from information_schema.tables where table_name = %s", table)
+		return cint(count[0][0]) if count else 0

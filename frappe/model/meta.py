@@ -19,7 +19,7 @@ import json
 import os
 import typing
 from datetime import datetime
-from functools import singledispatchmethod
+from functools import cached_property, singledispatchmethod
 from types import NoneType
 
 import click
@@ -59,6 +59,11 @@ DEFAULT_FIELD_LABELS = {
 	"_assign": _lt("Assigned To"),
 }
 
+# When number of rows in a table exceeds this number, we disable certain features automatically.
+# This is done to avoid hammering the site with unnecessary requests that are just meant for
+# improving UX.
+LARGE_TABLE_THRESHOLD = 100_000
+
 
 def get_meta(doctype: str | dict | DocRef, cached=True) -> "_Meta":
 	"""Get metadata for a doctype.
@@ -75,12 +80,22 @@ def get_meta(doctype: str | dict | DocRef, cached=True) -> "_Meta":
 		if not isinstance(doctype, dict)
 		else doctype.get("doctype")
 	):
-		if meta := frappe.cache.hget("doctype_meta", doctype_name):
+		key = f"doctype_meta::{doctype_name}"
+		if meta := frappe.client_cache.get_value(key):
 			return meta
 
 	meta = Meta(doctype)
-	frappe.cache.hset("doctype_meta", meta.name, meta)
+	key = f"doctype_meta::{meta.name}"
+	frappe.client_cache.set_value(key, meta)
 	return meta
+
+
+def clear_meta_cache(doctype: str = "*"):
+	key = f"doctype_meta::{doctype}"
+	if doctype == "*":
+		frappe.cache.delete_keys(key)
+	else:
+		frappe.client_cache.delete_value(key)
 
 
 def load_meta(doctype):
@@ -175,9 +190,12 @@ class Meta(Document):
 		self.get_valid_columns()
 		self.set_custom_permissions()
 		self.add_custom_links_and_actions()
+		self.is_large_table = frappe.db.estimate_count(self.name) > LARGE_TABLE_THRESHOLD
 
 	def as_dict(self, no_nulls=False):
 		def serialize(doc):
+			if isinstance(doc, dict):
+				return doc.copy()
 			out = {}
 			for key, value in doc.__dict__.items():
 				if isinstance(value, list | tuple):
@@ -211,9 +229,11 @@ class Meta(Document):
 		return self.get("fields", {"fieldtype": "Phone"})
 
 	def get_dynamic_link_fields(self):
-		if not hasattr(self, "_dynamic_link_fields"):
-			self._dynamic_link_fields = self.get("fields", {"fieldtype": "Dynamic Link"})
 		return self._dynamic_link_fields
+
+	@cached_property
+	def _dynamic_link_fields(self):
+		return self.get("fields", {"fieldtype": "Dynamic Link"})
 
 	def get_select_fields(self):
 		return self.get("fields", {"fieldtype": "Select", "options": ["not in", ["[Select]", "Loading..."]]})
@@ -226,15 +246,18 @@ class Meta(Document):
 
 	def get_set_only_once_fields(self):
 		"""Return fields with `set_only_once` set"""
-		if not hasattr(self, "_set_only_once_fields"):
-			self._set_only_once_fields = self.get("fields", {"set_only_once": 1})
-			fieldnames = [d.fieldname for d in self._set_only_once_fields]
-
-			for df in self.standard_set_once_fields:
-				if df.fieldname not in fieldnames:
-					self._set_only_once_fields.append(df)
-
 		return self._set_only_once_fields
+
+	@cached_property
+	def _set_only_once_fields(self):
+		set_only_once_fields = self.get("fields", {"set_only_once": 1})
+		fieldnames = [d.fieldname for d in set_only_once_fields]
+
+		for df in self.standard_set_once_fields:
+			if df.fieldname not in fieldnames:
+				set_only_once_fields.append(df)
+
+		return set_only_once_fields
 
 	def get_table_fields(self):
 		return self._table_fields
@@ -248,33 +271,39 @@ class Meta(Document):
 		return fields
 
 	def get_valid_columns(self) -> list[str]:
-		if not hasattr(self, "_valid_columns"):
-			table_exists = frappe.db.table_exists(self.name)
-			if self.name in self.special_doctypes and table_exists:
-				self._valid_columns = get_table_columns(self.name)
-			else:
-				self._valid_columns = self.default_fields + [
-					df.fieldname
-					for df in self.get("fields")
-					if not df.get("is_virtual") and df.fieldtype in data_fieldtypes
-				]
-				if self.istable:
-					self._valid_columns += list(child_table_fields)
-
 		return self._valid_columns
 
-	def get_valid_fields(self) -> list[str]:
-		if not hasattr(self, "_valid_fields"):
-			if (frappe.flags.in_install or frappe.flags.in_migrate) and self.name in self.special_doctypes:
-				self._valid_fields = get_table_columns(self.name)
-			else:
-				self._valid_fields = self.default_fields + [
-					df.fieldname for df in self.get("fields") if df.fieldtype in data_fieldtypes
-				]
-				if self.istable:
-					self._valid_fields += list(child_table_fields)
+	@cached_property
+	def _valid_columns(self):
+		table_exists = frappe.db.table_exists(self.name)
+		if self.name in self.special_doctypes and table_exists:
+			valid_columns = get_table_columns(self.name)
+		else:
+			valid_columns = self.default_fields + [
+				df.fieldname
+				for df in self.get("fields")
+				if not df.get("is_virtual") and df.fieldtype in data_fieldtypes
+			]
+			if self.istable:
+				valid_columns += list(child_table_fields)
 
+		return valid_columns
+
+	def get_valid_fields(self) -> list[str]:
 		return self._valid_fields
+
+	@cached_property
+	def _valid_fields(self):
+		if (frappe.flags.in_install or frappe.flags.in_migrate) and self.name in self.special_doctypes:
+			valid_fields = get_table_columns(self.name)
+		else:
+			valid_fields = self.default_fields + [
+				df.fieldname for df in self.get("fields") if df.fieldtype in data_fieldtypes
+			]
+			if self.istable:
+				valid_fields += list(child_table_fields)
+
+		return valid_fields
 
 	def get_table_field_doctype(self, fieldname):
 		return TABLE_DOCTYPES_FOR_DOCTYPE.get(fieldname)
@@ -619,9 +648,11 @@ class Meta(Document):
 
 	def get_high_permlevel_fields(self):
 		"""Build list of fields with high perm level and all the higher perm levels defined."""
-		if not hasattr(self, "high_permlevel_fields"):
-			self.high_permlevel_fields = [df for df in self.fields if df.permlevel > 0]
 		return self.high_permlevel_fields
+
+	@cached_property
+	def high_permlevel_fields(self):
+		return [df for df in self.fields if df.permlevel > 0]
 
 	def get_permitted_fieldnames(
 		self,

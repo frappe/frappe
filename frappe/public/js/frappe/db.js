@@ -102,7 +102,7 @@ frappe.db = {
 			frappe.call("frappe.client.delete", { doctype, name }, (r) => resolve(r.message));
 		});
 	},
-	count: function (doctype, args = {}) {
+	count: function (doctype, args = {}, cache = false) {
 		let filters = args.filters || {};
 		let limit = args.limit;
 
@@ -115,13 +115,18 @@ frappe.db = {
 
 		const fields = [];
 
-		return frappe.xcall("frappe.desk.reportview.get_count", {
-			doctype,
-			filters,
-			fields,
-			distinct,
-			limit,
-		});
+		return frappe.xcall(
+			"frappe.desk.reportview.get_count",
+			{
+				doctype,
+				filters,
+				fields,
+				distinct,
+				limit,
+			},
+			cache ? "GET" : "POST",
+			{ cache }
+		);
 	},
 	get_link_options(doctype, txt = "", filters = {}) {
 		return new Promise((resolve) => {

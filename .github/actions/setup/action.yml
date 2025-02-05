@@ -216,7 +216,7 @@ runs:
       start_time=$(date +%s)
 
       source ${GITHUB_WORKSPACE}/env/bin/activate
-      CI=Yes bench build &
+      CI=Yes bench build --force --production &
       build_pid=$!
       bench --site test_site reinstall --yes
       wait $build_pid

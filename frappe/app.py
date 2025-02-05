@@ -2,10 +2,8 @@
 # License: MIT. See LICENSE
 
 import functools
-import gc
 import logging
 import os
-import re
 
 from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug.middleware.profiler import ProfilerMiddleware
@@ -22,11 +20,11 @@ import frappe.rate_limiter
 import frappe.recorder
 import frappe.utils.response
 from frappe import _
-from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, validate_auth
+from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, check_request_ip, validate_auth
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils import CallbackManager, cint, get_site_name
 from frappe.utils.data import escape_html
-from frappe.utils.error import log_error_snapshot
+from frappe.utils.error import log_error, log_error_snapshot
 from frappe.website.page_renderers.error_page import ErrorPage
 from frappe.website.serve import get_response
 
@@ -236,40 +234,37 @@ def log_request(request, response):
 		)
 
 
-def process_response(response):
+NO_CACHE_HEADERS = {"Cache-Control": "no-store,no-cache,must-revalidate,max-age=0"}
+
+
+def process_response(response: Response):
 	if not response:
 		return
 
-	# cache control
-	# read: https://simonhearne.com/2022/caching-header-best-practices/
-	if frappe.local.response.can_cache:
-		response.headers.extend(
-			{
-				# default: 5m (client), 3h (allow stale resources for this long if upstream is down)
-				"Cache-Control": "private,max-age=300,stale-while-revalidate=10800",
-			}
-		)
-	else:
-		response.headers.extend(
-			{
-				"Cache-Control": "no-store,no-cache,must-revalidate,max-age=0",
-			}
-		)
-
-	# Set cookies, only if response is non-cacheable to avoid proxy cache invalidation
-	if hasattr(frappe.local, "cookie_manager") and not frappe.local.response.can_cache:
-		frappe.local.cookie_manager.flush_cookies(response=response)
+	# Default for all requests is no-cache unless explicitly opted-in by endpoint
+	response.headers.update(NO_CACHE_HEADERS)
 
 	# rate limiter headers
 	if hasattr(frappe.local, "rate_limiter"):
-		response.headers.extend(frappe.local.rate_limiter.headers())
+		response.headers.update(frappe.local.rate_limiter.headers())
 
 	if trace_id := frappe.monitor.get_trace_id():
-		response.headers.extend({"X-Frappe-Request-Id": trace_id})
+		response.headers.update({"X-Frappe-Request-Id": trace_id})
 
 	# CORS headers
 	if hasattr(frappe.local, "conf"):
 		set_cors_headers(response)
+
+	# Update custom headers added during request processing
+	response.headers.update(frappe.local.response_headers)
+
+	# Set cookies, only if response is non-cacheable to avoid proxy cache invalidation
+	public_cache = any("public" in h for h in response.headers.getlist("Cache-Control"))
+	if hasattr(frappe.local, "cookie_manager") and not public_cache:
+		frappe.local.cookie_manager.flush_cookies(response=response)
+
+	if frappe._dev_server:
+		response.headers.update(NO_CACHE_HEADERS)
 
 
 def set_cors_headers(response):
@@ -304,7 +299,7 @@ def set_cors_headers(response):
 		if not frappe.conf.developer_mode:
 			cors_headers["Access-Control-Max-Age"] = "86400"
 
-	response.headers.extend(cors_headers)
+	response.headers.update(cors_headers)
 
 
 def make_form_dict(request: Request):
@@ -390,7 +385,7 @@ def handle_exception(e):
 		if hasattr(frappe.local, "login_manager"):
 			frappe.local.login_manager.clear_cookies()
 
-	if http_status_code >= 500:
+	if http_status_code >= 500 or frappe.conf.developer_mode:
 		log_error_snapshot(e)
 
 	if frappe.conf.get("developer_mode") and not respond_as_json:

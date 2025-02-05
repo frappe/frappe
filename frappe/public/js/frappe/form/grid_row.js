@@ -258,7 +258,7 @@ export default class GridRow {
 			).appendTo(this.row);
 
 			this.row_index = $(
-				`<div class="row-index sortable-handle col">
+				`<div class="row-index sortable-handle grid-static-col col">
 					<span>${txt}</span>
 				</div>`
 			)
@@ -269,11 +269,15 @@ export default class GridRow {
 					}
 				});
 		} else if (this.show_search) {
-			this.row_check = $(`<div class="row-check col search"></div>`).appendTo(this.row);
+			this.row_check = $(`
+				<div class="row-check col search">
+					<input type="text" class="form-control input-xs text-center invisible">
+				</div>`).appendTo(this.row);
 
 			this.row_index = $(
 				`<div class="row-index col search">
 					<input type="text" class="form-control input-xs text-center" >
+					<span style="width: 33px;" class="d-block"></span>
 				</div>`
 			).appendTo(this.row);
 
@@ -404,12 +408,14 @@ export default class GridRow {
 			this.columns = {};
 			this.update_user_settings_for_grid();
 			this.grid_settings_dialog.hide();
+			this.grid.handle_scroll_bar();
 		});
 
 		this.grid_settings_dialog.set_secondary_action_label(__("Reset to default"));
 		this.grid_settings_dialog.set_secondary_action(() => {
 			this.reset_user_settings_for_grid();
 			this.grid_settings_dialog.hide();
+			this.grid.handle_scroll_bar();
 		});
 	}
 
@@ -428,13 +434,15 @@ export default class GridRow {
 
 		$(`
 			<div class='form-group'>
-				<div class='row' style='margin:0px; margin-bottom:10px;'>
-					<div class='col-6 col-md-8'>
+				<div class='row' style='margin-bottom:10px;'>
+					<div class='col-1'></div>
+					<div class='col-6' style='padding-left:20px;'>
 						${__("Fieldname").bold()}
 					</div>
-					<div class='col-6 col-md-4' style='padding-left:5px;'>
+					<div class='col-4'>
 						${__("Column Width").bold()}
 					</div>
+					<div class='col-1'></div>
 				</div>
 				<div class='control-input-wrapper selected-fields'>
 				</div>
@@ -558,12 +566,10 @@ export default class GridRow {
 							<div class='col-1' style='padding-top: 4px;'>
 								<a style='cursor: grabbing;'>${frappe.utils.icon("drag", "xs")}</a>
 							</div>
-							<div class='col-6 col-md-8' style='padding-right:0px; padding-top: 5px;'>
+							<div class='col-6' style='padding-top: 5px;'>
 								${__(docfield.label, null, docfield.parent)}
 							</div>
-							<div class='col-3 col-md-2' style='padding-left:0px; padding-top: 2px; margin-top:-2px;' title='${__(
-								"Columns"
-							)}'>
+							<div class='col-4' style='padding-top: 2px; margin-top:-2px;' title='${__("Columns")}'>
 								<input class='form-control column-width my-1 input-xs text-right'
 								style='height: 24px; max-width: 80px; background: var(--bg-color);'
 									value='${docfield.columns || cint(d.columns)}'
@@ -982,30 +988,6 @@ export default class GridRow {
 		$col.field_area = $('<div class="field-area"></div>').appendTo($col).toggle(false);
 		$col.static_area = $('<div class="static-area ellipsis"></div>').appendTo($col).html(txt);
 
-		$(document).ready(function () {
-			let $scrollBar = $(".grid-scroll-bar");
-			let form_grid = $(".form-grid");
-			let grid_container = $(".form-grid-container");
-			let grid_scroll_bar_rows = $(".grid-scroll-bar-rows");
-			// Make sure the grid container is scrollable
-			$scrollBar.on("scroll", function (event) {
-				grid_container = $(event.currentTarget).closest(".form-grid-container");
-				form_grid = $(event.currentTarget).closest(".form-grid");
-				grid_scroll_bar_rows = $(event.currentTarget).closest(".grid-scroll-bar-rows");
-
-				var scroll_left = $(this).scrollLeft();
-
-				// Sync the form grid's left position with the scroll bar
-				form_grid.css("position", "relative");
-				form_grid.css("left", -scroll_left + "px");
-				$(this).css("margin-left", scroll_left + "px");
-			});
-
-			$scrollBar.css("width", grid_container.width());
-
-			grid_scroll_bar_rows.css("width", form_grid[0].scrollWidth);
-		});
-
 		// set title attribute to see full label for columns in the heading row
 		if (!this.doc) {
 			$col.attr("title", txt);
@@ -1100,15 +1082,13 @@ export default class GridRow {
 		// sync get_query
 		field.get_query = this.grid.get_field(df.fieldname).get_query;
 
-		if (!field.df.onchange_modified) {
-			var field_on_change_function = field.df.onchange;
-			field.df.onchange = (e) => {
-				field_on_change_function && field_on_change_function.bind(field)(e);
-				this.refresh_field(field.df.fieldname);
-			};
-
-			field.df.onchange_modified = true;
-		}
+		// df.onchange is common for all rows in grid
+		let field_on_change_function = df.onchange;
+		field.df.change = (e) => {
+			// trigger onchange with current grid row field as "this"
+			field_on_change_function && field_on_change_function.apply(field, [e]);
+			me.refresh_field(field.df.fieldname);
+		};
 
 		field.refresh();
 		if (field.$input) {

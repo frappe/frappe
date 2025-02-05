@@ -293,6 +293,7 @@ def send_private_file(path: str) -> Response:
 		path = "/protected/" + path
 		response = Response()
 		response.headers["X-Accel-Redirect"] = quote(frappe.utils.encode(path))
+		response.headers["Cache-Control"] = "private,max-age=3600,stale-while-revalidate=86400"
 
 	else:
 		filepath = frappe.utils.get_site_path(path)

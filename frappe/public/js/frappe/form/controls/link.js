@@ -14,10 +14,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		$(`<div class="link-field ui-front" style="position: relative;">
 			<input type="text" class="input-with-feedback form-control">
 			<span class="link-btn">
-				<a class="btn-clear no-decoration">
-					${frappe.utils.icon("close", "xs", "es-icon")}
-				</a>
-				<a class="btn-open no-decoration" title="${__("Open Link")}">
+				<a class="btn-open" style="display: inline-block;" title="${__("Open Link")}">
 					${frappe.utils.icon("arrow-right", "xs")}
 				</a>
 			</span>
@@ -25,38 +22,34 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		this.$input_area = $(this.input_area);
 		this.$input = this.$input_area.find("input");
 		this.$link = this.$input_area.find(".link-btn");
-		this.$link_clear = this.$input_area.find(".btn-clear");
 		this.$link_open = this.$link.find(".btn-open");
 		this.set_input_attributes();
 		this.$input.on("focus", function () {
-			setTimeout(function () {
-				if (me.$input.val() && me.get_options()) {
-					let doctype = me.get_options();
-					let name = me.get_input_value();
-					me.$link.toggle(true);
-					me.$link_open.attr("href", frappe.utils.get_form_link(doctype, name));
-					me.$link_clear.on("click", function () {
-						me.$link.toggle(false);
-						me.set_value("");
-						me.validate();
-					});
-				}
+			if (!me.$input.val()) {
+				me.$input.val("").trigger("input");
+			}
 
-				if (!me.$input.val()) {
-					me.$input.val("").trigger("input");
-
-					// hide link arrow to doctype if none is set
-					me.$link.toggle(false);
-				}
-			}, 500);
+			me.show_link_and_clear_buttons();
 		});
 		this.$input.on("blur", function () {
 			// if this disappears immediately, the user's click
 			// does not register, hence timeout
 			setTimeout(function () {
 				me.$link.toggle(false);
-			}, 500);
+				me.hide_link_and_clear_buttons();
+			}, 250);
 		});
+
+		this.$input_area.on("mouseenter", () => {
+			this.show_link_and_clear_buttons();
+		});
+
+		this.$input_area.on("mouseleave", () => {
+			if (!this.$input.is(":focus")) {
+				this.hide_link_and_clear_buttons();
+			}
+		});
+
 		this.$input.attr("data-target", this.df.options);
 		this.input = this.$input.get(0);
 		this.has_input = true;
@@ -65,6 +58,20 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		this.setup_awesomeplete();
 		this.bind_change_event();
 	}
+
+	show_link_and_clear_buttons() {
+		if (this.$input.val() && this.get_options()) {
+			const doctype = this.get_options();
+			const name = this.get_input_value();
+			this.$link.toggle(true);
+			this.$link_open.attr("href", frappe.utils.get_form_link(doctype, name));
+		}
+	}
+
+	hide_link_and_clear_buttons() {
+		this.$link.toggle(false);
+	}
+
 	get_options() {
 		return this.df.options;
 	}
@@ -230,6 +237,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				return $(`<div role="option">`)
 					.on("click", (event) => {
 						me.awesomplete.select(event.currentTarget, event.currentTarget);
+						me.show_link_and_clear_buttons();
 					})
 					.data("item.autocomplete", d)
 					.prop("aria-selected", "false")
@@ -667,11 +675,16 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		// to avoid unnecessary request
 		if (value) {
 			return frappe
-				.xcall("frappe.client.validate_link", {
-					doctype: options,
-					docname: value,
-					fields: columns_to_fetch,
-				})
+				.xcall(
+					"frappe.client.validate_link",
+					{
+						doctype: options,
+						docname: value,
+						fields: columns_to_fetch,
+					},
+					"GET",
+					{ cache: !columns_to_fetch.length }
+				)
 				.then((response) => {
 					if (!this.docname || !columns_to_fetch.length) {
 						return response.name;

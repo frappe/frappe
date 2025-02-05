@@ -20,6 +20,10 @@ def savedocs(doc, action):
 	if doc.get("__islocal") and doc.name.startswith("new-" + doc.doctype.lower().replace(" ", "-")):
 		# required to relink missing attachments if they exist.
 		doc.__temporary_name = doc.name
+
+	for child in doc.get_all_children():
+		child.__temporary_name = child.name
+
 	set_local_name(doc)
 
 	# action

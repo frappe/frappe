@@ -23,6 +23,7 @@ import sys
 import time
 from unittest.mock import patch
 
+import psutil
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 import frappe
@@ -233,6 +234,11 @@ class TestPerformance(IntegrationTestCase):
 
 		self.assertIs(run, patched_run, "frappe.init should run one-time patching code just once")
 
+	def test_idle_cpu_utilization_redis_pubsub(self):
+		pid = frappe.client_cache.invalidator_thread.native_id
+		process = psutil.Process(pid)
+		self.assertLess(process.cpu_percent(interval=1.0), 2)
+
 	def test_cpu_allocation(self):
 		from frappe._optimizations import assign_core
 
@@ -291,20 +297,20 @@ class TestOverheadCalls(FrappeAPITestCase):
 
 	def test_ping_overheads(self):
 		self.get(self.method("ping"), {"sid": "Guest"})
-		with self.assertRedisCallCounts(10), self.assertQueryCount(self.BASE_SQL_CALLS):
+		with self.assertRedisCallCounts(2), self.assertQueryCount(self.BASE_SQL_CALLS):
 			self.get(self.method("ping"), {"sid": "Guest"})
 
 	def test_ping_overheads_authenticated(self):
 		sid = self.sid
 		self.get(self.method("ping"), {"sid": sid})
-		with self.assertRedisCallCounts(10), self.assertQueryCount(self.BASE_SQL_CALLS):
+		with self.assertRedisCallCounts(3), self.assertQueryCount(self.BASE_SQL_CALLS):
 			self.get(self.method("ping"), {"sid": sid})
 
 	def test_list_view_overheads(self):
 		sid = self.sid
 		self.get(self.resource("ToDo"), {"sid": sid})
 		self.get(self.resource("ToDo"), {"sid": sid})
-		with self.assertRedisCallCounts(24), self.assertQueryCount(self.BASE_SQL_CALLS + 1):
+		with self.assertRedisCallCounts(6), self.assertQueryCount(self.BASE_SQL_CALLS + 1):
 			self.get(self.resource("ToDo"), {"sid": sid})
 
 	def test_get_doc_overheads(self):
@@ -312,7 +318,7 @@ class TestOverheadCalls(FrappeAPITestCase):
 		tables = len(frappe.get_meta("User").get_table_fields())
 		self.get(self.resource("User", "Administrator"), {"sid": sid})
 		self.get(self.resource("User", "Administrator"), {"sid": sid})
-		with self.assertRedisCallCounts(19), self.assertQueryCount(self.BASE_SQL_CALLS + 1 + tables):
+		with self.assertRedisCallCounts(3), self.assertQueryCount(self.BASE_SQL_CALLS + 1 + tables):
 			self.get(self.resource("User", "Administrator"), {"sid": sid})
 
 

@@ -138,7 +138,7 @@ jobs:
           FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN || '' }}
 
       - name: Upload coverage data
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: inputs.enable-coverage
         with:
           name: coverage-${{ matrix.db }}-${{ matrix.index }}

@@ -129,8 +129,6 @@ def get_docinfo(doc=None, doctype=None, name=None):
 			"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
 			"tags": get_tags(doc.doctype, doc.name),
 			"document_email": get_document_email(doc.doctype, doc.name),
-			"error_log_exists": get_error_log_exists(doc),
-			"webhook_request_log_log_exists": get_webhook_request_log_exists(doc),
 		}
 	)
 
@@ -204,20 +202,6 @@ def get_versions(doc: "Document") -> list[dict]:
 	)
 
 
-def get_error_log_exists(doc: "Document") -> bool:
-	if has_permission("Error Log", print_logs=False):
-		return frappe.db.exists("Error Log", {"reference_doctype": doc.doctype, "reference_name": doc.name})
-	return False
-
-
-def get_webhook_request_log_exists(doc: "Document") -> bool:
-	if has_permission("Webhook Request Log", print_logs=False):
-		return frappe.db.exists(
-			"Webhook Request Log", {"reference_doctype": doc.doctype, "reference_document": doc.name}
-		)
-	return False
-
-
 @frappe.whitelist()
 def get_communications(doctype, name, start=0, limit=20):
 	from frappe.utils import cint
@@ -263,6 +247,11 @@ def get_comments(doctype: str, name: str, comment_type: str | list[str] = "Comme
 
 
 def get_point_logs(doctype, docname):
+	from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
+
+	if not is_energy_point_enabled():
+		return []
+
 	return frappe.get_all(
 		"Energy Point Log",
 		filters={"reference_doctype": doctype, "reference_name": docname, "type": ["!=", "Review"]},
@@ -385,6 +374,11 @@ def get_view_logs(doc: "Document") -> list[dict]:
 
 
 def get_tags(doctype: str, name: str) -> str:
+	from frappe.desk.doctype.tag_link.tag_link import has_tags
+
+	if not has_tags(doctype):
+		return ""
+
 	tags = frappe.get_all(
 		"Tag Link",
 		filters={"document_type": doctype, "document_name": name},
@@ -396,18 +390,14 @@ def get_tags(doctype: str, name: str) -> str:
 
 
 def get_document_email(doctype, name):
+	from frappe.email.doctype.email_account.email_account import get_automatic_email_link
+
 	email = get_automatic_email_link()
 	if not email:
 		return None
 
 	email = email.split("@")
 	return f"{email[0]}+{quote_plus(doctype)}={quote_plus(cstr(name))}@{email[1]}"
-
-
-def get_automatic_email_link():
-	return frappe.db.get_value(
-		"Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1}, "email_id"
-	)
 
 
 def get_additional_timeline_content(doctype, docname):

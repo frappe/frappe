@@ -217,15 +217,6 @@ frappe.ui.keys.add_shortcut({
 });
 
 frappe.ui.keys.add_shortcut({
-	shortcut: "ctrl+h",
-	action: function (e) {
-		e.preventDefault();
-		$(".navbar-home img").click();
-	},
-	description: __("Navigate Home"),
-});
-
-frappe.ui.keys.add_shortcut({
 	shortcut: "alt+s",
 	action: function (e) {
 		e.preventDefault();

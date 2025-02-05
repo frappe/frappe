@@ -143,6 +143,9 @@ class EmailAccount(Document):
 		else:
 			self.login_id = None
 
+		if self.service == "Sendgrid":
+			self.login_id = "apikey"
+
 		if self.service == "Frappe Mail":
 			self.use_imap = 0
 			self.always_use_account_email_id_as_sender = 1
@@ -249,6 +252,10 @@ class EmailAccount(Document):
 			enable_outgoing=self.enable_outgoing,
 			used_oauth=self.auth_method == "OAuth",
 		)
+
+	def clear_cache(self):
+		super().clear_cache()
+		frappe.client_cache.delete_value("automatic_linking_email")
 
 	def there_must_be_only_one_default(self):
 		"""If current Email Account is default, un-default all other accounts."""
@@ -1038,6 +1045,15 @@ def set_email_password(email_account, password):
 			return False
 
 	return True
+
+
+def get_automatic_email_link():
+	def check_db():
+		return frappe.db.get_value(
+			"Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1}, "email_id"
+		)
+
+	return frappe.client_cache.get_value("automatic_linking_email", generator=check_db)
 
 
 def on_doctype_update() -> None:

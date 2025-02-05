@@ -26,9 +26,12 @@ DURATION_PATTERN = re.compile(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s
 
 
 class Importer:
-	def __init__(self, doctype, data_import=None, file_path=None, import_type=None, console=False):
+	def __init__(
+		self, doctype, data_import=None, file_path=None, import_type=None, console=False, use_sniffer=False
+	):
 		self.doctype = doctype
 		self.console = console
+		self.use_sniffer = use_sniffer
 
 		self.data_import = data_import
 		if not self.data_import:
@@ -45,6 +48,7 @@ class Importer:
 			self.template_options,
 			self.import_type,
 			console=self.console,
+			use_sniffer=self.use_sniffer,
 		)
 
 	def get_data_for_import_preview(self):
@@ -402,13 +406,16 @@ class Importer:
 
 
 class ImportFile:
-	def __init__(self, doctype, file, template_options=None, import_type=None, *, console=False):
+	def __init__(
+		self, doctype, file, template_options=None, import_type=None, *, console=False, use_sniffer=False
+	):
 		self.doctype = doctype
 		self.template_options = template_options or frappe._dict(column_to_field_map=frappe._dict())
 		self.column_to_field_map = self.template_options.column_to_field_map
 		self.import_type = import_type
 		self.warnings = []
 		self.console = console
+		self.use_sniffer = use_sniffer
 
 		self.file_doc = self.file_path = self.google_sheets_url = None
 		if isinstance(file, str):
@@ -605,7 +612,7 @@ class ImportFile:
 			frappe.throw(_("Import template should be of type .csv, .xlsx or .xls"), title=error_title)
 
 		if extension == "csv":
-			data = read_csv_content(content)
+			data = read_csv_content(content, use_sniffer=self.use_sniffer)
 		elif extension == "xlsx":
 			data = read_xlsx_file_from_attached_file(fcontent=content)
 		elif extension == "xls":

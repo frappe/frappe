@@ -204,7 +204,7 @@ class AutoRepeat(Document):
 		if self.end_date:
 			next_date = self.get_next_schedule_date(schedule_date=start_date, for_full_schedule=True)
 
-			while getdate(next_date) < getdate(end_date):
+			while getdate(next_date) <= getdate(end_date):
 				row = {
 					"reference_document": self.reference_document,
 					"frequency": self.frequency,

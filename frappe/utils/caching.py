@@ -6,6 +6,7 @@ from collections import defaultdict
 from collections.abc import Callable
 from contextlib import suppress
 from functools import wraps
+from types import NoneType
 
 import frappe
 
@@ -199,3 +200,49 @@ def redis_cache(ttl: int | None = 3600, user: str | bool | None = None, shared: 
 	if callable(ttl):
 		return wrapper(ttl)
 	return wrapper
+
+
+def http_cache(
+	*,
+	public: bool = False,
+	max_age: int | None = None,
+	stale_while_revalidate: int | None = None,
+) -> Callable:
+	"""Decorator to send cache-control response from whitelisted endpoints.
+
+	Reference: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+
+	args:
+		public: Results can be cached by proxy if set to True, otherwise only client (browser) can
+				cache results.
+		max_age: Cache Time-To-Live
+		stale_while_revalidate: Duration for which stale response can be served while revalidation
+								occurs.
+	"""
+	assert isinstance(stale_while_revalidate, int | NoneType)
+	assert isinstance(max_age, int | NoneType)
+
+	cache_headers = []
+	if public:
+		cache_headers.append("public")
+	else:
+		cache_headers.append("private")
+	if max_age is not None:
+		cache_headers.append(f"max-age={max_age}")
+	if stale_while_revalidate is not None:
+		cache_headers.append(f"stale-while-revalidate={stale_while_revalidate}")
+	cache_headers = ",".join(cache_headers)
+
+	def outer(func: Callable) -> Callable:
+		qualified_name = f"{func.__module__}.{func.__name__}"
+
+		@wraps(func)
+		def inner(*args, **kwargs):
+			ret = func(*args, **kwargs)
+			if frappe.request and frappe.request.method == "GET" and qualified_name in frappe.request.path:
+				frappe.local.response_headers.set("Cache-Control", cache_headers)
+			return ret
+
+		return inner
+
+	return outer

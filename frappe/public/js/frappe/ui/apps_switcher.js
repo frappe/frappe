@@ -1,7 +1,8 @@
 frappe.ui.AppsSwitcher = class AppsSwitcher {
-	constructor(sidebar_wrapper) {
+	constructor(sidebar) {
 		this.drop_down_state = false;
-		this.sidebar_wrapper = sidebar_wrapper;
+		this.sidebar_wrapper = sidebar.wrapper;
+		this.sidebar = sidebar;
 		this.setup_app_switcher();
 	}
 
@@ -53,7 +54,7 @@ frappe.ui.AppsSwitcher = class AppsSwitcher {
 	}
 
 	add_private_app() {
-		let private_pages = frappe.app.sidebar.all_pages.filter((p) => p.public === 0);
+		let private_pages = this.sidebar.all_pages.filter((p) => p.public === 0);
 		if (private_pages.length === 0) return;
 
 		const app = {
