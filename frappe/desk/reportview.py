@@ -29,7 +29,7 @@ def get():
 		controller = get_controller(args.doctype)
 		data = compress(frappe.call(controller.get_list, args=args, **args))
 	else:
-		data = compress(execute(**args), args=args)
+		data = compress(execute(**args, timeout=60), args=args)
 	return data
 
 
@@ -43,7 +43,7 @@ def get_list():
 		data = frappe.call(controller.get_list, args=args, **args)
 	else:
 		# uncompressed (refactored from frappe.model.db_query.get_list)
-		data = execute(**args)
+		data = execute(**args, timeout=60)
 
 	return data
 
@@ -649,6 +649,7 @@ def get_stats(stats, doctype, filters=None):
 				group_by=column,
 				as_list=True,
 				distinct=1,
+				timeout=60,
 			)
 
 			if column == "_user_tags":
@@ -660,6 +661,7 @@ def get_stats(stats, doctype, filters=None):
 					as_list=True,
 					group_by=column,
 					order_by=column,
+					timeout=60,
 				)
 
 				no_tag_count = no_tag_count[0][1] if no_tag_count else 0
