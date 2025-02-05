@@ -61,6 +61,7 @@
 		v-else
 		:is="block.componentName"
 		v-bind="componentProps"
+		v-model="boundValue"
 		:data-component-id="block.componentId"
 		:data-breakpoint="breakpoint"
 		:style="styles"
