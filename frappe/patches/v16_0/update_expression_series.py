@@ -54,8 +54,8 @@ def execute():
 				for doc in docs:
 					_doc = frappe.get_doc(doctype.name, doc.name)
 					expr = doctype.autoname[7 : doctype.autoname.find("{#")]
-					if key := BRACED_PARAMS_WORD_PATTERN.sub(get_param_value_for_word_match(_doc), expr):
-						uniq_exprs.add(key)
+					key = BRACED_PARAMS_WORD_PATTERN.sub(get_param_value_for_word_match(_doc), expr)
+					uniq_exprs.add(key)
 
 	current = (frappe.qb.from_(Series).select("*").where(Series.name == "")).run(as_dict=True)
 	if current:
