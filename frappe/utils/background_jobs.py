@@ -327,6 +327,7 @@ def start_worker(
 		date_format="%Y-%m-%d %H:%M:%S",
 		log_format="%(asctime)s,%(msecs)03d %(message)s",
 		dequeue_strategy=strategy,
+		with_scheduler=False,
 	)
 
 
