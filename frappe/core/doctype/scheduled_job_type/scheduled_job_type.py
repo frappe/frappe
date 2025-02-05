@@ -95,7 +95,7 @@ class ScheduledJobType(Document):
 	@property
 	def rq_job_id(self):
 		"""Unique ID created to deduplicate jobs with single RQ call."""
-		return f"scheduled_job::{self.name}"
+		return f"scheduled_job||{self.name}"
 
 	@property
 	def next_execution(self):

@@ -105,7 +105,7 @@ class DataImport(Document):
 		if is_scheduler_inactive() and not run_now:
 			frappe.throw(_("Scheduler is inactive. Cannot import data."), title=_("Scheduler Inactive"))
 
-		job_id = f"data_import::{self.name}"
+		job_id = f"data_import||{self.name}"
 
 		if not is_job_enqueued(job_id):
 			enqueue(

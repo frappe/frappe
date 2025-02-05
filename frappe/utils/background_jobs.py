@@ -611,7 +611,7 @@ def create_job_id(job_id: str | None = None) -> str:
 
 	if not job_id:
 		job_id = str(uuid4())
-	return f"{frappe.local.site}::{job_id}"
+	return f"{frappe.local.site}||{job_id}"
 
 
 def is_job_enqueued(job_id: str) -> bool:
