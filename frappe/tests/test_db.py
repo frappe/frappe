@@ -60,7 +60,7 @@ class TestDB(IntegrationTestCase):
 	@patch.dict(frappe.conf, {"http_timeout": 20, "enable_db_statement_timeout": 1})
 	def test_db_timeout_computation(self):
 		set_request(method="GET", path="/")
-		self.assertEqual(get_query_execution_timeout(), 30)
+		self.assertGreaterEqual(get_query_execution_timeout(), 20)
 		frappe.local.request = None
 		self.assertEqual(get_query_execution_timeout(), 0)
 

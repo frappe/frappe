@@ -1196,6 +1196,9 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertEqual(count[0], frappe.db.count("Language"))
 		self.assertEqual(count[1], frappe.db.count("Language"))
 
+	def test_db_query_timeout(self):
+		self.assertEqual(frappe.get_all("Language", timeout=2), frappe.get_all("Language"))
+
 
 class TestReportView(IntegrationTestCase):
 	@run_only_if(db_type_is.MARIADB)  # TODO: postgres name casting is messed up

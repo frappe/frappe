@@ -115,6 +115,7 @@ class DatabaseQuery:
 		ignore_ddl=False,
 		*,
 		parent_doctype=None,
+		timeout=None,
 	) -> list:
 		if not ignore_permissions:
 			self.check_read_permission(self.doctype, parent_doctype=parent_doctype)
@@ -174,6 +175,7 @@ class DatabaseQuery:
 		self.strict = strict
 		self.ignore_ddl = ignore_ddl
 		self.parent_doctype = parent_doctype
+		self.timeout = timeout
 
 		# for contextual user permission check
 		# to determine which user permission is applicable on link field of specific doctype
@@ -240,7 +242,7 @@ class DatabaseQuery:
 		if frappe.db.db_type == "postgres" and args.order_by and args.group_by:
 			args = self.prepare_select_args(args)
 
-		query = """select {fields}
+		query = """{timeout_clause}select {fields}
 			from {tables}
 			{conditions}
 			{group_by}
@@ -326,6 +328,11 @@ class DatabaseQuery:
 
 		self.validate_order_by_and_group_by(self.group_by)
 		args.group_by = (self.group_by and (" group by " + self.group_by)) or ""
+
+		args.timeout_clause = ""
+		# postgres doesn't support local timeouts, global ones are still respected.
+		if self.timeout and frappe.db.db_type == "mariadb":
+			args.timeout_clause = f"SET STATEMENT max_statement_time={cint(self.timeout)} FOR "
 
 		return args
 
