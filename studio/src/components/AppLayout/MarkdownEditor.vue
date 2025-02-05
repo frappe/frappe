@@ -165,9 +165,14 @@ onMounted(() => {
 	})
 
 	editor.value.setValue(props.modelValue, -1)
+	content.value = editor.value.getValue() || ""
 
+	// Add change event listener
 	editor.value.on("change", () => {
 		content.value = editor.value?.getValue() || ""
+	})
+
+	editor.value.on("blur", () => {
 		emit("update:modelValue", content.value)
 		emit("change", content.value)
 	})
