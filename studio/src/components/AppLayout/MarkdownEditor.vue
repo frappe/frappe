@@ -28,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch, computed } from "vue"
+import { ref, onMounted, watch, computed } from "vue"
 import LucideIcon from "@/components/LucideIcon.vue"
 import { useDark } from "@vueuse/core"
 import { marked } from "marked"
@@ -50,7 +50,7 @@ const props = withDefaults(
 )
 
 const isDark = useDark()
-const emit = defineEmits(["update:modelValue", "change"])
+const emit = defineEmits(["update:modelValue"])
 
 const editor = ref<ace.Ace.Editor | null>(null)
 const editorContainer = ref<HTMLElement | null>(null)
@@ -154,6 +154,22 @@ watch(isDark, () => {
 	editor.value?.setTheme(isDark.value ? "ace/theme/twilight" : "ace/theme/chrome")
 })
 
+function resetEditor(value: string) {
+	value = props.modelValue
+	editor.value?.setValue(value)
+	editor.value?.clearSelection()
+	editor.value?.setTheme(isDark.value ? "ace/theme/twilight" : "ace/theme/chrome")
+}
+
+watch(
+	() => props.modelValue,
+	(newValue) => {
+		if (newValue !== editor.value?.getValue()) {
+			resetEditor(props.modelValue as string)
+		}
+	},
+)
+
 onMounted(() => {
 	editor.value = ace.edit(editorContainer.value as HTMLElement, {
 		mode: "ace/mode/markdown",
@@ -163,26 +179,18 @@ onMounted(() => {
 		showPrintMargin: false,
 		highlightActiveLine: true,
 	})
+	resetEditor(props.modelValue)
 
-	editor.value.setValue(props.modelValue, -1)
 	content.value = editor.value.getValue() || ""
-
-	// Add change event listener
 	editor.value.on("change", () => {
 		content.value = editor.value?.getValue() || ""
 	})
 
 	editor.value.on("blur", () => {
 		emit("update:modelValue", content.value)
-		emit("change", content.value)
 	})
 
 	setupShortcuts()
 	window.addEventListener("resize", handleResize)
-})
-
-onBeforeUnmount(() => {
-	editor.value?.destroy()
-	window.removeEventListener("resize", handleResize)
 })
 </script>
