@@ -187,8 +187,8 @@ def get_doctype_map(doctype, name, filters=None, order_by=None):
 	)
 
 
-def clear_doctype_map(doctype, name):
-	frappe.client_cache.delete_value(get_doctype_map_key(doctype, name))
+def clear_doctype_map(doctype, name="*"):
+	frappe.client_cache.delete_keys(get_doctype_map_key(doctype, name))
 
 
 def build_table_count_cache():

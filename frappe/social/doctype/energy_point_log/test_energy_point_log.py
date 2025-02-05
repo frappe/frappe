@@ -1,6 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.cache_manager import clear_doctype_map
 from frappe.desk.form.assign_to import add as assign_to
 from frappe.desk.page.user_profile.user_profile import get_energy_points_heatmap_data
 from frappe.tests import IntegrationTestCase, UnitTestCase
@@ -34,13 +35,13 @@ class TestEnergyPointLog(IntegrationTestCase):
 		settings.save()
 
 	def setUp(self):
-		frappe.cache.delete_value("energy_point_rule_map")
+		clear_doctype_map("Energy Point Rule")
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.delete("Energy Point Log")
 		frappe.db.delete("Energy Point Rule")
-		frappe.cache.delete_value("energy_point_rule_map")
+		clear_doctype_map("Energy Point Rule")
 
 	def test_user_energy_point(self):
 		frappe.set_user("test@example.com")
