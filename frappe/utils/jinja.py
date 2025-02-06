@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.utils.caching import site_cache
+from frappe.utils.caching import request_cache, site_cache
 
 
 def get_jenv():
@@ -23,6 +23,10 @@ def get_jenv():
 	jenv.filters = default_jenv.filters.copy()
 
 	jenv.globals.update(get_safe_globals())
+
+	# PERF: Reuse `get_doc` results during a render assuming it can't change during render.
+	jenv.globals["frappe"]["get_doc"] = cached_get_doc
+
 	methods, filters = get_jinja_hooks()
 	jenv.globals.update(methods or {})
 	jenv.filters.update(filters or {})
@@ -207,6 +211,23 @@ def set_filters(jenv):
 			"flt": flt,
 		}
 	)
+
+
+def cached_get_doc(*args, **kwargs):
+	"""Optimized get_doc version for Jinja/Prints.
+
+	This fetches all unique docs only once per request assuming document can't change during
+	render/print"""
+	if not kwargs and len(args) <= 2 and all(isinstance(a, str) for a in args):
+		return _request_cached_get_doc(*args)
+	else:
+		# Fall back to regular for dict inputs or filters.
+		return frappe.get_doc(*args, **kwargs)
+
+
+@request_cache
+def _request_cached_get_doc(doctype, name):
+	return frappe.get_doc(doctype, name)
 
 
 def get_jinja_hooks():

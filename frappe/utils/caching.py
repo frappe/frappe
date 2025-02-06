@@ -48,6 +48,12 @@ def request_cache(func: Callable) -> Callable:
 	```
 	"""
 
+	def clear_cache():
+		if _cache := getattr(frappe.local, "request_cache", None):
+			_cache[func].clear()
+
+	func.clear_cache = clear_cache
+
 	@wraps(func)
 	def wrapper(*args, **kwargs):
 		_cache = getattr(frappe.local, "request_cache", None)

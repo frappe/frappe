@@ -1,6 +1,7 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import io
+from unittest.mock import patch
 
 from pypdf import PdfReader
 
@@ -94,3 +95,15 @@ class TestPdf(IntegrationTestCase):
 
 		# If image was actually retrieved then size will be  in few kbs, else bytes.
 		self.assertGreaterEqual(len(pdf), 10_000)
+
+	def test_jinja_get_doc_calls(self):
+		html = """ <div>{{ frappe.get_doc("User", "Guest").name }}" </div>
+					<div>{{ frappe.get_doc("User", "Guest").name }}" </div>
+					<div>{{ frappe.get_doc("User", "Guest").name }}" </div>
+		"""
+
+		frappe.render_template(html)
+
+		with patch("frappe.get_doc") as gd:
+			frappe.render_template(html)
+			self.assertEqual(gd.call_count, 1)
