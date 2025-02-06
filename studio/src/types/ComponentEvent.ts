@@ -1,8 +1,9 @@
 import type { DefineComponent } from "vue"
+import { GridRow } from "./doctype"
 
 export type Events = 'click' | 'change' | 'focus' | 'blur' | 'submit' | 'keydown' | 'keyup' | 'keypress'
 
-export type Actions = 'Call API' | 'Switch App Page' | 'Open Webpage'
+export type Actions = 'Call API' | 'Switch App Page' | 'Open Webpage' | 'Insert a Document'
 
 export type ComponentEvent = {
 	event: Events | string
@@ -11,8 +12,11 @@ export type ComponentEvent = {
 	api_endpoint?: string
 	/** action = 'Switch App Page */
 	page?: string
-	/** action = 'Open Webpage */
+	/** action = 'Open Webpage' */
 	url?: string
+	/** action = 'Insert a Document' */
+	doctype?: string
+	fields?: Array<any>[]
 }
 
 export type ActionConfiguration = {

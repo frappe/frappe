@@ -57,6 +57,25 @@
 							:modelValue="newEvent.action"
 							@update:modelValue="(val: SelectOption) => (newEvent.action = val.value as Actions)"
 						/>
+
+						<template v-if="newEvent.action === 'Insert a Document'">
+							<Link label="Document Type" :required="true" doctype="DocType" v-model="newEvent.doctype" />
+							<Grid
+								label="Fields"
+								:columns="[
+									{ label: 'Field', fieldname: 'field', fieldtype: 'select', options: doctypeFields },
+									{
+										label: 'Variable',
+										fieldname: 'value',
+										fieldtype: 'select',
+										options: Object.keys(store.variables),
+									},
+								]"
+								v-model:rows="newEvent.fields"
+								:showDeleteBtn="true"
+							/>
+						</template>
+
 						<component
 							v-for="control in actionControls"
 							:key="control.component.name"
@@ -74,17 +93,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue"
-import { FormControl } from "frappe-ui"
+import { ref, computed, watch } from "vue"
+import { FormControl, createResource } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
 import EmptyState from "@/components/EmptyState.vue"
+import Link from "@/components/Link.vue"
 
 import { isObjectEmpty } from "@/utils/helpers"
 import { getComponentEvents } from "@/utils/components"
 
 import { SelectOption } from "@/types"
 import { Actions, ActionConfigurations, ComponentEvent } from "@/types/ComponentEvent"
+import Grid from "./Grid.vue"
+import { DocTypeField } from "@/types"
 
 const props = defineProps<{
 	block?: Block
@@ -98,6 +120,9 @@ const emptyEvent: ComponentEvent = {
 	page: "",
 	url: "",
 	api_endpoint: "",
+	// insert document
+	doctype: "",
+	fields: [],
 }
 const newEvent = ref<ComponentEvent>({ ...emptyEvent })
 
@@ -175,7 +200,39 @@ const actions: ActionConfigurations = {
 			},
 		},
 	],
+	"Insert a Document": [],
 }
+
+const doctypeFields = ref([])
+watch(
+	() => newEvent.value.doctype,
+	async (value, oldValue) => {
+		if (value === oldValue) return
+
+		const fields = createResource({
+			url: "studio.api.get_doctype_fields",
+			params: { doctype: value },
+			transform: (data: DocTypeField[]) => {
+				return data.map((field) => {
+					return {
+						label: field.fieldname,
+						value: field.fieldname,
+					}
+				})
+			},
+		})
+		await fields.reload()
+		doctypeFields.value = fields.data
+
+		doctypeFields.value.forEach((field) => {
+			newEvent.value.fields?.push({
+				field: field.value,
+				value: "",
+				name: field.value,
+			})
+		})
+	},
+)
 
 const actionControls = computed(() => {
 	return actions[newEvent.value.action] || []
