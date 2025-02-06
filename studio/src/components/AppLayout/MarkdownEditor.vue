@@ -1,7 +1,7 @@
 <template>
 	<div class="flex flex-col">
 		<div v-if="label" class="mb-1.5 text-xs text-gray-600">{{ label }}</div>
-		<div class="flex h-40 flex-col overflow-hidden rounded-lg border border-gray-200">
+		<div class="flex h-auto min-h-40 flex-col overflow-hidden rounded-lg border border-gray-200">
 			<div class="flex gap-2 border-b border-gray-200 bg-gray-50 p-2">
 				<Button
 					v-for="tool in tools"
@@ -17,11 +17,9 @@
 
 			<div class="flex flex-1">
 				<div ref="editorContainer" class="flex-1"></div>
-				<div
-					v-if="showPreview"
-					class="flex-1 overflow-y-auto border-l border-gray-200 p-4"
-					v-html="compiledMarkdown"
-				></div>
+				<div v-if="showPreview" class="flex-1 overflow-y-auto border-l border-gray-200 p-4">
+					<span v-html="compiledMarkdown"></span>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -81,6 +79,9 @@ const tools = ref<Tool[]>([
 ])
 
 const compiledMarkdown = computed(() => {
+	marked.setOptions({
+		gfm: false,
+	})
 	return marked(content.value)
 })
 

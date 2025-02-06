@@ -3,12 +3,10 @@
 		<button class="mb-1 flex w-56 items-center gap-2 rounded p-2 hover:bg-gray-200">
 			<slot name="header">
 				<div class="rounded-sm">
-					<slot name="header">
-						<div v-if="logoSVG" class="flex items-center gap-2">
-							<span v-html="logoSVG" />
-						</div>
-						<AppLogo v-else class="h-6 w-6" />
-					</slot>
+					<div v-if="logoSVG" class="flex items-center gap-2">
+						<span v-html="logoSVG" />
+					</div>
+					<AppLogo v-else class="h-6 w-6" />
 				</div>
 
 				<span class="truncate text-xl font-bold text-gray-800">
