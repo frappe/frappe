@@ -129,6 +129,23 @@ const componentEvents = computed(() => {
 						})
 					}
 				}
+			} else if (event.action === "Insert a Document") {
+				return () => {
+					const fields = {}
+					event.fields.forEach((field) => {
+						fields[field.field] = store.variables[field.value]
+					})
+					createResource({
+						url: "frappe.client.insert",
+						method: "POST",
+						params: {
+							doc: {
+								doctype: event.doctype,
+								...fields,
+							},
+						},
+					}).submit()
+				}
 			}
 		}
 		events[eventName] = getEventFn()
