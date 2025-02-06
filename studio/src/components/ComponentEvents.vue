@@ -27,7 +27,7 @@
 				v-model="showAddEventDialog"
 				:options="{
 					title: 'Add Event',
-					size: 'lg',
+					size: '2xl',
 					actions: [
 						{
 							label: 'Add',
@@ -74,9 +74,12 @@
 								v-model:rows="newEvent.fields"
 								:showDeleteBtn="true"
 							/>
+							<FormControl type="textarea" label="Success Message" v-model="newEvent.success_message" />
+							<FormControl type="textarea" label="Error Message" v-model="newEvent.error_message" />
 						</template>
 
 						<component
+							v-else
 							v-for="control in actionControls"
 							:key="control.component.name"
 							:is="control.component"
@@ -123,6 +126,8 @@ const emptyEvent: ComponentEvent = {
 	// insert document
 	doctype: "",
 	fields: [],
+	success_message: "",
+	error_message: "",
 }
 const newEvent = ref<ComponentEvent>({ ...emptyEvent })
 

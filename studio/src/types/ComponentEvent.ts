@@ -17,6 +17,8 @@ export type ComponentEvent = {
 	/** action = 'Insert a Document' */
 	doctype?: string
 	fields?: Array<any>[]
+	success_message?: string | null
+	error_message?: string | null
 }
 
 export type ActionConfiguration = {

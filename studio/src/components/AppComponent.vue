@@ -35,6 +35,7 @@ import components from "@/data/components"
 import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML } from "@/utils/helpers"
 
 import useAppStore from "@/stores/appStore"
+import { toast } from "vue-sonner"
 
 const props = defineProps<{
 	block: Block
@@ -143,6 +144,20 @@ const componentEvents = computed(() => {
 								doctype: event.doctype,
 								...fields,
 							},
+						},
+						onSuccess() {
+							if (event.success_message) {
+								toast.success(event.success_message)
+							} else {
+								toast.success(`${event.doctype} saved successfully`)
+							}
+						},
+						onError() {
+							if (event.error_message) {
+								toast.error(event.error_message)
+							} else {
+								toast.error(`Error saving ${event.doctype}`)
+							}
 						},
 					}).submit()
 				}
