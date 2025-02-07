@@ -32,6 +32,15 @@ frappe.ui.form.on("DocType", {
 	},
 
 	refresh: function (frm) {
+		if(frm.doc.custom === 1) {
+			frm.add_custom_button(
+				__("Trim Table"),
+				function () {
+					frm.trigger("trim_table");
+				}
+			);
+		}
+
 		frm.set_query("role", "permissions", function (doc) {
 			if (doc.custom && frappe.session.user != "Administrator") {
 				return {
@@ -134,6 +143,40 @@ frappe.ui.form.on("DocType", {
 			frm.form_wrapper.find(".form-message").show();
 			frm.form_wrapper.removeClass("mb-1");
 		}
+	},
+
+	async trim_table(frm) {
+		let dropped_columns = await frappe.xcall(
+			"frappe.custom.doctype.customize_form.customize_form.get_orphaned_columns",
+			{ doctype: frm.doc.name }
+		);
+
+		if (!dropped_columns?.length) {
+			frappe.toast(__("This doctype has no orphan fields to trim"));
+			return;
+		}
+		let msg = __(
+			"Warning: DATA LOSS IMMINENT! Proceeding will permanently delete following database columns from doctype {0}:",
+			[frm.doc.name.bold()]
+		);
+		msg += "<ol>" + dropped_columns.map((col) => `<li>${col}</li>`).join("") + "</ol>";
+		msg += __("This action is irreversible. Do you wish to continue?");
+
+		frappe.confirm(msg, () => {
+			return frm.call({
+				doc: frm.doc,
+				method: "trim_table",
+				callback: function (r) {
+					if (!r.exc) {
+						frappe.show_alert({
+							message: __("Table Trimmed"),
+							indicator: "green",
+						});
+						frm.refresh();
+					}
+				},
+			});
+		});
 	},
 });
 
