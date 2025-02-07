@@ -944,7 +944,8 @@ def trim_tables(doctype=None, dry_run=False, quiet=False):
 
 
 def trim_table(doctype, dry_run=True):
-	frappe.cache.hdel("table_columns", f"tab{doctype}")
+	key = f"table_columns::tab{doctype}"
+	frappe.cache.delete_value(key)
 	ignore_fields = default_fields + optional_fields + child_table_fields
 	columns = frappe.db.get_table_columns(doctype)
 	fields = frappe.get_meta(doctype, cached=False).get_fieldnames_with_value()
