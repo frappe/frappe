@@ -924,7 +924,7 @@ def test_password_strength(new_password: str, key=None, old_password=None, user_
 	enable_password_policy = frappe.get_system_settings("enable_password_policy")
 
 	if not enable_password_policy:
-		return {}
+		return
 
 	if not user_data:
 		user_data = frappe.db.get_value(
