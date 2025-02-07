@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-02 09:33+0000\n"
-"PO-Revision-Date: 2025-02-06 07:12\n"
+"PO-Revision-Date: 2025-02-07 08:07\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -8157,7 +8157,7 @@ msgstr "Ne poništavaj status"
 #. Label of the mute_emails (Check) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Don't Send Emails"
-msgstr "Nemojte slati e-poštu"
+msgstr "Nemoj Slati E-poštu"
 
 #. Description of the 'Ignore XSS Filter' (Check) field in DocType 'DocField'
 #. Description of the 'Ignore XSS Filter' (Check) field in DocType 'Customize
@@ -8508,7 +8508,7 @@ msgstr "Uredi format"
 
 #: frappe/public/js/frappe/form/quick_entry.js:325
 msgid "Edit Full Form"
-msgstr "Uredi puni obrazac"
+msgstr "Uredi Puni Obrazac"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_field.html:27
 #: frappe/public/js/print_format_builder/Field.vue:83
@@ -8930,7 +8930,7 @@ msgstr "E-pošta se već povlači s ovog računa."
 
 #: frappe/email/queue.py:137
 msgid "Emails are muted"
-msgstr "E-poruke su zanemarene"
+msgstr "E-pošta je Prigušena"
 
 #. Description of the 'Send Email Alert' (Check) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
@@ -10875,7 +10875,7 @@ msgstr "Za pomoć pogledajte <a href=\"https://frappeframework.com/docs/user/en/
 #. DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "For more information, <a class=\"text-muted\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document\">click here</a>."
-msgstr "Za više informacija, <a class=\"text-muted\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document\">kliknite ovdje</a>."
+msgstr "Za više informacija, <a class=\"text-muted\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document\">klikni ovdje</a>."
 
 #: frappe/integrations/doctype/google_settings/google_settings.js:7
 msgid "For more information, {0}."
@@ -16273,7 +16273,7 @@ msgstr "Mora se navesti upit za pokretanje"
 #. Label of the mute_sounds (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Mute Sounds"
-msgstr "Utišaj zvukove"
+msgstr "Utišaj Zvuk"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:46
 msgid "Mx"
