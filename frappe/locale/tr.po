@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-02 09:33+0000\n"
-"PO-Revision-Date: 2025-02-06 07:12\n"
+"PO-Revision-Date: 2025-02-07 08:07\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -2783,7 +2783,7 @@ msgstr "DocType'a Eklendi"
 #. Label of the attached_to_field (Data) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Attached To Field"
-msgstr ""
+msgstr "İlgili Alandaki Dosya Eki"
 
 #. Label of the attached_to_name (Data) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
