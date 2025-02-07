@@ -32,6 +32,12 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 
 		frappe.utils.bind_actions_with_object(this.$value, this);
 		this.toggle_reload_button();
+
+		// Don't allow attaching to child tables for new documents
+		if (this.doc?.__islocal && this.doc.parent) {
+			this.$input.prop("disabled", true);
+			this.$input.attr("title", __("Save to enable file upload"));
+		}
 	}
 	clear_attachment() {
 		let me = this;
@@ -119,11 +125,7 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 				`);
 			}
 		} else {
-			// Don't allow attaching to child tables for new documents
-			if (this.doc?.__islocal && this.doc.parent) {
-				this.$input.prop("disabled", true);
-				this.$input.attr("title", __("Save to enable file upload"));
-			}
+			this.$input.toggle(true);
 			this.$value.toggle(false);
 		}
 	}
