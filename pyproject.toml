@@ -37,7 +37,7 @@ dependencies = [
     "cryptography~=43.0.1",
     "cssutils~=2.9.0",
     "email-reply-parser~=0.5.12",
-    "gunicorn @ git+https://github.com/frappe/gunicorn@b9a857003929be9900c2f2baa9ea4d47d0bc3c22",
+    "gunicorn @ git+https://github.com/frappe/gunicorn@72c1e495d89259151e73947a057432d528b06bb0",
     "html5lib~=1.1",
     "ipython~=8.15.0",
     "ldap3~=2.9",
