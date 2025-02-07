@@ -276,7 +276,7 @@ def _fetch_table_stats(doctype: str, columns: list[str]) -> dict | None:
 		)[0][0]
 	)
 
-	# fetch accurate cardinality for columns by query. WARN: This can take A LOT of time.
+	# fetch accurate cardinality for columns by query. WARN: This samples ~5% of the table!
 	for column in columns:
 		cardinality = _get_column_cardinality(table, column)
 		update_cardinality(column, cardinality)
@@ -289,9 +289,9 @@ def _fetch_table_stats(doctype: str, columns: list[str]) -> dict | None:
 	}
 
 
-@redis_cache
+@redis_cache(ttl=60 * 60)
 def _get_column_cardinality(table, column):
-	return frappe.db.sql(f"select count(distinct {column}) from {table}")[0][0]
+	return frappe.db.sql(f"select count(distinct {column}) * 20 from {table} where rand() < 0.05")[0][0]
 
 
 def get_doctype_name(table_name: str) -> str:
