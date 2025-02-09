@@ -1058,6 +1058,7 @@ class DocType(Document):
 	@frappe.whitelist()
 	def trim_table(self):
 		from frappe.model.meta import trim_table
+
 		"""Removes database fields that don't exist in the doctype.
 
 		This may be needed as maintenance since removing a field in a DocType

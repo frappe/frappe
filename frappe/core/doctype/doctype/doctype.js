@@ -32,13 +32,10 @@ frappe.ui.form.on("DocType", {
 	},
 
 	refresh: function (frm) {
-		if(frm.doc.custom === 1) {
-			frm.add_custom_button(
-				__("Trim Table"),
-				function () {
-					frm.trigger("trim_table");
-				}
-			);
+		if (frm.doc.custom === 1) {
+			frm.add_custom_button(__("Trim Table"), function () {
+				frm.trigger("trim_table");
+			});
 		}
 
 		frm.set_query("role", "permissions", function (doc) {
@@ -144,7 +141,6 @@ frappe.ui.form.on("DocType", {
 			frm.form_wrapper.removeClass("mb-1");
 		}
 	},
-
 });
 
 frappe.ui.form.on("DocField", {
