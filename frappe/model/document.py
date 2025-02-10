@@ -1030,7 +1030,11 @@ class Document(BaseDocument, DocRef):
 
 		missing = self._get_missing_mandatory_fields()
 		for d in self.get_all_children():
-			missing.extend(d._get_missing_mandatory_fields())
+			child_missing = d._get_missing_mandatory_fields()
+			if child_missing:
+				missing.extend(child_missing)
+				if not frappe.flags.in_import:
+					break
 
 		if not missing:
 			return
