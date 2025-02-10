@@ -2004,6 +2004,9 @@ def filter_operator_is(value: str, pattern: str) -> bool:
 
 
 def filter_operator_timespan(value: str, pattern: str) -> bool:
+	if not value:
+		return False
+
 	date_range = get_timespan_date_range(pattern)
 	return date_range[0] <= getdate(value) <= date_range[1]
 

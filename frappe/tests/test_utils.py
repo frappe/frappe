@@ -226,6 +226,12 @@ class TestFilters(IntegrationTestCase):
 		self.assertTrue(evaluate_filters(doc, [("last_password_reset_date", "Timespan", "today")]))
 		self.assertFalse(evaluate_filters(doc, [("last_password_reset_date", "Timespan", "last year")]))
 
+		doc = {
+			"doctype": "User",
+			"last_password_reset_date": None,
+		}
+		self.assertFalse(evaluate_filters(doc, [("last_password_reset_date", "Timespan", "today")]))
+
 
 class TestMoney(IntegrationTestCase):
 	def test_money_in_words(self):
