@@ -238,4 +238,3 @@ frappe.integrations.doctype.oauth_client.patches.set_default_allowed_role_in_oau
 frappe.patches.v16_0.add_app_launcher_in_navbar_settings
 frappe.patches.v15_0.remove_workspace_settings_navbar_items
 frappe.patches.v16_0.move_role_desk_settings_to_user
-frappe.patches.v16_0.update_expression_series
