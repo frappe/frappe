@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-02 09:33+0000\n"
-"PO-Revision-Date: 2025-02-07 08:07\n"
+"PO-Revision-Date: 2025-02-10 08:44\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -993,7 +993,7 @@ msgstr "Postavke brisanja računa"
 #: frappe/contacts/doctype/contact/contact.json
 #: frappe/geo/doctype/currency/currency.json
 msgid "Accounts Manager"
-msgstr "Voditelj računa"
+msgstr "Upravitelj Računa"
 
 #. Name of a role
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
@@ -1001,7 +1001,7 @@ msgstr "Voditelj računa"
 #: frappe/contacts/doctype/contact/contact.json
 #: frappe/geo/doctype/currency/currency.json
 msgid "Accounts User"
-msgstr "Korisnik računa"
+msgstr "Korisnik Računa"
 
 #. Label of the action (Select) field in DocType 'Amended Document Naming
 #. Settings'
