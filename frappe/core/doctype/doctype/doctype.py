@@ -1085,12 +1085,6 @@ def validate_series(dt, autoname=None, name=None):
 					df.unique = 1
 					break
 
-	if autoname and autoname.startswith("format:"):
-		from frappe.model.naming import BRACED_PARAMS_HASH_PATTERN
-
-		if len(BRACED_PARAMS_HASH_PATTERN.findall(autoname)) > 1:
-			frappe.throw(_("Only one set of {#} pattern is allowed in the format string"))
-
 	if (
 		autoname
 		and (not autoname.startswith("field:"))
