@@ -22,7 +22,7 @@
    "fieldname": "state",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "State",
+   "label": "Workflow State",
    "options": "Workflow State",
    "print_width": "200px",
    "reqd": 1,

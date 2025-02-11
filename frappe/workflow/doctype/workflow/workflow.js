@@ -162,8 +162,8 @@ frappe.ui.form.on("Workflow", {
 			frm.state_table_html = `<table class="table state-table table-bordered" style="margin:0px; width: 65%">
 				<thead style="font-size: 12px">
 					<tr class="text-muted">
-						<th>${__("State")}</th>
-						<th>${__("Count")}</th>
+						<th>${__("Workflow State")}</th>
+						<th>${__("Workflow Count")}</th>
 					</tr>
 				</thead>
 				<tbody>

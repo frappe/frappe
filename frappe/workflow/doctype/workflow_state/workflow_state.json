@@ -17,7 +17,7 @@
    "fieldname": "workflow_state_name",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "State",
+   "label": "Workflow State",
    "reqd": 1,
    "unique": 1
   },
