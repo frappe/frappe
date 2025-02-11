@@ -38,7 +38,7 @@
 			</template>
 			<template v-else>
 				<span
-					:class="[slotClasses, !slot.slotContent ? 'min-h-5 min-w-5' : '']"
+					:class="[slotClasses, !slot.slotContent ? 'min-h-5 w-full' : '']"
 					:data-slot-id="slot.slotId"
 					:data-slot-name="slotName"
 					:data-component-id="block.componentId"
