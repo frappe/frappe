@@ -63,11 +63,11 @@
 							<Grid
 								label="Fields"
 								:columns="[
-									{ label: 'Field', fieldname: 'field', fieldtype: 'select', options: doctypeFields },
+									{ label: 'Field', fieldname: 'field', fieldtype: 'Select', options: doctypeFields },
 									{
 										label: 'Variable',
 										fieldname: 'value',
-										fieldtype: 'select',
+										fieldtype: 'Select',
 										options: Object.keys(store.variables),
 									},
 								]"
@@ -201,6 +201,38 @@ const actions: ActionConfigurations = {
 			events: {
 				"update:modelValue": (val: string) => {
 					newEvent.value.api_endpoint = val
+				},
+			},
+		},
+		{
+			component: FormControl,
+			getProps: () => {
+				return {
+					type: "textarea",
+					label: "Success Message",
+					modelValue: newEvent.value.success_message,
+					autocomplete: "off",
+				}
+			},
+			events: {
+				"update:modelValue": (val: string) => {
+					newEvent.value.success_message = val
+				},
+			},
+		},
+		{
+			component: FormControl,
+			getProps: () => {
+				return {
+					type: "textarea",
+					label: "Error Message",
+					modelValue: newEvent.value.error_message,
+					autocomplete: "off",
+				}
+			},
+			events: {
+				"update:modelValue": (val: string) => {
+					newEvent.value.error_message = val
 				},
 			},
 		},
