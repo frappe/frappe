@@ -38,11 +38,11 @@ class HTTPRequest:
 		# load cookies
 		self.set_cookies()
 
-		# set request language
-		self.set_lang()
-
 		# login and start/resume user session
 		self.set_session()
+
+		# set request language
+		self.set_lang()
 
 		# match csrf token from current session
 		self.validate_csrf_token()
