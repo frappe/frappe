@@ -40,11 +40,11 @@ class HTTPRequest:
 		# load cookies
 		self.set_cookies()
 
-		# set request language
-		self.set_lang()
-
 		# login and start/resume user session
 		self.set_session()
+
+		# set request language
+		self.set_lang()
 
 		# match csrf token from current session
 		self.validate_csrf_token()
@@ -629,7 +629,11 @@ def validate_oauth(authorization_header):
 	Authenticate request using OAuth and set session user
 
 	Args:
+<<<<<<< HEAD
 	                authorization_header (list of str): The 'Authorization' header containing the prefix and token
+=======
+	        authorization_header (list of str): The 'Authorization' header containing the prefix and token
+>>>>>>> 5731f448c9 (Revert "Merge pull request #30896 from dhiashalabi/fix/reorder-setlang-initialization" (#31225))
 	"""
 
 	from frappe.integrations.oauth2 import get_oauth_server
@@ -669,7 +673,11 @@ def validate_auth_via_api_keys(authorization_header):
 	Authenticate request using API keys and set session user
 
 	Args:
+<<<<<<< HEAD
 	                authorization_header (list of str): The 'Authorization' header containing the prefix and token
+=======
+	        authorization_header (list of str): The 'Authorization' header containing the prefix and token
+>>>>>>> 5731f448c9 (Revert "Merge pull request #30896 from dhiashalabi/fix/reorder-setlang-initialization" (#31225))
 	"""
 
 	try:
