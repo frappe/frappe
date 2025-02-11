@@ -55,7 +55,7 @@
   {
    "fieldname": "state",
    "fieldtype": "Data",
-   "label": "State",
+   "label": "Token State",
    "read_only": 1
   },
   {
