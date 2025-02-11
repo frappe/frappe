@@ -612,7 +612,8 @@ def create_job_id(job_id: str | None = None) -> str:
 
 	if not job_id:
 		job_id = str(uuid4())
-	job_id = job_id.replace(":", "|")
+	else:
+		job_id = job_id.replace(":", "|")
 	return f"{frappe.local.site}||{job_id}"
 
 
