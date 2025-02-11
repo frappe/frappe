@@ -54,8 +54,10 @@
 					/>
 					<div v-else class="flex flex-row justify-between">
 						<div class="text-sm font-semibold text-pink-700">{{ variable_name }}</div>
-						<div class="text-xs text-gray-600">&nbsp;=&nbsp;</div>
-						<div class="text-sm text-violet-700">{{ value }}</div>
+						<template v-if="value !== ''">
+							<div class="text-xs text-gray-600">&nbsp;=&nbsp;</div>
+							<div class="text-sm text-violet-700">{{ value }}</div>
+						</template>
 					</div>
 					<div
 						class="invisible -mt-1 ml-auto self-start text-gray-600 group-hover/variable:visible has-[.active-item]:visible"
