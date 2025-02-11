@@ -517,16 +517,13 @@ class Meta(Document):
 		UI code can use this information to adapt accordingly."""
 		# Note: `modified` should be used in older versions.
 		self.is_large_table = False
-		if not frappe.db.table_exists(self.name):  # During install, new migrate
+		if self.istable or not frappe.db.table_exists(self.name):  # During install, new migrate
 			return
 
-		recent_change = frappe.db.get_value(self.name, {}, "creation", order_by="creation desc")
-		self.is_large_table = (
-			not self.istable
-			and frappe.db.estimate_count(self.name) > LARGE_TABLE_SIZE_THRESHOLD
-			and recent_change
-			and get_datetime(recent_change) > add_to_date(None, days=-1 * LARGE_TABLE_RECENCY_THRESHOLD)
-		)
+		if frappe.db.estimate_count(self.name) > LARGE_TABLE_SIZE_THRESHOLD:
+			recent_change = frappe.db.get_value(self.name, {}, "creation", order_by="creation desc")
+			if get_datetime(recent_change) > add_to_date(None, days=-1 * LARGE_TABLE_RECENCY_THRESHOLD):
+				self.is_large_table = True
 
 	def init_field_caches(self):
 		# field map
