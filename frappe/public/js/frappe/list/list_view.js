@@ -121,7 +121,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return;
 		}
 		// Note: versions older than v16 should use "modified" here.
-		const recency_field = "creation";
+		const recency_field = "modified";
 
 		if (this.filters.filter((arr) => arr?.includes(recency_field)).length) {
 			return;
