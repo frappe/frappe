@@ -25,9 +25,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		super(opts);
 		this.show();
 		const meta = frappe.get_meta(this.doctype);
+		this.is_large_table = meta?.is_large_table;
+
 		this.debounced_refresh = frappe.utils.debounce(
 			this.process_document_refreshes.bind(this),
-			meta?.is_large_table ? 15000 : 2000
+			this.is_large_table ? 15000 : 2000
 		);
 		this.count_upper_bound = 1001;
 		this._element_factory = new ElementFactory(this.doctype);
@@ -106,9 +108,23 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				return f;
 			});
 		}
+		this.add_recent_filter_on_large_tables();
 
 		this.patch_refresh_and_load_lib();
 		return this.get_list_view_settings();
+	}
+
+	add_recent_filter_on_large_tables() {
+		if (!this.is_large_table) {
+			return;
+		}
+		// Note: versions older than v16 should use "modified" here.
+		const recency_field = "creation";
+
+		if (this.filters.filter((arr) => arr?.includes(recency_field)).length) {
+			return;
+		}
+		this.filters.push([this.doctype, recency_field, "Timespan", "last 90 days"]);
 	}
 
 	on_sort_change(sort_by, sort_order) {
@@ -519,6 +535,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	before_refresh() {
 		if (frappe.route_options && this.filter_area) {
 			this.filters = this.parse_filters_from_route_options();
+			this.add_recent_filter_on_large_tables();
 			frappe.route_options = null;
 
 			if (this.filters.length > 0) {

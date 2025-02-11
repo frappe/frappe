@@ -899,20 +899,13 @@ def get_timespan_date_range(
 
 	match timespan:
 		case "last 7 days":
-			return (
-				add_to_date(today, days=-7),
-				today,
-			)
+			return (add_to_date(today, days=-7), today)
 		case "last 14 days":
-			return (
-				add_to_date(today, days=-14),
-				today,
-			)
+			return (add_to_date(today, days=-14), today)
 		case "last 30 days":
-			return (
-				add_to_date(today, days=-30),
-				today,
-			)
+			return (add_to_date(today, days=-30), today)
+		case "last 90 days":
+			return (add_to_date(today, days=-90), today)
 		case "last week":
 			return (
 				get_first_day_of_week(add_to_date(today, days=-7)),
