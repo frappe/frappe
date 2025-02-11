@@ -1,5 +1,4 @@
 import type { DefineComponent } from "vue"
-import { GridRow } from "./doctype"
 
 export type Events = 'click' | 'change' | 'focus' | 'blur' | 'submit' | 'keydown' | 'keyup' | 'keypress'
 
@@ -25,6 +24,7 @@ export type ActionConfiguration = {
 	component: DefineComponent
 	getProps: () => object
 	events: Record<string, (event: any) => void>
+	class?: string | string[]
 }
 
 export type ActionConfigurations = {

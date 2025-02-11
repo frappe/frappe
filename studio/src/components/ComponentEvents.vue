@@ -57,34 +57,13 @@
 							:modelValue="newEvent.action"
 							@update:modelValue="(val: SelectOption) => (newEvent.action = val.value as Actions)"
 						/>
-
-						<template v-if="newEvent.action === 'Insert a Document'">
-							<Link label="Document Type" :required="true" doctype="DocType" v-model="newEvent.doctype" />
-							<Grid
-								label="Fields"
-								:columns="[
-									{ label: 'Field', fieldname: 'field', fieldtype: 'Select', options: doctypeFields },
-									{
-										label: 'Variable',
-										fieldname: 'value',
-										fieldtype: 'Select',
-										options: Object.keys(store.variables),
-									},
-								]"
-								v-model:rows="newEvent.fields"
-								:showDeleteBtn="true"
-							/>
-							<FormControl type="textarea" label="Success Message" v-model="newEvent.success_message" />
-							<FormControl type="textarea" label="Error Message" v-model="newEvent.error_message" />
-						</template>
-
 						<component
-							v-else
 							v-for="control in actionControls"
 							:key="control.component.name"
 							:is="control.component"
 							v-bind="control.getProps()"
 							v-on="control.events || {}"
+							:class="control.class || ''"
 						/>
 					</div>
 				</template>
@@ -101,14 +80,14 @@ import { FormControl, createResource } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
 import EmptyState from "@/components/EmptyState.vue"
-import Link from "@/components/Link.vue"
 
 import { isObjectEmpty } from "@/utils/helpers"
 import { getComponentEvents } from "@/utils/components"
 
 import { SelectOption } from "@/types"
 import { Actions, ActionConfigurations, ComponentEvent } from "@/types/ComponentEvent"
-import Grid from "./Grid.vue"
+import Link from "@/components/Link.vue"
+import Grid from "@/components/Grid.vue"
 import { DocTypeField } from "@/types"
 
 const props = defineProps<{
@@ -145,6 +124,72 @@ const eventOptions = computed(() => {
 		"keypress",
 	]
 })
+
+const doctypeFields = ref([])
+watch(
+	() => newEvent.value.doctype,
+	async (value, oldValue) => {
+		if (value === oldValue) return
+
+		const fields = createResource({
+			url: "studio.api.get_doctype_fields",
+			params: { doctype: value },
+			transform: (data: DocTypeField[]) => {
+				return data.map((field) => {
+					return {
+						label: field.fieldname,
+						value: field.fieldname,
+					}
+				})
+			},
+		})
+		await fields.reload()
+		doctypeFields.value = fields.data
+
+		doctypeFields.value.forEach((field) => {
+			newEvent.value.fields?.push({
+				field: field.value,
+				value: "",
+				name: field.value,
+			})
+		})
+	},
+)
+
+const successFailureFields = [
+	{
+		component: FormControl,
+		getProps: () => {
+			return {
+				type: "textarea",
+				label: "Success Message",
+				modelValue: newEvent.value.success_message,
+				autocomplete: "off",
+			}
+		},
+		events: {
+			"update:modelValue": (val: string) => {
+				newEvent.value.success_message = val
+			},
+		},
+	},
+	{
+		component: FormControl,
+		getProps: () => {
+			return {
+				type: "textarea",
+				label: "Error Message",
+				modelValue: newEvent.value.error_message,
+				autocomplete: "off",
+			}
+		},
+		events: {
+			"update:modelValue": (val: string) => {
+				newEvent.value.error_message = val
+			},
+		},
+	},
+]
 
 const actions: ActionConfigurations = {
 	"Switch App Page": [
@@ -204,72 +249,52 @@ const actions: ActionConfigurations = {
 				},
 			},
 		},
-		{
-			component: FormControl,
-			getProps: () => {
-				return {
-					type: "textarea",
-					label: "Success Message",
-					modelValue: newEvent.value.success_message,
-					autocomplete: "off",
-				}
-			},
-			events: {
-				"update:modelValue": (val: string) => {
-					newEvent.value.success_message = val
-				},
-			},
-		},
-		{
-			component: FormControl,
-			getProps: () => {
-				return {
-					type: "textarea",
-					label: "Error Message",
-					modelValue: newEvent.value.error_message,
-					autocomplete: "off",
-				}
-			},
-			events: {
-				"update:modelValue": (val: string) => {
-					newEvent.value.error_message = val
-				},
-			},
-		},
+		...successFailureFields,
 	],
-	"Insert a Document": [],
-}
-
-const doctypeFields = ref([])
-watch(
-	() => newEvent.value.doctype,
-	async (value, oldValue) => {
-		if (value === oldValue) return
-
-		const fields = createResource({
-			url: "studio.api.get_doctype_fields",
-			params: { doctype: value },
-			transform: (data: DocTypeField[]) => {
-				return data.map((field) => {
-					return {
-						label: field.fieldname,
-						value: field.fieldname,
-					}
-				})
+	"Insert a Document": [
+		{
+			component: Link,
+			getProps: () => {
+				return {
+					label: "Document Type",
+					required: true,
+					doctype: "DocType",
+					modelValue: newEvent.value.doctype,
+				}
 			},
-		})
-		await fields.reload()
-		doctypeFields.value = fields.data
-
-		doctypeFields.value.forEach((field) => {
-			newEvent.value.fields?.push({
-				field: field.value,
-				value: "",
-				name: field.value,
-			})
-		})
-	},
-)
+			events: {
+				"update:modelValue": (val: string) => {
+					newEvent.value.doctype = val
+				},
+			},
+		},
+		{
+			component: Grid,
+			getProps: () => {
+				return {
+					label: "Fields",
+					columns: [
+						{ label: "Field", fieldname: "field", fieldtype: "select", options: doctypeFields.value },
+						{
+							label: "Variable",
+							fieldname: "value",
+							fieldtype: "select",
+							options: Object.keys(store.variables),
+						},
+					],
+					rows: newEvent.value.fields,
+					showDeleteBtn: true,
+				}
+			},
+			events: {
+				"update:rows": (val: any) => {
+					newEvent.value.fields = val
+				},
+			},
+		},
+		...successFailureFields,
+	],
+}
 
 const actionControls = computed(() => {
 	return actions[newEvent.value.action] || []
