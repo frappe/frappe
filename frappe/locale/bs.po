@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-09 09:32+0000\n"
-"PO-Revision-Date: 2025-02-11 09:06\n"
+"PO-Revision-Date: 2025-02-12 10:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -32,11 +32,11 @@ msgstr "!="
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "\"Company History\""
-msgstr "\"Historija kompanije\""
+msgstr "\"Historija Kompanije\""
 
 #: frappe/core/doctype/data_export/exporter.py:202
 msgid "\"Parent\" signifies the parent table in which this row must be added"
-msgstr "\"Matični\" označava nadređenu tabelu u koju se ovaj red mora dodati"
+msgstr "\"Nadređeni\" označava nadređenu tabelu u koju se ovaj red mora dodati"
 
 #. Description of the 'Team Members Heading' (Data) field in DocType 'About Us
 #. Settings'
@@ -8229,7 +8229,7 @@ msgstr "Preuzmi izvještaj"
 #. Label of the download_template (Button) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Download Template"
-msgstr "Preuzmite skicu"
+msgstr "Preuzmi Nacrt"
 
 #: frappe/website/doctype/personal_data_download_request/personal_data_download_request.py:61
 #: frappe/website/doctype/personal_data_download_request/personal_data_download_request.py:69
@@ -12714,12 +12714,12 @@ msgstr "Implicitno"
 #: frappe/core/doctype/recorder/recorder_list.js:16
 #: frappe/email/doctype/email_group/email_group.js:31
 msgid "Import"
-msgstr "Uvoz"
+msgstr "Import"
 
 #: frappe/public/js/frappe/list/list_view.js:1734
 msgctxt "Button in list view menu"
 msgid "Import"
-msgstr "Uvoz"
+msgstr "Import"
 
 #. Label of a Link in the Tools Workspace
 #. Label of a shortcut in the Tools Workspace
