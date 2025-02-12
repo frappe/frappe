@@ -440,7 +440,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			tables = (
 				frappe.qb.from_(information_schema.tables)
 				.select(information_schema.tables.table_name)
-				.where(information_schema.tables.table_schema == frappe.db.cur_db_name)
+				.where(information_schema.tables.table_schema == frappe.conf.db_name)
 				.run(pluck=True)
 			)
 			frappe.cache().set_value("db_tables", tables)
