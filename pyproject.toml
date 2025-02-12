@@ -35,7 +35,7 @@ dependencies = [
     "cairocffi==1.5.1",
     "chardet~=5.1.0",
     "croniter~=2.0.1",
-    "cryptography~=43.0.1",
+    "cryptography~=44.0.1",
     "cssutils~=2.9.0",
     "email-reply-parser~=0.5.12",
     "gunicorn @ git+https://github.com/frappe/gunicorn@72c1e495d89259151e73947a057432d528b06bb0",
