@@ -37,7 +37,7 @@
 								<IconButton
 									:icon="isVariableBound(config.modelValue) ? 'Link2Off' : 'Link2'"
 									:label="
-										isVariableBound(config.modelValue) ? 'Disable two-way binding' : 'Enable two-way binding'
+										isVariableBound(config.modelValue) ? 'Disable sync with variable' : 'Sync with variable'
 									"
 									iconComponent="LucideIcon"
 									placement="bottom"
