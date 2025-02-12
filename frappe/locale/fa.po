@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-09 09:32+0000\n"
-"PO-Revision-Date: 2025-02-11 09:06\n"
+"PO-Revision-Date: 2025-02-12 10:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -981,12 +981,12 @@ msgstr "افزودن / به روز رسانی"
 
 #: frappe/core/page/permission_manager/permission_manager.js:435
 msgid "Add A New Rule"
-msgstr "یک قانون جدید اضافه کنید"
+msgstr "افزودن یک قانون جدید"
 
 #: frappe/public/js/frappe/views/communication.js:595
 #: frappe/public/js/frappe/views/interaction.js:159
 msgid "Add Attachment"
-msgstr "پیوست را اضافه کنید"
+msgstr "افزودن پیوست"
 
 #. Label of the add_background_image (Check) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
@@ -996,12 +996,12 @@ msgstr "افزودن تصویر پس زمینه"
 #. Label of the add_border_at_bottom (Check) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Border at Bottom"
-msgstr "حاشیه را در پایین اضافه کنید"
+msgstr "افزودن حاشیه در پایین"
 
 #. Label of the add_border_at_top (Check) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Border at Top"
-msgstr "حاشیه را در بالا اضافه کنید"
+msgstr "افزودن حاشیه در بالا"
 
 #: frappe/desk/doctype/number_card/number_card.js:36
 msgid "Add Card to Dashboard"
@@ -1035,7 +1035,7 @@ msgstr "افزودن شماره"
 #. Label of the add_container (Check) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Container"
-msgstr "کانتینر اضافه کنید"
+msgstr "افزودن کانتینر"
 
 #. Label of the set_meta_tags (Button) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -1050,7 +1050,7 @@ msgstr "افزودن فیلترها"
 #. Label of the add_shade (Check) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Gray Background"
-msgstr "پس زمینه خاکستری را اضافه کنید"
+msgstr "افزودن پس زمینه خاکستری"
 
 #: frappe/public/js/frappe/ui/group_by/group_by.js:230
 #: frappe/public/js/frappe/ui/group_by/group_by.js:418
@@ -1067,7 +1067,7 @@ msgstr "افزودن چندگانه"
 
 #: frappe/core/page/permission_manager/permission_manager.js:438
 msgid "Add New Permission Rule"
-msgstr "قانون مجوز جدید را اضافه کنید"
+msgstr "افزودن قانون مجوز جدید"
 
 #: frappe/desk/doctype/event/event.js:35 frappe/desk/doctype/event/event.js:42
 msgid "Add Participants"
@@ -1099,7 +1099,7 @@ msgstr "افزودن امضا"
 #. Label of the add_bottom_padding (Check) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Space at Bottom"
-msgstr "فضای پایین را اضافه کنید"
+msgstr "افزودن فضا در پایین"
 
 #. Label of the add_top_padding (Check) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
@@ -1109,7 +1109,7 @@ msgstr "افزودن فضا در بالا"
 #: frappe/email/doctype/email_group/email_group.js:38
 #: frappe/email/doctype/email_group/email_group.js:59
 msgid "Add Subscribers"
-msgstr "مشترکین را اضافه کنید"
+msgstr "افزودن مشترکین"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:425
 msgid "Add Tags"
@@ -1132,11 +1132,11 @@ msgstr "افزودن ردیف کل"
 #. Label of the add_unsubscribe_link (Check) field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Add Unsubscribe Link"
-msgstr "پیوند لغو اشتراک را اضافه کنید"
+msgstr "افزودن پیوند لغو اشتراک"
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:6
 msgid "Add User Permissions"
-msgstr "مجوزهای کاربر را اضافه کنید"
+msgstr "افزودن مجوزهای کاربر"
 
 #. Label of the add_video_conferencing (Check) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
@@ -1149,41 +1149,41 @@ msgstr "افزودن یک فیلتر"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:9
 msgid "Add a New Role"
-msgstr "یک نقش جدید اضافه کنید"
+msgstr "افزودن یک نقش جدید"
 
 #: frappe/public/js/frappe/form/form_tour.js:211
 msgid "Add a Row"
-msgstr "یک ردیف اضافه کنید"
+msgstr ""
 
 #: frappe/templates/includes/comments/comments.html:30
 #: frappe/templates/includes/comments/comments.html:47
 msgid "Add a comment"
-msgstr "یک نظر اضافه کنید"
+msgstr "افزودن یک نظر"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:28
 #: frappe/public/js/form_builder/components/Tabs.vue:192
 msgid "Add a new section"
-msgstr "یک بخش جدید اضافه کنید"
+msgstr "افزودن یک بخش جدید"
 
 #: frappe/public/js/frappe/form/form.js:193
 msgid "Add a row above the current row"
-msgstr "یک ردیف بالای ردیف فعلی اضافه کنید"
+msgstr "افزودن یک ردیف بالای ردیف فعلی"
 
 #: frappe/public/js/frappe/form/form.js:205
 msgid "Add a row at the bottom"
-msgstr "یک ردیف در پایین اضافه کنید"
+msgstr "افزودن یک ردیف در پایین"
 
 #: frappe/public/js/frappe/form/form.js:201
 msgid "Add a row at the top"
-msgstr "یک ردیف در بالا اضافه کنید"
+msgstr "افزودن یک ردیف در بالا"
 
 #: frappe/public/js/frappe/form/form.js:197
 msgid "Add a row below the current row"
-msgstr "یک ردیف زیر ردیف فعلی اضافه کنید"
+msgstr "افزودن یک ردیف زیر ردیف فعلی"
 
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:286
 msgid "Add a {0} Chart"
-msgstr "یک نمودار {0} اضافه کنید"
+msgstr "افزودن یک نمودار {0}"
 
 #: frappe/public/js/form_builder/components/Section.vue:271
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:115
@@ -1232,7 +1232,7 @@ msgstr "افزودن به لیست انجام کارها"
 
 #: frappe/website/doctype/website_slideshow/website_slideshow.js:32
 msgid "Add to table"
-msgstr "به جدول اضافه کنید"
+msgstr "افزودن به جدول"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:99
 msgid "Add to this activity by mailing to {0}"
@@ -10918,7 +10918,7 @@ msgstr "جمعه"
 #: frappe/public/js/frappe/views/communication.js:194
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:70
 msgid "From"
-msgstr "از جانب"
+msgstr "از"
 
 #. Label of the from_date (Date) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -27867,7 +27867,7 @@ msgstr ""
 #. Label of the use_post (Check) field in DocType 'SMS Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
 msgid "Use POST"
-msgstr "از POST استفاده کنید"
+msgstr "استفاده از POST"
 
 #. Label of the use_report_chart (Check) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
