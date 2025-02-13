@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-09 09:32+0000\n"
-"PO-Revision-Date: 2025-02-12 10:13\n"
+"PO-Revision-Date: 2025-02-13 10:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -25930,7 +25930,7 @@ msgstr "تعداد نشان داده شده یک تعداد تخمینی است.
 #. Description of the 'Code' (Data) field in DocType 'Country'
 #: frappe/geo/doctype/country/country.json
 msgid "The country's ISO 3166 ALPHA-2 code."
-msgstr ""
+msgstr "کد ISO 3166 ALPHA-2 کشور."
 
 #: frappe/public/js/frappe/views/interaction.js:300
 msgid "The document could not be correctly assigned"
@@ -31295,7 +31295,7 @@ msgstr "{0} یک آدرس ایمیل معتبر نیست"
 
 #: frappe/geo/doctype/country/country.py:30
 msgid "{0} is not a valid ISO 3166 ALPHA-2 code."
-msgstr ""
+msgstr "{0} یک کد ISO 3166 ALPHA-2 معتبر نیست."
 
 #: frappe/utils/__init__.py:168
 msgid "{0} is not a valid Name"
