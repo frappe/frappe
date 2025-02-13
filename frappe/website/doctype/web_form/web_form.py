@@ -164,9 +164,11 @@ def get_context(context):
 				)
 
 			if not frappe.db.exists(self.doc_type, frappe.form_dict.name):
+				frappe.has_permission(self.doc_type, throw=True)
 				raise frappe.PageDoesNotExistError()
 
 			if not self.has_web_form_permission(self.doc_type, frappe.form_dict.name):
+				frappe.has_permission(self.doc_type, throw=True)
 				frappe.throw(
 					_("You don't have the permissions to access this document"), frappe.PermissionError
 				)
