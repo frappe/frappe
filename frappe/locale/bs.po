@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-09 09:32+0000\n"
-"PO-Revision-Date: 2025-02-12 10:13\n"
+"PO-Revision-Date: 2025-02-13 10:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -224,7 +224,7 @@ msgstr "4 sata"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:37
 msgid "5 Records"
-msgstr "5 zapisa"
+msgstr "5 Zapisa"
 
 #: frappe/tests/test_utils.py:698
 msgid "5 days ago"
