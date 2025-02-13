@@ -149,7 +149,7 @@ watch(
 		doctypeFields.value.forEach((field) => {
 			newEvent.value.fields?.push({
 				field: field.value,
-				value: "",
+				value: Object.keys(store.variables).includes(field.value) ? field.value : "",
 				name: field.value,
 			})
 		})
