@@ -55,7 +55,9 @@ def delete_doc(
 		# already deleted..?
 		if not frappe.db.exists(doctype, name):
 			if not ignore_missing:
-				raise frappe.DoesNotExistError
+				exc = frappe.DoesNotExistError()
+				exc.doctype = doctype
+				raise exc
 			else:
 				return False
 
