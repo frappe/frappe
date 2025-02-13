@@ -6,6 +6,7 @@ from contextlib import suppress
 import redis
 
 import frappe
+from frappe.utils import check_doctype_permission
 from frappe.utils.data import cstr
 
 
@@ -116,6 +117,7 @@ def emit_via_redis(event, message, room):
 @frappe.whitelist(allow_guest=True)
 def has_permission(doctype: str, name: str) -> bool:
 	if not frappe.has_permission(doctype=doctype, doc=name, ptype="read"):
+		check_doctype_permission(doctype)
 		raise frappe.PermissionError
 
 	return True
