@@ -45,6 +45,7 @@ from frappe.query_builder.utils import (
 	patch_query_aggregation,
 	patch_query_execute,
 )
+from frappe.utils import check_doctype_permission
 from frappe.utils.caching import request_cache
 from frappe.utils.data import bold, cint, cstr, safe_decode, safe_encode, sbool
 
@@ -481,7 +482,7 @@ Action: TypeAlias = ServerAction | ClientAction
 def msgprint(
 	msg: str,
 	title: str | None = None,
-	raise_exception: bool | type[Exception] = False,
+	raise_exception: bool | type[Exception] | Exception = False,
 	as_table: bool = False,
 	as_list: bool = False,
 	indicator: Literal["blue", "green", "orange", "red", "yellow"] | None = None,
@@ -515,6 +516,9 @@ def msgprint(
 		if raise_exception:
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
 				exc = raise_exception(msg)
+			elif isinstance(raise_exception, Exception):
+				exc = raise_exception
+				exc.args = (msg,)
 			else:
 				exc = ValidationError(msg)
 			if out.__frappe_exc_id:
@@ -590,7 +594,7 @@ def clear_last_message():
 
 def throw(
 	msg: str,
-	exc: type[Exception] = ValidationError,
+	exc: type[Exception] | Exception = ValidationError,
 	title: str | None = None,
 	is_minimizable: bool = False,
 	wide: bool = False,
@@ -1275,7 +1279,9 @@ def get_last_doc(
 	if d:
 		return get_doc(doctype, d[0], for_update=for_update)
 	else:
-		raise DoesNotExistError
+		exc = DoesNotExistError()
+		exc.doctype = doctype
+		raise exc
 
 
 def get_single(doctype):

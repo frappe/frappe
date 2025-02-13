@@ -386,7 +386,7 @@ def validate_print_permission(doc: "Document") -> None:
 		validate_key(key, doc)
 		return
 
-	frappe.throw(_("{0} {1} not found").format(_(doc.doctype), doc.name), frappe.DoesNotExistError)
+	doc.raise_no_permission_to("read")
 
 
 def validate_key(key: str, doc: "Document") -> None:

@@ -24,7 +24,16 @@ from frappe.model.naming import set_new_name, validate_name
 from frappe.model.utils import is_virtual_doctype, simple_singledispatch
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
 from frappe.types import DF, DocRef
-from frappe.utils import compare, cstr, date_diff, file_lock, flt, get_table_name, now
+from frappe.utils import (
+	check_doctype_permission,
+	compare,
+	cstr,
+	date_diff,
+	file_lock,
+	flt,
+	get_table_name,
+	now,
+)
 from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
 from frappe.utils.global_search import update_global_search
 
@@ -253,9 +262,11 @@ class Document(BaseDocument, DocRef):
 				)
 
 			if not d:
-				frappe.throw(
-					_("{0} {1} not found").format(_(self.doctype), self.name), frappe.DoesNotExistError
-				)
+				exc = frappe.DoesNotExistError()
+				exc.doctype = self.doctype
+				exc.name = self.name
+
+				frappe.throw(_("{0} {1} not found").format(_(self.doctype), self.name), exc=exc)
 
 			super().__init__(d)
 		self.flags.pop("ignore_children", None)
@@ -338,6 +349,9 @@ class Document(BaseDocument, DocRef):
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
+
+		check_doctype_permission(self.doctype, perm_type)
+
 		frappe.flags.error_message = _(
 			"You need the '{0}' permission on {1} {2} to perform this action."
 		).format(

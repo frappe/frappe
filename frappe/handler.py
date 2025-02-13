@@ -210,9 +210,7 @@ def check_write_permission(doctype: str | None = None, name: str | None = None):
 			doc = frappe.get_doc(doctype, name)
 			doc.check_permission("write")
 		except frappe.DoesNotExistError:
-			# doc has not been inserted yet, name is set to "new-some-doctype"
-			# If doc inserts fine then only this attachment will be linked see file/utils.py:relink_mismatched_files
-			return
+			check_doctype = True
 
 	if check_doctype:
 		frappe.has_permission(doctype, "write", throw=True)

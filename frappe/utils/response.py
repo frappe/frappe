@@ -177,7 +177,7 @@ def _make_logs_v1():
 	response = frappe.local.response
 	allow_traceback = frappe.get_system_settings("allow_error_traceback") if frappe.db else False
 
-	if frappe.error_log and allow_traceback:
+	if frappe.error_log and allow_traceback and False:
 		if source := guess_exception_source(frappe.local.error_log and frappe.local.error_log[0]["exc"]):
 			response["_exc_source"] = source
 		response["exc"] = json.dumps([frappe.utils.cstr(d["exc"]) for d in frappe.local.error_log])

@@ -1103,6 +1103,13 @@ def is_git_url(url: str) -> bool:
 	return bool(re.match(pattern, url))
 
 
+def check_doctype_permission(doctype: str, ptype: str = "read") -> None:
+	_message_log = frappe.local.message_log
+	frappe.local.message_log = []
+	frappe.has_permission(doctype, ptype, throw=True)
+	frappe.local.message_log = _message_log
+
+
 class CallbackManager:
 	"""Manage callbacks.
 

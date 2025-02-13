@@ -22,7 +22,7 @@ import frappe.utils.response
 from frappe import _
 from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, check_request_ip, validate_auth
 from frappe.middlewares import StaticDataMiddleware
-from frappe.utils import CallbackManager, cint, get_site_name
+from frappe.utils import CallbackManager, check_doctype_permission, cint, get_site_name
 from frappe.utils.data import escape_html
 from frappe.utils.error import log_error, log_error_snapshot
 from frappe.website.page_renderers.error_page import ErrorPage
@@ -324,6 +324,10 @@ def make_form_dict(request: Request):
 
 
 def handle_exception(e):
+	import traceback
+
+	traceback.print_stack()
+
 	response = None
 	http_status_code = getattr(e, "http_status_code", 500)
 	accept_header = frappe.get_request_header("Accept") or ""
@@ -336,6 +340,12 @@ def handle_exception(e):
 		# assumes presence of this to fail. Session creation fails => guest or expired login
 		# usually.
 		frappe.session.user = "Guest"
+
+	if isinstance(e, frappe.DoesNotExistError) and (doctype := getattr(e, "doctype", None)):
+		try:
+			check_doctype_permission(doctype)
+		except Exception as _e:
+			return handle_exception(_e)
 
 	if respond_as_json:
 		# handle ajax responses first

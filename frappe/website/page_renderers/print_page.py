@@ -1,4 +1,5 @@
 import frappe
+from frappe.utils import check_doctype_permission
 from frappe.website.page_renderers.template_page import TemplatePage
 
 
@@ -10,9 +11,11 @@ class PrintPage(TemplatePage):
 
 	def can_render(self):
 		parts = self.path.split("/", 1)
-		if len(parts) == 2:
-			if frappe.db.exists("DocType", parts[0], True) and frappe.db.exists(parts[0], parts[1], True):
-				return True
+		if len(parts) == 2 and frappe.db.exists("DocType", parts[0], True):
+			if not frappe.db.exists(parts[0], parts[1]):
+				check_doctype_permission(parts[0])
+
+			return True
 
 		return False
 
