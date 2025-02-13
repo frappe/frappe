@@ -324,10 +324,6 @@ def make_form_dict(request: Request):
 
 
 def handle_exception(e):
-	import traceback
-
-	traceback.print_stack()
-
 	response = None
 	http_status_code = getattr(e, "http_status_code", 500)
 	accept_header = frappe.get_request_header("Accept") or ""
