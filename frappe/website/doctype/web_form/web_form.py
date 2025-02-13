@@ -11,7 +11,7 @@ from frappe.core.doctype.file.utils import remove_file_by_url
 from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.rate_limiter import rate_limit
-from frappe.utils import dict_with_keys, strip_html
+from frappe.utils import check_doctype_permission, dict_with_keys, strip_html
 from frappe.utils.caching import redis_cache
 from frappe.website.utils import get_boot_data, get_comment_list, get_sidebar_items
 from frappe.website.website_generator import WebsiteGenerator
@@ -164,11 +164,11 @@ def get_context(context):
 				)
 
 			if not frappe.db.exists(self.doc_type, frappe.form_dict.name):
-				frappe.has_permission(self.doc_type, throw=True)
+				check_doctype_permission(self.doc_type)
 				raise frappe.PageDoesNotExistError()
 
 			if not self.has_web_form_permission(self.doc_type, frappe.form_dict.name):
-				frappe.has_permission(self.doc_type, throw=True)
+				check_doctype_permission(self.doc_type)
 				frappe.throw(
 					_("You don't have the permissions to access this document"), frappe.PermissionError
 				)
