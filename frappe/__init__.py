@@ -1279,9 +1279,7 @@ def get_last_doc(
 	if d:
 		return get_doc(doctype, d[0], for_update=for_update)
 	else:
-		exc = DoesNotExistError()
-		exc.doctype = doctype
-		raise exc
+		raise DoesNotExistError(doctype=doctype)
 
 
 def get_single(doctype):

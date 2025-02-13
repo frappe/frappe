@@ -262,11 +262,10 @@ class Document(BaseDocument, DocRef):
 				)
 
 			if not d:
-				exc = frappe.DoesNotExistError()
-				exc.doctype = self.doctype
-				exc.name = self.name
-
-				frappe.throw(_("{0} {1} not found").format(_(self.doctype), self.name), exc=exc)
+				frappe.throw(
+					_("{0} {1} not found").format(_(self.doctype), self.name),
+					exc=frappe.DoesNotExistError(doctype=self.doctype),
+				)
 
 			super().__init__(d)
 		self.flags.pop("ignore_children", None)

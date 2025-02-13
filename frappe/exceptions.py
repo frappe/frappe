@@ -44,6 +44,10 @@ class PermissionError(Exception):
 class DoesNotExistError(ValidationError):
 	http_status_code = 404
 
+	def __init__(self, *args, doctype=None):
+		super().__init__(*args)
+		self.doctype = doctype
+
 
 class PageDoesNotExistError(ValidationError):
 	http_status_code = 404
