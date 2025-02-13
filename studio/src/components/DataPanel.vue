@@ -178,12 +178,12 @@ const attachResource = async (resource: Resource) => {
 }
 
 const addResource = (resource: NewResource) => {
-	if (!resource.resource_name) {
-		toast.error("Data Source Name is required")
-		return
-	}
 	if (resource.source === "Existing Data Source") {
 		attachResource(resource as unknown as Resource)
+		return
+	}
+	if (!resource.resource_name) {
+		toast.error("Data Source Name is required")
 		return
 	}
 

@@ -24,6 +24,7 @@
 					doctype="Studio Resource"
 					placeholder="Select Data Source"
 					v-model="newResource.name"
+					:showTitleFieldAsOption="true"
 				/>
 
 				<template v-else>
