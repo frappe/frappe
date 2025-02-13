@@ -324,6 +324,17 @@ def make_form_dict(request: Request):
 
 
 def handle_exception(e):
+	# override DoesNotExistError with PermissionError if doctype is not permitted
+	if isinstance(e, frappe.DoesNotExistError) and (doctype := getattr(e, "doctype", None)):
+		try:
+			check_doctype_permission(doctype)
+		except frappe.PermissionError as _e:
+			return _handle_exception(_e)
+
+	return _handle_exception(e)
+
+
+def _handle_exception(e):
 	response = None
 	http_status_code = getattr(e, "http_status_code", 500)
 	accept_header = frappe.get_request_header("Accept") or ""
@@ -336,12 +347,6 @@ def handle_exception(e):
 		# assumes presence of this to fail. Session creation fails => guest or expired login
 		# usually.
 		frappe.session.user = "Guest"
-
-	if isinstance(e, frappe.DoesNotExistError) and (doctype := getattr(e, "doctype", None)):
-		try:
-			check_doctype_permission(doctype)
-		except Exception as _e:
-			return handle_exception(_e)
 
 	if respond_as_json:
 		# handle ajax responses first

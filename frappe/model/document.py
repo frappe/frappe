@@ -264,7 +264,7 @@ class Document(BaseDocument, DocRef):
 			if not d:
 				frappe.throw(
 					_("{0} {1} not found").format(_(self.doctype), self.name),
-					exc=frappe.DoesNotExistError(doctype=self.doctype),
+					frappe.DoesNotExistError(doctype=self.doctype),
 				)
 
 			super().__init__(d)

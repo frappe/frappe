@@ -11,13 +11,14 @@ class PrintPage(TemplatePage):
 
 	def can_render(self):
 		parts = self.path.split("/", 1)
-		if len(parts) == 2 and frappe.db.exists("DocType", parts[0], True):
-			if not frappe.db.exists(parts[0], parts[1]):
-				check_doctype_permission(parts[0])
+		if len(parts) != 2 or not frappe.db.exists("DocType", parts[0], True):
+			return False
 
-			return True
+		if not frappe.db.exists(parts[0], parts[1], True):
+			check_doctype_permission(parts[0])
+			return False
 
-		return False
+		return True
 
 	def render(self):
 		parts = self.path.split("/", 1)
