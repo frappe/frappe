@@ -1106,7 +1106,12 @@ def is_git_url(url: str) -> bool:
 def check_doctype_permission(doctype: str, ptype: str = "read") -> None:
 	_message_log = frappe.local.message_log
 	frappe.local.message_log = []
-	frappe.has_permission(doctype, ptype, throw=True)
+	try:
+		frappe.has_permission(doctype, ptype, throw=True)
+	except frappe.PermissionError:
+		frappe.flags.disable_traceback = True
+		raise
+
 	frappe.local.message_log = _message_log
 
 
