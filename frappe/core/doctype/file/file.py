@@ -382,8 +382,9 @@ class File(Document):
 			filters = {
 				"content_hash": self.content_hash,
 				"is_private": self.is_private,
-				"name": ("!=", self.name),
 			}
+			if self.name:
+				filters.update({"name": ("!=", self.name)})
 			if self.attached_to_doctype and self.attached_to_name:
 				filters.update(
 					{
