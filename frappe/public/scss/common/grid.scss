@@ -367,11 +367,13 @@
 			height: 40px;
 		}
 	}
-	.awesomplete > ul {
-		position: fixed !important;
-		left: auto !important;
-		top: auto;
-		width: 250px !important;
+	.grid-row:not(.grid-row-open) {
+		.awesomplete > ul {
+			position: fixed !important;
+			left: auto !important;
+			top: auto;
+			width: 250px !important;
+		}
 	}
 	.grid-static-col {
 		background-color: var(--fg-color);

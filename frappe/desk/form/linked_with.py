@@ -430,6 +430,10 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 	is_target_doctype_table = frappe.get_meta(doctype).istable
 
 	for linked_doctype, link_context in linkinfo.items():
+		# Don't try to fetch linked documents if the user can't read the doctype
+		if not frappe.has_permission(linked_doctype):
+			continue
+
 		linked_doctype_meta = frappe.get_meta(linked_doctype)
 
 		if linked_doctype_meta.issingle:
