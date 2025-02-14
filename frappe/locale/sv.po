@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-09 09:32+0000\n"
-"PO-Revision-Date: 2025-02-11 09:06\n"
+"PO-Revision-Date: 2025-02-14 10:56\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -3780,7 +3780,7 @@ msgstr "Bufferpool Storlek"
 #. Name of a Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Build"
-msgstr "System"
+msgstr "Utveckla"
 
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
