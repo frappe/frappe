@@ -540,6 +540,16 @@ def get_doctypes_with_custom_docperms():
 	return [d.parent for d in doctypes]
 
 
+def delete_user_permission(doctype, name, user, ignore_permissions=False):
+	user_permission = frappe.get_value(
+		"User Permission", 
+		{"allow": doctype, "for_value": name, "user": user}, 
+		"name"
+	)
+	if user_permission:
+		frappe.delete_doc("User Permission", user_permission, ignore_permissions=ignore_permissions)
+
+
 def add_user_permission(
 	doctype,
 	name,
