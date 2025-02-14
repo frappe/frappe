@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-09 09:32+0000\n"
-"PO-Revision-Date: 2025-02-11 09:06\n"
+"PO-Revision-Date: 2025-02-14 10:56\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -20594,7 +20594,7 @@ msgstr "Ynt: {0}"
 #: frappe/desk/doctype/notification_log/notification_log.json
 #: frappe/email/doctype/email_flag_queue/email_flag_queue.json
 msgid "Read"
-msgstr "Okudu"
+msgstr "Okuma"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of the read_only (Check) field in DocType 'DocField'
