@@ -118,7 +118,7 @@
 					<template #actions>
 						<Button
 							variant="solid"
-							:label="variable?.name ? 'Save' : 'Add'"
+							:label="variable?.name ? 'Update' : 'Add'"
 							@click="() => addVariable(variable)"
 							class="w-full"
 						/>

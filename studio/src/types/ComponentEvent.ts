@@ -15,9 +15,12 @@ export type ComponentEvent = {
 	url?: string
 	/** action = 'Insert a Document' */
 	doctype?: string
-	fields?: Array<any>[]
+	fields?: Array<{ field: string, value: string, name: string }>
 	success_message?: string | null
 	error_message?: string | null
+	// for editing
+	isEditing?: boolean
+	oldEvent?: Events | string
 }
 
 export type ActionConfiguration = {

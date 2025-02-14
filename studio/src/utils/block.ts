@@ -501,8 +501,16 @@ class Block implements BlockOptions {
 		this.componentEvents[event.event] = event
 	}
 
-	removeEvent(event: ComponentEvent) {
-		delete this.componentEvents[event.event]
+	updateEvent(event: ComponentEvent) {
+		if (event.oldEvent && event.event !== event.oldEvent) {
+			this.removeEvent(event.oldEvent)
+			delete event.oldEvent
+		}
+		this.componentEvents[event.event] = event
+	}
+
+	removeEvent(eventName: string) {
+		delete this.componentEvents[eventName]
 	}
 }
 
