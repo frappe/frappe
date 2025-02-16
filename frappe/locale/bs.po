@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-09 09:32+0000\n"
-"PO-Revision-Date: 2025-02-14 10:56\n"
+"PO-Revision-Date: 2025-02-16 11:28\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -5571,7 +5571,7 @@ msgstr "Kontaktirajte nas"
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 #: frappe/website/workspace/website/website.json
 msgid "Contact Us Settings"
-msgstr "Kontaktirajte nas Postavke"
+msgstr "Postavke Kontaktirajte Nas"
 
 #. Description of the 'Query Options' (Small Text) field in DocType 'Contact Us
 #. Settings'
@@ -8670,7 +8670,7 @@ msgstr "Birač elemenata"
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 #: frappe/www/login.html:8 frappe/www/login.py:101
 msgid "Email"
-msgstr "E-pošta"
+msgstr "e-pošta"
 
 #. Label of a Link in the Tools Workspace
 #. Label of the email_account (Link) field in DocType 'Communication'
@@ -11301,7 +11301,7 @@ msgstr "Dobijte varijable zaglavlja i podnožja wkhtmltopdf"
 
 #: frappe/public/js/frappe/form/multi_select_dialog.js:86
 msgid "Get Items"
-msgstr "Preuzmi stavke"
+msgstr "Preuzmi Artikle"
 
 #: frappe/integrations/doctype/connected_app/connected_app.js:6
 msgid "Get OpenID Configuration"
@@ -19863,7 +19863,7 @@ msgstr "Format za ispisivanje"
 #: frappe/printing/page/print_format_builder/print_format_builder.js:67
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:4
 msgid "Print Format Builder"
-msgstr "Izrađivač Formata Ispisivanja"
+msgstr "Konstruktor Formata Ispisa"
 
 #. Label of a Link in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
@@ -25593,7 +25593,7 @@ msgstr "System Health Report Workers"
 #. Label of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "System Logs"
-msgstr "Sistemski Zapisi"
+msgstr "Sistemski Zapisnici"
 
 #. Name of a role
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
