@@ -341,3 +341,44 @@ import "air-datepicker/dist/js/i18n/datepicker.zh.js";
 		firstDay: 0,
 	};
 })(jQuery);
+
+(function ($) {
+	$.fn.datepicker.language["sr"] = {
+		days: ["Nedjelja", "Ponedjeljak", "Utorak", "Srijeda", "Četvrtak", "Petak", "Subota"],
+		daysShort: ["Ned", "Pon", "Uto", "Sri", "Čet", "Pet", "Sub"],
+		daysMin: ["Ne", "Po", "Ut", "Sr", "Če", "Pe", "Su"],
+		months: [
+			"Januar",
+			"Februar",
+			"Mart",
+			"April",
+			"Maj",
+			"Juni",
+			"Juli",
+			"August",
+			"Septembar",
+			"Oktobar",
+			"Novembar",
+			"Decembar",
+		],
+		monthsShort: [
+			"Jan",
+			"Feb",
+			"Mar",
+			"Apr",
+			"Maj",
+			"Jun",
+			"Jul",
+			"Aug",
+			"Sep",
+			"Okt",
+			"Nov",
+			"Dec",
+		],
+		today: "Danas",
+		clear: "Resetiraj",
+		dateFormat: "dd/mm/yyyy",
+		timeFormat: "hh:ii",
+		firstDay: 1,
+	};
+})(jQuery);
