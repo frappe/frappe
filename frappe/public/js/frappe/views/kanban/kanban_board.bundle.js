@@ -824,6 +824,11 @@ const zoomLevels = {
 						.then(res => {
 							store.dispatch("update_order_for_single_card", args)
 						}).catch(e => console.log("dont update jobcard status"))
+					}else if(args.to_colname === "Completed"){
+						await validate_project_loan_car(args)
+						.then(res => {
+							store.dispatch("update_order_for_single_card", args)
+						}).catch(e => console.log("dont update jobcard status"))
 					}else{
 						if(args.from_colname === "Remote diagnose" && args.to_colname === "Completed"){	
 							showSentMessageAfterRemoteDiagnoseDialog(args.name)
@@ -1566,6 +1571,18 @@ const zoomLevels = {
 			showConfirmationDialog(args, quotations, incomplete_requirements, resolve, reject)
 		})
 	}
+
+	function validate_project_loan_car(args){
+		return new Promise(async (resolve, reject) => {
+			const loan_car = await frappe.db.get_list('Loan car', { fields: ["name", "status"], filters: [["project", "=", args.name],["status", "!=", "Paid"], ["status", "!=", "Done"], ["status", "!=", "Cancelled"]] })
+
+			if(!loan_car.length) return 
+
+			frappe.db.set_value("Project", args.name, "status", args.from_colname)
+
+			showLoanCarNotPaidAlert(loan_car[0], reject)
+		})
+	}
 	
 	function showConfirmationDialog(args, quotations, incomplete_requirements, resolve, reject) {
 		const dialog = new frappe.ui.Dialog({
@@ -1671,6 +1688,28 @@ const zoomLevels = {
 		});
 
 		dialog.show();			
+	}
+
+	function showLoanCarNotPaidAlert(loan_car, reject){
+		const dialog = new frappe.ui.Dialog({
+			title: 'Loan Car Alert',
+			fields: [
+				{
+					fieldtype: 'HTML',
+					options: `<p>Loan car: <a href="/app/loan-car/${loan_car.name}" target="__blank">${loan_car.name}</a> is is status: ${loan_car.status}</p> `
+				},
+			],
+			primary_action_label: 'Ok',
+			primary_action: function() {
+				reject()
+				dialog.hide();
+			},
+		});
+
+		dialog.$wrapper.find('.modal-header .modal-actions').hide();
+		dialog.$wrapper.modal({ backdrop: 'static', keyboard: false })
+
+		dialog.show();	
 	}
 })();
 
