@@ -31,7 +31,7 @@ from frappe.model.document import Document
 from frappe.utils.background_jobs import get_queue, get_queue_list, get_redis_conn
 from frappe.utils.caching import redis_cache
 from frappe.utils.data import add_to_date
-from frappe.utils.scheduler import get_scheduler_status, get_scheduler_tick
+from frappe.utils.scheduler import get_scheduler_status, get_scheduler_tick, is_schduler_process_running
 
 
 @contextmanager
@@ -189,6 +189,7 @@ class SystemHealthReport(Document):
 		lower_threshold = add_to_date(None, days=-7, as_datetime=True)
 		# Exclude "maybe" curently executing job
 		upper_threshold = add_to_date(None, minutes=-30, as_datetime=True)
+<<<<<<< HEAD
 		self.scheduler_status = get_scheduler_status().get("status")
 		failing_jobs = frappe.db.sql(
 			"""
@@ -203,6 +204,44 @@ class SystemHealthReport(Document):
 			having failure_rate > 0
 			order by failure_rate desc
 			limit 5""",
+=======
+		scheduler_running = get_scheduler_status().get("status") == "active" and is_schduler_process_running()
+		self.scheduler_status = "Active" if scheduler_running else "Inactive"
+
+		mariadb_query = """
+  				SELECT scheduled_job_type,
+					AVG(CASE WHEN status != 'Complete' THEN 1 ELSE 0 END) * 100 AS failure_rate
+				FROM `tabScheduled Job Log`
+				WHERE
+					creation > %(lower_threshold)s
+					AND modified > %(lower_threshold)s
+					AND creation < %(upper_threshold)s
+				GROUP BY scheduled_job_type
+				HAVING failure_rate > 0
+				ORDER BY failure_rate DESC
+				LIMIT 5
+		"""
+
+		postgres_query = """
+  				SELECT scheduled_job_type,
+					AVG(CASE WHEN status != 'Complete' THEN 1 ELSE 0 END) * 100 AS "failure_rate"
+				FROM "tabScheduled Job Log"
+				WHERE
+					creation > %(lower_threshold)s
+					AND modified > %(lower_threshold)s
+					AND creation < %(upper_threshold)s
+				GROUP BY scheduled_job_type
+				HAVING AVG(CASE WHEN status != 'Complete' THEN 1 ELSE 0 END) * 100 > 0
+				ORDER BY "failure_rate" DESC
+				LIMIT 5
+    	"""
+
+		failing_jobs = frappe.db.multisql(
+			{
+				"mariadb": mariadb_query,
+				"postgres": postgres_query,
+			},
+>>>>>>> d0c3a8ee56 (fix: check scheduler process status in health report (#31284))
 			{"lower_threshold": lower_threshold, "upper_threshold": upper_threshold},
 			as_dict=True,
 		)

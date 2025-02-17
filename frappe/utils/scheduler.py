@@ -40,7 +40,7 @@ def start_scheduler() -> NoReturn:
 	tick = get_scheduler_tick()
 	set_niceness()
 
-	lock_path = os.path.abspath(os.path.join(get_bench_path(), "config", "scheduler_process"))
+	lock_path = _get_scheduler_lock_file()
 
 	try:
 		lock = FileLock(lock_path)
@@ -54,6 +54,44 @@ def start_scheduler() -> NoReturn:
 		enqueue_events_for_all_sites()
 
 
+<<<<<<< HEAD
+=======
+def _get_scheduler_lock_file() -> True:
+	return os.path.abspath(os.path.join(get_bench_path(), "config", "scheduler_process"))
+
+
+def is_schduler_process_running() -> bool:
+	"""Checks if any other process is holding the lock.
+
+	Note: FLOCK is held by process until it exits, this function just checks if process is
+	running or not. We can't determine if process is stuck somehwere.
+	"""
+	try:
+		lock = FileLock(_get_scheduler_lock_file())
+		lock.acquire(blocking=False)
+		lock.release()
+		return False
+	except Timeout:
+		return True
+
+
+def sleep_duration(tick):
+	if tick != DEFAULT_SCHEDULER_TICK:
+		# Assuming user knows what they want.
+		return tick
+
+	# Sleep until next multiple of tick.
+	# This makes scheduler aligned with real clock,
+	# so event scheduled at 12:00 happen at 12:00 and not 12:00:35.
+	minutes = tick // 60
+	now = datetime.datetime.now(datetime.timezone.utc)
+	left_minutes = minutes - now.minute % minutes
+	next_execution = now.replace(second=0) + datetime.timedelta(minutes=left_minutes)
+
+	return (next_execution - now).total_seconds()
+
+
+>>>>>>> d0c3a8ee56 (fix: check scheduler process status in health report (#31284))
 def enqueue_events_for_all_sites() -> None:
 	"""Loop through sites and enqueue events that are not already queued"""
 
