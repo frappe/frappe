@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-09 09:32+0000\n"
-"PO-Revision-Date: 2025-02-14 10:56\n"
+"PO-Revision-Date: 2025-02-17 11:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -2656,7 +2656,7 @@ msgstr "Uppgift Klar"
 #. Label of the assignment_days (Table) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Assignment Days"
-msgstr "Uppgift Dagar"
+msgstr "Tilldelning Dagar"
 
 #. Name of a DocType
 #. Label of a Link in the Tools Workspace
