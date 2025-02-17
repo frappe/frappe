@@ -266,87 +266,93 @@ def get_context(context):
 
 	def load_translations(self, context):
 		messages = [
-			"Sr",
-			"Attach",
-			"Next",
-			"Previous",
-			"Discard?",
-			"Cancel",
-			"Discard:Button in web form",
-			"Edit:Button in web form",
-			"See previous responses:Button in web form",
-			"Edit your response:Button in web form",
-			"Are you sure you want to discard the changes?",
-			"Mandatory fields required::Error message in web form",
-			"Invalid values for fields::Error message in web form",
-			"Error:Title of error message in web form",
-			"Page {0} of {1}",
-			"Couldn't save, please check the data you have entered",
-			"Validation Error",
-			self.title,
-			self.introduction_text,
-			self.success_title,
-			self.success_message,
-			self.list_title,
-			self.button_label,
-			self.meta_title,
-			self.meta_description,
+			("Sr", None),
+			("Attach", None),
+			("Next", None),
+			("Previous", None),
+			("Discard?", None),
+			("Cancel", None),
+			("Discard", "Button in web form"),
+			("Edit", "Button in web form"),
+			("See previous responses", "Button in web form"),
+			("Edit your response", "Button in web form"),
+			("Are you sure you want to discard the changes?", None),
+			("Mandatory fields required:", "Error message in web form"),
+			("Invalid values for fields:", "Error message in web form"),
+			("Error", "Title of error message in web form"),
+			("Page {0} of {1}", None),
+			("Couldn't save, please check the data you have entered", None),
+			("Validation Error", None),
+			(self.title, None),
+			(self.introduction_text, None),
+			(self.success_title, None),
+			(self.success_message, None),
+			(self.list_title, None),
+			(self.button_label, None),
+			(self.meta_title, None),
+			(self.meta_description, None),
 		]
 
 		for field in self.web_form_fields:
-			messages.extend([field.label, field.description])
+			messages.extend([(field.label, None), (field.description, None)])
 			if field.fieldtype == "Select" and field.options:
-				messages.extend(field.options.split("\n"))
+				messages.extend((field.options.split("\n"), None))
 
 		# When at least one field in self.web_form_fields has fieldtype "Table" then add "No data" to messages
 		if any(field.fieldtype == "Table" for field in self.web_form_fields):
-			messages.append("Move")
-			messages.append("Insert Above")
-			messages.append("Insert Below")
-			messages.append("Duplicate")
-			messages.append("Shortcuts")
-			messages.append("Ctrl + Up")
-			messages.append("Ctrl + Down")
-			messages.append("ESC")
-			messages.append("Editing Row")
-			messages.append("Add / Remove Columns")
-			messages.append("Fieldname")
-			messages.append("Column Width")
-			messages.append("Configure Columns")
-			messages.append("Select Fields")
-			messages.append("Select All")
-			messages.append("Update")
-			messages.append("Reset to default")
-			messages.append("No Data")
-			messages.append("Delete")
-			messages.append("Delete All")
-			messages.append("Add Row")
-			messages.append("Add Multiple")
-			messages.append("Download")
-			messages.append("of")
-			messages.append("Upload")
-			messages.append("Last")
-			messages.append("First")
-			messages.append("No.:Title of the 'row number' column")
+			messages.append(("Move", None))
+			messages.append(("Insert Above", None))
+			messages.append(("Insert Below", None))
+			messages.append(("Duplicate", None))
+			messages.append(("Shortcuts", None))
+			messages.append(("Ctrl + Up", None))
+			messages.append(("Ctrl + Down", None))
+			messages.append(("ESC", None))
+			messages.append(("Editing Row", None))
+			messages.append(("Add / Remove Columns", None))
+			messages.append(("Fieldname", None))
+			messages.append(("Column Width", None))
+			messages.append(("Configure Columns", None))
+			messages.append(("Select Fields", None))
+			messages.append(("Select All", None))
+			messages.append(("Update", None))
+			messages.append(("Reset to default", None))
+			messages.append(("No Data", None))
+			messages.append(("Delete", None))
+			messages.append(("Delete All", None))
+			messages.append(("Add Row", None))
+			messages.append(("Add Multiple", None))
+			messages.append(("Download", None))
+			messages.append(("of", None))
+			messages.append(("Upload", None))
+			messages.append(("Last", None))
+			messages.append(("First", None))
+			messages.append(("No.", "Title of the 'row number' column"))
 
 		# Phone Picker
 		if any(field.fieldtype == "Phone" for field in self.web_form_fields):
-			messages.append("Search for countries...")
+			messages.append(("Search for countries...", None))
 
 		# Dates
 		if any(field.fieldtype == "Date" for field in self.web_form_fields):
-			messages.append("Now")
-			messages.append("Today")
-			messages.append("Date {0} must be in format: {1}")
-			messages.append("{0} to {1}")
+			messages.append(("Now", None))
+			messages.append(("Today", None))
+			messages.append(("Date {0} must be in format: {1}", None))
+			messages.append(("{0} to {1}", None))
 
 		# Time
 		if any(field.fieldtype == "Time" for field in self.web_form_fields):
-			messages.append("Now")
+			messages.append(("Now", None))
 
-		messages.extend(col.get("label") if col else "" for col in self.list_columns)
+		messages.extend((col.get("label"), None) if col else "" for col in self.list_columns)
 
-		context.translated_messages = frappe.as_json({message: _(message) for message in messages if message})
+		context.translated_messages = frappe.as_json(
+			{
+				f"{msg}:{context}" if context else msg: _(msg, context=context)
+				for msg, context in messages
+				if msg
+			}
+		)
 
 	def load_list_data(self, context):
 		if not self.list_columns:
