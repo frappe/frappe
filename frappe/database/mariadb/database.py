@@ -415,15 +415,11 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			self.commit()
 			self.sql(
 				"""ALTER TABLE `{}`
-				ADD INDEX `{}`({})""".format(table_name, index_name, ", ".join(fields))
+				ADD INDEX IF NOT EXISTS `{}`({})""".format(table_name, index_name, ", ".join(fields))
 			)
 			# Ensure that DB migration doesn't clear this index, assuming this is manually added
 			# via code or console.
-			if (
-				len(fields) == 1
-				and not (frappe.flags.in_install or frappe.flags.in_migrate)
-				and frappe.db.has_column(doctype, fields[0])
-			):
+			if len(fields) == 1 and not (frappe.flags.in_install or frappe.flags.in_migrate):
 				make_property_setter(
 					doctype,
 					fields[0],

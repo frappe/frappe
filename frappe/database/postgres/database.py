@@ -403,11 +403,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		self.sql_ddl(
 			f'CREATE INDEX IF NOT EXISTS "{index_name}" ON "{self.db_schema}"."{table_name}" ("{fields_str}")'
 		)
-		if (
-			len(fields) == 1
-			and not (frappe.flags.in_install or frappe.flags.in_migrate)
-			and frappe.db.has_column(doctype, fields[0])
-		):
+		if len(fields) == 1 and not (frappe.flags.in_install or frappe.flags.in_migrate):
 			make_property_setter(
 				doctype,
 				fields[0],

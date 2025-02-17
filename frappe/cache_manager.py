@@ -132,6 +132,7 @@ def _clear_doctype_cache_from_redis(doctype: str | None = None):
 	from frappe.desk.notifications import delete_notification_count_for
 	from frappe.email.doctype.notification.notification import clear_notification_cache
 	from frappe.model.meta import clear_meta_cache
+	from frappe.utils import get_table_name
 
 	to_del = ["is_table", "doctype_modules"]
 
@@ -144,6 +145,8 @@ def _clear_doctype_cache_from_redis(doctype: str | None = None):
 			frappe.client_cache.delete_keys(f"*{dt}*")
 			frappe.cache.hdel_names(doctype_cache_keys, dt)
 			clear_meta_cache(dt)
+			table = get_table_name(dt)
+			frappe.client_cache.delete_value(f"table_columns::{table}")
 
 		clear_single(doctype)
 
