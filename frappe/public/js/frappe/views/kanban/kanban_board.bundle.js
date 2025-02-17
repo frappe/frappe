@@ -1566,7 +1566,10 @@ const zoomLevels = {
 				fields: ["name", "status"]
 			})
 			
-			if(!quotations?.length && !incomplete_requirements.length) return
+			if(!quotations?.length && !incomplete_requirements.length) {
+				resolve()
+				return
+			}
 
 			showConfirmationDialog(args, quotations, incomplete_requirements, resolve, reject)
 		})
@@ -1576,7 +1579,10 @@ const zoomLevels = {
 		return new Promise(async (resolve, reject) => {
 			const loan_car = await frappe.db.get_list('Loan car', { fields: ["name", "status"], filters: [["project", "=", args.name],["status", "!=", "Paid"], ["status", "!=", "Done"], ["status", "!=", "Cancelled"]] })
 
-			if(!loan_car.length) return 
+			if(!loan_car.length) { 
+				resolve()
+				return
+			}
 
 			frappe.db.set_value("Project", args.name, "status", args.from_colname)
 
