@@ -827,7 +827,6 @@ const zoomLevels = {
 					}else if(args.to_colname === "Completed"){
 						await validate_project_loan_car(args)
 						.then(res => {
-							console.log('update')
 							store.dispatch("update_order_for_single_card", args)
 						}).catch(e => console.log("dont update jobcard status"))
 					}else{
