@@ -40,7 +40,7 @@
 
 		<!-- Variables -->
 		<CollapsibleSection sectionName="Variables">
-			<div class="flex flex-col gap-2" v-if="!isObjectEmpty(store.variables)">
+			<div class="flex flex-col gap-1" v-if="!isObjectEmpty(store.variables)">
 				<div
 					v-for="(value, variable_name) in store.variables"
 					:key="variable_name"
@@ -62,7 +62,7 @@
 					<div
 						class="invisible -mt-1 ml-auto self-start text-gray-600 group-hover/variable:visible has-[.active-item]:visible"
 					>
-						<!-- <Dropdown :options="getVariableMenu(variable, variable_name)" trigger="click">
+						<Dropdown :options="getVariableMenu(variable_name, value)" trigger="click">
 							<template v-slot="{ open }">
 								<button
 									class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
@@ -71,7 +71,7 @@
 									<FeatherIcon name="more-horizontal" class="h-3 w-3" />
 								</button>
 							</template>
-						</Dropdown> -->
+						</Dropdown>
 					</div>
 				</div>
 			</div>
@@ -83,11 +83,11 @@
 				<Dialog
 					v-model="showVariableDialog"
 					:options="{
-						title: variable?.name ? 'Edit Variable' : 'Add Variable',
+						title: variableRef?.name ? 'Edit Variable' : 'Add Variable',
 					}"
 					@after-leave="
 						() =>
-							(variable = {
+							(variableRef = {
 								name: '',
 								variable_name: '',
 								variable_type: 'String',
@@ -99,7 +99,7 @@
 						<div class="flex flex-col space-y-4">
 							<FormControl
 								label="Variable Name"
-								v-model="variable.variable_name"
+								v-model="variableRef.variable_name"
 								:required="true"
 								autocomplete="off"
 							/>
@@ -107,19 +107,27 @@
 								label="Variable Type"
 								type="select"
 								:options="['String', 'Number', 'Boolean']"
-								v-model="variable.variable_type"
+								v-model="variableRef.variable_type"
 								:required="true"
 								default="String"
 								@change="() => setInitialValue()"
 							/>
-							<FormControl label="Initial Value" v-model="variable.initial_value" autocomplete="off" />
+							<FormControl label="Initial Value" v-model="variableRef.initial_value" autocomplete="off" />
 						</div>
 					</template>
 					<template #actions>
 						<Button
 							variant="solid"
-							:label="variable?.name ? 'Update' : 'Add'"
-							@click="() => addVariable(variable)"
+							:label="variableRef.name ? 'Update' : 'Add'"
+							@click="
+								() => {
+									if (variableRef.name) {
+										editVariable(variableRef)
+									} else {
+										addVariable(variableRef)
+									}
+								}
+							"
 							class="w-full"
 						/>
 					</template>
@@ -274,19 +282,19 @@ const getResourceMenu = (resource: Resource, resource_name: string) => {
 
 // variables
 const showVariableDialog = ref(false)
-const variable = ref<Variable>({
+const variableRef = ref<Variable>({
 	name: "",
 	variable_name: "",
 	variable_type: "String",
 	initial_value: "" as string | number | boolean | object | null,
 })
 const setInitialValue = () => {
-	if (variable.value.variable_type === "String") {
-		variable.value.initial_value = ""
-	} else if (variable.value.variable_type === "Number") {
-		variable.value.initial_value = 0
-	} else if (variable.value.variable_type === "Boolean") {
-		variable.value.initial_value = false
+	if (variableRef.value.variable_type === "String") {
+		variableRef.value.initial_value = ""
+	} else if (variableRef.value.variable_type === "Number") {
+		variableRef.value.initial_value = 0
+	} else if (variableRef.value.variable_type === "Boolean") {
+		variableRef.value.initial_value = false
 	}
 }
 
@@ -306,5 +314,71 @@ const addVariable = (variable: Variable) => {
 			}
 			showVariableDialog.value = false
 		})
+}
+
+const editVariable = (variable: Variable) => {
+	studioVariables.setValue
+		.submit({
+			name: variable.name,
+			variable_name: variable.variable_name,
+			variable_type: variable.variable_type,
+			initial_value: variable.initial_value?.toString(),
+		})
+		.then(async () => {
+			if (store.activePage) {
+				await store.setPageVariables(store.activePage)
+			}
+			showVariableDialog.value = false
+		})
+}
+
+const deleteVariable = async (variable: Variable) => {
+	const confirmed = await confirm(`Are you sure you want to delete the variable ${variable.variable_name}?`)
+	if (confirmed) {
+		studioVariables.delete
+			.submit(variable.name)
+			.then(async () => {
+				if (store.activePage) {
+					await store.setPageVariables(store.activePage)
+				}
+				toast.success(`Variable ${variable.variable_name} deleted successfully`)
+			})
+			.catch(() => {
+				toast.error(`Failed to delete variable ${variable.variable_name}`)
+			})
+	}
+}
+
+const getVariableMenu = (variable_name: string, value: any) => {
+	const variableConfig = store.variableConfigs[variable_name]
+	return [
+		{
+			label: "Edit",
+			icon: "edit",
+			onClick: async () => {
+				variableRef.value = { ...variableConfig }
+				showVariableDialog.value = true
+			},
+		},
+		{
+			label: "Delete",
+			icon: "trash",
+			onClick: () => deleteVariable(variableConfig),
+		},
+		{
+			label: "Copy Name",
+			icon: "copy",
+			onClick: () => {
+				copyToClipboard(variable_name)
+			},
+		},
+		{
+			label: "Copy Value",
+			icon: "copy",
+			onClick: () => {
+				copyToClipboard(value)
+			},
+		},
+	]
 }
 </script>

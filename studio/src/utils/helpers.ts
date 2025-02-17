@@ -596,7 +596,7 @@ function copyToClipboard(text: string | object) {
 
 	if (navigator.clipboard) {
 		navigator.clipboard.writeText(text)
-		toast.success("Copied object path to clipboard")
+		toast.success("Copied to clipboard")
 	} else {
 		const textArea = document.createElement("textarea")
 		textArea.value = text
@@ -605,7 +605,7 @@ function copyToClipboard(text: string | object) {
 		textArea.select()
 		try {
 			document.execCommand("copy")
-			toast.success("Copied object path to clipboard")
+			toast.success("Copied to clipboard")
 		} catch (error) {
 			toast.error("Copy to clipboard not supported")
 		} finally {
