@@ -319,13 +319,7 @@ const useStudioStore = defineStore("store", () => {
 	// data
 	const resources = ref<Record<string, Resource>>({})
 	const variableConfigs = ref<Record<string, Variable>>({})
-	const variables = computed(() => {
-		const obj: Record<string, any> = {}
-		Object.values(variableConfigs.value).forEach((variable) => {
-			obj[variable.variable_name] = getInitialVariableValue(variable)
-		})
-		return obj
-	})
+	const variables = ref<Record<string, any>>({})
 
 	async function setPageData(page: StudioPage) {
 		await setPageResources(page)
@@ -361,9 +355,11 @@ const useStudioStore = defineStore("store", () => {
 		studioVariables.filters = { parent: page.name }
 		await studioVariables.reload()
 		variableConfigs.value = {}
+		variables.value = {}
 
 		studioVariables.data.map((variable: Variable) => {
 			variableConfigs.value[variable.variable_name] = variable
+			variables.value[variable.variable_name] = getInitialVariableValue(variable)
 		})
 	}
 
