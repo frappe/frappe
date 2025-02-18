@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-09 09:32+0000\n"
-"PO-Revision-Date: 2025-02-13 10:40\n"
+"PO-Revision-Date: 2025-02-18 13:02\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -15020,7 +15020,7 @@ msgstr "به نظر می‌رسد هیچ برنامه شخص ثالثی اضاف
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:315
 msgid "Looks like you haven’t received any notifications."
-msgstr "به نظر می رسد هیچ اعلانی دریافت نکرده اید."
+msgstr "به نظر می رسد هیچ اعلانی دریافت نکرده‌اید."
 
 #. Option for the 'Priority' (Select) field in DocType 'ToDo'
 #: frappe/desk/doctype/todo/todo.json
@@ -20694,7 +20694,7 @@ msgstr "مرجع DocName"
 #: frappe/core/doctype/error_log/error_log.json
 #: frappe/core/doctype/submission_queue/submission_queue.json
 msgid "Reference DocType"
-msgstr "مرجع DocType"
+msgstr "DocType مرجع"
 
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.py:26
 msgid "Reference DocType and Reference Name are required"
@@ -28552,7 +28552,7 @@ msgstr "تائید رمز عبور"
 
 #: frappe/public/js/billing.bundle.js:115
 msgid "Verifying verification code..."
-msgstr ""
+msgstr "در حال اعتبارسنجی کد تایید..."
 
 #: frappe/templates/includes/login/login.js:171
 msgid "Verifying..."
@@ -29888,7 +29888,7 @@ msgstr "شما به محدودیت اندازه ردیف در جدول پایگ�
 
 #: frappe/public/js/frappe/list/bulk_operations.js:412
 msgid "You have not entered a value. The field will be set to empty."
-msgstr "شما مقداری وارد نکرده اید. فیلد خالی تنظیم می شود."
+msgstr "شما مقداری وارد نکرده‌اید. فیلد خالی تنظیم می شود."
 
 #: frappe/templates/includes/likes/likes.py:31
 msgid "You have received a ❤️ like on your blog post"
@@ -29912,11 +29912,11 @@ msgstr "شما {0} را ندیده اید"
 
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:192
 msgid "You haven't added any Dashboard Charts or Number Cards yet."
-msgstr "شما هنوز نمودار داشبورد یا کارت شماره اضافه نکرده اید."
+msgstr "شما هنوز نمودار داشبورد یا کارت شماره اضافه نکرده‌اید."
 
 #: frappe/public/js/frappe/list/list_view.js:469
 msgid "You haven't created a {0} yet"
-msgstr "شما هنوز یک {0} ایجاد نکرده اید"
+msgstr "شما هنوز یک {0} ایجاد نکرده‌اید"
 
 #: frappe/rate_limiter.py:163
 msgid "You hit the rate limit because of too many requests. Please try after sometime."
