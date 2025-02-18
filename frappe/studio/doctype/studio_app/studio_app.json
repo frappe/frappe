@@ -57,8 +57,13 @@
   }
  ],
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2024-09-26 18:57:41.529135",
+ "links": [
+  {
+   "link_doctype": "Studio Page",
+   "link_fieldname": "studio_app"
+  }
+ ],
+ "modified": "2025-02-18 14:48:51.524091",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio App",
