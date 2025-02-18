@@ -8,6 +8,20 @@ from studio.utils import camel_case_to_kebab_case
 
 
 class StudioApp(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		app_home: DF.Link | None
+		app_name: DF.Data | None
+		app_title: DF.Data | None
+		route: DF.Data | None
+	# end: auto-generated types
+
 	def autoname(self):
 		if not self.name:
 			self.name = f"app-{frappe.generate_hash(length=8)}"
