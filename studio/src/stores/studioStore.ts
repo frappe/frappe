@@ -16,7 +16,7 @@ import {
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
 import { studioPageResources } from "@/data/studioResources"
-import { studioApps, studioAppPages } from "@/data/studioApps"
+import { studioApps } from "@/data/studioApps"
 
 import StudioCanvas from "@/components/StudioCanvas.vue"
 import Block from "@/utils/block"
@@ -177,12 +177,12 @@ const useStudioStore = defineStore("store", () => {
 		if (!appName) {
 			return
 		}
-		studioAppPages.filters = { parent: appName }
-		await studioAppPages.reload()
+		studioPages.filters = { studio_app : appName }
+		await studioPages.reload()
 		appPages.value = {}
 
-		studioAppPages.data.map((page: StudioPage) => {
-			appPages.value[page.page_name] = page
+		studioPages.data.map((page: StudioPage) => {
+			appPages.value[page.name] = page
 		})
 	}
 
@@ -195,14 +195,7 @@ const useStudioStore = defineStore("store", () => {
 		// TODO: disallow deleting app home or app with only one page
 		const confirmed = await confirm(`Are you sure you want to delete the page <b>${page.page_title}</b>?`)
 		if (confirmed) {
-			// delink page from app
-			await studioAppPages.delete.submit(page.name)
-			try {
-				// try deleting the main page
-				await studioPages.delete.submit(page.page_name)
-			} catch (e) {
-				// ignore error - might be linked to other apps
-			}
+			await studioPages.delete.submit(page.name)
 			await setApp(appName)
 		}
 	}
@@ -213,7 +206,7 @@ const useStudioStore = defineStore("store", () => {
 				url: "studio.studio.doctype.studio_page.studio_page.duplicate_page",
 				method: "POST",
 				params: {
-					page_name: page.page_name,
+					page_name: page.name,
 					app_name: appName,
 				}
 			}).fetch(),
@@ -232,7 +225,7 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	function getAppPageRoute(pageName: string) {
-		return Object.values(appPages.value).find((page) => page.page_name === pageName)?.route
+		return Object.values(appPages.value).find((page) => page.name === pageName)?.route
 	}
 
 	// studio pages

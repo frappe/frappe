@@ -50,11 +50,7 @@ def duplicate_page(page_name: str, app_name: str | None):
 	new_page = frappe.copy_doc(page)
 	del new_page.page_name
 	new_page.route = None
+	new_page.studio_app = app_name
 	new_page.insert()
-
-	if app_name:
-		app = frappe.get_doc("Studio App", app_name)
-		app.append("pages", dict(studio_page=new_page.name))
-		app.save()
 
 	return new_page

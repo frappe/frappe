@@ -54,8 +54,8 @@ import { useRouter } from "vue-router"
 const store = useStudioStore()
 const router = useRouter()
 
-const isPageActive = (page: StudioPage) => store.activePage?.name === page.page_name
-const isAppHome = (page: StudioPage) => store.activeApp?.app_home === page.page_name
+const isPageActive = (page: StudioPage) => store.activePage?.name === page.name
+const isAppHome = (page: StudioPage) => store.activeApp?.app_home === page.name
 
 const getPageRoute = (page: StudioPage) => {
 	if (!store.activeApp) return ""
@@ -73,7 +73,7 @@ const getPageMenu = (page: StudioPage) => {
 			icon: "home",
 			condition: () => !isAppHome(page),
 			onClick: () => {
-				store.setAppHome(app.name, page.page_name)
+				store.setAppHome(app.name, page.name)
 			},
 		},
 		{
@@ -101,7 +101,7 @@ const getPageMenu = (page: StudioPage) => {
 const openPage = (page: StudioPage) => {
 	router.push({
 		name: "StudioPage",
-		params: { appID: store.activeApp?.name, pageID: page.page_name },
+		params: { appID: store.activeApp?.name, pageID: page.name },
 	})
 }
 </script>
