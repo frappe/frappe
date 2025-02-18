@@ -213,7 +213,7 @@ const actions: ActionConfigurations = {
 					type: "autocomplete",
 					options: Object.values(store.appPages || [])?.map((page) => {
 						return {
-							value: page.page_name,
+							value: page.name,
 							label: page.page_title,
 						}
 					}),

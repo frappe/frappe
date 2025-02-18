@@ -7,6 +7,28 @@ from studio.utils import camel_case_to_kebab_case
 
 
 class StudioPage(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		from studio.studio.doctype.studio_page_resource.studio_page_resource import StudioPageResource
+		from studio.studio.doctype.studio_page_variable.studio_page_variable import StudioPageVariable
+
+		blocks: DF.JSON | None
+		draft_blocks: DF.JSON | None
+		page_name: DF.Data | None
+		page_title: DF.Data | None
+		published: DF.Check
+		resources: DF.TableMultiSelect[StudioPageResource]
+		route: DF.Data | None
+		studio_app: DF.Link | None
+		variables: DF.Table[StudioPageVariable]
+	# end: auto-generated types
+
 	def autoname(self):
 		if not self.name:
 			self.name = f"page-{frappe.generate_hash(length=8)}"
@@ -50,11 +72,7 @@ def duplicate_page(page_name: str, app_name: str | None):
 	new_page = frappe.copy_doc(page)
 	del new_page.page_name
 	new_page.route = None
+	new_page.studio_app = app_name
 	new_page.insert()
-
-	if app_name:
-		app = frappe.get_doc("Studio App", app_name)
-		app.append("pages", dict(studio_page=new_page.name))
-		app.save()
 
 	return new_page

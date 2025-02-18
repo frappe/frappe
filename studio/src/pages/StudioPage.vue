@@ -41,7 +41,6 @@ import StudioCanvas from "@/components/StudioCanvas.vue"
 import useStudioStore from "@/stores/studioStore"
 import { studioPages } from "@/data/studioPages"
 import { getRootBlock } from "@/utils/helpers"
-import { studioAppPages } from "@/data/studioApps"
 import { StudioPage } from "@/types/Studio/StudioPage"
 import { useStudioEvents } from "@/utils/useStudioEvents"
 
@@ -84,17 +83,10 @@ async function setPage() {
 			.submit({
 				page_title: "My Page",
 				draft_blocks: [getRootBlock()],
+				studio_app: route.params.appID as string,
 			})
 			.then(async (data: StudioPage) => {
 				const appID = route.params.appID as string
-				// add the newly created page to the app's pages child table
-				await studioAppPages.insert.submit({
-					studio_page: data.name,
-					parent: appID,
-					parenttype: "Studio App",
-					parentfield: "pages",
-				})
-
 				router.push({ name: "StudioPage", params: { pageID: data.name }, force: true })
 				store.setApp(appID)
 				store.setPage(data.name)

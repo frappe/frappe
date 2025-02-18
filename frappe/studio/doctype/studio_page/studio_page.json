@@ -8,6 +8,7 @@
  "field_order": [
   "page_name",
   "page_title",
+  "studio_app",
   "column_break_zpqw",
   "published",
   "route",
@@ -75,11 +76,17 @@
    "fieldtype": "Table",
    "label": "Variables",
    "options": "Studio Page Variable"
+  },
+  {
+   "fieldname": "studio_app",
+   "fieldtype": "Link",
+   "label": "Studio App",
+   "options": "Studio App"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-01 16:28:21.997406",
+ "modified": "2025-02-18 15:17:48.133502",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page",

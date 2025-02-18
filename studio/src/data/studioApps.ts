@@ -10,15 +10,4 @@ const studioApps = createListResource({
 	pageLength: 50,
 })
 
-const studioAppPages = createListResource({
-	doctype: "Studio App Page",
-	parent: "Studio App",
-	fields: [
-		"studio_page.page_title as page_title",
-		"studio_page.route",
-		"studio_page.name as page_name",
-		"name",
-	],
-})
-
-export { studioApps, studioAppPages }
+export { studioApps }
