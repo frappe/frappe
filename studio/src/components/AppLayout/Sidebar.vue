@@ -1,16 +1,18 @@
 <template>
 	<div class="relative flex h-full min-h-screen w-60 flex-col bg-gray-50 px-2 pt-2">
 		<button class="mb-1 flex w-56 items-center gap-2 rounded p-2 hover:bg-gray-200">
-			<div class="rounded-sm">
-				<div v-if="logoSVG" class="flex items-center gap-2">
-					<span v-html="logoSVG" />
+			<slot name="header">
+				<div class="rounded-sm">
+					<div v-if="logoSVG" class="flex items-center gap-2">
+						<span v-html="logoSVG" />
+					</div>
+					<AppLogo v-else class="h-6 w-6" />
 				</div>
-				<AppLogo v-else class="h-6 w-6" />
-			</div>
 
-			<span class="truncate text-xl font-bold text-gray-800">
-				{{ title }}
-			</span>
+				<span class="truncate text-xl font-bold text-gray-800">
+					{{ title }}
+				</span>
+			</slot>
 		</button>
 
 		<nav class="mt-2 flex flex-col space-y-1">
@@ -19,7 +21,12 @@
 					:is="item.route_to ? 'router-link' : 'div'"
 					:to="item.route_to"
 					class="flex cursor-pointer items-center gap-2 truncate rounded px-2 py-1 transition duration-300 ease-in-out"
-					:class="[item.selected ? 'bg-white shadow-sm' : 'hover:bg-gray-200']"
+					:class="[
+						item.selected || $router.currentRoute.value.path === item.route_to
+							? 'bg-white shadow-sm'
+							: 'hover:bg-gray-200',
+					]"
+					@click="item.route_to && $router.push(item.route_to)"
 				>
 					<FeatherIcon :name="item.featherIcon || 'folder-normal'" class="h-5 w-5 text-gray-700" />
 					<div class="flex items-center gap-1 truncate text-base text-gray-700">

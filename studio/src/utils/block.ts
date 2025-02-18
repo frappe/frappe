@@ -23,6 +23,7 @@ class Block implements BlockOptions {
 	baseStyles: BlockStyleMap
 	mobileStyles: BlockStyleMap
 	tabletStyles: BlockStyleMap
+	visibilityCondition?: string
 	classes?: string[]
 	parentSlotName?: string
 
@@ -31,8 +32,9 @@ class Block implements BlockOptions {
 		this.blockName = options.blockName || this.componentName
 		this.originalElement = options.originalElement
 		this.baseStyles = reactive(options.baseStyles || {})
-		this.mobileStyles = reactive(options.mobileStyles || {});
-		this.tabletStyles = reactive(options.tabletStyles || {});
+		this.mobileStyles = reactive(options.mobileStyles || {})
+		this.tabletStyles = reactive(options.tabletStyles || {})
+		this.visibilityCondition = options.visibilityCondition
 
 		// generate ID
 		if (!options.componentId) {
@@ -499,8 +501,16 @@ class Block implements BlockOptions {
 		this.componentEvents[event.event] = event
 	}
 
-	removeEvent(event: ComponentEvent) {
-		delete this.componentEvents[event.event]
+	updateEvent(event: ComponentEvent) {
+		if (event.oldEvent && event.event !== event.oldEvent) {
+			this.removeEvent(event.oldEvent)
+			delete event.oldEvent
+		}
+		this.componentEvents[event.event] = event
+	}
+
+	removeEvent(eventName: string) {
+		delete this.componentEvents[eventName]
 	}
 }
 

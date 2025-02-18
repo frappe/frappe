@@ -1,4 +1,5 @@
 import { ref, reactive, computed, nextTick, Ref, watch } from "vue"
+import router from "@/router/studio_router"
 import { defineStore } from "pinia"
 
 import {
@@ -11,6 +12,7 @@ import {
 	fetchPage,
 	getNewResource,
 	confirm,
+	getInitialVariableValue,
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
 import { studioPageResources } from "@/data/studioResources"
@@ -24,6 +26,10 @@ import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Resource } from "@/types/Studio/StudioResource"
 import { LeftPanelOptions, RightPanelOptions, Slot } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
+import { studioVariables } from "@/data/studioVariables"
+import { Variable } from "@/types/Studio/StudioPageVariable"
+import { toast } from "vue-sonner"
+import { createResource } from "frappe-ui"
 
 const useStudioStore = defineStore("store", () => {
 	const canvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
@@ -201,6 +207,30 @@ const useStudioStore = defineStore("store", () => {
 		}
 	}
 
+	async function duplicateAppPage(appName: string, page: StudioPage) {
+		toast.promise(
+			createResource({
+				url: "studio.studio.doctype.studio_page.studio_page.duplicate_page",
+				method: "POST",
+				params: {
+					page_name: page.page_name,
+					app_name: appName,
+				}
+			}).fetch(),
+			{
+				loading: "Duplicating page",
+				success: (page: StudioPage) => {
+					// load page and refresh
+					router.push({
+						name: "StudioPage",
+						params: { appID: appName, pageID: page.name },
+					})
+					return "Page duplicated"
+				},
+			},
+		)
+	}
+
 	function getAppPageRoute(pageName: string) {
 		return Object.values(appPages.value).find((page) => page.page_name === pageName)?.route
 	}
@@ -224,7 +254,7 @@ const useStudioStore = defineStore("store", () => {
 			pageBlocks.value = [getBlockInstance(blocks[0])]
 		}
 		selectedPage.value = page.name
-		await setPageResources(page)
+		await setPageData(page)
 		canvas.value?.setRootBlock(pageBlocks.value[0])
 
 		nextTick(() => {
@@ -288,6 +318,13 @@ const useStudioStore = defineStore("store", () => {
 
 	// data
 	const resources = ref<Record<string, Resource>>({})
+	const variableConfigs = ref<Record<string, Variable>>({})
+	const variables = ref<Record<string, any>>({})
+
+	async function setPageData(page: StudioPage) {
+		await setPageResources(page)
+		await setPageVariables(page)
+	}
 
 	async function setPageResources(page: StudioPage) {
 		studioPageResources.filters = { parent: page.name }
@@ -311,6 +348,18 @@ const useStudioStore = defineStore("store", () => {
 			if (!item.value) return
 			resources.value[item.resource_name].resource_id = item.resource_id
 			resources.value[item.resource_name].resource_child_table_id = item.resource_child_table_id
+		})
+	}
+
+	async function setPageVariables(page: StudioPage) {
+		studioVariables.filters = { parent: page.name }
+		await studioVariables.reload()
+		variableConfigs.value = {}
+		variables.value = {}
+
+		studioVariables.data.map((variable: Variable) => {
+			variableConfigs.value[variable.variable_name] = variable
+			variables.value[variable.variable_name] = getInitialVariableValue(variable)
 		})
 	}
 
@@ -343,6 +392,7 @@ const useStudioStore = defineStore("store", () => {
 		setApp,
 		setAppHome,
 		deleteAppPage,
+		duplicateAppPage,
 		appPages,
 		setAppPages,
 		getAppPageRoute,
@@ -360,7 +410,11 @@ const useStudioStore = defineStore("store", () => {
 		stylePropertyFilter,
 		// data
 		resources,
+		variables,
+		variableConfigs,
+		setPageData,
 		setPageResources,
+		setPageVariables,
 	}
 })
 

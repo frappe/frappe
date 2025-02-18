@@ -89,6 +89,22 @@ const blockController = {
 			block.setMargin(value);
 		});
 	},
+	getKeyValue: (key: "innerHTML" | "visibilityCondition") => {
+		let keyValue = "__initial__" as StyleValue | undefined;
+		store.selectedBlocks.forEach((block) => {
+			if (keyValue === "__initial__") {
+				keyValue = block[key];
+			} else if (keyValue !== block[key]) {
+				keyValue = "Mixed";
+			}
+		});
+		return keyValue;
+	},
+	setKeyValue: (key: "innerHTML" | "visibilityCondition", value: string) => {
+		store.selectedBlocks.forEach((block) => {
+			block[key] = value;
+		});
+	},
 }
 
 export default blockController

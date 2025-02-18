@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/FormControlProps",
+  "definitions": {
+    "FormControlProps": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "date",
+            "datetime-local",
+            "email",
+            "file",
+            "month",
+            "number",
+            "password",
+            "search",
+            "tel",
+            "text",
+            "time",
+            "url",
+            "week",
+            "range",
+            "textarea",
+            "select",
+            "checkbox",
+            "autocomplete"
+          ]
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "modelValue": {}
+      },
+      "additionalProperties": false
+    }
+  }
+}

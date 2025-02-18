@@ -39,3 +39,22 @@ def find_page_with_route(route: str) -> str | None:
 		return frappe.db.get_value("Studio Page", dict(route=route, published=1), "name", cache=True)
 	except frappe.DoesNotExistError:
 		pass
+
+
+@frappe.whitelist()
+def duplicate_page(page_name: str, app_name: str | None):
+	if not frappe.has_permission("Studio Page", ptype="write"):
+		frappe.throw("You do not have permission to duplicate a page.")
+
+	page = frappe.get_doc("Studio Page", page_name)
+	new_page = frappe.copy_doc(page)
+	del new_page.page_name
+	new_page.route = None
+	new_page.insert()
+
+	if app_name:
+		app = frappe.get_doc("Studio App", app_name)
+		app.append("pages", dict(studio_page=new_page.name))
+		app.save()
+
+	return new_page

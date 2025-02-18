@@ -1,5 +1,5 @@
 <template>
-	<div class="flex flex-col p-4">
+	<div class="flex flex-col gap-3 p-4">
 		<CollapsibleSection sectionName="Data Sources">
 			<div class="flex flex-col gap-2" v-if="!isObjectEmpty(store.resources)">
 				<div
@@ -37,6 +37,103 @@
 				/>
 			</div>
 		</CollapsibleSection>
+
+		<!-- Variables -->
+		<CollapsibleSection sectionName="Variables">
+			<div class="flex flex-col gap-1" v-if="!isObjectEmpty(store.variables)">
+				<div
+					v-for="(value, variable_name) in store.variables"
+					:key="variable_name"
+					class="group/variable flex flex-row justify-between"
+				>
+					<ObjectBrowser
+						v-if="typeof value === 'object'"
+						:object="value"
+						:name="variable_name"
+						class="overflow-hidden"
+					/>
+					<div v-else class="flex flex-row justify-between">
+						<div class="text-sm font-semibold text-pink-700">{{ variable_name }}</div>
+						<template v-if="value !== ''">
+							<div class="text-xs text-gray-600">&nbsp;=&nbsp;</div>
+							<div class="text-sm text-violet-700">{{ value }}</div>
+						</template>
+					</div>
+					<div
+						class="invisible -mt-1 ml-auto self-start text-gray-600 group-hover/variable:visible has-[.active-item]:visible"
+					>
+						<Dropdown :options="getVariableMenu(variable_name, value)" trigger="click">
+							<template v-slot="{ open }">
+								<button
+									class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
+									:class="open ? 'active-item' : ''"
+								>
+									<FeatherIcon name="more-horizontal" class="h-3 w-3" />
+								</button>
+							</template>
+						</Dropdown>
+					</div>
+				</div>
+			</div>
+
+			<EmptyState v-else message="No variables added" />
+
+			<div class="mt-2 flex flex-col" v-if="store.activePage">
+				<Button icon-left="plus" @click="showVariableDialog = true">Add Variable</Button>
+				<Dialog
+					v-model="showVariableDialog"
+					:options="{
+						title: variableRef?.name ? 'Edit Variable' : 'Add Variable',
+					}"
+					@after-leave="
+						() =>
+							(variableRef = {
+								name: '',
+								variable_name: '',
+								variable_type: 'String',
+								initial_value: '',
+							})
+					"
+				>
+					<template #body-content>
+						<div class="flex flex-col space-y-4">
+							<FormControl
+								label="Variable Name"
+								v-model="variableRef.variable_name"
+								:required="true"
+								autocomplete="off"
+							/>
+							<FormControl
+								label="Variable Type"
+								type="select"
+								:options="['String', 'Number', 'Boolean']"
+								v-model="variableRef.variable_type"
+								:required="true"
+								default="String"
+								@change="() => setInitialValue()"
+							/>
+							<FormControl label="Initial Value" v-model="variableRef.initial_value" autocomplete="off" />
+						</div>
+					</template>
+					<template #actions>
+						<Button
+							variant="solid"
+							:label="variableRef.name ? 'Update' : 'Add'"
+							@click="
+								() => {
+									if (variableRef.name) {
+										editVariable(variableRef)
+									} else {
+										addVariable(variableRef)
+									}
+								}
+							"
+							class="w-full"
+						/>
+					</template>
+				</Dialog>
+			</div>
+		</CollapsibleSection>
 	</div>
 </template>
 
@@ -50,6 +147,8 @@ import ResourceDialog from "@/components/ResourceDialog.vue"
 
 import { isObjectEmpty, getAutocompleteValues, confirm, copyToClipboard } from "@/utils/helpers"
 import { studioResources, studioPageResources } from "@/data/studioResources"
+import { studioVariables } from "@/data/studioVariables"
+import { Variable } from "@/types/Studio/StudioPageVariable"
 import { NewResource, Resource } from "@/types/Studio/StudioResource"
 import { toast } from "vue-sonner"
 
@@ -87,12 +186,12 @@ const attachResource = async (resource: Resource) => {
 }
 
 const addResource = (resource: NewResource) => {
-	if (!resource.resource_name) {
-		toast.error("Data Source Name is required")
-		return
-	}
 	if (resource.source === "Existing Data Source") {
 		attachResource(resource as unknown as Resource)
+		return
+	}
+	if (!resource.resource_name) {
+		toast.error("Data Source Name is required")
 		return
 	}
 
@@ -176,6 +275,108 @@ const getResourceMenu = (resource: Resource, resource_name: string) => {
 			icon: "copy",
 			onClick: () => {
 				copyToClipboard(resource)
+			},
+		},
+	]
+}
+
+// variables
+const showVariableDialog = ref(false)
+const variableRef = ref<Variable>({
+	name: "",
+	variable_name: "",
+	variable_type: "String",
+	initial_value: "" as string | number | boolean | object | null,
+})
+const setInitialValue = () => {
+	if (variableRef.value.variable_type === "String") {
+		variableRef.value.initial_value = ""
+	} else if (variableRef.value.variable_type === "Number") {
+		variableRef.value.initial_value = 0
+	} else if (variableRef.value.variable_type === "Boolean") {
+		variableRef.value.initial_value = false
+	}
+}
+
+const addVariable = (variable: Variable) => {
+	studioVariables.insert
+		.submit({
+			variable_name: variable.variable_name,
+			variable_type: variable.variable_type,
+			initial_value: variable.initial_value?.toString(),
+			parent: store.activePage?.name,
+			parenttype: "Studio Page",
+			parentfield: "variables",
+		})
+		.then(async () => {
+			if (store.activePage) {
+				await store.setPageVariables(store.activePage)
+			}
+			showVariableDialog.value = false
+		})
+}
+
+const editVariable = (variable: Variable) => {
+	studioVariables.setValue
+		.submit({
+			name: variable.name,
+			variable_name: variable.variable_name,
+			variable_type: variable.variable_type,
+			initial_value: variable.initial_value?.toString(),
+		})
+		.then(async () => {
+			if (store.activePage) {
+				await store.setPageVariables(store.activePage)
+			}
+			showVariableDialog.value = false
+		})
+}
+
+const deleteVariable = async (variable: Variable) => {
+	const confirmed = await confirm(`Are you sure you want to delete the variable ${variable.variable_name}?`)
+	if (confirmed) {
+		studioVariables.delete
+			.submit(variable.name)
+			.then(async () => {
+				if (store.activePage) {
+					await store.setPageVariables(store.activePage)
+				}
+				toast.success(`Variable ${variable.variable_name} deleted successfully`)
+			})
+			.catch(() => {
+				toast.error(`Failed to delete variable ${variable.variable_name}`)
+			})
+	}
+}
+
+const getVariableMenu = (variable_name: string, value: any) => {
+	const variableConfig = store.variableConfigs[variable_name]
+	return [
+		{
+			label: "Edit",
+			icon: "edit",
+			onClick: async () => {
+				variableRef.value = { ...variableConfig }
+				showVariableDialog.value = true
+			},
+		},
+		{
+			label: "Delete",
+			icon: "trash",
+			onClick: () => deleteVariable(variableConfig),
+		},
+		{
+			label: "Copy Name",
+			icon: "copy",
+			onClick: () => {
+				copyToClipboard(variable_name)
+			},
+		},
+		{
+			label: "Copy Value",
+			icon: "copy",
+			onClick: () => {
+				copyToClipboard(value)
 			},
 		},
 	]

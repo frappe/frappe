@@ -15,7 +15,8 @@
   "blocks",
   "draft_blocks",
   "data_tab",
-  "resources"
+  "resources",
+  "variables"
  ],
  "fields": [
   {
@@ -68,11 +69,17 @@
    "fieldtype": "Table MultiSelect",
    "label": "Resources",
    "options": "Studio Page Resource"
+  },
+  {
+   "fieldname": "variables",
+   "fieldtype": "Table",
+   "label": "Variables",
+   "options": "Studio Page Variable"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-23 10:40:52.507929",
+ "modified": "2025-02-01 16:28:21.997406",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page",

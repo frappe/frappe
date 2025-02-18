@@ -1,6 +1,7 @@
 // frappeui components
 export { default as Button } from "./frappeui/Button.json"
 export { default as DatePicker } from "./frappeui/DatePicker.json"
+export { default as FormControl } from "./frappeui/FormControl.json"
 export { default as TextInput } from "./frappeui/TextInput.json"
 export { default as Tree } from "./frappeui/Tree.json"
 // end of frappeui components

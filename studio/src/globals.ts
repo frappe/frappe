@@ -54,6 +54,7 @@ import ImageView from "@/components/AppLayout/ImageView.vue"
 import TextBlock from "@/components/AppLayout/TextBlock.vue"
 import AppHeader from "@/components/AppLayout/AppHeader.vue"
 import BottomTabs from "@/components/AppLayout/BottomTabs.vue"
+import MarkdownEditor from "@/components/AppLayout/MarkdownEditor.vue"
 
 export function registerGlobalComponents(app: App) {
 	app.component("Alert", Alert)
@@ -110,4 +111,5 @@ export function registerGlobalComponents(app: App) {
 	app.component("TextBlock", TextBlock)
 	app.component("AppHeader", AppHeader)
 	app.component("BottomTabs", BottomTabs)
+	app.component("MarkdownEditor", MarkdownEditor)
 }

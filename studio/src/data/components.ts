@@ -9,6 +9,7 @@ import ImageView from "@/components/AppLayout/ImageView.vue"
 import TextBlock from "@/components/AppLayout/TextBlock.vue"
 import AppHeader from "@/components/AppLayout/AppHeader.vue"
 import BottomTabs from "@/components/AppLayout/BottomTabs.vue"
+import MarkdownEditor from "@/components/AppLayout/MarkdownEditor.vue"
 
 import { FrappeUIComponents } from "@/types"
 
@@ -411,6 +412,7 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "Tabs",
 		icon: "ArrowRightLeft",
 		initialState: {
+			as: "div",
 			tabs: [
 				{
 					label: "Github",
@@ -426,6 +428,23 @@ export const COMPONENTS: FrappeUIComponents = {
 					label: "Linkedin",
 					content:
 						"LinkedIn is an American business and employment-oriented online service that operates via websites and mobile apps.",
+				},
+			],
+		},
+	},
+	TabButtons: {
+		name: "TabButtons",
+		title: "Tab Buttons",
+		icon: "ArrowRightLeft",
+		initialState: {
+			buttons: [
+				{
+					label: "My Tasks",
+					value: "mytasks",
+				},
+				{
+					label: "Team Tasks",
+					value: "teamtasks",
 				},
 			],
 		},
@@ -546,9 +565,9 @@ export const COMPONENTS: FrappeUIComponents = {
 		initialState: {
 			title: "Frappe",
 			menuItems: [
-				{ label: "Home", featherIcon: "home" },
-				{ label: "Notifications", featherIcon: "bell" },
-				{ label: "Settings", featherIcon: "settings" },
+				{ label: "Home", featherIcon: "home", route_to: "/", selected: true },
+				{ label: "Notifications", featherIcon: "bell", route_to: "/" },
+				{ label: "Settings", featherIcon: "settings", route_to: "/" },
 			],
 		},
 	},
@@ -642,6 +661,15 @@ export const COMPONENTS: FrappeUIComponents = {
 			],
 		},
 	},
+	MarkdownEditor: {
+		name: "MarkdownEditor",
+		title: "Markdown",
+		icon: "FilePenLine",
+		props: MarkdownEditor.props,
+		initialState: {
+			modelValue: "# This is a markdown editor",
+		},
+	}
 }
 
 function get(name: string) {
@@ -683,6 +711,7 @@ function getEmits(name: string) {
 export default {
 	...COMPONENTS,
 	list: Object.values(COMPONENTS),
+	names: Object.keys(COMPONENTS),
 	get,
 	getComponent,
 	getProps,

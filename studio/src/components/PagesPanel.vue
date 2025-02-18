@@ -77,6 +77,11 @@ const getPageMenu = (page: StudioPage) => {
 			},
 		},
 		{
+			label: "Duplicate",
+			icon: "copy",
+			onClick: () => store.duplicateAppPage(app.name, page),
+		},
+		{
 			label: "Delete",
 			icon: "trash",
 			onClick: async () => {

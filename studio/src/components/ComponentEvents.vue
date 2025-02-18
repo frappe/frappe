@@ -5,17 +5,22 @@
 				<div
 					v-for="(event, name) in block?.componentEvents"
 					:key="name"
-					class="flex w-full flex-row justify-between"
+					class="group/event flex w-full cursor-pointer flex-row items-center justify-between gap-2 rounded border-[1px] border-gray-300 px-2 py-2"
 				>
+					<div class="gap-1 self-center truncate text-base text-gray-700">{{ name }}</div>
 					<div
-						class="group flex w-full cursor-pointer items-center justify-between gap-2 truncate rounded border-[1px] border-gray-300 px-2 py-2 transition duration-300 ease-in-out"
+						class="invisible ml-auto self-start text-gray-600 group-hover/event:visible has-[.active-item]:visible"
 					>
-						<div class="flex items-center gap-1 truncate text-base text-gray-700">{{ name }}</div>
-						<FeatherIcon
-							name="trash"
-							class="invisible h-3 w-3 cursor-pointer group-hover:visible"
-							@click="block.removeEvent(event)"
-						/>
+						<Dropdown :options="getEventMenu(event)" trigger="click">
+							<template v-slot="{ open }">
+								<button
+									class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
+									:class="open ? 'active-item' : ''"
+								>
+									<FeatherIcon name="more-horizontal" class="h-3 w-3" />
+								</button>
+							</template>
+						</Dropdown>
 					</div>
 				</div>
 			</div>
@@ -26,20 +31,24 @@
 			<Dialog
 				v-model="showAddEventDialog"
 				:options="{
-					title: 'Add Event',
-					size: 'lg',
+					title: newEvent.isEditing ? 'Edit Event' : 'Add Event',
+					size: '2xl',
 					actions: [
 						{
-							label: 'Add',
+							label: newEvent.isEditing ? 'Update' : 'Add',
 							variant: 'solid',
 							onClick: () => {
-								block?.addEvent(newEvent)
+								if (newEvent.isEditing) {
+									block?.updateEvent(newEvent)
+								} else {
+									block?.addEvent(newEvent)
+								}
 								showAddEventDialog = false
 							},
 						},
 					],
 				}"
-				@after-leave="newEvent = { ...emptyEvent }"
+				@after-leave="newEvent = { ...emptyEvent, fields: [], isEditing: false }"
 			>
 				<template #body-content>
 					<div class="flex flex-col gap-3">
@@ -63,6 +72,7 @@
 							:is="control.component"
 							v-bind="control.getProps()"
 							v-on="control.events || {}"
+							:class="control.class || ''"
 						/>
 					</div>
 				</template>
@@ -74,17 +84,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue"
-import { FormControl } from "frappe-ui"
+import { ref, computed, watch } from "vue"
+import { FormControl, createResource } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
 import EmptyState from "@/components/EmptyState.vue"
 
-import { isObjectEmpty } from "@/utils/helpers"
+import { isObjectEmpty, confirm } from "@/utils/helpers"
 import { getComponentEvents } from "@/utils/components"
 
 import { SelectOption } from "@/types"
 import { Actions, ActionConfigurations, ComponentEvent } from "@/types/ComponentEvent"
+import Link from "@/components/Link.vue"
+import Grid from "@/components/Grid.vue"
+import { DocTypeField } from "@/types"
+import { toast } from "vue-sonner"
 
 const props = defineProps<{
 	block?: Block
@@ -98,6 +112,11 @@ const emptyEvent: ComponentEvent = {
 	page: "",
 	url: "",
 	api_endpoint: "",
+	// insert document
+	doctype: "",
+	fields: [],
+	success_message: "",
+	error_message: "",
 }
 const newEvent = ref<ComponentEvent>({ ...emptyEvent })
 
@@ -115,6 +134,75 @@ const eventOptions = computed(() => {
 		"keypress",
 	]
 })
+
+const doctypeFields = ref<{ label: string; value: string }[]>([])
+watch(
+	() => newEvent.value.doctype,
+	async (value, oldValue) => {
+		if (value === oldValue) return
+
+		const fields = createResource({
+			url: "studio.api.get_doctype_fields",
+			params: { doctype: value },
+			transform: (data: DocTypeField[]) => {
+				return data.map((field) => {
+					return {
+						label: field.fieldname,
+						value: field.fieldname,
+					}
+				})
+			},
+		})
+		await fields.reload()
+		doctypeFields.value = fields.data
+
+		if (!newEvent.value.isEditing) {
+			newEvent.value.fields = []
+			doctypeFields.value.forEach((field) => {
+				newEvent.value.fields?.push({
+					field: field.value,
+					value: Object.keys(store.variables).includes(field.value) ? field.value : "",
+					name: field.value,
+				})
+			})
+		}
+	},
+)
+
+const successFailureFields = [
+	{
+		component: FormControl,
+		getProps: () => {
+			return {
+				type: "textarea",
+				label: "Success Message",
+				modelValue: newEvent.value.success_message,
+				autocomplete: "off",
+			}
+		},
+		events: {
+			"update:modelValue": (val: string) => {
+				newEvent.value.success_message = val
+			},
+		},
+	},
+	{
+		component: FormControl,
+		getProps: () => {
+			return {
+				type: "textarea",
+				label: "Error Message",
+				modelValue: newEvent.value.error_message,
+				autocomplete: "off",
+			}
+		},
+		events: {
+			"update:modelValue": (val: string) => {
+				newEvent.value.error_message = val
+			},
+		},
+	},
+]
 
 const actions: ActionConfigurations = {
 	"Switch App Page": [
@@ -174,10 +262,87 @@ const actions: ActionConfigurations = {
 				},
 			},
 		},
+		...successFailureFields,
+	],
+	"Insert a Document": [
+		{
+			component: Link,
+			getProps: () => {
+				return {
+					label: "Document Type",
+					required: true,
+					doctype: "DocType",
+					modelValue: newEvent.value.doctype,
+				}
+			},
+			events: {
+				"update:modelValue": (val: string) => {
+					newEvent.value.doctype = val
+				},
+			},
+		},
+		{
+			component: Grid,
+			getProps: () => {
+				return {
+					label: "Fields",
+					columns: [
+						{ label: "Field", fieldname: "field", fieldtype: "select", options: doctypeFields.value },
+						{
+							label: "Variable",
+							fieldname: "value",
+							fieldtype: "select",
+							options: Object.keys(store.variables),
+						},
+					],
+					rows: newEvent.value.fields,
+					showDeleteBtn: true,
+				}
+			},
+			events: {
+				"update:rows": (val: any) => {
+					newEvent.value.fields = val
+				},
+			},
+		},
+		...successFailureFields,
 	],
 }
 
 const actionControls = computed(() => {
 	return actions[newEvent.value.action] || []
 })
+
+// Event Menu
+const deleteEvent = async (event: ComponentEvent) => {
+	const confirmed = await confirm(
+		`Are you sure you want to delete the ${event.event} event on ${props.block?.componentName}?`,
+	)
+	if (confirmed) {
+		try {
+			props.block?.removeEvent(event.event)
+			toast.success(`Event ${event.event} deleted successfully`)
+		} catch (error) {
+			toast.error(`Failed to delete the event ${event.event}: ${error}`)
+		}
+	}
+}
+
+const getEventMenu = (event: ComponentEvent) => {
+	return [
+		{
+			label: "Edit",
+			icon: "edit",
+			onClick: async () => {
+				newEvent.value = { ...event, isEditing: true, oldEvent: event.event }
+				showAddEventDialog.value = true
+			},
+		},
+		{
+			label: "Delete",
+			icon: "trash",
+			onClick: () => deleteEvent(event),
+		},
+	]
+}
 </script>

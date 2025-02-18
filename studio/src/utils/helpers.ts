@@ -5,9 +5,10 @@ import * as frappeUI from "frappe-ui"
 import { createDocumentResource, createListResource, createResource, confirmDialog } from "frappe-ui"
 import { toast } from "vue-sonner"
 
-import { ObjectLiteral, BlockOptions, StyleValue, ExpressionEvaluationContext, SelectOption } from "@/types"
+import { ObjectLiteral, BlockOptions, StyleValue, ExpressionEvaluationContext, SelectOption, HashString, RGBString } from "@/types"
 import { DataResult, DocumentResource, DocumentResult, Filters, Resource } from "@/types/Studio/StudioResource"
 import { StudioPage } from "@/types/Studio/StudioPage"
+import { Variable } from "@/types/Studio/StudioPageVariable"
 
 function getBlockString(block: BlockOptions | Block): string {
 	return jsToJson(getBlockCopyWithoutParent(block))
@@ -307,6 +308,10 @@ function getDynamicValue(value: string, context: ExpressionEvaluationContext) {
 	let result = ""
 	let lastIndex = 0
 
+	if (!isDynamicValue(value)) {
+		return evaluateExpression(value, context)
+	}
+
 	// Find all dynamic expressions in the prop value
 	const matches = value.matchAll(/\{\{(.*?)\}\}/g)
 
@@ -468,6 +473,18 @@ function getNewResource(resource: Resource, context?: ExpressionEvaluationContex
 	}
 }
 
+// variables
+const getInitialVariableValue = (variable: Variable) => {
+	// cast variable's initial value as per variable type
+	let initialValue = variable.initial_value
+	if (variable.variable_type === "Number") {
+		initialValue = Number(initialValue)
+	} else if (variable.variable_type === "Boolean") {
+		initialValue = (initialValue === "true")
+	}
+	return initialValue
+}
+
 // dialogs
 async function confirm(message: string, title: string = "Confirm"): Promise<boolean> {
 	return new Promise((resolve) => {
@@ -482,6 +499,91 @@ async function confirm(message: string, title: string = "Confirm"): Promise<bool
 	});
 }
 
+// colors
+function HexToHSV(color: HashString): { h: number; s: number; v: number } {
+	const [r, g, b] = color
+		.replace("#", "")
+		.match(/.{1,2}/g)
+		?.map((x) => parseInt(x, 16)) || [0, 0, 0];
+
+	const max = Math.max(r, g, b);
+	const min = Math.min(r, g, b);
+	const v = max / 255;
+	const d = max - min;
+	const s = max === 0 ? 0 : d / max;
+	const h =
+		max === min
+			? 0
+			: max === r
+			? (g - b) / d + (g < b ? 6 : 0)
+			: max === g
+			? (b - r) / d + 2
+			: (r - g) / d + 4;
+	return { h: h * 60, s, v };
+}
+
+function HSVToHex(h: number, s: number, v: number): HashString {
+	s /= 100;
+	v /= 100;
+	h /= 360;
+
+	let r = 0,
+		g = 0,
+		b = 0;
+
+	let i = Math.floor(h * 6);
+	let f = h * 6 - i;
+	let p = v * (1 - s);
+	let q = v * (1 - f * s);
+	let t = v * (1 - (1 - f) * s);
+
+	switch (i % 6) {
+		case 0:
+			(r = v), (g = t), (b = p);
+			break;
+		case 1:
+			(r = q), (g = v), (b = p);
+			break;
+		case 2:
+			(r = p), (g = v), (b = t);
+			break;
+		case 3:
+			(r = p), (g = q), (b = v);
+			break;
+		case 4:
+			(r = t), (g = p), (b = v);
+			break;
+		case 5:
+			(r = v), (g = p), (b = q);
+			break;
+	}
+	r = Math.round(r * 255);
+	g = Math.round(g * 255);
+	b = Math.round(b * 255);
+	return `#${[r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("")}`;
+}
+
+function RGBToHex(rgb: RGBString): HashString {
+	const [r, g, b] = rgb
+		.replace("rgb(", "")
+		.replace(")", "")
+		.split(",")
+		.map((x) => parseInt(x));
+	return `#${[r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("")}`;
+}
+
+function getRGB(color: HashString | RGBString | string | null): HashString | null {
+	if (!color) {
+		return null;
+	}
+	if (color.startsWith("rgb")) {
+		return RGBToHex(color as RGBString);
+	} else if (!color.startsWith("#") && color.match(/\b[a-fA-F0-9]{3,6}\b/g)) {
+		return `#${color}` as HashString;
+	}
+	return color as HashString;
+}
+
 // general utils
 function isCtrlOrCmd(e: KeyboardEvent | MouseEvent) {
 	return e.ctrlKey || e.metaKey;
@@ -494,7 +596,7 @@ function copyToClipboard(text: string | object) {
 
 	if (navigator.clipboard) {
 		navigator.clipboard.writeText(text)
-		toast.success("Copied object path to clipboard")
+		toast.success("Copied to clipboard")
 	} else {
 		const textArea = document.createElement("textarea")
 		textArea.value = text
@@ -503,7 +605,7 @@ function copyToClipboard(text: string | object) {
 		textArea.select()
 		try {
 			document.execCommand("copy")
-			toast.success("Copied object path to clipboard")
+			toast.success("Copied to clipboard")
 		} catch (error) {
 			toast.error("Copy to clipboard not supported")
 		} finally {
@@ -582,8 +684,15 @@ export {
 	isDynamicValue,
 	getDynamicValue,
 	getNewResource,
+	// variables
+	getInitialVariableValue,
 	// dialog
 	confirm,
+	// colors
+	HexToHSV,
+	HSVToHex,
+	RGBToHex,
+	getRGB,
 	// general utils
 	isCtrlOrCmd,
 	copyToClipboard,
