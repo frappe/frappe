@@ -46,13 +46,4 @@ class StudioApp(Document):
 @frappe.whitelist()
 def get_app_pages(app_route: str) -> list[dict]:
 	app_name = frappe.db.get_value("Studio App", dict(route=f"studio-app/{app_route}"), "name")
-
-	StudioAppPage = frappe.qb.DocType("Studio App Page")
-	StudioPage = frappe.qb.DocType("Studio Page")
-	return (
-		frappe.qb.from_(StudioAppPage)
-		.inner_join(StudioPage)
-		.on(StudioAppPage.studio_page == StudioPage.name)
-		.select(StudioPage.name, StudioPage.page_title, StudioPage.route)
-		.where(StudioAppPage.parent == app_name)
-	).run(as_dict=True)
+	return frappe.get_all("Studio Page", {"studio_app": app_name}, ["name", "page_title", "route"])
