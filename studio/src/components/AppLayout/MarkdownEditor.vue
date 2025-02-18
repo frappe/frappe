@@ -93,37 +93,40 @@ const applyFormat = (tool: Tool) => {
 	const selectedText = session.getTextRange(range)
 
 	let newText
+	let cursorOffset = 0
 
-	// Handle the special case for the line break (Ctrl+Enter)
 	if (tool.id === "br") {
 		newText = "\n<br>"
+		cursorOffset = 0
 	} else if (tool.id === "link" && !selectedText) {
 		newText = "[Link text](url)"
+		cursorOffset = -5 // 5 characters back from the end: "(url)"
 	} else {
 		if (selectedText) {
 			newText = tool.prefix + selectedText + tool.suffix
+			cursorOffset = 0
 		} else {
 			newText = tool.prefix + "text" + tool.suffix
+			cursorOffset = -tool.suffix.length
 		}
 	}
 
-	// Replace the selected text (or insert new text)
 	session.replace(range, newText)
 	editor.value.focus()
 
 	// Handle cursor positioning after insertion
 	if (newText === "\n<br>") {
 		const cursorPos = selection.getCursor()
-		selection.moveCursorTo(cursorPos.row + 1, 0) // Move to the next line
-	} else if (!selectedText) {
-		// If no text was selected, select the inserted text (for styling purposes)
-		const startCol = range.start.column + tool.prefix.length
-		const endCol = startCol + 4
-		selection.setSelectionRange({
-			start: { row: range.start.row, column: startCol },
-			end: { row: range.start.row, column: endCol },
-		})
+		selection.moveCursorTo(cursorPos.row + 1, 0)
+	} else {
+		const endPosition = session.doc.createAnchor(
+			range.start.row,
+			range.start.column + newText.length + cursorOffset,
+		)
+		selection.setSelectionAnchor(endPosition.row, endPosition.column)
+		selection.clearSelection()
 	}
+	editor.value.scrollToLine(selection.getCursor().row, true, true)
 }
 
 const setupShortcuts = () => {
