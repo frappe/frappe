@@ -1561,7 +1561,8 @@ const zoomLevels = {
 			const quotations = await frappe.db.get_list("Quotation", {
 				filters: [
 					['project_name', '=', args.name],
-					['status', "!=", "Approved"]
+					['status', "!=", "Approved"],
+					['status', "!==", "Ordered"]
 				],
 				fields: ["name", "status"]
 			})
