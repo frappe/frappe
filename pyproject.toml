@@ -51,9 +51,15 @@ dependencies = [
     "openpyxl~=3.0.7",
     "passlib~=1.7.4",
     "pdfkit~=1.0.0",
+<<<<<<< HEAD
     "phonenumbers==8.12.40",
     "premailer~=3.8.0",
     "psutil~=5.9.1",
+=======
+    "phonenumbers==8.13.55",
+    "premailer~=3.10.0",
+    "psutil~=5.9.5",
+>>>>>>> 4e39f2f108 (fix: Update phonenumber library to handle new GY phone number format)
     "psycopg2-binary~=2.9.1",
     "pyasn1~=0.4.8",
     "pyOpenSSL~=24.2.1",
