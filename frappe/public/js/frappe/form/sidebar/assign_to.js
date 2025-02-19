@@ -208,7 +208,7 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 			},
 			{
 				label: __("Comment"),
-				fieldtype: "Small Text",
+				fieldtype: "Text Editor",
 				fieldname: "description",
 			},
 		];
