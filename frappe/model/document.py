@@ -1307,6 +1307,8 @@ class Document(BaseDocument, DocRef):
 
 	def clear_cache(self):
 		frappe.clear_document_cache(self.doctype, self.name)
+		frappe.db.after_commit.add(lambda: frappe.clear_document_cache(self.doctype, self.name))
+		frappe.db.after_rollback.add(lambda: frappe.clear_document_cache(self.doctype, self.name))
 
 	def reset_seen(self):
 		"""Clear _seen property and set current user as seen"""
