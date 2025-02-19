@@ -242,7 +242,7 @@ def process_response(response: Response):
 		return
 
 	# Default for all requests is no-cache unless explicitly opted-in by endpoint
-	response.headers.update(NO_CACHE_HEADERS)
+	response.headers.setdefault("Cache-Control", NO_CACHE_HEADERS["Cache-Control"])
 
 	# rate limiter headers
 	if hasattr(frappe.local, "rate_limiter"):
