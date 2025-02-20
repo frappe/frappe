@@ -158,6 +158,7 @@ class DocType(Document):
 		read_only: DF.Check
 		restrict_to_domain: DF.Link | None
 		route: DF.Data | None
+		row_format: DF.Literal["Dynamic", "Compressed"]
 		search_fields: DF.Data | None
 		sender_field: DF.Data | None
 		sender_name_field: DF.Data | None
