@@ -299,6 +299,11 @@ def get_context(context):
 			messages.extend([field.label, field.description])
 			if field.fieldtype == "Select" and field.options:
 				messages.extend(field.options.split("\n"))
+			elif field.fieldtype == "Table" and field.options:
+				child_doctype = field.options
+				child_meta = frappe.get_meta(child_doctype)
+				for child_field in child_meta.fields:
+					messages.append(child_field.label)
 
 		# When at least one field in self.web_form_fields has fieldtype "Table" then add "No data" to messages
 		if any(field.fieldtype == "Table" for field in self.web_form_fields):
