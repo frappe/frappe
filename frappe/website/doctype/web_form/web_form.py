@@ -503,9 +503,13 @@ def delete(web_form_name: str, docname: str | int):
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def delete_multiple(web_form_name: str, docnames: list[str | int]):
 	assert isinstance(web_form_name, str)
 
+=======
+def delete_multiple(web_form_name: str, docnames):
+>>>>>>> 6e20eed640 (fix: redo some fixes to ensure cypress passes)
 	web_form = frappe.get_doc("Web Form", web_form_name)
 
 	docnames = json.loads(docnames)
