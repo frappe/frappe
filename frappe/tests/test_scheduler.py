@@ -1,6 +1,10 @@
 import os
 import time
+<<<<<<< HEAD
 from unittest import TestCase
+=======
+from datetime import datetime, timedelta
+>>>>>>> 967d3e828c (fix: granular status in system health report)
 from unittest.mock import patch
 
 import frappe
@@ -8,7 +12,11 @@ from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJ
 from frappe.utils import add_days, get_datetime
 from frappe.utils.doctor import purge_pending_jobs
 from frappe.utils.scheduler import (
+<<<<<<< HEAD
 	_get_last_modified_timestamp,
+=======
+	DEFAULT_SCHEDULER_TICK,
+>>>>>>> 967d3e828c (fix: granular status in system health report)
 	enqueue_events,
 	is_dormant,
 	schedule_jobs_based_on_activity,
@@ -59,7 +67,9 @@ class TestScheduler(TestCase):
 	@patch.object(frappe.utils.frappecloud, "on_frappecloud", return_value=True)
 	@patch.dict(frappe.conf, {"developer_mode": 0})
 	def test_is_dormant(self, _mock):
-		last_activity = frappe.db.get_value("User", filters={}, fieldname="max(last_active)")
+		last_activity = frappe.db.get_value(
+			"User", filters={}, fieldname="last_active", order_by="last_active desc"
+		)
 		self.assertTrue(is_dormant(check_time=get_datetime("2100-01-01 00:00:00")))
 		self.assertTrue(is_dormant(check_time=add_days(last_activity, 5)))
 		self.assertFalse(is_dormant(check_time=last_activity))
@@ -67,7 +77,9 @@ class TestScheduler(TestCase):
 	@patch.object(frappe.utils.frappecloud, "on_frappecloud", return_value=True)
 	@patch.dict(frappe.conf, {"developer_mode": 0})
 	def test_once_a_day_for_dormant(self, _mocks):
-		last_activity = frappe.db.get_value("User", filters={}, fieldname="max(last_active)")
+		last_activity = frappe.db.get_value(
+			"User", filters={}, fieldname="last_active", order_by="last_active desc"
+		)
 		frappe.db.truncate("Scheduled Job Log")
 		self.assertTrue(schedule_jobs_based_on_activity(check_time=get_datetime("2100-01-01 00:00:00")))
 		self.assertTrue(schedule_jobs_based_on_activity(check_time=add_days(last_activity, 5)))
@@ -98,6 +110,7 @@ class TestScheduler(TestCase):
 =======
 		job_log.db_set("creation", add_days(last_activity, 5), update_modified=False)
 		schedule_jobs_based_on_activity.clear_cache()
+		is_dormant.clear_cache()
 
 		# inactive site with recent job, don't run
 		self.assertFalse(schedule_jobs_based_on_activity(check_time=add_days(last_activity, 5)))
