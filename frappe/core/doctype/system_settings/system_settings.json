@@ -401,7 +401,7 @@
   },
   {
    "default": "4",
-   "description": "Will run scheduled jobs only once a day for inactive sites. Default 4 days if set to 0.",
+   "description": "Will run scheduled jobs only once a day for inactive sites. Set it to 0 to avoid automatically disabling the scheduler.",
    "fieldname": "dormant_days",
    "fieldtype": "Int",
    "label": "Run Jobs only Daily if Inactive For (Days)"
@@ -697,7 +697,11 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2024-11-04 15:51:39.954876",
+=======
+ "modified": "2025-02-21 20:06:55.499937",
+>>>>>>> 0d85bec58f (fix: allow disabling dormancy behaviour)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
@@ -712,7 +716,12 @@
   }
  ],
  "quick_entry": 1,
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+>>>>>>> 0d85bec58f (fix: allow disabling dormancy behaviour)
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1
