@@ -15,7 +15,7 @@ from frappe.desk.doctype.notification_log.notification_log import (
 	get_title_html,
 )
 from frappe.desk.form.document_follow import follow_document
-from frappe.utils import escape_html
+from frappe.utils.data import strip_html
 
 
 class DuplicateToDoError(frappe.ValidationError):
@@ -57,10 +57,6 @@ def add(args=None, *, ignore_permissions=False):
 	users_with_duplicate_todo = []
 	shared_with_users = []
 
-	description = escape_html(
-		args.get("description", _("Assignment for {0} {1}").format(args["doctype"], args["name"]))
-	)
-
 	for assign_to in frappe.parse_json(args.get("assign_to")):
 		filters = {
 			"reference_type": args["doctype"],
@@ -76,13 +72,18 @@ def add(args=None, *, ignore_permissions=False):
 		else:
 			from frappe.utils import nowdate
 
+			description = str(args.get("description", ""))
+			has_content = strip_html(description) or "<img" in description
+			if not has_content:
+				args["description"] = _("Assignment for {0} {1}").format(args["doctype"], args["name"])
+
 			d = frappe.get_doc(
 				{
 					"doctype": "ToDo",
 					"allocated_to": assign_to,
 					"reference_type": args["doctype"],
 					"reference_name": args["name"],
-					"description": description,
+					"description": args.get("description"),
 					"priority": args.get("priority", "Medium"),
 					"status": "Open",
 					"date": args.get("date", nowdate()),
@@ -122,7 +123,7 @@ def add(args=None, *, ignore_permissions=False):
 				d.reference_type,
 				d.reference_name,
 				action="ASSIGN",
-				description=description,
+				description=args.get("description"),
 			)
 
 	if shared_with_users:

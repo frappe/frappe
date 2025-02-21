@@ -116,6 +116,7 @@ class DocField(Document):
 		show_dashboard: DF.Check
 		show_on_timeline: DF.Check
 		sort_options: DF.Check
+		sticky: DF.Check
 		translatable: DF.Check
 		unique: DF.Check
 		width: DF.Data | None

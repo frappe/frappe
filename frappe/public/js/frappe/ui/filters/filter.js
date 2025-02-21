@@ -305,6 +305,10 @@ frappe.ui.Filter = class {
 			this.field.set_value(old_text);
 		}
 
+		if (Array.isArray(old_text) && df.fieldtype !== old_fieldtype) {
+			this.field.set_value(this.value);
+		}
+
 		this.bind_filter_field_events();
 	}
 
@@ -608,7 +612,17 @@ frappe.ui.filter_utils = {
 
 	get_timespan_options(periods) {
 		const period_map = {
-			Last: ["7 Days", "14 Days", "30 Days", "Week", "Month", "Quarter", "6 months", "Year"],
+			Last: [
+				"7 Days",
+				"14 Days",
+				"30 Days",
+				"90 Days",
+				"Week",
+				"Month",
+				"Quarter",
+				"6 months",
+				"Year",
+			],
 			This: ["Week", "Month", "Quarter", "Year"],
 			Next: ["7 Days", "14 Days", "30 Days", "Week", "Month", "Quarter", "6 months", "Year"],
 		};

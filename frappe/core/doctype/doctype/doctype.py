@@ -158,6 +158,7 @@ class DocType(Document):
 		read_only: DF.Check
 		restrict_to_domain: DF.Link | None
 		route: DF.Data | None
+		row_format: DF.Literal["Dynamic", "Compressed"]
 		search_fields: DF.Data | None
 		sender_field: DF.Data | None
 		sender_name_field: DF.Data | None
@@ -1084,12 +1085,6 @@ def validate_series(dt, autoname=None, name=None):
 				if df.fieldname == field:
 					df.unique = 1
 					break
-
-	if autoname and autoname.startswith("format:"):
-		from frappe.model.naming import BRACED_PARAMS_HASH_PATTERN
-
-		if len(BRACED_PARAMS_HASH_PATTERN.findall(autoname)) > 1:
-			frappe.throw(_("Only one set of {#} pattern is allowed in the format string"))
 
 	if (
 		autoname

@@ -517,6 +517,8 @@ def search(text, start=0, limit=20, doctype=""):
 					meta = frappe.get_meta(r.doctype)
 					if meta.image_field:
 						r.image = frappe.db.get_value(r.doctype, r.name, meta.image_field)
+					if meta.title_field:
+						r.title = frappe.db.get_value(r.doctype, r.name, meta.title_field)
 				except Exception:
 					frappe.clear_messages()
 

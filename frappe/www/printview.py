@@ -72,10 +72,6 @@ def get_context(context) -> PrintContext:
 
 	print_format = get_print_format_doc(None, meta=meta)
 
-	make_access_log(
-		doctype=frappe.form_dict.doctype, document=frappe.form_dict.name, file_type="PDF", method="Print"
-	)
-
 	body = get_rendered_template(
 		doc,
 		print_format=print_format,
@@ -85,11 +81,14 @@ def get_context(context) -> PrintContext:
 		letterhead=letterhead,
 		settings=settings,
 	)
-	print_style = get_print_style(frappe.form_dict.style, print_format)
+
+	make_access_log(
+		doctype=frappe.form_dict.doctype, document=frappe.form_dict.name, file_type="PDF", method="Print"
+	)
 
 	return {
 		"body": body,
-		"print_style": print_style,
+		"print_style": get_print_style(frappe.form_dict.style, print_format),
 		"comment": frappe.session.user,
 		"title": frappe.utils.strip_html(cstr(doc.get_title() or doc.name)),
 		"lang": frappe.local.lang,
@@ -127,6 +126,9 @@ def get_rendered_template(
 	trigger_print: bool = False,
 	settings: dict | None = None,
 ) -> str:
+	if not frappe.flags.ignore_print_permissions:
+		validate_print_permission(doc)
+
 	print_settings = frappe.get_single("Print Settings").as_dict()
 	print_settings.update(settings or {})
 
@@ -138,9 +140,6 @@ def get_rendered_template(
 
 	doc.flags.in_print = True
 	doc.flags.print_settings = print_settings
-
-	if not frappe.flags.ignore_print_permissions:
-		validate_print_permission(doc)
 
 	if doc.meta.is_submittable:
 		if doc.docstatus.is_draft() and not cint(print_settings.allow_print_for_draft):
@@ -382,11 +381,10 @@ def validate_print_permission(doc: "Document") -> None:
 	if frappe.has_website_permission(doc):
 		return
 
-	if (key := frappe.form_dict.key) and isinstance(key, str):
-		validate_key(key, doc)
+	if (key := frappe.form_dict.key) and isinstance(key, str) and validate_key(key, doc) is not False:
 		return
 
-	frappe.throw(_("{0} {1} not found").format(_(doc.doctype), doc.name), frappe.DoesNotExistError)
+	doc._handle_permission_failure("print")
 
 
 def validate_key(key: str, doc: "Document") -> None:
@@ -405,7 +403,7 @@ def validate_key(key: str, doc: "Document") -> None:
 	if frappe.get_system_settings("allow_older_web_view_links") and key == doc.get_signature():
 		return
 
-	raise frappe.exceptions.InvalidKeyError
+	return False
 
 
 def get_letter_head(doc: "Document", no_letterhead: bool, letterhead: str | None = None) -> dict:

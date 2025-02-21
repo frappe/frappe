@@ -216,6 +216,7 @@ def get_list(
 	ignore_permissions=False,
 	fields=None,
 	order_by=None,
+	or_filters=None,
 ):
 	meta = frappe.get_meta(doctype)
 	if not filters:
@@ -224,7 +225,8 @@ def get_list(
 	if not fields:
 		fields = "distinct *"
 
-	or_filters = []
+	if or_filters is None:
+		or_filters = []
 
 	if txt:
 		if meta.search_fields:

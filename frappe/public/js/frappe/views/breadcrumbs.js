@@ -67,10 +67,9 @@ frappe.breadcrumbs = {
 				this.set_list_breadcrumb(breadcrumbs);
 				this.set_form_breadcrumb(breadcrumbs, view);
 			} else if (breadcrumbs.doctype && view === "list") {
-				this.set_list_breadcrumb(breadcrumbs);
+				// pass
 			} else if (breadcrumbs.doctype && view == "dashboard-view") {
 				this.set_list_breadcrumb(breadcrumbs);
-				this.set_dashboard_breadcrumb(breadcrumbs);
 			}
 		}
 
@@ -202,14 +201,16 @@ frappe.breadcrumbs = {
 	set_form_breadcrumb(breadcrumbs, view) {
 		const doctype = breadcrumbs.doctype;
 		let docname = frappe.get_route().slice(2).join("/");
-		let docname_title;
-		if (docname.startsWith("new-" + doctype.toLowerCase().replace(/ /g, "-"))) {
-			docname_title = __("New {0}", [__(doctype)]);
-		} else {
-			docname_title = __(docname);
-		}
+		let doc = frappe.get_doc(doctype, docname);
+
+		if (doc.__islocal) return; // new doc, no breadcrumb required
+
+		let title = frappe.model.get_doc_title(doc);
+
+		if (title == doc.name) return; // title and name are same, don't add breadcrumb
+
 		let form_route = `/app/${frappe.router.slug(doctype)}/${encodeURIComponent(docname)}`;
-		this.append_breadcrumb_element(form_route, docname_title);
+		this.append_breadcrumb_element(form_route, doc.name);
 
 		if (view === "form") {
 			let last_crumb = this.$breadcrumbs.find("li").last();

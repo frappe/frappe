@@ -5,6 +5,7 @@
 	--sidebar-border-color: #ededed;
 	--surface-modal: rgba(255, 255, 255, 1);
 	--divider-color: rgba(237, 237, 237, 1);
+	--sidebar-width: 220px;
 }
 [data-theme="dark"] {
 	--sidebar-hover-color: rgba(43, 43, 43, 1);
@@ -247,7 +248,7 @@ body {
 	.body-sidebar {
 		// make it an overlay on hover
 		position: absolute;
-		width: 220px;
+		width: var(--sidebar-width);
 		.app-switcher-dropdown {
 			width: 204px;
 			left: 0px;
@@ -278,7 +279,7 @@ body {
 			visibility: visible;
 		}
 		.body-sidebar-bottom {
-			width: 220px;
+			width: var(--sidebar-width);
 			position: static;
 		}
 	}
@@ -286,7 +287,7 @@ body {
 	// show placeholder so that main section remains static
 	.body-sidebar-placeholder {
 		display: flex;
-		width: 220px;
+		width: var(--sidebar-width);
 	}
 }
 
@@ -309,7 +310,7 @@ body {
 		position: relative;
 		.body-sidebar {
 			padding: 8px 8px 10px 8px;
-			width: 220px;
+			width: var(--sidebar-width);
 			height: 100%;
 			position: absolute;
 			bottom: 0;
@@ -321,7 +322,7 @@ body {
 			width: 100vw;
 			height: 100%;
 			z-index: 1021;
-			left: 220px;
+			left: var(--sidebar-width);
 			overflow: auto;
 			background-color: rgba(128, 128, 128, 0.5);
 		}
@@ -428,6 +429,8 @@ body {
 }
 // form sidebar
 .form-sidebar {
+	padding-top: var(--padding-sm);
+
 	.sidebar-section {
 		.form-sidebar-items {
 			display: flex;
@@ -485,12 +488,12 @@ body {
 	}
 
 	.sidebar-image-section {
-		width: min(100%, 220px);
+		width: min(100%, var(--sidebar-width));
 		cursor: pointer;
 
 		.sidebar-image {
 			height: auto;
-			max-height: 220px;
+			max-height: var(--sidebar-width);
 			object-fit: cover;
 		}
 
@@ -543,11 +546,11 @@ body {
 .layout-side-section {
 	@include get_textstyle("sm", "regular");
 	// padding-right: 30px;
-	width: 220px;
+	min-width: var(--sidebar-width);
 	border-left: 1px solid var(--border-color);
+
 	.sidebar-section {
-		padding: var(--padding-md);
-		border-bottom: 1px solid var(--border-color);
+		padding: var(--padding-sm) var(--padding-md);
 	}
 
 	.sidebar-section:last-child {
@@ -603,7 +606,7 @@ body {
 	}
 
 	.overlay-sidebar {
-		@media (max-width: 991px) {
+		@media (max-width: 992px) {
 			margin-top: 0 !important;
 			position: fixed;
 			background: var(--fg-color);
@@ -629,7 +632,7 @@ body {
 			}
 		}
 
-		@media (max-width: 767px) {
+		@media (max-width: 768px) {
 			width: 60%;
 		}
 	}
@@ -672,6 +675,8 @@ body {
 }
 
 .list-sidebar {
+	padding-top: var(--padding-sm);
+
 	.sidebar-section a {
 		font-size: var(--text-xs);
 	}
@@ -703,7 +708,7 @@ body {
 		max-height: 300px;
 		overflow-y: auto;
 		min-width: 180px;
-		max-width: 220px;
+		max-width: var(--sidebar-width);
 		z-index: 100;
 		font-size: var(--text-sm);
 

@@ -114,7 +114,7 @@ class LetterHead(Document):
 		from frappe.utils import set_default
 
 		if self.is_default:
-			frappe.db.sql("update `tabLetter Head` set is_default=0 where name != %s", self.name)
+			frappe.db.set_value("Letter Head", {"name": ["!=", self.name]}, "is_default", 0)
 
 			set_default("letter_head", self.name)
 

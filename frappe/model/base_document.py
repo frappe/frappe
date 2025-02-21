@@ -64,9 +64,6 @@ def get_controller(doctype):
 	:param doctype: DocType name as string.
 	"""
 
-	if frappe.local.dev_server or frappe.flags.in_migrate:
-		return import_controller(doctype)
-
 	site_controllers = frappe.controllers.setdefault(frappe.local.site, {})
 	if doctype not in site_controllers:
 		site_controllers[doctype] = import_controller(doctype)
@@ -80,7 +77,7 @@ def import_controller(doctype):
 
 	module_name = "Core"
 	if doctype not in DOCTYPES_FOR_DOCTYPE:
-		doctype_info = frappe.db.get_value("DocType", doctype, fieldname="*")
+		doctype_info = frappe.db.get_value("DocType", doctype, ("module", "custom", "is_tree"), as_dict=True)
 		if doctype_info:
 			if doctype_info.custom:
 				return NestedSet if doctype_info.is_tree else Document

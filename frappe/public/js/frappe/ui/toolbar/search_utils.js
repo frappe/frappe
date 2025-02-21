@@ -447,7 +447,7 @@ frappe.search.utils = {
 			data.forEach(function (d) {
 				// more properties
 				result = {
-					label: d.name,
+					label: d.title || d.name, // show title if exists
 					value: d.name,
 					description: make_description(d.content, d.name),
 					route: ["Form", d.doctype, d.name],

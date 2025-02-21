@@ -565,6 +565,7 @@ def get_custom_report_list(module):
 			else 0,
 			"label": _(r.name),
 			"link_to": r.name,
+			"report_ref_doctype": r.ref_doctype,
 		}
 		for r in reports
 	]

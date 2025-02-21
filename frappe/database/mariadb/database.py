@@ -347,7 +347,8 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			column_key = 'UNI' as 'unique',
 			(is_nullable = 'NO') AS 'not_nullable'
 			from information_schema.columns as columns
-			where table_name = '{table_name}' """,
+			where table_name = '{table_name}'
+   			and table_schema = '{frappe.db.cur_db_name}' """,
 			as_dict=1,
 		)
 

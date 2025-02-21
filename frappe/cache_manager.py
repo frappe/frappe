@@ -13,8 +13,8 @@ doctypes_for_mapping = {
 }
 
 
-def get_doctype_map_key(doctype):
-	return frappe.scrub(doctype) + "_map"
+def get_doctype_map_key(doctype, name="*") -> str:
+	return frappe.scrub(doctype) + f"_map::{name}"
 
 
 doctype_map_keys = tuple(map(get_doctype_map_key, doctypes_for_mapping))
@@ -76,6 +76,7 @@ doctype_cache_keys = (
 wildcard_keys = (
 	"document_cache::*",
 	"table_columns::*",
+	*doctype_map_keys,
 )
 
 
@@ -180,15 +181,14 @@ def clear_controller_cache(doctype=None):
 
 
 def get_doctype_map(doctype, name, filters=None, order_by=None):
-	return frappe.cache.hget(
-		get_doctype_map_key(doctype),
-		name,
-		lambda: frappe.get_all(doctype, filters=filters, order_by=order_by, ignore_ddl=True),
+	return frappe.client_cache.get_value(
+		get_doctype_map_key(doctype, name),
+		generator=lambda: frappe.get_all(doctype, filters=filters, order_by=order_by, ignore_ddl=True),
 	)
 
 
-def clear_doctype_map(doctype, name):
-	frappe.cache.hdel(frappe.scrub(doctype) + "_map", name)
+def clear_doctype_map(doctype, name="*"):
+	frappe.client_cache.delete_keys(get_doctype_map_key(doctype, name))
 
 
 def build_table_count_cache():

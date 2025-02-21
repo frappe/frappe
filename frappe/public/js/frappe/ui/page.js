@@ -98,7 +98,7 @@ frappe.ui.Page = class Page {
 			this.add_view(
 				"main",
 				`
-				<div class="layout-main">
+				<div class="layout-main layout-two-column">
 					<div class="layout-side-section"></div>
 					<div class="layout-main-section-wrapper">
 						<div class="layout-main-section"></div>

@@ -630,6 +630,7 @@ $.extend(frappe.model, {
 	get_doc: function (doctype, name) {
 		if (!name) name = doctype;
 		if ($.isPlainObject(name)) {
+			// not string, filter
 			var doc = frappe.get_list(doctype, name);
 			return doc && doc.length ? doc[0] : null;
 		}
@@ -651,6 +652,20 @@ $.extend(frappe.model, {
 			return frappe.utils.filter_dict(children, filters);
 		} else {
 			return children;
+		}
+	},
+
+	get_doc_title(doc) {
+		if (typeof doc.name == "string") {
+			if (doc.name.startsWith("new-" + doc.doctype.toLowerCase().replace(/ /g, "-"))) {
+				return __("New {0}", [__(doc.doctype)]);
+			}
+		}
+		let meta = frappe.get_meta(doc.doctype);
+		if (meta.title_field) {
+			return doc[meta.title_field];
+		} else {
+			return String(doc.name);
 		}
 	},
 

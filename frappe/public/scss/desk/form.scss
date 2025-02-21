@@ -131,7 +131,6 @@
 .control-label,
 .grid-heading-row {
 	color: var(--text-muted);
-	@include get_textstyle("sm", "regular");
 }
 
 .control-label {

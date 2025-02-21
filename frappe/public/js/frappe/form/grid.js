@@ -24,6 +24,9 @@ export default class Grid {
 		this.fieldinfo = {};
 		this.doctype = this.df.options;
 
+		this.sticky_row_sum = 71;
+		this.sticky_rows = [];
+
 		if (this.doctype) {
 			this.meta = frappe.get_meta(this.doctype);
 		}
@@ -41,31 +44,6 @@ export default class Grid {
 		this.is_grid = true;
 		this.debounced_refresh = this.refresh.bind(this);
 		this.debounced_refresh = frappe.utils.debounce(this.debounced_refresh, 100);
-		this.setup_tab_listeners();
-	}
-
-	setup_tab_listeners() {
-		$(".nav-link").on("shown.bs.tab", () => {
-			this.handle_scroll_bar();
-		});
-	}
-	handle_scroll_bar() {
-		frappe.utils.sleep(500).then(() => {
-			let grid_body_width = this.wrapper.find(".grid-body").width();
-
-			let grid_scroll_bar = this.wrapper.find(".grid-scroll-bar");
-
-			let grid_scroll_bar_rows = this.wrapper.find(".grid-scroll-bar-rows");
-
-			grid_scroll_bar.width(this.form_grid.width());
-			grid_scroll_bar_rows.width(grid_body_width);
-
-			grid_scroll_bar.on("scroll", (event) => {
-				// Sync the form grid's left position with the scroll bar
-				this.form_grid.css("position", "relative");
-				this.form_grid.css("left", -$(event.currentTarget).scrollLeft() + "px");
-			});
-		});
 	}
 
 	get perm() {
@@ -100,9 +78,6 @@ export default class Grid {
 								${__("No rows")}
 							</div>
 						</div>
-					</div>
-					<div class="grid-scroll-bar">
-						<div class="grid-scroll-bar-rows"></div>
 					</div>
 				</div>
 				<div class="small form-clickable-section grid-footer">
@@ -147,59 +122,6 @@ export default class Grid {
 		frappe.utils.bind_actions_with_object(this.wrapper, this);
 
 		this.form_grid = this.wrapper.find(".form-grid");
-
-		if (this.form_grid) {
-			this.form_grid.on("wheel", (e) => {
-				const isTrackpad = Math.abs(e.originalEvent.wheelDeltaY) < 50;
-				const delta = e.originalEvent.deltaX;
-				const scroll_bar = this.wrapper.find(".grid-scroll-bar");
-
-				if (isTrackpad) {
-					scroll_bar.scrollLeft(scroll_bar.scrollLeft() + delta);
-				} else {
-					scroll_bar.scrollLeft(scroll_bar.scrollLeft() + delta * 4);
-				}
-
-				// prevent default behaviour when it is scrolled horizontally
-				if (e.originalEvent.deltaX != 0) {
-					e.preventDefault();
-				}
-			});
-			let touchStartX = 0;
-			let touchMoveX = 0;
-			let isTouchScrolling = false;
-
-			// Handle touch start
-			this.form_grid.on("touchstart", (e) => {
-				const touch = e.originalEvent.touches[0];
-				touchStartX = touch.pageX;
-				isTouchScrolling = true;
-			});
-
-			// Handle touch move
-			this.form_grid.on("touchmove", (e) => {
-				if (!isTouchScrolling) return;
-
-				const touch = e.originalEvent.touches[0];
-				touchMoveX = touch.pageX;
-
-				const scrollBar = this.wrapper.find(".grid-scroll-bar");
-				const deltaX = touchStartX - touchMoveX;
-
-				scrollBar.scrollLeft(scrollBar.scrollLeft() + deltaX);
-
-				touchStartX = touchMoveX;
-
-				e.preventDefault();
-			});
-
-			// Handle touch end
-			this.form_grid.on("touchend", () => {
-				isTouchScrolling = false;
-			});
-
-			this.handle_scroll_bar();
-		}
 		this.setup_add_row();
 
 		this.setup_grid_pagination();
@@ -1117,6 +1039,7 @@ export default class Grid {
 					if (column) {
 						column.in_list_view = 1;
 						column.columns = row.columns;
+						column.sticky = row.sticky;
 						return column;
 					}
 				})

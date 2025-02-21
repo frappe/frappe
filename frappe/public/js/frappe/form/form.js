@@ -1866,11 +1866,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	get_title() {
-		if (this.meta.title_field) {
-			return this.doc[this.meta.title_field];
-		} else {
-			return String(this.doc.name);
-		}
+		return frappe.model.get_doc_title(this.doc);
 	}
 
 	get_selected() {
@@ -1958,7 +1954,7 @@ frappe.ui.form.Form = class FrappeForm {
 		if (this.can_make_methods && this.can_make_methods[doctype]) {
 			return this.can_make_methods[doctype](this);
 		} else {
-			if (this.meta.is_submittable && !this.doc.docstatus == 1) {
+			if (this.meta.is_submittable && this.doc.docstatus !== 1) {
 				return false;
 			} else {
 				return true;

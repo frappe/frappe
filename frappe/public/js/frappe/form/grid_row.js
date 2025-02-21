@@ -408,14 +408,12 @@ export default class GridRow {
 			this.columns = {};
 			this.update_user_settings_for_grid();
 			this.grid_settings_dialog.hide();
-			this.grid.handle_scroll_bar();
 		});
 
 		this.grid_settings_dialog.set_secondary_action_label(__("Reset to default"));
 		this.grid_settings_dialog.set_secondary_action(() => {
 			this.reset_user_settings_for_grid();
 			this.grid_settings_dialog.hide();
-			this.grid.handle_scroll_bar();
 		});
 	}
 
@@ -425,6 +423,7 @@ export default class GridRow {
 			this.selected_columns_for_grid.push({
 				fieldname: row[0].fieldname,
 				columns: row[0].columns || row[0].colsize,
+				sticky: row[0].sticky,
 			});
 		});
 	}
@@ -436,11 +435,14 @@ export default class GridRow {
 			<div class='form-group'>
 				<div class='row' style='margin-bottom:10px;'>
 					<div class='col-1'></div>
-					<div class='col-6' style='padding-left:20px;'>
+					<div class='col-5' style='padding-left:20px;'>
 						${__("Fieldname").bold()}
 					</div>
-					<div class='col-4'>
+					<div class='col-3'>
 						${__("Column Width").bold()}
+					</div>
+					<div class='col-2'>
+						${__("Sticky").bold()}
 					</div>
 					<div class='col-1'></div>
 				</div>
@@ -566,13 +568,19 @@ export default class GridRow {
 							<div class='col-1' style='padding-top: 4px;'>
 								<a style='cursor: grabbing;'>${frappe.utils.icon("drag", "xs")}</a>
 							</div>
-							<div class='col-6' style='padding-top: 5px;'>
+							<div class='col-5' style='padding-top: 5px;'>
 								${__(docfield.label, null, docfield.parent)}
 							</div>
-							<div class='col-4' style='padding-top: 2px; margin-top:-2px;' title='${__("Columns")}'>
+							<div class='col-3' style='padding-top: 2px; margin-top:-2px;' title='${__("Columns")}'>
 								<input class='form-control column-width my-1 input-xs text-right'
 								style='height: 24px; max-width: 80px; background: var(--bg-color);'
 									value='${docfield.columns || cint(d.columns)}'
+									data-fieldname='${docfield.fieldname}' style='background-color: var(--modal-bg); display: inline'>
+							</div>
+							<div class='col-2' title='${__("Sticky")}'>
+								<input type='checkbox' class='form-control sticky-column'
+									style='margin-top: 8px'
+									${docfield.sticky ? "checked" : ""}
 									data-fieldname='${docfield.fieldname}' style='background-color: var(--modal-bg); display: inline'>
 							</div>
 							<div class='col-1' style='padding-top: 3px;'>
@@ -590,6 +598,7 @@ export default class GridRow {
 		this.prepare_handler_for_sort();
 		this.select_on_focus();
 		this.update_column_width();
+		this.update_sticky_column();
 		this.remove_selected_column();
 	}
 
@@ -636,6 +645,19 @@ export default class GridRow {
 					if (row.fieldname === event.target.dataset.fieldname) {
 						row.columns = cint(event.target.value);
 						event.target.defaultValue = cint(event.target.value);
+					}
+				});
+			});
+	}
+
+	update_sticky_column() {
+		$(this.fields_html_wrapper)
+			.find(".sticky-column")
+			.change((event) => {
+				this.selected_columns_for_grid.forEach((row) => {
+					if (row.fieldname === event.target.dataset.fieldname) {
+						row.sticky = cint(event.target.checked);
+						event.target.defaultValue = cint(event.target.checked);
 					}
 				});
 			});
@@ -884,6 +906,20 @@ export default class GridRow {
 	}
 
 	make_column(df, colsize, txt, ci) {
+		let col_sizes = {
+			1: 60,
+			2: 100,
+			3: 140,
+			4: 200,
+			5: 250,
+			6: 300,
+			7: 350,
+			8: 400,
+			9: 450,
+			10: 500,
+			11: 550,
+			12: 600,
+		};
 		let me = this;
 		var add_class =
 			["Text", "Small Text"].indexOf(df.fieldtype) !== -1
@@ -894,6 +930,18 @@ export default class GridRow {
 				? " text-right"
 				: "";
 		add_class += ["Check"].indexOf(df.fieldtype) !== -1 ? " text-center" : "";
+
+		let add_style = "";
+		if (df.sticky) {
+			add_class += " sticky-grid-col";
+			if (!(df.fieldname in this.grid.sticky_rows)) {
+				this.grid.sticky_rows[df.fieldname] = this.grid.sticky_row_sum;
+				this.grid.sticky_row_sum = Object.keys(this.grid.sticky_rows).length
+					? this.grid.sticky_row_sum + col_sizes[colsize]
+					: this.grid.sticky_row_sum;
+			}
+			add_style += `left: ${this.grid.sticky_rows[df.fieldname] || 71}px;`;
+		}
 
 		let grid;
 		let grid_container;
@@ -950,13 +998,28 @@ export default class GridRow {
 		}
 
 		var $col = $(
-			'<div class="col grid-static-col col-xs-' + colsize + " " + add_class + '"></div>'
+			`<div class="col grid-static-col col-xs-${colsize} ${add_class}" style="${add_style}"></div>`
 		)
 			.attr("data-fieldname", df.fieldname)
 			.attr("data-fieldtype", df.fieldtype)
 			.data("df", df)
 			.appendTo(this.row)
 			.on("click", function (event) {
+				if (df.fieldtype === "Link" || df.fieldtype === "Dynamic Link") {
+					frappe.utils.sleep(500).then(() => {
+						let element_position = event.target.getBoundingClientRect();
+						$(this)
+							.find(".awesomplete > ul:first-of-type")
+							.css(
+								"top",
+								`${
+									element_position.bottom
+										? element_position.bottom
+										: event.clientY + 20
+								}px`
+							);
+					});
+				}
 				if (frappe.ui.form.editable_row !== me) {
 					var out = me.toggle_editable_row();
 				}

@@ -9,12 +9,11 @@ import frappe
 import frappe.defaults
 import frappe.desk.form.meta
 import frappe.utils
-from frappe import _dict
+from frappe import _, _dict
 from frappe.desk.form.document_follow import is_document_followed
 from frappe.model.utils.user_settings import get_user_settings
-from frappe.permissions import get_doc_permissions, has_permission
+from frappe.permissions import check_doctype_permission, get_doc_permissions, has_permission
 from frappe.utils.data import cstr
-from frappe.utils.html_utils import clean_email_html
 
 if typing.TYPE_CHECKING:
 	from frappe.model.document import Document
@@ -34,6 +33,7 @@ def getdoc(doctype, name):
 	try:
 		doc = frappe.get_doc(doctype, name)
 	except frappe.DoesNotExistError:
+		check_doctype_permission(doctype)
 		frappe.clear_last_message()
 		return []
 
@@ -263,7 +263,6 @@ def _get_communications(doctype, name, start=0, limit=20):
 	communications = get_communication_data(doctype, name, start, limit)
 	for c in communications:
 		if c.communication_type in ("Communication", "Automated Message"):
-			clean_email_html(c.content)
 			c.attachments = json.dumps(
 				frappe.get_all(
 					"File",

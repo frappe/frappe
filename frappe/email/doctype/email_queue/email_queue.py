@@ -690,6 +690,9 @@ class QueueBuilder:
 		return attachments
 
 	def prepare_email_content(self):
+		email_account = self.get_outgoing_email_account()
+		if isinstance(self._bcc, list) and email_account.always_bcc:
+			self._bcc.append(email_account.always_bcc)
 		mail = get_email(
 			recipients=self.final_recipients(),
 			sender=self.sender,
@@ -700,7 +703,7 @@ class QueueBuilder:
 			reply_to=self.reply_to,
 			cc=self.final_cc(),
 			bcc=self.bcc,
-			email_account=self.get_outgoing_email_account(),
+			email_account=email_account,
 			expose_recipients=self.expose_recipients,
 			inline_images=self.inline_images,
 			header=self.header,

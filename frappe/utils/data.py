@@ -899,20 +899,13 @@ def get_timespan_date_range(
 
 	match timespan:
 		case "last 7 days":
-			return (
-				add_to_date(today, days=-7),
-				today,
-			)
+			return (add_to_date(today, days=-7), today)
 		case "last 14 days":
-			return (
-				add_to_date(today, days=-14),
-				today,
-			)
+			return (add_to_date(today, days=-14), today)
 		case "last 30 days":
-			return (
-				add_to_date(today, days=-30),
-				today,
-			)
+			return (add_to_date(today, days=-30), today)
+		case "last 90 days":
+			return (add_to_date(today, days=-90), today)
 		case "last week":
 			return (
 				get_first_day_of_week(add_to_date(today, days=-7)),
@@ -1699,7 +1692,7 @@ def escape_html(text: str) -> str:
 	return "".join(html_escape_table.get(c, c) for c in text)
 
 
-def pretty_date(iso_datetime: datetime.datetime | str) -> str:
+def pretty_date(iso_datetime: datetime.datetime | str, mini=False) -> str:
 	"""Return a localized string representation of the delta to the current system time.
 
 	For example, "1 hour ago", "2 days ago", "in 5 seconds", etc.
@@ -1713,7 +1706,12 @@ def pretty_date(iso_datetime: datetime.datetime | str) -> str:
 		iso_datetime = get_datetime(iso_datetime)
 	now_dt = now_datetime()
 	locale = frappe.local.lang.replace("-", "_") if frappe.local.lang else None
-	return format_timedelta(iso_datetime - now_dt, add_direction=True, locale=locale)
+	return format_timedelta(
+		iso_datetime - now_dt,
+		add_direction=not mini,
+		locale=locale,
+		format="long" if not mini else "narrow",
+	)
 
 
 def comma_or(some_list: list | tuple, add_quotes=True) -> str:
