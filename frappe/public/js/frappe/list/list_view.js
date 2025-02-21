@@ -535,7 +535,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	before_refresh() {
 		if (frappe.route_options && this.filter_area) {
 			this.filters = this.parse_filters_from_route_options();
-			this.add_recent_filter_on_large_tables();
+			if (!this.filters.length || window.location.search) {
+				// Add recency filters if route options are not used
+				// Route options are internally used in connections to filter for specific documents.
+				this.add_recent_filter_on_large_tables();
+			}
 			frappe.route_options = null;
 
 			if (this.filters.length > 0) {

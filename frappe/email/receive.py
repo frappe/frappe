@@ -389,7 +389,7 @@ class Email:
 		if self.mail["Date"]:
 			try:
 				utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))
-				utc_dt = datetime.datetime.utcfromtimestamp(utc)
+				utc_dt = datetime.datetime.fromtimestamp(utc, tz=datetime.timezone.utc)
 				self.date = convert_utc_to_system_timezone(utc_dt).strftime("%Y-%m-%d %H:%M:%S")
 			except Exception:
 				self.date = now()

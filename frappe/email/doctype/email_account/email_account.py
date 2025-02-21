@@ -60,6 +60,7 @@ class EmailAccount(Document):
 		from frappe.types import DF
 
 		add_signature: DF.Check
+		always_bcc: DF.Data | None
 		always_use_account_email_id_as_sender: DF.Check
 		always_use_account_name_as_sender_name: DF.Check
 		api_key: DF.Data | None
@@ -203,7 +204,7 @@ class EmailAccount(Document):
 	def validate_frappe_mail_settings(self):
 		if self.service == "Frappe Mail":
 			frappe_mail_client = self.get_frappe_mail_client()
-			frappe_mail_client.validate(for_inbound=self.enable_incoming, for_outbound=self.enable_outgoing)
+			frappe_mail_client.validate()
 
 	def validate_smtp_conn(self):
 		if not self.smtp_server:
@@ -887,6 +888,7 @@ def pull(now=False):
 		.select(
 			doctype.name,
 			doctype.auth_method,
+			doctype.backend_app_flow,
 			doctype.connected_app,
 			doctype.connected_user,
 		)

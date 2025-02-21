@@ -542,7 +542,7 @@ class TestDocumentWebView(IntegrationTestCase):
 			self.assertEqual(self.get(url).status, "200 OK")
 
 		with self.change_settings("System Settings", {"allow_older_web_view_links": False}):
-			self.assertEqual(self.get(url).status, "401 UNAUTHORIZED")
+			self.assertEqual(self.get(url).status, "403 FORBIDDEN")
 
 		# with valid key
 		url = f"/ToDo/{todo.name}?key={document_key}"
@@ -550,7 +550,7 @@ class TestDocumentWebView(IntegrationTestCase):
 
 		# with invalid key
 		invalid_key_url = f"/ToDo/{todo.name}?key=INVALID_KEY"
-		self.assertEqual(self.get(invalid_key_url).status, "401 UNAUTHORIZED")
+		self.assertEqual(self.get(invalid_key_url).status, "403 FORBIDDEN")
 
 		# expire the key
 		document_key_doc = frappe.get_doc("Document Share Key", {"key": document_key})
@@ -562,7 +562,7 @@ class TestDocumentWebView(IntegrationTestCase):
 
 		# without key
 		url_without_key = f"/ToDo/{todo.name}"
-		self.assertEqual(self.get(url_without_key).status, "404 NOT FOUND")
+		self.assertEqual(self.get(url_without_key).status, "403 FORBIDDEN")
 
 		# Logged-in user can access the page without key
 		self.assertEqual(self.get(url_without_key, "Administrator").status, "200 OK")

@@ -1005,7 +1005,7 @@ export default class GridRow {
 			.data("df", df)
 			.appendTo(this.row)
 			.on("click", function (event) {
-				if (df.fieldtype === "Link") {
+				if (df.fieldtype === "Link" || df.fieldtype === "Dynamic Link") {
 					frappe.utils.sleep(500).then(() => {
 						let element_position = event.target.getBoundingClientRect();
 						$(this)

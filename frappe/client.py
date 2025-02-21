@@ -484,13 +484,17 @@ def delete_doc(doctype, name):
 	if frappe.is_table(doctype):
 		values = frappe.db.get_value(doctype, name, ["parenttype", "parent", "parentfield"])
 		if not values:
-			raise frappe.DoesNotExistError
+			raise frappe.DoesNotExistError(doctype=doctype)
+
 		parenttype, parent, parentfield = values
 		parent = frappe.get_doc(parenttype, parent)
+		if not parent.has_permission("write"):
+			raise frappe.DoesNotExistError(doctype=doctype)
+
 		for row in parent.get(parentfield):
 			if row.name == name:
 				parent.remove(row)
-				parent.save()
+				parent.save(ignore_permissions=True)
 				break
 	else:
 		frappe.delete_doc(doctype, name, ignore_missing=False)

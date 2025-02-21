@@ -685,7 +685,6 @@ class TestDateUtils(IntegrationTestCase):
 	def test_pretty_date(self):
 		from frappe import _
 
-		# differnt cases
 		now = get_datetime()
 
 		test_cases = {
@@ -706,6 +705,8 @@ class TestDateUtils(IntegrationTestCase):
 
 		for dt, exp_message in test_cases.items():
 			self.assertEqual(pretty_date(dt), exp_message)
+
+		self.assertEqual(pretty_date(add_to_date(now, days=-5), mini=True), "5d")
 
 	def test_date_from_timegrain(self):
 		start_date = getdate("2021-01-01")

@@ -95,6 +95,7 @@
   "advanced",
   "engine",
   "migration_hash",
+  "row_format",
   "connections_tab"
  ],
  "fields": [
@@ -680,6 +681,14 @@
     "fieldtype": "Int",
     "label": "Grid Page Length",
     "non_negative": 1
+  },
+  {
+   "default": "Dynamic",
+   "fieldname": "row_format",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Row Format",
+   "options": "Dynamic\nCompressed"
   }
  ],
  "icon": "fa fa-bolt",
@@ -762,7 +771,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2025-02-11 18:17:53.100418",
+ "modified": "2025-02-20 19:05:52.119679",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
