@@ -195,16 +195,24 @@ def schedule_jobs_based_on_activity(check_time=None):
 
 
 def is_dormant(check_time=None):
+<<<<<<< HEAD
 	if frappe.conf.developer_mode:
 <<<<<<< HEAD
 		return False
 	last_activity_log_timestamp = _get_last_modified_timestamp("Activity Log")
 =======
 		return False  # Assume never dormant if developer_mode is enabled
+=======
+	from frappe.utils.frappecloud import on_frappecloud
+
+	if frappe.conf.developer_mode or not on_frappecloud():
+		return False
+>>>>>>> 6db7cb096d (fix: Better proxy for active site and disable on selfhosted)
 	threshold = cint(frappe.get_system_settings("dormant_days")) * 86400
 	if not threshold:
 		return False
 
+<<<<<<< HEAD
 	last_activity_log_timestamp = _get_last_creation_timestamp("Activity Log")
 <<<<<<< HEAD
 >>>>>>> 83f572d3d6 (feat(scheduler)!: Make dormant sites opt-in)
@@ -213,8 +221,13 @@ def is_dormant(check_time=None):
 
 >>>>>>> 0d85bec58f (fix: allow disabling dormancy behaviour)
 	if not last_activity_log_timestamp:
+=======
+	last_activity = frappe.db.get_value("User", filters={}, fieldname="max(last_active)")
+
+	if not last_activity:
+>>>>>>> 6db7cb096d (fix: Better proxy for active site and disable on selfhosted)
 		return True
-	if ((check_time or now_datetime()) - last_activity_log_timestamp).total_seconds() >= threshold:
+	if ((check_time or now_datetime()) - last_activity).total_seconds() >= threshold:
 		return True
 	return False
 
