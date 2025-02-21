@@ -23,6 +23,10 @@
    "fieldname": "path",
    "fieldtype": "Data",
    "label": "Path",
+<<<<<<< HEAD
+=======
+   "search_index": 1,
+>>>>>>> f90a450bd4 (feat: specify row compression for tables (#31361))
    "set_only_once": 1
   },
   {
@@ -86,7 +90,11 @@
  ],
  "in_create": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2023-03-20 23:38:27.067285",
+=======
+ "modified": "2025-02-20 19:20:47.267461",
+>>>>>>> f90a450bd4 (feat: specify row compression for tables (#31361))
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page View",
@@ -107,7 +115,12 @@
  ],
  "quick_entry": 1,
  "read_only": 1,
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "row_format": "Compressed",
+ "sort_field": "creation",
+>>>>>>> f90a450bd4 (feat: specify row compression for tables (#31361))
  "sort_order": "DESC",
  "states": [],
  "title_field": "path"

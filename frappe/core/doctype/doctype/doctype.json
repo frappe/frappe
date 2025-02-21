@@ -92,8 +92,12 @@
   "advanced",
   "engine",
   "migration_hash",
+<<<<<<< HEAD
   "fields_section",
   "fields",
+=======
+  "row_format",
+>>>>>>> f90a450bd4 (feat: specify row compression for tables (#31361))
   "connections_tab"
  ],
  "fields": [
@@ -671,12 +675,35 @@
    "label": "Sender Name Field"
   },
   {
+<<<<<<< HEAD
     "default": "50",
     "depends_on": "istable",
     "fieldname": "grid_page_length",
     "fieldtype": "Int",
     "label": "Grid Page Length",
     "non_negative": 1
+=======
+   "fieldname": "permissions_tab",
+   "fieldtype": "Tab Break",
+   "label": "Permissions"
+  },
+  {
+   "fieldname": "column_break_nexu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fields_tab",
+   "fieldtype": "Tab Break",
+   "label": "Fields"
+  },
+  {
+   "default": "Dynamic",
+   "fieldname": "row_format",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Row Format",
+   "options": "Dynamic\nCompressed"
+>>>>>>> f90a450bd4 (feat: specify row compression for tables (#31361))
   }
  ],
  "icon": "fa fa-bolt",
@@ -759,7 +786,11 @@
    "link_fieldname": "reference_doctype"
   }
  ],
+<<<<<<< HEAD
  "modified": "2023-12-01 18:37:16.799471",
+=======
+ "modified": "2025-02-20 19:05:52.119679",
+>>>>>>> f90a450bd4 (feat: specify row compression for tables (#31361))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
