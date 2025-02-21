@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-09 09:32+0000\n"
-"PO-Revision-Date: 2025-02-20 13:26\n"
+"PO-Revision-Date: 2025-02-21 13:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -13237,7 +13237,7 @@ msgstr "Intresse"
 #. Option for the 'Level' (Select) field in DocType 'Help Article'
 #: frappe/website/doctype/help_article/help_article.json
 msgid "Intermediate"
-msgstr "Mellanhand"
+msgstr "Mellan"
 
 #: frappe/public/js/frappe/request.js:234
 msgid "Internal Server Error"
