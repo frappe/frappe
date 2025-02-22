@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-09 09:32+0000\n"
-"PO-Revision-Date: 2025-02-21 13:26\n"
+"PO-Revision-Date: 2025-02-22 13:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -18324,7 +18324,7 @@ msgstr "Outlook.com"
 #: frappe/desk/doctype/system_console/system_console.json
 #: frappe/integrations/doctype/integration_request/integration_request.json
 msgid "Output"
-msgstr "Utmatning"
+msgstr "Utgång"
 
 #: frappe/desk/page/user_profile/user_profile.html:6
 #: frappe/public/js/frappe/form/templates/form_dashboard.html:5
@@ -18442,7 +18442,7 @@ msgstr "Appar"
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Packages are lightweight apps (collection of Module Defs) that can be created, imported, or released right from the UI"
-msgstr "Paket är lätta appar (samling av Moduler) som kan skapas, importeras eller ges ut direkt från UI"
+msgstr "Appar är lätta applikationer (samling av Moduler) som kan skapas, importeras eller ges ut direkt från UI"
 
 #. Label of the page (Link) field in DocType 'Custom Role'
 #. Name of a DocType
@@ -18665,7 +18665,7 @@ msgstr "Deltagare"
 #. Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Pass"
-msgstr "Lösenord"
+msgstr "Godkänd"
 
 #. Option for the 'Status' (Select) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
@@ -20518,7 +20518,7 @@ msgstr "Begränsa"
 #. Settings'
 #: frappe/website/doctype/blog_settings/blog_settings.json
 msgid "Rate Limits"
-msgstr "Betyg Gräns"
+msgstr "Begränsa"
 
 #. Label of the rate_limit_email_link_login (Int) field in DocType 'System
 #. Settings'
@@ -22399,7 +22399,7 @@ msgstr "SQL Resultat"
 #. Label of the sql_queries (Table) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
 msgid "SQL Queries"
-msgstr "SQL-Datafrågor"
+msgstr "SQL Frågor"
 
 #. Label of the ssl_tls_mode (Select) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -23554,7 +23554,7 @@ msgstr "E-post"
 #. Option for the 'Item Type' (Select) field in DocType 'Navbar Item'
 #: frappe/core/doctype/navbar_item/navbar_item.json
 msgid "Separator"
-msgstr "Separator"
+msgstr "Avgränsare"
 
 #. Label of the sequence_id (Float) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
@@ -24145,7 +24145,7 @@ msgstr "Visa Endast Misslyckade Logg"
 #. Label of the show_percentage_stats (Check) field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
 msgid "Show Percentage Stats"
-msgstr "Visa Procent Statistik"
+msgstr "Visa Procentuell Statistik"
 
 #: frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.js:30
 msgid "Show Permissions"
@@ -30431,7 +30431,7 @@ msgstr "Roll "
 #. Label of the profile (Code) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
 msgid "cProfile Output"
-msgstr "Profil "
+msgstr "cProfil Utgång"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:286
 msgid "calendar"
