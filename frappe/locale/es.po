@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-13 17:03+0000\n"
-"PO-Revision-Date: 2025-01-15 01:13\n"
+"PO-Revision-Date: 2025-02-24 13:22\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -5667,7 +5667,7 @@ msgstr "No se pudo asignar la columna {0} al campo {1}"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:222
 msgid "Could not start up: "
-msgstr ""
+msgstr "No se pudo iniciar: "
 
 #: frappe/public/js/frappe/web_form/web_form.js:359
 msgid "Couldn't save, please check the data you have entered"
@@ -13000,7 +13000,7 @@ msgstr "Formato CSV no válido"
 
 #: frappe/integrations/frappe_providers/frappecloud_billing.py:121
 msgid "Invalid Code. Please try again."
-msgstr ""
+msgstr "Código inválido. Por favor vuelve a intentar."
 
 #: frappe/integrations/doctype/webhook/webhook.py:90
 msgid "Invalid Condition: {}"
@@ -13123,7 +13123,7 @@ msgstr "Nombre de usuario o contraseña de soporte inválido, por favor verifiqu
 
 #: frappe/public/js/frappe/ui/field_group.js:131
 msgid "Invalid Values"
-msgstr ""
+msgstr "Valores inválidos"
 
 #: frappe/integrations/doctype/webhook/webhook.py:119
 msgid "Invalid Webhook Secret"
@@ -23361,7 +23361,7 @@ msgstr "Configurar Series para Transacciones"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:224
 msgid "Setup failed"
-msgstr ""
+msgstr "Configuración fallida"
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'
@@ -29218,7 +29218,7 @@ msgstr "Solo puede configurar los 3 tipos de documentos personalizados en la tab
 
 #: frappe/handler.py:230
 msgid "You can only upload JPG, PNG, PDF, TXT, CSV or Microsoft documents."
-msgstr ""
+msgstr "Solo puedes cargar archivos JPG, PNG, PDF, TXT, CSV o documentos de Microsoft."
 
 #: frappe/core/doctype/data_export/exporter.py:199
 msgid "You can only upload upto 5000 records in one go. (may be less in some cases)"
@@ -29478,11 +29478,11 @@ msgstr "Debes configurar una carpeta IMAP para {0}"
 
 #: frappe/model/rename_doc.py:388
 msgid "You need write permission on {0} {1} to merge"
-msgstr ""
+msgstr "Necesita permiso de escritura en {0} {1} para fusionar"
 
 #: frappe/model/rename_doc.py:383
 msgid "You need write permission on {0} {1} to rename"
-msgstr ""
+msgstr "Necesita permiso de escritura en {0} {1} para renombrar"
 
 #: frappe/client.py:458
 msgid "You need {0} permission to fetch values from {1} {2}"
@@ -31663,7 +31663,7 @@ msgstr "{0} el rol no tiene permiso sobre ningún doctype"
 
 #: frappe/model/document.py:1608
 msgid "{0} row #{1}: "
-msgstr ""
+msgstr "{0} fila #{1}: "
 
 #: frappe/desk/query_report.py:589
 msgid "{0} saved successfully"
