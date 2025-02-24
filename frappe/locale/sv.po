@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-13 17:03+0000\n"
-"PO-Revision-Date: 2025-02-17 11:39\n"
+"PO-Revision-Date: 2025-02-24 13:22\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -17984,7 +17984,7 @@ msgstr "Appar"
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Packages are lightweight apps (collection of Module Defs) that can be created, imported, or released right from the UI"
-msgstr "Paket är lätta appar (samling av Moduler) som kan skapas, importeras eller ges ut direkt från UI"
+msgstr "Appar är lätta applikationer (samling av Moduler) som kan skapas, importeras eller ges ut direkt från UI"
 
 #. Label of a Link field in DocType 'Custom Role'
 #. Name of a DocType
@@ -18210,7 +18210,7 @@ msgstr "Deltagare"
 #. Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Pass"
-msgstr "Lösenord"
+msgstr "Godkänd"
 
 #. Option for the 'Status' (Select) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
@@ -26884,7 +26884,7 @@ msgstr "Typ"
 
 #: frappe/desk/page/user_profile/user_profile.html:17
 msgid "Type Distribution"
-msgstr "Typ Distribution"
+msgstr "Fördelning efter Typ"
 
 #: frappe/public/js/frappe/form/controls/comment.js:78
 msgid "Type a reply / comment"
