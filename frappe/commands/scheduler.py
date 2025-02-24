@@ -218,6 +218,7 @@ def start_worker(queue, quiet=False, rq_username=None, rq_password=None, burst=F
 	"--queue",
 	type=str,
 	help="Queue to consume from. Multiple queues can be specified using comma-separated string. If not specified all queues are consumed.",
+	multiple=True,
 )
 @click.option("--num-workers", type=int, default=2, help="Number of workers to spawn in pool.")
 @click.option("--quiet", is_flag=True, default=False, help="Hide Log Outputs")

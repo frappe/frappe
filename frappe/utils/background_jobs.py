@@ -7,6 +7,7 @@ from collections import defaultdict
 from collections.abc import Callable
 from contextlib import suppress
 from functools import lru_cache
+from multiprocessing import Process
 from threading import Thread
 from typing import Any, NoReturn
 from uuid import uuid4
@@ -408,7 +409,7 @@ class FrappeWorkerNoFork(FrappeWorker):
 
 
 def start_worker_pool(
-	queue: str | None = None,
+	queue: list[str] | None = None,
 	num_workers: int = 1,
 	quiet: bool = False,
 	burst: bool = False,
@@ -430,6 +431,27 @@ def start_worker_pool(
 	import frappe.website.path_resolver  # all the page types and resolver
 	# end: module pre-loading
 
+	if not queue:
+		# Start in same process
+		_start_worker_pool(queue, num_workers, quiet, burst)
+	elif len(queue) == 1 and isinstance(queue, tuple):
+		_start_worker_pool(queue[0], num_workers, quiet, burst)
+	else:
+		processes = []
+		# Fork a workerpool for each queue combination with same workers
+		for q in queue:
+			process = Process(
+				target=_start_worker_pool,
+				kwargs={"queue": q, "num_workers": num_workers, "quiet": quiet, "burst": burst},
+			)
+			process.start()
+			processes.append(process)
+
+		for process in processes:
+			process.join()
+
+
+def _start_worker_pool(queue, num_workers, quiet, burst) -> NoReturn:
 	with frappe.init_site():
 		redis_connection = get_redis_conn()
 
