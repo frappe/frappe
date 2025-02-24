@@ -1562,7 +1562,7 @@ const zoomLevels = {
 				filters: [
 					['project_name', '=', args.name],
 					['status', "!=", "Approved"],
-					['status', "!==", "Ordered"]
+					['status', "!=", "Ordered"]
 				],
 				fields: ["name", "status"]
 			})
