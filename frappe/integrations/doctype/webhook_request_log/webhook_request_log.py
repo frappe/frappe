@@ -6,6 +6,28 @@ from frappe.model.document import Document
 
 
 class WebhookRequestLog(Document):
+<<<<<<< HEAD
+=======
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		data: DF.Code | None
+		error: DF.Text | None
+		headers: DF.Code | None
+		reference_doctype: DF.Data | None
+		reference_document: DF.Data | None
+		response: DF.Code | None
+		url: DF.Text | None
+		user: DF.Link | None
+		webhook: DF.Link | None
+	# end: auto-generated types
+
+>>>>>>> c229f5a34a (fix: handle large URL on webhook logs (#31428))
 	@staticmethod
 	def clear_old_logs(days=30):
 		from frappe.query_builder import Interval
