@@ -266,7 +266,8 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			.run(pluck=True)
 		)
 
-		frappe.client_cache.set_value(key, columns)
+		if columns:
+			frappe.client_cache.set_value(key, columns)
 
 		return columns
 
