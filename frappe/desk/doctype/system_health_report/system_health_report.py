@@ -52,6 +52,8 @@ def health_check(step: str):
 			try:
 				return func(*args, **kwargs)
 			except Exception as e:
+				if frappe.flags.in_test:
+					raise
 				frappe.log(frappe.get_traceback())
 				# nosemgrep
 				frappe.msgprint(
