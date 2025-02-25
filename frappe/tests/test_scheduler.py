@@ -1,10 +1,6 @@
 import os
 import time
-<<<<<<< HEAD
 from unittest import TestCase
-=======
-from datetime import datetime, timedelta
->>>>>>> 967d3e828c (fix: granular status in system health report)
 from unittest.mock import patch
 
 import frappe
@@ -12,11 +8,7 @@ from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJ
 from frappe.utils import add_days, get_datetime
 from frappe.utils.doctor import purge_pending_jobs
 from frappe.utils.scheduler import (
-<<<<<<< HEAD
 	_get_last_modified_timestamp,
-=======
-	DEFAULT_SCHEDULER_TICK,
->>>>>>> 967d3e828c (fix: granular status in system health report)
 	enqueue_events,
 	is_dormant,
 	schedule_jobs_based_on_activity,
@@ -88,27 +80,7 @@ class TestScheduler(TestCase):
 		job = get_test_job(method="frappe.tests.test_scheduler.test_method", frequency="Daily")
 		job.execute()
 		job_log = frappe.get_doc("Scheduled Job Log", dict(scheduled_job_type=job.name))
-<<<<<<< HEAD
-		job_log.db_set(
-			"modified", add_days(_get_last_modified_timestamp("Activity Log"), 5), update_modified=False
-		)
-		schedule_jobs_based_on_activity.clear_cache()
-
-		# inactive site with recent job, don't run
-		self.assertFalse(
-			schedule_jobs_based_on_activity(
-				check_time=add_days(_get_last_modified_timestamp("Activity Log"), 5)
-			)
-		)
-
-		# one more day has passed
-		self.assertTrue(
-			schedule_jobs_based_on_activity(
-				check_time=add_days(_get_last_modified_timestamp("Activity Log"), 6)
-			)
-		)
-=======
-		job_log.db_set("creation", add_days(last_activity, 5), update_modified=False)
+		job_log.db_set("modified", add_days(last_activity, 5), update_modified=False)
 		schedule_jobs_based_on_activity.clear_cache()
 		is_dormant.clear_cache()
 
@@ -117,7 +89,6 @@ class TestScheduler(TestCase):
 
 		# one more day has passed
 		self.assertTrue(schedule_jobs_based_on_activity(check_time=add_days(last_activity, 6)))
->>>>>>> 6db7cb096d (fix: Better proxy for active site and disable on selfhosted)
 
 
 def get_test_job(method="frappe.tests.test_scheduler.test_timeout_10", frequency="All") -> ScheduledJobType:

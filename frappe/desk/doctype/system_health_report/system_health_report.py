@@ -204,9 +204,6 @@ class SystemHealthReport(Document):
 		lower_threshold = add_to_date(None, days=-7, as_datetime=True)
 		# Exclude "maybe" curently executing job
 		upper_threshold = add_to_date(None, minutes=-30, as_datetime=True)
-<<<<<<< HEAD
-		scheduler_running = get_scheduler_status().get("status") == "active" and is_schduler_process_running()
-		self.scheduler_status = "Active" if scheduler_running else "Inactive"
 		failing_jobs = frappe.db.sql(
 			"""
 			select scheduled_job_type,
@@ -220,42 +217,6 @@ class SystemHealthReport(Document):
 			having failure_rate > 0
 			order by failure_rate desc
 			limit 5""",
-=======
-
-		mariadb_query = """
-  				SELECT scheduled_job_type,
-					AVG(CASE WHEN status != 'Complete' THEN 1 ELSE 0 END) * 100 AS failure_rate
-				FROM `tabScheduled Job Log`
-				WHERE
-					creation > %(lower_threshold)s
-					AND modified > %(lower_threshold)s
-					AND creation < %(upper_threshold)s
-				GROUP BY scheduled_job_type
-				HAVING failure_rate > 0
-				ORDER BY failure_rate DESC
-				LIMIT 5
-		"""
-
-		postgres_query = """
-  				SELECT scheduled_job_type,
-					AVG(CASE WHEN status != 'Complete' THEN 1 ELSE 0 END) * 100 AS "failure_rate"
-				FROM "tabScheduled Job Log"
-				WHERE
-					creation > %(lower_threshold)s
-					AND modified > %(lower_threshold)s
-					AND creation < %(upper_threshold)s
-				GROUP BY scheduled_job_type
-				HAVING AVG(CASE WHEN status != 'Complete' THEN 1 ELSE 0 END) * 100 > 0
-				ORDER BY "failure_rate" DESC
-				LIMIT 5
-    	"""
-
-		failing_jobs = frappe.db.multisql(
-			{
-				"mariadb": mariadb_query,
-				"postgres": postgres_query,
-			},
->>>>>>> 967d3e828c (fix: granular status in system health report)
 			{"lower_threshold": lower_threshold, "upper_threshold": upper_threshold},
 			as_dict=True,
 		)
