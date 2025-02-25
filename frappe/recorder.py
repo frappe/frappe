@@ -192,7 +192,6 @@ class Recorder:
 	def __init__(self, force=False):
 		self.config = RecorderConfig.retrieve()
 		self.calls = []
-		self._patched_sql = False
 		self.profiler = None
 		self._recording = True
 		self.force = force
@@ -228,9 +227,7 @@ class Recorder:
 		self.uuid = frappe.generate_hash(length=10)
 		self.time = now_datetime()
 
-		if self.config.record_sql:
-			self._patch_sql()
-			self._patched_sql = True
+		self.patch_sql()
 
 		if self.config.profile:
 			self.profiler = cProfile.Profile()
@@ -242,8 +239,7 @@ class Recorder:
 	def cleanup(self):
 		if self.profiler:
 			self.profiler.disable()
-		if self._patched_sql:
-			self._unpatch_sql()
+		self._unpatch_sql()
 
 	def process_profiler(self):
 		if self.config.profile or self.profiler:
@@ -279,18 +275,17 @@ class Recorder:
 		request_data["form_dict"] = self.form_dict
 		request_data["profile"] = profiler_output
 		frappe.cache.hset(RECORDER_REQUEST_HASH, self.uuid, request_data)
+		self._unpatch_sql()
 
+	def patch_sql(self):
 		if self.config.record_sql:
-			self._unpatch_sql()
-
-	@staticmethod
-	def _patch_sql():
-		frappe.db._sql = frappe.db.sql
-		frappe.db.sql = record_sql
+			frappe.db._sql = frappe.db.sql
+			frappe.db.sql = record_sql
 
 	@staticmethod
 	def _unpatch_sql():
-		frappe.db.sql = frappe.db._sql
+		if hasattr(frappe.db, "_sql"):
+			frappe.db.sql = frappe.db._sql
 
 
 def do_not_record(function):
