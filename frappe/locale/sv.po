@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-23 09:33+0000\n"
-"PO-Revision-Date: 2025-02-24 13:22\n"
+"PO-Revision-Date: 2025-02-25 13:27\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -2096,7 +2096,7 @@ msgstr "Alternativ E-post"
 #. Label of the always_bcc (Data) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Always BCC Address"
-msgstr ""
+msgstr "Alltid Hemlig Kopia Adress"
 
 #. Label of the add_draft_heading (Check) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -3065,7 +3065,7 @@ msgstr "Automatiskt följ dokument som du skapar"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:227
 msgid "Auto repeat failed. Please enable auto repeat after fixing the issues."
-msgstr ""
+msgstr "Automatisk upprepning misslyckad. Aktivera automatisk upprepning när problem är åtgärdad."
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -5348,7 +5348,7 @@ msgstr "Skicka E-post"
 #. Option for the 'Row Format' (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Compressed"
-msgstr ""
+msgstr "Komprimerad"
 
 #. Label of the condition (Select) field in DocType 'Document Naming Rule
 #. Condition'
@@ -8386,7 +8386,7 @@ msgstr "Varaktighet"
 #. Option for the 'Row Format' (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Dynamic"
-msgstr ""
+msgstr "Dynamisk"
 
 #. Label of the dynamic_filters_section (Section Break) field in DocType
 #. 'Dashboard Chart'
@@ -11675,7 +11675,7 @@ msgstr "Tomt Rutnät Tillstånd"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Grid Page Length"
-msgstr ""
+msgstr "Rutnät Sidlängd"
 
 #: frappe/public/js/frappe/ui/keyboard.js:126
 msgid "Grid Shortcuts"
@@ -22240,7 +22240,7 @@ msgstr "Rad # {}: Fältnamn erfodras"
 #. Label of the row_format (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Row Format"
-msgstr ""
+msgstr "Rad Format"
 
 #. Label of the row_index (Data) field in DocType 'Transaction Log'
 #: frappe/core/doctype/transaction_log/transaction_log.json
@@ -26129,7 +26129,7 @@ msgstr "Angiven Fil URL är felaktig"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:108
 msgid "The Next Scheduled Date cannot be later than the End Date."
-msgstr ""
+msgstr "Nästa Schemalagda datum kan inte vara senare än Slut Datum."
 
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.py:29
 msgid "The Push Relay Server URL key (`push_relay_server_url`) is missing in your site config"
@@ -28195,7 +28195,7 @@ msgstr "Använd detta fält namn för att skapa benämning"
 #. Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Use this, for example, if all sent emails should also be send to an archive."
-msgstr ""
+msgstr "Använd detta om du t. ex. vill att alla skickade e-postmeddelanden också ska skickas till ett arkiv."
 
 #. Label of the used_oauth (Check) field in DocType 'User Email'
 #: frappe/core/doctype/user_email/user_email.json
