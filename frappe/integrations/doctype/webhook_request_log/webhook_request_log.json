@@ -20,7 +20,7 @@
  "fields": [
   {
    "fieldname": "url",
-   "fieldtype": "Data",
+   "fieldtype": "Text",
    "label": "URL",
    "read_only": 1
   },
@@ -74,7 +74,8 @@
    "fieldname": "webhook",
    "fieldtype": "Link",
    "label": "Webhook",
-   "options": "Webhook"
+   "options": "Webhook",
+   "search_index": 1
   },
   {
    "fieldname": "reference_doctype",
@@ -88,7 +89,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-14 05:52:41.583612",
+ "modified": "2025-02-25 15:16:24.028963",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook Request Log",
@@ -108,6 +109,7 @@
    "write": 1
   }
  ],
+ "row_format": "Compressed",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
