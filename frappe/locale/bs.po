@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-23 09:33+0000\n"
-"PO-Revision-Date: 2025-02-24 13:22\n"
+"PO-Revision-Date: 2025-02-25 13:27\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -2098,7 +2098,7 @@ msgstr "Alternativni ID e-pošte"
 #. Label of the always_bcc (Data) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Always BCC Address"
-msgstr ""
+msgstr "Uvijek Tajna Kopija Adresa"
 
 #. Label of the add_draft_heading (Check) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -3067,7 +3067,7 @@ msgstr "Automatsko praćenje dokumenata koje kreirate"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:227
 msgid "Auto repeat failed. Please enable auto repeat after fixing the issues."
-msgstr ""
+msgstr "Automatsko ponavljanje nije uspjelo. Omogući automatsko ponavljanje nakon rješavanja problema."
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -5349,7 +5349,7 @@ msgstr "Pošalji e-poštu"
 #. Option for the 'Row Format' (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Compressed"
-msgstr ""
+msgstr "Komprimirano"
 
 #. Label of the condition (Select) field in DocType 'Document Naming Rule
 #. Condition'
@@ -8387,7 +8387,7 @@ msgstr "Trajanje"
 #. Option for the 'Row Format' (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Dynamic"
-msgstr ""
+msgstr "Dinamično"
 
 #. Label of the dynamic_filters_section (Section Break) field in DocType
 #. 'Dashboard Chart'
@@ -11677,7 +11677,7 @@ msgstr "Prazno Stanje Mreže"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Grid Page Length"
-msgstr ""
+msgstr "Mreža Dužina Stranice"
 
 #: frappe/public/js/frappe/ui/keyboard.js:126
 msgid "Grid Shortcuts"
@@ -12839,7 +12839,7 @@ msgstr "Uvoz {0} od {1}"
 
 #: frappe/core/doctype/data_import/data_import.js:35
 msgid "Importing {0} of {1}, {2}"
-msgstr "Uvoz {0} od {1}, {2}"
+msgstr "Uvozi se {0} od {1}, {2}"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:20
 msgid "In"
@@ -12920,7 +12920,7 @@ msgstr "U Standardnom Filteru"
 #. Description of the 'Font Size' (Float) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "In points. Default is 9."
-msgstr "U bodovima. Standard je 9."
+msgstr "U Pixelima. Standard je 9."
 
 #. Description of the 'Allow Login After Fail' (Int) field in DocType 'System
 #. Settings'
@@ -22243,7 +22243,7 @@ msgstr "Red #{}: Naziv polja je obavezan"
 #. Label of the row_format (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Row Format"
-msgstr ""
+msgstr "Format Reda"
 
 #. Label of the row_index (Data) field in DocType 'Transaction Log'
 #: frappe/core/doctype/transaction_log/transaction_log.json
@@ -26134,7 +26134,7 @@ msgstr "URL Datoteke koji ste unijeli nije tačan"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:108
 msgid "The Next Scheduled Date cannot be later than the End Date."
-msgstr ""
+msgstr "Sljedeći zakazani datum ne može biti kasniji od datuma završetka."
 
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.py:29
 msgid "The Push Relay Server URL key (`push_relay_server_url`) is missing in your site config"
@@ -27674,7 +27674,7 @@ msgstr "NEVIĐENO"
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "URIs for receiving authorization code once the user allows access, as well as failure responses. Typically a REST endpoint exposed by the Client App.\n"
 "<br>e.g. http://hostname/api/method/frappe.integrations.oauth2_logins.login_via_facebook"
-msgstr "URI-ovi za primanje autorizacijskog koda nakon što korisnik dopusti pristup, kao i odgovora na neuspjeh. Obično krajnja točka REST-a koju otkriva klijentska aplikacija.\n"
+msgstr "URI-ovi za primanje autorizacijskog koda nakon što korisnik dopusti pristup, kao i odgovora na neuspjeh. Obično krajnja tačka REST-a koju otkriva klijentska aplikacija.\n"
 "<br>npr. http://hostname/api/method/frappe.integrations.oauth2_logins.login_via_facebook"
 
 #. Option for the 'Type' (Select) field in DocType 'Workspace'
@@ -28205,7 +28205,7 @@ msgstr "Koristi ovo ime polja za generisanje naziva"
 #. Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Use this, for example, if all sent emails should also be send to an archive."
-msgstr ""
+msgstr "Koristi ovo, na primjer, ako sva poslana e-poåta također treba poslati u arhivu."
 
 #. Label of the used_oauth (Check) field in DocType 'User Email'
 #: frappe/core/doctype/user_email/user_email.json
