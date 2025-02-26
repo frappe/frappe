@@ -231,23 +231,15 @@ def start_worker_pool(queue, quiet=False, num_workers=2, burst=False):
 @click.command("ready-for-migration")
 @click.option("--site", help="site name")
 @pass_context
-<<<<<<< HEAD
 def ready_for_migration(context, site=None):
-=======
-def ready_for_migration(context: CliCtxObj, site=None):
 	import time
 
->>>>>>> 8baeb5151d (fix: check for running jobs before migrating (#31438))
 	from frappe.utils.doctor import any_job_pending
 
 	if not site:
 		site = get_site(context)
 
 	try:
-<<<<<<< HEAD
-		frappe.init(site=site)
-		pending_jobs = any_job_pending(site=site)
-=======
 		frappe.init(site)
 		pending_jobs = False
 
@@ -257,7 +249,6 @@ def ready_for_migration(context: CliCtxObj, site=None):
 		for _ in range(3):
 			pending_jobs |= any_job_pending(site=site)
 			time.sleep(1)
->>>>>>> 8baeb5151d (fix: check for running jobs before migrating (#31438))
 
 		if pending_jobs:
 			print(f"NOT READY for migration: site {site} has pending background jobs")
