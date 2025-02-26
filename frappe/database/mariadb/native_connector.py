@@ -4,14 +4,15 @@ from contextlib import contextmanager
 
 import mariadb
 from mariadb.constants import ERR, FIELD_TYPE
-from pymysql.converters import escape_sequence, escape_string
+
+# TODO: Remove this import.
+from pymysql.converters import escape_string
 
 import frappe
 from frappe.database.database import Database, QueryValues
 from frappe.database.mariadb.schema import MariaDBTable
-from frappe.utils import UnicodeWithAttrs, get_datetime, get_table_name
+from frappe.utils import UnicodeWithAttrs, get_table_name
 
-_FIND_ITER_PATTERN = re.compile("%s")
 _PARAM_COMP = re.compile(r"%\([\w]*\)s")
 
 
@@ -160,6 +161,9 @@ class MariaDBCursorPatchUtil:
 		Transformations:
 		        - Escape sequences in values
 		"""
+
+		from pymysql.converters import escape_sequence
+
 		_values = []
 
 		if isinstance(values, tuple | list):
