@@ -210,15 +210,34 @@ def start_worker(queue, quiet=False, rq_username=None, rq_password=None, burst=F
 @click.command("ready-for-migration")
 @click.option("--site", help="site name")
 @pass_context
+<<<<<<< HEAD
 def ready_for_migration(context, site=None):
 	from frappe.utils.doctor import get_pending_jobs
+=======
+def ready_for_migration(context: CliCtxObj, site=None):
+	import time
+
+	from frappe.utils.doctor import any_job_pending
+>>>>>>> 8baeb5151d (fix: check for running jobs before migrating (#31438))
 
 	if not site:
 		site = get_site(context)
 
 	try:
+<<<<<<< HEAD
 		frappe.init(site=site)
 		pending_jobs = get_pending_jobs(site=site)
+=======
+		frappe.init(site)
+		pending_jobs = False
+
+		# HACK: Check at least 3 times, 1 second apart.
+		# Rare edge case: Scheduler hasn't seen 'maintenance_mode=1` yet
+		#                    and takes more than 3 second to schedule.
+		for _ in range(3):
+			pending_jobs |= any_job_pending(site=site)
+			time.sleep(1)
+>>>>>>> 8baeb5151d (fix: check for running jobs before migrating (#31438))
 
 		if pending_jobs:
 			print(f"NOT READY for migration: site {site} has pending background jobs")

@@ -79,6 +79,24 @@ def get_pending_jobs(site=None):
 	return jobs_per_queue
 
 
+<<<<<<< HEAD
+=======
+def any_job_pending(site: str) -> bool:
+	for queue in get_queue_list():
+		q = get_queue(queue)
+		# pending jobs
+		for job_id in q.get_job_ids():
+			if job_id.startswith(site):
+				return True
+
+		# already running jobs
+		for job_id in q.started_job_registry.get_job_ids():
+			if job_id.startswith(site):
+				return True
+	return False
+
+
+>>>>>>> 8baeb5151d (fix: check for running jobs before migrating (#31438))
 def check_number_of_workers():
 	return len(get_workers())
 
