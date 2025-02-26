@@ -123,8 +123,6 @@ class MariaDBConnectionUtil:
 		conn_settings = {
 			"user": self.user,
 			"converter": self.CONVERSION_MAP,
-			# "charset": "utf8mb4",
-			# "use_unicode": True,
 		}
 
 		if self.cur_db_name:
@@ -144,12 +142,11 @@ class MariaDBConnectionUtil:
 			conn_settings["local_infile"] = frappe.conf.local_infile
 
 		if frappe.conf.db_ssl_ca and frappe.conf.db_ssl_cert and frappe.conf.db_ssl_key:
-			# TODO: check correctness
 			conn_settings["ssl"] = {
-				"ca": frappe.conf.db_ssl_ca,
-				"cert": frappe.conf.db_ssl_cert,
-				"key": frappe.conf.db_ssl_key,
 				"ssl": True,
+				"ssl_ca": frappe.conf.db_ssl_ca,
+				"ssl_cert": frappe.conf.db_ssl_cert,
+				"ssl_key": frappe.conf.db_ssl_key,
 			}
 		return conn_settings
 
