@@ -1,12 +1,9 @@
 import re
 import typing
 from contextlib import contextmanager
-from decimal import Decimal
 
 import mariadb
-import pymysql
 from mariadb.constants import ERR, FIELD_TYPE
-from pymysql.constants import ER
 from pymysql.converters import escape_sequence, escape_string
 
 import frappe
@@ -39,7 +36,7 @@ class MariaDBExceptionUtil:
 		return getattr(e, "errno", None) == ERR.ER_LOCK_WAIT_TIMEOUT
 
 	@staticmethod
-	def is_read_only_mode_error(e: pymysql.Error) -> bool:
+	def is_read_only_mode_error(e: mariadb.Error) -> bool:
 		return getattr(e, "errno", None) == ERR.ER_CANT_EXECUTE_IN_READ_ONLY_TRANSACTION
 
 	@staticmethod
@@ -75,11 +72,11 @@ class MariaDBExceptionUtil:
 		return getattr(e, "errno", None) == ERR.ER_PARSE_ERROR
 
 	@staticmethod
-	def is_statement_timeout(e: pymysql.Error) -> bool:
+	def is_statement_timeout(e: mariadb.Error) -> bool:
 		return getattr(e, "errno", None) == ERR.ER_STATEMENT_TIMEOUT
 
 	@staticmethod
-	def is_db_table_size_limit(e: pymysql.Error) -> bool:
+	def is_db_table_size_limit(e: mariadb.Error) -> bool:
 		return getattr(e, "errno", None) == ERR.ER_TOO_BIG_ROWSIZE
 
 	@staticmethod
@@ -103,8 +100,8 @@ class MariaDBExceptionUtil:
 		)
 
 	@staticmethod
-	def is_interface_error(e: pymysql.Error):
-		return isinstance(e, pymysql.InterfaceError)
+	def is_interface_error(e: mariadb.Error):
+		return isinstance(e, mariadb.InterfaceError)
 
 
 class MariaDBConnectionUtil:
