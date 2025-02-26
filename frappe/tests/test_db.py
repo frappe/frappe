@@ -37,7 +37,6 @@ class TestDB(IntegrationTestCase):
 	def test_get_database_size(self):
 		self.assertIsInstance(frappe.db.get_database_size(), (float, int))
 
-	@unittest.skip("Need to fix exception identification")
 	def test_db_statement_execution_timeout(self):
 		frappe.db.set_execution_timeout(2)
 		# Setting 0 means no timeout.
@@ -492,7 +491,6 @@ class TestDB(IntegrationTestCase):
 			# recover transaction to continue other tests
 			raise Exception
 
-	@unittest.skip("segfaults")
 	def test_read_only_errors(self):
 		frappe.db.rollback()
 		frappe.db.begin(read_only=True)

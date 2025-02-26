@@ -40,8 +40,7 @@ class MariaDBExceptionUtil:
 
 	@staticmethod
 	def is_read_only_mode_error(e: pymysql.Error) -> bool:
-		# TODO: replace this error
-		return e.args[0] == 1792
+		return getattr(e, "errno", None) == ERR.ER_CANT_EXECUTE_IN_READ_ONLY_TRANSACTION
 
 	@staticmethod
 	def is_table_missing(e: mariadb.Error) -> bool:
@@ -77,13 +76,11 @@ class MariaDBExceptionUtil:
 
 	@staticmethod
 	def is_statement_timeout(e: pymysql.Error) -> bool:
-		# TODO: replace
-		return e.args[0] == 1969
+		return getattr(e, "errno", None) == ERR.ER_STATEMENT_TIMEOUT
 
 	@staticmethod
 	def is_db_table_size_limit(e: pymysql.Error) -> bool:
-		# TODO: replace
-		return e.args[0] == ER.TOO_BIG_ROWSIZE
+		return getattr(e, "errno", None) == ERR.ER_TOO_BIG_ROWSIZE
 
 	@staticmethod
 	def is_data_too_long(e: mariadb.Error) -> bool:

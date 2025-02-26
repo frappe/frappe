@@ -135,7 +135,6 @@ test = [
     "Faker~=18.10.1",
     "hypothesis~=6.77.0",
     "freezegun~=1.5.1",
-    "pdbpp~=0.10.3",
 ]
 
 [build-system]
