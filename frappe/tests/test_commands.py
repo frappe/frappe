@@ -842,6 +842,10 @@ class TestSchedulerCLI(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 		self.assertRegex(self.stdout, r"Scheduler is resumed for site .*")
 
+	def test_read_for_migration(self):
+		self.execute("bench --site {site} ready-for-migration")
+		self.assertEqual(self.returncode, 0)
+
 
 class TestGunicornWorker(FrappeTestCase):
 	port = 8005
