@@ -77,6 +77,7 @@ class TestScheduler(TestCase):
 		job_log.db_set(
 			"modified", add_days(_get_last_modified_timestamp("Activity Log"), 5), update_modified=False
 		)
+		schedule_jobs_based_on_activity.clear_cache()
 
 		# inactive site with recent job, don't run
 		self.assertFalse(

@@ -32,8 +32,8 @@ def get_setup_stages(args):  # nosemgrep
 	stages.append(
 		{
 			# post executing hooks
-			"status": "Wrapping up",
-			"fail_msg": "Failed to complete setup",
+			"status": _("Wrapping up"),
+			"fail_msg": _("Failed to complete setup"),
 			"tasks": [{"fn": run_post_setup_complete, "args": args, "fail_msg": "Failed to complete setup"}],
 		}
 	)

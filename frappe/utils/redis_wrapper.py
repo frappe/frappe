@@ -98,7 +98,7 @@ class RedisWrapper(redis.Redis):
 			if not expires:
 				if val is None and generator:
 					val = generator()
-					self.set_value(original_key, val, user=user)
+					self.set_value(original_key, val, user=user, shared=shared)
 
 				else:
 					frappe.local.cache[key] = val

@@ -397,7 +397,7 @@ frappe.ui.form.on("Dashboard Chart", {
 						}
 					}
 				},
-				primary_action_label: "Set",
+				primary_action_label: __("Set"),
 			});
 			frappe.dashboards.filters_dialog = dialog;
 
@@ -484,7 +484,7 @@ frappe.ui.form.on("Dashboard Chart", {
 					}
 					frm.trigger("set_dynamic_filters_in_table");
 				},
-				primary_action_label: "Set",
+				primary_action_label: __("Set"),
 			});
 
 			dialog.show();

@@ -34,32 +34,6 @@ def get_headers():
 
 
 @frappe.whitelist()
-def get_token_and_base_url():
-	request = requests.post(
-		f"{get_base_url()}/api/method/press.saas.api.auth.generate_access_token",
-		headers=get_headers(),
-	)
-	if request.status_code == 200:
-		return {
-			"base_url": get_base_url(),
-			"token": request.json()["message"],
-		}
-	else:
-		frappe.throw(_("Failed to generate access token"))
-
-
-@frappe.whitelist()
-def is_access_token_valid(token):
-	headers = {"Content-Type": "application/json"}
-	request = requests.post(
-		f"{get_base_url()}/api/method/press.saas.api.auth.is_access_token_valid",
-		headers,
-		json={token},
-	)
-	return request.json()["message"]
-
-
-@frappe.whitelist()
 def current_site_info():
 	request = requests.post(f"{get_base_url()}/api/method/press.saas.api.site.info", headers=get_headers())
 	if request.status_code == 200:
@@ -92,11 +66,11 @@ def is_fc_site():
 
 # login to frappe cloud dashboard
 @frappe.whitelist()
-def send_verification_code():
+def send_verification_code(route: str):
 	request = requests.post(
-		f"{get_base_url()}/api/method/press.api.developer.saas.request_login_to_fc",
+		f"{get_base_url()}/api/method/press.api.developer.saas.send_verification_code",
 		headers=get_headers(),
-		json={"domain": get_site_name()},
+		json={"domain": get_site_name(), "route": route},
 	)
 	if request.status_code == 200:
 		return request.json().get("message")
@@ -105,11 +79,11 @@ def send_verification_code():
 
 
 @frappe.whitelist()
-def verify_and_login(verification_code: str):
+def verify_verification_code(verification_code: str, route: str):
 	request = requests.post(
-		f"{get_base_url()}/api/method/press.api.developer.saas.validate_login_to_fc",
+		f"{get_base_url()}/api/method/press.api.developer.saas.verify_verification_code",
 		headers=get_headers(),
-		json={"domain": get_site_name(), "otp": verification_code},
+		json={"domain": get_site_name(), "verification_code": verification_code, "route": route},
 	)
 
 	if request.status_code == 200:

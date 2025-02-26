@@ -246,6 +246,12 @@ function get_version_timeline_content(version_doc, frm) {
 		const impersonated_msg = __("Impersonated by {0}", [get_user_link(impersonated_by)]);
 		out = out.map((message) => `${message} · ${impersonated_msg.bold()}`);
 	}
+
+	const audit_user = data.audit_user;
+	if (audit_user) {
+		const audit_msg = __("[Action taken by {0}]", [audit_user]);
+		out = out.map((message) => `${message} · ${audit_msg.bold()}`);
+	}
 	return out;
 }
 

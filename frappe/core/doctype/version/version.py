@@ -37,6 +37,9 @@ class Version(Document):
 		if impersonator := frappe.session.data.get("impersonated_by"):
 			data["impersonated_by"] = impersonator
 
+		if audit_user := frappe.session.data.get("audit_user"):
+			data["audit_user"] = audit_user
+
 	def set_diff(self, old: Document, new: Document) -> bool:
 		"""Set the data property with the diff of the docs if present"""
 		diff = get_diff(old, new)

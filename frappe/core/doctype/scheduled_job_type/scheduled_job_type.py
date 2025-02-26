@@ -43,6 +43,7 @@ class ScheduledJobType(Document):
 		last_execution: DF.Datetime | None
 		method: DF.Data
 		next_execution: DF.Datetime | None
+		scheduler_event: DF.Link | None
 		server_script: DF.Link | None
 		stopped: DF.Check
 
@@ -260,9 +261,14 @@ def insert_single_event(frequency: str, event: str, cron_format: str | None = No
 
 
 def clear_events(all_events: list):
-	for event in frappe.get_all("Scheduled Job Type", fields=["name", "method", "server_script"]):
+	for event in frappe.get_all(
+		"Scheduled Job Type", fields=["name", "method", "server_script", "scheduler_event"]
+	):
 		is_server_script = event.server_script
 		is_defined_in_hooks = event.method in all_events
+
+		if event.scheduler_event:
+			continue
 
 		if not (is_defined_in_hooks or is_server_script):
 			frappe.delete_doc("Scheduled Job Type", event.name)
