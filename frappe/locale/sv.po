@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-23 09:33+0000\n"
-"PO-Revision-Date: 2025-02-25 13:27\n"
+"PO-Revision-Date: 2025-02-26 13:38\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -25251,7 +25251,7 @@ msgstr "Godkänn"
 #: frappe/website/doctype/web_form/templates/web_form.html:47
 msgctxt "Button in web form"
 msgid "Submit"
-msgstr "Godkänn "
+msgstr "Skicka"
 
 #: frappe/public/js/frappe/ui/dialog.js:62
 msgctxt "Primary action in dialog"
@@ -25266,7 +25266,7 @@ msgstr "Godkänn"
 #: frappe/public/js/frappe/desk.js:227
 msgctxt "Submit password for Email Account"
 msgid "Submit"
-msgstr "Godkänn"
+msgstr "Bekräfta"
 
 #. Label of the submit_after_import (Check) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
