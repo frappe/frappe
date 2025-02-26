@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-13 17:03+0000\n"
-"PO-Revision-Date: 2025-02-24 13:22\n"
+"PO-Revision-Date: 2025-02-26 13:38\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -3650,13 +3650,13 @@ msgstr "با فیلد «سری نامگذاری»."
 #: frappe/website/doctype/web_page/web_page.js:111
 #: frappe/website/doctype/web_page/web_page.js:118
 msgid "By default the title is used as meta title, adding a value here will override it."
-msgstr "به طور پیش فرض عنوان به عنوان عنوان متا استفاده می‌شود، افزودن یک مقدار در اینجا آن را لغو می‌کند."
+msgstr "به طور پیش‌فرض عنوان به عنوان عنوان متا استفاده می‌شود، افزودن یک مقدار در اینجا آن را لغو می‌کند."
 
 #. Description of the 'Send Email for Successful Backup' (Check) field in
 #. DocType 'S3 Backup Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgid "By default, emails are only sent for failed backups."
-msgstr "به طور پیش فرض، ایمیل ها فقط برای پشتیبان گیری ناموفق ارسال می شوند."
+msgstr "به طور پیش‌فرض، ایمیل ها فقط برای پشتیبان گیری ناموفق ارسال می شوند."
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
@@ -4393,7 +4393,7 @@ msgstr "اگر نمی‌خواهید کاربران برای یک حساب کا�
 #. 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Check this if you want to force the user to select a series before saving. There will be no default if you check this."
-msgstr "اگر می‌خواهید کاربر را مجبور به انتخاب یک سری قبل از ذخیره کنید، این را علامت بزنید. اگر این را بررسی کنید هیچ پیش فرضی وجود نخواهد داشت."
+msgstr "اگر می‌خواهید کاربر را مجبور به انتخاب یک سری قبل از ذخیره کنید، این را علامت بزنید. اگر این را بررسی کنید هیچ پیش‌فرضی وجود نخواهد داشت."
 
 #: frappe/email/doctype/newsletter/newsletter.js:20
 msgid "Checking broken links..."
@@ -6518,45 +6518,45 @@ msgstr ""
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Default"
-msgstr "پیش فرض"
+msgstr "پیش‌فرض"
 
 #: frappe/contacts/doctype/address_template/address_template.py:41
 msgid "Default Address Template cannot be deleted"
-msgstr "الگوی آدرس پیش فرض را نمی‌توان حذف کرد"
+msgstr "الگوی آدرس پیش‌فرض را نمی‌توان حذف کرد"
 
 #. Label of a Select field in DocType 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Default Amendment Naming"
-msgstr "نام گذاری اصلاحیه پیش فرض"
+msgstr "نام گذاری اصلاحیه پیش‌فرض"
 
 #. Label of a Select field in DocType 'System Settings'
 #. Label of a Select field in DocType 'User'
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/core/doctype/user/user.json
 msgid "Default App"
-msgstr "برنامه پیش فرض"
+msgstr "برنامه پیش‌فرض"
 
 #. Label of a Link field in DocType 'DocType'
 #. Label of a Link field in DocType 'Customize Form'
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Default Email Template"
-msgstr "الگوی پیش فرض ایمیل"
+msgstr "الگوی پیش‌فرض ایمیل"
 
 #: frappe/email/doctype/email_account/email_account_list.js:13
 msgid "Default Inbox"
-msgstr "صندوق ورودی پیش فرض"
+msgstr "صندوق ورودی پیش‌فرض"
 
 #. Label of a Check field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/email/doctype/email_account/email_account.py:193
 msgid "Default Incoming"
-msgstr "ورودی پیش فرض"
+msgstr "ورودی پیش‌فرض"
 
 #. Label of a Check field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Default Letter Head"
-msgstr "سربرگ پیش فرض"
+msgstr "سربرگ پیش‌فرض"
 
 #. Option for the 'Action' (Select) field in DocType 'Amended Document Naming
 #. Settings'
@@ -6565,101 +6565,101 @@ msgstr "سربرگ پیش فرض"
 #: frappe/core/doctype/amended_document_naming_settings/amended_document_naming_settings.json
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Default Naming"
-msgstr "نامگذاری پیش فرض"
+msgstr "نامگذاری پیش‌فرض"
 
 #. Label of a Check field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/email/doctype/email_account/email_account.py:201
 msgid "Default Outgoing"
-msgstr "خروجی پیش فرض"
+msgstr "خروجی پیش‌فرض"
 
 #. Label of a Data field in DocType 'Portal Settings'
 #: frappe/website/doctype/portal_settings/portal_settings.json
 msgid "Default Portal Home"
-msgstr "صفحه اصلی پورتال پیش فرض"
+msgstr "صفحه اصلی پورتال پیش‌فرض"
 
 #. Label of a Data field in DocType 'DocType'
 #. Label of a Link field in DocType 'Customize Form'
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Default Print Format"
-msgstr "فرمت چاپ پیش فرض"
+msgstr "فرمت چاپ پیش‌فرض"
 
 #. Label of a Link field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Default Print Language"
-msgstr "زبان چاپ پیش فرض"
+msgstr "زبان چاپ پیش‌فرض"
 
 #. Label of a Data field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Default Redirect URI"
-msgstr "URI تغییر مسیر پیش فرض"
+msgstr "URI تغییر مسیر پیش‌فرض"
 
 #. Label of a Link field in DocType 'Portal Settings'
 #: frappe/website/doctype/portal_settings/portal_settings.json
 msgid "Default Role at Time of Signup"
-msgstr "نقش پیش فرض در زمان ثبت نام"
+msgstr "نقش پیش‌فرض در زمان ثبت نام"
 
 #: frappe/email/doctype/email_account/email_account_list.js:16
 msgid "Default Sending"
-msgstr "ارسال پیش فرض"
+msgstr "ارسال پیش‌فرض"
 
 #: frappe/email/doctype/email_account/email_account_list.js:7
 msgid "Default Sending and Inbox"
-msgstr "ارسال پیش فرض و صندوق ورودی"
+msgstr "ارسال پیش‌فرض و صندوق ورودی"
 
 #. Label of a Data field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Default Sort Field"
-msgstr "فیلد مرتب‌سازی پیش فرض"
+msgstr "فیلد مرتب‌سازی پیش‌فرض"
 
 #. Label of a Select field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Default Sort Order"
-msgstr "ترتیب مرتب‌سازی پیش فرض"
+msgstr "ترتیب مرتب‌سازی پیش‌فرض"
 
 #. Label of a Data field in DocType 'Print Format Field Template'
 #: frappe/printing/doctype/print_format_field_template/print_format_field_template.json
 msgid "Default Template For Field"
-msgstr "الگوی پیش فرض برای فیلد"
+msgstr "الگوی پیش‌فرض برای فیلد"
 
 #: frappe/website/doctype/website_theme/website_theme.js:28
 msgid "Default Theme"
-msgstr "تم پیش فرض"
+msgstr "تم پیش‌فرض"
 
 #. Label of a Link field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Default User Role"
-msgstr "نقش کاربر پیش فرض"
+msgstr "نقش کاربر پیش‌فرض"
 
 #. Label of a Link field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Default User Type"
-msgstr "نوع کاربر پیش فرض"
+msgstr "نوع کاربر پیش‌فرض"
 
 #. Label of a Text field in DocType 'Custom Field'
 #. Label of a Data field in DocType 'Property Setter'
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "Default Value"
-msgstr "مقدار پیش فرض"
+msgstr "مقدار پیش‌فرض"
 
 #. Label of a Select field in DocType 'DocType'
 #. Label of a Select field in DocType 'Customize Form'
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Default View"
-msgstr "نمای پیش فرض"
+msgstr "نمای پیش‌فرض"
 
 #. Label of a Link field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Default Workspace"
-msgstr "محیط کار پیش فرض"
+msgstr "محیط کار پیش‌فرض"
 
 #. Description of the 'Currency' (Link) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Default display currency"
-msgstr "ارز نمایش پیش فرض"
+msgstr "ارز نمایش پیش‌فرض"
 
 #: frappe/core/doctype/doctype/doctype.py:1338
 msgid "Default for 'Check' type of field {0} must be either '0' or '1'"
@@ -6676,23 +6676,23 @@ msgstr "پیش‌فرض {0}"
 #. Description of the 'Heading' (Data) field in DocType 'Contact Us Settings'
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Default: \"Contact Us\""
-msgstr "پیش فرض: \"تماس با ما\""
+msgstr "پیش‌فرض: \"تماس با ما\""
 
 #. Name of a DocType
 #: frappe/core/doctype/defaultvalue/defaultvalue.json
 msgid "DefaultValue"
-msgstr "مقدار پیش فرض"
+msgstr "مقدار پیش‌فرض"
 
 #. Label of a Section Break field in DocType 'DocField'
 #. Label of a Section Break field in DocType 'User'
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/core/doctype/user/user.json
 msgid "Defaults"
-msgstr "پیش فرض ها"
+msgstr "پیش‌فرض ها"
 
 #: frappe/email/doctype/email_account/email_account.py:212
 msgid "Defaults Updated"
-msgstr "پیش فرض ها به روز شد"
+msgstr "پیش‌فرض ها به روز شد"
 
 #. Description of a DocType
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
@@ -8962,7 +8962,7 @@ msgstr "یک نام برای این {0} وارد کنید"
 #. Description of the 'User Defaults' (Table) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set \"match\" permission rules. To see list of fields, go to \"Customize Form\"."
-msgstr "فیلدهای مقدار پیش فرض (کلیدها) و مقادیر را وارد کنید. اگر چندین مقدار برای یک فیلد اضافه کنید، اولین مقدار انتخاب خواهد شد. این پیش‌فرض‌ها همچنین برای تنظیم قوانین مجوز «تطابق» استفاده می‌شوند. برای مشاهده لیست فیلدها، به \"سفارشی‌سازی فرم\" بروید."
+msgstr "فیلدهای مقدار پیش‌فرض (کلیدها) و مقادیر را وارد کنید. اگر چندین مقدار برای یک فیلد اضافه کنید، اولین مقدار انتخاب خواهد شد. این پیش‌فرض‌ها همچنین برای تنظیم قوانین مجوز «تطابق» استفاده می‌شوند. برای مشاهده لیست فیلدها، به \"سفارشی‌سازی فرم\" بروید."
 
 #: frappe/public/js/frappe/views/file/file_view.js:111
 msgid "Enter folder name"
@@ -10478,7 +10478,7 @@ msgstr "تحمیل"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Force Re-route to Default View"
-msgstr "تغییر مسیر را به نمای پیش فرض اجباری کنید"
+msgstr "تغییر مسیر را به نمای پیش‌فرض اجباری کنید"
 
 #. Label of a Check field in DocType 'Desktop Icon'
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
@@ -11752,7 +11752,7 @@ msgstr "محدودیت نرخ ساعتی برای ایجاد پیوندهای ب
 #. Description of the 'Number Format' (Select) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
 msgid "How should this currency be formatted? If not set, will use system defaults"
-msgstr "این ارز چگونه باید فرمت شود؟ اگر تنظیم نشود، از پیش فرض های سیستم استفاده می‌کند"
+msgstr "این ارز چگونه باید فرمت شود؟ اگر تنظیم نشود، از پیش‌فرض های سیستم استفاده می‌کند"
 
 #. Paragraph text in the Welcome Workspace Workspace
 #: frappe/core/workspace/welcome_workspace/welcome_workspace.json
@@ -11961,7 +11961,7 @@ msgstr "در صورت فعال بودن، هر بار که کاربران وار
 #. Description of the 'Default Workspace' (Link) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "If left empty, the default workspace will be the last visited workspace"
-msgstr "اگر خالی بماند، محیط کاری پیش فرض آخرین محیط کاری بازدید شده خواهد بود"
+msgstr "اگر خالی بماند، محیط کاری پیش‌فرض آخرین محیط کاری بازدید شده خواهد بود"
 
 #. Description of the 'Port' (Data) field in DocType 'Email Domain'
 #: frappe/email/doctype/email_domain/email_domain.json
@@ -12394,7 +12394,7 @@ msgstr ""
 #. Description of the 'Font Size' (Float) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "In points. Default is 9."
-msgstr "در نقاط. پیش فرض 9 است."
+msgstr "در نقاط. پیش‌فرض 9 است."
 
 #. Description of the 'Allow Login After Fail' (Int) field in DocType 'System
 #. Settings'
@@ -13098,7 +13098,7 @@ msgstr "فیلد سفارشی است"
 #: frappe/core/doctype/user_permission/user_permission_list.js:69
 #: frappe/desk/doctype/dashboard/dashboard.json
 msgid "Is Default"
-msgstr "پیش فرض است"
+msgstr "پیش‌فرض است"
 
 #. Label of a Check field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -14040,7 +14040,7 @@ msgstr "اسکریپت های سربرگ"
 
 #: frappe/printing/doctype/letter_head/letter_head.py:46
 msgid "Letter Head cannot be both disabled and default"
-msgstr "Letter Head هم نمی‌تواند غیرفعال و هم پیش فرض باشد"
+msgstr "Letter Head هم نمی‌تواند غیرفعال و هم پیش‌فرض باشد"
 
 #. Description of the 'Header HTML' (HTML Editor) field in DocType 'Letter
 #. Head'
@@ -14748,7 +14748,7 @@ msgstr ""
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Make Attachments Public by Default"
-msgstr "پیوست ها را به صورت پیش فرض عمومی‌کنید"
+msgstr "پیوست ها را به صورت پیش‌فرض عمومی‌کنید"
 
 #. Description of the 'Disable Username/Password Login' (Check) field in
 #. DocType 'System Settings'
@@ -16810,7 +16810,7 @@ msgstr "یادداشت:"
 #: frappe/integrations/doctype/dropbox_settings/dropbox_settings.json
 #: frappe/integrations/doctype/google_drive/google_drive.json
 msgid "Note: By default emails for failed backups are sent."
-msgstr "توجه: به طور پیش فرض ایمیل برای پشتیبان گیری ناموفق ارسال می‌شود."
+msgstr "توجه: به طور پیش‌فرض ایمیل برای پشتیبان گیری ناموفق ارسال می‌شود."
 
 #: frappe/public/js/frappe/utils/utils.js:790
 msgid "Note: Changing the Page Name will break previous URL to this page."
@@ -18792,7 +18792,7 @@ msgstr "لطفا ابتدا یک پیام تنظیم کنید"
 
 #: frappe/email/doctype/email_account/email_account.py:399
 msgid "Please setup default Email Account from Settings > Email Account"
-msgstr "لطفاً حساب ایمیل پیش فرض را از تنظیمات > حساب ایمیل تنظیم کنید"
+msgstr "لطفاً حساب ایمیل پیش‌فرض را از تنظیمات > حساب ایمیل تنظیم کنید"
 
 #: frappe/core/doctype/user/user.py:358
 msgid "Please setup default outgoing Email Account from Settings > Email Account"
@@ -19555,12 +19555,12 @@ msgstr "از Google Contacts بکشید"
 #. Label of a Check field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
 msgid "Pulled from Google Calendar"
-msgstr "از Google Calendar برداشته شده است"
+msgstr "استخراج شده از Google Calendar"
 
 #. Label of a Check field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Pulled from Google Contacts"
-msgstr "از Google Contacts برداشته شده است"
+msgstr "استخراج شده از Google Contacts"
 
 #. Name of a role
 #: frappe/contacts/doctype/contact/contact.json
@@ -20991,7 +20991,7 @@ msgstr "مجوزها برای {0} بازنشانی شوند؟"
 
 #: frappe/public/js/form_builder/components/Field.vue:114
 msgid "Reset To Default"
-msgstr "بازنشانی به حالت پیش فرض"
+msgstr "بازنشانی به حالت پیش‌فرض"
 
 #: frappe/public/js/frappe/utils/datatable.js:8
 msgid "Reset sorting"
@@ -21003,11 +21003,11 @@ msgstr "رمز عبور حساب خود را بازنشانی کنید"
 
 #: frappe/public/js/frappe/form/grid_row.js:410
 msgid "Reset to default"
-msgstr "بازنشانی به حالت پیش فرض"
+msgstr "بازنشانی به حالت پیش‌فرض"
 
 #: frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js:19
 msgid "Reset to defaults"
-msgstr "بازنشانی به حالت پیش فرض"
+msgstr "بازنشانی به حالت پیش‌فرض"
 
 #: frappe/templates/emails/password_reset.html:3
 msgid "Reset your password"
@@ -21047,7 +21047,7 @@ msgstr "بازیابی مجوزهای اصلی"
 
 #: frappe/website/doctype/portal_settings/portal_settings.js:20
 msgid "Restore to default settings?"
-msgstr "به تنظیمات پیش فرض بازیابی شود؟"
+msgstr "به تنظیمات پیش‌فرض بازیابی شود؟"
 
 #. Label of a Check field in DocType 'Deleted Document'
 #: frappe/core/doctype/deleted_document/deleted_document.json
@@ -22832,7 +22832,7 @@ msgstr "پیش‌فرض نشست"
 #. Name of a DocType
 #: frappe/core/doctype/session_default_settings/session_default_settings.json
 msgid "Session Default Settings"
-msgstr "تنظیمات پیش فرض نشست"
+msgstr "تنظیمات پیش‌فرض نشست"
 
 #. Label of a standard navbar item
 #. Type: Action
@@ -22882,7 +22882,7 @@ msgstr "تنظیم نمودار"
 #. Description of the 'Chart Options' (Code) field in DocType 'Dashboard'
 #: frappe/desk/doctype/dashboard/dashboard.json
 msgid "Set Default Options for all charts on this Dashboard (Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"])"
-msgstr "گزینه‌های پیش فرض را برای همه نمودارها در این داشبورد تنظیم کنید (مثلاً: \"colors\": [\"#d1d8dd\"، \"#ff5858\"])"
+msgstr "گزینه‌های پیش‌فرض را برای همه نمودارها در این داشبورد تنظیم کنید (مثلاً: \"colors\": [\"#d1d8dd\"، \"#ff5858\"])"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:467
 #: frappe/desk/doctype/number_card/number_card.js:367
@@ -22969,11 +22969,11 @@ msgstr "تنظیم همه به عنوان عمومی"
 
 #: frappe/printing/doctype/print_format/print_format.js:49
 msgid "Set as Default"
-msgstr "تنظیم به عنوان پیشفرض"
+msgstr "تنظیم به عنوان پیش‌فرض"
 
 #: frappe/website/doctype/website_theme/website_theme.js:33
 msgid "Set as Default Theme"
-msgstr "به عنوان تم پیش فرض تنظیم کنید"
+msgstr "به عنوان تم پیش‌فرض تنظیم کنید"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
@@ -23041,7 +23041,7 @@ msgstr ""
 
 #: frappe/contacts/doctype/address_template/address_template.py:33
 msgid "Setting this Address Template as default as there is no other default"
-msgstr "تنظیم این الگوی آدرس به عنوان پیش فرض، زیرا هیچ پیش فرض دیگری وجود ندارد"
+msgstr "تنظیم این الگوی آدرس به عنوان پیش‌فرض، زیرا هیچ پیش‌فرض دیگری وجود ندارد"
 
 #: frappe/desk/doctype/global_search_settings/global_search_settings.py:86
 msgid "Setting up Global Search documents."
@@ -23871,7 +23871,7 @@ msgstr "نویسه‌های ویژه به جز «-»، «#»، «.»، «/»، �
 #. Description of the 'Timeout (In Seconds)' (Int) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
 msgid "Specify a custom timeout, default timeout is 1500 seconds"
-msgstr "مهلت زمانی سفارشی را مشخص کنید، تایم اوت پیش فرض 1500 ثانیه است"
+msgstr "مهلت زمانی سفارشی را مشخص کنید، تایم اوت پیش‌فرض 1500 ثانیه است"
 
 #. Description of the 'Allowed embedding domains' (Small Text) field in DocType
 #. 'Web Form'
@@ -23923,7 +23923,7 @@ msgstr "DocType استاندارد را نمی‌توان حذف کرد."
 
 #: frappe/core/doctype/doctype/doctype.py:225
 msgid "Standard DocType cannot have default print format, use Customize Form"
-msgstr "DocType استاندارد نمی‌تواند قالب چاپ پیش فرض داشته باشد، از سفارشی‌سازی فرم استفاده کنید"
+msgstr "DocType استاندارد نمی‌تواند قالب چاپ پیش‌فرض داشته باشد، از سفارشی‌سازی فرم استفاده کنید"
 
 #: frappe/desk/doctype/dashboard/dashboard.py:58
 msgid "Standard Not Set"
@@ -24592,7 +24592,7 @@ msgstr "خلاصه"
 #: frappe/desk/doctype/event/event.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Sunday"
-msgstr "یکشنبه"
+msgstr "یک‌شنبه"
 
 #: frappe/email/doctype/email_queue/email_queue_list.js:27
 msgid "Suspend Sending"
@@ -24898,7 +24898,7 @@ msgstr "تنظیمات سیستم"
 #. 'Module Onboarding'
 #: frappe/desk/doctype/module_onboarding/module_onboarding.json
 msgid "System managers are allowed by default"
-msgstr "مدیران سیستم به طور پیش فرض مجاز هستند"
+msgstr "مدیران سیستم به طور پیش‌فرض مجاز هستند"
 
 #: frappe/public/js/frappe/utils/number_systems.js:5
 msgctxt "Number system"
@@ -25804,7 +25804,7 @@ msgstr "URL تصویر کوچک"
 #: frappe/desk/doctype/event/event.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Thursday"
-msgstr "پنج شنبه"
+msgstr "پنج‌شنبه"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of a Datetime field in DocType 'Recorder'
@@ -26778,7 +26778,7 @@ msgstr "امکان خواندن فرمت فایل برای {0} وجود ندار
 
 #: frappe/core/doctype/communication/email.py:179
 msgid "Unable to send mail because of a missing email account. Please setup default Email Account from Settings > Email Account"
-msgstr "به دلیل وجود حساب ایمیل از دست رفته امکان ارسال نامه وجود ندارد. لطفاً حساب ایمیل پیش فرض را از تنظیمات > حساب ایمیل تنظیم کنید"
+msgstr "به دلیل وجود حساب ایمیل از دست رفته امکان ارسال نامه وجود ندارد. لطفاً حساب ایمیل پیش‌فرض را از تنظیمات > حساب ایمیل تنظیم کنید"
 
 #: frappe/public/js/frappe/views/calendar/calendar.js:440
 msgid "Unable to update event"
@@ -27326,7 +27326,7 @@ msgstr "کاربر تغییر کرد"
 #. Label of a Table field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "User Defaults"
-msgstr "پیش فرض های کاربر"
+msgstr "پیش‌فرض های کاربر"
 
 #. Label of a Tab Break field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -29676,7 +29676,7 @@ msgstr "dd/mm/yyyy"
 #: frappe/core/doctype/rq_job/rq_job.json
 #: frappe/core/doctype/rq_worker/rq_worker.json
 msgid "default"
-msgstr "پیش فرض"
+msgstr "پیش‌فرض"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: frappe/core/doctype/rq_job/rq_job.json
@@ -30357,7 +30357,7 @@ msgstr "تازه کردن"
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "remove"
-msgstr "برداشتن"
+msgstr "حدف"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
@@ -30982,7 +30982,7 @@ msgstr ""
 
 #: frappe/public/js/form_builder/store.js:190
 msgid "{0} cannot be hidden and mandatory without any default value"
-msgstr "{0} را نمی‌توان بدون هیچ مقدار پیش فرض پنهان و اجباری کرد"
+msgstr "{0} را نمی‌توان بدون هیچ مقدار پیش‌فرض پنهان و اجباری کرد"
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:128
 msgid "{0} changed the value of {1}"
@@ -31099,7 +31099,7 @@ msgstr "{0} ساعت"
 
 #: frappe/core/doctype/user_permission/user_permission.py:77
 msgid "{0} has already assigned default value for {1}."
-msgstr "{0} قبلاً مقدار پیش فرض را برای {1} اختصاص داده است."
+msgstr "{0} قبلاً مقدار پیش‌فرض را برای {1} اختصاص داده است."
 
 #: frappe/email/doctype/newsletter/newsletter.py:383
 msgid "{0} has been successfully added to the Email Group."
@@ -31189,7 +31189,7 @@ msgstr "{0} یک قالب چاپ خام نیست."
 
 #: frappe/public/js/frappe/views/calendar/calendar.js:82
 msgid "{0} is not a valid Calendar. Redirecting to default Calendar."
-msgstr "{0} یک تقویم معتبر نیست. تغییر مسیر به تقویم پیش فرض"
+msgstr "{0} یک تقویم معتبر نیست. تغییر مسیر به تقویم پیش‌فرض"
 
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.py:65
 msgid "{0} is not a valid Cron expression."
