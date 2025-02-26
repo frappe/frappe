@@ -79,8 +79,6 @@ def get_pending_jobs(site=None):
 	return jobs_per_queue
 
 
-<<<<<<< HEAD
-=======
 def any_job_pending(site: str) -> bool:
 	for queue in get_queue_list():
 		q = get_queue(queue)
@@ -96,7 +94,6 @@ def any_job_pending(site: str) -> bool:
 	return False
 
 
->>>>>>> 8baeb5151d (fix: check for running jobs before migrating (#31438))
 def check_number_of_workers():
 	return len(get_workers())
 
