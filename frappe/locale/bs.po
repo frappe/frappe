@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-23 09:33+0000\n"
-"PO-Revision-Date: 2025-02-25 13:27\n"
+"PO-Revision-Date: 2025-02-26 13:38\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -12097,7 +12097,7 @@ msgstr "Sakrij Podređene"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Hide Empty Read-Only Fields"
-msgstr "Sakrij Prazna Polja Samo za Čitanje"
+msgstr "Onemogući Prazna Polja Samo za Čitanje"
 
 #: frappe/www/error.html:62
 msgid "Hide Error"
@@ -23044,7 +23044,7 @@ msgstr "Odaberi Nadzornu Tablu"
 #. Option for the 'Timespan' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Select Date Range"
-msgstr "Odaberi Raspon Datuma"
+msgstr "Raspon Datuma"
 
 #. Label of the doc_type (Link) field in DocType 'Web Form'
 #: frappe/public/js/form_builder/components/controls/FetchFromControl.vue:28
