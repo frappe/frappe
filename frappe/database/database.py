@@ -370,10 +370,7 @@ class Database:
 	def log_query(
 		self, query: str, values: QueryValues = None, debug: bool = False, explain: bool = False
 	) -> str:
-		# TODO: Use mogrify until MariaDB Connector/C 1.1 is released and we can fetch something
-		# like cursor._transformed_statement from the cursor object. We can also avoid setting
-		# mogrified_query if we don't need to log it.
-		mogrified_query = self._cursor._transformed_statement
+		mogrified_query = self.lazy_mogrify(query, values)
 		self._log_query(mogrified_query, debug, explain, unmogrified_query=query)
 		return mogrified_query
 
