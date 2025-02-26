@@ -58,10 +58,16 @@ def get_db(socket=None, host=None, user=None, password=None, port=None, cur_db_n
 		)
 	else:
 		import frappe.database.mariadb.database
+		import frappe.database.mariadb.native_connector
 
-		return frappe.database.mariadb.database.MariaDBDatabase(
-			socket, host, user, password, port, cur_db_name
-		)
+		if frappe.conf.use_native_mariadb_connector:
+			return frappe.database.mariadb.native_connector.MariaDBDatabase(
+				socket, host, user, password, port, cur_db_name
+			)
+		else:
+			return frappe.database.mariadb.database.MariaDBDatabase(
+				socket, host, user, password, port, cur_db_name
+			)
 
 
 def get_command(

@@ -1,100 +1,108 @@
 import re
+import typing
 from contextlib import contextmanager
+from decimal import Decimal
 
+import mariadb
 import pymysql
-from pymysql.constants import ER, FIELD_TYPE
-from pymysql.converters import conversions, escape_string
+from mariadb.constants import ERR, FIELD_TYPE
+from pymysql.constants import ER
+from pymysql.converters import escape_sequence, escape_string
 
 import frappe
-from frappe.database.database import Database
+from frappe.database.database import Database, QueryValues
 from frappe.database.mariadb.schema import MariaDBTable
-from frappe.utils import UnicodeWithAttrs, cstr, get_datetime, get_table_name
+from frappe.utils import UnicodeWithAttrs, get_datetime, get_table_name
 
+_FIND_ITER_PATTERN = re.compile("%s")
 _PARAM_COMP = re.compile(r"%\([\w]*\)s")
 
 
 class MariaDBExceptionUtil:
-	ProgrammingError = pymysql.ProgrammingError
-	TableMissingError = pymysql.ProgrammingError
-	OperationalError = pymysql.OperationalError
-	InternalError = pymysql.InternalError
-	SQLError = pymysql.ProgrammingError
-	DataError = pymysql.DataError
+	ProgrammingError = mariadb.ProgrammingError
+	TableMissingError = mariadb.ProgrammingError
+	OperationalError = mariadb.OperationalError
+	InternalError = mariadb.InternalError
+	SQLError = mariadb.ProgrammingError
+	DataError = mariadb.DataError
 
 	# match ER_SEQUENCE_RUN_OUT - https://mariadb.com/kb/en/mariadb-error-codes/
-	SequenceGeneratorLimitExceeded = pymysql.OperationalError
+	SequenceGeneratorLimitExceeded = mariadb.OperationalError
 	SequenceGeneratorLimitExceeded.errno = 4084
 
 	@staticmethod
-	def is_deadlocked(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.LOCK_DEADLOCK
+	def is_deadlocked(e: mariadb.Error) -> bool:
+		return getattr(e, "errno", None) == ERR.ER_LOCK_DEADLOCK
 
 	@staticmethod
-	def is_timedout(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.LOCK_WAIT_TIMEOUT
+	def is_timedout(e: mariadb.Error) -> bool:
+		return getattr(e, "errno", None) == ERR.ER_LOCK_WAIT_TIMEOUT
 
 	@staticmethod
 	def is_read_only_mode_error(e: pymysql.Error) -> bool:
+		# TODO: replace this error
 		return e.args[0] == 1792
 
 	@staticmethod
-	def is_table_missing(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.NO_SUCH_TABLE
+	def is_table_missing(e: mariadb.Error) -> bool:
+		return getattr(e, "errno", None) == ERR.ER_NO_SUCH_TABLE
 
 	@staticmethod
-	def is_missing_table(e: pymysql.Error) -> bool:
+	def is_missing_table(e: mariadb.Error) -> bool:
 		return MariaDBDatabase.is_table_missing(e)
 
 	@staticmethod
-	def is_missing_column(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.BAD_FIELD_ERROR
+	def is_missing_column(e: mariadb.Error) -> bool:
+		return getattr(e, "errno", None) == ERR.ER_BAD_FIELD_ERROR
 
 	@staticmethod
-	def is_duplicate_fieldname(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.DUP_FIELDNAME
+	def is_duplicate_fieldname(e: mariadb.Error) -> bool:
+		return getattr(e, "errno", None) == ERR.ER_DUP_FIELDNAME
 
 	@staticmethod
-	def is_duplicate_entry(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.DUP_ENTRY
+	def is_duplicate_entry(e: mariadb.Error) -> bool:
+		return getattr(e, "errno", None) == ERR.ER_DUP_ENTRY
 
 	@staticmethod
-	def is_access_denied(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.ACCESS_DENIED_ERROR
+	def is_access_denied(e: mariadb.Error) -> bool:
+		return getattr(e, "errno", None) == ERR.ER_ACCESS_DENIED_ERROR
 
 	@staticmethod
-	def cant_drop_field_or_key(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.CANT_DROP_FIELD_OR_KEY
+	def cant_drop_field_or_key(e: mariadb.Error) -> bool:
+		return getattr(e, "errno", None) == ERR.ER_CANT_DROP_FIELD_OR_KEY
 
 	@staticmethod
-	def is_syntax_error(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.PARSE_ERROR
+	def is_syntax_error(e: mariadb.Error) -> bool:
+		return getattr(e, "errno", None) == ERR.ER_PARSE_ERROR
 
 	@staticmethod
 	def is_statement_timeout(e: pymysql.Error) -> bool:
+		# TODO: replace
 		return e.args[0] == 1969
 
 	@staticmethod
-	def is_data_too_long(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.DATA_TOO_LONG
-
-	@staticmethod
 	def is_db_table_size_limit(e: pymysql.Error) -> bool:
+		# TODO: replace
 		return e.args[0] == ER.TOO_BIG_ROWSIZE
 
 	@staticmethod
-	def is_primary_key_violation(e: pymysql.Error) -> bool:
+	def is_data_too_long(e: mariadb.Error) -> bool:
+		return getattr(e, "errno", None) == ERR.ER_DATA_TOO_LONG
+
+	@staticmethod
+	def is_primary_key_violation(e: mariadb.Error) -> bool:
 		return (
 			MariaDBDatabase.is_duplicate_entry(e)
-			and "PRIMARY" in cstr(e.args[1])
-			and isinstance(e, pymysql.IntegrityError)
+			and "PRIMARY" in e.errmsg
+			and isinstance(e, mariadb.IntegrityError)
 		)
 
 	@staticmethod
-	def is_unique_key_violation(e: pymysql.Error) -> bool:
+	def is_unique_key_violation(e: mariadb.Error) -> bool:
 		return (
 			MariaDBDatabase.is_duplicate_entry(e)
-			and "Duplicate" in cstr(e.args[1])
-			and isinstance(e, pymysql.IntegrityError)
+			and "Duplicate" in e.errmsg
+			and isinstance(e, mariadb.IntegrityError)
 		)
 
 	@staticmethod
@@ -108,12 +116,11 @@ class MariaDBConnectionUtil:
 		conn.auto_reconnect = True
 		return conn
 
-	def _get_connection(self):
-		"""Return MariaDB connection object."""
+	def _get_connection(self) -> "mariadb.Connection":
 		return self.create_connection()
 
 	def create_connection(self):
-		return pymysql.connect(**self.get_connection_settings())
+		return mariadb.connect(**self.get_connection_settings())
 
 	def set_execution_timeout(self, seconds: int):
 		self.sql("set session max_statement_time = %s", int(seconds))
@@ -121,9 +128,9 @@ class MariaDBConnectionUtil:
 	def get_connection_settings(self) -> dict:
 		conn_settings = {
 			"user": self.user,
-			"conv": self.CONVERSION_MAP,
-			"charset": "utf8mb4",
-			"use_unicode": True,
+			"converter": self.CONVERSION_MAP,
+			# "charset": "utf8mb4",
+			# "use_unicode": True,
 		}
 
 		if self.cur_db_name:
@@ -143,19 +150,65 @@ class MariaDBConnectionUtil:
 			conn_settings["local_infile"] = frappe.conf.local_infile
 
 		if frappe.conf.db_ssl_ca and frappe.conf.db_ssl_cert and frappe.conf.db_ssl_key:
+			# TODO: check correctness
 			conn_settings["ssl"] = {
 				"ca": frappe.conf.db_ssl_ca,
 				"cert": frappe.conf.db_ssl_cert,
 				"key": frappe.conf.db_ssl_key,
+				"ssl": True,
 			}
 		return conn_settings
 
 
-class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
+class MariaDBCursorPatchUtil:
+	"""Patch mariadb.cursor.Cursor to handle things not supported by pinned version of MariaDB client."""
+
+	def _transform_query(self, query: str, values: QueryValues) -> tuple:
+		"""Transform the query to handle things not supported by pinned version of MariaDB client.
+
+		Transformations:
+		        - Escape sequences in values
+		"""
+		_values = []
+
+		if isinstance(values, tuple | list):
+			for val in values:
+				if isinstance(val, tuple | list):
+					_values.append(escape_sequence(val, charset=self._conn.character_set))
+				else:
+					_values.append(val)
+			values = _values
+		else:
+			for token in _PARAM_COMP.findall(query):
+				key = token[2:-2]
+				try:
+					val = values[key]
+				except KeyError:
+					raise self.ProgrammingError(f"Missing value for key '{key}'")
+				if isinstance(val, tuple | list):
+					values[key] = escape_sequence(val, charset=self._conn.character_set)
+
+		return query, values or []
+
+
+def float_convertor(decimal):
+	if decimal is None:
+		return 0.0
+	return float(decimal)
+
+
+class MariaDBDatabase(MariaDBCursorPatchUtil, MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	REGEX_CHARACTER = "regexp"
-	CONVERSION_MAP = conversions | {
-		FIELD_TYPE.NEWDECIMAL: float,
-		FIELD_TYPE.DATETIME: get_datetime,
+	# NOTE: using a very small cache - as during backup, if the sequence was used in anyform,
+	# it drops the cache and uses the next non cached value in setval query and
+	# puts that in the backup file, which will start the counter
+	# from that value when inserting any new record in the doctype.
+	# By default the cache is 1000 which will mess up the sequence when
+	# using the system after a restore.
+	# issue link: https://jira.mariadb.org/browse/MDEV-21786
+	SEQUENCE_CACHE = 50
+	CONVERSION_MAP: typing.ClassVar = {
+		FIELD_TYPE.NEWDECIMAL: float_convertor,
 		UnicodeWithAttrs: escape_string,
 	}
 	default_port = "3306"
@@ -215,16 +268,18 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		return db_size[0].get("database_size")
 
 	def log_query(self, query, values, debug, explain):
-		self.last_query = self._cursor._executed
+		# TODO: check correctness
+		self.last_query = self._cursor.statement
 		self._log_query(self.last_query, debug, explain, query)
 		return self.last_query
 
 	def _clean_up(self):
 		# PERF: Erase internal references of pymysql to trigger GC as soon as
 		# results are consumed.
-		self._cursor._result = None
-		self._cursor._rows = None
-		self._cursor.connection._result = None
+		# self._cursor._result = None
+		# self._cursor._rows = None
+		# self._cursor.connection._result = None
+		return
 
 	@staticmethod
 	def escape(s, percent=True):
@@ -249,11 +304,11 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	# column type
 	@staticmethod
 	def is_type_number(code):
-		return code == pymysql.NUMBER
+		return code == mariadb.NUMBER
 
 	@staticmethod
 	def is_type_datetime(code):
-		return code == pymysql.DATETIME
+		return code == mariadb.DATETIME
 
 	def rename_table(self, old_name: str, new_name: str) -> list | tuple:
 		old_name = get_table_name(old_name)
@@ -407,27 +462,14 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
-		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
-
 		index_name = index_name or self.get_index_name(fields)
 		table_name = get_table_name(doctype)
 		if not self.has_index(table_name, index_name):
 			self.commit()
 			self.sql(
 				"""ALTER TABLE `{}`
-				ADD INDEX IF NOT EXISTS `{}`({})""".format(table_name, index_name, ", ".join(fields))
+				ADD INDEX `{}`({})""".format(table_name, index_name, ", ".join(fields))
 			)
-			# Ensure that DB migration doesn't clear this index, assuming this is manually added
-			# via code or console.
-			if len(fields) == 1 and not (frappe.flags.in_install or frappe.flags.in_migrate):
-				make_property_setter(
-					doctype,
-					fields[0],
-					property="search_index",
-					value="1",
-					property_type="Check",
-					for_doctype=False,  # Applied on docfield
-				)
 
 	def add_unique(self, doctype, fields, constraint_name=None):
 		if isinstance(fields, str):
