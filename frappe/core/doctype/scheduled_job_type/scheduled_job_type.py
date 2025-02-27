@@ -160,6 +160,8 @@ def execute_event(doc: str):
 
 def run_scheduled_job(job_type: str):
 	"""This is a wrapper function that runs a hooks.scheduler_events method"""
+	if frappe.conf.maintenance_mode:
+		raise frappe.InReadOnlyMode("Scheduled jobs can't run in maintenance mode.")
 	try:
 		frappe.get_doc("Scheduled Job Type", dict(method=job_type)).execute()
 	except Exception:
