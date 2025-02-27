@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-13 17:03+0000\n"
-"PO-Revision-Date: 2025-02-26 13:38\n"
+"PO-Revision-Date: 2025-02-27 14:28\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -5070,7 +5070,7 @@ msgstr "کامل کردن راه‌اندازی"
 #: frappe/utils/goal.py:117
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
 msgid "Completed"
-msgstr "تکمیل شد"
+msgstr "تکمیل شده"
 
 #. Label of a Link field in DocType 'Workflow Action'
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
