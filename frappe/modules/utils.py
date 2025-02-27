@@ -52,14 +52,11 @@ def get_doc_module(module: str, doctype: str, name: str) -> "ModuleType":
 
 
 @frappe.whitelist()
-def export_customizations(
-	module: str, doctype: str, sync_on_migrate: bool = False, with_permissions: bool = False
-):
+def export_customizations(module: str, doctype: str, sync_on_migrate: bool = False):
 	"""Export Custom Field and Property Setter for the current document to the app folder.
 	This will be synced with bench migrate"""
 
 	sync_on_migrate = cint(sync_on_migrate)
-	with_permissions = cint(with_permissions)
 
 	if not frappe.conf.developer_mode:
 		frappe.throw(_("Only allowed to export customizations in developer mode"))
@@ -75,14 +72,9 @@ def export_customizations(
 		"sync_on_migrate": sync_on_migrate,
 	}
 
-	if with_permissions:
-		custom["custom_perms"] = frappe.get_all(
-			"Custom DocPerm", fields="*", filters={"parent": doctype}, order_by="name"
-		)
-
 	# also update the custom fields and property setters for all child tables
 	for d in frappe.get_meta(doctype).get_table_fields():
-		export_customizations(module, d.options, sync_on_migrate, with_permissions)
+		export_customizations(module, d.options, sync_on_migrate)
 
 	if custom["custom_fields"] or custom["property_setters"] or custom["custom_perms"]:
 		folder_path = os.path.join(get_module_path(module), "custom")

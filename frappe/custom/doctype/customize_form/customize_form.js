@@ -256,15 +256,6 @@ frappe.ui.form.on("Customize Form", {
 								label: __("Sync on Migrate"),
 								default: 1,
 							},
-							{
-								fieldtype: "Check",
-								fieldname: "with_permissions",
-								label: __("Export Custom Permissions"),
-								description: __(
-									"Exported permissions will be force-synced on every migrate overriding any other customization."
-								),
-								default: 0,
-							},
 						],
 						function (data) {
 							frappe.call({
@@ -273,7 +264,6 @@ frappe.ui.form.on("Customize Form", {
 									doctype: frm.doc.doc_type,
 									module: data.module,
 									sync_on_migrate: data.sync_on_migrate,
-									with_permissions: data.with_permissions,
 								},
 							});
 						},
