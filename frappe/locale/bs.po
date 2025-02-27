@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-23 09:33+0000\n"
-"PO-Revision-Date: 2025-02-26 13:38\n"
+"PO-Revision-Date: 2025-02-27 14:28\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -6323,7 +6323,7 @@ msgstr "Prilagođavanja Odbačena"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:465
 msgid "Customizations Reset"
-msgstr "Resetovanje Prilagođavanja"
+msgstr "Poništi Prilagođavanja"
 
 #: frappe/modules/utils.py:96
 msgid "Customizations for <b>{0}</b> exported to:<br>{1}"
@@ -10944,7 +10944,7 @@ msgstr "Prisilno Zaustavi posao"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Force User to Reset Password"
-msgstr "Prisili Korisnika da Resetuje Lozinku"
+msgstr "Prisili Korisnika da Poništi Lozinku"
 
 #. Label of the force_web_capture_mode_for_uploads (Check) field in DocType
 #. 'System Settings'
@@ -12266,7 +12266,7 @@ msgstr "Cijeli Sat"
 #. DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Hourly rate limit for generating password reset links"
-msgstr "Broj veza koji se mogu kreirati po satu za promjenu lozinke"
+msgstr "Broj veza koji se mogu kreirati po satu za poništavanje lozinke"
 
 #. Description of the 'Number Format' (Select) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
@@ -14356,7 +14356,7 @@ msgstr "Prezime"
 #. Label of the last_password_reset_date (Date) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Last Password Reset Date"
-msgstr "Poslednji Datum Resetovanja Lozinke"
+msgstr "Poslednji Datum Poništavanja Lozinke"
 
 #. Label of the last_point_allocation_date (Date) field in DocType 'Energy
 #. Point Settings'
@@ -14426,7 +14426,7 @@ msgstr "Zadnja Sinhronizacija {0}"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:194
 msgid "Layout Reset"
-msgstr "Resetovanje Izgleda"
+msgstr "Poništi Izgled"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:186
 msgid "Layout will be reset to standard layout, are you sure you want to do this?"
@@ -15320,7 +15320,7 @@ msgstr "Obavezno konfiguriši Društveni Ključ za prijavu prije deaktiviranja k
 
 #: frappe/utils/password_strength.py:92
 msgid "Make use of longer keyboard patterns"
-msgstr "Iskoristi duže šablone tastature"
+msgstr "Koristi duže mustre tastature"
 
 #: frappe/public/js/frappe/form/multi_select_dialog.js:87
 msgid "Make {0}"
@@ -16053,7 +16053,7 @@ msgstr "Naziv Profila Modula"
 
 #: frappe/desk/doctype/module_onboarding/module_onboarding.py:69
 msgid "Module onboarding progress reset"
-msgstr "Resetovanje introdukcijskog progresa modula"
+msgstr "Poništavanje introdukcijskog progresa modula"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:250
 msgid "Module to Export"
@@ -17779,7 +17779,7 @@ msgstr "Naziv OTP Izdavaoca"
 
 #: frappe/twofactor.py:445
 msgid "OTP Secret Reset - {0}"
-msgstr "OTP Tajno Resetovanje - {0}"
+msgstr "OTP Poništavanje Tajne - {0}"
 
 #: frappe/twofactor.py:464
 msgid "OTP Secret has been reset. Re-registration will be required on next login."
@@ -21713,7 +21713,7 @@ msgstr "Od: {0}"
 #: frappe/desk/doctype/module_onboarding/module_onboarding.js:17
 #: frappe/website/doctype/portal_settings/portal_settings.js:19
 msgid "Reset"
-msgstr "Resetuj"
+msgstr "Poništi"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:136
 msgid "Reset All Customizations"
@@ -21722,42 +21722,42 @@ msgstr "Resetuj Sva Prilagođavanja"
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:21
 #: frappe/public/js/workflow_builder/workflow_builder.bundle.js:37
 msgid "Reset Changes"
-msgstr "Resetuj Promjene"
+msgstr "Poništi Promjene"
 
 #: frappe/public/js/frappe/widgets/chart_widget.js:306
 msgid "Reset Chart"
-msgstr "Resetuj Grafikon"
+msgstr "Poništi Grafikon"
 
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:39
 msgid "Reset Dashboard Customizations"
-msgstr "Resetuj Prilagođavanja Nadzorne Table"
+msgstr "Poništi Prilagođavanja Nadzorne Table"
 
 #: frappe/public/js/frappe/list/list_settings.js:230
 msgid "Reset Fields"
-msgstr "Resetuj Polja"
+msgstr "Poništi Polja"
 
 #: frappe/core/doctype/user/user.js:179 frappe/core/doctype/user/user.js:182
 msgid "Reset LDAP Password"
-msgstr "Resetuj LDAP Lozinku"
+msgstr "Poništi LDAP Lozinku"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:128
 msgid "Reset Layout"
-msgstr "Resetuj Izgled"
+msgstr "Poništi Izgled"
 
 #: frappe/core/doctype/user/user.js:230
 msgid "Reset OTP Secret"
-msgstr "Resetuj OTP Tajnu"
+msgstr "Poništi OTP Tajnu"
 
 #: frappe/core/doctype/user/user.js:163 frappe/www/login.html:180
 #: frappe/www/me.html:48 frappe/www/update-password.html:3
 #: frappe/www/update-password.html:32
 msgid "Reset Password"
-msgstr "Resetuj Lozinku"
+msgstr "Poništi Lozinku"
 
 #. Label of the reset_password_key (Data) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Reset Password Key"
-msgstr "Resetuj Ključ Lozinke"
+msgstr "Poništi Ključ Lozinke"
 
 #. Label of the reset_password_link_expiry_duration (Duration) field in DocType
 #. 'System Settings'
@@ -21769,31 +21769,31 @@ msgstr "Poništi Vrijeme Trajanja Veze Lozinke"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Reset Password Template"
-msgstr "Resetuj Šablon Lozinke"
+msgstr "Šablon Poništavanja Lozinke"
 
 #: frappe/core/page/permission_manager/permission_manager.js:109
 msgid "Reset Permissions for {0}?"
-msgstr "Resetuj Dozvole za {0}?"
+msgstr "Poništi Dozvole za {0}?"
 
 #: frappe/public/js/form_builder/components/Field.vue:114
 msgid "Reset To Default"
-msgstr "Resetuj na Standard"
+msgstr "Vrati na Standard"
 
 #: frappe/public/js/frappe/utils/datatable.js:8
 msgid "Reset sorting"
-msgstr "Resetuj sortiranje"
+msgstr "Poništi Sortiranje"
 
 #: frappe/public/js/frappe/form/grid_row.js:413
 msgid "Reset to default"
-msgstr "Resetuj Standard"
+msgstr "Vrati na Standard"
 
 #: frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js:19
 msgid "Reset to defaults"
-msgstr "Resetuj na Standard Postavke"
+msgstr "Vrati na Standard Postavke"
 
 #: frappe/templates/emails/password_reset.html:3
 msgid "Reset your password"
-msgstr "Resetuj Lozinku"
+msgstr "Poništi Lozinku"
 
 #. Label of the response (Text Editor) field in DocType 'Email Template'
 #. Label of the response_section (Section Break) field in DocType 'Integration
@@ -24061,7 +24061,7 @@ msgstr "Kratko Ime"
 
 #: frappe/utils/password_strength.py:91
 msgid "Short keyboard patterns are easy to guess"
-msgstr "Kratke uzorke tastature je lako pogoditi"
+msgstr "Kratke mustre tastature je lako pogoditi"
 
 #. Label of the shortcuts (Table) field in DocType 'Workspace'
 #. Label of the tab_break_15 (Tab Break) field in DocType 'Workspace'
@@ -25127,7 +25127,7 @@ msgstr "Pohranjuje JSON posljednjih poznatih verzija različitih instaliranih ap
 #. in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Stores the datetime when the last reset password key was generated."
-msgstr "Pohranjuje datum i vrijeme kada je generisan zadnji ključ za resetovanje lozinke."
+msgstr "Pohranjuje datum i vrijeme kada je generisan zadnji ključ za poništavanje lozinke."
 
 #: frappe/utils/password_strength.py:97
 msgid "Straight rows of keys are easy to guess"
@@ -27543,7 +27543,7 @@ msgstr "Pokušaj izbjeći ponavljanje riječi i znakova"
 
 #: frappe/utils/password_strength.py:98
 msgid "Try to use a longer keyboard pattern with more turns"
-msgstr "Pokušaj koristiti duži uzorak tastature s više okreta"
+msgstr "Pokušaj koristiti dužu mustru tastature s više okreta"
 
 #. Option for the 'Day' (Select) field in DocType 'Assignment Rule Day'
 #. Option for the 'Day' (Select) field in DocType 'Auto Repeat Day'
