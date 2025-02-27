@@ -86,10 +86,15 @@ class Workspace:
 			return True
 
 	def get_cached(self, cache_key, fallback_fn):
+<<<<<<< HEAD
 		_cache = frappe.cache()
 
 		value = _cache.get_value(cache_key, user=frappe.session.user)
 		if value:
+=======
+		value = frappe.cache.get_value(cache_key, user=frappe.session.user)
+		if value is not None:
+>>>>>>> 20b63f3252 (fix: Cache thrashing in workspace code (#31446))
 			return value
 
 		value = fallback_fn()
