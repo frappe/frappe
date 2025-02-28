@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-23 09:33+0000\n"
-"PO-Revision-Date: 2025-02-24 13:22\n"
+"PO-Revision-Date: 2025-02-28 15:12\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -1121,7 +1121,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/views/communication.js:427
 msgid "Add Template"
-msgstr ""
+msgstr "添加模板"
 
 #. Label of the add_total_row (Check) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
