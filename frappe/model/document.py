@@ -147,7 +147,7 @@ class Document(BaseDocument):
 
 		else:
 			get_value_kwargs = {"for_update": self.flags.for_update, "as_dict": True}
-			if not isinstance(self.name, (dict, list)):
+			if not isinstance(self.name, dict | list):
 				get_value_kwargs["order_by"] = None
 
 			d = frappe.db.get_value(
