@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-23 09:33+0000\n"
-"PO-Revision-Date: 2025-02-27 14:28\n"
+"PO-Revision-Date: 2025-02-28 15:12\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -3839,7 +3839,7 @@ msgstr "Masovni izvoz u PDF"
 #: frappe/automation/workspace/tools/tools.json
 #: frappe/desk/doctype/bulk_update/bulk_update.json
 msgid "Bulk Update"
-msgstr "Grupno ažuriranje"
+msgstr "Masovno Ažuriranje"
 
 #: frappe/model/workflow.py:253
 msgid "Bulk approval only support up to 500 documents."
