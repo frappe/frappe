@@ -188,6 +188,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 					if (frappe.model.is_submittable(me.doctype)) {
 =======
 					if (
+						r?.message?.docstatus === 0 &&
 						frappe.model.can_submit(me.doctype) &&
 						!frappe.model.has_workflow(me.doctype)
 					) {
