@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-13 17:03+0000\n"
-"PO-Revision-Date: 2025-02-24 13:22\n"
+"PO-Revision-Date: 2025-02-28 15:11\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -12415,7 +12415,7 @@ msgstr "Uvoz"
 #. Label of a shortcut in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
 msgid "Import Data"
-msgstr "Import Podataka"
+msgstr "Uvoz Podataka"
 
 #: frappe/email/doctype/email_group/email_group.js:14
 msgid "Import Email From"
@@ -14620,7 +14620,7 @@ msgstr "Učitavanje filtera..."
 
 #: frappe/core/doctype/data_import/data_import.js:262
 msgid "Loading import file..."
-msgstr "Učitavanje datoteke za import..."
+msgstr "Učitavanje datoteke uvoza..."
 
 #: frappe/desk/page/user_profile/user_profile_controller.js:20
 msgid "Loading user profile"
@@ -16650,7 +16650,7 @@ msgstr "Nema kontakata povezanih s dokumentom"
 
 #: frappe/desk/query_report.py:339
 msgid "No data to export"
-msgstr "Nema podataka za eksport"
+msgstr "Nema podataka za izvoz"
 
 #: frappe/contacts/doctype/address/address.py:246
 msgid "No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template."
@@ -21186,7 +21186,7 @@ msgstr "Resetovati dozvole za {0}?"
 
 #: frappe/public/js/form_builder/components/Field.vue:114
 msgid "Reset To Default"
-msgstr "Resetuj na Standard"
+msgstr "Vrati na Standard"
 
 #: frappe/public/js/frappe/utils/datatable.js:8
 msgid "Reset sorting"
@@ -24223,7 +24223,7 @@ msgstr "Polje datuma početka"
 
 #: frappe/core/doctype/data_import/data_import.js:110
 msgid "Start Import"
-msgstr "Pokreni import"
+msgstr "Pokreni Uvoz"
 
 #: frappe/core/doctype/recorder/recorder_list.js:201
 msgid "Start Recording"
@@ -24739,7 +24739,7 @@ msgstr "Uspješno ažurirano"
 
 #: frappe/core/doctype/data_import/data_import.js:428
 msgid "Successfully imported {0}"
-msgstr "Uspješno importirano {0}"
+msgstr "Uspješno uveženo {0}"
 
 #: frappe/desk/doctype/form_tour/form_tour.py:87
 msgid "Successfully reset onboarding status for all users."
