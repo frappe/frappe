@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-23 09:33+0000\n"
-"PO-Revision-Date: 2025-02-28 15:12\n"
+"PO-Revision-Date: 2025-03-01 15:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -1055,11 +1055,11 @@ msgstr "Tip Radnje"
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:120
 msgid "Action {0} completed successfully on {1} {2}. View it {3}"
-msgstr "{0} je uspješno završena {1} {2}. Pogledaj {3}"
+msgstr "Radnja {0} je uspješno završena {1} {2}. Pogledaj {3}"
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:116
 msgid "Action {0} failed on {1} {2}. View it {3}"
-msgstr "{0} nije uspjela {1} {2}. Pogledaj {3}"
+msgstr "Radnja {0} nije uspjela {1} {2}. Pogledaj {3}"
 
 #. Label of the actions_section (Tab Break) field in DocType 'DocType'
 #. Label of the actions (Table) field in DocType 'Customize Form'
@@ -1366,7 +1366,7 @@ msgstr "Dodaj Red Ispod Trenutnog Reda"
 
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:286
 msgid "Add a {0} Chart"
-msgstr "Dodaj {0} Grafikon"
+msgstr "+ {0} Grafikon"
 
 #: frappe/public/js/form_builder/components/Section.vue:271
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:115
@@ -1423,12 +1423,12 @@ msgstr "Dodajte ovoj aktivnosti slanjem e-pošte na adresu {0}"
 
 #: frappe/public/js/frappe/views/kanban/kanban_column.html:20
 msgid "Add {0}"
-msgstr "Dodaj {0}"
+msgstr "+ {0}"
 
 #: frappe/public/js/frappe/list/list_view.js:279
 msgctxt "Primary action in list view"
 msgid "Add {0}"
-msgstr "Dodaj {0}"
+msgstr "+ {0}"
 
 #. Option for the 'Status' (Select) field in DocType 'Permission Log'
 #: frappe/core/doctype/permission_log/permission_log.json
@@ -3799,7 +3799,7 @@ msgstr "Napravite vlastite izvještaje, formate za ispisivanje i nadzorne ploče
 
 #: frappe/workflow/doctype/workflow/workflow_list.js:18
 msgid "Build {0}"
-msgstr "Razvij {0}"
+msgstr "+ {0}"
 
 #: frappe/templates/includes/footer/footer_powered.html:1
 msgid "Built on {0}"
@@ -5923,11 +5923,11 @@ msgstr "Kreiraj novi zapis"
 #: frappe/public/js/frappe/list/list_view.js:488
 #: frappe/public/js/frappe/web_form/web_form_list.js:225
 msgid "Create a new {0}"
-msgstr "Kreiraj {0}"
+msgstr "+ {0}"
 
 #: frappe/www/login.html:143
 msgid "Create a {0} Account"
-msgstr "Kreiraj {0} Račun"
+msgstr "+ {0} Račun"
 
 #. Description of a DocType
 #: frappe/email/doctype/newsletter/newsletter.json
@@ -5944,7 +5944,7 @@ msgstr "Kreiraj ili Uredi Radni Tok"
 
 #: frappe/public/js/frappe/list/list_view.js:491
 msgid "Create your first {0}"
-msgstr "Kreiraj {0}"
+msgstr "+ {0}"
 
 #: frappe/workflow/doctype/workflow/workflow.js:16
 msgid "Create your workflow visually using the Workflow Builder."
@@ -7680,7 +7680,7 @@ msgstr "DocType <b>{0}</b> predviđen za polje <b>{1}</b> mora imati najmanje je
 #: frappe/core/doctype/doctype_action/doctype_action.json
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "DocType Action"
-msgstr "DocType Akcija"
+msgstr "DocType Radnja"
 
 #. Option for the 'Script Type' (Select) field in DocType 'Server Script'
 #. Label of the doctype_event (Select) field in DocType 'Server Script'
@@ -8958,7 +8958,7 @@ msgstr "E-pošta je prigušena"
 #. Description of the 'Send Email Alert' (Check) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Emails will be sent with next possible workflow actions"
-msgstr "E-pošta će biti poslane sa sljedećim mogućim akcijama radnog toka"
+msgstr "E-pošta će biti poslane sa sljedećim mogućim radnjama radnog toka"
 
 #: frappe/website/doctype/web_form/web_form.js:34
 msgid "Embed code copied"
@@ -10817,7 +10817,7 @@ msgstr "Za DocType"
 #. Description of the 'Row Name' (Data) field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "For DocType Link / DocType Action"
-msgstr "Za DocType Veza / DocType Akcija"
+msgstr "Za DocType Veza / DocType Radnja"
 
 #. Label of the for_document (Dynamic Link) field in DocType 'Permission Log'
 #: frappe/core/doctype/permission_log/permission_log.json
@@ -13339,7 +13339,7 @@ msgstr "Nevažeći izraz \"mandatory_depends_on\""
 
 #: frappe/utils/nestedset.py:178
 msgid "Invalid Action"
-msgstr "Nevažeća Akcija"
+msgstr "Nevažeća Radnja"
 
 #: frappe/utils/csvutils.py:37
 msgid "Invalid CSV Format"
@@ -23619,7 +23619,7 @@ msgstr "Serija Imenovanja {0} se već koristi u {1}"
 #. Option for the 'Action Type' (Select) field in DocType 'DocType Action'
 #: frappe/core/doctype/doctype_action/doctype_action.json
 msgid "Server Action"
-msgstr "Akcija Servera"
+msgstr "Radnja Servera"
 
 #: frappe/app.py:383 frappe/public/js/frappe/request.js:608
 #: frappe/www/error.html:36 frappe/www/error.py:15
@@ -25371,7 +25371,7 @@ msgstr "Uspjeh"
 #. Name of a DocType
 #: frappe/core/doctype/success_action/success_action.json
 msgid "Success Action"
-msgstr "Akcija Uspjeha"
+msgstr "Radnja Uspjeha"
 
 #. Label of the success_message (Data) field in DocType 'Module Onboarding'
 #: frappe/desk/doctype/module_onboarding/module_onboarding.json
@@ -26448,7 +26448,7 @@ msgstr "Ove su postavke potrebne ako se koristi 'Custom' LDAP imenik"
 #. Description of the 'Defaults' (Section Break) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values."
-msgstr "Ove vrijednosti će se automatski ažurirati u transakcijama, a također će biti korisne za ograničavanje dopuštenja za ovog korisnika na transakcije koje sadrže ove vrijednosti."
+msgstr "Ove vrijednosti će se automatski ažurirati u transakcijama, a također će biti korisne za ograničavanje dozvola za ovog korisnika na transakcije koje sadrže ove vrijednosti."
 
 #: frappe/www/third_party_apps.html:3 frappe/www/third_party_apps.html:14
 msgid "Third Party Apps"
@@ -26478,7 +26478,7 @@ msgstr "Ova Oglasna Tabla će biti privatna"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:220
 msgid "This action is irreversible. Do you wish to continue?"
-msgstr "Ova akcija je nepovratna. Da li želite da nastavite?"
+msgstr "Ova radnja je nepovratna. Da li želite da nastavite?"
 
 #: frappe/__init__.py:950
 msgid "This action is only allowed for {}"
@@ -30195,7 +30195,7 @@ msgstr "Još niste dodali Grafikon Nadrzorne Table ili Numeričke Kartice."
 
 #: frappe/public/js/frappe/list/list_view.js:485
 msgid "You haven't created a {0} yet"
-msgstr "Još niste kreirali {0}"
+msgstr "{0} nema u sistemu"
 
 #: frappe/rate_limiter.py:166
 msgid "You hit the rate limit because of too many requests. Please try after sometime."
@@ -31952,7 +31952,7 @@ msgstr "{0}: Nije moguće postaviti Otkaži bez Podnesi"
 
 #: frappe/core/doctype/doctype/doctype.py:1800
 msgid "{0}: Cannot set Import without Create"
-msgstr "{0}: Nije moguće postaviti Uvoz bez Kreiraj"
+msgstr "{0}: Nije moguće postaviti Uvoz bez Kreiranja"
 
 #: frappe/core/doctype/doctype/doctype.py:1796
 msgid "{0}: Cannot set Submit, Cancel, Amend without Write"
