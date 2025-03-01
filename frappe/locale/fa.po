@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-23 09:33+0000\n"
-"PO-Revision-Date: 2025-02-27 14:28\n"
+"PO-Revision-Date: 2025-03-01 15:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -2883,7 +2883,7 @@ msgstr "دنبال خودکار اسنادی که ایجاد می‌کنید"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:227
 msgid "Auto repeat failed. Please enable auto repeat after fixing the issues."
-msgstr ""
+msgstr "تکرار خودکار ناموفق بود. لطفاً پس از رفع مشکلات، تکرار خودکار را فعال کنید."
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -5165,7 +5165,7 @@ msgstr "نوشتن ایمیل"
 #. Option for the 'Row Format' (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Compressed"
-msgstr ""
+msgstr "فشرده شده"
 
 #. Label of the condition (Select) field in DocType 'Document Naming Rule
 #. Condition'
@@ -8198,7 +8198,7 @@ msgstr "مدت زمان"
 #. Option for the 'Row Format' (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Dynamic"
-msgstr ""
+msgstr "پویا"
 
 #. Label of the dynamic_filters_section (Section Break) field in DocType
 #. 'Dashboard Chart'
