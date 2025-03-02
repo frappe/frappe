@@ -326,7 +326,13 @@ def get_internal_links(doc, link, link_doctype):
 
 
 def get_external_links(doctype, name, links):
-	fieldname = links.get("non_standard_fieldnames", {}).get(doctype, links.get("fieldname"))
+	if links.get("non_standard_fieldnames"):
+		fieldname = links.get("non_standard_fieldnames", {}).get(doctype)
+	elif links.get("internal_links"):
+		fieldname = links.get("internal_links", {}).get(doctype)[1]
+	else:
+		fieldname = links.get("fieldname")
+
 	filters = {fieldname: name}
 
 	# updating filters based on dynamic_links
