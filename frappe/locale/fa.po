@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-23 09:33+0000\n"
-"PO-Revision-Date: 2025-03-01 15:40\n"
+"PO-Revision-Date: 2025-03-02 16:20\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -9613,7 +9613,7 @@ msgstr "برون‌بُرد بدون سربرگ اصلی"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:247
 msgid "Export {0} records"
-msgstr "{0} رکورد را صادر کنید"
+msgstr "برون‌بُرد {0} رکورد"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:263
 msgid "Exported permissions will be force-synced on every migrate overriding any other customization."
