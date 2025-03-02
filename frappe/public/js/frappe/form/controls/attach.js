@@ -119,8 +119,15 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 				`);
 			}
 		} else {
-			this.$input.toggle(true);
-			this.$value.toggle(false);
+			if (!this.in_edit_mode) {
+				return;
+			}
+			
+			if (this.$input) {
+				this.$input.toggle(value ? true : false);
+			}
+			// this.$input.toggle(true);
+			// this.$value.toggle(false);
 		}
 	}
 
