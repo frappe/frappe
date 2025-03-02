@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-23 09:33+0000\n"
-"PO-Revision-Date: 2025-03-01 15:40\n"
+"PO-Revision-Date: 2025-03-02 16:20\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -3369,7 +3369,7 @@ msgstr "Napravi sigurnosnu kopiju javnih i privatnih datoteka zajedno s bazom po
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Backups"
-msgstr "Sigurnosne kopije"
+msgstr "Sigurnosne Kopije"
 
 #. Label of the backups_size (Float) field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -3897,7 +3897,7 @@ msgstr "Prema standard postavkama naslov se koristi kao meta naslov, dodavanje v
 #. DocType 'S3 Backup Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgid "By default, emails are only sent for failed backups."
-msgstr "Prema zadanim postavkama e-poruke se šalju samo za neuspjele sigurnosne kopije."
+msgstr "Prema standard postavkama e-pošta se šalju samo za neuspjele sigurnosne kopije."
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
@@ -8285,7 +8285,7 @@ msgstr "Povuci i Ispusti sekciju ovdje sa druge kartice"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:14
 msgid "Drag and drop files here or upload from"
-msgstr "Povuci i Ispusti datoteke ovdje ili ih otpremi iz"
+msgstr "Povuci i Ispusti datoteke ovdje ili ih učitaj iz"
 
 #: frappe/public/js/print_format_builder/ConfigureColumns.vue:76
 msgid "Drag columns to set order. Column width is set in percentage. The total width should not be more than 100. Columns marked in red will be removed."
@@ -10950,7 +10950,7 @@ msgstr "Prisili Korisnika da Poništi Lozinku"
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Force Web Capture Mode for Uploads"
-msgstr "Prisil Web Hvatanje Način za Otpremanje"
+msgstr "Prisili Način Web Snimanja za Učitavanje"
 
 #: frappe/www/login.html:36
 msgid "Forgot Password?"
@@ -12101,7 +12101,7 @@ msgstr "Onemogući Prazna Polja Samo za Čitanje"
 
 #: frappe/www/error.html:62
 msgid "Hide Error"
-msgstr "Sakrij grešku"
+msgstr "Sakrij Grešku"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:488
 msgid "Hide Label"
@@ -21839,7 +21839,7 @@ msgstr "Vraćeno"
 
 #: frappe/core/doctype/deleted_document/deleted_document.py:74
 msgid "Restoring Deleted Document"
-msgstr "Vraća se Izbrisani Dokument"
+msgstr "Vraćanje Izbrisanog Dokumenta u toku"
 
 #. Label of the restrict_ip (Small Text) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -25137,7 +25137,7 @@ msgstr "Ravne redove ključeva je lako pogoditi"
 #. DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Strip EXIF tags from uploaded images"
-msgstr "Skinite EXIF oznake sa otpremljenih slika"
+msgstr "Skini EXIF oznake sa učitanjh slika"
 
 #: frappe/public/js/frappe/form/controls/password.js:90
 msgid "Strong"
