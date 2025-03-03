@@ -74,7 +74,7 @@ def read_doc(doctype: str, name: str):
 def document_list(doctype: str):
 	from frappe.model.base_document import get_controller
 
-	args = frappe.request.args
+	args = frappe.form_dict
 
 	fields = frappe.parse_json(args.get("fields", None))
 	filters = frappe.parse_json(args.get("filters", None))
@@ -83,6 +83,7 @@ def document_list(doctype: str):
 	limit = cint(args.get("limit", 20))
 	group_by = args.get("group_by", None)
 	debug = args.get("debug", False)
+	as_dict = args.get("as_dict", True)
 
 	query = frappe.qb.get_query(
 		table=doctype,
@@ -100,7 +101,7 @@ def document_list(doctype: str):
 		if return_value is not None:
 			query = return_value
 
-	data = query.run(as_dict=True, debug=debug)
+	data = query.run(as_dict=as_dict, debug=debug)
 	frappe.response["has_next_page"] = len(data) > limit
 	return data[:limit]
 
