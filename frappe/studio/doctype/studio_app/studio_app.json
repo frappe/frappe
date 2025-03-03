@@ -10,7 +10,8 @@
   "app_title",
   "route",
   "column_break_aroi",
-  "app_home"
+  "app_home",
+  "published"
  ],
  "fields": [
   {
@@ -42,6 +43,12 @@
    "fieldname": "app_title",
    "fieldtype": "Data",
    "label": "App Title"
+  },
+  {
+   "default": "0",
+   "fieldname": "published",
+   "fieldtype": "Check",
+   "label": "Published"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -51,7 +58,7 @@
    "link_fieldname": "studio_app"
   }
  ],
- "modified": "2025-02-18 15:18:52.558045",
+ "modified": "2025-03-03 12:56:04.862473",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio App",

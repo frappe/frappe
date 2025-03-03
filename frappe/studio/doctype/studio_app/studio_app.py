@@ -3,11 +3,12 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.website.website_generator import WebsiteGenerator
 
 from studio.utils import camel_case_to_kebab_case
 
 
-class StudioApp(Document):
+class StudioApp(WebsiteGenerator):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -19,8 +20,23 @@ class StudioApp(Document):
 		app_home: DF.Link | None
 		app_name: DF.Data | None
 		app_title: DF.Data | None
+		published: DF.Check
 		route: DF.Data | None
 	# end: auto-generated types
+
+	website = frappe._dict(
+		template="templates/generators/app.html",
+		page_title_field="app_title",
+		condition_field="published",
+	)
+
+	def get_context(self, context):
+		context.title = self.app_title
+		context.no_cache = 1
+
+		context.pages = self.get_studio_pages()
+		context.app_name = self.name
+		context.base_url = frappe.utils.get_url(self.route)
 
 	def autoname(self):
 		if not self.name:
@@ -41,6 +57,9 @@ class StudioApp(Document):
 
 		if self.pages:
 			self.app_home = self.pages[0].studio_page
+
+	def get_studio_pages(self):
+		return frappe.get_all("Studio Page", dict(studio_app=self.name), ["name", "page_title", "route"])
 
 
 @frappe.whitelist()
