@@ -558,7 +558,8 @@
    "fieldtype": "Datetime",
    "label": "Last Active",
    "no_copy": 1,
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "description": "Stores the JSON of last known versions of various installed apps. It is used to show release notes.",
@@ -888,7 +889,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2024-12-31 19:35:17.052698",
+ "modified": "2025-02-21 20:11:36.150167",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
@@ -920,6 +921,7 @@
  ],
  "quick_entry": 1,
  "route": "user",
+ "row_format": "Dynamic",
  "search_fields": "full_name",
  "show_name_in_global_search": 1,
  "sort_field": "creation",

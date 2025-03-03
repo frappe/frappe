@@ -626,7 +626,7 @@ def delete(web_form_name: str, docname: str | int):
 
 
 @frappe.whitelist()
-def delete_multiple(web_form_name: str, docnames: list[str | int]):
+def delete_multiple(web_form_name: str, docnames):
 	web_form = frappe.get_doc("Web Form", web_form_name)
 
 	docnames = json.loads(docnames)
@@ -635,6 +635,8 @@ def delete_multiple(web_form_name: str, docnames: list[str | int]):
 	restricted_docnames = []
 
 	for docname in docnames:
+		assert isinstance(docname, str | int)
+
 		owner = frappe.db.get_value(web_form.doc_type, docname, "owner")
 		if frappe.session.user == owner and web_form.allow_delete:
 			allowed_docnames.append(docname)

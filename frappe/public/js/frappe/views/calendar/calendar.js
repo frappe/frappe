@@ -420,7 +420,8 @@ frappe.views.Calendar = class Calendar {
 	prepare_colors(d) {
 		let color, color_name;
 		if (this.get_css_class) {
-			color_name = this.color_map[this.get_css_class(d)] || "blue";
+			color_name = this.get_css_class(d);
+			color_name = this.color_map[color_name] || color_name || "blue";
 
 			if (color_name.startsWith("#")) {
 				color_name = frappe.ui.color.validate_hex(color_name) ? color_name : "blue";

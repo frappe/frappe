@@ -4,22 +4,22 @@ from frappe.tests import IntegrationTestCase
 
 class TestDocStatus(IntegrationTestCase):
 	def test_draft(self):
-		self.assertEqual(DocStatus(0), DocStatus.draft())
+		self.assertEqual(DocStatus(0), DocStatus.DRAFT)
 
-		self.assertTrue(DocStatus.draft().is_draft())
-		self.assertFalse(DocStatus.draft().is_cancelled())
-		self.assertFalse(DocStatus.draft().is_submitted())
+		self.assertTrue(DocStatus.DRAFT.is_draft())
+		self.assertFalse(DocStatus.DRAFT.is_cancelled())
+		self.assertFalse(DocStatus.DRAFT.is_submitted())
 
 	def test_submitted(self):
-		self.assertEqual(DocStatus(1), DocStatus.submitted())
+		self.assertEqual(DocStatus(1), DocStatus.SUMBITTED)
 
-		self.assertFalse(DocStatus.submitted().is_draft())
-		self.assertTrue(DocStatus.submitted().is_submitted())
-		self.assertFalse(DocStatus.submitted().is_cancelled())
+		self.assertFalse(DocStatus.SUMBITTED.is_draft())
+		self.assertTrue(DocStatus.SUMBITTED.is_submitted())
+		self.assertFalse(DocStatus.SUMBITTED.is_cancelled())
 
 	def test_cancelled(self):
-		self.assertEqual(DocStatus(2), DocStatus.cancelled())
+		self.assertEqual(DocStatus(2), DocStatus.CANCELLED)
 
-		self.assertFalse(DocStatus.cancelled().is_draft())
-		self.assertFalse(DocStatus.cancelled().is_submitted())
-		self.assertTrue(DocStatus.cancelled().is_cancelled())
+		self.assertFalse(DocStatus.CANCELLED.is_draft())
+		self.assertFalse(DocStatus.CANCELLED.is_submitted())
+		self.assertTrue(DocStatus.CANCELLED.is_cancelled())

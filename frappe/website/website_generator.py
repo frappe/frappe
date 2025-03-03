@@ -70,6 +70,9 @@ class WebsiteGenerator(Document):
 		super().clear_cache()
 		clear_cache(self.route)
 
+		frappe.db.after_commit.add(lambda: clear_cache(self.route))
+		frappe.db.after_rollback.add(lambda: clear_cache(self.route))
+
 	def scrub(self, text):
 		return cleanup_page_name(text).replace("_", "-")
 

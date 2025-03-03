@@ -494,7 +494,7 @@ def delete_doc(doctype, name):
 		for row in parent.get(parentfield):
 			if row.name == name:
 				parent.remove(row)
-				parent.save(ignore_permissions=True)
+				parent.save()
 				break
 	else:
 		frappe.delete_doc(doctype, name, ignore_missing=False)

@@ -4,22 +4,29 @@
 
 class DocStatus(int):
 	def is_draft(self):
-		return self == self.draft()
+		return self == DocStatus.DRAFT
 
 	def is_submitted(self):
-		return self == self.submitted()
+		return self == DocStatus.SUMBITTED
 
 	def is_cancelled(self):
-		return self == self.cancelled()
+		return self == DocStatus.CANCELLED
 
-	@classmethod
-	def draft(cls):
-		return cls(0)
+	# following methods have been kept for backwards compatibility
 
-	@classmethod
-	def submitted(cls):
-		return cls(1)
+	@staticmethod
+	def draft():
+		return DocStatus.DRAFT
 
-	@classmethod
-	def cancelled(cls):
-		return cls(2)
+	@staticmethod
+	def submitted():
+		return DocStatus.SUMBITTED
+
+	@staticmethod
+	def cancelled():
+		return DocStatus.CANCELLED
+
+
+DocStatus.DRAFT = DocStatus(0)
+DocStatus.SUMBITTED = DocStatus(1)
+DocStatus.CANCELLED = DocStatus(2)

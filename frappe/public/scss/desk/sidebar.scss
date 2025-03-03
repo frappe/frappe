@@ -6,6 +6,7 @@
 	--surface-modal: rgba(255, 255, 255, 1);
 	--divider-color: rgba(237, 237, 237, 1);
 	--sidebar-width: 220px;
+	--left-sidebar-width: 240px;
 }
 [data-theme="dark"] {
 	--sidebar-hover-color: rgba(43, 43, 43, 1);
@@ -122,7 +123,7 @@ body {
 	}
 
 	.sidebar-items {
-		width: 204px;
+		width: 224px;
 		padding-left: 1px;
 		padding-right: 1px;
 		width: 100%;
@@ -172,7 +173,7 @@ body {
 			}
 
 			svg {
-				margin: -1px;
+				margin: -2px;
 			}
 		}
 
@@ -248,17 +249,17 @@ body {
 	.body-sidebar {
 		// make it an overlay on hover
 		position: absolute;
-		width: var(--sidebar-width);
+		width: var(--left-sidebar-width);
 		.app-switcher-dropdown {
-			width: 204px;
+			width: 224px;
 			left: 0px;
-			padding: 2px 0px 2px 3px;
+			padding: 3px;
 		}
 		.body-sidebar-top {
-			width: 204px;
+			width: 224px;
 			overflow-y: hidden;
 			.app-switcher-dropdown {
-				width: 204px;
+				width: 224px;
 			}
 		}
 		.sidebar-item-container {
@@ -279,7 +280,7 @@ body {
 			visibility: visible;
 		}
 		.body-sidebar-bottom {
-			width: var(--sidebar-width);
+			width: 224px;
 			position: static;
 		}
 	}
@@ -287,7 +288,7 @@ body {
 	// show placeholder so that main section remains static
 	.body-sidebar-placeholder {
 		display: flex;
-		width: var(--sidebar-width);
+		width: var(--left-sidebar-width);
 	}
 }
 
@@ -310,7 +311,7 @@ body {
 		position: relative;
 		.body-sidebar {
 			padding: 8px 8px 10px 8px;
-			width: var(--sidebar-width);
+			width: var(--left-sidebar-width);
 			height: 100%;
 			position: absolute;
 			bottom: 0;
@@ -319,10 +320,10 @@ body {
 		.overlay {
 			display: block;
 			position: absolute;
-			width: 100vw;
+			width: calc(100vw - 240px);
 			height: 100%;
 			z-index: 1021;
-			left: var(--sidebar-width);
+			left: var(--left-sidebar-width);
 			overflow: auto;
 			background-color: rgba(128, 128, 128, 0.5);
 		}
@@ -347,15 +348,15 @@ body {
 	text-decoration: none;
 	width: 38px;
 	height: 38px;
-	left: -2px;
 	padding: 3px;
+	margin-left: -2px;
 	.standard-sidebar-item {
 		padding-top: 1px;
 		padding-bottom: 1px;
 		.d-flex {
 			width: 161px;
 		}
-		gap: 8px;
+		gap: 30px;
 	}
 	.sidebar-item-control {
 		margin: 2px;
@@ -365,15 +366,13 @@ body {
 
 .app-switcher-menu {
 	position: absolute;
-	top: 44px;
-	left: 7px;
-	width: 205px;
+	top: 50px;
+	left: 9px;
+	width: 220px;
 	padding: 6px;
 	border-radius: var(--border-radius-lg);
 	background: var(--surface-modal);
-	box-shadow: 0px 10px 24px -3px rgba(0, 0, 0, 0.1);
-	// box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.05);
-	// box-shadow: 0px 0px 1px 0px rgba(0, 0, 0, 0.2);
+	box-shadow: var(--shadow-xl);
 	z-index: 1;
 }
 
@@ -421,7 +420,7 @@ body {
 
 .active-sidebar {
 	background: var(--sidebar-active-color);
-	box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.1);
+	box-shadow: var(--shadow-sm);
 	border-radius: 8px;
 }
 .overlay {

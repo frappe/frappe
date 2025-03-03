@@ -209,6 +209,7 @@ class SiteMigration:
 		connection_id = frappe.db.sql("select connection_id()")[0][0]
 		for process in processes:
 			sleeping = process.get("Command") == "Sleep"
+			user = str(process.get("User")).lower()
 			sleeping_since = cint(process.get("Time")) or 0
 			pid = process.get("Id")
 
@@ -218,6 +219,7 @@ class SiteMigration:
 				and process.db == frappe.conf.db_name
 				and sleeping
 				and sleeping_since > idle_limit
+				and user != "system user"
 			):
 				try:
 					frappe.db.sql(f"kill {pid}")

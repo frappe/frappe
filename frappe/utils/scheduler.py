@@ -219,15 +219,23 @@ def schedule_jobs_based_on_activity(check_time=None):
 		return True
 
 
+@redis_cache(ttl=60 * 60)
 def is_dormant(check_time=None):
-	# Assume never dormant if developer_mode is enabled
-	if frappe.conf.developer_mode:
+	from frappe.utils.frappecloud import on_frappecloud
+
+	if frappe.conf.developer_mode or not on_frappecloud():
 		return False
-	last_activity_log_timestamp = _get_last_creation_timestamp("Activity Log")
-	since = (frappe.get_system_settings("dormant_days") or 4) * 86400
-	if not last_activity_log_timestamp:
+	threshold = cint(frappe.get_system_settings("dormant_days")) * 86400
+	if not threshold:
+		return False
+
+	last_activity = frappe.db.get_value(
+		"User", filters={}, fieldname="last_active", order_by="last_active desc"
+	)
+
+	if not last_activity:
 		return True
-	if ((check_time or now_datetime()) - last_activity_log_timestamp).total_seconds() >= since:
+	if ((check_time or now_datetime()) - last_activity).total_seconds() >= threshold:
 		return True
 	return False
 
