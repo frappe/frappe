@@ -514,9 +514,10 @@ class TestQuery(IntegrationTestCase):
 					"doctype": "Blog Post",
 					"title": "Test Permission Post",
 					"content": "Test Content",
+					"blog_category": "-test-blog-category",
 					"published": 1,
 				}
-			).insert(ignore_permissions=True)
+			).insert(ignore_permissions=True, ignore_mandatory=True)
 
 			# Without proper permission, published field should be filtered out
 			data = frappe.qb.get_query(
