@@ -596,3 +596,62 @@ class TestQuery(IntegrationTestCase):
 
 		result = frappe.qb.get_query("DocType", filters={"autoname": ["is", "set"]}).run(as_dict=1)
 		self.assertFalse(any(d.name == "Property Setter" for d in result))
+
+	def test_permission_query_condition(self):
+		"""Test permission query condition being applied from hooks and server script"""
+		from frappe.desk.doctype.dashboard_settings.dashboard_settings import create_dashboard_settings
+
+		# Create a Dashboard Settings for test user
+		self.doctype = "Dashboard Settings"
+		self.user = "test@example.com"
+
+		# First check without custom permission query condition
+		original_hooks = frappe.get_hooks("permission_query_conditions") or {}
+
+		# Clear any hooks temporarily
+		frappe.clear_cache()
+		frappe.hooks.permission_query_conditions = {}
+
+		# Create test data
+		create_dashboard_settings(self.user)
+
+		# Register the hook for Dashboard Settings
+		frappe.clear_cache()
+		frappe.hooks.permission_query_conditions = {
+			"Dashboard Settings": ["frappe.tests.test_query.test_permission_hook_condition"]
+		}
+
+		# Hook condition will restrict to only name=Administrator, so our test user's record should not be found
+		query = frappe.qb.get_query("Dashboard Settings", user=self.user, ignore_permissions=False)
+		data = query.run(as_dict=1)
+		self.assertEqual(len(data), 0)
+
+		# Create a server script for permission query
+		script = frappe.new_doc(
+			doctype="Server Script",
+			name="Dashboard Settings Permission Query",
+			script_type="Permission Query",
+			enabled=1,
+			reference_doctype="Dashboard Settings",
+			script=f"""conditions = '`tabDashboard Settings`.`name` = "{self.user}"'""",
+		).insert()
+
+		# Test with server script
+		# Script condition should allow the record to be found
+		frappe.clear_cache()
+		frappe.hooks.permission_query_conditions = {}  # Clear hooks to test server script alone
+
+		data = frappe.qb.get_query("Dashboard Settings", user=self.user, ignore_permissions=False).run(
+			as_dict=1
+		)
+		self.assertEqual(len(data), 1)
+
+		# Cleanup
+		script.delete()
+		frappe.clear_cache()
+		frappe.hooks.permission_query_conditions = original_hooks
+
+
+# This function is used as a permission query condition hook
+def test_permission_hook_condition(user):
+	return "`tabDashboard Settings`.`name` = 'Administrator'"

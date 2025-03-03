@@ -2,10 +2,11 @@ import re
 from ast import literal_eval
 from functools import lru_cache
 from types import BuiltinFunctionType
-from typing import TYPE_CHECKING, TypeAlias
+from typing import TYPE_CHECKING, Any, TypeAlias
 
 import sqlparse
 from pypika.queries import QueryBuilder, Table
+from pypika.terms import Term
 
 import frappe
 from frappe import _
@@ -482,6 +483,10 @@ class Engine:
 			conditions.extend(user_perm_conditions)
 			fetch_shared_docs = fetch_shared_docs or fetch_shared
 
+		permission_query_conditions = self.get_permission_query_conditions()
+		if permission_query_conditions:
+			conditions.extend(permission_query_conditions)
+
 		shared_docs = []
 		if fetch_shared_docs:
 			shared_docs = frappe.share.get_shared(self.doctype, self.user)
@@ -490,12 +495,32 @@ class Engine:
 			shared_condition = self.table.name.isin(shared_docs)
 			if conditions:
 				# (permission conditions) OR (shared condition)
-				self.query = self.query.where(Criterion.any(conditions) | shared_condition)
+				self.query = self.query.where(Criterion.all(conditions) | shared_condition)
 			else:
 				self.query = self.query.where(shared_condition)
 		elif conditions:
 			# AND all permission conditions
 			self.query = self.query.where(Criterion.all(conditions))
+
+	def get_permission_query_conditions(self):
+		"""Add permission query conditions from hooks and server scripts"""
+		from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
+
+		conditions = []
+		hooks = frappe.get_hooks("permission_query_conditions", {})
+		condition_methods = hooks.get(self.doctype, []) + hooks.get("*", [])
+
+		for method in condition_methods:
+			if c := frappe.call(frappe.get_attr(method), self.user, doctype=self.doctype):
+				conditions.append(RawCriterion(c))
+
+		# Get conditions from server scripts
+		if permission_script_name := get_server_script_map().get("permission_query", {}).get(self.doctype):
+			script = frappe.get_doc("Server Script", permission_script_name)
+			if condition := script.get_permission_query_conditions(self.user):
+				conditions.append(RawCriterion(condition))
+
+		return conditions
 
 	def get_permission_type(self, doctype) -> str:
 		"""Get permission type (select/read) based on user permissions"""
@@ -744,3 +769,18 @@ def _sanitize_field(field: str, is_mariadb):
 	if is_mariadb:
 		return MARIADB_SPECIFIC_COMMENT.sub("", stripped_field)
 	return stripped_field
+
+
+class RawCriterion(Term):
+	"""A class to represent raw SQL string as a criterion.
+
+	Allows using raw SQL strings in pypika queries:
+		frappe.qb.from_("DocType").where(RawCriterion("name like 'a%'"))
+	"""
+
+	def __init__(self, sql_string: str):
+		self.sql_string = sql_string
+		super().__init__()
+
+	def get_sql(self, **kwargs: Any) -> str:
+		return self.sql_string
