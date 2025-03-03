@@ -23,7 +23,8 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fi
 import frappe
 import frappe.monitor
 from frappe import _
-from frappe.utils import CallbackManager, cint, get_bench_id
+from frappe.utils import CallbackManager, cint, get_bench_id, get_sites
+from frappe.utils.caching import site_cache
 from frappe.utils.commands import log
 from frappe.utils.deprecations import deprecation_warning
 from frappe.utils.redis_queue import RedisQueue
@@ -33,6 +34,14 @@ RQ_JOB_FAILURE_TTL = 7 * 24 * 60 * 60  # 7 days instead of 1 year (default)
 RQ_FAILED_JOBS_LIMIT = 1000  # Only keep these many recent failed jobs around
 RQ_RESULTS_TTL = 10 * 60
 
+<<<<<<< HEAD
+=======
+RQ_MAX_JOBS = 5000  # Restart NOFORK workers after every N number of jobs
+RQ_MAX_JOBS_JITTER = 50  # Random difference in max jobs to avoid restarting at same time
+
+MAX_QUEUED_JOBS = 500  # frappe.enqueue will start failing when these many jobs exist in queue.
+
+>>>>>>> 35667e758d (fix: Implement backpressure for background jobs)
 
 _redis_queue_conn = None
 
@@ -127,6 +136,8 @@ def enqueue(
 			return frappe.call(method, **kwargs)
 
 		raise
+
+	_check_queue_size(q)
 
 	if not timeout:
 		timeout = get_queues_timeout().get(queue) or 300
@@ -615,6 +626,44 @@ def truncate_failed_registry(job, connection, type, value, traceback):
 				job_obj and fail_registry.remove(job_obj, delete_job=True)
 
 
+<<<<<<< HEAD
+=======
+def flush_telemetry():
+	"""Forcefully flush pending events.
+
+	This is required in context of background jobs where process might die before posthog gets time
+	to push events."""
+	ph = getattr(frappe.local, "posthog", None)
+	with suppress(Exception):
+		ph and ph.flush()
+
+
+def _check_queue_size(q: Queue):
+	max_jobs = cint(frappe.conf.max_queued_jobs) or MAX_QUEUED_JOBS
+	# Workaround for arbitrarily sized benches,
+	# TODO: Some concept of site-based fairness on consumption of queue
+	max_jobs += _site_count() * 50
+
+	if cint(q.count) >= max_jobs:
+		primary_action = {
+			"label": "Monitor System Health",
+			"client_action": "frappe.set_route",
+			"args": ["Form", "System Health Report"],
+		}
+		frappe.throw(
+			_("Too many queued background jobs ({0}). Please retry after some time.").format(max_jobs),
+			title=_("Queue Overloaded"),
+			exc=frappe.QueueOverloaded,
+			primary_action=primary_action if frappe.has_permission("System Health Report") else None,
+		)
+
+
+@site_cache(ttl=10 * 60)
+def _site_count() -> int:
+	return len(get_sites())
+
+
+>>>>>>> 35667e758d (fix: Implement backpressure for background jobs)
 def _start_sentry():
 	sentry_dsn = os.getenv("FRAPPE_SENTRY_DSN")
 	if not sentry_dsn:
