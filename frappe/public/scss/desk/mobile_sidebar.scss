@@ -1,0 +1,19 @@
+:root {
+	--mobile-sidebar-height: 50px;
+}
+.mobile-sidebar {
+	width: 100vh;
+	height: var(--mobile-sidebar-height);
+	position: absolute;
+	z-index: 1031;
+	bottom: 0;
+	background: var(--subtle-accent);
+	border-top-width: 1px;
+	border-color: --var($gray-100);
+}
+
+@include media-breakpoint-down(sm) {
+	.main-section {
+		height: calc(100vh - var(--mobile-sidebar-height));
+	}
+}

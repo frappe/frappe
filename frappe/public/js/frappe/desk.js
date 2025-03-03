@@ -88,7 +88,11 @@ frappe.Application = class Application {
 	}
 
 	make_sidebar() {
-		this.sidebar = new frappe.ui.Sidebar({});
+		if (frappe.is_mobile()) {
+			this.sidebar = new frappe.ui.MobileSidebar();
+		} else {
+			this.sidebar = new frappe.ui.Sidebar();
+		}
 	}
 
 	setup_theme() {

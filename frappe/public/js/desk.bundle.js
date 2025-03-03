@@ -10,8 +10,10 @@ import "./frappe/ui/messages.js";
 import "./frappe/ui/keyboard.js";
 import "./frappe/ui/colors.js";
 import "./frappe/ui/sidebar.html";
+import "./frappe/ui/mobile_sidebar.html";
 import "./frappe/ui/sidebar.js";
 import "./frappe/ui/apps_switcher.js";
+import "./frappe/ui/mobile_sidebar.js";
 import "./frappe/ui/apps_switcher.html";
 import "./frappe/ui/link_preview.js";
 
