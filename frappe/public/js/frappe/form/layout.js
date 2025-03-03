@@ -101,7 +101,7 @@ frappe.ui.form.Layout = class Layout {
 
 	/**Render a message block with its own color and close button
 	 * @param {String} html - message or HTML to be displayed
-	 * @param {String} color - color of the block
+	 * @param {String} color - color of the block. One of "yellow", "blue", "red", "green" or "orange". Defaults to "blue".
 	 * @param {Boolean} permanent - if true, the block will not have a close button
 	 */
 	show_message(html, color, permanent = false) {
