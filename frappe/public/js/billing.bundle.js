@@ -23,7 +23,7 @@ $(document).ready(function () {
 						generateTrialSubscriptionBanner(response.trial_end_date)
 					);
 				}
-				addLoginToFCDropdownItem();
+				addManageBillingDropdown();
 
 				$(".login-to-fc, .upgrade-plan-button").on("click", function () {
 					openFrappeCloudDashboard();
@@ -37,9 +37,9 @@ function setErrorMessage(message) {
 	$("#fc-login-error").text(message);
 }
 
-function addLoginToFCDropdownItem() {
-	$(".dropdown-navbar-user .dropdown-menu .dropdown-item:last()").before(
-		`<div class="dropdown-item login-to-fc" target="_blank">Login to Frappe Cloud</div>`
+function addManageBillingDropdown() {
+	$(".dropdown-navbar-user .dropdown-menu .dropdown-divider").before(
+		`<div class="dropdown-item login-to-fc" target="_blank">Manage Billing</div>`
 	);
 }
 
