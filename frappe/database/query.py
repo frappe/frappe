@@ -186,7 +186,7 @@ class Engine:
 			self.query = dynamic_field.apply_join(self.query)
 			_field = dynamic_field.field
 		elif self.validate_filters and SPECIAL_CHAR_PATTERN.search(_field):
-			frappe.throw(_("Invalid filter: {0}").format(_field))
+			frappe.throw(_("Invalid filter: {0}").format(_field), frappe.PermissionError)
 		elif not doctype or doctype == self.doctype:
 			_field = self.table[field]
 		elif doctype:
@@ -369,7 +369,9 @@ class Engine:
 			)
 
 		if not has_permission("select") and not has_permission("read"):
-			frappe.throw(_("Insufficient Permission for {0}").format(frappe.bold(self.doctype)))
+			frappe.throw(
+				_("Insufficient Permission for {0}").format(frappe.bold(self.doctype)), frappe.PermissionError
+			)
 
 	def apply_field_permissions(self):
 		"""Allow fields that user has permission to read"""
@@ -543,7 +545,9 @@ class Permission:
 				user=kwargs.get("user"),
 				parent_doctype=kwargs.get("parent_doctype"),
 			):
-				frappe.throw(_("Insufficient Permission for {0}").format(frappe.bold(dt)))
+				frappe.throw(
+					_("Insufficient Permission for {0}").format(frappe.bold(dt)), frappe.PermissionError
+				)
 
 	@staticmethod
 	def get_tables_from_query(query: str):
