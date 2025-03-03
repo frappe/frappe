@@ -351,6 +351,7 @@ def get_doc_count(doctype, filters):
 			limit=100,
 			distinct=True,
 			ignore_ifnull=True,
+			order_by=None,
 		)
 	)
 
