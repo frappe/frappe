@@ -99,12 +99,12 @@ frappe.ui.form.Layout = class Layout {
 		return fields;
 	}
 
+	/**Render a message block with its own color and close button
+	 * @param {String} html - message or HTML to be displayed
+	 * @param {String} color - color of the block
+	 * @param {Boolean} permanent - if true, the block will not have a close button
+	 */
 	show_message(html, color, permanent = false) {
-		/**Render a message block with its own color and close button
-		 * @param {String} html - message or HTML to be displayed
-		 * @param {String} color - color of the block
-		 * @param {Boolean} permanent - if true, the block will not have a close button
-		 */
 		if (!html) {
 			this.message.empty().addClass("hidden");
 			return;
@@ -112,12 +112,12 @@ frappe.ui.form.Layout = class Layout {
 
 		// Prepare Block
 		let $html;
-		if (html.substr(0, 1) !== "<") {
+		if (html.substring(0, 1) !== "<") {
 			// wrap in a block if `html` does not contain html tags
-			$html = $("<div class='form-message'></div>").text(html);
+			$html = $("<div class='form-message border-bottom'></div>").text(html);
 		} else {
 			$html = $(html);
-			$html.addClass("form-message");
+			$html.addClass("form-message border-bottom");
 		}
 
 		// Add close button to block if not permanent
