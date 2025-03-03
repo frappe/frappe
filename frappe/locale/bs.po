@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-23 09:33+0000\n"
-"PO-Revision-Date: 2025-03-02 16:20\n"
+"PO-Revision-Date: 2025-03-03 16:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -22442,7 +22442,7 @@ msgstr "SSL/TLS Način"
 
 #: frappe/public/js/frappe/color_picker/color_picker.js:20
 msgid "SWATCHES"
-msgstr "SWATCHES"
+msgstr "UZORCI BOJA"
 
 #. Name of a role
 #: frappe/contacts/doctype/contact/contact.json
