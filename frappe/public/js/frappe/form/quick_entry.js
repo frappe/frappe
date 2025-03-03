@@ -184,15 +184,11 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 					doc: me.dialog.doc,
 				},
 				callback: function (r) {
-<<<<<<< HEAD
-					if (frappe.model.is_submittable(me.doctype)) {
-=======
 					if (
 						r?.message?.docstatus === 0 &&
 						frappe.model.can_submit(me.doctype) &&
 						!frappe.model.has_workflow(me.doctype)
 					) {
->>>>>>> 5930011849 (fix(quickentry): Show submit option only if User can)
 						frappe.run_serially([
 							() => (me.dialog.working = true),
 							() => {
