@@ -11,6 +11,10 @@ def get_base_url():
 	return url
 
 
+def get_site_login_url():
+	return f"{get_base_url()}/dashboard/site-login"
+
+
 def get_site_name():
 	site_name = frappe.local.site
 	if frappe.conf.developer_mode and frappe.conf.get("saas_billing_site_name"):

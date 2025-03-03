@@ -40,11 +40,9 @@ def get_context(context):
 			raise frappe.Redirect
 
 	if is_fc_site():
-		base_url = "https://frappecloud.com"
-		if frappe.conf.developer_mode and frappe.conf.get("fc_base_url"):
-			base_url = frappe.conf.get("fc_base_url")
+		from frappe.integrations.frappe_providers.frappecloud_billing import get_site_login_url
 
-		frappe.local.flags.redirect_location = f"{base_url}/dashboard/site-login"
+		frappe.local.flags.redirect_location = get_site_login_url()
 		raise frappe.Redirect
 
 	context.no_header = True
