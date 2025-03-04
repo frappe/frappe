@@ -1,6 +1,20 @@
 frappe.ui.MobileSidebar = class MobileSidebar {
 	constructor() {
-		this.items = {};
+		this.items = [
+			{
+				label: "Home",
+				icon: "home",
+				route: "/app/m-navigation",
+			},
+			{
+				label: "Apps",
+				icon: "layout-grid",
+				route: "/apps",
+				onclick: function () {
+					console.log("open app");
+				},
+			},
+		];
 
 		if (!frappe.boot.setup_complete) {
 			// no sidebar if setup is not complete
@@ -11,6 +25,7 @@ frappe.ui.MobileSidebar = class MobileSidebar {
 		this.make_dom();
 
 		this.setup_pages();
+		this.make_sidebar();
 		this.apps_switcher.populate_apps_menu();
 	}
 
@@ -25,7 +40,7 @@ frappe.ui.MobileSidebar = class MobileSidebar {
 			})
 		).prependTo(this.wrapper.find(".body-sidebar"));
 
-		this.$sidebar = this.wrapper.find(".sidebar-items");
+		this.$sidebar = this.wrapper.find(".mobile-sidebar-items");
 
 		this.wrapper.find(".body-sidebar .collapse-sidebar-link").on("click", () => {
 			this.toggle_sidebar();
@@ -152,34 +167,35 @@ frappe.ui.MobileSidebar = class MobileSidebar {
 				frappe.workspace_map[page.name] = page;
 				frappe.workspace_list.push(page);
 			}
-			this.make_sidebar();
 		}
 		this.set_hover();
 	}
 	build_sidebar_section() {}
 	make_sidebar() {
-		if (this.wrapper.find(".standard-sidebar-section")[0]) {
-			this.wrapper.find(".standard-sidebar-section").remove();
+		for (let item of this.items) {
+			console.log(item);
+			let item_container = $(`
+				<div
+					class="mobile-item-container" data-name=${item.label}
+				>
+						<a
+							href="${item.route}"
+							target=""
+							class="mobile-item-anchor" title="${__(item.label)}"
+						>
+							<span class="sidebar-item-icon icon icon-md" item-icon=${item.icon || "folder-normal"}>
+								${
+									item.icon
+										? frappe.utils.icon(item.icon || "folder-normal", "md")
+										: `<span class="indicator ${item.indicator_color}"></span>`
+								}
+							</span>
+							<span class="sidebar-item-label">${__(item.label)}<span>
+						</a>
+				</div>
+			`);
+			item_container.appendTo(this.$sidebar);
 		}
-
-		let app_workspaces = frappe.boot.app_data_map[frappe.current_app || "frappe"].workspaces;
-
-		let parent_pages = this.all_pages.filter((p) => !p.parent_page).uniqBy((p) => p.name);
-		if (frappe.current_app === "private") {
-			parent_pages = parent_pages.filter((p) => !p.public);
-		} else {
-			parent_pages = parent_pages.filter((p) => p.public && app_workspaces.includes(p.name));
-		}
-
-		this.build_sidebar_section("All", parent_pages);
-
-		// Scroll sidebar to selected page if it is not in viewport.
-		this.wrapper.find(".selected").length &&
-			!frappe.dom.is_element_in_viewport(this.wrapper.find(".selected")) &&
-			this.wrapper.find(".selected")[0].scrollIntoView();
-
-		// this.set_active_workspace_item();
-		// this.set_hover();
 	}
 
 	reload() {

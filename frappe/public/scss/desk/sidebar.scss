@@ -297,41 +297,24 @@ body {
 }
 
 @include media-breakpoint-down(sm) {
-	// body sidebar hidded in mobile view
-	.body-sidebar-container {
-		.body-sidebar {
-			padding: 0px;
-			width: 0px;
-			overflow: hidden;
-		}
+	.body-sidebar {
+		display: none;
+	}
+	.sidebar-items {
+		padding: 30px;
+		display: flex;
+		flex-direction: column;
+	}
+	.standard-sidebar-item {
+		display: flex;
+		padding: 10px;
+		gap: 50%;
+		border: 1px solid black;
 	}
 
-	// expands when navbar-brand is clicked
-	.body-sidebar-container.expanded {
-		position: relative;
-		.body-sidebar {
-			padding: 8px 8px 10px 8px;
-			width: var(--left-sidebar-width);
-			height: 100%;
-			position: absolute;
-			bottom: 0;
-			top: 0;
-		}
-		.overlay {
-			display: block;
-			position: absolute;
-			width: calc(100vw - 240px);
-			height: 100%;
-			z-index: 1021;
-			left: var(--left-sidebar-width);
-			overflow: auto;
-			background-color: rgba(128, 128, 128, 0.5);
-		}
-
-		// acts a overlay when in mobile view
-		.body-sidebar-placeholder {
-			display: flex;
-			width: 0px;
+	.sidebar-child-item {
+		& .nested-container {
+			padding-left: 15px;
 		}
 	}
 }

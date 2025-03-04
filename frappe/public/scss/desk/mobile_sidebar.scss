@@ -2,14 +2,24 @@
 	--mobile-sidebar-height: 50px;
 }
 .mobile-sidebar {
-	width: 100vh;
+	width: 100vw;
 	height: var(--mobile-sidebar-height);
 	position: absolute;
 	z-index: 1031;
 	bottom: 0;
 	background: var(--subtle-accent);
-	border-top-width: 1px;
-	border-color: --var($gray-100);
+	border-top: solid $gray-100 2px;
+}
+
+.mobile-item-container {
+	flex: 1 1 50px;
+}
+
+.mobile-item-anchor {
+	padding-top: 6px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 }
 
 @include media-breakpoint-down(sm) {
