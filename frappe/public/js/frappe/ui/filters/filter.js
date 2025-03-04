@@ -303,6 +303,10 @@ frappe.ui.Filter = class {
 			this.field.set_value(old_text);
 		}
 
+		if (Array.isArray(old_text) && df.fieldtype !== old_fieldtype) {
+			this.field.set_value(this.value);
+		}
+
 		this.bind_filter_field_events();
 	}
 

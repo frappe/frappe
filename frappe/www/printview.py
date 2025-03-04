@@ -411,21 +411,24 @@ def get_print_format(doctype, print_format):
 
 	# server, find template
 	module = print_format.module or frappe.db.get_value("DocType", doctype, "module")
-	path = os.path.join(
-		get_module_path(module, "Print Format", print_format.name),
-		frappe.scrub(print_format.name) + ".html",
-	)
 
-	if os.path.exists(path):
-		with open(path) as pffile:
-			return pffile.read()
-	else:
-		if print_format.raw_printing:
-			return print_format.raw_commands
-		if print_format.html:
-			return print_format.html
+	is_custom_module = frappe.get_cached_value("Module Def", module, "custom")
 
-		frappe.throw(_("No template found at path: {0}").format(path), frappe.TemplateNotFoundError)
+	if not is_custom_module:
+		path = os.path.join(
+			get_module_path(module, "Print Format", print_format.name),
+			frappe.scrub(print_format.name) + ".html",
+		)
+		if os.path.exists(path):
+			with open(path) as pffile:
+				return pffile.read()
+
+	if print_format.raw_printing:
+		return print_format.raw_commands
+	if print_format.html:
+		return print_format.html
+
+	frappe.throw(_("No template found at path: {0}").format(path), frappe.TemplateNotFoundError)
 
 
 def make_layout(doc, meta, format_data=None):

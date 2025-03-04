@@ -166,6 +166,8 @@ def get_home_page_via_hooks():
 
 
 def get_boot_data():
+	from frappe.integrations.frappe_providers.frappecloud_billing import is_fc_site
+
 	apps = get_apps() or []
 	return {
 		"lang": frappe.local.lang or "en",
@@ -188,6 +190,7 @@ def get_boot_data():
 		},
 		"assets_json": get_assets_json(),
 		"sitename": frappe.local.site,
+		"is_fc_site": is_fc_site(),
 	}
 
 
