@@ -25,18 +25,19 @@ class StudioApp(WebsiteGenerator):
 	# end: auto-generated types
 
 	website = frappe._dict(
-		template="templates/generators/app.html",
+		template="templates/generators/app_renderer.html",
 		page_title_field="app_title",
 		condition_field="published",
 	)
 
 	def get_context(self, context):
-		context.title = self.app_title
 		context.no_cache = 1
 
-		context.pages = self.get_studio_pages()
 		context.app_name = self.name
+		context.app_route = self.route
+		context.app_title = self.app_title
 		context.base_url = frappe.utils.get_url(self.route)
+		context.pages = self.get_studio_pages()
 
 	def autoname(self):
 		if not self.name:

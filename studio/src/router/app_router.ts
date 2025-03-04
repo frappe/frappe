@@ -10,8 +10,14 @@ const routes = [
 	},
 ]
 
+declare global {
+	interface Window {
+		app_route: string
+	}
+}
+
 let router = createRouter({
-	history: createWebHistory("/studio-app"),
+	history: createWebHistory(window.app_route),
 	routes,
 })
 

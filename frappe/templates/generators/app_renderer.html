@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<title>{{ app_title }}</title>
+	</head>
+	<body>
+	<div id="app"></div>
+	<script>
+		window.csrf_token = "{{ csrf_token }}"
+		window.app_route = "{{ app_route }}"
+		window.app_title = "{{ app_title }}"
+	</script>
+	<script type="module" src="/assets/studio/frontend/renderer.js"></script>
+	</body>
+</html>

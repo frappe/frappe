@@ -16,6 +16,15 @@ export default defineConfig({
 		},
 	},
 	build: {
+		rollupOptions: {
+			input: {
+				studio: path.resolve(__dirname, "index.html"),
+				renderer: path.resolve(__dirname, "src/renderer.ts"),
+			},
+			output: {
+				entryFileNames: "[name].js",
+			},
+		},
 		outDir: `../studio/public/frontend`,
 		emptyOutDir: true,
 		target: "es2015",
