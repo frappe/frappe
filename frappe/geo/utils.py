@@ -1,36 +1,54 @@
-# Copyright (c) 2020, Frappe Technologies and contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+"""build query for mapview and return results"""
+
+import json
+
 import frappe
+from frappe import _
+from frappe.desk.reportview import validate_filters
+from frappe.model.base_document import get_controller
+from frappe.model.db_query import DatabaseQuery
+from frappe.model.utils import is_virtual_doctype
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_coords(doctype, filters, type):
-	"""Get a geojson dict representing a doctype."""
-	filters_sql = get_coords_conditions(doctype, filters)[4:]
+	args = frappe._dict({"doctype": doctype})
 
-	coords = None
-	if type == "location_field":
-		coords = return_location(doctype, filters_sql)
-	elif type == "coordinates":
-		coords = return_coordinates(doctype, filters_sql)
+	if filters:
+		if isinstance(filters, str):
+			args.filters = json.loads(filters)
+		else:
+			args.filters = filters
+		validate_filters(args, args.filters)
 
-	return convert_to_geojson(type, coords)
+	title_field = frappe.get_meta(doctype).title_field
+	args.fields = get_fields_from_type(type, title_field)
+	# If virtual doctype, get data from controller get_list method
+	if is_virtual_doctype(args.doctype):
+		controller = get_controller(args.doctype)
+		data = controller.get_list(args)
+	else:
+		data = execute(**args)
+	return convert_to_geojson(type, data, title_field)
 
 
-def convert_to_geojson(type, coords):
-	"""Convert GPS coordinates to geoJSON string."""
+def convert_to_geojson(type, coords, title_field="name"):
+	"""Converts GPS coordinates to geoJSON string."""
 	geojson = {"type": "FeatureCollection", "features": None}
 
 	if type == "location_field":
-		geojson["features"] = merge_location_features_in_one(coords)
+		geojson["features"] = merge_location_features_in_one(coords, title_field)
 	elif type == "coordinates":
-		geojson["features"] = create_gps_markers(coords)
+		geojson["features"] = create_gps_markers(coords, title_field)
 
 	return geojson
 
 
-def merge_location_features_in_one(coords):
+def merge_location_features_in_one(coords, title_field="name"):
 	"""Merging all features from location field."""
 	geojson_dict = []
 	for element in coords:
@@ -38,62 +56,35 @@ def merge_location_features_in_one(coords):
 		if not geojson_loc:
 			continue
 		for coord in geojson_loc["features"]:
-			coord["properties"]["name"] = element["name"]
-			geojson_dict.append(coord.copy())
+			coord["properties"]["name"] = element[title_field]
+			geojson_dict.append(coord)
 
 	return geojson_dict
 
 
-def create_gps_markers(coords):
+def create_gps_markers(coords, title_field="name"):
 	"""Build Marker based on latitude and longitude."""
 	geojson_dict = []
-	for i in coords:
+	for element in coords:
 		node = {"type": "Feature", "properties": {}, "geometry": {"type": "Point", "coordinates": None}}
-		node["properties"]["name"] = i.name
-		node["geometry"]["coordinates"] = [i.longitude, i.latitude]  # geojson needs it reverse!
-		geojson_dict.append(node.copy())
+		node["properties"]["name"] = element[title_field]
+		node["geometry"]["coordinates"] = [
+			element["longitude"],
+			element["latitude"],
+		]  # geojson needs it reverse!
+		geojson_dict.append(node)
 
 	return geojson_dict
 
 
-def return_location(doctype, filters_sql):
-	"""Get name and location fields for Doctype."""
-	if filters_sql:
-		try:
-			coords = frappe.db.sql(
-				f"""SELECT name, location FROM `tab{doctype}`  WHERE {filters_sql}""", as_dict=True
-			)
-		except frappe.db.InternalError:
-			frappe.msgprint(frappe._("This Doctype does not contain location fields"), raise_exception=True)
-			return
+def execute(doctype, *args, **kwargs):
+	return DatabaseQuery(doctype).execute(*args, **kwargs)
+
+
+def get_fields_from_type(type, title_field="name"):
+	if type == "location_field":
+		return [title_field, "location"]
+	elif type == "coordinates":
+		return [title_field, "latitude", "longitude"]
 	else:
-		coords = frappe.get_all(doctype, fields=["name", "location"])
-	return coords
-
-
-def return_coordinates(doctype, filters_sql):
-	"""Get name, latitude and longitude fields for Doctype."""
-	if filters_sql:
-		try:
-			coords = frappe.db.sql(
-				f"""SELECT name, latitude, longitude FROM `tab{doctype}`  WHERE {filters_sql}""",
-				as_dict=True,
-			)
-		except frappe.db.InternalError:
-			frappe.msgprint(
-				frappe._("This Doctype does not contain latitude and longitude fields"), raise_exception=True
-			)
-			return
-	else:
-		coords = frappe.get_all(doctype, fields=["name", "latitude", "longitude"])
-	return coords
-
-
-def get_coords_conditions(doctype, filters=None):
-	"""Return SQL conditions with user permissions and filters for event queries."""
-	from frappe.desk.reportview import get_filters_cond
-
-	if not frappe.has_permission(doctype):
-		frappe.throw(frappe._("Not Permitted"), frappe.PermissionError)
-
-	return get_filters_cond(doctype, filters, [], with_match_conditions=True)
+		frappe.throw(_("Invalid type") + f": {type}", frappe.DataError)
