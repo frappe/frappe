@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-01-13 17:03+0000\n"
-"PO-Revision-Date: 2025-02-14 10:56\n"
+"PO-Revision-Date: 2025-03-04 17:06\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -1648,7 +1648,7 @@ msgstr "Kaydettikten Sonra (Gönderilen Belge)"
 #. Label of a Section Break field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "After Submission"
-msgstr ""
+msgstr "Kaydettikten Sonra"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -1854,7 +1854,7 @@ msgstr "Misafirin Görüntülemesine İzin Ver"
 #. Label of a Check field in DocType 'Blog Settings'
 #: frappe/website/doctype/blog_settings/blog_settings.json
 msgid "Allow Guest to comment"
-msgstr ""
+msgstr "Misafirin yorum yapmasına izin ver"
 
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -1922,7 +1922,7 @@ msgstr "Taslak Yazdırmaya İzin Ver"
 #. Label of a Check field in DocType 'Web Form Field'
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Allow Read On All Link Options"
-msgstr ""
+msgstr "Tüm Bağlantı Seçeneklerinde Okumaya İzin Ver"
 
 #. Label of a Check field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -2333,7 +2333,7 @@ msgstr "Uygulama Versiyonu"
 #. Label of a Select field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "Applied On"
-msgstr ""
+msgstr "Uygulandı"
 
 #: frappe/public/js/form_builder/components/Field.vue:103
 msgid "Apply"
@@ -2376,7 +2376,7 @@ msgstr "Tüm Döküman Türlerine Uygula"
 #. Label of a Link field in DocType 'User Type'
 #: frappe/core/doctype/user_type/user_type.json
 msgid "Apply User Permission On"
-msgstr ""
+msgstr "Kullanıcı İznini Uygula"
 
 #. Description of the 'If user is the owner' (Check) field in DocType 'Custom
 #. DocPerm'
@@ -7531,7 +7531,7 @@ msgstr ""
 #: frappe/public/js/frappe/widgets/widget_dialog.js:131
 #: frappe/website/doctype/website_slideshow/website_slideshow.js:18
 msgid "DocType"
-msgstr "Belge Türü"
+msgstr "DocType"
 
 #: frappe/core/doctype/doctype/doctype.py:1539
 msgid "DocType <b>{0}</b> provided for the field <b>{1}</b> must have atleast one Link field"
@@ -7638,7 +7638,7 @@ msgstr "DocType'lar değiştirilemez, lütfen bunun yerine {0} kullanın"
 #: frappe/email/doctype/document_follow/document_follow.json
 #: frappe/public/js/frappe/widgets/widget_dialog.js:650
 msgid "Doctype"
-msgstr "BelgeTipi"
+msgstr "Doctype"
 
 #: frappe/core/doctype/doctype/doctype.py:998
 msgid "Doctype name is limited to {0} characters ({1})"
@@ -10355,7 +10355,7 @@ msgstr "Sığdır"
 #. Label of a Data field in DocType 'Language'
 #: frappe/core/doctype/language/language.json
 msgid "Flag"
-msgstr ""
+msgstr "Bayrak"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Column'
@@ -11187,7 +11187,7 @@ msgstr "Google Analytics Kimliği"
 #. Label of a Check field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Google Analytics anonymise IP"
-msgstr ""
+msgstr "Google Analytics IP'yi anonimleştirir"
 
 #. Label of a Section Break field in DocType 'Event'
 #. Label of a Link field in DocType 'Event'
