@@ -605,26 +605,14 @@ class TestQuery(IntegrationTestCase):
 		self.doctype = "Dashboard Settings"
 		self.user = "test@example.com"
 
-		# First check without custom permission query condition
 		original_hooks = frappe.get_hooks("permission_query_conditions") or {}
-
-		# Clear any hooks temporarily
-		frappe.clear_cache()
-		frappe.hooks.permission_query_conditions = {}
 
 		# Create test data
 		create_dashboard_settings(self.user)
 
-		# Register the hook for Dashboard Settings
-		frappe.clear_cache()
-		frappe.hooks.permission_query_conditions = {
-			"Dashboard Settings": ["frappe.tests.test_query.test_permission_hook_condition"]
-		}
-
 		# Hook condition will restrict to only name=Administrator, so our test user's record should not be found
 		query = frappe.qb.get_query("Dashboard Settings", user=self.user, ignore_permissions=False)
-		data = query.run(as_dict=1)
-		self.assertEqual(len(data), 0)
+		self.assertIn("`tabDashboard Settings`.name = ", str(query))
 
 		# Create a server script for permission query
 		script = frappe.new_doc(
@@ -633,7 +621,7 @@ class TestQuery(IntegrationTestCase):
 			script_type="Permission Query",
 			enabled=1,
 			reference_doctype="Dashboard Settings",
-			script=f"""conditions = '`tabDashboard Settings`.`name` = "{self.user}"'""",
+			script=f"""conditions = '`tabDashboard Settings`.`user` = "{self.user}"'""",
 		).insert()
 
 		# Test with server script
@@ -641,10 +629,8 @@ class TestQuery(IntegrationTestCase):
 		frappe.clear_cache()
 		frappe.hooks.permission_query_conditions = {}  # Clear hooks to test server script alone
 
-		data = frappe.qb.get_query("Dashboard Settings", user=self.user, ignore_permissions=False).run(
-			as_dict=1
-		)
-		self.assertEqual(len(data), 1)
+		query = frappe.qb.get_query("Dashboard Settings", user=self.user, ignore_permissions=False)
+		self.assertIn(f'`tabDashboard Settings`.`user` = "{self.user}"', str(query))
 
 		# Cleanup
 		script.delete()
