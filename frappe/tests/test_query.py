@@ -5,6 +5,7 @@ from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Abs, Count, Ifnull, Max, Now, Timestamp
 from frappe.tests import IntegrationTestCase
+from frappe.tests.classes.context_managers import enable_safe_exec
 from frappe.tests.test_db_query import (
 	create_nested_doctype,
 	create_nested_doctype_records,
@@ -629,8 +630,9 @@ class TestQuery(IntegrationTestCase):
 		frappe.clear_cache()
 		frappe.hooks.permission_query_conditions = {}  # Clear hooks to test server script alone
 
-		query = frappe.qb.get_query("Dashboard Settings", user=self.user, ignore_permissions=False)
-		self.assertIn(f'`tabDashboard Settings`.`user` = "{self.user}"', str(query))
+		with enable_safe_exec():
+			query = frappe.qb.get_query("Dashboard Settings", user=self.user, ignore_permissions=False)
+			self.assertIn(f'`tabDashboard Settings`.`user` = "{self.user}"', str(query))
 
 		# Cleanup
 		script.delete()
