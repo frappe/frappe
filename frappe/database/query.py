@@ -784,3 +784,25 @@ class RawCriterion(Term):
 
 	def get_sql(self, **kwargs: Any) -> str:
 		return self.sql_string
+
+	def __and__(self, other):
+		return CombinedRawCriterion(self, other, "AND")
+
+	def __or__(self, other):
+		return CombinedRawCriterion(self, other, "OR")
+
+	def __invert__(self):
+		return RawCriterion(f"NOT ({self.sql_string})")
+
+
+class CombinedRawCriterion(RawCriterion):
+	def __init__(self, left, right, operator):
+		self.left = left
+		self.right = right
+		self.operator = operator
+		super(RawCriterion, self).__init__()
+
+	def get_sql(self, **kwargs: Any) -> str:
+		left_sql = self.left.get_sql(**kwargs) if hasattr(self.left, "get_sql") else str(self.left)
+		right_sql = self.right.get_sql(**kwargs) if hasattr(self.right, "get_sql") else str(self.right)
+		return f"({left_sql}) {self.operator} ({right_sql})"
