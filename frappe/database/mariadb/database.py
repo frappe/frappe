@@ -120,6 +120,7 @@ class MariaDBConnectionUtil:
 			"user": self.user,
 			"conv": self.CONVERSION_MAP,
 			"charset": "utf8mb4",
+			"collation": "utf8mb4_unicode_ci",
 			"use_unicode": True,
 		}
 
