@@ -3,9 +3,24 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.website_generator import WebsiteGenerator
 
 from studio.utils import camel_case_to_kebab_case
+
+
+class StudioAppRenderer(DocumentPage):
+	def can_render(self):
+		if app := self.find_app_for_path():
+			self.doctype = "Studio App"
+			self.docname = app
+			return True
+
+		return False
+
+	def find_app_for_path(self):
+		app_route = self.path.split("/")[0]
+		return frappe.db.get_value("Studio App", dict(route=app_route), "name")
 
 
 class StudioApp(WebsiteGenerator):
