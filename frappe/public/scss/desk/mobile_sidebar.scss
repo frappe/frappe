@@ -13,6 +13,9 @@
 
 .mobile-item-container {
 	flex: 1 1 50px;
+	a {
+		text-decoration: none;
+	}
 }
 
 .mobile-item-anchor {
