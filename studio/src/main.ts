@@ -2,8 +2,8 @@ import "./index.css"
 
 import { createApp } from "vue"
 import { createPinia } from "pinia"
-import studio_router from "@/router/studio_router"
 import "./setupFrappeUIResource"
+import studio_router from "@/router/studio_router"
 import App from "./App.vue"
 
 import { resourcesPlugin } from "frappe-ui"

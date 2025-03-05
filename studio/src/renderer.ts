@@ -1,5 +1,6 @@
 import { createApp } from "vue"
 import { createPinia } from "pinia"
+import "./setupFrappeUIResource"
 import app_router from "@/router/app_router"
 import App from "./App.vue"
 import { resourcesPlugin } from "frappe-ui"
