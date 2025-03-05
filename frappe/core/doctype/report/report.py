@@ -171,12 +171,14 @@ class Report(Document):
 			prepared_report_watcher.start()
 
 		# The JOB
-		if self.is_standard == "Yes":
-			res = self.execute_module(filters)
-		else:
-			res = self.execute_script(filters)
+		try:
+			if self.is_standard == "Yes":
+				res = self.execute_module(filters)
+			else:
+				res = self.execute_script(filters)
+		finally:
+			prepared_report_watcher and prepared_report_watcher.cancel()
 
-		prepared_report_watcher and prepared_report_watcher.cancel()
 		execution_time = (datetime.datetime.now() - start_time).total_seconds()
 
 		frappe.cache.hset("report_execution_time", self.name, execution_time)

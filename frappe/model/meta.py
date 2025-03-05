@@ -95,7 +95,7 @@ def get_meta(doctype: str | dict | DocRef, cached=True) -> "_Meta":
 def clear_meta_cache(doctype: str = "*"):
 	key = f"doctype_meta::{doctype}"
 	if doctype == "*":
-		frappe.cache.delete_keys(key)
+		frappe.client_cache.delete_keys(key)
 	else:
 		frappe.client_cache.delete_value(key)
 
@@ -273,10 +273,10 @@ class Meta(Document):
 		return fields
 
 	def get_valid_columns(self) -> list[str]:
-		return self._valid_columns
+		return self._valid_columns_
 
 	@cached_property
-	def _valid_columns(self):
+	def _valid_columns_(self):
 		table_exists = frappe.db.table_exists(self.name)
 		if self.name in self.special_doctypes and table_exists:
 			valid_columns = get_table_columns(self.name)
@@ -306,9 +306,6 @@ class Meta(Document):
 				valid_fields += list(child_table_fields)
 
 		return valid_fields
-
-	def get_table_field_doctype(self, fieldname):
-		return TABLE_DOCTYPES_FOR_DOCTYPE.get(fieldname)
 
 	def get_field(self, fieldname):
 		"""Return docfield from meta."""
@@ -534,6 +531,9 @@ class Meta(Document):
 			self._table_fields = DOCTYPE_TABLE_FIELDS
 		else:
 			self._table_fields = self.get("fields", {"fieldtype": ["in", table_fields]})
+
+		# table fieldname: doctype map
+		self._table_doctypes = {field.fieldname: field.options for field in self._table_fields}
 
 	def sort_fields(self):
 		"""

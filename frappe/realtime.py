@@ -115,9 +115,7 @@ def emit_via_redis(event, message, room):
 
 @frappe.whitelist(allow_guest=True)
 def has_permission(doctype: str, name: str) -> bool:
-	if not frappe.has_permission(doctype=doctype, doc=name, ptype="read"):
-		raise frappe.PermissionError
-
+	frappe.has_permission(doctype, doc=name, throw=True)
 	return True
 
 

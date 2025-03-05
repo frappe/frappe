@@ -31,6 +31,7 @@
   "is_calendar_and_gantt",
   "editable_grid",
   "quick_entry",
+  "grid_page_length",
   "cb01",
   "track_changes",
   "track_seen",
@@ -94,6 +95,7 @@
   "advanced",
   "engine",
   "migration_hash",
+  "row_format",
   "connections_tab"
  ],
  "fields": [
@@ -671,6 +673,22 @@
    "fieldname": "fields_tab",
    "fieldtype": "Tab Break",
    "label": "Fields"
+  },
+  {
+   "default": "Dynamic",
+   "fieldname": "row_format",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Row Format",
+   "options": "Dynamic\nCompressed"
+  },
+  {
+    "default": "50",
+    "depends_on": "istable",
+    "fieldname": "grid_page_length",
+    "fieldtype": "Int",
+    "label": "Grid Page Length",
+    "non_negative": 1
   }
  ],
  "icon": "fa fa-bolt",
@@ -753,7 +771,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2024-11-30 16:09:21.536704",
+ "modified": "2025-02-20 19:05:52.119679",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

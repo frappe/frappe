@@ -34,11 +34,7 @@ def report_error(status_code):
 	"""Build error. Show traceback in developer mode"""
 	from frappe.api import ApiVersion, get_api_version
 
-	allow_traceback = (
-		(frappe.get_system_settings("allow_error_traceback") if frappe.db else False)
-		and not frappe.local.flags.disable_traceback
-		and (status_code != 404 or frappe.conf.logging)
-	)
+	allow_traceback = is_traceback_allowed() and (status_code != 404 or frappe.conf.logging)
 
 	traceback = frappe.utils.get_traceback()
 	exc_type, exc_value, _ = sys.exc_info()
@@ -60,6 +56,14 @@ def report_error(status_code):
 	response.status_code = status_code
 
 	return response
+
+
+def is_traceback_allowed():
+	return (
+		frappe.db
+		and frappe.get_system_settings("allow_error_traceback")
+		and (not frappe.local.flags.disable_traceback or frappe._dev_server)
+	)
 
 
 def _link_error_with_message_log(error_log, exception, message_logs):
@@ -175,9 +179,8 @@ def _make_logs_v1():
 	from frappe.utils.error import guess_exception_source
 
 	response = frappe.local.response
-	allow_traceback = frappe.get_system_settings("allow_error_traceback") if frappe.db else False
 
-	if frappe.error_log and allow_traceback:
+	if frappe.error_log and is_traceback_allowed():
 		if source := guess_exception_source(frappe.local.error_log and frappe.local.error_log[0]["exc"]):
 			response["_exc_source"] = source
 		response["exc"] = json.dumps([frappe.utils.cstr(d["exc"]) for d in frappe.local.error_log])

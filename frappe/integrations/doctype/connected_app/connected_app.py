@@ -148,7 +148,7 @@ class ConnectedApp(Document):
 
 		return token_cache
 
-	def get_backend_app_token(self):
+	def get_backend_app_token(self, include_client_id=None):
 		"""Get an Access Token for the Cloud-Registered Service Principal"""
 		# There is no User assigned to the app, so we give it an empty string,
 		# otherwise it will assign the logged in user.
@@ -163,7 +163,11 @@ class ConnectedApp(Document):
 		client = BackendApplicationClient(client_id=self.client_id, scope=self.get_scopes())
 		oauth_session = OAuth2Session(client=client)
 
-		token = oauth_session.fetch_token(self.token_uri, client_secret=self.get_password("client_secret"))
+		token = oauth_session.fetch_token(
+			self.token_uri,
+			client_secret=self.get_password("client_secret"),
+			include_client_id=include_client_id,
+		)
 
 		token_cache.update_data(token)
 		token_cache.save(ignore_permissions=True)

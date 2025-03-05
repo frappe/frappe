@@ -871,7 +871,7 @@ class DatabaseQuery:
 					value = value.replace("\\", "\\\\").replace("%", "%%")
 
 			elif f.operator == "=" and df and df.fieldtype in ["Link", "Data"]:  # TODO: Refactor if possible
-				value = f.value or "''"
+				value = cstr(f.value) or "''"
 				fallback = "''"
 
 			elif f.fieldname == "name":

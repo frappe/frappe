@@ -12,6 +12,7 @@
   "properties",
   "label",
   "search_fields",
+  "grid_page_length",
   "link_filters",
   "column_break_5",
   "istable",
@@ -399,6 +400,13 @@
    "fieldname": "sender_name_field",
    "fieldtype": "Data",
    "label": "Sender Name Field"
+  },
+  {
+   "depends_on": "istable",
+   "fieldname": "grid_page_length",
+   "fieldtype": "Int",
+   "label": "Grid Page Length",
+   "non_negative": 1
   }
  ],
  "hide_toolbar": 1,
@@ -407,7 +415,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-03-23 16:02:15.670853",
+ "modified": "2025-02-21 20:16:50.501895",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
@@ -425,6 +433,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "search_fields": "doc_type",
  "sort_field": "creation",
  "sort_order": "DESC",

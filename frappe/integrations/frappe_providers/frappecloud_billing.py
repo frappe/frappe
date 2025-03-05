@@ -6,9 +6,13 @@ from frappe import _
 
 def get_base_url():
 	url = "https://frappecloud.com"
-	if frappe.conf.developer_mode and frappe.conf.get("saas_billing_base_url"):
-		url = frappe.conf.get("saas_billing_base_url")
+	if frappe.conf.developer_mode and frappe.conf.get("fc_base_url"):
+		url = frappe.conf.get("fc_base_url")
 	return url
+
+
+def get_site_login_url():
+	return f"{get_base_url()}/dashboard/site-login"
 
 
 def get_site_name():
@@ -29,15 +33,28 @@ def get_headers():
 
 	return {
 		"X-Site-Token": frappe.conf.get("fc_communication_secret"),
+		"X-Site-User": frappe.session.user,
 		"X-Site": get_site_name(),
 	}
 
 
 @frappe.whitelist()
 def current_site_info():
+	from frappe.utils import cint
+
 	request = requests.post(f"{get_base_url()}/api/method/press.saas.api.site.info", headers=get_headers())
 	if request.status_code == 200:
-		return request.json().get("message")
+		res = request.json().get("message")
+		if not res:
+			return None
+
+		return {
+			**res,
+			"site_name": get_site_name(),
+			"base_url": get_base_url(),
+			"setup_complete": cint(frappe.get_system_settings("setup_complete")),
+		}
+
 	else:
 		frappe.throw(_("Failed to get site info"))
 
@@ -58,19 +75,19 @@ def api(method, data=None):
 
 
 @frappe.whitelist()
-def is_fc_site():
+def is_fc_site() -> bool:
 	is_system_manager = frappe.get_roles(frappe.session.user).count("System Manager")
 	setup_completed = frappe.get_system_settings("setup_complete")
-	return is_system_manager and setup_completed and frappe.conf.get("fc_communication_secret")
+	return bool(is_system_manager and setup_completed and frappe.conf.get("fc_communication_secret"))
 
 
 # login to frappe cloud dashboard
 @frappe.whitelist()
-def send_verification_code(route: str):
+def send_verification_code():
 	request = requests.post(
 		f"{get_base_url()}/api/method/press.api.developer.saas.send_verification_code",
 		headers=get_headers(),
-		json={"domain": get_site_name(), "route": route},
+		json={"domain": get_site_name()},
 	)
 	if request.status_code == 200:
 		return request.json().get("message")

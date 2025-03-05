@@ -428,7 +428,11 @@ frappe.ui.form.Form = class FrappeForm {
 			this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
 			if (this.read_only) {
 				this.set_read_only();
-				frappe.show_alert(__("This form is not editable due to a Workflow."));
+				this.dashboard.set_headline(
+					__("This form is not editable due to a Workflow."),
+					"blue",
+					true
+				);
 			}
 
 			// check if doctype is already open
@@ -1954,7 +1958,7 @@ frappe.ui.form.Form = class FrappeForm {
 		if (this.can_make_methods && this.can_make_methods[doctype]) {
 			return this.can_make_methods[doctype](this);
 		} else {
-			if (this.meta.is_submittable && !this.doc.docstatus == 1) {
+			if (this.meta.is_submittable && this.doc.docstatus !== 1) {
 				return false;
 			} else {
 				return true;

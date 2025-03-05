@@ -23,6 +23,8 @@ no_cache = True
 
 
 def get_context(context):
+	from frappe.integrations.frappe_providers.frappecloud_billing import is_fc_site
+
 	redirect_to = frappe.local.request.args.get("redirect-to")
 	redirect_to = sanitize_redirect(redirect_to)
 
@@ -36,6 +38,12 @@ def get_context(context):
 		if redirect_to != "login":
 			frappe.local.flags.redirect_location = redirect_to
 			raise frappe.Redirect
+
+	if is_fc_site():
+		from frappe.integrations.frappe_providers.frappecloud_billing import get_site_login_url
+
+		frappe.local.flags.redirect_location = get_site_login_url()
+		raise frappe.Redirect
 
 	context.no_header = True
 	context.for_test = "login.html"

@@ -23,7 +23,9 @@ frappe.ui.form.Layout = class Layout {
 			this.parent = this.body;
 		}
 		this.wrapper = $('<div class="form-layout">').appendTo(this.parent);
-		this.message = $('<div class="form-message hidden"></div>').appendTo(this.wrapper);
+		this.message = $('<div class="form-message-container hidden"></div>').appendTo(
+			this.wrapper
+		);
 		this.page = $('<div class="form-page"></div>').appendTo(this.wrapper);
 
 		if (!this.fields) {
@@ -97,28 +99,41 @@ frappe.ui.form.Layout = class Layout {
 		return fields;
 	}
 
+	/**Render a message block with its own color and close button
+	 * @param {String} html - message or HTML to be displayed
+	 * @param {String} color - color of the block. One of "yellow", "blue", "red", "green" or "orange". Defaults to "blue".
+	 * @param {Boolean} permanent - if true, the block will not have a close button
+	 */
 	show_message(html, color, permanent = false) {
-		if (this.message_color) {
-			// remove previous color
-			this.message.removeClass(this.message_color);
-		}
-		let close_message = $(`<div class="close-message">${frappe.utils.icon("close")}</div>`);
-		this.message_color =
-			color && ["yellow", "blue", "red", "green", "orange"].includes(color) ? color : "blue";
-		if (html) {
-			if (html.substr(0, 1) !== "<") {
-				// wrap in a block
-				html = "<div>" + html + "</div>";
-			}
-			this.message.removeClass("hidden").addClass(this.message_color);
-			$(html).appendTo(this.message);
-			if (!permanent) {
-				close_message.appendTo(this.message);
-				close_message.on("click", () => this.message.empty().addClass("hidden"));
-			}
-		} else {
+		if (!html) {
 			this.message.empty().addClass("hidden");
+			return;
 		}
+
+		// Prepare Block
+		let $html;
+		if (html.substring(0, 1) !== "<") {
+			// wrap in a block if `html` does not contain html tags
+			$html = $("<div class='form-message border-bottom'></div>").text(html);
+		} else {
+			$html = $(html);
+			$html.addClass("form-message border-bottom");
+		}
+
+		// Add close button to block if not permanent
+		const close_message = $(`<div class="close-message">${frappe.utils.icon("close")}</div>`);
+		if (!permanent) {
+			close_message.appendTo($html);
+			close_message.on("click", () => $html.remove());
+		}
+
+		// Add block color and append to parent container `form-message-container`
+		const block_color =
+			color && ["yellow", "blue", "red", "green", "orange"].includes(color) ? color : "blue";
+		$html.addClass(block_color).appendTo(this.message);
+
+		// Show parent container if hidden
+		this.message.removeClass("hidden");
 	}
 
 	render(new_fields) {

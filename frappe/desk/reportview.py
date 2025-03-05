@@ -426,7 +426,7 @@ def export_query():
 				_(value) if translatable_fields[idx] else value for idx, value in enumerate(row)
 			]
 			processed_data.append(processed_row)
-			data.extend(processed_data)
+		data.extend(processed_data)
 
 	data = handle_duration_fieldtype_values(doctype, data, db_query.fields)
 
