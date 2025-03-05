@@ -23,7 +23,8 @@ no_cache = True
 
 
 def get_context(context):
-	from frappe.integrations.frappe_providers.frappecloud_billing import get_site_login_url, is_fc_site
+	from frappe.integrations.frappe_providers.frappecloud_billing import get_site_login_url
+	from frappe.utils.frappecloud import on_frappecloud
 
 	redirect_to = frappe.local.request.args.get("redirect-to")
 	redirect_to = sanitize_redirect(redirect_to)
@@ -112,7 +113,7 @@ def get_context(context):
 
 	context["login_with_email_link"] = frappe.get_system_settings("login_with_email_link")
 	context["login_with_frappe_cloud_url"] = (
-		f"{get_site_login_url()}?site={frappe.local.site}" if is_fc_site() else None
+		f"{get_site_login_url()}?site={frappe.local.site}" if on_frappecloud() else None
 	)
 
 	return context
