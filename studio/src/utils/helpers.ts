@@ -7,7 +7,6 @@ import { toast } from "vue-sonner"
 
 import { ObjectLiteral, BlockOptions, StyleValue, ExpressionEvaluationContext, SelectOption, HashString, RGBString } from "@/types"
 import { DataResult, DocumentResource, DocumentResult, Filters, Resource } from "@/types/Studio/StudioResource"
-import { StudioPage } from "@/types/Studio/StudioPage"
 import { Variable } from "@/types/Studio/StudioPageVariable"
 
 function getBlockString(block: BlockOptions | Block): string {
@@ -280,16 +279,6 @@ async function findPageWithRoute(appRoute: string, pageRoute: string) {
 	await pageName.fetch()
 	pageName = pageName.data
 	return fetchPage(pageName)
-}
-
-async function fetchAppPages(appRoute: string): Promise<StudioPage[]> {
-	let appRoutes = createResource({
-		url: "studio.studio.doctype.studio_app.studio_app.get_app_pages",
-		method: "GET",
-		params: { app_route: appRoute },
-	})
-	await appRoutes.fetch()
-	return appRoutes.data
 }
 
 // data
@@ -675,7 +664,6 @@ export {
 	isHTML,
 	// app
 	fetchApp,
-	fetchAppPages,
 	// page
 	fetchPage,
 	findPageWithRoute,
