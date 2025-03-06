@@ -23,7 +23,8 @@ no_cache = True
 
 
 def get_context(context):
-	from frappe.integrations.frappe_providers.frappecloud_billing import is_fc_site
+	from frappe.integrations.frappe_providers.frappecloud_billing import get_site_login_url
+	from frappe.utils.frappecloud import on_frappecloud
 
 	redirect_to = frappe.local.request.args.get("redirect-to")
 	redirect_to = sanitize_redirect(redirect_to)
@@ -38,12 +39,6 @@ def get_context(context):
 		if redirect_to != "login":
 			frappe.local.flags.redirect_location = redirect_to
 			raise frappe.Redirect
-
-	if is_fc_site():
-		from frappe.integrations.frappe_providers.frappecloud_billing import get_site_login_url
-
-		frappe.local.flags.redirect_location = get_site_login_url()
-		raise frappe.Redirect
 
 	context.no_header = True
 	context.for_test = "login.html"
@@ -115,6 +110,11 @@ def get_context(context):
 	context["login_label"] = f" {_('or')} ".join(login_label)
 
 	context["login_with_email_link"] = frappe.get_system_settings("login_with_email_link")
+	context["login_with_frappe_cloud_url"] = (
+		f"{get_site_login_url()}?site={frappe.local.site}"
+		if on_frappecloud() and frappe.conf.get("fc_communication_secret")
+		else None
+	)
 
 	return context
 
