@@ -52,7 +52,7 @@ class StudioApp(WebsiteGenerator):
 		context.app_route = self.route
 		context.app_title = self.app_title
 		context.base_url = frappe.utils.get_url(self.route)
-		context.pages = self.get_studio_pages()
+		context.app_pages = self.get_studio_pages()
 
 	def autoname(self):
 		if not self.name:
@@ -76,9 +76,3 @@ class StudioApp(WebsiteGenerator):
 
 	def get_studio_pages(self):
 		return frappe.get_all("Studio Page", dict(studio_app=self.name), ["name", "page_title", "route"])
-
-
-@frappe.whitelist()
-def get_app_pages(app_route: str) -> list[dict]:
-	app_name = frappe.db.get_value("Studio App", dict(route=f"studio-app/{app_route}"), "name")
-	return frappe.get_all("Studio Page", {"studio_app": app_name}, ["name", "page_title", "route"])

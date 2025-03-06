@@ -1,28 +1,33 @@
 import { createRouter, createWebHistory } from "vue-router"
-import { fetchAppPages } from "@/utils/helpers"
 
 const routes = [
 	{
-		path: "/:appRoute/:pageRoute(.*)*",
+		path: "/:pageRoute(.*)*",
 		name: "AppContainer",
 		component: () => import("@/pages/AppContainer.vue"),
 		props: true,
 	},
 ]
 
+interface Page {
+	name: string
+	route: string
+	page_title: string
+}
 declare global {
 	interface Window {
 		app_route: string
+		app_pages: Page[]
 	}
 }
 
 let router = createRouter({
-	history: createWebHistory(window.app_route),
+	history: createWebHistory(`/${window.app_route}`),
 	routes,
 })
 
-const addDynamicRoutes = async (appRoute: string) => {
-	const pages = await fetchAppPages(appRoute)
+const addDynamicRoutes = (appRoute: string) => {
+	const pages = window.app_pages
 
 	pages.forEach((page) => {
 		router.addRoute({
@@ -38,20 +43,8 @@ const addDynamicRoutes = async (appRoute: string) => {
 	})
 }
 
-router.beforeEach(async (to, _, next) => {
-	// TODO: find a performant way to handle adding dynamic routes
-	if (to.params.appRoute && to.params.appRoute !== "studio") {
-		try {
-			await addDynamicRoutes(to.params.appRoute as string)
-
-			// Redirect to the same route to trigger re-evaluation with new routes
-			return next(to.fullPath)
-		} catch (error) {
-			console.error("Error fetching dynamic routes:", error)
-			return next()
-		}
-	}
-
+router.beforeEach((to, _, next) => {
+	addDynamicRoutes(window.app_route)
 	next()
 })
 

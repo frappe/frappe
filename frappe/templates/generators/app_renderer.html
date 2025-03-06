@@ -1,15 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 	<head>
-	<title>{{ app_title }}</title>
+		<meta charset="UTF-8" />
+		<link rel="icon" href="assets/studio/frontend/favicon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>{{ app_title }}</title>
 	</head>
 	<body>
-	<div id="app"></div>
-	<script>
-		window.csrf_token = "{{ csrf_token }}"
-		window.app_route = "{{ app_route }}"
-		window.app_title = "{{ app_title }}"
-	</script>
-	<script type="module" src="/assets/studio/frontend/renderer.js"></script>
+		<div id="app"></div>
+		<div id="modals"></div>
+		<div id="popovers"></div>
+		<script>
+			window.csrf_token = "{{ csrf_token }}";
+			window.app_route = "{{ app_route }}";
+			window.app_title = "{{ app_title }}";
+			window.app_pages = {{ app_pages|tojson }};
+		</script>
+		<script type="module" src="http://studio:8080/src/renderer.ts"></script>
 	</body>
 </html>
