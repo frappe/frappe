@@ -16,6 +16,7 @@ interface Page {
 }
 declare global {
 	interface Window {
+		app_name: string
 		app_route: string
 		app_pages: Page[]
 	}

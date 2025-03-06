@@ -264,17 +264,11 @@ async function fetchPage(pageName: string) {
 	return pageResource?.doc
 }
 
-async function findPageWithRoute(appRoute: string, pageRoute: string) {
-	let route = `studio-app`
-	if (appRoute) {
-		route += `/${appRoute}/`
-	}
-	route += pageRoute
-
+async function findPageWithRoute(appName: string, pageRoute: string) {
 	let pageName = createResource({
 		url: "studio.studio.doctype.studio_page.studio_page.find_page_with_route",
 		method: "GET",
-		params: { route: route },
+		params: { app_name: appName, page_route: pageRoute },
 	})
 	await pageName.fetch()
 	pageName = pageName.data

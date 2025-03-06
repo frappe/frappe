@@ -56,9 +56,13 @@ class StudioPage(Document):
 
 
 @frappe.whitelist()
-def find_page_with_route(route: str) -> str | None:
+def find_page_with_route(app_name: str, page_route: str) -> str | None:
+	if not page_route.startswith("/"):
+		page_route = f"/{page_route}"
 	try:
-		return frappe.db.get_value("Studio Page", dict(route=route, published=1), "name", cache=True)
+		return frappe.db.get_value(
+			"Studio Page", dict(studio_app=app_name, route=page_route, published=1), "name", cache=True
+		)
 	except frappe.DoesNotExistError:
 		pass
 
