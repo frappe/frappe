@@ -1,10 +1,14 @@
 <!DOCTYPE html>
+<!-- Built with Frappe Studio -->
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
 		<link rel="icon" href="assets/studio/frontend/favicon.png" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>{{ app_title }}</title>
+		<script type="module" crossorigin src="/assets/studio/frontend/renderer.js"></script>
+		<link rel="modulepreload" crossorigin href="/assets/studio/frontend/assets/globals-BWMdkHHK.js">
+		<link rel="stylesheet" crossorigin href="/assets/studio/frontend/assets/globals-HgSdbw9r.css">
 	</head>
 	<body>
 		<div id="app"></div>
@@ -17,6 +21,5 @@
 			window.app_title = "{{ app_title }}";
 			window.app_pages = {{ app_pages|tojson }};
 		</script>
-		<script type="module" src="http://studio:8080/src/renderer.ts"></script>
 	</body>
 </html>

@@ -40,7 +40,7 @@ class StudioApp(WebsiteGenerator):
 	# end: auto-generated types
 
 	website = frappe._dict(
-		template="templates/generators/app_renderer.html",
+		template="templates/generators/renderer.html",
 		page_title_field="app_title",
 		condition_field="published",
 	)
