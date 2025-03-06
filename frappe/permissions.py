@@ -306,10 +306,15 @@ def get_role_permissions(doctype_meta, user=None, is_owner=None, debug=False):
 				and ptype != "create"
 			):
 				perms["if_owner"][ptype] = cint(pvalue and is_owner)
-				# has no access if not owner
-				# only provide select or read access so that user is able to at-least access list
-				# (and the documents will be filtered based on owner sin further checks)
-				perms[ptype] = 1 if ptype in ("select", "read") else 0
+
+				# Handle document creation case where ownership is not yet assigned
+				if is_owner is None and ptype == "write":
+					perms[ptype] = cint(pvalue)
+				else:
+					# has no access if not owner
+					# only provide select or read access so that user is able to at-least access list
+					# (and the documents will be filtered based on owner sin further checks)
+					perms[ptype] = 1 if ptype in ("select", "read") else 0
 
 		frappe.local.role_permissions[cache_key] = perms
 
