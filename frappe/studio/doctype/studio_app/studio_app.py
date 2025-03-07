@@ -62,17 +62,7 @@ class StudioApp(WebsiteGenerator):
 		if not self.app_title:
 			self.app_title = "My App"
 		if not self.route:
-			self.route = f"studio-app/{camel_case_to_kebab_case(self.app_title, True)}-{frappe.generate_hash(length=4)}"
-
-	def validate(self):
-		self.set_app_home()
-
-	def set_app_home(self):
-		if self.app_home:
-			return
-
-		if self.pages:
-			self.app_home = self.pages[0].studio_page
+			self.route = f"{camel_case_to_kebab_case(self.app_title, True)}-{frappe.generate_hash(length=4)}"
 
 	def get_studio_pages(self):
 		return frappe.get_all("Studio Page", dict(studio_app=self.name), ["name", "page_title", "route"])
