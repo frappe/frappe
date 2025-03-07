@@ -1837,7 +1837,7 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 
 	f = frappe._dict(doctype=f[0], fieldname=f[1], operator=f[2], value=f[3])
 
-	sanitize_column(f.fieldname)
+	f.fieldname = sanitize_column(f.fieldname)
 
 	if not f.operator:
 		# if operator is missing
@@ -1908,12 +1908,12 @@ def make_filter_dict(filters):
 	return _filter
 
 
-def sanitize_column(column_name: str) -> None:
+def sanitize_column(column_name: str) -> str:
 	return _sanitize_column(column_name, (frappe.db and frappe.db.db_type) or None)
 
 
 @lru_cache(maxsize=1024)
-def _sanitize_column(column_name: str, db_type: str) -> None:
+def _sanitize_column(column_name: str, db_type: str) -> str:
 	import sqlparse
 
 	from frappe import _
@@ -1956,6 +1956,8 @@ def _sanitize_column(column_name: str, db_type: str) -> None:
 
 	elif regex.match(column_name):
 		_raise_exception()
+
+	return column_name
 
 
 def scrub_urls(html: str) -> str:
