@@ -631,6 +631,16 @@ class TestDateUtils(FrappeTestCase):
 		self.assertEqual(get_year_ending(date(2021, 1, 1)), date(2021, 12, 31))
 		self.assertEqual(get_year_ending(date(2021, 1, 31)), date(2021, 12, 31))
 
+	@given(st.datetimes())
+	def test_get_datetime(self, original):
+		parsed = get_datetime(str(original))
+		self.assertEqual(parsed, original)
+
+	@given(st.datetimes(timezones=st.timezones()))
+	def test_get_datetime_tz_aware(self, original):
+		parsed = get_datetime(str(original))
+		self.assertEqual(parsed, original)
+
 	def test_pretty_date(self):
 		from frappe import _
 
