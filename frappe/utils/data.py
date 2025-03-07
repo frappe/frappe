@@ -13,6 +13,7 @@ import time
 import typing
 from code import compile_command
 from enum import Enum
+from functools import lru_cache
 from typing import Any, Literal, Optional, TypeVar, Union
 from urllib.parse import quote, urljoin
 
@@ -1885,16 +1886,12 @@ def make_filter_dict(filters):
 	return _filter
 
 
-<<<<<<< HEAD
-def sanitize_column(column_name: str) -> None:
-=======
 def sanitize_column(column_name: str) -> str:
 	return _sanitize_column(column_name, (frappe.db and frappe.db.db_type) or None)
 
 
 @lru_cache(maxsize=1024)
 def _sanitize_column(column_name: str, db_type: str) -> str:
->>>>>>> f8dee98a33 (fix: override sanitized column name (#31576))
 	import sqlparse
 
 	from frappe import _
