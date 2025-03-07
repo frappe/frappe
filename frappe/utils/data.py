@@ -13,12 +13,8 @@ import time
 import typing
 from code import compile_command
 from enum import Enum
-<<<<<<< HEAD
-from typing import Any, Literal, Optional, TypeVar, Union
-=======
 from functools import lru_cache
-from typing import Any, Literal, Optional, TypeVar
->>>>>>> dd6346e466 (perf: Avoid parsing same field repeatedly (#29030))
+from typing import Any, Literal, Optional, TypeVar, Union
 from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlparse, urlunparse
 
 import pytz
