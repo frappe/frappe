@@ -557,7 +557,7 @@ def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str) -> 
 
 @lru_cache(maxsize=1024)
 def _sanitize_field(field: str, is_mariadb):
-	if field == "*" or not SPECIAL_CHAR_PATTERN.match(field):
+	if field == "*" or not SPECIAL_CHAR_PATTERN.search(field):
 		# Skip checking if there are no special characters
 		return field
 
