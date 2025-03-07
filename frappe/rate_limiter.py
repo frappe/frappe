@@ -50,12 +50,7 @@ class RateLimiter:
 		self.limit = int(limit * 1000000)
 		self.window = window
 
-<<<<<<< HEAD
-		self.start = datetime.datetime.now(pytz.UTC)
-		timestamp = int(frappe.utils.now_datetime().timestamp())
-=======
 		self.start = time.time()
->>>>>>> 3ab2c2fbcf (perf: speedup rate limiter by ~1.2x (#28920))
 
 		self.window_number, self.spent = divmod(int(self.start), self.window)
 		self.key = frappe.cache.make_key(f"rate-limit-counter-{self.window_number}")
@@ -97,13 +92,8 @@ class RateLimiter:
 	def record_request_end(self):
 		if self.end is not None:
 			return
-<<<<<<< HEAD
-		self.end = datetime.datetime.now(pytz.UTC)
-		self.duration = int((self.end - self.start).total_seconds() * 1000000)
-=======
 		self.end = time.time()
 		self.duration = int((self.end - self.start) * 1000000)
->>>>>>> 3ab2c2fbcf (perf: speedup rate limiter by ~1.2x (#28920))
 
 	def respond(self):
 		if self.rejected:
