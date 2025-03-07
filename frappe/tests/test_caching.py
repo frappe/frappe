@@ -6,6 +6,7 @@ from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.utils.caching import redis_cache, request_cache, site_cache
+from frappe.utils.data import add_to_date
 
 CACHE_TTL = 4
 external_service = MagicMock(return_value=30)
@@ -359,3 +360,25 @@ class TestHttpCache(FrappeAPITestCase):
 		)
 		self.assertEqual(resp.cache_control.max_age, 600)
 		self.assertTrue(resp.cache_control.private)
+
+	def test_redirect_caching(self):
+		ws = frappe.get_doc("Website Settings")
+		src = "/" + frappe.generate_hash()
+
+		child = ws.append("route_redirects", {"source": src, "target": "https://example.org"})
+		ws.save()
+		frappe.db.commit()
+
+		resp = self.get(src)
+		self.assertFalse(resp.cache_control.public)
+
+		child.db_set("modified", add_to_date(minutes=-31), update_modified=False)
+		ws.clear_cache()
+		frappe.db.commit()
+
+		_ = self.get(src)
+		resp = self.get(src)
+		self.assertTrue(resp.cache_control.public)
+
+		child.delete()
+		frappe.db.commit()

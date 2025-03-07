@@ -5,6 +5,7 @@ import werkzeug.routing.exceptions
 from werkzeug.routing import Rule
 
 import frappe
+from frappe.utils.data import add_to_date
 from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.page_renderers.list_page import ListPage
 from frappe.website.page_renderers.not_found_page import NotFoundPage
@@ -119,6 +120,15 @@ def resolve_redirect(path, query_string=None):
 	if redirect_to:
 		if isinstance(redirect_to, dict):
 			frappe.flags.redirect_location = redirect_to["path"]
+			if (
+				redirect_to["status_code"] in ("301", "308")
+				and redirect_to.get("modified")
+				and redirect_to["modified"] < add_to_date(minutes=-30)
+			):
+				frappe.local.response_headers.set(
+					"Cache-Control",
+					"public,max-age=300,stale-while-revalidate=10800",
+				)
 			raise frappe.Redirect(redirect_to["status_code"])
 		frappe.flags.redirect_location = redirect_to
 		raise frappe.Redirect
@@ -128,7 +138,7 @@ def resolve_redirect(path, query_string=None):
 
 	redirects = frappe.get_hooks("website_redirects")
 	redirects += frappe.get_all(
-		"Website Route Redirect", ["source", "target", "redirect_http_status"], order_by=None
+		"Website Route Redirect", ["source", "target", "redirect_http_status", "modified"], order_by=None
 	)
 
 	if not redirects:
@@ -149,8 +159,11 @@ def resolve_redirect(path, query_string=None):
 			redirect_to = re.sub(pattern, rule["target"], path_to_match)
 			frappe.flags.redirect_location = redirect_to
 			status_code = rule.get("redirect_http_status") or 301
+
 			frappe.cache.hset(
-				"website_redirects", path_to_match or "/", {"path": redirect_to, "status_code": status_code}
+				"website_redirects",
+				path_to_match or "/",
+				{"path": redirect_to, "status_code": status_code, "modified": rule.modified},
 			)
 			raise frappe.Redirect(status_code)
 
