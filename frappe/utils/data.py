@@ -1597,7 +1597,6 @@ def filter_strip_join(some_list: list[str], sep: str) -> list[str]:
 	return (cstr(sep)).join(cstr(a).strip() for a in filter(None, some_list))
 
 
-<<<<<<< HEAD
 def get_url(
 	uri: str | None = None,
 	full_address: bool = False,
