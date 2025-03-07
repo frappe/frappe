@@ -27,9 +27,7 @@ let router = createRouter({
 	routes,
 })
 
-const addDynamicRoutes = (appRoute: string) => {
-	const pages = window.app_pages
-
+const addDynamicRoutes = (appRoute: string, pages: Page[]) => {
 	pages.forEach((page) => {
 		router.addRoute({
 			path: page.route.replace("studio-app", ""),
@@ -45,7 +43,17 @@ const addDynamicRoutes = (appRoute: string) => {
 }
 
 router.beforeEach((to, _, next) => {
-	addDynamicRoutes(window.app_route)
+	if (to.params.pageRoute && to.params.pageRoute !== "studio") {
+		// if pageRoute is still a param, dynamic routes have not been added yet
+		try {
+			addDynamicRoutes(to.params.appRoute as string, window.app_pages)
+			// Redirect to the same route to trigger re-evaluation with new routes
+			return next(to.fullPath)
+		} catch (error) {
+			console.error("Error adding dynamic routes:", error)
+			return next()
+		}
+	}
 	next()
 })
 
