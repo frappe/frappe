@@ -63,7 +63,7 @@ class EmailQueue(Document):
 		show_as_cc: DF.SmallText | None
 		status: DF.Literal["Not Sent", "Sending", "Sent", "Partially Sent", "Error"]
 		unsubscribe_method: DF.Data | None
-		unsubscribe_param: DF.Data | None
+		unsubscribe_params: DF.Code | None
 	# end: auto-generated types
 
 	DOCTYPE = "Email Queue"
@@ -351,7 +351,7 @@ class SendMailContext:
 				reference_name=self.queue_doc.reference_name,
 				email=recipient_email,
 				unsubscribe_method=self.queue_doc.unsubscribe_method,
-				unsubscribe_params=self.queue_doc.unsubscribe_param,
+				unsubscribe_params=self.queue_doc.unsubscribe_params,
 			)
 
 		return quopri.encodestring(unsubscribe_url.encode()).decode()
