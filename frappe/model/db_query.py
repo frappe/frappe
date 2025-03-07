@@ -28,7 +28,6 @@ from frappe.utils import (
 	get_time,
 	get_timespan_date_range,
 	make_filter_tuple,
-	sanitize_column,
 )
 from frappe.utils.data import DateTimeLikeObject, get_datetime, getdate, sbool
 
@@ -596,10 +595,7 @@ class DatabaseQuery:
 			filters = [filters]
 
 		for f in filters:
-			if isinstance(f, str):
-				conditions.append(sanitize_column(f))
-			else:
-				conditions.append(self.prepare_filter_condition(f))
+			conditions.append(self.prepare_filter_condition(f))
 
 	def remove_field(self, idx: int):
 		if self.as_list:
