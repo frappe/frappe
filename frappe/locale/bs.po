@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-02 09:33+0000\n"
-"PO-Revision-Date: 2025-03-06 17:40\n"
+"PO-Revision-Date: 2025-03-08 19:19\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -9050,7 +9050,7 @@ msgstr "Omogući Introdukciju"
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/email/doctype/email_account/email_account.py:232
 msgid "Enable Outgoing"
-msgstr "Omogući odlazne"
+msgstr "Omogući Odlaznu"
 
 #. Label of the enable_password_policy (Check) field in DocType 'System
 #. Settings'
@@ -12172,7 +12172,7 @@ msgstr "Sakrij Podnožje"
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Hide footer in auto email reports"
-msgstr "Sakrij podnožje u automatskim izvještajima e-pošte"
+msgstr "Onemogući Podnožje u automatskim izvještajima e-pošte"
 
 #. Label of the hide_footer_signup (Check) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
