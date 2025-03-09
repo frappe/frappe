@@ -301,9 +301,9 @@ const useStudioStore = defineStore("store", () => {
 			})
 	}
 
-	function openPageInBrowser(page: StudioPage) {
-		let route = page.route
-		window.open(`/${route}`, "studio-preview")
+	function openPageInBrowser(app: StudioApp, page: StudioPage) {
+		let route = `/${app.route}/${page.route}`
+		window.open(route, "studio-preview")
 	}
 
 	// styles

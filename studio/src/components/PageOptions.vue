@@ -21,7 +21,7 @@
 						@input="(val: string) => (page.route = val)"
 						:modelValue="pageRoute"
 						:hideClearButton="true"
-						@update:modelValue="(val: string) => store.updateActivePage('route', `${app?.route}/${val}`)"
+						@update:modelValue="(val: string) => store.updateActivePage('route', val)"
 					/>
 
 					<!-- App Route Prefix -->

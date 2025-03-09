@@ -30,7 +30,7 @@ let router = createRouter({
 const addDynamicRoutes = (appRoute: string, pages: Page[]) => {
 	pages.forEach((page) => {
 		router.addRoute({
-			path: page.route.replace("studio-app", ""),
+			path: page.route,
 			name: page.page_title,
 			component: () => import("@/pages/AppContainer.vue"),
 			props: true,
