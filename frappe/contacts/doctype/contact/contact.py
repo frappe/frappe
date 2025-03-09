@@ -50,6 +50,16 @@ class Contact(Document):
 	# end: auto-generated types
 
 	def autoname(self):
+		
+		if self.first_name:
+			self.first_name = self.first_name.upper()
+		if self.last_name:
+			self.last_name = self.last_name.upper()
+		if self.middle_name:
+			self.middle_name = self.middle_name.upper()
+		if self.company_name:
+			self.company_name = self.company_name.upper()
+			
 		self.name = self._get_full_name()
 
 		# concat party name if reqd
@@ -61,6 +71,16 @@ class Contact(Document):
 			self.name = append_number_if_name_exists("Contact", self.name)
 
 	def validate(self):
+		
+		if self.first_name:
+			self.first_name = self.first_name.upper()
+		if self.last_name:
+			self.last_name = self.last_name.upper()
+		if self.middle_name:
+			self.middle_name = self.middle_name.upper()
+		if self.company_name:
+			self.company_name = self.company_name.upper()
+			
 		self.full_name = self._get_full_name()
 		self.set_primary_email()
 		self.set_primary("phone")
@@ -144,6 +164,16 @@ class Contact(Document):
 			self.email_id = ""
 
 	def set_primary(self, fieldname):
+		
+		if self.first_name:
+			self.first_name = self.first_name.upper()
+		if self.last_name:
+			self.last_name = self.last_name.upper()
+		if self.middle_name:
+			self.middle_name = self.middle_name.upper()
+		if self.company_name:
+			self.company_name = self.company_name.upper()
+			
 		# Used to set primary mobile and phone no.
 		if len(self.phone_nos) == 0:
 			setattr(self, fieldname, "")
@@ -169,9 +199,29 @@ class Contact(Document):
 			setattr(self, fieldname, "")
 
 	def _get_full_name(self) -> str:
+		
+		if self.first_name:
+			self.first_name = self.first_name.upper()
+		if self.last_name:
+			self.last_name = self.last_name.upper()
+		if self.middle_name:
+			self.middle_name = self.middle_name.upper()
+		if self.company_name:
+			self.company_name = self.company_name.upper()
+			
 		return get_full_name(self.first_name, self.middle_name, self.last_name, self.company_name)
 
 	def get_vcard(self):
+		
+		if self.first_name:
+			self.first_name = self.first_name.upper()
+		if self.last_name:
+			self.last_name = self.last_name.upper()
+		if self.middle_name:
+			self.middle_name = self.middle_name.upper()
+		if self.company_name:
+			self.company_name = self.company_name.upper()
+			
 		from vobject import vCard
 		from vobject.vcard import Name
 
