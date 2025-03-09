@@ -295,14 +295,14 @@ const useStudioStore = defineStore("store", () => {
 			})
 			.then(async () => {
 				activePage.value = await fetchPage(selectedPage.value!)
-				if (activePage.value) {
-					openPageInBrowser(activePage.value)
+				if (activeApp.value && activePage.value) {
+					openPageInBrowser(activeApp.value, activePage.value)
 				}
 			})
 	}
 
 	function openPageInBrowser(app: StudioApp, page: StudioPage) {
-		let route = `/${app.route}/${page.route}`
+		let route = `${window.site_url}/${app.route}/${page.route}`
 		window.open(route, "studio-preview")
 	}
 

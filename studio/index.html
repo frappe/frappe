@@ -12,7 +12,10 @@
 		<div id="modals"></div>
 		<div id="popovers"></div>
 
-		<script> window.csrf_token = '{{ csrf_token }}'; </script>
+		<script>
+			window.csrf_token = '{{ csrf_token }}';
+			window.site_url = '{{ site_url }}';
+		</script>
 		<script type="module" src="/src/main.ts"></script>
 	</body>
 </html>
