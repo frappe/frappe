@@ -245,7 +245,6 @@ def check_release_on_github(
 	owner: str, repo: str, current_version: Version
 ) -> tuple[Version, str] | tuple[None, None]:
 	"""Check the latest release for a repo URL on GitHub."""
-	import requests
 
 	if not owner:
 		raise ValueError("Owner cannot be empty")
