@@ -373,9 +373,7 @@ def show_update_popup():
 					"""
 			if release_links:
 				message = _("New {} releases for the following apps are available").format(_(update_type))
-				update_message += (
-					f"<div class='new-version-log'>{message}<div class='new-version-links'>{release_links}</div></div>"
-				)
+				update_message += f"<div class='new-version-log'>{message}<div class='new-version-links'>{release_links}</div></div>"
 
 	primary_action = None
 	if on_frappecloud():
