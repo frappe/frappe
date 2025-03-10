@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-02 09:33+0000\n"
-"PO-Revision-Date: 2025-03-09 18:48\n"
+"PO-Revision-Date: 2025-03-10 18:54\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -11211,7 +11211,7 @@ msgstr "Funkcija {0} nije na bijeloj listi."
 
 #: frappe/public/js/frappe/views/treeview.js:419
 msgid "Further nodes can be only created under 'Group' type nodes"
-msgstr "Dalji članovi se mogu kreirati samo pod članovima tipa 'Grupa'"
+msgstr "Podređeni članovi se mogu kreirati samo pod članovima tipa 'Grupa'"
 
 #: frappe/core/doctype/communication/communication.js:291
 msgid "Fw: {0}"
@@ -11714,7 +11714,7 @@ msgstr "Polje Grupiši Po je obavezno za kreiranje grafikona nadzorne table"
 
 #: frappe/public/js/frappe/views/treeview.js:418
 msgid "Group Node"
-msgstr "Grupni Član"
+msgstr "Grupa"
 
 #. Label of the ldap_group_objectclass (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
