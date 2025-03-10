@@ -271,6 +271,7 @@ class AutoEmailReport(Document):
 			attachments=attachments,
 			reference_doctype=self.doctype,
 			reference_name=self.name,
+			queue_separately=True,
 		)
 
 	def dynamic_date_filters_set(self):
