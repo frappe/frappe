@@ -4,9 +4,7 @@
 .mobile-sidebar {
 	width: 100vw;
 	height: var(--mobile-sidebar-height);
-	position: absolute;
 	z-index: 1031;
-	bottom: 0;
 	background: var(--subtle-accent);
 	border-top: solid $gray-100 2px;
 }
@@ -26,7 +24,7 @@
 }
 
 @include media-breakpoint-down(sm) {
-	.main-section {
-		height: calc(100vh - var(--mobile-sidebar-height));
+	body {
+		flex-direction: column;
 	}
 }

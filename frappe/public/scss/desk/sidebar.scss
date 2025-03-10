@@ -310,18 +310,24 @@ body {
 		display: flex;
 		padding: 10px;
 		gap: 50%;
-		border: 1px solid var(--gray-600);
-		border-radius: var(--border-radius-lg);
 		margin-top: 7px;
 		margin-bottom: 7px;
 		a {
 			text-decoration: none;
 			display: flex;
 			gap: 10px;
+			.sidebar-item-icon {
+				border: 1px solid var(--gray-600);
+				padding: 5px;
+			}
 			.sidebar-item-label {
 				font-size: 16px;
 				width: max-content;
+				margin-top: 5px;
 			}
+		}
+		.sidebar-item-control {
+			margin-top: 5px;
 		}
 	}
 

@@ -31,7 +31,8 @@ frappe.ui.MobileSidebar = class MobileSidebar {
 
 	make_dom() {
 		this.set_default_app();
-		this.wrapper = $(frappe.render_template("mobile_sidebar")).appendTo($(".main-section"));
+		this.wrapper = $(frappe.render_template("mobile_sidebar"));
+		$(".main-section").after(this.wrapper);
 
 		this.app_switcher_dropdown = $(
 			frappe.render_template("apps_switcher", {
