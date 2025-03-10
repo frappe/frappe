@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-02 09:33+0000\n"
-"PO-Revision-Date: 2025-03-09 18:49\n"
+"PO-Revision-Date: 2025-03-10 18:54\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -5122,7 +5122,7 @@ msgstr ""
 
 #: frappe/desk/page/leaderboard/leaderboard.js:112
 msgid "Company"
-msgstr ""
+msgstr "Tvrtka"
 
 #. Name of a DocType
 #: frappe/website/doctype/company_history/company_history.json
@@ -5139,7 +5139,7 @@ msgstr ""
 #. Label of the company_name (Data) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Company Name"
-msgstr ""
+msgstr "Naziv Tvrtke"
 
 #: frappe/core/doctype/server_script/server_script.js:14
 #: frappe/custom/doctype/client_script/client_script.js:54
@@ -19235,7 +19235,7 @@ msgstr ""
 
 #: frappe/desk/page/leaderboard/leaderboard.js:244
 msgid "Please select Company"
-msgstr ""
+msgstr "Odaberi Tvrtku"
 
 #: frappe/printing/doctype/print_format/print_format.js:30
 msgid "Please select DocType first"
