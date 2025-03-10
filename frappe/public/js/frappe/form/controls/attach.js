@@ -18,7 +18,7 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 				${frappe.utils.icon("es-line-link", "sm")}
 					<a class="attached-file-link" target="_blank"></a>
 				</div>
-				<div>
+				<div class="flex" style="align-items: center">
 					<a class="btn btn-xs btn-default" data-action="reload_attachment">${__("Reload File")}</a>
 					<a class="btn btn-xs btn-default" data-action="clear_attachment">${__("Clear")}</a>
 				</div>
@@ -107,13 +107,15 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 				this.$value
 					.toggle(true)
 					.find(".attached-file-link")
-					.html(filename || this.value)
+					.html(frappe.utils.xss_sanitise(filename || this.value))
 					.attr("href", dataurl || this.value);
 			} else {
 				this.$wrapper.html(`
 					  <div class="attached-file flex justify-between align-center">
 						<div class="ellipsis">
-						  <a href="${dataurl || this.value}" target="_blank">${filename || this.value}</a>
+						  <a href="${dataurl || this.value}" target="_blank">${frappe.utils.xss_sanitise(
+					filename || this.value
+				)}</a>
 						</div>
 					  </div>
 				`);

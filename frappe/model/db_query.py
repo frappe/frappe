@@ -1120,8 +1120,9 @@ class DatabaseQuery:
 						tbl = tbl[4:-1]
 					frappe.throw(_("Please select atleast 1 column from {0} to sort/group").format(tbl))
 
-			if function in blacklisted_sql_functions:
-				frappe.throw(_("Cannot use {0} in order/group by").format(field))
+			# Check if the function is used anywhere in the field
+			if any(func in function for func in blacklisted_sql_functions):
+				frappe.throw(_("Cannot use {0} in order/group by").format(function))
 
 	def add_limit(self):
 		if self.limit_page_length:

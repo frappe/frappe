@@ -29,8 +29,8 @@ def savedocs(doc, action):
 	# action
 	doc.docstatus = {
 		"Save": DocStatus.DRAFT,
-		"Submit": DocStatus.SUMBITTED,
-		"Update": DocStatus.SUMBITTED,
+		"Submit": DocStatus.SUBMITTED,
+		"Update": DocStatus.SUBMITTED,
 		"Cancel": DocStatus.CANCELLED,
 	}[action]
 

@@ -294,8 +294,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	make_new_doc() {
 		const doctype = this.doctype;
 		const options = {};
+		const allowed_filter_types = [
+			"=",
+			"descendants of (inclusive)",
+			"descendants of",
+			"ancestors of",
+		];
 		this.filter_area.get().forEach((f) => {
-			if (f[2] === "=" && frappe.model.is_non_std_field(f[1])) {
+			if (allowed_filter_types.includes(f[2]) && frappe.model.is_non_std_field(f[1])) {
 				options[f[1]] = f[3];
 			}
 		});
