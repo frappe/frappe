@@ -153,11 +153,23 @@ class User(Document):
 			self.name = self.email
 
 	def onload(self):
+		if self.first_name:
+			self.first_name = self.first_name.upper()
+		if self.last_name:
+			self.last_name = self.last_name.upper()
+		if self.middle_name:
+			self.middle_name = self.middle_name.upper()
 		from frappe.utils.modules import get_modules_from_all_apps
 
 		self.set_onload("all_modules", sorted(m.get("module_name") for m in get_modules_from_all_apps()))
 
 	def before_insert(self):
+		if self.first_name:
+			self.first_name = self.first_name.upper()
+		if self.last_name:
+			self.last_name = self.last_name.upper()
+		if self.middle_name:
+			self.middle_name = self.middle_name.upper()
 		self.flags.in_insert = True
 		throttle_user_creation()
 
@@ -167,6 +179,13 @@ class User(Document):
 		frappe.cache.delete_key("enabled_users")
 
 	def validate(self):
+		if self.first_name:
+			self.first_name = self.first_name.upper()
+		if self.last_name:
+			self.last_name = self.last_name.upper()
+		if self.middle_name:
+			self.middle_name = self.middle_name.upper()
+			
 		# clear new password
 		self.__new_password = self.new_password
 		self.new_password = ""
@@ -263,6 +282,13 @@ class User(Document):
 			frappe.throw(_("Not a valid User Image."))
 
 	def on_update(self):
+		if self.first_name:
+			self.first_name = self.first_name.upper()
+		if self.last_name:
+			self.last_name = self.last_name.upper()
+		if self.middle_name:
+			self.middle_name = self.middle_name.upper()
+			
 		# clear new password
 		self.share_with_self()
 		clear_notifications(user=self.name)
@@ -313,6 +339,12 @@ class User(Document):
 
 	def clean_name(self):
 		if self.first_name:
+			self.first_name = self.first_name.upper()
+		if self.last_name:
+			self.last_name = self.last_name.upper()
+		if self.middle_name:
+			self.middle_name = self.middle_name.upper()
+		if self.first_name:
 			self.first_name = strip_html(self.first_name)
 		if self.middle_name:
 			self.middle_name = strip_html(self.middle_name)
@@ -320,6 +352,12 @@ class User(Document):
 			self.last_name = strip_html(self.last_name)
 
 	def set_full_name(self):
+		if self.first_name:
+			self.first_name = self.first_name.upper()
+		if self.last_name:
+			self.last_name = self.last_name.upper()
+		if self.middle_name:
+			self.middle_name = self.middle_name.upper()
 		self.full_name = " ".join(filter(None, [self.first_name, self.last_name]))
 
 	def check_enable_disable(self):
