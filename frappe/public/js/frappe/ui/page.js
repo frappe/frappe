@@ -527,7 +527,7 @@ frappe.ui.Page = class Page {
 		}
 
 		// if an shortcut is already set, dont set an alt Shortcut
-		if(!shortcut){
+		if (!shortcut) {
 			// alt shortcut
 			frappe.ui.keys
 				.get_shortcut_group(parent.get(0))

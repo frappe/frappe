@@ -97,20 +97,19 @@ frappe.ui.keys.AltShortcutGroup = class AltShortcutGroup {
 		this.shortcuts_dict = {};
 
 		const locale = new Intl.Locale(navigator.language);
-		const is_mac = (window.navigator.platform === "MacIntel")
+		const is_mac = window.navigator.platform === "MacIntel";
 		// Skip certain Keys for different Languages on different Platforms
 		switch (locale.language) {
-			case 'de':
+			case "de":
 				if (is_mac) {
-					this.blacklisted_letters = ["e", "l"]
-				}
-				else {
+					this.blacklisted_letters = ["e", "l"];
+				} else {
 					this.blacklisted_letters = ["q"];
 				}
 
 				break;
 			default:
-				this.blacklisted_letters = []
+				this.blacklisted_letters = [];
 				break;
 		}
 
@@ -198,6 +197,10 @@ frappe.ui.keys.AltShortcutGroup = class AltShortcutGroup {
 		let is_in_global_shortcut = frappe.ui.keys.standard_shortcuts
 			.filter((s) => !s.page)
 			.some((s) => s.shortcut === `alt+${letter}`);
-		return letter in this.shortcuts_dict || is_in_global_shortcut || this.blacklisted_letters.includes(letter.toLowerCase());
+		return (
+				letter in this.shortcuts_dict ||
+				is_in_global_shortcut ||
+				this.blacklisted_letters.includes(letter.toLowerCase())
+		);
 	}
 };
