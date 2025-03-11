@@ -232,7 +232,7 @@ import "air-datepicker/dist/js/i18n/datepicker.zh.js";
 			"Maj",
 			"Juni",
 			"Juli",
-			"August",
+			"Avgust",
 			"Septembar",
 			"Oktobar",
 			"Novembar",
