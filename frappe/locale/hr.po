@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-24 14:51+0000\n"
-"PO-Revision-Date: 2025-03-10 18:54\n"
+"PO-Revision-Date: 2025-03-11 19:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -26,13 +26,13 @@ msgstr " u vaš preglednik"
 #. Condition'
 #: frappe/core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "!="
-msgstr ""
+msgstr "!="
 
 #. Description of the 'Org History Heading' (Data) field in DocType 'About Us
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "\"Company History\""
-msgstr ""
+msgstr "\"Povijest Tvrtke\""
 
 #: frappe/core/doctype/data_export/exporter.py:202
 msgid "\"Parent\" signifies the parent table in which this row must be added"
@@ -76,19 +76,19 @@ msgstr "'U Globalnoj Pretrazi' nije dozvoljeno za polje {0} tipa {1}"
 
 #: frappe/core/doctype/doctype/doctype.py:1316
 msgid "'In Global Search' not allowed for type {0} in row {1}"
-msgstr ""
+msgstr "'U Globalnom Pretraživanju' nije dopušteno za tip {0} u retku {1}"
 
 #: frappe/public/js/form_builder/store.js:198
 msgid "'In List View' is not allowed for field {0} of type {1}"
-msgstr ""
+msgstr "'U Prikazu Liste' nije dopušteno za polje {0} tipa {1}"
 
 #: frappe/custom/doctype/customize_form/customize_form.py:359
 msgid "'In List View' not allowed for type {0} in row {1}"
-msgstr ""
+msgstr "'U Prikazu Liste' nije dopušteno za tip {0} u redu {1}"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:156
 msgid "'Recipients' not specified"
-msgstr ""
+msgstr "'Primatelji' nisu navedeni"
 
 #: frappe/utils/__init__.py:242
 msgid "'{0}' is not a valid URL"
@@ -1038,11 +1038,11 @@ msgstr ""
 
 #: frappe/desk/doctype/number_card/number_card.js:36
 msgid "Add Card to Dashboard"
-msgstr ""
+msgstr "Dodaj Karticu na Nadzornu Ploču"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:210
 msgid "Add Chart to Dashboard"
-msgstr ""
+msgstr "Dodaj Grafikon na Nadzornu Ploču"
 
 #: frappe/public/js/frappe/views/treeview.js:267
 msgid "Add Child"
@@ -1055,15 +1055,15 @@ msgstr ""
 #: frappe/public/js/frappe/views/reports/report_view.js:350
 #: frappe/public/js/print_format_builder/Field.vue:112
 msgid "Add Column"
-msgstr ""
+msgstr "Dodaj Stupac"
 
 #: frappe/core/doctype/communication/communication.js:127
 msgid "Add Contact"
-msgstr ""
+msgstr "Dodaj Kontakt"
 
 #: frappe/desk/doctype/event/event.js:38
 msgid "Add Contacts"
-msgstr ""
+msgstr "Dodaj Kontakte"
 
 #. Label of a Check field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
@@ -1078,7 +1078,7 @@ msgstr ""
 #: frappe/public/js/frappe/widgets/widget_dialog.js:159
 #: frappe/public/js/frappe/widgets/widget_dialog.js:688
 msgid "Add Filters"
-msgstr ""
+msgstr "Dodaj Filtre"
 
 #. Label of a Check field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
@@ -1088,11 +1088,11 @@ msgstr ""
 #: frappe/public/js/frappe/ui/group_by/group_by.js:230
 #: frappe/public/js/frappe/ui/group_by/group_by.js:418
 msgid "Add Group"
-msgstr ""
+msgstr "Dodaj Grupu"
 
 #: frappe/core/doctype/recorder/recorder.js:30
 msgid "Add Indexes"
-msgstr ""
+msgstr "Dodaj Indekse"
 
 #: frappe/public/js/frappe/form/grid.js:63
 msgid "Add Multiple"
@@ -1100,7 +1100,7 @@ msgstr ""
 
 #: frappe/core/page/permission_manager/permission_manager.js:438
 msgid "Add New Permission Rule"
-msgstr ""
+msgstr "Dodaj Novo Pravilo Dopuštenja"
 
 #: frappe/desk/doctype/event/event.js:35 frappe/desk/doctype/event/event.js:42
 msgid "Add Participants"
@@ -1113,21 +1113,21 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/sidebar/review.js:45
 msgid "Add Review"
-msgstr ""
+msgstr "Dodaj Recenziju"
 
 #: frappe/core/doctype/user/user.py:760
 msgid "Add Roles"
-msgstr ""
+msgstr "Dodaj Uloge"
 
 #: frappe/public/js/frappe/form/grid.js:63
 msgid "Add Row"
-msgstr ""
+msgstr "Dodaj Red"
 
 #. Label of a Check field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/public/js/frappe/views/communication.js:121
 msgid "Add Signature"
-msgstr ""
+msgstr "Dodaj Potpis"
 
 #. Label of a Check field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
