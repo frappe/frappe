@@ -41,8 +41,6 @@ import frappe
 from frappe.query_builder.utils import (
 	get_query,
 	get_query_builder,
-	patch_query_aggregation,
-	patch_query_execute,
 )
 from frappe.utils.caching import deprecated_local_cache as local_cache
 from frappe.utils.caching import request_cache
@@ -82,7 +80,6 @@ cache: Optional["RedisWrapper"] = None
 client_cache: Optional["ClientCache"] = None
 STANDARD_USERS = ("Guest", "Administrator")
 
-_one_time_setup: dict[str, bool] = {}
 _dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
 
 if _dev_server:
@@ -284,15 +281,8 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 	local.session = _dict()
 	local.dev_server = _dev_server
 	local.qb = get_query_builder(local.conf.db_type)
-	local.qb.get_query = get_query
 	if not cache or not client_cache:
 		setup_redis_cache_connection()
-
-	if not _one_time_setup.get(local.conf.db_type):
-		patch_query_execute()
-		patch_query_aggregation()
-		frappe._optimizations.register_fault_handler()
-		_one_time_setup[local.conf.db_type] = True
 
 	setup_module_map(include_all_apps=not (frappe.request or frappe.job or frappe.flags.in_migrate))
 
@@ -2086,3 +2076,4 @@ from frappe.utils.error import log_error
 from frappe.utils.print_utils import get_print
 
 frappe._optimizations.optimize_all()
+frappe._optimizations.register_fault_handler()
