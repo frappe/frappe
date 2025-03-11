@@ -198,9 +198,9 @@ frappe.ui.keys.AltShortcutGroup = class AltShortcutGroup {
 			.filter((s) => !s.page)
 			.some((s) => s.shortcut === `alt+${letter}`);
 		return (
-				letter in this.shortcuts_dict ||
-				is_in_global_shortcut ||
-				this.blacklisted_letters.includes(letter.toLowerCase())
+			letter in this.shortcuts_dict ||
+			is_in_global_shortcut ||
+			this.blacklisted_letters.includes(letter.toLowerCase())
 		);
 	}
 };
