@@ -1,5 +1,5 @@
 <template>
-	<div class="z-5 flex flex-row overflow-auto shadow-lg">
+	<div class="flex flex-row overflow-auto shadow-lg">
 		<!-- Primary Menu -->
 		<div class="relative flex h-full w-12 flex-col space-y-2 border-r border-gray-200 bg-white p-3">
 			<div
