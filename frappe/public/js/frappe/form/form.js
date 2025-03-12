@@ -428,11 +428,7 @@ frappe.ui.form.Form = class FrappeForm {
 			this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
 			if (this.read_only) {
 				this.set_read_only();
-				this.dashboard.set_headline(
-					__("This form is not editable due to a Workflow."),
-					"blue",
-					true
-				);
+				frappe.show_alert(__("This form is not editable due to a Workflow."));
 			}
 
 			// check if doctype is already open
