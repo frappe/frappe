@@ -94,12 +94,7 @@
   }
  ],
  "read_only": 1,
-<<<<<<< HEAD
  "sort_field": "modified",
-=======
- "row_format": "Dynamic",
- "sort_field": "creation",
->>>>>>> a2401e735a (fix: option to opt out of automatic filters (#31678))
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

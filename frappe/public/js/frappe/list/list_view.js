@@ -108,13 +108,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				return f;
 			});
 		}
-<<<<<<< HEAD
-		this.add_recent_filter_on_large_tables();
 
 		if (this.view_name == "List") this.toggle_paging = true;
 
-=======
->>>>>>> a2401e735a (fix: option to opt out of automatic filters (#31678))
 		this.patch_refresh_and_load_lib();
 		return this.get_list_view_settings().then(() => this.add_recent_filter_on_large_tables());
 	}
