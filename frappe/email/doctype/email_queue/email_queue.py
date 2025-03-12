@@ -93,6 +93,9 @@ class EmailQueue(Document):
 		if not data.get("recipients"):
 			return
 
+		if isinstance(data["unsubscribe_params"], dict):
+			data["unsubscribe_params"] = json.dumps(data["unsubscribe_params"])
+
 		recipients = data.pop("recipients")
 		doc = frappe.new_doc(cls.DOCTYPE)
 		doc.update(data)
