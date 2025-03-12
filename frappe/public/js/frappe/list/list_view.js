@@ -26,6 +26,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.show();
 		const meta = frappe.get_meta(this.doctype);
 		this.is_large_table = meta?.is_large_table;
+		this.applied_recency_filters = false;
 
 		this.debounced_refresh = frappe.utils.debounce(
 			this.process_document_refreshes.bind(this),
@@ -113,9 +114,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	add_recent_filter_on_large_tables() {
-		if (!this.is_large_table || this.list_view_settings?.disable_automatic_recency_filters) {
+		if (
+			!this.is_large_table ||
+			this.list_view_settings?.disable_automatic_recency_filters ||
+			this.applied_recency_filters
+		) {
 			return;
 		}
+		this.applied_recency_filters = true;
 		// Note: versions older than v16 should use "modified" here.
 		const recency_field = "creation";
 
@@ -123,6 +129,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return;
 		}
 		this.filters.push([this.doctype, recency_field, "Timespan", "last 90 days"]);
+		frappe.show_alert(
+			{
+				message: __(
+					"Automatically applied a filter for recent data. You can disable this behavior from the list view settings."
+				),
+				indicator: "yellow",
+			},
+			3
+		);
 	}
 
 	on_sort_change(sort_by, sort_order) {
