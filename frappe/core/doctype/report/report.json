@@ -17,6 +17,7 @@
   "add_total_row",
   "disabled",
   "prepared_report",
+  "add_translate_data",
   "timeout",
   "filters_section",
   "filters",
@@ -194,12 +195,18 @@
    "fieldname": "timeout",
    "fieldtype": "Int",
    "label": "Timeout (In Seconds)"
+  },
+  {
+   "default": "0",
+   "fieldname": "add_translate_data",
+   "fieldtype": "Check",
+   "label": "Add Translate Data"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-08-31 20:34:10.018811",
+ "modified": "2025-03-11 10:42:45.591937",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",
@@ -247,6 +254,7 @@
    "role": "Desk User"
   }
  ],
+ "row_format": "Dynamic",
  "show_name_in_global_search": 1,
  "sort_field": "creation",
  "sort_order": "DESC",

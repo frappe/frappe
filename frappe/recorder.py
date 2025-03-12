@@ -259,7 +259,7 @@ class Recorder:
 	def dump(self):
 		if not self._recording:
 			return
-		profiler_output = self.process_profiler()
+		profiler_output = self.process_profiler() or ""
 
 		request_data = {
 			"uuid": self.uuid,
@@ -277,7 +277,7 @@ class Recorder:
 		request_data["calls"] = self.calls
 		request_data["headers"] = self.headers
 		request_data["form_dict"] = self.form_dict
-		request_data["profile"] = profiler_output
+		request_data["profile"] = "".join(profiler_output.splitlines(keepends=True)[:200])
 		frappe.cache.hset(RECORDER_REQUEST_HASH, self.uuid, request_data)
 
 		if self.config.record_sql:

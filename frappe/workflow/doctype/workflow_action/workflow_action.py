@@ -476,6 +476,9 @@ def get_email_template_from_workflow(doc):
 
 	if not template_name:
 		return
+
+	if isinstance(doc, Document):
+		doc = doc.as_dict()
 	return get_email_template(template_name, doc)
 
 

@@ -31,6 +31,7 @@
   "is_calendar_and_gantt",
   "editable_grid",
   "quick_entry",
+  "grid_page_length",
   "cb01",
   "track_changes",
   "track_seen",
@@ -680,6 +681,14 @@
    "hidden": 1,
    "label": "Row Format",
    "options": "Dynamic\nCompressed"
+  },
+  {
+    "default": "50",
+    "depends_on": "istable",
+    "fieldname": "grid_page_length",
+    "fieldtype": "Int",
+    "label": "Grid Page Length",
+    "non_negative": 1
   }
  ],
  "icon": "fa fa-bolt",

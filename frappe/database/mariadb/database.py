@@ -407,14 +407,27 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
 		index_name = index_name or self.get_index_name(fields)
 		table_name = get_table_name(doctype)
 		if not self.has_index(table_name, index_name):
 			self.commit()
 			self.sql(
 				"""ALTER TABLE `{}`
-				ADD INDEX `{}`({})""".format(table_name, index_name, ", ".join(fields))
+				ADD INDEX IF NOT EXISTS `{}`({})""".format(table_name, index_name, ", ".join(fields))
 			)
+			# Ensure that DB migration doesn't clear this index, assuming this is manually added
+			# via code or console.
+			if len(fields) == 1 and not (frappe.flags.in_install or frappe.flags.in_migrate):
+				make_property_setter(
+					doctype,
+					fields[0],
+					property="search_index",
+					value="1",
+					property_type="Check",
+					for_doctype=False,  # Applied on docfield
+				)
 
 	def add_unique(self, doctype, fields, constraint_name=None):
 		if isinstance(fields, str):

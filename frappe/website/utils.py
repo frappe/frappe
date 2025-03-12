@@ -163,6 +163,7 @@ def get_home_page_via_hooks():
 
 
 def get_boot_data():
+	from frappe.integrations.frappe_providers.frappecloud_billing import is_fc_site
 	from frappe.locale import get_date_format, get_first_day_of_the_week, get_number_format, get_time_format
 
 	return {
@@ -187,6 +188,7 @@ def get_boot_data():
 		},
 		"assets_json": get_assets_json(),
 		"sitename": frappe.local.site,
+		"is_fc_site": is_fc_site(),
 	}
 
 

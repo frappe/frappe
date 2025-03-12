@@ -426,7 +426,7 @@ def export_query():
 				_(value) if translatable_fields[idx] else value for idx, value in enumerate(row)
 			]
 			processed_data.append(processed_row)
-			data.extend(processed_data)
+		data.extend(processed_data)
 
 	data = handle_duration_fieldtype_values(doctype, data, db_query.fields)
 
@@ -576,7 +576,9 @@ def delete_bulk(doctype, items):
 				frappe.publish_realtime(
 					"progress",
 					dict(
-						progress=[i + 1, len(items)], title=_("Deleting {0}").format(doctype), description=d
+						progress=[i + 1, len(items)],
+						title=_("Deleting {0}").format(_(doctype)),
+						description=d,
 					),
 					user=frappe.session.user,
 				)

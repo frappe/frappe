@@ -442,7 +442,7 @@ class User(Document):
 		if password_expired:
 			url = "/update-password?key=" + key + "&password_expired=true"
 
-		link = get_url(url)
+		link = get_url(url, allow_header_override=False)
 		if send_email:
 			self.password_reset_mail(link)
 
@@ -890,6 +890,8 @@ def update_password(
 	_update_password(user, new_password, logout_all_sessions=cint(logout_all_sessions))
 
 	user_doc, redirect_url = reset_user_data(user)
+
+	user_doc.validate_reset_password()
 
 	# get redirect url from cache
 	redirect_to = frappe.cache.hget("redirect_after_login", user)
