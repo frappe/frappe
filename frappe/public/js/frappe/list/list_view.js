@@ -108,14 +108,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				return f;
 			});
 		}
-		this.add_recent_filter_on_large_tables();
-
 		this.patch_refresh_and_load_lib();
-		return this.get_list_view_settings();
+		return this.get_list_view_settings().then(() => this.add_recent_filter_on_large_tables());
 	}
 
 	add_recent_filter_on_large_tables() {
-		if (!this.is_large_table) {
+		if (!this.is_large_table || this.list_view_settings?.disable_automatic_recency_filters) {
 			return;
 		}
 		// Note: versions older than v16 should use "modified" here.
