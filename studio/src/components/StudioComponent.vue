@@ -144,7 +144,7 @@ const componentProps = computed(() => {
 })
 
 const componentRef = ref<ComponentPublicInstance | null>(null)
-const target = computed(() => getComponentRoot(componentRef))
+const target = ref<HTMLElement | null>(null)
 
 // Computed property for v-model binding
 const boundValue = computed({
@@ -246,9 +246,9 @@ watch(
 
 onMounted(() => {
 	// set data-component-id on mount since some frappeui components have inheritAttrs: false
-	const componentRoot = getComponentRoot(componentRef)
-	if (componentRoot) {
-		componentRoot.setAttribute("data-component-id", props.block.componentId)
+	target.value = getComponentRoot(componentRef)
+	if (target.value) {
+		target.value?.setAttribute("data-component-id", props.block.componentId)
 		isComponentReady.value = true
 	}
 })
