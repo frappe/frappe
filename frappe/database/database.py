@@ -338,12 +338,9 @@ class Database:
 	) -> None:
 		"""Takes the query and logs it to various interfaces according to the settings."""
 		_query = None
+		conf = frappe.local.conf
 
-		if (
-			frappe.conf.allow_tests
-			and frappe.conf.developer_mode
-			and frappe.cache.get_value("flag_print_sql")
-		):
+		if conf.allow_tests and get_print_sql_flag():
 			_query = _query or str(mogrified_query)
 			print(_query)
 
@@ -353,7 +350,7 @@ class Database:
 				self.explain_query(_query)
 			frappe.log(_query)
 
-		if frappe.conf.logging == 2:
+		if conf.logging == 2:
 			_query = _query or str(mogrified_query)
 			frappe.log(f"#### query\n{_query}\n####")
 
@@ -363,7 +360,7 @@ class Database:
 			_query = _query or str(mogrified_query)
 			self.logger.warning("DDL Query made to DB:\n" + _query)
 
-		if frappe.flags.in_migrate:
+		if frappe.local.flags.in_migrate:
 			_query = _query or str(mogrified_query)
 			self.log_touched_tables(_query)
 
@@ -1538,3 +1535,12 @@ def get_query_execution_timeout() -> int:
 			timeout = job.timeout
 
 	return int(cint(timeout) * 1.5)
+
+
+def get_print_sql_flag() -> bool:
+	flag_value = frappe.client_cache.get_value("flag_print_sql")
+	if flag_value is None:
+		flag_value = False
+		frappe.client_cache.set_value("flag_print_sql", flag_value)
+
+	return flag_value

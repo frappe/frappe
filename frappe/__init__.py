@@ -421,10 +421,10 @@ def errprint(msg: str) -> None:
 
 
 def print_sql(enable: bool = True) -> None:
-	if frappe.conf.allow_tests and frappe.conf.developer_mode:
-		cache.set_value("flag_print_sql", enable)
-	else:
-		frappe.throw("`frappe.print_sql` only works in `developer_mode` with `allow_tests` enabled on site.")
+	if not local.conf.allow_tests:
+		frappe.throw("`frappe.print_sql` only works with `allow_tests` site config enabled.")
+
+	client_cache.set_value("flag_print_sql", enable)
 
 
 def log(msg: str) -> None:

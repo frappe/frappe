@@ -472,7 +472,7 @@ class ClientCache:
 			self.invalidator_id = self.invalidator.client_id()
 		except redis.exceptions.ConnectionError:
 			# Redis not available, this can happen during setup/startup time
-			self.redis = frappe.cache
+			self.redis = frappe.local.cache
 			self.healthy = False
 
 		# These are local hits and misses, *not* global.
