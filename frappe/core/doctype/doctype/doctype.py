@@ -222,7 +222,7 @@ class DocType(Document):
 
 		check_email_append_to(self)
 
-		if self.default_print_format and not self.custom:
+		if self.default_print_format and not self.custom and not frappe.session.user == "Administrator":
 			frappe.throw(_("Standard DocType cannot have default print format, use Customize Form"))
 
 	def validate_field_name_conflicts(self):
