@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-02 09:33+0000\n"
-"PO-Revision-Date: 2025-03-11 01:15\n"
+"PO-Revision-Date: 2025-03-13 01:07\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -1193,64 +1193,64 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter_list.js:298
 msgid "Add a Filter"
-msgstr ""
+msgstr "Dodaj Filter"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:9
 msgid "Add a New Role"
-msgstr ""
+msgstr "Dodaj Novu Ulogu"
 
 #: frappe/public/js/frappe/form/form_tour.js:211
 msgid "Add a Row"
-msgstr ""
+msgstr "Dodaj Red"
 
 #: frappe/templates/includes/comments/comments.html:30
 #: frappe/templates/includes/comments/comments.html:47
 msgid "Add a comment"
-msgstr ""
+msgstr "Dodaj Komentar"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:28
 #: frappe/public/js/form_builder/components/Tabs.vue:192
 msgid "Add a new section"
-msgstr ""
+msgstr "Dodaj Novi Odjeljak"
 
 #: frappe/public/js/frappe/form/form.js:193
 msgid "Add a row above the current row"
-msgstr ""
+msgstr "Dodaj Red Iznad Trenutnog Reda"
 
 #: frappe/public/js/frappe/form/form.js:205
 msgid "Add a row at the bottom"
-msgstr ""
+msgstr "Dodaj Red na Dnu"
 
 #: frappe/public/js/frappe/form/form.js:201
 msgid "Add a row at the top"
-msgstr ""
+msgstr "Dodaj Red na Vrhu"
 
 #: frappe/public/js/frappe/form/form.js:197
 msgid "Add a row below the current row"
-msgstr ""
+msgstr "Dodaj Red Ispod Trenutnog Reda"
 
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:286
 msgid "Add a {0} Chart"
-msgstr ""
+msgstr "+ {0} Grafikon"
 
 #: frappe/public/js/form_builder/components/Section.vue:271
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:115
 msgid "Add column"
-msgstr ""
+msgstr "Dodaj Stupac"
 
 #: frappe/public/js/form_builder/components/AddFieldButton.vue:9
 #: frappe/public/js/form_builder/components/AddFieldButton.vue:48
 msgid "Add field"
-msgstr ""
+msgstr "Dodaj polje"
 
 #: frappe/public/js/form_builder/components/Sidebar.vue:49
 #: frappe/public/js/form_builder/components/Tabs.vue:153
 msgid "Add new tab"
-msgstr ""
+msgstr "Dodaj novu karticu"
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:125
 msgid "Add page break"
-msgstr ""
+msgstr "Dodaj prijelom stranice"
 
 #: frappe/custom/doctype/client_script/client_script.js:16
 msgid "Add script for Child Table"
@@ -1385,26 +1385,26 @@ msgstr ""
 
 #: frappe/contacts/doctype/address/address.py:206
 msgid "Addresses"
-msgstr ""
+msgstr "Adrese"
 
 #. Name of a report
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.json
 msgid "Addresses And Contacts"
-msgstr ""
+msgstr "Adrese i Kontakti"
 
 #. Description of a DocType
 #: frappe/custom/doctype/client_script/client_script.json
 msgid "Adds a custom client script to a DocType"
-msgstr ""
+msgstr "Dodaje prilagođenu klijentsku skriptu u DocType"
 
 #. Description of a DocType
 #: frappe/custom/doctype/custom_field/custom_field.json
 msgid "Adds a custom field to a DocType"
-msgstr ""
+msgstr "Dodaje prilagođeno polje u DocType"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:552
 msgid "Administration"
-msgstr ""
+msgstr "Administracija"
 
 #. Name of a role
 #: frappe/contacts/doctype/salutation/salutation.json
@@ -1426,7 +1426,7 @@ msgstr ""
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Administrator"
-msgstr ""
+msgstr "Administrator"
 
 #: frappe/core/doctype/user/user.py:1216
 msgid "Administrator Logged In"
@@ -1445,13 +1445,13 @@ msgstr ""
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Advanced"
-msgstr ""
+msgstr "Napredno"
 
 #. Label of the advanced_control_section (Section Break) field in DocType 'User
 #. Permission'
 #: frappe/core/doctype/user_permission/user_permission.json
 msgid "Advanced Control"
-msgstr ""
+msgstr "Napredna Kontrola"
 
 #: frappe/public/js/frappe/form/controls/link.js:335
 #: frappe/public/js/frappe/form/controls/link.js:337
@@ -1461,17 +1461,17 @@ msgstr ""
 #. Label of the sb_advanced (Section Break) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Advanced Settings"
-msgstr ""
+msgstr "Napredne Postavke"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:63
 #: frappe/public/js/frappe/ui/filters/filter.js:69
 msgid "After"
-msgstr ""
+msgstr "Nakon"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "After Cancel"
-msgstr ""
+msgstr "Nakon Otkazivanja"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -1584,7 +1584,7 @@ msgstr ""
 #: frappe/website/doctype/personal_data_download_request/personal_data_download_request.json
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "All"
-msgstr ""
+msgstr "Sve"
 
 #. Label of the all_day (Check) field in DocType 'Calendar View'
 #. Label of the all_day (Check) field in DocType 'Event'
@@ -2232,7 +2232,7 @@ msgstr ""
 
 #: frappe/public/js/form_builder/components/Field.vue:103
 msgid "Apply"
-msgstr ""
+msgstr "Primjeni"
 
 #: frappe/public/js/frappe/list/list_view.js:1978
 msgctxt "Button in list view actions menu"
@@ -3928,7 +3928,7 @@ msgstr ""
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:150
 #: frappe/public/js/frappe/ui/capture.js:334
 msgid "Camera"
-msgstr ""
+msgstr "Kamera"
 
 #. Label of the campaign (Link) field in DocType 'Newsletter'
 #. Label of the campaign (Data) field in DocType 'Web Page View'
@@ -4001,17 +4001,17 @@ msgstr ""
 #: frappe/public/js/frappe/form/reminders.js:54
 #: frappe/social/doctype/energy_point_rule/energy_point_rule.json
 msgid "Cancel"
-msgstr ""
+msgstr "Otkaži"
 
 #: frappe/public/js/frappe/list/list_view.js:2048
 msgctxt "Button in list view actions menu"
 msgid "Cancel"
-msgstr ""
+msgstr "Otkaži"
 
 #: frappe/public/js/frappe/ui/messages.js:68
 msgctxt "Secondary button in warning dialog"
 msgid "Cancel"
-msgstr ""
+msgstr "Otkaži"
 
 #: frappe/public/js/frappe/form/form.js:984
 msgid "Cancel All"
@@ -4271,7 +4271,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/capture.js:294
 msgid "Capture"
-msgstr ""
+msgstr "Uhvati"
 
 #. Label of the card (Link) field in DocType 'Number Card Link'
 #: frappe/desk/doctype/number_card_link/number_card_link.json
@@ -4596,7 +4596,7 @@ msgstr ""
 #: frappe/core/doctype/recorder/recorder_list.js:12
 #: frappe/public/js/frappe/form/controls/attach.js:16
 msgid "Clear"
-msgstr ""
+msgstr "Očisti"
 
 #: frappe/public/js/frappe/views/communication.js:432
 msgid "Clear & Add Template"
@@ -4792,7 +4792,7 @@ msgstr ""
 #: frappe/public/js/frappe/ui/messages.js:244
 #: frappe/website/js/bootstrap-4.js:24
 msgid "Close"
-msgstr ""
+msgstr "Zatvori"
 
 #. Label of the close_condition (Code) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
@@ -4853,12 +4853,12 @@ msgstr ""
 #: frappe/public/js/frappe/ui/sidebar.html:11
 #: frappe/public/js/frappe/widgets/base_widget.js:159
 msgid "Collapse"
-msgstr ""
+msgstr "Sklopi"
 
 #: frappe/public/js/frappe/form/controls/code.js:183
 msgctxt "Shrink code field."
 msgid "Collapse"
-msgstr ""
+msgstr "Sklopi"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1984
 #: frappe/public/js/frappe/views/treeview.js:123
@@ -4872,7 +4872,7 @@ msgstr ""
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Collapsible"
-msgstr ""
+msgstr "Sklopivo"
 
 #. Label of the collapsible_depends_on (Code) field in DocType 'Custom Field'
 #. Label of the collapsible_depends_on (Code) field in DocType 'Customize Form
