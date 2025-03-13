@@ -35,7 +35,6 @@ from typing import (
 
 import click
 from werkzeug.datastructures import Headers
-from werkzeug.local import Local, LocalProxy, release_local
 
 import frappe
 from frappe.query_builder.utils import (
@@ -45,7 +44,7 @@ from frappe.query_builder.utils import (
 from frappe.utils.caching import deprecated_local_cache as local_cache
 from frappe.utils.caching import request_cache
 from frappe.utils.data import as_unicode, bold, cint, cstr, safe_decode, safe_encode, sbool
-from frappe.utils.local import FrappeLocal
+from frappe.utils.local import Local, LocalProxy, release_local
 
 # Local application imports
 from .exceptions import *
@@ -76,7 +75,7 @@ if TYPE_CHECKING:  # pragma: no cover
 	from frappe.utils.redis_wrapper import ClientCache, RedisWrapper
 
 controllers: dict[str, "Document"] = {}
-local = FrappeLocal()
+local = Local()
 cache: Optional["RedisWrapper"] = None
 client_cache: Optional["ClientCache"] = None
 STANDARD_USERS = ("Guest", "Administrator")

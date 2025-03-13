@@ -1,39 +1,35 @@
 from contextvars import ContextVar
-from typing import Any
+from typing import Any, Generic, TypeVar
 
-from werkzeug.local import Local, LocalProxy
+from werkzeug.local import LocalProxy as _LocalProxy
+from werkzeug.local import _ProxyLookup
+from werkzeug.local import release_local as _release_local
 
 _contextvar = ContextVar("frappe_local")
-_local_attributes = frozenset(dir(Local))
-_local_proxy_attributes = frozenset(dir(LocalProxy))
+
+T = TypeVar("T")
 
 
-def get_local(name: str) -> Any:
-	obj = _contextvar.get(None)
-	if obj is not None and name in obj:
-		return obj[name]
-
-	raise AttributeError(name)
-
-
-class FrappeLocal(Local):
+class Local:
 	"""
 	For internal use only. Do not use this class directly.
 	"""
 
 	__slots__ = ()
 
-	def __init__(self):
-		super().__init__(_contextvar)
-
 	def __getattribute__(self, name: str) -> Any:
-		if name in _local_attributes:
-			return object.__getattribute__(self, name)
+		# this is not needed as long as we have no other attributes than special methods
+		# if name in _local_attributes:
+		# 	return object.__getattribute__(self, name)
 
-		return get_local(name)
+		obj = _contextvar.get(None)
+		if obj is not None and name in obj:
+			return obj[name]
 
-	def __getattr__(self, name: str) -> Any:
-		return get_local(name)
+		raise AttributeError(name)
+
+	def __iter__(self):
+		return iter((_contextvar.get({})).items())
 
 	def __setattr__(self, name: str, value: Any) -> None:
 		obj = _contextvar.get(None)
@@ -51,10 +47,7 @@ class FrappeLocal(Local):
 
 		raise AttributeError(name)
 
-	def __release_local__(self):
-		_contextvar.set({})
-
-	def __call__(self, name: str) -> LocalProxy:
+	def __call__(self, name: str) -> "LocalProxy":
 		def _get_current_object() -> Any:
 			obj = _contextvar.get(None)
 			if obj is not None and name in obj:
@@ -62,21 +55,18 @@ class FrappeLocal(Local):
 
 			raise RuntimeError("object is not bound") from None
 
-		lp = FrappeLocalProxy(_get_current_object)
+		lp = LocalProxy()
 		object.__setattr__(lp, "_get_current_object", _get_current_object)
 		return lp
 
 
-class FrappeLocalProxy(LocalProxy):
-	__slots__ = ()
+class LocalProxy(Generic[T]):
+	__slots__ = ("_get_current_object",)
 
 	def __getattribute__(self, name: str) -> Any:
 		if name in _local_proxy_attributes:
 			return object.__getattribute__(self, name)
 
-		return getattr(get_obj(self), name)
-
-	def __getattr__(self, name: str) -> Any:
 		return getattr(get_obj(self), name)
 
 	def __setattr__(self, name: str, value: str) -> None:
@@ -107,5 +97,29 @@ class FrappeLocalProxy(LocalProxy):
 		return str(get_obj(self))
 
 
-def get_obj(lp: FrappeLocalProxy) -> Any:
+for attr, val in vars(_LocalProxy).items():
+	if (
+		attr == "__getattr__"
+		or attr == "__wrapped__"
+		or not isinstance(val, _ProxyLookup)
+		or hasattr(LocalProxy, attr)
+	):
+		continue
+
+	setattr(LocalProxy, attr, val)
+
+
+def get_obj(lp: LocalProxy) -> Any:
 	return object.__getattribute__(lp, "_get_current_object")()
+
+
+def release_local(local):
+	if isinstance(local, Local):
+		_contextvar.set({})
+		return
+
+	_release_local(local)
+
+
+# _local_attributes = frozenset(attr for attr in dir(Local))
+_local_proxy_attributes = frozenset(attr for attr in dir(LocalProxy))
