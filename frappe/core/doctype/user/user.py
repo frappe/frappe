@@ -28,13 +28,9 @@ from frappe.utils import (
 	now_datetime,
 	today,
 )
-<<<<<<< HEAD
-from frappe.utils.data import sha256_hash, strip_html
-from frappe.utils.deprecations import deprecated
-=======
 from frappe.utils.data import sha256_hash
+from frappe.utils.deprecations import deprecated
 from frappe.utils.html_utils import sanitize_html
->>>>>>> e5c75c3874 (fix(user): stricter name validation)
 from frappe.utils.password import check_password, get_password_reset_limit
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
