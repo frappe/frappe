@@ -40,11 +40,7 @@
  "idx": 1,
  "istable": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2022-08-03 12:20:53.129765",
-=======
  "modified": "2025-03-12 19:40:34.519601",
->>>>>>> adc54286d9 (fix: increase length for value field in sms parameter)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "SMS Parameter",
