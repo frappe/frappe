@@ -26,7 +26,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.show();
 		const meta = frappe.get_meta(this.doctype);
 		this.is_large_table = meta?.is_large_table;
-		this.applied_recency_filters = false;
 
 		this.debounced_refresh = frappe.utils.debounce(
 			this.process_document_refreshes.bind(this),
@@ -114,18 +113,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	add_recent_filter_on_large_tables() {
-		if (
-			!this.is_large_table ||
-			this.list_view_settings?.disable_automatic_recency_filters ||
-			this.applied_recency_filters
-		) {
+		if (!this.is_large_table || this.list_view_settings?.disable_automatic_recency_filters) {
 			return;
 		}
-		this.applied_recency_filters = true;
 		// Note: versions older than v16 should use "modified" here.
 		const recency_field = "creation";
 
-		if (this.filters.filter((arr) => arr?.includes(recency_field)).length) {
+		if (this.filters.length) {
 			return;
 		}
 		this.filters.push([this.doctype, recency_field, "Timespan", "last 90 days"]);
@@ -554,11 +548,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	before_refresh() {
 		if (frappe.route_options && this.filter_area) {
 			this.filters = this.parse_filters_from_route_options();
-			if (!this.filters.length || window.location.search) {
-				// Add recency filters if route options are not used
-				// Route options are internally used in connections to filter for specific documents.
-				this.add_recent_filter_on_large_tables();
-			}
 			frappe.route_options = null;
 
 			if (this.filters.length > 0) {
