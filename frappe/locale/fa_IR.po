@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-02 09:33+0000\n"
-"PO-Revision-Date: 2025-03-11 01:14\n"
+"PO-Revision-Date: 2025-03-13 01:07\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -27135,7 +27135,7 @@ msgstr "فیلد پیست"
 #. Label of the track_seen (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Track Seen"
-msgstr "آهنگ دیده شده"
+msgstr "ردیابی دیده شده"
 
 #. Label of the track_steps (Check) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
@@ -27147,7 +27147,7 @@ msgstr "ردیابی مراحل"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Track Views"
-msgstr "نماهای آهنگ"
+msgstr "ردیابی بازدیدها"
 
 #. Description of the 'Track Email Status' (Check) field in DocType 'Email
 #. Account'
