@@ -33,10 +33,7 @@ def handle_rpc_call(method: str, doctype: str | None = None):
 		module = load_doctype_module(doctype)
 		method = module.__name__ + "." + method
 
-	for hook in reversed(frappe.get_hooks("override_whitelisted_methods", {}).get(method, [])):
-		# override using the last hook
-		method = hook
-		break
+	method = frappe.override_whitelisted_method(method)
 
 	# via server script
 	server_script = get_server_script_map().get("_api", {}).get(method)
