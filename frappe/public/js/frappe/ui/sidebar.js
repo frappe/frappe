@@ -1,6 +1,7 @@
 frappe.ui.Sidebar = class Sidebar {
 	constructor() {
 		this.items = {};
+		this.child_items = [];
 		this.sidebar_expanded = false;
 
 		if (!frappe.boot.setup_complete) {
@@ -79,16 +80,64 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	set_active_workspace_item() {
-		if (this.is_route_in_sidebar(decodeURIComponent(window.location.pathname))) {
+		if (!frappe.get_route()) return;
+		let current_route = frappe.get_route();
+		let current_route_str = frappe.get_route_str();
+		let current_item;
+		if (current_route[0] == "Workspaces") {
+			current_item = current_route[1];
+		} else if (frappe.breadcrumbs) {
+			if (Object.keys(frappe.breadcrumbs.all).length == 0) return;
+			if (frappe.breadcrumbs.all[current_route_str]) {
+				current_item =
+					frappe.breadcrumbs.all[current_route_str].workspace ||
+					frappe.breadcrumbs.all[current_route_str].module;
+			}
+		}
+		if (this.is_route_in_sidebar(current_item)) {
 			this.active_item.addClass("active-sidebar");
+		}
+		if (this.active_item) {
+			if (this.is_nested_item(this.active_item.parent())) {
+				let current_item = this.active_item.parent();
+				this.expand_parent_item(current_item);
+			}
+		}
+	}
+	expand_parent_item(item) {
+		let parent_title = item.attr("item-parent");
+		if (!parent_title) return;
+
+		let parent = this.get_sidebar_item(parent_title);
+		$($(parent).children()[1]).removeClass("hidden");
+		if (parent) {
+			if (this.is_nested_item($(parent))) {
+				this.expand_parent_item($(parent));
+			}
+		}
+	}
+	is_nested_item(item) {
+		if (item.attr("item-parent")) {
+			return true;
+		} else {
+			return false;
 		}
 	}
 
-	is_route_in_sidebar(route_name) {
+	get_sidebar_item(name) {
+		let sidebar_item = "";
+		$(".sidebar-item-container").each(function () {
+			if ($(this).attr("item-name") == name) {
+				sidebar_item = this;
+			}
+		});
+		return sidebar_item;
+	}
+	is_route_in_sidebar(active_module) {
 		let match = false;
 		const that = this;
 		$(".item-anchor").each(function () {
-			if ($(this).attr("href") == route_name) {
+			if ($(this).attr("title") == active_module) {
 				match = true;
 				if (that.active_item) that.active_item.removeClass("active-sidebar");
 				that.active_item = $(this).parent();
@@ -126,12 +175,19 @@ frappe.ui.Sidebar = class Sidebar {
 			this.make_sidebar();
 		}
 		this.set_hover();
+		this.set_sidebar_state();
+		if (!this.sidebar_expanded) this.close_children_item();
+	}
+	set_sidebar_state() {
+		this.sidebar_expanded = true;
 		if (localStorage.getItem("sidebar-expanded") !== null) {
 			this.sidebar_expanded = JSON.parse(localStorage.getItem("sidebar-expanded"));
-			this.expand_sidebar();
 		}
+		if (frappe.is_mobile()) {
+			this.sidebar_expanded = false;
+		}
+		this.expand_sidebar();
 	}
-
 	make_sidebar() {
 		if (this.wrapper.find(".standard-sidebar-section")[0]) {
 			this.wrapper.find(".standard-sidebar-section").remove();
@@ -173,6 +229,9 @@ frappe.ui.Sidebar = class Sidebar {
 			$(".list-sidebar.hidden-xs.hidden-sm").removeClass("opened");
 			// $(".close-sidebar").css("display", "none");
 			$("body").css("overflow", "auto");
+			if (frappe.is_mobile()) {
+				this.close_sidebar();
+			}
 		});
 
 		if (
@@ -242,6 +301,7 @@ frappe.ui.Sidebar = class Sidebar {
 			let child_container = $item_container.find(".sidebar-child-item");
 			child_container.addClass("hidden");
 			this.prepare_sidebar(child_items, child_container, $item_container);
+			this.child_items.push(child_container);
 		}
 
 		$item_container.appendTo(container);
@@ -394,10 +454,18 @@ frappe.ui.Sidebar = class Sidebar {
 	close_sidebar() {
 		this.sidebar_expanded = false;
 		this.expand_sidebar();
+		this.close_children_item();
 	}
 	open_sidebar() {
 		this.sidebar_expanded = true;
 		this.expand_sidebar();
+		this.set_active_workspace_item();
+	}
+
+	close_children_item() {
+		this.child_items.forEach((i) => {
+			i.addClass("hidden");
+		});
 	}
 
 	reload() {
@@ -405,5 +473,10 @@ frappe.ui.Sidebar = class Sidebar {
 			frappe.boot.sidebar_pages = r;
 			this.setup_pages();
 		});
+	}
+	set_height() {
+		$(".body-sidebar").css("height", window.innerHeight + "px");
+		$(".overlay").css("height", window.innerHeight + "px");
+		document.body.style.overflow = "hidden";
 	}
 };

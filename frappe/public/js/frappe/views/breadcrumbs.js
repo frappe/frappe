@@ -42,6 +42,7 @@ frappe.breadcrumbs = {
 		}
 		this.all[frappe.breadcrumbs.current_page()] = obj;
 		this.update();
+		frappe.app.sidebar.set_active_workspace_item();
 	},
 
 	current_page() {

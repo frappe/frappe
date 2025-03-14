@@ -430,7 +430,7 @@ class EmailAccount(Document):
 
 		if _raise_error:
 			frappe.throw(
-				_("Please setup default Email Account from Settings > Email Account"),
+				_("Please setup default outgoing Email Account from Tools > Email Account"),
 				frappe.OutgoingEmailError,
 			)
 

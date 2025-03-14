@@ -79,6 +79,7 @@ class GoogleCalendar(Document):
 		google_calendar_id: DF.Data | None
 		next_sync_token: DF.Password | None
 		pull_from_google_calendar: DF.Check
+		sync_as_public: DF.Check
 		push_to_google_calendar: DF.Check
 		refresh_token: DF.Password | None
 		user: DF.Link
@@ -375,6 +376,8 @@ def insert_event_to_calendar(account, event, recurrence=None):
 		"google_calendar_event_id": event.get("id"),
 		"google_meet_link": event.get("hangoutLink"),
 		"pulled_from_google_calendar": 1,
+		"owner": account.owner,
+		"event_type": "Public" if account.sync_as_public else "Private",
 	}
 	calendar_event.update(
 		google_calendar_to_repeat_on(recurrence=recurrence, start=event.get("start"), end=event.get("end"))

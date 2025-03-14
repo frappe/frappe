@@ -741,14 +741,25 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 	fields = ["name as value"]
 
 	meta = frappe.get_meta(doctype)
-	if meta.title_field and meta.show_title_field_in_link:
+	show_title_field = meta.title_field and meta.show_title_field_in_link
+
+	if show_title_field:
 		fields.append(f"{meta.title_field} as label")
 
 	link_options = frappe.get_all(doctype, filters, fields)
 
-	if meta.title_field and meta.show_title_field_in_link:
+	if show_title_field:
+		if meta.translated_doctype:
+			# Translate the labels if "Translate Link Fields" is enabled
+			link_options = [{"value": row.value, "label": _(row.label)} for row in link_options]
+
 		return json.dumps(link_options, default=str)
 	else:
+		if meta.translated_doctype:
+			# Add `label` as the translated name if "Translate Link Fields" is enabled
+			return [{"value": row.value, "label": _(row.value)} for row in link_options]
+
+		# Use the actual names as options without labels
 		return "\n".join([str(doc.value) for doc in link_options])
 
 

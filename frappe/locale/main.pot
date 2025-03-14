@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Framework VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2025-02-23 09:33+0000\n"
-"PO-Revision-Date: 2025-02-23 09:33+0000\n"
+"POT-Creation-Date: 2025-03-02 09:33+0000\n"
+"PO-Revision-Date: 2025-03-02 09:33+0000\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -135,7 +135,7 @@ msgstr ""
 msgid "1 Day"
 msgstr ""
 
-#: frappe/integrations/doctype/google_calendar/google_calendar.py:359
+#: frappe/integrations/doctype/google_calendar/google_calendar.py:360
 msgid "1 Google Calendar Event synced."
 msgstr ""
 
@@ -885,7 +885,7 @@ msgstr ""
 msgid "Action Complete"
 msgstr ""
 
-#: frappe/model/document.py:1860
+#: frappe/model/document.py:1859
 msgid "Action Failed"
 msgstr ""
 
@@ -1296,7 +1296,7 @@ msgstr ""
 msgid "Added default log doctypes: {}"
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:736
+#: frappe/core/doctype/file/file.py:738
 msgid "Added {0}"
 msgstr ""
 
@@ -1414,11 +1414,11 @@ msgstr ""
 msgid "Administrator"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1214
+#: frappe/core/doctype/user/user.py:1216
 msgid "Administrator Logged In"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1208
+#: frappe/core/doctype/user/user.py:1210
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr ""
 
@@ -1662,8 +1662,8 @@ msgstr ""
 msgid "Allow Dropbox Access"
 msgstr ""
 
-#: frappe/integrations/doctype/google_calendar/google_calendar.py:101
-#: frappe/integrations/doctype/google_calendar/google_calendar.py:115
+#: frappe/integrations/doctype/google_calendar/google_calendar.py:102
+#: frappe/integrations/doctype/google_calendar/google_calendar.py:116
 msgid "Allow Google Calendar Access"
 msgstr ""
 
@@ -1926,7 +1926,7 @@ msgstr ""
 msgid "Allowing DocType, DocType. Be careful!"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1024
+#: frappe/core/doctype/user/user.py:1026
 msgid "Already Registered"
 msgstr ""
 
@@ -2017,7 +2017,7 @@ msgstr ""
 msgid "Amendment Naming Override"
 msgstr ""
 
-#: frappe/model/document.py:522
+#: frappe/model/document.py:544
 msgid "Amendment Not Allowed"
 msgstr ""
 
@@ -2025,7 +2025,7 @@ msgstr ""
 msgid "Amendment naming rules updated."
 msgstr ""
 
-#: frappe/public/js/frappe/ui/toolbar/toolbar.js:322
+#: frappe/public/js/frappe/ui/toolbar/toolbar.js:323
 msgid "An error occurred while setting Session Defaults"
 msgstr ""
 
@@ -2985,7 +2985,7 @@ msgstr ""
 #. Option for the 'Function' (Select) field in DocType 'Number Card'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/desk/doctype/number_card/number_card.json
-#: frappe/public/js/frappe/form/controls/password.js:89
+#: frappe/public/js/frappe/form/controls/password.js:88
 #: frappe/public/js/frappe/ui/group_by/group_by.js:21
 msgid "Average"
 msgstr ""
@@ -3132,7 +3132,7 @@ msgstr ""
 #. 'System Health Report'
 #: frappe/core/workspace/build/build.json
 #: frappe/desk/doctype/system_health_report/system_health_report.json
-#: frappe/public/js/frappe/ui/toolbar/toolbar.js:178
+#: frappe/public/js/frappe/ui/toolbar/toolbar.js:179
 msgid "Background Jobs"
 msgstr ""
 
@@ -4061,11 +4061,11 @@ msgstr ""
 msgid "Cannot Remove"
 msgstr ""
 
-#: frappe/model/base_document.py:1100
+#: frappe/model/base_document.py:1143
 msgid "Cannot Update After Submit"
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:591
+#: frappe/core/doctype/file/file.py:589
 msgid "Cannot access file path {0}"
 msgstr ""
 
@@ -4081,11 +4081,11 @@ msgstr ""
 msgid "Cannot cancel {0}."
 msgstr ""
 
-#: frappe/model/document.py:986
+#: frappe/model/document.py:1006
 msgid "Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"
 msgstr ""
 
-#: frappe/model/document.py:1000
+#: frappe/model/document.py:1020
 msgid "Cannot change docstatus from 1 (Submitted) to 0 (Draft)"
 msgstr ""
 
@@ -4168,7 +4168,7 @@ msgstr ""
 msgid "Cannot edit a standard report. Please duplicate and create a new report"
 msgstr ""
 
-#: frappe/model/document.py:1006
+#: frappe/model/document.py:1026
 msgid "Cannot edit cancelled document"
 msgstr ""
 
@@ -4193,7 +4193,7 @@ msgstr ""
 msgid "Cannot find file {} on disk"
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:531
+#: frappe/core/doctype/file/file.py:529
 msgid "Cannot get file contents of a Folder"
 msgstr ""
 
@@ -4201,7 +4201,7 @@ msgstr ""
 msgid "Cannot have multiple printers mapped to a single print format."
 msgstr ""
 
-#: frappe/model/document.py:1074
+#: frappe/model/document.py:1094
 msgid "Cannot link cancelled document: {0}"
 msgstr ""
 
@@ -4675,7 +4675,7 @@ msgstr ""
 msgid "Click on the link below to verify your request"
 msgstr ""
 
-#: frappe/integrations/doctype/google_calendar/google_calendar.py:102
+#: frappe/integrations/doctype/google_calendar/google_calendar.py:103
 #: frappe/integrations/doctype/google_contacts/google_contacts.py:41
 #: frappe/integrations/doctype/google_drive/google_drive.py:53
 #: frappe/website/doctype/website_settings/website_settings.py:161
@@ -5594,7 +5594,7 @@ msgstr ""
 msgid "Could not connect to outgoing email server"
 msgstr ""
 
-#: frappe/model/document.py:1070
+#: frappe/model/document.py:1090
 msgid "Could not find {0}"
 msgstr ""
 
@@ -7745,7 +7745,7 @@ msgstr ""
 msgid "Document Naming Settings"
 msgstr ""
 
-#: frappe/model/document.py:1718
+#: frappe/model/document.py:469
 msgid "Document Queued"
 msgstr ""
 
@@ -7902,7 +7902,7 @@ msgid "Document Types and Permissions"
 msgstr ""
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:163
-#: frappe/model/document.py:1924
+#: frappe/model/document.py:1923
 msgid "Document Unlocked"
 msgstr ""
 
@@ -8060,7 +8060,7 @@ msgstr ""
 msgid "Double click to edit label"
 msgstr ""
 
-#: frappe/core/doctype/file/file.js:10
+#: frappe/core/doctype/file/file.js:15
 #: frappe/email/doctype/auto_email_report/auto_email_report.js:8
 #: frappe/public/js/frappe/form/grid.js:66
 msgid "Download"
@@ -8208,7 +8208,7 @@ msgstr ""
 msgid "Duplicate Filter Name"
 msgstr ""
 
-#: frappe/model/base_document.py:611 frappe/model/rename_doc.py:111
+#: frappe/model/base_document.py:654 frappe/model/rename_doc.py:111
 msgid "Duplicate Name"
 msgstr ""
 
@@ -8874,7 +8874,7 @@ msgstr ""
 msgid "Enable Email Notifications"
 msgstr ""
 
-#: frappe/integrations/doctype/google_calendar/google_calendar.py:90
+#: frappe/integrations/doctype/google_calendar/google_calendar.py:91
 #: frappe/integrations/doctype/google_contacts/google_contacts.py:36
 #: frappe/website/doctype/website_settings/website_settings.py:129
 msgid "Enable Google API in Google Settings."
@@ -9182,7 +9182,7 @@ msgstr ""
 msgid "Ensure the user and group search paths are correct."
 msgstr ""
 
-#: frappe/integrations/doctype/google_calendar/google_calendar.py:93
+#: frappe/integrations/doctype/google_calendar/google_calendar.py:94
 msgid "Enter Client Id and Client Secret in Google Settings."
 msgstr ""
 
@@ -9339,15 +9339,15 @@ msgstr ""
 msgid "Error while evaluating Notification {0}. Please fix your template."
 msgstr ""
 
-#: frappe/model/base_document.py:751
+#: frappe/model/base_document.py:794
 msgid "Error: Data missing in table {0}"
 msgstr ""
 
-#: frappe/model/base_document.py:761
+#: frappe/model/base_document.py:804
 msgid "Error: Value missing for {0}: {1}"
 msgstr ""
 
-#: frappe/model/base_document.py:755
+#: frappe/model/base_document.py:798
 msgid "Error: {0} Row #{1}: Value missing for: {2}"
 msgstr ""
 
@@ -9388,8 +9388,8 @@ msgstr ""
 msgid "Event Reminders"
 msgstr ""
 
-#: frappe/integrations/doctype/google_calendar/google_calendar.py:452
-#: frappe/integrations/doctype/google_calendar/google_calendar.py:536
+#: frappe/integrations/doctype/google_calendar/google_calendar.py:455
+#: frappe/integrations/doctype/google_calendar/google_calendar.py:539
 msgid "Event Synced with Google Calendar."
 msgstr ""
 
@@ -9463,7 +9463,7 @@ msgstr ""
 msgid "Excel"
 msgstr ""
 
-#: frappe/public/js/frappe/form/controls/password.js:91
+#: frappe/public/js/frappe/form/controls/password.js:90
 msgid "Excellent"
 msgstr ""
 
@@ -10024,7 +10024,7 @@ msgstr ""
 msgid "Field {0} does not exist on {1}"
 msgstr ""
 
-#: frappe/desk/form/meta.py:205
+#: frappe/desk/form/meta.py:208
 msgid "Field {0} is referring to non-existing doctype {1}."
 msgstr ""
 
@@ -10123,7 +10123,7 @@ msgstr ""
 msgid "Fields Multicheck"
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:410
+#: frappe/core/doctype/file/file.py:408
 msgid "Fields `file_name` or `file_url` must be set for File"
 msgstr ""
 
@@ -10228,7 +10228,7 @@ msgstr ""
 msgid "File backup is ready"
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:594
+#: frappe/core/doctype/file/file.py:592
 msgid "File name cannot have {0}"
 msgstr ""
 
@@ -10236,7 +10236,7 @@ msgstr ""
 msgid "File not attached"
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:700 frappe/public/js/frappe/request.js:199
+#: frappe/core/doctype/file/file.py:702 frappe/public/js/frappe/request.js:199
 #: frappe/utils/file_manager.py:221
 msgid "File size exceeded the maximum allowed size of {0} MB"
 msgstr ""
@@ -10249,7 +10249,7 @@ msgstr ""
 msgid "File type of {0} is not allowed"
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:361 frappe/core/doctype/file/file.py:426
+#: frappe/core/doctype/file/file.py:361 frappe/core/doctype/file/file.py:424
 msgid "File {0} does not exist"
 msgstr ""
 
@@ -10504,7 +10504,7 @@ msgstr ""
 msgid "Folder name should not include '/' (slash)"
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:472
+#: frappe/core/doctype/file/file.py:470
 msgid "Folder {0} is not empty"
 msgstr ""
 
@@ -11131,7 +11131,7 @@ msgstr ""
 msgid "Generate Random Password"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/toolbar/toolbar.js:172
+#: frappe/public/js/frappe/ui/toolbar/toolbar.js:173
 #: frappe/public/js/frappe/utils/utils.js:1790
 msgid "Generate Tracking URL"
 msgstr ""
@@ -11345,19 +11345,19 @@ msgstr ""
 msgid "Google Calendar"
 msgstr ""
 
-#: frappe/integrations/doctype/google_calendar/google_calendar.py:776
+#: frappe/integrations/doctype/google_calendar/google_calendar.py:779
 msgid "Google Calendar - Contact / email not found. Did not add attendee for -<br>{0}"
 msgstr ""
 
-#: frappe/integrations/doctype/google_calendar/google_calendar.py:252
+#: frappe/integrations/doctype/google_calendar/google_calendar.py:253
 msgid "Google Calendar - Could not create Calendar for {0}, error code {1}."
 msgstr ""
 
-#: frappe/integrations/doctype/google_calendar/google_calendar.py:572
+#: frappe/integrations/doctype/google_calendar/google_calendar.py:575
 msgid "Google Calendar - Could not delete Event {0} from Google Calendar, error code {1}."
 msgstr ""
 
-#: frappe/integrations/doctype/google_calendar/google_calendar.py:289
+#: frappe/integrations/doctype/google_calendar/google_calendar.py:290
 msgid "Google Calendar - Could not fetch event from Google Calendar, error code {0}."
 msgstr ""
 
@@ -11365,11 +11365,11 @@ msgstr ""
 msgid "Google Calendar - Could not insert contact in Google Contacts {0}, error code {1}."
 msgstr ""
 
-#: frappe/integrations/doctype/google_calendar/google_calendar.py:455
+#: frappe/integrations/doctype/google_calendar/google_calendar.py:458
 msgid "Google Calendar - Could not insert event in Google Calendar {0}, error code {1}."
 msgstr ""
 
-#: frappe/integrations/doctype/google_calendar/google_calendar.py:539
+#: frappe/integrations/doctype/google_calendar/google_calendar.py:542
 msgid "Google Calendar - Could not update Event {0} in Google Calendar, error code {1}."
 msgstr ""
 
@@ -11385,7 +11385,7 @@ msgstr ""
 msgid "Google Calendar ID"
 msgstr ""
 
-#: frappe/integrations/doctype/google_calendar/google_calendar.py:167
+#: frappe/integrations/doctype/google_calendar/google_calendar.py:168
 msgid "Google Calendar has been configured."
 msgstr ""
 
@@ -12552,7 +12552,7 @@ msgstr ""
 msgid "Image link '{0}' is not valid"
 msgstr ""
 
-#: frappe/core/doctype/file/file.js:105
+#: frappe/core/doctype/file/file.js:107
 msgid "Image optimized"
 msgstr ""
 
@@ -12832,7 +12832,7 @@ msgstr ""
 msgid "Include indentation"
 msgstr ""
 
-#: frappe/public/js/frappe/form/controls/password.js:107
+#: frappe/public/js/frappe/form/controls/password.js:106
 msgid "Include symbols, numbers and capital letters in the password"
 msgstr ""
 
@@ -12895,11 +12895,11 @@ msgstr ""
 msgid "Incorrect Verification code"
 msgstr ""
 
-#: frappe/model/document.py:1515
+#: frappe/model/document.py:1535
 msgid "Incorrect value in row {0}:"
 msgstr ""
 
-#: frappe/model/document.py:1517
+#: frappe/model/document.py:1537
 msgid "Incorrect value:"
 msgstr ""
 
@@ -12920,7 +12920,7 @@ msgstr ""
 msgid "Index Web Pages for Search"
 msgstr ""
 
-#: frappe/core/doctype/recorder/recorder.py:140
+#: frappe/core/doctype/recorder/recorder.py:132
 msgid "Index created successfully on column {0} of doctype {1}"
 msgstr ""
 
@@ -13279,7 +13279,7 @@ msgstr ""
 msgid "Invalid Output Format"
 msgstr ""
 
-#: frappe/model/base_document.py:102
+#: frappe/model/base_document.py:115
 msgid "Invalid Override"
 msgstr ""
 
@@ -13287,7 +13287,7 @@ msgstr ""
 msgid "Invalid Parameters."
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1229 frappe/www/update-password.html:123
+#: frappe/core/doctype/user/user.py:1231 frappe/www/update-password.html:123
 #: frappe/www/update-password.html:144 frappe/www/update-password.html:146
 #: frappe/www/update-password.html:247
 msgid "Invalid Password"
@@ -13341,7 +13341,7 @@ msgstr ""
 msgid "Invalid column"
 msgstr ""
 
-#: frappe/model/document.py:989 frappe/model/document.py:1003
+#: frappe/model/document.py:1009 frappe/model/document.py:1023
 msgid "Invalid docstatus"
 msgstr ""
 
@@ -15757,7 +15757,7 @@ msgstr ""
 msgid "Miss"
 msgstr ""
 
-#: frappe/desk/form/meta.py:215
+#: frappe/desk/form/meta.py:218
 msgid "Missing DocType"
 msgstr ""
 
@@ -16169,7 +16169,7 @@ msgstr ""
 msgid "My Device"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/apps_switcher.js:62
+#: frappe/public/js/frappe/ui/apps_switcher.js:57
 msgid "My Workspaces"
 msgstr ""
 
@@ -16326,7 +16326,7 @@ msgstr ""
 msgid "Need Workspace Manager role to edit private workspace of other users"
 msgstr ""
 
-#: frappe/model/document.py:764
+#: frappe/model/document.py:787
 msgid "Negative Value"
 msgstr ""
 
@@ -16753,7 +16753,7 @@ msgstr ""
 msgid "No Filters Set"
 msgstr ""
 
-#: frappe/integrations/doctype/google_calendar/google_calendar.py:357
+#: frappe/integrations/doctype/google_calendar/google_calendar.py:358
 msgid "No Google Calendar Event to sync."
 msgstr ""
 
@@ -16844,7 +16844,7 @@ msgstr ""
 msgid "No Select Field Found"
 msgstr ""
 
-#: frappe/core/doctype/recorder/recorder.py:187
+#: frappe/core/doctype/recorder/recorder.py:179
 msgid "No Suggestions"
 msgstr ""
 
@@ -16868,7 +16868,7 @@ msgstr ""
 msgid "No alerts for today"
 msgstr ""
 
-#: frappe/core/doctype/recorder/recorder.py:186
+#: frappe/core/doctype/recorder/recorder.py:178
 msgid "No automatic optimization suggestions available."
 msgstr ""
 
@@ -17104,7 +17104,7 @@ msgstr ""
 msgid "Normalized Query"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1019
+#: frappe/core/doctype/user/user.py:1021
 #: frappe/templates/includes/login/login.js:257 frappe/utils/oauth.py:270
 msgid "Not Allowed"
 msgstr ""
@@ -17856,7 +17856,7 @@ msgstr ""
 msgid "Only change this if you want to use other S3 compatible object storage backends."
 msgstr ""
 
-#: frappe/model/document.py:1208
+#: frappe/model/document.py:1228
 msgid "Only draft documents can be discarded"
 msgstr ""
 
@@ -18031,13 +18031,13 @@ msgstr ""
 msgid "Operator must be one of {0}"
 msgstr ""
 
-#: frappe/core/doctype/file/file.js:29
+#: frappe/core/doctype/file/file.js:34
 #: frappe/core/report/database_storage_usage_by_tables/database_storage_usage_by_tables.js:8
 #: frappe/public/js/frappe/file_uploader/FilePreview.vue:27
 msgid "Optimize"
 msgstr ""
 
-#: frappe/core/doctype/file/file.js:103
+#: frappe/core/doctype/file/file.js:105
 msgid "Optimizing image..."
 msgstr ""
 
@@ -18110,7 +18110,7 @@ msgstr ""
 msgid "Options is required for field {0} of type {1}"
 msgstr ""
 
-#: frappe/model/base_document.py:810
+#: frappe/model/base_document.py:853
 msgid "Options not set for link field {0}"
 msgstr ""
 
@@ -18574,7 +18574,7 @@ msgstr ""
 msgid "Password"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1082
+#: frappe/core/doctype/user/user.py:1084
 msgid "Password Email Sent"
 msgstr ""
 
@@ -18612,7 +18612,7 @@ msgstr ""
 msgid "Password not found for {0} {1} {2}"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1081
+#: frappe/core/doctype/user/user.py:1083
 msgid "Password reset instructions have been sent to {}'s email"
 msgstr ""
 
@@ -19013,7 +19013,7 @@ msgstr ""
 msgid "Please add a valid comment."
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1064
+#: frappe/core/doctype/user/user.py:1066
 msgid "Please ask your administrator to verify your sign-up"
 msgstr ""
 
@@ -19041,11 +19041,11 @@ msgstr ""
 msgid "Please check the filter values set for Dashboard Chart: {}"
 msgstr ""
 
-#: frappe/model/base_document.py:890
+#: frappe/model/base_document.py:933
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1062
+#: frappe/core/doctype/user/user.py:1064
 msgid "Please check your email for verification"
 msgstr ""
 
@@ -19093,7 +19093,7 @@ msgstr ""
 msgid "Please create chart first"
 msgstr ""
 
-#: frappe/desk/form/meta.py:211
+#: frappe/desk/form/meta.py:214
 msgid "Please delete the field from {0} or add the required doctype."
 msgstr ""
 
@@ -19200,7 +19200,7 @@ msgstr ""
 msgid "Please make sure the Reference Communication Docs are not circularly linked."
 msgstr ""
 
-#: frappe/model/document.py:958
+#: frappe/model/document.py:981
 msgid "Please refresh to get the latest document."
 msgstr ""
 
@@ -20239,7 +20239,7 @@ msgstr ""
 msgid "Query Report"
 msgstr ""
 
-#: frappe/core/doctype/recorder/recorder.py:196
+#: frappe/core/doctype/recorder/recorder.py:188
 msgid "Query analysis complete. Check suggested indexes."
 msgstr ""
 
@@ -20979,7 +20979,7 @@ msgstr ""
 msgid "Refreshing..."
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1026
+#: frappe/core/doctype/user/user.py:1028
 msgid "Registered but disabled"
 msgstr ""
 
@@ -22071,7 +22071,7 @@ msgstr ""
 msgid "Route: Example \"/app\""
 msgstr ""
 
-#: frappe/model/base_document.py:796 frappe/model/document.py:749
+#: frappe/model/base_document.py:839 frappe/model/document.py:772
 msgid "Row"
 msgstr ""
 
@@ -22084,7 +22084,7 @@ msgstr ""
 msgid "Row # {0}: Non administrator user can not set the role {1} to the custom doctype"
 msgstr ""
 
-#: frappe/model/base_document.py:921
+#: frappe/model/base_document.py:964
 msgid "Row #{0}:"
 msgstr ""
 
@@ -22363,7 +22363,7 @@ msgstr ""
 #: frappe/public/js/frappe/list/list_settings.js:36
 #: frappe/public/js/frappe/list/list_settings.js:247
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:25
-#: frappe/public/js/frappe/ui/toolbar/toolbar.js:332
+#: frappe/public/js/frappe/ui/toolbar/toolbar.js:333
 #: frappe/public/js/frappe/utils/common.js:443
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:45
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:189
@@ -22561,7 +22561,7 @@ msgstr ""
 msgid "Scheduler Status"
 msgstr ""
 
-#: frappe/utils/scheduler.py:248
+#: frappe/utils/scheduler.py:256
 msgid "Scheduler can not be re-enabled when maintenance mode is active."
 msgstr ""
 
@@ -23528,11 +23528,11 @@ msgstr ""
 #. Label of the session_defaults (Table) field in DocType 'Session Default
 #. Settings'
 #: frappe/core/doctype/session_default_settings/session_default_settings.json
-#: frappe/hooks.py frappe/public/js/frappe/ui/toolbar/toolbar.js:331
+#: frappe/hooks.py frappe/public/js/frappe/ui/toolbar/toolbar.js:332
 msgid "Session Defaults"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/toolbar/toolbar.js:316
+#: frappe/public/js/frappe/ui/toolbar/toolbar.js:317
 msgid "Session Defaults Saved"
 msgstr ""
 
@@ -23768,8 +23768,8 @@ msgstr ""
 #: frappe/core/doctype/doctype/doctype.json frappe/core/doctype/user/user.json
 #: frappe/integrations/workspace/integrations/integrations.json
 #: frappe/public/js/frappe/form/templates/print_layout.html:25
-#: frappe/public/js/frappe/ui/apps_switcher.js:127
-#: frappe/public/js/frappe/ui/toolbar/toolbar.js:289
+#: frappe/public/js/frappe/ui/apps_switcher.js:122
+#: frappe/public/js/frappe/ui/toolbar/toolbar.js:290
 #: frappe/public/js/frappe/views/workspace/workspace.js:362
 #: frappe/website/doctype/web_form/web_form.json
 #: frappe/website/doctype/web_page/web_page.json
@@ -24226,7 +24226,7 @@ msgstr ""
 msgid "Sign Up and Confirmation"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1019
+#: frappe/core/doctype/user/user.py:1021
 msgid "Sign Up is disabled"
 msgstr ""
 
@@ -24499,7 +24499,7 @@ msgstr ""
 msgid "Something went wrong"
 msgstr ""
 
-#: frappe/integrations/doctype/google_calendar/google_calendar.py:117
+#: frappe/integrations/doctype/google_calendar/google_calendar.py:118
 msgid "Something went wrong during the token generation. Click on {0} to generate a new one."
 msgstr ""
 
@@ -24970,7 +24970,7 @@ msgstr ""
 msgid "Strip EXIF tags from uploaded images"
 msgstr ""
 
-#: frappe/public/js/frappe/form/controls/password.js:90
+#: frappe/public/js/frappe/form/controls/password.js:89
 msgid "Strong"
 msgstr ""
 
@@ -25366,11 +25366,16 @@ msgstr ""
 msgid "Sync Contacts"
 msgstr ""
 
+#. Label of the sync_as_public (Check) field in DocType 'Google Calendar'
+#: frappe/integrations/doctype/google_calendar/google_calendar.json
+msgid "Sync events from Google as public"
+msgstr ""
+
 #: frappe/custom/doctype/customize_form/customize_form.js:256
 msgid "Sync on Migrate"
 msgstr ""
 
-#: frappe/integrations/doctype/google_calendar/google_calendar.py:296
+#: frappe/integrations/doctype/google_calendar/google_calendar.py:297
 msgid "Sync token was invalid and has been reset, Retry syncing."
 msgstr ""
 
@@ -25719,7 +25724,7 @@ msgstr ""
 msgid "Table updated"
 msgstr ""
 
-#: frappe/model/document.py:1538
+#: frappe/model/document.py:1558
 msgid "Table {0} cannot be empty"
 msgstr ""
 
@@ -25836,7 +25841,7 @@ msgstr ""
 msgid "Templates"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1030
+#: frappe/core/doctype/user/user.py:1032
 msgid "Temporarily Disabled"
 msgstr ""
 
@@ -26115,11 +26120,11 @@ msgid ""
 "</a>"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:990
+#: frappe/core/doctype/user/user.py:992
 msgid "The reset password link has been expired"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:992
+#: frappe/core/doctype/user/user.py:994
 msgid "The reset password link has either been used before or is invalid"
 msgstr ""
 
@@ -26227,7 +26232,7 @@ msgstr ""
 msgid "There is nothing new to show you right now."
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:588 frappe/utils/file_manager.py:372
+#: frappe/core/doctype/file/file.py:586 frappe/utils/file_manager.py:372
 msgid "There is some problem with the file url: {0}"
 msgstr ""
 
@@ -26361,7 +26366,7 @@ msgstr ""
 msgid "This document is already amended, you cannot ammend it again"
 msgstr ""
 
-#: frappe/model/document.py:1715
+#: frappe/model/document.py:466
 msgid "This document is currently locked and queued for execution. Please try again after some time."
 msgstr ""
 
@@ -26389,7 +26394,7 @@ msgid ""
 "eval:doc.age&gt;18"
 msgstr ""
 
-#: frappe/core/doctype/file/file.js:15
+#: frappe/core/doctype/file/file.js:20
 msgid "This file is public. It can be accessed without authentication."
 msgstr ""
 
@@ -26548,7 +26553,7 @@ msgstr ""
 msgid "This will terminate the job immediately and might be dangerous, are you sure? "
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1243
+#: frappe/core/doctype/user/user.py:1245
 msgid "Throttled"
 msgstr ""
 
@@ -27020,7 +27025,7 @@ msgstr ""
 msgid "Too many changes to database in single action."
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1031
+#: frappe/core/doctype/user/user.py:1033
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr ""
 
@@ -27508,7 +27513,7 @@ msgstr ""
 #. Option for the 'Type' (Select) field in DocType 'Workspace Shortcut'
 #. Label of the url (Data) field in DocType 'Workspace Shortcut'
 #. Label of the url (Small Text) field in DocType 'Integration Request'
-#. Label of the url (Data) field in DocType 'Webhook Request Log'
+#. Label of the url (Text) field in DocType 'Webhook Request Log'
 #. Label of the url (Data) field in DocType 'Top Bar Item'
 #. Label of the url (Data) field in DocType 'Website Slideshow Item'
 #: frappe/desk/doctype/workspace/workspace.json
@@ -27597,7 +27602,7 @@ msgstr ""
 msgid "Unable to update event"
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:464
+#: frappe/core/doctype/file/file.py:462
 msgid "Unable to write file format for {0}"
 msgstr ""
 
@@ -27728,7 +27733,7 @@ msgstr ""
 msgid "Untitled Column"
 msgstr ""
 
-#: frappe/core/doctype/file/file.js:33
+#: frappe/core/doctype/file/file.js:38
 msgid "Unzip"
 msgstr ""
 
@@ -28384,7 +28389,7 @@ msgstr ""
 msgid "User {0} has requested for data deletion"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1372
+#: frappe/core/doctype/user/user.py:1374
 msgid "User {0} impersonated as {1}"
 msgstr ""
 
@@ -28553,15 +28558,15 @@ msgstr ""
 msgid "Value To Be Set"
 msgstr ""
 
-#: frappe/model/base_document.py:993 frappe/model/document.py:805
+#: frappe/model/base_document.py:1036 frappe/model/document.py:828
 msgid "Value cannot be changed for {0}"
 msgstr ""
 
-#: frappe/model/document.py:751
+#: frappe/model/document.py:774
 msgid "Value cannot be negative for"
 msgstr ""
 
-#: frappe/model/document.py:755
+#: frappe/model/document.py:778
 msgid "Value cannot be negative for {0}: {1}"
 msgstr ""
 
@@ -28573,7 +28578,7 @@ msgstr ""
 msgid "Value for field {0} is too long in {1}. Length should be lesser than {2} characters"
 msgstr ""
 
-#: frappe/model/base_document.py:402
+#: frappe/model/base_document.py:427
 msgid "Value for {0} cannot be a list"
 msgstr ""
 
@@ -28592,7 +28597,7 @@ msgstr ""
 msgid "Value to Validate"
 msgstr ""
 
-#: frappe/model/base_document.py:1063
+#: frappe/model/base_document.py:1106
 msgid "Value too big"
 msgstr ""
 
@@ -28704,7 +28709,7 @@ msgstr ""
 msgid "View Doctype Permissions"
 msgstr ""
 
-#: frappe/core/doctype/file/file.js:3
+#: frappe/core/doctype/file/file.js:4
 msgid "View File"
 msgstr ""
 
@@ -28763,10 +28768,6 @@ msgstr ""
 
 #: frappe/www/confirm_workflow_action.html:12
 msgid "View document"
-msgstr ""
-
-#: frappe/core/doctype/file/file.js:36
-msgid "View file"
 msgstr ""
 
 #: frappe/templates/emails/auto_email_report.html:60
@@ -28896,7 +28897,7 @@ msgstr ""
 msgid "We've received your query!"
 msgstr ""
 
-#: frappe/public/js/frappe/form/controls/password.js:88
+#: frappe/public/js/frappe/form/controls/password.js:87
 msgid "Weak"
 msgstr ""
 
@@ -29038,7 +29039,7 @@ msgstr ""
 #. Name of a Workspace
 #: frappe/core/doctype/module_def/module_def.json
 #: frappe/email/doctype/newsletter/newsletter.py:458
-#: frappe/public/js/frappe/ui/apps_switcher.js:115
+#: frappe/public/js/frappe/ui/apps_switcher.js:110
 #: frappe/public/js/frappe/ui/toolbar/about.js:8
 #: frappe/website/workspace/website/website.json
 msgid "Website"
@@ -29345,7 +29346,7 @@ msgstr ""
 #. Description of the 'Run Jobs only Daily if Inactive For (Days)' (Int) field
 #. in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
-msgid "Will run scheduled jobs only once a day for inactive sites. Default 4 days if set to 0."
+msgid "Will run scheduled jobs only once a day for inactive sites. Set it to 0 to avoid automatically disabling the scheduler."
 msgstr ""
 
 #: frappe/public/js/frappe/form/print_utils.js:15
@@ -29579,7 +29580,7 @@ msgstr ""
 msgid "Write"
 msgstr ""
 
-#: frappe/model/base_document.py:893
+#: frappe/model/base_document.py:936
 msgid "Wrong Fetch From value"
 msgstr ""
 
@@ -29817,7 +29818,7 @@ msgstr ""
 msgid "You can disable this {0} instead of deleting it."
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:702
+#: frappe/core/doctype/file/file.py:704
 msgid "You can increase the limit from System Settings."
 msgstr ""
 
@@ -30189,11 +30190,11 @@ msgstr ""
 msgid "Your assignment on {0} {1} has been removed by {2}"
 msgstr ""
 
-#: frappe/core/doctype/file/file.js:71
+#: frappe/core/doctype/file/file.js:73
 msgid "Your browser does not support the audio element."
 msgstr ""
 
-#: frappe/core/doctype/file/file.js:53
+#: frappe/core/doctype/file/file.js:55
 msgid "Your browser does not support the video element."
 msgstr ""
 
@@ -31029,7 +31030,7 @@ msgstr ""
 msgid "{0} Fields"
 msgstr ""
 
-#: frappe/integrations/doctype/google_calendar/google_calendar.py:361
+#: frappe/integrations/doctype/google_calendar/google_calendar.py:362
 msgid "{0} Google Calendar Events synced."
 msgstr ""
 
@@ -31060,7 +31061,7 @@ msgstr ""
 msgid "{0} Name"
 msgstr ""
 
-#: frappe/model/base_document.py:1093
+#: frappe/model/base_document.py:1136
 msgid "{0} Not allowed to change {1} after submission from {2} to {3}"
 msgstr ""
 
@@ -31175,7 +31176,7 @@ msgctxt "Form timeline"
 msgid "{0} cancelled this document {1}"
 msgstr ""
 
-#: frappe/model/document.py:519
+#: frappe/model/document.py:541
 msgid "{0} cannot be amended because it is not cancelled. Please cancel the document before creating an amendment."
 msgstr ""
 
@@ -31325,7 +31326,7 @@ msgstr ""
 msgid "{0} is a mandatory field"
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:514
+#: frappe/core/doctype/file/file.py:512
 msgid "{0} is a not a valid zip file"
 msgstr ""
 
@@ -31427,7 +31428,7 @@ msgstr ""
 msgid "{0} is not a valid report format. Report format should one of the following {1}"
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:494
+#: frappe/core/doctype/file/file.py:492
 msgid "{0} is not a zip file"
 msgstr ""
 
@@ -31474,7 +31475,7 @@ msgstr ""
 msgid "{0} items selected"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1381
+#: frappe/core/doctype/user/user.py:1383
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr ""
 
@@ -31507,35 +31508,35 @@ msgstr ""
 msgid "{0} months ago"
 msgstr ""
 
-#: frappe/model/document.py:1780
+#: frappe/model/document.py:1779
 msgid "{0} must be after {1}"
 msgstr ""
 
-#: frappe/model/document.py:1524
+#: frappe/model/document.py:1544
 msgid "{0} must be beginning with '{1}'"
 msgstr ""
 
-#: frappe/model/document.py:1526
+#: frappe/model/document.py:1546
 msgid "{0} must be equal to '{1}'"
 msgstr ""
 
-#: frappe/model/document.py:1522
+#: frappe/model/document.py:1542
 msgid "{0} must be none of {1}"
 msgstr ""
 
-#: frappe/model/document.py:1520 frappe/utils/csvutils.py:161
+#: frappe/model/document.py:1540 frappe/utils/csvutils.py:161
 msgid "{0} must be one of {1}"
 msgstr ""
 
-#: frappe/model/base_document.py:814
+#: frappe/model/base_document.py:857
 msgid "{0} must be set first"
 msgstr ""
 
-#: frappe/model/base_document.py:677
+#: frappe/model/base_document.py:720
 msgid "{0} must be unique"
 msgstr ""
 
-#: frappe/model/document.py:1528
+#: frappe/model/document.py:1548
 msgid "{0} must be {1} {2}"
 msgstr ""
 
@@ -31625,7 +31626,7 @@ msgstr ""
 msgid "{0} role does not have permission on any doctype"
 msgstr ""
 
-#: frappe/model/document.py:1773
+#: frappe/model/document.py:1772
 msgid "{0} row #{1}: "
 msgstr ""
 
@@ -31721,11 +31722,11 @@ msgstr ""
 msgid "{0} {1} added to Dashboard {2}"
 msgstr ""
 
-#: frappe/model/base_document.py:610 frappe/model/rename_doc.py:110
+#: frappe/model/base_document.py:653 frappe/model/rename_doc.py:110
 msgid "{0} {1} already exists"
 msgstr ""
 
-#: frappe/model/base_document.py:926
+#: frappe/model/base_document.py:969
 msgid "{0} {1} cannot be \"{2}\". It should be one of \"{3}\""
 msgstr ""
 
@@ -31749,7 +31750,7 @@ msgstr ""
 msgid "{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first."
 msgstr ""
 
-#: frappe/model/base_document.py:1054
+#: frappe/model/base_document.py:1097
 msgid "{0}, Row {1}"
 msgstr ""
 
@@ -31757,7 +31758,7 @@ msgstr ""
 msgid "{0}/{1} complete | Please leave this tab open until completion."
 msgstr ""
 
-#: frappe/model/base_document.py:1059
+#: frappe/model/base_document.py:1102
 msgid "{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}"
 msgstr ""
 

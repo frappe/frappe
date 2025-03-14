@@ -1781,7 +1781,11 @@ def filter_strip_join(some_list: list[str], sep: str) -> list[str]:
 	return (cstr(sep)).join(cstr(a).strip() for a in filter(None, some_list))
 
 
-def get_url(uri: str | None = None, full_address: bool = False) -> str:
+def get_url(
+	uri: str | None = None,
+	full_address: bool = False,
+	allow_header_override: bool = True,
+) -> str:
 	"""Get app url from request."""
 	host_name = frappe.local.conf.host_name or frappe.local.conf.hostname
 
@@ -1791,7 +1795,7 @@ def get_url(uri: str | None = None, full_address: bool = False) -> str:
 	if not host_name:
 		request_host_name = get_host_name_from_request()
 
-		if request_host_name:
+		if request_host_name and allow_header_override:
 			host_name = request_host_name
 
 		elif frappe.local.site:
@@ -2001,6 +2005,14 @@ def filter_operator_is(value: str, pattern: str) -> bool:
 		frappe.throw(frappe._(f"Invalid argument for operator 'IS': {pattern}"))
 
 
+def filter_operator_timespan(value: str, pattern: str) -> bool:
+	if not value:
+		return False
+
+	date_range = get_timespan_date_range(pattern)
+	return date_range[0] <= getdate(value) <= date_range[1]
+
+
 operator_map = {
 	# startswith
 	"^": lambda a, b: (a or "").startswith(b),
@@ -2019,6 +2031,7 @@ operator_map = {
 	"like": sql_like,
 	"not like": lambda a, b: not sql_like(a, b),
 	"is": filter_operator_is,
+	"Timespan": filter_operator_timespan,
 }
 
 
@@ -2037,7 +2050,8 @@ def evaluate_filters(doc: "Mapping", filters: FilterSignature):
 def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None):
 	if fieldtype:
 		val1 = cast(fieldtype, val1)
-		val2 = cast(fieldtype, val2)
+		if condition != "Timespan":
+			val2 = cast(fieldtype, val2)
 	if condition in operator_map:
 		return operator_map[condition](val1, val2)
 
@@ -2068,7 +2082,7 @@ def get_filter(doctype: str, filters: FilterSignature, filters_config=None) -> "
 
 	f = frappe._dict(doctype=ft[0], fieldname=ft[1], operator=ft[2], value=ft[3])
 
-	sanitize_column(f.fieldname)
+	f.fieldname = sanitize_column(f.fieldname)
 
 	valid_operators = (
 		"=",
@@ -2135,12 +2149,12 @@ def make_filter_dict(filters):
 	return _filter
 
 
-def sanitize_column(column_name: str) -> None:
+def sanitize_column(column_name: str) -> str:
 	return _sanitize_column(column_name, (frappe.db and frappe.db.db_type) or None)
 
 
 @lru_cache(maxsize=1024)
-def _sanitize_column(column_name: str, db_type: str) -> None:
+def _sanitize_column(column_name: str, db_type: str) -> str:
 	import sqlparse
 
 	from frappe import _
@@ -2183,6 +2197,8 @@ def _sanitize_column(column_name: str, db_type: str) -> None:
 
 	elif regex.match(column_name):
 		_raise_exception()
+
+	return column_name
 
 
 def scrub_urls(html: str) -> str:
@@ -2659,6 +2675,35 @@ def safe_decode(param, encoding="utf-8", fallback_map: dict | None = None):
 	except Exception:
 		pass
 	return param
+
+
+def as_unicode(text, encoding: str = "utf-8") -> str:
+	"""Convert to unicode if required."""
+	if isinstance(text, str):
+		return text
+	elif text is None:
+		return ""
+	elif isinstance(text, bytes):
+		return str(text, encoding)
+	else:
+		return str(text)
+
+
+def mock(type, size=1, locale="en"):
+	import faker
+
+	results = []
+	fake = faker.Faker(locale)
+	if type not in dir(fake):
+		raise ValueError("Not a valid mock type.")
+	else:
+		for _ in range(size):
+			data = getattr(fake, type)()
+			results.append(data)
+
+	from frappe.utils import squashify
+
+	return squashify(results)
 
 
 # This is used in test to count memory overhead of default imports.

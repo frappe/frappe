@@ -712,7 +712,8 @@
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-30 11:25:58.427173",
+ "make_attachments_public": 1,
+ "modified": "2025-03-10 14:22:11.021118",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",
@@ -731,6 +732,7 @@
    "role": "Inbox User"
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

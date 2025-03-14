@@ -246,3 +246,17 @@ def http_cache(
 		return inner
 
 	return outer
+
+
+def deprecated_local_cache(namespace, key, generator, regenerate_if_none=False):
+	if namespace not in frappe.local.cache:
+		frappe.local.cache[namespace] = {}
+
+	if key not in frappe.local.cache[namespace]:
+		frappe.local.cache[namespace][key] = generator()
+
+	elif frappe.local.cache[namespace][key] is None and regenerate_if_none:
+		# if key exists but the previous result was None
+		frappe.local.cache[namespace][key] = generator()
+
+	return frappe.local.cache[namespace][key]
