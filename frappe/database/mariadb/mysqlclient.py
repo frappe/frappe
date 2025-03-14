@@ -233,10 +233,13 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	def _clean_up(self):
 		# PERF: Erase internal references of pymysql to trigger GC as soon as
 		# results are consumed.
-		# self._cursor._result = None
-		# self._cursor._rows = None
-		# self._cursor.connection._result = None
-		return
+
+		# however, this doesn't work as expected
+		self._cursor._result = None
+		self._cursor._rows = None
+
+		# neither does this
+		# self._cursor._discard()
 
 	@staticmethod
 	def escape(s, percent=True):
