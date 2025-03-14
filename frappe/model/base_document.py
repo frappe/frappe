@@ -333,8 +333,9 @@ class BaseDocument:
 			self.append(key, v)
 
 	def remove(self, doc):
-		# Usage: from the parent doc, pass the child table doc
-		# to remove that child doc from the child table, thus removing it from the parent doc
+		"""Usage: from the parent doc, pass the child table doc to remove that child doc from the
+		child table, thus removing it from the parent doc
+		"""
 		if doc.get("parentfield"):
 			self.get(doc.parentfield).remove(doc)
 
