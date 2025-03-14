@@ -39,10 +39,12 @@ from frappe.utils import cast as cast_fieldtype
 if TYPE_CHECKING:
 	# from mariadb.connections import Connection as MariadbConnection
 	# from mariadb.cursors import Cursor as MariadbCursor
-	from MySQLdb.connections import Connection as MariadbConnection
-	from MySQLdb.cursors import Cursor as MariadbCursor
+	from MySQLdb.connections import Connection as MySQLdbConnection
+	from MySQLdb.cursors import Cursor as MySQLdbCursor
 	from psycopg2 import connection as PostgresConnection
 	from psycopg2 import cursor as PostgresCursor
+	from pymysql.connections import Connection as MariadbConnection
+	from pymysql.cursors import Cursor as MariadbCursor
 
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
@@ -119,8 +121,8 @@ class Database:
 
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
-		self._conn: MariadbConnection | PostgresConnection = self.get_connection()
-		self._cursor: MariadbCursor | PostgresCursor = self._conn.cursor()
+		self._conn: MySQLdbConnection | MariadbConnection | PostgresConnection = self.get_connection()
+		self._cursor: MySQLdbConnection | MariadbCursor | PostgresCursor = self._conn.cursor()
 
 		try:
 			if execution_timeout := get_query_execution_timeout():
