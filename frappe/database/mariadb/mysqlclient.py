@@ -158,19 +158,23 @@ def escape_frozenset(obj, mapping=None):
 	return frappe.local.db._conn.literal(tuple(obj))
 
 
-# copied from pymysql
+# adapted from pymysql
 def escape_timedelta(obj, mapping=None):
-	seconds = int(obj.seconds) % 60
-	minutes = int(obj.seconds // 60) % 60
-	hours = int(obj.seconds // 3600) % 24 + int(obj.days) * 24
+	_seconds = obj.seconds
+
 	if obj.microseconds:
 		fmt = "'{0:02d}:{1:02d}:{2:02d}.{3:06d}'"
 	else:
 		fmt = "'{0:02d}:{1:02d}:{2:02d}'"
-	return fmt.format(hours, minutes, seconds, obj.microseconds)
+	return fmt.format(
+		(_seconds // 3600) % 24 + obj.days * 24,  # hours
+		(_seconds // 60) % 60,  # minutes
+		_seconds % 60,  # seconds
+		obj.microseconds,  # microseconds
+	)
 
 
-# copied from pymysql
+# adapted from pymysql
 def escape_dict(obj, mapping=None):
 	raise TypeError("dict can not be used as parameter")
 
