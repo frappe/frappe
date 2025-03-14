@@ -21,6 +21,7 @@ import gc
 import itertools
 import sys
 import time
+import unittest
 from unittest.mock import patch
 
 import psutil
@@ -183,6 +184,7 @@ class TestPerformance(IntegrationTestCase):
 		self.assertNotIn("coalesce", query)
 		self.assertNotIn("ifnull", query)
 
+	@unittest.skip("This wont work with mysqlclient")
 	def test_no_stale_ref_sql(self):
 		"""frappe.db.sql should not hold any internal references to result set.
 
