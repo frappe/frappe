@@ -27,23 +27,22 @@ class MariaDBExceptionUtil:
 
 	# match SEQUENCE_RUN_OUT - https://mariadb.com/kb/en/mariadb-error-codes/
 	SequenceGeneratorLimitExceeded = MySQLdb.OperationalError
-	SequenceGeneratorLimitExceeded.errno = 4084
 
 	@staticmethod
 	def is_deadlocked(e: MySQLdb.Error) -> bool:
-		return getattr(e, "errno", None) == ERR.LOCK_DEADLOCK
+		return e.args[0] == ERR.LOCK_DEADLOCK
 
 	@staticmethod
 	def is_timedout(e: MySQLdb.Error) -> bool:
-		return getattr(e, "errno", None) == ERR.LOCK_WAIT_TIMEOUT
+		return e.args[0] == ERR.LOCK_WAIT_TIMEOUT
 
 	@staticmethod
 	def is_read_only_mode_error(e: MySQLdb.Error) -> bool:
-		return getattr(e, "errno", None) == ERR.CANT_EXECUTE_IN_READ_ONLY_TRANSACTION
+		return e.args[0] == ERR.CANT_EXECUTE_IN_READ_ONLY_TRANSACTION
 
 	@staticmethod
 	def is_table_missing(e: MySQLdb.Error) -> bool:
-		return getattr(e, "errno", None) == ERR.NO_SUCH_TABLE
+		return e.args[0] == ERR.NO_SUCH_TABLE
 
 	@staticmethod
 	def is_missing_table(e: MySQLdb.Error) -> bool:
@@ -51,45 +50,45 @@ class MariaDBExceptionUtil:
 
 	@staticmethod
 	def is_missing_column(e: MySQLdb.Error) -> bool:
-		return getattr(e, "errno", None) == ERR.BAD_FIELD_ERROR
+		return e.args[0] == ERR.BAD_FIELD_ERROR
 
 	@staticmethod
 	def is_duplicate_fieldname(e: MySQLdb.Error) -> bool:
-		return getattr(e, "errno", None) == ERR.DUP_FIELDNAME
+		return e.args[0] == ERR.DUP_FIELDNAME
 
 	@staticmethod
 	def is_duplicate_entry(e: MySQLdb.Error) -> bool:
-		return getattr(e, "errno", None) == ERR.DUP_ENTRY
+		return e.args[0] == ERR.DUP_ENTRY
 
 	@staticmethod
 	def is_access_denied(e: MySQLdb.Error) -> bool:
-		return getattr(e, "errno", None) == ERR.ACCESS_DENIED_ERROR
+		return e.args[0] == ERR.ACCESS_DENIED_ERROR
 
 	@staticmethod
 	def cant_drop_field_or_key(e: MySQLdb.Error) -> bool:
-		return getattr(e, "errno", None) == ERR.CANT_DROP_FIELD_OR_KEY
+		return e.args[0] == ERR.CANT_DROP_FIELD_OR_KEY
 
 	@staticmethod
 	def is_syntax_error(e: MySQLdb.Error) -> bool:
-		return getattr(e, "errno", None) == ERR.PARSE_ERROR
+		return e.args[0] == ERR.PARSE_ERROR
 
 	@staticmethod
 	def is_statement_timeout(e: MySQLdb.Error) -> bool:
-		return getattr(e, "errno", None) == ERR_STATEMENT_TIMEOUT
+		return e.args[0] == ERR_STATEMENT_TIMEOUT
 
 	@staticmethod
 	def is_db_table_size_limit(e: MySQLdb.Error) -> bool:
-		return getattr(e, "errno", None) == ERR.TOO_BIG_ROWSIZE
+		return e.args[0] == ERR.TOO_BIG_ROWSIZE
 
 	@staticmethod
 	def is_data_too_long(e: MySQLdb.Error) -> bool:
-		return getattr(e, "errno", None) == ERR.DATA_TOO_LONG
+		return e.args[0] == ERR.DATA_TOO_LONG
 
 	@staticmethod
 	def is_primary_key_violation(e: MySQLdb.Error) -> bool:
 		return (
 			MariaDBDatabase.is_duplicate_entry(e)
-			and "PRIMARY" in e.errmsg
+			and "PRIMARY" in e.args[1]
 			and isinstance(e, MySQLdb.IntegrityError)
 		)
 
@@ -97,7 +96,7 @@ class MariaDBExceptionUtil:
 	def is_unique_key_violation(e: MySQLdb.Error) -> bool:
 		return (
 			MariaDBDatabase.is_duplicate_entry(e)
-			and "Duplicate" in e.errmsg
+			and "Duplicate" in e.args[1]
 			and isinstance(e, MySQLdb.IntegrityError)
 		)
 
