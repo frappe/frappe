@@ -3,7 +3,7 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-		<link rel="icon" href="/favicon.png" />
+		<link rel="icon" href="/assets/studio/frontend/favicon.png" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>{{ app_title }}</title>
 	</head>
@@ -23,7 +23,7 @@
 			<script type="module" src="http://{{ site_name }}:8080/@vite/client"></script>
 			<script type="module" src="http://{{ site_name }}:8080/src/renderer.ts"></script>
 		{% else %}
-			<script type="module" src="/src/renderer.ts"></script>
+			<script type="module" src="/assets/studio/frontend/renderer.js"></script>
 		{% endif %}
 	</body>
 </html>

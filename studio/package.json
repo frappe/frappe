@@ -4,9 +4,8 @@
 	"version": "0.0.0",
 	"scripts": {
 		"dev": "vite",
-		"build": "vite build --base=/assets/studio/frontend/ && yarn copy-html-entry && yarn copy-app-renderer",
+		"build": "vite build --base=/assets/studio/frontend/ && yarn copy-html-entry",
 		"copy-html-entry": "cp ../studio/public/frontend/index.html ../studio/www/studio.html",
-		"copy-app-renderer": "cp ../studio/public/frontend/renderer.html ../studio/templates/generators/renderer.html",
 		"serve": "vite preview",
 		"extract-frappeui-types": "tsx src/scripts/tsToJSONGenerator.ts frappeui",
 		"extract-studio-types": "tsx src/scripts/tsToJSONGenerator.ts studio"
