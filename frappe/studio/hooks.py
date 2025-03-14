@@ -222,7 +222,6 @@ website_generators = ["Studio App"]
 
 website_route_rules = [
 	{"from_route": "/studio/<path:app_path>", "to_route": "studio"},
-	{"from_route": "/studio-app/<path:app_path>", "to_route": "studio-app"},
 ]
 page_renderer = "studio.studio.doctype.studio_app.studio_app.StudioAppRenderer"
 

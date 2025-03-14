@@ -21,9 +21,6 @@ export default defineConfig({
 				studio: path.resolve(__dirname, "index.html"),
 				renderer: path.resolve(__dirname, "renderer.html"),
 			},
-			output: {
-				entryFileNames: "[name].js",
-			},
 		},
 		outDir: `../studio/public/frontend`,
 		emptyOutDir: true,
