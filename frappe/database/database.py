@@ -206,8 +206,14 @@ class Database:
 
 		debug = debug or getattr(self, "debug", False)
 		query = str(query)
+
 		if not run:
 			return query
+
+		if explain:
+			if debug and is_query_type(query, "select"):
+				self.explain_query(query, values)
+			return
 
 		# remove whitespace / indentation from start and end of query
 		query = query.strip()
@@ -281,7 +287,7 @@ class Database:
 			time_end = time()
 			frappe.log(f"Execution time: {time_end - time_start:.2f} sec")
 
-		self.log_query(query, values, debug, explain)
+		self.log_query(query, values, debug)
 
 		if auto_commit:
 			self.commit()
@@ -337,7 +343,6 @@ class Database:
 		self,
 		mogrified_query: str,
 		debug: bool = False,
-		explain: bool = False,
 		unmogrified_query: str = "",
 	) -> None:
 		"""Takes the query and logs it to various interfaces according to the settings."""
@@ -350,8 +355,6 @@ class Database:
 
 		if debug:
 			_query = _query or str(mogrified_query)
-			if explain and is_query_type(_query, "select"):
-				self.explain_query(_query)
 			frappe.log(_query)
 
 		if conf.logging == 2:
@@ -368,11 +371,9 @@ class Database:
 			_query = _query or str(mogrified_query)
 			self.log_touched_tables(_query)
 
-	def log_query(
-		self, query: str, values: QueryValues = None, debug: bool = False, explain: bool = False
-	) -> str:
+	def log_query(self, query: str, values: QueryValues = None, debug: bool = False) -> str:
 		mogrified_query = self.lazy_mogrify(query, values)
-		self._log_query(mogrified_query, debug, explain, unmogrified_query=query)
+		self._log_query(mogrified_query, debug, query)
 		return mogrified_query
 
 	def mogrify(self, query: Query, values: QueryValues):
