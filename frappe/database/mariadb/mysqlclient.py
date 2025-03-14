@@ -1,20 +1,17 @@
-import re
-import typing
+import datetime
 from contextlib import contextmanager
 
 import MySQLdb
 from MySQLdb._mysql import escape_string
-from MySQLdb.constants import ER as ERR
-from MySQLdb.constants import FIELD_TYPE
+from MySQLdb.constants import ER, FIELD_TYPE
 from MySQLdb.converters import conversions
 
 import frappe
-from frappe.database.database import Database, QueryValues
+from frappe.database.database import Database
 from frappe.database.mariadb.schema import MariaDBTable
-from frappe.utils import UnicodeWithAttrs, get_datetime, get_table_name
+from frappe.utils import get_datetime, get_table_name
 
-_PARAM_COMP = re.compile(r"%\([\w]*\)s")
-ERR_STATEMENT_TIMEOUT = 1969
+ER_STATEMENT_TIMEOUT = 1969
 
 
 class MariaDBExceptionUtil:
@@ -30,19 +27,19 @@ class MariaDBExceptionUtil:
 
 	@staticmethod
 	def is_deadlocked(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ERR.LOCK_DEADLOCK
+		return e.args[0] == ER.LOCK_DEADLOCK
 
 	@staticmethod
 	def is_timedout(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ERR.LOCK_WAIT_TIMEOUT
+		return e.args[0] == ER.LOCK_WAIT_TIMEOUT
 
 	@staticmethod
 	def is_read_only_mode_error(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ERR.CANT_EXECUTE_IN_READ_ONLY_TRANSACTION
+		return e.args[0] == ER.CANT_EXECUTE_IN_READ_ONLY_TRANSACTION
 
 	@staticmethod
 	def is_table_missing(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ERR.NO_SUCH_TABLE
+		return e.args[0] == ER.NO_SUCH_TABLE
 
 	@staticmethod
 	def is_missing_table(e: MySQLdb.Error) -> bool:
@@ -50,39 +47,39 @@ class MariaDBExceptionUtil:
 
 	@staticmethod
 	def is_missing_column(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ERR.BAD_FIELD_ERROR
+		return e.args[0] == ER.BAD_FIELD_ERROR
 
 	@staticmethod
 	def is_duplicate_fieldname(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ERR.DUP_FIELDNAME
+		return e.args[0] == ER.DUP_FIELDNAME
 
 	@staticmethod
 	def is_duplicate_entry(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ERR.DUP_ENTRY
+		return e.args[0] == ER.DUP_ENTRY
 
 	@staticmethod
 	def is_access_denied(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ERR.ACCESS_DENIED_ERROR
+		return e.args[0] == ER.ACCESS_DENIED_ERROR
 
 	@staticmethod
 	def cant_drop_field_or_key(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ERR.CANT_DROP_FIELD_OR_KEY
+		return e.args[0] == ER.CANT_DROP_FIELD_OR_KEY
 
 	@staticmethod
 	def is_syntax_error(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ERR.PARSE_ERROR
+		return e.args[0] == ER.PARSE_ERROR
 
 	@staticmethod
 	def is_statement_timeout(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ERR_STATEMENT_TIMEOUT
+		return e.args[0] == ER_STATEMENT_TIMEOUT
 
 	@staticmethod
 	def is_db_table_size_limit(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ERR.TOO_BIG_ROWSIZE
+		return e.args[0] == ER.TOO_BIG_ROWSIZE
 
 	@staticmethod
 	def is_data_too_long(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ERR.DATA_TOO_LONG
+		return e.args[0] == ER.DATA_TOO_LONG
 
 	@staticmethod
 	def is_primary_key_violation(e: MySQLdb.Error) -> bool:
@@ -154,20 +151,39 @@ class MariaDBConnectionUtil:
 		return conn_settings
 
 
+### Converters
+
+
+def escape_frozenset(obj, mapping=None):
+	return frappe.local.db._conn.literal(tuple(obj))
+
+
+# copied from pymysql
+def escape_timedelta(obj, mapping=None):
+	seconds = int(obj.seconds) % 60
+	minutes = int(obj.seconds // 60) % 60
+	hours = int(obj.seconds // 3600) % 24 + int(obj.days) * 24
+	if obj.microseconds:
+		fmt = "'{0:02d}:{1:02d}:{2:02d}.{3:06d}'"
+	else:
+		fmt = "'{0:02d}:{1:02d}:{2:02d}'"
+	return fmt.format(hours, minutes, seconds, obj.microseconds)
+
+
+# copied from pymysql
+def escape_dict(obj, mapping=None):
+	raise TypeError("dict can not be used as parameter")
+
+
 class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	REGEX_CHARACTER = "regexp"
-	# NOTE: using a very small cache - as during backup, if the sequence was used in anyform,
-	# it drops the cache and uses the next non cached value in setval query and
-	# puts that in the backup file, which will start the counter
-	# from that value when inserting any new record in the doctype.
-	# By default the cache is 1000 which will mess up the sequence when
-	# using the system after a restore.
-	# issue link: https://jira.mariadb.org/browse/MDEV-21786
-	SEQUENCE_CACHE = 50
-	CONVERSION_MAP: typing.ClassVar = conversions | {
+	CONVERSION_MAP = conversions | {
 		FIELD_TYPE.NEWDECIMAL: float,
 		FIELD_TYPE.DATETIME: get_datetime,
-		UnicodeWithAttrs: escape_string,
+		dict: escape_dict,
+		frozenset: escape_frozenset,
+		datetime.timedelta: escape_timedelta,  # not handled as desired by MySQLdb
+		# no need to specify UnicodeWithAttrs, as it subclasses str - which is handled
 	}
 	default_port = "3306"
 	MAX_ROW_SIZE_LIMIT = 65_535  # bytes

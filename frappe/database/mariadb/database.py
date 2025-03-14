@@ -1,4 +1,3 @@
-import re
 from contextlib import contextmanager
 
 import pymysql
@@ -9,8 +8,6 @@ import frappe
 from frappe.database.database import Database
 from frappe.database.mariadb.schema import MariaDBTable
 from frappe.utils import UnicodeWithAttrs, cstr, get_datetime, get_table_name
-
-_PARAM_COMP = re.compile(r"%\([\w]*\)s")
 
 
 class MariaDBExceptionUtil:
