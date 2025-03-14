@@ -21,7 +21,6 @@ import gc
 import itertools
 import sys
 import time
-import unittest
 from unittest.mock import patch
 
 import psutil
