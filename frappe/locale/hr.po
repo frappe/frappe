@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-24 14:51+0000\n"
-"PO-Revision-Date: 2025-03-12 20:00\n"
+"PO-Revision-Date: 2025-03-14 20:39\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -120,7 +120,7 @@ msgstr ""
 #. Description of the 'Priority' (Int) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "0 is highest"
-msgstr ""
+msgstr "0 je najviše"
 
 #: frappe/public/js/frappe/form/grid_row.js:820
 msgid "1 = True & 0 = False"
@@ -130,7 +130,8 @@ msgstr "1 = Točno & 0 = Netočno"
 #: frappe/geo/doctype/currency/currency.json
 msgid "1 Currency = [?] Fraction\n"
 "For e.g. 1 USD = 100 Cent"
-msgstr ""
+msgstr "1 Valuta = [?] Dio\n"
+"Za npr. 1 USD = 100 Cent"
 
 #: frappe/public/js/frappe/form/reminders.js:19
 msgid "1 Day"
@@ -138,7 +139,7 @@ msgstr "1 Dan"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:361
 msgid "1 Google Calendar Event synced."
-msgstr "Sinkroniziran je 1 događaj Google Kalendara."
+msgstr "Sinhroniziran je 1 događaj iz Google Kalendara."
 
 #: frappe/public/js/frappe/views/reports/query_report.js:886
 msgid "1 Report"
@@ -609,24 +610,24 @@ msgstr ""
 
 #: frappe/templates/emails/new_user.html:5
 msgid "A new account has been created for you at {0}"
-msgstr ""
+msgstr "Za vas je stvoren novi račun {0}"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:395
 msgid "A recurring {0} {1} has been created for you via Auto Repeat {2}."
-msgstr ""
+msgstr "Ponavljajuće {0} {1} stvoreno je za vas putem Automatskog Ponavljanja {2}."
 
 #. Description of the 'Symbol' (Data) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
 msgid "A symbol for this currency. For e.g. $"
-msgstr ""
+msgstr "Simbol za ovu valutu. Za npr. $"
 
 #: frappe/printing/doctype/print_format_field_template/print_format_field_template.py:49
 msgid "A template already exists for field {0} of {1}"
-msgstr ""
+msgstr "Predložak već postoji za polje {0} od {1}"
 
 #: frappe/utils/password_strength.py:165
 msgid "A word by itself is easy to guess."
-msgstr ""
+msgstr "Riječ samu po sebi lako je pogoditi."
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -719,24 +720,24 @@ msgstr "API Ključ"
 #. Notification Settings'
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.json
 msgid "API Key and Secret to interact with the relay server. These will be auto-generated when the first push notification is sent from any of the apps installed on this site."
-msgstr ""
+msgstr "API Ključ i Tajna za interakciju s relejnim poslužiteljem. Oni će se automatski generirati kada se prva push obavijest pošalje iz bilo koje aplikacije instalirane na ovoj stranici."
 
 #. Description of the 'API Key' (Data) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "API Key cannot be regenerated"
-msgstr ""
+msgstr "API Ključ se ne može regenerirati"
 
 #. Label of a Data field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "API Method"
-msgstr ""
+msgstr "API Metoda"
 
 #. Label of a Password field in DocType 'User'
 #. Label of a Password field in DocType 'Push Notification Settings'
 #: frappe/core/doctype/user/user.json
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.json
 msgid "API Secret"
-msgstr ""
+msgstr "API Tajna"
 
 #. Option for the 'Default Sort Order' (Select) field in DocType 'DocType'
 #. Option for the 'Sort Order' (Select) field in DocType 'Customize Form'
@@ -812,28 +813,28 @@ msgstr "Pristupni Token"
 #. Label of a Data field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Access Token URL"
-msgstr ""
+msgstr "URL Pristupnog Tokena"
 
 #: frappe/auth.py:483
 msgid "Access not allowed from this IP Address"
-msgstr "Pristup nije dozvoljen s ove IP adrese"
+msgstr "Pristup nije dopušten s ove IP adrese"
 
 #. Label of a Section Break field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Account"
-msgstr ""
+msgstr "Račun"
 
 #. Label of a Section Break field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Account Deletion Settings"
-msgstr ""
+msgstr "Postavke Brisanja Računa"
 
 #. Name of a role
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 #: frappe/contacts/doctype/contact/contact.json
 #: frappe/geo/doctype/currency/currency.json
 msgid "Accounts Manager"
-msgstr ""
+msgstr "Upravitelj Knjigovodstva"
 
 #. Name of a role
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
@@ -841,7 +842,7 @@ msgstr ""
 #: frappe/contacts/doctype/contact/contact.json
 #: frappe/geo/doctype/currency/currency.json
 msgid "Accounts User"
-msgstr ""
+msgstr "Korisnik Knjigovodstva"
 
 #. Label of a Select field in DocType 'Amended Document Naming Settings'
 #. Option for the 'Item Type' (Select) field in DocType 'Navbar Item'
@@ -1005,7 +1006,7 @@ msgstr "Dodaj/Ukloni Stupce"
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:4
 msgid "Add / Update"
-msgstr "Dodaj / Ažuriraj"
+msgstr "Dodaj/Ažuriraj"
 
 #: frappe/core/page/permission_manager/permission_manager.js:435
 msgid "Add A New Rule"
@@ -1014,27 +1015,27 @@ msgstr "Dodaj Novo Pravilo"
 #: frappe/public/js/frappe/views/communication.js:586
 #: frappe/public/js/frappe/views/interaction.js:159
 msgid "Add Attachment"
-msgstr "Dodaj Prilog"
+msgstr "Dodaj Privitak"
 
 #. Label of a Check field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Background Image"
-msgstr ""
+msgstr "Dodaj Pozadinsku Sliku"
 
 #. Title of an Onboarding Step
 #: frappe/website/onboarding_step/add_blog_category/add_blog_category.json
 msgid "Add Blog Category"
-msgstr ""
+msgstr "Dodaj Kategoriju Bloga"
 
 #. Label of a Check field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Border at Bottom"
-msgstr ""
+msgstr "Dodaj Obrub na Dno"
 
 #. Label of a Check field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Border at Top"
-msgstr ""
+msgstr "Dodaj Obrub na Vrh"
 
 #: frappe/desk/doctype/number_card/number_card.js:36
 msgid "Add Card to Dashboard"
@@ -1046,7 +1047,7 @@ msgstr "Dodaj Grafikon na Nadzornu Ploču"
 
 #: frappe/public/js/frappe/views/treeview.js:267
 msgid "Add Child"
-msgstr ""
+msgstr "Dodaj Podređeni"
 
 #: frappe/public/js/frappe/views/kanban/kanban_board.html:4
 #: frappe/public/js/frappe/views/reports/query_report.js:1694
@@ -1068,22 +1069,22 @@ msgstr "Dodaj Kontakte"
 #. Label of a Check field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Container"
-msgstr ""
+msgstr "Dodaj Spremnik"
 
 #. Label of a Button field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Add Custom Tags"
-msgstr ""
+msgstr "Dodaj Prilagođene Oznake"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:159
 #: frappe/public/js/frappe/widgets/widget_dialog.js:688
 msgid "Add Filters"
-msgstr "Dodaj Filtre"
+msgstr "Dodaj Filtere"
 
 #. Label of a Check field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Gray Background"
-msgstr ""
+msgstr "Dodaj Sivu Pozadinu"
 
 #: frappe/public/js/frappe/ui/group_by/group_by.js:230
 #: frappe/public/js/frappe/ui/group_by/group_by.js:418
@@ -1096,7 +1097,7 @@ msgstr "Dodaj Indekse"
 
 #: frappe/public/js/frappe/form/grid.js:63
 msgid "Add Multiple"
-msgstr ""
+msgstr "Dodaj Više"
 
 #: frappe/core/page/permission_manager/permission_manager.js:438
 msgid "Add New Permission Rule"
@@ -1104,12 +1105,12 @@ msgstr "Dodaj Novo Pravilo Dopuštenja"
 
 #: frappe/desk/doctype/event/event.js:35 frappe/desk/doctype/event/event.js:42
 msgid "Add Participants"
-msgstr ""
+msgstr "Dodajte Sudionike"
 
 #. Label of a Check field in DocType 'Email Group'
 #: frappe/email/doctype/email_group/email_group.json
 msgid "Add Query Parameters"
-msgstr ""
+msgstr "Dodaj Parametre Upita"
 
 #: frappe/public/js/frappe/form/sidebar/review.js:45
 msgid "Add Review"
@@ -1132,12 +1133,12 @@ msgstr "Dodaj Potpis"
 #. Label of a Check field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Space at Bottom"
-msgstr ""
+msgstr "Dodaj Razmak na Dnu"
 
 #. Label of a Check field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Space at Top"
-msgstr ""
+msgstr "Dodaj Razmak na Vrh"
 
 #: frappe/email/doctype/email_group/email_group.js:38
 #: frappe/email/doctype/email_group/email_group.js:59
@@ -1146,21 +1147,21 @@ msgstr ""
 
 #: frappe/public/js/frappe/list/bulk_operations.js:425
 msgid "Add Tags"
-msgstr ""
+msgstr "Dodaj Oznake"
 
 #: frappe/public/js/frappe/list/list_view.js:1925
 msgctxt "Button in list view actions menu"
 msgid "Add Tags"
-msgstr ""
+msgstr "Dodaj Oznake"
 
 #: frappe/public/js/frappe/views/communication.js:418
 msgid "Add Template"
-msgstr ""
+msgstr "Dodaj Predložak"
 
 #. Label of a Check field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
 msgid "Add Total Row"
-msgstr ""
+msgstr "Dodaj Ukupan Broj Redova"
 
 #. Label of a Check field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
