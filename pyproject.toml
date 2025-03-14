@@ -23,6 +23,7 @@ dependencies = [
     "pypdf~=3.17.0",
     "PyPika==0.48.9",
     "mariadb @ git+https://github.com/mariadb-corporation/mariadb-connector-python.git@1.1",
+    "mysqlclient~=2.2.7",
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.1",
     "RestrictedPython~=8.0",
