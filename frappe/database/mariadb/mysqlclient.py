@@ -245,7 +245,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	def escape(s, percent=True):
 		"""Escape quotes and percent in given string."""
 
-		s = frappe.as_unicode(escape_string(s)).replace("`", "\\`")
+		s = frappe.as_unicode(escape_string(s)).replace("`", "\\`") if s else ""
 
 		# NOTE separating % escape, because % escape should only be done when using LIKE operator
 		# or when you use python format string to generate query that already has a %s
