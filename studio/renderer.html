@@ -20,6 +20,7 @@
 		</script>
 		{% if is_developer_mode %}
 			<!-- workaround for HMR in renderer during development -->
+			<script type="module" src="http://{{ site_name }}:8080/@vite/client"></script>
 			<script type="module" src="http://{{ site_name }}:8080/src/renderer.ts"></script>
 		{% else %}
 			<script type="module" src="/src/renderer.ts"></script>

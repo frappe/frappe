@@ -8,6 +8,12 @@ export default defineConfig({
 	define: {
 		__VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
 	},
+	server: {
+		// explicitly set origin of generated assets (images, fonts, etc) during development.
+		// Required for the app renderer running on webserver port
+		// https://vite.dev/guide/backend-integration
+		origin: "http://127.0.0.1:8080",
+	},
 	plugins: [frappeui({ source: "^/(app|login|api|assets|files|pages)" }), vue()],
 	resolve: {
 		alias: {
