@@ -231,7 +231,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		return self.last_query
 
 	# def _clean_up(self):
-	# PERF: Erase internal references of pymysql to trigger GC as soon as
+	# PERF: Erase internal references to trigger GC as soon as
 	# results are consumed.
 
 	# however, this doesn't work as expected
@@ -554,7 +554,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 	@contextmanager
 	def unbuffered_cursor(self):
-		from pymysql.cursors import SSCursor
+		from MySQLdb.cursors import SSCursor
 
 		try:
 			if not self._conn:
