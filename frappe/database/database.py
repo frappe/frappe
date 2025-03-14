@@ -37,8 +37,6 @@ from frappe.utils import CallbackManager, cint, get_datetime, get_table_name, ge
 from frappe.utils import cast as cast_fieldtype
 
 if TYPE_CHECKING:
-	# from mariadb.connections import Connection as MariadbConnection
-	# from mariadb.cursors import Cursor as MariadbCursor
 	from MySQLdb.connections import Connection as MySQLdbConnection
 	from MySQLdb.cursors import Cursor as MySQLdbCursor
 	from psycopg2 import connection as PostgresConnection
