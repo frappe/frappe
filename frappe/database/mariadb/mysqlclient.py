@@ -244,12 +244,8 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	@staticmethod
 	def escape(s, percent=True):
 		"""Escape quotes and percent in given string."""
-		# Update: We've scrapped PyMySQL in favour of MariaDB's official Python client
-		# Also, given we're promoting use of the PyPika builder via frappe.qb, the use
-		# of this method should be limited.
 
-		# pymysql expects unicode argument to escape_string with Python 3
-		s = frappe.as_unicode(escape_string(frappe.as_unicode(s)), "utf-8").replace("`", "\\`")
+		s = frappe.as_unicode(escape_string(s)).replace("`", "\\`")
 
 		# NOTE separating % escape, because % escape should only be done when using LIKE operator
 		# or when you use python format string to generate query that already has a %s
