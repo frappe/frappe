@@ -246,16 +246,11 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		self._log_query(self.last_query, debug, explain, query)
 		return self.last_query
 
-	# def _clean_up(self):
-	# PERF: Erase internal references to trigger GC as soon as
-	# results are consumed.
+	def _clean_up(self):
+		# PERF: Erase internal references to trigger GC as soon as
+		# results are consumed.
 
-	# however, this doesn't work as expected
-	# self._cursor._result = None
-	# self._cursor._rows = None
-
-	# neither does this
-	# self._cursor._discard()
+		self._cursor._rows = None
 
 	@staticmethod
 	def escape(s, percent=True):
