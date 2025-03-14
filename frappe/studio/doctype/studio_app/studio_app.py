@@ -53,6 +53,8 @@ class StudioApp(WebsiteGenerator):
 		context.app_title = self.app_title
 		context.base_url = frappe.utils.get_url(self.route)
 		context.app_pages = self.get_studio_pages()
+		context.is_developer_mode = frappe.conf.developer_mode
+		context.site_name = frappe.local.site
 
 	def autoname(self):
 		if not self.name:

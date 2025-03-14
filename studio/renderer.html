@@ -18,7 +18,11 @@
 			window.app_title = "{{ app_title }}";
 			window.app_pages = {{ app_pages|tojson }};
 		</script>
-		<!-- temporary workaround for HMR in renderer during dev -->
-		<script type="module" src="http://studio:8080/src/renderer.ts"></script>
+		{% if is_developer_mode %}
+			<!-- workaround for HMR in renderer during development -->
+			<script type="module" src="http://{{ site_name }}:8080/src/renderer.ts"></script>
+		{% else %}
+			<script type="module" src="/src/renderer.ts"></script>
+		{% endif %}
 	</body>
 </html>
