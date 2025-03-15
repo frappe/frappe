@@ -45,29 +45,8 @@
 		>
 			<template #body-content>
 				<div class="flex flex-col gap-3">
-					<Input label="App Title" type="text" variant="outline" v-model="newApp.app_title" />
-
-					<div class="flex w-full flex-col gap-1">
-						<label class="block text-xs text-gray-600">App Route</label>
-						<div class="relative flex items-stretch">
-							<Input
-								type="text"
-								variant="outline"
-								class="w-full [&>div>input]:pl-[100px]"
-								:hideClearButton="true"
-								v-model="newApp.route"
-							/>
-
-							<!-- App Route Prefix -->
-							<div
-								class="absolute bottom-[1px] left-[1px] flex items-center rounded-l-[0.4rem] bg-gray-100 text-gray-700"
-							>
-								<span class="flex h-[1.65rem] items-center text-nowrap px-2 py-0 text-base">
-									studio-app/
-								</span>
-							</div>
-						</div>
-					</div>
+					<FormControl label="App Title" type="text" variant="outline" v-model="newApp.app_title" />
+					<FormControl label="App Route" type="text" variant="outline" v-model="newApp.route" />
 				</div>
 			</template>
 		</Dialog>
@@ -95,7 +74,7 @@ const createStudioApp = (app: NewStudioApp) => {
 	studioApps.insert
 		.submit({
 			app_title: app.app_title,
-			route: `studio-app/${app.route}`,
+			route: app.route,
 		})
 		.then((res: StudioApp) => {
 			showDialog.value = false

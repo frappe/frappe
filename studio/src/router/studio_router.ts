@@ -7,6 +7,10 @@ const routes = [
 		component: () => import("@/pages/Home.vue"),
 	},
 	{
+		path: "/",
+		redirect: "home",
+	},
+	{
 		path: "/app/:appID",
 		name: "StudioApp",
 		component: () => import("@/pages/StudioApp.vue"),

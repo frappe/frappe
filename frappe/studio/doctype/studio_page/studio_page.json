@@ -29,6 +29,8 @@
   {
    "fieldname": "page_title",
    "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Title"
   },
   {
@@ -38,6 +40,8 @@
   {
    "fieldname": "route",
    "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Route"
   },
   {
@@ -53,6 +57,8 @@
    "default": "0",
    "fieldname": "published",
    "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Published"
   },
   {
@@ -80,13 +86,15 @@
   {
    "fieldname": "studio_app",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Studio App",
    "options": "Studio App"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-18 15:17:48.133502",
+ "modified": "2025-03-05 16:53:24.306451",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page",
@@ -109,5 +117,6 @@
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
- "title_field": "page_title"
+ "title_field": "page_title",
+ "track_changes": 1
 }

@@ -24,11 +24,10 @@ const rootBlock = ref<Block | null>(null)
 watch(
 	() => route.path,
 	async () => {
-		let { appRoute, pageRoute } = route.params as { appRoute: string; pageRoute: string[] }
+		let { pageRoute } = route.params as { pageRoute: string[] }
 		const isDynamic = route.meta?.isDynamic
-		if (appRoute === "studio") return
 
-		let currentPath = ""
+		let currentPath = "/"
 		if (isDynamic) {
 			currentPath = route.matched?.[0]?.path
 		} else if (pageRoute) {
@@ -36,7 +35,7 @@ watch(
 		}
 
 		if (currentPath) {
-			page.value = await findPageWithRoute(appRoute, currentPath)
+			page.value = await findPageWithRoute(window.app_name, currentPath)
 			if (!page.value) return
 			const blocks = jsonToJs(page.value?.blocks)
 			if (blocks) {

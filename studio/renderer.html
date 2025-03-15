@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!-- Built with Frappe Studio -->
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<link rel="icon" href="/favicon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>{{ app_title }}</title>
+	</head>
+	<body>
+		<div id="app"></div>
+		<div id="modals"></div>
+		<div id="popovers"></div>
+		<script>
+			window.csrf_token = "{{ csrf_token }}";
+			window.app_name = "{{ app_name }}";
+			window.app_route = "{{ app_route }}";
+			window.app_title = "{{ app_title }}";
+			window.app_pages = {{ app_pages|tojson }};
+		</script>
+		{% if is_developer_mode %}
+			<!-- workaround for HMR in renderer during development -->
+			<script type="module" src="http://{{ site_name }}:8080/@vite/client"></script>
+			<script type="module" src="http://{{ site_name }}:8080/src/renderer.ts"></script>
+		{% else %}
+			<script type="module" src="/src/renderer.ts"></script>
+		{% endif %}
+	</body>
+</html>

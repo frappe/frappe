@@ -18,10 +18,13 @@
 						type="text"
 						variant="outline"
 						class="w-full"
-						@input="(val: string) => (page.route = val)"
 						:modelValue="pageRoute"
 						:hideClearButton="true"
-						@update:modelValue="(val: string) => store.updateActivePage('route', `${app?.route}/${val}`)"
+						@update:modelValue="
+							(val: string) => {
+								store.updateActivePage('route', val.startsWith('/') ? val : `/${val}`)
+							}
+						"
 					/>
 
 					<!-- App Route Prefix -->
@@ -53,10 +56,11 @@ const props = defineProps<{
 }>()
 
 const inputRef = ref<InstanceType<typeof Input> | null>(null)
-
-const pageRoute = computed(() => {
-	return props.page.route.replace(`${props.app?.route}/`, "")
-})
+const pageRoute = ref(props.page.route)
+const setPageRoute = () => {
+	// remove leading slash from route because app route prefix will be <app.route>/ so that user doesn't have to type the leading slash
+	pageRoute.value = props.page.route.replace(/^\//, "")
+}
 
 const dynamicPadding = computed(() => {
 	const prefixWidth = props.app?.route?.length * 8 + 15 // Assuming 8px per character plus 4px for padding
@@ -78,6 +82,7 @@ watch(
 		// apply dynamic padding to input element when the popover is opened
 		// to avoid overlapping with the prefix content
 		applyDynamicPadding()
+		setPageRoute()
 	},
 	{ immediate: true },
 )
