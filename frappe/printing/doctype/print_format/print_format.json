@@ -94,7 +94,7 @@
   },
   {
    "default": "Jinja",
-   "depends_on": "custom_format",
+   "depends_on": "eval:doc.custom_format && doc.pdf_generator !== \"typst\"",
    "fieldname": "print_format_type",
    "fieldtype": "Select",
    "label": "Print Format Type",
@@ -262,13 +262,13 @@
    "fieldname": "pdf_generator",
    "fieldtype": "Select",
    "label": "PDF Generator",
-   "options": "wkhtmltopdf"
+   "options": "wkhtmltopdf\ntypst"
   }
  ],
  "icon": "fa fa-print",
  "idx": 1,
  "links": [],
- "modified": "2025-02-14 14:49:39.181074",
+ "modified": "2025-03-15 01:43:05.968377",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
@@ -291,6 +291,7 @@
    "select": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

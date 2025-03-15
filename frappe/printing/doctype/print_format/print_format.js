@@ -68,6 +68,11 @@ frappe.ui.form.on("Print Format", {
 		frm.set_value("line_breaks", value);
 		frm.trigger("render_buttons");
 	},
+	pdf_generator: function (frm) {
+		if (frm.doc.pdf_generator === "typst") {
+			frm.set_value("raw_printing", 1);
+		}
+	},
 	doc_type: function (frm) {
 		frm.trigger("hide_absolute_value_field");
 	},

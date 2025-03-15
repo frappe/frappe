@@ -1,6 +1,7 @@
 from typing import Literal
 
 import frappe
+from frappe.utils.typst import print_with_typst
 
 
 def get_print(
@@ -44,6 +45,9 @@ def get_print(
 				frappe.get_cached_value("Print Format", print_format, "pdf_generator") or "wkhtmltopdf"
 			)
 		local.form_dict.pdf_generator = pdf_generator
+
+	if local.form_dict.pdf_generator == "typst":
+		return print_with_typst(doctype, name, print_format, as_pdf, doc, output, password)
 
 	original_form_dict = copy.deepcopy(local.form_dict)
 	try:
