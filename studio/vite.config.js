@@ -25,12 +25,7 @@ export default defineConfig({
 		rollupOptions: {
 			input: {
 				studio: path.resolve(__dirname, "index.html"),
-				// overwrite default .html entry for app renderer. Renderer file used from the frappe backend: /templates/generators/renderer.html
-				renderer: path.resolve(__dirname, "src/renderer.ts"),
-			},
-			output: {
-				// needed to access renderer.js in renderer.html script tag
-				entryFileNames: "[name].js",
+				renderer: path.resolve(__dirname, "renderer.html"),
 			},
 		},
 		outDir: `../studio/public/frontend`,
