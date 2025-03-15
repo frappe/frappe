@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-02 09:33+0000\n"
-"PO-Revision-Date: 2025-03-13 01:07\n"
+"PO-Revision-Date: 2025-03-15 01:30\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -632,7 +632,7 @@ msgstr ""
 #. Description of the 'Symbol' (Data) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
 msgid "A symbol for this currency. For e.g. $"
-msgstr ""
+msgstr "Simbol za ovu valutu. Za npr. $"
 
 #: frappe/printing/doctype/print_format_field_template/print_format_field_template.py:49
 msgid "A template already exists for field {0} of {1}"
@@ -1152,7 +1152,7 @@ msgstr "Dodaj Razmak na Dnu"
 #. Label of the add_top_padding (Check) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Space at Top"
-msgstr ""
+msgstr "Dodaj Razmak na Vrh"
 
 #: frappe/email/doctype/email_group/email_group.js:38
 #: frappe/email/doctype/email_group/email_group.js:59
@@ -1175,7 +1175,7 @@ msgstr ""
 #. Label of the add_total_row (Check) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
 msgid "Add Total Row"
-msgstr ""
+msgstr "Dodaj Ukupan Broj Redova"
 
 #. Label of the add_unsubscribe_link (Check) field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
