@@ -74,27 +74,27 @@ class MariaDBExceptionUtil:
 		return e.args[0] == ER_STATEMENT_TIMEOUT
 
 	@staticmethod
-	def is_db_table_size_limit(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ER.TOO_BIG_ROWSIZE
-
-	@staticmethod
 	def is_data_too_long(e: MySQLdb.Error) -> bool:
 		return e.args[0] == ER.DATA_TOO_LONG
 
 	@staticmethod
+	def is_db_table_size_limit(e: MySQLdb.Error) -> bool:
+		return e.args[0] == ER.TOO_BIG_ROWSIZE
+
+	@staticmethod
 	def is_primary_key_violation(e: MySQLdb.Error) -> bool:
 		return (
-			MariaDBDatabase.is_duplicate_entry(e)
+			isinstance(e, MySQLdb.IntegrityError)
+			and MariaDBExceptionUtil.is_duplicate_entry(e)
 			and "PRIMARY" in e.args[1]
-			and isinstance(e, MySQLdb.IntegrityError)
 		)
 
 	@staticmethod
 	def is_unique_key_violation(e: MySQLdb.Error) -> bool:
 		return (
-			MariaDBDatabase.is_duplicate_entry(e)
+			isinstance(e, MySQLdb.IntegrityError)
+			and MariaDBExceptionUtil.is_duplicate_entry(e)
 			and "Duplicate" in e.args[1]
-			and isinstance(e, MySQLdb.IntegrityError)
 		)
 
 	@staticmethod
