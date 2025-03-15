@@ -83,6 +83,16 @@ def get_controller(doctype):
 
 	return site_controllers[doctype]
 
+def get_cached_doctype_data(doctype):
+	if not hasattr(frappe.local, "doctype_cache"):
+		frappe.local.doctype_cache = {}  # Initialize if not present
+
+	if doctype not in frappe.local.doctype_cache:
+		# Fetch and cache the data only if not already stored
+		frappe.local.doctype_cache[doctype] = frappe.db.get_value(
+			"DocType", doctype, ("module", "custom", "is_tree"), as_dict=True)
+
+	return frappe.local.doctype_cache[doctype]
 
 def import_controller(doctype):
 	from frappe.model.document import Document
@@ -90,7 +100,7 @@ def import_controller(doctype):
 
 	module_name = "Core"
 	if doctype not in DOCTYPES_FOR_DOCTYPE:
-		doctype_info = frappe.db.get_value("DocType", doctype, ("module", "custom", "is_tree"), as_dict=True)
+		doctype_info = get_cached_doctype_data(doctype)
 		if doctype_info:
 			if doctype_info.custom:
 				return NestedSet if doctype_info.is_tree else Document
