@@ -128,7 +128,7 @@
    "label": "Backup Files"
   },
   {
-   "description": "If empty, it will backup to the root of the bucket.",
+   "description": "If it's empty, it will backup to the root of the bucket.",
    "fieldname": "backup_path",
    "fieldtype": "Data",
    "label": "Backup Path"
@@ -137,7 +137,7 @@
  "hide_toolbar": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-03-14 22:51:23.156813",
+ "modified": "2025-03-15 12:17:49.167012",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "S3 Backup Settings",
