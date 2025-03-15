@@ -93,7 +93,9 @@ def freeze_gc():
 
 
 def optimize_for_gil_contention():
-	if not os.environ.get("FRAPPE_PERF_PIN_WORKERS"):
+	from frappe.utils import sbool
+
+	if not bool(sbool(os.environ.get("FRAPPE_PERF_PIN_WORKERS", True))):
 		return
 
 	if "gunicorn" not in str(sys.argv[0]):
