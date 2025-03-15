@@ -45,6 +45,11 @@ class StudioPage(Document):
 		if not self.route:
 			self.route = f"{camel_case_to_kebab_case(self.page_title, True)}-{frappe.generate_hash(length=4)}"
 
+	def validate(self):
+		# vue router needs a leading slash
+		if not self.route.startswith("/"):
+			self.route = f"/{self.route}"
+
 	@frappe.whitelist()
 	def publish(self, **kwargs):
 		frappe.form_dict.update(kwargs)
