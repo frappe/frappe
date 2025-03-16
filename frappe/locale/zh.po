@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-24 14:51+0000\n"
-"PO-Revision-Date: 2025-03-05 17:25\n"
+"PO-Revision-Date: 2025-03-16 21:01\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -821,7 +821,7 @@ msgstr "不允许从该IP地址访问"
 #. Label of a Section Break field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Account"
-msgstr "科目"
+msgstr "帐户"
 
 #. Label of a Section Break field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -833,7 +833,7 @@ msgstr ""
 #: frappe/contacts/doctype/contact/contact.json
 #: frappe/geo/doctype/currency/currency.json
 msgid "Accounts Manager"
-msgstr "会计经理"
+msgstr "账务主管"
 
 #. Name of a role
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
@@ -841,7 +841,7 @@ msgstr "会计经理"
 #: frappe/contacts/doctype/contact/contact.json
 #: frappe/geo/doctype/currency/currency.json
 msgid "Accounts User"
-msgstr "会计人员"
+msgstr "账务用户"
 
 #. Label of a Select field in DocType 'Amended Document Naming Settings'
 #. Option for the 'Item Type' (Select) field in DocType 'Navbar Item'
@@ -861,7 +861,7 @@ msgstr "会计人员"
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:37
 msgid "Action"
-msgstr "行动"
+msgstr "操作"
 
 #. Label of a Small Text field in DocType 'DocType Action'
 #: frappe/core/doctype/doctype_action/doctype_action.json
@@ -928,7 +928,7 @@ msgstr ""
 #: frappe/public/js/frappe/views/reports/query_report.js:214
 #: frappe/public/js/frappe/views/reports/query_report.js:780
 msgid "Actions"
-msgstr "操作"
+msgstr "操作列表"
 
 #. Label of a Check field in DocType 'Package Import'
 #: frappe/core/doctype/package_import/package_import.json
@@ -945,7 +945,7 @@ msgstr ""
 #: frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 #: frappe/workflow/doctype/workflow/workflow_list.js:5
 msgid "Active"
-msgstr "活动"
+msgstr "启用"
 
 #. Option for the 'Directory Server' (Select) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -1096,7 +1096,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/grid.js:63
 msgid "Add Multiple"
-msgstr "添加多个"
+msgstr "批量添加"
 
 #: frappe/core/page/permission_manager/permission_manager.js:438
 msgid "Add New Permission Rule"
@@ -1398,7 +1398,7 @@ msgstr "管理"
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Administrator"
-msgstr "管理员"
+msgstr "系统管理员"
 
 #: frappe/core/doctype/user/user.py:1158
 msgid "Administrator Logged In"
@@ -2004,7 +2004,7 @@ msgstr ""
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 msgid "Annual"
-msgstr "全年"
+msgstr "年度"
 
 #. Label of a Code field in DocType 'Personal Data Deletion Request'
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
