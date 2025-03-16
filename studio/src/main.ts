@@ -2,12 +2,11 @@ import "./index.css"
 
 import { createApp } from "vue"
 import { createPinia } from "pinia"
-import studio_router from "@/router/studio_router"
 import "./setupFrappeUIResource"
-import app_router from "@/router/app_router"
+import studio_router from "@/router/studio_router"
 import App from "./App.vue"
 
-import { resourcesPlugin, FeatherIcon } from "frappe-ui"
+import { resourcesPlugin, frappeRequest } from "frappe-ui"
 import { registerGlobalComponents } from "./globals"
 
 const studio = createApp(App)
@@ -18,11 +17,23 @@ studio.use(studio_router)
 studio.use(resourcesPlugin)
 studio.use(pinia)
 registerGlobalComponents(studio)
-studio.mount("#studio")
 
-// For rendering apps built by studio
-const app = createApp(App)
-app.use(app_router)
-app.use(pinia)
-registerGlobalComponents(app)
-app.mount("#app")
+declare global {
+	interface Window {
+		site_url: string
+		[key: string]: string
+	}
+}
+
+studio_router.isReady().then(async () => {
+	if (import.meta.env.DEV) {
+		await frappeRequest({
+			url: "/api/method/studio.www.studio.get_context_for_dev",
+		}).then(async (values: Record<string, any>) => {
+			for (let key in values) {
+				window[key] = values[key]
+			}
+		})
+	}
+	studio.mount("#studio")
+})

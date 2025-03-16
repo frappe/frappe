@@ -87,9 +87,9 @@ async function setPage() {
 			})
 			.then(async (data: StudioPage) => {
 				const appID = route.params.appID as string
-				router.push({ name: "StudioPage", params: { pageID: data.name }, force: true })
+				router.push({ name: "StudioPage", params: { appID: appID, pageID: data.name }, force: true })
 				store.setApp(appID)
-				store.setPage(data.name)
+				await store.setPage(data.name)
 			})
 	} else {
 		store.setApp(route.params.appID as string)
@@ -97,7 +97,13 @@ async function setPage() {
 	}
 }
 
-onActivated(() => setPage())
+onActivated(() => {
+	const pageID = route.params.pageID
+	if (pageID && pageID !== store.selectedPage && pageID !== "new") {
+		store.setApp(route.params.appID as string)
+		store.setPage(pageID as string)
+	}
+})
 
 onDeactivated(() => {
 	store.selectedPage = null
@@ -106,8 +112,8 @@ onDeactivated(() => {
 
 watch(
 	() => route.params.pageID,
-	() => {
-		setPage()
+	async () => {
+		await setPage()
 	},
 	{ immediate: true },
 )

@@ -53,7 +53,7 @@ app_license = "mit"
 # ----------
 
 # automatically create page for each record of this doctype
-# website_generators = ["Web Page"]
+website_generators = ["Studio App"]
 
 # Jinja
 # ----------
@@ -222,8 +222,8 @@ app_license = "mit"
 
 website_route_rules = [
 	{"from_route": "/studio/<path:app_path>", "to_route": "studio"},
-	{"from_route": "/studio-app/<path:app_path>", "to_route": "studio-app"},
 ]
+page_renderer = "studio.studio.doctype.studio_app.studio_app.StudioAppRenderer"
 
 # Automatically update python controller files with type annotations for this app.
 export_python_type_annotations = True

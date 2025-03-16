@@ -45,6 +45,11 @@ class StudioPage(Document):
 		if not self.route:
 			self.route = f"{camel_case_to_kebab_case(self.page_title, True)}-{frappe.generate_hash(length=4)}"
 
+	def validate(self):
+		# vue router needs a leading slash
+		if not self.route.startswith("/"):
+			self.route = f"/{self.route}"
+
 	@frappe.whitelist()
 	def publish(self, **kwargs):
 		frappe.form_dict.update(kwargs)
@@ -56,9 +61,13 @@ class StudioPage(Document):
 
 
 @frappe.whitelist()
-def find_page_with_route(route: str) -> str | None:
+def find_page_with_route(app_name: str, page_route: str) -> str | None:
+	if not page_route.startswith("/"):
+		page_route = f"/{page_route}"
 	try:
-		return frappe.db.get_value("Studio Page", dict(route=route, published=1), "name", cache=True)
+		return frappe.db.get_value(
+			"Studio Page", dict(studio_app=app_name, route=page_route, published=1), "name", cache=True
+		)
 	except frappe.DoesNotExistError:
 		pass
 

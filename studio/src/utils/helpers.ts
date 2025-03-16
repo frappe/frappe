@@ -7,7 +7,6 @@ import { toast } from "vue-sonner"
 
 import { ObjectLiteral, BlockOptions, StyleValue, ExpressionEvaluationContext, SelectOption, HashString, RGBString } from "@/types"
 import { DataResult, DocumentResource, DocumentResult, Filters, Resource } from "@/types/Studio/StudioResource"
-import { StudioPage } from "@/types/Studio/StudioPage"
 import { Variable } from "@/types/Studio/StudioPageVariable"
 
 function getBlockString(block: BlockOptions | Block): string {
@@ -265,31 +264,15 @@ async function fetchPage(pageName: string) {
 	return pageResource?.doc
 }
 
-async function findPageWithRoute(appRoute: string, pageRoute: string) {
-	let route = `studio-app`
-	if (appRoute) {
-		route += `/${appRoute}/`
-	}
-	route += pageRoute
-
+async function findPageWithRoute(appName: string, pageRoute: string) {
 	let pageName = createResource({
 		url: "studio.studio.doctype.studio_page.studio_page.find_page_with_route",
 		method: "GET",
-		params: { route: route },
+		params: { app_name: appName, page_route: pageRoute },
 	})
 	await pageName.fetch()
 	pageName = pageName.data
 	return fetchPage(pageName)
-}
-
-async function fetchAppPages(appRoute: string): Promise<StudioPage[]> {
-	let appRoutes = createResource({
-		url: "studio.studio.doctype.studio_app.studio_app.get_app_pages",
-		method: "GET",
-		params: { app_route: appRoute },
-	})
-	await appRoutes.fetch()
-	return appRoutes.data
 }
 
 // data
@@ -675,7 +658,6 @@ export {
 	isHTML,
 	// app
 	fetchApp,
-	fetchAppPages,
 	// page
 	fetchPage,
 	findPageWithRoute,
