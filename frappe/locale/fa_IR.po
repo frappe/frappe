@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-02 09:33+0000\n"
-"PO-Revision-Date: 2025-03-13 01:07\n"
+"PO-Revision-Date: 2025-03-16 01:37\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -2051,7 +2051,7 @@ msgstr "{0} دیگری با نام {1} وجود دارد، نام دیگری ر�
 #. Description of the 'Raw Commands' (Code) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Any string-based printer languages can be used. Writing raw commands requires knowledge of the printer's native language provided by the printer manufacturer. Please refer to the developer manual provided by the printer manufacturer on how to write their native commands. These commands are rendered on the server side using the Jinja Templating Language."
-msgstr "می‌توان از هر زبان چاپگر مبتنی بر رشته استفاده کرد. نوشتن دستورات خام مستلزم دانش زبان مادری چاپگر است که توسط سازنده چاپگر ارائه شده است. لطفاً به کتابچه راهنمای توسعه دهنده ارائه شده توسط سازنده چاپگر در مورد نحوه نوشتن دستورات اصلی آنها مراجعه کنید. این دستورات در سمت سرور با استفاده از زبان قالب گیری Jinja ارائه می شوند."
+msgstr "می‌توان از هر زبان چاپگر مبتنی بر رشته استفاده کرد. نوشتن دستورات خام مستلزم دانش زبان مادری چاپگر است که توسط سازنده چاپگر ارائه شده است. لطفاً به کتابچه راهنمای توسعه دهنده ارائه شده توسط سازنده چاپگر در مورد نحوه نوشتن دستورات اصلی آنها مراجعه کنید. این دستورات در سمت سرور با استفاده از زبان قالب گیری Jinja ارائه می‌شوند."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:36
 msgid "Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type."
@@ -3714,7 +3714,7 @@ msgstr "به طور پیش‌فرض عنوان به عنوان عنوان متا
 #. DocType 'S3 Backup Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgid "By default, emails are only sent for failed backups."
-msgstr "به طور پیش‌فرض، ایمیل ها فقط برای پشتیبان گیری ناموفق ارسال می شوند."
+msgstr "به طور پیش‌فرض، ایمیل ها فقط برای پشتیبان گیری ناموفق ارسال می‌شوند."
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
@@ -3740,7 +3740,7 @@ msgstr "دور زدن آدرس IP محدود بررسی کنید که آیا ت�
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Bypass Two Factor Auth for users who login from restricted IP Address"
-msgstr "دور زدن تأیید اعتبار دو عاملی برای کاربرانی که از آدرس IP محدود وارد می شوند"
+msgstr "دور زدن تأیید اعتبار دو عاملی برای کاربرانی که از آدرس IP محدود وارد می‌شوند"
 
 #. Label of the bypass_restrict_ip_check_if_2fa_enabled (Check) field in
 #. DocType 'System Settings'
@@ -4510,7 +4510,7 @@ msgstr "جدول فرزند {0} برای فیلد {1}"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/core/doctype/doctype/doctype_list.js:52
 msgid "Child Tables are shown as a Grid in other DocTypes"
-msgstr "جداول Child به صورت Grid در سایر DocType ها نشان داده می شوند"
+msgstr "جداول Child به صورت Grid در سایر DocType ها نشان داده می‌شوند"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:638
 msgid "Choose Existing Card or create New Card"
@@ -10091,7 +10091,7 @@ msgstr "وقتی as_list فعال است، فیلدها باید یک لیست �
 #. Description of the 'Search Fields' (Data) field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Fields separated by comma (,) will be included in the \"Search By\" list of Search dialog box"
-msgstr "فیلدهایی که با کاما (،) از هم جدا شده اند در لیست \"جستجو بر اساس\" کادر گفتگوی جستجو گنجانده می شوند."
+msgstr "فیلدهایی که با کاما (،) از هم جدا شده اند در لیست \"جستجو بر اساس\" کادر گفتگوی جستجو گنجانده می‌شوند."
 
 #. Label of the fieldtype (Select) field in DocType 'Report Column'
 #. Label of the fieldtype (Select) field in DocType 'Report Filter'
@@ -12256,7 +12256,7 @@ msgstr "اگر فعال باشد، تغییرات سند ردیابی شده و 
 #. Description of the 'Track Views' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "If enabled, document views are tracked, this can happen multiple times"
-msgstr "اگر فعال باشد، نماهای سند ردیابی می شوند، این می‌تواند چندین بار اتفاق بیفتد"
+msgstr "اگر فعال باشد، نماهای سند ردیابی می‌شوند، این می‌تواند چندین بار اتفاق بیفتد"
 
 #. Description of the 'Track Seen' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -12285,7 +12285,7 @@ msgstr "اگر فعال باشد، از کاربرانی که از آدرس IP �
 #. 'Note'
 #: frappe/desk/doctype/note/note.json
 msgid "If enabled, users will be notified every time they login. If not enabled, users will only be notified once."
-msgstr "در صورت فعال بودن، هر بار که کاربران وارد سیستم می شوند، از آن مطلع می شوند. در صورت فعال نشدن، فقط یک بار به کاربران اطلاع داده می‌شود."
+msgstr "در صورت فعال بودن، هر بار که کاربران وارد سیستم می‌شوند، از آن مطلع می‌شوند. در صورت فعال نشدن، فقط یک بار به کاربران اطلاع داده می‌شود."
 
 #. Description of the 'Default Workspace' (Link) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -14263,7 +14263,7 @@ msgstr "این گفتگو را ترک کنید"
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Ledger"
-msgstr "دفتر کل"
+msgstr "دفتر"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #. Option for the 'Align' (Select) field in DocType 'Letter Head'
@@ -17644,7 +17644,7 @@ msgstr "نام فیلدهای قدیمی و جدید یکسان است."
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Older backups will be automatically deleted"
-msgstr "نسخه های پشتیبان قدیمی به طور خودکار حذف می شوند"
+msgstr "نسخه های پشتیبان قدیمی به طور خودکار حذف می‌شوند"
 
 #. Label of the oldest_unscheduled_job (Link) field in DocType 'System Health
 #. Report'
@@ -18467,7 +18467,7 @@ msgstr "نوع سند والد برای ایجاد نمودار داشبورد �
 
 #: frappe/core/doctype/data_export/exporter.py:253
 msgid "Parent is the name of the document to which the data will get added to."
-msgstr "والدین نام سندی است که داده ها به آن اضافه می شوند."
+msgstr "والدین نام سندی است که داده ها به آن اضافه می‌شوند."
 
 #: frappe/permissions.py:798
 msgid "Parentfield not specified in {0}: {1}"
@@ -20360,7 +20360,7 @@ msgstr "محدودیت های نرخ"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Rate limit for email link login"
-msgstr ""
+msgstr "محدودیت تعداد درخواست برای ورود با لینک ایمیل"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -24127,7 +24127,7 @@ msgstr ""
 #. Card'
 #: frappe/desk/doctype/number_card/number_card.json
 msgid "Show percentage difference according to this time interval"
-msgstr "با توجه به این فاصله زمانی، درصد اختلاف را نشان دهید"
+msgstr "نمایش درصد اختلاف با توجه به این بازه زمانی"
 
 #. Label of the show_sidebar (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -24246,7 +24246,7 @@ msgstr "Single DocType ها را نمی‌توان سفارشی کرد."
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/core/doctype/doctype/doctype_list.js:67
 msgid "Single Types have only one record no tables associated. Values are stored in tabSingles"
-msgstr "Single Type ها فقط یک رکورد دارند و هیچ جدولی مرتبط نیست. مقادیر در tabSingles ذخیره می شوند"
+msgstr "Single Type ها فقط یک رکورد دارند و هیچ جدولی مرتبط نیست. مقادیر در tabSingles ذخیره می‌شوند"
 
 #: frappe/database/database.py:251
 msgid "Site is running in read only mode for maintenance or site update, this action can not be performed right now. Please try again later."
@@ -26228,7 +26228,7 @@ msgstr "اگر از فهرست LDAP 'Custom' استفاده شود، این تن
 #. Description of the 'Defaults' (Section Break) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values."
-msgstr "این مقادیر به طور خودکار در تراکنش ها به روز می شوند و همچنین برای محدود کردن مجوزهای این کاربر در تراکنش های حاوی این مقادیر مفید خواهند بود."
+msgstr "این مقادیر به طور خودکار در تراکنش ها به روز می‌شوند و همچنین برای محدود کردن مجوزهای این کاربر در تراکنش های حاوی این مقادیر مفید خواهند بود."
 
 #: frappe/www/third_party_apps.html:3 frappe/www/third_party_apps.html:14
 msgid "Third Party Apps"
@@ -26382,7 +26382,7 @@ msgstr "این یک رمز عبور بسیار رایج است."
 
 #: frappe/core/doctype/rq_job/rq_job.js:9
 msgid "This is a virtual doctype and data is cleared periodically."
-msgstr "این یک Doctype مجازی است و داده ها به صورت دوره ای پاک می شوند."
+msgstr "این یک Doctype مجازی است و داده ها به صورت دوره ای پاک می‌شوند."
 
 #: frappe/templates/emails/auto_reply.html:5
 msgid "This is an automatically generated reply"
@@ -26549,7 +26549,7 @@ msgstr "فرمت زمان"
 #. Label of the time_interval (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Time Interval"
-msgstr "فاصله زمانی"
+msgstr "بازه زمانی"
 
 #. Label of the timeseries (Check) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -27264,7 +27264,7 @@ msgstr "نمای درخت"
 #. Description of the 'Is Tree' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Tree structures are implemented using Nested Set"
-msgstr "ساختارهای درختی با استفاده از مجموعه تودرتو پیاده سازی می شوند"
+msgstr "ساختارهای درختی با استفاده از مجموعه تودرتو پیاده سازی می‌شوند"
 
 #: frappe/public/js/frappe/views/treeview.js:19
 msgid "Tree view is not available for {0}"
@@ -31521,11 +31521,11 @@ msgstr "رکورد {0} حذف شد"
 
 #: frappe/public/js/frappe/logtypes.js:22
 msgid "{0} records are not automatically deleted."
-msgstr "رکوردهای {0} به طور خودکار حذف نمی شوند."
+msgstr "رکوردهای {0} به طور خودکار حذف نمی‌شوند."
 
 #: frappe/public/js/frappe/logtypes.js:29
 msgid "{0} records are retained for {1} days."
-msgstr "رکوردهای {0} برای {1} روز حفظ می شوند."
+msgstr "رکوردهای {0} برای {1} روز حفظ می‌شوند."
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:179
 msgid "{0} records deleted"
