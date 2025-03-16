@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-24 14:51+0000\n"
-"PO-Revision-Date: 2025-03-14 20:39\n"
+"PO-Revision-Date: 2025-03-16 21:01\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -1143,7 +1143,7 @@ msgstr "Dodaj Razmak na Vrh"
 #: frappe/email/doctype/email_group/email_group.js:38
 #: frappe/email/doctype/email_group/email_group.js:59
 msgid "Add Subscribers"
-msgstr ""
+msgstr "Dodaj Pretplatnike"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:425
 msgid "Add Tags"
@@ -1170,7 +1170,7 @@ msgstr ""
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:6
 msgid "Add User Permissions"
-msgstr ""
+msgstr "Dodaj Korisnička Dopuštenja"
 
 #. Label of a Check field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
@@ -1240,29 +1240,29 @@ msgstr "Dodaj prijelom stranice"
 
 #: frappe/custom/doctype/client_script/client_script.js:16
 msgid "Add script for Child Table"
-msgstr ""
+msgstr "Dodajte skriptu za Podređenu Tabelu"
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:111
 msgid "Add section above"
-msgstr ""
+msgstr "Dodajte odjeljak iznad"
 
 #: frappe/public/js/form_builder/components/Section.vue:265
 msgid "Add section below"
-msgstr ""
+msgstr "Dodajte odjeljak ispod"
 
 #: frappe/public/js/form_builder/components/Sidebar.vue:52
 #: frappe/public/js/form_builder/components/Tabs.vue:157
 msgid "Add tab"
-msgstr ""
+msgstr "Dodaj karticu"
 
 #: frappe/public/js/frappe/utils/dashboard_utils.js:263
 #: frappe/public/js/frappe/views/reports/query_report.js:252
 msgid "Add to Dashboard"
-msgstr ""
+msgstr "Dodaj na Nadzornu Ploču"
 
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:98
 msgid "Add to ToDo"
-msgstr ""
+msgstr "Dodaj u Za Uraditi"
 
 #: frappe/website/doctype/website_slideshow/website_slideshow.js:32
 msgid "Add to table"
@@ -1332,7 +1332,7 @@ msgstr ""
 #. Name of a DocType
 #: frappe/contacts/doctype/address_template/address_template.json
 msgid "Address Template"
-msgstr ""
+msgstr "Predložak Adrese"
 
 #. Label of a Data field in DocType 'Address'
 #. Label of a Data field in DocType 'Contact Us Settings'
@@ -1343,7 +1343,7 @@ msgstr ""
 
 #: frappe/contacts/doctype/address/address.py:72
 msgid "Address Title is mandatory."
-msgstr ""
+msgstr "Naziv Adrese je obavezan."
 
 #. Label of a Select field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -1560,11 +1560,11 @@ msgstr ""
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:29
 msgid "All Records"
-msgstr ""
+msgstr "Svi Zapisi"
 
 #: frappe/public/js/frappe/form/form.js:2120
 msgid "All Submissions"
-msgstr ""
+msgstr "Svi Podnesci"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:452
 msgid "All customizations will be removed. Please confirm."
@@ -1599,11 +1599,11 @@ msgstr ""
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 #: frappe/templates/includes/oauth_confirmation.html:15
 msgid "Allow"
-msgstr ""
+msgstr "Dopusti"
 
 #: frappe/website/doctype/website_settings/website_settings.py:160
 msgid "Allow API Indexing Access"
-msgstr ""
+msgstr "Dopusti API Pristup Indeksiranju"
 
 #. Label of a Check field in DocType 'DocType'
 #. Label of a Check field in DocType 'Customize Form'
