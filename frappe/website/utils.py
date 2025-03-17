@@ -188,7 +188,7 @@ def get_boot_data():
 		},
 		"assets_json": get_assets_json(),
 		"sitename": frappe.local.site,
-		"is_fc_site": is_fc_site(),
+		"is_fc_site": 1 if is_fc_site() else 0,
 	}
 
 
