@@ -377,7 +377,7 @@ frappe.search.utils = {
 				var field_text = "";
 				for (var i = 0; i < parts.length; i++) {
 					var part = parts[i];
-					if (part.toLowerCase().indexOf(keywords) !== -1) {
+					if (part.toLowerCase().indexOf(keywords.toLowerCase()) !== -1) {
 						// If the field contains the keyword
 						let colon_index, field_value;
 						if (part.indexOf(" &&& ") !== -1) {
