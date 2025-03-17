@@ -95,7 +95,7 @@ export interface FrappeUIComponent {
 	props?: Array<Record<string, any>>,
 	emits?: Array<string> | Record<string, any>,
 	editInFragmentMode?: boolean, // whether to open a separate canvas for editing this component
-	proxyComponent?: string, // pseudo-component to be used in edit mode
+	proxyComponent?: any, // pseudo-component to be used in edit mode
 }
 
 export interface FrappeUIComponents {

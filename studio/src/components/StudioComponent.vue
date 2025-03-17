@@ -86,7 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, useAttrs, onMounted, inject } from "vue"
+import { computed, ref, watch, useAttrs, inject } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
 
@@ -250,12 +250,17 @@ watch(
 	{ deep: true },
 )
 
-onMounted(() => {
-	// set data-component-id on mount since some frappeui components have inheritAttrs: false
-	target.value = getComponentRoot(componentRef)
-	if (target.value) {
-		target.value?.setAttribute("data-component-id", props.block.componentId)
-		isComponentReady.value = true
-	}
-})
+watch(
+	() => componentRef.value,
+	() => {
+		if (!componentRef.value) return
+		// set data-component-id on update since some frappeui components have inheritAttrs: false
+		target.value = getComponentRoot(componentRef)
+		if (target.value) {
+			target.value?.setAttribute("data-component-id", props.block.componentId)
+			isComponentReady.value = true
+		}
+	},
+	{ immediate: true },
+)
 </script>

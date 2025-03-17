@@ -231,7 +231,7 @@ export const COMPONENTS: FrappeUIComponents = {
 			},
 		},
 		editInFragmentMode: true,
-		proxyComponent: "DialogProxy",
+		proxyComponent: defineAsyncComponent(() => import("@/components/ProxyComponents/Dialog.vue")),
 	},
 	Divider: {
 		name: "Divider",
@@ -677,7 +677,7 @@ export const COMPONENTS: FrappeUIComponents = {
 }
 
 const proxyComponentMap = computed(() => {
-	const map = new Map<string, string>()
+	const map = new Map<string, any>()
 	Object.values(COMPONENTS).forEach((component: FrappeUIComponent) => {
 		if (component.proxyComponent) {
 			map.set(component.name, component.proxyComponent)

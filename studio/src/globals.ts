@@ -56,8 +56,6 @@ import AppHeader from "@/components/AppLayout/AppHeader.vue"
 import BottomTabs from "@/components/AppLayout/BottomTabs.vue"
 import MarkdownEditor from "@/components/AppLayout/MarkdownEditor.vue"
 
-import DialogProxy from "@/components/ProxyComponents/DialogProxy.vue"
-
 export function registerGlobalComponents(app: App) {
 	app.component("Alert", Alert)
 	app.component("Autocomplete", Autocomplete)
@@ -114,7 +112,4 @@ export function registerGlobalComponents(app: App) {
 	app.component("AppHeader", AppHeader)
 	app.component("BottomTabs", BottomTabs)
 	app.component("MarkdownEditor", MarkdownEditor)
-
-	// proxy components
-	app.component("DialogProxy", DialogProxy)
 }
