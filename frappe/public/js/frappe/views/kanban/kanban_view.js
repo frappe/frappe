@@ -3,12 +3,8 @@ import KanbanSettings from "./kanban_settings";
 frappe.provide("frappe.views");
 
 frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
-<<<<<<< HEAD
-=======
-	static full_page = true;
 	static no_sidebar = true;
 
->>>>>>> ec57061e63 (refactor: hide sidebar (#29061))
 	static load_last_view() {
 		const route = frappe.get_route();
 		if (route.length === 3) {
