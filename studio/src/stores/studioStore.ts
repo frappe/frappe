@@ -19,7 +19,7 @@ import { studioPages } from "@/data/studioPages"
 import { studioPageResources } from "@/data/studioResources"
 import { studioApps } from "@/data/studioApps"
 
-// import StudioCanvas from "@/components/StudioCanvas.vue"
+import StudioCanvas from "@/components/StudioCanvas.vue"
 import Block from "@/utils/block"
 
 import type { StudioApp } from "@/types/Studio/StudioApp"
@@ -33,7 +33,7 @@ import { toast } from "vue-sonner"
 import { createResource } from "frappe-ui"
 
 const useStudioStore = defineStore("store", () => {
-	const activeCanvas = ref<HTMLElement | null>(null)
+	const activeCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
 	const studioLayout = reactive({
 		leftPanelWidth: 300,
 		rightPanelWidth: 275,
@@ -459,4 +459,5 @@ const useStudioStore = defineStore("store", () => {
 	}
 })
 
+// @ts-ignore: Ignoring circular dependency warning with StudioCanvas
 export default useStudioStore
