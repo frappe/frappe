@@ -1,7 +1,7 @@
 <template>
 	<component
 		v-if="block.canHaveChildren()"
-		:is="block.componentName"
+		:is="componentName"
 		v-bind="componentProps"
 		v-model="boundValue"
 		:data-component-id="block.componentId"
@@ -93,6 +93,7 @@ import ComponentEditor from "@/components/ComponentEditor.vue"
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML } from "@/utils/helpers"
+import components from "@/data/components"
 
 import { CanvasProps } from "@/types"
 
@@ -120,6 +121,11 @@ const canvasProps = inject("canvasProps") as CanvasProps
 
 const styles = computed(() => {
 	return props.block.getStyles()
+})
+
+const componentName = computed(() => {
+	const proxyComponent = components.getProxyComponent(props.block.componentName)
+	return proxyComponent ? proxyComponent : props.block.componentName
 })
 
 const getComponentProps = () => {

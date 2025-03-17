@@ -20,13 +20,7 @@ export function useCanvasDropZone(
 
 			if (droppedComponentName && parentComponent) {
 				const componentConfig = components.get(droppedComponentName)
-				let newBlock: Block
-
-				if (componentConfig.proxyComponent) {
-					newBlock = getComponentBlock(componentConfig.proxyComponent)
-				} else {
-					newBlock = getComponentBlock(droppedComponentName)
-				}
+				let newBlock = getComponentBlock(droppedComponentName)
 
 				if (componentConfig?.editInFragmentMode) {
 					store.editOnCanvas(newBlock, () => {})

@@ -680,7 +680,7 @@ const proxyComponentMap = computed(() => {
 	const map = new Map<string, string>()
 	Object.values(COMPONENTS).forEach((component: FrappeUIComponent) => {
 		if (component.proxyComponent) {
-			map.set(component.proxyComponent, component.name)
+			map.set(component.name, component.proxyComponent)
 		}
 	})
 	return map
@@ -706,11 +706,12 @@ function getComponent(name: string) {
 	}
 }
 
+function getProxyComponent(name: string) {
+	return proxyComponentMap.value.get(name)
+}
+
 function getProps(name: string) {
-	const proxyComponentFor = proxyComponentMap.value.get(name)
-	if (proxyComponentFor) {
-		return frappeUI[proxyComponentFor]?.props
-	} else if (name in frappeUI) {
+	if (name in frappeUI) {
 		return frappeUI[name]?.props
 	} else {
 		return COMPONENTS[name]?.props
@@ -731,6 +732,7 @@ export default {
 	names: Object.keys(COMPONENTS),
 	get,
 	getComponent,
+	getProxyComponent,
 	getProps,
 	getEmits,
 	isFrappeUIComponent,
