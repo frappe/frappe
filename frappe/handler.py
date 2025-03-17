@@ -13,6 +13,7 @@ import frappe.utils
 from frappe import _, is_whitelisted, ping
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.monitor import add_data_to_monitor
+from frappe.permissions import check_doctype_permission
 from frappe.utils import cint
 from frappe.utils.csvutils import build_csv_response
 from frappe.utils.deprecations import deprecation_warning
@@ -250,18 +251,22 @@ def upload_file():
 
 
 def check_write_permission(doctype: str | None = None, name: str | None = None):
-	check_doctype = doctype and not name
-	if doctype and name:
-		try:
-			doc = frappe.get_doc(doctype, name)
-			doc.check_permission("write")
-		except frappe.DoesNotExistError:
-			# doc has not been inserted yet, name is set to "new-some-doctype"
-			# If doc inserts fine then only this attachment will be linked see file/utils.py:relink_mismatched_files
-			return
+	if not doctype:
+		return
 
-	if check_doctype:
+	if not name:
 		frappe.has_permission(doctype, "write", throw=True)
+		return
+
+	try:
+		doc = frappe.get_doc(doctype, name)
+	except frappe.DoesNotExistError:
+		# doc has not been inserted yet, name is set to "new-some-doctype"
+		# If doc inserts fine then only this attachment will be linked see file/utils.py:relink_mismatched_files
+		frappe.new_doc(doctype).check_permission("write")
+		return
+
+	doc.check_permission("write")
 
 
 @frappe.whitelist(allow_guest=True)

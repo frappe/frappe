@@ -19,7 +19,7 @@
  "fields": [
   {
    "fieldname": "url",
-   "fieldtype": "Data",
+   "fieldtype": "Text",
    "label": "URL",
    "read_only": 1
   },
@@ -79,7 +79,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-05-21 15:50:10.414002",
+ "modified": "2025-02-25 15:16:24.028963",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook Request Log",

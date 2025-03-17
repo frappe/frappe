@@ -121,6 +121,7 @@ class DocType(Document):
 		engine: DF.Literal["InnoDB", "MyISAM"]
 		fields: DF.Table[DocField]
 		force_re_route_to_default_view: DF.Check
+		grid_page_length: DF.Int
 		has_web_view: DF.Check
 		hide_toolbar: DF.Check
 		icon: DF.Data | None

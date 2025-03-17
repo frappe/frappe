@@ -111,9 +111,6 @@ class LoginManager:
 			if self.login() is False:
 				return
 			self.resume = False
-
-			# run login triggers
-			self.run_trigger("on_session_creation")
 		else:
 			try:
 				self.resume = True
@@ -147,12 +144,12 @@ class LoginManager:
 		frappe.form_dict.pop("pwd", None)
 		self.post_login()
 
-	def post_login(self):
+	def post_login(self, session_end: str | None = None, audit_user: str | None = None):
 		self.run_trigger("on_login")
 		validate_ip_address(self.user)
 		self.validate_hour()
 		self.get_user_info()
-		self.make_session()
+		self.make_session(session_end=session_end, audit_user=audit_user)
 		self.setup_boot_cache()
 		self.set_user_info()
 
@@ -196,8 +193,7 @@ class LoginManager:
 			frappe.response["full_name"] = self.full_name
 
 		# redirect information
-		redirect_to = frappe.cache.hget("redirect_after_login", self.user)
-		if redirect_to:
+		if not resume and (redirect_to := frappe.cache.hget("redirect_after_login", self.user)):
 			frappe.local.response["redirect_to"] = redirect_to
 			frappe.cache.hdel("redirect_after_login", self.user)
 
@@ -208,16 +204,25 @@ class LoginManager:
 	def clear_preferred_language(self):
 		frappe.local.cookie_manager.delete_cookie("preferred_language")
 
-	def make_session(self, resume=False):
+	def make_session(
+		self, resume: bool = False, session_end: str | None = None, audit_user: str | None = None
+	):
 		# start session
 		frappe.local.session_obj = Session(
-			user=self.user, resume=resume, full_name=self.full_name, user_type=self.user_type
+			user=self.user,
+			resume=resume,
+			full_name=self.full_name,
+			user_type=self.user_type,
+			session_end=session_end,
+			audit_user=audit_user,
 		)
 
 		# reset user if changed to Guest
 		self.user = frappe.local.session_obj.user
 		frappe.local.session = frappe.local.session_obj.data
 		self.clear_active_sessions()
+		if not resume:
+			self.run_trigger("on_session_creation")
 
 	def clear_active_sessions(self):
 		"""Clear other sessions of the current user if `deny_multiple_sessions` is not set"""
@@ -333,15 +338,16 @@ class LoginManager:
 		"""login as guest"""
 		self.login_as("Guest")
 
-	def login_as(self, user):
+	def login_as(self, user: str, session_end: str | None = None, audit_user: str | None = None):
 		self.user = user
-		self.post_login()
+		self.post_login(session_end, audit_user)
 
 	def impersonate(self, user):
 		current_user = frappe.session.user
-		self.login_as(user)
+		session_data = frappe.local.session_obj.data.data
+		self.login_as(user, session_end=session_data.session_end, audit_user=session_data.audit_user)
 		# Flag this session as impersonated session, so other code can log this.
-		frappe.local.session_obj.set_impersonsated(current_user)
+		frappe.local.session_obj.set_impersonated(current_user)
 
 	def logout(self, arg="", user=None):
 		if not user:
@@ -621,7 +627,7 @@ def validate_oauth(authorization_header):
 	Authenticate request using OAuth and set session user
 
 	Args:
-	        authorization_header (list of str): The 'Authorization' header containing the prefix and token
+	                authorization_header (list of str): The 'Authorization' header containing the prefix and token
 	"""
 
 	from frappe.integrations.oauth2 import get_oauth_server
@@ -661,7 +667,7 @@ def validate_auth_via_api_keys(authorization_header):
 	Authenticate request using API keys and set session user
 
 	Args:
-	        authorization_header (list of str): The 'Authorization' header containing the prefix and token
+	                authorization_header (list of str): The 'Authorization' header containing the prefix and token
 	"""
 
 	try:

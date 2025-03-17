@@ -126,10 +126,10 @@ def apply_workflow(doc, action):
 	if next_state.update_field:
 		doc.set(next_state.update_field, next_state.update_value)
 
-	new_docstatus = cint(next_state.doc_status)
-	if doc.docstatus.is_draft() and new_docstatus == DocStatus.draft():
+	new_docstatus = DocStatus(next_state.doc_status or 0)
+	if doc.docstatus.is_draft() and new_docstatus.is_draft():
 		doc.save()
-	elif doc.docstatus.is_draft() and new_docstatus == DocStatus.submitted():
+	elif doc.docstatus.is_draft() and new_docstatus.is_submitted():
 		from frappe.core.doctype.submission_queue.submission_queue import queue_submission
 		from frappe.utils.scheduler import is_scheduler_inactive
 
@@ -138,9 +138,9 @@ def apply_workflow(doc, action):
 			return
 
 		doc.submit()
-	elif doc.docstatus.is_submitted() and new_docstatus == DocStatus.submitted():
+	elif doc.docstatus.is_submitted() and new_docstatus.is_submitted():
 		doc.save()
-	elif doc.docstatus.is_submitted() and new_docstatus == DocStatus.cancelled():
+	elif doc.docstatus.is_submitted() and new_docstatus.is_cancelled():
 		doc.cancel()
 	else:
 		frappe.throw(_("Illegal Document Status for {0}").format(next_state.state))

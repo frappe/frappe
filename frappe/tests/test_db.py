@@ -491,6 +491,9 @@ class TestDB(FrappeTestCase):
 
 		self.assertEqual(frappe.db.exists(dt, [["name", "=", dn]]), dn)
 
+	def test_estimated_count(self):
+		self.assertGreater(frappe.db.estimate_count("DocField"), 100)
+
 	def test_bulk_insert(self):
 		current_count = frappe.db.count("ToDo")
 		test_body = f"test_bulk_insert - {random_string(10)}"

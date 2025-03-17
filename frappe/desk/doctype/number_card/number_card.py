@@ -24,6 +24,7 @@ class NumberCard(Document):
 
 		aggregate_function_based_on: DF.Literal[None]
 		color: DF.Color | None
+		currency: DF.Link | None
 		document_type: DF.Link | None
 		dynamic_filters_json: DF.Code | None
 		filters_config: DF.Code | None

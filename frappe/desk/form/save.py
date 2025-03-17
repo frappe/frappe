@@ -24,10 +24,10 @@ def savedocs(doc, action):
 
 	# action
 	doc.docstatus = {
-		"Save": DocStatus.draft(),
-		"Submit": DocStatus.submitted(),
-		"Update": DocStatus.submitted(),
-		"Cancel": DocStatus.cancelled(),
+		"Save": DocStatus.DRAFT,
+		"Submit": DocStatus.SUBMITTED,
+		"Update": DocStatus.SUBMITTED,
+		"Cancel": DocStatus.CANCELLED,
 	}[action]
 
 	if doc.docstatus.is_submitted():

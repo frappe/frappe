@@ -48,7 +48,7 @@ INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
 SINGLE_WORD_PATTERN = re.compile(r'([`"]?)(tab([A-Z]\w+))\1')
 MULTI_WORD_PATTERN = re.compile(r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1')
 
-SQL_ITERATOR_BATCH_SIZE = 100
+SQL_ITERATOR_BATCH_SIZE = 1000
 
 
 class Database:
@@ -1274,6 +1274,10 @@ class Database:
 		if not filters and cache:
 			frappe.cache.set_value(f"doctype:count:{dt}", count, expires_in_sec=86400)
 		return count
+
+	def estimate_count(self, doctype: str) -> int:
+		"""Get estimated count of total rows in a table."""
+		raise NotImplementedError
 
 	@staticmethod
 	def format_date(date):

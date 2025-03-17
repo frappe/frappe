@@ -39,7 +39,7 @@ def get_report_doc(report_name):
 
 	if not doc.is_permitted():
 		frappe.throw(
-			_("You don't have access to Report: {0}").format(_(report_name)),
+			_("You don't have access to Report: {0}").format(_(doc.name)),
 			frappe.PermissionError,
 		)
 
@@ -110,6 +110,10 @@ def generate_report_result(
 
 	if cint(report.add_total_row) and result and not skip_total_row:
 		result = add_total_row(result, columns, is_tree=is_tree, parent_field=parent_field)
+
+	if isinstance(filters, dict) and filters.get("translate_data"):
+		total_row = cint(report.add_total_row) and result and not skip_total_row
+		result = translate_report_data(result, total_row)
 
 	return {
 		"result": result,
@@ -341,7 +345,7 @@ def export_query():
 		)
 		return
 
-	format_duration_fields(data)
+	format_fields(data)
 	xlsx_data, column_widths = build_xlsx_data(
 		data, visible_idx, include_indentation, include_filters=include_filters
 	)
@@ -355,18 +359,30 @@ def export_query():
 		file_extension = "xlsx"
 		content = make_xlsx(xlsx_data, "Query Report", column_widths=column_widths).getvalue()
 
+	for value in (data.filters or {}).values():
+		if len(report_name) > 200:
+			break
+
+		if isinstance(value, list) and value:
+			report_name += "_" + ",".join(value)
+		elif isinstance(value, str) and value not in {"Yes", "No"}:
+			report_name += f"_{value}"
+
 	provide_binary_file(report_name, file_extension, content)
 
 
-def format_duration_fields(data: frappe._dict) -> None:
+def format_fields(data: frappe._dict) -> None:
 	for i, col in enumerate(data.columns):
-		if col.get("fieldtype") != "Duration":
-			continue
-
-		for row in data.result:
-			index = col.get("fieldname") if isinstance(row, dict) else i
-			if row[index]:
-				row[index] = format_duration(row[index])
+		if col.get("fieldtype") == "Duration":
+			for row in data.result:
+				index = col.get("fieldname") if isinstance(row, dict) else i
+				if row[index]:
+					row[index] = format_duration(row[index])
+		elif col.get("fieldtype") == "Currency" and col.get("precision"):
+			for row in data.result:
+				index = col.get("fieldname") if isinstance(row, dict) else i
+				if row[index]:
+					row[index] = round(row[index], col.get("precision"))
 
 
 def build_xlsx_data(data, visible_idx, include_indentation, include_filters=False, ignore_visible_idx=False):
@@ -808,3 +824,11 @@ def validate_filters_permissions(report_name, filters=None, user=None):
 						linked_doctype, filters[field.fieldname]
 					)
 				)
+
+
+def translate_report_data(data, total_row):
+	for d in data[:-1] if total_row else data:
+		for field, value in d.items():
+			if isinstance(value, str):
+				d[field] = _(value)
+	return data

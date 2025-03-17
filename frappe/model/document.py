@@ -29,8 +29,8 @@ if TYPE_CHECKING:
 	from frappe.core.doctype.docfield.docfield import DocField
 
 
-DOCUMENT_LOCK_EXPIRTY = 12 * 60 * 60  # All locks expire in 12 hours automatically
-DOCUMENT_LOCK_SOFT_EXPIRY = 60 * 60  # Let users force-unlock after 60 minutes
+DOCUMENT_LOCK_EXPIRTY = 3 * 60 * 60  # All locks expire in 3 hours automatically
+DOCUMENT_LOCK_SOFT_EXPIRY = 30 * 60  # Let users force-unlock after 30 minutes
 
 
 def get_doc(*args, **kwargs):
@@ -142,7 +142,14 @@ class Document(BaseDocument):
 
 	@property
 	def is_locked(self):
-		return file_lock.lock_exists(self.get_signature())
+		signature = self.get_signature()
+		if not file_lock.lock_exists(signature):
+			return False
+
+		if file_lock.lock_age(signature) > DOCUMENT_LOCK_EXPIRTY:
+			return False
+
+		return True
 
 	def load_from_db(self):
 		"""Load document and children from database and create properties
@@ -170,7 +177,8 @@ class Document(BaseDocument):
 
 			if not d:
 				frappe.throw(
-					_("{0} {1} not found").format(_(self.doctype), self.name), frappe.DoesNotExistError
+					_("{0} {1} not found").format(_(self.doctype), self.name),
+					frappe.DoesNotExistError(doctype=self.doctype),
 				)
 
 			super().__init__(d)
@@ -217,7 +225,7 @@ class Document(BaseDocument):
 	def check_permission(self, permtype="read", permlevel=None):
 		"""Raise `frappe.PermissionError` if not permitted"""
 		if not self.has_permission(permtype):
-			self.raise_no_permission_to(permtype)
+			self._handle_permission_failure(permtype)
 
 	def has_permission(self, permtype="read", *, debug=False, user=None) -> bool:
 		"""
@@ -232,6 +240,12 @@ class Document(BaseDocument):
 		import frappe.permissions
 
 		return frappe.permissions.has_permission(self.doctype, permtype, self, debug=debug, user=user)
+
+	def _handle_permission_failure(self, perm_type):
+		from frappe.permissions import check_doctype_permission
+
+		check_doctype_permission(self.doctype, perm_type)
+		self.raise_no_permission_to(perm_type)
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
@@ -334,8 +348,30 @@ class Document(BaseDocument):
 		return self
 
 	def check_if_locked(self):
-		if self.creation and self.is_locked:
-			raise frappe.DocumentLockedError
+		if not self.creation or not self.is_locked:
+			return
+
+		# Allow unlocking if created more than 60 minutes ago
+		primary_action = None
+		if file_lock.lock_age(self.get_signature()) > DOCUMENT_LOCK_SOFT_EXPIRY:
+			primary_action = {
+				"label": "Force Unlock",
+				"server_action": "frappe.model.document.unlock_document",
+				"hide_on_success": True,
+				"args": {
+					"doctype": self.doctype,
+					"name": self.name,
+				},
+			}
+
+		frappe.throw(
+			_(
+				"This document is currently locked and queued for execution. Please try again after some time."
+			),
+			title=_("Document Queued"),
+			primary_action=primary_action,
+			exc=frappe.DocumentLockedError,
+		)
 
 	def save(self, *args, **kwargs):
 		"""Wrapper for _save"""
@@ -576,11 +612,11 @@ class Document(BaseDocument):
 		frappe.flags.currently_saving.append((self.doctype, self.name))
 
 	def set_docstatus(self):
-		if self.docstatus is None:
-			self.docstatus = DocStatus.draft()
+		# docstatus property automatically sets a docstatus if not set
+		docstatus = self.docstatus
 
 		for d in self.get_all_children():
-			d.docstatus = self.docstatus
+			d.set("docstatus", docstatus)
 
 	def _validate(self):
 		self._validate_mandatory()
@@ -844,10 +880,7 @@ class Document(BaseDocument):
 		- Submit (1) > Cancel (2)
 
 		"""
-		if not self.docstatus:
-			self.docstatus = DocStatus.draft()
-
-		if to_docstatus == DocStatus.draft():
+		if to_docstatus == DocStatus.DRAFT:
 			if self.docstatus.is_draft():
 				self._action = "save"
 			elif self.docstatus.is_submitted():
@@ -860,7 +893,7 @@ class Document(BaseDocument):
 			else:
 				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
 
-		elif to_docstatus == DocStatus.submitted():
+		elif to_docstatus == DocStatus.SUBMITTED:
 			if self.docstatus.is_submitted():
 				self._action = "update_after_submit"
 				self.check_permission("submit")
@@ -874,7 +907,7 @@ class Document(BaseDocument):
 			else:
 				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
 
-		elif to_docstatus == DocStatus.cancelled():
+		elif to_docstatus == DocStatus.CANCELLED:
 			raise frappe.ValidationError(_("Cannot edit cancelled document"))
 
 	def set_parent_in_children(self):
@@ -1039,12 +1072,12 @@ class Document(BaseDocument):
 
 	def _submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
-		self.docstatus = DocStatus.submitted()
+		self.docstatus = DocStatus.SUBMITTED
 		return self.save()
 
 	def _cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
-		self.docstatus = DocStatus.cancelled()
+		self.docstatus = DocStatus.CANCELLED
 		return self.save()
 
 	def _rename(self, name: str, merge: bool = False, force: bool = False, validate_rename: bool = True):
@@ -1393,8 +1426,17 @@ class Document(BaseDocument):
 				for df in doc.meta.get("fields", {"fieldtype": ["in", ["Currency", "Float", "Percent"]]})
 			)
 
+		# PERF: flt internally has to resolve this if we don't specify it.
+		rounding_method = frappe.get_system_settings("rounding_method")
 		for fieldname in fieldnames:
-			doc.set(fieldname, flt(doc.get(fieldname), self.precision(fieldname, doc.get("parentfield"))))
+			doc.set(
+				fieldname,
+				flt(
+					doc.get(fieldname),
+					self.precision(fieldname, doc.get("parentfield")),
+					rounding_method=rounding_method,
+				),
+			)
 
 	def get_url(self):
 		"""Returns Desk URL for this document."""
@@ -1530,29 +1572,8 @@ class Document(BaseDocument):
 		if hasattr(self, f"_{action}"):
 			action = f"_{action}"
 
-		try:
-			self.lock()
-		except frappe.DocumentLockedError:
-			# Allow unlocking if created more than 60 minutes ago
-			primary_action = None
-			if file_lock.lock_age(self.get_signature()) > DOCUMENT_LOCK_SOFT_EXPIRY:
-				primary_action = {
-					"label": "Force Unlock",
-					"server_action": "frappe.model.document.unlock_document",
-					"hide_on_success": True,
-					"args": {
-						"doctype": self.doctype,
-						"name": self.name,
-					},
-				}
-
-			frappe.throw(
-				_(
-					"This document is currently locked and queued for execution. Please try again after some time."
-				),
-				title=_("Document Queued"),
-				primary_action=primary_action,
-			)
+		self.check_if_locked()
+		self.lock()
 
 		enqueue_after_commit = kwargs.pop("enqueue_after_commit", None)
 		if enqueue_after_commit is None:

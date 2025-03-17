@@ -30,7 +30,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				this.report_doc = doc;
 				this.report_doc.json = JSON.parse(this.report_doc.json);
 
-				this.filters = this.report_doc.json.filters;
+				this.filters = [
+					...this.report_doc.json.filters,
+					...this.parse_filters_from_route_options(),
+				];
+
 				this.order_by = this.report_doc.json.order_by;
 				this.add_totals_row = this.report_doc.json.add_totals_row;
 				this.page_title = __(this.report_name);
@@ -703,7 +707,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	is_editable(df, data) {
-		return (
+		if (
 			df &&
 			frappe.model.can_write(this.doctype) &&
 			// not a submitted doc or field is allowed to edit after submit
@@ -714,10 +718,16 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			!df.is_virtual &&
 			!df.hidden &&
 			// not a standard field i.e., owner, modified_by, etc.
-			frappe.model.is_non_std_field(df.fieldname) &&
-			df.read_only_depends_on &&
-			!this.evaluate_read_only_depends_on(df.read_only_depends_on, data)
-		);
+			frappe.model.is_non_std_field(df.fieldname)
+		) {
+			// don't check read_only_depends_on if there's child table fields
+			return (
+				this.meta.fields.some((df) => df.fieldtype === "Table") ||
+				(df.read_only_depends_on &&
+					!this.evaluate_read_only_depends_on(df.read_only_depends_on, data))
+			);
+		}
+		return false;
 	}
 
 	get_data(values) {

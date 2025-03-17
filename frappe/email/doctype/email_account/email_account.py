@@ -134,6 +134,9 @@ class EmailAccount(Document):
 		else:
 			self.login_id = None
 
+		if self.service == "Sendgrid":
+			self.login_id = "apikey"
+
 		# validate the imap settings
 		if self.enable_incoming and self.use_imap and len(self.imap_folder) <= 0:
 			frappe.throw(_("You need to set one IMAP folder for {0}").format(frappe.bold(self.email_id)))
@@ -396,7 +399,7 @@ class EmailAccount(Document):
 
 		if _raise_error:
 			frappe.throw(
-				_("Please setup default Email Account from Settings > Email Account"),
+				_("Please setup default outgoing Email Account from Tools > Email Account"),
 				frappe.OutgoingEmailError,
 			)
 
@@ -824,6 +827,7 @@ def pull(now=False):
 		.select(
 			doctype.name,
 			doctype.auth_method,
+			doctype.backend_app_flow,
 			doctype.connected_app,
 			doctype.connected_user,
 		)

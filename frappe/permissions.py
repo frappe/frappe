@@ -83,6 +83,7 @@ def has_permission(
 	*,
 	parent_doctype=None,
 	debug=False,
+	ignore_share_permissions=False,
 ) -> bool:
 	"""Return True if user has permission `ptype` for given `doctype`.
 	If `doc` is passed, also check user, share and owner permissions.
@@ -185,7 +186,7 @@ def has_permission(
 
 		return False
 
-	if not perm:
+	if not perm and not ignore_share_permissions:
 		debug and _debug_log("Checking if document/doctype is explicitly shared with user")
 		perm = false_if_not_shared()
 
@@ -833,3 +834,39 @@ def has_child_permission(
 
 def is_system_user(user: str | None = None) -> bool:
 	return frappe.get_cached_value("User", user or frappe.session.user, "user_type") == "System User"
+
+
+def check_doctype_permission(doctype: str, ptype: str = "read") -> None:
+	"""
+	Designed specfically to override DoesNotExistError in some scenarios.
+	Ignores share permissions.
+	"""
+
+	_message_log = frappe.local.message_log
+	frappe.local.message_log = []
+	try:
+		frappe.has_permission(doctype, ptype, throw=True, ignore_share_permissions=True)
+	except frappe.PermissionError:
+		frappe.flags.disable_traceback = True
+		raise
+
+	frappe.local.message_log = _message_log
+
+
+def handle_does_not_exist_error(fn):
+	"""
+	Decorator to override DoesNotExistError when handling exceptions.
+	Requires the first argument to be an Exception.
+	"""
+
+	@functools.wraps(fn)
+	def wrapper(e, *args, **kwargs):
+		if isinstance(e, frappe.DoesNotExistError) and (doctype := getattr(e, "doctype", None)):
+			try:
+				check_doctype_permission(doctype)
+			except frappe.PermissionError as _e:
+				return fn(_e, *args, **kwargs)
+
+		return fn(e, *args, **kwargs)
+
+	return wrapper

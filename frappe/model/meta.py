@@ -23,10 +23,10 @@ import click
 import frappe
 from frappe import _, _lt
 from frappe.model import (
+	NO_VALUE_FIELDS,
 	child_table_fields,
 	data_fieldtypes,
 	default_fields,
-	no_value_fields,
 	optional_fields,
 	table_fields,
 )
@@ -39,6 +39,7 @@ from frappe.model.document import Document
 from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
 from frappe.utils import cast, cint, cstr
+from frappe.utils.data import add_to_date, get_datetime
 
 DEFAULT_FIELD_LABELS = {
 	"name": _lt("ID"),
@@ -53,6 +54,12 @@ DEFAULT_FIELD_LABELS = {
 	"_comments": _lt("Comments"),
 	"_assign": _lt("Assigned To"),
 }
+
+# When number of rows in a table exceeds this number, we disable certain features automatically.
+# This is done to avoid hammering the site with unnecessary requests that are just meant for
+# improving UX.
+LARGE_TABLE_SIZE_THRESHOLD = 100_000
+LARGE_TABLE_RECENCY_THRESHOLD = 30  # days
 
 
 def get_meta(doctype, cached=True) -> "Meta":
@@ -141,6 +148,7 @@ class Meta(Document):
 		self.get_valid_columns()
 		self.set_custom_permissions()
 		self.add_custom_links_and_actions()
+		self.check_if_large_table()
 
 	def as_dict(self, no_nulls=False):
 		def serialize(doc):
@@ -206,8 +214,8 @@ class Meta(Document):
 		return self._table_fields
 
 	def get_global_search_fields(self):
-		"""Returns list of fields with `in_global_search` set and `name` if set"""
-		fields = self.get("fields", {"in_global_search": 1, "fieldtype": ["not in", no_value_fields]})
+		"""Return list of fields with `in_global_search` set and `name` if set"""
+		fields = self.get("fields", {"in_global_search": 1, "fieldtype": ["not in", NO_VALUE_FIELDS]})
 		if getattr(self, "show_name_in_global_search", None):
 			fields.append(frappe._dict(fieldtype="Data", fieldname="name", label="Name"))
 
@@ -283,7 +291,7 @@ class Meta(Document):
 			link_fields = [df.fieldname for df in self.get_link_fields()]
 
 		for df in self.fields:
-			if df.fieldtype not in no_value_fields and getattr(df, "fetch_from", None):
+			if df.fieldtype not in NO_VALUE_FIELDS and getattr(df, "fetch_from", None):
 				if link_fieldname:
 					if df.fetch_from.startswith(link_fieldname + "."):
 						out.append(df)
@@ -431,6 +439,20 @@ class Meta(Document):
 
 				self.set(fieldname, new_list)
 
+	def check_if_large_table(self):
+		"""Apply some heuristics to detect large tables.
+
+		UI code can use this information to adapt accordingly."""
+		# Note: `modified` should be used in older versions.
+		self.is_large_table = False
+		if self.istable or not frappe.db.table_exists(self.name):  # During install, new migrate
+			return
+
+		if frappe.db.estimate_count(self.name) > LARGE_TABLE_SIZE_THRESHOLD:
+			recent_change = frappe.db.get_value(self.name, {}, "modified", order_by="modified desc")
+			if get_datetime(recent_change) > add_to_date(None, days=-1 * LARGE_TABLE_RECENCY_THRESHOLD):
+				self.is_large_table = True
+
 	def init_field_caches(self):
 		# field map
 		self._fields = {field.fieldname: field for field in self.fields}
@@ -531,11 +553,9 @@ class Meta(Document):
 				self.permissions = [Document(d) for d in custom_perms]
 
 	def get_fieldnames_with_value(self, with_field_meta=False, with_virtual_fields=False):
-		def is_value_field(docfield):
-			return not (
-				not with_virtual_fields
-				and docfield.get("is_virtual")
-				or docfield.fieldtype in no_value_fields
+		def is_value_field(df):
+			return (df.fieldtype not in NO_VALUE_FIELDS) and (
+				with_virtual_fields or not getattr(df, "is_virtual", False)
 			)
 
 		if with_field_meta:
@@ -610,7 +630,7 @@ class Meta(Document):
 
 	def get_permlevel_access(self, permission_type="read", parenttype=None, *, user=None):
 		has_access_to = []
-		roles = frappe.get_roles(user)
+		roles = set(frappe.get_roles(user))
 		for perm in self.get_permissions(parenttype):
 			if perm.role in roles and perm.get(permission_type):
 				if perm.permlevel not in has_access_to:

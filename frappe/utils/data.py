@@ -13,6 +13,7 @@ import time
 import typing
 from code import compile_command
 from enum import Enum
+from functools import lru_cache
 from typing import Any, Literal, Optional, TypeVar, Union
 from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlparse, urlunparse
 
@@ -111,7 +112,7 @@ def get_datetime(
 	if datetime_str is None:
 		return now_datetime()
 
-	if isinstance(datetime_str, datetime.datetime | datetime.timedelta):
+	elif isinstance(datetime_str, datetime.datetime | datetime.timedelta):
 		return datetime_str
 
 	elif isinstance(datetime_str, list | tuple):
@@ -120,11 +121,13 @@ def get_datetime(
 	elif isinstance(datetime_str, datetime.date):
 		return datetime.datetime.combine(datetime_str, datetime.time())
 
-	if is_invalid_date_string(datetime_str):
+	elif is_invalid_date_string(datetime_str):
 		return None
 
 	try:
-		return datetime.datetime.strptime(datetime_str, DATETIME_FORMAT)
+		# PERF: Our DATETIME_FORMAT is same as ISO format.
+		# fromisoformat is written in C so it's better than using strptime parser
+		return datetime.datetime.fromisoformat(datetime_str)
 	except ValueError:
 		return parser.parse(datetime_str)
 
@@ -225,7 +228,7 @@ def add_to_date(
 
 
 def add_to_date(
-	date: DateTimeLikeObject,
+	date: DateTimeLikeObject | None = None,
 	years=0,
 	months=0,
 	weeks=0,
@@ -249,7 +252,7 @@ def add_to_date(
 		if " " in date:
 			as_datetime = True
 		try:
-			date = parser.parse(date)
+			date = get_datetime(date)
 		except ParserError:
 			frappe.throw(frappe._("Please select a valid date filter"), title=frappe._("Invalid Date"))
 
@@ -739,6 +742,14 @@ def get_timespan_date_range(timespan: str) -> tuple[datetime.datetime, datetime.
 	today = getdate()
 
 	match timespan:
+		case "last 7 days":
+			return (add_to_date(today, days=-7), today)
+		case "last 14 days":
+			return (add_to_date(today, days=-14), today)
+		case "last 30 days":
+			return (add_to_date(today, days=-30), today)
+		case "last 90 days":
+			return (add_to_date(today, days=-90), today)
 		case "last week":
 			return (
 				get_first_day_of_week(add_to_date(today, days=-7)),
@@ -779,6 +790,21 @@ def get_timespan_date_range(timespan: str) -> tuple[datetime.datetime, datetime.
 			return (get_quarter_start(today), get_quarter_ending(today))
 		case "this year":
 			return (get_year_start(today), get_year_ending(today))
+		case "next 7 days":
+			return (
+				today,
+				add_to_date(today, days=7),
+			)
+		case "next 14 days":
+			return (
+				today,
+				add_to_date(today, days=14),
+			)
+		case "next 30 days":
+			return (
+				today,
+				add_to_date(today, days=30),
+			)
 		case "next week":
 			return (
 				get_first_day_of_week(add_to_date(today, days=7)),
@@ -1057,10 +1083,10 @@ def rounded(num, precision=0, rounding_method=None):
 		rounding_method or frappe.get_system_settings("rounding_method") or "Banker's Rounding (legacy)"
 	)
 
-	if rounding_method == "Banker's Rounding (legacy)":
-		return _bankers_rounding_legacy(num, precision)
-	elif rounding_method == "Banker's Rounding":
+	if rounding_method == "Banker's Rounding":
 		return _bankers_rounding(num, precision)
+	elif rounding_method == "Banker's Rounding (legacy)":
+		return _bankers_rounding_legacy(num, precision)
 	elif rounding_method == "Commercial Rounding":
 		return _round_away_from_zero(num, precision)
 	else:
@@ -1565,8 +1591,12 @@ def filter_strip_join(some_list: list[str], sep: str) -> list[str]:
 	return (cstr(sep)).join(cstr(a).strip() for a in filter(None, some_list))
 
 
-def get_url(uri: str | None = None, full_address: bool = False) -> str:
-	"""get app url from request"""
+def get_url(
+	uri: str | None = None,
+	full_address: bool = False,
+	allow_header_override: bool = True,
+) -> str:
+	"""Get app url from request."""
 	host_name = frappe.local.conf.host_name or frappe.local.conf.hostname
 
 	if uri and (uri.startswith("http://") or uri.startswith("https://")):
@@ -1575,7 +1605,7 @@ def get_url(uri: str | None = None, full_address: bool = False) -> str:
 	if not host_name:
 		request_host_name = get_host_name_from_request()
 
-		if request_host_name:
+		if request_host_name and allow_header_override:
 			host_name = request_host_name
 
 		elif frappe.local.site:
@@ -1661,7 +1691,7 @@ def get_link_to_report(
 					for value in v
 				)
 			else:
-				conditions.append(str(k) + "=" + str(v))
+				conditions.append(str(k) + "=" + quote(str(v)))
 
 		filters = "&".join(conditions)
 
@@ -1731,6 +1761,14 @@ def filter_operator_is(value: str, pattern: str) -> bool:
 		frappe.throw(frappe._(f"Invalid argument for operator 'IS': {pattern}"))
 
 
+def filter_operator_timespan(value: str, pattern: str) -> bool:
+	if not value:
+		return False
+
+	date_range = get_timespan_date_range(pattern)
+	return date_range[0] <= getdate(value) <= date_range[1]
+
+
 operator_map = {
 	# startswith
 	"^": lambda a, b: (a or "").startswith(b),
@@ -1749,6 +1787,7 @@ operator_map = {
 	"like": sql_like,
 	"not like": lambda a, b: not sql_like(a, b),
 	"is": filter_operator_is,
+	"Timespan": filter_operator_timespan,
 }
 
 
@@ -1772,7 +1811,8 @@ def evaluate_filters(doc, filters: dict | list | tuple):
 def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None):
 	if fieldtype:
 		val1 = cast(fieldtype, val1)
-		val2 = cast(fieldtype, val2)
+		if condition != "Timespan":
+			val2 = cast(fieldtype, val2)
 	if condition in operator_map:
 		return operator_map[condition](val1, val2)
 
@@ -1811,7 +1851,7 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 
 	f = frappe._dict(doctype=f[0], fieldname=f[1], operator=f[2], value=f[3])
 
-	sanitize_column(f.fieldname)
+	f.fieldname = sanitize_column(f.fieldname)
 
 	if not f.operator:
 		# if operator is missing
@@ -1882,13 +1922,18 @@ def make_filter_dict(filters):
 	return _filter
 
 
-def sanitize_column(column_name: str) -> None:
+def sanitize_column(column_name: str) -> str:
+	return _sanitize_column(column_name, (frappe.db and frappe.db.db_type) or None)
+
+
+@lru_cache(maxsize=1024)
+def _sanitize_column(column_name: str, db_type: str) -> str:
 	import sqlparse
 
 	from frappe import _
 
 	column_name = sqlparse.format(column_name, strip_comments=True, keyword_case="lower")
-	if frappe.db and frappe.db.db_type == "mariadb":
+	if db_type == "mariadb":
 		# strip mariadb specific comments which are like python single line comments
 		column_name = MARIADB_SPECIFIC_COMMENT.sub("", column_name)
 
@@ -1907,7 +1952,7 @@ def sanitize_column(column_name: str) -> None:
 	def _raise_exception():
 		frappe.throw(_("Invalid field name {0}").format(column_name), frappe.DataError)
 
-	regex = re.compile("^.*[,'();].*")
+	regex = re.compile("^.*[,'();\n].*")
 	if "ifnull" in column_name:
 		if regex.match(column_name):
 			# to avoid and, or
@@ -1925,6 +1970,8 @@ def sanitize_column(column_name: str) -> None:
 
 	elif regex.match(column_name):
 		_raise_exception()
+
+	return column_name
 
 
 def scrub_urls(html: str) -> str:
@@ -2245,6 +2292,8 @@ def get_imaginary_pixel_response():
 
 
 def is_site_link(link: str) -> bool:
+	if not link:
+		return False
 	if link.startswith("/"):
 		return True
 	return urlparse(link).netloc == urlparse(frappe.utils.get_url()).netloc

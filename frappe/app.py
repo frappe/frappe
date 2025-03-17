@@ -24,6 +24,7 @@ import frappe.utils.response
 from frappe import _
 from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, validate_auth
 from frappe.middlewares import StaticDataMiddleware
+from frappe.permissions import handle_does_not_exist_error
 from frappe.utils import CallbackManager, cint, get_site_name
 from frappe.utils.data import escape_html
 from frappe.utils.deprecations import deprecation_warning
@@ -309,6 +310,7 @@ def make_form_dict(request: Request):
 		frappe.throw(_("Invalid request arguments"))
 
 
+@handle_does_not_exist_error
 def handle_exception(e):
 	response = None
 	http_status_code = getattr(e, "http_status_code", 500)

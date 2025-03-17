@@ -38,7 +38,7 @@ context("Query Report", () => {
 					.contains("Add Column")
 					.click({ force: true });
 				cy.get_open_dialog().get(".modal-title").should("contain", "Add Column");
-				cy.get('select[data-fieldname="doctype"]').select("Role", { force: true });
+				cy.get('select[data-fieldname="doctype"]').select("Role (Name)", { force: true });
 				cy.get('select[data-fieldname="field"]').select("Role Name", { force: true });
 				cy.get('select[data-fieldname="insert_after"]').select("Name", { force: true });
 				cy.get_open_dialog()

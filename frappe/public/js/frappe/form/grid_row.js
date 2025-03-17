@@ -1132,15 +1132,13 @@ export default class GridRow {
 		// sync get_query
 		field.get_query = this.grid.get_field(df.fieldname).get_query;
 
-		if (!field.df.onchange_modified) {
-			var field_on_change_function = field.df.onchange;
-			field.df.onchange = (e) => {
-				field_on_change_function && field_on_change_function.bind(field)(e);
-				this.refresh_field(field.df.fieldname);
-			};
-
-			field.df.onchange_modified = true;
-		}
+		// df.onchange is common for all rows in grid
+		let field_on_change_function = df.onchange;
+		field.df.change = (e) => {
+			// trigger onchange with current grid row field as "this"
+			field_on_change_function && field_on_change_function.apply(field, [e]);
+			me.refresh_field(field.df.fieldname);
+		};
 
 		field.refresh();
 		if (field.$input) {

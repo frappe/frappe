@@ -550,23 +550,12 @@ def list_apps(context, format):
 @pass_context
 def add_db_index(context, doctype, column):
 	"Adds a new DB index and creates a property setter to persist it."
-	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
-
 	columns = column  # correct naming
 	for site in context.sites:
 		frappe.init(site=site)
 		frappe.connect()
 		try:
 			frappe.db.add_index(doctype, columns)
-			if len(columns) == 1:
-				make_property_setter(
-					doctype,
-					columns[0],
-					property="search_index",
-					value="1",
-					property_type="Check",
-					for_doctype=False,  # Applied on docfield
-				)
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
@@ -1154,8 +1143,16 @@ def publish_realtime(context, event, message, room, user, doctype, docname, afte
 @click.command("browse")
 @click.argument("site", required=False)
 @click.option("--user", required=False, help="Login as user")
+@click.option(
+	"--session-end",
+	required=False,
+	help="Session end (in ISO8601 format and timezone-aware - 2025-01-24T12:26:29.200853+00:00)",
+)
+@click.option("--user-for-audit", required=False, help="The user to mention in audit trail")
 @pass_context
-def browse(context, site, user=None):
+def browse(
+	context, site, user: str | None = None, session_end: str | None = None, user_for_audit: str | None = None
+):
 	"""Opens the site on web browser"""
 	from frappe.auth import CookieManager, LoginManager
 
@@ -1181,7 +1178,7 @@ def browse(context, site, user=None):
 			frappe.utils.set_request(path="/")
 			frappe.local.cookie_manager = CookieManager()
 			frappe.local.login_manager = LoginManager()
-			frappe.local.login_manager.login_as(user)
+			frappe.local.login_manager.login_as(user, session_end, user_for_audit)
 			sid = f"/app?sid={frappe.session.sid}"
 		else:
 			click.echo("Please enable developer mode to login as a user")

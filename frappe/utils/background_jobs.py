@@ -6,6 +6,7 @@ from collections import defaultdict
 from collections.abc import Callable
 from contextlib import suppress
 from functools import lru_cache
+from threading import Thread
 from typing import Any, NoReturn
 from uuid import uuid4
 
@@ -264,6 +265,22 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 			frappe.destroy()
 
 
+class FrappeWorker(Worker):
+	def work(self, *args, **kwargs):
+		self.start_frappe_scheduler()
+		return super().work(*args, **kwargs)
+
+	def run_maintenance_tasks(self, *args, **kwargs):
+		"""Attempt to start a scheduler in case the worker doing scheduling died."""
+		self.start_frappe_scheduler()
+		return super().run_maintenance_tasks(*args, **kwargs)
+
+	def start_frappe_scheduler(self):
+		from frappe.utils.scheduler import start_scheduler
+
+		Thread(target=start_scheduler, daemon=True).start()
+
+
 def start_worker(
 	queue: str | None = None,
 	quiet: bool = False,
@@ -323,8 +340,9 @@ def start_worker_pool(
 	# If gc.freeze is done then importing modules before forking allows us to share the memory
 	import frappe.database.query  # sqlparse and indirect imports
 	import frappe.query_builder  # pypika
-	import frappe.utils.data  # common utils
+	import frappe.utils  # common utils
 	import frappe.utils.safe_exec
+	import frappe.utils.scheduler
 	import frappe.utils.typing_validations  # any whitelisted method uses this
 	import frappe.website.path_resolver  # all the page types and resolver
 
@@ -351,6 +369,7 @@ def start_worker_pool(
 		queues=queues,
 		connection=redis_connection,
 		num_workers=num_workers,
+		worker_class=FrappeWorker,  # Auto starts scheduler with workerpool
 	)
 	pool.start(logging_level=logging_level, burst=burst)
 
