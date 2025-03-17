@@ -2045,10 +2045,8 @@ def validate_and_sanitize_search_inputs(fn):
 
 def override_whitelisted_method(original_method: str) -> str:
 	"""Return the last override or the original whitelisted method."""
-	for override in reversed(frappe.get_hooks("override_whitelisted_methods", {}).get(original_method, [])):
-		return override
-
-	return original_method
+	overrides = frappe.get_hooks("override_whitelisted_methods", {}).get(original_method, [])
+	return overrides[-1] if overrides else original_method
 
 
 # Backward compatibility
