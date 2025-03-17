@@ -5,7 +5,7 @@ ar,العربية,1
 bg,Български,0
 bn,বাংলা,0
 bo,བོད་སྐད་,0
-bs,Bosanski,0
+bs,Bosanski,1
 ca,Català,0
 cs,Čeština,0
 da,Dansk,0
@@ -67,12 +67,12 @@ sl,Slovenščina,0
 sq,Shqip,0
 sr,Српски,0
 sr-BA,Srpski,0
-sv,Svenska,0
+sv,Svenska,1
 sw,Kiswahili,0
 ta,தமிழ்,0
 te,తెలుగు,0
 th,ไทย,0
-tr,Türkçe,0
+tr,Türkçe,1
 uk,Українська,0
 ur,اردو,0
 uz,O‘Zbek,0
