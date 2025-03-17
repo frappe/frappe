@@ -105,6 +105,7 @@ watch(
 	() => {
 		if (
 			store.selectedPage &&
+			store.editingMode === "page" &&
 			!canvas.value?.canvasProps?.settingCanvas &&
 			!store.settingPage &&
 			!store.savingPage
