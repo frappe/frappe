@@ -2443,7 +2443,10 @@ def _register_fault_handler():
 
 
 def override_whitelisted_method(original_method: str) -> str:
-	"""Return the first override or the original whitelisted method."""
+	"""Return the first override or the original whitelisted method.
+
+	NOTE: in v15, this will change from using the first override to using the last override.
+	"""
 	overrides = get_hooks("override_whitelisted_methods", {}).get(original_method, [])
 	return overrides[0] if overrides else original_method
 
