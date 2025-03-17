@@ -27,6 +27,8 @@ export interface BlockOptions {
 	[key: string]: any
 }
 
+export type EditingMode = "page" | "fragment"
+
 // slot
 export interface Slot {
 	slotId: string,

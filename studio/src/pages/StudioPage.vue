@@ -6,6 +6,40 @@
 			<StudioLeftPanel
 				class="absolute bottom-0 left-0 top-[var(--toolbar-height)] z-20 overflow-auto bg-white"
 			/>
+
+			<StudioCanvas
+				ref="fragmentCanvas"
+				:key="store.fragmentData.block?.componentId"
+				v-if="store.editingMode === 'fragment' && store.fragmentData.block"
+				:componentTree="store.fragmentData.block"
+				:canvas-styles="{
+					width: (store.fragmentData.block.getStyle('width') + '').endsWith('px') ? '!fit-content' : null,
+					padding: '40px',
+				}"
+				:style="{
+					left: `${store.studioLayout.showLeftPanel ? store.studioLayout.leftPanelWidth : 0}px`,
+					right: `${store.studioLayout.showRightPanel ? store.studioLayout.rightPanelWidth : 0}px`,
+				}"
+				class="canvas-container absolute bottom-0 top-[var(--toolbar-height)] flex justify-center overflow-hidden bg-surface-gray-2 p-10"
+			>
+				<template v-slot:header>
+					<div
+						class="absolute left-0 right-0 top-0 z-20 flex items-center justify-between bg-surface-white p-2 text-sm text-ink-gray-8 shadow-sm"
+					>
+						<div class="flex items-center gap-1 pl-2 text-xs">
+							<a class="cursor-pointer">Page</a>
+							<FeatherIcon name="chevron-right" class="h-3 w-3" />
+							<span class="flex items-center gap-2">
+								{{ store.fragmentData.fragmentName }}
+							</span>
+						</div>
+						<Button variant="solid" class="text-xs" @click="saveAndExitFragmentMode">
+							{{ store.fragmentData.saveActionLabel || "Save" }}
+						</Button>
+					</div>
+				</template>
+			</StudioCanvas>
+
 			<StudioCanvas
 				ref="canvas"
 				class="canvas-container absolute bottom-0 top-[var(--toolbar-height)] flex justify-center overflow-hidden bg-gray-200 p-10"
@@ -57,6 +91,13 @@ watchEffect(() => {
 		store.canvas = canvas.value
 	}
 })
+
+const fragmentCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
+async function saveAndExitFragmentMode(e: Event) {
+	await store.fragmentData.saveAction?.(fragmentCanvas.value?.getRootBlock())
+	fragmentCanvas.value?.toggleDirty(false)
+	store.exitFragmentMode(e)
+}
 
 const debouncedPageSave = useDebounceFn(store.savePage, 300)
 watch(

@@ -13,18 +13,19 @@ import {
 	getNewResource,
 	confirm,
 	getInitialVariableValue,
+	getBlockCopy,
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
 import { studioPageResources } from "@/data/studioResources"
 import { studioApps } from "@/data/studioApps"
 
-import StudioCanvas from "@/components/StudioCanvas.vue"
+// import StudioCanvas from "@/components/StudioCanvas.vue"
 import Block from "@/utils/block"
 
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Resource } from "@/types/Studio/StudioResource"
-import { LeftPanelOptions, RightPanelOptions, Slot } from "@/types"
+import { EditingMode, LeftPanelOptions, RightPanelOptions, Slot } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import { studioVariables } from "@/data/studioVariables"
 import { Variable } from "@/types/Studio/StudioPageVariable"
@@ -32,7 +33,7 @@ import { toast } from "vue-sonner"
 import { createResource } from "frappe-ui"
 
 const useStudioStore = defineStore("store", () => {
-	const canvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
+	const canvas = ref<HTMLElement | null>(null)
 	const studioLayout = reactive({
 		leftPanelWidth: 300,
 		rightPanelWidth: 275,
@@ -49,6 +50,48 @@ const useStudioStore = defineStore("store", () => {
 		y: 0,
 	})
 	const componentContextMenu = ref<InstanceType<typeof ComponentContextMenu> | null>(null)
+
+	// fragment mode
+	const editingMode = ref<EditingMode>("page")
+	const fragmentData = ref({
+		block: <Block | null>null,
+		saveAction: <Function | null>null,
+		saveActionLabel: <string | null>null,
+		fragmentName: <string | null>null,
+		fragmentId: <string | null>null,
+	})
+
+	async function editOnCanvas(
+		block: Block,
+		saveAction: (block: Block) => void,
+		saveActionLabel: string = "Save",
+		fragmentName?: string,
+		fragmentId?: string
+	) {
+		const blockCopy = getBlockCopy(block, true)
+		fragmentData.value = {
+			block: blockCopy,
+			saveAction,
+			saveActionLabel,
+			fragmentName: fragmentName || block.componentName,
+			fragmentId: fragmentId || block.componentId,
+		}
+		editingMode.value = "fragment"
+	}
+
+	async function exitFragmentMode(e?: Event) {
+		if (editingMode.value === "page") return
+		e?.preventDefault()
+
+		editingMode.value = "page"
+		fragmentData.value = {
+			block: null,
+			saveAction: null,
+			saveActionLabel: null,
+			fragmentName: null,
+			fragmentId: null,
+		}
+	}
 
 	// block hover & selection
 	const hoveredBlock = ref<string | null>(null)
@@ -363,6 +406,11 @@ const useStudioStore = defineStore("store", () => {
 		activeBreakpoint,
 		guides,
 		componentContextMenu,
+		// fragment mode
+		editingMode,
+		fragmentData,
+		editOnCanvas,
+		exitFragmentMode,
 		// block hover & selection
 		hoveredBlock,
 		hoveredBreakpoint,
