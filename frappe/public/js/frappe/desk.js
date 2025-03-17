@@ -85,6 +85,7 @@ frappe.Application = class Application {
 			csrf_token: frappe.csrf_token,
 			user: frappe.session.user,
 		});
+		frappe.frappe_toolbar.set_app_logo();
 	}
 
 	make_sidebar() {

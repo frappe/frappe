@@ -186,6 +186,15 @@ frappe.ui.toolbar.Toolbar = class {
 			this.notifications = new frappe.ui.Notifications();
 		}
 	}
+
+	set_app_logo() {
+		if (frappe.current_app) {
+			$(".navbar-brand .app-logo").attr(
+				"src",
+				frappe.boot.app_data_map[frappe.current_app].app_logo_url
+			);
+		}
+	}
 };
 
 $.extend(frappe.ui.toolbar, {

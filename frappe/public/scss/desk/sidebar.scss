@@ -300,18 +300,17 @@ body {
 		display: none;
 	}
 	.sidebar-items {
-		padding: 30px;
-		padding-right: 50px;
-		padding-left: 50px;
+		padding-left: 20px;
 		display: flex;
 		flex-direction: column;
+		padding-top: 10px;
 	}
 	.standard-sidebar-item {
 		display: flex;
-		padding: 10px;
+		// padding: 10px;
 		gap: 50%;
-		margin-top: 7px;
-		margin-bottom: 7px;
+		// margin-top: 7px;
+		// margin-bottom: 7px;
 		a {
 			text-decoration: none;
 			display: flex;
@@ -319,6 +318,7 @@ body {
 			.sidebar-item-icon {
 				border: 1px solid var(--gray-600);
 				padding: 5px;
+				border-radius: var(--border-radius);
 			}
 			.sidebar-item-label {
 				font-size: 16px;
@@ -330,7 +330,12 @@ body {
 			margin-top: 5px;
 		}
 	}
-
+	hr {
+		margin-left: 40px;
+		margin-right: 30px;
+		margin-top: 10px;
+		margin-bottom: 10px;
+	}
 	.sidebar-child-item {
 		padding-left: 15px;
 	}
