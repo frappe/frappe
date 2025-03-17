@@ -62,14 +62,7 @@ def handle():
 
 def execute_cmd(cmd, from_async=False):
 	"""execute a request as python module"""
-<<<<<<< HEAD
-	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, []):
-		# override using the first hook
-		cmd = hook
-		break
-=======
 	cmd = frappe.override_whitelisted_method(cmd)
->>>>>>> 9430e3af86 (fix: respect `override_whitelisted_method` in `map_docs` (#31718))
 
 	# via server script
 	server_script = get_server_script_map().get("_api", {}).get(cmd)
