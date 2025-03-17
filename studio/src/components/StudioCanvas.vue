@@ -67,13 +67,14 @@
 					class="h-full min-h-[inherit]"
 					v-if="showBlocks && rootComponent"
 					:block="rootComponent"
+					:key="rootComponent.componentId"
 					:breakpoint="breakpoint.device"
 				/>
 			</div>
 		</div>
 
 		<div
-			class="dark:bg-zinc-900 dark:text-zinc-400 fixed bottom-12 left-[50%] z-40 flex translate-x-[-50%] cursor-default items-center justify-center gap-2 rounded-lg bg-white px-3 py-2 text-center text-sm font-semibold text-gray-600 shadow-md"
+			class="fixed bottom-12 left-[50%] z-40 flex translate-x-[-50%] cursor-default items-center justify-center gap-2 rounded-lg bg-white px-3 py-2 text-center text-sm font-semibold text-gray-600 shadow-md"
 			v-show="!canvasProps.panning"
 		>
 			{{ Math.round(canvasProps.scale * 100) + "%" }}
@@ -202,12 +203,12 @@ const keepEditorAccessible = () => {
 }
 
 onMounted(() => {
+	const canvasContainerEl = canvasContainer.value as unknown as HTMLElement
+	const canvasEl = canvas.value as unknown as HTMLElement
 	canvasProps.overlayElement = overlay.value
 	setScaleAndTranslate()
 	showBlocks.value = true
 	setupHistory()
-	const canvasContainerEl = canvasContainer.value as unknown as HTMLElement
-	const canvasEl = canvas.value as unknown as HTMLElement
 	setPanAndZoom(canvasProps, canvasEl, canvasContainerEl)
 	keepEditorAccessible()
 })

@@ -1,4 +1,4 @@
-import { defineAsyncComponent, h } from "vue"
+import { defineAsyncComponent, h, computed } from "vue"
 import * as frappeUI from "frappe-ui"
 import Header from "@/components/AppLayout/Header.vue"
 import Sidebar from "@/components/AppLayout/Sidebar.vue"
@@ -11,7 +11,7 @@ import AppHeader from "@/components/AppLayout/AppHeader.vue"
 import BottomTabs from "@/components/AppLayout/BottomTabs.vue"
 import MarkdownEditor from "@/components/AppLayout/MarkdownEditor.vue"
 
-import { FrappeUIComponents } from "@/types"
+import { FrappeUIComponents, FrappeUIComponent } from "@/types"
 
 export const COMPONENTS: FrappeUIComponents = {
 	Alert: {
@@ -230,6 +230,8 @@ export const COMPONENTS: FrappeUIComponents = {
 				],
 			},
 		},
+		editInFragmentMode: true,
+		proxyComponent: "DialogProxy",
 	},
 	Divider: {
 		name: "Divider",
@@ -674,6 +676,16 @@ export const COMPONENTS: FrappeUIComponents = {
 	}
 }
 
+const proxyComponentMap = computed(() => {
+	const map = new Map<string, string>()
+	Object.values(COMPONENTS).forEach((component: FrappeUIComponent) => {
+		if (component.proxyComponent) {
+			map.set(component.proxyComponent, component.name)
+		}
+	})
+	return map
+})
+
 function get(name: string) {
 	return COMPONENTS[name]
 }
@@ -695,7 +707,10 @@ function getComponent(name: string) {
 }
 
 function getProps(name: string) {
-	if (name in frappeUI) {
+	const proxyComponentFor = proxyComponentMap.value.get(name)
+	if (proxyComponentFor) {
+		return frappeUI[proxyComponentFor]?.props
+	} else if (name in frappeUI) {
 		return frappeUI[name]?.props
 	} else {
 		return COMPONENTS[name]?.props

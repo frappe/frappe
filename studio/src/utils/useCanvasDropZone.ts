@@ -1,3 +1,4 @@
+import components from "@/data/components"
 import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
 import { getComponentBlock, throttle } from "@/utils/helpers"
@@ -18,11 +19,23 @@ export function useCanvasDropZone(
 			const { parentComponent, index, slotName } = store.dropTarget
 
 			if (droppedComponentName && parentComponent) {
-				const newBlock = getComponentBlock(droppedComponentName)
-				if (slotName) {
-					parentComponent.updateSlot(slotName, newBlock)
+				const componentConfig = components.get(droppedComponentName)
+				let newBlock: Block
+
+				if (componentConfig.proxyComponent) {
+					newBlock = getComponentBlock(componentConfig.proxyComponent)
 				} else {
-					parentComponent.addChild(newBlock, index)
+					newBlock = getComponentBlock(droppedComponentName)
+				}
+
+				if (componentConfig?.editInFragmentMode) {
+					store.editOnCanvas(newBlock, () => {})
+				} else {
+					if (slotName) {
+						parentComponent.updateSlot(slotName, newBlock)
+					} else {
+						parentComponent.addChild(newBlock, index)
+					}
 				}
 			}
 		},

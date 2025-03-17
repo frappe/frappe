@@ -8,20 +8,6 @@
 			/>
 
 			<StudioCanvas
-				ref="pageCanvas"
-				class="canvas-container absolute bottom-0 top-[var(--toolbar-height)] flex justify-center overflow-hidden bg-gray-200 p-10"
-				v-if="store.pageBlocks[0]"
-				:componentTree="store.pageBlocks[0]"
-				:canvas-styles="{
-					minHeight: '1000px',
-				}"
-				:style="{
-					left: `${store.studioLayout.showLeftPanel ? store.studioLayout.leftPanelWidth : 0}px`,
-					right: `${store.studioLayout.showRightPanel ? store.studioLayout.rightPanelWidth : 0}px`,
-				}"
-			/>
-
-			<StudioCanvas
 				ref="fragmentCanvas"
 				:key="store.fragmentData.block?.componentId"
 				v-if="store.editingMode === 'fragment' && store.fragmentData.block"
@@ -53,6 +39,21 @@
 					</div>
 				</template>
 			</StudioCanvas>
+
+			<StudioCanvas
+				v-show="store.editingMode === 'page'"
+				ref="pageCanvas"
+				v-if="store.pageBlocks[0]"
+				class="canvas-container absolute bottom-0 top-[var(--toolbar-height)] flex justify-center overflow-hidden bg-gray-200 p-10"
+				:componentTree="store.pageBlocks[0]"
+				:canvas-styles="{
+					minHeight: '1000px',
+				}"
+				:style="{
+					left: `${store.studioLayout.showLeftPanel ? store.studioLayout.leftPanelWidth : 0}px`,
+					right: `${store.studioLayout.showRightPanel ? store.studioLayout.rightPanelWidth : 0}px`,
+				}"
+			/>
 
 			<StudioRightPanel
 				class="no-scrollbar dark:bg-zinc-900 absolute bottom-0 right-0 top-[var(--toolbar-height)] z-20 overflow-auto border-l-[1px] bg-white shadow-lg dark:border-gray-800"
@@ -98,7 +99,6 @@ watchEffect(() => {
 
 async function saveAndExitFragmentMode(e: Event) {
 	await store.fragmentData.saveAction?.(fragmentCanvas.value?.getRootBlock())
-	fragmentCanvas.value?.toggleDirty(false)
 	store.exitFragmentMode(e)
 }
 

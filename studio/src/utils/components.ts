@@ -107,8 +107,12 @@ async function getComponentTemplate(componentName: string): Promise<string> {
 			// extract studio component template
 			rawTemplate = await import(`@/components/AppLayout/${componentName}.vue?raw`)
 		} catch (error) {
-			console.error(`Error loading component template ${componentName}:`, error)
-			return ""
+			try {
+				rawTemplate = await import(`@/components/ProxyComponents/${componentName}.vue?raw`)
+			} catch (error) {
+				console.error(`Error loading component template ${componentName}:`, error)
+				return ""
+			}
 		}
 	}
 	return rawTemplate?.default || ""

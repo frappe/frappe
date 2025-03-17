@@ -285,6 +285,15 @@ watch(
 	{ immediate: true },
 )
 
+watch(
+	() => store.activeCanvas?.rootComponent,
+	() => {
+		nextTick(() => {
+			tracker.value?.update()
+		})
+	},
+)
+
 onMounted(() => {
 	tracker.value = trackTarget(props.target, editor.value, store.activeCanvas?.canvasProps as CanvasProps)
 })
