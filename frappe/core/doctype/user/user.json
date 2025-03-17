@@ -889,7 +889,8 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2025-02-21 20:11:36.150167",
+ "make_attachments_public": 1,
+ "modified": "2025-03-17 11:29:39.254304",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
