@@ -2443,9 +2443,9 @@ def _register_fault_handler():
 
 
 def override_whitelisted_method(original_method: str) -> str:
-	"""Return the last override or the original whitelisted method."""
+	"""Return the first override or the original whitelisted method."""
 	overrides = get_hooks("override_whitelisted_methods", {}).get(original_method, [])
-	return overrides[-1] if overrides else original_method
+	return overrides[0] if overrides else original_method
 
 
 if _tune_gc:
