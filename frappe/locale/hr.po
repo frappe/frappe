@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-02-24 14:51+0000\n"
-"PO-Revision-Date: 2025-03-16 21:01\n"
+"PO-Revision-Date: 2025-03-17 21:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -8220,7 +8220,7 @@ msgstr ""
 #: frappe/printing/page/print_format_builder/print_format_builder.js:602
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:8
 msgid "Edit Heading"
-msgstr ""
+msgstr "Uredi Naslov"
 
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:52
 msgid "Edit Letter Head"
@@ -11454,7 +11454,7 @@ msgstr ""
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 #: frappe/website/doctype/website_slideshow_item/website_slideshow_item.json
 msgid "Heading"
-msgstr ""
+msgstr "Naslov"
 
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -18586,7 +18586,7 @@ msgstr ""
 
 #: frappe/core/doctype/data_export/exporter.py:184
 msgid "Please do not change the template headings."
-msgstr ""
+msgstr "Ne mijenjaj Naslove Predložaka."
 
 #: frappe/printing/doctype/print_format/print_format.js:18
 msgid "Please duplicate this to make changes"
@@ -22141,7 +22141,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:421
 msgid "Section Heading"
-msgstr ""
+msgstr "Naslov Odjeljka"
 
 #. Label of a Data field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
