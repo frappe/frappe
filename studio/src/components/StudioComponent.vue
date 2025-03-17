@@ -202,7 +202,7 @@ const getClickedComponent = (e: MouseEvent) => {
 	const targetElement = e.target as HTMLElement
 	const componentId = targetElement.closest("[data-component-id]")?.getAttribute("data-component-id")
 	if (componentId) {
-		return store.canvas?.findBlock(componentId)
+		return store.activeCanvas?.findBlock(componentId)
 	}
 }
 

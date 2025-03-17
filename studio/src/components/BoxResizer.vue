@@ -64,13 +64,13 @@ const store = useStudioStore()
 
 watch(resizing, () => {
 	if (resizing.value) {
-		if (store.canvas) {
-			store.canvas.history?.pause()
+		if (store.activeCanvas) {
+			store.activeCanvas.history?.pause()
 		}
 		emit("resizing", true)
 	} else {
-		if (store.canvas) {
-			store.canvas?.history?.resume(undefined, true, true)
+		if (store.activeCanvas) {
+			store.activeCanvas?.history?.resume(undefined, true, true)
 		}
 		emit("resizing", false)
 	}

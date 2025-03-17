@@ -8,6 +8,20 @@
 			/>
 
 			<StudioCanvas
+				ref="pageCanvas"
+				class="canvas-container absolute bottom-0 top-[var(--toolbar-height)] flex justify-center overflow-hidden bg-gray-200 p-10"
+				v-if="store.pageBlocks[0]"
+				:componentTree="store.pageBlocks[0]"
+				:canvas-styles="{
+					minHeight: '1000px',
+				}"
+				:style="{
+					left: `${store.studioLayout.showLeftPanel ? store.studioLayout.leftPanelWidth : 0}px`,
+					right: `${store.studioLayout.showRightPanel ? store.studioLayout.rightPanelWidth : 0}px`,
+				}"
+			/>
+
+			<StudioCanvas
 				ref="fragmentCanvas"
 				:key="store.fragmentData.block?.componentId"
 				v-if="store.editingMode === 'fragment' && store.fragmentData.block"
@@ -40,19 +54,6 @@
 				</template>
 			</StudioCanvas>
 
-			<StudioCanvas
-				ref="canvas"
-				class="canvas-container absolute bottom-0 top-[var(--toolbar-height)] flex justify-center overflow-hidden bg-gray-200 p-10"
-				v-if="store.pageBlocks[0]"
-				:componentTree="store.pageBlocks[0]"
-				:canvas-styles="{
-					minHeight: '1000px',
-				}"
-				:style="{
-					left: `${store.studioLayout.showLeftPanel ? store.studioLayout.leftPanelWidth : 0}px`,
-					right: `${store.studioLayout.showRightPanel ? store.studioLayout.rightPanelWidth : 0}px`,
-				}"
-			/>
 			<StudioRightPanel
 				class="no-scrollbar dark:bg-zinc-900 absolute bottom-0 right-0 top-[var(--toolbar-height)] z-20 overflow-auto border-l-[1px] bg-white shadow-lg dark:border-gray-800"
 			/>
@@ -85,14 +86,16 @@ const store = useStudioStore()
 const componentContextMenu = toRef(store, "componentContextMenu")
 useStudioEvents()
 
-const canvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
+const pageCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
+const fragmentCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
 watchEffect(() => {
-	if (canvas.value) {
-		store.canvas = canvas.value
+	if (fragmentCanvas.value) {
+		store.activeCanvas = fragmentCanvas.value
+	} else {
+		store.activeCanvas = pageCanvas.value
 	}
 })
 
-const fragmentCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
 async function saveAndExitFragmentMode(e: Event) {
 	await store.fragmentData.saveAction?.(fragmentCanvas.value?.getRootBlock())
 	fragmentCanvas.value?.toggleDirty(false)
@@ -101,12 +104,12 @@ async function saveAndExitFragmentMode(e: Event) {
 
 const debouncedPageSave = useDebounceFn(store.savePage, 300)
 watch(
-	() => canvas.value?.rootComponent,
+	() => pageCanvas.value?.rootComponent,
 	() => {
 		if (
 			store.selectedPage &&
 			store.editingMode === "page" &&
-			!canvas.value?.canvasProps?.settingCanvas &&
+			!pageCanvas.value?.canvasProps?.settingCanvas &&
 			!store.settingPage &&
 			!store.savingPage
 		) {

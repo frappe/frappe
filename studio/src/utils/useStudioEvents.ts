@@ -12,7 +12,7 @@ export function useStudioEvents() {
 			(e.target as HTMLElement)?.closest("[data-component-id]")
 		if (target) {
 			const blockId = target.dataset.componentLayerId || target.dataset.componentId
-			const block = store.canvas?.findBlock(blockId as string)
+			const block = store.activeCanvas?.findBlock(blockId as string)
 			if (block) {
 				store.selectBlock(block, e)
 
@@ -35,7 +35,7 @@ export function useStudioEvents() {
 		// delete
 		if ((e.key === "Backspace" || e.key === "Delete") && blockController.isAnyBlockSelected()) {
 			for (const block of blockController.getSelectedBlocks()) {
-				store.canvas?.removeBlock(block, e.shiftKey)
+				store.activeCanvas?.removeBlock(block, e.shiftKey)
 			}
 			clearSelection()
 			e.stopPropagation()
@@ -53,15 +53,15 @@ export function useStudioEvents() {
 		}
 
 		// undo
-		if (e.key === "z" && isCtrlOrCmd(e) && !e.shiftKey && store.canvas?.history?.canUndo()) {
-			store.canvas?.history.undo()
+		if (e.key === "z" && isCtrlOrCmd(e) && !e.shiftKey && store.activeCanvas?.history?.canUndo()) {
+			store.activeCanvas?.history.undo()
 			e.preventDefault()
 			return;
 		}
 
 		// redo
-		if (e.key === "z" && e.shiftKey && isCtrlOrCmd(e) && store.canvas?.history?.canRedo) {
-			store.canvas?.history.redo();
+		if (e.key === "z" && e.shiftKey && isCtrlOrCmd(e) && store.activeCanvas?.history?.canRedo) {
+			store.activeCanvas?.history.redo();
 			e.preventDefault();
 			return;
 		}

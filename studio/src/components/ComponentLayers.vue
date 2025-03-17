@@ -189,7 +189,7 @@ const canShowSlotLayer = (block: Block) => {
 const updateParent = (event) => {
 	const element = event.item.__draggable_context.element as Block
 	const newParentLayerId = event.to.closest("[data-component-layer-id]")?.dataset.componentLayerId
-	element.parentBlock = store.canvas?.findBlock(newParentLayerId) ?? null
+	element.parentBlock = store.activeCanvas?.findBlock(newParentLayerId) ?? null
 
 	// Check if moving into a slot
 	const slotLayerId = event.to.closest("[data-slot-layer-id]")?.dataset.slotLayerId

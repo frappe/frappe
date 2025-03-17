@@ -33,7 +33,7 @@ import { toast } from "vue-sonner"
 import { createResource } from "frappe-ui"
 
 const useStudioStore = defineStore("store", () => {
-	const canvas = ref<HTMLElement | null>(null)
+	const activeCanvas = ref<HTMLElement | null>(null)
 	const studioLayout = reactive({
 		leftPanelWidth: 300,
 		rightPanelWidth: 275,
@@ -100,7 +100,7 @@ const useStudioStore = defineStore("store", () => {
 	const selectedBlocks = computed(() => {
 		return (
 			Array.from(selectedBlockIds.value)
-				.map((id) => canvas.value?.findBlock(id))
+				.map((id) => activeCanvas.value?.findBlock(id))
 				// filter out missing blocks/null values
 				.filter((b) => b)
 		)
@@ -133,7 +133,7 @@ const useStudioStore = defineStore("store", () => {
 	const handleDragStart = (ev: DragEvent, componentName: string) => {
 		if (ev.target && ev.dataTransfer) {
 			isDragging.value = true
-			const ghostScale = canvas.value?.canvasProps.scale
+			const ghostScale = activeCanvas.value?.canvasProps.scale
 			const ghostElement = (ev.target as HTMLElement).cloneNode(true) as HTMLElement
 			ghostElement.id = "ghost"
 			ghostElement.style.position = "fixed"
@@ -291,7 +291,7 @@ const useStudioStore = defineStore("store", () => {
 		}
 		selectedPage.value = page.name
 		await setPageData(page)
-		canvas.value?.setRootBlock(pageBlocks.value[0])
+		activeCanvas.value?.setRootBlock(pageBlocks.value[0])
 
 		nextTick(() => {
 			settingPage.value = false
@@ -299,8 +299,8 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	function savePage() {
-		if (canvas.value) {
-			pageBlocks.value = [canvas.value.getRootBlock()]
+		if (activeCanvas.value) {
+			pageBlocks.value = [activeCanvas.value.getRootBlock()]
 		}
 		const pageData = jsToJson(pageBlocks.value.map((block) => getBlockCopyWithoutParent(block)))
 
@@ -401,7 +401,7 @@ const useStudioStore = defineStore("store", () => {
 
 	return {
 		// layout
-		canvas,
+		activeCanvas,
 		studioLayout,
 		activeBreakpoint,
 		guides,
