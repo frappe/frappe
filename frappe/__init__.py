@@ -2493,6 +2493,7 @@ def validate_and_sanitize_search_inputs(fn):
 	return wrapper
 
 
+<<<<<<< HEAD
 def _register_fault_handler():
 	import io
 	import sys
@@ -2501,6 +2502,16 @@ def _register_fault_handler():
 	if isinstance(sys.__stderr__, io.TextIOWrapper):
 		faulthandler.register(signal.SIGUSR1, file=sys.__stderr__)
 
+=======
+def override_whitelisted_method(original_method: str) -> str:
+	"""Return the last override or the original whitelisted method."""
+	overrides = frappe.get_hooks("override_whitelisted_methods", {}).get(original_method, [])
+	return overrides[-1] if overrides else original_method
+
+
+# Backward compatibility
+from frappe.utils.messages import *  # noqa: I001
+>>>>>>> 9430e3af86 (fix: respect `override_whitelisted_method` in `map_docs` (#31718))
 
 from frappe.utils.error import log_error
 
