@@ -1,3 +1,4 @@
+import importlib.metadata
 import json
 import re
 from pathlib import Path
@@ -33,11 +34,46 @@ def get_app_info(app: str):
 
 	for requirement in app_info.get("dependencies", []):
 		name = parse_pip_requirement(requirement)
-		result["dependencies"].append({"name": name, "type": "Python"})
+		metadata = get_python_package_metadata(name)
+		result["dependencies"].append(
+			{"name": name, "type": "Python", "license": metadata["license"], "author": metadata["author"]}
+		)
 
 	result["dependencies"].extend(get_js_deps(app))
 
 	return result
+
+
+def get_python_package_metadata(package_name: str) -> dict:
+	"""Get metadata for a Python package using importlib.metadata"""
+	try:
+		metadata = importlib.metadata.metadata(package_name)
+		return {
+			"license": (
+				metadata.get("License-Expression")
+				or parse_classifiers(metadata.get_all("Classifier", []))
+				or metadata.get("License")  # May contain a full license text, less preferred
+				or "Unknown"
+			),
+			"author": (
+				metadata.get("Author")
+				or metadata.get("Maintainer")
+				or metadata.get("Author-email")
+				or metadata.get("Maintainer-email")
+				or "Unknown"
+			),
+		}
+	except importlib.metadata.PackageNotFoundError:
+		return {"license": "Unknown", "author": "Unknown"}
+
+
+def parse_classifiers(classifiers: list[str]) -> str | None:
+	"""Parse classifiers to get the license"""
+	for classifier in classifiers:
+		if classifier.startswith("License ::"):
+			return classifier.split("::")[-1].strip()
+
+	return None
 
 
 def get_js_deps(app: str) -> list[dict]:
