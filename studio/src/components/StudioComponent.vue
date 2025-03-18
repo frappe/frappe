@@ -124,6 +124,7 @@ const styles = computed(() => {
 })
 
 const componentName = computed(() => {
+	if (store.editingMode === "page") return props.block.componentName
 	const proxyComponent = components.getProxyComponent(props.block.componentName)
 	return proxyComponent ? proxyComponent : props.block.componentName
 })
