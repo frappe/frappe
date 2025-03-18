@@ -381,6 +381,12 @@ body {
 	z-index: 1;
 }
 
+@include media-breakpoint-down(sm) {
+	.app-switcher-menu {
+		top: 90px;
+		z-index: 50;
+	}
+}
 .app-item {
 	// padding: var(--padding-xs);
 	border-radius: var(--border-radius-tiny);
