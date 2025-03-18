@@ -45,18 +45,10 @@
                             </td>
                             <td class="type">{{ package.type }}</td>
                             <td class="license">
-                                {% if package.type == "Python" %}
-                                    {{ package.license or "Unknown" }}
-                                {% else %}
-                                    <i class="fa fa-spinner fa-spin"></i>
-                                {% endif %}
+                                {{ package.license or "Unknown" }}
                             </td>
                             <td class="author">
-                                {% if package.type == "Python" %}
-                                    {{ package.author or "Unknown" }}
-                                {% else %}
-                                    <i class="fa fa-spinner fa-spin"></i>
-                                {% endif %}
+                                {{ package.author or "Unknown" }}
                             </td>
                         </tr>
                         {% endfor %}
@@ -68,42 +60,5 @@
     </table>
 </section>
 {% endfor %}
-
-<script>
-    const tables = document.querySelectorAll('table.table-striped');
-    tables.forEach((table) => {
-        var package_cells = table.querySelectorAll('td.package');
-        package_cells.forEach((package_cell) => {
-            var name = package_cell.innerText;
-            var type_cell = package_cell.nextElementSibling;
-            var license_cell = type_cell.nextElementSibling;
-            var author_cell = license_cell.nextElementSibling;
-            if (type_cell.innerText === "JavaScript") {
-                get_info_from_npm(name).then((info) => {
-                    license_cell.innerText = info.license?.slice(0, 50);
-                    author_cell.innerText = info.author;
-                });
-            }
-        });
-    })
-
-    function get_info_from_npm(package) {
-        const registry_url = `https://registry.npmjs.org/${package}`;
-        return fetch(registry_url)
-            .then((response) => response.json())
-            .then((data) => {
-                return {
-                    license: (
-                        typeof data.license === "object" ? data.license.type : data.license
-                    ) || "Unknown",
-                    author: (
-                        data.author?.name ||
-                        data.maintainers?.map((c) => c.name).join(", ") ||
-                        "Unknown"
-                    )
-                }
-            });
-    }
-</script>
 
 {% endblock %}

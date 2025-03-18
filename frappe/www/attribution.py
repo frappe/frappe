@@ -1,3 +1,4 @@
+import contextlib
 import importlib.metadata
 import json
 import re
@@ -79,13 +80,52 @@ def parse_classifiers(classifiers: list[str]) -> str | None:
 def get_js_deps(app: str) -> list[dict]:
 	package_json = Path(frappe.get_app_path(app, "..", "package.json"))
 	if not package_json.exists():
-		return {}
+		return []
 
 	with open(package_json) as f:
 		package = json.load(f)
 
 	packages = package.get("dependencies", {}).keys()
-	return [{"name": name, "type": "JavaScript"} for name in packages]
+	result = []
+
+	# Get the node_modules directory
+	node_modules_path = Path(frappe.get_app_path(app, "..", "node_modules"))
+
+	for name in packages:
+		# Initialize with basic info
+		package_info = {"name": name, "type": "JavaScript", "license": "Unknown", "author": "Unknown"}
+
+		# Try to find package.json in node_modules
+		package_json_path = node_modules_path / name / "package.json"
+		if package_json_path.exists():
+			pkg_data = None
+			with contextlib.suppress(json.JSONDecodeError):
+				pkg_data = json.loads(package_json_path.read_text())
+			if not pkg_data:
+				continue
+
+			# Extract license info
+			license_info = pkg_data.get("license")
+			if isinstance(license_info, dict):
+				license_info = license_info.get("type")
+
+			if license_info:
+				package_info["license"] = license_info
+
+			# Extract author info
+			author = pkg_data.get("author")
+			if isinstance(author, dict):
+				author = author.get("name")
+			if not author:
+				maintainers = pkg_data.get("maintainers", [])
+				if maintainers:
+					author = ", ".join([m for m in maintainers if m])
+			if author:
+				package_info["author"] = author
+
+		result.append(package_info)
+
+	return result
 
 
 def get_pyproject_info(app: str) -> dict:
