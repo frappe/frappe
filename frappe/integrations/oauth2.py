@@ -68,6 +68,7 @@ def approve(*args, **kwargs):
 		return
 
 	except (FatalClientError, OAuth2Error) as e:
+		frappe.log_error("Oauth failed")
 		return generate_json_error_response(e)
 
 

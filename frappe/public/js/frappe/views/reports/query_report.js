@@ -1,4 +1,4 @@
-// Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
+w// Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 import DataTable from "frappe-datatable";
 
@@ -1557,6 +1557,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 				if (this.prepared_report_name) {
 					filters.prepared_report_name = this.prepared_report_name;
+				}
+
+				let query_params = this.get_query_params()
+				if ("prepared_report_name" in query_params) {
+					filters = Object.assign(
+						{"prepared_report_name": query_params["prepared_report_name"]},
+						filters
+					);
 				}
 
 				const visible_idx = this.datatable?.bodyRenderer.visibleRowIndices || [];

@@ -281,7 +281,19 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		frappe.log_error(title=method_name)
 		frappe.monitor.add_data_to_monitor(exception=e.__class__.__name__)
 		frappe.db.commit()
-		print(frappe.get_traceback())
+		try:
+			print(frappe.get_traceback())
+		except BrokenPipeError:
+			import psutil, json
+
+			output = {
+				"process": psutil.Process().as_dict(),
+				"parent": psutil.Process().parent().as_dict(),
+				"px": os.popen(f"px {os.getpid()}").read()
+			}
+			with open(f"dbg-{frappe.local.monitor.data.uuid}.json", "a") as f:
+				f.write(json.dumps(output, default=str))
+			raise
 		raise
 
 	else:
@@ -289,6 +301,14 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		return retval
 
 	finally:
+		try:
+			import psutil
+
+			process = psutil.Process()
+			frappe.monitor.add_data_to_monitor(process=process.cpu_times()._asdict())
+		except Exception:
+			import traceback
+			traceback.print_exc()
 		if not hasattr(frappe.local, "site"):
 			frappe.init(site, force=True)
 			frappe.connect()
@@ -326,7 +346,8 @@ def start_worker(
 	if os.environ.get("CI"):
 		setup_loghandlers("ERROR")
 
-	set_niceness()
+	if "build" not in queues:
+		set_niceness()
 
 	logging_level = "INFO"
 	if quiet:

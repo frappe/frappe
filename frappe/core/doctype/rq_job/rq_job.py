@@ -21,7 +21,7 @@ from frappe.utils import (
 )
 from frappe.utils.background_jobs import get_queues, get_redis_conn
 
-QUEUES = ["default", "long", "short"]
+QUEUES = ["default", "long", "short", "sync", "build"]
 JOB_STATUSES = ["queued", "started", "failed", "finished", "deferred", "scheduled", "canceled"]
 
 

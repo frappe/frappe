@@ -77,7 +77,7 @@ def take_backup():
 	enqueue(
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_s3",
 		queue="long",
-		timeout=1500,
+		timeout=9000,
 	)
 	frappe.msgprint(_("Queued for backup. It may take a few minutes to an hour."))
 
@@ -122,7 +122,8 @@ def take_backups_s3(retry_count=0):
 
 
 def notify():
-	error_message = frappe.get_traceback()
+	error_message = frappe.get_traceback(with_context=True)
+	error_message = f"<pre>{error_message}</pre>"
 	send_email(False, "Amazon S3", "S3 Backup Settings", "notify_email", error_message)
 
 

@@ -1317,7 +1317,9 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 
 
 def get_restricted_ip_list(user):
-	if not user.restrict_ip:
+	# sometimes user is none
+	# ref: https://frappecloud.com/app/error-log/vl4drm21ua
+	if not user or not user.restrict_ip:
 		return
 
 	return [i.strip() for i in user.restrict_ip.strip().split(",")]

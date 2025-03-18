@@ -545,7 +545,7 @@ def fetch_latest_backups(partial=False) -> dict:
 		frappe.conf.db_user,
 		frappe.conf.db_password,
 		db_socket=frappe.conf.db_socket,
-		db_host=frappe.conf.db_host,
+		db_host=frappe.conf.replica_host,
 		db_port=frappe.conf.db_port,
 		db_type=frappe.conf.db_type,
 	)
@@ -616,7 +616,7 @@ def new_backup(
 		frappe.conf.db_user,
 		frappe.conf.db_password,
 		db_socket=frappe.conf.db_socket,
-		db_host=frappe.conf.db_host,
+		db_host=frappe.conf.replica_host,
 		db_port=frappe.conf.db_port,
 		db_type=frappe.conf.db_type,
 		backup_path=backup_path,

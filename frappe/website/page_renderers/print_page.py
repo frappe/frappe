@@ -9,6 +9,7 @@ class PrintPage(TemplatePage):
 	"""
 
 	def can_render(self):
+		return False
 		parts = self.path.split("/", 1)
 		if len(parts) != 2 or not frappe.db.exists("DocType", parts[0], True):
 			return False

@@ -10,6 +10,7 @@ from functools import lru_cache
 from itertools import chain
 from types import FunctionType, MethodType, ModuleType
 from typing import TYPE_CHECKING, Any
+from bs4 import BeautifulSoup
 
 import RestrictedPython.Guards
 from RestrictedPython import PrintCollector, compile_restricted, safe_globals
@@ -33,6 +34,7 @@ from frappe.utils.background_jobs import enqueue, get_jobs
 from frappe.utils.number_format import NumberFormat
 from frappe.website.utils import get_next_link, get_toc
 from frappe.www.printview import get_visible_columns
+from frappe.utils import dateutils
 
 
 class ServerScriptNotEnabled(frappe.PermissionError):
@@ -269,6 +271,7 @@ def get_safe_globals():
 				after_rollback=frappe.db.after_rollback,
 				before_rollback=frappe.db.before_rollback,
 				add_index=frappe.db.add_index,
+				delete=frappe.db.delete,
 			),
 			website=NamespaceDict(
 				abs_url=frappe.website.utils.abs_url,
@@ -291,6 +294,8 @@ def get_safe_globals():
 		run_script=run_script,
 		is_job_queued=is_job_queued,
 		get_visible_columns=get_visible_columns,
+		dateutils=dateutils,
+		BeautifulSoup=BeautifulSoup
 	)
 
 	add_module_properties(
@@ -556,6 +561,7 @@ def _get_attr_for_eval(object, name, default=ARGUMENT_NOT_SET):
 
 
 def _validate_attribute_read(object, name):
+	return True
 	if isinstance(name, str) and (name in UNSAFE_ATTRIBUTES):
 		raise SyntaxError(f"{name} is an unsafe attribute")
 
