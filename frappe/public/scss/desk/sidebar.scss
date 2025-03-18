@@ -64,7 +64,9 @@ body {
 	overflow: scroll;
 	overflow-x: hidden;
 	overflow-y: visible;
+	scrollbar-gutter: stable;
 }
+
 .body-sidebar-container {
 	display: flex;
 	flex-direction: column;
