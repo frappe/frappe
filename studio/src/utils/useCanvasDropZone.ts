@@ -39,10 +39,10 @@ export function useCanvasDropZone(
 			}
 		},
 		onOver: (_files, ev) => {
-			const { parentComponent, index, layoutDirection } = findDropTarget(ev)
+			const { parentComponent, slotName, index, layoutDirection } = findDropTarget(ev)
 			if (parentComponent) {
 				store.hoveredBlock = parentComponent.componentId
-				updateDropTarget(ev, parentComponent, index, layoutDirection)
+				updateDropTarget(ev, parentComponent, slotName, index, layoutDirection)
 			}
 		},
 	})
@@ -129,7 +129,13 @@ export function useCanvasDropZone(
 		return "column"
 	}
 
-	const updateDropTarget = throttle((ev: DragEvent, parentComponent: Block | null, index: number, layoutDirection: LayoutDirection) => {
+	const updateDropTarget = throttle((
+		ev: DragEvent,
+		parentComponent: Block | null,
+		slotName: string | null,
+		index: number,
+		layoutDirection: LayoutDirection
+	) => {
 		// append placeholder component to the dom directly
 		// to avoid re-rendering the whole canvas
 		const { placeholder } = store.dropTarget
@@ -159,6 +165,7 @@ export function useCanvasDropZone(
 
 		store.dropTarget.parentComponent = parentComponent
 		store.dropTarget.index = index
+		store.dropTarget.slotName = slotName
 		store.dropTarget.x = ev.x
 		store.dropTarget.y = ev.y
 	}, 130)
