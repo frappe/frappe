@@ -30,7 +30,7 @@
 			<div
 				v-show="store.studioLayout.showLeftPanel"
 				:style="{ width: `${store.studioLayout.leftPanelWidth - 48}px` }"
-				class="overflow-auto pb-5 hide-scrollbar"
+				class="overflow-auto border-r-[1px] pb-5 hide-scrollbar"
 			>
 				<PanelResizer
 					:dimension="store.studioLayout.leftPanelWidth"
