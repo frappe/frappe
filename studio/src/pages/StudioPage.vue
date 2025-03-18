@@ -98,8 +98,9 @@ watchEffect(() => {
 })
 
 async function saveAndExitFragmentMode(e: Event) {
-	await store.fragmentData.saveAction?.(fragmentCanvas.value?.getRootBlock())
+	store.fragmentData.saveAction?.(fragmentCanvas.value?.getRootBlock())
 	store.exitFragmentMode(e)
+	store.savePage()
 }
 
 const debouncedPageSave = useDebounceFn(store.savePage, 300)

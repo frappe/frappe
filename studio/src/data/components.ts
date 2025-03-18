@@ -215,6 +215,7 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "Dialog",
 		icon: "AppWindowMac",
 		initialState: {
+			modelValue: false,
 			disableOutsideClickToClose: true,
 			options: {
 				title: "Confirm",

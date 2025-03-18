@@ -19,17 +19,25 @@ export function useCanvasDropZone(
 			const { parentComponent, index, slotName } = store.dropTarget
 
 			if (droppedComponentName && parentComponent) {
+				function saveBlock(block: Block) {
+					if (slotName) {
+						parentComponent.updateSlot(slotName, block)
+					} else {
+						parentComponent.addChild(block, index)
+					}
+				}
+
 				const componentConfig = components.get(droppedComponentName)
 				let newBlock = getComponentBlock(droppedComponentName)
 
 				if (componentConfig?.editInFragmentMode) {
-					store.editOnCanvas(newBlock, () => {})
+					store.editOnCanvas(
+						newBlock,
+						(block: Block) => saveBlock(block),
+						`Save ${componentConfig.name}`
+					)
 				} else {
-					if (slotName) {
-						parentComponent.updateSlot(slotName, newBlock)
-					} else {
-						parentComponent.addChild(newBlock, index)
-					}
+					saveBlock(newBlock)
 				}
 			}
 		},

@@ -74,7 +74,7 @@ const useStudioStore = defineStore("store", () => {
 			saveAction,
 			saveActionLabel,
 			fragmentName: fragmentName || block.componentName,
-			fragmentId: fragmentId || block.componentId,
+			fragmentId: fragmentId || block.componentId
 		}
 		editingMode.value = "fragment"
 	}
