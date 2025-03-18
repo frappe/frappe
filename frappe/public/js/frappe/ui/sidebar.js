@@ -81,6 +81,7 @@ frappe.ui.Sidebar = class Sidebar {
 
 	set_active_workspace_item() {
 		if (!frappe.get_route()) return;
+		if (frappe.is_mobile()) return;
 		let current_route = frappe.get_route();
 		let current_route_str = frappe.get_route_str();
 		let current_item;
