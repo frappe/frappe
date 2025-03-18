@@ -2,6 +2,7 @@ import contextlib
 import importlib.metadata
 import json
 import re
+from functools import cache
 from pathlib import Path
 
 import tomli
@@ -24,6 +25,7 @@ def get_context(context):
 	context.apps = apps
 
 
+@cache
 def get_app_info(app: str):
 	app_info = get_pyproject_info(app)
 	result = {
