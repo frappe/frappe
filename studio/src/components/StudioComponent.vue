@@ -37,14 +37,14 @@
 				/>
 			</template>
 			<template v-else>
-				<span
+				<div
 					:class="[slotClasses, !slot.slotContent ? 'min-h-5 w-full' : '']"
 					:data-slot-id="slot.slotId"
 					:data-slot-name="slotName"
 					:data-component-id="block.componentId"
 				>
 					{{ slot.slotContent }}
-				</span>
+				</div>
 			</template>
 		</template>
 
