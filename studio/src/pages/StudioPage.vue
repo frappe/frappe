@@ -27,7 +27,7 @@
 						class="absolute left-0 right-0 top-0 z-20 flex items-center justify-between bg-surface-white p-2 text-sm text-ink-gray-8 shadow-sm"
 					>
 						<div class="flex items-center gap-1 pl-2 text-xs">
-							<a class="cursor-pointer">Page</a>
+							<a @click="store.exitFragmentMode" class="cursor-pointer">{{ store.activePage?.page_title }}</a>
 							<FeatherIcon name="chevron-right" class="h-3 w-3" />
 							<span class="flex items-center gap-2">
 								{{ store.fragmentData.fragmentName }}
