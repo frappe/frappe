@@ -93,7 +93,6 @@ import ComponentEditor from "@/components/ComponentEditor.vue"
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML } from "@/utils/helpers"
-import components from "@/data/components"
 
 import { CanvasProps } from "@/types"
 
@@ -125,7 +124,7 @@ const styles = computed(() => {
 
 const componentName = computed(() => {
 	if (store.editingMode === "page") return props.block.componentName
-	const proxyComponent = components.getProxyComponent(props.block.componentName)
+	const proxyComponent = props.block.getProxyComponent()
 	return proxyComponent ? proxyComponent : props.block.componentName
 })
 

@@ -1,4 +1,4 @@
-import { defineAsyncComponent, h, computed } from "vue"
+import { defineAsyncComponent, h } from "vue"
 import * as frappeUI from "frappe-ui"
 import Header from "@/components/AppLayout/Header.vue"
 import Sidebar from "@/components/AppLayout/Sidebar.vue"
@@ -676,14 +676,11 @@ export const COMPONENTS: FrappeUIComponents = {
 	}
 }
 
-const proxyComponentMap = computed(() => {
-	const map = new Map<string, any>()
-	Object.values(COMPONENTS).forEach((component: FrappeUIComponent) => {
-		if (component.proxyComponent) {
-			map.set(component.name, component.proxyComponent)
-		}
-	})
-	return map
+const proxyComponentMap = new Map<string, any>()
+Object.values(COMPONENTS).forEach((component: FrappeUIComponent) => {
+	if (component.proxyComponent) {
+		proxyComponentMap.set(component.name, component.proxyComponent)
+	}
 })
 
 function get(name: string) {
@@ -707,7 +704,7 @@ function getComponent(name: string) {
 }
 
 function getProxyComponent(name: string) {
-	return proxyComponentMap.value.get(name)
+	return proxyComponentMap.get(name)
 }
 
 function getProps(name: string) {
