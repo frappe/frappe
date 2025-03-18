@@ -52,6 +52,7 @@
 			<Button
 				size="sm"
 				variant="solid"
+				:disabled="store.editingMode === 'fragment'"
 				@click="
 					() => {
 						publishing = true
