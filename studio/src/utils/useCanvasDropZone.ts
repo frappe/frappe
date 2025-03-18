@@ -140,8 +140,15 @@ export function useCanvasDropZone(
 		// to avoid re-rendering the whole canvas
 		const { placeholder } = store.dropTarget
 		if (!parentComponent || !placeholder) return
-		const newParent = getBlockElement(parentComponent)
+		let newParent = getBlockElement(parentComponent)
 		if (!newParent) return
+
+		if (slotName) {
+			const slotElement = newParent.querySelector(`[data-slot-name="${slotName}"].__studio_component_slot__`) as HTMLElement
+			if (slotElement) {
+				newParent = slotElement
+			}
+		}
 
 		if (store.dropTarget.parentComponent?.componentId === parentComponent.componentId && store.dropTarget.index === index) return
 
