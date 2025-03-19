@@ -114,7 +114,7 @@ def enqueue(
 		if not job_id:
 			frappe.throw(_("`job_id` paramater is required for deduplication."))
 		job = get_job(job_id)
-		if job and job.get_status() in (JobStatus.QUEUED, JobStatus.STARTED):
+		if job and job.get_status(refresh=False) in (JobStatus.QUEUED, JobStatus.STARTED):
 			frappe.logger().debug(f"Not queueing job {job.id} because it is in queue already")
 			return
 		elif job:
@@ -672,10 +672,7 @@ def is_job_enqueued(job_id: str) -> bool:
 def get_job_status(job_id: str) -> JobStatus | None:
 	"""Get RQ job status, returns None if job is not found."""
 	if job := get_job(job_id):
-		try:
-			return job.get_status()
-		except InvalidJobOperation:
-			pass
+		return job.get_status(refresh=False)
 
 
 def get_job(job_id: str) -> Job | None:
