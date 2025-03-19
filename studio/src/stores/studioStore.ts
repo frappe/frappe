@@ -83,6 +83,7 @@ const useStudioStore = defineStore("store", () => {
 		if (editingMode.value === "page") return
 		e?.preventDefault()
 
+		clearSelection()
 		editingMode.value = "page"
 		fragmentData.value = {
 			block: null,
@@ -117,6 +118,10 @@ const useStudioStore = defineStore("store", () => {
 		} else {
 			selectedBlockIds.value = new Set([blockId])
 		}
+	}
+
+	function clearSelection() {
+		selectedBlockIds.value = new Set()
 	}
 
 	// drag & drop
@@ -418,6 +423,7 @@ const useStudioStore = defineStore("store", () => {
 		selectedBlocks,
 		selectBlock,
 		selectBlockById,
+		clearSelection,
 		pageBlocks,
 		dropTarget,
 		isDragging,

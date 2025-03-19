@@ -92,6 +92,10 @@ const fragmentCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
 watchEffect(() => {
 	if (fragmentCanvas.value) {
 		store.activeCanvas = fragmentCanvas.value
+		const fragmentRootBlock = fragmentCanvas.value?.getRootBlock()
+		if (fragmentRootBlock) {
+			store.selectBlock(fragmentRootBlock)
+		}
 	} else {
 		store.activeCanvas = pageCanvas.value
 	}
