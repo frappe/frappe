@@ -219,7 +219,9 @@ const handleClick = (e: MouseEvent) => {
 	const slotName = (e.target as HTMLElement).dataset.slotName
 	if (slotName) {
 		const slot = block.getSlot(slotName)
-		store.selectSlot(slot)
+		if (slot) {
+			store.selectSlot(slot)
+		}
 	}
 
 	e.stopPropagation()
