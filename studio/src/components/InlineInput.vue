@@ -1,7 +1,9 @@
 <template>
 	<div
 		class="flex [&>div>input]:!bg-red-600 [&>div>input]:pr-6"
-		:class="type === 'code' ? 'flex-col gap-1.5' : 'flex-row items-center justify-between'"
+		:class="
+			type === 'code' || type === 'textarea' ? 'flex-col gap-1.5' : 'flex-row items-center justify-between'
+		"
 	>
 		<InputLabel
 			:class="[
