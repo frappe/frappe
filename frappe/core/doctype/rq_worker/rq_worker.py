@@ -46,13 +46,23 @@ class RQWorker(Document):
 		super(Document, self).__init__(d)
 
 	@staticmethod
+<<<<<<< HEAD
 	def get_list(args):
 		start = cint(args.get("start")) or 0
 		page_length = cint(args.get("page_length")) or 20
 
+=======
+	def get_list(start=0, page_length=0):
+>>>>>>> f02ef4a905 (fix: RQ Worker count)
 		workers = get_workers()
 
-		valid_workers = [w for w in workers if w.pid][start : start + page_length]
+		valid_workers = [w for w in workers if w.pid]
+
+		if page_length:
+			valid_workers = valid_workers[start : start + page_length]
+		else:
+			valid_workers = valid_workers[start:]
+
 		return [serialize_worker(worker) for worker in valid_workers]
 
 	@staticmethod
