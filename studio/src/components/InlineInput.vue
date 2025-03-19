@@ -1,7 +1,7 @@
 <template>
 	<div
 		class="flex [&>div>input]:!bg-red-600 [&>div>input]:pr-6"
-		:class="type === 'code' ? 'flex-col gap-1.5' : 'flex-row items-start gap-2'"
+		:class="type === 'code' ? 'flex-col gap-1.5' : 'flex-row items-center justify-between'"
 	>
 		<InputLabel
 			:class="[
@@ -34,6 +34,7 @@
 			@update:modelValue="handleChange"
 			:showInputAsOption="showInputAsOption"
 			class="w-full"
+			:disabled="disabled"
 		/>
 		<CodeEditor
 			v-else-if="type === 'code'"
@@ -42,6 +43,7 @@
 			:label="label"
 			:height="height"
 			@update:modelValue="(e) => emit('update:modelValue', e)"
+			:disabled="disabled"
 		/>
 		<Input
 			v-else
@@ -50,6 +52,7 @@
 			:options="inputOptions"
 			@update:modelValue="handleChange"
 			@keydown.stop="handleKeyDown"
+			:disabled="disabled"
 		/>
 	</div>
 </template>
@@ -112,6 +115,9 @@ const props = defineProps({
 		type: String,
 	},
 	required: {
+		type: Boolean,
+	},
+	disabled: {
 		type: Boolean,
 	},
 })

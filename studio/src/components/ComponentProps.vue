@@ -83,6 +83,7 @@
 								type="textarea"
 								:modelValue="getSlotContent(slot)"
 								@update:modelValue="(slotContent) => block?.updateSlot(name, slotContent)"
+								:disabled="Array.isArray(slot.slotContent)"
 							/>
 							<Badge
 								v-if="Array.isArray(slot.slotContent)"
