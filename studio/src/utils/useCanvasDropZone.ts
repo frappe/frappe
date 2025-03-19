@@ -80,7 +80,7 @@ export function useCanvasDropZone(
 				const parentElement = getBlockElement(parentComponent)
 				layoutDirection = getLayoutDirection(parentElement)
 				index = findDropIndex(ev, parentElement, layoutDirection)
-				slotName = targetElement.dataset.slotName || store.selectedSlot?.slotName
+				slotName = store.selectedSlot?.slotName
 			}
 		}
 		return { parentComponent, slotName, index, layoutDirection }
