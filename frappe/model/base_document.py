@@ -669,8 +669,9 @@ class BaseDocument:
 					raise frappe.DuplicateEntryError(self.doctype, self.name, e)
 
 			elif frappe.db.is_unique_key_violation(e):
-				# unique constraint
-				self.show_unique_validation_message(e)
+				if not ignore_if_duplicate:
+					# unique constraint
+					self.show_unique_validation_message(e)
 
 			else:
 				raise
