@@ -15,6 +15,8 @@
 				:canvas-styles="{
 					width: (store.fragmentData.block.getStyle('width') + '').endsWith('px') ? '!fit-content' : null,
 					padding: '40px',
+					display: 'flex',
+					justifyContent: 'center',
 				}"
 				:style="{
 					left: `${store.studioLayout.showLeftPanel ? store.studioLayout.leftPanelWidth : 0}px`,
