@@ -25,7 +25,7 @@ from frappe.model import (
 	no_value_fields,
 	table_fields,
 )
-from frappe.model.base_document import get_controller
+from frappe.model.base_document import RESERVED_KEYWORDS, get_controller
 from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
 from frappe.model.meta import Meta
@@ -121,6 +121,7 @@ class DocType(Document):
 		engine: DF.Literal["InnoDB", "MyISAM"]
 		fields: DF.Table[DocField]
 		force_re_route_to_default_view: DF.Check
+		grid_page_length: DF.Int
 		has_web_view: DF.Check
 		hide_toolbar: DF.Check
 		icon: DF.Data | None
@@ -158,6 +159,7 @@ class DocType(Document):
 		read_only: DF.Check
 		restrict_to_domain: DF.Link | None
 		route: DF.Data | None
+		row_format: DF.Literal["Dynamic", "Compressed"]
 		search_fields: DF.Data | None
 		sender_field: DF.Data | None
 		sender_name_field: DF.Data | None
@@ -1259,7 +1261,7 @@ def validate_fields(meta: Meta):
 		validate_column_name(fieldname)
 
 	def check_invalid_fieldnames(docname, fieldname):
-		if fieldname in Document._reserved_keywords:
+		if fieldname in RESERVED_KEYWORDS:
 			frappe.throw(
 				_("{0}: fieldname cannot be set to reserved keyword {1}").format(
 					frappe.bold(docname),

@@ -220,7 +220,6 @@ class Newsletter(WebsiteGenerator):
 			template="newsletter",
 			add_unsubscribe_link=self.send_unsubscribe_link,
 			unsubscribe_method="/unsubscribe",
-			unsubscribe_params={"name": self.name},
 			reference_doctype=self.doctype,
 			reference_name=self.name,
 			queue_separately=True,

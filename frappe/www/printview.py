@@ -72,6 +72,9 @@ def get_context(context) -> PrintContext:
 
 	print_format = get_print_format_doc(None, meta=meta)
 
+	make_access_log(
+		doctype=frappe.form_dict.doctype, document=frappe.form_dict.name, file_type="PDF", method="Print"
+	)
 	body = get_rendered_template(
 		doc,
 		print_format=print_format,
@@ -99,6 +102,7 @@ def get_context(context) -> PrintContext:
 		"print_format": getattr(print_format, "name", None),
 		"letterhead": letterhead,
 		"no_letterhead": frappe.form_dict.no_letterhead,
+		"pdf_generator": frappe.form_dict.get("pdf_generator", "wkhtmltopdf"),
 	}
 
 
@@ -173,7 +177,7 @@ def get_rendered_template(
 
 		template = None
 		if hook_func := frappe.get_hooks("get_print_format_template"):
-			template = frappe.get_attr(hook_func[-1])(jenv=jenv, print_format=print_format)
+			template = frappe.call(hook_func[-1], jenv=jenv, print_format=print_format)
 
 		if template:
 			pass
@@ -436,21 +440,24 @@ def get_print_format(doctype: str, print_format: "PrintFormat") -> str:
 
 	# server, find template
 	module = print_format.module or frappe.db.get_value("DocType", doctype, "module")
-	path = os.path.join(
-		get_module_path(module, "Print Format", print_format.name),
-		frappe.scrub(print_format.name) + ".html",
-	)
 
-	if os.path.exists(path):
-		with open(path) as pffile:
-			return pffile.read()
-	else:
-		if print_format.raw_printing:
-			return print_format.raw_commands
-		if print_format.html:
-			return print_format.html
+	is_custom_module = frappe.get_cached_value("Module Def", module, "custom")
 
-		frappe.throw(_("No template found at path: {0}").format(path), frappe.TemplateNotFoundError)
+	if not is_custom_module:
+		path = os.path.join(
+			get_module_path(module, "Print Format", print_format.name),
+			frappe.scrub(print_format.name) + ".html",
+		)
+		if os.path.exists(path):
+			with open(path) as pffile:
+				return pffile.read()
+
+	if print_format.raw_printing:
+		return print_format.raw_commands
+	if print_format.html:
+		return print_format.html
+
+	frappe.throw(_("No template found at path: {0}").format(path), frappe.TemplateNotFoundError)
 
 
 def make_layout(doc: "Document", meta: "Meta", format_data=None) -> list:

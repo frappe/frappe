@@ -921,6 +921,10 @@ class TestBenchBuild(IntegrationTestCase):
 
 
 class TestDBUtils(BaseTestCommands):
+	@skipIf(
+		not (frappe.conf.db_type == "mariadb"),
+		"Only for MariaDB",
+	)
 	def test_db_add_index(self):
 		field = "reset_password_key"
 		self.execute("bench --site {site} add-database-index --doctype User --column " + field, {})

@@ -176,6 +176,9 @@ class TestRQJob(IntegrationTestCase):
 		# offending imports/function calls.
 		# Refer this PR: https://github.com/frappe/frappe/pull/21467
 		LAST_MEASURED_USAGE = 41
+		if frappe.conf.use_mysqlclient:
+			# TEMP: Add extra allowance for running two connectors, this should be rolled back before v16
+			LAST_MEASURED_USAGE += 2
 		self.assertLessEqual(rss, LAST_MEASURED_USAGE * 1.05, msg)
 
 	def test_clear_failed_jobs(self):

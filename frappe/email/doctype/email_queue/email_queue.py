@@ -63,7 +63,7 @@ class EmailQueue(Document):
 		show_as_cc: DF.SmallText | None
 		status: DF.Literal["Not Sent", "Sending", "Sent", "Partially Sent", "Error"]
 		unsubscribe_method: DF.Data | None
-		unsubscribe_param: DF.Data | None
+		unsubscribe_params: DF.Code | None
 	# end: auto-generated types
 
 	DOCTYPE = "Email Queue"
@@ -92,6 +92,9 @@ class EmailQueue(Document):
 		data = doc_data.copy()
 		if not data.get("recipients"):
 			return
+
+		if isinstance(data["unsubscribe_params"], dict):
+			data["unsubscribe_params"] = json.dumps(data["unsubscribe_params"])
 
 		recipients = data.pop("recipients")
 		doc = frappe.new_doc(cls.DOCTYPE)
@@ -351,7 +354,7 @@ class SendMailContext:
 				reference_name=self.queue_doc.reference_name,
 				email=recipient_email,
 				unsubscribe_method=self.queue_doc.unsubscribe_method,
-				unsubscribe_params=self.queue_doc.unsubscribe_param,
+				unsubscribe_params=self.queue_doc.unsubscribe_params,
 			)
 
 		return quopri.encodestring(unsubscribe_url.encode()).decode()
@@ -690,6 +693,9 @@ class QueueBuilder:
 		return attachments
 
 	def prepare_email_content(self):
+		email_account = self.get_outgoing_email_account()
+		if isinstance(self._bcc, list) and email_account.always_bcc:
+			self._bcc.append(email_account.always_bcc)
 		mail = get_email(
 			recipients=self.final_recipients(),
 			sender=self.sender,
@@ -700,7 +706,7 @@ class QueueBuilder:
 			reply_to=self.reply_to,
 			cc=self.final_cc(),
 			bcc=self.bcc,
-			email_account=self.get_outgoing_email_account(),
+			email_account=email_account,
 			expose_recipients=self.expose_recipients,
 			inline_images=self.inline_images,
 			header=self.header,

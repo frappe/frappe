@@ -24,7 +24,6 @@ from frappe.utils import (
 	add_trackers_to_url,
 	ceil,
 	dict_to_str,
-	evaluate_filters,
 	execute_in_shell,
 	floor,
 	flt,
@@ -59,6 +58,7 @@ from frappe.utils.data import (
 	cint,
 	cstr,
 	duration_to_seconds,
+	evaluate_filters,
 	expand_relative_urls,
 	get_datetime,
 	get_first_day_of_week,
@@ -217,6 +217,20 @@ class TestFilters(IntegrationTestCase):
 
 		for filter, expected_result in test_cases:
 			self.assertEqual(evaluate_filters(doc, filter), expected_result, msg=f"{filter}")
+
+	def test_timespan(self):
+		doc = {
+			"doctype": "User",
+			"last_password_reset_date": getdate(),
+		}
+		self.assertTrue(evaluate_filters(doc, [("last_password_reset_date", "Timespan", "today")]))
+		self.assertFalse(evaluate_filters(doc, [("last_password_reset_date", "Timespan", "last year")]))
+
+		doc = {
+			"doctype": "User",
+			"last_password_reset_date": None,
+		}
+		self.assertFalse(evaluate_filters(doc, [("last_password_reset_date", "Timespan", "today")]))
 
 
 class TestMoney(IntegrationTestCase):
@@ -685,7 +699,6 @@ class TestDateUtils(IntegrationTestCase):
 	def test_pretty_date(self):
 		from frappe import _
 
-		# differnt cases
 		now = get_datetime()
 
 		test_cases = {
@@ -706,6 +719,8 @@ class TestDateUtils(IntegrationTestCase):
 
 		for dt, exp_message in test_cases.items():
 			self.assertEqual(pretty_date(dt), exp_message)
+
+		self.assertEqual(pretty_date(add_to_date(now, days=-5), mini=True), "5d")
 
 	def test_date_from_timegrain(self):
 		start_date = getdate("2021-01-01")

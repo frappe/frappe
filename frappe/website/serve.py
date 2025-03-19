@@ -20,18 +20,21 @@ def get_response(path=None, http_status_code=200) -> Response:
 		return renderer_instance.render()
 
 	except Exception as e:
-		e = handle_does_not_exist_error(e)
+		return handle_exception(e, endpoint, path, http_status_code)
 
-		if isinstance(e, frappe.Redirect):
-			return RedirectPage(endpoint or path, e.http_status_code).render()
 
-		if isinstance(e, frappe.PermissionError):
-			return NotPermittedPage(endpoint, http_status_code, exception=e).render()
+@handle_does_not_exist_error
+def handle_exception(e, endpoint, path, http_status_code):
+	if isinstance(e, frappe.Redirect):
+		return RedirectPage(endpoint or path, e.http_status_code).render()
 
-		if isinstance(e, frappe.PageDoesNotExistError):
-			return NotFoundPage(endpoint, http_status_code).render()
+	if isinstance(e, frappe.PermissionError):
+		return NotPermittedPage(endpoint, http_status_code, exception=e).render()
 
-		return ErrorPage(exception=e).render()
+	if isinstance(e, frappe.PageDoesNotExistError):
+		return NotFoundPage(endpoint, http_status_code).render()
+
+	return ErrorPage(exception=e).render()
 
 
 def get_response_content(path=None, http_status_code=200) -> str:

@@ -853,12 +853,20 @@ def check_doctype_permission(doctype: str, ptype: str = "read") -> None:
 	frappe.local.message_log = _message_log
 
 
-def handle_does_not_exist_error(e: Exception) -> Exception:
-	if isinstance(e, frappe.DoesNotExistError) and (doctype := getattr(e, "doctype", None)):
-		try:
-			check_doctype_permission(doctype)
+def handle_does_not_exist_error(fn):
+	"""
+	Decorator to override DoesNotExistError when handling exceptions.
+	Requires the first argument to be an Exception.
+	"""
 
-		except frappe.PermissionError as _e:
-			return _e
+	@functools.wraps(fn)
+	def wrapper(e, *args, **kwargs):
+		if isinstance(e, frappe.DoesNotExistError) and (doctype := getattr(e, "doctype", None)):
+			try:
+				check_doctype_permission(doctype)
+			except frappe.PermissionError as _e:
+				return fn(_e, *args, **kwargs)
 
-	return e
+		return fn(e, *args, **kwargs)
+
+	return wrapper

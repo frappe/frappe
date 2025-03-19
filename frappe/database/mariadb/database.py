@@ -1,4 +1,3 @@
-import re
 from contextlib import contextmanager
 
 import pymysql
@@ -9,8 +8,6 @@ import frappe
 from frappe.database.database import Database
 from frappe.database.mariadb.schema import MariaDBTable
 from frappe.utils import UnicodeWithAttrs, cstr, get_datetime, get_table_name
-
-_PARAM_COMP = re.compile(r"%\([\w]*\)s")
 
 
 class MariaDBExceptionUtil:
@@ -123,6 +120,7 @@ class MariaDBConnectionUtil:
 			"user": self.user,
 			"conv": self.CONVERSION_MAP,
 			"charset": "utf8mb4",
+			"collation": "utf8mb4_unicode_ci",
 			"use_unicode": True,
 		}
 
@@ -214,10 +212,11 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 		return db_size[0].get("database_size")
 
-	def log_query(self, query, values, debug, explain):
-		self.last_query = self._cursor._executed
-		self._log_query(self.last_query, debug, explain, query)
-		return self.last_query
+	def log_query(self, query, query_type, values, debug):
+		mogrified_query = self._cursor._executed
+		self.last_query = mogrified_query
+		self._log_query(mogrified_query, query_type, debug, query)
+		return mogrified_query
 
 	def _clean_up(self):
 		# PERF: Erase internal references of pymysql to trigger GC as soon as
@@ -321,7 +320,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			`doctype` VARCHAR(180) NOT NULL,
 			`data` TEXT,
 			UNIQUE(user, doctype)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8"""
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"""
 		)
 
 	@staticmethod
@@ -407,14 +406,27 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
 		index_name = index_name or self.get_index_name(fields)
 		table_name = get_table_name(doctype)
 		if not self.has_index(table_name, index_name):
 			self.commit()
 			self.sql(
 				"""ALTER TABLE `{}`
-				ADD INDEX `{}`({})""".format(table_name, index_name, ", ".join(fields))
+				ADD INDEX IF NOT EXISTS `{}`({})""".format(table_name, index_name, ", ".join(fields))
 			)
+			# Ensure that DB migration doesn't clear this index, assuming this is manually added
+			# via code or console.
+			if len(fields) == 1 and not (frappe.flags.in_install or frappe.flags.in_migrate):
+				make_property_setter(
+					doctype,
+					fields[0],
+					property="search_index",
+					value="1",
+					property_type="Check",
+					for_doctype=False,  # Applied on docfield
+				)
 
 	def add_unique(self, doctype, fields, constraint_name=None):
 		if isinstance(fields, str):

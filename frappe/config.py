@@ -143,3 +143,12 @@ _cached_get_common_site_config = site_cache(ttl=60, maxsize=16)(_get_common_site
 def clear_site_config_cache():
 	_cached_get_common_site_config.clear_cache()
 	_cached_get_site_config.clear_cache()
+
+
+def get_conf(site: str | None = None) -> _dict[str, Any]:
+	if hasattr(frappe.local, "conf"):
+		return frappe.local.conf
+
+	# if no site, get from common_site_config.json
+	with frappe.init_site(site):
+		return frappe.local.conf

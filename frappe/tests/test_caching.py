@@ -38,16 +38,21 @@ def ping_with_ttl() -> str:
 class TestCachingUtils(IntegrationTestCase):
 	def test_request_cache(self):
 		retval = []
-		acceptable_args = [
-			[1, 2, 3, 4],
+		hashable_values = [
 			range(10),
-			{"abc": "test-key"},
 			frappe.get_last_doc("DocType"),
+			True,
+			None,
+		]
+
+		unhashable_values = [
+			[1, 2, 3, 4],
+			{"abc": "test-key"},
 			frappe._dict(),
 		]
 
 		def same_output_received():
-			return all([x for x in set(retval) if x == retval[0]])
+			return len(set(retval)) == 1
 
 		# ensure that external service was called only once
 		# thereby return value of request_specific_api is cached
@@ -55,27 +60,33 @@ class TestCachingUtils(IntegrationTestCase):
 		external_service.assert_called_once()
 		self.assertTrue(same_output_received())
 
-		# ensure that cache differentiates between int & float
-		# types. Giving different return values for both
+		# hash() function does not differentiate between int & float
+		# Giving same values for both
 		retval.append(request_specific_api(120.0, 23))
-		self.assertTrue(external_service.call_count, 2)
-
-		# ensure that function is executed when call isn't
-		# already cached
-		retval.clear()
-		for _ in range(10):
-			request_specific_api(120, 13)
-		self.assertTrue(external_service.call_count, 3)
+		external_service.assert_called_once()
 		self.assertTrue(same_output_received())
 
-		# ensure key generation capacity for different types
+		# ensure that function is executed when call isn't already cached
 		retval.clear()
-		for arg in acceptable_args:
+		retval.extend(request_specific_api(120, 13) for _ in range(10))
+		self.assertEqual(external_service.call_count, 2)
+		self.assertTrue(same_output_received())
+
+		# ensure single call if key is hashable
+		for arg in hashable_values:
 			external_service.call_count = 0
 			for _ in range(2):
 				request_specific_api(arg, 13)
-			self.assertTrue(external_service.call_count, 1)
-		self.assertTrue(same_output_received())
+
+			self.assertEqual(external_service.call_count, 1)
+
+		# multiple calls if key cannot be generated
+		for arg in unhashable_values:
+			external_service.call_count = 0
+			for _ in range(2):
+				request_specific_api(arg, 13)
+
+			self.assertEqual(external_service.call_count, 2)
 
 
 class TestSiteCache(FrappeAPITestCase):

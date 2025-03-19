@@ -27,7 +27,12 @@ from frappe.model.document import Document
 from frappe.utils.background_jobs import get_queue, get_queue_list, get_redis_conn
 from frappe.utils.caching import redis_cache
 from frappe.utils.data import add_to_date
-from frappe.utils.scheduler import get_scheduler_status, get_scheduler_tick, is_schduler_process_running
+from frappe.utils.scheduler import (
+	get_scheduler_status,
+	get_scheduler_tick,
+	is_dormant,
+	is_schduler_process_running,
+)
 
 
 @contextmanager
@@ -52,6 +57,8 @@ def health_check(step: str):
 			try:
 				return func(*args, **kwargs)
 			except Exception as e:
+				if frappe.flags.in_test:
+					raise
 				frappe.log(frappe.get_traceback())
 				# nosemgrep
 				frappe.msgprint(
@@ -151,7 +158,6 @@ class SystemHealthReport(Document):
 		# This just checks connection life
 		self.test_job_id = frappe.enqueue("frappe.ping", at_front=True).id
 		self.background_jobs_check = "queued"
-		self.scheduler_status = get_scheduler_status().get("status")
 		workers = frappe.get_all("RQ Worker")
 		self.total_background_workers = len(workers)
 		queue_summary = defaultdict(list)
@@ -182,11 +188,20 @@ class SystemHealthReport(Document):
 
 	@health_check("Scheduler")
 	def fetch_scheduler(self):
+		scheduler_enabled = get_scheduler_status().get("status") == "active"
+
+		if not is_schduler_process_running():
+			self.scheduler_status = "Process Not Found"
+		elif is_dormant():
+			self.scheduler_status = "Dormant"
+		elif scheduler_enabled:
+			self.scheduler_status = "Active"
+		else:
+			self.scheduler_status = "Inactive"
+
 		lower_threshold = add_to_date(None, days=-7, as_datetime=True)
 		# Exclude "maybe" curently executing job
 		upper_threshold = add_to_date(None, minutes=-30, as_datetime=True)
-		scheduler_running = get_scheduler_status().get("status") == "active" and is_schduler_process_running()
-		self.scheduler_status = "Active" if scheduler_running else "Inactive"
 
 		mariadb_query = """
   				SELECT scheduled_job_type,

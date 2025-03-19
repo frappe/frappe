@@ -139,7 +139,7 @@ class ServerScript(Document):
 			{
 				"method": frappe.scrub(f"{self.name}-{self.event_frequency}"),
 				"frequency": self.event_frequency,
-				"cron_format": self.cron_format,
+				"cron_format": self.cron_format if self.event_frequency == "Cron" else "",
 				"stopped": self.disabled,
 			}
 		).save()

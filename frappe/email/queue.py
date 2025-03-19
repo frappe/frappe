@@ -87,7 +87,7 @@ def get_unsubcribed_url(reference_doctype, reference_name, email, unsubscribe_me
 		"name": cstr(reference_name),
 	}
 	if unsubscribe_params:
-		params.update(unsubscribe_params)
+		params.update(frappe.parse_json(unsubscribe_params))
 
 	return get_url(unsubscribe_method + "?" + get_signed_params(params))
 

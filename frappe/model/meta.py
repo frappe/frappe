@@ -27,10 +27,10 @@ import click
 import frappe
 from frappe import _, _lt
 from frappe.model import (
+	NO_VALUE_FIELDS,
 	child_table_fields,
 	data_fieldtypes,
 	default_fields,
-	no_value_fields,
 	optional_fields,
 	table_fields,
 )
@@ -95,7 +95,7 @@ def get_meta(doctype: str | dict | DocRef, cached=True) -> "_Meta":
 def clear_meta_cache(doctype: str = "*"):
 	key = f"doctype_meta::{doctype}"
 	if doctype == "*":
-		frappe.cache.delete_keys(key)
+		frappe.client_cache.delete_keys(key)
 	else:
 		frappe.client_cache.delete_value(key)
 
@@ -266,7 +266,7 @@ class Meta(Document):
 
 	def get_global_search_fields(self):
 		"""Return list of fields with `in_global_search` set and `name` if set."""
-		fields = self.get("fields", {"in_global_search": 1, "fieldtype": ["not in", no_value_fields]})
+		fields = self.get("fields", {"in_global_search": 1, "fieldtype": ["not in", NO_VALUE_FIELDS]})
 		if getattr(self, "show_name_in_global_search", None):
 			fields.append(frappe._dict(fieldtype="Data", fieldname="name", label="Name"))
 
@@ -284,7 +284,7 @@ class Meta(Document):
 			valid_columns = self.default_fields + [
 				df.fieldname
 				for df in self.get("fields")
-				if not df.get("is_virtual") and df.fieldtype in data_fieldtypes
+				if not getattr(df, "is_virtual", False) and df.fieldtype in data_fieldtypes
 			]
 			if self.istable:
 				valid_columns += list(child_table_fields)
@@ -306,9 +306,6 @@ class Meta(Document):
 				valid_fields += list(child_table_fields)
 
 		return valid_fields
-
-	def get_table_field_doctype(self, fieldname):
-		return TABLE_DOCTYPES_FOR_DOCTYPE.get(fieldname)
 
 	def get_field(self, fieldname):
 		"""Return docfield from meta."""
@@ -363,7 +360,7 @@ class Meta(Document):
 			link_fields = [df.fieldname for df in self.get_link_fields()]
 
 		for df in self.fields:
-			if df.fieldtype not in no_value_fields and getattr(df, "fetch_from", None):
+			if df.fieldtype not in NO_VALUE_FIELDS and getattr(df, "fetch_from", None):
 				if link_fieldname:
 					if df.fetch_from.startswith(link_fieldname + "."):
 						out.append(df)
@@ -535,6 +532,9 @@ class Meta(Document):
 		else:
 			self._table_fields = self.get("fields", {"fieldtype": ["in", table_fields]})
 
+		# table fieldname: doctype map
+		self._table_doctypes = {field.fieldname: field.options for field in self._table_fields}
+
 	def sort_fields(self):
 		"""
 		Sort fields on the basis of following rules (priority descending):
@@ -635,10 +635,9 @@ class Meta(Document):
 				self.permissions = [Document(d) for d in custom_perms]
 
 	def get_fieldnames_with_value(self, with_field_meta=False, with_virtual_fields=False):
-		def is_value_field(docfield):
-			return not (
-				(not with_virtual_fields and docfield.get("is_virtual"))
-				or docfield.fieldtype in no_value_fields
+		def is_value_field(df):
+			return (df.fieldtype not in NO_VALUE_FIELDS) and (
+				with_virtual_fields or not getattr(df, "is_virtual", False)
 			)
 
 		if with_field_meta:
@@ -715,7 +714,7 @@ class Meta(Document):
 
 	def get_permlevel_access(self, permission_type="read", parenttype=None, *, user=None):
 		has_access_to = []
-		roles = frappe.get_roles(user)
+		roles = set(frappe.get_roles(user))
 		for perm in self.get_permissions(parenttype):
 			if perm.role in roles and perm.get(permission_type):
 				if perm.permlevel not in has_access_to:

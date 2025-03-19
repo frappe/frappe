@@ -6,7 +6,7 @@ from contextlib import suppress
 import frappe
 from frappe import _
 from frappe.rate_limiter import rate_limit
-from frappe.utils import validate_email_address
+from frappe.utils import escape_html, validate_email_address
 
 sitemap = 1
 
@@ -29,6 +29,8 @@ def get_context(context):
 @rate_limit(limit=1000, seconds=60 * 60)
 def send_message(sender, message, subject="Website Query"):
 	sender = validate_email_address(sender, throw=True)
+
+	message = escape_html(message)
 
 	with suppress(frappe.OutgoingEmailError):
 		if forward_to_email := frappe.db.get_single_value("Contact Us Settings", "forward_to_email"):
