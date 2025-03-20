@@ -42,7 +42,6 @@
 			v-else-if="type === 'code'"
 			:modelValue="modelValue"
 			type="JavaScript"
-			:label="label"
 			:height="height"
 			@update:modelValue="(e) => emit('update:modelValue', e)"
 			:disabled="disabled"
