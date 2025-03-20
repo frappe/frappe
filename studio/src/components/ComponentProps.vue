@@ -150,6 +150,10 @@ const componentProps = computed(() => {
 		} else {
 			config.modelValue = props.block.componentProps[propName]
 		}
+
+		if (isVariableBound(config.modelValue)) {
+			config.inputType = "text"
+		}
 	})
 
 	return propConfig
