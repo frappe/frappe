@@ -89,7 +89,7 @@ dependencies = [
     "google-api-python-client~=2.2.0",
     "google-auth-oauthlib~=0.4.4",
     "google-auth~=1.29.0",
-    "posthog~=3.0.1",
+    "posthog~=3.21.0",
     "vobject~=0.9.7",
     "pycountry~=24.6.1",
 ]
