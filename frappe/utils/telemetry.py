@@ -51,7 +51,7 @@ def init_telemetry():
 		return
 
 	with suppress(Exception):
-		frappe.local.posthog = Posthog(posthog_project_id, host=posthog_host)
+		frappe.local.posthog = Posthog(posthog_project_id, host=posthog_host, timeout=5, max_retries=3)
 
 
 def capture(event, app, **kwargs):

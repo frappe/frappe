@@ -725,7 +725,7 @@ def flush_telemetry():
 	to push events."""
 	ph = getattr(frappe.local, "posthog", None)
 	with suppress(Exception):
-		ph and ph.flush()
+		ph and ph.shutdown()
 
 
 def _check_queue_size(q: Queue):
