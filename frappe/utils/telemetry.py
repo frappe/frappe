@@ -1,8 +1,9 @@
-""" Basic telemetry for improving apps.
+"""Basic telemetry for improving apps.
 
 WARNING: Everything in this file should be treated "internal" and is subjected to change or get
 removed without any warning.
 """
+
 from contextlib import suppress
 from functools import lru_cache
 
@@ -51,9 +52,6 @@ def init_telemetry():
 		return
 
 	with suppress(Exception):
-<<<<<<< HEAD
-		frappe.local.posthog = Posthog(posthog_project_id, host=posthog_host)
-=======
 		frappe.local.posthog = _get_posthog_instance(posthog_project_id, posthog_host)
 
 	# Background jobs might exit before flushing telemetry, so explicitly flush queue
@@ -70,7 +68,6 @@ def flush_telemetry():
 	ph: Posthog = getattr(frappe.local, "posthog", None)
 	with suppress(Exception):
 		ph and ph.flush()
->>>>>>> 4fac934cec (perf: long-lived posthog threads (#31821))
 
 
 def capture(event, app, **kwargs):

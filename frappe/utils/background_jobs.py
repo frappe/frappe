@@ -615,42 +615,6 @@ def truncate_failed_registry(job, connection, type, value, traceback):
 				job_obj and fail_registry.remove(job_obj, delete_job=True)
 
 
-<<<<<<< HEAD
-def flush_telemetry():
-	"""Forcefully flush pending events.
-
-	This is required in context of background jobs where process might die before posthog gets time
-	to push events."""
-	ph = getattr(frappe.local, "posthog", None)
-	with suppress(Exception):
-		ph and ph.flush()
-=======
-def _check_queue_size(q: Queue):
-	max_jobs = cint(frappe.conf.max_queued_jobs) or MAX_QUEUED_JOBS
-	# Workaround for arbitrarily sized benches,
-	# TODO: Some concept of site-based fairness on consumption of queue
-	max_jobs += _site_count() * 50
-
-	if cint(q.count) >= max_jobs:
-		primary_action = {
-			"label": "Monitor System Health",
-			"client_action": "frappe.set_route",
-			"args": ["Form", "System Health Report"],
-		}
-		frappe.throw(
-			_("Too many queued background jobs ({0}). Please retry after some time.").format(max_jobs),
-			title=_("Queue Overloaded"),
-			exc=frappe.QueueOverloaded,
-			primary_action=primary_action if frappe.has_permission("System Health Report") else None,
-		)
-
-
-@site_cache(ttl=10 * 60)
-def _site_count() -> int:
-	return len(get_sites())
->>>>>>> 4fac934cec (perf: long-lived posthog threads (#31821))
-
-
 def _start_sentry():
 	sentry_dsn = os.getenv("FRAPPE_SENTRY_DSN")
 	if not sentry_dsn:
