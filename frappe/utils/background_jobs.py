@@ -115,7 +115,7 @@ def enqueue(
 			frappe.throw(_("`job_id` paramater is required for deduplication."))
 		job = get_job(job_id)
 		if job and job.get_status(refresh=False) in (JobStatus.QUEUED, JobStatus.STARTED):
-			frappe.logger().debug(f"Not queueing job {job.id} because it is in queue already")
+			frappe.logger().error(f"Not queueing job {job.id} because it is in queue already")
 			return
 		elif job:
 			# delete job to avoid argument issues related to job args
