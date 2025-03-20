@@ -97,6 +97,7 @@ import { SelectOption } from "@/types"
 import { Actions, ActionConfigurations, ComponentEvent } from "@/types/ComponentEvent"
 import Link from "@/components/Link.vue"
 import Grid from "@/components/Grid.vue"
+import CodeEditor from "@/components/CodeEditor.vue"
 import { DocTypeField } from "@/types"
 import { toast } from "vue-sonner"
 
@@ -117,6 +118,8 @@ const emptyEvent: ComponentEvent = {
 	fields: [],
 	success_message: "",
 	error_message: "",
+	// run script
+	script: "",
 }
 const newEvent = ref<ComponentEvent>({ ...emptyEvent })
 
@@ -306,6 +309,23 @@ const actions: ActionConfigurations = {
 			},
 		},
 		...successFailureFields,
+	],
+	"Run Script": [
+		{
+			component: CodeEditor,
+			getProps: () => {
+				return {
+					label: "Script",
+					type: "JavaScript",
+					modelValue: newEvent.value.script,
+				}
+			},
+			events: {
+				"update:modelValue": (val: any) => {
+					newEvent.value.script = val
+				},
+			},
+		},
 	],
 }
 

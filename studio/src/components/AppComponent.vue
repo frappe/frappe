@@ -32,7 +32,7 @@ import { computed, onMounted, ref, useAttrs } from "vue"
 import { useRouter, useRoute } from "vue-router"
 import { createResource } from "frappe-ui"
 import components from "@/data/components"
-import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML } from "@/utils/helpers"
+import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML, executeUserScript } from "@/utils/helpers"
 
 import useAppStore from "@/stores/appStore"
 import { toast } from "vue-sonner"
@@ -160,6 +160,10 @@ const componentEvents = computed(() => {
 							}
 						},
 					}).submit()
+				}
+			} else if (event.action === "Run Script") {
+				return () => {
+					executeUserScript(event.script, store.variables, store.resources)
 				}
 			}
 		}

@@ -368,6 +368,41 @@ function evaluateExpression(expression: string, context: ExpressionEvaluationCon
 	}
 }
 
+function executeUserScript(script: string, variables: Record<string, any>, resources: Record<string, any>) {
+	try {
+		const variablesHandler = {
+			get(_target: object, prop: string) {
+				if (prop in variables) {
+					return variables[prop]
+				}
+				return undefined
+			},
+			set(_target: object, prop: string, value: any) {
+				if (prop in variables) {
+					variables[prop] = value
+					return true
+				}
+				return false
+			},
+			has(_target: object, prop: string) {
+				return prop in variables
+			}
+		}
+
+		// Create a proxy for the variables object so that users can access variables without 'variable.' prefix
+		const variablesProxy = new Proxy({}, variablesHandler)
+		const scriptToExecute = `
+			with (variablesProxy) {
+			${script}
+			}
+		`;
+		const scriptFunction = new Function('variablesProxy', 'resources', scriptToExecute);
+		scriptFunction(variablesProxy, resources);
+	} catch (error) {
+		console.error(`Error executing the script: ${script}`, error)
+	}
+}
+
 function getTransforms(resource: Resource) {
 	/**
 	 * Create a function that includes the user's transform function
@@ -665,6 +700,8 @@ export {
 	getAutocompleteValues,
 	isDynamicValue,
 	getDynamicValue,
+	evaluateExpression,
+	executeUserScript,
 	getNewResource,
 	// variables
 	getInitialVariableValue,
