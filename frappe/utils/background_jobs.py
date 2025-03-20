@@ -718,16 +718,6 @@ def truncate_failed_registry(job, connection, type, value, traceback):
 				job_obj and fail_registry.remove(job_obj, delete_job=True)
 
 
-def flush_telemetry():
-	"""Forcefully flush pending events.
-
-	This is required in context of background jobs where process might die before posthog gets time
-	to push events."""
-	ph = getattr(frappe.local, "posthog", None)
-	with suppress(Exception):
-		ph and ph.shutdown()
-
-
 def _check_queue_size(q: Queue):
 	max_jobs = cint(frappe.conf.max_queued_jobs) or MAX_QUEUED_JOBS
 	# Workaround for arbitrarily sized benches,
