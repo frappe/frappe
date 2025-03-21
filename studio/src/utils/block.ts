@@ -454,6 +454,10 @@ class Block implements BlockOptions {
 			slotContent: "",
 			parentBlockId: this.componentId
 		}
+		nextTick(() => {
+			const store = useStudioStore()
+			store.selectSlot(this.componentSlots[slotName])
+		})
 	}
 
 	updateSlot(slotName: string, content: string | Block | BlockOptions, index?: number | null) {
