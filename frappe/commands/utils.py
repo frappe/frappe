@@ -599,7 +599,8 @@ frappe.db.connect()
 
 def _console_cleanup():
 	# Execute after_rollback on console close
-	frappe.db.rollback()
+	if frappe.db:
+		frappe.db.rollback()
 	frappe.destroy()
 
 
