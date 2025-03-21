@@ -52,7 +52,7 @@ const getComponentProps = () => {
 
 	Object.entries(componentProps).forEach(([propName, config]) => {
 		if (isDynamicValue(config)) {
-			componentProps[propName] = getDynamicValue(config, store.resources)
+			componentProps[propName] = getDynamicValue(config, { ...store.resources, ...store.variables })
 		}
 	})
 	return componentProps
