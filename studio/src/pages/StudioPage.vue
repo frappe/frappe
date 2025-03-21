@@ -6,10 +6,47 @@
 			<StudioLeftPanel
 				class="absolute bottom-0 left-0 top-[var(--toolbar-height)] z-20 overflow-auto bg-white"
 			/>
+
 			<StudioCanvas
-				ref="canvas"
-				class="canvas-container absolute bottom-0 top-[var(--toolbar-height)] flex justify-center overflow-hidden bg-gray-200 p-10"
+				ref="fragmentCanvas"
+				:key="store.fragmentData.block?.componentId"
+				v-if="store.editingMode === 'fragment' && store.fragmentData.block"
+				:componentTree="store.fragmentData.block"
+				:canvas-styles="{
+					width: (store.fragmentData.block.getStyle('width') + '').endsWith('px') ? '!fit-content' : null,
+					padding: '40px',
+					display: 'flex',
+					justifyContent: 'center',
+				}"
+				:style="{
+					left: `${store.studioLayout.showLeftPanel ? store.studioLayout.leftPanelWidth : 0}px`,
+					right: `${store.studioLayout.showRightPanel ? store.studioLayout.rightPanelWidth : 0}px`,
+				}"
+				class="canvas-container bg-gray-2 absolute bottom-0 top-[var(--toolbar-height)] flex justify-center overflow-hidden p-10"
+			>
+				<template v-slot:header>
+					<div
+						class="absolute left-0 right-0 top-0 z-20 flex items-center justify-between bg-white p-[0.4rem] text-sm text-ink-gray-8 shadow-sm"
+					>
+						<div class="flex items-center gap-1 pl-2 text-xs">
+							<a @click="store.exitFragmentMode" class="cursor-pointer">{{ store.activePage?.page_title }}</a>
+							<FeatherIcon name="chevron-right" class="h-3 w-3" />
+							<span class="flex items-center gap-2">
+								{{ store.fragmentData.fragmentName }}
+							</span>
+						</div>
+						<Button variant="solid" class="text-xs" @click="saveAndExitFragmentMode">
+							{{ store.fragmentData.saveActionLabel || "Save" }}
+						</Button>
+					</div>
+				</template>
+			</StudioCanvas>
+
+			<StudioCanvas
+				v-show="store.editingMode === 'page'"
+				ref="pageCanvas"
 				v-if="store.pageBlocks[0]"
+				class="canvas-container absolute bottom-0 top-[var(--toolbar-height)] flex justify-center overflow-hidden bg-gray-200 p-10"
 				:componentTree="store.pageBlocks[0]"
 				:canvas-styles="{
 					minHeight: '1000px',
@@ -19,6 +56,7 @@
 					right: `${store.studioLayout.showRightPanel ? store.studioLayout.rightPanelWidth : 0}px`,
 				}"
 			/>
+
 			<StudioRightPanel
 				class="no-scrollbar dark:bg-zinc-900 absolute bottom-0 right-0 top-[var(--toolbar-height)] z-20 overflow-auto border-l-[1px] bg-white shadow-lg dark:border-gray-800"
 			/>
@@ -51,20 +89,34 @@ const store = useStudioStore()
 const componentContextMenu = toRef(store, "componentContextMenu")
 useStudioEvents()
 
-const canvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
+const pageCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
+const fragmentCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
 watchEffect(() => {
-	if (canvas.value) {
-		store.canvas = canvas.value
+	if (fragmentCanvas.value) {
+		store.activeCanvas = fragmentCanvas.value
+		const fragmentRootBlock = fragmentCanvas.value?.getRootBlock()
+		if (fragmentRootBlock) {
+			store.selectBlock(fragmentRootBlock)
+		}
+	} else {
+		store.activeCanvas = pageCanvas.value
 	}
 })
 
+async function saveAndExitFragmentMode(e: Event) {
+	store.fragmentData.saveAction?.(fragmentCanvas.value?.getRootBlock())
+	store.exitFragmentMode(e)
+	store.savePage()
+}
+
 const debouncedPageSave = useDebounceFn(store.savePage, 300)
 watch(
-	() => canvas.value?.rootComponent,
+	() => pageCanvas.value?.rootComponent,
 	() => {
 		if (
 			store.selectedPage &&
-			!canvas.value?.canvasProps?.settingCanvas &&
+			store.editingMode === "page" &&
+			!pageCanvas.value?.canvasProps?.settingCanvas &&
 			!store.settingPage &&
 			!store.savingPage
 		) {

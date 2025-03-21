@@ -13,6 +13,7 @@ import {
 	getNewResource,
 	confirm,
 	getInitialVariableValue,
+	getBlockCopy,
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
 import { studioPageResources } from "@/data/studioResources"
@@ -24,7 +25,7 @@ import Block from "@/utils/block"
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Resource } from "@/types/Studio/StudioResource"
-import { LeftPanelOptions, RightPanelOptions, Slot } from "@/types"
+import { EditingMode, LeftPanelOptions, RightPanelOptions, Slot } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import { studioVariables } from "@/data/studioVariables"
 import { Variable } from "@/types/Studio/StudioPageVariable"
@@ -32,7 +33,7 @@ import { toast } from "vue-sonner"
 import { createResource } from "frappe-ui"
 
 const useStudioStore = defineStore("store", () => {
-	const canvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
+	const activeCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
 	const studioLayout = reactive({
 		leftPanelWidth: 300,
 		rightPanelWidth: 275,
@@ -50,6 +51,49 @@ const useStudioStore = defineStore("store", () => {
 	})
 	const componentContextMenu = ref<InstanceType<typeof ComponentContextMenu> | null>(null)
 
+	// fragment mode
+	const editingMode = ref<EditingMode>("page")
+	const fragmentData = ref({
+		block: <Block | null>null,
+		saveAction: <Function | null>null,
+		saveActionLabel: <string | null>null,
+		fragmentName: <string | null>null,
+		fragmentId: <string | null>null,
+	})
+
+	async function editOnCanvas(
+		block: Block,
+		saveAction: (block: Block) => void,
+		saveActionLabel: string = "Save",
+		fragmentName?: string,
+		fragmentId?: string
+	) {
+		const blockCopy = getBlockCopy(block, true)
+		fragmentData.value = {
+			block: blockCopy,
+			saveAction,
+			saveActionLabel,
+			fragmentName: fragmentName || block.componentName,
+			fragmentId: fragmentId || block.componentId
+		}
+		editingMode.value = "fragment"
+	}
+
+	async function exitFragmentMode(e?: Event) {
+		if (editingMode.value === "page") return
+		e?.preventDefault()
+
+		clearSelection()
+		editingMode.value = "page"
+		fragmentData.value = {
+			block: null,
+			saveAction: null,
+			saveActionLabel: null,
+			fragmentName: null,
+			fragmentId: null,
+		}
+	}
+
 	// block hover & selection
 	const hoveredBlock = ref<string | null>(null)
 	const hoveredBreakpoint = ref<string | null>(null)
@@ -57,7 +101,7 @@ const useStudioStore = defineStore("store", () => {
 	const selectedBlocks = computed(() => {
 		return (
 			Array.from(selectedBlockIds.value)
-				.map((id) => canvas.value?.findBlock(id))
+				.map((id) => activeCanvas.value?.findBlock(id))
 				// filter out missing blocks/null values
 				.filter((b) => b)
 		)
@@ -76,6 +120,10 @@ const useStudioStore = defineStore("store", () => {
 		}
 	}
 
+	function clearSelection() {
+		selectedBlockIds.value = new Set()
+	}
+
 	// drag & drop
 	const isDragging = ref(false)
 	const dropTarget = reactive({
@@ -90,7 +138,7 @@ const useStudioStore = defineStore("store", () => {
 	const handleDragStart = (ev: DragEvent, componentName: string) => {
 		if (ev.target && ev.dataTransfer) {
 			isDragging.value = true
-			const ghostScale = canvas.value?.canvasProps.scale
+			const ghostScale = activeCanvas.value?.canvasProps.scale
 			const ghostElement = (ev.target as HTMLElement).cloneNode(true) as HTMLElement
 			ghostElement.id = "ghost"
 			ghostElement.style.position = "fixed"
@@ -248,7 +296,7 @@ const useStudioStore = defineStore("store", () => {
 		}
 		selectedPage.value = page.name
 		await setPageData(page)
-		canvas.value?.setRootBlock(pageBlocks.value[0])
+		activeCanvas.value?.setRootBlock(pageBlocks.value[0])
 
 		nextTick(() => {
 			settingPage.value = false
@@ -256,8 +304,8 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	function savePage() {
-		if (canvas.value) {
-			pageBlocks.value = [canvas.value.getRootBlock()]
+		if (activeCanvas.value) {
+			pageBlocks.value = [activeCanvas.value.getRootBlock()]
 		}
 		const pageData = jsToJson(pageBlocks.value.map((block) => getBlockCopyWithoutParent(block)))
 
@@ -358,11 +406,16 @@ const useStudioStore = defineStore("store", () => {
 
 	return {
 		// layout
-		canvas,
+		activeCanvas,
 		studioLayout,
 		activeBreakpoint,
 		guides,
 		componentContextMenu,
+		// fragment mode
+		editingMode,
+		fragmentData,
+		editOnCanvas,
+		exitFragmentMode,
 		// block hover & selection
 		hoveredBlock,
 		hoveredBreakpoint,
@@ -370,6 +423,7 @@ const useStudioStore = defineStore("store", () => {
 		selectedBlocks,
 		selectBlock,
 		selectBlockById,
+		clearSelection,
 		pageBlocks,
 		dropTarget,
 		isDragging,
@@ -411,4 +465,5 @@ const useStudioStore = defineStore("store", () => {
 	}
 })
 
+// @ts-ignore: Ignoring circular dependency warning with StudioCanvas
 export default useStudioStore

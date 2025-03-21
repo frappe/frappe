@@ -37,12 +37,12 @@ watch(
 		if (currentPath) {
 			page.value = await findPageWithRoute(window.app_name, currentPath)
 			if (!page.value) return
+			await store.setLocalState({ route: route })
+			await store.setPageData(page.value)
 			const blocks = jsonToJs(page.value?.blocks)
 			if (blocks) {
 				rootBlock.value = getBlockInstance(blocks[0])
 			}
-			await store.setLocalState({ route: route })
-			await store.setPageData(page.value)
 		} else {
 			rootBlock.value = null
 		}

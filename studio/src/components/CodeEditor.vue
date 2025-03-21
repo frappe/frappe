@@ -1,16 +1,23 @@
 <!-- Extracted from Builder -->
 <template>
-	<div
-		class="editor flex flex-col"
-		:style="{
-			height: height,
-		}"
-	>
-		<div ref="editor" class="h-auto flex-1 overscroll-none border border-gray-200" />
-		<span class="mt-1 text-xs leading-4 text-gray-600" v-show="description" v-html="description"></span>
-		<Button v-if="showSaveButton" @click="emit('save', aceEditor?.getValue())" class="mt-3 w-full text-base">
-			Save
-		</Button>
+	<div class="flex flex-col gap-1.5">
+		<InputLabel v-if="label">{{ label }}</InputLabel>
+		<div
+			class="editor flex flex-col"
+			:style="{
+				height: height,
+			}"
+		>
+			<div ref="editor" class="h-auto flex-1 overscroll-none border border-gray-200" />
+			<span class="mt-1 text-xs leading-4 text-gray-600" v-show="description" v-html="description"></span>
+			<Button
+				v-if="showSaveButton"
+				@click="emit('save', aceEditor?.getValue())"
+				class="mt-3 w-full text-base"
+			>
+				Save
+			</Button>
+		</div>
 	</div>
 </template>
 
@@ -22,6 +29,7 @@ import "ace-builds/src-min-noconflict/ext-searchbox"
 import "ace-builds/src-min-noconflict/theme-chrome"
 import "ace-builds/src-min-noconflict/theme-twilight"
 import { PropType, onMounted, ref, watch } from "vue"
+import InputLabel from "@/components/InputLabel.vue"
 
 const isDark = useDark()
 const props = defineProps({

@@ -106,6 +106,17 @@ class Block implements BlockOptions {
 		}
 	}
 
+	replaceChild(child: Block, newChild: Block) {
+		newChild.parentBlock = this
+		const index = this.getChildIndex(child)
+		if (index > -1) {
+			// This is not triggering the reactivity even though the child object is reactive
+			// this.children.splice(index, 1, newChild);
+			this.removeChild(child)
+			this.addChild(newChild, index)
+		}
+	}
+
 	getChildIndex(child: Block) {
 		if (child.parentSlotName) {
 			return (
@@ -190,6 +201,14 @@ class Block implements BlockOptions {
 
 	getBlockDescription() {
 		return this.blockName || this.originalElement
+	}
+
+	editInFragmentMode() {
+		return components.get(this.componentName)?.editInFragmentMode
+	}
+
+	getProxyComponent() {
+		return components.get(this.componentName)?.proxyComponent
 	}
 
 	// styles
@@ -390,7 +409,7 @@ class Block implements BlockOptions {
 		if (parentBlock) {
 			child = parentBlock.addChildAfter(blockCopy, this) as Block;
 		} else {
-			child = store.canvas?.getRootBlock().addChild(blockCopy) as Block;
+			child = store.activeCanvas?.getRootBlock().addChild(blockCopy) as Block;
 		}
 		nextTick(() => {
 			if (child) {
@@ -435,6 +454,10 @@ class Block implements BlockOptions {
 			slotContent: "",
 			parentBlockId: this.componentId
 		}
+		nextTick(() => {
+			const store = useStudioStore()
+			store.selectSlot(this.componentSlots[slotName])
+		})
 	}
 
 	updateSlot(slotName: string, content: string | Block | BlockOptions, index?: number | null) {

@@ -1,5 +1,5 @@
 <template>
-	<div class="z-5 flex flex-row overflow-auto shadow-lg">
+	<div class="flex flex-row overflow-auto shadow-lg">
 		<!-- Primary Menu -->
 		<div class="relative flex h-full w-12 flex-col space-y-2 border-r border-gray-200 bg-white p-3">
 			<div
@@ -30,7 +30,7 @@
 			<div
 				v-show="store.studioLayout.showLeftPanel"
 				:style="{ width: `${store.studioLayout.leftPanelWidth - 48}px` }"
-				class="overflow-auto pb-5 hide-scrollbar"
+				class="overflow-auto border-r-[1px] pb-5 hide-scrollbar"
 			>
 				<PanelResizer
 					:dimension="store.studioLayout.leftPanelWidth"
@@ -53,10 +53,10 @@
 				<ComponentPanel v-show="activeTab === 'Add Component'" class="mx-2 my-3" />
 				<div v-show="activeTab === 'Layers'" class="p-4 pt-3">
 					<ComponentLayers
-						v-if="store.canvas"
+						v-if="store.activeCanvas"
 						class="no-scrollbar overflow-auto"
 						ref="pageLayers"
-						:blocks="[store.canvas?.getRootBlock() as Block]"
+						:blocks="[store.activeCanvas?.getRootBlock() as Block]"
 					/>
 				</div>
 

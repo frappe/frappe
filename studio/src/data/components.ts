@@ -11,7 +11,7 @@ import AppHeader from "@/components/AppLayout/AppHeader.vue"
 import BottomTabs from "@/components/AppLayout/BottomTabs.vue"
 import MarkdownEditor from "@/components/AppLayout/MarkdownEditor.vue"
 
-import { FrappeUIComponents } from "@/types"
+import { FrappeUIComponents, FrappeUIComponent } from "@/types"
 
 export const COMPONENTS: FrappeUIComponents = {
 	Alert: {
@@ -215,6 +215,8 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "Dialog",
 		icon: "AppWindowMac",
 		initialState: {
+			modelValue: false,
+			disableOutsideClickToClose: true,
 			options: {
 				title: "Confirm",
 				message: "Are you sure you want to confirm this action?",
@@ -228,6 +230,8 @@ export const COMPONENTS: FrappeUIComponents = {
 				],
 			},
 		},
+		editInFragmentMode: true,
+		proxyComponent: defineAsyncComponent(() => import("@/components/ProxyComponents/Dialog.vue")),
 	},
 	Divider: {
 		name: "Divider",
@@ -672,6 +676,13 @@ export const COMPONENTS: FrappeUIComponents = {
 	}
 }
 
+const proxyComponentMap = new Map<string, any>()
+Object.values(COMPONENTS).forEach((component: FrappeUIComponent) => {
+	if (component.proxyComponent) {
+		proxyComponentMap.set(component.name, component.proxyComponent)
+	}
+})
+
 function get(name: string) {
 	return COMPONENTS[name]
 }
@@ -690,6 +701,10 @@ function getComponent(name: string) {
 	} else {
 		return defineAsyncComponent(() => import(`@/components/AppLayout/${name}.vue`))
 	}
+}
+
+function getProxyComponent(name: string) {
+	return proxyComponentMap.get(name)
 }
 
 function getProps(name: string) {
@@ -714,6 +729,7 @@ export default {
 	names: Object.keys(COMPONENTS),
 	get,
 	getComponent,
+	getProxyComponent,
 	getProps,
 	getEmits,
 	isFrappeUIComponent,

@@ -27,6 +27,8 @@ export interface BlockOptions {
 	[key: string]: any
 }
 
+export type EditingMode = "page" | "fragment"
+
 // slot
 export interface Slot {
 	slotId: string,
@@ -92,6 +94,8 @@ export interface FrappeUIComponent {
 	initialState?: Record<string, any>,
 	props?: Array<Record<string, any>>,
 	emits?: Array<string> | Record<string, any>,
+	editInFragmentMode?: boolean, // whether to open a separate canvas for editing this component
+	proxyComponent?: any, // pseudo-component to be used in edit mode
 }
 
 export interface FrappeUIComponents {

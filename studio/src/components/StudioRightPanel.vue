@@ -13,9 +13,7 @@
 				:max-dimension="400"
 			/>
 
-			<div
-				class="dark:border-zinc-800 dark:bg-zinc-900 sticky top-0 z-[12] flex w-full border-gray-200 bg-white px-2 text-base"
-			>
+			<div class="sticky top-0 z-[12] flex w-full border-gray-200 bg-white px-2 text-base">
 				<button
 					v-for="tab of ['Properties', 'Events', 'Styles']"
 					:key="tab"

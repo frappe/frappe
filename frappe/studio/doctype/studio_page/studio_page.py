@@ -45,6 +45,11 @@ class StudioPage(Document):
 		if not self.route:
 			self.route = f"{camel_case_to_kebab_case(self.page_title, True)}-{frappe.generate_hash(length=4)}"
 
+	def after_insert(self):
+		app_home = frappe.db.get_value("Studio App", self.studio_app, "app_home")
+		if not app_home:
+			frappe.db.set_value("Studio App", self.studio_app, "app_home", self.name)
+
 	def validate(self):
 		# vue router needs a leading slash
 		if not self.route.startswith("/"):

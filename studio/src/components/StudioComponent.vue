@@ -1,7 +1,7 @@
 <template>
 	<component
 		v-if="block.canHaveChildren()"
-		:is="block.componentName"
+		:is="componentName"
 		v-bind="componentProps"
 		v-model="boundValue"
 		:data-component-id="block.componentId"
@@ -37,14 +37,14 @@
 				/>
 			</template>
 			<template v-else>
-				<span
+				<div
 					:class="[slotClasses, !slot.slotContent ? 'min-h-5 w-full' : '']"
 					:data-slot-id="slot.slotId"
 					:data-slot-name="slotName"
 					:data-component-id="block.componentId"
 				>
 					{{ slot.slotContent }}
-				</span>
+				</div>
 			</template>
 		</template>
 
@@ -86,7 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, useAttrs, onMounted, inject } from "vue"
+import { computed, ref, watch, useAttrs, inject } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
 
@@ -122,6 +122,12 @@ const styles = computed(() => {
 	return props.block.getStyles()
 })
 
+const componentName = computed(() => {
+	if (store.editingMode === "page") return props.block.componentName
+	const proxyComponent = props.block.getProxyComponent()
+	return proxyComponent ? proxyComponent : props.block.componentName
+})
+
 const getComponentProps = () => {
 	if (!props.block || props.block.isRoot()) return []
 
@@ -144,7 +150,7 @@ const componentProps = computed(() => {
 })
 
 const componentRef = ref<ComponentPublicInstance | null>(null)
-const target = computed(() => getComponentRoot(componentRef))
+const target = ref<HTMLElement | null>(null)
 
 // Computed property for v-model binding
 const boundValue = computed({
@@ -202,7 +208,7 @@ const getClickedComponent = (e: MouseEvent) => {
 	const targetElement = e.target as HTMLElement
 	const componentId = targetElement.closest("[data-component-id]")?.getAttribute("data-component-id")
 	if (componentId) {
-		return store.canvas?.findBlock(componentId)
+		return store.activeCanvas?.findBlock(componentId)
 	}
 }
 
@@ -213,7 +219,9 @@ const handleClick = (e: MouseEvent) => {
 	const slotName = (e.target as HTMLElement).dataset.slotName
 	if (slotName) {
 		const slot = block.getSlot(slotName)
-		store.selectSlot(slot)
+		if (slot) {
+			store.selectSlot(slot)
+		}
 	}
 
 	e.stopPropagation()
@@ -244,12 +252,17 @@ watch(
 	{ deep: true },
 )
 
-onMounted(() => {
-	// set data-component-id on mount since some frappeui components have inheritAttrs: false
-	const componentRoot = getComponentRoot(componentRef)
-	if (componentRoot) {
-		componentRoot.setAttribute("data-component-id", props.block.componentId)
-		isComponentReady.value = true
-	}
-})
+watch(
+	() => componentRef.value,
+	() => {
+		if (!componentRef.value) return
+		// set data-component-id on update since some frappeui components have inheritAttrs: false
+		target.value = getComponentRoot(componentRef)
+		if (target.value) {
+			target.value?.setAttribute("data-component-id", props.block.componentId)
+			isComponentReady.value = true
+		}
+	},
+	{ immediate: true },
+)
 </script>

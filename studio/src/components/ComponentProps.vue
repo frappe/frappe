@@ -76,19 +76,20 @@
 					:key="name"
 					class="flex w-full flex-row justify-between"
 				>
-					<div class="flex w-full cursor-pointer items-start justify-between gap-2">
+					<div class="flex w-full cursor-pointer items-center justify-between gap-2">
 						<div class="relative w-full">
 							<InlineInput
 								:label="name"
 								type="textarea"
 								:modelValue="getSlotContent(slot)"
 								@update:modelValue="(slotContent) => block?.updateSlot(name, slotContent)"
+								:disabled="Array.isArray(slot.slotContent)"
 							/>
 							<Badge
 								v-if="Array.isArray(slot.slotContent)"
 								variant="subtle"
 								theme="blue"
-								class="absolute right-5 top-4 -translate-y-1/2"
+								class="absolute left-2 top-8"
 							>
 								Component Tree
 							</Badge>
@@ -148,6 +149,10 @@ const componentProps = computed(() => {
 			config.modelValue = defaultValue
 		} else {
 			config.modelValue = props.block.componentProps[propName]
+		}
+
+		if (isVariableBound(config.modelValue)) {
+			config.inputType = "text"
 		}
 	})
 

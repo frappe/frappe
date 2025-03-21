@@ -1,4 +1,4 @@
-import { reactive, toRaw, h, Ref } from "vue"
+import { reactive, toRaw, h, Ref, toRefs } from "vue"
 import Block from "./block"
 import getBlockTemplate from "./blockTemplate"
 import * as frappeUI from "frappe-ui"
@@ -368,6 +368,25 @@ function evaluateExpression(expression: string, context: ExpressionEvaluationCon
 	}
 }
 
+function executeUserScript(script: string, variables: Record<string, any>, resources: Record<string, any>) {
+	try {
+		// Pass variable refs as context so that users can access variables without 'variable.' prefix
+		// eg: - {{ variable_name }} in templates or variable_name.value in scripts
+		const variablesRefs = toRefs(variables)
+		const context = { ...variablesRefs, ...resources }
+
+		const scriptToExecute = `
+			with (context) {
+			${script}
+			}
+		`;
+		const scriptFunction = new Function("context", scriptToExecute);
+		scriptFunction(context, resources);
+	} catch (error) {
+		console.error(`Error executing the script: ${script}`, error)
+	}
+}
+
 function getTransforms(resource: Resource) {
 	/**
 	 * Create a function that includes the user's transform function
@@ -665,6 +684,8 @@ export {
 	getAutocompleteValues,
 	isDynamicValue,
 	getDynamicValue,
+	evaluateExpression,
+	executeUserScript,
 	getNewResource,
 	// variables
 	getInitialVariableValue,

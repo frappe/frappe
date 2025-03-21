@@ -18,19 +18,31 @@ export function useCanvasDropZone(
 			const { parentComponent, index, slotName } = store.dropTarget
 
 			if (droppedComponentName && parentComponent) {
-				const newBlock = getComponentBlock(droppedComponentName)
-				if (slotName) {
-					parentComponent.updateSlot(slotName, newBlock)
+				function saveBlock(block: Block) {
+					if (slotName) {
+						parentComponent.updateSlot(slotName, block)
+					} else {
+						parentComponent.addChild(block, index)
+					}
+				}
+
+				let newBlock = getComponentBlock(droppedComponentName)
+				if (newBlock.editInFragmentMode()) {
+					store.editOnCanvas(
+						newBlock,
+						(editedBlock: Block) => saveBlock(editedBlock),
+						`Save ${droppedComponentName}`
+					)
 				} else {
-					parentComponent.addChild(newBlock, index)
+					saveBlock(newBlock)
 				}
 			}
 		},
 		onOver: (_files, ev) => {
-			const { parentComponent, index, layoutDirection } = findDropTarget(ev)
+			const { parentComponent, slotName, index, layoutDirection } = findDropTarget(ev)
 			if (parentComponent) {
 				store.hoveredBlock = parentComponent.componentId
-				updateDropTarget(ev, parentComponent, index, layoutDirection)
+				updateDropTarget(ev, parentComponent, slotName, index, layoutDirection)
 			}
 		},
 	})
@@ -68,7 +80,9 @@ export function useCanvasDropZone(
 				const parentElement = getBlockElement(parentComponent)
 				layoutDirection = getLayoutDirection(parentElement)
 				index = findDropIndex(ev, parentElement, layoutDirection)
-				slotName = targetElement.dataset.slotName || store.selectedSlot?.slotName
+				if (store.selectedSlot?.parentBlockId === parentComponent.componentId) {
+					slotName = store.selectedSlot?.slotName
+				}
 			}
 		}
 		return { parentComponent, slotName, index, layoutDirection }
@@ -117,13 +131,26 @@ export function useCanvasDropZone(
 		return "column"
 	}
 
-	const updateDropTarget = throttle((ev: DragEvent, parentComponent: Block | null, index: number, layoutDirection: LayoutDirection) => {
+	const updateDropTarget = throttle((
+		ev: DragEvent,
+		parentComponent: Block | null,
+		slotName: string | null,
+		index: number,
+		layoutDirection: LayoutDirection
+	) => {
 		// append placeholder component to the dom directly
 		// to avoid re-rendering the whole canvas
 		const { placeholder } = store.dropTarget
 		if (!parentComponent || !placeholder) return
-		const newParent = getBlockElement(parentComponent)
+		let newParent = getBlockElement(parentComponent)
 		if (!newParent) return
+
+		if (slotName) {
+			const slotElement = newParent.querySelector(`[data-slot-name="${slotName}"].__studio_component_slot__`) as HTMLElement
+			if (slotElement) {
+				newParent = slotElement
+			}
+		}
 
 		if (store.dropTarget.parentComponent?.componentId === parentComponent.componentId && store.dropTarget.index === index) return
 
@@ -147,6 +174,7 @@ export function useCanvasDropZone(
 
 		store.dropTarget.parentComponent = parentComponent
 		store.dropTarget.index = index
+		store.dropTarget.slotName = slotName
 		store.dropTarget.x = ev.x
 		store.dropTarget.y = ev.y
 	}, 130)

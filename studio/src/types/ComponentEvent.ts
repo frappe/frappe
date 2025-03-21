@@ -2,7 +2,7 @@ import type { DefineComponent } from "vue"
 
 export type Events = 'click' | 'change' | 'focus' | 'blur' | 'submit' | 'keydown' | 'keyup' | 'keypress'
 
-export type Actions = 'Call API' | 'Switch App Page' | 'Open Webpage' | 'Insert a Document'
+export type Actions = 'Call API' | 'Switch App Page' | 'Open Webpage' | 'Insert a Document' | 'Run Script'
 
 export type ComponentEvent = {
 	event: Events | string
@@ -18,6 +18,8 @@ export type ComponentEvent = {
 	fields?: Array<{ field: string, value: string, name: string }>
 	success_message?: string | null
 	error_message?: string | null
+	/** action = 'Run Script' */
+	script?: string
 	// for editing
 	isEditing?: boolean
 	oldEvent?: Events | string

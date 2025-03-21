@@ -204,7 +204,7 @@ watchEffect(() => {
 
 	store.activeBreakpoint
 	store.dropTarget.placeholder
-	store.canvas?.canvasProps.breakpoints.map((breakpoint) => breakpoint.visible)
+	store.activeCanvas?.canvasProps.breakpoints.map((breakpoint) => breakpoint.visible)
 
 	nextTick(() => {
 		tracker.value?.update()
@@ -285,8 +285,17 @@ watch(
 	{ immediate: true },
 )
 
+watch(
+	() => store.activeCanvas?.rootComponent,
+	() => {
+		nextTick(() => {
+			tracker.value?.update()
+		})
+	},
+)
+
 onMounted(() => {
-	tracker.value = trackTarget(props.target, editor.value, store.canvas?.canvasProps as CanvasProps)
+	tracker.value = trackTarget(props.target, editor.value, store.activeCanvas?.canvasProps as CanvasProps)
 })
 
 defineExpose({
