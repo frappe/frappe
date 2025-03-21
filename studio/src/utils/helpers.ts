@@ -1,4 +1,4 @@
-import { reactive, toRaw, h, Ref } from "vue"
+import { reactive, toRaw, h, Ref, toRefs } from "vue"
 import Block from "./block"
 import getBlockTemplate from "./blockTemplate"
 import * as frappeUI from "frappe-ui"
@@ -370,34 +370,18 @@ function evaluateExpression(expression: string, context: ExpressionEvaluationCon
 
 function executeUserScript(script: string, variables: Record<string, any>, resources: Record<string, any>) {
 	try {
-		const variablesHandler = {
-			get(_target: object, prop: string) {
-				if (prop in variables) {
-					return variables[prop]
-				}
-				return undefined
-			},
-			set(_target: object, prop: string, value: any) {
-				if (prop in variables) {
-					variables[prop] = value
-					return true
-				}
-				return false
-			},
-			has(_target: object, prop: string) {
-				return prop in variables
-			}
-		}
+		// Pass variable refs as context so that users can access variables without 'variable.' prefix
+		// eg: - {{ variable_name }} in templates or variable_name.value in scripts
+		const variablesRefs = toRefs(variables)
+		const context = { ...variablesRefs, ...resources }
 
-		// Create a proxy for the variables object so that users can access variables without 'variable.' prefix
-		const variablesProxy = new Proxy({}, variablesHandler)
 		const scriptToExecute = `
-			with (variablesProxy) {
+			with (context) {
 			${script}
 			}
 		`;
-		const scriptFunction = new Function('variablesProxy', 'resources', scriptToExecute);
-		scriptFunction(variablesProxy, resources);
+		const scriptFunction = new Function("context", scriptToExecute);
+		scriptFunction(context, resources);
 	} catch (error) {
 		console.error(`Error executing the script: ${script}`, error)
 	}
