@@ -71,6 +71,7 @@ class CustomizeForm(Document):
 			"Random",
 			"By script",
 		]
+		protect_attached_files: DF.Check
 		queue_in_background: DF.Check
 		quick_entry: DF.Check
 		search_fields: DF.Data | None
@@ -728,6 +729,7 @@ doctype_properties = {
 	"editable_grid": "Check",
 	"max_attachments": "Int",
 	"make_attachments_public": "Check",
+	"protect_attached_files": "Check",
 	"track_changes": "Check",
 	"track_views": "Check",
 	"allow_auto_repeat": "Check",

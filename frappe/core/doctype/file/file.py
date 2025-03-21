@@ -14,6 +14,7 @@ from PIL import Image, ImageFile, ImageOps
 import frappe
 from frappe import _
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
+from frappe.exceptions import DoesNotExistError
 from frappe.model.document import Document
 from frappe.permissions import SYSTEM_USER_ROLE, get_doctypes_with_read
 from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method, get_url
@@ -151,6 +152,7 @@ class File(Document):
 		if self.is_home_folder or self.is_attachments_folder:
 			frappe.throw(_("Cannot delete Home and Attachments folders"))
 		self.validate_empty_folder()
+		self.validate_protected_file()
 		self._delete_file_on_disk()
 		if not self.is_folder:
 			self.add_comment_in_reference_doc("Attachment Removed", _("Removed {0}").format(self.file_name))
@@ -468,6 +470,31 @@ class File(Document):
 		"""Throw exception if folder is not empty"""
 		if self.is_folder and frappe.get_all("File", filters={"folder": self.name}, limit=1):
 			frappe.throw(_("Folder {0} is not empty").format(self.name), FolderNotEmpty)
+
+	def validate_protected_file(self):
+		"""Throw an exception if this file is attached to a doctype that protects files.
+
+		If the linked document is not submitted, the user needs delete permissions on the
+		linked document to delete the file.
+		"""
+		if not (self.attached_to_doctype and self.attached_to_name):
+			return
+
+		try:
+			ref_doc = frappe.get_doc(self.attached_to_doctype, self.attached_to_name)
+		except DoesNotExistError:
+			return
+
+		if not ref_doc.meta.protect_attached_files:
+			return
+
+		if ref_doc.docstatus in (0, 2) and ref_doc.has_permission("delete"):
+			return
+
+		frappe.throw(
+			msg=_("This file cannot be deleted."),
+			title=_("Protected File"),
+		)
 
 	def _delete_file_on_disk(self):
 		"""If file not attached to any other record, delete it"""
