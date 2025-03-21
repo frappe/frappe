@@ -15,7 +15,7 @@
 						:data-component-layer-id="element.componentId"
 						:title="element.componentId"
 						class="min-w-24 cursor-pointer overflow-hidden rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700"
-						@click.stop="selectBlock(element, $event)"
+						@click.stop="openBlockEditor(element, $event)"
 						@mouseover.stop="store.hoveredBlock = element.componentId"
 						@mouseleave="store.hoveredBlock = null"
 					>
@@ -185,7 +185,7 @@ const canShowSlotLayer = (block: Block) => {
 	return isExpanded(block) && block.hasComponentSlots()
 }
 
-const selectBlock = (block: Block, e: Event) => {
+const openBlockEditor = (block: Block, e: Event) => {
 	if (block.editInFragmentMode()) {
 		const parentBlock = block.getParentBlock()
 		store.editOnCanvas(
