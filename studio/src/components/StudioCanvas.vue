@@ -86,8 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import { Ref, ref, watch, reactive, computed, onMounted, provide, onUnmounted } from "vue"
-import { useMutationObserver } from "@vueuse/core"
+import { Ref, ref, watch, reactive, computed, onMounted, provide } from "vue"
 import { LoadingIndicator } from "frappe-ui"
 import StudioComponent from "@/components/StudioComponent.vue"
 import FitScreenIcon from "@/components/Icons/FitScreenIcon.vue"
@@ -179,29 +178,6 @@ const { isOverDropZone } = useCanvasDropZone(
 	findBlock,
 )
 
-let observer: any = null
-const keepEditorAccessible = () => {
-	// headless-ui adds an inert attribute on the containing element when any dialog is open, to disable interactions
-	// explicitly observe and remove this attribute to allow interacting with editor panes & toolbar while editing dialog components
-	const root = document.getElementById("studio")
-	observer = useMutationObserver(
-		root,
-		(mutations) => {
-			for (const mutation of mutations) {
-				if (
-					mutation.type === "attributes" &&
-					mutation.attributeName === "inert" &&
-					root?.hasAttribute("inert")
-				) {
-					root.removeAttribute("inert")
-					root.removeAttribute("aria-hidden")
-				}
-			}
-		},
-		{ attributes: true, attributeFilter: ["inert", "aria-hidden"] },
-	)
-}
-
 onMounted(() => {
 	const canvasContainerEl = canvasContainer.value as unknown as HTMLElement
 	const canvasEl = canvas.value as unknown as HTMLElement
@@ -210,13 +186,6 @@ onMounted(() => {
 	showBlocks.value = true
 	setupHistory()
 	setPanAndZoom(canvasProps, canvasEl, canvasContainerEl)
-	keepEditorAccessible()
-})
-
-onUnmounted(() => {
-	if (observer) {
-		observer.stop()
-	}
 })
 
 defineExpose({

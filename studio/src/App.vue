@@ -17,7 +17,7 @@ import { Toaster } from "vue-sonner"
 </script>
 
 <style>
-[id^="headlessui-dialog"]:not(.__studio_component__) {
+[id^="headlessui-dialog"] {
 	@apply z-50;
 }
 </style>
