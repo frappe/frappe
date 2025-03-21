@@ -12,7 +12,6 @@ from typing import Any, NoReturn
 from uuid import uuid4
 
 import redis
-import setproctitle
 from redis.exceptions import BusyLoadingError, ConnectionError
 from rq import Callback, Queue, Worker
 from rq.defaults import DEFAULT_WORKER_TTL
@@ -236,9 +235,6 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		method = frappe.get_attr(method)
 	else:
 		method_name = f"{method.__module__}.{method.__qualname__}"
-
-	actual_func_name = kwargs.get("job_type") if "run_scheduled_job" in method_name else method_name
-	setproctitle.setproctitle(f"rq: Started running {actual_func_name} at {time.time()}")
 
 	frappe.local.job = frappe._dict(
 		site=site,
