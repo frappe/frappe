@@ -104,6 +104,7 @@ import Draggable from "vuedraggable"
 import ComponentLayers from "@/components/ComponentLayers.vue"
 
 import useStudioStore from "@/stores/studioStore"
+import useCanvasStore from "@/stores/canvasStore"
 import Block from "@/utils/block"
 import LucideIcon from "./LucideIcon.vue"
 import SlotIcon from "@/components/Icons/SlotIcon.vue"
@@ -121,6 +122,7 @@ const props = withDefaults(
 )
 
 const store = useStudioStore()
+const canvasStore = useCanvasStore()
 const childLayer = ref<InstanceType<typeof ComponentLayers> | null>(null)
 
 interface LayerBlock extends Block {
@@ -188,7 +190,7 @@ const canShowSlotLayer = (block: Block) => {
 const openBlockEditor = (block: Block, e: Event) => {
 	if (block.editInFragmentMode()) {
 		const parentBlock = block.getParentBlock()
-		store.editOnCanvas(
+		canvasStore.editOnCanvas(
 			block,
 			(newBlock: Block) => parentBlock?.replaceChild(block, newBlock),
 			`Save ${block.componentName}`,

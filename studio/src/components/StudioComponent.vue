@@ -92,6 +92,7 @@ import ComponentEditor from "@/components/ComponentEditor.vue"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
+import useCanvasStore from "@/stores/canvasStore"
 import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML } from "@/utils/helpers"
 
 import { CanvasProps } from "@/types"
@@ -110,9 +111,12 @@ defineOptions({
 	inheritAttrs: false,
 })
 
+const store = useStudioStore()
+const canvasStore = useCanvasStore()
+
 const isComponentReady = ref(false)
 const editor = ref<InstanceType<typeof ComponentEditor> | null>(null)
-const store = useStudioStore()
+
 const classes = ["__studio_component__", "outline-none", "select-none"]
 const slotClasses = ["__studio_component_slot__", "outline-none", "select-none"]
 
@@ -123,7 +127,7 @@ const styles = computed(() => {
 })
 
 const componentName = computed(() => {
-	if (store.editingMode === "page") return props.block.componentName
+	if (canvasStore.editingMode === "page") return props.block.componentName
 	const proxyComponent = props.block.getProxyComponent()
 	return proxyComponent ? proxyComponent : props.block.componentName
 })
@@ -208,7 +212,7 @@ const getClickedComponent = (e: MouseEvent) => {
 	const targetElement = e.target as HTMLElement
 	const componentId = targetElement.closest("[data-component-id]")?.getAttribute("data-component-id")
 	if (componentId) {
-		return store.activeCanvas?.findBlock(componentId)
+		return canvasStore.activeCanvas?.findBlock(componentId)
 	}
 }
 

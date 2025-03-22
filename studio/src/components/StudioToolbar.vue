@@ -52,7 +52,7 @@
 			<Button
 				size="sm"
 				variant="solid"
-				:disabled="store.editingMode === 'fragment'"
+				:disabled="canvasStore.editingMode === 'fragment'"
 				@click="
 					() => {
 						publishing = true
@@ -69,11 +69,13 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import useStudioStore from "@/stores/studioStore"
+import useCanvasStore from "@/stores/canvasStore"
 
 import PageOptions from "@/components/PageOptions.vue"
 import StudioLogo from "@/components/Icons/StudioLogo.vue"
 
 const store = useStudioStore()
+const canvasStore = useCanvasStore()
 const publishing = ref(false)
 
 const routeString = computed(() => store.activePage?.route || "/")

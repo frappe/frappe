@@ -1,10 +1,12 @@
 import useStudioStore from "@/stores/studioStore"
+import useCanvasStore from "@/stores/canvasStore"
 import Block from "@/utils/block"
 import { getComponentBlock, throttle } from "@/utils/helpers"
 import { useDropZone } from "@vueuse/core"
 import { Ref } from "vue"
 
 const store = useStudioStore()
+const canvasStore = useCanvasStore()
 type LayoutDirection = "row" | "column"
 
 export function useCanvasDropZone(
@@ -15,20 +17,20 @@ export function useCanvasDropZone(
 	const { isOverDropZone } = useDropZone(canvasContainer, {
 		onDrop: (_files, ev) => {
 			const droppedComponentName = ev.dataTransfer?.getData("componentName")
-			const { parentComponent, index, slotName } = store.dropTarget
+			const { parentComponent, index, slotName } = canvasStore.dropTarget
 
 			if (droppedComponentName && parentComponent) {
 				function saveBlock(block: Block) {
 					if (slotName) {
-						parentComponent.updateSlot(slotName, block)
+						parentComponent?.updateSlot(slotName, block)
 					} else {
-						parentComponent.addChild(block, index)
+						parentComponent?.addChild(block, index)
 					}
 				}
 
 				let newBlock = getComponentBlock(droppedComponentName)
 				if (newBlock.editInFragmentMode()) {
-					store.editOnCanvas(
+					canvasStore.editOnCanvas(
 						newBlock,
 						(editedBlock: Block) => saveBlock(editedBlock),
 						`Save ${droppedComponentName}`
