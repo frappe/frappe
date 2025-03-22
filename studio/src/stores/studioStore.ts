@@ -1,4 +1,4 @@
-import { ref, reactive, computed, nextTick, Ref, watch } from "vue"
+import { ref, reactive, nextTick } from "vue"
 import router from "@/router/studio_router"
 import { defineStore } from "pinia"
 
@@ -13,7 +13,6 @@ import {
 	getNewResource,
 	confirm,
 	getInitialVariableValue,
-	getBlockCopy,
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
 import { studioPageResources } from "@/data/studioResources"
@@ -25,7 +24,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Resource } from "@/types/Studio/StudioResource"
-import { EditingMode, LeftPanelOptions, RightPanelOptions, Slot } from "@/types"
+import { LeftPanelOptions, RightPanelOptions } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import { studioVariables } from "@/data/studioVariables"
 import { Variable } from "@/types/Studio/StudioPageVariable"
@@ -48,79 +47,6 @@ const useStudioStore = defineStore("store", () => {
 		y: 0,
 	})
 	const componentContextMenu = ref<InstanceType<typeof ComponentContextMenu> | null>(null)
-
-	// fragment mode
-	const editingMode = ref<EditingMode>("page")
-	const fragmentData = ref({
-		block: <Block | null>null,
-		saveAction: <Function | null>null,
-		saveActionLabel: <string | null>null,
-		fragmentName: <string | null>null,
-		fragmentId: <string | null>null,
-	})
-
-	async function editOnCanvas(
-		block: Block,
-		saveAction: (block: Block) => void,
-		saveActionLabel: string = "Save",
-		fragmentName?: string,
-		fragmentId?: string
-	) {
-		const blockCopy = getBlockCopy(block, true)
-		fragmentData.value = {
-			block: blockCopy,
-			saveAction,
-			saveActionLabel,
-			fragmentName: fragmentName || block.componentName,
-			fragmentId: fragmentId || block.componentId
-		}
-		editingMode.value = "fragment"
-	}
-
-	async function exitFragmentMode(e?: Event) {
-		if (editingMode.value === "page") return
-		e?.preventDefault()
-
-		clearSelection()
-		editingMode.value = "page"
-		fragmentData.value = {
-			block: null,
-			saveAction: null,
-			saveActionLabel: null,
-			fragmentName: null,
-			fragmentId: null,
-		}
-	}
-
-	// slots
-	const showSlotEditorDialog = ref(false)
-
-	const selectedSlot = ref<Slot | null>()
-	function selectSlot(slot: Slot) {
-		selectedSlot.value = slot
-		selectBlockById(slot.parentBlockId, null)
-	}
-
-	const activeSlotIds = computed(() => {
-		const slotIds = new Set<string>()
-		for (const block of selectedBlocks.value) {
-			for (const slot of Object.values(block.componentSlots)) {
-				slotIds.add(slot.slotId)
-			}
-		}
-		return slotIds
-	})
-
-	watch(
-		() => activeSlotIds.value,
-		(map) => {
-			// clear selected slot if the block is deleted, not selected anymore, or the slot is removed from the block
-			if (selectedSlot.value && !map.has(selectedSlot.value.slotId)) {
-				selectedSlot.value = null
-			}
-		},
-		{ immediate: true }
-	)
 
 	// studio apps
 	const activeApp = ref<StudioApp | null>(null)
@@ -323,18 +249,8 @@ const useStudioStore = defineStore("store", () => {
 		studioLayout,
 		guides,
 		componentContextMenu,
-		// fragment mode
-		editingMode,
-		fragmentData,
-		editOnCanvas,
-		exitFragmentMode,
 		// blocks
 		pageBlocks,
-		// slots
-		selectedSlot,
-		selectSlot,
-		showSlotEditorDialog,
-		activeSlotIds,
 		// studio app
 		activeApp,
 		setApp,

@@ -59,7 +59,7 @@
 						top: `calc(${-20}px * 1/${canvasProps.scale})`,
 					}"
 					v-show="!canvasProps.scaling && !canvasProps.panning"
-					@click="store.activeBreakpoint = breakpoint.device"
+					@click="activeBreakpoint = breakpoint.device"
 				>
 					{{ breakpoint.displayName }}
 				</div>
@@ -98,6 +98,7 @@ import Block from "@/utils/block"
 import { useCanvasDropZone } from "@/utils/useCanvasDropZone"
 import { useCanvasUtils } from "@/utils/useCanvasUtils"
 import { CanvasHistory } from "@/types/StudioCanvas"
+import type { Slot } from "@/types"
 
 const props = defineProps({
 	componentTree: {
@@ -202,6 +203,36 @@ function clearSelection() {
 	selectedBlockIds.value = new Set()
 }
 
+// slots
+const showSlotEditorDialog = ref(false)
+
+const selectedSlot = ref<Slot | null>()
+function selectSlot(slot: Slot) {
+	selectedSlot.value = slot
+	selectBlockById(slot.parentBlockId, null)
+}
+
+const activeSlotIds = computed(() => {
+	const slotIds = new Set<string>()
+	for (const block of selectedBlocks.value) {
+		for (const slot of Object.values(block.componentSlots)) {
+			slotIds.add(slot.slotId)
+		}
+	}
+	return slotIds
+})
+
+watch(
+	() => activeSlotIds.value,
+	(map) => {
+		// clear selected slot if the block is deleted, not selected anymore, or the slot is removed from the block
+		if (selectedSlot.value && !map.has(selectedSlot.value.slotId)) {
+			selectedSlot.value = null
+		}
+	},
+	{ immediate: true },
+)
+
 const { isOverDropZone } = useCanvasDropZone(
 	canvasContainer as unknown as Ref<HTMLElement>,
 	rootComponent,
@@ -236,6 +267,11 @@ defineExpose({
 	selectBlock,
 	selectBlockById,
 	clearSelection,
+	// slots
+	selectedSlot,
+	selectSlot,
+	showSlotEditorDialog,
+	activeSlotIds,
 })
 </script>
 
