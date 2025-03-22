@@ -1,12 +1,11 @@
 // Extracted from Builder
 import { useElementBounding } from "@vueuse/core";
 import { reactive } from "vue";
-import useStudioStore from "@/stores/studioStore";
+import useCanvasStore from "@/stores/canvasStore";
 
 import { CanvasProps } from "@/types"
 
-
-const store = useStudioStore();
+const canvasStore = useCanvasStore();
 const tracks = [
 	{
 		point: 0,
@@ -53,17 +52,17 @@ function setGuides(target: HTMLElement | SVGElement, canvasProps: CanvasProps) {
 			const parentRight = parentBounds.left + parentBounds.width * track.point;
 			if (Math.abs(targetRight - canvasRight) < track.strength) {
 				finalWidth = (canvasRight - targetBounds.left) / scale;
-				store.guides.x = canvasRight;
+				canvasStore.guides.x = canvasRight;
 				set = true;
 			} else if (Math.abs(targetRight - parentRight) < track.strength) {
 				finalWidth = (parentRight - targetBounds.left) / scale;
-				store.guides.x = parentRight;
+				canvasStore.guides.x = parentRight;
 				set = true;
 			}
 		});
 
 		if (!set) {
-			store.guides.x = -1;
+			canvasStore.guides.x = -1;
 		}
 
 		return Math.round(finalWidth);
@@ -84,17 +83,17 @@ function setGuides(target: HTMLElement | SVGElement, canvasProps: CanvasProps) {
 			const parentBottom = parentBounds.top + parentBounds.height * track.point;
 			if (Math.abs(targetBottom - canvasBottom) < track.strength) {
 				finalHeight = (canvasBottom - targetBounds.top) / scale;
-				store.guides.y = canvasBottom;
+				canvasStore.guides.y = canvasBottom;
 				set = true;
 			} else if (Math.abs(targetBottom - parentBottom) < track.strength) {
 				finalHeight = (parentBottom - targetBounds.top) / scale;
-				store.guides.y = parentBottom;
+				canvasStore.guides.y = parentBottom;
 				set = true;
 			}
 		});
 
 		if (!set) {
-			store.guides.y = -1;
+			canvasStore.guides.y = -1;
 		}
 
 		return Math.round(finalHeight);
@@ -111,48 +110,48 @@ function setGuides(target: HTMLElement | SVGElement, canvasProps: CanvasProps) {
 
 		if (Math.abs(targetBounds.left - canvasBounds.left) < threshold) {
 			leftOffset = (canvasBounds.left - targetBounds.left) / scale;
-			store.guides.x = canvasBounds.left;
+			canvasStore.guides.x = canvasBounds.left;
 		}
 		if (Math.abs(targetBounds.left - canvasHalf) < threshold) {
 			leftOffset = (canvasHalf - targetBounds.left) / scale;
-			store.guides.x = canvasHalf;
+			canvasStore.guides.x = canvasHalf;
 		}
 		if (Math.abs(targetBounds.left - canvasBounds.right) < threshold) {
 			leftOffset = (canvasBounds.right - targetBounds.left) / scale;
-			store.guides.x = canvasBounds.right;
+			canvasStore.guides.x = canvasBounds.right;
 		}
 
 		if (Math.abs(targetBounds.right - canvasBounds.left) < threshold) {
 			rightOffset = (canvasBounds.left - targetBounds.right) / scale;
-			store.guides.x = canvasBounds.left;
+			canvasStore.guides.x = canvasBounds.left;
 		}
 		if (Math.abs(targetBounds.right - canvasHalf) < threshold) {
 			rightOffset = (canvasHalf - targetBounds.right) / scale;
-			store.guides.x = canvasHalf;
+			canvasStore.guides.x = canvasHalf;
 		}
 		if (Math.abs(targetBounds.right - canvasBounds.right) < threshold) {
 			rightOffset = (canvasBounds.right - targetBounds.right) / scale;
-			store.guides.x = canvasBounds.right;
+			canvasStore.guides.x = canvasBounds.right;
 		}
 		if ((leftOffset && rightOffset) || (!leftOffset && !rightOffset)) {
-			store.guides.x = -1;
+			canvasStore.guides.x = -1;
 		}
 		return { leftOffset: Math.round(leftOffset), rightOffset: Math.round(rightOffset) };
 	};
 
 	const showX = () => {
-		store.guides.x = -1;
-		store.guides.showX = true;
+		canvasStore.guides.x = -1;
+		canvasStore.guides.showX = true;
 	};
 	const showY = () => {
-		store.guides.y = -1;
-		store.guides.showY = true;
+		canvasStore.guides.y = -1;
+		canvasStore.guides.showY = true;
 	};
 	const hideX = () => {
-		store.guides.showX = false;
+		canvasStore.guides.showX = false;
 	};
 	const hideY = () => {
-		store.guides.showY = false;
+		canvasStore.guides.showY = false;
 	};
 
 	return {

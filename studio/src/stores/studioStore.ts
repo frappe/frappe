@@ -40,12 +40,6 @@ const useStudioStore = defineStore("store", () => {
 		leftPanelActiveTab: <LeftPanelOptions>"Add Component",
 		rightPanelActiveTab: <RightPanelOptions>"Properties",
 	})
-	const guides = reactive({
-		showX: false,
-		showY: false,
-		x: 0,
-		y: 0,
-	})
 	const componentContextMenu = ref<InstanceType<typeof ComponentContextMenu> | null>(null)
 
 	// studio apps
@@ -247,7 +241,6 @@ const useStudioStore = defineStore("store", () => {
 	return {
 		// layout
 		studioLayout,
-		guides,
 		componentContextMenu,
 		// studio app
 		activeApp,
