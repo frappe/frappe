@@ -109,7 +109,6 @@ const props = defineProps({
 		default: () => ({}),
 	},
 })
-// @ts-ignore: Ignoring circular dependency warning with store
 const store = useStudioStore()
 
 const canvasContainer = ref(null)

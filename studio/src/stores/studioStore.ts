@@ -19,8 +19,8 @@ import { studioPages } from "@/data/studioPages"
 import { studioPageResources } from "@/data/studioResources"
 import { studioApps } from "@/data/studioApps"
 
-import StudioCanvas from "@/components/StudioCanvas.vue"
 import Block from "@/utils/block"
+import useCanvasStore from "@/stores/canvasStore"
 
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
@@ -33,7 +33,6 @@ import { toast } from "vue-sonner"
 import { createResource } from "frappe-ui"
 
 const useStudioStore = defineStore("store", () => {
-	const activeCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
 	const studioLayout = reactive({
 		leftPanelWidth: 300,
 		rightPanelWidth: 275,
@@ -122,63 +121,6 @@ const useStudioStore = defineStore("store", () => {
 
 	function clearSelection() {
 		selectedBlockIds.value = new Set()
-	}
-
-	// drag & drop
-	const isDragging = ref(false)
-	const dropTarget = reactive({
-		x: null as number | null,
-		y: null as number | null,
-		placeholder: null as HTMLElement | null,
-		parentComponent: null as Block | null,
-		index: null as number | null,
-		slotName: null as string | null,
-	})
-
-	const handleDragStart = (ev: DragEvent, componentName: string) => {
-		if (ev.target && ev.dataTransfer) {
-			isDragging.value = true
-			const ghostScale = activeCanvas.value?.canvasProps.scale
-			const ghostElement = (ev.target as HTMLElement).cloneNode(true) as HTMLElement
-			ghostElement.id = "ghost"
-			ghostElement.style.position = "fixed"
-			ghostElement.style.transform = `scale(${ghostScale || 1})`
-			ghostElement.style.pointerEvents = "none"
-			ghostElement.style.zIndex = "999999"
-			document.body.appendChild(ghostElement)
-
-			// Set the scaled drag image
-			ev.dataTransfer.setDragImage(ghostElement, 0, 0)
-			// Clean up the ghost element
-			setTimeout(() => {
-				document.body.removeChild(ghostElement)
-			}, 0)
-			ev.dataTransfer.setData("componentName", componentName)
-
-			let element = document.createElement("div")
-			element.id = "placeholder"
-
-			const root = document.querySelector(".__studio_component__[data-component-id='root']")
-			if (root) {
-				dropTarget.placeholder = root.appendChild(element)
-			}
-		}
-	}
-
-	const handleDragEnd = () => {
-		const placeholder = document.getElementById("placeholder")
-		if (placeholder) {
-			placeholder.remove()
-		}
-
-		dropTarget.x = null
-		dropTarget.y = null
-		dropTarget.placeholder = null
-		dropTarget.parentComponent = null
-		dropTarget.index = null
-		dropTarget.slotName = null
-
-		isDragging.value = false
 	}
 
 	// slots
@@ -296,7 +238,9 @@ const useStudioStore = defineStore("store", () => {
 		}
 		selectedPage.value = page.name
 		await setPageData(page)
-		activeCanvas.value?.setRootBlock(pageBlocks.value[0])
+
+		const canvasStore = useCanvasStore()
+		canvasStore.activeCanvas?.setRootBlock(pageBlocks.value[0])
 
 		nextTick(() => {
 			settingPage.value = false
@@ -304,8 +248,9 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	function savePage() {
-		if (activeCanvas.value) {
-			pageBlocks.value = [activeCanvas.value.getRootBlock()]
+		const canvasStore = useCanvasStore()
+		if (canvasStore?.activeCanvas) {
+			pageBlocks.value = [canvasStore.activeCanvas.getRootBlock()]
 		}
 		const pageData = jsToJson(pageBlocks.value.map((block) => getBlockCopyWithoutParent(block)))
 
@@ -406,7 +351,6 @@ const useStudioStore = defineStore("store", () => {
 
 	return {
 		// layout
-		activeCanvas,
 		studioLayout,
 		activeBreakpoint,
 		guides,
@@ -425,10 +369,6 @@ const useStudioStore = defineStore("store", () => {
 		selectBlockById,
 		clearSelection,
 		pageBlocks,
-		dropTarget,
-		isDragging,
-		handleDragStart,
-		handleDragEnd,
 		// slots
 		selectedSlot,
 		selectSlot,
@@ -465,5 +405,4 @@ const useStudioStore = defineStore("store", () => {
 	}
 })
 
-// @ts-ignore: Ignoring circular dependency warning with StudioCanvas
 export default useStudioStore
