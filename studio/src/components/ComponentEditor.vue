@@ -99,6 +99,7 @@ import CodeEditor from "@/components/CodeEditor.vue"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
+import useCanvasStore from "@/stores/canvasStore"
 import trackTarget, { Tracker } from "@/utils/trackTarget"
 
 import { CanvasProps } from "@/types"
@@ -123,6 +124,7 @@ const props = defineProps({
 })
 
 const store = useStudioStore()
+const canvasStore = useCanvasStore()
 const editor = ref(null) as unknown as Ref<HTMLElement>
 const resizing = ref(false)
 const tracker = ref<Tracker>()
@@ -130,11 +132,11 @@ const tracker = ref<Tracker>()
 const canvasProps = inject("canvasProps") as CanvasProps
 
 const showMarginPaddingHandlers = computed(() => {
-	return isBlockSelected.value && !props.block.isRoot() && !resizing.value && !store.isDragging
+	return isBlockSelected.value && !props.block.isRoot() && !resizing.value && !canvasStore.isDragging
 })
 
 const showResizer = computed(() => {
-	return !props.block.isRoot() && isBlockSelected.value && !store.isDragging
+	return !props.block.isRoot() && isBlockSelected.value && !canvasStore.isDragging
 })
 
 const isBlockSelected = computed(() => {
@@ -148,7 +150,7 @@ const isSlotSelected = (slotId: string) => {
 const getStyleClasses = computed(() => {
 	const classes = ["ring-blue-400"]
 
-	if (isBlockSelected.value && !props.block.isRoot() && !store.isDragging) {
+	if (isBlockSelected.value && !props.block.isRoot() && !canvasStore.isDragging) {
 		// make editor interactive
 		classes.push("pointer-events-auto")
 		// Place the block on the top of the stack
@@ -203,8 +205,8 @@ watchEffect(() => {
 	store.studioLayout.showRightPanel
 
 	store.activeBreakpoint
-	store.dropTarget.placeholder
-	store.activeCanvas?.canvasProps.breakpoints.map((breakpoint) => breakpoint.visible)
+	canvasStore.dropTarget.placeholder
+	canvasStore.activeCanvas?.canvasProps.breakpoints.map((breakpoint) => breakpoint.visible)
 
 	nextTick(() => {
 		tracker.value?.update()

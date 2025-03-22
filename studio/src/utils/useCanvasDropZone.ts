@@ -55,7 +55,7 @@ export function useCanvasDropZone(
 	}
 
 	const findDropTarget = (ev: DragEvent) => {
-		if (store.dropTarget.x === ev.x && store.dropTarget.y === ev.y) return {}
+		if (canvasStore.dropTarget.x === ev.x && canvasStore.dropTarget.y === ev.y) return {}
 
 		const element = document.elementFromPoint(ev.clientX, ev.clientY) as HTMLElement
 		const targetElement = element.closest(".__studio_component__") as HTMLElement
@@ -142,7 +142,7 @@ export function useCanvasDropZone(
 	) => {
 		// append placeholder component to the dom directly
 		// to avoid re-rendering the whole canvas
-		const { placeholder } = store.dropTarget
+		const { placeholder } = canvasStore.dropTarget
 		if (!parentComponent || !placeholder) return
 		let newParent = getBlockElement(parentComponent)
 		if (!newParent) return
@@ -154,7 +154,7 @@ export function useCanvasDropZone(
 			}
 		}
 
-		if (store.dropTarget.parentComponent?.componentId === parentComponent.componentId && store.dropTarget.index === index) return
+		if (canvasStore.dropTarget.parentComponent?.componentId === parentComponent.componentId && canvasStore.dropTarget.index === index) return
 
 		// flip placeholder border as per layout direction to avoid shifting elements too much
 		if (layoutDirection === "row") {
@@ -174,11 +174,11 @@ export function useCanvasDropZone(
 			newParent.insertBefore(placeholder, children[index])
 		}
 
-		store.dropTarget.parentComponent = parentComponent
-		store.dropTarget.index = index
-		store.dropTarget.slotName = slotName
-		store.dropTarget.x = ev.x
-		store.dropTarget.y = ev.y
+		canvasStore.dropTarget.parentComponent = parentComponent
+		canvasStore.dropTarget.index = index
+		canvasStore.dropTarget.slotName = slotName
+		canvasStore.dropTarget.x = ev.x
+		canvasStore.dropTarget.y = ev.y
 	}, 130)
 
 	return { isOverDropZone }
