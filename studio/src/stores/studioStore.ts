@@ -249,8 +249,6 @@ const useStudioStore = defineStore("store", () => {
 		studioLayout,
 		guides,
 		componentContextMenu,
-		// blocks
-		pageBlocks,
 		// studio app
 		activeApp,
 		setApp,
@@ -261,6 +259,7 @@ const useStudioStore = defineStore("store", () => {
 		setAppPages,
 		getAppPageRoute,
 		// studio pages
+		pageBlocks,
 		selectedPage,
 		settingPage,
 		savingPage,

@@ -1,11 +1,10 @@
 import { defineStore } from "pinia"
-import { nextTick, ref, reactive } from "vue"
+import { ref, reactive } from "vue"
 import type Block from "@/utils/block"
-import { confirm, getBlockCopy, getBlockInstance } from "@/utils/helpers"
+import { getBlockCopy } from "@/utils/helpers"
 
 import type StudioCanvas from "@/components/StudioCanvas.vue"
-import { EditingMode, LeftPanelOptions, RightPanelOptions, Slot } from "@/types"
-
+import { EditingMode } from "@/types"
 
 const useCanvasStore = defineStore("canvasStore", () => {
 	const activeCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
@@ -105,7 +104,7 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		if (editingMode.value === "page") return
 		e?.preventDefault()
 
-		clearSelection()
+		activeCanvas.value?.clearSelection()
 		editingMode.value = "page"
 		fragmentData.value = {
 			block: null,
@@ -116,13 +115,10 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		}
 	}
 
-	function clearSelection() {
-		selectedBlockIds.value = new Set()
-	}
-
 	return {
 		// layout
 		activeCanvas,
+		guides,
 		// drag & drop
 		dropTarget,
 		isDragging,
