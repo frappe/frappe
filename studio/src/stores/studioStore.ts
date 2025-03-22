@@ -41,7 +41,6 @@ const useStudioStore = defineStore("store", () => {
 		leftPanelActiveTab: <LeftPanelOptions>"Add Component",
 		rightPanelActiveTab: <RightPanelOptions>"Properties",
 	})
-	const activeBreakpoint = ref("desktop")
 	const guides = reactive({
 		showX: false,
 		showY: false,
@@ -91,36 +90,6 @@ const useStudioStore = defineStore("store", () => {
 			fragmentName: null,
 			fragmentId: null,
 		}
-	}
-
-	// block hover & selection
-	const hoveredBlock = ref<string | null>(null)
-	const hoveredBreakpoint = ref<string | null>(null)
-	const selectedBlockIds = ref<Set<string>>(new Set())
-	const selectedBlocks = computed(() => {
-		return (
-			Array.from(selectedBlockIds.value)
-				.map((id) => activeCanvas.value?.findBlock(id))
-				// filter out missing blocks/null values
-				.filter((b) => b)
-		)
-	}) as Ref<Block[]>
-
-	function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false) {
-		if (settingPage.value) return
-		selectBlockById(block.componentId, e, multiSelect)
-	}
-
-	function selectBlockById(blockId: string, e: MouseEvent | null, multiSelect = false) {
-		if (multiSelect) {
-			selectedBlockIds.value.add(blockId)
-		} else {
-			selectedBlockIds.value = new Set([blockId])
-		}
-	}
-
-	function clearSelection() {
-		selectedBlockIds.value = new Set()
 	}
 
 	// slots
@@ -352,7 +321,6 @@ const useStudioStore = defineStore("store", () => {
 	return {
 		// layout
 		studioLayout,
-		activeBreakpoint,
 		guides,
 		componentContextMenu,
 		// fragment mode
@@ -360,14 +328,7 @@ const useStudioStore = defineStore("store", () => {
 		fragmentData,
 		editOnCanvas,
 		exitFragmentMode,
-		// block hover & selection
-		hoveredBlock,
-		hoveredBreakpoint,
-		selectedBlockIds,
-		selectedBlocks,
-		selectBlock,
-		selectBlockById,
-		clearSelection,
+		// blocks
 		pageBlocks,
 		// slots
 		selectedSlot,

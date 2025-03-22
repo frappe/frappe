@@ -171,6 +171,37 @@ const history = ref(null) as Ref<null> | CanvasHistory
 const { setScaleAndTranslate, setupHistory, getRootBlock, setRootBlock, findBlock, removeBlock } =
 	useCanvasUtils(canvasProps, canvasContainer, canvas, rootComponent, history)
 
+// block hover & selection
+const hoveredBlock = ref<string | null>(null)
+const hoveredBreakpoint = ref<string | null>(null)
+const activeBreakpoint = ref("desktop")
+const selectedBlockIds = ref<Set<string>>(new Set())
+const selectedBlocks = computed(() => {
+	return (
+		Array.from(selectedBlockIds.value)
+			.map((id) => findBlock(id))
+			// filter out missing blocks/null values
+			.filter((b) => b)
+	)
+}) as Ref<Block[]>
+
+function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false) {
+	if (store.settingPage) return
+	selectBlockById(block.componentId, e, multiSelect)
+}
+
+function selectBlockById(blockId: string, e: MouseEvent | null, multiSelect = false) {
+	if (multiSelect) {
+		selectedBlockIds.value.add(blockId)
+	} else {
+		selectedBlockIds.value = new Set([blockId])
+	}
+}
+
+function clearSelection() {
+	selectedBlockIds.value = new Set()
+}
+
 const { isOverDropZone } = useCanvasDropZone(
 	canvasContainer as unknown as Ref<HTMLElement>,
 	rootComponent,
@@ -191,10 +222,20 @@ defineExpose({
 	history,
 	rootComponent,
 	canvasProps,
+	// canvas utils
 	findBlock,
 	removeBlock,
 	getRootBlock,
 	setRootBlock,
+	// block hover & selection
+	hoveredBlock,
+	hoveredBreakpoint,
+	activeBreakpoint,
+	selectedBlockIds,
+	selectedBlocks,
+	selectBlock,
+	selectBlockById,
+	clearSelection,
 })
 </script>
 
