@@ -36,7 +36,7 @@ import { pxToNumber } from "@/utils/helpers"
 import { computed, onMounted, ref, watch, inject } from "vue"
 import Block from "@/utils/block"
 import guidesTracker from "@/utils/guidesTracker"
-import useStudioStore from "@/stores/studioStore"
+import useCanvasStore from "@/stores/canvasStore"
 
 import { CanvasProps } from "@/types"
 
@@ -60,17 +60,17 @@ onMounted(() => {
 
 const resizing = ref(false)
 const emit = defineEmits(["resizing"])
-const store = useStudioStore()
+const canvasStore = useCanvasStore()
 
 watch(resizing, () => {
 	if (resizing.value) {
-		if (store.activeCanvas) {
-			store.activeCanvas.history?.pause()
+		if (canvasStore.activeCanvas) {
+			canvasStore.activeCanvas.history?.pause()
 		}
 		emit("resizing", true)
 	} else {
-		if (store.activeCanvas) {
-			store.activeCanvas?.history?.resume(undefined, true, true)
+		if (canvasStore.activeCanvas) {
+			canvasStore.activeCanvas?.history?.resume(undefined, true, true)
 		}
 		emit("resizing", false)
 	}
@@ -93,8 +93,8 @@ const fontSize = computed(() => {
 
 const handleRightResize = (ev: MouseEvent) => {
 	const startX = ev.clientX
-	const startHeight = props.target.offsetHeight
-	const startWidth = props.target.offsetWidth
+	const startHeight = (props.target as HTMLElement).offsetHeight
+	const startWidth = (props.target as HTMLElement).offsetWidth
 	const blockStartWidth = props.targetBlock.getStyle("width") as string
 	const blockStartHeight = props.targetBlock.getStyle("height") as string
 	const startFontSize = fontSize.value || 0
@@ -128,8 +128,8 @@ const handleRightResize = (ev: MouseEvent) => {
 
 const handleBottomResize = (ev: MouseEvent) => {
 	const startY = ev.clientY
-	const startHeight = props.target.offsetHeight
-	const startWidth = props.target.offsetWidth
+	const startHeight = (props.target as HTMLElement).offsetHeight
+	const startWidth = (props.target as HTMLElement).offsetWidth
 	const blockStartWidth = props.targetBlock.getStyle("width") as string
 	const blockStartHeight = props.targetBlock.getStyle("height") as string
 	const startFontSize = fontSize.value || 0
@@ -165,8 +165,8 @@ const handleBottomResize = (ev: MouseEvent) => {
 const handleBottomCornerResize = (ev: MouseEvent) => {
 	const startX = ev.clientX
 	const startY = ev.clientY
-	const startHeight = props.target.offsetHeight
-	const startWidth = props.target.offsetWidth
+	const startHeight = (props.target as HTMLElement).offsetHeight
+	const startWidth = (props.target as HTMLElement).offsetWidth
 	const blockStartWidth = props.targetBlock.getStyle("width") as string
 	const blockStartHeight = props.targetBlock.getStyle("height") as string
 	const startFontSize = fontSize.value || 0
