@@ -169,9 +169,6 @@ watch(
 const rootComponent = ref(getBlockCopy(props.componentTree, true))
 const history = ref(null) as Ref<null> | CanvasHistory
 
-const { setScaleAndTranslate, setupHistory, getRootBlock, setRootBlock, findBlock, removeBlock } =
-	useCanvasUtils(canvasProps, canvasContainer, canvas, rootComponent, history)
-
 // block hover & selection
 const hoveredBlock = ref<string | null>(null)
 const hoveredBreakpoint = ref<string | null>(null)
@@ -230,6 +227,9 @@ const activeSlotIds = computed(() => {
 	}
 	return slotIds
 })
+
+const { setScaleAndTranslate, setupHistory, getRootBlock, setRootBlock, findBlock, removeBlock } =
+	useCanvasUtils(canvasProps, canvasContainer, canvas, rootComponent, selectedBlockIds, history)
 
 watch(
 	() => activeSlotIds.value,

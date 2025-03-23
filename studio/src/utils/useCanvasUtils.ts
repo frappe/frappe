@@ -14,6 +14,7 @@ export function useCanvasUtils(
 	canvasContainer: Ref<HTMLElement | null>,
 	canvas: Ref<HTMLElement | null>,
 	rootComponent: Ref<Block>,
+	selectedBlockIds: Ref<Set<string>>,
 	canvasHistory: Ref<null | any>,
 ) {
 	// canvas positioning
@@ -48,7 +49,7 @@ export function useCanvasUtils(
 	}
 
 	function setupHistory() {
-		canvasHistory.value = useCanvasHistory(rootComponent);
+		canvasHistory.value = useCanvasHistory(rootComponent, selectedBlockIds);
 	}
 
 	function getRootBlock() {
