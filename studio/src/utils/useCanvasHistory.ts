@@ -2,7 +2,6 @@ import { ref, Ref } from "vue";
 import Block from "@/utils/block";
 import { generateId, getBlockInstance, getBlockString } from "@/utils/helpers";
 import { debounceFilter, pausableFilter, watchIgnorable } from "@vueuse/core";
-import useStudioStore from "@/stores/studioStore";
 
 type CanvasState = {
 	block: string;
@@ -12,8 +11,6 @@ type PauseId = string & { __brand: "PauseId" };
 
 const CAPACITY = 500;
 const DEBOUNCE_DELAY = 100;
-
-const store = useStudioStore()
 
 export function useCanvasHistory(source: Ref<Block>, selectedBlockIds: Ref<Set<string>>) {
 	const undoStack = ref([]) as Ref<CanvasState[]>;

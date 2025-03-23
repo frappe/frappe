@@ -27,7 +27,7 @@
 							name="external-link"
 							v-if="store.activePage && store.activePage.published"
 							class="h-[14px] w-[14px] !text-gray-700 dark:!text-gray-200"
-							@click="store.openPageInBrowser(store.activeApp, store.activePage)"
+							@click="store.openPageInBrowser(store.activeApp!, store.activePage)"
 						>
 						</FeatherIcon>
 					</div>

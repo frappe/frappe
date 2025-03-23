@@ -103,7 +103,6 @@ import Draggable from "vuedraggable"
 
 import ComponentLayers from "@/components/ComponentLayers.vue"
 
-import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import Block from "@/utils/block"
 import LucideIcon from "./LucideIcon.vue"
@@ -121,7 +120,6 @@ const props = withDefaults(
 	},
 )
 
-const store = useStudioStore()
 const canvasStore = useCanvasStore()
 const childLayer = ref<InstanceType<typeof ComponentLayers> | null>(null)
 

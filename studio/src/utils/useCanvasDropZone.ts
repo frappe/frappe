@@ -1,11 +1,9 @@
-import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import Block from "@/utils/block"
 import { getComponentBlock, throttle } from "@/utils/helpers"
 import { useDropZone } from "@vueuse/core"
 import { Ref } from "vue"
 
-const store = useStudioStore()
 const canvasStore = useCanvasStore()
 type LayoutDirection = "row" | "column"
 
