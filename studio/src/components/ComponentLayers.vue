@@ -66,7 +66,7 @@
 								:data-slot-layer-id="slot.slotId"
 								:title="slot.slotName"
 								class="min-w-24 cursor-pointer overflow-hidden rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700"
-								@click.stop="store.selectSlot(slot)"
+								@click.stop="canvasStore.activeCanvas?.selectSlot(slot)"
 							>
 								<div
 									class="group my-[7px] flex items-center gap-1.5 pr-[2px] font-medium"

@@ -67,7 +67,7 @@ export function useCanvasDropZone(
 		}
 
 		let parentComponent = block.value
-		let slotName
+		let slotName = null
 		let layoutDirection = "column" as LayoutDirection
 		let index = parentComponent?.children.length || 0
 
@@ -82,8 +82,8 @@ export function useCanvasDropZone(
 				const parentElement = getBlockElement(parentComponent)
 				layoutDirection = getLayoutDirection(parentElement)
 				index = findDropIndex(ev, parentElement, layoutDirection)
-				if (store.selectedSlot?.parentBlockId === parentComponent.componentId) {
-					slotName = store.selectedSlot?.slotName
+				if (canvasStore.activeCanvas?.selectedSlot?.parentBlockId === parentComponent.componentId) {
+					slotName = canvasStore.activeCanvas.selectedSlot?.slotName
 				}
 			}
 		}

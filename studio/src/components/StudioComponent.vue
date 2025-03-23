@@ -224,7 +224,7 @@ const handleClick = (e: MouseEvent) => {
 	if (slotName) {
 		const slot = block.getSlot(slotName)
 		if (slot) {
-			store.selectSlot(slot)
+			canvasStore.activeCanvas?.selectSlot(slot)
 		}
 	}
 
