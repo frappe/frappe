@@ -188,22 +188,22 @@ const loadEditor = computed(() => {
 		target.value &&
 		isComponentReady.value &&
 		props.block.getStyle("display") !== "none" &&
-		((isSelected.value && props.breakpoint === store.activeBreakpoint) ||
-			(isHovered.value && store.hoveredBreakpoint === props.breakpoint)) &&
+		((isSelected.value && props.breakpoint === canvasStore.activeCanvas?.activeBreakpoint) ||
+			(isHovered.value && canvasStore.activeCanvas?.hoveredBreakpoint === props.breakpoint)) &&
 		!canvasProps?.scaling &&
 		!canvasProps?.panning
 	)
 })
 
 const handleMouseOver = (e: MouseEvent) => {
-	store.hoveredBlock = props.block.componentId
-	store.hoveredBreakpoint = props.breakpoint
+	canvasStore.activeCanvas?.setHoveredBlock(props.block.componentId)
+	canvasStore.activeCanvas?.setHoveredBreakpoint(props.breakpoint)
 	e.stopPropagation()
 }
 
 const handleMouseLeave = (e: MouseEvent) => {
-	if (store.hoveredBlock === props.block.componentId) {
-		store.hoveredBlock = null
+	if (canvasStore.activeCanvas?.hoveredBlock === props.block.componentId) {
+		canvasStore.activeCanvas.setHoveredBlock(null)
 		e.stopPropagation()
 	}
 }
@@ -233,7 +233,7 @@ const handleClick = (e: MouseEvent) => {
 }
 
 watch(
-	() => store.hoveredBlock,
+	() => canvasStore.activeCanvas?.hoveredBlock,
 	(newValue, oldValue) => {
 		if (newValue === props.block.componentId) {
 			isHovered.value = true

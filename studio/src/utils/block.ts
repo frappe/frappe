@@ -2,7 +2,9 @@ import { BlockOptions, BlockStyleMap, Slot } from "@/types"
 import { clamp } from "@vueuse/core"
 import { reactive, CSSProperties, nextTick } from 'vue'
 
-import useStudioStore from "@/stores/studioStore";
+import useStudioStore from "@/stores/studioStore"
+import useCanvasStore from "@/stores/canvasStore"
+
 import components from "@/data/components";
 import { copyObject, generateId, getBlockCopy, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
 
@@ -221,13 +223,13 @@ class Block implements BlockOptions {
 	}
 
 	setStyle(style: styleProperty, value: StyleValue) {
-		const store = useStudioStore()
+		const canvasStore = useCanvasStore()
 		let styleObj = this.baseStyles
 		style = kebabToCamelCase(style) as styleProperty
 
-		if (store.activeBreakpoint === "mobile") {
+		if (canvasStore.activeCanvas?.activeBreakpoint === "mobile") {
 			styleObj = this.mobileStyles
-		} else if (store.activeBreakpoint === "tablet") {
+		} else if (canvasStore.activeCanvas?.activeBreakpoint === "tablet") {
 			styleObj = this.tabletStyles
 		}
 		if (value === null || value === "") {

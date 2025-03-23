@@ -175,7 +175,18 @@ const { setScaleAndTranslate, setupHistory, getRootBlock, setRootBlock, findBloc
 // block hover & selection
 const hoveredBlock = ref<string | null>(null)
 const hoveredBreakpoint = ref<string | null>(null)
-const activeBreakpoint = ref("desktop")
+const activeBreakpoint = ref<string | null>("desktop")
+
+function setHoveredBlock(blockId: string | null) {
+	hoveredBlock.value = blockId
+}
+function setHoveredBreakpoint(breakpoint: string | null) {
+	hoveredBreakpoint.value = breakpoint
+}
+function setActiveBreakpoint(breakpoint: string | null) {
+	activeBreakpoint.value = breakpoint
+}
+
 const selectedBlockIds = ref<Set<string>>(new Set())
 const selectedBlocks = computed(() => {
 	return (
@@ -262,6 +273,9 @@ defineExpose({
 	hoveredBlock,
 	hoveredBreakpoint,
 	activeBreakpoint,
+	setHoveredBlock,
+	setHoveredBreakpoint,
+	setActiveBreakpoint,
 	selectedBlockIds,
 	selectedBlocks,
 	selectBlock,

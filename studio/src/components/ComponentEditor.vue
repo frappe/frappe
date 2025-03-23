@@ -140,7 +140,7 @@ const showResizer = computed(() => {
 })
 
 const isBlockSelected = computed(() => {
-	return props.isSelected && props.breakpoint === store.activeBreakpoint
+	return props.isSelected && props.breakpoint === canvasStore.activeCanvas?.activeBreakpoint
 })
 
 const isSlotSelected = (slotId: string) => {
@@ -204,7 +204,7 @@ watchEffect(() => {
 	store.studioLayout.showLeftPanel
 	store.studioLayout.showRightPanel
 
-	store.activeBreakpoint
+	canvasStore.activeCanvas?.activeBreakpoint
 	canvasStore.dropTarget.placeholder
 	canvasStore.activeCanvas?.canvasProps.breakpoints.map((breakpoint) => breakpoint.visible)
 

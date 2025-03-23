@@ -43,14 +43,14 @@ export function useCanvasDropZone(
 		onOver: (_files, ev) => {
 			const { parentComponent, slotName, index, layoutDirection } = findDropTarget(ev)
 			if (parentComponent) {
-				store.hoveredBlock = parentComponent.componentId
+				canvasStore.activeCanvas?.setHoveredBlock(parentComponent.componentId)
 				updateDropTarget(ev, parentComponent, slotName, index, layoutDirection)
 			}
 		},
 	})
 
 	const getBlockElement = (block: Block) => {
-		const breakpoint = store.hoveredBreakpoint || store.activeBreakpoint;
+		const breakpoint = canvasStore.activeCanvas?.hoveredBreakpoint || canvasStore.activeCanvas?.activeBreakpoint
 		return document.querySelector(`.__studio_component__[data-component-id="${block.componentId}"][data-breakpoint="${breakpoint}"]`) as HTMLElement;
 	}
 
@@ -61,9 +61,9 @@ export function useCanvasDropZone(
 		const targetElement = element.closest(".__studio_component__") as HTMLElement
 
 		// set the hoveredBreakpoint from the target element to show placeholder at the correct breakpoint canvas
-		const breakpoint = targetElement?.dataset.breakpoint || store.activeBreakpoint;
-		if (breakpoint !== store.hoveredBreakpoint) {
-			store.hoveredBreakpoint = breakpoint;
+		const breakpoint = targetElement?.dataset.breakpoint || canvasStore.activeCanvas?.activeBreakpoint || null
+		if (breakpoint !== canvasStore.activeCanvas?.hoveredBreakpoint) {
+			canvasStore.activeCanvas?.setHoveredBreakpoint(breakpoint)
 		}
 
 		let parentComponent = block.value

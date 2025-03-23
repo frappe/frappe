@@ -102,7 +102,7 @@ watchEffect(() => {
 		canvasStore.activeCanvas = fragmentCanvas.value
 		const fragmentRootBlock = fragmentCanvas.value?.getRootBlock()
 		if (fragmentRootBlock) {
-			store.selectBlock(fragmentRootBlock)
+			canvasStore.activeCanvas?.selectBlock(fragmentRootBlock)
 		}
 	} else {
 		canvasStore.activeCanvas = pageCanvas.value

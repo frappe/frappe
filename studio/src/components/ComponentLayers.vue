@@ -16,8 +16,8 @@
 						:title="element.componentId"
 						class="min-w-24 cursor-pointer overflow-hidden rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700"
 						@click.stop="openBlockEditor(element, $event)"
-						@mouseover.stop="store.hoveredBlock = element.componentId"
-						@mouseleave="store.hoveredBlock = null"
+						@mouseover.stop="canvasStore.activeCanvas?.setHoveredBlock(element.componentId)"
+						@mouseleave="canvasStore.activeCanvas?.setHoveredBlock(null)"
 					>
 						<span
 							class="group my-[7px] flex items-center gap-1.5 pr-[2px] font-medium"
@@ -52,7 +52,7 @@
 								@click.stop="element.toggleVisibility()"
 							/>
 							<span v-if="element.isRoot()" class="ml-auto mr-2 text-sm capitalize text-gray-500">
-								{{ store.activeBreakpoint }}
+								{{ canvasStore.activeCanvas?.activeBreakpoint }}
 							</span>
 						</span>
 						<div v-show="canShowChildLayer(element)">
@@ -204,7 +204,7 @@ const openBlockEditor = (block: Block, e: Event) => {
 const updateParent = (event) => {
 	const element = event.item.__draggable_context.element as Block
 	const newParentLayerId = event.to.closest("[data-component-layer-id]")?.dataset.componentLayerId
-	element.parentBlock = store.activeCanvas?.findBlock(newParentLayerId) ?? null
+	element.parentBlock = canvasStore.activeCanvas?.findBlock(newParentLayerId) ?? null
 
 	// Check if moving into a slot
 	const slotLayerId = event.to.closest("[data-slot-layer-id]")?.dataset.slotLayerId
@@ -216,10 +216,10 @@ const updateParent = (event) => {
 }
 
 watch(
-	() => store.selectedBlocks,
+	() => canvasStore.activeCanvas?.selectedBlocks,
 	() => {
-		if (store.selectedBlocks.length) {
-			store.selectedBlocks.forEach((block: Block) => {
+		if (canvasStore.activeCanvas?.selectedBlocks.length) {
+			canvasStore.activeCanvas?.selectedBlocks.forEach((block: Block) => {
 				if (block) {
 					let parentBlock = block.getParentBlock()
 					// open all parent blocks

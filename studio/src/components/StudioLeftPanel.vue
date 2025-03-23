@@ -79,6 +79,7 @@ import IconButton from "@/components/IconButton.vue"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
+import useCanvasStore from "@/stores/canvasStore"
 import { LeftPanelOptions } from "@/types"
 
 const sidebarMenu = [
@@ -104,6 +105,7 @@ const sidebarMenu = [
 	},
 ]
 const store = useStudioStore()
+const canvasStore = useCanvasStore()
 
 const activeTab = computed(() => store.studioLayout.leftPanelActiveTab)
 
@@ -117,15 +119,13 @@ const setActiveTab = (tab: LeftPanelOptions) => {
 // moved out of ComponentLayers for performance
 // TODO: Find a better way to do this
 watch(
-	() => store.hoveredBlock,
-	() => {
+	() => canvasStore.activeCanvas?.hoveredBlock,
+	(hoveredBlock) => {
 		document.querySelectorAll(`[data-component-layer-id].hovered-block`).forEach((el) => {
 			el.classList.remove("hovered-block")
 		})
-		if (store.hoveredBlock) {
-			document
-				.querySelector(`[data-component-layer-id="${store.hoveredBlock}"]`)
-				?.classList.add("hovered-block")
+		if (hoveredBlock) {
+			document.querySelector(`[data-component-layer-id="${hoveredBlock}"]`)?.classList.add("hovered-block")
 		}
 	},
 )
