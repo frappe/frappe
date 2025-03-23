@@ -288,7 +288,7 @@ watch(
 )
 
 watch(
-	() => store.activeCanvas?.rootComponent,
+	() => canvasStore.activeCanvas?.rootComponent,
 	() => {
 		nextTick(() => {
 			tracker.value?.update()
@@ -297,7 +297,7 @@ watch(
 )
 
 onMounted(() => {
-	tracker.value = trackTarget(props.target, editor.value, store.activeCanvas?.canvasProps as CanvasProps)
+	tracker.value = trackTarget(props.target, editor.value, canvasProps)
 })
 
 defineExpose({
