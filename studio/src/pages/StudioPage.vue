@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { onActivated, watchEffect, watch, ref, onDeactivated, toRef } from "vue"
+import { onActivated, watchEffect, watch, ref, onDeactivated, toRef, nextTick } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useDebounceFn } from "@vueuse/core"
 import { usePageMeta } from "frappe-ui"
@@ -100,10 +100,12 @@ const fragmentCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
 watchEffect(() => {
 	if (fragmentCanvas.value) {
 		canvasStore.activeCanvas = fragmentCanvas.value
-		const fragmentRootBlock = fragmentCanvas.value?.getRootBlock()
-		if (fragmentRootBlock) {
-			canvasStore.activeCanvas?.selectBlock(fragmentRootBlock)
-		}
+		nextTick(() => {
+			const fragmentRootBlock = fragmentCanvas.value?.getRootBlock()
+			if (fragmentRootBlock) {
+				canvasStore.activeCanvas?.selectBlock(fragmentRootBlock, null)
+			}
+		})
 	} else {
 		canvasStore.activeCanvas = pageCanvas.value
 	}

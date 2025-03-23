@@ -67,7 +67,6 @@ export function useCanvasUtils(
 				setScaleAndTranslate()
 			});
 		}
-
 	}
 
 	const findBlock = (componentId: string, blocks?: Block[]): Block | null => {
