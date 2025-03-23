@@ -215,8 +215,6 @@ function clearSelection() {
 }
 
 // slots
-const showSlotEditorDialog = ref(false)
-
 const selectedSlot = ref<Slot | null>()
 function selectSlot(slot: Slot) {
 	selectedSlot.value = slot
@@ -284,7 +282,6 @@ defineExpose({
 	// slots
 	selectedSlot,
 	selectSlot,
-	showSlotEditorDialog,
 	activeSlotIds,
 })
 </script>

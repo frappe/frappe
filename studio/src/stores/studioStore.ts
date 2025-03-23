@@ -42,6 +42,9 @@ const useStudioStore = defineStore("store", () => {
 	})
 	const componentContextMenu = ref<InstanceType<typeof ComponentContextMenu> | null>(null)
 
+	// dialogs
+	const showSlotEditorDialog = ref(false)
+
 	// studio apps
 	const activeApp = ref<StudioApp | null>(null)
 	const appPages = ref<Record<string, StudioPage>>({})
@@ -242,6 +245,8 @@ const useStudioStore = defineStore("store", () => {
 		// layout
 		studioLayout,
 		componentContextMenu,
+		// dialogs
+		showSlotEditorDialog,
 		// studio app
 		activeApp,
 		setApp,
