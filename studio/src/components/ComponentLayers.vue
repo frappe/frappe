@@ -187,7 +187,7 @@ const canShowSlotLayer = (block: Block) => {
 	return isExpanded(block) && block.hasComponentSlots()
 }
 
-const openBlockEditor = (block: Block, e: Event) => {
+const openBlockEditor = (block: Block, e: MouseEvent) => {
 	if (block.editInFragmentMode()) {
 		const parentBlock = block.getParentBlock()
 		canvasStore.editOnCanvas(
@@ -196,7 +196,7 @@ const openBlockEditor = (block: Block, e: Event) => {
 			`Save ${block.componentName}`,
 		)
 	} else {
-		store.selectBlock(block, e, false)
+		canvasStore.activeCanvas?.selectBlock(block, e, false)
 	}
 }
 

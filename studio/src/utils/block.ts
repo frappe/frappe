@@ -395,7 +395,7 @@ class Block implements BlockOptions {
 	duplicateBlock() {
 		if (this.isRoot()) return
 
-		const store = useStudioStore()
+		const canvasStore = useCanvasStore()
 		const blockCopy = getBlockCopy(this)
 		const parentBlock = this.getParentBlock()
 
@@ -411,19 +411,19 @@ class Block implements BlockOptions {
 		if (parentBlock) {
 			child = parentBlock.addChildAfter(blockCopy, this) as Block;
 		} else {
-			child = store.activeCanvas?.getRootBlock().addChild(blockCopy) as Block;
+			child = canvasStore.activeCanvas?.getRootBlock().addChild(blockCopy) as Block;
 		}
 		nextTick(() => {
 			if (child) {
-				store.selectBlock(child, null);
+				child.selectBlock()
 			}
 		});
 	}
 
 	selectBlock() {
-		const store = useStudioStore();
+		const canvasStore = useCanvasStore();
 		nextTick(() => {
-			store.selectBlock(this, null);
+			canvasStore.activeCanvas?.selectBlock(this, null);
 		});
 	}
 

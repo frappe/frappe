@@ -218,7 +218,7 @@ const getClickedComponent = (e: MouseEvent) => {
 
 const handleClick = (e: MouseEvent) => {
 	const block = getClickedComponent(e) || props.block
-	store.selectBlock(block, e)
+	canvasStore.activeCanvas?.selectBlock(block, e)
 
 	const slotName = (e.target as HTMLElement).dataset.slotName
 	if (slotName) {
