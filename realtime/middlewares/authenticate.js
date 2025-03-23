@@ -32,7 +32,7 @@ function authenticate_with_frappe(socket, next) {
 	}
 
 	let auth_req = request.get(get_url(socket, "/api/method/frappe.realtime.get_user_info"));
-	if (authorization_header){
+	if (authorization_header) {
 		auth_req = auth_req.set("Authorization", authorization_header);
 	} else if (cookies.sid) {
 		auth_req = auth_req.query({ sid: cookies.sid });
