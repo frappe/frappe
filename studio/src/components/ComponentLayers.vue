@@ -16,8 +16,8 @@
 						:title="element.componentId"
 						class="min-w-24 cursor-pointer overflow-hidden rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700"
 						@click.stop="openBlockEditor(element, $event)"
-						@mouseover.stop="store.hoveredBlock = element.componentId"
-						@mouseleave="store.hoveredBlock = null"
+						@mouseover.stop="canvasStore.activeCanvas?.setHoveredBlock(element.componentId)"
+						@mouseleave="canvasStore.activeCanvas?.setHoveredBlock(null)"
 					>
 						<span
 							class="group my-[7px] flex items-center gap-1.5 pr-[2px] font-medium"
@@ -52,7 +52,7 @@
 								@click.stop="element.toggleVisibility()"
 							/>
 							<span v-if="element.isRoot()" class="ml-auto mr-2 text-sm capitalize text-gray-500">
-								{{ store.activeBreakpoint }}
+								{{ canvasStore.activeCanvas?.activeBreakpoint }}
 							</span>
 						</span>
 						<div v-show="canShowChildLayer(element)">
@@ -66,7 +66,7 @@
 								:data-slot-layer-id="slot.slotId"
 								:title="slot.slotName"
 								class="min-w-24 cursor-pointer overflow-hidden rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700"
-								@click.stop="store.selectSlot(slot)"
+								@click.stop="canvasStore.activeCanvas?.selectSlot(slot)"
 							>
 								<div
 									class="group my-[7px] flex items-center gap-1.5 pr-[2px] font-medium"
@@ -103,7 +103,7 @@ import Draggable from "vuedraggable"
 
 import ComponentLayers from "@/components/ComponentLayers.vue"
 
-import useStudioStore from "@/stores/studioStore"
+import useCanvasStore from "@/stores/canvasStore"
 import Block from "@/utils/block"
 import LucideIcon from "./LucideIcon.vue"
 import SlotIcon from "@/components/Icons/SlotIcon.vue"
@@ -120,7 +120,7 @@ const props = withDefaults(
 	},
 )
 
-const store = useStudioStore()
+const canvasStore = useCanvasStore()
 const childLayer = ref<InstanceType<typeof ComponentLayers> | null>(null)
 
 interface LayerBlock extends Block {
@@ -185,16 +185,16 @@ const canShowSlotLayer = (block: Block) => {
 	return isExpanded(block) && block.hasComponentSlots()
 }
 
-const openBlockEditor = (block: Block, e: Event) => {
+const openBlockEditor = (block: Block, e: MouseEvent) => {
 	if (block.editInFragmentMode()) {
 		const parentBlock = block.getParentBlock()
-		store.editOnCanvas(
+		canvasStore.editOnCanvas(
 			block,
 			(newBlock: Block) => parentBlock?.replaceChild(block, newBlock),
 			`Save ${block.componentName}`,
 		)
 	} else {
-		store.selectBlock(block, e, false)
+		canvasStore.activeCanvas?.selectBlock(block, e, false)
 	}
 }
 
@@ -202,7 +202,7 @@ const openBlockEditor = (block: Block, e: Event) => {
 const updateParent = (event) => {
 	const element = event.item.__draggable_context.element as Block
 	const newParentLayerId = event.to.closest("[data-component-layer-id]")?.dataset.componentLayerId
-	element.parentBlock = store.activeCanvas?.findBlock(newParentLayerId) ?? null
+	element.parentBlock = canvasStore.activeCanvas?.findBlock(newParentLayerId) ?? null
 
 	// Check if moving into a slot
 	const slotLayerId = event.to.closest("[data-slot-layer-id]")?.dataset.slotLayerId
@@ -214,10 +214,10 @@ const updateParent = (event) => {
 }
 
 watch(
-	() => store.selectedBlocks,
+	() => canvasStore.activeCanvas?.selectedBlocks,
 	() => {
-		if (store.selectedBlocks.length) {
-			store.selectedBlocks.forEach((block: Block) => {
+		if (canvasStore.activeCanvas?.selectedBlocks.length) {
+			canvasStore.activeCanvas?.selectedBlocks.forEach((block: Block) => {
 				if (block) {
 					let parentBlock = block.getParentBlock()
 					// open all parent blocks

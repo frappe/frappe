@@ -2,7 +2,9 @@ import { BlockOptions, BlockStyleMap, Slot } from "@/types"
 import { clamp } from "@vueuse/core"
 import { reactive, CSSProperties, nextTick } from 'vue'
 
-import useStudioStore from "@/stores/studioStore";
+import useStudioStore from "@/stores/studioStore"
+import useCanvasStore from "@/stores/canvasStore"
+
 import components from "@/data/components";
 import { copyObject, generateId, getBlockCopy, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
 
@@ -221,13 +223,13 @@ class Block implements BlockOptions {
 	}
 
 	setStyle(style: styleProperty, value: StyleValue) {
-		const store = useStudioStore()
+		const canvasStore = useCanvasStore()
 		let styleObj = this.baseStyles
 		style = kebabToCamelCase(style) as styleProperty
 
-		if (store.activeBreakpoint === "mobile") {
+		if (canvasStore.activeCanvas?.activeBreakpoint === "mobile") {
 			styleObj = this.mobileStyles
-		} else if (store.activeBreakpoint === "tablet") {
+		} else if (canvasStore.activeCanvas?.activeBreakpoint === "tablet") {
 			styleObj = this.tabletStyles
 		}
 		if (value === null || value === "") {
@@ -393,7 +395,7 @@ class Block implements BlockOptions {
 	duplicateBlock() {
 		if (this.isRoot()) return
 
-		const store = useStudioStore()
+		const canvasStore = useCanvasStore()
 		const blockCopy = getBlockCopy(this)
 		const parentBlock = this.getParentBlock()
 
@@ -409,19 +411,19 @@ class Block implements BlockOptions {
 		if (parentBlock) {
 			child = parentBlock.addChildAfter(blockCopy, this) as Block;
 		} else {
-			child = store.activeCanvas?.getRootBlock().addChild(blockCopy) as Block;
+			child = canvasStore.activeCanvas?.getRootBlock().addChild(blockCopy) as Block;
 		}
 		nextTick(() => {
 			if (child) {
-				store.selectBlock(child, null);
+				child.selectBlock()
 			}
 		});
 	}
 
 	selectBlock() {
-		const store = useStudioStore();
+		const canvasStore = useCanvasStore();
 		nextTick(() => {
-			store.selectBlock(this, null);
+			canvasStore.activeCanvas?.selectBlock(this, null);
 		});
 	}
 
@@ -455,8 +457,8 @@ class Block implements BlockOptions {
 			parentBlockId: this.componentId
 		}
 		nextTick(() => {
-			const store = useStudioStore()
-			store.selectSlot(this.componentSlots[slotName])
+			const canvasStore = useCanvasStore()
+			canvasStore.activeCanvas?.selectSlot(this.componentSlots[slotName])
 		})
 	}
 

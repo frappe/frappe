@@ -18,8 +18,8 @@
 				<div
 					class="flex cursor-grab flex-col items-center justify-center gap-2 text-gray-700"
 					draggable="true"
-					@dragstart="(ev) => store.handleDragStart(ev, component.name)"
-					@dragend="(_ev) => store.handleDragEnd()"
+					@dragstart="(ev) => canvasStore.handleDragStart(ev, component.name)"
+					@dragend="(_ev) => canvasStore.handleDragEnd()"
 				>
 					<div
 						class="flex flex-col items-center justify-center gap-2 truncate rounded border-[1px] border-gray-300 bg-gray-50 p-4 transition duration-300 ease-in-out"
@@ -40,9 +40,9 @@ import { TextInput } from "frappe-ui"
 import components from "@/data/components"
 
 import LucideIcon from "@/components/LucideIcon.vue"
-import useStudioStore from "@/stores/studioStore"
+import useCanvasStore from "@/stores/canvasStore"
 
-const store = useStudioStore()
+const canvasStore = useCanvasStore()
 
 const componentFilter = ref("")
 const componentList = computed(() => {

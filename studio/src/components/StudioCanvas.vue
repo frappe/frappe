@@ -59,7 +59,7 @@
 						top: `calc(${-20}px * 1/${canvasProps.scale})`,
 					}"
 					v-show="!canvasProps.scaling && !canvasProps.panning"
-					@click="store.activeBreakpoint = breakpoint.device"
+					@click="activeBreakpoint = breakpoint.device"
 				>
 					{{ breakpoint.displayName }}
 				</div>
@@ -98,6 +98,7 @@ import Block from "@/utils/block"
 import { useCanvasDropZone } from "@/utils/useCanvasDropZone"
 import { useCanvasUtils } from "@/utils/useCanvasUtils"
 import { CanvasHistory } from "@/types/StudioCanvas"
+import type { Slot } from "@/types"
 
 const props = defineProps({
 	componentTree: {
@@ -109,7 +110,6 @@ const props = defineProps({
 		default: () => ({}),
 	},
 })
-// @ts-ignore: Ignoring circular dependency warning with store
 const store = useStudioStore()
 
 const canvasContainer = ref(null)
@@ -169,8 +169,78 @@ watch(
 const rootComponent = ref(getBlockCopy(props.componentTree, true))
 const history = ref(null) as Ref<null> | CanvasHistory
 
+// block hover & selection
+const hoveredBlock = ref<string | null>(null)
+const hoveredBreakpoint = ref<string | null>(null)
+const activeBreakpoint = ref<string | null>("desktop")
+
+function setHoveredBlock(blockId: string | null) {
+	hoveredBlock.value = blockId
+}
+function setHoveredBreakpoint(breakpoint: string | null) {
+	hoveredBreakpoint.value = breakpoint
+}
+function setActiveBreakpoint(breakpoint: string | null) {
+	activeBreakpoint.value = breakpoint
+}
+
+const selectedBlockIds = ref<Set<string>>(new Set())
+const selectedBlocks = computed(() => {
+	return (
+		Array.from(selectedBlockIds.value)
+			.map((id) => findBlock(id))
+			// filter out missing blocks/null values
+			.filter((b) => b)
+	)
+}) as Ref<Block[]>
+
+function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false) {
+	if (store.settingPage) return
+	selectBlockById(block.componentId, e, multiSelect)
+}
+
+function selectBlockById(blockId: string, e: MouseEvent | null, multiSelect = false) {
+	if (multiSelect) {
+		selectedBlockIds.value.add(blockId)
+	} else {
+		selectedBlockIds.value = new Set([blockId])
+	}
+}
+
+function clearSelection() {
+	selectedBlockIds.value = new Set()
+}
+
+// slots
+const selectedSlot = ref<Slot | null>()
+function selectSlot(slot: Slot) {
+	selectedSlot.value = slot
+	selectBlockById(slot.parentBlockId, null)
+}
+
+const activeSlotIds = computed(() => {
+	const slotIds = new Set<string>()
+	for (const block of selectedBlocks.value) {
+		for (const slot of Object.values(block.componentSlots)) {
+			slotIds.add(slot.slotId)
+		}
+	}
+	return slotIds
+})
+
 const { setScaleAndTranslate, setupHistory, getRootBlock, setRootBlock, findBlock, removeBlock } =
-	useCanvasUtils(canvasProps, canvasContainer, canvas, rootComponent, history)
+	useCanvasUtils(canvasProps, canvasContainer, canvas, rootComponent, selectedBlockIds, history)
+
+watch(
+	() => activeSlotIds.value,
+	(map) => {
+		// clear selected slot if the block is deleted, not selected anymore, or the slot is removed from the block
+		if (selectedSlot.value && !map.has(selectedSlot.value.slotId)) {
+			selectedSlot.value = null
+		}
+	},
+	{ immediate: true },
+)
 
 const { isOverDropZone } = useCanvasDropZone(
 	canvasContainer as unknown as Ref<HTMLElement>,
@@ -192,10 +262,27 @@ defineExpose({
 	history,
 	rootComponent,
 	canvasProps,
+	// canvas utils
 	findBlock,
 	removeBlock,
 	getRootBlock,
 	setRootBlock,
+	// block hover & selection
+	hoveredBlock,
+	hoveredBreakpoint,
+	activeBreakpoint,
+	setHoveredBlock,
+	setHoveredBreakpoint,
+	setActiveBreakpoint,
+	selectedBlockIds,
+	selectedBlocks,
+	selectBlock,
+	selectBlockById,
+	clearSelection,
+	// slots
+	selectedSlot,
+	selectSlot,
+	activeSlotIds,
 })
 </script>
 

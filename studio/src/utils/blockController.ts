@@ -1,34 +1,34 @@
-import useStudioStore from "@/stores/studioStore"
 import { CSSProperties } from "vue"
 import Block from "./block"
 
 import { StyleValue } from "@/types"
+import useCanvasStore from "@/stores/canvasStore"
 
-const store = useStudioStore()
+const canvasStore = useCanvasStore()
 
 type styleProperty = keyof CSSProperties
 
 const blockController = {
 	clearSelection: () => {
-		store.selectedBlockIds = new Set()
+		canvasStore.activeCanvas?.clearSelection()
 	},
 	isAnyBlockSelected: () => {
-		return store.selectedBlocks?.length || 0 > 0
+		return canvasStore.activeCanvas?.selectedBlocks.length || 0 > 0
 	},
 	multipleBlocksSelected: () => {
-		return store.selectedBlocks && store.selectedBlocks.length > 1;
+		return canvasStore.activeCanvas?.selectedBlocks && canvasStore.activeCanvas?.selectedBlocks.length > 1
 	},
 	getFirstSelectedBlock: () => {
-		return store.selectedBlocks[0] as Block;
+		return canvasStore.activeCanvas?.selectedBlocks[0] as Block
 	},
 	getSelectedBlocks: () => {
-		return store.selectedBlocks || [];
+		return canvasStore.activeCanvas?.selectedBlocks || []
 	},
 	isRoot() {
 		return blockController.isAnyBlockSelected() && blockController.getFirstSelectedBlock().isRoot();
 	},
-	getParentBlock(): Block | null {
-		return store.selectedBlocks[0]?.getParentBlock();
+	getParentBlock() {
+		return canvasStore.activeCanvas?.selectedBlocks[0]?.getParentBlock();
 	},
 	isFlex() {
 		return blockController.isAnyBlockSelected() && blockController.getFirstSelectedBlock().isFlex();
@@ -37,13 +37,13 @@ const blockController = {
 		return blockController.isAnyBlockSelected() && blockController.getFirstSelectedBlock().isGrid();
 	},
 	setClasses: (classes: string[]) => {
-		const block = store.selectedBlocks[0];
+		const block = canvasStore.activeCanvas?.selectedBlocks[0];
 		if (!block) return;
 		block.classes = classes;
 	},
 	getStyle: (style: styleProperty) => {
 		let styleValue = "__initial__" as StyleValue;
-		store.selectedBlocks.forEach((block) => {
+		canvasStore.activeCanvas?.selectedBlocks.forEach((block) => {
 			if (styleValue === "__initial__") {
 				styleValue = block.getStyle(style);
 			} else if (styleValue !== block.getStyle(style)) {
@@ -53,7 +53,7 @@ const blockController = {
 		return styleValue;
 	},
 	setStyle: (style: styleProperty, value: StyleValue) => {
-		store.selectedBlocks.forEach((block) => {
+		canvasStore.activeCanvas?.selectedBlocks.forEach((block) => {
 			block.setStyle(style, value);
 		});
 	},
@@ -89,9 +89,9 @@ const blockController = {
 			block.setMargin(value);
 		});
 	},
-	getKeyValue: (key: "innerHTML" | "visibilityCondition") => {
+	getKeyValue: (key: "visibilityCondition") => {
 		let keyValue = "__initial__" as StyleValue | undefined;
-		store.selectedBlocks.forEach((block) => {
+		canvasStore.activeCanvas?.selectedBlocks.forEach((block) => {
 			if (keyValue === "__initial__") {
 				keyValue = block[key];
 			} else if (keyValue !== block[key]) {
@@ -100,8 +100,8 @@ const blockController = {
 		});
 		return keyValue;
 	},
-	setKeyValue: (key: "innerHTML" | "visibilityCondition", value: string) => {
-		store.selectedBlocks.forEach((block) => {
+	setKeyValue: (key: "visibilityCondition", value: string) => {
+		canvasStore.activeCanvas?.selectedBlocks.forEach((block) => {
 			block[key] = value;
 		});
 	},

@@ -1,9 +1,11 @@
 import useStudioStore from "@/stores/studioStore"
+import useCanvasStore from "@/stores/canvasStore"
 import { useEventListener } from "@vueuse/core"
 import blockController from "@/utils/blockController"
 import { isCtrlOrCmd, isTargetEditable } from "@/utils/helpers"
 
 const store = useStudioStore()
+const canvasStore = useCanvasStore()
 
 export function useStudioEvents() {
 	useEventListener(document, "contextmenu", async (e) => {
@@ -12,15 +14,15 @@ export function useStudioEvents() {
 			(e.target as HTMLElement)?.closest("[data-component-id]")
 		if (target) {
 			const blockId = target.dataset.componentLayerId || target.dataset.componentId
-			const block = store.activeCanvas?.findBlock(blockId as string)
+			const block = canvasStore.activeCanvas?.findBlock(blockId as string)
 			if (block) {
-				store.selectBlock(block, e)
+				canvasStore.activeCanvas?.selectBlock(block, e)
 
 				const slotName = target.dataset.slotName
 				if (slotName) {
 					const slot = block.getSlot(slotName)
 					if (slot) {
-						store.selectSlot(slot)
+						canvasStore.activeCanvas?.selectSlot(slot)
 					}
 				}
 
@@ -35,7 +37,7 @@ export function useStudioEvents() {
 		// delete
 		if ((e.key === "Backspace" || e.key === "Delete") && blockController.isAnyBlockSelected()) {
 			for (const block of blockController.getSelectedBlocks()) {
-				store.activeCanvas?.removeBlock(block, e.shiftKey)
+				canvasStore.activeCanvas?.removeBlock(block, e.shiftKey)
 			}
 			clearSelection()
 			e.stopPropagation()
@@ -53,15 +55,15 @@ export function useStudioEvents() {
 		}
 
 		// undo
-		if (e.key === "z" && isCtrlOrCmd(e) && !e.shiftKey && store.activeCanvas?.history?.canUndo()) {
-			store.activeCanvas?.history.undo()
+		if (e.key === "z" && isCtrlOrCmd(e) && !e.shiftKey && canvasStore.activeCanvas?.history?.canUndo()) {
+			canvasStore.activeCanvas?.history.undo()
 			e.preventDefault()
 			return;
 		}
 
 		// redo
-		if (e.key === "z" && e.shiftKey && isCtrlOrCmd(e) && store.activeCanvas?.history?.canRedo) {
-			store.activeCanvas?.history.redo();
+		if (e.key === "z" && e.shiftKey && isCtrlOrCmd(e) && canvasStore.activeCanvas?.history?.canRedo) {
+			canvasStore.activeCanvas?.history.redo();
 			e.preventDefault();
 			return;
 		}

@@ -92,6 +92,7 @@ import ComponentEditor from "@/components/ComponentEditor.vue"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
+import useCanvasStore from "@/stores/canvasStore"
 import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML } from "@/utils/helpers"
 
 import { CanvasProps } from "@/types"
@@ -110,9 +111,12 @@ defineOptions({
 	inheritAttrs: false,
 })
 
+const store = useStudioStore()
+const canvasStore = useCanvasStore()
+
 const isComponentReady = ref(false)
 const editor = ref<InstanceType<typeof ComponentEditor> | null>(null)
-const store = useStudioStore()
+
 const classes = ["__studio_component__", "outline-none", "select-none"]
 const slotClasses = ["__studio_component_slot__", "outline-none", "select-none"]
 
@@ -123,7 +127,7 @@ const styles = computed(() => {
 })
 
 const componentName = computed(() => {
-	if (store.editingMode === "page") return props.block.componentName
+	if (canvasStore.editingMode === "page") return props.block.componentName
 	const proxyComponent = props.block.getProxyComponent()
 	return proxyComponent ? proxyComponent : props.block.componentName
 })
@@ -177,29 +181,29 @@ const boundValue = computed({
 
 // block hovering and selection
 const isHovered = ref(false)
-const isSelected = computed(() => store.selectedBlockIds?.has(props.block.componentId))
+const isSelected = computed(() => canvasStore.activeCanvas?.selectedBlockIds?.has(props.block.componentId))
 
 const loadEditor = computed(() => {
 	return (
 		target.value &&
 		isComponentReady.value &&
 		props.block.getStyle("display") !== "none" &&
-		((isSelected.value && props.breakpoint === store.activeBreakpoint) ||
-			(isHovered.value && store.hoveredBreakpoint === props.breakpoint)) &&
+		((isSelected.value && props.breakpoint === canvasStore.activeCanvas?.activeBreakpoint) ||
+			(isHovered.value && canvasStore.activeCanvas?.hoveredBreakpoint === props.breakpoint)) &&
 		!canvasProps?.scaling &&
 		!canvasProps?.panning
 	)
 })
 
 const handleMouseOver = (e: MouseEvent) => {
-	store.hoveredBlock = props.block.componentId
-	store.hoveredBreakpoint = props.breakpoint
+	canvasStore.activeCanvas?.setHoveredBlock(props.block.componentId)
+	canvasStore.activeCanvas?.setHoveredBreakpoint(props.breakpoint)
 	e.stopPropagation()
 }
 
 const handleMouseLeave = (e: MouseEvent) => {
-	if (store.hoveredBlock === props.block.componentId) {
-		store.hoveredBlock = null
+	if (canvasStore.activeCanvas?.hoveredBlock === props.block.componentId) {
+		canvasStore.activeCanvas.setHoveredBlock(null)
 		e.stopPropagation()
 	}
 }
@@ -208,19 +212,19 @@ const getClickedComponent = (e: MouseEvent) => {
 	const targetElement = e.target as HTMLElement
 	const componentId = targetElement.closest("[data-component-id]")?.getAttribute("data-component-id")
 	if (componentId) {
-		return store.activeCanvas?.findBlock(componentId)
+		return canvasStore.activeCanvas?.findBlock(componentId)
 	}
 }
 
 const handleClick = (e: MouseEvent) => {
 	const block = getClickedComponent(e) || props.block
-	store.selectBlock(block, e)
+	canvasStore.activeCanvas?.selectBlock(block, e)
 
 	const slotName = (e.target as HTMLElement).dataset.slotName
 	if (slotName) {
 		const slot = block.getSlot(slotName)
 		if (slot) {
-			store.selectSlot(slot)
+			canvasStore.activeCanvas?.selectSlot(slot)
 		}
 	}
 
@@ -229,7 +233,7 @@ const handleClick = (e: MouseEvent) => {
 }
 
 watch(
-	() => store.hoveredBlock,
+	() => canvasStore.activeCanvas?.hoveredBlock,
 	(newValue, oldValue) => {
 		if (newValue === props.block.componentId) {
 			isHovered.value = true

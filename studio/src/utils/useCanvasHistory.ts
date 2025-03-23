@@ -2,7 +2,6 @@ import { ref, Ref } from "vue";
 import Block from "@/utils/block";
 import { generateId, getBlockInstance, getBlockString } from "@/utils/helpers";
 import { debounceFilter, pausableFilter, watchIgnorable } from "@vueuse/core";
-import useStudioStore from "@/stores/studioStore";
 
 type CanvasState = {
 	block: string;
@@ -13,9 +12,7 @@ type PauseId = string & { __brand: "PauseId" };
 const CAPACITY = 500;
 const DEBOUNCE_DELAY = 100;
 
-const store = useStudioStore()
-
-export function useCanvasHistory(source: Ref<Block>) {
+export function useCanvasHistory(source: Ref<Block>, selectedBlockIds: Ref<Set<string>>) {
 	const undoStack = ref([]) as Ref<CanvasState[]>;
 	const redoStack = ref([]) as Ref<CanvasState[]>;
 	const last = ref(createHistoryRecord());
@@ -47,7 +44,7 @@ export function useCanvasHistory(source: Ref<Block>) {
 		ignoreUpdates: ignoreSelectedBlockUpdates,
 		ignorePrevAsyncUpdates: ignorePrevSelectedBlockUpdates,
 		stop: stopSelectedBlockUpdates,
-	} = watchIgnorable(store.selectedBlockIds, updateSelections, {
+	} = watchIgnorable(selectedBlockIds, updateSelections, {
 		deep: true,
 		eventFilter: selectionWatherFilter,
 	});
@@ -64,13 +61,13 @@ export function useCanvasHistory(source: Ref<Block>) {
 	}
 
 	function updateSelections() {
-		last.value.selectedBlockIds = new Set(store.selectedBlockIds);
+		last.value.selectedBlockIds = new Set(selectedBlockIds.value);
 	}
 
 	function createHistoryRecord() {
 		return {
 			block: getBlockString(source.value),
-			selectedBlockIds: store.selectedBlockIds,
+			selectedBlockIds: selectedBlockIds.value,
 		};
 	}
 
@@ -81,7 +78,7 @@ export function useCanvasHistory(source: Ref<Block>) {
 		});
 		ignorePrevSelectedBlockUpdates();
 		ignoreSelectedBlockUpdates(() => {
-			store.selectedBlockIds = new Set(value.selectedBlockIds);
+			selectedBlockIds.value = new Set(value.selectedBlockIds);
 		});
 		last.value = value;
 	}

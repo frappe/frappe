@@ -1,4 +1,4 @@
-import { ref, reactive, computed, nextTick, Ref, watch } from "vue"
+import { ref, reactive, nextTick } from "vue"
 import router from "@/router/studio_router"
 import { defineStore } from "pinia"
 
@@ -13,19 +13,18 @@ import {
 	getNewResource,
 	confirm,
 	getInitialVariableValue,
-	getBlockCopy,
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
 import { studioPageResources } from "@/data/studioResources"
 import { studioApps } from "@/data/studioApps"
 
-import StudioCanvas from "@/components/StudioCanvas.vue"
 import Block from "@/utils/block"
+import useCanvasStore from "@/stores/canvasStore"
 
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Resource } from "@/types/Studio/StudioResource"
-import { EditingMode, LeftPanelOptions, RightPanelOptions, Slot } from "@/types"
+import { LeftPanelOptions, RightPanelOptions } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import { studioVariables } from "@/data/studioVariables"
 import { Variable } from "@/types/Studio/StudioPageVariable"
@@ -33,7 +32,6 @@ import { toast } from "vue-sonner"
 import { createResource } from "frappe-ui"
 
 const useStudioStore = defineStore("store", () => {
-	const activeCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
 	const studioLayout = reactive({
 		leftPanelWidth: 300,
 		rightPanelWidth: 275,
@@ -42,174 +40,10 @@ const useStudioStore = defineStore("store", () => {
 		leftPanelActiveTab: <LeftPanelOptions>"Add Component",
 		rightPanelActiveTab: <RightPanelOptions>"Properties",
 	})
-	const activeBreakpoint = ref("desktop")
-	const guides = reactive({
-		showX: false,
-		showY: false,
-		x: 0,
-		y: 0,
-	})
 	const componentContextMenu = ref<InstanceType<typeof ComponentContextMenu> | null>(null)
 
-	// fragment mode
-	const editingMode = ref<EditingMode>("page")
-	const fragmentData = ref({
-		block: <Block | null>null,
-		saveAction: <Function | null>null,
-		saveActionLabel: <string | null>null,
-		fragmentName: <string | null>null,
-		fragmentId: <string | null>null,
-	})
-
-	async function editOnCanvas(
-		block: Block,
-		saveAction: (block: Block) => void,
-		saveActionLabel: string = "Save",
-		fragmentName?: string,
-		fragmentId?: string
-	) {
-		const blockCopy = getBlockCopy(block, true)
-		fragmentData.value = {
-			block: blockCopy,
-			saveAction,
-			saveActionLabel,
-			fragmentName: fragmentName || block.componentName,
-			fragmentId: fragmentId || block.componentId
-		}
-		editingMode.value = "fragment"
-	}
-
-	async function exitFragmentMode(e?: Event) {
-		if (editingMode.value === "page") return
-		e?.preventDefault()
-
-		clearSelection()
-		editingMode.value = "page"
-		fragmentData.value = {
-			block: null,
-			saveAction: null,
-			saveActionLabel: null,
-			fragmentName: null,
-			fragmentId: null,
-		}
-	}
-
-	// block hover & selection
-	const hoveredBlock = ref<string | null>(null)
-	const hoveredBreakpoint = ref<string | null>(null)
-	const selectedBlockIds = ref<Set<string>>(new Set())
-	const selectedBlocks = computed(() => {
-		return (
-			Array.from(selectedBlockIds.value)
-				.map((id) => activeCanvas.value?.findBlock(id))
-				// filter out missing blocks/null values
-				.filter((b) => b)
-		)
-	}) as Ref<Block[]>
-
-	function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false) {
-		if (settingPage.value) return
-		selectBlockById(block.componentId, e, multiSelect)
-	}
-
-	function selectBlockById(blockId: string, e: MouseEvent | null, multiSelect = false) {
-		if (multiSelect) {
-			selectedBlockIds.value.add(blockId)
-		} else {
-			selectedBlockIds.value = new Set([blockId])
-		}
-	}
-
-	function clearSelection() {
-		selectedBlockIds.value = new Set()
-	}
-
-	// drag & drop
-	const isDragging = ref(false)
-	const dropTarget = reactive({
-		x: null as number | null,
-		y: null as number | null,
-		placeholder: null as HTMLElement | null,
-		parentComponent: null as Block | null,
-		index: null as number | null,
-		slotName: null as string | null,
-	})
-
-	const handleDragStart = (ev: DragEvent, componentName: string) => {
-		if (ev.target && ev.dataTransfer) {
-			isDragging.value = true
-			const ghostScale = activeCanvas.value?.canvasProps.scale
-			const ghostElement = (ev.target as HTMLElement).cloneNode(true) as HTMLElement
-			ghostElement.id = "ghost"
-			ghostElement.style.position = "fixed"
-			ghostElement.style.transform = `scale(${ghostScale || 1})`
-			ghostElement.style.pointerEvents = "none"
-			ghostElement.style.zIndex = "999999"
-			document.body.appendChild(ghostElement)
-
-			// Set the scaled drag image
-			ev.dataTransfer.setDragImage(ghostElement, 0, 0)
-			// Clean up the ghost element
-			setTimeout(() => {
-				document.body.removeChild(ghostElement)
-			}, 0)
-			ev.dataTransfer.setData("componentName", componentName)
-
-			let element = document.createElement("div")
-			element.id = "placeholder"
-
-			const root = document.querySelector(".__studio_component__[data-component-id='root']")
-			if (root) {
-				dropTarget.placeholder = root.appendChild(element)
-			}
-		}
-	}
-
-	const handleDragEnd = () => {
-		const placeholder = document.getElementById("placeholder")
-		if (placeholder) {
-			placeholder.remove()
-		}
-
-		dropTarget.x = null
-		dropTarget.y = null
-		dropTarget.placeholder = null
-		dropTarget.parentComponent = null
-		dropTarget.index = null
-		dropTarget.slotName = null
-
-		isDragging.value = false
-	}
-
-	// slots
+	// dialogs
 	const showSlotEditorDialog = ref(false)
-
-	const selectedSlot = ref<Slot | null>()
-	function selectSlot(slot: Slot) {
-		selectedSlot.value = slot
-		selectBlockById(slot.parentBlockId, null)
-	}
-
-	const activeSlotIds = computed(() => {
-		const slotIds = new Set<string>()
-		for (const block of selectedBlocks.value) {
-			for (const slot of Object.values(block.componentSlots)) {
-				slotIds.add(slot.slotId)
-			}
-		}
-		return slotIds
-	})
-
-	watch(
-		() => activeSlotIds.value,
-		(map) => {
-			// clear selected slot if the block is deleted, not selected anymore, or the slot is removed from the block
-			if (selectedSlot.value && !map.has(selectedSlot.value.slotId)) {
-				selectedSlot.value = null
-			}
-		},
-		{ immediate: true }
-	)
 
 	// studio apps
 	const activeApp = ref<StudioApp | null>(null)
@@ -296,7 +130,9 @@ const useStudioStore = defineStore("store", () => {
 		}
 		selectedPage.value = page.name
 		await setPageData(page)
-		activeCanvas.value?.setRootBlock(pageBlocks.value[0])
+
+		const canvasStore = useCanvasStore()
+		canvasStore.activeCanvas?.setRootBlock(pageBlocks.value[0])
 
 		nextTick(() => {
 			settingPage.value = false
@@ -304,8 +140,9 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	function savePage() {
-		if (activeCanvas.value) {
-			pageBlocks.value = [activeCanvas.value.getRootBlock()]
+		const canvasStore = useCanvasStore()
+		if (canvasStore?.activeCanvas) {
+			pageBlocks.value = [canvasStore.activeCanvas.getRootBlock()]
 		}
 		const pageData = jsToJson(pageBlocks.value.map((block) => getBlockCopyWithoutParent(block)))
 
@@ -406,34 +243,10 @@ const useStudioStore = defineStore("store", () => {
 
 	return {
 		// layout
-		activeCanvas,
 		studioLayout,
-		activeBreakpoint,
-		guides,
 		componentContextMenu,
-		// fragment mode
-		editingMode,
-		fragmentData,
-		editOnCanvas,
-		exitFragmentMode,
-		// block hover & selection
-		hoveredBlock,
-		hoveredBreakpoint,
-		selectedBlockIds,
-		selectedBlocks,
-		selectBlock,
-		selectBlockById,
-		clearSelection,
-		pageBlocks,
-		dropTarget,
-		isDragging,
-		handleDragStart,
-		handleDragEnd,
-		// slots
-		selectedSlot,
-		selectSlot,
+		// dialogs
 		showSlotEditorDialog,
-		activeSlotIds,
 		// studio app
 		activeApp,
 		setApp,
@@ -444,6 +257,7 @@ const useStudioStore = defineStore("store", () => {
 		setAppPages,
 		getAppPageRoute,
 		// studio pages
+		pageBlocks,
 		selectedPage,
 		settingPage,
 		savingPage,
@@ -465,5 +279,4 @@ const useStudioStore = defineStore("store", () => {
 	}
 })
 
-// @ts-ignore: Ignoring circular dependency warning with StudioCanvas
 export default useStudioStore

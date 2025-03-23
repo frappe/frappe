@@ -1,17 +1,20 @@
 import { CanvasProps } from "@/types"
 import Block from "@/utils/block"
-import useStudioStore from "@/stores/studioStore"
+
 import { nextTick, reactive, Ref } from "vue"
 import { useCanvasHistory } from "@/utils/useCanvasHistory"
 import { useElementBounding } from "@vueuse/core"
 import { toast } from "vue-sonner"
+import useCanvasStore from "@/stores/canvasStore"
 
-const store = useStudioStore()
+const canvasStore = useCanvasStore()
+
 export function useCanvasUtils(
 	canvasProps: CanvasProps,
 	canvasContainer: Ref<HTMLElement | null>,
 	canvas: Ref<HTMLElement | null>,
 	rootComponent: Ref<Block>,
+	selectedBlockIds: Ref<Set<string>>,
 	canvasHistory: Ref<null | any>,
 ) {
 	// canvas positioning
@@ -46,7 +49,7 @@ export function useCanvasUtils(
 	}
 
 	function setupHistory() {
-		canvasHistory.value = useCanvasHistory(rootComponent);
+		canvasHistory.value = useCanvasHistory(rootComponent, selectedBlockIds);
 	}
 
 	function getRootBlock() {
@@ -64,7 +67,6 @@ export function useCanvasUtils(
 				setScaleAndTranslate()
 			});
 		}
-
 	}
 
 	const findBlock = (componentId: string, blocks?: Block[]): Block | null => {
@@ -102,7 +104,7 @@ export function useCanvasUtils(
 		const parentBlock = block.parentBlock
 		if (!parentBlock) return
 		const nextSibling = block.getSiblingBlock("next")
-		if (store.activeBreakpoint === "desktop" || force) {
+		if (canvasStore.activeCanvas?.activeBreakpoint === "desktop" || force) {
 			parentBlock.removeChild(block)
 		} else {
 			block.toggleVisibility(false)

@@ -53,10 +53,10 @@
 				<ComponentPanel v-show="activeTab === 'Add Component'" class="mx-2 my-3" />
 				<div v-show="activeTab === 'Layers'" class="p-4 pt-3">
 					<ComponentLayers
-						v-if="store.activeCanvas"
+						v-if="canvasStore.activeCanvas"
 						class="no-scrollbar overflow-auto"
 						ref="pageLayers"
-						:blocks="[store.activeCanvas?.getRootBlock() as Block]"
+						:blocks="[canvasStore.activeCanvas?.getRootBlock() as Block]"
 					/>
 				</div>
 
@@ -79,6 +79,7 @@ import IconButton from "@/components/IconButton.vue"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
+import useCanvasStore from "@/stores/canvasStore"
 import { LeftPanelOptions } from "@/types"
 
 const sidebarMenu = [
@@ -104,6 +105,7 @@ const sidebarMenu = [
 	},
 ]
 const store = useStudioStore()
+const canvasStore = useCanvasStore()
 
 const activeTab = computed(() => store.studioLayout.leftPanelActiveTab)
 
@@ -117,27 +119,25 @@ const setActiveTab = (tab: LeftPanelOptions) => {
 // moved out of ComponentLayers for performance
 // TODO: Find a better way to do this
 watch(
-	() => store.hoveredBlock,
-	() => {
+	() => canvasStore.activeCanvas?.hoveredBlock,
+	(hoveredBlock) => {
 		document.querySelectorAll(`[data-component-layer-id].hovered-block`).forEach((el) => {
 			el.classList.remove("hovered-block")
 		})
-		if (store.hoveredBlock) {
-			document
-				.querySelector(`[data-component-layer-id="${store.hoveredBlock}"]`)
-				?.classList.add("hovered-block")
+		if (hoveredBlock) {
+			document.querySelector(`[data-component-layer-id="${hoveredBlock}"]`)?.classList.add("hovered-block")
 		}
 	},
 )
 
 watch(
-	() => store.selectedBlocks,
+	() => canvasStore.activeCanvas?.selectedBlocks,
 	() => {
 		document.querySelectorAll(`[data-component-layer-id].block-selected`).forEach((el) => {
 			el.classList.remove("block-selected")
 		})
-		if (store.selectedBlocks.length) {
-			store.selectedBlocks.forEach((block: Block) => {
+		if (canvasStore.activeCanvas?.selectedBlocks.length) {
+			canvasStore.activeCanvas?.selectedBlocks.forEach((block: Block) => {
 				document
 					.querySelector(`[data-component-layer-id="${block.componentId}"]`)
 					?.classList.add("block-selected")
@@ -147,14 +147,14 @@ watch(
 )
 
 watch(
-	() => store.selectedSlot,
+	() => canvasStore.activeCanvas?.selectedSlot,
 	() => {
 		document.querySelectorAll(`[data-slot-layer-id].slot-selected`).forEach((el) => {
 			el.classList.remove("slot-selected")
 		})
-		if (store.selectedSlot) {
+		if (canvasStore.activeCanvas?.selectedSlot) {
 			document
-				.querySelector(`[data-slot-layer-id="${store.selectedSlot.slotId}"]`)
+				.querySelector(`[data-slot-layer-id="${canvasStore.activeCanvas?.selectedSlot.slotId}"]`)
 				?.classList.add("slot-selected")
 		}
 	},

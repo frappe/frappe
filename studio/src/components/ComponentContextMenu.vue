@@ -19,11 +19,13 @@ import { vOnClickOutside } from "@vueuse/components"
 import ContextMenu from "@/components/ContextMenu.vue"
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
+import useCanvasStore from "@/stores/canvasStore"
 import { ContextMenuOption } from "@/types"
 import { getComponentBlock, isObjectEmpty } from "@/utils/helpers"
 import FormDialog from "@/components/FormDialog.vue"
 
 const store = useStudioStore()
+const canvasStore = useCanvasStore()
 
 const contextMenuVisible = ref(false)
 const posX = ref(0)
@@ -71,7 +73,7 @@ const contextMenuOptions: ContextMenuOption[] = [
 				newBlockObj.parentSlotName = block.value.parentSlotName
 			}
 
-			const selectedBlocks = store.selectedBlocks || []
+			const selectedBlocks = canvasStore.activeCanvas?.selectedBlocks || []
 			const blockPosition = Math.min(...selectedBlocks.map(parentBlock.getChildIndex.bind(parentBlock)))
 			const newBlock = parentBlock?.addChild(newBlockObj, blockPosition)
 
@@ -108,7 +110,8 @@ const contextMenuOptions: ContextMenuOption[] = [
 			store.showSlotEditorDialog = true
 		},
 		condition: () =>
-			!isObjectEmpty(block.value.componentSlots) && block.value.isSlotEditable(store.selectedSlot),
+			!isObjectEmpty(block.value.componentSlots) &&
+			block.value.isSlotEditable(canvasStore.activeCanvas?.selectedSlot),
 	},
 	{
 		label: "Add Fields from DocType",

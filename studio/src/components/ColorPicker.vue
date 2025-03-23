@@ -97,13 +97,13 @@
 <script setup lang="ts">
 import { PropType, Ref, StyleValue, computed, nextTick, ref, watch } from "vue"
 import EyeDropperIcon from "@/components/Icons/EyeDropper.vue"
-import useStudioStore from "@/stores/studioStore"
+import useCanvasStore from "@/stores/canvasStore"
 import { HSVToHex, HexToHSV, getRGB } from "@/utils/helpers"
 import { clamp, useEyeDropper } from "@vueuse/core"
 import { Popover } from "frappe-ui"
 import type { HashString, RGBString } from "@/types"
 
-const store = useStudioStore()
+const canvasStore = useCanvasStore()
 
 const hueMap = ref(null) as unknown as Ref<HTMLDivElement>
 const colorMap = ref(null) as unknown as Ref<HTMLDivElement>
@@ -161,7 +161,7 @@ const setHueSelectorPosition = (color: HashString) => {
 
 const handleSelectorMove = (ev: MouseEvent) => {
 	setColor(ev)
-	const pauseId = store.activeCanvas?.history?.pause()
+	const pauseId = canvasStore.activeCanvas?.history?.pause()
 	const mouseMove = (mouseMoveEvent: MouseEvent) => {
 		mouseMoveEvent.preventDefault()
 		setColor(mouseMoveEvent)
@@ -172,7 +172,7 @@ const handleSelectorMove = (ev: MouseEvent) => {
 		(mouseUpEvent) => {
 			document.removeEventListener("mousemove", mouseMove)
 			mouseUpEvent.preventDefault()
-			pauseId && store.activeCanvas?.history?.resume(pauseId, true)
+			pauseId && canvasStore.activeCanvas?.history?.resume(pauseId, true)
 		},
 		{ once: true },
 	)
@@ -180,7 +180,7 @@ const handleSelectorMove = (ev: MouseEvent) => {
 
 const handleHueSelectorMove = (ev: MouseEvent) => {
 	setHue(ev)
-	const pauseId = store.activeCanvas?.history?.pause()
+	const pauseId = canvasStore.activeCanvas?.history?.pause()
 	const mouseMove = (mouseMoveEvent: MouseEvent) => {
 		mouseMoveEvent.preventDefault()
 		setHue(mouseMoveEvent)
@@ -191,7 +191,7 @@ const handleHueSelectorMove = (ev: MouseEvent) => {
 		(mouseUpEvent) => {
 			document.removeEventListener("mousemove", mouseMove)
 			mouseUpEvent.preventDefault()
-			pauseId && store.activeCanvas?.history?.resume(pauseId, true)
+			pauseId && canvasStore.activeCanvas?.history?.resume(pauseId, true)
 		},
 		{ once: true },
 	)

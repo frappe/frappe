@@ -1,10 +1,10 @@
-import useStudioStore from "@/stores/studioStore"
+import useCanvasStore from "@/stores/canvasStore"
 import Block from "@/utils/block"
 import { getComponentBlock, throttle } from "@/utils/helpers"
 import { useDropZone } from "@vueuse/core"
 import { Ref } from "vue"
 
-const store = useStudioStore()
+const canvasStore = useCanvasStore()
 type LayoutDirection = "row" | "column"
 
 export function useCanvasDropZone(
@@ -15,20 +15,20 @@ export function useCanvasDropZone(
 	const { isOverDropZone } = useDropZone(canvasContainer, {
 		onDrop: (_files, ev) => {
 			const droppedComponentName = ev.dataTransfer?.getData("componentName")
-			const { parentComponent, index, slotName } = store.dropTarget
+			const { parentComponent, index, slotName } = canvasStore.dropTarget
 
 			if (droppedComponentName && parentComponent) {
 				function saveBlock(block: Block) {
 					if (slotName) {
-						parentComponent.updateSlot(slotName, block)
+						parentComponent?.updateSlot(slotName, block)
 					} else {
-						parentComponent.addChild(block, index)
+						parentComponent?.addChild(block, index)
 					}
 				}
 
 				let newBlock = getComponentBlock(droppedComponentName)
 				if (newBlock.editInFragmentMode()) {
-					store.editOnCanvas(
+					canvasStore.editOnCanvas(
 						newBlock,
 						(editedBlock: Block) => saveBlock(editedBlock),
 						`Save ${droppedComponentName}`
@@ -41,31 +41,31 @@ export function useCanvasDropZone(
 		onOver: (_files, ev) => {
 			const { parentComponent, slotName, index, layoutDirection } = findDropTarget(ev)
 			if (parentComponent) {
-				store.hoveredBlock = parentComponent.componentId
+				canvasStore.activeCanvas?.setHoveredBlock(parentComponent.componentId)
 				updateDropTarget(ev, parentComponent, slotName, index, layoutDirection)
 			}
 		},
 	})
 
 	const getBlockElement = (block: Block) => {
-		const breakpoint = store.hoveredBreakpoint || store.activeBreakpoint;
+		const breakpoint = canvasStore.activeCanvas?.hoveredBreakpoint || canvasStore.activeCanvas?.activeBreakpoint
 		return document.querySelector(`.__studio_component__[data-component-id="${block.componentId}"][data-breakpoint="${breakpoint}"]`) as HTMLElement;
 	}
 
 	const findDropTarget = (ev: DragEvent) => {
-		if (store.dropTarget.x === ev.x && store.dropTarget.y === ev.y) return {}
+		if (canvasStore.dropTarget.x === ev.x && canvasStore.dropTarget.y === ev.y) return {}
 
 		const element = document.elementFromPoint(ev.clientX, ev.clientY) as HTMLElement
 		const targetElement = element.closest(".__studio_component__") as HTMLElement
 
 		// set the hoveredBreakpoint from the target element to show placeholder at the correct breakpoint canvas
-		const breakpoint = targetElement?.dataset.breakpoint || store.activeBreakpoint;
-		if (breakpoint !== store.hoveredBreakpoint) {
-			store.hoveredBreakpoint = breakpoint;
+		const breakpoint = targetElement?.dataset.breakpoint || canvasStore.activeCanvas?.activeBreakpoint || null
+		if (breakpoint !== canvasStore.activeCanvas?.hoveredBreakpoint) {
+			canvasStore.activeCanvas?.setHoveredBreakpoint(breakpoint)
 		}
 
 		let parentComponent = block.value
-		let slotName
+		let slotName = null
 		let layoutDirection = "column" as LayoutDirection
 		let index = parentComponent?.children.length || 0
 
@@ -80,8 +80,8 @@ export function useCanvasDropZone(
 				const parentElement = getBlockElement(parentComponent)
 				layoutDirection = getLayoutDirection(parentElement)
 				index = findDropIndex(ev, parentElement, layoutDirection)
-				if (store.selectedSlot?.parentBlockId === parentComponent.componentId) {
-					slotName = store.selectedSlot?.slotName
+				if (canvasStore.activeCanvas?.selectedSlot?.parentBlockId === parentComponent.componentId) {
+					slotName = canvasStore.activeCanvas.selectedSlot?.slotName
 				}
 			}
 		}
@@ -140,7 +140,7 @@ export function useCanvasDropZone(
 	) => {
 		// append placeholder component to the dom directly
 		// to avoid re-rendering the whole canvas
-		const { placeholder } = store.dropTarget
+		const { placeholder } = canvasStore.dropTarget
 		if (!parentComponent || !placeholder) return
 		let newParent = getBlockElement(parentComponent)
 		if (!newParent) return
@@ -152,7 +152,7 @@ export function useCanvasDropZone(
 			}
 		}
 
-		if (store.dropTarget.parentComponent?.componentId === parentComponent.componentId && store.dropTarget.index === index) return
+		if (canvasStore.dropTarget.parentComponent?.componentId === parentComponent.componentId && canvasStore.dropTarget.index === index) return
 
 		// flip placeholder border as per layout direction to avoid shifting elements too much
 		if (layoutDirection === "row") {
@@ -172,11 +172,11 @@ export function useCanvasDropZone(
 			newParent.insertBefore(placeholder, children[index])
 		}
 
-		store.dropTarget.parentComponent = parentComponent
-		store.dropTarget.index = index
-		store.dropTarget.slotName = slotName
-		store.dropTarget.x = ev.x
-		store.dropTarget.y = ev.y
+		canvasStore.dropTarget.parentComponent = parentComponent
+		canvasStore.dropTarget.index = index
+		canvasStore.dropTarget.slotName = slotName
+		canvasStore.dropTarget.x = ev.x
+		canvasStore.dropTarget.y = ev.y
 	}, 130)
 
 	return { isOverDropZone }
