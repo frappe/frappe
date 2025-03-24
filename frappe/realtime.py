@@ -131,9 +131,18 @@ def can_subscribe_doctype(doctype: str) -> bool:
 
 @frappe.whitelist(allow_guest=True)
 def get_user_info():
+	user_type = frappe.session.data.user_type
+	# For requests with Bearer tokens, user_type is not set in the session data
+	if not user_type:
+		user_type = frappe.get_cached_value("User", frappe.session.user, "user_type")
 	return {
 		"user": frappe.session.user,
+<<<<<<< HEAD
 		"user_type": frappe.session.data.user_type,
+=======
+		"user_type": user_type,
+		"installed_apps": frappe.get_installed_apps(),
+>>>>>>> 86425acfc0 (fix(realtime): fetch user_type if not available in session data (#31865))
 	}
 
 
