@@ -318,6 +318,7 @@ const actions: ActionConfigurations = {
 					label: "Script",
 					type: "JavaScript",
 					modelValue: newEvent.value.script,
+					showLineNumbers: true,
 				}
 			},
 			events: {
