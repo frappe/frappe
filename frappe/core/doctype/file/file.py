@@ -485,10 +485,15 @@ class File(Document):
 		except DoesNotExistError:
 			return
 
+		if ref_doc.docstatus == 0:
+			# If the document is not submitted yet, users can correct wrong attachments
+			return
+
 		if not ref_doc.meta.protect_attached_files:
 			return
 
-		if ref_doc.docstatus in (0, 2) and ref_doc.has_permission("delete"):
+		if ref_doc.docstatus == 2 and ref_doc.has_permission("delete"):
+			# Deletion must still be possible if users have the permission to delete the linked document
 			return
 
 		frappe.throw(
