@@ -18,29 +18,31 @@
    "reqd": 1
   },
   {
-   "default": "\"\"",
-   "fieldname": "initial_value",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Initial Value"
-  },
-  {
    "fieldname": "variable_type",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Variable Type",
    "options": "String\nNumber\nBoolean\nObject"
+  },
+  {
+   "fieldname": "initial_value",
+   "fieldtype": "JSON",
+   "in_list_view": 1,
+   "label": "Initial Value",
+   "max_height": "150px"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-02-18 15:19:44.924655",
+ "modified": "2025-03-24 18:01:59.292833",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page Variable",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
