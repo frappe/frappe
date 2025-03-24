@@ -26,7 +26,7 @@
   },
   {
    "fieldname": "initial_value",
-   "fieldtype": "JSON",
+   "fieldtype": "Code",
    "in_list_view": 1,
    "label": "Initial Value",
    "max_height": "150px"
@@ -36,7 +36,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-03-24 18:01:59.292833",
+ "modified": "2025-03-24 19:28:58.162778",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page Variable",

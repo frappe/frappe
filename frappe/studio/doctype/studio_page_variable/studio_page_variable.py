@@ -14,7 +14,7 @@ class StudioPageVariable(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		initial_value: DF.JSON | None
+		initial_value: DF.Code | None
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
