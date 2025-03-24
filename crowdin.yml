@@ -9,18 +9,18 @@ commit_message: "fix: %language% translations"
 append_commit_message: false
 languages_mapping:
   locale_with_underscore:
-    ar_SA: ar
-    bs_BA: bs
-    de_DE: de
-    eo_UY: eo
-    es_ES: es
-    fa_IR: fa
-    fr_FR: fr
-    hr_HR: hr
-    hu_HU: hu
-    pl_PL: pl
-    ru_RU: ru
-    sv_SE: sv
-    th_TH: th
-    tr_TR: tr
-    zh_CN: zh
+    ar: ar
+    bs: bs
+    de: de
+    eo: eo
+    es-ES: es
+    fa: fa
+    fr: fr
+    hr: hr
+    hu: hu
+    pl: pl
+    ru: ru
+    sv-SE: sv
+    th: th
+    tr: tr
+    zh-CN: zh
