@@ -319,10 +319,12 @@ const getInitialValue = (variable: Variable) => {
 			return JSON.stringify(variable.initial_value)
 		} catch (error) {
 			toast.error("Invalid Object")
-			return {}
+			throw new Error("Invalid Object")
 		}
+	} else if (variable.variable_type === "String" && !variable.initial_value) {
+		return JSON.stringify("")
 	}
-	return variable.initial_value?.toString()
+	return JSON.stringify(variable.initial_value)
 }
 
 const addVariable = (variable: Variable) => {
