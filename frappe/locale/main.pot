@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Framework VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2025-03-23 09:33+0000\n"
-"PO-Revision-Date: 2025-03-23 09:33+0000\n"
+"POT-Creation-Date: 2025-03-24 14:27+0000\n"
+"PO-Revision-Date: 2025-03-24 14:27+0000\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -23207,6 +23207,12 @@ msgstr ""
 msgid "Send Email Print Attachments as PDF (Recommended)"
 msgstr ""
 
+#. Label of the send_email_to_creator (Check) field in DocType 'Workflow
+#. Transition'
+#: frappe/workflow/doctype/workflow_transition/workflow_transition.json
+msgid "Send Email To Creator"
+msgstr ""
+
 #. Label of the send_email_for_successful_backup (Check) field in DocType
 #. 'Dropbox Settings'
 #. Label of the send_email_for_successful_backup (Check) field in DocType 'S3
@@ -29424,7 +29430,7 @@ msgstr ""
 
 #. Name of a DocType
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
-#: frappe/workflow/doctype/workflow_action/workflow_action.py:439
+#: frappe/workflow/doctype/workflow_action/workflow_action.py:440
 msgid "Workflow Action"
 msgstr ""
 
