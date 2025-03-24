@@ -120,6 +120,13 @@
 								v-model="variableRef.initial_value"
 							/>
 							<FormControl
+								v-else-if="variableRef.variable_type === 'Number'"
+								label="Initial Value"
+								type="number"
+								:modelValue="variableRef.initial_value"
+								@update:modelValue="variableRef.initial_value = Number($event)"
+							/>
+							<FormControl
 								v-else
 								label="Initial Value"
 								v-model="variableRef.initial_value"
