@@ -1,6 +1,7 @@
 # Copyright (c) 2024, Frappe Technologies Pvt Ltd and contributors
 # For license information, please see license.txt
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
 from studio.utils import camel_case_to_kebab_case
@@ -54,6 +55,15 @@ class StudioPage(Document):
 		# vue router needs a leading slash
 		if not self.route.startswith("/"):
 			self.route = f"/{self.route}"
+
+		self.validate_variables()
+
+	def validate_variables(self):
+		# check for duplicate variable names and show the duplicate variable name
+		variable_names = [variable.variable_name for variable in self.variables]
+		duplicate_variable_names = set(x for x in variable_names if variable_names.count(x) > 1)
+		if duplicate_variable_names:
+			frappe.throw(_("Duplicate variable name: {0}").format(", ".join(duplicate_variable_names)))
 
 	@frappe.whitelist()
 	def publish(self, **kwargs):

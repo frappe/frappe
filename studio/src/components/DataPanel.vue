@@ -326,21 +326,29 @@ const getInitialValue = (variable: Variable) => {
 }
 
 const addVariable = (variable: Variable) => {
-	studioVariables.insert
-		.submit({
+	studioVariables.insert.submit(
+		{
 			variable_name: variable.variable_name,
 			variable_type: variable.variable_type,
 			initial_value: getInitialValue(variable),
 			parent: store.activePage?.name,
 			parenttype: "Studio Page",
 			parentfield: "variables",
-		})
-		.then(async () => {
-			if (store.activePage) {
-				await store.setPageVariables(store.activePage)
-			}
-			showVariableDialog.value = false
-		})
+		},
+		{
+			async onSuccess() {
+				if (store.activePage) {
+					await store.setPageVariables(store.activePage)
+				}
+				showVariableDialog.value = false
+			},
+			onError(error: any) {
+				toast.error("Failed to add variable", {
+					description: error.messages.join(", "),
+				})
+			},
+		},
+	)
 }
 
 const editVariable = (variable: Variable) => {
