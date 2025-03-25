@@ -80,10 +80,10 @@ const boundValue = computed({
 	get() {
 		const modelValue = props.block.componentProps.modelValue
 		if (modelValue?.$type === "variable") {
-			// Return the variable value from the store
 			return store.variables[modelValue.name]
+		} else if (isDynamicValue(modelValue)) {
+			return getDynamicValue(modelValue, { ...store.resources, ...store.variables })
 		}
-		// Return the plain value if not bound to a variable
 		return modelValue
 	},
 	set(newValue) {

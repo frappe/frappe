@@ -203,13 +203,6 @@ const boundValue = computed({
 		return modelValue
 	},
 	set(newValue) {
-		if (typeof newValue === "string" && newValue.startsWith("{{")) {
-			const varName = newValue.replace(/[{} ]/g, "")
-			if (store.variables.value[varName]) {
-				bindVariable("modelValue", varName)
-				return
-			}
-		}
 		props.block?.setProp("modelValue", newValue)
 	},
 })
