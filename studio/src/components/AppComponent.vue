@@ -48,14 +48,15 @@ const store = useAppStore()
 const getComponentProps = () => {
 	if (!props.block || props.block.isRoot()) return []
 
-	const componentProps = { ...props.block.componentProps }
+	const propValues = { ...props.block.componentProps }
+	delete propValues.modelValue
 
-	Object.entries(componentProps).forEach(([propName, config]) => {
+	Object.entries(propValues).forEach(([propName, config]) => {
 		if (isDynamicValue(config)) {
-			componentProps[propName] = getDynamicValue(config, { ...store.resources, ...store.variables })
+			propValues[propName] = getDynamicValue(config, { ...store.resources, ...store.variables })
 		}
 	})
-	return componentProps
+	return propValues
 }
 
 const attrs = useAttrs()
