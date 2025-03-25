@@ -116,7 +116,7 @@
 								v-if="variableRef.variable_type === 'Object'"
 								label="Initial Value"
 								type="JavaScript"
-								height="60px"
+								height="250px"
 								v-model="variableRef.initial_value"
 							/>
 							<FormControl
