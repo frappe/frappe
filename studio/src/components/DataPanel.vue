@@ -1,13 +1,13 @@
 <template>
 	<div class="flex flex-col gap-3 p-4">
 		<CollapsibleSection sectionName="Data Sources">
-			<div class="flex flex-col gap-2" v-if="!isObjectEmpty(store.resources)">
+			<div class="ml-3 flex flex-col gap-2" v-if="!isObjectEmpty(store.resources)">
 				<div
 					v-for="(resource, resource_name) in store.resources"
 					:key="resource_name"
 					class="group/resource flex flex-row justify-between"
 				>
-					<ObjectBrowser :object="resource" :name="resource_name" class="overflow-hidden" />
+					<ObjectBrowser :object="resource" :name="resource_name" class="-ml-[0.9rem] overflow-hidden" />
 					<div
 						class="invisible -mt-1 ml-auto self-start text-gray-600 group-hover/resource:visible has-[.active-item]:visible"
 					>
@@ -40,7 +40,7 @@
 
 		<!-- Variables -->
 		<CollapsibleSection sectionName="Variables">
-			<div class="flex flex-col gap-1" v-if="!isObjectEmpty(store.variables)">
+			<div class="ml-3 flex flex-col gap-1" v-if="!isObjectEmpty(store.variables)">
 				<div
 					v-for="(value, variable_name) in store.variables"
 					:key="variable_name"
@@ -50,7 +50,7 @@
 						v-if="typeof value === 'object'"
 						:object="value"
 						:name="variable_name"
-						class="overflow-hidden"
+						class="-ml-[0.9rem] overflow-hidden"
 					/>
 					<div v-else class="flex flex-row justify-between">
 						<div class="text-sm font-semibold text-pink-700">{{ variable_name }}</div>
