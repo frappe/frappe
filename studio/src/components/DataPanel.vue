@@ -330,6 +330,9 @@ const getInitialValue = (variable: Variable) => {
 		}
 	} else if (variable.variable_type === "String" && !variable.initial_value) {
 		return JSON.stringify("")
+	} else if (variable.variable_type === "Boolean" && typeof variable.initial_value === "string") {
+		// return string as is - to avoid saving false as "false" in the backend field
+		return variable.initial_value
 	}
 	return JSON.stringify(variable.initial_value)
 }
