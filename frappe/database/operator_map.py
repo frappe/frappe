@@ -134,6 +134,7 @@ OPERATOR_MAP: dict[str, Callable] = {
 	"between": func_between,
 	"is": func_is,
 	"timespan": func_timespan,
-	"nested_set": NestedSetHierarchy,
 	# TODO: Add support for custom operators (WIP) - via filters_config hooks
 }
+
+NESTED_SET_OPERATORS = frozenset(NestedSetHierarchy)

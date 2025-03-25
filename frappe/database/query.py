@@ -2,14 +2,14 @@ import re
 from ast import literal_eval
 from functools import lru_cache
 from types import BuiltinFunctionType
-from typing import TYPE_CHECKING, TypeAlias
+from typing import TYPE_CHECKING
 
 import sqlparse
 from pypika.queries import QueryBuilder, Table
 
 import frappe
 from frappe import _
-from frappe.database.operator_map import OPERATOR_MAP
+from frappe.database.operator_map import NESTED_SET_OPERATORS, OPERATOR_MAP
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.database.utils import DefaultOrderBy, FilterValue, convert_to_value, get_doctype_name
 from frappe.query_builder import Criterion, Field, Order, functions
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 TAB_PATTERN = re.compile("^tab")
 WORDS_PATTERN = re.compile(r"\w+")
 BRACKETS_PATTERN = re.compile(r"\(.*?\)|$")
-SQL_FUNCTIONS = [sql_function.value for sql_function in SqlFunctions]
+SQL_FUNCTIONS = tuple(f"{sql_function.value}(" for sql_function in SqlFunctions)  # ) <- ignore this comment.
 COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
 
 # less restrictive version of frappe.core.doctype.doctype.doctype.START_WITH_LETTERS_PATTERN
@@ -51,8 +51,11 @@ class Engine:
 		skip_locked: bool = False,
 		wait: bool = True,
 	) -> QueryBuilder:
-		self.is_mariadb = frappe.db.db_type == "mariadb"
-		self.is_postgres = frappe.db.db_type == "postgres"
+		qb = frappe.local.qb
+		db_type = frappe.local.db.db_type
+
+		self.is_mariadb = db_type == "mariadb"
+		self.is_postgres = db_type == "postgres"
 		self.validate_filters = validate_filters
 
 		if isinstance(table, Table):
@@ -61,16 +64,16 @@ class Engine:
 		else:
 			self.doctype = table
 			self.validate_doctype()
-			self.table = frappe.qb.DocType(table)
+			self.table = qb.DocType(table)
 
 		if update:
-			self.query = frappe.qb.update(self.table)
+			self.query = qb.update(self.table)
 		elif into:
-			self.query = frappe.qb.into(self.table)
+			self.query = qb.into(self.table)
 		elif delete:
-			self.query = frappe.qb.from_(self.table).delete()
+			self.query = qb.from_(self.table).delete()
 		else:
-			self.query = frappe.qb.from_(self.table)
+			self.query = qb.from_(self.table)
 			self.apply_fields(fields)
 
 		self.apply_filters(filters)
@@ -196,7 +199,7 @@ class Engine:
 			_value = ("",)
 
 		# Nested set
-		if _operator in OPERATOR_MAP["nested_set"]:
+		if _operator in NESTED_SET_OPERATORS:
 			hierarchy = _operator
 			docname = _value
 
@@ -302,10 +305,8 @@ class Engine:
 	def parse_fields(self, fields: str | list | tuple | None) -> list:
 		if not fields:
 			return []
-		fields = self.sanitize_fields(fields)
-		if isinstance(fields, list | tuple | set) and None in fields and Field not in fields:
-			return []
 
+		fields = self.sanitize_fields(fields)
 		if not isinstance(fields, list | tuple):
 			fields = [fields]
 
@@ -339,11 +340,12 @@ class Engine:
 	def apply_order_by(self, order_by: str | None):
 		if not order_by or order_by == DefaultOrderBy:
 			return
+
 		for declaration in order_by.split(","):
 			if _order_by := declaration.strip():
 				parts = _order_by.split(" ")
-				order_field, order_direction = parts[0], parts[1] if len(parts) > 1 else "desc"
-				order_direction = Order.asc if order_direction.lower() == "asc" else Order.desc
+				order_field = parts[0]
+				order_direction = Order.asc if (len(parts) > 1 and parts[1].lower() == "asc") else Order.desc
 				self.query = self.query.orderby(order_field, order=order_direction)
 
 
@@ -516,11 +518,11 @@ def literal_eval_(literal):
 		return literal
 
 
-def has_function(field):
-	_field = field.casefold() if (isinstance(field, str) and "`" not in field) else field
-	if not issubclass(type(_field), Criterion):
-		if any([f"{func}(" in _field for func in SQL_FUNCTIONS]):  # ) <- ignore this comment.
-			return True
+def has_function(field: str):
+	if "`" not in field:
+		field = field.casefold()
+
+	return any(func in field for func in SQL_FUNCTIONS)
 
 
 def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str) -> list[str]:

@@ -1906,7 +1906,7 @@ def get_link_to_report(
 					for value in v
 				)
 			else:
-				conditions.append(str(k) + "=" + str(v))
+				conditions.append(str(k) + "=" + quote(str(v)))
 
 		filters = "&".join(conditions)
 
@@ -2005,6 +2005,14 @@ def filter_operator_is(value: str, pattern: str) -> bool:
 		frappe.throw(frappe._(f"Invalid argument for operator 'IS': {pattern}"))
 
 
+def filter_operator_timespan(value: str, pattern: str) -> bool:
+	if not value:
+		return False
+
+	date_range = get_timespan_date_range(pattern)
+	return date_range[0] <= getdate(value) <= date_range[1]
+
+
 operator_map = {
 	# startswith
 	"^": lambda a, b: (a or "").startswith(b),
@@ -2023,6 +2031,7 @@ operator_map = {
 	"like": sql_like,
 	"not like": lambda a, b: not sql_like(a, b),
 	"is": filter_operator_is,
+	"Timespan": filter_operator_timespan,
 }
 
 
@@ -2041,7 +2050,8 @@ def evaluate_filters(doc: "Mapping", filters: FilterSignature):
 def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None):
 	if fieldtype:
 		val1 = cast(fieldtype, val1)
-		val2 = cast(fieldtype, val2)
+		if condition != "Timespan":
+			val2 = cast(fieldtype, val2)
 	if condition in operator_map:
 		return operator_map[condition](val1, val2)
 

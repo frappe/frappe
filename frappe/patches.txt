@@ -243,3 +243,4 @@ frappe.patches.v16_0.add_app_launcher_in_navbar_settings
 frappe.desk.doctype.workspace.patches.update_app
 frappe.patches.v16_0.move_role_desk_settings_to_user
 frappe.printing.doctype.print_format.patches.sets_wkhtmltopdf_as_default_for_pdf_generator_field
+frappe.patches.v14_0.fix_user_settings_collation

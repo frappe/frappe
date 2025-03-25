@@ -11,13 +11,16 @@ from types import NoneType
 import frappe
 
 _SITE_CACHE = defaultdict(dict)
+_KWD_MARK = object()  # sentinel for separating args from kwargs
 
 
-def __generate_request_cache_key(args: tuple, kwargs: dict) -> int:
+def __generate_request_cache_key(args: tuple, kwargs: dict) -> tuple:
 	"""Generate a key for the cache."""
+
 	if not kwargs:
-		return hash(args)
-	return hash((args, frozenset(kwargs.items())))
+		return args
+
+	return (args, _KWD_MARK, frozenset(kwargs.items()))
 
 
 def request_cache(func: Callable) -> Callable:
@@ -60,7 +63,11 @@ def request_cache(func: Callable) -> Callable:
 
 		try:
 			return _cache[func][args_key]
+		except TypeError:
+			# args_key is not hashable
+			return func(*args, **kwargs)
 		except KeyError:
+			# cache miss
 			return_val = func(*args, **kwargs)
 			_cache[func][args_key] = return_val
 			return return_val
@@ -102,11 +109,9 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 	"""
 
 	def time_cache_wrapper(func: Callable | None = None) -> Callable:
-		func_key = f"{func.__module__}.{func.__name__}"
-
 		def clear_cache():
 			"""Clear cache for this function for all sites if not specified."""
-			_SITE_CACHE[func_key].clear()
+			_SITE_CACHE[func].clear()
 
 		func.clear_cache = clear_cache
 
@@ -123,7 +128,7 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 			if not site:
 				return func(*args, **kwargs)
 
-			arguments_key = f"{site}::{__generate_request_cache_key(args, kwargs)}"
+			arguments_key = (site, __generate_request_cache_key(args, kwargs))
 
 			if hasattr(func, "ttl") and time.monotonic() >= func.expiration:
 				func.clear_cache()
@@ -134,10 +139,12 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 			#   2. Other thread can pop the exact elemement we are reading if maxsize is hit.
 
 			# NOTE: Keep a local reference to dictionary of interest so it doesn't get swapped
-			function_cache = _SITE_CACHE[func_key]
+			function_cache = _SITE_CACHE[func]
 
 			try:
 				return function_cache[arguments_key]
+
+			# not handling TypeError here, expecting arguments_key to be hashable
 			except (KeyError, RuntimeError):
 				# NOTE: This is just a cache miss or dictionary was modified while reading it
 				pass
@@ -180,7 +187,7 @@ def redis_cache(ttl: int | None = 3600, user: str | bool | None = None, shared: 
 
 		@wraps(func)
 		def redis_cache_wrapper(*args, **kwargs):
-			func_call_key = func_key + "::" + str(__generate_request_cache_key(args, kwargs))
+			func_call_key = f"{func_key}::{hash(__generate_request_cache_key(args, kwargs))}"
 			cached_val = frappe.cache.get_value(func_call_key, user=user, shared=shared)
 			if cached_val is not None:
 				return cached_val

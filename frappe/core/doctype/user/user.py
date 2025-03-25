@@ -31,7 +31,8 @@ from frappe.utils import (
 	now_datetime,
 	today,
 )
-from frappe.utils.data import sha256_hash, strip_html
+from frappe.utils.data import sha256_hash
+from frappe.utils.html_utils import sanitize_html
 from frappe.utils.password import check_password, get_password_reset_limit
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
@@ -312,12 +313,9 @@ class User(Document):
 		return self.name == frappe.session.user
 
 	def clean_name(self):
-		if self.first_name:
-			self.first_name = strip_html(self.first_name)
-		if self.middle_name:
-			self.middle_name = strip_html(self.middle_name)
-		if self.last_name:
-			self.last_name = strip_html(self.last_name)
+		for field in ("first_name", "middle_name", "last_name"):
+			if field_value := self.get(field):
+				self.set(field, sanitize_html(field_value, always_sanitize=True))
 
 	def set_full_name(self):
 		self.full_name = " ".join(filter(None, [self.first_name, self.last_name]))

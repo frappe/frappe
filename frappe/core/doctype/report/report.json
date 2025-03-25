@@ -73,6 +73,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval: doc.report_type !== \"Report Builder\"",
    "fieldname": "add_total_row",
    "fieldtype": "Check",
    "label": "Add Total Row"
@@ -206,7 +207,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-11 10:42:45.591937",
+ "modified": "2025-03-12 17:08:09.629411",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",

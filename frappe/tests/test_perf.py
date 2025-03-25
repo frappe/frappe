@@ -224,16 +224,6 @@ class TestPerformance(IntegrationTestCase):
 		with self.assertRedisCallCounts(1):
 			redis_cached_func()
 
-	def test_one_time_setup(self):
-		site = frappe.local.site
-		frappe.init(site, force=True)
-		run = frappe.qb._BuilderClasss.run
-
-		frappe.init(site, force=True)
-		patched_run = frappe.qb._BuilderClasss.run
-
-		self.assertIs(run, patched_run, "frappe.init should run one-time patching code just once")
-
 	def test_idle_cpu_utilization_redis_pubsub(self):
 		pid = frappe.client_cache.invalidator_thread.native_id
 		process = psutil.Process(pid)

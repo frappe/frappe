@@ -17,7 +17,7 @@ from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 
 import frappe
 import frappe.defaults
-from frappe import _
+from frappe import _, _dict
 from frappe.database.utils import (
 	DefaultOrderBy,
 	EmptyQueryValues,
@@ -27,6 +27,7 @@ from frappe.database.utils import (
 	Query,
 	QueryValues,
 	convert_to_value,
+	get_query_type,
 	is_query_type,
 )
 from frappe.exceptions import DoesNotExistError, ImplicitCommitError
@@ -37,6 +38,8 @@ from frappe.utils import CallbackManager, cint, get_datetime, get_table_name, ge
 from frappe.utils import cast as cast_fieldtype
 
 if TYPE_CHECKING:
+	from MySQLdb.connections import Connection as MySQLdbConnection
+	from MySQLdb.cursors import Cursor as MySQLdbCursor
 	from psycopg2 import connection as PostgresConnection
 	from psycopg2 import cursor as PostgresCursor
 	from pymysql.connections import Connection as MariadbConnection
@@ -46,6 +49,14 @@ IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
 SINGLE_WORD_PATTERN = re.compile(r'([`"]?)(tab([A-Z]\w+))\1')
 MULTI_WORD_PATTERN = re.compile(r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1')
+
+# Query Types
+DDL_QUERY_TYPES = frozenset(("alter", "drop", "create", "truncate", "rename"))
+IMPLICIT_COMMIT_QUERY_TYPES = frozenset(("start", "alter", "drop", "create", "begin", "truncate"))
+CREATE_OR_DROP = frozenset(("create", "drop"))
+COMMIT_OR_ROLLBACK = frozenset(("commit", "rollback"))
+WRITE_QUERY_TYPES = frozenset(("update", "insert", "delete"))
+QUERY_TYPES_FOR_LOG_TOUCHED_TABLES = frozenset(("insert", "delete", "update", "alter", "drop", "rename"))
 
 SQL_ITERATOR_BATCH_SIZE = 1000
 
@@ -117,8 +128,8 @@ class Database:
 
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
-		self._conn: MariadbConnection | PostgresConnection = self.get_connection()
-		self._cursor: MariadbCursor | PostgresCursor = self._conn.cursor()
+		self._conn: MySQLdbConnection | MariadbConnection | PostgresConnection = self.get_connection()
+		self._cursor: MySQLdbCursor | MariadbCursor | PostgresCursor = self._conn.cursor()
 
 		try:
 			if execution_timeout := get_query_execution_timeout():
@@ -202,21 +213,27 @@ class Database:
 
 		debug = debug or getattr(self, "debug", False)
 		query = str(query)
+
 		if not run:
 			return query
 
-		# remove whitespace / indentation from start and end of query
-		query = query.strip()
+		query_type = get_query_type(query)
 
-		# replaces ifnull in query with coalesce
-		query = IFNULL_PATTERN.sub("coalesce(", query)
+		if explain:
+			if debug and query_type == "select":
+				self.explain_query(query, values)
+			return
+
+		# remove whitespace / indentation from start and end of query
+		# and replace ifnull in query with coalesce
+		query = IFNULL_PATTERN.sub("coalesce(", query.strip())
 
 		if not self._conn:
 			self.connect()
 
 		# in transaction validations
-		self.check_transaction_status(query)
-		self.clear_db_table_cache(query)
+		self.check_transaction_status(query, query_type)
+		self.clear_db_table_cache(query_type)
 
 		if auto_commit:
 			self.commit()
@@ -277,7 +294,7 @@ class Database:
 			time_end = time()
 			frappe.log(f"Execution time: {time_end - time_start:.2f} sec")
 
-		self.log_query(query, values, debug, explain)
+		self.log_query(query, query_type, values, debug)
 
 		if auto_commit:
 			self.commit()
@@ -316,7 +333,7 @@ class Database:
 			elif as_dict:
 				keys = [column[0] for column in self._cursor.description]
 				for row in result:
-					row = frappe._dict(zip(keys, row, strict=False))
+					row = _dict(zip(keys, row, strict=False))
 					if update:
 						row.update(update)
 					yield row
@@ -332,49 +349,37 @@ class Database:
 	def _log_query(
 		self,
 		mogrified_query: str,
+		query_type: str,
 		debug: bool = False,
-		explain: bool = False,
 		unmogrified_query: str = "",
 	) -> None:
 		"""Takes the query and logs it to various interfaces according to the settings."""
 		_query = None
+		conf = frappe.local.conf
 
-		if (
-			frappe.conf.allow_tests
-			and frappe.conf.developer_mode
-			and frappe.cache.get_value("flag_print_sql")
-		):
+		if conf.allow_tests and get_print_sql_flag():
 			_query = _query or str(mogrified_query)
 			print(_query)
 
 		if debug:
 			_query = _query or str(mogrified_query)
-			if explain and is_query_type(_query, "select"):
-				self.explain_query(_query)
 			frappe.log(_query)
 
-		if frappe.conf.logging == 2:
+		if conf.logging == 2:
 			_query = _query or str(mogrified_query)
 			frappe.log(f"#### query\n{_query}\n####")
 
-		if unmogrified_query and is_query_type(
-			unmogrified_query, ("alter", "drop", "create", "truncate", "rename")
-		):
+		if query_type in DDL_QUERY_TYPES:
 			_query = _query or str(mogrified_query)
 			self.logger.warning("DDL Query made to DB:\n" + _query)
 
-		if frappe.flags.in_migrate:
+		if frappe.local.flags.in_migrate:
 			_query = _query or str(mogrified_query)
-			self.log_touched_tables(_query)
+			self.log_touched_tables(_query, query_type)
 
-	def log_query(
-		self, query: str, values: QueryValues = None, debug: bool = False, explain: bool = False
-	) -> str:
-		# TODO: Use mogrify until MariaDB Connector/C 1.1 is released and we can fetch something
-		# like cursor._transformed_statement from the cursor object. We can also avoid setting
-		# mogrified_query if we don't need to log it.
+	def log_query(self, query: str, query_type: str, values: QueryValues = None, debug: bool = False) -> str:
 		mogrified_query = self.lazy_mogrify(query, values)
-		self._log_query(mogrified_query, debug, explain, unmogrified_query=query)
+		self._log_query(mogrified_query, query_type, debug, query)
 		return mogrified_query
 
 	def mogrify(self, query: Query, values: QueryValues):
@@ -427,16 +432,21 @@ class Database:
 		self.sql(query, debug=debug)
 		self._disable_transaction_control = transaction_control
 
-	def check_transaction_status(self, query: str):
+	def check_transaction_status(self, query: str, query_type: str | None = None):
 		"""Raises exception if more than 200,000 `INSERT`, `UPDATE` queries are
 		executed in one transaction. This is to ensure that writes are always flushed otherwise this
 		could cause the system to hang."""
-		self.check_implicit_commit(query)
 
-		if query and is_query_type(query, ("commit", "rollback")):
+		if not query_type:
+			query_type = get_query_type(query)
+
+		self.check_implicit_commit(query, query_type)
+
+		if query_type in COMMIT_OR_ROLLBACK:
 			self.transaction_writes = 0
+			return
 
-		if query.lstrip()[:6].lower() in ("update", "insert", "delete"):
+		if query_type in WRITE_QUERY_TYPES:
 			self.transaction_writes += 1
 			if self.transaction_writes > self.MAX_WRITES_PER_TRANSACTION:
 				if self.auto_commit_on_many_writes:
@@ -446,24 +456,21 @@ class Database:
 					msg += _("The changes have been reverted.") + "<br>"
 					raise frappe.TooManyWritesError(msg)
 
-	def check_implicit_commit(self, query: str):
-		if (
-			self.transaction_writes
-			and query
-			and is_query_type(query, ("start", "alter", "drop", "create", "begin", "truncate"))
-		):
+	def check_implicit_commit(self, query: str, query_type: str):
+		if query_type in IMPLICIT_COMMIT_QUERY_TYPES and self.transaction_writes:
 			raise ImplicitCommitError("This statement can cause implicit commit", query)
 
-	def fetch_as_dict(self, result) -> list[frappe._dict]:
+	def fetch_as_dict(self, result) -> list[_dict]:
 		"""Internal. Convert results to dict."""
-		if result:
-			keys = [column[0] for column in self._cursor.description]
+		if not result:
+			return []
 
-		return [frappe._dict(zip(keys, row, strict=False)) for row in result]
+		keys = [column[0] for column in self._cursor.description]
+		return [_dict(zip(keys, row, strict=False)) for row in result]
 
 	@staticmethod
-	def clear_db_table_cache(query):
-		if query and is_query_type(query, ("drop", "create")):
+	def clear_db_table_cache(query_type: str):
+		if query_type in CREATE_OR_DROP:
 			frappe.client_cache.delete_value("db_tables")
 
 	def get_description(self):
@@ -736,7 +743,7 @@ class Database:
 			if not r:
 				return []
 
-			r = frappe._dict(r)
+			r = _dict(r)
 			if update:
 				r.update(update)
 
@@ -766,14 +773,14 @@ class Database:
 		).run(debug=debug)
 
 		if not cast:
-			return frappe._dict(queried_result)
+			return _dict(queried_result)
 
 		try:
 			meta = frappe.get_meta(doctype)
 		except DoesNotExistError:
-			return frappe._dict(queried_result)
+			return _dict(queried_result)
 
-		return_value = frappe._dict()
+		return_value = _dict()
 
 		for fieldname, value in queried_result:
 			if df := meta.get_field(fieldname):
@@ -1395,29 +1402,35 @@ class Database:
 		else:
 			return None
 
-	def log_touched_tables(self, query):
-		if is_query_type(query, ("insert", "delete", "update", "alter", "drop", "rename")):
-			# single_word_regex is designed to match following patterns
-			# `tabXxx`, tabXxx and "tabXxx"
+	def log_touched_tables(self, query, query_type):
+		if query_type not in QUERY_TYPES_FOR_LOG_TOUCHED_TABLES:
+			return
 
-			# multi_word_regex is designed to match following patterns
-			# `tabXxx Xxx` and "tabXxx Xxx"
+		# single_word_regex is designed to match following patterns
+		# `tabXxx`, tabXxx and "tabXxx"
 
-			# ([`"]?) Captures " or ` at the beginning of the table name (if provided)
-			# \1 matches the first captured group (quote character) at the end of the table name
-			# multi word table name must have surrounding quotes.
+		# multi_word_regex is designed to match following patterns
+		# `tabXxx Xxx` and "tabXxx Xxx"
 
-			# (tab([A-Z]\w+)( [A-Z]\w+)*) Captures table names that start with "tab"
-			# and are continued with multiple words that start with a captital letter
-			# e.g. 'tabXxx' or 'tabXxx Xxx' or 'tabXxx Xxx Xxx' and so on
+		# ([`"]?) Captures " or ` at the beginning of the table name (if provided)
+		# \1 matches the first captured group (quote character) at the end of the table name
+		# multi word table name must have surrounding quotes.
 
-			tables = []
-			for regex in (SINGLE_WORD_PATTERN, MULTI_WORD_PATTERN):
-				tables += [groups[1] for groups in regex.findall(query)]
+		# (tab([A-Z]\w+)( [A-Z]\w+)*) Captures table names that start with "tab"
+		# and are continued with multiple words that start with a captital letter
+		# e.g. 'tabXxx' or 'tabXxx Xxx' or 'tabXxx Xxx Xxx' and so on
 
-			if frappe.flags.touched_tables is None:
-				frappe.flags.touched_tables = set()
-			frappe.flags.touched_tables.update(tables)
+		tables = []
+		for regex in (SINGLE_WORD_PATTERN, MULTI_WORD_PATTERN):
+			tables += [groups[1] for groups in regex.findall(query)]
+
+		touched_tables = frappe.local.flags.touched_tables
+
+		if touched_tables is None:
+			touched_tables = set()
+			frappe.local.flags.touched_tables = touched_tables
+
+		touched_tables.update(tables)
 
 	def bulk_insert(
 		self,
@@ -1538,3 +1551,12 @@ def get_query_execution_timeout() -> int:
 			timeout = job.timeout
 
 	return int(cint(timeout) * 1.5)
+
+
+def get_print_sql_flag() -> bool:
+	flag_value = frappe.client_cache.get_value("flag_print_sql")
+	if flag_value is None:
+		flag_value = False
+		frappe.client_cache.set_value("flag_print_sql", flag_value)
+
+	return flag_value

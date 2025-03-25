@@ -24,7 +24,6 @@ from frappe.utils import (
 	add_trackers_to_url,
 	ceil,
 	dict_to_str,
-	evaluate_filters,
 	execute_in_shell,
 	floor,
 	flt,
@@ -59,6 +58,7 @@ from frappe.utils.data import (
 	cint,
 	cstr,
 	duration_to_seconds,
+	evaluate_filters,
 	expand_relative_urls,
 	get_datetime,
 	get_first_day_of_week,
@@ -217,6 +217,20 @@ class TestFilters(IntegrationTestCase):
 
 		for filter, expected_result in test_cases:
 			self.assertEqual(evaluate_filters(doc, filter), expected_result, msg=f"{filter}")
+
+	def test_timespan(self):
+		doc = {
+			"doctype": "User",
+			"last_password_reset_date": getdate(),
+		}
+		self.assertTrue(evaluate_filters(doc, [("last_password_reset_date", "Timespan", "today")]))
+		self.assertFalse(evaluate_filters(doc, [("last_password_reset_date", "Timespan", "last year")]))
+
+		doc = {
+			"doctype": "User",
+			"last_password_reset_date": None,
+		}
+		self.assertFalse(evaluate_filters(doc, [("last_password_reset_date", "Timespan", "today")]))
 
 
 class TestMoney(IntegrationTestCase):

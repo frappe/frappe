@@ -103,7 +103,7 @@ runs:
 
       sudo apt -qq update
       sudo apt -qq remove mysql-server mysql-client
-      sudo apt -qq install libcups2-dev redis-server mariadb-client
+      sudo apt -qq install libcups2-dev redis-server mariadb-client libmariadb-dev
 
       wget -q -O /tmp/wkhtmltox.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
       sudo apt install /tmp/wkhtmltox.deb

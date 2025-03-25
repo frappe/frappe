@@ -12,11 +12,10 @@ from typing import Any, NoReturn
 from uuid import uuid4
 
 import redis
-import setproctitle
 from redis.exceptions import BusyLoadingError, ConnectionError
 from rq import Callback, Queue, Worker
 from rq.defaults import DEFAULT_WORKER_TTL
-from rq.exceptions import NoSuchJobError
+from rq.exceptions import InvalidJobOperation, NoSuchJobError
 from rq.job import Job, JobStatus
 from rq.logutils import setup_loghandlers
 from rq.timeouts import JobTimeoutException
@@ -114,8 +113,8 @@ def enqueue(
 		if not job_id:
 			frappe.throw(_("`job_id` paramater is required for deduplication."))
 		job = get_job(job_id)
-		if job and job.get_status() in (JobStatus.QUEUED, JobStatus.STARTED):
-			frappe.logger().debug(f"Not queueing job {job.id} because it is in queue already")
+		if job and job.get_status(refresh=False) in (JobStatus.QUEUED, JobStatus.STARTED):
+			frappe.logger().error(f"Not queueing job {job.id} because it is in queue already")
 			return
 		elif job:
 			# delete job to avoid argument issues related to job args
@@ -236,9 +235,6 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		method = frappe.get_attr(method)
 	else:
 		method_name = f"{method.__module__}.{method.__qualname__}"
-
-	actual_func_name = kwargs.get("job_type") if "run_scheduled_job" in method_name else method_name
-	setproctitle.setproctitle(f"rq: Started running {actual_func_name} at {time.time()}")
 
 	frappe.local.job = frappe._dict(
 		site=site,
@@ -672,13 +668,13 @@ def is_job_enqueued(job_id: str) -> bool:
 def get_job_status(job_id: str) -> JobStatus | None:
 	"""Get RQ job status, returns None if job is not found."""
 	if job := get_job(job_id):
-		return job.get_status()
+		return job.get_status(refresh=False)
 
 
 def get_job(job_id: str) -> Job | None:
 	try:
 		return Job.fetch(create_job_id(job_id), connection=get_redis_conn())
-	except NoSuchJobError:
+	except (NoSuchJobError, InvalidJobOperation):
 		return None
 
 
@@ -716,16 +712,6 @@ def truncate_failed_registry(job, connection, type, value, traceback):
 		for job_ids in create_batch(failed_jobs, 100):
 			for job_obj in Job.fetch_many(job_ids=job_ids, connection=connection):
 				job_obj and fail_registry.remove(job_obj, delete_job=True)
-
-
-def flush_telemetry():
-	"""Forcefully flush pending events.
-
-	This is required in context of background jobs where process might die before posthog gets time
-	to push events."""
-	ph = getattr(frappe.local, "posthog", None)
-	with suppress(Exception):
-		ph and ph.flush()
 
 
 def _check_queue_size(q: Queue):

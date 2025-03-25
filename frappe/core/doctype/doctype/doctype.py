@@ -25,7 +25,7 @@ from frappe.model import (
 	no_value_fields,
 	table_fields,
 )
-from frappe.model.base_document import get_controller
+from frappe.model.base_document import RESERVED_KEYWORDS, get_controller
 from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
 from frappe.model.meta import Meta
@@ -1261,7 +1261,7 @@ def validate_fields(meta: Meta):
 		validate_column_name(fieldname)
 
 	def check_invalid_fieldnames(docname, fieldname):
-		if fieldname in Document._reserved_keywords:
+		if fieldname in RESERVED_KEYWORDS:
 			frappe.throw(
 				_("{0}: fieldname cannot be set to reserved keyword {1}").format(
 					frappe.bold(docname),

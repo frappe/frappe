@@ -44,8 +44,12 @@
                                 {{ package.name | e }}
                             </td>
                             <td class="type">{{ package.type }}</td>
-                            <td class="license"><i class="fa fa-spinner fa-spin"></i></td>
-                            <td class="author"><i class="fa fa-spinner fa-spin"></i></td>
+                            <td class="license">
+                                {{ package.license or "Unknown" }}
+                            </td>
+                            <td class="author">
+                                {{ package.author or "Unknown" }}
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -56,66 +60,5 @@
     </table>
 </section>
 {% endfor %}
-
-<script>
-    const tables = document.querySelectorAll('table.table-striped');
-    tables.forEach((table) => {
-        var package_cells = table.querySelectorAll('td.package');
-        package_cells.forEach((package_cell) => {
-            var name = package_cell.innerText;
-            var type_cell = package_cell.nextElementSibling;
-            var license_cell = type_cell.nextElementSibling;
-            var author_cell = license_cell.nextElementSibling;
-            if (type_cell.innerText === "JavaScript") {
-                get_info_from_npm(name).then((info) => {
-                    license_cell.innerText = info.license?.slice(0, 50);
-                    author_cell.innerText = info.author;
-                });
-            }
-            else if (type_cell.innerText === "Python") {
-                get_info_from_pypi(name).then((info) => {
-                    license_cell.innerText = info.license?.slice(0, 50);
-                    author_cell.innerText = info.author;
-                });
-            }
-        });
-    })
-
-    function get_info_from_npm(package) {
-        const registry_url = `https://registry.npmjs.org/${package}`;
-        return fetch(registry_url)
-            .then((response) => response.json())
-            .then((data) => {
-                return {
-                    license: (
-                        typeof data.license === "object" ? data.license.type : data.license
-                    ) || "Unknown",
-                    author: (
-                        data.author?.name ||
-                        data.maintainers?.map((c) => c.name).join(", ") ||
-                        "Unknown"
-                    )
-                }
-            });
-    }
-
-    function get_info_from_pypi(package) {
-        const registry_url = `https://pypi.org/pypi/${package}/json`;
-        return fetch(registry_url)
-            .then((response) => response.json())
-            .then((data) => {
-                return {
-                    license: data.info.license || "Unknown",
-                    author: (
-                        data.info.author ||
-                        data.info.maintainer ||
-                        data.info.author_email ||
-                        data.info.maintainer_email ||
-                        "Unknown"
-                    )
-                }
-            });
-    }
-</script>
 
 {% endblock %}

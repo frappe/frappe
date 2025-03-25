@@ -31,6 +31,15 @@ class TestComment(IntegrationTestCase):
 		self.assertEqual(comments[0].get("name"), comment.name)
 		self.assertEqual(comments[0].get("comment"), comment.content)
 
+		# Check comment count
+		counts = frappe.get_all("ToDo", {"name": test_doc.name}, ["*"], with_comment_count=True)
+		self.assertEqual(counts[0]._comment_count, 1)
+
+		comment = test_doc.add_comment("Comment", "test comment")
+
+		counts = frappe.get_all("ToDo", {"name": test_doc.name}, ["*"], with_comment_count=True)
+		self.assertEqual(counts[0]._comment_count, 2)
+
 		# check document creation
 		comment_1 = frappe.get_all(
 			"Comment",

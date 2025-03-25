@@ -16,7 +16,7 @@ import sqlparse
 
 import frappe
 from frappe import _
-from frappe.database.database import is_query_type
+from frappe.database.utils import is_query_type
 from frappe.utils import now_datetime
 
 RECORDER_INTERCEPT_FLAG = "recorder-intercept"
@@ -251,7 +251,7 @@ class Recorder:
 			profiler_output = io.StringIO()
 			pstats.Stats(self.profiler, stream=profiler_output).strip_dirs().sort_stats(
 				"cumulative"
-			).print_stats()
+			).print_stats(200)
 			profile = profiler_output.getvalue()
 			profiler_output.close()
 			return profile
@@ -259,7 +259,7 @@ class Recorder:
 	def dump(self):
 		if not self._recording:
 			return
-		profiler_output = self.process_profiler() or ""
+		profiler_output = self.process_profiler()
 
 		request_data = {
 			"uuid": self.uuid,
@@ -277,7 +277,7 @@ class Recorder:
 		request_data["calls"] = self.calls
 		request_data["headers"] = self.headers
 		request_data["form_dict"] = self.form_dict
-		request_data["profile"] = "".join(profiler_output.splitlines(keepends=True)[:200])
+		request_data["profile"] = profiler_output
 		frappe.cache.hset(RECORDER_REQUEST_HASH, self.uuid, request_data)
 
 		if self.config.record_sql:

@@ -59,10 +59,11 @@ export default class ShortcutWidget extends Widget {
 
 	set_actions() {
 		if (this.in_customize_mode) return;
-
-		$(frappe.utils.icon("es-line-arrow-up-right", "xs", "", "", "ml-2")).appendTo(
-			this.action_area
-		);
+		let icon_to_append = frappe.utils.icon("es-line-arrow-up-right", "xs", "", "", "ml-2");
+		if (frappe.utils.is_rtl(frappe.boot.lang)) {
+			icon_to_append = frappe.utils.icon("es-line-arrow-up-left", "xs", "", "", "ml-2");
+		}
+		$(icon_to_append).appendTo(this.action_area);
 
 		this.widget.addClass("shortcut-widget-box");
 

@@ -52,13 +52,14 @@ class RedisWrapper(redis.Redis):
 	def make_key(self, key, user=None, shared=False):
 		if shared:
 			return key
+
 		if user:
 			if user is True:
-				user = frappe.session.user
+				user = frappe.local.session.get("user")
 
 			key = f"user:{user}:{key}"
 
-		return f"{frappe.conf.db_name}|{key}".encode()
+		return f"{frappe.local.conf.get('db_name')}|{key}".encode()
 
 	def set_value(self, key, val, user=None, expires_in_sec=None, shared=False):
 		"""Sets cache value.

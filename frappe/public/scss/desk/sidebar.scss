@@ -64,7 +64,9 @@ body {
 	overflow: scroll;
 	overflow-x: hidden;
 	overflow-y: visible;
+	scrollbar-gutter: stable;
 }
+
 .body-sidebar-container {
 	display: flex;
 	flex-direction: column;
@@ -173,7 +175,7 @@ body {
 			}
 
 			svg {
-				margin: -2px;
+				margin: -4px;
 			}
 		}
 
@@ -657,6 +659,13 @@ body {
 				padding: 15px 15px 15px 25px;
 			}
 		}
+	}
+}
+
+@include media-breakpoint-down(sm) {
+	// dont show in mobile
+	.layout-side-section {
+		min-width: 0px;
 	}
 }
 

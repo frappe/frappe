@@ -103,13 +103,15 @@ frappe.ui.SortSelector = class SortSelector {
 
 		var { meta_sort_field, meta_sort_order } = this.get_meta_sort_field();
 
-		if (meta_sort_field) {
-			this.args.sort_by = meta_sort_field;
-			this.args.sort_order = meta_sort_order;
-		} else {
-			// default
-			this.args.sort_by = "creation";
-			this.args.sort_order = "desc";
+		if (!this.args.sort_by) {
+			if (meta_sort_field) {
+				this.args.sort_by = meta_sort_field;
+				this.args.sort_order = meta_sort_order;
+			} else {
+				// default
+				this.args.sort_by = "creation";
+				this.args.sort_order = "desc";
+			}
 		}
 
 		if (!this.args.sort_by_label) {

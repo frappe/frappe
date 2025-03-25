@@ -19,6 +19,8 @@ from frappe.model.utils import is_virtual_doctype
 from frappe.utils import add_user_info, cint, format_duration
 from frappe.utils.data import sbool
 
+DISALLOWED_PARAMS = ("cmd", "data", "ignore_permissions", "view", "user", "csrf_token", "join")
+
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -241,8 +243,9 @@ def update_wildcard_field_param(data):
 
 
 def clean_params(data):
-	for param in ("cmd", "data", "ignore_permissions", "view", "user", "csrf_token", "join"):
-		data.pop(param, None)
+	for param in DISALLOWED_PARAMS:
+		if param in data:
+			del data[param]
 
 
 def parse_json(data):
