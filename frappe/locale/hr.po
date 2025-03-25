@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-03-24 16:18\n"
+"PO-Revision-Date: 2025-03-25 16:32\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -11064,7 +11064,7 @@ msgstr ""
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:252
 msgid "Google Calendar - Could not find Calendar for {0}, error code {1}."
-msgstr ""
+msgstr "Google kalendar - Nije moguće pronaći Kalendar za {0}, kod pogreške {1}."
 
 #: frappe/integrations/doctype/google_contacts/google_contacts.py:234
 msgid "Google Calendar - Could not insert contact in Google Contacts {0}, error code {1}."
@@ -24697,7 +24697,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/list/list_sidebar.js:296
 msgid "Switch to Frappe CRM for smarter sales"
-msgstr ""
+msgstr "Prijeđi na Frappe CRM za pametniju prodaju"
 
 #: frappe/public/js/frappe/ui/capture.js:273
 msgid "Switching Camera"
@@ -27190,7 +27190,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/list/list_sidebar.js:308
 msgid "Upgrade your support experience with Frappe Helpdesk"
-msgstr ""
+msgstr "Nadogradi svoje iskustvo podrške uz Frappe Helpdesk"
 
 #: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:121
 #: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:122
