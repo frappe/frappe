@@ -485,6 +485,8 @@ const getInitialVariableValue = (variable: Variable) => {
 		initialValue = (initialValue === "true")
 	} else if (variable.variable_type === "Object" && typeof initialValue === "string") {
 		initialValue = JSON.parse(initialValue)
+	} else if (variable.variable_type === "String" && typeof initialValue === "string") {
+		initialValue = JSON.parse(initialValue)
 	}
 	return initialValue
 }
