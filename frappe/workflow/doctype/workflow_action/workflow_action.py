@@ -299,7 +299,8 @@ def get_users_next_action_data(transitions, doc):
 		filtered_users = [
 			user for user in users if has_approval_access(user, doc, transition) and user_has_permission(user)
 		]
-
+		if doc.get("owner") in filtered_users and not transition.get("send_email_to_creator"):
+			filtered_users.remove(doc.get("owner"))
 		for user in filtered_users:
 			if not user_data_map.get(user):
 				user_data_map[user] = frappe._dict(

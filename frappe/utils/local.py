@@ -2,7 +2,6 @@ from contextvars import ContextVar
 from typing import Any, Generic, TypeVar
 
 from werkzeug.local import LocalProxy as WerkzeugLocalProxy
-from werkzeug.local import _ProxyLookup
 from werkzeug.local import release_local as release_werkzeug_local
 
 _contextvar = ContextVar("frappe_local")
@@ -60,52 +59,38 @@ class Local:
 		return lp
 
 
-class LocalProxy(Generic[T]):
-	__slots__ = WerkzeugLocalProxy.__slots__
-	__init__ = WerkzeugLocalProxy.__init__
+class LocalProxy(WerkzeugLocalProxy, Generic[T]):
+	__slots__ = ()
 
-	for attr, val in vars(WerkzeugLocalProxy).items():
-		if attr == "__getattr__" or not isinstance(val, _ProxyLookup):
-			continue
-
-		locals()[attr] = val
-
-	def __getattribute__(self, name: str) -> Any:
-		if name in _local_proxy_attributes:
-			return object.__getattribute__(self, name)
-
-		return getattr(get_obj(self), name)
+	def __getattr__(self, name: str) -> Any:
+		return getattr(self._get_current_object(), name)
 
 	def __setattr__(self, name: str, value: str) -> None:
-		setattr(get_obj(self), name, value)
+		setattr(self._get_current_object(), name, value)
 
 	def __delattr__(self, name: str) -> None:
-		delattr(get_obj(self), name)
+		delattr(self._get_current_object(), name)
 
 	def __getitem__(self, key: str) -> Any:
-		return get_obj(self)[key]
+		return self._get_current_object()[key]
 
 	def __setitem__(self, key: str, value: str) -> None:
-		get_obj(self)[key] = value
+		self._get_current_object()[key] = value
 
 	def __delitem__(self, key: str) -> None:
-		del get_obj(self)[key]
+		del self._get_current_object()[key]
 
 	def __bool__(self) -> bool:
 		try:
-			return bool(get_obj(self))
+			return bool(self._get_current_object())
 		except RuntimeError:
 			return False
 
 	def __contains__(self, key: str) -> bool:
-		return key in get_obj(self)
+		return key in self._get_current_object()
 
 	def __str__(self) -> str:
-		return str(get_obj(self))
-
-
-def get_obj(lp: LocalProxy) -> Any:
-	return object.__getattribute__(lp, "_get_current_object")()
+		return str(self._get_current_object())
 
 
 def release_local(local):
@@ -117,4 +102,3 @@ def release_local(local):
 
 
 # _local_attributes = frozenset(attr for attr in dir(Local))
-_local_proxy_attributes = frozenset(attr for attr in dir(LocalProxy))

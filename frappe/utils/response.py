@@ -16,6 +16,7 @@ from urllib.parse import quote
 
 import werkzeug.utils
 from werkzeug.exceptions import Forbidden, NotFound
+from werkzeug.local import LocalProxy
 from werkzeug.wrappers import Response
 from werkzeug.wsgi import wrap_file
 
@@ -26,12 +27,10 @@ import frappe.utils
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils import format_timedelta
-from frappe.utils.local import LocalProxy, WerkzeugLocalProxy
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.file.file import File
 
-LocalProxyTypes = LocalProxy | WerkzeugLocalProxy
 DateOrTimeTypes = datetime.date | datetime.datetime | datetime.time
 
 
@@ -222,7 +221,7 @@ def json_handler(obj):
 	elif isinstance(obj, datetime.timedelta):
 		return format_timedelta(obj)
 
-	elif isinstance(obj, LocalProxyTypes):
+	elif isinstance(obj, LocalProxy):
 		return str(obj)
 
 	elif hasattr(obj, "__json__"):

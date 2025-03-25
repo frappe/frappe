@@ -32,9 +32,11 @@
 		</div>
 	</div>
 
+	{% if not disable_user_pass_login %}
 	<p class="forgot-password-message">
 		<a href="#forgot">{{ _("Forgot Password?") }}</a>
 	</p>
+	{% endif %}
 </div>
 {% endif %}
 <div class="page-card-actions">
@@ -43,7 +45,7 @@
 		{{ _("Login") }}</button>
 	{% endif %}
 	{% if ldap_settings and ldap_settings.enabled %}
-	<button class="btn btn-sm btn-default btn-block btn-login btn-ldap-login">
+	<button class="btn btn-sm {{ "btn-primary" if disable_user_pass_login else "btn-default" }} btn-block btn-login btn-ldap-login">
 		{{ _("Login with LDAP") }}</button>
 	{% endif %}
 </div>
