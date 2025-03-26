@@ -2,7 +2,7 @@
 	<component
 		ref="componentRef"
 		v-show="showComponent"
-		:is="components.getComponent(block.componentName)"
+		:is="block.componentName"
 		v-bind="componentProps"
 		v-model="boundValue"
 		:data-component-id="block.componentId"
@@ -31,7 +31,6 @@ import Block from "@/utils/block"
 import { computed, onMounted, ref, useAttrs } from "vue"
 import { useRouter, useRoute } from "vue-router"
 import { createResource } from "frappe-ui"
-import components from "@/data/components"
 import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML, executeUserScript } from "@/utils/helpers"
 
 import useAppStore from "@/stores/appStore"
