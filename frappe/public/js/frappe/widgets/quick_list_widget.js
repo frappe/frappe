@@ -158,10 +158,11 @@ export default class QuickListWidget extends Widget {
 				</div>
 			`).appendTo($quick_list_item);
 		}
-
-		$(`<div class="right-arrow">${frappe.utils.icon("right", "xs")}</div>`).appendTo(
-			$quick_list_item
-		);
+		let icon_to_append = `<div class="right-arrow">${frappe.utils.icon("right", "xs")}</div>`;
+		if (frappe.utils.is_rtl(frappe.boot.lang)) {
+			icon_to_append = `<div class="left-arrow">${frappe.utils.icon("left", "xs")}</div>`;
+		}
+		$(icon_to_append).appendTo($quick_list_item);
 
 		$quick_list_item.click((e) => {
 			if (e.ctrlKey || e.metaKey) {
