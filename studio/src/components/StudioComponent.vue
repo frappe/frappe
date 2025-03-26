@@ -157,7 +157,7 @@ const componentProps = computed(() => {
 const componentRef = ref<ComponentPublicInstance | null>(null)
 const target = ref<HTMLElement | null>(null)
 
-// v-model binding
+// modelValue binding
 const boundValue = computed({
 	get() {
 		const modelValue = props.block.componentProps.modelValue
