@@ -193,7 +193,25 @@ const getSlotContent = (slot: Slot) => {
 }
 
 // variable binding
-const variables = computed(() => Object.keys(store.variables))
+const variables = computed(() => {
+	const options: SelectOption[] = []
+
+	function traverse(obj: any, path = "") {
+		for (const key in obj) {
+			const currentPath = path ? `${path}.${key}` : key
+			options.push({ value: currentPath, label: currentPath })
+
+			if (typeof obj[key] === "object" && obj[key] !== null) {
+				// add nested properties
+				traverse(obj[key], currentPath)
+			}
+		}
+	}
+
+	traverse(store.variables)
+	return options
+})
+
 const boundValue = computed({
 	get() {
 		const modelValue = props.block?.componentProps.modelValue
