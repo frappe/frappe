@@ -35,6 +35,7 @@ import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML, executeUserS
 
 import useAppStore from "@/stores/appStore"
 import { toast } from "vue-sonner"
+import { Field } from "@/types/ComponentEvent"
 
 const props = defineProps<{
 	block: Block
@@ -158,8 +159,8 @@ const componentEvents = computed(() => {
 				}
 			} else if (event.action === "Insert a Document") {
 				return () => {
-					const fields = {}
-					event.fields.forEach((field) => {
+					const fields: Record<string, any> = {}
+					event.fields.forEach((field: Field) => {
 						fields[field.field] = store.variables[field.value]
 					})
 					createResource({
