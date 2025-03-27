@@ -81,7 +81,7 @@ def get_permission_query_conditions(user):
 	if not allowed_modules:
 		return module_not_set
 
-	return f" `tabDashboard`.`module` in ({','.join(allowed_modules)}) or {module_not_set} "
+	return f" (`tabDashboard`.`module` in ({','.join(allowed_modules)}) or {module_not_set}) "
 
 
 @frappe.whitelist()

@@ -7,7 +7,7 @@ class DocStatus(int):
 		return self == DocStatus.DRAFT
 
 	def is_submitted(self):
-		return self == DocStatus.SUMBITTED
+		return self == DocStatus.SUBMITTED
 
 	def is_cancelled(self):
 		return self == DocStatus.CANCELLED
@@ -20,7 +20,7 @@ class DocStatus(int):
 
 	@staticmethod
 	def submitted():
-		return DocStatus.SUMBITTED
+		return DocStatus.SUBMITTED
 
 	@staticmethod
 	def cancelled():
@@ -28,5 +28,5 @@ class DocStatus(int):
 
 
 DocStatus.DRAFT = DocStatus(0)
-DocStatus.SUMBITTED = DocStatus(1)
+DocStatus.SUBMITTED = DocStatus(1)
 DocStatus.CANCELLED = DocStatus(2)

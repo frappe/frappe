@@ -308,7 +308,7 @@
 	border-radius: var(--border-radius);
 	padding: 8px 10px;
 	font-size: var(--text-md, 13px);
-	margin-bottom: var(--margin-md);
+	margin-bottom: var(--margin-sm);
 
 	&.blue {
 		@include form-message-background("blue");

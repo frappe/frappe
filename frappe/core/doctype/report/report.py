@@ -30,6 +30,7 @@ class Report(Document):
 		from frappe.types import DF
 
 		add_total_row: DF.Check
+		add_translate_data: DF.Check
 		columns: DF.Table[ReportColumn]
 		disabled: DF.Check
 		filters: DF.Table[ReportFilter]

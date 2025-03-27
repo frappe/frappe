@@ -324,7 +324,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			var options = {};
 			options[search_field] = ["like", "%" + txt + "%"];
 			this.options.push({
-				label: __("Find {0} in {1}", [txt.bold(), __(route[1]).bold()]),
+				label: __("Find {0} in {1}", [
+					frappe.utils.xss_sanitise(txt).bold(),
+					__(route[1]).bold(),
+				]),
 				value: __("Find {0} in {1}", [txt, __(route[1])]),
 				route_options: options,
 				onclick: function () {

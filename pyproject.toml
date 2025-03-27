@@ -4,7 +4,7 @@ authors = [
     { name = "Frappe Technologies Pvt Ltd", email = "developers@frappe.io"}
 ]
 description = "Metadata driven, full-stack low code web framework"
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10,<3.14"
 readme = "README.md"
 dynamic = ["version"]
 dependencies = [
@@ -15,7 +15,7 @@ dependencies = [
     "filetype~=1.2.0",
     "GitPython~=3.1.34",
     "Jinja2~=3.1.2",
-    "Pillow~=10.3.0",
+    "Pillow~=11.0.0",
     "PyJWT~=2.8.0",
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
@@ -55,7 +55,7 @@ dependencies = [
     "psutil~=5.9.5",
     "psycopg2-binary~=2.9.1",
     "pyOpenSSL~=25.0.0",
-    "pydantic~=2.7.0",
+    "pydantic~=2.10.2",
     "pyotp~=2.8.0",
     "python-dateutil~=2.8.2",
     "pytz==2023.3",
@@ -85,7 +85,7 @@ dependencies = [
     "google-api-python-client~=2.2.0",
     "google-auth-oauthlib~=0.4.4",
     "google-auth~=1.29.0",
-    "posthog~=3.0.1",
+    "posthog~=3.21.0",
     "vobject~=0.9.7",
 ]
 

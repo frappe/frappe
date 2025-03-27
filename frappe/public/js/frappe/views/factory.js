@@ -29,12 +29,12 @@ frappe.views.Factory = class Factory {
 		}
 	}
 
-	make_page(double_column, page_name) {
-		return frappe.make_page(double_column, page_name);
+	make_page(double_column, page_name, hide_sidebar) {
+		return frappe.make_page(double_column, page_name, hide_sidebar);
 	}
 };
 
-frappe.make_page = function (double_column, page_name) {
+frappe.make_page = function (double_column, page_name, disable_sidebar_toggle) {
 	if (!page_name) {
 		page_name = frappe.get_route_str();
 	}
@@ -44,6 +44,7 @@ frappe.make_page = function (double_column, page_name) {
 	frappe.ui.make_app_page({
 		parent: page,
 		single_column: !double_column,
+		disable_sidebar_toggle: disable_sidebar_toggle,
 	});
 
 	frappe.container.change_to(page_name);

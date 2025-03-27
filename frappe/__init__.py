@@ -10,6 +10,7 @@ be used to build database driven apps.
 
 Read the documentation: https://frappeframework.com/docs
 """
+
 import copy
 import faulthandler
 import functools
@@ -1296,13 +1297,7 @@ def get_doc(*args, **kwargs):
 	"""
 	import frappe.model.document
 
-	doc = frappe.model.document.get_doc(*args, **kwargs)
-
-	# Replace cache if stale one exists
-	if not kwargs.get("for_update") and (key := can_cache_doc(args)) and cache.exists(key):
-		_set_document_in_cache(key, doc)
-
-	return doc
+	return frappe.model.document.get_doc(*args, **kwargs)
 
 
 def get_last_doc(doctype, filters=None, order_by="creation desc", *, for_update=False):
@@ -1734,6 +1729,9 @@ def call(fn: str | Callable, *args, **kwargs):
 	return fn(*args, **newargs)
 
 
+_cached_inspect_signature = functools.lru_cache(inspect.signature)
+
+
 def get_newargs(fn: Callable, kwargs: dict[str, Any]) -> dict[str, Any]:
 	"""Remove any kwargs that are not supported by the function.
 
@@ -1749,7 +1747,7 @@ def get_newargs(fn: Callable, kwargs: dict[str, Any]) -> dict[str, Any]:
 	# Ref: https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind
 	varkw_exist = False
 
-	signature = inspect.signature(fn)
+	signature = _cached_inspect_signature(fn)
 	fnargs = list(signature.parameters)
 
 	for param_name, parameter in signature.parameters.items():
@@ -2352,15 +2350,16 @@ def get_website_settings(key):
 	return local.website_settings.get(key)
 
 
-def get_system_settings(key):
-	if not hasattr(local, "system_settings"):
+def get_system_settings(key: str):
+	"""Return the value associated with the given `key` from System Settings DocType."""
+	if not (system_settings := getattr(local, "system_settings", None)):
 		try:
-			local.system_settings = get_cached_doc("System Settings")
+			local.system_settings = system_settings = get_cached_doc("System Settings")
 		except DoesNotExistError:  # possible during new install
 			clear_last_message()
 			return
 
-	return local.system_settings.get(key)
+	return system_settings.get(key)
 
 
 def get_active_domains():
@@ -2501,6 +2500,12 @@ def _register_fault_handler():
 	# Some libraries monkey patch stderr, we need actual fd
 	if isinstance(sys.__stderr__, io.TextIOWrapper):
 		faulthandler.register(signal.SIGUSR1, file=sys.__stderr__)
+
+
+def override_whitelisted_method(original_method: str) -> str:
+	"""Return the last override or the original whitelisted method."""
+	overrides = get_hooks("override_whitelisted_methods", {}).get(original_method, [])
+	return overrides[-1] if overrides else original_method
 
 
 from frappe.utils.error import log_error
