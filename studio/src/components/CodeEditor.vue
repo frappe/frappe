@@ -18,6 +18,7 @@
 				Save
 			</Button>
 		</div>
+		<ErrorMessage class="text-xs" v-if="errorMessage" :message="errorMessage" />
 	</div>
 </template>
 
@@ -74,10 +75,7 @@ const props = defineProps({
 const emit = defineEmits(["save", "update:modelValue"])
 const editor = ref<HTMLElement | null>(null)
 let aceEditor = null as ace.Ace.Editor | null
-
-onMounted(() => {
-	setupEditor()
-})
+const errorMessage = ref("")
 
 const setupEditor = () => {
 	aceEditor = ace.edit(editor.value as HTMLElement)
@@ -112,6 +110,7 @@ const setupEditor = () => {
 	}
 	aceEditor.on("blur", () => {
 		try {
+			errorMessage.value = ""
 			let value = aceEditor?.getValue() || ""
 			if (
 				value &&
@@ -129,6 +128,7 @@ const setupEditor = () => {
 			}
 		} catch (e) {
 			console.error("Error while parsing JSON for editor", e)
+			errorMessage.value = `Invalid object/JSON: ${e.message}`
 		}
 	})
 }
@@ -173,6 +173,10 @@ watch(
 		resetEditor(props.modelValue as string)
 	},
 )
+
+onMounted(() => {
+	setupEditor()
+})
 
 defineExpose({ resetEditor })
 </script>

@@ -117,6 +117,7 @@
 								label="Initial Value"
 								type="JavaScript"
 								height="250px"
+								:showLineNumbers="true"
 								v-model="variableRef.initial_value"
 							/>
 							<FormControl
