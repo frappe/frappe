@@ -29,7 +29,7 @@
 						/>
 						<Autocomplete
 							v-if="propName === 'modelValue'"
-							:options="variables"
+							:options="variableOptions"
 							placeholder="Select variable"
 							@update:modelValue="(variable: SelectOption) => bindVariable(propName, variable.value)"
 						>
@@ -132,6 +132,7 @@ import useStudioStore from "@/stores/studioStore"
 import IconButton from "@/components/IconButton.vue"
 import CodeEditor from "@/components/CodeEditor.vue"
 import blockController from "@/utils/blockController"
+import { useVariables } from "@/utils/useVariables"
 
 const props = defineProps<{
 	block?: Block
@@ -193,25 +194,7 @@ const getSlotContent = (slot: Slot) => {
 }
 
 // variable binding
-const variables = computed(() => {
-	const options: SelectOption[] = []
-
-	function traverse(obj: any, path = "") {
-		for (const key in obj) {
-			const currentPath = path ? `${path}.${key}` : key
-			options.push({ value: currentPath, label: currentPath })
-
-			if (typeof obj[key] === "object" && obj[key] !== null) {
-				// add nested properties
-				traverse(obj[key], currentPath)
-			}
-		}
-	}
-
-	traverse(store.variables)
-	return options
-})
-
+const { variableOptions } = useVariables(store.variables)
 const boundValue = computed({
 	get() {
 		const modelValue = props.block?.componentProps.modelValue
