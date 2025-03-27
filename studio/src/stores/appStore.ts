@@ -9,8 +9,8 @@ import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
 
 const useAppStore = defineStore("appStore", () => {
-	const resources: Record<string, Resource> = reactive({})
-	const variables: Record<string, any> = reactive({})
+	const resources = ref<Record<string, Resource>>({})
+	const variables = ref<Record<string, any>>({})
 	const localState = ref({})
 
 	async function setPageData(page: StudioPage) {
@@ -34,7 +34,7 @@ const useAppStore = defineStore("appStore", () => {
 		const resolvedResources = await Promise.all(resourcePromises)
 
 		resolvedResources.forEach((item) => {
-			resources[item.resource_name] = item.value
+			resources.value[item.resource_name] = item.value
 		})
 	}
 
@@ -43,7 +43,7 @@ const useAppStore = defineStore("appStore", () => {
 		await studioVariables.reload()
 
 		studioVariables.data.map((variable: Variable) => {
-			variables[variable.variable_name] = getInitialVariableValue(variable)
+			variables.value[variable.variable_name] = getInitialVariableValue(variable)
 		})
 	}
 

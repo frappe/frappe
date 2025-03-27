@@ -691,18 +691,6 @@ function isFrappeUIComponent(name: string) {
 	return name in frappeUI
 }
 
-function getComponent(name: string) {
-	// TODO: A better way to load components for rendering the actual app without compromising the performance
-	if (name === "div") {
-		// root element
-		return name
-	} else if (isFrappeUIComponent(name)) {
-		return frappeUI[name]
-	} else {
-		return defineAsyncComponent(() => import(`@/components/AppLayout/${name}.vue`))
-	}
-}
-
 function getProxyComponent(name: string) {
 	return proxyComponentMap.get(name)
 }
@@ -728,7 +716,6 @@ export default {
 	list: Object.values(COMPONENTS),
 	names: Object.keys(COMPONENTS),
 	get,
-	getComponent,
 	getProxyComponent,
 	getProps,
 	getEmits,

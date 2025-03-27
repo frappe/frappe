@@ -4,6 +4,12 @@ export type Events = 'click' | 'change' | 'focus' | 'blur' | 'submit' | 'keydown
 
 export type Actions = 'Call API' | 'Switch App Page' | 'Open Webpage' | 'Insert a Document' | 'Run Script'
 
+export type Field = {
+	field: string
+	value: string
+	name: string
+}
+
 export type ComponentEvent = {
 	event: Events | string
 	action: Actions
@@ -15,7 +21,7 @@ export type ComponentEvent = {
 	url?: string
 	/** action = 'Insert a Document' */
 	doctype?: string
-	fields?: Array<{ field: string, value: string, name: string }>
+	fields?: Array<Field>
 	success_message?: string | null
 	error_message?: string | null
 	/** action = 'Run Script' */

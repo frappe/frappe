@@ -135,14 +135,15 @@ const componentName = computed(() => {
 const getComponentProps = () => {
 	if (!props.block || props.block.isRoot()) return []
 
-	const componentProps = { ...props.block.componentProps }
+	const propValues = { ...props.block.componentProps }
+	delete propValues.modelValue
 
-	Object.entries(componentProps).forEach(([propName, config]) => {
+	Object.entries(propValues).forEach(([propName, config]) => {
 		if (isDynamicValue(config)) {
-			componentProps[propName] = getDynamicValue(config, { ...store.resources, ...store.variables })
+			propValues[propName] = getDynamicValue(config, { ...store.resources, ...store.variables })
 		}
 	})
-	return componentProps
+	return propValues
 }
 
 const attrs = useAttrs()
@@ -156,24 +157,50 @@ const componentProps = computed(() => {
 const componentRef = ref<ComponentPublicInstance | null>(null)
 const target = ref<HTMLElement | null>(null)
 
-// Computed property for v-model binding
+// modelValue binding
 const boundValue = computed({
 	get() {
 		const modelValue = props.block.componentProps.modelValue
 		if (modelValue?.$type === "variable") {
-			// Return the variable value from the store
-			return store.variables[modelValue.name]
+			// handle nested object properties
+			const propertyPath = modelValue.name.split(".")
+			let value = store.variables
+			// return nested object property value
+			for (const key of propertyPath) {
+				if (value === undefined || value === null) return undefined
+				value = value[key]
+			}
+			return value
+		} else if (isDynamicValue(modelValue)) {
+			return getDynamicValue(modelValue, { ...store.resources, ...store.variables })
 		}
-		// Return the plain value if not bound to a variable
 		return modelValue
 	},
 	set(newValue) {
 		const modelValue = props.block.componentProps.modelValue
 		if (modelValue?.$type === "variable") {
-			// Update the variable in the store
-			store.variables[modelValue.name] = newValue
+			// update the variable in the store
+			const propertyPath = modelValue.name.split(".")
+			if (propertyPath.length === 1) {
+				// top level variable
+				store.variables[modelValue.name] = newValue
+			} else {
+				// nested object properties
+				const targetProperty = propertyPath.pop()!
+				let obj = store.variables
+
+				// navigate to the parent object
+				for (const key of propertyPath) {
+					if (!obj[key] || typeof obj[key] !== "object") {
+						obj[key] = {}
+					}
+					obj = obj[key]
+				}
+				// set the value on the parent object
+				obj[targetProperty] = newValue
+			}
 		} else {
-			// Update the prop directly if not bound to a variable
+			// update the prop directly if not bound to a variable
 			props.block.setProp("modelValue", newValue)
 		}
 	},

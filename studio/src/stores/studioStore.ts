@@ -236,7 +236,10 @@ const useStudioStore = defineStore("store", () => {
 		variables.value = {}
 
 		studioVariables.data.map((variable: Variable) => {
-			variableConfigs.value[variable.variable_name] = variable
+			variableConfigs.value[variable.variable_name] = {
+				...variable,
+				initial_value: getInitialVariableValue(variable),
+			}
 			variables.value[variable.variable_name] = getInitialVariableValue(variable)
 		})
 	}

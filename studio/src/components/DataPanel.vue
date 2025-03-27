@@ -1,13 +1,13 @@
 <template>
 	<div class="flex flex-col gap-3 p-4">
 		<CollapsibleSection sectionName="Data Sources">
-			<div class="flex flex-col gap-2" v-if="!isObjectEmpty(store.resources)">
+			<div class="ml-3 flex flex-col gap-2" v-if="!isObjectEmpty(store.resources)">
 				<div
 					v-for="(resource, resource_name) in store.resources"
 					:key="resource_name"
 					class="group/resource flex flex-row justify-between"
 				>
-					<ObjectBrowser :object="resource" :name="resource_name" class="overflow-hidden" />
+					<ObjectBrowser :object="resource" :name="resource_name" class="-ml-[0.9rem] overflow-hidden" />
 					<div
 						class="invisible -mt-1 ml-auto self-start text-gray-600 group-hover/resource:visible has-[.active-item]:visible"
 					>
@@ -40,7 +40,7 @@
 
 		<!-- Variables -->
 		<CollapsibleSection sectionName="Variables">
-			<div class="flex flex-col gap-1" v-if="!isObjectEmpty(store.variables)">
+			<div class="ml-3 flex flex-col gap-1" v-if="!isObjectEmpty(store.variables)">
 				<div
 					v-for="(value, variable_name) in store.variables"
 					:key="variable_name"
@@ -50,7 +50,7 @@
 						v-if="typeof value === 'object'"
 						:object="value"
 						:name="variable_name"
-						class="overflow-hidden"
+						class="-ml-[0.9rem] overflow-hidden"
 					/>
 					<div v-else class="flex flex-row justify-between">
 						<div class="text-sm font-semibold text-pink-700">{{ variable_name }}</div>
@@ -106,13 +106,33 @@
 							<FormControl
 								label="Variable Type"
 								type="select"
-								:options="['String', 'Number', 'Boolean']"
+								:options="['String', 'Number', 'Boolean', 'Object']"
 								v-model="variableRef.variable_type"
 								:required="true"
 								default="String"
 								@change="() => setInitialValue()"
 							/>
-							<FormControl label="Initial Value" v-model="variableRef.initial_value" autocomplete="off" />
+							<CodeEditor
+								v-if="variableRef.variable_type === 'Object'"
+								label="Initial Value"
+								type="JavaScript"
+								height="250px"
+								:showLineNumbers="true"
+								v-model="variableRef.initial_value"
+							/>
+							<FormControl
+								v-else-if="variableRef.variable_type === 'Number'"
+								label="Initial Value"
+								type="number"
+								:modelValue="variableRef.initial_value"
+								@update:modelValue="variableRef.initial_value = Number($event)"
+							/>
+							<FormControl
+								v-else
+								label="Initial Value"
+								v-model="variableRef.initial_value"
+								autocomplete="off"
+							/>
 						</div>
 					</template>
 					<template #actions>
@@ -144,6 +164,7 @@ import CollapsibleSection from "@/components/CollapsibleSection.vue"
 import ObjectBrowser from "@/components/ObjectBrowser.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import ResourceDialog from "@/components/ResourceDialog.vue"
+import CodeEditor from "@/components/CodeEditor.vue"
 
 import { isObjectEmpty, getAutocompleteValues, confirm, copyToClipboard } from "@/utils/helpers"
 import { studioResources, studioPageResources } from "@/data/studioResources"
@@ -295,34 +316,63 @@ const setInitialValue = () => {
 		variableRef.value.initial_value = 0
 	} else if (variableRef.value.variable_type === "Boolean") {
 		variableRef.value.initial_value = false
+	} else if (variableRef.value.variable_type === "Object") {
+		variableRef.value.initial_value = {}
 	}
 }
 
+const getInitialValue = (variable: Variable) => {
+	if (variable.variable_type === "Object" && typeof variable.initial_value !== "string") {
+		try {
+			return JSON.stringify(variable.initial_value)
+		} catch (error) {
+			toast.error("Invalid Object")
+			throw new Error("Invalid Object")
+		}
+	} else if (variable.variable_type === "String" && !variable.initial_value) {
+		return JSON.stringify("")
+	} else if (variable.variable_type === "Boolean" && typeof variable.initial_value === "string") {
+		// return string as is - to avoid saving false as "false" in the backend field
+		return variable.initial_value
+	}
+	return JSON.stringify(variable.initial_value)
+}
+
 const addVariable = (variable: Variable) => {
-	studioVariables.insert
-		.submit({
+	const initial_value = getInitialValue(variable)
+	studioVariables.insert.submit(
+		{
 			variable_name: variable.variable_name,
 			variable_type: variable.variable_type,
-			initial_value: variable.initial_value?.toString(),
+			initial_value: initial_value,
 			parent: store.activePage?.name,
 			parenttype: "Studio Page",
 			parentfield: "variables",
-		})
-		.then(async () => {
-			if (store.activePage) {
-				await store.setPageVariables(store.activePage)
-			}
-			showVariableDialog.value = false
-		})
+		},
+		{
+			async onSuccess() {
+				if (store.activePage) {
+					await store.setPageVariables(store.activePage)
+				}
+				showVariableDialog.value = false
+			},
+			onError(error: any) {
+				toast.error("Failed to add variable", {
+					description: error.messages.join(", "),
+				})
+			},
+		},
+	)
 }
 
 const editVariable = (variable: Variable) => {
+	const initial_value = getInitialValue(variable)
 	studioVariables.setValue
 		.submit({
 			name: variable.name,
 			variable_name: variable.variable_name,
 			variable_type: variable.variable_type,
-			initial_value: variable.initial_value?.toString(),
+			initial_value: initial_value,
 		})
 		.then(async () => {
 			if (store.activePage) {
