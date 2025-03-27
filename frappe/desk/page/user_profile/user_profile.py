@@ -4,6 +4,7 @@ import frappe
 from frappe.query_builder import Interval, Order
 from frappe.query_builder.functions import Date, Sum, UnixTimestamp
 from frappe.utils import getdate
+from frappe.utils.data import escape_html
 
 
 @frappe.whitelist()
@@ -76,6 +77,9 @@ def get_user_rank(user):
 def update_profile_info(profile_info):
 	profile_info = frappe.parse_json(profile_info)
 	keys = ["location", "interest", "user_image", "bio"]
+
+	if "user_image" in profile_info.keys():
+		profile_info["user_image"] = escape_html(profile_info["user_image"])
 
 	for key in keys:
 		if key not in profile_info:
