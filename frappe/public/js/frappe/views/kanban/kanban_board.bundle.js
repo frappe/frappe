@@ -53,7 +53,6 @@ frappe.provide("frappe.views");
 				var state = context.state;
 				var _cards = cards
 					.map((card) => prepare_card(card, state))
-					.concat(state.cards)
 					.uniqBy((card) => card.name);
 
 				context.commit("update_state", {
@@ -303,7 +302,7 @@ frappe.provide("frappe.views");
 			// update cards internally
 			opts.cards = cards;
 
-			if (self.wrapper.find(".kanban").length > 0 && self.cur_list.start !== 0) {
+			if (self.wrapper.find(".kanban").length > 0) {
 				store.dispatch("update_cards", cards);
 			} else {
 				init();
@@ -591,6 +590,7 @@ frappe.provide("frappe.views");
 				animation: 150,
 				dataIdAttr: "data-name",
 				forceFallback: true,
+				fallbackTolerance: 20,
 				onStart: function () {
 					wrapper.find(".kanban-card.add-card").fadeOut(200, function () {
 						wrapper.find(".kanban-cards").height("100vh");

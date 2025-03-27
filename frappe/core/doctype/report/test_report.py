@@ -11,16 +11,24 @@ from frappe.custom.doctype.customize_form.customize_form import reset_customizat
 from frappe.desk.query_report import add_total_row, run, save_report
 from frappe.desk.reportview import delete_report
 from frappe.desk.reportview import save_report as _save_report
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
-test_records = frappe.get_test_records("Report")
-test_dependencies = ["User"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
 
 
-class TestReport(FrappeTestCase):
+class UnitTestReport(UnitTestCase):
+	"""
+	Unit tests for Report.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestReport(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
-		cls.enable_safe_exec()
+		cls.enterClassContext(cls.enable_safe_exec())
 		return super().setUpClass()
 
 	def test_report_builder(self):

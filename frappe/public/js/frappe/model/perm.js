@@ -53,7 +53,7 @@ $.extend(frappe.perm, {
 	_get_perm: (doctype, doc) => {
 		let perm = [{ read: 0, permlevel: 0 }];
 
-		let meta = frappe.get_doc("DocType", doctype);
+		let meta = frappe.get_meta(doctype);
 		const user = frappe.session.user;
 
 		if (user === "Administrator" || frappe.user_roles.includes("Administrator")) {

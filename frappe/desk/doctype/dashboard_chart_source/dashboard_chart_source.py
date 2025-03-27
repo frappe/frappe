@@ -15,7 +15,7 @@ FOLDER_NAME = "dashboard_chart_source"
 
 @frappe.whitelist()
 def get_config(name: str) -> str:
-	doc: "DashboardChartSource" = frappe.get_doc("Dashboard Chart Source", name)
+	doc: DashboardChartSource = frappe.get_doc("Dashboard Chart Source", name)
 	return doc.read_config()
 
 

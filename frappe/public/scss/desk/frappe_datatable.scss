@@ -17,13 +17,12 @@
 	--dt-selection-highlight-color: var(--highlight-color);
 
 	background-color: var(--bg-color);
-	margin-left: -5px;
+	margin-left: -1px;
 	margin-top: 0px;
 	@include get_textstyle("base", "regular");
 
 	.dt-cell {
 		color: var(--text-color) !important;
-		background-color: var(--bg-color) !important;
 	}
 
 	.frappe-control,
@@ -139,6 +138,9 @@
 		min-height: 100px;
 		scrollbar-width: thin;
 		border-top: 0 !important;
+		.dt-cell {
+			line-height: 1;
+		}
 	}
 
 	.dt-tree-node__toggle + a {

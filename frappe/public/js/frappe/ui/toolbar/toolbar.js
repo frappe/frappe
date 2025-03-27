@@ -28,6 +28,10 @@ frappe.ui.toolbar.Toolbar = class {
 	make() {
 		this.bind_events();
 		$(document).trigger("toolbar_setup");
+		$(".navbar-brand .app-logo").on("click", () => {
+			frappe.app.sidebar.set_height();
+			frappe.app.sidebar.toggle_sidebar();
+		});
 	}
 
 	bind_events() {
@@ -42,9 +46,6 @@ frappe.ui.toolbar.Toolbar = class {
 			setTimeout(function () {
 				search_modal.find("#modal-search").focus();
 			}, 300);
-		});
-		$(".navbar-toggle-full-width").click(() => {
-			frappe.ui.toolbar.toggle_full_width();
 		});
 	}
 

@@ -26,6 +26,7 @@ class RoleProfile(Document):
 		self.name = self.role_profile
 
 	def on_update(self):
+		self.clear_cache()
 		self.queue_action(
 			"update_all_users",
 			now=frappe.flags.in_test or frappe.flags.in_install,
@@ -39,3 +40,6 @@ class RoleProfile(Document):
 		for user in users:
 			user = frappe.get_doc("User", user)
 			user.save()  # resaving syncs roles
+
+	def get_permission_log_options(self, event=None):
+		return {"fields": ["roles"]}

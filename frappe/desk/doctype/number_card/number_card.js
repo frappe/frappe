@@ -33,7 +33,7 @@ frappe.ui.form.on("Number Card", {
 	},
 
 	create_add_to_dashboard_button: function (frm) {
-		frm.add_custom_button("Add Card to Dashboard", () => {
+		frm.add_custom_button(__("Add Card to Dashboard"), () => {
 			const dialog = frappe.dashboard_utils.get_add_to_dashboard_dialog(
 				frm.doc.name,
 				"Number Card",
@@ -273,6 +273,9 @@ frappe.ui.form.on("Number Card", {
 		}
 
 		table.on("click", () => {
+			if (!frappe.boot.developer_mode && frm.doc.is_standard) {
+				frappe.throw(__("Cannot edit filters for standard number cards"));
+			}
 			let dialog = new frappe.ui.Dialog({
 				title: __("Set Filters"),
 				fields: fields.filter((f) => !is_dynamic_filter(f)),
@@ -289,7 +292,7 @@ frappe.ui.form.on("Number Card", {
 						frm.trigger("render_filters_table");
 					}
 				},
-				primary_action_label: "Set",
+				primary_action_label: __("Set"),
 			});
 
 			if (is_document_type) {
@@ -357,6 +360,9 @@ frappe.ui.form.on("Number Card", {
 		);
 
 		frm.dynamic_filter_table.on("click", () => {
+			if (!frappe.boot.developer_mode && frm.doc.is_standard) {
+				frappe.throw(__("Cannot edit filters for standard number cards"));
+			}
 			let dialog = new frappe.ui.Dialog({
 				title: __("Set Dynamic Filters"),
 				fields: fields,
@@ -378,7 +384,7 @@ frappe.ui.form.on("Number Card", {
 					}
 					frm.trigger("set_dynamic_filters_in_table");
 				},
-				primary_action_label: "Set",
+				primary_action_label: __("Set"),
 			});
 
 			dialog.show();

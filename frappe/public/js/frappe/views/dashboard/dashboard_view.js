@@ -5,6 +5,8 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 		return "Dashboard";
 	}
 
+	static no_sidebar = true;
+
 	setup_defaults() {
 		return super.setup_defaults().then(() => {
 			this.page_title = __("{0} Dashboard", [__(this.doctype)]);
@@ -16,7 +18,6 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	render() {}
 
 	setup_page() {
-		this.hide_sidebar = true;
 		this.hide_page_form = true;
 		this.hide_filters = true;
 		this.hide_sort_selector = true;
@@ -197,11 +198,11 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 				${__("Customize")}
 			</button></p>`;
 
-		const empty_state_image = "/assets/frappe/images/ui-states/list-empty-state.svg";
-
 		const empty_state_html = `<div class="msg-box no-border empty-dashboard">
 			<div>
-				<img src="${empty_state_image}" alt="Generic Empty State" class="null-state">
+				<svg class="icon icon-xl" style="stroke: var(--text-light);">
+					<use href="#icon-small-file"></use>
+				</svg>
 			</div>
 			${no_result_message_html}
 			${customize_button}

@@ -248,7 +248,8 @@
    "fieldtype": "Data",
    "label": "Google Calendar Event ID",
    "no_copy": 1,
-   "read_only": 1
+   "read_only": 1,
+   "length": 320
   },
   {
    "default": "0",

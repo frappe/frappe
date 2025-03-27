@@ -10,6 +10,8 @@ from urllib.parse import parse_qs, urlparse
 
 import cssutils
 import pdfkit
+
+pdfkit.source.unicode = str  # NOTE: upstream bug; PYTHONOPTIMIZE=1 optimized this away
 from bs4 import BeautifulSoup
 from packaging.version import Version
 from pypdf import PdfReader, PdfWriter
@@ -21,6 +23,8 @@ from frappe.utils import cstr, scrub_urls
 from frappe.utils.caching import redis_cache
 from frappe.utils.jinja_globals import bundled_asset, is_rtl
 
+cssutils.log.setLog(frappe.logger("cssutils"))
+
 PDF_CONTENT_ERRORS = [
 	"ContentNotFoundError",
 	"ContentOperationNotPermittedError",
@@ -29,9 +33,11 @@ PDF_CONTENT_ERRORS = [
 ]
 
 
-def pdf_header_html(soup, head, content, styles, html_id, css):
+def pdf_header_html(soup, head, content, styles, html_id, css, path=None):
+	if not path:
+		path = "templates/print_formats/pdf_header_footer.html"
 	return frappe.render_template(
-		"templates/print_formats/pdf_header_footer.html",
+		path,
 		{
 			"head": head,
 			"content": content,
@@ -71,8 +77,10 @@ def _guess_template_error_line_number(template) -> int | None:
 				return frame.lineno
 
 
-def pdf_footer_html(soup, head, content, styles, html_id, css):
-	return pdf_header_html(soup=soup, head=head, content=content, styles=styles, html_id=html_id, css=css)
+def pdf_footer_html(soup, head, content, styles, html_id, css, path=None):
+	return pdf_header_html(
+		soup=soup, head=head, content=content, styles=styles, html_id=html_id, css=css, path=path
+	)
 
 
 def get_pdf(html, options=None, output: PdfWriter | None = None):
@@ -279,7 +287,7 @@ def _get_base64_image(src):
 		mime_type = mimetypes.guess_type(path)[0]
 		if mime_type is None or not mime_type.startswith("image/"):
 			return
-		filename = query.get("fid") and query["fid"][0] or None
+		filename = (query.get("fid") and query["fid"][0]) or None
 		file = find_file_by_url(path, name=filename)
 		if not file or not file.is_private:
 			return
@@ -312,7 +320,8 @@ def prepare_header_footer(soup: BeautifulSoup):
 			toggle_visible_pdf(content)
 			id_map = {"header-html": "pdf_header_html", "footer-html": "pdf_footer_html"}
 			hook_func = frappe.get_hooks(id_map.get(html_id))
-			html = frappe.get_attr(hook_func[-1])(
+			html = frappe.call(
+				hook_func[-1],
 				soup=soup,
 				head=head,
 				content=content,

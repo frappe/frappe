@@ -88,6 +88,7 @@ class DocField(Document):
 		label: DF.Data | None
 		length: DF.Int
 		link_filters: DF.JSON | None
+		make_attachment_public: DF.Check
 		mandatory_depends_on: DF.Code | None
 		max_height: DF.Data | None
 		no_copy: DF.Check
@@ -100,6 +101,7 @@ class DocField(Document):
 		parentfield: DF.Data
 		parenttype: DF.Data
 		permlevel: DF.Int
+		placeholder: DF.Data | None
 		precision: DF.Literal["", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 		print_hide: DF.Check
 		print_hide_if_no_value: DF.Check
@@ -112,7 +114,9 @@ class DocField(Document):
 		search_index: DF.Check
 		set_only_once: DF.Check
 		show_dashboard: DF.Check
+		show_on_timeline: DF.Check
 		sort_options: DF.Check
+		sticky: DF.Check
 		translatable: DF.Check
 		unique: DF.Check
 		width: DF.Data | None

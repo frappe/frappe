@@ -19,7 +19,9 @@ export default class QuickListWidget extends Widget {
 	set_actions() {
 		if (this.in_customize_mode) return;
 
-		this.setup_add_new_button();
+		if (frappe.model.can_create(this.document_type)) {
+			this.setup_add_new_button();
+		}
 		this.setup_refresh_list_button();
 		this.setup_filter_list_button();
 	}
@@ -27,7 +29,7 @@ export default class QuickListWidget extends Widget {
 	setup_add_new_button() {
 		this.add_new_button = $(
 			`<div class="add-new btn btn-xs pull-right"
-			title="${__("Add New")}  ${__(this.document_type)}
+			title="${__("Add New")} ${__(this.document_type)}
 			">
 				${frappe.utils.icon("add", "sm")}
 			</div>`
@@ -156,10 +158,11 @@ export default class QuickListWidget extends Widget {
 				</div>
 			`).appendTo($quick_list_item);
 		}
-
-		$(`<div class="right-arrow">${frappe.utils.icon("right", "xs")}</div>`).appendTo(
-			$quick_list_item
-		);
+		let icon_to_append = `<div class="right-arrow">${frappe.utils.icon("right", "xs")}</div>`;
+		if (frappe.utils.is_rtl(frappe.boot.lang)) {
+			icon_to_append = `<div class="left-arrow">${frappe.utils.icon("left", "xs")}</div>`;
+		}
+		$(icon_to_append).appendTo($quick_list_item);
 
 		$quick_list_item.click((e) => {
 			if (e.ctrlKey || e.metaKey) {
@@ -195,13 +198,22 @@ export default class QuickListWidget extends Widget {
 			if (this.has_status_field) {
 				fields.push("status");
 				fields.push("docstatus");
-
-				// add workflow state field if workflow exist & is active
-				let workflow_fieldname = frappe.workflow.get_state_fieldname(this.document_type);
-				workflow_fieldname && fields.push(workflow_fieldname);
 			}
-
+			// add workflow state field if workflow exist & is active
+			let workflow_fieldname = frappe.workflow.get_state_fieldname(this.document_type);
+			workflow_fieldname && fields.push(workflow_fieldname);
 			fields.push("modified");
+
+			let add_fields = frappe.listview_settings?.[this.document_type]?.add_fields;
+			if (Array.isArray(add_fields)) {
+				for (const fieldname of add_fields) {
+					// Only keep fields that exist and are permitted
+					if (frappe.meta.has_field(this.document_type, fieldname)) {
+						fields.push(fieldname);
+					}
+				}
+				fields = [...new Set(fields)]; // Remove duplicates
+			}
 
 			let quick_list_filter = frappe.utils.process_filter_expression(this.quick_list_filter);
 

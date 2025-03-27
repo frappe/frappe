@@ -1,10 +1,17 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.tests.utils import FrappeTestCase
-
-# test_records = frappe.get_test_records('Website Slideshow')
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 
-class TestWebsiteSlideshow(FrappeTestCase):
+class UnitTestWebsiteSlideshow(UnitTestCase):
+	"""
+	Unit tests for WebsiteSlideshow.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestWebsiteSlideshow(IntegrationTestCase):
 	pass

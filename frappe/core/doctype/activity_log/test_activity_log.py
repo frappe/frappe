@@ -4,10 +4,19 @@ import time
 
 import frappe
 from frappe.auth import CookieManager, LoginManager
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 
-class TestActivityLog(FrappeTestCase):
+class UnitTestActivityLog(UnitTestCase):
+	"""
+	Unit tests for ActivityLog.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestActivityLog(IntegrationTestCase):
 	def setUp(self) -> None:
 		frappe.set_user("Administrator")
 

@@ -335,10 +335,14 @@ frappe.ui.form.on("Customize Form Field", {
 	},
 });
 
+let parenttype, parent; // used in the form events for the child tables: links, actions and states
+
 // can't delete standard links
 frappe.ui.form.on("DocType Link", {
 	before_links_remove: function (frm, doctype, name) {
 		let row = frappe.get_doc(doctype, name);
+		parenttype = row.parenttype; // used in the event links_remove
+		parent = row.parent; // used in the event links_remove
 		if (!(row.custom || row.__islocal)) {
 			frappe.msgprint(__("Cannot delete standard link. You can hide it if you want"));
 			throw "cannot delete standard link";
@@ -348,12 +352,19 @@ frappe.ui.form.on("DocType Link", {
 		let f = frappe.model.get_doc(cdt, cdn);
 		f.custom = 1;
 	},
+	links_remove: function (frm, doctype, name) {
+		// replicate the changed rows from the browser's copy of the parent doc to the current 'Customize Form' doc
+		let parent_doc = locals[parenttype][parent];
+		frm.doc.links = parent_doc.links;
+	},
 });
 
 // can't delete standard actions
 frappe.ui.form.on("DocType Action", {
 	before_actions_remove: function (frm, doctype, name) {
 		let row = frappe.get_doc(doctype, name);
+		parenttype = row.parenttype; // used in the event actions_remove
+		parent = row.parent; // used in the event actions_remove
 		if (!(row.custom || row.__islocal)) {
 			frappe.msgprint(__("Cannot delete standard action. You can hide it if you want"));
 			throw "cannot delete standard action";
@@ -363,12 +374,19 @@ frappe.ui.form.on("DocType Action", {
 		let f = frappe.model.get_doc(cdt, cdn);
 		f.custom = 1;
 	},
+	actions_remove: function (frm, doctype, name) {
+		// replicate the changed rows from the browser's copy of the parent doc to the current 'Customize Form' doc
+		let parent_doc = locals[parenttype][parent];
+		frm.doc.actions = parent_doc.actions;
+	},
 });
 
 // can't delete standard states
 frappe.ui.form.on("DocType State", {
 	before_states_remove: function (frm, doctype, name) {
 		let row = frappe.get_doc(doctype, name);
+		parenttype = row.parenttype; // used in the event states_remove
+		parent = row.parent; // used in the event states_remove
 		if (!(row.custom || row.__islocal)) {
 			frappe.msgprint(__("Cannot delete standard document state."));
 			throw "cannot delete standard document state";
@@ -377,6 +395,11 @@ frappe.ui.form.on("DocType State", {
 	states_add: function (frm, cdt, cdn) {
 		let f = frappe.model.get_doc(cdt, cdn);
 		f.custom = 1;
+	},
+	states_remove: function (frm, doctype, name) {
+		// replicate the changed rows from the browser's copy of the parent doc to the current 'Customize Form' doc
+		let parent_doc = locals[parenttype][parent];
+		frm.doc.states = parent_doc.states;
 	},
 });
 

@@ -1,0 +1,156 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2022-11-23 14:13:55.437321",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "changed_by",
+  "column_break_gvuy",
+  "changed_at",
+  "status",
+  "section_break_ttv7",
+  "for_doctype",
+  "column_break_acow",
+  "for_document",
+  "section_break_6gd5",
+  "reference_type",
+  "column_break_8nk0",
+  "reference",
+  "section_break_mt9x",
+  "changes",
+  "changed_values"
+ ],
+ "fields": [
+  {
+   "fieldname": "changed_by",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Changed by",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "changed_at",
+   "fieldtype": "Datetime",
+   "is_virtual": 1,
+   "label": "Changed at",
+   "read_only": 1
+  },
+  {
+   "fieldname": "changes",
+   "fieldtype": "Text",
+   "hidden": 1
+  },
+  {
+   "fieldname": "changed_values",
+   "fieldtype": "HTML",
+   "label": "Changes"
+  },
+  {
+   "fieldname": "column_break_gvuy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_ttv7",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_acow",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_mt9x",
+   "fieldtype": "Section Break"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_6gd5",
+   "fieldtype": "Section Break",
+   "label": "More Info"
+  },
+  {
+   "fieldname": "column_break_8nk0",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "for_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "For DocType",
+   "options": "DocType",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "for_document",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "For Document",
+   "options": "for_doctype",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "reference_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Reference Type",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reference",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Reference",
+   "options": "reference_type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Status",
+   "options": "Updated\nRemoved\nAdded"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-09-25 17:23:31.599897",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Permission Log",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "read": 1,
+   "report": 1,
+   "role": "System Manager"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [
+  {
+   "color": "Yellow",
+   "title": "Updated"
+  },
+  {
+   "color": "Red",
+   "title": "Removed"
+  },
+  {
+   "color": "Green",
+   "title": "Added"
+  }
+ ],
+ "title_field": "changed_by"
+}

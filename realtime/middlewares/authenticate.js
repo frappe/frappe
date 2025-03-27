@@ -38,10 +38,10 @@ function authenticate_with_frappe(socket, next) {
 		}
 
 		let headers = {};
-		if (socket.sid) {
-			headers["Cookie"] = `sid=${socket.sid}`;
-		} else if (socket.authorization_header) {
+		if (socket.authorization_header) {
 			headers["Authorization"] = socket.authorization_header;
+		} else if (socket.sid) {
+			headers["Cookie"] = `sid=${socket.sid}`;
 		}
 
 		return fetch(get_url(socket, path), {

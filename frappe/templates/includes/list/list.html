@@ -3,7 +3,9 @@
 {% endif %}
 {% if not result -%}
 	<div class="empty-apps-state">
-		<img class="empty-list-icon" src="/assets/frappe/images/ui-states/list-empty-state.svg"/>
+		<svg class="icon icon-xl" style="stroke: var(--text-light);">
+			<use href="#icon-small-file"></use>
+		</svg>
 		<div class="mt-4">{{ no_result_message or _("Nothing to show") }}</div>
 	</div>
 {% else %}
@@ -19,7 +21,7 @@
 				{{ item }}
 			{% endfor %}
 		</div>
-		<div class="more-block py-6 {% if not show_more -%} hidden {%- endif %}">
+		<div class="more-block py-6 {% if not show_more -%} d-none {%- endif %}">
 			<button class="btn btn-light btn-more btn-sm">{{ _("More") }}</button>
 		</div>
 	</div>

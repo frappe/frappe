@@ -2,13 +2,22 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.test_runner import make_test_records
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests.utils import make_test_records
 
 TEST_DOCTYPE = "Assignment Test"
 
 
-class TestAutoAssign(FrappeTestCase):
+class UnitTestAssignmentRule(UnitTestCase):
+	"""
+	Unit tests for AssignmentRule.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestAutoAssign(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()

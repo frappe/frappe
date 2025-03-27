@@ -296,7 +296,7 @@ frappe.timeout = (seconds) => {
 	});
 };
 
-frappe.scrub = function (text, spacer = "_") {
+frappe.scrub = frappe.slug = function (text, spacer = "_") {
 	return text.replace(/ /g, spacer).toLowerCase();
 };
 
@@ -328,7 +328,7 @@ frappe.get_data_pill = (
 	if (remove_action) {
 		let remove_btn = $(`
 			<span class="remove-btn cursor-pointer">
-				${frappe.utils.icon("close", "sm")}
+				${frappe.utils.icon("close", "sm", "es-icon")}
 			</span>
 		`);
 		if (typeof remove_action === "function") {

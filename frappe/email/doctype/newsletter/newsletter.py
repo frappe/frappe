@@ -22,9 +22,7 @@ class Newsletter(WebsiteGenerator):
 
 	if TYPE_CHECKING:
 		from frappe.email.doctype.newsletter_attachment.newsletter_attachment import NewsletterAttachment
-		from frappe.email.doctype.newsletter_email_group.newsletter_email_group import (
-			NewsletterEmailGroup,
-		)
+		from frappe.email.doctype.newsletter_email_group.newsletter_email_group import NewsletterEmailGroup
 		from frappe.types import DF
 
 		attachments: DF.Table[NewsletterAttachment]
@@ -149,6 +147,9 @@ class Newsletter(WebsiteGenerator):
 			frappe.throw(_("Newsletter must be published to send webview link in email"))
 
 	def validate_scheduling_date(self):
+		if getattr(frappe.flags, "is_scheduler_running", False):
+			return
+
 		if (
 			self.schedule_sending
 			and frappe.utils.get_datetime(self.schedule_send) < frappe.utils.now_datetime()
@@ -219,7 +220,6 @@ class Newsletter(WebsiteGenerator):
 			template="newsletter",
 			add_unsubscribe_link=self.send_unsubscribe_link,
 			unsubscribe_method="/unsubscribe",
-			unsubscribe_params={"name": self.name},
 			reference_doctype=self.doctype,
 			reference_name=self.name,
 			queue_separately=True,
@@ -396,6 +396,8 @@ def get_list_context(context=None):
 
 def send_scheduled_email():
 	"""Send scheduled newsletter to the recipients."""
+	frappe.flags.is_scheduler_running = True
+
 	scheduled_newsletter = frappe.get_all(
 		"Newsletter",
 		filters={
@@ -422,6 +424,8 @@ def send_scheduled_email():
 		if not frappe.flags.in_test:
 			frappe.db.commit()
 
+	frappe.flags.is_scheduler_running = False
+
 
 @frappe.whitelist(allow_guest=True)
 def newsletter_email_read(recipient_email=None, reference_doctype=None, reference_name=None):
@@ -439,7 +443,11 @@ def newsletter_email_read(recipient_email=None, reference_doctype=None, referenc
 			).run()
 
 	except Exception:
-		doc.log_error(f"Unable to mark as viewed for {recipient_email}")
+		frappe.log_error(
+			title=f"Unable to mark as viewed for {recipient_email}",
+			reference_doctype="Newsletter",
+			reference_name=reference_name,
+		)
 
 	finally:
 		frappe.response.update(frappe.utils.get_imaginary_pixel_response())

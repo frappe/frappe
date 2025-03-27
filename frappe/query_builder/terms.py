@@ -12,6 +12,8 @@ from frappe.utils.data import format_time, format_timedelta
 class NamedParameterWrapper:
 	"""Utility class to hold parameter values and keys"""
 
+	__slots__ = ("parameters",)
+
 	def __init__(self) -> None:
 		self.parameters = {}
 

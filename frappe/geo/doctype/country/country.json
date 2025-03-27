@@ -1,7 +1,6 @@
 {
  "actions": [],
  "allow_import": 1,
- "allow_rename": 1,
  "autoname": "field:country_name",
  "creation": "2013-01-19 10:23:30",
  "doctype": "DocType",
@@ -9,10 +8,10 @@
  "engine": "InnoDB",
  "field_order": [
   "country_name",
+  "code",
   "date_format",
   "time_format",
-  "time_zones",
-  "code"
+  "time_zones"
  ],
  "fields": [
   {
@@ -45,19 +44,23 @@
    "label": "Time Zones"
   },
   {
+   "description": "The country's ISO 3166 ALPHA-2 code.",
    "fieldname": "code",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Code"
+   "label": "Code",
+   "length": 2,
+   "reqd": 1
   }
  ],
  "icon": "fa fa-globe",
  "idx": 1,
  "links": [],
- "modified": "2022-08-05 18:33:27.880783",
+ "modified": "2025-01-03 13:01:46.030113",
  "modified_by": "Administrator",
  "module": "Geo",
  "name": "Country",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

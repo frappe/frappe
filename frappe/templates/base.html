@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Built on Frappe. https://frappeframework.com/ -->
-<html lang="{{boot.lang}}">
+<html lang="{{boot.lang}}" dir="{{ 'rtl' if is_rtl() else 'ltr' }}">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -44,6 +44,7 @@
 
 	<script>
 		window.frappe = {};
+		window._version_number = "{{ build_version }}";
 		frappe.ready_events = [];
 		frappe.ready = function(fn) {
 			frappe.ready_events.push(fn);
@@ -54,8 +55,6 @@
 	</script>
 </head>
 <body frappe-session-status="{{ 'logged-in' if frappe.session.user != 'Guest' else 'logged-out'}}" data-path="{{ path | e }}" {%- if template and template.endswith('.md') %} frappe-content-type="markdown" {%- endif %} class="{{ body_class or ''}}">
-	{% include "public/icons/timeless/icons.svg" %}
-	{% include "public/icons/espresso/icons.svg" %}
 	{%- block banner -%}
 		{% include "templates/includes/banner_extension.html" ignore missing %}
 
@@ -88,10 +87,15 @@
 		) }}
 	{%- endblock -%}
 
+	<div id="all-symbols" style="display:none"></div>
+	{%- for path in web_include_icons -%}
+	{{ include_icons(path) }}
+	{%- endfor -%}
+
 	{% block base_scripts %}
 	<!-- js should be loaded in body! -->
 	<script>
-		frappe.boot = {{ boot }}
+		frappe.boot = {{ boot | json }}
 		// for backward compatibility of some libs
 		frappe.sys_defaults = frappe.boot.sysdefaults;
 	</script>

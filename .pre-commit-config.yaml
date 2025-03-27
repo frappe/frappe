@@ -1,16 +1,15 @@
 exclude: 'node_modules|.git'
-default_stages: [commit]
+default_stages: [pre-commit]
 fail_fast: false
 
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.3.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
         files: "frappe.*"
         exclude: ".*json$|.*txt$|.*csv|.*md|.*svg"
-      - id: check-yaml
       - id: no-commit-to-branch
         args: ['--branch', 'develop']
       - id: check-merge-conflict
@@ -19,9 +18,10 @@ repos:
       - id: check-toml
       - id: check-yaml
       - id: debug-statements
+        exclude: ^frappe/tests/classes/context_managers\.py$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.2.0
+    rev: v0.8.1
     hooks:
       - id: ruff
         name: "Run ruff import sorter"

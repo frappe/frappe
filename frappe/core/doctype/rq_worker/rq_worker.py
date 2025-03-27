@@ -4,7 +4,6 @@
 import datetime
 from contextlib import suppress
 
-import pytz
 from rq import Worker
 
 import frappe
@@ -46,10 +45,16 @@ class RQWorker(Document):
 		super(Document, self).__init__(d)
 
 	@staticmethod
-	def get_list(start=0, page_length=20):
+	def get_list(start=0, page_length=0):
 		workers = get_workers()
 
-		valid_workers = [w for w in workers if w.pid][start : start + page_length]
+		valid_workers = [w for w in workers if w.pid]
+
+		if page_length:
+			valid_workers = valid_workers[start : start + page_length]
+		else:
+			valid_workers = valid_workers[start:]
+
 		return [serialize_worker(worker) for worker in valid_workers]
 
 	@staticmethod
@@ -104,6 +109,7 @@ def serialize_worker(worker: Worker) -> frappe._dict:
 def compute_utilization(worker: Worker) -> float:
 	with suppress(Exception):
 		total_time = (
-			datetime.datetime.now(pytz.UTC) - worker.birth_date.replace(tzinfo=pytz.UTC)
+			datetime.datetime.now(datetime.timezone.utc)
+			- worker.birth_date.replace(tzinfo=datetime.timezone.utc)
 		).total_seconds()
 		return worker.total_working_time / total_time * 100

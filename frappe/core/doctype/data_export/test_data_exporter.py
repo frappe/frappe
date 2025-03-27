@@ -2,10 +2,19 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.core.doctype.data_export.exporter import DataExporter
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 
-class TestDataExporter(FrappeTestCase):
+class UnitTestDataExport(UnitTestCase):
+	"""
+	Unit tests for DataExport.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestDataExporter(IntegrationTestCase):
 	def setUp(self):
 		self.doctype_name = "Test DocType for Export Tool"
 		self.doc_name = "Test Data for Export Tool"

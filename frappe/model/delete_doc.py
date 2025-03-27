@@ -55,7 +55,7 @@ def delete_doc(
 		# already deleted..?
 		if not frappe.db.exists(doctype, name):
 			if not ignore_missing:
-				raise frappe.DoesNotExistError
+				raise frappe.DoesNotExistError(doctype=doctype)
 			else:
 				return False
 
@@ -127,8 +127,17 @@ def delete_doc(
 
 				# check if links exist
 				if not force:
-					check_if_doc_is_linked(doc)
-					check_if_doc_is_dynamically_linked(doc)
+					try:
+						check_if_doc_is_linked(doc)
+						check_if_doc_is_dynamically_linked(doc)
+					except frappe.LinkExistsError as e:
+						if doc.meta.has_field("enabled") or doc.meta.has_field("disabled"):
+							frappe.throw(
+								_("You can disable this {0} instead of deleting it.").format(_(doctype)),
+								frappe.LinkExistsError,
+							)
+						else:
+							raise e
 
 			update_naming_series(doc)
 			delete_from_table(doctype, name, ignore_doctypes, doc)
@@ -226,18 +235,14 @@ def update_flags(doc, flags=None, ignore_permissions=False):
 
 def check_permission_and_not_submitted(doc):
 	# permission
-	if (
-		not doc.flags.ignore_permissions
-		and frappe.session.user != "Administrator"
-		and (not doc.has_permission("delete") or (doc.doctype == "DocType" and not doc.custom))
-	):
-		frappe.msgprint(
-			_("User not allowed to delete {0}: {1}").format(doc.doctype, doc.name),
-			raise_exception=frappe.PermissionError,
-		)
+	if not doc.flags.ignore_permissions and frappe.session.user != "Administrator":
+		if doc.doctype == "DocType" and not doc.custom:
+			frappe.throw(_("Only the Administrator can delete a standard DocType."))
+		else:
+			doc.check_permission("delete")
 
 	# check if submitted
-	if doc.docstatus.is_submitted():
+	if doc.meta.is_submittable and doc.docstatus.is_submitted():
 		frappe.msgprint(
 			_("{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first.").format(
 				_(doc.doctype),

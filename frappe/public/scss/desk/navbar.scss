@@ -4,8 +4,16 @@
 	border-bottom: 1px solid var(--border-color);
 	padding: 0;
 	.navbar-brand {
-		margin-right: 0;
+		margin-right: 15px;
 	}
+
+	@include media-breakpoint-up(md) {
+		.navbar-brand {
+			// not shown for full screen
+			display: none;
+		}
+	}
+
 	.navbar-nav {
 		.dropdown-item {
 			padding: 6px 8px !important;
@@ -34,7 +42,7 @@
 
 .navbar-home {
 	img {
-		max-height: 28px;
+		height: 28px;
 		width: auto;
 	}
 }

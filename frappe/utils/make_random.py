@@ -48,7 +48,7 @@ def get_random(doctype: str, filters: dict | None = None, doc: bool = False):
 		}
 	)
 
-	out = out and out[0][0] or None
+	out = (out and out[0][0]) or None
 
 	if doc and out:
 		return frappe.get_doc(doctype, out)

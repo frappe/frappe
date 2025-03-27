@@ -78,8 +78,8 @@ def make(
 			category=DeprecationWarning,
 		)
 
-	if doctype and name and not frappe.has_permission(doctype=doctype, ptype="email", doc=name):
-		raise frappe.PermissionError(f"You are not allowed to send emails related to: {doctype} {name}")
+	if doctype and name:
+		frappe.has_permission(doctype, doc=name, ptype="email", throw=True)
 
 	return _make(
 		doctype=doctype,
@@ -142,7 +142,7 @@ def _make(
 	cc = list_to_str(cc) if isinstance(cc, list) else cc
 	bcc = list_to_str(bcc) if isinstance(bcc, list) else bcc
 
-	comm: "Communication" = frappe.get_doc(
+	comm: Communication = frappe.get_doc(
 		{
 			"doctype": "Communication",
 			"subject": subject,

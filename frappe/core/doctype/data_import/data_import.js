@@ -376,7 +376,7 @@ frappe.ui.form.on("Data Import", {
 		html += other_warnings
 			.map((warning) => {
 				let header = "";
-				if (warning.col) {
+				if (columns && warning.col) {
 					let column_number = `<span class="text-uppercase">${__("Column {0}", [
 						warning.col,
 					])}</span>`;

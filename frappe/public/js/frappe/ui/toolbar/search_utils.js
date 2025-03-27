@@ -97,7 +97,7 @@ frappe.search.utils = {
 						break;
 				}
 			} else if (match[0]) {
-				out.label = match[0].bold();
+				out.label = frappe.utils.escape_html(match[0]).bold();
 				out.value = match[0];
 			} else {
 				console.log("Illegal match", match);
@@ -377,7 +377,7 @@ frappe.search.utils = {
 				var field_text = "";
 				for (var i = 0; i < parts.length; i++) {
 					var part = parts[i];
-					if (part.toLowerCase().indexOf(keywords) !== -1) {
+					if (part.toLowerCase().indexOf(keywords.toLowerCase()) !== -1) {
 						// If the field contains the keyword
 						let colon_index, field_value;
 						if (part.indexOf(" &&& ") !== -1) {
@@ -447,7 +447,7 @@ frappe.search.utils = {
 			data.forEach(function (d) {
 				// more properties
 				result = {
-					label: d.name,
+					label: d.title || d.name, // show title if exists
 					value: d.name,
 					description: make_description(d.content, d.name),
 					route: ["Form", d.doctype, d.name],
@@ -585,7 +585,10 @@ frappe.search.utils = {
 			return score;
 		}
 		if (score == 0) {
-			return { score, item };
+			return {
+				score: score,
+				marked_string: item,
+			};
 		}
 
 		// Create Boolean mask to mark matching indices in the item string

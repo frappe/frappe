@@ -77,8 +77,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	}
 
 	make() {
-		let doctype_plural = __(this.doctype).plural();
-		let title = __("Select {0}", [this.for_select ? __("value") : doctype_plural]);
+		let title = __("Select {0}", [this.for_select ? __("value") : __(this.doctype)]);
 
 		this.dialog = new frappe.ui.Dialog({
 			title: title,
@@ -260,6 +259,8 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 					label: df_prop.label,
 					fieldname: setter,
 					options: df_prop.options,
+					read_only:
+						(this?.read_only_setters && this.read_only_setters.includes(setter)) || 0,
 					default: this.setters[setter],
 				});
 			});

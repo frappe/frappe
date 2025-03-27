@@ -9,14 +9,14 @@ from typing import TYPE_CHECKING
 import frappe
 import frappe.utils
 from frappe import _
+from frappe.apps import get_default_path
 from frappe.utils.password import get_decrypted_password
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.user.user import User
 
 
-class SignupDisabledError(frappe.PermissionError):
-	...
+class SignupDisabledError(frappe.PermissionError): ...
 
 
 def get_oauth2_providers() -> dict[str, dict]:
@@ -27,6 +27,11 @@ def get_oauth2_providers() -> dict[str, dict]:
 		if provider.custom_base_url:
 			authorize_url = provider.base_url + provider.authorize_url
 			access_token_url = provider.base_url + provider.access_token_url
+
+		# Keycloak needs this, the base URL also has a route, that urljoin() ignores
+		if provider.name == "keycloak":
+			provider.api_endpoint = provider.base_url + provider.api_endpoint
+
 		out[provider.name] = {
 			"flow_params": {
 				"name": provider.name,
@@ -199,8 +204,7 @@ def login_oauth_user(
 			http_status_code=403,
 		)
 
-	frappe.local.login_manager.user = user
-	frappe.local.login_manager.post_login()
+	frappe.local.login_manager.login_as(user)
 
 	# because of a GET request!
 	frappe.db.commit()
@@ -229,7 +233,7 @@ def get_user_record(user: str, data: dict, provider: str) -> "User":
 		if not provider_allows_signup(provider):
 			raise SignupDisabledError
 
-	user: "User" = frappe.new_doc("User")
+	user: User = frappe.new_doc("User")
 
 	if gender := data.get("gender", "").title():
 		frappe.get_doc({"doctype": "Gender", "gender": gender}).insert(
@@ -258,7 +262,7 @@ def update_oauth_user(user: str, data: dict, provider: str):
 	if isinstance(data.get("location"), dict):
 		data["location"] = data["location"].get("name")
 
-	user: "User" = get_user_record(user, data, provider)
+	user: User = get_user_record(user, data, provider)
 	update_user_record = user.is_new()
 
 	if not user.enabled:
@@ -311,7 +315,7 @@ def redirect_post_login(desk_user: bool, redirect_to: str | None = None, provide
 	frappe.local.response["type"] = "redirect"
 
 	if not redirect_to:
-		desk_uri = "/app/workspace" if provider == "facebook" else "/app"
+		desk_uri = "/app/workspace" if provider == "facebook" else get_default_path()
 		redirect_to = frappe.utils.get_url(desk_uri if desk_user else "/me")
 
 	frappe.local.response["location"] = redirect_to

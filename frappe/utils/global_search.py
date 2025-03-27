@@ -197,7 +197,7 @@ def get_children_data(doctype, meta):
 			child_records = frappe.get_all(
 				child.options,
 				fields=child_fieldnames,
-				filters={"docstatus": ["!=", 1], "parenttype": doctype},
+				filters={"docstatus": ["!=", 2], "parenttype": doctype},
 			)
 
 			for record in child_records:
@@ -517,6 +517,8 @@ def search(text, start=0, limit=20, doctype=""):
 					meta = frappe.get_meta(r.doctype)
 					if meta.image_field:
 						r.image = frappe.db.get_value(r.doctype, r.name, meta.image_field)
+					if meta.title_field:
+						r.title = frappe.db.get_value(r.doctype, r.name, meta.title_field)
 				except Exception:
 					frappe.clear_messages()
 

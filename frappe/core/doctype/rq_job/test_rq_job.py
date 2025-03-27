@@ -10,7 +10,7 @@ from rq.job import Job
 import frappe
 from frappe.core.doctype.rq_job.rq_job import RQJob, remove_failed_jobs, stop_job
 from frappe.installer import update_site_config
-from frappe.tests.utils import FrappeTestCase, timeout
+from frappe.tests import IntegrationTestCase, UnitTestCase, timeout
 from frappe.utils import cstr, execute_in_shell
 from frappe.utils.background_jobs import get_job_status, is_job_enqueued
 
@@ -23,7 +23,16 @@ def wait_for_completion(job: Job):
 		time.sleep(0.2)
 
 
-class TestRQJob(FrappeTestCase):
+class UnitTestRqJob(UnitTestCase):
+	"""
+	Unit tests for RqJob.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestRQJob(IntegrationTestCase):
 	BG_JOB = "frappe.core.doctype.rq_job.test_rq_job.test_func"
 
 	def check_status(self, job: Job, status, wait=True):
@@ -167,6 +176,9 @@ class TestRQJob(FrappeTestCase):
 		# offending imports/function calls.
 		# Refer this PR: https://github.com/frappe/frappe/pull/21467
 		LAST_MEASURED_USAGE = 41
+		if frappe.conf.use_mysqlclient:
+			# TEMP: Add extra allowance for running two connectors, this should be rolled back before v16
+			LAST_MEASURED_USAGE += 2
 		self.assertLessEqual(rss, LAST_MEASURED_USAGE * 1.05, msg)
 
 	def test_clear_failed_jobs(self):

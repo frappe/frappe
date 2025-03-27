@@ -9,13 +9,13 @@ import frappe
 from frappe import _
 from frappe.core.doctype.data_import.exporter import Exporter
 from frappe.core.doctype.data_import.importer import Importer
-from frappe.model import core_doctypes_list
+from frappe.model import CORE_DOCTYPES
 from frappe.model.document import Document
 from frappe.modules.import_file import import_file_by_path
 from frappe.utils.background_jobs import enqueue, is_job_enqueued
 from frappe.utils.csvutils import validate_google_sheets_url
 
-BLOCKED_DOCTYPES = set(core_doctypes_list) - {"User", "Role"}
+BLOCKED_DOCTYPES = CORE_DOCTYPES - {"User", "Role", "Print Format"}
 
 
 class DataImport(Document):
@@ -40,6 +40,7 @@ class DataImport(Document):
 		submit_after_import: DF.Check
 		template_options: DF.Code | None
 		template_warnings: DF.Code | None
+		use_csv_sniffer: DF.Check
 	# end: auto-generated types
 
 	def validate(self):
@@ -104,7 +105,7 @@ class DataImport(Document):
 		if is_scheduler_inactive() and not run_now:
 			frappe.throw(_("Scheduler is inactive. Cannot import data."), title=_("Scheduler Inactive"))
 
-		job_id = f"data_import::{self.name}"
+		job_id = f"data_import||{self.name}"
 
 		if not is_job_enqueued(job_id):
 			enqueue(
@@ -127,7 +128,10 @@ class DataImport(Document):
 		return self.get_importer().export_import_log()
 
 	def get_importer(self):
-		return Importer(self.reference_doctype, data_import=self)
+		return Importer(self.reference_doctype, data_import=self, use_sniffer=self.use_csv_sniffer)
+
+	def on_trash(self):
+		frappe.db.delete("Data Import Log", {"data_import": self.name})
 
 
 @frappe.whitelist()
@@ -138,7 +142,7 @@ def get_preview_from_template(data_import, import_file=None, google_sheets_url=N
 
 
 @frappe.whitelist()
-def form_start_import(data_import):
+def form_start_import(data_import: str):
 	return frappe.get_doc("Data Import", data_import).start_import()
 
 
@@ -296,7 +300,16 @@ def export_json(doctype, path, filters=None, or_filters=None, name=None, order_b
 			for v in doc.values():
 				if isinstance(v, list):
 					for child in v:
-						for key in (*del_keys, "docstatus", "doctype", "modified", "name"):
+						for key in (
+							*del_keys,
+							"docstatus",
+							"doctype",
+							"modified",
+							"name",
+							"parent",
+							"parentfield",
+							"parenttype",
+						):
 							if key in child:
 								del child[key]
 

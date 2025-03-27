@@ -24,11 +24,19 @@ frappe.db = {
 			});
 		});
 	},
-	exists: function (doctype, name) {
+	exists: function (doctype, nameOrFilters) {
 		return new Promise((resolve) => {
-			frappe.db.get_value(doctype, { name: name }, "name").then((r) => {
-				r.message && r.message.name ? resolve(true) : resolve(false);
-			});
+			let filters;
+			if (typeof nameOrFilters === "string") {
+				// may be cached and more effecient
+				frappe.db.get_value(doctype, { name: nameOrFilters }, "name").then((r) => {
+					r.message && r.message.name ? resolve(true) : resolve(false);
+				});
+			} else if (typeof nameOrFilters === "object") {
+				frappe.db.count(doctype, { filters: nameOrFilters, limit: 1 }).then((count) => {
+					resolve(count > 0);
+				});
+			}
 		});
 	},
 	get_value: function (doctype, filters, fieldname, callback, parent_doc) {
@@ -94,7 +102,7 @@ frappe.db = {
 			frappe.call("frappe.client.delete", { doctype, name }, (r) => resolve(r.message));
 		});
 	},
-	count: function (doctype, args = {}) {
+	count: function (doctype, args = {}, cache = false) {
 		let filters = args.filters || {};
 		let limit = args.limit;
 
@@ -107,13 +115,18 @@ frappe.db = {
 
 		const fields = [];
 
-		return frappe.xcall("frappe.desk.reportview.get_count", {
-			doctype,
-			filters,
-			fields,
-			distinct,
-			limit,
-		});
+		return frappe.xcall(
+			"frappe.desk.reportview.get_count",
+			{
+				doctype,
+				filters,
+				fields,
+				distinct,
+				limit,
+			},
+			cache ? "GET" : "POST",
+			{ cache }
+		);
 	},
 	get_link_options(doctype, txt = "", filters = {}) {
 		return new Promise((resolve) => {

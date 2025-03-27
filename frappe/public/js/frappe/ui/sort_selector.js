@@ -175,11 +175,11 @@ frappe.ui.SortSelector = class SortSelector {
 			};
 		}
 
-		if (meta.sort_field && meta.sort_field.includes(",")) {
+		if (meta.sort_field) {
 			var parts = meta.sort_field.split(",")[0].split(" ");
 			return {
 				meta_sort_field: parts[0],
-				meta_sort_order: parts[1],
+				meta_sort_order: meta.sort_order ? meta.sort_order.toLowerCase() : "",
 			};
 		} else {
 			return {

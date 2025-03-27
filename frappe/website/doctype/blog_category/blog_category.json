@@ -10,10 +10,9 @@
  "field_order": [
   "published",
   "title",
-  "description",
-  "column_break_4",
   "route",
-  "preview_image"
+  "preview_image",
+  "description"
  ],
  "fields": [
   {
@@ -45,10 +44,6 @@
    "label": "Description"
   },
   {
-   "fieldname": "column_break_4",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "preview_image",
    "fieldtype": "Attach Image",
    "label": "Preview Image"
@@ -61,13 +56,12 @@
  "is_published_field": "published",
  "links": [
   {
-   "group": "Posts",
    "link_doctype": "Blog Post",
    "link_fieldname": "blog_category"
   }
  ],
  "make_attachments_public": 1,
- "modified": "2024-03-23 16:01:28.967396",
+ "modified": "2024-08-15 19:03:00.345431",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Category",

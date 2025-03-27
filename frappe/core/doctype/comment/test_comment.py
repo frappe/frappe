@@ -4,12 +4,21 @@ import json
 
 import frappe
 from frappe.templates.includes.comments.comments import add_comment
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.test_model_utils import set_user
-from frappe.tests.utils import FrappeTestCase, change_settings
 from frappe.website.doctype.blog_post.test_blog_post import make_test_blog
 
 
-class TestComment(FrappeTestCase):
+class UnitTestComment(UnitTestCase):
+	"""
+	Unit tests for Comment.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestComment(IntegrationTestCase):
 	def test_comment_creation(self):
 		test_doc = frappe.get_doc(doctype="ToDo", description="test")
 		test_doc.insert()
@@ -21,6 +30,15 @@ class TestComment(FrappeTestCase):
 		comments = json.loads(test_doc.get("_comments"))
 		self.assertEqual(comments[0].get("name"), comment.name)
 		self.assertEqual(comments[0].get("comment"), comment.content)
+
+		# Check comment count
+		counts = frappe.get_all("ToDo", {"name": test_doc.name}, ["*"], with_comment_count=True)
+		self.assertEqual(counts[0]._comment_count, 1)
+
+		comment = test_doc.add_comment("Comment", "test comment")
+
+		counts = frappe.get_all("ToDo", {"name": test_doc.name}, ["*"], with_comment_count=True)
+		self.assertEqual(counts[0]._comment_count, 2)
 
 		# check document creation
 		comment_1 = frappe.get_all(
@@ -87,7 +105,7 @@ class TestComment(FrappeTestCase):
 
 		test_blog.delete()
 
-	@change_settings("Blog Settings", {"allow_guest_to_comment": 0})
+	@IntegrationTestCase.change_settings("Blog Settings", {"allow_guest_to_comment": 0})
 	def test_guest_cannot_comment(self):
 		test_blog = make_test_blog()
 		with set_user("Guest"):

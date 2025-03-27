@@ -6,17 +6,26 @@ from bs4 import BeautifulSoup
 
 import frappe
 from frappe.custom.doctype.customize_form.customize_form import reset_customization
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils import random_string, set_request
 from frappe.website.doctype.blog_post.blog_post import get_blog_list
 from frappe.website.serve import get_response
 from frappe.website.utils import clear_website_cache
 from frappe.website.website_generator import WebsiteGenerator
 
-test_dependencies = ["Blog Post"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["Blog Post"]
 
 
-class TestBlogPost(FrappeTestCase):
+class UnitTestBlogPost(UnitTestCase):
+	"""
+	Unit tests for BlogPost.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestBlogPost(IntegrationTestCase):
 	def setUp(self):
 		reset_customization("Blog Post")
 

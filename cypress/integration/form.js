@@ -59,20 +59,6 @@ context("Form", () => {
 			.blur();
 		cy.click_listview_row_item_with_text("Test Form Contact 3");
 
-		cy.scrollTo(0);
-		cy.get("#page-Contact .page-head").findByTitle("Test Form Contact 3").should("exist");
-		cy.get(".prev-doc").should("be.visible").click();
-		cy.get(".msgprint-dialog .modal-body").contains("No further records").should("be.visible");
-		cy.hide_dialog();
-
-		cy.scrollTo(0);
-		cy.get("#page-Contact .page-head").findByTitle("Test Form Contact 3").should("exist");
-		cy.get(".next-doc").should("be.visible").click();
-		cy.get(".msgprint-dialog .modal-body").contains("No further records").should("be.visible");
-		cy.hide_dialog();
-
-		cy.get("#page-Contact .page-head").findByTitle("Test Form Contact 3").should("exist");
-
 		// clear filters
 		cy.visit("/app/contact");
 		cy.clear_filters();
@@ -85,6 +71,8 @@ context("Form", () => {
 		let expectBackgroundColor = "rgb(255, 245, 245)";
 
 		cy.visit("/app/contact/new");
+		cy.fill_field("company_name", "Test Company");
+
 		cy.get('.frappe-control[data-fieldname="email_ids"]').as("table");
 		cy.get("@table").find("button.grid-add-row").click();
 		cy.get("@table").find("button.grid-add-row").click();
@@ -94,7 +82,6 @@ context("Form", () => {
 		cy.get("@row1").find("input.input-with-feedback.form-control").as("email_input1");
 
 		cy.get("@email_input1").type(website_input, { waitForAnimations: false });
-		cy.fill_field("company_name", "Test Company");
 
 		cy.get("@row2").click();
 		cy.get("@row2").find("input.input-with-feedback.form-control").as("email_input2");

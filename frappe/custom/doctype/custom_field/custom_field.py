@@ -5,6 +5,7 @@ import json
 
 import frappe
 from frappe import _
+from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
 from frappe.model import core_doctypes_list
 from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
@@ -101,6 +102,7 @@ class CustomField(Document):
 		non_negative: DF.Check
 		options: DF.SmallText | None
 		permlevel: DF.Int
+		placeholder: DF.Data | None
 		precision: DF.Literal["", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 		print_hide: DF.Check
 		print_hide_if_no_value: DF.Check
@@ -221,7 +223,7 @@ class CustomField(Document):
 			)
 
 		# delete property setter entries
-		frappe.db.delete("Property Setter", {"doc_type": self.dt, "field_name": self.fieldname})
+		delete_property_setter(self.dt, field_name=self.fieldname)
 
 		# update doctype layouts
 		doctype_layouts = frappe.get_all("DocType Layout", filters={"document_type": self.dt}, pluck="name")
@@ -247,6 +249,21 @@ class CustomField(Document):
 
 		if self.fieldname == self.insert_after:
 			frappe.throw(_("Insert After cannot be set as {0}").format(meta.get_label(self.insert_after)))
+
+	def get_permission_log_options(self, event=None):
+		if event != "after_delete" and self.fieldtype not in (
+			"Section Break",
+			"Column Break",
+			"Tab Break",
+			"Fold",
+		):
+			return {
+				"fields": ("ignore_user_permissions", "permlevel"),
+				"for_doctype": "DocType",
+				"for_document": self.dt,
+			}
+
+		self._no_perm_log = True
 
 
 @frappe.whitelist()
@@ -299,6 +316,14 @@ def create_custom_fields(custom_fields: dict, ignore_validate=False, update=True
 
 	:param custom_fields: example `{'Sales Invoice': [dict(fieldname='test')]}`"""
 
+	def process_field_update(field):
+		nonlocal updated
+
+		updated = True
+
+		# handles edge case of same field being updated multiple times
+		existing_custom_fields[(field.dt, field.fieldname)] = field.__dict__
+
 	try:
 		frappe.flags.in_create_custom_fields = True
 		doctypes_to_update = set()
@@ -306,34 +331,46 @@ def create_custom_fields(custom_fields: dict, ignore_validate=False, update=True
 		if frappe.flags.in_setup_wizard:
 			ignore_validate = True
 
+		existing_custom_fields = get_existing_custom_fields(custom_fields)
+
 		for doctypes, fields in custom_fields.items():
 			if isinstance(fields, dict):
 				# only one field
-				fields = [fields]
+				fields = (fields,)
 
 			if isinstance(doctypes, str):
 				# only one doctype
 				doctypes = (doctypes,)
 
 			for doctype in doctypes:
-				doctypes_to_update.add(doctype)
+				updated = False
 
 				for df in fields:
-					field = frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df["fieldname"]})
+					field = existing_custom_fields.get((doctype, df["fieldname"]))
 					if not field:
 						try:
 							df = df.copy()
 							df["owner"] = "Administrator"
-							create_custom_field(doctype, df, ignore_validate=ignore_validate)
+							custom_field = create_custom_field(doctype, df, ignore_validate=ignore_validate)
+							process_field_update(custom_field)
 
 						except frappe.exceptions.DuplicateEntryError:
 							pass
 
 					elif update:
-						custom_field = frappe.get_doc("Custom Field", field)
-						custom_field.flags.ignore_validate = ignore_validate
+						custom_field = frappe.get_doc({"doctype": "Custom Field", **field})
+						original_values = custom_field.__dict__.copy()
 						custom_field.update(df)
-						custom_field.save()
+
+						if original_values != custom_field.__dict__:
+							if ignore_validate:
+								custom_field.flags.ignore_validate = True
+
+							custom_field.save()
+							process_field_update(custom_field)
+
+				if updated:
+					doctypes_to_update.add(doctype)
 
 		for doctype in doctypes_to_update:
 			frappe.clear_cache(doctype=doctype)
@@ -341,6 +378,19 @@ def create_custom_fields(custom_fields: dict, ignore_validate=False, update=True
 
 	finally:
 		frappe.flags.in_create_custom_fields = False
+
+
+def get_existing_custom_fields(custom_fields):
+	doctypes_to_fetch = set()
+	for doctypes in custom_fields:
+		if isinstance(doctypes, str):
+			doctypes = (doctypes,)
+
+		for doctype in doctypes:
+			doctypes_to_fetch.add(doctype)
+
+	existing_fields = frappe.get_all("Custom Field", filters={"dt": ("in", doctypes_to_fetch)}, fields="*")
+	return {(field.dt, field.fieldname): field for field in existing_fields}
 
 
 @frappe.whitelist()

@@ -26,7 +26,7 @@ class DeletedDocument(Document):
 		restored: DF.Check
 	# end: auto-generated types
 
-	pass
+	no_feed_on_delete = True
 
 	@staticmethod
 	def clear_old_logs(days=180):

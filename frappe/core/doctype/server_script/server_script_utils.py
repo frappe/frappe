@@ -25,6 +25,9 @@ EVENT_MAP = {
 	"on_payment_paid": "On Payment Paid",
 	"on_payment_failed": "On Payment Failed",
 	"on_payment_authorized": "On Payment Authorization",
+	"on_payment_charge_processed": "On Payment Charge Processed",
+	"on_payment_mandated_charge_processed": "On Payment Mandate Charge Processed",
+	"on_payment_mandate_acquisition_processed": "On Payment Mandate Acquisition Processed",
 }
 
 
@@ -62,7 +65,7 @@ def get_server_script_map():
 	if frappe.flags.in_patch and not frappe.db.table_exists("Server Script"):
 		return {}
 
-	script_map = frappe.cache.get_value("server_script_map")
+	script_map = frappe.client_cache.get_value("server_script_map")
 	if script_map is None:
 		script_map = {"permission_query": {}}
 		enabled_server_scripts = frappe.get_all(
@@ -80,6 +83,6 @@ def get_server_script_map():
 			else:
 				script_map.setdefault("_api", {})[script.api_method] = script.name
 
-		frappe.cache.set_value("server_script_map", script_map)
+		frappe.client_cache.set_value("server_script_map", script_map)
 
 	return script_map

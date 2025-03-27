@@ -16,8 +16,7 @@ class LogType(Protocol):
 	"""Interface requirement for doctypes that can be cleared using log settings."""
 
 	@staticmethod
-	def clear_old_logs(days: int) -> None:
-		...
+	def clear_old_logs(days: int) -> None: ...
 
 
 @site_cache

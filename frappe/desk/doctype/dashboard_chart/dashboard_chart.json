@@ -33,6 +33,7 @@
   "time_interval",
   "timeseries",
   "type",
+  "currency",
   "filters_section",
   "filters_json",
   "dynamic_filters_section",
@@ -243,6 +244,7 @@
    "fieldname": "is_standard",
    "fieldtype": "Check",
    "label": "Is Standard",
+   "no_copy": 1,
    "read_only_depends_on": "eval: !frappe.boot.developer_mode"
   },
   {
@@ -285,10 +287,16 @@
    "fieldtype": "Table",
    "label": "Roles",
    "options": "Has Role"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency"
   }
  ],
  "links": [],
- "modified": "2024-03-23 16:02:16.230433",
+ "modified": "2025-02-01 21:06:05.808591",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",

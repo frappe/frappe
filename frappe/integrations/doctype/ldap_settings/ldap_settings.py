@@ -13,6 +13,7 @@ from ldap3.core.exceptions import (
 	LDAPInvalidFilterError,
 	LDAPNoSuchObjectResult,
 )
+from ldap3.utils.conv import escape_filter_chars
 from ldap3.utils.hashed import hashed
 
 import frappe
@@ -204,7 +205,7 @@ class LDAPSettings(Document):
 		user.remove_roles(*roles_to_remove)
 
 	def create_or_update_user(self, user_data: dict, groups: list | None = None):
-		user: "User" = None
+		user: User = None
 		role: str = None
 
 		if frappe.db.exists("User", user_data["email"]):
@@ -272,7 +273,7 @@ class LDAPSettings(Document):
 		if self.ldap_directory_server.lower() == "active directory":
 			ldap_object_class = "Group"
 			ldap_group_members_attribute = "member"
-			user_search_str = user.entry_dn
+			user_search_str = escape_filter_chars(user.entry_dn)
 
 		elif self.ldap_directory_server.lower() == "openldap":
 			ldap_object_class = "posixgroup"

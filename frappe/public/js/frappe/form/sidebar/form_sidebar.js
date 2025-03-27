@@ -23,7 +23,6 @@ frappe.ui.form.Sidebar = class {
 			.html(sidebar_content)
 			.appendTo(this.page.sidebar.empty());
 
-		this.comments = this.sidebar.find(".form-sidebar-stats .comments");
 		this.user_actions = this.sidebar.find(".user-actions");
 		this.image_section = this.sidebar.find(".sidebar-image-section");
 		this.image_wrapper = this.image_section.find(".sidebar-image-wrapper");
@@ -33,30 +32,12 @@ frappe.ui.form.Sidebar = class {
 		this.make_shared();
 
 		this.make_tags();
-		this.make_like();
-		this.make_follow();
 
-		this.bind_events();
 		this.setup_keyboard_shortcuts();
 		this.show_auto_repeat_status();
 		frappe.ui.form.setup_user_image_event(this.frm);
 
 		this.refresh();
-	}
-
-	bind_events() {
-		var me = this;
-
-		// scroll to comments
-		this.comments.on("click", function () {
-			frappe.utils.scroll_to(me.frm.footer.wrapper.find(".comment-box"), true);
-		});
-
-		this.like_icon.on("click", function () {
-			frappe.ui.toggle_like(me.like_wrapper, me.frm.doctype, me.frm.doc.name, function () {
-				me.refresh_like();
-			});
-		});
 	}
 
 	setup_keyboard_shortcuts() {
@@ -78,42 +59,75 @@ frappe.ui.form.Sidebar = class {
 
 			this.frm.tags && this.frm.tags.refresh(this.frm.get_docinfo().tags);
 
-			if (this.frm.doc.route && cint(frappe.boot.website_tracking_enabled)) {
-				let route = this.frm.doc.route;
-				frappe.utils.get_page_view_count(route).then((res) => {
-					this.sidebar
-						.find(".pageview-count")
-						.html(__("{0} Web page views", [String(res.message).bold()]));
-				});
-			}
-
-			this.sidebar
-				.find(".modified-by")
-				.html(
-					get_user_message(
-						this.frm.doc.modified_by,
-						__("You last edited this", null),
-						__("{0} last edited this", [get_user_link(this.frm.doc.modified_by)])
-					) +
-						" · " +
-						comment_when(this.frm.doc.modified)
-				);
-			this.sidebar
-				.find(".created-by")
-				.html(
-					get_user_message(
-						this.frm.doc.owner,
-						__("You created this", null),
-						__("{0} created this", [get_user_link(this.frm.doc.owner)])
-					) +
-						" · " +
-						comment_when(this.frm.doc.creation)
-				);
-
-			this.refresh_like();
-			this.refresh_follow();
-			this.refresh_comments_count();
+			this.refresh_web_view_count();
+			this.refresh_creation_modified();
 			frappe.ui.form.set_user_image(this.frm);
+		}
+	}
+
+	refresh_web_view_count() {
+		if (this.frm.doc.route && cint(frappe.boot.website_tracking_enabled)) {
+			let route = this.frm.doc.route;
+			frappe.utils.get_page_view_count(route).then((res) => {
+				this.sidebar
+					.find(".pageview-count")
+					.removeClass("hidden")
+					.html(__("{0} Web page views", [String(res.message).bold()]));
+			});
+		}
+	}
+
+	refresh_creation_modified() {
+		let user_list = [this.frm.doc.owner, this.frm.doc.modified_by];
+		if (this.frm.doc.owner === this.frm.doc.modified_by) {
+			user_list = [this.frm.doc.owner];
+		}
+
+		let avatar_group = frappe.avatar_group(user_list, 5, {
+			align: "left",
+			overlap: true,
+		});
+
+		this.sidebar.find(".created-modified-section").append(avatar_group);
+
+		let creation_message =
+			get_user_message(
+				this.frm.doc.owner,
+				__("You created this", null),
+				__("{0} created this", [get_user_link(this.frm.doc.owner)])
+			) +
+			" · " +
+			comment_when(this.frm.doc.creation);
+
+		let modified_message =
+			get_user_message(
+				this.frm.doc.modified_by,
+				__("You last edited this", null),
+				__("{0} last edited this", [get_user_link(this.frm.doc.modified_by)])
+			) +
+			" · " +
+			comment_when(this.frm.doc.modified);
+
+		if (user_list.length === 1) {
+			// same user created and edited
+
+			avatar_group.find(".avatar").popover({
+				trigger: "hover",
+				html: true,
+				content: creation_message + "<br>" + modified_message,
+			});
+		} else {
+			avatar_group.find(".avatar:first-child").popover({
+				trigger: "hover",
+				html: true,
+				content: creation_message,
+			});
+
+			avatar_group.find(".avatar:last-child").popover({
+				trigger: "hover",
+				html: true,
+				content: modified_message,
+			});
 		}
 	}
 
@@ -130,10 +144,11 @@ frappe.ui.form.Sidebar = class {
 					fieldname: ["frequency"],
 				},
 				callback: function (res) {
-					me.sidebar
-						.find(".auto-repeat-status")
-						.html(__("Repeats {0}", [__(res.message.frequency)]));
-					me.sidebar.find(".auto-repeat-status").on("click", function () {
+					let el = me.sidebar.find(".auto-repeat-status");
+					el.find("span").html(__("Repeats {0}", [__(res.message.frequency)]));
+					el.closest(".sidebar-section").removeClass("hidden");
+					el.show();
+					el.on("click", function () {
 						frappe.set_route("Form", "Auto Repeat", me.frm.doc.auto_repeat);
 					});
 				},
@@ -185,7 +200,9 @@ frappe.ui.form.Sidebar = class {
 		return $("<a>")
 			.html(label)
 			.appendTo(
-				$('<li class="user-action-row">').appendTo(this.user_actions.removeClass("hidden"))
+				$('<div class="user-action-row"></div>').appendTo(
+					this.user_actions.removeClass("hidden")
+				)
 			)
 			.on("click", click);
 	}
@@ -193,64 +210,6 @@ frappe.ui.form.Sidebar = class {
 	clear_user_actions() {
 		this.user_actions.addClass("hidden");
 		this.user_actions.find(".user-action-row").remove();
-	}
-
-	make_like() {
-		this.like_wrapper = this.sidebar.find(".liked-by");
-		this.like_icon = this.sidebar.find(".liked-by .like-icon");
-		this.like_count = this.sidebar.find(".liked-by .like-count");
-		frappe.ui.setup_like_popover(this.sidebar.find(".form-stats-likes"), ".like-icon");
-	}
-
-	make_follow() {
-		this.follow_button = this.sidebar.find(".form-sidebar-stats .form-follow");
-
-		this.follow_button.on("click", () => {
-			let is_followed = this.frm.get_docinfo().is_document_followed;
-			frappe
-				.call("frappe.desk.form.document_follow.update_follow", {
-					doctype: this.frm.doctype,
-					doc_name: this.frm.doc.name,
-					following: !is_followed,
-				})
-				.then(() => {
-					frappe.model.set_docinfo(
-						this.frm.doctype,
-						this.frm.doc.name,
-						"is_document_followed",
-						!is_followed
-					);
-					this.refresh_follow(!is_followed);
-				});
-		});
-	}
-
-	refresh_follow(follow) {
-		if (follow == null) {
-			follow = this.frm.get_docinfo().is_document_followed;
-		}
-		this.follow_button.text(follow ? __("Unfollow") : __("Follow"));
-	}
-
-	refresh_like() {
-		if (!this.like_icon) {
-			return;
-		}
-
-		this.like_wrapper.attr("data-liked-by", this.frm.doc._liked_by);
-		const liked = frappe.ui.is_liked(this.frm.doc);
-		this.like_wrapper
-			.toggleClass("not-liked", !liked)
-			.toggleClass("liked", liked)
-			.attr("data-doctype", this.frm.doctype)
-			.attr("data-name", this.frm.doc.name);
-
-		this.like_count && this.like_count.text(JSON.parse(this.frm.doc._liked_by || "[]").length);
-	}
-
-	refresh_comments_count() {
-		let count = (this.frm.get_docinfo().comments || []).length;
-		this.comments.find(".comments-count").html(count);
 	}
 
 	refresh_image() {}

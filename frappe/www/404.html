@@ -2,22 +2,29 @@
 
 {%- block title -%}{{_("Not Found")}}{%- endblock -%}
 
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
 {% block page_content %}
+<style>
+	body {
+		background-color: var(--subtle-accent);
+		font-size: var(--text-base);
+	}
+</style>
 
 <script>
 	window.is_404 = true;
 </script>
 
 <div class="error-page">
-	<img class="img-404" src="/assets/frappe/images/ui-states/404.png" />
 	<div>
-		<h2 class="mb-1 mt-4">
-			{{ _("There's nothing here") }}
-		</h2>
-		<div class="text-muted error-text">
-			{{ _("The page you are looking for has gone missing.") }}
+		<h4>
+			{{ _("Page not found") }}
+		</h4>
+		<div class="details">
+			<a href='/' class="text-muted">{{ _("Back to Home") }}</a>
 		</div>
-		<div class="mt-6 back-to-home"><a href='/' class='btn btn-primary'>{{ _("Back to Home") }}</a></div>
 	</div>
 </div>
 

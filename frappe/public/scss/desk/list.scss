@@ -52,7 +52,6 @@
 
 			.layout-main-section-wrapper {
 				flex: 1;
-				max-width: 100%;
 			}
 		}
 	}
@@ -61,8 +60,8 @@
 .list-row-container {
 	display: flex;
 	flex-direction: column;
-	outline: none;
-	padding: 0 var(--padding-xs);
+	padding: var(--padding-xs) var(--padding-md);
+	border-bottom: 1px solid $border-color;
 
 	&:focus {
 		.list-row {
@@ -70,24 +69,24 @@
 		}
 	}
 
-	.list-row-border {
-		border-bottom: 1px solid $border-color;
-		margin: 0 10px;
+	&:first-child {
+		padding-top: 0;
+		border-bottom: none;
 	}
 
-	&:last-child .list-row-border {
-		display: none;
+	&:last-child {
+		border-bottom: none;
 	}
 }
 
 .list-row {
 	padding-right: 15px;
 	height: var(--list-row-height);
+	border-radius: var(--border-radius);
 	cursor: pointer;
 	transition: color 0.2s;
 	-webkit-transition: color 0.2s;
 	@include get_textstyle("base", "regular");
-	border-radius: var(--border-radius-md);
 
 	&:hover:not(.list-row-head) {
 		background-color: var(--highlight-color);
@@ -171,9 +170,8 @@
 	@extend .list-row;
 	cursor: default;
 	background-color: var(--subtle-fg);
-	height: 30px;
-	margin: 0.5rem 0;
-	border-radius: var(--border-radius-md);
+	border-radius: var(--border-radius);
+	height: var(--list-row-height);
 
 	.list-subject {
 		font-weight: normal;
@@ -230,14 +228,14 @@ $level-margin-right: 8px;
 		}
 	}
 	.btn-paging {
-		background-color: var(--gray-50);
+		background-color: var(--control-bg);
 	}
 }
 
-.frappe-card {
+.layout-main-list {
 	.list-paging-area,
 	.footnote-area {
-		padding: var(--padding-md);
+		padding: var(--padding-sm) var(--padding-md);
 	}
 }
 
@@ -329,7 +327,7 @@ input.list-header-checkbox {
 
 	&--head {
 		background-color: var(--highlight-color);
-		border-bottom: 1px solid $border-color;
+		// border-bottom: 1px solid $border-color;
 		cursor: auto;
 	}
 

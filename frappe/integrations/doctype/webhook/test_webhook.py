@@ -13,7 +13,8 @@ from frappe.integrations.doctype.webhook.webhook import (
 	get_webhook_data,
 	get_webhook_headers,
 )
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests.classes.context_managers import timeout
 
 
 @contextmanager
@@ -29,7 +30,16 @@ def get_test_webhook(config):
 		wh.delete()
 
 
-class TestWebhook(FrappeTestCase):
+class UnitTestWebhook(UnitTestCase):
+	"""
+	Unit tests for Webhook.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestWebhook(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		# delete any existing webhooks
@@ -75,10 +85,19 @@ class TestWebhook(FrappeTestCase):
 		frappe.db.delete("Webhook")
 		frappe.db.commit()
 
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
 	def setUp(self):
 		# retrieve or create a User webhook for `after_insert`
 		self.responses = responses.RequestsMock()
 		self.responses.start()
+
+		self.responses.add(
+			responses.POST,
+			"https://httpbin.org/post",
+			status=200,
+			json={},
+		)
+
 		webhook_fields = {
 			"webhook_doctype": "User",
 			"webhook_docevent": "after_insert",
@@ -111,15 +130,16 @@ class TestWebhook(FrappeTestCase):
 		self.responses.reset()
 		super().tearDown()
 
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
 	def test_webhook_trigger_with_enabled_webhooks(self):
 		"""Test webhook trigger for enabled webhooks"""
 
-		frappe.cache.delete_value("webhooks")
+		frappe.client_cache.delete_value("webhooks")
 
 		# Insert the user to db
 		self.test_user.insert()
 
-		webhooks = frappe.cache.get_value("webhooks")
+		webhooks = frappe.client_cache.get_value("webhooks")
 		self.assertTrue("User" in webhooks)
 		self.assertEqual(len(webhooks.get("User")), 1)
 
@@ -129,18 +149,21 @@ class TestWebhook(FrappeTestCase):
 		self.assertEqual(execution.webhook.name, self.sample_webhooks[0].name)
 		self.assertEqual(execution.doc.name, self.test_user.name)
 
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
 	def test_validate_doc_events(self):
 		"Test creating a submit-related webhook for a non-submittable DocType"
 
 		self.webhook.webhook_docevent = "on_submit"
 		self.assertRaises(frappe.ValidationError, self.webhook.save)
 
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
 	def test_validate_request_url(self):
 		"Test validation for the webhook request URL"
 
 		self.webhook.request_url = "httpbin.org?post"
 		self.assertRaises(frappe.ValidationError, self.webhook.save)
 
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
 	def test_validate_headers(self):
 		"Test validation for request headers"
 
@@ -156,6 +179,7 @@ class TestWebhook(FrappeTestCase):
 		headers = get_webhook_headers(doc=None, webhook=self.webhook)
 		self.assertEqual(headers, {"Content-Type": "application/json"})
 
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
 	def test_validate_request_body_form(self):
 		"Test validation of Form URL-Encoded request body"
 
@@ -170,6 +194,7 @@ class TestWebhook(FrappeTestCase):
 		data = get_webhook_data(doc=self.user, webhook=self.webhook)
 		self.assertEqual(data, {"name": self.user.name})
 
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
 	def test_validate_request_body_json(self):
 		"Test validation of JSON request body"
 
@@ -184,6 +209,7 @@ class TestWebhook(FrappeTestCase):
 		data = get_webhook_data(doc=self.user, webhook=self.webhook)
 		self.assertEqual(data, {"name": self.user.name})
 
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
 	def test_webhook_req_log_creation(self):
 		self.responses.add(
 			responses.POST,
@@ -204,6 +230,7 @@ class TestWebhook(FrappeTestCase):
 
 		self.assertTrue(frappe.get_all("Webhook Request Log", pluck="name"))
 
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
 	def test_webhook_with_array_body(self):
 		"""Check if array request body are supported."""
 		wh_config = {
@@ -249,6 +276,7 @@ class TestWebhook(FrappeTestCase):
 			log = frappe.get_last_doc("Webhook Request Log")
 			self.assertEqual(len(json.loads(log.response)), 3)
 
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
 	def test_webhook_with_dynamic_url_enabled(self):
 		wh_config = {
 			"doctype": "Webhook",
@@ -280,6 +308,7 @@ class TestWebhook(FrappeTestCase):
 			doc.title = "Test Webhook Note"
 			enqueue_webhook(doc, wh)
 
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
 	def test_webhook_with_dynamic_url_disabled(self):
 		wh_config = {
 			"doctype": "Webhook",

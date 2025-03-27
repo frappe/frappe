@@ -40,14 +40,16 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 	}
 
 	render() {
-		this.get_attached_images().then(() => {
-			this.render_image_view();
+		this.load_lib.then(() => {
+			this.get_attached_images().then(() => {
+				this.render_image_view();
 
-			if (!this.gallery) {
-				this.setup_gallery();
-			} else {
-				this.gallery.prepare_pswp_items(this.items, this.images_map);
-			}
+				if (!this.gallery) {
+					this.setup_gallery();
+				} else {
+					this.gallery.prepare_pswp_items(this.items, this.images_map);
+				}
+			});
 		});
 	}
 
@@ -155,24 +157,6 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 			});
 	}
 
-	get_header_html() {
-		// return this.get_header_html_skeleton(`
-		// 	<div class="list-image-header">
-		// 		<div class="list-image-header-item">
-		// 			<input class="level-item list-check-all hidden-xs" type="checkbox" title="Select All">
-		// 			<div>${__(this.doctype)} &nbsp;</div>
-		// 			(<span class="text-muted list-count"></span>)
-		// 		</div>
-		// 		<div class="list-image-header-item">
-		// 			<div class="level-item list-liked-by-me">
-		// 				${frappe.utils.icon('heart', 'sm', 'like-icon')}
-		// 			</div>
-		// 			<div>${__('Liked')}</div>
-		// 		</div>
-		// 	</div>
-		// `);
-	}
-
 	setup_gallery() {
 		var me = this;
 		this.gallery = new frappe.views.GalleryView({
@@ -190,17 +174,20 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 			return false;
 		});
 	}
+
+	get required_libs() {
+		return [
+			"assets/frappe/node_modules/photoswipe/src/photoswipe.css",
+			"photoswipe.bundle.js",
+		];
+	}
 };
 
 frappe.views.GalleryView = class GalleryView {
 	constructor(opts) {
 		$.extend(this, opts);
 		var me = this;
-
-		this.lib_ready = this.load_lib();
-		this.lib_ready.then(function () {
-			me.prepare();
-		});
+		me.prepare();
 	}
 	prepare() {
 		// keep only one pswp dom element
@@ -220,146 +207,51 @@ frappe.views.GalleryView = class GalleryView {
 		}
 
 		return new Promise((resolve) => {
-			const items = this.items.map(function (i) {
-				const query = 'img[data-name="' + i._name + '"]';
-				let el = me.wrapper.find(query).get(0);
+			const items = this.items
+				.filter((i) => i.image !== null)
+				.map(function (i) {
+					const query = 'img[data-name="' + i._name + '"]';
+					let el = me.wrapper.find(query).get(0);
 
-				let width, height;
-				if (el) {
-					width = el.naturalWidth;
-					height = el.naturalHeight;
-				}
+					let width, height;
+					if (el) {
+						width = el.naturalWidth;
+						height = el.naturalHeight;
+					}
 
-				if (!el) {
-					el = me.wrapper.find('.image-field[data-name="' + i._name + '"]').get(0);
-					width = el.getBoundingClientRect().width;
-					height = el.getBoundingClientRect().height;
-				}
+					if (!el) {
+						el = me.wrapper.find('.image-field[data-name="' + i._name + '"]').get(0);
+						width = el.getBoundingClientRect().width;
+						height = el.getBoundingClientRect().height;
+					}
 
-				return {
-					src: i._image_url,
-					msrc: i._image_url,
-					name: i.name,
-					w: width,
-					h: height,
-					el: el,
-				};
-			});
+					return {
+						src: i._image_url,
+						name: i.name,
+						width: width,
+						height: height,
+					};
+				});
 			this.pswp_items = items;
 			resolve();
 		});
 	}
 	show(docname) {
-		this.lib_ready.then(() => this.prepare_pswp_items()).then(() => this._show(docname));
+		this.prepare_pswp_items().then(() => this._show(docname));
 	}
 	_show(docname) {
-		const me = this;
 		const items = this.pswp_items;
 		const item_index = items.findIndex((item) => item.name === docname);
 
 		var options = {
 			index: item_index,
-			getThumbBoundsFn: function (index) {
-				const query = 'img[data-name="' + items[index]._name + '"]';
-				let thumbnail = me.wrapper.find(query).get(0);
-
-				if (!thumbnail) {
-					return;
-				}
-
-				var pageYScroll = window.pageYOffset || document.documentElement.scrollTop,
-					rect = thumbnail.getBoundingClientRect();
-
-				return {
-					x: rect.left,
-					y: rect.top + pageYScroll,
-					w: rect.width,
-				};
-			},
 			history: false,
 			shareEl: false,
-			showHideOpacity: true,
+			dataSource: items,
 		};
 
 		// init
-		this.pswp = new PhotoSwipe(this.pswp_root.get(0), PhotoSwipeUI_Default, items, options);
-		this.browse_images();
+		this.pswp = new frappe.PhotoSwipe(options);
 		this.pswp.init();
-	}
-	browse_images() {
-		const $more_items = this.pswp_root.find(".pswp__more-items");
-		const images_map = this.images_map;
-		let last_hide_timeout = null;
-
-		this.pswp.listen("afterChange", function () {
-			const images = images_map[this.currItem.name];
-			if (!images || images.length === 1) {
-				$more_items.html("");
-				return;
-			}
-
-			hide_more_items_after_2s();
-			const html = images.map(img_html).join("");
-			$more_items.html(html);
-		});
-
-		this.pswp.listen("beforeChange", hide_more_items);
-		this.pswp.listen("initialZoomOut", hide_more_items);
-		this.pswp.listen("destroy", () => {
-			$(document).off("mousemove", hide_more_items_after_2s);
-		});
-
-		// Replace current image on click
-		$more_items.on("click", ".pswp__more-item", (e) => {
-			const img_el = e.target;
-			const index = this.pswp.items.findIndex((i) => i.name === this.pswp.currItem.name);
-
-			this.pswp.goTo(index);
-			this.pswp.items.splice(index, 1, {
-				src: img_el.src,
-				w: img_el.naturalWidth,
-				h: img_el.naturalHeight,
-				name: this.pswp.currItem.name,
-			});
-			this.pswp.invalidateCurrItems();
-			this.pswp.updateSize(true);
-		});
-
-		// hide more-images 2s after mousemove
-		$(document).on("mousemove", hide_more_items_after_2s);
-
-		function hide_more_items_after_2s() {
-			clearTimeout(last_hide_timeout);
-			show_more_items();
-			last_hide_timeout = setTimeout(hide_more_items, 2000);
-		}
-
-		function show_more_items() {
-			$more_items.show();
-		}
-
-		function hide_more_items() {
-			$more_items.hide();
-		}
-
-		function img_html(src) {
-			return `<div class="pswp__more-item">
-				<img src="${src}">
-			</div>`;
-		}
-	}
-	load_lib() {
-		return new Promise((resolve) => {
-			var asset_dir = "assets/frappe/js/lib/photoswipe/";
-			frappe.require(
-				[
-					asset_dir + "photoswipe.css",
-					asset_dir + "default-skin.css",
-					asset_dir + "photoswipe.js",
-					asset_dir + "photoswipe-ui-default.js",
-				],
-				resolve
-			);
-		});
 	}
 };

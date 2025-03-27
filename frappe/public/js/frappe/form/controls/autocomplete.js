@@ -90,16 +90,13 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 
 		$(this.input_area).find(".awesomplete ul").css("min-width", "100%");
 
-		this.$input.on(
-			"input",
-			frappe.utils.debounce((e) => {
-				if (this.get_query || this.df.get_query) {
-					this.execute_query_if_exists(e.target.value);
-				} else {
-					this.awesomplete.list = this.get_data();
-				}
-			}, 500)
-		);
+		this.$input.on("input", (e) => {
+			if (this.get_query || this.df.get_query) {
+				this.execute_query_if_exists(e.target.value);
+			} else {
+				this.awesomplete.list = this.get_data();
+			}
+		});
 
 		this.$input.on("focus", () => {
 			if (!this.$input.val()) {

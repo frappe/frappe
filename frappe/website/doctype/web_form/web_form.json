@@ -17,20 +17,25 @@
   "introduction_text",
   "web_form_fields",
   "settings_tab",
-  "login_required",
-  "allow_multiple",
-  "allow_edit",
-  "allow_delete",
+  "access_control_section",
   "anonymous",
+  "login_required",
   "column_break_2",
   "apply_document_permissions",
+  "allow_edit",
+  "allow_multiple",
+  "allow_delete",
+  "form_settings_section",
+  "allow_incomplete",
+  "allow_comments",
   "allow_print",
   "print_format",
-  "allow_comments",
-  "show_attachments",
-  "allow_incomplete",
-  "section_break_2",
   "max_attachment_size",
+  "show_attachments",
+  "column_break_hhec",
+  "hide_navbar",
+  "hide_footer",
+  "allowed_embedding_domains",
   "condition_section",
   "condition_description",
   "condition_json",
@@ -94,7 +99,8 @@
    "default": "0",
    "fieldname": "is_standard",
    "fieldtype": "Check",
-   "label": "Is Standard"
+   "label": "Is standard",
+   "no_copy": 1
   },
   {
    "default": "0",
@@ -108,34 +114,34 @@
    "depends_on": "eval:!doc.anonymous",
    "fieldname": "login_required",
    "fieldtype": "Check",
-   "label": "Login Required"
+   "label": "Login required"
   },
   {
    "default": "0",
    "depends_on": "login_required",
    "fieldname": "allow_edit",
    "fieldtype": "Check",
-   "label": "Allow Editing After Submit"
+   "label": "Allow editing after submit"
   },
   {
    "default": "0",
    "depends_on": "login_required",
    "fieldname": "allow_multiple",
    "fieldtype": "Check",
-   "label": "Allow Multiple Responses"
+   "label": "Allow multiple responses"
   },
   {
    "default": "0",
    "depends_on": "eval: doc.allow_multiple && doc.login_required",
    "fieldname": "allow_delete",
    "fieldtype": "Check",
-   "label": "Allow Delete"
+   "label": "Allow delete"
   },
   {
    "default": "0",
    "fieldname": "allow_print",
    "fieldtype": "Check",
-   "label": "Allow Print"
+   "label": "Allow print"
   },
   {
    "depends_on": "allow_print",
@@ -149,21 +155,21 @@
    "depends_on": "login_required",
    "fieldname": "allow_comments",
    "fieldtype": "Check",
-   "label": "Allow Comments"
+   "label": "Allow comments"
   },
   {
    "default": "0",
    "depends_on": "login_required",
    "fieldname": "show_attachments",
    "fieldtype": "Check",
-   "label": "Show Attachments"
+   "label": "Show attachments"
   },
   {
    "default": "0",
    "description": "Allow saving if mandatory fields are not filled",
    "fieldname": "allow_incomplete",
    "fieldtype": "Check",
-   "label": "Allow Incomplete Forms"
+   "label": "Allow incomplete forms"
   },
   {
    "fieldname": "introduction_text",
@@ -178,27 +184,29 @@
    "options": "Web Form Field"
   },
   {
+   "description": "Set size in MB",
    "fieldname": "max_attachment_size",
    "fieldtype": "Int",
-   "label": "Max Attachment Size (in MB)"
+   "label": "Max attachment size"
   },
   {
    "description": "For help see <a href=\"https://frappeframework.com/docs/user/en/guides/portal-development/web-forms\" target=\"_blank\">Client Script API and Examples</a>",
    "fieldname": "client_script",
    "fieldtype": "Code",
-   "label": "Client Script"
+   "label": "Client script",
+   "options": "Javascript"
   },
   {
    "default": "Save",
    "fieldname": "button_label",
    "fieldtype": "Data",
-   "label": "Submit Button Label"
+   "label": "Submit button label"
   },
   {
    "description": "Message to be displayed on successful completion",
    "fieldname": "success_message",
    "fieldtype": "Text",
-   "label": "Success Message"
+   "label": "Success message"
   },
   {
    "description": "Go to this URL after completing the form",
@@ -210,7 +218,7 @@
    "default": "0",
    "fieldname": "show_sidebar",
    "fieldtype": "Check",
-   "label": "Show Sidebar"
+   "label": "Show sidebar"
   },
   {
    "description": "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]",
@@ -229,14 +237,14 @@
    "default": "0",
    "fieldname": "apply_document_permissions",
    "fieldtype": "Check",
-   "label": "Apply Document Permissions"
+   "label": "Apply document permissions"
   },
   {
    "default": "0",
    "depends_on": "login_required",
    "fieldname": "show_list",
    "fieldtype": "Check",
-   "label": "Show List"
+   "label": "Show list"
   },
   {
    "depends_on": "eval: doc.login_required && doc.show_list",
@@ -260,7 +268,7 @@
   {
    "fieldname": "list_setting_message",
    "fieldtype": "HTML",
-   "label": "List Setting Message"
+   "label": "List setting message"
   },
   {
    "fieldname": "customization_tab",
@@ -270,7 +278,7 @@
   {
    "fieldname": "success_title",
    "fieldtype": "Data",
-   "label": "Success Title"
+   "label": "Success title"
   },
   {
    "fieldname": "banner_image",
@@ -294,10 +302,6 @@
   {
    "fieldname": "column_break_2",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "section_break_2",
-   "fieldtype": "Section Break"
   },
   {
    "collapsible": 1,
@@ -346,12 +350,12 @@
   {
    "fieldname": "meta_title",
    "fieldtype": "Data",
-   "label": "Meta Title"
+   "label": "Meta title"
   },
   {
    "fieldname": "meta_description",
    "fieldtype": "Small Text",
-   "label": "Meta Description"
+   "label": "Meta description"
   },
   {
    "fieldname": "column_break_khxs",
@@ -360,7 +364,7 @@
   {
    "fieldname": "meta_image",
    "fieldtype": "Attach Image",
-   "label": "Meta Image"
+   "label": "Meta image"
   },
   {
    "fieldname": "column_break_vdhm",
@@ -368,15 +372,15 @@
   },
   {
    "default": "0",
-   "description": "Receive anonymous response",
+   "description": "If enabled, all responses on the web form will be submitted anonymously",
    "fieldname": "anonymous",
    "fieldtype": "Check",
-   "label": "Anonymous"
+   "label": "Anonymous responses"
   },
   {
    "fieldname": "condition_description",
    "fieldtype": "HTML",
-   "label": "Condition Description",
+   "label": "Condition description",
    "options": "<p>Multiple webforms can be created for a single doctype. Add filters specific to this webform to display correct record after submission.</p><p>For Example:</p>\n<p>If you create a separate webform every year to capture feedback from employees add a \n field named year in doctype and add a filter <b>year = 2023</b></p>\n"
   },
   {
@@ -387,13 +391,45 @@
    "fieldname": "condition_json",
    "fieldtype": "JSON",
    "label": "Condition JSON"
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_navbar",
+   "fieldtype": "Check",
+   "label": "Hide navbar"
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_footer",
+   "fieldtype": "Check",
+   "label": "Hide footer"
+  },
+  {
+   "description": "Specify the domains or origins that are permitted to embed this form. Enter one domain per line (e.g., https://example.com). If no domains are specified, the form can only be embedded on the same origin.",
+   "fieldname": "allowed_embedding_domains",
+   "fieldtype": "Small Text",
+   "label": "Allowed embedding domains"
+  },
+  {
+   "fieldname": "access_control_section",
+   "fieldtype": "Section Break",
+   "label": "Access Control"
+  },
+  {
+   "fieldname": "form_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Form Settings"
+  },
+  {
+   "fieldname": "column_break_hhec",
+   "fieldtype": "Column Break"
   }
  ],
  "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2024-03-23 16:04:01.886581",
+ "modified": "2024-12-30 17:00:05.944646",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

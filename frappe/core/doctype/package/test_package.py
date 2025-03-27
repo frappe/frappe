@@ -5,10 +5,19 @@ import json
 import os
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 
-class TestPackage(FrappeTestCase):
+class UnitTestPackage(UnitTestCase):
+	"""
+	Unit tests for Package.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestPackage(IntegrationTestCase):
 	def test_package_release(self):
 		make_test_package()
 		make_test_module()

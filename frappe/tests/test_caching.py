@@ -3,8 +3,8 @@ from unittest.mock import MagicMock
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import FrappeAPITestCase
-from frappe.tests.utils import FrappeTestCase
 from frappe.utils.caching import redis_cache, request_cache, site_cache
 
 CACHE_TTL = 4
@@ -35,19 +35,24 @@ def ping_with_ttl() -> str:
 	return frappe.local.site
 
 
-class TestCachingUtils(FrappeTestCase):
+class TestCachingUtils(IntegrationTestCase):
 	def test_request_cache(self):
 		retval = []
-		acceptable_args = [
-			[1, 2, 3, 4],
+		hashable_values = [
 			range(10),
-			{"abc": "test-key"},
 			frappe.get_last_doc("DocType"),
+			True,
+			None,
+		]
+
+		unhashable_values = [
+			[1, 2, 3, 4],
+			{"abc": "test-key"},
 			frappe._dict(),
 		]
 
 		def same_output_received():
-			return all([x for x in set(retval) if x == retval[0]])
+			return len(set(retval)) == 1
 
 		# ensure that external service was called only once
 		# thereby return value of request_specific_api is cached
@@ -55,27 +60,33 @@ class TestCachingUtils(FrappeTestCase):
 		external_service.assert_called_once()
 		self.assertTrue(same_output_received())
 
-		# ensure that cache differentiates between int & float
-		# types. Giving different return values for both
+		# hash() function does not differentiate between int & float
+		# Giving same values for both
 		retval.append(request_specific_api(120.0, 23))
-		self.assertTrue(external_service.call_count, 2)
-
-		# ensure that function is executed when call isn't
-		# already cached
-		retval.clear()
-		for _ in range(10):
-			request_specific_api(120, 13)
-		self.assertTrue(external_service.call_count, 3)
+		external_service.assert_called_once()
 		self.assertTrue(same_output_received())
 
-		# ensure key generation capacity for different types
+		# ensure that function is executed when call isn't already cached
 		retval.clear()
-		for arg in acceptable_args:
+		retval.extend(request_specific_api(120, 13) for _ in range(10))
+		self.assertEqual(external_service.call_count, 2)
+		self.assertTrue(same_output_received())
+
+		# ensure single call if key is hashable
+		for arg in hashable_values:
 			external_service.call_count = 0
 			for _ in range(2):
 				request_specific_api(arg, 13)
-			self.assertTrue(external_service.call_count, 1)
-		self.assertTrue(same_output_received())
+
+			self.assertEqual(external_service.call_count, 1)
+
+		# multiple calls if key cannot be generated
+		for arg in unhashable_values:
+			external_service.call_count = 0
+			for _ in range(2):
+				request_specific_api(arg, 13)
+
+			self.assertEqual(external_service.call_count, 2)
 
 
 class TestSiteCache(FrappeAPITestCase):
@@ -110,6 +121,7 @@ class TestRedisCache(FrappeAPITestCase):
 		self.assertEqual(function_call_count, 1)
 
 		time.sleep(CACHE_TTL * 1.5)
+		frappe.local.cache.clear()
 		self.assertEqual(calculate_area(10), 314)
 		self.assertEqual(function_call_count, 2)
 
@@ -348,3 +360,13 @@ class TestRedisWrapper(FrappeAPITestCase):
 
 	def test_backward_compat_cache(self):
 		self.assertEqual(frappe.cache, frappe.cache())
+
+
+class TestHttpCache(FrappeAPITestCase):
+	def test_http_headers(self):
+		resp = self.get(
+			self.method("frappe.client.is_document_amended"),
+			{"sid": self.sid, "doctype": "User", "docname": "Guest"},
+		)
+		self.assertEqual(resp.cache_control.max_age, 600)
+		self.assertTrue(resp.cache_control.private)

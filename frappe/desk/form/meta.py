@@ -29,20 +29,24 @@ ASSET_KEYS = (
 	"__templates",
 	"__custom_js",
 	"__custom_list_js",
+	"__workspaces",
 )
 
 
 def get_meta(doctype, cached=True) -> "FormMeta":
 	# don't cache for developer mode as js files, templates may be edited
 	cached = cached and not frappe.conf.developer_mode
+	key = f"doctype_form_meta::{doctype}"
 	if cached:
-		meta = frappe.cache.hget("doctype_form_meta", doctype)
+		meta = frappe.client_cache.get_value(key)
 		if not meta:
-			# Cache miss - explicitly get meta from DB to avoid
+			# Cache miss - explicitly get meta from DB to avoid mismatches
 			meta = FormMeta(doctype, cached=False)
-			frappe.cache.hset("doctype_form_meta", doctype, meta)
+			frappe.client_cache.set_value(key, meta)
 	else:
-		meta = FormMeta(doctype)
+		# NOTE: In developer mode use cached `Meta` for better DX
+		#       In prod don't use cached meta when explicitly requesting from DB.
+		meta = FormMeta(doctype, cached=frappe.conf.developer_mode)
 
 	return meta
 
@@ -67,6 +71,7 @@ class FormMeta(Meta):
 			self.load_templates()
 			self.load_dashboard()
 			self.load_kanban_meta()
+			self.load_workspaces()
 
 		self.set("__assets_loaded", True)
 
@@ -256,6 +261,37 @@ class FormMeta(Meta):
 
 	def load_dashboard(self):
 		self.set("__dashboard", self.get_dashboard_data())
+
+	def load_workspaces(self):
+		Shortcut = frappe.qb.DocType("Workspace Shortcut")
+		Workspace = frappe.qb.DocType("Workspace")
+		shortcut = (
+			frappe.qb.from_(Shortcut)
+			.select(Shortcut.parent)
+			.inner_join(Workspace)
+			.on(Workspace.name == Shortcut.parent)
+			.where(Shortcut.link_to == self.name)
+			.where(Shortcut.type == "DocType")
+			.where(Workspace.public == 1)
+			.run()
+		)
+		if shortcut:
+			self.set("__workspaces", [shortcut[0][0]])
+		else:
+			Link = frappe.qb.DocType("Workspace Link")
+			link = (
+				frappe.qb.from_(Link)
+				.select(Link.parent)
+				.inner_join(Workspace)
+				.on(Workspace.name == Link.parent)
+				.where(Link.link_type == "DocType")
+				.where(Link.link_to == self.name)
+				.where(Workspace.public == 1)
+				.run()
+			)
+
+			if link:
+				self.set("__workspaces", [link[0][0]])
 
 	def load_kanban_meta(self):
 		self.load_kanban_column_fields()

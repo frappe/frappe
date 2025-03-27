@@ -27,7 +27,12 @@ from frappe.model.document import Document
 from frappe.utils.background_jobs import get_queue, get_queue_list, get_redis_conn
 from frappe.utils.caching import redis_cache
 from frappe.utils.data import add_to_date
-from frappe.utils.scheduler import get_scheduler_status, get_scheduler_tick
+from frappe.utils.scheduler import (
+	get_scheduler_status,
+	get_scheduler_tick,
+	is_dormant,
+	is_schduler_process_running,
+)
 
 
 @contextmanager
@@ -52,6 +57,8 @@ def health_check(step: str):
 			try:
 				return func(*args, **kwargs)
 			except Exception as e:
+				if frappe.flags.in_test:
+					raise
 				frappe.log(frappe.get_traceback())
 				# nosemgrep
 				frappe.msgprint(
@@ -151,7 +158,6 @@ class SystemHealthReport(Document):
 		# This just checks connection life
 		self.test_job_id = frappe.enqueue("frappe.ping", at_front=True).id
 		self.background_jobs_check = "queued"
-		self.scheduler_status = get_scheduler_status().get("status")
 		workers = frappe.get_all("RQ Worker")
 		self.total_background_workers = len(workers)
 		queue_summary = defaultdict(list)
@@ -182,23 +188,54 @@ class SystemHealthReport(Document):
 
 	@health_check("Scheduler")
 	def fetch_scheduler(self):
+		scheduler_enabled = get_scheduler_status().get("status") == "active"
+
+		if not is_schduler_process_running():
+			self.scheduler_status = "Process Not Found"
+		elif is_dormant():
+			self.scheduler_status = "Dormant"
+		elif scheduler_enabled:
+			self.scheduler_status = "Active"
+		else:
+			self.scheduler_status = "Inactive"
+
 		lower_threshold = add_to_date(None, days=-7, as_datetime=True)
 		# Exclude "maybe" curently executing job
 		upper_threshold = add_to_date(None, minutes=-30, as_datetime=True)
-		self.scheduler_status = get_scheduler_status().get("status")
-		failing_jobs = frappe.db.sql(
-			"""
-			select scheduled_job_type,
-				   avg(CASE WHEN status != 'Complete' THEN 1 ELSE 0 END) * 100 as failure_rate
-			from `tabScheduled Job Log`
-			where
-				creation > %(lower_threshold)s
-				and modified > %(lower_threshold)s
-				and creation < %(upper_threshold)s
-			group by scheduled_job_type
-			having failure_rate > 0
-			order by failure_rate desc
-			limit 5""",
+
+		mariadb_query = """
+  				SELECT scheduled_job_type,
+					AVG(CASE WHEN status != 'Complete' THEN 1 ELSE 0 END) * 100 AS failure_rate
+				FROM `tabScheduled Job Log`
+				WHERE
+					creation > %(lower_threshold)s
+					AND modified > %(lower_threshold)s
+					AND creation < %(upper_threshold)s
+				GROUP BY scheduled_job_type
+				HAVING failure_rate > 0
+				ORDER BY failure_rate DESC
+				LIMIT 5
+		"""
+
+		postgres_query = """
+  				SELECT scheduled_job_type,
+					AVG(CASE WHEN status != 'Complete' THEN 1 ELSE 0 END) * 100 AS "failure_rate"
+				FROM "tabScheduled Job Log"
+				WHERE
+					creation > %(lower_threshold)s
+					AND modified > %(lower_threshold)s
+					AND creation < %(upper_threshold)s
+				GROUP BY scheduled_job_type
+				HAVING AVG(CASE WHEN status != 'Complete' THEN 1 ELSE 0 END) * 100 > 0
+				ORDER BY "failure_rate" DESC
+				LIMIT 5
+    	"""
+
+		failing_jobs = frappe.db.multisql(
+			{
+				"mariadb": mariadb_query,
+				"postgres": postgres_query,
+			},
 			{"lower_threshold": lower_threshold, "upper_threshold": upper_threshold},
 			as_dict=True,
 		)

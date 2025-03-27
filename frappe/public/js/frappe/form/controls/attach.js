@@ -18,7 +18,7 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 				${frappe.utils.icon("es-line-link", "sm")}
 					<a class="attached-file-link" target="_blank"></a>
 				</div>
-				<div>
+				<div class="flex" style="align-items: center">
 					<a class="btn btn-xs btn-default" data-action="reload_attachment">${__("Reload File")}</a>
 					<a class="btn btn-xs btn-default" data-action="clear_attachment">${__("Clear")}</a>
 				</div>
@@ -35,21 +35,23 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 	}
 	clear_attachment() {
 		let me = this;
-		if (this.frm) {
-			me.parse_validate_and_set_in_model(null);
-			me.refresh();
-			me.frm.attachments.remove_attachment_by_filename(me.value, async () => {
-				await me.parse_validate_and_set_in_model(null);
+		frappe.confirm(__("Are you sure you want to delete the attachment?"), function () {
+			if (me.frm) {
+				me.parse_validate_and_set_in_model(null);
 				me.refresh();
-				me.frm.doc.docstatus == 1 ? me.frm.save("Update") : me.frm.save();
-			});
-		} else {
-			this.dataurl = null;
-			this.fileobj = null;
-			this.set_input(null);
-			this.parse_validate_and_set_in_model(null);
-			this.refresh();
-		}
+				me.frm.attachments.remove_attachment_by_filename(me.value, async () => {
+					await me.parse_validate_and_set_in_model(null);
+					me.refresh();
+					me.frm.doc.docstatus == 1 ? me.frm.save("Update") : me.frm.save();
+				});
+			} else {
+				me.dataurl = null;
+				me.fileobj = null;
+				me.set_input(null);
+				me.parse_validate_and_set_in_model(null);
+				me.refresh();
+			}
+		});
 	}
 	reload_attachment() {
 		if (this.file_uploader) {
@@ -79,7 +81,9 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 			options.doctype = this.frm.doctype;
 			options.docname = this.frm.docname;
 			options.fieldname = this.df.fieldname;
-			options.make_attachments_public = this.frm.meta.make_attachments_public;
+			options.make_attachments_public = this.df.make_attachment_public
+				? 1
+				: this.frm.meta.make_attachments_public;
 		}
 
 		if (this.df.options) {
@@ -92,7 +96,6 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 		this.last_value = this.value;
 		this.value = value;
 		if (this.value) {
-			this.$input.toggle(false);
 			// value can also be using this format: FILENAME,DATA_URL
 			// Important: We have to be careful because normal filenames may also contain ","
 			let file_url_parts = this.value.match(/^([^:]+),(.+):(.+)$/);
@@ -101,11 +104,26 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 				filename = file_url_parts[1];
 				dataurl = file_url_parts[2] + ":" + file_url_parts[3];
 			}
-			this.$value
-				.toggle(true)
-				.find(".attached-file-link")
-				.html(filename || this.value)
-				.attr("href", dataurl || this.value);
+			if (this.$input && this.$value) {
+				this.$input.toggle(false);
+				this.$value
+					.toggle(true)
+					.find(".attached-file-link")
+					.text(filename || this.value)
+					.attr("href", dataurl || this.value);
+			} else {
+				this.$wrapper.html(`
+					<div class="attached-file flex justify-between align-center">
+						<div class="ellipsis">
+							<a target="_blank"></a>
+						</div>
+					</div>
+				`);
+				this.$wrapper
+					.find("a")
+					.text(filename || this.value)
+					.attr("href", dataurl || this.value);
+			}
 		} else {
 			this.$input.toggle(true);
 			this.$value.toggle(false);

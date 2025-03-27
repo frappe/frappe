@@ -16,7 +16,7 @@ import sqlparse
 
 import frappe
 from frappe import _
-from frappe.database.database import is_query_type
+from frappe.database.utils import is_query_type
 from frappe.utils import now_datetime
 
 RECORDER_INTERCEPT_FLAG = "recorder-intercept"
@@ -175,15 +175,17 @@ def normalize_query(query: str) -> str:
 
 
 def record(force=False):
-	if __debug__:
-		if frappe.cache.get_value(RECORDER_INTERCEPT_FLAG) or force:
-			frappe.local._recorder = Recorder(force=force)
+	flag_value = frappe.client_cache.get_value(RECORDER_INTERCEPT_FLAG)
+	if flag_value or force:
+		frappe.local._recorder = Recorder(force=force)
+	elif flag_value is None:
+		# Explicitly set it once so next requests can use client-side cache
+		frappe.client_cache.set_value(RECORDER_INTERCEPT_FLAG, False)
 
 
 def dump():
-	if __debug__:
-		if hasattr(frappe.local, "_recorder"):
-			frappe.local._recorder.dump()
+	if hasattr(frappe.local, "_recorder"):
+		frappe.local._recorder.dump()
 
 
 class Recorder:
@@ -249,7 +251,7 @@ class Recorder:
 			profiler_output = io.StringIO()
 			pstats.Stats(self.profiler, stream=profiler_output).strip_dirs().sort_stats(
 				"cumulative"
-			).print_stats()
+			).print_stats(200)
 			profile = profiler_output.getvalue()
 			profiler_output.close()
 			return profile
@@ -344,14 +346,14 @@ def start(
 		request_filter=request_filter,
 		jobs_filter=jobs_filter,
 	).store()
-	frappe.cache.set_value(RECORDER_INTERCEPT_FLAG, 1, expires_in_sec=RECORDER_AUTO_DISABLE)
+	frappe.client_cache.set_value(RECORDER_INTERCEPT_FLAG, True)
 
 
 @frappe.whitelist()
 @do_not_record
 @administrator_only
 def stop(*args, **kwargs):
-	frappe.cache.delete_value(RECORDER_INTERCEPT_FLAG)
+	frappe.client_cache.set_value(RECORDER_INTERCEPT_FLAG, False)
 	frappe.enqueue(post_process, now=frappe.flags.in_test)
 
 

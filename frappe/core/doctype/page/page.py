@@ -47,8 +47,7 @@ class Page(Document):
 			if frappe.db.exists("Page", self.name):
 				cnt = frappe.db.sql(
 					"""select name from tabPage
-					where name like "%s-%%" order by name desc limit 1"""
-					% self.name
+					where name like "{}-%" order by name desc limit 1""".format(self.name)
 				)
 				if cnt:
 					cnt = cint(cnt[0][0].split("-")[-1]) + 1
@@ -65,6 +64,9 @@ class Page(Document):
 		# setting ignore_permissions via update_setup_wizard_access (setup_wizard.py)
 		if frappe.session.user != "Administrator" and not self.flags.ignore_permissions:
 			frappe.throw(_("Only Administrator can edit"))
+
+	def get_permission_log_options(self, event=None):
+		return {"fields": ["roles"]}
 
 	# export
 	def on_update(self):
@@ -97,8 +99,8 @@ class Page(Document):
 }}"""
 					)
 
-	def as_dict(self, no_nulls=False):
-		d = super().as_dict(no_nulls=no_nulls)
+	def as_dict(self, **kwargs):
+		d = super().as_dict(**kwargs)
 		for key in ("script", "style", "content"):
 			d[key] = self.get(key)
 		return d

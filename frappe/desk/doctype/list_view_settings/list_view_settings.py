@@ -14,7 +14,9 @@ class ListViewSettings(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		allow_edit: DF.Check
 		disable_auto_refresh: DF.Check
+		disable_automatic_recency_filters: DF.Check
 		disable_comment_count: DF.Check
 		disable_count: DF.Check
 		disable_sidebar_stats: DF.Check

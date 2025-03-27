@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import gzip
 import json
+import resource
 from contextlib import suppress
 from typing import Any
 
@@ -33,6 +34,7 @@ class PreparedReport(Document):
 		error_message: DF.Text | None
 		filters: DF.SmallText | None
 		job_id: DF.Data | None
+		peak_memory_usage: DF.Int
 		queued_at: DF.Datetime | None
 		queued_by: DF.Data | None
 		report_end_time: DF.Datetime | None
@@ -71,11 +73,12 @@ class PreparedReport(Document):
 			job.stop_job() if self.status == "Started" else job.delete()
 
 	def after_insert(self):
+		timeout = frappe.get_value("Report", self.report_name, "timeout")
 		enqueue(
 			generate_report,
 			queue="long",
 			prepared_report=self.name,
-			timeout=REPORT_TIMEOUT,
+			timeout=timeout or REPORT_TIMEOUT,
 			enqueue_after_commit=True,
 		)
 
@@ -114,11 +117,12 @@ def generate_report(prepared_report):
 
 		instance.status = "Completed"
 	except Exception:
-		instance.status = "Error"
-		instance.error_message = frappe.get_traceback(with_context=True)
-		_save_instance(instance)  # we need to ensure that error gets stored
+		# we need to ensure that error gets stored
+		_save_error(instance, error=frappe.get_traceback(with_context=True))
 
 	instance.report_end_time = frappe.utils.now()
+	instance.peak_memory_usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+	add_data_to_monitor(peak_memory_usage=instance.peak_memory_usage)
 	instance.save(ignore_permissions=True)
 
 	frappe.publish_realtime(
@@ -129,7 +133,10 @@ def generate_report(prepared_report):
 
 
 @dangerously_reconnect_on_connection_abort
-def _save_instance(instance):
+def _save_error(instance, error):
+	instance.reload()
+	instance.status = "Error"
+	instance.error_message = error
 	instance.save(ignore_permissions=True)
 
 

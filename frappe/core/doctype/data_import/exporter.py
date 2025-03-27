@@ -110,15 +110,24 @@ class Exporter:
 		return fields or []
 
 	def get_data_to_export(self):
-		frappe.permissions.can_export(self.doctype, raise_exception=True)
-
 		table_fields = [f for f in self.exportable_fields if f != self.doctype]
 		data = self.get_data_as_docs()
+
+		if not frappe.permissions.can_export(self.doctype):
+			if frappe.permissions.can_export(self.doctype, is_owner=True):
+				for doc in data:
+					if doc.get("owner") != frappe.session.user:
+						raise frappe.PermissionError(
+							_("You are not allowed to export {} doctype").format(self.doctype)
+						)
+			else:
+				raise frappe.PermissionError(
+					_("You are not allowed to export {} doctype").format(self.doctype)
+				)
 
 		for doc in data:
 			rows = []
 			rows = self.add_data_row(self.doctype, None, doc, rows, 0)
-
 			if table_fields:
 				# add child table data
 				for f in table_fields:
@@ -144,6 +153,8 @@ class Exporter:
 				if df.fieldtype == "Duration":
 					value = format_duration(flt(value), df.hide_days)
 
+				if df.fieldtype == "Text Editor" and value:
+					value = frappe.core.utils.html2text(value)
 				row[i] = value
 		return rows
 
@@ -162,7 +173,7 @@ class Exporter:
 		parent_data = frappe.db.get_list(
 			self.doctype,
 			filters=filters,
-			fields=["name", *parent_fields],
+			fields=["name", "owner", *parent_fields],
 			limit_page_length=self.export_page_length,
 			order_by=order_by,
 			as_list=0,

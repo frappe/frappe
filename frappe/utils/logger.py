@@ -13,6 +13,28 @@ default_log_level = logging.WARNING if frappe._dev_server else logging.ERROR
 stream_logging = os.environ.get("FRAPPE_STREAM_LOGGING")
 
 
+def create_handler(module, site=None, max_size=100_000, file_count=20, stream_only=False):
+	"""Create and return a Frappe-specific logging handler."""
+	formatter = logging.Formatter(f"%(asctime)s %(levelname)s {module} %(message)s")
+
+	if stream_only:
+		handler = logging.StreamHandler()
+	else:
+		logfile = f"{module}.log"
+		log_filename = os.path.join("..", "logs", logfile)
+		handler = RotatingFileHandler(log_filename, maxBytes=max_size, backupCount=file_count)
+
+	handler.setFormatter(formatter)
+
+	if site and not stream_only:
+		sitelog_filename = os.path.join(site, "logs", logfile)
+		site_handler = RotatingFileHandler(sitelog_filename, maxBytes=max_size, backupCount=file_count)
+		site_handler.setFormatter(formatter)
+		return [handler, site_handler]
+
+	return [handler]
+
+
 def get_logger(
 	module=None,
 	with_more_info=False,
@@ -54,29 +76,16 @@ def get_logger(
 		module = "frappe"
 		with_more_info = True
 
-	logfile = module + ".log"
-	log_filename = os.path.join("..", "logs", logfile)
-
 	logger = logging.getLogger(logger_name)
 	logger.setLevel(frappe.log_level or default_log_level)
 	logger.propagate = False
 
-	formatter = logging.Formatter(f"%(asctime)s %(levelname)s {module} %(message)s")
-	if stream_only:
-		handler = logging.StreamHandler()
-	else:
-		handler = RotatingFileHandler(log_filename, maxBytes=max_size, backupCount=file_count)
-	handler.setFormatter(formatter)
-	logger.addHandler(handler)
-
-	if site and not stream_only:
-		sitelog_filename = os.path.join(site, "logs", logfile)
-		site_handler = RotatingFileHandler(sitelog_filename, maxBytes=max_size, backupCount=file_count)
-		site_handler.setFormatter(formatter)
-		logger.addHandler(site_handler)
+	handlers = create_handler(module, site, max_size, file_count, stream_only)
+	for handler in handlers:
+		logger.addHandler(handler)
 
 	if with_more_info:
-		handler.addFilter(SiteContextFilter())
+		handlers[0].addFilter(SiteContextFilter())
 
 	if filter:
 		logger.addFilter(filter)

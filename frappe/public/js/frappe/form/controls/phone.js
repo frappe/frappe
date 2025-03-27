@@ -129,8 +129,9 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 	refresh() {
 		super.refresh();
 		// Previously opened doc values showing up on a new doc
+		// Previously opened doc values showing up on other docs where phone fields is empty
 
-		if (this.frm && this.frm.doc.__islocal && !this.get_value()) {
+		if (!this.get_value()) {
 			this.reset_input();
 		}
 	}
@@ -151,6 +152,9 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 			await this.setup_country_codes();
 		}
 		if (value && value.includes("-") && value.split("-").length == 2) {
+			if (!this.selected_icon.find("svg").hasClass("hide")) {
+				this.selected_icon.find("svg").toggleClass("hide");
+			}
 			let isd = this.value.split("-")[0];
 			this.get_country_code_and_change_flag(isd);
 			this.country_code_picker.set_country(isd);

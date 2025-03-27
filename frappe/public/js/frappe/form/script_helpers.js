@@ -33,7 +33,7 @@ window.refresh_field = function (n, docname, table_field) {
 };
 
 window.set_field_options = function (n, txt) {
-	cur_frm.set_df_property(n, "options", txt);
+	cur_frm?.set_df_property(n, "options", txt);
 };
 
 window.toggle_field = function (n, hidden) {

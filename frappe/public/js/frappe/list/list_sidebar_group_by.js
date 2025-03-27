@@ -55,11 +55,11 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		let html = `
 			<div class="list-group-by-fields">
 			</div>
-			<li class="add-list-group-by sidebar-action">
+			<div class="add-list-group-by sidebar-action">
 				<a class="add-group-by">
 					${__("Edit Filters")}
 				</a>
-			</li>
+			</div>
 		`;
 		this.$wrapper.html(html);
 	}
@@ -80,17 +80,17 @@ frappe.views.ListGroupBy = class ListGroupBy {
 				fieldtype = docfield.fieldtype;
 			}
 
-			return `<li class="group-by-field list-link">
-					<a class="btn btn-default btn-sm list-sidebar-button" data-toggle="dropdown"
-					aria-haspopup="true" aria-expanded="false"
-					data-label="${label}" data-fieldname="${fieldname}" data-fieldtype="${fieldtype}"
-					href="#" onclick="return false;">
-						<span class="ellipsis">${__(label)}</span>
-						<span>${frappe.utils.icon("select", "xs")}</span>
-					</a>
+			return `<div class="group-by-field list-link">
+						<a class="btn btn-default btn-sm list-sidebar-button" data-toggle="dropdown"
+						aria-haspopup="true" aria-expanded="false"
+						data-label="${label}" data-fieldname="${fieldname}" data-fieldtype="${fieldtype}"
+						href="#" onclick="return false;">
+							<span class="ellipsis">${__(label)}</span>
+							<span>${frappe.utils.icon("select", "xs")}</span>
+						</a>
 					<ul class="dropdown-menu group-by-dropdown" role="menu">
 					</ul>
-			</li>`;
+			</div>`;
 		};
 		let html = this.group_by_fields.map(get_item_html).join("");
 		this.$wrapper.find(".list-group-by-fields").html(html);
@@ -230,13 +230,13 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		let applied_html = applied
 			? `<span class="applied"> ${frappe.utils.icon("tick", "xs")} </span>`
 			: "";
-		return `<li class="group-by-item ${applied ? "selected" : ""}" data-value="${value}">
+		return `<div class="group-by-item ${applied ? "selected" : ""}" data-value="${value}">
 			<a class="dropdown-item" href="#" onclick="return false;">
 				${applied_html}
 				<span class="group-by-value ellipsis" data-name="${field.name}">${label}</span>
 				<span class="group-by-count">${field.count}</span>
 			</a>
-		</li>`;
+		</div>`;
 	}
 
 	setup_filter_by() {

@@ -1,8 +1,17 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 # import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 
-class TestNumberCard(FrappeTestCase):
+class UnitTestNumberCard(UnitTestCase):
+	"""
+	Unit tests for NumberCard.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestNumberCard(IntegrationTestCase):
 	pass

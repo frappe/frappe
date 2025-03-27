@@ -2,8 +2,17 @@
 # See license.txt
 
 # import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 
-class TestPushNotificationSettings(FrappeTestCase):
+class UnitTestPushNotificationSettings(UnitTestCase):
+	"""
+	Unit tests for PushNotificationSettings.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestPushNotificationSettings(IntegrationTestCase):
 	pass

@@ -52,9 +52,9 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 		this.links_area = this.make_section({
 			label: __("Connections"),
+			hide_label: true,
 			css_class: "form-links",
 			hidden: 1,
-			collapsible: 1,
 			is_dashboard_section: 1,
 			body_html: this.transactions_area,
 		});
@@ -633,8 +633,8 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	}
 
 	// TODO: Review! code related to headline should be the part of layout/form
-	set_headline(html, color) {
-		this.frm.layout.show_message(html, color);
+	set_headline(html, color, permanent = false) {
+		this.frm.layout.show_message(html, color, permanent);
 	}
 
 	clear_headline() {
@@ -642,7 +642,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	}
 
 	add_comment(text, alert_class, permanent) {
-		this.set_headline_alert(text, alert_class);
+		this.set_headline_alert(text, alert_class, permanent);
 		if (!permanent) {
 			setTimeout(() => {
 				this.clear_headline();
@@ -654,9 +654,9 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		this.clear_headline();
 	}
 
-	set_headline_alert(text, color) {
+	set_headline_alert(text, color, permanent = false) {
 		if (text) {
-			this.set_headline(`<div>${text}</div>`, color);
+			this.set_headline(`<div>${text}</div>`, color, permanent);
 		} else {
 			this.clear_headline();
 		}

@@ -10,17 +10,19 @@ frappe.request.ajax_count = 0;
 frappe.request.waiting_for_ajax = [];
 frappe.request.logs = {};
 
-frappe.xcall = function (method, params) {
+frappe.xcall = function (method, params, type, opts = {}) {
 	return new Promise((resolve, reject) => {
 		frappe.call({
 			method: method,
 			args: params,
+			type: type || "POST",
 			callback: (r) => {
 				resolve(r.message);
 			},
 			error: (r) => {
 				reject(r?.message);
 			},
+			...opts,
 		});
 	});
 };
@@ -117,11 +119,11 @@ frappe.call = function (opts) {
 		freeze_message: opts.freeze_message,
 		headers: opts.headers || {},
 		error_handlers: opts.error_handlers || {},
-		// show_spinner: !opts.no_spinner,
 		async: opts.async,
 		silent: opts.silent,
 		api_version: opts.api_version,
 		url,
+		cache: opts.cache,
 	});
 };
 
@@ -267,7 +269,7 @@ frappe.request.call = function (opts) {
 			},
 			opts.headers
 		),
-		cache: false,
+		cache: window.dev_server ? false : opts.cache || false,
 	};
 
 	if (opts.args && opts.args.doctype) {

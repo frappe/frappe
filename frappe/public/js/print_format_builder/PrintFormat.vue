@@ -127,6 +127,5 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	margin-left: auto;
 	background-color: white;
 	box-shadow: var(--shadow-lg);
-	border-radius: var(--border-radius);
 }
 </style>

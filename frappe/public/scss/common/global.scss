@@ -31,7 +31,7 @@ body {
 .frappe-card {
 	@include card();
 	box-shadow: none;
-	border: 1px solid var(--gray-300);
+	border: 1px solid var(--border-color);
 }
 
 .frappe-control[data-fieldtype="Select"].frappe-control[data-fieldname="color"] {

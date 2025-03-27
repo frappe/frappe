@@ -13,7 +13,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 		}
 		let $el = this.page.add_custom_menu_item(
 			this.parent,
-			__(view),
+			this.label_map[view] || __(view),
 			action,
 			true,
 			null,

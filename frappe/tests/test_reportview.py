@@ -3,10 +3,10 @@
 
 import frappe
 from frappe.desk.reportview import export_query, extract_fieldnames
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestReportview(FrappeTestCase):
+class TestReportview(IntegrationTestCase):
 	def test_csv(self):
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader
 		from io import StringIO

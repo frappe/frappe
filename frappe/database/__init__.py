@@ -50,10 +50,18 @@ def drop_user_and_database(db_name, db_user):
 def get_db(socket=None, host=None, user=None, password=None, port=None, cur_db_name=None):
 	import frappe
 
-	if frappe.conf.db_type == "postgres":
+	conf = frappe.local.conf
+
+	if conf.db_type == "postgres":
 		import frappe.database.postgres.database
 
 		return frappe.database.postgres.database.PostgresDatabase(
+			socket, host, user, password, port, cur_db_name
+		)
+	elif conf.use_mysqlclient:
+		import frappe.database.mariadb.mysqlclient
+
+		return frappe.database.mariadb.mysqlclient.MariaDBDatabase(
 			socket, host, user, password, port, cur_db_name
 		)
 	else:

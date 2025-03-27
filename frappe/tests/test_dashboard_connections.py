@@ -8,10 +8,10 @@ import frappe.utils
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.custom.doctype.customize_form.test_customize_form import TestCustomizeForm
 from frappe.desk.notifications import get_open_count
-from frappe.tests.utils import FrappeTestCase, patch_hooks
+from frappe.tests import IntegrationTestCase
 
 
-class TestDashboardConnections(FrappeTestCase):
+class TestDashboardConnections(IntegrationTestCase):
 	@patch.dict(frappe.conf, {"developer_mode": 1})
 	def setUp(self):
 		delete_test_data()
@@ -138,7 +138,7 @@ class TestDashboardConnections(FrappeTestCase):
 		self.assertEqual(len(connections["external_links_found"]), 2)
 
 		# Change standard fieldname, see if all custom links still work
-		with patch_hooks(
+		with self.patch_hooks(
 			{
 				"override_doctype_dashboards": {
 					"ToDo": ["frappe.tests.test_dashboard_connections.get_dashboard_for_todo"]

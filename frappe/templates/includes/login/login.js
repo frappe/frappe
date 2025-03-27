@@ -13,7 +13,6 @@ login.bind_events = function () {
 		login.route();
 	});
 
-
 	$(".form-login").on("submit", function (event) {
 		event.preventDefault();
 		var args = {};
@@ -300,13 +299,6 @@ login.login_handlers = (function () {
 frappe.ready(function () {
 
 	login.bind_events();
-
-	if (!window.location.hash) {
-		window.location.hash = "#login";
-	} else {
-		$(window).trigger("hashchange");
-	}
-
 	if (window.show_footer_on_login) {
 		$("body .web-footer").show();
 	}
@@ -337,7 +329,7 @@ var request_otp = function (r) {
 	$('.login-content:visible').append(
 		`<div id="twofactor_div">
 			<form class="form-verify">
-				<div class="page-card-head">
+				<div class="page-card-head p-0">
 					<span class="indicator blue" data-text="Verification">{{ _("Verification") | e }}</span>
 				</div>
 				<div id="otp_div"></div>
@@ -393,3 +385,5 @@ var continue_email = function (setup, prompt) {
 		$('#otp_div').prepend(email_div);
 	}
 }
+
+login.route();

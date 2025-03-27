@@ -12,10 +12,11 @@ def get_context(context):
 		if verify_request():
 			user_email = frappe.form_dict["email"]
 			context.email = user_email
-			title = frappe.form_dict["name"]
+			title = frappe.form_dict.get("name")
 			context.email_groups = get_email_groups(user_email)
 			context.current_group = get_current_groups(title)
 			context.status = "waiting_for_confirmation"
+			print(context)
 
 	# Called when form is submitted.
 	elif "user_email" in frappe.form_dict and frappe.request.method == "POST":

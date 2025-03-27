@@ -7,6 +7,11 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 
 		// set description
 		this.set_max_width();
+
+		// set initial value if set
+		if (this.df.initial_value) {
+			this.set_value(this.df.initial_value);
+		}
 	}
 	make_wrapper() {
 		if (this.only_input) {
@@ -16,21 +21,25 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 				`<div class="frappe-control">
 				<div class="form-group">
 					<div class="clearfix">
-						<label class="control-label" style="padding-right: 0px;"></label>
+						<label class="control-label" style="padding-right: 5px;"></label>
 						<span class="help"></span>
 					</div>
 					<div class="control-input-wrapper">
 						<div class="control-input"></div>
 						<div class="control-value like-disabled-input" style="display: none;"></div>
-						<p class="help-box small text-muted"></p>
+						<div class="help-box small text-extra-muted hide"></div>
 					</div>
 				</div>
 			</div>`
 			).appendTo(this.parent);
+
+			if (this.constructor.horizontal) {
+				this.$wrapper.find(".form-group").addClass("horizontal");
+			}
 		}
 	}
 	toggle_label(show) {
-		this.$wrapper.find(".control-label").toggleClass("hide", !show);
+		this.$wrapper.find(".control-label").parent().toggleClass("hide", !show);
 	}
 	toggle_description(show) {
 		this.$wrapper.find(".help-box").toggleClass("hide", !show);
@@ -180,7 +189,11 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 
 		let $help = this.$wrapper.find("span.help");
 		$help.empty();
-		$(`<a href="${this.df.documentation_url}" target="_blank" title="${__("Documentation")}">
+		$(`<a
+			href="${frappe.utils.escape_html(this.df.documentation_url)}"
+			target="_blank"
+			title="${frappe.utils.escape_html(__("Documentation"))}"
+		>
 			${frappe.utils.icon("help", "sm")}
 		</a>`).appendTo($help);
 	}
@@ -194,6 +207,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		}
 		if (this.df.description) {
 			this.$wrapper.find(".help-box").html(__(this.df.description));
+			this.toggle_description(true);
 		} else {
 			this.set_empty_description();
 		}
@@ -201,9 +215,11 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 	}
 	set_new_description(description) {
 		this.$wrapper.find(".help-box").html(description);
+		this.toggle_description(true);
 	}
 	set_empty_description() {
 		this.$wrapper.find(".help-box").html("");
+		this.toggle_description(false);
 	}
 	set_mandatory(value) {
 		// do not set has-error class on form load

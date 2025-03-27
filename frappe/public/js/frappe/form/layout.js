@@ -23,7 +23,9 @@ frappe.ui.form.Layout = class Layout {
 			this.parent = this.body;
 		}
 		this.wrapper = $('<div class="form-layout">').appendTo(this.parent);
-		this.message = $('<div class="form-message hidden"></div>').appendTo(this.wrapper);
+		this.message = $('<div class="form-message-container hidden"></div>').appendTo(
+			this.wrapper
+		);
 		this.page = $('<div class="form-page"></div>').appendTo(this.wrapper);
 
 		if (!this.fields) {
@@ -97,26 +99,42 @@ frappe.ui.form.Layout = class Layout {
 		return fields;
 	}
 
-	show_message(html, color) {
-		if (this.message_color) {
-			// remove previous color
-			this.message.removeClass(this.message_color);
-		}
-		let close_message = $(`<div class="close-message">${frappe.utils.icon("close")}</div>`);
-		this.message_color =
-			color && ["yellow", "blue", "red", "green", "orange"].includes(color) ? color : "blue";
-		if (html) {
-			if (html.substr(0, 1) !== "<") {
-				// wrap in a block
-				html = "<div>" + html + "</div>";
-			}
-			this.message.removeClass("hidden").addClass(this.message_color);
-			$(html).appendTo(this.message);
-			close_message.appendTo(this.message);
-			close_message.on("click", () => this.message.empty().addClass("hidden"));
-		} else {
+	/**Render a message block with its own color and close button
+	 * @param {String} html - message or HTML to be displayed
+	 * @param {String} color - color of the block. One of "yellow", "blue", "red", "green" or "orange". Defaults to "blue".
+	 * @param {Boolean} permanent - if true, the block will not have a close button
+	 */
+	show_message(html, color, permanent = false) {
+		if (!html) {
 			this.message.empty().addClass("hidden");
+			return;
 		}
+
+		// Prepare Block
+		let $html;
+		if (!frappe.utils.is_html(html)) {
+			// wrap in a block if `html` does not contain html tags
+			$html = $("<div class='form-message border-bottom'></div>").text(html);
+		} else {
+			// Wrap in a block just in case the string does not begin with a tag
+			// as Jquery assumes it to be a CSS selector and breaks.
+			$html = $("<div class='form-message border-bottom'>").html(html);
+		}
+
+		// Add close button to block if not permanent
+		const close_message = $(`<div class="close-message">${frappe.utils.icon("close")}</div>`);
+		if (!permanent) {
+			close_message.appendTo($html);
+			close_message.on("click", () => $html.remove());
+		}
+
+		// Add block color and append to parent container `form-message-container`
+		const block_color =
+			color && ["yellow", "blue", "red", "green", "orange"].includes(color) ? color : "blue";
+		$html.addClass(block_color).appendTo(this.message);
+
+		// Show parent container if hidden
+		this.message.removeClass("hidden");
 	}
 
 	render(new_fields) {
@@ -413,6 +431,14 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	set_tab_as_active() {
+		// Set active tab based on hash
+		const tab_from_hash = window.location.hash.replace("#", "");
+		const tab = this.tabs.find((tab) => tab.df.fieldname === tab_from_hash);
+		if (tab) {
+			tab.set_active();
+			return;
+		}
+
 		let frm_active_tab = this.frm?.get_active_tab?.();
 		if (frm_active_tab) {
 			frm_active_tab.set_active();
@@ -493,7 +519,7 @@ frappe.ui.form.Layout = class Layout {
 		let tabs_content = this.tabs_content[0];
 		if (!tabs_list.length) return;
 
-		$(window).scroll(
+		$(".main-section").scroll(
 			frappe.utils.throttle(() => {
 				let current_scroll = document.documentElement.scrollTop;
 				if (current_scroll > 0 && last_scroll <= current_scroll) {

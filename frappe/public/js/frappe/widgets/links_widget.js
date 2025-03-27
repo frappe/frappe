@@ -92,6 +92,7 @@ export default class LinksWidget extends Widget {
 				type: item.link_type,
 				doctype: item.doctype,
 				is_query_report: item.is_query_report,
+				report_ref_doctype: item.report_ref_doctype,
 			};
 
 			if (item.link_type.toLowerCase() == "report" && !item.is_query_report) {

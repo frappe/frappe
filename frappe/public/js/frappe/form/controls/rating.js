@@ -47,12 +47,25 @@ frappe.ui.form.ControlRating = class ControlRating extends frappe.ui.form.Contro
 		let star_value = el.data("rating");
 		let left_half = false;
 		let cls = "star-click";
+		let out_of_ratings = this.df.options || 5;
 		if (!click) cls = "star-hover";
 
 		if (ev.pageX - el.offset().left < el.width() / 2) {
 			left_half = true;
 			star_value--;
 		}
+
+		if (click && !this.df.reqd) {
+			let fractional_star_value = star_value;
+			if (left_half) {
+				fractional_star_value += 0.5;
+			}
+			if (this.get_value() == fractional_star_value / out_of_ratings) {
+				star_value = 0;
+				left_half = false;
+			}
+		}
+
 		el.parent()
 			.children("svg")
 			.each(function (e) {
@@ -67,7 +80,6 @@ frappe.ui.form.ControlRating = class ControlRating extends frappe.ui.form.Contro
 				}
 			});
 		if (click) {
-			let out_of_ratings = this.df.options || 5;
 			star_value = star_value / out_of_ratings;
 
 			this.validate_and_set_in_model(star_value, ev);

@@ -1,4 +1,4 @@
-""" Utils for thread/process synchronization. """
+"""Utils for thread/process synchronization."""
 
 import os
 from contextlib import contextmanager

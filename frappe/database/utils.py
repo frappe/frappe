@@ -1,14 +1,18 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import re
+import string
 from functools import cached_property, wraps
 
 import frappe
 from frappe.query_builder.builder import MariaDB, Postgres
 from frappe.query_builder.functions import Function
+from frappe.types import DocRef
 
 Query = str | MariaDB | Postgres
 QueryValues = tuple | list | dict | None
+FilterValue = DocRef | str | int | bool
 
 EmptyQueryValues = object()
 FallBackDateTimeStr = "0001-01-01 00:00:00.000000"
@@ -20,10 +24,24 @@ NestedSetHierarchy = (
 	"not descendants of",
 	"descendants of (inclusive)",
 )
+# split when whitespace or backtick is found
+QUERY_TYPE_PATTERN = re.compile(r"\s*([^\s`]*)")
+
+
+def convert_to_value(o: FilterValue):
+	if hasattr(o, "__value__"):
+		return o.__value__()
+	if isinstance(o, bool):
+		return int(o)
+	return o
+
+
+def get_query_type(query: str) -> str:
+	return QUERY_TYPE_PATTERN.match(query)[1].lower()
 
 
 def is_query_type(query: str, query_type: str | tuple[str, ...]) -> bool:
-	return query.lstrip().split(maxsplit=1)[0].lower().startswith(query_type)
+	return get_query_type(query).startswith(query_type)
 
 
 def is_pypika_function_object(field: str) -> bool:
@@ -38,7 +56,7 @@ def get_doctype_name(table_name: str) -> str:
 
 
 class LazyString:
-	def _setup(self) -> None:
+	def _setup(self) -> str:
 		raise NotImplementedError
 
 	@cached_property
@@ -58,7 +76,7 @@ class LazyDecode(LazyString):
 	def __init__(self, value: str) -> None:
 		self._value = value
 
-	def _setup(self) -> None:
+	def _setup(self) -> str:
 		return self._value.decode()
 
 
@@ -88,7 +106,7 @@ def dangerously_reconnect_on_connection_abort(func):
 		try:
 			return func(*args, **kwargs)
 		except Exception as e:
-			if frappe.db.is_interface_error(e):
+			if frappe.db.is_interface_error(e) or isinstance(e, frappe.db.OperationalError):
 				frappe.db.connect()
 				return func(*args, **kwargs)
 			raise

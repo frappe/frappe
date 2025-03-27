@@ -12,7 +12,7 @@
 			active ? $('.like-icon').addClass('liked') : $('.like-icon').removeClass('liked');
 		}
 
-		$('.like-icon').append(frappe.utils.icon('es-solid-heart', 'md'))
+		$('.like-icon').append(`<svg class="icon icon-sm"><use href="#icon-heart"></use></svg>`)
 		toggle_like_icon(like);
 
 		$('.like-count').text(like_count);

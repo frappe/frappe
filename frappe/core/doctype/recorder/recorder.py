@@ -104,8 +104,8 @@ def serialize_request(request):
 		name=request.get("uuid"),
 		number_of_queries=request.get("queries"),
 		time_in_queries=request.get("time_queries"),
-		request_headers=frappe.as_json(request.get("headers"), indent=4),
-		form_dict=frappe.as_json(request.get("form_dict"), indent=4),
+		request_headers=frappe.as_json(request.get("headers", {}), indent=4),
+		form_dict=frappe.as_json(request.get("form_dict", {}), indent=4),
 		sql_queries=request.get("calls"),
 		suggested_indexes=request.get("suggested_indexes"),
 		modified=request.get("time"),
@@ -128,14 +128,6 @@ def add_indexes(indexes):
 def _add_index(table, column):
 	doctype = get_doctype_name(table)
 	frappe.db.add_index(doctype, [column])
-	make_property_setter(
-		doctype,
-		column,
-		property="search_index",
-		value="1",
-		property_type="Check",
-		for_doctype=False,  # Applied on docfield
-	)
 	frappe.msgprint(
 		_("Index created successfully on column {0} of doctype {1}").format(column, doctype),
 		alert=True,

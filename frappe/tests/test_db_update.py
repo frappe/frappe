@@ -3,12 +3,12 @@ from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.utils import find
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.query_builder.utils import db_type_is
+from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import run_only_if
-from frappe.tests.utils import FrappeTestCase
 from frappe.utils import cstr
 
 
-class TestDBUpdate(FrappeTestCase):
+class TestDBUpdate(IntegrationTestCase):
 	def test_db_update(self):
 		doctype = "User"
 		frappe.reload_doctype("User", force=True)
@@ -162,6 +162,17 @@ class TestDBUpdate(FrappeTestCase):
 		varchar = "varchar" if frappe.db.db_type == "mariadb" else "character varying"
 		self.assertIn(varchar, frappe.db.get_column_type(doctype.name, "name"))
 		doc.reload()  # ensure that docs are still accesible
+
+	def test_uuid_link_field(self):
+		uuid_doctype = new_doctype().update({"autoname": "UUID"}).insert()
+		self.assertEqual(frappe.db.get_column_type(uuid_doctype.name, "name"), "uuid")
+
+		link = "link_field"
+		referring_doctype = new_doctype(
+			fields=[{"fieldname": link, "fieldtype": "Link", "options": uuid_doctype.name}]
+		).insert()
+
+		self.assertEqual(frappe.db.get_column_type(referring_doctype.name, link), "uuid")
 
 
 def get_fieldtype_from_def(field_def):

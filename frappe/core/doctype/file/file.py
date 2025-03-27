@@ -90,7 +90,11 @@ class File(Document):
 			self.name = frappe.generate_hash(length=10)
 
 	def before_insert(self):
+		# Ensure correct formatting and type
+		self.file_url = unquote(self.file_url) if self.file_url else ""
+
 		self.set_folder_name()
+		self.set_is_private()
 		self.set_file_name()
 		self.validate_attachment_limit()
 		self.set_file_type()
@@ -106,19 +110,15 @@ class File(Document):
 			self.flags.new_file = True
 			frappe.db.after_rollback.add(self.on_rollback)
 
+		self.validate_duplicate_entry()  # Hash is generated in save_file
+
 	def after_insert(self):
 		if not self.is_folder:
 			self.create_attachment_record()
-		self.set_is_private()
-		self.set_file_name()
-		self.validate_duplicate_entry()
 
 	def validate(self):
 		if self.is_folder:
 			return
-
-		# Ensure correct formatting and type
-		self.file_url = unquote(self.file_url) if self.file_url else ""
 
 		self.validate_attachment_references()
 
@@ -382,8 +382,11 @@ class File(Document):
 			filters = {
 				"content_hash": self.content_hash,
 				"is_private": self.is_private,
-				"name": ("!=", self.name),
 			}
+
+			if self.name:
+				filters.update({"name": ("!=", self.name)})
+
 			if self.attached_to_doctype and self.attached_to_name:
 				filters.update(
 					{
@@ -470,7 +473,12 @@ class File(Document):
 		"""If file not attached to any other record, delete it"""
 		on_disk_file_not_shared = self.content_hash and not frappe.get_all(
 			"File",
-			filters={"content_hash": self.content_hash, "name": ["!=", self.name]},
+			filters={
+				"content_hash": self.content_hash,
+				"name": ["!=", self.name],
+				# NOTE: Some old Files might share file_urls while not sharing the is_private value
+				# "is_private": self.is_private,
+			},
 			limit=1,
 		)
 		if on_disk_file_not_shared:
@@ -651,9 +659,13 @@ class File(Document):
 			)
 
 		if duplicate_file:
-			file_doc: "File" = frappe.get_cached_doc("File", duplicate_file.name)
+			file_doc: File = frappe.get_cached_doc("File", duplicate_file.name)
 			if file_doc.exists_on_disk():
-				self.file_url = duplicate_file.file_url
+				if self.exists_on_disk():
+					if not self.file_url:
+						self.file_url = duplicate_file.file_url
+				else:
+					self.file_url = duplicate_file.file_url
 				file_exists = True
 
 		if not file_exists:
@@ -670,10 +682,11 @@ class File(Document):
 			return self.save_file_on_filesystem()
 
 	def save_file_on_filesystem(self):
+		safe_file_name = re.sub(r"[/\\%?#]", "_", self.file_name)
 		if self.is_private:
-			self.file_url = f"/private/files/{self.file_name}"
+			self.file_url = f"/private/files/{safe_file_name}"
 		else:
-			self.file_url = f"/files/{self.file_name}"
+			self.file_url = f"/files/{safe_file_name}"
 
 		fpath = self.write_file()
 
@@ -791,6 +804,7 @@ class File(Document):
 
 def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
+	frappe.db.add_index("File", ["file_url(100)"])
 
 
 def has_permission(doc, ptype=None, user=None, debug=False):
@@ -811,6 +825,8 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 
 		try:
 			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
+		except ModuleNotFoundError:
+			return False
 		except frappe.DoesNotExistError:
 			frappe.clear_last_message()
 			return False

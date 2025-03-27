@@ -176,7 +176,7 @@ def read_doc_from_file(path):
 				print(f"bad json: {path}")
 				raise
 	else:
-		raise OSError("%s missing" % path)
+		raise OSError("{} missing".format(path))
 
 	return doc
 

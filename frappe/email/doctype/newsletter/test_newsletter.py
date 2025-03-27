@@ -15,7 +15,7 @@ from frappe.email.doctype.newsletter.newsletter import (
 	send_scheduled_email,
 )
 from frappe.email.queue import flush
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, getdate
 
 emails = [
@@ -134,7 +134,7 @@ class TestNewsletterMixin:
 		return newsletter
 
 
-class TestNewsletter(TestNewsletterMixin, FrappeTestCase):
+class TestNewsletter(TestNewsletterMixin, IntegrationTestCase):
 	def test_send(self):
 		self.send_newsletter()
 

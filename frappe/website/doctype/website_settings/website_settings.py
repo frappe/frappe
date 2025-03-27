@@ -125,7 +125,7 @@ class WebsiteSettings(Document):
 					)
 
 	def validate_google_settings(self):
-		if self.enable_google_indexing and not frappe.db.get_single_value("Google Settings", "enable"):
+		if self.enable_google_indexing and not frappe.get_cached_value("Google Settings", None, "enable"):
 			frappe.throw(_("Enable Google API in Google Settings."))
 
 	def validate_redirects(self):
@@ -171,7 +171,7 @@ class WebsiteSettings(Document):
 def get_website_settings(context=None):
 	hooks = frappe.get_hooks()
 	context = frappe._dict(context or {})
-	settings: "WebsiteSettings" = frappe.get_cached_doc("Website Settings")
+	settings: WebsiteSettings = frappe.client_cache.get_doc("Website Settings")
 
 	context = context.update(
 		{
@@ -229,8 +229,8 @@ def get_website_settings(context=None):
 	context.encoded_title = quote(encode(context.title or ""), "")
 
 	context.web_include_js = hooks.web_include_js or []
-
 	context.web_include_css = hooks.web_include_css or []
+	context.web_include_icons = hooks.web_include_icons or []
 
 	via_hooks = hooks.website_context or []
 	for key in via_hooks:
@@ -278,6 +278,10 @@ def get_items(parentfield: str) -> list[dict]:
 def modify_header_footer_items(items: list):
 	top_items = items.copy()
 	# attach child items to top bar
+
+	for item in items:
+		item.child_items = []  # clear cached list
+
 	for item in items:
 		if not item.parent_label:
 			continue

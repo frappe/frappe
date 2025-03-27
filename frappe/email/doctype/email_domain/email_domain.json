@@ -24,7 +24,8 @@
   "validate_ssl_certificate_for_outgoing",
   "column_break_18",
   "smtp_port",
-  "append_emails_to_sent_folder"
+  "append_emails_to_sent_folder",
+  "sent_folder_name"
  ],
  "fields": [
   {
@@ -141,6 +142,14 @@
    "fieldname": "validate_ssl_certificate_for_outgoing",
    "fieldtype": "Check",
    "label": "Validate SSL Certificate"
+  },
+  {
+   "default": "Sent",
+   "depends_on": "eval: doc.append_emails_to_sent_folder",
+   "description": "Some mailboxes require a different Sent Folder Name e.g. \"INBOX.Sent\"",
+   "fieldname": "sent_folder_name",
+   "fieldtype": "Data",
+   "label": "Sent Folder Name"
   }
  ],
  "icon": "icon-inbox",
@@ -150,7 +159,7 @@
    "link_fieldname": "domain"
   }
  ],
- "modified": "2024-03-23 16:03:23.836849",
+ "modified": "2024-12-04 23:26:20.993971",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Domain",

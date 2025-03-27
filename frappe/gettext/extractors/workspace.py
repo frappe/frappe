@@ -29,8 +29,8 @@ def extract(fileobj, *args, **kwargs):
 	yield from (
 		(
 			None,
-			"pgettext",
-			(link.get("link_to") if link.get("link_type") == "DocType" else None, link.get("label")),
+			"_",
+			link.get("label"),
 			[f"Label of a {link.get('type')} in the {workspace_name} Workspace"],
 		)
 		for link in data.get("links", [])
@@ -38,8 +38,8 @@ def extract(fileobj, *args, **kwargs):
 	yield from (
 		(
 			None,
-			"pgettext",
-			(link.get("link_to") if link.get("link_type") == "DocType" else None, link.get("description")),
+			"_",
+			link.get("description"),
 			[f"Description of a {link.get('type')} in the {workspace_name} Workspace"],
 		)
 		for link in data.get("links", [])
@@ -47,8 +47,8 @@ def extract(fileobj, *args, **kwargs):
 	yield from (
 		(
 			None,
-			"pgettext",
-			(shortcut.get("link_to") if shortcut.get("type") == "DocType" else None, shortcut.get("label")),
+			"_",
+			shortcut.get("label"),
 			[f"Label of a shortcut in the {workspace_name} Workspace"],
 		)
 		for shortcut in data.get("shortcuts", [])
@@ -56,9 +56,20 @@ def extract(fileobj, *args, **kwargs):
 	yield from (
 		(
 			None,
-			"pgettext",
-			(shortcut.get("link_to") if shortcut.get("type") == "DocType" else None, shortcut.get("format")),
+			"_",
+			shortcut.get("format"),
 			[f"Count format of shortcut in the {workspace_name} Workspace"],
 		)
 		for shortcut in data.get("shortcuts", [])
 	)
+
+	content = json.loads(data.get("content", "[]"))
+	for item in content:
+		item_type = item.get("type")
+		if item_type in ("header", "paragraph"):
+			yield (
+				None,
+				"_",
+				item.get("data", {}).get("text"),
+				[f"{item_type.title()} text in the {workspace_name} Workspace"],
+			)

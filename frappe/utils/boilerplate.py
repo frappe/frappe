@@ -66,7 +66,7 @@ def _get_user_inputs(app_name):
 		input_type = config.get("type", str)
 
 		while value is None:
-			if input_type == bool:
+			if input_type is bool:
 				value = click.confirm(config["prompt"], default=config.get("default"))
 			else:
 				value = click.prompt(config["prompt"], default=config.get("default"), type=input_type)
@@ -101,7 +101,11 @@ def is_valid_title(title) -> bool:
 
 def get_license_options() -> list[str]:
 	url = "https://api.github.com/licenses"
-	res = requests.get(url=url)
+	try:
+		res = requests.get(url=url)
+	except requests.exceptions.RequestException:
+		return ["agpl-3.0", "gpl-3.0", "mit", "custom"]
+
 	if res.status_code == 200:
 		res = res.json()
 		ids = [r.get("spdx_id") for r in res]
@@ -112,7 +116,10 @@ def get_license_options() -> list[str]:
 
 def get_license_text(license_name: str) -> str:
 	url = f"https://api.github.com/licenses/{license_name.lower()}"
-	res = requests.get(url=url)
+	try:
+		res = requests.get(url=url)
+	except requests.exceptions.RequestException:
+		return "No license text found"
 	if res.status_code == 200:
 		res = res.json()
 		return res.get("body")
@@ -159,8 +166,14 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 	with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
 		f.write(frappe.as_unicode(license_body))
 
-	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "modules.txt"), "w") as f:
-		f.write(frappe.as_unicode(hooks.app_title))
+	with open(
+		os.path.join(dest, hooks.app_name, hooks.app_name, frappe.scrub(hooks.app_title), ".frappe"), "w"
+	) as f:
+		f.write("")
+
+	from frappe.deprecation_dumpster import boilerplate_modules_txt
+
+	boilerplate_modules_txt(dest, hooks.app_name, hooks.app_title)
 
 	# These values could contain quotes and can break string declarations
 	# So escaping them before setting variables in setup.py and hooks.py
@@ -385,7 +398,22 @@ app_publisher = "{app_publisher}"
 app_description = "{app_description}"
 app_email = "{app_email}"
 app_license = "{app_license}"
+
+# Apps
+# ------------------
+
 # required_apps = []
+
+# Each item in the list will be shown as an app in the apps page
+# add_to_apps_screen = [
+# 	{{
+# 		"name": "{app_name}",
+# 		"logo": "/assets/{app_name}/logo.png",
+# 		"title": "{app_title}",
+# 		"route": "/{app_name}",
+# 		"has_permission": "{app_name}.api.permission.has_app_permission"
+# 	}}
+# ]
 
 # Includes in <head>
 # ------------------
@@ -435,6 +463,9 @@ app_license = "{app_license}"
 
 # automatically create page for each record of this doctype
 # website_generators = ["Web Page"]
+
+# automatically load and sync documents of this doctype from downstream apps
+# importable_doctypes = [doctype_1]
 
 # Jinja
 # ----------
@@ -489,14 +520,6 @@ app_license = "{app_license}"
 #
 # has_permission = {{
 # 	"Event": "frappe.desk.doctype.event.event.has_permission",
-# }}
-
-# DocType Class
-# ---------------
-# Override standard doctype classes
-
-# override_doctype_class = {{
-# 	"ToDo": "custom_app.overrides.CustomToDo"
 # }}
 
 # Document Events
@@ -610,25 +633,73 @@ app_license = "{app_license}"
 
 """
 
-gitignore_template = """.DS_Store
+gitignore_template = """# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
 *.pyc
-*.egg-info
-*.swp
-tags
-node_modules
-__pycache__"""
+*.py~
 
-github_workflow_template = """
-name: CI
+# Distribution / packaging
+.Python
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+tags
+MANIFEST
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# IDEs and editors
+.vscode/
+.vs/
+.idea/
+.kdev4/
+*.kdev4
+*.DS_Store
+*.swp
+*.comp.js
+.wnf-lang-status
+*debug.log
+
+# Helix Editor
+.helix/
+
+# Aider AI Chat
+.aider*
+"""
+
+github_workflow_template = """name: CI
 
 on:
   push:
     branches:
-      - develop
+      - {branch_name}
   pull_request:
 
 concurrency:
-  group: develop-{app_name}-${{{{ github.event.number }}}}
+  group: {branch_name}-{app_name}-${{{{ github.event.number }}}}
   cancel-in-progress: true
 
 jobs:
@@ -676,7 +747,7 @@ jobs:
           check-latest: true
 
       - name: Cache pip
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{{{ runner.os }}}}-pip-${{{{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py', '**/setup.cfg') }}}}
@@ -688,7 +759,7 @@ jobs:
         id: yarn-cache-dir-path
         run: 'echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT'
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: yarn-cache
         with:
           path: ${{{{ steps.yarn-cache-dir-path.outputs.dir }}}}
@@ -697,7 +768,9 @@ jobs:
             ${{{{ runner.os }}}}-yarn-
 
       - name: Install MariaDB Client
-        run: sudo apt-get install mariadb-client-10.6
+        run: |
+          sudo apt update
+          sudo apt-get install mariadb-client-10.6
 
       - name: Setup
         run: |
@@ -803,8 +876,7 @@ ci:
     submodules: false
 """
 
-linter_workflow_template = """
-name: Linters
+linter_workflow_template = """name: Linters
 
 on:
   pull_request:
@@ -851,7 +923,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Cache pip
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py') }}
@@ -901,8 +973,7 @@ Pre-commit is configured to use the following tools for checking and formatting 
 {app_license}
 """
 
-readme_ci_section = """
-### CI
+readme_ci_section = """### CI
 
 This app can use GitHub Actions for CI. The following workflows are configured:
 

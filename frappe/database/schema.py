@@ -5,7 +5,9 @@ from frappe import _
 from frappe.utils import cint, cstr, flt
 from frappe.utils.defaults import get_not_null_defaults
 
+# This matches anything that isn't [a-zA-Z0-9_]
 SPECIAL_CHAR_PATTERN = re.compile(r"[\W]", flags=re.UNICODE)
+
 VARCHAR_CAST_PATTERN = re.compile(r"varchar\(([\d]+)\)")
 
 
@@ -42,7 +44,7 @@ class DBTable:
 		if self.is_new():
 			self.create()
 		else:
-			frappe.cache.hdel("table_columns", self.table_name)
+			frappe.client_cache.delete_value(f"table_columns::{self.table_name}")
 			self.alter()
 
 	def create(self):
@@ -200,7 +202,12 @@ class DbColumn:
 		self.not_nullable = not_nullable
 
 	def get_definition(self, for_modification=False):
-		column_def = get_definition(self.fieldtype, precision=self.precision, length=self.length)
+		column_def = get_definition(
+			self.fieldtype,
+			precision=self.precision,
+			length=self.length,
+			options=self.options,
+		)
 
 		if not column_def:
 			return column_def
@@ -356,8 +363,19 @@ def validate_column_length(fieldname):
 		frappe.throw(_("Fieldname is limited to 64 characters ({0})").format(fieldname))
 
 
-def get_definition(fieldtype, precision=None, length=None):
+def get_definition(fieldtype, precision=None, length=None, *, options=None):
 	d = frappe.db.type_map.get(fieldtype)
+
+	if (
+		fieldtype == "Link"
+		and options
+		# XXX: This might not trigger if referred doctype is not yet created
+		# This is largely limitation of how migration happens though.
+		# Maybe we can sort by creation and then modified?
+		and frappe.db.exists("DocType", options)
+		and frappe.get_meta(options).autoname == "UUID"
+	):
+		d = ("uuid", None)
 
 	if not d:
 		return

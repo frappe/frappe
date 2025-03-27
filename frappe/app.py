@@ -2,10 +2,8 @@
 # License: MIT. See LICENSE
 
 import functools
-import gc
 import logging
 import os
-import re
 
 from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug.middleware.profiler import ProfilerMiddleware
@@ -22,12 +20,13 @@ import frappe.rate_limiter
 import frappe.recorder
 import frappe.utils.response
 from frappe import _
-from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, validate_auth
+from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, check_request_ip, validate_auth
 from frappe.middlewares import StaticDataMiddleware
+from frappe.permissions import handle_does_not_exist_error
 from frappe.utils import CallbackManager, cint, get_site_name
 from frappe.utils.data import escape_html
-from frappe.utils.deprecations import deprecation_warning
-from frappe.utils.error import log_error_snapshot
+from frappe.utils.error import log_error, log_error_snapshot
+from frappe.website.page_renderers.error_page import ErrorPage
 from frappe.website.serve import get_response
 
 _site = None
@@ -35,30 +34,34 @@ _sites_path = os.environ.get("SITES_PATH", ".")
 
 
 # If gc.freeze is done then importing modules before forking allows us to share the memory
-if frappe._tune_gc:
-	import bleach
-	import pydantic
+import gettext
 
-	import frappe.boot
-	import frappe.client
-	import frappe.core.doctype.file.file
-	import frappe.core.doctype.user.user
-	import frappe.database.mariadb.database  # Load database related utils
-	import frappe.database.query
-	import frappe.desk.desktop  # workspace
-	import frappe.desk.form.save
-	import frappe.model.db_query
-	import frappe.query_builder
-	import frappe.utils.background_jobs  # Enqueue is very common
-	import frappe.utils.data  # common utils
-	import frappe.utils.jinja  # web page rendering
-	import frappe.utils.jinja_globals
-	import frappe.utils.redis_wrapper  # Exact redis_wrapper
-	import frappe.utils.safe_exec
-	import frappe.utils.typing_validations  # any whitelisted method uses this
-	import frappe.website.path_resolver  # all the page types and resolver
-	import frappe.website.router  # Website router
-	import frappe.website.website_generator  # web page doctypes
+import babel
+import babel.messages
+import bleach
+import num2words
+import pydantic
+
+import frappe.boot
+import frappe.client
+import frappe.core.doctype.file.file
+import frappe.core.doctype.user.user
+import frappe.database.mariadb.database  # Load database related utils
+import frappe.database.query
+import frappe.desk.desktop  # workspace
+import frappe.desk.form.save
+import frappe.model.db_query
+import frappe.query_builder
+import frappe.utils.background_jobs  # Enqueue is very common
+import frappe.utils.data  # common utils
+import frappe.utils.jinja  # web page rendering
+import frappe.utils.jinja_globals
+import frappe.utils.redis_wrapper  # Exact redis_wrapper
+import frappe.utils.safe_exec
+import frappe.utils.typing_validations  # any whitelisted method uses this
+import frappe.website.path_resolver  # all the page types and resolver
+import frappe.website.router  # Website router
+import frappe.website.website_generator  # web page doctypes
 
 # end: module pre-loading
 
@@ -74,7 +77,6 @@ def after_response_wrapper(app):
 			app(environ, start_response),
 			(
 				frappe.rate_limiter.update,
-				frappe.monitor.stop,
 				frappe.recorder.dump,
 				frappe.request.after_response.run,
 				frappe.destroy,
@@ -100,8 +102,12 @@ def application(request: Request):
 			response = Response()
 
 		elif frappe.form_dict.cmd:
+			from frappe.deprecation_dumpster import deprecation_warning
+
 			deprecation_warning(
-				f"{frappe.form_dict.cmd}: Sending `cmd` for RPC calls is deprecated, call REST API instead `/api/method/cmd`"
+				"unknown",
+				"v17",
+				f"{frappe.form_dict.cmd}: Sending `cmd` for RPC calls is deprecated, call REST API instead `/api/method/cmd`",
 			)
 			frappe.handler.handle()
 			response = frappe.utils.response.build_response("json")
@@ -144,8 +150,8 @@ def application(request: Request):
 			# We can not handle exceptions safely here.
 			frappe.logger().error("Failed to run after request hook", exc_info=True)
 
-		log_request(request, response)
-		process_response(response)
+	log_request(request, response)
+	process_response(response)
 
 	return response
 
@@ -165,7 +171,7 @@ def init_request(request):
 	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With") == "XMLHttpRequest"
 
 	site = _site or request.headers.get("X-Frappe-Site-Name") or get_site_name(request.host)
-	frappe.init(site=site, sites_path=_sites_path, force=True)
+	frappe.init(site, sites_path=_sites_path, force=True)
 
 	if not (frappe.local.conf and frappe.local.conf.db_name):
 		# site does not exist
@@ -229,24 +235,37 @@ def log_request(request, response):
 		)
 
 
-def process_response(response):
+NO_CACHE_HEADERS = {"Cache-Control": "no-store,no-cache,must-revalidate,max-age=0"}
+
+
+def process_response(response: Response):
 	if not response:
 		return
 
-	# set cookies
-	if hasattr(frappe.local, "cookie_manager"):
-		frappe.local.cookie_manager.flush_cookies(response=response)
+	# Default for all requests is no-cache unless explicitly opted-in by endpoint
+	response.headers.setdefault("Cache-Control", NO_CACHE_HEADERS["Cache-Control"])
 
 	# rate limiter headers
 	if hasattr(frappe.local, "rate_limiter"):
-		response.headers.extend(frappe.local.rate_limiter.headers())
+		response.headers.update(frappe.local.rate_limiter.headers())
 
 	if trace_id := frappe.monitor.get_trace_id():
-		response.headers.extend({"X-Frappe-Request-Id": trace_id})
+		response.headers.update({"X-Frappe-Request-Id": trace_id})
 
 	# CORS headers
 	if hasattr(frappe.local, "conf"):
 		set_cors_headers(response)
+
+	# Update custom headers added during request processing
+	response.headers.update(frappe.local.response_headers)
+
+	# Set cookies, only if response is non-cacheable to avoid proxy cache invalidation
+	public_cache = any("public" in h for h in response.headers.getlist("Cache-Control"))
+	if hasattr(frappe.local, "cookie_manager") and not public_cache:
+		frappe.local.cookie_manager.flush_cookies(response=response)
+
+	if frappe._dev_server:
+		response.headers.update(NO_CACHE_HEADERS)
 
 
 def set_cors_headers(response):
@@ -281,7 +300,7 @@ def set_cors_headers(response):
 		if not frappe.conf.developer_mode:
 			cors_headers["Access-Control-Max-Age"] = "86400"
 
-	response.headers.extend(cors_headers)
+	response.headers.update(cors_headers)
 
 
 def make_form_dict(request: Request):
@@ -305,18 +324,14 @@ def make_form_dict(request: Request):
 		frappe.throw(_("Invalid request arguments"))
 
 
+@handle_does_not_exist_error
 def handle_exception(e):
 	response = None
 	http_status_code = getattr(e, "http_status_code", 500)
-	return_as_message = False
 	accept_header = frappe.get_request_header("Accept") or ""
 	respond_as_json = (
-		frappe.get_request_header("Accept")
-		and (frappe.local.is_ajax or "application/json" in accept_header)
-		or (frappe.local.request.path.startswith("/api/") and not accept_header.startswith("text"))
-	)
-
-	allow_traceback = frappe.get_system_settings("allow_error_traceback") if frappe.db else False
+		frappe.get_request_header("Accept") and (frappe.local.is_ajax or "application/json" in accept_header)
+	) or (frappe.local.request.path.startswith("/api/") and not accept_header.startswith("text"))
 
 	if not frappe.session.user:
 		# If session creation fails then user won't be unset. This causes a lot of code that
@@ -340,55 +355,40 @@ def handle_exception(e):
 		http_status_code = 508
 
 	elif http_status_code == 401:
-		frappe.respond_as_web_page(
-			_("Session Expired"),
-			_("Your session has expired, please login again to continue."),
+		response = ErrorPage(
 			http_status_code=http_status_code,
-			indicator_color="red",
-		)
-		return_as_message = True
+			title=_("Session Expired"),
+			message=_("Your session has expired, please login again to continue."),
+		).render()
 
 	elif http_status_code == 403:
-		frappe.respond_as_web_page(
-			_("Not Permitted"),
-			_("You do not have enough permissions to complete the action"),
+		response = ErrorPage(
 			http_status_code=http_status_code,
-			indicator_color="red",
-		)
-		return_as_message = True
+			title=_("Not Permitted"),
+			message=_("You do not have enough permissions to complete the action"),
+		).render()
 
 	elif http_status_code == 404:
-		frappe.respond_as_web_page(
-			_("Not Found"),
-			_("The resource you are looking for is not available"),
+		response = ErrorPage(
 			http_status_code=http_status_code,
-			indicator_color="red",
-		)
-		return_as_message = True
+			title=_("Not Found"),
+			message=_("The resource you are looking for is not available"),
+		).render()
 
 	elif http_status_code == 429:
 		response = frappe.rate_limiter.respond()
 
 	else:
-		traceback = "<pre>" + escape_html(frappe.get_traceback()) + "</pre>"
-		# disable traceback in production if flag is set
-		if frappe.local.flags.disable_traceback or not allow_traceback and not frappe.local.dev_server:
-			traceback = ""
-
-		frappe.respond_as_web_page(
-			"Server Error", traceback, http_status_code=http_status_code, indicator_color="red", width=640
-		)
-		return_as_message = True
+		response = ErrorPage(
+			http_status_code=http_status_code, title=_("Server Error"), message=_("Uncaught Exception")
+		).render()
 
 	if e.__class__ == frappe.AuthenticationError:
 		if hasattr(frappe.local, "login_manager"):
 			frappe.local.login_manager.clear_cookies()
 
-	if http_status_code >= 500:
+	if http_status_code >= 500 or frappe.conf.developer_mode:
 		log_error_snapshot(e)
-
-	if return_as_message:
-		response = get_response("message", http_status_code=http_status_code)
 
 	if frappe.conf.get("developer_mode") and not respond_as_json:
 		# don't fail silently for non-json response errors
@@ -445,6 +445,9 @@ if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
 		kwargs["traces_sample_rate"] = float(tracing_sample_rate)
 		application = SentryWsgiMiddleware(application)
 
+	if profiling_sample_rate := os.getenv("SENTRY_PROFILING_SAMPLE_RATE"):
+		kwargs["profiles_sample_rate"] = float(profiling_sample_rate)
+
 	sentry_sdk.init(
 		dsn=sentry_dsn,
 		before_send=before_send,
@@ -474,7 +477,7 @@ def serve(
 	from werkzeug.serving import run_simple
 
 	if profile or os.environ.get("USE_PROFILER"):
-		application = ProfilerMiddleware(application, sort_by=("cumtime", "calls"))
+		application = ProfilerMiddleware(application, sort_by=("cumtime", "calls"), restrictions=(200,))
 
 	if not os.environ.get("NO_STATICS"):
 		application = application_with_statics()
@@ -512,20 +515,3 @@ def application_with_statics():
 	application = StaticDataMiddleware(application, {"/files": str(os.path.abspath(_sites_path))})
 
 	return application
-
-
-# Remove references to pattern that are pre-compiled and loaded to global scopes.
-re.purge()
-
-# Both Gunicorn and RQ use forking to spawn workers. In an ideal world, the fork should be sharing
-# most of the memory if there are no writes made to data because of Copy on Write, however,
-# python's GC is not CoW friendly and writes to data even if user-code doesn't. Specifically, the
-# generational GC which stores and mutates every python object: `PyGC_Head`
-#
-# Calling gc.freeze() moves all the objects imported so far into permanant generation and hence
-# doesn't mutate `PyGC_Head`
-#
-# Refer to issue for more info: https://github.com/frappe/frappe/issues/18927
-if frappe._tune_gc:
-	gc.collect()  # clean up any garbage created so far before freeze
-	gc.freeze()

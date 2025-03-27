@@ -1,3 +1,6 @@
+// Copyright (c) 2022, Frappe Technologies and contributors
+// For license information, please see license.txt
+
 frappe.ui.form.on("Report", {
 	refresh: function (frm) {
 		if (frm.doc.is_standard === "Yes" && !frappe.boot.developer_mode) {
@@ -52,6 +55,12 @@ frappe.ui.form.on("Report", {
 				},
 			};
 		});
+
+		if (["en", "en-GB", "en-US"].includes(frappe.boot.lang)) {
+			frm.set_df_property("add_translate_data", "hidden", 1);
+		} else {
+			frm.set_df_property("add_translate_data", "hidden", 0);
+		}
 	},
 
 	ref_doctype: function (frm) {

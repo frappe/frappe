@@ -29,7 +29,7 @@ class MilestoneTracker(Document):
 
 	def apply(self, doc):
 		before_save = doc.get_doc_before_save()
-		from_value = before_save and before_save.get(self.track_field) or None
+		from_value = (before_save and before_save.get(self.track_field)) or None
 		if from_value != doc.get(self.track_field):
 			frappe.get_doc(
 				doctype="Milestone",

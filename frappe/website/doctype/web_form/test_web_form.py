@@ -3,15 +3,24 @@
 import json
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils import set_request
 from frappe.website.doctype.web_form.web_form import accept
 from frappe.website.serve import get_response_content
 
-test_dependencies = ["Web Form"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["Web Form"]
 
 
-class TestWebForm(FrappeTestCase):
+class UnitTestWebForm(UnitTestCase):
+	"""
+	Unit tests for WebForm.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestWebForm(IntegrationTestCase):
 	def setUp(self):
 		frappe.conf.disable_website_cache = True
 
@@ -64,7 +73,10 @@ class TestWebForm(FrappeTestCase):
 		set_request(method="GET", path="manage-events/new")
 		content = self.normalize_html(get_response_content("manage-events/new"))
 
-		self.assertIn(self.normalize_html('<meta name="name" content="Test Meta Form Title">'), content)
+		self.assertIn(self.normalize_html('<meta name="title" content="Test Meta Form Title">'), content)
+		self.assertIn(
+			self.normalize_html('<meta property="og:title" content="Test Meta Form Title">'), content
+		)
 		self.assertIn(
 			self.normalize_html('<meta property="og:description" content="Test Meta Form Description">'),
 			content,

@@ -8,19 +8,22 @@
  "engine": "InnoDB",
  "field_order": [
   "enabled",
+  "is_standard",
+  "module",
   "column_break_2",
   "channel",
   "slack_webhook_url",
   "filters",
   "subject",
-  "document_type",
-  "is_standard",
-  "module",
-  "col_break_1",
   "event",
+  "document_type",
+  "col_break_1",
   "method",
   "date_changed",
+  "datetime_changed",
   "days_in_advance",
+  "minutes_offset",
+  "datetime_last_run",
   "value_changed",
   "sender",
   "send_system_notification",
@@ -119,12 +122,11 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval: doc.document_type",
    "fieldname": "event",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Send Alert On",
-   "options": "\nNew\nSave\nSubmit\nCancel\nDays After\nDays Before\nValue Change\nMethod\nCustom",
+   "options": "\nNew\nSave\nSubmit\nCancel\nDays After\nDays Before\nMinutes After\nMinutes Before\nValue Change\nMethod\nCustom",
    "reqd": 1,
    "search_index": 1
   },
@@ -231,7 +233,8 @@
    "fieldname": "message",
    "fieldtype": "Code",
    "ignore_xss_filter": 1,
-   "label": "Message"
+   "label": "Message",
+   "options": "Jinja"
   },
   {
    "fieldname": "message_examples",
@@ -286,12 +289,34 @@
    "fieldtype": "Select",
    "label": "Message Type",
    "options": "Markdown\nHTML\nPlain Text"
+  },
+  {
+   "depends_on": "eval:doc.document_type && (doc.event==\"Minutes After\" || doc.event==\"Minutes Before\")",
+   "description": "Send alert if datetime matches this field's value",
+   "fieldname": "datetime_changed",
+   "fieldtype": "Select",
+   "label": "Reference Datetime"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.document_type && (doc.event==\"Minutes After\" || doc.event==\"Minutes Before\")",
+   "description": "Send <b>at the earliest</b> this number of minutes before or after the reference datetime. The actual sending may be delayed by up to 5 minutes due to the scheduler's trigger cadence.",
+   "fieldname": "minutes_offset",
+   "fieldtype": "Int",
+   "label": "Minutes Offset"
+  },
+  {
+   "depends_on": "eval:doc.document_type && (doc.event==\"Minutes After\" || doc.event==\"Minutes Before\")",
+   "fieldname": "datetime_last_run",
+   "fieldtype": "Datetime",
+   "label": "Last Run",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-envelope",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-03-23 16:03:31.519921",
+ "modified": "2024-09-12 10:28:35.077180",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

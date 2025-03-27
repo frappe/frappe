@@ -106,7 +106,7 @@ frappe.PermissionEngine = class PermissionEngine {
 
 	reset_std_permissions(data) {
 		let doctype = this.get_doctype();
-		let d = frappe.confirm(__("Reset Permissions for {0}?", [doctype]), () => {
+		let d = frappe.confirm(__("Reset Permissions for {0}?", [__(doctype)]), () => {
 			return frappe
 				.call({
 					module: "frappe.core",
@@ -122,7 +122,7 @@ frappe.PermissionEngine = class PermissionEngine {
 		// show standard permissions
 		let $d = $(d.wrapper)
 			.find(".frappe-confirm-message")
-			.append("<hr><h5>Standard Permissions:</h5><br>");
+			.append(`<hr><h5>${__("Standard Permissions")}:</h5><br>`);
 		let $wrapper = $("<p></p>").appendTo($d);
 		data.message.forEach((d) => {
 			let rights = this.rights
@@ -134,7 +134,7 @@ frappe.PermissionEngine = class PermissionEngine {
 			d.rights = rights.join(", ");
 
 			$wrapper.append(`<div class="row">\
-				<div class="col-xs-5"><b>${d.role}</b>, Level ${d.permlevel || 0}</div>\
+				<div class="col-xs-5"><b>${__(d.role)}</b>, ${__("Level")} ${d.permlevel || 0}</div>\
 				<div class="col-xs-7">${d.rights}</div>\
 			</div><br>`);
 		});
@@ -251,7 +251,6 @@ frappe.PermissionEngine = class PermissionEngine {
 
 			this.rights.forEach((r) => {
 				if (!d.is_submittable && ["submit", "cancel", "amend"].includes(r)) return;
-				if (d.in_create && ["create", "delete"].includes(r)) return;
 				this.add_check(perm_container, d, r);
 
 				if (d.if_owner && r == "report") {

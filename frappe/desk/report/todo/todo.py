@@ -27,7 +27,7 @@ def execute(filters=None):
 	todo_list.sort(
 		key=lambda todo: (
 			priority_map.get(todo.priority, 0),
-			todo.date and getdate(todo.date) or getdate("1900-01-01"),
+			(todo.date and getdate(todo.date)) or getdate("1900-01-01"),
 		),
 		reverse=True,
 	)

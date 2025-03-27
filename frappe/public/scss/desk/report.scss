@@ -86,9 +86,12 @@
 
 .report-wrapper {
 	overflow: auto;
+	padding-left: 15px;
+	padding-right: 15px;
 }
 
 .report-view {
+	width: calc(100% - 220px);
 	.result {
 		.dt-row:last-child:not(.dt-row-filter) {
 			.dt-cell {
@@ -100,6 +103,14 @@
 
 .group-by-button {
 	margin: 5px;
+}
+
+.btn {
+	.button-label,
+	.button-icon {
+		display: inline-flex;
+		vertical-align: middle;
+	}
 }
 .group-by-icon.active {
 	--icon-stroke: var(--primary);
@@ -281,4 +292,8 @@
 	.group-by-box .row > div[class*="col-sm-"] {
 		margin-bottom: 5px;
 	}
+}
+
+.input-group > * {
+	margin-right: 10px;
 }

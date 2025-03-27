@@ -143,31 +143,47 @@ $.extend(frappe.datetime, {
 		return (frappe.sys_defaults && frappe.sys_defaults.date_format) || "yyyy-mm-dd";
 	},
 
+	/**
+	 * Converts a datetime string from system format to user format.
+	 *
+	 * If a full datetime string is provided, it is assumed to be in the system
+	 * timezone and converted to the user's timezone.
+	 *
+	 * @param {string} val - The datetime string to convert
+	 * @param {boolean} only_time - If true, parses and returns a time string only
+	 * @param {boolean} only_date - If true, parses and returns a date string only
+	 * @returns {string} The datetime string in user format
+	 */
 	str_to_user: function (val, only_time = false, only_date = false) {
-		if (!val) return "";
+		if (!val) {
+			return "";
+		}
+
 		const user_date_fmt = frappe.datetime.get_user_date_fmt().toUpperCase();
 		const user_time_fmt = frappe.datetime.get_user_time_fmt();
-		let user_format = user_time_fmt;
 
 		if (only_time) {
 			let date_obj = moment(val, frappe.defaultTimeFormat);
-			return date_obj.format(user_format);
-		} else if (only_date) {
+			return date_obj.format(user_time_fmt);
+		} else if (only_date || (typeof val === "string" && val.indexOf(" ") === -1)) {
 			let date_obj = moment(val, frappe.defaultDateFormat);
 			return date_obj.format(user_date_fmt);
 		} else {
-			let date_obj = moment.tz(val, frappe.boot.time_zone.system);
-			if (typeof val !== "string" || val.indexOf(" ") === -1) {
-				user_format = user_date_fmt;
-			} else {
-				user_format = user_date_fmt + " " + user_time_fmt;
-			}
-			return date_obj.clone().tz(frappe.boot.time_zone.user).format(user_format);
+			const system_datetime = moment.tz(
+				val,
+				frappe.defaultDatetimeFormat,
+				frappe.boot.time_zone.system
+			);
+			const user_datetime = system_datetime.clone().tz(frappe.boot.time_zone.user);
+
+			return user_datetime.format(user_date_fmt + " " + user_time_fmt);
 		}
 	},
 
 	get_datetime_as_string: function (d) {
-		return moment(d).format("YYYY-MM-DD HH:mm:ss");
+		let time_format = frappe?.boot?.sysdefaults?.time_format || frappe.defaultTimeFormat;
+		let datetime_format = frappe.defaultDateFormat + " " + time_format;
+		return moment(d).format(datetime_format);
 	},
 
 	user_to_str: function (val, only_time = false) {

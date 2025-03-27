@@ -13,10 +13,10 @@ export default class ListFilter {
 	make() {
 		// init dom
 		this.wrapper.html(`
-			<li class="input-area"></li>
-			<li class="sidebar-action">
+			<div class="input-area"></div>
+			<div class="sidebar-action">
 				<a class="saved-filters-preview">${__("Show Saved")}</a>
-			</li>
+			</div>
 			<div class="saved-filters"></div>
 		`);
 
@@ -56,9 +56,16 @@ export default class ListFilter {
 
 	refresh() {
 		this.get_list_filters().then(() => {
-			this.filters.length
-				? this.$saved_filters_preview.show()
-				: this.$saved_filters_preview.hide();
+			if (this.filters.length) {
+				// expand collapsible sections
+				this.wrapper.hasClass("hide") && this.section_title.trigger("click");
+				this.$saved_filters_preview.show();
+			} else {
+				// hide collapsible sections
+				!this.wrapper.hasClass("hide") && this.section_title.trigger("click");
+				this.$saved_filters_preview.hide();
+			}
+
 			const html = this.filters.map((filter) => this.filter_template(filter));
 			this.wrapper.find(".filter-pill").remove();
 			this.$saved_filters.append(html);
@@ -185,6 +192,7 @@ export default class ListFilter {
 					["for_user", "=", frappe.session.user],
 					["for_user", "=", ""],
 				],
+				order_by: "filter_name asc",
 			})
 			.then((filters) => {
 				this.filters = filters || [];

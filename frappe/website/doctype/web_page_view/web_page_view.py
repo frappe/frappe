@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 import frappe
 import frappe.utils
 from frappe.model.document import Document
+from frappe.utils.caching import redis_cache
 
 
 class WebPageView(Document):
@@ -101,9 +102,10 @@ def make_view_log(
 
 
 @frappe.whitelist()
+@redis_cache(ttl=5 * 60)
 def get_page_view_count(path):
 	return frappe.db.count("Web Page View", filters={"path": path})
 
 
 def is_tracking_enabled():
-	return frappe.db.get_single_value("Website Settings", "enable_view_tracking")
+	return frappe.get_website_settings("enable_view_tracking")

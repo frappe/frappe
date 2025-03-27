@@ -1,11 +1,11 @@
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 from frappe.website.serve import get_response
 from frappe.www.list import get_list_context
 
 
-class TestWebform(FrappeTestCase):
+class TestWebform(IntegrationTestCase):
 	def test_webform_publish_functionality(self):
 		request_data = frappe.get_doc("Web Form", "request-data")
 		# publish webform
@@ -80,4 +80,4 @@ def set_webform_hook(key, value):
 			delattr(hooks, hook)
 
 	setattr(hooks, key, value)
-	frappe.cache.delete_key("app_hooks")
+	frappe.client_cache.delete_value("app_hooks")

@@ -152,7 +152,7 @@ def get_app_last_commit_ref(app):
 	try:
 		with open(os.devnull, "wb") as null_stream:
 			result = subprocess.check_output(
-				f"cd ../apps/{app} && git rev-parse HEAD --short 7",
+				f"git -C ../apps/{app} rev-parse --short=7 HEAD",
 				shell=True,
 				stdin=null_stream,
 				stderr=null_stream,
@@ -184,6 +184,9 @@ def check_for_update():
 		branch_version = (
 			apps[app]["branch_version"].split(" ", 1)[0] if apps[app].get("branch_version", "") else ""
 		)
+		if "develop" in branch_version:
+			return updates
+
 		instance_version = Version(branch_version or apps[app].get("version"))
 
 		github_version, org_name = check_release_on_github(owner, repo, instance_version)
@@ -242,7 +245,6 @@ def check_release_on_github(
 	owner: str, repo: str, current_version: Version
 ) -> tuple[Version, str] | tuple[None, None]:
 	"""Check the latest release for a repo URL on GitHub."""
-	import requests
 
 	if not owner:
 		raise ValueError("Owner cannot be empty")
@@ -318,6 +320,8 @@ def parse_github_url(remote_url: str) -> tuple[str, str] | tuple[None, None]:
 def get_source_url(app: str) -> str | None:
 	"""Get the remote URL of the app."""
 	pyproject = get_pyproject(app)
+	if not pyproject:
+		return
 	if remote_url := pyproject.get("project", {}).get("urls", {}).get("Repository"):
 		return remote_url.rstrip("/")
 
@@ -369,11 +373,7 @@ def show_update_popup():
 					"""
 			if release_links:
 				message = _("New {} releases for the following apps are available").format(_(update_type))
-				update_message += (
-					"<div class='new-version-log'>{}<div class='new-version-links'>{}</div></div>".format(
-						message, release_links
-					)
-				)
+				update_message += f"<div class='new-version-log'>{message}<div class='new-version-links'>{release_links}</div></div>"
 
 	primary_action = None
 	if on_frappecloud():

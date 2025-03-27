@@ -3,14 +3,14 @@
 # Author - Shivam Mishra <shivam@frappe.io>
 
 from functools import wraps
-from json import dumps, loads
+from json import JSONDecodeError, dumps, loads
 
 import frappe
 from frappe import DoesNotExistError, ValidationError, _, _dict
 from frappe.boot import get_allowed_pages, get_allowed_reports
 from frappe.cache_manager import (
-	build_domain_restriced_doctype_cache,
-	build_domain_restriced_page_cache,
+	build_domain_restricted_doctype_cache,
+	build_domain_restricted_page_cache,
 	build_table_count_cache,
 )
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
@@ -61,10 +61,10 @@ class Workspace:
 
 			self.table_counts = get_table_with_counts()
 		self.restricted_doctypes = (
-			frappe.cache.get_value("domain_restricted_doctypes") or build_domain_restriced_doctype_cache()
+			frappe.cache.get_value("domain_restricted_doctypes") or build_domain_restricted_doctype_cache()
 		)
 		self.restricted_pages = (
-			frappe.cache.get_value("domain_restricted_pages") or build_domain_restriced_page_cache()
+			frappe.cache.get_value("domain_restricted_pages") or build_domain_restricted_page_cache()
 		)
 
 	def is_permitted(self):
@@ -86,7 +86,7 @@ class Workspace:
 
 	def get_cached(self, cache_key, fallback_fn):
 		value = frappe.cache.get_value(cache_key, user=frappe.session.user)
-		if value:
+		if value is not None:
 			return value
 
 		value = fallback_fn()
@@ -139,7 +139,7 @@ class Workspace:
 		item_type = item_type.lower()
 
 		if item_type == "doctype":
-			return name in self.can_read or [] and name in self.restricted_doctypes or []
+			return name in (self.can_read or []) and name in (self.restricted_doctypes or [])
 		if item_type == "page":
 			return name in self.allowed_pages and name in self.restricted_pages
 		if item_type == "report":
@@ -413,6 +413,9 @@ def get_desktop_page(page):
 @frappe.whitelist()
 def get_workspace_sidebar_items():
 	"""Get list of sidebar items for desk"""
+
+	from frappe.modules.utils import get_module_app
+
 	has_access = "Workspace Manager" in frappe.get_roles()
 
 	# don't get domain restricted pages
@@ -443,12 +446,25 @@ def get_workspace_sidebar_items():
 		"icon",
 		"indicator_color",
 		"is_hidden",
+		"app",
+		"type",
+		"link_type",
+		"link_to",
+		"external_link",
 	]
 	all_pages = frappe.get_all(
 		"Workspace", fields=fields, filters=filters, order_by=order_by, ignore_permissions=True
 	)
 	pages = []
 	private_pages = []
+
+	# get additional settings from Work Settings
+	try:
+		workspace_visibilty = loads(
+			frappe.db.get_single_value("Workspace Settings", "workspace_visibility_json") or "{}"
+		)
+	except JSONDecodeError:
+		workspace_visibilty = {}
 
 	# Filter Page based on Permission
 	for page in all_pages:
@@ -460,16 +476,39 @@ def get_workspace_sidebar_items():
 				elif page.for_user == frappe.session.user:
 					private_pages.append(page)
 				page["label"] = _(page.get("name"))
+
+			if page["name"] in workspace_visibilty:
+				page["visibility"] = workspace_visibilty[page["name"]]
+
+			if not page["app"] and page["module"]:
+				page["app"] = frappe.db.get_value("Module Def", page["module"], "app_name") or get_module_app(
+					page["module"]
+				)
+			if page["link_type"] == "Report":
+				report_type, ref_doctype = frappe.db.get_value(
+					"Report", page["link_to"], ["report_type", "ref_doctype"]
+				)
+				page["report"] = {
+					"report_type": report_type,
+					"ref_doctype": ref_doctype,
+				}
+
 		except frappe.PermissionError:
 			pass
 	if private_pages:
 		pages.extend(private_pages)
 
 	if len(pages) == 0:
-		pages = [frappe.get_doc("Workspace", "Welcome Workspace").as_dict()]
-		pages[0]["label"] = _("Welcome Workspace")
+		pages.append(next((x for x in all_pages if x["title"] == "Welcome Workspace"), None))
 
-	return {"pages": pages, "has_access": has_access}
+	return {
+		"workspace_setup_completed": frappe.db.get_single_value(
+			"Workspace Settings", "workspace_setup_completed"
+		),
+		"pages": pages,
+		"has_access": has_access,
+		"has_create_access": frappe.has_permission(doctype="Workspace", ptype="create"),
+	}
 
 
 def get_table_with_counts():
@@ -526,13 +565,15 @@ def get_custom_report_list(module):
 			else 0,
 			"label": _(r.name),
 			"link_to": r.name,
+			"report_ref_doctype": r.ref_doctype,
 		}
 		for r in reports
 	]
 
 
 def save_new_widget(doc, page, blocks, new_widgets):
-	if loads(new_widgets):
+	widgets = _dict()
+	if new_widgets:
 		widgets = _dict(loads(new_widgets))
 
 		if widgets.chart:

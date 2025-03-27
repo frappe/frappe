@@ -20,14 +20,18 @@ def savedocs(doc, action):
 	if doc.get("__islocal") and doc.name.startswith("new-" + doc.doctype.lower().replace(" ", "-")):
 		# required to relink missing attachments if they exist.
 		doc.__temporary_name = doc.name
+
+	for child in doc.get_all_children():
+		child.__temporary_name = child.name
+
 	set_local_name(doc)
 
 	# action
 	doc.docstatus = {
-		"Save": DocStatus.draft(),
-		"Submit": DocStatus.submitted(),
-		"Update": DocStatus.submitted(),
-		"Cancel": DocStatus.cancelled(),
+		"Save": DocStatus.DRAFT,
+		"Submit": DocStatus.SUBMITTED,
+		"Update": DocStatus.SUBMITTED,
+		"Cancel": DocStatus.CANCELLED,
 	}[action]
 
 	if doc.docstatus.is_submitted():

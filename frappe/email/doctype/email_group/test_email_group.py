@@ -1,13 +1,20 @@
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils import validate_url
 
-# test_records = frappe.get_test_records('Email Group')
+
+class UnitTestEmailGroup(UnitTestCase):
+	"""
+	Unit tests for EmailGroup.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
 
 
-class TestEmailGroup(FrappeTestCase):
+class TestEmailGroup(IntegrationTestCase):
 	def test_welcome_url(self):
 		email_group = frappe.new_doc("Email Group")
 		email_group.title = "Test"

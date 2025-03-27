@@ -7,6 +7,7 @@ import re
 import frappe
 from frappe import _
 from frappe.core.utils import find
+from frappe.desk.doctype.notification_settings.notification_settings import is_email_notifications_enabled
 from frappe.model.document import Document
 from frappe.utils import get_datetime, get_fullname, time_diff_in_hours
 from frappe.utils.user import get_system_managers
@@ -101,10 +102,13 @@ class PersonalDataDeletionRequest(Document):
 		)
 
 	def notify_system_managers(self):
-		system_managers = get_system_managers(only_name=True)
+		recipients = []
+		for manager in get_system_managers(only_name=True):
+			if is_email_notifications_enabled(manager):
+				recipients.append(manager)
 
 		frappe.sendmail(
-			recipients=system_managers,
+			recipients=recipients,
 			subject=_("User {0} has requested for data deletion").format(self.email),
 			template="data_deletion_approval",
 			args={"user": self.email, "url": frappe.utils.get_url(self.get_url())},
@@ -262,15 +266,15 @@ class PersonalDataDeletionRequest(Document):
 		self.add_deletion_steps()
 
 		self.full_match_doctypes = (
-			x
-			for x in self.full_match_privacy_docs
-			if filter(lambda x: x.document_type == x and x.status == "Pending", self.deletion_steps)
+			doc
+			for doc in self.full_match_privacy_docs
+			if filter(lambda x: x.document_type == doc and x.status == "Pending", self.deletion_steps)
 		)
 
 		self.partial_match_doctypes = (
-			x
-			for x in self.partial_privacy_docs
-			if filter(lambda x: x.document_type == x and x.status == "Pending", self.deletion_steps)
+			doc
+			for doc in self.partial_privacy_docs
+			if filter(lambda x: x.document_type == doc and x.status == "Pending", self.deletion_steps)
 		)
 
 		for doctype in self.full_match_doctypes:

@@ -10,8 +10,10 @@ context("Awesome Bar", () => {
 	});
 
 	beforeEach(() => {
-		cy.get(".navbar .navbar-home").click();
-		cy.findByPlaceholderText("Search or type a command (Ctrl + G)").as("awesome_bar");
+		let txt = `Search or type a command (${
+			window.navigator.platform === "MacIntel" ? "⌘" : "Ctrl"
+		} + K)`;
+		cy.findByPlaceholderText(txt).as("awesome_bar");
 		cy.get("@awesome_bar").type("{selectall}");
 	});
 
@@ -34,14 +36,14 @@ context("Awesome Bar", () => {
 		cy.wait(150); // Wait a bit before hitting enter.
 		cy.get("@awesome_bar").type("{enter}");
 		cy.get(".title-text").should("contain", "To Do");
-		cy.wait(200); // Wait a bit longer before checking the filter.
-		cy.get('[data-original-title="ID"] > input').should("have.value", "%test%");
+		cy.wait(400); // Wait a bit longer before checking the filter.
+		cy.get('[data-original-title="ID"]:visible > input').should("have.value", "%test%");
 
 		// filter preserved, now finds something else
 		cy.visit("/app/todo");
 		cy.get(".title-text").should("contain", "To Do");
 		cy.wait(200); // Wait a bit longer before checking the filter.
-		cy.get('[data-original-title="ID"] > input').as("filter");
+		cy.get('[data-original-title="ID"]:visible > input').as("filter");
 		cy.get("@filter").should("have.value", "%test%");
 		cy.get("@awesome_bar").type("anothertest in todo");
 		cy.wait(200); // Wait a bit longer before hitting enter.
