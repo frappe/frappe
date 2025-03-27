@@ -71,7 +71,7 @@
 						}"
 					></div>
 				</div>
-				<div ref="colorPalette">
+				<div ref="colorPalette" class="max-w-[11rem]">
 					<div class="mt-3 flex flex-wrap gap-1.5">
 						<div
 							v-for="color in colors"
@@ -143,6 +143,8 @@ const colors = [
 if (!isSupported.value) {
 	colors.push("#B34D4D")
 }
+// frappe-ui grays
+colors.push("#F3F3F3", "#EDEDED")
 
 const setColorSelectorPosition = (color: HashString) => {
 	const { width, height } = colorMap.value.getBoundingClientRect()
