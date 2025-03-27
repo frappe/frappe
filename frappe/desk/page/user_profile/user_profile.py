@@ -78,7 +78,7 @@ def update_profile_info(profile_info):
 	profile_info = frappe.parse_json(profile_info)
 	keys = ["location", "interest", "user_image", "bio"]
 
-	if "user_image" in profile_info.keys():
+	if "user_image" in profile_info:
 		profile_info["user_image"] = escape_html(profile_info["user_image"])
 
 	for key in keys:
