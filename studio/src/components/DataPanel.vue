@@ -339,11 +339,12 @@ const getInitialValue = (variable: Variable) => {
 }
 
 const addVariable = (variable: Variable) => {
+	const initial_value = getInitialValue(variable)
 	studioVariables.insert.submit(
 		{
 			variable_name: variable.variable_name,
 			variable_type: variable.variable_type,
-			initial_value: getInitialValue(variable),
+			initial_value: initial_value,
 			parent: store.activePage?.name,
 			parenttype: "Studio Page",
 			parentfield: "variables",
@@ -365,12 +366,13 @@ const addVariable = (variable: Variable) => {
 }
 
 const editVariable = (variable: Variable) => {
+	const initial_value = getInitialValue(variable)
 	studioVariables.setValue
 		.submit({
 			name: variable.name,
 			variable_name: variable.variable_name,
 			variable_type: variable.variable_type,
-			initial_value: getInitialValue(variable),
+			initial_value: initial_value,
 		})
 		.then(async () => {
 			if (store.activePage) {

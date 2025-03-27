@@ -18,7 +18,7 @@
 				Save
 			</Button>
 		</div>
-		<ErrorMessage class="text-xs" v-if="errorMessage" :message="errorMessage" />
+		<ErrorMessage class="text-xs leading-4" v-if="errorMessage" :message="errorMessage" />
 	</div>
 </template>
 
