@@ -47,6 +47,7 @@ import Container from "@/components/AppLayout/Container.vue"
 import FitContainer from "@/components/AppLayout/FitContainer.vue"
 import Header from "@/components/AppLayout/Header.vue"
 import Sidebar from "@/components/AppLayout/Sidebar.vue"
+import Repeater from "@/components/AppLayout/Repeater.vue"
 import CardList from "@/components/AppLayout/CardList.vue"
 import AvatarCard from "@/components/AppLayout/AvatarCard.vue"
 import Audio from "@/components/AppLayout/Audio.vue"
@@ -104,6 +105,7 @@ export function registerGlobalComponents(app: App) {
 	app.component("FitContainer", FitContainer)
 	app.component("Header", Header)
 	app.component("Sidebar", Sidebar)
+	app.component("Repeater", Repeater)
 	app.component("CardList", CardList)
 	app.component("AvatarCard", AvatarCard)
 	app.component("Audio", Audio)

@@ -2,6 +2,7 @@ import { defineAsyncComponent, h } from "vue"
 import * as frappeUI from "frappe-ui"
 import Header from "@/components/AppLayout/Header.vue"
 import Sidebar from "@/components/AppLayout/Sidebar.vue"
+import Repeater from "@/components/AppLayout/Repeater.vue"
 import CardList from "@/components/AppLayout/CardList.vue"
 import AvatarCard from "@/components/AppLayout/AvatarCard.vue"
 import Audio from "@/components/AppLayout/Audio.vue"
@@ -547,6 +548,29 @@ export const COMPONENTS: FrappeUIComponents = {
 		name: "FitContainer",
 		title: "Fit Container",
 		icon: "Maximize",
+	},
+	Repeater: {
+		name: "Repeater",
+		title: "Repeater",
+		icon: "Repeat",
+		props: Repeater.props,
+		initialState: {
+			data: [
+				{
+					label: "Item 1",
+					value: "item-1",
+				},
+				{
+					label: "Item 2",
+					value: "item-2",
+				},
+				{
+					label: "Item 3",
+					value: "item-3",
+				},
+			],
+			dataKey: "value",
+		}
 	},
 	Header: {
 		name: "Header",
