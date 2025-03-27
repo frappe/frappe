@@ -474,8 +474,8 @@ class File(Document):
 	def validate_protected_file(self):
 		"""Throw an exception if this file is attached to a doctype that protects files.
 
-		If the linked document is not submitted, the user needs delete permissions on the
-		linked document to delete the file.
+		Allows deleting the attached file if the linked document is in draft. If submitted,
+		deletion is not allowed. If canceled, requires delete permissions on the linked document.
 		"""
 		if not (self.attached_to_doctype and self.attached_to_name):
 			return
@@ -497,7 +497,7 @@ class File(Document):
 			return
 
 		frappe.throw(
-			msg=_("This file cannot be deleted."),
+			msg=_("This file is attached to a protected document and cannot be deleted."),
 			title=_("Protected File"),
 		)
 
