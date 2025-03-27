@@ -47,8 +47,11 @@ def savedocs(doc, action):
 	send_updated_docs(doc)
 
 	add_data_to_monitor(doctype=doc.doctype, action=action)
-	frappe.msgprint(frappe._("Saved"), indicator="green", alert=True)
-
+	
+	if doc.docstatus.is_submitted():
+		frappe.msgprint(frappe._("Submitted"), indicator="green", alert=True)
+	else:
+		frappe.msgprint(frappe._("Saved"), indicator="green", alert=True)
 
 @frappe.whitelist()
 def cancel(doctype=None, name=None, workflow_state_fieldname=None, workflow_state=None):
