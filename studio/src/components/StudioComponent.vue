@@ -291,6 +291,8 @@ watch(
 		target.value = getComponentRoot(componentRef)
 		if (target.value) {
 			target.value?.setAttribute("data-component-id", props.block.componentId)
+			const styles = window.getComputedStyle(target.value)
+			props.block.setBaseStyles(styles)
 			isComponentReady.value = true
 		}
 	},

@@ -214,25 +214,20 @@ class Block implements BlockOptions {
 	}
 
 	// styles
-	getRootElementStyles() {
-		// actual styles of the mounted component's root element
-		const componentRootElement = document.querySelector(`[data-component-id="${this.componentId}"].__studio_component__`)
-		if (componentRootElement) {
-			const computedStyle = window.getComputedStyle(componentRootElement)
-			return computedStyle
+	setBaseStyles(styles: CSSStyleDeclaration) {
+		const stylesObject: BlockStyleMap = {}
+		for (let i = 0; i < styles.length; i++) {
+			const prop = styles[i]
+			stylesObject[prop] = styles.getPropertyValue(prop)
 		}
-		return null
-	}
+		this.baseStyles = stylesObject
+	  }
 
 	getStyles(): BlockStyleMap {
 		return { ...this.baseStyles }
 	}
 
 	getStyle(style: styleProperty) {
-		const styles = this.getRootElementStyles()
-		if (styles) {
-			return styles.getPropertyValue(style)
-		}
 		return this.baseStyles[style]
 	}
 
