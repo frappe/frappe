@@ -652,7 +652,7 @@ def get_datetime_str(datetime_obj: DateTimeLikeObject) -> str:
 	"""Return the given datetime like object (datetime.date, datetime.datetime, string) as a string in `yyyy-mm-dd hh:mm:ss` format."""
 	if isinstance(datetime_obj, str):
 		datetime_obj = get_datetime(datetime_obj)
-	return datetime_obj.strftime(DATETIME_FORMAT)
+	return datetime_obj.strftime('%Y-%m-%d %H:%M:%S')
 
 
 def get_date_str(date_obj: DateTimeLikeObject) -> str:
