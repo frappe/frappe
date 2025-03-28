@@ -7,7 +7,7 @@
 			{ label: 'Horizontal', value: 'row', icon: 'arrow-right', hideLabel: true },
 			{ label: 'Vertical', value: 'column', icon: 'arrow-down', hideLabel: true },
 		]"
-		:modelValue="blockController.getStyle('flexDirection') || 'row'"
+		:modelValue="blockController.getStyle('flexDirection')"
 		@update:modelValue="(val: string | number) => blockController.setStyle('flexDirection', val)"
 	></OptionToggle>
 	<PlacementControl v-if="blockController.isFlex()"></PlacementControl>
