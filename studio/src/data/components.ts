@@ -2,6 +2,7 @@ import { defineAsyncComponent, h } from "vue"
 import * as frappeUI from "frappe-ui"
 import Header from "@/components/AppLayout/Header.vue"
 import Sidebar from "@/components/AppLayout/Sidebar.vue"
+import SplitView from "@/components/AppLayout/SplitView.vue"
 import Repeater from "@/components/AppLayout/Repeater.vue"
 import CardList from "@/components/AppLayout/CardList.vue"
 import AvatarCard from "@/components/AppLayout/AvatarCard.vue"
@@ -598,6 +599,12 @@ export const COMPONENTS: FrappeUIComponents = {
 				{ label: "Settings", featherIcon: "settings", route_to: "/" },
 			],
 		},
+	},
+	SplitView: {
+		name: "SplitView",
+		title: "Split View",
+		icon: "SquareSplitHorizontal",
+		props: SplitView.props,
 	},
 	AvatarCard: {
 		name: "AvatarCard",
