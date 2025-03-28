@@ -123,7 +123,7 @@ class Block implements BlockOptions {
 		if (child.parentSlotName) {
 			return (
 				this.getSlotContent(child.parentSlotName) as Block[]
-			).findIndex((block) => block.componentId === child.componentId)
+			)?.findIndex((block) => block.componentId === child.componentId)
 		}
 		return this.children.findIndex((block) => block.componentId === child.componentId)
 	}
