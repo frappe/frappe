@@ -71,6 +71,7 @@ const contextMenuOptions: ContextMenuOption[] = [
 			const newBlockObj = getComponentBlock("FitContainer")
 			if (block.value.isSlotBlock()) {
 				newBlockObj.parentSlotName = block.value.parentSlotName
+				delete block.value.parentSlotName
 			}
 
 			const selectedBlocks = canvasStore.activeCanvas?.selectedBlocks || []
