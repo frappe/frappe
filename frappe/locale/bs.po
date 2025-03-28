@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-24 14:27+0000\n"
-"PO-Revision-Date: 2025-03-27 16:40\n"
+"PO-Revision-Date: 2025-03-28 17:31\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -754,7 +754,7 @@ msgstr "Datoteka s istim imenom {} već postoji"
 #. Description of the 'Scopes' (Text) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "A list of resources which the Client App will have access to after the user allows it.<br> e.g. project"
-msgstr "Lista resursa kojima će klijentska aplikacija imati pristup nakon što korisnik to dozvoli.<br> npr. projekat"
+msgstr "Lista resursa kojima će klijentska aplikacija imati pristup nakon što korisnik to dozvoli.<br> npr. projekt"
 
 #: frappe/templates/emails/new_user.html:5
 msgid "A new account has been created for you at {0}"
@@ -1757,7 +1757,7 @@ msgstr "Sva polja su neophodna za slanje komentara."
 #. Description of the 'Document States' (Table) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "All possible Workflow States and roles of the workflow. Docstatus Options: 0 is \"Saved\", 1 is \"Submitted\" and 2 is \"Cancelled\""
-msgstr "Sva moguća stanja radnog toka i uloge radnog toka. Opcije statusa dokumenta: 0 je \"Spremljeno\", 1 je \"Podneseno\" i 2 je \"Otkazano\""
+msgstr "Sva moguća stanja Radnog Toka i uloge radnog toka. Opcije statusa dokumenta: 0 je \"Spremljeno\", 1 je \"Podneseno\" i 2 je \"Otkazano\""
 
 #: frappe/utils/password_strength.py:183
 msgid "All-uppercase is almost as easy to guess as all-lowercase."
@@ -2951,7 +2951,7 @@ msgstr "Autoriziraj pristup Google kontaktima"
 #. Drive'
 #: frappe/integrations/doctype/google_drive/google_drive.json
 msgid "Authorize Google Drive Access"
-msgstr "Autoriziraj pristup Google disku"
+msgstr "Autoriziraj pristup Google Disku"
 
 #. Label of the authorize_url (Data) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
@@ -9150,7 +9150,7 @@ msgstr "Omogući obavještenje putem e-pošte za sve komentare ili lajkove priml
 msgid "Enable if on click\n"
 "opens modal."
 msgstr "Omogući ako na klik\n"
-"otvara modalni."
+"otvara modal."
 
 #. Label of the enable_view_tracking (Check) field in DocType 'Website
 #. Settings'
@@ -12083,7 +12083,7 @@ msgstr "Sakrij Kopiju"
 #. Label of the hide_custom (Check) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "Hide Custom DocTypes and Reports"
-msgstr "Sakrij prilagođene tipove dokumenata i izvještaje"
+msgstr "Sakrij Prilagođene DocTypes i Izvještaje"
 
 #. Label of the hide_days (Check) field in DocType 'DocField'
 #. Label of the hide_days (Check) field in DocType 'Custom Field'
@@ -17894,7 +17894,7 @@ msgstr "Pri Izvršenoj Uplati"
 #. Description of the 'Is Dynamic URL?' (Check) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "On checking this option, URL will be treated like a jinja template string"
-msgstr "Kada označite ovu opciju, URL će se tretirati kao niz jinja šablona"
+msgstr "Kada odaberete ovu opciju, URL će se tretirati kao niz jinja šablona"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:65
 #: frappe/public/js/frappe/ui/filters/filter.js:71
@@ -17989,7 +17989,7 @@ msgstr "Samo Administrator može koristiti Snimač"
 #. Label of the allow_edit (Link) field in DocType 'Workflow Document State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Only Allow Edit For"
-msgstr "Dozvoli samo uređivanje za"
+msgstr "Dozvoli uređivanje samo za"
 
 #: frappe/core/doctype/doctype/doctype.py:1618
 msgid "Only Options allowed for Data field are:"
@@ -25428,7 +25428,7 @@ msgstr "URI Uspjeha"
 #. Label of the success_url (Data) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Success URL"
-msgstr "URL uspjeha"
+msgstr "URL Uspjeha"
 
 #. Label of the success_message (Text) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -30591,21 +30591,21 @@ msgstr "nadzorna tabla"
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "dd-mm-yyyy"
-msgstr "dd/mm/gggg"
+msgstr "dd/mm/yyyy"
 
 #. Option for the 'Date Format' (Select) field in DocType 'Language'
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "dd.mm.yyyy"
-msgstr "dd.mm.gggg"
+msgstr "dd.mm.yyyy"
 
 #. Option for the 'Date Format' (Select) field in DocType 'Language'
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "dd/mm/yyyy"
-msgstr "dd/mm/gggg"
+msgstr "dd/mm/yyyy"
 
 #. Option for the 'Queue' (Select) field in DocType 'RQ Job'
 #. Option for the 'Queue Type(s)' (Select) field in DocType 'RQ Worker'
