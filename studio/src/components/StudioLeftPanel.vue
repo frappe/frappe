@@ -67,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { watch, computed } from "vue"
+import { watch, computed, nextTick } from "vue"
 import { Tooltip, FeatherIcon } from "frappe-ui"
 
 import PagesPanel from "@/components/PagesPanel.vue"
@@ -132,7 +132,8 @@ watch(
 
 watch(
 	() => canvasStore.activeCanvas?.selectedBlocks,
-	() => {
+	async () => {
+		await nextTick()
 		document.querySelectorAll(`[data-component-layer-id].block-selected`).forEach((el) => {
 			el.classList.remove("block-selected")
 		})
@@ -144,11 +145,13 @@ watch(
 			})
 		}
 	},
+	{ deep: true },
 )
 
 watch(
 	() => canvasStore.activeCanvas?.selectedSlot,
-	() => {
+	async () => {
+		await nextTick()
 		document.querySelectorAll(`[data-slot-layer-id].slot-selected`).forEach((el) => {
 			el.classList.remove("slot-selected")
 		})

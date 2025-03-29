@@ -9,7 +9,6 @@ import {
 	getBlockCopy,
 	getBlockCopyWithoutParent,
 	setClipboardData,
-	pxToNumber,
 } from "@/utils/helpers"
 import Block from "@/utils/block"
 import { BlockOptions } from "@/types"

@@ -220,15 +220,23 @@ watch(
 			canvasStore.activeCanvas?.selectedBlocks.forEach((block: Block) => {
 				if (block) {
 					let parentBlock = block.getParentBlock()
-					// open all parent blocks
+					// open all parent blocks and slots
 					while (parentBlock && !parentBlock.isRoot()) {
+						let slotName = parentBlock.parentSlotName
 						expandedLayers.value.add(parentBlock?.componentId)
 						parentBlock = parentBlock.getParentBlock()
+						if (slotName) {
+							const slotId = parentBlock?.getSlot(slotName)?.slotId
+							if (slotId) {
+								expandedSlots.value.add(slotId)
+							}
+						}
 					}
 				}
 			})
 		}
 	},
+	{ immediate: true, deep: true },
 )
 
 const slotIndent = computed(() => childIndent + 16)
