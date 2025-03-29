@@ -50,19 +50,6 @@ const handleContextMenuSelect = (action: CallableFunction) => {
 
 const contextMenuOptions: ContextMenuOption[] = [
 	{
-		label: "Duplicate",
-		action: () => block.value.duplicateBlock(),
-	},
-	{
-		label: "Delete",
-		action: () => {
-			block.value.deleteBlock()
-		},
-		condition: () => {
-			return !block.value.isRoot() && Boolean(block.value.getParentBlock())
-		},
-	},
-	{
 		label: "Wrap In Container",
 		action: () => {
 			const parentBlock = block.value.getParentBlock()
@@ -103,6 +90,20 @@ const contextMenuOptions: ContextMenuOption[] = [
 			if (newBlock) {
 				newBlock.selectBlock()
 			}
+		},
+	},
+	{ label: "Copy", action: () => document.execCommand("copy") },
+	{
+		label: "Duplicate",
+		action: () => block.value.duplicateBlock(),
+	},
+	{
+		label: "Delete",
+		action: () => {
+			block.value.deleteBlock()
+		},
+		condition: () => {
+			return !block.value.isRoot() && Boolean(block.value.getParentBlock())
 		},
 	},
 	{

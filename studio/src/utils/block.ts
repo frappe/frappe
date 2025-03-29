@@ -82,9 +82,9 @@ class Block implements BlockOptions {
 			return this.updateSlot(child.parentSlotName, child, index)
 		}
 
-		child.parentBlock = this
 		index = this.getValidIndex(index, this.children.length)
 		const childBlock = reactive(new Block(child))
+		childBlock.parentBlock = this
 		this.children.splice(index, 0, childBlock)
 		childBlock.selectBlock()
 		return childBlock

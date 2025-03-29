@@ -1,10 +1,10 @@
 import { defineStore } from "pinia"
 import { ref, reactive } from "vue"
 import type Block from "@/utils/block"
-import { getBlockCopy } from "@/utils/helpers"
+import { getBlockCopy, getBlockInstance } from "@/utils/helpers"
 
 import type StudioCanvas from "@/components/StudioCanvas.vue"
-import { EditingMode } from "@/types"
+import { EditingMode, BlockOptions } from "@/types"
 
 const useCanvasStore = defineStore("canvasStore", () => {
 	const activeCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
@@ -115,6 +115,19 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		}
 	}
 
+	function pushBlocks(blocks: BlockOptions[]) {
+		let parent = activeCanvas.value?.getRootBlock()
+		let firstBlock = getBlockInstance(blocks[0])
+
+		if (editingMode.value === "page" && firstBlock.isRoot() && activeCanvas.value?.rootComponent) {
+			activeCanvas.value.setRootBlock(firstBlock)
+		} else {
+			for (let block of blocks) {
+				parent?.addChild(block)
+			}
+		}
+	}
+
 	return {
 		// layout
 		activeCanvas,
@@ -129,6 +142,8 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		fragmentData,
 		editOnCanvas,
 		exitFragmentMode,
+		// blocks
+		pushBlocks,
 	}
 })
 

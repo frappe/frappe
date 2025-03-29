@@ -179,6 +179,15 @@ function isObjectEmpty(obj: object | null | undefined) {
 	return Object.keys(obj).length === 0
 }
 
+function isJSONString(str: string) {
+	try {
+		jsonToJs(str)
+	} catch (e) {
+		return false
+	}
+	return true
+}
+
 function jsToJson(obj: ObjectLiteral): string {
 	const replacer = (_key: string, value: any) => {
 		// Preserve functions by converting them to strings
@@ -620,6 +629,13 @@ function copyToClipboard(text: string | object) {
 	}
 }
 
+function setClipboardData(text: string | object, e: ClipboardEvent, copyFormat = "text/plain") {
+	if (typeof text !== "string") {
+		text = JSON.stringify(text);
+	}
+	e.clipboardData?.setData(copyFormat, text);
+}
+
 function getErrorMessage(err: any) {
 	const lastLine = err.exc
 		?.split('\n')
@@ -671,6 +687,7 @@ export {
 	copyObject,
 	areObjectsEqual,
 	isObjectEmpty,
+	isJSONString,
 	jsToJson,
 	jsonToJs,
 	mapToObject,
@@ -703,6 +720,7 @@ export {
 	// general utils
 	isCtrlOrCmd,
 	copyToClipboard,
+	setClipboardData,
 	getErrorMessage,
 	throttle,
 }
