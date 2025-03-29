@@ -214,14 +214,6 @@ class Block implements BlockOptions {
 	}
 
 	// styles
-	setBaseStyles(styles: CSSStyleDeclaration) {
-		const stylesObject: BlockStyleMap = {}
-		for (let i = 0; i < styles.length; i++) {
-			const prop = styles[i]
-			stylesObject[prop] = styles.getPropertyValue(prop)
-		}
-		this.baseStyles = stylesObject
-	  }
 
 	getStyles(): BlockStyleMap {
 		return { ...this.baseStyles }

@@ -14,7 +14,7 @@
 		ref="componentRef"
 	>
 		<!-- Dynamically render named slots -->
-		<template v-for="(slot, slotName) in block?.componentSlots" :key="slotName" v-slot:[slotName]>
+		<template v-for="(slot, slotName) in block?.componentSlots" :key="slotName" v-slot:[slotName]="slotProps">
 			<template v-if="Array.isArray(slot.slotContent)">
 				<StudioComponent
 					v-for="slotBlock in slot?.slotContent"
@@ -24,6 +24,7 @@
 					:data-slot-id="slot.slotId"
 					:data-slot-name="slotName"
 					:data-component-id="block.componentId"
+					v-bind="slotProps"
 				/>
 			</template>
 			<template v-else-if="isHTML(slot.slotContent)">
@@ -132,6 +133,8 @@ const componentName = computed(() => {
 	return proxyComponent ? proxyComponent : props.block.componentName
 })
 
+const repeaterContext = inject("repeaterContext", {})
+
 const getComponentProps = () => {
 	if (!props.block || props.block.isRoot()) return []
 
@@ -140,7 +143,11 @@ const getComponentProps = () => {
 
 	Object.entries(propValues).forEach(([propName, config]) => {
 		if (isDynamicValue(config)) {
-			propValues[propName] = getDynamicValue(config, { ...store.resources, ...store.variables })
+			propValues[propName] = getDynamicValue(config, {
+				...store.resources,
+				...store.variables,
+				...repeaterContext,
+			})
 		}
 	})
 	return propValues
@@ -277,7 +284,7 @@ watch(
 		// update styles when baseStyles change for frappeui components with inheritAttrs: false
 		const styles = props.block.getStyles()
 		for (const key in styles) {
-			componentRef.value?.$el?.style.setProperty(key, styles[key])
+			componentRef.value?.$el?.style?.setProperty(key, styles[key])
 		}
 	},
 	{ deep: true },
@@ -291,8 +298,6 @@ watch(
 		target.value = getComponentRoot(componentRef)
 		if (target.value) {
 			target.value?.setAttribute("data-component-id", props.block.componentId)
-			const styles = window.getComputedStyle(target.value)
-			props.block.setBaseStyles(styles)
 			isComponentReady.value = true
 		}
 	},
