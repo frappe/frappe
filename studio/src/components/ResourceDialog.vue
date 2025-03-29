@@ -263,7 +263,7 @@ async function setWhitelistedMethods(doctype: string) {
 	whitelistedMethods.value = methods.data
 }
 
-const getTransformFnBoilerplate = (resource_type: ResourceType) => {
+function getTransformFnBoilerplate(resource_type: ResourceType) {
 	if (resource_type == "Document") {
 		return "function transform(doc) { \n\treturn doc; \n}"
 	} else {
@@ -281,9 +281,9 @@ watch(
 )
 
 watch(
-	() => newResource.value?.resource_type,
-	(resource_type) => {
-		if (!resource_type) return
+	() => [newResource.value?.resource_type, newResource.value?.transform_results],
+	([resource_type, transform_results]) => {
+		if (!resource_type || !transform_results || newResource.value.transform) return
 		newResource.value.transform = getTransformFnBoilerplate(resource_type)
 	},
 )
