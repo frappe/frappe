@@ -44,10 +44,16 @@ export function useStudioEvents() {
 
 			if (canvasStore.activeCanvas?.selectedBlocks.length && dataObj.blocks[0].componentId !== "root") {
 				let parentBlock = canvasStore.activeCanvas.selectedBlocks[0]
+				let slotName = canvasStore.activeCanvas.selectedSlot?.slotName
 				while (parentBlock && !parentBlock.canHaveChildren()) {
 					parentBlock = parentBlock.getParentBlock() as Block
 				}
 				dataObj.blocks.forEach((block: BlockOptions) => {
+					if (slotName) {
+						block.parentSlotName = slotName
+					} else {
+						delete block.parentSlotName
+					}
 					parentBlock.addChild(getBlockCopy(block), null)
 				})
 			} else {
