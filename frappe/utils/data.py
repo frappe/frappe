@@ -1511,7 +1511,8 @@ def money_in_words(
 		main_currency = d.get("currency", "INR")
 
 	if not fraction_currency:
-		fraction_currency = frappe.db.get_value("Currency", main_currency, "fraction", cache=True) or _(
+		#Fraction Currency Must be translated to target Language
+		fraction_currency = _(frappe.db.get_value("Currency", main_currency, "fraction", cache=True),context='Currency') or _(
 			"Cent"
 		)
 
@@ -1542,7 +1543,11 @@ def money_in_words(
 	elif main == "0":
 		out = f"{fraction_in_words()} {fraction_currency}"
 	else:
-		out = _(main_currency, context="Currency") + " " + in_words(main, in_million).title()
+		# This Conform to money in Words for Arabic Language ,as it place currency at the end
+		if frappe.locale.lang=='ar':
+			out= in_words(main, in_million).title() + " " + _(main_currency, context="Currency")
+		else:
+			out = _(main_currency, context="Currency") + " " + in_words(main, in_million).title()
 		if cint(fraction):
 			out = out + " " + _("and") + " " + fraction_in_words() + " " + fraction_currency
 
