@@ -21,8 +21,9 @@ import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { ContextMenuOption } from "@/types"
-import { getComponentBlock, isObjectEmpty } from "@/utils/helpers"
+import { getBlockCopy, getComponentBlock, isObjectEmpty } from "@/utils/helpers"
 import FormDialog from "@/components/FormDialog.vue"
+import { toast } from "vue-sonner"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
@@ -91,6 +92,25 @@ const contextMenuOptions: ContextMenuOption[] = [
 				newBlock.selectBlock()
 			}
 		},
+	},
+	{
+		label: "Repeat Block",
+		action: () => {
+			const repeaterBlockObj = getComponentBlock("Repeater")
+			repeaterBlockObj.addSlot("default")
+			const parentBlock = block.value.getParentBlock()
+			if (!parentBlock) return
+			const repeaterBlock = parentBlock.addChild(repeaterBlockObj, parentBlock.getChildIndex(block.value))
+			if (repeaterBlock) {
+				const blockCopy = getBlockCopy(block.value)
+				blockCopy.parentSlotName = "default"
+				repeaterBlock.addChild(blockCopy, 0)
+				parentBlock.removeChild(block.value)
+				repeaterBlock.selectBlock()
+				toast.warning("Please set data & data key for the repeater block")
+			}
+		},
+		condition: () => !block.value.isRoot() && !block.value.isRepeater(),
 	},
 	{ label: "Copy", action: () => document.execCommand("copy") },
 	{

@@ -555,23 +555,6 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "Repeater",
 		icon: "Repeat",
 		props: Repeater.props,
-		initialState: {
-			data: [
-				{
-					label: "Item 1",
-					value: "item-1",
-				},
-				{
-					label: "Item 2",
-					value: "item-2",
-				},
-				{
-					label: "Item 3",
-					value: "item-3",
-				},
-			],
-			dataKey: "value",
-		}
 	},
 	Header: {
 		name: "Header",

@@ -517,6 +517,11 @@ class Block implements BlockOptions {
 		return Boolean(this.parentSlotName)
 	}
 
+	// repeater
+	isRepeater() {
+		return this.componentName === "Repeater"
+	}
+
 	// events
 	addEvent(event: ComponentEvent) {
 		const pageName = event.page

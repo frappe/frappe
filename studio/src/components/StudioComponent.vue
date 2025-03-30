@@ -98,16 +98,16 @@ import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML } from "@/uti
 
 import { CanvasProps } from "@/types"
 
-const props = defineProps({
-	block: {
-		type: Block,
-		required: true,
+const props = withDefaults(
+	defineProps<{
+		block: Block
+		breakpoint?: string
+	}>(),
+	{
+		breakpoint: "desktop",
 	},
-	breakpoint: {
-		type: String,
-		default: "desktop",
-	},
-})
+)
+
 defineOptions({
 	inheritAttrs: false,
 })
