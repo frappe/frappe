@@ -15,7 +15,7 @@
 				<div class="ml-auto flex flex-row items-center gap-2" v-if="!hideMenu">
 					<template v-for="item in menuItems" :key="item.label">
 						<div class="flex cursor-pointer items-center gap-2" @click="item.action">
-							<span class="text-gray-800">{{ item.label }}</span>
+							<span class="text-base text-gray-800">{{ item.label }}</span>
 						</div>
 					</template>
 				</div>

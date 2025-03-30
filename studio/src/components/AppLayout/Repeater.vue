@@ -1,10 +1,10 @@
 <template>
 	<div class="flex flex-row flex-wrap gap-5">
 		<div
-			v-if="!data?.length"
-			class="pointer-events-none flex h-full w-full items-center justify-center p-5 font-semibold text-gray-500"
+			v-if="!data?.length && emptyStateMessage"
+			class="pointer-events-none flex h-full w-full items-center justify-center p-5 text-base text-gray-500"
 		>
-			Connect data to the repeater
+			{{ emptyStateMessage }}
 		</div>
 		<template v-else v-for="(item, index) in data" :key="item[dataKey]">
 			<RepeaterContextProvider :item="item" :index="index" :dataKey="dataKey">
@@ -19,5 +19,6 @@ import RepeaterContextProvider from "@/components/AppLayout/RepeaterContextProvi
 defineProps<{
 	data?: Array<any>
 	dataKey: string
+	emptyStateMessage?: string
 }>()
 </script>
