@@ -17,6 +17,7 @@ export interface BlockOptions {
 	componentEvents?: Record<string, any>
 	children?: Array<Block | BlockOptions>
 	baseStyles?: BlockStyleMap
+	rawStyles?: BlockStyleMap
 	mobileStyles?: BlockStyleMap
 	tabletStyles?: BlockStyleMap
 	blockName?: string

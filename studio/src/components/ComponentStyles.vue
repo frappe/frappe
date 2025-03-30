@@ -50,6 +50,7 @@ import DimensionInput from "@/components/DimensionInput.vue"
 import InlineInput from "@/components/InlineInput.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import ColorInput from "@/components/ColorInput.vue"
+import ObjectEditor from "@/components/ObjectEditor.vue"
 
 import { StyleValue } from "@/types"
 
@@ -466,6 +467,31 @@ const styleSectionProperties = [
 	},
 ]
 
+const rawStyleSectionProperties = [
+	{
+		component: ObjectEditor,
+		getProps: () => {
+			return {
+				obj: blockController.getRawStyles() as Record<string, string>,
+				description: `
+					<b>Note:</b>
+					<br />
+					<br />
+					- Raw styles get applied across all devices
+					<br />
+					- State based styles are supported (e.g. hover, focus, visited)
+					<br />
+					Syntax: hover:color, focus:color, etc.
+				`,
+			}
+		},
+		searchKeyWords: "Raw, RawStyle, Raw Style, CSS, Style, Styles",
+		events: {
+			"update:obj": (obj: Record<string, string>) => blockController.setRawStyles(obj),
+		},
+	},
+]
+
 const sections = [
 	{
 		name: "Layout",
@@ -503,6 +529,13 @@ const sections = [
 	{
 		name: "Style",
 		properties: styleSectionProperties,
+	},
+	{
+		name: "Raw Style",
+		properties: rawStyleSectionProperties,
+		collapsed: computed(() => {
+			return Object.keys(blockController.getRawStyles()).length === 0
+		}),
 	},
 ] as PropertySection[]
 </script>

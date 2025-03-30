@@ -23,6 +23,7 @@ class Block implements BlockOptions {
 	children: Block[]
 	parentBlock: Block | null
 	baseStyles: BlockStyleMap
+	rawStyles: BlockStyleMap
 	mobileStyles: BlockStyleMap
 	tabletStyles: BlockStyleMap
 	visibilityCondition?: string
@@ -34,6 +35,7 @@ class Block implements BlockOptions {
 		this.blockName = options.blockName || this.componentName
 		this.originalElement = options.originalElement
 		this.baseStyles = reactive(options.baseStyles || {})
+		this.rawStyles = reactive(options.rawStyles || {});
 		this.mobileStyles = reactive(options.mobileStyles || {})
 		this.tabletStyles = reactive(options.tabletStyles || {})
 		this.visibilityCondition = options.visibilityCondition
@@ -216,7 +218,7 @@ class Block implements BlockOptions {
 	// styles
 
 	getStyles(): BlockStyleMap {
-		return { ...this.baseStyles }
+		return { ...this.baseStyles, ...this.rawStyles }
 	}
 
 	getStyle(style: styleProperty) {
@@ -238,6 +240,10 @@ class Block implements BlockOptions {
 			return;
 		}
 		styleObj[style] = value
+	}
+
+	getRawStyles() {
+		return { ...this.rawStyles }
 	}
 
 	toggleVisibility(show: boolean | null = null) {
