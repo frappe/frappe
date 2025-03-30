@@ -38,6 +38,7 @@ class Block implements BlockOptions {
 		this.rawStyles = reactive(options.rawStyles || {});
 		this.mobileStyles = reactive(options.mobileStyles || {})
 		this.tabletStyles = reactive(options.tabletStyles || {})
+		this.classes = options.classes || []
 		this.visibilityCondition = options.visibilityCondition
 
 		// generate ID
@@ -244,6 +245,10 @@ class Block implements BlockOptions {
 
 	getRawStyles() {
 		return { ...this.rawStyles }
+	}
+
+	getClasses() {
+		return [...this.classes || []]
 	}
 
 	toggleVisibility(show: boolean | null = null) {

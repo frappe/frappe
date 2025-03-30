@@ -36,10 +36,17 @@ const blockController = {
 	isGrid() {
 		return blockController.isAnyBlockSelected() && blockController.getFirstSelectedBlock().isGrid();
 	},
+	getClasses: () => {
+		let classes = [] as string[]
+		if (blockController.isAnyBlockSelected()) {
+			classes = blockController.getFirstSelectedBlock().getClasses() || [];
+		}
+		return classes
+	},
 	setClasses: (classes: string[]) => {
-		const block = canvasStore.activeCanvas?.selectedBlocks[0];
-		if (!block) return;
-		block.classes = classes;
+		const block = canvasStore.activeCanvas?.selectedBlocks[0]
+		if (!block) return
+		block.classes = classes
 	},
 	getStyle: (style: styleProperty) => {
 		let styleValue = "__initial__" as StyleValue;

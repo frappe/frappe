@@ -118,7 +118,9 @@ const canvasStore = useCanvasStore()
 const isComponentReady = ref(false)
 const editor = ref<InstanceType<typeof ComponentEditor> | null>(null)
 
-const classes = ["__studio_component__", "outline-none", "select-none"]
+const classes = computed(() => {
+	return [attrs.class, "__studio_component__", "outline-none", "select-none", ...props.block.getClasses()]
+})
 const slotClasses = ["__studio_component_slot__", "outline-none", "select-none"]
 
 const canvasProps = inject("canvasProps") as CanvasProps

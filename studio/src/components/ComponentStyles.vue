@@ -479,9 +479,6 @@ const rawStyleSectionProperties = [
 					<br />
 					- Raw styles get applied across all devices
 					<br />
-					- State based styles are supported (e.g. hover, focus, visited)
-					<br />
-					Syntax: hover:color, focus:color, etc.
 				`,
 			}
 		},
@@ -489,6 +486,29 @@ const rawStyleSectionProperties = [
 		events: {
 			"update:obj": (obj: Record<string, string>) => blockController.setRawStyles(obj),
 		},
+	},
+]
+
+const setClasses = (val: string) => {
+	const classes = val.split(",").map((c) => c.trim())
+	blockController.setClasses(classes)
+}
+
+const classesSectionProperties = [
+	{
+		component: InlineInput,
+		getProps: () => {
+			return {
+				type: "textarea",
+				label: "Classes",
+				modelValue: blockController.getClasses().join(", "),
+			}
+		},
+		searchKeyWords: "Class, ClassName, Class Name",
+		events: {
+			"update:modelValue": (val: string) => setClasses(val || ""),
+		},
+		condition: () => !blockController.multipleBlocksSelected(),
 	},
 ]
 
@@ -535,6 +555,13 @@ const sections = [
 		properties: rawStyleSectionProperties,
 		collapsed: computed(() => {
 			return Object.keys(blockController.getRawStyles()).length === 0
+		}),
+	},
+	{
+		name: "Tailwind Classes",
+		properties: classesSectionProperties,
+		collapsed: computed(() => {
+			return blockController.getClasses().length === 0
 		}),
 	},
 ] as PropertySection[]

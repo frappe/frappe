@@ -7,6 +7,7 @@
 		v-model="boundValue"
 		:data-component-id="block.componentId"
 		:style="styles"
+		:class="classes"
 		v-on="componentEvents"
 	>
 		<!-- Dynamically render named slots -->
@@ -43,6 +44,9 @@ const props = defineProps<{
 
 const componentRef = ref(null)
 const styles = computed(() => props.block.getStyles())
+const classes = computed(() => {
+	return [attrs.class, ...props.block.getClasses()]
+})
 
 const repeaterContext = inject("repeaterContext", {})
 const store = useAppStore()
