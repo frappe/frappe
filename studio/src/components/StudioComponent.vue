@@ -134,6 +134,13 @@ const componentName = computed(() => {
 })
 
 const repeaterContext = inject("repeaterContext", {})
+const getEvaluationContext = () => {
+	return {
+		...store.variables,
+		...store.resources,
+		...repeaterContext,
+	}
+}
 
 const getComponentProps = () => {
 	if (!props.block || props.block.isRoot()) return []
@@ -143,11 +150,7 @@ const getComponentProps = () => {
 
 	Object.entries(propValues).forEach(([propName, config]) => {
 		if (isDynamicValue(config)) {
-			propValues[propName] = getDynamicValue(config, {
-				...store.resources,
-				...store.variables,
-				...repeaterContext,
-			})
+			propValues[propName] = getDynamicValue(config, getEvaluationContext())
 		}
 	})
 	return propValues
@@ -179,7 +182,7 @@ const boundValue = computed({
 			}
 			return value
 		} else if (isDynamicValue(modelValue)) {
-			return getDynamicValue(modelValue, { ...store.resources, ...store.variables })
+			return getDynamicValue(modelValue, getEvaluationContext())
 		}
 		return modelValue
 	},

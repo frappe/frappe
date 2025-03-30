@@ -28,7 +28,7 @@
 
 <script setup lang="ts">
 import Block from "@/utils/block"
-import { computed, onMounted, ref, useAttrs } from "vue"
+import { computed, onMounted, ref, useAttrs, inject } from "vue"
 import { useRouter, useRoute } from "vue-router"
 import { createResource } from "frappe-ui"
 import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML, executeUserScript } from "@/utils/helpers"
@@ -44,7 +44,17 @@ const props = defineProps<{
 const componentRef = ref(null)
 const styles = computed(() => props.block.getStyles())
 
+const repeaterContext = inject("repeaterContext", {})
 const store = useAppStore()
+
+const getEvaluationContext = () => {
+	return {
+		...store.variables,
+		...store.resources,
+		...repeaterContext,
+	}
+}
+
 const getComponentProps = () => {
 	if (!props.block || props.block.isRoot()) return []
 
@@ -53,7 +63,7 @@ const getComponentProps = () => {
 
 	Object.entries(propValues).forEach(([propName, config]) => {
 		if (isDynamicValue(config)) {
-			propValues[propName] = getDynamicValue(config, { ...store.resources, ...store.variables })
+			propValues[propName] = getDynamicValue(config, getEvaluationContext())
 		}
 	})
 	return propValues
@@ -70,7 +80,7 @@ const componentProps = computed(() => {
 // visibility
 const showComponent = computed(() => {
 	if (props.block.visibilityCondition) {
-		const value = getDynamicValue(props.block.visibilityCondition, { ...store.resources, ...store.variables })
+		const value = getDynamicValue(props.block.visibilityCondition, getEvaluationContext())
 		return typeof value === "string" ? value === "true" : value
 	}
 	return true
@@ -91,7 +101,7 @@ const boundValue = computed({
 			}
 			return value
 		} else if (isDynamicValue(modelValue)) {
-			return getDynamicValue(modelValue, { ...store.resources, ...store.variables })
+			return getDynamicValue(modelValue, getEvaluationContext())
 		}
 		return modelValue
 	},
