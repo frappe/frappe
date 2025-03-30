@@ -200,7 +200,7 @@ const componentEvents = computed(() => {
 				}
 			} else if (event.action === "Run Script") {
 				return () => {
-					executeUserScript(event.script, store.variables, store.resources)
+					executeUserScript(event.script, store.variables, store.resources, repeaterContext)
 				}
 			}
 		}
