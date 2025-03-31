@@ -17,7 +17,9 @@
   "draft_blocks",
   "data_tab",
   "resources",
-  "variables"
+  "variables",
+  "scripts_tab",
+  "client_scripts"
  ],
  "fields": [
   {
@@ -90,11 +92,22 @@
    "in_standard_filter": 1,
    "label": "Studio App",
    "options": "Studio App"
+  },
+  {
+   "fieldname": "scripts_tab",
+   "fieldtype": "Tab Break",
+   "label": "Scripts"
+  },
+  {
+   "fieldname": "client_scripts",
+   "fieldtype": "Table MultiSelect",
+   "label": "Client Scripts",
+   "options": "Studio Page Client Script"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-05 16:53:24.306451",
+ "modified": "2025-03-31 14:05:00.899053",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page",
@@ -114,6 +127,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
