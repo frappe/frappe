@@ -54,8 +54,16 @@ class Block implements BlockOptions {
 		} else {
 			this.componentProps = options.componentProps
 		}
-		this.componentEvents = options.componentEvents || {}
+
 		this.componentSlots = options.componentSlots || {}
+		if (!options.componentSlots) {
+			let slots = components.get(options.componentName)?.initialSlots || []
+			slots.forEach((slot) => {
+				this.addSlot(slot)
+			})
+		}
+
+		this.componentEvents = options.componentEvents || {}
 		this.initializeSlots()
 		if (options.parentSlotName) {
 			this.parentSlotName = options.parentSlotName

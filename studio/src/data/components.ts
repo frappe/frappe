@@ -588,6 +588,7 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "Split View",
 		icon: "SquareSplitHorizontal",
 		props: SplitView.props,
+		initialSlots: ["left", "right"],
 	},
 	AvatarCard: {
 		name: "AvatarCard",

@@ -1,5 +1,5 @@
 <template>
-	<div class="flex h-screen overflow-hidden">
+	<div class="flex h-screen w-full overflow-hidden">
 		<div
 			ref="leftPane"
 			:style="{ width: leftPaneWidth + 'px' }"
