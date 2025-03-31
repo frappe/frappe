@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.modules.export_file import export_to_files
 from frappe.query_builder.utils import DocType
 
 
@@ -17,13 +18,17 @@ class CustomHTMLBlock(Document):
 		from frappe.types import DF
 
 		html: DF.Code | None
+		is_standard: DF.Check
+		module: DF.Link | None
 		private: DF.Check
 		roles: DF.Table[HasRole]
 		script: DF.Code | None
 		style: DF.Code | None
 	# end: auto-generated types
 
-	pass
+	def on_update(self):
+		if frappe.conf.developer_mode and self.is_standard:
+			export_to_files(record_list=[["Custom HTML Block", self.name]], record_module=self.module)
 
 
 @frappe.whitelist()
