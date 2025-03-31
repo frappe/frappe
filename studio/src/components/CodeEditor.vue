@@ -112,7 +112,6 @@ const setupEditor = () => {
 		try {
 			errorMessage.value = ""
 			let value = aceEditor?.getValue() || ""
-			debugger
 			if (
 				value &&
 				!value.startsWith("{{") &&
