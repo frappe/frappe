@@ -1,10 +1,10 @@
 <template>
 	<div class="flex flex-row flex-wrap gap-5">
 		<div
-			v-if="!data?.length && emptyStateMessage"
+			v-if="!data?.length"
 			class="pointer-events-none flex h-full w-full items-center justify-center p-5 text-base text-gray-500"
 		>
-			{{ emptyStateMessage }}
+			{{ emptyStateMessage || "No data" }}
 		</div>
 		<template v-else v-for="(dataItem, dataIndex) in data" :key="dataItem[dataKey]">
 			<RepeaterContextProvider :dataItem="dataItem" :dataIndex="dataIndex" :dataKey="dataKey">
