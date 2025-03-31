@@ -50,6 +50,7 @@ import DimensionInput from "@/components/DimensionInput.vue"
 import InlineInput from "@/components/InlineInput.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import ColorInput from "@/components/ColorInput.vue"
+import ObjectEditor from "@/components/ObjectEditor.vue"
 
 import { StyleValue } from "@/types"
 
@@ -466,6 +467,51 @@ const styleSectionProperties = [
 	},
 ]
 
+const rawStyleSectionProperties = [
+	{
+		component: ObjectEditor,
+		getProps: () => {
+			return {
+				obj: blockController.getRawStyles() as Record<string, string>,
+				description: `
+					<b>Note:</b>
+					<br />
+					<br />
+					- Raw styles get applied across all devices
+					<br />
+				`,
+			}
+		},
+		searchKeyWords: "Raw, RawStyle, Raw Style, CSS, Style, Styles",
+		events: {
+			"update:obj": (obj: Record<string, string>) => blockController.setRawStyles(obj),
+		},
+	},
+]
+
+const setClasses = (val: string) => {
+	const classes = val.split(",").map((c) => c.trim())
+	blockController.setClasses(classes)
+}
+
+const classesSectionProperties = [
+	{
+		component: InlineInput,
+		getProps: () => {
+			return {
+				type: "textarea",
+				label: "Classes",
+				modelValue: blockController.getClasses().join(", "),
+			}
+		},
+		searchKeyWords: "Class, ClassName, Class Name",
+		events: {
+			"update:modelValue": (val: string) => setClasses(val || ""),
+		},
+		condition: () => !blockController.multipleBlocksSelected(),
+	},
+]
+
 const sections = [
 	{
 		name: "Layout",
@@ -503,6 +549,20 @@ const sections = [
 	{
 		name: "Style",
 		properties: styleSectionProperties,
+	},
+	{
+		name: "Raw Style",
+		properties: rawStyleSectionProperties,
+		collapsed: computed(() => {
+			return Object.keys(blockController.getRawStyles()).length === 0
+		}),
+	},
+	{
+		name: "Tailwind Classes",
+		properties: classesSectionProperties,
+		collapsed: computed(() => {
+			return blockController.getClasses().length === 0
+		}),
 	},
 ] as PropertySection[]
 </script>

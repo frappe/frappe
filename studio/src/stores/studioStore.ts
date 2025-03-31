@@ -133,6 +133,7 @@ const useStudioStore = defineStore("store", () => {
 
 		const canvasStore = useCanvasStore()
 		canvasStore.activeCanvas?.setRootBlock(pageBlocks.value[0])
+		canvasStore.activeCanvas?.clearSelection()
 
 		nextTick(() => {
 			settingPage.value = false

@@ -17,6 +17,7 @@ export interface BlockOptions {
 	componentEvents?: Record<string, any>
 	children?: Array<Block | BlockOptions>
 	baseStyles?: BlockStyleMap
+	rawStyles?: BlockStyleMap
 	mobileStyles?: BlockStyleMap
 	tabletStyles?: BlockStyleMap
 	blockName?: string
@@ -92,6 +93,7 @@ export interface FrappeUIComponent {
 	title: string,
 	icon: string,
 	initialState?: Record<string, any>,
+	initialSlots?: Array<string>,
 	props?: Array<Record<string, any>>,
 	emits?: Array<string> | Record<string, any>,
 	editInFragmentMode?: boolean, // whether to open a separate canvas for editing this component

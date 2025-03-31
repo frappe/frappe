@@ -23,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { areObjectsEqual, jsonToJs, jsToJson } from "@/utils/helpers"
+import { jsonToJs, jsToJson } from "@/utils/helpers"
 import { useDark } from "@vueuse/core"
 import ace from "ace-builds"
 import "ace-builds/src-min-noconflict/ext-searchbox"
@@ -112,14 +112,14 @@ const setupEditor = () => {
 		try {
 			errorMessage.value = ""
 			let value = aceEditor?.getValue() || ""
+			debugger
 			if (
 				value &&
 				!value.startsWith("{{") &&
 				(props.type === "JSON" || typeof props.modelValue === "object")
 			) {
 				value = jsonToJs(value)
-				if (areObjectsEqual(value, props.modelValue)) return
-			} else if (value === props.modelValue) {
+			} else if (value === getModelValue()) {
 				return
 			}
 

@@ -14,7 +14,7 @@
 		ref="componentRef"
 	>
 		<!-- Dynamically render named slots -->
-		<template v-for="(slot, slotName) in block?.componentSlots" :key="slotName" v-slot:[slotName]>
+		<template v-for="(slot, slotName) in block?.componentSlots" :key="slotName" v-slot:[slotName]="slotProps">
 			<template v-if="Array.isArray(slot.slotContent)">
 				<StudioComponent
 					v-for="slotBlock in slot?.slotContent"
@@ -24,6 +24,7 @@
 					:data-slot-id="slot.slotId"
 					:data-slot-name="slotName"
 					:data-component-id="block.componentId"
+					v-bind="slotProps"
 				/>
 			</template>
 			<template v-else-if="isHTML(slot.slotContent)">
@@ -97,16 +98,16 @@ import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML } from "@/uti
 
 import { CanvasProps } from "@/types"
 
-const props = defineProps({
-	block: {
-		type: Block,
-		required: true,
+const props = withDefaults(
+	defineProps<{
+		block: Block
+		breakpoint?: string
+	}>(),
+	{
+		breakpoint: "desktop",
 	},
-	breakpoint: {
-		type: String,
-		default: "desktop",
-	},
-})
+)
+
 defineOptions({
 	inheritAttrs: false,
 })
@@ -117,7 +118,9 @@ const canvasStore = useCanvasStore()
 const isComponentReady = ref(false)
 const editor = ref<InstanceType<typeof ComponentEditor> | null>(null)
 
-const classes = ["__studio_component__", "outline-none", "select-none"]
+const classes = computed(() => {
+	return [attrs.class, "__studio_component__", "outline-none", "select-none", ...props.block.getClasses()]
+})
 const slotClasses = ["__studio_component_slot__", "outline-none", "select-none"]
 
 const canvasProps = inject("canvasProps") as CanvasProps
@@ -132,6 +135,15 @@ const componentName = computed(() => {
 	return proxyComponent ? proxyComponent : props.block.componentName
 })
 
+const repeaterContext = inject("repeaterContext", {})
+const getEvaluationContext = () => {
+	return {
+		...store.variables,
+		...store.resources,
+		...repeaterContext,
+	}
+}
+
 const getComponentProps = () => {
 	if (!props.block || props.block.isRoot()) return []
 
@@ -140,7 +152,7 @@ const getComponentProps = () => {
 
 	Object.entries(propValues).forEach(([propName, config]) => {
 		if (isDynamicValue(config)) {
-			propValues[propName] = getDynamicValue(config, { ...store.resources, ...store.variables })
+			propValues[propName] = getDynamicValue(config, getEvaluationContext())
 		}
 	})
 	return propValues
@@ -172,7 +184,7 @@ const boundValue = computed({
 			}
 			return value
 		} else if (isDynamicValue(modelValue)) {
-			return getDynamicValue(modelValue, { ...store.resources, ...store.variables })
+			return getDynamicValue(modelValue, getEvaluationContext())
 		}
 		return modelValue
 	},
@@ -277,7 +289,7 @@ watch(
 		// update styles when baseStyles change for frappeui components with inheritAttrs: false
 		const styles = props.block.getStyles()
 		for (const key in styles) {
-			componentRef.value?.$el?.style.setProperty(key, styles[key])
+			componentRef.value?.$el?.style?.setProperty(key, styles[key])
 		}
 	},
 	{ deep: true },

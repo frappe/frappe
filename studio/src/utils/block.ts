@@ -23,6 +23,7 @@ class Block implements BlockOptions {
 	children: Block[]
 	parentBlock: Block | null
 	baseStyles: BlockStyleMap
+	rawStyles: BlockStyleMap
 	mobileStyles: BlockStyleMap
 	tabletStyles: BlockStyleMap
 	visibilityCondition?: string
@@ -34,8 +35,10 @@ class Block implements BlockOptions {
 		this.blockName = options.blockName || this.componentName
 		this.originalElement = options.originalElement
 		this.baseStyles = reactive(options.baseStyles || {})
+		this.rawStyles = reactive(options.rawStyles || {});
 		this.mobileStyles = reactive(options.mobileStyles || {})
 		this.tabletStyles = reactive(options.tabletStyles || {})
+		this.classes = options.classes || []
 		this.visibilityCondition = options.visibilityCondition
 
 		// generate ID
@@ -51,8 +54,16 @@ class Block implements BlockOptions {
 		} else {
 			this.componentProps = options.componentProps
 		}
-		this.componentEvents = options.componentEvents || {}
+
 		this.componentSlots = options.componentSlots || {}
+		if (!options.componentSlots) {
+			let slots = components.get(options.componentName)?.initialSlots || []
+			slots.forEach((slot) => {
+				this.addSlot(slot)
+			})
+		}
+
+		this.componentEvents = options.componentEvents || {}
 		this.initializeSlots()
 		if (options.parentSlotName) {
 			this.parentSlotName = options.parentSlotName
@@ -82,9 +93,9 @@ class Block implements BlockOptions {
 			return this.updateSlot(child.parentSlotName, child, index)
 		}
 
-		child.parentBlock = this
 		index = this.getValidIndex(index, this.children.length)
 		const childBlock = reactive(new Block(child))
+		childBlock.parentBlock = this
 		this.children.splice(index, 0, childBlock)
 		childBlock.selectBlock()
 		return childBlock
@@ -123,7 +134,7 @@ class Block implements BlockOptions {
 		if (child.parentSlotName) {
 			return (
 				this.getSlotContent(child.parentSlotName) as Block[]
-			).findIndex((block) => block.componentId === child.componentId)
+			)?.findIndex((block) => block.componentId === child.componentId)
 		}
 		return this.children.findIndex((block) => block.componentId === child.componentId)
 	}
@@ -214,8 +225,9 @@ class Block implements BlockOptions {
 	}
 
 	// styles
+
 	getStyles(): BlockStyleMap {
-		return { ...this.baseStyles }
+		return { ...this.baseStyles, ...this.rawStyles }
 	}
 
 	getStyle(style: styleProperty) {
@@ -237,6 +249,14 @@ class Block implements BlockOptions {
 			return;
 		}
 		styleObj[style] = value
+	}
+
+	getRawStyles() {
+		return { ...this.rawStyles }
+	}
+
+	getClasses() {
+		return [...this.classes || []]
 	}
 
 	toggleVisibility(show: boolean | null = null) {
@@ -514,6 +534,11 @@ class Block implements BlockOptions {
 
 	isSlotBlock() {
 		return Boolean(this.parentSlotName)
+	}
+
+	// repeater
+	isRepeater() {
+		return this.componentName === "Repeater"
 	}
 
 	// events

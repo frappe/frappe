@@ -1,5 +1,5 @@
 <template>
-	<div class="relative flex h-full min-h-screen w-60 flex-col bg-gray-50 px-2 pt-2">
+	<div class="sticky bottom-0 left-0 top-0 flex h-full w-60 flex-col bg-gray-50 px-2 pt-2">
 		<button class="mb-1 flex w-56 items-center gap-2 rounded p-2 hover:bg-gray-200">
 			<slot name="header">
 				<div class="rounded-sm">
@@ -15,7 +15,7 @@
 			</slot>
 		</button>
 
-		<nav class="mt-2 flex flex-col space-y-1">
+		<nav class="mt-2 flex flex-1 flex-col space-y-1 overflow-y-auto">
 			<div class="w-full" v-for="item in menuItems" :key="item.label">
 				<component
 					:is="item.route_to ? 'router-link' : 'div'"
