@@ -43,7 +43,7 @@
 				</div>
 			</div>
 			<div
-				class="canvas relative flex h-full rounded-md bg-white shadow-2xl contain-layout"
+				class="canvas relative flex h-full bg-white shadow-2xl contain-layout"
 				:style="{
 					...canvasStyles,
 					background: canvasProps.background,
