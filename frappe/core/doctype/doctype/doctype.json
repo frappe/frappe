@@ -672,26 +672,12 @@
    "label": "Sender Name Field"
   },
   {
-<<<<<<< HEAD
     "default": "50",
     "depends_on": "istable",
     "fieldname": "grid_page_length",
     "fieldtype": "Int",
     "label": "Grid Page Length",
     "non_negative": 1
-=======
-   "fieldname": "permissions_tab",
-   "fieldtype": "Tab Break",
-   "label": "Permissions"
-  },
-  {
-   "fieldname": "column_break_nexu",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "fields_tab",
-   "fieldtype": "Tab Break",
-   "label": "Fields"
   },
   {
    "default": "Dynamic",
@@ -700,7 +686,6 @@
    "hidden": 1,
    "label": "Row Format",
    "options": "Dynamic\nCompressed"
->>>>>>> f90a450bd4 (feat: specify row compression for tables (#31361))
   }
  ],
  "icon": "fa fa-bolt",
