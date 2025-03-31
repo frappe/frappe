@@ -6,14 +6,14 @@
 import { provide, reactive } from "vue"
 
 const props = defineProps<{
-	item: any
-	index: number
+	dataItem: any
+	dataIndex: number
 	dataKey: string
 }>()
 
 const context = reactive({
-	item: props.item,
-	index: props.index,
+	dataItem: props.dataItem,
+	dataIndex: props.dataIndex,
 	dataKey: props.dataKey,
 })
 
