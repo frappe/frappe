@@ -530,12 +530,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const { filters = [] } = this.report_settings;
 
 		let filter_area = this.page.page_form;
+		this.filters = [];
+		this.create_more_filter_button(filters);
 		this.filters = filters
-			.map((df) => {
+			.map((df, index) => {
 				if (df.fieldtype === "Break") return;
 
 				let f = this.page.add_field(df, filter_area);
-
+				if (index == 11) {
+					this.b = f;
+				}
 				if (df.default) {
 					f.set_input(df.default);
 				}
@@ -574,7 +578,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				return f;
 			})
 			.filter(Boolean);
-
+		this.hide_row();
+		this.filters_hidden = true;
+		this.toggle_filter_visiblity();
 		this.refresh_filters_dependency();
 		if (this.filters.length === 0) {
 			// hide page form if no filters
@@ -584,6 +590,48 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 	}
 
+	hide_row() {
+		for (let i = 6; i < 11; i++) {
+			$(this.filters[i].wrapper).css("visibility", "hidden");
+		}
+	}
+	create_more_filter_button(filters) {
+		const me = this;
+		this.hidden_buttons = [];
+		for (let i = 6; i < 12; i++) {
+			let button = {
+				fieldtype: "Button",
+				label: __("More Filters"),
+			};
+			if (i == 11) {
+				button.click = function () {
+					if (me.filters_hidden) {
+						me.filters_hidden = false;
+						me.b.df.label = "Less Filters";
+						me.b.refresh();
+					} else {
+						me.filters_hidden = true;
+						me.b.df.label = "More Filters";
+						me.b.refresh();
+					}
+					me.toggle_filter_visiblity();
+				};
+			}
+			filters.splice(i, 0, button);
+		}
+	}
+
+	toggle_filter_visiblity() {
+		if (this.filters_hidden) {
+			for (let i = 12; i < this.filters.length; i++) {
+				$(this.filters[i].wrapper).addClass("hidden");
+			}
+		} else {
+			for (let i = 6; i < this.filters.length; i++) {
+				$(this.filters[i].wrapper).removeClass("hidden");
+			}
+		}
+	}
 	set_filters(filters) {
 		this.filters.map((f) => {
 			if (f.fieldtype == "MultiSelectList") {
