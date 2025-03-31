@@ -402,11 +402,7 @@
  "idx": 1,
  "links": [],
  "make_attachments_public": 1,
-<<<<<<< HEAD
- "modified": "2024-02-09 12:10:01.200845",
-=======
  "modified": "2025-02-20 19:19:29.427081",
->>>>>>> f90a450bd4 (feat: specify row compression for tables (#31361))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Communication",

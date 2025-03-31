@@ -92,12 +92,9 @@
   "advanced",
   "engine",
   "migration_hash",
-<<<<<<< HEAD
   "fields_section",
   "fields",
-=======
   "row_format",
->>>>>>> f90a450bd4 (feat: specify row compression for tables (#31361))
   "connections_tab"
  ],
  "fields": [
@@ -786,11 +783,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
-<<<<<<< HEAD
- "modified": "2023-12-01 18:37:16.799471",
-=======
  "modified": "2025-02-20 19:05:52.119679",
->>>>>>> f90a450bd4 (feat: specify row compression for tables (#31361))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
