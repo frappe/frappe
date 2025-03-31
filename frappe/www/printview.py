@@ -76,6 +76,7 @@ def get_context(context):
 		"print_format": getattr(print_format, "name", None),
 		"letterhead": letterhead,
 		"no_letterhead": frappe.form_dict.no_letterhead,
+		"pdf_generator": frappe.form_dict.get("pdf_generator", "wkhtmltopdf"),
 	}
 
 
@@ -101,8 +102,8 @@ def get_rendered_template(
 	no_letterhead: bool | None = None,
 	letterhead: str | None = None,
 	trigger_print: bool = False,
-	settings=None,
-):
+	settings: dict | None = None,
+) -> str:
 	if not frappe.flags.ignore_print_permissions:
 		validate_print_permission(doc)
 
@@ -150,7 +151,7 @@ def get_rendered_template(
 
 		template = None
 		if hook_func := frappe.get_hooks("get_print_format_template"):
-			template = frappe.get_attr(hook_func[-1])(jenv=jenv, print_format=print_format)
+			template = frappe.call(hook_func[-1], jenv=jenv, print_format=print_format)
 
 		if template:
 			pass

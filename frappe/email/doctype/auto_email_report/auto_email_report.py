@@ -218,15 +218,15 @@ class AutoEmailReport(Document):
 			if self.dynamic_date_period == "Daily":
 				from_date = add_to_date(to_date, days=-1)
 			elif self.dynamic_date_period == "Weekly":
-				from_date = get_first_day_of_week(from_date)
+				from_date = get_first_day_of_week(from_date, as_str=True)
 			elif self.dynamic_date_period == "Monthly":
-				from_date = get_first_day(from_date)
+				from_date = get_first_day(from_date, as_str=True)
 			elif self.dynamic_date_period == "Quarterly":
-				from_date = get_quarter_start(from_date)
+				from_date = get_quarter_start(from_date, as_str=True)
 			elif self.dynamic_date_period == "Half Yearly":
-				from_date = get_half_year_start(from_date)
+				from_date = get_half_year_start(as_str=True)
 			elif self.dynamic_date_period == "Yearly":
-				from_date = get_year_start(from_date)
+				from_date = get_year_start(from_date, as_str=True)
 
 			self.set_date_filters(from_date, to_date)
 		else:

@@ -125,7 +125,7 @@ class WebsiteSettings(Document):
 					)
 
 	def validate_google_settings(self):
-		if self.enable_google_indexing and not frappe.db.get_single_value("Google Settings", "enable"):
+		if self.enable_google_indexing and not frappe.get_cached_value("Google Settings", None, "enable"):
 			frappe.throw(_("Enable Google API in Google Settings."))
 
 	def validate_redirects(self):

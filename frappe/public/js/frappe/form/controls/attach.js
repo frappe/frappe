@@ -35,21 +35,23 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 	}
 	clear_attachment() {
 		let me = this;
-		if (this.frm) {
-			me.parse_validate_and_set_in_model(null);
-			me.refresh();
-			me.frm.attachments.remove_attachment_by_filename(me.value, async () => {
-				await me.parse_validate_and_set_in_model(null);
+		frappe.confirm(__("Are you sure you want to delete the attachment?"), function () {
+			if (me.frm) {
+				me.parse_validate_and_set_in_model(null);
 				me.refresh();
-				me.frm.doc.docstatus == 1 ? me.frm.save("Update") : me.frm.save();
-			});
-		} else {
-			this.dataurl = null;
-			this.fileobj = null;
-			this.set_input(null);
-			this.parse_validate_and_set_in_model(null);
-			this.refresh();
-		}
+				me.frm.attachments.remove_attachment_by_filename(me.value, async () => {
+					await me.parse_validate_and_set_in_model(null);
+					me.refresh();
+					me.frm.doc.docstatus == 1 ? me.frm.save("Update") : me.frm.save();
+				});
+			} else {
+				me.dataurl = null;
+				me.fileobj = null;
+				me.set_input(null);
+				me.parse_validate_and_set_in_model(null);
+				me.refresh();
+			}
+		});
 	}
 	reload_attachment() {
 		if (this.file_uploader) {

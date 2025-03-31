@@ -31,7 +31,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				this.report_doc.json = JSON.parse(this.report_doc.json);
 
 				this.filters = [
-					...this.report_doc.json.filters,
+					...(Array.isArray(this.report_doc.json.filters)
+						? this.report_doc.json.filters
+						: []),
 					...this.parse_filters_from_route_options(),
 				];
 

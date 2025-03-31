@@ -337,7 +337,7 @@ class DocType(Document):
 		if self.is_virtual and self.custom:
 			frappe.throw(_("Not allowed to create custom Virtual DocType."), CannotCreateStandardDoctypeError)
 
-		if frappe.conf.get("developer_mode"):
+		if frappe.conf.developer_mode and not self.owner:
 			self.owner = "Administrator"
 			self.modified_by = "Administrator"
 

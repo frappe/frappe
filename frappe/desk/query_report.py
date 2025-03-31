@@ -90,7 +90,7 @@ def generate_report_result(
 
 	result = normalize_result(result, columns)
 
-	if report.custom_columns:
+	if report.get("custom_columns"):
 		# saved columns (with custom columns / with different column order)
 		columns = report.custom_columns
 
@@ -211,7 +211,7 @@ def run(
 
 	result = None
 
-	if sbool(are_default_filters) and report.custom_filters:
+	if sbool(are_default_filters) and report.get("custom_filters"):
 		filters = report.custom_filters
 
 	try:
@@ -233,7 +233,7 @@ def run(
 
 	result["add_total_row"] = report.add_total_row and not result.get("skip_total_row", False)
 
-	if sbool(are_default_filters) and report.custom_filters:
+	if sbool(are_default_filters) and report.get("custom_filters"):
 		result["custom_filters"] = report.custom_filters
 
 	return result

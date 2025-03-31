@@ -143,8 +143,8 @@ class BaseDocument:
 		return frappe.get_meta(self.doctype)
 
 	@cached_property
-	def permitted_fieldnames(self):
-		return get_permitted_fields(doctype=self.doctype, parenttype=getattr(self, "parenttype", None))
+	def permitted_fieldnames(self) -> set[str]:
+		return set(get_permitted_fields(doctype=self.doctype, parenttype=getattr(self, "parenttype", None)))
 
 	def __getstate__(self):
 		"""

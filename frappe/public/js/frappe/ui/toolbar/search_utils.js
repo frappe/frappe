@@ -585,7 +585,10 @@ frappe.search.utils = {
 			return score;
 		}
 		if (score == 0) {
-			return { score, item };
+			return {
+				score: score,
+				marked_string: item,
+			};
 		}
 
 		// Create Boolean mask to mark matching indices in the item string
