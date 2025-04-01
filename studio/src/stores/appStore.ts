@@ -71,7 +71,7 @@ const useAppStore = defineStore("appStore", () => {
 			() => {
 				executeUserScript(watcher.script, variables.value, resources.value)
 			},
-			{ deep: isDeep }
+			{ deep: isDeep, immediate: watcher.immediate }
 		)
 		activeWatchers.value[watcher.name || watcher.source] = watcherFn
 	}

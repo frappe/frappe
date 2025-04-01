@@ -41,6 +41,7 @@
 						pageWatcher = {
 							source: '',
 							script: '',
+							immediate: false,
 							parent: '',
 							name: '',
 						}
@@ -68,6 +69,12 @@
 							height="250px"
 							:showLineNumbers="true"
 							v-model="pageWatcher.script"
+						/>
+						<FormControl
+							type="checkbox"
+							label="Run Immediately?"
+							description="By default, this script won't run unless the source value changes. Enable this to run the script immediately."
+							v-model="pageWatcher.immediate"
 						/>
 					</div>
 				</template>
@@ -116,7 +123,7 @@ const studioPageWatchers = createListResource({
 	filters: {
 		parent: props.page.name,
 	},
-	fields: ["name", "source", "script", "parent"],
+	fields: ["name", "source", "script", "immediate", "parent"],
 	orderBy: "modified desc",
 	pageLength: 50,
 	auto: true,
@@ -126,6 +133,7 @@ const showWatcherDialog = ref(false)
 const pageWatcher = ref<StudioPageWatcher>({
 	source: "",
 	script: "",
+	immediate: false,
 	parent: "",
 	name: "",
 })
@@ -154,6 +162,7 @@ const addPageWatcher = (watcher: StudioPageWatcher) => {
 		{
 			source: watcher.source,
 			script: watcher.script,
+			immediate: watcher.immediate,
 			parent: props.page.name,
 			parenttype: "Studio Page",
 			parentfield: "watchers",
@@ -177,6 +186,7 @@ const editPageWatcher = (watcher: StudioPageWatcher) => {
 			name: watcher.name,
 			source: watcher.source,
 			script: watcher.script,
+			immediate: watcher.immediate,
 		})
 		.then(() => {
 			showWatcherDialog.value = false
