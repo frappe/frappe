@@ -76,7 +76,7 @@ function getPropEnums(componentName: string, propName: string): string[] | undef
 	/**
 	 * fetches prop enums like Button.json > definitions > ButtonProps > properties > variant > enum - ["solid", "subtle", "outline", "ghost"]
 	 */
-	return componentTypes[componentName]?.definitions?.[`${componentName}Props`]?.properties?.[propName]?.enum
+	return componentTypes?.[componentName]?.definitions?.[`${componentName}Props`]?.properties?.[propName]?.enum
 }
 
 // events
