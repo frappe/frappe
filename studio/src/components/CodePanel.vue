@@ -188,7 +188,9 @@ const editPageWatcher = (watcher: StudioPageWatcher) => {
 			script: watcher.script,
 			immediate: watcher.immediate,
 		})
-		.then(() => {
+		.then(async () => {
+			// setValue didn't update the list, so reloading explicitly
+			await studioPageWatchers.reload()
 			showWatcherDialog.value = false
 		})
 }
