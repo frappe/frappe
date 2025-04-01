@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { ref, watch } from "vue"
+import { ref, watch, type WatchStopHandle } from "vue"
 import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
 import { studioWatchers } from "@/data/studioWatchers"
@@ -14,6 +14,7 @@ const useAppStore = defineStore("appStore", () => {
 	const resources = ref<Record<string, Resource>>({})
 	const variables = ref<Record<string, any>>({})
 	const localState = ref({})
+	const activeWatchers = ref<Record<string, WatchStopHandle>>({})
 
 	async function setPageData(page: StudioPage) {
 		await setPageResources(page)
@@ -54,6 +55,7 @@ const useAppStore = defineStore("appStore", () => {
 	}
 
 	async function setPageWatchers(page: StudioPage) {
+		cleanupWatchers()
 		studioWatchers.filters = { parent: page.name }
 		await studioWatchers.reload()
 
@@ -63,13 +65,20 @@ const useAppStore = defineStore("appStore", () => {
 	}
 
 	function setupWatcher(watcher: StudioPageWatcher) {
+		const isDeep = typeof variables.value[watcher.source] === "object"
 		const watcherFn = watch(
 			() => variables.value[watcher.source],
 			() => {
 				executeUserScript(watcher.script, variables.value, resources.value)
 			},
-			{ deep: true }
+			{ deep: isDeep }
 		)
+		activeWatchers.value[watcher.name || watcher.source] = watcherFn
+	}
+
+	function cleanupWatchers() {
+		Object.values(activeWatchers.value).forEach(stop => stop())
+		activeWatchers.value = {}
 	}
 
 	return {
