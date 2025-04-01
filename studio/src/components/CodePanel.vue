@@ -52,7 +52,7 @@
 					<div class="flex flex-col space-y-4">
 						<FormControl
 							type="autocomplete"
-							:options="variableOptions"
+							:options="store.variableOptions"
 							label="Source"
 							placeholder="Select variable"
 							:modelValue="pageWatcher.source"
@@ -101,7 +101,6 @@ import CodeEditor from "@/components/CodeEditor.vue"
 import { StudioPage } from "@/types/Studio/StudioPage"
 import { SelectOption } from "@/types"
 import { StudioPageWatcher } from "@/types/Studio/StudioPageWatcher"
-import { useVariables } from "@/utils/useVariables"
 import useStudioStore from "@/stores/studioStore"
 import FormControl from "frappe-ui/src/components/FormControl.vue"
 import { toast } from "vue-sonner"
@@ -131,7 +130,6 @@ const pageWatcher = ref<StudioPageWatcher>({
 	name: "",
 })
 const store = useStudioStore()
-const { variableOptions } = useVariables(store.variables)
 
 const getWatcherMenu = (watcher: StudioPageWatcher) => {
 	return [

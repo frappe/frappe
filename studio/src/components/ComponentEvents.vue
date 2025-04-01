@@ -92,7 +92,6 @@ import EmptyState from "@/components/EmptyState.vue"
 
 import { isObjectEmpty, confirm } from "@/utils/helpers"
 import { getComponentEvents } from "@/utils/components"
-import { useVariables } from "@/utils/useVariables"
 
 import { SelectOption } from "@/types"
 import { Actions, ActionConfigurations, ComponentEvent } from "@/types/ComponentEvent"
@@ -138,7 +137,6 @@ const eventOptions = computed(() => {
 		"keypress",
 	]
 })
-const { variableOptions } = useVariables(store.variables)
 
 const doctypeFields = ref<{ label: string; value: string }[]>([])
 watch(
@@ -297,7 +295,7 @@ const actions: ActionConfigurations = {
 							label: "Variable",
 							fieldname: "value",
 							fieldtype: "select",
-							options: variableOptions.value,
+							options: store.variableOptions,
 						},
 					],
 					rows: newEvent.value.fields,

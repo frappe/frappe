@@ -1,4 +1,4 @@
-import { ref, reactive, nextTick } from "vue"
+import { ref, reactive, nextTick, computed } from "vue"
 import router from "@/router/studio_router"
 import { defineStore } from "pinia"
 
@@ -24,7 +24,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Resource } from "@/types/Studio/StudioResource"
-import { LeftPanelOptions, RightPanelOptions } from "@/types"
+import { LeftPanelOptions, RightPanelOptions, SelectOption } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import { studioVariables } from "@/data/studioVariables"
 import { Variable } from "@/types/Studio/StudioPageVariable"
@@ -245,6 +245,25 @@ const useStudioStore = defineStore("store", () => {
 		})
 	}
 
+	const variableOptions = computed(() => {
+		const options: SelectOption[] = []
+
+		function traverse(obj: any, path = "") {
+			for (const key in obj) {
+				const currentPath = path ? `${path}.${key}` : key
+				options.push({ value: currentPath, label: currentPath })
+
+				if (typeof obj[key] === "object" && obj[key] !== null) {
+					// add nested properties
+					traverse(obj[key], currentPath)
+				}
+			}
+		}
+
+		traverse(variables.value)
+		return options
+	})
+
 	return {
 		// layout
 		studioLayout,
@@ -280,6 +299,7 @@ const useStudioStore = defineStore("store", () => {
 		setPageData,
 		setPageResources,
 		setPageVariables,
+		variableOptions,
 	}
 })
 
