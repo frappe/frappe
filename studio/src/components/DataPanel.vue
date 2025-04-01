@@ -52,11 +52,11 @@
 						:name="variable_name"
 						class="-ml-[0.9rem] overflow-hidden"
 					/>
-					<div v-else class="flex flex-row justify-between">
-						<div class="text-sm font-semibold text-pink-700">{{ variable_name }}</div>
+					<div v-else class="flex flex-row justify-between font-mono text-xs">
+						<div class="font-semibold text-pink-700">{{ variable_name }}</div>
 						<template v-if="value !== ''">
-							<div class="text-xs text-gray-600">&nbsp;=&nbsp;</div>
-							<div class="text-sm text-violet-700">{{ value }}</div>
+							<div class="text-gray-600">&nbsp;=&nbsp;</div>
+							<div class="text-violet-700">{{ value }}</div>
 						</template>
 					</div>
 					<div
