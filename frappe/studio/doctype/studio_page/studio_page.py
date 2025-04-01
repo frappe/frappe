@@ -16,10 +16,15 @@ class StudioPage(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		from studio.studio.doctype.studio_page_client_script.studio_page_client_script import (
+			StudioPageClientScript,
+		)
 		from studio.studio.doctype.studio_page_resource.studio_page_resource import StudioPageResource
 		from studio.studio.doctype.studio_page_variable.studio_page_variable import StudioPageVariable
+		from studio.studio.doctype.studio_page_watcher.studio_page_watcher import StudioPageWatcher
 
 		blocks: DF.JSON | None
+		client_scripts: DF.TableMultiSelect[StudioPageClientScript]
 		draft_blocks: DF.JSON | None
 		page_name: DF.Data | None
 		page_title: DF.Data | None
@@ -28,6 +33,7 @@ class StudioPage(Document):
 		route: DF.Data | None
 		studio_app: DF.Link | None
 		variables: DF.Table[StudioPageVariable]
+		watchers: DF.Table[StudioPageWatcher]
 	# end: auto-generated types
 
 	def autoname(self):

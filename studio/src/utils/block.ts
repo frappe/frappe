@@ -168,13 +168,11 @@ class Block implements BlockOptions {
 			"DatePicker",
 			"DateTimePicker",
 			"DateRangePicker",
-			"FormControl",
 			"Input",
 			"Select",
 			"Switch",
 			"Textarea",
 			"TextEditor",
-			"TextInput",
 			// studio components
 			"Audio",
 			"ImageView",

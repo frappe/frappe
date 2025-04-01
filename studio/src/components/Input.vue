@@ -36,7 +36,18 @@ import { useVModel } from "@vueuse/core"
 import { useAttrs } from "vue"
 import CrossIcon from "./Icons/Cross.vue"
 
-const props = defineProps(["modelValue", "type", "hideClearButton"])
+const props = withDefaults(
+	defineProps<{
+		modelValue?: string | number | boolean | null
+		type?: string
+		hideClearButton?: boolean
+	}>(),
+	{
+		type: "text",
+		modelValue: "",
+	},
+)
+
 const emit = defineEmits(["update:modelValue", "input"])
 const data = useVModel(props, "modelValue", emit)
 

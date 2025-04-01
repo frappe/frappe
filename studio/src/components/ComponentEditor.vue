@@ -206,6 +206,7 @@ watchEffect(() => {
 
 	canvasStore.activeCanvas?.activeBreakpoint
 	canvasStore.dropTarget.placeholder
+	canvasStore.dropTarget.index
 	canvasStore.activeCanvas?.canvasProps.breakpoints.map((breakpoint) => breakpoint.visible)
 
 	nextTick(() => {

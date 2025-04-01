@@ -1,0 +1,51 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-04-01 09:31:00.594704",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "source",
+  "script",
+  "immediate"
+ ],
+ "fields": [
+  {
+   "fieldname": "source",
+   "fieldtype": "Code",
+   "in_list_view": 1,
+   "label": "Source",
+   "max_height": "100px",
+   "reqd": 1
+  },
+  {
+   "fieldname": "script",
+   "fieldtype": "Code",
+   "in_list_view": 1,
+   "label": "Script",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "description": "By default, this script won't run unless the Source value changes. Enable this to run the script immediately.",
+   "fieldname": "immediate",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Run Immediately?"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-04-01 13:57:15.006423",
+ "modified_by": "Administrator",
+ "module": "Studio",
+ "name": "Studio Page Watcher",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

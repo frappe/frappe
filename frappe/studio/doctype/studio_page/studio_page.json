@@ -17,7 +17,11 @@
   "draft_blocks",
   "data_tab",
   "resources",
-  "variables"
+  "variables",
+  "scripts_tab",
+  "watchers",
+  "section_break_fmxt",
+  "client_scripts"
  ],
  "fields": [
   {
@@ -89,12 +93,34 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Studio App",
-   "options": "Studio App"
+   "options": "Studio App",
+   "search_index": 1
+  },
+  {
+   "fieldname": "scripts_tab",
+   "fieldtype": "Tab Break",
+   "label": "Scripts"
+  },
+  {
+   "fieldname": "client_scripts",
+   "fieldtype": "Table MultiSelect",
+   "label": "Client Scripts",
+   "options": "Studio Page Client Script"
+  },
+  {
+   "fieldname": "watchers",
+   "fieldtype": "Table",
+   "label": "Watchers",
+   "options": "Studio Page Watcher"
+  },
+  {
+   "fieldname": "section_break_fmxt",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-05 16:53:24.306451",
+ "modified": "2025-04-01 09:33:28.358540",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page",
@@ -114,6 +140,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

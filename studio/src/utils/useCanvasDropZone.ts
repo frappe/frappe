@@ -1,6 +1,6 @@
 import useCanvasStore from "@/stores/canvasStore"
 import Block from "@/utils/block"
-import { getComponentBlock, throttle } from "@/utils/helpers"
+import { getComponentBlock } from "@/utils/helpers"
 import { useDropZone } from "@vueuse/core"
 import { Ref } from "vue"
 
@@ -131,7 +131,7 @@ export function useCanvasDropZone(
 		return "column"
 	}
 
-	const updateDropTarget = throttle((
+	const updateDropTarget = (
 		ev: DragEvent,
 		parentComponent: Block | null,
 		slotName: string | null,
@@ -155,13 +155,8 @@ export function useCanvasDropZone(
 		if (canvasStore.dropTarget.parentComponent?.componentId === parentComponent.componentId && canvasStore.dropTarget.index === index) return
 
 		// flip placeholder border as per layout direction to avoid shifting elements too much
-		if (layoutDirection === "row") {
-			placeholder.classList.remove("horizontal-placeholder")
-			placeholder.classList.add("vertical-placeholder")
-		} else {
-			placeholder.classList.remove("vertical-placeholder")
-			placeholder.classList.add("horizontal-placeholder")
-		}
+		placeholder.classList.toggle("vertical-placeholder", layoutDirection === "row")
+		placeholder.classList.toggle("horizontal-placeholder", layoutDirection === "column")
 
 		// add the placeholder to the new parent
 		// exclude placeholder as its going to move with this update
@@ -177,7 +172,7 @@ export function useCanvasDropZone(
 		canvasStore.dropTarget.slotName = slotName
 		canvasStore.dropTarget.x = ev.x
 		canvasStore.dropTarget.y = ev.y
-	}, 130)
+	}
 
 	return { isOverDropZone }
 }

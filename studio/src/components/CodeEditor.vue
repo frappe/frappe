@@ -133,7 +133,7 @@ const setupEditor = () => {
 }
 
 const getModelValue = () => {
-	let value = props.modelValue || ""
+	let value = props.modelValue ?? ""
 	try {
 		if (props.type === "JSON" || typeof value === "object") {
 			value = jsToJson(value)

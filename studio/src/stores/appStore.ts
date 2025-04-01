@@ -1,17 +1,20 @@
 import { defineStore } from "pinia"
-import { reactive, ref } from "vue"
+import { ref, watch, type WatchStopHandle } from "vue"
 import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
-import { getInitialVariableValue, getNewResource } from "@/utils/helpers"
+import { studioWatchers } from "@/data/studioWatchers"
+import { getInitialVariableValue, getNewResource, executeUserScript } from "@/utils/helpers"
 
 import type { Resource } from "@/types/Studio/StudioResource"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
+import type { StudioPageWatcher } from "@/types/Studio/StudioPageWatcher"
 
 const useAppStore = defineStore("appStore", () => {
 	const resources = ref<Record<string, Resource>>({})
 	const variables = ref<Record<string, any>>({})
 	const localState = ref({})
+	const activeWatchers = ref<Record<string, WatchStopHandle>>({})
 
 	async function setPageData(page: StudioPage) {
 		await setPageResources(page)
@@ -51,6 +54,33 @@ const useAppStore = defineStore("appStore", () => {
 		localState.value = params
 	}
 
+	async function setPageWatchers(page: StudioPage) {
+		cleanupWatchers()
+		studioWatchers.filters = { parent: page.name }
+		await studioWatchers.reload()
+
+		studioWatchers.data.map((watcher: StudioPageWatcher) => {
+			setupWatcher(watcher)
+		})
+	}
+
+	function setupWatcher(watcher: StudioPageWatcher) {
+		const isDeep = typeof variables.value[watcher.source] === "object"
+		const watcherFn = watch(
+			() => variables.value[watcher.source],
+			() => {
+				executeUserScript(watcher.script, variables.value, resources.value)
+			},
+			{ deep: isDeep, immediate: watcher.immediate }
+		)
+		activeWatchers.value[watcher.name || watcher.source] = watcherFn
+	}
+
+	function cleanupWatchers() {
+		Object.values(activeWatchers.value).forEach(stop => stop())
+		activeWatchers.value = {}
+	}
+
 	return {
 		setPageData,
 		resources,
@@ -59,6 +89,7 @@ const useAppStore = defineStore("appStore", () => {
 		setPageVariables,
 		localState,
 		setLocalState,
+		setPageWatchers,
 	}
 })
 

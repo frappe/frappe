@@ -1,0 +1,35 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-03-31 14:02:29.684581",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "studio_script"
+ ],
+ "fields": [
+  {
+   "fieldname": "studio_script",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Studio Script",
+   "options": "Studio Client Script",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-03-31 14:03:08.236395",
+ "modified_by": "Administrator",
+ "module": "Studio",
+ "name": "Studio Page Client Script",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
