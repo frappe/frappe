@@ -21,6 +21,7 @@ class StudioPage(Document):
 		)
 		from studio.studio.doctype.studio_page_resource.studio_page_resource import StudioPageResource
 		from studio.studio.doctype.studio_page_variable.studio_page_variable import StudioPageVariable
+		from studio.studio.doctype.studio_page_watcher.studio_page_watcher import StudioPageWatcher
 
 		blocks: DF.JSON | None
 		client_scripts: DF.TableMultiSelect[StudioPageClientScript]
@@ -32,6 +33,7 @@ class StudioPage(Document):
 		route: DF.Data | None
 		studio_app: DF.Link | None
 		variables: DF.Table[StudioPageVariable]
+		watchers: DF.Table[StudioPageWatcher]
 	# end: auto-generated types
 
 	def autoname(self):

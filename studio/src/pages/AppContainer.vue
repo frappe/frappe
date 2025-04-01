@@ -39,6 +39,7 @@ watch(
 			if (!page.value) return
 			await store.setLocalState({ route: route })
 			await store.setPageData(page.value)
+			await store.setPageWatchers(page.value)
 			const blocks = jsonToJs(page.value?.blocks)
 			if (blocks) {
 				rootBlock.value = getBlockInstance(blocks[0])

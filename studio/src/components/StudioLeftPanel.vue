@@ -61,6 +61,10 @@
 				</div>
 
 				<DataPanel v-show="activeTab === 'Data'" />
+
+				<div v-show="activeTab === 'Code'">
+					<CodePanel class="p-4" v-if="store.activePage" :page="store.activePage" />
+				</div>
 			</div>
 		</transition>
 	</div>
@@ -75,6 +79,7 @@ import PanelResizer from "@/components/PanelResizer.vue"
 import ComponentPanel from "@/components/ComponentPanel.vue"
 import ComponentLayers from "@/components/ComponentLayers.vue"
 import DataPanel from "@/components/DataPanel.vue"
+import CodePanel from "@/components/CodePanel.vue"
 import IconButton from "@/components/IconButton.vue"
 
 import Block from "@/utils/block"

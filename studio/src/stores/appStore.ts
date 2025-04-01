@@ -1,12 +1,14 @@
 import { defineStore } from "pinia"
-import { reactive, ref } from "vue"
+import { ref, watch } from "vue"
 import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
-import { getInitialVariableValue, getNewResource } from "@/utils/helpers"
+import { studioWatchers } from "@/data/studioWatchers"
+import { getInitialVariableValue, getNewResource, executeUserScript } from "@/utils/helpers"
 
 import type { Resource } from "@/types/Studio/StudioResource"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
+import type { StudioPageWatcher } from "@/types/Studio/StudioPageWatcher"
 
 const useAppStore = defineStore("appStore", () => {
 	const resources = ref<Record<string, Resource>>({})
@@ -51,6 +53,25 @@ const useAppStore = defineStore("appStore", () => {
 		localState.value = params
 	}
 
+	async function setPageWatchers(page: StudioPage) {
+		studioWatchers.filters = { parent: page.name }
+		await studioWatchers.reload()
+
+		studioWatchers.data.map((watcher: StudioPageWatcher) => {
+			setupWatcher(watcher)
+		})
+	}
+
+	function setupWatcher(watcher: StudioPageWatcher) {
+		const watcherFn = watch(
+			() => variables.value[watcher.source],
+			() => {
+				executeUserScript(watcher.script, variables.value, resources.value)
+			},
+			{ deep: true }
+		)
+	}
+
 	return {
 		setPageData,
 		resources,
@@ -59,6 +80,7 @@ const useAppStore = defineStore("appStore", () => {
 		setPageVariables,
 		localState,
 		setLocalState,
+		setPageWatchers,
 	}
 })
 

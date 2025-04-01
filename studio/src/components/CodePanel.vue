@@ -1,0 +1,201 @@
+<template>
+	<CollapsibleSection sectionName="Watchers">
+		<div class="flex flex-col gap-1">
+			<div
+				v-if="studioPageWatchers.data?.length"
+				v-for="watcher in studioPageWatchers.data"
+				:key="watcher.name"
+				class="group/variable flex flex-row justify-between"
+			>
+				<div class="flex flex-row justify-between">
+					<div class="font-mono text-xs font-semibold text-pink-700">{{ watcher.source }}</div>
+				</div>
+				<div
+					class="invisible -mt-1 ml-auto self-start text-gray-600 group-hover/variable:visible has-[.active-item]:visible"
+				>
+					<Dropdown :options="getWatcherMenu(watcher)" trigger="click">
+						<template v-slot="{ open }">
+							<button
+								class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
+								:class="open ? 'active-item' : ''"
+							>
+								<FeatherIcon name="more-horizontal" class="h-3 w-3" />
+							</button>
+						</template>
+					</Dropdown>
+				</div>
+			</div>
+			<EmptyState v-else message="No watchers added" />
+		</div>
+
+		<div class="mt-2 flex flex-col">
+			<Button icon-left="plus" @click="showWatcherDialog = true">Add Watcher</Button>
+			<Dialog
+				v-model="showWatcherDialog"
+				:options="{
+					title: pageWatcher.name ? 'Edit Watcher' : 'Add Watcher',
+					size: '2xl',
+				}"
+				@after-leave="
+					() => {
+						pageWatcher = {
+							source: '',
+							script: '',
+							parent: '',
+							name: '',
+						}
+					}
+				"
+				:disableOutsideClickToClose="true"
+			>
+				<template #body-content>
+					<div class="flex flex-col space-y-4">
+						<FormControl
+							type="autocomplete"
+							:options="variableOptions"
+							label="Source"
+							placeholder="Select variable"
+							:modelValue="pageWatcher.source"
+							@update:modelValue="
+								(selectedOption: SelectOption) => {
+									pageWatcher.source = selectedOption.value
+								}
+							"
+						/>
+						<CodeEditor
+							label="Script"
+							type="JavaScript"
+							height="250px"
+							:showLineNumbers="true"
+							v-model="pageWatcher.script"
+						/>
+					</div>
+				</template>
+				<template #actions>
+					<Button
+						variant="solid"
+						:label="pageWatcher.name ? 'Update' : 'Add'"
+						@click="
+							() => {
+								if (pageWatcher.name) {
+									editPageWatcher(pageWatcher)
+								} else {
+									addPageWatcher(pageWatcher)
+								}
+							}
+						"
+						class="w-full"
+					/>
+				</template>
+			</Dialog>
+		</div>
+	</CollapsibleSection>
+</template>
+
+<script setup lang="ts">
+import { ref } from "vue"
+import { createListResource } from "frappe-ui"
+import EmptyState from "@/components/EmptyState.vue"
+import CollapsibleSection from "@/components/CollapsibleSection.vue"
+import CodeEditor from "@/components/CodeEditor.vue"
+import { StudioPage } from "@/types/Studio/StudioPage"
+import { SelectOption } from "@/types"
+import { StudioPageWatcher } from "@/types/Studio/StudioPageWatcher"
+import { useVariables } from "@/utils/useVariables"
+import useStudioStore from "@/stores/studioStore"
+import FormControl from "frappe-ui/src/components/FormControl.vue"
+import { toast } from "vue-sonner"
+import { confirm } from "@/utils/helpers"
+
+const props = defineProps<{
+	page: StudioPage
+}>()
+
+const studioPageWatchers = createListResource({
+	doctype: "Studio Page Watcher",
+	parent: "Studio Page",
+	filters: {
+		parent: props.page.name,
+	},
+	fields: ["name", "source", "script", "parent"],
+	orderBy: "modified desc",
+	pageLength: 50,
+	auto: true,
+})
+
+const showWatcherDialog = ref(false)
+const pageWatcher = ref<StudioPageWatcher>({
+	source: "",
+	script: "",
+	parent: "",
+	name: "",
+})
+const store = useStudioStore()
+const { variableOptions } = useVariables(store.variables)
+
+const getWatcherMenu = (watcher: StudioPageWatcher) => {
+	return [
+		{
+			label: "Edit",
+			icon: "edit",
+			onClick: async () => {
+				pageWatcher.value = { ...watcher }
+				showWatcherDialog.value = true
+			},
+		},
+		{
+			label: "Delete",
+			icon: "trash",
+			onClick: () => deletePageWatcher(watcher),
+		},
+	]
+}
+
+const addPageWatcher = (watcher: StudioPageWatcher) => {
+	studioPageWatchers.insert.submit(
+		{
+			source: watcher.source,
+			script: watcher.script,
+			parent: props.page.name,
+			parenttype: "Studio Page",
+			parentfield: "watchers",
+		},
+		{
+			onSuccess() {
+				showWatcherDialog.value = false
+			},
+			onError(error: any) {
+				toast.error("Failed to add the watcher", {
+					description: error.messages.join(", "),
+				})
+			},
+		},
+	)
+}
+
+const editPageWatcher = (watcher: StudioPageWatcher) => {
+	studioPageWatchers.setValue
+		.submit({
+			name: watcher.name,
+			source: watcher.source,
+			script: watcher.script,
+		})
+		.then(() => {
+			showWatcherDialog.value = false
+		})
+}
+
+const deletePageWatcher = async (watcher: StudioPageWatcher) => {
+	const confirmed = await confirm(`Are you sure you want to delete the watcher for ${watcher.source}?`)
+	if (confirmed) {
+		studioPageWatchers.delete
+			.submit(watcher.name)
+			.then(() => {
+				toast.success(`Watcher for ${watcher.source} deleted successfully`)
+			})
+			.catch(() => {
+				toast.error(`Failed to delete watcher for ${watcher.source}`)
+			})
+	}
+}
+</script>

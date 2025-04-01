@@ -19,6 +19,8 @@
   "resources",
   "variables",
   "scripts_tab",
+  "watchers",
+  "section_break_fmxt",
   "client_scripts"
  ],
  "fields": [
@@ -91,7 +93,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Studio App",
-   "options": "Studio App"
+   "options": "Studio App",
+   "search_index": 1
   },
   {
    "fieldname": "scripts_tab",
@@ -103,11 +106,21 @@
    "fieldtype": "Table MultiSelect",
    "label": "Client Scripts",
    "options": "Studio Page Client Script"
+  },
+  {
+   "fieldname": "watchers",
+   "fieldtype": "Table",
+   "label": "Watchers",
+   "options": "Studio Page Watcher"
+  },
+  {
+   "fieldname": "section_break_fmxt",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-31 14:05:00.899053",
+ "modified": "2025-04-01 09:33:28.358540",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page",
