@@ -63,7 +63,7 @@
 				<DataPanel v-show="activeTab === 'Data'" />
 
 				<div v-show="activeTab === 'Code'">
-					<CodePanel class="p-4" v-if="store.activePage" :page="store.activePage" />
+					<CodePanel class="p-4" v-if="store.activePage" :page="store.activePage" :key="store.selectedPage" />
 				</div>
 			</div>
 		</transition>
