@@ -96,7 +96,7 @@ import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML } from "@/utils/helpers"
 
-import { CanvasProps } from "@/types"
+import { CanvasProps } from "@/types/StudioCanvas"
 
 const props = withDefaults(
 	defineProps<{
@@ -130,6 +130,7 @@ const styles = computed(() => {
 })
 
 const componentName = computed(() => {
+	if (props.block.componentName === "container") return "div"
 	if (canvasStore.editingMode === "page") return props.block.componentName
 	const proxyComponent = props.block.getProxyComponent()
 	return proxyComponent ? proxyComponent : props.block.componentName

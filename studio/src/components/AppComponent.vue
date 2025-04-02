@@ -2,7 +2,7 @@
 	<component
 		ref="componentRef"
 		v-show="showComponent"
-		:is="block.componentName"
+		:is="componentName"
 		v-bind="componentProps"
 		v-model="boundValue"
 		:data-component-id="block.componentId"
@@ -41,6 +41,11 @@ import { Field } from "@/types/ComponentEvent"
 const props = defineProps<{
 	block: Block
 }>()
+
+const componentName = computed(() => {
+	if (props.block.componentName === "container") return "div"
+	return props.block.componentName
+})
 
 const componentRef = ref(null)
 const styles = computed(() => props.block.getStyles())

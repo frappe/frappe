@@ -223,6 +223,10 @@ class Block implements BlockOptions {
 	}
 
 	// styles
+	setBaseStyle(style: styleProperty, value: StyleValue) {
+		style = kebabToCamelCase(style as string) as styleProperty
+		this.baseStyles[style] = value
+	}
 
 	getStyles(): BlockStyleMap {
 		return { ...this.baseStyles, ...this.rawStyles }

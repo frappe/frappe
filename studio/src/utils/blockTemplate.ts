@@ -1,8 +1,9 @@
-import { BlockOptions } from "@/types";
+import { BlockOptions, BlockStyleMap } from "@/types";
 
 function getBlockTemplate(
 	type:
 		| "body"
+		| "container"
 		| "fallback-component"
 ): BlockOptions {
 	switch (type) {
@@ -21,6 +22,19 @@ function getBlockTemplate(
 					width: "inherit",
 					overflowX: "hidden",
 				}
+			};
+
+		case "container":
+			return {
+				componentName: "container",
+				element: "div",
+				blockName: "container",
+				baseStyles: {
+					display: "flex",
+					flexDirection: "column",
+					flexShrink: 0,
+					overflow: "hidden",
+				} as BlockStyleMap,
 			};
 
 		case "fallback-component":
