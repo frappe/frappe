@@ -1,4 +1,4 @@
-import { CanvasProps } from "@/types"
+import { CanvasProps } from "@/types/StudioCanvas"
 import Block from "@/utils/block"
 
 import { nextTick, reactive, Ref } from "vue"

@@ -38,7 +38,7 @@ import Block from "@/utils/block"
 import guidesTracker from "@/utils/guidesTracker"
 import useCanvasStore from "@/stores/canvasStore"
 
-import { CanvasProps } from "@/types"
+import { CanvasProps } from "@/types/StudioCanvas"
 
 const props = defineProps({
 	targetBlock: {
