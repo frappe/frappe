@@ -61,11 +61,6 @@ export function useCanvasEvents(
 			childBlock.setBaseStyle("position", "absolute");
 			childBlock.setBaseStyle("top", numberToPx(y));
 			childBlock.setBaseStyle("left", numberToPx(x));
-			if (store.mode === "container" || store.mode === "repeater") {
-				const colors = ["#ededed", "#e2e2e2", "#c7c7c7"];
-				childBlock.setBaseStyle("background", colors[counter % colors.length]);
-				counter++;
-			}
 
 			const mouseMoveHandler = (mouseMoveEvent: MouseEvent) => {
 				mouseMoveEvent.preventDefault();

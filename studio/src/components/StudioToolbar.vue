@@ -3,7 +3,6 @@
 		<div class="absolute left-3 flex items-center justify-center gap-5">
 			<router-link class="flex items-center gap-2" :to="{ name: 'Home' }">
 				<StudioLogo class="h-7 w-7"></StudioLogo>
-				<h1 class="text-md mt-[2px] font-semibold leading-5 text-gray-800">Studio</h1>
 			</router-link>
 
 			<div class="flex gap-2">
