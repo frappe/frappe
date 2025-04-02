@@ -229,7 +229,7 @@ const activeSlotIds = computed(() => {
 	return slotIds
 })
 
-const { setScaleAndTranslate, setupHistory, getRootBlock, setRootBlock, findBlock, removeBlock } =
+const { setScaleAndTranslate, setupHistory, getRootBlock, setRootBlock, findBlock, removeBlock, toggleMode } =
 	useCanvasUtils(canvasProps, canvasContainer, canvas, rootComponent, selectedBlockIds, history)
 
 watch(
@@ -247,6 +247,13 @@ const { isOverDropZone } = useCanvasDropZone(
 	canvasContainer as unknown as Ref<HTMLElement>,
 	rootComponent,
 	findBlock,
+)
+
+watch(
+	() => store.mode,
+	(newValue, oldValue) => {
+		toggleMode(store.mode)
+	},
 )
 
 onMounted(() => {
