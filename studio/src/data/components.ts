@@ -638,7 +638,7 @@ export const COMPONENTS: FrappeUIComponents = {
 		icon: "Image",
 		props: ImageView.props,
 		initialState: {
-			image: "https://upload.wikimedia.org/wikipedia/en/e/e9/Coldplay%2C_Up%26Up%2C_Artwork.jpg",
+			image: "https://blocks.astratic.com/img/general-img-square.png",
 		},
 	},
 	TextBlock: {
