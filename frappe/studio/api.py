@@ -1,5 +1,5 @@
 import frappe
-from frappe.model import display_fieldtypes, no_value_fields
+from frappe.model import display_fieldtypes, no_value_fields, table_fields
 
 
 @frappe.whitelist()
@@ -16,7 +16,12 @@ def get_doctype_fields(doctype: str) -> list[dict]:
 			}
 		)
 		fields.append(name_field)
-	return [field for field in fields if field.fieldtype not in no_value_fields + display_fieldtypes]
+
+	return [
+		field
+		for field in fields
+		if field.fieldtype not in ((set(no_value_fields) | set(display_fieldtypes)) - set(table_fields))
+	]
 
 
 @frappe.whitelist()
