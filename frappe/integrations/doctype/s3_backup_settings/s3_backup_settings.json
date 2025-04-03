@@ -18,6 +18,7 @@
   "bucket",
   "endpoint_url",
   "column_break_13",
+  "backup_path",
   "backup_details_section",
   "frequency",
   "backup_files"
@@ -125,12 +126,18 @@
    "fieldname": "backup_files",
    "fieldtype": "Check",
    "label": "Backup Files"
+  },
+  {
+   "description": "If it's empty, it will backup to the root of the bucket.",
+   "fieldname": "backup_path",
+   "fieldtype": "Data",
+   "label": "Backup Path"
   }
  ],
  "hide_toolbar": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-03-23 16:03:37.575744",
+ "modified": "2025-03-15 12:17:49.167012",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "S3 Backup Settings",
@@ -148,6 +155,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

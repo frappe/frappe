@@ -15,6 +15,7 @@
   "restrict_to_domain",
   "read_only",
   "in_create",
+  "protect_attached_files",
   "sb1",
   "naming_rule",
   "autoname",
@@ -683,14 +684,22 @@
    "options": "Dynamic\nCompressed"
   },
   {
-    "default": "50",
-    "depends_on": "istable",
-    "fieldname": "grid_page_length",
-    "fieldtype": "Int",
-    "label": "Grid Page Length",
-    "non_negative": 1
+   "default": "50",
+   "depends_on": "istable",
+   "fieldname": "grid_page_length",
+   "fieldtype": "Int",
+   "label": "Grid Page Length",
+   "non_negative": 1
+  },
+  {
+   "default": "0",
+   "description": "Users are only able to delete attached files if the document is either in draft or if the document is canceled and they are also able to delete the document.",
+   "fieldname": "protect_attached_files",
+   "fieldtype": "Check",
+   "label": "Protect Attached Files"
   }
  ],
+ "grid_page_length": 50,
  "icon": "fa fa-bolt",
  "idx": 6,
  "index_web_pages_for_search": 1,
@@ -771,7 +780,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2025-02-20 19:05:52.119679",
+ "modified": "2025-03-27 18:16:53.286909",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
@@ -801,6 +810,7 @@
   }
  ],
  "route": "doctype",
+ "row_format": "Dynamic",
  "search_fields": "module",
  "show_name_in_global_search": 1,
  "sort_field": "creation",

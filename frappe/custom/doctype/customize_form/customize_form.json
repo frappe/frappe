@@ -33,6 +33,7 @@
   "column_break_21",
   "allow_copy",
   "make_attachments_public",
+  "protect_attached_files",
   "view_settings_section",
   "title_field",
   "show_title_field_in_link",
@@ -407,6 +408,13 @@
    "fieldtype": "Int",
    "label": "Grid Page Length",
    "non_negative": 1
+  },
+  {
+   "default": "0",
+   "description": "Users are only able to delete attached files if the document is either in draft or if the document is canceled and they are also able to delete the document.",
+   "fieldname": "protect_attached_files",
+   "fieldtype": "Check",
+   "label": "Protect Attached Files"
   }
  ],
  "hide_toolbar": 1,
@@ -415,7 +423,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-02-21 20:16:50.501895",
+ "modified": "2025-03-27 18:22:32.618603",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

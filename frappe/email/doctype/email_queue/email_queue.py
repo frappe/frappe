@@ -694,8 +694,8 @@ class QueueBuilder:
 
 	def prepare_email_content(self):
 		email_account = self.get_outgoing_email_account()
-		if isinstance(self._bcc, list) and email_account.always_bcc:
-			self._bcc.append(email_account.always_bcc)
+		if email_account.always_bcc:
+			self._bcc = [*self.bcc, email_account.always_bcc]
 		mail = get_email(
 			recipients=self.final_recipients(),
 			sender=self.sender,

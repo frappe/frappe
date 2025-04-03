@@ -37,6 +37,7 @@ export default class ShortcutWidget extends Widget {
 				doctype: this.ref_doctype,
 				doc_view: this.doc_view,
 				kanban_board: this.kanban_board,
+				report_ref_doctype: this.report_ref_doctype,
 			});
 
 			let filters = frappe.utils.get_filter_from_json(this.stats_filter);

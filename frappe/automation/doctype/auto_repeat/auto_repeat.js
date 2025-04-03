@@ -71,7 +71,9 @@ frappe.ui.form.on("Auto Repeat", {
 			frappe.model.with_doc("Email Template", frm.doc.template, () => {
 				let email_template = frappe.get_doc("Email Template", frm.doc.template);
 				frm.set_value("subject", email_template.subject);
-				frm.set_value("message", email_template.response);
+				let message_value = email_template.response;
+				if (email_template.use_html) message_value = email_template.response_html;
+				frm.set_value("message", message_value);
 				frm.refresh_field("subject");
 				frm.refresh_field("message");
 			});

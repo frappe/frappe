@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+import frappe.defaults
 from frappe import _
 from frappe.model import no_value_fields
 from frappe.model.document import Document
@@ -240,3 +241,8 @@ def clear_system_settings_cache():
 	frappe.client_cache.delete_value(cache_key)
 	frappe.cache.delete_value("system_settings")
 	frappe.cache.delete_value("time_zone")
+
+
+def sync_system_settings():
+	if frappe.db.get_single_value("System Settings", "currency") is None:
+		frappe.db.set_single_value("System Settings", "currency", frappe.defaults.get_defaults()["currency"])

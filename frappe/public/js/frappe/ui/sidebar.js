@@ -48,7 +48,12 @@ frappe.ui.Sidebar = class Sidebar {
 		this.$sidebar = this.wrapper.find(".sidebar-items");
 
 		this.wrapper.find(".body-sidebar .collapse-sidebar-link").on("click", () => {
+			if (frappe.is_mobile()) this.apps_switcher.app_switcher_menu.toggleClass("hidden");
 			this.toggle_sidebar();
+		});
+
+		this.wrapper.find(".overlay").on("click", () => {
+			this.close_sidebar();
 		});
 
 		this.apps_switcher = new frappe.ui.AppsSwitcher(this);

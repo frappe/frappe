@@ -23,11 +23,11 @@ frappe.views.CommunicationComposer = class {
 			title: this.title || this.subject || __("New Email"),
 			no_submit_on_enter: true,
 			fields: this.get_fields(),
-			primary_action_label: __("Send"),
+			primary_action_label: __("Send", null, "Send Email"),
 			primary_action() {
 				me.send_action();
 			},
-			secondary_action_label: __("Discard"),
+			secondary_action_label: __("Discard", null, "Discard Email"),
 			secondary_action() {
 				me.dialog.hide();
 				me.clear_cache();
@@ -50,7 +50,7 @@ frappe.views.CommunicationComposer = class {
 		let me = this;
 		const fields = [
 			{
-				label: __("To"),
+				label: __("To", null, "Email Recipients"),
 				fieldtype: "MultiSelect",
 				reqd: 0,
 				fieldname: "recipients",
@@ -73,7 +73,7 @@ frappe.views.CommunicationComposer = class {
 				fieldname: "more_options",
 			},
 			{
-				label: __("CC"),
+				label: __("CC", null, "Email Recipients"),
 				fieldtype: "MultiSelect",
 				fieldname: "cc",
 				default: this.get_default_recipients("cc"),
@@ -82,7 +82,7 @@ frappe.views.CommunicationComposer = class {
 				},
 			},
 			{
-				label: __("BCC"),
+				label: __("BCC", null, "Email Recipients"),
 				fieldtype: "MultiSelect",
 				fieldname: "bcc",
 				default: this.get_default_recipients("bcc"),
@@ -191,7 +191,7 @@ frappe.views.CommunicationComposer = class {
 			});
 
 			fields.unshift({
-				label: __("From"),
+				label: __("From", null, "Email Sender"),
 				fieldtype: "Select",
 				reqd: 1,
 				fieldname: "sender",

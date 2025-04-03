@@ -89,6 +89,10 @@ class Workspace(Document):
 			if d.link_type == "Report" and d.is_query_report != 1:
 				d.report_ref_doctype = frappe.get_value("Report", d.link_to, "ref_doctype")
 
+		for shortcut in self.get("shortcuts"):
+			if shortcut.type == "Report":
+				shortcut.report_ref_doctype = frappe.get_value("Report", shortcut.link_to, "ref_doctype")
+
 		if not self.app and self.module:
 			from frappe.modules.utils import get_module_app
 

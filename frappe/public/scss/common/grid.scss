@@ -507,11 +507,15 @@
 
 .grid-row-open .form-in-grid {
 	opacity: 1;
-	height: auto;
-	overflow: visible;
-	margin: 0px calc(-1 * var(--margin-md));
+	height: 100%;
+	overflow: auto;
+	margin: auto;
 	padding: var(--padding-sm) var(--padding-md);
 	max-width: 865px;
+	position: fixed;
+	top: 5%;
+	left: 50%;
+	transform: translate(-50%, 0%);
 }
 
 .grid-form-heading {

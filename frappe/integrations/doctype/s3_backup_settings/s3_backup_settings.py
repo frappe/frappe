@@ -31,6 +31,7 @@ class S3BackupSettings(Document):
 
 		access_key_id: DF.Data
 		backup_files: DF.Check
+		backup_path: DF.Data | None
 		bucket: DF.Data
 		enabled: DF.Check
 		endpoint_url: DF.Data | None
@@ -46,6 +47,9 @@ class S3BackupSettings(Document):
 
 		if not self.endpoint_url:
 			self.endpoint_url = "https://s3.amazonaws.com"
+
+		if self.backup_path and self.backup_path[-1] != "/":
+			self.backup_path += "/"
 
 		conn = boto3.client(
 			"s3",
@@ -132,6 +136,7 @@ def backup_to_s3():
 
 	doc = frappe.get_single("S3 Backup Settings")
 	bucket = doc.bucket
+	path = doc.backup_path or ""
 	backup_files = cint(doc.backup_files)
 
 	conn = boto3.client(
@@ -171,7 +176,7 @@ def backup_to_s3():
 		else:
 			db_filename, site_config = get_latest_backup_file()
 
-	folder = os.path.basename(db_filename)[:15] + "/"
+	folder = path + os.path.basename(db_filename)[:15] + "/"
 	# for adding datetime to folder name
 
 	upload_file_to_s3(db_filename, folder, conn, bucket)

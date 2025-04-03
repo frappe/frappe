@@ -126,8 +126,6 @@ body {
 
 	.sidebar-items {
 		width: 224px;
-		padding-left: 1px;
-		padding-right: 1px;
 		width: 100%;
 	}
 
@@ -719,6 +717,7 @@ body {
 		max-width: var(--sidebar-width);
 		z-index: 100;
 		font-size: var(--text-sm);
+		left: -10px !important;
 
 		.dropdown-item {
 			display: flex;
