@@ -119,6 +119,9 @@ let allow_toggle_optimize = computed(() => {
 		!props.file.failed
 	);
 });
+let allow_toggle_private = computed(() => {
+	return props.allow_toggle_private && !uploaded.value && !props.file.failed;
+});
 let is_cropable = computed(() => {
 	let croppable_types = ["image/jpeg", "image/png"];
 	return (
