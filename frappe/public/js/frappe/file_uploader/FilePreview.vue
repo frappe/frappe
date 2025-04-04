@@ -72,7 +72,11 @@
 				class="alert alert-warning mb-0"
 				role="alert"
 			>
-				{{ __("Warning: This file is public. Mark it private to hide it from others.") }}
+				{{
+					__(
+						"This file is public and can be accessed by anyone, even without logging in. Mark it private to limit access."
+					)
+				}}
 			</div>
 		</div>
 	</div>
