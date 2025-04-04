@@ -38,6 +38,11 @@
 				<span v-if="file.error_message" class="file-error text-danger">
 					{{ file.error_message }}
 				</span>
+				<span v-if="!file.private" class="text-danger">
+					{{
+						__("Warning: This file is public. Mark it private to hide it from others.")
+					}}
+				</span>
 			</div>
 		</div>
 		<div class="file-actions">
