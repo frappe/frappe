@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-30 09:33+0000\n"
-"PO-Revision-Date: 2025-03-31 17:44\n"
+"PO-Revision-Date: 2025-04-04 17:55\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -253,7 +253,7 @@ msgstr "<b>{0}</b> nije važeći URL"
 #. Content of the 'Help' (HTML) field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "<div class=\"alert\">Please don't update it as it can mess up your form. Use the Customize Form View and Custom Fields to set properties!</div>"
-msgstr ""
+msgstr "<div class=\"alert\">Nemojažurirati jer može pokvarit vaš obrazac. Koristi Prilagodi Prikaz Obrasca i Prilagođena Polja za postavljanje svojstava!</div>"
 
 #. Content of the 'Help HTML' (HTML) field in DocType 'Document Naming
 #. Settings'
@@ -352,7 +352,20 @@ msgid "<h3>Custom CSS Help</h3>\n\n"
 "<p>1. Add border to sections except the last section</p>\n\n"
 "<pre><code>.section-break { padding: 30px 0px; border-bottom: 1px solid #eee; }\n"
 ".section-break:last-child { padding-bottom: 0px; border-bottom: 0px;  }</code></pre>\n"
-msgstr ""
+msgstr "<h3>Pomoć za prilagođeni CSS</h3>\n\n"
+"<p>Napomene:</p>\n\n"
+"<ol>\n"
+"<li>Sve grupe polja (oznaka + vrijednost) su postavljeni atributi <code>data-fieldtype</code> i <code>data-fieldname</code></li>\n"
+"<li>Sve vrijednosti imaju klasu <code>value</code></li>\n"
+"<li>Svi prijelomi odjeljaka dobivaju klasu <code>section-break</code></li>\n"
+"<li>Svim prijelomima kolona dodijeljena je klasa <code>column-break</code></li>\n"
+"</ol>\n\n"
+"<h4>Primjeri</h4>\n\n"
+"<p>1. Lijevo poravnanje cijelih brojeva</p>\n\n"
+"<pre><code>[data-fieldtype=\"Int\"] .value { text-align: left; }</code></pre>\n\n"
+"<p>1. Dodajte ivicu odjeljcima osim posljednjeg odjeljka</p>\n\n"
+"<pre><code>.section-break { padding: 30px 0px; border-bottom: 1px solid #eee; }\n"
+".section-break:last-child { padding-bottom: 0px; rub-bottom: 0px; }</code></pre>\n"
 
 #. Content of the 'Print Format Help' (HTML) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -423,7 +436,72 @@ msgid "<h3>Print Format Help</h3>\n"
 "\t\t</tr>\n"
 "\t</tbody>\n"
 "</table>\n"
-msgstr ""
+msgstr "<h3>Pomoć za format ispisa</h3>\n"
+"<hr>\n"
+"<h4>Uvod</h4>\n"
+"<p>Formati ispisa prikazuju se na strani poslužitelja pomoću Jinja Templating Language. Svi obrasci imaju pristup objektu <code>doc</code> koji sadrži informacije o dokumentu koji se formatira. Također možete pristupiti uobičajenim uslužnim programima preko <code>frappe</code> modula.</p>\n"
+"<p>Za stiliziranje, Boostrap CSS framework je osiguran i možete uživati u punom rasponu klasa.</p>\n"
+"<hr>\n"
+"<h4>Reference</h4>\n"
+"<ol>\n"
+"<li><a href=\"http://jinja.pocoo.org/docs/templates/\" target=\"_blank\">Jinja Templateing Language</a></li>\n"
+"<li><a href=\"http://getbootstrap.com\" target=\"_blank\">Bootstrap CSS okvir</a></li>\n"
+"</ol>\n"
+"<hr>\n"
+"<h4>Primjer</h4>\n"
+"<pre><code>&lt;h3&gt;{{ doc.select_print_heading or \"Invoice\" }}&lt;/h3&gt;\n"
+"&lt;div class=\"row\"&gt;\n"
+"&lt;div class=\"col-md-3 text-right\"&gt;Ime kupca&lt;/div&gt;\n"
+"&lt;div class=\"col-md-9\"&gt;{{ doc.customer_name }}&lt;/div&gt;\n"
+"&lt;/div&gt;\n"
+"&lt;div class=\"row\"&gt;\n"
+"&lt;div class=\"col-md-3 text-right\"&gt;Datum&lt;/div&gt;\n"
+"&lt;div class=\"col-md-9\"&gt;{{ doc.get_formatted(\"invoice_date\") }}&lt;/div&gt;\n"
+"&lt;/div&gt;\n"
+"&lt;table class=\"table table-bordered\"&gt;\n"
+"&lt;tijelo&gt;\n"
+"&lt;tr&gt;\n"
+"&lt;th&gt;Sr&lt;/th&gt;\n"
+"&lt;th&gt;Naziv stavke&lt;/th&gt;\n"
+"&lt;th&gt;Opis&lt;/th&gt;\n"
+"&lt;th class=\"text-right\"&gt;Kol&lt;/th&gt;\n"
+"&lt;th class=\"text-right\"&gt;Cijena&lt;/th&gt;\n"
+"&lt;th class=\"text-right\"&gt;Iznos&lt;/th&gt;\n"
+"&lt;/tr&gt;\n"
+"{%- za red u doc.items -%}\n"
+"&lt;tr&gt;\n"
+"&lt;td style=\"width: 3%;\"&gt;{{ row.idx }}&lt;/td&gt;\n"
+"&lt;td style=\"width: 20%;\"&gt;\n"
+"{{ row.item_name }}\n"
+"{% if row.item_code != row.item_name -%}\n"
+"&lt;br&gt;Šifra artikla: {{ row.item_code}}\n"
+"\t\t\t\t{%- endif %}\n"
+"\t\t\t&lt;/td&gt;\n"
+"\t\t\t&lt;td style=\"width: 37%;\"&gt;\n"
+"\t\t\t\t&lt;div style=\"border: 0px;\"&gt;{{ row.description }}&lt;/div&gt;&lt;/td&gt;\n"
+"\t\t\t&lt;td style=\"width: 10%; text-align: right;\"&gt;{{ row.qty }} {{ row.uom or row.stock_uom }}&lt;/td&gt;\n"
+"\t\t\t&lt;td style=\"width: 15%; text-align: right;\"&gt;{{\n"
+"\t\t\t\trow.get_formatted(\"rate\", doc) }}&lt;/td&gt;\n"
+"\t\t\t&lt;td style=\"width: 15%; text-align: right;\"&gt;{{\n"
+"\t\t\t\trow.get_formatted(\"amount\", doc) }}&lt;/td&gt;\n"
+"\t\t&lt;/tr&gt;\n"
+"\t\t{%- endfor -%}\n"
+"&lt;/tbody&gt;\n"
+"&lt;/table&gt;</code></pre>\n"
+"<hr>\n"
+"<h4>Uobičajene funkcije</h4>\n"
+"<table class=\"table table-bordered\">\n"
+"<tbody>\n"
+"<tr>\n"
+"<td style=\"width: 30%;\"><code>doc.get_formatted(\"[fieldname]\", [parent_doc])</code></td>\n"
+"<td>Dohvatite vrijednost dokumenta formatiranu kao datum, valuta itd. Proslijedite nadređeni <code>doc</code> za polja tipa valute.</td>\n"
+"</tr>\n"
+"<tr>\n"
+"<td style=\"width: 30%;\"><code>frappe.db.get_value(\"[doctype]\", \"[name]\", \"fieldname\")</code></td>\n"
+"<td>Dobijte vrijednost iz drugog dokumenta.</td>\n"
+"</tr>\n"
+"</tbody>\n"
+"</table>\n"
 
 #. Description of the 'Template' (Code) field in DocType 'Address Template'
 #: frappe/contacts/doctype/address_template/address_template.json
@@ -440,7 +518,18 @@ msgid "<h4>Default Template</h4>\n"
 "{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}\n"
 "{% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}\n"
 "</code></pre>"
-msgstr ""
+msgstr "<h4>Zadani Predložak</h4>\n"
+"<p>Koristi <a href=\"http://jinja.pocoo.org/docs/templates/\">Jinja Templating</a> i sva polja adrese (uključujući prilagođena polja ako postoje) bit će dostupna</p >\n"
+"<pre><code>{{ address_line1 }}&lt;br&gt;\n"
+"{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}\n"
+"{{ city }}&lt;br&gt;\n"
+"{% if state %}{{ state }}&lt;br&gt;{% endif -%}\n"
+"{% if pincode %} PIN: {{ pincode }}&lt;br&gt;{% endif -%}\n"
+"{{ country }}&lt;br&gt;\n"
+"{% if phone %}Telefon: {{ phone }}&lt;br&gt;{% endif -%}\n"
+"{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}\n"
+"{% if email_id %}E-pošta: {{ email_id }}&lt;br&gt;{% endif -%}\n"
+"</code></pre>"
 
 #. Content of the 'Email Reply Help' (HTML) field in DocType 'Email Template'
 #: frappe/email/doctype/email_template/email_template.json
@@ -455,12 +544,22 @@ msgid "<h4>Email Reply Example</h4>\n\n"
 "<p>The fieldnames you can use in your email template are the fields in the document from which you are sending the email. You can find out the fields of any documents via Setup &gt; Customize Form View and selecting the document type (e.g. Sales Invoice)</p>\n\n"
 "<h4>Templating</h4>\n\n"
 "<p>Templates are compiled using the Jinja Templating Language. To learn more about Jinja, <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\">read this documentation.</a></p>\n"
-msgstr ""
+msgstr "<h4>Primjer odgovora e-poštom</h4>\n\n"
+"<pre>Narudžba kasni\n\n"
+"Transakcija {{ name }} je premašila datum dospijeća. Poduzmite potrebne radnje.\n\n"
+"Pojedinosti\n\n"
+"- Kupac: {{ customer }}\n"
+"- Iznos: {{ grand_total }}\n"
+"</pre>\n\n"
+"<h4>Kako dobiti nazive polja</h4>\n\n"
+"<p>Imena polja koja možete koristiti u svom šablonu e-pošte su polja u dokumentu iz kojeg šaljete e-poštu. Možete saznati polja bilo kojeg dokumenta preko Postavljanje &gt; Prilagodite prikaz obrasca i odaberite vrstu dokumenta (npr. prodajna faktura)</p>\n\n"
+"<h4>Izrada šablona</h4>\n\n"
+"<p>Šabloni su sastavljeni pomoću Jinja Templating Language. Da biste saznali više o Jinji, <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\">pročitajte ovu dokumentaciju.</a></p>\n"
 
 #. Content of the 'html_5' (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "<h5 class=\"text-muted uppercase\">Or</h5>"
-msgstr ""
+msgstr "<h5 class=\"text-muted uppercase\">Ili</h5>"
 
 #. Content of the 'Message Examples' (HTML) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -478,28 +577,46 @@ msgid "<h5>Message Example</h5>\n\n"
 "&lt;li&gt;Amount: {{ doc.grand_total }}\n"
 "&lt;/ul&gt;\n"
 "</pre>"
-msgstr ""
+msgstr "<h5>Primjer poruke</h5>\n\n"
+"<pre>&lt;h3&gt;Narudžba kasni&lt;/h3&gt;\n\n"
+"&lt;p&gt;Transakcija {{ doc.name }} je premašila rok. Poduzmite potrebne radnje.&lt;/p&gt;\n\n"
+"&lt;!-- prikaži zadnji komentar --&gt;\n"
+"{% if comments %}\n"
+"Zadnji komentar: {{ comments[-1].comment }} od {{ comments[-1].by }}\n"
+"{% endif %}\n\n"
+"&lt;h4&gt;Detalji&lt;/h4&gt;\n\n"
+"&lt;ul&gt;\n"
+"&lt;li&gt;Kupac: {{ doc.customer }}\n"
+"&lt;li&gt;Iznos: {{ doc.grand_total }}\n"
+"&lt;/ul&gt;\n"
+"</pre>"
 
 #. Content of the 'html_condition' (HTML) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "<p><strong>Condition Examples:</strong></p>\n"
 "<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
 "</pre>"
-msgstr ""
+msgstr "<p><strong>Primjeri Uvjeta:</strong></p>\n"
+"<pre>doc.status==\"Otvoreno\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
+"</pre>"
 
 #. Content of the 'html_7' (HTML) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "<p><strong>Condition Examples:</strong></p>\n"
 "<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
 "</pre>\n"
-msgstr ""
+msgstr "<p><strong>Primjeri Uvjeta:</strong></p>\n"
+"<pre>doc.status==\"Otvoreno\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
+"</pre>\n"
 
 #. Content of the 'Condition description' (HTML) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "<p>Multiple webforms can be created for a single doctype. Add filters specific to this webform to display correct record after submission.</p><p>For Example:</p>\n"
 "<p>If you create a separate webform every year to capture feedback from employees add a \n"
 " field named year in doctype and add a filter <b>year = 2023</b></p>\n"
-msgstr ""
+msgstr "<p>Za jedan tip dokumenta može se izraditi više web obrazaca. Dodaj filtre specifične za ovaj web obrazac za prikaz ispravnog zapisa nakon podnošenja.</p><p>Na primjer:</p>\n"
+"<p>Ako svake godine izradite zaseban web obrazac za prikupljanje povratnih informacija od zaposlenika, dodajte \n"
+" polje pod nazivom godina u doctype i dodajte filter <b>godina = 2023</b></p>\n"
 
 #. Description of the 'Context Script' (Code) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -507,7 +624,10 @@ msgid "<p>Set context before rendering a template. Example:</p><p>\n"
 "</p><div><pre><code>\n"
 "context.project = frappe.get_doc(\"Project\", frappe.form_dict.name)\n"
 "</code></pre></div>"
-msgstr ""
+msgstr "<p>Postavi kontekst prije iscrtavanja predloška. Primjer:</p><p>\n"
+"</p><div><pre><code>\n"
+"context.project = frappe.get_doc(\"Projekt\", frappe.form_dict.name)\n"
+"</code></pre></div>"
 
 #. Content of the 'JS Message' (HTML) field in DocType 'Custom HTML Block'
 #: frappe/desk/doctype/custom_html_block/custom_html_block.json
@@ -515,11 +635,14 @@ msgid "<p>To interact with above HTML you will have to use `root_element` as a p
 "let some_class_element = root_element.querySelector('.some-class');\n"
 "some_class_element.textContent = \"New content\";\n"
 "</code></pre>"
-msgstr ""
+msgstr "<p>Za interakciju s gornjim HTML-om morat ćete koristiti `root_element` kao nadređeni selektor.</p><p>Na primjer:</p><pre class=\"p-3 bg-gray-100 border-radius rounded-sm mb-0\" style=\"width: fit-content;\"><code>// ovdje se root_element daje prema zadanim postavkama\n"
+"let some_class_element = root_element.querySelector('.some-class');\n"
+"some_class_element.textContent = \"Novi sadržaj\";\n"
+"</code></pre>"
 
 #: frappe/twofactor.py:446
 msgid "<p>Your OTP secret on {0} has been reset. If you did not perform this reset and did not request it, please contact your System Administrator immediately.</p>"
-msgstr ""
+msgstr "<p>Vaša OTP tajna na {0} je poništena. Ako niste izvršili ovo resetiranje i niste ga zatražili, odmah kontaktirajte svog administratora sustava.</p>"
 
 #. Description of the 'Cron Format' (Data) field in DocType 'Scheduled Job
 #. Type'
@@ -566,7 +689,19 @@ msgid "<pre><code>doc.grand_total &gt; 0</code></pre>\n\n"
 "<li>frappe.utils.now</li>\n"
 "</ul>\n"
 "<p>Example: </p><pre><code>doc.creation &gt; frappe.utils.add_to_date(frappe.utils.now_datetime(), days=-5, as_string=True, as_datetime=True) </code></pre><p></p>"
-msgstr ""
+msgstr "<pre><code>doc.grand_total &gt; 0</code></pre>\n\n"
+"<p>Uvjeti trebaju biti napisani u jednostavnom Pythonu. Molimo koristite samo svojstva dostupna u obrascu.</p>\n"
+"<p>Dopuštene funkcije:\n"
+"</p><ul>\n"
+"<li>frappe.db.get_value</li>\n"
+"<li>frappe.db.get_list</li>\n"
+"<li>frappe.session</li>\n"
+"<li>frappe.utils.now_datetime</li>\n"
+"<li>frappe.utils.get_datetime</li>\n"
+"<li>frappe.utils.add_to_date</li>\n"
+"<li>frappe.utils.now</li>\n"
+"</ul>\n"
+"<p>Primjer: </p><pre><code>izrada dokumenta &gt; frappe.utils.add_to_date(frappe.utils.now_datetime(), days=-5, as_string=True, as_datetime=True) </code></pre><p></p>"
 
 #. Header text in the Welcome Workspace Workspace
 #: frappe/core/workspace/welcome_workspace/welcome_workspace.json
@@ -576,11 +711,11 @@ msgstr "<span class=\"h2\">Zdravo,</span>"
 #. Header text in the Integrations Workspace
 #: frappe/integrations/workspace/integrations/integrations.json
 msgid "<span class=\"h4\"><b>Reports &amp; Masters</b></span>"
-msgstr "<span class=\"h4\"><b>Izvještaji &amp; Pristupi</b></span>"
+msgstr "<span class=\"h4\"><b>Izvješća &amp; Pristup</b></span>"
 
 #: frappe/custom/doctype/custom_field/custom_field.js:39
 msgid "<strong>Warning:</strong> This field is system generated and may be overwritten by a future update. Modify it using {0} instead."
-msgstr ""
+msgstr "<strong>Upozorenje:</strong> Ovo polje generira sustav i može biti prebrisano budućim ažuriranjem. Promijenite ga koristeći {0} umjesto toga."
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
 #. Condition'
@@ -602,32 +737,32 @@ msgstr ">="
 
 #: frappe/core/doctype/doctype/doctype.py:1032
 msgid "A DocType's name should start with a letter and can only consist of letters, numbers, spaces, underscores and hyphens"
-msgstr ""
+msgstr "Ime DocType treba započeti slovom i može se sastojati samo od slova, brojeva, razmaka, podvlaka i crtica"
 
 #: frappe/website/doctype/blog_post/blog_post.py:93
 msgid "A featured post must have a cover image"
-msgstr ""
+msgstr "Istaknuta objava mora imati naslovnu sliku"
 
 #: frappe/custom/doctype/custom_field/custom_field.py:175
 msgid "A field with the name {0} already exists in {1}"
-msgstr ""
+msgstr "Polje s imenom {0} već postoji u {1}"
 
 #: frappe/core/doctype/file/file.py:255
 msgid "A file with same name {} already exists"
-msgstr ""
+msgstr "Datoteka s istim imenom {} već postoji"
 
 #. Description of the 'Scopes' (Text) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "A list of resources which the Client App will have access to after the user allows it.<br> e.g. project"
-msgstr ""
+msgstr "Lista resursa kojima će klijentska aplikacija imati pristup nakon što korisnik to dozvoli.<br> npr. projekat"
 
 #: frappe/templates/emails/new_user.html:5
 msgid "A new account has been created for you at {0}"
-msgstr ""
+msgstr "Za vas je stvoren novi račun na {0}"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:395
 msgid "A recurring {0} {1} has been created for you via Auto Repeat {2}."
-msgstr ""
+msgstr "Ponavljajuće {0} {1} stvoreno je za vas putem automatskog ponavljanja {2}."
 
 #. Description of the 'Symbol' (Data) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
@@ -636,11 +771,11 @@ msgstr "Simbol za ovu valutu. Za npr. $"
 
 #: frappe/printing/doctype/print_format_field_template/print_format_field_template.py:49
 msgid "A template already exists for field {0} of {1}"
-msgstr ""
+msgstr "Predložak već postoji za polje {0} od {1}"
 
 #: frappe/utils/password_strength.py:169
 msgid "A word by itself is easy to guess."
-msgstr ""
+msgstr "Riječ samu po sebi lako je pogoditi."
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -1313,7 +1448,7 @@ msgstr "Dodan HTML u &lt;head&gt; odjeljak web stranice, prvenstveno se koristi 
 
 #: frappe/core/doctype/log_settings/log_settings.py:81
 msgid "Added default log doctypes: {}"
-msgstr ""
+msgstr "Dodani zadani tipovi dokumenata dnevnika: {}"
 
 #: frappe/core/doctype/file/file.py:738
 msgid "Added {0}"
@@ -1435,15 +1570,15 @@ msgstr "Administrator"
 
 #: frappe/core/doctype/user/user.py:1214
 msgid "Administrator Logged In"
-msgstr ""
+msgstr "Administrator je prijavljen"
 
 #: frappe/core/doctype/user/user.py:1208
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
-msgstr ""
+msgstr "Administrator je pristupio {0} {1} putem IP adrese {2}."
 
 #: frappe/desk/form/document_follow.py:52
 msgid "Administrator can't follow"
-msgstr ""
+msgstr "Administrator ne može pratiti"
 
 #. Label of the advanced (Section Break) field in DocType 'DocType'
 #. Label of the advanced_tab (Tab Break) field in DocType 'System Settings'
@@ -1461,7 +1596,7 @@ msgstr "Napredna Kontrola"
 #: frappe/public/js/frappe/form/controls/link.js:335
 #: frappe/public/js/frappe/form/controls/link.js:337
 msgid "Advanced Search"
-msgstr ""
+msgstr "Napredno Pretraživanje"
 
 #. Label of the sb_advanced (Section Break) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -1486,7 +1621,7 @@ msgstr "Nakon Brisanja"
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "After Discard"
-msgstr ""
+msgstr "Nakon Odbacivanja"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -1501,22 +1636,22 @@ msgstr "Nakon Preimenovanja"
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "After Save"
-msgstr ""
+msgstr "Nakon Spremanja"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "After Save (Submitted Document)"
-msgstr ""
+msgstr "Nakon Spremanja (Podnesen Dokument)"
 
 #. Label of the section_break_5 (Section Break) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "After Submission"
-msgstr ""
+msgstr "Nakon Podnošenja"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "After Submit"
-msgstr ""
+msgstr "Nakon Podnošenja"
 
 #: frappe/desk/doctype/number_card/number_card.py:60
 msgid "Aggregate Field is required to create a number card"
@@ -1538,7 +1673,7 @@ msgstr ""
 #. Option for the 'Type' (Select) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "Alert"
-msgstr ""
+msgstr "Upozorenje"
 
 #. Label of a Card Break in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
@@ -1549,21 +1684,21 @@ msgstr ""
 #. Label of the footer_align (Select) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Align"
-msgstr ""
+msgstr "Poravnaj"
 
 #. Label of the align_labels_right (Check) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Align Labels to the Right"
-msgstr ""
+msgstr "Poravnaj Oznake Udesno"
 
 #. Label of the right (Check) field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
 msgid "Align Right"
-msgstr ""
+msgstr "Poravnaj Desno"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:479
 msgid "Align Value"
-msgstr ""
+msgstr "Poravnaj Vrijednost"
 
 #. Name of a role
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
