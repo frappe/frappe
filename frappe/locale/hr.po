@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-03-31 17:43\n"
+"PO-Revision-Date: 2025-04-04 14:10\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -481,7 +481,7 @@ msgstr ""
 
 #: frappe/twofactor.py:447
 msgid "<p>Your OTP secret on {0} has been reset. If you did not perform this reset and did not request it, please contact your System Administrator immediately.</p>"
-msgstr ""
+msgstr "<p>Vaša OTP tajna na {0} je poništena. Ako niste izvršili ovo resetiranje i niste ga zatražili, odmah kontaktirajte svog administratora sustava.</p>"
 
 #. Description of the 'Cron Format' (Data) field in DocType 'Scheduled Job
 #. Type'
@@ -562,7 +562,7 @@ msgstr ""
 
 #: frappe/custom/doctype/custom_field/custom_field.js:39
 msgid "<strong>Warning:</strong> This field is system generated and may be overwritten by a future update. Modify it using {0} instead."
-msgstr ""
+msgstr "<strong>Upozorenje:</strong> Ovo polje generira sustav i može biti prebrisano budućim ažuriranjem. Promijenite ga koristeći {0} umjesto toga."
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
 #. Condition'
@@ -589,19 +589,19 @@ msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1011
 msgid "A DocType's name should start with a letter and can only consist of letters, numbers, spaces, underscores and hyphens"
-msgstr ""
+msgstr "Ime DocType treba započeti slovom i može se sastojati samo od slova, brojeva, razmaka, podvlaka i crtica"
 
 #: frappe/website/doctype/blog_post/blog_post.py:93
 msgid "A featured post must have a cover image"
-msgstr ""
+msgstr "Istaknuta objava mora imati naslovnu sliku"
 
 #: frappe/custom/doctype/custom_field/custom_field.py:174
 msgid "A field with the name {0} already exists in {1}"
-msgstr ""
+msgstr "Polje s imenom {0} već postoji u {1}"
 
 #: frappe/core/doctype/file/file.py:253
 msgid "A file with same name {} already exists"
-msgstr ""
+msgstr "Datoteka s istim imenom {} već postoji"
 
 #. Description of the 'Scopes' (Text) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -1289,7 +1289,7 @@ msgstr ""
 
 #: frappe/core/doctype/log_settings/log_settings.py:82
 msgid "Added default log doctypes: {}"
-msgstr ""
+msgstr "Dodani zadani tipovi dokumenata dnevnika: {}"
 
 #: frappe/core/doctype/file/file.py:730
 msgid "Added {0}"
@@ -1408,11 +1408,11 @@ msgstr "Administrator"
 
 #: frappe/core/doctype/user/user.py:1158
 msgid "Administrator Logged In"
-msgstr ""
+msgstr "Administrator je prijavljen"
 
 #: frappe/core/doctype/user/user.py:1152
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
-msgstr ""
+msgstr "Administrator je pristupio {0} {1} putem IP adrese {2}."
 
 #. Label of a Section Break field in DocType 'DocType'
 #. Label of a Tab Break field in DocType 'System Settings'
@@ -1523,7 +1523,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:479
 msgid "Align Value"
-msgstr ""
+msgstr "Poravnaj Vrijednost"
 
 #. Name of a role
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
