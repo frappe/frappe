@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-30 09:33+0000\n"
-"PO-Revision-Date: 2025-03-31 17:43\n"
+"PO-Revision-Date: 2025-04-05 18:36\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -10013,7 +10013,7 @@ msgstr "Misslyckades att skicka e-post meddelande"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:23
 msgid "Failed to update global settings"
-msgstr "Misslyckades att uppdatera globala inställningar"
+msgstr "Misslyckades att uppdatera standard inställningar"
 
 #: frappe/integrations/frappe_providers/frappecloud_billing.py:74
 msgid "Failed while calling API {0}"
@@ -28118,7 +28118,7 @@ msgstr "Uppdatering av räknare kan leda till dokument namn konflikter om det in
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:22
 msgid "Updating global settings"
-msgstr "Uppdaterar Globala Inställningar"
+msgstr "Uppdaterar Standard Inställningar"
 
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.js:59
 msgid "Updating naming series options"
