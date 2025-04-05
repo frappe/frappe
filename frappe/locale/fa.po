@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-30 09:33+0000\n"
-"PO-Revision-Date: 2025-03-31 17:43\n"
+"PO-Revision-Date: 2025-04-05 18:36\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -1854,7 +1854,7 @@ msgstr "اجازه ورود کاربر فقط قبل از این ساعت (0-24)
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Allow users to log in without a password, using a login link sent to their email"
-msgstr "به کاربران اجازه دهید بدون رمز عبور با استفاده از پیوند ورود به ایمیل آنها وارد شوند"
+msgstr "به کاربران اجازه دهید بدون گذرواژه با استفاده از پیوند ورود به ایمیل آنها وارد شوند"
 
 #. Label of the allowed (Link) field in DocType 'Workflow Transition'
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
@@ -2541,7 +2541,7 @@ msgstr "حداقل یک فیلد در جدول فیلدهای فرم وب مور
 
 #: frappe/core/doctype/data_export/data_export.js:44
 msgid "At least one field of Parent Document Type is mandatory"
-msgstr "حداقل یک فیلد از نوع سند والدین اجباری است"
+msgstr "حداقل یک فیلد از نوع سند والد اجباری است"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -2982,12 +2982,12 @@ msgstr "از سال هایی که با شما همراه است دوری کنی�
 #. Label of the awaiting_password (Check) field in DocType 'User Email'
 #: frappe/core/doctype/user_email/user_email.json
 msgid "Awaiting Password"
-msgstr "در انتظار رمز عبور"
+msgstr "در انتظار گذرواژه"
 
 #. Label of the awaiting_password (Check) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Awaiting password"
-msgstr "در انتظار رمز عبور"
+msgstr "در انتظار گذرواژه"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:195
 msgid "Awesome Work"
@@ -3502,7 +3502,7 @@ msgstr "هم DocType و هم Name مورد نیاز است"
 #: frappe/templates/includes/login/login.js:24
 #: frappe/templates/includes/login/login.js:96
 msgid "Both login and password required"
-msgstr "ورود و رمز عبور هر دو نیاز است"
+msgstr "ورود و گذرواژه هر دو نیاز است"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -4331,7 +4331,7 @@ msgstr "تغییر سربرگ"
 #. Label of the change_password (Section Break) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Change Password"
-msgstr "تغییر رمز عبور"
+msgstr "تغییر گذرواژه"
 
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:27
 msgid "Change Print Format"
@@ -4636,7 +4636,7 @@ msgstr "برای تایید درخواست روی لینک زیر کلیک کن�
 
 #: frappe/templates/emails/new_user.html:7
 msgid "Click on the link below to complete your registration and set a new password"
-msgstr "برای تکمیل ثبت نام و تعیین رمز عبور جدید روی لینک زیر کلیک کنید"
+msgstr "برای تکمیل ثبت نام و تعیین گذرواژه جدید روی لینک زیر کلیک کنید"
 
 #: frappe/templates/emails/download_data.html:3
 msgid "Click on the link below to download your data"
@@ -5275,11 +5275,11 @@ msgstr "حذف اکانت را تایید کنید"
 
 #: frappe/core/doctype/user/user.js:191
 msgid "Confirm New Password"
-msgstr "رمز عبور جدید را تأیید کنید"
+msgstr "گذرواژه جدید را تأیید کنید"
 
 #: frappe/www/update-password.html:47
 msgid "Confirm Password"
-msgstr "رمز عبور را تایید کنید"
+msgstr "گذرواژه را تایید کنید"
 
 #: frappe/templates/emails/data_deletion_approval.html:6
 #: frappe/templates/emails/delete_data_confirmation.html:7
@@ -7273,7 +7273,7 @@ msgstr "اعلان به روز رسانی سیستم را غیرفعال کنی�
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable Username/Password Login"
-msgstr "غیرفعال کردن ورود نام کاربری/رمز عبور"
+msgstr "غیرفعال کردن ورود نام کاربری/گذرواژه"
 
 #. Label of the disable_signup (Check) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -8087,11 +8087,11 @@ msgstr "داده های خود را دانلود کنید"
 
 #: frappe/contacts/doctype/contact/contact.js:98
 msgid "Download vCard"
-msgstr "دانلود کارت ویزیت"
+msgstr "دانلود کارت مجازی"
 
 #: frappe/contacts/doctype/contact/contact_list.js:4
 msgid "Download vCards"
-msgstr "دانلود کارت ویزیت‌ها"
+msgstr "دانلود کارت‌های مجازی"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:47
 msgid "Dr"
@@ -8886,7 +8886,7 @@ msgstr "خروجی را فعال کنید"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Enable Password Policy"
-msgstr "سیاست رمز عبور را فعال کنید"
+msgstr "سیاست گذرواژه را فعال کنید"
 
 #. Label of the enable_prepared_report (Check) field in DocType 'Role
 #. Permission for Page and Report'
@@ -9201,7 +9201,7 @@ msgstr "نام پوشه را وارد کنید"
 #. Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
 msgid "Enter static url parameters here (Eg. sender=ERPNext, username=ERPNext, password=1234 etc.)"
-msgstr "پارامترهای url ثابت را در اینجا وارد کنید (به عنوان مثال، فرستنده=ERPNext، نام کاربری=ERPNext، رمز عبور=1234 و غیره)"
+msgstr "پارامترهای url ثابت را در اینجا وارد کنید (به عنوان مثال، فرستنده=ERPNext، نام کاربری=ERPNext، گذرواژه=1234 و غیره)"
 
 #. Description of the 'Message Parameter' (Data) field in DocType 'SMS
 #. Settings'
@@ -9217,7 +9217,7 @@ msgstr "پارامتر url را برای شماره گیرنده وارد کنی
 
 #: frappe/public/js/frappe/ui/messages.js:334
 msgid "Enter your password"
-msgstr "رمز عبور خود را وارد کنید"
+msgstr "گذرواژه خود را وارد کنید"
 
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.js:22
 msgid "Entity Name"
@@ -9733,7 +9733,7 @@ msgstr "دریافت قفل ناموفق بود: {}. قفل ممکن است تو
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:359
 msgid "Failed to change password."
-msgstr "تغییر رمز عبور انجام نشد."
+msgstr "تغییر گذرواژه انجام نشد."
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:220
 #: frappe/desk/page/setup_wizard/setup_wizard.py:36
@@ -10593,7 +10593,7 @@ msgstr "پاورقی HTML"
 
 #: frappe/printing/doctype/letter_head/letter_head.py:75
 msgid "Footer HTML set from attachment {0}"
-msgstr "مجموعه HTML پاورقی از پیوست {0}"
+msgstr "تنظیم HTML پاورقی از پیوست {0}"
 
 #. Label of the footer_image_section (Section Break) field in DocType 'Letter
 #. Head'
@@ -10772,7 +10772,7 @@ msgstr "کار توقف اجباری"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Force User to Reset Password"
-msgstr "کاربر را مجبور به بازنشانی رمز عبور کنید"
+msgstr "کاربر را مجبور به بازنشانی گذرواژه کنید"
 
 #. Label of the force_web_capture_mode_for_uploads (Check) field in DocType
 #. 'System Settings'
@@ -10782,7 +10782,7 @@ msgstr "اجباری حالت گرفتن وب برای آپلودها"
 
 #: frappe/www/login.html:37
 msgid "Forgot Password?"
-msgstr "رمز عبور را فراموش کرده اید؟"
+msgstr "گذرواژه را فراموش کرده اید؟"
 
 #. Label of the form_builder_tab (Tab Break) field in DocType 'DocType'
 #. Option for the 'Apply To' (Select) field in DocType 'Client Script'
@@ -11104,7 +11104,7 @@ msgstr "ایجاد گزارش جدید"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:394
 msgid "Generate Random Password"
-msgstr "ایجاد رمز عبور تصادفی"
+msgstr "ایجاد گذرواژه تصادفی"
 
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:173
 #: frappe/public/js/frappe/utils/utils.js:1786
@@ -11712,7 +11712,7 @@ msgstr "سربرگ HTML"
 
 #: frappe/printing/doctype/letter_head/letter_head.py:63
 msgid "Header HTML set from attachment {0}"
-msgstr "مجموعه HTML سرصفحه از پیوست {0}"
+msgstr "تنظیم HTML سرصفحه از پیوست {0}"
 
 #. Label of the header_script (Code) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
@@ -12034,7 +12034,7 @@ msgstr "برجسته"
 
 #: frappe/www/update-password.html:276
 msgid "Hint: Include symbols, numbers and capital letters in the password"
-msgstr "نکته: نمادها، اعداد و حروف بزرگ را در رمز عبور قرار دهید"
+msgstr "نکته: نمادها، اعداد و حروف بزرگ را در گذرواژه قرار دهید"
 
 #. Label of the home_tab (Tab Break) field in DocType 'Website Settings'
 #: frappe/public/js/frappe/file_uploader/FileBrowser.vue:38
@@ -12098,7 +12098,7 @@ msgstr "ساعتی طولانی"
 #. DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Hourly rate limit for generating password reset links"
-msgstr "محدودیت نرخ ساعتی برای ایجاد پیوندهای بازنشانی رمز عبور"
+msgstr "محدودیت نرخ ساعتی برای ایجاد پیوندهای بازنشانی گذرواژه"
 
 #. Description of the 'Number Format' (Select) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
@@ -12296,7 +12296,7 @@ msgstr "اگر فعال باشد، اعلان در منوی کشویی اعلا�
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 2 being medium strong and 4 being very strong."
-msgstr "اگر فعال باشد، قدرت رمز عبور بر اساس مقدار حداقل امتیاز رمز عبور اعمال می‌شود. مقدار 2 قوی بودن متوسط و 4 بسیار قوی بودن."
+msgstr "اگر فعال باشد، قدرت گذرواژه بر اساس مقدار حداقل امتیاز گذرواژه اعمال می‌شود. مقدار 2 قوی بودن متوسط و 4 بسیار قوی بودن."
 
 #. Description of the 'Bypass Two Factor Auth for users who login from
 #. restricted IP Address' (Check) field in DocType 'System Settings'
@@ -12399,7 +12399,7 @@ msgstr "اگر این را تنظیم کنید، این آیتم به صورت �
 
 #: frappe/templates/emails/administrator_logged_in.html:3
 msgid "If you think this is unauthorized, please change the Administrator password."
-msgstr "اگر فکر می‌کنید این غیرمجاز است، لطفا رمز عبور ادمین را تغییر دهید."
+msgstr "اگر فکر می‌کنید این غیرمجاز است، لطفا گذرواژه ادمین را تغییر دهید."
 
 #. Description of the 'Delimiter Options' (Data) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
@@ -12813,7 +12813,7 @@ msgstr "شامل تورفتگی"
 
 #: frappe/public/js/frappe/form/controls/password.js:106
 msgid "Include symbols, numbers and capital letters in the password"
-msgstr "نمادها، اعداد و حروف بزرگ را در رمز عبور قرار دهید"
+msgstr "نمادها، اعداد و حروف بزرگ را در گذرواژه قرار دهید"
 
 #. Label of the incoming_popimap_tab (Tab Break) field in DocType 'Email
 #. Account'
@@ -12852,7 +12852,7 @@ msgstr "حساب ایمیل ورودی صحیح نیست"
 
 #: frappe/model/virtual_doctype.py:79 frappe/model/virtual_doctype.py:92
 msgid "Incomplete Virtual Doctype Implementation"
-msgstr "پیاده سازی Virtual Doctype ناقص"
+msgstr "پیاده‌سازی Virtual Doctype ناقص"
 
 #: frappe/auth.py:255
 msgid "Incomplete login details"
@@ -12868,7 +12868,7 @@ msgstr "URL نادرست است"
 
 #: frappe/utils/password.py:95
 msgid "Incorrect User or Password"
-msgstr "کاربر یا رمز عبور نادرست"
+msgstr "کاربر یا گذرواژه نادرست"
 
 #: frappe/twofactor.py:176 frappe/twofactor.py:188
 msgid "Incorrect Verification code"
@@ -13270,7 +13270,7 @@ msgstr "پارامترهای نامعتبر"
 #: frappe/www/update-password.html:144 frappe/www/update-password.html:146
 #: frappe/www/update-password.html:247
 msgid "Invalid Password"
-msgstr "رمز عبور نامعتبر"
+msgstr "گذرواژه نامعتبر"
 
 #: frappe/utils/__init__.py:120
 msgid "Invalid Phone Number"
@@ -13302,7 +13302,7 @@ msgstr "URL نامعتبر است"
 
 #: frappe/email/receive.py:155
 msgid "Invalid User Name or Support Password. Please rectify and try again."
-msgstr "نام کاربری یا رمز عبور پشتیبانی نامعتبر است. لطفاً اصلاح کنید و دوباره امتحان کنید."
+msgstr "نام کاربری یا گذرواژه پشتیبانی نامعتبر است. لطفاً اصلاح کنید و دوباره امتحان کنید."
 
 #: frappe/public/js/frappe/ui/field_group.js:133
 msgid "Invalid Values"
@@ -13385,7 +13385,7 @@ msgstr "حالت توکن نامعتبر! بررسی کنید که آیا توک
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:165
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:336
 msgid "Invalid username or password"
-msgstr "نام کاربری یا رمز عبور نامعتبر است"
+msgstr "نام کاربری یا گذرواژه نامعتبر است"
 
 #: frappe/model/naming.py:168
 msgid "Invalid value specified for UUID: {}"
@@ -14188,7 +14188,7 @@ msgstr "نام خانوادگی"
 #. Label of the last_password_reset_date (Date) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Last Password Reset Date"
-msgstr "آخرین تاریخ بازنشانی رمز عبور"
+msgstr "آخرین تاریخ بازنشانی گذرواژه"
 
 #. Label of the last_point_allocation_date (Date) field in DocType 'Energy
 #. Point Settings'
@@ -14205,7 +14205,7 @@ msgstr "سه ماهه آخر"
 #. DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Last Reset Password Key Generated On"
-msgstr "آخرین بازنشانی کلید رمز عبور ایجاد شده در"
+msgstr "آخرین بازنشانی کلید گذرواژه ایجاد شده در"
 
 #. Label of the datetime_last_run (Datetime) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -15011,7 +15011,7 @@ msgstr "ورود با انقضای لینک ایمیل (بر حسب دقیقه)"
 
 #: frappe/auth.py:144
 msgid "Login with username and password is not allowed."
-msgstr "ورود با نام کاربری و رمز عبور مجاز نمی باشد."
+msgstr "ورود با نام کاربری و گذرواژه مجاز نمی باشد."
 
 #: frappe/www/login.html:100
 msgid "Login with {0}"
@@ -15031,12 +15031,12 @@ msgstr "خروج از تمام نشست‌ها"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Logout All Sessions on Password Reset"
-msgstr "خروج از همه نشست‌ها با بازنشانی رمز عبور"
+msgstr "خروج از همه نشست‌ها با بازنشانی گذرواژه"
 
 #. Label of the logout_all_sessions (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Logout From All Devices After Changing Password"
-msgstr "خروج از همه دستگاه ها پس از تغییر رمز عبور"
+msgstr "خروج از همه دستگاه ها پس از تغییر گذرواژه"
 
 #. Group in User's connections
 #. Label of a Card Break in the Users Workspace
@@ -15706,7 +15706,7 @@ msgstr "کمترین"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Minimum Password Score"
-msgstr "حداقل امتیاز رمز عبور"
+msgstr "حداقل امتیاز گذرواژه"
 
 #. Label of the minor (Int) field in DocType 'Package Release'
 #: frappe/core/doctype/package_release/package_release.json
@@ -16024,7 +16024,7 @@ msgstr "بیشترین استفاده شده"
 
 #: frappe/utils/password.py:70
 msgid "Most probably your password is too long."
-msgstr "به احتمال زیاد رمز عبور شما خیلی طولانی است."
+msgstr "به احتمال زیاد گذرواژه شما خیلی طولانی است."
 
 #: frappe/core/doctype/communication/communication.js:86
 #: frappe/core/doctype/communication/communication.js:194
@@ -16438,7 +16438,7 @@ msgstr "آشناسازی جدید"
 
 #: frappe/core/doctype/user/user.js:185 frappe/www/update-password.html:42
 msgid "New Password"
-msgstr "رمز عبور جدید"
+msgstr "گذرواژه جدید"
 
 #: frappe/printing/page/print/print.js:267
 #: frappe/printing/page/print/print.js:321
@@ -16483,7 +16483,7 @@ msgstr "محیط کار جدید"
 
 #: frappe/www/update-password.html:79
 msgid "New password cannot be same as old password"
-msgstr "رمز عبور جدید نمی‌تواند مشابه رمز عبور قدیمی باشد"
+msgstr "گذرواژه جدید نمی‌تواند مشابه گذرواژه قدیمی باشد"
 
 #: frappe/utils/change_log.py:389
 msgid "New updates are available"
@@ -17660,7 +17660,7 @@ msgstr "افست Y"
 
 #: frappe/www/update-password.html:38
 msgid "Old Password"
-msgstr "رمز عبور قدیمی"
+msgstr "گذرواژه قدیمی"
 
 #: frappe/custom/doctype/custom_field/custom_field.py:412
 msgid "Old and new fieldnames are same."
@@ -18435,7 +18435,7 @@ msgstr "پارامتر"
 #: frappe/public/js/frappe/model/model.js:142
 #: frappe/public/js/frappe/views/workspace/workspace.js:434
 msgid "Parent"
-msgstr "والدین"
+msgstr "والد"
 
 #. Label of the parent_doctype (Link) field in DocType 'DocType Link'
 #: frappe/core/doctype/doctype_link/doctype_link.json
@@ -18451,7 +18451,7 @@ msgstr "نوع سند والد"
 
 #: frappe/desk/doctype/number_card/number_card.py:63
 msgid "Parent Document Type is required to create a number card"
-msgstr "برای ایجاد کارت شماره، نوع سند والدین مورد نیاز است"
+msgstr "برای ایجاد کارت شماره، نوع سند والد مورد نیاز است"
 
 #. Label of the parent_element_selector (Data) field in DocType 'Form Tour
 #. Step'
@@ -18498,15 +18498,15 @@ msgstr "نوع سند والد برای ایجاد نمودار داشبورد �
 
 #: frappe/core/doctype/data_export/exporter.py:253
 msgid "Parent is the name of the document to which the data will get added to."
-msgstr "والدین نام سندی است که داده ها به آن اضافه می‌شوند."
+msgstr "والد نام سندی است که داده ها به آن اضافه می‌شوند."
 
 #: frappe/permissions.py:798
 msgid "Parentfield not specified in {0}: {1}"
-msgstr "فیلد والدین در {0} مشخص نشده است: {1}"
+msgstr "فیلد والد در {0} مشخص نشده است: {1}"
 
 #: frappe/client.py:467
 msgid "Parenttype, Parent and Parentfield are required to insert a child record"
-msgstr "نوع والدین، والدین و فیلد والدین برای درج سابقه فرزند مورد نیاز هستند"
+msgstr "نوع والد، والد و فیلد والد برای درج سابقه فرزند مورد نیاز هستند"
 
 #. Label of the partial (Check) field in DocType 'Personal Data Deletion Step'
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
@@ -18558,45 +18558,45 @@ msgstr "منفعل"
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/www/login.html:22
 msgid "Password"
-msgstr "کلمه عبور"
+msgstr "گذرواژه"
 
 #: frappe/core/doctype/user/user.py:1082
 msgid "Password Email Sent"
-msgstr "رمز عبور ایمیل ارسال شد"
+msgstr "گذرواژه ایمیل ارسال شد"
 
 #: frappe/core/doctype/user/user.py:457
 msgid "Password Reset"
-msgstr "بازنشانی رمز عبور"
+msgstr "بازنشانی گذرواژه"
 
 #. Label of the password_reset_limit (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Password Reset Link Generation Limit"
-msgstr "بازنشانی رمز عبور محدودیت تولید پیوند"
+msgstr "بازنشانی گذرواژه محدودیت تولید پیوند"
 
 #: frappe/public/js/frappe/form/grid_row.js:857
 msgid "Password cannot be filtered"
-msgstr "رمز عبور را نمی‌توان فیلتر کرد"
+msgstr "گذرواژه را نمی‌توان فیلتر کرد"
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:357
 msgid "Password changed successfully."
-msgstr "رمز عبور با موفقیت تغییر کرد."
+msgstr "گذرواژه با موفقیت تغییر کرد."
 
 #. Label of the password (Password) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Password for Base DN"
-msgstr "رمز عبور Base DN"
+msgstr "گذرواژه Base DN"
 
 #: frappe/email/doctype/email_account/email_account.py:188
 msgid "Password is required or select Awaiting Password"
-msgstr "رمز عبور لازم است یا در انتظار رمز عبور را انتخاب کنید"
+msgstr "گذرواژه لازم است یا در انتظار گذرواژه را انتخاب کنید"
 
 #: frappe/public/js/frappe/desk.js:212
 msgid "Password missing in Email Account"
-msgstr "رمز عبور در حساب ایمیل جا افتاده است"
+msgstr "گذرواژه در حساب ایمیل جا افتاده است"
 
 #: frappe/utils/password.py:47
 msgid "Password not found for {0} {1} {2}"
-msgstr "رمز عبور برای {0} {1} {2} یافت نشد"
+msgstr "گذرواژه برای {0} {1} {2} یافت نشد"
 
 #: frappe/core/doctype/user/user.py:1081
 msgid "Password reset instructions have been sent to {}'s email"
@@ -18604,23 +18604,23 @@ msgstr ""
 
 #: frappe/www/update-password.html:166
 msgid "Password set"
-msgstr "مجموعه رمز عبور"
+msgstr "تنظیم گذرواژه"
 
 #: frappe/auth.py:258
 msgid "Password size exceeded the maximum allowed size"
-msgstr "اندازه رمز عبور از حداکثر اندازه مجاز بیشتر است"
+msgstr "اندازه گذرواژه از حداکثر اندازه مجاز بیشتر است"
 
 #: frappe/core/doctype/user/user.py:872
 msgid "Password size exceeded the maximum allowed size."
-msgstr "اندازه رمز عبور از حداکثر اندازه مجاز بیشتر است."
+msgstr "اندازه گذرواژه از حداکثر اندازه مجاز بیشتر است."
 
 #: frappe/www/update-password.html:80
 msgid "Passwords do not match"
-msgstr "رمزهای ورود مطابقت ندارند"
+msgstr "گذرواژه‌ها مطابقت ندارند"
 
 #: frappe/core/doctype/user/user.js:205
 msgid "Passwords do not match!"
-msgstr "رمزهای ورود مطابقت ندارند!"
+msgstr "گذرواژه‌ها مطابقت ندارند!"
 
 #: frappe/email/doctype/newsletter/newsletter.py:157
 msgid "Past dates are not allowed for Scheduling."
@@ -19057,7 +19057,7 @@ msgstr "لطفا روی لینک زیر کلیک کنید و دستورالعم�
 
 #: frappe/templates/emails/password_reset.html:2
 msgid "Please click on the following link to set your new password"
-msgstr "لطفا روی لینک زیر کلیک کنید تا رمز عبور جدید خود را تنظیم کنید"
+msgstr "لطفا روی لینک زیر کلیک کنید تا گذرواژه جدید خود را تنظیم کنید"
 
 #: frappe/integrations/doctype/dropbox_settings/dropbox_settings.py:343
 msgid "Please close this window"
@@ -19093,7 +19093,7 @@ msgstr "لطفاً برای ایجاد تغییرات این را کپی کنی�
 
 #: frappe/core/doctype/system_settings/system_settings.py:160
 msgid "Please enable atleast one Social Login Key or LDAP or Login With Email Link before disabling username/password based login."
-msgstr "لطفاً حداقل یک کلید ورود به سیستم اجتماعی یا LDAP یا ورود با پیوند ایمیل را قبل از غیرفعال کردن ورود مبتنی بر نام کاربری/رمز عبور فعال کنید."
+msgstr "لطفاً حداقل یک کلید ورود به سیستم اجتماعی یا LDAP یا ورود با پیوند ایمیل را قبل از غیرفعال کردن ورود مبتنی بر نام کاربری/گذرواژه فعال کنید."
 
 #: frappe/desk/doctype/notification_log/notification_log.js:45
 #: frappe/email/doctype/auto_email_report/auto_email_report.js:17
@@ -19155,12 +19155,12 @@ msgstr ""
 
 #: frappe/www/update-password.html:234
 msgid "Please enter the password"
-msgstr "لطفا رمز عبور را وارد کنید"
+msgstr "لطفا گذرواژه را وارد کنید"
 
 #: frappe/public/js/frappe/desk.js:217
 msgctxt "Email Account"
 msgid "Please enter the password for: <b>{0}</b>"
-msgstr "لطفا رمز عبور را برای: <b>{0}</b> وارد کنید"
+msgstr "لطفا گذرواژه را برای: <b>{0}</b> وارد کنید"
 
 #: frappe/core/doctype/sms_settings/sms_settings.py:43
 msgid "Please enter valid mobile nos"
@@ -19168,11 +19168,11 @@ msgstr "لطفا شماره تلفن همراه معتبر را وارد کنی�
 
 #: frappe/www/update-password.html:117
 msgid "Please enter your new password."
-msgstr "لطفا رمز عبور جدید خود را وارد کنید."
+msgstr "لطفا گذرواژه جدید خود را وارد کنید."
 
 #: frappe/www/update-password.html:110
 msgid "Please enter your old password."
-msgstr "لطفا رمز عبور قدیمی خود را وارد کنید."
+msgstr "لطفا گذرواژه قدیمی خود را وارد کنید."
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:408
 msgid "Please find attached {0}: {1}"
@@ -19232,7 +19232,7 @@ msgstr "لطفا ابتدا Entity Type را انتخاب کنید"
 
 #: frappe/core/doctype/system_settings/system_settings.py:110
 msgid "Please select Minimum Password Score"
-msgstr "لطفا حداقل امتیاز رمز عبور را انتخاب کنید"
+msgstr "لطفا حداقل امتیاز گذرواژه را انتخاب کنید"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1116
 msgid "Please select X and Y fields"
@@ -19338,7 +19338,7 @@ msgstr "لطفا مشخص کنید"
 
 #: frappe/permissions.py:774
 msgid "Please specify a valid parent DocType for {0}"
-msgstr "لطفاً یک DocType والدین معتبر برای {0} مشخص کنید"
+msgstr "لطفاً یک DocType والد معتبر برای {0} مشخص کنید"
 
 #: frappe/email/doctype/notification/notification.py:154
 msgid "Please specify at least 10 minutes due to the trigger cadence of the scheduler"
@@ -21590,7 +21590,7 @@ msgstr "بازنشانی فیلدها"
 
 #: frappe/core/doctype/user/user.js:179 frappe/core/doctype/user/user.js:182
 msgid "Reset LDAP Password"
-msgstr "بازنشانی رمز عبور LDAP"
+msgstr "بازنشانی گذرواژه LDAP"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:128
 msgid "Reset Layout"
@@ -21604,24 +21604,24 @@ msgstr "بازنشانی OTP Secret"
 #: frappe/www/me.html:48 frappe/www/update-password.html:3
 #: frappe/www/update-password.html:32
 msgid "Reset Password"
-msgstr "بازنشانی رمز عبور"
+msgstr "بازنشانی گذرواژه"
 
 #. Label of the reset_password_key (Data) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Reset Password Key"
-msgstr "بازنشانی کلید رمز عبور"
+msgstr "بازنشانی کلید گذرواژه"
 
 #. Label of the reset_password_link_expiry_duration (Duration) field in DocType
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Reset Password Link Expiry Duration"
-msgstr "بازنشانی مدت زمان انقضای پیوند رمز عبور"
+msgstr "بازنشانی مدت زمان انقضای پیوند گذرواژه"
 
 #. Label of the reset_password_template (Link) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Reset Password Template"
-msgstr "بازنشانی الگوی رمز عبور"
+msgstr "بازنشانی الگوی گذرواژه"
 
 #: frappe/core/page/permission_manager/permission_manager.js:109
 msgid "Reset Permissions for {0}?"
@@ -21645,7 +21645,7 @@ msgstr "بازنشانی به حالت پیش‌فرض"
 
 #: frappe/templates/emails/password_reset.html:3
 msgid "Reset your password"
-msgstr "رمز عبور خود را بازنشانی کنید"
+msgstr "گذرواژه خود را بازنشانی کنید"
 
 #. Label of the response (Text Editor) field in DocType 'Email Template'
 #. Label of the response_section (Section Break) field in DocType 'Integration
@@ -22202,11 +22202,11 @@ msgstr "کارهای زمان‌بندی شده را فقط در صورت علا
 
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:57
 msgid "Runtime in Minutes"
-msgstr ""
+msgstr "زمان اجرا به دقیقه"
 
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:57
 msgid "Runtime in Seconds"
-msgstr ""
+msgstr "زمان اجرا به ثانیه"
 
 #. Name of a DocType
 #. Label of a Link in the Integrations Workspace
@@ -23188,7 +23188,7 @@ msgstr "ارسال ایمیل چاپ پیوست ها به صورت PDF (توصی
 #. Transition'
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Send Email To Creator"
-msgstr ""
+msgstr "ارسال ایمیل به ایجاد کننده"
 
 #. Label of the send_email_for_successful_backup (Check) field in DocType
 #. 'Dropbox Settings'
@@ -23629,7 +23629,7 @@ msgstr "گزینه‌های Naming Series را در تراکنش های خود �
 #. Label of the new_password (Password) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Set New Password"
-msgstr "تنظیم رمز جدید"
+msgstr "تنظیم گذرواژه جدید"
 
 #: frappe/desk/page/backups/backups.js:8
 msgid "Set Number of Backups"
@@ -23637,7 +23637,7 @@ msgstr "تنظیم تعداد بک آپ ها"
 
 #: frappe/www/update-password.html:32
 msgid "Set Password"
-msgstr "تنظیم رمز عبور"
+msgstr "تنظیم گذرواژه"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:112
 msgid "Set Permissions"
@@ -24974,7 +24974,7 @@ msgstr "JSON آخرین نسخه های شناخته شده برنامه های 
 #. in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Stores the datetime when the last reset password key was generated."
-msgstr "تاریخ تولید آخرین کلید رمز عبور بازنشانی را ذخیره می‌کند."
+msgstr "تاریخ تولید آخرین کلید گذرواژه بازنشانی را ذخیره می‌کند."
 
 #: frappe/utils/password_strength.py:97
 msgid "Straight rows of keys are easy to guess"
@@ -25360,7 +25360,7 @@ msgstr "سوئیچ به میز"
 
 #: frappe/public/js/frappe/list/list_sidebar.js:319
 msgid "Switch to Frappe CRM for smarter sales"
-msgstr ""
+msgstr "برای فروش هوشمندتر به Frappe CRM بروید"
 
 #: frappe/public/js/frappe/ui/capture.js:281
 msgid "Switching Camera"
@@ -26120,7 +26120,7 @@ msgstr "تعداد ثانیه تا پایان درخواست"
 
 #: frappe/www/update-password.html:88
 msgid "The password of your account has expired."
-msgstr "رمز عبور حساب شما منقضی شده است."
+msgstr "گذرواژه حساب شما منقضی شده است."
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:398
 msgid "The process for deletion of {0} data associated with {1} has been initiated."
@@ -26135,11 +26135,11 @@ msgstr ""
 
 #: frappe/core/doctype/user/user.py:990
 msgid "The reset password link has been expired"
-msgstr "پیوند بازنشانی رمز عبور منقضی شده است"
+msgstr "پیوند بازنشانی گذرواژه منقضی شده است"
 
 #: frappe/core/doctype/user/user.py:992
 msgid "The reset password link has either been used before or is invalid"
-msgstr "پیوند بازنشانی رمز عبور یا قبلا استفاده شده است یا نامعتبر است"
+msgstr "پیوند بازنشانی گذرواژه یا قبلا استفاده شده است یا نامعتبر است"
 
 #: frappe/app.py:375 frappe/public/js/frappe/request.js:149
 msgid "The resource you are looking for is not available"
@@ -26438,15 +26438,15 @@ msgstr "این یک گزارش پس زمینه است. لطفا فیلترهای
 
 #: frappe/utils/password_strength.py:158
 msgid "This is a top-10 common password."
-msgstr "این 10 رمز عبور رایج است."
+msgstr "این 10 گذرواژه رایج است."
 
 #: frappe/utils/password_strength.py:160
 msgid "This is a top-100 common password."
-msgstr "این یک 100 رمز عبور رایج است."
+msgstr "این یک 100 گذرواژه رایج است."
 
 #: frappe/utils/password_strength.py:162
 msgid "This is a very common password."
-msgstr "این یک رمز عبور بسیار رایج است."
+msgstr "این یک گذرواژه بسیار رایج است."
 
 #: frappe/core/doctype/rq_job/rq_job.js:9
 msgid "This is a virtual doctype and data is cleared periodically."
@@ -26464,7 +26464,7 @@ msgstr "این یک نمونه پیش نمایش Google SERP است."
 
 #: frappe/utils/password_strength.py:164
 msgid "This is similar to a commonly used password."
-msgstr "این مشابه رمز عبور رایج است."
+msgstr "این مشابه گذرواژه رایج است."
 
 #. Description of the 'Current Value' (Int) field in DocType 'Document Naming
 #. Settings'
@@ -27056,7 +27056,7 @@ msgstr "بالا"
 
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.js:13
 msgid "Top 10"
-msgstr ""
+msgstr "10 برتر"
 
 #. Name of a DocType
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
@@ -27349,7 +27349,7 @@ msgstr "نمای درخت"
 #. Description of the 'Is Tree' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Tree structures are implemented using Nested Set"
-msgstr "ساختارهای درختی با استفاده از مجموعه تودرتو پیاده سازی می‌شوند"
+msgstr "ساختارهای درختی با استفاده از مجموعه تودرتو پیاده‌سازی می‌شوند"
 
 #: frappe/public/js/frappe/views/treeview.js:19
 msgid "Tree view is not available for {0}"
@@ -27969,7 +27969,7 @@ msgstr "از % برای هر مقدار غیر خالی استفاده کنید.
 #. Label of the ascii_encode_password (Check) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Use ASCII encoding for password"
-msgstr "از رمزگذاری ASCII برای رمز عبور استفاده کنید"
+msgstr "از رمزگذاری ASCII برای گذرواژه استفاده کنید"
 
 #. Label of the use_first_day_of_period (Check) field in DocType 'Auto Email
 #. Report'
@@ -28681,7 +28681,7 @@ msgstr "تأیید کنید"
 
 #: frappe/public/js/frappe/ui/messages.js:351
 msgid "Verify Password"
-msgstr "تائید رمز عبور"
+msgstr "تائید گذرواژه"
 
 #: frappe/templates/includes/login/login.js:171
 msgid "Verifying..."
@@ -29204,7 +29204,7 @@ msgstr "Websocket"
 #: frappe/desk/doctype/event/event.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Wednesday"
-msgstr "چهار شنبه"
+msgstr "چهارشنبه"
 
 #: frappe/public/js/frappe/views/calendar/calendar.js:276
 msgid "Week"
@@ -30230,11 +30230,11 @@ msgstr "شناسه ورود شما است"
 
 #: frappe/www/update-password.html:167
 msgid "Your new password has been set successfully."
-msgstr "رمز عبور جدید شما با موفقیت تنظیم شد."
+msgstr "گذرواژه جدید شما با موفقیت تنظیم شد."
 
 #: frappe/www/update-password.html:147
 msgid "Your old password is incorrect."
-msgstr "رمز عبور قدیمی شما نادرست است."
+msgstr "گذرواژه قدیمی شما نادرست است."
 
 #. Description of the 'Email Footer Address' (Small Text) field in DocType
 #. 'System Settings'
@@ -30970,7 +30970,7 @@ msgstr "هنگامی که بر روی عنصر کلیک کنید، در صورت
 #. Option for the 'PDF Generator' (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "wkhtmltopdf"
-msgstr ""
+msgstr "wkhtmltopdf"
 
 #: frappe/printing/page/print/print.js:622
 msgid "wkhtmltopdf 0.12.x (with patched qt)."
@@ -31441,7 +31441,7 @@ msgstr "{0} یک DocType والد معتبر برای {1} نیست"
 
 #: frappe/permissions.py:807
 msgid "{0} is not a valid parentfield for {1}"
-msgstr "{0} یک فیلد والدین معتبر برای {1} نیست"
+msgstr "{0} یک فیلد والد معتبر برای {1} نیست"
 
 #: frappe/email/doctype/auto_email_report/auto_email_report.py:115
 msgid "{0} is not a valid report format. Report format should one of the following {1}"
