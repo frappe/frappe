@@ -18,24 +18,34 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from "vue"
 
-const leftPane = ref(null)
+interface SplitViewProps {
+	leftPaneWidth: number
+}
+
+const props = withDefaults(defineProps<SplitViewProps>(), {
+	leftPaneWidth: 570,
+})
+
+const leftPane = ref<HTMLElement | null>(null)
 const resizer = ref(null)
-const leftPaneWidth = ref(600) // Initial width
+const leftPaneWidth = ref(props.leftPaneWidth) // Initial width
 
 let startX = 0
 
-const startResize = (e) => {
+const startResize = (e: MouseEvent) => {
 	startX = e.clientX
 	window.addEventListener("mousemove", resize)
 	window.addEventListener("mouseup", stopResize)
 }
 
-const resize = (e) => {
+const resize = (e: MouseEvent) => {
 	const delta = e.clientX - startX
-	leftPaneWidth.value = Math.max(100, leftPane.value.offsetWidth + delta) // Minimum width of 100px
+	if (leftPane.value) {
+		leftPaneWidth.value = Math.max(100, leftPane.value.offsetWidth + delta) // Minimum width of 100px
+	}
 	startX = e.clientX
 }
 

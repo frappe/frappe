@@ -2,7 +2,6 @@ import Block from "../utils/block"
 import { VuePropDefault } from "@/types/vue"
 
 export type ObjectLiteral = Record<string, any>
-
 export type StyleValue = string | number | null | undefined
 
 export interface BlockStyleMap {
@@ -29,6 +28,7 @@ export interface BlockOptions {
 }
 
 export type EditingMode = "page" | "fragment"
+export type StudioMode = "select" | "container"
 
 // slot
 export interface Slot {
@@ -43,26 +43,6 @@ export interface SlotConfig {
 	componentId: string,
 	// componentId:slotName
 	slotId: string
-}
-
-export interface Breakpoint {
-	icon: string;
-	device: string;
-	displayName: string;
-	width: number;
-	visible: boolean;
-}
-
-export interface CanvasProps {
-	overlayElement: HTMLElement | null;
-	background: string;
-	scale: number;
-	translateX: number;
-	translateY: number;
-	settingCanvas: boolean;
-	scaling: boolean;
-	panning: boolean;
-	breakpoints: Breakpoint[];
 }
 
 export interface ContextMenuOption {

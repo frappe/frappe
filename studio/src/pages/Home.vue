@@ -58,7 +58,6 @@ import { ref } from "vue"
 import { useRouter } from "vue-router"
 import { studioApps } from "@/data/studioApps"
 import { UseTimeAgo } from "@vueuse/components"
-import Input from "@/components/Input.vue"
 import StudioLogo from "@/components/Icons/StudioLogo.vue"
 import { NewStudioApp, StudioApp } from "@/types/Studio/StudioApp"
 

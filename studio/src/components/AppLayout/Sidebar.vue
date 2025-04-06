@@ -1,5 +1,5 @@
 <template>
-	<div class="sticky bottom-0 left-0 top-0 flex h-full w-60 flex-col bg-gray-50 px-2 pt-2">
+	<div class="sticky bottom-0 left-0 top-0 flex h-full w-60 shrink-0 flex-col bg-gray-50 px-2 pt-2">
 		<button class="mb-1 flex w-56 items-center gap-2 rounded p-2 hover:bg-gray-200">
 			<slot name="header">
 				<div class="rounded-sm">
@@ -22,9 +22,7 @@
 					:to="item.route_to"
 					class="flex cursor-pointer items-center gap-2 truncate rounded px-2 py-1 transition duration-300 ease-in-out"
 					:class="[
-						item.selected || $router.currentRoute.value.path === item.route_to
-							? 'bg-white shadow-sm'
-							: 'hover:bg-gray-200',
+						$router.currentRoute.value.path === item.route_to ? 'bg-white shadow-sm' : 'hover:bg-gray-200',
 					]"
 					@click="item.route_to && $router.push(item.route_to)"
 				>

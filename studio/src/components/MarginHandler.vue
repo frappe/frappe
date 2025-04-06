@@ -129,7 +129,7 @@ import { computed, inject, ref, watchEffect } from "vue"
 import Block from "@/utils/block"
 import { pxToNumber } from "@/utils/helpers"
 
-import { CanvasProps } from "@/types"
+import { CanvasProps } from "@/types/StudioCanvas"
 
 const props = defineProps({
 	targetBlock: {

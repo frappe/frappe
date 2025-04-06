@@ -1,10 +1,28 @@
 <template>
 	<div class="toolbar flex h-14 items-center justify-center bg-white p-2 shadow-sm">
-		<div class="absolute left-3 flex items-center justify-center gap-2">
-			<StudioLogo class="h-7 w-7"></StudioLogo>
+		<div class="absolute left-3 flex items-center justify-center gap-5">
 			<router-link class="flex items-center gap-2" :to="{ name: 'Home' }">
-				<h1 class="text-md mt-[2px] font-semibold leading-5 text-gray-800">Studio</h1>
+				<StudioLogo class="h-7 w-7"></StudioLogo>
 			</router-link>
+
+			<div class="flex gap-2">
+				<Tooltip
+					:text="mode.description"
+					:hoverDelay="0.6"
+					v-for="mode in [
+						{ mode: 'select', icon: 'mouse-pointer', description: 'Select (v)' },
+						{ mode: 'container', icon: 'square', description: 'Container (c)' },
+					]"
+				>
+					<Button
+						variant="ghost"
+						:icon="mode.icon"
+						class="text-ink-gray-7 hover:bg-surface-gray-2 focus:!bg-surface-gray-3 [&[active='true']]:bg-surface-gray-3 [&[active='true']]:text-ink-gray-9"
+						@click="() => (store.mode = mode.mode as StudioMode)"
+						:active="store.mode === mode.mode"
+					/>
+				</Tooltip>
+			</div>
 		</div>
 
 		<div>
@@ -68,11 +86,14 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
+import { Tooltip } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 
 import PageOptions from "@/components/PageOptions.vue"
 import StudioLogo from "@/components/Icons/StudioLogo.vue"
+
+import type { StudioMode } from "@/types"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()

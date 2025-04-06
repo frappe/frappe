@@ -1,4 +1,4 @@
-import { CanvasProps } from "@/types"
+import { CanvasProps } from "@/types/StudioCanvas"
 import Block from "@/utils/block"
 
 import { nextTick, reactive, Ref } from "vue"
@@ -6,6 +6,7 @@ import { useCanvasHistory } from "@/utils/useCanvasHistory"
 import { useElementBounding } from "@vueuse/core"
 import { toast } from "vue-sonner"
 import useCanvasStore from "@/stores/canvasStore"
+import { StudioMode } from "@/types"
 
 const canvasStore = useCanvasStore()
 
@@ -118,6 +119,16 @@ export function useCanvasUtils(
 		})
 	}
 
+	function toggleMode(mode: StudioMode) {
+		if (!canvasContainer.value) return;
+		const container = canvasContainer.value as HTMLElement;
+		if (mode === "container") {
+			container.style.cursor = "crosshair"
+		} else {
+			container.style.cursor = "default"
+		}
+	}
+
 	return {
 		setScaleAndTranslate,
 		setupHistory,
@@ -125,5 +136,6 @@ export function useCanvasUtils(
 		setRootBlock,
 		findBlock,
 		removeBlock,
+		toggleMode,
 	};
 }

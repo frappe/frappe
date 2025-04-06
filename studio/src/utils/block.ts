@@ -184,6 +184,10 @@ class Block implements BlockOptions {
 		return this.componentId === "root" || this.originalElement === "body";
 	}
 
+	isContainer() {
+		return this.originalElement === "div"
+	}
+
 	getParentBlock(): Block | null {
 		return this.parentBlock || null;
 	}
@@ -223,6 +227,10 @@ class Block implements BlockOptions {
 	}
 
 	// styles
+	setBaseStyle(style: styleProperty, value: StyleValue) {
+		style = kebabToCamelCase(style as string) as styleProperty
+		this.baseStyles[style] = value
+	}
 
 	getStyles(): BlockStyleMap {
 		return { ...this.baseStyles, ...this.rawStyles }

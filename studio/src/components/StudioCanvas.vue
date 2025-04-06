@@ -97,8 +97,9 @@ import setPanAndZoom from "@/utils/panAndZoom"
 import Block from "@/utils/block"
 import { useCanvasDropZone } from "@/utils/useCanvasDropZone"
 import { useCanvasUtils } from "@/utils/useCanvasUtils"
-import { CanvasHistory } from "@/types/StudioCanvas"
+import { BreakpointConfig, CanvasHistory } from "@/types/StudioCanvas"
 import type { Slot } from "@/types"
+import { useCanvasEvents } from "@/utils/useCanvasEvents"
 
 const props = defineProps({
 	componentTree: {
@@ -148,7 +149,7 @@ const canvasProps = reactive({
 			width: 420,
 			visible: false,
 		},
-	],
+	] as BreakpointConfig[],
 })
 provide("canvasProps", canvasProps)
 
@@ -228,7 +229,7 @@ const activeSlotIds = computed(() => {
 	return slotIds
 })
 
-const { setScaleAndTranslate, setupHistory, getRootBlock, setRootBlock, findBlock, removeBlock } =
+const { setScaleAndTranslate, setupHistory, getRootBlock, setRootBlock, findBlock, removeBlock, toggleMode } =
 	useCanvasUtils(canvasProps, canvasContainer, canvas, rootComponent, selectedBlockIds, history)
 
 watch(
@@ -248,6 +249,13 @@ const { isOverDropZone } = useCanvasDropZone(
 	findBlock,
 )
 
+watch(
+	() => store.mode,
+	(newValue, oldValue) => {
+		toggleMode(store.mode)
+	},
+)
+
 onMounted(() => {
 	const canvasContainerEl = canvasContainer.value as unknown as HTMLElement
 	const canvasEl = canvas.value as unknown as HTMLElement
@@ -255,6 +263,13 @@ onMounted(() => {
 	setScaleAndTranslate()
 	showBlocks.value = true
 	setupHistory()
+	useCanvasEvents(
+		canvasContainer as unknown as Ref<HTMLElement>,
+		canvasProps,
+		history as CanvasHistory,
+		getRootBlock,
+		findBlock,
+	)
 	setPanAndZoom(canvasProps, canvasEl, canvasContainerEl)
 })
 

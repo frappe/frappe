@@ -102,7 +102,7 @@ import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import trackTarget, { Tracker } from "@/utils/trackTarget"
 
-import { CanvasProps } from "@/types"
+import { CanvasProps } from "@/types/StudioCanvas"
 
 const props = defineProps({
 	block: {

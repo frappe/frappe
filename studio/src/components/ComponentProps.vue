@@ -176,7 +176,7 @@ watch(
 )
 
 const updateAvailableSlots = async () => {
-	if (!props.block || props.block.isRoot()) return
+	if (!props.block || props.block.isRoot() || props.block.isContainer()) return
 
 	const slots = await getComponentSlots(props.block.componentName)
 	// filter out already added slots

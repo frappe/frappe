@@ -64,6 +64,11 @@ const blockController = {
 			block.setStyle(style, value);
 		});
 	},
+	setBaseStyle: (style: styleProperty, value: StyleValue) => {
+		canvasStore.activeCanvas?.selectedBlocks.forEach((block) => {
+			block.setBaseStyle(style, value);
+		});
+	},
 	getRawStyles: () => {
 		return blockController.isAnyBlockSelected() && blockController.getFirstSelectedBlock().getRawStyles()
 	},

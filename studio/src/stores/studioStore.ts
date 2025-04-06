@@ -24,7 +24,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Resource } from "@/types/Studio/StudioResource"
-import { LeftPanelOptions, RightPanelOptions, SelectOption } from "@/types"
+import { LeftPanelOptions, RightPanelOptions, SelectOption, StudioMode } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import { studioVariables } from "@/data/studioVariables"
 import { Variable } from "@/types/Studio/StudioPageVariable"
@@ -40,6 +40,7 @@ const useStudioStore = defineStore("store", () => {
 		leftPanelActiveTab: <LeftPanelOptions>"Add Component",
 		rightPanelActiveTab: <RightPanelOptions>"Properties",
 	})
+	const mode = ref<StudioMode>("select")
 	const componentContextMenu = ref<InstanceType<typeof ComponentContextMenu> | null>(null)
 
 	// dialogs
@@ -267,6 +268,7 @@ const useStudioStore = defineStore("store", () => {
 	return {
 		// layout
 		studioLayout,
+		mode,
 		componentContextMenu,
 		// dialogs
 		showSlotEditorDialog,

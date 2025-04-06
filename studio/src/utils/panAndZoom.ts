@@ -1,7 +1,7 @@
 // Extracted from Builder
 import { useElementBounding } from "@vueuse/core"
 import { nextTick, reactive } from "vue"
-import { CanvasProps } from "@/types"
+import { CanvasProps } from "@/types/StudioCanvas"
 
 function setPanAndZoom(
 	props: CanvasProps,

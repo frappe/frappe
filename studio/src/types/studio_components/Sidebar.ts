@@ -1,7 +1,6 @@
 export interface MenuItem {
 	label: string
 	route_to?: string
-	selected?: boolean
 	featherIcon?: string
 }
 
