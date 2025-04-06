@@ -1,5 +1,5 @@
 <template>
-	<div class="overflow-hidden shadow-lg" :class="[sizeClasses, shapeClasses]">
+	<div class="overflow-hidden" :class="[sizeClasses, shapeClasses]">
 		<img :src="image" :alt="alt" class="h-full w-full object-cover" />
 	</div>
 </template>

@@ -577,7 +577,7 @@ export const COMPONENTS: FrappeUIComponents = {
 		initialState: {
 			title: "Frappe",
 			menuItems: [
-				{ label: "Home", featherIcon: "home", route_to: "/", selected: true },
+				{ label: "Home", featherIcon: "home", route_to: "/" },
 				{ label: "Notifications", featherIcon: "bell", route_to: "/" },
 				{ label: "Settings", featherIcon: "settings", route_to: "/" },
 			],
@@ -639,6 +639,7 @@ export const COMPONENTS: FrappeUIComponents = {
 		props: ImageView.props,
 		initialState: {
 			image: "https://blocks.astratic.com/img/general-img-square.png",
+			size: "xs",
 		},
 	},
 	TextBlock: {
