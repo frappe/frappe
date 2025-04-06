@@ -184,6 +184,10 @@ class Block implements BlockOptions {
 		return this.componentId === "root" || this.originalElement === "body";
 	}
 
+	isContainer() {
+		return this.originalElement === "div"
+	}
+
 	getParentBlock(): Block | null {
 		return this.parentBlock || null;
 	}

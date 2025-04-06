@@ -27,7 +27,7 @@ function getBlockTemplate(
 		case "container":
 			return {
 				componentName: "container",
-				element: "div",
+				originalElement: "div",
 				blockName: "container",
 				baseStyles: {
 					display: "flex",
