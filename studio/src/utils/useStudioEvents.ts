@@ -127,6 +127,20 @@ export function useStudioEvents() {
 			e.preventDefault()
 			return
 		}
+
+		if (isCtrlOrCmd(e) || e.shiftKey) {
+			return
+		}
+
+		if (e.key === "c") {
+			store.mode = "container"
+			return
+		}
+
+		if (e.key === "v") {
+			store.mode = "select"
+			return
+		}
 	})
 }
 
