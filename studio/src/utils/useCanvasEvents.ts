@@ -18,7 +18,6 @@ export function useCanvasEvents(
 	getRootBlock: () => Block,
 	findBlock: (componentId: string) => Block | null,
 ) {
-	let counter = 0;
 	useEventListener(container, "mousedown", (ev: MouseEvent) => {
 		const initialX = ev.clientX;
 		const initialY = ev.clientY;
@@ -102,19 +101,4 @@ export function useCanvasEvents(
 			);
 		}
 	});
-
-	// useEventListener(container, "mouseover", handleMouseOver);
 }
-
-// function handleMouseOver(e: MouseEvent) {
-// 	if (!isBlock(e)) {
-// 		canvasStore.activeCanvas?.setHoveredBlock(null);
-// 		return;
-// 	}
-// 	if (store.mode === "move" || canvasStore.activeCanvas?.resizingBlock) return;
-// 	const block = getBlock(e);
-// 	const { breakpoint } = getBlockInfo(e);
-// 	canvasStore.activeCanvas?.setHoveredBlock(block?.blockId || null);
-// 	canvasStore.activeCanvas?.setHoveredBreakpoint(breakpoint);
-// 	e.stopPropagation();
-// }
