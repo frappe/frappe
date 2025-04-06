@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-30 09:33+0000\n"
-"PO-Revision-Date: 2025-04-05 18:36\n"
+"PO-Revision-Date: 2025-04-06 18:33\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -2965,7 +2965,7 @@ msgstr "میانگین {0}"
 
 #: frappe/utils/password_strength.py:130
 msgid "Avoid dates and years that are associated with you."
-msgstr "از تاریخ ها و سال هایی که با شما مرتبط هستند اجتناب کنید."
+msgstr "از تاریخ‌ها و سال هایی که با شما مرتبط هستند اجتناب کنید."
 
 #: frappe/utils/password_strength.py:124
 msgid "Avoid recent years."
@@ -6512,7 +6512,7 @@ msgstr "تاریخ {0} باید در قالب باشد: {1}"
 
 #: frappe/utils/password_strength.py:129
 msgid "Dates are often easy to guess."
-msgstr "حدس زدن تاریخ ها اغلب آسان است."
+msgstr "حدس زدن تاریخ‌ها اغلب آسان است."
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Column'
@@ -18624,7 +18624,7 @@ msgstr "گذرواژه‌ها مطابقت ندارند!"
 
 #: frappe/email/doctype/newsletter/newsletter.py:157
 msgid "Past dates are not allowed for Scheduling."
-msgstr "تاریخ های گذشته برای زمان‌بندی مجاز نیستند."
+msgstr "تاریخ‌های گذشته برای زمان‌بندی مجاز نیستند."
 
 #: frappe/public/js/frappe/views/file/file_view.js:151
 msgid "Paste"
@@ -21739,11 +21739,11 @@ msgstr "از سرگیری ارسال"
 #: frappe/desk/page/setup_wizard/setup_wizard.js:285
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Retry"
-msgstr "دوباره امتحان کنید"
+msgstr "تلاش مجدد"
 
 #: frappe/email/doctype/email_queue/email_queue_list.js:47
 msgid "Retry Sending"
-msgstr "ارسال مجدد را امتحان کنید"
+msgstr "تلاش مجدد برای ارسال"
 
 #: frappe/www/qrcode.html:15
 msgid "Return to the Verification screen and enter the code displayed by your authentication app"
