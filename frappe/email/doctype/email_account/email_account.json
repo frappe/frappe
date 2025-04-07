@@ -576,7 +576,7 @@
    "label": "IMAP Details"
   },
   {
-   "depends_on": "eval: doc.auth_method === \"OAuth\" && doc.connected_app && doc.connected_user && !doc.backend_app_flow",
+   "depends_on": "eval: doc.auth_method === \"OAuth\" && doc.connected_app && doc.connected_user",
    "fieldname": "authorize_api_access",
    "fieldtype": "Button",
    "label": "Authorize API Access"
