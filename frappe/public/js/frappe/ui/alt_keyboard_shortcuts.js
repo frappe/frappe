@@ -97,11 +97,10 @@ frappe.ui.keys.AltShortcutGroup = class AltShortcutGroup {
 		this.shortcuts_dict = {};
 
 		const locale = new Intl.Locale(navigator.language);
-		const is_mac = window.navigator.platform === "MacIntel";
 		// Skip certain Keys for different Languages on different Platforms
 		switch (locale.language) {
 			case "de":
-				if (is_mac) {
+				if (frappe.utils.is_mac()) {
 					this.blacklisted_letters = ["e", "l"];
 				} else {
 					this.blacklisted_letters = ["q"];
