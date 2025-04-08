@@ -1247,7 +1247,7 @@ Object.assign(frappe.utils, {
 				chart_args[key] = custom_options[key];
 			}
 		}
-
+		frappe.utils.set_space_label_ratio(chart_args);
 		return new frappe.Chart(wrapper, chart_args);
 	},
 
@@ -1255,7 +1255,11 @@ Object.assign(frappe.utils, {
 		const default_country = frappe.sys_defaults.country;
 		return frappe.utils.shorten_number(label, country || default_country, 3);
 	},
-
+	set_space_label_ratio(chart_args) {
+		if (chart_args.data.labels.length > 10) {
+			chart_args["axisOptions"]["seriesLabelSpaceRatio"] = 0.9;
+		}
+	},
 	generate_route(item) {
 		const type = item.type.toLowerCase();
 		if (type === "doctype") {

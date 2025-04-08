@@ -147,6 +147,8 @@ class SiteMigration:
 		frappe.get_single("Portal Settings").sync_menu()
 		frappe.get_single("Installed Applications").update_versions()
 
+		print("Executing `after_migrate` hooks...")
+
 		for app in frappe.get_installed_apps():
 			for fn in frappe.get_hooks("after_migrate", app_name=app):
 				frappe.get_attr(fn)()
