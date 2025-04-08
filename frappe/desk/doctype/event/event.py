@@ -231,7 +231,21 @@ def delete_communication(event, reference_doctype, reference_docname):
 def get_permission_query_conditions(user):
 	if not user:
 		user = frappe.session.user
-	return f"""(`tabEvent`.`event_type`='Public' or `tabEvent`.`owner`={frappe.db.escape(user)})"""
+	query = f"""(`tabEvent`.`event_type`='Public' or `tabEvent`.`owner`={frappe.db.escape(user)})"""
+	DocShare = frappe.qb.DocType("DocShare")
+	shared_events = (
+		frappe.qb.from_(DocShare)
+		.select(DocShare.share_name)
+		.where(
+			(DocShare.share_doctype == "Event")
+			& ((DocShare.user == user) | (DocShare.user.isnull()))
+			& (DocShare.read == 1)
+		)
+	).run(as_dict=True)
+	shared_events = [e.share_name for e in shared_events]
+	if shared_events:
+		query += f" or `tabEvent`.`name` in ({', '.join([frappe.db.escape(e) for e in shared_events])})"
+	return query
 
 
 def has_permission(doc, user):
