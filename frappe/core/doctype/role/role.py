@@ -105,8 +105,11 @@ def duplicate_role(source_name, new_role_name=None, target_role=None):
     frappe.only_for("System Manager")
 
     if not frappe.db.exists("Role", source_name):
-        frappe.throw(frappe._("Source role {0} does not exist").format(source_name))
-
+        frappe.throw(frappe._("Source role {0} does not exist.").format(source_name))
+		
+    if frappe.db.exists("Role", new_role_name):
+        frappe.throw(frappe._("Role {0} already exists.").format(new_role_name))
+		
     source_doc = frappe.get_doc("Role", source_name)
 
     perms = get_permissions(role=source_name)
