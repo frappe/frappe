@@ -90,89 +90,85 @@ class Role(Document):
 
 @frappe.whitelist()
 def duplicate_role(source_name, new_role_name=None, target_role=None):
-    """
-    Duplicate a role with all its permissions or copy permissions to an existing role
+	"""
+	Duplicate a role with all its permissions or copy permissions to an existing role
 
-    Args:
-            source_name: Source role to copy permissions from
-            new_role_name: Name for the new role (if creating a new one)
-            target_role: Name of an existing role to copy permissions to (optional)
+	Args:
+	        source_name: Source role to copy permissions from
+	        new_role_name: Name for the new role (if creating a new one)
+	        target_role: Name of an existing role to copy permissions to (optional)
 
-    Returns:
-            The new or updated role document
-    """
+	Returns:
+	        The new or updated role document
+	"""
 
-    frappe.only_for("System Manager")
+	frappe.only_for("System Manager")
 
-    if not frappe.db.exists("Role", source_name):
-        frappe.throw(frappe._("Source role {0} does not exist.").format(source_name))
-		
-    if frappe.db.exists("Role", new_role_name):
-        frappe.throw(frappe._("Role {0} already exists.").format(new_role_name))
-		
-    source_doc = frappe.get_doc("Role", source_name)
+	if not frappe.db.exists("Role", source_name):
+		frappe.throw(frappe._("Source role {0} does not exist.").format(source_name))
 
-    perms = get_permissions(role=source_name)
+	if frappe.db.exists("Role", new_role_name):
+		frappe.throw(frappe._("Role {0} already exists.").format(new_role_name))
 
-    if target_role:
-        if not frappe.db.exists("Role", target_role):
-            frappe.throw(frappe._("Target role {0} does not exist").format(target_role))
+	source_doc = frappe.get_doc("Role", source_name)
 
-        if source_name in STANDARD_ROLES and target_role in STANDARD_ROLES:
-            frappe.throw(frappe._("Cannot copy permissions between standard roles"))
+	perms = get_permissions(role=source_name)
 
-        target_doc = frappe.get_doc("Role", target_role)
+	if target_role:
+		if not frappe.db.exists("Role", target_role):
+			frappe.throw(frappe._("Target role {0} does not exist").format(target_role))
 
-        copy_role_permissions(source_name, target_doc.name, perms)
+		if source_name in STANDARD_ROLES and target_role in STANDARD_ROLES:
+			frappe.throw(frappe._("Cannot copy permissions between standard roles"))
 
-        frappe.msgprint(
-            frappe._("Permissions copied from {0} to {1}").format(
-                source_name, target_role
-            )
-        )
-        return target_doc
+		target_doc = frappe.get_doc("Role", target_role)
 
-    else:
-        if not new_role_name:
-            new_role_name = f"{source_doc.role_name} Copy"
-            counter = 1
-            while frappe.db.exists("Role", {"role_name": new_role_name}):
-                new_role_name = f"{source_doc.role_name} Copy {counter}"
-                counter += 1
+		copy_role_permissions(source_name, target_doc.name, perms)
 
-        new_doc = frappe.copy_doc(source_doc)
-        new_doc.role_name = new_role_name
-        new_doc.is_custom = 1
+		frappe.msgprint(frappe._("Permissions copied from {0} to {1}").format(source_name, target_role))
+		return target_doc
 
-        new_doc.insert(ignore_permissions=True)
+	else:
+		if not new_role_name:
+			new_role_name = f"{source_doc.role_name} Copy"
+			counter = 1
+			while frappe.db.exists("Role", {"role_name": new_role_name}):
+				new_role_name = f"{source_doc.role_name} Copy {counter}"
+				counter += 1
 
-        copy_role_permissions(source_name, new_doc.name, perms)
+		new_doc = frappe.copy_doc(source_doc)
+		new_doc.role_name = new_role_name
+		new_doc.is_custom = 1
 
-        return new_doc
+		new_doc.insert(ignore_permissions=True)
+
+		copy_role_permissions(source_name, new_doc.name, perms)
+
+		return new_doc
 
 
 def copy_role_permissions(source_role, target_role, perms=None):
-    """
-    Copy permissions from source role to target role
+	"""
+	Copy permissions from source role to target role
 
-    Args:
-            source_role: Role to copy permissions from
-            target_role: Role to copy permissions to
-            perms: Permissions data (optional, will fetch if not provided)
-    """
-    if not perms:
-        perms = get_permissions(role=source_role)
+	Args:
+	        source_role: Role to copy permissions from
+	        target_role: Role to copy permissions to
+	        perms: Permissions data (optional, will fetch if not provided)
+	"""
+	if not perms:
+		perms = get_permissions(role=source_role)
 
-    for perm in perms:
-        custom_perm = frappe.get_doc(
-            "Custom DocPerm",
-            {"parent": perm.parent, "permlevel": perm.permlevel, "role": source_role},
-        )
+	for perm in perms:
+		custom_perm = frappe.get_doc(
+			"Custom DocPerm",
+			{"parent": perm.parent, "permlevel": perm.permlevel, "role": source_role},
+		)
 
-        if custom_perm:
-            new_perm = frappe.copy_doc(custom_perm)
-            new_perm.role = target_role
-            new_perm.insert(ignore_permissions=True)
+		if custom_perm:
+			new_perm = frappe.copy_doc(custom_perm)
+			new_perm.role = target_role
+			new_perm.insert(ignore_permissions=True)
 
 
 def get_info_based_on_role(role, field="email", ignore_permissions=False):
