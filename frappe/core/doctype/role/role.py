@@ -123,7 +123,7 @@ def duplicate_role(source_name, new_role_name=None):
 		frappe._("Role {0} duplicated successfully from {1}").format(new_role_name, source_name),
 		title=frappe._("Success"),
 		indicator="green",
-		alert=True,  # This makes it auto-dismiss
+		alert=True,
 	)
 
 	return new_doc
