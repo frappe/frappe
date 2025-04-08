@@ -1058,17 +1058,6 @@ class DocType(Document):
 			)
 			return True
 
-	@frappe.whitelist()
-	def trim_table(self):
-		from frappe.model.meta import trim_table
-
-		"""Removes database fields that don't exist in the doctype.
-
-		This may be needed as maintenance since removing a field in a DocType
-		doesn't automatically delete the db field.
-		"""
-		trim_table(self.name, dry_run=False)
-
 
 def validate_series(dt, autoname=None, name=None):
 	"""Validate if `autoname` property is correctly set."""
