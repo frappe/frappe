@@ -242,8 +242,8 @@ def get_permission_query_conditions(user):
 			& (DocShare.read == 1)
 		)
 	).run(as_dict=True)
-	shared_events = [e.share_name for e in shared_events]
 	if shared_events:
+		shared_events = [e.share_name for e in shared_events]
 		query += f" or `tabEvent`.`name` in ({', '.join([frappe.db.escape(e) for e in shared_events])})"
 	return query
 
