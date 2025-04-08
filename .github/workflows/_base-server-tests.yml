@@ -85,7 +85,7 @@ jobs:
         env:
           POSTGRES_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
       smtp_server:
-        image: rnwood/smtp4dev
+        image: rnwood/smtp4dev@3.6.1
         ports:
           - 2525:25
           - 3000:80
