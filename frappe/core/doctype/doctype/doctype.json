@@ -10,21 +10,6 @@
  "field_order": [
   "form_builder_tab",
   "form_builder",
-<<<<<<< HEAD
-=======
-  "permissions_tab",
-  "permissions",
-  "restrict_to_domain",
-  "read_only",
-  "in_create",
-  "protect_attached_files",
-  "sb1",
-  "naming_rule",
-  "autoname",
-  "column_break_nexu",
-  "title_field",
-  "allow_rename",
->>>>>>> 3f5da98b27 (feat: protect attached files (#31855))
   "settings_tab",
   "sb0",
   "module",
@@ -91,6 +76,7 @@
   "restrict_to_domain",
   "read_only",
   "in_create",
+  "protect_attached_files",
   "actions_section",
   "actions",
   "links_section",
@@ -701,16 +687,6 @@
    "hidden": 1,
    "label": "Row Format",
    "options": "Dynamic\nCompressed"
-<<<<<<< HEAD
-=======
-  },
-  {
-   "default": "50",
-   "depends_on": "istable",
-   "fieldname": "grid_page_length",
-   "fieldtype": "Int",
-   "label": "Grid Page Length",
-   "non_negative": 1
   },
   {
    "default": "0",
@@ -718,10 +694,8 @@
    "fieldname": "protect_attached_files",
    "fieldtype": "Check",
    "label": "Protect Attached Files"
->>>>>>> 3f5da98b27 (feat: protect attached files (#31855))
   }
  ],
- "grid_page_length": 50,
  "icon": "fa fa-bolt",
  "idx": 6,
  "index_web_pages_for_search": 1,

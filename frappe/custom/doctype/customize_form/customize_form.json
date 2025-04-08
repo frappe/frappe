@@ -400,15 +400,6 @@
    "fieldname": "sender_name_field",
    "fieldtype": "Data",
    "label": "Sender Name Field"
-<<<<<<< HEAD
-=======
-  },
-  {
-   "depends_on": "istable",
-   "fieldname": "grid_page_length",
-   "fieldtype": "Int",
-   "label": "Grid Page Length",
-   "non_negative": 1
   },
   {
    "default": "0",
@@ -416,7 +407,6 @@
    "fieldname": "protect_attached_files",
    "fieldtype": "Check",
    "label": "Protect Attached Files"
->>>>>>> 3f5da98b27 (feat: protect attached files (#31855))
   }
  ],
  "hide_toolbar": 1,
@@ -425,11 +415,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2023-12-01 18:18:23.086134",
-=======
  "modified": "2025-03-27 18:22:32.618603",
->>>>>>> 3f5da98b27 (feat: protect attached files (#31855))
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
