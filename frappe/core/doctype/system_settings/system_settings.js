@@ -28,7 +28,7 @@ frappe.ui.form.on("System Settings", {
 		if (frm.doc.enable_password_policy == 0) {
 			frm.set_value("minimum_password_score", "");
 		} else {
-			frm.set_value("minimum_password_score", "2");
+			frm.set_value("minimum_password_score", "1");
 		}
 	},
 	enable_two_factor_auth: function (frm) {
