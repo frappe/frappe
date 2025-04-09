@@ -256,7 +256,7 @@ class EmailAccount(Document):
 				"host": self.email_server,
 				"use_ssl": self.use_ssl,
 				"use_starttls": self.use_starttls,
-				"username": getattr(self, "login_id", None) or self.email_id,
+				"username": self.email_id,
 				"use_imap": self.use_imap,
 				"email_sync_rule": email_sync_rule,
 				"incoming_port": get_port(self),
