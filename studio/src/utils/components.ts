@@ -19,21 +19,25 @@ function getComponentProps(componentName: string) {
 		})
 		return propsConfig
 	} else {
-		const propTypes = getComponentPropsFromTypescript(componentName)
+		const componentSchema = getComponentSchema(componentName)
+		const { required, properties } = componentSchema || {}
+
 		Object.entries(props as Record<string, VueProp>).forEach(([propName, prop]) => {
 			let propType = getPropType(prop.type)
+			let isRequired = prop.required
 			if (!propType) {
-				propType = propTypes?.[propName]?.type
+				propType = properties?.[propName]?.type
+				isRequired = required?.includes(propName)
 			}
 			const config: ComponentProp = {
 				type: propType,
 				default: prop.default,
 				inputType: getPropInputType(propType),
-				required: prop.required,
+				required: isRequired,
 			}
 
 			if (propType === "String") {
-				const enums = getPropEnums(propTypes, propName)
+				const enums = getPropEnums(properties, propName)
 				if (enums) {
 					// prop has predefined options
 					config.inputType = "select"
@@ -77,15 +81,15 @@ function getPropInputType(propType: string) {
 	}
 }
 
-function getPropEnums(propTypes: object, propName: string): string[] | undefined {
+function getPropEnums(properties: object, propName: string): string[] | undefined {
 	// fetches prop enums like Button.json > definitions > ButtonProps > properties > variant > enum - ["solid", "subtle", "outline", "ghost"]
-	return propTypes?.[propName]?.enum
+	return properties?.[propName]?.enum
 }
 
-function getComponentPropsFromTypescript(componentName: string) {
+function getComponentSchema(componentName: string) {
 	// fetches component properties object from JSON types (converted from TS)
 	// e.g.: Button.json > definitions > ButtonProps > properties
-	return componentTypes?.[componentName]?.definitions?.[`${componentName}Props`]?.properties
+	return componentTypes?.[componentName]?.definitions?.[`${componentName}Props`]
 }
 
 // events
