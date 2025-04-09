@@ -125,7 +125,7 @@ frappe.router = {
 		// resolve the route from the URL or hash
 		// translate it so the objects are well defined
 		// and render the page as required
-
+		frappe.frappe_toolbar.show_app_logo();
 		if (!frappe.app) return;
 
 		let sub_path = this.get_sub_path();
