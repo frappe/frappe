@@ -19,8 +19,12 @@ function getComponentProps(componentName: string) {
 		})
 		return propsConfig
 	} else {
+		const propTypes = getComponentPropsFromTypescript(componentName)
 		Object.entries(props as Record<string, VueProp>).forEach(([propName, prop]) => {
-			const propType = getPropType(prop.type)
+			let propType = getPropType(prop.type)
+			if (!propType) {
+				propType = propTypes?.[propName]?.type
+			}
 			const config: ComponentProp = {
 				type: propType,
 				default: prop.default,
@@ -29,7 +33,7 @@ function getComponentProps(componentName: string) {
 			}
 
 			if (propType === "String") {
-				const enums = getPropEnums(componentName, propName)
+				const enums = getPropEnums(propTypes, propName)
 				if (enums) {
 					// prop has predefined options
 					config.inputType = "select"
@@ -56,27 +60,32 @@ function getPropType(propType: VuePropType | VuePropType[]) {
 }
 
 function getPropInputType(propType: string) {
+	propType = propType?.toLowerCase()
 	switch (propType) {
-		case "String":
+		case "string":
 			return "text"
-		case "Number":
+		case "number":
 			return "number"
-		case "Boolean":
+		case "boolean":
 			return "checkbox"
-		case "Array":
-		case "Object":
-		case "Function":
+		case "array":
+		case "object":
+		case "function":
 			return "code"
 		default:
 			return "text"
 	}
 }
 
-function getPropEnums(componentName: string, propName: string): string[] | undefined {
-	/**
-	 * fetches prop enums like Button.json > definitions > ButtonProps > properties > variant > enum - ["solid", "subtle", "outline", "ghost"]
-	 */
-	return componentTypes?.[componentName]?.definitions?.[`${componentName}Props`]?.properties?.[propName]?.enum
+function getPropEnums(propTypes: object, propName: string): string[] | undefined {
+	// fetches prop enums like Button.json > definitions > ButtonProps > properties > variant > enum - ["solid", "subtle", "outline", "ghost"]
+	return propTypes?.[propName]?.enum
+}
+
+function getComponentPropsFromTypescript(componentName: string) {
+	// fetches component properties object from JSON types (converted from TS)
+	// e.g.: Button.json > definitions > ButtonProps > properties
+	return componentTypes?.[componentName]?.definitions?.[`${componentName}Props`]?.properties
 }
 
 // events
