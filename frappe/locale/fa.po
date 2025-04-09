@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-04-06 09:33+0000\n"
-"PO-Revision-Date: 2025-04-07 18:35\n"
+"PO-Revision-Date: 2025-04-09 18:39\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -5170,7 +5170,7 @@ msgstr "تکمیل شده توسط کاربر"
 #. Option for the 'Type' (Select) field in DocType 'Web Template'
 #: frappe/website/doctype/web_template/web_template.json
 msgid "Component"
-msgstr "جزء"
+msgstr "مؤلفه"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:184
 msgid "Compose Email"
@@ -11150,11 +11150,11 @@ msgstr "دریافت مخاطبین"
 
 #: frappe/website/doctype/web_form/web_form.js:93
 msgid "Get Fields"
-msgstr "فیلدها را دریافت کنید"
+msgstr "دریافت فیلدها"
 
 #: frappe/printing/doctype/letter_head/letter_head.js:32
 msgid "Get Header and Footer wkhtmltopdf variables"
-msgstr "متغیرهای Header و Footer wkhtmltopdf را دریافت کنید"
+msgstr "دریافت متغیرهای Header و Footer wkhtmltopdf"
 
 #: frappe/public/js/frappe/form/multi_select_dialog.js:86
 msgid "Get Items"
@@ -11162,17 +11162,17 @@ msgstr "دریافت آیتم‌ها"
 
 #: frappe/integrations/doctype/connected_app/connected_app.js:6
 msgid "Get OpenID Configuration"
-msgstr "پیکربندی OpenID را دریافت کنید"
+msgstr "دریافت پیکربندی OpenID"
 
 #: frappe/www/printview.html:22
 msgid "Get PDF"
-msgstr "PDF را دریافت کنید"
+msgstr "دریافت PDF"
 
 #. Description of the 'Try a Naming Series' (Data) field in DocType 'Document
 #. Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Get a preview of generated names with a series."
-msgstr "پیش نمایش نام های تولید شده را با یک سری دریافت کنید."
+msgstr "دریافت پیش نمایش نام های تولید شده با یک سری."
 
 #: frappe/public/js/frappe/list/list_sidebar.js:305
 msgid "Get more insights with"
