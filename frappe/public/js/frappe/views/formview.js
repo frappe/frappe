@@ -34,6 +34,7 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 	}
 
 	make_form(doctype) {
+		this.add_back_to_listview_button();
 		this.page.frm = new frappe.ui.form.Form(
 			doctype,
 			this.page,
@@ -105,5 +106,19 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 	render(doctype_layout, name) {
 		frappe.container.change_to(doctype_layout);
 		frappe.views.formview[doctype_layout].frm.refresh(name);
+	}
+
+	add_back_to_listview_button() {
+		if (!frappe.is_mobile()) return;
+		let navbar = $(".navbar-brand");
+		let app_icon = navbar.html();
+		console.log(app_icon);
+		navbar.attr("href", "#");
+		navbar.html(frappe.utils.icon("arrow-left", "md"));
+		navbar.on("click", function () {
+			let doctype = frappe.get_route()[1];
+			navbar.html(app_icon);
+			frappe.set_route("List", doctype);
+		});
 	}
 };
