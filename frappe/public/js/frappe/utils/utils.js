@@ -1145,6 +1145,12 @@ Object.assign(frappe.utils, {
 			total_duration.days = 0;
 		}
 
+		if (duration_options && duration_options.hide_seconds) {
+			total_duration.minutes =
+				round((seconds % 3600) / 60) + Math.floor((seconds % 60) / 60 + 0.5);
+			total_duration.seconds = 0;
+		}
+
 		return total_duration;
 	},
 
