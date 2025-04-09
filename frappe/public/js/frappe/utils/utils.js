@@ -1112,7 +1112,7 @@ Object.assign(frappe.utils, {
 		if (value) {
 			let total_duration = frappe.utils.seconds_to_duration(value, duration_options);
 
-			if (total_duration.days) {
+			if (total_duration.days && duration_options.hide_days !== 1) {
 				duration += total_duration.days + __("d", null, "Days (Field: Duration)");
 			}
 			if (total_duration.hours) {
@@ -1123,7 +1123,7 @@ Object.assign(frappe.utils, {
 				duration += duration.length ? " " : "";
 				duration += total_duration.minutes + __("m", null, "Minutes (Field: Duration)");
 			}
-			if (total_duration.seconds) {
+			if (total_duration.seconds && duration_options.hide_seconds !== 1) {
 				duration += duration.length ? " " : "";
 				duration += total_duration.seconds + __("s", null, "Seconds (Field: Duration)");
 			}
