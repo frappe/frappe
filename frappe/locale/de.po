@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-04-06 09:33+0000\n"
-"PO-Revision-Date: 2025-04-07 18:35\n"
+"PO-Revision-Date: 2025-04-09 18:39\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -3366,7 +3366,7 @@ msgstr "Sicherungshäufigkeit"
 #. Label of the backup_path (Data) field in DocType 'S3 Backup Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgid "Backup Path"
-msgstr ""
+msgstr "Sicherungspfad"
 
 #: frappe/desk/page/backups/backups.py:95
 msgid "Backup job is already queued. You will receive an email with the download link"
@@ -11479,7 +11479,7 @@ msgstr "Gehe zu {0}"
 #: frappe/custom/doctype/doctype_layout/doctype_layout.js:42
 #: frappe/workflow/doctype/workflow/workflow.js:44
 msgid "Go to {0} List"
-msgstr "Gehen Sie zur Liste {0}"
+msgstr "Listenansicht für {0} öffnen"
 
 #: frappe/core/doctype/page/page.js:11
 msgid "Go to {0} Page"
@@ -20211,11 +20211,11 @@ msgstr "Eigenschaftstyp"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Protect Attached Files"
-msgstr ""
+msgstr "Angehängte Dateien schützen"
 
 #: frappe/core/doctype/file/file.py:501
 msgid "Protected File"
-msgstr ""
+msgstr "Geschützte Datei"
 
 #. Description of the 'Allowed File Extensions' (Small Text) field in DocType
 #. 'System Settings'
@@ -23405,7 +23405,7 @@ msgstr "Ausdrucke als E-Mail-Anhang im PDF-Format senden (empfohlen)"
 #. Transition'
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Send Email To Creator"
-msgstr ""
+msgstr "E-Mail an den Ersteller senden"
 
 #. Label of the send_email_for_successful_backup (Check) field in DocType
 #. 'Dropbox Settings'
@@ -23858,7 +23858,7 @@ msgstr "Passwort festlegen"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:112
 msgid "Set Permissions"
-msgstr "Festlegen von Berechtigungen"
+msgstr "Berechtigungen festlegen"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:471
 msgid "Set Properties"
@@ -26660,7 +26660,7 @@ msgstr "Dieses Feld wird nur angezeigt, wenn der hier definierte Feldname einen 
 
 #: frappe/core/doctype/file/file.py:500
 msgid "This file is attached to a protected document and cannot be deleted."
-msgstr ""
+msgstr "Diese Datei ist an ein geschütztes Dokument angehängt und kann nicht gelöscht werden."
 
 #: frappe/core/doctype/file/file.js:20
 msgid "This file is public. It can be accessed without authentication."
@@ -28730,7 +28730,7 @@ msgstr "Benutzer"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Users are only able to delete attached files if the document is either in draft or if the document is canceled and they are also able to delete the document."
-msgstr ""
+msgstr "Benutzer können angehängte Dateien nur dann löschen, wenn sich das Dokument entweder im Entwurf befindet oder wenn das Dokument storniert wurde und sie das Dokument auch löschen können."
 
 #. Description of the 'Allot Points To Assigned Users' (Check) field in DocType
 #. 'Energy Point Rule'
