@@ -102,9 +102,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		const message = __(
 			"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10)."
 		);
-		this.$paging_area
-			.find(".level-left")
-			.after(`<span class="comparison-message text-extra-muted">${message}</span>`);
+		this.$paging_area.before(
+			`<span class="comparison-message text-extra-muted">${message}</span>`
+		);
 	}
 
 	setup_sort_selector() {
