@@ -1132,21 +1132,23 @@ Object.assign(frappe.utils, {
 	},
 
 	seconds_to_duration(seconds, duration_options) {
-		const round = seconds > 0 ? Math.floor : Math.ceil;
+		const floor = seconds > 0 ? Math.floor : Math.ceil;
+		const round_base_60 = (seconds) => floor(seconds / 60 + (seconds > 0 ? 0.5 : -0.5));
+
 		const total_duration = {
-			days: round(seconds / 86400), // 60 * 60 * 24
-			hours: round((seconds % 86400) / 3600),
-			minutes: round((seconds % 3600) / 60),
-			seconds: round(seconds % 60),
+			days: floor(seconds / 86400), // 60 * 60 * 24
+			hours: floor((seconds % 86400) / 3600),
+			minutes: floor((seconds % 3600) / 60),
+			seconds: floor(seconds % 60),
 		};
 
 		if (duration_options && duration_options.hide_days) {
-			total_duration.hours = round(seconds / 3600);
+			total_duration.hours = floor(seconds / 3600);
 			total_duration.days = 0;
 		}
 
 		if (duration_options && duration_options.hide_seconds) {
-			total_duration.minutes += round(total_duration.seconds / 60 + 0.5);
+			total_duration.minutes += round_base_60(total_duration.seconds);
 			total_duration.seconds = 0;
 		}
 
