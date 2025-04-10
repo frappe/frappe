@@ -40,6 +40,7 @@ class Report(Document):
 		letter_head: DF.Link | None
 		module: DF.Link | None
 		prepared_report: DF.Check
+		prepared_report_threshold: DF.Int
 		query: DF.Code | None
 		ref_doctype: DF.Link
 		reference_report: DF.Data | None
@@ -159,7 +160,7 @@ class Report(Document):
 
 	def execute_script_report(self, filters):
 		# save the timestamp to automatically set to prepared
-		threshold = 15
+		threshold = self.prepared_report_threshold or 15
 
 		start_time = datetime.datetime.now()
 		prepared_report_watcher = None

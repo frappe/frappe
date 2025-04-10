@@ -19,6 +19,7 @@
   "prepared_report",
   "add_translate_data",
   "timeout",
+  "prepared_report_threshold",
   "filters_section",
   "filters",
   "columns_section",
@@ -202,12 +203,18 @@
    "fieldname": "add_translate_data",
    "fieldtype": "Check",
    "label": "Add Translate Data"
+  },
+  {
+   "description": "Specify a custom threshold for converting to a prepared report, default threshold is 15 seconds",
+   "fieldname": "prepared_report_threshold",
+   "fieldtype": "Int",
+   "label": "Prepared Report Threshold (In Seconds)"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-12 17:08:09.629411",
+ "modified": "2025-04-10 00:49:49.735649",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",
