@@ -26,8 +26,15 @@ function getComponentProps(componentName: string) {
 			let propType = getPropType(prop.type)
 			let isRequired = prop.required
 			if (!propType) {
-				propType = properties?.[propName]?.type
 				isRequired = required?.includes(propName)
+
+				if ("anyOf" in properties?.[propName]) {
+					// prop has multiple types
+					const propTypes = properties?.[propName]?.anyOf.map((prop) => prop.type)
+					propType = getSinglePropType(propTypes)
+				} else {
+					propType = properties?.[propName]?.type
+				}
 			}
 			const config: ComponentProp = {
 				type: propType,
@@ -54,17 +61,15 @@ function getComponentProps(componentName: string) {
 function getPropType(propType: VuePropType | VuePropType[]) {
 	if (Array.isArray(propType)) {
 		const proptypes = propType.map((type) => type.name)
-		const hasNonPrimitiveType = proptypes.find((type) => ["Array", "Object", "Function"].includes(type))
-		if (hasNonPrimitiveType) {
-			return "Object"
-		}
-		return "String"
+		return getSinglePropType(proptypes)
 	}
 	return propType?.name
 }
 
 function getPropInputType(propType: string) {
-	propType = propType?.toLowerCase()
+	if (typeof propType === "string") {
+		propType = propType?.toLowerCase()
+	}
 	switch (propType) {
 		case "string":
 			return "text"
@@ -90,6 +95,15 @@ function getComponentSchema(componentName: string) {
 	// fetches component properties object from JSON types (converted from TS)
 	// e.g.: Button.json > definitions > ButtonProps > properties
 	return componentTypes?.[componentName]?.definitions?.[`${componentName}Props`]
+}
+
+function getSinglePropType(propTypes: VuePropType | VuePropType[]) {
+	if (typeof propTypes === "string") return propTypes
+	const hasNonPrimitiveType = propTypes.find((type) => ["array", "object", "function"].includes(type.toLowerCase()))
+	if (hasNonPrimitiveType) {
+		return "object"
+	}
+	return "string"
 }
 
 // events
