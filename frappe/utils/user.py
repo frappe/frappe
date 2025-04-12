@@ -12,6 +12,7 @@ from frappe.core.doctype.domain_settings.domain_settings import get_active_modul
 from frappe.permissions import AUTOMATIC_ROLES, get_roles, get_valid_perms
 from frappe.query_builder import DocType, Order
 from frappe.query_builder.functions import Concat_ws
+from frappe.utils import cached_property
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.user.user import User
@@ -43,26 +44,11 @@ class UserPermissions:
 		self.can_email = []
 		self.allow_modules = []
 		self.in_create = []
-		self.setup_user()
 
-	def setup_user(self):
-		def get_user_doc():
-			user = None
-			try:
-				user = frappe.get_doc("User", self.name).as_dict()
-			except frappe.DoesNotExistError:
-				pass
-			except Exception as e:
-				# install boo-boo
-				if not frappe.db.is_table_missing(e):
-					raise
-
-			return user
-
-		if not frappe.flags.in_install_db and not frappe.flags.in_test:
-			user_doc = frappe.cache.hget("user_doc", self.name, get_user_doc)
-			if user_doc:
-				self.doc = frappe.get_doc(user_doc)
+	@cached_property
+	def doc(self):
+		"""return user doc"""
+		return frappe.get_doc("User", self.name)
 
 	def get_roles(self):
 		"""get list of roles"""
@@ -210,10 +196,10 @@ class UserPermissions:
 		return self.can_read
 
 	def load_user(self):
-		d = frappe.db.get_value(
+		d = frappe.get_cached_value(
 			"User",
 			self.name,
-			[
+			(
 				"creation",
 				"desk_theme",
 				"code_editor_type",
@@ -228,7 +214,7 @@ class UserPermissions:
 				"user_type",
 				"onboarding_status",
 				"default_workspace",
-			],
+			),
 			as_dict=True,
 		)
 
@@ -271,7 +257,7 @@ class UserPermissions:
 		return d
 
 	def get_all_reports(self):
-		return get_allowed_reports()
+		return get_allowed_reports(cache=True)
 
 
 def get_user_fullname(user: str) -> str:
