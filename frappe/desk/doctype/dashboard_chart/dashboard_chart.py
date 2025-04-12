@@ -38,7 +38,7 @@ def get_permission_query_conditions(user):
 	module_condition = False
 
 	allowed_doctypes = [frappe.db.escape(doctype) for doctype in frappe.permissions.get_doctypes_with_read()]
-	allowed_reports = [frappe.db.escape(report) for report in get_allowed_report_names()]
+	allowed_reports = [frappe.db.escape(report) for report in get_allowed_report_names(cache=True)]
 	allowed_modules = [
 		frappe.db.escape(module.get("module_name")) for module in get_modules_from_all_apps_for_user()
 	]
@@ -76,7 +76,7 @@ def has_permission(doc, ptype, user):
 		if has_common(roles, allowed):
 			return True
 	elif doc.chart_type == "Report":
-		if doc.report_name in get_allowed_report_names():
+		if doc.report_name in get_allowed_report_names(cache=True):
 			return True
 	else:
 		allowed_doctypes = frappe.permissions.get_doctypes_with_read()

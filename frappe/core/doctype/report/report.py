@@ -83,6 +83,21 @@ class Report(Document):
 	def on_update(self):
 		self.export_doc()
 
+	def clear_cache(self):
+		super().clear_cache()
+		if (
+			getattr(self, "_action", None) == "save"
+			and (previous := self.get_doc_before_save())
+			and ({role.role for role in self.roles} == {role.role for role in previous.roles})
+		):
+			# if roles are same when saving, do not update has_role cache
+			return
+
+		frappe.db.after_commit.add(self._clear_has_role_cache)
+
+	def _clear_has_role_cache(self):
+		frappe.cache.delete_value("has_role:Report")
+
 	def before_export(self, doc):
 		doc.letterhead = None
 		doc.prepared_report = 0

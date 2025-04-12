@@ -25,6 +25,13 @@ class CustomRole(Document):
 		if self.report and not self.ref_doctype:
 			self.ref_doctype = frappe.db.get_value("Report", self.report, "ref_doctype")
 
+	def clear_cache(self):
+		super().clear_cache()
+		frappe.db.after_commit.add(self._clear_has_role_cache)
+
+	def _clear_has_role_cache(self):
+		frappe.cache.delete_value(f"has_role:{'Report' if self.report else 'Page'}")
+
 	def get_permission_log_options(self, event=None):
 		if self.report:
 			return {"for_doctype": "Report", "for_document": self.report, "fields": ["roles"]}

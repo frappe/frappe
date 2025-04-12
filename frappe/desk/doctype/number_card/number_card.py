@@ -115,7 +115,7 @@ def has_permission(doc, ptype, user):
 		return True
 
 	if doc.type == "Report":
-		if doc.report_name in get_allowed_report_names():
+		if doc.report_name in get_allowed_report_names(cache=True):
 			return True
 	else:
 		allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())

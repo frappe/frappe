@@ -65,7 +65,7 @@ def get_bootinfo():
 		d.parent for d in frappe.get_all("DocField", {"fieldname": "lft"}, ["parent"])
 	]
 	add_home_page(bootinfo, doclist)
-	bootinfo.page_info = get_allowed_pages()
+	bootinfo.page_info = get_allowed_pages(cache=True)
 	load_translations(bootinfo)
 	add_timezone_info(bootinfo)
 	load_conf_settings(bootinfo)
@@ -221,27 +221,25 @@ def get_allowed_report_names(cache=False) -> set[str]:
 
 
 def get_user_pages_or_reports(parent, cache=False):
+	cache_key = f"has_role:{parent}"
 	if cache:
-		has_role = frappe.cache.get_value("has_role:" + parent, user=frappe.session.user)
+		has_role = frappe.cache.hget(cache_key, frappe.session.user)
 		if has_role:
 			return has_role
 
 	roles = frappe.get_roles()
 	has_role = {}
 
-	page = DocType("Page")
-	report = DocType("Report")
-
+	parentTable = DocType(parent)
 	is_report = parent == "Report"
 
 	if is_report:
-		columns = (report.name.as_("title"), report.ref_doctype, report.report_type)
+		columns = (parentTable.name.as_("title"), parentTable.ref_doctype, parentTable.report_type)
 	else:
-		columns = (page.title.as_("title"),)
+		columns = (parentTable.title.as_("title"),)
 
 	customRole = DocType("Custom Role")
 	hasRole = DocType("Has Role")
-	parentTable = DocType(parent)
 
 	# get pages or reports set on custom role
 	pages_with_custom_roles = (
@@ -277,7 +275,7 @@ def get_user_pages_or_reports(parent, cache=False):
 	)
 
 	if is_report:
-		pages_with_standard_roles = pages_with_standard_roles.where(report.disabled == 0)
+		pages_with_standard_roles = pages_with_standard_roles.where(parentTable.disabled == 0)
 
 	pages_with_standard_roles = pages_with_standard_roles.run(as_dict=True)
 
@@ -321,8 +319,8 @@ def get_user_pages_or_reports(parent, cache=False):
 		for r in non_permitted_reports:
 			has_role.pop(r, None)
 
-	# Expire every six hours
-	frappe.cache.set_value("has_role:" + parent, has_role, frappe.session.user, 21600)
+	# Set in cache
+	frappe.cache.hset(cache_key, frappe.session.user, has_role)
 	return has_role
 
 
