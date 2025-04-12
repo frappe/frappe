@@ -713,6 +713,11 @@ frappe.ui.Page = class Page {
 		} else {
 			this.inner_toolbar.find(`button[data-label="${encodeURIComponent(label)}"]`).remove();
 		}
+
+        // not a pc
+        group = __(group)
+        const encode_label = encodeURIComponent(`${group} > ${label}`);
+        $('li.user-action').has(`span.menu-item-label[data-label="${encode_label}"]`).remove();
 	}
 
 	change_inner_button_type(label, group, type) {
