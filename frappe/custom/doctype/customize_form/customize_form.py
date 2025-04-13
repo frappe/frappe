@@ -512,7 +512,7 @@ class CustomizeForm(Document):
 		if changed:
 			custom_field.db_update()
 			self.flags.update_db = True
-			# custom_field.save()
+		# custom_field.save()
 
 	def delete_custom_fields(self):
 		meta = frappe.get_meta(self.doc_type)
@@ -523,6 +523,9 @@ class CustomizeForm(Document):
 			df = meta.get("fields", {"fieldname": fieldname})[0]
 			if not is_standard_or_system_generated_field(df):
 				frappe.delete_doc("Custom Field", df.name)
+				frappe.db.after_commit(lambda fieldname=fieldname: 
+                frappe.db.sql(f"""ALTER TABLE `tab{self.doc_type}` DROP COLUMN `{fieldname}`""")
+            )
 
 	def make_property_setter(self, prop, value, property_type, fieldname=None, apply_on=None, row_name=None):
 		delete_property_setter(self.doc_type, prop, fieldname, row_name)
