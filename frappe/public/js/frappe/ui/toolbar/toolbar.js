@@ -190,8 +190,8 @@ frappe.ui.toolbar.Toolbar = class {
 		}
 	}
 
-	add_back_to_listview_button() {
-		if (!frappe.is_mobile()) return;
+	add_back_button() {
+		if (!frappe.is_mobile() && frappe.get_prev_route().length == 0) return;
 		this.navbar = $(".navbar-brand");
 		this.app_logo = this.navbar.html();
 		this.navbar.attr("href", "#");
