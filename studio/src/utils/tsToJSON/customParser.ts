@@ -36,8 +36,8 @@ export class VueComponentParser implements SubNodeParser {
 	}
 
 	createType(node: ts.Node, context: Context, reference?: ReferenceType): BaseType {
-		// treat Component and ComponentPublicInstance as a plain object
-		return new ObjectType("VueComponent", [], [], true)
+		// treat Component and ComponentPublicInstance as String
+		return new StringType()
 	}
 }
 
@@ -56,9 +56,6 @@ export class RouteLocationParser implements SubNodeParser {
 
 	createType(node: ts.Node, context: Context, reference?: ReferenceType): BaseType {
 		// treat RouteLocation, RouteLocationNormalized and RouteLocationRaw as a string or an object
-		return new UnionType([
-			new StringType(),
-			new ObjectType("RouteLocation", [], [], true)
-		])
+		return new UnionType([new StringType(), new ObjectType("RouteLocation", [], [], true)])
 	}
 }
