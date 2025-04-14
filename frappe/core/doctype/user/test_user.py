@@ -12,6 +12,7 @@ import frappe
 import frappe.exceptions
 from frappe.core.doctype.user.user import (
 	User,
+	handle_password_test_fail,
 	reset_password,
 	sign_up,
 	test_password_strength,
@@ -200,6 +201,16 @@ class TestUser(IntegrationTestCase):
 
 		# Test Password with Password Strenth Policy Set
 		with change_settings("System Settings", enable_password_policy=1, minimum_password_score=1):
+			# Score 0; should now fail
+			result = test_password_strength("zxcvbn")
+			self.assertEqual(result["feedback"]["password_policy_validation_passed"], False)
+			self.assertRaises(
+			frappe.exceptions.ValidationError, handle_password_test_fail, result["feedback"]
+			)
+			self.assertRaises(
+				frappe.exceptions.ValidationError, handle_password_test_fail, result
+			)  # test backwards compatibility
+ 
 			# Score 1; should pass
 			result = test_password_strength("bee2ve")
 			self.assertEqual(result["feedback"]["password_policy_validation_passed"], True)
