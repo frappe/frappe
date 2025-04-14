@@ -348,25 +348,6 @@ def load_user_details():
 	}
 
 
-@frappe.whitelist()
-def get_prefilled_data():
-	"""Get prefilled data for setup wizard"""
-
-	system_settings = frappe.get_cached_doc("System Settings")
-	user = frappe.db.get_value(
-		"User", {"name": ("not in", frappe.STANDARD_USERS)}, ["email", "full_name"], as_dict=True
-	)
-
-	return {
-		"language": system_settings.language,
-		"country": system_settings.country,
-		"currency": system_settings.currency,
-		"timezone": system_settings.time_zone,
-		"full_name": user.full_name if user else "",
-		"email": user.email if user else "",
-	}
-
-
 def prettify_args(args):  # nosemgrep
 	# remove attachments
 	for key, val in args.items():
