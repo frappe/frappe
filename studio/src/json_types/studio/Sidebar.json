@@ -10,9 +10,6 @@
         "route_to": {
           "type": "string"
         },
-        "selected": {
-          "type": "boolean"
-        },
         "featherIcon": {
           "type": "string"
         }

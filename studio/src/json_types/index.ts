@@ -1,8 +1,23 @@
 // frappeui components
+export { default as Alert } from "./frappeui/Alert.json"
+export { default as Avatar } from "./frappeui/Avatar.json"
+export { default as Badge } from "./frappeui/Badge.json"
+export { default as Breadcrumbs } from "./frappeui/Breadcrumbs.json"
 export { default as Button } from "./frappeui/Button.json"
+export { default as Checkbox } from "./frappeui/Checkbox.json"
+export { default as CircularProgressBar } from "./frappeui/CircularProgressBar.json"
 export { default as DatePicker } from "./frappeui/DatePicker.json"
+export { default as Dialog } from "./frappeui/Dialog.json"
+export { default as Divider } from "./frappeui/Divider.json"
+export { default as Dropdown } from "./frappeui/Dropdown.json"
 export { default as FormControl } from "./frappeui/FormControl.json"
+export { default as Progress } from "./frappeui/Progress.json"
+export { default as Rating } from "./frappeui/Rating.json"
+export { default as Select } from "./frappeui/Select.json"
+export { default as Switch } from "./frappeui/Switch.json"
 export { default as TextInput } from "./frappeui/TextInput.json"
+export { default as Textarea } from "./frappeui/Textarea.json"
+export { default as Tooltip } from "./frappeui/Tooltip.json"
 export { default as Tree } from "./frappeui/Tree.json"
 // end of frappeui components
 

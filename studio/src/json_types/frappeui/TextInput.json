@@ -1,6 +1,5 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "#/definitions/TextInputTypes",
   "definitions": {
     "TextInputTypes": {
       "type": "string",
@@ -20,6 +19,52 @@
         "week",
         "range"
       ]
+    },
+    "TextInputProps": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/TextInputTypes"
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg",
+            "xl"
+          ]
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "subtle",
+            "outline"
+          ]
+        },
+        "placeholder": {
+          "type": "string"
+        },
+        "disabled": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string"
+        },
+        "modelValue": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "debounce": {
+          "type": "number"
+        },
+        "required": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

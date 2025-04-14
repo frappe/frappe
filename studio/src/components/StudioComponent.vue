@@ -302,10 +302,10 @@ watch(
 		if (!componentRef.value) return
 		// set data-component-id on update since some frappeui components have inheritAttrs: false
 		target.value = getComponentRoot(componentRef)
-		if (target.value) {
+		if (target.value && target.value instanceof Element) {
 			target.value?.setAttribute("data-component-id", props.block.componentId)
-			isComponentReady.value = true
 		}
+		isComponentReady.value = true
 	},
 	{ immediate: true },
 )

@@ -1,0 +1,110 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Variant": {
+      "type": "string",
+      "enum": [
+        "solid",
+        "outline"
+      ]
+    },
+    "Theme": {
+      "type": "string",
+      "enum": [
+        "black",
+        "red",
+        "green",
+        "blue",
+        "orange"
+      ]
+    },
+    "ThemeProps": {
+      "type": "object",
+      "properties": {
+        "primary": {
+          "type": "string"
+        },
+        "secondary": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "primary",
+        "secondary"
+      ],
+      "additionalProperties": false
+    },
+    "Size": {
+      "type": "string",
+      "enum": [
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ]
+    },
+    "SizeProps": {
+      "type": "object",
+      "properties": {
+        "ringSize": {
+          "type": "string"
+        },
+        "ringBarWidth": {
+          "type": "string"
+        },
+        "innerTextFontSize": {
+          "type": "string"
+        },
+        "checkIconSize": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "ringSize",
+        "ringBarWidth",
+        "innerTextFontSize",
+        "checkIconSize"
+      ],
+      "additionalProperties": false
+    },
+    "CircularProgressBarProps": {
+      "type": "object",
+      "properties": {
+        "step": {
+          "type": "number"
+        },
+        "totalSteps": {
+          "type": "number"
+        },
+        "showPercentage": {
+          "type": "boolean"
+        },
+        "variant": {
+          "$ref": "#/definitions/Variant"
+        },
+        "theme": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Theme"
+            },
+            {
+              "$ref": "#/definitions/ThemeProps"
+            }
+          ]
+        },
+        "size": {
+          "$ref": "#/definitions/Size"
+        },
+        "themeComplete": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "step",
+        "totalSteps"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,273 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "DialogIcon": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "appearance": {
+          "type": "string",
+          "enum": [
+            "warning",
+            "info",
+            "danger",
+            "success"
+          ]
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "DialogOptions": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl",
+            "3xl",
+            "4xl",
+            "5xl",
+            "6xl",
+            "7xl"
+          ]
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/DialogIcon"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DialogAction"
+          }
+        },
+        "position": {
+          "type": "string",
+          "enum": [
+            "top",
+            "center"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "DialogAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "onClick": {
+          "$comment": "(context: DialogActionContext) => void | Promise<void>",
+          "type": "object",
+          "properties": {
+            "namedArgs": {
+              "type": "object",
+              "properties": {
+                "context": {
+                  "$ref": "#/definitions/DialogActionContext"
+                }
+              },
+              "required": [
+                "context"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "theme": {
+          "type": "string",
+          "enum": [
+            "gray",
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl"
+          ]
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "solid",
+            "subtle",
+            "outline",
+            "ghost"
+          ]
+        },
+        "label": {
+          "type": "string"
+        },
+        "icon": {
+          "type": [
+            "string"
+          ]
+        },
+        "iconLeft": {
+          "type": [
+            "string"
+          ]
+        },
+        "iconRight": {
+          "type": [
+            "string"
+          ]
+        },
+        "loading": {
+          "type": "boolean"
+        },
+        "loadingText": {
+          "type": "string"
+        },
+        "disabled": {
+          "type": "boolean"
+        },
+        "route": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ]
+        },
+        "link": {
+          "type": "string"
+        }
+      }
+    },
+    "ButtonProps": {
+      "type": "object",
+      "properties": {
+        "theme": {
+          "type": "string",
+          "enum": [
+            "gray",
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl"
+          ]
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "solid",
+            "subtle",
+            "outline",
+            "ghost"
+          ]
+        },
+        "label": {
+          "type": "string"
+        },
+        "icon": {
+          "type": [
+            "string"
+          ]
+        },
+        "iconLeft": {
+          "type": [
+            "string"
+          ]
+        },
+        "iconRight": {
+          "type": [
+            "string"
+          ]
+        },
+        "loading": {
+          "type": "boolean"
+        },
+        "loadingText": {
+          "type": "string"
+        },
+        "disabled": {
+          "type": "boolean"
+        },
+        "route": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ]
+        },
+        "link": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DialogActionContext": {
+      "type": "object",
+      "properties": {
+        "close": {
+          "$comment": "() => void"
+        }
+      },
+      "required": [
+        "close"
+      ],
+      "additionalProperties": false
+    },
+    "DialogProps": {
+      "type": "object",
+      "properties": {
+        "modelValue": {
+          "type": "boolean"
+        },
+        "options": {
+          "$ref": "#/definitions/DialogOptions"
+        },
+        "disableOutsideClickToClose": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "modelValue"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
