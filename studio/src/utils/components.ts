@@ -40,6 +40,11 @@ function getComponentProps(componentName: string) {
 					}
 				}
 			}
+
+			if (typeof propType === "string") {
+				propType = propType?.toLowerCase()
+			}
+
 			const config: ComponentProp = {
 				type: propType,
 				default: prop.default,
@@ -47,7 +52,7 @@ function getComponentProps(componentName: string) {
 				required: isRequired,
 			}
 
-			if (propType === "String") {
+			if (propType === "string") {
 				const enums = getPropEnums(properties, propName)
 				if (enums) {
 					// prop has predefined options
@@ -59,6 +64,7 @@ function getComponentProps(componentName: string) {
 			propsConfig[propName] = config
 		})
 	}
+
 	return propsConfig
 }
 
@@ -71,9 +77,6 @@ function getPropType(propType: VuePropType | VuePropType[]) {
 }
 
 function getPropInputType(propType: string) {
-	if (typeof propType === "string") {
-		propType = propType?.toLowerCase()
-	}
 	switch (propType) {
 		case "string":
 			return "text"
