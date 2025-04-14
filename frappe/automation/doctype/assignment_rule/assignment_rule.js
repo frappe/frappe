@@ -24,27 +24,35 @@ frappe.ui.form.on("Assignment Rule", {
 	},
 
 	setup_assignment_days_buttons: function (frm) {
-		const labels = ["Weekends", "Weekdays", "All Days"];
-		let get_days = (label) => {
-			const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-			const weekends = ["Saturday", "Sunday"];
-			return {
-				"All Days": weekdays.concat(weekends),
-				Weekdays: weekdays,
-				Weekends: weekends,
-			}[label];
-		};
+		const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+		const WEEKENDS = ["Saturday", "Sunday"];
+		const buttons = [
+			{
+				label: __("All Days"),
+				days: WEEKDAYS.concat(WEEKENDS),
+			},
+			{
+				label: __("Weekdays"),
+				days: WEEKDAYS,
+			},
+			{
+				label: __("Weekends"),
+				days: WEEKENDS,
+			},
+		].reverse();
 
-		let set_days = (e) => {
+		const set_days = (days) => {
 			frm.clear_table("assignment_days");
-			const label = $(e.currentTarget).text();
-			get_days(label).forEach((day) => frm.add_child("assignment_days", { day: day }));
+			for (const day of days) {
+				frm.add_child("assignment_days", { day });
+			}
 			frm.refresh_field("assignment_days");
 		};
 
-		labels.forEach((label) =>
-			frm.fields_dict["assignment_days"].grid.add_custom_button(label, set_days, "top")
-		);
+		for (const { label, days } of buttons) {
+			const cb = () => set_days(days);
+			frm.fields_dict["assignment_days"].grid.add_custom_button(label, cb, "top");
+		}
 	},
 
 	rule: function (frm) {
