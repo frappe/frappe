@@ -14,7 +14,7 @@ from frappe.utils.password import update_password
 from . import install_fixtures
 
 
-def get_setup_stages(args, complete_setup=True):  # nosemgrep
+def get_setup_stages(args):  # nosemgrep
 	# App setup stage functions should not include frappe.db.commit
 	# That is done by frappe after successful completion of all stages
 	stages = [
@@ -27,11 +27,7 @@ def get_setup_stages(args, complete_setup=True):  # nosemgrep
 		}
 	]
 
-	stages += get_stages_hooks(args)
-	if not complete_setup:
-		return stages
-
-	stages += get_setup_complete_hooks(args)
+	stages += get_stages_hooks(args) + get_setup_complete_hooks(args)
 
 	stages.append(
 		{
@@ -69,17 +65,32 @@ def setup_complete(args):
 def prefill_setup_wizard(args):
 	"""Prefill the setup wizard with given values"""
 
-	if cint(frappe.db.get_single_value("System Settings", "setup_complete")):
-		return {"status": "ok"}
+	system_settings = frappe.get_single("System Settings")
+
+	if cint(system_settings.setup_complete):
+		return
 
 	args = parse_args(sanitize_input(args))
-	stages = get_setup_stages(args, complete_setup=False)
+	system_settings.update(
+		{
+			"language": args.get("language"),
+			"country": args.get("country"),
+			"currency": args.get("currency"),
+			"time_zone": args.get("time_zone"),
+		}
+	)
+	system_settings.save()
 
-	process_setup_stages(stages, args, complete_setup=False)
+	frappe.get_doc({
+		"doctype": "User",
+		"email": args.get("email"),
+		"first_name": args.get("first_name"),
+		"last_name": args.get("last_name"),
+	}).insert()
 
 
 @frappe.task()
-def process_setup_stages(stages, user_input, is_background_task=False, complete_setup=True):
+def process_setup_stages(stages, user_input, is_background_task=False):
 	from frappe.utils.telemetry import capture
 
 	capture("initated_server_side", "setup")
@@ -109,9 +120,6 @@ def process_setup_stages(stages, user_input, is_background_task=False, complete_
 			user=frappe.session.user,
 		)
 	else:
-		if not complete_setup:
-			return
-
 		run_setup_success(user_input)
 		capture("completed_server_side", "setup")
 		if not is_background_task:
