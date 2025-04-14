@@ -84,9 +84,7 @@ class CommunicationEmailMixin:
 			assignees = set(self.get_assignees()) - {self.sender_mailid}
 			# Check and remove If user disabled notifications for incoming emails on assigned document.
 			for assignee in assignees.copy():
-				if self.sender_mailid == assignee or (
-+					not is_email_notifications_enabled_for_type(assignee, "threads_on_assigned_document")
-+				):
+				if not is_email_notifications_enabled_for_type(assignee, "threads_on_assigned_document"):
 					assignees.remove(assignee)
 			cc.update(assignees)
 
