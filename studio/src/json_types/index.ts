@@ -1,4 +1,5 @@
 // frappeui components
+export { default as Alert } from "./frappeui/Alert.json"
 export { default as Button } from "./frappeui/Button.json"
 export { default as DatePicker } from "./frappeui/DatePicker.json"
 export { default as FormControl } from "./frappeui/FormControl.json"

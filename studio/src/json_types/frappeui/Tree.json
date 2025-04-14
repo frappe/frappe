@@ -49,6 +49,25 @@
         }
       },
       "additionalProperties": false
+    },
+    "TreeProps": {
+      "type": "object",
+      "properties": {
+        "node": {
+          "$ref": "#/definitions/TreeNode"
+        },
+        "nodeKey": {
+          "type": "string"
+        },
+        "options": {
+          "$ref": "#/definitions/TreeOptions"
+        }
+      },
+      "required": [
+        "node",
+        "nodeKey"
+      ],
+      "additionalProperties": false
     }
   }
 }

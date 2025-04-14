@@ -34,6 +34,10 @@ function getComponentProps(componentName: string) {
 					propType = getSinglePropType(propTypes)
 				} else {
 					propType = properties?.[propName]?.type
+					if (!propType && properties?.[propName]?.$ref) {
+						// no explicit type defined, but a reference to another type
+						propType = "object"
+					}
 				}
 			}
 			const config: ComponentProp = {
