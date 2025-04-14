@@ -26,7 +26,8 @@ function getComponentProps(componentName: string) {
 		})
 		return propsConfig
 	} else {
-		const componentSchema = getComponentSchema(componentName)
+		const componentDefinitions = getComponentDefinitions(componentName)
+		const componentSchema = componentDefinitions?.[`${componentName}Props`]
 		const { required, properties } = componentSchema || {}
 
 		Object.entries(props as Record<string, VueProp>).forEach(([propName, prop]) => {
@@ -46,7 +47,7 @@ function getComponentProps(componentName: string) {
 					if (!propType && propertySchema?.$ref) {
 						// handle referenced types
 						const refName = propertySchema.$ref.split("/").pop()
-						const refType = componentTypes?.[componentName]?.definitions?.[refName]?.type
+						const refType = componentDefinitions?.[refName]?.type
 						propType = refType || "object"
 					}
 				}
@@ -64,7 +65,7 @@ function getComponentProps(componentName: string) {
 			}
 
 			if (propType === "string") {
-				const enums = getPropEnums(properties, componentName, propName)
+				const enums = getPropEnums(properties, componentDefinitions, propName)
 				if (enums) {
 					// prop has predefined options
 					config.inputType = "select"
@@ -104,7 +105,7 @@ function getPropInputType(propType: string) {
 	}
 }
 
-function getPropEnums(properties: object, componentName: string, propName: string): string[] | undefined {
+function getPropEnums(properties: Record<string, any>, componentDefinitions: Record<string, any>, propName: string): string[] | undefined {
 	// fetches prop enums like Button.json > definitions > ButtonProps > properties > variant > enum - ["solid", "subtle", "outline", "ghost"]
 	const propertySchema = properties?.[propName]
 	if (!propertySchema) return undefined
@@ -114,20 +115,20 @@ function getPropEnums(properties: object, componentName: string, propName: strin
 	}
 	if (propertySchema.$ref) {
 		const refName = propertySchema.$ref.split("/").pop()
-		return componentTypes?.[componentName]?.definitions?.[refName]?.enum
+		return componentDefinitions?.[refName]?.enum
 	}
 	return undefined
 }
 
-function getComponentSchema(componentName: string) {
-	// fetches component properties object from JSON types (converted from TS)
-	// e.g.: Button.json > definitions > ButtonProps > properties
-	return componentTypes?.[componentName]?.definitions?.[`${componentName}Props`]
+function getComponentDefinitions(componentName: string) {
+	// fetches component type definitions object from JSON types (converted from TS)
+	// e.g.: Button.json > definitions
+	return componentTypes?.[componentName]?.definitions
 }
 
-function getSinglePropType(propTypes: VuePropType | VuePropType[]) {
+function getSinglePropType(propTypes: string | string[]) {
 	if (typeof propTypes === "string") return propTypes
-	const hasNonPrimitiveType = propTypes.find((type) => ["array", "object", "function"].includes(type.toLowerCase()))
+	const hasNonPrimitiveType = propTypes.find((type: string) => ["array", "object", "function"].includes(type.toLowerCase()))
 	if (hasNonPrimitiveType) {
 		return "object"
 	}
