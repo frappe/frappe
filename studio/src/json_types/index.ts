@@ -17,6 +17,7 @@ export { default as Select } from "./frappeui/Select.json"
 export { default as Switch } from "./frappeui/Switch.json"
 export { default as TextInput } from "./frappeui/TextInput.json"
 export { default as Textarea } from "./frappeui/Textarea.json"
+export { default as Tooltip } from "./frappeui/Tooltip.json"
 export { default as Tree } from "./frappeui/Tree.json"
 // end of frappeui components
 

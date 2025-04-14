@@ -1,28 +1,30 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "#/definitions/TextInputProps",
   "definitions": {
+    "TextInputTypes": {
+      "type": "string",
+      "enum": [
+        "date",
+        "datetime-local",
+        "email",
+        "file",
+        "month",
+        "number",
+        "password",
+        "search",
+        "tel",
+        "text",
+        "time",
+        "url",
+        "week",
+        "range"
+      ]
+    },
     "TextInputProps": {
       "type": "object",
       "properties": {
         "type": {
-          "type": "string",
-          "enum": [
-            "date",
-            "datetime-local",
-            "email",
-            "file",
-            "month",
-            "number",
-            "password",
-            "search",
-            "tel",
-            "text",
-            "time",
-            "url",
-            "week",
-            "range"
-          ]
+          "$ref": "#/definitions/TextInputTypes"
         },
         "size": {
           "type": "string",

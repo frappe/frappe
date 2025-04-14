@@ -25,18 +25,22 @@ function getComponentProps(componentName: string) {
 		Object.entries(props as Record<string, VueProp>).forEach(([propName, prop]) => {
 			let propType = getPropType(prop.type)
 			let isRequired = prop.required
+			const propertySchema = properties?.[propName]
+
 			if (!propType) {
 				isRequired = required?.includes(propName)
 
-				if ("anyOf" in properties?.[propName]) {
+				if ("anyOf" in propertySchema) {
 					// prop has multiple types
-					const propTypes = properties?.[propName]?.anyOf.map((prop) => prop.type)
+					const propTypes = propertySchema?.anyOf.map((prop) => prop?.type)
 					propType = getSinglePropType(propTypes)
 				} else {
-					propType = properties?.[propName]?.type
-					if (!propType && properties?.[propName]?.$ref) {
-						// no explicit type defined, but a reference to another type
-						propType = "object"
+					propType = propertySchema?.type
+					if (!propType && propertySchema?.$ref) {
+						// handle referenced types
+						const refName = propertySchema.$ref.split("/").pop()
+						const refType = componentTypes?.[componentName]?.definitions?.[refName]?.type
+						propType = refType || "object"
 					}
 				}
 			}
@@ -53,7 +57,7 @@ function getComponentProps(componentName: string) {
 			}
 
 			if (propType === "string") {
-				const enums = getPropEnums(properties, propName)
+				const enums = getPropEnums(properties, componentName, propName)
 				if (enums) {
 					// prop has predefined options
 					config.inputType = "select"
@@ -70,7 +74,7 @@ function getComponentProps(componentName: string) {
 
 function getPropType(propType: VuePropType | VuePropType[]) {
 	if (Array.isArray(propType)) {
-		const proptypes = propType.map((type) => type.name)
+		const proptypes = propType.map((type) => type?.name)
 		return getSinglePropType(proptypes)
 	}
 	return propType?.name
@@ -93,9 +97,19 @@ function getPropInputType(propType: string) {
 	}
 }
 
-function getPropEnums(properties: object, propName: string): string[] | undefined {
+function getPropEnums(properties: object, componentName: string, propName: string): string[] | undefined {
 	// fetches prop enums like Button.json > definitions > ButtonProps > properties > variant > enum - ["solid", "subtle", "outline", "ghost"]
-	return properties?.[propName]?.enum
+	const propertySchema = properties?.[propName]
+	if (!propertySchema) return undefined
+
+	if (propertySchema.enum) {
+		return propertySchema.enum
+	}
+	if (propertySchema.$ref) {
+		const refName = propertySchema.$ref.split("/").pop()
+		return componentTypes?.[componentName]?.definitions?.[refName]?.enum
+	}
+	return undefined
 }
 
 function getComponentSchema(componentName: string) {
