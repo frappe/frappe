@@ -89,27 +89,24 @@ frappe.ui.form.on("Data Import", {
 		}
 
 		if (frm.doc.status.includes("Success")) {
-			frm.add_custom_button(
-				__("Go to {0} List", [__(frm.doc.reference_doctype)]),
-				() => {
-					frappe.call({
-						method: "frappe.core.doctype.data_import.data_import.get_import_logs",
-						args: {
-							data_import: frm.doc.name,
-						},
-						callback: function (r) {
-							if (r.message && r.message.length) {
-								let docnames = r.message.map(log => log.docname);
-								frappe.set_route("List", frm.doc.reference_doctype, {
-									name: ["in", docnames],
-								});
-							} else {
-								frappe.msgprint(__("No imported records found."));
-							}
-						},
-					});
-				}
-			);
+			frm.add_custom_button(__("Go to {0} List", [__(frm.doc.reference_doctype)]), () => {
+				frappe.call({
+					method: "frappe.core.doctype.data_import.data_import.get_import_logs",
+					args: {
+						data_import: frm.doc.name,
+					},
+					callback: function (r) {
+						if (r.message && r.message.length) {
+							let docnames = r.message.map((log) => log.docname);
+							frappe.set_route("List", frm.doc.reference_doctype, {
+								name: ["in", docnames],
+							});
+						} else {
+							frappe.msgprint(__("No imported records found."));
+						}
+					},
+				});
+			});
 		}
 	},
 
