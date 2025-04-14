@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/RatingProps",
+  "definitions": {
+    "RatingProps": {
+      "type": "object",
+      "properties": {
+        "modelValue": {
+          "type": "number"
+        },
+        "rating_from": {
+          "type": "number"
+        },
+        "label": {
+          "type": "string"
+        },
+        "readonly": {
+          "type": "boolean"
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg",
+            "xl"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
