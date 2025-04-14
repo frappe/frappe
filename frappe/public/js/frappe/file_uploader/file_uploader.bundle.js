@@ -125,72 +125,8 @@ class FileUploader {
 	upload_files() {
 		this.dialog && this.dialog.get_primary_btn().prop("disabled", true);
 		this.dialog && this.dialog.get_secondary_btn().prop("disabled", true);
-		if (parent_doctype == parstDoctype) {
-			const doctypeElement = document.querySelector('select.input-with-feedback');
-			const selectedDoctype = doctypeElement ? doctypeElement.value : null;
-
-			if (selectedDoctype) {
-				this.uploader.files.forEach((file) => {
-					const reader = new FileReader();
-					reader.onload = async (event) => {
-						// const binaryData = event.target.result;
-						const binaryData = btoa(
-							new Uint8Array(event.target.result)
-								.reduce((data, byte) => data + String.fromCharCode(byte), '')
-						);
-						try {
-							const { pre_signed_url } = await frappe.db.get_doc('Handle Parts Config');
-
-							const response = await fetch(pre_signed_url, {
-								method: 'POST',
-								headers: {
-									'Content-Type': 'application/json',
-								},
-								body: JSON.stringify({
-									filename: file.file_obj.name,
-									contentType: file.file_obj.type,
-									doctype: selectedDoctype,
-									action: "insert-item",
-									user_to_notify: frappe.session.user
-								}),
-							});
-
-							const value = await response.json();
-							if (value.url) {
-								await frappe.db.set_value("Handle Parts Config", "Handle Parts Config", {
-									submit_file_url: value.url,
-									date_time_url_created: frappe.datetime.now_datetime(),
-									binary_data: binaryData
-								});
-							}
-						} catch (error) {
-							frappe.msgprint({
-								title: __('Error'),
-								message: __('Error getting pre-signed URL'),
-								indicator: 'red',
-								clear: true,
-							});
-							return
-						}
-					};
-					reader.readAsArrayBuffer(file.file_obj);
-				});
-				return this.uploader.upload_files();
-			} else {
-				frappe.msgprint({
-					title: __('Error'),
-					message: __('Doctype is not selected or found.'),
-					indicator: 'red',
-					clear: true,
-				});
-				return
-			}
-		} else {
-			return this.uploader.upload_files();
-		}
+		return this.uploader.upload_files();
 	}
-
-
 
 	make_dialog(title) {
 		this.dialog = new frappe.ui.Dialog({
