@@ -2,7 +2,14 @@ import components from "@/data/components"
 import { ComponentProp, ComponentProps } from "@/types"
 import { VueProp, VuePropType } from "@/types/vue"
 
-import * as componentTypes from "@/json_types"
+import * as jsonTypes from "@/json_types"
+
+interface ComponentTypes {
+	[componentName: string]: {
+		definitions: Record<string, any>
+	}
+}
+const componentTypes = jsonTypes as ComponentTypes
 
 function getComponentProps(componentName: string) {
 	const props = components.getProps(componentName)
@@ -32,7 +39,7 @@ function getComponentProps(componentName: string) {
 
 				if ("anyOf" in propertySchema) {
 					// prop has multiple types
-					const propTypes = propertySchema?.anyOf.map((prop) => prop?.type)
+					const propTypes = propertySchema?.anyOf.map((prop: Record<string, any>) => prop?.type)
 					propType = getSinglePropType(propTypes)
 				} else {
 					propType = propertySchema?.type
