@@ -81,12 +81,14 @@ def prefill_setup_wizard(args):
 	)
 	system_settings.save()
 
-	frappe.get_doc({
-		"doctype": "User",
-		"email": args.get("email"),
-		"first_name": args.get("first_name"),
-		"last_name": args.get("last_name"),
-	}).insert()
+	frappe.get_doc(
+		{
+			"doctype": "User",
+			"email": args.get("email"),
+			"first_name": args.get("first_name"),
+			"last_name": args.get("last_name"),
+		}
+	).insert()
 
 
 @frappe.task()
