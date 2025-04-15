@@ -10,7 +10,7 @@ from frappe.utils.data import convert_utc_to_system_timezone
 
 def get_time(path: Path):
 	return convert_utc_to_system_timezone(
-		datetime.datetime.fromtimestamp(path.stat().st_mtime, tz=datetime.UTC)
+		datetime.datetime.fromtimestamp(path.stat().st_mtime, tz=datetime.timezone.utc)
 	).strftime("%a %b %d %H:%M %Y")
 
 
