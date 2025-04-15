@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-04-10 16:17\n"
+"PO-Revision-Date: 2025-04-15 17:06\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -11692,7 +11692,7 @@ msgstr "محیط کار را مخفی کنید"
 #. Permission'
 #: frappe/core/doctype/user_permission/user_permission.json
 msgid "Hide descendant records of <b>For Value</b>."
-msgstr "سوابق نسل <b>برای ارزش</b> را پنهان کنید."
+msgstr "پنهان کردن رکوردهای فرزند <b>برای مقدار</b>."
 
 #: frappe/public/js/frappe/form/layout.js:286
 msgid "Hide details"
