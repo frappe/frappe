@@ -62,9 +62,7 @@ def setup_complete(args):
 
 
 @frappe.whitelist()
-def prefill_setup_wizard(args):
-	"""Prefill the setup wizard with given values"""
-
+def initialize_system_settings_and_user(args):
 	system_settings = frappe.get_single("System Settings")
 
 	if cint(system_settings.setup_complete):
