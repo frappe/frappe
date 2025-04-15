@@ -111,7 +111,7 @@ def update_doc(doctype: str, name: str):
 	doc.update(data)
 	doc.save()
 	doc.apply_fieldlevel_read_permissions()
-	
+
 	# check for child table doctype
 	if doc.get("parenttype"):
 		frappe.get_doc(doc.parenttype, doc.parent).save()
