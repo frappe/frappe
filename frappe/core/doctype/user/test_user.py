@@ -205,12 +205,12 @@ class TestUser(IntegrationTestCase):
 			result = test_password_strength("zxcvbn")
 			self.assertEqual(result["feedback"]["password_policy_validation_passed"], False)
 			self.assertRaises(
-			frappe.exceptions.ValidationError, handle_password_test_fail, result["feedback"]
+				frappe.exceptions.ValidationError, handle_password_test_fail, result["feedback"]
 			)
 			self.assertRaises(
 				frappe.exceptions.ValidationError, handle_password_test_fail, result
 			)  # test backwards compatibility
- 
+
 			# Score 1; should pass
 			result = test_password_strength("bee2ve")
 			self.assertEqual(result["feedback"]["password_policy_validation_passed"], True)
