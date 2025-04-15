@@ -61,6 +61,35 @@ def setup_complete(args):
 		return process_setup_stages(stages, args)
 
 
+@frappe.whitelist()
+def initialize_system_settings_and_user(system_settings_data, user_data):
+	system_settings = frappe.get_single("System Settings")
+
+	if cint(system_settings.setup_complete):
+		return
+
+	system_settings_data = parse_args(sanitize_input(system_settings_data))
+	system_settings.update(
+		{
+			"language": system_settings_data.get("language"),
+			"country": system_settings_data.get("country"),
+			"currency": system_settings_data.get("currency"),
+			"time_zone": system_settings_data.get("time_zone"),
+		}
+	)
+	system_settings.save()
+
+	user_data = parse_args(sanitize_input(user_data))
+	frappe.get_doc(
+		{
+			"doctype": "User",
+			"email": user_data.get("email"),
+			"first_name": user_data.get("first_name"),
+			"last_name": user_data.get("last_name"),
+		}
+	).insert()
+
+
 @frappe.task()
 def process_setup_stages(stages, user_input, is_background_task=False):
 	from frappe.utils.telemetry import capture
