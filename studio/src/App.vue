@@ -6,7 +6,7 @@
 			</keep-alive>
 		</router-view>
 
-		<Toaster :visible-toasts="2" position="bottom-right" richColors />
+		<Toaster :visible-toasts="2" position="bottom-right" richColors closeButton />
 		<Dialogs></Dialogs>
 	</div>
 </template>

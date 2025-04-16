@@ -176,10 +176,26 @@ const useStudioStore = defineStore("store", () => {
 	async function publishPage() {
 		if (!selectedPage.value) return
 		return studioPages.runDocMethod
-			.submit({
+			.submit(
+				{
 				name: selectedPage.value,
 				method: "publish",
-			})
+				},
+				{
+					onError(error: any) {
+						toast.error("Failed to publish the page", {
+							description: error.messages.join(", "),
+							duration: Infinity,
+							action: {
+								label: "Edit Pages",
+								onClick: () => {
+									studioLayout.leftPanelActiveTab = "Pages"
+								}
+							}
+						})
+					},
+				}
+			)
 			.then(async () => {
 				activePage.value = await fetchPage(selectedPage.value!)
 				if (activeApp.value && activePage.value) {

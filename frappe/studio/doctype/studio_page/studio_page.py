@@ -83,11 +83,29 @@ class StudioPage(Document):
 	@frappe.whitelist()
 	def publish(self, **kwargs):
 		frappe.form_dict.update(kwargs)
+		self.validate_conflicts_with_other_pages()
 		self.published = 1
 		if self.draft_blocks:
 			self.blocks = self.draft_blocks
 			self.draft_blocks = None
 		self.save()
+
+	def validate_conflicts_with_other_pages(self):
+		other_pages = frappe.get_all(
+			"Studio Page",
+			filters={"studio_app": self.studio_app, "name": ["!=", self.name], "published": 1},
+			or_filters=[
+				["route", "=", self.route],
+				["page_title", "=", self.page_title],
+			],
+			fields=["route", "page_title"],
+		)
+		if other_pages:
+			frappe.throw(
+				_("Page(s) with duplicate Route or Page Title already exist in this app: {0}").format(
+					", ".join([f"{page.page_title} - {page.route}" for page in other_pages]),
+				)
+			)
 
 
 @frappe.whitelist()
