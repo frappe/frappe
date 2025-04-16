@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-04-06 09:33+0000\n"
-"PO-Revision-Date: 2025-04-15 20:20\n"
+"PO-Revision-Date: 2025-04-16 20:37\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese\n"
 "MIME-Version: 1.0\n"
@@ -15790,7 +15790,7 @@ msgstr ""
 #: frappe/tests/test_translate.py:89 frappe/tests/test_translate.py:91
 #: frappe/tests/test_translate.py:94
 msgid "Mobile No"
-msgstr ""
+msgstr "Nr. de Telemóvel"
 
 #. Label of the modal_trigger (Check) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
