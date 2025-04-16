@@ -713,6 +713,11 @@ frappe.ui.Page = class Page {
 		} else {
 			this.inner_toolbar.find(`button[data-label="${encodeURIComponent(label)}"]`).remove();
 		}
+
+        // Remove menu item in Mobile View
+        group = __(group);
+        const encodeMobileLabel = encodeURIComponent(`${group} > ${label}`);
+        $('li.user-action').has(`span.menu-item-label[data-label="${encodeMobileLabel}"]`).remove();
 	}
 
 	change_inner_button_type(label, group, type) {
