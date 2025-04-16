@@ -19,6 +19,7 @@ const session = reactive({
 	user: { ...emptyUser },
 	//@ts-ignore
 	isLoggedIn: computed(() => session.user.email && session.user.email !== "Guest"),
+	hasPermission: false,
 	initialize,
 	logout,
 })
@@ -26,6 +27,7 @@ const session = reactive({
 async function initialize() {
 	if (session.initialized) return
 	Object.assign(session.user, getSessionFromCookie())
+	await fetchPermissions()
 	session.initialized = true
 }
 
@@ -38,6 +40,12 @@ function getSessionFromCookie() {
 			acc[key] = decodeURIComponent(value)
 			return acc
 		}, {} as any)
+}
+
+async function fetchPermissions() {
+	if (!session.isLoggedIn) return
+	const has_permission = await call("studio.api.has_permission")
+	session.hasPermission = Boolean(has_permission)
 }
 
 async function logout() {

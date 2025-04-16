@@ -21,6 +21,11 @@ const routes = [
 		name: "StudioPage",
 		component: () => import("@/pages/StudioPage.vue"),
 	},
+	{
+		path: "/not-permitted",
+		name: "NotPermitted",
+		component: () => import("@/pages/NotPermitted.vue"),
+	}
 ]
 
 let router = createRouter({
@@ -35,6 +40,9 @@ router.beforeEach(async (to, _, next) => {
 	if (!session.isLoggedIn) {
 		window.location.href = "/login?redirect-to=/studio"
 		return next(false)
+	}
+	if (!session.hasPermission && to.path !== "/not-permitted") {
+		return next("/not-permitted")
 	}
 	return next()
 })

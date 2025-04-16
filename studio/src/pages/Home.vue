@@ -94,7 +94,6 @@ const appList = ref<StudioApp[]>([])
 
 const fetchApps = () => {
 	appList.value = studioApps.data
-	console.log(searchFilter.value)
 	if (searchFilter.value) {
 		appList.value = studioApps.data?.filter((app: StudioApp) =>
 			app.app_title.toLowerCase().includes(searchFilter.value?.toLowerCase()),
