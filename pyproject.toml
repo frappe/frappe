@@ -91,6 +91,7 @@ dependencies = [
     "posthog~=3.21.0",
     "vobject~=0.9.7",
     "pycountry~=24.6.1",
+    "akismet~=24.11.0"
 ]
 
 [project.urls]
