@@ -15,6 +15,8 @@
 
 ⚠️ **WARNING**: This project is in a very early development stage. Expect breaking changes, incomplete features, and bugs. Not recommended for production use yet.
 
+Watch a demo [here](https://www.youtube.com/live/BMjG0Dn39DM?si=jmaeUWtfYy4TS3ap&t=15360)
+
 ### Vision
 
 Frappe Studio aims to improve how developers build applications with the Frappe Framework.
