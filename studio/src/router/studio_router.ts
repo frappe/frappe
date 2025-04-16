@@ -1,6 +1,5 @@
-import { ref } from "vue"
-import { createRouter, createWebHistory, NavigationGuardNext } from "vue-router"
-import { createResource } from "frappe-ui"
+import { createRouter, createWebHistory } from "vue-router"
+import session from "@/utils/session"
 
 const routes = [
 	{
@@ -29,51 +28,15 @@ let router = createRouter({
 	routes,
 })
 
-let hasPermission: null | boolean = null
-let sessionUser = ref("Guest")
 
 router.beforeEach(async (to, _, next) => {
-	if (isUserLoggedIn()) {
-		sessionUser.value = getSessionUser()
-		if (hasPermission === null) {
-			try {
-				const response = await createResource({
-					url: "frappe.client.has_permission",
-				}).submit({
-					doctype: "Studio Page",
-					docname: null,
-					perm_type: "write",
-				})
-				hasPermission = response.has_permission
-				return validatePermission(next)
-			} catch (e) {
-				hasPermission = false
-				return validatePermission(next)
-			}
-		}
+	!session.initialized && (await session.initialize())
+
+	if (!session.isLoggedIn) {
+		window.location.href = "/login?redirect-to=/studio"
+		return next(false)
 	}
-	return validatePermission(next)
+	return next()
 })
-
-function validatePermission(next: NavigationGuardNext) {
-	if (hasPermission) {
-		next()
-	} else {
-		alert("You do not have permission to access this page")
-		if (isUserLoggedIn()) {
-			window.location.href = "/app"
-		} else {
-			window.location.href = "/login?redirect-to=/studio"
-		}
-	}
-}
-
-function isUserLoggedIn() {
-	return document.cookie.includes("user_id") && !document.cookie.includes("user_id=Guest")
-}
-
-function getSessionUser() {
-	return decodeURIComponent(document.cookie.split("user_id=")[1].split(";")[0]) || "Guest"
-}
 
 export default router
