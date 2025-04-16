@@ -18,17 +18,20 @@ def get_apps():
 		if not len(app_details):
 			continue
 		for app_detail in app_details:
-			has_permission_path = app_detail.get("has_permission")
-			if has_permission_path and not frappe.get_attr(has_permission_path)():
-				continue
-			app_list.append(
-				{
-					"name": app,
-					"logo": app_detail.get("logo"),
-					"title": _(app_detail.get("title")),
-					"route": app_detail.get("route"),
-				}
-			)
+			if has_permission_path := app_detail.get("has_permission"):
+				try:
+					if not frappe.get_attr(has_permission_path)():
+						continue
+					app_list.append(
+						{
+							"name": app,
+							"logo": app_detail.get("logo"),
+							"title": _(app_detail.get("title")),
+							"route": app_detail.get("route"),
+						}
+					)
+				except Exception:
+					frappe.log_error(f"Failed to call has_permission hook ({has_permission_path}) for {app}")
 	return app_list
 
 

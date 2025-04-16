@@ -318,7 +318,6 @@ def export_query():
 	csv_params = pop_csv_params(form_params)
 	clean_params(form_params)
 	parse_json(form_params)
-
 	report_name = form_params.report_name
 	frappe.permissions.can_export(
 		frappe.get_cached_value("Report", report_name, "ref_doctype"),
@@ -359,15 +358,16 @@ def export_query():
 		file_extension = "xlsx"
 		content = make_xlsx(xlsx_data, "Query Report", column_widths=column_widths).getvalue()
 
-	for value in (data.filters or {}).values():
-		suffix = ""
-		if isinstance(value, list):
-			suffix = "_" + ",".join(value)
-		elif isinstance(value, str) and value not in {"Yes", "No"}:
-			suffix = f"_{value}"
+	if include_filters:
+		for value in (data.filters or {}).values():
+			suffix = ""
+			if isinstance(value, list):
+				suffix = "_" + ",".join(value)
+			elif isinstance(value, str) and value not in {"Yes", "No"}:
+				suffix = f"_{value}"
 
-		if valid_report_name(report_name, suffix):
-			report_name += suffix
+			if valid_report_name(report_name, suffix):
+				report_name += suffix
 
 	provide_binary_file(report_name, file_extension, content)
 

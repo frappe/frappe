@@ -22,12 +22,8 @@ from frappe.types import DF
 
 field_template = "{field}: {type}"
 
-start_block = """# begin: auto-generated types
-# ruff: noqa
-"""
-end_block = """# ruff: noqa
-# end: auto-generated types
-"""
+start_block = "# begin: auto-generated types"
+end_block = "# end: auto-generated types"
 
 type_code_block_template = """{start_block}
 # This code is auto-generated. Do not modify anything in this block.

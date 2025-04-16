@@ -500,7 +500,7 @@ class ClientCache:
 		key = self.redis.make_key(key, shared=shared)
 		try:
 			val = self.cache[key]
-			if time.monotonic() < val.expiry and self.healthy:
+			if time.monotonic() < val.expiry:
 				self.hits += 1
 				return val.value
 		except KeyError:

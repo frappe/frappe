@@ -159,6 +159,7 @@ frappe.request.call = function (opts) {
 					title: __("Not permitted"),
 					indicator: "red",
 					message: xhr.responseJSON._error_message,
+					re_route: true,
 				});
 
 				xhr.responseJSON._server_messages = null;

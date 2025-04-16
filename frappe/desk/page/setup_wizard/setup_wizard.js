@@ -417,10 +417,19 @@ frappe.setup.slides_settings = [
 		],
 
 		onload: function (slide) {
+			frappe.setup.utils.load_prefilled_data(slide, this.initialize_fields);
+		},
+
+		initialize_fields: function (slide) {
+			const setup_fields = function (slide) {
+				frappe.setup.utils.setup_region_fields(slide);
+				frappe.setup.utils.setup_language_field(slide);
+			};
+
 			if (frappe.setup.data.regional_data) {
 				this.setup_fields(slide);
 			} else {
-				frappe.setup.utils.load_regional_data(slide, this.setup_fields);
+				frappe.setup.utils.load_regional_data(slide, setup_fields);
 			}
 			if (!slide.get_value("language")) {
 				let session_language =
@@ -438,11 +447,6 @@ frappe.setup.slides_settings = [
 			}
 			frappe.setup.utils.bind_region_events(slide);
 			frappe.setup.utils.bind_language_events(slide);
-		},
-
-		setup_fields: function (slide) {
-			frappe.setup.utils.setup_region_fields(slide);
-			frappe.setup.utils.setup_language_field(slide);
 		},
 	},
 	{
@@ -471,6 +475,7 @@ frappe.setup.slides_settings = [
 						: __("Update Password"),
 				fieldtype: "Password",
 				length: 512,
+				depends_on: "eval:!frappe.boot.is_fc_site",
 			},
 		],
 
@@ -488,7 +493,7 @@ frappe.setup.slides_settings = [
 			} else {
 				slide.form.fields_dict.email.df.reqd = 1;
 				slide.form.fields_dict.email.refresh();
-				slide.form.fields_dict.password.df.reqd = 1;
+				if (!frappe.boot.is_fc_site) slide.form.fields_dict.password.df.reqd = 1;
 				slide.form.fields_dict.password.refresh();
 
 				frappe.setup.utils.load_user_details(slide, this.setup_fields);
@@ -508,6 +513,37 @@ frappe.setup.slides_settings = [
 ];
 
 frappe.setup.utils = {
+	load_prefilled_data: function (slide, callback) {
+		frappe.db
+			.get_value("System Settings", "System Settings", [
+				"country",
+				"timezone",
+				"currency",
+				"language",
+			])
+			.then((r) => {
+				if (r.message) {
+					frappe.wizard.values.currency = r.message.currency;
+					frappe.wizard.values.country = r.message.country;
+					frappe.wizard.values.timezone = r.message.timezone;
+					frappe.wizard.values.language = r.message.language;
+
+					frappe.db.get_value(
+						"User",
+						{ name: ["not in", ["Administrator", "Guest"]] },
+						["full_name", "email"],
+						(r) => {
+							if (r) {
+								frappe.wizard.values.full_name = r.full_name;
+								frappe.wizard.values.email = r.email;
+							}
+						}
+					);
+				}
+				callback(slide);
+			});
+	},
+
 	load_regional_data: function (slide, callback) {
 		frappe.call({
 			method: "frappe.geo.country_info.get_country_timezone_info",
