@@ -2,6 +2,8 @@
 # License: MIT. See LICENSE
 import json
 
+from akismet import CheckResponse, Config, SyncClient
+
 import frappe
 from frappe.database.schema import add_column
 from frappe.desk.notifications import notify_mentions
@@ -9,6 +11,12 @@ from frappe.exceptions import ImplicitCommitError
 from frappe.model.document import Document
 from frappe.model.utils import is_virtual_doctype
 from frappe.website.utils import clear_cache
+
+status_map = {
+	CheckResponse.DISCARD: "Discard",
+	CheckResponse.SPAM: "Spam",
+	CheckResponse.HAM: "Ham",
+}
 
 
 class Comment(Document):
@@ -50,12 +58,16 @@ class Comment(Document):
 		reference_name: DF.DynamicLink | None
 		reference_owner: DF.Data | None
 		seen: DF.Check
+		spam_type: DF.Literal["", "Pending", "Spam", "Ham", "Discard"]
 		subject: DF.Text | None
 	# end: auto-generated types
 
 	no_feed_on_delete = True
 
 	def after_insert(self):
+		result = self.delete_if_spam()
+		if result:
+			return
 		notify_mentions(self.reference_doctype, self.reference_name, self.content)
 		self.notify_change("add")
 
@@ -63,9 +75,13 @@ class Comment(Document):
 		if not self.comment_email:
 			self.comment_email = frappe.session.user
 		self.content = frappe.utils.sanitize_html(self.content, always_sanitize=True)
+		self.validate_spam()
 
 	def on_update(self):
 		update_comment_in_doc(self)
+		result = self.delete_if_spam()
+		if result:
+			return
 		if not self.is_new():
 			self.notify_change("update")
 
@@ -101,6 +117,76 @@ class Comment(Document):
 				_comments.remove(c)
 
 		update_comments_in_parent(self.reference_doctype, self.reference_name, _comments)
+
+	def validate_spam(self):
+		from bs4 import BeautifulSoup
+
+		akismet_setting = frappe.get_single("Akismet Settings")
+		if self.comment_type != "Comment" and not akismet_setting.enable:
+			return
+
+		comment = BeautifulSoup(self.content, "html.parser").get_text()
+		if not comment:
+			return
+
+		config = Config(key=akismet_setting.get_password("api_key"), url=frappe.local.site)
+		akismet_client = SyncClient.validated_client(config=config)
+
+		result = akismet_client.comment_check(
+			user_ip=self.ip_address if self.ip_address else frappe.local.request_ip,
+			comment_type="comment",
+			comment_content=comment,
+			comment_author=self.comment_by,
+			comment_author_email=self.comment_email,
+		)
+
+		self.spam_type = status_map.get(result, "Pending")
+
+		if (
+			result in [CheckResponse.DISCARD, CheckResponse.SPAM]
+			and akismet_setting.spam_filtering == "Keep spam comment for review"
+		):
+			self.spam_type = "Pending"
+
+	def delete_if_spam(self):
+		akismet_setting = frappe.get_single("Akismet Settings")
+		if (
+			self.comment_type == "Comment"
+			and akismet_setting.enable
+			and akismet_setting.spam_filtering == "Silently discard spam comment"
+			and self.spam_type in ["Spam", "Discard"]
+		):
+			self.delete()
+			return True
+		return False
+
+	@frappe.whitelist()
+	def mark_as_spam_or_ham(self, is_spam):
+		akismet_setting = frappe.get_single("Akismet Settings")
+		if self.comment_type != "Comment" and not akismet_setting.enable:
+			return
+
+		config = Config(key=akismet_setting.get_password("api_key"), url=frappe.local.site)
+		akismet_client = SyncClient.validated_client(config=config)
+
+		if is_spam:
+			akismet_client.submit_spam(
+				comment_type="comment",
+				comment_author=self.comment_by,
+				comment_author_email=self.comment_email,
+				comment_content=self.content,
+				user_ip=self.ip_address if self.ip_address else frappe.local.request_ip,
+			)
+		else:
+			akismet_client.submit_ham(
+				comment_type="comment",
+				comment_author=self.comment_by,
+				comment_author_email=self.comment_email,
+				comment_content=self.content,
+				user_ip=self.ip_address if self.ip_address else frappe.local.request_ip,
+			)
+		frappe.db.set_value("Comment", self.name, "spam_type", "Ham" if not is_spam else "Spam")
+		return True
 
 
 def on_doctype_update():
