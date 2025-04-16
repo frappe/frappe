@@ -416,15 +416,7 @@ def get_context(context):
 			context.reference_name = context.reference_doc.name
 
 			if self.show_attachments:
-				context.attachments = frappe.get_all(
-					"File",
-					filters={
-						"attached_to_name": context.reference_name,
-						"attached_to_doctype": context.reference_doctype,
-						"is_private": 0,
-					},
-					fields=["file_name", "file_url", "file_size"],
-				)
+				context.attachments = self.get_webform_attachments(context)
 
 			if self.allow_comments:
 				context.comment_list = get_comment_list(
@@ -504,6 +496,51 @@ def get_context(context):
 
 		else:
 			return False
+
+	def get_webform_attachments(self, context):
+		"""
+		Returns permitted attachments for the webform.
+		NOTE: At this point, `self.login_required` is True.
+		"""
+		from frappe.core.doctype.file.file import has_permission as has_file_permission
+
+		def _add_attachment(attachment):
+			"""Add attachment to the list."""
+			return {
+				"file_name": attachment.file_name,
+				"file_url": attachment.file_url,
+				"file_size": attachment.file_size,
+			}
+
+		attachments = frappe.get_all(
+			"File",
+			filters={
+				"attached_to_name": context.reference_name,
+				"attached_to_doctype": context.reference_doctype,
+			},
+			fields=[
+				"is_private",
+				"file_name",
+				"file_url",
+				"file_size",
+				"owner",
+				"attached_to_doctype",
+				"attached_to_name",
+			],
+		)
+
+		permitted_attachments = []
+		for attachment in attachments:
+			if not attachment.is_private:
+				# Public attachments are always permitted
+				permitted_attachments.append(_add_attachment(attachment))
+				continue
+
+			# Attachment is private. Check for file permission
+			if has_file_permission(attachment, "read"):
+				permitted_attachments.append(_add_attachment(attachment))
+
+		return permitted_attachments
 
 
 def get_web_form_module(doc):
