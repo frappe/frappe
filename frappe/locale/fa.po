@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-04-06 09:33+0000\n"
-"PO-Revision-Date: 2025-04-15 20:20\n"
+"PO-Revision-Date: 2025-04-16 20:37\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -3181,7 +3181,7 @@ msgstr "فرکانس پشتیبان گیری"
 #. Label of the backup_path (Data) field in DocType 'S3 Backup Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgid "Backup Path"
-msgstr ""
+msgstr "مسیر پشتیبان"
 
 #: frappe/desk/page/backups/backups.py:95
 msgid "Backup job is already queued. You will receive an email with the download link"
@@ -20017,11 +20017,11 @@ msgstr "نوع ویژگی"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Protect Attached Files"
-msgstr ""
+msgstr "محافظت از فایل های پیوست شده"
 
 #: frappe/core/doctype/file/file.py:501
 msgid "Protected File"
-msgstr ""
+msgstr "فایل محافظت شده"
 
 #. Description of the 'Allowed File Extensions' (Small Text) field in DocType
 #. 'System Settings'
@@ -26430,7 +26430,7 @@ msgstr ""
 
 #: frappe/core/doctype/file/file.py:500
 msgid "This file is attached to a protected document and cannot be deleted."
-msgstr ""
+msgstr "این فایل به یک سند محافظت شده پیوست شده است و قابل حذف نیست."
 
 #: frappe/core/doctype/file/file.js:20
 msgid "This file is public. It can be accessed without authentication."
@@ -27497,7 +27497,7 @@ msgstr "نوع توزیع"
 
 #: frappe/public/js/frappe/form/controls/comment.js:90
 msgid "Type a reply / comment"
-msgstr "پاسخ / نظر را تایپ کنید"
+msgstr "پاسخ / دیدگاه را تایپ کنید"
 
 #: frappe/templates/includes/search_template.html:51
 msgid "Type something in the search box to search"
@@ -28757,7 +28757,7 @@ msgstr "مشاهده پست وبلاگ"
 
 #: frappe/templates/includes/comments/comments.py:56
 msgid "View Comment"
-msgstr "مشاهده نظر"
+msgstr "مشاهده دیدگاه"
 
 #: frappe/core/doctype/user/user.js:151
 msgid "View Doctype Permissions"
