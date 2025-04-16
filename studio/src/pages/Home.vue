@@ -1,23 +1,41 @@
 <template>
 	<div class="h-screen flex-col overflow-hidden bg-white">
-		<div class="toolbar sticky top-0 z-10 flex h-14 items-center justify-center bg-white p-2 shadow-sm">
-			<div class="absolute left-3 flex items-center justify-center gap-2">
-				<StudioLogo class="h-7 w-7"></StudioLogo>
-				<router-link class="flex items-center gap-2" :to="{ name: 'Home' }">
-					<h1 class="text-md mt-[2px] font-semibold leading-5 text-gray-800">Studio</h1>
-				</router-link>
-			</div>
+		<div class="toolbar sticky top-0 z-10 flex h-14 items-center justify-between bg-white p-2 shadow-sm">
+			<Dropdown :options="[{ label: 'Logout', icon: 'log-out', onClick: () => session.logout() }]">
+				<template v-slot="{ open }">
+					<div class="flex cursor-pointer items-center gap-2">
+						<StudioLogo class="h-7 w-7"></StudioLogo>
+						<router-link class="flex items-center gap-2" :to="{ name: 'Home' }">
+							<h1 class="text-md mt-[2px] font-semibold leading-5 text-gray-800">Studio</h1>
+						</router-link>
+						<FeatherIcon :name="open ? 'chevron-up' : 'chevron-down'" class="h-4 w-4 text-gray-700" />
+					</div>
+				</template>
+			</Dropdown>
+
+			<Button variant="solid" icon-left="plus" @click="showDialog = true">New App</Button>
 		</div>
 
 		<div class="flex h-full flex-col items-center px-20 py-10">
 			<div class="flex w-full flex-row justify-between">
 				<div class="text-lg font-semibold text-gray-800">All Apps</div>
-				<Button variant="solid" icon-left="plus" @click="showDialog = true">New App</Button>
+				<TextInput
+					class="w-48"
+					placeholder="Search"
+					type="text"
+					variant="outline"
+					autofocus
+					@input="(e: Event) => (searchFilter = (e.target as HTMLInputElement).value)"
+				>
+					<template #prefix>
+						<FeatherIcon name="search" class="h-4 w-4 text-gray-500" />
+					</template>
+				</TextInput>
 			</div>
 			<div class="mt-5 grid w-full grid-cols-5 items-start gap-5">
 				<router-link
 					class="flex flex-col justify-center gap-1 rounded-lg border-2 p-5"
-					v-for="app in studioApps.data"
+					v-for="app in appList"
 					:to="{ name: 'StudioApp', params: { appID: app.name } }"
 					:key="app.name"
 				>
@@ -60,6 +78,8 @@ import { studioApps } from "@/data/studioApps"
 import { UseTimeAgo } from "@vueuse/components"
 import StudioLogo from "@/components/Icons/StudioLogo.vue"
 import { NewStudioApp, StudioApp } from "@/types/Studio/StudioApp"
+import session from "@/utils/session"
+import { watchDebounced } from "@vueuse/core"
 
 const showDialog = ref(false)
 const emptyAppState = {
@@ -68,6 +88,20 @@ const emptyAppState = {
 }
 const newApp = ref({ ...emptyAppState })
 const router = useRouter()
+
+const searchFilter = ref("")
+const appList = ref<StudioApp[]>([])
+
+const fetchApps = () => {
+	appList.value = studioApps.data
+	if (searchFilter.value) {
+		appList.value = studioApps.data?.filter((app: StudioApp) =>
+			app.app_title.toLowerCase().includes(searchFilter.value?.toLowerCase()),
+		)
+	}
+}
+
+watchDebounced(searchFilter, fetchApps, { debounce: 300, immediate: true })
 
 const createStudioApp = (app: NewStudioApp) => {
 	studioApps.insert

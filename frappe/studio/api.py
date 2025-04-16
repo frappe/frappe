@@ -42,3 +42,18 @@ def get_whitelisted_methods(doctype: str) -> list[str]:
 				continue
 
 	return whitelisted_methods
+
+
+@frappe.whitelist()
+def has_permission() -> bool:
+	if frappe.session.user == "Administrator":
+		return True
+
+	if all(
+		[
+			frappe.has_permission("Studio App", ptype="write"),
+			frappe.has_permission("Studio Page", ptype="write"),
+		]
+	):
+		return True
+	return False
