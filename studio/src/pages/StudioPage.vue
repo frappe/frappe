@@ -141,7 +141,6 @@ async function setPage() {
 	if (route.params.pageID === "new") {
 		await studioPages.insert
 			.submit({
-				page_title: "My Page",
 				draft_blocks: [getRootBlock()],
 				studio_app: route.params.appID as string,
 			})

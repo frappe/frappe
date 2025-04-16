@@ -70,4 +70,6 @@ class StudioApp(WebsiteGenerator):
 			self.route = f"{camel_case_to_kebab_case(self.app_title, True)}-{frappe.generate_hash(length=4)}"
 
 	def get_studio_pages(self):
-		return frappe.get_all("Studio Page", dict(studio_app=self.name), ["name", "page_title", "route"])
+		return frappe.get_all(
+			"Studio Page", dict(studio_app=self.name, published=1), ["name", "page_title", "route"]
+		)
