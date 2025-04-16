@@ -15,6 +15,7 @@
   "reference_doctype",
   "reference_name",
   "reference_owner",
+  "spam_type",
   "section_break_10",
   "content",
   "ip_address"
@@ -58,8 +59,11 @@
    "label": "Seen"
   },
   {
+   "depends_on": "eval:doc.comment_type==\"Comment\"",
    "fieldname": "column_break_5",
-   "fieldtype": "Column Break"
+   "fieldtype": "Column Break",
+   "options": "\nSpam\nHam\nDiscard",
+   "read_only": 1
   },
   {
    "fieldname": "reference_doctype",
@@ -96,10 +100,20 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "IP Address"
+  },
+  {
+   "default": "Pending",
+   "depends_on": "eval:doc.comment_type==\"Comment\"",
+   "fieldname": "spam_type",
+   "fieldtype": "Select",
+   "label": "Spam Type",
+   "no_copy": 1,
+   "options": "\nPending\nSpam\nHam\nDiscard",
+   "read_only": 1
   }
  ],
  "links": [],
- "modified": "2024-08-14 16:10:15.413830",
+ "modified": "2025-04-16 18:00:14.765998",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Comment",
@@ -131,6 +145,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
