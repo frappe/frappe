@@ -404,7 +404,7 @@ def get_events(
 
 			while target_date <= end:
 				resolve_event(e, target_date=target_date, repeat_till=repeat_till)
-				target_date = add_days(target_date, 7)
+				target_date = add_days(target_date, 1)  # Increment by 1 to capture multiple days in the week
 
 		elif e.repeat_on == "Monthly":
 			first_occurence_in_range = e.starts_on.date()

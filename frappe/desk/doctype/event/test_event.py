@@ -348,6 +348,8 @@ class TestEvent(IntegrationTestCase):
 				"starts_on": "2025-04-15 16:00:00",
 				"repeat_till": "2025-05-06 23:59:59",
 				"tuesday": 1,
+				"wednesday": 1,
+				"friday": 1,
 				"event_type": "Public",
 				"repeat_this_event": 1,
 				"repeat_on": "Weekly",
@@ -361,6 +363,8 @@ class TestEvent(IntegrationTestCase):
 			(date(2025, 4, 15), date(2025, 4, 15)),
 			(date(2025, 4, 22), date(2025, 4, 22)),
 			(date(2025, 4, 29), date(2025, 4, 29)),
+			(date(2025, 4, 30), date(2025, 4, 30)),
+			(date(2025, 5, 2), date(2025, 5, 2)),
 		]
 		for start_date, end_date in applicable_dates:
 			event_list = get_events(start_date, end_date, "Administrator", for_reminder=True)
@@ -384,3 +388,7 @@ class TestEvent(IntegrationTestCase):
 				self.assertFalse(
 					find(event_list, test_record_matched), f"Event found between {start_date} and {end_date}"
 				)
+
+		# Test occurences of events in a timespan
+		event_list = get_events((date(2025, 4, 29), date(2025, 5, 2)), "Administrator", for_reminder=True)
+		self.assertEqual(len(event_list), 3)
