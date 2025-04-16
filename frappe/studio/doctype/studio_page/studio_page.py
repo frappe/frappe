@@ -3,6 +3,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.model.naming import append_number_if_name_exists
 
 from studio.utils import camel_case_to_kebab_case
 
@@ -49,6 +50,14 @@ class StudioPage(Document):
 			self.blocks = "[]"
 		if not self.page_title:
 			self.page_title = "My Page"
+			self.page_title = append_number_if_name_exists(
+				"Studio Page",
+				self.page_title,
+				fieldname="page_title",
+				filters={
+					"studio_app": self.studio_app,
+				},
+			)
 		if not self.route:
 			self.route = f"{camel_case_to_kebab_case(self.page_title, True)}-{frappe.generate_hash(length=4)}"
 
