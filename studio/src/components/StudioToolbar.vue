@@ -1,9 +1,19 @@
 <template>
 	<div class="toolbar flex h-14 items-center justify-center bg-white p-2 shadow-sm">
 		<div class="absolute left-3 flex items-center justify-center gap-5">
-			<router-link class="flex items-center gap-2" :to="{ name: 'Home' }">
-				<StudioLogo class="h-7 w-7"></StudioLogo>
-			</router-link>
+			<Dropdown
+				:options="[
+					{ label: 'Back to Dashboard', icon: 'arrow-left', onClick: () => $router.push({ name: 'Home' }) },
+					{ label: 'Logout', icon: 'log-out', onClick: () => session.logout() },
+				]"
+			>
+				<template v-slot="{ open }">
+					<div class="flex cursor-pointer items-center gap-1">
+						<StudioLogo class="h-7 w-7"></StudioLogo>
+						<FeatherIcon :name="open ? 'chevron-up' : 'chevron-down'" class="h-4 w-4 text-gray-700" />
+					</div>
+				</template>
+			</Dropdown>
 
 			<div class="flex gap-2">
 				<Tooltip
@@ -94,6 +104,7 @@ import PageOptions from "@/components/PageOptions.vue"
 import StudioLogo from "@/components/Icons/StudioLogo.vue"
 
 import type { StudioMode } from "@/types"
+import session from "@/utils/session"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
