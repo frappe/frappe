@@ -80,14 +80,7 @@ def initialize_system_settings_and_user(system_settings_data, user_data):
 	system_settings.save()
 
 	user_data = parse_args(sanitize_input(user_data))
-	frappe.get_doc(
-		{
-			"doctype": "User",
-			"email": user_data.get("email"),
-			"first_name": user_data.get("first_name"),
-			"last_name": user_data.get("last_name"),
-		}
-	).insert()
+	create_or_update_user(user_data)
 
 
 @frappe.task()
