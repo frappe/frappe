@@ -142,9 +142,6 @@ frappe.ui.form.on("Communication", {
 					options: "DocType",
 					label: __("Reference Doctype"),
 					fieldname: "reference_doctype",
-					get_query: function () {
-						return { query: "frappe.email.get_communication_doctype" };
-					},
 				},
 				{
 					fieldtype: "Dynamic Link",
