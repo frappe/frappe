@@ -168,6 +168,7 @@ def get_home_page_via_hooks():
 def get_boot_data():
 	from frappe.integrations.frappe_providers.frappecloud_billing import is_fc_site
 
+<<<<<<< HEAD
 	apps = get_apps() or []
 	return {
 		"lang": frappe.local.lang or "en",
@@ -175,6 +176,16 @@ def get_boot_data():
 			"apps": apps,
 			"is_desk_apps": 1 if bool(is_desk_apps(apps)) else 0,
 			"default_path": get_default_path(apps) or "",
+=======
+	apps = get_apps()
+
+	return {
+		"lang": frappe.local.lang or "en",
+		"apps_data": {
+			"apps": apps or [],
+			"is_desk_apps": 1 if bool(is_desk_apps(apps)) else 0,
+			"default_path": get_default_path() or "",
+>>>>>>> e08efc8a64 (perf: use cached user and compile regex)
 		},
 		"sysdefaults": {
 			"float_precision": cint(frappe.get_system_settings("float_precision")) or 3,

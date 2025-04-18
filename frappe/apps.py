@@ -7,6 +7,9 @@ import frappe
 from frappe import _
 from frappe.desk.utils import slug
 
+# check if route is /app or /app/* and not /app1 or /app1/*
+DESK_APP_PATTERN = re.compile(r"^/app(/.*)?$")
+
 
 @frappe.whitelist()
 def get_apps():
@@ -67,10 +70,8 @@ def get_route(app, allowed_workspaces=None):
 
 def is_desk_apps(apps):
 	for app in apps:
-		# check if route is /app or /app/* and not /app1 or /app1/*
-		pattern = r"^/app(/.*)?$"
 		route = app.get("route")
-		if route and not re.match(pattern, route):
+		if route and not re.match(DESK_APP_PATTERN, route):
 			return False
 	return True
 
@@ -84,8 +85,12 @@ def get_default_path(apps=None):
 		return None
 
 	system_default_app = frappe.get_system_settings("default_app")
+<<<<<<< HEAD
 	user_default_app = frappe.db.get_value("User", frappe.session.user, "default_app")
 
+=======
+	user_default_app = frappe.get_cached_value("User", frappe.session.user, "default_app")
+>>>>>>> e08efc8a64 (perf: use cached user and compile regex)
 	if system_default_app and not user_default_app:
 		app = next((app for app in apps if app.get("name") == system_default_app), None)
 		return app.get("route") if app else None
