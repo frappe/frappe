@@ -28,6 +28,8 @@ def execute():
 				part = creation.strftime("%d")
 			elif e == "YYYY":
 				part = creation.strftime("%Y")
+			elif e == "JJJ":
+				part = creation.strftime("%j")
 			elif e == "WW":
 				part = determine_consecutive_week_number(creation)
 			elif e == "timestamp":
