@@ -390,10 +390,10 @@ def clear_cache(path=None):
 		clear_sitemap()
 		frappe.clear_cache("Guest")
 		delete_page_cache()
+		clear_website_route_map()
 		keys += [
 			"portal_menu_items",
 			"home_page",
-			"website_route_rules",
 			"doctypes_with_web_view",
 			"website_redirects",
 		]
@@ -402,6 +402,12 @@ def clear_cache(path=None):
 
 	for method in frappe.get_hooks("website_clear_cache"):
 		frappe.get_attr(method)(path)
+
+
+def clear_website_route_map():
+	from frappe.website.path_resolver import get_website_route_map
+
+	get_website_route_map.clear_cache()
 
 
 def clear_website_cache(path=None):

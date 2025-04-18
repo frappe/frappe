@@ -2,9 +2,10 @@ import re
 
 import click
 import werkzeug.routing.exceptions
-from werkzeug.routing import Rule
+from werkzeug.routing import Map, Rule
 
 import frappe
+from frappe.utils.caching import site_cache
 from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.page_renderers.list_page import ListPage
 from frappe.website.page_renderers.not_found_page import NotFoundPage
@@ -13,7 +14,7 @@ from frappe.website.page_renderers.redirect_page import RedirectPage
 from frappe.website.page_renderers.static_page import StaticPage
 from frappe.website.page_renderers.template_page import TemplatePage
 from frappe.website.page_renderers.web_form import WebFormPage
-from frappe.website.router import evaluate_dynamic_routes
+from frappe.website.router import evaluate_dynamic_route_from_map
 from frappe.website.utils import can_cache, get_home_page
 
 
@@ -178,29 +179,21 @@ def resolve_path(path):
 
 def resolve_from_map(path):
 	"""transform dynamic route to a static one from hooks and route defined in doctype"""
-	rules = [
-		Rule(r["from_route"], endpoint=r["to_route"], defaults=r.get("defaults")) for r in get_website_rules()
-	]
-
-	return evaluate_dynamic_routes(rules, path) or path
+	return evaluate_dynamic_route_from_map(get_website_route_map(), path)
 
 
-def get_website_rules():
+@site_cache
+def get_website_route_map():
 	"""Get website route rules from hooks and DocType route"""
 
-	def _get():
-		rules = frappe.get_hooks("website_route_rules")
-		for d in frappe.get_all("DocType", "name, route", dict(has_web_view=1)):
-			if d.route:
-				rules.append(dict(from_route="/" + d.route.strip("/"), to_route=d.name))
+	rules = frappe.get_hooks("website_route_rules")
+	for d in frappe.get_all("DocType", ["name", "route"], {"has_web_view": 1}):
+		if d.route:
+			rules.append({"from_route": "/" + d.route.strip("/"), "to_route": d.name})
 
-		return rules
+	rules = [Rule(r["from_route"], endpoint=r["to_route"], defaults=r.get("defaults")) for r in rules]
 
-	if frappe.local.dev_server:
-		# dont cache in development
-		return _get()
-
-	return frappe.cache.get_value("website_route_rules", _get)
+	return Map(rules)
 
 
 def validate_path(path: str):

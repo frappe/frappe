@@ -63,19 +63,25 @@ def evaluate_dynamic_routes(rules, path):
 	Use Werkzeug routing to evaluate dynamic routes like /project/<name>
 	https://werkzeug.palletsprojects.com/en/1.0.x/routing/
 	"""
-	route_map = Map(rules)
-	endpoint = None
 
-	if hasattr(frappe.local, "request") and frappe.local.request.environ:
-		urls = route_map.bind_to_environ(frappe.local.request.environ)
-		try:
-			endpoint, args = urls.match("/" + path)
-			if args:
-				# don't cache when there's a query string!
-				frappe.local.no_cache = 1
-				frappe.local.form_dict.update(args)
-		except NotFound:
-			pass
+	return evaluate_dynamic_route_from_map(Map(rules), path)
+
+
+def evaluate_dynamic_route_from_map(route_map, path):
+	environ = hasattr(frappe.local, "request") and frappe.local.request.environ
+	if not environ:
+		return
+
+	endpoint = None
+	urls = route_map.bind_to_environ(environ)
+	try:
+		endpoint, args = urls.match("/" + path)
+		if args:
+			# don't cache when there's a query string!
+			frappe.local.no_cache = 1
+			frappe.local.form_dict.update(args)
+	except NotFound:
+		pass
 
 	return endpoint
 
