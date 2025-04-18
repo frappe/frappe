@@ -16,7 +16,7 @@ import sqlparse
 
 import frappe
 from frappe import _
-from frappe.database.database import is_query_type
+from frappe.database.utils import is_query_type
 from frappe.utils import now_datetime
 
 RECORDER_INTERCEPT_FLAG = "recorder-intercept"
@@ -251,7 +251,7 @@ class Recorder:
 			profiler_output = io.StringIO()
 			pstats.Stats(self.profiler, stream=profiler_output).strip_dirs().sort_stats(
 				"cumulative"
-			).print_stats()
+			).print_stats(200)
 			profile = profiler_output.getvalue()
 			profiler_output.close()
 			return profile

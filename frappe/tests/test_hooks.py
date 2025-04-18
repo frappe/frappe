@@ -132,8 +132,8 @@ class TestHooks(IntegrationTestCase):
 		# every call to frappe.get_hooks loads the hooks module into cache
 		# therefor the cache has to be invalidated after every manual overwriting of hooks
 		# TODO replace with a more elegant solution if there is one or build a util function for this purpose
-		if frappe._load_app_hooks.__wrapped__ in frappe.local.request_cache.keys():
-			del frappe.local.request_cache[frappe._load_app_hooks.__wrapped__]
+		if frappe._load_app_hooks in frappe.local.request_cache.keys():
+			del frappe.local.request_cache[frappe._load_app_hooks]
 		self.assertEqual([False], frappe.get_hooks("fixture_auto_order", app_name=app))
 		self.assertEqual(
 			[
@@ -151,7 +151,7 @@ class TestHooks(IntegrationTestCase):
 		)
 
 		hooks.fixture_auto_order = True
-		del frappe.local.request_cache[frappe._load_app_hooks.__wrapped__]
+		del frappe.local.request_cache[frappe._load_app_hooks]
 		self.assertEqual([True], frappe.get_hooks("fixture_auto_order", app_name=app))
 
 		shutil.rmtree(frappe.get_app_path(app, "fixtures"))
@@ -168,7 +168,7 @@ class TestHooks(IntegrationTestCase):
 		]
 		hooks.fixture_auto_order = False
 
-		del frappe.local.request_cache[frappe._load_app_hooks.__wrapped__]
+		del frappe.local.request_cache[frappe._load_app_hooks]
 		shutil.rmtree(frappe.get_app_path(app, "fixtures"))
 		export_fixtures(app)
 		self.assertCountEqual(
@@ -177,7 +177,7 @@ class TestHooks(IntegrationTestCase):
 		)
 
 		hooks.fixture_auto_order = True
-		del frappe.local.request_cache[frappe._load_app_hooks.__wrapped__]
+		del frappe.local.request_cache[frappe._load_app_hooks]
 		shutil.rmtree(frappe.get_app_path(app, "fixtures"))
 		export_fixtures(app)
 		self.assertCountEqual(

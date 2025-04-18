@@ -1,12 +1,15 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from __future__ import annotations
+
 import json
 import quopri
 import traceback
 from contextlib import suppress
 from email.parser import Parser
 from email.policy import SMTP
+from typing import TYPE_CHECKING
 
 import frappe
 from frappe import _, safe_encode, task
@@ -33,6 +36,9 @@ from frappe.utils import (
 	split_emails,
 )
 from frappe.utils.verified_command import get_signed_params
+
+if TYPE_CHECKING:
+	from typing import Literal
 
 
 class EmailQueue(Document):
@@ -63,7 +69,7 @@ class EmailQueue(Document):
 		show_as_cc: DF.SmallText | None
 		status: DF.Literal["Not Sent", "Sending", "Sent", "Partially Sent", "Error"]
 		unsubscribe_method: DF.Data | None
-		unsubscribe_param: DF.Data | None
+		unsubscribe_params: DF.Code | None
 	# end: auto-generated types
 
 	DOCTYPE = "Email Queue"
@@ -88,10 +94,13 @@ class EmailQueue(Document):
 		return duplicate
 
 	@classmethod
-	def new(cls, doc_data, ignore_permissions=False) -> "EmailQueue":
+	def new(cls, doc_data, ignore_permissions=False) -> EmailQueue:
 		data = doc_data.copy()
 		if not data.get("recipients"):
 			return
+
+		if isinstance(data["unsubscribe_params"], dict):
+			data["unsubscribe_params"] = json.dumps(data["unsubscribe_params"])
 
 		recipients = data.pop("recipients")
 		doc = frappe.new_doc(cls.DOCTYPE)
@@ -101,7 +110,7 @@ class EmailQueue(Document):
 		return doc
 
 	@classmethod
-	def find(cls, name) -> "EmailQueue":
+	def find(cls, name) -> EmailQueue:
 		return frappe.get_doc(cls.DOCTYPE, name)
 
 	@classmethod
@@ -351,7 +360,7 @@ class SendMailContext:
 				reference_name=self.queue_doc.reference_name,
 				email=recipient_email,
 				unsubscribe_method=self.queue_doc.unsubscribe_method,
-				unsubscribe_params=self.queue_doc.unsubscribe_param,
+				unsubscribe_params=self.queue_doc.unsubscribe_params,
 			)
 
 		return quopri.encodestring(unsubscribe_url.encode()).decode()
@@ -499,6 +508,7 @@ class QueueBuilder:
 		print_letterhead=False,
 		with_container=False,
 		email_read_tracker_url=None,
+		x_priority: Literal[1, 3, 5] = 3,
 	):
 		"""Add email to sending queue (Email Queue)
 
@@ -524,6 +534,7 @@ class QueueBuilder:
 		:param header: Append header in email (boolean)
 		:param with_container: Wraps email inside styled container
 		:param email_read_tracker_url: A URL for tracking whether an email is read by the recipient.
+		:param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
 		"""
 
 		self._unsubscribe_method = unsubscribe_method
@@ -534,6 +545,7 @@ class QueueBuilder:
 		self._sender = sender
 		self._text_content = text_content
 		self._message = message
+		self._x_priority: Literal[1, 3, 5] = x_priority
 		self._add_unsubscribe_link = add_unsubscribe_link
 		self._unsubscribe_message = unsubscribe_message
 		self._attachments = attachments
@@ -691,8 +703,8 @@ class QueueBuilder:
 
 	def prepare_email_content(self):
 		email_account = self.get_outgoing_email_account()
-		if isinstance(self._bcc, list) and email_account.always_bcc:
-			self._bcc.append(email_account.always_bcc)
+		if email_account.always_bcc:
+			self._bcc = [*self.bcc, email_account.always_bcc]
 		mail = get_email(
 			recipients=self.final_recipients(),
 			sender=self.sender,
@@ -707,6 +719,7 @@ class QueueBuilder:
 			expose_recipients=self.expose_recipients,
 			inline_images=self.inline_images,
 			header=self.header,
+			x_priority=self._x_priority,
 		)
 
 		mail.set_message_id(self.message_id, self.is_notification)

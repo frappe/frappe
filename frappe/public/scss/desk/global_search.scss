@@ -16,11 +16,9 @@
 		}
 
 		.search-input {
-			padding-left: 25px;
-			padding-bottom: var(--padding-md);
+			margin-left: 25px;
 			border-radius: 0;
 			background: var(--modal-bg);
-			border-bottom: 1px solid var(--border-color);
 
 			&:focus {
 				outline: none;
@@ -30,7 +28,7 @@
 
 		.search-icon {
 			position: absolute;
-			top: 15px;
+			top: 10px;
 			z-index: 6;
 		}
 	}

@@ -203,13 +203,24 @@ def build_table_count_cache():
 	):
 		return
 
-	table_name = frappe.qb.Field("table_name").as_("name")
-	table_rows = frappe.qb.Field("table_rows").as_("count")
-	information_schema = frappe.qb.Schema("information_schema")
+	if frappe.db.db_type != "sqlite":
+		table_name = frappe.qb.Field("table_name").as_("name")
+		table_rows = frappe.qb.Field("table_rows").as_("count")
+		information_schema = frappe.qb.Schema("information_schema")
 
-	data = (frappe.qb.from_(information_schema.tables).select(table_name, table_rows)).run(as_dict=True)
-	counts = {d.get("name").replace("tab", "", 1): d.get("count", None) for d in data}
-	frappe.cache.set_value("information_schema:counts", counts)
+		data = (frappe.qb.from_(information_schema.tables).select(table_name, table_rows)).run(as_dict=True)
+		counts = {d.get("name").replace("tab", "", 1): d.get("count", None) for d in data}
+		frappe.cache.set_value("information_schema:counts", counts)
+	else:
+		counts = {}
+		name = frappe.qb.Field("name")
+		type = frappe.qb.Field("type")
+		sqlite_master = frappe.qb.Schema("sqlite_master")
+		data = frappe.qb.from_(sqlite_master).select(name).where(type == "table").run(as_dict=True)
+		for table in data:
+			count = frappe.db.sql(f"SELECT COUNT(*) FROM `{table.name}`")[0][0]
+			counts[table.name.replace("tab", "", 1)] = count
+		frappe.cache.set_value("information_schema:counts", counts)
 
 	return counts
 

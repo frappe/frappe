@@ -12,11 +12,10 @@ from typing import Any, NoReturn
 from uuid import uuid4
 
 import redis
-import setproctitle
 from redis.exceptions import BusyLoadingError, ConnectionError
 from rq import Callback, Queue, Worker
 from rq.defaults import DEFAULT_WORKER_TTL
-from rq.exceptions import NoSuchJobError
+from rq.exceptions import InvalidJobOperation, NoSuchJobError
 from rq.job import Job, JobStatus
 from rq.logutils import setup_loghandlers
 from rq.timeouts import JobTimeoutException
@@ -27,7 +26,8 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fi
 import frappe
 import frappe.monitor
 from frappe import _
-from frappe.utils import CallbackManager, cint, get_bench_id
+from frappe.utils import CallbackManager, cint, get_bench_id, get_sites
+from frappe.utils.caching import site_cache
 from frappe.utils.commands import log
 from frappe.utils.data import sbool
 from frappe.utils.redis_queue import RedisQueue
@@ -39,6 +39,8 @@ RQ_RESULTS_TTL = 10 * 60
 
 RQ_MAX_JOBS = 5000  # Restart NOFORK workers after every N number of jobs
 RQ_MAX_JOBS_JITTER = 50  # Random difference in max jobs to avoid restarting at same time
+
+MAX_QUEUED_JOBS = 500  # frappe.enqueue will start failing when these many jobs exist in queue.
 
 
 _redis_queue_conn = None
@@ -111,8 +113,8 @@ def enqueue(
 		if not job_id:
 			frappe.throw(_("`job_id` paramater is required for deduplication."))
 		job = get_job(job_id)
-		if job and job.get_status() in (JobStatus.QUEUED, JobStatus.STARTED):
-			frappe.logger().debug(f"Not queueing job {job.id} because it is in queue already")
+		if job and job.get_status(refresh=False) in (JobStatus.QUEUED, JobStatus.STARTED):
+			frappe.logger().error(f"Not queueing job {job.id} because it is in queue already")
 			return
 		elif job:
 			# delete job to avoid argument issues related to job args
@@ -153,6 +155,8 @@ def enqueue(
 			return frappe.call(method, **kwargs)
 
 		raise
+
+	_check_queue_size(q)
 
 	if not timeout:
 		timeout = get_queues_timeout().get(queue) or 300
@@ -196,7 +200,16 @@ def enqueue(
 
 
 def enqueue_doc(doctype, name=None, method=None, queue="default", timeout=300, now=False, **kwargs):
-	"""Enqueue a method to be run on a document"""
+	"""
+	Enqueue a method to be run on a document
+
+	:param doctype: DocType of the document on which you want to run the event
+	:param name: Name of the document on which you want to run the event
+	:param method: method string or method object
+	:param queue: (optional) should be either long, default or short
+	:param timeout: (optional) should be set according to the functions
+	:param kwargs: keyword arguments to be passed to the method
+	"""
 	return enqueue(
 		"frappe.utils.background_jobs.run_doc_method",
 		doctype=doctype,
@@ -231,9 +244,6 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		method = frappe.get_attr(method)
 	else:
 		method_name = f"{method.__module__}.{method.__qualname__}"
-
-	actual_func_name = kwargs.get("job_type") if "run_scheduled_job" in method_name else method_name
-	setproctitle.setproctitle(f"rq: Started running {actual_func_name} at {time.time()}")
 
 	frappe.local.job = frappe._dict(
 		site=site,
@@ -353,26 +363,6 @@ class FrappeWorker(Worker):
 		from frappe.utils.scheduler import start_scheduler
 
 		Thread(target=start_scheduler, daemon=True).start()
-
-	def subscribe(self):
-		"""Subscribe to this worker's channel"""
-		# This function is overridden to increase the timeout of pubsub thread. Default is 0.2
-		# second which is too frequent for us, this change sets it to 2s which is 10x the default.
-		# ref: https://github.com/frappe/caffeine/issues/46
-
-		# The pubsub thread is responsible for handling three commands from master process:
-		# 1. shutdown
-		# 2. stop current job
-		# 3. Kill forked horse (~ force stop the job)
-
-		# Impact of increasing timeout: shutdown might have up to 2s before background thread
-		# times out and is joined with main thread. Ideally, we should not have to do this at all.
-		# But the code that handles blocking socket behaviour is deep inside redis-py/hiredis.
-
-		self.log.info("Subscribing to channel %s", self.pubsub_channel_name)
-		self.pubsub = self.connection.pubsub()
-		self.pubsub.subscribe(**{self.pubsub_channel_name: self.handle_payload})
-		self.pubsub_thread = self.pubsub.run_in_thread(sleep_time=2, daemon=True)
 
 
 class FrappeWorkerNoFork(FrappeWorker):
@@ -667,13 +657,13 @@ def is_job_enqueued(job_id: str) -> bool:
 def get_job_status(job_id: str) -> JobStatus | None:
 	"""Get RQ job status, returns None if job is not found."""
 	if job := get_job(job_id):
-		return job.get_status()
+		return job.get_status(refresh=False)
 
 
 def get_job(job_id: str) -> Job | None:
 	try:
 		return Job.fetch(create_job_id(job_id), connection=get_redis_conn())
-	except NoSuchJobError:
+	except (NoSuchJobError, InvalidJobOperation):
 		return None
 
 
@@ -713,14 +703,29 @@ def truncate_failed_registry(job, connection, type, value, traceback):
 				job_obj and fail_registry.remove(job_obj, delete_job=True)
 
 
-def flush_telemetry():
-	"""Forcefully flush pending events.
+def _check_queue_size(q: Queue):
+	max_jobs = cint(frappe.conf.max_queued_jobs) or MAX_QUEUED_JOBS
+	# Workaround for arbitrarily sized benches,
+	# TODO: Some concept of site-based fairness on consumption of queue
+	max_jobs += _site_count() * 50
 
-	This is required in context of background jobs where process might die before posthog gets time
-	to push events."""
-	ph = getattr(frappe.local, "posthog", None)
-	with suppress(Exception):
-		ph and ph.flush()
+	if cint(q.count) >= max_jobs:
+		primary_action = {
+			"label": "Monitor System Health",
+			"client_action": "frappe.set_route",
+			"args": ["Form", "System Health Report"],
+		}
+		frappe.throw(
+			_("Too many queued background jobs ({0}). Please retry after some time.").format(max_jobs),
+			title=_("Queue Overloaded"),
+			exc=frappe.QueueOverloaded,
+			primary_action=primary_action if frappe.has_permission("System Health Report") else None,
+		)
+
+
+@site_cache(ttl=10 * 60)
+def _site_count() -> int:
+	return len(get_sites())
 
 
 def _start_sentry():

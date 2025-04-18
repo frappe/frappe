@@ -19,18 +19,16 @@ import json
 import os
 import typing
 from datetime import datetime
-from functools import cached_property, singledispatchmethod
-from types import NoneType
 
 import click
 
 import frappe
 from frappe import _, _lt
 from frappe.model import (
+	NO_VALUE_FIELDS,
 	child_table_fields,
 	data_fieldtypes,
 	default_fields,
-	no_value_fields,
 	optional_fields,
 	table_fields,
 )
@@ -43,7 +41,7 @@ from frappe.model.document import Document
 from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
 from frappe.types import DocRef
-from frappe.utils import cast, cint, cstr
+from frappe.utils import cached_property, cast, cint, cstr
 from frappe.utils.data import add_to_date, get_datetime
 
 DEFAULT_FIELD_LABELS = {
@@ -67,24 +65,22 @@ LARGE_TABLE_SIZE_THRESHOLD = 100_000
 LARGE_TABLE_RECENCY_THRESHOLD = 30  # days
 
 
-def get_meta(doctype: str | dict | DocRef, cached=True) -> "_Meta":
+def get_meta(doctype: "str | DocType", cached: bool = True) -> "_Meta":
 	"""Get metadata for a doctype.
 
 	Args:
-	    doctype: The doctype as a string, dict, DocRef (also: Document) object.
+	    doctype: The doctype as a string object.
 	    cached: Whether to use cached metadata (default: True).
 
 	Returns:
 	    Meta object for the given doctype.
 	"""
-	if cached and (
-		doctype_name := getattr(doctype, "doctype", doctype)
-		if not isinstance(doctype, dict)
-		else doctype.get("doctype")
+	if (
+		cached
+		and isinstance(doctype, str)
+		and (meta := frappe.client_cache.get_value(f"doctype_meta::{doctype}"))
 	):
-		key = f"doctype_meta::{doctype_name}"
-		if meta := frappe.client_cache.get_value(key):
-			return meta
+		return meta
 
 	meta = Meta(doctype)
 	key = f"doctype_meta::{meta.name}"
@@ -145,28 +141,12 @@ class Meta(Document):
 		frappe._dict(fieldname="owner", fieldtype="Data"),
 	)
 
-	@singledispatchmethod
-	def __init__(self, arg, bootstrap: Document = None):
-		raise TypeError(f"Unsupported argument type: {type(arg)}")
+	def __init__(self, doctype: "str | DocType"):
+		if isinstance(doctype, Document):
+			super().__init__(doctype.as_dict())
+		else:
+			super().__init__("DocType", doctype)
 
-	@__init__.register(str)
-	def _(self, doctype):
-		super().__init__("DocType", doctype)
-		self.process()
-
-	@__init__.register(DocRef)
-	def _(self, doc_ref):
-		super().__init__("DocType", doc_ref.doctype)
-		self.process()
-
-	@__init__.register(dict)
-	def _(self, doc_ref):
-		super().__init__("DocType", doc_ref.get("doctype"))
-		self.process()
-
-	@__init__.register(NoneType)
-	def _(self, _args, bootstrap):
-		super().__init__(bootstrap.as_dict())
 		self.process()
 
 	def load_from_db(self):
@@ -266,17 +246,17 @@ class Meta(Document):
 
 	def get_global_search_fields(self):
 		"""Return list of fields with `in_global_search` set and `name` if set."""
-		fields = self.get("fields", {"in_global_search": 1, "fieldtype": ["not in", no_value_fields]})
+		fields = self.get("fields", {"in_global_search": 1, "fieldtype": ["not in", NO_VALUE_FIELDS]})
 		if getattr(self, "show_name_in_global_search", None):
 			fields.append(frappe._dict(fieldtype="Data", fieldname="name", label="Name"))
 
 		return fields
 
 	def get_valid_columns(self) -> list[str]:
-		return self._valid_columns_
+		return self._valid_columns
 
 	@cached_property
-	def _valid_columns_(self):
+	def _valid_columns(self):
 		table_exists = frappe.db.table_exists(self.name)
 		if self.name in self.special_doctypes and table_exists:
 			valid_columns = get_table_columns(self.name)
@@ -284,7 +264,7 @@ class Meta(Document):
 			valid_columns = self.default_fields + [
 				df.fieldname
 				for df in self.get("fields")
-				if not df.get("is_virtual") and df.fieldtype in data_fieldtypes
+				if not getattr(df, "is_virtual", False) and df.fieldtype in data_fieldtypes
 			]
 			if self.istable:
 				valid_columns += list(child_table_fields)
@@ -360,7 +340,7 @@ class Meta(Document):
 			link_fields = [df.fieldname for df in self.get_link_fields()]
 
 		for df in self.fields:
-			if df.fieldtype not in no_value_fields and getattr(df, "fetch_from", None):
+			if df.fieldtype not in NO_VALUE_FIELDS and getattr(df, "fetch_from", None):
 				if link_fieldname:
 					if df.fetch_from.startswith(link_fieldname + "."):
 						out.append(df)
@@ -635,10 +615,9 @@ class Meta(Document):
 				self.permissions = [Document(d) for d in custom_perms]
 
 	def get_fieldnames_with_value(self, with_field_meta=False, with_virtual_fields=False):
-		def is_value_field(docfield):
-			return not (
-				(not with_virtual_fields and docfield.get("is_virtual"))
-				or docfield.fieldtype in no_value_fields
+		def is_value_field(df):
+			return (df.fieldtype not in NO_VALUE_FIELDS) and (
+				with_virtual_fields or not getattr(df, "is_virtual", False)
 			)
 
 		if with_field_meta:
@@ -715,7 +694,7 @@ class Meta(Document):
 
 	def get_permlevel_access(self, permission_type="read", parenttype=None, *, user=None):
 		has_access_to = []
-		roles = frappe.get_roles(user)
+		roles = set(frappe.get_roles(user))
 		for perm in self.get_permissions(parenttype):
 			if perm.role in roles and perm.get(permission_type):
 				if perm.permlevel not in has_access_to:

@@ -83,7 +83,7 @@ class RateLimiter:
 		headers = {
 			"X-RateLimit-Reset": self.reset,
 			"X-RateLimit-Limit": self.limit,
-			"X-RateLimit-Remaining": self.remaining,
+			"X-RateLimit-Remaining": round(self.remaining, -6),
 		}
 		if self.rejected:
 			headers["Retry-After"] = self.reset

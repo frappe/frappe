@@ -48,7 +48,12 @@ frappe.ui.Sidebar = class Sidebar {
 		this.$sidebar = this.wrapper.find(".sidebar-items");
 
 		this.wrapper.find(".body-sidebar .collapse-sidebar-link").on("click", () => {
+			if (frappe.is_mobile()) this.apps_switcher.app_switcher_menu.toggleClass("hidden");
 			this.toggle_sidebar();
+		});
+
+		this.wrapper.find(".overlay").on("click", () => {
+			this.close_sidebar();
 		});
 
 		this.apps_switcher = new frappe.ui.AppsSwitcher(this);
@@ -103,6 +108,7 @@ frappe.ui.Sidebar = class Sidebar {
 				this.expand_parent_item(current_item);
 			}
 		}
+		if (!this.sidebar_expanded) this.close_children_item();
 	}
 	expand_parent_item(item) {
 		let parent_title = item.attr("item-parent");

@@ -11,6 +11,7 @@ from frappe.desk.reportview import validate_filters
 from frappe.model.base_document import get_controller
 from frappe.model.db_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
+from frappe.utils.data import flt
 
 
 @frappe.whitelist()
@@ -64,17 +65,19 @@ def merge_location_features_in_one(coords, title_field="name"):
 
 def create_gps_markers(coords, title_field="name"):
 	"""Build Marker based on latitude and longitude."""
-	geojson_dict = []
-	for element in coords:
-		node = {"type": "Feature", "properties": {}, "geometry": {"type": "Point", "coordinates": None}}
-		node["properties"]["name"] = element[title_field]
-		node["geometry"]["coordinates"] = [
-			element["longitude"],
-			element["latitude"],
-		]  # geojson needs it reverse!
-		geojson_dict.append(node)
-
-	return geojson_dict
+	return [
+		{
+			"type": "Feature",
+			"properties": {
+				"name": i[title_field],
+			},
+			"geometry": {
+				"type": "Point",
+				"coordinates": [flt(i.longitude), flt(i.latitude)],  # geojson needs it reverse!
+			},
+		}
+		for i in coords
+	]
 
 
 def execute(doctype, *args, **kwargs):

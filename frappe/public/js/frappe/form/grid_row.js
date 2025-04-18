@@ -8,6 +8,10 @@ export default class GridRow {
 		this.set_docfields();
 		this.columns = {};
 		this.columns_list = [];
+		this.depandant_fields = {
+			mandatory: [],
+			read_only: [],
+		};
 		this.row_check_html = '<input type="checkbox" class="grid-row-check">';
 		this.make();
 	}
@@ -782,6 +786,7 @@ export default class GridRow {
 			this.evaluate_depends_on_value(df.mandatory_depends_on)
 		) {
 			df.reqd = 1;
+			this.depandant_fields["mandatory"].push(df);
 		}
 
 		if (
@@ -790,7 +795,20 @@ export default class GridRow {
 			this.evaluate_depends_on_value(df.read_only_depends_on)
 		) {
 			df.read_only = 1;
+			this.depandant_fields["read_only"].push(df);
 		}
+	}
+
+	refresh_depedency() {
+		this.depandant_fields["read_only"].forEach((df) => {
+			df.read_only = 0;
+			this.set_dependant_property(df);
+		});
+		this.depandant_fields["mandatory"].forEach((df) => {
+			df.reqd = 0;
+			this.set_dependant_property(df);
+		});
+		this.refresh();
 	}
 
 	evaluate_depends_on_value(expression) {
@@ -1127,7 +1145,6 @@ export default class GridRow {
 		var me = this,
 			parent = column.field_area,
 			df = column.df;
-
 		var field = frappe.ui.form.make_control({
 			df: df,
 			parent: parent,
@@ -1144,10 +1161,10 @@ export default class GridRow {
 
 		// sync get_query
 		field.get_query = this.grid.get_field(df.fieldname).get_query;
-
 		// df.onchange is common for all rows in grid
 		let field_on_change_function = df.onchange;
 		field.df.change = (e) => {
+			this.refresh_depedency();
 			// trigger onchange with current grid row field as "this"
 			field_on_change_function && field_on_change_function.apply(field, [e]);
 			me.refresh_field(field.df.fieldname);

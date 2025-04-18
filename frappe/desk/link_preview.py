@@ -1,8 +1,10 @@
 import frappe
 from frappe.model import no_value_fields, table_fields
+from frappe.utils.caching import http_cache
 
 
 @frappe.whitelist()
+@http_cache(max_age=60 * 10)
 def get_preview_data(doctype, docname):
 	preview_fields = []
 	meta = frappe.get_meta(doctype)

@@ -49,18 +49,6 @@ class TestDocRef(IntegrationTestCase):
 		test_doc.reload()
 		self.assertEqual(test_doc.description, "Revised Test ToDo")
 
-	def test_get_meta_with_doc_ref(self):
-		# Test get_meta with DocRef
-		doc_ref = DocRef("User", "test@example.com")
-		meta = frappe.get_meta(doc_ref)
-
-		# Check more attributes of the meta
-		self.assertEqual(meta.name, "User")
-		self.assertEqual(meta.module, "Core")
-		self.assertTrue("email" in [f.fieldname for f in meta.fields])
-		self.assertTrue("first_name" in [f.fieldname for f in meta.fields])
-		self.assertTrue("last_name" in [f.fieldname for f in meta.fields])
-
 	def test_doc_ref_value_representation(self):
 		# Test the value representation of DocRef
 		doc_ref = DocRef("User", "test@example.com")

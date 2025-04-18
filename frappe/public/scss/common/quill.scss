@@ -310,6 +310,11 @@
 	.mention {
 		--user-mention-bg-color: var(--control-bg);
 	}
+	p {
+		img {
+			max-width: 500px;
+		}
+	}
 }
 
 .ql-mention-list {

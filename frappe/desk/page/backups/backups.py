@@ -1,82 +1,85 @@
 import datetime
-import os
+from collections import defaultdict
+from pathlib import Path
 
 import frappe
 from frappe import _
-from frappe.utils import cint, get_site_path, get_url
+from frappe.utils import get_site_path, get_url
 from frappe.utils.data import convert_utc_to_system_timezone
 
 
+def get_time(path: Path):
+	return convert_utc_to_system_timezone(
+		datetime.datetime.fromtimestamp(path.stat().st_mtime, tz=datetime.UTC)
+	).strftime("%a %b %d %H:%M %Y")
+
+
+def get_encrytion_status(path: Path):
+	return "-enc" in path.name
+
+
+def get_size(path: Path):
+	size = path.stat().st_size
+	mbase = 1024 * 1024
+
+	if size > mbase:
+		return f"{size / mbase:.1f}M"
+
+	return f"{size / 1024:.1f}K"
+
+
 def get_context(context):
-	def get_time(path):
-		dt = os.path.getmtime(path)
-		return convert_utc_to_system_timezone(
-			datetime.datetime.fromtimestamp(dt, tz=datetime.timezone.utc)
-		).strftime("%a %b %d %H:%M %Y")
-
-	def get_encrytion_status(path):
-		if "-enc" in path:
-			return True
-
-	def get_size(path):
-		size = os.path.getsize(path)
-		if size > 1048576:
-			return f"{float(size) / 1048576:.1f}M"
-		else:
-			return f"{float(size) / 1024:.1f}K"
-
-	path = get_site_path("private", "backups")
-	files = [x for x in os.listdir(path) if os.path.isfile(os.path.join(path, x))]
-	backup_limit = get_scheduled_backup_limit()
-
-	files = [
+	context.no_cache = True
+	backup_limit = frappe.get_system_settings("backup_limit")
+	backups_path = Path(get_site_path("private", "backups"))
+	backup_files = [
 		(
-			"/backups/" + _file,
-			get_time(os.path.join(path, _file)),
-			get_encrytion_status(os.path.join(path, _file)),
-			get_size(os.path.join(path, _file)),
+			"/backups/" + x.relative_to(backups_path).as_posix(),
+			get_time(x),
+			get_encrytion_status(x),
+			get_size(x),
 		)
-		for _file in files
-		if _file.endswith("sql.gz")
+		for x in backups_path.iterdir()
+		if x.is_file() and x.name.endswith("sql.gz")
 	]
-	files.sort(key=lambda x: x[1], reverse=True)
 
-	return {"files": files[:backup_limit]}
+	backup_files.sort(key=lambda x: x[1], reverse=True)
 
-
-def get_scheduled_backup_limit():
-	backup_limit = frappe.db.get_singles_value("System Settings", "backup_limit")
-	return cint(backup_limit)
+	return {"files": backup_files[:backup_limit]}
 
 
-def cleanup_old_backups(site_path, files, limit):
-	backup_paths = []
-	for f in files:
-		if f.endswith("sql.gz"):
-			_path = os.path.abspath(os.path.join(site_path, f))
-			backup_paths.append(_path)
+def cleanup_old_backups(backups: dict[str, list[Path]], limit: int):
+	backups_to_delete = len(backups) - limit
 
-	backup_paths = sorted(backup_paths, key=os.path.getctime)
-	files_to_delete = len(backup_paths) - limit
+	if backups_to_delete > 0:
+		backups = dict(
+			sorted(backups.items(), key=lambda x: max(y.stat().st_ctime for y in x[1]), reverse=True)
+		)
 
-	for idx in range(0, files_to_delete):
-		f = os.path.basename(backup_paths[idx])
-		files.remove(f)
-
-		os.remove(backup_paths[idx])
+		for b_files in list(backups.values())[-backups_to_delete:]:
+			for b_file in b_files:
+				b_file.unlink()
 
 
 def delete_downloadable_backups():
-	path = get_site_path("private", "backups")
-	files = [x for x in os.listdir(path) if os.path.isfile(os.path.join(path, x))]
-	backup_limit = get_scheduled_backup_limit()
+	path = Path(get_site_path("private", "backups"))
+	backups = defaultdict(list)
 
-	if len(files) > backup_limit:
-		cleanup_old_backups(path, files, backup_limit)
+	for x in path.iterdir():
+		if not x.is_file():
+			continue
+
+		# Based on the naming convention of the backup files defined in frappe.utils.backups
+		backup_name = x.name.rsplit("-" + frappe.local.site.replace(".", "_"), maxsplit=1)[0]
+		backups[backup_name].append(x)
+
+	backup_limit = frappe.get_system_settings("backup_limit")
+
+	cleanup_old_backups(backups, backup_limit)
 
 
 @frappe.whitelist()
-def schedule_files_backup(user_email):
+def schedule_files_backup(user_email: str):
 	from frappe.utils.background_jobs import enqueue, get_jobs
 
 	frappe.only_for("System Manager")

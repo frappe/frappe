@@ -122,6 +122,12 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 		--icon-stroke: var(--gray-300);
 	}
 
+	// progress bar
+	--progress-bar-bg: var(--light);
+	.progress {
+		background-color: var(--gray-700);
+	}
+
 	// input
 	--input-disabled-bg: none;
 

@@ -380,7 +380,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			key = '", "'.join(key)
 		return f'ON CONFLICT ("{key}") DO UPDATE SET '
 
-	def check_implicit_commit(self, query):
+	def check_implicit_commit(self, query, query_type):
 		pass  # postgres can run DDL in transactions without implicit commits
 
 	def has_index(self, table_name, index_name):

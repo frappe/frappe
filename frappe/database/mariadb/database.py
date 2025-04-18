@@ -1,4 +1,3 @@
-import re
 from contextlib import contextmanager
 
 import pymysql
@@ -10,8 +9,6 @@ from frappe.database.database import Database
 from frappe.database.mariadb.schema import MariaDBTable
 from frappe.utils import UnicodeWithAttrs, cstr, get_datetime, get_table_name
 
-_PARAM_COMP = re.compile(r"%\([\w]*\)s")
-
 
 class MariaDBExceptionUtil:
 	ProgrammingError = pymysql.ProgrammingError
@@ -20,6 +17,7 @@ class MariaDBExceptionUtil:
 	InternalError = pymysql.InternalError
 	SQLError = pymysql.ProgrammingError
 	DataError = pymysql.DataError
+	InterfaceError = pymysql.InterfaceError
 
 	# match ER_SEQUENCE_RUN_OUT - https://mariadb.com/kb/en/mariadb-error-codes/
 	SequenceGeneratorLimitExceeded = pymysql.OperationalError
@@ -123,6 +121,7 @@ class MariaDBConnectionUtil:
 			"user": self.user,
 			"conv": self.CONVERSION_MAP,
 			"charset": "utf8mb4",
+			"collation": "utf8mb4_unicode_ci",
 			"use_unicode": True,
 		}
 
@@ -214,10 +213,11 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 		return db_size[0].get("database_size")
 
-	def log_query(self, query, values, debug, explain):
-		self.last_query = self._cursor._executed
-		self._log_query(self.last_query, debug, explain, query)
-		return self.last_query
+	def log_query(self, query, query_type, values, debug):
+		mogrified_query = self._cursor._executed
+		self.last_query = mogrified_query
+		self._log_query(mogrified_query, query_type, debug, query)
+		return mogrified_query
 
 	def _clean_up(self):
 		# PERF: Erase internal references of pymysql to trigger GC as soon as
@@ -321,7 +321,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			`doctype` VARCHAR(180) NOT NULL,
 			`data` TEXT,
 			UNIQUE(user, doctype)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8"""
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"""
 		)
 
 	@staticmethod

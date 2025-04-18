@@ -64,7 +64,9 @@ body {
 	overflow: scroll;
 	overflow-x: hidden;
 	overflow-y: visible;
+	scrollbar-gutter: stable;
 }
+
 .body-sidebar-container {
 	display: flex;
 	flex-direction: column;
@@ -124,8 +126,6 @@ body {
 
 	.sidebar-items {
 		width: 224px;
-		padding-left: 1px;
-		padding-right: 1px;
 		width: 100%;
 	}
 
@@ -173,7 +173,7 @@ body {
 			}
 
 			svg {
-				margin: -2px;
+				margin: -4px;
 			}
 		}
 
@@ -660,6 +660,13 @@ body {
 	}
 }
 
+@include media-breakpoint-down(sm) {
+	// dont show in mobile
+	.layout-side-section {
+		min-width: 0px;
+	}
+}
+
 .overlay-sidebar {
 	ul.dropdown-menu {
 		li {
@@ -710,6 +717,7 @@ body {
 		max-width: var(--sidebar-width);
 		z-index: 100;
 		font-size: var(--text-sm);
+		left: -10px !important;
 
 		.dropdown-item {
 			display: flex;

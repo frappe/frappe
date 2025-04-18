@@ -304,6 +304,10 @@ class TestCommands(BaseTestCommands):
 		self.execute("bench --site {test_site} restore {database}", site_data)
 		self.assertEqual(self.returncode, 1)
 
+	@skipIf(
+		frappe.conf.db_type == "sqlite",
+		"Not for SQLite for now",
+	)
 	def test_partial_restore(self):
 		_now = now()
 		for num in range(10):
@@ -330,6 +334,10 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(frappe.db.count("ToDo"), todo_count)
 
+	@skipIf(
+		frappe.conf.db_type == "sqlite",
+		"Not for SQLite for now",
+	)
 	def test_recorder(self):
 		frappe.recorder.stop()
 
@@ -528,6 +536,10 @@ class TestCommands(BaseTestCommands):
 
 		self.assertEqual(conf[key], value)
 
+	@skipIf(
+		frappe.conf.db_type == "sqlite",
+		"Not for SQLite for now",
+	)
 	def test_different_db_username(self):
 		site = frappe.generate_hash()
 		user = "".join(secrets.choice(string.ascii_letters) for _ in range(8))
@@ -565,6 +577,10 @@ class TestCommands(BaseTestCommands):
 		)
 		self.assertEqual(self.returncode, 0)
 
+	@skipIf(
+		frappe.conf.db_type == "sqlite",
+		"Not for SQLite for now",
+	)
 	def test_existing_db_username(self):
 		site = frappe.generate_hash()
 		user = "".join(secrets.choice(string.ascii_letters) for _ in range(8))
@@ -687,6 +703,10 @@ class TestBackups(BaseTestCommands):
 		)
 		self.assertEqual(self.returncode, 0)
 
+	@skipIf(
+		frappe.conf.db_type == "sqlite",
+		"Not for SQLite for now",
+	)
 	def test_backup_fails_with_exit_code(self):
 		"""Provide incorrect options to check if exit code is 1"""
 		odb = BackupGenerator(
@@ -778,6 +798,10 @@ class TestBackups(BaseTestCommands):
 		self.execute("bench --site {site} backup --verbose")
 		self.assertEqual(self.returncode, 0)
 
+	@skipIf(
+		frappe.conf.db_type == "sqlite",
+		"Not for SQLite for now",
+	)
 	def test_backup_only_specific_doctypes(self):
 		"""Take a backup with (include) backup options set in the site config `frappe.conf.backup.includes`"""
 		self.execute(
@@ -789,6 +813,10 @@ class TestBackups(BaseTestCommands):
 		database = fetch_latest_backups(partial=True)["database"]
 		self.assertEqual([], missing_in_backup(self.backup_map["includes"]["includes"], database))
 
+	@skipIf(
+		frappe.conf.db_type == "sqlite",
+		"Not for SQLite for now",
+	)
 	def test_backup_excluding_specific_doctypes(self):
 		"""Take a backup with (exclude) backup options set (`frappe.conf.backup.excludes`, `--exclude`)"""
 		# test 1: take a backup with frappe.conf.backup.excludes
@@ -811,6 +839,10 @@ class TestBackups(BaseTestCommands):
 		database = fetch_latest_backups(partial=True)["database"]
 		self.assertFalse(exists_in_backup(self.backup_map["excludes"]["excludes"], database))
 
+	@skipIf(
+		frappe.conf.db_type == "sqlite",
+		"Not for SQLite for now",
+	)
 	def test_selective_backup_priority_resolution(self):
 		"""Take a backup with conflicting backup options set (`frappe.conf.excludes`, `--include`)"""
 		self.execute(
@@ -821,6 +853,10 @@ class TestBackups(BaseTestCommands):
 		database = fetch_latest_backups(partial=True)["database"]
 		self.assertEqual([], missing_in_backup(self.backup_map["includes"]["includes"], database))
 
+	@skipIf(
+		frappe.conf.db_type == "sqlite",
+		"Not for SQLite for now",
+	)
 	def test_dont_backup_conf(self):
 		"""Take a backup ignoring frappe.conf.backup settings (with --ignore-backup-conf option)"""
 		self.execute("bench --site {site} backup --ignore-backup-conf")
@@ -901,7 +937,7 @@ class TestAddNewUser(BaseTestCommands):
 
 class TestBenchBuild(IntegrationTestCase):
 	def test_build_assets_size_check(self):
-		CURRENT_SIZE = 3.3  # MB
+		CURRENT_SIZE = 3.4  # MB
 		JS_ASSET_THRESHOLD = 0.01
 
 		hooks = frappe.get_hooks()
@@ -960,7 +996,11 @@ class TestCommandUtils(IntegrationTestCase):
 class TestDBCli(BaseTestCommands):
 	@timeout(10)
 	def test_db_cli(self):
-		self.execute("bench --site {site} db-console", kwargs={"cmd_input": rb"\q"})
+		if frappe.conf.db_type == "sqlite":
+			cmd_input = b".quit"
+		else:
+			cmd_input = rb"\q"
+		self.execute("bench --site {site} db-console", kwargs={"cmd_input": cmd_input})
 		self.assertEqual(self.returncode, 0)
 
 	@run_only_if(db_type_is.MARIADB)

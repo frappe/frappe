@@ -30,11 +30,11 @@ class TestRateLimiter(IntegrationTestCase):
 		self.assertFalse(hasattr(frappe.local, "rate_limiter"))
 
 	def test_respond_over_limit(self):
-		limiter = RateLimiter(0.01, 86400)
-		time.sleep(0.01)
+		limiter = RateLimiter(1, 86400)
+		time.sleep(1)
 		limiter.update()
 
-		frappe.conf.rate_limit = {"window": 86400, "limit": 0.01}
+		frappe.conf.rate_limit = {"window": 86400, "limit": 1}
 		self.assertRaises(frappe.TooManyRequestsError, frappe.rate_limiter.apply)
 		frappe.rate_limiter.update()
 
@@ -49,7 +49,7 @@ class TestRateLimiter(IntegrationTestCase):
 		self.assertIn("X-RateLimit-Limit", headers)
 		self.assertIn("X-RateLimit-Remaining", headers)
 		self.assertTrue(int(headers["X-RateLimit-Reset"]) <= 86400)
-		self.assertEqual(int(headers["X-RateLimit-Limit"]), 10000)
+		self.assertEqual(int(headers["X-RateLimit-Limit"]), 1000000)
 		self.assertEqual(int(headers["X-RateLimit-Remaining"]), 0)
 
 		frappe.cache.delete(limiter.key)
@@ -67,15 +67,15 @@ class TestRateLimiter(IntegrationTestCase):
 		delattr(frappe.local, "rate_limiter")
 
 	def test_headers_under_limit(self):
-		frappe.conf.rate_limit = {"window": 86400, "limit": 0.01}
+		frappe.conf.rate_limit = {"window": 86400, "limit": 1}
 		frappe.rate_limiter.apply()
 		frappe.rate_limiter.update()
 		headers = frappe.local.rate_limiter.headers()
 		self.assertNotIn("Retry-After", headers)
 		self.assertIn("X-RateLimit-Reset", headers)
 		self.assertTrue(int(headers["X-RateLimit-Reset"] < 86400))
-		self.assertEqual(int(headers["X-RateLimit-Limit"]), 10000)
-		self.assertEqual(int(headers["X-RateLimit-Remaining"]), 10000)
+		self.assertEqual(int(headers["X-RateLimit-Limit"]), 1000000)
+		self.assertEqual(int(headers["X-RateLimit-Remaining"]), 1000000)
 
 		frappe.cache.delete(frappe.local.rate_limiter.key)
 		delattr(frappe.local, "rate_limiter")

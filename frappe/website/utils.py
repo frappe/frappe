@@ -163,13 +163,16 @@ def get_home_page_via_hooks():
 
 
 def get_boot_data():
+	from frappe.integrations.frappe_providers.frappecloud_billing import is_fc_site
 	from frappe.locale import get_date_format, get_first_day_of_the_week, get_number_format, get_time_format
+
+	apps = get_apps()
 
 	return {
 		"lang": frappe.local.lang or "en",
 		"apps_data": {
-			"apps": get_apps() or [],
-			"is_desk_apps": 1 if bool(is_desk_apps(get_apps())) else 0,
+			"apps": apps or [],
+			"is_desk_apps": 1 if bool(is_desk_apps(apps)) else 0,
 			"default_path": get_default_path() or "",
 		},
 		"sysdefaults": {
@@ -187,6 +190,7 @@ def get_boot_data():
 		},
 		"assets_json": get_assets_json(),
 		"sitename": frappe.local.site,
+		"is_fc_site": 1 if is_fc_site() else 0,
 	}
 
 
@@ -555,7 +559,8 @@ def build_response(path, data, http_status_code, headers: dict | None = None):
 	response.headers["X-Page-Name"] = cstr(cstr(path).encode("ascii", errors="xmlcharrefreplace"))
 	response.headers["X-From-Cache"] = frappe.local.response.from_cache or False
 
-	add_preload_for_bundled_assets(response)
+	if http_status_code != 404:
+		add_preload_for_bundled_assets(response)
 
 	if headers:
 		for key, val in headers.items():

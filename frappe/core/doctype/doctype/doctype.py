@@ -25,7 +25,7 @@ from frappe.model import (
 	no_value_fields,
 	table_fields,
 )
-from frappe.model.base_document import get_controller
+from frappe.model.base_document import RESERVED_KEYWORDS, get_controller
 from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
 from frappe.model.meta import Meta
@@ -154,6 +154,7 @@ class DocType(Document):
 		]
 		nsm_parent_field: DF.Data | None
 		permissions: DF.Table[DocPerm]
+		protect_attached_files: DF.Check
 		queue_in_background: DF.Check
 		quick_entry: DF.Check
 		read_only: DF.Check
@@ -332,7 +333,7 @@ class DocType(Document):
 		if self.is_virtual and self.custom:
 			frappe.throw(_("Not allowed to create custom Virtual DocType."), CannotCreateStandardDoctypeError)
 
-		if frappe.conf.get("developer_mode"):
+		if frappe.conf.developer_mode and not self.owner:
 			self.owner = "Administrator"
 			self.modified_by = "Administrator"
 
@@ -517,7 +518,7 @@ class DocType(Document):
 			self.setup_autoincrement_and_sequence()
 
 		try:
-			frappe.db.updatedb(self.name, Meta(None, bootstrap=self))
+			frappe.db.updatedb(self.name, Meta(self))
 		except Exception as e:
 			print(f"\n\nThere was an issue while migrating the DocType: {self.name}\n")
 			raise e
@@ -1261,7 +1262,7 @@ def validate_fields(meta: Meta):
 		validate_column_name(fieldname)
 
 	def check_invalid_fieldnames(docname, fieldname):
-		if fieldname in Document._reserved_keywords:
+		if fieldname in RESERVED_KEYWORDS:
 			frappe.throw(
 				_("{0}: fieldname cannot be set to reserved keyword {1}").format(
 					frappe.bold(docname),

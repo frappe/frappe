@@ -5,7 +5,6 @@ import json
 import frappe
 from frappe import _
 from frappe.model import child_table_fields, default_fields, table_fields
-from frappe.model.document import read_only_document
 from frappe.utils import cstr
 
 
@@ -15,13 +14,7 @@ def make_mapped_doc(method, source_name, selected_children=None, args=None):
 	Set `selected_children` as flags for the `get_mapped_doc` method.
 
 	Called from `open_mapped_doc` from create_new.js"""
-
-	for hook in reversed(frappe.get_hooks("override_whitelisted_methods", {}).get(method, [])):
-		# override using the last hook
-		method = hook
-		break
-
-	method = frappe.get_attr(method)
+	method = frappe.get_attr(frappe.override_whitelisted_method(method))
 
 	frappe.is_whitelisted(method)
 
@@ -33,8 +26,7 @@ def make_mapped_doc(method, source_name, selected_children=None, args=None):
 
 	frappe.flags.selected_children = selected_children or None
 
-	with read_only_document("doc-mapper"):
-		return method(source_name)
+	return method(source_name)
 
 
 @frappe.whitelist()
@@ -45,14 +37,13 @@ def map_docs(method, source_names, target_doc, args=None):
 
 	e.g. args: "{ 'supplier': 'XYZ' }"
 	"""
+	method = frappe.get_attr(frappe.override_whitelisted_method(method))
 
-	method = frappe.get_attr(method)
 	frappe.is_whitelisted(method)
 
 	for src in json.loads(source_names):
 		_args = (src, target_doc, json.loads(args)) if args else (src, target_doc)
-		with read_only_document("doc-mapper"):
-			target_doc = method(*_args)
+		target_doc = method(*_args)
 	return target_doc
 
 
@@ -103,8 +94,7 @@ def get_mapped_doc(
 
 	ret_doc.run_method("before_mapping", source_doc, table_maps)
 
-	with read_only_document("doc-mapper"):
-		map_doc(source_doc, target_doc, table_maps[source_doc.doctype])
+	map_doc(source_doc, target_doc, table_maps[source_doc.doctype])
 
 	row_exists_for_parentfield = {}
 
@@ -163,12 +153,10 @@ def get_mapped_doc(
 					if table_map.get("filter") and table_map.get("filter")(source_d):
 						continue
 
-					with read_only_document("doc-mapper"):
-						map_child_doc(source_d, target_doc, table_map, source_doc)
+					map_child_doc(source_d, target_doc, table_map, source_doc)
 
 	if postprocess:
-		with read_only_document("doc-mapper"):
-			postprocess(source_doc, target_doc)
+		postprocess(source_doc, target_doc)
 
 	ret_doc.run_method("after_mapping", source_doc)
 	ret_doc.set_onload("load_after_mapping", True)

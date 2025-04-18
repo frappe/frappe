@@ -52,13 +52,14 @@ class RedisWrapper(redis.Redis):
 	def make_key(self, key, user=None, shared=False):
 		if shared:
 			return key
+
 		if user:
 			if user is True:
-				user = frappe.session.user
+				user = frappe.local.session.get("user")
 
 			key = f"user:{user}:{key}"
 
-		return f"{frappe.conf.db_name}|{key}".encode()
+		return f"{frappe.local.conf.get('db_name')}|{key}".encode()
 
 	def set_value(self, key, val, user=None, expires_in_sec=None, shared=False):
 		"""Sets cache value.
@@ -499,7 +500,7 @@ class ClientCache:
 		key = self.redis.make_key(key, shared=shared)
 		try:
 			val = self.cache[key]
-			if time.monotonic() < val.expiry and self.healthy:
+			if time.monotonic() < val.expiry:
 				self.hits += 1
 				return val.value
 		except KeyError:
@@ -579,7 +580,7 @@ class ClientCache:
 		self._watcher = self.invalidator.pubsub()
 		self._watcher.subscribe(**{"__redis__:invalidate": self._handle_invalidation})
 		return self._watcher.run_in_thread(
-			sleep_time=None,
+			sleep_time=60,
 			daemon=True,
 			exception_handler=self._exception_handler,
 		)

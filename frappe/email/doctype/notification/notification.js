@@ -95,7 +95,7 @@ frappe.notification = {
 				});
 			} else if (["WhatsApp", "SMS"].includes(frm.doc.channel)) {
 				receiver_fields = get_receiver_fields(fields, function (df) {
-					df.options == "Phone" || df.options == "Mobile";
+					return df.options == "Phone" || df.options == "Mobile";
 				});
 			}
 

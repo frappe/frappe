@@ -18,7 +18,7 @@ class Note(Document):
 		from frappe.types import DF
 
 		content: DF.TextEditor | None
-		expire_notification_on: DF.Date | None
+		expire_notification_on: DF.Datetime | None
 		notify_on_every_login: DF.Check
 		notify_on_login: DF.Check
 		public: DF.Check

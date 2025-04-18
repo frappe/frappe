@@ -231,13 +231,13 @@ scheduler_events = {
 	"all": [
 		"frappe.email.queue.flush",
 		"frappe.monitor.flush",
+		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
 	],
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
 		"frappe.model.utils.user_settings.sync_user_settings",
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
 		"frappe.desk.form.document_follow.send_hourly_updates",
-		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
 		"frappe.email.doctype.newsletter.newsletter.send_scheduled_email",
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.process_data_deletion_request",
 	],
@@ -456,7 +456,6 @@ after_job = [
 	"frappe.recorder.dump",
 	"frappe.monitor.stop",
 	"frappe.utils.file_lock.release_document_locks",
-	"frappe.utils.background_jobs.flush_telemetry",
 ]
 
 extend_bootinfo = [
@@ -570,6 +569,7 @@ default_log_clearing_doctypes = {
 	"Integration Request": 90,
 	"Activity Log": 90,
 	"Route History": 90,
+	"OAuth Bearer Token": 30,
 }
 
 # These keys will not be erased when doing frappe.clear_cache()

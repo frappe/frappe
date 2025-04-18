@@ -11,11 +11,11 @@ class TestDocStatus(IntegrationTestCase):
 		self.assertFalse(DocStatus.DRAFT.is_submitted())
 
 	def test_submitted(self):
-		self.assertEqual(DocStatus(1), DocStatus.SUMBITTED)
+		self.assertEqual(DocStatus(1), DocStatus.SUBMITTED)
 
-		self.assertFalse(DocStatus.SUMBITTED.is_draft())
-		self.assertTrue(DocStatus.SUMBITTED.is_submitted())
-		self.assertFalse(DocStatus.SUMBITTED.is_cancelled())
+		self.assertFalse(DocStatus.SUBMITTED.is_draft())
+		self.assertTrue(DocStatus.SUBMITTED.is_submitted())
+		self.assertFalse(DocStatus.SUBMITTED.is_cancelled())
 
 	def test_cancelled(self):
 		self.assertEqual(DocStatus(2), DocStatus.CANCELLED)
