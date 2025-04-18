@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.core.page.permission_manager.permission_manager import get_permissions
+from frappe.core.page.permission_manager.permission_manager import get_permissions, add, update
 from frappe.model.document import Document
 from frappe.website.path_resolver import validate_path
 from frappe.website.router import clear_routing_cache
@@ -136,22 +136,25 @@ def copy_role_permissions(source_role, target_role):
 	Args:
 	        source_role: Role to copy permissions from
 	        target_role: Role to copy permissions to
-	        perms: Permissions data (optional, will fetch if not provided)
 	"""
+	from frappe.permissions import rights
+
 	perms = get_permissions(role=source_role)
 	for perm in perms:
-		perm.update(
-			{
-				"name": None,
-				"creation": None,
-				"modified": None,
-				"modified_by": None,
-				"owner": None,
-				"linked_doctypes": None,
-				"role": target_role,
-			}
-		)
-		frappe.get_doc({"doctype": "Custom DocPerm", **perm}).insert(ignore_permissions=True)
+		# First add the basic permission
+		add(perm.parent, target_role, perm.permlevel)
+
+		# Then update each permission right
+		for right in rights:
+			if perm.get(right):
+				update(
+					perm.parent,
+					target_role,
+					perm.permlevel,
+					right,
+					perm.get(right),
+					if_owner=perm.get("if_owner", 0),
+				)
 
 
 def get_info_based_on_role(role, field="email", ignore_permissions=False):
