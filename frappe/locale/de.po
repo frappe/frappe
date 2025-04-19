@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-04-06 09:33+0000\n"
-"PO-Revision-Date: 2025-04-11 18:43\n"
+"PO-Revision-Date: 2025-04-19 21:21\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -1798,12 +1798,12 @@ msgstr "Automatische Wiederholung zulassen"
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Allow Bulk Edit"
-msgstr "Massenbearbeitung zulassen"
+msgstr "Stapelbearbeitung zulassen"
 
 #. Label of the allow_edit (Check) field in DocType 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Allow Bulk Editing"
-msgstr "Massenbearbeitung zulassen"
+msgstr "Stapelberarbeitung zulassen"
 
 #. Label of the allow_consecutive_login_attempts (Int) field in DocType 'System
 #. Settings'
@@ -3828,27 +3828,27 @@ msgstr "Stapelverarbeitung"
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:142
 msgid "Bulk Delete"
-msgstr "Massenlöschung"
+msgstr "Stapel löschen"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:321
 msgid "Bulk Edit"
-msgstr "Massenbearbeitung"
+msgstr "Stapel bearbeiten"
 
 #: frappe/public/js/frappe/form/grid.js:1174
 msgid "Bulk Edit {0}"
-msgstr "Massen-Bearbeitung {0}"
+msgstr "Stapel-Bearbeitung {0}"
 
 #: frappe/desk/reportview.py:602
 msgid "Bulk Operation Failed"
-msgstr "Massenvorgang fehlgeschlagen"
+msgstr "Stapelverarbeitung fehlgeschlagen"
 
 #: frappe/desk/reportview.py:606
 msgid "Bulk Operation Successful"
-msgstr "Massenvorgang erfolgreich"
+msgstr "Stapelverarbeitung erfolgreich"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:131
 msgid "Bulk PDF Export"
-msgstr "Massenhafter PDF-Export"
+msgstr "Stapel-PDF-Export"
 
 #. Label of a Link in the Tools Workspace
 #. Name of a DocType
@@ -3859,19 +3859,19 @@ msgstr "Stapeländerung"
 
 #: frappe/model/workflow.py:253
 msgid "Bulk approval only support up to 500 documents."
-msgstr "Massengenehmigung unterstützt nur bis zu 500 Dokumente."
+msgstr "Stapelgenehmigung unterstützt nur bis zu 500 Dokumente."
 
 #: frappe/desk/doctype/bulk_update/bulk_update.py:56
 msgid "Bulk operation is enqueued in background."
-msgstr "Massenoperationen werden im Hintergrund eingereiht."
+msgstr "Stapelverarbeitung wird im Hintergrund eingereiht."
 
 #: frappe/desk/doctype/bulk_update/bulk_update.py:68
 msgid "Bulk operations only support up to 500 documents."
-msgstr "Massenvorgänge unterstützen nur bis zu 500 Dokumente."
+msgstr "Stapelverarbeitung unterstützt nur bis zu 500 Dokumente."
 
 #: frappe/model/workflow.py:243
 msgid "Bulk {0} is enqueued in background."
-msgstr "Massen- {0} ist im Hintergrund eingereiht."
+msgstr "Stapel-{0} ist im Hintergrund eingereiht."
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -4214,7 +4214,7 @@ msgstr "Dokumente stornieren"
 
 #: frappe/desk/doctype/bulk_update/bulk_update.py:91
 msgid "Cancelling {0}"
-msgstr "Abbrechen von {0}"
+msgstr "{0} wird storniert"
 
 #: frappe/core/doctype/prepared_report/prepared_report.py:259
 msgid "Cannot Download Report due to insufficient permissions"
@@ -4246,7 +4246,7 @@ msgstr "Stornierung vor Übertragen nicht möglich. Vorgang {0} beachten"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:294
 msgid "Cannot cancel {0}."
-msgstr "{0} kann nicht abgebrochen werden."
+msgstr "{0} kann nicht storniert werden."
 
 #: frappe/model/document.py:1047
 msgid "Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"
