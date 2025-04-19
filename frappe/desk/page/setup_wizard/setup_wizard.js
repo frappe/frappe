@@ -526,7 +526,7 @@ frappe.setup.utils = {
 				if (r.message) {
 					frappe.wizard.values.currency = r.message.currency;
 					frappe.wizard.values.country = r.message.country;
-					frappe.wizard.values.timezone = r.message.timezone;
+					frappe.wizard.values.timezone = r.message.time_zone;
 					frappe.wizard.values.language = r.message.language;
 
 					frappe.db.get_value(
