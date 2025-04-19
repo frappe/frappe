@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-04-06 09:33+0000\n"
-"PO-Revision-Date: 2025-04-07 18:35\n"
+"PO-Revision-Date: 2025-04-19 21:21\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -3366,7 +3366,7 @@ msgstr "备份频率"
 #. Label of the backup_path (Data) field in DocType 'S3 Backup Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgid "Backup Path"
-msgstr ""
+msgstr "备份路径"
 
 #: frappe/desk/page/backups/backups.py:95
 msgid "Backup job is already queued. You will receive an email with the download link"
@@ -12512,7 +12512,7 @@ msgstr "启用后每次登录发送通知，否则仅首次通知"
 #. Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgid "If it's empty, it will backup to the root of the bucket."
-msgstr ""
+msgstr "如果为空，它将备份到存储桶的根目录。"
 
 #. Description of the 'Default Workspace' (Link) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -20212,11 +20212,11 @@ msgstr "属性类型"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Protect Attached Files"
-msgstr ""
+msgstr "受保护附件"
 
 #: frappe/core/doctype/file/file.py:501
 msgid "Protected File"
-msgstr ""
+msgstr "受保护文件"
 
 #. Description of the 'Allowed File Extensions' (Small Text) field in DocType
 #. 'System Settings'
@@ -26661,7 +26661,7 @@ msgstr "仅当此处定义的字段名具有值或规则为 true 时，此字段
 
 #: frappe/core/doctype/file/file.py:500
 msgid "This file is attached to a protected document and cannot be deleted."
-msgstr ""
+msgstr "该文件已关联至受保护文档，不可删除。"
 
 #: frappe/core/doctype/file/file.js:20
 msgid "This file is public. It can be accessed without authentication."
@@ -28731,7 +28731,7 @@ msgstr "用户列表"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Users are only able to delete attached files if the document is either in draft or if the document is canceled and they are also able to delete the document."
-msgstr ""
+msgstr "用户仅可在文档处于草稿状态或文档已取消时删除附件，且需具备删除文档的权限。"
 
 #. Description of the 'Allot Points To Assigned Users' (Check) field in DocType
 #. 'Energy Point Rule'
