@@ -112,19 +112,21 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 		};
 	}
 
-	render_map_data(coords) {
+	get_popup_content(feature) {
+		return frappe.utils.get_form_link(this.doctype, feature.properties.name, true);
+	}
+
+	render_map_data(data) {
 		// Clear existing markers
 		if (this.markerLayer) {
 			this.map.removeLayer(this.markerLayer);
 		}
 
-		if (coords.features && coords.features.length) {
+		if (data.features && data.features.length) {
 			this.markerLayer = L.featureGroup();
 
-			coords.features.forEach((coords) => {
-				const marker = L.geoJSON(coords).bindPopup(
-					frappe.utils.get_form_link(this.doctype, coords.properties.name, true)
-				);
+			data.features.forEach((feature) => {
+				const marker = L.geoJSON(feature).bindPopup(this.get_popup_content(feature));
 				this.markerLayer.addLayer(marker);
 			});
 
