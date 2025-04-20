@@ -77,16 +77,23 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 		}, []);
 	}
 
+	get_feature_properties(row) {
+		return {
+			name: row.name,
+		};
+	}
+
 	parse_location_field(row) {
-		// Parse an existing feature collection and add name to properties
-		// Return array of features
 		const location = JSON.parse(row["location"]);
 		if (!location) {
 			return;
 		}
 
 		for (const feature of location["features"]) {
-			feature["properties"]["name"] = row["name"];
+			feature["properties"] = {
+				...(feature["properties"] || {}),
+				...this.get_feature_properties(row),
+			};
 		}
 
 		return location["features"];
@@ -100,9 +107,7 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 
 		return {
 			type: "Feature",
-			properties: {
-				name: row.name,
-			},
+			properties: this.get_feature_properties(row),
 			geometry: {
 				type: "Point",
 				coordinates: [parseFloat(row.longitude), parseFloat(row.latitude)], // geojson needs it reverse!
