@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-04-04 14:10\n"
+"PO-Revision-Date: 2025-04-20 17:52\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -1293,7 +1293,7 @@ msgstr "Dodani zadani tipovi dokumenata dnevnika: {}"
 
 #: frappe/core/doctype/file/file.py:730
 msgid "Added {0}"
-msgstr "Dodano {0}"
+msgstr ""
 
 #: frappe/public/js/frappe/form/link_selector.js:180
 #: frappe/public/js/frappe/form/link_selector.js:202
