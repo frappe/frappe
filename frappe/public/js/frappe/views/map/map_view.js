@@ -17,15 +17,15 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 
 	setup_map_type() {
 		if (
-			cur_list.meta.fields.find(
+			this.meta.fields.find(
 				(i) => i.fieldname === "location" && i.fieldtype === "Geolocation"
 			)
 		) {
 			this.type = "location_field";
 			this._add_field("location");
 		} else if (
-			cur_list.meta.fields.find((i) => i.fieldname === "latitude") &&
-			cur_list.meta.fields.find((i) => i.fieldname === "longitude")
+			this.meta.fields.find((i) => i.fieldname === "latitude") &&
+			this.meta.fields.find((i) => i.fieldname === "longitude")
 		) {
 			this.type = "coordinates";
 			this._add_field("latitude");
@@ -58,22 +58,18 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 	}
 
 	convert_to_geojson(data) {
-		return {
-			type: "FeatureCollection",
-			features:
-				this.type === "location_field"
-					? this.get_location_data(data)
-					: this.get_coordinates_data(data),
-		};
+		return this.type === "location_field"
+			? this.get_location_data(data)
+			: this.get_coordinates_data(data);
 	}
 
 	get_coordinates_data(data) {
-		return data.map((d) => this.create_gps_marker(d)).filter(Boolean);
+		return data.map((row) => this.create_gps_marker(row)).filter(Boolean);
 	}
 
 	get_location_data(data) {
-		return data.reduce((acc, d) => {
-			const location = this.parse_location_field(d);
+		return data.reduce((acc, row) => {
+			const location = this.parse_location_field(row);
 			if (location) {
 				acc.push(...location);
 			}
@@ -81,33 +77,35 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 		}, []);
 	}
 
-	parse_location_field(d) {
-		const location = JSON.parse(d["location"]);
+	parse_location_field(row) {
+		// Parse an existing feature collection and add name to properties
+		// Return array of features
+		const location = JSON.parse(row["location"]);
 		if (!location) {
 			return;
 		}
 
 		for (const feature of location["features"]) {
-			feature["properties"]["name"] = d["name"];
+			feature["properties"]["name"] = row["name"];
 		}
 
 		return location["features"];
 	}
 
-	create_gps_marker(d) {
+	create_gps_marker(row) {
 		// Build marker based on latitude and longitude
-		if (!d.latitude || !d.longitude) {
+		if (!row.latitude || !row.longitude) {
 			return;
 		}
 
 		return {
 			type: "Feature",
 			properties: {
-				name: d.name,
+				name: row.name,
 			},
 			geometry: {
 				type: "Point",
-				coordinates: [parseFloat(d.longitude), parseFloat(d.latitude)], // geojson needs it reverse!
+				coordinates: [parseFloat(row.longitude), parseFloat(row.latitude)], // geojson needs it reverse!
 			},
 		};
 	}
@@ -116,16 +114,16 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 		return frappe.utils.get_form_link(this.doctype, feature.properties.name, true);
 	}
 
-	render_map_data(data) {
+	render_map_data(features) {
 		// Clear existing markers
 		if (this.markerLayer) {
 			this.map.removeLayer(this.markerLayer);
 		}
 
-		if (data.features && data.features.length) {
+		if (features && features.length) {
 			this.markerLayer = L.featureGroup();
 
-			data.features.forEach((feature) => {
+			features.forEach((feature) => {
 				const marker = L.geoJSON(feature).bindPopup(this.get_popup_content(feature));
 				this.markerLayer.addLayer(marker);
 			});
