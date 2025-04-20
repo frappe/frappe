@@ -368,6 +368,7 @@ select = [
     "I",
     "UP",
     "B",
+    "RUF",
 ]
 ignore = [
     "B017", # assertRaises(Exception) - should be more specific
@@ -383,6 +384,9 @@ ignore = [
     "F405", # can't detect undefined names from * import
     "F722", # syntax error in forward type annotation
     "W191", # indentation contains tabs
+    "UP030", # Use implicit references for positional format fields (translations)
+    "UP031", # Use format specifiers instead of percent format
+    "UP032", # Use f-string instead of `format` call (translations)
 ]
 typing-modules = ["frappe.types.DF"]
 
@@ -770,7 +774,7 @@ jobs:
       - name: Install MariaDB Client
         run: |
           sudo apt update
-          sudo apt-get install mariadb-client-10.6
+          sudo apt-get install mariadb-client
 
       - name: Setup
         run: |
@@ -808,18 +812,17 @@ patches_template = """[pre_model_sync]
 
 
 precommit_template = """exclude: 'node_modules|.git'
-default_stages: [commit]
+default_stages: [pre-commit]
 fail_fast: false
 
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.3.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
         files: "{app_name}.*"
         exclude: ".*json$|.*txt$|.*csv|.*md|.*svg"
-      - id: check-yaml
       - id: check-merge-conflict
       - id: check-ast
       - id: check-json
@@ -828,14 +831,17 @@ repos:
       - id: debug-statements
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.2.0
+    rev: v0.8.1
     hooks:
       - id: ruff
-        name: "Run ruff linter and apply fixes"
-        args: ["--fix"]
+        name: "Run ruff import sorter"
+        args: ["--select=I", "--fix"]
+
+      - id: ruff
+        name: "Run ruff linter"
 
       - id: ruff-format
-        name: "Format Python code"
+        name: "Run ruff formatter"
 
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v2.7.1

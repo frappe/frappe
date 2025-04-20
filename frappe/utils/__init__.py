@@ -19,7 +19,7 @@ from collections.abc import (
 )
 from email.header import decode_header, make_header
 from email.utils import formataddr, parseaddr
-from typing import TypedDict
+from typing import TypeAlias, TypedDict
 
 from werkzeug.test import Client
 
@@ -44,6 +44,8 @@ EMAIL_MATCH_PATTERN = re.compile(
 )
 
 UNSET = object()
+
+PropertyType: TypeAlias = property | functools.cached_property
 
 
 if sys.version_info < (3, 11):
@@ -241,7 +243,7 @@ def validate_url(
 	        valid_schemes: if provided checks the given URL's scheme against this
 	"""
 	url = urlparse(txt)
-	is_valid = bool(url.netloc) or (txt and txt.startswith("/"))
+	is_valid = bool(url.scheme and (url.netloc or url.path)) or bool(txt and txt.startswith("/"))
 
 	# Handle scheme validation
 	if isinstance(valid_schemes, str):
@@ -302,7 +304,7 @@ def get_gravatar(email: str) -> str:
 	return has_gravatar(email) or Identicon(email).base64()
 
 
-def get_traceback(with_context=False) -> str:
+def get_traceback(with_context: bool = False) -> str:
 	"""Return the traceback of the Exception."""
 	from traceback_with_variables import iter_exc_lines
 
@@ -666,7 +668,7 @@ def is_markdown(text):
 
 def is_a_property(x) -> bool:
 	"""Get properties (@property, @cached_property) in a controller class"""
-	return isinstance(x, property | functools.cached_property)
+	return isinstance(x, PropertyType)
 
 
 def get_sites(sites_path=None):
@@ -1151,3 +1153,48 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	from frappe.utils.safe_exec import safe_eval
 
 	return safe_eval(code, eval_globals, eval_locals)
+
+
+class cached_property(functools.cached_property):
+	"""
+	A simpler `functools.cached_property` implementation without locks.
+	This isn't needed in Python 3.12+, since lock was removed in newer versions.
+	Hence, in those versions, it returns the `functools.cached_property` object.
+
+	This does not prevent a possible race condition in multi-threaded usage.
+	The getter function could run more than once on the same instance,
+	with the latest run setting the cached value. If the cached property is
+	idempotent or otherwise not harmful to run more than once on an instance,
+	this is fine. If synchronization is needed, implement the necessary locking
+	inside the decorated getter function or around the cached property access.
+	"""
+
+	def __new__(cls, func):
+		if sys.version_info.minor >= 12:
+			return functools.cached_property(func)
+
+		return super().__new__(cls)
+
+	def __init__(self, func):
+		self.func = func
+		self.attrname = None
+		self.__doc__ = func.__doc__
+		self.__module__ = func.__module__
+
+	def __set_name__(self, owner, name):
+		if self.attrname is None:
+			self.attrname = name
+
+		elif name != self.attrname:
+			raise TypeError(
+				"Cannot assign the same cached_property to two different names "
+				f"({self.attrname!r} and {name!r})."
+			)
+
+	def __get__(self, instance, owner=None):
+		if instance is None:
+			return self
+
+		value = self.func(instance)
+		instance.__dict__[self.attrname] = value
+		return value

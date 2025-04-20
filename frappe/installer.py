@@ -583,16 +583,20 @@ def make_site_config(
 			if db_type:
 				site_config["db_type"] = db_type
 
-			if db_socket:
-				site_config["db_socket"] = db_socket
+			if db_type == "sqlite":
+				site_config["db_name"] = db_name
 
-			if db_host:
-				site_config["db_host"] = db_host
+			else:
+				if db_socket:
+					site_config["db_socket"] = db_socket
 
-			if db_port:
-				site_config["db_port"] = db_port
+				if db_host:
+					site_config["db_host"] = db_host
 
-			site_config["db_user"] = db_user or db_name
+				if db_port:
+					site_config["db_port"] = db_port
+
+				site_config["db_user"] = db_user or db_name
 
 		with open(site_file, "w") as f:
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
@@ -834,6 +838,9 @@ def is_partial(sql_file_path: str) -> bool:
 	:param sql_file_path: path to the database dump file
 	:return: True if the database dump is a partial backup, False otherwise
 	"""
+	if frappe.conf.db_type == "sqlite":
+		return False
+
 	header = get_db_dump_header(sql_file_path)
 	return "Partial Backup" in header
 

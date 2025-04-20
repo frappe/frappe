@@ -6,11 +6,11 @@ import string
 from functools import cached_property, wraps
 
 import frappe
-from frappe.query_builder.builder import MariaDB, Postgres
+from frappe.query_builder.builder import MariaDB, Postgres, SQLite
 from frappe.query_builder.functions import Function
 from frappe.types import DocRef
 
-Query = str | MariaDB | Postgres
+Query = str | MariaDB | Postgres | SQLite
 QueryValues = tuple | list | dict | None
 FilterValue = DocRef | str | int | bool
 

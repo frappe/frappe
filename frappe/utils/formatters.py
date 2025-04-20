@@ -24,8 +24,13 @@ BLOCK_TAGS_PATTERN = re.compile(r"(<br|<div|<p)")
 
 
 def format_value(value, df=None, doc=None, currency=None, translated=False, format=None):
-	"""Format value based on given fieldtype, document reference, currency reference.
-	If docfield info (df) is not given, it will try and guess based on the datatype of the value"""
+	"""
+	Format value based on given fieldtype, document reference, currency reference.
+	If docfield info (df) is not given, it will try and guess based on the datatype of the value.
+
+	:param value: Value to be formatted.
+	:param df: (Optional) DocField object with properties `fieldtype`, `options` etc.
+	"""
 	if isinstance(df, str):
 		df = frappe._dict(fieldtype=df)
 
@@ -111,7 +116,7 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 		link_field = next(df for df in meta.fields if df.fieldtype == "Link")
 		for v in value:
 			v.update({"__link_titles": doc.get("__link_titles")})
-			formatted_value = frappe.format_value(v.get(link_field.fieldname, ""), link_field, v)
+			formatted_value = format_value(v.get(link_field.fieldname, ""), link_field, v)
 			values.append(formatted_value)
 
 		return ", ".join(values)

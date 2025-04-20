@@ -110,6 +110,7 @@ def update_doc(doctype: str, name: str):
 	data.pop("flags", None)
 	doc.update(data)
 	doc.save()
+	doc.apply_fieldlevel_read_permissions()
 
 	# check for child table doctype
 	if doc.get("parenttype"):

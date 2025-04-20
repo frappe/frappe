@@ -231,10 +231,25 @@ class SystemHealthReport(Document):
 				LIMIT 5
     	"""
 
+		sqlite_query = """
+				SELECT scheduled_job_type,
+					AVG(CASE WHEN status != 'Complete' THEN 1 ELSE 0 END) * 100 AS failure_rate
+				FROM `tabScheduled Job Log`
+				WHERE
+					creation > %(lower_threshold)s
+					AND modified > %(lower_threshold)s
+					AND creation < %(upper_threshold)s
+				GROUP BY scheduled_job_type
+				HAVING failure_rate > 0
+				ORDER BY failure_rate DESC
+				LIMIT 5
+		"""
+
 		failing_jobs = frappe.db.multisql(
 			{
 				"mariadb": mariadb_query,
 				"postgres": postgres_query,
+				"sqlite": sqlite_query,
 			},
 			{"lower_threshold": lower_threshold, "upper_threshold": upper_threshold},
 			as_dict=True,
@@ -295,10 +310,14 @@ class SystemHealthReport(Document):
 
 		_cols, data = db_report()
 		self.database = frappe.db.db_type
-		self.db_storage_usage = sum(table.size for table in data)
+		self.db_storage_usage = sum(table.size or 0.0 for table in data)
 		for row in data[:5]:
 			self.append("top_db_tables", row)
-		self.database_version = frappe.db.sql("select version()")[0][0]
+
+		if frappe.db.db_type == "sqlite":
+			self.database_version = frappe.db.sql("select sqlite_version()")[0][0]
+		else:
+			self.database_version = frappe.db.sql("select version()")[0][0]
 
 		if frappe.db.db_type == "mariadb":
 			self.bufferpool_size = frappe.db.sql("show variables like 'innodb_buffer_pool_size'")[0][1]
@@ -316,7 +335,7 @@ class SystemHealthReport(Document):
 		self.backups_size = get_directory_size("private", "backups") / (1024 * 1024)
 		self.private_files_size = get_directory_size("private", "files") / (1024 * 1024)
 		self.public_files_size = get_directory_size("public", "files") / (1024 * 1024)
-		self.onsite_backups = len(get_context({}).get("files", []))
+		self.onsite_backups = len(get_context(frappe._dict()).get("files", []))
 
 	@health_check("Users")
 	def fetch_user_stats(self):

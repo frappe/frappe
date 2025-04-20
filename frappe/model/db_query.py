@@ -1180,8 +1180,7 @@ def cast_name(column: str) -> str:
 	Example:
 	input - "ifnull(`tabBlog Post`.`name`, '')=''"
 	output - "ifnull(cast(`tabBlog Post`.`name` as varchar), '')=''" """
-
-	if frappe.db.db_type == "mariadb":
+	if frappe.db.db_type != "postgres":
 		return column
 
 	kwargs = {"string": column}

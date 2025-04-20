@@ -569,6 +569,7 @@ default_log_clearing_doctypes = {
 	"Integration Request": 90,
 	"Activity Log": 90,
 	"Route History": 90,
+	"OAuth Bearer Token": 30,
 }
 
 # These keys will not be erased when doing frappe.clear_cache()

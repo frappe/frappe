@@ -333,7 +333,12 @@ def sync_events_from_google_calendar(g_calendar, method=None):
 				with suppress(IndexError):
 					recurrence = event.get("recurrence")[0]
 
-			if not frappe.db.exists("Event", {"google_calendar_event_id": event.get("id")}):
+			# NOTE: Skip if event is already synced; Frappe doesn't track individual
+			# instances of recurring events, so we need to check if the event is already
+			# synced in Frappe Calendar
+			if event.get("recurringEventId"):
+				...
+			elif not frappe.db.exists("Event", {"google_calendar_event_id": event.get("id")}):
 				insert_event_to_calendar(account, event, recurrence)
 			else:
 				update_event_in_calendar(account, event, recurrence)
@@ -656,7 +661,7 @@ def google_calendar_to_repeat_on(*, start, end, recurrence=None):
 			repeat_on[google_calendar_days[repeat_day]] = 1
 
 	if byday and repeat_on["repeat_on"] == "Monthly":
-		byday = byday.split("=")[1]
+		byday = byday[0]
 		repeat_day_week_number, repeat_day_name = None, None
 
 		for num in ["-2", "-1", "1", "2", "3", "4", "5"]:
@@ -761,7 +766,7 @@ def get_week_number(dt: date):
 	dom = dt.day
 	adjusted_dom = dom + first_day.weekday()
 
-	return int(ceil(adjusted_dom / 7.0))
+	return ceil(adjusted_dom / 7.0)
 
 
 def get_recurrence_parameters(recurrence: str) -> RecurrenceParameters:

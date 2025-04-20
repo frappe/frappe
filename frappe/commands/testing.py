@@ -11,8 +11,6 @@ from frappe.commands import get_site, pass_context
 from frappe.utils.bench_helper import CliCtxObj
 
 if TYPE_CHECKING:
-	import unittest
-
 	from frappe.testing import TestRunner
 
 
@@ -46,6 +44,9 @@ def main(
 		discover_module_tests,
 	)
 	from frappe.testing.environment import _cleanup_after_tests, _initialize_test_environment
+	from frappe.tests.utils.generators import _clear_test_log
+
+	_clear_test_log()
 
 	if debug and not debug_exceptions:
 		debug_exceptions = (Exception,)
@@ -275,7 +276,7 @@ def run_tests(
 		site = get_site(context)
 
 		frappe.init(site)
-		allow_tests = frappe.get_conf().allow_tests
+		allow_tests = frappe.conf.allow_tests
 
 		if not (allow_tests or os.environ.get("CI")):
 			click.secho("Testing is disabled for the site!", bold=True)

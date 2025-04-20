@@ -199,7 +199,10 @@ def fetch_job_ids(queue: Queue, status: str) -> list[str]:
 
 	registry = registry_map.get(status)
 	if registry is not None:
-		job_ids = registry.get_job_ids()
+		if isinstance(registry, Queue):
+			job_ids = registry.get_job_ids()
+		else:
+			job_ids = registry.get_job_ids(cleanup=False)
 		return [j for j in job_ids if j]
 
 	return []
@@ -210,7 +213,7 @@ def remove_failed_jobs():
 	frappe.only_for("System Manager")
 	for queue in get_queues():
 		fail_registry = queue.failed_job_registry
-		failed_jobs = filter_current_site_jobs(fail_registry.get_job_ids())
+		failed_jobs = filter_current_site_jobs(fail_registry.get_job_ids(cleanup=False))
 
 		# Delete in batches to avoid loading too many things in memory
 		conn = get_redis_conn()

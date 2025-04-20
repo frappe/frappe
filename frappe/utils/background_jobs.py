@@ -200,7 +200,16 @@ def enqueue(
 
 
 def enqueue_doc(doctype, name=None, method=None, queue="default", timeout=300, now=False, **kwargs):
-	"""Enqueue a method to be run on a document"""
+	"""
+	Enqueue a method to be run on a document
+
+	:param doctype: DocType of the document on which you want to run the event
+	:param name: Name of the document on which you want to run the event
+	:param method: method string or method object
+	:param queue: (optional) should be either long, default or short
+	:param timeout: (optional) should be set according to the functions
+	:param kwargs: keyword arguments to be passed to the method
+	"""
 	return enqueue(
 		"frappe.utils.background_jobs.run_doc_method",
 		doctype=doctype,

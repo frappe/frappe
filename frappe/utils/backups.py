@@ -376,6 +376,18 @@ class BackupGenerator:
 			n.write(c.read())
 
 	def take_dump(self):
+		if self.db_type == "sqlite":
+			from pathlib import Path
+
+			import frappe
+
+			db_path = Path(frappe.get_site_path()) / "db" / f"{self.db_name}.db"
+			command = f"gzip -k {db_path} -c > {self.backup_path_db}"
+
+			frappe.utils.execute_in_shell(command, low_priority=True, check_exit_code=True)
+
+			return
+
 		import shlex
 
 		import frappe.utils

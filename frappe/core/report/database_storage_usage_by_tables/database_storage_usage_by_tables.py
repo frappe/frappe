@@ -34,6 +34,27 @@ def execute(filters=None):
 				WHERE table_schema = 'public'
 				ORDER BY 2 DESC;
 			""",
+			"sqlite": """
+				WITH RECURSIVE
+					page_size AS (
+						SELECT CAST(page_size AS FLOAT) as size FROM PRAGMA_page_size()
+					)
+				SELECT
+					m.name as 'table',
+					ROUND(CAST((SELECT SUM(pgsize) FROM dbstat WHERE name = m.name) * page_size.size / (1024.0 * 1024.0 * 1024.0) AS FLOAT), 2) as 'data_size',
+					ROUND(CAST((SELECT SUM(pgsize) FROM dbstat WHERE name IN (
+						SELECT name FROM sqlite_master
+						WHERE type = 'index' AND tbl_name = m.name
+					)) * page_size.size / (1024.0 * 1024.0 * 1024.0) AS FLOAT), 2) as 'index_size',
+					ROUND(CAST((SELECT SUM(pgsize) FROM dbstat WHERE name = m.name OR name IN (
+						SELECT name FROM sqlite_master
+						WHERE type = 'index' AND tbl_name = m.name
+					)) * page_size.size / (1024.0 * 1024.0 * 1024.0) AS FLOAT), 2) as 'size'
+				FROM sqlite_master m
+				CROSS JOIN page_size
+				WHERE m.type = 'table'
+				AND m.name NOT LIKE 'sqlite_%'
+				ORDER BY size DESC;""",
 		},
 		as_dict=1,
 	)

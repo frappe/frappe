@@ -6,7 +6,7 @@
 	--surface-modal: rgba(255, 255, 255, 1);
 	--divider-color: rgba(237, 237, 237, 1);
 	--sidebar-width: 220px;
-	--left-sidebar-width: 240px;
+	--left-sidebar-width: 220px;
 }
 [data-theme="dark"] {
 	--sidebar-hover-color: rgba(43, 43, 43, 1);
@@ -122,11 +122,6 @@ body {
 	.app-logo {
 		width: 32px;
 		height: 32px;
-	}
-
-	.sidebar-items {
-		width: 224px;
-		width: 100%;
 	}
 
 	.divider {
@@ -251,15 +246,15 @@ body {
 		position: absolute;
 		width: var(--left-sidebar-width);
 		.app-switcher-dropdown {
-			width: 224px;
+			width: 100%;
 			left: 0px;
 			padding: 3px;
 		}
 		.body-sidebar-top {
-			width: 224px;
+			width: 100%;
 			overflow-y: hidden;
 			.app-switcher-dropdown {
-				width: 224px;
+				width: 100%;
 			}
 		}
 		.sidebar-item-container {
@@ -275,12 +270,12 @@ body {
 
 		.sidebar-items {
 			padding: 0px;
+			width: 100%;
 		}
 		.collapse-sidebar-link {
 			visibility: visible;
 		}
 		.body-sidebar-bottom {
-			width: 224px;
 			position: static;
 		}
 	}

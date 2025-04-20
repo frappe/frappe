@@ -1,5 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
+from unittest.case import skipIf
+
 import frappe
 from frappe.cache_manager import clear_doctype_map
 from frappe.desk.form.assign_to import add as assign_to
@@ -240,6 +242,10 @@ class TestEnergyPointLog(IntegrationTestCase):
 
 		self.assertEqual(test2_user_after_points, test2_user_before_points + rule.points)
 
+	@skipIf(
+		frappe.conf.db_type == "sqlite",
+		"Not for SQLite for now",
+	)
 	def test_eps_heatmap_query(self):
 		# Just asserts that query works, not correctness.
 		self.assertIsInstance(get_energy_points_heatmap_data(user="test@example.com", date=None), dict)

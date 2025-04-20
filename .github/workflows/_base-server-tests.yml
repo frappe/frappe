@@ -18,7 +18,7 @@ on:
         required: false
         type: number
         default: 2
-      enable-postgres:
+      enable-sqlite:
         required: false
         type: boolean
         default: false
@@ -63,7 +63,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        db: ${{ fromJson(inputs.enable-postgres && '["mariadb", "postgres"]' || '["mariadb"]') }}
+        db: ${{ fromJson(inputs.enable-sqlite && '["mariadb", "sqlite"]' || '["mariadb"]') }}
         index: ${{ fromJson(needs.gen-idx-integration.outputs.indices) }}
     services:
       mariadb:
@@ -73,19 +73,8 @@ jobs:
         options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3
         env:
           MARIADB_ROOT_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
-      postgres:
-        image: postgres:12.4
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
       smtp_server:
-        image: rnwood/smtp4dev
+        image: rnwood/smtp4dev:3.7.1
         ports:
           - 2525:25
           - 3000:80

@@ -524,12 +524,27 @@ def postgres(context: CliCtxObj, extra_args):
 	_enter_console(extra_args=extra_args)
 
 
+@click.command("sqlite", context_settings=EXTRA_ARGS_CTX)
+@click.argument("extra_args", nargs=-1)
+@pass_context
+def sqlite(context: CliCtxObj, extra_args):
+	"""
+	Enter into sqlite console for a given site.
+	"""
+	site = get_site(context)
+	frappe.init(site)
+	frappe.conf.db_type = "sqlite"
+	_enter_console(extra_args=extra_args)
+
+
 def _enter_console(extra_args=None):
 	from frappe.database import get_command
 	from frappe.utils import get_site_path
 
 	if frappe.conf.db_type == "mariadb":
 		os.environ["MYSQL_HISTFILE"] = os.path.abspath(get_site_path("logs", "mariadb_console.log"))
+	elif frappe.conf.db_type == "sqlite":
+		os.environ["SQLITE_HISTORY"] = os.path.abspath(get_site_path("logs", "sqlite_console.log"))
 	else:
 		os.environ["PSQL_HISTORY"] = os.path.abspath(get_site_path("logs", "postgresql_console.log"))
 
@@ -1033,6 +1048,7 @@ commands = [
 	make_app,
 	create_patch,
 	mariadb,
+	sqlite,
 	postgres,
 	request,
 	reset_perms,

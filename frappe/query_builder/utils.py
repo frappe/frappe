@@ -10,7 +10,7 @@ from pypika.terms import PseudoColumn
 import frappe
 from frappe.query_builder.terms import NamedParameterWrapper
 
-from .builder import Base, MariaDB, Postgres
+from .builder import Base, MariaDB, Postgres, SQLite
 
 
 class PseudoColumnMapper(PseudoColumn):
@@ -26,6 +26,7 @@ class PseudoColumnMapper(PseudoColumn):
 class db_type_is(Enum):
 	MARIADB = "mariadb"
 	POSTGRES = "postgres"
+	SQLITE = "sqlite"
 
 
 class ImportMapper:
@@ -42,14 +43,14 @@ class BuilderIdentificationFailed(Exception):
 		super().__init__("Couldn't guess builder")
 
 
-def get_query_builder(type_of_db: str) -> Postgres | MariaDB:
+def get_query_builder(type_of_db: str) -> Postgres | MariaDB | SQLite:
 	"""Return the query builder object.
 
 	Args:
 	        type_of_db: string value of the db used
 	"""
 	db = db_type_is(type_of_db)
-	picks = {db_type_is.MARIADB: MariaDB, db_type_is.POSTGRES: Postgres}
+	picks = {db_type_is.MARIADB: MariaDB, db_type_is.POSTGRES: Postgres, db_type_is.SQLITE: SQLite}
 	return picks[db]
 
 

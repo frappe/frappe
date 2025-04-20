@@ -387,7 +387,7 @@ def get_enabled_system_users() -> list[dict]:
 
 
 def is_website_user(username: str | None = None) -> str | None:
-	return frappe.db.get_value("User", username or frappe.session.user, "user_type") == "Website User"
+	return frappe.get_cached_value("User", username or frappe.session.user, "user_type") == "Website User"
 
 
 def is_system_user(username: str | None = None) -> str | None:

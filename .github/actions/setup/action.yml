@@ -166,9 +166,6 @@ runs:
         mariadb --host 127.0.0.1 --port 3306 -u root -p${{ inputs.db-root-password }} -e "GRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost'";
 
         mariadb --host 127.0.0.1 --port 3306 -u root -p${{ inputs.db-root-password }} -e "FLUSH PRIVILEGES";
-      elif [ "$DB" == "postgres" ]; then
-        echo "${{ inputs.db-root-password }}" | psql -h 127.0.0.1 -p 5432 -c "CREATE DATABASE test_frappe" -U postgres;
-        echo "${{ inputs.db-root-password }}" | psql -h 127.0.0.1 -p 5432 -c "CREATE USER test_frappe WITH PASSWORD 'test_frappe'" -U postgres;
       fi
 
   - shell: bash -e {0}

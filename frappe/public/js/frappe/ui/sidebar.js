@@ -108,6 +108,7 @@ frappe.ui.Sidebar = class Sidebar {
 				this.expand_parent_item(current_item);
 			}
 		}
+		if (!this.sidebar_expanded) this.close_children_item();
 	}
 	expand_parent_item(item) {
 		let parent_title = item.attr("item-parent");

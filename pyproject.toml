@@ -21,10 +21,10 @@ dependencies = [
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.1",
     "pypdf~=3.17.0",
-    "PyPika==0.48.9",
+    "PyPika @ git+https://github.com/frappe/pypika@093984977ce157d35e048c51d9ff55a1f0f44570",
     "mysqlclient==2.2.7",
     "PyQRCode~=1.2.1",
-    "PyYAML~=6.0.1",
+    "PyYAML~=6.0.2",
     "RestrictedPython~=8.0",
     "WeasyPrint==59.0",
     "pydyf==0.10.0",
@@ -66,7 +66,7 @@ dependencies = [
     # We depend on internal attributes of RQ.
     # Do NOT add loose requirements on RQ versions.
     # Audit the code changes w.r.t. background_jobs.py before updating.
-    "rq==2.2.0",
+    "rq==2.3.2",
     "rsa>=4.1",
     "semantic-version~=2.10.0",
     "sentry-sdk~=1.37.1",
@@ -189,7 +189,6 @@ ignore = [
     "F405", # can't detect undefined names from * import
     "F722", # syntax error in forward type annotation
     "W191", # indentation contains tabs
-    "RUF001", # string contains ambiguous unicode character
     "UP030", # Use implicit references for positional format fields (translations)
     "UP031", # Use format specifiers instead of percent format
     "UP032", # Use f-string instead of `format` call (translations)

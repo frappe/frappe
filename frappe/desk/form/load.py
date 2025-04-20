@@ -319,15 +319,32 @@ def get_communication_data(
 		{conditions}
 	"""
 
-	return frappe.db.sql(
-		"""
+	sqlite_query = f"""
+		SELECT * FROM (
+			SELECT * FROM ({part1})
+			UNION ALL
+			SELECT * FROM ({part2})
+		) AS combined
+		{group_by or ""}
+		ORDER BY communication_date DESC
+		LIMIT %(limit)s
+		OFFSET %(start)s"""
+
+	query = f"""
 		SELECT *
 		FROM (({part1}) UNION ({part2})) AS combined
-		{group_by}
+		{group_by or ""}
 		ORDER BY communication_date DESC
 		LIMIT %(limit)s
 		OFFSET %(start)s
-	""".format(part1=part1, part2=part2, group_by=(group_by or "")),
+		"""
+
+	return frappe.db.multisql(
+		{
+			"sqlite": sqlite_query,
+			"postgres": query,
+			"mariadb": query,
+		},
 		dict(
 			doctype=doctype,
 			name=name,
