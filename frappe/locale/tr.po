@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-04-11 16:17\n"
+"PO-Revision-Date: 2025-04-20 17:52\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -20779,7 +20779,7 @@ msgstr "Sekmeyi Kaldır"
 
 #: frappe/core/doctype/file/file.py:154
 msgid "Removed {0}"
-msgstr "{0} Kaldırdı:"
+msgstr ""
 
 #: frappe/custom/doctype/custom_field/custom_field.js:137
 #: frappe/public/js/frappe/form/toolbar.js:253
