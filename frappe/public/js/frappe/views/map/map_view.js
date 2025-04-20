@@ -10,7 +10,6 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 	}
 
 	setup_defaults() {
-		this.hide_sort_selector = true;
 		super.setup_defaults();
 		this.page_title = __("{0} Map", [this.page_title]);
 		this.setup_map_type();
