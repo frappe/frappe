@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.core.page.permission_manager.permission_manager import get_permissions, add, update
+from frappe.core.page.permission_manager.permission_manager import add, get_permissions, update
 from frappe.model.document import Document
 from frappe.website.path_resolver import validate_path
 from frappe.website.router import clear_routing_cache
