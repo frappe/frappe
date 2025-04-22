@@ -608,18 +608,20 @@ class FormTimeline extends BaseTimeline {
 		let edit_box = this.make_editable(edit_wrapper);
 		let content_wrapper = comment_wrapper.find(".content");
 		let more_actions_wrapper = comment_wrapper.find(".more-actions");
-		if (
-			frappe.model.can_delete("Comment") &&
-			(frappe.session.user == doc.owner || frappe.user.has_role("System Manager"))
-		) {
-			const delete_option = $(`
-				<li>
-					<a class="dropdown-item">
-						${__("Delete")}
-					</a>
-				</li>
-			`).click(() => this.delete_comment(doc.name));
-			more_actions_wrapper.find(".dropdown-menu").append(delete_option);
+		const dropdown_menu = more_actions_wrapper.find(".dropdown-menu li");
+
+		if (frappe.session.user == doc.owner || frappe.user.has_role("System Manager")) {
+			if (frappe.model.can_delete("Comment")) {
+				const delete_option = $(`
+					<a class="dropdown-item">${__("Delete")}</a>
+				`).click(() => this.delete_comment(doc.name));
+				dropdown_menu.append(delete_option);
+			}
+
+			const un_publish_button = $(`
+				<a class="dropdown-item">${doc.published ? __("Unpublish") : __("Publish")}</a>
+			`).click(() => this.update_comment_publicity(doc.name, !doc.published));
+			dropdown_menu.append(un_publish_button);
 		}
 
 		let dismiss_button = $(`
@@ -726,6 +728,20 @@ class FormTimeline extends BaseTimeline {
 				})
 				.then(() => {
 					frappe.utils.play_sound("delete");
+				});
+		});
+	}
+
+	update_comment_publicity(comment_name, publish) {
+		frappe.confirm(publish ? __("Publish comment?") : __("Unpublish comment?"), () => {
+			return frappe
+				.xcall("frappe.desk.form.utils.update_comment_publicity", {
+					name: comment_name,
+					publish,
+				})
+				.then(() => {
+					frappe.utils.play_sound("click");
+					this.frm.reload_doc();
 				});
 		});
 	}
