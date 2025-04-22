@@ -35,17 +35,12 @@ import "ace-builds/src-min-noconflict/mode-markdown"
 import "ace-builds/src-min-noconflict/theme-chrome"
 import "ace-builds/src-min-noconflict/theme-twilight"
 
-const props = withDefaults(
-	defineProps<{
-		label?: string
-		modelValue: string
-		showPreview?: boolean
-	}>(),
-	{
-		modelValue: "",
-		showPreview: false,
-	},
-)
+import type { MarkdownEditorProps } from "@/types/studio_components/MarkdownEditor"
+
+const props = withDefaults(defineProps<MarkdownEditorProps>(), {
+	modelValue: "",
+	showPreview: false,
+})
 
 const isDark = useDark()
 const emit = defineEmits(["update:modelValue"])

@@ -16,9 +16,7 @@
 
 <script setup lang="ts">
 import RepeaterContextProvider from "@/components/AppLayout/RepeaterContextProvider.vue"
-defineProps<{
-	data?: Array<any>
-	dataKey: string
-	emptyStateMessage?: string
-}>()
+import type { RepeaterProps } from "@/types/studio_components/Repeater"
+
+defineProps<RepeaterProps>()
 </script>
