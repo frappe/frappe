@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/SplitViewProps",
+  "definitions": {
+    "SplitViewProps": {
+      "type": "object",
+      "properties": {
+        "leftPaneWidth": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "leftPaneWidth"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

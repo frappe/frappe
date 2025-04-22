@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/MarkdownEditorProps",
+  "definitions": {
+    "MarkdownEditorProps": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "modelValue": {
+          "type": "string"
+        },
+        "showPreview": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "modelValue"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
