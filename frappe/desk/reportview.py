@@ -60,9 +60,8 @@ def get_count() -> int:
 		count = controller.get_count(args)
 	else:
 		args.distinct = sbool(args.distinct)
-		distinct = "distinct " if args.distinct else ""
 		args.limit = cint(args.limit)
-		fieldname = f"{distinct}`tab{args.doctype}`.name"
+		fieldname = f"`tab{args.doctype}`.name"
 		args.order_by = None
 
 		if args.limit:
@@ -70,6 +69,8 @@ def get_count() -> int:
 			partial_query = execute(**args, run=0)
 			count = frappe.db.sql(f"""select count(*) from ( {partial_query} ) p""")[0][0]
 		else:
+			distinct = "distinct " if args.distinct else ""
+			fieldname = distinct + fieldname
 			args.fields = [f"count({fieldname}) as total_count"]
 			count = execute(**args)[0].get("total_count")
 
