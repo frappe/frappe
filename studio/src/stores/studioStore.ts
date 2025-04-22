@@ -205,8 +205,19 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	function openPageInBrowser(app: StudioApp, page: StudioPage) {
-		let route = `${window.site_url}/${app.route}${page.route}`
-		window.open(route, "studio-preview")
+		let route = `/${app.route}${page.route}`
+		if (import.meta.env.DEV) {
+			route = `${window.site_url}/${app.route}${page.route}`
+		}
+
+		const targetWindow = window.open(route, "studio-preview")
+		if (targetWindow?.location.pathname === route) {
+			targetWindow?.location.reload()
+		} else {
+			setTimeout(() => {
+				targetWindow?.location.reload()
+			}, 50)
+		}
 	}
 
 	// styles
