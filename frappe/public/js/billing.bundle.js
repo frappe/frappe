@@ -39,7 +39,7 @@ function setErrorMessage(message) {
 
 function addManageBillingDropdown() {
 	$(".dropdown-navbar-user .dropdown-menu .dropdown-divider").before(
-		`<div class="dropdown-item login-to-fc" target="_blank">Manage Billing</div>`
+		`<button class="dropdown-item login-to-fc" target="_blank">Manage Billing</button>`
 	);
 }
 
