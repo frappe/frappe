@@ -3,6 +3,7 @@ import { ComponentProp, ComponentProps } from "@/types"
 import { VueProp, VuePropType } from "@/types/vue"
 
 import * as jsonTypes from "@/json_types"
+import { isObjectEmpty } from "@/utils/helpers"
 
 interface ComponentTypes {
 	[componentName: string]: {
@@ -35,7 +36,7 @@ function getComponentProps(componentName: string) {
 			let isRequired = prop.required
 			const propertySchema = properties?.[propName]
 
-			if (!propType) {
+			if (!propType && !isObjectEmpty(propertySchema)) {
 				isRequired = required?.includes(propName)
 
 				if ("anyOf" in propertySchema) {
