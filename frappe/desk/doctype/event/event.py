@@ -233,8 +233,7 @@ def get_permission_query_conditions(user):
 	if not user:
 		user = frappe.session.user
 	query = f"""(`tabEvent`.`event_type`='Public' or `tabEvent`.`owner`={frappe.db.escape(user)})"""
-	shared_events = frappe.share.get_shared("Event", user=user)
-	if shared_events:
+	if shared_events := frappe.share.get_shared("Event", user=user):
 		query += f" or `tabEvent`.`name` in ({', '.join([frappe.db.escape(e) for e in shared_events])})"
 	return query
 
