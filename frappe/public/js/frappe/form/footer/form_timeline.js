@@ -733,7 +733,18 @@ class FormTimeline extends BaseTimeline {
 	}
 
 	update_comment_publicity(comment_name, publish) {
-		frappe.confirm(publish ? __("Publish comment?") : __("Unpublish comment?"), () => {
+		let message;
+		if (publish) {
+			message = __(
+				"Would you like to publish this comment? This means it will become visible to website/portal users."
+			);
+		} else {
+			message = __(
+				"Would you like to unpublish this comment? This means it will no longer be visible to website/portal users."
+			);
+		}
+
+		frappe.confirm(message, () => {
 			return frappe
 				.xcall("frappe.desk.form.utils.update_comment_publicity", {
 					name: comment_name,
