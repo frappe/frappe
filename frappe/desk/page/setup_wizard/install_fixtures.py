@@ -12,7 +12,6 @@ def install():
 	update_genders()
 	update_salutations()
 	update_global_search_doctypes()
-	setup_email_linking()
 	sync_dashboards()
 	add_unsubscribe()
 
@@ -43,6 +42,7 @@ def update_salutations():
 		doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 
+<<<<<<< HEAD
 def setup_email_linking():
 	doc = frappe.get_doc(
 		{
@@ -53,6 +53,8 @@ def setup_email_linking():
 	doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 
+=======
+>>>>>>> 39523916d4 (fix: don't create example email domains and email accounts)
 def add_unsubscribe():
 	email_unsubscribe = [
 		{"email": "admin@example.com", "global_unsubscribe": 1},
