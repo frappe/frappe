@@ -484,7 +484,7 @@ export default class Grid {
 				d.idx = ri + 1;
 			}
 			if (d.name === undefined) {
-				d.name = "row " + d.idx;
+				d.name = crypto.randomUUID().slice(0, 8);
 			}
 			let grid_row;
 			if (this.grid_rows[ri] && !append_row) {
