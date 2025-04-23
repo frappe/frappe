@@ -20,6 +20,7 @@ import frappe.exceptions
 import frappe.integrations.utils
 import frappe.utils
 import frappe.utils.data
+import frappe.utils.file_manager
 from frappe import _
 from frappe.core.utils import html2text
 from frappe.frappeclient import FrappeClient
@@ -291,6 +292,7 @@ def get_safe_globals():
 		run_script=run_script,
 		is_job_queued=is_job_queued,
 		get_visible_columns=get_visible_columns,
+		get_content_hash=frappe.utils.file_manager.get_content_hash,
 	)
 
 	add_module_properties(
