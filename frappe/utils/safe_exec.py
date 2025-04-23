@@ -292,7 +292,7 @@ def get_safe_globals():
 		run_script=run_script,
 		is_job_queued=is_job_queued,
 		get_visible_columns=get_visible_columns,
-		get_content_hash=frappe.utils.file_manager.get_content_hash,
+		get_content_hash=frappe.utils.data.sha256_hash,
 	)
 
 	add_module_properties(
