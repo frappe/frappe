@@ -243,7 +243,7 @@ export default class Grid {
 			tasks.push(() => {
 				if (!this.frm) {
 					this.df.data = this.get_data();
-					this.df.data = this.df.data.filter((row) => row.idx != doc.idx);
+					this.df.data = this.df.data.filter((row) => row.name != doc.name);
 				}
 				this.grid_rows_by_docname[doc.name]?.remove();
 				dirty = true;
