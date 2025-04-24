@@ -752,7 +752,13 @@ class FormTimeline extends BaseTimeline {
 				})
 				.then(() => {
 					frappe.utils.play_sound("click");
-					this.frm.reload_doc();
+
+					// update the comment info that is stored in the frontend, then refresh the timeline
+					const comment = this.frm
+						.get_docinfo()
+						.comments.find((comment) => comment.name === comment_name);
+					comment.published = publish;
+					this.refresh();
 				});
 		});
 	}
