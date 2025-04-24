@@ -72,7 +72,8 @@ def get_count() -> int:
     else:
         distinct = "distinct " if args.distinct == "true" else ""
         args.fields = [f"count({distinct}`tab{args.doctype}`.name) as total_count"]
-        data = execute(**args)[0].get("total_count")
+        result = execute(**args)
+        data = result[0].get("total_count") if result and len(result) > 0 else 0
 
     return data
 
