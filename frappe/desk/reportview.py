@@ -119,7 +119,7 @@ def validate_fields(data):
     wildcard = update_wildcard_field_param(data)
 
     for field in list(data.fields or []):
-        fieldname = extract_fieldname(field)
+        fieldname = extract_fieldnames(field)
         if is_standard(fieldname):
             continue
 
@@ -203,7 +203,7 @@ def is_standard(fieldname):
     )
 
 
-def extract_fieldname(field):
+def extract_fieldnames(field):
     for text in (",", "/*", "#"):
         if text in field:
             raise_invalid_field(field)
