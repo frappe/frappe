@@ -53,7 +53,9 @@
 
 			frappe.boot = {{ boot | json }};
 			frappe._messages = frappe.boot["__messages"];
-			frappe.boot = JSON.parse(frappe.boot)
+			if (typeof frappe.boot === 'string') {
+				frappe.boot = JSON.parse(frappe.boot);
+			}
 			frappe.csrf_token = "{{ csrf_token }}";
 
 
