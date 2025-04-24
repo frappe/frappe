@@ -47,7 +47,8 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 				if (!me.$input.val()) {
 					me.$input.val("").trigger("input");
-			}
+				}
+			}, 500);
 
 			me.show_link_and_clear_buttons();
 		});
@@ -676,8 +677,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		const columns_to_fetch = Object.values(this.fetch_map);
 
-		const fetch_map = this.fetch_map;
-		const columns_to_fetch = Object.values(fetch_map);
 		// if default and no fetch, no need to validate
 		if (!columns_to_fetch.length && this.df.__default_value === value) {
 			return value;
