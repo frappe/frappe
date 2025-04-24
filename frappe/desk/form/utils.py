@@ -69,9 +69,6 @@ def update_comment(name, content):
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def get_next(doctype, value, prev, filters=None, sort_order="desc", sort_field="modified"):
-=======
 def update_comment_publicity(name: str, publish: bool):
 	doc = frappe.get_doc("Comment", name)
 	if frappe.session.user != doc.owner and "System Manager" not in frappe.get_roles():
@@ -82,8 +79,7 @@ def update_comment_publicity(name: str, publish: bool):
 
 
 @frappe.whitelist()
-def get_next(doctype, value, prev, filters=None, sort_order="desc", sort_field="creation"):
->>>>>>> 7c2205b703 (feat: publish comment from desk (#32256))
+def get_next(doctype, value, prev, filters=None, sort_order="desc", sort_field="modified"):
 	prev = int(prev)
 	if not filters:
 		filters = []
