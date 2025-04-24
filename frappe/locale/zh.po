@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-04-20 09:33+0000\n"
-"PO-Revision-Date: 2025-04-20 21:49\n"
+"PO-Revision-Date: 2025-04-24 22:54\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -4366,7 +4366,7 @@ msgstr "不能将多个打印机映射到单个打印格式。"
 
 #: frappe/public/js/frappe/form/grid.js:1116
 msgid "Cannot import table with more than 5000 rows."
-msgstr ""
+msgstr "无法导入超过5000行的表格。"
 
 #: frappe/model/document.py:1099
 msgid "Cannot link cancelled document: {0}"
@@ -12494,7 +12494,7 @@ msgstr "启用后通知将显示在导航栏右上角下拉菜单"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 1 being very weak and 4 being very strong."
-msgstr ""
+msgstr "若启用，系统将根据最小密码评分值强制执行密码强度（注：1分表示极弱，4分表示极强）。"
 
 #. Description of the 'Bypass Two Factor Auth for users who login from
 #. restricted IP Address' (Check) field in DocType 'System Settings'
@@ -23397,7 +23397,7 @@ msgstr "发送邮件于"
 #. Label of the send_email (Check) field in DocType 'Workflow Document State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Send Email On State"
-msgstr ""
+msgstr "在状态变更时发送邮件"
 
 #. Description of the 'Send Print as PDF' (Check) field in DocType 'Print
 #. Settings'
@@ -23542,7 +23542,7 @@ msgstr "在参考日期前后发送天数"
 #. Document State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Send email when document transitions to the state."
-msgstr ""
+msgstr "当文档转换到该状态时发送邮件。"
 
 #. Description of the 'Forward To Email Address' (Data) field in DocType
 #. 'Contact Us Settings'
