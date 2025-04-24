@@ -327,44 +327,44 @@ def connect(site: str | None = None, db_name: str | None = None, set_admin_as_us
 
 
 def connect_replica() -> bool:
-    from frappe.database import get_db
-    import frappe
+	from frappe.database import get_db
+	import frappe
 
-    if local and hasattr(local, "replica_db") and hasattr(local, "primary_db"):
-        return False
+	if local and hasattr(local, "replica_db") and hasattr(local, "primary_db"):
+	    return False
 
-    user = local.conf.db_name
-    password = local.conf.db_password
-    port = local.conf.replica_db_port
+	user = local.conf.db_name
+	password = local.conf.db_password
+	port = local.conf.replica_db_port
 
-    if local.conf.different_credentials_for_replica:
-        user = local.conf.replica_db_name
-        password = local.conf.replica_db_password
+	if local.conf.different_credentials_for_replica:
+		user = local.conf.replica_db_name
+		password = local.conf.replica_db_password
 
-    try:
-        # Try to connect to the replica
-        local.replica_db = get_db(
-            socket=None,
-            host=local.conf.replica_host,
-            port=port,
-            user=user,
-            password=password,
-            cur_db_name=local.conf.db_name,
-        )
+	try:
+		# Try to connect to the replica
+		local.replica_db = get_db(
+			socket=None,
+			host=local.conf.replica_host,
+			port=port,
+			user=user,
+			password=password,
+			cur_db_name=local.conf.db_name,
+		)
 
-        # Basic check to ensure connection works
-        local.replica_db.sql("SELECT 1")
+		# Basic check to ensure connection works
+		local.replica_db.sql("SELECT 1")
 
-        # Swap db connections
-        local.primary_db = local.db
-        local.db = local.replica_db
+		# Swap db connections
+		local.primary_db = local.db
+		local.db = local.replica_db
 
-        return True
+		return True
 
-    except Exception as e:
-        # Log the error and skip switching DB
-        frappe.logger("replica").warning(f"Failed to connect to read replica: {e}")
-        return False
+	except Exception as e:
+		# Log the error and skip switching DB
+		frappe.logger("replica").warning(f"Failed to connect to read replica: {e}")
+		return False
 
 
 class init_site:
