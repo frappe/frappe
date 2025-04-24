@@ -15,10 +15,10 @@ class PrintFormat(Document):
     # begin: auto-generated types
     # This code is auto-generated. Do not modify anything in this block.
 
-    from typing import TYPE_CHECKING
+	from typing import TYPE_CHECKING
 
-    if TYPE_CHECKING:
-        from frappe.types import DF
+	if TYPE_CHECKING:
+		from frappe.types import DF
 
 		absolute_value: DF.Check
 		align_labels_right: DF.Check
@@ -59,11 +59,11 @@ class PrintFormat(Document):
 		)
 		self.set_onload("print_templates", templates)
 
-    def get_html(self, docname, letterhead=None):
-        return get_html(self.doc_type, docname, self.name, letterhead)
+	def get_html(self, docname, letterhead=None):
+		return get_html(self.doc_type, docname, self.name, letterhead)
 
-    def download_pdf(self, docname, letterhead=None):
-        return download_pdf(self.doc_type, docname, self.name, letterhead)
+	def download_pdf(self, docname, letterhead=None):
+		return download_pdf(self.doc_type, docname, self.name, letterhead)
 
 	def validate(self):
 		if (
@@ -75,16 +75,16 @@ class PrintFormat(Document):
 		):
 			frappe.throw(frappe._("Standard Print Format cannot be updated"))
 
-        # old_doc_type is required for clearing item cache
-        self.old_doc_type = frappe.db.get_value("Print Format", self.name, "doc_type")
+		# old_doc_type is required for clearing item cache
+		self.old_doc_type = frappe.db.get_value("Print Format", self.name, "doc_type")
 
-        self.extract_images()
+		self.extract_images()
 
-        if not self.module:
-            self.module = frappe.db.get_value("DocType", self.doc_type, "module")
+		if not self.module:
+			self.module = frappe.db.get_value("DocType", self.doc_type, "module")
 
-        if self.html and self.print_format_type != "JS":
-            validate_template(self.html)
+		if self.html and self.print_format_type != "JS":
+			validate_template(self.html)
 
 		if self.custom_format and self.raw_printing and not self.raw_commands:
 			frappe.throw(_("{0} are required").format(frappe.bold(_("Raw Commands"))), frappe.MandatoryError)
@@ -92,11 +92,11 @@ class PrintFormat(Document):
 		if self.custom_format and not self.html and not self.raw_printing:
 			frappe.throw(_("{0} is required").format(frappe.bold(_("HTML"))), frappe.MandatoryError)
 
-    def extract_images(self):
-        from frappe.core.doctype.file.utils import extract_images_from_html
+	def extract_images(self):
+		from frappe.core.doctype.file.utils import extract_images_from_html
 
-        if self.print_format_builder_beta:
-            return
+		if self.print_format_builder_beta:
+			return
 
 		if self.format_data:
 			data = json.loads(self.format_data)
@@ -105,39 +105,39 @@ class PrintFormat(Document):
 					df["options"] = extract_images_from_html(self, df["options"])
 			self.format_data = json.dumps(data)
 
-    def on_update(self):
-        if hasattr(self, "old_doc_type") and self.old_doc_type:
-            frappe.clear_cache(doctype=self.old_doc_type)
-        if self.doc_type:
-            frappe.clear_cache(doctype=self.doc_type)
+	def on_update(self):
+		if hasattr(self, "old_doc_type") and self.old_doc_type:
+			frappe.clear_cache(doctype=self.old_doc_type)
+		if self.doc_type:
+			frappe.clear_cache(doctype=self.doc_type)
 
-        self.export_doc()
+		self.export_doc()
 
-    def after_rename(self, old: str, new: str, *args, **kwargs):
-        if self.doc_type:
-            frappe.clear_cache(doctype=self.doc_type)
+	def after_rename(self, old: str, new: str, *args, **kwargs):
+		if self.doc_type:
+			frappe.clear_cache(doctype=self.doc_type)
 
-        # update property setter default_print_format if set
-        frappe.db.set_value(
-            "Property Setter",
-            {
-                "doctype_or_field": "DocType",
-                "doc_type": self.doc_type,
-                "property": "default_print_format",
-                "value": old,
-            },
-            "value",
-            new,
-        )
+		# update property setter default_print_format if set
+		frappe.db.set_value(
+			"Property Setter",
+			{
+				"doctype_or_field": "DocType",
+				"doc_type": self.doc_type,
+				"property": "default_print_format",
+				"value": old,
+			},
+			"value",
+			new,
+		)
 
-    def export_doc(self):
-        from frappe.modules.utils import export_module_json
+	def export_doc(self):
+		from frappe.modules.utils import export_module_json
 
-        return export_module_json(self, self.standard == "Yes", self.module)
+		return export_module_json(self, self.standard == "Yes", self.module)
 
-    def on_trash(self):
-        if self.doc_type:
-            frappe.clear_cache(doctype=self.doc_type)
+	def on_trash(self):
+		if self.doc_type:
+			frappe.clear_cache(doctype=self.doc_type)
 
 
 @frappe.whitelist()

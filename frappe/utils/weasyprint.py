@@ -88,14 +88,14 @@ class PrintFormatGenerator:
 
     def get_main_html(self):
         self.context.css = frappe.render_template("templates/print_format/print_format.css", self.context)
-		return frappe.render_template("templates/print_format/print_format.html", self.context)
+        return frappe.render_template("templates/print_format/print_format.html", self.context)
 
-	def get_header_footer_html(self):
-		header_html = footer_html = None
-		if self.letterhead:
-			header_html = frappe.render_template("templates/print_format/print_header.html", self.context)
-		if self.letterhead:
-			footer_html = frappe.render_template("templates/print_format/print_footer.html", self.context)
+    def get_header_footer_html(self):
+        header_html = footer_html = None
+        if self.letterhead:
+            header_html = frappe.render_template("templates/print_format/print_header.html", self.context)
+        if self.letterhead:
+            footer_html = frappe.render_template("templates/print_format/print_footer.html", self.context)
         return header_html, footer_html
 
     def render_pdf(self):
@@ -110,7 +110,7 @@ class PrintFormatGenerator:
         self._make_header_footer()
 
         self.context.update({"header_height": self.header_height, "footer_height": self.footer_height})
-		main_html = self.get_main_html()
+        main_html = self.get_main_html()
 
         html = HTML(string=main_html, base_url=self.base_url)
         main_doc = html.render()
@@ -140,10 +140,10 @@ class PrintFormatGenerator:
             base_url=self.base_url,
         )
         element_doc = html.render(stylesheets=[CSS(string="@page {size: A4 portrait; margin: 0;}")])
-		element_page = element_doc.pages[0]
-		element_body = PrintFormatGenerator.get_element(element_page._page_box.all_children(), "body")
-		element_body = element_body.copy_with_children(element_body.all_children())
-		element_html = PrintFormatGenerator.get_element(element_page._page_box.all_children(), element)
+        element_page = element_doc.pages[0]
+        element_body = PrintFormatGenerator.get_element(element_page._page_box.all_children(), "body")
+        element_body = element_body.copy_with_children(element_body.all_children())
+        element_html = PrintFormatGenerator.get_element(element_page._page_box.all_children(), element)
 
         if element == "header":
             element_height = element_html.height
