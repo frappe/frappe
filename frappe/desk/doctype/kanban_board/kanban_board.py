@@ -22,14 +22,14 @@ class KanbanBoard(Document):
         from frappe.desk.doctype.kanban_board_column.kanban_board_column import KanbanBoardColumn
         from frappe.types import DF
 
-		columns: DF.Table[KanbanBoardColumn]
-		field_name: DF.Literal[None]
-		fields: DF.Code | None
-		filters: DF.Code | None
-		kanban_board_name: DF.Data
-		private: DF.Check
-		reference_doctype: DF.Link
-		show_labels: DF.Check
+        columns: DF.Table[KanbanBoardColumn]
+        field_name: DF.Literal[None]
+        fields: DF.Code | None
+        filters: DF.Code | None
+        kanban_board_name: DF.Data
+        private: DF.Check
+        reference_doctype: DF.Link
+        show_labels: DF.Check
 
     # end: auto-generated types
     def validate(self):
