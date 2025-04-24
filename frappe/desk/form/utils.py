@@ -69,7 +69,21 @@ def update_comment(name, content):
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def get_next(doctype, value, prev, filters=None, sort_order="desc", sort_field="modified"):
+=======
+def update_comment_publicity(name: str, publish: bool):
+	doc = frappe.get_doc("Comment", name)
+	if frappe.session.user != doc.owner and "System Manager" not in frappe.get_roles():
+		frappe.throw(_("Comment publicity can only be updated by the original author or a System Manager."))
+
+	doc.published = int(publish)
+	doc.save(ignore_permissions=True)
+
+
+@frappe.whitelist()
+def get_next(doctype, value, prev, filters=None, sort_order="desc", sort_field="creation"):
+>>>>>>> 7c2205b703 (feat: publish comment from desk (#32256))
 	prev = int(prev)
 	if not filters:
 		filters = []
