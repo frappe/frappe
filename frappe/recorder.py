@@ -180,19 +180,10 @@ def normalize_query(query: str) -> str:
 
 
 def record(force=False):
-<<<<<<< HEAD
 	if __debug__:
 		if frappe.cache.get_value(RECORDER_INTERCEPT_FLAG) or force:
 			frappe.local._recorder = Recorder(force=force)
-=======
-	flag_value = frappe.client_cache.get_value(RECORDER_INTERCEPT_FLAG)
-	if flag_value or force:
-		frappe.local._recorder = Recorder(force=force)
-		return frappe.local._recorder
-	elif flag_value is None:
-		# Explicitly set it once so next requests can use client-side cache
-		frappe.client_cache.set_value(RECORDER_INTERCEPT_FLAG, False)
->>>>>>> 360d19741e (fix(recorder): patch replica DB connection)
+			return frappe.local._recorder
 
 
 def dump():
