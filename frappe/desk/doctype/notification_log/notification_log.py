@@ -127,17 +127,17 @@ def send_notification_email(doc: NotificationLog):
 	if not user:
 		return
 	userData = frappe.db.sql(
-    		"""
-    		SELECT *
-    		FROM `tabUser`
-    		WHERE name = %s
-    		""",
-    		(doc.for_user,),
-    		as_dict=True,
-    	)
+	"""
+	SELECT *
+	FROM `tabUser`
+	WHERE name = %s
+	""",
+	(doc.for_user,),
+	as_dict=True,
+	)
 	has_permission_send_email = userData[0].email_notification_log
-    email =  userData[0].email
-    if not email or has_permission_send_email == 0:
+	email = userData[0].email
+	if not email or has_permission_send_email == 0:
 		return
 
 	header = get_email_header(doc, user.language)
@@ -214,7 +214,7 @@ def mark_all_as_read():
 
 @frappe.whitelist()
 def delete_all_notifications_by_user():
-    frappe.db.sql("DELETE from `tabNotification Log` WHERE for_user = '"+frappe.session.user+"'")
+	frappe.db.sql("DELETE from `tabNotification Log` WHERE for_user = '"+frappe.session.user+"'")
 
 
 @frappe.whitelist()
