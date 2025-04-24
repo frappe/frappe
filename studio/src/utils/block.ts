@@ -232,8 +232,18 @@ class Block implements BlockOptions {
 		this.baseStyles[style] = value
 	}
 
-	getStyles(): BlockStyleMap {
-		return { ...this.baseStyles, ...this.rawStyles }
+	getStyles(breakpoint: string = "desktop"): BlockStyleMap {
+		let styleObj = {}
+
+		styleObj = { ...this.baseStyles }
+		if (["mobile", "tablet"].includes(breakpoint)) {
+			styleObj = { ...styleObj, ...this.tabletStyles }
+			if (breakpoint === "mobile") {
+				styleObj = { ...styleObj, ...this.mobileStyles }
+			}
+		}
+		styleObj = { ...styleObj, ...this.rawStyles }
+		return styleObj
 	}
 
 	getStyle(style: styleProperty) {
