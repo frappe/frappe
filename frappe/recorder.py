@@ -180,9 +180,19 @@ def normalize_query(query: str) -> str:
 
 
 def record(force=False):
+<<<<<<< HEAD
 	if __debug__:
 		if frappe.cache.get_value(RECORDER_INTERCEPT_FLAG) or force:
 			frappe.local._recorder = Recorder(force=force)
+=======
+	flag_value = frappe.client_cache.get_value(RECORDER_INTERCEPT_FLAG)
+	if flag_value or force:
+		frappe.local._recorder = Recorder(force=force)
+		return frappe.local._recorder
+	elif flag_value is None:
+		# Explicitly set it once so next requests can use client-side cache
+		frappe.client_cache.set_value(RECORDER_INTERCEPT_FLAG, False)
+>>>>>>> 360d19741e (fix(recorder): patch replica DB connection)
 
 
 def dump():
@@ -231,8 +241,7 @@ class Recorder:
 		self.uuid = frappe.generate_hash(length=10)
 		self.time = now_datetime()
 
-		if self.config.record_sql:
-			self._patch_sql(frappe.db)
+		self._patch_sql(frappe.db)
 
 		if self.config.profile:
 			self.profiler = cProfile.Profile()
@@ -281,10 +290,12 @@ class Recorder:
 		request_data["profile"] = "".join(profiler_output.splitlines(keepends=True)[:200])
 		frappe.cache.hset(RECORDER_REQUEST_HASH, self.uuid, request_data)
 
-		if self.config.record_sql:
-			self._unpatch_sql()
+		self._unpatch_sql()
 
 	def _patch_sql(self, db: "Database"):
+		if not self.config.record_sql:
+			return
+
 		frappe.db._sql = frappe.db.sql
 		frappe.db.sql = record_sql
 		self.patched_databases.append(db)
@@ -389,8 +400,7 @@ def record_queries(func: Callable):
 
 	@functools.wraps(func)
 	def wrapped(*args, **kwargs):
-		record(force=True)
-		recorder = frappe.local._recorder
+		recorder = record(force=True)
 		recorder.path = f"Function call: {func.__module__}.{func.__qualname__}"
 		ret = func(*args, **kwargs)
 		dump()
