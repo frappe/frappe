@@ -55,7 +55,7 @@ jobs:
         index: ${{ fromJson(needs.gen-idx-integration.outputs.indices) }}
     services:
       mariadb:
-        image: mariadb:11.3
+        image: mariadb:11.8
         ports:
           - 3306:3306
         options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3
