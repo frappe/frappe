@@ -1,6 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from math import log
 import frappe
 from frappe import _
 from frappe.desk.doctype.notification_settings.notification_settings import (
@@ -32,7 +33,7 @@ class NotificationLog(Document):
 
 	# end: auto-generated types
 	def after_insert(self):
-		frappe.publish_realtime("notification", after_commit=True, user=self.for_user)
+		frappe.publish_realtime("notification", after_commit=True, user=self.for_user, message=self.as_json() )
 		set_notifications_as_unseen(self.for_user)
 		if is_email_notifications_enabled_for_type(self.for_user, self.type):
 			try:
@@ -125,6 +126,19 @@ def send_notification_email(doc: NotificationLog):
 	user = frappe.db.get_value("User", doc.for_user, fieldname=["email", "language"], as_dict=True)
 	if not user:
 		return
+	userData = frappe.db.sql(
+    		"""
+    		SELECT *
+    		FROM `tabUser`
+    		WHERE name = %s
+    		""",
+    		(doc.for_user,),
+    		as_dict=True,
+    	)
+	has_permission_send_email = userData[0].email_notification_log
+    email =  userData[0].email
+    if not email or has_permission_send_email == 0:
+		return
 
 	header = get_email_header(doc, user.language)
 	email_subject = strip_html(doc.subject)
@@ -163,9 +177,9 @@ def get_email_header(doc, language: str | None = None):
 
 
 @frappe.whitelist()
-def get_notification_logs(limit=20):
+def get_notification_logs(limit=100):
 	notification_logs = frappe.db.get_list(
-		"Notification Log", fields=["*"], limit=limit, order_by="modified desc"
+		"Notification Log", fields=["*"],  filters={"for_user": frappe.session.user}, limit=limit, order_by="modified desc"
 	)
 
 	users = [log.from_user for log in notification_logs]
@@ -175,18 +189,32 @@ def get_notification_logs(limit=20):
 	for user in users:
 		frappe.utils.add_user_info(user, user_info)
 
+	count_remote_diagnose = 0
+	count_callback_request = 0
+	for log in notification_logs:
+		email_content = log.get("email_content")
+		if email_content is not None and "Remote Diagnose" in email_content and log.get("read", 0) == 0:
+			count_remote_diagnose += 1
+		if email_content is not None and "Request Callback" in email_content and log.get("read", 0) == 0:
+			count_callback_request += 1
+	alert_message = ""
+	if count_remote_diagnose > 0:
+		alert_message += f"Incoming Diagnostics Scheduled."+"<br>"
+	if count_callback_request > 0:
+		alert_message += f"Incoming Request a Callback Scheduled.<br>"
+	if alert_message:
+		alert_message += f" <span style= 'font-size: smaller;font-weight: bolder;'>Note:  Please hide this notification by clicking on the notifications icon and marking all as read, or one by one.</span> "
+		frappe.msgprint(title='Reminder Notification.',  indicator= 'green', msg= alert_message)
 	return {"notification_logs": notification_logs, "user_info": user_info}
 
 
 @frappe.whitelist()
 def mark_all_as_read():
-	unread_docs_list = frappe.get_all(
-		"Notification Log", filters={"read": 0, "for_user": frappe.session.user}
-	)
-	unread_docnames = [doc.name for doc in unread_docs_list]
-	if unread_docnames:
-		filters = {"name": ["in", unread_docnames]}
-		frappe.db.set_value("Notification Log", filters, "read", 1, update_modified=False)
+	frappe.db.sql("UPDATE `tabNotification Log` SET `read` = 1 WHERE for_user = '"+frappe.session.user+"'")
+
+@frappe.whitelist()
+def delete_all_notifications_by_user():
+    frappe.db.sql("DELETE from `tabNotification Log` WHERE for_user = '"+frappe.session.user+"'")
 
 
 @frappe.whitelist()

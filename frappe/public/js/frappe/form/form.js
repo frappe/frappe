@@ -411,7 +411,8 @@ frappe.ui.form.Form = class FrappeForm {
 			// read only (workflow)
 			this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
 			if (this.read_only) {
-				this.set_read_only();
+				this.set_read_only(true);
+				frappe.show_alert(__("This form is not editable due to a Workflow."));
 			}
 
 			// check if doctype is already open
@@ -430,6 +431,11 @@ frappe.ui.form.Form = class FrappeForm {
 
 			// load the record for the first time, if not loaded (call 'onload')
 			this.trigger_onload(switched);
+
+			// if print format is shown, refresh the format
+			// if(this.print_preview.wrapper.is(":visible")) {
+			// 	this.print_preview.preview();
+			// }
 
 			if (switched) {
 				if (this.show_print_first && this.doc.docstatus === 1) {
@@ -885,7 +891,9 @@ frappe.ui.form.Form = class FrappeForm {
 				if (!r.exc) {
 					let doctypes_to_cancel = (r.message.docs || []).map((value) => {
 						return value.doctype;
-					});
+					}).filter((value) => {
+							return !me.ignore_doctypes_on_cancel_all.includes(value);
+						});
 
 					if (doctypes_to_cancel.length) {
 						return me._cancel_all(r, btn, callback, on_error);
@@ -1180,6 +1188,8 @@ frappe.ui.form.Form = class FrappeForm {
 		} else if (this.doctype == "DocType") {
 			if (frappe.views.formview[docname] || frappe.pages["List/" + docname]) {
 				window.location.reload();
+				//	frappe.msgprint(__("Cannot open {0} when its instance is open", ['DocType']))
+				// throw 'doctype open conflict'
 			}
 		} else {
 			if (
@@ -1187,6 +1197,8 @@ frappe.ui.form.Form = class FrappeForm {
 				frappe.views.formview.DocType.frm.opendocs[this.doctype]
 			) {
 				window.location.reload();
+				//	frappe.msgprint(__("Cannot open instance when its {0} is open", ['DocType']))
+				// throw 'doctype open conflict'
 			}
 		}
 	}
@@ -1384,12 +1396,11 @@ frappe.ui.form.Form = class FrappeForm {
 		this.footnote_area = frappe.utils.set_footnote(this.footnote_area, this.body, txt);
 	}
 
-	add_custom_button(label, fn, group) {
+	add_custom_button(label, fn, group, hide_button = true) {
 		// temp! old parameter used to be icon
 		if (group && group.indexOf("fa fa-") !== -1) group = null;
 
-		let btn = this.page.add_inner_button(label, fn, group);
-
+		let btn = this.page.add_inner_button(label, fn, group, "default", hide_button);
 		if (btn) {
 			// Add actions as menu item in Mobile View
 			let menu_item_label = group ? `${group} > ${label}` : label;
@@ -1713,7 +1724,7 @@ frappe.ui.form.Form = class FrappeForm {
 								}
 							}
 
-							me.fields_dict[opts.child.parentfield].refresh();
+						me.fields_dict[opts.child.parentfield].refresh();
 						}
 					} else {
 						// update parent doc

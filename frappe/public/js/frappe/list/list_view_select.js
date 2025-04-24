@@ -256,7 +256,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 		return reports_to_add;
 	}
 
-	setup_kanban_boards() {
+	async setup_kanban_boards() {
 		function fetch_kanban_board(doctype) {
 			frappe.db.get_value(
 				"Kanban Board",
@@ -270,6 +270,21 @@ frappe.views.ListViewSelect = class ListViewSelect {
 					}
 				}
 			);
+		}
+
+		const default_kanban =
+			await frappe.db.get_doc('User', frappe.user.name).then(user => user?.default_kanban)
+
+		if(default_kanban){
+			frappe.db.exists("Kanban Board", default_kanban).then((exists) => {
+				if (exists) {
+					// set kanban default per user.
+					frappe.set_route("list", this.doctype, "kanban", default_kanban);
+				} else {
+					fetch_kanban_board(this.doctype);
+				}
+			});
+			return null;
 		}
 
 		const last_opened_kanban =

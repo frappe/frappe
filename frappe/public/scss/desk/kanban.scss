@@ -28,17 +28,20 @@
 	.kanban-column {
 		@include transition();
 
-		flex: 1 0 260px;
+		flex: 0 0 200px;
+		max-width: 200px;
 		border-radius: var(--border-radius);
-		padding: var(--padding-md);
+		padding-top: 0px;
+		padding: var(--padding-sm);
 		min-height: calc(100vh - 150px);
+		max-height: calc(100vh - var(--navbar-height) - var(--page-bottom-margin) - 80px);
 
 		.add-card {
 			@include flex(flex, center, center, null);
 			@include transition();
 
 			color: var(--text-light);
-			background-color: var(--bg-color);
+			background-color: var(--kanban-new-card-bg);
 			height: 27px;
 			font-size: var(--text-md);
 			margin-bottom: var(--margin-sm);
@@ -104,6 +107,10 @@
 					margin: 0;
 				}
 			}
+
+			&:hover {
+				cursor: pointer;
+			}
 		}
 
 		.kanban-column-title {
@@ -134,7 +141,7 @@
 
 		.kanban-cards {
 			height: 100%;
-			max-height: calc(100vh - 250px);
+			max-height: calc(100vh - 165px);
 			margin: -5px;
 			padding: 5px;
 			overflow-y: scroll;
@@ -154,9 +161,12 @@
 				}
 				.kanban-card {
 					@include flex(flex, space-between, null, column);
-					margin-top: var(--margin-sm);
-					min-height: 100px;
-					@include card($padding: 0, $background-color: var(--kanban-card-bg));
+					margin-top: 1px;
+					min-height: 50px;
+					@include card(
+						$padding: 0,
+						$background-color: var(--kanban-card-bg)
+					);
 					box-shadow: none;
 					border: 1px solid var(--border-color);
 
@@ -178,13 +188,25 @@
 
 					.kanban-card-body {
 						cursor: grab;
-						padding: var(--padding-md);
+						padding: var(--padding-sm);
 
 						.kanban-title-area {
-							margin-bottom: 12px;
+							//margin-bottom: 12px;
 							max-width: 90%;
 							font-size: var(--text-md);
 							font-weight: 500;
+							background: whitesmoke;
+							padding: .2em .5em;
+
+							.kanban-card-title {
+								-webkit-box-orient: vertical;
+								display: block;
+								display: -webkit-box;
+								-webkit-line-clamp: 2;
+								line-clamp: 2;
+								overflow: hidden;
+								text-overflow: ellipsis;
+							}
 
 							.kanban-card-doc {
 								.text-muted div {
@@ -199,9 +221,14 @@
 							}
 						}
 
+						.kanban-handler {
+							cursor: grab;
+						}
+
 						.kanban-card-meta {
+
 							.list-comment-count {
-								width: 30px;
+								width: 3rem;
 							}
 
 							.like-action:not(.liked) {
@@ -352,3 +379,144 @@ body[data-route*="Kanban"] {
 		width: 100%;
 	}
 }
+
+@keyframes blink_red {
+	0% {
+	  fill: #d14343;
+		color: #d14343;
+	}
+	50% {
+		color: transparent;
+		fill: transparent
+	}
+	100% {
+	  fill: #d14343;
+		color: #d14343;
+	}
+}
+
+.fa-light{
+	color: #d1d1d1;
+}
+
+.blink-red {
+	animation: blink_red 1s ease infinite;
+	fill: #d14343;
+	color: #d14343;
+}
+
+@keyframes blink_green {
+	0% {
+	  fill: green;
+		color: green;
+	}
+	50% {
+		color: transparent;
+		fill: transparent
+	}
+	100% {
+	  fill: transparent;
+		opacity: .1;
+	}
+}
+
+.blink-green {
+	animation: blink_green 1s ease infinite;
+	fill: green;
+	color: green;
+}
+
+.center_elements{
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+
+
+/* =====================  start kanban size styles ================ */
+
+.kanban .kanban-column {
+    transition: all 0.2s ease-in-out;
+    flex: 0 0 200px;
+    max-width: 200px;
+    border-radius: var(--border-radius);
+    padding: var(--padding-sm);
+}
+
+/* Styles for small size */
+.kanban-column.small {
+    flex: 0 0 140px;
+    max-width: 140px;
+}
+
+.kanban-card-wrapper.small .kanban-card-title,
+.kanban-card-wrapper.small .kanban-card-doc,
+.kanban-column.small .kanban-column-header .kanban-title {
+    font-size: 11px;
+}
+
+.kanban-card-wrapper.small .kanban-card-body {
+    padding: 4px;
+}
+
+/* Styles for medium size */
+.kanban-column.medium {
+    flex: 0 0 160px;
+    max-width: 160px;
+}
+
+.kanban-card-wrapper.medium .kanban-card-title,
+.kanban-card-wrapper.medium .kanban-card-doc,
+.kanban-column.medium .kanban-column-header .kanban-title {
+    font-size: 12px;
+}
+
+.kanban-card-wrapper.medium .kanban-card-body {
+    padding: 6px;
+}
+
+/* Styles for large size (updated) */
+.kanban-column.large {
+    flex: 0 0 200px;
+    max-width: 200px;
+}
+
+.kanban-card-wrapper.large .kanban-card-title,
+.kanban-card-wrapper.large .kanban-card-doc,
+.kanban-column.large .kanban-column-header .kanban-title {
+    font-size: 13px;
+}
+
+.kanban-card-wrapper.large .kanban-card-body {
+    padding: 8px;
+}
+
+
+/* =====================  end kanban size styles ================ */
+
+
+
+/* =====================  start kanban zoom ================ */
+.zoom-container {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 7vw;
+	background-color: transparent;
+	z-index: 100;
+	position: absolute;
+	right: 12vw;
+	bottom: 0;
+}
+
+.zoom-icon {
+	font-size: 12px;
+	cursor: pointer;
+}
+
+.zoom-slider {
+	width: 100%;
+	margin: 0 10px;
+}
+/* =====================  end kanban zoom ================ */

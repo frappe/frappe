@@ -71,6 +71,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			return frappe.run_serially([
 				() => this.set_board_perms_and_push_menu_items(),
 				() => this.get_board(),
+
 			]);
 		});
 	}
@@ -90,7 +91,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		});
 	}
 
-	push_menu_items() {
+	async push_menu_items() {
 		if (this.board_perms.write) {
 			this.menu_items.push({
 				label: __("Save filters"),
@@ -133,7 +134,8 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	}
 
 	setup_page() {
-		this.hide_page_form = true;
+		this.hide_sidebar = true;
+		this.hide_page_form = false;
 		this.hide_card_layout = true;
 		this.hide_sort_selector = true;
 		super.setup_page();
@@ -147,19 +149,67 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		this.setup_like();
 	}
 
+	setup_realtime_updates() {
+		this.pending_document_refreshes = [];
+		if (this.list_view_settings?.disable_auto_refresh || this.realtime_events_setup) {
+			return;
+		}
+		frappe.realtime.doctype_subscribe(this.doctype);
+		frappe.realtime.off("list_update");
+		frappe.realtime.on("list_update", (data) => {
+			if (data?.doctype !== this.doctype) {
+				return;
+			}
+			// if some bulk operation is happening by selecting list items, don't refresh
+			if (this.$checks && this.$checks.length) {
+				return;
+			}
+			if (this.avoid_realtime_update()) {
+				return;
+			}
+				frappe.call({
+					method: 'frappe.desk.reportview.get',
+					args: {
+						"doctype": data.doctype,
+						"fields": ["*"],
+						"filters": [['name', 'in', [data.name]]],
+						"start": 0,
+						"page_length": 10,
+						"view": "List",
+						"with_comment_count": 1
+					}
+				}).then((res) => {
+					const data = frappe.utils.dict(res.message.keys, res.message.values)
+					this.kanban.update_cards(data);
+					this.kanban.update_columns()
+				})
+		});
+		this.realtime_events_setup = true;
+	}
+
 	set_fields() {
 		super.set_fields();
 		this._add_field(this.card_meta.title_field);
 	}
 
-	before_render() {
+	async before_render() {
 		frappe.model.user_settings.save(this.doctype, "last_view", this.view_name);
 		this.save_view_user_settings({
 			last_kanban_board: this.board_name,
 		});
+
+		if(! await erpnext.utils.isWorkshopViewer(this.frm)){
+			insertFreezeQueuePosition()
+		}else{
+			const sidebar = $(".layout-side-section");
+			if (sidebar.is(':visible')) {
+				sidebar.hide();
+			}
+		}
+
 	}
 
-	render_list() {}
+	render_list() { }
 
 	on_filter_change() {
 		if (!this.board_perms.write) return; // avoid misleading ux
@@ -169,6 +219,25 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		} else {
 			this.page.clear_indicator();
 		}
+
+    let filters = this.get_call_args().args.filters
+    const filters_fields = document.querySelectorAll('.input-with-feedback:not([type="checkbox"])');
+    const defaultBorder = 'none';
+    const highlightBorder = '2px solid red';
+
+    filters_fields.forEach(filter => {
+     filter.style.border = defaultBorder;
+
+     if(filters.length){
+       const fieldName = filter.getAttribute('data-fieldname');
+       const hasValue = filters.some(([_, name]) => name === fieldName);
+
+       if (hasValue) {
+         filter.style.border = highlightBorder;
+       }
+     }
+   })
+
 	}
 
 	save_kanban_board_filters() {
@@ -214,6 +283,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			this.kanban.update(this.data);
 		}
 	}
+
 
 	get_card_meta() {
 		var meta = frappe.get_meta(this.doctype);
@@ -370,8 +440,8 @@ frappe.views.KanbanView.show_kanban_dialog = function (doctype) {
 					<div>
 						<p class="text-medium">
 						${__(
-							'No fields found that can be used as a Kanban Column. Use the Customize Form to add a Custom Field of type "Select".'
-						)}
+						'No fields found that can be used as a Kanban Column. Use the Customize Form to add a Custom Field of type "Select".'
+					)}
 						</p>
 					</div>
 				`,
@@ -411,3 +481,94 @@ frappe.views.KanbanView.show_kanban_dialog = function (doctype) {
 		return fields;
 	}
 };
+
+async function insertFreezeQueuePosition() {
+	const { auto_move_paused } = await frappe.db.get_doc('Queue Settings')
+	setTimeout(() => {
+		const containers = document.querySelectorAll('div[id*="Kanban"] div.page-head.flex > div > div > div.flex.col.page-actions.justify-content-end')
+		for (const container of containers){
+			const exists = container.querySelector('#queue-freeze')
+			if (!exists) {
+				const custom_button_filter = document.createElement('button');
+				custom_button_filter.setAttribute('id', 'btn_collapse_filters_area');
+				custom_button_filter.classList.add('btn', 'btn-primary', 'btn-sm');
+				custom_button_filter.setAttribute('type', 'button');
+				custom_button_filter.setAttribute('data-toggle', 'collapse');
+				custom_button_filter.setAttribute('data-target', '#collapse_filters_area');
+				custom_button_filter.setAttribute('aria-expanded', 'false');
+				custom_button_filter.setAttribute('aria-controls', 'collapse_filters_area');
+				custom_button_filter.innerText = 'Filters';
+				container.append(custom_button_filter)
+				// const addProjectButton = container.querySelector('.primary-action');
+				// container.insertBefore(custom_button_filter, addProjectButton);
+
+				const input = document.createElement('input')
+				const label = document.createElement('label')
+				label.setAttribute('style', 'margin: 0')
+				label.setAttribute('id', 'queue-freeze')
+				label.innerText = 'freeze queue positions'
+				label.appendChild(input)
+				input.setAttribute('type', 'checkbox')
+				if (auto_move_paused) {
+					input.setAttribute('checked', 'checked')
+				}
+				container.prepend(label);
+				input.addEventListener('change', (event) => {
+					const isChecked = event.target.checked;
+					if (isChecked) {
+						showConfirmationDialog(input)
+						return
+					}
+
+					frappe.db.set_value('Queue Settings', 'Queue Settings', 'auto_move_paused', Number(isChecked))
+					frappe.msgprint(__('Status updated successfully'));
+				})
+			}
+		}
+	}, 1500);
+}
+function showConfirmationDialog(input) {
+	const dialog = new frappe.ui.Dialog({
+		title: 'Confirm',
+		fields: [
+			{
+				fieldtype: 'HTML',
+				options: '<p>If you enable the freeze queue position process, job cards will not move even if they are marked as completed.</p>'
+			},
+			{
+				fieldtype: 'HTML',
+				options: 'Do you want to continue?'
+			}
+		],
+		primary_action_label: 'Confirm',
+		primary_action: function () {
+			dialog.hide();
+			frappe.db.set_value('Queue Settings', 'Queue Settings', 'auto_move_paused', 1).then(res => {
+				frappe.warn('Status updated successfully', 'Would you like to send a WhatsApp message to notify the clients in the queue?',
+					async () => {
+						const { aws_url } = await frappe.db.get_doc('Queue Settings')
+						return frappe.call({
+							method: "frappe.desk.doctype.kanban_board.kanban_board.call_freeze_queue_position_message",
+							args: { aws_url: aws_url },
+							callback: (result) => {
+								console.log("message queue position freeze sent: ", result);
+							},
+						});
+					},
+					'Yes',
+					true // Sets dialog as minimizable
+				)
+			})
+		},
+		secondary_action_label: 'Cancel',
+		secondary_action: function () {
+			input.checked = false
+			dialog.hide();
+		}
+	});
+
+	dialog.$wrapper.find('.modal-header .modal-actions').hide();
+	dialog.$wrapper.modal({ backdrop: 'static', keyboard: false })
+
+	dialog.show();
+}

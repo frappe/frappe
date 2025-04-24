@@ -110,9 +110,9 @@ $threshold: 34;
 					margin: 0 var(--margin-sm);
 				}
 
-				.content {
+				.content{
 					padding-left: 42px;
-					.mention {
+					.mention{
 						background-color: transparent;
 						border: none;
 						font-weight: var(--weight-semibold);
@@ -124,6 +124,12 @@ $threshold: 34;
 		.timeline-badge {
 			@include timeline-badge(var(--timeline-item-icon-size));
 			left: calc(-1 * var(--timeline-item-left-margin));
+
+		}
+		.timeline-load-more {
+			margin-left: calc(var(--timeline-item-left-margin) + var(--padding-sm));
+			width: var(--timeline-content-max-width);
+			text-align: center;
 		}
 		.timeline-load-more {
 			margin-left: calc(var(--timeline-item-left-margin) + var(--padding-sm));

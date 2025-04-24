@@ -80,6 +80,10 @@ button#update {
 	display: none;
 }
 
+.page-card p:empty {
+    display: none;
+}
+
 .page-card p {
 	font-size: 14px;
 }

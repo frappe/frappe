@@ -141,6 +141,17 @@ frappe.ui.Page = class Page {
 		this.custom_actions = this.page_actions.find(".custom-actions");
 
 		this.page_form = $('<div class="page-form row hide"></div>').prependTo(this.main);
+		this.custom_actions = this.page_actions.find(".actions");
+		//----------------- to collapse filters button
+		const url = window.location.pathname;
+		const pathToCheck = "/app/project/view/kanban/";
+		if(url.includes(pathToCheck)){
+      const hasFilters = window.location.search
+			this.page_form = $(`<div id="collapse_filters_area" class="page-form row ${hasFilters ? "show" :"hide"} collapse"></div>`).prependTo(this.main)
+		}else{
+			this.page_form = $('<div class="page-form row hide"></div>').prependTo(this.main);
+		}
+
 		this.inner_toolbar = this.custom_actions;
 		this.icon_group = this.page_actions.find(".page-icon-group");
 
@@ -686,6 +697,7 @@ frappe.ui.Page = class Page {
 		}
 	}
 
+
 	remove_inner_button(label, group) {
 		if (typeof label === "string") {
 			label = [label];
@@ -732,6 +744,27 @@ frappe.ui.Page = class Page {
 	clear_inner_toolbar() {
 		this.inner_toolbar.empty().addClass("hide");
 	}
+
+	//-- Sidebar --//
+
+	add_sidebar_item(label, action, insert_after, prepend) {
+		var parent = this.sidebar.find(".sidebar-menu.standard-actions");
+		var li = $("<li>");
+		var link = $("<a>").html(label).on("click", action).appendTo(li);
+
+		if (insert_after) {
+			li.insertAfter(parent.find(insert_after));
+		} else {
+			if (prepend) {
+				li.prependTo(parent);
+			} else {
+				li.appendTo(parent);
+			}
+		}
+		return link;
+	}
+
+	//---//
 
 	clear_user_actions() {
 		this.menu.find(".user-action").remove();
@@ -813,11 +846,13 @@ frappe.ui.Page = class Page {
 		}
 
 		let custom_btn_group = $(`
-			<div class="custom-btn-group">
-				<button type="button" class="btn btn-default btn-sm ellipsis" data-toggle="dropdown" aria-expanded="false">
-					${dropdown_label}
-				</button>
-				<ul class="dropdown-menu" role="menu"></ul>
+			<div class="filter-selector">
+				<div class="custom-btn-group m-xs">
+					<button type="button" class="btn btn-default btn-sm ellipsis" data-toggle="dropdown" aria-expanded="false">
+						${dropdown_label}
+					</button>
+					<ul class="dropdown-menu" role="menu"></ul>
+				</div>
 			</div>
 		`);
 

@@ -14,7 +14,8 @@
   "disabled",
   "is_custom",
   "desk_access",
-  "two_factor_auth"
+  "two_factor_auth",
+   "show_in_calendar_filters"
  ],
  "fields": [
   {
@@ -63,11 +64,80 @@
    "fieldtype": "Column Break"
   },
   {
+   "fieldname": "navigation_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Navigation Settings"
+  },
+  {
+   "default": "1",
+   "fieldname": "search_bar",
+   "fieldtype": "Check",
+   "label": "Search Bar"
+  },
+  {
+   "fieldname": "list_settings_section",
+   "fieldtype": "Section Break",
+   "label": "List Settings"
+  },
+  {
+   "default": "1",
+   "fieldname": "list_sidebar",
+   "fieldtype": "Check",
+   "label": "Sidebar"
+  },
+  {
+   "default": "1",
+   "fieldname": "bulk_actions",
+   "fieldtype": "Check",
+   "label": "Bulk Actions"
+  },
+  {
+   "fieldname": "form_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Form Settings"
+  },
+  {
+   "default": "1",
+   "fieldname": "form_sidebar",
+   "fieldtype": "Check",
+   "label": "Sidebar"
+  },
+  {
+   "default": "1",
+   "fieldname": "timeline",
+   "fieldtype": "Check",
+   "label": "Timeline"
+  },
+  {
+   "default": "1",
+   "fieldname": "dashboard",
+   "fieldtype": "Check",
+   "label": "Dashboard"
+  },
+  {
+   "default": "1",
+   "fieldname": "view_switcher",
+   "fieldtype": "Check",
+   "label": "View Switcher"
+  },
+  {
+   "default": "1",
+   "fieldname": "notifications",
+   "fieldtype": "Check",
+   "label": "Notifications"
+  },
+  {
    "default": "0",
    "fieldname": "is_custom",
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Is Custom"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_in_calendar_filters",
+   "fieldtype": "Check",
+   "label": "Show in Calendar Filters"
   }
  ],
  "icon": "fa fa-bookmark",

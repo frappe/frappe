@@ -9,6 +9,14 @@
  "field_order": [
   "user_details_tab",
   "enabled",
+  "request_a_callback_notification",
+  "remote_diagnose_notification",
+  "whatsapp_notification",
+  "email_notification_log",
+  "default_kanban",
+  "size_kanban",
+  "phone_notification",
+  "standard_replies",
   "section_break_3",
   "email",
   "first_name",
@@ -120,6 +128,79 @@
    "oldfieldtype": "Check",
    "read_only": 1
   },
+  {
+    "default": "0",
+    "fieldname": "request_a_callback_notification",
+    "fieldtype": "Check",
+    "label": "Request a callback notification",
+    "oldfieldname": "request_a_callback_notification",
+    "oldfieldtype": "Check",
+    "in_global_search": 1,
+    "in_list_view": 1,
+    "in_standard_filter": 1
+   },
+   {
+    "default": "0",
+    "fieldname": "remote_diagnose_notification",
+    "fieldtype": "Check",
+    "label": "Remote diagnose notification",
+    "oldfieldname": "remote_diagnose_notification",
+    "oldfieldtype": "Check",
+    "in_global_search": 1,
+    "in_list_view": 1,
+    "in_standard_filter": 1
+   },
+   {
+    "default": "0",
+    "fieldname": "whatsapp_notification",
+    "fieldtype": "Check",
+    "label": "Whatsapp notification",
+    "oldfieldname": "whatsapp_notification",
+    "oldfieldtype": "Check",
+    "in_global_search": 1,
+    "in_list_view": 1,
+    "in_standard_filter": 1
+   },
+   {
+    "bold": 1,
+    "fieldname": "phone_notification",
+    "fieldtype": "Data",
+    "label": "Phone Notification",
+    "oldfieldname": "phone_notification",
+    "oldfieldtype": "Data",
+    "in_global_search": 1,
+   "in_standard_filter": 1
+   },
+   {
+    "default": "0",
+    "fieldname": "email_notification_log",
+    "fieldtype": "Check",
+    "label": "Email Notification Log",
+    "oldfieldname": "email_notification_log",
+    "oldfieldtype": "Check",
+    "in_global_search": 1,
+    "in_list_view": 1,
+    "in_standard_filter": 1
+   },
+   {
+    "bold": 1,
+    "fieldname": "default_kanban",
+    "fieldtype": "Link",
+    "in_list_view": 1,
+    "in_standard_filter": 1,
+    "label": "Default Kanban",
+    "oldfieldname": "default_kanban",
+    "oldfieldtype": "Select",
+    "options": "Kanban Board",
+    "permlevel": 1
+   },
+   {
+    "fieldname": "size_kanban",
+    "fieldtype": "Select",
+    "label": "Kanban Size",
+    "in_list_view": 1,
+    "options": "small\nmedium\nlarge"
+   },
   {
    "depends_on": "enabled",
    "fieldname": "section_break_3",
@@ -478,7 +559,7 @@
    "read_only": 1
   },
   {
-   "default": "2",
+   "default": "1",
    "fieldname": "simultaneous_sessions",
    "fieldtype": "Int",
    "label": "Simultaneous Sessions"
@@ -811,7 +892,13 @@
    "fieldname": "dashboard",
    "fieldtype": "Check",
    "label": "Dashboard"
-  }
+  },
+   {
+     "fieldname": "standard_replies",
+     "fieldtype": "Data",
+     "hidden": 1,
+     "label": "Standard replies"
+   }
  ],
  "icon": "fa fa-user",
  "idx": 413,

@@ -43,6 +43,7 @@ def get_context(context):
 
 	# TODO: Find better fix
 	boot_json = CLOSING_SCRIPT_TAG_PATTERN.sub("", boot_json)
+	boot_json = json.dumps(boot_json)
 
 	include_js = hooks.get("app_include_js", []) + frappe.conf.get("app_include_js", [])
 	include_css = hooks.get("app_include_css", []) + frappe.conf.get("app_include_css", [])

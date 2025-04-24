@@ -269,12 +269,48 @@ class User(Document):
 		if not cint(self.enabled) and self.name in STANDARD_USERS:
 			frappe.throw(_("User {0} cannot be disabled").format(self.name))
 
+		if not cint(self.enabled):
+			self.a_system_manager_should_exist()
+
 		# clear sessions if disabled
 		if not cint(self.enabled) and getattr(frappe.local, "login_manager", None):
 			frappe.local.login_manager.logout(user=self.name)
 
 		# toggle notifications based on the user's status
 		toggle_notifications(self.name, enable=cint(self.enabled))
+
+	def add_system_manager_role(self):
+		if self.is_system_manager_disabled():
+			return
+
+		# if adding system manager, do nothing
+		if not cint(self.enabled) or (
+			"System Manager" in [user_role.role for user_role in self.get("roles")]
+		):
+			return
+
+		if (
+			self.name not in STANDARD_USERS
+			and self.user_type == "System User"
+			and not self.get_other_system_managers()
+			and cint(frappe.db.get_single_value("System Settings", "setup_complete"))
+		):
+
+			msgprint(_("Adding System Manager to this User as there must be atleast one System Manager"))
+			self.append("roles", {"doctype": "Has Role", "role": "System Manager"})
+
+		if self.name == "Administrator":
+			# Administrator should always have System Manager Role
+			self.extend(
+				"roles",
+				[
+					{"doctype": "Has Role", "role": "System Manager"},
+					{"doctype": "Has Role", "role": "Administrator"},
+				],
+			)
+
+	def is_system_manager_disabled(self):
+		return frappe.db.get_value("Role", {"name": "System Manager"}, ["disabled"])
 
 	def email_new_password(self, new_password=None):
 		if new_password and not self.flags.in_insert:
@@ -389,11 +425,26 @@ class User(Document):
 
 		return link
 
+	def get_other_system_managers(self):
+		user_doctype = DocType("User").as_("user")
+		user_role_doctype = DocType("Has Role").as_("user_role")
+		return (
+			frappe.qb.from_(user_doctype)
+			.from_(user_role_doctype)
+			.select(user_doctype.name)
+			.where(user_role_doctype.role == "System Manager")
+			.where(user_doctype.enabled == 1)
+			.where(user_role_doctype.parent == user_doctype.name)
+			.where(user_role_doctype.parent.notin(["Administrator", self.name]))
+			.limit(1)
+		).run()
+
 	def get_fullname(self):
 		"""get first_name space last_name"""
 		return (self.first_name or "") + (self.first_name and " " or "") + (self.last_name or "")
 
 	def password_reset_mail(self, link):
+
 		reset_password_template = frappe.db.get_system_setting("reset_password_template")
 
 		self.send_login_mail(
@@ -473,10 +524,19 @@ class User(Document):
 			retry=3,
 		)
 
+	def a_system_manager_should_exist(self):
+		if self.is_system_manager_disabled():
+			return
+
+		if not self.get_other_system_managers():
+			throw(_("There should remain at least one System Manager"))
+
 	def on_trash(self):
 		frappe.clear_cache(user=self.name)
 		if self.name in STANDARD_USERS:
 			throw(_("User {0} cannot be deleted").format(self.name))
+
+		self.a_system_manager_should_exist()
 
 		# disable the user and log him/her out
 		self.enabled = 0
@@ -1012,6 +1072,9 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=get_password_reset_limit, seconds=60 * 60)
 def reset_password(user: str) -> str:
+	if user == "Administrator":
+		return "not allowed"
+
 	try:
 		user: User = frappe.get_doc("User", user)
 		if user.name == "Administrator":
@@ -1035,7 +1098,10 @@ def reset_password(user: str) -> str:
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def user_query(doctype, txt, searchfield, start, page_len, filters):
+	from frappe.desk.reportview import get_filters_cond, get_match_cond
+
 	doctype = "User"
+	conditions = []
 
 	list_filters = {
 		"enabled": 1,
@@ -1145,6 +1211,7 @@ def notify_admin_access_to_system_manager(login_manager=None):
 		and login_manager.user == "Administrator"
 		and frappe.local.conf.notify_admin_access_to_system_manager
 	):
+
 		site = '<a href="{0}" target="_blank">{0}</a>'.format(frappe.local.request.host_url)
 		date_and_time = "<b>{}</b>".format(format_datetime(now_datetime(), format_string="medium"))
 		ip_address = frappe.local.request_ip
@@ -1217,11 +1284,11 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 				}
 			)
 
-			if user.email:
-				contact.add_email(user.email, is_primary=True)
+		if user.email:
+			contact.add_email(user.email, is_primary=True)
 
-			if user.phone:
-				contact.add_phone(user.phone, is_primary_phone=True)
+		if user.phone:
+			contact.add_phone(user.phone, is_primary_phone=True)
 
 			if user.mobile_no:
 				contact.add_phone(user.mobile_no, is_primary_mobile_no=True)
@@ -1238,29 +1305,29 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 			contact.last_name = user.last_name
 			contact.gender = user.gender
 
-			# Add mobile number if phone does not exists in contact
-			if user.phone and not any(new_contact.phone == user.phone for new_contact in contact.phone_nos):
-				# Set primary phone if there is no primary phone number
-				contact.add_phone(
-					user.phone,
-					is_primary_phone=not any(
-						new_contact.is_primary_phone == 1 for new_contact in contact.phone_nos
-					),
-				)
+		# Add mobile number if phone does not exists in contact
+		if user.phone and not any(new_contact.phone == user.phone for new_contact in contact.phone_nos):
+			# Set primary phone if there is no primary phone number
+			contact.add_phone(
+				user.phone,
+				is_primary_phone=not any(
+					new_contact.is_primary_phone == 1 for new_contact in contact.phone_nos
+				),
+			)
 
-			# Add mobile number if mobile does not exists in contact
-			if user.mobile_no and not any(
-				new_contact.phone == user.mobile_no for new_contact in contact.phone_nos
-			):
-				# Set primary mobile if there is no primary mobile number
-				contact.add_phone(
-					user.mobile_no,
-					is_primary_mobile_no=not any(
-						new_contact.is_primary_mobile_no == 1 for new_contact in contact.phone_nos
-					),
-				)
+		# Add mobile number if mobile does not exists in contact
+		if user.mobile_no and not any(
+			new_contact.phone == user.mobile_no for new_contact in contact.phone_nos
+		):
+			# Set primary mobile if there is no primary mobile number
+			contact.add_phone(
+				user.mobile_no,
+				is_primary_mobile_no=not any(
+					new_contact.is_primary_mobile_no == 1 for new_contact in contact.phone_nos
+				),
+			)
 
-			contact.save(ignore_permissions=True)
+		contact.save(ignore_permissions=True)
 		except frappe.TimestampMismatchError:
 			raise frappe.RetryBackgroundJobError
 
@@ -1332,3 +1399,7 @@ def impersonate(user: str, reason: str):
 	notification.set("type", "Alert")
 	notification.insert(ignore_permissions=True)
 	frappe.local.login_manager.impersonate(user)
+
+@frappe.whitelist()
+def update_kanban_size(value):
+    frappe.db.set_value("User", frappe.session.user, "size_kanban", value)

@@ -74,6 +74,7 @@ frappe.ui.keys.add_shortcut = ({
 };
 
 frappe.ui.keys.show_keyboard_shortcut_dialog = () => {
+
 	if (frappe.ui.keys.is_dialog_shown) return;
 
 	let global_shortcuts = standard_shortcuts.filter((shortcut) => !shortcut.page);
@@ -146,26 +147,26 @@ frappe.ui.keys.show_keyboard_shortcut_dialog = () => {
 };
 
 frappe.ui.keys.get_key = function (e) {
-	var keycode = e.keyCode || e.which;
-	var key = frappe.ui.keys.key_map[keycode] || String.fromCharCode(keycode);
+	// var keycode = e.keyCode || e.which;
+	// var key = frappe.ui.keys.key_map[keycode] || String.fromCharCode(keycode);
 
-	if (e.ctrlKey || e.metaKey) {
-		// add ctrl+ the key
-		key = "ctrl+" + key;
-	}
-	if (e.shiftKey) {
-		// add shift+ the key
-		key = "shift+" + key;
-	}
-	if (e.altKey) {
-		// add alt+ the key
-		key = "alt+" + key;
-	}
-	if (e.altKey && e.ctrlKey) {
-		// add alt+ctrl+ the key or single key e.g f1,f2,etc..
-		return key.toLowerCase();
-	}
-	return key.toLowerCase();
+	// if (e.ctrlKey || e.metaKey) {
+	// 	// add ctrl+ the key
+	// 	key = "ctrl+" + key;
+	// }
+	// if (e.shiftKey) {
+	// 	// add shift+ the key
+	// 	key = "shift+" + key;
+	// }
+	// if (e.altKey) {
+	// 	// add alt+ the key
+	// 	key = "alt+" + key;
+	// }
+	// if (e.altKey && e.ctrlKey) {
+	// 	// add alt+ctrl+ the key or single key e.g f1,f2,etc..
+	// 	return key.toLowerCase();
+	// }
+	// return key.toLowerCase();
 };
 
 frappe.ui.keys.on = function (key, handler) {
@@ -184,61 +185,61 @@ frappe.ui.keys.off = function (key, page) {
 	});
 };
 
-frappe.ui.keys.add_shortcut({
-	shortcut: "ctrl+s",
-	action: function (e) {
-		frappe.app.trigger_primary_action();
-		e.preventDefault();
-		return false;
-	},
-	description: __("Trigger Primary Action"),
-	ignore_inputs: true,
-});
+// frappe.ui.keys.add_shortcut({
+// 	shortcut: "ctrl+s",
+// 	action: function (e) {
+// 		frappe.app.trigger_primary_action();
+// 		e.preventDefault();
+// 		return false;
+// 	},
+// 	description: __("Trigger Primary Action"),
+// 	ignore_inputs: true,
+// });
 
-frappe.ui.keys.add_shortcut({
-	shortcut: "ctrl+g",
-	action: function (e) {
-		$("#navbar-search").focus();
-		e.preventDefault();
-		return false;
-	},
-	description: __("Open Awesomebar"),
-});
+// frappe.ui.keys.add_shortcut({
+// 	shortcut: "ctrl+g",
+// 	action: function (e) {
+// 		$("#navbar-search").focus();
+// 		e.preventDefault();
+// 		return false;
+// 	},
+// 	description: __("Open Awesomebar"),
+// });
 
-frappe.ui.keys.add_shortcut({
-	shortcut: "ctrl+h",
-	action: function (e) {
-		e.preventDefault();
-		$(".navbar-home img").click();
-	},
-	description: __("Navigate Home"),
-});
+// frappe.ui.keys.add_shortcut({
+// 	shortcut: "ctrl+h",
+// 	action: function (e) {
+// 		e.preventDefault();
+// 		$(".navbar-home img").click();
+// 	},
+// 	description: __("Navigate Home"),
+// });
 
-frappe.ui.keys.add_shortcut({
-	shortcut: "alt+s",
-	action: function (e) {
-		e.preventDefault();
-		$(".dropdown-navbar-user button").eq(0).click();
-	},
-	description: __("Open Settings"),
-});
+// frappe.ui.keys.add_shortcut({
+// 	shortcut: "alt+s",
+// 	action: function (e) {
+// 		e.preventDefault();
+// 		$(".dropdown-navbar-user a").eq(0).click();
+// 	},
+// 	description: __("Open Settings"),
+// });
 
-frappe.ui.keys.add_shortcut({
-	shortcut: "shift+/",
-	action: function () {
-		frappe.ui.keys.show_keyboard_shortcut_dialog();
-	},
-	description: __("Show Keyboard Shortcuts"),
-});
+// frappe.ui.keys.add_shortcut({
+// 	shortcut: "shift+/",
+// 	action: function () {
+// 		frappe.ui.keys.show_keyboard_shortcut_dialog();
+// 	},
+// 	description: __("Show Keyboard Shortcuts"),
+// });
 
-frappe.ui.keys.add_shortcut({
-	shortcut: "alt+h",
-	action: function (e) {
-		e.preventDefault();
-		$(".dropdown-help button").eq(0).click();
-	},
-	description: __("Open Help"),
-});
+// frappe.ui.keys.add_shortcut({
+// 	shortcut: "alt+h",
+// 	action: function (e) {
+// 		e.preventDefault();
+// 		$(".dropdown-help a").eq(0).click();
+// 	},
+// 	description: __("Open Help"),
+// });
 
 frappe.ui.keys.on("escape", function (e) {
 	handle_escape_key();
@@ -254,29 +255,29 @@ frappe.ui.keys.on("enter", function (e) {
 	}
 });
 
-frappe.ui.keys.on("ctrl+down", function (e) {
-	var grid_row = frappe.ui.form.get_open_grid_form();
-	grid_row &&
-		grid_row.toggle_view(false, function () {
-			grid_row.open_next();
-		});
-});
+// frappe.ui.keys.on("ctrl+down", function (e) {
+// 	var grid_row = frappe.ui.form.get_open_grid_form();
+// 	grid_row &&
+// 		grid_row.toggle_view(false, function () {
+// 			grid_row.open_next();
+// 		});
+// });
 
-frappe.ui.keys.on("ctrl+up", function (e) {
-	var grid_row = frappe.ui.form.get_open_grid_form();
-	grid_row &&
-		grid_row.toggle_view(false, function () {
-			grid_row.open_prev();
-		});
-});
+// frappe.ui.keys.on("ctrl+up", function (e) {
+// 	var grid_row = frappe.ui.form.get_open_grid_form();
+// 	grid_row &&
+// 		grid_row.toggle_view(false, function () {
+// 			grid_row.open_prev();
+// 		});
+// });
 
-frappe.ui.keys.add_shortcut({
-	shortcut: "shift+ctrl+r",
-	action: function () {
-		frappe.ui.toolbar.clear_cache();
-	},
-	description: __("Clear Cache and Reload"),
-});
+// frappe.ui.keys.add_shortcut({
+// 	shortcut: "shift+ctrl+r",
+// 	action: function () {
+// 		frappe.ui.toolbar.clear_cache();
+// 	},
+// 	description: __("Clear Cache and Reload"),
+// });
 
 frappe.ui.keys.key_map = {
 	8: "backspace",
@@ -297,9 +298,9 @@ frappe.ui.keys.key_map = {
 	114: "f3",
 	115: "f4",
 	116: "f5",
-	191: "/",
-	188: "<",
-	190: ">",
+	// 191: "/",
+	// 188: "<",
+	// 190: ">",
 };
 
 "abcdefghijklmnopqrstuvwxyz".split("").forEach((letter, i) => {

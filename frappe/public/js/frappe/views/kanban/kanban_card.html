@@ -1,8 +1,9 @@
-<div class="kanban-card-wrapper {{ disable_click }}" data-name="{{encodeURIComponent(name)}}">
+<div class="kanban-card-wrapper {{ size_class }} {{ disable_click }}" data-name="{{ encodeURIComponent(name) }}"
+	title="{{ client_description }}">
 	<div class="kanban-card content">
 		{% if(image_url) { %}
 		<div class="kanban-image">
-			<img  src="{{image_url}}" alt="{{title}}">
+			<img src="{{ image_url }}" alt="{{ title }}">
 		</div>
 		{% } %}
 		<div class="kanban-card-body">
@@ -12,13 +13,96 @@
 						{{ title }}
 					</div>
 				</a>
-				<br>
+				{% if(queue_position !== 0) { %}
+				<div class="circle {% if appointment_date %}has-appointment red{% endif %}">
+					<span class="circle-icon">
+						{% if appointment_date %}
+						<div class="hover-date" title="Appointment Date: Day-Month">{{ appointment_date }}</div>
+						{% else %}
+						<span style="user-select: none;" title="Queue Position">{{ queue_position }}</span>
+						{% endif %}
+					</span>
+				</div>
+				{% } %}
+			</div>
+			<div class="kanban-handler">
 				<div class="kanban-card-doc text-muted">
 					{{ doc_content }}
 				</div>
-			</div>
-			<div class="kanban-card-meta">
+				{% if size_class != 'small' %}
+				<div class="kanban-card-meta"></div>
+				{% endif %}
 			</div>
 		</div>
 	</div>
 </div>
+
+
+
+<style>
+	.kanban-title-area {
+		display: flex;
+		align-items: center;
+		position: relative;
+	}
+
+	.circle.red {
+		border-color: #d14343;
+	}
+
+	.kanban-card-title {
+		flex: 1;
+	}
+
+	.circle {
+		position: absolute;
+		right: -0.4rem;
+		top: -0.32rem;
+		border: 0.1875em solid #e1e1e1;
+		border-radius: 50%;
+		height: 3em;
+		width: 3em;
+		background-color: rgba(255, 255, 255, 0.846);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+	}
+
+	.hover-date {
+		font-size: 0.7em;
+		color: #d14343;
+		white-space: nowrap;
+		transform: scale(1);
+		user-select: none;
+		transition: transform 0.3s ease;
+	}
+
+	.has-appointment:hover .hover-date {
+		transform: scale(1.3);
+	}
+
+	.circle-icon {
+		color: #d14343;
+		animation: heartbeat 1s infinite;
+	}
+
+	@keyframes heartbeat {
+
+		0%,
+		100% {
+			transform: scale(1);
+		}
+
+		25%,
+		75% {
+			transform: scale(1.1);
+		}
+
+		50% {
+			transform: scale(1.2);
+		}
+	}
+
+
+</style>

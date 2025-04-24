@@ -65,7 +65,7 @@
    "fieldname": "event_category",
    "fieldtype": "Select",
    "label": "Event Category",
-   "options": "Event\nMeeting\nCall\nSent/Received Email\nOther"
+   "options": "Remote Diagnose\nMeeting\nOther"
   },
   {
    "fieldname": "event_type",

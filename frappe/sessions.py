@@ -87,6 +87,8 @@ def delete_session(sid=None, user=None, reason="Session Expired"):
 		# we should just ignore it till database is back up again.
 		return
 
+	frappe.cache.hdel("session", sid)
+	frappe.cache.hdel("last_db_session_update", sid)
 	if sid and not user:
 		table = frappe.qb.DocType("Sessions")
 		user_details = frappe.qb.from_(table).where(table.sid == sid).select(table.user).run(as_dict=True)
@@ -181,6 +183,7 @@ def get():
 	bootinfo["user"]["impersonated_by"] = frappe.session.data.get("impersonated_by")
 	bootinfo["navbar_settings"] = frappe.get_cached_doc("Navbar Settings")
 	bootinfo.has_app_updates = has_app_update_notifications()
+	bootinfo["is_workshop_viewer"] = get_is_workshop_viewer()
 
 	return bootinfo
 
@@ -290,6 +293,7 @@ class Session:
 			frappe.db.commit()
 
 	def insert_session_record(self):
+
 		Sessions = frappe.qb.DocType("Sessions")
 		now = frappe.utils.now()
 
@@ -401,6 +405,9 @@ class Session:
 
 		Sessions = frappe.qb.DocType("Sessions")
 
+		self.data["data"]["last_updated"] = now
+		self.data["data"]["lang"] = str(frappe.lang)
+
 		# update session in db
 		last_updated = frappe.cache.hget("last_db_session_update", self.sid)
 		time_diff = frappe.utils.time_diff_in_seconds(now, last_updated) if last_updated else None
@@ -424,7 +431,10 @@ class Session:
 			updated_in_db = True
 
 			frappe.cache.hset("last_db_session_update", self.sid, now)
-			frappe.cache.hset("session", self.sid, self.data)
+
+			updated_in_db = True
+
+		frappe.cache.hset("session", self.sid, self.data)
 
 		return updated_in_db
 
@@ -489,3 +499,10 @@ def get_geo_ip_country(ip_addr):
 	match = get_geo_from_ip(ip_addr)
 	if match:
 		return match.country
+
+@frappe.whitelist()
+def get_is_workshop_viewer():
+	role = frappe.db.get_value("User", frappe.session.user, "role_profile_name")
+	if role == "Workshop Viewer":
+		return True
+	return False

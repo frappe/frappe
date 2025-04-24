@@ -43,6 +43,7 @@
 	--para-line-height-2xl: 148%;
 	--para-line-height-3xl: 140%;
 
+
 	// font color
 	--heading-color: var(--gray-900);
 	--text-neutral: var(--gray-900);
@@ -90,7 +91,7 @@ $letter-space-heavy: (
 	@return map-get($letter-space, $name);
 }
 
-@mixin get_textstyle($name, $weight) {
+@mixin get_textstyle($name, $weight){
 	font-size: var(--text-#{$name});
 	font-weight: var(--weight-#{$weight});
 	letter-spacing: get_letterspacing($name, $weight);

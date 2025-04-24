@@ -72,6 +72,7 @@ def search_widget(
 	reference_doctype: str | None = None,
 	ignore_user_permissions: bool = False,
 ):
+
 	start = cint(start)
 
 	if isinstance(filters, str):

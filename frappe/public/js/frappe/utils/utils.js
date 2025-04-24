@@ -174,6 +174,16 @@ Object.assign(frappe.utils, {
 		const doc = new DOMParser().parseFromString(txt, "text/html");
 		const nodes = doc.body.childNodes || [];
 
+		if (
+			txt.indexOf("<br>") == -1 &&
+			txt.indexOf("<p") == -1 &&
+			txt.indexOf("<img") == -1 &&
+			txt.indexOf("<div") == -1 &&
+			!txt.includes("<span")
+		) {
+			return false;
+		}
+
 		// check if any of the nodes are element nodes
 		// Ref: https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
 		return [...nodes].some((node) => node.nodeType === 1);
@@ -1772,4 +1782,12 @@ Object.assign(frappe.utils, {
 			__("Generate Tracking URL")
 		);
 	},
+	randomString(length) {
+		const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+		let result = '';
+		for (let i = 0; i < length; i++) {
+			result += chars.charAt(Math.floor(Math.random() * chars.length));
+		}
+		return result;
+	}
 });

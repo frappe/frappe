@@ -25,6 +25,15 @@ frappe.ui.Notifications = class Notifications {
 
 	setup_headers() {
 		// Add header actions
+		$(`<span class="pull-right" data-action="delete_all">
+			${frappe.utils.icon("delete")}
+		</span>`)
+			.on("click", (e) => this.delete_all_notifications_by_user(e))
+			.appendTo(this.header_actions)
+			.attr("title", __("Delete all"))
+			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
+
+
 		$(`<span class="notification-settings pull-right" data-action="go_to_settings">
 			${frappe.utils.icon("setting-gear")}
 		</span>`)
@@ -117,6 +126,17 @@ frappe.ui.Notifications = class Notifications {
 		frappe.call("frappe.desk.doctype.notification_log.notification_log.mark_all_as_read");
 	}
 
+	delete_all_notifications_by_user(e){
+		e.stopImmediatePropagation();
+		frappe.confirm(
+			'Are you sure you want to proceed?',
+			() => {
+				frappe.call("frappe.desk.doctype.notification_log.notification_log.delete_all_notifications_by_user");
+				window.location.reload()
+			}
+		);
+	}
+
 	setup_dropdown_events() {
 		this.dropdown.on("hide.bs.dropdown", (e) => {
 			let hide = $(e.currentTarget).data("closable");
@@ -191,11 +211,21 @@ class NotificationsView extends BaseNotificationsView {
 		this.get_notifications_list(this.max_length).then((r) => {
 			if (!r.message) return;
 			this.dropdown_items = r.message.notification_logs;
+			this.validateContent(r.message.notification_logs)
 			frappe.update_user_info(r.message.user_info);
 			this.render_notifications_dropdown();
 			if (this.settings.seen == 0 && this.dropdown_items.length > 0) {
 				this.toggle_notification_icon(false);
 			}
+		});
+	}
+
+	validateContent(arrayDeObjetos) {
+		arrayDeObjetos.forEach(function(objeto) {
+		  if (objeto && objeto.email_content &&  ["Request Callback", "Remote Diagnose"].includes(objeto.email_content) && objeto.read === 0) {
+			$(".navbar").find(".notifications-icon").addClass("blink-bell");
+			$(".navbar").find(".notifications-icon").removeClass("text-muted");
+		  }
 		});
 	}
 
@@ -325,10 +355,11 @@ class NotificationsView extends BaseNotificationsView {
 	}
 
 	get_notifications_list(limit) {
-		return frappe.call(
+		const response = frappe.call(
 			"frappe.desk.doctype.notification_log.notification_log.get_notification_logs",
 			{ limit: limit }
 		);
+		return response
 	}
 
 	get_item_link(notification_doc) {
@@ -360,7 +391,11 @@ class NotificationsView extends BaseNotificationsView {
 	}
 
 	setup_notification_listeners() {
-		frappe.realtime.on("notification", () => {
+		frappe.realtime.on("notification", (event) => {
+			console.log(event)
+			const data = JSON.parse(event)
+			frappe.show_alert(data.subject, 43200)
+			// frappe.msgprint(data.email_content, data.subject );
 			this.toggle_notification_icon(false);
 			this.update_dropdown();
 		});
@@ -384,9 +419,8 @@ class NotificationsView extends BaseNotificationsView {
 class EventsView extends BaseNotificationsView {
 	make() {
 		let today = frappe.datetime.get_today();
-		frappe.call({
-			method: "frappe.desk.doctype.event.event.get_events",
-			args: {
+		frappe
+			.xcall("frappe.desk.doctype.event.event.get_events", {
 				start: today,
 				end: today,
 			},
@@ -394,7 +428,10 @@ class EventsView extends BaseNotificationsView {
 			callback: ({ message }) => {
 				this.render_events_html(message);
 			},
-		});
+		})
+			.then((event_list) => {
+				this.render_events_html(event_list);
+			});
 	}
 
 	render_events_html(event_list) {

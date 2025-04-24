@@ -4,11 +4,14 @@
 import copy
 import json
 import os
+
+# imports - standard imports
 import re
 import shutil
 from pathlib import Path
 from typing import TYPE_CHECKING, Union
 
+# imports - module imports
 import frappe
 from frappe import _
 from frappe.cache_manager import clear_controller_cache, clear_user_cache
@@ -205,6 +208,7 @@ class DocType(Document):
 		self.validate_document_type()
 		validate_fields(self)
 		self.check_indexing_for_dashboard_links()
+
 		if not self.istable:
 			validate_permissions(self)
 
@@ -1076,6 +1080,7 @@ def validate_series(dt, autoname=None, name=None):
 		and (not autoname.startswith("naming_series:"))
 		and (not autoname.startswith("format:"))
 	):
+
 		prefix = autoname.split(".", 1)[0]
 		doctype = frappe.qb.DocType("DocType")
 		used_in = (
@@ -1114,6 +1119,7 @@ def validate_autoincrement_autoname(dt: Union[DocType, "CustomizeForm"]) -> bool
 			and autoname_before_save != "autoincrement"
 			or (not is_autoname_autoincrement and autoname_before_save == "autoincrement")
 		):
+
 			if dt.doctype == "Customize Form":
 				frappe.throw(_("Cannot change to/from autoincrement autoname in Customize Form"))
 
@@ -1639,6 +1645,7 @@ def validate_fields(meta: Meta):
 
 		check_illegal_characters(d.fieldname)
 		check_invalid_fieldnames(meta.get("name"), d.fieldname)
+		check_unique_fieldname(meta.get("name"), d.fieldname)
 		check_fieldname_length(d.fieldname)
 		check_hidden_and_mandatory(meta.get("name"), d)
 		check_unique_and_text(meta.get("name"), d)
@@ -1697,6 +1704,20 @@ def clear_permissions_cache(doctype):
 
 	frappe.clear_cache(doctype=doctype)
 	delete_notification_count_for(doctype)
+	for user in frappe.db.sql_list(
+		"""
+		SELECT
+			DISTINCT `tabHas Role`.`parent`
+		FROM
+			`tabHas Role`,
+			`tabDocPerm`
+		WHERE `tabDocPerm`.`parent` = %s
+			AND `tabDocPerm`.`role` = `tabHas Role`.`role`
+			AND `tabHas Role`.`parenttype` = 'User'
+		""",
+		doctype,
+	):
+		frappe.clear_cache(user=user)
 
 	clear_user_cache()
 
@@ -1928,3 +1949,18 @@ def get_row_size_utilization(doctype: str) -> float:
 		return flt(frappe.db.get_row_size(doctype) / frappe.db.MAX_ROW_SIZE_LIMIT * 100, 2)
 	except Exception:
 		return 0.0
+
+
+@frappe.whitelist()
+def get_calendar_filters(doctype, field):
+	field_options = frappe.db.sql(
+		"""
+		SELECT options, fieldname, parent
+		FROM tabDocField
+		WHERE fieldname = %s
+		AND parent = %s;
+		""",
+		(field, doctype)
+	)
+
+	return field_options[0][0] if field_options else ''

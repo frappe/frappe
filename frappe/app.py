@@ -80,6 +80,7 @@ def after_response_wrapper(app):
 			app(environ, start_response),
 			(
 				frappe.rate_limiter.update,
+				frappe.monitor.stop,
 				frappe.recorder.dump,
 				frappe.request.after_response.run,
 				frappe.destroy,
@@ -415,6 +416,7 @@ def sync_database(rollback: bool) -> bool:
 	# update session
 	if session := getattr(frappe.local, "session_obj", None):
 		if session.update():
+			frappe.db.commit()
 			rollback = False
 
 	return rollback

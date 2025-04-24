@@ -17,8 +17,12 @@ from frappe.utils import (
 	add_days,
 	add_months,
 	add_years,
+	cint,
+	cstr,
+	date_diff,
 	format_datetime,
 	get_fullname,
+	get_datetime_str,
 	getdate,
 	month_diff,
 	now_datetime,
@@ -57,7 +61,7 @@ class Event(Document):
 		color: DF.Color | None
 		description: DF.TextEditor | None
 		ends_on: DF.Datetime | None
-		event_category: DF.Literal["Event", "Meeting", "Call", "Sent/Received Email", "Other"]
+		event_category: DF.Literal["Remote Diagnose", "Meeting", "Other"]
 		event_participants: DF.Table[EventParticipants]
 		event_type: DF.Literal["Private", "Public"]
 		friday: DF.Check
@@ -205,6 +209,7 @@ class Event(Document):
 
 @frappe.whitelist()
 def delete_communication(event, reference_doctype, reference_docname):
+	deleted_participant = frappe.get_doc(reference_doctype, reference_docname)
 	if isinstance(event, str):
 		event = json.loads(event)
 
@@ -368,6 +373,7 @@ def get_events(
 		if ends_on_date and e.repeat_till and ((ends_on_date > e.repeat_till) or (ends_on_date < start)):
 			return
 
+	def add_event(e, date):
 		new_event = e.copy()
 
 		new_event.original_starts_on = new_event.starts_on
@@ -454,4 +460,5 @@ def set_status_of_events():
 		if (event.ends_on and getdate(event.ends_on) < getdate(nowdate())) or (
 			event.repeat_till and getdate(event.repeat_till) < getdate(nowdate())
 		):
+
 			frappe.db.set_value("Event", event.name, "status", "Closed")
