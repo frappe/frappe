@@ -149,39 +149,40 @@ def update_order(board_name, order):
                 frappe.set_value(doctype, card, fieldname, col_name)
                 updated_cards.append(dict(name=card, column=col_name))
 
-		for column in board.columns:
-			if column.column_name == col_name:
-				column.order = json.dumps(cards)
+        for column in board.columns:
+            if column.column_name == col_name:
+                column.order = json.dumps(cards)
 
-	return board.save(ignore_permissions=True), updated_cards
+    return board.save(ignore_permissions=True), updated_cards
 
 
 @frappe.whitelist()
 def update_order_for_single_card(board_name, docname, from_colname, to_colname, old_index, new_index):
-	"""Save the order of cards in columns"""
-	board = frappe.get_doc("Kanban Board", board_name)
-	doctype = board.reference_doctype
+    """Save the order of cards in columns"""
+    board = frappe.get_doc("Kanban Board", board_name)
+    doctype = board.reference_doctype
 
-	frappe.has_permission(doctype, "write", throw=True)
+    frappe.has_permission(doctype, "write", throw=True)
 
     fieldname = board.field_name
     old_index = frappe.parse_json(old_index)
     new_index = frappe.parse_json(new_index)
 
-	# save current order and index of columns to be updated
-	from_col_order, from_col_idx = get_kanban_column_order_and_index(board, from_colname)
-	to_col_order, to_col_idx = get_kanban_column_order_and_index(board, to_colname)
+    # save current order and index of columns to be updated
+    from_col_order, from_col_idx = get_kanban_column_order_and_index(board, from_colname)
+    to_col_order, to_col_idx = get_kanban_column_order_and_index(board, to_colname)
 
-	user = board.modified_by
+    user = board.modified_by
     if doctype == "Project":
-        create_status_shanged_comment(from_colname, to_colname, docname, user)if from_colname == to_colname:
-		from_col_order = to_col_order
+        create_status_shanged_comment(from_colname, to_colname, docname, user)
+    
+    if from_colname == to_colname:
+        from_col_order = to_col_order
 
-	if from_col_order:
-    if len(from_col_order) > 0:
+    if from_col_order and len(from_col_order) > 0:
         try:
             if old_index >= len(from_col_order):
-               old_index = from_col_order.index(docname)
+                old_index = from_col_order.index(docname)
 
             to_col_order.insert(new_index, from_col_order.pop(old_index))
         except ValueError:
