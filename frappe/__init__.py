@@ -353,7 +353,7 @@ def connect_replica() -> bool:
 		)
 
 		# Basic check to ensure connection works
-		local.replica_db.sql("SELECT 1")
+		local.replica_db.connect()
 
 		# Swap db connections
 		local.primary_db = local.db
