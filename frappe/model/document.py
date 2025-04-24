@@ -231,7 +231,7 @@ class Document(BaseDocument, DocRef):
 			self._fix_numeric_types()
 
 		else:
-			if not is_doctype and isinstance(self.name, str):
+			if not is_doctype and isinstance(self.name, str | int):
 				for_update = ""
 				if self.flags.for_update and frappe.db.db_type != "sqlite":
 					for_update = "FOR UPDATE"
