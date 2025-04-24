@@ -258,9 +258,10 @@ def get_user_pages_or_reports(parent, cache=False):
 			ignore_ifnull=True,
 		)
 		for report in reports:
-			has_role[report.name]["report_type"] = report.report_type
+			if report.name:  # Add a check to ensure report.name is not None
+				has_role[report.name]["report_type"] = report.report_type
 
-		non_permitted_reports = set(has_role.keys()) - {r.name for r in reports}
+		non_permitted_reports = set(has_role.keys()) - {r.name for r in reports if r.name}
 		for r in non_permitted_reports:
 			has_role.pop(r, None)
 
