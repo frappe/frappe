@@ -866,60 +866,6 @@ body {
 	}
 }
 
-.form-reviews {
-	.reviews {
-		display: flex;
-		flex-wrap: wrap;
-	}
-	.review {
-		display: flex;
-		font-weight: 500;
-		height: 28px;
-		border-radius: 14px;
-		font-size: var(--text-xs);
-		margin-bottom: var(--margin-sm);
-		margin-right: var(--margin-xs);
-		border: 1px solid var(--dark-border-color);
-		padding: 2px 3px;
-		align-items: center;
-		min-width: 60px;
-		background: var(--fg-color);
-		.avatar {
-			width: 20px;
-			height: 20px;
-		}
-		.review-points {
-			margin-left: 3px;
-			flex: 1;
-			text-align: center;
-		}
-	}
-}
-
-.review-popover {
-	padding: 0px;
-	min-width: 200px;
-	max-width: 250px;
-
-	.popover-body,
-	.popover-content {
-		padding: 0;
-	}
-	.body {
-		border-bottom: 1px solid $border-color;
-	}
-
-	.subject,
-	.body {
-		padding: var(--padding-sm);
-		overflow-wrap: break-word;
-		p {
-			margin-top: var(--margin-xs);
-			margin-bottom: 0px;
-		}
-	}
-}
-
 .liked-by-popover {
 	.popover-body {
 		min-height: 30px;

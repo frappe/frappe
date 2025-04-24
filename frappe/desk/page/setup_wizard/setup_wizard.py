@@ -55,7 +55,7 @@ def setup_complete(args):
 	is_background_task = frappe.conf.get("trigger_site_setup_in_background")
 
 	if is_background_task:
-		process_setup_stages.enqueue(stages=stages, user_input=args, is_background_task=True)
+		process_setup_stages.enqueue(stages=stages, user_input=args, is_background_task=True, at_front=True)
 		return {"status": "registered"}
 	else:
 		return process_setup_stages(stages, args)

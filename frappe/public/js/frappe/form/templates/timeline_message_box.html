@@ -35,6 +35,12 @@
 					<span class="text-extra-muted">
 						{{ comment_when(doc.communication_date || doc.creation) }}
 					</span>
+					{% if (doc.published) { %}
+						<span> · </span>
+						<span class="text-extra-muted" title="{{ __('Visible to website/portal users.') }}">
+							{{ __("Published") }}
+						</span>
+					{% } %}
 				</span>
 			{% } else { %}
 				<span class="margin-right">

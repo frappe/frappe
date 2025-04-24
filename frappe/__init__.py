@@ -359,12 +359,14 @@ def connect_replica() -> bool:
 		local.primary_db = local.db
 		local.db = local.replica_db
 
+
 		return True
 
 	except Exception as e:
 		# Log the error and skip switching DB
 		frappe.logger("replica").warning(f"Failed to connect to read replica: {e}")
 		return False
+
 
 
 class init_site:

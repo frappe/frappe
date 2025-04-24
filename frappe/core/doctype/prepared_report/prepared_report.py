@@ -80,6 +80,7 @@ class PreparedReport(Document):
 			prepared_report=self.name,
 			timeout=timeout or REPORT_TIMEOUT,
 			enqueue_after_commit=True,
+			at_front_when_starved=True,
 		)
 
 	def get_prepared_data(self, with_file_name=False):

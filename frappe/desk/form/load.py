@@ -123,7 +123,6 @@ def get_docinfo(doc=None, doctype=None, name=None):
 			"permissions": get_doc_permissions(doc),
 			"shared": get_docshares(doc),
 			"views": get_view_logs(doc),
-			"energy_point_logs": get_point_logs(doc.doctype, doc.name),
 			"additional_timeline_content": get_additional_timeline_content(doc.doctype, doc.name),
 			"milestones": get_milestones(doc.doctype, doc.name),
 			"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
@@ -149,7 +148,7 @@ def add_comments(doc, docinfo):
 
 	comments = frappe.get_all(
 		"Comment",
-		fields=["name", "creation", "content", "owner", "comment_type"],
+		fields=["name", "creation", "content", "owner", "comment_type", "published"],
 		filters={"reference_doctype": doc.doctype, "reference_name": doc.name},
 	)
 
@@ -244,19 +243,6 @@ def get_comments(doctype: str, name: str, comment_type: str | list[str] = "Comme
 			c.content = frappe.utils.markdown(c.content)
 
 	return comments
-
-
-def get_point_logs(doctype, docname):
-	from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
-
-	if not is_energy_point_enabled():
-		return []
-
-	return frappe.get_all(
-		"Energy Point Log",
-		filters={"reference_doctype": doctype, "reference_name": docname, "type": ["!=", "Review"]},
-		fields=["*"],
-	)
 
 
 def _get_communications(doctype, name, start=0, limit=20):
