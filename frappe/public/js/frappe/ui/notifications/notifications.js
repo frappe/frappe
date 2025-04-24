@@ -423,12 +423,11 @@ class EventsView extends BaseNotificationsView {
 			.xcall("frappe.desk.doctype.event.event.get_events", {
 				start: today,
 				end: today,
-			},
-			type: "GET",
-			callback: ({ message }) => {
-				this.render_events_html(message);
-			},
-		})
+				type: "GET",
+				callback: ({ message }) => {
+					this.render_events_html(message);
+				},
+			})
 			.then((event_list) => {
 				this.render_events_html(event_list);
 			});
