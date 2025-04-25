@@ -496,6 +496,7 @@ def test_user(
 		user.append_roles(*roles)
 		user.insert()
 		yield user
+		commit and frappe.db.commit()
 	finally:
 		user.delete(force=True, ignore_permissions=True)
 		commit and frappe.db.commit()
