@@ -62,30 +62,34 @@ class DbManager:
 
 		import shlex
 		from shutil import which
-
 		from frappe.database import get_command
 		from frappe.utils import execute_in_shell
 
-		# Ensure that the entire process fails if any part of the pipeline fails
 		command: list[str] = ["set -o pipefail;"]
 
-		# Handle gzipped backups
+		quoted_source = shlex.quote(source)
+
+		# Handle gzipped backups with optional pv
 		if source.endswith(".gz"):
 			if gzip := which("gzip"):
-				command.extend([gzip, "-cd", source, "|"])
+				if which("pv"):
+					command.append(f"pv {quoted_source} | {gzip} -cd |")
+				else:
+					command.append(f"{gzip} -cd {quoted_source} |")
 			else:
 				raise Exception("`gzip` not installed")
 		else:
-			command.extend(["cat", source, "|"])
+			if which("pv"):
+				command.append(f"pv {quoted_source} |")
+			else:
+				command.append(f"cat {quoted_source} |")
 
+		# Filter problematic MariaDB lines
 		if frappe.conf.db_type == "mariadb":
-			# Newer versions of MariaDB add in a line that'll break on older versions, so remove it
-			command.extend(["sed", r"'/\/\*M\{0,1\}!999999\\- enable the sandbox mode \*\//d'", "|"])
+			command.append("sed '/\\/\\*M\\{0,1\\}!999999\\- enable the sandbox mode \\*\\//d' |")
+			command.append("sed '/\\/\\*![0-9]* DEFINER=[^ ]* SQL SECURITY DEFINER \\*\\//d' |")
 
-			# Remove view security definers
-			command.extend(["sed", r"'/\/\*![0-9]* DEFINER=[^ ]* SQL SECURITY DEFINER \*\//d'", "|"])
-
-		# Generate the restore command
+		# Construct the database restore command
 		bin, args, bin_name = get_command(
 			socket=frappe.conf.db_socket,
 			host=frappe.conf.db_host,
@@ -99,8 +103,11 @@ class DbManager:
 				_("{} not found in PATH! This is required to restore the database.").format(bin_name),
 				exc=frappe.ExecutableNotFound,
 			)
-		command.append(bin)
-		command.append(shlex.join(args))
 
-		execute_in_shell(" ".join(command), check_exit_code=True, verbose=verbose)
-		frappe.cache.delete_keys("")  # Delete all keys associated with this site.
+		command.append(f"{bin} {shlex.join(args)}")
+
+		# Execute and stream output live to terminal
+		execute_in_shell(" ".join(command), check_exit_code=True, verbose=verbose, passthrough=True)
+
+		# Clear cache for fresh DB state
+		frappe.cache.delete_keys("")

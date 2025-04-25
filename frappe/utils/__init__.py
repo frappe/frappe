@@ -449,43 +449,50 @@ def unesc(s, esc_chars):
 	return s
 
 
-def execute_in_shell(cmd, verbose=False, low_priority=False, check_exit_code=False):
-	# using Popen instead of os.system - as recommended by python docs
+def execute_in_shell(cmd, verbose=False, low_priority=False, check_exit_code=False, passthrough=False):
 	import shlex
-	import tempfile
+	import shutil
+	import os
 	from subprocess import Popen
+	from tempfile import TemporaryFile
 
 	if isinstance(cmd, list):
-		# ensure it's properly escaped; only a single string argument executes via shell
 		cmd = shlex.join(cmd)
 
-	with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
-		kwargs = {
-			"shell": True,
-			"stdout": stdout,
-			"stderr": stderr,
-			"executable": shutil.which("bash") or "/bin/bash",
-		}
+	kwargs = {
+		"shell": True,
+		"executable": shutil.which("bash") or "/bin/bash",
+	}
 
-		if low_priority:
-			kwargs["preexec_fn"] = lambda: os.nice(10)
+	if low_priority:
+		kwargs["preexec_fn"] = lambda: os.nice(10)
 
+	if passthrough:
+		# Directly stream output to terminal (useful for tools like `pv`)
 		p = Popen(cmd, **kwargs)
 		exit_code = p.wait()
+		out, err = b"", b""
+	else:
+		with TemporaryFile() as stdout, TemporaryFile() as stderr:
+			kwargs["stdout"] = stdout
+			kwargs["stderr"] = stderr
 
-		stdout.seek(0)
-		out = stdout.read()
+			p = Popen(cmd, **kwargs)
+			exit_code = p.wait()
 
-		stderr.seek(0)
-		err = stderr.read()
+			stdout.seek(0)
+			out = stdout.read()
+
+			stderr.seek(0)
+			err = stderr.read()
 
 	failed = check_exit_code and exit_code
 
 	if verbose or failed:
 		if err:
-			print(err)
+			print(err.decode(errors="replace"))
 		if out:
-			print(out)
+			print(out.decode(errors="replace"))
 
 	if failed:
 		raise frappe.CommandFailedError(
