@@ -837,48 +837,48 @@ def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with
 # ================== CUSTOM FUNCTIONS ==================
 
 def get_done_statuses_filters():
-    return [
-        ["Project", "status", "!=", "Completed"],
-        ["Project", "status", "!=", "In pause"],
-        ["Project", "status", "!=", "Cancelled"],
-        ["Project", "status", "!=", "Quality check approved"],
-        ["Project", "status", "!=", "No response from customer"],
-        ["Project", "status", "!=", "Invoice paid"],
-        ["Project", "status", "!=", "Awaiting pickup"],
-    ]
+	return [
+		["Project", "status", "!=", "Completed"],
+		["Project", "status", "!=", "In pause"],
+		["Project", "status", "!=", "Cancelled"],
+		["Project", "status", "!=", "Quality check approved"],
+		["Project", "status", "!=", "No response from customer"],
+		["Project", "status", "!=", "Invoice paid"],
+		["Project", "status", "!=", "Awaiting pickup"],
+	]
 
 
 def get_done_statuses(statuses):
-    return [item[3] for item in statuses]
+	return [item[3] for item in statuses]
 
 
 def is_user_allowed():
-    if not frappe.session.user:
-        return False
-    user_roles = frappe.get_roles(frappe.session.user)
-    allowed_roles = [
-        "Administrator",
-        "System Manager",
-        "Sales Manager",
-        "Projects Manager",
-        "Workshop Viewer",
-    ]  # list of the user roles can see all projects without assign
-    return any(role in allowed_roles for role in user_roles)
+	if not frappe.session.user:
+		return False
+	user_roles = frappe.get_roles(frappe.session.user)
+	allowed_roles = [
+		"Administrator",
+		"System Manager",
+		"Sales Manager",
+		"Projects Manager",
+		"Workshop Viewer",
+	]  # list of the user roles can see all projects without assign
+	return any(role in allowed_roles for role in user_roles)
 
 
 def fetch_data_with_filters(filters=[], args=None, page_length=0):
-    if args is None:
-        args = get_form_params()
-        args["filters"] = filters
-        args["page_length"] = page_length
+	if args is None:
+		args = get_form_params()
+		args["filters"] = filters
+		args["page_length"] = page_length
 
-    if is_virtual_doctype(args["doctype"]):
-        controller = get_controller(args["doctype"])
-        data = compress(controller.get_list(args))
-    else:
-        data = execute(**args)
-    return data
+	if is_virtual_doctype(args["doctype"]):
+		controller = get_controller(args["doctype"])
+		data = compress(controller.get_list(args))
+	else:
+		data = execute(**args)
+	return data
 
 
 def is_default_project_request(args):
-    return len(args["filters"]) == 0 and args["doctype"] == "Project"
+	return len(args["filters"]) == 0 and args["doctype"] == "Project"
