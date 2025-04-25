@@ -232,12 +232,33 @@ class Block implements BlockOptions {
 		this.baseStyles[style] = value
 	}
 
-	getStyles(): BlockStyleMap {
-		return { ...this.baseStyles, ...this.rawStyles }
+	getStyles(breakpoint: string = "desktop"): BlockStyleMap {
+		let styleObj = {}
+
+		styleObj = { ...this.baseStyles }
+		if (["mobile", "tablet"].includes(breakpoint)) {
+			styleObj = { ...styleObj, ...this.tabletStyles }
+			if (breakpoint === "mobile") {
+				styleObj = { ...styleObj, ...this.mobileStyles }
+			}
+		}
+		styleObj = { ...styleObj, ...this.rawStyles }
+		return styleObj
 	}
 
-	getStyle(style: styleProperty) {
-		return this.baseStyles[style]
+	getStyle(style: styleProperty, breakpoint?: string | null) {
+		const canvasStore = useCanvasStore();
+		breakpoint = breakpoint || canvasStore.activeCanvas?.activeBreakpoint
+		let styleValue = undefined as StyleValue
+		if (breakpoint === "mobile") {
+			styleValue = this.mobileStyles[style] || this.tabletStyles[style] || this.baseStyles[style]
+		} else if (breakpoint === "tablet") {
+			styleValue = this.tabletStyles[style] || this.baseStyles[style]
+		} else {
+			styleValue = this.baseStyles[style]
+		}
+
+		return styleValue
 	}
 
 	setStyle(style: styleProperty, value: StyleValue) {
@@ -255,6 +276,25 @@ class Block implements BlockOptions {
 			return;
 		}
 		styleObj[style] = value
+	}
+
+	hasOverrides(breakpoint: string) {
+		if (breakpoint === "mobile") {
+			return Object.keys(this.mobileStyles).length > 0
+		}
+		if (breakpoint === "tablet") {
+			return Object.keys(this.tabletStyles).length > 0
+		}
+		return false
+	}
+
+	resetOverrides(breakpoint: string) {
+		if (breakpoint === "mobile") {
+			this.mobileStyles = {}
+		}
+		if (breakpoint === "tablet") {
+			this.tabletStyles = {}
+		}
 	}
 
 	getRawStyles() {

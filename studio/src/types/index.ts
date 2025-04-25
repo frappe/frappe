@@ -49,6 +49,7 @@ export interface ContextMenuOption {
 	label: string
 	action: CallableFunction
 	condition?: () => boolean
+	disabled?: () => boolean
 }
 
 export type ComponentProp = {

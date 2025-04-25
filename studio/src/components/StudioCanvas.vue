@@ -92,7 +92,7 @@ import StudioComponent from "@/components/StudioComponent.vue"
 import FitScreenIcon from "@/components/Icons/FitScreenIcon.vue"
 
 import useStudioStore from "@/stores/studioStore"
-import { getBlockCopy } from "@/utils/helpers"
+import { getBlockCopy, getBlockInfo } from "@/utils/helpers"
 import setPanAndZoom from "@/utils/panAndZoom"
 import Block from "@/utils/block"
 import { useCanvasDropZone } from "@/utils/useCanvasDropZone"
@@ -197,7 +197,12 @@ const selectedBlocks = computed(() => {
 
 function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false) {
 	if (store.settingPage) return
+
 	selectBlockById(block.componentId, e, multiSelect)
+	if (e) {
+		const { breakpoint } = getBlockInfo(e)
+		setActiveBreakpoint(breakpoint)
+	}
 }
 
 function selectBlockById(blockId: string, e: MouseEvent | null, multiSelect = false) {

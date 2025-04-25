@@ -141,6 +141,14 @@ const contextMenuOptions: ContextMenuOption[] = [
 			showFormDialog.value = true
 		},
 	},
+	{
+		label: "Reset Style Overrides",
+		condition: () => canvasStore.activeCanvas?.activeBreakpoint !== "desktop",
+		disabled: () => !block.value?.hasOverrides(canvasStore.activeCanvas?.activeBreakpoint || "desktop"),
+		action: () => {
+			block.value.resetOverrides(canvasStore.activeCanvas?.activeBreakpoint || "desktop")
+		},
+	},
 ]
 
 defineExpose({
