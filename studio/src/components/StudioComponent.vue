@@ -126,7 +126,9 @@ const slotClasses = ["__studio_component_slot__", "outline-none", "select-none"]
 const canvasProps = inject("canvasProps") as CanvasProps
 
 const styles = computed(() => {
-	return props.block.getStyles()
+	return {
+		...props.block.getStyles(props.breakpoint),
+	}
 })
 
 const componentName = computed(() => {

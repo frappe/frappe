@@ -246,8 +246,19 @@ class Block implements BlockOptions {
 		return styleObj
 	}
 
-	getStyle(style: styleProperty) {
-		return this.baseStyles[style]
+	getStyle(style: styleProperty, breakpoint?: string | null) {
+		const canvasStore = useCanvasStore();
+		breakpoint = breakpoint || canvasStore.activeCanvas?.activeBreakpoint
+		let styleValue = undefined as StyleValue
+		if (breakpoint === "mobile") {
+			styleValue = this.mobileStyles[style] || this.tabletStyles[style] || this.baseStyles[style]
+		} else if (breakpoint === "tablet") {
+			styleValue = this.tabletStyles[style] || this.baseStyles[style]
+		} else {
+			styleValue = this.baseStyles[style]
+		}
+
+		return styleValue
 	}
 
 	setStyle(style: styleProperty, value: StyleValue) {

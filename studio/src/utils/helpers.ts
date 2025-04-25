@@ -97,6 +97,15 @@ function getBlockCopyWithoutParent(block: BlockOptions | Block) {
 	return blockCopy
 }
 
+type BlockInfo = {
+	blockId: string
+	breakpoint: string
+}
+function getBlockInfo(e: MouseEvent) {
+	const target = (e.target as HTMLElement)?.closest(".__studio_component__") as HTMLElement
+	return target?.dataset as BlockInfo
+}
+
 const isTextNode = (el: Element) => {
 	return el.nodeType === Node.TEXT_NODE
 }
@@ -680,6 +689,7 @@ export {
 	getRootBlock,
 	getBlockCopy,
 	getBlockCopyWithoutParent,
+	getBlockInfo,
 	getComponentRoot,
 	numberToPx,
 	pxToNumber,
