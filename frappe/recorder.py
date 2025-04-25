@@ -351,7 +351,8 @@ def start(
 		request_filter=request_filter,
 		jobs_filter=jobs_filter,
 	).store()
-	frappe.cache.set_value(RECORDER_INTERCEPT_FLAG, True, expires_in_sec=RECORDER_AUTO_DISABLE)
+	frappe.client_cache.set_value(RECORDER_INTERCEPT_FLAG, True)
+	frappe.cache.expire_key(RECORDER_INTERCEPT_FLAG, RECORDER_AUTO_DISABLE)
 
 
 @frappe.whitelist()
