@@ -184,7 +184,7 @@ def get_milestones(doctype, name):
 	return frappe.get_all(
 		"Milestone",
 		fields=["creation", "owner", "track_field", "value"],
-		filters=dict(reference_type=doctype, reference_name=name),
+		filters=dict(reference_type=doctype, reference_name=str(name)),
 	)
 
 
@@ -192,7 +192,7 @@ def get_attachments(dt, dn):
 	return frappe.get_all(
 		"File",
 		fields=["name", "file_name", "file_url", "is_private"],
-		filters={"attached_to_name": dn, "attached_to_doctype": dt},
+		filters={"attached_to_name": str(dn), "attached_to_doctype": dt},
 	)
 
 
@@ -332,7 +332,7 @@ def get_communication_data(
 	""".format(part1=part1, part2=part2, group_by=(group_by or "")),
 		dict(
 			doctype=doctype,
-			name=name,
+			name=str(name),
 			start=frappe.utils.cint(start),
 			limit=limit,
 		),
@@ -346,7 +346,7 @@ def get_assignments(dt, dn):
 		fields=["name", "allocated_to as owner", "description", "status"],
 		filters={
 			"reference_type": dt,
-			"reference_name": dn,
+			"reference_name": str(dn),
 			"status": ("not in", ("Cancelled", "Closed")),
 			"allocated_to": ("is", "set"),
 		},
@@ -367,7 +367,7 @@ def get_view_logs(doc: "Document") -> list[dict]:
 		"View Log",
 		filters={
 			"reference_doctype": doc.doctype,
-			"reference_name": doc.name,
+			"reference_name": str(doc.name),
 		},
 		fields=["name", "creation", "owner"],
 		order_by="creation desc",
@@ -377,7 +377,7 @@ def get_view_logs(doc: "Document") -> list[dict]:
 def get_tags(doctype: str, name: str) -> str:
 	tags = frappe.get_all(
 		"Tag Link",
-		filters={"document_type": doctype, "document_name": name},
+		filters={"document_type": doctype, "document_name": str(name)},
 		fields=["tag"],
 		pluck="tag",
 	)
