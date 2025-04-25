@@ -130,6 +130,10 @@ class FrappeAPITestCase(IntegrationTestCase):
 	def delete(self, path, **kwargs) -> TestResponse:
 		return make_request(target=self.TEST_CLIENT.delete, args=(path,), kwargs=kwargs)
 
+	def tearDown(self) -> None:
+		frappe.db.rollback()
+		return super().tearDown()
+
 
 class TestResourceAPI(FrappeAPITestCase):
 	DOCTYPE = "ToDo"
@@ -146,6 +150,7 @@ class TestResourceAPI(FrappeAPITestCase):
 
 	@classmethod
 	def tearDownClass(cls):
+		frappe.db.commit()
 		for name in cls.GENERATED_DOCUMENTS:
 			frappe.delete_doc_if_exists(cls.DOCTYPE, name)
 		frappe.db.commit()
