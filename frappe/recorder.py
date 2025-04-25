@@ -25,7 +25,7 @@ RECORDER_CONFIG_FLAG = "recorder-config"
 RECORDER_REQUEST_SPARSE_HASH = "recorder-requests-sparse"
 RECORDER_REQUEST_HASH = "recorder-requests"
 TRACEBACK_PATH_PATTERN = re.compile(".*/apps/")
-RECORDER_AUTO_DISABLE = 5 * 60
+RECORDER_AUTO_DISABLE = 10 * 60
 
 
 if typing.TYPE_CHECKING:
@@ -351,7 +351,7 @@ def start(
 		request_filter=request_filter,
 		jobs_filter=jobs_filter,
 	).store()
-	frappe.client_cache.set_value(RECORDER_INTERCEPT_FLAG, True)
+	frappe.cache.set_value(RECORDER_INTERCEPT_FLAG, True, expires_in_sec=RECORDER_AUTO_DISABLE)
 
 
 @frappe.whitelist()
