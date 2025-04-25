@@ -881,7 +881,7 @@ class DatabaseQuery:
 					# because "like" uses backslash (\) for escaping
 					value = value.replace("\\", "\\\\").replace("%", "%%")
 
-			elif f.operator == "=" and df and df.fieldtype in ["Link", "Data"]:  # TODO: Refactor if possible
+			elif f.operator == "=" and df and df.fieldtype in ("Link", "Data", "Dynamic Link"):
 				value = cstr(f.value) or "''"
 				fallback = "''"
 
