@@ -10,6 +10,7 @@
 				v-slot="{ active, disabled }"
 				class="dark:text-zinc-50 block cursor-pointer rounded-md px-3 py-1"
 				v-for="(option, index) in options"
+				:disabled="option.disabled && option.disabled()"
 				v-show="!option.condition || option.condition()"
 			>
 				<div
@@ -30,14 +31,9 @@
 <script setup lang="ts">
 import { Menu, MenuItem, MenuItems } from "@headlessui/vue"
 import { computed, ref } from "vue"
+import type { ContextMenuOption } from "@/types"
 
 const menu = ref(null) as unknown as typeof Menu
-
-interface ContextMenuOption {
-	label: string
-	action: CallableFunction
-	condition?: () => boolean
-}
 
 const props = defineProps<{
 	posX: number
