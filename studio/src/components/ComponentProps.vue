@@ -170,6 +170,7 @@ watch(
 watch(
 	() => props.block?.componentSlots,
 	async () => {
+		if (props.block?.isContainer()) return
 		await updateAvailableSlots()
 	},
 	{ deep: true },
