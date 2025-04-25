@@ -33,6 +33,7 @@ import { computed, onMounted, ref, useAttrs, inject } from "vue"
 import { useRouter, useRoute } from "vue-router"
 import { createResource } from "frappe-ui"
 import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML, executeUserScript } from "@/utils/helpers"
+import { useScreenSize } from "@/utils/useScreenSize"
 
 import useAppStore from "@/stores/appStore"
 import { toast } from "vue-sonner"
@@ -48,7 +49,9 @@ const componentName = computed(() => {
 })
 
 const componentRef = ref(null)
-const styles = computed(() => props.block.getStyles())
+
+const { currentBreakpoint } = useScreenSize()
+const styles = computed(() => props.block.getStyles(currentBreakpoint.value))
 const classes = computed(() => {
 	return [attrs.class, ...props.block.getClasses()]
 })
