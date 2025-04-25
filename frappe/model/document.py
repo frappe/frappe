@@ -305,7 +305,7 @@ class Document(BaseDocument, DocRef):
 						table_name=get_table_name(child_doctype, wrap_in_backticks=True),
 						for_update=for_update,
 					),
-					{"parent": self.name, "parenttype": self.doctype, "parentfield": fieldname},
+					{"parent": str(self.name), "parenttype": self.doctype, "parentfield": fieldname},
 					as_dict=True,
 				)
 
@@ -593,7 +593,7 @@ class Document(BaseDocument, DocRef):
 			tbl = frappe.qb.DocType(df.options)
 			qry = (
 				frappe.qb.from_(tbl)
-				.where(tbl.parent == self.name)
+				.where(tbl.parent == str(self.name))
 				.where(tbl.parenttype == self.doctype)
 				.where(tbl.parentfield == fieldname)
 				.delete()
