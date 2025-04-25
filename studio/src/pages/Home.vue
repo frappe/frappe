@@ -1,6 +1,8 @@
 <template>
 	<div class="h-screen flex-col overflow-hidden bg-white">
-		<div class="toolbar sticky top-0 z-10 flex h-14 items-center justify-between bg-white p-2 shadow-sm">
+		<div
+			class="toolbar sticky top-0 z-10 flex h-14 items-center justify-between bg-white px-3 py-2 shadow-sm"
+		>
 			<Dropdown :options="[{ label: 'Logout', icon: 'log-out', onClick: () => session.logout() }]">
 				<template v-slot="{ open }">
 					<div class="flex cursor-pointer items-center gap-2">
