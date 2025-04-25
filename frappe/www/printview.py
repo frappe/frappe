@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING, Optional
 from erpnext.accounts.custom import address
 import frappe
 from frappe import _, cstr, get_module_path
-from frappe import _, get_module_path
 from frappe.contacts.doctype.address.address import get_address_display_list
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.document_share_key.document_share_key import is_expired
@@ -155,6 +154,7 @@ def get_context(context):
 		"pdf_generator": frappe.form_dict.get("pdf_generator", "wkhtmltopdf"),
 	}
 
+
 def convert_to_int(value):
 	try:
 		# Convert the value to a float first to handle both numeric strings and numbers
@@ -166,6 +166,7 @@ def convert_to_int(value):
 		# If the value cannot be converted to a float, raise an error
 		raise ValueError("The input value is not a number or a numeric string")
 
+
 def convert_to_float(value):
 	try:
 		# Convertir el valor a un float para manejar cadenas numéricas y números
@@ -175,12 +176,14 @@ def convert_to_float(value):
 		# Si el valor no se puede convertir a float, lanzar un error
 		raise ValueError("The input value is not a number or a numeric string")
 
+
 def format_dates(value):
 	if value:
 		if isinstance(value, date):
 			value = value.strftime('%Y-%m-%d')
 		x = datetime.strptime(value, '%Y-%m-%d')
 		return x.strftime('%d-%m-%Y')
+
 
 def get_print_format_doc(print_format_name, meta):
 	"""Returns print format document"""
@@ -220,9 +223,6 @@ def get_rendered_template(
 
 	doc.flags.in_print = True
 	doc.flags.print_settings = print_settings
-
-	if not frappe.flags.ignore_print_permissions:
-		validate_print_permission(doc)
 
 	if doc.meta.is_submittable:
 		if doc.docstatus.is_draft() and not cint(print_settings.allow_print_for_draft):
@@ -393,25 +393,26 @@ def convert_markdown(doc: "Document"):
 
 @frappe.whitelist()
 def get_html_and_style(
-	doc: str,
-	name: str | None = None,
-	print_format: str | None = None,
-	no_letterhead: bool | None = None,
-	letterhead: str | None = None,
-	trigger_print: bool = False,
-	style: str | None = None,
-	settings: str | None = None,
-):
+		doc: str,
+		name: str | None = None,
+		print_format: str | None = None,
+		no_letterhead: bool | None = None,
+		letterhead: str | None = None,
+		trigger_print: bool = False,
+		style: str | None = None,
+		settings: str | None = None,
+	):
 	"""Returns `html` and `style` of print format, used in PDF etc"""
+
 	parse_doc = json.loads(doc)
-
+	
 	original_customer_name = ""
-
+	
 	if parse_doc.get("original_customer_name"):
 		original_customer_name = parse_doc.get("original_customer_name")
 	else:
 		original_customer_name = parse_doc.get("customer_name")
-
+	
 	if parse_doc.get("customer_name"):
 		parse_doc["customer_name"] = capitalize_first_letter(parse_doc.get("customer_name"))
 		doc = json.dumps(parse_doc)
@@ -434,23 +435,23 @@ def get_html_and_style(
 				)
 			if len(customers):
 				customer_filtered = filter_customer(customers, original_customer_name)
-
+				
 				if customer_filtered:
 					customer_filtered_name = customer_filtered.name
 					address_records = get_address_display_list("Customer", customer_filtered_name)
-
+					
 					if address_records and isinstance(address_records, list):
 						billing_address = next((address for address in address_records if address.get("address_type") == "Billing" and address.get("disabled") == 0), None)
 						shipping_address = next((address for address in address_records if address.get("address_type") == "Shipping" and address.get("disabled") == 0), None)
 						selected_address = billing_address or shipping_address or address_records[0]
 					else:
 						selected_address = None
-
+						
 					parse_doc["address_display"] = format_address_detail_to_print(selected_address)
 				else:
-					parse_doc["address_display"] = ""
+					parse_doc["address_display"] = ""   
 
-
+	
 	items_custom = []
 	if((parse_doc.get("doctype") == "Quotation" or parse_doc.get("doctype") == "Sales Invoice")):
 		for item in parse_doc.get("items"):
@@ -492,7 +493,7 @@ def get_html_and_style(
 	if(parse_doc.get("doctype") == "Quotation"):
 		document.transaction_date_custom = format_dates(parse_doc.get("transaction_date"))
 		document.valid_till_custom = format_dates(parse_doc.get("valid_till"))
-
+		
 	if(parse_doc.get("doctype") == "Sales Invoice"):
 		document.posting_date_custom = format_dates(parse_doc.get("posting_date"))
 		document.due_date_custom = format_dates(parse_doc.get("due_date"))
@@ -520,34 +521,34 @@ def get_html_and_style(
 
 
 def capitalize_first_letter(text):
-	if not text:
-		return text
-	return " ".join(word.capitalize() for word in text.split())
-
+    if not text:
+        return text
+    return " ".join(word.capitalize() for word in text.split())
+ 
 def format_address_detail_to_print(text):
 	if not text:
 		return ""
-
+	
 	address = text.get('address_line1')
 	address2 = text.get('address_line2')
 	zip_code = text.get('pincode')
 	city = text.get('city')
 	country = text.get('country')
-
+	
 	address = address.strip() if address else None
 	address2 = address2.strip() if address2 else None
 	zip_code = zip_code.strip() if zip_code else None
 	city = city.strip() if city else None
 	country = country.strip() if country else None
-
+	
 	address_parts = []
 	if address:
 		address_parts.append(address)
 	if address2:
 		address_parts.append(address2)
-
+	
 	if(address or address2):
-		address_parts.append("\n")
+		address_parts.append("\n")    
 
 	# Concatenar zip_code y city en una sola línea
 	zip_city = ""
@@ -581,6 +582,7 @@ def filter_customer(data, customer_name):
 
 	# Return None if no match is found
 	return None
+
 
 @frappe.whitelist()
 def get_rendered_raw_commands(doc: str, name: str | None = None, print_format: str | None = None):
@@ -679,11 +681,11 @@ def get_print_format(doctype, print_format):
 		if os.path.exists(path):
 			with open(path) as pffile:
 				return pffile.read()
-	else:
-		if print_format.raw_printing:
-			return print_format.raw_commands
-		if print_format.html:
-			return print_format.html
+
+	if print_format.raw_printing:
+		return print_format.raw_commands
+	if print_format.html:
+		return print_format.html
 
 	frappe.throw(_("No template found at path: {0}").format(path), frappe.TemplateNotFoundError)
 
@@ -808,58 +810,6 @@ def has_value(df, doc):
 	return True
 
 
-def get_print_style(
-	style: str | None = None, print_format: Optional["PrintFormat"] = None, for_legacy: bool = False
-):
-	print_settings = frappe.get_doc("Print Settings")
-
-	if not style:
-		style = print_settings.print_style or ""
-
-	context = {
-		"print_settings": print_settings,
-		"print_style": style,
-		"font": get_font(print_settings, print_format, for_legacy),
-	}
-
-	css = frappe.get_template("templates/styles/standard.css").render(context)
-
-	if style and frappe.db.exists("Print Style", style):
-		css = css + "\n" + frappe.db.get_value("Print Style", style, "css")
-
-	# move @import to top
-	for at_import in list(set(re.findall(r"(@import url\([^\)]+\)[;]?)", css))):
-		css = css.replace(at_import, "")
-
-		# prepend css with at_import
-		css = at_import + css
-
-	if print_format and print_format.css:
-		css += "\n\n" + print_format.css
-
-	return css
-
-
-def get_font(print_settings, print_format=None, for_legacy=False):
-	default = 'Inter, "Helvetica Neue", Helvetica, Arial, "Open Sans", sans-serif'
-	if for_legacy:
-		return default
-
-	font = None
-	if print_format:
-		if print_format.font and print_format.font != "Default":
-			font = f"{print_format.font}, sans-serif"
-
-	if not font:
-		if print_settings.font and print_settings.font != "Default":
-			font = f"{print_settings.font}, sans-serif"
-
-		else:
-			font = default
-
-	return font
-
-
 def get_visible_columns(data, table_meta, df):
 	"""Returns list of visible columns based on print_hide and if all columns have value."""
 	columns = []
@@ -912,7 +862,60 @@ def column_has_value(data, fieldname, col_df):
 	return has_value
 
 
-trigger_print_script = """
+def get_print_style(
+	style: str | None = None, print_format: Optional["PrintFormat"] = None, for_legacy: bool = False
+):
+	print_settings = frappe.get_doc("Print Settings")
+
+	if not style:
+		style = print_settings.print_style or ""
+
+	context = {
+		"print_settings": print_settings,
+		"print_style": style,
+		"font": get_font(print_settings, print_format, for_legacy),
+	}
+
+	css = frappe.get_template("templates/styles/standard.css").render(context)
+
+	if style and frappe.db.exists("Print Style", style):
+		css = css + "\n" + frappe.db.get_value("Print Style", style, "css")
+
+	# move @import to top
+	for at_import in list(set(re.findall(r"(@import url\([^\)]+\)[;]?)", css))):
+		css = css.replace(at_import, "")
+
+		# prepend css with at_import
+		css = at_import + css
+
+	if print_format and print_format.css:
+		css += "\n\n" + print_format.css
+
+	return css
+
+
+def get_font(print_settings, print_format=None, for_legacy=False):
+	default = 'Inter, "Helvetica Neue", Helvetica, Arial, "Open Sans", sans-serif'
+	if for_legacy:
+		return default
+
+	font = None
+	if print_format:
+		if print_format.font and print_format.font != "Default":
+			font = f"{print_format.font}, sans-serif"
+
+	if not font:
+		if print_settings.font and print_settings.font != "Default":
+			font = f"{print_settings.font}, sans-serif"
+
+		else:
+			font = default
+
+	return font
+
+
+def trigger_print_script():
+	return """
 <script>
 //allow wrapping of long tr
 var elements = document.getElementsByTagName("tr");
