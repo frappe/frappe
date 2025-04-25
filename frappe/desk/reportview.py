@@ -30,7 +30,6 @@ def get():
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
 		data = controller.get_list(args)
-		print("\tCALL COMPREASS IN GET VALDIATING VIRTUAL DOCTYPE")
 		return compress(data)
 
 	if is_default_project_request(args):
@@ -42,6 +41,7 @@ def get():
 			)
 
 		response = fetch_data_with_filters(done_status_filters)
+		response_data = compress(response)
 
 		# Merge other status-specific results
 		done_statuses = get_done_statuses(done_status_filters)
@@ -50,16 +50,14 @@ def get():
 			if not is_user_allowed():
 				status_filters.append(["Project", "_assign", "like", f"%{frappe.session.data.user}%"])
 			result = fetch_data_with_filters(status_filters, page_length=10)
+			result_data = compress(result)
 
-			if result:
-				if response:
-					response["values"].extend(result["values"])
+			if result_data:
+				if response_data:
+					response_data["values"].extend(result_data["values"])
 				else:
-					response = result
-                    
-		print("\tCALL COMPRESS IN DEFAULT PROJECT REQUEST")
-
-		return response
+					response_data = result_data
+		return response_data
 
 	else:
 		# For non-default project lists or other doctypes
@@ -68,7 +66,6 @@ def get():
 			base_filters.append(["Project", "_assign", "like", f"%{frappe.session.data.user}%"])
 
 		response = fetch_data_with_filters(filters=base_filters, args=args)
-		print("\tCALL COMPRESS IN NON DEFAULT PROJECT LIST")
 		return compress(response, args=args)
 
 
@@ -327,19 +324,14 @@ def compress(data, args=None):
 	if args is None:
 		args = {}
 	values = []
-		
 	keys = list(data[0])
 	for row in data:
-		try:
-			values.append([row.get(key) for key in keys])
+		values.append([row.get(key) for key in keys])
 
-			# add user info for assignments (avatar)
-			if row.get("_assign", ""):
-				for user in json.loads(row._assign):
-					add_user_info(user, user_info)
-		except (TypeError, KeyError, AttributeError):
-			# Skip rows that cause errors
-			continue
+		# add user info for assignments (avatar)
+		if row.get("_assign", ""):
+			for user in json.loads(row._assign):
+				add_user_info(user, user_info)
 
 	if args.get("add_total_row"):
 		meta = frappe.get_meta(args.doctype)
@@ -884,7 +876,7 @@ def fetch_data_with_filters(filters=[], args=None, page_length=0):
         controller = get_controller(args["doctype"])
         data = compress(controller.get_list(args))
     else:
-        data = compress(execute(**args), args=args)
+        data = execute(**args)
     return data
 
 
