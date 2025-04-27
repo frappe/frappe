@@ -58,7 +58,7 @@ class Comment(Document):
 		reference_name: DF.DynamicLink | None
 		reference_owner: DF.Data | None
 		seen: DF.Check
-		spam_type: DF.Literal["", "Pending", "Spam", "Ham", "Discard"]
+		spam_type: DF.Literal["", "Review Pending", "Spam", "Ham", "Discard"]
 		subject: DF.Text | None
 	# end: auto-generated types
 
@@ -67,9 +67,13 @@ class Comment(Document):
 	def after_insert(self):
 		result = self.delete_if_spam()
 		if result:
-			return
+			self.notify_change("delete")
 		notify_mentions(self.reference_doctype, self.reference_name, self.content)
 		self.notify_change("add")
+
+	def before_validate(self):
+		if not self.ip_address:
+			self.ip_address = frappe.local.request_ip
 
 	def validate(self):
 		if not self.comment_email:
@@ -81,7 +85,7 @@ class Comment(Document):
 		update_comment_in_doc(self)
 		result = self.delete_if_spam()
 		if result:
-			return
+			self.notify_change("delete")
 		if not self.is_new():
 			self.notify_change("update")
 
@@ -121,32 +125,33 @@ class Comment(Document):
 	def validate_spam(self):
 		from bs4 import BeautifulSoup
 
-		akismet_setting = frappe.get_single("Akismet Settings")
-		if self.comment_type != "Comment" and not akismet_setting.enable:
+		spam_filtering = frappe.db.get_single_value("Akismet Settings", "spam_filtering")
+		if self.comment_type != "Comment":
 			return
 
 		comment = BeautifulSoup(self.content, "html.parser").get_text()
 		if not comment:
 			return
+		akismet_client = get_akismet()
 
-		config = Config(key=akismet_setting.get_password("api_key"), url=frappe.local.site)
-		akismet_client = SyncClient.validated_client(config=config)
+		if not akismet_client:
+			return
 
 		result = akismet_client.comment_check(
-			user_ip=self.ip_address if self.ip_address else frappe.local.request_ip,
+			user_ip=self.ip_address,
 			comment_type="comment",
 			comment_content=comment,
 			comment_author=self.comment_by,
 			comment_author_email=self.comment_email,
 		)
 
-		self.spam_type = status_map.get(result, "Pending")
+		self.spam_type = status_map.get(result, "Review Pending")
 
 		if (
 			result in [CheckResponse.DISCARD, CheckResponse.SPAM]
-			and akismet_setting.spam_filtering == "Keep spam comment for review"
+			and spam_filtering == "Keep spam comment for review"
 		):
-			self.spam_type = "Pending"
+			self.spam_type = "Review Pending"
 
 	def delete_if_spam(self):
 		akismet_setting = frappe.get_single("Akismet Settings")
@@ -160,33 +165,51 @@ class Comment(Document):
 			return True
 		return False
 
-	@frappe.whitelist()
-	def mark_as_spam_or_ham(self, is_spam):
-		akismet_setting = frappe.get_single("Akismet Settings")
-		if self.comment_type != "Comment" and not akismet_setting.enable:
-			return
 
-		config = Config(key=akismet_setting.get_password("api_key"), url=frappe.local.site)
-		akismet_client = SyncClient.validated_client(config=config)
+@frappe.whitelist()
+def mark_as_spam_or_ham(comment, type):
+	frappe.only_for(["System Manager"])
 
-		if is_spam:
-			akismet_client.submit_spam(
-				comment_type="comment",
-				comment_author=self.comment_by,
-				comment_author_email=self.comment_email,
-				comment_content=self.content,
-				user_ip=self.ip_address if self.ip_address else frappe.local.request_ip,
-			)
-		else:
-			akismet_client.submit_ham(
-				comment_type="comment",
-				comment_author=self.comment_by,
-				comment_author_email=self.comment_email,
-				comment_content=self.content,
-				user_ip=self.ip_address if self.ip_address else frappe.local.request_ip,
-			)
-		frappe.db.set_value("Comment", self.name, "spam_type", "Ham" if not is_spam else "Spam")
-		return True
+	_mark_as_spam_or_ham(comment, type == "Spam")
+
+	frappe.db.set_value("Comment", comment, "spam_type", type)
+
+
+def _mark_as_spam_or_ham(docname, is_spam):
+	doc = frappe.get_doc("Comment", docname, for_update=False)
+	if doc.comment_type != "Comment":
+		return
+	akismet_client = get_akismet()
+	if not akismet_client:
+		return
+
+	if is_spam:
+		akismet_client.submit_spam(
+			comment_type="comment",
+			comment_author=doc.comment_by,
+			comment_author_email=doc.comment_email,
+			comment_content=doc.content,
+			user_ip=doc.ip_address,
+		)
+	else:
+		akismet_client.submit_ham(
+			comment_type="comment",
+			comment_author=doc.comment_by,
+			comment_author_email=doc.comment_email,
+			comment_content=doc.content,
+			user_ip=doc.ip_address,
+		)
+
+
+def get_akismet() -> SyncClient | None:
+	akismet_setting = frappe.get_single("Akismet Settings")
+	if not akismet_setting.enable:
+		return None
+
+	config = Config(key=akismet_setting.get_password("api_key"), url=frappe.local.site)
+	akismet_client = SyncClient.validated_client(config=config)
+	akismet_client._http_client.timeout = akismet_setting.timeout or 5
+	return akismet_client
 
 
 def on_doctype_update():
