@@ -102,18 +102,18 @@
    "label": "IP Address"
   },
   {
-   "default": "Pending",
+   "default": "Review Pending",
    "depends_on": "eval:doc.comment_type==\"Comment\"",
    "fieldname": "spam_type",
    "fieldtype": "Select",
    "label": "Spam Type",
    "no_copy": 1,
-   "options": "\nPending\nSpam\nHam\nDiscard",
+   "options": "\nReview Pending\nSpam\nHam\nDiscard",
    "read_only": 1
   }
  ],
  "links": [],
- "modified": "2025-04-16 18:00:14.765998",
+ "modified": "2025-04-27 12:07:51.904210",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Comment",
