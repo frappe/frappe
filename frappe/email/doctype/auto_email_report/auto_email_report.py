@@ -71,6 +71,10 @@ class AutoEmailReport(Document):
 		if frappe.db.exists("Auto Email Report", self.name):
 			self.name = append_number_if_name_exists("Auto Email Report", self.name)
 
+	def before_save(self):
+		if self.format != "HTML":
+			self.email_template = None
+
 	def validate(self):
 		self.validate_report_count()
 		self.validate_emails()
