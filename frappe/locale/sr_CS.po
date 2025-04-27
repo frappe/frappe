@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-04-21 17:53\n"
+"PO-Revision-Date: 2025-04-27 19:25\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -6911,7 +6911,7 @@ msgstr ""
 #. Label of a Data field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Department"
-msgstr "Odsek"
+msgstr "Odeljenje"
 
 #. Label of a Data field in DocType 'Workspace Link'
 #: frappe/desk/doctype/workspace_link/workspace_link.json
