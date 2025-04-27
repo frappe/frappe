@@ -47,6 +47,7 @@ class AutoEmailReport(Document):
 		dynamic_date_period: DF.Literal[
 			"", "Daily", "Weekly", "Monthly", "Quarterly", "Half Yearly", "Yearly"
 		]
+		email_template: DF.Link | None
 		email_to: DF.SmallText
 		enabled: DF.Check
 		filter_meta: DF.Text | None
@@ -191,8 +192,13 @@ class AutoEmailReport(Document):
 		date_time = global_date_format(now()) + " " + format_time(now())
 		report_doctype = frappe.db.get_value("Report", self.report, "ref_doctype")
 
+		template = (
+			frappe.get_value("Email Template", self.email_template, "response_html")
+			or "frappe/templates/emails/auto_email_report.html"
+		)
+
 		return frappe.render_template(
-			"frappe/templates/emails/auto_email_report.html",
+			template,
 			{
 				"title": self.name,
 				"description": self.description,
