@@ -7,6 +7,8 @@
  "field_order": [
   "enable",
   "api_key",
+  "column_break_ybeu",
+  "timeout",
   "section_break_hjlk",
   "spam_filtering"
  ],
@@ -37,12 +39,23 @@
    "fieldtype": "Select",
    "label": "Spam filtering",
    "options": "Silently discard spam comment\nKeep spam comment for review"
+  },
+  {
+   "fieldname": "column_break_ybeu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "5",
+   "description": "Set timeout for API",
+   "fieldname": "timeout",
+   "fieldtype": "Int",
+   "label": "Timeout"
   }
  ],
  "grid_page_length": 50,
  "issingle": 1,
  "links": [],
- "modified": "2025-04-16 16:46:31.354406",
+ "modified": "2025-04-19 18:32:47.718214",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Akismet Settings",

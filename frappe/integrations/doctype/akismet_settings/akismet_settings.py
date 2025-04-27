@@ -17,6 +17,5 @@ class AkismetSettings(Document):
 		api_key: DF.Password
 		enable: DF.Check
 		spam_filtering: DF.Literal["Silently discard spam comment", "Keep spam comment for review"]
+		timeout: DF.Int
 	# end: auto-generated types
-
-	pass
