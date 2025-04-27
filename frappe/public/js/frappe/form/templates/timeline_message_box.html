@@ -35,6 +35,13 @@
 					<span class="text-extra-muted">
 						{{ comment_when(doc.communication_date || doc.creation) }}
 					</span>
+					{% if (doc.spam_type && (doc.spam_type === 'Review Pending' || doc.spam_type === 'Spam')) { %}
+					<span class="indicator-pill {{ (doc.spam_type == 'Spam') ? 'red' : 'yellow' }}" title="{%= __(doc.spam_type) %}">
+						<span class="hidden-xs small">
+							{%= __(doc.spam_type) %}
+						</span>
+					</span>
+					{% }  %}
 					{% if (doc.published) { %}
 						<span> · </span>
 						<span class="text-extra-muted" title="{{ __('Visible to website/portal users.') }}">

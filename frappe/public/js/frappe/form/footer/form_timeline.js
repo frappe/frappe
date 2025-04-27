@@ -329,6 +329,15 @@ class FormTimeline extends BaseTimeline {
 	get_comment_timeline_contents() {
 		let comment_timeline_contents = [];
 		(this.doc_info.comments || []).forEach((comment) => {
+			if (comment.spam_type) {
+				if (
+					this.frm.doc.owner != frappe.session.user ||
+					!frappe.user.has_role("System Manager") ||
+					comment.owner != frappe.session.user
+				) {
+					return;
+				}
+			}
 			comment_timeline_contents.push(this.get_comment_timeline_item(comment));
 		});
 		return comment_timeline_contents;
@@ -608,7 +617,46 @@ class FormTimeline extends BaseTimeline {
 				const delete_option = $(`
 					<a class="dropdown-item">${__("Delete")}</a>
 				`).click(() => this.delete_comment(doc.name));
+			
 				dropdown_menu.append(delete_option);
+			}
+			if (doc.spam_type && frappe.user.has_role("System Manager")) {
+				if (doc.spam_type == "Review Pending") {
+					const spam_option = $(`
+						<li>
+							<a class="dropdown-item">
+								${__("Mark as Spam")}
+							</a>
+						</li>
+					`).click(() => this.mark_as_spam_or_ham(doc.name, "Spam"));
+					more_actions_wrapper.find(".dropdown-menu").append(spam_option);
+					const ham_option = $(`
+						<li>
+							<a class="dropdown-item">
+								${__("Mark as Ham")}
+							</a>
+						</li>
+					`).click(() => this.mark_as_spam_or_ham(doc.name, "Ham"));
+					more_actions_wrapper.find(".dropdown-menu").append(ham_option);
+				} else if (doc.spam_type == "Spam") {
+					const ham_option = $(`
+						<li>
+							<a class="dropdown-item">
+								${__("Mark as Ham")}
+							</a>
+						</li>
+					`).click(() => this.mark_as_spam_or_ham(doc.name, "Ham"));
+					more_actions_wrapper.find(".dropdown-menu").append(ham_option);
+				} else {
+					const spam_option = $(`
+						<li>
+							<a class="dropdown-item">
+								${__("Mark as Spam")}
+							</a>
+						</li>
+					`).click(() => this.mark_as_spam_or_ham(doc.name, "Spam"));
+					more_actions_wrapper.find(".dropdown-menu").append(spam_option);
+				}
 			}
 
 			const un_publish_button = $(`
@@ -724,7 +772,17 @@ class FormTimeline extends BaseTimeline {
 				});
 		});
 	}
-
+	mark_as_spam_or_ham(comment_name, spam_type) {
+		return frappe
+			.call("frappe.core.doctype.comment.comment.mark_as_spam_or_ham", {
+				comment: comment_name,
+				type: spam_type,
+			})
+			.then(() => {
+				this.refresh();
+				frappe.utils.play_sound("click");
+			});
+	}
 	update_comment_publicity(comment_name, publish) {
 		let message;
 		if (publish) {
