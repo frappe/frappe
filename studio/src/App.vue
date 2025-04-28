@@ -1,14 +1,12 @@
 <template>
-	<div>
-		<router-view v-slot="{ Component }">
-			<keep-alive>
-				<component :is="Component" />
-			</keep-alive>
-		</router-view>
+	<router-view v-slot="{ Component }">
+		<keep-alive>
+			<component :is="Component" />
+		</keep-alive>
+	</router-view>
 
-		<Toaster :visible-toasts="2" position="bottom-right" richColors closeButton />
-		<Dialogs></Dialogs>
-	</div>
+	<Toaster :visible-toasts="2" position="bottom-right" richColors closeButton />
+	<Dialogs></Dialogs>
 </template>
 
 <script setup lang="ts">
