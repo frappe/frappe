@@ -114,7 +114,13 @@ class TestFrappeClient(unittest.TestCase):
 		self.assertEqual(
 			server.get_value("Website Settings", "title_prefix").get("title_prefix"), "test-prefix"
 		)
+<<<<<<< HEAD
 		frappe.db.set_value("Website Settings", None, "title_prefix", "")
+=======
+		frappe.db.rollback()  # Clear snapshot isolation
+		frappe.db.set_single_value("Website Settings", "title_prefix", "")
+		frappe.db.commit()
+>>>>>>> 2dfb96f91c (fix: handle snapshot isolation errors better (#32318))
 
 	def test_update_doc(self):
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
