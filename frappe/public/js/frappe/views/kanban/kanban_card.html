@@ -14,7 +14,7 @@
 					</div>
 				</a>
 				{% if(queue_position !== 0) { %}
-				<div class="circle {% if appointment_date %}has-appointment red{% endif %}">
+				<div class="circle-position {% if appointment_date %}has-appointment red{% endif %}">
 					<span class="circle-icon">
 						{% if appointment_date %}
 						<div class="hover-date" title="Appointment Date: Day-Month">{{ appointment_date }}</div>
@@ -54,7 +54,7 @@
 		flex: 1;
 	}
 
-	.circle {
+	.circle-position {
 		position: absolute;
 		right: -0.4rem;
 		top: -0.32rem;
