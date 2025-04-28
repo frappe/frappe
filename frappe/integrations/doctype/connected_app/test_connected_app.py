@@ -128,6 +128,8 @@ class TestConnectedApp(FrappeTestCase):
 			if doc:
 				doc.delete(force=True)
 
+		frappe.db.commit()  # Avoid snapshot violation issues
+
 		delete_if_exists("token_cache")
 		delete_if_exists("connected_app")
 
