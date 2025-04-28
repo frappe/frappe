@@ -71,7 +71,7 @@ class RolePermissionforPageandReport(Document):
 			frappe.db.sql(
 				"""update `tabReport` set disable_prepared_report = %s, prepared_report = %s
 				where name = %s""",
-				(self.disable_prepared_report, not self.disable_prepared_report, self.report),
+				(self.disable_prepared_report, cint(not self.disable_prepared_report), self.report),
 			)
 
 	def get_args(self, row=None):
