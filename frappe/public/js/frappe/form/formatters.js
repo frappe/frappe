@@ -58,23 +58,17 @@ frappe.form.formatters = {
 			docfield.precision ||
 			cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision) ||
 			null;
-		if (docfield.options && docfield.options.trim()) {
-			// options points to a currency field, but expects precision of float!
-			docfield.precision = precision;
-			return frappe.form.formatters.Currency(value, docfield, options, doc);
-		} else {
-			// show 1.000000 as 1
-			if (!(options || {}).always_show_decimals && !is_null(value)) {
-				var temp = cstr(value).split(".");
-				if (temp[1] == undefined || cint(temp[1]) === 0) {
-					precision = 0;
-				}
+		// show 1.000000 as 1
+		if (!(options || {}).always_show_decimals && !is_null(value)) {
+			var temp = cstr(value).split(".");
+			if (temp[1] == undefined || cint(temp[1]) === 0) {
+				precision = 0;
 			}
-
-			value = value == null || value === "" ? "" : value;
-
-			return frappe.form.formatters._right(format_number(value, null, precision), options);
 		}
+
+		value = value == null || value === "" ? "" : value;
+
+		return frappe.form.formatters._right(format_number(value, null, precision), options);
 	},
 	Int: function (value, docfield, options) {
 		if (value === null) {
