@@ -8,8 +8,7 @@ frappe.ui.misc.about = function () {
 	const dialog = new frappe.ui.Dialog({ title: __("Frappe Framework") });
 
 	$(dialog.body).html(
-		repl(
-			`<div>
+		`<div>
 				<p>${__("Open Source Applications for the Web")}</p>
 
 				<p>
@@ -85,9 +84,7 @@ frappe.ui.misc.about = function () {
 				<hr>
 
 				<p class='text-muted'>${__("&copy; Frappe Technologies Pvt. Ltd. and contributors")} </p>
-			</div>`,
-			frappe.app
-		)
+			</div>`
 	);
 
 	frappe.ui.misc.about_dialog = dialog;
