@@ -288,6 +288,8 @@ def get_context(context):
 			"Page {0} of {1}",
 			"Couldn't save, please check the data you have entered",
 			"Validation Error",
+			"No {0} found",
+			"Create a new {0}",
 			self.title,
 			self.introduction_text,
 			self.success_title,

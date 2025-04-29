@@ -435,7 +435,7 @@ def get_title_values_for_link_and_dynamic_link_fields(doc, link_fields=None):
 
 		doctype = field.options if field.fieldtype == "Link" else doc.get(field.options)
 
-		meta = frappe.get_meta(doctype)
+		meta = frappe.get_meta(doctype) if doctype else None
 		if not meta or not meta.title_field or not meta.show_title_field_in_link:
 			continue
 

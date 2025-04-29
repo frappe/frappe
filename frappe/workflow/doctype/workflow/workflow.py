@@ -33,12 +33,11 @@ class Workflow(Document):
 
 	def validate(self):
 		self.set_active()
-		self.create_custom_field_for_workflow_state()
-		self.update_default_workflow_status()
 		self.validate_docstatus()
 
 	def on_update(self):
-		frappe.clear_cache(doctype=self.document_type)
+		self.create_custom_field_for_workflow_state()
+		self.update_default_workflow_status()
 
 	def create_custom_field_for_workflow_state(self):
 		frappe.clear_cache(doctype=self.document_type)

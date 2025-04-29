@@ -116,9 +116,13 @@ frappe.ui.Sidebar = class Sidebar {
 
 		let parent = this.get_sidebar_item(parent_title);
 		if (parent) {
-			$(parent).find(".drop-icon")[0].click();
-			if (this.is_nested_item($(parent))) {
-				this.expand_parent_item($(parent));
+			let drop_icon = $(parent).find(".drop-icon");
+			let opened = drop_icon.find("use").attr("href") === "#es-line-down";
+			if ($($(parent).children()[1]).hasClass("hidden")) {
+				$(parent).find(".drop-icon")[0].click();
+				if (this.is_nested_item($(parent))) {
+					this.expand_parent_item($(parent));
+				}
 			}
 		}
 	}
