@@ -11,40 +11,59 @@ frappe.ui.misc.about = function () {
 		repl(
 			`<div>
 				<p>${__("Open Source Applications for the Web")}</p>
-				<p><i class='fa fa-globe fa-fw'></i>
-					${__("Website")}:
-					<a href='https://frappeframework.com' target='_blank'>https://frappeframework.com</a></p>
-				<p><i class='fa fa-github fa-fw'></i>
-					${__("Source")}:
-					<a href='https://github.com/frappe' target='_blank'>https://github.com/frappe</a></p>
-				<p><i class='fa fa-graduation-cap fa-fw'></i>
-					${__(
-						"Frappe School"
-					)}: <a href='https://frappe.school' target='_blank'>https://frappe.school</a></p>
-				<p><i class='fa fa-users fa-fw'></i>
-					${__(
-						"Frappe Forum"
-					)}: <a href='https://discuss.frappe.io' target='_blank'>https://discuss.frappe.io</a></p>
-				<p><i class='fa fa-linkedin fa-fw'></i>
-					${__(
-						"Linkedin"
-					)}: <a href='https://linkedin.com/company/frappe-tech' target='_blank'>https://linkedin.com/company/frappe-tech</a></p>
 
+				<p>
+					<i class='fa fa-globe fa-fw'></i>
+					${__("Website")}:
+					<a href='https://frappeframework.com' target='_blank'>https://frappeframework.com</a>
+				</p>
+
+				<p>
+					<i class='fa fa-github fa-fw'></i>
+					${__("Source")}:
+					<a href='https://github.com/frappe' target='_blank'>https://github.com/frappe</a>
+				</p>
+
+				<p>
+					<i class='fa fa-graduation-cap fa-fw'></i>
+					${__("Frappe School")}:
+					<a href='https://frappe.school' target='_blank'>https://frappe.school</a>
+				</p>
+
+				<p>
+					<i class='fa fa-users fa-fw'></i>
+					${__("Frappe Forum")}:
+					<a href='https://discuss.frappe.io' target='_blank'>https://discuss.frappe.io</a>
+				</p>
+
+				<p>
+					<i class='fa fa-linkedin fa-fw'></i>
+					${__("Linkedin")}:
+					<a href='https://linkedin.com/company/frappe-tech' target='_blank'>https://linkedin.com/company/frappe-tech</a>
+				</p>
+
+				<p>
 					<svg xmlns="http://www.w3.org/2000/svg" width="18" height="14" fill="currentColor" class="bi bi-twitter-x" viewBox="0 0 18 16">
-  <path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z"/>
-</svg>
-					${__(
-						"Twitter"
-					)}: <a href='https://twitter.com/frappetech' target='_blank'>https://twitter.com/frappetech</a></p>
-				<p><i class='fa fa-youtube-play fa-fw'></i>
-					${__(
-						"YouTube"
-					)}: <a href='https://www.youtube.com/@frappetech' target='_blank'>https://www.youtube.com/@frappetech</a></p>
-				<p><i class='fa fa-instagram fa-fw'></i>
-					${__(
-						"Instagram"
-					)}: <a href='https://www.instagram.com/frappetech' target='_blank'>https://www.instagram.com/frappetech</a></p>
+						<path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z"/>
+					</svg>
+					${__("Twitter")}:
+					<a href='https://twitter.com/frappetech' target='_blank'>https://twitter.com/frappetech</a>
+				</p>
+
+				<p>
+					<i class='fa fa-youtube-play fa-fw'></i>
+					${__("YouTube")}:
+					<a href='https://www.youtube.com/@frappetech' target='_blank'>https://www.youtube.com/@frappetech</a>
+				</p>
+
+				<p>
+					<i class='fa fa-instagram fa-fw'></i>
+					${__("Instagram")}:
+					<a href='https://www.instagram.com/frappetech' target='_blank'>https://www.instagram.com/frappetech</a>
+				</p>
+
 				<hr>
+
 				<div class="d-flex align-items-center justify-content-between">
 					<h4>${__("Installed Apps")}</h4>
 					<button class="btn action-btn hidden" id="copy-apps-info"
@@ -53,6 +72,7 @@ frappe.ui.misc.about = function () {
 						${frappe.utils.icon("clipboard")}
 					</button>
 				</div>
+
 				<div id='about-app-versions'>${__("Loading versions...")}</div>
 				<p>
 					<b>
@@ -61,9 +81,11 @@ frappe.ui.misc.about = function () {
 						</a>
 					</b>
 				</p>
+
 				<hr>
+
 				<p class='text-muted'>${__("&copy; Frappe Technologies Pvt. Ltd. and contributors")} </p>
-				</div>`,
+			</div>`,
 			frappe.app
 		)
 	);
