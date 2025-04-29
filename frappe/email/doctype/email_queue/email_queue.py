@@ -162,9 +162,14 @@ class EmailQueue(Document):
 
 		return True
 
-	def send(self, smtp_server_instance: SMTPServer = None, frappe_mail_client: FrappeMail = None):
+	def send(
+		self,
+		smtp_server_instance: SMTPServer = None,
+		frappe_mail_client: FrappeMail = None,
+		force_send: bool = False,
+	):
 		"""Send emails to recipients."""
-		if not self.can_send_now():
+		if not self.can_send_now() and not force_send:
 			return
 
 		with SendMailContext(self, smtp_server_instance, frappe_mail_client) as ctx:
@@ -450,11 +455,11 @@ def retry_sending(queues: str | list[str]):
 
 
 @frappe.whitelist()
-def send_now(name):
+def send_now(name, force_send: bool = False):
 	record = EmailQueue.find(name)
 	if record:
 		record.check_permission()
-		record.send()
+		record.send(force_send=force_send)
 
 
 @frappe.whitelist()

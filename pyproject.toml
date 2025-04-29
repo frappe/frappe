@@ -80,7 +80,7 @@ dependencies = [
     "uuid-utils~=0.10.0",
     "xlrd~=2.0.1",
     "zxcvbn~=4.4.28",
-    "markdownify~=0.11.6",
+    "markdownify~=0.14.1",
 
     # integration dependencies
     "boto3~=1.34.143",

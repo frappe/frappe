@@ -595,23 +595,22 @@ function upload_file(file, i) {
 					}
 				} else if (xhr.status === 403) {
 					file.failed = true;
-					let response = JSON.parse(xhr.responseText);
-					file.error_message = `Not permitted. ${response._error_message || ""}.`;
-
-					try {
-						// Append server messages which are useful hint for perm issues
-						let server_messages = JSON.parse(response._server_messages);
-
-						server_messages.forEach((m) => {
-							m = JSON.parse(m);
-							file.error_message += `\n ${m.message} `;
-						});
-					} catch (e) {
-						console.warning("Failed to parse server message", e);
+					let response = parse_error_response(xhr.responseText);
+					file.error_message = `Not permitted. ${response.error_message || ""}.`;
+					if (response.server_messages.length) {
+						file.error_message += `\n${response.server_messages.join("\n")}`;
 					}
 				} else if (xhr.status === 413) {
 					file.failed = true;
 					file.error_message = "Size exceeds the maximum allowed file size.";
+				} else if (xhr.status === 417) {
+					// regular frappe.throw() in backend
+					file.failed = true;
+					file.error_message = null;
+					let response = parse_error_response(xhr.responseText);
+					if (response.server_messages.length) {
+						file.error_message = response.server_messages.join("\n");
+					}
 				} else {
 					file.failed = true;
 					file.error_message =
@@ -678,6 +677,26 @@ function upload_file(file, i) {
 
 		xhr.send(form_data);
 	});
+}
+function parse_error_response(response_text) {
+	let response = JSON.parse(response_text);
+	let error_message = response._error_message;
+	let server_messages = [];
+
+	try {
+		server_messages.push(
+			...JSON.parse(response._server_messages).map((m) => {
+				let parsed = JSON.parse(m);
+				return parsed.message;
+			})
+		);
+	} catch (e) {
+		console.warning("Failed to parse server message", e);
+	}
+	return {
+		error_message,
+		server_messages,
+	};
 }
 function capture_image() {
 	const capture = new frappe.ui.Capture({

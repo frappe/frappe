@@ -84,7 +84,7 @@ class TestScheduledJobType(IntegrationTestCase):
 	def test_weekly_job(self):
 		job = frappe.get_doc(
 			"Scheduled Job Type",
-			dict(method="frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_summary"),
+			dict(method="frappe.desk.form.document_follow.send_weekly_updates"),
 		)
 		job.db_set("last_execution", "2019-01-01 00:00:00")
 		self.assertTrue(job.is_event_due(get_datetime("2019-01-06 00:10:01")))  # +10 min because of jitter

@@ -57,7 +57,7 @@ jobs:
       - name: Clone
         uses: actions/checkout@v4
       - name: Download artifacts
-        uses: actions/download-artifact@v4.2.1
+        uses: actions/download-artifact@v4.3.0
       - name: Upload python coverage data
         uses: codecov/codecov-action@v5
         with:

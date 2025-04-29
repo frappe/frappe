@@ -148,4 +148,5 @@ class BaseTimeline {
 	}
 }
 
+frappe.ui.BaseTimeline = BaseTimeline;
 export default BaseTimeline;

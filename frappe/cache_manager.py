@@ -6,7 +6,6 @@ import frappe
 common_default_keys = ["__default", "__global"]
 
 doctypes_for_mapping = {
-	"Energy Point Rule",
 	"Assignment Rule",
 	"Milestone Tracker",
 	"Document Naming Rule",

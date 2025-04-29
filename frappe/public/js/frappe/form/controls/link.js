@@ -134,7 +134,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			frappe.utils.add_link_title(this.df.options, value, label);
 		}
 
-		return this.validate_and_set_in_model(value, e, true);
+		return this.validate_and_set_in_model(value, e);
 	}
 	parse(value) {
 		return strip_html(value);
