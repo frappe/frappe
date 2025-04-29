@@ -18,19 +18,29 @@ frappe.ui.misc.about = function () {
 					${__("Source")}:
 					<a href='https://github.com/frappe' target='_blank'>https://github.com/frappe</a></p>
 				<p><i class='fa fa-graduation-cap fa-fw'></i>
-					Frappe School: <a href='https://frappe.school' target='_blank'>https://frappe.school</a></p>
+					${__(
+						"Frappe School"
+					)}: <a href='https://frappe.school' target='_blank'>https://frappe.school</a></p>
 				<p><i class='fa fa-users fa-fw'></i>
 					${__(
-						"Forum"
+						"Frappe Forum"
 					)}: <a href='https://discuss.frappe.io' target='_blank'>https://discuss.frappe.io</a></p>
 				<p><i class='fa fa-linkedin fa-fw'></i>
-					Linkedin: <a href='https://linkedin.com/company/frappe-tech' target='_blank'>https://linkedin.com/company/frappe-tech</a></p>
+					${__(
+						"Linkedin"
+					)}: <a href='https://linkedin.com/company/frappe-tech' target='_blank'>https://linkedin.com/company/frappe-tech</a></p>
 				<p><i class='fa fa-twitter fa-fw'></i>
-					Twitter: <a href='https://twitter.com/frappetech' target='_blank'>https://twitter.com/frappetech</a></p>
+					${__(
+						"Twitter"
+					)}: <a href='https://twitter.com/frappetech' target='_blank'>https://twitter.com/frappetech</a></p>
 				<p><i class='fa fa-youtube-play fa-fw'></i>
-					YouTube: <a href='https://www.youtube.com/@frappetech' target='_blank'>https://www.youtube.com/@frappetech</a></p>
+					${__(
+						"YouTube"
+					)}: <a href='https://www.youtube.com/@frappetech' target='_blank'>https://www.youtube.com/@frappetech</a></p>
 				<p><i class='fa fa-instagram fa-fw'></i>
-					Instagram: <a href='https://www.instagram.com/frappetech' target='_blank'>https://www.instagram.com/frappetech</a></p>
+					${__(
+						"Instagram"
+					)}: <a href='https://www.instagram.com/frappetech' target='_blank'>https://www.instagram.com/frappetech</a></p>
 				<hr>
 				<div class="d-flex align-items-center justify-content-between">
 					<h4>${__("Installed Apps")}</h4>
