@@ -36,7 +36,7 @@ frappe.ui.misc.about = function () {
 					<h4>${__("Installed Apps")}</h4>
 					<button class="btn action-btn hidden" id="copy-apps-info"
 					title="${__("Copy Apps Info")}"
-					style="margin-bottom: var(--margin-md); padding-bottom:0;">
+					style="margin-bottom: var(--margin-md);">
 						${frappe.utils.icon("clipboard")}
 					</button>
 				</div>
