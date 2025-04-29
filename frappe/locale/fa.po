@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-04-15 17:06\n"
+"PO-Revision-Date: 2025-04-29 19:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -21219,11 +21219,11 @@ msgstr "بررسی سطوح"
 #: frappe/desk/page/user_profile/user_profile_controller.js:402
 #: frappe/social/doctype/review_level/review_level.json
 msgid "Review Points"
-msgstr "نکات بازبینی"
+msgstr ""
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:87
 msgid "Reviews"
-msgstr "بررسی ها"
+msgstr ""
 
 #. Label of a Data field in DocType 'Connected App'
 #: frappe/integrations/doctype/connected_app/connected_app.json
@@ -23399,7 +23399,7 @@ msgstr "نمایش لیست"
 
 #: frappe/desk/page/user_profile/user_profile_controller.js:472
 msgid "Show More Activity"
-msgstr "نمایش فعالیت بیشتر"
+msgstr ""
 
 #. Label of a Check field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
@@ -26767,7 +26767,7 @@ msgstr "نوع"
 
 #: frappe/desk/page/user_profile/user_profile.html:17
 msgid "Type Distribution"
-msgstr "نوع توزیع"
+msgstr ""
 
 #: frappe/public/js/frappe/form/controls/comment.js:78
 msgid "Type a reply / comment"
