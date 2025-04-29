@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-04-27 09:33+0000\n"
-"PO-Revision-Date: 2025-04-28 23:59\n"
+"PO-Revision-Date: 2025-04-29 23:55\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -15268,7 +15268,7 @@ msgstr "Erfodrade Fält: {0}"
 
 #: frappe/public/js/frappe/form/save.js:120
 msgid "Mandatory fields required in table {0}, Row {1}"
-msgstr "Obligatoriska fält som erfordras i tabell {0}, Rad {1}"
+msgstr "Erfordrade fält som saknas i tabell {0}, Rad {1}"
 
 #: frappe/public/js/frappe/form/save.js:125
 msgid "Mandatory fields required in {0}"
@@ -25919,7 +25919,7 @@ msgstr "Användarpost för denna begäran har tagits bort automatiskt på grund 
 
 #: frappe/public/js/frappe/desk.js:162
 msgid "The application has been updated to a new version, please refresh this page"
-msgstr "Applikationer har uppdaterats till ny version, uppdatera denna sida"
+msgstr "Appar är uppdaterade till ny version, uppdatera denna sida"
 
 #. Description of the 'Application Name' (Data) field in DocType 'System
 #. Settings'
