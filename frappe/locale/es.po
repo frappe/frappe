@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-04-11 16:17\n"
+"PO-Revision-Date: 2025-04-29 19:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -27005,7 +27005,7 @@ msgstr "Tipo"
 
 #: frappe/desk/page/user_profile/user_profile.html:17
 msgid "Type Distribution"
-msgstr "Distribución"
+msgstr ""
 
 #: frappe/public/js/frappe/form/controls/comment.js:78
 msgid "Type a reply / comment"
@@ -31292,11 +31292,11 @@ msgstr "{0} apreciado {1}"
 
 #: frappe/public/js/frappe/form/sidebar/review.js:148
 msgid "{0} appreciation point for {1}"
-msgstr "{0} punto de agradecimiento para {1}"
+msgstr ""
 
 #: frappe/public/js/frappe/form/sidebar/review.js:150
 msgid "{0} appreciation points for {1}"
-msgstr "{0} puntos de agradecimiento por {1}"
+msgstr ""
 
 #: frappe/public/js/frappe/form/sidebar/form_sidebar_users.js:72
 msgid "{0} are currently {1}"
@@ -31380,11 +31380,11 @@ msgstr "{0} creó esto"
 
 #: frappe/public/js/frappe/form/sidebar/review.js:154
 msgid "{0} criticism point for {1}"
-msgstr "{0} punto de crítica para {1}"
+msgstr ""
 
 #: frappe/public/js/frappe/form/sidebar/review.js:156
 msgid "{0} criticism points for {1}"
-msgstr "{0} puntos de crítica para {1}"
+msgstr ""
 
 #: frappe/public/js/frappe/utils/energy_point_utils.js:41
 msgid "{0} criticized on {1}"
