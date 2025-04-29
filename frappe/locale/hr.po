@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-04-20 17:52\n"
+"PO-Revision-Date: 2025-04-29 19:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -24195,7 +24195,7 @@ msgstr ""
 
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:391
 msgid "Stats based on last week's performance (from {0} to {1})"
-msgstr "Statistika temeljena na prošlotjednom učinku (od {0} do {1})"
+msgstr ""
 
 #. Label of a Select field in DocType 'Auto Repeat'
 #. Label of a Select field in DocType 'Contact'
