@@ -117,12 +117,9 @@ frappe.ui.misc.about = function () {
 
 	// Listener for copy installed apps info
 	$(dialog.body).on("click", "#copy-apps-info", function () {
-		const apps_info = [
-			"### App Versions",
-			code_block(JSON.stringify(frappe.versions, null, "\t"), "json"),
-		].join("\n");
-
-		frappe.utils.copy_to_clipboard(apps_info);
+		frappe.utils.copy_to_clipboard(
+			code_block(JSON.stringify(frappe.versions, null, "\t"), "json")
+		);
 	});
 
 	// Listener for copy app version
