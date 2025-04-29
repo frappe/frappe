@@ -20,7 +20,6 @@ ignore_doctypes = {
 	"Access Log",
 	"View Log",
 	"Activity Log",
-	"Energy Point Log",
 	"Notification Log",
 	"Email Queue",
 	"DocShare",

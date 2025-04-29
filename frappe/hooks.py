@@ -81,8 +81,6 @@ email_append_to = ["Event", "ToDo", "Communication"]
 
 calendars = ["Event"]
 
-leaderboards = "frappe.desk.leaderboard.get_leaderboards"
-
 # login
 
 on_session_creation = [
@@ -177,7 +175,6 @@ doc_events = {
 			"frappe.core.doctype.file.utils.attach_files_to_document",
 		],
 		"on_change": [
-			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points",
 			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone",
 		],
 		"after_delete": ["frappe.core.doctype.permission_log.permission_log.make_perm_log"],
@@ -248,7 +245,6 @@ scheduler_events = {
 		"frappe.email.doctype.notification.notification.trigger_daily_alerts",
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
 		"frappe.desk.form.document_follow.send_daily_updates",
-		"frappe.social.doctype.energy_point_settings.energy_point_settings.allocate_review_points",
 		"frappe.integrations.doctype.google_contacts.google_contacts.sync",
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 	],
@@ -263,13 +259,11 @@ scheduler_events = {
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_weekly",
 		"frappe.desk.form.document_follow.send_weekly_updates",
 		"frappe.utils.change_log.check_for_update",
-		"frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_summary",
 		"frappe.integrations.doctype.google_drive.google_drive.weekly_backup",
 		"frappe.desk.doctype.changelog_feed.changelog_feed.fetch_changelog_feed",
 	],
 	"monthly": [
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly",
-		"frappe.social.doctype.energy_point_log.energy_point_log.send_monthly_summary",
 	],
 	"monthly_long": [
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_monthly"

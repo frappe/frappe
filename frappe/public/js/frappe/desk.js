@@ -41,7 +41,6 @@ frappe.Application = class Application {
 		this.set_favicon();
 		this.set_fullwidth_if_enabled();
 		this.add_browser_class();
-		this.setup_energy_point_listeners();
 		this.setup_copy_doc_listener();
 		this.setup_broadcast_listeners();
 
@@ -497,12 +496,6 @@ frappe.Application = class Application {
 		if (frappe.boot.developer_mode) {
 			frappe.require("build_events.bundle.js");
 		}
-	}
-
-	setup_energy_point_listeners() {
-		frappe.realtime.on("energy_point_alert", (message) => {
-			frappe.show_alert(message);
-		});
 	}
 
 	setup_copy_doc_listener() {

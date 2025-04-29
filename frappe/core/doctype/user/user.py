@@ -573,9 +573,6 @@ class User(Document):
 		frappe.db.delete("OAuth Authorization Code", {"user": self.name})
 		frappe.db.delete("Token Cache", {"user": self.name})
 
-		# Delete EPS data
-		frappe.db.delete("Energy Point Log", {"user": self.name})
-
 		# Remove user link from Workflow Action
 		frappe.db.set_value("Workflow Action", {"user": self.name}, "user", None)
 

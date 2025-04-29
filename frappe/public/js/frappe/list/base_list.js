@@ -836,8 +836,9 @@ class FilterArea {
 			doctype_fields
 				.filter(
 					(df) =>
-						df.fieldname === title_field ||
-						(df.in_standard_filter && frappe.model.is_value_type(df.fieldtype))
+						(df.fieldname === title_field ||
+							(df.in_standard_filter && frappe.model.is_value_type(df.fieldtype))) &&
+						frappe.perm.has_perm(this.list_view.doctype, df.permlevel)
 				)
 				.map((df) => {
 					let options = df.options;

@@ -111,6 +111,13 @@ class RedisWrapper(redis.Redis):
 
 		return val
 
+	def expire_key(self, key, time, *, user=None, shared=False):
+		key = self.make_key(key, user, shared)
+		try:
+			return self.expire(key, time)
+		except redis.exceptions.ConnectionError:
+			pass
+
 	def get_all(self, key):
 		ret = {}
 		for k in self.get_keys(key):

@@ -773,11 +773,6 @@
    "group": "Rules",
    "link_doctype": "Assignment Rule",
    "link_fieldname": "document_type"
-  },
-  {
-   "group": "Rules",
-   "link_doctype": "Energy Point Rule",
-   "link_fieldname": "reference_doctype"
   }
  ],
  "modified": "2025-03-27 18:16:53.286909",

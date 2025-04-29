@@ -620,9 +620,12 @@ frappe.setup.utils = {
 			.get_input("language")
 			.unbind("change")
 			.on("change", function () {
+				const selected_language = $(this).val();
+				if (slide.get_field("language").value === selected_language) return;
+
 				clearTimeout(slide.language_call_timeout);
 				slide.language_call_timeout = setTimeout(() => {
-					let lang = $(this).val() || "English";
+					let lang = selected_language || "English";
 					frappe._messages = {};
 					frappe.call({
 						method: "frappe.desk.page.setup_wizard.setup_wizard.load_messages",

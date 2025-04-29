@@ -359,6 +359,8 @@ def parse_naming_series(
 			part = today.strftime("%d")
 		elif e == "YYYY":
 			part = today.strftime("%Y")
+		elif e == "JJJ":
+			part = today.strftime("%j")
 		elif e == "WW":
 			part = determine_consecutive_week_number(today)
 		elif e == "timestamp":

@@ -69,8 +69,7 @@ class BlogPost(WebsiteGenerator):
 
 		if not self.blog_intro:
 			content = get_html_content_based_on_type(self, "content", self.content_type)
-			self.blog_intro = content[:200]
-			self.blog_intro = strip_html_tags(self.blog_intro)
+			self.blog_intro = strip_html_tags(content)[:200]
 
 		if self.blog_intro:
 			self.blog_intro = self.blog_intro[:200]

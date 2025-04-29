@@ -64,6 +64,7 @@ def download_multi_pdf_async(
 		letterhead=letterhead,
 		options=options,
 		queue="long" if doc_count > 20 else "short",
+		at_front_when_starved=True,
 	)
 	frappe.local.response["http_status_code"] = http.HTTPStatus.CREATED
 	return {"task_id": task_id}
