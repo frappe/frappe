@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-04-20 17:52\n"
+"PO-Revision-Date: 2025-04-29 19:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -2410,7 +2410,7 @@ msgstr "Uygulanıyor: {0}"
 
 #: frappe/public/js/frappe/form/sidebar/review.js:62
 msgid "Appreciate"
-msgstr "Takdir"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Energy Point Log'
 #: frappe/social/doctype/energy_point_log/energy_point_log.json
@@ -9129,7 +9129,7 @@ msgstr "Tecrübe Puanı Kuralı"
 #. Name of a DocType
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.json
 msgid "Energy Point Settings"
-msgstr "Tecrübe Puanı Ayarları"
+msgstr ""
 
 #: frappe/desk/doctype/notification_log/notification_log.py:159
 msgid "Energy Point Update on {0}"
@@ -11118,7 +11118,7 @@ msgstr "Github markdown sözdizimi"
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.js:7
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.js:14
 msgid "Give Review Points"
-msgstr "Puanları Dağıt"
+msgstr ""
 
 #. Name of a DocType
 #: frappe/desk/doctype/global_search_doctype/global_search_doctype.json
@@ -14669,7 +14669,7 @@ msgstr "İçeri Aktarma Yükleniyor..."
 
 #: frappe/desk/page/user_profile/user_profile_controller.js:20
 msgid "Loading user profile"
-msgstr "Kullanıcı Profili Yükleniyor"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:8
 msgid "Loading versions..."
@@ -19090,11 +19090,11 @@ msgstr "Puan Dağıtım Periyodu"
 #: frappe/social/doctype/energy_point_log/energy_point_log.json
 #: frappe/social/doctype/energy_point_rule/energy_point_rule.json
 msgid "Points"
-msgstr "Puan"
+msgstr ""
 
 #: frappe/templates/emails/energy_points_summary.html:40
 msgid "Points Given"
-msgstr "Verilen Puanlar"
+msgstr ""
 
 #. Option for the 'SocketIO Transport Mode' (Select) field in DocType 'System
 #. Health Report'
@@ -20562,7 +20562,7 @@ msgstr "Referans Tipi"
 
 #: frappe/social/doctype/energy_point_rule/energy_point_rule.py:145
 msgid "Reference document has been cancelled"
-msgstr "Referans belge iptal edildi"
+msgstr ""
 
 #. Label of a Dynamic Link field in DocType 'View Log'
 #: frappe/core/doctype/view_log/view_log.json
@@ -21376,7 +21376,7 @@ msgstr ""
 #: frappe/social/doctype/energy_point_log/energy_point_log.js:15
 #: frappe/social/doctype/energy_point_log/energy_point_log.json
 msgid "Revert"
-msgstr "Geri Al"
+msgstr ""
 
 #. Label of a Link field in DocType 'Energy Point Log'
 #: frappe/social/doctype/energy_point_log/energy_point_log.json
@@ -21400,7 +21400,7 @@ msgstr "Gözden Geçir"
 #. Name of a DocType
 #: frappe/social/doctype/review_level/review_level.json
 msgid "Review Level"
-msgstr "Katkı Düzeyleri"
+msgstr ""
 
 #. Label of a Table field in DocType 'Energy Point Settings'
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.json
@@ -24409,11 +24409,11 @@ msgstr "Zaman Aralığı"
 
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:389
 msgid "Stats based on last month's performance (from {0} to {1})"
-msgstr "Geçen ayın performansına dayalı istatistikler ({0} - {1} tarihleri arası)"
+msgstr ""
 
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:391
 msgid "Stats based on last week's performance (from {0} to {1})"
-msgstr "Geçen haftanın performansına dayalı istatistikler ({0} - {1} tarihleri arası)"
+msgstr ""
 
 #. Label of a Select field in DocType 'Auto Repeat'
 #. Label of a Select field in DocType 'Contact'
@@ -24813,7 +24813,7 @@ msgstr ""
 
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.js:41
 msgid "Successfully Done"
-msgstr "Başarıyla Tamamlandı"
+msgstr ""
 
 #: frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js:100
 #: frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js:113
@@ -25858,11 +25858,11 @@ msgstr "Bu Para Birimi aktif değil. İşlemlerde kullanmak için etkinleştirin
 
 #: frappe/geo/utils.py:84
 msgid "This Doctype does not contain latitude and longitude fields"
-msgstr "Bu Doctype enlem ve boylam alanlarını içermiyor"
+msgstr ""
 
 #: frappe/geo/utils.py:67
 msgid "This Doctype does not contain location fields"
-msgstr "Bu Doctype konum alanları içermiyor"
+msgstr ""
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:389
 msgid "This Kanban Board will be private"
@@ -25917,7 +25917,7 @@ msgstr "Bu belge, e-posta gönderildikten sonra değiştirildi."
 
 #: frappe/social/doctype/energy_point_log/energy_point_log.js:8
 msgid "This document has been reverted"
-msgstr "Bu döküman geri alındı."
+msgstr ""
 
 #: frappe/public/js/frappe/form/form.js:1228
 msgid "This document has unsaved changes which might not appear in final PDF. <br> Consider saving the document before printing."
@@ -26631,11 +26631,11 @@ msgstr "Üst Sol"
 
 #: frappe/templates/emails/energy_points_summary.html:3
 msgid "Top Performer"
-msgstr "En İyi Performans"
+msgstr ""
 
 #: frappe/templates/emails/energy_points_summary.html:18
 msgid "Top Reviewer"
-msgstr "En İyi Yorumcu"
+msgstr ""
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #. Option for the 'Page Number' (Select) field in DocType 'Print Format'
@@ -28222,7 +28222,7 @@ msgstr "Özellikleri Görüntüle (Formu Özelleştir)"
 
 #: frappe/social/doctype/energy_point_log/energy_point_log_list.js:20
 msgid "View Ref"
-msgstr "Referansı Görüntüle"
+msgstr ""
 
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
@@ -29368,7 +29368,7 @@ msgstr "Tek DocType'lardan bir gösterge tablosu grafiği oluşturamazsınız"
 
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:45
 msgid "You cannot give review points to yourself"
-msgstr "Kendinize inceleme puanı veremezsiniz"
+msgstr ""
 
 #: frappe/custom/doctype/customize_form/customize_form.py:382
 msgid "You cannot unset 'Read Only' for field {0}"
@@ -29451,11 +29451,11 @@ msgstr "Bu belgeye erişmek için gerekli izinlere sahip değilsiniz"
 
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:156
 msgid "You gained {0} point"
-msgstr "{0} Puan Kazandınız"
+msgstr ""
 
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:158
 msgid "You gained {0} points"
-msgstr "{0} Puan Kazandınız"
+msgstr ""
 
 #: frappe/templates/emails/new_message.html:1
 msgid "You have a new message from: "
@@ -30226,7 +30226,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/utils/energy_point_utils.js:61
 msgid "gained by {0} via automatic rule {1}"
-msgstr "{0} tarafından otomatik kural {1} ile kazanıldı"
+msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
@@ -31038,7 +31038,7 @@ msgstr "Bildirim aracılığıyla"
 
 #: frappe/public/js/frappe/utils/energy_point_utils.js:46
 msgid "via automatic rule {0} on {1}"
-msgstr "{1} üzerinden otomatik kural {0} aracılığıyla"
+msgstr ""
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:17
 msgid "via {0}"
@@ -31259,21 +31259,21 @@ msgstr "{0} ve {1}"
 
 #: frappe/public/js/frappe/utils/energy_point_utils.js:38
 msgid "{0} appreciated on {1}"
-msgstr "{0} {1} tarihinde takdir edildi"
+msgstr ""
 
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:126
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:163
 msgid "{0} appreciated your work on {1} with {2} point"
-msgstr "{0} {1} üzerindeki çalışmanızı {2} puanla takdir ettim"
+msgstr ""
 
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:128
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:165
 msgid "{0} appreciated your work on {1} with {2} points"
-msgstr "{0} {1} üzerindeki çalışmanızı {2} puanla takdir ettim"
+msgstr ""
 
 #: frappe/public/js/frappe/utils/energy_point_utils.js:53
 msgid "{0} appreciated {1}"
-msgstr "{0} takdir edildi {1}"
+msgstr ""
 
 #: frappe/public/js/frappe/form/sidebar/review.js:148
 msgid "{0} appreciation point for {1}"
@@ -31373,7 +31373,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/utils/energy_point_utils.js:41
 msgid "{0} criticized on {1}"
-msgstr "{0}, {1} tarihinde eleştirildi"
+msgstr ""
 
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:132
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:170
@@ -31420,7 +31420,7 @@ msgstr "{0} değeri {1}, {2} ile #{3} nolu satır için"
 
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:120
 msgid "{0} gained {1} point for {2} {3}"
-msgstr "{0} {2} {3} için {1} puan kazandın"
+msgstr ""
 
 #: frappe/templates/emails/energy_points_summary.html:8
 msgid "{0} gained {1} points"
@@ -31428,7 +31428,7 @@ msgstr "{0} {1} puan kazandı"
 
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:122
 msgid "{0} gained {1} points for {2} {3}"
-msgstr "{0} {2} {3} için {1} puan kazandın"
+msgstr ""
 
 #: frappe/templates/emails/energy_points_summary.html:23
 msgid "{0} gave {1} points"
@@ -31757,7 +31757,7 @@ msgstr ""
 #: frappe/public/js/frappe/utils/energy_point_utils.js:44
 #: frappe/public/js/frappe/utils/energy_point_utils.js:59
 msgid "{0} reverted {1}"
-msgstr "{0} geri aldı {1}"
+msgstr ""
 
 #: frappe/public/js/frappe/roles_editor.js:61
 msgid "{0} role does not have permission on any doctype"
