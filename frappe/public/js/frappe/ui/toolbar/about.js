@@ -107,7 +107,7 @@ frappe.ui.misc.about = function () {
 		let app = {};
 		let text = "";
 
-		$.each(Object.keys(versions).sort(), function (i, key) {
+		$.each(Object.keys(versions), function (i, key) {
 			app = versions[key];
 			if (app.branch) {
 				text = $.format(
