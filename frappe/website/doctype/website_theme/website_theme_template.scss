@@ -43,6 +43,8 @@ body {
 	{% if primary_color %}
 	--primary: #{$primary};
 	--primary-color: #{$primary};
+	--btn-primary: #{$primary};
+	--border-primary: #{$primary};
 	{% endif -%}
 	{% if background_color %}
 	--bg-color: #{$body-bg};
