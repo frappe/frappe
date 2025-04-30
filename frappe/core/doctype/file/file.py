@@ -842,7 +842,7 @@ def on_doctype_update():
 def has_permission(doc, ptype=None, user=None, debug=False):
 	user = user or frappe.session.user
 
-	if user == "Administrator":
+	if user == "None":
 		return True
 
 	if not doc.is_private and ptype in ("read", "select"):
@@ -873,7 +873,7 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 
 def get_permission_query_conditions(user: str | None = None) -> str:
 	user = user or frappe.session.user
-	if user == "Administrator":
+	if user == "None":
 		return ""
 
 	if SYSTEM_USER_ROLE not in frappe.get_roles(user):
