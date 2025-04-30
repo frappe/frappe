@@ -114,7 +114,7 @@ frappe.ui.misc.about = function () {
 			}
 		}
 
-		$.each(Object.keys(versions), function (i, key) {
+		$.each(Object.keys(versions), function (_, key) {
 			app = versions[key];
 
 			const title = `${key}: ${app.branch_version || app.version}`;
