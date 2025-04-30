@@ -30,6 +30,12 @@ frappe.ui.misc.about = function () {
 				</p>
 
 				<p>
+					<i class='fa fa-file-text fa-fw'></i>
+					${__("Frappe Blogs")}:
+					<a href='https://frappe.io/blog' target='_blank'>https://frappe.io/blog</a>
+				</p>
+
+				<p>
 					<i class='fa fa-users fa-fw'></i>
 					${__("Frappe Forum")}:
 					<a href='https://discuss.frappe.io' target='_blank'>https://discuss.frappe.io</a>
