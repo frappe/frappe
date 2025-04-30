@@ -109,21 +109,24 @@ frappe.ui.misc.about = function () {
 
 		$.each(Object.keys(versions), function (i, key) {
 			app = versions[key];
+			const version = `${key}: v${app.branch_version || app.version}`;
+			const attributes = `class='app-version' role='button' data-version='${version}'`;
+
 			if (app.branch) {
-				text = $.format(
-					"<p class='app-version'  role='button' title='{0}'><b>{1}:</b> v{2} ({3})<br></p>",
-					[
-						`${app.title}: v${app.branch_version || app.version} (${app.branch})`,
-						app.title,
-						app.branch_version || app.version,
-						app.branch,
-					]
-				);
+				text = $.format("<p {0} title='{1}'><b>{2}:</b> v{3} ({4})<br></p>", [
+					attributes,
+					`${app.title}: v${app.branch_version || app.version} (${app.branch})`,
+					app.title,
+					app.branch_version || app.version,
+					app.branch,
+				]);
 			} else {
-				text = $.format(
-					"<p class='app-version' role='button' title='{0}'><b>{1}:</b> v{2}<br></p>",
-					[`${app.title}: v${app.version}`, app.title, app.version]
-				);
+				text = $.format("<p {0} title='{1}'><b>{2}:</b> v{3}<br></p>", [
+					attributes,
+					`${app.title}: v${app.version}`,
+					app.title,
+					app.version,
+				]);
 			}
 			$(text).appendTo($wrap);
 		});
@@ -146,9 +149,9 @@ frappe.ui.misc.about = function () {
 
 	// Listener for copy app version
 	$(dialog.body).on("click", ".app-version", function () {
-		const title = $(this).attr("title");
-		if (title) {
-			frappe.utils.copy_to_clipboard(title);
+		const version = $(this).attr("data-version");
+		if (version) {
+			frappe.utils.copy_to_clipboard(version);
 		}
 	});
 
