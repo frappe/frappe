@@ -134,11 +134,16 @@ frappe.ui.misc.about = function () {
 
 	const code_block = (snippet, lang = "") => "```" + lang + "\n" + snippet + "\n```";
 
-	// Listener for copy installed apps info
+	// Listener for copying installed apps info
 	$(dialog.body).on("click", "#copy-apps-info", function () {
-		frappe.utils.copy_to_clipboard(
-			code_block(JSON.stringify(frappe.versions, null, "\t"), "json")
-		);
+		if (!frappe.versions) return;
+
+		const versions = Object.entries(frappe.versions).reduce((acc, [key, app]) => {
+			acc[key] = app.branch_version || app.version;
+			return acc;
+		}, {});
+
+		frappe.utils.copy_to_clipboard(code_block(JSON.stringify(versions, null, "\t"), "json"));
 	});
 
 	// Listener for copy app version
