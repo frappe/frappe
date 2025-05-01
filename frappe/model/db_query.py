@@ -870,7 +870,7 @@ class DatabaseQuery:
 				value = get_time(f.value).strftime("%H:%M:%S.%f")
 				fallback = "'00:00:00'"
 
-			elif f.operator.lower() in ("like", "not like") or (
+			elif f.operator.lower() in ("like", "not like") and (
 				isinstance(f.value, str)
 				and (not df or df.fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])
 			):
