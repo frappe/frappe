@@ -261,7 +261,8 @@ class SendMailContext:
 		recipient.update_db(status="Sent", commit=True)
 
 	def get_message_object(self, message):
-		return Parser(policy=SMTP).parsestr(message)
+		# Prevent header folding
+		return Parser(policy=SMTP.clone(max_line_length=0)).parsestr(message)
 
 	def message_placeholder(self, placeholder_key):
 		# sourcery skip: avoid-builtin-shadow
