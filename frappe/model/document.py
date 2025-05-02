@@ -195,7 +195,7 @@ class Document(BaseDocument):
 			children = (
 				frappe.db.get_values(
 					df.options,
-					{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname},
+					{"parent": str(self.name), "parenttype": self.doctype, "parentfield": df.fieldname},
 					"*",
 					as_dict=True,
 					order_by="idx asc",
