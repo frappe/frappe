@@ -929,6 +929,9 @@ from {tables}
 			# intersection instead of full table scans.
 			if fallback == value and f.operator == "=":
 				condition = f"( {column_name} is NULL OR {column_name} {f.operator} {value} )"
+			elif fallback == value and f.operator == "!=":
+				# NULL != anything is always NULL, so won't match
+				condition = f"{column_name} {f.operator} {value}"
 			else:
 				condition = f"ifnull({column_name}, {fallback}) {f.operator} {value}"
 
