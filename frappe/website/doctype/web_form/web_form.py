@@ -346,7 +346,19 @@ def get_context(context):
 
 		messages.extend(col.get("label") if col else "" for col in self.list_columns)
 
-		context.translated_messages = frappe.as_json({message: _(message) for message in messages if message})
+		translated_messages = {}
+
+		for message in messages:
+			if not message:
+				continue
+
+			if ":" in message:
+				msg, ctx = message.split(":", 1)
+				translated_messages[message] = _(msg, context=ctx)
+			else:
+				translated_messages[message] = _(message)
+
+		context.translated_messages = frappe.as_json(translated_messages)
 
 	def load_list_data(self, context):
 		if not self.list_columns:
