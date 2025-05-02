@@ -1196,6 +1196,11 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertEqual(count[0], frappe.db.count("Language"))
 		self.assertEqual(count[1], frappe.db.count("Language"))
 
+	def test_ifnull_none(self):
+		query = frappe.get_all("DocField", {"fieldname": None}, run=0)
+		self.assertIn("''", query)
+		self.assertNotIn("\\'", query)
+
 
 class TestReportView(IntegrationTestCase):
 	@run_only_if(db_type_is.MARIADB)  # TODO: postgres name casting is messed up
