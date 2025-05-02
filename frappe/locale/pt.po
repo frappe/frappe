@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-04-27 09:33+0000\n"
-"PO-Revision-Date: 2025-04-28 23:59\n"
+"PO-Revision-Date: 2025-05-02 00:54\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese\n"
 "MIME-Version: 1.0\n"
@@ -30278,7 +30278,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:160
 msgid "new"
-msgstr ""
+msgstr "novo"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:158
 msgid "new type of document"
@@ -30301,7 +30301,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/utils/pretty_date.js:25
 msgid "now"
-msgstr ""
+msgstr "agora"
 
 #: frappe/public/js/frappe/form/grid_pagination.js:116
 msgid "of"
@@ -30345,7 +30345,7 @@ msgstr ""
 #: frappe/public/js/frappe/utils/utils.js:392 frappe/www/login.html:90
 #: frappe/www/login.py:112
 msgid "or"
-msgstr ""
+msgstr "ou"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
@@ -30478,7 +30478,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/widgets/number_card_widget.js:284
 msgid "since yesterday"
-msgstr ""
+msgstr "desde ontem"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: frappe/core/doctype/rq_job/rq_job.json
@@ -30658,7 +30658,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/views/calendar/calendar.js:30
 msgid "{0} Calendar"
-msgstr ""
+msgstr "{0} Calendário"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:545
 msgid "{0} Chart"
@@ -30675,7 +30675,7 @@ msgstr ""
 #: frappe/public/js/frappe/list/list_settings.js:227
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:178
 msgid "{0} Fields"
-msgstr ""
+msgstr "{0} Campos"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:376
 msgid "{0} Google Calendar Events synced."
@@ -30698,7 +30698,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/utils/pretty_date.js:37
 msgid "{0} M"
-msgstr ""
+msgstr "{0} M"
 
 #: frappe/public/js/frappe/views/map/map_view.js:14
 msgid "{0} Map"
@@ -30761,7 +30761,7 @@ msgstr ""
 
 #: frappe/utils/data.py:1734
 msgid "{0} and {1}"
-msgstr ""
+msgstr "{0} e {1}"
 
 #: frappe/public/js/frappe/form/sidebar/form_sidebar_users.js:72
 msgid "{0} are currently {1}"
@@ -30828,7 +30828,7 @@ msgstr ""
 
 #: frappe/website/doctype/blog_post/blog_post.py:382
 msgid "{0} comments"
-msgstr ""
+msgstr "{0} comentários"
 
 #: frappe/core/doctype/doctype/doctype.py:1604
 msgid "{0} contains an invalid Fetch From expression, Fetch From can't be self-referential."
@@ -30836,7 +30836,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/views/interaction.js:261
 msgid "{0} created successfully"
-msgstr ""
+msgstr "{0} criado com sucesso"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:141
 #: frappe/public/js/frappe/form/sidebar/form_sidebar.js:95
@@ -31138,7 +31138,7 @@ msgstr "{0} não foi encontrado"
 #: frappe/core/doctype/report/report.py:427
 #: frappe/public/js/frappe/list/list_view.js:1067
 msgid "{0} of {1}"
-msgstr ""
+msgstr "{0} de {1}"
 
 #: frappe/public/js/frappe/list/list_view.js:1069
 msgid "{0} of {1} ({2} rows with children)"
@@ -31212,7 +31212,7 @@ msgstr ""
 
 #: frappe/core/doctype/docshare/docshare.py:80
 msgid "{0} shared this document with {1}"
-msgstr ""
+msgstr "{0} partilhou este documento com {1}"
 
 #: frappe/core/doctype/doctype/doctype.py:315
 msgid "{0} should be indexed because it's referred in dashboard connections"
@@ -31457,7 +31457,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/form.js:521
 msgid "{} Complete"
-msgstr ""
+msgstr "{} Concluído"
 
 #: frappe/utils/data.py:2482
 msgid "{} Invalid python code on line {}"
