@@ -212,56 +212,7 @@ class Document(BaseDocument):
 
 		return self
 
-<<<<<<< HEAD
 	def reload(self):
-=======
-	def load_children_from_db(self):
-		is_doctype = self.doctype == "DocType"
-
-		for fieldname, child_doctype in self._table_fieldnames.items():
-			# Make sure not to query the DB for a child table, if it is a virtual one.
-			if not is_doctype and is_virtual_doctype(child_doctype):
-				self.set(fieldname, [])
-				continue
-
-			if is_doctype:
-				# This special handling is required because of bootstrapping code that doesn't
-				# handle failures correctly.
-				children = frappe.db.get_values(
-					child_doctype,
-					{"parent": self.name, "parenttype": self.doctype, "parentfield": fieldname},
-					"*",
-					as_dict=True,
-					order_by="idx asc",
-					for_update=self.flags.for_update,
-				)
-			else:
-				for_update = ""
-				if self.flags.for_update and frappe.db.db_type != "sqlite":
-					for_update = "FOR UPDATE"
-				# Fast pass for all other doctypes - using raw SQL
-				children = frappe.db.sql(
-					"""SELECT * FROM {table_name}
-					WHERE `parent`= %(parent)s
-						AND `parenttype`= %(parenttype)s
-						AND `parentfield`= %(parentfield)s
-					ORDER BY `idx` ASC {for_update}""".format(
-						table_name=get_table_name(child_doctype, wrap_in_backticks=True),
-						for_update=for_update,
-					),
-					{"parent": str(self.name), "parenttype": self.doctype, "parentfield": fieldname},
-					as_dict=True,
-				)
-
-			if children is None:
-				children = []
-
-			self.set(fieldname, children)
-
-		return self
-
-	def reload(self) -> "Self":
->>>>>>> 266ec9f76e (perf: Fix child table queries for int-PK parent (#32293))
 		"""Reload document from database"""
 		return self.load_from_db()
 
