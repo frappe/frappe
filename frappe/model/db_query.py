@@ -883,12 +883,17 @@ class DatabaseQuery:
 					# because "like" uses backslash (\) for escaping
 					value = value.replace("\\", "\\\\").replace("%", "%%")
 
+<<<<<<< HEAD
 			elif f.operator == "=" and df and df.fieldtype in ["Link", "Data"]:  # TODO: Refactor if possible
 				value = cstr(f.value) or "''"
+=======
+			elif f.operator == "=" and df and df.fieldtype in ("Link", "Data", "Dynamic Link"):
+				value = cstr(f.value)
+>>>>>>> 42f1d1b460 (fix(db_query): double-escaped value (#32376))
 				fallback = "''"
 
 			elif f.fieldname == "name":
-				value = f.value or "''"
+				value = f.value
 				fallback = "''"
 
 			else:
