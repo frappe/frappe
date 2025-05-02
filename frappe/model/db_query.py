@@ -917,7 +917,12 @@ from {tables}
 				f.operator = "ilike"
 			condition = f"{column_name} {f.operator} {value}"
 		else:
-			condition = f"ifnull({column_name}, {fallback}) {f.operator} {value}"
+			# PERF: try to transform ifnull into two conditions, this way query plan can use index
+			# intersection instead of full table scans.
+			if fallback == value and f.operator == "=":
+				condition = f"( {column_name} is NULL OR {column_name} {f.operator} {value} )"
+			else:
+				condition = f"ifnull({column_name}, {fallback}) {f.operator} {value}"
 
 		return condition
 
