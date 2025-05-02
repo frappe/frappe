@@ -894,6 +894,14 @@ from {tables}
 				value = f.value
 				fallback = "''"
 
+			elif (
+				df
+				and (db_type := cstr(frappe.db.type_map.get(df.fieldtype, " ")[0]))
+				and db_type in ("varchar", "text", "longtext", "smalltext", "json")
+			):
+				value = cstr(f.value)
+				fallback = "''"
+
 			else:
 				value = flt(f.value)
 				fallback = 0
