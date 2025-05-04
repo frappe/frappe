@@ -1924,7 +1924,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				}
 			});
 		});
-
+		// Added Manually - Issue 47210 - Ankit Jha
+		doctypes.push({
+			doctype: "Contact",
+			fieldname: "designation"
+		});
+		// END
 		doctypes = doctypes.concat(
 			Array.from(dynamic_doctypes).map((d) => {
 				const doc_field_pair = d.split(":");
