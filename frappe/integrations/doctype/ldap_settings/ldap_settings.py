@@ -175,8 +175,7 @@ class LDAPSettings(Document):
 		if ldap.enabled:
 			result["enabled"] = True
 			result["method"] = "frappe.integrations.doctype.ldap_settings.ldap_settings.login"
-			if ldap.default_to_ldap_login:
-				result["default_to_ldap_login"] = True
+			result["default_to_ldap_login"] = ldap.default_to_ldap_login
 		return result
 
 	@classmethod
