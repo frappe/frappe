@@ -32,7 +32,7 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 	set_value(value, force_set_value = false) {
 		if (value && !this.show_seconds()) {
 			return this.validate_and_set_in_model(
-				this.strip_seconds(value),
+				this.strip_seconds(value.trim()),
 				null,
 				force_set_value
 			);
@@ -42,7 +42,7 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 	}
 
 	get_model_value() {
-		const value = super.get_model_value();
+		const value = super.get_model_value().trim();
 		if (value && !this.show_seconds()) {
 			return this.strip_seconds(value);
 		}
