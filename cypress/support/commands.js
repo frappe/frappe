@@ -163,7 +163,7 @@ Cypress.Commands.add("set_value", (doctype, name, obj) => {
 Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 	cy.get_field(fieldname, fieldtype).as("input");
 
-	if (["Date", "Time", "Datetime"].includes(fieldtype)) {
+	if (["Date", "Datetime"].includes(fieldtype)) {
 		cy.get("@input").click().wait(200);
 		cy.get(".datepickers-container .datepicker.active").should("exist");
 	}
