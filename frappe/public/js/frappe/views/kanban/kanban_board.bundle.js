@@ -808,6 +808,7 @@ const zoomLevels = {
 				onEnd: async function (e) {
 					wrapper.find(".kanban-card.add-card").fadeIn(100);
 					wrapper.find(".kanban-cards").height("auto");
+					
 					// update order
 					const args = {
 						name: decodeURIComponent($(e.item).attr("data-name")),
@@ -818,25 +819,55 @@ const zoomLevels = {
 						old_index: e.oldIndex,
 						new_index: e.newIndex,
 					};
-					// validate if project has quotations waiting for approval or has client requirement incompleted.
-					if(args.to_colname === "Quality check approved"){
-						await validate_project_quotations_and_requirements(args)
-						.then(res => {
-							store.dispatch("update_order_for_single_card", args)
-						}).catch(e => console.log("dont update jobcard status"))
-					}else if(args.to_colname === "Completed"){
-						await validate_project_loan_car(args)
-						.then(res => {
-							store.dispatch("update_order_for_single_card", args)
-						}).catch(e => console.log("dont update jobcard status"))
-					}else{
-						if(args.from_colname === "Remote diagnose" && args.to_colname === "Completed"){
-							showSentMessageAfterRemoteDiagnoseDialog(args.name)
-						}
+
+					// Skip validation if from and to columns are the same
+					if (args.from_colname === args.to_colname) {
 						store.dispatch("update_order_for_single_card", args);
+						return;
 					}
 
-					console.log("end to render kanban ")
+					console.log(`Card ${args.name} moved from ${args.from_colname} to ${args.to_colname}`);
+					
+					// Validate transitions based on destination column
+					let validationPassed = true;
+					
+					// Quality check approved validation
+					if (args.to_colname === "Quality check approved") {
+						await validate_project_quotations_and_requirements(args)
+							.then(res => {
+								console.log(`Validation passed for moving to Quality check approved: ${args.name}`);
+							})
+							.catch(error => {
+								console.log(`Validation failed for Quality check approved: ${error || 'User cancelled'}`);
+								validationPassed = false;
+							});
+					}
+					
+					// Completed validation
+					if (args.to_colname === "Completed") {
+						await validate_project_loan_car(args)
+							.then(res => {
+								console.log(`Validation passed for moving to Completed: ${args.name}`);
+							})
+							.catch(error => {
+								console.log(`Validation failed for Completed: ${error || 'User cancelled'}`);
+								validationPassed = false;
+							});
+					}
+					
+					// Remote diagnose to Completed special case
+					if (args.from_colname === "Remote diagnose" && args.to_colname === "Completed") {
+						showSentMessageAfterRemoteDiagnoseDialog(args.name);
+					}
+					
+					// Only update if all validations passed
+					if (validationPassed) {
+						store.dispatch("update_order_for_single_card", args);
+					} else {
+						// Revert the UI change if validation failed
+						// This will be handled by the database update in the validation functions
+						console.log(`Card movement prevented due to failed validation: ${args.name}`);
+					}
 				},
 				onAdd: function () { },
 				filter: '.kanban-title-area a'
@@ -1562,7 +1593,9 @@ const zoomLevels = {
 				filters: [
 					['project_name', '=', args.name],
 					['status', "!=", "Approved"],
-					['status', "!=", "Ordered"]
+					['status', "!=", "Ordered"],
+					['status', "!=", "Cancelled"],
+					['status', "!=", "Paid"],
 				],
 				fields: ["name", "status"]
 			})
@@ -1719,4 +1752,3 @@ const zoomLevels = {
 		dialog.show();
 	}
 })();
-
