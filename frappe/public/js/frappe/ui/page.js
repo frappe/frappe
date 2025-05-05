@@ -148,8 +148,6 @@ frappe.ui.Page = class Page {
 		if(url.includes(pathToCheck)){
       const hasFilters = window.location.search
 			this.page_form = $(`<div id="collapse_filters_area" class="page-form row ${hasFilters ? "show" :"hide"} collapse"></div>`).prependTo(this.main)
-		}else{
-			this.page_form = $('<div class="page-form row hide"></div>').prependTo(this.main);
 		}
 
 		this.inner_toolbar = this.custom_actions;

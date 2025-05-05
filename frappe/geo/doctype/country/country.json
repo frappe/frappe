@@ -11,7 +11,8 @@
   "date_format",
   "time_format",
   "time_zones",
-  "code"
+  "code",
+  "phone_code"
  ],
  "fields": [
   {
@@ -48,6 +49,13 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Code"
+  },
+  {
+   "fieldname": "phone_code",
+   "fieldtype": "Data",
+   "label": "Phone Code",
+   "description": "Country calling code (e.g., 1 for USA, 44 for UK)",
+   "in_list_view": 1
   }
  ],
  "icon": "fa fa-globe",
