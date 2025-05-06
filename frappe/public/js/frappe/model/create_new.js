@@ -296,6 +296,7 @@ $.extend(frappe.model, {
 				if (frappe.model.table_fields.includes(df.fieldtype)) {
 					for (let i = 0, j = value.length; i < j; i++) {
 						let d = value[i];
+						d.doctype = df.options;
 						frappe.model.copy_doc(d, from_amend, newdoc, df.fieldname);
 					}
 				} else {

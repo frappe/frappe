@@ -634,7 +634,6 @@
    "label": "Settings"
   },
   {
-   "depends_on": "eval:!doc.__islocal",
    "fieldname": "form_builder_tab",
    "fieldtype": "Tab Break",
    "label": "Form"
