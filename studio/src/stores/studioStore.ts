@@ -75,11 +75,22 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	async function deleteAppPage(appName: string, page: StudioPage) {
-		// TODO: disallow deleting app home or app with only one page
+
+		const isHome = activeApp.value?.app_home === page.name;
+		if (isHome) {
+			toast.error("Cannot delete this page because it is set as the App Home.");
+			return;
+		}
+
 		const confirmed = await confirm(`Are you sure you want to delete the page <b>${page.page_title}</b>?`)
 		if (confirmed) {
-			await studioPages.delete.submit(page.name)
-			await setApp(appName)
+			try {
+				await studioPages.delete.submit(page.name)
+				await setApp(appName)
+				toast.success(`Page "${page.page_title}" deleted successfully`)
+			} catch (error) {
+				toast.error("An unexpected error occurred while deleting the page.");
+			}
 		}
 	}
 
@@ -101,7 +112,7 @@ const useStudioStore = defineStore("store", () => {
 						name: "StudioPage",
 						params: { appID: appName, pageID: page.name },
 					})
-					return "Page duplicated"
+					return `Page "${page.page_title}" duplicated successfully`;
 				},
 			},
 		)

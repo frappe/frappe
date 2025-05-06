@@ -84,6 +84,7 @@ const getPageMenu = (page: StudioPage) => {
 		{
 			label: "Delete",
 			icon: "trash",
+			condition: () => !isAppHome(page),
 			onClick: async () => {
 				await store.deleteAppPage(app.name, page)
 				if (isPageActive(page)) {
