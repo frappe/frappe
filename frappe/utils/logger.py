@@ -43,6 +43,7 @@ def get_logger(
 	max_size=100_000,
 	file_count=20,
 	stream_only=stream_logging,
+	log_level=None,
 ) -> "logging.Logger":
 	"""Return Application Logger for your given module.
 
@@ -77,7 +78,7 @@ def get_logger(
 		with_more_info = True
 
 	logger = logging.getLogger(logger_name)
-	logger.setLevel(frappe.log_level or default_log_level)
+	logger.setLevel(log_level or frappe.log_level or default_log_level)
 	logger.propagate = False
 
 	handlers = create_handler(module, site, max_size, file_count, stream_only)
@@ -106,10 +107,20 @@ class SiteContextFilter(logging.Filter):
 			return True
 
 
-def set_log_level(level: Literal["ERROR", "WARNING", "WARN", "INFO", "DEBUG"]) -> None:
-	"""Use this method to set log level to something other than the default DEBUG"""
-	frappe.log_level = getattr(logging, (level or "").upper(), None) or default_log_level
-	frappe.loggers = {}
+def set_log_level(
+	level: Literal["ERROR", "WARNING", "WARN", "INFO", "DEBUG"], module=None, site="all"
+) -> None:
+	"""Use this method to set/change the log level globally or for a specific module, allowing multiple modules to have multiple log_levels"""
+	if module:
+		logger_name = "{}-{}".format(module, site or "all")
+		try:
+			logger = frappe.loggers[logger_name]
+			logger.setLevel(level)
+		except KeyError:
+			pass
+	else:
+		frappe.log_level = getattr(logging, (level or "").upper(), None) or default_log_level
+		frappe.loggers = {}
 
 
 def sanitized_dict(form_dict):
