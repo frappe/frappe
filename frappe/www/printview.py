@@ -111,7 +111,7 @@ def get_context(context) -> PrintContext:
 		"doctype": frappe.form_dict.doctype,
 		"name": frappe.form_dict.name,
 		"key": frappe.form_dict.get("key"),
-		"print_format": getattr(print_format, "name", None),
+		"print_format": print_format_name,
 		"letterhead": letterhead,
 		"no_letterhead": frappe.form_dict.no_letterhead,
 		"pdf_generator": frappe.form_dict.get("pdf_generator", "wkhtmltopdf"),
