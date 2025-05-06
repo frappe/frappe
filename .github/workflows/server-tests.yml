@@ -58,7 +58,7 @@ jobs:
     with:
       db-artifact-url: https://frappeframework.com/files/v13-frappe.sql.gz
       python-version: '3.10'
-      node-version: 20
+      node-version: 22
       fake-success: ${{ needs.checkrun.outputs.build != 'strawberry' }}
 
   coverage:
