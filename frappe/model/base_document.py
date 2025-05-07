@@ -429,16 +429,24 @@ class BaseDocument:
 						continue
 
 					if (prop := getattr(type(self), fieldname, None)) and is_a_property(prop):
+						# Virtual docfields must be implemented as properties
 						value = getattr(self, fieldname)
 
 					elif options := getattr(df, "options", None):
 						from frappe.utils.safe_exec import get_safe_globals
 
-						value = frappe.safe_eval(
-							code=options,
-							eval_globals=get_safe_globals(),
-							eval_locals={"doc": self},
-						)
+						try:
+							value = frappe.safe_eval(
+								code=options,
+								eval_globals=get_safe_globals(),
+								eval_locals={"doc": self},
+							)
+						except SyntaxError as exc:
+							msg = _(
+								"Options must be a valid Python one-liner, or '{0}' must be a @property of '{1}'."
+							).format(frappe.bold(fieldname), frappe.bold(self.doctype))
+							exc.msg += f". ({msg})"
+							frappe.throw(exc.msg, exc)
 
 				fieldtype = df.fieldtype
 				if isinstance(value, list) and fieldtype not in table_fields:
