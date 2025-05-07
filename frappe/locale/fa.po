@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-04-29 19:40\n"
+"PO-Revision-Date: 2025-05-07 22:22\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -1289,7 +1289,7 @@ msgstr "HTML در &lt;head&gt; بخشی از صفحه وب، که در درجه 
 
 #: frappe/core/doctype/log_settings/log_settings.py:82
 msgid "Added default log doctypes: {}"
-msgstr "افزودن پیش‌فرض اسناد گزارش: {}"
+msgstr "افزودن پیش‌فرض اسناد لاگ: {}"
 
 #: frappe/core/doctype/file/file.py:730
 msgid "Added {0}"
@@ -4400,7 +4400,7 @@ msgstr "برای انتخاب، ستون‌ها را علامت بزنید، ب�
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:449
 msgid "Check the Error Log for more information: {0}"
-msgstr "برای اطلاعات بیشتر، گزارش خطا را بررسی کنید: {0}"
+msgstr "برای اطلاعات بیشتر، لاگ خطا را بررسی کنید: {0}"
 
 #: frappe/website/doctype/website_settings/website_settings.js:147
 msgid "Check this if you don't want users to sign up for an account on your site. Users won't get desk access unless you explicitly provide it."
@@ -7105,7 +7105,7 @@ msgstr ""
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable Change Log Notification"
-msgstr "اعلان گزارش تغییر را غیرفعال کنید"
+msgstr ""
 
 #. Label of a Check field in DocType 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
@@ -7125,7 +7125,7 @@ msgstr "غیرفعال کردن شمارش"
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable Document Sharing"
-msgstr "اشتراک گذاری سند را غیرفعال کنید"
+msgstr "غیرفعال کردن اشتراک گذاری سند"
 
 #. Label of a Check field in DocType 'Blog Post'
 #: frappe/website/doctype/blog_post/blog_post.json
@@ -7153,12 +7153,12 @@ msgstr "ثبت نام برای سایت خود را غیرفعال کنید"
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable Standard Email Footer"
-msgstr "پاورقی استاندارد ایمیل را غیرفعال کنید"
+msgstr ""
 
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable System Update Notification"
-msgstr "اعلان به روز رسانی سیستم را غیرفعال کنید"
+msgstr ""
 
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -8931,7 +8931,7 @@ msgstr "نقطه انرژی"
 #: frappe/core/doctype/user/user.json
 #: frappe/social/doctype/energy_point_log/energy_point_log.json
 msgid "Energy Point Log"
-msgstr "گزارش نقطه انرژی"
+msgstr "لاگ نقطه انرژی"
 
 #. Linked DocType in DocType's connections
 #. Name of a DocType
@@ -19848,7 +19848,7 @@ msgstr "نقل قول باید بین 0 تا 3 باشد"
 #. Label of a Section Break field in DocType 'Access Log'
 #: frappe/core/doctype/access_log/access_log.json
 msgid "RAW Information Log"
-msgstr "گزارش اطلاعات خام"
+msgstr "لاگ اطلاعات خام"
 
 #. Name of a DocType
 #: frappe/core/doctype/rq_job/rq_job.json
@@ -21911,7 +21911,7 @@ msgstr "کار زمان‌بندی شده"
 #: frappe/core/doctype/scheduled_job_log/scheduled_job_log.json
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 msgid "Scheduled Job Log"
-msgstr "گزارش کار زمان‌بندی شده"
+msgstr "لاگ کار زمان‌بندی شده"
 
 #. Name of a DocType
 #. Linked DocType in Server Script's connections
@@ -22293,7 +22293,7 @@ msgstr "کشور را انتخاب کنید"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:404
 msgid "Select Currency"
-msgstr "واحد پول را انتخاب کنید"
+msgstr "انتخاب واحد پول"
 
 #. Label of a Link field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
@@ -23404,7 +23404,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Show Only Failed Logs"
-msgstr "نمایش فقط گزارش های ناموفق"
+msgstr "نمایش فقط لاگ های ناموفق"
 
 #. Label of a Check field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
