@@ -169,21 +169,16 @@ class Comment(Document):
 @frappe.whitelist()
 def mark_as_spam_or_ham(comment, type):
 	frappe.only_for(["System Manager"])
-
-	_mark_as_spam_or_ham(comment, type == "Spam")
-
+	# Can't do doc.save(), since it will be marked pending for review
+	# if spam_filtering is set to "Keep spam comment for review"
 	frappe.db.set_value("Comment", comment, "spam_type", type)
+	doc = frappe.get_doc("Comment", comment, for_update=False)
 
-
-def _mark_as_spam_or_ham(docname, is_spam):
-	doc = frappe.get_doc("Comment", docname, for_update=False)
-	if doc.comment_type != "Comment":
-		return
 	akismet_client = get_akismet()
 	if not akismet_client:
 		return
 
-	if is_spam:
+	if type == "Spam":
 		akismet_client.submit_spam(
 			comment_type="comment",
 			comment_author=doc.comment_by,
@@ -199,6 +194,7 @@ def _mark_as_spam_or_ham(docname, is_spam):
 			comment_content=doc.content,
 			user_ip=doc.ip_address,
 		)
+	doc.notify_change("update")
 
 
 def get_akismet() -> SyncClient | None:
@@ -224,11 +220,11 @@ def update_comment_in_doc(doc):
 
 	`_comments` format
 
-	        {
-	                "comment": [String],
-	                "by": [user],
-	                "name": [Comment Document name]
-	        }"""
+			{
+					"comment": [String],
+					"by": [user],
+					"name": [Comment Document name]
+			}"""
 
 	# only comments get updates, not likes, assignments etc.
 	if doc.doctype == "Comment" and doc.comment_type != "Comment":
