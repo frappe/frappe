@@ -1153,19 +1153,16 @@ class TestReportview(FrappeTestCase):
 		data = get()
 		self.assertEqual(len(data["values"]), 1)
 
-
-<<<<<<< HEAD
-class TestReportView(FrappeTestCase):
-	def setUp(self) -> None:
-		frappe.set_user("Administrator")
-		return super().setUp()
-=======
 	def test_ifnull_none(self):
 		query = frappe.get_all("DocField", {"fieldname": None}, run=0)
 		self.assertIn("''", query)
 		self.assertNotIn("\\'", query)
 
->>>>>>> 42f1d1b460 (fix(db_query): double-escaped value (#32376))
+
+class TestReportView(FrappeTestCase):
+	def setUp(self) -> None:
+		frappe.set_user("Administrator")
+		return super().setUp()
 
 	@run_only_if(db_type_is.MARIADB)  # TODO: postgres name casting is messed up
 	def test_get_count(self):
