@@ -328,6 +328,11 @@ class FormTimeline extends BaseTimeline {
 
 	get_comment_timeline_contents() {
 		let comment_timeline_contents = [];
+		if (this.doc_info.comments) {
+			this.doc_info.comments = this.doc_info.comments.filter((comment) => {
+				return !comment.__unsaved;
+			});
+		}
 		(this.doc_info.comments || []).forEach((comment) => {
 			if (comment.spam_type) {
 				if (
@@ -617,7 +622,7 @@ class FormTimeline extends BaseTimeline {
 				const delete_option = $(`
 					<a class="dropdown-item">${__("Delete")}</a>
 				`).click(() => this.delete_comment(doc.name));
-			
+
 				dropdown_menu.append(delete_option);
 			}
 			if (doc.spam_type && frappe.user.has_role("System Manager")) {
