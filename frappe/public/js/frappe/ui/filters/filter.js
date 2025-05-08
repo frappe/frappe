@@ -610,38 +610,144 @@ frappe.ui.filter_utils = {
 		return;
 	},
 
+	/**
+	 * Generates timespan options for filter dropdown based on provided periods
+	 * @param {Array<string>} periods - Array of period types to include
+	 *     (e.g., "Last", "This", "Next", "Yesterday", "Today", "Tomorrow").
+	 *     Additional custom values are allowed. The order of the periods is preserved.
+	 * @returns {Array<{label: string, value: string}>} Array of option objects with label and value properties for the filter dropdown
+	 */
 	get_timespan_options(periods) {
-		const period_map = {
-			Last: [
-				"7 Days",
-				"14 Days",
-				"30 Days",
-				"90 Days",
-				"Week",
-				"Month",
-				"Quarter",
-				"6 months",
-				"Year",
-			],
-			This: ["Week", "Month", "Quarter", "Year"],
-			Next: ["7 Days", "14 Days", "30 Days", "Week", "Month", "Quarter", "6 months", "Year"],
-		};
-		let options = [];
-		periods.forEach((period) => {
-			if (period_map[period]) {
-				period_map[period].forEach((p) => {
+		const last_options = [
+			{
+				label: __("Last 7 Days"),
+				value: "last 7 days",
+			},
+			{
+				label: __("Last 14 Days"),
+				value: "last 14 days",
+			},
+			{
+				label: __("Last 30 Days"),
+				value: "last 30 days",
+			},
+			{
+				label: __("Last 90 Days"),
+				value: "last 90 days",
+			},
+			{
+				label: __("Last Week"),
+				value: "last week",
+			},
+			{
+				label: __("Last Month"),
+				value: "last month",
+			},
+			{
+				label: __("Last Quarter"),
+				value: "last quarter",
+			},
+			{
+				label: __("Last 6 Months"),
+				value: "last 6 months",
+			},
+			{
+				label: __("Last Year"),
+				value: "last year",
+			},
+		];
+		const this_options = [
+			{
+				label: __("This Week"),
+				value: "this week",
+			},
+			{
+				label: __("This Month"),
+				value: "this month",
+			},
+			{
+				label: __("This Quarter"),
+				value: "this quarter",
+			},
+			{
+				label: __("This Year"),
+				value: "this year",
+			},
+		];
+		const next_options = [
+			{
+				label: __("Next 7 Days"),
+				value: "next 7 days",
+			},
+			{
+				label: __("Next 14 Days"),
+				value: "next 14 days",
+			},
+			{
+				label: __("Next 30 Days"),
+				value: "next 30 days",
+			},
+			{
+				label: __("Next Week"),
+				value: "next week",
+			},
+			{
+				label: __("Next Month"),
+				value: "next month",
+			},
+			{
+				label: __("Next Quarter"),
+				value: "next quarter",
+			},
+			{
+				label: __("Next 6 Months"),
+				value: "next 6 months",
+			},
+			{
+				label: __("Next Year"),
+				value: "next year",
+			},
+		];
+
+		const options = [];
+		for (const period of periods) {
+			switch (period) {
+				case "Last":
+					options.push(...last_options);
+					break;
+				case "This":
+					options.push(...this_options);
+					break;
+				case "Next":
+					options.push(...next_options);
+					break;
+				case "Yesterday":
 					options.push({
-						label: `${period} ${p}`,
-						value: `${period.toLowerCase()} ${p.toLowerCase()}`,
+						label: __("Yesterday"),
+						value: "yesterday",
 					});
-				});
-			} else {
-				options.push({
-					label: __(period),
-					value: `${period.toLowerCase()}`,
-				});
+					break;
+				case "Today":
+					options.push({
+						label: __("Today"),
+						value: "today",
+					});
+					break;
+				case "Tomorrow":
+					options.push({
+						label: __("Tomorrow"),
+						value: "tomorrow",
+					});
+					break;
+				default:
+					options.push({
+						label: __(period),
+						value: `${period.toLowerCase()}`,
+					});
+					break;
 			}
-		});
+		}
+
 		return options;
 	},
 };
