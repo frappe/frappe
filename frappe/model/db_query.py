@@ -852,18 +852,8 @@ from {tables}
 					can_be_null = False
 				elif f.value == "not set":
 					f.operator = "="
-<<<<<<< HEAD
-					fallback = "''"
-					can_be_null = True
 
-				value = ""
-
-				if can_be_null and "ifnull" not in column_name.lower():
-					column_name = f"ifnull({column_name}, {fallback})"
-=======
-					can_be_null = not getattr(df, "not_nullable", False)
 				f.value = value = ""
->>>>>>> dbb1fcba99 (perf: avoid ifnull for `is set` and `is not set`)
 
 			elif df and df.fieldtype == "Date":
 				value = frappe.db.format_date(f.value)
