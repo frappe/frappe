@@ -548,33 +548,32 @@ class TestDocType(IntegrationTestCase):
 
 	def test_create_virtual_doctype_as_child_table(self):
 		"""Test virtual DocType as Child Table below a normal DocType."""
-		frappe.delete_doc_if_exists("DocType", "Test Parent Virtual DocType", force=1)
+		frappe.delete_doc_if_exists("DocType", "Test Parent DocType", force=1)
 		frappe.delete_doc_if_exists("DocType", "Test Virtual DocType as Child Table", force=1)
 
-		virtual_doc = new_doctype("Test Virtual DocType as Child Table")
+		parent_doc = new_doctype("Test Parent DocType")
+		parent_doc.insert(ignore_permissions=True)
+		self.assertTrue(frappe.db.table_exists("Test Parent DocType"))
+
+		virtual_doc = new_doctype(
+			"Test Virtual DocType as Child Table",
+			parent_doc=parent_doc,
+			parentfield="virtual_children",
+		)
 		virtual_doc.is_virtual = 1
 		virtual_doc.istable = 1
 		virtual_doc.insert(ignore_permissions=True)
 
-		doc = frappe.get_doc("DocType", "Test Virtual DocType as Child Table")
+		child_doc = frappe.get_doc("DocType", "Test Virtual DocType as Child Table")
 
-		self.assertEqual(doc.is_virtual, 1)
-		self.assertEqual(doc.istable, 1)
+		self.assertEqual(child_doc.is_virtual, 1)
+		self.assertEqual(child_doc.istable, 1)
 		self.assertFalse(frappe.db.table_exists("Test Virtual DocType as Child Table"))
 
-		parent_doc = new_doctype("Test Parent Virtual DocType")
-		parent_doc.append(
-			"fields",
-			{
-				"fieldname": "virtual_child_table",
-				"fieldtype": "Table",
-				"options": "Test Virtual DocType as Child Table",
-			},
-		)
-		self.assertRaises(frappe.exceptions.ValidationError, parent_doc.insert)
-		parent_doc.is_virtual = 1
-		parent_doc.insert(ignore_permissions=True)
-		self.assertFalse(frappe.db.table_exists("Test Parent Virtual DocType"))
+		parent_doc = frappe.get_doc("DocType", "Test Parent DocType")
+		parent_doc.append("virtual_children", virtual_doc)
+		parent_doc.save()
+		self.assertEqual(len(parent_doc.virtual_children), 1)
 
 	def test_default_fieldname(self):
 		fields = [
