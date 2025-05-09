@@ -519,18 +519,35 @@ class FormTimeline extends BaseTimeline {
 
 	setup_reply(communication_box, communication_doc) {
 		let actions = communication_box.find(".custom-actions");
-		let reply = $(`<a class="action-btn reply">${frappe.utils.icon("reply", "md")}</a>`).click(
-			() => {
-				this.compose_mail(communication_doc);
-			}
-		);
+		let icon_size = frappe.is_mobile() ? "sm" : "md";
+		let reply = $(
+			`<a class="action-btn reply">${frappe.utils.icon("reply", icon_size)}</a>`
+		).click(() => {
+			this.compose_mail(communication_doc);
+		});
 		let reply_all = $(
-			`<a class="action-btn reply-all">${frappe.utils.icon("reply-all", "md")}</a>`
+			`<a class="action-btn reply-all">${frappe.utils.icon("reply-all", icon_size)}</a>`
 		).click(() => {
 			this.compose_mail(communication_doc, true);
 		});
-		actions.append(reply);
-		actions.append(reply_all);
+		if (frappe.is_mobile()) {
+			let more_actions = communication_box.find(".more-actions > .dropdown-menu > li");
+			let menu_items = [reply, reply_all];
+			menu_items.forEach((m) => {
+				let action_name = m[0].classList[1];
+				let formatted_action_name =
+					String(action_name).charAt(0).toUpperCase() + String(action_name).slice(1);
+				m.append(
+					__(`  ${frappe.utils.to_title_case(formatted_action_name.replace("-", " "))}`)
+				);
+				m.removeClass();
+				m.addClass("dropdown-item");
+				more_actions.append(m);
+			});
+		} else {
+			actions.append(reply);
+			actions.append(reply_all);
+		}
 	}
 
 	compose_mail(communication_doc = null, reply_all = false) {
@@ -664,6 +681,7 @@ class FormTimeline extends BaseTimeline {
 		let actions_wrapper = comment_wrapper.find(".custom-actions");
 		actions_wrapper.append(edit_button);
 		actions_wrapper.append(dismiss_button);
+		this.setup_mobile_actions(comment_wrapper);
 	}
 
 	make_editable(container) {

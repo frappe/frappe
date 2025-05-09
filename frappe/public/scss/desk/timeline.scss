@@ -179,3 +179,15 @@ $threshold: 34;
 		}
 	}
 }
+
+@include media-breakpoint-down(sm) {
+	.new-timeline {
+		.timeline-item {
+			margin-left: 0px;
+		}
+	}
+	.up {
+		position: relative;
+		bottom: 1px;
+	}
+}
