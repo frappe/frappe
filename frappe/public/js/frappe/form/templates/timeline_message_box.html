@@ -69,7 +69,7 @@
 			</span>
 			{% } %}
 
-			{% if (doc._url) { %}
+			{% if (doc._url && !frappe.is_mobile()) { %}
 			<a class="action-btn" href="{{ doc._url }}" title="{{ __("Open Communication") }}">
 				<svg class="icon">
 					<use href="#icon-link-url"></use>
@@ -84,9 +84,23 @@
 						<use href="#icon-dot-horizontal"></use>
 					</svg>
 				</a>
+
 				<ul class="dropdown-menu small">
 					<li>
-						<a class="dropdown-item" data-action="copy_link">{{ __('Copy Link') }}</a>
+						<a class="dropdown-item" data-action="copy_link">
+							<svg class="icon icon-sm">
+								<use href="#icon-copy"></use>
+							</svg>
+							{{ __('Copy Link') }}
+						</a>
+						{% if (frappe.is_mobile()) { %}
+						<a class="dropdown-item" href="{{ doc._url }}" title="{{ __("Open Communication") }}">
+							<svg class="icon icon-sm">
+								<use href="#icon-paperclip"></use>
+							</svg>
+							{{  __("Open Communication") }}
+						</a>
+						{% } %}
 					</li>
 				</ul>
 			</div>
