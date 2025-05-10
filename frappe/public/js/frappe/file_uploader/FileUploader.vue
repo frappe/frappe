@@ -13,7 +13,7 @@
 				<div class="text-center">
 					{{ __("Drag and drop files here or upload from") }}
 				</div>
-				<div class="mt-2 text-center">
+				<div class="mt-3 text-center">
 					<button class="btn btn-file-upload" @click="browse_files">
 						<svg
 							width="30"
@@ -164,7 +164,7 @@
 						<div class="mt-1">{{ __("Google Drive") }}</div>
 					</button>
 				</div>
-				<div class="text-muted text-medium text-center">
+				<div class="mt-3 text-center" v-if="upload_notes">
 					{{ upload_notes }}
 				</div>
 			</div>
