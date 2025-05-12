@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-04-27 09:33+0000\n"
-"PO-Revision-Date: 2025-04-29 23:55\n"
+"PO-Revision-Date: 2025-05-12 05:22\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -23583,7 +23583,7 @@ msgstr "Ange Egenskaper"
 #. 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Set Property After Alert"
-msgstr "Ange Egenskap efter Alert"
+msgstr "Ange Egenskap efter Avisering"
 
 #: frappe/public/js/frappe/form/link_selector.js:207
 #: frappe/public/js/frappe/form/link_selector.js:208
