@@ -1,3 +1,9 @@
+<p>
+	<button class="btn btn-xs btn-default btn-address">
+		{{ __("New Address") }}
+	</button>
+</p>
+
 <div class="clearfix"></div>
 {% for (const addr of addr_list) { %}
 	<div class="address-box">
@@ -37,8 +43,3 @@
 	<p class="text-muted small">{%= __("No address added yet.") %}</p>
 {% } %}
 
-<p>
-	<button class="btn btn-xs btn-default btn-address">
-		{{ __("New Address") }}
-	</button>
-</p>

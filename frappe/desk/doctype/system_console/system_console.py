@@ -61,6 +61,9 @@ def show_processlist():
 
 
 def _show_processlist():
+	if frappe.db.db_type == "sqlite":
+		return []
+
 	return frappe.db.multisql(
 		{
 			"postgres": """

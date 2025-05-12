@@ -25,7 +25,8 @@ class MariaDBExceptionUtil:
 
 	@staticmethod
 	def is_deadlocked(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.LOCK_DEADLOCK
+		# Snapshot isolation is also treated as deadlock from User POV
+		return e.args[0] in (ER.LOCK_DEADLOCK, ER.CHECKREAD)
 
 	@staticmethod
 	def is_timedout(e: pymysql.Error) -> bool:

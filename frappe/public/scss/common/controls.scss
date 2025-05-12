@@ -159,7 +159,6 @@ select.form-control {
 		margin-bottom: var(--margin-sm);
 		border: 1px solid var(--border-color);
 		border-radius: var(--border-radius);
-		@include get_textstyle("sm", "regular");
 		word-wrap: break-word;
 		position: relative;
 		p:last-child {

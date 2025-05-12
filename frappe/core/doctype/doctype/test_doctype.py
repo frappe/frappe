@@ -4,6 +4,7 @@ import os
 import random
 import string
 import unittest
+from unittest.case import skipIf
 from unittest.mock import patch
 
 import frappe
@@ -56,6 +57,10 @@ class TestDocType(IntegrationTestCase):
 			doc = new_doctype(name).insert()
 			doc.delete()
 
+	@skipIf(
+		frappe.conf.db_type == "sqlite",
+		"Not for SQLite for now",
+	)
 	def test_making_sequence_on_change(self):
 		frappe.delete_doc_if_exists("DocType", self._testMethodName)
 		dt = new_doctype(self._testMethodName).insert(ignore_permissions=True)

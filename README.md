@@ -116,13 +116,14 @@ To setup the repository locally follow the steps mentioned below:
 1. [Frappe School](https://frappe.school) - Learn Frappe Framework and ERPNext from the various courses by the maintainers or from the community.
 2. [Official documentation](https://docs.frappe.io/framework) - Extensive documentation for Frappe Framework.
 3. [Discussion Forum](https://discuss.frappe.io/) - Engage with community of Frappe Framework users and service providers.
-4. [buildwithhussain.dev](https://buildwithhussain.dev) - Watch Frappe Framework being used in the wild to build world-class web apps.
+4. [buildwithhussain.com](https://buildwithhussain.com) - Watch Frappe Framework being used in the wild to build world-class web apps.
 
 ## Contributing
 
 1. [Issue Guidelines](https://github.com/frappe/erpnext/wiki/Issue-Guidelines)
 1. [Report Security Vulnerabilities](https://frappe.io/security)
 1. [Pull Request Requirements](https://github.com/frappe/erpnext/wiki/Contribution-Guidelines)
+2. [Translations](https://crowdin.com/project/frappe)
 
 <br>
 <br>

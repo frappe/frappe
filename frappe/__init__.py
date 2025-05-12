@@ -69,9 +69,10 @@ if TYPE_CHECKING:  # pragma: no cover
 	from frappe.database.mariadb.database import MariaDBDatabase as PyMariaDBDatabase
 	from frappe.database.mariadb.mysqlclient import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
+	from frappe.database.sqlite.database import SQLiteDatabase
 	from frappe.email.doctype.email_queue.email_queue import EmailQueue
 	from frappe.model.document import Document
-	from frappe.query_builder.builder import MariaDB, Postgres
+	from frappe.query_builder.builder import MariaDB, Postgres, SQLite
 	from frappe.types.lazytranslatedstring import _LazyTranslate
 	from frappe.utils.redis_wrapper import ClientCache, RedisWrapper
 
@@ -161,8 +162,10 @@ ResponseDict: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
 FlagsDict: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
 FormDict: TypeAlias = _dict[str, str]
 
-db: LocalProxy[Union["PyMariaDBDatabase", "MariaDBDatabase", "PostgresDatabase"]] = local("db")
-qb: LocalProxy[Union["MariaDB", "Postgres"]] = local("qb")
+db: LocalProxy[Union["PyMariaDBDatabase", "MariaDBDatabase", "PostgresDatabase", "SQLiteDatabase"]] = local(
+	"db"
+)
+qb: LocalProxy[Union["MariaDB", "Postgres", "SQLite"]] = local("qb")
 conf: LocalProxy[ConfType] = local("conf")
 form_dict: LocalProxy[FormDict] = local("form_dict")
 form = form_dict
@@ -182,7 +185,7 @@ lang: LocalProxy[str] = local("lang")
 if TYPE_CHECKING:  # pragma: no cover
 	# trick because some type checkers fail to follow "RedisWrapper", etc (written as string literal)
 	# trough a generic wrapper; seems to be a bug
-	db: PyMariaDBDatabase | MariaDBDatabase | PostgresDatabase
+	db: PyMariaDBDatabase | MariaDBDatabase | PostgresDatabase | SQLiteDatabase
 	qb: MariaDB | Postgres
 	conf: ConfType
 	form_dict: FormDict
@@ -304,9 +307,11 @@ def connect(site: str | None = None, db_name: str | None = None, set_admin_as_us
 	db_name_ = conf.db_name or db_name
 	db_password = conf.db_password
 
-	assert db_user, "site must be fully initialized, db_user missing"
 	assert db_name_, "site must be fully initialized, db_name missing"
-	assert db_password, "site must be fully initialized, db_password missing"
+
+	if frappe.conf.db_type in ("mariadb", "postgres"):
+		assert db_user, "site must be fully initialized, db_user missing"
+		assert db_password, "site must be fully initialized, db_password missing"
 
 	local.db = get_db(
 		socket=conf.db_socket,
@@ -347,6 +352,9 @@ def connect_replica() -> bool:
 	# swap db connections
 	local.primary_db = local.db
 	local.db = local.replica_db
+
+	if hasattr(frappe.local, "_recorder"):
+		frappe.local._recorder._patch_sql(local.db)
 
 	return True
 
@@ -507,6 +515,7 @@ def sendmail(
 	print_letterhead=False,
 	with_container=False,
 	email_read_tracker_url=None,
+	x_priority: Literal[1, 3, 5] = 3,
 ) -> Optional["EmailQueue"]:
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
@@ -534,6 +543,7 @@ def sendmail(
 	:param args: Arguments for rendering the template
 	:param header: Append header in email
 	:param with_container: Wraps email inside a styled container
+	:param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
 	"""
 
 	if recipients is None:
@@ -589,6 +599,7 @@ def sendmail(
 		print_letterhead=print_letterhead,
 		with_container=with_container,
 		email_read_tracker_url=email_read_tracker_url,
+		x_priority=x_priority,
 	)
 
 	# build email queue and send the email if send_now is True.

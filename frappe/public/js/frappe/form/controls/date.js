@@ -77,6 +77,17 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 
 				this.update_datepicker_position();
 			},
+			onRenderCell: (date, cellType) => {
+				if (cellType === "day" && this.df.disabled_dates) {
+					const formattedDate = moment(date).format("YYYY-MM-DD");
+					if (this.df.disabled_dates.includes(formattedDate)) {
+						return {
+							disabled: true,
+							classes: "disabled",
+						};
+					}
+				}
+			},
 			...this.get_df_options(),
 		};
 	}

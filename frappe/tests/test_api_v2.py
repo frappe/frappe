@@ -33,6 +33,7 @@ class TestResourceAPIV2(FrappeAPITestCase):
 
 	@classmethod
 	def tearDownClass(cls):
+		frappe.db.commit()
 		for name in cls.GENERATED_DOCUMENTS:
 			frappe.delete_doc_if_exists(cls.DOCTYPE, name)
 		frappe.db.commit()

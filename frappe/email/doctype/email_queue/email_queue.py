@@ -1,12 +1,15 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from __future__ import annotations
+
 import json
 import quopri
 import traceback
 from contextlib import suppress
 from email.parser import Parser
 from email.policy import SMTP
+from typing import TYPE_CHECKING
 
 import frappe
 from frappe import _, safe_encode, task
@@ -33,6 +36,9 @@ from frappe.utils import (
 	split_emails,
 )
 from frappe.utils.verified_command import get_signed_params
+
+if TYPE_CHECKING:
+	from typing import Literal
 
 
 class EmailQueue(Document):
@@ -88,7 +94,7 @@ class EmailQueue(Document):
 		return duplicate
 
 	@classmethod
-	def new(cls, doc_data, ignore_permissions=False) -> "EmailQueue":
+	def new(cls, doc_data, ignore_permissions=False) -> EmailQueue:
 		data = doc_data.copy()
 		if not data.get("recipients"):
 			return
@@ -104,7 +110,7 @@ class EmailQueue(Document):
 		return doc
 
 	@classmethod
-	def find(cls, name) -> "EmailQueue":
+	def find(cls, name) -> EmailQueue:
 		return frappe.get_doc(cls.DOCTYPE, name)
 
 	@classmethod
@@ -156,9 +162,14 @@ class EmailQueue(Document):
 
 		return True
 
-	def send(self, smtp_server_instance: SMTPServer = None, frappe_mail_client: FrappeMail = None):
+	def send(
+		self,
+		smtp_server_instance: SMTPServer = None,
+		frappe_mail_client: FrappeMail = None,
+		force_send: bool = False,
+	):
 		"""Send emails to recipients."""
-		if not self.can_send_now():
+		if not self.can_send_now() and not force_send:
 			return
 
 		with SendMailContext(self, smtp_server_instance, frappe_mail_client) as ctx:
@@ -444,11 +455,11 @@ def retry_sending(queues: str | list[str]):
 
 
 @frappe.whitelist()
-def send_now(name):
+def send_now(name, force_send: bool = False):
 	record = EmailQueue.find(name)
 	if record:
 		record.check_permission()
-		record.send()
+		record.send(force_send=force_send)
 
 
 @frappe.whitelist()
@@ -502,6 +513,7 @@ class QueueBuilder:
 		print_letterhead=False,
 		with_container=False,
 		email_read_tracker_url=None,
+		x_priority: Literal[1, 3, 5] = 3,
 	):
 		"""Add email to sending queue (Email Queue)
 
@@ -527,6 +539,7 @@ class QueueBuilder:
 		:param header: Append header in email (boolean)
 		:param with_container: Wraps email inside styled container
 		:param email_read_tracker_url: A URL for tracking whether an email is read by the recipient.
+		:param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
 		"""
 
 		self._unsubscribe_method = unsubscribe_method
@@ -537,6 +550,7 @@ class QueueBuilder:
 		self._sender = sender
 		self._text_content = text_content
 		self._message = message
+		self._x_priority: Literal[1, 3, 5] = x_priority
 		self._add_unsubscribe_link = add_unsubscribe_link
 		self._unsubscribe_message = unsubscribe_message
 		self._attachments = attachments
@@ -710,6 +724,7 @@ class QueueBuilder:
 			expose_recipients=self.expose_recipients,
 			inline_images=self.inline_images,
 			header=self.header,
+			x_priority=self._x_priority,
 		)
 
 		mail.set_message_id(self.message_id, self.is_notification)

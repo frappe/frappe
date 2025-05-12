@@ -44,7 +44,7 @@ jobs:
     name: Tests
     uses: ./.github/workflows/_base-server-tests.yml
     with:
-      enable-postgres: true  # This will test against both MariaDB and PostgreSQL
+      enable-sqlite: false  # This will test against both MariaDB and SQLite if enabled
       parallel-runs: 2
       enable-coverage: ${{ github.event_name != 'pull_request' }}
       fake-success: ${{ needs.checkrun.outputs.build != 'strawberry' }}
@@ -58,7 +58,7 @@ jobs:
     with:
       db-artifact-url: https://frappeframework.com/files/v13-frappe.sql.gz
       python-version: '3.10'
-      node-version: 20
+      node-version: 22
       fake-success: ${{ needs.checkrun.outputs.build != 'strawberry' }}
 
   coverage:
@@ -70,7 +70,7 @@ jobs:
       - name: Clone
         uses: actions/checkout@v4
       - name: Download artifacts
-        uses: actions/download-artifact@v4.2.1
+        uses: actions/download-artifact@v4.3.0
       - name: Upload coverage data
         uses: codecov/codecov-action@v5
         with:

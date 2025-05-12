@@ -222,7 +222,10 @@ export default class NumberCardWidget extends Widget {
 		let number_parts = shortened_number.split(" ");
 		// done to add multicurrency support in number card
 		if (this.card_doc.currency) {
-			this.formatted_number = format_currency(number_parts[0], this.card_doc.currency);
+			this.formatted_number =
+				format_currency(number_parts[0], this.card_doc.currency) +
+				" " +
+				__(number_parts[1]);
 			return;
 		}
 		const symbol = number_parts[1] || "";

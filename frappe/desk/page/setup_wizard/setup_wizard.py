@@ -55,10 +55,32 @@ def setup_complete(args):
 	is_background_task = frappe.conf.get("trigger_site_setup_in_background")
 
 	if is_background_task:
-		process_setup_stages.enqueue(stages=stages, user_input=args, is_background_task=True)
+		process_setup_stages.enqueue(stages=stages, user_input=args, is_background_task=True, at_front=True)
 		return {"status": "registered"}
 	else:
 		return process_setup_stages(stages, args)
+
+
+@frappe.whitelist()
+def initialize_system_settings_and_user(system_settings_data, user_data):
+	system_settings = frappe.get_single("System Settings")
+
+	if cint(system_settings.setup_complete):
+		return
+
+	system_settings_data = parse_args(sanitize_input(system_settings_data))
+	system_settings.update(
+		{
+			"language": system_settings_data.get("language"),
+			"country": system_settings_data.get("country"),
+			"currency": system_settings_data.get("currency"),
+			"time_zone": system_settings_data.get("time_zone"),
+		}
+	)
+	system_settings.save()
+
+	user_data = parse_args(sanitize_input(user_data))
+	create_or_update_user(user_data)
 
 
 @frappe.task()

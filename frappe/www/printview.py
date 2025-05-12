@@ -72,21 +72,33 @@ def get_context(context) -> PrintContext:
 
 	print_format = get_print_format_doc(None, meta=meta)
 
-	make_access_log(
-		doctype=frappe.form_dict.doctype, document=frappe.form_dict.name, file_type="PDF", method="Print"
-	)
-	body = get_rendered_template(
-		doc,
-		print_format=print_format,
-		meta=meta,
-		trigger_print=frappe.form_dict.trigger_print,
-		no_letterhead=frappe.form_dict.no_letterhead,
-		letterhead=letterhead,
-		settings=settings,
-	)
+	if print_format and print_format.get("print_format_builder_beta"):
+		from frappe.utils.weasyprint import get_html
+
+		body = get_html(
+			doctype=frappe.form_dict.doctype, name=frappe.form_dict.name, print_format=print_format.name
+		)
+		body += trigger_print_script
+	else:
+		body = get_rendered_template(
+			doc,
+			print_format=print_format,
+			meta=meta,
+			trigger_print=frappe.form_dict.trigger_print,
+			no_letterhead=frappe.form_dict.no_letterhead,
+			letterhead=letterhead,
+			settings=settings,
+		)
+
+	# Include selected print format name in access log
+	print_format_name = getattr(print_format, "name", "Standard")
 
 	make_access_log(
-		doctype=frappe.form_dict.doctype, document=frappe.form_dict.name, file_type="PDF", method="Print"
+		doctype=frappe.form_dict.doctype,
+		document=frappe.form_dict.name,
+		file_type="PDF",
+		method="Print",
+		page=f"Print Format: {print_format_name}",
 	)
 
 	return {
@@ -99,7 +111,7 @@ def get_context(context) -> PrintContext:
 		"doctype": frappe.form_dict.doctype,
 		"name": frappe.form_dict.name,
 		"key": frappe.form_dict.get("key"),
-		"print_format": getattr(print_format, "name", None),
+		"print_format": print_format_name,
 		"letterhead": letterhead,
 		"no_letterhead": frappe.form_dict.no_letterhead,
 		"pdf_generator": frappe.form_dict.get("pdf_generator", "wkhtmltopdf"),
@@ -616,7 +628,11 @@ def get_print_style(
 def get_font(
 	print_settings: "PrintSettings", print_format: Optional["PrintFormat"] = None, for_legacy=False
 ) -> str:
-	default = "var(--font-stack)"
+	default = """
+	"InterVariable", "Inter", -apple-system", "BlinkMacSystemFont",
+		"Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+		"Helvetica Neue", sans-serif;
+	"""
 	if for_legacy:
 		return default
 

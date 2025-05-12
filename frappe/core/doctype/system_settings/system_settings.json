@@ -278,7 +278,7 @@
   },
   {
    "default": "1",
-   "description": "If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 2 being medium strong and 4 being very strong.",
+   "description": "If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 1 being very weak and 4 being very strong.",
    "fieldname": "enable_password_policy",
    "fieldtype": "Check",
    "label": "Enable Password Policy"
@@ -289,7 +289,7 @@
    "fieldname": "minimum_password_score",
    "fieldtype": "Select",
    "label": "Minimum Password Score",
-   "options": "2\n3\n4"
+   "options": "1\n2\n3\n4"
   },
   {
    "fieldname": "brute_force_security",
@@ -704,7 +704,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2025-02-21 20:06:55.499937",
+ "modified": "2025-04-15 14:12:11.443610",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

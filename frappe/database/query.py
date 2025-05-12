@@ -56,6 +56,7 @@ class Engine:
 
 		self.is_mariadb = db_type == "mariadb"
 		self.is_postgres = db_type == "postgres"
+		self.is_sqlite = db_type == "sqlite"
 		self.validate_filters = validate_filters
 
 		if isinstance(table, Table):

@@ -1,6 +1,7 @@
 from datetime import datetime, time, timedelta
 from typing import Any
 
+from pypika.dialects import SQLLiteValueWrapper
 from pypika.queries import QueryBuilder
 from pypika.terms import Criterion, Function, ValueWrapper
 from pypika.utils import format_alias_sql
@@ -69,6 +70,10 @@ class ParameterizedValueWrapper(ValueWrapper):
 				**kwargs,
 			)
 		return format_alias_sql(sql, self.alias, quote_char=quote_char, **kwargs)
+
+
+class SQLiteParameterizedValueWrapper(ParameterizedValueWrapper, SQLLiteValueWrapper):
+	pass
 
 
 class ParameterizedFunction(Function):

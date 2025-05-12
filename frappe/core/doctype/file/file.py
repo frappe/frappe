@@ -155,7 +155,7 @@ class File(Document):
 		self.validate_protected_file()
 		self._delete_file_on_disk()
 		if not self.is_folder:
-			self.add_comment_in_reference_doc("Attachment Removed", _("Removed {0}").format(self.file_name))
+			self.add_comment_in_reference_doc("Attachment Removed", self.file_name)
 
 	def on_rollback(self):
 		rollback_flags = ("new_file", "original_content", "original_path")
@@ -767,7 +767,7 @@ class File(Document):
 
 		self.add_comment_in_reference_doc(
 			"Attachment",
-			_("Added {0}").format(f"<a href='{file_url}' target='_blank'>{file_name}</a>{icon}"),
+			f"<a href='{file_url}' target='_blank'>{file_name}</a>{icon}",
 		)
 
 	def add_comment_in_reference_doc(self, comment_type, text):

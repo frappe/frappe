@@ -18,7 +18,7 @@ from frappe.utils import add_to_date, now
 from frappe.utils.background_jobs import enqueue
 
 # If prepared report runs for longer than this time it's automatically considered as failed
-FAILURE_THRESHOLD = 60 * 60
+FAILURE_THRESHOLD = 6 * 60 * 60
 REPORT_TIMEOUT = 25 * 60
 
 
@@ -80,6 +80,7 @@ class PreparedReport(Document):
 			prepared_report=self.name,
 			timeout=timeout or REPORT_TIMEOUT,
 			enqueue_after_commit=True,
+			at_front_when_starved=True,
 		)
 
 	def get_prepared_data(self, with_file_name=False):

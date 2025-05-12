@@ -159,6 +159,7 @@ frappe.request.call = function (opts) {
 					title: __("Not permitted"),
 					indicator: "red",
 					message: xhr.responseJSON._error_message,
+					re_route: true,
 				});
 
 				xhr.responseJSON._server_messages = null;
@@ -250,7 +251,9 @@ frappe.request.call = function (opts) {
 			frappe.msgprint({
 				title: __("Deadlock Occurred"),
 				indicator: "red",
-				message: __("Server was too busy to process this request. Please try again."),
+				message: __(
+					"Server failed to process this request because of a concurrent conflicting request. Please try again."
+				),
 			});
 		},
 	};

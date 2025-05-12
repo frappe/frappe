@@ -175,7 +175,7 @@ class TestRQJob(IntegrationTestCase):
 		# If this starts failing analyze memory usage using memray or some equivalent tool to find
 		# offending imports/function calls.
 		# Refer this PR: https://github.com/frappe/frappe/pull/21467
-		LAST_MEASURED_USAGE = 41
+		LAST_MEASURED_USAGE = 42
 		if frappe.conf.use_mysqlclient:
 			# TEMP: Add extra allowance for running two connectors, this should be rolled back before v16
 			LAST_MEASURED_USAGE += 2

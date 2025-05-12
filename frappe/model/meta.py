@@ -19,8 +19,6 @@ import json
 import os
 import typing
 from datetime import datetime
-from functools import cached_property, singledispatchmethod
-from types import NoneType
 
 import click
 
@@ -43,7 +41,7 @@ from frappe.model.document import Document
 from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
 from frappe.types import DocRef
-from frappe.utils import cast, cint, cstr
+from frappe.utils import cached_property, cast, cint, cstr
 from frappe.utils.data import add_to_date, get_datetime
 
 DEFAULT_FIELD_LABELS = {
@@ -67,24 +65,22 @@ LARGE_TABLE_SIZE_THRESHOLD = 100_000
 LARGE_TABLE_RECENCY_THRESHOLD = 30  # days
 
 
-def get_meta(doctype: str | dict | DocRef, cached=True) -> "_Meta":
+def get_meta(doctype: "str | DocType", cached: bool = True) -> "_Meta":
 	"""Get metadata for a doctype.
 
 	Args:
-	    doctype: The doctype as a string, dict, DocRef (also: Document) object.
+	    doctype: The doctype as a string object.
 	    cached: Whether to use cached metadata (default: True).
 
 	Returns:
 	    Meta object for the given doctype.
 	"""
-	if cached and (
-		doctype_name := getattr(doctype, "doctype", doctype)
-		if not isinstance(doctype, dict)
-		else doctype.get("doctype")
+	if (
+		cached
+		and isinstance(doctype, str)
+		and (meta := frappe.client_cache.get_value(f"doctype_meta::{doctype}"))
 	):
-		key = f"doctype_meta::{doctype_name}"
-		if meta := frappe.client_cache.get_value(key):
-			return meta
+		return meta
 
 	meta = Meta(doctype)
 	key = f"doctype_meta::{meta.name}"
@@ -145,28 +141,12 @@ class Meta(Document):
 		frappe._dict(fieldname="owner", fieldtype="Data"),
 	)
 
-	@singledispatchmethod
-	def __init__(self, arg, bootstrap: Document = None):
-		raise TypeError(f"Unsupported argument type: {type(arg)}")
+	def __init__(self, doctype: "str | DocType"):
+		if isinstance(doctype, Document):
+			super().__init__(doctype.as_dict())
+		else:
+			super().__init__("DocType", doctype)
 
-	@__init__.register(str)
-	def _(self, doctype):
-		super().__init__("DocType", doctype)
-		self.process()
-
-	@__init__.register(DocRef)
-	def _(self, doc_ref):
-		super().__init__("DocType", doc_ref.doctype)
-		self.process()
-
-	@__init__.register(dict)
-	def _(self, doc_ref):
-		super().__init__("DocType", doc_ref.get("doctype"))
-		self.process()
-
-	@__init__.register(NoneType)
-	def _(self, _args, bootstrap):
-		super().__init__(bootstrap.as_dict())
 		self.process()
 
 	def load_from_db(self):

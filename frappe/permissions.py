@@ -398,7 +398,7 @@ def has_user_permission(doc, user=None, debug=False):
 					msg = _(
 						"You are not allowed to access this {0} record because it is linked to {1} '{2}' in row {3}, field {4}"
 					).format(
-						_(meta.doctype),
+						_(meta.name),
 						_(field.options),
 						d.get(field.fieldname) or _("empty"),
 						d.idx,
@@ -409,7 +409,7 @@ def has_user_permission(doc, user=None, debug=False):
 					msg = _(
 						"You are not allowed to access this {0} record because it is linked to {1} '{2}' in field {3}"
 					).format(
-						_(meta.doctype),
+						_(meta.name),
 						_(field.options),
 						d.get(field.fieldname) or _("empty"),
 						_(field.label, context=field.parent) if field.label else field.fieldname,

@@ -78,20 +78,22 @@ def _get_site_config(sites_path: str, site_path: str) -> _dict[str, Any]:
 		os.environ.get("FRAPPE_REDIS_CACHE") or config.get("redis_cache") or "redis://127.0.0.1:13311"
 	)
 	config["db_type"] = os.environ.get("FRAPPE_DB_TYPE") or config.get("db_type") or "mariadb"
-	config["db_socket"] = os.environ.get("FRAPPE_DB_SOCKET") or config.get("db_socket")
-	config["db_host"] = os.environ.get("FRAPPE_DB_HOST") or config.get("db_host") or "127.0.0.1"
-	config["db_port"] = int(
-		os.environ.get("FRAPPE_DB_PORT") or config.get("db_port") or db_default_ports(config["db_type"])
-	)
 
-	# Set the user as database name if not set in config
-	config["db_user"] = os.environ.get("FRAPPE_DB_USER") or config.get("db_user") or config.get("db_name")
+	if config["db_type"] in ("mariadb", "postgres"):
+		config["db_socket"] = os.environ.get("FRAPPE_DB_SOCKET") or config.get("db_socket")
+		config["db_host"] = os.environ.get("FRAPPE_DB_HOST") or config.get("db_host") or "127.0.0.1"
+		config["db_port"] = int(
+			os.environ.get("FRAPPE_DB_PORT") or config.get("db_port") or db_default_ports(config["db_type"])
+		)
+
+		# Set the user as database name if not set in config
+		config["db_user"] = os.environ.get("FRAPPE_DB_USER") or config.get("db_user") or config.get("db_name")
+
+		# read password
+		config["db_password"] = os.environ.get("FRAPPE_DB_PASSWORD") or config.get("db_password")
 
 	# vice versa for dbname if not defined
 	config["db_name"] = os.environ.get("FRAPPE_DB_NAME") or config.get("db_name") or config["db_user"]
-
-	# read password
-	config["db_password"] = os.environ.get("FRAPPE_DB_PASSWORD") or config.get("db_password")
 
 	# Allow externally extending the config with hooks
 	if extra_config := config.get("extra_config"):

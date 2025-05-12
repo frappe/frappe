@@ -38,7 +38,7 @@ LOCATE_CAST_PATTERN = re.compile(r"locate\(([^,]+),\s*([`\"]?name[`\"]?)\s*\)", 
 FUNC_IFNULL_PATTERN = re.compile(r"(strpos|ifnull|coalesce)\(\s*[`\"]?name[`\"]?\s*,", flags=re.IGNORECASE)
 CAST_VARCHAR_PATTERN = re.compile(r"([`\"]?tab[\w`\" -]+\.[`\"]?name[`\"]?)(?!\w)", flags=re.IGNORECASE)
 ORDER_BY_PATTERN = re.compile(r"\ order\ by\ |\ asc|\ ASC|\ desc|\ DESC", flags=re.IGNORECASE)
-SUB_QUERY_PATTERN = re.compile("^.*[,();@].*")
+SUB_QUERY_PATTERN = re.compile("^.*[,();@].*", flags=re.DOTALL)
 IS_QUERY_PATTERN = re.compile(r"^(select|delete|update|drop|create)\s")
 IS_QUERY_PREDICATE_PATTERN = re.compile(r"\s*[0-9a-zA-z]*\s*( from | group by | order by | where | join )")
 FIELD_QUOTE_PATTERN = re.compile(r"[0-9a-zA-Z]+\s*'")
@@ -241,11 +241,11 @@ class DatabaseQuery:
 			args = self.prepare_select_args(args)
 
 		query = """select {fields}
-			from {tables}
-			{conditions}
-			{group_by}
-			{order_by}
-			{limit}""".format(**args)
+from {tables}
+{conditions}
+{group_by}
+{order_by}
+{limit}""".format(**args)
 
 		return frappe.db.sql(
 			query,
@@ -421,9 +421,11 @@ class DatabaseQuery:
 			lower_field = field.lower().strip()
 
 			if SUB_QUERY_PATTERN.match(field):
-				if lower_field[0] == "(":
-					subquery_token = lower_field[1:].lstrip().split(" ", 1)[0]
-					if subquery_token in blacklisted_keywords:
+				# Check for subquery anywhere in the field, not just at the beginning
+				if "(" in lower_field:
+					location = lower_field.index("(")
+					subquery_token = lower_field[location + 1 :].lstrip().split(" ", 1)[0]
+					if any(keyword in subquery_token for keyword in blacklisted_keywords):
 						_raise_exception()
 
 				function = lower_field.split("(", 1)[0].rstrip()
@@ -839,22 +841,14 @@ class DatabaseQuery:
 				fallback = f"'{FallBackDateTimeStr}'"
 
 			elif f.operator.lower() == "is":
+				fallback = "''"
 				if f.value == "set":
 					f.operator = "!="
-					# Value can technically be null, but comparing with null will always be falsy
-					# Not using coalesce here is faster because indexes can be used.
-					# null != '' -> null ~ falsy
-					# '' != '' -> false
 					can_be_null = False
 				elif f.value == "not set":
 					f.operator = "="
-					fallback = "''"
 					can_be_null = not getattr(df, "not_nullable", False)
-
-				value = ""
-
-				if can_be_null and "ifnull" not in column_name.lower():
-					column_name = f"ifnull({column_name}, {fallback})"
+				f.value = value = ""
 
 			elif df and df.fieldtype == "Date":
 				value = frappe.db.format_date(f.value)
@@ -879,12 +873,20 @@ class DatabaseQuery:
 					# because "like" uses backslash (\) for escaping
 					value = value.replace("\\", "\\\\").replace("%", "%%")
 
-			elif f.operator == "=" and df and df.fieldtype in ["Link", "Data"]:  # TODO: Refactor if possible
-				value = cstr(f.value) or "''"
+			elif f.operator == "=" and df and df.fieldtype in ("Link", "Data", "Dynamic Link"):
+				value = cstr(f.value)
 				fallback = "''"
 
 			elif f.fieldname == "name":
-				value = f.value or "''"
+				value = f.value
+				fallback = "''"
+
+			elif (
+				df
+				and (db_type := cstr(frappe.db.type_map.get(df.fieldtype, " ")[0]))
+				and db_type in ("varchar", "text", "longtext", "smalltext", "json")
+			):
+				value = cstr(f.value)
 				fallback = "''"
 
 			else:
@@ -910,7 +912,15 @@ class DatabaseQuery:
 				f.operator = "ilike"
 			condition = f"{column_name} {f.operator} {value}"
 		else:
-			condition = f"ifnull({column_name}, {fallback}) {f.operator} {value}"
+			# PERF: try to transform ifnull into two conditions, this way query plan can use index
+			# intersection instead of full table scans.
+			if fallback == value and f.operator == "=":
+				condition = f"( {column_name} is NULL OR {column_name} {f.operator} {value} )"
+			elif fallback == value and f.operator == "!=":
+				# NULL != anything is always NULL, so won't match
+				condition = f"{column_name} {f.operator} {value}"
+			else:
+				condition = f"ifnull({column_name}, {fallback}) {f.operator} {value}"
 
 		return condition
 
@@ -1180,8 +1190,7 @@ def cast_name(column: str) -> str:
 	Example:
 	input - "ifnull(`tabBlog Post`.`name`, '')=''"
 	output - "ifnull(cast(`tabBlog Post`.`name` as varchar), '')=''" """
-
-	if frappe.db.db_type == "mariadb":
+	if frappe.db.db_type != "postgres":
 		return column
 
 	kwargs = {"string": column}

@@ -94,7 +94,7 @@ class ToDo(Document):
 				"ToDo",
 				{
 					"reference_type": self.reference_type,
-					"reference_name": self.reference_name,
+					"reference_name": str(self.reference_name),
 					"status": ("not in", ("Cancelled", "Closed")),
 					"allocated_to": ("is", "set"),
 				},
