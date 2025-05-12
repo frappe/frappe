@@ -1,7 +1,7 @@
 frappe.ui.Sidebar = class Sidebar {
 	constructor() {
 		this.items = {};
-		this.child_items = [];
+		this.parent_items = [];
 		this.sidebar_expanded = false;
 
 		if (!frappe.boot.setup_complete) {
@@ -32,30 +32,22 @@ frappe.ui.Sidebar = class Sidebar {
 
 		this.setup_pages();
 		this.apps_switcher.populate_apps_menu();
+		this.handle_outside_click();
 	}
 
 	make_dom() {
 		this.set_default_app();
 		this.wrapper = $(frappe.render_template("sidebar")).prependTo("body");
 
-		this.app_switcher_dropdown = $(
-			frappe.render_template("apps_switcher", {
-				app_logo_url: frappe.boot.app_data[0].app_logo_url,
-				app_title: __(frappe.boot.app_data[0].app_title),
-			})
-		).prependTo(this.wrapper.find(".body-sidebar"));
-
 		this.$sidebar = this.wrapper.find(".sidebar-items");
 
 		this.wrapper.find(".body-sidebar .collapse-sidebar-link").on("click", () => {
-			if (frappe.is_mobile()) this.apps_switcher.app_switcher_menu.toggleClass("hidden");
 			this.toggle_sidebar();
 		});
 
 		this.wrapper.find(".overlay").on("click", () => {
 			this.close_sidebar();
 		});
-
 		this.apps_switcher = new frappe.ui.AppsSwitcher(this);
 		this.apps_switcher.create_app_data_map();
 	}
@@ -116,10 +108,9 @@ frappe.ui.Sidebar = class Sidebar {
 
 		let parent = this.get_sidebar_item(parent_title);
 		if (parent) {
-			let drop_icon = $(parent).find(".drop-icon");
-			let opened = drop_icon.find("use").attr("href") === "#es-line-down";
+			let $drop_icon = $(parent).find(".drop-icon");
 			if ($($(parent).children()[1]).hasClass("hidden")) {
-				$(parent).find(".drop-icon")[0].click();
+				$drop_icon[0].click();
 				if (this.is_nested_item($(parent))) {
 					this.expand_parent_item($(parent));
 				}
@@ -186,7 +177,6 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 		this.set_hover();
 		this.set_sidebar_state();
-		if (!this.sidebar_expanded) this.close_children_item();
 	}
 	set_sidebar_state() {
 		this.sidebar_expanded = true;
@@ -311,7 +301,7 @@ frappe.ui.Sidebar = class Sidebar {
 			let child_container = $item_container.find(".sidebar-child-item");
 			child_container.addClass("hidden");
 			this.prepare_sidebar(child_items, child_container, $item_container);
-			this.child_items.push(child_container);
+			this.parent_items.push($item_container);
 		}
 
 		$item_container.appendTo(container);
@@ -465,6 +455,7 @@ frappe.ui.Sidebar = class Sidebar {
 		this.sidebar_expanded = false;
 		this.expand_sidebar();
 		this.close_children_item();
+		if (frappe.is_mobile()) frappe.app.sidebar.prevent_scroll();
 	}
 	open_sidebar() {
 		this.sidebar_expanded = true;
@@ -473,8 +464,8 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	close_children_item() {
-		this.child_items.forEach((i) => {
-			i.addClass("hidden");
+		this.parent_items.forEach((i) => {
+			if (!$($(i).children()[1]).hasClass("hidden")) $(i).find(".drop-icon").click();
 		});
 	}
 
@@ -488,5 +479,22 @@ frappe.ui.Sidebar = class Sidebar {
 		$(".body-sidebar").css("height", window.innerHeight + "px");
 		$(".overlay").css("height", window.innerHeight + "px");
 		document.body.style.overflow = "hidden";
+	}
+	handle_outside_click() {
+		document.addEventListener("click", (e) => {
+			if (this.apps_switcher.drop_down_expanded) {
+				if (!e.composedPath().includes(this.apps_switcher.app_switcher_dropdown)) {
+					this.apps_switcher.toggle_app_menu();
+				}
+			}
+		});
+	}
+	prevent_scroll() {
+		let main_section = $(".main-section");
+		if (this.sidebar_expanded) {
+			main_section.css("overflow", "hidden");
+		} else {
+			main_section.css("overflow", "");
+		}
 	}
 };
