@@ -31,13 +31,13 @@
   },
   {
    "fieldname": "start_date_field",
-   "fieldtype": "Select",
+   "fieldtype": "Date",
    "label": "Start Date Field",
    "reqd": 1
   },
   {
    "fieldname": "end_date_field",
-   "fieldtype": "Select",
+   "fieldtype": "Date", 
    "label": "End Date Field",
    "reqd": 1
   },
