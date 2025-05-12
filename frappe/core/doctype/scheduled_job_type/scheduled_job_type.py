@@ -1,10 +1,7 @@
 # Copyright (c) 2021, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-<<<<<<< HEAD
-=======
 import hashlib
->>>>>>> e26ba5dfdd (perf: split maintenance tasks into separate queue (#32413))
 import json
 from datetime import datetime
 

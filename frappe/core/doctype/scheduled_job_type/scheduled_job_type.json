@@ -129,13 +129,7 @@
   }
  ],
  "quick_entry": 1,
-<<<<<<< HEAD
  "sort_field": "modified",
-=======
- "row_format": "Dynamic",
- "show_title_field_in_link": 1,
- "sort_field": "creation",
->>>>>>> e26ba5dfdd (perf: split maintenance tasks into separate queue (#32413))
  "sort_order": "DESC",
  "states": [],
  "title_field": "method",
