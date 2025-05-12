@@ -44,7 +44,7 @@ function getSessionFromCookie() {
 
 async function fetchPermissions() {
 	if (!session.isLoggedIn) return
-	const has_permission = await call("studio.api.has_permission")
+	const has_permission = await call("studio.api.check_app_permission")
 	session.hasPermission = Boolean(has_permission)
 }
 

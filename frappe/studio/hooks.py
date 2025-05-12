@@ -6,6 +6,17 @@ app_email = "rucha@frappe.io"
 app_license = "mit"
 # required_apps = []
 
+
+add_to_apps_screen = [
+	{
+		"name": app_name,
+		"logo": "/assets/studio/frontend/studio-logo.svg",
+		"title": app_title,
+		"route": "/studio",
+		"has_permission": "studio.api.check_app_permission",
+	}
+]
+
 # Includes in <head>
 # ------------------
 
