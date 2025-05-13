@@ -264,46 +264,6 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "UTM Source",
-   "link_count": 0,
-   "link_to": "UTM Source",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "UTM Campaign",
-   "link_count": 0,
-   "link_to": "UTM Campaign",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "UTM Medium",
-   "link_count": 0,
-   "link_to": "UTM Medium",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Website Analytics",
-   "link_count": 0,
-   "link_to": "Website Analytics",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
   }
  ],
  "modified": "2024-09-03 19:31:55.698913",
