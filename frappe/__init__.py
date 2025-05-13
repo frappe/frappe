@@ -1631,7 +1631,7 @@ def append_hook(target, key, value):
 		target.setdefault(key, [])
 		if not isinstance(value, list):
 			value = [value]
-		target[key].extend(value)
+		target[key] = value + target[key]
 
 
 def setup_module_map(include_all_apps: bool = True) -> None:
