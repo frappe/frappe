@@ -3,7 +3,7 @@
 
 
 import json
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 
 import frappe
 from frappe import _
@@ -241,7 +241,7 @@ def has_permission(doc, user):
 
 
 def send_event_digest():
-	today = nowdate()
+	today = getdate()
 
 	# select only those users that have event reminder email notifications enabled
 	users = [

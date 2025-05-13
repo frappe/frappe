@@ -855,11 +855,6 @@
   },
   {
    "group": "Logs",
-   "link_doctype": "Energy Point Log",
-   "link_fieldname": "user"
-  },
-  {
-   "group": "Logs",
    "link_doctype": "Route History",
    "link_fieldname": "user"
   },

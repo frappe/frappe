@@ -353,6 +353,9 @@ def connect_replica() -> bool:
 	local.primary_db = local.db
 	local.db = local.replica_db
 
+	if hasattr(frappe.local, "_recorder"):
+		frappe.local._recorder._patch_sql(local.db)
+
 	return True
 
 

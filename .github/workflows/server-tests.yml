@@ -58,7 +58,7 @@ jobs:
     with:
       db-artifact-url: https://frappeframework.com/files/v13-frappe.sql.gz
       python-version: '3.10'
-      node-version: 20
+      node-version: 22
       fake-success: ${{ needs.checkrun.outputs.build != 'strawberry' }}
 
   coverage:
@@ -70,7 +70,7 @@ jobs:
       - name: Clone
         uses: actions/checkout@v4
       - name: Download artifacts
-        uses: actions/download-artifact@v4.2.1
+        uses: actions/download-artifact@v4.3.0
       - name: Upload coverage data
         uses: codecov/codecov-action@v5
         with:

@@ -248,6 +248,7 @@ def bulk_workflow_approval(docnames, doctype, action):
 			action=action,
 			queue="short",
 			timeout=1000,
+			at_front_when_starved=True,
 		)
 	else:
 		frappe.throw(_("Bulk approval only support up to 500 documents."), title=_("Too Many Documents"))

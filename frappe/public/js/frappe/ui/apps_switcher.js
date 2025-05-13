@@ -1,21 +1,34 @@
 frappe.ui.AppsSwitcher = class AppsSwitcher {
 	constructor(sidebar) {
-		this.drop_down_state = false;
-		this.sidebar_wrapper = sidebar.wrapper;
 		this.sidebar = sidebar;
-		this.app_switcher = $(sidebar.app_switcher_dropdown[0]);
+		this.sidebar_wrapper = $(this.sidebar.wrapper.find(".body-sidebar"));
+		this.drop_down_expanded = false;
+		this.make();
 		this.setup_app_switcher();
 		this.set_hover();
 	}
 
-	setup_app_switcher() {
-		this.app_switcher_menu = $(".app-switcher-menu");
-		$(".app-switcher-dropdown").on("click", () => {
-			this.toggle_active();
-			this.app_switcher_menu.toggleClass("hidden");
-		});
+	make() {
+		this.wrapper = $(
+			frappe.render_template("apps_switcher", {
+				app_logo_url: frappe.boot.app_data[0].app_logo_url,
+				app_title: __(frappe.boot.app_data[0].app_title),
+			})
+		).prependTo(this.sidebar_wrapper);
+		this.app_switcher_dropdown = $(".app-switcher-dropdown");
 	}
 
+	setup_app_switcher() {
+		this.app_switcher_menu = $(".app-switcher-menu");
+		$(".app-switcher-dropdown").on("click", (e) => {
+			this.toggle_app_menu();
+			e.stopImmediatePropagation();
+		});
+	}
+	toggle_app_menu() {
+		this.toggle_active();
+		this.app_switcher_menu.toggleClass("hidden");
+	}
 	create_app_data_map() {
 		frappe.boot.app_data_map = {};
 		for (var app of frappe.boot.app_data) {
@@ -153,7 +166,7 @@ frappe.ui.AppsSwitcher = class AppsSwitcher {
 	set_hover() {
 		const me = this;
 
-		this.app_switcher.on("mouseover", function () {
+		this.app_switcher_dropdown.on("mouseover", function () {
 			if ($(this).hasClass("active-sidebar")) return;
 			$(this).addClass("hover");
 
@@ -162,16 +175,23 @@ frappe.ui.AppsSwitcher = class AppsSwitcher {
 			}
 		});
 
-		this.app_switcher.on("mouseleave", function () {
+		this.app_switcher_dropdown.on("mouseleave", function () {
 			$(this).removeClass("hover");
 		});
 	}
 
 	toggle_active() {
-		this.app_switcher.toggleClass("active-sidebar");
-
+		this.toggle_dropdown();
+		this.app_switcher_dropdown.toggleClass("active-sidebar");
 		if (!this.sidebar.sidebar_expanded) {
-			this.app_switcher.removeClass("active-sidebar");
+			this.app_switcher_dropdown.removeClass("active-sidebar");
+		}
+	}
+	toggle_dropdown() {
+		if (this.drop_down_expanded) {
+			this.drop_down_expanded = false;
+		} else {
+			this.drop_down_expanded = true;
 		}
 	}
 };

@@ -161,7 +161,6 @@ class FormTimeline extends BaseTimeline {
 		this.timeline_items.push(...this.get_comment_timeline_contents());
 		if (!this.only_communication) {
 			this.timeline_items.push(...this.get_view_timeline_contents());
-			this.timeline_items.push(...this.get_energy_point_timeline_contents());
 			this.timeline_items.push(...this.get_version_timeline_contents());
 			this.timeline_items.push(...this.get_share_timeline_contents());
 			this.timeline_items.push(...this.get_workflow_timeline_contents());
@@ -494,34 +493,28 @@ class FormTimeline extends BaseTimeline {
 	get_custom_timeline_contents() {
 		let custom_timeline_contents = [];
 		(this.doc_info.additional_timeline_content || []).forEach((custom_item) => {
-			custom_timeline_contents.push({
-				icon: custom_item.icon,
-				icon_size: "sm",
-				is_card: custom_item.is_card,
-				creation: custom_item.creation,
-				content:
-					custom_item.content ||
-					frappe.render_template(custom_item.template, custom_item.template_data),
-			});
+			if (custom_item.timeline_badge) {
+				custom_timeline_contents.push({
+					timeline_badge: custom_item.timeline_badge,
+					creation: custom_item.creation,
+					content: frappe.utils.eval(custom_item.method, {
+						custom_item: custom_item,
+					}),
+				});
+			} else {
+				custom_timeline_contents.push({
+					icon: custom_item.icon,
+					timeline_badge: custom_item.timeline_badge,
+					icon_size: "sm",
+					is_card: custom_item.is_card,
+					creation: custom_item.creation,
+					content:
+						custom_item.content ||
+						frappe.render_template(custom_item.template, custom_item.template_data),
+				});
+			}
 		});
 		return custom_timeline_contents;
-	}
-
-	get_energy_point_timeline_contents() {
-		let energy_point_timeline_contents = [];
-		(this.doc_info.energy_point_logs || []).forEach((log) => {
-			let timeline_badge = `
-			<div class="timeline-badge ${log.points > 0 ? "appreciation" : "criticism"} bold">
-				${log.points}
-			</div>`;
-
-			energy_point_timeline_contents.push({
-				timeline_badge: timeline_badge,
-				creation: log.creation,
-				content: frappe.energy_points.format_form_log(log),
-			});
-		});
-		return energy_point_timeline_contents;
 	}
 
 	setup_reply(communication_box, communication_doc) {
@@ -608,18 +601,20 @@ class FormTimeline extends BaseTimeline {
 		let edit_box = this.make_editable(edit_wrapper);
 		let content_wrapper = comment_wrapper.find(".content");
 		let more_actions_wrapper = comment_wrapper.find(".more-actions");
-		if (
-			frappe.model.can_delete("Comment") &&
-			(frappe.session.user == doc.owner || frappe.user.has_role("System Manager"))
-		) {
-			const delete_option = $(`
-				<li>
-					<a class="dropdown-item">
-						${__("Delete")}
-					</a>
-				</li>
-			`).click(() => this.delete_comment(doc.name));
-			more_actions_wrapper.find(".dropdown-menu").append(delete_option);
+		const dropdown_menu = more_actions_wrapper.find(".dropdown-menu li");
+
+		if (frappe.session.user == doc.owner || frappe.user.has_role("System Manager")) {
+			if (frappe.model.can_delete("Comment")) {
+				const delete_option = $(`
+					<a class="dropdown-item">${__("Delete")}</a>
+				`).click(() => this.delete_comment(doc.name));
+				dropdown_menu.append(delete_option);
+			}
+
+			const un_publish_button = $(`
+				<a class="dropdown-item">${doc.published ? __("Unpublish") : __("Publish")}</a>
+			`).click(() => this.update_comment_publicity(doc.name, !doc.published));
+			dropdown_menu.append(un_publish_button);
 		}
 
 		let dismiss_button = $(`
@@ -726,6 +721,30 @@ class FormTimeline extends BaseTimeline {
 				})
 				.then(() => {
 					frappe.utils.play_sound("delete");
+				});
+		});
+	}
+
+	update_comment_publicity(comment_name, publish) {
+		let message;
+		if (publish) {
+			message = __(
+				"Would you like to publish this comment? This means it will become visible to website/portal users."
+			);
+		} else {
+			message = __(
+				"Would you like to unpublish this comment? This means it will no longer be visible to website/portal users."
+			);
+		}
+
+		frappe.confirm(message, () => {
+			return frappe
+				.xcall("frappe.desk.form.utils.update_comment_publicity", {
+					name: comment_name,
+					publish,
+				})
+				.then(() => {
+					frappe.utils.play_sound("click");
 				});
 		});
 	}

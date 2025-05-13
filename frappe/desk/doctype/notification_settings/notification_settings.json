@@ -13,13 +13,10 @@
   "enable_email_mention",
   "enable_email_assignment",
   "enable_email_threads_on_assigned_document",
-  "enable_email_energy_point",
   "enable_email_share",
   "enable_email_event_reminders",
   "user",
-  "seen",
-  "system_notifications_section",
-  "energy_points_system_notifications"
+  "seen"
  ],
  "fields": [
   {
@@ -62,13 +59,6 @@
   {
    "default": "1",
    "depends_on": "enable_email_notifications",
-   "fieldname": "enable_email_energy_point",
-   "fieldtype": "Check",
-   "label": "Energy Points"
-  },
-  {
-   "default": "1",
-   "depends_on": "enable_email_notifications",
    "fieldname": "enable_email_share",
    "fieldtype": "Check",
    "label": "Document Share"
@@ -90,17 +80,6 @@
    "label": "Seen"
   },
   {
-   "fieldname": "system_notifications_section",
-   "fieldtype": "Section Break",
-   "label": "System Notifications"
-  },
-  {
-   "default": "1",
-   "fieldname": "energy_points_system_notifications",
-   "fieldtype": "Check",
-   "label": "Energy Points"
-  },
-  {
    "default": "1",
    "depends_on": "enable_email_notifications",
    "fieldname": "enable_email_event_reminders",
@@ -119,7 +98,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-03-23 16:03:31.952985",
+ "modified": "2025-04-16 17:15:25.641232",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Settings",
@@ -139,6 +118,7 @@
   }
  ],
  "read_only": 1,
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

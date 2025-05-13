@@ -644,7 +644,10 @@ def update_first_response_time(parent, communication):
 			is_system_user(communication.sender)
 			or frappe.get_cached_value("User", frappe.session.user, "user_type") == "System User"
 		):
-			if communication.sent_or_received == "Sent":
+			if (
+				communication.sent_or_received == "Sent"
+				and communication.communication_type == "Communication"
+			):
 				first_responded_on = communication.creation
 				if parent.meta.has_field("first_responded_on"):
 					parent.db_set("first_responded_on", first_responded_on)

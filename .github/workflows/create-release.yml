@@ -19,7 +19,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - name: Setup dependencies
         run: |
           npm install @semantic-release/git @semantic-release/exec --no-save

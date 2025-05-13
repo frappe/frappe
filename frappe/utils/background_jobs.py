@@ -41,6 +41,9 @@ RQ_MAX_JOBS = 5000  # Restart NOFORK workers after every N number of jobs
 RQ_MAX_JOBS_JITTER = 50  # Random difference in max jobs to avoid restarting at same time
 
 MAX_QUEUED_JOBS = 500  # frappe.enqueue will start failing when these many jobs exist in queue.
+# When too many jobs are pending in queue, order can be selectively flipped to LIFO to give better
+# response latencies to interactive jobs.
+QUEUE_STARVATION_THRESHOLD = 16
 
 
 _redis_queue_conn = None
@@ -84,6 +87,7 @@ def enqueue(
 	at_front: bool = False,
 	job_id: str | None = None,
 	deduplicate=False,
+	at_front_when_starved=False,
 	**kwargs,
 ) -> Job | Any:
 	"""
@@ -105,6 +109,8 @@ def enqueue(
 	:param kwargs: keyword arguments to be passed to the method
 	:param deduplicate: do not re-queue job if it's already queued, requires job_id.
 	:param job_id: Assigning unique job id, which can be checked using `is_job_enqueued`
+	:param at_front_when_starved: If the queue appears to be starved then new jobs are
+	automatically inserted in LIFO fashion.
 	"""
 	# To handle older implementations
 	is_async = kwargs.pop("async", is_async)
@@ -178,6 +184,9 @@ def enqueue(
 	}
 
 	on_failure = on_failure or truncate_failed_registry
+
+	if at_front_when_starved and q.count > QUEUE_STARVATION_THRESHOLD:
+		at_front = True
 
 	def enqueue_call():
 		return q.enqueue_call(
