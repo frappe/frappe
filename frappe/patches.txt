@@ -245,3 +245,4 @@ frappe.patches.v16_0.move_role_desk_settings_to_user
 frappe.printing.doctype.print_format.patches.sets_wkhtmltopdf_as_default_for_pdf_generator_field
 frappe.patches.v14_0.fix_user_settings_collation
 execute:frappe.core.doctype.system_settings.system_settings.sync_system_settings 
+frappe.patches.v16_0.social_eps_deprecation_warning

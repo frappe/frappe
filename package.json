@@ -69,7 +69,7 @@
     "plyr": "^3.7.8",
     "popper.js": "^1.16.0",
     "postcss": "8",
-    "quill": "2.0.0-dev.4",
+    "quill": "2.0.3",
     "quill-image-resize": "^3.0.9",
     "quill-magic-url": "^3.0.0",
     "qz-tray": "^2.0.8",
