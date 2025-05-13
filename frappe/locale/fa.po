@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-04-27 09:33+0000\n"
-"PO-Revision-Date: 2025-05-12 05:22\n"
+"PO-Revision-Date: 2025-05-13 06:06\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -14166,13 +14166,13 @@ msgstr "دفتر"
 #: frappe/printing/doctype/letter_head/letter_head.json
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Left"
-msgstr "ترک کرد"
+msgstr "چپ"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:483
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:155
 msgctxt "alignment"
 msgid "Left"
-msgstr "ترک کرد"
+msgstr "چپ"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -14191,7 +14191,7 @@ msgstr "این گفتگو را ترک کرد"
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Legal"
-msgstr "مجاز"
+msgstr "حقوقی"
 
 #. Label of the length (Int) field in DocType 'DocField'
 #. Label of the length (Int) field in DocType 'Custom Field'
@@ -14249,7 +14249,7 @@ msgstr "بیایید شما را به سوار شدن برگردانیم"
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Letter"
-msgstr "حرف"
+msgstr "نامه"
 
 #. Label of the letter_head (Link) field in DocType 'Report'
 #. Name of a DocType
@@ -18033,7 +18033,7 @@ msgstr ""
 #. Label of the pdf_page_height (Float) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "PDF Page Height (in mm)"
-msgstr "ارتفاع صفحه PDF (به میلی متر)"
+msgstr "ارتفاع صفحه PDF (به میلی‌متر)"
 
 #. Label of the pdf_page_size (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -18043,7 +18043,7 @@ msgstr "اندازه صفحه PDF"
 #. Label of the pdf_page_width (Float) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "PDF Page Width (in mm)"
-msgstr "عرض صفحه PDF (به میلی متر)"
+msgstr "عرض صفحه PDF (به میلی‌متر)"
 
 #. Label of the pdf_settings (Section Break) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -18169,7 +18169,7 @@ msgstr "صفحه HTML"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:73
 msgid "Page Height (in mm)"
-msgstr "ارتفاع صفحه (بر حسب میلی متر)"
+msgstr "ارتفاع صفحه (بر حسب میلی‌متر)"
 
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:5
 msgid "Page Margins"
@@ -18212,7 +18212,7 @@ msgstr "عنوان صفحه"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:80
 msgid "Page Width (in mm)"
-msgstr "عرض صفحه (به میلی متر)"
+msgstr "عرض صفحه (به میلی‌متر)"
 
 #: frappe/www/qrcode.py:35
 msgid "Page has expired!"
@@ -21572,13 +21572,13 @@ msgstr "متن غنی"
 #: frappe/printing/doctype/letter_head/letter_head.json
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Right"
-msgstr "درست"
+msgstr "راست"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:484
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:156
 msgctxt "alignment"
 msgid "Right"
-msgstr "درست"
+msgstr "راست"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -25455,7 +25455,7 @@ msgstr "جدول {0} نمی‌تواند خالی باشد"
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Tabloid"
-msgstr "تبلوید"
+msgstr "نیم قطع"
 
 #. Name of a DocType
 #: frappe/desk/doctype/tag/tag.json
