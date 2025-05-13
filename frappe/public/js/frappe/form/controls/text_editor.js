@@ -123,8 +123,34 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 		}
 		this.quill = new Quill(this.quill_container[0], this.get_quill_options());
 		this.bind_events();
+		const toolbar = this.quill.getModule("toolbar");
+		toolbar.addHandler("table", this.handle_table_actions);
 	}
+	handle_table_actions(value) {
+		const table = this.quill.getModule("table");
 
+		if (value === "insert-table") {
+			table.insertTable(2, 2);
+		} else if (value === "insert-row-above") {
+			table.insertRowAbove();
+		} else if (value === "insert-row-below") {
+			table.insertRowBelow();
+		} else if (value === "insert-column-left") {
+			table.insertColumnLeft();
+		} else if (value === "insert-column-right") {
+			table.insertColumnRight();
+		} else if (value === "delete-row") {
+			table.deleteRow();
+		} else if (value === "delete-column") {
+			table.deleteColumn();
+		} else if (value === "delete-table") {
+			table.deleteTable();
+		}
+
+		if (value !== "delete-row") {
+			table.balanceTables();
+		}
+	}
 	bind_events() {
 		this.quill.on(
 			"text-change",
@@ -145,38 +171,6 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 
 		$(this.quill.root).on("drop", (e) => {
 			e.stopPropagation();
-		});
-
-		// table commands
-		this.$wrapper.on("click", ".ql-table .ql-picker-item", (e) => {
-			const $target = $(e.currentTarget);
-			const action = $target.data().value;
-			e.preventDefault();
-
-			const table = this.quill.getModule("table");
-			if (action === "insert-table") {
-				table.insertTable(2, 2);
-			} else if (action === "insert-row-above") {
-				table.insertRowAbove();
-			} else if (action === "insert-row-below") {
-				table.insertRowBelow();
-			} else if (action === "insert-column-left") {
-				table.insertColumnLeft();
-			} else if (action === "insert-column-right") {
-				table.insertColumnRight();
-			} else if (action === "delete-row") {
-				table.deleteRow();
-			} else if (action === "delete-column") {
-				table.deleteColumn();
-			} else if (action === "delete-table") {
-				table.deleteTable();
-			}
-
-			if (action !== "delete-row") {
-				table.balanceTables();
-			}
-
-			e.preventDefault();
 		});
 
 		// font size dropdown
