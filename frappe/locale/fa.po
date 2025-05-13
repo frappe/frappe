@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-05-07 22:22\n"
+"PO-Revision-Date: 2025-05-13 01:38\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -9086,7 +9086,7 @@ msgstr "لاگ‌های خطا"
 #. Label of a Text field in DocType 'Prepared Report'
 #: frappe/core/doctype/prepared_report/prepared_report.json
 msgid "Error Message"
-msgstr "پیغام خطا"
+msgstr "پیام خطا"
 
 #: frappe/public/js/frappe/form/print_utils.js:128
 msgid "Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Click here to Download and install QZ Tray</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Click here to learn more about Raw Printing</a>."
@@ -13989,7 +13989,7 @@ msgstr "این گفتگو را ترک کرد"
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Legal"
-msgstr "مجاز"
+msgstr "حقوقی"
 
 #. Label of a Int field in DocType 'DocField'
 #. Label of a Int field in DocType 'Custom Field'
@@ -14052,7 +14052,7 @@ msgstr "بیایید شما را به آشناسازی برگردانیم"
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Letter"
-msgstr "حرف"
+msgstr "نامه"
 
 #. Label of a Link field in DocType 'Report'
 #. Name of a DocType
@@ -15207,7 +15207,7 @@ msgstr "پارامتر پیام"
 
 #: frappe/templates/includes/contact.js:36
 msgid "Message Sent"
-msgstr "پیغام فرستاده شد"
+msgstr "پیام فرستاده شد"
 
 #. Label of a Select field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -17754,7 +17754,7 @@ msgstr "ایجاد PDF در حال انجام است"
 #. Label of a Float field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "PDF Page Height (in mm)"
-msgstr "ارتفاع صفحه PDF (به میلی متر)"
+msgstr "ارتفاع صفحه PDF (به میلی‌متر)"
 
 #. Label of a Select field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -17764,7 +17764,7 @@ msgstr "اندازه صفحه PDF"
 #. Label of a Float field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "PDF Page Width (in mm)"
-msgstr "عرض صفحه PDF (به میلی متر)"
+msgstr "عرض صفحه PDF (به میلی‌متر)"
 
 #. Label of a Section Break field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -17887,7 +17887,7 @@ msgstr "صفحه HTML"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:73
 msgid "Page Height (in mm)"
-msgstr "ارتفاع صفحه (بر حسب میلی متر)"
+msgstr "ارتفاع صفحه (بر حسب میلی‌متر)"
 
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:5
 msgid "Page Margins"
@@ -17933,7 +17933,7 @@ msgstr "عنوان صفحه"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:80
 msgid "Page Width (in mm)"
-msgstr "عرض صفحه (به میلی متر)"
+msgstr "عرض صفحه (به میلی‌متر)"
 
 #: frappe/www/qrcode.py:35
 msgid "Page has expired!"
@@ -21256,7 +21256,7 @@ msgstr "متن غنی"
 #: frappe/printing/doctype/letter_head/letter_head.json
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Right"
-msgstr "درست"
+msgstr "راست"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:484
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:156
@@ -25078,7 +25078,7 @@ msgstr "جدول {0} نمی‌تواند خالی باشد"
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Tabloid"
-msgstr "تبلوید"
+msgstr "نیم قطع"
 
 #. Name of a DocType
 #: frappe/desk/doctype/tag/tag.json
