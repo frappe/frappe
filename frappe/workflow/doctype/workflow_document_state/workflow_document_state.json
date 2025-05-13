@@ -36,7 +36,7 @@
    "default": "0",
    "description": "0 - Draft; 1 - Submitted; 2 - Cancelled",
    "fieldname": "doc_status",
-   "fieldtype": "Select",
+   "fieldtype": "Int",
    "in_list_view": 1,
    "label": "Doc Status",
    "options": "0\n1\n2",
