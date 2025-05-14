@@ -183,7 +183,7 @@ def get_website_rules():
 	"""Get website route rules from hooks and DocType route"""
 
 	def _get():
-		rules = frappe.get_hooks("website_route_rules")
+		rules = frappe.get_hooks("website_route_rules")[::-1]
 		for d in frappe.get_all("DocType", "name, route", dict(has_web_view=1)):
 			if d.route:
 				rules.append(dict(from_route="/" + d.route.strip("/"), to_route=d.name))
