@@ -1,4 +1,5 @@
 <div class="timeline-message-box" data-communication-type="{{ doc.communication_type }}">
+	{% is_mini = frappe.is_mobile() ? true : false %}
 	<span class="flex justify-between m-1 mb-3">
 		<span class="text-color flex">
 			{% if (doc.communication_type && doc.communication_type == "Automated Message") { %}
@@ -28,28 +29,13 @@
 				</span>
 			{% } else if (doc.comment_type && doc.comment_type == "Comment") { %}
 				<span>
-					{% if (!frappe.is_mobile()) { %}
 						{{ frappe.avatar(doc.owner, "avatar-medium") }}
 						<span class="ml-2" style="font-size: var(--text-base);">{{ doc.user_full_name || frappe.user.full_name(doc.owner) }}</span>
 						<span class="text-extra-muted">{{ __("commented") }}</span>
 						<span> · </span>
 						<span class="text-extra-muted">
-							{{ comment_when(doc.communication_date || doc.creation) }}
+							{{ comment_when(doc.communication_date || doc.creation, is_mini) }}
 						</span>
-					{% } else { %}
-						<div class="flex">
-							{{ frappe.avatar(doc.owner, "avatar-medium") }}
-							<div class="flex flex-column">
-								<div>
-									<span class="ml-2" style="font-size: var(--text-base);">{{ doc.user_full_name || frappe.user.full_name(doc.owner) }}</span>
-									<span class="text-extra-muted">{{ __("commented") }}</span> <br>
-								</div>
-								<span class="text-extra-muted" style="margin-left: 8px;">
-									{{ comment_when(doc.communication_date || doc.creation) }}
-								</span>
-							</div>
-						</div>
-					{% } %}
 					{% if (doc.published) { %}
 						<span> · </span>
 						<span class="text-extra-muted" title="{{ __('Visible to website/portal users.') }}">
@@ -61,28 +47,17 @@
 				<span class="margin-right">
 					{{ frappe.avatar(doc.owner, "avatar-medium") }}
 				</span>
-				{% if (!frappe.is_mobile()) { %}
 					<div>
 						{{ doc.user_full_name || frappe.user.full_name(doc.owner) }}
 						<span> . </span>
+
 						<span class="text-muted">
-							{{ comment_when(doc.communication_date || doc.creation) }}
+							{{ comment_when(doc.communication_date || doc.creation, is_mini) }}
 						</span>
 						{% if (doc.subject) { %}
 							<div class="text-muted my-1">{{doc.subject}}</div>
 						{% } %}
 					</div>
-				{% } else { %}
-				<div class="flex flex-column">
-					{{ doc.user_full_name || frappe.user.full_name(doc.owner) }}
-					<span class="text-muted text-small">
-						{{ comment_when(doc.communication_date || doc.creation) }}
-					</span>
-					{% if (doc.subject) { %}
-						<div class="text-muted my-1">{{doc.subject}}</div>
-					{% } %}
-				</div>
-				{% } %}
 			{% } %}
 		</span>
 		<span class="actions" style="flex-shrink: 0">
