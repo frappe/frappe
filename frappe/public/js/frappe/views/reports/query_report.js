@@ -1893,26 +1893,61 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			items.push({
 				label: __("Save"),
 				action: () => {
+					const baseFields = [
+						{
+							fieldtype: "Data",
+							fieldname: "report_name",
+							label: __("Report Name"),
+							default:
+								this.report_doc.is_standard == "No" ? this.report_name : "",
+							reqd: true,
+						}
+					];
+					
+					
+					baseFields.push({
+						fieldtype: "Check",
+						fieldname: "save_filters",
+						label: __("Save Filters"),
+						default: 1,
+					});
+						
+					baseFields.push({
+						fieldtype: "Check",
+						fieldname: "save_columns",
+						label: __("Save All Columns"),
+						default: 0
+					});
+					
+					
 					let d = new frappe.ui.Dialog({
 						title: __("Save Report"),
-						fields: [
-							{
-								fieldtype: "Data",
-								fieldname: "report_name",
-								label: __("Report Name"),
-								default:
-									this.report_doc.is_standard == "No" ? this.report_name : "",
-								reqd: true,
-							},
-						],
+						fields: baseFields,
 						primary_action: (values) => {
+							let filters = this.get_filter_values();
+							
+							if (values.save_columns !== undefined) {
+								filters.save_columns = values.save_columns;
+							}
+							
+							const shouldSaveFilters = values.save_filters !== undefined ? values.save_filters : true;
+							
+							if (!shouldSaveFilters) {
+								const essential_filters = {};
+								if (filters.company) essential_filters.company = filters.company;
+								if (values.save_columns !== undefined) {
+									essential_filters.save_columns = filters.save_columns;
+								}
+								filters = essential_filters;
+							}
+							
 							frappe.call({
 								method: "frappe.desk.query_report.save_report",
 								args: {
 									reference_report: this.report_name,
 									report_name: values.report_name,
-									columns: this.get_visible_columns(),
-									filters: this.get_filter_values(),
+									columns: JSON.stringify(this.get_visible_columns()),
+									filters: JSON.stringify(filters),
 								},
 								callback: function (r) {
 									this.show_save = false;
