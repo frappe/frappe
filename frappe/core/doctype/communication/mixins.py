@@ -278,6 +278,15 @@ class CommunicationEmailMixin:
 			print_format=print_format, print_html=print_html, print_language=print_language
 		)
 		incoming_email_account = self.get_incoming_email_account()
+
+		in_reply_to_messageid = None
+		if self.in_reply_to:
+			try:
+				in_reply_to_messageid = frappe.db.get_value(doctype="Communication", filters=self.in_reply_to, fieldname="message_id")
+			except Exception:
+				# Ignore document is not found
+				pass
+
 		return {
 			"recipients": recipients,
 			"cc": cc,
@@ -298,6 +307,7 @@ class CommunicationEmailMixin:
 			"is_notification": (self.sent_or_received == "Received" and True) or False,
 			"print_letterhead": print_letterhead,
 			"send_after": self.send_after,
+			"in_reply_to": in_reply_to_messageid,
 		}
 
 	def send_email(
