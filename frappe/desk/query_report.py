@@ -576,42 +576,90 @@ def get_data_for_custom_report(columns, result):
 
 @frappe.whitelist()
 def save_report(reference_report, report_name, columns, filters):
-	report_doc = get_report_doc(reference_report)
+    report_doc = get_report_doc(reference_report)
 
-	docname = frappe.db.exists(
-		"Report",
-		{
-			"report_name": report_name,
-			"is_standard": "No",
-			"report_type": "Custom Report",
-		},
-	)
+    filters_dict = json.loads(filters)
 
-	if docname:
-		report = frappe.get_doc("Report", docname)
-		existing_jd = json.loads(report.json)
-		existing_jd["columns"] = json.loads(columns)
-		existing_jd["filters"] = json.loads(filters)
-		report.update({"json": json.dumps(existing_jd, separators=(",", ":"))})
-		report.save()
-		frappe.msgprint(_("Report updated successfully"))
+    save_columns = filters_dict.pop('save_columns', False)
+    save_filters = filters_dict.pop('save_filters', False)
 
-		return docname
-	else:
-		new_report = frappe.get_doc(
-			{
-				"doctype": "Report",
-				"report_name": report_name,
-				"json": f'{{"columns":{columns},"filters":{filters}}}',
-				"ref_doctype": report_doc.ref_doctype,
-				"is_standard": "No",
-				"report_type": "Custom Report",
-				"reference_report": reference_report,
-			}
-		).insert(ignore_permissions=True)
-		frappe.msgprint(_("{0} saved successfully").format(_(new_report.name)))
-		return new_report.name
+    if save_columns:
+        columns_to_save = json.loads(columns) 
+    else:
+        columns_to_save = get_all_report_columns(reference_report)
 
+    if save_filters:
+        filters_to_save =  get_all_report_filters(reference_report) 
+    else:
+        filters_to_save = filters_dict 
+
+    docname = frappe.db.exists(
+        "Report",
+        {
+            "report_name": report_name,
+            "is_standard": "No",
+            "report_type": "Custom Report",
+        },
+    )
+
+    if docname:
+        report = frappe.get_doc("Report", docname)
+        existing_jd = json.loads(report.json)
+        existing_jd["columns"] = columns_to_save
+        existing_jd["filters"] = filters_to_save
+        report.update({"json": json.dumps(existing_jd, separators=(",", ":"))})
+        report.save()
+        frappe.msgprint(_("Report updated successfully"))
+        return docname
+    else:
+        new_report = frappe.get_doc(
+            {
+                "doctype": "Report",
+                "report_name": report_name,
+                "json": json.dumps({
+                    "columns": columns_to_save,
+                    "filters": filters_to_save
+                }, separators=(",", ":")),
+                "ref_doctype": report_doc.ref_doctype,
+                "is_standard": "No",
+                "report_type": "Custom Report",
+                "reference_report": reference_report,
+            }
+        ).insert(ignore_permissions=True)
+        frappe.msgprint(_("{0} saved successfully").format(_(new_report.name)))
+        return new_report.name
+
+
+
+
+def get_all_report_columns(reference_report):
+    try:
+        report_module_name = frappe.get_hooks("query_report").get(reference_report)
+        if report_module_name:
+            report_module = frappe.get_module(report_module_name[0])
+            if hasattr(report_module, "execute"):
+                columns, _ = report_module.execute({}, filters={})
+                return columns
+    except Exception as e:
+        frappe.log_error(f"Error getting columns for {reference_report}: {str(e)}")
+    return []
+
+
+def get_all_report_filters(reference_report):
+    try:
+        report_module_name = frappe.get_hooks("query_report").get(reference_report)
+        if report_module_name:
+            report_module = frappe.get_module(report_module_name[0])
+            if hasattr(report_module, "get_data"):
+                data = report_module.get_data()
+                if isinstance(data, dict) and "filters" in data:
+                    return data["filters"]
+            elif hasattr(report_module, "filters"):
+                return report_module.filters
+    except Exception as e:
+        frappe.log_error(f"Error getting filters for {reference_report}: {str(e)}")
+
+    return []
 
 def get_filtered_data(ref_doctype, columns, data, user):
 	result = []
