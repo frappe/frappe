@@ -140,6 +140,7 @@ export default class QuickListWidget extends Widget {
 
 		let $quick_list_item = $(`
 			<div class="quick-list-item">
+			<p>ghjk</p>
 				<div class="ellipsis left">
 					<div class="ellipsis title"
 						title="${strip_html(doc[this.title_field_name])}">

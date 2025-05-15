@@ -21,6 +21,7 @@
   "number_format",
   "use_number_format_from_currency",
   "first_day_of_the_week",
+  "absolute_datetime",
   "column_break_7",
   "float_precision",
   "currency_precision",
@@ -699,12 +700,18 @@
    "fieldname": "hide_empty_read_only_fields",
    "fieldtype": "Check",
    "label": "Hide Empty Read-Only Fields"
+  },
+  {
+   "default": "0",
+   "fieldname": "absolute_datetime",
+   "fieldtype": "Check",
+   "label": "Show absolute date and time in a timeline"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2025-04-15 14:12:11.443610",
+ "modified": "2025-05-16 01:09:03.919271",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
