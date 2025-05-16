@@ -21,6 +21,7 @@ function getBlockTemplate(
 					alignItems: "center",
 					width: "inherit",
 					overflowX: "hidden",
+					height: "100%",
 				}
 			};
 
