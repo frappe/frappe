@@ -4,12 +4,12 @@ import { createApp } from "vue"
 import { createPinia } from "pinia"
 import "./setupFrappeUIResource"
 import app_router from "@/router/app_router"
-import App from "./App.vue"
+import AppRenderer from "./AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
 import { registerGlobalComponents } from "./globals"
 
 // For rendering apps built by studio
-const app = createApp(App)
+const app = createApp(AppRenderer)
 const pinia = createPinia()
 
 app.use(app_router)

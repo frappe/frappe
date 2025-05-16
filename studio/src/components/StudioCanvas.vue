@@ -17,7 +17,7 @@
 		</Transition>
 
 		<div
-			class="fixed flex gap-40"
+			class="fixed flex h-full gap-40"
 			ref="canvas"
 			:style="{
 				transformOrigin: 'top center',
