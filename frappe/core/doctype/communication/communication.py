@@ -124,6 +124,35 @@ class Communication(Document, CommunicationEmailMixin):
 	no_feed_on_delete = True
 	DOCTYPE = "Communication"
 
+	def check_permission(self, permtype="read", permlevel=None):
+		"""
+		Raise `frappe.PermissionError` if not permitted.
+
+		This method checks if the current user has the specified permission type
+		(`permtype`) at the given permission level (`permlevel`). If the user does
+		not have the required permission, a `frappe.PermissionError` is raised.
+
+		Before performing the permission check, the method loads the document's
+		state before saving and logs any changed fields. If the only changed field
+		is "status", the permission type is set to "read".
+
+		Args:
+			permtype (str): The type of permission to check. Defaults to "read".
+			permlevel (int, optional): The level of permission to check. Defaults to None.
+
+		Returns:
+			bool: True if the user has the required permission, otherwise raises `frappe.PermissionError`.
+
+		Raises:
+			frappe.PermissionError: If the user does not have the required permission.
+		"""
+		"""Raise `frappe.PermissionError` if not permitted"""
+		self.get_latest()
+		changed_fields = self.get_changed_fields()
+		if changed_fields and len(list(changed_fields)) == 1 and changed_fields["status"] is not None:
+			permtype="read"
+		return super().check_permission(permtype, permlevel)
+
 	def onload(self):
 		"""create email flag queue"""
 		if (

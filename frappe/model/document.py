@@ -503,6 +503,15 @@ class Document(BaseDocument):
 	def get_doc_before_save(self) -> "Document":
 		return getattr(self, "_doc_before_save", None)
 
+	def get_changed_fields(self) -> dict:
+		"""Return changed fields"""
+		changed = {}
+		for key in self.get_valid_columns():
+			if self.has_value_changed(key):
+				changed[key] = self.get(key)
+
+		return changed
+
 	def has_value_changed(self, fieldname):
 		"""Return True if value has changed before and after saving."""
 		from datetime import date, datetime, timedelta
