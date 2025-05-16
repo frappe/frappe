@@ -282,7 +282,9 @@ class CommunicationEmailMixin:
 		in_reply_to_messageid = None
 		if self.in_reply_to:
 			try:
-				in_reply_to_messageid = frappe.db.get_value(doctype="Communication", filters=self.in_reply_to, fieldname="message_id")
+				in_reply_to_messageid = frappe.db.get_value(
+					doctype="Communication", filters=self.in_reply_to, fieldname="message_id"
+				)
 			except Exception:
 				# Ignore document is not found
 				pass
