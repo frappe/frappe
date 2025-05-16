@@ -286,16 +286,16 @@ watch(
 )
 
 watch(
-	() => props.block.baseStyles,
+	() => [props.block.baseStyles, props.block.tabletStyles, props.block.mobileStyles],
 	() => {
 		if (!componentRef.value) return
-		// update styles when baseStyles change for frappeui components with inheritAttrs: false
+		// explicitly set styles when any style changes for frappeui components with inheritAttrs: false
 		const styles = props.block.getStyles(props.breakpoint)
 		for (const key in styles) {
 			componentRef.value?.$el?.style?.setProperty(key, styles[key])
 		}
 	},
-	{ deep: true },
+	{ deep: true, immediate: true },
 )
 
 watch(
