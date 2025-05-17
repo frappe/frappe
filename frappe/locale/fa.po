@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-04-27 09:33+0000\n"
-"PO-Revision-Date: 2025-05-13 06:06\n"
+"PO-Revision-Date: 2025-05-17 06:54\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -12952,7 +12952,7 @@ msgstr "محدودیت پیوست ناکافی"
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Int"
-msgstr "بین المللی"
+msgstr "عدد صحیح"
 
 #. Name of a DocType
 #: frappe/integrations/doctype/integration_request/integration_request.json
@@ -28992,7 +28992,7 @@ msgstr "عرض ها را می‌توان بر حسب px یا % تنظیم کرد
 #. Label of the wildcard_filter (Check) field in DocType 'Report Filter'
 #: frappe/core/doctype/report_filter/report_filter.json
 msgid "Wildcard Filter"
-msgstr "فیلتر عجایب"
+msgstr "فیلتر نویسه جانشین"
 
 #. Description of the 'Wildcard Filter' (Check) field in DocType 'Report
 #. Filter'
@@ -29544,7 +29544,7 @@ msgstr "برای تنظیم سطوح فیلدها می‌توانید از سف�
 
 #: frappe/public/js/frappe/form/link_selector.js:30
 msgid "You can use wildcard %"
-msgstr "می‌توانید از علامت ٪ استفاده کنید"
+msgstr "می‌توانید از نویسه جانشین % استفاده کنید"
 
 #: frappe/custom/doctype/customize_form/customize_form.py:389
 msgid "You can't set 'Options' for field {0}"
@@ -30545,7 +30545,7 @@ msgstr "به روز شده به {0}"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:360
 msgid "use % as wildcard"
-msgstr "از % به عنوان حروف استفاده کنید"
+msgstr "استفاده از % به عنوان نویسه جانشین"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:359
 msgid "values separated by commas"
