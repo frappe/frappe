@@ -6,7 +6,7 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 )
 from frappe.desk.doctype.todo.todo import ToDo
 from frappe.email.doctype.email_account.email_account import EmailAccount
-from frappe.utils import get_formatted_email, get_url, parse_addr
+from frappe.utils import formataddr, get_formatted_email, get_url, parse_addr
 
 
 class CommunicationEmailMixin:
@@ -271,20 +271,23 @@ class CommunicationEmailMixin:
 		)
 		bcc = self.get_mail_bcc_with_displayname(is_inbound_mail_communcation=is_inbound_mail_communcation)
 
-		# Remove original receipients from cc and bcc when inbound mail
-		if is_inbound_mail_communcation:
-			original_recipients = set(self.get_mail_recipients_with_displayname())
-			recipients = list(set(recipients) - original_recipients)
-			cc = list(set(cc) - original_recipients)
-			bcc = list(set(bcc) - original_recipients)
-
 		if not (recipients or cc):
 			return {}
 
 		sender = None
 		# If this is inbound mail, then we need to get sender email (outgoing email account)
 		if is_inbound_mail_communcation:
-			sender = self.get_email_with_displayname(EmailAccount.find_default_outgoing())
+			default_outgoing_email_account = EmailAccount.find_default_outgoing()
+			if default_outgoing_email_account:
+				sender = formataddr(
+					pair=(default_outgoing_email_account.name, default_outgoing_email_account.email_id)
+				)
+			else:
+				frappe.logger().info(
+					_(
+						"Unable to send mail because of a missing email account. Please setup default Email Account from Settings > Email Account"
+					)
+				)
 		else:
 			sender = self.get_mail_sender_with_displayname()
 
