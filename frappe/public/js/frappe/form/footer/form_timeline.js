@@ -555,6 +555,11 @@ class FormTimeline extends BaseTimeline {
 			reply_all: reply_all,
 		};
 
+		if (args.is_a_reply)
+			args.reply_type = reply_all
+				? frappe.constants.communication.email_reply_type.REPLY_ALL
+				: frappe.constants.communication.email_reply_type.REPLY;
+
 		const email_accounts = frappe.boot.email_accounts
 			.filter((account) => {
 				return (
@@ -584,9 +589,10 @@ class FormTimeline extends BaseTimeline {
 
 		if (this.frm.doctype === "Communication") {
 			args.message = "";
-			args.last_email = this.frm.doc;
+			args.current_replyto_email = this.frm.doc;
 			args.recipients = this.frm.doc.sender;
-			args.subject = __("Re: {0}", [this.frm.doc.subject]);
+			args.subject = this.frm.doc.subject;
+			args.reply_type = frappe.constants.communication.email_reply_type.reply_type.REPLY;
 		} else {
 			const comment_value = frappe.markdown(this.frm.comment_box.get_value());
 			args.message = strip_html(comment_value) ? comment_value : "";

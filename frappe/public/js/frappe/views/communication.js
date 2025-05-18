@@ -3,6 +3,22 @@
 
 import localforage from "localforage";
 
+frappe.provide("frappe.constants.communication");
+
+// ENUM of available email reply types
+/**
+ * Enum for email reply types.
+ * @readonly
+ * @enum {string}
+ */
+const EMAIL_REPLY_TYPE = {
+	REPLY: "REPLY",
+	REPLY_ALL: "REPLY_ALL",
+	FORWARD: "FORWARD",
+};
+
+frappe.constants.communication.email_reply_type = EMAIL_REPLY_TYPE;
+
 frappe.last_edited_communication = {};
 const separator_element = "<div>---</div>";
 
@@ -18,6 +34,8 @@ frappe.views.CommunicationComposer = class {
 
 	make() {
 		const me = this;
+
+		this.last_email = this.get_last_email() || this.current_replyto_email;
 
 		this.dialog = new frappe.ui.Dialog({
 			title: this.title || this.subject || __("New Email"),
@@ -323,6 +341,12 @@ frappe.views.CommunicationComposer = class {
 		}
 	}
 
+	clean_subject(subject) {
+		if (typeof subject !== "string" || !subject) return subject;
+		const regex = /(^\s*(fw|fwd|wg)[\[\]().\- ]*[^:]*:|\s*(re|aw)[\[\]().\- ]*[^:]*:\s*)*/gi;
+		return subject.replace(regex, "").trim();
+	}
+
 	setup_subject_and_recipients() {
 		this.subject = this.subject || "";
 
@@ -342,17 +366,12 @@ frappe.views.CommunicationComposer = class {
 
 		if (!this.subject && this.frm) {
 			// get subject from last communication
-			const last = this.frm.timeline.get_last_email();
+			const last = this.last_email;
 
 			if (last) {
 				this.subject = last.subject;
 				if (!this.recipients) {
 					this.recipients = last.sender;
-				}
-
-				// prepend "Re:"
-				if (strip(this.subject.toLowerCase().split(":")[0]) != "re") {
-					this.subject = __("Re: {0}", [this.subject]);
 				}
 			}
 
@@ -374,6 +393,21 @@ frappe.views.CommunicationComposer = class {
 			if (!cstr(this.subject).includes(identifier)) {
 				this.subject = `${this.subject} (${identifier})`;
 			}
+		}
+
+		this.subject = this.clean_subject(this.subject);
+
+		// Prepend "Re:" or "Fw:" to the subject
+		switch (this.reply_type) {
+			case frappe.constants.communication.email_reply_type.REPLY:
+			case frappe.constants.communication.email_reply_type.REPLY_ALL:
+				// Use "Re:" universally to keep it simple and clear
+				this.subject = __("Re: {0}", [this.subject]);
+				break;
+			case frappe.constants.communication.email_reply_type.FORWARD:
+				// Use "Fw:" for forwards
+				this.subject = __("Fw: {0}", [this.subject]);
+				break;
 		}
 
 		if (this.frm && !this.recipients) {
@@ -923,10 +957,14 @@ frappe.views.CommunicationComposer = class {
 		return "<br>" + signature;
 	}
 
+	get_last_email() {
+		return this.frm && this.frm.timeline.get_last_email(false);
+	}
+
 	get_earlier_reply() {
 		this.reply_set = false;
 
-		const last_email = this.last_email || (this.frm && this.frm.timeline.get_last_email(true));
+		const last_email = this.last_email;
 
 		if (!last_email) return "";
 		let last_email_content = last_email.original_comment || last_email.content;
