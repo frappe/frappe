@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-05-14 02:10\n"
+"PO-Revision-Date: 2025-05-18 02:43\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -2147,7 +2147,7 @@ msgstr "لوگوی برنامه"
 #: frappe/core/doctype/installed_application/installed_application.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Application Name"
-msgstr "نام نرم افزار"
+msgstr "نام نرم‌افزار"
 
 #. Label of a Data field in DocType 'Installed Application'
 #: frappe/core/doctype/installed_application/installed_application.json
@@ -3030,7 +3030,7 @@ msgstr "بازگشت"
 
 #: frappe/templates/pages/integrations/gcalendar-success.html:13
 msgid "Back to Desk"
-msgstr "بازگشت به میز"
+msgstr "بازگشت به پیشخوان"
 
 #: frappe/www/404.html:20
 msgid "Back to Home"
@@ -4404,7 +4404,7 @@ msgstr "برای اطلاعات بیشتر، لاگ خطا را بررسی کن�
 
 #: frappe/website/doctype/website_settings/website_settings.js:147
 msgid "Check this if you don't want users to sign up for an account on your site. Users won't get desk access unless you explicitly provide it."
-msgstr "اگر نمی‌خواهید کاربران برای یک حساب کاربری در سایت شما ثبت نام کنند، این را بررسی کنید. کاربران به میز کار دسترسی نخواهند داشت مگر اینکه به صراحت آن را ارائه دهید."
+msgstr "اگر نمی‌خواهید کاربران برای یک حساب کاربری در سایت شما ثبت نام کنند، این را بررسی کنید. کاربران به پیشخوان دسترسی نخواهند داشت مگر اینکه به صراحت آن را ارائه دهید."
 
 #. Description of the 'User must always select' (Check) field in DocType
 #. 'Document Naming Settings'
@@ -5497,7 +5497,7 @@ msgstr "ستون {0} به فیلد {1} نگاشت نشد"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:222
 msgid "Could not start up: "
-msgstr "راه اندازی نشد: "
+msgstr "راه‌اندازی نشد: "
 
 #: frappe/public/js/frappe/web_form/web_form.js:359
 msgid "Couldn't save, please check the data you have entered"
@@ -6395,7 +6395,7 @@ msgstr "استفاده از اندازه ردیف پایگاه داده"
 #. Name of a report
 #: frappe/core/report/database_storage_usage_by_tables/database_storage_usage_by_tables.json
 msgid "Database Storage Usage By Tables"
-msgstr "استفاده از ذخیره سازی پایگاه داده بر اساس جداول"
+msgstr "استفاده از ذخیره‌سازی پایگاه داده بر اساس جداول"
 
 #: frappe/custom/doctype/customize_form/customize_form.py:245
 msgid "Database Table Row Size Limit"
@@ -6995,17 +6995,17 @@ msgstr "نقش سازمانی"
 #. Label of a Check field in DocType 'Role'
 #: frappe/core/doctype/role/role.json
 msgid "Desk Access"
-msgstr "دسترسی به میز"
+msgstr "دسترسی به پیشخوان"
 
 #. Label of a Section Break field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Desk Settings"
-msgstr "تنظیمات میز"
+msgstr "تنظیمات پیشخوان"
 
 #. Label of a Select field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Desk Theme"
-msgstr "تم میز"
+msgstr "تم پیشخوان"
 
 #. Name of a role
 #: frappe/automation/doctype/reminder/reminder.json
@@ -7039,7 +7039,7 @@ msgstr "تم میز"
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Desk User"
-msgstr "کاربر میز"
+msgstr "کاربر پیشخوان"
 
 #. Name of a DocType
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
@@ -7048,7 +7048,7 @@ msgstr "آیکون دسکتاپ"
 
 #: frappe/desk/doctype/desktop_icon/desktop_icon.py:225
 msgid "Desktop Icon already exists"
-msgstr "نماد دسکتاپ از قبل وجود دارد"
+msgstr "آیکون دسکتاپ از قبل وجود دارد"
 
 #. Label of a Code field in DocType 'Scheduled Job Log'
 #. Label of a Tab Break field in DocType 'Customize Form'
@@ -12738,7 +12738,7 @@ msgstr "محدودیت پیوست ناکافی"
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Int"
-msgstr "بین المللی"
+msgstr "عدد صحیح"
 
 #. Name of a DocType
 #: frappe/integrations/doctype/integration_request/integration_request.json
@@ -21318,7 +21318,7 @@ msgstr "نقش \"همه\" به همه کاربران سیستم + وب سایت 
 
 #: frappe/core/doctype/role/role.js:13
 msgid "Role 'Desk User' will be given to all system users."
-msgstr "نقش \"کاربر میز\" به همه کاربران سیستم داده می‌شود."
+msgstr "نقش \"کاربر پیشخوان\" به همه کاربران سیستم داده می‌شود."
 
 #. Label of a Data field in DocType 'Role'
 #. Label of a Data field in DocType 'Role Profile'
@@ -23225,7 +23225,7 @@ msgstr "راه‌اندازی سری برای تراکنش ها"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:224
 msgid "Setup failed"
-msgstr "راه اندازی انجام نشد"
+msgstr "راه‌اندازی انجام نشد"
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'
@@ -24695,7 +24695,7 @@ msgstr "تغییر تم"
 
 #: frappe/templates/includes/navbar/navbar_login.html:17
 msgid "Switch To Desk"
-msgstr "سوئیچ به میز"
+msgstr "سوئیچ به پیشخوان"
 
 #: frappe/public/js/frappe/list/list_sidebar.js:296
 msgid "Switch to Frappe CRM for smarter sales"
@@ -28538,7 +28538,7 @@ msgstr "وقتی فعال باشد، به مهمانان اجازه می‌ده�
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "When sending document using email, store the PDF on Communication. Warning: This can increase your storage usage."
-msgstr "هنگام ارسال سند با استفاده از ایمیل، PDF را در Communication ذخیره کنید. هشدار: این می‌تواند میزان استفاده از فضای ذخیره سازی شما را افزایش دهد."
+msgstr "هنگام ارسال سند با استفاده از ایمیل، PDF را در Communication ذخیره کنید. هشدار: این می‌تواند میزان استفاده از فضای ذخیره‌سازی شما را افزایش دهد."
 
 #. Description of the 'Force Web Capture Mode for Uploads' (Check) field in
 #. DocType 'System Settings'
@@ -28579,7 +28579,7 @@ msgstr "عرض ها را می‌توان بر حسب px یا % تنظیم کرد
 #. Label of a Check field in DocType 'Report Filter'
 #: frappe/core/doctype/report_filter/report_filter.json
 msgid "Wildcard Filter"
-msgstr "فیلتر عجایب"
+msgstr "فیلتر نویسه جانشین"
 
 #. Description of the 'Wildcard Filter' (Check) field in DocType 'Report
 #. Filter'
@@ -29118,7 +29118,7 @@ msgstr "برای تنظیم سطوح فیلدها می‌توانید از سف�
 
 #: frappe/public/js/frappe/form/link_selector.js:30
 msgid "You can use wildcard %"
-msgstr "می‌توانید از علامت % استفاده کنید"
+msgstr "می‌توانید از نویسه جانشین % استفاده کنید"
 
 #: frappe/custom/doctype/customize_form/customize_form.py:386
 msgid "You can't set 'Options' for field {0}"
@@ -30778,7 +30778,7 @@ msgstr "آپلود"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:358
 msgid "use % as wildcard"
-msgstr "از % به عنوان حروف استفاده کنید"
+msgstr "استفاده از % به عنوان نویسه جانشین"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
