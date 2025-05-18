@@ -49,92 +49,92 @@ frappe.ui.form.on("Communication", {
 			frm.trigger("show_relink_dialog");
 		});
 
-		if (
-			frm.doc.communication_type == "Communication" &&
-			frm.doc.communication_medium == "Email" &&
-			// We should be able to reply also to sent emails, not only received ones
-			// We should not be able to reply to linked emails, only to main ones to ensure correct threading flow
-			frm.doc.status !== "Linked"
-		) {
-			frm.add_custom_button(__("Reply"), function () {
-				frm.trigger("reply");
-			});
-
-			frm.add_custom_button(
-				__("Reply All"),
-				function () {
-					frm.trigger("reply_all");
-				},
-				__("Actions")
-			);
-
-			frm.add_custom_button(
-				__("Forward"),
-				function () {
-					frm.trigger("forward_mail");
-				},
-				__("Actions")
-			);
-
-			frm.add_custom_button(
-				frm.doc.seen ? __("Mark as Unread") : __("Mark as Read"),
-				function () {
-					frm.trigger("mark_as_read_unread");
-				},
-				__("Actions")
-			);
-
-			frm.add_custom_button(
-				__("Move"),
-				function () {
-					frm.trigger("show_move_dialog");
-				},
-				__("Actions")
-			);
-
-			if (frm.doc.email_status != "Spam")
+		if (frm.doc.communication_type == "Communication") {
+			if (frm.doc.communication_medium == "Email") {
 				frm.add_custom_button(
-					__("Mark as Spam"),
+					__("Forward"),
 					function () {
-						frm.trigger("mark_as_spam");
+						frm.trigger("forward_mail");
 					},
 					__("Actions")
 				);
 
-			if (frm.doc.email_status != "Trash") {
-				frm.add_custom_button(
-					__("Move To Trash"),
-					function () {
-						frm.trigger("move_to_trash");
-					},
-					__("Actions")
-				);
+				if (
+					// We should not be able to reply to linked emails, only to main ones to ensure correct threading flow
+					frm.doc.status !== "Linked"
+				) {
+					frm.add_custom_button(__("Reply"), function () {
+						frm.trigger("reply");
+					});
+
+					frm.add_custom_button(
+						__("Reply All"),
+						function () {
+							frm.trigger("reply_all");
+						},
+						__("Actions")
+					);
+
+					frm.add_custom_button(
+						frm.doc.seen ? __("Mark as Unread") : __("Mark as Read"),
+						function () {
+							frm.trigger("mark_as_read_unread");
+						},
+						__("Actions")
+					);
+
+					frm.add_custom_button(
+						__("Move"),
+						function () {
+							frm.trigger("show_move_dialog");
+						},
+						__("Actions")
+					);
+
+					if (frm.doc.email_status != "Spam")
+						frm.add_custom_button(
+							__("Mark as Spam"),
+							function () {
+								frm.trigger("mark_as_spam");
+							},
+							__("Actions")
+						);
+
+					if (frm.doc.email_status != "Trash") {
+						frm.add_custom_button(
+							__("Move To Trash"),
+							function () {
+								frm.trigger("move_to_trash");
+							},
+							__("Actions")
+						);
+					}
+
+					// Add to Contact button only for received emails
+					if (frm.doc.sent_or_received == "Received") {
+						frm.add_custom_button(
+							__("Contact"),
+							function () {
+								frm.trigger("add_to_contact");
+							},
+							__("Create")
+						);
+					}
+				}
 			}
 
-			// Add to Contact button only for received emails
-			if (frm.doc.sent_or_received == "Received") {
+			if (
+				frm.doc.communication_medium == "Phone" &&
+				frm.doc.sent_or_received == "Received"
+			) {
 				frm.add_custom_button(
-					__("Contact"),
+					__("Add Contact"),
 					function () {
 						frm.trigger("add_to_contact");
 					},
-					__("Create")
+					__("Actions")
 				);
 			}
-		}
-
-		if (
-			frm.doc.communication_type == "Communication" &&
-			frm.doc.communication_medium == "Phone" &&
-			frm.doc.sent_or_received == "Received"
-		) {
-			frm.add_custom_button(
-				__("Add Contact"),
-				function () {
-					frm.trigger("add_to_contact");
-				},
-				__("Actions")
-			);
 		}
 	},
 
