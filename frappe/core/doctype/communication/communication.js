@@ -52,7 +52,9 @@ frappe.ui.form.on("Communication", {
 		if (
 			frm.doc.communication_type == "Communication" &&
 			frm.doc.communication_medium == "Email" &&
-			frm.doc.sent_or_received == "Received"
+			// We should be able to reply also to sent emails, not only received ones
+			// We should not be able to reply to linked emails, only to main ones to ensure correct threading flow
+			frm.doc.status !== "Linked"
 		) {
 			frm.add_custom_button(__("Reply"), function () {
 				frm.trigger("reply");
@@ -109,13 +111,16 @@ frappe.ui.form.on("Communication", {
 				);
 			}
 
-			frm.add_custom_button(
-				__("Contact"),
-				function () {
-					frm.trigger("add_to_contact");
-				},
-				__("Create")
-			);
+			// Add to Contact button only for received emails
+			if (frm.doc.sent_or_received == "Received") {
+				frm.add_custom_button(
+					__("Contact"),
+					function () {
+						frm.trigger("add_to_contact");
+					},
+					__("Create")
+				);
+			}
 		}
 
 		if (
