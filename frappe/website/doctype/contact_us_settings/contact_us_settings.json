@@ -83,7 +83,7 @@
   {
    "fieldname": "state",
    "fieldtype": "Data",
-   "label": "State"
+   "label": "State/Province"
   },
   {
    "fieldname": "pincode",
@@ -121,7 +121,7 @@
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-03-02 17:42:32.947404",
+ "modified": "2025-05-15 07:19:31.401053",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Contact Us Settings",
