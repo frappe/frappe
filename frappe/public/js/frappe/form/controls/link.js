@@ -14,14 +14,28 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		$(`<div class="link-field ui-front" style="position: relative;">
 			<input type="text" class="input-with-feedback form-control">
 			<span class="link-btn">
+				${
+					frappe.boot.sysdefaults.enable_btn_clear_link == 1
+						? `<a class="btn-clear" style="display: inline-block;" title="${__("Clear Link")}">
+								${frappe.utils.icon("close", "xs", "es-icon")}
+						</a>`
+						: ""
+				}
 				<a class="btn-open" style="display: inline-block;" title="${__("Open Link")}">
 					${frappe.utils.icon("arrow-right", "xs")}
 				</a>
-			</span>
+			</span>	
 		</div>`).prependTo(this.input_area);
 		this.$input_area = $(this.input_area);
 		this.$input = this.$input_area.find("input");
 		this.$link = this.$input_area.find(".link-btn");
+		this.$link_clear = this.$input_area.find(".btn-clear");
+		if (this.$link_clear.length) {
+			this.$link_clear.on("click", function () {
+				me.$link.toggle(false);
+				me.$input.val("").focus();
+			});
+		}
 		this.$link_open = this.$link.find(".btn-open");
 		this.set_input_attributes();
 		this.$input.on("focus", function () {
@@ -65,11 +79,17 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			const name = this.get_input_value();
 			this.$link.toggle(true);
 			this.$link_open.attr("href", frappe.utils.get_form_link(doctype, name));
+			if (this.$link_clear && this.$link_clear.length) {
+				this.$link_clear.toggle(true);
+			}
 		}
 	}
 
 	hide_link_and_clear_buttons() {
 		this.$link.toggle(false);
+		if (this.$link_clear && this.$link_clear.length) {
+			this.$link_clear.toggle(false);
+		}
 	}
 
 	get_options() {
