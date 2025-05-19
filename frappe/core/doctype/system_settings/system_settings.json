@@ -703,6 +703,7 @@
   },
   {
    "default": "100000",
+   "description": "This value specifies the max number of rows that can be rendered in report view. ",
    "fieldname": "max_report_rows",
    "fieldtype": "Int",
    "label": "Max Report Rows"
@@ -711,7 +712,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2025-05-19 12:45:29.975162",
+ "modified": "2025-05-19 14:17:40.748786",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
