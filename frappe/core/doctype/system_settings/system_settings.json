@@ -109,8 +109,7 @@
  "fields": [
   {
    "fieldname": "localization",
-   "fieldtype": "Section Break",
-   "formula_execution_mode": "Always"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "country",
@@ -128,8 +127,7 @@
   },
   {
    "fieldname": "column_break_3",
-   "fieldtype": "Column Break",
-   "formula_execution_mode": "Always"
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "time_zone",
@@ -168,8 +166,7 @@
   },
   {
    "fieldname": "column_break_7",
-   "fieldtype": "Column Break",
-   "formula_execution_mode": "Always"
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "number_format",
@@ -193,8 +190,7 @@
   },
   {
    "fieldname": "sec_backup_limit",
-   "fieldtype": "Section Break",
-   "formula_execution_mode": "Always"
+   "fieldtype": "Section Break"
   },
   {
    "default": "3",
@@ -230,8 +226,7 @@
   },
   {
    "fieldname": "security",
-   "fieldtype": "Section Break",
-   "formula_execution_mode": "Always"
+   "fieldtype": "Section Break"
   },
   {
    "default": "170:00",
@@ -280,8 +275,7 @@
   },
   {
    "fieldname": "column_break_31",
-   "fieldtype": "Column Break",
-   "formula_execution_mode": "Always"
+   "fieldtype": "Column Break"
   },
   {
    "default": "1",
@@ -311,8 +305,7 @@
   },
   {
    "fieldname": "column_break_34",
-   "fieldtype": "Column Break",
-   "formula_execution_mode": "Always"
+   "fieldtype": "Column Break"
   },
   {
    "default": "60",
@@ -373,8 +366,7 @@
   },
   {
    "fieldname": "email",
-   "fieldtype": "Section Break",
-   "formula_execution_mode": "Always"
+   "fieldtype": "Section Break"
   },
   {
    "description": "Your organization name and address for the email footer.",
@@ -384,8 +376,7 @@
   },
   {
    "fieldname": "column_break_18",
-   "fieldtype": "Column Break",
-   "formula_execution_mode": "Always"
+   "fieldtype": "Column Break"
   },
   {
    "default": "0",
@@ -401,8 +392,7 @@
   },
   {
    "fieldname": "column_break_21",
-   "fieldtype": "Column Break",
-   "formula_execution_mode": "Always"
+   "fieldtype": "Column Break"
   },
   {
    "default": "0",
@@ -470,8 +460,7 @@
   },
   {
    "fieldname": "system_updates_section",
-   "fieldtype": "Section Break",
-   "formula_execution_mode": "Always"
+   "fieldtype": "Section Break"
   },
   {
    "default": "0",
@@ -590,8 +579,7 @@
   },
   {
    "fieldname": "files_section",
-   "fieldtype": "Section Break",
-   "formula_execution_mode": "Always"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "max_file_size",
@@ -601,8 +589,7 @@
   },
   {
    "fieldname": "column_break_uqma",
-   "fieldtype": "Column Break",
-   "formula_execution_mode": "Always"
+   "fieldtype": "Column Break"
   },
   {
    "description": "Provide a list of allowed file extensions for file uploads. Each line should contain one allowed file type. If unset, all file extensions are allowed. Example: <br>CSV<br>JPG<br>PNG",
@@ -647,8 +634,7 @@
   },
   {
    "fieldname": "column_break_txqh",
-   "fieldtype": "Column Break",
-   "formula_execution_mode": "Always"
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "login_methods_section",
@@ -657,8 +643,7 @@
   },
   {
    "fieldname": "column_break_uhqk",
-   "fieldtype": "Column Break",
-   "formula_execution_mode": "Always"
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "search_section",
