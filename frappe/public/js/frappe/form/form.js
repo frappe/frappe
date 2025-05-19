@@ -1704,7 +1704,7 @@ frappe.ui.form.Form = class FrappeForm {
 		return doc;
 	}
 
-	set_value(field, value, if_missing, skip_dirty_trigger = false) {
+	set_value(field, value, if_missing, skip_dirty_trigger = false, skip_trigger = false) {
 		var me = this;
 		var _set = function (f, v) {
 			var fieldobj = me.fields_dict[f];
@@ -1746,7 +1746,8 @@ frappe.ui.form.Form = class FrappeForm {
 							f,
 							v,
 							me.fieldtype,
-							skip_dirty_trigger
+							skip_dirty_trigger,
+							skip_trigger
 						);
 					}
 				}
