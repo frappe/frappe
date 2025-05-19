@@ -16,7 +16,9 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			<span class="link-btn">
 				${
 					frappe.boot.sysdefaults.enable_btn_clear_link == 1
-						? `<a class="btn-clear" style="display: inline-block;" title="${__("Clear Link")}">
+						? `<a class="btn-clear" style="display: inline-block;" title="${__(
+								"Clear Link"
+						  )}">
 								${frappe.utils.icon("close", "xs", "es-icon")}
 						</a>`
 						: ""
@@ -24,7 +26,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				<a class="btn-open" style="display: inline-block;" title="${__("Open Link")}">
 					${frappe.utils.icon("arrow-right", "xs")}
 				</a>
-			</span>	
+			</span>
 		</div>`).prependTo(this.input_area);
 		this.$input_area = $(this.input_area);
 		this.$input = this.$input_area.find("input");
