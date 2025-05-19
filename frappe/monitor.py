@@ -121,21 +121,7 @@ class Monitor:
 
 
 def flush():
-<<<<<<< HEAD
-	try:
-		# Fetch all the logs without removing from cache
-		logs = frappe.cache().lrange(MONITOR_REDIS_KEY, 0, -1)
-		if logs:
-			logs = list(map(frappe.safe_decode, logs))
-			with open(log_file(), "a") as f:
-				f.write("\n".join(logs))
-				f.write("\n")
-			# Remove fetched entries from cache
-			frappe.cache().ltrim(MONITOR_REDIS_KEY, len(logs) - 1, -1)
-	except Exception:
-		traceback.print_exc()
-=======
-	logs = frappe.cache.lrange(MONITOR_REDIS_KEY, 0, -1)
+	logs = frappe.cache().lrange(MONITOR_REDIS_KEY, 0, -1)
 	if not logs:
 		return
 
@@ -146,5 +132,4 @@ def flush():
 			f.write("\n")
 
 	# Remove fetched entries from cache
-	frappe.cache.ltrim(MONITOR_REDIS_KEY, len(logs) - 1, -1)
->>>>>>> a6c73dfdbe (fix: avoid flushing to monitor logs concurrently (#32552))
+	frappe.cache().ltrim(MONITOR_REDIS_KEY, len(logs) - 1, -1)
