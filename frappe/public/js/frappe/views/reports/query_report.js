@@ -1023,11 +1023,18 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.tree_report = this.data.some((d) => "indent" in d);
 	}
 
-	render_datatable() {
+	async render_datatable() {
 		let data = this.data;
 		let columns = this.columns.filter((col) => !col.hidden);
 
-		if (data.length > 200000) {
+		if (!this.max_report_rows) {
+			this.max_report_rows = await frappe.db.get_single_value(
+				"System Settings",
+				"max_report_rows"
+			);
+		}
+
+		if (data.length > this.max_report_rows) {
 			let msg = __(
 				"This report contains {0} rows and is too big to display in browser, you can {1} this report instead.",
 				[cstr(format_number(data.length, null, 0)).bold(), __("export").bold()]
