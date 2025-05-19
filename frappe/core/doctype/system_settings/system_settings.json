@@ -97,6 +97,7 @@
   "advanced_tab",
   "prepared_report_section",
   "max_auto_email_report_per_user",
+  "max_report_rows",
   "background_workers",
   "enable_scheduler",
   "dormant_days",
@@ -701,6 +702,13 @@
    "fieldtype": "Check",
    "label": "Hide Empty Read-Only Fields"
   },
+  {
+    "default": "100000",
+    "description": "This value specifies the max number of rows that can be rendered in report view. ",
+    "fieldname": "max_report_rows",
+    "fieldtype": "Int",
+    "label": "Max Report Rows"
+   },
   {
    "default": "0",
    "fieldname": "enable_btn_clear_link",
