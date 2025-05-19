@@ -63,7 +63,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue"
-import { createResource } from "frappe-ui"
+import { createResource, Dialog } from "frappe-ui"
 import Block from "@/utils/block"
 import { getComponentBlock } from "@/utils/helpers"
 import { DocTypeField } from "@/types"

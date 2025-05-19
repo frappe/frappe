@@ -91,7 +91,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, Ref, watchEffect, nextTick, inject, watch } from "vue"
-
+import { Dialog } from "frappe-ui"
 import BoxResizer from "@/components/BoxResizer.vue"
 import PaddingHandler from "@/components/PaddingHandler.vue"
 import MarginHandler from "@/components/MarginHandler.vue"

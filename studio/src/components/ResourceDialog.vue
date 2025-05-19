@@ -148,7 +148,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
-import { createResource } from "frappe-ui"
+import { createResource, Dialog } from "frappe-ui"
 import Link from "@/components/Link.vue"
 import CodeEditor from "@/components/CodeEditor.vue"
 import InputLabel from "@/components/InputLabel.vue"

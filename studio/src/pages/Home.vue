@@ -75,6 +75,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue"
+import { Dialog } from "frappe-ui"
 import { useRouter } from "vue-router"
 import { studioApps } from "@/data/studioApps"
 import { UseTimeAgo } from "@vueuse/components"
