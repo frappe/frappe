@@ -14,7 +14,13 @@ export default defineConfig({
 		// https://vite.dev/guide/backend-integration
 		origin: "http://127.0.0.1:8080",
 	},
-	plugins: [frappeui({ source: "^/(app|login|api|assets|files|pages)" }), vue()],
+	plugins: [
+		frappeui({
+			frappeProxy: true,
+			lucideIcons: true,
+		}),
+		vue()
+	],
 	resolve: {
 		alias: {
 			vue: "vue/dist/vue.esm-bundler.js",
