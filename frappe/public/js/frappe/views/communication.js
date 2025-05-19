@@ -295,32 +295,44 @@ frappe.views.CommunicationComposer = class {
 			cc: this.dialog.fields_dict.cc,
 			bcc: this.dialog.fields_dict.bcc,
 		};
-		// If same user replies to their own email, set recipients to last email recipients
-		if (this.last_email.sender == sender) {
-			fields.recipients.set_value(this.last_email.recipients);
-			if (this.reply_all) {
-				fields.cc.set_value(this.last_email.cc);
-				fields.bcc.set_value(this.last_email.bcc);
-			}
-		} else {
-			fields.recipients.set_value(this.last_email.sender);
-			if (this.reply_all) {
-				// if sending reply add ( last email's recipients - sender's email_id ) to cc.
-				const recipients = this.last_email.recipients.split(",").map((r) => r.trim());
-				if (!this.cc) {
-					this.cc = "";
+		frappe.model.with_doc(
+			this.last_email.doctype || this.last_email.communication_type,
+			this.last_email.name,
+			() => {
+				var last_mail_doc = frappe.model.get_doc(
+					this.last_email.doctype || this.last_email.communication_type,
+					this.last_email.name
+				);
+				// If same user replies to their own email, set recipients to last email recipients
+				if (last_mail_doc.sent_or_received == "Sent") {
+					fields.recipients.set_value(this.last_email.recipients);
+					if (this.reply_all) {
+						fields.cc.set_value(this.last_email.cc);
+						fields.bcc.set_value(this.last_email.bcc);
+					}
+				} else {
+					fields.recipients.set_value(this.last_email.sender);
+					if (this.reply_all) {
+						// if sending reply add ( last email's recipients - sender's email_id ) to cc.
+						const recipients = this.last_email.recipients
+							.split(",")
+							.map((r) => r.trim());
+						if (!this.cc) {
+							this.cc = "";
+						}
+						const cc_array = this.cc.split(",").map((r) => r.trim());
+						if (this.cc && !this.cc.endsWith(", ")) {
+							this.cc += ", ";
+						}
+						this.cc += recipients
+							.filter((r) => !cc_array.includes(r) && r != sender)
+							.join(", ");
+						this.cc = this.cc.replace(sender + ", ", "");
+						fields.cc.set_value(this.cc);
+					}
 				}
-				const cc_array = this.cc.split(",").map((r) => r.trim());
-				if (this.cc && !this.cc.endsWith(", ")) {
-					this.cc += ", ";
-				}
-				this.cc += recipients
-					.filter((r) => !cc_array.includes(r) && r != sender)
-					.join(", ");
-				this.cc = this.cc.replace(sender + ", ", "");
-				fields.cc.set_value(this.cc);
 			}
-		}
+		);
 	}
 
 	setup_subject_and_recipients() {
