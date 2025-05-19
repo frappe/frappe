@@ -51,7 +51,27 @@ Quill.register(Table, true);
 
 // link without href
 var Link = Quill.import("formats/link");
+var Image = Quill.import("formats/image");
 
+class MyImage extends Image {
+	static create(value) {
+		let node = super.create(value);
+		let attrs = ["style", "align", "src"];
+		attrs.forEach((a) => {
+			if (value[a]) node.setAttribute(a, value[a]);
+		});
+		return node;
+	}
+	static value(node) {
+		return {
+			align: node.align,
+			style: node.style.cssText,
+			src: node.src,
+		};
+	}
+}
+
+Quill.register(MyImage, true);
 class MyLink extends Link {
 	static create(value) {
 		let node = super.create(value);
@@ -69,7 +89,7 @@ Quill.register(MyLink, true);
 
 // image uploader
 const Uploader = Quill.import("modules/uploader");
-Uploader.DEFAULTS.mimetypes.push("image/gif");
+Uploader.DEFAULTS.mimetypes.push("image/gif", "image/webp");
 
 // inline style
 const BackgroundStyle = Quill.import("attributors/style/background");
@@ -299,7 +319,12 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 		}
 
 		// set html without triggering a focus
-		const delta = this.quill.clipboard.convert({ html: value, text: "" });
+		const delta = this.quill.clipboard.convert(
+			{ html: value, text: "" },
+			{
+				image: MyImage,
+			}
+		);
 		this.quill.setContents(delta);
 	}
 

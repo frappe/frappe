@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-04-20 17:52\n"
+"PO-Revision-Date: 2025-05-05 22:08\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -42,7 +42,7 @@ msgstr "\"Nadređeni\" označava nadređenu tablicu u koju se mora dodati ovaj r
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "\"Team Members\" or \"Management\""
-msgstr ""
+msgstr "\"Članovi Tima\" ili \"Uprava\""
 
 #: frappe/public/js/frappe/form/form.js:1013
 msgid "\"amended_from\" field must be present to do an amendment."
@@ -770,7 +770,7 @@ msgstr "Član Tima O Nama"
 
 #: frappe/core/doctype/data_import/data_import.js:27
 msgid "About {0} minute remaining"
-msgstr ""
+msgstr "Preostalo je oko {0} minute"
 
 #: frappe/core/doctype/data_import/data_import.js:28
 msgid "About {0} minutes remaining"
@@ -778,7 +778,7 @@ msgstr "Preostalo je oko {0} minuta"
 
 #: frappe/core/doctype/data_import/data_import.js:25
 msgid "About {0} seconds remaining"
-msgstr ""
+msgstr "Preostalo je oko {0} sekundi"
 
 #. Label of a Section Break field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -788,12 +788,12 @@ msgstr "Kontrola Pristupa"
 #. Label of a Data field in DocType 'S3 Backup Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgid "Access Key ID"
-msgstr ""
+msgstr "ID Pristupnog Ključa"
 
 #. Label of a Password field in DocType 'S3 Backup Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgid "Access Key Secret"
-msgstr ""
+msgstr "Tajna pristupnog ključa"
 
 #. Name of a DocType
 #. Linked DocType in User's connections
@@ -24195,7 +24195,7 @@ msgstr ""
 
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:391
 msgid "Stats based on last week's performance (from {0} to {1})"
-msgstr "Statistika temeljena na prošlotjednom učinku (od {0} do {1})"
+msgstr ""
 
 #. Label of a Select field in DocType 'Auto Repeat'
 #. Label of a Select field in DocType 'Contact'

@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-04-19 17:55\n"
+"PO-Revision-Date: 2025-04-29 19:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -27005,7 +27005,7 @@ msgstr "Typ"
 
 #: frappe/desk/page/user_profile/user_profile.html:17
 msgid "Type Distribution"
-msgstr "Verteilung nach Typ"
+msgstr ""
 
 #: frappe/public/js/frappe/form/controls/comment.js:78
 msgid "Type a reply / comment"
