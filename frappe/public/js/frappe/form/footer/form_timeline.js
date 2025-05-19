@@ -544,7 +544,7 @@ class FormTimeline extends BaseTimeline {
 				String(action_name).charAt(0).toUpperCase() + String(action_name).slice(1);
 			m.empty();
 			m.append(
-				__(`  ${frappe.utils.to_title_case(formatted_action_name.replace("-", " "))}`)
+				__("{0}", [frappe.utils.to_title_case(formatted_action_name.replace("-", " "))])
 			);
 			m.removeClass();
 			m.addClass("dropdown-item");
