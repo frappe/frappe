@@ -519,14 +519,13 @@ class FormTimeline extends BaseTimeline {
 
 	setup_reply(communication_box, communication_doc) {
 		let actions = communication_box.find(".custom-actions");
-		let icon_size = frappe.is_mobile() ? "sm" : "md";
-		let reply = $(
-			`<a class="action-btn reply">${frappe.utils.icon("reply", icon_size)}</a>`
-		).click(() => {
-			this.compose_mail(communication_doc);
-		});
+		let reply = $(`<a class="action-btn reply">${frappe.utils.icon("reply", "md")}</a>`).click(
+			() => {
+				this.compose_mail(communication_doc);
+			}
+		);
 		let reply_all = $(
-			`<a class="action-btn reply-all">${frappe.utils.icon("reply-all", icon_size)}</a>`
+			`<a class="action-btn reply-all">${frappe.utils.icon("reply-all", "md")}</a>`
 		).click(() => {
 			this.compose_mail(communication_doc, true);
 		});

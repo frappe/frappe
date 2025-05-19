@@ -60,6 +60,14 @@ Tip: use lucide.svg in /icons for all downloaded icons
 		<path fill-rule="evenodd" clip-rule="evenodd" d="M2.10756 9.53547C1.93501 9.82126 1.93501 10.1787 2.10756 10.4645C3.75635 13.1955 6.60531 15 9.84351 15C13.0817 15 15.9307 13.1955 17.5795 10.4645C17.752 10.1787 17.752 9.82127 17.5795 9.53548C15.9307 6.80451 13.0817 5 9.84351 5C6.60531 5 3.75635 6.8045 2.10756 9.53547ZM10 13C11.6569 13 13 11.6569 13 10C13 8.34315 11.6569 7 10 7C8.34315 7 7 8.34315 7 10C7 11.6569 8.34315 13 10 13Z" fill="var(--icon-stroke)"/>
 		<circle cx="10" cy="10" r="1" fill="var(--icon-stroke)"/>
 	</symbol>
+	
+	<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="icon-funnel-plus"> 
+		<path d="M13.354 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14v6a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341l1.218-1.348"/><path d="M16 6h6"/><path d="M19 3v6"/>
+	</symbol>
+
+	<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="icon-funnel-x">
+		<path d="M12.531 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14v6a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341l.427-.473"/><path d="m16.5 3.5 5 5"/><path d="m21.5 3.5-5 5"/>
+	</symbol>
 
 	<symbol viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" id="icon-hide">
 		<rect x="3.02185" y="3.89151" width="1.26078" height="18.4481" rx="0.630391" transform="rotate(-45 3.02185 3.89151)" fill="var(--icon-stroke)"/>
