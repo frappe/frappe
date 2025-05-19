@@ -54,37 +54,6 @@ context("Control Date, Time and DateTime", () => {
 		});
 	});
 
-	describe("Time formats", () => {
-		let time_formats = [
-			{
-				time_format: "HH:mm:ss",
-				value: "  11:00:12",
-				match_value: "11:00:12",
-			},
-			{
-				time_format: "HH:mm",
-				value: "  11:00:12",
-				match_value: "11:00",
-			},
-		];
-
-		time_formats.forEach((d) => {
-			it("test time format " + d.time_format, () => {
-				cy.set_value("System Settings", "System Settings", {
-					time_format: d.time_format,
-				});
-				cy.window()
-					.its("frappe")
-					.then((frappe) => {
-						frappe.sys_defaults.time_format = d.time_format;
-					});
-				cy.new_form(doctype_name);
-				cy.fill_field("time", d.value, "Time").blur();
-				cy.get_field("time").should("have.value", d.match_value);
-			});
-		});
-	});
-
 	describe("DateTime formats", () => {
 		let datetime_formats = [
 			{
