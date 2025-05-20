@@ -103,7 +103,7 @@ type BlockInfo = {
 }
 function getBlockInfo(e: MouseEvent) {
 	const target = (e.target as HTMLElement)?.closest(".__studio_component__") as HTMLElement
-	return target?.dataset as BlockInfo
+	return (target?.dataset || {}) as BlockInfo
 }
 
 const isTextNode = (el: Element) => {

@@ -121,6 +121,7 @@
 
 <script setup lang="ts">
 import { computed, watch, ref } from "vue"
+import { Autocomplete } from "frappe-ui"
 import Block from "@/utils/block"
 
 import { getComponentProps, getComponentSlots } from "@/utils/components"

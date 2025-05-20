@@ -10,7 +10,6 @@
 			v-model="value"
 			:placeholder="placeholder || `Select ${doctype}`"
 			:options="options.data"
-			:label="label"
 			@update:query="handleQueryUpdate"
 		/>
 	</div>

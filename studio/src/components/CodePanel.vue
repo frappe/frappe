@@ -101,7 +101,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue"
-import { createListResource } from "frappe-ui"
+import { createListResource, Dialog } from "frappe-ui"
 import EmptyState from "@/components/EmptyState.vue"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
 import CodeEditor from "@/components/CodeEditor.vue"

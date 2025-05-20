@@ -159,6 +159,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue"
+import { Dialog } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
 import ObjectBrowser from "@/components/ObjectBrowser.vue"

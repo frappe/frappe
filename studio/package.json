@@ -2,6 +2,7 @@
 	"name": "studio-ui",
 	"private": true,
 	"version": "0.0.0",
+	"type": "module",
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build --base=/assets/studio/frontend/ && yarn copy-html-entry && yarn copy-app-renderer",
@@ -18,13 +19,13 @@
 		"ace-builds": "^1.36.2",
 		"autoprefixer": "^10.4.2",
 		"feather-icons": "^4.28.0",
-		"frappe-ui": "0.1.108",
+		"frappe-ui": "0.1.146",
 		"lucide-vue-next": "^0.468.0",
 		"marked": "^15.0.6",
 		"pinia": "^2.2.1",
 		"typescript": "^5.8.3",
 		"vite": "^5.4.11",
-		"vue": "^3.4.12",
+		"vue": "^3.5.14",
 		"vue-router": "^4.2.2",
 		"vue-sonner": "^1.3.0",
 		"vuedraggable": "^4.1.0"

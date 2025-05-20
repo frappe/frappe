@@ -85,7 +85,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue"
-import { FormControl, createResource } from "frappe-ui"
+import { FormControl, createResource, Dialog } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
 import EmptyState from "@/components/EmptyState.vue"
