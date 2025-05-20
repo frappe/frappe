@@ -37,7 +37,7 @@ def cprint(*args, **kwargs):
 
 def start_scheduler() -> NoReturn:
 	"""Run enqueue_events_for_all_sites based on scheduler tick.
-	Specify scheduler_interval in seconds in common_site_config.json"""
+	Specify scheduler_tick_interval in seconds in common_site_config.json"""
 
 	tick = get_scheduler_tick()
 	set_niceness()
