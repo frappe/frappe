@@ -232,11 +232,8 @@ function getPageRoute(appRoute: string, page: string) {
 onMounted(() => {
 	const componentRoot = getComponentRoot(componentRef)
 	if (componentRoot) {
-		// explicitly set data-component-id & styles for frappeui components with inheritAttrs: false
+		// explicitly set data-component-id for frappeui components with inheritAttrs: false
 		componentRoot.setAttribute("data-component-id", props.block.componentId)
-		for (const key in styles.value) {
-			componentRef.value?.$el?.style?.setProperty(key, styles.value[key])
-		}
 	}
 })
 </script>
