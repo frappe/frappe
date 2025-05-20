@@ -25,8 +25,8 @@ context("Utils", () => {
 
 		run_util("seconds_to_duration", -89, { hide_seconds: 1 }).then((duration) => {
 			expect(duration).to.deep.equal({
-				days: 0,
-				hours: 0,
+				days: -0,
+				hours: -0,
 				minutes: -1,
 				seconds: 0,
 			});
@@ -43,8 +43,8 @@ context("Utils", () => {
 
 		run_util("seconds_to_duration", -91, { hide_seconds: 1 }).then((duration) => {
 			expect(duration).to.deep.equal({
-				days: 0,
-				hours: 0,
+				days: -0,
+				hours: -0,
 				minutes: -2,
 				seconds: 0,
 			});
@@ -89,7 +89,7 @@ context("Utils", () => {
 			hide_seconds: 1,
 		}).then((duration) => {
 			expect(duration).to.deep.equal({
-				days: 0,
+				days: -0,
 				hours: -25,
 				minutes: -1,
 				seconds: 0,
