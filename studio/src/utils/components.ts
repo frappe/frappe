@@ -15,6 +15,11 @@ const componentTypes = jsonTypes as ComponentTypes
 function getComponentProps(componentName: string) {
 	const props = components.getProps(componentName)
 	if (!props) return {}
+
+	if ("modelModifiers" in props) {
+		delete props.modelModifiers
+	}
+
 	const propsConfig: ComponentProps = {}
 
 	if (Array.isArray(props)) {
