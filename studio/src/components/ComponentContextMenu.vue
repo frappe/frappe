@@ -8,7 +8,7 @@
 			:options="contextMenuOptions"
 			@select="handleContextMenuSelect"
 		/>
-		<FormDialog v-model="showFormDialog" :block="block" />
+		<FormDialog v-model:showDialog="showFormDialog" :block="block" />
 	</div>
 </template>
 

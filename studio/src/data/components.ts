@@ -233,7 +233,7 @@ export const COMPONENTS: FrappeUIComponents = {
 			},
 		},
 		editInFragmentMode: true,
-		proxyComponent: defineAsyncComponent(() => import("@/components/ProxyComponents/Dialog.vue")),
+		proxyComponent: defineAsyncComponent(() => import("@/components/ProxyComponents/ProxyDialog.vue")),
 	},
 	Divider: {
 		name: "Divider",
