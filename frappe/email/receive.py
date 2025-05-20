@@ -27,6 +27,7 @@ from frappe.utils import (
 	cint,
 	convert_utc_to_system_timezone,
 	cstr,
+	escape_html,
 	extract_email_id,
 	get_datetime,
 	get_string_between,
@@ -36,7 +37,6 @@ from frappe.utils import (
 	sanitize_html,
 	strip,
 )
-from frappe.utils.html_utils import clean_email_html
 from frappe.utils.user import is_system_user
 
 # fix due to a python bug in poplib that limits it to 2048
@@ -457,7 +457,7 @@ class Email:
 	def set_content_and_type(self):
 		self.content, self.content_type = "[Blank Email]", "text/plain"
 		if self.html_content:
-			self.content, self.content_type = self.html_content, "text/html"
+			self.content, self.content_type = self.html_content.strip(), "text/html"
 		else:
 			self.content, self.content_type = (
 				EmailReplyParser.read(self.text_content).text.replace("\n", "\n\n"),
@@ -615,8 +615,17 @@ class InboundMail(Email):
 		self.flags = frappe._dict()
 
 	def get_content(self):
+		"""
+		When we ingest HTML mail, run it through our full-document
+		sanitizer so that <head>, <style> and all entities are
+		preserved, but scripts and XSS vectors are stripped.
+		"""
 		if self.content_type == "text/html":
-			return clean_email_html(self.content)
+			# linkify=False because this is already HTML;
+			# always_sanitize=False so JSON/plain-text short-circuits don't apply.
+			return sanitize_html(self.content, linkify=False, always_sanitize=False)
+		# fallback to text
+		return escape_html(self.text_content or "")
 
 	def process(self):
 		"""Create communication record from email."""
@@ -668,16 +677,26 @@ class InboundMail(Email):
 
 		# save attachments
 		communication._attachments = self.save_attachments_in_doc(communication)
-		communication.content = sanitize_html(self.replace_inline_images(communication._attachments))
+		# we already sanitized the full-document HTML in get_content(),
+		# so just swap out cid: URLs in that sanitized HTML
+		original = communication.content or ""
+		content = self.replace_inline_images(original, communication._attachments)
+		# ensure no raw `cid:` remains
+		content = re.sub(r'cid:[^\'"\s>]+', "", content)
+		communication.content = content
 		communication.save()
 		return communication
 
-	def replace_inline_images(self, attachments):
-		# replace inline images
-		content = self.content
+	def replace_inline_images(self, html, attachments):
+		"""
+		Take a fully sanitized HTML string + attachments list,
+		replace any cid:<…> references with the File URLs.
+		"""
+		content = html or ""
 		for file in attachments:
-			if self.cid_map.get(file.name):
-				content = content.replace(f"cid:{self.cid_map[file.name]}", file.unique_url)
+			cid = self.cid_map.get(file.name)
+			if cid:
+				content = content.replace(f"cid:{cid}", file.unique_url)
 		return content
 
 	def is_notification(self):
@@ -861,7 +880,7 @@ class InboundMail(Email):
 	def clean_subject(subject):
 		"""Remove Prefixes like 'fw', FWD', 're' etc from subject."""
 		# Match strings like "fw:", "re	:" etc.
-		regex = r"(^\s*(fw|fwd|wg)[^:]*:|\s*(re|aw)[^:]*:\s*)*"
+		regex = r"(^\s*(fw|fwd|wg)[\[\]().\- ]*[^:]*:|\s*(re|aw)[\[\]().\- ]*[^:]*:\s*)*"
 		return frappe.as_unicode(strip(re.sub(regex, "", subject, count=0, flags=re.IGNORECASE)))
 
 	@staticmethod

@@ -5,6 +5,7 @@ import base64
 import calendar
 import datetime
 import hashlib
+import html
 import json
 import math
 import operator
@@ -1515,19 +1516,76 @@ def strip_html(text: str) -> str:
 	return _striptags_re.sub("", text)
 
 
-def escape_html(text: str) -> str:
+# precompile the regex that finds every space
+# which is followed by another space → to preserve runs of spaces
+_SPACE_RE = re.compile(r" (?= )")
+
+
+def escape_html(
+	text: Any,
+	*,
+	quote: bool = True,
+	preserve_spaces: bool = True,
+	preserve_tabs: bool = True,
+	tab_size: int = 4,
+	newline_to_br: bool = True,
+) -> Any:
+	"""
+	Convert plain text into HTML-safe text, preserving whitespace structure.
+
+	1. Escape HTML-significant chars via html.escape:
+	     &   → &amp;
+	     <   → &lt;
+	     >   → &gt;
+	     "   → &quot;    (if quote=True)
+	     '   → &#x27;    (if quote=True)
+
+	2. preserve_tabs=True   → each '\t' → tab_size x '&nbsp;'.
+
+	3. preserve_spaces=True → runs of spaces → ' &nbsp; &nbsp;…'.
+
+	4. newline_to_br=True   → CRLF/CR/LF → `<br/>\n`.
+
+	Non-str inputs (None, ints, etc.) are returned unchanged.
+
+	:param text:            value to convert
+	:param quote:           escape both " and ' when True (default True)
+	:param preserve_spaces: preserve multiple spaces via &nbsp; (default True)
+	:param preserve_tabs:   preserve tabs via non-breaking spaces (default False)
+	:param tab_size:        number of &nbsp; per tab (default 4)
+	:param newline_to_br:   convert newlines to `<br/>\n` (default True)
+	:return: HTML-safe string or original non-str
+
+	Examples:
+	    >>> escape_html("Hello\tWorld", preserve_tabs=True)
+	    'Hello&nbsp;&nbsp;&nbsp;&nbsp;World'
+
+	    >>> escape_html("  two spaces", preserve_spaces=True)
+	    '&nbsp; two spaces'
+
+	    >>> escape_html("Line1\nLine2", newline_to_br=True)
+	    'Line1<br/>\\nLine2'
+	"""
 	if not isinstance(text, str):
 		return text
 
-	html_escape_table = {
-		"&": "&amp;",
-		'"': "&quot;",
-		"'": "&apos;",
-		">": "&gt;",
-		"<": "&lt;",
-	}
+	# 1) Core escaping
+	escaped = html.escape(text, quote=quote)
 
-	return "".join(html_escape_table.get(c, c) for c in text)
+	# 2) Optional tab → &nbsp;*tab_size
+	if preserve_tabs:
+		escaped = escaped.replace("\t", "&nbsp;" * tab_size)
+
+	# 3) preserve runs of spaces
+	if preserve_spaces:
+		escaped = _SPACE_RE.sub("&nbsp;", escaped)
+
+	# 4) convert newlines to <br/>
+	if newline_to_br:
+		lf = escaped.replace("\r\n", "\n").replace("\r", "\n")
+		escaped = lf.replace("\n", "<br/>")
+
+	return escaped.strip()
 
 
 def pretty_date(iso_datetime: datetime.datetime | str) -> str:

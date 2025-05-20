@@ -33,33 +33,58 @@ frappe.dom = {
 		document.getElementsByTagName("head")[0].appendChild(el);
 	},
 	remove_script_and_style: function (txt) {
-		const evil_tags = ["script", "style", "noscript", "title", "meta", "base", "head"];
-		const parser = new DOMParser();
-		const doc = parser.parseFromString(txt, "text/html");
-		const body = doc.body;
-		let found = !!doc.head.innerHTML;
-
-		for (const tag of evil_tags) {
-			for (const element of body.getElementsByTagName(tag)) {
-				found = true;
-				element.parentNode.removeChild(element);
-			}
-		}
-
-		for (const element of body.getElementsByTagName("link")) {
-			const relation = element.getAttribute("rel");
-			if (relation && relation.toLowerCase().trim() === "stylesheet") {
-				found = true;
-				element.parentNode.removeChild(element);
-			}
-		}
-
-		if (found) {
-			return body.innerHTML;
-		} else {
-			// don't disturb
+		// drop out early if not a non-empty string
+		if (typeof txt !== "string" || !txt.trim()) {
 			return txt;
 		}
+
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(txt, "text/html");
+		let removed = 0;
+
+		// Remove all <script>, <style>, <noscript>, <title>, <meta>, <base> & <head>
+		Array.from(
+			doc.querySelectorAll("script, style, noscript, title, meta, base, head")
+		).forEach((node) => {
+			node.parentNode && node.remove();
+			removed++;
+		});
+
+		// Remove only <link rel="stylesheet">
+		Array.from(doc.querySelectorAll("link[rel]")).forEach((link) => {
+			if (link.getAttribute("rel").toLowerCase().trim() === "stylesheet") {
+				link.parentNode && link.remove();
+				removed++;
+			}
+		});
+
+		// If we stripped anything, return the cleaned fragment
+		if (removed) {
+			return doc.body.innerHTML;
+		}
+
+		// Otherwise, leave it untouched
+		return txt;
+	},
+	remove_script: function (txt) {
+		// drop out early if not a non-empty string
+		if (typeof txt !== "string" || !txt.trim()) {
+			return txt;
+		}
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(txt, "text/html");
+		let removed = 0;
+		// Remove all <script>, <noscript>, <title>
+		Array.from(doc.querySelectorAll("script, noscript, title")).forEach((node) => {
+			node.parentNode && node.remove();
+			removed++;
+		});
+		// If we stripped anything, return the cleaned fragment
+		if (removed) {
+			return doc.body.innerHTML;
+		}
+		// Otherwise, leave it untouched
+		return txt;
 	},
 	is_element_in_viewport: function (el, tolerance = 0) {
 		//special bonus for those using jQuery
@@ -234,7 +259,7 @@ frappe.dom = {
 	},
 	pixel_to_inches(pixels) {
 		const div = $(
-			'<div id="dpi" style="height: 1in; width: 1in; left: 100%; position: fixed; top: 100%;"></div>'
+			'<div id="dpi" style="height:1in;width:1in;position:fixed;top:100%;left:100%;"></div>'
 		);
 		div.appendTo(document.body);
 
@@ -243,6 +268,65 @@ frappe.dom = {
 		div.remove();
 
 		return inches;
+	},
+
+	create_shadow_element: function (wrapper, html = "", title) {
+		// 1) Parse the incoming HTML and extract inline <script> content
+		const parser = new DOMParser();
+		const rawDoc = parser.parseFromString(html, "text/html");
+		const scripts = Array.from(rawDoc.querySelectorAll("script"))
+			.map((s) => s.textContent)
+			.join("\n");
+
+		// 2) Strip out all scripts
+		const fragment = frappe.dom.remove_script(html).trim();
+		// const fragment = html
+		if (!fragment) {
+			wrapper.innerHTML = "";
+			return;
+		}
+		wrapper.innerHTML = "";
+
+		// 3) Generate a unique, dash-containing tag name for a Custom Element
+		const tagName = "custom-block-" + frappe.dom.get_unique_id();
+
+		// 4) Define the Custom Element class
+		class CustomBlock extends HTMLElement {
+			constructor() {
+				super();
+				const shadow = this.attachShadow({ mode: "open" });
+
+				shadow.innerHTML = fragment;
+
+				// TODO: ask user if external sources are allowed
+				// if (scripts) {
+				//     const scriptEl = document.createElement('script');
+				//     scriptEl.textContent = scripts;
+				//     shadow.appendChild(scriptEl);
+				// }
+			}
+		}
+
+		// 5) Register the element (if not already defined)
+		if (!customElements.get(tagName)) {
+			customElements.define(tagName, CustomBlock);
+		}
+
+		// 6) Instantiate and style the host to limit its viewport to the parent
+		const el = document.createElement(tagName);
+		if (title) {
+			el.setAttribute("title", title);
+		}
+		Object.assign(el.style, {
+			display: "block",
+			maxWidth: "100%",
+			maxHeight: "100%",
+			overflow: "auto",
+		});
+
+		// 7) Insert into the wrapper
+		wrapper.appendChild(el);
+		return el;
 	},
 };
 

@@ -1,30 +1,35 @@
 import json
 import re
 
+import bleach
+from bleach.css_sanitizer import CSSSanitizer
 from bleach_allowlist import bleach_allowlist
+from bs4 import BeautifulSoup, Comment, NavigableString
 
 import frappe
 from frappe.utils.data import escape_html
 
 EMOJI_PATTERN = re.compile(
-	"(\ud83d[\ude00-\ude4f])|"
-	"(\ud83c[\udf00-\uffff])|"
-	"(\ud83d[\u0000-\uddff])|"
-	"(\ud83d[\ude80-\udeff])|"
-	"(\ud83c[\udde0-\uddff])"
-	"+",
+	r"(\ud83d[\ude00-\ude4f])|"
+	r"(\ud83c[\udf00-\uffff])|"
+	r"(\ud83d[\u0000-\uddff])|"
+	r"(\ud83d[\ude80-\udeff])|"
+	r"(\ud83c[\udde0-\uddff])+",
 	flags=re.UNICODE,
 )
 
 
 def clean_html(html):
-	import bleach
-
+	"""
+	Light-weight HTML sanitization for user-generated fragments:
+	strips scripts/styles, allows a small set of tags, removes comments.
+	"""
 	if not isinstance(html, str):
 		return html
 
+	fragment = clean_script_and_style(html)
 	return bleach.clean(
-		clean_script_and_style(html),
+		fragment,
 		tags={
 			"div",
 			"p",
@@ -43,16 +48,17 @@ def clean_html(html):
 			"td",
 			"tr",
 		},
-		attributes=[],
+		attributes={},
 		strip=True,
 		strip_comments=True,
 	)
 
 
 def clean_email_html(html):
-	import bleach
-	from bleach.css_sanitizer import CSSSanitizer
-
+	"""
+	Email-safe HTML sanitization:
+	strips scripts/styles, allows common email tags + inline CSS properties.
+	"""
 	if not isinstance(html, str):
 		return html
 
@@ -92,8 +98,9 @@ def clean_email_html(html):
 		]
 	)
 
+	fragment = clean_script_and_style(html)
 	return bleach.clean(
-		clean_script_and_style(html),
+		fragment,
 		tags={
 			"div",
 			"p",
@@ -132,99 +139,175 @@ def clean_email_html(html):
 	)
 
 
-def clean_script_and_style(html):
-	# remove script and style
-	from bs4 import BeautifulSoup
+def clean_script_and_style(html: str, features="html5lib") -> str:
+	"""
+	Remove all <script> and <style> tags via html5lib parsing by default.
+	Preserves other tags and text exactly.
+	"""
+	soup = BeautifulSoup(html, features)
+	for tag in soup(["script", "style"]):
+		tag.decompose()
+	return frappe.as_unicode(soup)
 
-	soup = BeautifulSoup(html, "html5lib")
-	for s in soup(["script", "style"]):
-		s.decompose()
+
+def clean_script(html: str, features="html5lib") -> str:
+	"""
+	Remove all <script> tags via html5lib parsing by default.
+	Preserves other tags and text exactly.
+	"""
+	soup = BeautifulSoup(html, features)
+	for tag in soup(["script"]):
+		tag.decompose()
 	return frappe.as_unicode(soup)
 
 
 def sanitize_html(html, linkify=False, always_sanitize=False):
 	"""
-	Sanitize HTML tags, attributes and style to prevent XSS attacks
-	Based on bleach clean, bleach whitelist and html5lib's Sanitizer defaults
+	Comprehensive HTML sanitization for DB storage:
 
-	Does not sanitize JSON unless explicitly specified, as it could lead to future problems
+	1) Full documents (<!DOCTYPE> or <html>): strip <script>, remove comments,
+	   preserve <head>, <style>, entities; re-serialize with entities intact.
+	2) Plain text or JSON: returned unchanged (unless always_sanitize=True).
+	3) HTML fragments: bleach.clean → optional linkify → remove comments →
+	   re-serialize with entities intact.
 	"""
-	import bleach
-	from bleach.css_sanitizer import CSSSanitizer
-	from bs4 import BeautifulSoup
-
 	if not isinstance(html, str):
 		return html
 
+	stripped = html.lstrip().lower()
+
+	# --- 1) FULL DOCUMENT FLOW ---
+	if (
+		stripped.startswith("<!doctype")
+		or stripped.startswith("<html")
+		or (len(html.splitlines()) > 1 and html.splitlines()[1].strip().lower().startswith("<!doctype"))
+	):
+		# parse with html5lib for spec-correct DOM
+		soup = BeautifulSoup(html, "html5lib")
+
+		# remove <script>
+		for tag in soup(["script"]):
+			tag.decompose()
+
+		# strip HTML comments
+		for comment in soup.find_all(string=lambda t: isinstance(t, Comment)):
+			comment.extract()
+
+		# remove pure-whitespace text nodes at top level
+		for text_node in soup.find_all(string=lambda t: isinstance(t, NavigableString) and not t.strip()):
+			text_node.extract()
+
+		# serialize with entities intact
+		return soup.decode(formatter="html5")
+
+	# --- 2) SHORT-CIRCUIT: JSON or no tags ---
 	if not always_sanitize:
-		if is_json(html):
+		try:
+			json.loads(html)
+			return html
+		except ValueError:
+			pass
+
+		# if no tags at all, leave untouched
+		if not BeautifulSoup(html, "html.parser").find():
 			return html
 
-		if not bool(BeautifulSoup(html, "html.parser").find()):
-			return html
+	# Strip script tags
+	html = clean_script_and_style(html, features="html.parser")
 
-	tags = (
-		acceptable_elements
-		+ svg_elements
-		+ mathml_elements
-		+ ["html", "head", "meta", "link", "body", "style", "o:p"]
-	)
+	# --- 3) FRAGMENT SANITIZATION FLOW ---
+	allowed_tags = set(acceptable_elements) | set(svg_elements) | set(mathml_elements)
+	allowed_tags |= {"html", "head", "meta", "link", "body", "style", "o:p"}
 
-	def attributes_filter(tag, name, value):
-		if name.startswith("data-"):
+	def _attr_filter(tag, name, value):
+		nl = name.lower()
+		# disallow JS events
+		if nl.startswith("on"):
+			return False
+		# allow data-* and xmlns-*
+		if nl.startswith("data-") or nl.startswith("xmlns"):
 			return True
-		return name in acceptable_attributes
+		# allow explicitly allowed attributes
+		if nl in acceptable_attributes or nl in {"http-equiv", "emogrify"}:
+			return True
+		return False
 
-	attributes = {"*": attributes_filter, "svg": svg_attributes}
+	attributes = {"*": _attr_filter, "svg": svg_attributes}
+
 	css_sanitizer = CSSSanitizer(allowed_css_properties=bleach_allowlist.all_styles)
 
-	# returns html with escaped tags, escaped orphan >, <, etc.
-	escaped_html = bleach.clean(
+	cleaned = bleach.clean(
 		html,
-		tags=tags,
+		tags=allowed_tags,
 		attributes=attributes,
 		css_sanitizer=css_sanitizer,
-		strip_comments=False,
-		protocols={"cid", "http", "https", "mailto"},
+		protocols={"cid", "http", "https", "mailto", "data"},
+		strip=True,
+		strip_comments=True,
 	)
 
-	return escaped_html
+	if linkify:
+		cleaned = bleach.linkify(cleaned)
+
+	# re-parse fragments with fast html.parser
+	fragment = BeautifulSoup(cleaned, "html.parser")
+	output_parts = []
+
+	for node in fragment.contents:
+		if isinstance(node, NavigableString):
+			text = str(node)
+			# skip if it`s just spaces/newlines
+			if not text.strip():
+				continue
+			output_parts.append(text.strip())
+		else:
+			# for each element, strip comments under it then re-serialize
+			for comment in node.find_all(string=lambda t: isinstance(t, Comment)):
+				comment.extract()
+			# use minimal escaping for readability
+			output_parts.append(node.decode(formatter="minimal"))
+
+	return "".join(output_parts)
 
 
 def is_json(text):
+	"""Return True if text is valid JSON."""
 	try:
 		json.loads(text)
 	except ValueError:
 		return False
-	else:
-		return True
+	return True
 
 
 def get_icon_html(icon, small=False):
+	"""
+	Return HTML for emoji, image or <i> tag, safe-escaped.
+	"""
 	from frappe.utils import is_image
 
 	icon = icon or ""
-
 	if icon and EMOJI_PATTERN.match(icon):
 		return f'<span class="text-muted">{icon}</span>'
 
 	if is_image(icon):
-		return (
-			f"<img style='width: 16px; height: 16px;' src={escape_html(icon)!r}>"
-			if small
-			else f"<img src={escape_html(icon)!r}>"
-		)
-	else:
-		return f"<i class={escape_html(icon)!r}></i>"
+		tag = f"<img src={escape_html(icon)!r}"
+		if small:
+			tag += " style='width:16px;height:16px;'"
+		tag += ">"
+		return tag
+
+	return f"<i class={escape_html(icon)!r}></i>"
 
 
 def unescape_html(value):
+	"""Convert HTML entities back to unicode characters."""
 	from html import unescape
 
 	return unescape(value)
 
 
 # adapted from https://raw.githubusercontent.com/html5lib/html5lib-python/4aa79f113e7486c7ec5d15a6e1777bfe546d3259/html5lib/sanitizer.py
+
 acceptable_elements = [
 	"a",
 	"abbr",
@@ -567,8 +650,6 @@ mathml_attributes = [
 	"actiontype",
 	"align",
 	"columnalign",
-	"columnalign",
-	"columnalign",
 	"columnlines",
 	"columnspacing",
 	"columnspan",
@@ -587,12 +668,9 @@ mathml_attributes = [
 	"mathbackground",
 	"mathcolor",
 	"mathvariant",
-	"mathvariant",
 	"maxsize",
 	"minsize",
 	"other",
-	"rowalign",
-	"rowalign",
 	"rowalign",
 	"rowlines",
 	"rowspacing",
@@ -602,7 +680,6 @@ mathml_attributes = [
 	"selection",
 	"separator",
 	"stretchy",
-	"width",
 	"width",
 	"xlink:href",
 	"xlink:show",

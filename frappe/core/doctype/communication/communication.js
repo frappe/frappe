@@ -1,8 +1,5 @@
 frappe.ui.form.on("Communication", {
 	onload: function (frm) {
-		if (frm.doc.content) {
-			frm.doc.content = frappe.dom.remove_script_and_style(frm.doc.content);
-		}
 		frm.set_query("reference_doctype", function () {
 			return {
 				filters: {
@@ -22,6 +19,20 @@ frappe.ui.form.on("Communication", {
 		// this field is not to be edited directly anyway, so setting it as read only
 		frm.set_df_property("content", "read_only", 1);
 
+		// --- sandbox the email HTML in an accessible iframe ---
+		if (frm.doc.content) {
+			// get the field wrapper (a DOM element, not a jQuery object)
+			let wrapper = frm.get_field("content").wrapper;
+			// if somehow it’s a jQuery object, unwrap it
+			if (wrapper) {
+				if (wrapper.jquery) wrapper = wrapper[0];
+				wrapper.innerHTML = "";
+				// inject the full email HTML into a sandboxed iframe with title="Email preview"
+				frappe.dom.create_shadow_element(wrapper, frm.doc.content, "Email preview");
+			}
+		}
+
+		// link back to the referenced document
 		if (frm.doc.reference_doctype && frm.doc.reference_name) {
 			frm.add_custom_button(__(frm.doc.reference_name), function () {
 				frappe.set_route("Form", frm.doc.reference_doctype, frm.doc.reference_name);
