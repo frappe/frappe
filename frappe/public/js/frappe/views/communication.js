@@ -929,7 +929,6 @@ frappe.views.CommunicationComposer = class {
 		const last_email = this.last_email || (this.frm && this.frm.timeline.get_last_email(true));
 
 		if (!last_email) return "";
-		console.log("Text", last_email.text_content);
 
 		var last_email_content = "";
 		if (last_email.text_content) last_email_content = last_email.text_content;
