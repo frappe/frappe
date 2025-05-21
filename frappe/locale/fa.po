@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-05-18 02:43\n"
+"PO-Revision-Date: 2025-05-21 02:31\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -13671,7 +13671,7 @@ msgstr "LDAP فعال نیست."
 #. Label of a Data field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP search path for Groups"
-msgstr "مسیر جستجوی LDAP برای گروه ها"
+msgstr "مسیر جستجوی LDAP برای گروه‌ها"
 
 #. Label of a Data field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -17069,7 +17069,7 @@ msgstr "تعداد بک آپ های DB نمی‌تواند کمتر از 1 با�
 #. Label of a Int field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Number of Groups"
-msgstr "تعداد گروه ها"
+msgstr "تعداد گروه‌ها"
 
 #. Label of a Int field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
@@ -20038,11 +20038,11 @@ msgstr "دلیل"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:823
 msgid "Rebuild"
-msgstr "بازسازی کنید"
+msgstr "بازسازی"
 
 #: frappe/public/js/frappe/views/treeview.js:475
 msgid "Rebuild Tree"
-msgstr "درخت را بازسازی کنید"
+msgstr "بازسازی درخت"
 
 #: frappe/utils/nestedset.py:181
 msgid "Rebuilding of tree is not supported for {}"
@@ -20972,7 +20972,7 @@ msgstr "نیاز به گواهی مورد اعتماد"
 #. 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Requires any valid fdn path. i.e. ou=groups,dc=example,dc=com"
-msgstr "به هر مسیر fdn معتبر نیاز دارد. یعنی ou=گروه ها،dc=example,dc=com"
+msgstr "به هر مسیر fdn معتبر نیاز دارد. یعنی ou=گروه‌ها،dc=example,dc=com"
 
 #. Description of the 'LDAP search path for Users' (Data) field in DocType
 #. 'LDAP Settings'
@@ -27280,7 +27280,7 @@ msgstr "استفاده از POST"
 #. Label of a Check field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Use Report Chart"
-msgstr "از نمودار گزارش استفاده کنید"
+msgstr "استفاده از نمودار گزارش"
 
 #. Label of a Check field in DocType 'Email Account'
 #. Label of a Check field in DocType 'Email Domain'
