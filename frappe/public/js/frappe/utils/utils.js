@@ -1689,9 +1689,6 @@ Object.assign(frappe.utils, {
 
 	debug: {
 		watch_property(obj, prop, callback = console.trace) {
-			if (!frappe.boot.developer_mode) {
-				return;
-			}
 			console.warn("Adding property watcher, make sure to remove it after debugging.");
 
 			// Adapted from https://stackoverflow.com/a/11658693
