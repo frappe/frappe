@@ -20,7 +20,7 @@ def get_context(context, **dict_params):
 	frappe.local.form_dict.limit = cint(frappe.local.form_dict.limit, 20)
 	doctype = frappe.local.form_dict.doctype
 	if not doctype:
-		frappe.throw("No DocType", exc=frappe.PageDoesNotExistError)
+		frappe.throw(_("No DocType"), exc=frappe.PageDoesNotExistError)
 	context.parents = [{"route": "me", "title": _("My Account")}]
 	context.meta = frappe.get_meta(doctype)
 	context.update(get_list_context(context, doctype) or {})
