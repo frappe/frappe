@@ -17,7 +17,8 @@
 		</Transition>
 
 		<div
-			class="fixed flex h-full gap-40"
+			class="fixed flex gap-40"
+			:class="canvasStore.editingMode === 'page' ? 'h-full': ''"
 			ref="canvas"
 			:style="{
 				transformOrigin: 'top center',
@@ -92,6 +93,7 @@ import StudioComponent from "@/components/StudioComponent.vue"
 import FitScreenIcon from "@/components/Icons/FitScreenIcon.vue"
 
 import useStudioStore from "@/stores/studioStore"
+import useCanvasStore from "@/stores/canvasStore"
 import { getBlockCopy, getBlockInfo } from "@/utils/helpers"
 import setPanAndZoom from "@/utils/panAndZoom"
 import Block from "@/utils/block"
@@ -112,6 +114,7 @@ const props = defineProps({
 	},
 })
 const store = useStudioStore()
+const canvasStore = useCanvasStore()
 
 const canvasContainer = ref(null)
 const canvas = ref<HTMLElement | null>(null)
