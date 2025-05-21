@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-05-18 09:33+0000\n"
-"PO-Revision-Date: 2025-05-19 07:02\n"
+"PO-Revision-Date: 2025-05-21 07:30\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -13912,7 +13912,7 @@ msgstr "LDAP فعال نیست."
 #. Label of the ldap_search_path_group (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP search path for Groups"
-msgstr "مسیر جستجوی LDAP برای گروه ها"
+msgstr "مسیر جستجوی LDAP برای گروه‌ها"
 
 #. Label of the ldap_search_path_user (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -17384,7 +17384,7 @@ msgstr "تعداد بک آپ های DB نمی‌تواند کمتر از 1 با�
 #. Label of the number_of_groups (Int) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Number of Groups"
-msgstr "تعداد گروه ها"
+msgstr "تعداد گروه‌ها"
 
 #. Label of the number_of_queries (Int) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
@@ -20425,11 +20425,11 @@ msgstr "دلیل"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:889
 msgid "Rebuild"
-msgstr "بازسازی کنید"
+msgstr "بازسازی"
 
 #: frappe/public/js/frappe/views/treeview.js:509
 msgid "Rebuild Tree"
-msgstr "درخت را بازسازی کنید"
+msgstr "بازسازی درخت"
 
 #: frappe/utils/nestedset.py:177
 msgid "Rebuilding of tree is not supported for {}"
@@ -21021,7 +21021,7 @@ msgstr ""
 #: frappe/core/doctype/communication/communication.js:43
 #: frappe/desk/doctype/todo/todo.js:36
 msgid "Reopen"
-msgstr "دوباره باز کنید"
+msgstr "باز کردن دوباره"
 
 #: frappe/public/js/frappe/form/toolbar.js:544
 msgid "Repeat"
@@ -21402,7 +21402,7 @@ msgstr "نیاز به گواهی مورد اعتماد"
 #. 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Requires any valid fdn path. i.e. ou=groups,dc=example,dc=com"
-msgstr "به هر مسیر fdn معتبر نیاز دارد. یعنی ou=گروه ها،dc=example,dc=com"
+msgstr "به هر مسیر fdn معتبر نیاز دارد. یعنی ou=گروه‌ها،dc=example,dc=com"
 
 #. Description of the 'LDAP search path for Users' (Data) field in DocType
 #. 'LDAP Settings'
@@ -27774,7 +27774,7 @@ msgstr "استفاده از POST"
 #. Label of the use_report_chart (Check) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Use Report Chart"
-msgstr "از نمودار گزارش استفاده کنید"
+msgstr "استفاده از نمودار گزارش"
 
 #. Label of the use_ssl (Check) field in DocType 'Email Account'
 #. Label of the use_ssl_for_outgoing (Check) field in DocType 'Email Account'
