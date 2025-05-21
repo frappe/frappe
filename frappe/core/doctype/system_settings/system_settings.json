@@ -104,7 +104,9 @@
   "allow_error_traceback",
   "enable_telemetry",
   "search_section",
-  "link_field_results_limit"
+  "link_field_results_limit",
+  "api_logging_section",
+  "log_api_requests"
  ],
  "fields": [
   {
@@ -707,12 +709,23 @@
    "fieldname": "max_report_rows",
    "fieldtype": "Int",
    "label": "Max Report Rows"
+  },
+  {
+   "fieldname": "api_logging_section",
+   "fieldtype": "Section Break",
+   "label": "API Logging"
+  },
+  {
+   "default": "0",
+   "fieldname": "log_api_requests",
+   "fieldtype": "Check",
+   "label": "Log API Requests"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2025-05-19 14:17:40.748786",
+ "modified": "2025-05-21 17:03:23.310169",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
