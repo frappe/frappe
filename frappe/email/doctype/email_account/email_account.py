@@ -584,7 +584,9 @@ class EmailAccount(Document):
 				pass
 
 	def set_failed_attempts_count(self, value):
-		frappe.cache.set_value(f"{self.name}:email-account-failed-attempts", value)
+		frappe.cache.set_value(
+			f"{self.name}:email-account-failed-attempts", value, expires_in_sec=2 * 60 * 60
+		)
 
 	def get_failed_attempts_count(self):
 		return cint(frappe.cache.get_value(f"{self.name}:email-account-failed-attempts"))
