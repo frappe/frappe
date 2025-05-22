@@ -71,6 +71,17 @@ frappe.ui.form.ControlMultiSelectPills = class ControlMultiSelectPills extends (
 			return all_rows_except_last;
 		}
 
+		// check if value is in allowed options
+		const valid_options = this.df.options || [];
+		if (valid_options.length > 0) {
+			const is_valid = valid_options.some(
+				(option) => option.value === last_value || option === last_value
+			);
+			if (!is_valid) {
+				return all_rows_except_last;
+			}
+		}
+
 		return rows;
 	}
 
