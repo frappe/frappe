@@ -346,14 +346,37 @@ def has_user_permission(doc, user=None, debug=False):
 		# if allowed_docs is empty it states that there is no applicable permission under the current doctype
 
 		# only check if allowed_docs is not empty
-		if allowed_docs and str(docname) not in allowed_docs:
-			# no user permissions for this doc specified
-			debug and _debug_log(
-				"User doesn't have access to this document because of User Permissions, allowed documents: "
-				+ str(allowed_docs)
-			)
-			push_perm_check_log(_("Not allowed for {0}: {1}").format(_(doctype), docname), debug=debug)
-			return False
+		if allowed_docs:
+			condition = True
+			if doc.meta.is_tree and ptype == "create":
+				if parent := doc.get(doc.nsm_parent_field):
+					from frappe.utils.nestedset import get_ancestors_of
+
+					for d in [parent, *get_ancestors_of(doctype, parent)]:
+						if d in allowed_docs:
+							try:
+								up = frappe.get_doc(
+									"User Permission",
+									{"allow": doctype, "for_value": d, "user": user},
+									fields=["hide_descendants"],
+								)
+							except frappe.DoesNotExistError:
+								frappe.clear_last_message()
+								continue
+							if not up.hide_descendants:
+								condition = False
+								break
+			else:
+				condition = str(docname) not in allowed_docs
+
+			if condition:
+				# no user permissions for this doc specified
+				debug and _debug_log(
+					"User doesn't have access to this document because of User Permissions, allowed documents: "
+					+ str(allowed_docs)
+				)
+				push_perm_check_log(_("Not allowed for {0}: {1}").format(_(doctype), docname), debug=debug)
+				return False
 		else:
 			debug and _debug_log(f"User Has access to {docname} via User Permissions.")
 
